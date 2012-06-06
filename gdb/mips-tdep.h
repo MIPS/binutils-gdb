@@ -113,9 +113,25 @@ struct gdbarch_tdep
   int register_size_valid_p;
   int register_size;
 
+  /* The size of floating-point registers determined at the run time.
+     This corresponds to CP0 Status register's bit FR setting if
+     implemented unless fixed_p is set.  */
+  int fp_register_size_fixed_p;
+  int fp_register_size;
+
   /* Return the expected next PC if FRAME is stopped at a syscall
      instruction.  */
   CORE_ADDR (*syscall_next_pc) (struct frame_info *frame);
+};
+
+/* MIPS specific per-architecture initialization information.  */
+struct gdbarch_tdep_info
+{
+  /* Target description data.  */
+  struct tdesc_arch_data *tdesc_data;
+
+  /* The size of floating-point registers determined at the run time.  */
+  int fp_register_size;
 };
 
 /* Register numbers of various important registers.  */

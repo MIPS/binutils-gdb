@@ -1644,7 +1644,6 @@ mips_linux_init_abi (struct gdbarch_info info,
 {
   struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
   enum mips_abi abi = mips_abi (gdbarch);
-  struct tdesc_arch_data *tdesc_data = (void *) info.tdep_info;
 
   linux_init_abi (info, gdbarch);
 
@@ -1734,8 +1733,9 @@ mips_linux_init_abi (struct gdbarch_info info,
 				    mips_gdb_signal_to_target);
 
   tdep->syscall_next_pc = mips_linux_syscall_next_pc;
+  tdep->fp_register_size_fixed_p = 1;
 
-  if (tdesc_data)
+  if (info.tdep_info->tdesc_data)
     {
       const struct tdesc_feature *feature;
 
@@ -1750,8 +1750,8 @@ mips_linux_init_abi (struct gdbarch_info info,
       feature = tdesc_find_feature (info.target_desc,
 				    "org.gnu.gdb.mips.linux");
       if (feature != NULL)
-	tdesc_numbered_register (feature, tdesc_data, MIPS_RESTART_REGNUM,
-				 "restart");
+	tdesc_numbered_register (feature, info.tdep_info->tdesc_data,
+				 MIPS_RESTART_REGNUM, "restart");
     }
 }
 
