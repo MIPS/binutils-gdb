@@ -75,7 +75,7 @@ enum
 
     MIPS_LINUX_SIGRTMIN = 32,
     MIPS_LINUX_SIGRT64 = 64,
-    MIPS_LINUX_SIGRTMAX = 127,
+    MIPS_LINUX_SIGRTMAX = 128,
   };
 
 /* Figure out where the longjmp will land.
@@ -1626,9 +1626,11 @@ mips_gdb_signal_from_target (struct gdbarch *gdbarch, int signal)
       else if (offset < 32)
 	return (enum gdb_signal) (offset - 1
 				  + (int) GDB_SIGNAL_REALTIME_33);
-      else
+      else if (offset < 128)
 	return (enum gdb_signal) (offset - 32
 				  + (int) GDB_SIGNAL_REALTIME_64);
+      else
+	return GDB_SIGNAL_REALTIME_128;
     }
 
   return linux_gdb_signal_from_target (gdbarch, signal);
