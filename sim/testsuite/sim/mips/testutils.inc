@@ -21,12 +21,12 @@
 # $1, $4, $5, %6, are used as temps by the macros defined here.
 
 	.macro writemsg msg
+	la	$5, 901f
+	li	$6, 902f - 901f
 	.data
 901:	.ascii	"\msg\n"
 902:
 	.previous
-	la	$5, 901b
-	li	$6, 902b - 901b
 	.set push
 	.set noreorder
 	jal	_dowrite
