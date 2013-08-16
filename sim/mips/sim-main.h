@@ -1002,6 +1002,8 @@ extern int isa_mode;
 #define ISA_MODE_MIPS32 0
 #define ISA_MODE_MICROMIPS 1
 
+address_word micromips_instruction_decode (SIM_DESC sd, sim_cpu * cpu, address_word cia, int instruction_size);
+
 void dotrace (SIM_DESC sd, sim_cpu *cpu, FILE *tracefh, int type, SIM_ADDR address, int width, char *comment, ...);
 extern FILE *tracefh;
 
