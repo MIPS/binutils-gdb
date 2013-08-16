@@ -988,6 +988,19 @@ INLINE_SIM_MAIN (unsigned32) ifetch32 (SIM_DESC sd, sim_cpu *cpu, address_word c
 INLINE_SIM_MAIN (unsigned16) ifetch16 (SIM_DESC sd, sim_cpu *cpu, address_word cia, address_word vaddr);
 #define IMEM16(CIA) ifetch16 (SD, CPU, (CIA), ((CIA) & ~1))
 #define IMEM16_IMMED(CIA,NR) ifetch16 (SD, CPU, (CIA), ((CIA) & ~1) + 2 * (NR))
+#define IMEM32_MICROMIPS(CIA) (ifetch16 (SD, CPU, (CIA), (CIA)) << 16 | ifetch16 (SD, CPU, (CIA + 2), (CIA + 2)))
+#define IMEM16_MICROMIPS(CIA) ifetch16 (SD, CPU, (CIA), ((CIA)))
+
+#define MICROMIPS_MINOR_OPCODE(INSN) ((INSN & 0x1C00) >> 10)
+
+#define MICROMIPS_DELAYSLOT_SIZE_ANY 0
+#define MICROMIPS_DELAYSLOT_SIZE_16 2
+#define MICROMIPS_DELAYSLOT_SIZE_32 4
+
+extern int isa_mode;
+
+#define ISA_MODE_MIPS32 0
+#define ISA_MODE_MICROMIPS 1
 
 void dotrace (SIM_DESC sd, sim_cpu *cpu, FILE *tracefh, int type, SIM_ADDR address, int width, char *comment, ...);
 extern FILE *tracefh;
