@@ -157,6 +157,8 @@ static SIM_ADDR lsipmon_monitor_base = 0xBFC00200;
 
 static SIM_RC sim_firmware_command (SIM_DESC sd, char* arg);
 
+/* microMIPS ISA mode */
+int isa_mode;
 
 #define MEM_SIZE (8 << 20)	/* 8 MBytes */
 
