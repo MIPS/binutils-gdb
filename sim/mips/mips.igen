@@ -2893,7 +2893,7 @@
 
 000000,5.RS,5.RT,000,2.AC,00000,011001:SPECIAL:32::MULTU
 "multu r<RS>, r<RT>":AC == 0
-"multu r<RS>, r<RT>"
+"multu ac<AC>, r<RS>, r<RT>"
 *mips32r2:
 *mips64r2:
 *dsp2:
