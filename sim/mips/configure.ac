@@ -161,6 +161,12 @@ case "${target}" in
 			sim_igen_filter="32,f"
 			sim_mach_default="mipsisa32r2"
 			;;
+  mipsisa32r6*-*-*)	sim_gen=M16
+			sim_igen_machine="-M mips32r6,mips16,mips16e,mdmx,dsp,dsp2,smartmips"
+			sim_m16_machine="-M mips16,mips16e,mips32r6"
+			sim_igen_filter="32,f"
+			sim_mach_default="mipsisa32r6"
+			;;
   mipsisa32*-*-*)	sim_gen=M16
 			sim_igen_machine="-M mips32,mips16,mips16e,smartmips"
 			sim_m16_machine="-M mips16,mips16e,mips32"
@@ -172,6 +178,12 @@ case "${target}" in
 			sim_m16_machine="-M mips16,mips16e,mips64r2"
 			sim_igen_filter="32,64,f"
 			sim_mach_default="mipsisa64r2"
+			;;
+  mipsisa64r6*-*-*)	sim_gen=M16
+			sim_igen_machine="-M mips64r6,mips16,mips16e,mdmx,dsp,dsp2"
+			sim_m16_machine="-M mips16,mips16e,mips64r6"
+			sim_igen_filter="32,64,f"
+			sim_mach_default="mipsisa64r6"
 			;;
   mipsisa64sb1*-*-*)	sim_gen=IGEN
 			sim_igen_machine="-M mips64,mips3d,sb1"
