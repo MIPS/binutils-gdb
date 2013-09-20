@@ -86,4 +86,7 @@ if {[istarget mips*-*-elf]} {
 
     run_sim_test mips32-dsp.s $dspmodels
     run_sim_test mips32-dsp2.s $dspmodels
+
+    run_sim_test r6-fpu.s $models
+    run_sim_test r6.s $models
 }
