@@ -333,6 +333,8 @@ INLINE_SIM_FPU (int) sim_fpu_eq (int *is, const sim_fpu *l, const sim_fpu *r);
 INLINE_SIM_FPU (int) sim_fpu_ne (int *is, const sim_fpu *l, const sim_fpu *r);
 INLINE_SIM_FPU (int) sim_fpu_ge (int *is, const sim_fpu *l, const sim_fpu *r);
 INLINE_SIM_FPU (int) sim_fpu_gt (int *is, const sim_fpu *l, const sim_fpu *r);
+INLINE_SIM_FPU (int) sim_fpu_un (int *is, const sim_fpu *l, const sim_fpu *r);
+INLINE_SIM_FPU (int) sim_fpu_or (int *is, const sim_fpu *l, const sim_fpu *r);
 
 INLINE_SIM_FPU (int) sim_fpu_is_lt (const sim_fpu *l, const sim_fpu *r);
 INLINE_SIM_FPU (int) sim_fpu_is_le (const sim_fpu *l, const sim_fpu *r);
@@ -340,6 +342,8 @@ INLINE_SIM_FPU (int) sim_fpu_is_eq (const sim_fpu *l, const sim_fpu *r);
 INLINE_SIM_FPU (int) sim_fpu_is_ne (const sim_fpu *l, const sim_fpu *r);
 INLINE_SIM_FPU (int) sim_fpu_is_ge (const sim_fpu *l, const sim_fpu *r);
 INLINE_SIM_FPU (int) sim_fpu_is_gt (const sim_fpu *l, const sim_fpu *r);
+INLINE_SIM_FPU (int) sim_fpu_is_un (const sim_fpu *l, const sim_fpu *r);
+INLINE_SIM_FPU (int) sim_fpu_is_or (const sim_fpu *l, const sim_fpu *r);
 
 
 
