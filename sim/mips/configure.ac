@@ -73,18 +73,21 @@ SIM_AC_OPTION_BITSIZE($mips_bitsize,$mips_msb,$mips_addr_bitsize)
 #
 mips_fpu=HARDWARE_FLOATING_POINT
 mips_fpu_bitsize=
+mips_fpu_qnan_negated=true
 case "${target}" in
-  mips*tx39*)		mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=32 ;;
+  mips*tx39*)           mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=32 ;;
   mips*-sde-elf*)       mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=64 ;;
   mips*-mti-elf*)       mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=64 ;;
   mips64*-*-*)          mips_fpu=HARD_FLOATING_POINT ;;
   mips16*-*-*)          mips_fpu=HARD_FLOATING_POINT ;;
+  mipsisa32r6*-*-*)     mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=64 ; mips_fpu_qnan_negated=false ;;
   mipsisa32*-*-*)       mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=64 ;;
+  mipsisa64r6*-*-*)     mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=64 ; mips_fpu_qnan_negated=false ;;
   mipsisa64*-*-*)       mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=64 ;;
   mips*-*-*)            mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=32 ;;
   *)                    mips_fpu=HARD_FLOATING_POINT ;;
 esac
-SIM_AC_OPTION_FLOAT($mips_fpu,$mips_fpu_bitsize)
+SIM_AC_OPTION_FLOAT($mips_fpu,$mips_fpu_bitsize,$mips_fpu_qnan_negated)
 
 
 
@@ -212,6 +215,11 @@ esac
 # be a mips16 engine, prefix m16<NAME>.  The mips16 engine will be
 # generated using the same machine list as the 32-bit version,
 # but the filter will be "16" instead of FILTER.
+#
+# FPU Bitsize and qNaN state are taken from the original definitions
+# and so will be the same for all machines in a multisim.
+# As such, it is invalid to define a multisim with different FPU
+# behaviours. (e.g. putting an r2 core and an r6 core in the same sim)
 #
 # The simulator compares the bfd mach against BFDMACHS to decide
 # which engine to use.  Entries in BFDMACHS should be bfd_mach

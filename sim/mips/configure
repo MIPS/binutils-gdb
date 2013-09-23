@@ -13539,13 +13539,16 @@ fi
 #
 mips_fpu=HARDWARE_FLOATING_POINT
 mips_fpu_bitsize=
+mips_fpu_qnan_negated=true
 case "${target}" in
-  mips*tx39*)		mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=32 ;;
+  mips*tx39*)           mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=32 ;;
   mips*-sde-elf*)       mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=64 ;;
   mips*-mti-elf*)       mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=64 ;;
   mips64*-*-*)          mips_fpu=HARD_FLOATING_POINT ;;
   mips16*-*-*)          mips_fpu=HARD_FLOATING_POINT ;;
+  mipsisa32r6*-*-*)     mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=64 ; mips_fpu_qnan_negated=false ;;
   mipsisa32*-*-*)       mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=64 ;;
+  mipsisa64r6*-*-*)     mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=64 ; mips_fpu_qnan_negated=false ;;
   mipsisa64*-*-*)       mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=64 ;;
   mips*-*-*)            mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=32 ;;
   *)                    mips_fpu=HARD_FLOATING_POINT ;;
@@ -13553,6 +13556,7 @@ esac
 
 default_sim_float="$mips_fpu"
 default_sim_float_bitsize="$mips_fpu_bitsize"
+default_sim_float_qnan_negated="$mips_fpu_qnan_negated"
 # Check whether --enable-sim-float was given.
 if test "${enable_sim_float+set}" = set; then :
   enableval=$enable_sim_float; case "${enableval}" in
@@ -13573,6 +13577,11 @@ if test x"${default_sim_float}" != x""; then
 fi
 if test x"${default_sim_float_bitsize}" != x""; then
   sim_float="$sim_float -DWITH_TARGET_FLOATING_POINT_BITSIZE=${default_sim_float_bitsize}"
+fi
+if test x"${default_sim_float_qnan_negated}" != x""; then
+  if test x"${default_sim_float_qnan_negated}" == x"true"; then
+    sim_float="$sim_float -DSIM_QUIET_NAN_NEGATED"
+  fi
 fi
 
 fi
@@ -13722,6 +13731,11 @@ esac
 # be a mips16 engine, prefix m16<NAME>.  The mips16 engine will be
 # generated using the same machine list as the 32-bit version,
 # but the filter will be "16" instead of FILTER.
+#
+# FPU Bitsize and qNaN state are taken from the original definitions
+# and so will be the same for all machines in a multisim.
+# As such, it is invalid to define a multisim with different FPU
+# behaviours. (e.g. putting an r2 core and an r6 core in the same sim)
 #
 # The simulator compares the bfd mach against BFDMACHS to decide
 # which engine to use.  Entries in BFDMACHS should be bfd_mach

@@ -526,10 +526,12 @@ dnl It specifies the presence of hardware floating point
 dnl And optionally the bitsize of the floating point register.
 dnl arg[1] specifies the presence (or absence) of floating point hardware
 dnl arg[2] specifies the number of bits in a floating point register
+dnl arg[3] specifies whether qNaN is negated. (non-negated=IEEE 754-2008)
 AC_DEFUN([SIM_AC_OPTION_FLOAT],
 [
 default_sim_float="[$1]"
 default_sim_float_bitsize="[$2]"
+default_sim_float_qnan_negated="[$3]"
 AC_ARG_ENABLE(sim-float,
 [  --enable-sim-float			Specify that the target processor has floating point hardware.],
 [case "${enableval}" in
@@ -548,6 +550,11 @@ if test x"${default_sim_float}" != x""; then
 fi
 if test x"${default_sim_float_bitsize}" != x""; then
   sim_float="$sim_float -DWITH_TARGET_FLOATING_POINT_BITSIZE=${default_sim_float_bitsize}"
+fi
+if test x"${default_sim_float_qnan_negated}" != x""; then
+  if test x"${default_sim_float_qnan_negated}" == x"true"; then
+    sim_float="$sim_float -DSIM_QUIET_NAN_NEGATED"
+  fi
 fi
 ])dnl
 ])
