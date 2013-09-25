@@ -94,7 +94,7 @@
 
 // Pseudo instructions known by interp.c
 // For grep - RSVD_INSTRUCTION, RSVD_INSTRUCTION_MASK
-000000,5.*,5.*,5.*,5.OP,000101:SPECIAL:32::RSVD
+000000,5.*,5.*,5.*,5.OP,111001:SPECIAL:32::RSVD
 "rsvd <OP>"
 {
   SignalException (ReservedInstruction, instruction_0);
