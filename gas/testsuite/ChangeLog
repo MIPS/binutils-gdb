@@ -91,6 +91,10 @@
 	* gas/i386/mpx.d: Updated.
 	* gas/i386/x86-64-mpx.d: Likewise.
 
+2013-10-07  Chao-ying Fu  <Chao-ying.Fu@imgtec.com>
+
+	* gas/mips/micromips@virt64.d: Fix dmfgc0 and dmtgc0.
+
 2013-09-17  Richard Sandiford  <rsandifo@linux.vnet.ibm.com>
 
 	* gas/s390/zarch-z196.s, gas/s390/zarch-z196.d: Test CLIH with
