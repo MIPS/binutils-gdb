@@ -85,6 +85,10 @@
 	* v850-dis.c (v850_cacheop_codes, v850_prefop_codes):
 	Remove duplicate const qualifier.
 
+2013-10-07  Chao-ying Fu  <Chao-ying.Fu@imgtec.com>
+
+	* micromips-opc.c (micromips_opcodes): Fix dmfgc0 and dmtgc0.
+
 2013-09-20  Alan Modra  <amodra@gmail.com>
 
 	* configure: Regenerate.
