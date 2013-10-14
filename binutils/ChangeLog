@@ -28,6 +28,11 @@
 	* nm.c (display_rel_file): Treat bfd_error_no_symbols as
 	non-fatal.
 
+2013-10-14  Chao-ying Fu  <Chao-ying.Fu@imgtec.com>
+
+	* readelf.c (display_mips_gnu_attribute): Support Tag_GNU_MIPS_ABI_MSA.
+	* doc/binutils.texi: Document -Mmsa disassembler option.
+
 2013-10-12  H.J. Lu  <hongjiu.lu@intel.com>
 
 	* dwarf.c (display_debug_frames): Pass offset_size to
