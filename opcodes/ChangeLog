@@ -56,6 +56,28 @@
 	(operand_general_constraint_met_p): Replace set_other_error
 	with set_syntax_error.
 
+2013-10-14  Chao-ying Fu  <Chao-ying.Fu@imgtec.com>
+
+	* micromips-opc.c (decode_micromips_operand): Add +T, +U, +V, +W,
+	+d, +e, +h, +k, +l, +n, +o, +u, +v, +w, +x,
+	+~, +!, +@, +#, +$, +%, +^, +&, +*, +|.
+	(MSA): New define.
+	(MSA64): New define.
+	(micromips_opcodes): Add MSA instructions.
+	* mips-dis.c (msa_control_names): New array.
+	(mips_abi_choice): Add ASE_MSA to mips32r2.
+	Remove ASE_MDMX from mips64r2.
+	Add ASE_MSA and ASE_MSA64 to mips64r2.
+	(parse_mips_dis_option): Handle -Mmsa.
+	(print_reg): Handle cases for OP_REG_MSA and OP_REG_MSA_CTRL.
+	(print_insn_arg): Handle cases for OP_IMM_INDEX and OP_REG_INDEX.
+	(print_mips_disassembler_options): Print -Mmsa.
+	* mips-opc.c (decode_mips_operand): Add +T, +U, +V, +W, +d, +e, +h, +k,
+	+l, +n, +o, +u, +v, +w, +~, +!, +@, +#, +$, +%, +^, +&, +*, +|.
+	(MSA): New define.
+	(MSA64): New define.
+	(mips_builtin_op): Add MSA instructions.
+
 2013-10-12  Jan Beulich <jbeulich@suse.com>
 
 	* i386-dis.c (intel_operand_size): Move v_bnd_mode alongside the
