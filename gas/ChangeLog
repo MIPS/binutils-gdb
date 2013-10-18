@@ -113,6 +113,12 @@
 	* config/tc-aarch64.c (parse_operands): Avoid trying to
 	parse a vector register as an immediate.
 
+2013-10-18  Chao-ying Fu  <Chao-ying.Fu@imgtec.com>
+
+	* config/tc-mips.c (fpr_read_mask): Test MSA registers.
+	(fpr_write_mask): Test MSA registers.
+	(can_swap_branch_p): Check fpr write followed by fpr read.
+
 2013-10-14  Richard Sandiford  <rdsandiford@googlemail.com>
 	    Chao-ying Fu  <Chao-ying.Fu@imgtec.com>
 
