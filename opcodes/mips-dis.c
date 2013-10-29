@@ -514,7 +514,7 @@ const struct mips_arch_choice mips_arch_choices[] =
 
   { "mips32r6",	1, bfd_mach_mipsisa32r6, CPU_MIPS32R6,
     ISA_MIPS32R6,
-    ( ASE_EVA | ASE_MT | ASE_MCU | ASE_VIRT),
+    (ASE_EVA | ASE_MSA),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_hwr_names_mips3264r2 },
@@ -536,7 +536,7 @@ const struct mips_arch_choice mips_arch_choices[] =
 
   { "mips64r6",	1, bfd_mach_mipsisa64r6, CPU_MIPS64R6,
     ISA_MIPS64R6,
-    ( ASE_EVA | ASE_MT | ASE_MDMX | ASE_MCU | ASE_VIRT | ASE_VIRT64),
+    (ASE_EVA | ASE_MSA | ASE_MSA64),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_hwr_names_mips3264r2 },
@@ -764,7 +764,8 @@ parse_mips_dis_option (const char *option, unsigned int len)
   if (CONST_STRNEQ (option, "msa"))
     {
       mips_ase |= ASE_MSA;
-      if ((mips_isa & INSN_ISA_MASK) == ISA_MIPS64R2)
+      if ((mips_isa & INSN_ISA_MASK) == ISA_MIPS64R2
+          || (mips_isa & INSN_ISA_MASK) == ISA_MIPS64R6)
 	  mips_ase |= ASE_MSA64;
       return;
     }
@@ -772,8 +773,8 @@ parse_mips_dis_option (const char *option, unsigned int len)
   if (CONST_STRNEQ (option, "virt"))
     {
       mips_ase |= ASE_VIRT;
-      if ((mips_isa & ISA_MIPS64R2)
-          || (mips_isa & ISA_MIPS64R6))
+      if (mips_isa & ISA_MIPS64R2
+          || mips_isa & ISA_MIPS64R6)
 	mips_ase |= ASE_VIRT64;
       return;
     }
@@ -1158,6 +1159,21 @@ print_insn_arg (struct disassemble_info *info,
       }
       break;
 
+    case OP_SAME_RS_RT:
+      {
+	unsigned int reg1, reg2;
+
+	reg1 = uval & 31;
+	reg2 = uval >> 5;
+
+	if (reg1 == reg2 && reg1 != 0)
+	  infprintf (is, "%s", mips_gpr_names[reg1]);
+	else
+	  infprintf (is, "(ERROR)\t%s,%s", mips_gpr_names[reg2],
+		     mips_gpr_names[reg1]);
+      }
+      break;
+
     case OP_LWM_SWM_LIST:
       if (operand->size == 2)
 	{
@@ -1442,6 +1458,25 @@ print_insn_mips (bfd_vma memaddr,
 	      && !(no_aliases && (op->pinfo2 & INSN2_ALIAS))
 	      && (word & op->mask) == op->match)
 	    {
+	      if (strcmp (op->name, "bgezc") == 0
+		  || strcmp (op->name, "bltzc") == 0
+		  || strcmp (op->name, "bgezalc") == 0
+		  || strcmp (op->name, "bltzalc") == 0)
+		{
+		  if (((word >> 16) & 31) != ((word >> 21) & 31))
+		    continue;
+		}
+	      else if (strcmp (op->name, "beqc") == 0)
+		{
+		  if (((word >> 21) & 31) >= ((word >> 16) & 31))
+		    continue;
+		}
+	      else if (strcmp (op->name, "bnec") == 0)
+		{
+		  if (((word >> 21) & 31) <= ((word >> 16) & 31))
+		    continue;
+		}
+
 	      /* We always allow to disassemble the jalx instruction.  */
 	      if (!opcode_is_member (op, mips_isa, mips_ase, mips_processor)
 		  && strcmp (op->name, "jalx"))

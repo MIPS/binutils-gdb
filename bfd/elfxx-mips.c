@@ -5098,6 +5098,8 @@ mips_elf_relocation_needs_la25_stub (bfd *input_bfd, int r_type,
     {
     case R_MIPS_26:
     case R_MIPS_PC16:
+    case R_MIPS_PC21:
+    case R_MIPS_PC26:
     case R_MICROMIPS_26_S1:
     case R_MICROMIPS_PC7_S1:
     case R_MICROMIPS_PC10_S1:
@@ -5884,6 +5886,20 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
     case R_MIPS_GNU_REL16_S2:
       value = symbol + _bfd_mips_elf_sign_extend (addend, 18) - p;
       overflowed_p = mips_elf_overflow_p (value, 18);
+      value >>= howto->rightshift;
+      value &= howto->dst_mask;
+      break;
+
+    case R_MIPS_PC21:
+      value = symbol + _bfd_mips_elf_sign_extend (addend, 23) - p;
+      overflowed_p = mips_elf_overflow_p (value, 23);
+      value >>= howto->rightshift;
+      value &= howto->dst_mask;
+      break;
+
+    case R_MIPS_PC26:
+      value = symbol + _bfd_mips_elf_sign_extend (addend, 28) - p;
+      overflowed_p = mips_elf_overflow_p (value, 28);
       value >>= howto->rightshift;
       value &= howto->dst_mask;
       break;
@@ -8124,6 +8140,8 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 
 	case R_MIPS_26:
 	case R_MIPS_PC16:
+	case R_MIPS_PC21:
+	case R_MIPS_PC26:
 	case R_MIPS16_26:
 	case R_MICROMIPS_26_S1:
 	case R_MICROMIPS_PC7_S1:

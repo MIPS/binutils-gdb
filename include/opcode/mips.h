@@ -419,7 +419,11 @@ enum mips_operand_type {
   OP_IMM_INDEX,
 
   /* An index selected by a register, e.g. [$2].  */
-  OP_REG_INDEX
+  OP_REG_INDEX,
+
+  /* The operand spans two 5-bit register fields, both of which must be set to
+     the source register.  */
+  OP_SAME_RS_RT
 };
 
 /* Enumerates the types of MIPS register.  */
@@ -929,6 +933,12 @@ struct mips_opcode
    "+*" 5-bit register vector element index at bit 16
    "+|" 8-bit mask at bit 16
 
+   MIPS R6:
+   "+:" 11-bit mask at bit 0
+   "+'" 26 bit PC relative branch target address
+   "+"" 21 bit PC relative branch target address
+   "+;" 5 bit same register in both OP_*_RS and OP_*_RT
+
    Other:
    "()" parens surrounding optional value
    ","  separates operands
@@ -943,7 +953,7 @@ struct mips_opcode
    Extension character sequences used so far ("+" followed by the
    following), for quick reference when adding more:
    "1234567890"
-   "~!@#$%^&*|"
+   "~!@#$%^&*|:'";"
    "ABCEFGHJKLMNPQSTUVWXZ"
    "abcdefghijklmnopqrstuvwxyz"
 */

@@ -347,6 +347,10 @@ static int mips_32bitmode = 0;
    || (ABI) == N64_ABI			\
    || (ABI) == O64_ABI)
 
+#define ISA_IS_R6(ISA)			\
+  ((ISA) == ISA_MIPS32R6		\
+   || (ISA) == ISA_MIPS64R6)
+
 /*  Return true if ISA supports 64 bit wide gp registers.  */
 #define ISA_HAS_64BIT_REGS(ISA)		\
   ((ISA) == ISA_MIPS3			\
@@ -1923,6 +1927,8 @@ mips_check_isa_supports_ase (const struct mips_ase *ase)
       warned_fp32 |= ase->flags;
       as_warn (_("the `%s' extension requires 64-bit FPRs"), ase->name);
     }
+  if (ISA_IS_R6 (mips_opts.isa) && (ase->flags & (ASE_MIPS3D | ASE_MDMX)))
+    as_warn (_("A MIPS R6 cpu doesn't support the `%s' extension"), ase->name);
 }
 
 /* Check all enabled ASEs to see whether they are supported by the
@@ -3765,6 +3771,8 @@ limited_pcrel_reloc_p (bfd_reloc_code_real_type reloc)
     case BFD_RELOC_MICROMIPS_7_PCREL_S1:
     case BFD_RELOC_MICROMIPS_10_PCREL_S1:
     case BFD_RELOC_MICROMIPS_16_PCREL_S1:
+    case BFD_RELOC_MIPS_21_PCREL_S2:
+    case BFD_RELOC_MIPS_26_PCREL_S2:
       return TRUE;
 
     case BFD_RELOC_32_PCREL:
@@ -4069,6 +4077,13 @@ operand_reg_mask (const struct mips_cl_insn *insn,
 	return 0;
       uval = insn_extract_operand (insn, operand);
       return (1 << (uval & 31)) | (1 << (uval >> 5));
+
+    case OP_SAME_RS_RT:
+      if (!(type_mask & (1 << OP_REG_GP)))
+	return 0;
+      uval = insn_extract_operand (insn, operand);
+      gas_assert ((uval & 31) == (uval >> 5));
+      return 1 << (uval & 31);
 
     case OP_LWM_SWM_LIST:
       abort ();
@@ -4738,9 +4753,64 @@ match_reg_operand (struct mips_arg_info *arg,
   else
     uval = regno;
 
+  if (regno == 0
+      && (strcmp (arg->insn->insn_mo->name, "beqzc") == 0
+	  || strcmp (arg->insn->insn_mo->name, "bnezc") == 0
+	  || strcmp (arg->insn->insn_mo->name, "blezc") == 0
+	  || strcmp (arg->insn->insn_mo->name, "bgtzc") == 0
+	  || strcmp (arg->insn->insn_mo->name, "blezalc") == 0
+	  || strcmp (arg->insn->insn_mo->name, "bgtzalc") == 0
+	  || strcmp (arg->insn->insn_mo->name, "bgec") == 0
+	  || strcmp (arg->insn->insn_mo->name, "blec") == 0
+	  || strcmp (arg->insn->insn_mo->name, "bltc") == 0
+	  || strcmp (arg->insn->insn_mo->name, "bgtc") == 0
+	  || strcmp (arg->insn->insn_mo->name, "bbec") == 0
+	  || strcmp (arg->insn->insn_mo->name, "bsec") == 0
+	  || strcmp (arg->insn->insn_mo->name, "bstc") == 0
+	  || strcmp (arg->insn->insn_mo->name, "bbtc") == 0
+	  || strcmp (arg->insn->insn_mo->name, "beqzalc") == 0
+	  || strcmp (arg->insn->insn_mo->name, "bnezalc") == 0
+	  || strcmp (arg->insn->insn_mo->name, "beqc") == 0
+	  || strcmp (arg->insn->insn_mo->name, "bnec") == 0))
+    return FALSE;
+
+  if (strcmp (arg->insn->insn_mo->name, "beqc") == 0)
+    {
+      if (arg->last_regno != ILLEGAL_REG)
+	{
+	  if (arg->last_regno == regno)
+	    return FALSE;
+	  else if (arg->last_regno > regno)
+	    {
+              /* Swap operands.  */
+	      arg->insn->insn_opcode = (arg->insn->insn_opcode & 0xfc1fffff)
+				       | (regno << 21);
+	      insn_insert_operand (arg->insn, operand_base, arg->last_regno);
+	      return TRUE;
+	    }
+	}
+    }
+  else if (strcmp (arg->insn->insn_mo->name, "bnec") == 0)
+    {
+      if (arg->last_regno != ILLEGAL_REG)
+	{
+	  if (arg->last_regno == regno)
+	    return FALSE;
+	  else if (arg->last_regno < regno)
+	    {
+              /* Swap operands.  */
+	      arg->insn->insn_opcode = (arg->insn->insn_opcode & 0xfc1fffff)
+				       | (regno << 21);
+	      insn_insert_operand (arg->insn, operand_base, arg->last_regno);
+	      return TRUE;
+	    }
+	}
+    }
+
   arg->last_regno = regno;
   if (arg->opnum == 1)
     arg->dest_regno = regno;
+
   insn_insert_operand (arg->insn, operand_base, uval);
   return TRUE;
 }
@@ -4846,6 +4916,25 @@ match_clo_clz_dest_operand (struct mips_arg_info *arg,
   unsigned int regno;
 
   if (!match_reg (arg, OP_REG_GP, &regno))
+    return FALSE;
+
+  insn_insert_operand (arg->insn, operand, regno | (regno << 5));
+  return TRUE;
+}
+
+/* OP_SAME_RS_RT matcher.  */
+
+static bfd_boolean
+match_same_rs_rt_operand (struct mips_arg_info *arg,
+			  const struct mips_operand *operand)
+{
+  unsigned int regno;
+
+  if (!match_reg (arg, OP_REG_GP, &regno))
+    return FALSE;
+
+  arg->last_regno = regno;
+  if (regno == 0)
     return FALSE;
 
   insn_insert_operand (arg->insn, operand, regno | (regno << 5));
@@ -5518,6 +5607,10 @@ match_operand (struct mips_arg_info *arg,
 
     case OP_REG_INDEX:
       return match_reg_index_operand (arg, operand);
+
+    case OP_SAME_RS_RT:
+      return match_same_rs_rt_operand (arg, operand);
+
     }
   abort ();
 }
@@ -6155,6 +6248,13 @@ can_swap_branch_p (struct mips_cl_insn *ip, expressionS *address_expr,
   /* Check for conflicts between the swapped sequence and the
      target of the branch.  */
   if (nops_for_sequence (2, 0, history + 1, ip, history) > 0)
+    return FALSE;
+
+  /* For R6, if the branch reads a FP register that the previous
+     instruction sets, we can not swap.  */
+  fpr_read = fpr_read_mask (ip);
+  prev_fpr_write = fpr_write_mask (&history[0]);
+  if (fpr_read & prev_fpr_write)
     return FALSE;
 
   /* If the branch reads a register that the previous
@@ -7230,6 +7330,14 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	    {
 	    case 'i':
 	      *offset_reloc = BFD_RELOC_MIPS_JMP;
+	      break;
+
+	    case '\'':
+	      *offset_reloc = BFD_RELOC_MIPS_26_PCREL_S2;
+	      break;
+
+	    case '\"':
+	      *offset_reloc = BFD_RELOC_MIPS_21_PCREL_S2;
 	      break;
 	    }
 	  break;
@@ -13968,6 +14076,9 @@ mips_after_parse_args (void)
 	       && ISA_HAS_64BIT_FPRS (mips_opts.isa))
 	/* -mips3d and -mdmx imply 64-bit float registers, if possible.  */
 	file_mips_fp32 = 0;
+      else if (ISA_IS_R6 (mips_opts.isa))
+	/* R6 implies 64-bit float registers.  */
+	file_mips_fp32 = 0;
       else
 	/* 32-bit float registers.  */
 	file_mips_fp32 = 1;
@@ -13985,6 +14096,8 @@ mips_after_parse_args (void)
     case 1:
       if (ABI_NEEDS_64BIT_REGS (mips_abi))
 	as_warn (_("-mfp32 used with a 64-bit ABI"));
+      else if (ISA_IS_R6 (mips_opts.isa))
+	as_bad (_("-mfp32 used with a MIPS R6 cpu"));
       break;
     }
 
@@ -14051,6 +14164,8 @@ md_pcrel_from (fixS *fixP)
     case BFD_RELOC_MICROMIPS_16_PCREL_S1:
     case BFD_RELOC_MICROMIPS_JMP:
     case BFD_RELOC_16_PCREL_S2:
+    case BFD_RELOC_MIPS_21_PCREL_S2:
+    case BFD_RELOC_MIPS_26_PCREL_S2:
     case BFD_RELOC_MIPS_JMP:
       /* Return the address of the delay slot.  */
       return addr + 4;
@@ -14282,7 +14397,9 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 	      || fixP->fx_r_type == BFD_RELOC_MICROMIPS_7_PCREL_S1
 	      || fixP->fx_r_type == BFD_RELOC_MICROMIPS_10_PCREL_S1
 	      || fixP->fx_r_type == BFD_RELOC_MICROMIPS_16_PCREL_S1
-	      || fixP->fx_r_type == BFD_RELOC_32_PCREL);
+	      || fixP->fx_r_type == BFD_RELOC_32_PCREL
+	      || fixP->fx_r_type == BFD_RELOC_MIPS_21_PCREL_S2
+	      || fixP->fx_r_type == BFD_RELOC_MIPS_26_PCREL_S2);
 
   /* Don't treat parts of a composite relocation as done.  There are two
      reasons for this:
@@ -14438,6 +14555,58 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 	 resolved when it appears but is later defined.  */
       if (fixP->fx_done)
 	md_number_to_chars (buf, *valP, fixP->fx_size);
+      break;
+
+    case BFD_RELOC_MIPS_21_PCREL_S2:
+      if ((*valP & 0x3) != 0)
+	as_bad_where (fixP->fx_file, fixP->fx_line,
+		      _("branch to misaligned address (%lx)"), (long) *valP);
+
+      /* We need to save the bits in the instruction since fixup_segment()
+	 might be deleting the relocation entry (i.e., a branch within
+	 the current segment).  */
+      if (! fixP->fx_done)
+	break;
+
+      /* Update old instruction data.  */
+      insn = read_insn (buf);
+
+      if (*valP + 0x400000 <= 0x7fffff)
+	{
+	  insn |= (*valP >> 2) & 0x1fffff;
+	  write_insn (buf, insn);
+	}
+      else
+	{
+	  /* CFU FIXME.  */
+	  gas_assert (0);
+	}
+      break;
+
+    case BFD_RELOC_MIPS_26_PCREL_S2:
+      if ((*valP & 0x3) != 0)
+	as_bad_where (fixP->fx_file, fixP->fx_line,
+		      _("branch to misaligned address (%lx)"), (long) *valP);
+
+      /* We need to save the bits in the instruction since fixup_segment()
+	 might be deleting the relocation entry (i.e., a branch within
+	 the current segment).  */
+      if (! fixP->fx_done)
+	break;
+
+      /* Update old instruction data.  */
+      insn = read_insn (buf);
+
+      if (*valP + 0x8000000 <= 0xfffffff)
+	{
+	  insn |= (*valP >> 2) & 0x3ffffff;
+	  write_insn (buf, insn);
+	}
+      else
+	{
+	  /* CFU FIXME.  */
+	  gas_assert (0);
+	}
       break;
 
     case BFD_RELOC_16_PCREL_S2:
@@ -16518,7 +16687,9 @@ tc_gen_reloc (asection *section ATTRIBUTE_UNUSED, fixS *fixp)
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_7_PCREL_S1
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_10_PCREL_S1
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_16_PCREL_S1
-		  || fixp->fx_r_type == BFD_RELOC_32_PCREL);
+		  || fixp->fx_r_type == BFD_RELOC_32_PCREL
+		  || fixp->fx_r_type == BFD_RELOC_MIPS_21_PCREL_S2
+		  || fixp->fx_r_type == BFD_RELOC_MIPS_26_PCREL_S2);
 
       /* At this point, fx_addnumber is "symbol offset - pcrel address".
 	 Relocations want only the symbol offset.  */
