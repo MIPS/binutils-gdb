@@ -738,8 +738,22 @@ void test_fcsr (SIM_STATE);
 
 
 /* FPU operations.  */
+#define FP_CMP_AF  0x1
+#define FP_CMP_UN  0x5
+#define FP_CMP_OR  0x6
+#define FP_CMP_EQ  0x9
+#define FP_CMP_UNE 0xa
+#define FP_CMP_UEQ 0xd
+#define FP_CMP_NE  0xe
+#define FP_CMP_LT  0x11
+#define FP_CMP_ULT 0x15
+#define FP_CMP_LE  0x19
+#define FP_CMP_ULE 0x1d
+
 void fp_cmp (SIM_STATE, unsigned64 op1, unsigned64 op2, FP_formats fmt, int abs, int cond, int cc);
 #define Compare(op1,op2,fmt,cond,cc) fp_cmp(SIM_ARGS, op1, op2, fmt, 0, cond, cc)
+unsigned64 fp_r6_cmp (SIM_STATE, unsigned64 op1, unsigned64 op2, FP_formats fmt, int cond);
+#define R6Compare(op1,op2,fmt,cond) fp_r6_cmp(SIM_ARGS, op1, op2, fmt, cond)
 unsigned64 fp_abs (SIM_STATE, unsigned64 op, FP_formats fmt);
 #define AbsoluteValue(op,fmt) fp_abs(SIM_ARGS, op, fmt)
 unsigned64 fp_neg (SIM_STATE, unsigned64 op, FP_formats fmt);
@@ -760,6 +774,12 @@ unsigned64 fp_rsqrt (SIM_STATE, unsigned64 op, FP_formats fmt);
 #define RSquareRoot(op,fmt) fp_rsqrt(SIM_ARGS, op, fmt)
 unsigned64 fp_madd (SIM_STATE, unsigned64 op1, unsigned64 op2,
 		    unsigned64 op3, FP_formats fmt);
+#define FusedMultiplyAdd(op1,op2,op3,fmt) fp_fmadd(SIM_ARGS, op1, op2, op3, fmt)
+unsigned64 fp_fmadd (SIM_STATE, unsigned64 op1, unsigned64 op2,
+                     unsigned64 op3, FP_formats fmt);
+#define FusedMultiplySub(op1,op2,op3,fmt) fp_fmsub(SIM_ARGS, op1, op2, op3, fmt)
+unsigned64 fp_fmsub (SIM_STATE, unsigned64 op1, unsigned64 op2,
+                     unsigned64 op3, FP_formats fmt);
 #define MultiplyAdd(op1,op2,op3,fmt) fp_madd(SIM_ARGS, op1, op2, op3, fmt)
 unsigned64 fp_msub (SIM_STATE, unsigned64 op1, unsigned64 op2,
 		    unsigned64 op3, FP_formats fmt);
