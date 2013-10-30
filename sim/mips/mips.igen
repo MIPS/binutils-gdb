@@ -74,6 +74,9 @@
 :model:::dsp:dsp:			// dsp.igen
 :model:::dsp2:dsp2:			// dsp2.igen
 :model:::smartmips:smartmips:		// smartmips.igen
+:model:::micromips32:micromips64:	// micromips.igen
+:model:::micromips64:micromips64:	// micromips.igen
+:model:::micromipsdsp:micromipsdsp:	// micromipsdsp.igen
 
 //  Vendor Extensions
 //
@@ -142,6 +145,7 @@
 *vr4100:
 *vr5000:
 *r3900:
+*micromips32:
 {
   return base + offset;
 }
@@ -149,6 +153,7 @@
 :function:::address_word:loadstore_ea:address_word base, address_word offset
 *mips64:
 *mips64r2:
+*micromips64:
 {
 #if 0 /* XXX FIXME: enable this only after some additional testing.  */
   /* If in user mode and UX is not set, use 32-bit compatibility effective
@@ -181,6 +186,8 @@
 *mips32r2:
 *mips64:
 *mips64r2:
+*micromips32:
+*micromips64:
 {
 #if WITH_TARGET_WORD_BITSIZE == 64
   return value != (((value & 0xffffffff) ^ 0x80000000) - 0x80000000);
@@ -214,6 +221,8 @@
 *mips32r2:
 *mips64:
 *mips64r2:
+*micromips32:
+*micromips64:
 {
   unpredictable_action (CPU, CIA);
 }
@@ -305,6 +314,8 @@
 *mips64:
 *mips64r2:
 *r3900:
+*micromips32:
+*micromips64:
 {
   signed64 time = sim_events_time (SD);
   history->mt.timestamp = time;
@@ -331,6 +342,8 @@
 *vr4100:
 *vr5000:
 *r3900:
+*micromips32:
+*micromips64:
 {
   signed64 time = sim_events_time (SD);
   int ok = 1;
@@ -401,6 +414,8 @@
 *mips64:
 *mips64r2:
 *r3900:
+*micromips32:
+*micromips64:
 {
   /* FIXME: could record the fact that a stall occured if we want */
   signed64 time = sim_events_time (SD);
@@ -455,6 +470,8 @@
 *mips32r2:
 *mips64:
 *mips64r2:
+*micromips32:
+*micromips64:
 {
   signed64 time = sim_events_time (SD);
   hi->op.timestamp = time;
@@ -487,6 +504,10 @@
 *mips16e:
 *mips64:
 *mips64r2:
+*mips32:
+*mips32r2:
+*micromips64:
+*micromips32:
 {
 #if 0 /* XXX FIXME: enable this only after some additional testing.  */
   if (UserMode && (SR & (status_UX|status_PX)) == 0)
@@ -1369,6 +1390,7 @@
 *vr4100:
 *vr5000:
 *r3900:
+*micromips64:
 {
   if (SizeFGR () == 64)
     GPR[rt] = FGR[fs];
@@ -1398,6 +1420,7 @@
 
 :function:::void:do_luxc1_32:int fd, int rindex, int rbase
 *mips32r2:
+*micromips32:
 {
   address_word base = GPR[rbase];
   address_word index = GPR[rindex];
@@ -1622,6 +1645,7 @@
 *mipsII:
 *mips32:
 *mips32r2:
+*micromips32:
 {
   check_fpu (SD_);
   do_store_double (SD_, GPR[base], EXTEND16 (offset), COP_SD (1, ft));
@@ -1629,6 +1653,7 @@
 
 :function:::void:do_suxc1_32:int fs, int rindex, int rbase
 *mips32r2:
+*micromips32:
 {
   address_word base = GPR[rbase];
   address_word index = GPR[rindex];
@@ -5000,6 +5025,7 @@
 
 :function:::void:check_fmt_p:int fmt, instruction_word insn
 *mips32r2:
+*micromips32:
 {
   if ((fmt != fmt_single) && (fmt != fmt_double) && (fmt != fmt_ps))
     SignalException (ReservedInstruction, insn);
@@ -5009,6 +5035,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*micromips64:
 {
   if ((fmt != fmt_single) && (fmt != fmt_double)
       && (fmt != fmt_ps || (UserMode && (SR & (status_UX|status_PX)) == 0)))
@@ -5035,6 +5062,8 @@
 *vr4100:
 *vr5000:
 *r3900:
+*micromips32:
+*micromips64:
 {
   if (! COP_Usable (1))
     SignalExceptionCoProcessorUnusable (1);
@@ -5052,6 +5081,7 @@
 *mipsII:
 *mips32:
 *mips32r2:
+*micromips32:
 {
   int bigendian = (BigEndianCPU ? ! ReverseEndian : ReverseEndian);
   address_word vaddr;
@@ -5089,6 +5119,7 @@
 *mipsII:
 *mips32:
 *mips32r2:
+*micromips32:
 {
   int bigendian = (BigEndianCPU ? ! ReverseEndian : ReverseEndian);
   address_word vaddr;
@@ -6521,4 +6552,6 @@
 :include:::dsp.igen
 :include:::dsp2.igen
 :include:::smartmips.igen
+:include:::micromips.igen
+:include:::micromipsdsp.igen
 
