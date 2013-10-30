@@ -983,9 +983,9 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"daddu",		"t,r,I",	0,    (int) M_DADDU_I,	INSN_MACRO,		0,		I3,		0,	0 },
 {"daddwc",		"d,s,t", 	0x70000038, 0xfc0007ff, WR_1|RD_2|RD_3|WR_C0|RD_C0, 0,		XLR,		0,	0 },
 {"dbreak",		"",		0x7000003f, 0xffffffff,	0,			0,		N5,		0,	0 },
-{"dclo",		"d,s",		0x00000053, 0xfc1f07ff, WR_1|RD_2,		0,		I34,		0,	0 },
+{"dclo",		"d,s",		0x00000053, 0xfc1f07ff, WR_1|RD_2,		0,		I66,		0,	0 },
 {"dclo",		"U,s",	 	0x70000025, 0xfc0007ff, WR_1|RD_2, 	0,		I64|N55,	0,	I34 },
-{"dclz",		"d,s",		0x00000052, 0xfc1f07ff, WR_1|RD_2,		0,		I34,		0,	0 },
+{"dclz",		"d,s",		0x00000052, 0xfc1f07ff, WR_1|RD_2,		0,		I66,		0,	0 },
 {"dclz",		"U,s",	 	0x70000024, 0xfc0007ff, WR_1|RD_2, 	0,		I64|N55,	0,	I34 },
 /* dctr and dctw are used on the r5000.  */
 {"dctr",		"o(b)",	 	0xbc050000, 0xfc1f0000, RD_2,			0,		I3,		0,	0 },
@@ -997,14 +997,14 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"dextm",		"t,r,+A,+G",	0x7c000001, 0xfc00003f, WR_1|RD_2,    		0,		I65,		0,	0 },
 {"dextu",		"t,r,+E,+H",	0x7c000002, 0xfc00003f, WR_1|RD_2,    		0,		I65,		0,	0 },
 /* For ddiv, see the comments about div.  */
-{"dmod",		"d,s,t",	0x000000de, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		I34,		0,	0 },
-{"ddiv",		"d,s,t",	0x0000009e, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		I34,		0,	0 },
+{"dmod",		"d,s,t",	0x000000de, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		I66,		0,	0 },
+{"ddiv",		"d,s,t",	0x0000009e, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		I66,		0,	0 },
 {"ddiv",		"z,s,t",	0x0000001e, 0xfc00ffff, RD_2|RD_3|WR_HILO,      0,		I3,		0,	M32|I34 },
 {"ddiv",		"d,v,t",	0,    (int) M_DDIV_3,	INSN_MACRO,		0,		I3,		0,	M32|I34 },
 {"ddiv",		"d,v,I",	0,    (int) M_DDIV_3I,	INSN_MACRO,		0,		I3,		0,	M32|I34 },
 /* For ddivu, see the comments about div.  */
-{"dmodu",		"d,s,t",	0x000000df, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		I34,		0,	0 },
-{"ddivu",		"d,s,t",	0x0000009f, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		I34,		0,	0 },
+{"dmodu",		"d,s,t",	0x000000df, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		I66,		0,	0 },
+{"ddivu",		"d,s,t",	0x0000009f, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		I66,		0,	0 },
 {"ddivu",		"z,s,t",	0x0000001f, 0xfc00ffff, RD_2|RD_3|WR_HILO,      0,		I3,		0,	M32|I34 },
 {"ddivu",		"d,v,t",	0,    (int) M_DDIVU_3,	INSN_MACRO,		0,		I3,		0,	M32|I34 },
 {"ddivu",		"d,v,I",	0,    (int) M_DDIVU_3I,	INSN_MACRO,		0,		I3,		0,	M32|I34 },
@@ -1072,16 +1072,18 @@ const struct mips_opcode mips_builtin_opcodes[] =
 /* dmtc2 is at the bottom of the table.  */
 /* dmfc3 is at the bottom of the table.  */
 /* dmtc3 is at the bottom of the table.  */
-{"dmuh",		"d,s,t",	0x000000dc, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		I34,		0,	0 },
-{"dmul",		"d,s,t",	0x0000009c, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		I34,		0,	0 },
+{"dmuh",		"d,s,t",	0x000000dc, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		I66,		0,	0 },
+{"dmul",		"d,s,t",	0x0000009c, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		I66,		0,	0 },
 {"dmul",		"d,v,t",	0x70000003, 0xfc0007ff, WR_1|RD_2|RD_3|WR_HILO,	0,		IOCT,		0,	0 },
-{"dmul",		"d,v,t",	0,    (int) M_DMUL,	INSN_MACRO,		0,		I3,		0,	M32 },
-{"dmul",		"d,v,I",	0,    (int) M_DMUL_I,	INSN_MACRO,		0,		I3,		0,	M32 },
+{"dmul",		"d,v,t",	0,    (int) M_DMUL,	INSN_MACRO,		0,		I3,		0,	M32|I34 },
+{"dmul",		"d,v,I",	0,    (int) M_DMUL_I,	INSN_MACRO,		0,		I3,		0,	M32|I34 },
 {"dmulo",		"d,v,t",	0,    (int) M_DMULO,	INSN_MACRO,		0,		I3,		0,	M32 },
 {"dmulo",		"d,v,I",	0,    (int) M_DMULO_I,	INSN_MACRO,		0,		I3,		0,	M32 },
 {"dmulou",		"d,v,t",	0,    (int) M_DMULOU,	INSN_MACRO,		0,		I3,		0,	M32 },
 {"dmulou",		"d,v,I",	0,    (int) M_DMULOU_I,	INSN_MACRO,		0,		I3,		0,	M32 },
 {"dmult",		"s,t",		0x0000001c, 0xfc00ffff, RD_1|RD_2|WR_HILO,      0,		I3,		0,	M32|I34 },
+{"dmulu",		"d,s,t",	0x0000009d, 0xfc0007ff, WR_1|RD_2|RD_3,      	0,		I66,		0,	0 },
+{"dmuhu",		"d,s,t",	0x000000dd, 0xfc0007ff, WR_1|RD_2|RD_3,      	0,		I66,		0,	0 },
 {"dmultu",		"s,t",		0x0000001d, 0xfc00ffff, RD_1|RD_2|WR_HILO,      0,		I3,		0,	M32|I34 },
 {"dneg",		"d,w",		0x0000002e, 0xffe007ff,	WR_1|RD_2,		0,		I3,		0,	0 }, /* dsub 0 */
 {"dnegu",		"d,w",		0x0000002f, 0xffe007ff,	WR_1|RD_2,		0,		I3,		0,	0 }, /* dsubu 0*/
@@ -1158,14 +1160,15 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"hypcall",		"+J",		0x42000028, 0xffe007ff, TRAP,			0,		0,		IVIRT,	0 },
 {"ins",			"t,r,+A,+B",	0x7c000004, 0xfc00003f, WR_1|RD_2,    		0,		I33,		0,	0 },
 {"iret",		"",		0x42000038, 0xffffffff,	NODS,			0,		0,		MC,	0 },
+{"jr",			"s",		0x00000009, 0xfc1fffff,	RD_1|UBD,		0,		I34,		0,	0 }, /* jalr $0 */
 {"jr",			"s",		0x00000008, 0xfc1fffff,	RD_1|UBD,		0,		I1,		0,	I34 },
-{"jr",			"s",		0x00000009, 0xfc1fffff,	RD_1|UBD,		0,		I34,		0,	0 }, /* jalr $0, rs */
 /* MIPS R6 jric appears before beqzc and jrialc appears before bnezc */
 /* jr.hb is officially MIPS{32,64}R2, but it works on R1 as jr with
    the same hazard barrier effect.  */
+{"jr.hb",		"s",		0x00000409, 0xfc1fffff,	RD_1|UBD,		0,		I34,		0,	0 }, /* jalr.hb $0 */
 {"jr.hb",		"s",		0x00000408, 0xfc1fffff,	RD_1|UBD,		0,		I32,		0,	I34 },
+{"j",			"s",		0x00000009, 0xfc1fffff,	RD_1|UBD,		0,		I34,		0,	0 }, /* jalr $0 */
 {"j",			"s",		0x00000008, 0xfc1fffff,	RD_1|UBD,		0,		I1,		0,	I34 }, /* jr */
-{"j",			"s",		0x00000009, 0xfc1fffff,	RD_1|UBD,		0,		I34,		0,	0 }, /* jalr $0, rs */
 /* SVR4 PIC code requires special handling for j, so it must be a
    macro.  */
 {"j",			"a",		0,     (int) M_J_A,	INSN_MACRO,		0,		I1,		0,	0 },
@@ -1248,7 +1251,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"ll",			"t,+j(b)",	0x7c000036, 0xfc00007f, WR_1|RD_3|LDD,		0,		I34,		0,	0 },
 {"ll",			"t,o(b)",	0xc0000000, 0xfc000000, WR_1|RD_3|LDD,		0,		I2,		0,	EE|I34 },
 {"ll",			"t,A(b)",	0,    (int) M_LL_AB,	INSN_MACRO,		0,		I2,		0,	EE|I34 },
-{"lld",			"t,+j(b)",	0x7c000037, 0xfc00007f, WR_1|RD_3|LDD,		0,		I34,		0,	0 },
+{"lld",			"t,+j(b)",	0x7c000037, 0xfc00007f, WR_1|RD_3|LDD,		0,		I66,		0,	0 },
 {"lld",			"t,o(b)",	0xd0000000, 0xfc000000, WR_1|RD_3|LDD,		0,		I3,		0,	EE|I34 },
 {"lld",			"t,A(b)",	0,    (int) M_LLD_AB,	INSN_MACRO,		0,		I3,		0,	EE|I34 },
 {"lq",			"t,o(b)",	0x78000000, 0xfc000000, WR_1|RD_3,		0,		MMI,		0,	0 },
@@ -1759,7 +1762,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"sc",			"t,+j(b)",	0x7c000026, 0xfc00007f, MOD_1|RD_3|SM,		0,		I34,		0,	0 },
 {"sc",			"t,o(b)",	0xe0000000, 0xfc000000, MOD_1|RD_3|SM,		0,		I2,		0,	EE|I34 },
 {"sc",			"t,A(b)",	0,    (int) M_SC_AB,	INSN_MACRO,		0,		I2,		0,	EE|I34 },
-{"scd",			"t,+j(b)",	0x7c000027, 0xfc00007f, MOD_1|RD_3|SM,		0,		I34,		0,	0 },
+{"scd",			"t,+j(b)",	0x7c000027, 0xfc00007f, MOD_1|RD_3|SM,		0,		I66,		0,	0 },
 {"scd",			"t,o(b)",	0xf0000000, 0xfc000000, MOD_1|RD_3|SM,		0,		I3,		0,	EE|I34 },
 {"scd",			"t,A(b)",	0,    (int) M_SCD_AB,	INSN_MACRO,		0,		I3,		0,	EE|I34 },
 /* The macro has to be first to handle o32 correctly.  */

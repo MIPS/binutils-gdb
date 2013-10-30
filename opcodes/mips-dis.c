@@ -1476,6 +1476,16 @@ print_insn_mips (bfd_vma memaddr,
 		  if (((word >> 21) & 31) <= ((word >> 16) & 31))
 		    continue;
 		}
+	      else if (strcmp (op->name, "beqzc") == 0)
+		{
+		  if (((word >> 21) & 31) == 0)
+		    continue;
+		}
+	      else if (strcmp (op->name, "bnezc") == 0)
+		{
+		  if (((word >> 21) & 31) == 0)
+		    continue;
+		}
 
 	      /* We always allow to disassemble the jalx instruction.  */
 	      if (!opcode_is_member (op, mips_isa, mips_ase, mips_processor)

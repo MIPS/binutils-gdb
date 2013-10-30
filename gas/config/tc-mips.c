@@ -489,8 +489,10 @@ static int mips_32bitmode = 0;
 #define hilo_interlocks \
   (mips_opts.isa == ISA_MIPS32                        \
    || mips_opts.isa == ISA_MIPS32R2                   \
+   || mips_opts.isa == ISA_MIPS32R6                   \
    || mips_opts.isa == ISA_MIPS64                     \
    || mips_opts.isa == ISA_MIPS64R2                   \
+   || mips_opts.isa == ISA_MIPS64R6                   \
    || mips_opts.arch == CPU_R4010                     \
    || mips_opts.arch == CPU_R5900                     \
    || mips_opts.arch == CPU_R10000                    \

@@ -1299,9 +1299,11 @@ cpu_is_member (int cpu, unsigned int mask)
       return (mask & INSN_XLR) != 0;
 
     case CPU_MIPS32R6:
+      return (mask & INSN_ISA_MASK) == INSN_ISA32R6;
+
     case CPU_MIPS64R6:
-      /* Share the same exclusion.  */
-      return (mask & INSN_ISA32R6) != 0;
+      return ((mask & INSN_ISA_MASK) == INSN_ISA32R6)
+	     || ((mask & INSN_ISA_MASK) == INSN_ISA64R6);
 
     default:
       return FALSE;
