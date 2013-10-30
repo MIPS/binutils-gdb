@@ -1686,7 +1686,7 @@
 	    unsigned int byte;
 	    paddr = ((paddr & ~mask) | ((paddr & mask) ^ reverseendian));
 	    byte = ((vaddr & mask) ^ bigendiancpu);
-	    memval = (((uword64)COP_SW(((instruction_0 >> 26) & 0x3),ft)) << (8 * byte));
+	    memval = (((uword64)COP_SW(1, ft)) << (8 * byte));
 	    StoreMemory(uncached,AccessLength_WORD,memval,memval1,paddr,vaddr,isREAL);
 	  }
       }
