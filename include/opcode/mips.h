@@ -1060,7 +1060,7 @@ struct mips_opcode
    word constructed using these macros is a bitmask of the remaining
    INSN_* values below.  */
 
-#define INSN_ISA_MASK		  0x0000000ful
+#define INSN_ISA_MASK		  0x0000001ful
 
 /* We cannot start at zero due to ISA_UNKNOWN below.  */
 #define INSN_ISA1                 1
@@ -1081,6 +1081,8 @@ struct mips_opcode
 #define INSN_ISA4_32              12
 #define INSN_ISA4_32R2            13
 #define INSN_ISA5_32R2            14
+#define INSN_ISA32R6              15
+#define INSN_ISA64R6              16
 
 /* Given INSN_ISA* values X and Y, where X ranges over INSN_ISA1 through
    INSN_ISA5_32R2 and Y ranges over INSN_ISA1 through INSN_ISA64R2,
@@ -1091,7 +1093,8 @@ struct mips_opcode
    (mips_isa_table[(Y & INSN_ISA_MASK) - 1] >> ((X & INSN_ISA_MASK) - 1)) & 1
    is non-zero.  */
 static const unsigned int mips_isa_table[] =
-  { 0x0001, 0x0003, 0x0607, 0x1e0f, 0x3e1f, 0x0a23, 0x3e63, 0x3ebf, 0x3fff };
+  { 0x0001, 0x0003, 0x0607, 0x1e0f, 0x3e1f, 0x0a23, 0x3e63, 0x3ebf, 0x3fff,
+    0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x7e63, 0xffff };
 
 /* Masks used for Chip specific instructions.  */
 #define INSN_CHIP_MASK		  0xc3ff0f20
@@ -1173,6 +1176,8 @@ static const unsigned int mips_isa_table[] =
 #define       ISA_MIPS32R2    INSN_ISA32R2
 #define       ISA_MIPS64R2    INSN_ISA64R2
 
+#define       ISA_MIPS32R6    INSN_ISA32R6
+#define       ISA_MIPS64R6    INSN_ISA64R6
 
 /* CPU defines, use instead of hardcoding processor number. Keep this
    in sync with bfd/archures.c in order for machine selection to work.  */
@@ -1203,9 +1208,11 @@ static const unsigned int mips_isa_table[] =
 #define CPU_MIPS16	16
 #define CPU_MIPS32	32
 #define CPU_MIPS32R2	33
+#define CPU_MIPS32R6	34
 #define CPU_MIPS5       5
 #define CPU_MIPS64      64
 #define CPU_MIPS64R2	65
+#define CPU_MIPS64R6	66
 #define CPU_SB1         12310201        /* octal 'SB', 01.  */
 #define CPU_LOONGSON_2E 3001
 #define CPU_LOONGSON_2F 3002
@@ -1280,6 +1287,11 @@ cpu_is_member (int cpu, unsigned int mask)
 
     case CPU_XLR:
       return (mask & INSN_XLR) != 0;
+
+    case CPU_MIPS32R6:
+    case CPU_MIPS64R6:
+      /* Share the same exclusion.  */
+      return (mask & INSN_ISA32R6) != 0;
 
     default:
       return FALSE;

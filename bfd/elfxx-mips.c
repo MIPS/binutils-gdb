@@ -6454,6 +6454,12 @@ _bfd_elf_mips_mach (flagword flags)
 
 	case E_MIPS_ARCH_64R2:
 	  return bfd_mach_mipsisa64r2;
+
+	case E_MIPS_ARCH_32R6:
+	  return bfd_mach_mipsisa32r6;
+
+	case E_MIPS_ARCH_64R6:
+	  return bfd_mach_mipsisa64r6;
 	}
     }
 
@@ -11654,6 +11660,14 @@ mips_set_isa_flags (bfd *abfd)
     case bfd_mach_mipsisa64r2:
       val = E_MIPS_ARCH_64R2;
       break;
+
+    case bfd_mach_mipsisa32r6:
+      val = E_MIPS_ARCH_32R6;
+      break;
+
+    case bfd_mach_mipsisa64r6:
+      val = E_MIPS_ARCH_64R6;
+      break;
     }
   elf_elfheader (abfd)->e_flags &= ~(EF_MIPS_ARCH | EF_MIPS_MACH);
   elf_elfheader (abfd)->e_flags |= val;
@@ -14319,7 +14333,8 @@ mips_32bit_flags_p (flagword flags)
 	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_1
 	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_2
 	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32
-	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R2);
+	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R2
+	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R6);
 }
 
 
@@ -14988,6 +15003,10 @@ _bfd_mips_elf_print_private_bfd_data (bfd *abfd, void *ptr)
     fprintf (file, " [mips32r2]");
   else if ((elf_elfheader (abfd)->e_flags & EF_MIPS_ARCH) == E_MIPS_ARCH_64R2)
     fprintf (file, " [mips64r2]");
+  else if ((elf_elfheader (abfd)->e_flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R6)
+    fprintf (file, " [mips32r6]");
+  else if ((elf_elfheader (abfd)->e_flags & EF_MIPS_ARCH) == E_MIPS_ARCH_64R6)
+    fprintf (file, " [mips64r6]");
   else
     fprintf (file, _(" [unknown ISA]"));
 

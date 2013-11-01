@@ -353,7 +353,8 @@ static int mips_32bitmode = 0;
    || (ISA) == ISA_MIPS4		\
    || (ISA) == ISA_MIPS5		\
    || (ISA) == ISA_MIPS64		\
-   || (ISA) == ISA_MIPS64R2)
+   || (ISA) == ISA_MIPS64R2		\
+   || (ISA) == ISA_MIPS64R6)
 
 /*  Return true if ISA supports 64 bit wide float registers.  */
 #define ISA_HAS_64BIT_FPRS(ISA)		\
@@ -361,13 +362,16 @@ static int mips_32bitmode = 0;
    || (ISA) == ISA_MIPS4		\
    || (ISA) == ISA_MIPS5		\
    || (ISA) == ISA_MIPS32R2		\
+   || (ISA) == ISA_MIPS32R6		\
    || (ISA) == ISA_MIPS64		\
-   || (ISA) == ISA_MIPS64R2)
+   || (ISA) == ISA_MIPS64R2		\
+   || (ISA) == ISA_MIPS64R6)
 
 /* Return true if ISA supports 64-bit right rotate (dror et al.)
    instructions.  */
 #define ISA_HAS_DROR(ISA)		\
   ((ISA) == ISA_MIPS64R2		\
+   || (ISA) == ISA_MIPS64R6		\
    || (mips_opts.micromips		\
        && ISA_HAS_64BIT_REGS (ISA))	\
    )
@@ -376,7 +380,9 @@ static int mips_32bitmode = 0;
    instructions.  */
 #define ISA_HAS_ROR(ISA)		\
   ((ISA) == ISA_MIPS32R2		\
+   || (ISA) == ISA_MIPS32R6		\
    || (ISA) == ISA_MIPS64R2		\
+   || (ISA) == ISA_MIPS64R6		\
    || (mips_opts.ase & ASE_SMARTMIPS)	\
    || mips_opts.micromips		\
    )
@@ -385,14 +391,18 @@ static int mips_32bitmode = 0;
 #define ISA_HAS_ODD_SINGLE_FPR(ISA)	\
   ((ISA) == ISA_MIPS32			\
    || (ISA) == ISA_MIPS32R2		\
+   || (ISA) == ISA_MIPS32R6		\
    || (ISA) == ISA_MIPS64		\
-   || (ISA) == ISA_MIPS64R2)
+   || (ISA) == ISA_MIPS64R2		\
+   || (ISA) == ISA_MIPS64R6)
 
 /* Return true if ISA supports move to/from high part of a 64-bit
    floating-point register. */
 #define ISA_HAS_MXHC1(ISA)		\
   ((ISA) == ISA_MIPS32R2		\
-   || (ISA) == ISA_MIPS64R2)
+   || (ISA) == ISA_MIPS32R6		\
+   || (ISA) == ISA_MIPS64R2		\
+   || (ISA) == ISA_MIPS64R6)
 
 #define HAVE_32BIT_GPRS		                   \
     (mips_opts.gp32 || !ISA_HAS_64BIT_REGS (mips_opts.isa))
@@ -1317,6 +1327,8 @@ enum options
     OPTION_MIPS64,
     OPTION_MIPS32R2,
     OPTION_MIPS64R2,
+    OPTION_MIPS32R6,
+    OPTION_MIPS64R6,
     OPTION_MIPS16,
     OPTION_NO_MIPS16,
     OPTION_MIPS3D,
@@ -1418,6 +1430,8 @@ struct option md_longopts[] =
   {"mips64", no_argument, NULL, OPTION_MIPS64},
   {"mips32r2", no_argument, NULL, OPTION_MIPS32R2},
   {"mips64r2", no_argument, NULL, OPTION_MIPS64R2},
+  {"mips32r6", no_argument, NULL, OPTION_MIPS32R6},
+  {"mips64r6", no_argument, NULL, OPTION_MIPS64R6},
 
   /* Options which specify Application Specific Extensions (ASEs).  */
   {"mips16", no_argument, NULL, OPTION_MIPS16},
@@ -1845,6 +1859,9 @@ mips_target_format (void)
 static int
 mips_isa_rev (void)
 {
+  if (mips_opts.isa == ISA_MIPS32R6 || mips_opts.isa == ISA_MIPS64R6)
+    return 6;
+
   if (mips_opts.isa == ISA_MIPS32R2 || mips_opts.isa == ISA_MIPS64R2)
     return 2;
 
@@ -13506,8 +13523,16 @@ md_parse_option (int c, char *arg)
       file_mips_isa = ISA_MIPS32R2;
       break;
 
+    case OPTION_MIPS32R6:
+      file_mips_isa = ISA_MIPS32R6;
+      break;
+
     case OPTION_MIPS64R2:
       file_mips_isa = ISA_MIPS64R2;
+      break;
+
+    case OPTION_MIPS64R6:
+      file_mips_isa = ISA_MIPS64R6;
       break;
 
     case OPTION_MIPS64:
@@ -15042,6 +15067,7 @@ s_mipsset (int x ATTRIBUTE_UNUSED)
 	case ISA_MIPS2:
 	case ISA_MIPS32:
 	case ISA_MIPS32R2:
+	case ISA_MIPS32R6:
 	  mips_opts.gp32 = 1;
 	  mips_opts.fp32 = 1;
 	  break;
@@ -15050,6 +15076,7 @@ s_mipsset (int x ATTRIBUTE_UNUSED)
 	case ISA_MIPS5:
 	case ISA_MIPS64:
 	case ISA_MIPS64R2:
+	case ISA_MIPS64R6:
 	  mips_opts.gp32 = 0;
 	  if (mips_opts.arch == CPU_R5900)
 	    {
@@ -17759,8 +17786,10 @@ static const struct mips_cpu_info mips_cpu_info_table[] =
   { "mips5",          MIPS_CPU_IS_ISA, 0,	ISA_MIPS5,    CPU_MIPS5 },
   { "mips32",         MIPS_CPU_IS_ISA, 0,	ISA_MIPS32,   CPU_MIPS32 },
   { "mips32r2",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS32R2, CPU_MIPS32R2 },
+  { "mips32r6",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS32R6, CPU_MIPS32R6 },
   { "mips64",         MIPS_CPU_IS_ISA, 0,	ISA_MIPS64,   CPU_MIPS64 },
   { "mips64r2",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS64R2, CPU_MIPS64R2 },
+  { "mips64r6",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS64R6, CPU_MIPS64R6 },
 
   /* MIPS I */
   { "r3000",          0, 0,			ISA_MIPS1,    CPU_R3000 },
@@ -18071,8 +18100,10 @@ MIPS options:\n\
 -mips5                  generate MIPS ISA V instructions\n\
 -mips32                 generate MIPS32 ISA instructions\n\
 -mips32r2               generate MIPS32 release 2 ISA instructions\n\
+-mips32r6               generate MIPS32 release 6 ISA instructions\n\
 -mips64                 generate MIPS64 ISA instructions\n\
 -mips64r2               generate MIPS64 release 2 ISA instructions\n\
+-mips64r6               generate MIPS64 release 6 ISA instructions\n\
 -march=CPU/-mtune=CPU	generate code/schedule for CPU, where CPU is one of:\n"));
 
   first = 1;

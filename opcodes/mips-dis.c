@@ -512,6 +512,13 @@ const struct mips_arch_choice mips_arch_choices[] =
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_hwr_names_mips3264r2 },
 
+  { "mips32r6",	1, bfd_mach_mipsisa32r6, CPU_MIPS32R6,
+    ISA_MIPS32R6,
+    ( ASE_EVA | ASE_MT | ASE_MCU | ASE_VIRT),
+    mips_cp0_names_mips3264r2,
+    mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
+    mips_hwr_names_mips3264r2 },
+
   /* For stock MIPS64, disassemble all applicable MIPS-specified ASEs.  */
   { "mips64",	1, bfd_mach_mipsisa64, CPU_MIPS64,
     ISA_MIPS64,  ASE_MIPS3D | ASE_MDMX,
@@ -523,6 +530,13 @@ const struct mips_arch_choice mips_arch_choices[] =
     ISA_MIPS64R2,
     (ASE_MIPS3D | ASE_DSP | ASE_DSPR2 | ASE_DSP64 | ASE_EVA | ASE_MT
      | ASE_MCU | ASE_VIRT | ASE_VIRT64 | ASE_MSA | ASE_MSA64),
+    mips_cp0_names_mips3264r2,
+    mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
+    mips_hwr_names_mips3264r2 },
+
+  { "mips64r6",	1, bfd_mach_mipsisa64r6, CPU_MIPS64R6,
+    ISA_MIPS64R6,
+    ( ASE_EVA | ASE_MT | ASE_MDMX | ASE_MCU | ASE_VIRT | ASE_VIRT64),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_hwr_names_mips3264r2 },
@@ -758,7 +772,8 @@ parse_mips_dis_option (const char *option, unsigned int len)
   if (CONST_STRNEQ (option, "virt"))
     {
       mips_ase |= ASE_VIRT;
-      if (mips_isa & ISA_MIPS64R2)
+      if ((mips_isa & ISA_MIPS64R2)
+          || (mips_isa & ISA_MIPS64R6))
 	mips_ase |= ASE_VIRT64;
       return;
     }
