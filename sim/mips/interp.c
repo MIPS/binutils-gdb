@@ -2205,18 +2205,17 @@ void
 decode_coproc (SIM_DESC sd,
 	       sim_cpu *cpu,
 	       address_word cia,
-	       unsigned int instruction)
+	       unsigned int instruction,
+	       int coprocnum,
+	       CP0_operation op,
+	       int rt,
+	       int rd,
+	       int sel)
 {
-  int coprocnum = ((instruction >> 26) & 3);
-
   switch (coprocnum)
     {
     case 0: /* standard CPU control and cache registers */
       {
-        int code = ((instruction >> 21) & 0x1F);
-	int rt = ((instruction >> 16) & 0x1F);
-	int rd = ((instruction >> 11) & 0x1F);
-	int tail = instruction & 0x3ff;
         /* R4000 Users Manual (second edition) lists the following CP0
            instructions:
 	                                                           CODE><-RT><RD-><--TAIL--->
@@ -2231,15 +2230,10 @@ decode_coproc (SIM_DESC sd,
 	   CACHE   Cache operation                 (VR4100 = 101111bbbbbpppppiiiiiiiiiiiiiiii)
 	   ERET    Exception return                (VR4100 = 01000010000000000000000000011000)
 	   */
-        if (((code == 0x00) || (code == 0x04)      /* MFC0  /  MTC0  */        
-	     || (code == 0x01) || (code == 0x05))  /* DMFC0 / DMTC0  */        
-	    && tail == 0)
+        if (((op == cp0_mfc0) || (op == cp0_mtc0)      /* MFC0  /  MTC0  */
+	     || (op == cp0_dmfc0) || (op == cp0_dmtc0))  /* DMFC0 / DMTC0  */
+	    && sel == 0)
 	  {
-	    /* Clear double/single coprocessor move bit. */
-	    code &= ~1;
-
-	    /* M[TF]C0 (32 bits) | DM[TF]C0 (64 bits) */
-	    
 	    switch (rd)  /* NOTEs: Standard CP0 registers */
 	      {
 		/* 0 = Index               R4000   VR4100  VR4300 */
@@ -2267,7 +2261,7 @@ decode_coproc (SIM_DESC sd,
 
 	      case 8:
 		/* 8 = BadVAddr            R4000   VR4100  VR4300 */
-		if (code == 0x00)
+		if (op == cp0_mfc0 || op == cp0_dmfc0)
 		  GPR[rt] = (signed_word) (signed_address) COP0_BADVADDR;
 		else
 		  COP0_BADVADDR = GPR[rt];
@@ -2275,21 +2269,21 @@ decode_coproc (SIM_DESC sd,
 
 #endif /* SUBTARGET_R3900 */
 	      case 12:
-		if (code == 0x00)
+		if (op == cp0_mfc0 || op == cp0_dmfc0)
 		  GPR[rt] = SR;
 		else
 		  SR = GPR[rt];
 		break;
 		/* 13 = Cause              R4000   VR4100  VR4300 */
 	      case 13:
-		if (code == 0x00)
+		if (op == cp0_mfc0 || op == cp0_dmfc0)
 		  GPR[rt] = CAUSE;
 		else
 		  CAUSE = GPR[rt];
 		break;
 		/* 14 = EPC                R4000   VR4100  VR4300 */
 	      case 14:
-		if (code == 0x00)
+		if (op == cp0_mfc0 || op == cp0_dmfc0)
 		  GPR[rt] = (signed_word) (signed_address) EPC;
 		else
 		  EPC = GPR[rt];
@@ -2298,7 +2292,7 @@ decode_coproc (SIM_DESC sd,
 #ifdef SUBTARGET_R3900
                 /* 16 = Debug */
               case 16:
-                if (code == 0x00)
+                if (op == cp0_mfc0 || op == cp0_dmfc0)
                   GPR[rt] = Debug;
                 else
                   Debug = GPR[rt];
@@ -2306,7 +2300,7 @@ decode_coproc (SIM_DESC sd,
 #else
 		/* 16 = Config             R4000   VR4100  VR4300 */
               case 16:
-		if (code == 0x00)
+	        if (op == cp0_mfc0 || op == cp0_dmfc0)
 		  GPR[rt] = C0_CONFIG;
 		else
 		  /* only bottom three bits are writable */
@@ -2316,7 +2310,7 @@ decode_coproc (SIM_DESC sd,
 #ifdef SUBTARGET_R3900
                 /* 17 = Debug */
               case 17:
-                if (code == 0x00)
+                if (op == cp0_mfc0 || op == cp0_dmfc0)
                   GPR[rt] = DEPC;
                 else
                   DEPC = GPR[rt];
@@ -2339,7 +2333,7 @@ decode_coproc (SIM_DESC sd,
 		GPR[rt] = 0xDEADC0DE; /* CPR[0,rd] */
 		/* CPR[0,rd] = GPR[rt]; */
 	      default:
-		if (code == 0x00)
+		if (op == cp0_mfc0 || op == cp0_dmfc0)
 		  GPR[rt] = (signed_word) (signed32) COP0_GPR[rd];
 		else
 		  COP0_GPR[rd] = GPR[rt];
@@ -2351,12 +2345,12 @@ decode_coproc (SIM_DESC sd,
 #endif
 	      }
 	  }
-	else if ((code == 0x00 || code == 0x01)
+	else if ((op == cp0_mfc0 || op == cp0_dmfc0)
 		 && rd == 16)
 	  {
 	    /* [D]MFC0 RT,C0_CONFIG,SEL */
 	    signed32 cfg = 0;
-	    switch (tail & 0x07) 
+	    switch (sel)
 	      {
 	      case 0:
 		cfg = C0_CONFIG;
@@ -2385,7 +2379,7 @@ decode_coproc (SIM_DESC sd,
 	      }
 	    GPR[rt] = cfg;
 	  }
-	else if (code == 0x10 && (tail & 0x3f) == 0x18)
+	else if (op == cp0_eret && sel == 0x18)
 	  {
 	    /* ERET */
 	    if (SR & status_ERL)
@@ -2401,7 +2395,7 @@ decode_coproc (SIM_DESC sd,
 		SR &= ~status_EXL;
 	      }
 	  }
-        else if (code == 0x10 && (tail & 0x3f) == 0x10)
+        else if (op == cp0_rfe && sel == 0x10)
           {
             /* RFE */
 #ifdef SUBTARGET_R3900
@@ -2413,7 +2407,7 @@ decode_coproc (SIM_DESC sd,
 	    /* TODO: CACHE register */
 #endif /* SUBTARGET_R3900 */
           }
-        else if (code == 0x10 && (tail & 0x3f) == 0x1F)
+        else if (op == cp0_deret && sel == 0x1F)
           {
             /* DERET */
             Debug &= ~Debug_DM;

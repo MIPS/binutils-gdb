@@ -1410,12 +1410,12 @@
 
 
 000000,5.RT,5.RS,00,3.SEL,00011,111100:POOL32A:32::MFC0
-"mfc0 r<RS> r<RT> <SEL>"
+"mfc0 r<RS>, r<RT>": SEL == 0
+"mfc0 r<RS>, r<RT>, <SEL>"
 *micromips32:
 *micromips64:
 {
-  /* TODO */
-  /* do_mfc0 (SD_, RS, RT, SEL); */
+  DecodeCoproc (instruction_0, 0, cp0_mfc0, RT, RS, SEL);
 }
 
 
@@ -1515,12 +1515,12 @@
 
 
 000000,5.RT,5.RS,00,3.SEL,01011,111100:POOL32A:32::MTC0
-"mtc0 r<RS> r<RT> <SEL>"
+"mtc0 r<RS>, r<RT>": SEL == 0
+"mtc0 r<RS>, r<RT>, <SEL>"
 *micromips32:
 *micromips64:
 {
-  /* TODO */
-  /* do_mtc0 (SD_, RS, RT, SEL); */
+  DecodeCoproc (instruction_0, 0, cp0_mtc0, RT, RS, SEL);
 }
 
 
@@ -2768,7 +2768,7 @@
 *micromips64:
 {
   check_u64 (SD_, instruction_0);
-  DecodeCoproc (instruction_0);
+  DecodeCoproc (instruction_0, 0, cp0_dmfc0, RT, RS, SEL);
 }
 
 010101,5.RT,5.FS,00,10010000,111011:POOL32F:64::DMFC1
@@ -2786,7 +2786,7 @@
 *micromips64:
 {
   check_u64 (SD_, instruction_0);
-  DecodeCoproc (instruction_0);
+  DecodeCoproc (instruction_0, 0, cp0_dmtc0, RT, RS, SEL);
 }
 
 010101,5.RT,5.FS,00,10110000,111011:POOL32F:64::DMTC1

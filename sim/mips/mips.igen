@@ -6344,7 +6344,7 @@
 }
 
 
-010000,00001,5.RT,5.RD,00000000000:COP0:64::DMFC0
+010000,00001,5.RT,5.RD,00000000,3.SEL:COP0:64::DMFC0
 "dmfc0 r<RT>, r<RD>"
 *mipsIII:
 *mipsIV:
@@ -6353,11 +6353,11 @@
 *mips64r2:
 {
   check_u64 (SD_, instruction_0);
-  DecodeCoproc (instruction_0);
+  DecodeCoproc (instruction_0, 0, cp0_dmfc0, RT, RD, SEL);
 }
 
 
-010000,00101,5.RT,5.RD,00000000000:COP0:64::DMTC0
+010000,00101,5.RT,5.RD,00000000,3.SEL:COP0:64::DMTC0
 "dmtc0 r<RT>, r<RD>"
 *mipsIII:
 *mipsIV:
@@ -6366,7 +6366,7 @@
 *mips64r2:
 {
   check_u64 (SD_, instruction_0);
-  DecodeCoproc (instruction_0);
+  DecodeCoproc (instruction_0, 0, cp0_dmtc0, RT, RD, SEL);
 }
 
 
@@ -6397,8 +6397,8 @@
 }
 
 
-010000,00000,5.RT,5.RD,00000,6.REGX:COP0:32::MFC0
-"mfc0 r<RT>, r<RD> # <REGX>"
+010000,00000,5.RT,5.RD,00000000,3.SEL:COP0:32::MFC0
+"mfc0 r<RT>, r<RD> # <SEL>"
 *mipsI:
 *mipsII:
 *mipsIII:
@@ -6413,12 +6413,12 @@
 *r3900:
 {
   TRACE_ALU_INPUT0 ();
-  DecodeCoproc (instruction_0);
+  DecodeCoproc (instruction_0, 0, cp0_mfc0, RT, RD, SEL);
   TRACE_ALU_RESULT (GPR[RT]);
 }
 
-010000,00100,5.RT,5.RD,00000,6.REGX:COP0:32::MTC0
-"mtc0 r<RT>, r<RD> # <REGX>"
+010000,00100,5.RT,5.RD,00000000,3.SEL:COP0:32::MTC0
+"mtc0 r<RT>, r<RD> # <SEL>"
 *mipsI:
 *mipsII:
 *mipsIII:
@@ -6432,7 +6432,7 @@
 *vr5000:
 *r3900:
 {
-  DecodeCoproc (instruction_0);
+  DecodeCoproc (instruction_0, 0, cp0_mtc0, RT, RD, SEL);
 }
 
 
@@ -6447,7 +6447,7 @@
 *vr5000:
 *r3900:
 {
-  DecodeCoproc (instruction_0);
+  DecodeCoproc (instruction_0, 0, cp0_rfe, 0, 0, 0x10);
 }
 
 
@@ -6465,7 +6465,7 @@
 *vr4100:
 *r3900:
 {
-  DecodeCoproc (instruction_0);
+  DecodeCoproc (instruction_0, 2, 0, 0, 0, 0);
 }
 
 
