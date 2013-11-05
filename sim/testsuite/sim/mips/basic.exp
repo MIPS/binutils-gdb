@@ -48,10 +48,10 @@ if {[istarget mips*-*-elf]} {
 	append dspmodels " mips32r2 mips64r2"
 	append mdmxmodels " mips64 mips32r2 mips64r2"
     } elseif {[istarget mips*-sde-elf*] || [istarget mips*-mti-elf*]} {
-	set models "mips32 mips64 mips32r2 mips64r2"
+	set models "mips32 mips64 mips32r2 mips64r2 mips32r5 mips64r5"
 	set submodels ""
-	append dspmodels " mips32r2 mips64r2"
-	append mdmxmodels " mips64 mips32r2 mips64r2"
+	append dspmodels " mips32r2 mips64r2 mips32r5 mips64r5"
+	append mdmxmodels " mips64 mips32r2 mips64r2 mips32r5 mips64r5"
     } elseif {[istarget mipsisa32*-*-elf]} {
 	set models "mips32 mips32r2"
 	set submodels "mips1 mips2"
