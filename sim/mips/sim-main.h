@@ -407,6 +407,10 @@ struct _sim_cpu {
   unsigned_word c0_config_reg;
 #define C0_CONFIG ((CPU)->c0_config_reg)
 
+  unsigned_word c5_config_reg;
+#define C5_CONFIG ((CPU)->c5_config_reg)
+#define config5_UFR	(1 << 2) 	/* Allow user mode access to StatusFR */
+
 /* The following are pseudonyms for standard registers */
 #define ZERO    (REGISTERS[0])
 #define V0      (REGISTERS[2])
@@ -551,6 +555,7 @@ struct sim_state {
 #define status_CU1       (1 << 29)      /* Coprocessor 1 usable */
 #define status_CU2       (1 << 30)      /* Coprocessor 2 usable */
 #define status_CU3       (1 << 31)      /* Coprocessor 3 usable */
+#define status_UFRP      (1 << 28)      /* User mode FR switching instructions: 0 = not supported, 1 = supported */
 /* Bits reserved for implementations:  */
 #define status_SBX       (1 << 16)      /* Enable SiByte SB-1 extensions.  */
 

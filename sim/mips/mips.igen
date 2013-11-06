@@ -4778,10 +4778,8 @@
 *mipsV:
 *mips32:
 *mips32r2:
-*mips32r5:
 *mips64:
 *mips64r2:
-*mips64r5:
 {
   check_fpu (SD_);
   if (FS == 0 || FS == 25 || FS == 26 || FS == 28 || FS == 31)
@@ -4791,6 +4789,31 @@
       GPR[RT] = fcr;
     }
   /* else NOP */
+  TRACE_ALU_RESULT (GPR[RT]);
+}
+
+010001,00010,5.RT,5.FS,00000000000:COP1:32,f::CFC1d
+"cfc1 r<RT>, f<FS>"
+*mips32r5:
+*mips64r5:
+{
+  check_fpu (SD_);
+  if (FS == 0 || FS == 25 || FS == 26 || FS == 28 || FS == 31)
+    {
+      unsigned_word  fcr = ValueFCR (FS);
+      TRACE_ALU_INPUT1 (fcr);
+      GPR[RT] = fcr;
+    }
+  else if ((FS == 1) && (FCR0 & status_UFRP))
+    {
+      if (C5_CONFIG & config5_UFR)
+        GPR[RT] = (unsigned32) ((SR & status_FR) >> 26);
+      else
+        SignalException (ReservedInstruction, instruction_0);
+    }
+  else
+   Unpredictable ();
+
   TRACE_ALU_RESULT (GPR[RT]);
 }
 
@@ -4825,16 +4848,41 @@
 *mipsV:
 *mips32:
 *mips32r2:
-*mips32r5:
 *mips64:
 *mips64r2:
-*mips64r5:
 {
   check_fpu (SD_);
   TRACE_ALU_INPUT1 (GPR[RT]);
   if (FS == 25 || FS == 26 || FS == 28 || FS == 31)
       StoreFCR (FS, GPR[RT]);
   /* else NOP */
+}
+
+010001,00110,5.RT,5.FS,00000000000:COP1:32,f::CTC1d
+"ctc1 r<RT>, f<FS>"
+*mips32r5:
+*mips64r5:
+{
+  check_fpu (SD_);
+  TRACE_ALU_INPUT1 (GPR[RT]);
+  if (FS == 25 || FS == 26 || FS == 28 || FS == 31)
+      StoreFCR (FS, GPR[RT]);
+  else if ((FS == 1) && (RT == 0) && (FCR0 & status_UFRP))
+    {
+      if (C5_CONFIG & config5_UFR)
+        SR &= ~status_FR;
+      else
+        SignalException (ReservedInstruction, instruction_0);
+    }
+  else if ((FS == 4) && (RT == 0) && (FCR0 & status_UFRP))
+    {
+      if (C5_CONFIG & config5_UFR)
+        SR |= status_FR;
+      else
+        SignalException (ReservedInstruction, instruction_0);
+    }
+  else
+    Unpredictable();
 }
 
 
