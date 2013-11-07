@@ -1,3 +1,13 @@
+2013-11-08  Andrew Bennett  <andrew.bennett@imgtec.com>
+
+	* interp.c (ColdReset): Reset the config 5 register and
+	set FCR0 to allow user mode FR switching instructions.
+	(decode_coproc): Add support for reading and setting the config 5
+	register.
+	* mips.igen (CTC1c): Add UFR support.
+	(CFC1c): Likewise.
+	* sim-main.h (_sim_cpu): Add config 5 register and support macros.
+
 2013-09-23  Alan Modra  <amodra@gmail.com>
 
 	* configure: Regenerate.

@@ -1806,6 +1806,12 @@ ColdReset (SIM_DESC sd)
 	}
       if (BigEndianMem)
 	C0_CONFIG |= 0x00008000;	/* Big Endian */
+
+      /* Initialise the Config5 register.  */
+      C5_CONFIG = 0;
+
+      /* User mode FR switching instructions supported.  */
+      FCR0 |= fir_UFRP;
     }
 }
 
@@ -2344,6 +2350,17 @@ decode_coproc (SIM_DESC sd,
 		  sim_io_printf(sd,"Warning: MTC0 %d,%d ignored, PC=%08x (architecture specific)\n",rt,rd, (unsigned)cia);
 #endif
 	      }
+	  }
+	/* This covers the case of reading and setting the Config5 register.  */
+	else if (((code == 0x00) || (code == 0x04))  /* MFC0 or MTC0 register 16 select 5 */
+	         && rd == 16 && ((tail & 0x07) == 5))
+	  {
+	    if (code == 0x00)
+	      GPR[rt] = C5_CONFIG;
+	    else if (FCR0 & fir_UFRP)
+	      C5_CONFIG = GPR[rt];
+	    else
+	      C5_CONFIG = (GPR[rt] & ~config5_UFR);
 	  }
 	else if ((code == 0x00 || code == 0x01)
 		 && rd == 16)

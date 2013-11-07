@@ -86,4 +86,6 @@ if {[istarget mips*-*-elf]} {
 
     run_sim_test mips32-dsp.s $dspmodels
     run_sim_test mips32-dsp2.s $dspmodels
+
+    run_sim_test ufr.s $submodels
 }

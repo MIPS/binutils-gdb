@@ -407,6 +407,10 @@ struct _sim_cpu {
   unsigned_word c0_config_reg;
 #define C0_CONFIG ((CPU)->c0_config_reg)
 
+  unsigned_word c5_config_reg;
+#define C5_CONFIG ((CPU)->c5_config_reg)
+#define config5_UFR	(1 << 2) 	/* Allow user mode access to StatusFR */
+
 /* The following are pseudonyms for standard registers */
 #define ZERO    (REGISTERS[0])
 #define V0      (REGISTERS[2])
@@ -576,6 +580,8 @@ struct sim_state {
 #define cause_set_EXC(x)  CAUSE = (CAUSE & ~cause_EXC_mask)  | ((x << cause_EXC_shift)  & cause_EXC_mask)
 #define cause_set_EXC2(x) CAUSE = (CAUSE & ~cause_EXC2_mask) | ((x << cause_EXC2_shift) & cause_EXC2_mask)
 
+/* FIR bits used by MIPS32/MIPS64.  */
+#define fir_UFRP         (1 << 28)      /* User mode FR switching instructions: 0 = not supported, 1 = supported */
 
 /* NOTE: We keep the following status flags as bit values (1 for true,
    0 for false). This allows them to be used in binary boolean
