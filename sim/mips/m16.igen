@@ -1075,6 +1075,10 @@
 
 011101,26.IMMED:JALX:32::JALX32
 "jalx <IMMED>"
+*mips32:
+*mips64:
+*mips32r2:
+*mips64r2:
 *mips16:
 *vr4100:
 {
