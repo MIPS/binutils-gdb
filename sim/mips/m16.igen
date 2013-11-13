@@ -1075,12 +1075,17 @@
 
 011101,26.IMMED:JALX:32::JALX32
 "jalx <IMMED>"
+*mips32:
+*mips64:
+*mips32r2:
+*mips64r2:
 *mips16:
 *vr4100:
 {
   address_word region = (NIA & MASK (63, 28));
-  RA = NIA + 4; /* skip 32 bit delayslot insn */
-  NIA = delayslot32 (SD_, (region | (IMMED << 2)) | 1);
+  RA = (NIA + 4) | ISA_MODE_MIPS32; /* skip 32 bit delayslot insn */
+  NIA = delayslot32 (SD_, (region | (IMMED << 2)) | ISA_MODE_MICROMIPS);
+  isa_mode = ISA_MODE_MICROMIPS;
 }
 
 00011,1,5.IMM_20_16,5.IMM_25_21 + 16.IMMED_15_0:JALX:16::JALX16
