@@ -143,7 +143,7 @@ case "${target}" in
 			;;
   mips*-sde-elf* | mips*-mti-elf*)
 			sim_gen=M16
-			sim_igen_machine="-M mips64r6,mips16,mips16e,mdmx,dsp,dsp2,smartmips"
+			sim_igen_machine="-M mips64r6,mips16,mips16e,mdmx,dsp,dsp2"
 			sim_m16_machine="-M mips16,mips16e,mips64r6"
 			sim_igen_filter="32,64,f"
 			sim_mach_default="mipsisa64r6"
