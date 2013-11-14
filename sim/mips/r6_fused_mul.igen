@@ -1,0 +1,32 @@
+010001,0000,1.FMT,5.FT,5.FS,5.FD,011000:POOLX:32,f::FMADD.fmt
+"fmadd.%s<FMT> f<FD>, f<FS>, f<FT>"
+*mips32r6:
+*mips64r6:
+{
+  int fmt = FMT;
+  check_fpu (SD_);
+  check_u64 (SD_, instruction_0);
+  check_fmt_p (SD_, fmt, instruction_0); 
+  TRACE_ALU_INPUT3 (FGR[FD], FGR[FS], FGR[FT]);
+  StoreFPR (FD, fmt, FusedMultiplyAdd (ValueFPR (FS, fmt),
+                                       ValueFPR (FT, fmt),
+				       ValueFPR (FD, fmt), fmt));
+  TRACE_ALU_RESULT (FGR[FD]);
+}
+
+010001,0000,1.FMT,5.FT,5.FS,5.FD,011001:POOLX:32,f::FMSUB.fmt
+"fmsub.%s<FMT> f<FD>, f<FS>, f<FT>"
+*mips32r6:
+*mips64r6:
+{
+  int fmt = FMT;
+  check_fpu (SD_);
+  check_u64 (SD_, instruction_0);
+  check_fmt_p (SD_, fmt, instruction_0); 
+  TRACE_ALU_INPUT3 (FGR[FD], FGR[FS], FGR[FT]);
+  StoreFPR (FD, fmt, FusedMultiplySub (ValueFPR (FS, fmt),
+                                       ValueFPR (FT, fmt),
+				       ValueFPR (FD, fmt), fmt));
+  TRACE_ALU_RESULT (FGR[FD]);
+}
+

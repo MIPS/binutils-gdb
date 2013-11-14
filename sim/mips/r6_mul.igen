@@ -1,0 +1,360 @@
+000000,5.RS,5.RT,5.RD,00010,011000:POOL32X:32::MUL
+"mul r<RD>, r<RS>, r<RT>"
+*mips32r6:
+*mips64r6:
+{
+  signed64 prod;
+  if (NotWordValue (GPR[RS]) || NotWordValue (GPR[RT]))
+    Unpredictable ();
+  TRACE_ALU_INPUT2 (GPR[RS], GPR[RT]);
+  prod = ((signed64)(signed32) GPR[RS])
+	  * ((signed64)(signed32) GPR[RT]);
+  GPR[RD] = EXTEND32 (VL4_8 (prod));
+  TRACE_ALU_RESULT (GPR[RD]);
+}
+
+000000,5.RS,5.RT,5.RD,00011,011000:POOL32X:32::MUH
+"muh r<RD>, r<RS>, r<RT>"
+*mips32r6:
+*mips64r6:
+{
+  signed64 prod;
+  if (NotWordValue (GPR[RS]) || NotWordValue (GPR[RT]))
+    Unpredictable ();
+  TRACE_ALU_INPUT2 (GPR[RS], GPR[RT]);
+  prod = ((signed64)(signed32) GPR[RS])
+	  * ((signed64)(signed32) GPR[RT]);
+  GPR[RD] = EXTEND32 (VH4_8 (prod));
+  TRACE_ALU_RESULT (GPR[RD]);
+}
+
+000000,5.RS,5.RT,5.RD,00010,011001:POOL32X:32::MULU
+"mulu r<RD>, r<RS>, r<RT>"
+*mips32r6:
+*mips64r6:
+{
+  unsigned64 prod;
+  if (NotWordValue (GPR[RS]) || NotWordValue (GPR[RT]))
+    Unpredictable ();
+  TRACE_ALU_INPUT2 (GPR[RS], GPR[RT]);
+  prod = ((unsigned64)(unsigned32) GPR[RS])
+	  * ((unsigned64)(unsigned32) GPR[RT]);
+  GPR[RD] = EXTEND32 (VL4_8 (prod));
+  TRACE_ALU_RESULT (GPR[RD]);
+}
+
+000000,5.RS,5.RT,5.RD,00011,011001:POOL32X:32::MUHU
+"muhu r<RD>, r<RS>, r<RT>"
+*mips32r6:
+*mips64r6:
+{
+  unsigned64 prod;
+  if (NotWordValue (GPR[RS]) || NotWordValue (GPR[RT]))
+    Unpredictable ();
+  TRACE_ALU_INPUT2 (GPR[RS], GPR[RT]);
+  prod = ((unsigned64)(unsigned32) GPR[RS])
+          * ((unsigned64)(unsigned32) GPR[RT]);
+  GPR[RD] = EXTEND32 (VH4_8 (prod));
+  TRACE_ALU_RESULT (GPR[RD]);
+}
+
+000000,5.RS,5.RT,5.RD,00010,011010:POOL32X:32::DIV
+"div r<RD>, r<RS>, r<RT>"
+*mips32r6:
+*mips64r6:
+{
+  signed32 n = GPR[RS];
+  signed32 d = GPR[RT];
+  TRACE_ALU_INPUT2 (n,d);
+  if (d == 0)
+    GPR[RD] = EXTEND32 (0x80000000);
+  else if (n == SIGNED32 (0x80000000) && d == -1)
+    GPR[RD] = EXTEND32 (0x80000000);
+  else
+    GPR[RD] = EXTEND32 (n / d);
+
+  TRACE_ALU_RESULT (GPR[RD]);
+}
+
+000000,5.RS,5.RT,5.RD,00011,011010:POOL32X:32::MOD
+"mod r<RD>, r<RS>, r<RT>"
+*mips32r6:
+*mips64r6:
+{
+  signed32 n = GPR[RS];
+  signed32 d = GPR[RT];
+  TRACE_ALU_INPUT2 (n,d);
+  if (d == 0 || (n == SIGNED32 (0x80000000) && d == -1))
+    GPR[RD] = EXTEND32 (0);
+  else
+    GPR[RD] = EXTEND32 (n % d);
+
+  TRACE_ALU_RESULT (GPR[RD]);
+}
+
+000000,5.RS,5.RT,5.RD,00010,011011:POOL32X:32::DIVU
+"divu r<RD>, r<RS>, r<RT>"
+*mips32r6:
+*mips64r6:
+{
+  unsigned32 n = GPR[RS];
+  unsigned32 d = GPR[RT];
+  TRACE_ALU_INPUT2 (n,d);
+  if (d == 0)
+    GPR[RD] = EXTEND32 (0x80000000);
+  else
+    GPR[RD] = EXTEND32 (n / d);
+
+  TRACE_ALU_RESULT (GPR[RD]);
+}
+
+000000,5.RS,5.RT,5.RD,00011,011011:POOL32X:32::MODU
+"modu r<RD>, r<RS>, r<RT>"
+*mips32r6:
+*mips64r6:
+{
+  unsigned32 n = GPR[RS];
+  unsigned32 d = GPR[RT];
+  TRACE_ALU_INPUT2 (n,d);
+  if (d == 0)
+    GPR[RD] = EXTEND32 (0);
+  else
+    GPR[RD] = EXTEND32 (n % d);
+
+  TRACE_ALU_RESULT (GPR[RD]);
+}
+
+000000,5.RS,5.RT,5.RD,00010,011100:POOL32X:64::DMUL
+"dmul r<RD>, r<RS>, r<RT>"
+*mips64r6:
+{
+  unsigned64 lo;
+  unsigned64 m00;
+  unsigned64 m01;
+  unsigned64 m10;
+  unsigned64 mid;
+  int sign;
+  unsigned64 op1 = GPR[RS];
+  unsigned64 op2 = GPR[RT];
+
+  check_u64 (SD_, instruction_0);
+  TRACE_ALU_INPUT2 (op1, op2);
+  /* make signed multiply unsigned */
+  sign = 0;
+  if ((signed64) op1 < 0)
+  {
+    op1 = - op1;
+    ++sign;
+  }
+  if ((signed64) op2 < 0)
+  {
+    op2 = - op2;
+    ++sign;
+  }
+  /* multiply out the sub products */
+  m00 = ((unsigned64) VL4_8 (op1) * (unsigned64) VL4_8 (op2));
+  m10 = ((unsigned64) VH4_8 (op1) * (unsigned64) VL4_8 (op2));
+  m01 = ((unsigned64) VL4_8 (op1) * (unsigned64) VH4_8 (op2));
+  /* add the products */
+  mid = ((unsigned64) VH4_8 (m00)
+      + (unsigned64) VL4_8 (m10)
+      + (unsigned64) VL4_8 (m01));
+  lo = U8_4 (mid, m00);
+  /* fix the sign */
+  if (sign & 1)
+    lo = -lo;
+
+  GPR[RD] = lo;
+  TRACE_ALU_RESULT (GPR[RD]);
+}
+
+000000,5.RS,5.RT,5.RD,00011,011100:POOL32X:64::DMUH
+"dmuh r<RD>, r<RS>, r<RT>"
+*mips64r6:
+{
+  unsigned64 lo;
+  unsigned64 hi;
+  unsigned64 m00;
+  unsigned64 m01;
+  unsigned64 m10;
+  unsigned64 m11;
+  unsigned64 mid;
+  int sign;
+  unsigned64 op1 = GPR[RS];
+  unsigned64 op2 = GPR[RT];
+
+  check_u64 (SD_, instruction_0);
+  TRACE_ALU_INPUT2 (op1, op2);
+  /* make signed multiply unsigned */
+  sign = 0;
+  if ((signed64) op1 < 0)
+  {
+    op1 = - op1;
+    ++sign;
+  }
+  if ((signed64) op2 < 0)
+  {
+    op2 = - op2;
+    ++sign;
+  }
+  /* multiply out the 4 sub products */
+  m00 = ((unsigned64) VL4_8 (op1) * (unsigned64) VL4_8 (op2));
+  m10 = ((unsigned64) VH4_8 (op1) * (unsigned64) VL4_8 (op2));
+  m01 = ((unsigned64) VL4_8 (op1) * (unsigned64) VH4_8 (op2));
+  m11 = ((unsigned64) VH4_8 (op1) * (unsigned64) VH4_8 (op2));
+  /* add the products */
+  mid = ((unsigned64) VH4_8 (m00)
+      + (unsigned64) VL4_8 (m10)
+      + (unsigned64) VL4_8 (m01));
+  lo = U8_4 (mid, m00);
+  hi = (m11
+      + (unsigned64) VH4_8 (mid)
+      + (unsigned64) VH4_8 (m01)
+      + (unsigned64) VH4_8 (m10));
+  /* fix the sign */
+  if (sign & 1)
+  {
+    lo = -lo;
+    if (lo == 0)
+      hi = -hi;
+    else
+      hi = -hi - 1;
+  }
+
+  GPR[RD] = hi;
+  TRACE_ALU_RESULT (GPR[RD]);
+}
+
+000000,5.RS,5.RT,5.RD,00010,011101:POOL32X:64::DMULU
+"dmulu r<RD>, r<RS>, r<RT>"
+*mips64r6:
+{
+  unsigned64 lo;
+  unsigned64 m00;
+  unsigned64 m01;
+  unsigned64 m10;
+  unsigned64 mid;
+  unsigned64 op1 = GPR[RS];
+  unsigned64 op2 = GPR[RT];
+
+  check_u64 (SD_, instruction_0);
+  TRACE_ALU_INPUT2 (op1, op2);
+  /* multiply out the sub products */
+  m00 = ((unsigned64) VL4_8 (op1) * (unsigned64) VL4_8 (op2));
+  m10 = ((unsigned64) VH4_8 (op1) * (unsigned64) VL4_8 (op2));
+  m01 = ((unsigned64) VL4_8 (op1) * (unsigned64) VH4_8 (op2));
+  /* add the products */
+  mid = ((unsigned64) VH4_8 (m00)
+      + (unsigned64) VL4_8 (m10)
+      + (unsigned64) VL4_8 (m01));
+  lo = U8_4 (mid, m00);
+
+  GPR[RD] = lo;
+  TRACE_ALU_RESULT (GPR[RD]);
+}
+
+000000,5.RS,5.RT,5.RD,00011,011101:POOL32X:64::DMUHU
+"dmuhu r<RD>, r<RS>, r<RT>"
+*mips64r6:
+{
+  unsigned64 lo;
+  unsigned64 hi;
+  unsigned64 m00;
+  unsigned64 m01;
+  unsigned64 m10;
+  unsigned64 m11;
+  unsigned64 mid;
+  unsigned64 op1 = GPR[RS];
+  unsigned64 op2 = GPR[RT];
+
+  check_u64 (SD_, instruction_0);
+  TRACE_ALU_INPUT2 (op1, op2);
+  /* multiply out the 4 sub products */
+  m00 = ((unsigned64) VL4_8 (op1) * (unsigned64) VL4_8 (op2));
+  m10 = ((unsigned64) VH4_8 (op1) * (unsigned64) VL4_8 (op2));
+  m01 = ((unsigned64) VL4_8 (op1) * (unsigned64) VH4_8 (op2));
+  m11 = ((unsigned64) VH4_8 (op1) * (unsigned64) VH4_8 (op2));
+  /* add the products */
+  mid = ((unsigned64) VH4_8 (m00)
+      + (unsigned64) VL4_8 (m10)
+      + (unsigned64) VL4_8 (m01));
+  lo = U8_4 (mid, m00);
+  hi = (m11
+      + (unsigned64) VH4_8 (mid)
+      + (unsigned64) VH4_8 (m01)
+      + (unsigned64) VH4_8 (m10));
+
+  GPR[RD] = hi;
+  TRACE_ALU_RESULT (GPR[RD]);
+}
+
+000000,5.RS,5.RT,5.RD,00010,011110:POOL32X:64::DDIV
+"ddiv r<RD>, r<RS>, r<RT>"
+*mips64r6:
+{
+  signed64 n = GPR[RS];
+  signed64 d = GPR[RT];
+
+  check_u64 (SD_, instruction_0);
+  TRACE_ALU_INPUT2 (n, d);
+  if (d == 0)
+    GPR[RD] = SIGNED64 (0x8000000000000000);
+  else if (d == -1 && n == SIGNED64 (0x8000000000000000))
+    GPR[RD] = SIGNED64 (0x8000000000000000);
+  else
+    GPR[RD] = (n / d);
+
+  TRACE_ALU_RESULT (GPR[RD]);
+}
+
+000000,5.RS,5.RT,5.RD,00011,011110:POOL32X:64::DMOD
+"dmod r<RD>, r<RS>, r<RT>"
+*mips64r6:
+{
+  signed64 n = GPR[RS];
+  signed64 d = GPR[RT];
+
+  check_u64 (SD_, instruction_0);
+  TRACE_ALU_INPUT2 (n, d);
+  if (d == 0 || (d == -1 && n == SIGNED64 (0x8000000000000000)))
+    GPR[RD] = SIGNED64 (0);
+  else
+    GPR[RD] = (n % d);
+
+  TRACE_ALU_RESULT (GPR[RD]);
+}
+
+000000,5.RS,5.RT,5.RD,00010,011111:POOL32X:64::DDIVU
+"ddivu r<RD>, r<RS>, r<RT>"
+*mips64r6:
+{
+  unsigned64 n = GPR[RS];
+  unsigned64 d = GPR[RT];
+
+  check_u64 (SD_, instruction_0);
+  TRACE_ALU_INPUT2 (n, d);
+  if (d == 0)
+    GPR[RD] = UNSIGNED64 (0x8000000000000000);
+  else
+    GPR[RD] = (n / d);
+
+  TRACE_ALU_RESULT (GPR[RD]);
+}
+
+000000,5.RS,5.RT,5.RD,00011,011111:POOL32X:64::DMODU
+"dmodu r<RD>, r<RS>, r<RT>"
+*mips64r6:
+{
+  unsigned64 n = GPR[RS];
+  unsigned64 d = GPR[RT];
+
+  check_u64 (SD_, instruction_0);
+  TRACE_ALU_INPUT2 (n, d);
+  if (d == 0)
+    GPR[RD] = UNSIGNED64 (0);
+  else
+    GPR[RD] = (n % d);
+
+  TRACE_ALU_RESULT (GPR[RD]);
+}
+

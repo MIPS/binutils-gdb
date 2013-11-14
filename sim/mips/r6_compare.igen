@@ -1,0 +1,68 @@
+:%s::::R6COND:int r6cond
+{
+  int cond = r6cond >> 1;
+  if (r6cond & 0x1)
+  {
+    switch (cond)
+    {
+      case FP_CMP_AF: return "SAF";
+      case FP_CMP_UN: return "SUN";
+      case FP_CMP_OR: return "SOR";
+      case FP_CMP_EQ: return "SEQ";
+      case FP_CMP_UNE: return "SUNE";
+      case FP_CMP_UEQ: return "SUEQ";
+      case FP_CMP_NE: return "SNE";
+      case FP_CMP_LT: return "SLT";
+      case FP_CMP_ULT: return "SULT";
+      case FP_CMP_LE: return "SLE";
+      case FP_CMP_ULE: return "SULE";
+      default: return "?";
+    }
+  }
+  else
+  {
+    switch (cond)
+    {
+      case FP_CMP_AF: return "AF";
+      case FP_CMP_UN: return "UN";
+      case FP_CMP_OR: return "OR";
+      case FP_CMP_EQ: return "EQ";
+      case FP_CMP_UNE: return "UNE";
+      case FP_CMP_UEQ: return "UEQ";
+      case FP_CMP_NE: return "NE";
+      case FP_CMP_LT: return "LT";
+      case FP_CMP_ULT: return "ULT";
+      case FP_CMP_LE: return "LE";
+      case FP_CMP_ULE: return "ULE";
+      default: return "?";
+    }
+  }
+}
+
+:%s::::R6CONDFMT:int r6fmt
+{
+  switch (r6fmt)
+  {
+    case 0x4: return "s";
+    case 0x5: return "d";
+    default: return "?";
+  }
+}
+
+010001,10,3.R6CONDFMT!0!1!2!3!6!7,5.FT,5.FS,5.FD,6.R6COND!16!23!24!32!33:POOL32X:32,f::CMP.cond.fmt
+"cmp.%s<R6COND>.%s<R6CONDFMT> f<FD>, f<FS>, f<FT>"
+*mips32r6:
+*mips64r6:
+{
+  int fmt = R6CONDFMT;
+  check_fpu (SD_);
+  switch(R6CONDFMT)
+  {
+    case 0x4: fmt = fmt_single; break;
+    case 0x5: fmt = fmt_double; break;
+    default:  fmt = fmt_single; break;
+  }
+  TRACE_ALU_INPUT3 (FGR[FD], FGR[FS], FGR[FT]);
+  StoreFPR(FD, fmt, R6Compare (ValueFPR (FS, fmt), ValueFPR (FT, fmt), fmt, R6COND));
+  TRACE_ALU_RESULT (FGR[FD]);
+}

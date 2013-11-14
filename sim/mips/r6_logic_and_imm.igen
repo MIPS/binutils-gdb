@@ -1,0 +1,39 @@
+000000,5.RS,5.RT,5.RD,000,2.IMM,000101:SPECIAL:32::LSA
+"lsa r<RD>, r<RS>, r<RT>, <IMM + 1>"
+*mips32r6:
+*mips64r6:
+{
+  unsigned32 t = GPR[RS] << (IMM + 1);
+  GPR[RD] = EXTEND32(GPR[RT] + t);
+}
+
+000000,5.RS,5.RT,5.RD,000,2.IMM,010101:SPECIAL:64::DLSA
+"dlsa r<RD>, r<RS>, r<RT>, <IMM + 1>"
+*mips64r6:
+{
+  unsigned64 t = GPR[RS] << (IMM + 1);
+  GPR[RD] = GPR[RT] + t;
+}
+
+001111,5.RS,5.RT,16.IMMEDIATE:POOL32X:32::LUI
+"lui r<RT>, r<RS>, <IMMEDIATE>":RS!=26
+"lui r<RT>, PC, <IMMEDIATE>"
+*mips32r6:
+*mips64r6:
+{
+  /* TODO: if rs==k0 && status.EXL != 1 then PC */
+  address_word base = (RS == 26) ? CIA : GPR[RS];
+  TRACE_ALU_INPUT2 (GPR[RS], IMMEDIATE);
+  GPR[RT] = base + EXTEND32 (IMMEDIATE << 16);
+  TRACE_ALU_RESULT (GPR[RT]);
+}
+
+
+//TODO: correct this once named, defined, and opcoded
+//000000,00000,00000,5.RS,00000,000000:POOL32X:32::BITSWAP
+//"bitswap r<RS>"
+//*mips32r6:
+//*mips64r6:
+//{
+//}
+
