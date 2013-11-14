@@ -651,9 +651,9 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"bbit1",		"s,+X,p",	0xf8000000, 0xfc000000, RD_1|CBD,		0,		IOCT,		0,	0 }, /* bbit132 */
 {"bbit1",		"s,+x,p",	0xe8000000, 0xfc000000, RD_1|CBD,		0,		IOCT,		0,	0 },
 {"jrc",			"t",		0xd8000000, 0xffe0ffff,	RD_1|NODS,		0,		I34,		0,	0 },
-{"jric",		"t,j",		0xd8000000, 0xffe00000,	RD_1|NODS,		0,		I34,		0,	0 },
+{"jic",			"t,j",		0xd8000000, 0xffe00000,	RD_1|NODS,		0,		I34,		0,	0 },
 {"beqzc",		"s,+\"",	0xd8000000, 0xfc000000,	RD_1|NODS,		0,		I34,		0,	0 },
-{"jrialc",		"t,j",		0xf8000000, 0xffe00000,	RD_1|NODS,		0,		I34,		0,	0 },
+{"jialc",		"t,j",		0xf8000000, 0xffe00000,	RD_1|NODS,		0,		I34,		0,	0 },
 {"bnezc",		"s,+\"",	0xf8000000, 0xfc000000,	RD_1|NODS,		0,		I34,		0,	0 },
 {"beqzalc",		"t,p",		0xec000000, 0xffe00000,	RD_1|WR_31|NODS,	0,		I34,		0,	0 },
 {"bnezalc",		"s,p",		0xec000000, 0xfc1f0000,	RD_1|WR_31|NODS,	0,		I34,		0,	0 },
@@ -1162,7 +1162,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"iret",		"",		0x42000038, 0xffffffff,	NODS,			0,		0,		MC,	0 },
 {"jr",			"s",		0x00000009, 0xfc1fffff,	RD_1|UBD,		0,		I34,		0,	0 }, /* jalr $0 */
 {"jr",			"s",		0x00000008, 0xfc1fffff,	RD_1|UBD,		0,		I1,		0,	I34 },
-/* MIPS R6 jric appears before beqzc and jrialc appears before bnezc */
+/* MIPS R6 jic appears before beqzc and jialc appears before bnezc */
 /* jr.hb is officially MIPS{32,64}R2, but it works on R1 as jr with
    the same hazard barrier effect.  */
 {"jr.hb",		"s",		0x00000409, 0xfc1fffff,	RD_1|UBD,		0,		I34,		0,	0 }, /* jalr.hb $0 */
