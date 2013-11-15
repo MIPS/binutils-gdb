@@ -1228,9 +1228,5 @@
 *mips16:
 *vr4100:
 {
-  if (STATE & simDELAYSLOT)
-    PC = cia - 2; /* reference the branch instruction */
-  else
-    PC = cia;
-  SignalException (BreakPoint, instruction_0);
+  do_break16 (SD_, instruction_0);
 }
