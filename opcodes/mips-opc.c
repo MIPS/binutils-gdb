@@ -59,6 +59,7 @@ decode_mips_operand (const char *p)
 	case 'A': BIT (5, 6, 0);		/* (0 .. 31) */
 	case 'B': MSB (5, 11, 1, TRUE, 32);	/* (1 .. 32), 32-bit op */
 	case 'C': MSB (5, 11, 1, FALSE, 32);	/* (1 .. 32), 32-bit op */
+        case 'D': SPECIAL (0, 0, REPEAT_DEST_REG);
 	case 'E': BIT (5, 6, 32);		/* (32 .. 63) */
 	case 'F': MSB (5, 11, 33, TRUE, 64);	/* (33 .. 64), 64-bit op */
 	case 'G': MSB (5, 11, 33, FALSE, 64);	/* (33 .. 64), 64-bit op */
@@ -1259,7 +1260,6 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"lqc2",		"+7,o(b)",	0xd8000000, 0xfc000000,	RD_3|WR_C2,		0,		EE,		0,	0 },
 {"lqc2",		"+7,A(b)",	0,    (int) M_LQC2_AB,	INSN_MACRO,		0,		EE,		0,	0 },
 {"lui",			"t,u",		0x3c000000, 0xffe00000,	WR_1,			0,		I1,		0,	0 },
-{"lui",			"t,s,u",	0x3c000000, 0xfc000000,	WR_1|RD_2,		0,		I34,		0,	0 },
 {"luxc1",		"D,t(b)",	0x4c000005, 0xfc00f83f, WR_1|RD_2|RD_3|LDD|FP_D, 0,		I5_33|N55,	0,	I34},
 {"lw",			"t,o(b)",	0x8c000000, 0xfc000000,	WR_1|RD_3|LDD,		0,		I1,		0,	0 },
 {"lw",			"t,A(b)",	0,    (int) M_LW_AB,	INSN_MACRO,		0,		I1,		0,	0 },
@@ -3186,6 +3186,10 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"lsa",			"d,v,t,+~",	0x00000005, 0xfc00073f,	WR_1|RD_2|RD_3,		0,		I34,		MSA,	0 },
 {"dlsa",		"d,v,t,+~",	0x00000015, 0xfc00073f,	WR_1|RD_2|RD_3,		0,		I66,		MSA64,	0 },
 /* MIPS r6.  */
+
+{"ahi",			"t,+D,u",	0x04c00000, 0xffe00000,	MOD_1,			0,		I34,		0,	0 },
+{"ati",			"t,+D,u",	0x07c00000, 0xffe00000,	MOD_1,			0,		I34,		0,	0 },
+{"aui",			"t,s,u",	0x3c000000, 0xfc000000,	WR_1|RD_2,		0,		I34,		0,	0 },
 
 /* These will not disassemble properly nor check for errors in arguments */
 {"bavc",		"s,t,p",	0x20000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },

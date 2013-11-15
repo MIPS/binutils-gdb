@@ -938,6 +938,7 @@ struct mips_opcode
    "+'" 26 bit PC relative branch target address
    "+"" 21 bit PC relative branch target address
    "+;" 5 bit same register in both OP_*_RS and OP_*_RT
+   "+D" Same as destination register
 
    Other:
    "()" parens surrounding optional value
@@ -954,7 +955,7 @@ struct mips_opcode
    following), for quick reference when adding more:
    "1234567890"
    "~!@#$%^&*|:'";"
-   "ABCEFGHJKLMNPQSTUVWXZ"
+   "ABCDEFGHJKLMNPQSTUVWXZ"
    "abcdefghijklmnopqrstuvwxyz"
 */
 
