@@ -59,6 +59,20 @@ typedef unsigned64 uword64;
 #define NOTHALFWORDVALUE(v) ((((((uword64)(v)>>16) == 0) && !((v) & ((unsigned)1 << 15))) || (((((uword64)(v)>>32) == 0xFFFFFFFF) && ((((uword64)(v)>>16) & 0xFFFF) == 0xFFFF)) && ((v) & ((unsigned)1 << 15)))) ? (1 == 0) : (1 == 1))
 
 
+typedef enum {
+  cp0_dmfc0,
+  cp0_dmtc0,
+  cp0_mfc0,
+  cp0_mtc0,
+  cp0_tlbr,
+  cp0_tlbwi,
+  cp0_tlbwr,
+  cp0_tlbp,
+  cp0_cache,
+  cp0_eret,
+  cp0_deret,
+  cp0_rfe
+} CP0_operation;
 
 /* Floating-point operations: */
 
@@ -708,9 +722,9 @@ cop_sw (SD, CPU, cia, coproc_num, coproc_reg)
 cop_sd (SD, CPU, cia, coproc_num, coproc_reg)
 
 
-void decode_coproc (SIM_DESC sd, sim_cpu *cpu, address_word cia, unsigned int instruction);
-#define DecodeCoproc(instruction) \
-decode_coproc (SD, CPU, cia, (instruction))
+void decode_coproc (SIM_DESC sd, sim_cpu *cpu, address_word cia, unsigned int instruction, int coprocnum, CP0_operation op, int rt, int rd, int sel);
+#define DecodeCoproc(instruction,coprocnum,op,rt,rd,sel) \
+decode_coproc (SD, CPU, cia, (instruction), (coprocnum), (op), (rt), (rd), (sel))
 
 int sim_monitor (SIM_DESC sd, sim_cpu *cpu, address_word cia, unsigned int arg);
   
