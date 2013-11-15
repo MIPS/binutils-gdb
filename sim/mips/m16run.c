@@ -27,6 +27,9 @@
 #define CPU cpu
 
 void
+sim_engine_run (SIM_DESC sd, int next_cpu_nr, int nr_cpus, int siggnal);
+
+void
 sim_engine_run (SIM_DESC sd,
 		int next_cpu_nr,
 		int nr_cpus, /* ignore */
