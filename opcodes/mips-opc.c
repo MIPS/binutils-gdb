@@ -64,11 +64,13 @@ decode_mips_operand (const char *p)
 	case 'F': MSB (5, 11, 33, TRUE, 64);	/* (33 .. 64), 64-bit op */
 	case 'G': MSB (5, 11, 33, FALSE, 64);	/* (33 .. 64), 64-bit op */
 	case 'H': MSB (5, 11, 1, FALSE, 64);	/* (1 .. 32), 64-bit op */
+	case 'I': UINT (2, 6);
 	case 'J': HINT (10, 11);
 	case 'K': SPECIAL (4, 21, VU0_MATCH_SUFFIX);
 	case 'L': SPECIAL (2, 21, VU0_SUFFIX);
 	case 'M': SPECIAL (2, 23, VU0_SUFFIX);
 	case 'N': SPECIAL (2, 0, VU0_MATCH_SUFFIX);
+	case 'O': UINT (3, 6);
 	case 'P': BIT (5, 6, 32);		/* (32 .. 63) */
 	case 'Q': SINT (10, 6);
 	case 'S': MSB (5, 11, 0, FALSE, 63);	/* (0 .. 31), 64-bit op */
@@ -3190,6 +3192,10 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"ahi",			"t,+D,u",	0x04c00000, 0xffe00000,	MOD_1,			0,		I34,		0,	0 },
 {"ati",			"t,+D,u",	0x07c00000, 0xffe00000,	MOD_1,			0,		I34,		0,	0 },
 {"aui",			"t,s,u",	0x3c000000, 0xfc000000,	WR_1|RD_2,		0,		I34,		0,	0 },
+
+{"align",		"d,s,t,+I",	0x7c000220, 0xfc00073f,	WR_1|RD_2|RD_3,		0,		I34,		0,	0 },
+{"dalign",		"d,s,t,+O",	0x7c000224, 0xfc00063f,	WR_1|RD_2|RD_3,		0,		I34,		0,	0 },
+{"bitswap",		"d,t",		0x7c000020, 0xffe007ff,	WR_1|RD_2,		0,		I34,		0,	0 },
 
 /* These will not disassemble properly nor check for errors in arguments */
 {"bavc",		"s,t,p",	0x20000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
