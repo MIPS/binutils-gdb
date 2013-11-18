@@ -3246,10 +3246,24 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"cmp.sune.s",		"D,V,T",	0x46800015, 0xffe0003f,	WR_1|RD_2|RD_3|FP_S,	0,		I34,		0,	0 },
 {"cmp.sune.d",		"D,V,T",	0x46a00015, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		I34,		0,	0 },
 
-{"maddf.s",		"D,V,T",	0x44000018, 0xffe0003f,	WR_1|RD_2|RD_3|FP_S,	0,		I34,		0,	0 },
-{"msubf.s",		"D,V,T",	0x44000019, 0xffe0003f,	WR_1|RD_2|RD_3|FP_S,	0,		I34,		0,	0 },
-{"maddf.d",		"D,V,T",	0x44200018, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		I34,		0,	0 },
-{"msubf.d",		"D,V,T",	0x44200019, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		I34,		0,	0 },
+{"maddf.s",		"D,V,T",	0x46000018, 0xffe0003f,	WR_1|RD_2|RD_3|FP_S,	0,		I34,		0,	0 },
+{"msubf.s",		"D,V,T",	0x46000019, 0xffe0003f,	WR_1|RD_2|RD_3|FP_S,	0,		I34,		0,	0 },
+{"maddf.d",		"D,V,T",	0x46200018, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		I34,		0,	0 },
+{"msubf.d",		"D,V,T",	0x46200019, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		I34,		0,	0 },
+
+{"rint.s",		"D,V",		0x4600001a, 0xffff003f,	WR_1|RD_2|FP_S,		0,		I34,		0,	0 },
+{"rint.d",		"D,V",		0x4620001a, 0xffff003f,	WR_1|RD_2|FP_D,		0,		I34,		0,	0 },
+{"class.s",		"D,V",		0x4600001b, 0xffff003f,	WR_1|RD_2|FP_S,		0,		I34,		0,	0 },
+{"class.d",		"D,V",		0x4620001b, 0xffff003f,	WR_1|RD_2|FP_D,		0,		I34,		0,	0 },
+{"min.s",		"D,V,T",	0x4600001c, 0xffe0003f,	WR_1|RD_2|RD_3|FP_S,	0,		I34,		0,	0 },
+{"min.d",		"D,V,T",	0x4620001c, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		I34,		0,	0 },
+{"min_a.s",		"D,V,T",	0x4600001d, 0xffe0003f,	WR_1|RD_2|RD_3|FP_S,	0,		I34,		0,	0 },
+{"min_a.d",		"D,V,T",	0x4620001d, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		I34,		0,	0 },
+{"max.s",		"D,V,T",	0x4600001e, 0xffe0003f,	WR_1|RD_2|RD_3|FP_S,	0,		I34,		0,	0 },
+{"max.d",		"D,V,T",	0x4620001e, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		I34,		0,	0 },
+{"max_a.s",		"D,V,T",	0x4600001f, 0xffe0003f,	WR_1|RD_2|RD_3|FP_S,	0,		I34,		0,	0 },
+{"max_a.d",		"D,V,T",	0x4620001f, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		I34,		0,	0 },
+
 /* No hazard protection on coprocessor instructions--they shouldn't
    change the state of the processor and if they do it's up to the
    user to put in nops as necessary.  These are at the end so that the
