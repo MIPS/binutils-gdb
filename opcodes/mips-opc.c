@@ -1795,14 +1795,6 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"sdxc1",		"S,t(b)",	0x4c000009, 0xfc0007ff, RD_1|RD_2|RD_3|SM|FP_D,	0,		I4_33,		0,	I34 },
 {"seb",			"d,w",		0x7c000420, 0xffe007ff,	WR_1|RD_2,		0,		I33,		0,	0 },
 {"seh",			"d,w",		0x7c000620, 0xffe007ff,	WR_1|RD_2,		0,		I33,		0,	0 },
-{"sel.s",		"D,T,S",	0x46000010, 0xffe0003f, MOD_1|RD_2|RD_3|FP_S,   0,		I34,		0,	0 },
-{"sel.d",		"D,T,S",	0x46200010, 0xffe0003f, MOD_1|RD_2|RD_3|FP_D,   0,		I34,		0,	0 },
-{"selnez",		"d,t,s",	0x00000037, 0xfc0007ff, WR_1|RD_2|RD_3, 	0,		I34,		0,	0 },
-{"selnez.s",		"D,T,S",	0x46000017, 0xffe0003f, WR_1|RD_2|RD_3|FP_S,   0,		I34,		0,	0 },
-{"selnez.d",		"D,T,S",	0x46200017, 0xffe0003f, WR_1|RD_2|RD_3|FP_D,   0,		I34,		0,	0 },
-{"seleqz",		"d,t,s",	0x00000035, 0xfc0007ff, WR_1|RD_2|RD_3, 	0,		I34,		0,	0 },
-{"seleqz.s",		"D,T,S",	0x46000014, 0xffe0003f, WR_1|RD_2|RD_3|FP_S,   0,		I34,		0,	0 },
-{"seleqz.d",		"D,T,S",	0x46200014, 0xffe0003f, WR_1|RD_2|RD_3|FP_D,   0,		I34,		0,	0 },
 {"selsl",		"d,v,t",	0x00000005, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,		L1,		0,	0 },
 {"selsr",		"d,v,t",	0x00000001, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,		L1,		0,	0 },
 {"seq",			"d,v,t",	0x7000002a, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		IOCT,		0,	0 },
@@ -3263,6 +3255,15 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"max.d",		"D,V,T",	0x4620001e, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		I34,		0,	0 },
 {"max_a.s",		"D,V,T",	0x4600001f, 0xffe0003f,	WR_1|RD_2|RD_3|FP_S,	0,		I34,		0,	0 },
 {"max_a.d",		"D,V,T",	0x4620001f, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		I34,		0,	0 },
+
+{"sel.s",		"D,T,S,+D",	0x46000010, 0xffe0003f, MOD_1|RD_2|RD_3|FP_S,   0,		I34,		0,	0 },
+{"sel.d",		"D,T,S,+D",	0x46200010, 0xffe0003f, MOD_1|RD_2|RD_3|FP_D,   0,		I34,		0,	0 },
+{"selnez",		"d,t,s",	0x00000037, 0xfc0007ff, WR_1|RD_2|RD_3, 	0,		I34,		0,	0 },
+{"selnez.s",		"D,T,S",	0x46000017, 0xffe0003f, WR_1|RD_2|RD_3|FP_S,	0,		I34,		0,	0 },
+{"selnez.d",		"D,T,S",	0x46200017, 0xffe0003f, WR_1|RD_2|RD_3|FP_D,	0,		I34,		0,	0 },
+{"seleqz",		"d,t,s",	0x00000035, 0xfc0007ff, WR_1|RD_2|RD_3, 	0,		I34,		0,	0 },
+{"seleqz.s",		"D,T,S",	0x46000014, 0xffe0003f, WR_1|RD_2|RD_3|FP_S,	0,		I34,		0,	0 },
+{"seleqz.d",		"D,T,S",	0x46200014, 0xffe0003f, WR_1|RD_2|RD_3|FP_D,	0,		I34,		0,	0 },
 
 /* No hazard protection on coprocessor instructions--they shouldn't
    change the state of the processor and if they do it's up to the
