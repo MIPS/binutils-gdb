@@ -941,6 +941,8 @@ struct mips_opcode
    "+D" Same as destination register
    "+I" 2bit unsigned bit position at bit 6
    "+O" 3bit unsigned bit position at bit 6
+   "+R" must be program counter
+   "-a" (-262144 .. 262143) << 2 at bit 0
 
    Other:
    "()" parens surrounding optional value
@@ -957,8 +959,12 @@ struct mips_opcode
    following), for quick reference when adding more:
    "1234567890"
    "~!@#$%^&*|:'";"
-   "ABCDEFGHIJKLMNOPQSTUVWXZ"
+   "ABCDEFGHIJKLMNOPQRSTUVWXZ"
    "abcdefghijklmnopqrstuvwxyz"
+
+   Extension character sequences used so far ("-" followed by the
+   following), for quick reference when adding more:
+   "a"
 */
 
 /* These are the bits which may be set in the pinfo field of an

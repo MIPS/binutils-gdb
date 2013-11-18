@@ -42,6 +42,13 @@ decode_mips_operand (const char *p)
 {
   switch (p[0])
     {
+    case '-':
+      switch (p[1])
+	{
+	case 'a': INT_ADJ (19, 0, 262143, 2, FALSE);
+        }
+      break;
+
     case '+':
       switch (p[1])
 	{
@@ -73,6 +80,7 @@ decode_mips_operand (const char *p)
 	case 'O': UINT (3, 6);
 	case 'P': BIT (5, 6, 32);		/* (32 .. 63) */
 	case 'Q': SINT (10, 6);
+	case 'R': SPECIAL (0, 0, PC);
 	case 'S': MSB (5, 11, 0, FALSE, 63);	/* (0 .. 31), 64-bit op */
 	case 'T': INT_ADJ (10, 16, 511, 0, FALSE); /* (-512 .. 511) << 0 */
 	case 'U': INT_ADJ (10, 16, 511, 1, FALSE); /* (-512 .. 511) << 1 */
@@ -249,6 +257,8 @@ decode_mips_operand (const char *p)
 
 #define WR_MACC INSN2_WRITE_MDMX_ACC
 #define RD_MACC INSN2_READ_MDMX_ACC
+
+#define RD_pc   INSN2_READ_PC
 
 #define I1	INSN_ISA1
 #define I2	INSN_ISA2
@@ -980,7 +990,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"dadd",		"t,r,I",	0,    (int) M_DADD_I,	INSN_MACRO,		0,		I3,		0,	I34 },
 {"dadd",		"D,S,T",	0x45e00000, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		IL2E,		0,	0 },
 {"dadd",		"D,S,T",	0x4b60000c, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		IL2F|IL3A,	0,	0 },
-{"daddi",		"t,r,j",	0x60000000, 0xfc000000, WR_1|RD_2,		0,		I3,		0,	0 },
+{"daddi",		"t,r,j",	0x60000000, 0xfc000000, WR_1|RD_2,		0,		I3,		0,	I34 },
 {"daddiu",		"t,r,j",	0x64000000, 0xfc000000, WR_1|RD_2,		0,		I3,		0,	0 },
 {"daddu",		"d,v,t",	0x0000002d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		I3,		0,	0 },
 {"daddu",		"t,r,I",	0,    (int) M_DADDU_I,	INSN_MACRO,		0,		I3,		0,	0 },
@@ -3181,12 +3191,12 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"dlsa",		"d,v,t,+~",	0x00000015, 0xfc00073f,	WR_1|RD_2|RD_3,		0,		I66,		MSA64,	0 },
 /* MIPS r6.  */
 
-{"ahi",			"t,+D,u",	0x04c00000, 0xffe00000,	MOD_1,			0,		I34,		0,	0 },
-{"ati",			"t,+D,u",	0x07c00000, 0xffe00000,	MOD_1,			0,		I34,		0,	0 },
+{"dahi",		"t,+D,u",	0x04c00000, 0xffe00000,	MOD_1,			0,		I66,		0,	0 },
+{"dati",		"t,+D,u",	0x07c00000, 0xffe00000,	MOD_1,			0,		I66,		0,	0 },
 {"aui",			"t,s,u",	0x3c000000, 0xfc000000,	WR_1|RD_2,		0,		I34,		0,	0 },
 
 {"align",		"d,s,t,+I",	0x7c000220, 0xfc00073f,	WR_1|RD_2|RD_3,		0,		I34,		0,	0 },
-{"dalign",		"d,s,t,+O",	0x7c000224, 0xfc00063f,	WR_1|RD_2|RD_3,		0,		I34,		0,	0 },
+{"dalign",		"d,s,t,+O",	0x7c000224, 0xfc00063f,	WR_1|RD_2|RD_3,		0,		I66,		0,	0 },
 {"bitswap",		"d,t",		0x7c000020, 0xffe007ff,	WR_1|RD_2,		0,		I34,		0,	0 },
 
 /* These will not disassemble properly nor check for errors in arguments */
@@ -3264,6 +3274,11 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"seleqz",		"d,t,s",	0x00000035, 0xfc0007ff, WR_1|RD_2|RD_3, 	0,		I34,		0,	0 },
 {"seleqz.s",		"D,T,S",	0x46000014, 0xffe0003f, WR_1|RD_2|RD_3|FP_S,	0,		I34,		0,	0 },
 {"seleqz.d",		"D,T,S",	0x46200014, 0xffe0003f, WR_1|RD_2|RD_3|FP_D,	0,		I34,		0,	0 },
+
+{"addiup",		"s,+r,-a",	0x60000000, 0xfc180000, WR_1|RD_pc,		0,		I34,		0,	0 },
+{"lwp",			"s,-a(+r)",	0x60100000, 0xfc180000, WR_1|RD_pc,		0,		I34,		0,	0 },
+{"ldp",			"s,-a(+r)",	0x60080000, 0xfc180000, WR_1|RD_pc,		0,		I66,		0,	0 },
+{"lwup",		"s,-a(+r)",	0x60180000, 0xfc180000, WR_1|RD_pc,		0,		I66,		0,	0 },
 
 /* No hazard protection on coprocessor instructions--they shouldn't
    change the state of the processor and if they do it's up to the
