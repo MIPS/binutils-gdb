@@ -3,6 +3,16 @@
 	* gas/aarch64/msr.s: Add tests.
 	* gas/aarch64/msr.d: Update.
 
+2013-11-19  Catherine Moore  <clm@codesourcery.com>
+
+	* gas/mips/fix-pmc-rm7000-1.d: New.
+	* gas/mips/fix-pmc-rm7000-1.s: New.
+	* gas/mips/fix-pmc-rm7000-2.d: New.
+	* gas/mips/fix-pmc-rm7000-2.s: New.
+	* gas/mips/micromips@fix-pmc-rm7000-1.d: New.
+	* gas/mips/micromips@fix-pmc-rm7000-2.d: New.
+	* gas/mips/mips.exp: Run new tests.
+
 2013-11-18  Renlin Li  <Renlin.Li@arm.com>
 
 	* gas/arm/attr-march-armv7ve.d: New test case for armv7ve.
