@@ -95,9 +95,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define FPQNaN_LONG     (UNSIGNED64 (0x7FFFFFFFFFFFFFFF))
 #define FPQNaN_PS       (FP_PS_cat (FPQNaN_SINGLE, FPQNaN_SINGLE))
 
-/* CMP.cond.fmt useful values */
-#define FP_CMP_TRUE(fmt) ((fmt == fmt_single) ? 0xFFFFFFFF : 0xFFFFFFFFFFFFFFFF)
-#define FP_CMP_FALSE     (0x0)
 
 static const char *fpu_format_name (FP_formats fmt);
 #ifdef DEBUG
@@ -625,20 +622,19 @@ fp_cmp(sim_cpu *cpu,
 }
 
 unsigned64
-fp_r6_cmp(sim_cpu *cpu,
-          address_word cia,
-          unsigned64 op1,
-          unsigned64 op2,
-          FP_formats fmt,
-          int cond)
+fp_r6_cmp (sim_cpu *cpu,
+           address_word cia,
+           unsigned64 op1,
+           unsigned64 op2,
+           FP_formats fmt,
+           int cond)
 {
   sim_fpu wop1, wop2;
-  sim_fpu_status status = 0;
   int result = 0;
   int signalling = cond & 1;
 
   switch (fmt)
-  {
+    {
     case fmt_single:
       sim_fpu_32to (&wop1, op1);
       sim_fpu_32to (&wop2, op2);
@@ -648,60 +644,62 @@ fp_r6_cmp(sim_cpu *cpu,
       sim_fpu_64to (&wop2, op2);
       break;
     default:
-      fprintf (stderr, "Bad switch\n");
       abort ();
       break;
-  }
+    }
 
-  switch (cond >> 1)
-  {
+  switch (cond)
+    {
     case FP_CMP_AF:
       result = 0;
       break;
-
     case FP_CMP_UN:
       result = sim_fpu_is_un (&wop1, &wop2);
       break;
     case FP_CMP_OR:
       result = sim_fpu_is_or (&wop1, &wop2);
       break;
-
     case FP_CMP_EQ:
       result = sim_fpu_is_eq (&wop1, &wop2);
       break;
     case FP_CMP_NE:
       result = sim_fpu_is_ne (&wop1, &wop2);
       break;
-
     case FP_CMP_LT:
       result = sim_fpu_is_lt (&wop1, &wop2);
       break;
     case FP_CMP_LE:
       result = sim_fpu_is_le (&wop1, &wop2);
       break;
-
     case FP_CMP_UEQ:
       result = sim_fpu_is_un (&wop1, &wop2) || sim_fpu_is_eq (&wop1, &wop2);
       break;
     case FP_CMP_UNE:
       result = sim_fpu_is_un (&wop1, &wop2) || sim_fpu_is_ne (&wop1, &wop2);
       break;
-
     case FP_CMP_ULT:
       result = sim_fpu_is_un (&wop1, &wop2) || sim_fpu_is_lt (&wop1, &wop2);
       break;
     case FP_CMP_ULE:
       result = sim_fpu_is_un (&wop1, &wop2) || sim_fpu_is_le (&wop1, &wop2);
       break;
-
     default:
-      status = sim_fpu_status_invalid_cmp;
+      update_fcsr (cpu, cia, sim_fpu_status_invalid_cmp);
       break;
-  }
+    }
 
-  update_fcsr (cpu, cia, status);
-  SETFCC (0, result);
-  return (result) ? FP_CMP_TRUE(fmt) : FP_CMP_FALSE;
+  if (result)
+    {
+      switch (fmt)
+        {
+        case fmt_single:
+          return 0xFFFFFFFF;
+        case fmt_double:
+          return 0xFFFFFFFFFFFFFFFF;
+        }
+     }
+   else
+     return 0;
 }
 
 
