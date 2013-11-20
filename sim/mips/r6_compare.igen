@@ -1,6 +1,6 @@
 :%s::::R6COND:int r6cond
 {
-  switch (cond)
+  switch (r6cond)
     {
     case FP_CMP_SAF: 
       return "SAF";
@@ -58,9 +58,31 @@
 {
   unsigned64 result;
   check_fpu (SD_);
-  TRACE_ALU_INPUT3 (ValueFPR (FD, FMT), ValueFPR (FS, FMT), Value (FT, FMT)); 
+  TRACE_ALU_INPUT3 (ValueFPR (FD, FMT), ValueFPR (FS, FMT), ValueFPR (FT, FMT)); 
 
   result = R6Compare (ValueFPR (FS, FMT), ValueFPR (FT, FMT), FMT, R6COND);
   StoreFPR (FD, FMT, result);
   TRACE_ALU_RESULT (result);
+}
+
+010001,01001,5.FT,16.OFFSET:POOL32X:32,f::BC1EQZ
+"bc1eqz f<FT>, <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  address_word offset = EXTEND16 (OFFSET) << 2;
+  check_fpu (SD_);
+  if (FGR[FT] == 0)
+    DELAY_SLOT (NIA + offset);
+}
+
+010001,01101,5.FT,16.OFFSET:POOL32X:32,f::BC1NEZ
+"bc1nez f<FT>, <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  address_word offset = EXTEND16 (OFFSET) << 2;
+  check_fpu (SD_);
+  if (FGR[FT] != 0)
+    DELAY_SLOT (NIA + offset);
 }

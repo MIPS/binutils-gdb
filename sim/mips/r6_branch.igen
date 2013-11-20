@@ -1,24 +1,3 @@
-010001,01,1.NEQ,01,5.FT,16.OFFSET:POOL32X:32,f::BC1xxZ
-"bc1eqz f<FT>, <OFFSET>":NEQ==0
-"bc1nez f<FT>, <OFFSET>"
-*mips32r6:
-*mips64r6:
-{
-  TRACE_BRANCH_INPUT(FGR[FT]);
-  if ((FGR[FT] == 0 && !NEQ) || (FGR[FT] != 0 && NEQ))
-  {
-    address_word dest = NIA + (EXTEND16 (OFFSET) << 2);
-    TRACE_BRANCH_RESULT (dest);
-    DELAY_SLOT (dest);
-  }
-  else
-  {
-    TRACE_BRANCH_RESULT (0);
-    NULLIFY_NEXT_INSTRUCTION ();
-  }
-}
-
-
 110010,26.OFFSET:POOL32X:32::BC
 "bc <OFFSET>"
 *mips32r6:
