@@ -994,9 +994,11 @@ struct mips_print_arg_state {
   unsigned int last_int;
 
   /* The type and number of the last OP_REG seen.  We only use this for
-     OP_REPEAT_DEST_REG and OP_REPEAT_PREV_REG.  */
+     OP_REPEAT_DEST_REG, OP_REPEAT_DEST_FP_REG and OP_REPEAT_PREV_REG.  */
   enum mips_reg_operand_type last_reg_type;
   unsigned int last_regno;
+  unsigned int dest_regno;
+  unsigned int seen_dest;
 };
 
 /* Initialize STATE for the start of an instruction.  */
@@ -1094,6 +1096,12 @@ print_insn_arg (struct disassemble_info *info,
 
 	state->last_reg_type = reg_op->reg_type;
 	state->last_regno = uval;
+
+        if (!state->seen_dest)
+          {
+            state->seen_dest = 1;
+            state->dest_regno = uval;
+          }
       }
       break;
 
@@ -1296,8 +1304,9 @@ print_insn_arg (struct disassemble_info *info,
       break;
 
     case OP_REPEAT_DEST_REG:
-      /* Should always match OP_REPEAT_PREV_REG first.  */
-      abort ();
+    case OP_REPEAT_DEST_REG_FP:
+      print_reg (info, opcode, state->last_reg_type, state->dest_regno);
+      break;
 
     case OP_PC:
       infprintf (is, "$pc");

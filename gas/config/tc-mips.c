@@ -3251,7 +3251,7 @@ validate_mips_insn (const struct mips_opcode *opcode,
 	      used_bits &= ~(mask & 0x700);
 	  }
 	/* Skip prefix characters.  */
-	if (decode_operand && (*s == '+' || *s == 'm'))
+	if (decode_operand && (*s == '+' || *s == 'm' || *s == '-'))
 	  ++s;
 	opno += 1;
 	break;
@@ -4044,6 +4044,7 @@ operand_reg_mask (const struct mips_cl_insn *insn,
     case OP_ADDIUSP_INT:
     case OP_ENTRY_EXIT_LIST:
     case OP_REPEAT_DEST_REG:
+    case OP_REPEAT_DEST_REG_FP:
     case OP_REPEAT_PREV_REG:
     case OP_PC:
     case OP_VU0_SUFFIX:
@@ -5340,11 +5341,13 @@ match_pc_operand (struct mips_arg_info *arg)
    register that we need to match.  */
 
 static bfd_boolean
-match_tied_reg_operand (struct mips_arg_info *arg, unsigned int other_regno)
+match_tied_reg_operand (struct mips_arg_info *arg,
+                        enum mips_reg_operand_type type,
+                        unsigned int other_regno)
 {
   unsigned int regno;
 
-  return match_reg (arg, OP_REG_GP, &regno) && regno == other_regno;
+  return match_reg (arg, type, &regno) && regno == other_regno;
 }
 
 /* Read a floating-point constant from S for LI.S or LI.D.  LENGTH is
@@ -5590,10 +5593,13 @@ match_operand (struct mips_arg_info *arg,
       return match_mdmx_imm_reg_operand (arg, operand);
 
     case OP_REPEAT_DEST_REG:
-      return match_tied_reg_operand (arg, arg->dest_regno);
+      return match_tied_reg_operand (arg, OP_REG_GP, arg->dest_regno);
+
+    case OP_REPEAT_DEST_REG_FP:
+      return match_tied_reg_operand (arg, OP_REG_FP, arg->dest_regno);
 
     case OP_REPEAT_PREV_REG:
-      return match_tied_reg_operand (arg, arg->last_regno);
+      return match_tied_reg_operand (arg, OP_REG_GP, arg->last_regno);
 
     case OP_PC:
       return match_pc_operand (arg);
@@ -7426,7 +7432,7 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	abort ();
 
       /* Skip prefixes.  */
-      if (*args == '+' || *args == 'm')
+      if (*args == '+' || *args == 'm' || *args == '-')
 	args++;
 
       if (mips_optional_operand_p (operand)
@@ -7439,7 +7445,6 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	  arg.token = tokens;
 	  arg.argnum = 1;
 	}
-
       if (!match_operand (&arg, operand))
 	return FALSE;
     }

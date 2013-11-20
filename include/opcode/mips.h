@@ -401,6 +401,9 @@ enum mips_operand_type {
   /* A register operand that must match the destination register.  */
   OP_REPEAT_DEST_REG,
 
+  /* A register operand that must match the destination fp register.  */
+  OP_REPEAT_DEST_REG_FP,
+
   /* A register operand that must match the previous register.  */
   OP_REPEAT_PREV_REG,
 
@@ -938,7 +941,8 @@ struct mips_opcode
    "+'" 26 bit PC relative branch target address
    "+"" 21 bit PC relative branch target address
    "+;" 5 bit same register in both OP_*_RS and OP_*_RT
-   "+D" Same as destination register
+   "-D" Same as destination register FP
+   "-d" Same as destination register GP
    "+I" 2bit unsigned bit position at bit 6
    "+O" 3bit unsigned bit position at bit 6
    "+R" must be program counter
@@ -951,7 +955,7 @@ struct mips_opcode
 
    Characters used so far, for quick reference when adding more:
    "1234567890"
-   "%[]<>(),+:'@!#$*&\~"
+   "%[]<>(),+-:'@!#$*&\~"
    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
    "abcdefghijklopqrstuvwxz"
 
@@ -959,12 +963,12 @@ struct mips_opcode
    following), for quick reference when adding more:
    "1234567890"
    "~!@#$%^&*|:'";"
-   "ABCDEFGHIJKLMNOPQRSTUVWXZ"
+   "ABCEFGHIJKLMNOPQRSTUVWXZ"
    "abcdefghijklmnopqrstuvwxyz"
 
    Extension character sequences used so far ("-" followed by the
    following), for quick reference when adding more:
-   "a"
+   "adD"
 */
 
 /* These are the bits which may be set in the pinfo field of an
