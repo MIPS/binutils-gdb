@@ -55,7 +55,7 @@
 *mips32r6:
 *mips64r6:
 {
-  if (GPR[RT] <= 0);
+  if (GPR[RT] <= 0)
     NIA = CIA + (EXTEND16 (OFFSET) << 2);
 }
 
@@ -64,7 +64,7 @@
 *mips32r6:
 *mips64r6:
 {
-  if (GPR[RT] >= 0);
+  if (GPR[RT] >= 0)
     NIA = CIA + (EXTEND16 (OFFSET) << 2);
 }
 
@@ -83,7 +83,7 @@
 *mips32r6:
 *mips64r6:
 {
-  if (GPR[RT] > 0);
+  if (GPR[RT] > 0)
     NIA = CIA + (EXTEND16 (OFFSET) << 2);
 }
 
@@ -92,7 +92,7 @@
 *mips32r6:
 *mips64r6:
 {
-  if (GPR[RT] < 0);
+  if (GPR[RT] < 0)
     NIA = CIA + (EXTEND16 (OFFSET) << 2);
 }
 
@@ -121,7 +121,7 @@
 *mips64r6:
 {
   RA = CIA + 4;
-  if (GPR[RT] >= 0);
+  if (GPR[RT] >= 0)
     NIA = CIA + (EXTEND16 (OFFSET) << 2);
 }
 
@@ -140,7 +140,7 @@
 *mips64r6:
 {
   RA = CIA + 4;
-  if (GPR[RT] > 0);
+  if (GPR[RT] > 0)
     NIA = CIA + (EXTEND16 (OFFSET) << 2);
 }
 
@@ -150,7 +150,7 @@
 *mips64r6:
 {
   RA = CIA + 4;
-  if (GPR[RT] < 0);
+  if (GPR[RT] < 0)
     NIA = CIA + (EXTEND16 (OFFSET) << 2);
 }
 
