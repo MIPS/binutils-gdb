@@ -4,7 +4,6 @@
 *mips64r6:
 {
   NIA = CIA + (OFFSET << 2);
-  TRACE_BRANCH_RESULT (NIA);
 }
 
 111010,26.OFFSET:POOL32X:32::BALC
@@ -14,7 +13,6 @@
 {
   RA = CIA + 4;
   NIA = CIA + (OFFSET << 2);
-  TRACE_BRANCH_RESULT (NIA);
 }
 
 110110,5.RS!0,21.OFFSET:POOL32X:32::BEQZC
@@ -22,11 +20,8 @@
 *mips32r6:
 *mips64r6:
 {
-  TRACE_BRANCH_INPUT (GPR[RS]);
   if (GPR[RS] == 0)
     NIA = CIA + (OFFSET << 2);
-
-  TRACE_BRANCH_RESULT (NIA);
 }
 
 110110,00000,5.RT,16.OFFSET:POOL32X:32::JRIC
@@ -42,11 +37,8 @@
 *mips32r6:
 *mips64r6:
 {
-  TRACE_BRANCH_INPUT (GPR[RS]);
   if (GPR[RS] != 0)
     NIA = CIA + (OFFSET << 2);
-
-  TRACE_BRANCH_RESULT (NIA);
 }
 
 111110,00000,5.RT,16.OFFSET:POOL32X:32::JRIALC
@@ -63,10 +55,8 @@
 *mips32r6:
 *mips64r6:
 {
-  TRACE_BRANCH_INPUT (GPR[RT]);
   if (GPR[RT] <= 0);
     NIA = CIA + (EXTEND16 (OFFSET) << 2);
-  TRACE_BRANCH_RESULT (NIA);
 }
 
 010110,5.RS=RT,5.RT!0,16.OFFSET:POOL32X:32::BGEZC
@@ -74,10 +64,8 @@
 *mips32r6:
 *mips64r6:
 {
-  TRACE_BRANCH_INPUT2 (GPR[RS], GPR[RT]);
   if (GPR[RT] >= 0);
     NIA = CIA + (EXTEND16 (OFFSET) << 2);
-  TRACE_BRANCH_RESULT (NIA);
 }
 
 010110,5.RS!0!RT,5.RT!0,16.OFFSET:POOL32X:32::BGEC
@@ -85,10 +73,8 @@
 *mips32r6:
 *mips64r6:
 {
-  TRACE_BRANCH_INPUT2 (GPR[RS], GPR[RT]);
   if ((signed_word) GPR[RS] >= (signed_word) GPR[RT])
     NIA = CIA + (EXTEND16 (OFFSET) << 2);
-  TRACE_BRANCH_RESULT (NIA);
 }
 
 
@@ -97,10 +83,8 @@
 *mips32r6:
 *mips64r6:
 {
-  TRACE_BRANCH_INPUT (GPR[RT]);
   if (GPR[RT] > 0);
     NIA = CIA + (EXTEND16 (OFFSET) << 2);
-  TRACE_BRANCH_RESULT (NIA);
 }
 
 010111,5.RS=RT,5.RT!0,16.OFFSET:POOL32X:32::BLTZC
@@ -108,10 +92,8 @@
 *mips32r6:
 *mips64r6:
 {
-  TRACE_BRANCH_INPUT2 (GPR[RS], GPR[RT]);
   if (GPR[RT] < 0);
     NIA = CIA + (EXTEND16 (OFFSET) << 2);
-  TRACE_BRANCH_RESULT (NIA);
 }
 
 010111,5.RS!0!RT,5.RT!0,16.OFFSET:POOL32X:32::BLTC
@@ -119,10 +101,8 @@
 *mips32r6:
 *mips64r6:
 {
-  TRACE_BRANCH_INPUT2 (GPR[RS], GPR[RT]);
   if ((signed_word) GPR[RS] < (signed_word) GPR[RT])
     NIA = CIA + (EXTEND16 (OFFSET) << 2);
-  TRACE_BRANCH_RESULT (NIA);
 }
 
 000110,00000,5.RT!0,16.OFFSET:POOL32X:32::BLEZALC
@@ -130,11 +110,9 @@
 *mips32r6:
 *mips64r6:
 {
-  TRACE_BRANCH_INPUT (GPR[RT]);
   RA = CIA + 4;
   if (GPR[RT] <= 0);
     NIA = CIA + (EXTEND16 (OFFSET) << 2);
-  TRACE_BRANCH_RESULT (NIA);
 }
 
 000110,5.RS=RT,5.RT!0,16.OFFSET:POOL32X:32::BGEZALC
@@ -142,11 +120,9 @@
 *mips32r6:
 *mips64r6:
 {
-  TRACE_BRANCH_INPUT2 (GPR[RS], GPR[RT]);
   RA = CIA + 4;
   if (GPR[RT] >= 0);
     NIA = CIA + (EXTEND16 (OFFSET) << 2);
-  TRACE_BRANCH_RESULT (NIA);
 }
 
 000110,5.RS!0!RT,5.RT!0,16.OFFSET:POOL32X:32::BBEC
@@ -154,10 +130,8 @@
 *mips32r6:
 *mips64r6:
 {
-  TRACE_BRANCH_INPUT2 (GPR[RS], GPR[RT]);
   if (GPR[RS] >= GPR[RT])
     NIA = CIA + (EXTEND16 (OFFSET) << 2);
-  TRACE_BRANCH_RESULT (NIA);
 }
 
 000111,00000,5.RT!0,16.OFFSET:POOL32X:32::BGTZALC
@@ -165,11 +139,9 @@
 *mips32r6:
 *mips64r6:
 {
-  TRACE_BRANCH_INPUT2 (GPR[RT], OFFSET);
   RA = CIA + 4;
   if (GPR[RT] > 0);
     NIA = CIA + (EXTEND16 (OFFSET) << 2);
-  TRACE_BRANCH_RESULT (NIA);
 }
 
 000111,5.RS=RT,5.RT!0,16.OFFSET:POOL32X:32::BLTZALC
@@ -177,11 +149,9 @@
 *mips32r6:
 *mips64r6:
 {
-  TRACE_BRANCH_INPUT2 (OFFSET, GPR[RT]);
   RA = CIA + 4;
   if (GPR[RT] < 0);
     NIA = CIA + (EXTEND16 (OFFSET) << 2);
-  TRACE_BRANCH_RESULT (NIA);
 }
 
 000111,5.RS!0!RT,5.RT!0,16.OFFSET:POOL32X:32::BSTC
@@ -189,10 +159,8 @@
 *mips32r6:
 *mips64r6:
 {
-  TRACE_BRANCH_INPUT2 (GPR[RT], GPR[RS]);
   if (GPR[RS] < GPR[RT])
     NIA = CIA + (EXTEND16 (OFFSET) << 2);
-  TRACE_BRANCH_RESULT (NIA);
 }
 
 //TODO: JCRPOP is gone, this opcode is definitely being used
@@ -209,11 +177,9 @@
 *mips32r6:
 *mips64r6:
 {
-  TRACE_BRANCH_INPUT2 (OFFSET, GPR[RT]);
   RA = CIA + 4;
   if (GPR[RT] == 0)
     NIA = CIA + (EXTEND16 (OFFSET) << 2);
-  TRACE_BRANCH_RESULT (NIA);
 }
 
 111011,5.RS!0,5.RT=0,16.OFFSET:POOL32X:32::BNEZALC
@@ -221,11 +187,9 @@
 *mips32r6:
 *mips64r6:
 {
-  TRACE_BRANCH_INPUT2 (OFFSET, GPR[RS]);
   RA = CIA + 4;
   if (GPR[RS] != 0)
     NIA = CIA +  (EXTEND16 (OFFSET) << 2);
-  TRACE_BRANCH_RESULT (NIA);
 }
 
 //BCNE is RS > RT, RS==RT is already handled by JCRPOP
@@ -236,8 +200,6 @@
 *mips64r6:
 {
   address_word dest = CIA + (EXTEND16 (OFFSET) << 2);
-  TRACE_BRANCH_INPUT2 (GPR[RS], GPR[RT]);
-  TRACE_BRANCH_INPUT (OFFSET);
   if (RS < RT)
   {
     //BCEQ
@@ -250,5 +212,4 @@
     if (GPR[RS] != GPR[RT])
       NIA = dest;
   }
-  TRACE_BRANCH_RESULT (NIA);
 }
