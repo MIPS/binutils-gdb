@@ -102,6 +102,14 @@ IGEN_INCLUDE=\
 	$(srcdir)/dsp2.igen \
 	$(srcdir)/mips3264r2.igen \
 	$(srcdir)/mips3264r6.igen \
+	$(srcdir)/r6_branch.igen \
+	$(srcdir)/r6_fused_mul.igen \
+	$(srcdir)/r6_mul.igen \
+	$(srcdir)/r6_sel.igen \
+	$(srcdir)/r6_compare.igen \
+	$(srcdir)/r6_logic_and_imm.igen \
+	$(srcdir)/r6_recoded.igen \
+
 
 # NB:	Since these can be built by a number of generators, care
 #	must be taken to ensure that they are only dependant on

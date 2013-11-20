@@ -15,25 +15,76 @@
   GPR[RD] = GPR[RT] + t;
 }
 
-001111,5.RS,5.RT,16.IMMEDIATE:POOL32X:32::LUI
-"lui r<RT>, r<RS>, <IMMEDIATE>":RS!=26
-"lui r<RT>, PC, <IMMEDIATE>"
+001111,5.RS!0,5.RT,16.IMMEDIATE:POOL32X:32::AUI
+"aui r<RT>, r<RS>, <IMMEDIATE>"
 *mips32r6:
 *mips64r6:
 {
-  /* TODO: if rs==k0 && status.EXL != 1 then PC */
-  address_word base = (RS == 26) ? CIA : GPR[RS];
   TRACE_ALU_INPUT2 (GPR[RS], IMMEDIATE);
-  GPR[RT] = base + EXTEND32 (IMMEDIATE << 16);
+  GPR[RT] = GPR[RS] + EXTEND32 (IMMEDIATE << 16);
   TRACE_ALU_RESULT (GPR[RT]);
 }
 
-
-//TODO: correct this once named, defined, and opcoded
-//000000,00000,00000,5.RS,00000,000000:POOL32X:32::BITSWAP
-//"bitswap r<RS>"
-//*mips32r6:
+//Clash with bgez
+//000001,00110,5.RT!0,16.IMMEDIATE:POOL32X:32::DAHI
+//"dahi r<RT>, r<RT>, <IMMEDIATE>"
 //*mips64r6:
 //{
+//  TRACE_ALU_INPUT2 (GPR[RT], IMMEDIATE);
+//  GPR[RT] = GPR[RS] + EXTEND64 (IMMEDIATE << 32);
+//  TRACE_ALU_RESULT (GPR[RT]);
 //}
+//
+//000001,11110,5.RT!0,16.IMMEDIATE:POOL32X:32::DATI
+//"dati r<RT>, r<RT>, <IMMEDIATE>"
+//*mips64r6:
+//{
+//  TRACE_ALU_INPUT2 (GPR[RT], IMMEDIATE);
+//  GPR[RT] = GPR[RS] + EXTEND64 (IMMEDIATE << 48);
+//  TRACE_ALU_RESULT (GPR[RT]);
+//}
+
+011111,5.RS,5.RT,5.RD,010,2.IMMEDIATE,100000:POOL32X:32::ALIGN
+"align r<RD>, r<RS>, r<RT>, <IMMEDIATE>"
+*mips32r6:
+*mips64r6:
+{
+  unsigned32 rs = GPR[RS];
+  unsigned32 rt = GPR[RT];
+  TRACE_ALU_INPUT2 (GPR[RS], GPR[RT]);
+  GPR[RD] = rs >> 8 * (4 - IMMEDIATE) | rt << 8 * IMMEDIATE;
+  TRACE_ALU_RESULT (GPR[RD]);
+}
+
+011111,5.RS,5.RT,5.RD,01,3.IMMEDIATE,100100:POOL32X:32::DALIGN
+"dalign r<RD>, r<RS>, r<RT>, <IMMEDIATE>"
+*mips64r6:
+{
+  unsigned64 rs = GPR[RS];
+  unsigned64 rt = GPR[RT];
+  TRACE_ALU_INPUT2 (GPR[RS], GPR[RT]);
+  GPR[RD] = rs >> 8 * (8 - IMMEDIATE) | rt << 8 * IMMEDIATE;
+  TRACE_ALU_RESULT (GPR[RD]);
+}
+
+011111,00000,5.RT,5.RD,00000,100000:POOL32X:32::BITSWAP
+"bitswap r<RD>, r<RT>"
+*mips32r6:
+*mips64r6:
+{
+  /* Taken from: http://graphics.stanford.edu/~seander/bithacks.html */
+  unsigned64 in = GPR[RT];
+  unsigned64 out = 0;
+  int n;
+
+  TRACE_ALU_INPUT1 (in);
+  for (n = 0 ; n < WITH_TARGET_WORD_BITSIZE ; n+=8)
+    {
+      unsigned8 b = (in >> n) & 0xff;
+      b = (b * 0x0202020202ULL & 0x010884422010ULL) % 1023;
+      out |= b << n;
+    }
+  TRACE_ALU_RESULT (out);
+  GPR[RT] = out;
+}
 

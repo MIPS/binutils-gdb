@@ -2433,8 +2433,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
