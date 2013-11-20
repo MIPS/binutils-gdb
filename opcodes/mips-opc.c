@@ -3194,8 +3194,10 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"dlsa",		"d,v,t,+~",	0x00000015, 0xfc00073f,	WR_1|RD_2|RD_3,		0,		I66,		MSA64,	0 },
 /* MIPS r6.  */
 
+/* clash with bgez
 {"dahi",		"t,-d,u",	0x04c00000, 0xffe00000,	MOD_1,			0,		I66,		0,	0 },
 {"dati",		"t,-d,u",	0x07c00000, 0xffe00000,	MOD_1,			0,		I66,		0,	0 },
+*/
 {"aui",			"t,s,u",	0x3c000000, 0xfc000000,	WR_1|RD_2,		0,		I34,		0,	0 },
 
 {"align",		"d,s,t,+I",	0x7c000220, 0xfc00073f,	WR_1|RD_2|RD_3,		0,		I34,		0,	0 },
