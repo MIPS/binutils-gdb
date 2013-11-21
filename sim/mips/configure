@@ -13387,6 +13387,7 @@ case "${target}" in
   mips*tx39*)           SIM_SUBTARGET="-DSUBTARGET_R3900=1";;
   mips*-sde-elf*)       SIM_SUBTARGET="-DTARGET_ENABLE_FR=1";;
   mips*-mti-elf*)       SIM_SUBTARGET="-DTARGET_ENABLE_FR=1";;
+  mips*-img-elf*)       SIM_SUBTARGET="-DTARGET_ENABLE_FR=1";;
   mipsisa32*-*-*)       SIM_SUBTARGET="-DTARGET_ENABLE_FR=1";;
   mipsisa64*-*-*)       SIM_SUBTARGET="-DTARGET_ENABLE_FR=1";;
   *)                    SIM_SUBTARGET="";;
@@ -13465,6 +13466,7 @@ mips_addr_bitsize=
 case "${target}" in
   mips*-sde-elf*)       mips_bitsize=64 ; mips_msb=63 ;;
   mips*-mti-elf*)       mips_bitsize=64 ; mips_msb=63 ;;
+  mips*-img-elf*)       mips_bitsize=64 ; mips_msb=63 ;;
   mips64*-*-*)          mips_bitsize=64 ; mips_msb=63 ;;
   mips16*-*-*)          mips_bitsize=64 ; mips_msb=63 ;;
   mipsisa32*-*-*)       mips_bitsize=32 ; mips_msb=31 ;;
@@ -13544,6 +13546,7 @@ case "${target}" in
   mips*tx39*)           mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=32 ;;
   mips*-sde-elf*)       mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=64 ;;
   mips*-mti-elf*)       mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=64 ;;
+  mips*-img-elf*)       mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=64 ;;
   mips64*-*-*)          mips_fpu=HARD_FLOATING_POINT ;;
   mips16*-*-*)          mips_fpu=HARD_FLOATING_POINT ;;
   mipsisa32r6*-*-*)     mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=64 ; mips_fpu_qnan_negated=false ;;
@@ -13657,7 +13660,7 @@ case "${target}" in
 			  vr5500:mipsIV,vr5500:32,64,f:mips5500"
 			sim_multi_default=mips5000
 			;;
-  mips*-sde-elf* | mips*-mti-elf*)
+  mips*-sde-elf* | mips*-mti-elf* | mips*-img-elf*)
 			sim_gen=M16
 			sim_igen_machine="-M mips64r6,mips16,mips16e,mdmx,dsp,dsp2"
 			sim_m16_machine="-M mips16,mips16e,mips64r6"
