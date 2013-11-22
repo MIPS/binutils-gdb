@@ -1036,7 +1036,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
    you must use an explicit destination of $0.  */
 {"mod",			"d,v,t",	0x000000da, 0xfc0007ff, WR_1|RD_2|RD_3, 	0,		I34,		0,	0},
 {"modu",		"d,v,t",	0x000000db, 0xfc0007ff, WR_1|RD_2|RD_3, 	0,		I34,		0,	0},
-{"div",			"d,v,t",	0x0000008a, 0xfc0007ff, WR_1|RD_2|RD_3, 	0,		I34,		0,	0},
+{"div",			"d,v,t",	0x0000009a, 0xfc0007ff, WR_1|RD_2|RD_3, 	0,		I34,		0,	0},
 {"div",			"z,s,t",	0x0000001a, 0xfc00ffff, RD_2|RD_3|WR_HILO,      0,		I1,		0,	I34 },
 {"div",			"z,t",		0x0000001a, 0xffe0ffff, RD_2|WR_HILO,		0,		I1,		0,	I34 },
 {"div",			"d,v,t",	0,    (int) M_DIV_3,	INSN_MACRO,		0,		I1,		0,	I34 },
