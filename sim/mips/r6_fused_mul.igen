@@ -1,5 +1,5 @@
-010001,0000,1.FMT,5.FT,5.FS,5.FD,011000:POOLX:32,f::FMADD.fmt
-"fmadd.%s<FMT> f<FD>, f<FS>, f<FT>"
+010001,1000,1.FMT,5.FT,5.FS,5.FD,011000:POOLX:32,f::MADDF.fmt
+"maddf.%s<FMT> f<FD>, f<FS>, f<FT>"
 *mips32r6:
 *mips64r6:
 {
@@ -14,8 +14,8 @@
   TRACE_ALU_RESULT (FGR[FD]);
 }
 
-010001,0000,1.FMT,5.FT,5.FS,5.FD,011001:POOLX:32,f::FMSUB.fmt
-"fmsub.%s<FMT> f<FD>, f<FS>, f<FT>"
+010001,1000,1.FMT,5.FT,5.FS,5.FD,011001:POOLX:32,f::MSUBF.fmt
+"msubf.%s<FMT> f<FD>, f<FS>, f<FT>"
 *mips32r6:
 *mips64r6:
 {
