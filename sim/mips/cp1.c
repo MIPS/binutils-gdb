@@ -631,7 +631,7 @@ fp_r6_cmp (sim_cpu *cpu,
 {
   sim_fpu wop1, wop2;
   int result = 0;
-  int signalling = cond & 1;
+  int signalling = cond & 0x8;
 
   switch (fmt)
     {
@@ -650,37 +650,37 @@ fp_r6_cmp (sim_cpu *cpu,
 
   switch (cond)
     {
-    case FP_CMP_AF:
+    case FP_R6CMP_AF:
       result = 0;
       break;
-    case FP_CMP_UN:
+    case FP_R6CMP_UN:
       result = sim_fpu_is_un (&wop1, &wop2);
       break;
-    case FP_CMP_OR:
+    case FP_R6CMP_OR:
       result = sim_fpu_is_or (&wop1, &wop2);
       break;
-    case FP_CMP_EQ:
+    case FP_R6CMP_EQ:
       result = sim_fpu_is_eq (&wop1, &wop2);
       break;
-    case FP_CMP_NE:
+    case FP_R6CMP_NE:
       result = sim_fpu_is_ne (&wop1, &wop2);
       break;
-    case FP_CMP_LT:
+    case FP_R6CMP_LT:
       result = sim_fpu_is_lt (&wop1, &wop2);
       break;
-    case FP_CMP_LE:
+    case FP_R6CMP_LE:
       result = sim_fpu_is_le (&wop1, &wop2);
       break;
-    case FP_CMP_UEQ:
+    case FP_R6CMP_UEQ:
       result = sim_fpu_is_un (&wop1, &wop2) || sim_fpu_is_eq (&wop1, &wop2);
       break;
-    case FP_CMP_UNE:
+    case FP_R6CMP_UNE:
       result = sim_fpu_is_un (&wop1, &wop2) || sim_fpu_is_ne (&wop1, &wop2);
       break;
-    case FP_CMP_ULT:
+    case FP_R6CMP_ULT:
       result = sim_fpu_is_un (&wop1, &wop2) || sim_fpu_is_lt (&wop1, &wop2);
       break;
-    case FP_CMP_ULE:
+    case FP_R6CMP_ULE:
       result = sim_fpu_is_un (&wop1, &wop2) || sim_fpu_is_le (&wop1, &wop2);
       break;
     default:

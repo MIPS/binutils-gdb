@@ -2,49 +2,49 @@
 {
   switch (r6cond)
     {
-    case FP_CMP_SAF: 
+    case FP_R6CMP_SAF:
       return "SAF";
-    case FP_CMP_SUN: 
+    case FP_R6CMP_SUN:
       return "SUN";
-    case FP_CMP_SOR: 
+    case FP_R6CMP_SOR:
       return "SOR";
-    case FP_CMP_SEQ: 
+    case FP_R6CMP_SEQ:
       return "SEQ";
-    case FP_CMP_SUNE: 
+    case FP_R6CMP_SUNE:
       return "SUNE";
-    case FP_CMP_SUEQ: 
+    case FP_R6CMP_SUEQ:
       return "SUEQ";
-    case FP_CMP_SNE: 
+    case FP_R6CMP_SNE:
       return "SNE";
-    case FP_CMP_SLT: 
+    case FP_R6CMP_SLT:
       return "SLT";
-    case FP_CMP_SULT: 
+    case FP_R6CMP_SULT:
       return "SULT";
-    case FP_CMP_SLE: 
+    case FP_R6CMP_SLE:
       return "SLE";
-    case FP_CMP_SULE: 
+    case FP_R6CMP_SULE:
       return "SULE";
-    case FP_CMP_AF: 
+    case FP_R6CMP_AF:
       return "AF";
-    case FP_CMP_UN: 
+    case FP_R6CMP_UN:
       return "UN";
-    case FP_CMP_OR: 
+    case FP_R6CMP_OR:
       return "OR";
-    case FP_CMP_EQ: 
+    case FP_R6CMP_EQ:
       return "EQ";
-    case FP_CMP_UNE: 
+    case FP_R6CMP_UNE:
       return "UNE";
-    case FP_CMP_UEQ: 
+    case FP_R6CMP_UEQ:
       return "UEQ";
-    case FP_CMP_NE: 
+    case FP_R6CMP_NE:
       return "NE";
-    case FP_CMP_LT: 
+    case FP_R6CMP_LT:
       return "LT";
-    case FP_CMP_ULT: 
+    case FP_R6CMP_ULT:
       return "ULT";
-    case FP_CMP_LE: 
+    case FP_R6CMP_LE:
       return "LE";
-    case FP_CMP_ULE: 
+    case FP_R6CMP_ULE:
       return "ULE";
     default:
       abort ();

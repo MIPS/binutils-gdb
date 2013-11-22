@@ -739,30 +739,30 @@ void test_fcsr (SIM_STATE);
 
 /* FPU operations.  */
 /* Non-signalling */
-#define FP_CMP_AF  0x2
-#define FP_CMP_EQ  0x12
-#define FP_CMP_LE  0x32
-#define FP_CMP_LT  0x22
-#define FP_CMP_NE  0x1c
-#define FP_CMP_OR  0xc
-#define FP_CMP_UEQ 0x1a
-#define FP_CMP_ULE 0x3a
-#define FP_CMP_ULT 0x2a
-#define FP_CMP_UN  0xa
-#define FP_CMP_UNE 0x14
+#define FP_R6CMP_AF  0x0
+#define FP_R6CMP_EQ  0x2
+#define FP_R6CMP_LE  0x6
+#define FP_R6CMP_LT  0x4
+#define FP_R6CMP_NE  0x13
+#define FP_R6CMP_OR  0x11
+#define FP_R6CMP_UEQ 0x3
+#define FP_R6CMP_ULE 0x7
+#define FP_R6CMP_ULT 0x5
+#define FP_R6CMP_UN  0x1
+#define FP_R6CMP_UNE 0x12
 
 /* Signalling */
-#define FP_CMP_SAF  0x3
-#define FP_CMP_SEQ  0x13
-#define FP_CMP_SLE  0x33
-#define FP_CMP_SLT  0x23
-#define FP_CMP_SNE  0x1d
-#define FP_CMP_SOR  0xd
-#define FP_CMP_SUEQ 0x1b
-#define FP_CMP_SULE 0x3b
-#define FP_CMP_SULT 0x2b
-#define FP_CMP_SUN  0xb
-#define FP_CMP_SUNE 0x15
+#define FP_R6CMP_SAF  0x8
+#define FP_R6CMP_SEQ  0xa
+#define FP_R6CMP_SLE  0xe
+#define FP_R6CMP_SLT  0xc
+#define FP_R6CMP_SNE  0x1b
+#define FP_R6CMP_SOR  0x19
+#define FP_R6CMP_SUEQ 0xb
+#define FP_R6CMP_SULE 0xf
+#define FP_R6CMP_SULT 0xd
+#define FP_R6CMP_SUN  0x9
+#define FP_R6CMP_SUNE 0x1a
 
 void fp_cmp (SIM_STATE, unsigned64 op1, unsigned64 op2, FP_formats fmt, int abs, int cond, int cc);
 #define Compare(op1,op2,fmt,cond,cc) fp_cmp(SIM_ARGS, op1, op2, fmt, 0, cond, cc)
