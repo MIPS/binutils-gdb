@@ -1,3 +1,13 @@
+2014-09-30  James Hogan  <james.hogan@imgtec.com>
+
+	* Makefile.in (clean): Add rm -f commands for mips-dsp-linux.c and
+	mips64-dsp-linux.c.
+
+2014-09-03  James Hogan  <james.hogan@imgtec.com>
+
+	* linux-mips-low.c (mips_read_description): Reset errno to 0 prior
+	to reading DSP_CONTROL with PTRACE_PEEKUSER ptrace call.
+
 2014-01-22  Baruch Siach  <baruch@tkos.co.il>
 
 	* linux-xtensa-low.c: Include asm/ptrace.h instead of
