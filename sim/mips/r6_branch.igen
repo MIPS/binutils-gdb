@@ -12,7 +12,7 @@
 *mips64r6:
 {
   RA = CIA + 4;
-  NIA = CIA + (OFFSET << 2);
+  NIA = CIA + ((1 + OFFSET) << 2);
 }
 
 110110,5.RS!0,21.OFFSET:POOL32X:32::BEQZC

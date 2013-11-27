@@ -5,8 +5,8 @@
 {
   check_fpu (SD_);
   check_fmt_p (SD_, FMT, instruction_0);
-  TRACE_ALU_INPUT3 (ValueFPR(FD, FMT), ValueFPR(FS, FMT), ValueFPR(FT, FMT));
-  if (ValueFPR(FD, FMT) != (signed)0)
+  TRACE_ALU_INPUT3 (ValueFPR(FD, fmt_dc32), ValueFPR(FS, FMT), ValueFPR(FT, FMT));
+  if (ValueFPR(FD, fmt_dc32) != (signed)0)
     StoreFPR (FD, FMT, ValueFPR (FT, FMT));
   else
     StoreFPR (FD, FMT, ValueFPR (FS, FMT));
@@ -20,8 +20,8 @@
 {
   check_fpu (SD_);
   check_fmt_p (SD_, FMT, instruction_0);
-  TRACE_ALU_INPUT2 (ValueFPR(FS, FMT), ValueFPR(FT, FMT));
-  if (ValueFPR(FT, FMT) != (signed)0)
+  TRACE_ALU_INPUT2 (ValueFPR(FS, FMT), ValueFPR(FT, fmt_dc32));
+  if (ValueFPR(FT, fmt_dc32) != (signed)0)
     StoreFPR (FD, FMT, 0);
   else
     StoreFPR (FD, FMT, ValueFPR (FS, FMT));
@@ -35,8 +35,8 @@
 {
   check_fpu (SD_);
   check_fmt_p (SD_, FMT, instruction_0);
-  TRACE_ALU_INPUT2 (ValueFPR(FS, FMT), ValueFPR(FT, FMT));
-  if (ValueFPR(FT, FMT) != (signed)0)
+  TRACE_ALU_INPUT2 (ValueFPR(FS, FMT), ValueFPR(FT, fmt_dc32));
+  if (ValueFPR(FT, fmt_dc32) != (signed)0)
     StoreFPR (FD, FMT, ValueFPR (FS, FMT));
   else
     StoreFPR (FD, FMT, 0);

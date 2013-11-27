@@ -127,7 +127,8 @@ value_fpr (sim_cpu *cpu,
     {
       if (FPR_STATE[fpr] == fmt_uninterpreted)
 	{
-	  FPR_STATE[fpr] = fmt;
+          if (fmt != fmt_dc32)
+	    FPR_STATE[fpr] = fmt;
 #ifdef DEBUG
 	  printf ("DBG: Register %d was fmt_uninterpreted. Now %s\n", fpr,
 		  fpu_format_name (fmt));
@@ -162,6 +163,7 @@ value_fpr (sim_cpu *cpu,
 	case fmt_uninterpreted_32:
 	case fmt_single:
 	case fmt_word:
+	case fmt_dc32:
 	  value = (FGR[fpr] & 0xFFFFFFFF);
 	  break;
 
@@ -185,6 +187,7 @@ value_fpr (sim_cpu *cpu,
 	case fmt_uninterpreted_32:
 	case fmt_single:
 	case fmt_word:
+	case fmt_dc32:
 	  value = (FGR[fpr] & 0xFFFFFFFF);
 	  break;
 

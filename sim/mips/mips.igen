@@ -863,7 +863,15 @@
     }
 }
 
-
+000001,00000,10001,16.OFFSET:REGIMM:32::BAL
+"bal <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  address_word offset = EXTEND16 (OFFSET) << 2;
+  RA = (CIA + 8);
+  DELAY_SLOT (NIA + offset);
+}
 
 000001,5.RS!31,10011,16.OFFSET:REGIMM:32::BGEZALL
 "bgezall r<RS>, <OFFSET>"
@@ -1077,6 +1085,17 @@
     {
       DELAY_SLOT (NIA + offset);
     }
+}
+
+
+
+000001,00000,10000,16.OFFSET:REGIMM:32::NAL
+"nal <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  address_word offset = EXTEND16 (OFFSET) << 2;
+  RA = (CIA + 8);
 }
 
 
@@ -5712,7 +5731,7 @@
 
 010011,5.BASE,5.INDEX,5.FS,00000001001:COP1X:32,f::SDXC1
 "sdxc1 f<FS>, r<INDEX>(r<BASE>)"
-*mips32r2
+*mips32r2:
 *mips32r6:
 {
   check_fpu (SD_);

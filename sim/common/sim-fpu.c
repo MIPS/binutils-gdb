@@ -2456,57 +2456,10 @@ sim_fpu_or (int *is,
             const sim_fpu *l,
             const sim_fpu *r)
 {
-  /* assume 'normal' numbers, with an ordering */
-  *is = 1;
-  if (sim_fpu_is_lt (l, r))
-    return 0;
-  if (sim_fpu_is_gt (l, r))
-    return 0;
+  sim_fpu_un (is, l, r);
 
-  if (sim_fpu_is_eq (l, r))
-  {
-    if (sim_fpu_is_zero (l) && sim_fpu_is_zero (r))
-    {
-      if (l->sign == 1 && r->sign == 0)
-        return 0;
-    }
-
-    if (l->sign == 1 && r->sign == 1)
-    {
-      if (l->normal_exp >= r->normal_exp)
-        return 0;
-    }
-    else
-    {
-      if (l->normal_exp <= r->normal_exp)
-        return 0;
-    }
-  }
-
-  /* l,r unordered, so at least one must be NaN */
-  if (sim_fpu_is_nan (l) && l->sign == 1 && !sim_fpu_is_nan (r))
-    return 0;
-  if (sim_fpu_is_nan (r) && r->sign == 0 && !sim_fpu_is_nan (l))
-    return 0;
-
-  if (sim_fpu_is_nan (l) && sim_fpu_is_nan (r))
-  {
-    if (l->sign == 1 && r->sign == 0)
-      return 0;
-
-    if (sim_fpu_is_snan (l) && sim_fpu_is_qnan (r))
-      return 0;
-
-    /* 'lesser payload when regarded as an integer, orders below greater payload' */
-    if ((l->sign == 0 && r->sign == 0) && (l->fraction <= r->fraction))
-      return 0;
-
-    if ((l->sign == 1 && r->sign == 1) && (l->fraction >= r->fraction))
-      return 0;
-  }
-
-  /* didn't meet any of the ordered critera */
-  *is = 0;
+  /* Invert result */
+  *is = (*is) ? 0 : 1;
   return 0;
 }
 

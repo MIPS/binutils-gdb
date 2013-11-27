@@ -73,6 +73,9 @@ typedef enum {
  fmt_word    = 4,
  fmt_long    = 5,
  fmt_ps      = 6,
+ /* The following is a special case for FP conditions where only
+    the lower 32bits are considered. This is a HACK */
+ fmt_dc32    = 7,
  /* The following are well outside the normal acceptable format
     range, and are used in the register status vector. */
  fmt_unknown       = 0x10000000,
