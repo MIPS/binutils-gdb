@@ -1,3 +1,8 @@
+2013-11-27  Matthew Fortune <matthew.fortune@imgtec.com>
+
+	* ld-mips-elf/mips-elf.exp: Consider mips-mti-elf the same as
+	mips-sde-elf
+
 2013-11-19  Roland McGrath  <mcgrathr@google.com>
 
 	* ld-elf/ehdr_start-userdef.t: New file.
