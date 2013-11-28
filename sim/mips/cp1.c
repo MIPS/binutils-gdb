@@ -123,12 +123,11 @@ value_fpr (sim_cpu *cpu,
     }
 
   /* For values not yet accessed, set to the desired format.  */
-  if (fmt < fmt_uninterpreted) 
+  if (fmt < fmt_uninterpreted && fmt != fmt_dc32) 
     {
       if (FPR_STATE[fpr] == fmt_uninterpreted)
 	{
-          if (fmt != fmt_dc32)
-	    FPR_STATE[fpr] = fmt;
+	  FPR_STATE[fpr] = fmt;
 #ifdef DEBUG
 	  printf ("DBG: Register %d was fmt_uninterpreted. Now %s\n", fpr,
 		  fpu_format_name (fmt));
