@@ -426,7 +426,22 @@ enum mips_operand_type {
 
   /* The operand spans two 5-bit register fields, both of which must be set to
      the source register.  */
-  OP_SAME_RS_RT
+  OP_SAME_RS_RT,
+
+  /* The operand is a GP register but not $0 */
+  OP_GP_NOT_ZERO,
+
+  /* The operand is a GP register but the register number is less than the
+     previous operand's register number */
+  OP_GP_LT_PREV,
+
+  /* The operand is a GP register but the register number is greater than or
+     equal to the previous operand's register number */
+  OP_GP_GE_PREV,
+
+  /* The operand is a GP register but the register number is both not $0 and
+     not the same as the previous operand's register number */
+  OP_GP_NOT_ZERO_NOT_PREV
 };
 
 /* Enumerates the types of MIPS register.  */
@@ -941,12 +956,18 @@ struct mips_opcode
    "+'" 26 bit PC relative branch target address
    "+"" 21 bit PC relative branch target address
    "+;" 5 bit same register in both OP_*_RS and OP_*_RT
-   "-D" Same as destination register FP
-   "-d" Same as destination register GP
    "+I" 2bit unsigned bit position at bit 6
    "+O" 3bit unsigned bit position at bit 6
    "+R" must be program counter
    "-a" (-262144 .. 262143) << 2 at bit 0
+   "-b" (-131072 .. 131071) << 3 at bit 0
+   "-d" Same as destination register GP
+   "-D" Same as destination register FP
+   "-s" 5 bit source register specifier (OP_*_RS) not $0
+   "-t" 5 bit source register specifier (OP_*_RT) not $0
+   "-u" 5 bit source register specifier (OP_*_RT) less than OP_*_RS
+   "-v" 5 bit source register specifier (OP_*_RT) not $0 less than OP_*_RS
+   "-w" 5 bit source register specifier (OP_*_RT) greater than OP_*_RS
 
    Other:
    "()" parens surrounding optional value
@@ -968,7 +989,7 @@ struct mips_opcode
 
    Extension character sequences used so far ("-" followed by the
    following), for quick reference when adding more:
-   "adD"
+   "adDstuvw"
 */
 
 /* These are the bits which may be set in the pinfo field of an
@@ -2158,7 +2179,7 @@ extern const int bfd_mips16_num_opcodes;
 
    Characters used so far, for quick reference when adding more:
    "12345678 0"
-   "<>(),+.@\^|~"
+   "<>(),+-.@\^|~"
    "ABCDEFGHI KLMN   RST V    "
    "abcd f hijklmnopqrstuvw yz"
 
@@ -2175,6 +2196,12 @@ extern const int bfd_mips16_num_opcodes;
    ""
    " BCDEFGHIJ LMNOPQ   U WXYZ"
    " bcdefghij lmn pq st   xyz"
+
+   Extension character sequences used so far ("-" followed by the
+   following), for quick reference when adding more:
+   ""
+   ""
+   <none so far>
 */
 
 extern const struct mips_operand *decode_micromips_operand (const char *);

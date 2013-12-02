@@ -49,6 +49,11 @@ decode_mips_operand (const char *p)
 	case 'b': INT_ADJ (18, 0, 131071, 3, FALSE);
         case 'd': SPECIAL (0, 0, REPEAT_DEST_REG);
         case 'D': SPECIAL (0, 0, REPEAT_DEST_REG_FP);
+        case 's': SPECIAL (5, 21, GP_NOT_ZERO);
+        case 't': SPECIAL (5, 16, GP_NOT_ZERO);
+        case 'u': SPECIAL (5, 16, GP_LT_PREV);
+        case 'v': SPECIAL (5, 16, GP_NOT_ZERO_NOT_PREV);
+        case 'w': SPECIAL (5, 16, GP_GE_PREV);
         }
       break;
 
@@ -666,17 +671,6 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"bbit132",		"s,+x,p",	0xf8000000, 0xfc000000, RD_1|CBD,		0,		IOCT,		0,	0 },
 {"bbit1",		"s,+X,p",	0xf8000000, 0xfc000000, RD_1|CBD,		0,		IOCT,		0,	0 }, /* bbit132 */
 {"bbit1",		"s,+x,p",	0xe8000000, 0xfc000000, RD_1|CBD,		0,		IOCT,		0,	0 },
-{"jrc",			"t",		0xd8000000, 0xffe0ffff,	RD_1|NODS,		0,		I34,		0,	0 },
-{"jic",			"t,j",		0xd8000000, 0xffe00000,	RD_1|NODS,		0,		I34,		0,	0 },
-{"beqzc",		"s,+\"",	0xd8000000, 0xfc000000,	RD_1|NODS,		0,		I34,		0,	0 },
-{"jialc",		"t,j",		0xf8000000, 0xffe00000,	RD_1|NODS,		0,		I34,		0,	0 },
-{"bnezc",		"s,+\"",	0xf8000000, 0xfc000000,	RD_1|NODS,		0,		I34,		0,	0 },
-// Following 2 check rt != 0
-{"beqzalc",		"t,p",		0x20000000, 0xffe00000,	RD_1|WR_31|NODS,	0,		I34,		0,	0 },
-{"bnezalc",		"t,p",		0x60000000, 0xffe00000,	RD_1|WR_31|NODS,	0,		I34,		0,	0 },
-// Following 2 check rs > rt
-{"beqc",		"s,t,p",	0x20000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
-{"bnec",		"s,t,p",	0x60000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
 /* bc0[tf]l? are at the bottom of the table.  */
 {"bc1any2f",		"N,p",		0x45200000, 0xffe30000,	RD_CC|CBD|FP_S,		0,		0,		M3D,	0 },
 {"bc1any2t",		"N,p",		0x45210000, 0xffe30000,	RD_CC|CBD|FP_S,		0,		0,		M3D,	0 },
@@ -730,33 +724,6 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"bleu",		"s,I,p",	0,    (int) M_BLEU_I,	INSN_MACRO,		0,		I1,		0,	0 },
 {"bleul",		"s,t,p",	0,    (int) M_BLEUL,	INSN_MACRO,		0,		I2|T3,		0,	I34 },
 {"bleul",		"s,I,p",	0,    (int) M_BLEUL_I,	INSN_MACRO,		0,		I2|T3,		0,	I34 },
-// must check rt != 0
-{"blezc",		"t,p",		0x58000000, 0xffe00000,	RD_1|NODS,		0,		I34,		0,	0 },
-{"bgezc",		"+;,p",		0x58000000, 0xfc000000,	RD_1|NODS,		0,		I34,		0,	0 },
-// 2 following must check rs != rt != 0 (do we want aliases though)
-{"bgec",		"s,t,p",	0x58000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
-{"blec",		"t,s,p",	0x58000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
-
-// must check rt != 0
-{"bgtzc",		"t,p",		0x5c000000, 0xffe00000,	RD_1|NODS,		0,		I34,		0,	0 },
-{"bltzc",		"+;,p",		0x5c000000, 0xfc000000,	RD_1|NODS,		0,		I34,		0,	0 },
-// 2 following must check rs != rt != 0 (do we want aliases though)
-{"bltc",		"s,t,p",	0x5c000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
-{"bgtc",		"t,s,p",	0x5c000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
-
-// must check rt != 0
-{"blezalc",		"t,p",		0x18000000, 0xffe00000,	RD_1|WR_31|NODS,	0,		I34,		0,	0 },
-{"bgezalc",		"+;,p",		0x18000000, 0xfc000000,	RD_1|WR_31|NODS,	0,		I34,		0,	0 },
-// 2 following must check rs != rt != 0 (do we want aliases though)
-{"bbec",		"s,t,p",	0x18000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
-{"bsec",		"t,s,p",	0x18000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
-// must check rt != 0
-{"bgtzalc",		"t,p",		0x1c000000, 0xffe00000,	RD_1|WR_31|NODS,	0,		I34,		0,	0 },
-{"bltzalc",		"+;,p",		0x1c000000, 0xfc000000,	RD_1|WR_31|NODS,	0,		I34,		0,	0 },
-// 2 following must check rs != rt != 0 (do we want aliases though)
-{"bstc",		"s,t,p",	0x1c000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
-{"bbtc",		"t,s,p",	0x1c000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
-
 {"blez",		"s,p",		0x18000000, 0xfc1f0000,	RD_1|CBD,		0,		I1,		0,	0 },
 {"blezl",		"s,p",		0x58000000, 0xfc1f0000,	RD_1|CBL,		0,		I2|T3,		0,	I34 },
 {"blt",			"s,t,p",	0,    (int) M_BLT,	INSN_MACRO,		0,		I1,		0,	0 },
@@ -2024,13 +1991,13 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"trunc.w.s",		"D,S",		0x4600000d, 0xffff003f,	WR_1|RD_2|FP_S,		0,		I2,		0,	EE },
 {"trunc.w.s",		"D,S,x",	0x4600000d, 0xffff003f,	WR_1|RD_2|FP_S,		0,		I2,		0,	EE },
 {"trunc.w.s",		"D,S,t",	0,    (int) M_TRUNCWS,	INSN_MACRO,		INSN2_M_FP_S,	I1,		0,	EE },
-{"uld",			"t,A(b)",	0,    (int) M_ULD_AB,	INSN_MACRO,		0,		I3,		0,	0 },
-{"ulh",			"t,A(b)",	0,    (int) M_ULH_AB,	INSN_MACRO,		0,		I1,		0,	0 },
-{"ulhu",		"t,A(b)",	0,    (int) M_ULHU_AB,	INSN_MACRO,		0,		I1,		0,	0 },
-{"ulw",			"t,A(b)",	0,    (int) M_ULW_AB,	INSN_MACRO,		0,		I1,		0,	0 },
-{"usd",			"t,A(b)",	0,    (int) M_USD_AB,	INSN_MACRO,		0,		I3,		0,	0 },
-{"ush",			"t,A(b)",	0,    (int) M_USH_AB,	INSN_MACRO,		0,		I1,		0,	0 },
-{"usw",			"t,A(b)",	0,    (int) M_USW_AB,	INSN_MACRO,		0,		I1,		0,	0 },
+{"uld",			"t,A(b)",	0,    (int) M_ULD_AB,	INSN_MACRO,		0,		I3,		0,	I34 },
+{"ulh",			"t,A(b)",	0,    (int) M_ULH_AB,	INSN_MACRO,		0,		I1,		0,	I34 },
+{"ulhu",		"t,A(b)",	0,    (int) M_ULHU_AB,	INSN_MACRO,		0,		I1,		0,	I34 },
+{"ulw",			"t,A(b)",	0,    (int) M_ULW_AB,	INSN_MACRO,		0,		I1,		0,	I34 },
+{"usd",			"t,A(b)",	0,    (int) M_USD_AB,	INSN_MACRO,		0,		I3,		0,	I34 },
+{"ush",			"t,A(b)",	0,    (int) M_USH_AB,	INSN_MACRO,		0,		I1,		0,	I34 },
+{"usw",			"t,A(b)",	0,    (int) M_USW_AB,	INSN_MACRO,		0,		I1,		0,	I34 },
 {"v3mulu",		"d,v,t",	0x70000011, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		IOCT,		0,	0 },
 {"vmm0",		"d,v,t",	0x70000010, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		IOCT,		0,	0 },
 {"vmulu",		"d,v,t",	0x7000000f, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		IOCT,		0,	0 },
@@ -3210,16 +3177,39 @@ const struct mips_opcode mips_builtin_opcodes[] =
 /* MIPS r6.  */
 
 {"aui",			"t,s,u",	0x3c000000, 0xfc000000,	WR_1|RD_2,		0,		I34,		0,	0 },
-{"dahi",		"t,-d,u",	0x04c00000, 0xffe00000,	MOD_1,			0,		I66,		0,	0 },
-{"dati",		"t,-d,u",	0x07c00000, 0xffe00000,	MOD_1,			0,		I66,		0,	0 },
+{"dahi",		"s,-d,u",	0x04000000, 0xfc1f0000,	MOD_1,			0,		I66,		0,	0 },
+{"dati",		"s,-d,u",	0x04000000, 0xfc1f0000,	MOD_1,			0,		I66,		0,	0 },
 
 {"align",		"d,s,t,+I",	0x7c000220, 0xfc00073f,	WR_1|RD_2|RD_3,		0,		I34,		0,	0 },
 {"dalign",		"d,s,t,+O",	0x7c000224, 0xfc00063f,	WR_1|RD_2|RD_3,		0,		I66,		0,	0 },
 {"bitswap",		"d,t",		0x7c000020, 0xffe007ff,	WR_1|RD_2,		0,		I34,		0,	0 },
 
-/* Following 2 check that rs <= rt && rs != 0 */
-{"bovc",		"s,t,p",	0x20000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
-{"bnvc",		"s,t,p",	0x60000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
+{"bovc",		"-s,-w,p",	0x20000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
+{"beqzalc",		"-t,p",		0x20000000, 0xffe00000,	RD_1|WR_31|NODS,	0,		I34,		0,	0 },
+{"beqc",		"s,-u,p",	0x20000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
+{"bnvc",		"-s,-w,p",	0x60000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
+{"bnezalc",		"-t,p",		0x60000000, 0xffe00000,	RD_1|WR_31|NODS,	0,		I34,		0,	0 },
+{"bnec",		"s,-u,p",	0x60000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
+
+{"blezc",		"-t,p",		0x58000000, 0xffe00000,	RD_1|NODS,		0,		I34,		0,	0 },
+{"bgezc",		"+;,p",		0x58000000, 0xfc000000,	RD_1|NODS,		0,		I34,		0,	0 },
+{"bgec",		"-s,-v,p",	0x58000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
+{"bgtzc",		"-t,p",		0x5c000000, 0xffe00000,	RD_1|NODS,		0,		I34,		0,	0 },
+{"bltzc",		"+;,p",		0x5c000000, 0xfc000000,	RD_1|NODS,		0,		I34,		0,	0 },
+{"bltc",		"-s,-v,p",	0x5c000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
+{"blezalc",		"-t,p",		0x18000000, 0xffe00000,	RD_1|WR_31|NODS,	0,		I34,		0,	0 },
+{"bgezalc",		"+;,p",		0x18000000, 0xfc000000,	RD_1|WR_31|NODS,	0,		I34,		0,	0 },
+{"bbec",		"-s,-v,p",	0x18000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
+{"bgtzalc",		"-t,p",		0x1c000000, 0xffe00000,	RD_1|WR_31|NODS,	0,		I34,		0,	0 },
+{"bltzalc",		"+;,p",		0x1c000000, 0xfc000000,	RD_1|WR_31|NODS,	0,		I34,		0,	0 },
+{"bstc",		"-s,-v,p",	0x1c000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
+
+{"beqzc",		"-s,+\"",	0xd8000000, 0xfc000000,	RD_1|NODS,		0,		I34,		0,	0 },
+{"jrc",			"t",		0xd8000000, 0xffe0ffff,	RD_1|NODS,		INSN2_ALIAS,	I34,		0,	0 },
+{"jic",			"t,j",		0xd8000000, 0xffe00000,	RD_1|NODS,		0,		I34,		0,	0 },
+
+{"bnezc",		"-s,+\"",	0xf8000000, 0xfc000000,	RD_1|NODS,		0,		I34,		0,	0 },
+{"jialc",		"t,j",		0xf8000000, 0xffe00000,	RD_1|NODS,		0,		I34,		0,	0 },
 
 {"cmp.af.s",		"D,S,T",	0x46800000, 0xffe0003f,	WR_1|RD_2|RD_3|FP_S,	0,		I34,		0,	0 },
 {"cmp.af.d",		"D,S,T",	0x46a00000, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		I34,		0,	0 },

@@ -1028,6 +1028,23 @@ print_vu0_channel (struct disassemble_info *info,
     abort ();
 }
 
+/* Record information about a register operand */
+
+static void
+mips_seen_register (struct mips_print_arg_state *state,
+		    unsigned int regno,
+		    enum mips_reg_operand_type reg_type)
+{
+  state->last_reg_type = reg_type;
+  state->last_regno = regno;
+
+  if (!state->seen_dest)
+    {
+      state->seen_dest = 1;
+      state->dest_regno = regno;
+    }
+}
+
 /* Print operand OPERAND of OPCODE, using STATE to track inter-operand state.
    UVAL is the encoding of the operand (shifted into bit 0) and BASE_PC is
    the base address for OP_PCREL operands.  */
@@ -1094,14 +1111,7 @@ print_insn_arg (struct disassemble_info *info,
 	uval = mips_decode_reg_operand (reg_op, uval);
 	print_reg (info, opcode, reg_op->reg_type, uval);
 
-	state->last_reg_type = reg_op->reg_type;
-	state->last_regno = uval;
-
-        if (!state->seen_dest)
-          {
-            state->seen_dest = 1;
-            state->dest_regno = uval;
-          }
+	mips_seen_register (state, uval, reg_op->reg_type);
       }
       break;
 
@@ -1179,6 +1189,50 @@ print_insn_arg (struct disassemble_info *info,
 	else
 	  infprintf (is, "(ERROR)\t%s,%s", mips_gpr_names[reg2],
 		     mips_gpr_names[reg1]);
+      }
+      break;
+
+    case OP_GP_NOT_ZERO:
+      {
+	if (uval != 0)
+	  infprintf (is, "%s", mips_gpr_names[uval]);
+	else
+	  infprintf (is, "(ERROR)\t%s", mips_gpr_names[uval]);
+
+	mips_seen_register (state, uval, OP_REG_GP);
+      }
+      break;
+
+    case OP_GP_LT_PREV:
+      {
+	if (uval < state->last_regno)
+	  infprintf (is, "%s", mips_gpr_names[uval]);
+	else
+	  infprintf (is, "(ERROR)\t%s", mips_gpr_names[uval]);
+
+	mips_seen_register (state, uval, OP_REG_GP);
+      }
+      break;
+
+    case OP_GP_GE_PREV:
+      {
+	if (uval >= state->last_regno)
+	  infprintf (is, "%s", mips_gpr_names[uval]);
+	else
+	  infprintf (is, "(ERROR)\t%s", mips_gpr_names[uval]);
+
+	mips_seen_register (state, uval, OP_REG_GP);
+      }
+      break;
+
+    case OP_GP_NOT_ZERO_NOT_PREV:
+      {
+	if (uval != 0 && uval != state->last_regno)
+	  infprintf (is, "%s", mips_gpr_names[uval]);
+	else
+	  infprintf (is, "(ERROR)\t%s", mips_gpr_names[uval]);
+
+	mips_seen_register (state, uval, OP_REG_GP);
       }
       break;
 
@@ -1401,7 +1455,7 @@ print_insn_args (struct disassemble_info *info,
 	  else
 	    print_insn_arg (info, &state, opcode, operand, base_pc,
 			    mips_extract_operand (operand, insn));
-	  if (*s == 'm' || *s == '+')
+	  if (*s == 'm' || *s == '+' || *s == '-')
 	    ++s;
 	  break;
 	}
@@ -1472,25 +1526,45 @@ print_insn_mips (bfd_vma memaddr,
 		  || strcmp (op->name, "bgezalc") == 0
 		  || strcmp (op->name, "bltzalc") == 0)
 		{
-		  if (((word >> 16) & 31) != ((word >> 21) & 31))
+		  if (((word >> 16) & 31) != ((word >> 21) & 31)
+                      || ((word >> 16) & 31) == 0)
 		    continue;
 		}
-	      else if (strcmp (op->name, "beqc") == 0)
+	      else if (strcmp (op->name, "blezalc") == 0
+		       || strcmp (op->name, "bgtzalc") == 0
+		       || strcmp (op->name, "blezc") == 0
+		       || strcmp (op->name, "bgtzc") == 0
+		       || strcmp (op->name, "beqzalc") == 0
+		       || strcmp (op->name, "bnezalc") == 0)
 		{
-		  if (((word >> 21) & 31) >= ((word >> 16) & 31))
+		  if (((word >> 16) & 31) == 0)
 		    continue;
 		}
-	      else if (strcmp (op->name, "bnec") == 0)
+              else if (strcmp (op->name, "bgec") == 0
+		       || strcmp (op->name, "bltc") == 0
+		       || strcmp (op->name, "bbec") == 0
+		       || strcmp (op->name, "bstc") == 0)
+		{
+		  if (((word >> 16) & 31) == ((word >> 21) & 31)
+                      || ((word >> 21) & 31) == 0
+                      || ((word >> 16) & 31) == 0)
+		    continue;
+		}
+	      else if (strcmp (op->name, "beqc") == 0
+	               || strcmp (op->name, "bnec") == 0)
 		{
 		  if (((word >> 21) & 31) <= ((word >> 16) & 31))
 		    continue;
 		}
-	      else if (strcmp (op->name, "beqzc") == 0)
+	      else if (strcmp (op->name, "bovc") == 0
+		       || strcmp (op->name, "bnvc") == 0)
 		{
-		  if (((word >> 21) & 31) == 0)
+		  if (((word >> 21) & 31) > ((word >> 16) & 31)
+                      || ((word >> 21) & 31) == 0)
 		    continue;
 		}
-	      else if (strcmp (op->name, "bnezc") == 0)
+	      else if (strcmp (op->name, "beqzc") == 0
+		       || strcmp (op->name, "bnezc") == 0)
 		{
 		  if (((word >> 21) & 31) == 0)
 		    continue;

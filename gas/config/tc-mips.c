@@ -4088,6 +4088,15 @@ operand_reg_mask (const struct mips_cl_insn *insn,
       gas_assert ((uval & 31) == (uval >> 5));
       return 1 << (uval & 31);
 
+    case OP_GP_NOT_ZERO:
+    case OP_GP_NOT_ZERO_NOT_PREV:
+    case OP_GP_LT_PREV:
+    case OP_GP_GE_PREV:
+      if (!(type_mask & (1 << OP_REG_GP)))
+	return 0;
+      uval = insn_extract_operand (insn, operand);
+      return 1 << (uval & 31);
+
     case OP_LWM_SWM_LIST:
       abort ();
 
@@ -4756,60 +4765,6 @@ match_reg_operand (struct mips_arg_info *arg,
   else
     uval = regno;
 
-  if (regno == 0
-      && (strcmp (arg->insn->insn_mo->name, "beqzc") == 0
-	  || strcmp (arg->insn->insn_mo->name, "bnezc") == 0
-	  || strcmp (arg->insn->insn_mo->name, "blezc") == 0
-	  || strcmp (arg->insn->insn_mo->name, "bgtzc") == 0
-	  || strcmp (arg->insn->insn_mo->name, "blezalc") == 0
-	  || strcmp (arg->insn->insn_mo->name, "bgtzalc") == 0
-	  || strcmp (arg->insn->insn_mo->name, "bgec") == 0
-	  || strcmp (arg->insn->insn_mo->name, "blec") == 0
-	  || strcmp (arg->insn->insn_mo->name, "bltc") == 0
-	  || strcmp (arg->insn->insn_mo->name, "bgtc") == 0
-	  || strcmp (arg->insn->insn_mo->name, "bbec") == 0
-	  || strcmp (arg->insn->insn_mo->name, "bsec") == 0
-	  || strcmp (arg->insn->insn_mo->name, "bstc") == 0
-	  || strcmp (arg->insn->insn_mo->name, "bbtc") == 0
-	  || strcmp (arg->insn->insn_mo->name, "beqzalc") == 0
-	  || strcmp (arg->insn->insn_mo->name, "bnezalc") == 0
-	  || strcmp (arg->insn->insn_mo->name, "beqc") == 0
-	  || strcmp (arg->insn->insn_mo->name, "bnec") == 0))
-    return FALSE;
-
-  if (strcmp (arg->insn->insn_mo->name, "beqc") == 0)
-    {
-      if (arg->last_regno != ILLEGAL_REG)
-	{
-	  if (arg->last_regno == regno)
-	    return FALSE;
-	  else if (arg->last_regno > regno)
-	    {
-              /* Swap operands.  */
-	      arg->insn->insn_opcode = (arg->insn->insn_opcode & 0xfc1fffff)
-				       | (regno << 21);
-	      insn_insert_operand (arg->insn, operand_base, arg->last_regno);
-	      return TRUE;
-	    }
-	}
-    }
-  else if (strcmp (arg->insn->insn_mo->name, "bnec") == 0)
-    {
-      if (arg->last_regno != ILLEGAL_REG)
-	{
-	  if (arg->last_regno == regno)
-	    return FALSE;
-	  else if (arg->last_regno < regno)
-	    {
-              /* Swap operands.  */
-	      arg->insn->insn_opcode = (arg->insn->insn_opcode & 0xfc1fffff)
-				       | (regno << 21);
-	      insn_insert_operand (arg->insn, operand_base, arg->last_regno);
-	      return TRUE;
-	    }
-	}
-    }
-
   arg->last_regno = regno;
   if (arg->opnum == 1)
     arg->dest_regno = regno;
@@ -4936,11 +4891,92 @@ match_same_rs_rt_operand (struct mips_arg_info *arg,
   if (!match_reg (arg, OP_REG_GP, &regno))
     return FALSE;
 
-  arg->last_regno = regno;
   if (regno == 0)
     return FALSE;
 
+  arg->last_regno = regno;
+
   insn_insert_operand (arg->insn, operand, regno | (regno << 5));
+  return TRUE;
+}
+
+/* OP_GP_NOT_ZERO matcher.  */
+
+static bfd_boolean
+match_gp_not_zero_operand (struct mips_arg_info *arg,
+			   const struct mips_operand *operand)
+{
+  unsigned int regno;
+
+  if (!match_reg (arg, OP_REG_GP, &regno))
+    return FALSE;
+
+  if (regno == 0)
+    return FALSE;
+
+  arg->last_regno = regno;
+
+  insn_insert_operand (arg->insn, operand, regno);
+  return TRUE;
+}
+
+/* OP_GP_LT_PREV matcher.  */
+
+static bfd_boolean
+match_gp_lt_prev_operand (struct mips_arg_info *arg,
+			  const struct mips_operand *operand)
+{
+  unsigned int regno;
+
+  if (!match_reg (arg, OP_REG_GP, &regno))
+    return FALSE;
+
+  if (regno >= arg->last_regno)
+    return FALSE;
+
+  arg->last_regno = regno;
+
+  insn_insert_operand (arg->insn, operand, regno);
+  return TRUE;
+}
+
+/* OP_GP_GE_PREV matcher.  */
+
+static bfd_boolean
+match_gp_ge_prev_operand (struct mips_arg_info *arg,
+			  const struct mips_operand *operand)
+{
+  unsigned int regno;
+
+  if (!match_reg (arg, OP_REG_GP, &regno))
+    return FALSE;
+
+  if (regno < arg->last_regno)
+    return FALSE;
+
+  arg->last_regno = regno;
+
+  insn_insert_operand (arg->insn, operand, regno);
+  return TRUE;
+}
+
+/* OP_GP_NOT_ZERO_NOT_PREV matcher.  */
+
+static bfd_boolean
+match_gp_not_zero_not_prev_operand (struct mips_arg_info *arg,
+			            const struct mips_operand *operand)
+{
+  unsigned int regno;
+
+  if (!match_reg (arg, OP_REG_GP, &regno))
+    return FALSE;
+
+  if (regno == 0 || regno == arg->last_regno)
+    return FALSE;
+
+  arg->last_regno = regno;
+
+  insn_insert_operand (arg->insn, operand, regno);
   return TRUE;
 }
 
@@ -5618,6 +5654,18 @@ match_operand (struct mips_arg_info *arg,
 
     case OP_SAME_RS_RT:
       return match_same_rs_rt_operand (arg, operand);
+
+    case OP_GP_NOT_ZERO:
+      return match_gp_not_zero_operand (arg, operand);
+
+    case OP_GP_LT_PREV:
+      return match_gp_lt_prev_operand (arg, operand);
+
+    case OP_GP_GE_PREV:
+      return match_gp_ge_prev_operand (arg, operand);
+
+    case OP_GP_NOT_ZERO_NOT_PREV:
+      return match_gp_not_zero_not_prev_operand (arg, operand);
 
     }
   abort ();
@@ -8082,7 +8130,7 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	    uval |= (uval << 5);
 	  insn_insert_operand (&insn, operand, uval);
 
-	  if (*fmt == '+' || *fmt == 'm')
+	  if (*fmt == '+' || *fmt == 'm' || *fmt == '-')
 	    ++fmt;
 	  break;
 	}
