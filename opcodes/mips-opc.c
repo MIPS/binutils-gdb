@@ -639,6 +639,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"adda.s",		"S,T",		0x46000018, 0xffe007ff,	RD_1|RD_2|FP_S,		0,		EE,		0,	0 },
 {"addi",		"t,r,j",	0x20000000, 0xfc000000,	WR_1|RD_2,		0,		I1,		0,	I34 },
 {"addiu",		"t,r,j",	0x24000000, 0xfc000000,	WR_1|RD_2,		0,		I1,		0,	0 },
+{"addiu",		"s,+R,-a",	0xec000000, 0xfc180000, WR_1|RD_pc,		0,		I34,		0,	0 },
 {"addl.ob",		"Y,Q",		0x78000437, 0xfc2007ff,	RD_1|RD_2|FP_D,		WR_MACC,	SB1,		MX,	0 },
 {"addl.qh",		"Y,Q",		0x78200437, 0xfc2007ff,	RD_1|RD_2|FP_D,		WR_MACC,	0,		MX,	0 },
 {"addr.ps",		"D,S,T",	0x46c00018, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		0,		M3D,	0 },
@@ -1216,6 +1217,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 /* The macro has to be first to handle o32 correctly.  */
 {"ld",			"t,A(b)",	0,    (int) M_LD_AB,	INSN_MACRO,		0,		I1,		0,	0 },
 {"ld",			"t,o(b)",	0xdc000000, 0xfc000000, WR_1|RD_3,		0,		I3,		0,	0 },
+{"ld",			"s,-b(+R)",	0xec180000, 0xfc1c0000, WR_1|RD_pc,		0,		I66,		0,	0 },
 {"ldaddw",		"t,b",		0x70000010, 0xfc00ffff,	MOD_1|RD_2|SM,		0,		XLR,		0,	0 },
 {"ldaddwu",		"t,b",		0x70000011, 0xfc00ffff,	MOD_1|RD_2|SM,		0,		XLR,		0,	0 },
 {"ldaddd",		"t,b",		0x70000012, 0xfc00ffff,	MOD_1|RD_2|SM,		0,		XLR,		0,	0 },
@@ -1258,6 +1260,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"luxc1",		"D,t(b)",	0x4c000005, 0xfc00f83f, WR_1|RD_2|RD_3|LDD|FP_D, 0,		I5_33|N55,	0,	I34},
 {"lw",			"t,o(b)",	0x8c000000, 0xfc000000,	WR_1|RD_3|LDD,		0,		I1,		0,	0 },
 {"lw",			"t,A(b)",	0,    (int) M_LW_AB,	INSN_MACRO,		0,		I1,		0,	0 },
+{"lw",			"s,-a(+R)",	0xec080000, 0xfc180000, WR_1|RD_pc,		0,		I34,		0,	0 },
 {"lwc0",		"E,o(b)",	0xc0000000, 0xfc000000,	RD_3|WR_CC|CLD,		0,		I1,		0,	IOCT|IOCTP|IOCT2 },
 {"lwc0",		"E,A(b)",	0,    (int) M_LWC0_AB,	INSN_MACRO,		0,		I1,		0,	IOCT|IOCTP|IOCT2 },
 {"lwc1",		"T,o(b)",	0xc4000000, 0xfc000000,	WR_1|RD_3|CLD|FP_S,	0,		I1,		0,	0 },
@@ -1282,6 +1285,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"fork",		"d,s,t",	0x7c000008, 0xfc0007ff, WR_1|RD_2|RD_3|TRAP,	0,		0,		MT32,	0 },
 {"lwu",			"t,o(b)",	0x9c000000, 0xfc000000,	WR_1|RD_3|LDD,		0,		I3,		0,	0 },
 {"lwu",			"t,A(b)",	0,    (int) M_LWU_AB,	INSN_MACRO,		0,		I3,		0,	0 },
+{"lwu"	,		"s,-a(+R)",	0xec100000, 0xfc180000, WR_1|RD_pc,		0,		I66,		0,	0 },
 {"lwxc1",		"D,t(b)",	0x4c000000, 0xfc00f83f, WR_1|RD_2|RD_3|LDD|FP_S,     0,		I4_33,		0,	I34 },
 {"lwxs",		"d,t(b)",	0x70000088, 0xfc0007ff,	WR_1|RD_2|RD_3|LDD,	     0,		0,		SMT,	0 },
 {"macc",		"d,s,t",	0x00000028, 0xfc0007ff, WR_1|RD_2|RD_3|WR_HILO,	     0,		N412,		0,	0 },
@@ -3177,6 +3181,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 /* MIPS r6.  */
 
 {"aui",			"t,s,u",	0x3c000000, 0xfc000000,	WR_1|RD_2,		0,		I34,		0,	0 },
+{"aui",			"s,+R,u",	0xec1e0000, 0xfc1f0000, WR_1|RD_pc,		0,		I34,		0,	0 },
 {"dahi",		"s,-d,u",	0x04000000, 0xfc1f0000,	MOD_1,			0,		I66,		0,	0 },
 {"dati",		"s,-d,u",	0x04000000, 0xfc1f0000,	MOD_1,			0,		I66,		0,	0 },
 
@@ -3281,13 +3286,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"seleqz.s",		"D,S,T",	0x46000014, 0xffe0003f, WR_1|RD_2|RD_3|FP_S,	0,		I34,		0,	0 },
 {"seleqz.d",		"D,S,T",	0x46200014, 0xffe0003f, WR_1|RD_2|RD_3|FP_D,	0,		I34,		0,	0 },
 
-{"lwp",			"s,-a(+R)",	0xec080000, 0xfc180000, WR_1|RD_pc,		0,		I34,		0,	0 },
-{"ldp",			"s,-b(+R)",	0xec180000, 0xfc1c0000, WR_1|RD_pc,		0,		I66,		0,	0 },
-{"lwup",		"s,-a(+R)",	0xec100000, 0xfc180000, WR_1|RD_pc,		0,		I66,		0,	0 },
-
-{"addiup",		"s,+R,-a",	0xec000000, 0xfc180000, WR_1|RD_pc,		0,		I34,		0,	0 },
-{"auip",		"s,+r,u",	0xec1e0000, 0xfc1f0000, WR_1|RD_pc,		0,		I34,		0,	0 },
-{"auipa",		"s,+r,u",	0xec1f0000, 0xfc1f0000, WR_1|RD_pc,		0,		I34,		0,	0 },
+{"alui",		"s,+R,u",	0xec1f0000, 0xfc1f0000, WR_1|RD_pc,		0,		I34,		0,	0 },
 
 /* No hazard protection on coprocessor instructions--they shouldn't
    change the state of the processor and if they do it's up to the
