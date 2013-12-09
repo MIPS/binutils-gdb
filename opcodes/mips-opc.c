@@ -1128,7 +1128,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"dsrl",		"d,w,<",	0x0000003a, 0xffe0003f,	WR_1|RD_2,		0,		I3,		0,	0 },
 {"dsrl",		"D,S,T",	0x45a00003, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		IL2E,		0,	0 },
 {"dsrl",		"D,S,T",	0x4b20000f, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		IL2F|IL3A,	0,	0 },
-{"dsub",		"d,v,t",	0x0000002e, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,		I3,		0,	I66 },
+{"dsub",		"d,v,t",	0x0000002e, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,		I3,		0,	0 },
 {"dsub",		"d,v,I",	0,    (int) M_DSUB_I,	INSN_MACRO,		0,		I3,		0,	I66 },
 {"dsub",		"D,S,T",	0x45e00001, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		IL2E,		0,	0 },
 {"dsub",		"D,S,T",	0x4b60000d, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		IL2F|IL3A,	0,	0 },
@@ -1879,7 +1879,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"srl.qh",		"X,Y,Q",	0x78200012, 0xfc20003f,	WR_1|RD_2|RD_3|FP_D,	0,		0,		MX,	0 },
 /* ssnop is at the start of the table.  */
 {"standby",		"",		0x42000021, 0xffffffff,	0,			0,		V1,		0,	0 },
-{"sub",			"d,v,t",	0x00000022, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,		I1,		0,	I34 },
+{"sub",			"d,v,t",	0x00000022, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,		I1,		0,	0 },
 {"sub",			"d,v,I",	0,    (int) M_SUB_I,	INSN_MACRO,		0,		I1,		0,	I34 },
 {"sub",			"D,S,T",	0x45c00001, 0xffe0003f,	WR_1|RD_2|RD_3|FP_S,	0,		IL2E,		0,	0 },
 {"sub",			"D,S,T",	0x4b40000d, 0xffe0003f,	WR_1|RD_2|RD_3|FP_S,	0,		IL2F|IL3A,	0,	0 },
