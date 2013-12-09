@@ -411,7 +411,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"pref",		"k,A(b)",	0,    (int) M_PREF_AB,	INSN_MACRO,		0,		I4_32|G3,	0,	I34 },
 {"prefx",		"h,t(b)",	0x4c00000f, 0xfc0007ff, RD_2|RD_3|FP_S,		0,		I4_33,		0,	0 },
 {"nop",			"",		0x00000000, 0xffffffff, 0,              	INSN2_ALIAS,	I1,		0,	0 }, /* sll */
-{"ssnop",		"",		0x00000040, 0xffffffff, 0,              	INSN2_ALIAS,	I1,		0,	I34 }, /* sll */
+{"ssnop",		"",		0x00000040, 0xffffffff, 0,              	INSN2_ALIAS,	I1,		0,	0 }, /* sll */
 {"ehb",			"",		0x000000c0, 0xffffffff, 0,              	INSN2_ALIAS,	I1,		0,	0 }, /* sll */
 {"li",			"t,j",		0x24000000, 0xffe00000, WR_1,			INSN2_ALIAS,	I1,		0,	0 }, /* addiu */
 {"li",			"t,i",		0x34000000, 0xffe00000, WR_1,			INSN2_ALIAS,	I1,		0,	0 }, /* ori */
@@ -423,6 +423,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"b",			"p",		0x10000000, 0xffff0000,	UBD,			INSN2_ALIAS,	I1,		0,	0 },/* beq 0,0 */
 {"b",			"p",		0x04010000, 0xffff0000,	UBD,			INSN2_ALIAS,	I1,		0,	0 },/* bgez 0 */
 {"nal",			"p",		0x04100000, 0xffff0000,	WR_31|CBD,		INSN2_ALIAS,	I1,		0,	0 },/* bltzal 0 */
+{"link",		"p",		0x04100000, 0xffff0000,	WR_31|CBD,		INSN2_ALIAS,	I1,		0,	0 },/* bltzal 0 */
 {"bal",			"p",		0x04110000, 0xffff0000,	WR_31|UBD,		INSN2_ALIAS,	I1,		0,	0 },/* bgezal 0*/
 {"bc",			"+'",		0xc8000000, 0xfc000000,	NODS,			0,		I34,		0,	0 },
 {"balc",		"+'",		0xe8000000, 0xfc000000,	WR_31|NODS,		0,		I34,		0,	0 },
@@ -1157,14 +1158,14 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"hypcall",		"+J",		0x42000028, 0xffe007ff, TRAP,			0,		0,		IVIRT,	0 },
 {"ins",			"t,r,+A,+B",	0x7c000004, 0xfc00003f, WR_1|RD_2,    		0,		I33,		0,	0 },
 {"iret",		"",		0x42000038, 0xffffffff,	NODS,			0,		0,		MC,	0 },
-{"jr",			"s",		0x00000009, 0xfc1fffff,	RD_1|UBD,		0,		I34,		0,	0 }, /* jalr $0 */
+{"jr",			"s",		0x00000009, 0xfc1fffff,	RD_1|UBD,		INSN2_ALIAS,	I34,		0,	0 }, /* jalr $0 */
 {"jr",			"s",		0x00000008, 0xfc1fffff,	RD_1|UBD,		0,		I1,		0,	I34 },
 /* MIPS R6 jic appears before beqzc and jialc appears before bnezc */
 /* jr.hb is officially MIPS{32,64}R2, but it works on R1 as jr with
    the same hazard barrier effect.  */
-{"jr.hb",		"s",		0x00000409, 0xfc1fffff,	RD_1|UBD,		0,		I34,		0,	0 }, /* jalr.hb $0 */
+{"jr.hb",		"s",		0x00000409, 0xfc1fffff,	RD_1|UBD,		INSN2_ALIAS,	I34,		0,	0 }, /* jalr.hb $0 */
 {"jr.hb",		"s",		0x00000408, 0xfc1fffff,	RD_1|UBD,		0,		I32,		0,	I34 },
-{"j",			"s",		0x00000009, 0xfc1fffff,	RD_1|UBD,		0,		I34,		0,	0 }, /* jalr $0 */
+{"j",			"s",		0x00000009, 0xfc1fffff,	RD_1|UBD,		INSN2_ALIAS,	I34,		0,	0 }, /* jalr $0 */
 {"j",			"s",		0x00000008, 0xfc1fffff,	RD_1|UBD,		0,		I1,		0,	I34 }, /* jr */
 /* SVR4 PIC code requires special handling for j, so it must be a
    macro.  */
@@ -3182,8 +3183,8 @@ const struct mips_opcode mips_builtin_opcodes[] =
 
 {"aui",			"t,s,u",	0x3c000000, 0xfc000000,	WR_1|RD_2,		0,		I34,		0,	0 },
 {"aui",			"s,+R,u",	0xec1e0000, 0xfc1f0000, WR_1|RD_pc,		0,		I34,		0,	0 },
-{"dahi",		"s,-d,u",	0x04000000, 0xfc1f0000,	MOD_1,			0,		I66,		0,	0 },
-{"dati",		"s,-d,u",	0x04000000, 0xfc1f0000,	MOD_1,			0,		I66,		0,	0 },
+{"dahi",		"s,-d,u",	0x04060000, 0xfc1f0000,	MOD_1,			0,		I66,		0,	0 },
+{"dati",		"s,-d,u",	0x041e0000, 0xfc1f0000,	MOD_1,			0,		I66,		0,	0 },
 
 {"align",		"d,s,t,+I",	0x7c000220, 0xfc00073f,	WR_1|RD_2|RD_3,		0,		I34,		0,	0 },
 {"dalign",		"d,s,t,+O",	0x7c000224, 0xfc00063f,	WR_1|RD_2|RD_3,		0,		I66,		0,	0 },
