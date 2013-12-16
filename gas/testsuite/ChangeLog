@@ -1,3 +1,13 @@
+2013-12-16  Andrew Bennett  <andrew.bennett@imgtec.com>
+
+	* gas/mips/msa.s: Reduced maximum element index range
+	for sldi, splati, copy_s, copy_u, insert and insve instructions.
+	* gas/mips/msa64.s: Likewise.
+	* gas/mips/micromips@msa.d: Likewise.
+	* gas/mips/micromips@msa64.d: Likewise.
+	* gas/mips/msa.d: Likewise.
+	* gas/mips/msa64.d: Likewise.
+
 2013-11-27  Matthew Fortune <matthew.fortune@imgtec.com>
 
 	* gas/mips/mips.exp: Consider mips-mti-elf the same as mips-sde-elf

@@ -1,3 +1,8 @@
+2013-12-16  Andrew Bennett  <andrew.bennett@imgtec.com>
+
+	* mips.h: Updated description of +o, +u, +v and +w for MIPS and
+	microMIPS.
+
 2013-11-20  Yufeng Zhang  <yufeng.zhang@arm.com>
 
 	* aarch64.h (aarch64_pstatefields): Change element type to
