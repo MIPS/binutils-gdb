@@ -2903,6 +2903,8 @@ to compensate for the borrow when the low bits are added.  */
 /* MIPS PC-relative relocations.  */
   BFD_RELOC_MIPS_21_PCREL_S2,
   BFD_RELOC_MIPS_26_PCREL_S2,
+  BFD_RELOC_MIPS_18_PCREL_S3,
+  BFD_RELOC_MIPS_19_PCREL_S2,
 
 /* microMIPS versions of generic BFD relocs.  */
   BFD_RELOC_MICROMIPS_GPREL16,

@@ -3775,6 +3775,10 @@ limited_pcrel_reloc_p (bfd_reloc_code_real_type reloc)
     case BFD_RELOC_MICROMIPS_16_PCREL_S1:
     case BFD_RELOC_MIPS_21_PCREL_S2:
     case BFD_RELOC_MIPS_26_PCREL_S2:
+    case BFD_RELOC_MIPS_18_PCREL_S3:
+    case BFD_RELOC_MIPS_19_PCREL_S2:
+    case BFD_RELOC_HI16_S_PCREL:
+    case BFD_RELOC_LO16_PCREL:
       return TRUE;
 
     case BFD_RELOC_32_PCREL:
@@ -6717,6 +6721,46 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	  }
 	  break;
 
+	case BFD_RELOC_MIPS_21_PCREL_S2:
+	  {
+	    int shift;
+
+	    shift = 2;
+	    if ((address_expr->X_add_number & ((1 << shift) - 1)) != 0)
+	      as_bad (_("branch to misaligned address (0x%lx)"),
+		      (unsigned long) address_expr->X_add_number);
+	    if (!mips_relax_branch)
+	      {
+		if ((address_expr->X_add_number + (1 << (shift + 20)))
+		    & ~((1 << (shift + 21)) - 1))
+		  as_bad (_("branch address range overflow (0x%lx)"),
+			  (unsigned long) address_expr->X_add_number);
+		ip->insn_opcode |= ((address_expr->X_add_number >> shift)
+				    & 0x1fffff);
+	      }
+	  }
+	  break;
+
+	case BFD_RELOC_MIPS_26_PCREL_S2:
+	  {
+	    int shift;
+
+	    shift = 2;
+	    if ((address_expr->X_add_number & ((1 << shift) - 1)) != 0)
+	      as_bad (_("branch to misaligned address (0x%lx)"),
+		      (unsigned long) address_expr->X_add_number);
+	    if (!mips_relax_branch)
+	      {
+		if ((address_expr->X_add_number + (1 << (shift + 25)))
+		    & ~((1 << (shift + 26)) - 1))
+		  as_bad (_("branch address range overflow (0x%lx)"),
+			  (unsigned long) address_expr->X_add_number);
+		ip->insn_opcode |= ((address_expr->X_add_number >> shift)
+				    & 0x3ffffff);
+	      }
+	  }
+	  break;
+
 	default:
 	  {
 	    offsetT value;
@@ -7381,6 +7425,18 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
       arg.opnum += 1;
       switch (*args)
 	{
+	case '-':
+	  switch (args[1])
+	    {
+            case 'A':
+              *offset_reloc = BFD_RELOC_MIPS_19_PCREL_S2;
+              break;
+            case 'B':
+              *offset_reloc = BFD_RELOC_MIPS_18_PCREL_S3;
+              break;
+            }
+          break;
+
 	case '+':
 	  switch (args[1])
 	    {
@@ -13416,7 +13472,9 @@ static const struct percent_op_match mips_percent_op[] =
   {"%tprel_hi", BFD_RELOC_MIPS_TLS_TPREL_HI16},
   {"%tprel_lo", BFD_RELOC_MIPS_TLS_TPREL_LO16},
   {"%gottprel", BFD_RELOC_MIPS_TLS_GOTTPREL},
-  {"%hi", BFD_RELOC_HI16_S}
+  {"%hi", BFD_RELOC_HI16_S},
+  {"%pcrel_hi", BFD_RELOC_HI16_S_PCREL},
+  {"%pcrel_lo", BFD_RELOC_LO16_PCREL}
 };
 
 static const struct percent_op_match mips16_percent_op[] =
@@ -14226,7 +14284,13 @@ md_pcrel_from (fixS *fixP)
       return addr + 4;
 
     case BFD_RELOC_32_PCREL:
+    case BFD_RELOC_MIPS_19_PCREL_S2:
+    case BFD_RELOC_HI16_S_PCREL:
+    case BFD_RELOC_LO16_PCREL:
       return addr;
+
+    case BFD_RELOC_MIPS_18_PCREL_S3:
+      return addr & ~(valueT)7;
 
     default:
       /* We have no relocation type for PC relative MIPS16 instructions.  */
@@ -14394,6 +14458,17 @@ mips_force_relocation (fixS *fixp)
       || fixp->fx_r_type == BFD_RELOC_MICROMIPS_16_PCREL_S1)
     return 1;
 
+  /* We want all relocations to be kept for R6 relaxation */
+  if (ISA_IS_R6 (mips_opts.isa)
+      && (fixp->fx_r_type == BFD_RELOC_16_PCREL_S2
+          || fixp->fx_r_type == BFD_RELOC_MIPS_21_PCREL_S2
+          || fixp->fx_r_type == BFD_RELOC_MIPS_26_PCREL_S2
+          || fixp->fx_r_type == BFD_RELOC_MIPS_18_PCREL_S3
+          || fixp->fx_r_type == BFD_RELOC_MIPS_19_PCREL_S2
+          || fixp->fx_r_type == BFD_RELOC_HI16_S_PCREL
+          || fixp->fx_r_type == BFD_RELOC_LO16_PCREL))
+    return 1;
+
   return 0;
 }
 
@@ -14454,7 +14529,11 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 	      || fixP->fx_r_type == BFD_RELOC_MICROMIPS_16_PCREL_S1
 	      || fixP->fx_r_type == BFD_RELOC_32_PCREL
 	      || fixP->fx_r_type == BFD_RELOC_MIPS_21_PCREL_S2
-	      || fixP->fx_r_type == BFD_RELOC_MIPS_26_PCREL_S2);
+	      || fixP->fx_r_type == BFD_RELOC_MIPS_26_PCREL_S2
+	      || fixP->fx_r_type == BFD_RELOC_MIPS_18_PCREL_S3
+	      || fixP->fx_r_type == BFD_RELOC_MIPS_19_PCREL_S2
+	      || fixP->fx_r_type == BFD_RELOC_HI16_S_PCREL
+	      || fixP->fx_r_type == BFD_RELOC_LO16_PCREL);
 
   /* Don't treat parts of a composite relocation as done.  There are two
      reasons for this:
@@ -14662,6 +14741,29 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 	  /* CFU FIXME.  */
 	  gas_assert (0);
 	}
+      break;
+
+    case BFD_RELOC_MIPS_18_PCREL_S3:
+      if ((*valP & 0x7) != 0)
+	as_bad_where (fixP->fx_file, fixP->fx_line,
+		      _("pc rel from misaligned address (%lx)"),
+                      (long) *valP);
+
+      gas_assert(!fixP->fx_done);
+      break;
+
+    case BFD_RELOC_MIPS_19_PCREL_S2:
+      if ((*valP & 0x3) != 0)
+	as_bad_where (fixP->fx_file, fixP->fx_line,
+		      _("pc rel from misaligned address (%lx)"),
+                      (long) *valP);
+
+      gas_assert(!fixP->fx_done);
+      break;
+
+    case BFD_RELOC_HI16_S_PCREL:
+    case BFD_RELOC_LO16_PCREL:
+      gas_assert(!fixP->fx_done);
       break;
 
     case BFD_RELOC_16_PCREL_S2:
@@ -15291,16 +15393,18 @@ s_mipsset (int x ATTRIBUTE_UNUSED)
 	case ISA_MIPS2:
 	case ISA_MIPS32:
 	case ISA_MIPS32R2:
-	case ISA_MIPS32R6:
 	  mips_opts.gp32 = 1;
 	  mips_opts.fp32 = 1;
+	  break;
+	case ISA_MIPS32R6:
+	  mips_opts.gp32 = 1;
+	  mips_opts.fp32 = 0;
 	  break;
 	case ISA_MIPS3:
 	case ISA_MIPS4:
 	case ISA_MIPS5:
 	case ISA_MIPS64:
 	case ISA_MIPS64R2:
-	case ISA_MIPS64R6:
 	  mips_opts.gp32 = 0;
 	  if (mips_opts.arch == CPU_R5900)
 	    {
@@ -15311,6 +15415,10 @@ s_mipsset (int x ATTRIBUTE_UNUSED)
 	  mips_opts.fp32 = 0;
 	    }
 	  break;
+	case ISA_MIPS64R6:
+	  mips_opts.gp32 = 0;
+	  mips_opts.fp32 = 0;
+          break;
 	default:
 	  as_bad (_("unknown ISA level %s"), name + 4);
 	  break;
@@ -16744,7 +16852,11 @@ tc_gen_reloc (asection *section ATTRIBUTE_UNUSED, fixS *fixp)
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_16_PCREL_S1
 		  || fixp->fx_r_type == BFD_RELOC_32_PCREL
 		  || fixp->fx_r_type == BFD_RELOC_MIPS_21_PCREL_S2
-		  || fixp->fx_r_type == BFD_RELOC_MIPS_26_PCREL_S2);
+		  || fixp->fx_r_type == BFD_RELOC_MIPS_26_PCREL_S2
+		  || fixp->fx_r_type == BFD_RELOC_MIPS_18_PCREL_S3
+		  || fixp->fx_r_type == BFD_RELOC_MIPS_19_PCREL_S2
+		  || fixp->fx_r_type == BFD_RELOC_HI16_S_PCREL
+		  || fixp->fx_r_type == BFD_RELOC_LO16_PCREL);
 
       /* At this point, fx_addnumber is "symbol offset - pcrel address".
 	 Relocations want only the symbol offset.  */

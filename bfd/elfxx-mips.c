@@ -2192,6 +2192,13 @@ jal_reloc_p (int r_type)
 }
 
 static inline bfd_boolean
+aligned_pcrel_reloc_p (int r_type)
+{
+  return (r_type == R_MIPS_PC18_S3
+          || r_type == R_MIPS_PC19_S2);
+}
+
+static inline bfd_boolean
 micromips_branch_reloc_p (int r_type)
 {
   return (r_type == R_MICROMIPS_26_S1
@@ -5098,8 +5105,8 @@ mips_elf_relocation_needs_la25_stub (bfd *input_bfd, int r_type,
     {
     case R_MIPS_26:
     case R_MIPS_PC16:
-    case R_MIPS_PC21:
-    case R_MIPS_PC26:
+    case R_MIPS_PC21_S2:
+    case R_MIPS_PC26_S2:
     case R_MICROMIPS_26_S1:
     case R_MICROMIPS_PC7_S1:
     case R_MICROMIPS_PC10_S1:
@@ -5890,17 +5897,51 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       value &= howto->dst_mask;
       break;
 
-    case R_MIPS_PC21:
+    case R_MIPS_PC21_S2:
       value = symbol + _bfd_mips_elf_sign_extend (addend, 23) - p;
       overflowed_p = mips_elf_overflow_p (value, 23);
       value >>= howto->rightshift;
       value &= howto->dst_mask;
       break;
 
-    case R_MIPS_PC26:
+    case R_MIPS_PC26_S2:
       value = symbol + _bfd_mips_elf_sign_extend (addend, 28) - p;
       overflowed_p = mips_elf_overflow_p (value, 28);
       value >>= howto->rightshift;
+      value &= howto->dst_mask;
+      break;
+
+    case R_MIPS_PC18_S3:
+      if (symbol & 7)
+        return bfd_reloc_outofrange;
+
+      value = symbol + _bfd_mips_elf_sign_extend (addend, 21) - ((p | 7) ^ 7);
+      overflowed_p = mips_elf_overflow_p (value, 21);
+      value >>= howto->rightshift;
+      value &= howto->dst_mask;
+      break;
+
+    case R_MIPS_PC19_S2:
+      if (symbol & 3)
+        return bfd_reloc_outofrange;
+
+      value = symbol + _bfd_mips_elf_sign_extend (addend, 21) - p;
+      overflowed_p = mips_elf_overflow_p (value, 21);
+      value >>= howto->rightshift;
+      value &= howto->dst_mask;
+      break;
+
+    case R_MIPS_PCHI16:
+      value = mips_elf_high (symbol + _bfd_mips_elf_sign_extend (addend, 16)
+                             - p);
+      BFD_ASSERT (howto->rightshift == 16);
+      overflowed_p = mips_elf_overflow_p (value, 16);
+      value &= howto->dst_mask;
+      break;
+
+    case R_MIPS_PCLO16:
+      value = symbol + _bfd_mips_elf_sign_extend (addend, 16) - p;
+      overflowed_p = mips_elf_overflow_p (value, 32);
       value &= howto->dst_mask;
       break;
 
@@ -8140,8 +8181,8 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 
 	case R_MIPS_26:
 	case R_MIPS_PC16:
-	case R_MIPS_PC21:
-	case R_MIPS_PC26:
+	case R_MIPS_PC21_S2:
+	case R_MIPS_PC26_S2:
 	case R_MIPS16_26:
 	case R_MICROMIPS_26_S1:
 	case R_MICROMIPS_PC7_S1:
@@ -10060,6 +10101,13 @@ _bfd_mips_elf_relocate_section (bfd *output_bfd, struct bfd_link_info *info,
 		(info, msg, name, input_bfd, input_section, rel->r_offset);
 	      return FALSE;
 	    }
+          if (aligned_pcrel_reloc_p (howto->type))
+            {
+	      msg = _("pc relative load using unaligned address");
+	      info->callbacks->warning
+		(info, msg, name, input_bfd, input_section, rel->r_offset);
+	      return FALSE;
+            }
 	  /* Fall through.  */
 
 	default:

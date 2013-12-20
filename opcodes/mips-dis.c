@@ -1385,13 +1385,14 @@ print_insn_arg (struct disassemble_info *info,
 
 /* Print the arguments for INSN, which is described by OPCODE.
    Use DECODE_OPERAND to get the encoding of each operand.  Use BASE_PC
-   as the base of OP_PCREL operands.  */
+   as the base of OP_PCREL operands adjusting by LENGTH if the OP_PCREL
+   operand is for a branch or jump.  */
 
 static void
 print_insn_args (struct disassemble_info *info,
 		 const struct mips_opcode *opcode,
 		 const struct mips_operand *(*decode_operand) (const char *),
-		 unsigned int insn, bfd_vma base_pc)
+		 unsigned int insn, bfd_vma insn_pc, unsigned int length)
 {
   const fprintf_ftype infprintf = info->fprintf_func;
   void *is = info->stream;
@@ -1453,8 +1454,26 @@ print_insn_args (struct disassemble_info *info,
 		infprintf (is, "$%d,%d", reg, sel);
 	    }
 	  else
-	    print_insn_arg (info, &state, opcode, operand, base_pc,
-			    mips_extract_operand (operand, insn));
+            {
+	      bfd_vma base_pc = insn_pc;
+
+              /* Adjust the PC relative base so that branch/jump insns use
+                 the following PC as the base but genuinely PC relative
+                 operands use the current PC */
+              if (operand->type == OP_PCREL)
+                {
+		  const struct mips_pcrel_operand *pcrel_op;
+
+		  pcrel_op = (const struct mips_pcrel_operand *) operand;
+                  /* The include_isa_bit flag is sufficient to distinguish
+                     branch/jump from other PC relative operands */
+		  if (pcrel_op->include_isa_bit)
+                    base_pc += length;
+                }
+
+	      print_insn_arg (info, &state, opcode, operand, base_pc,
+			      mips_extract_operand (operand, insn));
+            }
 	  if (*s == 'm' || *s == '+' || *s == '-')
 	    ++s;
 	  break;
@@ -1611,7 +1630,7 @@ print_insn_mips (bfd_vma memaddr,
 		{
 		  infprintf (is, "\t");
 		  print_insn_args (info, op, decode_mips_operand, word,
-				   memaddr + 4);
+				   memaddr, 4);
 		}
 
 	      return INSNLEN;
@@ -2123,7 +2142,7 @@ print_insn_micromips (bfd_vma memaddr, struct disassemble_info *info)
 	    {
 	      infprintf (is, "\t");
 	      print_insn_args (info, op, decode_micromips_operand, insn,
-			       memaddr + length + 1);
+			       memaddr + 1, length);
 	    }
 
 	  /* Figure out instruction type and branch delay information.  */

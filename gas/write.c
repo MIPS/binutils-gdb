@@ -1063,7 +1063,6 @@ fixup_segment (fixS *fixP, segT this_segment)
 	      fixP->fx_addsy = abs_section_sym;
 	    }
 	}
-
       if (!fixP->fx_done)
 	md_apply_fix (fixP, &add_number, this_segment);
 
