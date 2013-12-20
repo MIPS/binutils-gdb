@@ -1097,6 +1097,8 @@ struct mips_opcode
 #define INSN2_READ_GPR_16           0x00002000
 /* Has an "\.x?y?z?w?" suffix based on mips_vu0_channel_mask.  */
 #define INSN2_VU0_CHANNEL_SUFFIX    0x00004000
+/* Instruction has a forbidden slot */
+#define INSN2_FORBIDDEN_SLOT        0x00008000
 
 /* Masks used to mark instructions to indicate which MIPS ISA level
    they were introduced in.  INSN_ISA_MASK masks an enumeration that

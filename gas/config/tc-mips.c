@@ -5857,6 +5857,11 @@ insns_between (const struct mips_cl_insn *insn1,
 	return 1;
     }
 
+  if (insn1->insn_mo->pinfo2 & INSN2_FORBIDDEN_SLOT
+      && (pinfo2 & INSN_NO_DELAY_SLOT
+          || (insn2 && delayed_branch_p (insn2))))
+    return 1;
+
   return 0;
 }
 
@@ -6308,13 +6313,6 @@ can_swap_branch_p (struct mips_cl_insn *ip, expressionS *address_expr,
   /* Check for conflicts between the swapped sequence and the
      target of the branch.  */
   if (nops_for_sequence (2, 0, history + 1, ip, history) > 0)
-    return FALSE;
-
-  /* For R6, if the branch reads a FP register that the previous
-     instruction sets, we can not swap.  */
-  fpr_read = fpr_read_mask (ip);
-  prev_fpr_write = fpr_write_mask (&history[0]);
-  if (fpr_read & prev_fpr_write)
     return FALSE;
 
   /* If the branch reads a register that the previous

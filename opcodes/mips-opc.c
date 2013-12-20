@@ -266,6 +266,7 @@ decode_mips_operand (const char *p)
 #define RD_MACC INSN2_READ_MDMX_ACC
 
 #define RD_pc   INSN2_READ_PC
+#define FS      INSN2_FORBIDDEN_SLOT
 
 #define I1	INSN_ISA1
 #define I2	INSN_ISA2
@@ -425,8 +426,8 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"nal",			"p",		0x04100000, 0xffff0000,	WR_31|CBD,		INSN2_ALIAS,	I1,		0,	0 },/* bltzal 0 */
 {"link",		"p",		0x04100000, 0xffff0000,	WR_31|CBD,		INSN2_ALIAS,	I1,		0,	0 },/* bltzal 0 */
 {"bal",			"p",		0x04110000, 0xffff0000,	WR_31|UBD,		INSN2_ALIAS,	I1,		0,	0 },/* bgezal 0*/
-{"bc",			"+'",		0xc8000000, 0xfc000000,	NODS,			0,		I34,		0,	0 },
-{"balc",		"+'",		0xe8000000, 0xfc000000,	WR_31|NODS,		0,		I34,		0,	0 },
+{"bc",			"+'",		0xc8000000, 0xfc000000,	NODS,			FS,		I34,		0,	0 },
+{"balc",		"+'",		0xe8000000, 0xfc000000,	WR_31|NODS,		FS,		I34,		0,	0 },
 
 /* Loongson specific instructions.  Loongson 3A redefines the Coprocessor 2
    instructions.  Put them here so that disassembler will find them first.
@@ -3190,32 +3191,32 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"dalign",		"d,s,t,+O",	0x7c000224, 0xfc00063f,	WR_1|RD_2|RD_3,		0,		I66,		0,	0 },
 {"bitswap",		"d,t",		0x7c000020, 0xffe007ff,	WR_1|RD_2,		0,		I34,		0,	0 },
 
-{"bovc",		"-s,-w,p",	0x20000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
-{"beqzalc",		"-t,p",		0x20000000, 0xffe00000,	RD_1|WR_31|NODS,	0,		I34,		0,	0 },
-{"beqc",		"s,-u,p",	0x20000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
-{"bnvc",		"-s,-w,p",	0x60000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
-{"bnezalc",		"-t,p",		0x60000000, 0xffe00000,	RD_1|WR_31|NODS,	0,		I34,		0,	0 },
-{"bnec",		"s,-u,p",	0x60000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
+{"bovc",		"-s,-w,p",	0x20000000, 0xfc000000,	RD_1|RD_2|NODS,		FS,		I34,		0,	0 },
+{"beqzalc",		"-t,p",		0x20000000, 0xffe00000,	RD_1|WR_31|NODS,	FS,		I34,		0,	0 },
+{"beqc",		"s,-u,p",	0x20000000, 0xfc000000,	RD_1|RD_2|NODS,		FS,		I34,		0,	0 },
+{"bnvc",		"-s,-w,p",	0x60000000, 0xfc000000,	RD_1|RD_2|NODS,		FS,		I34,		0,	0 },
+{"bnezalc",		"-t,p",		0x60000000, 0xffe00000,	RD_1|WR_31|NODS,	FS,		I34,		0,	0 },
+{"bnec",		"s,-u,p",	0x60000000, 0xfc000000,	RD_1|RD_2|NODS,		FS,		I34,		0,	0 },
 
-{"blezc",		"-t,p",		0x58000000, 0xffe00000,	RD_1|NODS,		0,		I34,		0,	0 },
-{"bgezc",		"+;,p",		0x58000000, 0xfc000000,	RD_1|NODS,		0,		I34,		0,	0 },
-{"bgec",		"-s,-v,p",	0x58000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
-{"bgtzc",		"-t,p",		0x5c000000, 0xffe00000,	RD_1|NODS,		0,		I34,		0,	0 },
-{"bltzc",		"+;,p",		0x5c000000, 0xfc000000,	RD_1|NODS,		0,		I34,		0,	0 },
-{"bltc",		"-s,-v,p",	0x5c000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
-{"blezalc",		"-t,p",		0x18000000, 0xffe00000,	RD_1|WR_31|NODS,	0,		I34,		0,	0 },
-{"bgezalc",		"+;,p",		0x18000000, 0xfc000000,	RD_1|WR_31|NODS,	0,		I34,		0,	0 },
-{"bgeuc",		"-s,-v,p",	0x18000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
-{"bgtzalc",		"-t,p",		0x1c000000, 0xffe00000,	RD_1|WR_31|NODS,	0,		I34,		0,	0 },
-{"bltzalc",		"+;,p",		0x1c000000, 0xfc000000,	RD_1|WR_31|NODS,	0,		I34,		0,	0 },
-{"bltuc",		"-s,-v,p",	0x1c000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
+{"blezc",		"-t,p",		0x58000000, 0xffe00000,	RD_1|NODS,		FS,		I34,		0,	0 },
+{"bgezc",		"+;,p",		0x58000000, 0xfc000000,	RD_1|NODS,		FS,		I34,		0,	0 },
+{"bgec",		"-s,-v,p",	0x58000000, 0xfc000000,	RD_1|RD_2|NODS,		FS,		I34,		0,	0 },
+{"bgtzc",		"-t,p",		0x5c000000, 0xffe00000,	RD_1|NODS,		FS,		I34,		0,	0 },
+{"bltzc",		"+;,p",		0x5c000000, 0xfc000000,	RD_1|NODS,		FS,		I34,		0,	0 },
+{"bltc",		"-s,-v,p",	0x5c000000, 0xfc000000,	RD_1|RD_2|NODS,		FS,		I34,		0,	0 },
+{"blezalc",		"-t,p",		0x18000000, 0xffe00000,	RD_1|WR_31|NODS,	FS,		I34,		0,	0 },
+{"bgezalc",		"+;,p",		0x18000000, 0xfc000000,	RD_1|WR_31|NODS,	FS,		I34,		0,	0 },
+{"bgeuc",		"-s,-v,p",	0x18000000, 0xfc000000,	RD_1|RD_2|NODS,		FS,		I34,		0,	0 },
+{"bgtzalc",		"-t,p",		0x1c000000, 0xffe00000,	RD_1|WR_31|NODS,	FS,		I34,		0,	0 },
+{"bltzalc",		"+;,p",		0x1c000000, 0xfc000000,	RD_1|WR_31|NODS,	FS,		I34,		0,	0 },
+{"bltuc",		"-s,-v,p",	0x1c000000, 0xfc000000,	RD_1|RD_2|NODS,		FS,		I34,		0,	0 },
 
-{"beqzc",		"-s,+\"",	0xd8000000, 0xfc000000,	RD_1|NODS,		0,		I34,		0,	0 },
-{"jrc",			"t",		0xd8000000, 0xffe0ffff,	RD_1|NODS,		INSN2_ALIAS,	I34,		0,	0 },
-{"jic",			"t,j",		0xd8000000, 0xffe00000,	RD_1|NODS,		0,		I34,		0,	0 },
+{"beqzc",		"-s,+\"",	0xd8000000, 0xfc000000,	RD_1|NODS,		FS,		I34,		0,	0 },
+{"jrc",			"t",		0xd8000000, 0xffe0ffff,	RD_1|NODS,		FS|INSN2_ALIAS,	I34,		0,	0 },
+{"jic",			"t,j",		0xd8000000, 0xffe00000,	RD_1|NODS,		FS,		I34,		0,	0 },
 
-{"bnezc",		"-s,+\"",	0xf8000000, 0xfc000000,	RD_1|NODS,		0,		I34,		0,	0 },
-{"jialc",		"t,j",		0xf8000000, 0xffe00000,	RD_1|NODS,		0,		I34,		0,	0 },
+{"bnezc",		"-s,+\"",	0xf8000000, 0xfc000000,	RD_1|NODS,		FS,		I34,		0,	0 },
+{"jialc",		"t,j",		0xf8000000, 0xffe00000,	RD_1|NODS,		FS,		I34,		0,	0 },
 
 {"cmp.af.s",		"D,S,T",	0x46800000, 0xffe0003f,	WR_1|RD_2|RD_3|FP_S,	0,		I34,		0,	0 },
 {"cmp.af.d",		"D,S,T",	0x46a00000, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		I34,		0,	0 },
