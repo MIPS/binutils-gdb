@@ -3205,10 +3205,10 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"bltc",		"-s,-v,p",	0x5c000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
 {"blezalc",		"-t,p",		0x18000000, 0xffe00000,	RD_1|WR_31|NODS,	0,		I34,		0,	0 },
 {"bgezalc",		"+;,p",		0x18000000, 0xfc000000,	RD_1|WR_31|NODS,	0,		I34,		0,	0 },
-{"bbec",		"-s,-v,p",	0x18000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
+{"bgeuc",		"-s,-v,p",	0x18000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
 {"bgtzalc",		"-t,p",		0x1c000000, 0xffe00000,	RD_1|WR_31|NODS,	0,		I34,		0,	0 },
 {"bltzalc",		"+;,p",		0x1c000000, 0xfc000000,	RD_1|WR_31|NODS,	0,		I34,		0,	0 },
-{"bstc",		"-s,-v,p",	0x1c000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
+{"bltuc",		"-s,-v,p",	0x1c000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I34,		0,	0 },
 
 {"beqzc",		"-s,+\"",	0xd8000000, 0xfc000000,	RD_1|NODS,		0,		I34,		0,	0 },
 {"jrc",			"t",		0xd8000000, 0xffe0ffff,	RD_1|NODS,		INSN2_ALIAS,	I34,		0,	0 },
