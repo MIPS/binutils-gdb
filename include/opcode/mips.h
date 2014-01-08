@@ -435,6 +435,14 @@ enum mips_operand_type {
      previous operand's register number */
   OP_GP_LT_PREV,
 
+  /* The operand is a GP register but the register number is greater than the
+     previous operand's register number */
+  OP_GP_GT_PREV,
+
+  /* The operand is a GP register but the register number is less than or
+     equal to the previous operand's register number and not zero */
+  OP_GP_NOT_ZERO_LE_PREV,
+
   /* The operand is a GP register but the register number is greater than or
      equal to the previous operand's register number */
   OP_GP_GE_PREV,

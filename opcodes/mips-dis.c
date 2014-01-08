@@ -1214,6 +1214,28 @@ print_insn_arg (struct disassemble_info *info,
       }
       break;
 
+    case OP_GP_GT_PREV:
+      {
+	if (uval > state->last_regno)
+	  infprintf (is, "%s", mips_gpr_names[uval]);
+	else
+	  infprintf (is, "(ERROR)\t%s", mips_gpr_names[uval]);
+
+	mips_seen_register (state, uval, OP_REG_GP);
+      }
+      break;
+
+    case OP_GP_NOT_ZERO_LE_PREV:
+      {
+	if (uval != 0 && uval <= state->last_regno)
+	  infprintf (is, "%s", mips_gpr_names[uval]);
+	else
+	  infprintf (is, "(ERROR)\t%s", mips_gpr_names[uval]);
+
+	mips_seen_register (state, uval, OP_REG_GP);
+      }
+      break;
+
     case OP_GP_GE_PREV:
       {
 	if (uval >= state->last_regno)
@@ -1552,9 +1574,7 @@ print_insn_mips (bfd_vma memaddr,
 	      else if (strcmp (op->name, "blezalc") == 0
 		       || strcmp (op->name, "bgtzalc") == 0
 		       || strcmp (op->name, "blezc") == 0
-		       || strcmp (op->name, "bgtzc") == 0
-		       || strcmp (op->name, "beqzalc") == 0
-		       || strcmp (op->name, "bnezalc") == 0)
+		       || strcmp (op->name, "bgtzc") == 0)
 		{
 		  if (((word >> 16) & 31) == 0)
 		    continue;

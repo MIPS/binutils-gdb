@@ -4095,6 +4095,8 @@ operand_reg_mask (const struct mips_cl_insn *insn,
     case OP_GP_NOT_ZERO:
     case OP_GP_NOT_ZERO_NOT_PREV:
     case OP_GP_LT_PREV:
+    case OP_GP_GT_PREV:
+    case OP_GP_NOT_ZERO_LE_PREV:
     case OP_GP_GE_PREV:
       if (!(type_mask & (1 << OP_REG_GP)))
 	return 0;
@@ -4896,7 +4898,10 @@ match_same_rs_rt_operand (struct mips_arg_info *arg,
     return FALSE;
 
   if (regno == 0)
-    return FALSE;
+    {
+      set_insn_error (arg->argnum, _("the source register must not be $0"));
+      return FALSE;
+    }
 
   arg->last_regno = regno;
 
@@ -4916,7 +4921,10 @@ match_gp_not_zero_operand (struct mips_arg_info *arg,
     return FALSE;
 
   if (regno == 0)
-    return FALSE;
+    {
+      set_insn_error (arg->argnum, _("the source register must not be $0"));
+      return FALSE;
+    }
 
   arg->last_regno = regno;
 
@@ -4936,6 +4944,52 @@ match_gp_lt_prev_operand (struct mips_arg_info *arg,
     return FALSE;
 
   if (regno >= arg->last_regno)
+    return FALSE;
+
+  arg->last_regno = regno;
+
+  insn_insert_operand (arg->insn, operand, regno);
+  return TRUE;
+}
+
+/* OP_GP_GT_PREV matcher.  */
+
+static bfd_boolean
+match_gp_gt_prev_operand (struct mips_arg_info *arg,
+			  const struct mips_operand *operand)
+{
+  unsigned int regno;
+
+  if (!match_reg (arg, OP_REG_GP, &regno))
+    return FALSE;
+
+  if (regno <= arg->last_regno)
+    return FALSE;
+
+  arg->last_regno = regno;
+
+  insn_insert_operand (arg->insn, operand, regno);
+  return TRUE;
+}
+
+/* OP_GP_NOT_ZERO_LE_PREV matcher.  */
+
+static bfd_boolean
+match_gp_not_zero_le_prev_operand (struct mips_arg_info *arg,
+				   const struct mips_operand *operand)
+{
+  unsigned int regno;
+
+  if (!match_reg (arg, OP_REG_GP, &regno))
+    return FALSE;
+
+  if (regno == 0)
+    {
+      set_insn_error (arg->argnum, _("the source register must not be $0"));
+      return FALSE;
+    }
+
+  if (regno > arg->last_regno)
     return FALSE;
 
   arg->last_regno = regno;
@@ -4976,7 +5030,10 @@ match_gp_not_zero_not_prev_operand (struct mips_arg_info *arg,
     return FALSE;
 
   if (regno == 0 || regno == arg->last_regno)
-    return FALSE;
+    {
+      set_insn_error (arg->argnum, _("the source registers must not be $0 and different"));
+      return FALSE;
+    }
 
   arg->last_regno = regno;
 
@@ -5664,6 +5721,12 @@ match_operand (struct mips_arg_info *arg,
 
     case OP_GP_LT_PREV:
       return match_gp_lt_prev_operand (arg, operand);
+
+    case OP_GP_GT_PREV:
+      return match_gp_gt_prev_operand (arg, operand);
+
+    case OP_GP_NOT_ZERO_LE_PREV:
+      return match_gp_not_zero_le_prev_operand (arg, operand);
 
     case OP_GP_GE_PREV:
       return match_gp_ge_prev_operand (arg, operand);
@@ -7389,7 +7452,9 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	    }
 	  else if (arg.last_regno == 31
 		   && (strncmp (insn->insn_mo->name, "bltzal", 6) == 0
-		       || strncmp (insn->insn_mo->name, "bgezal", 6) == 0))
+		       || strncmp (insn->insn_mo->name, "bgezal", 6) == 0)
+                   && (strlen (insn->insn_mo->name) != 7
+                       || insn->insn_mo->name[6] != 'c'))
 	    set_insn_error (0, _("the source register must not be $31"));
 	  check_completed_insn (&arg);
 	  return TRUE;
