@@ -45,6 +45,7 @@ decode_mips_operand (const char *p)
     case '-':
       switch (p[1])
 	{
+        case 'a': INT_ADJ (19, 0, 262143, 2, FALSE);
         case 'd': SPECIAL (0, 0, REPEAT_DEST_REG);
         case 'D': SPECIAL (0, 0, REPEAT_DEST_REG_FP);
         case 's': SPECIAL (5, 21, GP_NOT_ZERO);
@@ -430,6 +431,8 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"bal",			"p",		0x04110000, 0xffff0000,	WR_31|UBD,		INSN2_ALIAS,	I1,		0,	0 },/* bgezal 0*/
 {"bc",			"+'",		0xc8000000, 0xfc000000,	NODS,			FS,		I34,		0,	0 },
 {"balc",		"+'",		0xe8000000, 0xfc000000,	WR_31|NODS,		FS,		I34,		0,	0 },
+{"la",			"s,-A",		0xec000000, 0xfc180000, WR_1|RD_pc,		0,		I34,		0,	0 },
+{"la",			"t,A(b)",	0,    (int) M_LA_AB,	INSN_MACRO,		0,		I1,		0,	0 },
 
 /* Loongson specific instructions.  Loongson 3A redefines the Coprocessor 2
    instructions.  Put them here so that disassembler will find them first.
@@ -643,7 +646,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"adda.s",		"S,T",		0x46000018, 0xffe007ff,	RD_1|RD_2|FP_S,		0,		EE,		0,	0 },
 {"addi",		"t,r,j",	0x20000000, 0xfc000000,	WR_1|RD_2,		0,		I1,		0,	I34 },
 {"addiu",		"t,r,j",	0x24000000, 0xfc000000,	WR_1|RD_2,		0,		I1,		0,	0 },
-{"addiu",		"s,+R,-A",	0xec000000, 0xfc180000, WR_1|RD_pc,		0,		I34,		0,	0 },
+{"addiu",		"s,+R,-a",	0xec000000, 0xfc180000, WR_1|RD_pc,		0,		I34,		0,	0 },
 {"addl.ob",		"Y,Q",		0x78000437, 0xfc2007ff,	RD_1|RD_2|FP_D,		WR_MACC,	SB1,		MX,	0 },
 {"addl.qh",		"Y,Q",		0x78200437, 0xfc2007ff,	RD_1|RD_2|FP_D,		WR_MACC,	0,		MX,	0 },
 {"addr.ps",		"D,S,T",	0x46c00018, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		0,		M3D,	0 },
@@ -1193,7 +1196,6 @@ const struct mips_opcode mips_builtin_opcodes[] =
    will match first).  */
 {"jal",			"a",		0x0c000000, 0xfc000000,	WR_31|UBD,		0,		I1,		0,	0 },
 {"jalx",		"+i",		0x74000000, 0xfc000000, WR_31|UBD,		0,		I1,		0,	0 },
-{"la",			"t,A(b)",	0,    (int) M_LA_AB,	INSN_MACRO,		0,		I1,		0,	0 },
 {"laa",			"d,(b),t",	0x7000049f, 0xfc0007ff, WR_1|RD_2|RD_3|LDD|SM,	0,		IOCT2,		0,	0 },
 {"laad",		"d,(b),t",	0x700004df, 0xfc0007ff, WR_1|RD_2|RD_3|LDD|SM,	0,		IOCT2,		0,	0 },
 {"lac",			"d,(b)",	0x7000039f, 0xfc1f07ff, WR_1|RD_2|LDD|SM,	0,		IOCT2,		0,	0 },
