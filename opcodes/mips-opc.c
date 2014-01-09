@@ -1953,17 +1953,17 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"teqi",		"s,j",		0x040c0000, 0xfc1f0000, RD_1|TRAP,		0,		I2,		0,	I34 },
 {"teq",			"s,t",		0x00000034, 0xfc00ffff, RD_1|RD_2|TRAP,		0,		I2,		0,	0 },
 {"teq",			"s,t,q",	0x00000034, 0xfc00003f, RD_1|RD_2|TRAP,		0,		I2,		0,	0 },
-{"teq",			"s,j",		0x040c0000, 0xfc1f0000, RD_1|TRAP,		0,		I2,		0,	0 }, /* teqi */
+{"teq",			"s,j",		0x040c0000, 0xfc1f0000, RD_1|TRAP,		0,		I2,		0,	I34 }, /* teqi */
 {"teq",			"s,I",		0,    (int) M_TEQ_I,	INSN_MACRO,		0,		I2,		0,	0 },
 {"tgei",		"s,j",		0x04080000, 0xfc1f0000, RD_1|TRAP,		0,		I2,		0,	I34 },
 {"tge",			"s,t",		0x00000030, 0xfc00ffff,	RD_1|RD_2|TRAP,		0,		I2,		0,	0 },
 {"tge",			"s,t,q",	0x00000030, 0xfc00003f,	RD_1|RD_2|TRAP,		0,		I2,		0,	0 },
-{"tge",			"s,j",		0x04080000, 0xfc1f0000, RD_1|TRAP,		0,		I2,		0,	0 }, /* tgei */
+{"tge",			"s,j",		0x04080000, 0xfc1f0000, RD_1|TRAP,		0,		I2,		0,	I34 }, /* tgei */
 {"tge",			"s,I",		0,    (int) M_TGE_I,    INSN_MACRO,		0,		I2,		0,	0 },
 {"tgeiu",		"s,j",		0x04090000, 0xfc1f0000, RD_1|TRAP,		0,		I2,		0,	I34 },
 {"tgeu",		"s,t",		0x00000031, 0xfc00ffff, RD_1|RD_2|TRAP,		0,		I2,		0,	0 },
 {"tgeu",		"s,t,q",	0x00000031, 0xfc00003f, RD_1|RD_2|TRAP,		0,		I2,		0,	0 },
-{"tgeu",		"s,j",		0x04090000, 0xfc1f0000, RD_1|TRAP,		0,		I2,		0,	0 }, /* tgeiu */
+{"tgeu",		"s,j",		0x04090000, 0xfc1f0000, RD_1|TRAP,		0,		I2,		0,	I34 }, /* tgeiu */
 {"tgeu",		"s,I",		0,    (int) M_TGEU_I,	INSN_MACRO,		0,		I2,		0,	0 },
 {"tlbinv",		"",		0x42000003, 0xffffffff, INSN_TLB,       	0,		0,		TLBINV,	0 },
 {"tlbinvf",		"",		0x42000004, 0xffffffff, INSN_TLB,       	0,		0,		TLBINV,	0 },
@@ -1980,17 +1980,17 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"tlti",		"s,j",		0x040a0000, 0xfc1f0000,	RD_1|TRAP,		0,		I2,		0,	I34 },
 {"tlt",			"s,t",		0x00000032, 0xfc00ffff, RD_1|RD_2|TRAP,		0,		I2,		0,	0 },
 {"tlt",			"s,t,q",	0x00000032, 0xfc00003f, RD_1|RD_2|TRAP,		0,		I2,		0,	0 },
-{"tlt",			"s,j",		0x040a0000, 0xfc1f0000,	RD_1|TRAP,		0,		I2,		0,	0 }, /* tlti */
+{"tlt",			"s,j",		0x040a0000, 0xfc1f0000,	RD_1|TRAP,		0,		I2,		0,	I34 }, /* tlti */
 {"tlt",			"s,I",		0,    (int) M_TLT_I,	INSN_MACRO,		0,		I2,		0,	0 },
 {"tltiu",		"s,j",		0x040b0000, 0xfc1f0000, RD_1|TRAP,		0,		I2,		0,	I34 },
 {"tltu",		"s,t",		0x00000033, 0xfc00ffff, RD_1|RD_2|TRAP,		0,		I2,		0,	0 },
 {"tltu",		"s,t,q",	0x00000033, 0xfc00003f, RD_1|RD_2|TRAP,		0,		I2,		0,	0 },
-{"tltu",		"s,j",		0x040b0000, 0xfc1f0000, RD_1|TRAP,		0,		I2,		0,	0 }, /* tltiu */
+{"tltu",		"s,j",		0x040b0000, 0xfc1f0000, RD_1|TRAP,		0,		I2,		0,	I34 }, /* tltiu */
 {"tltu",		"s,I",		0,    (int) M_TLTU_I,	INSN_MACRO,		0,		I2,		0,	0 },
 {"tnei",		"s,j",		0x040e0000, 0xfc1f0000, RD_1|TRAP,		0,		I2,		0,	I34 },
 {"tne",			"s,t",		0x00000036, 0xfc00ffff, RD_1|RD_2|TRAP,		0,		I2,		0,	0 },
 {"tne",			"s,t,q",	0x00000036, 0xfc00003f, RD_1|RD_2|TRAP,		0,		I2,		0,	0 },
-{"tne",			"s,j",		0x040e0000, 0xfc1f0000, RD_1|TRAP,		0,		I2,		0,	0 }, /* tnei */
+{"tne",			"s,j",		0x040e0000, 0xfc1f0000, RD_1|TRAP,		0,		I2,		0,	I34 }, /* tnei */
 {"tne",			"s,I",		0,    (int) M_TNE_I,	INSN_MACRO,		0,		I2,		0,	0 },
 {"trunc.l.d",		"D,S",		0x46200009, 0xffff003f, WR_1|RD_2|FP_D,		0,		I3_33,		0,	0 },
 {"trunc.l.s",		"D,S",		0x46000009, 0xffff003f,	WR_1|RD_2|FP_S|FP_D,	0,		I3_33,		0,	0 },
