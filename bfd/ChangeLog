@@ -1,3 +1,10 @@
+2014-01-16  Alan Modra  <amodra@gmail.com>
+
+	* elfxx-mips.c (mips_elf_record_got_page_entry): Pass in a
+	mips_elf_traverse_got_arg* rather than mips_got_info*.
+	Adjust caller.  Alloc on output_bfd rather than symbol section
+	owner.
+
 2013-12-02  Tristan Gingold  <gingold@adacore.com>
 
 	* configure.in: Bump version to 2.24
