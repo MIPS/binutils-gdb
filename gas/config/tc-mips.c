@@ -3777,11 +3777,11 @@ limited_pcrel_reloc_p (bfd_reloc_code_real_type reloc)
     case BFD_RELOC_MIPS_26_PCREL_S2:
     case BFD_RELOC_MIPS_18_PCREL_S3:
     case BFD_RELOC_MIPS_19_PCREL_S2:
-    case BFD_RELOC_HI16_S_PCREL:
-    case BFD_RELOC_LO16_PCREL:
       return TRUE;
 
     case BFD_RELOC_32_PCREL:
+    case BFD_RELOC_HI16_S_PCREL:
+    case BFD_RELOC_LO16_PCREL:
       return HAVE_64BIT_ADDRESSES;
 
     default:
@@ -16833,9 +16833,10 @@ mips_fix_adjustable (fixS *fixp)
      Likewise an in-range offset of limited PC-relative relocations may
      overflow the in-place relocatable field if recalculated against the
      start address of the symbol's containing section.  */
-  if (HAVE_IN_PLACE_ADDENDS
-      && (limited_pcrel_reloc_p (fixp->fx_r_type)
-	  || jalr_reloc_p (fixp->fx_r_type)))
+  if ((HAVE_IN_PLACE_ADDENDS
+       && (limited_pcrel_reloc_p (fixp->fx_r_type)
+	   || jalr_reloc_p (fixp->fx_r_type)))
+      || ISA_IS_R6 (mips_opts.isa))
     return 0;
 
   /* R_MIPS16_26 relocations against non-MIPS16 functions might resolve
