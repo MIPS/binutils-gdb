@@ -1570,51 +1570,68 @@ struct mips_ase
   int mips64_rev;
   int micromips32_rev;
   int micromips64_rev;
+
+  /* The architecture revisions for MIPS32, MIPS64, microMIPS32 and microMIPS64
+     where the ASE was removed or -1 if the extension has not been removed.  */
+  int mips32_rem_rev;
+  int mips64_rem_rev;
+  int micromips32_rem_rev;
+  int micromips64_rem_rev;
 };
 
 /* A table of all supported ASEs.  */
 static const struct mips_ase mips_ases[] = {
   { "dsp", ASE_DSP, ASE_DSP64,
     OPTION_DSP, OPTION_NO_DSP,
-    2, 2, 2, 2 },
+    2, 2, 2, 2,
+    6, 6, 6, 6 },
 
   { "dspr2", ASE_DSP | ASE_DSPR2, 0,
     OPTION_DSPR2, OPTION_NO_DSPR2,
-    2, 2, 2, 2 },
+    2, 2, 2, 2,
+    6, 6, 6, 6 },
 
   { "eva", ASE_EVA, 0,
     OPTION_EVA, OPTION_NO_EVA,
-    2, 2, 2, 2 },
+     2,  2,  2,  2,
+    -1, -1, -1, -1 },
 
   { "mcu", ASE_MCU, 0,
     OPTION_MCU, OPTION_NO_MCU,
-    2, 2, 2, 2 },
+     2,  2,  2,  2,
+    -1, -1, -1, -1 },
 
   /* Deprecated in MIPS64r5, but we don't implement that yet.  */
   { "mdmx", ASE_MDMX, 0,
     OPTION_MDMX, OPTION_NO_MDMX,
-    -1, 1, -1, -1 },
+    -1, 1, -1, -1,
+    -1, 6, -1, -1 },
 
   /* Requires 64-bit FPRs, so the minimum MIPS32 revision is 2.  */
   { "mips3d", ASE_MIPS3D, 0,
     OPTION_MIPS3D, OPTION_NO_MIPS3D,
-    2, 1, -1, -1 },
+    2, 1, -1, -1,
+    6, 6, -1, -1 },
 
   { "mt", ASE_MT, 0,
     OPTION_MT, OPTION_NO_MT,
-    2, 2, -1, -1 },
+     2,  2, -1, -1,
+    -1, -1, -1, -1 },
 
   { "smartmips", ASE_SMARTMIPS, 0,
     OPTION_SMARTMIPS, OPTION_NO_SMARTMIPS,
-    1, -1, -1, -1 },
+    1, -1, -1, -1,
+    6, -1, -1, -1 },
 
   { "virt", ASE_VIRT, ASE_VIRT64,
     OPTION_VIRT, OPTION_NO_VIRT,
-    2, 2, 2, 2 },
+     2,  2,  2,  2,
+    -1, -1, -1, -1 },
 
   { "msa", ASE_MSA, ASE_MSA64,
     OPTION_MSA, OPTION_NO_MSA,
-    2, 2, 2, 2 }
+     2,  2,  2,  2,
+    -1, -1, -1, -1 },
 };
 
 /* The set of ASEs that require -mfp64.  */
@@ -1901,14 +1918,22 @@ static void
 mips_check_isa_supports_ase (const struct mips_ase *ase)
 {
   const char *base;
-  int min_rev, size;
+  int min_rev, rem_rev, size;
   static unsigned int warned_isa;
   static unsigned int warned_fp32;
 
   if (ISA_HAS_64BIT_REGS (mips_opts.isa))
-    min_rev = mips_opts.micromips ? ase->micromips64_rev : ase->mips64_rev;
+    {
+      min_rev = mips_opts.micromips ? ase->micromips64_rev : ase->mips64_rev;
+      rem_rev = mips_opts.micromips ? ase->micromips64_rem_rev
+                                    : ase->mips64_rem_rev;
+    }
   else
-    min_rev = mips_opts.micromips ? ase->micromips32_rev : ase->mips32_rev;
+    {
+      min_rev = mips_opts.micromips ? ase->micromips32_rev : ase->mips32_rev;
+      rem_rev = mips_opts.micromips ? ase->micromips32_rem_rev
+                                    : ase->mips32_rem_rev;
+    }
   if ((min_rev < 0 || mips_isa_rev () < min_rev)
       && (warned_isa & ase->flags) != ase->flags)
     {
@@ -1922,6 +1947,16 @@ mips_check_isa_supports_ase (const struct mips_ase *ase)
 	as_warn (_("the `%s' extension requires %s%d revision %d or greater"),
 		 ase->name, base, size, min_rev);
     }
+  if ((rem_rev > 0 && mips_isa_rev () >= rem_rev)
+      && (warned_isa & ase->flags) != ase->flags)
+    {
+      warned_isa |= ase->flags;
+      base = mips_opts.micromips ? "microMIPS" : "MIPS";
+      size = ISA_HAS_64BIT_REGS (mips_opts.isa) ? 64 : 32;
+      as_warn (_("the `%s' extension was removed in %s%d revision %d"),
+	       ase->name, base, size, rem_rev);
+    }
+
   if ((ase->flags & FP64_ASES)
       && mips_opts.fp32
       && (warned_fp32 & ase->flags) != ase->flags)
@@ -1929,8 +1964,6 @@ mips_check_isa_supports_ase (const struct mips_ase *ase)
       warned_fp32 |= ase->flags;
       as_warn (_("the `%s' extension requires 64-bit FPRs"), ase->name);
     }
-  if (ISA_IS_R6 (mips_opts.isa) && (ase->flags & (ASE_MIPS3D | ASE_MDMX)))
-    as_warn (_("A MIPS R6 cpu doesn't support the `%s' extension"), ase->name);
 }
 
 /* Check all enabled ASEs to see whether they are supported by the
