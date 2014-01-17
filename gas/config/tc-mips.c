@@ -17089,6 +17089,17 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 			 reversed by tweaking bit 23.  */
 		      insn ^= 0x00800000;
 		    }
+                  else if (ISA_IS_R6 (mips_opts.isa))
+                    {
+                      /* The bc[0-3][tf]l? instructions in the else block
+                         below are removed and illegal from r6 onwards.
+
+                         bc1eqz 0x45200000  bc1nez 0x45a00000
+                         bc2eqz 0x49200000  bc2nez 0x49a00000 */
+                      gas_assert ((insn & 0xff600000) == 0x49200000
+                                  || (insn & 0xff600000) == 0x45200000);
+                      insn ^= 0x00800000;
+                    }
 		  else
 		    {
 		      /* bc[0-3][tf]l? instructions can have the condition
@@ -17103,6 +17114,11 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 		  /* bltz	0x04000000	bgez	0x04010000
 		     bltzal	0x04100000	bgezal	0x04110000  */
 		  gas_assert ((insn & 0xfc0e0000) == 0x04000000);
+                  /* bltzal, bgezal where $rs != 0 is illegal from r6 and will
+                     be repurposed eventually */
+                  if (ISA_IS_R6 (mips_opts.isa)
+                      && (insn & 0xfc1e0000) == 0x04100000)
+                    gas_assert ((insn & 0x03e00000) == 0);
 		  insn ^= 0x00010000;
 		  break;
 
@@ -17229,7 +17245,13 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	      /* j(al)r $at.  */
 	      if (RELAX_BRANCH_LINK (fragp->fr_subtype))
 		insn = 0x0000f809;
-	      else
+	      else if (ISA_IS_R6 (mips_opts.isa))
+                /* jalr $0, $at */
+		insn = 0x00000009;
+              else
+                /* This case could be removed but would alter the encoding for
+                   return i.e. jr which may break hardware return stacks on
+                   some implementations */
 		insn = 0x00000008;
 	      insn |= at << OP_SH_RS;
 
