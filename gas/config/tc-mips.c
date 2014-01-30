@@ -343,8 +343,7 @@ static int mips_32bitmode = 0;
 
 /* Likewise 64-bit registers.  */
 #define ABI_NEEDS_64BIT_REGS(ABI)	\
-  ((ABI) == N32_ABI 			\
-   || (ABI) == N64_ABI			\
+  ((ABI) == N64_ABI			\
    || (ABI) == O64_ABI)
 
 #define ISA_IS_R6(ISA)			\
