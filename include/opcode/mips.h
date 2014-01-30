@@ -976,6 +976,8 @@ struct mips_opcode
    "-u" 5 bit source register specifier (OP_*_RT) less than OP_*_RS
    "-v" 5 bit source register specifier (OP_*_RT) not $0 less than OP_*_RS
    "-w" 5 bit source register specifier (OP_*_RT) greater than OP_*_RS
+   "-A" symbolic offset (-262144 .. 262143) << 2 at bit 0
+   "-B" symbolic offset (-131072 .. 131071) << 3 at bit 0
 
    Other:
    "()" parens surrounding optional value
@@ -997,7 +999,7 @@ struct mips_opcode
 
    Extension character sequences used so far ("-" followed by the
    following), for quick reference when adding more:
-   "adDstuvw"
+   "aAbBdDstuvw"
 */
 
 /* These are the bits which may be set in the pinfo field of an
