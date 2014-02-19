@@ -1,3 +1,7 @@
+2014-02-18  Jack Carter  <jack.carter@imgtec.com>
+
+	* ld-mips-elf/pic-and-nonpic-3a.sd: Check DYNAMIC segment flags.
+
 2013-11-27  Matthew Fortune <matthew.fortune@imgtec.com>
 
 	* ld-mips-elf/mips-elf.exp: Consider mips-mti-elf the same as

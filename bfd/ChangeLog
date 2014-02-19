@@ -1,3 +1,8 @@
+2014-02-18  Jack Carter  <jack.carter@imgtec.com>
+
+        * elfxx-mips.c(_bfd_mips_elf_modify_segment_map): Deleted hard coding of
+        PT_DYNAMIC segment flags.
+
 2014-01-16  Alan Modra  <amodra@gmail.com>
 
 	* elfxx-mips.c (mips_elf_record_got_page_entry): Pass in a
