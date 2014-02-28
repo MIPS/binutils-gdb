@@ -51,11 +51,11 @@ decode_mips_operand (const char *p)
         case 'D': SPECIAL (0, 0, REPEAT_DEST_REG_FP);
         case 's': SPECIAL (5, 21, GP_NOT_ZERO);
         case 't': SPECIAL (5, 16, GP_NOT_ZERO);
-        case 'u': SPECIAL (5, 16, GP_LT_PREV);
+        case 'u': SPECIAL (5, 16, GP_GT_PREV);
         case 'v': SPECIAL (5, 16, GP_NOT_ZERO_NOT_PREV);
-        case 'w': SPECIAL (5, 16, GP_GE_PREV);
-        case 'x': SPECIAL (5, 21, GP_NOT_ZERO_LE_PREV);
-        case 'y': SPECIAL (5, 21, GP_GT_PREV);
+        case 'w': SPECIAL (5, 16, GP_LE_PREV);
+        case 'x': SPECIAL (5, 21, GP_GE_PREV);
+        case 'y': SPECIAL (5, 21, GP_NOT_ZERO_LT_PREV);
         case 'A': PCREL (19, 0, TRUE, 2, 2, FALSE, FALSE);
         case 'B': PCREL (18, 0, TRUE, 3, 3, FALSE, FALSE);
         }
@@ -3211,15 +3211,15 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"bitswap",		"d,t",		0x7c000020, 0xffe007ff,	WR_1|RD_2,		0,		I34,		0,	0 },
 {"dbitswap",		"d,t",		0x7c000024, 0xffe007ff,	WR_1|RD_2,		0,		I66,		0,	0 },
 
-{"bovc",		"-s,-w,p",	0x20000000, 0xfc000000,	RD_1|RD_2|NODS,		FS,		I34,		0,	0 },
-{"bovc",		"-t,-x,p",	0x20000000, 0xfc000000,	RD_1|RD_2|NODS,		FS|INSN2_ALIAS,	I34,		0,	0 },
-{"beqzalc",		"t,p",		0x20000000, 0xffe00000,	RD_1|WR_31|NODS,	FS,		I34,		0,	0 },
-{"beqc",		"s,-u,p",	0x20000000, 0xfc000000,	RD_1|RD_2|NODS,		FS,		I34,		0,	0 },
+{"bovc",		"s,-w,p",	0x20000000, 0xfc000000,	RD_1|RD_2|NODS,		FS,		I34,		0,	0 },
+{"bovc",		"t,-x,p",	0x20000000, 0xfc000000,	RD_1|RD_2|NODS,		FS|INSN2_ALIAS,	I34,		0,	0 },
+{"beqzalc",		"-t,p",		0x20000000, 0xffe00000,	RD_1|WR_31|NODS,	FS,		I34,		0,	0 },
+{"beqc",		"-s,-u,p",	0x20000000, 0xfc000000,	RD_1|RD_2|NODS,		FS,		I34,		0,	0 },
 {"beqc",		"t,-y,p",	0x20000000, 0xfc000000,	RD_1|RD_2|NODS,		FS|INSN2_ALIAS,	I34,		0,	0 },
-{"bnvc",		"-s,-w,p",	0x60000000, 0xfc000000,	RD_1|RD_2|NODS,		FS,		I34,		0,	0 },
-{"bnvc",		"-t,-x,p",	0x60000000, 0xfc000000,	RD_1|RD_2|NODS,		FS|INSN2_ALIAS,	I34,		0,	0 },
-{"bnezalc",		"t,p",		0x60000000, 0xffe00000,	RD_1|WR_31|NODS,	FS,		I34,		0,	0 },
-{"bnec",		"s,-u,p",	0x60000000, 0xfc000000,	RD_1|RD_2|NODS,		FS,		I34,		0,	0 },
+{"bnvc",		"s,-w,p",	0x60000000, 0xfc000000,	RD_1|RD_2|NODS,		FS,		I34,		0,	0 },
+{"bnvc",		"t,-x,p",	0x60000000, 0xfc000000,	RD_1|RD_2|NODS,		FS|INSN2_ALIAS,	I34,		0,	0 },
+{"bnezalc",		"-t,p",		0x60000000, 0xffe00000,	RD_1|WR_31|NODS,	FS,		I34,		0,	0 },
+{"bnec",		"-s,-u,p",	0x60000000, 0xfc000000,	RD_1|RD_2|NODS,		FS,		I34,		0,	0 },
 {"bnec",		"t,-y,p",	0x60000000, 0xfc000000,	RD_1|RD_2|NODS,		FS|INSN2_ALIAS,	I34,		0,	0 },
 
 {"blezc",		"-t,p",		0x58000000, 0xffe00000,	RD_1|NODS,		FS,		I34,		0,	0 },
