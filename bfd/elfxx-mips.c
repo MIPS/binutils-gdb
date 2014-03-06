@@ -789,6 +789,11 @@ static bfd *reldyn_sorting_bfd;
 #define MICROMIPS_P(abfd) \
   ((elf_elfheader (abfd)->e_flags & EF_MIPS_ARCH_ASE_MICROMIPS) != 0)
 
+/* Nonzero if ABFD is MIPS R6.  */
+#define MIPSR6_P(abfd) \
+  ((elf_elfheader (abfd)->e_flags \
+    & (E_MIPS_ARCH_32R6 | E_MIPS_ARCH_64R6)) != 0)
+
 /* The IRIX compatibility level we are striving for.  */
 #define IRIX_COMPAT(abfd) \
   (get_elf_backend_data (abfd)->elf_backend_mips_irix_compat (abfd))
@@ -1084,6 +1089,14 @@ static const bfd_vma mips_exec_plt_entry[] =
   0x01f90000,	/* l[wd] $25, %lo(.got.plt entry)($15)		*/
   0x25f80000,	/* addiu $24, $15, %lo(.got.plt entry)		*/
   0x03200008	/* jr $25					*/
+};
+
+static const bfd_vma mipsr6_exec_plt_entry[] =
+{
+  0x3c0f0000,	/* lui $15, %hi(.got.plt entry)			*/
+  0x01f90000,	/* l[wd] $25, %lo(.got.plt entry)($15)		*/
+  0x25f80000,	/* addiu $24, $15, %lo(.got.plt entry)		*/
+  0x03200009	/* jr $25					*/
 };
 
 /* The format of subsequent MIPS16 o32 PLT entries.  We use v0 ($2)
@@ -10424,7 +10437,11 @@ _bfd_mips_elf_finish_dynamic_symbol (bfd *output_bfd,
 	  load = MIPS_ELF_LOAD_WORD (output_bfd);
 
 	  /* Fill in the PLT entry itself.  */
-	  plt_entry = mips_exec_plt_entry;
+
+          if (MIPSR6_P (output_bfd))
+	    plt_entry = mipsr6_exec_plt_entry;
+          else
+            plt_entry = mips_exec_plt_entry;
 	  bfd_put_32 (output_bfd, plt_entry[0] | got_address_high, loc);
 	  bfd_put_32 (output_bfd, plt_entry[1] | got_address_low | load,
 		      loc + 4);
