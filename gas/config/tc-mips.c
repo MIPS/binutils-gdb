@@ -14382,10 +14382,8 @@ md_pcrel_from (fixS *fixP)
     case BFD_RELOC_MIPS_19_PCREL_S2:
     case BFD_RELOC_HI16_S_PCREL:
     case BFD_RELOC_LO16_PCREL:
-      return addr;
-
     case BFD_RELOC_MIPS_18_PCREL_S3:
-      return addr & ~(valueT)7;
+      return addr;
 
     default:
       /* We have no relocation type for PC relative MIPS16 instructions.  */
@@ -14839,7 +14837,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       break;
 
     case BFD_RELOC_MIPS_18_PCREL_S3:
-      if ((*valP & 0x7) != 0)
+      if ((*valP & 0x3) != 0)
 	as_bad_where (fixP->fx_file, fixP->fx_line,
 		      _("pc rel from misaligned address (%lx)"),
                       (long) *valP);
