@@ -1,3 +1,7 @@
+2014-03-20  Richard Sandiford  <rdsandiford@googlemail.com>
+
+	* ld-elf/merge.d: Remove MIPS XFAIL.
+
 2014-02-18  Jack Carter  <jack.carter@imgtec.com>
 
 	* ld-mips-elf/pic-and-nonpic-3a.sd: Check DYNAMIC segment flags.
