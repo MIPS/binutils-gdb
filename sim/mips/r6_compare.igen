@@ -61,7 +61,7 @@
   TRACE_ALU_INPUT2 (ValueFPR (FS, FMT), ValueFPR (FT, FMT)); 
 
   result = R6Compare (ValueFPR (FS, FMT), ValueFPR (FT, FMT), FMT, R6COND);
-  StoreFPR (FD, FMT, result);
+  StoreFPR (FD, fmt_single, result);
   TRACE_ALU_RESULT (result);
 }
 
@@ -72,8 +72,8 @@
 {
   address_word offset = EXTEND16 (OFFSET) << 2;
   check_fpu (SD_);
-  TRACE_ALU_INPUT1 (ValueFPR (FT, fmt_dc32));
-  if (ValueFPR (FT, fmt_dc32) == 0)
+  TRACE_ALU_INPUT1 (ValueFPR (FT, fmt_single));
+  if (ValueFPR (FT, fmt_single) == 0)
     DELAY_SLOT (NIA + offset);
 }
 
@@ -84,7 +84,7 @@
 {
   address_word offset = EXTEND16 (OFFSET) << 2;
   check_fpu (SD_);
-  TRACE_ALU_INPUT1 (ValueFPR (FT, fmt_dc32));
-  if (ValueFPR (FT, fmt_dc32) != 0)
+  TRACE_ALU_INPUT1 (ValueFPR (FT, fmt_single));
+  if (ValueFPR (FT, fmt_single) != 0)
     DELAY_SLOT (NIA + offset);
 }
