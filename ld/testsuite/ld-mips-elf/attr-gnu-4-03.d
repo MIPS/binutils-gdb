@@ -1,4 +1,5 @@
 #source: attr-gnu-4-0.s
+#as: -msoft-float
 #source: attr-gnu-4-3.s
 #ld: -r
 #readelf: -A

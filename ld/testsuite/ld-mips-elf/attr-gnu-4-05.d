@@ -6,4 +6,4 @@
 
 Attribute Section: gnu
 File Attributes
-  Tag_GNU_MIPS_ABI_FP: \?\?\? \(5\)
+  Tag_GNU_MIPS_ABI_FP: Hard float \(Any FPU\)

@@ -1,0 +1,12 @@
+.module fp=32
+.module doublefloat
+.module hardfloat
+add.s $f1,$f1,$f1
+.set push
+.set fp=xx
+add.s $f1,$f1,$f1
+.set pop
+.set push
+.set fp=64
+.set pop
+.set fp=64
