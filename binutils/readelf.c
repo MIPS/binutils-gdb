@@ -2953,6 +2953,8 @@ get_mips_segment_type (unsigned long type)
       return "RTPROC";
     case PT_MIPS_OPTIONS:
       return "OPTIONS";
+    case PT_MIPS_FPMODE:
+      return "FPMODE";
     default:
       break;
     }
@@ -4186,6 +4188,15 @@ process_program_headers (FILE * file)
 		printf (_("\n      [Requesting program interpreter: %s]"),
 		    program_interpreter);
 	    }
+	  break;
+
+	case PT_MIPS_FPMODE:
+	  if (segment->p_flags & PF_MIPS_FPXX)
+	    printf (_("\n      [O32 FPXX ABI]"));
+	  else if (segment->p_flags & PF_MIPS_FP64)
+	    printf (_("\n      [O32 FP64 ABI]"));
+	  else
+	    error (_("Unable to determine O32 FP ABI\n"));
 	  break;
 	}
 
@@ -11786,6 +11797,12 @@ display_mips_gnu_attribute (unsigned char * p,
 	  break;
 	case Val_GNU_MIPS_ABI_FP_SOFT:
 	  printf (_("Soft float\n"));
+	  break;
+	case Val_GNU_MIPS_ABI_FP_OLD_64:
+	  printf (_("Hard float (MIPS32r2 64-bit FPU 12 callee-saved)\n"));
+	  break;
+	case Val_GNU_MIPS_ABI_FP_XX:
+	  printf (_("Hard float (Any FPU)\n"));
 	  break;
 	case Val_GNU_MIPS_ABI_FP_64:
 	  printf (_("Hard float (MIPS32r2 64-bit FPU)\n"));

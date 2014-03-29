@@ -607,6 +607,19 @@ extern void bfd_mips_elf32_swap_reginfo_out
 
 /* .MIPS.options section.  */
 #define PT_MIPS_OPTIONS		0x70000002
+
+/* Records the FP mode requirement.  */
+#define PT_MIPS_FPMODE		0x70000003
+
+
+/* Processor specific program header flags.  */
+
+/* For PT_MIPS_FPMODE indicates that no mode is required.  */
+#define PF_MIPS_FPXX		0x10000000
+
+/* For PT_MIPS_FPMODE indicates that FP64 is required.  */
+#define PF_MIPS_FP64		0x20000000
+
 
 /* Processor specific dynamic array tags.  */
 
@@ -1171,7 +1184,13 @@ enum
   Val_GNU_MIPS_ABI_FP_SOFT = 3,
 
   /* Using -mips32r2 -mfp64.  */
-  Val_GNU_MIPS_ABI_FP_64 = 4,
+  Val_GNU_MIPS_ABI_FP_OLD_64 = 4,
+
+  /* Using -mfpxx */
+  Val_GNU_MIPS_ABI_FP_XX = 5,
+
+  /* Using -mips32r2 -mfp64.  */
+  Val_GNU_MIPS_ABI_FP_64 = 6,
 
   /* Values defined for Tag_GNU_MIPS_ABI_MSA.  */
 

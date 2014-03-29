@@ -124,6 +124,14 @@ The @code{.set gp=64} and @code{.set fp=64} directives allow the size
 of registers to be changed for parts of an object. The default value is
 restored by @code{.set gp=default} and @code{.set fp=default}.
 
+@item -mfpxx
+Make no assumptions about whether 32-bit or 64-bit registers are available.
+This is provided to support having modules compatible with either
+@samp{-mfp32} or @samp{-mfp64}.
+
+The @code{.set fp=xx} directive allows a part of an object to be marked
+as not making assumptions about 32-bit or 64-bita FP registers.  The
+default value is restored by @code{.set fp=default}.
 @item -mips16
 @itemx -no-mips16
 Generate code for the MIPS 16 processor.  This is equivalent to putting

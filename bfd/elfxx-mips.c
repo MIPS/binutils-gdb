@@ -774,6 +774,10 @@ static bfd *reldyn_sorting_bfd;
 #define PIC_OBJECT_P(abfd) \
   ((elf_elfheader (abfd)->e_flags & EF_MIPS_PIC) != 0)
 
+/* Nonzero if ABFD is using the O32 ABI.  */
+#define ABI_O32_P(abfd) \
+  ((elf_elfheader (abfd)->e_flags & EF_MIPS_ABI) == E_MIPS_ABI_O32)
+
 /* Nonzero if ABFD is using the N32 ABI.  */
 #define ABI_N32_P(abfd) \
   ((elf_elfheader (abfd)->e_flags & EF_MIPS_ABI2) != 0)
@@ -11879,6 +11883,7 @@ _bfd_mips_elf_additional_program_headers (bfd *abfd,
 					  struct bfd_link_info *info ATTRIBUTE_UNUSED)
 {
   asection *s;
+  obj_attribute *attr;
   int ret = 0;
 
   /* See if we need a PT_MIPS_REGINFO segment.  */
@@ -11904,6 +11909,15 @@ _bfd_mips_elf_additional_program_headers (bfd *abfd,
       && bfd_get_section_by_name (abfd, ".dynamic"))
     ++ret;
 
+  /* Allocate a PT_MIPS_FPMODE header to record a non-default ABI FR mode
+     requirement.  */
+  attr = elf_known_obj_attributes (abfd)[OBJ_ATTR_GNU];
+  if (ABI_O32_P (abfd)
+      && (attr[Tag_GNU_MIPS_ABI_FP].i == Val_GNU_MIPS_ABI_FP_ANY
+	  || attr[Tag_GNU_MIPS_ABI_FP].i == Val_GNU_MIPS_ABI_FP_XX
+	  || attr[Tag_GNU_MIPS_ABI_FP].i == Val_GNU_MIPS_ABI_FP_64))
+    ++ret;
+
   return ret;
 }
 
@@ -11916,6 +11930,7 @@ _bfd_mips_elf_modify_segment_map (bfd *abfd,
   asection *s;
   struct elf_segment_map *m, **pm;
   bfd_size_type amt;
+  obj_attribute *attr;
 
   /* If there is a .reginfo section, we need a PT_MIPS_REGINFO
      segment.  */
@@ -12157,6 +12172,43 @@ _bfd_mips_elf_modify_segment_map (bfd *abfd,
 	  *pm = m;
 	}
     }
+
+  /* Search for the FPMODE program header.  */
+  for (pm = &elf_seg_map (abfd); *pm != NULL; pm = &(*pm)->next)
+    if ((*pm)->p_type == PT_MIPS_FPMODE)
+      break;
+
+  attr = elf_known_obj_attributes (abfd)[OBJ_ATTR_GNU];
+  if (ABI_O32_P (abfd)
+      && (attr[Tag_GNU_MIPS_ABI_FP].i == Val_GNU_MIPS_ABI_FP_ANY
+	  || attr[Tag_GNU_MIPS_ABI_FP].i == Val_GNU_MIPS_ABI_FP_XX
+	  || attr[Tag_GNU_MIPS_ABI_FP].i == Val_GNU_MIPS_ABI_FP_64))
+    {
+      if (*pm == NULL)
+	{
+	  m = bfd_zalloc (abfd, sizeof (*m));
+	  if (m == NULL)
+	    return FALSE;
+
+	  m->p_type = PT_MIPS_FPMODE;
+
+	  /* We want to put it before PT_NULL segment.  */
+	  pm = &elf_seg_map (abfd);
+	  while (*pm != NULL && (*pm)->p_type != PT_NULL)
+	    pm = &(*pm)->next;
+
+	  m->next = *pm;
+	  *pm = m;
+	}
+      if (attr[Tag_GNU_MIPS_ABI_FP].i == Val_GNU_MIPS_ABI_FP_64)
+	(*pm)->p_flags = PF_MIPS_FP64;
+      else
+	(*pm)->p_flags = PF_MIPS_FPXX;
+      (*pm)->p_flags_valid = 1;
+    }
+  else if (*pm != NULL)
+    /* Delete the FPMODE header.  */
+    *pm = (*pm)->next;
 
   return TRUE;
 }
@@ -14506,6 +14558,17 @@ mips_elf_merge_obj_attributes (bfd *ibfd, bfd *obfd)
 		   obfd, abi_fp_bfd, ibfd, "-mhard-float", "-msoft-float");
 		break;
 
+	      case Val_GNU_MIPS_ABI_FP_OLD_64:
+		_bfd_error_handler
+		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
+		   obfd, abi_fp_bfd, ibfd,
+		   "-mdouble-float", "-mips32r2 -mfp64 (12 callee-saved)");
+		break;
+
+	      case Val_GNU_MIPS_ABI_FP_XX:
+		/* No change -mfp32 + -mfpxx == -mfp32 */
+		break;
+
 	      case Val_GNU_MIPS_ABI_FP_64:
 		_bfd_error_handler
 		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
@@ -14538,6 +14601,20 @@ mips_elf_merge_obj_attributes (bfd *ibfd, bfd *obfd)
 		   obfd, abi_fp_bfd, ibfd, "-mhard-float", "-msoft-float");
 		break;
 
+	      case Val_GNU_MIPS_ABI_FP_OLD_64:
+		_bfd_error_handler
+		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
+		   obfd, abi_fp_bfd, ibfd,
+		   "-msingle-float", "-mips32r2 -mfp64 (12 callee-saved)");
+		break;
+
+	      case Val_GNU_MIPS_ABI_FP_XX:
+		_bfd_error_handler
+		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
+		   obfd, abi_fp_bfd, ibfd,
+		   "-msingle-float", "-mfpxx");
+		break;
+
 	      case Val_GNU_MIPS_ABI_FP_64:
 		_bfd_error_handler
 		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
@@ -14560,6 +14637,8 @@ mips_elf_merge_obj_attributes (bfd *ibfd, bfd *obfd)
 	      {
 	      case Val_GNU_MIPS_ABI_FP_DOUBLE:
 	      case Val_GNU_MIPS_ABI_FP_SINGLE:
+	      case Val_GNU_MIPS_ABI_FP_OLD_64:
+	      case Val_GNU_MIPS_ABI_FP_XX:
 	      case Val_GNU_MIPS_ABI_FP_64:
 		_bfd_error_handler
 		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
@@ -14572,6 +14651,99 @@ mips_elf_merge_obj_attributes (bfd *ibfd, bfd *obfd)
 		     "%B uses unknown floating point ABI %d"),
 		   obfd, abi_fp_bfd, ibfd,
 		   "-msoft-float", in_attr[Tag_GNU_MIPS_ABI_FP].i);
+		break;
+	      }
+	    break;
+
+	  case Val_GNU_MIPS_ABI_FP_OLD_64:
+	    switch (in_attr[Tag_GNU_MIPS_ABI_FP].i)
+	      {
+	      case Val_GNU_MIPS_ABI_FP_DOUBLE:
+		_bfd_error_handler
+		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
+		   obfd, abi_fp_bfd, ibfd,
+		   "-mips32r2 -mfp64 (12 callee-saved)", "-mdouble-float");
+		break;
+
+	      case Val_GNU_MIPS_ABI_FP_SINGLE:
+		_bfd_error_handler
+		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
+		   obfd, abi_fp_bfd, ibfd,
+		   "-mips32r2 -mfp64 (12 callee-saved)", "-msingle-float");
+		break;
+
+	      case Val_GNU_MIPS_ABI_FP_SOFT:
+		_bfd_error_handler
+		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
+		   obfd, abi_fp_bfd, ibfd, "-mhard-float", "-msoft-float");
+		break;
+
+	      case Val_GNU_MIPS_ABI_FP_XX:
+		_bfd_error_handler
+		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
+		   obfd, abi_fp_bfd, ibfd, "-mips32r2 -mfp64 (12 callee-saved)",
+		   "-mfpxx");
+		break;
+
+	      case Val_GNU_MIPS_ABI_FP_64:
+		_bfd_error_handler
+		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
+		   obfd, abi_fp_bfd, ibfd, "-mips32r2 -mfp64 (12 callee-saved)",
+		   "-mips32r2 -mfp64");
+		break;
+
+	      default:
+		_bfd_error_handler
+		  (_("Warning: %B uses %s (set by %B), "
+		     "%B uses unknown floating point ABI %d"),
+		   obfd, abi_fp_bfd, ibfd,
+		   "-mips32r2 -mfp64 (12 callee-saved)",
+		   in_attr[Tag_GNU_MIPS_ABI_FP].i);
+		break;
+	      }
+	    break;
+
+	  case Val_GNU_MIPS_ABI_FP_XX:
+	    switch (in_attr[Tag_GNU_MIPS_ABI_FP].i)
+	      {
+	      case Val_GNU_MIPS_ABI_FP_DOUBLE:
+		/* Update: -mfpxx + -mfp32 == -mfp32.  */
+		mips_elf_tdata (obfd)->abi_fp_bfd = ibfd;
+		out_attr[Tag_GNU_MIPS_ABI_FP].i = in_attr[Tag_GNU_MIPS_ABI_FP].i;
+		break;
+
+	      case Val_GNU_MIPS_ABI_FP_SINGLE:
+		_bfd_error_handler
+		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
+		   obfd, abi_fp_bfd, ibfd,
+		   "-mfpxx", "-msingle-float");
+		break;
+
+	      case Val_GNU_MIPS_ABI_FP_SOFT:
+		_bfd_error_handler
+		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
+		   obfd, abi_fp_bfd, ibfd, "-mhard-float", "-msoft-float");
+		break;
+
+	      case Val_GNU_MIPS_ABI_FP_OLD_64:
+		_bfd_error_handler
+		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
+		   obfd, abi_fp_bfd, ibfd, "-mfpxx",
+		   "-mips32r2 -mfp64 (12 callee-saved)");
+		break;
+
+	      case Val_GNU_MIPS_ABI_FP_64:
+		/* Update: -mfpxx + -mfp64 == -mfp64.  */
+		mips_elf_tdata (obfd)->abi_fp_bfd = ibfd;
+		out_attr[Tag_GNU_MIPS_ABI_FP].i = in_attr[Tag_GNU_MIPS_ABI_FP].i;
+		break;
+
+	      default:
+		_bfd_error_handler
+		  (_("Warning: %B uses %s (set by %B), "
+		     "%B uses unknown floating point ABI %d"),
+		   obfd, abi_fp_bfd, ibfd,
+		   "-mfpxx", in_attr[Tag_GNU_MIPS_ABI_FP].i);
 		break;
 	      }
 	    break;
@@ -14597,6 +14769,17 @@ mips_elf_merge_obj_attributes (bfd *ibfd, bfd *obfd)
 		_bfd_error_handler
 		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
 		   obfd, abi_fp_bfd, ibfd, "-mhard-float", "-msoft-float");
+		break;
+
+	      case Val_GNU_MIPS_ABI_FP_OLD_64:
+		_bfd_error_handler
+		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
+		   obfd, abi_fp_bfd, ibfd, "-mips32r2 -mfp64",
+		   "-mips32r2 -mfp64 (12 callee-saved)");
+		break;
+
+	      case Val_GNU_MIPS_ABI_FP_XX:
+		/* No change -mfp64 + -mfpxx == -mfp64 */
 		break;
 
 	      default:
@@ -14634,6 +14817,23 @@ mips_elf_merge_obj_attributes (bfd *ibfd, bfd *obfd)
 		     "(set by %B), %B uses %s"),
 		   obfd, abi_fp_bfd, ibfd,
 		   out_attr[Tag_GNU_MIPS_ABI_FP].i, "-msoft-float");
+		break;
+
+	      case Val_GNU_MIPS_ABI_FP_OLD_64:
+		_bfd_error_handler
+		  (_("Warning: %B uses unknown floating point ABI %d "
+		     "(set by %B), %B uses %s"),
+		   obfd, abi_fp_bfd, ibfd,
+		   out_attr[Tag_GNU_MIPS_ABI_FP].i,
+		   "-mips32r2 -mfp64 (12 callee-saved)");
+		break;
+
+	      case Val_GNU_MIPS_ABI_FP_XX:
+		_bfd_error_handler
+		  (_("Warning: %B uses unknown floating point ABI %d "
+		     "(set by %B), %B uses %s"),
+		   obfd, abi_fp_bfd, ibfd,
+		   out_attr[Tag_GNU_MIPS_ABI_FP].i, "-mfpxx");
 		break;
 
 	      case Val_GNU_MIPS_ABI_FP_64:
@@ -14934,6 +15134,20 @@ _bfd_mips_elf_merge_private_bfd_data (bfd *ibfd, bfd *obfd)
       old_flags &= ~EF_MIPS_NAN2008;
     }
 
+  /* Compare FP64 state.  */
+  if ((new_flags & EF_MIPS_FP64) != (old_flags & EF_MIPS_FP64))
+    {
+      _bfd_error_handler (_("%B: linking %s module with previous %s modules"),
+			  ibfd,
+			  (new_flags & EF_MIPS_FP64
+			   ? "-mfp64" : "-mfp32"),
+			  (old_flags & EF_MIPS_FP64
+			   ? "-mfp64" : "-mfp32"));
+      ok = FALSE;
+      new_flags &= ~EF_MIPS_FP64;
+      old_flags &= ~EF_MIPS_FP64;
+    }
+
   /* Warn about any other mismatches */
   if (new_flags != old_flags)
     {
@@ -15069,6 +15283,7 @@ bfd_boolean
 _bfd_mips_elf_print_private_bfd_data (bfd *abfd, void *ptr)
 {
   FILE *file = ptr;
+  Elf_Internal_Phdr *p;
 
   BFD_ASSERT (abfd != NULL && ptr != NULL);
 
@@ -15154,6 +15369,24 @@ _bfd_mips_elf_print_private_bfd_data (bfd *abfd, void *ptr)
 
   if (elf_elfheader (abfd)->e_flags & EF_MIPS_UCODE)
     fprintf (file, " [UCODE]");
+
+  p = elf_tdata (abfd)->phdr;
+  if (p != NULL)
+    {
+      unsigned int i;
+      unsigned int c = elf_elfheader (abfd)->e_phnum;
+
+      for (i = 0; i < c; i++, p++)
+	{
+	  if (p->p_type == PT_MIPS_FPMODE)
+	    {
+	      if (p->p_flags & PF_MIPS_FPXX)
+		fprintf (file, " [FPXX]");
+	      else if (p->p_flags & PF_MIPS_FP64)
+		fprintf (file, " [FP64]");
+	    }
+	}
+    }
 
   fputc ('\n', file);
 
