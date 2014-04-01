@@ -1197,7 +1197,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
    assembler, but will never match user input (because the line above
    will match first).  */
 {"jal",			"a",		0x0c000000, 0xfc000000,	WR_31|UBD,		0,		I1,		0,	0 },
-{"jalx",		"+i",		0x74000000, 0xfc000000, WR_31|UBD,		0,		I1,		0,	0 },
+{"jalx",		"+i",		0x74000000, 0xfc000000, WR_31|UBD,		0,		I1,		0,	I34 },
 {"laa",			"d,(b),t",	0x7000049f, 0xfc0007ff, WR_1|RD_2|RD_3|LDD|SM,	0,		IOCT2,		0,	0 },
 {"laad",		"d,(b),t",	0x700004df, 0xfc0007ff, WR_1|RD_2|RD_3|LDD|SM,	0,		IOCT2,		0,	0 },
 {"lac",			"d,(b)",	0x7000039f, 0xfc1f07ff, WR_1|RD_2|LDD|SM,	0,		IOCT2,		0,	0 },
@@ -3203,6 +3203,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 
 {"aui",			"t,s,u",	0x3c000000, 0xfc000000,	WR_1|RD_2,		0,		I34,		0,	0 },
 {"auipc",		"s,u",		0xec1e0000, 0xfc1f0000, WR_1|RD_pc,		0,		I34,		0,	0 },
+{"daui",		"t,s,u",	0x74000000, 0xfc000000,	WR_1|RD_2,		0,		I34,		0,	0 },
 {"dahi",		"s,-d,u",	0x04060000, 0xfc1f0000,	MOD_1,			0,		I66,		0,	0 },
 {"dati",		"s,-d,u",	0x041e0000, 0xfc1f0000,	MOD_1,			0,		I66,		0,	0 },
 

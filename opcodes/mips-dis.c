@@ -1613,7 +1613,9 @@ print_insn_mips (bfd_vma memaddr,
 
 	      /* We always allow to disassemble the jalx instruction.  */
 	      if (!opcode_is_member (op, mips_isa, mips_ase, mips_processor)
-		  && strcmp (op->name, "jalx"))
+		  && (strcmp (op->name, "jalx")
+		      || (mips_isa & INSN_ISA_MASK) == ISA_MIPS32R6
+		      || (mips_isa & INSN_ISA_MASK) == ISA_MIPS64R6))
 		continue;
 
 	      /* Figure out instruction type and branch delay information.  */
