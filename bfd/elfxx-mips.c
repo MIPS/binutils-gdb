@@ -12206,9 +12206,7 @@ _bfd_mips_elf_modify_segment_map (bfd *abfd,
 	(*pm)->p_flags = PF_MIPS_FPXX;
       (*pm)->p_flags_valid = 1;
     }
-  else if (*pm != NULL)
-    /* Delete the FPMODE header.  */
-    *pm = (*pm)->next;
+  /* Trust that a pre-existing PT_MIPS_FPMODE header remains valid.  */
 
   return TRUE;
 }

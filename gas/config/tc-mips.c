@@ -3666,106 +3666,110 @@ md_mips_end (void)
   if (! ECOFF_DEBUGGING)
     md_obj_end ();
 
-  if (mips_abi == O32_ABI)
-    {
-      int fpabi = bfd_elf_get_obj_attr_int (stdoutput, OBJ_ATTR_GNU,
+  int fpabi = bfd_elf_get_obj_attr_int (stdoutput, OBJ_ATTR_GNU,
 					    Tag_GNU_MIPS_ABI_FP);
-      switch (fpabi)
-	{
-	case Val_GNU_MIPS_ABI_FP_DOUBLE:
-	  if (file_mips_opts.fp != 32
-	      || file_mips_opts.single_float == 1
-	      || file_mips_opts.soft_float == 1)
-	    as_warn (_("Incorrect .gnu_attribute %d,%d found when module is "
-		       "`%s'"),
-		     Tag_GNU_MIPS_ABI_FP, fpabi,
-		     (file_mips_opts.single_float == 1) ? "single-float"
-		     : (file_mips_opts.soft_float == 1) ? "soft-float"
-		     : (file_mips_opts.fp == 32) ? "fp32"
-		     : (file_mips_opts.fp == 64) ? "fp64" : "fpxx");
-	  break;
-	case Val_GNU_MIPS_ABI_FP_XX:
-	  if (file_mips_opts.fp != 0
-	      || file_mips_opts.single_float == 1
-	      || file_mips_opts.soft_float == 1)
-	    as_warn (_("Incorrect .gnu_attribute %d,%d found when module is "
-		       "`%s'"),
-		     Tag_GNU_MIPS_ABI_FP, fpabi,
-		     (file_mips_opts.single_float == 1) ? "single-float"
-		     : (file_mips_opts.soft_float == 1) ? "soft-float"
-		     : (file_mips_opts.fp == 32) ? "fp32"
-		     : (file_mips_opts.fp == 64) ? "fp64" : "fpxx");
-	  break;
-	case Val_GNU_MIPS_ABI_FP_64:
-	  if (file_mips_opts.fp != 64
-	      || file_mips_opts.single_float == 1
-	      || file_mips_opts.soft_float == 1)
-	    as_warn (_("Incorrect .gnu_attribute %d,%d found when module is "
-		       "`%s'"),
-		     Tag_GNU_MIPS_ABI_FP, fpabi,
-		     (file_mips_opts.single_float == 1) ? "single-float"
-		     : (file_mips_opts.soft_float == 1) ? "soft-float"
-		     : (file_mips_opts.fp == 32) ? "fp32"
-		     : (file_mips_opts.fp == 64) ? "fp64" : "fpxx");
-	  break;
-	case Val_GNU_MIPS_ABI_FP_SINGLE:
-	  if (file_mips_opts.single_float != 1)
-	    as_warn (_("Incorrect .gnu_attribute %d,%d found when module is "
-		       "not `single-float'"),
-		     Tag_GNU_MIPS_ABI_FP, fpabi);
-	  break;
-	case Val_GNU_MIPS_ABI_FP_SOFT:
-	  if (file_mips_opts.soft_float != 1)
-	    as_warn (_("Incorrect .gnu_attribute %d,%d found when module is "
-		       "not `soft-float'"),
-		     Tag_GNU_MIPS_ABI_FP, fpabi);
-	  break;
-	case Val_GNU_MIPS_ABI_FP_OLD_64:
-	  as_warn (_("Incorrect .gnu_attribute %d,%d found. ABI not "
-		     "supported"),
-		     Tag_GNU_MIPS_ABI_FP, fpabi);
-	  break;
-	default:
-	  if (fpabi != Val_GNU_MIPS_ABI_FP_ANY)
-	    as_warn (_("Incompatible module option and .gnu_attribute seen, "
-		       "unexpected Tag_GNU_MIPS_ABI_FP: %d"),
-		     fpabi);
-	  break;
-	}
+  switch (fpabi)
+    {
+    case Val_GNU_MIPS_ABI_FP_DOUBLE:
+      if ((file_mips_opts.gp32 ? 32 : 64) != file_mips_opts.fp
+	  || file_mips_opts.single_float == 1
+	  || file_mips_opts.soft_float == 1)
+	as_warn (_("Incorrect .gnu_attribute %d,%d found when module is "
+		   "`%s'"),
+		 Tag_GNU_MIPS_ABI_FP, fpabi,
+		 (file_mips_opts.single_float == 1) ? "single-float"
+		 : (file_mips_opts.soft_float == 1) ? "soft-float"
+		 : (file_mips_opts.fp == 32) ? "fp32"
+		 : (file_mips_opts.fp == 64) ? "fp64" : "fpxx");
+      break;
+    case Val_GNU_MIPS_ABI_FP_XX:
+      if (mips_abi != O32_ABI
+	  || file_mips_opts.fp != 0
+	  || file_mips_opts.single_float == 1
+	  || file_mips_opts.soft_float == 1)
+	as_warn (_("Incorrect .gnu_attribute %d,%d found when module is "
+		   "`%s'"),
+		 Tag_GNU_MIPS_ABI_FP, fpabi,
+		 (mips_abi != O32_ABI) ? "!-mabi=32"
+		 : (file_mips_opts.single_float == 1) ? "single-float"
+		 : (file_mips_opts.soft_float == 1) ? "soft-float"
+		 : (file_mips_opts.fp == 32) ? "fp32"
+		 : (file_mips_opts.fp == 64) ? "fp64" : "fpxx");
+      break;
+    case Val_GNU_MIPS_ABI_FP_64:
+      if (mips_abi != O32_ABI
+	  || file_mips_opts.fp != 64
+	  || file_mips_opts.single_float == 1
+	  || file_mips_opts.soft_float == 1)
+	as_warn (_("Incorrect .gnu_attribute %d,%d found when module is "
+		   "`%s'"),
+		 Tag_GNU_MIPS_ABI_FP, fpabi,
+		 (mips_abi != O32_ABI) ? "!-mabi=32"
+		 : (file_mips_opts.single_float == 1) ? "single-float"
+		 : (file_mips_opts.soft_float == 1) ? "soft-float"
+		 : (file_mips_opts.fp == 32) ? "fp32"
+		 : (file_mips_opts.fp == 64) ? "fp64" : "fpxx");
+      break;
+    case Val_GNU_MIPS_ABI_FP_SINGLE:
+      if (file_mips_opts.single_float != 1)
+	as_warn (_("Incorrect .gnu_attribute %d,%d found when module is "
+		   "not `single-float'"),
+		 Tag_GNU_MIPS_ABI_FP, fpabi);
+      break;
+    case Val_GNU_MIPS_ABI_FP_SOFT:
+      if (file_mips_opts.soft_float != 1)
+	as_warn (_("Incorrect .gnu_attribute %d,%d found when module is "
+		   "not `soft-float'"),
+		 Tag_GNU_MIPS_ABI_FP, fpabi);
+      break;
+    case Val_GNU_MIPS_ABI_FP_OLD_64:
+      as_warn (_("Incorrect .gnu_attribute %d,%d found. ABI not "
+		 "supported"),
+	       Tag_GNU_MIPS_ABI_FP, fpabi);
+      break;
+    default:
+      if (fpabi != Val_GNU_MIPS_ABI_FP_ANY)
+	as_warn (_("Incompatible module option and .gnu_attribute seen, "
+		   "unexpected Tag_GNU_MIPS_ABI_FP: %d"),
+		 fpabi);
+      break;
+    }
 
-      /* Only update the ABI if it is not already specified.  A .gnu_attribute
-	 always wins.  */
-      if (fpabi == Val_GNU_MIPS_ABI_FP_ANY)
+  /* Only update the ABI if it is not already specified.  A .gnu_attribute
+     always wins.  */
+  if (fpabi == Val_GNU_MIPS_ABI_FP_ANY)
+    {
+      /* Soft-float gets precedence over single-float, the two options should
+	 not be used together so this should not matter.  */
+      if (file_mips_opts.soft_float == 1)
+	fpabi = Val_GNU_MIPS_ABI_FP_SOFT;
+      /* If floating-point code has been seen and the module is single-float
+	 then give this precedence over the double-precision cases below.
+	 Single-float can theoretically be used with any width register.  */
+      else if (mips_seen_fp_code == TRUE
+	       && file_mips_opts.single_float == 1)
+	fpabi = Val_GNU_MIPS_ABI_FP_SINGLE;
+      else if (mips_seen_fp_code == TRUE)
 	{
-	  /* Soft-float gets precedence over single-float, the two options should
-	     not be used together so this should not matter.  */
-	  if (file_mips_opts.soft_float == 1)
-	    fpabi = Val_GNU_MIPS_ABI_FP_SOFT;
-	  /* If floating-point code has been seen and the module is single-float
-	     then give this precedence over the double-precision cases below.
-	     Single-float can theoretically be used with any width register.  */
-	  else if (mips_seen_fp_code == TRUE
-		   && file_mips_opts.single_float == 1)
-	    fpabi = Val_GNU_MIPS_ABI_FP_SINGLE;
-	  else if (mips_seen_fp_code == TRUE)
+	  switch (file_mips_opts.fp)
 	    {
-	      switch (file_mips_opts.fp)
-		{
-		case 32:
-		  fpabi = Val_GNU_MIPS_ABI_FP_DOUBLE;
-		  break;
-		case 0:
-		  fpabi = Val_GNU_MIPS_ABI_FP_XX;
-		  break;
-		case 64:
-		  fpabi = Val_GNU_MIPS_ABI_FP_64;
-		  break;
-		}
+	    case 32:
+	      fpabi = Val_GNU_MIPS_ABI_FP_DOUBLE;
+	      break;
+	    case 0:
+	      fpabi = Val_GNU_MIPS_ABI_FP_XX;
+	      break;
+	    case 64:
+	      if (file_mips_opts.gp32)
+		fpabi = Val_GNU_MIPS_ABI_FP_64;
+	      else
+		fpabi = Val_GNU_MIPS_ABI_FP_DOUBLE;
+	      break;
 	    }
-
-	  bfd_elf_add_obj_attr_int (stdoutput, OBJ_ATTR_GNU, 
-				    Tag_GNU_MIPS_ABI_FP, fpabi);
 	}
+
+      bfd_elf_add_obj_attr_int (stdoutput, OBJ_ATTR_GNU, 
+				Tag_GNU_MIPS_ABI_FP, fpabi);
     }
 }
 
@@ -14184,11 +14188,11 @@ md_parse_option (int c, char *arg)
       break;
 
     case OPTION_INSN32:
-      mips_opts.insn32 = TRUE;
+      file_mips_opts.insn32 = TRUE;
       break;
 
     case OPTION_NO_INSN32:
-      mips_opts.insn32 = FALSE;
+      file_mips_opts.insn32 = FALSE;
       break;
 
     case OPTION_MSHARED:
@@ -14200,11 +14204,11 @@ md_parse_option (int c, char *arg)
       break;
 
     case OPTION_MSYM32:
-      mips_opts.sym32 = TRUE;
+      file_mips_opts.sym32 = TRUE;
       break;
 
     case OPTION_MNO_SYM32:
-      mips_opts.sym32 = FALSE;
+      file_mips_opts.sym32 = FALSE;
       break;
 
       /* When generating ELF code, we permit -KPIC and -call_shared to

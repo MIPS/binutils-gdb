@@ -4191,12 +4191,15 @@ process_program_headers (FILE * file)
 	  break;
 
 	case PT_MIPS_FPMODE:
-	  if (segment->p_flags & PF_MIPS_FPXX)
-	    printf (_("\n      [O32 FPXX ABI]"));
-	  else if (segment->p_flags & PF_MIPS_FP64)
-	    printf (_("\n      [O32 FP64 ABI]"));
-	  else
-	    error (_("Unable to determine O32 FP ABI\n"));
+	  if (do_segments)
+	    {
+	      if (segment->p_flags & PF_MIPS_FPXX)
+		printf (_("\n      [O32 FPXX ABI]"));
+	      else if (segment->p_flags & PF_MIPS_FP64)
+		printf (_("\n      [O32 FP64 ABI]"));
+	      else
+		error (_("Unable to determine O32 FP ABI\n"));
+	    }
 	  break;
 	}
 
