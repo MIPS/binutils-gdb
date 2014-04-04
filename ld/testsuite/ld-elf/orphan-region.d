@@ -3,7 +3,7 @@
 #readelf: -S -l --wide
 #xfail: arc-*-* d30v-*-* dlx-*-* fr30-*-* frv-*-elf i860-*-* i960-*-*
 #xfail: iq*-*-* mn10200-*-* moxie-*-* msp*-*-* mt-*-* or32-*-* pj*-*-*
-#xfail: spu-*-* hppa*64*-*-* *-*-nacl* mips*-*-*
+#xfail: spu-*-* hppa*64*-*-* *-*-nacl* mips-*-*
 # if not using elf32.em, you don't get fancy orphan handling
 # spu twiddles LOAD range, mips and hppa64 add PHDR, nacl splits to two segments
 

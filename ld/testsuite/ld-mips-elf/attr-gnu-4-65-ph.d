@@ -1,6 +1,6 @@
-#source: attr-gnu-4-6.s
-#source: attr-gnu-4-5.s
-#ld: 
+#source: attr-gnu-4-6.s -mips32r2 -32 -EB
+#source: attr-gnu-4-5.s -mips32r2 -32 -EB
+#ld: -melf32btsmip
 #warning: warning: cannot find entry symbol __start; defaulting to .*
 #readelf: -l
 #target: mips*-*-*

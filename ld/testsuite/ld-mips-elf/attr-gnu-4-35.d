@@ -1,6 +1,6 @@
-#source: attr-gnu-4-3.s
-#source: attr-gnu-4-5.s
-#ld: -r
+#source: attr-gnu-4-3.s -32 -EB
+#source: attr-gnu-4-5.s -32 -EB
+#ld: -r -melf32btsmip
 #readelf: -A
 #warning: Warning: .* uses -msoft-float \(set by .*\), .* uses -mhard-float
 #target: mips*-*-*
