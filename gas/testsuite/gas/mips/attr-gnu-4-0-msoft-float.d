@@ -1,4 +1,5 @@
-#as: -march=mips32r2 -msoft-float
+#as: -msoft-float
+#PROG: readelf
 #source: attr-gnu-4-0.s 
 #readelf: -A
 #name: MIPS gnu_attribute 4,0 (-msoft-float)

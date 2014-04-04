@@ -1,7 +1,7 @@
 #ld: -Tnote-1.t
 #readelf: -l --wide
-#xfail: hppa64-*-*
-# hppa64 adds PHDR
+#xfail: hppa64-*-* mips*-*-*
+# mips and hppa64 add PHDR
 
 #...
  Section to Segment mapping:

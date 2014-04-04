@@ -1,4 +1,4 @@
-#as: -march=mips32r2
+#PROG: readelf
 #readelf: -A
 #name: MIPS gnu_attribute 4,0 insn
 

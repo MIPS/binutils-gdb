@@ -1,3 +1,4 @@
+.gnu_attribute 4,1
 .macro	one_sym	count
 .globl	sym_2_\count
 sym_2_\count:

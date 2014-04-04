@@ -1,4 +1,5 @@
 	.file	1 "tlsbin-o32.s"
+	.gnu_attribute 4,1
 	.abicalls
 	.text
 	.align	2

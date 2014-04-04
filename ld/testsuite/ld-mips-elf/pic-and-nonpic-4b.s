@@ -1,4 +1,5 @@
 	.abicalls
+	.gnu_attribute 4,1
 	.option	pic0
 	.global	__start
 	.ent	__start

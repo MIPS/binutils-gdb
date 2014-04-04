@@ -1,7 +1,7 @@
-#as: -march=mips32r2 -mfp32
+#PROG: readelf
 #source: attr-gnu-4-0-insn.s
 #readelf: -A
-#name: MIPS gnu_attribute 4,0 insn (-mfp32)
+#name: MIPS gnu_attribute 4,0 insn (double-precision)
 
 Attribute Section: gnu
 File Attributes

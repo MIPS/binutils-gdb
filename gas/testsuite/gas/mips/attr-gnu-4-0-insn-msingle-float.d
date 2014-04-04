@@ -1,5 +1,6 @@
-#as: -march=mips32r2 -msingle-float
+#as: -msingle-float
 #source: attr-gnu-4-0-insn.s
+#PROG: readelf
 #readelf: -A
 #name: MIPS gnu_attribute 4,0 insn (-msingle-float)
 

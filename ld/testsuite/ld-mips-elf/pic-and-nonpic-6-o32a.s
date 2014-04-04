@@ -1,4 +1,5 @@
 	.abicalls
+	.gnu_attribute 4,1
 	.global	extf1
 	.ent	extf1
 extf1:

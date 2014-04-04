@@ -1,5 +1,6 @@
-#as: -march=mips32r2 -mfp64
+#as: -mfp64
 #source: attr-gnu-4-6.s
+#PROG: readelf
 #readelf: -A
 #name: MIPS gnu_attribute 4,6 (-mfp64)
 

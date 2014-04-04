@@ -1,4 +1,4 @@
-#as: -march=mips32r2
+#as: -march=mips32r2 -32
 #readelf: -A
 #name: MIPS module fp=xx set
 

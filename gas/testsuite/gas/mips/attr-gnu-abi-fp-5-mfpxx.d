@@ -1,4 +1,4 @@
-#as: -march=mips32r2 -mfpxx
+#as: -march=mips32r2 -mfpxx -32
 #source: attr-gnu-abi-fp-5.s
 #readelf: -A
 #name: MIPS gnu_attribute Tag_GNU_MIPS_ABI_FP,5 (-mfpxx)

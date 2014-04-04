@@ -1,4 +1,5 @@
 	.abicalls
+	.gnu_attribute 4,1
 	.set	noreorder
 	.set	nomips16
 	.global	foo
