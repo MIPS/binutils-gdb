@@ -14505,7 +14505,7 @@ mips_after_parse_args (void)
      use the default setting for the CPU.  */
   file_mips_opts.ase |= (arch_info->ase & ~file_ase_explicit);
 
-  /* Set up the 'current' options. These may change throughout assembly. */
+  /* Set up the current options.  These may change throughout assembly.  */
   mips_opts = file_mips_opts;
 
   mips_check_isa_supports_ases ();
