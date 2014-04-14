@@ -46,8 +46,10 @@
 :model:::mipsV:mipsisaV:
 :model:::mips32:mipsisa32:
 :model:::mips32r2:mipsisa32r2:
+:model:::mips32r6:mipsisa32r6:
 :model:::mips64:mipsisa64:
 :model:::mips64r2:mipsisa64r2:
+:model:::mips64r6:mipsisa64r6:
 
 //  Vendor ISAs:
 //
@@ -91,7 +93,7 @@
 
 // Pseudo instructions known by interp.c
 // For grep - RSVD_INSTRUCTION, RSVD_INSTRUCTION_MASK
-000000,5.*,5.*,5.*,5.OP,000101:SPECIAL:32::RSVD
+000000,5.*,5.*,5.*,5.OP,111001:SPECIAL:32::RSVD
 "rsvd <OP>"
 {
   SignalException (ReservedInstruction, instruction_0);
@@ -139,6 +141,7 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -149,6 +152,7 @@
 :function:::address_word:loadstore_ea:address_word base, address_word offset
 *mips64:
 *mips64r2:
+*mips64r6:
 {
 #if 0 /* XXX FIXME: enable this only after some additional testing.  */
   /* If in user mode and UX is not set, use 32-bit compatibility effective
@@ -179,8 +183,10 @@
 *r3900:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 {
 #if WITH_TARGET_WORD_BITSIZE == 64
   return value != (((value & 0xffffffff) ^ 0x80000000) - 0x80000000);
@@ -212,8 +218,10 @@
 :function:::void:unpredictable:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 {
   unpredictable_action (CPU, CIA);
 }
@@ -302,8 +310,10 @@
 :function:::int:check_mt_hilo:hilo_history *history
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *r3900:
 {
   signed64 time = sim_events_time (SD);
@@ -326,8 +336,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -398,8 +410,10 @@
 :function:::int:check_mult_hilo:hilo_history *hi, hilo_history *lo
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *r3900:
 {
   /* FIXME: could record the fact that a stall occured if we want */
@@ -453,8 +467,10 @@
 :function:::int:check_div_hilo:hilo_history *hi, hilo_history *lo
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 {
   signed64 time = sim_events_time (SD);
   hi->op.timestamp = time;
@@ -487,6 +503,7 @@
 *mips16e:
 *mips64:
 *mips64r2:
+*mips64r6:
 {
 #if 0 /* XXX FIXME: enable this only after some additional testing.  */
   if (UserMode && (SR & (status_UX|status_PX)) == 0)
@@ -494,6 +511,73 @@
 #endif
 }
 
+
+:function:::void:do_clo:int rd, int rs
+{
+  unsigned32 temp = GPR[rs];
+  unsigned32 i, mask;
+  if (NotWordValue (GPR[rs]))
+    Unpredictable ();
+  TRACE_ALU_INPUT1 (GPR[rs]);
+  for (mask = ((unsigned32)1<<31), i = 0; i < 32; ++i)
+    {
+      if ((temp & mask) == 0)
+	break;
+      mask >>= 1;
+    }
+  GPR[rd] = EXTEND32 (i);
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_clz:int rd, int rs
+{
+  unsigned32 temp = GPR[rs];
+  unsigned32 i, mask;
+  if (NotWordValue (GPR[rs]))
+    Unpredictable ();
+  TRACE_ALU_INPUT1 (GPR[rs]);
+  for (mask = ((unsigned32)1<<31), i = 0; i < 32; ++i)
+    {
+      if ((temp & mask) != 0)
+	break;
+      mask >>= 1;
+    }
+  GPR[rd] = EXTEND32 (i);
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_dclo:int rd, int rs
+{
+  unsigned64 temp = GPR[rs];
+  unsigned32 i;
+  unsigned64 mask;
+  TRACE_ALU_INPUT1 (GPR[rs]);
+  for (mask = ((unsigned64)1<<63), i = 0; i < 64; ++i)
+    {
+      if ((temp & mask) == 0)
+	break;
+      mask >>= 1;
+    }
+  GPR[rd] = EXTEND32 (i);
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_dclz:int rd, int rs
+
+{
+  unsigned64 temp = GPR[rs];
+  unsigned32 i;
+  unsigned64 mask;
+  TRACE_ALU_INPUT1 (GPR[rs]);
+  for (mask = ((unsigned64)1<<63), i = 0; i < 64; ++i)
+    {
+      if ((temp & mask) != 0)
+	break;
+      mask >>= 1;
+    }
+  GPR[rd] = EXTEND32 (i);
+  TRACE_ALU_RESULT (GPR[rd]);
+}
 
 
 //
@@ -513,8 +597,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -578,8 +664,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -607,8 +695,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -634,8 +724,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -654,8 +746,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -676,8 +770,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -725,8 +821,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -765,7 +863,15 @@
     }
 }
 
-
+000001,00000,10001,16.OFFSET:REGIMM:32::BAL
+"bal <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  address_word offset = EXTEND16 (OFFSET) << 2;
+  RA = (CIA + 8);
+  DELAY_SLOT (NIA + offset);
+}
 
 000001,5.RS!31,10011,16.OFFSET:REGIMM:32::BGEZALL
 "bgezall r<RS>, <OFFSET>"
@@ -831,8 +937,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -882,8 +990,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -933,8 +1043,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -973,6 +1085,17 @@
     {
       DELAY_SLOT (NIA + offset);
     }
+}
+
+
+
+000001,00000,10000,16.OFFSET:REGIMM:32::NAL
+"nal <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  address_word offset = EXTEND16 (OFFSET) << 2;
+  RA = (CIA + 8);
 }
 
 
@@ -1041,8 +1164,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -1090,8 +1215,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -1132,21 +1259,9 @@
 *mips64r2:
 *vr5500:
 {
-  unsigned32 temp = GPR[RS];
-  unsigned32 i, mask;
   if (RT != RD)
     Unpredictable ();
-  if (NotWordValue (GPR[RS]))
-    Unpredictable ();
-  TRACE_ALU_INPUT1 (GPR[RS]);
-  for (mask = ((unsigned32)1<<31), i = 0; i < 32; ++i)
-    {
-      if ((temp & mask) == 0)
-	break;
-      mask >>= 1;
-    }
-  GPR[RD] = EXTEND32 (i);
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_clo (SD_, RD, RS);
 }
 
 
@@ -1159,21 +1274,9 @@
 *mips64r2:
 *vr5500:
 {
-  unsigned32 temp = GPR[RS];
-  unsigned32 i, mask;
   if (RT != RD)
     Unpredictable ();
-  if (NotWordValue (GPR[RS]))
-    Unpredictable ();
-  TRACE_ALU_INPUT1 (GPR[RS]);
-  for (mask = ((unsigned32)1<<31), i = 0; i < 32; ++i)
-    {
-      if ((temp & mask) != 0)
-	break;
-      mask >>= 1;
-    }
-  GPR[RD] = EXTEND32 (i);
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_clz (SD_, RD, RS);
 }
 
 
@@ -1185,6 +1288,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -1236,6 +1340,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -1259,6 +1364,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -1274,21 +1380,10 @@
 *mips64r2:
 *vr5500:
 {
-  unsigned64 temp = GPR[RS];
-  unsigned32 i;
-  unsigned64 mask;
   check_u64 (SD_, instruction_0);
   if (RT != RD)
     Unpredictable ();
-  TRACE_ALU_INPUT1 (GPR[RS]);
-  for (mask = ((unsigned64)1<<63), i = 0; i < 64; ++i)
-    {
-      if ((temp & mask) == 0)
-	break;
-      mask >>= 1;
-    }
-  GPR[RD] = EXTEND32 (i);
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_dclo (SD_, RD, RS);
 }
 
 
@@ -1299,21 +1394,10 @@
 *mips64r2:
 *vr5500:
 {
-  unsigned64 temp = GPR[RS];
-  unsigned32 i;
-  unsigned64 mask;
   check_u64 (SD_, instruction_0);
   if (RT != RD)
     Unpredictable ();
-  TRACE_ALU_INPUT1 (GPR[RS]);
-  for (mask = ((unsigned64)1<<63), i = 0; i < 64; ++i)
-    {
-      if ((temp & mask) != 0)
-	break;
-      mask >>= 1;
-    }
-  GPR[RD] = EXTEND32 (i);
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_dclz (SD_, RD, RS);
 }
 
 
@@ -1620,6 +1704,7 @@
 000000,00001,5.RT,5.RD,5.SHIFT,111010::64::DROR
 "dror r<RD>, r<RT>, <SHIFT>"
 *mips64r2:
+*mips64r6:
 *vr5400:
 *vr5500:
 {
@@ -1630,6 +1715,7 @@
 000000,00001,5.RT,5.RD,5.SHIFT,111110::64::DROR32
 "dror32 r<RD>, r<RT>, <SHIFT>"
 *mips64r2:
+*mips64r6:
 *vr5400:
 *vr5500:
 {
@@ -1640,6 +1726,7 @@
 000000,5.RS,5.RT,5.RD,00001,010110::64::DRORV
 "drorv r<RD>, r<RT>, r<RS>"
 *mips64r2:
+*mips64r6:
 *vr5400:
 *vr5500:
 {
@@ -1662,6 +1749,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -1677,6 +1765,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -1702,6 +1791,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -1724,6 +1814,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -1739,6 +1830,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -1765,6 +1857,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -1787,6 +1880,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -1802,6 +1896,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -1830,6 +1925,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -1845,6 +1941,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -1873,6 +1970,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -1890,8 +1988,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -1912,8 +2012,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -1935,8 +2037,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -1950,7 +2054,9 @@
 "jalr.hb r<RS>":RD == 31
 "jalr.hb r<RD>, r<RS>"
 *mips32r2:
+*mips32r6:
 *mips64r2:
+*mips64r6:
 {
   address_word temp = GPR[RS];
   GPR[RD] = CIA + 8;
@@ -2005,6 +2111,68 @@
   byte = ((vaddr & mask) ^ bigendiancpu);
   return (memval >> (8 * byte));
 }
+
+:function:::void:do_ll:int rt, int rbase, int roffset
+{
+  address_word base = GPR[rbase];
+  address_word offset = EXTEND16 (roffset);
+  {
+    address_word vaddr = loadstore_ea (SD_, base, offset);
+    address_word paddr;
+    int uncached;
+    if ((vaddr & 3) != 0)
+      {
+        SIM_CORE_SIGNAL (SD, CPU, cia, read_map, 4, vaddr, read_transfer, sim_core_unaligned_signal);
+      }
+    else
+      {
+	if (AddressTranslation(vaddr,isDATA,isLOAD,&paddr,&uncached,isTARGET,isREAL))
+	  {
+	    unsigned64 memval = 0;
+	    unsigned64 memval1 = 0;
+	    unsigned64 mask = (WITH_TARGET_WORD_BITSIZE == 64 ? 0x7 : 0x3);
+	    unsigned int shift = 2;
+	    unsigned int reverse = (ReverseEndian ? (mask >> shift) : 0);
+	    unsigned int bigend = (BigEndianCPU ? (mask >> shift) : 0);
+	    unsigned int byte;
+	    paddr = ((paddr & ~mask) | ((paddr & mask) ^ (reverse << shift)));
+	    LoadMemory(&memval,&memval1,uncached,AccessLength_WORD,paddr,vaddr,isDATA,isREAL);
+	    byte = ((vaddr & mask) ^ (bigend << shift));
+	    GPR[rt] = EXTEND32 (memval >> (8 * byte));
+	    LLBIT = 1;
+	  }
+      }
+  }
+
+}
+
+:function:::void:do_lld:int rt, int rbase, int roffset
+{
+  address_word base = GPR[rbase];
+  address_word offset = EXTEND16 (roffset);
+  {
+    address_word vaddr = loadstore_ea (SD_, base, offset);
+    address_word paddr;
+    int uncached;
+    if ((vaddr & 7) != 0)
+      {
+	SIM_CORE_SIGNAL (SD, CPU, cia, read_map, 8, vaddr, read_transfer, sim_core_unaligned_signal);
+      }
+    else
+      {
+	if (AddressTranslation(vaddr,isDATA,isLOAD,&paddr,&uncached,isTARGET,isREAL))
+	  {
+	    unsigned64 memval = 0;
+	    unsigned64 memval1 = 0;
+	    LoadMemory(&memval,&memval1,uncached,AccessLength_DOUBLEWORD,paddr,vaddr,isDATA,isREAL);
+	    GPR[rt] = memval;
+	    LLBIT = 1;
+	  }
+      }
+  }
+
+}
+
 
 :function:::unsigned_word:do_load_left:unsigned access, address_word base, address_word offset, unsigned_word rt
 {
@@ -2102,8 +2270,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -2121,8 +2291,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -2138,6 +2310,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -2205,8 +2378,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -2224,8 +2399,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -2247,35 +2424,7 @@
 *vr4100:
 *vr5000:
 {
-  address_word base = GPR[BASE];
-  address_word offset = EXTEND16 (OFFSET);
-  {
-    address_word vaddr = loadstore_ea (SD_, base, offset);
-    address_word paddr;
-    int uncached;
-    if ((vaddr & 3) != 0)
-      {
-        SIM_CORE_SIGNAL (SD, CPU, cia, read_map, 4, vaddr, read_transfer, sim_core_unaligned_signal);
-      }
-    else
-      {
-	if (AddressTranslation(vaddr,isDATA,isLOAD,&paddr,&uncached,isTARGET,isREAL))
-	  {
-	    unsigned64 memval = 0;
-	    unsigned64 memval1 = 0;
-	    unsigned64 mask = (WITH_TARGET_WORD_BITSIZE == 64 ? 0x7 : 0x3);
-	    unsigned int shift = 2;
-	    unsigned int reverse = (ReverseEndian ? (mask >> shift) : 0);
-	    unsigned int bigend = (BigEndianCPU ? (mask >> shift) : 0);
-	    unsigned int byte;
-	    paddr = ((paddr & ~mask) | ((paddr & mask) ^ (reverse << shift)));
-	    LoadMemory(&memval,&memval1,uncached,AccessLength_WORD,paddr,vaddr,isDATA,isREAL);
-	    byte = ((vaddr & mask) ^ (bigend << shift));
-	    GPR[RT] = EXTEND32 (memval >> (8 * byte));
-	    LLBIT = 1;
-	  }
-      }
-  }
+  do_ll (SD_, RT, BASE, OFFSET);
 }
 
 
@@ -2289,29 +2438,8 @@
 *vr4100:
 *vr5000:
 {
-  address_word base = GPR[BASE];
-  address_word offset = EXTEND16 (OFFSET);
   check_u64 (SD_, instruction_0);
-  {
-    address_word vaddr = loadstore_ea (SD_, base, offset);
-    address_word paddr;
-    int uncached;
-    if ((vaddr & 7) != 0)
-      {
-	SIM_CORE_SIGNAL (SD, CPU, cia, read_map, 8, vaddr, read_transfer, sim_core_unaligned_signal);
-      }
-    else
-      {
-	if (AddressTranslation(vaddr,isDATA,isLOAD,&paddr,&uncached,isTARGET,isREAL))
-	  {
-	    unsigned64 memval = 0;
-	    unsigned64 memval1 = 0;
-	    LoadMemory(&memval,&memval1,uncached,AccessLength_DOUBLEWORD,paddr,vaddr,isDATA,isREAL);
-	    GPR[RT] = memval;
-	    LLBIT = 1;
-	  }
-      }
-  }
+  do_lld (SD_, RT, BASE, OFFSET);
 }
 
 
@@ -2324,8 +2452,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -2345,8 +2475,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -2419,6 +2551,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -2939,8 +3072,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -2965,8 +3100,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -2992,8 +3129,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3001,6 +3140,20 @@
   do_ori (SD_, RS, RT, IMMEDIATE);
 }
 
+:function:::void:do_pref:int hint, int rbase, int roffset
+{
+  address_word base = GPR[rbase];
+  address_word offset = EXTEND16 (roffset);
+  {
+    address_word vaddr = loadstore_ea (SD_, base, offset);
+    address_word paddr;
+    int uncached;
+    {
+      if (AddressTranslation(vaddr,isDATA,isLOAD,&paddr,&uncached,isTARGET,isREAL))
+	Prefetch(uncached,paddr,vaddr,isDATA,hint);
+    }
+  }
+}
 
 110011,5.BASE,5.HINT,16.OFFSET:NORMAL:32::PREF
 "pref <HINT>, <OFFSET>(r<BASE>)"
@@ -3012,17 +3165,7 @@
 *mips64r2:
 *vr5000:
 {
-  address_word base = GPR[BASE];
-  address_word offset = EXTEND16 (OFFSET);
-  {
-    address_word vaddr = loadstore_ea (SD_, base, offset);
-    address_word paddr;
-    int uncached;
-    {
-      if (AddressTranslation(vaddr,isDATA,isLOAD,&paddr,&uncached,isTARGET,isREAL))
-	Prefetch(uncached,paddr,vaddr,isDATA,HINT);
-    }
-  }
+  do_pref (SD_, HINT, BASE, OFFSET);
 }
 
 
@@ -3040,7 +3183,9 @@
 000000,00001,5.RT,5.RD,5.SHIFT,000010::32::ROR
 "ror r<RD>, r<RT>, <SHIFT>"
 *mips32r2:
+*mips32r6:
 *mips64r2:
+*mips64r6:
 *smartmips:
 *vr5400:
 *vr5500:
@@ -3051,7 +3196,9 @@
 000000,5.RS,5.RT,5.RD,00001,000110::32::RORV
 "rorv r<RD>, r<RT>, r<RS>"
 *mips32r2:
+*mips32r6:
 *mips64r2:
+*mips64r6:
 *smartmips:
 *vr5400:
 *vr5500:
@@ -3081,6 +3228,72 @@
   byte = ((vaddr & mask) ^ bigendiancpu);
   memval = (word << (8 * byte));
   StoreMemory (uncached, access, memval, 0, paddr, vaddr, isREAL);
+}
+
+:function:::void:do_sc:int rt, int rbase, int roffset
+{
+  address_word base = GPR[rbase];
+  address_word offset = EXTEND16 (roffset);
+  {
+    address_word vaddr = loadstore_ea (SD_, base, offset);
+    address_word paddr;
+    int uncached;
+    if ((vaddr & 3) != 0)
+      {
+	SIM_CORE_SIGNAL (SD, CPU, cia, read_map, 4, vaddr, write_transfer, sim_core_unaligned_signal);
+      }
+    else
+      {
+	if (AddressTranslation(vaddr,isDATA,isSTORE,&paddr,&uncached,isTARGET,isREAL))
+	  {
+	    unsigned64 memval = 0;
+	    unsigned64 memval1 = 0;
+	    unsigned64 mask = (WITH_TARGET_WORD_BITSIZE == 64 ? 0x7 : 0x3);
+	    address_word reverseendian = (ReverseEndian ? (mask ^ AccessLength_WORD) : 0);
+	    address_word bigendiancpu = (BigEndianCPU ? (mask ^ AccessLength_WORD) : 0);
+	    unsigned int byte;
+	    paddr = ((paddr & ~mask) | ((paddr & mask) ^ reverseendian));
+	    byte = ((vaddr & mask) ^ bigendiancpu);
+	    memval = ((unsigned64) GPR[rt] << (8 * byte));
+	    if (LLBIT)
+	      {
+		StoreMemory(uncached,AccessLength_WORD,memval,memval1,paddr,vaddr,isREAL);
+	      }
+	    GPR[rt] = LLBIT;
+	  }
+      }
+  }
+
+}
+
+:function:::void:do_scd:int rt, int rbase, int roffset
+{
+  address_word base = GPR[rbase];
+  address_word offset = EXTEND16 (roffset);
+  {
+    address_word vaddr = loadstore_ea (SD_, base, offset);
+    address_word paddr;
+    int uncached;
+    if ((vaddr & 7) != 0)
+      {
+	SIM_CORE_SIGNAL (SD, CPU, cia, read_map, 8, vaddr, write_transfer, sim_core_unaligned_signal);
+      }
+    else
+      {
+	if (AddressTranslation(vaddr,isDATA,isSTORE,&paddr,&uncached,isTARGET,isREAL))
+	  {
+	    unsigned64 memval = 0;
+	    unsigned64 memval1 = 0;
+	    memval = GPR[rt];
+	    if (LLBIT)
+	      {
+		StoreMemory(uncached,AccessLength_DOUBLEWORD,memval,memval1,paddr,vaddr,isREAL);
+	      }
+	    GPR[rt] = LLBIT;
+	  }
+      }
+  }
+
 }
 
 :function:::void:do_store_left:unsigned access, address_word base, address_word offset, unsigned_word rt
@@ -3159,8 +3372,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3182,38 +3397,7 @@
 *vr4100:
 *vr5000:
 {
-  unsigned32 instruction = instruction_0;
-  address_word base = GPR[BASE];
-  address_word offset = EXTEND16 (OFFSET);
-  {
-    address_word vaddr = loadstore_ea (SD_, base, offset);
-    address_word paddr;
-    int uncached;
-    if ((vaddr & 3) != 0)
-      {
-	SIM_CORE_SIGNAL (SD, CPU, cia, read_map, 4, vaddr, write_transfer, sim_core_unaligned_signal);
-      }
-    else
-      {
-	if (AddressTranslation(vaddr,isDATA,isSTORE,&paddr,&uncached,isTARGET,isREAL))
-	  {
-	    unsigned64 memval = 0;
-	    unsigned64 memval1 = 0;
-	    unsigned64 mask = (WITH_TARGET_WORD_BITSIZE == 64 ? 0x7 : 0x3);
-	    address_word reverseendian = (ReverseEndian ? (mask ^ AccessLength_WORD) : 0);
-	    address_word bigendiancpu = (BigEndianCPU ? (mask ^ AccessLength_WORD) : 0);
-	    unsigned int byte;
-	    paddr = ((paddr & ~mask) | ((paddr & mask) ^ reverseendian));
-	    byte = ((vaddr & mask) ^ bigendiancpu);
-	    memval = ((unsigned64) GPR[RT] << (8 * byte));
-	    if (LLBIT)
-	      {
-		StoreMemory(uncached,AccessLength_WORD,memval,memval1,paddr,vaddr,isREAL);
-	      }
-	    GPR[RT] = LLBIT;
-	  }
-      }
-  }
+  do_sc (SD_, RT, BASE, OFFSET);
 }
 
 
@@ -3227,32 +3411,8 @@
 *vr4100:
 *vr5000:
 {
-  address_word base = GPR[BASE];
-  address_word offset = EXTEND16 (OFFSET);
   check_u64 (SD_, instruction_0);
-  {
-    address_word vaddr = loadstore_ea (SD_, base, offset);
-    address_word paddr;
-    int uncached;
-    if ((vaddr & 7) != 0)
-      {
-	SIM_CORE_SIGNAL (SD, CPU, cia, read_map, 8, vaddr, write_transfer, sim_core_unaligned_signal);
-      }
-    else
-      {
-	if (AddressTranslation(vaddr,isDATA,isSTORE,&paddr,&uncached,isTARGET,isREAL))
-	  {
-	    unsigned64 memval = 0;
-	    unsigned64 memval1 = 0;
-	    memval = GPR[RT];
-	    if (LLBIT)
-	      {
-		StoreMemory(uncached,AccessLength_DOUBLEWORD,memval,memval1,paddr,vaddr,isREAL);
-	      }
-	    GPR[RT] = LLBIT;
-	  }
-      }
-  }
+  do_scd (SD_, RT, BASE, OFFSET);
 }
 
 
@@ -3263,6 +3423,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -3328,8 +3489,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3364,21 +3527,39 @@
     do_sll (SD_, RT, RD, SHIFT);
 }
 
-000000,00000,5.RT,5.RD,5.SHIFT,000000:SPECIAL:32::SLLb
-"nop":RD == 0 && RT == 0 && SHIFT == 0
-"ssnop":RD == 0 && RT == 0 && SHIFT == 1
+000000,00000,5.RT!0,5.RD!0,5.SHIFT,000000:SPECIAL:32::SLLb
 "sll r<RD>, r<RT>, <SHIFT>"
+*mips32:
+*mips32r2:
+*mips32r6:
+*mips64:
+*mips64r2:
+*mips64r6:
+{
+  do_sll (SD_, RT, RD, SHIFT);
+}
+
+000000,00000,00000,00000,00000,000000:SPECIAL:32::NOP
+"nop"
+*mips32:
+*mips32r2:
+*mips32r6:
+*mips64:
+*mips64r2:
+*mips64r6:
+{
+  /* Do nothing */
+}
+
+000000,00000,00000,00000,00001,000000:SPECIAL:32::SSNOP
+"ssnop"
 *mips32:
 *mips32r2:
 *mips64:
 *mips64r2:
 {
-  /* Skip shift for NOP and SSNOP, so that there won't be lots of
-     extraneous trace output.  */
-  if (RD != 0 || RT != 0 || (SHIFT != 0 && SHIFT != 1))
-    do_sll (SD_, RT, RD, SHIFT);
+  /* Do nothing */
 }
-
 
 :function:::void:do_sllv:int rs, int rt, int rd
 {
@@ -3398,8 +3579,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3424,8 +3607,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3450,8 +3635,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3476,8 +3663,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3503,8 +3692,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3532,8 +3723,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3563,8 +3756,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3593,8 +3788,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3623,8 +3820,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3642,8 +3841,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3678,8 +3879,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3697,8 +3900,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *r3900:
 *vr5000:
@@ -3773,8 +3978,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3792,8 +3999,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3810,8 +4019,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -3846,8 +4057,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -3900,8 +4113,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -3918,8 +4133,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -3972,8 +4189,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -3990,8 +4209,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -4034,8 +4255,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4060,8 +4283,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4144,6 +4369,8 @@
 *mipsIII:
 *mipsIV:
 *mips32:
+*mips32r6:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4186,8 +4413,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4208,6 +4437,7 @@
 *mipsII:
 *mips32:
 *mips32r2:
+*mips32r6:
 {
   int bigendian = (BigEndianCPU ? ! ReverseEndian : ReverseEndian);
   address_word vaddr;
@@ -4245,6 +4475,7 @@
 *mipsII:
 *mips32:
 *mips32r2:
+*mips32r6:
 {
   int bigendian = (BigEndianCPU ? ! ReverseEndian : ReverseEndian);
   address_word vaddr;
@@ -4279,8 +4510,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4302,8 +4535,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4439,14 +4674,17 @@
 *mipsIV:
 *mipsV:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
 {
   int fmt = FMT;
   check_fpu (SD_);
+  check_fmt_p (SD_, fmt, instruction_0);
   StoreFPR (FD, fmt_long, Convert (FP_RM_TOPINF, ValueFPR (FS, fmt), fmt,
 	    fmt_long));
 }
@@ -4460,8 +4698,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4510,8 +4750,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 {
   check_fpu (SD_);
   if (FS == 0 || FS == 25 || FS == 26 || FS == 28 || FS == 31)
@@ -4555,8 +4797,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 {
   check_fpu (SD_);
   TRACE_ALU_INPUT1 (GPR[RT]);
@@ -4578,8 +4822,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4599,8 +4845,10 @@
 *mipsIV:
 *mipsV:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4640,8 +4888,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4659,8 +4909,10 @@
 "cvt.s.pl f<FD>, f<FS>"
 *mipsV:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 {
   check_fpu (SD_);
   check_u64 (SD_, instruction_0);
@@ -4672,8 +4924,10 @@
 "cvt.s.pu f<FD>, f<FS>"
 *mipsV:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 {
   check_fpu (SD_);
   check_u64 (SD_, instruction_0);
@@ -4690,8 +4944,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4714,8 +4970,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4749,6 +5007,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4790,6 +5049,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4811,8 +5071,10 @@
 *mipsIV:
 *mipsV:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4832,8 +5094,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4850,6 +5114,7 @@
 *mipsII:
 *mips32:
 *mips32r2:
+*mips32r6:
 {
   check_fpu (SD_);
   COP_LD (1, FT, do_load_double (SD_, GPR[BASE], EXTEND16 (OFFSET)));
@@ -4863,6 +5128,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4941,8 +5207,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5005,8 +5273,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5026,8 +5296,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5071,6 +5343,7 @@
 {
   int fmt = FMT;
   check_fpu (SD_);
+  check_fmt_p (SD_, FMT, instruction_0);
   if (fmt != fmt_ps)
     {
       if (GETFCC(CC) == TF)
@@ -5101,6 +5374,7 @@
 *vr5000:
 {
   check_fpu (SD_);
+  check_fmt_p (SD_, FMT, instruction_0);
   if (GPR[RT] != 0)
     StoreFPR (FD, FMT, ValueFPR (FS, FMT));
   else
@@ -5126,6 +5400,7 @@
 *vr5000:
 {
   check_fpu (SD_);
+  check_fmt_p (SD_, FMT, instruction_0);
   if (GPR[RT] == 0)
     StoreFPR (FD, FMT, ValueFPR (FS, FMT));
   else
@@ -5171,8 +5446,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5191,8 +5468,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5213,8 +5492,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5295,8 +5576,10 @@
 *mipsIV:
 *mipsV:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr5000:
 {
   address_word base = GPR[BASE];
@@ -5344,8 +5627,10 @@
 *mipsIV:
 *mipsV:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr5000:
 {
   int fmt = FMT;
@@ -5360,8 +5645,10 @@
 *mipsIV:
 *mipsV:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5381,8 +5668,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5399,8 +5688,10 @@
 *mipsIV:
 *mipsV:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr5000:
 {
   int fmt = FMT;
@@ -5414,6 +5705,7 @@
 *mipsII:
 *mips32:
 *mips32r2:
+*mips32r6:
 {
   check_fpu (SD_);
   do_store_double (SD_, GPR[BASE], EXTEND16 (OFFSET), COP_SD (1, FT));
@@ -5427,6 +5719,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5438,7 +5731,8 @@
 
 010011,5.BASE,5.INDEX,5.FS,00000001001:COP1X:32,f::SDXC1
 "sdxc1 f<FS>, r<INDEX>(r<BASE>)"
-*mips32r2
+*mips32r2:
+*mips32r6:
 {
   check_fpu (SD_);
   do_store_double (SD_, GPR[BASE], GPR[INDEX], COP_SD (1, FS));
@@ -5451,6 +5745,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr5000:
 {
   check_fpu (SD_);
@@ -5462,6 +5757,7 @@
 010011,5.BASE,5.INDEX,5.FS,00000,001101:COP1X:32,f::SUXC1
 "suxc1 f<FS>, r<INDEX>(r<BASE>)"
 *mips32r2:
+*mips32r6:
 {
   address_word base = GPR[BASE];
   address_word index = GPR[INDEX];
@@ -5481,6 +5777,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 {
   address_word base = GPR[BASE];
   address_word index = GPR[INDEX];
@@ -5504,8 +5801,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5525,8 +5824,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5548,8 +5849,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5590,8 +5893,10 @@
 *mipsIV:
 *mipsV:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr5000:
 {
 
@@ -5635,8 +5940,10 @@
 *mipsIV:
 *mipsV:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5656,8 +5963,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5685,8 +5994,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 
@@ -5708,8 +6019,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 
@@ -5723,8 +6036,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 
 
@@ -5737,11 +6052,25 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 
+:function:::void:do_cache:int op, int rbase, int roffset, address_word instruction_0
+{
+  address_word base = GPR[rbase];
+  address_word offset = EXTEND16 (roffset);
+  {
+    address_word vaddr = loadstore_ea (SD_, base, offset);
+    address_word paddr;
+    int uncached;
+    if (AddressTranslation(vaddr,isDATA,isLOAD,&paddr,&uncached,isTARGET,isREAL))
+      CacheOp(op,vaddr,paddr,instruction_0);
+  }
+}
 
 101111,5.BASE,5.OP,16.OFFSET:NORMAL:32::CACHE
 "cache <OP>, <OFFSET>(r<BASE>)"
@@ -5756,15 +6085,7 @@
 *vr5000:
 *r3900:
 {
-  address_word base = GPR[BASE];
-  address_word offset = EXTEND16 (OFFSET);
-  {
-    address_word vaddr = loadstore_ea (SD_, base, offset);
-    address_word paddr;
-    int uncached;
-    if (AddressTranslation(vaddr,isDATA,isLOAD,&paddr,&uncached,isTARGET,isREAL))
-      CacheOp(OP,vaddr,paddr,instruction_0);
-  }
+  do_cache (SD_, OP, BASE, OFFSET, instruction_0);
 }
 
 
@@ -5775,6 +6096,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 {
   check_u64 (SD_, instruction_0);
   DecodeCoproc (instruction_0);
@@ -5788,6 +6110,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 {
   check_u64 (SD_, instruction_0);
   DecodeCoproc (instruction_0);
@@ -5801,8 +6124,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -5830,8 +6155,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5850,8 +6177,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5884,8 +6213,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *r3900:
 {
@@ -5903,8 +6234,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 
@@ -5918,8 +6251,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 
@@ -5933,8 +6268,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 
@@ -5948,13 +6285,16 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 
 
 :include:::mips3264r2.igen
+:include:::mips3264r6.igen
 :include:::m16.igen
 :include:::m16e.igen
 :include:::mdmx.igen

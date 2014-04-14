@@ -82,7 +82,7 @@ char* pr_uword64 PARAMS ((uword64 addr));
    trap is required. NOTE: Care must be taken, since this value may be
    used in later revisions of the MIPS ISA. */
 
-#define RSVD_INSTRUCTION           (0x00000005)
+#define RSVD_INSTRUCTION           (0x00000039)
 #define RSVD_INSTRUCTION_MASK      (0xFC00003F)
 
 #define RSVD_INSTRUCTION_ARG_SHIFT 6

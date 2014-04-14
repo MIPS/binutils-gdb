@@ -1,0 +1,14 @@
+:include:::r6_branch.igen
+:include:::r6_compare.igen
+:include:::r6_fused_mul.igen
+:include:::r6_logic_and_imm.igen
+:include:::r6_mul.igen
+:include:::r6_recoded.igen
+:include:::r6_sel.igen
+
+
+
+
+
+
+

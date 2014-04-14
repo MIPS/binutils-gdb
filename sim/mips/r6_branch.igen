@@ -1,0 +1,215 @@
+110010,26.OFFSET:POOL32X:32::BC
+"bc <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  NIA = CIA + (OFFSET << 2);
+}
+
+111010,26.OFFSET:POOL32X:32::BALC
+"balc <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  RA = CIA + 4;
+  NIA = CIA + ((1 + OFFSET) << 2);
+}
+
+110110,5.RS!0,21.OFFSET:POOL32X:32::BEQZC
+"beqzc r<RS>, <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  if (GPR[RS] == 0)
+    NIA = CIA + (OFFSET << 2);
+}
+
+110110,00000,5.RT,16.OFFSET:POOL32X:32::JRIC
+"jric r<RT>, <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  NIA = GPR[RT] + (EXTEND16(OFFSET) << 2);
+}
+
+111110,5.RS!0,21.OFFSET:POOL32X:32::BNEZC
+"bnezc r<RS>, <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  if (GPR[RS] != 0)
+    NIA = CIA + (OFFSET << 2);
+}
+
+111110,00000,5.RT,16.OFFSET:POOL32X:32::JRIALC
+"jrialc r<RT>, <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  RA = CIA + 4;
+  NIA = GPR[RT] + (EXTEND16(OFFSET) << 2);
+}
+
+010110,00000,5.RT!0,16.OFFSET:POOL32X:32::BLEZC
+"blezc r<RT>, <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  if (GPR[RT] <= 0)
+    NIA = CIA + (EXTEND16 (OFFSET) << 2);
+}
+
+010110,5.RS=RT,5.RT!0,16.OFFSET:POOL32X:32::BGEZC
+"bgezc r<RT>, <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  if (GPR[RT] >= 0)
+    NIA = CIA + (EXTEND16 (OFFSET) << 2);
+}
+
+010110,5.RS!0!RT,5.RT!0,16.OFFSET:POOL32X:32::BGEC
+"bcgec r<RS>, r<RT>, <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  if ((signed_word) GPR[RS] >= (signed_word) GPR[RT])
+    NIA = CIA + (EXTEND16 (OFFSET) << 2);
+}
+
+
+010111,00000,5.RT!0,16.OFFSET:POOL32X:32::BGTZC
+"bgtzc r<RT>, <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  if (GPR[RT] > 0)
+    NIA = CIA + (EXTEND16 (OFFSET) << 2);
+}
+
+010111,5.RS=RT,5.RT!0,16.OFFSET:POOL32X:32::BLTZC
+"bltzc r<RT>, <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  if (GPR[RT] < 0)
+    NIA = CIA + (EXTEND16 (OFFSET) << 2);
+}
+
+010111,5.RS!0!RT,5.RT!0,16.OFFSET:POOL32X:32::BLTC
+"bltc r<RS>, r<RT>, <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  if ((signed_word) GPR[RS] < (signed_word) GPR[RT])
+    NIA = CIA + (EXTEND16 (OFFSET) << 2);
+}
+
+000110,00000,5.RT!0,16.OFFSET:POOL32X:32::BLEZALC
+"blezalc r<RT>, <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  RA = CIA + 4;
+  if (GPR[RT] <= 0);
+    NIA = CIA + (EXTEND16 (OFFSET) << 2);
+}
+
+000110,5.RS=RT,5.RT!0,16.OFFSET:POOL32X:32::BGEZALC
+"bgezalc r<RT>, <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  RA = CIA + 4;
+  if (GPR[RT] >= 0)
+    NIA = CIA + (EXTEND16 (OFFSET) << 2);
+}
+
+000110,5.RS!0!RT,5.RT!0,16.OFFSET:POOL32X:32::BBEC
+"bbec r<RS>, r<RT>, <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  if (GPR[RS] >= GPR[RT])
+    NIA = CIA + (EXTEND16 (OFFSET) << 2);
+}
+
+000111,00000,5.RT!0,16.OFFSET:POOL32X:32::BGTZALC
+"bgtzalc r<RT>, <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  RA = CIA + 4;
+  if (GPR[RT] > 0)
+    NIA = CIA + (EXTEND16 (OFFSET) << 2);
+}
+
+000111,5.RS=RT,5.RT!0,16.OFFSET:POOL32X:32::BLTZALC
+"bltzalc r<RT>, <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  RA = CIA + 4;
+  if (GPR[RT] < 0)
+    NIA = CIA + (EXTEND16 (OFFSET) << 2);
+}
+
+000111,5.RS!0!RT,5.RT!0,16.OFFSET:POOL32X:32::BSTC
+"bstc r<RS>, r<RT>, <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  if (GPR[RS] < GPR[RT])
+    NIA = CIA + (EXTEND16 (OFFSET) << 2);
+}
+
+//TODO: JCRPOP is gone, this opcode is definitely being used
+//      but the spec doesn't yet know what for...
+//111011,5.RS=RT,5.RT=RS,16.OFFSET:POOL32X:32::XXX
+//"xxx r<RT>, <OFFSET>"
+//*mips32r6:
+//*mips64r6:
+//{
+//}
+
+111011,5.RS=0,5.RT!0,16.OFFSET:POOL32X:32::BEQZALC
+"beqzalc r<RT>, <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  RA = CIA + 4;
+  if (GPR[RT] == 0)
+    NIA = CIA + (EXTEND16 (OFFSET) << 2);
+}
+
+111011,5.RS!0,5.RT=0,16.OFFSET:POOL32X:32::BNEZALC
+"bnezalc r<RS>, <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  RA = CIA + 4;
+  if (GPR[RS] != 0)
+    NIA = CIA +  (EXTEND16 (OFFSET) << 2);
+}
+
+//BCNE is RS > RT, RS==RT is already handled by JCRPOP
+111011,5.RS!0,5.RT!0,16.OFFSET:POOL32X:32::BxxC
+"beqc r<RS>, r<RT>, <OFFSET>":RS<RT
+"bnec r<RS>, r<RT> <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  address_word dest = CIA + (EXTEND16 (OFFSET) << 2);
+  if (RS < RT)
+  {
+    //BCEQ
+    if (GPR[RS] == GPR[RT])
+      NIA = dest;
+  }
+  else
+  {
+    //BCNE
+    if (GPR[RS] != GPR[RT])
+      NIA = dest;
+  }
+}

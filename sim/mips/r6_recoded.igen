@@ -1,0 +1,80 @@
+011111,5.BASE,5.RT,9.OFFSET,0,110110:SPECIAL3:32::LL
+"ll r<RT>, <OFFSET>(r<BASE>)"
+*mips32r6:
+*mips64r6:
+{
+  do_ll (SD_, RT, BASE, OFFSET);
+}
+
+011111,5.BASE,5.RT,9.OFFSET,0,100110:SPECIAL3:32::SC
+"sc r<RT>, <OFFSET>(r<BASE>)"
+*mips32r6:
+*mips64r6:
+{
+  do_sc (SD_, RT, BASE, OFFSET);
+}
+
+011111,5.BASE,5.RT,9.OFFSET,0,110111:SPECIAL3:64::LLD
+"lld r<RT>, <OFFSET>(r<BASE>)"
+*mips64r6:
+{
+  check_u64 (SD_, instruction_0);
+  do_lld (SD_, RT, BASE, OFFSET);
+}
+
+011111,5.BASE,5.RT,9.OFFSET,0,100111:SPECIAL3:64::SCD
+"scd r<RT>, <OFFSET>(r<BASE>)"
+*mips64r6:
+{
+  check_u64 (SD_, instruction_0);
+  do_scd (SD_, RT, BASE, OFFSET);
+}
+
+011111,5.BASE,5.HINT,9.OFFSET,0,110101:SPECIAL3:32::PREF
+"pref <HINT>, <OFFSET>(r<BASE>)"
+*mips32r6:
+*mips64r6:
+{
+  do_pref (SD_, HINT, BASE, OFFSET);
+}
+
+011111,5.BASE,5.HINT,9.OFFSET,0,100101:SPECIAL3:32::CACHE
+"cache <HINT>, <OFFSET>(r<BASE>)"
+*mips32r6:
+*mips64r6:
+{
+  do_cache (SD_, HINT, BASE, OFFSET, instruction_0);
+}
+
+
+000000,5.RS,00000,5.RD,00001,010000:POOL32X:32::CLZ
+"clz r<RD>, r<RS>"
+*mips32r6:
+*mips64r6:
+{
+  do_clz (SD_, RD, RS);
+}
+
+000000,5.RS,00000,5.RD,00001,010001:POOL32X:32::CLO
+"clo r<RD>, r<RS>"
+*mips32r6:
+*mips64r6:
+{
+  do_clo (SD_, RD, RS);
+}
+
+000000,5.RS,00000,5.RD,00001,010010:POOL32X:64::DCLZ
+"dclz r<RD>, r<RS>"
+*mips64r6:
+{
+  check_u64 (SD_, instruction_0);
+  do_dclz (SD_, RD, RS);
+}
+
+000000,5.RS,00000,5.RD,00001,010011:POOL32X:64::DCLO
+"dclo r<RD>, r<RS>"
+*mips64r6:
+{
+  check_u64 (SD_, instruction_0);
+  do_dclo (SD_, RD, RS);
+}

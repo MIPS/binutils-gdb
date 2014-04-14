@@ -81,7 +81,7 @@ _pass:
 _dowrite:
 	# Write opcode (reserved instruction).  See sim_monitor and its
 	# callers in sim/mips/interp.c.
-	.word	0x00000005 | ((8 << 1) << 6)
+	.word	0x00000039 | ((8 << 1) << 6)
 	.end _dowrite
 
 	.endm	# setup
