@@ -401,9 +401,6 @@ enum mips_operand_type {
   /* A register operand that must match the destination register.  */
   OP_REPEAT_DEST_REG,
 
-  /* A register operand that must match the destination fp register.  */
-  OP_REPEAT_DEST_REG_FP,
-
   /* A register operand that must match the previous register.  */
   OP_REPEAT_PREV_REG,
 

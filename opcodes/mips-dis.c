@@ -1380,9 +1380,8 @@ print_insn_arg (struct disassemble_info *info,
       break;
 
     case OP_REPEAT_DEST_REG:
-    case OP_REPEAT_DEST_REG_FP:
-      print_reg (info, opcode, state->last_reg_type, state->dest_regno);
-      break;
+      /* Should always match OP_REPEAT_PREV_REG first.  */
+      abort ();
 
     case OP_PC:
       infprintf (is, "$pc");
