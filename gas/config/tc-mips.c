@@ -347,13 +347,18 @@ static int mips_32bitmode = 0;
    || (ABI) == N64_ABI			\
    || (ABI) == O64_ABI)
 
+#define ISA_IS_R6(ISA)			\
+  ((ISA) == ISA_MIPS32R6		\
+   || (ISA) == ISA_MIPS64R6)
+
 /*  Return true if ISA supports 64 bit wide gp registers.  */
 #define ISA_HAS_64BIT_REGS(ISA)		\
   ((ISA) == ISA_MIPS3			\
    || (ISA) == ISA_MIPS4		\
    || (ISA) == ISA_MIPS5		\
    || (ISA) == ISA_MIPS64		\
-   || (ISA) == ISA_MIPS64R2)
+   || (ISA) == ISA_MIPS64R2		\
+   || (ISA) == ISA_MIPS64R6)
 
 /*  Return true if ISA supports 64 bit wide float registers.  */
 #define ISA_HAS_64BIT_FPRS(ISA)		\
@@ -361,13 +366,16 @@ static int mips_32bitmode = 0;
    || (ISA) == ISA_MIPS4		\
    || (ISA) == ISA_MIPS5		\
    || (ISA) == ISA_MIPS32R2		\
+   || (ISA) == ISA_MIPS32R6		\
    || (ISA) == ISA_MIPS64		\
-   || (ISA) == ISA_MIPS64R2)
+   || (ISA) == ISA_MIPS64R2		\
+   || (ISA) == ISA_MIPS64R6)
 
 /* Return true if ISA supports 64-bit right rotate (dror et al.)
    instructions.  */
 #define ISA_HAS_DROR(ISA)		\
   ((ISA) == ISA_MIPS64R2		\
+   || (ISA) == ISA_MIPS64R6		\
    || (mips_opts.micromips		\
        && ISA_HAS_64BIT_REGS (ISA))	\
    )
@@ -376,7 +384,9 @@ static int mips_32bitmode = 0;
    instructions.  */
 #define ISA_HAS_ROR(ISA)		\
   ((ISA) == ISA_MIPS32R2		\
+   || (ISA) == ISA_MIPS32R6		\
    || (ISA) == ISA_MIPS64R2		\
+   || (ISA) == ISA_MIPS64R6		\
    || (mips_opts.ase & ASE_SMARTMIPS)	\
    || mips_opts.micromips		\
    )
@@ -385,14 +395,18 @@ static int mips_32bitmode = 0;
 #define ISA_HAS_ODD_SINGLE_FPR(ISA)	\
   ((ISA) == ISA_MIPS32			\
    || (ISA) == ISA_MIPS32R2		\
+   || (ISA) == ISA_MIPS32R6		\
    || (ISA) == ISA_MIPS64		\
-   || (ISA) == ISA_MIPS64R2)
+   || (ISA) == ISA_MIPS64R2		\
+   || (ISA) == ISA_MIPS64R6)
 
 /* Return true if ISA supports move to/from high part of a 64-bit
    floating-point register. */
 #define ISA_HAS_MXHC1(ISA)		\
   ((ISA) == ISA_MIPS32R2		\
-   || (ISA) == ISA_MIPS64R2)
+   || (ISA) == ISA_MIPS32R6		\
+   || (ISA) == ISA_MIPS64R2		\
+   || (ISA) == ISA_MIPS64R6)
 
 #define HAVE_32BIT_GPRS		                   \
     (mips_opts.gp32 || !ISA_HAS_64BIT_REGS (mips_opts.isa))
@@ -475,8 +489,10 @@ static int mips_32bitmode = 0;
 #define hilo_interlocks \
   (mips_opts.isa == ISA_MIPS32                        \
    || mips_opts.isa == ISA_MIPS32R2                   \
+   || mips_opts.isa == ISA_MIPS32R6                   \
    || mips_opts.isa == ISA_MIPS64                     \
    || mips_opts.isa == ISA_MIPS64R2                   \
+   || mips_opts.isa == ISA_MIPS64R6                   \
    || mips_opts.arch == CPU_R4010                     \
    || mips_opts.arch == CPU_R5900                     \
    || mips_opts.arch == CPU_R10000                    \
@@ -1317,6 +1333,8 @@ enum options
     OPTION_MIPS64,
     OPTION_MIPS32R2,
     OPTION_MIPS64R2,
+    OPTION_MIPS32R6,
+    OPTION_MIPS64R6,
     OPTION_MIPS16,
     OPTION_NO_MIPS16,
     OPTION_MIPS3D,
@@ -1418,6 +1436,8 @@ struct option md_longopts[] =
   {"mips64", no_argument, NULL, OPTION_MIPS64},
   {"mips32r2", no_argument, NULL, OPTION_MIPS32R2},
   {"mips64r2", no_argument, NULL, OPTION_MIPS64R2},
+  {"mips32r6", no_argument, NULL, OPTION_MIPS32R6},
+  {"mips64r6", no_argument, NULL, OPTION_MIPS64R6},
 
   /* Options which specify Application Specific Extensions (ASEs).  */
   {"mips16", no_argument, NULL, OPTION_MIPS16},
@@ -1550,51 +1570,68 @@ struct mips_ase
   int mips64_rev;
   int micromips32_rev;
   int micromips64_rev;
+
+  /* The architecture revisions for MIPS32, MIPS64, microMIPS32 and microMIPS64
+     where the ASE was removed or -1 if the extension has not been removed.  */
+  int mips32_rem_rev;
+  int mips64_rem_rev;
+  int micromips32_rem_rev;
+  int micromips64_rem_rev;
 };
 
 /* A table of all supported ASEs.  */
 static const struct mips_ase mips_ases[] = {
   { "dsp", ASE_DSP, ASE_DSP64,
     OPTION_DSP, OPTION_NO_DSP,
-    2, 2, 2, 2 },
+    2, 2, 2, 2,
+    6, 6, 6, 6 },
 
   { "dspr2", ASE_DSP | ASE_DSPR2, 0,
     OPTION_DSPR2, OPTION_NO_DSPR2,
-    2, 2, 2, 2 },
+    2, 2, 2, 2,
+    6, 6, 6, 6 },
 
   { "eva", ASE_EVA, 0,
     OPTION_EVA, OPTION_NO_EVA,
-    2, 2, 2, 2 },
+     2,  2,  2,  2,
+    -1, -1, -1, -1 },
 
   { "mcu", ASE_MCU, 0,
     OPTION_MCU, OPTION_NO_MCU,
-    2, 2, 2, 2 },
+     2,  2,  2,  2,
+    -1, -1, -1, -1 },
 
   /* Deprecated in MIPS64r5, but we don't implement that yet.  */
   { "mdmx", ASE_MDMX, 0,
     OPTION_MDMX, OPTION_NO_MDMX,
-    -1, 1, -1, -1 },
+    -1, 1, -1, -1,
+    -1, 6, -1, -1 },
 
   /* Requires 64-bit FPRs, so the minimum MIPS32 revision is 2.  */
   { "mips3d", ASE_MIPS3D, 0,
     OPTION_MIPS3D, OPTION_NO_MIPS3D,
-    2, 1, -1, -1 },
+    2, 1, -1, -1,
+    6, 6, -1, -1 },
 
   { "mt", ASE_MT, 0,
     OPTION_MT, OPTION_NO_MT,
-    2, 2, -1, -1 },
+     2,  2, -1, -1,
+    -1, -1, -1, -1 },
 
   { "smartmips", ASE_SMARTMIPS, 0,
     OPTION_SMARTMIPS, OPTION_NO_SMARTMIPS,
-    1, -1, -1, -1 },
+    1, -1, -1, -1,
+    6, -1, -1, -1 },
 
   { "virt", ASE_VIRT, ASE_VIRT64,
     OPTION_VIRT, OPTION_NO_VIRT,
-    2, 2, 2, 2 },
+     2,  2,  2,  2,
+    -1, -1, -1, -1 },
 
   { "msa", ASE_MSA, ASE_MSA64,
     OPTION_MSA, OPTION_NO_MSA,
-    2, 2, 2, 2 }
+     2,  2,  2,  2,
+    -1, -1, -1, -1 },
 };
 
 /* The set of ASEs that require -mfp64.  */
@@ -1845,6 +1882,9 @@ mips_target_format (void)
 static int
 mips_isa_rev (void)
 {
+  if (mips_opts.isa == ISA_MIPS32R6 || mips_opts.isa == ISA_MIPS64R6)
+    return 6;
+
   if (mips_opts.isa == ISA_MIPS32R2 || mips_opts.isa == ISA_MIPS64R2)
     return 2;
 
@@ -1878,14 +1918,22 @@ static void
 mips_check_isa_supports_ase (const struct mips_ase *ase)
 {
   const char *base;
-  int min_rev, size;
+  int min_rev, rem_rev, size;
   static unsigned int warned_isa;
   static unsigned int warned_fp32;
 
   if (ISA_HAS_64BIT_REGS (mips_opts.isa))
-    min_rev = mips_opts.micromips ? ase->micromips64_rev : ase->mips64_rev;
+    {
+      min_rev = mips_opts.micromips ? ase->micromips64_rev : ase->mips64_rev;
+      rem_rev = mips_opts.micromips ? ase->micromips64_rem_rev
+                                    : ase->mips64_rem_rev;
+    }
   else
-    min_rev = mips_opts.micromips ? ase->micromips32_rev : ase->mips32_rev;
+    {
+      min_rev = mips_opts.micromips ? ase->micromips32_rev : ase->mips32_rev;
+      rem_rev = mips_opts.micromips ? ase->micromips32_rem_rev
+                                    : ase->mips32_rem_rev;
+    }
   if ((min_rev < 0 || mips_isa_rev () < min_rev)
       && (warned_isa & ase->flags) != ase->flags)
     {
@@ -1899,6 +1947,16 @@ mips_check_isa_supports_ase (const struct mips_ase *ase)
 	as_warn (_("the `%s' extension requires %s%d revision %d or greater"),
 		 ase->name, base, size, min_rev);
     }
+  if ((rem_rev > 0 && mips_isa_rev () >= rem_rev)
+      && (warned_isa & ase->flags) != ase->flags)
+    {
+      warned_isa |= ase->flags;
+      base = mips_opts.micromips ? "microMIPS" : "MIPS";
+      size = ISA_HAS_64BIT_REGS (mips_opts.isa) ? 64 : 32;
+      as_warn (_("the `%s' extension was removed in %s%d revision %d"),
+	       ase->name, base, size, rem_rev);
+    }
+
   if ((ase->flags & FP64_ASES)
       && mips_opts.fp32
       && (warned_fp32 & ase->flags) != ase->flags)
@@ -3226,7 +3284,7 @@ validate_mips_insn (const struct mips_opcode *opcode,
 	      used_bits &= ~(mask & 0x700);
 	  }
 	/* Skip prefix characters.  */
-	if (decode_operand && (*s == '+' || *s == 'm'))
+	if (decode_operand && (*s == '+' || *s == 'm' || *s == '-'))
 	  ++s;
 	opno += 1;
 	break;
@@ -3748,9 +3806,15 @@ limited_pcrel_reloc_p (bfd_reloc_code_real_type reloc)
     case BFD_RELOC_MICROMIPS_7_PCREL_S1:
     case BFD_RELOC_MICROMIPS_10_PCREL_S1:
     case BFD_RELOC_MICROMIPS_16_PCREL_S1:
+    case BFD_RELOC_MIPS_21_PCREL_S2:
+    case BFD_RELOC_MIPS_26_PCREL_S2:
+    case BFD_RELOC_MIPS_18_PCREL_S3:
+    case BFD_RELOC_MIPS_19_PCREL_S2:
       return TRUE;
 
     case BFD_RELOC_32_PCREL:
+    case BFD_RELOC_HI16_S_PCREL:
+    case BFD_RELOC_LO16_PCREL:
       return HAVE_64BIT_ADDRESSES;
 
     default:
@@ -4017,6 +4081,7 @@ operand_reg_mask (const struct mips_cl_insn *insn,
     case OP_ADDIUSP_INT:
     case OP_ENTRY_EXIT_LIST:
     case OP_REPEAT_DEST_REG:
+    case OP_REPEAT_DEST_REG_FP:
     case OP_REPEAT_PREV_REG:
     case OP_PC:
     case OP_VU0_SUFFIX:
@@ -4052,6 +4117,24 @@ operand_reg_mask (const struct mips_cl_insn *insn,
 	return 0;
       uval = insn_extract_operand (insn, operand);
       return (1 << (uval & 31)) | (1 << (uval >> 5));
+
+    case OP_SAME_RS_RT:
+      if (!(type_mask & (1 << OP_REG_GP)))
+	return 0;
+      uval = insn_extract_operand (insn, operand);
+      gas_assert ((uval & 31) == (uval >> 5));
+      return 1 << (uval & 31);
+
+    case OP_GP_NOT_ZERO:
+    case OP_GP_NOT_ZERO_NOT_PREV:
+    case OP_GP_NOT_ZERO_LT_PREV:
+    case OP_GP_GT_PREV:
+    case OP_GP_LE_PREV:
+    case OP_GP_GE_PREV:
+      if (!(type_mask & (1 << OP_REG_GP)))
+	return 0;
+      uval = insn_extract_operand (insn, operand);
+      return 1 << (uval & 31);
 
     case OP_LWM_SWM_LIST:
       abort ();
@@ -4835,6 +4918,161 @@ match_clo_clz_dest_operand (struct mips_arg_info *arg,
   return TRUE;
 }
 
+/* OP_SAME_RS_RT matcher.  */
+
+static bfd_boolean
+match_same_rs_rt_operand (struct mips_arg_info *arg,
+			  const struct mips_operand *operand)
+{
+  unsigned int regno;
+
+  if (!match_reg (arg, OP_REG_GP, &regno))
+    return FALSE;
+
+  if (regno == 0)
+    {
+      set_insn_error (arg->argnum, _("the source register must not be $0"));
+      return FALSE;
+    }
+
+  arg->last_regno = regno;
+
+  insn_insert_operand (arg->insn, operand, regno | (regno << 5));
+  return TRUE;
+}
+
+/* OP_GP_NOT_ZERO matcher.  */
+
+static bfd_boolean
+match_gp_not_zero_operand (struct mips_arg_info *arg,
+			   const struct mips_operand *operand)
+{
+  unsigned int regno;
+
+  if (!match_reg (arg, OP_REG_GP, &regno))
+    return FALSE;
+
+  if (regno == 0)
+    {
+      set_insn_error (arg->argnum, _("the source register must not be $0"));
+      return FALSE;
+    }
+
+  arg->last_regno = regno;
+
+  insn_insert_operand (arg->insn, operand, regno);
+  return TRUE;
+}
+
+/* OP_GP_NOT_ZERO_LT_PREV matcher.  */
+
+static bfd_boolean
+match_gp_not_zero_lt_prev_operand (struct mips_arg_info *arg,
+				   const struct mips_operand *operand)
+{
+  unsigned int regno;
+
+  if (!match_reg (arg, OP_REG_GP, &regno))
+    return FALSE;
+
+  if (regno == 0)
+    {
+      set_insn_error (arg->argnum, _("the source register must not be $0"));
+      return FALSE;
+    }
+
+  if (regno >= arg->last_regno)
+    return FALSE;
+
+  arg->last_regno = regno;
+
+  insn_insert_operand (arg->insn, operand, regno);
+  return TRUE;
+}
+
+/* OP_GP_GT_PREV matcher.  */
+
+static bfd_boolean
+match_gp_gt_prev_operand (struct mips_arg_info *arg,
+			  const struct mips_operand *operand)
+{
+  unsigned int regno;
+
+  if (!match_reg (arg, OP_REG_GP, &regno))
+    return FALSE;
+
+  if (regno <= arg->last_regno)
+    return FALSE;
+
+  arg->last_regno = regno;
+
+  insn_insert_operand (arg->insn, operand, regno);
+  return TRUE;
+}
+
+/* OP_GP_LE_PREV matcher.  */
+
+static bfd_boolean
+match_gp_le_prev_operand (struct mips_arg_info *arg,
+			  const struct mips_operand *operand)
+{
+  unsigned int regno;
+
+  if (!match_reg (arg, OP_REG_GP, &regno))
+    return FALSE;
+
+  if (regno > arg->last_regno)
+    return FALSE;
+
+  arg->last_regno = regno;
+
+  insn_insert_operand (arg->insn, operand, regno);
+  return TRUE;
+}
+
+/* OP_GP_GE_PREV matcher.  */
+
+static bfd_boolean
+match_gp_ge_prev_operand (struct mips_arg_info *arg,
+			  const struct mips_operand *operand)
+{
+  unsigned int regno;
+
+  if (!match_reg (arg, OP_REG_GP, &regno))
+    return FALSE;
+
+  if (regno < arg->last_regno)
+    return FALSE;
+
+  arg->last_regno = regno;
+
+  insn_insert_operand (arg->insn, operand, regno);
+  return TRUE;
+}
+
+/* OP_GP_NOT_ZERO_NOT_PREV matcher.  */
+
+static bfd_boolean
+match_gp_not_zero_not_prev_operand (struct mips_arg_info *arg,
+			            const struct mips_operand *operand)
+{
+  unsigned int regno;
+
+  if (!match_reg (arg, OP_REG_GP, &regno))
+    return FALSE;
+
+  if (regno == 0 || regno == arg->last_regno)
+    {
+      set_insn_error (arg->argnum, _("the source registers must not be $0 and different"));
+      return FALSE;
+    }
+
+  arg->last_regno = regno;
+
+  insn_insert_operand (arg->insn, operand, regno);
+  return TRUE;
+}
+
 /* OP_LWM_SWM_LIST matcher.  */
 
 static bfd_boolean
@@ -5232,11 +5470,13 @@ match_pc_operand (struct mips_arg_info *arg)
    register that we need to match.  */
 
 static bfd_boolean
-match_tied_reg_operand (struct mips_arg_info *arg, unsigned int other_regno)
+match_tied_reg_operand (struct mips_arg_info *arg,
+                        enum mips_reg_operand_type type,
+                        unsigned int other_regno)
 {
   unsigned int regno;
 
-  return match_reg (arg, OP_REG_GP, &regno) && regno == other_regno;
+  return match_reg (arg, type, &regno) && regno == other_regno;
 }
 
 /* Read a floating-point constant from S for LI.S or LI.D.  LENGTH is
@@ -5482,10 +5722,13 @@ match_operand (struct mips_arg_info *arg,
       return match_mdmx_imm_reg_operand (arg, operand);
 
     case OP_REPEAT_DEST_REG:
-      return match_tied_reg_operand (arg, arg->dest_regno);
+      return match_tied_reg_operand (arg, OP_REG_GP, arg->dest_regno);
+
+    case OP_REPEAT_DEST_REG_FP:
+      return match_tied_reg_operand (arg, OP_REG_FP, arg->dest_regno);
 
     case OP_REPEAT_PREV_REG:
-      return match_tied_reg_operand (arg, arg->last_regno);
+      return match_tied_reg_operand (arg, OP_REG_GP, arg->last_regno);
 
     case OP_PC:
       return match_pc_operand (arg);
@@ -5501,6 +5744,28 @@ match_operand (struct mips_arg_info *arg,
 
     case OP_REG_INDEX:
       return match_reg_index_operand (arg, operand);
+
+    case OP_SAME_RS_RT:
+      return match_same_rs_rt_operand (arg, operand);
+
+    case OP_GP_NOT_ZERO:
+      return match_gp_not_zero_operand (arg, operand);
+
+    case OP_GP_NOT_ZERO_LT_PREV:
+      return match_gp_not_zero_lt_prev_operand (arg, operand);
+
+    case OP_GP_GT_PREV:
+      return match_gp_gt_prev_operand (arg, operand);
+
+    case OP_GP_LE_PREV:
+      return match_gp_le_prev_operand (arg, operand);
+
+    case OP_GP_GE_PREV:
+      return match_gp_ge_prev_operand (arg, operand);
+
+    case OP_GP_NOT_ZERO_NOT_PREV:
+      return match_gp_not_zero_not_prev_operand (arg, operand);
+
     }
   abort ();
 }
@@ -5686,6 +5951,11 @@ insns_between (const struct mips_cl_insn *insn1,
 	       && (pinfo2 & INSN_READ_COND_CODE))
 	return 1;
     }
+
+  if (insn1->insn_mo->pinfo2 & INSN2_FORBIDDEN_SLOT
+      && (pinfo2 & INSN_NO_DELAY_SLOT
+          || (insn2 && delayed_branch_p (insn2))))
+    return 1;
 
   return 0;
 }
@@ -6544,6 +6814,46 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	  }
 	  break;
 
+	case BFD_RELOC_MIPS_21_PCREL_S2:
+	  {
+	    int shift;
+
+	    shift = 2;
+	    if ((address_expr->X_add_number & ((1 << shift) - 1)) != 0)
+	      as_bad (_("branch to misaligned address (0x%lx)"),
+		      (unsigned long) address_expr->X_add_number);
+	    if (!mips_relax_branch)
+	      {
+		if ((address_expr->X_add_number + (1 << (shift + 20)))
+		    & ~((1 << (shift + 21)) - 1))
+		  as_bad (_("branch address range overflow (0x%lx)"),
+			  (unsigned long) address_expr->X_add_number);
+		ip->insn_opcode |= ((address_expr->X_add_number >> shift)
+				    & 0x1fffff);
+	      }
+	  }
+	  break;
+
+	case BFD_RELOC_MIPS_26_PCREL_S2:
+	  {
+	    int shift;
+
+	    shift = 2;
+	    if ((address_expr->X_add_number & ((1 << shift) - 1)) != 0)
+	      as_bad (_("branch to misaligned address (0x%lx)"),
+		      (unsigned long) address_expr->X_add_number);
+	    if (!mips_relax_branch)
+	      {
+		if ((address_expr->X_add_number + (1 << (shift + 25)))
+		    & ~((1 << (shift + 26)) - 1))
+		  as_bad (_("branch address range overflow (0x%lx)"),
+			  (unsigned long) address_expr->X_add_number);
+		ip->insn_opcode |= ((address_expr->X_add_number >> shift)
+				    & 0x3ffffff);
+	      }
+	  }
+	  break;
+
 	default:
 	  {
 	    offsetT value;
@@ -7174,7 +7484,9 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	    }
 	  else if (arg.last_regno == 31
 		   && (strncmp (insn->insn_mo->name, "bltzal", 6) == 0
-		       || strncmp (insn->insn_mo->name, "bgezal", 6) == 0))
+		       || strncmp (insn->insn_mo->name, "bgezal", 6) == 0)
+                   && (strlen (insn->insn_mo->name) != 7
+                       || insn->insn_mo->name[6] != 'c'))
 	    set_insn_error (0, _("the source register must not be $31"));
 	  check_completed_insn (&arg);
 	  return TRUE;
@@ -7208,11 +7520,31 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
       arg.opnum += 1;
       switch (*args)
 	{
+	case '-':
+	  switch (args[1])
+	    {
+            case 'A':
+              *offset_reloc = BFD_RELOC_MIPS_19_PCREL_S2;
+              break;
+            case 'B':
+              *offset_reloc = BFD_RELOC_MIPS_18_PCREL_S3;
+              break;
+            }
+          break;
+
 	case '+':
 	  switch (args[1])
 	    {
 	    case 'i':
 	      *offset_reloc = BFD_RELOC_MIPS_JMP;
+	      break;
+
+	    case '\'':
+	      *offset_reloc = BFD_RELOC_MIPS_26_PCREL_S2;
+	      break;
+
+	    case '\"':
+	      *offset_reloc = BFD_RELOC_MIPS_21_PCREL_S2;
 	      break;
 	    }
 	  break;
@@ -7299,7 +7631,7 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	abort ();
 
       /* Skip prefixes.  */
-      if (*args == '+' || *args == 'm')
+      if (*args == '+' || *args == 'm' || *args == '-')
 	args++;
 
       if (mips_optional_operand_p (operand)
@@ -7312,7 +7644,6 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	  arg.token = tokens;
 	  arg.argnum = 1;
 	}
-
       if (!match_operand (&arg, operand))
 	return FALSE;
     }
@@ -7950,7 +8281,7 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	    uval |= (uval << 5);
 	  insn_insert_operand (&insn, operand, uval);
 
-	  if (*fmt == '+' || *fmt == 'm')
+	  if (*fmt == '+' || *fmt == 'm' || *fmt == '-')
 	    ++fmt;
 	  break;
 	}
@@ -13236,7 +13567,9 @@ static const struct percent_op_match mips_percent_op[] =
   {"%tprel_hi", BFD_RELOC_MIPS_TLS_TPREL_HI16},
   {"%tprel_lo", BFD_RELOC_MIPS_TLS_TPREL_LO16},
   {"%gottprel", BFD_RELOC_MIPS_TLS_GOTTPREL},
-  {"%hi", BFD_RELOC_HI16_S}
+  {"%hi", BFD_RELOC_HI16_S},
+  {"%pcrel_hi", BFD_RELOC_HI16_S_PCREL},
+  {"%pcrel_lo", BFD_RELOC_LO16_PCREL}
 };
 
 static const struct percent_op_match mips16_percent_op[] =
@@ -13506,8 +13839,16 @@ md_parse_option (int c, char *arg)
       file_mips_isa = ISA_MIPS32R2;
       break;
 
+    case OPTION_MIPS32R6:
+      file_mips_isa = ISA_MIPS32R6;
+      break;
+
     case OPTION_MIPS64R2:
       file_mips_isa = ISA_MIPS64R2;
+      break;
+
+    case OPTION_MIPS64R6:
+      file_mips_isa = ISA_MIPS64R6;
       break;
 
     case OPTION_MIPS64:
@@ -13943,6 +14284,9 @@ mips_after_parse_args (void)
 	       && ISA_HAS_64BIT_FPRS (mips_opts.isa))
 	/* -mips3d and -mdmx imply 64-bit float registers, if possible.  */
 	file_mips_fp32 = 0;
+      else if (ISA_IS_R6 (mips_opts.isa))
+	/* R6 implies 64-bit float registers.  */
+	file_mips_fp32 = 0;
       else
 	/* 32-bit float registers.  */
 	file_mips_fp32 = 1;
@@ -13960,6 +14304,8 @@ mips_after_parse_args (void)
     case 1:
       if (ABI_NEEDS_64BIT_REGS (mips_abi))
 	as_warn (_("-mfp32 used with a 64-bit ABI"));
+      else if (ISA_IS_R6 (mips_opts.isa))
+	as_bad (_("-mfp32 used with a MIPS R6 cpu"));
       break;
     }
 
@@ -14026,11 +14372,17 @@ md_pcrel_from (fixS *fixP)
     case BFD_RELOC_MICROMIPS_16_PCREL_S1:
     case BFD_RELOC_MICROMIPS_JMP:
     case BFD_RELOC_16_PCREL_S2:
+    case BFD_RELOC_MIPS_21_PCREL_S2:
+    case BFD_RELOC_MIPS_26_PCREL_S2:
     case BFD_RELOC_MIPS_JMP:
       /* Return the address of the delay slot.  */
       return addr + 4;
 
     case BFD_RELOC_32_PCREL:
+    case BFD_RELOC_MIPS_19_PCREL_S2:
+    case BFD_RELOC_HI16_S_PCREL:
+    case BFD_RELOC_LO16_PCREL:
+    case BFD_RELOC_MIPS_18_PCREL_S3:
       return addr;
 
     default:
@@ -14199,6 +14551,17 @@ mips_force_relocation (fixS *fixp)
       || fixp->fx_r_type == BFD_RELOC_MICROMIPS_16_PCREL_S1)
     return 1;
 
+  /* We want all relocations to be kept for R6 relaxation */
+  if (ISA_IS_R6 (mips_opts.isa)
+      && (fixp->fx_r_type == BFD_RELOC_16_PCREL_S2
+          || fixp->fx_r_type == BFD_RELOC_MIPS_21_PCREL_S2
+          || fixp->fx_r_type == BFD_RELOC_MIPS_26_PCREL_S2
+          || fixp->fx_r_type == BFD_RELOC_MIPS_18_PCREL_S3
+          || fixp->fx_r_type == BFD_RELOC_MIPS_19_PCREL_S2
+          || fixp->fx_r_type == BFD_RELOC_HI16_S_PCREL
+          || fixp->fx_r_type == BFD_RELOC_LO16_PCREL))
+    return 1;
+
   return 0;
 }
 
@@ -14257,7 +14620,13 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 	      || fixP->fx_r_type == BFD_RELOC_MICROMIPS_7_PCREL_S1
 	      || fixP->fx_r_type == BFD_RELOC_MICROMIPS_10_PCREL_S1
 	      || fixP->fx_r_type == BFD_RELOC_MICROMIPS_16_PCREL_S1
-	      || fixP->fx_r_type == BFD_RELOC_32_PCREL);
+	      || fixP->fx_r_type == BFD_RELOC_32_PCREL
+	      || fixP->fx_r_type == BFD_RELOC_MIPS_21_PCREL_S2
+	      || fixP->fx_r_type == BFD_RELOC_MIPS_26_PCREL_S2
+	      || fixP->fx_r_type == BFD_RELOC_MIPS_18_PCREL_S3
+	      || fixP->fx_r_type == BFD_RELOC_MIPS_19_PCREL_S2
+	      || fixP->fx_r_type == BFD_RELOC_HI16_S_PCREL
+	      || fixP->fx_r_type == BFD_RELOC_LO16_PCREL);
 
   /* Don't treat parts of a composite relocation as done.  There are two
      reasons for this:
@@ -14413,6 +14782,81 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 	 resolved when it appears but is later defined.  */
       if (fixP->fx_done)
 	md_number_to_chars (buf, *valP, fixP->fx_size);
+      break;
+
+    case BFD_RELOC_MIPS_21_PCREL_S2:
+      if ((*valP & 0x3) != 0)
+	as_bad_where (fixP->fx_file, fixP->fx_line,
+		      _("branch to misaligned address (%lx)"), (long) *valP);
+
+      /* We need to save the bits in the instruction since fixup_segment()
+	 might be deleting the relocation entry (i.e., a branch within
+	 the current segment).  */
+      if (! fixP->fx_done)
+	break;
+
+      /* Update old instruction data.  */
+      insn = read_insn (buf);
+
+      if (*valP + 0x400000 <= 0x7fffff)
+	{
+	  insn |= (*valP >> 2) & 0x1fffff;
+	  write_insn (buf, insn);
+	}
+      else
+	{
+	  /* CFU FIXME.  */
+	  gas_assert (0);
+	}
+      break;
+
+    case BFD_RELOC_MIPS_26_PCREL_S2:
+      if ((*valP & 0x3) != 0)
+	as_bad_where (fixP->fx_file, fixP->fx_line,
+		      _("branch to misaligned address (%lx)"), (long) *valP);
+
+      /* We need to save the bits in the instruction since fixup_segment()
+	 might be deleting the relocation entry (i.e., a branch within
+	 the current segment).  */
+      if (! fixP->fx_done)
+	break;
+
+      /* Update old instruction data.  */
+      insn = read_insn (buf);
+
+      if (*valP + 0x8000000 <= 0xfffffff)
+	{
+	  insn |= (*valP >> 2) & 0x3ffffff;
+	  write_insn (buf, insn);
+	}
+      else
+	{
+	  /* CFU FIXME.  */
+	  gas_assert (0);
+	}
+      break;
+
+    case BFD_RELOC_MIPS_18_PCREL_S3:
+      if ((*valP & 0x3) != 0)
+	as_bad_where (fixP->fx_file, fixP->fx_line,
+		      _("pc rel from misaligned address (%lx)"),
+                      (long) *valP);
+
+      gas_assert(!fixP->fx_done);
+      break;
+
+    case BFD_RELOC_MIPS_19_PCREL_S2:
+      if ((*valP & 0x3) != 0)
+	as_bad_where (fixP->fx_file, fixP->fx_line,
+		      _("pc rel from misaligned address (%lx)"),
+                      (long) *valP);
+
+      gas_assert(!fixP->fx_done);
+      break;
+
+    case BFD_RELOC_HI16_S_PCREL:
+    case BFD_RELOC_LO16_PCREL:
+      gas_assert(!fixP->fx_done);
       break;
 
     case BFD_RELOC_16_PCREL_S2:
@@ -15045,6 +15489,10 @@ s_mipsset (int x ATTRIBUTE_UNUSED)
 	  mips_opts.gp32 = 1;
 	  mips_opts.fp32 = 1;
 	  break;
+	case ISA_MIPS32R6:
+	  mips_opts.gp32 = 1;
+	  mips_opts.fp32 = 0;
+	  break;
 	case ISA_MIPS3:
 	case ISA_MIPS4:
 	case ISA_MIPS5:
@@ -15060,6 +15508,10 @@ s_mipsset (int x ATTRIBUTE_UNUSED)
 	  mips_opts.fp32 = 0;
 	    }
 	  break;
+	case ISA_MIPS64R6:
+	  mips_opts.gp32 = 0;
+	  mips_opts.fp32 = 0;
+          break;
 	default:
 	  as_bad (_("unknown ISA level %s"), name + 4);
 	  break;
@@ -16411,9 +16863,10 @@ mips_fix_adjustable (fixS *fixp)
      Likewise an in-range offset of limited PC-relative relocations may
      overflow the in-place relocatable field if recalculated against the
      start address of the symbol's containing section.  */
-  if (HAVE_IN_PLACE_ADDENDS
-      && (limited_pcrel_reloc_p (fixp->fx_r_type)
-	  || jalr_reloc_p (fixp->fx_r_type)))
+  if ((HAVE_IN_PLACE_ADDENDS
+       && (limited_pcrel_reloc_p (fixp->fx_r_type)
+	   || jalr_reloc_p (fixp->fx_r_type)))
+      || ISA_IS_R6 (mips_opts.isa))
     return 0;
 
   /* R_MIPS16_26 relocations against non-MIPS16 functions might resolve
@@ -16491,7 +16944,13 @@ tc_gen_reloc (asection *section ATTRIBUTE_UNUSED, fixS *fixp)
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_7_PCREL_S1
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_10_PCREL_S1
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_16_PCREL_S1
-		  || fixp->fx_r_type == BFD_RELOC_32_PCREL);
+		  || fixp->fx_r_type == BFD_RELOC_32_PCREL
+		  || fixp->fx_r_type == BFD_RELOC_MIPS_21_PCREL_S2
+		  || fixp->fx_r_type == BFD_RELOC_MIPS_26_PCREL_S2
+		  || fixp->fx_r_type == BFD_RELOC_MIPS_18_PCREL_S3
+		  || fixp->fx_r_type == BFD_RELOC_MIPS_19_PCREL_S2
+		  || fixp->fx_r_type == BFD_RELOC_HI16_S_PCREL
+		  || fixp->fx_r_type == BFD_RELOC_LO16_PCREL);
 
       /* At this point, fx_addnumber is "symbol offset - pcrel address".
 	 Relocations want only the symbol offset.  */
@@ -16627,6 +17086,17 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 			 reversed by tweaking bit 23.  */
 		      insn ^= 0x00800000;
 		    }
+                  else if (ISA_IS_R6 (mips_opts.isa))
+                    {
+                      /* The bc[0-3][tf]l? instructions in the else block
+                         below are removed and illegal from r6 onwards.
+
+                         bc1eqz 0x45200000  bc1nez 0x45a00000
+                         bc2eqz 0x49200000  bc2nez 0x49a00000 */
+                      gas_assert ((insn & 0xff600000) == 0x49200000
+                                  || (insn & 0xff600000) == 0x45200000);
+                      insn ^= 0x00800000;
+                    }
 		  else
 		    {
 		      /* bc[0-3][tf]l? instructions can have the condition
@@ -16641,6 +17111,11 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 		  /* bltz	0x04000000	bgez	0x04010000
 		     bltzal	0x04100000	bgezal	0x04110000  */
 		  gas_assert ((insn & 0xfc0e0000) == 0x04000000);
+                  /* bltzal, bgezal where $rs != 0 is illegal from r6 and will
+                     be repurposed eventually */
+                  if (ISA_IS_R6 (mips_opts.isa)
+                      && (insn & 0xfc1e0000) == 0x04100000)
+                    gas_assert ((insn & 0x03e00000) == 0);
 		  insn ^= 0x00010000;
 		  break;
 
@@ -16767,7 +17242,13 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	      /* j(al)r $at.  */
 	      if (RELAX_BRANCH_LINK (fragp->fr_subtype))
 		insn = 0x0000f809;
-	      else
+	      else if (ISA_IS_R6 (mips_opts.isa))
+                /* jalr $0, $at */
+		insn = 0x00000009;
+              else
+                /* This case could be removed but would alter the encoding for
+                   return i.e. jr which may break hardware return stacks on
+                   some implementations */
 		insn = 0x00000008;
 	      insn |= at << OP_SH_RS;
 
@@ -17759,8 +18240,10 @@ static const struct mips_cpu_info mips_cpu_info_table[] =
   { "mips5",          MIPS_CPU_IS_ISA, 0,	ISA_MIPS5,    CPU_MIPS5 },
   { "mips32",         MIPS_CPU_IS_ISA, 0,	ISA_MIPS32,   CPU_MIPS32 },
   { "mips32r2",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS32R2, CPU_MIPS32R2 },
+  { "mips32r6",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS32R6, CPU_MIPS32R6 },
   { "mips64",         MIPS_CPU_IS_ISA, 0,	ISA_MIPS64,   CPU_MIPS64 },
   { "mips64r2",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS64R2, CPU_MIPS64R2 },
+  { "mips64r6",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS64R6, CPU_MIPS64R6 },
 
   /* MIPS I */
   { "r3000",          0, 0,			ISA_MIPS1,    CPU_R3000 },
@@ -18071,8 +18554,10 @@ MIPS options:\n\
 -mips5                  generate MIPS ISA V instructions\n\
 -mips32                 generate MIPS32 ISA instructions\n\
 -mips32r2               generate MIPS32 release 2 ISA instructions\n\
+-mips32r6               generate MIPS32 release 6 ISA instructions\n\
 -mips64                 generate MIPS64 ISA instructions\n\
 -mips64r2               generate MIPS64 release 2 ISA instructions\n\
+-mips64r6               generate MIPS64 release 6 ISA instructions\n\
 -march=CPU/-mtune=CPU	generate code/schedule for CPU, where CPU is one of:\n"));
 
   first = 1;

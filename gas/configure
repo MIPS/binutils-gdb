@@ -12036,11 +12036,17 @@ _ACEOF
 	  mipsisa32r2 | mipsisa32r2el)
 	    mips_cpu=mips32r2
 	    ;;
+	  mipsisa32r6 | mipsisa32r6el)
+	    mips_cpu=mips32r6
+	    ;;
 	  mipsisa64 | mipsisa64el)
 	    mips_cpu=mips64
 	    ;;
 	  mipsisa64r2 | mipsisa64r2el)
 	    mips_cpu=mips64r2
+	    ;;
+	  mipsisa64r6 | mipsisa64r6el)
+	    mips_cpu=mips64r6
 	    ;;
 	  mipstx39 | mipstx39el)
 	    mips_cpu=r3900
@@ -12050,6 +12056,9 @@ _ACEOF
 	    ;;
 	  mipsisa32r2* | mipsisa64r2*)
 	    mips_cpu=`echo $target_cpu | sed -e 's/[a-z]*..r2//' -e 's/el$//'`
+	    ;;
+	  mipsisa32r6* | mipsisa64r6*)
+	    mips_cpu=`echo $target_cpu | sed -e 's/[a-z]*..r6//' -e 's/el$//'`
 	    ;;
 	  mips64* | mipsisa64* | mipsisa32*)
 	    mips_cpu=`echo $target_cpu | sed -e 's/[a-z]*..//' -e 's/el$//'`

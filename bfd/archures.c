@@ -180,8 +180,10 @@ DESCRIPTION
 .#define bfd_mach_mips_xlr              887682   {* decimal 'XLR'  *}
 .#define bfd_mach_mipsisa32             32
 .#define bfd_mach_mipsisa32r2           33
+.#define bfd_mach_mipsisa32r6           34
 .#define bfd_mach_mipsisa64             64
 .#define bfd_mach_mipsisa64r2           65
+.#define bfd_mach_mipsisa64r6           66
 .#define bfd_mach_mips_micromips        96
 .  bfd_arch_i386,      {* Intel 386 *}
 .#define bfd_mach_i386_intel_syntax	(1 << 0)
