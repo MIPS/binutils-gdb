@@ -1,3 +1,11 @@
+2014-04-17  Kwok Cheung Yeung  <kcy@codesourcery.com>
+
+	* ld-mips-elf/elf-rel-xgot-n32.d: Update for new GOT layout.
+	* ld-mips-elf/elf-rel-xgot-n32-embed.d: Likewise.
+	* ld-mips-elf/elf-rel-xgot-n64.d: Likewise.
+	* ld-mips-elf/elf-rel-xgot-n64-embed.d: Likewise.
+	* ld-mips-elf/elf-rel-xgot-n64-linux.d: Likewise.
+
 2014-03-20  Richard Sandiford  <rdsandiford@googlemail.com>
 
 	* ld-elf/merge.d: Remove MIPS XFAIL.
