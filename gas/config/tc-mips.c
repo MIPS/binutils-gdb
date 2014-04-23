@@ -1706,7 +1706,7 @@ static const struct mips_ase mips_ases[] = {
 
   { "xpa", ASE_XPA, 0,
     OPTION_XPA, OPTION_NO_XPA,
-     2,  2, -1, -1,
+     2,  2, 2, 2,
     -1 },
 };
 
@@ -2069,8 +2069,20 @@ mips_set_ase (const struct mips_ase *ase, struct mips_set_options *opts,
 
   mask = mips_ase_mask (ase->flags);
   opts->ase &= ~mask;
+  opts->ase &= ~ASE_VIRT_XPA;
+
   if (enabled_p)
     opts->ase |= ase->flags;
+
+  /* The Virtualization ASE has eXtended Physical Address (XPA) Extension
+     instructions which are only valid when both ASEs are enabled.
+     This sets the ASE_VIRT_XPA flag when both ASEs are present.  */
+  if (((opts->ase & ASE_XPA) != 0) && ((opts->ase & ASE_VIRT) != 0))
+    {
+      opts->ase |= ASE_VIRT_XPA;
+      mask |= ASE_VIRT_XPA;
+    }
+
   return mask;
 }
 

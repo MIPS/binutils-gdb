@@ -322,6 +322,7 @@ decode_mips_operand (const char *p)
 #define XLR     INSN_XLR
 #define IVIRT	ASE_VIRT
 #define IVIRT64	ASE_VIRT64
+#define IVIRT_XPA ASE_VIRT_XPA
 
 #define G1      (T3             \
                  |EE            \
@@ -1383,8 +1384,8 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"mfgc0",		"t,G,H",	0x40600000, 0xffe007f8, WR_1|RD_C0|LC,		0,		0,		IVIRT,	0 },
 {"mfhc0",		"t,G",		0x40400000, 0xffe007ff,	WR_1|RD_C0|LC,		0,		I33,		XPA,	0 },
 {"mfhc0",		"t,G,H",	0x40400000, 0xffe007f8,	WR_1|RD_C0|LC,		0,		I33,		XPA,	0 },
-{"mfhgc0",		"t,G",		0x40600400, 0xffe007ff,	WR_1|RD_C0|LC,		0,		I33,		IVIRT|XPA,	0 },
-{"mfhgc0",		"t,G,H",	0x40600400, 0xffe007f8,	WR_1|RD_C0|LC,		0,		I33,		IVIRT|XPA,	0 },
+{"mfhgc0",		"t,G",		0x40600400, 0xffe007ff,	WR_1|RD_C0|LC,		0,		I33,		IVIRT_XPA,	0 },
+{"mfhgc0",		"t,G,H",	0x40600400, 0xffe007f8,	WR_1|RD_C0|LC,		0,		I33,		IVIRT_XPA,	0 },
 {"mfc1",		"t,S",		0x44000000, 0xffe007ff,	WR_1|RD_2|LC|FP_S,	0,		I1,		0,	0 },
 {"mfc1",		"t,G",		0x44000000, 0xffe007ff,	WR_1|RD_2|LC|FP_S,	0,		I1,		0,	0 },
 {"mfhc1",		"t,S",		0x44600000, 0xffe007ff,	WR_1|RD_2|LC|FP_D,	0,		I33,		0,	0 },
@@ -1481,8 +1482,8 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"mtgc0",		"t,G,H",	0x40600200, 0xffe007f8, RD_1|WR_C0|WR_CC|CM,   0,		0,		IVIRT,	0 },
 {"mthc0",		"t,G",		0x40c00000, 0xffe007ff,	RD_1|WR_C0|WR_CC|CM,	0,		I33,		XPA,	0 },
 {"mthc0",		"t,G,H",	0x40c00000, 0xffe007f8,	RD_1|WR_C0|WR_CC|CM,	0,		I33,		XPA,	0 },
-{"mthgc0",		"t,G",		0x40600600, 0xffe007ff,	RD_1|WR_C0|WR_CC|CM,	0,		I33,		IVIRT|XPA,	0 },
-{"mthgc0",		"t,G,H",	0x40600600, 0xffe007f8,	RD_1|WR_C0|WR_CC|CM,	0,		I33,		IVIRT|XPA,	0 },
+{"mthgc0",		"t,G",		0x40600600, 0xffe007ff,	RD_1|WR_C0|WR_CC|CM,	0,		I33,		IVIRT_XPA,	0 },
+{"mthgc0",		"t,G,H",	0x40600600, 0xffe007f8,	RD_1|WR_C0|WR_CC|CM,	0,		I33,		IVIRT_XPA,	0 },
 {"mtc1",		"t,S",		0x44800000, 0xffe007ff,	RD_1|WR_2|CM|FP_S,	0,		I1,		0,	0 },
 {"mtc1",		"t,G",		0x44800000, 0xffe007ff,	RD_1|WR_2|CM|FP_S,	0,		I1,		0,	0 },
 {"mthc1",		"t,S",		0x44e00000, 0xffe007ff,	RD_1|WR_2|CM|FP_D,	0,		I33,		0,	0 },
