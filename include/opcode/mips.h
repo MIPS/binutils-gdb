@@ -1256,6 +1256,9 @@ static const unsigned int mips_isa_table[] = {
 #define ASE_MSA64		0x00001000
 /* eXtended Physical Address (XPA) Extension.  */
 #define ASE_XPA			0x00002000
+/* The Virtualization ASE has eXtended Physical Address (XPA) Extension
+   instructions which are only valid when both ASEs are enabled.  */
+#define ASE_VIRT_XPA		0x00004000
 
 /* MIPS ISA defines, use instead of hardcoding ISA level.  */
 

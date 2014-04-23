@@ -253,6 +253,7 @@ decode_micromips_operand (const char *p)
    are accepted as 64-bit microMIPS ISA.  */
 #define I1	INSN_ISA1
 #define I3	INSN_ISA3
+#define I36	INSN_ISA32R5
 
 /* MIPS DSP ASE support.  */
 #define WR_a	WR_HILO		/* Write DSP accumulators (reuse WR_HILO).  */
@@ -274,10 +275,14 @@ decode_micromips_operand (const char *p)
 /* MIPS Virtualization ASE.  */
 #define IVIRT	ASE_VIRT
 #define IVIRT64	ASE_VIRT64
+#define IVIRT_XPA ASE_VIRT_XPA
 
 /* MSA support.  */
 #define MSA     ASE_MSA
 #define MSA64   ASE_MSA64
+
+/* eXtended Physical Address (XPA) support.  */
+#define XPA     ASE_XPA
 
 const struct mips_opcode micromips_opcodes[] =
 {
@@ -682,6 +687,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"ei",			"",		0x0000577c, 0xffffffff,	WR_C0,			0,		I1,		0,	0 },
 {"ei",			"s",		0x0000577c, 0xffe0ffff,	WR_1|WR_C0,		0,		I1,		0,	0 },
 {"eret",		"",		0x0000f37c, 0xffffffff,	NODS,			0,		I1,		0,	0 },
+{"eretnc",		"",		0x0001f37c, 0xffffffff,	NODS,			0,		I36,		0,	0 },
 {"ext",			"t,r,+A,+C",	0x0000002c, 0xfc00003f, WR_1|RD_2,		0,		I1,		0,	0 },
 {"floor.l.d",		"T,V",		0x5400433b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,		I1,		0,	0 },
 {"floor.l.s",		"T,V",		0x5400033b, 0xfc00ffff,	WR_1|RD_2|FP_S|FP_D,	0,		I1,		0,	0 },
@@ -826,6 +832,10 @@ const struct mips_opcode micromips_opcodes[] =
 {"mfc2",		"t,G",		0x00004d3c, 0xfc00ffff,	WR_1|RD_C2,		0,		I1,		0,	0 },
 {"mfgc0",		"t,G",		0x000004fc, 0xfc00ffff,	WR_1|RD_C0,		0,		0,		IVIRT,	0 },
 {"mfgc0",		"t,G,H",	0x000004fc, 0xfc00c7ff,	WR_1|RD_C0,		0,		0,		IVIRT,	0 },
+{"mfhc0",		"t,G",		0x000000f4, 0xfc00ffff,	WR_1|RD_C0,		0,		0,		XPA,	0 },
+{"mfhc0",		"t,G,H",	0x000000f4, 0xfc00c7ff,	WR_1|RD_C0,		0,		0,		XPA,	0 },
+{"mfhgc0",		"t,G",		0x000004f4, 0xfc00ffff,	WR_1|RD_C0,		0,		0,		IVIRT_XPA,	0 },
+{"mfhgc0",		"t,G,H",	0x000004f4, 0xfc00c7ff,	WR_1|RD_C0,		0,		0,		IVIRT_XPA,	0 },
 {"mfhc1",		"t,S",		0x5400303b, 0xfc00ffff,	WR_1|RD_2|FP_D|LC,	0,		I1,		0,	0 },
 {"mfhc1",		"t,G",		0x5400303b, 0xfc00ffff,	WR_1|RD_2|FP_D|LC,	0,		I1,		0,	0 },
 {"mfhc2",		"t,G",		0x00008d3c, 0xfc00ffff,	WR_1|RD_C2,		0,		I1,		0,	0 },
@@ -872,6 +882,10 @@ const struct mips_opcode micromips_opcodes[] =
 {"mtc2",		"t,G",		0x00005d3c, 0xfc00ffff,	RD_1|WR_C2|WR_CC,	0,		I1,		0,	0 },
 {"mtgc0",		"t,G",		0x000006fc, 0xfc00ffff,	RD_1|WR_C0|WR_CC,	0,		0,		IVIRT,	0 },
 {"mtgc0",		"t,G,H",	0x000006fc, 0xfc00c7ff,	RD_1|WR_C0|WR_CC,	0,		0,		IVIRT,	0 },
+{"mthc0",		"t,G",		0x000002f4, 0xfc00ffff,	RD_1|WR_C0|WR_CC,	0,		0,		XPA,	0 },
+{"mthc0",		"t,G,H",	0x000002f4, 0xfc00c7ff,	RD_1|WR_C0|WR_CC,	0,		0,		XPA,	0 },
+{"mthgc0",		"t,G",		0x000006f4, 0xfc00ffff,	RD_1|WR_C0|WR_CC,	0,		0,		IVIRT_XPA,	0 },
+{"mthgc0",		"t,G,H",	0x000006f4, 0xfc00c7ff,	RD_1|WR_C0|WR_CC,	0,		0,		IVIRT_XPA,	0 },
 {"mthc1",		"t,S",		0x5400383b, 0xfc00ffff,	RD_1|WR_2|FP_D|CM,	0,		I1,		0,	0 },
 {"mthc1",		"t,G",		0x5400383b, 0xfc00ffff,	RD_1|WR_2|FP_D|CM,	0,		I1,		0,	0 },
 {"mthc2",		"t,G",		0x00009d3c, 0xfc00ffff,	RD_1|WR_C2|WR_CC,	0,		I1,		0,	0 },
