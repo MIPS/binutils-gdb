@@ -683,6 +683,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"ei",			"",		0x0000577c, 0xffffffff,	WR_C0,			0,		I1,		0,	0 },
 {"ei",			"s",		0x0000577c, 0xffe0ffff,	WR_1|WR_C0,		0,		I1,		0,	0 },
 {"eret",		"",		0x0000f37c, 0xffffffff,	NODS,			0,		I1,		0,	0 },
+{"eretnc",		"",		0x0001f37c, 0xffffffff,	NODS,			0,		I1,		XPA,	0 },
 {"ext",			"t,r,+A,+C",	0x0000002c, 0xfc00003f, WR_1|RD_2,		0,		I1,		0,	0 },
 {"floor.l.d",		"T,V",		0x5400433b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,		I1,		0,	0 },
 {"floor.l.s",		"T,V",		0x5400033b, 0xfc00ffff,	WR_1|RD_2|FP_S|FP_D,	0,		I1,		0,	0 },
