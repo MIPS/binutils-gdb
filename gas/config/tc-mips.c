@@ -3753,11 +3753,9 @@ mips_check_options (struct mips_set_options *opts, bfd_boolean abi_checks)
 
   if (opts->micromips == 1 && opts->mips16 == 1)
     as_bad (_("`mips16' cannot be used with `micromips'"));
-  else if (ISA_IS_R6 (mips_opts.isa)
-	   && (opts->micromips == 1
-	       || opts->mips16 == 1))
-    as_fatal (_("neither `micromips' nor `mips16' can be used with "
-		"`mips32r6' or `mips64r6'"));
+  else if (ISA_IS_R6 (mips_opts.isa) 
+	   && opts->mips16 == 1)
+    as_fatal (_("`mips16' cannot be used with `mips32r6' or `mips64r6'"));
 
   if (ISA_IS_R6 (opts->isa) && mips_relax_branch)
     as_fatal (_("branch relaxation is not supported in `mips32r6' "
