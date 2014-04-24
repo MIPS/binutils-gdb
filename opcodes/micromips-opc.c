@@ -249,9 +249,12 @@ decode_micromips_operand (const char *p)
 /* Reuse INSN_ISA1 for 32-bit microMIPS ISA.  All instructions in I1
    are accepted as 32-bit microMIPS ISA.
    Reuse INSN_ISA3 for 64-bit microMIPS ISA.  All instructions in I3
-   are accepted as 64-bit microMIPS ISA.  */
+   are accepted as 64-bit microMIPS ISA.
+   Reuse INSN_ISA32R6 for 32-bit microMIPS R6 ISA.  All instructions in I37
+   are accepted as 32-bit microMIPS R6 ISA.  */
 #define I1	INSN_ISA1
 #define I3	INSN_ISA3
+#define I37	INSN_ISA32R6
 
 /* MIPS DSP ASE support.  */
 #define WR_a	WR_HILO		/* Write DSP accumulators (reuse WR_HILO).  */
