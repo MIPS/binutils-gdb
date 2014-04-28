@@ -329,7 +329,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"add.d",		"D,V,T",	0x54000130, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I1,		0,	0 },
 {"add.s",		"D,V,T",	0x54000030, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_S,	0,		I1,		0,	0 },
 {"add.ps",		"D,V,T",	0x54000230, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I1,		0,	0 },
-{"addi",		"t,r,j",	0x10000000, 0xfc000000,	WR_1|RD_2,		0,		I1,		0,	0 },
+{"addi",		"t,r,j",	0x10000000, 0xfc000000,	WR_1|RD_2,		0,		I1,		0,	I37 },
 {"addiu",		"mp,mj,mZ",	    0x0c00,     0xfc00,	WR_1|RD_2,		0,		I1,		0,	0 }, /* move */
 {"addiu",		"md,ms,mW",	    0x6c01,     0xfc01,	WR_1|RD_2,		0,		I1,		0,	0 }, /* addiur1sp */
 {"addiu",		"md,mc,mB",	    0x6c00,     0xfc01,	WR_1|RD_2,		0,		I1,		0,	0 }, /* addiur2 */
@@ -380,10 +380,10 @@ const struct mips_opcode micromips_opcodes[] =
 {"beqzl",		"s,p",		0,    (int) M_BEQL,	INSN_MACRO,		0,		I1,		0,	0 },
 {"beq",			"md,mz,mE",	    0x8c00,     0xfc00,	RD_1|CBD,		0,		I1,		0,	0 }, /* beqz */
 {"beq",			"mz,md,mE",	    0x8c00,     0xfc00,	RD_2|CBD,		0,		I1,		0,	0 }, /* beqz */
-{"beq",			"s,t,p",	0x94000000, 0xfc000000,	RD_1|RD_2|CBD,		0,		I1,		0,	0 },
-{"beq",			"s,I,p",	0,    (int) M_BEQ_I,	INSN_MACRO,		0,		I1,		0,	0 },
-{"beql",		"s,t,p",	0,    (int) M_BEQL,	INSN_MACRO,		0,		I1,		0,	0 },
-{"beql",		"s,I,p",	0,    (int) M_BEQL_I,	INSN_MACRO,		0,		I1,		0,	0 },
+{"beq",			"s,t,p",	0x94000000, 0xfc000000,	RD_1|RD_2|CBD,		0,		I1,		0,	I37 },
+{"beq",			"s,I,p",	0,    (int) M_BEQ_I,	INSN_MACRO,		0,		I1,		0,	I37 },
+{"beql",		"s,t,p",	0,    (int) M_BEQL,	INSN_MACRO,		0,		I1,		0,	I37 },
+{"beql",		"s,I,p",	0,    (int) M_BEQL_I,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"bge",			"s,t,p",	0,    (int) M_BGE,	INSN_MACRO,		0,		I1,		0,	0 },
 {"bge",			"s,I,p",	0,    (int) M_BGE_I,	INSN_MACRO,		0,		I1,		0,	0 },
 {"bgel",		"s,t,p",	0,    (int) M_BGEL,	INSN_MACRO,		0,		I1,		0,	0 },
@@ -436,10 +436,10 @@ const struct mips_opcode micromips_opcodes[] =
 {"bnezl",		"s,p",		0,    (int) M_BNEL,	INSN_MACRO,		0,		I1,		0,	0 },
 {"bne",			"md,mz,mE",	    0xac00,     0xfc00,	RD_1|CBD,		0,		I1,		0,	0 }, /* bnez */
 {"bne",			"mz,md,mE",	    0xac00,     0xfc00,	RD_2|CBD,		0,		I1,		0,	0 }, /* bnez */
-{"bne",			"s,t,p",	0xb4000000, 0xfc000000,	RD_1|RD_2|CBD,		0,		I1,		0,	0 },
-{"bne",			"s,I,p",	0,    (int) M_BNE_I,	INSN_MACRO,		0,		I1,		0,	0 },
-{"bnel",		"s,t,p",	0,    (int) M_BNEL,	INSN_MACRO,		0,		I1,		0,	0 },
-{"bnel",		"s,I,p",	0,    (int) M_BNEL_I,	INSN_MACRO,		0,		I1,		0,	0 },
+{"bne",			"s,t,p",	0xb4000000, 0xfc000000,	RD_1|RD_2|CBD,		0,		I1,		0,	I37 },
+{"bne",			"s,I,p",	0,    (int) M_BNE_I,	INSN_MACRO,		0,		I1,		0,	I37 },
+{"bnel",		"s,t,p",	0,    (int) M_BNEL,	INSN_MACRO,		0,		I1,		0,	I37 },
+{"bnel",		"s,I,p",	0,    (int) M_BNEL_I,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"break",		"",		    0x4680,     0xffff,	TRAP,			0,		I1,		0,	0 },
 {"break",		"",		0x00000007, 0xffffffff,	TRAP,			0,		I1,		0,	0 },
 {"break",		"mF",		    0x4680,     0xfff0,	TRAP,			0,		I1,		0,	0 },
@@ -743,11 +743,11 @@ const struct mips_opcode micromips_opcodes[] =
    assembler, but will never match user input (because the line above
    will match first).  */
 {"jal",			"a",		0xf4000000, 0xfc000000,	WR_31|UBD,		BD32,		I1,		0,	0 },
-{"jals",		"d,s",		0,    (int) M_JALS_2,	INSN_MACRO,		0,		I1,		0,	0 },
-{"jals",		"s",		0,    (int) M_JALS_1,	INSN_MACRO,		0,		I1,		0,	0 },
-{"jals",		"a",		0,    (int) M_JALS_A,	INSN_MACRO,		0,		I1,		0,	0 },
-{"jals",		"a",		0x74000000, 0xfc000000,	WR_31|UBD,		BD16,		I1,		0,	0 },
-{"jalx",		"+i",		0xf0000000, 0xfc000000,	WR_31|UBD,		BD32,		I1,		0,	0 },
+{"jals",		"d,s",		0,    (int) M_JALS_2,	INSN_MACRO,		0,		I1,		0,	I37 },
+{"jals",		"s",		0,    (int) M_JALS_1,	INSN_MACRO,		0,		I1,		0,	I37 },
+{"jals",		"a",		0,    (int) M_JALS_A,	INSN_MACRO,		0,		I1,		0,	I37 },
+{"jals",		"a",		0x74000000, 0xfc000000,	WR_31|UBD,		BD16,		I1,		0,	I37 },
+{"jalx",		"+i",		0xf0000000, 0xfc000000,	WR_31|UBD,		BD32,		I1,		0,	I37 },
 {"la",			"t,A(b)",	0,    (int) M_LA_AB,	INSN_MACRO,		0,		I1,		0,	0 },
 {"lb",			"t,o(b)",	0x1c000000, 0xfc000000,	WR_1|RD_3|LM,		0,		I1,		0,	0 },
 {"lb",			"t,A(b)",	0,    (int) M_LB_AB,	INSN_MACRO,		0,		I1,		0,	0 },
