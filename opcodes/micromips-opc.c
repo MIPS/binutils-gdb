@@ -251,10 +251,13 @@ decode_micromips_operand (const char *p)
    Reuse INSN_ISA3 for 64-bit microMIPS ISA.  All instructions in I3
    are accepted as 64-bit microMIPS ISA.
    Reuse INSN_ISA32R6 for 32-bit microMIPS R6 ISA.  All instructions in I37
-   are accepted as 32-bit microMIPS R6 ISA.  */
+   are accepted as 32-bit microMIPS R6 ISA.
+   Reuse INSN_ISA64R6 for 64-bit microMIPS R6 ISA.  All instructions in I69
+   are accepted as 64-bit microMIPS R6 ISA.  */
 #define I1	INSN_ISA1
 #define I3	INSN_ISA3
 #define I37	INSN_ISA32R6
+#define I69	INSN_ISA64R6
 
 /* MIPS DSP ASE support.  */
 #define WR_a	WR_HILO		/* Write DSP accumulators (reuse WR_HILO).  */
@@ -569,8 +572,8 @@ const struct mips_opcode micromips_opcodes[] =
 {"dabs",		"d,v",		0,    (int) M_DABS,	INSN_MACRO,		0,		I3,		0,	0 },
 {"dadd",		"d,v,t",	0x58000110, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,		I3,		0,	0 },
 {"dadd",		"t,r,I",	0,    (int) M_DADD_I,	INSN_MACRO,		0,		I3,		0,	0 },
-{"daddi",		"t,r,.",	0x5800001c, 0xfc00003f,	WR_1|RD_2,		0,		I3,		0,	0 },
-{"daddi",		"t,r,I",	0,    (int) M_DADD_I,	INSN_MACRO,		0,		I3,		0,	0 },
+{"daddi",		"t,r,.",	0x5800001c, 0xfc00003f,	WR_1|RD_2,		0,		I3,		0,	I69 },
+{"daddi",		"t,r,I",	0,    (int) M_DADD_I,	INSN_MACRO,		0,		I3,		0,	I69 },
 {"daddiu",		"t,r,j",	0x5c000000, 0xfc000000,	WR_1|RD_2,		0,		I3,		0,	0 },
 {"daddu",		"d,v,t",	0x58000150, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,		I3,		0,	0 },
 {"daddu",		"t,r,I",	0,    (int) M_DADDU_I,	INSN_MACRO,		0,		I3,		0,	0 },
@@ -763,14 +766,14 @@ const struct mips_opcode micromips_opcodes[] =
 {"ldc2",		"E,A(b)",	0,    (int) M_LDC2_AB,	INSN_MACRO,		0,		I1,		0,	0 },
 {"l.d",			"T,o(b)",	0xbc000000, 0xfc000000,	WR_1|RD_3|FP_D|LM,	0,		I1,		0,	0 }, /* ldc1 */
 {"l.d",			"T,A(b)",	0,    (int) M_LDC1_AB,	INSN_MACRO,		INSN2_M_FP_D,	I1,		0,	0 },
-{"ldl",			"t,~(b)",	0x60004000, 0xfc00f000,	WR_1|RD_3|LM,		0,		I3,		0,	I37 },
-{"ldl",			"t,A(b)",	0,    (int) M_LDL_AB,	INSN_MACRO,		0,		I3,		0,	I37 },
+{"ldl",			"t,~(b)",	0x60004000, 0xfc00f000,	WR_1|RD_3|LM,		0,		I3,		0,	I69 },
+{"ldl",			"t,A(b)",	0,    (int) M_LDL_AB,	INSN_MACRO,		0,		I3,		0,	I69 },
 {"ldm",			"n,~(b)",	0x20007000, 0xfc00f000,	RD_3|LM,		0,		I3,		0,	0 },
 {"ldm",			"n,A(b)",	0,    (int) M_LDM_AB,	INSN_MACRO,		0,		I3,		0,	0 },
 {"ldp",			"t,~(b)",	0x20004000, 0xfc00f000,	WR_1|RD_3|LM,		0,		I3,		0,	0 },
 {"ldp",			"t,A(b)",	0,    (int) M_LDP_AB,	INSN_MACRO,		0,		I3,		0,	0 },
-{"ldr",			"t,~(b)",	0x60005000, 0xfc00f000,	WR_1|RD_3|LM,		0,		I3,		0,	I37 },
-{"ldr",			"t,A(b)",	0,    (int) M_LDR_AB,	INSN_MACRO,		0,		I3,		0,	I37 },
+{"ldr",			"t,~(b)",	0x60005000, 0xfc00f000,	WR_1|RD_3|LM,		0,		I3,		0,	I69 },
+{"ldr",			"t,A(b)",	0,    (int) M_LDR_AB,	INSN_MACRO,		0,		I3,		0,	I69 },
 {"ldxc1",		"D,t(b)",	0x540000c8, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D|LM,	0,		I1,		0,	I37 },
 {"lh",			"t,o(b)",	0x3c000000, 0xfc000000,	WR_1|RD_3|LM,		0,		I1,		0,	0 },
 {"lh",			"t,A(b)",	0,    (int) M_LH_AB,	INSN_MACRO,		0,		I1,		0,	0 },
