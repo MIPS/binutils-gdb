@@ -507,8 +507,12 @@ INLINE_SIM_BITS(unsigned_word) MSINSERTED (unsigned_word val, int start, int sto
 #define EXTEND12(X)  (LSSEXT ((X), 11))
 #define EXTEND15(X)  (LSSEXT ((X), 14))
 #define EXTEND16(X) ((signed_word)(signed16)(X))
+#define EXTEND18(X)  (LSSEXT ((X), 18))
+#define EXTEND19(X)  (LSSEXT ((X), 19))
+#define EXTEND21(X)  (LSSEXT ((X), 20))
 #define EXTEND24(X)  (LSSEXT ((X), 23))
 #define EXTEND25(X)  (LSSEXT ((X), 24))
+#define EXTEND26(X)  (LSSEXT ((X), 25))
 #define EXTEND32(X) ((signed_word)(signed32)(X))
 #define EXTEND64(X) ((signed_word)(signed64)(X))
 
