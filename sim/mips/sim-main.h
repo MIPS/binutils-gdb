@@ -73,6 +73,9 @@ typedef enum {
  fmt_word    = 4,
  fmt_long    = 5,
  fmt_ps      = 6,
+ /* The following is a special case for FP conditions where only
+    the lower 32bits are considered. This is a HACK */
+ fmt_dc32    = 7,
  /* The following are well outside the normal acceptable format
     range, and are used in the register status vector. */
  fmt_unknown       = 0x10000000,
@@ -738,8 +741,36 @@ void test_fcsr (SIM_STATE);
 
 
 /* FPU operations.  */
+/* Non-signalling */
+#define FP_R6CMP_AF  0x0
+#define FP_R6CMP_EQ  0x2
+#define FP_R6CMP_LE  0x6
+#define FP_R6CMP_LT  0x4
+#define FP_R6CMP_NE  0x13
+#define FP_R6CMP_OR  0x11
+#define FP_R6CMP_UEQ 0x3
+#define FP_R6CMP_ULE 0x7
+#define FP_R6CMP_ULT 0x5
+#define FP_R6CMP_UN  0x1
+#define FP_R6CMP_UNE 0x12
+
+/* Signalling */
+#define FP_R6CMP_SAF  0x8
+#define FP_R6CMP_SEQ  0xa
+#define FP_R6CMP_SLE  0xe
+#define FP_R6CMP_SLT  0xc
+#define FP_R6CMP_SNE  0x1b
+#define FP_R6CMP_SOR  0x19
+#define FP_R6CMP_SUEQ 0xb
+#define FP_R6CMP_SULE 0xf
+#define FP_R6CMP_SULT 0xd
+#define FP_R6CMP_SUN  0x9
+#define FP_R6CMP_SUNE 0x1a
+
 void fp_cmp (SIM_STATE, unsigned64 op1, unsigned64 op2, FP_formats fmt, int abs, int cond, int cc);
 #define Compare(op1,op2,fmt,cond,cc) fp_cmp(SIM_ARGS, op1, op2, fmt, 0, cond, cc)
+unsigned64 fp_r6_cmp (SIM_STATE, unsigned64 op1, unsigned64 op2, FP_formats fmt, int cond);
+#define R6Compare(op1,op2,fmt,cond) fp_r6_cmp(SIM_ARGS, op1, op2, fmt, cond)
 unsigned64 fp_abs (SIM_STATE, unsigned64 op, FP_formats fmt);
 #define AbsoluteValue(op,fmt) fp_abs(SIM_ARGS, op, fmt)
 unsigned64 fp_neg (SIM_STATE, unsigned64 op, FP_formats fmt);
@@ -760,6 +791,12 @@ unsigned64 fp_rsqrt (SIM_STATE, unsigned64 op, FP_formats fmt);
 #define RSquareRoot(op,fmt) fp_rsqrt(SIM_ARGS, op, fmt)
 unsigned64 fp_madd (SIM_STATE, unsigned64 op1, unsigned64 op2,
 		    unsigned64 op3, FP_formats fmt);
+#define FusedMultiplyAdd(op1,op2,op3,fmt) fp_fmadd(SIM_ARGS, op1, op2, op3, fmt)
+unsigned64 fp_fmadd (SIM_STATE, unsigned64 op1, unsigned64 op2,
+                     unsigned64 op3, FP_formats fmt);
+#define FusedMultiplySub(op1,op2,op3,fmt) fp_fmsub(SIM_ARGS, op1, op2, op3, fmt)
+unsigned64 fp_fmsub (SIM_STATE, unsigned64 op1, unsigned64 op2,
+                     unsigned64 op3, FP_formats fmt);
 #define MultiplyAdd(op1,op2,op3,fmt) fp_madd(SIM_ARGS, op1, op2, op3, fmt)
 unsigned64 fp_msub (SIM_STATE, unsigned64 op1, unsigned64 op2,
 		    unsigned64 op3, FP_formats fmt);

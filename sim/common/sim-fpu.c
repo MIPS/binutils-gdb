@@ -2296,6 +2296,23 @@ sim_fpu_is_gt (const sim_fpu *l, const sim_fpu *r)
   return is;
 }
 
+INLINE_SIM_FPU (int)
+sim_fpu_is_un (const sim_fpu *l,
+    const sim_fpu *r)
+{
+  int is;
+  sim_fpu_un (&is, l, r);
+  return is;
+}
+
+INLINE_SIM_FPU (int)
+sim_fpu_is_or (const sim_fpu *l,
+    const sim_fpu *r)
+{
+  int is;
+  sim_fpu_or (&is, l, r);
+  return is;
+}
 
 /* Compare operators */
 
@@ -2419,6 +2436,32 @@ sim_fpu_gt (int *is,
   return sim_fpu_lt (is, r, l);
 }
 
+INLINE_SIM_FPU (int)
+sim_fpu_un (int *is,
+             const sim_fpu *l,
+             const sim_fpu *r)
+{
+  if (sim_fpu_is_nan (l) || sim_fpu_is_nan (r))
+  {
+    *is = 1;
+    return 0;
+  }
+
+  *is = 0;
+  return 0;
+}
+
+INLINE_SIM_FPU (int)
+sim_fpu_or (int *is,
+            const sim_fpu *l,
+            const sim_fpu *r)
+{
+  sim_fpu_un (is, l, r);
+
+  /* Invert result */
+  *is = (*is) ? 0 : 1;
+  return 0;
+}
 
 /* A number of useful constants */
 
