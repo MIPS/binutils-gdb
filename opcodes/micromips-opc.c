@@ -608,6 +608,7 @@ const struct mips_opcode micromips_opcodes[] =
    though the first operand appeared twice (the first operand is both
    a source and a destination).  To get the div machine instruction,
    you must use an explicit destination of $0.  */
+{"div",			"d,v,t",	0x00000118, 0xfc0007ff, WR_1|RD_2|RD_3, 	0,		I37,		0,	0 },
 {"div",			"z,s,t",	0x0000ab3c, 0xfc00ffff,	RD_2|RD_3|WR_HILO,	0,		I1,		0,	I37 },
 {"div",			"z,t",		0x0000ab3c, 0xfc1fffff,	RD_2|WR_HILO,		0,		I1,		0,	I37 },
 {"div",			"d,v,t",	0,    (int) M_DIV_3,	INSN_MACRO,		0,		I1,		0,	I37 },
@@ -615,6 +616,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"div.d",		"D,V,T",	0x540001f0, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I1,		0,	0 },
 {"div.s",		"D,V,T",	0x540000f0, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_S,	0,		I1,		0,	0 },
 /* For divu, see the comments about div.  */
+{"divu",		"d,v,t",	0x00000198, 0xfc0007ff, WR_1|RD_2|RD_3, 	0,		I37,		0,	0},
 {"divu",		"z,s,t",	0x0000bb3c, 0xfc00ffff,	RD_2|RD_3|WR_HILO,	0,		I1,		0,	I37 },
 {"divu",		"z,t",		0x0000bb3c, 0xfc1fffff,	RD_2|WR_HILO,		0,		I1,		0,	I37 },
 {"divu",		"d,v,t",	0,    (int) M_DIVU_3,	INSN_MACRO,		0,		I1,		0,	I37 },
@@ -823,6 +825,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"lwxc1",		"D,t(b)",	0x54000048, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_S|LM,	0,		I1,		0,	I37 },
 {"flush",		"t,~(b)",	0x60001000, 0xfc00f000,	WR_1|RD_3,		0,		I1,		0,	0 }, /* same */
 {"flush",		"t,A(b)",	0,    (int) M_LWR_AB,	INSN_MACRO,		0,		I1,		0,	0 },
+{"lwxs",		"d,t(b)",	0x00000100, 0xfc0007ff,	WR_1|RD_2|RD_3|LM,	0,		I37,		0,	0 },
 {"lwxs",		"d,t(b)",	0x00000118, 0xfc0007ff,	WR_1|RD_2|RD_3|LM,	0,		I1,		0,	I37 },
 {"madd",		"s,t",		0x0000cb3c, 0xfc00ffff,	RD_1|RD_2|MOD_HILO,	0,		I1,		0,	I37 },
 {"madd",		"7,s,t",	0x00000abc, 0xfc003fff,	RD_2|RD_3|MOD_a,	0,		0,		D32,	0 },
@@ -851,6 +854,8 @@ const struct mips_opcode micromips_opcodes[] =
 {"mflo",		"mj",		    0x4640,     0xffe0,	WR_1|RD_LO,		0,		I1,		0,	I37 },
 {"mflo",		"s",		0x00001d7c, 0xffe0ffff,	WR_1|RD_LO,		0,		I1,		0,	I37 },
 {"mflo",		"s,7",		0x0000107c, 0xffe03fff,	WR_1|RD_LO,		0,		0,		D32,	0 },
+{"mod",			"d,v,t",	0x00000158, 0xfc0007ff, WR_1|RD_2|RD_3, 	0,		I37,		0,	0},
+{"modu",		"d,v,t",	0x000001d8, 0xfc0007ff, WR_1|RD_2|RD_3, 	0,		I37,		0,	0},
 {"mov.d",		"T,S",		0x5400207b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,		I1,		0,	0 },
 {"mov.s",		"T,S",		0x5400007b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,		I1,		0,	0 },
 {"mov.ps",		"T,S",		0x5400407b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,		I1,		0,	0 },
@@ -899,7 +904,10 @@ const struct mips_opcode micromips_opcodes[] =
 {"mthi",		"s,7",		0x0000207c, 0xffe03fff,	RD_1|WR_HI,		0,		0,		D32,	0 },
 {"mtlo",		"s",		0x00003d7c, 0xffe0ffff,	RD_1|WR_LO,		0,		I1,		0,	I37 },
 {"mtlo",		"s,7",		0x0000307c, 0xffe03fff,	RD_1|WR_LO,		0,		0,		D32,	0 },
-{"mul",			"d,v,t",	0x00000210, 0xfc0007ff,	WR_1|RD_2|RD_3|WR_HILO,	0,		I1,		0,	0 },
+{"muh",			"d,v,t",	0x00000058, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,		I37,		0,	0 },
+{"muhu",		"d,v,t",	0x000000d8, 0xfc0007ff, WR_1|RD_2|RD_3, 	0,		I37,		0,	0},
+{"mul",			"d,v,t",	0x00000018, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,		I37,		0,	0 },
+{"mul",			"d,v,t",	0x00000210, 0xfc0007ff,	WR_1|RD_2|RD_3|WR_HILO,	0,		I1,		0,	I37 },
 {"mul",			"d,v,I",	0,    (int) M_MUL_I,	INSN_MACRO,		0,		I1,		0,	0 },
 {"mul.d",		"D,V,T",	0x540001b0, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I1,		0,	0 },
 {"mul.s",		"D,V,T",	0x540000b0, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_S,	0,		I1,		0,	0 },
@@ -912,6 +920,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"mult",		"7,s,t",	0x00000cbc, 0xfc003fff,	RD_2|RD_3|WR_a,		0,		0,		D32,	0 },
 {"multu",		"s,t",		0x00009b3c, 0xfc00ffff,	RD_1|RD_2|WR_HILO,	0,		I1,		0,	I37 },
 {"multu",		"7,s,t",	0x00001cbc, 0xfc003fff,	RD_2|RD_3|WR_a,		0,		0,		D32,	0 },
+{"mulu",		"d,v,t",	0x00000098, 0xfc0007ff, WR_1|RD_2|RD_3, 	0,		I37,		0,	0},
 {"neg",			"d,w",		0x00000190, 0xfc1f07ff,	WR_1|RD_2,		0,		I1,		0,	0 }, /* sub 0 */
 {"negu",		"d,w",		0x000001d0, 0xfc1f07ff,	WR_1|RD_2,		0,		I1,		0,	0 }, /* subu 0 */
 {"neg.d",		"T,V",		0x54002b7b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,		I1,		0,	0 },
@@ -990,6 +999,8 @@ const struct mips_opcode micromips_opcodes[] =
 {"sdc1",		"E,A(b)",	0,    (int) M_SDC1_AB,	INSN_MACRO,		INSN2_M_FP_D,	I1,		0,	0 },
 {"sdc2",		"E,~(b)",	0x2000a000, 0xfc00f000,	RD_3|RD_C2|SM,		0,		I1,		0,	0 },
 {"sdc2",		"E,A(b)",	0,    (int) M_SDC2_AB,	INSN_MACRO,		0,		I1,		0,	0 },
+{"seleqz",		"d,s,t",	0x00000140, 0xfc0007ff, WR_1|RD_2|RD_3, 	0,		I37,		0,	0 },
+{"selnez",		"d,s,t",	0x00000180, 0xfc0007ff, WR_1|RD_2|RD_3, 	0,		I37,		0,	0 },
 {"s.d",			"T,o(b)",	0xb8000000, 0xfc000000,	RD_1|RD_3|SM|FP_D,	0,		I1,		0,	0 }, /* sdc1 */
 {"s.d",			"T,A(b)",	0,    (int) M_SDC1_AB,	INSN_MACRO,		INSN2_M_FP_D,	I1,		0,	0 },
 {"sdl",			"t,~(b)",	0x6000c000, 0xfc00f000,	RD_1|RD_3|SM,		0,		I3,		0,	I37 },
