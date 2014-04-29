@@ -2251,6 +2251,9 @@ print_insn_micromips (bfd_vma memaddr, struct disassemble_info *info)
 	  && ((length == 2 && (op->mask & 0xffff0000) == 0)
 	      || (length == 4 && (op->mask & 0xffff0000) != 0)))
 	{
+	  if (!opcode_is_member (op, mips_isa, mips_ase, mips_processor))
+	    continue;
+
 	  infprintf (is, "%s", op->name);
 
 	  if (op->args[0])
