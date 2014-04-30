@@ -107,6 +107,8 @@ decode_micromips_operand (const char *p)
 	case 'F': MSB (5, 11, 33, TRUE, 64);	 /* (33 .. 64), 64-bit op */
 	case 'G': MSB (5, 11, 33, FALSE, 64);	 /* (33 .. 64), 64-bit op */
 	case 'H': MSB (5, 11, 1, FALSE, 64);	 /* (1 .. 32), 64-bit op */
+	case 'I': UINT (2, 9);
+	case 'O': UINT (3, 9);
 	case 'T': INT_ADJ (10, 16, 511, 0, FALSE);	/* (-512 .. 511) << 0 */
 	case 'U': INT_ADJ (10, 16, 511, 1, FALSE);	/* (-512 .. 511) << 1 */
 	case 'V': INT_ADJ (10, 16, 511, 2, FALSE);	/* (-512 .. 511) << 2 */
@@ -1149,6 +1151,11 @@ const struct mips_opcode micromips_opcodes[] =
 {"xor",			"d,v,t",	0x00000310, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,		I1,		0,	0 },
 {"xor",			"t,r,I",	0,    (int) M_XOR_I,	INSN_MACRO,		0,		I1,		0,	0 },
 {"xori",		"t,r,i",	0x70000000, 0xfc000000,	WR_1|RD_2,		0,		I1,		0,	0 },
+/* microMIPS R6 */
+
+{"align",		"d,s,t,+I",	0x0000001f, 0xfc0001ff,	WR_1|RD_2|RD_3,		0,		I37,		0,	0 },
+{"bitswap",		"v,w",		0x00000b3c, 0xfc00ffff,	WR_1|RD_2,		0,		I37,		0,	0 },
+
 /* microMIPS Enhanced VA Scheme */
 {"lbue",		"t,+j(b)",	0x60006000, 0xfc00fe00, WR_1|RD_3|LM,		0,		0,		EVA,	0 },
 {"lbue",		"t,A(b)",	0,    (int) M_LBUE_AB,	INSN_MACRO,		0,		0,		EVA,	0 },
@@ -1867,7 +1874,8 @@ const struct mips_opcode micromips_opcodes[] =
 {"ctcmsa",		"+l,d",		0x583e0016, 0xffff003f,	RD_2,			0,		0,		MSA,	0 },
 {"cfcmsa",		"+k,+n",	0x587e0016, 0xffff003f,	WR_1,			0,		0,		MSA,	0 },
 {"move.v",		"+d,+e",	0x58be0016, 0xffff003f,	WR_1|RD_2,		0,		0,		MSA,	0 },
-{"lsa",			"d,v,t,+~",	0x00000020, 0xfc00073f,	WR_1|RD_2|RD_3,		0,		0,		MSA,	0 },
+{"lsa",			"d,s,t,+I",	0x0000000f, 0xfc0001ff,	WR_1|RD_2|RD_3,		0,		I37,		MSA,	0 },
+{"lsa",			"d,v,t,+~",	0x00000020, 0xfc00073f,	WR_1|RD_2|RD_3,		0,		0,		MSA,	I37 },
 {"dlsa",		"d,v,t,+~",	0x58000020, 0xfc00073f,	WR_1|RD_2|RD_3,		0,		0,		MSA64,	0 },
 };
 
