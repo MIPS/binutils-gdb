@@ -2188,6 +2188,10 @@ extern const int bfd_mips16_num_opcodes;
    microMIPS Enhanced VA Scheme:
    "+j" 9-bit signed offset in bit 0 (OP_*_EVAOFFSET)
 
+   microMIPS R6:
+   "+I" 2bit unsigned bit position at bit 9
+   "+O" 3bit unsigned bit position at bit 9
+
    MSA Extension:
    "+d" 5-bit MSA register (FD)
    "+e" 5-bit MSA register (FS)
@@ -2231,7 +2235,7 @@ extern const int bfd_mips16_num_opcodes;
    following), for quick reference when adding more:
    ""
    "~!@#$%^&*|"
-   "ABCEFGHTUVW"
+   "ABCEFGHIOTUVW"
    "dehijklnouvwx"
 
    Extension character sequences used so far ("m" followed by the
