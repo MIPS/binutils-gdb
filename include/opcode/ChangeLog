@@ -1,3 +1,7 @@
+2014-05-01  Richard Sandiford  <rdsandiford@googlemail.com>
+
+	* mips.h (mips_isa_table): Avoid hard-coding INSN_ISA* values.
+
 2013-12-16  Andrew Bennett  <andrew.bennett@imgtec.com>
 
 	* mips.h: Updated description of +o, +u, +v and +w for MIPS and
