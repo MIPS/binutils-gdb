@@ -2203,8 +2203,10 @@ extern const int bfd_mips16_num_opcodes;
    "+j" 9-bit signed offset in bit 0 (OP_*_EVAOFFSET)
 
    microMIPS R6:
+   "+D" 5-bit destination floating point register
    "+I" 2bit unsigned bit position at bit 9
    "+O" 3bit unsigned bit position at bit 9
+   "+S" 5-bit fs source 1 floating point register
 
    MSA Extension:
    "+d" 5-bit MSA register (FD)
@@ -2249,7 +2251,7 @@ extern const int bfd_mips16_num_opcodes;
    following), for quick reference when adding more:
    ""
    "~!@#$%^&*|"
-   "ABCEFGHIOTUVW"
+   "ABCDEFGHIOSTUVW"
    "dehijklnouvwx"
 
    Extension character sequences used so far ("m" followed by the
