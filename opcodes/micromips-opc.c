@@ -103,12 +103,14 @@ decode_micromips_operand (const char *p)
 	case 'A': BIT (5, 6, 0);		 /* (0 .. 31) */
 	case 'B': MSB (5, 11, 1, TRUE, 32);	 /* (1 .. 32), 32-bit op */
 	case 'C': MSB (5, 11, 1, FALSE, 32);	 /* (1 .. 32), 32-bit op */
+	case 'D': REG (5, 16, FP);
 	case 'E': BIT (5, 6, 32);		 /* (32 .. 63) */
 	case 'F': MSB (5, 11, 33, TRUE, 64);	 /* (33 .. 64), 64-bit op */
 	case 'G': MSB (5, 11, 33, FALSE, 64);	 /* (33 .. 64), 64-bit op */
 	case 'H': MSB (5, 11, 1, FALSE, 64);	 /* (1 .. 32), 64-bit op */
 	case 'I': UINT (2, 9);
 	case 'O': UINT (3, 9);
+	case 'S': REG (5, 21, FP);
 	case 'T': INT_ADJ (10, 16, 511, 0, FALSE);	/* (-512 .. 511) << 0 */
 	case 'U': INT_ADJ (10, 16, 511, 1, FALSE);	/* (-512 .. 511) << 1 */
 	case 'V': INT_ADJ (10, 16, 511, 2, FALSE);	/* (-512 .. 511) << 2 */
@@ -990,8 +992,6 @@ const struct mips_opcode micromips_opcodes[] =
 {"sdc1",		"E,A(b)",	0,    (int) M_SDC1_AB,	INSN_MACRO,		INSN2_M_FP_D,	I1,		0,	0 },
 {"sdc2",		"E,~(b)",	0x2000a000, 0xfc00f000,	RD_3|RD_C2|SM,		0,		I1,		0,	0 },
 {"sdc2",		"E,A(b)",	0,    (int) M_SDC2_AB,	INSN_MACRO,		0,		I1,		0,	0 },
-{"seleqz",		"d,s,t",	0x00000140, 0xfc0007ff, WR_1|RD_2|RD_3, 	0,		I37,		0,	0 },
-{"selnez",		"d,s,t",	0x00000180, 0xfc0007ff, WR_1|RD_2|RD_3, 	0,		I37,		0,	0 },
 {"s.d",			"T,o(b)",	0xb8000000, 0xfc000000,	RD_1|RD_3|SM|FP_D,	0,		I1,		0,	0 }, /* sdc1 */
 {"s.d",			"T,A(b)",	0,    (int) M_SDC1_AB,	INSN_MACRO,		INSN2_M_FP_D,	I1,		0,	0 },
 {"sdl",			"t,~(b)",	0x6000c000, 0xfc00f000,	RD_1|RD_3|SM,		0,		I3,		0,	I37 },
@@ -1155,6 +1155,32 @@ const struct mips_opcode micromips_opcodes[] =
 
 {"align",		"d,s,t,+I",	0x0000001f, 0xfc0001ff,	WR_1|RD_2|RD_3,		0,		I37,		0,	0 },
 {"bitswap",		"v,w",		0x00000b3c, 0xfc00ffff,	WR_1|RD_2,		0,		I37,		0,	0 },
+
+{"maddf.s",		"D,S,T",	0x540001b8, 0xfc0007ff,	MOD_1|RD_2|RD_3|FP_S,	0,		I37,		0,	0 },
+{"maddf.d",		"D,S,T",	0x540003b8, 0xfc0007ff,	MOD_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 },
+{"msubf.s",		"D,S,T",	0x540001f8, 0xfc0007ff,	MOD_1|RD_2|RD_3|FP_S,	0,		I37,		0,	0 },
+{"msubf.d",		"D,S,T",	0x540003f8, 0xfc0007ff,	MOD_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 },
+{"sel.s",		"D,S,T",	0x540000b8, 0xfc0007ff, MOD_1|RD_2|RD_3|FP_S,   0,		I37,		0,	0 },
+{"sel.d",		"D,S,T",	0x540002b8, 0xfc0007ff, MOD_1|RD_2|RD_3|FP_D,   0,		I37,		0,	0 },
+{"seleqz",		"d,s,t",	0x00000140, 0xfc0007ff, WR_1|RD_2|RD_3, 	0,		I37,		0,	0 },
+{"seleqz.s",		"D,S,T",	0x54000038, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,		I37,		0,	0 },
+{"seleqz.d",		"D,S,T",	0x54000238, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 },
+{"selnez",		"d,s,t",	0x00000180, 0xfc0007ff, WR_1|RD_2|RD_3, 	0,		I37,		0,	0 },
+{"selnez.s",		"D,S,T",	0x54000078, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,		I37,		0,	0 },
+{"selnez.d",		"D,S,T",	0x54000278, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 },
+
+{"class.s",		"+D,+S",	0x54000060, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,		I37,		0,	0 },
+{"class.d",		"+D,+S",	0x54000860, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,		I37,		0,	0 },
+{"min.s",		"D,S,T",	0x54000003, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 },
+{"min.d",		"D,S,T",	0x54000043, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 },
+{"max.s",		"D,S,T",	0x5400000b, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 },
+{"max.d",		"D,S,T",	0x5400004b, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 },
+{"mina.s",		"D,S,T",	0x54000023, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_S,	0,		I37,		0,	0 },
+{"mina.d",		"D,S,T",	0x54000063, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 },
+{"maxa.s",		"D,S,T",	0x5400002b, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_S,	0,		I37,		0,	0 },
+{"maxa.d",		"D,S,T",	0x5400006b, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 }, 
+{"rint.s",		"+D,+S",	0x54000020, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,		I37,		0,	0 },
+{"rint.d",		"+D,+S",	0x54000820, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,		I37,		0,	0 },
 
 /* microMIPS Enhanced VA Scheme */
 {"lbue",		"t,+j(b)",	0x60006000, 0xfc00fe00, WR_1|RD_3|LM,		0,		0,		EVA,	0 },
