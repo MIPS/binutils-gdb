@@ -6781,7 +6781,9 @@ get_append_method (struct mips_cl_insn *ip, expressionS *address_expr,
   /* Otherwise, it's our responsibility to fill branch delay slots.  */
   if (delayed_branch_p (ip))
     {
+      /* We do not swap if a branch has a forbidden slot.  */
       if (!branch_likely_p (ip)
+          && !(ip->insn_mo->pinfo2 & INSN2_FORBIDDEN_SLOT)
 	  && can_swap_branch_p (ip, address_expr, reloc_type))
 	return APPEND_SWAP;
 
