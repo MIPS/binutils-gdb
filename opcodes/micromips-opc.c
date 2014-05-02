@@ -1085,6 +1085,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"sync_wmb",		"",		0x00046b7c, 0xffffffff,	NODS,			0,		I1,		0,	0 },
 {"sync",		"",		0x00006b7c, 0xffffffff,	NODS,			0,		I1,		0,	0 },
 {"sync",		"1",		0x00006b7c, 0xffe0ffff,	NODS,			0,		I1,		0,	0 },
+{"synci",		"o(b)",		0x41800000, 0xffe00000,	RD_2|SM,		0,		I37,		0,	0 },
 {"synci",		"o(b)",		0x42000000, 0xffe00000,	RD_2|SM,		0,		I1,		0,	I37 },
 {"syscall",		"",		0x00008b7c, 0xffffffff,	TRAP,			0,		I1,		0,	0 },
 {"syscall",		"B",		0x00008b7c, 0xfc00ffff,	TRAP,			0,		I1,		0,	0 },
@@ -1180,6 +1181,13 @@ const struct mips_opcode micromips_opcodes[] =
 {"maxa.d",		"D,S,T",	0x5400006b, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 }, 
 {"rint.s",		"+D,+S",	0x54000020, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,		I37,		0,	0 },
 {"rint.d",		"+D,+S",	0x54000820, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,		I37,		0,	0 },
+
+{"bc1eqzc",		"+D,p",		0x41000000, 0xffe00000,	RD_1|CBD|FP_D|NODS,	0,		I37,		0,	0 },
+{"bc1nezc",		"+D,p",		0x41200000, 0xffe00000,	RD_1|CBD|FP_D|NODS,	0,		I37,		0,	0 },
+{"bc2eqzc",		"G,p",		0x41400000, 0xffe00000, RD_C2|CBD|NODS,		0,		I37,		0,	0 },
+{"bc2nezc",		"G,p",		0x41600000, 0xffe00000, RD_C2|CBD|NODS,		0,		I37,		0,	0 },
+{"dahi",		"s,mx,u",	0x42200000, 0xffe00000,	MOD_1,			0,		I69,		0,	0 },
+{"dati",		"s,mx,u",	0x42000000, 0xffe00000,	MOD_1,			0,		I69,		0,	0 },
 
 /* microMIPS Enhanced VA Scheme */
 {"lbue",		"t,+j(b)",	0x60006000, 0xfc00fe00, WR_1|RD_3|LM,		0,		0,		EVA,	0 },
