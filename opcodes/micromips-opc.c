@@ -729,7 +729,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"jr",			"mj",		    0x4580,     0xffe0,	RD_1|UBD,		0,		I1,		0,	I37 },
 {"jr",			"s",		0x00000f3c, 0xffe0ffff,	0,			INSN2_ALIAS,	I37,		0,	0 }, /* jalr */
 {"jr",			"s",		0x00000f3c, 0xffe0ffff,	RD_1|UBD,		BD32,		I1,		0,	I37 }, /* jalr */
-{"jrs",			"s",		0x00004f3c, 0xffe0ffff,	RD_1|UBD,		BD16,		I1,		0,	0 }, /* jalrs */
+{"jrs",			"s",		0x00004f3c, 0xffe0ffff,	RD_1|UBD,		BD16,		I1,		0,	I37 }, /* jalrs */
 {"jraddiusp",		"+P",		    0x4404,     0xfc1f,	NODS,			WR_sp|RD_31|RD_sp|UBR, I37,	0,	0 },
 {"jraddiusp",		"mP",		    0x4700,     0xffe0,	NODS,			WR_sp|RD_31|RD_sp|UBR, I1,	0,	I37 },
 /* This macro is after the real instruction so that it only matches with
@@ -742,7 +742,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"jrc",			"s",		0,    (int) M_JRC,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"jr.hb",		"s",		0x00001f3c, 0xffe0ffff,	0,			INSN2_ALIAS,	I37,		0,	0 }, /* jalr.hb */
 {"jr.hb",		"s",		0x00001f3c, 0xffe0ffff,	RD_1|UBD,		BD32,		I1,		0,	I37 }, /* jalr.hb */
-{"jrs.hb",		"s",		0x00005f3c, 0xffe0ffff,	RD_1|UBD,		BD16,		I1,		0,	0 }, /* jalrs.hb */
+{"jrs.hb",		"s",		0x00005f3c, 0xffe0ffff,	RD_1|UBD,		BD16,		I1,		0,	I37 }, /* jalrs.hb */
 {"j",			"mp",		    0x440b,     0xfc1f,	RD_1|UBD|NODS,		0,		I37,		0,	0 }, /* jr */
 {"j",			"mj",		    0x4580,     0xffe0,	RD_1|UBD,		0,		I1,		0,	I37 }, /* jr */
 {"j",			"s",		0x00000f3c, 0xffe0ffff,	RD_1|UBD|NODS,		0,		I37,		0,	0 }, /* jr */
