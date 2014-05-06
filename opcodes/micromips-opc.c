@@ -109,7 +109,7 @@ decode_micromips_operand (const char *p)
 	case 'G': MSB (5, 11, 33, FALSE, 64);	 /* (33 .. 64), 64-bit op */
 	case 'H': MSB (5, 11, 1, FALSE, 64);	 /* (1 .. 32), 64-bit op */
 	case 'I': UINT (2, 9);
-	case 'O': UINT (3, 9);
+	case 'O': UINT (3, 8);
 	case 'S': REG (5, 21, FP);
 	case 'T': INT_ADJ (10, 16, 511, 0, FALSE);	/* (-512 .. 511) << 0 */
 	case 'U': INT_ADJ (10, 16, 511, 1, FALSE);	/* (-512 .. 511) << 1 */
@@ -589,11 +589,13 @@ const struct mips_opcode micromips_opcodes[] =
 {"dextm",		"t,r,+A,+G",	0x58000024, 0xfc00003f, WR_1|RD_2,		0,		I3,		0,	0 },
 {"dextu",		"t,r,+E,+H",	0x58000014, 0xfc00003f, WR_1|RD_2,		0,		I3,		0,	0 },
 /* For ddiv, see the comments about div.  */
+{"ddiv",		"d,s,t",	0x58000118, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		I69,		0,	0 },
 {"ddiv",		"z,s,t",	0x5800ab3c, 0xfc00ffff,	RD_2|RD_3|WR_HILO,	0,		I3,		0,	I69 },
 {"ddiv",		"z,t",		0x5800ab3c, 0xfc1fffff,	RD_2|WR_HILO,		0,		I3,		0,	I69 },
 {"ddiv",		"d,v,t",	0,    (int) M_DDIV_3,	INSN_MACRO,		0,		I3,		0,	I69 },
 {"ddiv",		"d,v,I",	0,    (int) M_DDIV_3I,	INSN_MACRO,		0,		I3,		0,	I69 },
 /* For ddivu, see the comments about div.  */
+{"ddivu",		"d,s,t",	0x58000198, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		I69,		0,	0 },
 {"ddivu",		"z,s,t",	0x5800bb3c, 0xfc00ffff,	RD_2|RD_3|WR_HILO,	0,		I3,		0,	I69 },
 {"ddivu",		"z,t",		0x5800bb3c, 0xfc1fffff,	RD_2|WR_HILO,		0,		I3,		0,	I69 },
 {"ddivu",		"d,v,t",	0,    (int) M_DDIVU_3,	INSN_MACRO,		0,		I3,		0,	I69 },
@@ -643,6 +645,11 @@ const struct mips_opcode micromips_opcodes[] =
 /*{"dmfc2",		"t,G,H",	0x58000283, 0xfc001fff,	WR_1|RD_C2,		0,		I3,		0,	0 },*/
 {"dmtc2",		"t,G",		0x00007d3c, 0xfc00ffff,	RD_1|WR_C2|WR_CC,	0,		I3,		0,	0 },
 /*{"dmtc2",		"t,G,H",	0x58000683, 0xfc001fff,	RD_1|WR_C2|WR_CC,	0,		I3,		0,	0 },*/
+{"dmod",		"d,s,t",	0x58000158, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		I69,		0,	0 },
+{"dmodu",		"d,s,t",	0x580001d8, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		I69,		0,	0 },
+{"dmuh",		"d,s,t",	0x58000058, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		I69,		0,	0 },
+{"dmuhu",		"d,s,t",	0x580000d8, 0xfc0007ff, WR_1|RD_2|RD_3,      	0,		I69,		0,	0 },
+{"dmul",		"d,s,t",	0x58000018, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		I69,		0,	0 },
 {"dmul",		"d,v,t",	0,    (int) M_DMUL,	INSN_MACRO,		0,		I3,		0,	0 },
 {"dmul",		"d,v,I",	0,    (int) M_DMUL_I,	INSN_MACRO,		0,		I3,		0,	0 },
 {"dmulo",		"d,v,t",	0,    (int) M_DMULO,	INSN_MACRO,		0,		I3,		0,	0 },
@@ -651,6 +658,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"dmulou",		"d,v,I",	0,    (int) M_DMULOU_I,	INSN_MACRO,		0,		I3,		0,	0 },
 {"dmult",		"s,t",		0x58008b3c, 0xfc00ffff,	RD_1|RD_2|WR_HILO,	0,		I3,		0,	I69 },
 {"dmultu",		"s,t",		0x58009b3c, 0xfc00ffff,	RD_1|RD_2|WR_HILO,	0,		I3,		0,	I69 },
+{"dmulu",		"d,s,t",	0x58000098, 0xfc0007ff, WR_1|RD_2|RD_3,      	0,		I69,		0,	0 },
 {"dneg",		"d,w",		0x58000190, 0xfc1f07ff,	WR_1|RD_2,		0,		I3,		0,	0 }, /* dsub 0 */
 {"dnegu",		"d,w",		0x580001d0, 0xfc1f07ff,	WR_1|RD_2,		0,		I3,		0,	0 }, /* dsubu 0 */
 {"drem",		"z,s,t",	0x5800ab3c, 0xfc00ffff,	RD_2|RD_3|WR_HILO,	0,		I3,		0,	0 },
@@ -1154,7 +1162,9 @@ const struct mips_opcode micromips_opcodes[] =
 /* microMIPS R6 */
 
 {"align",		"d,s,t,+I",	0x0000001f, 0xfc0001ff,	WR_1|RD_2|RD_3,		0,		I37,		0,	0 },
+{"dalign",		"d,s,t,+O",	0x5800001c, 0xfc0000ff,	WR_1|RD_2|RD_3,		0,		I69,		0,	0 },
 {"bitswap",		"v,w",		0x00000b3c, 0xfc00ffff,	WR_1|RD_2,		0,		I37,		0,	0 },
+{"dbitswap",		"v,w",		0x58000b3c, 0xfc00ffff,	WR_1|RD_2,		0,		I69,		0,	0 },
 
 {"maddf.s",		"D,S,T",	0x540001b8, 0xfc0007ff,	MOD_1|RD_2|RD_3|FP_S,	0,		I37,		0,	0 },
 {"maddf.d",		"D,S,T",	0x540003b8, 0xfc0007ff,	MOD_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 },
