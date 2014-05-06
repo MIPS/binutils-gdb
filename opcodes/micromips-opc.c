@@ -109,6 +109,8 @@ decode_micromips_operand (const char *p)
 	case 'G': MSB (5, 11, 33, FALSE, 64);	 /* (33 .. 64), 64-bit op */
 	case 'H': MSB (5, 11, 1, FALSE, 64);	 /* (1 .. 32), 64-bit op */
 	case 'I': UINT (2, 9);
+	case 'J': INT_ADJ (4, 4, 15, 2, FALSE);	 /* (0 .. 15) << 2 */
+	case 'N': SPECIAL (2, 8, LWM_SWM_LIST);
 	case 'O': UINT (3, 8);
 	case 'S': REG (5, 21, FP);
 	case 'T': INT_ADJ (10, 16, 511, 0, FALSE);	/* (-512 .. 511) << 0 */
@@ -827,7 +829,8 @@ const struct mips_opcode micromips_opcodes[] =
 {"lwl",			"t,A(b)",	0,    (int) M_LWL_AB,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"lcache",		"t,~(b)",	0x60000000, 0xfc00f000,	WR_1|RD_3|LM,		0,		I1,		0,	0 }, /* same */
 {"lcache",		"t,A(b)",	0,    (int) M_LWL_AB,	INSN_MACRO,		0,		I1,		0,	0 },
-{"lwm",			"mN,mJ(ms)",	    0x4500,     0xffc0,	RD_3|NODS|LM,		0,		I1,		0,	0 },
+{"lwm",			"+N,+J(ms)",	    0x4402,     0xfc0f,	RD_3|NODS|LM,		0,		I37,		0,	0 },
+{"lwm",			"mN,mJ(ms)",	    0x4500,     0xffc0,	RD_3|NODS|LM,		0,		I1,		0,	I37 },
 {"lwm",			"n,~(b)",	0x20005000, 0xfc00f000,	RD_3|NODS|LM,		0,		I1,		0,	0 },
 {"lwm",			"n,A(b)",	0,    (int) M_LWM_AB,	INSN_MACRO,		0,		I1,		0,	0 },
 {"lwp",			"t,~(b)",	0x20001000, 0xfc00f000,	WR_1|RD_3|NODS|LM,	0,		I1,		0,	0 },
@@ -950,8 +953,10 @@ const struct mips_opcode micromips_opcodes[] =
 {"not",			"md,ml",	    0x4400,     0xfc0f,	WR_1|RD_2,		0,		I37,		0,	0 }, /* put not before nor */
 {"not",			"mf,mg",	    0x4400,     0xffc0,	WR_1|RD_2,		0,		I1,		0,	I37 }, /* put not before nor */
 {"not",			"d,v",		0x000002d0, 0xffe007ff,	WR_1|RD_2,		0,		I1,		0,	0 }, /* nor d,s,0 */
-{"nor",			"mf,mz,mg",	    0x4400,     0xffc0,	WR_1|RD_3,		0,		I1,		0,	0 }, /* not */
-{"nor",			"mf,mg,mz",	    0x4400,     0xffc0,	WR_1|RD_2,		0,		I1,		0,	0 }, /* not */
+{"nor",			"md,mz,ml",	    0x4400,     0xfc0f,	WR_1|RD_3,		0,		I37,		0,	0 }, /* not */
+{"nor",			"md,ml,mz",	    0x4400,     0xfc0f,	WR_1|RD_2,		0,		I37,		0,	0 }, /* not */
+{"nor",			"mf,mz,mg",	    0x4400,     0xffc0,	WR_1|RD_3,		0,		I1,		0,	I37 }, /* not */
+{"nor",			"mf,mg,mz",	    0x4400,     0xffc0,	WR_1|RD_2,		0,		I1,		0,	I37 }, /* not */
 {"nor",			"d,v,t",	0x000002d0, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,		I1,		0,	0 },
 {"nor",			"t,r,I",	0,    (int) M_NOR_I,	INSN_MACRO,		0,		I1,		0,	0 },
 {"or",			"mp,mj,mz",	    0x0c00,     0xfc00,	WR_1|RD_2,		0,		I1,		0,	0 }, /* move */
@@ -1093,7 +1098,8 @@ const struct mips_opcode micromips_opcodes[] =
 {"swl",			"t,A(b)",	0,    (int) M_SWL_AB,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"scache",		"t,~(b)",	0x60008000, 0xfc00f000,	RD_1|RD_3|SM,		0,		I1,		0,	0 }, /* same */
 {"scache",		"t,A(b)",	0,    (int) M_SWL_AB,	INSN_MACRO,		0,		I1,		0,	0 },
-{"swm",			"mN,mJ(ms)",    0x4540,     0xffc0,	RD_3|NODS,		0,		I1,		0,	0 },
+{"swm",			"+N,+J(ms)",    0x440a,     0xfc0f,	RD_3|NODS,		0,		I37,		0,	0 },
+{"swm",			"mN,mJ(ms)",    0x4540,     0xffc0,	RD_3|NODS,		0,		I1,		0,	I37 },
 {"swm",			"n,~(b)",	0x2000d000, 0xfc00f000,	RD_3|SM|NODS,		0,		I1,		0,	0 },
 {"swm",			"n,A(b)",	0,    (int) M_SWM_AB,	INSN_MACRO,		0,		I1,		0,	0 },
 {"swp",			"t,~(b)",	0x20009000, 0xfc00f000,	RD_1|RD_3|SM|NODS,	0,		I1,		0,	0 },

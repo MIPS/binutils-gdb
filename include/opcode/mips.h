@@ -2205,6 +2205,8 @@ extern const int bfd_mips16_num_opcodes;
    microMIPS R6:
    "+D" 5-bit destination floating point register
    "+I" 2bit unsigned bit position at bit 9
+   "+J" 4-bit immediate (0 .. 15) << 2 at bit 4
+   "+N" 2-bit immediate (0 .. 3) for register list at bit 8
    "+O" 3bit unsigned bit position at bit 9
    "+S" 5-bit fs source 1 floating point register
 
@@ -2251,7 +2253,7 @@ extern const int bfd_mips16_num_opcodes;
    following), for quick reference when adding more:
    ""
    "~!@#$%^&*|"
-   "ABCDEFGHIOSTUVW"
+   "ABCDEFGHIJNOSTUVW"
    "dehijklnouvwx"
 
    Extension character sequences used so far ("m" followed by the
