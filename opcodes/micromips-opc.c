@@ -351,8 +351,10 @@ const struct mips_opcode micromips_opcodes[] =
 {"addu",		"d,v,t",	0x00000150, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,		I1,		0,	0 },
 {"addu",		"t,r,I",	0,    (int) M_ADDU_I,	INSN_MACRO,		0,		I1,		0,	0 },
 {"alnv.ps",		"D,V,T,y",	0x54000019, 0xfc00003f,	WR_1|RD_2|RD_3|RD_4|FP_D, 0,		I1,		0,	I37 },
-{"and",			"mf,mt,mg",	    0x4480,     0xffc0,	MOD_1|RD_3,		0,		I1,		0,	0 },
-{"and",			"mf,mg,mx",	    0x4480,     0xffc0,	MOD_1|RD_2,		0,		I1,		0,	0 },
+{"and",			"md,mt,ml",	    0x4401,     0xfc0f,	MOD_1|RD_3,		0,		I37,		0,	0 },
+{"and",			"md,ml,mx",	    0x4401,     0xfc0f,	MOD_1|RD_2,		0,		I37,		0,	0 },
+{"and",			"mf,mt,mg",	    0x4480,     0xffc0,	MOD_1|RD_3,		0,		I1,		0,	I37 },
+{"and",			"mf,mg,mx",	    0x4480,     0xffc0,	MOD_1|RD_2,		0,		I1,		0,	I37 },
 {"and",			"d,v,t",	0x00000250, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,		I1,		0,	0 },
 {"and",			"t,r,I",	0,    (int) M_AND_I,	INSN_MACRO,		0,		I1,		0,	0 },
 {"andi",		"md,mc,mC",	    0x2c00,     0xfc00,	WR_1|RD_2,		0,		I1,		0,	0 },
@@ -933,7 +935,8 @@ const struct mips_opcode micromips_opcodes[] =
 {"nmsub.s",		"D,R,S,T",	0x54000022, 0xfc00003f,	WR_1|RD_2|RD_3|RD_4|FP_S, 0,		I1,		0,	I37 },
 {"nmsub.ps",		"D,R,S,T",	0x54000032, 0xfc00003f,	WR_1|RD_2|RD_3|RD_4|FP_D, 0,		I1,		0,	I37 },
 /* nop is at the start of the table.  */
-{"not",			"mf,mg",	    0x4400,     0xffc0,	WR_1|RD_2,		0,		I1,		0,	0 }, /* put not before nor */
+{"not",			"md,ml",	    0x4400,     0xfc0f,	WR_1|RD_2,		0,		I37,		0,	0 }, /* put not before nor */
+{"not",			"mf,mg",	    0x4400,     0xffc0,	WR_1|RD_2,		0,		I1,		0,	I37 }, /* put not before nor */
 {"not",			"d,v",		0x000002d0, 0xffe007ff,	WR_1|RD_2,		0,		I1,		0,	0 }, /* nor d,s,0 */
 {"nor",			"mf,mz,mg",	    0x4400,     0xffc0,	WR_1|RD_3,		0,		I1,		0,	0 }, /* not */
 {"nor",			"mf,mg,mz",	    0x4400,     0xffc0,	WR_1|RD_2,		0,		I1,		0,	0 }, /* not */
@@ -941,8 +944,10 @@ const struct mips_opcode micromips_opcodes[] =
 {"nor",			"t,r,I",	0,    (int) M_NOR_I,	INSN_MACRO,		0,		I1,		0,	0 },
 {"or",			"mp,mj,mz",	    0x0c00,     0xfc00,	WR_1|RD_2,		0,		I1,		0,	0 }, /* move */
 {"or",			"mp,mz,mj",	    0x0c00,     0xfc00,	WR_1|RD_3,		0,		I1,		0,	0 }, /* move */
-{"or",			"mf,mt,mg",	    0x44c0,     0xffc0,	MOD_1|RD_3,		0,		I1,		0,	0 },
-{"or",			"mf,mg,mx",	    0x44c0,     0xffc0,	MOD_1|RD_2,		0,		I1,		0,	0 },
+{"or",			"md,mt,ml",	    0x4409,     0xfc0f,	MOD_1|RD_3,		0,		I37,		0,	0 },
+{"or",			"md,ml,mx",	    0x4409,     0xfc0f,	MOD_1|RD_2,		0,		I37,		0,	0 },
+{"or",			"mf,mt,mg",	    0x44c0,     0xffc0,	MOD_1|RD_3,		0,		I1,		0,	I37 },
+{"or",			"mf,mg,mx",	    0x44c0,     0xffc0,	MOD_1|RD_2,		0,		I1,		0,	I37 },
 {"or",			"d,v,t",	0x00000290, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,		I1,		0,	0 },
 {"or",			"t,r,I",	0,    (int) M_OR_I,	INSN_MACRO,		0,		I1,		0,	0 },
 {"ori",			"mp,mj,mZ",	    0x0c00,     0xfc00,	WR_1|RD_2,		0,		I1,		0,	0 }, /* move */
@@ -1154,8 +1159,10 @@ const struct mips_opcode micromips_opcodes[] =
 {"wait",		"B",		0x0000937c, 0xfc00ffff,	NODS,			0,		I1,		0,	0 },
 {"wrpgpr",		"t,r",		0x0000f17c, 0xfc00ffff,	RD_2,			0,		I1,		0,	0 },
 {"wsbh",		"t,r",		0x00007b3c, 0xfc00ffff,	WR_1|RD_2,		0,		I1,		0,	0 },
-{"xor",			"mf,mt,mg",	    0x4440,     0xffc0,	MOD_1|RD_3,		0,		I1,		0,	0 },
-{"xor",			"mf,mg,mx",	    0x4440,     0xffc0,	MOD_1|RD_2,		0,		I1,		0,	0 },
+{"xor",			"md,mt,ml",	    0x4408,     0xfc0f,	MOD_1|RD_3,		0,		I37,		0,	0 },
+{"xor",			"md,ml,mx",	    0x4408,     0xfc0f,	MOD_1|RD_2,		0,		I37,		0,	0 },
+{"xor",			"mf,mt,mg",	    0x4440,     0xffc0,	MOD_1|RD_3,		0,		I1,		0,	I37 },
+{"xor",			"mf,mg,mx",	    0x4440,     0xffc0,	MOD_1|RD_2,		0,		I1,		0,	I37 },
 {"xor",			"d,v,t",	0x00000310, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,		I1,		0,	0 },
 {"xor",			"t,r,I",	0,    (int) M_XOR_I,	INSN_MACRO,		0,		I1,		0,	0 },
 {"xori",		"t,r,i",	0x70000000, 0xfc000000,	WR_1|RD_2,		0,		I1,		0,	0 },
