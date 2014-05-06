@@ -722,23 +722,28 @@ const struct mips_opcode micromips_opcodes[] =
 {"hypcall",		"B",		0x0000c37c, 0xfc00ffff,	TRAP,			0,		0,		IVIRT,	0 },
 {"ins",			"t,r,+A,+B",	0x0000000c, 0xfc00003f, WR_1|RD_2,		0,		I1,		0,	0 },
 {"iret",		"",		0x0000d37c, 0xffffffff,	NODS,			0,		0,		MC,	0 },
-{"jr",			"mj",		    0x4580,     0xffe0,	RD_1|UBD,		0,		I1,		0,	0 },
-{"jr",			"s",		0x00000f3c, 0xffe0ffff,	RD_1|UBD,		BD32,		I1,		0,	0 }, /* jalr */
+{"jr",			"mp",		    0x440b,     0xfc1f,	0,			INSN2_ALIAS,	I37,		0,	0 }, /* jalrc */
+{"jr",			"mj",		    0x4580,     0xffe0,	RD_1|UBD,		0,		I1,		0,	I37 },
+{"jr",			"s",		0x00000f3c, 0xffe0ffff,	0,			INSN2_ALIAS,	I37,		0,	0 }, /* jalr */
+{"jr",			"s",		0x00000f3c, 0xffe0ffff,	RD_1|UBD,		BD32,		I1,		0,	I37 }, /* jalr */
 {"jrs",			"s",		0x00004f3c, 0xffe0ffff,	RD_1|UBD,		BD16,		I1,		0,	0 }, /* jalrs */
 {"jraddiusp",		"+P",		    0x4404,     0xfc1f,	NODS,			WR_sp|RD_31|RD_sp|UBR, I37,	0,	0 },
 {"jraddiusp",		"mP",		    0x4700,     0xffe0,	NODS,			WR_sp|RD_31|RD_sp|UBR, I1,	0,	I37 },
 /* This macro is after the real instruction so that it only matches with
    -minsn32.  */
-{"jraddiusp",		"mP",		0,   (int) M_JRADDIUSP,	INSN_MACRO,		0,		I1,		0,	0 },
+{"jraddiusp",		"mP",		0,   (int) M_JRADDIUSP,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"jrc",			"mp",		    0x4403,     0xfc1f,	RD_1|NODS,		UBR,		I37,		0,	0 },
 {"jrc",			"mj",		    0x45a0,     0xffe0,	RD_1|NODS,		UBR,		I1,		0,	I37 },
 /* This macro is after the real instruction so that it only matches with
    -minsn32.  */
-{"jrc",			"s",		0,    (int) M_JRC,	INSN_MACRO,		0,		I1,		0,	0 },
-{"jr.hb",		"s",		0x00001f3c, 0xffe0ffff,	RD_1|UBD,		BD32,		I1,		0,	0 }, /* jalr.hb */
+{"jrc",			"s",		0,    (int) M_JRC,	INSN_MACRO,		0,		I1,		0,	I37 },
+{"jr.hb",		"s",		0x00001f3c, 0xffe0ffff,	0,			INSN2_ALIAS,	I37,		0,	0 }, /* jalr.hb */
+{"jr.hb",		"s",		0x00001f3c, 0xffe0ffff,	RD_1|UBD,		BD32,		I1,		0,	I37 }, /* jalr.hb */
 {"jrs.hb",		"s",		0x00005f3c, 0xffe0ffff,	RD_1|UBD,		BD16,		I1,		0,	0 }, /* jalrs.hb */
-{"j",			"mj",		    0x4580,     0xffe0,	RD_1|UBD,		0,		I1,		0,	0 }, /* jr */
-{"j",			"s",		0x00000f3c, 0xffe0ffff,	RD_1|UBD,		BD32,		I1,		0,	0 }, /* jr */
+{"j",			"mp",		    0x440b,     0xfc1f,	RD_1|UBD|NODS,		0,		I37,		0,	0 }, /* jr */
+{"j",			"mj",		    0x4580,     0xffe0,	RD_1|UBD,		0,		I1,		0,	I37 }, /* jr */
+{"j",			"s",		0x00000f3c, 0xffe0ffff,	RD_1|UBD|NODS,		0,		I37,		0,	0 }, /* jr */
+{"j",			"s",		0x00000f3c, 0xffe0ffff,	RD_1|UBD,		BD32,		I1,		0,	I37 }, /* jr */
 /* SVR4 PIC code requires special handling for j, so it must be a
    macro.  */
 {"j",			"a",		0,    (int) M_J_A,	INSN_MACRO,		0,		I1,		0,	0 },
@@ -746,14 +751,20 @@ const struct mips_opcode micromips_opcodes[] =
    assembler, but will never match user input (because the line above
    will match first).  */
 {"j",			"a",		0xd4000000, 0xfc000000,	UBD,			0,		I1,		0,	0 },
-{"jalrc",		"mp",		    0x440b,     0xfc1f,	RD_1|WR_31|UBD,		0,		I37,		0,	0 },
-{"jalrc",		"my,mp",	    0x440b,     0xfc1f,	RD_2|WR_31|UBD,		0,		I37,		0,	0 },
+{"jalrc",		"mp",		    0x440b,     0xfc1f,	RD_1|WR_31|UBD|NODS,	0,		I37,		0,	0 },
+{"jalrc",		"my,mp",	    0x440b,     0xfc1f,	RD_2|WR_31|UBD|NODS,	0,		I37,		0,	0 },
+{"jalr",		"mp",		    0x440b,     0xfc1f, 0,			INSN2_ALIAS,	I37,		0,	0 },
+{"jalr",		"my,mp",	    0x440b,     0xfc1f, 0,			INSN2_ALIAS,	I37,		0,	0 },
 {"jalr",		"mj",		    0x45c0,     0xffe0,	RD_1|WR_31|UBD,		BD32,		I1,		0,	I37 },
 {"jalr",		"my,mj",	    0x45c0,     0xffe0,	RD_2|WR_31|UBD,		BD32,		I1,		0,	I37 },
-{"jalr",		"s",		0x03e00f3c, 0xffe0ffff,	RD_1|WR_31|UBD,		BD32,		I1,		0,	0 },
-{"jalr",		"t,s",		0x00000f3c, 0xfc00ffff,	WR_1|RD_2|UBD,		BD32,		I1,		0,	0 },
-{"jalr.hb",		"s",		0x03e01f3c, 0xffe0ffff,	RD_1|WR_31|UBD,		BD32,		I1,		0,	0 },
-{"jalr.hb",		"t,s",		0x00001f3c, 0xfc00ffff,	WR_1|RD_2|UBD,		BD32,		I1,		0,	0 },
+{"jalr",		"s",		0x03e00f3c, 0xffe0ffff,	RD_1|WR_31|UBD|NODS,	0,		I37,		0,	0 },
+{"jalr",		"t,s",		0x00000f3c, 0xfc00ffff,	WR_1|RD_2|UBD|NODS,	0,		I37,		0,	0 },
+{"jalr",		"s",		0x03e00f3c, 0xffe0ffff,	RD_1|WR_31|UBD,		BD32,		I1,		0,	I37 },
+{"jalr",		"t,s",		0x00000f3c, 0xfc00ffff,	WR_1|RD_2|UBD,		BD32,		I1,		0,	I37 },
+{"jalr.hb",		"s",		0x03e01f3c, 0xffe0ffff,	RD_1|WR_31|UBD|NODS,	0,		I37,		0,	0 },
+{"jalr.hb",		"t,s",		0x00001f3c, 0xfc00ffff,	WR_1|RD_2|UBD|NODS,	0,		I37,		0,	0 },
+{"jalr.hb",		"s",		0x03e01f3c, 0xffe0ffff,	RD_1|WR_31|UBD,		BD32,		I1,		0,	I37 },
+{"jalr.hb",		"t,s",		0x00001f3c, 0xfc00ffff,	WR_1|RD_2|UBD,		BD32,		I1,		0,	I37 },
 {"jalrs",		"mj",		    0x45e0,     0xffe0,	RD_1|WR_31|UBD,		BD16,		I1,		0,	I37 },
 {"jalrs",		"my,mj",	    0x45e0,     0xffe0,	RD_2|WR_31|UBD,		BD16,		I1,		0,	I37 },
 {"jalrs",		"s",		0x03e04f3c, 0xffe0ffff,	RD_1|WR_31|UBD,		BD16,		I1,		0,	I37 },
