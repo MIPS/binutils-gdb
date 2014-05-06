@@ -730,7 +730,8 @@ const struct mips_opcode micromips_opcodes[] =
 /* This macro is after the real instruction so that it only matches with
    -minsn32.  */
 {"jraddiusp",		"mP",		0,   (int) M_JRADDIUSP,	INSN_MACRO,		0,		I1,		0,	0 },
-{"jrc",			"mj",		    0x45a0,     0xffe0,	RD_1|NODS,		UBR,		I1,		0,	0 },
+{"jrc",			"mp",		    0x4403,     0xfc1f,	RD_1|NODS,		UBR,		I37,		0,	0 },
+{"jrc",			"mj",		    0x45a0,     0xffe0,	RD_1|NODS,		UBR,		I1,		0,	I37 },
 /* This macro is after the real instruction so that it only matches with
    -minsn32.  */
 {"jrc",			"s",		0,    (int) M_JRC,	INSN_MACRO,		0,		I1,		0,	0 },
@@ -745,8 +746,10 @@ const struct mips_opcode micromips_opcodes[] =
    assembler, but will never match user input (because the line above
    will match first).  */
 {"j",			"a",		0xd4000000, 0xfc000000,	UBD,			0,		I1,		0,	0 },
-{"jalr",		"mj",		    0x45c0,     0xffe0,	RD_1|WR_31|UBD,		BD32,		I1,		0,	0 },
-{"jalr",		"my,mj",	    0x45c0,     0xffe0,	RD_2|WR_31|UBD,		BD32,		I1,		0,	0 },
+{"jalrc",		"mp",		    0x440b,     0xfc1f,	RD_1|WR_31|UBD,		0,		I37,		0,	0 },
+{"jalrc",		"my,mp",	    0x440b,     0xfc1f,	RD_2|WR_31|UBD,		0,		I37,		0,	0 },
+{"jalr",		"mj",		    0x45c0,     0xffe0,	RD_1|WR_31|UBD,		BD32,		I1,		0,	I37 },
+{"jalr",		"my,mj",	    0x45c0,     0xffe0,	RD_2|WR_31|UBD,		BD32,		I1,		0,	I37 },
 {"jalr",		"s",		0x03e00f3c, 0xffe0ffff,	RD_1|WR_31|UBD,		BD32,		I1,		0,	0 },
 {"jalr",		"t,s",		0x00000f3c, 0xfc00ffff,	WR_1|RD_2|UBD,		BD32,		I1,		0,	0 },
 {"jalr.hb",		"s",		0x03e01f3c, 0xffe0ffff,	RD_1|WR_31|UBD,		BD32,		I1,		0,	0 },
