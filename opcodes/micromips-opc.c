@@ -110,8 +110,10 @@ decode_micromips_operand (const char *p)
 	case 'H': MSB (5, 11, 1, FALSE, 64);	 /* (1 .. 32), 64-bit op */
 	case 'I': UINT (2, 9);
 	case 'J': INT_ADJ (4, 4, 15, 2, FALSE);	 /* (0 .. 15) << 2 */
+	case 'K': HINT (4, 6);
 	case 'N': SPECIAL (2, 8, LWM_SWM_LIST);
 	case 'O': UINT (3, 8);
+	case 'P': INT_ADJ (5, 5, 31, 2, FALSE);	 /* (0 .. 31) << 2 */
 	case 'S': REG (5, 21, FP);
 	case 'T': INT_ADJ (10, 16, 511, 0, FALSE);	/* (-512 .. 511) << 0 */
 	case 'U': INT_ADJ (10, 16, 511, 1, FALSE);	/* (-512 .. 511) << 1 */
@@ -450,9 +452,11 @@ const struct mips_opcode micromips_opcodes[] =
 {"bne",			"s,I,p",	0,    (int) M_BNE_I,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"bnel",		"s,t,p",	0,    (int) M_BNEL,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"bnel",		"s,I,p",	0,    (int) M_BNEL_I,	INSN_MACRO,		0,		I1,		0,	I37 },
-{"break",		"",		    0x4680,     0xffff,	TRAP,			0,		I1,		0,	0 },
+{"break",		"",		    0x440c,     0xffff,	TRAP,			0,		I37,		0,	0 },
+{"break",		"",		    0x4680,     0xffff,	TRAP,			0,		I1,		0,	I37 },
 {"break",		"",		0x00000007, 0xffffffff,	TRAP,			0,		I1,		0,	0 },
-{"break",		"mF",		    0x4680,     0xfff0,	TRAP,			0,		I1,		0,	0 },
+{"break",		"+K",		    0x440c,     0xfc3f,	TRAP,			0,		I37,		0,	0 },
+{"break",		"mF",		    0x4680,     0xfff0,	TRAP,			0,		I1,		0,	I37 },
 {"break",		"c",		0x00000007, 0xfc00ffff,	TRAP,			0,		I1,		0,	0 },
 {"break",		"c,q",		0x00000007, 0xfc00003f,	TRAP,			0,		I1,		0,	0 },
 {"c.f.d",		"S,T",		0x5400043c, 0xfc00ffff,	RD_1|RD_2|WR_CC|FP_D,	0,		I1,		0,	I37 },
@@ -724,7 +728,8 @@ const struct mips_opcode micromips_opcodes[] =
 {"jr",			"mj",		    0x4580,     0xffe0,	RD_1|UBD,		0,		I1,		0,	0 },
 {"jr",			"s",		0x00000f3c, 0xffe0ffff,	RD_1|UBD,		BD32,		I1,		0,	0 }, /* jalr */
 {"jrs",			"s",		0x00004f3c, 0xffe0ffff,	RD_1|UBD,		BD16,		I1,		0,	0 }, /* jalrs */
-{"jraddiusp",		"mP",		    0x4700,     0xffe0,	NODS,			WR_sp|RD_31|RD_sp|UBR, I1,	0,	0 },
+{"jraddiusp",		"+P",		    0x4404,     0xfc1f,	NODS,			WR_sp|RD_31|RD_sp|UBR, I37,	0,	0 },
+{"jraddiusp",		"mP",		    0x4700,     0xffe0,	NODS,			WR_sp|RD_31|RD_sp|UBR, I1,	0,	I37 },
 /* This macro is after the real instruction so that it only matches with
    -minsn32.  */
 {"jraddiusp",		"mP",		0,   (int) M_JRADDIUSP,	INSN_MACRO,		0,		I1,		0,	0 },
@@ -1011,9 +1016,11 @@ const struct mips_opcode micromips_opcodes[] =
 /* The macro has to be first to handle o32 correctly.  */
 {"sd",			"t,A(b)",	0,    (int) M_SD_AB,	INSN_MACRO,		0,		I1,		0,	0 },
 {"sd",			"t,o(b)",	0xd8000000, 0xfc000000,	RD_1|RD_3|SM,		0,		I3,		0,	0 },
-{"sdbbp",		"",		    0x46c0,     0xffff,	TRAP,			0,		I1,		0,	0 },
+{"sdbbp",		"",		    0x442c,     0xffff,	TRAP,			0,		I37,		0,	0 },
+{"sdbbp",		"",		    0x46c0,     0xffff,	TRAP,			0,		I1,		0,	I37 },
 {"sdbbp",		"",		0x0000db7c, 0xffffffff,	TRAP,			0,		I1,		0,	0 },
-{"sdbbp",		"mO",		    0x46c0,     0xfff0,	TRAP,			0,		I1,		0,	0 },
+{"sdbbp",		"+K",		    0x442c,     0xfc3f,	TRAP,			0,		I37,		0,	0 },
+{"sdbbp",		"mO",		    0x46c0,     0xfff0,	TRAP,			0,		I1,		0,	I37 },
 {"sdbbp",		"B",		0x0000db7c, 0xfc00ffff,	TRAP,			0,		I1,		0,	0 },
 {"sdc1",		"T,o(b)",	0xb8000000, 0xfc000000,	RD_1|RD_3|SM|FP_D,	0,		I1,		0,	0 },
 {"sdc1",		"E,o(b)",	0xb8000000, 0xfc000000,	RD_1|RD_3|SM|FP_D,	0,		I1,		0,	0 },
