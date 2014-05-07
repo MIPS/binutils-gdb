@@ -1,3 +1,10 @@
+2014-05-08  Matthew Fortune  <matthew.fortune@imgtec.com>
+
+	* config/tc-mips.c (streq): Define.
+	(mips_convert_symbolic_attribute): New function.
+	* config/tc-mips.h (CONVERT_SYMBOLIC_ATTRIBUTE): Define.
+	(mips_convert_symbolic_attribute): New prototype.
+
 2014-05-07  Andrew Bennett  <andrew.bennett@imgtec.com>
 
 	* tc-mips.c (ISA_SUPPORTS_MIPS16E): Add mips32r3, mips32r5, mips64r3
