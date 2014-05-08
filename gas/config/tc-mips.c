@@ -13575,11 +13575,11 @@ md_parse_option (int c, char *arg)
       break;
 
     case OPTION_MIPS32R3:
-      file_mips_isa = ISA_MIPS32R3;
+      file_mips_opts.isa = ISA_MIPS32R3;
       break;
 
     case OPTION_MIPS32R5:
-      file_mips_isa = ISA_MIPS32R5;
+      file_mips_opts.isa = ISA_MIPS32R5;
       break;
 
     case OPTION_MIPS64R2:
@@ -13587,11 +13587,11 @@ md_parse_option (int c, char *arg)
       break;
 
     case OPTION_MIPS64R3:
-      file_mips_isa = ISA_MIPS64R3;
+      file_mips_opts.isa = ISA_MIPS64R3;
       break;
 
     case OPTION_MIPS64R5:
-      file_mips_isa = ISA_MIPS64R5;
+      file_mips_opts.isa = ISA_MIPS64R5;
       break;
 
     case OPTION_MIPS64:
