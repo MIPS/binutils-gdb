@@ -2214,6 +2214,8 @@ extern const int bfd_mips16_num_opcodes;
    "+O" 3bit unsigned bit position at bit 9
    "+P" 5-bit immediate (0 .. 31) << 2 at bit 5
    "+S" 5-bit fs source 1 floating point register
+   "+s" 5-bit source register specifier (MICROMIPSOP_*_RS) at 21
+   "+t" 5-bit target register (MICROMIPSOP_*_RT) at bit 16
    "-a" (-262144 .. 262143) << 2 at bit 0
    "-s" 5 bit source register specifier (OP_*_RS) not $0
    "-t" 5 bit source register specifier (OP_*_RT) not $0
