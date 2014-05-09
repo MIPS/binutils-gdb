@@ -2173,6 +2173,8 @@ print_insn_micromips (bfd_vma memaddr, struct disassemble_info *info)
   else
     insn = bfd_getl16 (buffer);
 
+#if 0
+  /* Disabled as it conflicts with microMIPS R6 opcodes.  */
   if ((insn & 0xfc00) == 0x7c00)
     {
       /* This is a 48-bit microMIPS instruction.  */
@@ -2207,7 +2209,14 @@ print_insn_micromips (bfd_vma memaddr, struct disassemble_info *info)
       info->insn_type = dis_noninsn;
       return 6;
     }
-  else if ((insn & 0x1c00) == 0x0000 || (insn & 0x1000) == 0x1000)
+  else 
+#endif
+  if ((insn & 0x1c00) == 0x0000 
+      || (insn & 0x1000) == 0x1000
+      || (insn & 0xfc00) == 0x7c00
+      || (insn & 0xfc00) == 0xa400
+      || (insn & 0xfc00) == 0xe400
+      || (insn & 0xfc00) == 0xc400)
     {
       /* This is a 32-bit microMIPS instruction.  */
       higher = insn;
