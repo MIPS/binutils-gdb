@@ -3432,7 +3432,8 @@ validate_micromips_insn (const struct mips_opcode *opc,
     }
   major = opc->match >> (10 + 8 * (length - 2));
   if ((length == 2 && (major & 7) != 1 && (major & 6) != 2)
-      || (length == 4 && (major & 7) != 0 && (major & 4) != 4))
+      || ((length == 4 && (major & 7) != 0 && (major & 4) != 4)
+          && (mips_opts.isa != ISA_MIPS32R6 && mips_opts.isa != ISA_MIPS64R6)))
     {
       as_bad (_("internal error: bad microMIPS opcode "
 		"(opcode/length mismatch): %s %s"), opc->name, opc->args);
