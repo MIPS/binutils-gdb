@@ -111,6 +111,7 @@ decode_micromips_operand (const char *p)
 	case 'w': PREV_CHECK (5, 21, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE);
 	case 'x': PREV_CHECK (5, 16, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE);
 	case 'y': PREV_CHECK (5, 16, TRUE, FALSE, FALSE, FALSE, FALSE, TRUE);
+	case 'z': PREV_CHECK (5, 16, FALSE, FALSE, FALSE, TRUE, TRUE, TRUE);
         }
       break;
 
@@ -415,8 +416,8 @@ const struct mips_opcode micromips_opcodes[] =
 {"beqzc",		"-t,+\"",	0xa0000000, 0xfc000000,	RD_1|NODS,		0,		I37,		0,	0 },
 {"beqzc",		"s,p",		0x40e00000, 0xffe00000,	RD_1|NODS,		CBR,		I1,		0,	I37 },
 {"beqzl",		"s,p",		0,    (int) M_BEQL,	INSN_MACRO,		0,		I1,		0,	0 },
-{"beq",			"md,mz,mE",	    0x8c00,     0xfc00,	RD_1|CBD,		0,		I1,		0,	0 }, /* beqz */
-{"beq",			"mz,md,mE",	    0x8c00,     0xfc00,	RD_2|CBD,		0,		I1,		0,	0 }, /* beqz */
+{"beq",			"md,mz,mE",	    0x8c00,     0xfc00,	RD_1|CBD,		0,		I1,		0,	I37 }, /* beqz */
+{"beq",			"mz,md,mE",	    0x8c00,     0xfc00,	RD_2|CBD,		0,		I1,		0,	I37 }, /* beqz */
 {"beq",			"s,t,p",	0x94000000, 0xfc000000,	RD_1|RD_2|CBD,		0,		I1,		0,	I37 },
 {"beq",			"s,I,p",	0,    (int) M_BEQ_I,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"beqc",		"md,mz,mE",	    0x8c00,     0xfc00,	RD_1|CBD,		0,		I37,		0,	0 }, /* beqzc */
@@ -1255,15 +1256,19 @@ const struct mips_opcode micromips_opcodes[] =
 {"blezc",		"-t,p",		0xe4000000, 0xfc1f0000,	RD_1|NODS,		0,		I37,		0,	0 },
 {"bgezc",		"+;,p",		0xe4000000, 0xfc000000,	RD_1|NODS,		0,		I37,		0,	0 },
 {"bgec",		"-s,-v,p",	0xe4000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I37,		0,	0 },
+{"blec",		"-t,-z,p",	0xe4000000, 0xfc000000,	RD_1|RD_2|NODS,		INSN2_ALIAS,	I37,		0,	0 },
 {"bgtzc",		"-t,p",		0xc4000000, 0xfc1f0000,	RD_1|NODS,		0,		I37,		0,	0 },
 {"bltzc",		"+;,p",		0xc4000000, 0xfc000000,	RD_1|NODS,		0,		I37,		0,	0 },
 {"bltc",		"-s,-v,p",	0xc4000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I37,		0,	0 },
+{"bgtc",		"-t,-z,p",	0xc4000000, 0xfc000000,	RD_1|RD_2|NODS,		INSN2_ALIAS,	I37,		0,	0 },
 {"blezalc",		"-t,p",		0xc0000000, 0xfc1f0000,	RD_1|WR_31|NODS,	0,		I37,		0,	0 },
 {"bgezalc",		"+;,p",		0xc0000000, 0xfc000000,	RD_1|WR_31|NODS,	0,		I37,		0,	0 },
 {"bgeuc",		"-s,-v,p",	0xc0000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I37,		0,	0 },
+{"bleuc",		"-t,-z,p",	0xc0000000, 0xfc000000,	RD_1|RD_2|NODS,		INSN2_ALIAS,	I37,		0,	0 },
 {"bgtzalc",		"-t,p",		0xe0000000, 0xfc1f0000,	RD_1|WR_31|NODS,	0,		I37,		0,	0 },
 {"bltzalc",		"+;,p",		0xe0000000, 0xfc000000,	RD_1|WR_31|NODS,	0,		I37,		0,	0 },
 {"bltuc",		"-s,-v,p",	0xe0000000, 0xfc000000,	RD_1|RD_2|NODS,		0,		I37,		0,	0 },
+{"bgtuc",		"-t,-z,p",	0xe0000000, 0xfc000000,	RD_1|RD_2|NODS,		INSN2_ALIAS,	I37,		0,	0 },
 
 {"jic",			"s,j",		0xa0000000, 0xffe00000,	RD_1|NODS,		0,		I37,		0,	0 },
 
