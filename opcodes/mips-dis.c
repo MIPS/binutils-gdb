@@ -2261,6 +2261,55 @@ print_insn_micromips (bfd_vma memaddr, struct disassemble_info *info)
 	  if (!opcode_is_member (op, mips_isa, mips_ase, mips_processor))
 	    continue;
 
+          if (strcmp (op->name, "bgezc") == 0
+              || strcmp (op->name, "bltzc") == 0
+              || strcmp (op->name, "bgezalc") == 0
+              || strcmp (op->name, "bltzalc") == 0)
+            {
+              if (((insn >> 16) & 31) != ((insn >> 21) & 31)
+                        || ((insn >> 21) & 31) == 0)
+                continue;
+            }
+          else if (strcmp (op->name, "blezalc") == 0
+                   || strcmp (op->name, "bgtzalc") == 0
+                   || strcmp (op->name, "blezc") == 0
+                   || strcmp (op->name, "bgtzc") == 0
+                   || strcmp (op->name, "beqzalc") == 0
+                   || strcmp (op->name, "bnezalc") == 0)
+            {
+              if (((insn >> 21) & 31) == 0)
+                continue;
+            }
+                else if (strcmp (op->name, "bgec") == 0
+                   || strcmp (op->name, "bltc") == 0
+                   || strcmp (op->name, "bbec") == 0
+                   || strcmp (op->name, "bstc") == 0)
+            {
+              if (((insn >> 16) & 31) == ((insn >> 21) & 31)
+                        || ((insn >> 21) & 31) == 0
+                        || ((insn >> 16) & 31) == 0)
+                continue;
+            }
+          else if (strcmp (op->name, "beqc") == 0
+                   || strcmp (op->name, "bnec") == 0)
+            {
+              if (((insn >> 16) & 31) >= ((insn >> 21) & 31)
+                        || ((insn >> 16) & 31) == 0)
+                continue;
+            }
+          else if (strcmp (op->name, "bovc") == 0
+                   || strcmp (op->name, "bnvc") == 0)
+            {
+              if (((insn >> 16) & 31) < ((insn >> 21) & 31))
+                continue;
+            }
+          else if (strcmp (op->name, "beqzc") == 0
+                   || strcmp (op->name, "bnezc") == 0)
+            {
+              if (((insn >> 16) & 31) == 0)
+                continue;
+            }
+                
 	  infprintf (is, "%s", op->name);
 
 	  if (op->args[0])
