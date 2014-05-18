@@ -137,6 +137,14 @@ only be used with MIPS II and above.
 The @code{.set fp=xx} directive allows a part of an object to be marked
 as not making assumptions about 32-bit or 64-bita FP registers.  The
 default value is restored by @code{.set fp=default}.
+
+@item -modd-spreg
+@itemx -mno-odd-spreg
+Enable use of floating-point operations on odd-numbered single-precision
+registers when supported by the ISA.  By default @samp{-modd-spreg} is
+selected except when targetting a generic MIPS architecture in combination
+with @samp{-mfpxx} then @samp{-mno-odd-spreg} is selected.
+
 @item -mips16
 @itemx -no-mips16
 Generate code for the MIPS 16 processor.  This is equivalent to putting

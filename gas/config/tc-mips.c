@@ -260,6 +260,10 @@ struct mips_set_options
      Changed by .set singlefloat or .set doublefloat, command-line options
      -msingle-float or -mdouble-float.  The default is false.  */
   bfd_boolean single_float;
+
+  /* 1 if single-precision operations on odd-numbered registers are
+     not allowed (even if supported by ISA_HAS_ODD_SINGLE_FPR).  */
+  int nooddspreg;
 };
 
 /* Specifies whether module level options have been checked yet.  */
@@ -278,7 +282,7 @@ static struct mips_set_options file_mips_opts =
   /* noreorder */ 0,  /* at */ ATREG, /* warn_about_macros */ 0,
   /* nomove */ 0, /* nobopt */ 0, /* noautoextend */ 0, /* insn32 */ FALSE,
   /* gp */ -1, /* fp */ -1, /* arch */ CPU_UNKNOWN, /* sym32 */ FALSE,
-  /* soft_float */ FALSE, /* single_float */ FALSE
+  /* soft_float */ FALSE, /* single_float */ FALSE, /* nooddspreg */ -1
 };
 
 /* This is similar to file_mips_opts, but for the current set of options.  */
@@ -289,7 +293,7 @@ static struct mips_set_options mips_opts =
   /* noreorder */ 0,  /* at */ ATREG, /* warn_about_macros */ 0,
   /* nomove */ 0, /* nobopt */ 0, /* noautoextend */ 0, /* insn32 */ FALSE,
   /* gp */ -1, /* fp */ -1, /* arch */ CPU_UNKNOWN, /* sym32 */ FALSE,
-  /* soft_float */ FALSE, /* single_float */ FALSE
+  /* soft_float */ FALSE, /* single_float */ FALSE, /* nooddspreg */ -1
 };
 
 /* Which bits of file_ase were explicitly set or cleared by ASE options.  */
@@ -395,15 +399,17 @@ static int mips_32bitmode = 0;
    )
 
 /* Return true if ISA supports single-precision floats in odd registers.  */
-#define ISA_HAS_ODD_SINGLE_FPR(ISA)	\
-  ((ISA) == ISA_MIPS32			\
-   || (ISA) == ISA_MIPS32R2		\
-   || (ISA) == ISA_MIPS32R3		\
-   || (ISA) == ISA_MIPS32R5		\
-   || (ISA) == ISA_MIPS64		\
-   || (ISA) == ISA_MIPS64R2		\
-   || (ISA) == ISA_MIPS64R3		\
-   || (ISA) == ISA_MIPS64R5)
+#define ISA_HAS_ODD_SINGLE_FPR(ISA, CPU)\
+  (((ISA) == ISA_MIPS32			\
+    || (ISA) == ISA_MIPS32R2		\
+    || (ISA) == ISA_MIPS32R3		\
+    || (ISA) == ISA_MIPS32R5		\
+    || (ISA) == ISA_MIPS64		\
+    || (ISA) == ISA_MIPS64R2		\
+    || (ISA) == ISA_MIPS64R3		\
+    || (ISA) == ISA_MIPS64R5		\
+    || (CPU) == CPU_R5900)		\
+   && (CPU) != CPU_LOONGSON_3A)
 
 /* Return true if ISA supports move to/from high part of a 64-bit
    floating-point register. */
@@ -1438,6 +1444,8 @@ enum options
     OPTION_NO_PDR,
     OPTION_MVXWORKS_PIC,
     OPTION_NAN,
+    OPTION_ODD_SPREG,
+    OPTION_NO_ODD_SPREG,
     OPTION_END_OF_ENUM
   };
 
@@ -1544,6 +1552,8 @@ struct option md_longopts[] =
   {"mhard-float", no_argument, NULL, OPTION_HARD_FLOAT},
   {"msingle-float", no_argument, NULL, OPTION_SINGLE_FLOAT},
   {"mdouble-float", no_argument, NULL, OPTION_DOUBLE_FLOAT},
+  {"modd-spreg", no_argument, NULL, OPTION_ODD_SPREG},
+  {"mno-odd-spreg", no_argument, NULL, OPTION_NO_ODD_SPREG},
 
   /* Strictly speaking this next option is ELF specific,
      but we allow it for other ports as well in order to
@@ -3822,6 +3832,20 @@ file_mips_check_options (void)
 
   arch_info = mips_cpu_info_from_arch (file_mips_opts.arch);
 
+  /* Disable operations on odd-numbered floating-point registers by default
+     for generic MIPS cores when using the FPXX ABI.  This only applies when
+     targetting 32-bit floating-point registers.  */
+  if (file_mips_opts.nooddspreg < 0)
+    {
+      /* This check is valid as long as all MIPS_CPU_IS_ISA entries for
+	 MIPS 32 and above are associated with dummy CPU entries rather
+	 than specific implementations.  */
+      if ((arch_info->flags & MIPS_CPU_IS_ISA) && file_mips_opts.fp == 0)
+	file_mips_opts.nooddspreg = 1;
+      else
+	file_mips_opts.nooddspreg = 0;
+    }
+
   /* End of GCC-shared inference code.  */
 
   /* This flag is set when we have a 64-bit capable CPU but use only
@@ -4471,8 +4495,8 @@ static bfd_boolean
 mips_oddfpreg_ok (const struct mips_opcode *insn, int opnum)
 {
   const char *s = insn->name;
-  bfd_boolean oddspreg = (ISA_HAS_ODD_SINGLE_FPR (mips_opts.isa)
-			  || mips_opts.arch == CPU_R5900);
+  bfd_boolean oddspreg = ISA_HAS_ODD_SINGLE_FPR (mips_opts.isa, mips_opts.arch)
+			 && !mips_opts.nooddspreg;
 
   if (insn->pinfo == INSN_MACRO)
     /* Let a macro pass, we'll catch it later when it is expanded.  */
@@ -4501,8 +4525,7 @@ mips_oddfpreg_ok (const struct mips_opcode *insn, int opnum)
 
   /* Single-precision coprocessor loads and moves are OK too.  */
   if ((insn->pinfo & FP_S)
-      && (insn->pinfo & (INSN_COPROC_MEMORY_DELAY | INSN_STORE_MEMORY
-			 | INSN_LOAD_COPROC_DELAY | INSN_COPROC_MOVE_DELAY)))
+      && (insn->pinfo & INSN_FP_32_MOVE))
     {
       if (FPR_SIZE == 0 && !oddspreg)
 	as_bad (_("unsupported access to the upper half of double-precision "
@@ -14060,6 +14083,14 @@ md_parse_option (int c, char *arg)
       file_mips_opts.fp = 64;
       break;
 
+    case OPTION_ODD_SPREG:
+      file_mips_opts.nooddspreg = 0;
+      break;
+
+    case OPTION_NO_ODD_SPREG:
+      file_mips_opts.nooddspreg = 1;
+      break;
+
     case OPTION_SINGLE_FLOAT:
       file_mips_opts.single_float = 1;
       break;
@@ -15160,6 +15191,10 @@ parse_code_option (char * name)
     mips_opts.single_float = 1;
   else if (strcmp (name, "doublefloat") == 0)
     mips_opts.single_float = 0;
+  else if (strcmp (name, "nooddspreg") == 0)
+    mips_opts.nooddspreg = 1;
+  else if (strcmp (name, "oddspreg") == 0)
+    mips_opts.nooddspreg = 0;
   else if (strcmp (name, "mips16") == 0
 	   || strcmp (name, "MIPS-16") == 0)
     mips_opts.mips16 = 1;

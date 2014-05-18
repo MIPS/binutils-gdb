@@ -2,6 +2,7 @@
 .module fp=xx
 .module doublefloat
 .module hardfloat
+.module oddspreg
 
 add.s $f1,$f1,$f1
 .set push
