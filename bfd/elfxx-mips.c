@@ -2223,6 +2223,8 @@ micromips_branch_reloc_p (int r_type)
 {
   return (r_type == R_MICROMIPS_26_S1
 	  || r_type == R_MICROMIPS_PC16_S1
+	  || r_type == R_MICROMIPS_PC21_S1
+	  || r_type == R_MICROMIPS_PC26_S1
 	  || r_type == R_MICROMIPS_PC10_S1
 	  || r_type == R_MICROMIPS_PC7_S1);
 }
@@ -5140,6 +5142,8 @@ mips_elf_relocation_needs_la25_stub (bfd *input_bfd, int r_type,
     case R_MICROMIPS_PC7_S1:
     case R_MICROMIPS_PC10_S1:
     case R_MICROMIPS_PC16_S1:
+    case R_MICROMIPS_PC21_S1:
+    case R_MICROMIPS_PC26_S1:
     case R_MICROMIPS_PC23_S2:
       return TRUE;
 
@@ -6021,6 +6025,24 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
     case R_MICROMIPS_PC16_S1:
       value = symbol + _bfd_mips_elf_sign_extend (addend, 17) - p;
       overflowed_p = mips_elf_overflow_p (value, 17);
+      value >>= howto->rightshift;
+      value &= howto->dst_mask;
+      break;
+
+    case R_MICROMIPS_PC21_S1:
+      if (howto->partial_inplace)
+        addend = _bfd_mips_elf_sign_extend (addend, 22);
+      value = symbol + addend - p;
+      overflowed_p = mips_elf_overflow_p (value, 22);
+      value >>= howto->rightshift;
+      value &= howto->dst_mask;
+      break;
+
+    case R_MICROMIPS_PC26_S1:
+      if (howto->partial_inplace)
+        addend = _bfd_mips_elf_sign_extend (addend, 27);
+      value = symbol + addend - p;
+      overflowed_p = mips_elf_overflow_p (value, 27);
       value >>= howto->rightshift;
       value &= howto->dst_mask;
       break;
@@ -8249,6 +8271,8 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 	case R_MICROMIPS_PC7_S1:
 	case R_MICROMIPS_PC10_S1:
 	case R_MICROMIPS_PC16_S1:
+	case R_MICROMIPS_PC21_S1:
+	case R_MICROMIPS_PC26_S1:
 	case R_MICROMIPS_PC23_S2:
 	  call_reloc_p = TRUE;
 	  break;

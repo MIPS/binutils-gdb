@@ -2303,10 +2303,10 @@ print_insn_micromips (bfd_vma memaddr, struct disassemble_info *info)
               if (((insn >> 16) & 31) < ((insn >> 21) & 31))
                 continue;
             }
-          else if (strcmp (op->name, "beqzc") == 0
-                   || strcmp (op->name, "bnezc") == 0)
+          else if (length == 4 && (strcmp (op->name, "beqzc") == 0
+                   || strcmp (op->name, "bnezc") == 0))
             {
-              if (((insn >> 16) & 31) == 0)
+              if (((insn >> 21) & 31) == 0)
                 continue;
             }
                 
