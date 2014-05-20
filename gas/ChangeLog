@@ -1,3 +1,11 @@
+2014-05-20  Richard Sandiford  <rdsandiford@googlemail.com>
+
+	* config/obj-elf.h (obj_elf_seen_attribute): Declare.
+	* config/obj-elf.c (recorded_attribute_info): New structure.
+	(recorded_attributes): New variable.
+	(record_attribute, obj_elf_seen_attribute): New functions.
+	(obj_elf_vendor_attribute): Record which attributes have been seen.
+
 2014-05-20  Matthew Fortune  <matthew.fortune@imgtec.com>
 
 	* config/tc-mips.c (file_mips_opts_checked): New static global.
