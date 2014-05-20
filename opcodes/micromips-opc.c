@@ -164,8 +164,8 @@ decode_micromips_operand (const char *p)
 	case '&': SPECIAL (0, 0, IMM_INDEX);
 	case '*': SPECIAL (5, 16, REG_INDEX);
 	case '|': BIT (8, 16, 0);		/* (0 .. 255) */
-	case '\'': BRANCH (26, 0, 2);
-	case '"': BRANCH (21, 0, 2);
+	case '\'': BRANCH (26, 0, 1);
+	case '"': BRANCH (21, 0, 1);
 	case ';': SPECIAL (10, 16, SAME_RS_RT);
 	}
       break;
@@ -781,9 +781,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"jrc",			"s",		0,    (int) M_JRC,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"jr.hb",		"s",		0x00001f3c, 0xffe0ffff,	RD_1|UBD,		BD32,		I1,		0,	I37 }, /* jalr.hb */
 {"jrs.hb",		"s",		0x00005f3c, 0xffe0ffff,	RD_1|UBD,		BD16,		I1,		0,	I37 }, /* jalrs.hb */
-{"j",			"mp",		    0x440b,     0xfc1f,	RD_1|UBD,		0,		I37,		0,	0 }, /* jrc */
 {"j",			"mj",		    0x4580,     0xffe0,	RD_1|UBD,		0,		I1,		0,	I37 }, /* jr */
-{"j",			"s",		0x00000f3c, 0xffe0ffff,	RD_1|UBD,		0,		I37,		0,	0 }, /* jrc */
 {"j",			"s",		0x00000f3c, 0xffe0ffff,	RD_1|UBD,		BD32,		I1,		0,	I37 }, /* jr */
 /* SVR4 PIC code requires special handling for j, so it must be a
    macro.  */
