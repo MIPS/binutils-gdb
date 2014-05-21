@@ -14856,7 +14856,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       break;
 
     case BFD_RELOC_MIPS_18_PCREL_S3:
-      if ((*valP & 0x7) != 0)
+      if ((*valP & 0x7) != 0 && !mips_opts.micromips)
 	as_bad_where (fixP->fx_file, fixP->fx_line,
 		      _("pc rel from misaligned address (%lx)"),
 		      (long) *valP);
@@ -14865,7 +14865,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       break;
 
     case BFD_RELOC_MIPS_19_PCREL_S2:
-      if ((*valP & 0x3) != 0)
+      if ((*valP & 0x3) != 0 && !mips_opts.micromips)
 	as_bad_where (fixP->fx_file, fixP->fx_line,
 		      _("pc rel from misaligned address (%lx)"),
 		      (long) *valP);
