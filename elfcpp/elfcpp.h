@@ -491,7 +491,9 @@ enum PT
   // Runtime procedure table.
   PT_MIPS_RTPROC = 0x70000001,
   // .MIPS.options section.
-  PT_MIPS_OPTIONS = 0x70000002
+  PT_MIPS_OPTIONS = 0x70000002,
+  // .MIPS.abiflags section.
+  PT_MIPS_ABIFLAGS = 0x70000003
 };
 
 // The valid bit flags found in the Phdr p_flags field.

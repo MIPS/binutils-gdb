@@ -91,6 +91,7 @@ int mips_flag_pdr = TRUE;
 #include "ecoff.h"
 
 static char *mips_regmask_frag;
+static char *mips_flags_frag;
 
 #define ZERO 0
 #define ATREG 1
@@ -1409,6 +1410,7 @@ enum options
     OPTION_CONSTRUCT_FLOATS,
     OPTION_NO_CONSTRUCT_FLOATS,
     OPTION_FP64,
+    OPTION_FPXX,
     OPTION_GP64,
     OPTION_RELAX_BRANCH,
     OPTION_NO_RELAX_BRANCH,
@@ -1528,6 +1530,7 @@ struct option md_longopts[] =
   {"construct-floats", no_argument, NULL, OPTION_CONSTRUCT_FLOATS},
   {"no-construct-floats", no_argument, NULL, OPTION_NO_CONSTRUCT_FLOATS},
   {"mfp64", no_argument, NULL, OPTION_FP64},
+  {"mfpxx", no_argument, NULL, OPTION_FPXX},
   {"mgp64", no_argument, NULL, OPTION_GP64},
   {"relax-branch", no_argument, NULL, OPTION_RELAX_BRANCH},
   {"no-relax-branch", no_argument, NULL, OPTION_NO_RELAX_BRANCH},
@@ -3614,6 +3617,12 @@ md_begin (void)
 	}
       }
 
+    sec = subseg_new (".MIPS.abiflags", (subsegT) 0);
+    bfd_set_section_flags (stdoutput, sec,
+			   SEC_READONLY | SEC_DATA | SEC_ALLOC | SEC_LOAD);
+    bfd_set_section_alignment (stdoutput, sec, 3);
+    mips_flags_frag = frag_more (sizeof (Elf_External_ABIFlags_v0));
+
     if (ECOFF_DEBUGGING)
       {
 	sec = subseg_new (".mdebug", (subsegT) 0);
@@ -3637,6 +3646,83 @@ md_begin (void)
     init_vr4120_conflicts ();
 }
 
+static inline void
+fpabi_incompatible_with (int fpabi, const char *what)
+{
+  as_warn (_(".gnu_attribute %d,%d is incompatible with `%s'"),
+	   Tag_GNU_MIPS_ABI_FP, fpabi, what);
+}
+
+static inline void
+fpabi_requires (int fpabi, const char *what)
+{
+  as_warn (_(".gnu_attribute %d,%d requires `%s'"),
+	   Tag_GNU_MIPS_ABI_FP, fpabi, what);
+}
+
+/* Check -mabi and register sizes against the specified FP ABI.  */
+static void
+check_fpabi (int fpabi)
+{
+  bfd_boolean needs_check = FALSE;
+  switch (fpabi)
+    {
+    case Val_GNU_MIPS_ABI_FP_DOUBLE:
+      if (file_mips_opts.gp == 64 && file_mips_opts.fp == 32)
+	fpabi_incompatible_with (fpabi, "gp=64 fp=32");
+      else if (file_mips_opts.gp == 32 && file_mips_opts.fp == 64)
+	fpabi_incompatible_with (fpabi, "gp=32 fp=64");
+      else
+	needs_check = TRUE;
+      break;
+
+    case Val_GNU_MIPS_ABI_FP_XX:
+      if (mips_abi != O32_ABI)
+	fpabi_requires (fpabi, "-mabi=32");
+      else if (file_mips_opts.fp != 0)
+	fpabi_requires (fpabi, "fp=xx");
+      else
+	needs_check = TRUE;
+      break;
+
+    case Val_GNU_MIPS_ABI_FP_64:
+      if (mips_abi != O32_ABI)
+	fpabi_requires (fpabi, "-mabi=32");
+      else if (file_mips_opts.fp == 32)
+	fpabi_incompatible_with (fpabi, "fp=32");
+      else
+	needs_check = TRUE;
+      break;
+
+    case Val_GNU_MIPS_ABI_FP_SINGLE:
+      if (file_mips_opts.soft_float)
+	fpabi_incompatible_with (fpabi, "softfloat");
+      else if (!file_mips_opts.single_float)
+	fpabi_requires (fpabi, "singlefloat");
+      break;
+
+    case Val_GNU_MIPS_ABI_FP_SOFT:
+      if (!file_mips_opts.soft_float)
+	fpabi_requires (fpabi, "softfloat");
+      break;
+
+    case Val_GNU_MIPS_ABI_FP_OLD_64:
+      as_warn (_(".gnu_attribute %d,%d is no longer supported"),
+	       Tag_GNU_MIPS_ABI_FP, fpabi);
+      break;
+
+    default:
+      as_warn (_(".gnu_attribute %d,%d is not a recognized"
+	         " floating-point ABI"), Tag_GNU_MIPS_ABI_FP, fpabi);
+      break;
+    }
+
+  if (needs_check && file_mips_opts.soft_float)
+    fpabi_incompatible_with (fpabi, "softfloat");
+  else if (needs_check && file_mips_opts.single_float)
+    fpabi_incompatible_with (fpabi, "singlefloat");
+}
+
 /* Perform consistency checks on the current options.  */
 
 static void
@@ -3655,6 +3741,12 @@ mips_check_options (struct mips_set_options *opts, bfd_boolean abi_checks)
   /* Check the size of the float registers agrees with the ABI and ISA.  */
   switch (opts->fp)
     {
+    case 0:
+      if (!CPU_HAS_LDC1_SDC1 (opts->arch))
+	as_bad (_("`fp=xx' used with a cpu lacking ldc1/sdc1 instructions"));
+      else if (opts->single_float == 1)
+	as_bad (_("`fp=xx' cannot be used with `singlefloat'"));
+      break;
     case 64:
       if (!ISA_HAS_64BIT_FPRS (opts->isa))
 	as_bad (_("`fp=64' used with a 32-bit fpu"));
@@ -4379,12 +4471,14 @@ static bfd_boolean
 mips_oddfpreg_ok (const struct mips_opcode *insn, int opnum)
 {
   const char *s = insn->name;
+  bfd_boolean oddspreg = (ISA_HAS_ODD_SINGLE_FPR (mips_opts.isa)
+			  || mips_opts.arch == CPU_R5900);
 
   if (insn->pinfo == INSN_MACRO)
     /* Let a macro pass, we'll catch it later when it is expanded.  */
     return TRUE;
 
-  if (ISA_HAS_ODD_SINGLE_FPR (mips_opts.isa) || mips_opts.arch == CPU_R5900)
+  if (oddspreg)
     {
       /* Allow odd registers for single-precision ops.  */
       switch (insn->pinfo & (FP_S | FP_D))
@@ -4409,7 +4503,12 @@ mips_oddfpreg_ok (const struct mips_opcode *insn, int opnum)
   if ((insn->pinfo & FP_S)
       && (insn->pinfo & (INSN_COPROC_MEMORY_DELAY | INSN_STORE_MEMORY
 			 | INSN_LOAD_COPROC_DELAY | INSN_COPROC_MOVE_DELAY)))
-    return TRUE;
+    {
+      if (FPR_SIZE == 0 && !oddspreg)
+	as_bad (_("unsupported access to the upper half of double-precision "
+		  "registers"));
+      return TRUE;
+    }
 
   return FALSE;
 }
@@ -4636,7 +4735,12 @@ check_regno (struct mips_arg_info *arg,
       && (regno & 1) != 0
       && FPR_SIZE != 64
       && !mips_oddfpreg_ok (arg->insn->insn_mo, arg->opnum))
-    as_warn (_("float register should be even, was %d"), regno);
+    {
+      if (FPR_SIZE != 0)
+	as_warn (_("float register should be even, was %d"), regno);
+      else
+	as_bad (_("float register should be even, was %d"), regno);
+    }
 
   if (type == OP_REG_CCC)
     {
@@ -5490,13 +5594,16 @@ match_float_constant (struct mips_arg_info *arg, expressionS *imm,
   /* Handle 64-bit constants for which an immediate value is best.  */
   if (length == 8
       && !mips_disable_float_construction
-      /* Constants can only be constructed in GPRs and copied
-	 to FPRs if the GPRs are at least as wide as the FPRs.
-	 Force the constant into memory if we are using 64-bit FPRs
-	 but the GPRs are only 32 bits wide.  */
-      /* ??? No longer true with the addition of MTHC1, but this
-	 is legacy code...  */
-      && (using_gprs || !(FPR_SIZE == 64 && GPR_SIZE == 32))
+      /* Constants can only be constructed in GPRs and copied to FPRs if the
+	 GPRs are at least as wide as the FPRs or MTHC1 is available.
+	 Unlike most tests for 32-bit floating-point registers this check
+	 specifically looks for GPR_SIZE == 32 as the FPXX ABI does not
+	 permit 64-bit moves without MXHC1.
+	 Force the constant into memory otherwise.  */
+      && (using_gprs
+	  || GPR_SIZE == 64
+	  || ISA_HAS_MXHC1 (mips_opts.isa)
+	  || FPR_SIZE == 32)
       && ((data[0] == 0 && data[1] == 0)
 	  || (data[2] == 0 && data[3] == 0))
       && ((data[4] == 0 && data[5] == 0)
@@ -5506,7 +5613,7 @@ match_float_constant (struct mips_arg_info *arg, expressionS *imm,
 	 If using 32-bit registers, set IMM to the high order 32 bits and
 	 OFFSET to the low order 32 bits.  Otherwise, set IMM to the entire
 	 64 bit constant.  */
-      if (using_gprs ? GPR_SIZE == 32 : FPR_SIZE != 64)
+      if (GPR_SIZE == 32 || FPR_SIZE != 64)
 	{
 	  imm->X_op = O_constant;
 	  offset->X_op = O_constant;
@@ -11688,14 +11795,18 @@ macro (struct mips_cl_insn *ip, char *str)
 	{
 	  used_at = 1;
 	  load_register (AT, &imm_expr, FPR_SIZE == 64);
-	  if (FPR_SIZE == 64)
-	    {
-	      gas_assert (GPR_SIZE == 64);
-	      macro_build (NULL, "dmtc1", "t,S", AT, op[0]);
-	    }
+	  if (FPR_SIZE == 64 && GPR_SIZE == 64)
+	    macro_build (NULL, "dmtc1", "t,S", AT, op[0]);
 	  else
 	    {
-	      macro_build (NULL, "mtc1", "t,G", AT, op[0] + 1);
+	      if (ISA_HAS_MXHC1 (mips_opts.isa))
+	        macro_build (NULL, "mthc1", "t,G", AT, op[0]);
+	      else if (FPR_SIZE != 32)
+		as_bad (_("Unable to generate `%s' compliant code "
+			  "without mthc1"),
+			(FPR_SIZE == 64) ? "fp64" : "fpxx");
+	      else
+		macro_build (NULL, "mtc1", "t,G", AT, op[0] + 1);
 	      if (offset_expr.X_op == O_absent)
 		macro_build (NULL, "mtc1", "t,G", 0, op[0]);
 	      else
@@ -13941,6 +14052,10 @@ md_parse_option (int c, char *arg)
       file_mips_opts.fp = 32;
       break;
 
+    case OPTION_FPXX:
+      file_mips_opts.fp = 0;
+      break;
+
     case OPTION_FP64:
       file_mips_opts.fp = 64;
       break;
@@ -15033,6 +15148,8 @@ parse_code_option (char * name)
     mips_opts.gp = 64;
   else if (strcmp (name, "fp=32") == 0)
     mips_opts.fp = 32;
+  else if (strcmp (name, "fp=xx") == 0)
+    mips_opts.fp = 0;
   else if (strcmp (name, "fp=64") == 0)
     mips_opts.fp = 64;
   else if (strcmp (name, "softfloat") == 0)
@@ -15210,7 +15327,8 @@ s_mipsset (int x ATTRIBUTE_UNUSED)
 	case ISA_MIPS32R3:
 	case ISA_MIPS32R5:
 	  mips_opts.gp = 32;
-	  mips_opts.fp = 32;
+	  if (mips_opts.fp != 0)
+	    mips_opts.fp = 32;
 	  break;
 	case ISA_MIPS3:
 	case ISA_MIPS4:
@@ -15220,10 +15338,13 @@ s_mipsset (int x ATTRIBUTE_UNUSED)
 	case ISA_MIPS64R3:
 	case ISA_MIPS64R5:
 	  mips_opts.gp = 64;
-	  if (mips_opts.arch == CPU_R5900)
-	    mips_opts.fp = 32;
-	  else
-	    mips_opts.fp = 64;
+	  if (mips_opts.fp != 0)
+	    {
+	      if (mips_opts.arch == CPU_R5900)
+		mips_opts.fp = 32;
+	      else
+		mips_opts.fp = 64;
+	    }
 	  break;
 	default:
 	  as_bad (_("unknown ISA level %s"), name + 4);
@@ -17373,11 +17494,119 @@ mips_add_dot_label (symbolS *sym)
     mips_compressed_mark_label (sym);
 }
 
+/* Converting ASE flags from internal to .MIPS.abiflags values.  */
+static unsigned int
+mips_convert_ase_flags (int ase)
+{
+  unsigned int ext_ases = 0;
+
+  if (ase & ASE_DSP)
+    ext_ases |= AFL_ASE_DSP;
+  if (ase & ASE_DSPR2)
+    ext_ases |= AFL_ASE_DSPR2;
+  if (ase & ASE_EVA)
+    ext_ases |= AFL_ASE_EVA;
+  if (ase & ASE_MCU)
+    ext_ases |= AFL_ASE_MCU;
+  if (ase & ASE_MDMX)
+    ext_ases |= AFL_ASE_MDMX;
+  if (ase & ASE_MIPS3D)
+    ext_ases |= AFL_ASE_MIPS3D;
+  if (ase & ASE_MT)
+    ext_ases |= AFL_ASE_MT;
+  if (ase & ASE_SMARTMIPS)
+    ext_ases |= AFL_ASE_SMARTMIPS;
+  if (ase & ASE_VIRT)
+    ext_ases |= AFL_ASE_VIRT;
+  if (ase & ASE_MSA)
+    ext_ases |= AFL_ASE_MSA;
+  if (ase & ASE_XPA)
+    ext_ases |= AFL_ASE_XPA;
+
+  return ext_ases;
+}
 /* Some special processing for a MIPS ELF file.  */
 
 void
 mips_elf_final_processing (void)
 {
+  int fpabi;
+  Elf_Internal_ABIFlags_v0 flags;
+
+  flags.version = 0;
+  flags.isa_rev = 0;
+  switch (file_mips_opts.isa)
+    {
+    case INSN_ISA1:
+      flags.isa_level = 1;
+      break;
+    case INSN_ISA2:
+      flags.isa_level = 2;
+      break;
+    case INSN_ISA3:
+      flags.isa_level = 3;
+      break;
+    case INSN_ISA4:
+      flags.isa_level = 4;
+      break;
+    case INSN_ISA5:
+      flags.isa_level = 5;
+      break;
+    case INSN_ISA32:
+      flags.isa_level = 32;
+      flags.isa_rev = 1;
+      break;
+    case INSN_ISA32R2:
+      flags.isa_level = 32;
+      flags.isa_rev = 2;
+      break;
+    case INSN_ISA32R3:
+      flags.isa_level = 32;
+      flags.isa_rev = 3;
+      break;
+    case INSN_ISA32R5:
+      flags.isa_level = 32;
+      flags.isa_rev = 5;
+      break;
+    case INSN_ISA64:
+      flags.isa_level = 64;
+      flags.isa_rev = 1;
+      break;
+    case INSN_ISA64R2:
+      flags.isa_level = 64;
+      flags.isa_rev = 2;
+      break;
+    case INSN_ISA64R3:
+      flags.isa_level = 64;
+      flags.isa_rev = 3;
+      break;
+    case INSN_ISA64R5:
+      flags.isa_level = 64;
+      flags.isa_rev = 5;
+      break;
+    }
+
+  flags.gpr_size = file_mips_opts.gp == 32 ? AFL_REG_32 : AFL_REG_64;
+  flags.cpr1_size = file_mips_opts.soft_float ? AFL_REG_NONE
+		    : (file_mips_opts.ase & ASE_MSA) ? AFL_REG_128
+		    : (file_mips_opts.fp == 64) ? AFL_REG_64
+		    : AFL_REG_32;
+  flags.cpr2_size = AFL_REG_NONE;
+  flags.fp_abi = bfd_elf_get_obj_attr_int (stdoutput, OBJ_ATTR_GNU,
+                                           Tag_GNU_MIPS_ABI_FP);
+  flags.isa_ext = bfd_mips_isa_ext (stdoutput);
+  flags.ases = mips_convert_ase_flags (file_mips_opts.ase);
+  if (file_ase_mips16)
+    flags.ases |= AFL_ASE_MIPS16;
+  if (file_ase_micromips)
+    flags.ases |= AFL_ASE_MICROMIPS;
+  flags.flags1 = 0;
+  flags.flags2 = 0;
+
+  bfd_mips_elf_swap_abiflags_v0_out (stdoutput, &flags,
+				     ((Elf_External_ABIFlags_v0 *)
+				     mips_flags_frag));
+
   /* Write out the register information.  */
   if (mips_abi != N64_ABI)
     {
@@ -17456,7 +17685,9 @@ mips_elf_final_processing (void)
     elf_elfheader (stdoutput)->e_flags |= EF_MIPS_NAN2008;
 
   /* 32 bit code with 64 bit FP registers.  */
-  if (file_mips_opts.fp == 64 && ABI_NEEDS_32BIT_REGS (mips_abi))
+  fpabi = bfd_elf_get_obj_attr_int (stdoutput, OBJ_ATTR_GNU,
+				    Tag_GNU_MIPS_ABI_FP);
+  if (fpabi == Val_GNU_MIPS_ABI_FP_OLD_64)
     elf_elfheader (stdoutput)->e_flags |= EF_MIPS_FP64;
 }
 
@@ -18404,10 +18635,55 @@ mips_convert_symbolic_attribute (const char *name)
 void
 md_mips_end (void)
 {
+  int fpabi = Val_GNU_MIPS_ABI_FP_ANY;
+
   mips_emit_delays ();
   if (cur_proc_ptr)
     as_warn (_("missing .end at end of assembly"));
 
   /* Just in case no code was emitted, do the consistency check.  */
   file_mips_check_options ();
+
+  /* Set a floating-point ABI if the user did not.  */
+  if (obj_elf_seen_attribute (OBJ_ATTR_GNU, Tag_GNU_MIPS_ABI_FP))
+    {
+
+      /* Perform consistency checks on the floating-point ABI.  */
+      fpabi = bfd_elf_get_obj_attr_int (stdoutput, OBJ_ATTR_GNU,
+					Tag_GNU_MIPS_ABI_FP);
+      if (fpabi != Val_GNU_MIPS_ABI_FP_ANY)
+	check_fpabi (fpabi);
+    }
+  else
+    {
+      /* Soft-float gets precedence over single-float, the two options should
+         not be used together so this should not matter.  */
+      if (file_mips_opts.soft_float == 1)
+	fpabi = Val_GNU_MIPS_ABI_FP_SOFT;
+      /* Single-float gets precedence over all double_float cases.  */
+      else if (file_mips_opts.single_float == 1)
+	fpabi = Val_GNU_MIPS_ABI_FP_SINGLE;
+      else
+	{
+	  switch (file_mips_opts.fp)
+	    {
+	    case 32:
+	      if (file_mips_opts.gp == 32)
+		fpabi = Val_GNU_MIPS_ABI_FP_DOUBLE;
+	      break;
+	    case 0:
+	      fpabi = Val_GNU_MIPS_ABI_FP_XX;
+	      break;
+	    case 64:
+	      if (file_mips_opts.gp == 32)
+		fpabi = Val_GNU_MIPS_ABI_FP_64;
+	      else
+		fpabi = Val_GNU_MIPS_ABI_FP_DOUBLE;
+	      break;
+	    }
+	}
+
+      bfd_elf_add_obj_attr_int (stdoutput, OBJ_ATTR_GNU,
+				Tag_GNU_MIPS_ABI_FP, fpabi);
+    }
 }
