@@ -6657,9 +6657,11 @@ get_append_method (struct mips_cl_insn *ip, expressionS *address_expr,
   /* Otherwise, it's our responsibility to fill branch delay slots.  */
   if (delayed_branch_p (ip))
     {
-      /* We do not swap if a branch has a forbidden slot.  */
+      /* We do not swap if a branch has a forbidden slot or no delay slot
+         as in microMIPS R6. */
       if (!branch_likely_p (ip)
           && !(ip->insn_mo->pinfo2 & INSN2_FORBIDDEN_SLOT)
+          && !(ISA_IS_R6 (mips_opts.isa) && mips_opts.micromips)
 	  && can_swap_branch_p (ip, address_expr, reloc_type))
 	return APPEND_SWAP;
 
@@ -14858,7 +14860,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       break;
 
     case BFD_RELOC_MIPS_18_PCREL_S3:
-      if ((*valP & 0x7) != 0)
+      if ((*valP & 0x7) != 0 && !mips_opts.micromips)
 	as_bad_where (fixP->fx_file, fixP->fx_line,
 		      _("pc rel from misaligned address (%lx)"),
 		      (long) *valP);
@@ -14867,7 +14869,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       break;
 
     case BFD_RELOC_MIPS_19_PCREL_S2:
-      if ((*valP & 0x3) != 0)
+      if ((*valP & 0x3) != 0 && !mips_opts.micromips)
 	as_bad_where (fixP->fx_file, fixP->fx_line,
 		      _("pc rel from misaligned address (%lx)"),
 		      (long) *valP);
