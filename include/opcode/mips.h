@@ -351,6 +351,9 @@ enum mips_operand_type {
   /* Described by mips_reg_pair_operand.  */
   OP_REG_PAIR,
 
+  /* Described by mips_prev_operand.  */
+  OP_CHECK_PREV,
+
   /* Described by mips_pcrel_operand.  */
   OP_PCREL,
 
@@ -422,29 +425,6 @@ enum mips_operand_type {
   /* The operand spans two 5-bit register fields, both of which must be set to
      the source register.  */
   OP_SAME_RS_RT,
-
-  /* The operand is a GP register but not $0.  */
-  OP_GP_NOT_ZERO,
-
-  /* The operand is a GP register but the register number is less than the
-     previous operand's register number but not $0.  */
-  OP_GP_NOT_ZERO_LT_PREV,
-
-  /* The operand is a GP register but the register number is greater than the
-     previous operand's register number.  */
-  OP_GP_GT_PREV,
-
-  /* The operand is a GP register but the register number is less than or equal
-     to the previous operand's register number.  */
-  OP_GP_LE_PREV,
-
-  /* The operand is a GP register but the register number is greater than or
-     equal to the previous operand's register number.  */
-  OP_GP_GE_PREV,
-
-  /* The operand is a GP register but the register number is both not $0 and
-     not the same as the previous operand's register number.  */
-  OP_GP_NOT_ZERO_NOT_PREV
 };
 
 /* Enumerates the types of MIPS register.  */
@@ -581,6 +561,17 @@ struct mips_reg_operand
 };
 
 /* Describes an operand that encodes a pair of registers.  */
+struct mips_check_prev_operand
+{
+  struct mips_operand root;
+
+  bfd_boolean check_not_less_than;
+  bfd_boolean check_not_greater_than;
+  bfd_boolean check_not_equal;
+  bfd_boolean check_not_zero;
+};
+
+/* Describes an operand that which must be XXX than a previous operand.  */
 struct mips_reg_pair_operand
 {
   struct mips_operand root;
@@ -592,7 +583,6 @@ struct mips_reg_pair_operand
   unsigned char *reg1_map;
   unsigned char *reg2_map;
 };
-
 /* Describes an operand that is calculated relative to a base PC.
    The base PC is usually the address of the following instruction,
    but the rules for MIPS16 instructions like ADDIUPC are more complicated.  */

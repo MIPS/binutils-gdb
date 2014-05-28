@@ -4342,12 +4342,7 @@ operand_reg_mask (const struct mips_cl_insn *insn,
       gas_assert ((uval & 31) == (uval >> 5));
       return 1 << (uval & 31);
 
-    case OP_GP_NOT_ZERO:
-    case OP_GP_NOT_ZERO_NOT_PREV:
-    case OP_GP_NOT_ZERO_LT_PREV:
-    case OP_GP_GT_PREV:
-    case OP_GP_LE_PREV:
-    case OP_GP_GE_PREV:
+    case OP_CHECK_PREV:
       if (!(type_mask & (1 << OP_REG_GP)))
 	return 0;
       uval = insn_extract_operand (insn, operand);
@@ -5138,132 +5133,43 @@ match_clo_clz_dest_operand (struct mips_arg_info *arg,
 /* OP_GP_NOT_ZERO matcher.  */
 
 static bfd_boolean
-match_gp_not_zero_operand (struct mips_arg_info *arg,
-			   const struct mips_operand *operand)
+match_check_prev_operand (struct mips_arg_info *arg,
+			   const struct mips_operand *operand_base)
 {
+  const struct mips_check_prev_operand *operand;
   unsigned int regno;
+
+  operand = (const struct mips_check_prev_operand *) operand_base;
 
   if (!match_reg (arg, OP_REG_GP, &regno))
     return FALSE;
 
-  if (regno == 0)
+  if (operand->check_not_zero && regno == 0)
     {
       set_insn_error (arg->argnum, _("the source register must not be $0"));
       return FALSE;
     }
 
-  arg->last_regno = regno;
-
-  insn_insert_operand (arg->insn, operand, regno);
-  return TRUE;
-}
-
-/* OP_GP_NOT_ZERO_LT_PREV matcher.  */
-
-static bfd_boolean
-match_gp_not_zero_lt_prev_operand (struct mips_arg_info *arg,
-				   const struct mips_operand *operand)
-{
-  unsigned int regno;
-
-  if (!match_reg (arg, OP_REG_GP, &regno))
-    return FALSE;
-
-  if (regno == 0)
+  if (operand->check_not_zero && operand->check_not_equal 
+      && regno == 0 && regno == arg->last_regno)
     {
-      set_insn_error (arg->argnum, _("the source register must not be $0"));
+      set_insn_error (arg->argnum, 
+                      _("the source registers must not be $0 and different"));
       return FALSE;
     }
 
-  if (regno >= arg->last_regno)
+  if (operand->check_not_equal && regno == arg->last_regno)
+    return FALSE;
+
+  if (operand->check_not_greater_than && regno > arg->last_regno)
+    return FALSE;
+
+  if (operand->check_not_less_than && regno < arg->last_regno)
     return FALSE;
 
   arg->last_regno = regno;
 
-  insn_insert_operand (arg->insn, operand, regno);
-  return TRUE;
-}
-
-/* OP_GP_GT_PREV matcher.  */
-
-static bfd_boolean
-match_gp_gt_prev_operand (struct mips_arg_info *arg,
-			  const struct mips_operand *operand)
-{
-  unsigned int regno;
-
-  if (!match_reg (arg, OP_REG_GP, &regno))
-    return FALSE;
-
-  if (regno <= arg->last_regno)
-    return FALSE;
-
-  arg->last_regno = regno;
-
-  insn_insert_operand (arg->insn, operand, regno);
-  return TRUE;
-}
-
-/* OP_GP_LE_PREV matcher.  */
-
-static bfd_boolean
-match_gp_le_prev_operand (struct mips_arg_info *arg,
-			  const struct mips_operand *operand)
-{
-  unsigned int regno;
-
-  if (!match_reg (arg, OP_REG_GP, &regno))
-    return FALSE;
-
-  if (regno > arg->last_regno)
-    return FALSE;
-
-  arg->last_regno = regno;
-
-  insn_insert_operand (arg->insn, operand, regno);
-  return TRUE;
-}
-
-/* OP_GP_GE_PREV matcher.  */
-
-static bfd_boolean
-match_gp_ge_prev_operand (struct mips_arg_info *arg,
-			  const struct mips_operand *operand)
-{
-  unsigned int regno;
-
-  if (!match_reg (arg, OP_REG_GP, &regno))
-    return FALSE;
-
-  if (regno < arg->last_regno)
-    return FALSE;
-
-  arg->last_regno = regno;
-
-  insn_insert_operand (arg->insn, operand, regno);
-  return TRUE;
-}
-
-/* OP_GP_NOT_ZERO_NOT_PREV matcher.  */
-
-static bfd_boolean
-match_gp_not_zero_not_prev_operand (struct mips_arg_info *arg,
-				    const struct mips_operand *operand)
-{
-  unsigned int regno;
-
-  if (!match_reg (arg, OP_REG_GP, &regno))
-    return FALSE;
-
-  if (regno == 0 || regno == arg->last_regno)
-    {
-      set_insn_error (arg->argnum, _("the source registers must not be $0 and different"));
-      return FALSE;
-    }
-
-  arg->last_regno = regno;
-
-  insn_insert_operand (arg->insn, operand, regno);
+  insn_insert_operand (arg->insn, operand_base, regno);
   return TRUE;
 }
 
@@ -5960,23 +5866,8 @@ match_operand (struct mips_arg_info *arg,
     case OP_SAME_RS_RT:
       return match_same_rs_rt_operand (arg, operand);
 
-    case OP_GP_NOT_ZERO:
-      return match_gp_not_zero_operand (arg, operand);
-
-    case OP_GP_NOT_ZERO_LT_PREV:
-      return match_gp_not_zero_lt_prev_operand (arg, operand);
-
-    case OP_GP_GT_PREV:
-      return match_gp_gt_prev_operand (arg, operand);
-
-    case OP_GP_LE_PREV:
-      return match_gp_le_prev_operand (arg, operand);
-
-    case OP_GP_GE_PREV:
-      return match_gp_ge_prev_operand (arg, operand);
-
-    case OP_GP_NOT_ZERO_NOT_PREV:
-      return match_gp_not_zero_not_prev_operand (arg, operand);
+    case OP_CHECK_PREV:
+      return match_check_prev_operand (arg, operand);
 
     }
   abort ();

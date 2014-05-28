@@ -1153,6 +1153,7 @@ mips_seen_register (struct mips_print_arg_state *state,
    UVAL is the encoding of the operand (shifted into bit 0) and BASE_PC is
    the base address for OP_PCREL operands.  */
 
+
 static void
 print_insn_arg (struct disassemble_info *info,
 		struct mips_print_arg_state *state,
@@ -1296,67 +1297,19 @@ print_insn_arg (struct disassemble_info *info,
       }
       break;
 
-    case OP_GP_NOT_ZERO:
+    case OP_CHECK_PREV:
       {
-	if (uval != 0)
-	  infprintf (is, "%s", mips_gpr_names[uval]);
-	else
+	const struct mips_check_prev_operand *prev_op;
+
+	prev_op = (const struct mips_check_prev_operand *) operand;
+   
+        if ((prev_op->check_not_zero && uval == 0)
+	    || (prev_op->check_not_equal && uval == state->last_regno)
+	    || (prev_op->check_not_greater_than && uval > state->last_regno)
+	    || (prev_op->check_not_less_than && uval < state->last_regno))
 	  infprintf (is, "(ERROR)\t%s", mips_gpr_names[uval]);
-
-	mips_seen_register (state, uval, OP_REG_GP);
-      }
-      break;
-
-    case OP_GP_NOT_ZERO_LT_PREV:
-      {
-	if (uval != 0 && uval < state->last_regno)
-	  infprintf (is, "%s", mips_gpr_names[uval]);
 	else
-	  infprintf (is, "(ERROR)\t%s", mips_gpr_names[uval]);
-
-	mips_seen_register (state, uval, OP_REG_GP);
-      }
-      break;
-
-    case OP_GP_GT_PREV:
-      {
-	if (uval > state->last_regno)
 	  infprintf (is, "%s", mips_gpr_names[uval]);
-	else
-	  infprintf (is, "(ERROR)\t%s", mips_gpr_names[uval]);
-
-	mips_seen_register (state, uval, OP_REG_GP);
-      }
-      break;
-
-    case OP_GP_LE_PREV:
-      {
-	if (uval <= state->last_regno)
-	  infprintf (is, "%s", mips_gpr_names[uval]);
-	else
-	  infprintf (is, "(ERROR)\t%s", mips_gpr_names[uval]);
-
-	mips_seen_register (state, uval, OP_REG_GP);
-      }
-      break;
-
-    case OP_GP_GE_PREV:
-      {
-	if (uval >= state->last_regno)
-	  infprintf (is, "%s", mips_gpr_names[uval]);
-	else
-	  infprintf (is, "(ERROR)\t%s", mips_gpr_names[uval]);
-
-	mips_seen_register (state, uval, OP_REG_GP);
-      }
-      break;
-
-    case OP_GP_NOT_ZERO_NOT_PREV:
-      {
-	if (uval != 0 && uval != state->last_regno)
-	  infprintf (is, "%s", mips_gpr_names[uval]);
-	else
-	  infprintf (is, "(ERROR)\t%s", mips_gpr_names[uval]);
 
 	mips_seen_register (state, uval, OP_REG_GP);
       }
@@ -1609,6 +1562,17 @@ print_insn_args (struct disassemble_info *info,
    on using INFO.  Returns length of the instruction, in bytes, which is
    always INSNLEN.  BIGENDIAN must be 1 if this is big-endian code, 0 if
    this is little-endian code.  */
+/*static char temp_dis[1000];
+static char *temp_dis_loc;
+
+static int 
+fprintf_check (void * file, const char* format, ...)
+{
+  va_list ap;
+  va_start(ap,exception);
+  snprintf (tmp_dis, tmp_dis_loc-tmp_dis, format, ap);
+  va_end (ap);
+}*/
 
 static int
 print_insn_mips (bfd_vma memaddr,

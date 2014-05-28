@@ -46,13 +46,13 @@ decode_mips_operand (const char *p)
 	case 'a': INT_ADJ (19, 0, 262143, 2, FALSE);
 	case 'b': INT_ADJ (18, 0, 131071, 3, FALSE);
 	case 'd': SPECIAL (0, 0, REPEAT_DEST_REG);
-	case 's': SPECIAL (5, 21, GP_NOT_ZERO);
-	case 't': SPECIAL (5, 16, GP_NOT_ZERO);
-	case 'u': SPECIAL (5, 16, GP_GT_PREV);
-	case 'v': SPECIAL (5, 16, GP_NOT_ZERO_NOT_PREV);
-	case 'w': SPECIAL (5, 16, GP_LE_PREV);
-	case 'x': SPECIAL (5, 21, GP_GE_PREV);
-	case 'y': SPECIAL (5, 21, GP_NOT_ZERO_LT_PREV);
+	case 's': PREV_CHECK (5, 21, 0, 0, 0, 1);
+	case 't': PREV_CHECK (5, 16, 0, 0, 0, 1);
+	case 'u': PREV_CHECK (5, 16, 0, 1, 0, 0);
+	case 'v': PREV_CHECK (5, 16, 0, 0, 1, 1);
+	case 'w': PREV_CHECK (5, 16, 1, 0, 1, 0);
+	case 'x': PREV_CHECK (5, 21, 0, 1, 1, 0);
+	case 'y': PREV_CHECK (5, 21, 1, 0, 0, 1);
 	case 'A': PCREL (19, 0, TRUE, 2, 2, FALSE, FALSE);
 	case 'B': PCREL (18, 0, TRUE, 3, 3, FALSE, FALSE);
 	}
