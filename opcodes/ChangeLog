@@ -99,6 +99,36 @@
 
 	* po/POTFILES.in: Regenerate.
 
+2014-04-24  Chao-ying Fu    <chao-ying.fu@imgtec.com>
+	    Matthew Fortune <matthew.fortune@imgtec.com>
+	    Andrew Bennett  <andrew.bennett@imgtec.com>
+
+	* mips-dis.c (mips_arch_choices): Add entries for mips32r6 and
+	mips64r6.
+	(parse_mips_dis_option): Allow MSA and virtualization support for 
+	mips64r6.
+	(mips_print_arg_state): Add fields dest_regno and seen_dest.
+	(mips_seen_register): New function.
+	(print_insn_arg): Refactored code to use mips_seen_register
+	function.  Also add support for OP_SAME_RS_RT, OP_GP_NOT_ZERO,  
+	OP_GP_NOT_ZERO_LT_PREV, OP_GP_GT_PREV, OP_GP_LE_PREV, OP_GP_GE_PREV
+	and OP_GP_NOT_ZERO_NOT_PREV.
+	(print_insn_args): Add length argument.  Add code to correctly
+	calculate the instruction address for pc relative instructions.
+	(print_insn_mips): Add code to prevent new MIPS R6 instructions
+	from being decoded as MIPS R2 instructions.  Also update the argument
+	used in the call to print_insn_args.
+	(print_insn_micromips): Update the arguments used in the call to 
+	print_insn_args.
+	* mips-opc.c (decode_mips_operand): Add support for -a, -b, -d, -s,
+	-t, -u, -v, -w, -x, -y, -A, -B, +I, +O, +R, +:, +\, +", +;
+	(RD_pc): New define.
+	(FS): New define.
+	(I34): New define.
+	(I66): New define.
+	(mips_builtin_opcodes): Add MIPS R6 instructions.  Exclude recoded 
+	MIPS R6 instructions from MIPS R2 instructions. 
+
 2014-04-23  Andrew Bennett  <andrew.bennett@imgtec.com>
 
 	* mips-dis.c (mips_arch_choices): Update mips32r2 and mips64r2

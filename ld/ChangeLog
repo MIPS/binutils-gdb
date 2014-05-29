@@ -1,3 +1,10 @@
+2014-05-21  Chao-ying Fu    <chao-ying.fu@imgtec.com>
+	    Matthew Fortune <matthew.fortune@imgtec.com>
+	    Andrew Bennett  <andrew.bennett@imgtec.com>
+
+	* configure.tgt: Add img*-mips-elf* target triple. 
+	* ldmain.c (get_emulation): Add support for -mips32r6 and -mips64r6.
+
 2014-05-27  DJ Delorie  <dj@redhat.com>
 
 	* ld/ldemul.h (extra_map_file_text): New field.

@@ -1,3 +1,23 @@
+2014-05-21  Chao-ying Fu    <chao-ying.fu@imgtec.com>
+	    Matthew Fortune <matthew.fortune@imgtec.com>
+	    Andrew Bennett  <andrew.bennett@imgtec.com>
+
+	* mips.h (mips_operand_type): Add new entries: OP_SAME_RS_RT,
+	OP_GP_NOT_ZERO, OP_GP_NOT_ZERO_LT_PREV, OP_GP_GT_PREV, OP_GP_LE_PREV,
+	OP_GP_GE_PREV, OP_GP_NOT_ZERO_NOT_PREV.
+	Add descriptions for the MIPS R6 instruction arguments: -a, -b, -d,
+	-s, -t, -u, -v, -w, -x, -y, -A, -B, +I, +O, +R, +:, +\, +", +;
+	(INSN2_FORBIDDEN_SLOT): New define.
+	(INSN_ISA_MASK): Updated.
+	(INSN_ISA32R6): New define.
+	(INSN_ISA64R6): New define.
+	(mips_isa_table): Add entries for mips32r6 and mips64r6.
+	(ISA_MIPS32R6): New define.
+	(ISA_MIPS64R6): New define.
+	(CPU_MIPS32R6): New define.
+	(CPU_MIPS64R6): New define.
+	(cpu_is_member): Add cases for CPU_MIPS32R6, and CPU_MIPS64R6.
+
 2014-05-19  Nick Clifton  <nickc@redhat.com>
 
 	* msp430.h (struct msp430_operand_s): Add vshift field.

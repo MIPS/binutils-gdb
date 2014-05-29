@@ -16,6 +16,13 @@
 
 	* MAINTAINERS: Add myself and Stefan as OR1K maintainers.
 
+2014-04-24  Chao-ying Fu    <chao-ying.fu@imgtec.com>
+	    Matthew Fortune <matthew.fortune@imgtec.com>
+	    Andrew Bennett  <andrew.bennett@imgtec.com>
+
+	* readelf.c (get_machine_flags): Add support for mips32r6 and 
+	mips64r6.
+
 2014-04-23  Andrew Bennett  <andrew.bennett@imgtec.com>
 
 	* doc/binutils.texi: Document the disassemble MIPS XPA instructions

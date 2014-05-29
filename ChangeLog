@@ -3,6 +3,13 @@
 	* configure.ac (target_makefile_frag): Set for nios2-*-elf*.
 	* configure: Regenerated.
 
+2014-04-24  Chao-ying Fu    <chao-ying.fu@imgtec.com>
+	    Matthew Fortune <matthew.fortune@imgtec.com>
+	    Andrew Bennett  <andrew.bennett@imgtec.com>
+	* config.sub: Add support for mips32r6 and mips64r6.
+	* configure.ac: Add mips*-img-elf* triple.
+	* configure: Regenerate.
+
 2014-03-26  Jakub Jelinek  <jakub@redhat.com>
 
 	PR sanitizer/56781

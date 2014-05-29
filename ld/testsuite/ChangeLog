@@ -1,3 +1,10 @@
+2014-05-21  Chao-ying Fu    <chao-ying.fu@imgtec.com>
+	    Matthew Fortune <matthew.fortune@imgtec.com>
+	    Andrew Bennett  <andrew.bennett@imgtec.com>
+
+	* ld-mips-elf/mips-elf.exp: Add support for mips*-img-elf* target
+	triple.
+
 2014-05-20  Will Newton  <will.newton@linaro.org>
 
 	* ld-shared/shared.exp: Mark non-PIC shared object tests
