@@ -793,8 +793,8 @@ static bfd *reldyn_sorting_bfd;
 
 /* Nonzero if ABFD is MIPS R6.  */
 #define MIPSR6_P(abfd) \
-  ((elf_elfheader (abfd)->e_flags \
-    & (E_MIPS_ARCH_32R6 | E_MIPS_ARCH_64R6)) != 0)
+  ((elf_elfheader (abfd)->e_flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R6 \
+    || (elf_elfheader (abfd)->e_flags & EF_MIPS_ARCH) == E_MIPS_ARCH_64R6)
 
 /* The IRIX compatibility level we are striving for.  */
 #define IRIX_COMPAT(abfd) \
@@ -1097,8 +1097,8 @@ static const bfd_vma mipsr6_exec_plt_entry[] =
 {
   0x3c0f0000,	/* lui $15, %hi(.got.plt entry)			*/
   0x01f90000,	/* l[wd] $25, %lo(.got.plt entry)($15)		*/
-  0x03200009,	/* jr $25					*/
-  0x25f80000	/* addiu $24, $15, %lo(.got.plt entry)		*/
+  0x25f80000,	/* addiu $24, $15, %lo(.got.plt entry)		*/
+  0x03200009	/* jr $25					*/
 };
 
 /* The format of subsequent MIPS16 o32 PLT entries.  We use v0 ($2)
