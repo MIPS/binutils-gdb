@@ -18047,6 +18047,10 @@ mips_elf_final_processing (void)
       flags.isa_level = 32;
       flags.isa_rev = 5;
       break;
+    case INSN_ISA32R6:
+      flags.isa_level = 32;
+      flags.isa_rev = 6;
+      break;
     case INSN_ISA64:
       flags.isa_level = 64;
       flags.isa_rev = 1;
@@ -18062,6 +18066,10 @@ mips_elf_final_processing (void)
     case INSN_ISA64R5:
       flags.isa_level = 64;
       flags.isa_rev = 5;
+      break;
+    case INSN_ISA64R6:
+      flags.isa_level = 64;
+      flags.isa_rev = 6;
       break;
     }
 
