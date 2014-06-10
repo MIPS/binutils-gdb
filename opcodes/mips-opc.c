@@ -46,13 +46,13 @@ decode_mips_operand (const char *p)
 	case 'a': INT_ADJ (19, 0, 262143, 2, FALSE);
 	case 'b': INT_ADJ (18, 0, 131071, 3, FALSE);
 	case 'd': SPECIAL (0, 0, REPEAT_DEST_REG);
-	case 's': PREV_CHECK (5, 21, 0, 0, 0, 1);
-	case 't': PREV_CHECK (5, 16, 0, 0, 0, 1);
-	case 'u': PREV_CHECK (5, 16, 0, 1, 0, 0);
-	case 'v': PREV_CHECK (5, 16, 0, 0, 1, 1);
-	case 'w': PREV_CHECK (5, 16, 1, 0, 1, 0);
-	case 'x': PREV_CHECK (5, 21, 0, 1, 1, 0);
-	case 'y': PREV_CHECK (5, 21, 1, 0, 0, 1);
+	case 's': PREV_CHECK (5, 21, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE);
+	case 't': PREV_CHECK (5, 16, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE);
+	case 'u': PREV_CHECK (5, 16, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE);
+	case 'v': PREV_CHECK (5, 16, FALSE, FALSE, FALSE, TRUE, TRUE, TRUE);
+	case 'w': PREV_CHECK (5, 16, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE);
+	case 'x': PREV_CHECK (5, 21, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE);
+	case 'y': PREV_CHECK (5, 21, TRUE, FALSE, FALSE, FALSE, FALSE, TRUE);
 	case 'A': PCREL (19, 0, TRUE, 2, 2, FALSE, FALSE);
 	case 'B': PCREL (18, 0, TRUE, 3, 3, FALSE, FALSE);
 	}

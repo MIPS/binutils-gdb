@@ -135,10 +135,10 @@
     return &op; \
   }
 
-#define PREV_CHECK(SIZE, LSB, LT, GT, EQ, ZERO) \
+#define PREV_CHECK(SIZE, LSB, LT, GT, LE, GE, NEQ, NOT_ZERO) \
   { \
     static const struct mips_check_prev_operand op = { \
-      { OP_CHECK_PREV, SIZE, LSB }, LT, GT, EQ, ZERO \
+      { OP_CHECK_PREV, SIZE, LSB }, LT, GT, LE, GE, NEQ, NOT_ZERO \
     }; \
     return &op.root; \
   }

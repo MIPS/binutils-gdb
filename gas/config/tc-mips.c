@@ -5150,21 +5150,21 @@ match_check_prev_operand (struct mips_arg_info *arg,
       return FALSE;
     }
 
-  if (operand->check_not_zero && operand->check_not_equal 
+  if (operand->check_not_zero && operand->check_not_equal
       && regno == 0 && regno == arg->last_regno)
     {
-      set_insn_error (arg->argnum, 
+      set_insn_error (arg->argnum,
                       _("the source registers must not be $0 and different"));
       return FALSE;
     }
 
-  if (operand->check_not_equal && regno == arg->last_regno)
+  if (operand->check_greater_than && regno <= arg->last_regno)
     return FALSE;
-
-  if (operand->check_not_greater_than && regno > arg->last_regno)
+  else if (operand->check_less_than && regno >= arg->last_regno)
     return FALSE;
-
-  if (operand->check_not_less_than && regno < arg->last_regno)
+  else if (operand->check_greater_than_or_equal && regno < arg->last_regno)
+    return FALSE;
+  else if (operand->check_less_than_or_equal && regno > arg->last_regno)
     return FALSE;
 
   arg->last_regno = regno;

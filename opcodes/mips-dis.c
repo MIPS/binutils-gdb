@@ -1305,8 +1305,10 @@ print_insn_arg (struct disassemble_info *info,
    
         if ((prev_op->check_not_zero && uval == 0)
 	    || (prev_op->check_not_equal && uval == state->last_regno)
-	    || (prev_op->check_not_greater_than && uval > state->last_regno)
-	    || (prev_op->check_not_less_than && uval < state->last_regno))
+	    || (prev_op->check_greater_than_or_equal && uval < state->last_regno)
+	    || (prev_op->check_less_than_or_equal && uval > state->last_regno)
+	    || (prev_op->check_less_than && uval >= state->last_regno)
+	    || (prev_op->check_greater_than && uval <= state->last_regno))
 	  infprintf (is, "(ERROR)\t%s", mips_gpr_names[uval]);
 	else
 	  infprintf (is, "%s", mips_gpr_names[uval]);
