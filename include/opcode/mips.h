@@ -567,7 +567,7 @@ struct mips_check_prev_operand
 
   bfd_boolean check_less_than;
   bfd_boolean check_greater_than;
-  bfd_boolean check_less_than_or_equal
+  bfd_boolean check_less_than_or_equal;
   bfd_boolean check_greater_than_or_equal;
   bfd_boolean check_not_equal;
   bfd_boolean check_not_zero;
