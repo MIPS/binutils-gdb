@@ -8227,7 +8227,7 @@ static const char * const trap_fmt[2] = { "s,t,q", "s,t,|" };
 #define BRK_FMT (brk_fmt[mips_opts.micromips][mips_opts.insn32])
 #define COP12_FMT (cop12_fmt[mips_opts.micromips])
 #define JALR_FMT (jalr_fmt[mips_opts.micromips])
-#define LUI_FMT (lui_fmt[mips_opts.micromips])
+#define LUI_FMT (lui_fmt[ISA_IS_R6 (mips_opts.isa) ? 0 : mips_opts.micromips])
 #define MEM12_FMT (mem12_fmt[mips_opts.micromips])
 #define MFHL_FMT (mfhl_fmt[mips_opts.micromips][mips_opts.insn32])
 #define SHFT_FMT (shft_fmt[mips_opts.micromips])
