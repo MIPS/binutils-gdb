@@ -2240,6 +2240,7 @@ extern const int bfd_mips16_num_opcodes;
    "+&" 0 vector element index
    "+*" 5-bit register vector element index at bit 16
    "+|" 8-bit mask at bit 16
+   "+:" microMIPS R6: 2 bit LSA/DLSA shift amount from 1 to 4 at bit 9
 
    Other:
    "()" parens surrounding optional value
@@ -2256,7 +2257,7 @@ extern const int bfd_mips16_num_opcodes;
    Extension character sequences used so far ("+" followed by the
    following), for quick reference when adding more:
    ""
-   "~!@#$%^&*|'";"
+   "~!@#$%^&*|'":;"
    "ABCDEFGHIJK  NOP  STUVW   "
    "   de  hijklno      uvwx  "
 
