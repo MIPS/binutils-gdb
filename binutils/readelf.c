@@ -11785,6 +11785,9 @@ print_mips_fp_abi_value (int val)
     case Val_GNU_MIPS_ABI_FP_64:
       printf (_("Hard float (32-bit CPU, 64-bit FPU)\n"));
       break;
+    case Val_GNU_MIPS_ABI_FP_64A:
+      printf (_("Hard float compat (32-bit CPU, 64-bit FPU)\n"));
+      break;
     default:
       printf ("??? (%d)\n", val);
       break;

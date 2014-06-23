@@ -855,6 +855,14 @@ This variant is used by 32-bit ABIs to indicate that the floating-point
 code in the module requires 64-bit wide floating-point registers.
 Double-precision support is used.  Only O32 currently supports this
 variant and requires a minimum architecture of MIPS32r2.
+
+@item 7 - Double-precision compat 32-bit FPU, 64-bit FPU
+This variant is used by 32-bit ABIs to indicate that the floating-point
+code in the module requires 64-bit wide floating-point registers.
+Double-precision support is used.  This differs from the previous ABI
+as it restricts use of odd-numbered single-precision registers.  Only
+O32 currently supports this variant and requires a minimum architecture
+of MIPS32r2.
 @end table
 
 @node MIPS FP ABI Selection
@@ -873,20 +881,22 @@ has been used the module will be marked as soft-float.  If
 single-precision.  The remaining ABIs are then selected based
 on the FP register width.  Double-precision is selected if the width
 of GP and FP registers match and the special double-precision variants
-for 32-bit ABIs are then selected depending on @samp{-mfpxx} and
-@samp{-mfp64}.
+for 32-bit ABIs are then selected depending on @samp{-mfpxx},
+@samp{-mfp64} and @samp{-mno-odd-spreg}.
 
 @node MIPS FP ABI Compatibility
 @subsection Linking different FP ABI variants
 Modules using the default FP ABI (no floating-point) can be linked with
 any other (singular) FP ABI variant.
 
-Special compatibility support exists for O32 with the three
+Special compatibility support exists for O32 with the four
 double-precision FP ABI variants.  The @samp{-mfpxx} FP ABI is specifically
-designed to be compatible with both the standard double-precision ABI and
-the @samp{-mfp64} FP ABI.  This makes it desirable for O32 modules to be
+designed to be compatible with the standard double-precision ABI and the
+@samp{-mfp64} FP ABIs.  This makes it desirable for O32 modules to be
 built as @samp{-mfpxx} to ensure the maximum compatibility with other
-modules produced for more specific needs.
+modules produced for more specific needs.  The only FP ABIs which cannot
+be linked together are the standard double-precision ABI and the full
+@samp{-mfp64} ABI with @samp{-modd-spreg}.
 
 @node MIPS NaN Encodings
 @section Directives to record which NaN encoding is being used
