@@ -15355,6 +15355,9 @@ s_mipsset (int x ATTRIBUTE_UNUSED)
 	case 0:
 	  break;
 	case ISA_MIPS1:
+	  /* MIPS I cannot support FPXX.  */
+	  mips_opts.fp = 32;
+	  /* fall-through.  */
 	case ISA_MIPS2:
 	case ISA_MIPS32:
 	case ISA_MIPS32R2:
