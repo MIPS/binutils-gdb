@@ -3695,11 +3695,14 @@ check_fpabi (int fpabi)
 	needs_check = TRUE;
       break;
 
+    case Val_GNU_MIPS_ABI_FP_64C:
     case Val_GNU_MIPS_ABI_FP_64:
       if (mips_abi != O32_ABI)
 	fpabi_requires (fpabi, "-mabi=32");
       else if (file_mips_opts.fp == 32)
 	fpabi_incompatible_with (fpabi, "fp=32");
+      else if (fpabi == Val_GNU_MIPS_ABI_FP_64C && !file_mips_opts.nooddspreg)
+	fpabi_requires (fpabi, "-mno-odd-spreg");
       else
 	needs_check = TRUE;
       break;
@@ -4495,45 +4498,41 @@ static bfd_boolean
 mips_oddfpreg_ok (const struct mips_opcode *insn, int opnum)
 {
   const char *s = insn->name;
-  bfd_boolean oddspreg = ISA_HAS_ODD_SINGLE_FPR (mips_opts.isa, mips_opts.arch)
+  bfd_boolean oddspreg = (ISA_HAS_ODD_SINGLE_FPR (mips_opts.isa, mips_opts.arch)
+			  || FPR_SIZE == 64)
 			 && !mips_opts.nooddspreg;
 
   if (insn->pinfo == INSN_MACRO)
     /* Let a macro pass, we'll catch it later when it is expanded.  */
     return TRUE;
 
-  if (oddspreg)
-    {
-      /* Allow odd registers for single-precision ops.  */
-      switch (insn->pinfo & (FP_S | FP_D))
-	{
-	case FP_S:
-	case 0:
-	  return TRUE;
-	case FP_D:
-	  return FALSE;
-	default:
-	  break;
-	}
-
-      /* Cvt.w.x and cvt.x.w allow an odd register for a 'w' or 's' operand.  */
-      s = strchr (insn->name, '.');
-      if (s != NULL && opnum == 2)
-	s = strchr (s + 1, '.');
-      return (s != NULL && (s[1] == 'w' || s[1] == 's'));
-    }
-
-  /* Single-precision coprocessor loads and moves are OK too.  */
+  /* Single-precision coprocessor loads and moves are OK for 32-bit registers,
+     otherwise it depends on oddspreg.  */
   if ((insn->pinfo & FP_S)
       && (insn->pinfo & INSN_FP_32_MOVE))
+    return FPR_SIZE == 32 || oddspreg;
+
+  /* Allow odd registers for single-precision ops and double-precision if the
+     floating-point registers are 64-bit wide.  */
+  switch (insn->pinfo & (FP_S | FP_D))
     {
-      if (FPR_SIZE == 0 && !oddspreg)
-	as_bad (_("unsupported access to the upper half of double-precision "
-		  "registers"));
-      return TRUE;
+    case FP_S:
+    case 0:
+      return oddspreg;
+    case FP_D:
+      return FPR_SIZE == 64;
+    default:
+      break;
     }
 
-  return FALSE;
+  /* Cvt.w.x and cvt.x.w allow an odd register for a 'w' or 's' operand.  */
+  s = strchr (insn->name, '.');
+  if (s != NULL && opnum == 2)
+    s = strchr (s + 1, '.');
+  if (s != NULL && (s[1] == 'w' || s[1] == 's'))
+    return oddspreg;
+
+  return FPR_SIZE == 64;
 }
 
 /* Information about an instruction argument that we're trying to match.  */
@@ -4756,10 +4755,10 @@ check_regno (struct mips_arg_info *arg,
 
   if (type == OP_REG_FP
       && (regno & 1) != 0
-      && FPR_SIZE != 64
+      && (FPR_SIZE == 32 || mips_abi == O32_ABI)
       && !mips_oddfpreg_ok (arg->insn->insn_mo, arg->opnum))
     {
-      if (FPR_SIZE != 0)
+      if (FPR_SIZE == 32)
 	as_warn (_("float register should be even, was %d"), regno);
       else
 	as_bad (_("float register should be even, was %d"), regno);
@@ -17636,6 +17635,10 @@ mips_elf_final_processing (void)
   if (file_ase_micromips)
     flags.ases |= AFL_ASE_MICROMIPS;
   flags.flags1 = 0;
+  if ((ISA_HAS_ODD_SINGLE_FPR (file_mips_opts.isa, file_mips_opts.arch)
+       || file_mips_opts.fp == 64)
+      && !file_mips_opts.nooddspreg)
+    flags.flags1 |= AFL_FLAGS1_ODDSPREG;
   flags.flags2 = 0;
 
   bfd_mips_elf_swap_abiflags_v0_out (stdoutput, &flags,
@@ -18710,7 +18713,9 @@ md_mips_end (void)
 	      fpabi = Val_GNU_MIPS_ABI_FP_XX;
 	      break;
 	    case 64:
-	      if (file_mips_opts.gp == 32)
+	      if (file_mips_opts.gp == 32 && file_mips_opts.nooddspreg)
+		fpabi = Val_GNU_MIPS_ABI_FP_64C;
+	      else if (file_mips_opts.gp == 32)
 		fpabi = Val_GNU_MIPS_ABI_FP_64;
 	      else
 		fpabi = Val_GNU_MIPS_ABI_FP_DOUBLE;

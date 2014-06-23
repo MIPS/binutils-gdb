@@ -13866,7 +13866,8 @@ infer_mips_abiflags (bfd *abfd, Elf_Internal_ABIFlags_v0* abiflags)
 	  && abiflags->gpr_size == AFL_REG_32))
     abiflags->cpr1_size = AFL_REG_32;
   else if (abiflags->fp_abi == Val_GNU_MIPS_ABI_FP_DOUBLE
-	   || abiflags->fp_abi == Val_GNU_MIPS_ABI_FP_64)
+	   || abiflags->fp_abi == Val_GNU_MIPS_ABI_FP_64
+	   || abiflags->fp_abi == Val_GNU_MIPS_ABI_FP_64C)
     abiflags->cpr1_size = AFL_REG_64;
 
   abiflags->cpr2_size = AFL_REG_NONE;
@@ -13877,6 +13878,11 @@ infer_mips_abiflags (bfd *abfd, Elf_Internal_ABIFlags_v0* abiflags)
     abiflags->ases |= AFL_ASE_MIPS16;
   if (elf_elfheader (abfd)->e_flags & EF_MIPS_ARCH_ASE_MICROMIPS)
     abiflags->ases |= AFL_ASE_MICROMIPS;
+
+  if (abiflags->fp_abi != Val_GNU_MIPS_ABI_FP_ANY
+      && abiflags->fp_abi != Val_GNU_MIPS_ABI_FP_SOFT
+      && abiflags->fp_abi != Val_GNU_MIPS_ABI_FP_64C)
+    abiflags->flags1 |= AFL_FLAGS1_ODDSPREG;
 }
 
 /* We need to use a special link routine to handle the .reginfo and
@@ -14716,14 +14722,25 @@ mips_elf_merge_obj_attributes (bfd *ibfd, bfd *obfd)
 	out_attr[Tag_GNU_MIPS_ABI_FP].i = in_fp;
       else if (out_fp == Val_GNU_MIPS_ABI_FP_XX
 	       && (in_fp == Val_GNU_MIPS_ABI_FP_DOUBLE
-		   || in_fp == Val_GNU_MIPS_ABI_FP_64))
+		   || in_fp == Val_GNU_MIPS_ABI_FP_64
+		   || in_fp == Val_GNU_MIPS_ABI_FP_64C))
 	{
 	  mips_elf_tdata (obfd)->abi_fp_bfd = ibfd;
 	  out_attr[Tag_GNU_MIPS_ABI_FP].i = in_attr[Tag_GNU_MIPS_ABI_FP].i;
 	}
       else if (in_fp == Val_GNU_MIPS_ABI_FP_XX
 	       && (out_fp == Val_GNU_MIPS_ABI_FP_DOUBLE
-		   || out_fp == Val_GNU_MIPS_ABI_FP_64))
+		   || out_fp == Val_GNU_MIPS_ABI_FP_64
+		   || out_fp == Val_GNU_MIPS_ABI_FP_64C))
+	/* Keep the current setting.  */;
+      else if (out_fp == Val_GNU_MIPS_ABI_FP_64C
+	       && in_fp == Val_GNU_MIPS_ABI_FP_64)
+	{
+	  mips_elf_tdata (obfd)->abi_fp_bfd = ibfd;
+	  out_attr[Tag_GNU_MIPS_ABI_FP].i = in_attr[Tag_GNU_MIPS_ABI_FP].i;
+	}
+      else if (in_fp == Val_GNU_MIPS_ABI_FP_64C
+	       && out_fp == Val_GNU_MIPS_ABI_FP_64)
 	/* Keep the current setting.  */;
       else if (in_fp != Val_GNU_MIPS_ABI_FP_ANY)
 	{
@@ -15305,6 +15322,9 @@ _bfd_mips_fp_abi_string (int fp)
     case Val_GNU_MIPS_ABI_FP_64:
       return "-mgp32 -mfp64";
 
+    case Val_GNU_MIPS_ABI_FP_64C:
+      return "-mgp32 -mfp64 -mno-odd-spreg";
+
     default:
       return 0;
     }
@@ -15436,6 +15456,9 @@ print_mips_fp_abi_value (FILE *file, int val)
       break;
     case Val_GNU_MIPS_ABI_FP_64:
       fprintf (file, _("Hard float (32-bit CPU, 64-bit FPU)\n"));
+      break;
+    case Val_GNU_MIPS_ABI_FP_64C:
+      fprintf (file, _("Hard float compat (32-bit CPU, 64-bit FPU)\n"));
       break;
     default:
       fprintf (file, "??? (%d)\n", val);
@@ -15886,6 +15909,7 @@ _bfd_mips_post_process_headers (bfd *abfd, struct bfd_link_info *link_info)
 	i_ehdrp->e_ident[EI_ABIVERSION] = 1;
     }
 
-  if (mips_elf_tdata (abfd)->abiflags.fp_abi == Val_GNU_MIPS_ABI_FP_64)
+  if (mips_elf_tdata (abfd)->abiflags.fp_abi == Val_GNU_MIPS_ABI_FP_64
+      || mips_elf_tdata (abfd)->abiflags.fp_abi == Val_GNU_MIPS_ABI_FP_64C)
     i_ehdrp->e_ident[EI_ABIVERSION] = 3;
 }
