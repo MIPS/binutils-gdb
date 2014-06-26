@@ -76,6 +76,9 @@ static int mips16_insn_at_pc_has_delay_slot (struct gdbarch *gdbarch,
 static void mips_print_float_info (struct gdbarch *, struct ui_file *,
 				   struct frame_info *, const char *);
 
+static void mips_read_fp_register_single (struct frame_info *, int,
+					  gdb_byte *);
+
 /* The sizes of floating point registers.  */
 
 enum
@@ -2244,6 +2247,17 @@ mips_fetch_instruction (struct gdbarch *gdbarch,
   return extract_unsigned_integer (buf, instlen, byte_order);
 }
 
+/* Return one if the gdbarch is based on MIPS Release 6.  */
+
+static int
+is_mipsr6_isa (struct gdbarch *gdbarch)
+{
+  const struct bfd_arch_info *info = gdbarch_bfd_arch_info (gdbarch);
+
+  return (info->mach == bfd_mach_mipsisa32r6
+	  || info->mach == bfd_mach_mipsisa64r6);
+}
+
 /* These are the fields of 32 bit mips instructions.  */
 #define mips32_op(x) (x >> 26)
 #define itype_op(x) (x >> 26)
@@ -2286,6 +2300,7 @@ mips_fetch_instruction (struct gdbarch *gdbarch,
 #define b0s11_op(x) ((x) & 0x7ff)
 #define b0s12_imm(x) ((x) & 0xfff)
 #define b0s16_imm(x) ((x) & 0xffff)
+#define b0s21_imm(x) ((x) & 0x1fffff)
 #define b0s26_imm(x) ((x) & 0x3ffffff)
 #define b6s10_ext(x) (((x) >> 6) & 0x3ff)
 #define b11s5_reg(x) (((x) >> 11) & 0x1f)
@@ -2322,6 +2337,24 @@ mips32_relative_offset (ULONGEST inst)
   return ((itype_immediate (inst) ^ 0x8000) - 0x8000) << 2;
 }
 
+/* Extract the 21-bit signed immediate offset from the MIPS instruction
+   INSN.  */
+
+static LONGEST
+mips32_relative_offset21 (ULONGEST insn)
+{
+  return ((b0s21_imm (insn) ^ 0x100000) - 0x100000) << 2;
+}
+
+/* Extract the 26-bit signed immediate offset from the MIPS instruction
+   INSN.  */
+
+static LONGEST
+mips32_relative_offset26 (ULONGEST insn)
+{
+  return ((b0s26_imm (insn) ^ 0x2000000) - 0x2000000) << 2;
+}
+
 /* Determine the address of the next instruction executed after the INST
    floating condition branch instruction at PC.  COUNT specifies the
    number of the floating condition bits tested by the branch.  */
@@ -2348,6 +2381,58 @@ mips32_bc1_pc (struct gdbarch *gdbarch, struct regcache *regcache,
     pc += mips32_relative_offset (inst);
   else
     pc += 4;
+
+  return pc;
+}
+
+/* Determine the address of the next instruction execute after the INST
+   BLEZ family of branch instructions at PC */
+
+static CORE_ADDR
+mips32_blez_pc (struct gdbarch *gdbarch, struct regcache *regcache,
+		ULONGEST inst, CORE_ADDR pc, int invert)
+{
+  int rs = itype_rs (inst);
+  int rt = itype_rt (inst);
+  LONGEST val_rs = regcache_raw_get_signed (regcache, rs);
+  LONGEST val_rt = regcache_raw_get_signed (regcache, rt);
+  ULONGEST uval_rs = regcache_raw_get_unsigned (regcache, rs);
+  ULONGEST uval_rt = regcache_raw_get_unsigned (regcache, rt);
+  int taken = 0;
+  int delay_slot_size = 4;
+
+  /* BLEZ, BLEZL, BGTZ, BGTZL */
+  if (rt == 0)
+    {
+      taken = (val_rs <= 0);
+    }
+  else if (is_mipsr6_isa (gdbarch))
+    {
+      /* BLEZALC, BGTZALC */
+      if (rs == 0 && rt != 0)
+	taken = (val_rt <= 0);
+      /* BGEZALC, BLTZALC */
+      else if (rs == rt && rt != 0)
+	taken = (val_rt >= 0);
+      /* BGEUC, BLTUC */
+      else if (rs != rt && rs != 0 && rt != 0)
+	taken = (uval_rs >= uval_rt);
+
+      /* Step through the forbidden slot to avoid repeated exceptions we do
+	 not currently have access to the BD bit when hitting a breakpoint
+	 and therefore cannot tell if the breakpoint hit on the branch or the
+	 forbidden slot.  */
+      /* delay_slot_size = 0; */
+    }
+
+  if (invert)
+    taken = !taken;
+
+  /* Calculate branch target */
+  if (taken)
+    pc += mips32_relative_offset (inst);
+  else
+    pc += delay_slot_size;
 
   return pc;
 }
@@ -2476,6 +2561,24 @@ is_octeon_bbit_op (int op, struct gdbarch *gdbarch)
   return 0;
 }
 
+/* Return 1 if A + B would overflow.  */
+
+static int
+is_add32bit_overflow (int32_t a, int32_t b)
+{
+  int32_t r = (uint32_t) a + (uint32_t) b;
+  return (a < 0 && b < 0 && r >= 0) || (a >= 0 && b >= 0 && r < 0);
+}
+
+static int
+is_add64bit_overflow (int64_t a, int64_t b)
+{
+  if (a != (int32_t)a)
+    return 1;
+  if (b != (int32_t)b)
+    return 1;
+  return is_add32bit_overflow ((int32_t)a, (int32_t)b);
+}
 
 /* Determine where to set a single step breakpoint while considering
    branch prediction.  */
@@ -2486,12 +2589,18 @@ mips32_next_pc (struct regcache *regcache, CORE_ADDR pc)
   struct gdbarch *gdbarch = regcache->arch ();
   unsigned long inst;
   int op;
+  int mips64bitreg = 0;
+
+  if (mips_isa_regsize (gdbarch) == 8)
+    mips64bitreg = 1;
+
   inst = mips_fetch_instruction (gdbarch, ISA_MIPS, pc, NULL);
   op = itype_op (inst);
   if ((inst & 0xe0000000) != 0)		/* Not a special, jump or branch
 					   instruction.  */
     {
-      if (op >> 2 == 5)
+      if (op >> 2 == 5 && ((op & 0x02) == 0
+			   || itype_rt (inst) == 0))
 	/* BEQL, BNEL, BLEZL, BGTZL: bits 0101xx */
 	{
 	  switch (op & 0x03)
@@ -2501,7 +2610,7 @@ mips32_next_pc (struct regcache *regcache, CORE_ADDR pc)
 	    case 1:		/* BNEL */
 	      goto neq_branch;
 	    case 2:		/* BLEZL */
-	      goto less_branch;
+	      goto lez_branch;
 	    case 3:		/* BGTZL */
 	      goto greater_branch;
 	    default:
@@ -2511,11 +2620,14 @@ mips32_next_pc (struct regcache *regcache, CORE_ADDR pc)
       else if (op == 17 && itype_rs (inst) == 8)
 	/* BC1F, BC1FL, BC1T, BC1TL: 010001 01000 */
 	pc = mips32_bc1_pc (gdbarch, regcache, inst, pc + 4, 1);
-      else if (op == 17 && itype_rs (inst) == 9
+      else if (!is_mipsr6_isa (gdbarch)
+		   && op == 17 && itype_rs (inst) == 9
 	       && (itype_rt (inst) & 2) == 0)
 	/* BC1ANY2F, BC1ANY2T: 010001 01001 xxx0x */
 	pc = mips32_bc1_pc (gdbarch, regcache, inst, pc + 4, 2);
-      else if (op == 17 && itype_rs (inst) == 10
+      else if (!is_mipsr6_isa (gdbarch)
+               && op == 17
+               && itype_rs (inst) == 10
 	       && (itype_rt (inst) & 2) == 0)
 	/* BC1ANY4F, BC1ANY4T: 010001 01010 xxx0x */
 	pc = mips32_bc1_pc (gdbarch, regcache, inst, pc + 4, 4);
@@ -2527,7 +2639,7 @@ mips32_next_pc (struct regcache *regcache, CORE_ADDR pc)
 	/* BZ.V:   010001 01011 */
 	/* BNZ.V:  010001 01111 */
 	pc = mips32_bc1_w_pc (gdbarch, inst, pc + 4);
-      else if (op == 29)
+      else if (!is_mipsr6_isa (gdbarch) && op == 29)
 	/* JALX: 011101 */
 	/* The new PC will be alternate mode.  */
 	{
@@ -2555,7 +2667,128 @@ mips32_next_pc (struct regcache *regcache, CORE_ADDR pc)
           else
 	    pc += 8;        /* After the delay slot.  */
 	}
+      else if (is_mipsr6_isa (gdbarch))
+	{
+	  /* BOVC, BEQZALC, BEQC and BNVC, BNEZALC, BNEC */
+	  if (op == 8 || op == 24)
+	    {
+	      int rs = rtype_rs (inst);
+	      int rt = rtype_rt (inst);
+	      LONGEST val_rs = regcache_raw_get_signed (regcache, rs);
+	      LONGEST val_rt = regcache_raw_get_signed (regcache, rt);
+	      int taken = 0;
+	      /* BOVC (BNVC) */
+	      if (rs >= rt)
+		{
+		  if (mips64bitreg == 1)
+		    taken = is_add64bit_overflow (val_rs, val_rt);
+		  else
+		    taken = is_add32bit_overflow (val_rs, val_rt);
+		}
+	      /* BEQZALC (BNEZALC) */
+	      else if (rs < rt && rs == 0)
+		taken = (val_rt == 0);
+	      /* BEQC (BNEC) */
+	      else
+		taken = (val_rs == val_rt);
 
+	      /* BNVC, BNEZALC, BNEC */
+	      if (op == 24)
+		taken = !taken;
+
+	      if (taken)
+		pc += mips32_relative_offset (inst) + 4;
+	      else
+		/* Step through the forbidden slot to avoid repeated exceptions
+		   we do not currently have access to the BD bit when hitting a
+		   breakpoint and therefore cannot tell if the breakpoint
+		   hit on the branch or the forbidden slot.  */
+		pc += 8;
+	    }
+	  /* BC1EQZ, BC1NEZ */
+	  else if (op == 17 && (itype_rs (inst) == 9 || itype_rs (inst) == 13))
+	    {
+	      gdb_byte status;
+	      gdb_byte true_val = 0;
+              unsigned int fp = gdbarch_num_regs (gdbarch) +
+                                mips_regnum (gdbarch)->fp0 +
+                                itype_rt (inst);
+              struct frame_info *frame = get_current_frame ();
+	      gdb_byte *raw_buffer = (gdb_byte *) alloca (sizeof (gdb_byte) * 4);
+	      mips_read_fp_register_single (frame, fp, raw_buffer);
+
+	      if (gdbarch_byte_order (gdbarch) == BFD_ENDIAN_BIG)
+		status = *(raw_buffer + 3);
+	      else
+		status = *(raw_buffer);
+
+	      if (itype_rs (inst) == 13)
+		true_val = 1;
+
+	      if ((status & 0x1) == true_val)
+		pc += mips32_relative_offset (inst) + 4;
+	      else
+		pc += 8;
+	    }
+	  else if (op == 22 || op == 23)
+	  /* BLEZC, BGEZC, BGEC, BGTZC, BLTZC, BLTC */
+	    {
+	      int rs = rtype_rs (inst);
+	      int rt = rtype_rt (inst);
+	      LONGEST val_rs = regcache_raw_get_signed (regcache, rs);
+	      LONGEST val_rt = regcache_raw_get_signed (regcache, rt);
+	      int taken = 0;
+	      /* The R5 rt == 0 case is handled above so we treat it as
+		 an unknown instruction here for future ISA usage.  */
+	      if (rs == 0 && rt != 0)
+		taken = (val_rt <= 0);
+	      else if (rs == rt && rt != 0)
+		taken = (val_rt >= 0);
+	      else if (rs != rt && rs != 0 && rt != 0)
+		taken = (val_rs >= val_rt);
+
+	      if (op == 23)
+		taken = !taken;
+
+	      if (taken)
+		pc += mips32_relative_offset (inst) + 4;
+	      else
+		/* Step through the forbidden slot to avoid repeated exceptions
+		   we do not currently have access to the BD bit when hitting a
+		   breakpoint and therefore cannot tell if the breakpoint
+		   hit on the branch or the forbidden slot.  */
+		pc += 8;
+	    }
+	  else if (op == 50 || op == 58)
+	  /* BC, BALC */
+	    pc += mips32_relative_offset26 (inst) + 4;
+	  else if ((op == 54 || op == 62)
+		   && rtype_rs (inst) == 0)
+	  /* JIC, JIALC */
+	    {
+	      pc = regcache_raw_get_signed (regcache, itype_rt (inst));
+	      pc += (itype_immediate (inst) ^ 0x8000) - 0x8000;
+	    }
+	  else if (op == 54 || op == 62)
+	  /* BEQZC, BNEZC */
+	    {
+	      int rs = itype_rs (inst);
+	      LONGEST rs_val = regcache_raw_get_signed (regcache, rs);
+	      int taken = (rs_val == 0);
+	      if (op == 62)
+		taken = !taken;
+	      if (taken)
+		pc += mips32_relative_offset21 (inst) + 4;
+	      else
+		/* Step through the forbidden slot to avoid repeated exceptions
+		   we do not currently have access to the BD bit when hitting a
+		   breakpoint and therefore cannot tell if the breakpoint
+		   hit on the branch or the forbidden slot.  */
+		pc += 8;
+	    }
+	  else
+	    pc += 4;		/* Not a branch, next instruction is easy.  */
+	}
       else
 	pc += 4;		/* Not a branch, next instruction is easy.  */
     }
@@ -2599,7 +2832,6 @@ mips32_next_pc (struct regcache *regcache, CORE_ADDR pc)
 	      case 2:		/* BLTZL */
 	      case 16:		/* BLTZAL */
 	      case 18:		/* BLTZALL */
-	      less_branch:
 		if (regcache_raw_get_signed (regcache, itype_rs (inst)) < 0)
 		  pc += mips32_relative_offset (inst) + 4;
 		else
@@ -2615,22 +2847,38 @@ mips32_next_pc (struct regcache *regcache, CORE_ADDR pc)
 		  pc += 8;	/* after the delay slot */
 		break;
 	      case 0x1c:	/* BPOSGE32 */
+	      case 0x1d:	/* BPOSGE32C */
 	      case 0x1e:	/* BPOSGE64 */
 		pc += 4;
 		if (itype_rs (inst) == 0)
 		  {
 		    unsigned int pos = (op & 2) ? 64 : 32;
 		    int dspctl = mips_regnum (gdbarch)->dspctl;
+		    int delay_slot_size = 4;
 
 		    if (dspctl == -1)
 		      /* No way to handle; it'll most likely trap anyway.  */
 		      break;
 
+		    /* BPOSGE32C */
+		    if (op == 0x1d)
+		      {
+			if (!is_mipsr6_isa (gdbarch))
+			  break;
+
+			/* Step through the forbidden slot to avoid repeated
+			   exceptions we do not currently have access to the BD
+			   bit when hitting a breakpoint and therefore cannot
+			   tell if the breakpoint hit on the branch or the
+			   forbidden slot.  */
+			/* delay_slot_size = 0; */
+		      }
+
 		    if ((regcache_raw_get_unsigned (regcache,
 						    dspctl) & 0x7f) >= pos)
 		      pc += mips32_relative_offset (inst);
 		    else
-		      pc += 4;
+		      pc += delay_slot_size;
 		  }
 		break;
 		/* All of the other instructions in the REGIMM category */
@@ -2664,19 +2912,14 @@ mips32_next_pc (struct regcache *regcache, CORE_ADDR pc)
 	  else
 	    pc += 8;
 	  break;
-	case 6:		/* BLEZ, BLEZL */
-	  if (regcache_raw_get_signed (regcache, itype_rs (inst)) <= 0)
-	    pc += mips32_relative_offset (inst) + 4;
-	  else
-	    pc += 8;
+	case 6:		/* BLEZ, BLEZL, BLEZALC, BGEZALC, BGEUC */
+	lez_branch:
+	  pc = mips32_blez_pc (gdbarch, regcache, inst, pc + 4, 0);
 	  break;
 	case 7:
 	default:
-	greater_branch:	/* BGTZ, BGTZL */
-	  if (regcache_raw_get_signed (regcache, itype_rs (inst)) > 0)
-	    pc += mips32_relative_offset (inst) + 4;
-	  else
-	    pc += 8;
+	greater_branch:	/* BGTZ, BGTZL, BGTZALC, BLTZALC, BLTUC */
+	  pc = mips32_blez_pc (gdbarch, regcache, inst, pc + 4, 1);
 	  break;
 	}			/* switch */
     }				/* else */
@@ -3313,6 +3556,74 @@ micromips_instruction_is_compact_branch (unsigned short insn)
     default:
       return 0;
     }
+}
+
+/* Return non-zero if the MIPS instruction INSN is a compact branch
+   or jump.  A value of 1 indicates an unconditional compact branch
+   and a value of 2 indicates a conditional compact branch.  */
+
+static int
+mips32_instruction_is_compact_branch (struct gdbarch *gdbarch, ULONGEST insn)
+{
+  switch (itype_op (insn))
+    {
+    /* BC */
+    case 50:
+    /* BALC */
+    case 58:
+      if (is_mipsr6_isa (gdbarch))
+	return 1;
+      break;
+    /* BOVC, BEQZALC, BEQC */
+    case 8:
+    /* BNVC, BNEZALC, BNEC */
+    case 24:
+      if (is_mipsr6_isa (gdbarch))
+	return 2;
+      break;
+    /* BEQZC, JIC */
+    case 54:
+    /* BNEZC, JIALC */
+    case 62:
+      if (is_mipsr6_isa (gdbarch))
+	/* JIC, JIALC are unconditional */
+	return (itype_rs (insn) == 0) ? 1 : 2;
+      break;
+    /* BLEZC, BGEZC, BGEC */
+    case 22:
+    /* BGTZC, BLTZC, BLTC */
+    case 23:
+    /* BLEZALC, BGEZALC, BGEUC */
+    case 6:
+    /* BGTZALC, BLTZALC, BLTUC */
+    case 7:
+      if (is_mipsr6_isa (gdbarch)
+	  && itype_rt (insn) != 0)
+	return 2;
+      break;
+    /* BPOSGE32C */
+    case 1:
+      if (is_mipsr6_isa (gdbarch)
+	  && itype_rt (insn) == 0x1d && itype_rs (insn) == 0)
+	return 2;
+    }
+  return 0;
+}
+
+/* Return non-zero if a standard MIPS instruction at ADDR has a branch
+   forbidden slot (i.e. it is a conditional compact branch instruction).  */
+
+static int
+mips32_insn_at_pc_has_forbidden_slot (struct gdbarch *gdbarch, CORE_ADDR addr)
+{
+  ULONGEST insn;
+  int status;
+
+  insn = mips_fetch_instruction (gdbarch, ISA_MIPS, addr, &status);
+  if (status)
+    return 0;
+
+  return mips32_instruction_is_compact_branch (gdbarch, insn) == 2;
 }
 
 struct mips_frame_cache
@@ -4357,7 +4668,8 @@ restart:
       reg = high_word & 0x1f;
 
       if (high_word == 0x27bd		/* addiu $sp,$sp,-i */
-	  || high_word == 0x23bd	/* addi $sp,$sp,-i */
+	  || (high_word == 0x23bd	/* addi $sp,$sp,-i */
+	      && !is_mipsr6_isa (gdbarch))
 	  || high_word == 0x67bd)	/* daddiu $sp,$sp,-i */
 	{
 	  if (offset < 0)		/* Negative stack adjustment?  */
@@ -4492,7 +4804,8 @@ restart:
 
       /* A jump or branch, or enough non-prologue insns seen?  If so,
          then we must have reached the end of the prologue by now.  */
-      if (prev_delay_slot || non_prologue_insns > 1)
+      if (prev_delay_slot || non_prologue_insns > 1
+	  || mips32_instruction_is_compact_branch (gdbarch, inst))
 	break;
 
       prev_non_prologue_insn = this_non_prologue_insn;
@@ -4797,6 +5110,59 @@ mips_addr_bits_remove (struct gdbarch *gdbarch, CORE_ADDR addr)
 #define LLD_OPCODE 0x34
 #define SC_OPCODE 0x38
 #define SCD_OPCODE 0x3c
+#define LLSC_R6_OPCODE 0x1f
+#define LL_R6_FUNCT 0x36
+#define LLE_FUNCT 0x2e
+#define LLD_R6_FUNCT 0x37
+#define SC_R6_FUNCT 0x26
+#define SCE_FUNCT 0x1e
+#define SCD_R6_FUNCT 0x27
+
+static int
+is_ll_insn (struct gdbarch *gdbarch, ULONGEST insn)
+{
+  if (itype_op (insn) == LL_OPCODE
+      || itype_op (insn) == LLD_OPCODE)
+    return 1;
+
+  if (rtype_op (insn) == LLSC_R6_OPCODE
+      && rtype_funct (insn) == LLE_FUNCT
+      && (insn & 0x40) == 0)
+    return 1;
+
+  /* Handle LL and LLP varieties.  */
+  if (is_mipsr6_isa (gdbarch)
+      && rtype_op (insn) == LLSC_R6_OPCODE
+      && (rtype_funct (insn) == LL_R6_FUNCT
+	  || rtype_funct (insn) == LLD_R6_FUNCT
+	  || rtype_funct (insn) == LLE_FUNCT))
+    return 1;
+
+  return 0;
+}
+
+static int
+is_sc_insn (struct gdbarch *gdbarch, ULONGEST insn)
+{
+  if (itype_op (insn) == SC_OPCODE
+      || itype_op (insn) == SCD_OPCODE)
+    return 1;
+
+  if (rtype_op (insn) == LLSC_R6_OPCODE
+      && rtype_funct (insn) == SCE_FUNCT
+      && (insn & 0x40) == 0)
+    return 1;
+
+  /* Handle SC and SCP varieties.  */
+  if (is_mipsr6_isa (gdbarch)
+      && rtype_op (insn) == LLSC_R6_OPCODE
+      && (rtype_funct (insn) == SC_R6_FUNCT
+	  || rtype_funct (insn) == SCD_R6_FUNCT
+	  || rtype_funct (insn) == SCE_FUNCT))
+    return 1;
+
+  return 0;
+}
 
 static std::vector<CORE_ADDR>
 mips_deal_with_atomic_sequence (struct gdbarch *gdbarch, CORE_ADDR pc)
@@ -4809,10 +5175,11 @@ mips_deal_with_atomic_sequence (struct gdbarch *gdbarch, CORE_ADDR pc)
   int index;
   int last_breakpoint = 0; /* Defaults to 0 (no breakpoints placed).  */  
   const int atomic_sequence_length = 16; /* Instruction sequence length.  */
+  int is_mipsr6 = is_mipsr6_isa (gdbarch);
 
   insn = mips_fetch_instruction (gdbarch, ISA_MIPS, loc, NULL);
   /* Assume all atomic sequences start with a ll/lld instruction.  */
-  if (itype_op (insn) != LL_OPCODE && itype_op (insn) != LLD_OPCODE)
+  if (!is_ll_insn (gdbarch, insn))
     return {};
 
   /* Assume that no atomic sequence is longer than "atomic_sequence_length" 
@@ -4842,17 +5209,50 @@ mips_deal_with_atomic_sequence (struct gdbarch *gdbarch, CORE_ADDR pc)
 	  return {}; /* fallback to the standard single-step code.  */
 	case 4: /* BEQ */
 	case 5: /* BNE */
-	case 6: /* BLEZ */
-	case 7: /* BGTZ */
 	case 20: /* BEQL */
 	case 21: /* BNEL */
-	case 22: /* BLEZL */
-	case 23: /* BGTTL */
+	case 22: /* BLEZL (BLEZC, BGEZC, BGEC) */
+	case 23: /* BGTZL (BGTZC, BLTZC, BLTC) */
 	  is_branch = 1;
 	  break;
+	case 6: /* BLEZ (BLEZALC, BGEZALC, BGEUC) */
+	case 7: /* BGTZ (BGTZALC, BLTZALC, BLTUC) */
+	  if (is_mipsr6)
+	    {
+	      /* BLEZALC, BGTZALC */
+	      if (itype_rs (insn) == 0 && itype_rt (insn) != 0)
+		return {}; /* fallback to the standard single-step code.  */
+	      /* BGEZALC, BLTZALC */
+	      else if (itype_rs (insn) == itype_rt (insn)
+		  && itype_rt (insn) != 0)
+		return {}; /* fallback to the standard single-step code.  */
+	    }
+	  is_branch = 1;
+	  break;
+	case 8: /* BOVC, BEQZALC, BEQC */
+	case 24: /* BNVC, BNEZALC, BNEC */
+	  if (is_mipsr6)
+	    is_branch = 1;
+	  break;
+	case 50: /* BC */
+	case 58: /* BALC */
+	  if (is_mipsr6)
+	    return {}; /* fallback to the standard single-step code.  */
+	  break;
+	case 54: /* BEQZC, JIC */
+	case 62: /* BNEZC, JIALC */
+	  if (is_mipsr6)
+	    {
+	      if (itype_rs (insn) == 0) /* JIC, JIALC */
+		return {}; /* fallback to the standard single-step code.  */
+	      else
+		is_branch = 2; /* Marker for branches with a 21-bit offset */
+	    }
+	  break;
 	case 17: /* COP1 */
-	  is_branch = (((itype_rs (insn) == 9 || itype_rs (insn) == 10)
-			&& (itype_rt (insn) & 0x2) == 0)
+	  is_branch = ((!is_mipsr6
+		       && (itype_rs (insn) == 9 || itype_rs (insn) == 10)
+		       && (itype_rt (insn) & 0x2) == 0)
 				/* BC1ANY2F, BC1ANY2T, BC1ANY4F, BC1ANY4T */
 		       || (itype_rs (insn) & 0x18) == 0x18
 				/* BZ.df:  010001 110xx */
@@ -4865,12 +5265,20 @@ mips_deal_with_atomic_sequence (struct gdbarch *gdbarch, CORE_ADDR pc)
 	/* Fall through.  */
 	case 18: /* COP2 */
 	case 19: /* COP3 */
-	  is_branch = (itype_rs (insn) == 8); /* BCzF, BCzFL, BCzT, BCzTL */
+			/* BCzF, BCzFL, BCzT, BCzTL, BC*EQZ, BC*NEZ */
+	  is_branch = (itype_rs (insn) == 8)
+		       || (is_mipsr6
+			   && (itype_rs (insn) == 9
+			       || itype_rs (insn) == 13));
 	  break;
 	}
       if (is_branch)
 	{
-	  branch_bp = loc + mips32_relative_offset (insn) + 4;
+	  /* Is this a special PC21_S2 branch? */
+	  if (is_branch == 2)
+	    branch_bp = loc + mips32_relative_offset21 (insn) + 4;
+	  else
+	    branch_bp = loc + mips32_relative_offset (insn) + 4;
 	  if (last_breakpoint >= 1)
 	    return {}; /* More than one branch found, fallback to the
 			  standard single-step code.  */
@@ -4878,12 +5286,12 @@ mips_deal_with_atomic_sequence (struct gdbarch *gdbarch, CORE_ADDR pc)
 	  last_breakpoint++;
 	}
 
-      if (itype_op (insn) == SC_OPCODE || itype_op (insn) == SCD_OPCODE)
+      if (is_sc_insn (gdbarch, insn))
 	break;
     }
 
   /* Assume that the atomic sequence ends with a sc/scd instruction.  */
-  if (itype_op (insn) != SC_OPCODE && itype_op (insn) != SCD_OPCODE)
+  if (!is_sc_insn (gdbarch, insn))
     return {};
 
   loc += MIPS_INSN32_SIZE;
@@ -5119,8 +5527,14 @@ mips_about_to_return (struct gdbarch *gdbarch, CORE_ADDR pc)
   gdb_assert (mips_pc_is_mips (pc));
 
   insn = mips_fetch_instruction (gdbarch, ISA_MIPS, pc, NULL);
-  hint = 0x7c0;
-  return (insn & ~hint) == 0x3e00008;			/* jr(.hb) $ra */
+  /* Mask the hint and the jalr/jr bit */
+  hint = 0x7c1;
+
+  if (is_mipsr6_isa (gdbarch) && insn == 0xd81f0000) /* jrc $31 */
+    return 1;
+
+  /* jr(.hb) $ra and "jalr(.hb) $ra" */
+  return ((insn & ~hint) == 0x3e00008);
 }
 
 
@@ -7705,7 +8119,9 @@ mips32_stack_frame_destroyed_p (struct gdbarch *gdbarch, CORE_ADDR pc)
 
 	  if (high_word != 0x27bd	/* addiu $sp,$sp,offset */
 	      && high_word != 0x67bd	/* daddiu $sp,$sp,offset */
-	      && inst != 0x03e00008	/* jr $ra */
+	      && (inst & ~0x1) != 0x03e00008 /* jr $31 or jalr $0, $31 */
+	      && (!is_mipsr6_isa (gdbarch)
+		  || inst != 0xd81f0000) /* jrc $31 */
 	      && inst != 0x00000000)	/* nop */
 	    return 0;
 	}
@@ -8105,12 +8521,14 @@ mips_sw_breakpoint_from_kind (struct gdbarch *gdbarch, int kind, int *size)
    delay slot (i.e. it is a jump or branch instruction).  This function
    is based on mips32_next_pc.  */
 
+/* TODO(r6) Recheck all branches  */
 static int
 mips32_instruction_has_delay_slot (struct gdbarch *gdbarch, ULONGEST inst)
 {
   int op;
   int rs;
   int rt;
+  int is_mipsr6 = is_mipsr6_isa (gdbarch);
 
   op = itype_op (inst);
   if ((inst & 0xe0000000) != 0)
@@ -8118,21 +8536,29 @@ mips32_instruction_has_delay_slot (struct gdbarch *gdbarch, ULONGEST inst)
       rs = itype_rs (inst);
       rt = itype_rt (inst);
       return (is_octeon_bbit_op (op, gdbarch) 
-	      || op >> 2 == 5	/* BEQL, BNEL, BLEZL, BGTZL: bits 0101xx  */
-	      || op == 29	/* JALX: bits 011101  */
+	      || (op >> 1 == 10) /* BEQL, BNEL: bits 01010x  */
+	      || (op >> 1 == 11 && rt == 0) /* BLEZL, BGTZL: bits 01011x  */
+	      || (!is_mipsr6 && op == 29)	/* JALX: bits 011101  */
 	      || (op == 17
 		  && (rs == 8
 				/* BC1F, BC1FL, BC1T, BC1TL: 010001 01000  */
-		      || (rs == 9 && (rt & 0x2) == 0)
+		      || (!is_mipsr6 && rs == 9 && (rt & 0x2) == 0)
 				/* BC1ANY2F, BC1ANY2T: bits 010001 01001  */
-		      || (rs == 10 && (rt & 0x2) == 0)
+		      || (!is_mipsr6 && rs == 10 && (rt & 0x2) == 0)
 				/* BC1ANY4F, BC1ANY4T: bits 010001 01010  */
 		      || ((rs & 0x18) == 0x18)
 				/* BZ.df:  bits 010001 110xx */
 				/* BNZ.df: bits 010001 111xx */
-		      || ((rs & 0x1b) == 0x0b))));
+		      || ((rs & 0x1b) == 0x0b)))
 				/* BZ.V:   bits 010001 01011 */
 				/* BNZ.V:  bits 010001 01111 */
+	      || (is_mipsr6
+		  && ((op == 17
+		       && (rs == 9  /* BC1EQZ: 010001 01001  */
+			   || rs == 13 /* BC1NEZ: 010001 01101  */ ))
+		      || (op == 18
+			  && (rs == 9 /* BC2EQZ: 010010 01001  */
+			      || rs == 13 /* BC2NEZ: 010010 01101  */ )))));
     }
   else
     switch (op & 0x07)		/* extract bits 28,27,26  */
@@ -8151,7 +8577,11 @@ mips32_instruction_has_delay_slot (struct gdbarch *gdbarch, ULONGEST inst)
 		|| ((rt & 0x1e) == 0x1c && rs == 0));
 				/* BPOSGE32, BPOSGE64: bits 1110x  */
 	break;			/* end REGIMM  */
-      default:			/* J, JAL, BEQ, BNE, BLEZ, BGTZ  */
+	case 6:			/* BLEZ  */
+	case 7:			/* BGTZ  */
+	 return (itype_rt (inst) == 0);
+	 break;
+      default:			/* J, JAL, BEQ, BNE  */
 	return 1;
 	break;
       }
@@ -8370,7 +8800,18 @@ mips_adjust_breakpoint_address (struct gdbarch *gdbarch, CORE_ADDR bpaddr)
 
      So, we'll use the second solution.  To do this we need to know if
      the instruction we're trying to set the breakpoint on is in the
-     branch delay slot.  */
+     branch delay slot.
+
+     A similar problem occurs for breakpoints on forbidden slots where
+     the trap will be reported for the branch with the BD bit set.
+     In this case it would be ideal to recover using solution 1 from
+     above as there is no problem with the branch being skipped
+     (since the forbidden slot only exists on not-taken branches).
+     However, the BD bit is not available in all scenarios currently
+     so instead we move the breakpoint on to the next instruction.
+     This means that it is not possible to stop on an instruction
+     that can be in a forbidden slot even if that instruction is
+     jumped to directly.  */
 
   boundary = mips_segment_boundary (bpaddr);
 
@@ -8392,6 +8833,13 @@ mips_adjust_breakpoint_address (struct gdbarch *gdbarch, CORE_ADDR bpaddr)
       prev_addr = bpaddr - 4;
       if (mips32_insn_at_pc_has_delay_slot (gdbarch, prev_addr))
 	bpaddr = prev_addr;
+      /* If the previous instruction has a forbidden slot, we have to
+	 move the breakpoint to the following instruction to prevent
+	 breakpoints in forbidden slots being reported as unknown
+	 traps.  */
+      else if (mips32_insn_at_pc_has_forbidden_slot (gdbarch, prev_addr))
+
+	bpaddr += 4;
     }
   else
     {
@@ -8803,6 +9251,8 @@ mips_in_return_stub (struct gdbarch *gdbarch, CORE_ADDR pc, const char *name)
 /* If the current PC is the start of a non-PIC-to-PIC stub, return the
    PC of the stub target.  The stub just loads $t9 and jumps to it,
    so that $t9 has the correct value at function entry.  */
+
+/* TODO: Update for compact jump trampoline */
 
 static CORE_ADDR
 mips_skip_pic_trampoline_code (struct frame_info *frame, CORE_ADDR pc)
