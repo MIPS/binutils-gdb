@@ -45,7 +45,8 @@ enum mips_isa
   {
     ISA_MIPS = -1,		/* mips_compression_string depends on it.  */
     ISA_MIPS16,
-    ISA_MICROMIPS
+    ISA_MICROMIPS,
+    ISA_MIPSR6
   };
 
 /* Return the MIPS ISA's register size.  Just a short cut to the BFD
