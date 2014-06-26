@@ -287,6 +287,14 @@ is_micromips_isa (struct gdbarch *gdbarch)
   return gdbarch_tdep (gdbarch)->mips_isa == ISA_MICROMIPS;
 }
 
+/* Return one iff code is the MIPSR6 instruction set.  */
+
+static int
+is_mipsr6_isa (struct gdbarch *gdbarch)
+{
+  return gdbarch_tdep (gdbarch)->mips_isa == ISA_MIPSR6;
+}
+
 /* Return one iff ADDR denotes compressed code.  */
 
 static int
@@ -1192,12 +1200,12 @@ mips_pc_isa (struct gdbarch *gdbarch, CORE_ADDR memaddr)
       else if (msymbol_is_mips16 (sym.minsym))
 	return ISA_MIPS16;
       else
-	return ISA_MIPS;
+	return ((is_mipsr6_isa (gdbarch)) ? ISA_MIPSR6 : ISA_MIPS);
     }
   else
     {
       if (is_mips_addr (memaddr))
-	return ISA_MIPS;
+	return ((is_mipsr6_isa (gdbarch)) ? ISA_MIPSR6 : ISA_MIPS);
       else if (is_micromips_addr (gdbarch, memaddr))
 	return ISA_MICROMIPS;
       else
@@ -1343,6 +1351,7 @@ mips_fetch_instruction (struct gdbarch *gdbarch,
       instlen = MIPS_INSN16_SIZE;
       addr = unmake_compact_addr (addr);
       break;
+    case ISA_MIPSR6:
     case ISA_MIPS:
       instlen = MIPS_INSN32_SIZE;
       break;
@@ -1430,6 +1439,7 @@ mips_insn_size (enum mips_isa isa, ULONGEST insn)
 	return 2 * MIPS_INSN16_SIZE;
       else
 	return MIPS_INSN16_SIZE;
+    case ISA_MIPSR6:
     case ISA_MIPS:
 	return MIPS_INSN32_SIZE;
     }
@@ -1510,7 +1520,10 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
   struct gdbarch *gdbarch = get_frame_arch (frame);
   unsigned long inst;
   int op;
-  inst = mips_fetch_instruction (gdbarch, ISA_MIPS, pc, NULL);
+  if (is_mipsr6_isa (gdbarch))
+    inst = mips_fetch_instruction (gdbarch, ISA_MIPSR6, pc, NULL);
+  else
+    inst = mips_fetch_instruction (gdbarch, ISA_MIPS, pc, NULL);
   op = itype_op (inst);
   if ((inst & 0xe0000000) != 0)		/* Not a special, jump or branch
 					   instruction.  */
@@ -3236,8 +3249,12 @@ restart:
       int reg;
 
       /* Fetch the instruction.  */
-      inst = (unsigned long) mips_fetch_instruction (gdbarch, ISA_MIPS,
-						     cur_pc, NULL);
+      if (is_mipsr6_isa (gdbarch))
+        inst = (unsigned long) mips_fetch_instruction (gdbarch, ISA_MIPSR6,
+						       cur_pc, NULL);
+      else
+        inst = (unsigned long) mips_fetch_instruction (gdbarch, ISA_MIPS,
+						       cur_pc, NULL);
 
       /* Save some code by pre-extracting some useful fields.  */
       high_word = (inst >> 16) & 0xffff;
@@ -3702,7 +3719,10 @@ mips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
   int last_breakpoint = 0; /* Defaults to 0 (no breakpoints placed).  */  
   const int atomic_sequence_length = 16; /* Instruction sequence length.  */
 
-  insn = mips_fetch_instruction (gdbarch, ISA_MIPS, loc, NULL);
+  if (is_mipsr6_isa (gdbarch))
+    insn = mips_fetch_instruction (gdbarch, ISA_MIPSR6, loc, NULL);
+  else
+    insn = mips_fetch_instruction (gdbarch, ISA_MIPS, loc, NULL);
   /* Assume all atomic sequences start with a ll/lld instruction.  */
   if (itype_op (insn) != LL_OPCODE && itype_op (insn) != LLD_OPCODE)
     return 0;
@@ -3713,7 +3733,10 @@ mips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
     {
       int is_branch = 0;
       loc += MIPS_INSN32_SIZE;
-      insn = mips_fetch_instruction (gdbarch, ISA_MIPS, loc, NULL);
+      if (is_mipsr6_isa (gdbarch))
+        insn = mips_fetch_instruction (gdbarch, ISA_MIPSR6, loc, NULL);
+      else
+        insn = mips_fetch_instruction (gdbarch, ISA_MIPS, loc, NULL);
 
       /* Assume that there is at most one branch in the atomic
 	 sequence.  If a branch is found, put a breakpoint in its
@@ -3995,7 +4018,10 @@ mips_about_to_return (struct gdbarch *gdbarch, CORE_ADDR pc)
      called for MIPS16 functions.  And likewise microMIPS ones.  */
   gdb_assert (mips_pc_is_mips (pc));
 
-  insn = mips_fetch_instruction (gdbarch, ISA_MIPS, pc, NULL);
+  if (is_mipsr6_isa (gdbarch))
+    insn = mips_fetch_instruction (gdbarch, ISA_MIPSR6, pc, NULL);
+  else
+    insn = mips_fetch_instruction (gdbarch, ISA_MIPS, pc, NULL);
   hint = 0x7c0;
   return (insn & ~hint) == 0x3e00008;			/* jr(.hb) $ra */
 }
@@ -6459,7 +6485,10 @@ mips32_in_function_epilogue_p (struct gdbarch *gdbarch, CORE_ADDR pc)
 	  unsigned long high_word;
 	  unsigned long inst;
 
-	  inst = mips_fetch_instruction (gdbarch, ISA_MIPS, pc, NULL);
+	  if (is_mipsr6_isa (gdbarch))
+	    inst = mips_fetch_instruction (gdbarch, ISA_MIPSR6, pc, NULL);
+	  else
+	    inst = mips_fetch_instruction (gdbarch, ISA_MIPS, pc, NULL);
 	  high_word = (inst >> 16) & 0xffff;
 
 	  if (high_word != 0x27bd	/* addiu $sp,$sp,offset */
@@ -6985,7 +7014,10 @@ mips32_instruction_has_delay_slot (struct gdbarch *gdbarch, CORE_ADDR addr)
   int rs;
   int rt;
 
-  inst = mips_fetch_instruction (gdbarch, ISA_MIPS, addr, &status);
+  if (is_mipsr6_isa (gdbarch))
+    inst = mips_fetch_instruction (gdbarch, ISA_MIPSR6, addr, &status);
+  else
+    inst = mips_fetch_instruction (gdbarch, ISA_MIPS, addr, &status);
   if (status)
     return 0;
 
@@ -7386,11 +7418,16 @@ mips_get_mips16_fn_stub_pc (struct frame_info *frame, CORE_ADDR pc)
        status == 0 && target_pc == 0 && i < 20;
        i++, pc += MIPS_INSN32_SIZE)
     {
-      ULONGEST inst = mips_fetch_instruction (gdbarch, ISA_MIPS, pc, NULL);
       CORE_ADDR imm;
+      ULONGEST inst;
       int rt;
       int rs;
       int rd;
+
+      if (is_mipsr6_isa (gdbarch))
+        inst = mips_fetch_instruction (gdbarch, ISA_MIPSR6, pc, NULL);
+      else
+        inst = mips_fetch_instruction (gdbarch, ISA_MIPS, pc, NULL);
 
       switch (itype_op (inst))
 	{
