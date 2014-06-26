@@ -1012,6 +1012,8 @@ struct mips_opcode
 #define INSN_WRITE_GPR_24           0x10000000
 /* A user-defined instruction.  */
 #define INSN_UDI                    0x20000000
+/* Is mtc1, mfc1, swc1, lwc1.  */
+#define INSN_FP_32_MOVE		    0x40000000
 /* Instruction is actually a macro.  It should be ignored by the
    disassembler, and requires special treatment by the assembler.  */
 #define INSN_MACRO                  0xffffffff
