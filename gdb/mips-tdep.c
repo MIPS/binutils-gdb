@@ -4023,7 +4023,11 @@ mips_about_to_return (struct gdbarch *gdbarch, CORE_ADDR pc)
   else
     insn = mips_fetch_instruction (gdbarch, ISA_MIPS, pc, NULL);
   hint = 0x7c0;
-  return (insn & ~hint) == 0x3e00008;			/* jr(.hb) $ra */
+  /* Seek for "jr(.hb) $ra" in all variants. */
+  if (!is_mipsr6_isa(gdbarch))
+    return (insn & ~hint) == 0x3e00008;     /* jr(.hb) $ra */
+  else
+    return (insn & ~hint) == 0x3e00009;     /* "jalr(.hb) $ra" for ISA6*/
 }
 
 
