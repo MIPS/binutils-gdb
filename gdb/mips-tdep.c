@@ -3705,6 +3705,8 @@ mips_addr_bits_remove (struct gdbarch *gdbarch, CORE_ADDR addr)
 #define LLD_OPCODE 0x34
 #define SC_OPCODE 0x38
 #define SCD_OPCODE 0x3c
+#define LL_ISA6_OPCODE  0x7c000036
+#define SC_ISA6_OPCODE  0x7c000026
 
 static int
 mips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
@@ -3718,13 +3720,19 @@ mips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
   int index;
   int last_breakpoint = 0; /* Defaults to 0 (no breakpoints placed).  */  
   const int atomic_sequence_length = 16; /* Instruction sequence length.  */
+  int is_mipsrs6 = is_mipsr6_isa (gdbarch);
 
-  if (is_mipsr6_isa (gdbarch))
+  if (is_mipsrs6)
     insn = mips_fetch_instruction (gdbarch, ISA_MIPSR6, loc, NULL);
   else
     insn = mips_fetch_instruction (gdbarch, ISA_MIPS, loc, NULL);
   /* Assume all atomic sequences start with a ll/lld instruction.  */
   if (itype_op (insn) != LL_OPCODE && itype_op (insn) != LLD_OPCODE)
+    return 0;
+  /* For mips_isa6, instructions LL and LLD differ in only least significant 
+     bit, so we use only LL opcode to check for appropriate mips_isa6 atomic
+     sequence. */
+  if ((is_mipsrs6) && ((insn & LL_ISA6_OPCODE) != LL_ISA6_OPCODE))
     return 0;
 
   /* Assume that no atomic sequence is longer than "atomic_sequence_length" 
@@ -3733,7 +3741,7 @@ mips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
     {
       int is_branch = 0;
       loc += MIPS_INSN32_SIZE;
-      if (is_mipsr6_isa (gdbarch))
+      if (is_mipsrs6)
         insn = mips_fetch_instruction (gdbarch, ISA_MIPSR6, loc, NULL);
       else
         insn = mips_fetch_instruction (gdbarch, ISA_MIPS, loc, NULL);
@@ -3788,10 +3796,17 @@ mips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 
       if (itype_op (insn) == SC_OPCODE || itype_op (insn) == SCD_OPCODE)
 	break;
+      if (is_mipsrs6 && ((insn & SC_ISA6_OPCODE) == SC_ISA6_OPCODE))
+	break;
     }
 
   /* Assume that the atomic sequence ends with a sc/scd instruction.  */
   if (itype_op (insn) != SC_OPCODE && itype_op (insn) != SCD_OPCODE)
+    return 0;
+
+  /* For MIPS_ISA6 SC and SCD opcodes differ in only least significant bit, so
+     we use only SC opcode for checking both. */
+  if (is_mipsrs6 && ((insn & SC_ISA6_OPCODE) != SC_ISA6_OPCODE))
     return 0;
 
   loc += MIPS_INSN32_SIZE;
