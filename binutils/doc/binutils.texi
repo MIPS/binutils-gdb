@@ -2114,8 +2114,14 @@ Print the 'raw' instruction mnemonic instead of some pseudo
 instruction mnemonic.  I.e., print 'daddu' or 'or' instead of 'move',
 'sll' instead of 'nop', etc.
 
+@item msa
+Disassemble MSA instructions.
+
 @item virt
 Disassemble the virtualization ASE instructions.
+
+@item xpa
+Disassemble the eXtended Physical Address (XPA) ASE instructions.
 
 @item gpr-names=@var{ABI}
 Print GPR (general-purpose register) names as appropriate

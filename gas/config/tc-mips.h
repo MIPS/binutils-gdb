@@ -190,4 +190,12 @@ extern int tc_mips_regname_to_dw2regnum (char *regname);
 #define DWARF2_DEFAULT_RETURN_COLUMN 31
 #define DWARF2_CIE_DATA_ALIGNMENT (-4)
 
+#define DIFF_EXPR_OK
+/* We define DIFF_EXPR_OK because of R_MIPS_PC32, but we have no
+   64-bit form for n64 CFIs.  */
+#define CFI_DIFF_EXPR_OK 0
+
+#define CONVERT_SYMBOLIC_ATTRIBUTE(name) mips_convert_symbolic_attribute (name)
+extern int mips_convert_symbolic_attribute (const char *);
+
 #endif /* TC_MIPS */

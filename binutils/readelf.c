@@ -2601,6 +2601,7 @@ get_machine_flags (unsigned e_flags, unsigned e_machine)
   	    case E_MIPS_MACH_LS3A: strcat (buf, ", loongson-3a"); break;
 	    case E_MIPS_MACH_OCTEON: strcat (buf, ", octeon"); break;
 	    case E_MIPS_MACH_OCTEON2: strcat (buf, ", octeon2"); break;
+	    case E_MIPS_MACH_OCTEON3: strcat (buf, ", octeon3"); break;
 	    case E_MIPS_MACH_XLR:  strcat (buf, ", xlr"); break;
 	    case 0:
 	    /* We simply ignore the field in this case to avoid confusion:
@@ -11792,6 +11793,30 @@ display_mips_gnu_attribute (unsigned char * p,
 	}
       return p;
    }
+
+  if (tag == Tag_GNU_MIPS_ABI_MSA)
+    {
+      unsigned int len;
+      int val;
+
+      val = read_uleb128 (p, &len, end);
+      p += len;
+      printf ("  Tag_GNU_MIPS_ABI_MSA: ");
+
+      switch (val)
+	{
+	case Val_GNU_MIPS_ABI_MSA_ANY:
+	  printf (_("Any MSA or not\n"));
+	  break;
+	case Val_GNU_MIPS_ABI_MSA_128:
+	  printf (_("128-bit MSA\n"));
+	  break;
+	default:
+	  printf ("??? (%d)\n", val);
+	  break;
+	}
+      return p;
+    }
 
   return display_tag_value (tag & 1, p, end);
 }

@@ -275,6 +275,7 @@ END_RELOC_NUMBERS (R_MIPS_maxext)
 #define E_MIPS_MACH_OCTEON	0x008b0000
 #define E_MIPS_MACH_XLR     	0x008c0000
 #define E_MIPS_MACH_OCTEON2	0x008d0000
+#define E_MIPS_MACH_OCTEON3	0x008e0000
 #define E_MIPS_MACH_5400	0x00910000
 #define E_MIPS_MACH_5900	0x00920000
 #define E_MIPS_MACH_5500	0x00980000
@@ -1135,6 +1136,9 @@ enum
 
   /* Floating-point ABI used by this object file.  */
   Tag_GNU_MIPS_ABI_FP = 4,
+
+  /* MSA ABI used by this object file.  */
+  Tag_GNU_MIPS_ABI_MSA = 8,
 };
 
 /* Object attribute values.  */
@@ -1156,6 +1160,14 @@ enum
 
   /* Using -mips32r2 -mfp64.  */
   Val_GNU_MIPS_ABI_FP_64 = 4,
+
+  /* Values defined for Tag_GNU_MIPS_ABI_MSA.  */
+
+  /* Not tagged or not using any ABIs affected by the differences.  */
+  Val_GNU_MIPS_ABI_MSA_ANY = 0,
+
+  /* Using 128-bit MSA.  */
+  Val_GNU_MIPS_ABI_MSA_128 = 1,
 };
 
 #endif /* _ELF_MIPS_H */

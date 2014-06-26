@@ -1,3 +1,7 @@
+2014-02-06  Andrew Pinski  <apinski@cavium.com>
+
+	* mips.h (E_MIPS_MACH_OCTEON3): New machine flag.
+
 2013-11-17  H.J. Lu  <hongjiu.lu@intel.com>
 
 	* x86-64.h: Add R_X86_64_PC32_BND and R_X86_64_PLT32_BND.
@@ -31,6 +35,11 @@
 	R_AARCH64_TLS_DTPREL64 and R_AARCH64_TLS_TPREL64; guard
 	R_AARCH64_TLS_DTPMOD, R_AARCH64_TLS_DTPREL and
 	R_AARCH64_TLS_TPREL with RELOC_MACROS_GEN_FUNC.
+
+2013-10-14  Chao-ying Fu  <Chao-ying.Fu@imgtec.com>
+
+	* mips.h (enum): Add Tag_GNU_MIPS_ABI_MSA.
+	(enum): Add Val_GNU_MIPS_ABI_MSA_ANY and Val_GNU_MIPS_ABI_MSA_128.
 
 2013-09-17  Doug Gilmore  <Doug.Gilmore@imgtec.com>
 

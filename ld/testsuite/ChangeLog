@@ -1,3 +1,30 @@
+2014-05-28  Matthew Fortune  <matthew.fortune@imgtec.com>
+
+	* lib/ld-lib.exp: Add objcopy_objects command to run_dump_test.
+	This allows each input object to be optionally run through
+	objcopy before linking.
+
+2014-04-17  Kwok Cheung Yeung  <kcy@codesourcery.com>
+
+	* ld-mips-elf/elf-rel-xgot-n32.d: Update for new GOT layout.
+	* ld-mips-elf/elf-rel-xgot-n32-embed.d: Likewise.
+	* ld-mips-elf/elf-rel-xgot-n64.d: Likewise.
+	* ld-mips-elf/elf-rel-xgot-n64-embed.d: Likewise.
+	* ld-mips-elf/elf-rel-xgot-n64-linux.d: Likewise.
+
+2014-03-20  Richard Sandiford  <rdsandiford@googlemail.com>
+
+	* ld-elf/merge.d: Remove MIPS XFAIL.
+
+2014-02-18  Jack Carter  <jack.carter@imgtec.com>
+
+	* ld-mips-elf/pic-and-nonpic-3a.sd: Check DYNAMIC segment flags.
+
+2013-11-27  Matthew Fortune <matthew.fortune@imgtec.com>
+
+	* ld-mips-elf/mips-elf.exp: Consider mips-mti-elf the same as
+	mips-sde-elf
+
 2013-11-19  Roland McGrath  <mcgrathr@google.com>
 
 	* ld-elf/ehdr_start-userdef.t: New file.
@@ -74,6 +101,68 @@
 
 	* ld-x86-64/plt-nacl.pd: Update expected disassembly for PLT nop fix.
 	* ld-x86-64/tlsdesc-nacl.pd: Likewise.
+
+2013-10-14  Chao-ying Fu  <Chao-ying.Fu@imgtec.com>
+
+	* ld-mips-elf/attr-gnu-8-0.s, ld-mips-elf/attr-gnu-8-1.s,
+	ld-mips-elf/attr-gnu-8-2.s,
+	ld-mips-elf/attr-gnu-8-00.d, ld-mips-elf/attr-gnu-8-01.d,
+	ld-mips-elf/attr-gnu-8-02.d, ld-mips-elf/attr-gnu-8-10.d,
+	ld-mips-elf/attr-gnu-8-11.d, ld-mips-elf/attr-gnu-8-12.d,
+	ld-mips-elf/attr-gnu-8-20.d, ld-mips-elf/attr-gnu-8-21.d,
+	ld-mips-elf/attr-gnu-8-22.d: New.
+	* ld-mips-elf/mips-elf.exp: Run new tests.
+
+2013-10-13  Richard Sandiford  <rdsandiford@googlemail.com>
+
+	* lib/ld-lib.exp (default_ld_compile): Add a -I option for the source
+	directory.
+	* ld-mips-elf/compressed-plt-1.ld, ld-mips-elf/compressed-plt-1.s,
+	ld-mips-elf/compressed-plt-1-dyn.s, ld-mips-elf/compressed-plt-1a.s,
+	ld-mips-elf/compressed-plt-1b.s, ld-mips-elf/compressed-plt-1c.s,
+	ld-mips-elf/compressed-plt-1d.s, ld-mips-elf/compressed-plt-1e.s,
+	ld-mips-elf/compressed-plt-1-o32-se.rd,
+	ld-mips-elf/compressed-plt-1-o32-se.od,
+	ld-mips-elf/compressed-plt-1-o32-mips16-only.rd,
+	ld-mips-elf/compressed-plt-1-o32-mips16-only.od,
+	ld-mips-elf/compressed-plt-1-o32-umips-only.rd,
+	ld-mips-elf/compressed-plt-1-o32-umips-only.od,
+	ld-mips-elf/compressed-plt-1-o32-mips16.rd,
+	ld-mips-elf/compressed-plt-1-o32-mips16.od,
+	ld-mips-elf/compressed-plt-1-o32-mips16-got.rd,
+	ld-mips-elf/compressed-plt-1-o32-mips16-got.od,
+	ld-mips-elf/compressed-plt-1-o32-mips16-word.rd,
+	ld-mips-elf/compressed-plt-1-o32-mips16-word.od,
+	ld-mips-elf/compressed-plt-1-o32-umips.rd,
+	ld-mips-elf/compressed-plt-1-o32-umips.od,
+	ld-mips-elf/compressed-plt-1-o32-umips-got.rd,
+	ld-mips-elf/compressed-plt-1-o32-umips-got.od,
+	ld-mips-elf/compressed-plt-1-o32-umips-word.rd,
+	ld-mips-elf/compressed-plt-1-o32-umips-word.od,
+	ld-mips-elf/compressed-plt-1-n32-mips16.rd,
+	ld-mips-elf/compressed-plt-1-n32-mips16.od,
+	ld-mips-elf/compressed-plt-1-n32-umips.rd,
+	ld-mips-elf/compressed-plt-1-n32-umips.od: New tests.
+	* ld-mips-elf/mips-elf.exp: Run them.
+
+2013-10-13  Richard Sandiford  <rdsandiford@googlemail.com>
+
+	* ld-mips-elf/pic-and-nonpic-6-n32.ad,
+	ld-mips-elf/pic-and-nonpic-6-n32.dd,
+	ld-mips-elf/pic-and-nonpic-6-n32.gd,
+	ld-mips-elf/pic-and-nonpic-6-n32.nd,
+	ld-mips-elf/pic-and-nonpic-6-n32.rd,
+	ld-mips-elf/pic-and-nonpic-6-n64.ad,
+	ld-mips-elf/pic-and-nonpic-6-n64.dd,
+	ld-mips-elf/pic-and-nonpic-6-n64.gd,
+	ld-mips-elf/pic-and-nonpic-6-n64.nd,
+	ld-mips-elf/pic-and-nonpic-6-n64.rd,
+	ld-mips-elf/pic-and-nonpic-6-o32.ad,
+	ld-mips-elf/pic-and-nonpic-6-o32.dd,
+	ld-mips-elf/pic-and-nonpic-6-o32.gd,
+	ld-mips-elf/pic-and-nonpic-6-o32.nd,
+	ld-mips-elf/pic-and-nonpic-6-o32.rd: Fix symbol value of extf4.
+	No longer expect extf3, extf4 and extd2 to be in the global GOT.
 
 2013-10-05  Gregory Fong  <gregory.0xf0@gmail.com>
 

@@ -1,3 +1,9 @@
+2013-11-27  Matthew Fortune <matthew.fortune@imgtec.com>
+
+	* binutils-all/objcopy.exp: Consider mips-mti-elf the same as
+	mips-sde-elf
+	* binutils-all/readelf.exp: Likewise
+
 2013-10-12  H.J. Lu  <hongjiu.lu@intel.com>
 
 	* binutils-all/x86-64/compressed-1a.d: Updated for 64-bit addresses.

@@ -40,6 +40,7 @@ fragment <<EOF
 #include "sysdep.h"
 #include "bfd.h"
 #include "libiberty.h"
+#include "safe-ctype.h"
 #include "filenames.h"
 #include "safe-ctype.h"
 #include "getopt.h"

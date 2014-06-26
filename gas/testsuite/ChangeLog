@@ -1,7 +1,99 @@
+2014-05-20  Matthew Fortune  <matthew.fortune@imgtec.com>
+
+	* gas/mips/mips.exp: Add new tests.  Use 64-bit ABI for relax-bc1any.
+	Fix micromips arch definition to use mips64r2 consistently.
+	* gas/mips/module-defer-warn1.s: New.
+	* gas/mips/module-defer-warn1.d: New.
+	* gas/mips/module-defer-warn2.s: New.
+	* gas/mips/module-defer-warn2.l: New.
+	* gas/mips/module-override.d: New.
+	* gas/mips/module-override.s: New.
+	* gas/mips/mips-gp32-fp64.l: Update expected output.
+	* gas/mips/mips-gp64-fp32-pic.l: Update expected output.
+	* gas/mips/mips-gp64-fp32.l: Update expected output.
+
+2014-05-20  Matthew Fortune  <matthew.fortune@imgtec.com>
+
+	* gas/mips/micromips@msa-branch.d: Rework expected output for fp64.
+	* gas/mips/msa-branch.d: Likewise.
+
+2014-05-08  Matthew Fortune  <matthew.fortune@imgtec.com>
+
+	* gas/mips/attr-gnu-abi-fp-1.s: New.
+	* gas/mips/attr-gnu-abi-fp-1.d: New.
+	* gas/mips/attr-gnu-abi-msa-1.s: New.
+	* gas/mips/attr-gnu-abi-msa-1.d: New.
+	* gas/mips/mips.exp: Add new tests.
+
+2014-05-07  Andrew Bennett  <andrew.bennett@imgtec.com>
+
+	* gas/mips/mips.exp: Add MIPS32r5 tests.  Also add the mips32r3,
+	mips32r5, mips64r3 and mips64r5 isas to the testsuite.
+	* gas/mips/r5.s: New test.
+	* gas/mips/r5.d: Likewise.
+
+2014-04-23  Andrew Bennett  <andrew.bennett@imgtec.com>
+
+	* gas/mips/mips.exp: Add xpa tests.
+	* gas/mips/xpa.s: New test.
+	* gas/mips/xpa.d: Likewise.
+
+2014-03-20  Richard Sandiford  <rdsandiford@googlemail.com>
+
+	* gas/all/gas.exp: Remove XFAIL of forward.d for MIPS.
+	* gas/mips/pcrel-1.s, gas/mips/pcrel-1.d, gas/mips/pcrel-2.s,
+	gas/mips/pcrel-2.d, gas/mips/pcrel-3.s, gas/mips/pcrel-3.l,
+	gas/mips/pcrel-4.s, gas/mips/pcrel-4-32.d, gas/mips/pcrel-4-n32.d,
+	gas/mips/pcrel-4-64.d: New tests.
+	* gas/mips/mips.exp: Run them.
+	* gas/mips/lui-2.l: Tweak error message for line 7.
+
+2013-12-16  Andrew Bennett  <andrew.bennett@imgtec.com>
+
+	* gas/mips/mips.exp: Add CP1 register name tests.
+	* gas/mips/cp1-names-mips32.d: New test.
+	* gas/mips/cp1-names-mips32r2.d: New test.
+	* gas/mips/cp1-names-mips64.d: New test.
+	* gas/mips/cp1-names-mips64r2.d: New test.
+	* gas/mips/cp1-names-numeric.d: New test.
+	* gas/mips/cp1-names-r3000.d: New test.
+	* gas/mips/cp1-names-r4000.d: New test.
+	* gas/mips/cp1-names-sb1.d: New test.
+	* gas/mips/cp1-names.s: New test.
+	* gas/mips/micromips-insn32.d: Add the correct symbolic names for the CP1
+	registers.
+	* gas/mips/micromips-noinsn32.d: Likewise.
+	* gas/mips/micromips-trap.d: Likewise.
+	* gas/mips/micromips.d: Likewise.
+
+2013-12-16  Andrew Bennett  <andrew.bennett@imgtec.com>
+
+	* gas/mips/msa.s: Reduced maximum element index range
+	for sldi, splati, copy_s, copy_u, insert and insve instructions.
+	* gas/mips/msa64.s: Likewise.
+	* gas/mips/micromips@msa.d: Likewise.
+	* gas/mips/micromips@msa64.d: Likewise.
+	* gas/mips/msa.d: Likewise.
+	* gas/mips/msa64.d: Likewise.
+
+2013-11-27  Matthew Fortune <matthew.fortune@imgtec.com>
+
+	* gas/mips/mips.exp: Consider mips-mti-elf the same as mips-sde-elf
+
 2013-11-20  Yufeng Zhang  <yufeng.zhang@arm.com>
 
 	* gas/aarch64/msr.s: Add tests.
 	* gas/aarch64/msr.d: Update.
+
+2013-11-19  Catherine Moore  <clm@codesourcery.com>
+
+	* gas/mips/fix-pmc-rm7000-1.d: New.
+	* gas/mips/fix-pmc-rm7000-1.s: New.
+	* gas/mips/fix-pmc-rm7000-2.d: New.
+	* gas/mips/fix-pmc-rm7000-2.s: New.
+	* gas/mips/micromips@fix-pmc-rm7000-1.d: New.
+	* gas/mips/micromips@fix-pmc-rm7000-2.d: New.
+	* gas/mips/mips.exp: Run new tests.
 
 2013-11-18  Renlin Li  <Renlin.Li@arm.com>
 
@@ -83,6 +175,21 @@
 	* gas/aarch64/advsimd-mov-bad.d: New file.
 	* gas/aarch64/advsimd-mov-bad.s: Likewise.
 
+2013-10-18  Chao-ying Fu  <Chao-ying.Fu@imgtec.com>
+
+	* gas/mips/micromips@msa-branch.d, gas/mips/msa-branch.d,
+	gas/mips/msa-branch.s: New.
+	* gas/mips/mips.exp: Run new tests.
+
+2013-10-14  Chao-ying Fu  <Chao-ying.Fu@imgtec.com>
+
+	* gas/mips/micromips@msa-relax.d, gas/mips/micromips@msa.d,
+	gas/mips/micromips@msa64.d, gas/mips/msa-relax.d,
+	gas/mips/msa-relax.l, gas/mips/msa-relax.s,
+	gas/mips/msa.d, gas/mips/msa.s, gas/mips/msa64.d,
+	gas/mips/msa64.s: New.
+	* gas/mips/mips.exp: Run new tests.
+
 2013-10-12  H.J. Lu  <hongjiu.lu@intel.com>
 
 	* gas/i386/mpx.s: Remove bndcl/bndcu/bndcn tests with AX.
@@ -90,6 +197,10 @@
 
 	* gas/i386/mpx.d: Updated.
 	* gas/i386/x86-64-mpx.d: Likewise.
+
+2013-10-07  Chao-ying Fu  <Chao-ying.Fu@imgtec.com>
+
+	* gas/mips/micromips@virt64.d: Fix dmfgc0 and dmtgc0.
 
 2013-09-17  Richard Sandiford  <rsandifo@linux.vnet.ibm.com>
 
