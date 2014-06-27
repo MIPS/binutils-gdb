@@ -7046,7 +7046,7 @@ mips32_instruction_has_delay_slot (struct gdbarch *gdbarch, CORE_ADDR addr)
     {
       rs = itype_rs (inst);
       rt = itype_rt (inst);
-      return (is_octeon_bbit_op (op, gdbarch) 
+      if (is_octeon_bbit_op (op, gdbarch)
 	      || op >> 2 == 5	/* BEQL, BNEL, BLEZL, BGTZL: bits 0101xx  */
 	      || op == 29	/* JALX: bits 011101  */
 	      || (op == 17
@@ -7054,8 +7054,17 @@ mips32_instruction_has_delay_slot (struct gdbarch *gdbarch, CORE_ADDR addr)
 				/* BC1F, BC1FL, BC1T, BC1TL: 010001 01000  */
 		      || (rs == 9 && (rt & 0x2) == 0)
 				/* BC1ANY2F, BC1ANY2T: bits 010001 01001  */
-		      || (rs == 10 && (rt & 0x2) == 0))));
+		      || (rs == 10 && (rt & 0x2) == 0))))
 				/* BC1ANY4F, BC1ANY4T: bits 010001 01010  */
+        return 1;
+      if (is_mipsr6_isa (gdbarch) &&
+           ((op == 17
+             && (rs == 9  /* BC1EQZ: 010001 01001 */
+                 || rs == 13 /* BC1NEZ: 010001 01101*/ ))
+           || (op == 18
+               && (rs == 9 /* BC2EQZ: 010010 01001 */
+                   || rs == 13 /* BC2NEZ: 010010 01101*/ ))))
+        return 1;
     }
   else
     switch (op & 0x07)		/* extract bits 28,27,26  */
@@ -7068,13 +7077,22 @@ mips32_instruction_has_delay_slot (struct gdbarch *gdbarch, CORE_ADDR addr)
       case 1:			/* REGIMM  */
 	rs = itype_rs (inst);
 	rt = itype_rt (inst);	/* branch condition  */
-	return ((rt & 0xc) == 0
+        return ((rt & 0xc) == 0
 				/* BLTZ, BLTZL, BGEZ, BGEZL: bits 000xx  */
 				/* BLTZAL, BLTZALL, BGEZAL, BGEZALL: 100xx  */
-		|| ((rt & 0x1e) == 0x1c && rs == 0));
-				/* BPOSGE32, BPOSGE64: bits 1110x  */
+	        || ((rt & 0x1e) == 0x1c && rs == 0));
+                               /* BPOSGE32, BPOSGE64: bits 1110x  */
 	break;			/* end REGIMM  */
-      default:			/* J, JAL, BEQ, BNE, BLEZ, BGTZ  */
+      case 6:                   /* Compact branches on ISA6 */
+	rt = itype_rt (inst);   /* don't have delay slot. */
+        if (is_mipsr6_isa (gdbarch) && rt !=0)
+          return 0;
+        return 1;               /* But here we caught BLEZ.*/
+      case 7:
+	rt = itype_rt (inst);	/* BGTZALC on ISA6 doesn't have delay slot.  */
+        if (is_mipsr6_isa (gdbarch) && rt !=0)
+          return 0;
+      default:			/* J, JAL, BEQ, BNE, BGTZ  */
 	return 1;
 	break;
       }
