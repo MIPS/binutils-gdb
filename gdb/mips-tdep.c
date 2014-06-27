@@ -68,6 +68,8 @@ static int micromips_instruction_has_delay_slot (struct gdbarch *, CORE_ADDR,
 static int mips16_instruction_has_delay_slot (struct gdbarch *, CORE_ADDR,
 					      int);
 
+static void mips_read_fp_register_single (struct frame_info *frame, int regno,
+					  gdb_byte *rare_buffer);
 /* A useful bit in the CP0 status register (MIPS_PS_REGNUM).  */
 /* This bit is set if we are emulating 32-bit FPRs on a 64-bit chip.  */
 #define ST0_FR (1 << 26)
@@ -1545,6 +1547,34 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
 	    default:
 	      pc += 4;
 	    }
+	}
+      /* BC1EQZ.  This code will need checking when SEL.D is output
+         from the compiler.  */
+      else if (is_mipsr6_isa (gdbarch) && op == 17 && itype_rs (inst) == 9)
+	{
+	  gdb_byte *raw_buffer = alloca (register_size (gdbarch,
+							mips_regnum (gdbarch)->fp0));
+	  mips_read_fp_register_single (frame, itype_rt (inst) +
+					mips_regnum (gdbarch)->fp0,
+					raw_buffer);
+	  if ((((unsigned int) (*raw_buffer)) & 0x1) == 0)
+	    pc += mips32_relative_offset (inst) + 4;
+	  else
+	    pc += 8;
+	}
+      /* BC1NEZ.  This code will need checking when SEL.D is output
+         from the compiler.  */
+      else if (is_mipsr6_isa (gdbarch) && op == 17 && itype_rs (inst) == 13)
+	{
+	  gdb_byte *raw_buffer = alloca (register_size (gdbarch,
+							mips_regnum (gdbarch)->fp0));
+	  mips_read_fp_register_single (frame, itype_rt (inst) +
+					mips_regnum (gdbarch)->fp0,
+					raw_buffer);
+	  if ((((unsigned int) (*raw_buffer)) & 0x1) == 1)
+	    pc += mips32_relative_offset (inst) + 4;
+	  else
+	    pc += 8;
 	}
       else if (op == 17 && itype_rs (inst) == 8)
 	/* BC1F, BC1FL, BC1T, BC1TL: 010001 01000 */
@@ -3778,14 +3808,20 @@ mips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 	  is_branch = 1;
 	  break;
 	case 17: /* COP1 */
-	  is_branch = ((itype_rs (insn) == 9 || itype_rs (insn) == 10)
-		       && (itype_rt (insn) & 0x2) == 0);
-	  if (is_branch) /* BC1ANY2F, BC1ANY2T, BC1ANY4F, BC1ANY4T */
+	  is_branch = (((itype_rs (insn) == 9 || itype_rs (insn) == 10)
+			 && (itype_rt (insn) & 0x2) == 0)
+		      || (is_mipsr6 && (itype_rs (insn) == 9
+					|| itype_rs (insn) == 13)));
+	  if (is_branch) /* BC1ANY2F, BC1ANY2T, BC1ANY4F, BC1ANY4T
+			    BC1EQZ, BC1NEZ */
 	    break;
 	/* Fall through.  */
 	case 18: /* COP2 */
 	case 19: /* COP3 */
-	  is_branch = (itype_rs (insn) == 8); /* BCzF, BCzFL, BCzT, BCzTL */
+			/* BCzF, BCzFL, BCzT, BCzTL, BC*EQZ, BC*NEZ */
+	  is_branch = (itype_rs (insn) == 8
+		       || (is_mipsr6 && (itype_rs (insn) == 9
+					 || itype_rs (insn) == 13)));
 	  break;
 	}
       if (is_branch)
@@ -7063,8 +7099,15 @@ mips32_instruction_has_delay_slot (struct gdbarch *gdbarch, CORE_ADDR addr)
 				/* BC1F, BC1FL, BC1T, BC1TL: 010001 01000  */
 		      || (rs == 9 && (rt & 0x2) == 0)
 				/* BC1ANY2F, BC1ANY2T: bits 010001 01001  */
-		      || (rs == 10 && (rt & 0x2) == 0))));
+		      || (rs == 10 && (rt & 0x2) == 0)))
 				/* BC1ANY4F, BC1ANY4T: bits 010001 01010  */
+              || (is_mipsr6_isa (gdbarch)
+                  && ((op == 17
+		      && (rs == 9  /* BC1EQZ: 010001 01001 */
+			  || rs == 13 /* BC1NEZ: 010001 01101*/ ))
+                     || (op == 18
+			 && (rs == 9 /* BC2EQZ: 010010 01001 */
+			     || rs == 13 /* BC2NEZ: 010010 01101*/ )))));
     }
   else
     switch (op & 0x07)		/* extract bits 28,27,26  */
