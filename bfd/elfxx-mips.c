@@ -168,8 +168,10 @@ struct mips_got_info
   unsigned int page_gotno;
   /* The number of relocations needed for the GOT entries.  */
   unsigned int relocs;
-  /* The number of local .got entries we have used.  */
-  unsigned int assigned_gotno;
+  /* The first unused local .got entry.  */
+  unsigned int assigned_low_gotno;
+  /* The last unused local .got entry.  */
+  unsigned int assigned_high_gotno;
   /* A hash table holding members of the got.  */
   struct htab *got_entries;
   /* A hash table holding mips_got_page_ref structures.  */
@@ -3635,7 +3637,7 @@ mips_elf_create_local_got_entry (bfd *abfd, struct bfd_link_info *info,
   if (entry)
     return entry;
 
-  if (g->assigned_gotno >= g->local_gotno)
+  if (g->assigned_low_gotno > g->assigned_high_gotno)
     {
       /* We didn't allocate enough space in the GOT.  */
       (*_bfd_error_handler)
@@ -3648,7 +3650,14 @@ mips_elf_create_local_got_entry (bfd *abfd, struct bfd_link_info *info,
   if (!entry)
     return NULL;
 
-  lookup.gotidx = MIPS_ELF_GOT_SIZE (abfd) * g->assigned_gotno++;
+  if (got16_reloc_p (r_type)
+      || call16_reloc_p (r_type)
+      || got_page_reloc_p (r_type)
+      || got_disp_reloc_p (r_type))
+    lookup.gotidx = MIPS_ELF_GOT_SIZE (abfd) * g->assigned_low_gotno++;
+  else
+    lookup.gotidx = MIPS_ELF_GOT_SIZE (abfd) * g->assigned_high_gotno--;
+
   *entry = lookup;
   *loc = entry;
 
@@ -4089,9 +4098,10 @@ mips_elf_pages_for_range (const struct mips_got_page_range *range)
 /* Record that G requires a page entry that can reach SEC + ADDEND.  */
 
 static bfd_boolean
-mips_elf_record_got_page_entry (struct mips_got_info *g,
+mips_elf_record_got_page_entry (struct mips_elf_traverse_got_arg *arg,
 				asection *sec, bfd_signed_vma addend)
 {
+  struct mips_got_info *g = arg->g;
   struct mips_got_page_entry lookup, *entry;
   struct mips_got_page_range **range_ptr, *range;
   bfd_vma old_pages, new_pages;
@@ -4108,7 +4118,7 @@ mips_elf_record_got_page_entry (struct mips_got_info *g,
   entry = (struct mips_got_page_entry *) *loc;
   if (!entry)
     {
-      entry = bfd_zalloc (sec->owner, sizeof (*entry));
+      entry = bfd_zalloc (arg->info->output_bfd, sizeof (*entry));
       if (!entry)
 	return FALSE;
 
@@ -4128,7 +4138,7 @@ mips_elf_record_got_page_entry (struct mips_got_info *g,
   range = *range_ptr;
   if (!range || addend < range->min_addend - 0xffff)
     {
-      range = bfd_zalloc (sec->owner, sizeof (*range));
+      range = bfd_zalloc (arg->info->output_bfd, sizeof (*range));
       if (!range)
 	return FALSE;
 
@@ -4248,7 +4258,7 @@ mips_elf_resolve_got_page_ref (void **refp, void *data)
       else
 	addend = isym->st_value + ref->addend;
     }
-  if (!mips_elf_record_got_page_entry (arg->g, sec, addend))
+  if (!mips_elf_record_got_page_entry (arg, sec, addend))
     {
       arg->g = NULL;
       return 0;
@@ -4627,12 +4637,12 @@ mips_elf_set_global_gotidx (void **entryp, void *data)
       && entry->symndx == -1
       && entry->d.h->global_got_area != GGA_NONE)
     {
-      if (!mips_elf_set_gotidx (entryp, arg->value * arg->g->assigned_gotno))
+      if (!mips_elf_set_gotidx (entryp, arg->value * arg->g->assigned_low_gotno))
 	{
 	  arg->g = NULL;
 	  return 0;
 	}
-      arg->g->assigned_gotno += 1;
+      arg->g->assigned_low_gotno += 1;
 
       if (arg->info->shared
 	  || (elf_hash_table (arg->info)->dynamic_sections_created
@@ -4765,7 +4775,7 @@ mips_elf_multi_got (bfd *abfd, struct bfd_link_info *info,
   htab_traverse (g->got_entries, mips_elf_set_global_got_area, &tga);
 
   /* Now go through the GOTs assigning them offset ranges.
-     [assigned_gotno, local_gotno[ will be set to the range of local
+     [assigned_low_gotno, local_gotno[ will be set to the range of local
      entries in each GOT.  We can then compute the end of a GOT by
      adding local_gotno to global_gotno.  We reverse the list and make
      it circular since then we'll be able to quickly compute the
@@ -4788,9 +4798,10 @@ mips_elf_multi_got (bfd *abfd, struct bfd_link_info *info,
       struct mips_got_info *gn;
 
       assign += htab->reserved_gotno;
-      g->assigned_gotno = assign;
+      g->assigned_low_gotno = assign;
       g->local_gotno += assign;
       g->local_gotno += (pages < g->page_gotno ? pages : g->page_gotno);
+      g->assigned_high_gotno = g->local_gotno - 1;
       assign = g->local_gotno + g->global_gotno + g->tls_gotno;
 
       /* Take g out of the direct list, and push it onto the reversed
@@ -4829,21 +4840,21 @@ mips_elf_multi_got (bfd *abfd, struct bfd_link_info *info,
 
       /* Assign offsets to global GOT entries and count how many
 	 relocations they need.  */
-      save_assign = g->assigned_gotno;
-      g->assigned_gotno = g->local_gotno;
+      save_assign = g->assigned_low_gotno;
+      g->assigned_low_gotno = g->local_gotno;
       tga.info = info;
       tga.value = MIPS_ELF_GOT_SIZE (abfd);
       tga.g = g;
       htab_traverse (g->got_entries, mips_elf_set_global_gotidx, &tga);
       if (!tga.g)
 	return FALSE;
-      BFD_ASSERT (g->assigned_gotno == g->local_gotno + g->global_gotno);
-      g->assigned_gotno = save_assign;
+      BFD_ASSERT (g->assigned_low_gotno == g->local_gotno + g->global_gotno);
+      g->assigned_low_gotno = save_assign;
 
       if (info->shared)
 	{
-	  g->relocs += g->local_gotno - g->assigned_gotno;
-	  BFD_ASSERT (g->assigned_gotno == g->next->local_gotno
+	  g->relocs += g->local_gotno - g->assigned_low_gotno;
+	  BFD_ASSERT (g->assigned_low_gotno == g->next->local_gotno
 		      + g->next->global_gotno
 		      + g->next->tls_gotno
 		      + htab->reserved_gotno);
@@ -9063,13 +9074,13 @@ mips_elf_lay_out_got (bfd *output_bfd, struct bfd_link_info *info)
 
   /* Allocate room for the reserved entries.  VxWorks always reserves
      3 entries; other objects only reserve 2 entries.  */
-  BFD_ASSERT (g->assigned_gotno == 0);
+  BFD_ASSERT (g->assigned_low_gotno == 0);
   if (htab->is_vxworks)
     htab->reserved_gotno = 3;
   else
     htab->reserved_gotno = 2;
   g->local_gotno += htab->reserved_gotno;
-  g->assigned_gotno = htab->reserved_gotno;
+  g->assigned_low_gotno = htab->reserved_gotno;
 
   /* Decide which symbols need to go in the global part of the GOT and
      count the number of reloc-only GOT symbols.  */
@@ -9112,6 +9123,7 @@ mips_elf_lay_out_got (bfd *output_bfd, struct bfd_link_info *info)
     page_gotno = g->page_gotno;
 
   g->local_gotno += page_gotno;
+  g->assigned_high_gotno = g->local_gotno - 1;
 
   s->size += g->local_gotno * MIPS_ELF_GOT_SIZE (output_bfd);
   s->size += g->global_gotno * MIPS_ELF_GOT_SIZE (output_bfd);
@@ -11386,10 +11398,14 @@ _bfd_mips_elf_finish_dynamic_sections (bfd *output_bfd,
 	  if (! info->shared)
 	    continue;
 
-	  while (got_index < g->assigned_gotno)
+	  for (; got_index < g->local_gotno; got_index++)
 	    {
+	      if (got_index >= g->assigned_low_gotno
+		  && got_index <= g->assigned_high_gotno)
+		continue;
+
 	      rel[0].r_offset = rel[1].r_offset = rel[2].r_offset
-		= got_index++ * MIPS_ELF_GOT_SIZE (output_bfd);
+		= got_index * MIPS_ELF_GOT_SIZE (output_bfd);
 	      if (!(mips_elf_create_dynamic_relocation
 		    (output_bfd, info, rel, NULL,
 		     bfd_abs_section_ptr,
@@ -11623,7 +11639,7 @@ mips_set_isa_flags (bfd *abfd)
       break;
 
     case bfd_mach_mips_loongson_3a:
-      val = E_MIPS_ARCH_64 | E_MIPS_MACH_LS3A;
+      val = E_MIPS_ARCH_64R2 | E_MIPS_MACH_LS3A;
       break;
 
     case bfd_mach_mips_octeon:
@@ -11648,10 +11664,14 @@ mips_set_isa_flags (bfd *abfd)
       break;
 
     case bfd_mach_mipsisa32r2:
+    case bfd_mach_mipsisa32r3:
+    case bfd_mach_mipsisa32r5:
       val = E_MIPS_ARCH_32R2;
       break;
 
     case bfd_mach_mipsisa64r2:
+    case bfd_mach_mipsisa64r3:
+    case bfd_mach_mipsisa64r5:
       val = E_MIPS_ARCH_64R2;
       break;
     }
@@ -11918,18 +11938,6 @@ _bfd_mips_elf_modify_segment_map (bfd *abfd,
 	if ((*pm)->p_type == PT_DYNAMIC)
 	  break;
       m = *pm;
-      if (m != NULL && IRIX_COMPAT (abfd) == ict_none)
-	{
-	  /* For a normal mips executable the permissions for the PT_DYNAMIC
-	     segment are read, write and execute. We do that here since
-	     the code in elf.c sets only the read permission. This matters
-	     sometimes for the dynamic linker.  */
-	  if (bfd_get_section_by_name (abfd, ".dynamic") != NULL)
-	    {
-	      m->p_flags = PF_R | PF_W | PF_X;
-	      m->p_flags_valid = 1;
-	    }
-	}
       /* GNU/Linux binaries do not need the extended PT_DYNAMIC section.
 	 glibc's dynamic linker has traditionally derived the number of
 	 tags from the p_filesz field, and sometimes allocates stack
@@ -14219,12 +14227,12 @@ static const struct mips_mach_extension mips_mach_extensions[] =
   { bfd_mach_mips_octeon2, bfd_mach_mips_octeonp },
   { bfd_mach_mips_octeonp, bfd_mach_mips_octeon },
   { bfd_mach_mips_octeon, bfd_mach_mipsisa64r2 },
+  { bfd_mach_mips_loongson_3a, bfd_mach_mipsisa64r2 },
 
   /* MIPS64 extensions.  */
   { bfd_mach_mipsisa64r2, bfd_mach_mipsisa64 },
   { bfd_mach_mips_sb1, bfd_mach_mipsisa64 },
   { bfd_mach_mips_xlr, bfd_mach_mipsisa64 },
-  { bfd_mach_mips_loongson_3a, bfd_mach_mipsisa64 },
 
   /* MIPS V extensions.  */
   { bfd_mach_mipsisa64, bfd_mach_mips5 },
@@ -14360,176 +14368,49 @@ mips_elf_merge_obj_attributes (bfd *ibfd, bfd *obfd)
   out_attr = elf_known_obj_attributes (obfd)[OBJ_ATTR_GNU];
   if (in_attr[Tag_GNU_MIPS_ABI_FP].i != out_attr[Tag_GNU_MIPS_ABI_FP].i)
     {
+      int out_fp, in_fp;
+
+      out_fp = out_attr[Tag_GNU_MIPS_ABI_FP].i;
+      in_fp = in_attr[Tag_GNU_MIPS_ABI_FP].i;
       out_attr[Tag_GNU_MIPS_ABI_FP].type = 1;
-      if (out_attr[Tag_GNU_MIPS_ABI_FP].i == Val_GNU_MIPS_ABI_FP_ANY)
-	out_attr[Tag_GNU_MIPS_ABI_FP].i = in_attr[Tag_GNU_MIPS_ABI_FP].i;
-      else if (in_attr[Tag_GNU_MIPS_ABI_FP].i != Val_GNU_MIPS_ABI_FP_ANY)
-	switch (out_attr[Tag_GNU_MIPS_ABI_FP].i)
-	  {
-	  case Val_GNU_MIPS_ABI_FP_DOUBLE:
-	    switch (in_attr[Tag_GNU_MIPS_ABI_FP].i)
-	      {
-	      case Val_GNU_MIPS_ABI_FP_SINGLE:
-		_bfd_error_handler
-		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
-		   obfd, abi_fp_bfd, ibfd, "-mdouble-float", "-msingle-float");
-		break;
+      if (out_fp == Val_GNU_MIPS_ABI_FP_ANY)
+	out_attr[Tag_GNU_MIPS_ABI_FP].i = in_fp;
+      else if (in_fp != Val_GNU_MIPS_ABI_FP_ANY)
+	{
+	  const char *out_string, *in_string;
 
-	      case Val_GNU_MIPS_ABI_FP_SOFT:
-		_bfd_error_handler
-		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
-		   obfd, abi_fp_bfd, ibfd, "-mhard-float", "-msoft-float");
-		break;
-
-	      case Val_GNU_MIPS_ABI_FP_64:
-		_bfd_error_handler
-		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
-		   obfd, abi_fp_bfd, ibfd,
-		   "-mdouble-float", "-mips32r2 -mfp64");
-		break;
-
-	      default:
-		_bfd_error_handler
-		  (_("Warning: %B uses %s (set by %B), "
-		     "%B uses unknown floating point ABI %d"),
-		   obfd, abi_fp_bfd, ibfd,
-		   "-mdouble-float", in_attr[Tag_GNU_MIPS_ABI_FP].i);
-		break;
-	      }
-	    break;
-
-	  case Val_GNU_MIPS_ABI_FP_SINGLE:
-	    switch (in_attr[Tag_GNU_MIPS_ABI_FP].i)
-	      {
-	      case Val_GNU_MIPS_ABI_FP_DOUBLE:
-		_bfd_error_handler
-		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
-		   obfd, abi_fp_bfd, ibfd, "-msingle-float", "-mdouble-float");
-		break;
-
-	      case Val_GNU_MIPS_ABI_FP_SOFT:
-		_bfd_error_handler
-		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
-		   obfd, abi_fp_bfd, ibfd, "-mhard-float", "-msoft-float");
-		break;
-
-	      case Val_GNU_MIPS_ABI_FP_64:
-		_bfd_error_handler
-		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
-		   obfd, abi_fp_bfd, ibfd,
-		   "-msingle-float", "-mips32r2 -mfp64");
-		break;
-
-	      default:
-		_bfd_error_handler
-		  (_("Warning: %B uses %s (set by %B), "
-		     "%B uses unknown floating point ABI %d"),
-		   obfd, abi_fp_bfd, ibfd,
-		   "-msingle-float", in_attr[Tag_GNU_MIPS_ABI_FP].i);
-		break;
-	      }
-	    break;
-
-	  case Val_GNU_MIPS_ABI_FP_SOFT:
-	    switch (in_attr[Tag_GNU_MIPS_ABI_FP].i)
-	      {
-	      case Val_GNU_MIPS_ABI_FP_DOUBLE:
-	      case Val_GNU_MIPS_ABI_FP_SINGLE:
-	      case Val_GNU_MIPS_ABI_FP_64:
-		_bfd_error_handler
-		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
-		   obfd, abi_fp_bfd, ibfd, "-msoft-float", "-mhard-float");
-		break;
-
-	      default:
-		_bfd_error_handler
-		  (_("Warning: %B uses %s (set by %B), "
-		     "%B uses unknown floating point ABI %d"),
-		   obfd, abi_fp_bfd, ibfd,
-		   "-msoft-float", in_attr[Tag_GNU_MIPS_ABI_FP].i);
-		break;
-	      }
-	    break;
-
-	  case Val_GNU_MIPS_ABI_FP_64:
-	    switch (in_attr[Tag_GNU_MIPS_ABI_FP].i)
-	      {
-	      case Val_GNU_MIPS_ABI_FP_DOUBLE:
-		_bfd_error_handler
-		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
-		   obfd, abi_fp_bfd, ibfd,
-		   "-mips32r2 -mfp64", "-mdouble-float");
-		break;
-
-	      case Val_GNU_MIPS_ABI_FP_SINGLE:
-		_bfd_error_handler
-		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
-		   obfd, abi_fp_bfd, ibfd,
-		   "-mips32r2 -mfp64", "-msingle-float");
-		break;
-
-	      case Val_GNU_MIPS_ABI_FP_SOFT:
-		_bfd_error_handler
-		  (_("Warning: %B uses %s (set by %B), %B uses %s"),
-		   obfd, abi_fp_bfd, ibfd, "-mhard-float", "-msoft-float");
-		break;
-
-	      default:
-		_bfd_error_handler
-		  (_("Warning: %B uses %s (set by %B), "
-		     "%B uses unknown floating point ABI %d"),
-		   obfd, abi_fp_bfd, ibfd,
-		   "-mips32r2 -mfp64", in_attr[Tag_GNU_MIPS_ABI_FP].i);
-		break;
-	      }
-	    break;
-
-	  default:
-	    switch (in_attr[Tag_GNU_MIPS_ABI_FP].i)
-	      {
-	      case Val_GNU_MIPS_ABI_FP_DOUBLE:
-		_bfd_error_handler
-		  (_("Warning: %B uses unknown floating point ABI %d "
-		     "(set by %B), %B uses %s"),
-		   obfd, abi_fp_bfd, ibfd,
-		   out_attr[Tag_GNU_MIPS_ABI_FP].i, "-mdouble-float");
-		break;
-
-	      case Val_GNU_MIPS_ABI_FP_SINGLE:
-		_bfd_error_handler
-		  (_("Warning: %B uses unknown floating point ABI %d "
-		     "(set by %B), %B uses %s"),
-		   obfd, abi_fp_bfd, ibfd,
-		   out_attr[Tag_GNU_MIPS_ABI_FP].i, "-msingle-float");
-		break;
-
-	      case Val_GNU_MIPS_ABI_FP_SOFT:
-		_bfd_error_handler
-		  (_("Warning: %B uses unknown floating point ABI %d "
-		     "(set by %B), %B uses %s"),
-		   obfd, abi_fp_bfd, ibfd,
-		   out_attr[Tag_GNU_MIPS_ABI_FP].i, "-msoft-float");
-		break;
-
-	      case Val_GNU_MIPS_ABI_FP_64:
-		_bfd_error_handler
-		  (_("Warning: %B uses unknown floating point ABI %d "
-		     "(set by %B), %B uses %s"),
-		   obfd, abi_fp_bfd, ibfd,
-		   out_attr[Tag_GNU_MIPS_ABI_FP].i, "-mips32r2 -mfp64");
-		break;
-
-	      default:
-		_bfd_error_handler
-		  (_("Warning: %B uses unknown floating point ABI %d "
-		     "(set by %B), %B uses unknown floating point ABI %d"),
-		   obfd, abi_fp_bfd, ibfd,
-		   out_attr[Tag_GNU_MIPS_ABI_FP].i,
-		   in_attr[Tag_GNU_MIPS_ABI_FP].i);
-		break;
-	      }
-	    break;
-	  }
+	  out_string = _bfd_mips_fp_abi_string (out_fp);
+	  in_string = _bfd_mips_fp_abi_string (in_fp);
+	  /* First warn about cases involving unrecognised ABIs.  */
+	  if (!out_string && !in_string)
+	    _bfd_error_handler
+	      (_("Warning: %B uses unknown floating point ABI %d "
+		 "(set by %B), %B uses unknown floating point ABI %d"),
+	       obfd, abi_fp_bfd, ibfd, out_fp, in_fp);
+	  else if (!out_string)
+	    _bfd_error_handler
+	      (_("Warning: %B uses unknown floating point ABI %d "
+		 "(set by %B), %B uses %s"),
+	       obfd, abi_fp_bfd, ibfd, out_fp, in_string);
+	  else if (!in_string)
+	    _bfd_error_handler
+	      (_("Warning: %B uses %s (set by %B), "
+		 "%B uses unknown floating point ABI %d"),
+	       obfd, abi_fp_bfd, ibfd, out_string, in_fp);
+	  else
+	    {
+	      /* If one of the bfds is soft-float, the other must be
+		 hard-float.  The exact choice of hard-float ABI isn't
+		 really relevant to the error message.  */
+	      if (in_fp == Val_GNU_MIPS_ABI_FP_SOFT)
+		out_string = "-mhard-float";
+	      else if (out_fp == Val_GNU_MIPS_ABI_FP_SOFT)
+		in_string = "-mhard-float";
+	      _bfd_error_handler
+		(_("Warning: %B uses %s (set by %B), %B uses %s"),
+		 obfd, abi_fp_bfd, ibfd, out_string, in_string);
+	    }
+	}
     }
 
   /* Check for conflicting Tag_GNU_MIPS_ABI_MSA attributes and merge
@@ -14937,6 +14818,33 @@ _bfd_mips_elf_get_target_dtag (bfd_vma dtag)
       return "DT_MIPS_PLTGOT";
     case DT_MIPS_RWPLT:
       return "DT_MIPS_RWPLT";
+    }
+}
+
+/* Return the meaning of Tag_GNU_MIPS_ABI_FP value FP, or null if
+   not known.  */
+
+const char *
+_bfd_mips_fp_abi_string (int fp)
+{
+  switch (fp)
+    {
+      /* These strings aren't translated because they're simply
+	 option lists.  */
+    case Val_GNU_MIPS_ABI_FP_DOUBLE:
+      return "-mdouble-float";
+
+    case Val_GNU_MIPS_ABI_FP_SINGLE:
+      return "-msingle-float";
+
+    case Val_GNU_MIPS_ABI_FP_SOFT:
+      return "-msoft-float";
+
+    case Val_GNU_MIPS_ABI_FP_64:
+      return "-mips32r2 -mfp64";
+
+    default:
+      return 0;
     }
 }
 

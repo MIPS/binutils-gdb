@@ -251,7 +251,11 @@ decode_mips_operand (const char *p)
 #define I32	INSN_ISA32
 #define I64     INSN_ISA64
 #define I33	INSN_ISA32R2
+#define I34	INSN_ISA32R3
+#define I36	INSN_ISA32R5
 #define I65	INSN_ISA64R2
+#define I66	INSN_ISA64R3
+#define I68	INSN_ISA64R5
 #define I3_32   INSN_ISA3_32
 #define I3_33   INSN_ISA3_32R2
 #define I4_32   INSN_ISA4_32
@@ -298,9 +302,7 @@ decode_mips_operand (const char *p)
 #define G2      (T3             \
                  )
 
-#define G3      (I4             \
-                 |EE            \
-                 )
+#define G3      EE
 
 /* 64 bit CPU with 32 bit FPU (single float). */
 #define SF	EE
@@ -360,6 +362,9 @@ decode_mips_operand (const char *p)
 /* MSA support.  */
 #define MSA	ASE_MSA
 #define MSA64	ASE_MSA64
+
+/* eXtended Physical Address (XPA) support.  */
+#define XPA     ASE_XPA
 
 /* The order of overloaded instructions matters.  Label arguments and
    register arguments look the same. Instructions that can have either
@@ -897,7 +902,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"ceil.l.s",		"D,S",		0x4600000a, 0xffff003f, WR_1|RD_2|FP_S|FP_D,	0,		I3_33,		0,	0 },
 {"ceil.w.d",		"D,S",		0x4620000e, 0xffff003f, WR_1|RD_2|FP_S|FP_D,	0,		I2,		0,	SF },
 {"ceil.w.s",		"D,S",		0x4600000e, 0xffff003f, WR_1|RD_2|FP_S,		0,		I2,		0,	EE },
-{"cfc0",		"t,G",		0x40400000, 0xffe007ff,	WR_1|RD_C0|LCD,		0,		I1,		0,	IOCT|IOCTP|IOCT2 },
+/* cfc0 is at the bottom of the table.  */
 {"cfc1",		"t,G",		0x44400000, 0xffe007ff,	WR_1|RD_C1|LCD|FP_S,	0,		I1,		0,	0 },
 {"cfc1",		"t,S",		0x44400000, 0xffe007ff,	WR_1|RD_C1|LCD|FP_S,	0,		I1,		0,	0 },
 /* cfc2 is at the bottom of the table.  */
@@ -910,7 +915,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"cins",		"t,r,+p,+S",	0x70000032, 0xfc00003f, WR_1|RD_2,		0,		IOCT,		0,	0 },
 {"clo",			"U,s",		0x70000021, 0xfc0007ff, WR_1|RD_2, 	0,		I32|N55,	0,	0 },
 {"clz",			"U,s",		0x70000020, 0xfc0007ff, WR_1|RD_2, 	0,		I32|N55,	0,	0 },
-{"ctc0",		"t,G",		0x40c00000, 0xffe007ff,	RD_1|WR_CC|COD,		0,		I1,		0,	IOCT|IOCTP|IOCT2 },
+/* ctc0 is at the bottom of the table.  */
 {"ctc1",		"t,G",		0x44c00000, 0xffe007ff,	RD_1|WR_CC|COD|FP_S,	0,		I1,		0,	0 },
 {"ctc1",		"t,S",		0x44c00000, 0xffe007ff,	RD_1|WR_CC|COD|FP_S,	0,		I1,		0,	0 },
 /* ctc2 is at the bottom of the table.  */
@@ -1092,6 +1097,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"emt",			"",		0x41600be1, 0xffffffff, TRAP,			0,		0,		MT32,	0 },
 {"emt",			"t",		0x41600be1, 0xffe0ffff, WR_1|TRAP,		0,		0,		MT32,	0 },
 {"eret",		"",		0x42000018, 0xffffffff, NODS,      		0,		I3_32,		0,	0 },
+{"eretnc",		"",		0x42000058, 0xffffffff, NODS,      		0,		I36,		0,	0 },
 {"evpe",		"",		0x41600021, 0xffffffff, TRAP,			0,		0,		MT32,	0 },
 {"evpe",		"t",		0x41600021, 0xffe0ffff, WR_1|TRAP,		0,		0,		MT32,	0 },
 {"ext",			"t,r,+A,+C",	0x7c000000, 0xfc00003f, WR_1|RD_2,    		0,		I33,		0,	0 },
@@ -1302,6 +1308,10 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"mfc0",		"t,G,H",	0x40000000, 0xffe007f8,	WR_1|RD_C0|LCD,		0,		I32,		0,	0 },
 {"mfgc0",		"t,G",		0x40600000, 0xffe007ff,	WR_1|RD_C0|LCD,		0,		0,		IVIRT,	0 },
 {"mfgc0",		"t,G,H",	0x40600000, 0xffe007f8, WR_1|RD_C0|LCD, 	0,		0,		IVIRT,	0 },
+{"mfhc0",		"t,G",		0x40400000, 0xffe007ff,	WR_1|RD_C0|LCD,		0,		I33,		XPA,	0 },
+{"mfhc0",		"t,G,H",	0x40400000, 0xffe007f8,	WR_1|RD_C0|LCD,		0,		I33,		XPA,	0 },
+{"mfhgc0",		"t,G",		0x40600400, 0xffe007ff,	WR_1|RD_C0|LCD,		0,		I33,		IVIRT|XPA,	0 },
+{"mfhgc0",		"t,G,H",	0x40600400, 0xffe007f8,	WR_1|RD_C0|LCD,		0,		I33,		IVIRT|XPA,	0 },
 {"mfc1",		"t,S",		0x44000000, 0xffe007ff,	WR_1|RD_2|LCD|FP_S,	0,		I1,		0,	0 },
 {"mfc1",		"t,G",		0x44000000, 0xffe007ff,	WR_1|RD_2|LCD|FP_S,	0,		I1,		0,	0 },
 {"mfhc1",		"t,S",		0x44600000, 0xffe007ff,	WR_1|RD_2|LCD|FP_D,	0,		I33,		0,	0 },
@@ -1395,6 +1405,10 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"mtc0",		"t,G,H",	0x40800000, 0xffe007f8,	RD_1|WR_C0|WR_CC|COD,	0,		I32,		0,	0 },
 {"mtgc0",		"t,G",		0x40600200, 0xffe007ff,	RD_1|WR_C0|WR_CC|COD,	0,		0,		IVIRT,	0 },
 {"mtgc0",		"t,G,H",	0x40600200, 0xffe007f8, RD_1|WR_C0|WR_CC|COD,   0,		0,		IVIRT,	0 },
+{"mthc0",		"t,G",		0x40c00000, 0xffe007ff,	RD_1|WR_C0|WR_CC|COD,	0,		I33,		XPA,	0 },
+{"mthc0",		"t,G,H",	0x40c00000, 0xffe007f8,	RD_1|WR_C0|WR_CC|COD,	0,		I33,		XPA,	0 },
+{"mthgc0",		"t,G",		0x40600600, 0xffe007ff,	RD_1|WR_C0|WR_CC|COD,	0,		I33,		IVIRT|XPA,	0 },
+{"mthgc0",		"t,G,H",	0x40600600, 0xffe007f8,	RD_1|WR_C0|WR_CC|COD,	0,		I33,		IVIRT|XPA,	0 },
 {"mtc1",		"t,S",		0x44800000, 0xffe007ff,	RD_1|WR_2|COD|FP_S,	0,		I1,		0,	0 },
 {"mtc1",		"t,G",		0x44800000, 0xffe007ff,	RD_1|WR_2|COD|FP_S,	0,		I1,		0,	0 },
 {"mthc1",		"t,S",		0x44e00000, 0xffe007ff,	RD_1|WR_2|COD|FP_D,	0,		I33,		0,	0 },
@@ -1956,71 +1970,11 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"zcb",			"(b)",		0x7000071f, 0xfc1fffff, RD_1|SM,		0,		IOCT2,		0,	0 },
 {"zcbt",		"(b)",		0x7000075f, 0xfc1fffff, RD_1|SM,		0,		IOCT2,		0,	0 },
 
-/* User Defined Instruction.  */
-{"udi0",		"s,t,d,+1",	0x70000010, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi0",		"s,t,+2",	0x70000010, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi0",		"s,+3",		0x70000010, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi0",		"+4",		0x70000010, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi1",		"s,t,d,+1",	0x70000011, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi1",		"s,t,+2",	0x70000011, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi1",		"s,+3",		0x70000011, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi1",		"+4",		0x70000011, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi2",		"s,t,d,+1",	0x70000012, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi2",		"s,t,+2",	0x70000012, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi2",		"s,+3",		0x70000012, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi2",		"+4",		0x70000012, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi3",		"s,t,d,+1",	0x70000013, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi3",		"s,t,+2",	0x70000013, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi3",		"s,+3",		0x70000013, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi3",		"+4",		0x70000013, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi4",		"s,t,d,+1",	0x70000014, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi4",		"s,t,+2",	0x70000014, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi4",		"s,+3",		0x70000014, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi4",		"+4",		0x70000014, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi5",		"s,t,d,+1",	0x70000015, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi5",		"s,t,+2",	0x70000015, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi5",		"s,+3",		0x70000015, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi5",		"+4",		0x70000015, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi6",		"s,t,d,+1",	0x70000016, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi6",		"s,t,+2",	0x70000016, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi6",		"s,+3",		0x70000016, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi6",		"+4",		0x70000016, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi7",		"s,t,d,+1",	0x70000017, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi7",		"s,t,+2",	0x70000017, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi7",		"s,+3",		0x70000017, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi7",		"+4",		0x70000017, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi8",		"s,t,d,+1",	0x70000018, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi8",		"s,t,+2",	0x70000018, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi8",		"s,+3",		0x70000018, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi8",		"+4",		0x70000018, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi9",		"s,t,d,+1",	0x70000019, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi9",		"s,t,+2",	0x70000019, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi9",		"s,+3",		0x70000019, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi9",		"+4",		0x70000019, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi10",		"s,t,d,+1",	0x7000001a, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi10",		"s,t,+2",	0x7000001a, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi10",		"s,+3",		0x7000001a, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi10",		"+4",		0x7000001a, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi11",		"s,t,d,+1",	0x7000001b, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi11",		"s,t,+2",	0x7000001b, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi11",		"s,+3",		0x7000001b, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi11",		"+4",		0x7000001b, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi12",		"s,t,d,+1",	0x7000001c, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi12",		"s,t,+2",	0x7000001c, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi12",		"s,+3",		0x7000001c, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi12",		"+4",		0x7000001c, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi13",		"s,t,d,+1",	0x7000001d, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi13",		"s,t,+2",	0x7000001d, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi13",		"s,+3",		0x7000001d, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi13",		"+4",		0x7000001d, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi14",		"s,t,d,+1",	0x7000001e, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi14",		"s,t,+2",	0x7000001e, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi14",		"s,+3",		0x7000001e, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi14",		"+4",		0x7000001e, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi15",		"s,t,d,+1",	0x7000001f, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi15",		"s,t,+2",	0x7000001f, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi15",		"s,+3",		0x7000001f, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
-{"udi15",		"+4",		0x7000001f, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+/* Coprocessor 0 move instructions cfc0 and ctc0 conflict with the 
+   mfhc0 and mthc0 XPA instructions, so they have been placed here 
+   to allow the XPA instructions to take precedence.  */
+{"ctc0",		"t,G",		0x40c00000, 0xffe007ff,	RD_1|WR_CC|COD,		0,		I1,		0,	IOCT|IOCTP|IOCT2 },
+{"cfc0",		"t,G",		0x40400000, 0xffe007ff,	WR_1|RD_C0|LCD,		0,		I1,		0,	IOCT|IOCTP|IOCT2 },
 
 /* Coprocessor 2 move/branch operations overlap with VR5400 .ob format
    instructions so they are here for the latters to take precedence.  */
@@ -3103,6 +3057,72 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"move.v",		"+d,+e",	0x78be0019, 0xffff003f,	WR_1|RD_2,		0,		0,		MSA,	0 },
 {"lsa",			"d,v,t,+~",	0x00000005, 0xfc00073f,	WR_1|RD_2|RD_3,		0,		0,		MSA,	0 },
 {"dlsa",		"d,v,t,+~",	0x00000015, 0xfc00073f,	WR_1|RD_2|RD_3,		0,		0,		MSA64,	0 },
+
+/* User Defined Instruction.  */
+{"udi0",		"s,t,d,+1",	0x70000010, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi0",		"s,t,+2",	0x70000010, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi0",		"s,+3",		0x70000010, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi0",		"+4",		0x70000010, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi1",		"s,t,d,+1",	0x70000011, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi1",		"s,t,+2",	0x70000011, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi1",		"s,+3",		0x70000011, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi1",		"+4",		0x70000011, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi2",		"s,t,d,+1",	0x70000012, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi2",		"s,t,+2",	0x70000012, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi2",		"s,+3",		0x70000012, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi2",		"+4",		0x70000012, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi3",		"s,t,d,+1",	0x70000013, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi3",		"s,t,+2",	0x70000013, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi3",		"s,+3",		0x70000013, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi3",		"+4",		0x70000013, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi4",		"s,t,d,+1",	0x70000014, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi4",		"s,t,+2",	0x70000014, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi4",		"s,+3",		0x70000014, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi4",		"+4",		0x70000014, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi5",		"s,t,d,+1",	0x70000015, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi5",		"s,t,+2",	0x70000015, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi5",		"s,+3",		0x70000015, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi5",		"+4",		0x70000015, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi6",		"s,t,d,+1",	0x70000016, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi6",		"s,t,+2",	0x70000016, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi6",		"s,+3",		0x70000016, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi6",		"+4",		0x70000016, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi7",		"s,t,d,+1",	0x70000017, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi7",		"s,t,+2",	0x70000017, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi7",		"s,+3",		0x70000017, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi7",		"+4",		0x70000017, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi8",		"s,t,d,+1",	0x70000018, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi8",		"s,t,+2",	0x70000018, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi8",		"s,+3",		0x70000018, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi8",		"+4",		0x70000018, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi9",		"s,t,d,+1",	0x70000019, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi9",		"s,t,+2",	0x70000019, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi9",		"s,+3",		0x70000019, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi9",		"+4",		0x70000019, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi10",		"s,t,d,+1",	0x7000001a, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi10",		"s,t,+2",	0x7000001a, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi10",		"s,+3",		0x7000001a, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi10",		"+4",		0x7000001a, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi11",		"s,t,d,+1",	0x7000001b, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi11",		"s,t,+2",	0x7000001b, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi11",		"s,+3",		0x7000001b, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi11",		"+4",		0x7000001b, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi12",		"s,t,d,+1",	0x7000001c, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi12",		"s,t,+2",	0x7000001c, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi12",		"s,+3",		0x7000001c, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi12",		"+4",		0x7000001c, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi13",		"s,t,d,+1",	0x7000001d, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi13",		"s,t,+2",	0x7000001d, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi13",		"s,+3",		0x7000001d, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi13",		"+4",		0x7000001d, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi14",		"s,t,d,+1",	0x7000001e, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi14",		"s,t,+2",	0x7000001e, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi14",		"s,+3",		0x7000001e, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi14",		"+4",		0x7000001e, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi15",		"s,t,d,+1",	0x7000001f, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi15",		"s,t,+2",	0x7000001f, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi15",		"s,+3",		0x7000001f, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
+{"udi15",		"+4",		0x7000001f, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
 /* No hazard protection on coprocessor instructions--they shouldn't
    change the state of the processor and if they do it's up to the
    user to put in nops as necessary.  These are at the end so that the
