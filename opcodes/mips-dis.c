@@ -553,7 +553,23 @@ const struct mips_arch_choice mips_arch_choices[] =
   { "mips32r2",	1, bfd_mach_mipsisa32r2, CPU_MIPS32R2,
     ISA_MIPS32R2,
     (ASE_SMARTMIPS | ASE_DSP | ASE_DSPR2 | ASE_EVA | ASE_MIPS3D
-     | ASE_MT | ASE_MCU | ASE_VIRT | ASE_MSA),
+     | ASE_MT | ASE_MCU | ASE_VIRT | ASE_MSA | ASE_XPA),
+    mips_cp0_names_mips3264r2,
+    mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
+    mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
+
+  { "mips32r3",	1, bfd_mach_mipsisa32r3, CPU_MIPS32R3,
+    ISA_MIPS32R3,
+    (ASE_SMARTMIPS | ASE_DSP | ASE_DSPR2 | ASE_EVA | ASE_MIPS3D
+     | ASE_MT | ASE_MCU | ASE_VIRT | ASE_MSA | ASE_XPA),
+    mips_cp0_names_mips3264r2,
+    mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
+    mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
+
+  { "mips32r5",	1, bfd_mach_mipsisa32r5, CPU_MIPS32R5,
+    ISA_MIPS32R5,
+    (ASE_SMARTMIPS | ASE_DSP | ASE_DSPR2 | ASE_EVA | ASE_MIPS3D
+     | ASE_MT | ASE_MCU | ASE_VIRT | ASE_MSA | ASE_XPA),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -568,7 +584,23 @@ const struct mips_arch_choice mips_arch_choices[] =
   { "mips64r2",	1, bfd_mach_mipsisa64r2, CPU_MIPS64R2,
     ISA_MIPS64R2,
     (ASE_MIPS3D | ASE_DSP | ASE_DSPR2 | ASE_DSP64 | ASE_EVA | ASE_MT
-     | ASE_MCU | ASE_VIRT | ASE_VIRT64 | ASE_MSA | ASE_MSA64),
+     | ASE_MCU | ASE_VIRT | ASE_VIRT64 | ASE_MSA | ASE_MSA64 | ASE_XPA),
+    mips_cp0_names_mips3264r2,
+    mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
+    mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
+
+  { "mips64r3",	1, bfd_mach_mipsisa64r3, CPU_MIPS64R3,
+    ISA_MIPS64R3,
+    (ASE_MIPS3D | ASE_DSP | ASE_DSPR2 | ASE_DSP64 | ASE_EVA | ASE_MT
+     | ASE_MCU | ASE_VIRT | ASE_VIRT64 | ASE_MSA | ASE_MSA64 | ASE_XPA),
+    mips_cp0_names_mips3264r2,
+    mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
+    mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
+
+  { "mips64r5",	1, bfd_mach_mipsisa64r5, CPU_MIPS64R5,
+    ISA_MIPS64R5,
+    (ASE_MIPS3D | ASE_DSP | ASE_DSPR2 | ASE_DSP64 | ASE_EVA | ASE_MT
+     | ASE_MCU | ASE_VIRT | ASE_VIRT64 | ASE_MSA | ASE_MSA64 | ASE_XPA),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -588,7 +620,7 @@ const struct mips_arch_choice mips_arch_choices[] =
     NULL, 0, mips_cp1_names_numeric, mips_hwr_names_numeric },
 
   { "loongson3a",   1, bfd_mach_mips_loongson_3a, CPU_LOONGSON_3A,
-    ISA_MIPS64 | INSN_LOONGSON_3A, 0, mips_cp0_names_numeric,
+    ISA_MIPS64R2 | INSN_LOONGSON_3A, 0, mips_cp0_names_numeric,
     NULL, 0, mips_cp1_names_mips3264, mips_hwr_names_numeric },
 
   { "octeon",   1, bfd_mach_mips_octeon, CPU_OCTEON,
@@ -800,7 +832,9 @@ parse_mips_dis_option (const char *option, unsigned int len)
   if (CONST_STRNEQ (option, "msa"))
     {
       mips_ase |= ASE_MSA;
-      if ((mips_isa & INSN_ISA_MASK) == ISA_MIPS64R2)
+      if ((mips_isa & INSN_ISA_MASK) == ISA_MIPS64R2
+	   || (mips_isa & INSN_ISA_MASK) == ISA_MIPS64R3
+	   || (mips_isa & INSN_ISA_MASK) == ISA_MIPS64R5)
 	  mips_ase |= ASE_MSA64;
       return;
     }
@@ -808,10 +842,19 @@ parse_mips_dis_option (const char *option, unsigned int len)
   if (CONST_STRNEQ (option, "virt"))
     {
       mips_ase |= ASE_VIRT;
-      if (mips_isa & ISA_MIPS64R2)
+      if (mips_isa & ISA_MIPS64R2
+	  || mips_isa & ISA_MIPS64R3
+	  || mips_isa & ISA_MIPS64R5)
 	mips_ase |= ASE_VIRT64;
       return;
     }
+
+  if (CONST_STRNEQ (option, "xpa"))
+    {
+      mips_ase |= ASE_XPA;
+      return;
+    }
+  
   
   /* Look for the = that delimits the end of the option name.  */
   for (i = 0; i < len; i++)
@@ -2196,6 +2239,9 @@ with the -M switch (multiple options should be separated by commas):\n"));
 
   fprintf (stream, _("\n\
   virt            Recognize the virtualization ASE instructions.\n"));
+
+  fprintf (stream, _("\n\
+  xpa            Recognize the eXtended Physical Address (XPA) ASE instructions.\n"));
 
   fprintf (stream, _("\n\
   gpr-names=ABI            Print GPR names according to  specified ABI.\n\
