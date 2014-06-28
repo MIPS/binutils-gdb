@@ -6509,11 +6509,18 @@ mips32_in_function_epilogue_p (struct gdbarch *gdbarch, CORE_ADDR pc)
 	    inst = mips_fetch_instruction (gdbarch, ISA_MIPSR6, pc, NULL);
 	  else
 	    inst = mips_fetch_instruction (gdbarch, ISA_MIPS, pc, NULL);
+
 	  high_word = (inst >> 16) & 0xffff;
 
 	  if (high_word != 0x27bd	/* addiu $sp,$sp,offset */
 	      && high_word != 0x67bd	/* daddiu $sp,$sp,offset */
-	      && inst != 0x03e00008	/* jr $ra */
+	      && inst != 0x03e00008 	/* jr $ra */
+	      && inst != 0x00000000)	/* nop */
+	    return 0;
+          if (is_mipsr6_isa (gdbarch)
+              && high_word != 0x27bd	/* addiu $sp,$sp,offset */
+	      && high_word != 0x67bd	/* daddiu $sp,$sp,offset */
+	      && inst != 0x03e00009 	/* jalr $ra */
 	      && inst != 0x00000000)	/* nop */
 	    return 0;
 	}
