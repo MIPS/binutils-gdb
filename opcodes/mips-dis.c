@@ -688,6 +688,7 @@ static const char * const *mips_hwr_names;
 
 /* Other options */
 static int no_aliases;	/* If set disassemble as most general inst.  */
+static int dis_both_r5_and_r6;
 
 static const struct mips_abi_choice *
 choose_abi_by_name (const char *name, unsigned int namelen)
@@ -792,6 +793,7 @@ set_default_mips_dis_options (struct disassemble_info *info)
   mips_cp1_names = mips_cp1_names_numeric;
   mips_hwr_names = mips_hwr_names_numeric;
   no_aliases = 0;
+  dis_both_r5_and_r6 = 0;
 
   /* Update settings according to the ELF file header flags.  */
   if (info->flavour == bfd_target_elf_flavour && info->section != NULL)
@@ -841,6 +843,12 @@ parse_mips_dis_option (const char *option, unsigned int len)
   if (CONST_STRNEQ (option, "no-aliases"))
     {
       no_aliases = 1;
+      return;
+    }
+
+  if (CONST_STRNEQ (option, "dis-both-r5-and-r6"))
+    {
+      dis_both_r5_and_r6 = 1;
       return;
     }
 
@@ -1663,9 +1671,14 @@ print_insn_mips (bfd_vma memaddr,
 	    {
 	      /* We always disassemble the jalx instruction, except for MIPS r6.  */
 	      if (!opcode_is_member (op, mips_isa, mips_ase, mips_processor)
-		 && (strcmp (op->name, "jalx")
-		     || (mips_isa & INSN_ISA_MASK) == ISA_MIPS32R6
-		     || (mips_isa & INSN_ISA_MASK) == ISA_MIPS64R6))
+		 && ((dis_both_r5_and_r6
+                      && (strcmp (op->name, "addi") == 0
+                          || strcmp (op->name, "daddi") == 0)
+		      && ((mips_isa & INSN_ISA_MASK) == ISA_MIPS32R6
+			   || (mips_isa & INSN_ISA_MASK) == ISA_MIPS64R6))
+		    || ((strcmp (op->name, "jalx")
+		        || (mips_isa & INSN_ISA_MASK) == ISA_MIPS32R6
+		        || (mips_isa & INSN_ISA_MASK) == ISA_MIPS64R6))))
 		continue;
 
 	      /* Figure out instruction type and branch delay information.  */
