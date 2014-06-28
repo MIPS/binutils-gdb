@@ -4038,10 +4038,11 @@ mips_about_to_return (struct gdbarch *gdbarch, CORE_ADDR pc)
     insn = mips_fetch_instruction (gdbarch, ISA_MIPS, pc, NULL);
   hint = 0x7c0;
   /* Seek for "jr(.hb) $ra" in all variants. */
-  if (!is_mipsr6_isa(gdbarch))
-    return (insn & ~hint) == 0x3e00008;     /* jr(.hb) $ra */
+  if (is_mipsr6_isa(gdbarch))
+    /* jr(.hb) $ra and "jalr(.hb) $ra" for ISA6*/
+    return (((insn & ~hint) == 0x3e00009) || ((insn & ~hint) == 0x3e00008));
   else
-    return (insn & ~hint) == 0x3e00009;     /* "jalr(.hb) $ra" for ISA6*/
+    return ((insn & ~hint) == 0x3e00008);     /* jr(.hb) $ra */
 }
 
 
@@ -6511,7 +6512,9 @@ mips32_in_function_epilogue_p (struct gdbarch *gdbarch, CORE_ADDR pc)
 
 	  if (high_word != 0x27bd	/* addiu $sp,$sp,offset */
 	      && high_word != 0x67bd	/* daddiu $sp,$sp,offset */
-	      && inst != 0x03e00008	/* jr $ra */
+	      && ((is_mipsr6_isa (gdbarch) && inst != 0x03e00008
+                   && inst != 0x03e00009)
+		 || inst != 0x03e00008)	/* jr $ra */
 	      && inst != 0x00000000)	/* nop */
 	    return 0;
 	}
