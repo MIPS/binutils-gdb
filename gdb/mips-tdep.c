@@ -276,7 +276,7 @@ mips_abi_regsize (struct gdbarch *gdbarch)
 static int
 is_mips16_isa (struct gdbarch *gdbarch)
 {
-  return gdbarch_tdep (gdbarch)->mips_isa == ISA_MIPS16;
+  return gdbarch_tdep (gdbarch)->mips_compression == COMPRESSION_MIPS16;
 }
 
 /* Return one iff compressed code is the microMIPS instruction set.  */
@@ -284,7 +284,7 @@ is_mips16_isa (struct gdbarch *gdbarch)
 static int
 is_micromips_isa (struct gdbarch *gdbarch)
 {
-  return gdbarch_tdep (gdbarch)->mips_isa == ISA_MICROMIPS;
+  return gdbarch_tdep (gdbarch)->mips_compression == COMPRESSION_MICROMIPS;
 }
 
 /* Return one iff code is the MIPSR6 instruction set.  */
@@ -7902,14 +7902,14 @@ global_mips_abi (void)
    the ELF header of the binary being executed (or no binary has been
    selected.  */
 
-static enum mips_isa
+static enum mips_compression
 global_mips_compression (void)
 {
   int i;
 
   for (i = 0; mips_compression_strings[i] != NULL; i++)
     if (mips_compression_strings[i] == mips_compression_string)
-      return (enum mips_isa) i;
+      return (enum mips_compression) i;
 
   internal_error (__FILE__, __LINE__, _("unknown compressed ISA string"));
 }
@@ -7952,6 +7952,7 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   const char **reg_names;
   struct mips_regnum mips_regnum, *regnum;
   enum mips_isa mips_isa;
+  enum mips_compression mips_compression;
   int dspacc;
   int dspctl;
 
@@ -8248,13 +8249,21 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   /* Determine the default compressed ISA.  */
   if ((elf_flags & EF_MIPS_ARCH_ASE_MICROMIPS) != 0
       && (elf_flags & EF_MIPS_ARCH_ASE_M16) == 0)
-    mips_isa = ISA_MICROMIPS;
+    mips_compression = ISA_MICROMIPS;
   else if ((elf_flags & EF_MIPS_ARCH_ASE_M16) != 0
 	   && (elf_flags & EF_MIPS_ARCH_ASE_MICROMIPS) == 0)
-    mips_isa = ISA_MIPS16;
+    mips_compression = ISA_MIPS16;
   else
-    mips_isa = global_mips_compression ();
-  mips_compression_string = mips_compression_strings[mips_isa];
+    mips_compression = global_mips_compression ();
+  mips_compression_string = mips_compression_strings[mips_compression];
+
+  /* Determine the default ISA.  */
+  if (((elf_flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R6)
+      || ((elf_flags & EF_MIPS_ARCH) == E_MIPS_ARCH_64R6))
+    mips_isa = ISA_MIPSR6;
+    /* TODO: we should turn off/error if mips16 is uses here.  */
+  else
+    mips_isa = ISA_MIPS;
 
   /* Also used when doing an architecture lookup.  */
   if (gdbarch_debug)
@@ -8362,6 +8371,7 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   tdep->found_abi = found_abi;
   tdep->mips_abi = mips_abi;
   tdep->mips_isa = mips_isa;
+  tdep->mips_compression = mips_compression;
   tdep->mips_fpu_type = fpu_type;
   tdep->register_size_valid_p = 0;
   tdep->register_size = 0;
