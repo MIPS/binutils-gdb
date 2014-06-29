@@ -3263,7 +3263,7 @@ restart:
 
       if (high_word == 0x27bd		/* addiu $sp,$sp,-i */
 	  || ((high_word == 0x23bd)	/* addi $sp,$sp,-i */
-	      && !is_mipsr6_isa(gdbarch))
+	      && !is_mipsr6_isa (gdbarch))
 	  || high_word == 0x67bd)	/* daddiu $sp,$sp,-i */
 	{
 	  if (low_word & 0x8000)	/* Negative stack adjustment?  */
