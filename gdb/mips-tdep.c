@@ -1377,6 +1377,7 @@ mips_fetch_instruction (struct gdbarch *gdbarch,
 #define itype_rs(x) ((x >> 21) & 0x1f)
 #define itype_rt(x) ((x >> 16) & 0x1f)
 #define itype_immediate(x) (x & 0xffff)
+#define itype_mipsr6(x) (x & 0xfc00003f)
 
 #define jtype_op(x) (x >> 26)
 #define jtype_target(x) (x & 0x03ffffff)
@@ -3706,6 +3707,10 @@ mips_addr_bits_remove (struct gdbarch *gdbarch, CORE_ADDR addr)
 #define LLD_OPCODE 0x34
 #define SC_OPCODE 0x38
 #define SCD_OPCODE 0x3c
+#define LL_R6_OPCODE 0x7c000036
+#define LLD_R6_OPCODE 0x7c000037
+#define SC_R6_OPCODE 0x7c000026
+#define SCD_R6_OPCODE 0x7c000027
 
 static int
 mips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
@@ -3719,13 +3724,19 @@ mips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
   int index;
   int last_breakpoint = 0; /* Defaults to 0 (no breakpoints placed).  */  
   const int atomic_sequence_length = 16; /* Instruction sequence length.  */
+  int is_mipsr6 = is_mipsr6_isa (gdbarch);
 
-  if (is_mipsr6_isa (gdbarch))
+  if (is_mipsr6)
     insn = mips_fetch_instruction (gdbarch, ISA_MIPSR6, loc, NULL);
   else
     insn = mips_fetch_instruction (gdbarch, ISA_MIPS, loc, NULL);
   /* Assume all atomic sequences start with a ll/lld instruction.  */
-  if (itype_op (insn) != LL_OPCODE && itype_op (insn) != LLD_OPCODE)
+  if (((!is_mipsr6) && itype_op (insn) != LL_OPCODE
+        && itype_op (insn) != LLD_OPCODE)
+      || ((is_mipsr6) && itype_op (insn) != LL_OPCODE
+	  && itype_op (insn) != LLD_OPCODE
+	  && itype_mipsr6 (insn) != LL_R6_OPCODE
+	  && itype_mipsr6 (insn) != LLD_R6_OPCODE))
     return 0;
 
   /* Assume that no atomic sequence is longer than "atomic_sequence_length" 
@@ -3734,7 +3745,7 @@ mips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
     {
       int is_branch = 0;
       loc += MIPS_INSN32_SIZE;
-      if (is_mipsr6_isa (gdbarch))
+      if (is_mipsr6)
         insn = mips_fetch_instruction (gdbarch, ISA_MIPSR6, loc, NULL);
       else
         insn = mips_fetch_instruction (gdbarch, ISA_MIPS, loc, NULL);
@@ -3787,12 +3798,19 @@ mips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 	  last_breakpoint++;
 	}
 
-      if (itype_op (insn) == SC_OPCODE || itype_op (insn) == SCD_OPCODE)
+      if (itype_op (insn) == SC_OPCODE || itype_op (insn) == SCD_OPCODE
+	  || ((is_mipsr6) && (itype_mipsr6 (insn) == SC_R6_OPCODE
+	       || itype_mipsr6 (insn) == SCD_R6_OPCODE)))
 	break;
     }
 
   /* Assume that the atomic sequence ends with a sc/scd instruction.  */
-  if (itype_op (insn) != SC_OPCODE && itype_op (insn) != SCD_OPCODE)
+  if (((!is_mipsr6) && itype_op (insn) != SC_OPCODE
+        && itype_op (insn) != SCD_OPCODE)
+      || ((is_mipsr6) && itype_op (insn) != SC_OPCODE
+	  && itype_op (insn) != SCD_OPCODE
+	  && itype_mipsr6 (insn) != SC_R6_OPCODE
+	  && itype_mipsr6 (insn) != SCD_R6_OPCODE))
     return 0;
 
   loc += MIPS_INSN32_SIZE;
