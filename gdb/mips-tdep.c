@@ -6881,15 +6881,17 @@ gdb_print_insn_mips (bfd_vma memaddr, struct disassemble_info *info)
 
   /* Set the disassembler options.  */
   if (!info->disassembler_options)
+    {
     /* This string is not recognized explicitly by the disassembler,
        but it tells the disassembler to not try to guess the ABI from
        the bfd elf headers, such that, if the user overrides the ABI
        of a program linked as NewABI, the disassembly will follow the
        register naming conventions specified by the user.  */
-    if (is_mipsr6_isa (gdbarch))
-      info->disassembler_options = "gpr-names=32,dis-r5-and-r6=1";
-    else
-      info->disassembler_options = "gpr-names=32";
+      if (is_mipsr6_isa (gdbarch))
+	info->disassembler_options = "gpr-names=32,dis-r5-and-r6=1";
+      else
+	info->disassembler_options = "gpr-names=32";
+    }
 
   /* Call the appropriate disassembler based on the target endian-ness.  */
   if (info->endian == BFD_ENDIAN_BIG)
