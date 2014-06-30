@@ -6555,7 +6555,8 @@ mips32_in_function_epilogue_p (struct gdbarch *gdbarch, CORE_ADDR pc)
 	      && high_word != 0x67bd	/* daddiu $sp,$sp,offset */
 	      && ((is_mipsr6_isa (gdbarch) && inst != 0x03e00008
                    && inst != 0x03e00009)
-		 || inst != 0x03e00008)	/* jr $ra */
+		     /* jr $ra */
+		 || (!is_mipsr6_isa (gdbarch) && inst != 0x03e00008))
 	      && inst != 0x00000000)	/* nop */
 	    return 0;
 	}
