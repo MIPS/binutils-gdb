@@ -1545,48 +1545,67 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
 	      {
 	      case 2:		/* BLEZC / BGEZC / BGEC */
 		if (itype_rs (inst) == 0 && itype_rt (inst) != 0) /* BLEZC */
-		  goto lez_branch;
+                  {
+                  lezc_branch:
+                    if (get_frame_register_signed (frame, itype_rs (inst)) <= 0)
+                      pc += mips32_relative_offset (inst) + 4;
+                    else
+                      pc += 4;
+                  }
 		else if (itype_rs (inst) == itype_rt (inst) &&
 			 itype_rt (inst) != 0) /* BGEZC */
-		  goto gez_branch;
+                  {
+                  gezc_branch:
+                    if (get_frame_register_signed (frame, itype_rs (inst)) >= 0)
+                      pc += mips32_relative_offset (inst) + 4;
+                    else
+                      pc += 4;
+                  }
 		else if (itype_rs (inst) != itype_rt (inst) &&
 			 itype_rs (inst) != 0 &&
 			 itype_rt (inst) != 0) /* BGEC/BLEC */
 		  {
-		  ge_branch:
+                  gec_branch:
 		    if (get_frame_register_signed (frame, itype_rs (inst)) >=
 			get_frame_register_signed (frame, itype_rt (inst)))
 		      pc += mips32_relative_offset (inst) + 4;
 		    else
-		      pc += 8;
+		      pc += 4;
 		  }
 		else  /* unused combinations of rs & rt, error?? */
-		  {
 		    pc += 4;
-		    break;
-		  }
+                break;
 	      case 3:		/* BGTZC / BLTZC / BLTC */
 		if (itype_rs (inst) == 0 && itype_rt (inst) != 0) /* BGTZC */
-		  goto greater_branch;
+                  {
+                  gtzc_branch:
+		    if (get_frame_register_signed (frame, itype_rs (inst)) > 0)
+		      pc += mips32_relative_offset (inst) + 4;
+		    else
+		      pc += 4;
+                  }
 		else if (itype_rs (inst) == itype_rt (inst) &&
 			 itype_rt (inst) != 0) /* BLTZC */
-		  goto less_branch;
+                  {
+                  ltzc_branch:
+		    if (get_frame_register_signed (frame, itype_rs (inst)) < 0)
+		      pc += mips32_relative_offset (inst) + 4;
+		    else
+		      pc += 4;
+                  }
 		else if (itype_rs (inst) != itype_rt (inst) &&
 			 itype_rs (inst) != 0 &&
 			 itype_rt (inst) != 0) /* BLTC/BGTC */
 		  {
-		  lt_branch:
 		    if (get_frame_register_signed (frame, itype_rs (inst)) <
 			get_frame_register_signed (frame, itype_rt (inst)))
 		      pc += mips32_relative_offset (inst) + 4;
 		    else
-		      pc += 8;
+		      pc += 4;
 		  }
 		else /* unused combinations of rs & rt */
-		  {
 		    pc += 4;
-		    break;
-		  }
+                break;
 	      default:	/* un-mapped instruction */
 		pc += 4;
 	      }
@@ -1612,14 +1631,19 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
 	/* BOVC, BEQZALC, BEQC - only in r6 */
 	{
 	  if (itype_rs (inst) > itype_rt (inst)) /* BEQC */
-	    goto equal_branch;
-	  else if (itype_rs (inst) == 0) /* BNEZALC */
+            {
+              if (get_frame_register_signed (frame, itype_rs (inst)) ==
+                  get_frame_register_signed (frame, itype_rt (inst)))
+                pc += mips32_relative_offset (inst) + 4;
+              else
+                pc += 4;
+            }
+	  else if (itype_rs (inst) == 0) /* BEQZALC */
 	    {
-	    neqz_branch:
-	      if (get_frame_register_signed (frame, itype_rs (inst)) != 0)
+	      if (get_frame_register_signed (frame, itype_rt (inst)) == 0)
 		pc += mips32_relative_offset (inst) + 4;
 	      else
-		pc += 8;
+		pc += 4;
 	    }
 	  else  /* BOVC */
 	    {   /* check for overflow */
@@ -1627,21 +1651,26 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
                   INT_MAX - get_frame_register_signed (frame, itype_rt (inst)))
 		pc += mips32_relative_offset (inst) + 4;
 	      else
-		pc += 8;
+		pc += 4;
 	    }
 	}
       else if (op == 24 && is_mipsr6_isa (gdbarch))
 	/* BNVC, BNEZALC, BNEC - only in r6 */
 	{
 	  if (itype_rs (inst) > itype_rt (inst)) /* BNEC */
-	    goto neq_branch;
+            {
+              if (get_frame_register_signed (frame, itype_rs (inst)) !=
+                  get_frame_register_signed (frame, itype_rt (inst)))
+                pc += mips32_relative_offset (inst) + 4;
+              else
+                pc += 4;
+            }
 	  else if (itype_rs (inst) == 0) /* BEQZALC */
 	    {
-	    eqz_branch:
-	      if (get_frame_register_signed (frame, itype_rs (inst)) == 0)
+	      if (get_frame_register_signed (frame, itype_rt (inst)) == 0)
 		pc += mips32_relative_offset (inst) + 4;
 	      else
-		pc += 8;
+		pc += 4;
 	    }
 	  else  /* BNVC */
 	    {   /* check for no overflow */
@@ -1649,7 +1678,7 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
 		  INT_MAX - get_frame_register_signed (frame, itype_rt (inst)))
 		pc += mips32_relative_offset (inst) + 4;
 	      else
-		pc += 8;
+		pc += 4;
 	    }
 	}
       else if (op == 17 && itype_rs (inst) == 8 && !is_mipsr6_isa (gdbarch))
@@ -1663,8 +1692,8 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
 	       && (itype_rt (inst) & 2) == 0)
 	/* BC1ANY4F, BC1ANY4T: 010001 01010 xxx0x */
 	pc = mips32_bc1_pc (gdbarch, frame, inst, pc + 4, 4);
-      else if (op == 29)
-	/* JALX: 011101 */
+      else if (op == 29 && !is_mipsr6_isa (gdbarch))
+	/* JALX: 011101, not available on r6 */
 	/* The new PC will be alternate mode.  */
 	{
 	  unsigned long reg;
@@ -1705,7 +1734,7 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
 	    if (get_frame_register_signed (frame, itype_rs (inst)) == 0)
 	      pc += mips32_relative_offset_i (inst, 21) + 4;
 	    else
-	      pc += 8;
+	      pc += 4;
 	}
       else if (op == 62 && is_mipsr6_isa (gdbarch))
 	/* BNEZC / JIALC */
@@ -1718,7 +1747,7 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
 	    if (get_frame_register_signed (frame, itype_rs (inst)) != 0)
 	      pc += mips32_relative_offset_i (inst, 21) + 4;
 	    else
-	      pc += 8;
+	      pc += 4;
 	}
       else
 	pc += 4;		/* Not a branch, next instruction is easy.  */
@@ -1761,13 +1790,13 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
 	      case 18:		/* BLTZALL */
 		if (is_mipsr6_isa (gdbarch)) /* unused encodings */
 		  {
-		    pc+=4; break;
+		    pc += 4; break;
 		  }
 		/* deliberate fall through */
 	      case 16:		/* BLTZAL, unavailable on r6, except as NAL */
 		if (is_mipsr6_isa (gdbarch) && itype_rs (inst) != 0)
 		  {
-		    pc+=4; break;
+		    pc += 8; break;
 		  }
 		/* deliberate fall through */
 	      case 0:		/* BLTZ */
@@ -1781,13 +1810,13 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
 	      case 19:		/* BGEZALL */
 		if (is_mipsr6_isa (gdbarch)) /* unused encodings */
 		  {
-		    pc+=4; break;
+		    pc += 4; break;
 		  }
 		/* deliberate fall through */
 	      case 17:		/* BGEZAL, unavailable on r6, except as BAL */
 		if (is_mipsr6_isa (gdbarch) && itype_rs (inst) != 0)
 		  {
-		    pc+=4; break;
+		    pc += 8; break;
 		  }
 		/* deliberate fall through */
 	      case 1:		/* BGEZ */
@@ -1851,10 +1880,10 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
 	  if (is_mipsr6_isa (gdbarch))
 	    {
 	      if (itype_rs (inst) == 0 && itype_rt (inst) != 0) /* BLEZALC */
-		goto lez_branch;
+		goto lezc_branch;
 	      else if (itype_rs (inst) == itype_rt (inst) &&
 		       itype_rt (inst) != 0) /* BGEZALC */
-		goto gez_branch;
+		goto gezc_branch;
 	      else if (itype_rs (inst) != itype_rt (inst) &&
 		       itype_rs (inst) != 0 &&
 		       itype_rt (inst) != 0) /* BGEUC/BLEUC */
@@ -1863,26 +1892,27 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
 		      get_frame_register_unsigned (frame, itype_rt (inst)))
 		    pc += mips32_relative_offset (inst) + 4;
 		  else
-		    pc += 8;
+		    pc += 4;
 		}
 	      else  /* unused combinations of rs & rt */
 		pc += 4;
-	      break;
 	    }
-	lez_branch:
-	  if (get_frame_register_signed (frame, itype_rs (inst)) <= 0)
-	    pc += mips32_relative_offset (inst) + 4;
-	  else
-	    pc += 8;
+	  else 
+            {
+              if (get_frame_register_signed (frame, itype_rs (inst)) <= 0)
+                pc += mips32_relative_offset (inst) + 4;
+              else
+                pc += 8;
+            }
 	  break;
 	case 7:
 	  if (is_mipsr6_isa (gdbarch))
 	    {
 		if (itype_rs (inst) == 0 && itype_rt (inst) != 0) /* BGTZALC */
-		  goto greater_branch;
+		  goto gtzc_branch;
 		else if (itype_rs (inst) == itype_rt (inst) &&
 			 itype_rt (inst) != 0) /* BLTZALC */
-		  goto less_branch;
+		  goto ltzc_branch;
 		else if (itype_rs (inst) != itype_rt (inst) &&
 			 itype_rs (inst) != 0 &&
 			 itype_rt (inst) != 0) /* BLTUC/BGTUC */
@@ -1891,7 +1921,7 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
 			get_frame_register_unsigned (frame, itype_rt (inst)))
 		      pc += mips32_relative_offset (inst) + 4;
 		    else
-		      pc += 8;
+		      pc += 4;
 		  }
 		else /* unused combinations of rs & rt */
 		  pc += 4;
