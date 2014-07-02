@@ -6889,7 +6889,7 @@ gdb_print_insn_mips (bfd_vma memaddr, struct disassemble_info *info)
        of a program linked as NewABI, the disassembly will follow the
        register naming conventions specified by the user.  */
       if (is_mipsr6_isa (gdbarch))
-	info->disassembler_options = "gpr-names=32,dis-r5-and-r6=1";
+	info->disassembler_options = "gpr-names=32,dis-both-r5-and-r6=1";
       else
 	info->disassembler_options = "gpr-names=32";
     }
@@ -6906,7 +6906,10 @@ gdb_print_insn_mips_n32 (bfd_vma memaddr, struct disassemble_info *info)
 {
   /* Set up the disassembler info, so that we get the right
      register names from libopcodes.  */
-  info->disassembler_options = "gpr-names=n32";
+  if (is_mipsr6_isa (info->application_data))
+    info->disassembler_options = "gpr-names=n32,dis-both-r5-and-r6=1";
+  else
+    info->disassembler_options = "gpr-names=n32";
   info->flavour = bfd_target_elf_flavour;
 
   return gdb_print_insn_mips (memaddr, info);
@@ -6917,7 +6920,10 @@ gdb_print_insn_mips_n64 (bfd_vma memaddr, struct disassemble_info *info)
 {
   /* Set up the disassembler info, so that we get the right
      register names from libopcodes.  */
-  info->disassembler_options = "gpr-names=64";
+  if (is_mipsr6_isa (info->application_data))
+    info->disassembler_options = "gpr-names=64,dis-both-r5-and-r6=1";
+  else
+    info->disassembler_options = "gpr-names=64";
   info->flavour = bfd_target_elf_flavour;
 
   return gdb_print_insn_mips (memaddr, info);
