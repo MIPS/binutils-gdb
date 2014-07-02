@@ -6103,7 +6103,10 @@ mips_read_fp_register_single (struct frame_info *frame, int regno,
     error (_("can't read register %d (%s)"),
 	   regno, gdbarch_register_name (gdbarch, regno));
 
-  memcpy (rare_buffer, raw_buffer, fpsize);
+  if (fpsize == 4)
+    memcpy (rare_buffer, raw_buffer+8, fpsize);
+  else
+    memcpy (rare_buffer, raw_buffer, fpsize);
 }
 
 /* Copy a 64-bit double-precision value from the current frame into
