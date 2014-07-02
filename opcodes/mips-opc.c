@@ -800,16 +800,16 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"bbit1",		"s,+X,p",	0xf8000000, 0xfc000000, RD_1|CBD,		0,		IOCT,		0,	0 }, /* bbit132 */
 {"bbit1",		"s,+x,p",	0xe8000000, 0xfc000000, RD_1|CBD,		0,		IOCT,		0,	0 },
 /* bc0[tf]l? are at the bottom of the table.  */
+{"bc1eqz",		"T,p",		0x45200000, 0xffe00000,	RD_1|CBD|FP_S,		0,		I37,		0,	0 },
+{"bc1nez",		"T,p",		0x45a00000, 0xffe00000,	RD_1|CBD|FP_S,		0,		I37,		0,	0 },
 {"bc1any2f",		"N,p",		0x45200000, 0xffe30000,	RD_CC|CBD|FP_S,		0,		0,		M3D,	0 },
 {"bc1any2t",		"N,p",		0x45210000, 0xffe30000,	RD_CC|CBD|FP_S,		0,		0,		M3D,	0 },
 {"bc1any4f",		"N,p",		0x45400000, 0xffe30000,	RD_CC|CBD|FP_S,		0,		0,		M3D,	0 },
 {"bc1any4t",		"N,p",		0x45410000, 0xffe30000,	RD_CC|CBD|FP_S,		0,		0,		M3D,	0 },
-{"bc1eqz",		"T,p",		0x45200000, 0xffe00000,	RD_1|CBD|FP_S,		0,		I37,		0,	0 },
 {"bc1f",		"p",		0x45000000, 0xffff0000,	RD_CC|CBD|FP_S,		0,		I1,		0,	I37 },
 {"bc1f",		"N,p",		0x45000000, 0xffe30000, RD_CC|CBD|FP_S, 	0,		I4_32,		0,	I37 },
 {"bc1fl",		"p",		0x45020000, 0xffff0000,	RD_CC|CBL|FP_S,		0,		I2|T3,		0,	I37 },
 {"bc1fl",		"N,p",		0x45020000, 0xffe30000, RD_CC|CBL|FP_S, 	0,		I4_32,		0,	I37 },
-{"bc1nez",		"T,p",		0x45a00000, 0xffe00000,	RD_1|CBD|FP_S,		0,		I37,		0,	0 },
 {"bc1t",		"p",		0x45010000, 0xffff0000,	RD_CC|CBD|FP_S,		0,		I1,		0,	I37 },
 {"bc1t",		"N,p",		0x45010000, 0xffe30000, RD_CC|CBD|FP_S, 	0,		I4_32,		0,	I37 },
 {"bc1tl",		"p",		0x45030000, 0xffff0000,	RD_CC|CBL|FP_S,		0,		I2|T3,		0,	I37 },
