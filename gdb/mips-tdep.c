@@ -67,10 +67,16 @@ static int micromips_instruction_has_delay_slot (struct gdbarch *, CORE_ADDR,
 						 int);
 static int mips16_instruction_has_delay_slot (struct gdbarch *, CORE_ADDR,
 					      int);
+static const char *msa_register_name (struct gdbarch *gdbarch, int regnum);
+static int fpsize = 0;
 
 /* A useful bit in the CP0 status register (MIPS_PS_REGNUM).  */
 /* This bit is set if we are emulating 32-bit FPRs on a 64-bit chip.  */
 #define ST0_FR (1 << 26)
+
+/* A MSAEn bit in CP0 config 5 register */
+/* This bit is set if MSA instructions are enabled */
+#define CP0C5_MSAEn (1 << 27)
 
 /* The sizes of floating point registers.  */
 
@@ -162,6 +168,15 @@ const struct register_alias mips_register_aliases[] = {
   { "fsr", MIPS_EMBED_FP0_REGNUM + 32 }
 };
 
+const struct register_alias mips_msa_aliases[] = {
+#define R(n) { "w" #n, (n+38) }
+  R(0), R(1), R(2), R(3), R(4), R(5), R(6), R(7),
+  R(8), R(9), R(10), R(11), R(12), R(13), R(14), R(15),
+  R(16), R(17), R(18), R(19), R(20), R(21), R(22), R(23),
+  R(24), R(25), R(26), R(27), R(28), R(29), R(30), R(31),
+#undef R
+};
+
 const struct register_alias mips_numeric_register_aliases[] = {
 #define R(n) { #n, n }
   R(0), R(1), R(2), R(3), R(4), R(5), R(6), R(7),
@@ -191,6 +206,15 @@ const struct mips_regnum *
 mips_regnum (struct gdbarch *gdbarch)
 {
   return gdbarch_tdep (gdbarch)->regnum;
+}
+
+/* MSA register name */
+static const char *
+msa_register_name (struct gdbarch *gdbarch, int regnum)
+{
+  int msareg = (regnum % gdbarch_num_regs (gdbarch)) - mips_regnum (gdbarch)->fp0;
+
+  return mips_msa_aliases[msareg].name;
 }
 
 static int
@@ -556,7 +580,7 @@ static const char *mips_linux_reg_names[NUM_MIPS_PROCESSOR_REGS] = {
   "f8", "f9", "f10", "f11", "f12", "f13", "f14", "f15",
   "f16", "f17", "f18", "f19", "f20", "f21", "f22", "f23",
   "f24", "f25", "f26", "f27", "f28", "f29", "f30", "f31",
-  "fsr", "fir"
+  "fsr", "fir", "", "", "", "", "", "", "", "cp0con5"
 };
 
 
@@ -962,12 +986,9 @@ mips_register_type (struct gdbarch *gdbarch, int regnum)
   gdb_assert (regnum >= 0 && regnum < 2 * gdbarch_num_regs (gdbarch));
   if (mips_float_register_p (gdbarch, regnum))
     {
-      /* The floating-point registers raw, or cooked, always match
-         mips_isa_regsize(), and also map 1:1, byte for byte.  */
-      if (mips_isa_regsize (gdbarch) == 4)
-	return builtin_type (gdbarch)->builtin_float;
-      else
-	return builtin_type (gdbarch)->builtin_double;
+      /* Make space for largest possible size. We have 128 bit MSA registers.
+	 The same registers are shared by floating point registers */
+      return builtin_type (gdbarch)->builtin_uint128;
     }
   else if (regnum < gdbarch_num_regs (gdbarch))
     {
@@ -6081,23 +6102,8 @@ mips_read_fp_register_single (struct frame_info *frame, int regno,
   if (!deprecated_frame_register_read (frame, regno, raw_buffer))
     error (_("can't read register %d (%s)"),
 	   regno, gdbarch_register_name (gdbarch, regno));
-  if (raw_size == 8)
-    {
-      /* We have a 64-bit value for this register.  Find the low-order
-         32 bits.  */
-      int offset;
 
-      if (gdbarch_byte_order (gdbarch) == BFD_ENDIAN_BIG)
-	offset = 4;
-      else
-	offset = 0;
-
-      memcpy (rare_buffer, raw_buffer + offset, 4);
-    }
-  else
-    {
-      memcpy (rare_buffer, raw_buffer, 4);
-    }
+  memcpy (rare_buffer, raw_buffer, fpsize);
 }
 
 /* Copy a 64-bit double-precision value from the current frame into
@@ -6111,7 +6117,7 @@ mips_read_fp_register_double (struct frame_info *frame, int regno,
   struct gdbarch *gdbarch = get_frame_arch (frame);
   int raw_size = register_size (gdbarch, regno);
 
-  if (raw_size == 8 && !mips2_fp_compat (frame))
+  if (fpsize == 8 && !mips2_fp_compat (frame))
     {
       /* We have a 64-bit value for this register, and we should use
          all 64 bits.  */
@@ -6160,7 +6166,7 @@ mips_print_fp_register (struct ui_file *file, struct frame_info *frame,
 		    4 - (int) strlen (gdbarch_register_name (gdbarch, regnum)),
 		    "");
 
-  if (register_size (gdbarch, regnum) == 4 || mips2_fp_compat (frame))
+  if (fpsize == 4 || mips2_fp_compat (frame))
     {
       struct value_print_options opts;
 
@@ -6223,6 +6229,21 @@ mips_print_fp_register (struct ui_file *file, struct frame_info *frame,
 	fprintf_filtered (file, "<invalid double>");
       else
 	fprintf_filtered (file, "%-24.17g", doub);
+
+      /* Display corresponding MSA register too */
+      if ((get_frame_register_unsigned (frame,
+	   mips_regnum (gdbarch)->cp0config5) & CP0C5_MSAEn))
+	{
+	  fprintf_filtered (file, "\n");
+	  fprintf_filtered (file, " %s:",
+		    msa_register_name (gdbarch,regnum));
+	  fprintf_filtered (file, "%*s",
+	            4 - (int) strlen (msa_register_name (gdbarch, regnum)), "");
+	  get_formatted_print_options (&opts, 'x');
+	  print_scalar_formatted (raw_buffer,
+		      builtin_type (gdbarch)->builtin_uint128,
+		      &opts, 'g', file);
+	}
     }
 }
 
@@ -6381,6 +6402,17 @@ static void
 mips_print_registers_info (struct gdbarch *gdbarch, struct ui_file *file,
 			   struct frame_info *frame, int regnum, int all)
 {
+  struct regcache *regcache = get_current_regcache ();
+  enum register_status status;
+  ULONGEST sr;
+
+  fpsize = mips_isa_regsize (gdbarch);
+  status = regcache_raw_read_unsigned (regcache, MIPS_PS_REGNUM, &sr);
+
+  /* FR bit decides size of floating point register size */
+  if (status == REG_VALID)
+    fpsize = (sr & ST0_FR) ? 8 : 4;
+
   if (regnum != -1)		/* Do one specified register.  */
     {
       gdb_assert (regnum >= gdbarch_num_regs (gdbarch));
@@ -8026,7 +8058,8 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
       mips_regnum.dspctl = -1;
       dspacc = 72;
       dspctl = 78;
-      num_regs = 79;
+      mips_regnum.cp0config5 = 79;
+      num_regs = 80;
       reg_names = mips_linux_reg_names;
     }
   else
@@ -8742,6 +8775,11 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   for (i = 0; i < ARRAY_SIZE (mips_register_aliases); i++)
     user_reg_add (gdbarch, mips_register_aliases[i].name,
 		  value_of_mips_user_reg, &mips_register_aliases[i].regnum);
+
+  /* Add MSA register aliases */
+  for (i = 0; i < ARRAY_SIZE (mips_msa_aliases); i++)
+    user_reg_add (gdbarch, mips_msa_aliases[i].name,
+		  value_of_mips_user_reg, &mips_msa_aliases[i].regnum);
 
   for (i = 0; i < ARRAY_SIZE (mips_numeric_register_aliases); i++)
     user_reg_add (gdbarch, mips_numeric_register_aliases[i].name,
