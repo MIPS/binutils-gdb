@@ -1642,6 +1642,8 @@ print_insn_mips (bfd_vma memaddr,
       else
 	r5_isa = choose_arch_by_number (bfd_mach_mipsisa64r5);
     }
+  else
+    r5_isa = NULL;
 
   /* Build a hash table to shorten the search time.  */
   if (! init)
