@@ -1599,7 +1599,7 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
 	       && (itype_rt (inst) & 2) == 0)
 	/* BC1ANY4F, BC1ANY4T: 010001 01010 xxx0x */
 	pc = mips32_bc1_pc (gdbarch, frame, inst, pc + 4, 4);
-      else if (op == 29)
+      else if (!is_mipsr6_isa (gdbarch) && op == 29)
 	/* JALX: 011101 */
 	/* The new PC will be alternate mode.  */
 	{
@@ -7114,7 +7114,7 @@ mips32_instruction_has_delay_slot (struct gdbarch *gdbarch, CORE_ADDR addr)
       rt = itype_rt (inst);
       return (is_octeon_bbit_op (op, gdbarch) 
 	      || op >> 2 == 5	/* BEQL, BNEL, BLEZL, BGTZL: bits 0101xx  */
-	      || op == 29	/* JALX: bits 011101  */
+	      || (!is_mipsr6_isa (gdbarch) && op == 29)	/* JALX: bits 011101  */
 	      || (op == 17
 		  && (rs == 8
 				/* BC1F, BC1FL, BC1T, BC1TL: 010001 01000  */

@@ -417,7 +417,6 @@ const struct mips_opcode mips_builtin_opcodes[] =
    instruction name anyhow.  */
 /* name,		args,		match,	    mask,	pinfo,          	pinfo2,		membership,	ase,	exclusions */
 /* MIPS r6.  */
-{"aui",			"t,s,u",	0x3c000000, 0xfc000000,	WR_1|RD_2,		0,		I37,		0,	0 },
 {"auipc",		"s,u",		0xec1e0000, 0xfc1f0000, WR_1|RD_pc,		0,		I37,		0,	0 },
 {"daui",		"t,s,u",	0x74000000, 0xfc000000,	WR_1|RD_2,		0,		I37,		0,	0 },
 {"dahi",		"s,-d,u",	0x04060000, 0xfc1f0000,	MOD_1,			0,		I69,		0,	0 },
@@ -1385,6 +1384,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"lqc2",		"+7,o(b)",	0xd8000000, 0xfc000000,	RD_3|WR_C2|LM,		0,		EE,		0,	0 },
 {"lqc2",		"+7,A(b)",	0,    (int) M_LQC2_AB,	INSN_MACRO,		0,		EE,		0,	0 },
 {"lui",			"t,u",		0x3c000000, 0xffe00000,	WR_1,			0,		I1,		0,	0 },
+{"aui",			"t,s,u",	0x3c000000, 0xfc000000,	WR_1|RD_2,		0,		I37,		0,	0 },
 {"luxc1",		"D,t(b)",	0x4c000005, 0xfc00f83f, WR_1|RD_2|RD_3|LM|FP_D, 0,		I5_33|N55,	0,	I37},
 {"lwpc",		"s,-A",		0xec080000, 0xfc180000, WR_1|RD_pc|LM,		0,		I37,		0,	0 },
 {"lw",			"t,o(b)",	0x8c000000, 0xfc000000,	WR_1|RD_3|LM,		0,		I1,		0,	0 },
