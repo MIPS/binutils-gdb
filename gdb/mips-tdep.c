@@ -68,7 +68,7 @@ static int micromips_instruction_has_delay_slot (struct gdbarch *, CORE_ADDR,
 static int mips16_instruction_has_delay_slot (struct gdbarch *, CORE_ADDR,
 					      int);
 
-static void mips_read_fp_register_single (struct frame_info *frame, int regno,
+static void mips_read_fp_register_double (struct frame_info *frame, int regno,
 					  gdb_byte *rare_buffer);
 /* A useful bit in the CP0 status register (MIPS_PS_REGNUM).  */
 /* This bit is set if we are emulating 32-bit FPRs on a 64-bit chip.  */
@@ -1552,12 +1552,18 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
          from the compiler.  */
       else if (is_mipsr6_isa (gdbarch) && op == 17 && itype_rs (inst) == 9)
 	{
-	  gdb_byte *raw_buffer = alloca (register_size (gdbarch,
-							mips_regnum (gdbarch)->fp0));
-	  mips_read_fp_register_single (frame, itype_rt (inst) +
+	  gdb_byte status;
+	  gdb_byte *raw_buffer = alloca (sizeof (gdb_byte) * 8);
+	  mips_read_fp_register_double (frame, itype_rt (inst) +
+					gdbarch_num_regs (gdbarch) +
 					mips_regnum (gdbarch)->fp0,
 					raw_buffer);
-	  if ((((unsigned int) (*raw_buffer)) & 0x1) == 0)
+	  if (gdbarch_byte_order (gdbarch) == BFD_ENDIAN_BIG)
+	    status = *(raw_buffer + 7);
+	  else
+	    status = *(raw_buffer);
+
+	  if ((status & 0x1) == 0)
 	    pc += mips32_relative_offset (inst) + 4;
 	  else
 	    pc += 8;
@@ -1566,12 +1572,18 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
          from the compiler.  */
       else if (is_mipsr6_isa (gdbarch) && op == 17 && itype_rs (inst) == 13)
 	{
-	  gdb_byte *raw_buffer = alloca (register_size (gdbarch,
-							mips_regnum (gdbarch)->fp0));
-	  mips_read_fp_register_single (frame, itype_rt (inst) +
+	  gdb_byte status;
+	  gdb_byte *raw_buffer = alloca (sizeof (gdb_byte) * 8);
+	  mips_read_fp_register_double (frame, itype_rt (inst) +
+					gdbarch_num_regs (gdbarch) +
 					mips_regnum (gdbarch)->fp0,
 					raw_buffer);
-	  if ((((unsigned int) (*raw_buffer)) & 0x1) == 1)
+	  if (gdbarch_byte_order (gdbarch) == BFD_ENDIAN_BIG)
+	    status = *(raw_buffer + 7);
+	  else
+	    status = *(raw_buffer);
+
+	  if ((status & 0x1) == 1)
 	    pc += mips32_relative_offset (inst) + 4;
 	  else
 	    pc += 8;
