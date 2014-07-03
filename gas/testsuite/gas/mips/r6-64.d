@@ -1,5 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: MIPS MIPSR6 64 instructions
+#as: -n32
 
 # Check MIPSR6 64 instructions
 
