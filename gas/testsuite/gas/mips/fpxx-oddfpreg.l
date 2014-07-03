@@ -1,5 +1,5 @@
 .*: Assembler messages:
-.*:1: Error: unsupported access to the upper half of double-precision registers
-.*:2: Error: unsupported access to the upper half of double-precision registers
-.*:3: Error: unsupported access to the upper half of double-precision registers
-.*:4: Error: unsupported access to the upper half of double-precision registers
+.*:1: Error: float register should be even, was 1
+.*:2: Error: float register should be even, was 1
+.*:3: Error: float register should be even, was 1
+.*:4: Error: float register should be even, was 1
