@@ -9,4 +9,4 @@
 
 Disassembly of section .text:
 0+0000 <[^>]*> addiu	a0,a0,1
-0+0004 <[^>]*> nop
+(0+0004 <[^>]*> nop|\t\.\.\.)
