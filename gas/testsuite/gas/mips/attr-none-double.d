@@ -5,7 +5,7 @@
 
 Attribute Section: gnu
 File Attributes
-  Tag_GNU_MIPS_ABI_FP: Hard float \(double precision\)
+  Tag_GNU_MIPS_ABI_FP: Hard float \(double precision\)|\(32-bit CPU, 64-bit FPU\)
 
 MIPS ABI Flags Version: 0
 
@@ -13,7 +13,7 @@ ISA: MIPS.*
 GPR size: .*
 CPR1 size: .*
 CPR2 size: 0
-FP ABI: Hard float \(double precision\)
+FP ABI: Hard float \(double precision\)|\(32-bit CPU, 64-bit FPU\)
 ISA Extension: .*
 ASEs:
 #...
