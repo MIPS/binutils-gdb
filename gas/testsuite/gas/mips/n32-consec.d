@@ -17,6 +17,8 @@ Disassembly of section .MIPS.abiflags:
 .*
 .*
 	...
+.*
+.*
 
 Disassembly of section .gnu.attributes:
 .*
