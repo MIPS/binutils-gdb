@@ -350,6 +350,10 @@ mips_set_float_regsize (struct gdbarch *gdbarch, struct regcache *regcache)
   /* Need a new gdbarch, go get one.
      Be careful to preserve target description. */
   gdbarch_info_init (&info);
+#if 0
+  target_clear_description ();
+  target_find_description ();
+#endif
   info.target_desc = target_current_description ();
   info.tdep_info = &tdep_info;
   info.tdep_info->fp_mode = fp_mode;
@@ -1989,11 +1993,14 @@ mips_pseudo_register_type (struct gdbarch *gdbarch, int regnum)
     return rawtype;
 
   if (mips_float_register_p (gdbarch, rawnum))
+    /* FIXME this comment is now out of date */
     /* Present the floating point registers however the hardware did; do
        not try to convert between FPU layouts.  A target description is
        expected to have taken the CP0 Status register's FR bit into account
        as necessary, this has been already verified in mips_gdbarch_init.  */
     return mips_fp_type (gdbarch, rawnum - mips_regnum (gdbarch)->fp0);
+
+  /* msacsr, msair */
 
   /* Use pointer types for registers if we can.  For n32 we can not,
      since we do not have a 64-bit pointer type.  */
@@ -9576,7 +9583,16 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
 
       /* Only accept a description whose floating-point register size
          matches the requested size or if none was specified.  */
+#if 0
+      valid_p = (info.tdep_info->fp_mode == MIPS_FPU_UNKNOWN
+		 || info.tdep_info->fp_mode == fp_mode);
+      if (!valid_p) {
+	  //valid_p = 1;
+	  fpsize = info.tdep_info->fp_register_size;
+      }
+#else
       valid_p = 1;
+#endif
       for (i = 0; i < 32; i++)
 	valid_p &= tdesc_numbered_register (feature, tdesc_data,
 					    i + mips_regnum.fp0, mips_fprs[i]);
@@ -9653,6 +9669,9 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
 	      return NULL;
 	    }
 	}
+
+      /* Fix the floating-point register size found.  */
+      //info.tdep_info->fp_mode = fpsize;
 
       /* It would be nice to detect an attempt to use a 64-bit ABI
 	 when only 32-bit registers are provided.  */
@@ -9864,11 +9883,13 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
       /* Be pedantic about which FPU is selected.  */
       if (gdbarch_tdep (arches->gdbarch)->mips_fpu_type != fpu_type)
 	continue;
+#if 1
       /* Ditto the requested floating-point register size if any.  */
       if (info.tdep_info->fp_mode != MIPS_FPU_UNKNOWN
 	  && (gdbarch_tdep (arches->gdbarch)->fp_mode)
 	      != info.tdep_info->fp_mode)
 	continue;
+#endif
 
       if (tdesc_data != NULL)
 	tdesc_data_cleanup (tdesc_data);
@@ -9886,7 +9907,9 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   tdep->mips_fpu_type = fpu_type;
   tdep->register_size_valid_p = 0;
   tdep->register_size = 0;
+#if 1
   tdep->fp_mode = info.tdep_info->fp_mode;
+#endif
   tdep->fp_register_mode_fixed_p = 0;
   tdep->config5_type = NULL;
   tdep->fp_rm_type = NULL;
@@ -9918,8 +9941,10 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   /* If we haven't figured out the size of floating-point registers
      by now yet, then assume it is the same as for general-purpose
      registers.  */
+#if 1
   if (tdep->fp_mode == MIPS_FPU_UNKNOWN)
     tdep->fp_mode = mips_isa_regsize (gdbarch) == 8 ? MIPS_FPU_64 : MIPS_FPU_32;
+#endif
 
   /* Initially set everything according to the default ABI/ISA.  */
   set_gdbarch_short_bit (gdbarch, 16);

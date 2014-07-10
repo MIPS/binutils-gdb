@@ -891,6 +891,7 @@ mips_fill_msa_regset (struct regcache *regcache, void *buf)
 	bufp += 16;
       }
 
+  /* FIXME gonna break with MIPS64 */
   collect_register (regcache, fir, bufp);
   bufp += 4;
   collect_register (regcache, fcsr, bufp);
@@ -936,6 +937,7 @@ mips_store_msa_regset (struct regcache *regcache, const void *buf)
 	bufp += 16;
       }
 
+  /* FIXME gonna break with MIPS64 */
   supply_register (regcache, fir, bufp);
   bufp += 4;
   supply_register (regcache, fcsr, bufp);

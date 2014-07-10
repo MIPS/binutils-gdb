@@ -222,7 +222,6 @@ fill_fpregset (const struct regcache *regcache,
 			(mips64_elf_fpregset_t *) fpregsetp, regno);
 }
 
-
 /* Fetch REGNO (or all registers if REGNO == -1) from the target
    using PTRACE_GETREGS et al.  */
 

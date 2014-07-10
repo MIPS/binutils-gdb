@@ -1257,7 +1257,15 @@ mips_linux_o32_sigframe_init (const struct tramp_frame *self,
      and the high bits are the odd-numbered register.  Assume the latter
      layout, since we can't tell, and it's much more common.  Which bits are
      the "high" bits depends on endianness.  */
+  /* FIXME if !used_math, should probably say unavailable or something */
   for (ireg = 0; ireg < 32; ireg++)
+#if 0
+      trad_frame_set_reg_addr (this_cache, ireg + regs->fp0,
+			       (sigcontext_base + SIGCONTEXT_FPREGS
+				+ (ireg & ~1) * SIGCONTEXT_REG_SIZE));
+#else
+  /* FIXME probably should use SR for MIPS64 for more reliability with old
+   * kernels */
     if (used_math & USED_FR1)
       {
 	trad_frame_set_reg_addr (this_cache,
@@ -1279,6 +1287,7 @@ mips_linux_o32_sigframe_init (const struct tramp_frame *self,
 			       ireg + regs->fp0 + gdbarch_num_regs (gdbarch),
 			       (sigcontext_base + SIGCONTEXT_FPREGS
 				+ (ireg & ~1) * SIGCONTEXT_REG_SIZE));
+#endif
 
   trad_frame_set_reg_addr (this_cache,
 			   regs->pc + gdbarch_num_regs (gdbarch),
