@@ -3778,6 +3778,9 @@ mips_check_options (struct mips_set_options *opts, bfd_boolean abi_checks)
       break;
     }
 
+  if (ABI_NEEDS_64BIT_REGS (mips_abi) && opts->nooddspreg)
+    as_bad (_("`nooddspreg` cannot be used with a 64-bit ABI"));
+
   if (opts->micromips == 1 && opts->mips16 == 1)
     as_bad (_("`mips16' cannot be used with `micromips'"));
 }
@@ -3836,14 +3839,10 @@ file_mips_check_options (void)
   arch_info = mips_cpu_info_from_arch (file_mips_opts.arch);
 
   /* Disable operations on odd-numbered floating-point registers by default
-     for generic MIPS cores when using the FPXX ABI.  This only applies when
-     targetting 32-bit floating-point registers.  */
+     when using the FPXX ABI.  */
   if (file_mips_opts.nooddspreg < 0)
     {
-      /* This check is valid as long as all MIPS_CPU_IS_ISA entries for
-	 MIPS 32 and above are associated with dummy CPU entries rather
-	 than specific implementations.  */
-      if ((arch_info->flags & MIPS_CPU_IS_ISA) && file_mips_opts.fp == 0)
+      if (file_mips_opts.fp == 0)
 	file_mips_opts.nooddspreg = 1;
       else
 	file_mips_opts.nooddspreg = 0;
@@ -4755,9 +4754,11 @@ check_regno (struct mips_arg_info *arg,
 
   if (type == OP_REG_FP
       && (regno & 1) != 0
-      && (FPR_SIZE == 32 || mips_abi == O32_ABI)
       && !mips_oddfpreg_ok (arg->insn->insn_mo, arg->opnum))
     {
+      /* This was a warning prior to introducing O32 FPXX and FP64 support
+	 so maintain a warning for FP32 but raise an error for the new
+	 cases.  */
       if (FPR_SIZE == 32)
 	as_warn (_("float register should be even, was %d"), regno);
       else

@@ -13881,7 +13881,9 @@ infer_mips_abiflags (bfd *abfd, Elf_Internal_ABIFlags_v0* abiflags)
 
   if (abiflags->fp_abi != Val_GNU_MIPS_ABI_FP_ANY
       && abiflags->fp_abi != Val_GNU_MIPS_ABI_FP_SOFT
-      && abiflags->fp_abi != Val_GNU_MIPS_ABI_FP_64A)
+      && abiflags->fp_abi != Val_GNU_MIPS_ABI_FP_64A
+      && abiflags->isa_level >= 32
+      && abiflags->isa_ext != AFL_EXT_LOONGSON_3A)
     abiflags->flags1 |= AFL_FLAGS1_ODDSPREG;
 }
 
