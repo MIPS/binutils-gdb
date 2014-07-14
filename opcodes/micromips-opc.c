@@ -777,6 +777,7 @@ const struct mips_opcode micromips_opcodes[] =
 /* This macro is after the real instruction so that it only matches with
    -minsn32.  */
 {"jrc",			"s",		0,    (int) M_JRC,	INSN_MACRO,		0,		I1,		0,	I37 },
+{"jrc.hb",		"s",		0x00001f3c, 0xffe0ffff,	RD_1|UBD,		0,		I37,		0,	0 }, /* jalrc.hb */
 {"jr.hb",		"s",		0x00001f3c, 0xffe0ffff,	RD_1|UBD,		BD32,		I1,		0,	I37 }, /* jalr.hb */
 {"jrs.hb",		"s",		0x00005f3c, 0xffe0ffff,	RD_1|UBD,		BD16,		I1,		0,	I37 }, /* jalrs.hb */
 {"j",			"mj",		    0x4580,     0xffe0,	RD_1|UBD,		0,		I1,		0,	I37 }, /* jr */
