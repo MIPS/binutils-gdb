@@ -1303,7 +1303,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"cmp.sueq.s",		"D,S,T",	0x540002c5, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_S,	0,		I37,		0,	0 },
 {"cmp.sueq.d",		"D,S,T",	0x540002d5, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 },
 {"cmp.sule.s",		"D,S,T",	0x540003c5, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_S,	0,		I37,		0,	0 },
-{"cmp.sule.d",		"D,S,T",	0x54000015, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 },
+{"cmp.sule.d",		"D,S,T",	0x540003d5, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 },
 {"cmp.sult.s",		"D,S,T",	0x54000345, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_S,	0,		I37,		0,	0 },
 {"cmp.sult.d",		"D,S,T",	0x54000355, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 },
 {"cmp.sun.s",		"D,S,T",	0x54000245, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_S,	0,		I37,		0,	0 },
