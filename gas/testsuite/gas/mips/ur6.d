@@ -421,4 +421,9 @@ Disassembly of section .text:
 0+03f6 <[^>]*> 0c00      	nop
 0+03f8 <[^>]*> 000a 1f3c 	jrc.hb	t2
 0+03fc <[^>]*> 0c00      	nop
-0+03fe <[^>]*> 0c00      	nop
+0+03fe <[^>]*> a07f fffe 	beqzc	v1,000003fe <[^>]*>
+[	]*3fe: R_MICROMIPS_PC21_S1	.L11
+0+0402 <[^>]*> a47f fffe 	bnezc	v1,00000402 <[^>]*>
+[	]*402: R_MICROMIPS_PC21_S1	.L11
+0+0406 <[^>]*> 0c00      	nop
+\t\.\.\.
