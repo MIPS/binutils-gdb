@@ -570,6 +570,7 @@
 }
 
 001001,5.RS,5.RT,16.IMMEDIATE:NORMAL:32::ADDIU
+"li r<RT>, <IMMEDIATE>":RS==0
 "addiu r<RT>, r<RS>, <IMMEDIATE>"
 *mipsI:
 *mipsII:
@@ -1253,6 +1254,7 @@
 }
 
 000000,5.RS,5.RT,5.RD,00000,101101:SPECIAL:64::DADDU
+"move r<RD>, r<RS>":RT==0
 "daddu r<RD>, r<RS>, r<RT>"
 *mipsIII:
 *mipsIV:
