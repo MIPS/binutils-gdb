@@ -331,6 +331,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"ssnop",		"",		0x00000800, 0xffffffff,	0,			INSN2_ALIAS,	I1,		0,	0 }, /* sll */
 {"ehb",			"",		0x00001800, 0xffffffff,	0,			INSN2_ALIAS,	I1,		0,	0 }, /* sll */
 {"pause",		"",		0x00002800, 0xffffffff,	0,			INSN2_ALIAS,	I1,		0,	0 }, /* sll */
+{"lapc",		"t,-A",		0x78000000, 0xfc180000, WR_1|RD_pc,		0,		I37,		0,	0 },
 {"li",			"md,mI",	    0xec00,     0xfc00,	WR_1,			0,		I1,		0,	0 },
 {"li",			"t,j",		0x30000000, 0xfc1f0000,	WR_1,			INSN2_ALIAS,	I1,		0,	0 }, /* addiu */
 {"li",			"t,i",		0x50000000, 0xfc1f0000,	WR_1,			INSN2_ALIAS,	I1,		0,	0 }, /* ori */
@@ -873,6 +874,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"lw",			"md,mJ(ml)",        0x6800,     0xfc00,	WR_1|RD_3|LM,		0,		I1,		0,	0 },
 {"lw",			"mp,mU(ms)",        0x4800,     0xfc00,	WR_1|RD_3|LM,		0,		I1,		0,	0 }, /* lwsp */
 {"lw",			"md,mA(ma)",        0x6400,     0xfc00,	WR_1|RD_3|LM,		0,		I1,		0,	0 }, /* lwgp */
+{"lw",			"t,-a(mr)",	0x78080000, 0xfc180000, WR_1|RD_pc|LM,		0,		I37,		0,	0 },
 {"lw",			"t,o(b)",	0xfc000000, 0xfc000000,	WR_1|RD_3|LM,		0,		I1,		0,	0 },
 {"lw",			"t,A(b)",	0,    (int) M_LW_AB,	INSN_MACRO,		0,		I1,		0,	0 },
 {"lwc1",		"T,o(b)",	0x9c000000, 0xfc000000,	WR_1|RD_3|FP_S|LM,	0,		I1,		0,	0 },
