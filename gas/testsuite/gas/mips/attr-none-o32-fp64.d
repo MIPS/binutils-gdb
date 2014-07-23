@@ -18,6 +18,6 @@ FP ABI: Hard float \(32-bit CPU, 64-bit FPU\)
 ISA Extension: .*
 ASEs:
 	None
-FLAGS 1: 00000000
+FLAGS 1: 0000000.
 FLAGS 2: 00000000
 

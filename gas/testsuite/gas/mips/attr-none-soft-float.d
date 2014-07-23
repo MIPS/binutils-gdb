@@ -18,6 +18,6 @@ FP ABI: Soft float
 ISA Extension: .*
 ASEs:
 #...
-FLAGS 1: 00000000
+FLAGS 1: 0000000.
 FLAGS 2: 00000000
 

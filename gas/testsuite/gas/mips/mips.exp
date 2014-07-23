@@ -1225,7 +1225,7 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test_arches "msa-branch"	[mips_arch_list_matching mips32r2]
 
     run_dump_test_arches "xpa"		[mips_arch_list_matching mips32r2 !micromips]
-    run_dump_test_arches "r5"		[mips_arch_list_matching mips32r5 !micromips]
+    run_dump_test_arches "r5" "-32"	[mips_arch_list_matching mips32r5 !micromips]
 
     run_dump_test "pcrel-1"
     run_dump_test "pcrel-2"
@@ -1378,6 +1378,8 @@ if { [istarget mips*-*-vxworks*] } {
 			[mips_arch_list_matching oddspreg]
     run_dump_test_arches "fpxx-oddfpreg" "-32 -mfpxx" \
 			[mips_arch_list_matching oddspreg]
+    run_dump_test "mips-modd-spreg"
+    run_dump_test "mips-mno-odd-spreg"
     run_dump_test "module-check"
     run_list_test "module-check-warn" "-32"
 

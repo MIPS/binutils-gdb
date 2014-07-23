@@ -5817,7 +5817,7 @@ match_float_constant (struct mips_arg_info *arg, expressionS *imm,
 	 If using 32-bit registers, set IMM to the high order 32 bits and
 	 OFFSET to the low order 32 bits.  Otherwise, set IMM to the entire
 	 64 bit constant.  */
-      if (GPR_SIZE == 32 || FPR_SIZE != 64)
+      if (GPR_SIZE == 32 || (!using_gprs && FPR_SIZE != 64))
 	{
 	  imm->X_op = O_constant;
 	  offset->X_op = O_constant;
