@@ -2260,7 +2260,9 @@ print_insn_micromips (bfd_vma memaddr, struct disassemble_info *info)
 	{
           if (((mips_isa != ISA_MIPS32R6 && mips_isa != ISA_MIPS64R6)
                 && (op->membership == ISA_MIPS32R6 || op->membership == ISA_MIPS64R6))
-              || cpu_is_member (mips_processor, op->exclusions))
+              || cpu_is_member (mips_processor, op->exclusions)
+              || ((op->membership == ISA_MIPS32R6 || op->membership == ISA_MIPS64R6) 
+                  && (op->pinfo2 & INSN2_CONVERTED_TO_COMPACT)))
             continue;
 
           if (strcmp (op->name, "bgezc") == 0
