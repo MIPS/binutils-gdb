@@ -6777,6 +6777,11 @@ get_append_method (struct mips_cl_insn *ip, expressionS *address_expr,
   if (mips_relax.sequence == 2)
     return APPEND_ADD;
 
+  /* Convert a non-compact to compact branch/jump instruction.  */
+  if (ISA_IS_R6 (mips_opts.isa)
+      && (ip->insn_mo->pinfo2 & INSN2_CONVERTED_TO_COMPACT))
+    return APPEND_ADD_COMPACT;
+
   /* We must not dabble with instructions in a ".set norerorder" block.  */
   if (mips_opts.noreorder)
     return APPEND_ADD;
@@ -7455,12 +7460,20 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
       break;
 
     case APPEND_ADD_COMPACT:
-      /* Convert MIPS16 jr/jalr into a "compact" jump.  */
-      gas_assert (mips_opts.mips16);
-      ip->insn_opcode |= 0x0080;
-      find_altered_mips16_opcode (ip);
-      install_insn (ip);
-      insert_into_history (0, 1, ip);
+      gas_assert(mips_opts.mips16 || ISA_IS_R6 (mips_opts.isa));
+      if (mips_opts.mips16)
+        {
+          /* Convert MIPS16 jr/jalr into a "compact" jump.  */
+          ip->insn_opcode |= 0x0080;
+          find_altered_mips16_opcode (ip);
+          install_insn (ip);
+          insert_into_history (0, 1, ip);
+        }
+      else
+        {
+          install_insn (ip);
+          insert_into_history (0, 1, ip);
+        }
       break;
 
     case APPEND_SWAP:
@@ -7497,8 +7510,9 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
     }
 
   /* If we have just completed an unconditional branch, clear the history.  */
-  if ((delayed_branch_p (&history[1]) && uncond_branch_p (&history[1]))
+  if (((delayed_branch_p (&history[1]) && uncond_branch_p (&history[1]))
       || (compact_branch_p (&history[0]) && uncond_branch_p (&history[0])))
+      && !(history[0].insn_mo->pinfo2 & INSN2_CONVERTED_TO_COMPACT))
     {
       unsigned int i;
 
