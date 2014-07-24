@@ -772,6 +772,17 @@ is_micromips (Elf_Internal_Ehdr *header)
   return 0;
 }
 
+/* Check if ISA is R6.  */
+
+static inline int
+is_isa_r6 (unsigned long isa)
+{
+  if ((isa & INSN_ISA_MASK) == ISA_MIPS32R6
+      || ((isa & INSN_ISA_MASK) == ISA_MIPS64R6))
+    return 1;
+  return 0;
+}
+
 /* Convert ASE flags from .MIPS.abiflags to internal values.  */
 
 static unsigned long
@@ -1881,10 +1892,10 @@ print_insn_mips (bfd_vma memaddr,
 	      && (word & op->mask) == op->match)
 	    {
 	      /* We always disassemble the jalx instruction, except for MIPS r6.  */
-	      if (!opcode_is_member (op, mips_isa, mips_ase, mips_processor)
-		 && (strcmp (op->name, "jalx")
-		     || (mips_isa & INSN_ISA_MASK) == ISA_MIPS32R6
-		     || (mips_isa & INSN_ISA_MASK) == ISA_MIPS64R6))
+	      if ((!opcode_is_member (op, mips_isa, mips_ase, mips_processor)
+		  && (strcmp (op->name, "jalx") || is_isa_r6 (mips_isa)))
+		  || (is_isa_r6 (op->membership)
+		      && (op->pinfo2 & INSN2_CONVERTED_TO_COMPACT)))
 		continue;
 
 	      /* Figure out instruction type and branch delay information.  */

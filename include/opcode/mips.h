@@ -1129,6 +1129,8 @@ mips_opcode_32bit_p (const struct mips_opcode *mo)
    encoding is needed or otherwise the final EXTEND entry will apply,
    for the disassembly of the prefix only.  */
 #define INSN2_SHORT_ONLY	    0x00010000
+/* This indicates pre-R6 instructions mapped to R6 ones.  */
+#define INSN2_CONVERTED_TO_COMPACT  0x00020000
 
 /* Masks used to mark instructions to indicate which MIPS ISA level
    they were introduced in.  INSN_ISA_MASK masks an enumeration that
