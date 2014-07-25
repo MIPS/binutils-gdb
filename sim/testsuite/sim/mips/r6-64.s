@@ -121,8 +121,13 @@ DIAG:
 
   writemsg "[17] Test LDPC"
   ld $5, dval
-  nop
+  .align 7
   ldpc $4, dval
+  fp_assert $4, $5
+  nop
+  ld $4, d21
+  .align 7
+  ldpc $5, d21
   fp_assert $4, $5
 
   writemsg "[18] Test LWUPC"
