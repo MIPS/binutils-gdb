@@ -234,9 +234,12 @@ L22:
 
 L23:
   writemsg "[23] Test JIC"
+  li $11, 0xfffffffc
   jal GetPC
   nop
-  jic $6, 4
+  and $6, $6, $11
+  jic $6, 20 #L24
+  nop
   nop
   fail
 
@@ -245,31 +248,21 @@ L24:
   li $10, 1
   jal GetPC
   nop
-  jialc $6, 20
+  and $6, $6, $11
+  jialc $6, 28 #LJIALCRET
   nop
   beqzc $10, L25
   nop
   fail
 
 LJIALCRET:
+  nop
   li $10, 0
   jr $ra
   nop
 
 L25:
-  writemsg "[25] Test NAL"
-  jal GetPC
-  nop
-  move $11, $6
-  nal L25
-  nop
-  addiu $11, 12
-  beqc $11, $31, L26
-  nop
-  fail
-
-L26:
-  writemsg "[26] Test BAL"
+  writemsg "[25] Test BAL"
   balc Lret
   li $10, 1
   beqzc $10, Lend
