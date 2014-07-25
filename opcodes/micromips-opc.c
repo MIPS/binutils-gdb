@@ -376,9 +376,9 @@ const struct mips_opcode micromips_opcodes[] =
 {"addiu",		"md,mc,mB",	    0x6c00,     0xfc01,	WR_1|RD_2,		0,		I1,		0,	0 }, /* addiur2 */
 {"addiu",		"ms,mt,mY",	    0x4c01,     0xfc01,	MOD_1,			0,		I1,		0,	0 }, /* addiusp */
 {"addiu",		"mp,mt,mX",	    0x4c00,     0xfc01,	MOD_1,			0,		I1,		0,	0 }, /* addius5 */
-{"addiu",		"t,+R,-A",	0x78000000, 0xfc180000, WR_1,			RD_pc,		I37,		0,	0 },
 {"addiu",		"mb,mr,mQ",	0x78000000, 0xfc000000,	WR_1,			RD_pc,		I1,		0,	I37 }, /* addiupc */
 {"addiu",		"t,r,j",	0x30000000, 0xfc000000,	WR_1|RD_2,		0,		I1,		0,	0 },
+{"addiu",		"t,mr,-a",	0x78000000, 0xfc180000, WR_1,			RD_pc,		I37,		0,	0 },
 {"addiupc",		"t,-a",		0x78000000, 0xfc180000, WR_1,			RD_pc,		I37,		0,	0 },
 {"addiupc",		"mb,mQ",	0x78000000, 0xfc000000,	WR_1,			RD_pc,		I1,		0,	I37 },
 {"addiur1sp",		"md,mW",	    0x6c01,     0xfc01,	WR_1,			RD_sp,		I1,		0,	0 },
