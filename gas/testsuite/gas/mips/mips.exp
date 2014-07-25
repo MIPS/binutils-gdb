@@ -1225,6 +1225,7 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test_arches "msa-branch"	[mips_arch_list_matching mips32r2]
 
     run_dump_test_arches "xpa"		[mips_arch_list_matching mips32r2 !micromips]
+    run_dump_test_arches "mxu"		[mips_arch_list_matching mips32 !micromips !octeon]
     run_dump_test_arches "r5"		[mips_arch_list_matching mips32r5 !micromips]
 
     run_dump_test "pcrel-1"

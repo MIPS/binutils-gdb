@@ -75,6 +75,12 @@ static const char * const mips_gpr_names_newabi[32] =
   "t8",   "t9",   "k0",   "k1",   "gp",   "sp",   "s8",   "ra"
 };
 
+static const char * const mips_gpr_names_xr[17] = {
+  "xr0",  "xr1",  "xr2",  "xr3",  "xr4",  "xr5",  "xr6",  "xr7",
+  "xr8",  "xr9",  "xr10", "xr11", "xr12", "xr13", "xr14", "xr15",
+  "xr16"
+};
+
 static const char * const mips_fpr_names_numeric[32] =
 {
   "$f0",  "$f1",  "$f2",  "$f3",  "$f4",  "$f5",  "$f6",  "$f7",
@@ -545,7 +551,7 @@ const struct mips_arch_choice mips_arch_choices[] =
      MIPS32 Architecture_ (MIPS Document Number MD00082, Revision 0.95),
      page 1.  */
   { "mips32",	1, bfd_mach_mipsisa32, CPU_MIPS32,
-    ISA_MIPS32,  ASE_SMARTMIPS,
+    ISA_MIPS32,  ASE_SMARTMIPS | ASE_MXU,
     mips_cp0_names_mips3264,
     mips_cp0sel_names_mips3264, ARRAY_SIZE (mips_cp0sel_names_mips3264),
     mips_cp1_names_mips3264, mips_hwr_names_numeric },
@@ -553,7 +559,7 @@ const struct mips_arch_choice mips_arch_choices[] =
   { "mips32r2",	1, bfd_mach_mipsisa32r2, CPU_MIPS32R2,
     ISA_MIPS32R2,
     (ASE_SMARTMIPS | ASE_DSP | ASE_DSPR2 | ASE_EVA | ASE_MIPS3D
-     | ASE_MT | ASE_MCU | ASE_VIRT | ASE_MSA | ASE_XPA),
+     | ASE_MT | ASE_MCU | ASE_VIRT | ASE_MSA | ASE_XPA | ASE_MXU),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -561,7 +567,7 @@ const struct mips_arch_choice mips_arch_choices[] =
   { "mips32r3",	1, bfd_mach_mipsisa32r3, CPU_MIPS32R3,
     ISA_MIPS32R3,
     (ASE_SMARTMIPS | ASE_DSP | ASE_DSPR2 | ASE_EVA | ASE_MIPS3D
-     | ASE_MT | ASE_MCU | ASE_VIRT | ASE_MSA | ASE_XPA),
+     | ASE_MT | ASE_MCU | ASE_VIRT | ASE_MSA | ASE_XPA | ASE_MXU),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -569,7 +575,7 @@ const struct mips_arch_choice mips_arch_choices[] =
   { "mips32r5",	1, bfd_mach_mipsisa32r5, CPU_MIPS32R5,
     ISA_MIPS32R5,
     (ASE_SMARTMIPS | ASE_DSP | ASE_DSPR2 | ASE_EVA | ASE_MIPS3D
-     | ASE_MT | ASE_MCU | ASE_VIRT | ASE_MSA | ASE_XPA),
+     | ASE_MT | ASE_MCU | ASE_VIRT | ASE_MSA | ASE_XPA | ASE_MXU),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -583,7 +589,7 @@ const struct mips_arch_choice mips_arch_choices[] =
 
   /* For stock MIPS64, disassemble all applicable MIPS-specified ASEs.  */
   { "mips64",	1, bfd_mach_mipsisa64, CPU_MIPS64,
-    ISA_MIPS64,  ASE_MIPS3D | ASE_MDMX,
+    ISA_MIPS64,  ASE_MIPS3D | ASE_MDMX | ASE_MXU,
     mips_cp0_names_mips3264,
     mips_cp0sel_names_mips3264, ARRAY_SIZE (mips_cp0sel_names_mips3264),
     mips_cp1_names_mips3264, mips_hwr_names_numeric },
@@ -591,7 +597,8 @@ const struct mips_arch_choice mips_arch_choices[] =
   { "mips64r2",	1, bfd_mach_mipsisa64r2, CPU_MIPS64R2,
     ISA_MIPS64R2,
     (ASE_MIPS3D | ASE_DSP | ASE_DSPR2 | ASE_DSP64 | ASE_EVA | ASE_MT
-     | ASE_MCU | ASE_VIRT | ASE_VIRT64 | ASE_MSA | ASE_MSA64 | ASE_XPA),
+     | ASE_MCU | ASE_VIRT | ASE_VIRT64 | ASE_MSA | ASE_MSA64 | ASE_XPA
+     | ASE_MXU),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -599,7 +606,8 @@ const struct mips_arch_choice mips_arch_choices[] =
   { "mips64r3",	1, bfd_mach_mipsisa64r3, CPU_MIPS64R3,
     ISA_MIPS64R3,
     (ASE_MIPS3D | ASE_DSP | ASE_DSPR2 | ASE_DSP64 | ASE_EVA | ASE_MT
-     | ASE_MCU | ASE_VIRT | ASE_VIRT64 | ASE_MSA | ASE_MSA64 | ASE_XPA),
+     | ASE_MCU | ASE_VIRT | ASE_VIRT64 | ASE_MSA | ASE_MSA64 | ASE_XPA
+     | ASE_MXU),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -607,7 +615,8 @@ const struct mips_arch_choice mips_arch_choices[] =
   { "mips64r5",	1, bfd_mach_mipsisa64r5, CPU_MIPS64R5,
     ISA_MIPS64R5,
     (ASE_MIPS3D | ASE_DSP | ASE_DSPR2 | ASE_DSP64 | ASE_EVA | ASE_MT
-     | ASE_MCU | ASE_VIRT | ASE_VIRT64 | ASE_MSA | ASE_MSA64 | ASE_XPA),
+     | ASE_MCU | ASE_VIRT | ASE_VIRT64 | ASE_MSA | ASE_MSA64 | ASE_XPA
+     | ASE_MXU),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -872,6 +881,11 @@ parse_mips_dis_option (const char *option, unsigned int len)
       return;
     }
   
+  if (CONST_STRNEQ (option, "mxu"))
+    {
+      mips_ase |= ASE_MXU;
+      return;
+    }
   
   /* Look for the = that delimits the end of the option name.  */
   for (i = 0; i < len; i++)
@@ -1018,6 +1032,11 @@ print_reg (struct disassemble_info *info, const struct mips_opcode *opcode,
 {
   switch (type)
     {
+    case OP_REG_MXU:
+    case OP_REG_MXU_GP:
+      info->fprintf_func (info->stream, "%s", mips_gpr_names_xr[regno]);
+      break;
+
     case OP_REG_GP:
       info->fprintf_func (info->stream, "%s", mips_gpr_names[regno]);
       break;
@@ -1168,6 +1187,13 @@ print_insn_arg (struct disassemble_info *info,
 
   switch (operand->type)
     {
+    case OP_MAPPED_STRING:
+      {
+	const struct mips_mapped_string_operand *string_op;
+	string_op = (const struct mips_mapped_string_operand *) operand;
+	infprintf (is, "%s", string_op->strings[uval]);
+      }
+      break;
     case OP_INT:
       {
 	const struct mips_int_operand *int_op;
@@ -1454,6 +1480,10 @@ print_insn_arg (struct disassemble_info *info,
       infprintf (is, "[%d]", uval);
       break;
 
+    case OP_MXU_STRIDE:
+      infprintf (is, "%d", uval);
+      break;
+
     case OP_REG_INDEX:
       infprintf (is, "[");
       print_reg (info, opcode, OP_REG_GP, uval);
@@ -1557,7 +1587,7 @@ print_insn_args (struct disassemble_info *info,
                 return FALSE;
 
 	    }
-	  if (*s == 'm' || *s == '+' || *s == '-')
+	  if (*s == 'm' || *s == '+' || *s == '-' || *s == '`')
 	    ++s;
 	  break;
 	}
@@ -2421,6 +2451,9 @@ with the -M switch (multiple options should be separated by commas):\n"));
 
   fprintf (stream, _("\n\
   xpa            Recognize the eXtended Physical Address (XPA) ASE instructions.\n"));
+
+  fprintf (stream, _("\n\
+  mxu            Recognize the MXU ASE instructions.\n"));
 
   fprintf (stream, _("\n\
   gpr-names=ABI            Print GPR names according to  specified ABI.\n\
