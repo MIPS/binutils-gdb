@@ -1,4 +1,4 @@
-# mips r6 tests (non FPU)
+# mips r6 common tests (must be micromips compatible)
 # mach:  mips32r6 mips64r6
 # as:    -mabi=eabi
 # ld:    -N -Ttext=0x80010000
@@ -108,11 +108,14 @@ DIAG:
   r6ck_1r clo, 0xff123050, 8
   r6ck_1r clo, 0x8f123050, 1
 
+
+  li $13, 0xfffffffc
   writemsg "[17] Test ADDIUPC"
   jal GetPC
   nop
   addiu $4, $6, 8
   addiupc $5, 4
+  and $4, $4, $13
   fp_assert $4, $5
 
   writemsg "[18] Test AUIPC"
@@ -121,6 +124,7 @@ DIAG:
   addiu $4, $6, 8
   aui $4, $4, 8
   auipc $5, 8
+  and $4, $4, $13
   fp_assert $4, $5
 
   writemsg "[19] Test ALUIPC"
@@ -131,6 +135,7 @@ DIAG:
   li $7, 0xffff0000
   and $4, $4, $7
   aluipc $5, 8
+  and $4, $4, $13
   fp_assert $4, $5
 
   writemsg "[20] Test LWPC"

@@ -29,8 +29,9 @@
 	.previous
 	.set push
 	.set noreorder
-	jal	_dowrite
 	li	$4, 0
+	jal	_dowrite
+	nop
 	.set pop
 	.endm
 
@@ -80,7 +81,8 @@ _pass:
 	.ent _dowrite
 _dowrite:
 	# Write opcode (reserved instruction).  See sim_monitor and its
-	# callers in sim/mips/interp.c.
+	# callers in sim/mips/interp.c. The nop is required here.
+	nop
 	.word	0x00000039 | ((8 << 1) << 6)
 	.end _dowrite
 

@@ -40,8 +40,7 @@ micromips_instruction_decode (SIM_DESC sd, sim_cpu * cpu,
   if (instruction_size == MICROMIPS_DELAYSLOT_SIZE_ANY)
     {
       micromips16_instruction_word instruction_0 = IMEM16_MICROMIPS (cia);
-      if (MICROMIPS_MINOR_OPCODE (instruction_0) > 0
-	  && MICROMIPS_MINOR_OPCODE (instruction_0) < 4)
+      if (IS_MICROMIPS_MAJOR (instruction_0))
 	return micromips16_idecode_issue (sd, instruction_0, cia);
       else
 	{
@@ -52,8 +51,7 @@ micromips_instruction_decode (SIM_DESC sd, sim_cpu * cpu,
   else if (instruction_size == MICROMIPS_DELAYSLOT_SIZE_16)
     {
       micromips16_instruction_word instruction_0 = IMEM16_MICROMIPS (cia);
-      if (MICROMIPS_MINOR_OPCODE (instruction_0) > 0
-	  && MICROMIPS_MINOR_OPCODE (instruction_0) < 4)
+      if (IS_MICROMIPS_MAJOR (instruction_0))
 	return micromips16_idecode_issue (sd, instruction_0, cia);
       else
 	sim_engine_abort (sd, cpu, cia,

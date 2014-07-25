@@ -1070,7 +1070,9 @@ INLINE_SIM_MAIN (unsigned16) ifetch16 (SIM_DESC sd, sim_cpu *cpu, address_word c
 						      (CIA + 2)))
 #define IMEM16_MICROMIPS(CIA) ifetch16 (SD, CPU, (CIA), ((CIA)))
 
-#define MICROMIPS_MINOR_OPCODE(INSN) ((INSN & 0x1C00) >> 10)
+#define IS_MICROMIPS_MAJOR(INSN) ((((INSN) & 0x1800) == 0x0800) \
+				  || ((((INSN) & 0x1c00)  == 0x0400) \
+				      && ((((INSN) & 0xe000) >> 12) <= 4)))
 
 #define MICROMIPS_DELAYSLOT_SIZE_ANY 0
 #define MICROMIPS_DELAYSLOT_SIZE_16 2
@@ -1105,10 +1107,18 @@ void mips_cpu_exception_suspend(SIM_DESC sd, sim_cpu* cpu, int exception);
 void mips_cpu_exception_resume(SIM_DESC sd, sim_cpu* cpu, int exception);
 
 #ifdef MIPS_MACH_MULTI
-extern int mips_mach_multi(SIM_DESC sd);
+extern unsigned long mips_mach_multi(SIM_DESC sd);
 #define MIPS_MACH(SD)	mips_mach_multi(SD)
+extern address_word micromips_instruction_decode_multi(SIM_DESC sd,
+						       sim_cpu* cpu,
+						       address_word cia,
+						       int instruction_size);
+#define MICROMIPS_INSTRUCTION_DECODE(SD, cpu, cia, size) \
+  micromips_instruction_decode_multi (SD, cpu, cia, size);
 #else
 #define	MIPS_MACH(SD)	MIPS_MACH_DEFAULT
+#define MICROMIPS_INSTRUCTION_DECODE(SD, cpu, cia, size) \
+  micromips_instruction_decode (SD, cpu, cia, size);
 #endif
 
 /* Macros for determining whether a MIPS IV or MIPS V part is subject

@@ -640,7 +640,7 @@ fp_rint(sim_cpu *cpu,
 	unsigned64 *ans,
 	FP_formats fmt)
 {
-  sim_fpu wop = {0}, wtemp, wmagic = {0}, wans;
+  sim_fpu wop = {0}, wtemp = {0}, wmagic = {0}, wans = {0};
   signed64 intermediate;
   int status = 0;
   sim_fpu_round round = rounding_mode(GETRM());
@@ -899,9 +899,9 @@ fp_binary(sim_cpu *cpu,
 	  unsigned64 op2,
 	  FP_formats fmt)
 {
-  sim_fpu wop1;
-  sim_fpu wop2;
-  sim_fpu ans;
+  sim_fpu wop1 = {0};
+  sim_fpu wop2 = {0};
+  sim_fpu ans  = {0};
   sim_fpu_round round = rounding_mode (GETRM());
   sim_fpu_denorm denorm = denorm_mode (cpu);
   sim_fpu_status status = 0;
