@@ -332,7 +332,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"ssnop",		"",		0x00000800, 0xffffffff,	0,			INSN2_ALIAS,	I1,		0,	0 }, /* sll */
 {"ehb",			"",		0x00001800, 0xffffffff,	0,			INSN2_ALIAS,	I1,		0,	0 }, /* sll */
 {"pause",		"",		0x00002800, 0xffffffff,	0,			INSN2_ALIAS,	I1,		0,	0 }, /* sll */
-{"lapc",		"t,-A",		0x78000000, 0xfc180000, WR_1|RD_pc,		0,		I37,		0,	0 },
+{"lapc",		"t,-A",		0x78000000, 0xfc180000, WR_1,			RD_pc,		I37,		0,	0 },
 {"li",			"md,mI",	    0xec00,     0xfc00,	WR_1,			0,		I1,		0,	0 },
 {"li",			"t,j",		0x30000000, 0xfc1f0000,	WR_1,			INSN2_ALIAS,	I1,		0,	0 }, /* addiu */
 {"li",			"t,i",		0x50000000, 0xfc1f0000,	WR_1,			INSN2_ALIAS,	I1,		0,	0 }, /* ori */
@@ -376,9 +376,10 @@ const struct mips_opcode micromips_opcodes[] =
 {"addiu",		"md,mc,mB",	    0x6c00,     0xfc01,	WR_1|RD_2,		0,		I1,		0,	0 }, /* addiur2 */
 {"addiu",		"ms,mt,mY",	    0x4c01,     0xfc01,	MOD_1,			0,		I1,		0,	0 }, /* addiusp */
 {"addiu",		"mp,mt,mX",	    0x4c00,     0xfc01,	MOD_1,			0,		I1,		0,	0 }, /* addius5 */
+{"addiu",		"t,+R,-A",	0x78000000, 0xfc180000, WR_1,			RD_pc,		I37,		0,	0 },
 {"addiu",		"mb,mr,mQ",	0x78000000, 0xfc000000,	WR_1,			RD_pc,		I1,		0,	I37 }, /* addiupc */
 {"addiu",		"t,r,j",	0x30000000, 0xfc000000,	WR_1|RD_2,		0,		I1,		0,	0 },
-{"addiupc",		"t,-a",		0x78000000, 0xfc180000, WR_1|RD_pc,		0,		I37,		0,	0 },
+{"addiupc",		"t,-a",		0x78000000, 0xfc180000, WR_1,			RD_pc,		I37,		0,	0 },
 {"addiupc",		"mb,mQ",	0x78000000, 0xfc000000,	WR_1,			RD_pc,		I1,		0,	I37 },
 {"addiur1sp",		"md,mW",	    0x6c01,     0xfc01,	WR_1,			RD_sp,		I1,		0,	0 },
 {"addiur2",		"md,mc,mB",	    0x6c00,     0xfc01,	WR_1|RD_2,		0,		I1,		0,	0 },
@@ -870,7 +871,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"lbu",			"t,A(b)",	0,    (int) M_LBU_AB,	INSN_MACRO,		0,		I1,		0,	0 },
 {"lca",			"t,A(b)",	0,    (int) M_LCA_AB,	INSN_MACRO,		0,		I1,		0,	0 },
 /* The macro has to be first to handle o32 correctly.  */
-{"ldpc",		"t,-B",		0x78180000, 0xfc1c0000, WR_1|RD_pc,		0,		I69,		0,	0 },
+{"ldpc",		"t,-B",		0x78180000, 0xfc1c0000, WR_1,			RD_pc,		I69,		0,	0 },
 {"ld",			"t,A(b)",	0,    (int) M_LD_AB,	INSN_MACRO,		0,		I1,		0,	0 },
 {"ld",			"t,o(b)",	0xdc000000, 0xfc000000,	WR_1|RD_3|LM,		0,		I3,		0,	0 },
 {"ldc1",		"T,o(b)",	0xbc000000, 0xfc000000,	WR_1|RD_3|FP_D|LM,	0,		I1,		0,	0 },
@@ -907,11 +908,11 @@ const struct mips_opcode micromips_opcodes[] =
 {"lui",			"t,u",		0x10000000, 0xfc1f0000,	WR_1,			0,		I37,		0,	0 },
 {"lui",			"s,u",		0x41a00000, 0xffe00000,	WR_1,			0,		I1,		0,	I37 },
 {"luxc1",		"D,t(b)",	0x54000148, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D|LM,	0,		I1,		0,	I37 },
-{"lwpc",		"t,-A",		0x78080000, 0xfc180000, WR_1|RD_pc|LM,		0,		I37,		0,	0 },
+{"lwpc",		"t,-A",		0x78080000, 0xfc180000, WR_1|LM,		RD_pc,		I37,		0,	0 },
 {"lw",			"md,mJ(ml)",        0x6800,     0xfc00,	WR_1|RD_3|LM,		0,		I1,		0,	0 },
 {"lw",			"mp,mU(ms)",        0x4800,     0xfc00,	WR_1|RD_3|LM,		0,		I1,		0,	0 }, /* lwsp */
 {"lw",			"md,mA(ma)",        0x6400,     0xfc00,	WR_1|RD_3|LM,		0,		I1,		0,	0 }, /* lwgp */
-{"lw",			"t,-a(mr)",	0x78080000, 0xfc180000, WR_1|RD_pc|LM,		0,		I37,		0,	0 },
+{"lw",			"t,-a(mr)",	0x78080000, 0xfc180000, WR_1|LM,		RD_pc,		I37,		0,	0 },
 {"lw",			"t,o(b)",	0xfc000000, 0xfc000000,	WR_1|RD_3|LM,		0,		I1,		0,	0 },
 {"lw",			"t,A(b)",	0,    (int) M_LW_AB,	INSN_MACRO,		0,		I1,		0,	0 },
 {"lwc1",		"T,o(b)",	0x9c000000, 0xfc000000,	WR_1|RD_3|FP_S|LM,	0,		I1,		0,	0 },
@@ -934,7 +935,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"lwp",			"t,A(b)",	0,    (int) M_LWP_AB,	INSN_MACRO,		0,		I1,		0,	0 },
 {"lwr",			"t,~(b)",	0x60001000, 0xfc00f000,	WR_1|RD_3|LM,		0,		I1,		0,	I37 },
 {"lwr",			"t,A(b)",	0,    (int) M_LWR_AB,	INSN_MACRO,		0,		I1,		0,	I37 },
-{"lwupc",		"t,-A",		0x78100000, 0xfc180000, WR_1|RD_pc|LM,		0,		I69,		0,	0 },
+{"lwupc",		"t,-A",		0x78100000, 0xfc180000, WR_1|LM,		RD_pc,		I69,		0,	0 },
 {"lwu",			"t,~(b)",	0x6000e000, 0xfc00f000,	WR_1|RD_3|LM,		0,		I3,		0,	0 },
 {"lwu",			"t,A(b)",	0,    (int) M_LWU_AB,	INSN_MACRO,		0,		I3,		0,	0 },
 {"lwxc1",		"D,t(b)",	0x54000048, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_S|LM,	0,		I1,		0,	I37 },
@@ -1287,8 +1288,8 @@ const struct mips_opcode micromips_opcodes[] =
 /* microMIPS R6 */
 /* FIXME: offsets are most likely shifted by 2 for conditional branches.  */
 {"aui",			"-s,t,u",	0x10000000, 0xfc000000,	WR_1|RD_2,		0,		I37,		0,	0 },
-{"aluipc",		"t,u",		0x781f0000, 0xfc1f0000, WR_1|RD_pc,		0,		I37,		0,	0 },
-{"auipc",		"t,u",		0x781e0000, 0xfc1f0000, WR_1|RD_pc,		0,		I37,		0,	0 },
+{"aluipc",		"t,u",		0x781f0000, 0xfc1f0000, WR_1,			RD_pc,		I37,		0,	0 },
+{"auipc",		"t,u",		0x781e0000, 0xfc1f0000, WR_1,			RD_pc,		I37,		0,	0 },
 {"daui",		"-s,t,u",	0xf0000000, 0xfc000000,	WR_1|RD_2,		0,		I69,		0,	0 },
 
 {"align",		"d,s,t,+I",	0x0000001f, 0xfc0001ff,	WR_1|RD_2|RD_3,		0,		I37,		0,	0 },
