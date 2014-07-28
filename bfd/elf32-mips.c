@@ -1534,15 +1534,15 @@ static reloc_howto_type elf_micromips_howto_table_rel[] =
   HOWTO (R_MICROMIPS_PC21_S1,	/* type */
 	 1,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
-	 23,			/* bitsize */
+	 21,			/* bitsize */
 	 TRUE,			/* pc_relative */
 	 0,			/* bitpos */
 	 complain_overflow_signed, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc, /* special_function */
 	 "R_MICROMIPS_PC21_S1",	/* name */
 	 TRUE,			/* partial_inplace */
-	 0x003fffff,		/* src_mask */
-	 0x003fffff,		/* dst_mask */
+	 0x001fffff,		/* src_mask */
+	 0x001fffff,		/* dst_mask */
 	 TRUE),			/* pcrel_offset */
 
   HOWTO (R_MICROMIPS_PC26_S1,	/* type */
