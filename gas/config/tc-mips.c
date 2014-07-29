@@ -2751,7 +2751,8 @@ struct regname {
     {"xr13",   RTYPE_MXU | 13}, \
     {"xr14",   RTYPE_MXU | 14}, \
     {"xr15",   RTYPE_MXU | 15}, \
-    {"xr16",   RTYPE_MXU | 16}
+    {"xr16",   RTYPE_MXU | 16}, \
+    {"mxu_cr", RTYPE_MXU | 16}
 
 static const struct regname reg_names[] = {
   GENERIC_REGISTER_NUMBERS,
@@ -5010,7 +5011,10 @@ match_int_operand (struct mips_arg_info *arg,
 
   operand = (const struct mips_int_operand *) operand_base;
   factor = 1 << operand->shift;
-  min_val = mips_int_operand_min (operand);
+  if (operand->positive_only)
+    min_val = 0;
+  else
+    min_val = mips_int_operand_min (operand);
   max_val = mips_int_operand_max (operand);
 
   if (operand_base->lsb == 0
@@ -8632,7 +8636,7 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	    uval |= (uval << 5);
 	  insn_insert_operand (&insn, operand, uval);
 
-	  if (*fmt == '+' || *fmt == 'm' || *fmt == '-')
+	  if (*fmt == '+' || *fmt == 'm' || *fmt == '-' || *fmt == '`')
 	    ++fmt;
 	  break;
 	}

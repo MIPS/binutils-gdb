@@ -512,9 +512,11 @@ struct mips_int_operand
        that 0 encodes 8.
 
      - { { ... }, 0, 1, 3 } means that N encodes (N + 1) << 3.  */
+  /* Update comment here.  */
   unsigned int max_val;
   int bias;
   unsigned int shift;
+  bfd_boolean positive_only;
 
   /* True if the operand should be printed as hex rather than decimal.  */
   bfd_boolean print_hex;

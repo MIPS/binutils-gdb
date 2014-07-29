@@ -44,6 +44,15 @@ const char * mxu_ept[] = {
   "ptn4", "ptn5", "ptn6", "ptn7"
 };
 
+const char * mxu_ept_restrict_1[] = {
+  "ptn0", "ptn1", "ptn2", "ptn3",
+  "", "", "", ""
+};
+
+const char * mxu_ept_restrict_2[] = {
+  "ptn0", "ptn1", "", "",
+};
+
 static unsigned char reg_0_map[] = { 0 };
 
 /* Return the mips_operand structure for the operand at the beginning of P.  */
@@ -56,8 +65,8 @@ decode_mips_operand (const char *p)
     case '-':
       switch (p[1])
 	{
-	case 'a': INT_ADJ (19, 0, 262143, 2, FALSE);
-	case 'b': INT_ADJ (18, 0, 131071, 3, FALSE);
+	case 'a': INT_ADJ (19, 0, 262143, 2, FALSE, FALSE);
+	case 'b': INT_ADJ (18, 0, 131071, 3, FALSE, FALSE);
 	case 'd': SPECIAL (0, 0, REPEAT_DEST_REG);
 	case 's': PREV_CHECK (5, 21, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE);
 	case 't': PREV_CHECK (5, 16, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE);
@@ -82,18 +91,20 @@ decode_mips_operand (const char *p)
 	case 'd': REG (4, 18, MXU_GP);
 	case 'e': MAPPED_STRING (3, 18, mxu_ept, 0)
 	case 'f': UINT (4, 22);
-	case 'i': INT_ADJ (10, 10, 511, 2, FALSE);
+	case 'i': INT_ADJ (10, 10, 511, 2, FALSE, FALSE);
 	case 'o': MAPPED_STRING (2, 22, mxu_opt, 1);
-	case 'p': MAPPED_STRING (2, 19, mxu_ept, 0);
-	case 'r': UINT (2, 14);
+	case 'P': MAPPED_STRING (2, 19, mxu_ept, 0);
+	case 'p': MAPPED_STRING (2, 19, mxu_ept_restrict_2, 0);
+	case 'r': INT_ADJ (2, 14, 2, 0, TRUE, FALSE);
+	case 'R': INT_ADJ (2, 9, 2, 0, TRUE, FALSE);
 	case 'A': MAPPED_STRING (1, 24, mxu_s32mad, 0);
 	case 'U': UINT (8, 10);
 	case 'B': SINT (8, 10);
 	case 'E': MAPPED_STRING (2, 24, mxu_ept, 0);
-	case 'I': INT_ADJ (9, 10, 255, 1, FALSE);
+	case 'I': INT_ADJ (9, 10, 255, 1, FALSE, FALSE);
+	case 'S': MAPPED_STRING (3, 23, mxu_ept_restrict_1, 0);
 	case 'O': MAPPED_STRING (3, 23, mxu_ept, 0);
 	case 'T': UINT (5, 16);
-	case 'R': UINT (2, 9);
 	}
       break;
 
@@ -129,19 +140,19 @@ decode_mips_operand (const char *p)
 	case 'Q': SINT (10, 6);
 	case 'R': SPECIAL (0, 0, PC);
 	case 'S': MSB (5, 11, 0, FALSE, 63);	/* (0 .. 31), 64-bit op */
-	case 'T': INT_ADJ (10, 16, 511, 0, FALSE); /* (-512 .. 511) << 0 */
-	case 'U': INT_ADJ (10, 16, 511, 1, FALSE); /* (-512 .. 511) << 1 */
-	case 'V': INT_ADJ (10, 16, 511, 2, FALSE); /* (-512 .. 511) << 2 */
-	case 'W': INT_ADJ (10, 16, 511, 3, FALSE); /* (-512 .. 511) << 3 */
+	case 'T': INT_ADJ (10, 16, 511, 0, FALSE, FALSE); /* (-512 .. 511) << 0 */
+	case 'U': INT_ADJ (10, 16, 511, 1, FALSE, FALSE); /* (-512 .. 511) << 1 */
+	case 'V': INT_ADJ (10, 16, 511, 2, FALSE, FALSE); /* (-512 .. 511) << 2 */
+	case 'W': INT_ADJ (10, 16, 511, 3, FALSE, FALSE); /* (-512 .. 511) << 3 */
 	case 'X': BIT (5, 16, 32);		/* (32 .. 63) */
 	case 'Z': REG (5, 0, FP);
 
 	case 'a': SINT (8, 6);
 	case 'b': SINT (8, 3);
-	case 'c': INT_ADJ (9, 6, 255, 4, FALSE); /* (-256 .. 255) << 4 */
+	case 'c': INT_ADJ (9, 6, 255, 4, FALSE, FALSE); /* (-256 .. 255) << 4 */
 	case 'd': REG (5, 6, MSA);
 	case 'e': REG (5, 11, MSA);
-	case 'f': INT_ADJ (15, 6, 32767, 3, TRUE);
+	case 'f': INT_ADJ (15, 6, 32767, 3, FALSE, TRUE);
 	case 'g': SINT (5, 6);
 	case 'h': REG (5, 16, MSA);
 	case 'i': JALX (26, 0, 2);
@@ -3269,7 +3280,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 
 {"d32sarw",		"`=,`b,`c,s",		0x70000027, 0xfc1c003f,	TRAP,		0,		0,		MXU,	0},
 {"s32aln",		"`=,`b,`c,s",		0x70040027, 0xfc1c003f,	TRAP,		0,		0,		MXU,	0},
-{"s32alni",		"`=,`b,`c,`O",		0x70080027, 0xfc7c003f,	TRAP,		0,		0,		MXU,	0},
+{"s32alni",		"`=,`b,`c,`S",		0x70080027, 0xfc7c003f,	TRAP,		0,		0,		MXU,	0},
 {"s32lui",		"`=,`U,`O",		0x700c0027, 0xfc7c003f,	TRAP,		0,		0,		MXU,	0},
 {"s32nor",		"`=,`b,`c",		0x70100027, 0xfffc003f,	TRAP,		0,		0,		MXU,	0},
 {"s32and",		"`=,`b,`c",		0x70140027, 0xfffc003f,	TRAP,		0,		0,		MXU,	0},
@@ -3281,9 +3292,9 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"lxh",			"d,s,t,`R",		0x70000068, 0xfc0001ff,	TRAP,		0,		0,		MXU,	0},
 {"lxhu",		"d,s,t,`R",		0x70000168, 0xfc0001ff,	TRAP,		0,		0,		MXU,	0},
 {"lxw",			"d,s,t,`R",		0x700000e8, 0xfc0001ff,	TRAP,		0,		0,		MXU,	0},
-{"s16ldd",		"`=,s,`I,`p",		0x7000002a, 0xfc00003f,	TRAP,		0,		0,		MXU,	0},
+{"s16ldd",		"`=,s,`I,`P",		0x7000002a, 0xfc00003f,	TRAP,		0,		0,		MXU,	0},
 {"s16std",		"`=,s,`I,`p",		0x7000002b, 0xfc00003f,	TRAP,		0,		0,		MXU,	0},
-{"s16ldi",		"`=,s,`I,`p",		0x7000002c, 0xfc00003f,	TRAP,		0,		0,		MXU,	0},
+{"s16ldi",		"`=,s,`I,`P",		0x7000002c, 0xfc00003f,	TRAP,		0,		0,		MXU,	0},
 {"s16sdi",		"`=,s,`I,`p",		0x7000002d, 0xfc00003f,	TRAP,		0,		0,		MXU,	0},
 {"s32m2i",		"`m,t",			0x7000002e, 0xffe0f83f,	TRAP,		0,		0,		MXU,	0},
 {"s32i2m",		"`m,t",			0x7000002f, 0xffe0f83f,	TRAP,		0,		0,		MXU,	0},

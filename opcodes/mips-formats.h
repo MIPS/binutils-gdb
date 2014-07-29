@@ -18,27 +18,27 @@
 /* For ARRAY_SIZE.  */
 #include "libiberty.h"
 
-#define INT_ADJ(SIZE, LSB, MAX_VAL, SHIFT, PRINT_HEX) \
+#define INT_ADJ(SIZE, LSB, MAX_VAL, SHIFT, POS_NUMS_ONLY, PRINT_HEX) \
   { \
     static const struct mips_int_operand op = { \
-      { OP_INT, SIZE, LSB }, MAX_VAL, 0, SHIFT, PRINT_HEX \
+      { OP_INT, SIZE, LSB }, MAX_VAL, 0, SHIFT, POS_NUMS_ONLY, PRINT_HEX \
     }; \
     return &op.root; \
   }
 
 #define UINT(SIZE, LSB) \
-  INT_ADJ(SIZE, LSB, (1 << (SIZE)) - 1, 0, FALSE)
+  INT_ADJ(SIZE, LSB, (1 << (SIZE)) - 1, 0, FALSE, FALSE)
 
 #define SINT(SIZE, LSB) \
-  INT_ADJ(SIZE, LSB, (1 << ((SIZE) - 1)) - 1, 0, FALSE)
+  INT_ADJ(SIZE, LSB, (1 << ((SIZE) - 1)) - 1, 0, FALSE, FALSE)
 
 #define HINT(SIZE, LSB) \
-  INT_ADJ(SIZE, LSB, (1 << (SIZE)) - 1, 0, TRUE)
+  INT_ADJ(SIZE, LSB, (1 << (SIZE)) - 1, 0, FALSE, TRUE)
 
 #define BIT(SIZE, LSB, BIAS) \
   { \
     static const struct mips_int_operand op = { \
-      { OP_INT, SIZE, LSB }, (1 << (SIZE)) - 1, BIAS, 0, TRUE \
+      { OP_INT, SIZE, LSB }, (1 << (SIZE)) - 1, BIAS, 0, FALSE, TRUE \
     }; \
     return &op.root; \
   }
@@ -125,7 +125,7 @@
   { \
     static const struct mips_pcrel_operand op = { \
       { { OP_PCREL, SIZE, LSB }, \
-	(1 << ((SIZE) - (IS_SIGNED))) - 1, 0, SHIFT, TRUE }, \
+	(1 << ((SIZE) - (IS_SIGNED))) - 1, 0, SHIFT, FALSE, TRUE }, \
       ALIGN_LOG2, INCLUDE_ISA_BIT, FLIP_ISA_BIT \
     }; \
     return &op.root.root; \
