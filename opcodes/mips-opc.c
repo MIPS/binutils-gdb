@@ -70,8 +70,8 @@ decode_mips_operand (const char *p)
     case '-':
       switch (p[1])
 	{
-	case 'a': INT_ADJ (19, 0, 262143, 2, FALSE, FALSE);
-	case 'b': INT_ADJ (18, 0, 131071, 3, FALSE, FALSE);
+	case 'a': INT_ADJ (19, 0, 262143, 2, FALSE);
+	case 'b': INT_ADJ (18, 0, 131071, 3, FALSE);
 	case 'd': SPECIAL (0, 0, REPEAT_DEST_REG);
 	case 's': PREV_CHECK (5, 21, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE);
 	case 't': PREV_CHECK (5, 16, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE);
@@ -97,17 +97,17 @@ decode_mips_operand (const char *p)
 	case 'e': MAPPED_STRING (3, 18, mxu_ptn_7, 1)
 	case 'g': MAPPED_STRING (3, 18, mxu_ptn_3, 0)
 	case 'f': UINT (4, 22);
-	case 'i': INT_ADJ (10, 10, 511, 2, FALSE, FALSE);
+	case 'i': INT_ADJ (10, 10, 511, 2, FALSE);
 	case 'o': MAPPED_STRING (2, 22, mxu_optn, 1);
 	case 'P': MAPPED_STRING (2, 19, mxu_ptn_3, 0);
 	case 'p': MAPPED_STRING (2, 19, mxu_ptn_1, 0);
-	case 'r': INT_ADJ (2, 14, 2, 0, TRUE, FALSE);
-	case 'R': INT_ADJ (2, 9, 2, 0, TRUE, FALSE);
+	case 'r': SPECIAL (2, 14, MXU_STRIDE);
+	case 'R': SPECIAL (2, 9, MXU_STRIDE);
 	case 'A': MAPPED_STRING (1, 24, mxu_s32mad, 0);
 	case 'U': UINT (8, 10);
 	case 'B': SINT (8, 10);
 	case 'E': MAPPED_STRING (2, 24, mxu_ptn_3, 0);
-	case 'I': INT_ADJ (9, 10, 255, 1, FALSE, FALSE);
+	case 'I': INT_ADJ (9, 10, 255, 1, FALSE);
 	case 'S': MAPPED_STRING (3, 23, mxu_ptn_4, 0);
 	case 'O': MAPPED_STRING (3, 23, mxu_ptn_7, 1);
 	case 'T': UINT (5, 16);
@@ -146,19 +146,19 @@ decode_mips_operand (const char *p)
 	case 'Q': SINT (10, 6);
 	case 'R': SPECIAL (0, 0, PC);
 	case 'S': MSB (5, 11, 0, FALSE, 63);	/* (0 .. 31), 64-bit op */
-	case 'T': INT_ADJ (10, 16, 511, 0, FALSE, FALSE); /* (-512 .. 511) << 0 */
-	case 'U': INT_ADJ (10, 16, 511, 1, FALSE, FALSE); /* (-512 .. 511) << 1 */
-	case 'V': INT_ADJ (10, 16, 511, 2, FALSE, FALSE); /* (-512 .. 511) << 2 */
-	case 'W': INT_ADJ (10, 16, 511, 3, FALSE, FALSE); /* (-512 .. 511) << 3 */
+	case 'T': INT_ADJ (10, 16, 511, 0, FALSE); /* (-512 .. 511) << 0 */
+	case 'U': INT_ADJ (10, 16, 511, 1, FALSE); /* (-512 .. 511) << 1 */
+	case 'V': INT_ADJ (10, 16, 511, 2, FALSE); /* (-512 .. 511) << 2 */
+	case 'W': INT_ADJ (10, 16, 511, 3, FALSE); /* (-512 .. 511) << 3 */
 	case 'X': BIT (5, 16, 32);		/* (32 .. 63) */
 	case 'Z': REG (5, 0, FP);
 
 	case 'a': SINT (8, 6);
 	case 'b': SINT (8, 3);
-	case 'c': INT_ADJ (9, 6, 255, 4, FALSE, FALSE); /* (-256 .. 255) << 4 */
+	case 'c': INT_ADJ (9, 6, 255, 4, FALSE); /* (-256 .. 255) << 4 */
 	case 'd': REG (5, 6, MSA);
 	case 'e': REG (5, 11, MSA);
-	case 'f': INT_ADJ (15, 6, 32767, 3, FALSE, TRUE);
+	case 'f': INT_ADJ (15, 6, 32767, 3, TRUE);
 	case 'g': SINT (5, 6);
 	case 'h': REG (5, 16, MSA);
 	case 'i': JALX (26, 0, 2);

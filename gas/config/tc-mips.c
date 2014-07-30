@@ -4456,6 +4456,7 @@ operand_reg_mask (const struct mips_cl_insn *insn,
     case OP_VU0_MATCH_SUFFIX:
     case OP_IMM_INDEX:
     case OP_MAPPED_STRING:
+    case OP_MXU_STRIDE:
       abort ();
 
     case OP_REG:
@@ -5011,10 +5012,7 @@ match_int_operand (struct mips_arg_info *arg,
 
   operand = (const struct mips_int_operand *) operand_base;
   factor = 1 << operand->shift;
-  if (operand->positive_only)
-    min_val = 0;
-  else
-    min_val = mips_int_operand_min (operand);
+  min_val = mips_int_operand_min (operand);
   max_val = mips_int_operand_max (operand);
 
   if (operand_base->lsb == 0
@@ -5792,6 +5790,24 @@ match_imm_index_operand (struct mips_arg_info *arg,
   return TRUE;
 }
 
+/* OP_MXU_STRIDE matcher.  */
+
+static bfd_boolean
+match_mxu_stride_operand (struct mips_arg_info *arg,
+			  const struct mips_operand *operand)
+{
+  offsetT sval;
+
+  if (!match_const_int (arg, &sval))
+    return FALSE;
+
+  if (sval < 0 || sval > 2)
+    return FALSE;
+
+  insn_insert_operand (arg->insn, operand, sval);
+  return TRUE;
+}
+
 /* OP_REG_INDEX matcher.  */
 
 static bfd_boolean
@@ -6110,6 +6126,8 @@ match_operand (struct mips_arg_info *arg,
     case OP_CHECK_PREV:
       return match_check_prev_operand (arg, operand);
 
+    case OP_MXU_STRIDE:
+      return match_mxu_stride_operand (arg, operand);
     }
   abort ();
 }

@@ -1480,6 +1480,10 @@ print_insn_arg (struct disassemble_info *info,
       infprintf (is, "[%d]", uval);
       break;
 
+    case OP_MXU_STRIDE:
+      infprintf (is, "%d", uval);
+      break;
+
     case OP_REG_INDEX:
       infprintf (is, "[");
       print_reg (info, opcode, OP_REG_GP, uval);

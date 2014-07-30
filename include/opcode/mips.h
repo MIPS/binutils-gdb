@@ -428,7 +428,9 @@ enum mips_operand_type {
   /* Described by mips_prev_operand.  */
   OP_CHECK_PREV,
 
-  OP_MAPPED_STRING
+  OP_MAPPED_STRING,
+
+  OP_MXU_STRIDE
 };
 
 /* Enumerates the types of MIPS register.  */
@@ -512,11 +514,9 @@ struct mips_int_operand
        that 0 encodes 8.
 
      - { { ... }, 0, 1, 3 } means that N encodes (N + 1) << 3.  */
-  /* Update comment here.  */
   unsigned int max_val;
   int bias;
   unsigned int shift;
-  bfd_boolean positive_only;
 
   /* True if the operand should be printed as hex rather than decimal.  */
   bfd_boolean print_hex;
@@ -1011,8 +1011,8 @@ struct mips_opcode
 
    Extension character sequences used so far ("`" followed by the
    following), for quick reference when adding more:
-   "AB"
-   "abdstuvwxy"
+   "ABEIOPTRSU"
+   "abcdefgimopr"
 */
 
 /* These are the bits which may be set in the pinfo field of an
