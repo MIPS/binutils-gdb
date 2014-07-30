@@ -1,4 +1,8 @@
 	.text
+	.set	noat
+	.set	noreorder
+	.set	nomacro
+test_mxu:
 
 .macro test1	insn
 	\insn	xr1, xr2, xr3, xr4,AA,WW
