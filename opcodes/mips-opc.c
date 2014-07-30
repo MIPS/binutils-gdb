@@ -35,22 +35,27 @@ const struct mips_operand mips_vu0_channel_mask = { OP_VU0_SUFFIX, 4, 21 };
 
 const char * mxu_s32mad[] = {"A", "S"};
 
-const char * mxu_opt[] = {"WW", "LW", "HW", "XW"};
+const char * mxu_optn[] = {"WW", "LW", "HW", "XW"};
 
-const char * mxu_apt[] = {"AA", "AS", "SA", "SS"};
+const char * mxu_aptn[] = {"AA", "AS", "SA", "SS"};
 
-const char * mxu_ept[] = {
+const char * mxu_ptn_7[] = {
   "ptn0", "ptn1", "ptn2", "ptn3",
   "ptn4", "ptn5", "ptn6", "ptn7"
 };
 
-const char * mxu_ept_restrict_1[] = {
+const char * mxu_ptn_4[] = {
   "ptn0", "ptn1", "ptn2", "ptn3",
-  "", "", "", ""
+  "ptn4", "", "", ""
 };
 
-const char * mxu_ept_restrict_2[] = {
+const char * mxu_ptn_1[] = {
   "ptn0", "ptn1", "", "",
+};
+
+const char * mxu_ptn_3[] = {
+  "ptn0", "ptn1", "ptn2", "ptn3",
+  "", "", "", ""
 };
 
 static unsigned char reg_0_map[] = { 0 };
@@ -85,25 +90,26 @@ decode_mips_operand (const char *p)
 	{
 	case 'm': REG (5, 6, MXU);
 	case '=': REG (4, 6, MXU);
-	case 'a': MAPPED_STRING (2, 24, mxu_apt, 0);
+	case 'a': MAPPED_STRING (2, 24, mxu_aptn, 0);
 	case 'b': REG (4, 10, MXU_GP);
 	case 'c': REG (4, 14, MXU_GP);
 	case 'd': REG (4, 18, MXU_GP);
-	case 'e': MAPPED_STRING (3, 18, mxu_ept, 0)
+	case 'e': MAPPED_STRING (3, 18, mxu_ptn_7, 1)
+	case 'g': MAPPED_STRING (3, 18, mxu_ptn_3, 0)
 	case 'f': UINT (4, 22);
 	case 'i': INT_ADJ (10, 10, 511, 2, FALSE, FALSE);
-	case 'o': MAPPED_STRING (2, 22, mxu_opt, 1);
-	case 'P': MAPPED_STRING (2, 19, mxu_ept, 0);
-	case 'p': MAPPED_STRING (2, 19, mxu_ept_restrict_2, 0);
+	case 'o': MAPPED_STRING (2, 22, mxu_optn, 1);
+	case 'P': MAPPED_STRING (2, 19, mxu_ptn_3, 0);
+	case 'p': MAPPED_STRING (2, 19, mxu_ptn_1, 0);
 	case 'r': INT_ADJ (2, 14, 2, 0, TRUE, FALSE);
 	case 'R': INT_ADJ (2, 9, 2, 0, TRUE, FALSE);
 	case 'A': MAPPED_STRING (1, 24, mxu_s32mad, 0);
 	case 'U': UINT (8, 10);
 	case 'B': SINT (8, 10);
-	case 'E': MAPPED_STRING (2, 24, mxu_ept, 0);
+	case 'E': MAPPED_STRING (2, 24, mxu_ptn_3, 0);
 	case 'I': INT_ADJ (9, 10, 255, 1, FALSE, FALSE);
-	case 'S': MAPPED_STRING (3, 23, mxu_ept_restrict_1, 0);
-	case 'O': MAPPED_STRING (3, 23, mxu_ept, 0);
+	case 'S': MAPPED_STRING (3, 23, mxu_ptn_4, 0);
+	case 'O': MAPPED_STRING (3, 23, mxu_ptn_7, 1);
 	case 'T': UINT (5, 16);
 	}
       break;
@@ -3316,9 +3322,9 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"s32sdi",		"`=,s,`i",		0x70000015, 0xfc10003f,	TRAP,		0,		0,		MXU,	0},
 {"s32sdir",		"`=,s,`i",		0x70100015, 0xfc10003f,	TRAP,		0,		0,		MXU,	0},
 {"s8ldd",		"`=,s,`B,`e",		0x70000022, 0xfc00003f,	TRAP,		0,		0,		MXU,	0},
-{"s8std",		"`=,s,`B,`e",		0x70000023, 0xfc00003f,	TRAP,		0,		0,		MXU,	0},
+{"s8std",		"`=,s,`B,`g",		0x70000023, 0xfc00003f,	TRAP,		0,		0,		MXU,	0},
 {"s8ldi",		"`=,s,`B,`e",		0x70000024, 0xfc00003f,	TRAP,		0,		0,		MXU,	0},
-{"s8sdi",		"`=,s,`B,`e",		0x70000025, 0xfc00003f,	TRAP,		0,		0,		MXU,	0},
+{"s8sdi",		"`=,s,`B,`g",		0x70000025, 0xfc00003f,	TRAP,		0,		0,		MXU,	0},
 
 /* User Defined Instruction.  */
 {"udi0",		"s,t,d,+1",	0x70000010, 0xfc00003f,	UDI,			0,		I33,		0,	0 },

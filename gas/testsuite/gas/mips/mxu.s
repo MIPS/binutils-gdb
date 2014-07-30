@@ -40,11 +40,6 @@
 	\insn	xr1, xr2, xr3, xr4,SS,1
 	\insn	xr1, xr2, xr3, xr4,SS,2
 	\insn	xr1, xr2, xr3, xr4,SS,3
-
-#	\insn	$0, $v0, $v1, $a0,AA,WW
-#	\insn	$0, $v0, $v1, $a0,SA,1
-#	\insn	$0, $v0, $v1, $a0,AS,HW
-#	\insn	$0, $v0, $v1, $a0,SS,3
 .endm
 
 .macro test2	insn
@@ -57,16 +52,24 @@
 .macro test3 insn
 	\insn xr1, $2,510, ptn0 
 	\insn xr1, $2,510, ptn1 
-#	\insn xr1, $2,510, ptn2 
-#	\insn xr1, $2,510, ptn3 
 
 	\insn xr1, $2,-512, ptn0 
 	\insn xr1, $2,-512, ptn1 
-#	\insn xr1, $2,-512, ptn2 
-#	\insn xr1, $2,-512, ptn3 
 .endm
 
 .macro test4 insn
+	\insn xr1, $2,510, ptn0 
+	\insn xr1, $2,510, ptn1 
+	\insn xr1, $2,510, ptn2 
+	\insn xr1, $2,510, ptn3 
+
+	\insn xr1, $2,-512, ptn0 
+	\insn xr1, $2,-512, ptn1 
+	\insn xr1, $2,-512, ptn2 
+	\insn xr1, $2,-512, ptn3 
+.endm
+
+.macro test5 insn
 	\insn xr1, $2,127, ptn0 
 	\insn xr1, $2,127, ptn1 
 	\insn xr1, $2,127, ptn2 
@@ -86,6 +89,17 @@
 	\insn xr1, $2,-128, ptn7 
 .endm
 
+.macro test6 insn
+	\insn xr1, $2,127, ptn0 
+	\insn xr1, $2,127, ptn1 
+	\insn xr1, $2,127, ptn2 
+	\insn xr1, $2,127, ptn3 
+
+	\insn xr1, $2,-128, ptn0 
+	\insn xr1, $2,-128, ptn1 
+	\insn xr1, $2,-128, ptn2 
+	\insn xr1, $2,-128, ptn3 
+.endm
 	test1	d16mac
 	test1	d16macf
 	test1	d16madl
@@ -102,11 +116,6 @@
 	d16mul	xr1, xr2, xr3, xr4,2
 	d16mul	xr1, xr2, xr3, xr4,3
 
-#	d16mul	$0, $v0, $v1, $a0,WW
-#	d16mul	$0, $v0, $v1, $a0,1
-#	d16mul	$0, $v0, $v1, $a0,HW
-#	d16mul	$0, $v0, $v1, $a0,3
-
 	d16mulf	xr1, xr2, xr3, WW
 	d16mulf	xr1, xr2, xr3, LW
 	d16mulf	xr1, xr2, xr3, HW
@@ -117,11 +126,6 @@
 	d16mulf	xr1, xr2, xr3, 2
 	d16mulf	xr1, xr2, xr3, 3
 
-#	d16mulf	$0, $v0, $v1, WW
-#	d16mulf	$0, $v0, $v1, 1
-#	d16mulf	$0, $v0, $v1, HW
-#	d16mulf	$0, $v0, $v1, 3
-
 	d16mule	xr1, xr2, xr3, WW
 	d16mule	xr1, xr2, xr3, LW
 	d16mule	xr1, xr2, xr3, HW
@@ -131,11 +135,6 @@
 	d16mule	xr1, xr2, xr3, 1
 	d16mule	xr1, xr2, xr3, 2
 	d16mule	xr1, xr2, xr3, 3
-
-	#d16mule	$0, $v0, $v1, WW
-	#d16mule	$0, $v0, $v1, 1
-	#d16mule	$0, $v0, $v1, HW
-	#d16mule	$0, $v0, $v1, 3
 
 	s16mad	xr1, xr2, xr3, xr4,A,WW
 	s16mad	xr1, xr2, xr3, xr4,A,LW
@@ -156,12 +155,6 @@
 	s16mad	xr1, xr2, xr3, xr4,S,1
 	s16mad	xr1, xr2, xr3, xr4,S,2
 	s16mad	xr1, xr2, xr3, xr4,S,3
-
-	#s16mad	$0, $v0, $v1, $a0,A,WW
-	#s16mad	$0, $v0, $v1, $a0,A,1
-	#s16mad	$0, $v0, $v1, $a0,S,HW
-	#s16mad	$0, $v0, $v1, $a0,S,3
-
 
 	q8mul	xr1, xr2, xr3, xr4
 	q8mulsu	xr1, xr2, xr3, xr4
@@ -257,10 +250,7 @@
 	s32alni	xr1, xr2, xr3, ptn1  
 	s32alni	xr1, xr2, xr3, ptn2  
 	s32alni	xr1, xr2, xr3, ptn3  
-	#s32alni	xr1, xr2, xr3, ptn4  
-	#s32alni	xr1, xr2, xr3, ptn5  
-	#s32alni	xr1, xr2, xr3, ptn6  
-	#s32alni	xr1, xr2, xr3, ptn7  
+	s32alni	xr1, xr2, xr3, ptn4  
 	s32lui xr1, 255, ptn0
 	s32lui xr1, 255, ptn1
 	s32lui xr1, 255, ptn2
@@ -280,10 +270,10 @@
 	lxhu	$0, $2, $4, 2
 	lxw	$0, $2, $4, 2
 
-	test3	s16ldd
 	test3	s16std
-	test3	s16ldi
 	test3	s16sdi
+	test4	s16ldd
+	test4	s16ldi
 
 	s32m2i	xr1, $4
 	s32i2m	xr1, $4
@@ -313,7 +303,7 @@
 	s32sdir	xr1, $0, 2044
 	s32sdir	xr1, $0, -2048
 
-	test4	s8ldd
-	test4	s8std
-	test4	s8ldi
-	test4	s8sdi
+	test5	s8ldd
+	test5	s8ldi
+	test6	s8std
+	test6	s8sdi
