@@ -324,8 +324,8 @@ const struct mips_opcode micromips_opcodes[] =
    them first.  The assemblers uses a hash table based on the
    instruction name anyhow.  */
 /* name,		args,		match,      mask,	pinfo,			pinfo2,		membership,	ase,	exclusions */
-{"pref",		"k,~(b)",	0x60002000, 0xfc00f000,	RD_3|LM,		0,		I1,		0,	I37 },
-{"pref",		"k,A(b)",	0,    (int) M_PREF_AB,	INSN_MACRO,		0,		I1,		0,	I37 },
+{"pref",		"k,~(b)",	0x60002000, 0xfc00f000,	RD_3|LM,		0,		I1,		0,	0 },
+{"pref",		"k,A(b)",	0,    (int) M_PREF_AB,	INSN_MACRO,		0,		I1,		0,	0 },
 {"prefx",		"h,t(b)",	0x540001a0, 0xfc0007ff,	RD_2|RD_3|FP_S|LM,	0,		I1,		0,	I37 },
 {"nop",			"",		    0x0c00,     0xffff,	0,			INSN2_ALIAS,	I1,		0,	0 },
 {"nop",			"",		0x00000000, 0xffffffff,	0,			INSN2_ALIAS,	I1,		0,	0 }, /* sll */
