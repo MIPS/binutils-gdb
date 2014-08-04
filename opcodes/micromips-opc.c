@@ -664,13 +664,13 @@ const struct mips_opcode micromips_opcodes[] =
 {"dextm",		"t,r,+A,+G",	0x58000024, 0xfc00003f, WR_1|RD_2,		0,		I3,		0,	0 },
 {"dextu",		"t,r,+E,+H",	0x58000014, 0xfc00003f, WR_1|RD_2,		0,		I3,		0,	0 },
 /* For ddiv, see the comments about div.  */
-{"ddiv",		"d,+s,+t",	0x58000118, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		I69,		0,	0 },
+{"ddiv",		"d,+t,+s",	0x58000118, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		I69,		0,	0 },
 {"ddiv",		"z,s,t",	0x5800ab3c, 0xfc00ffff,	RD_2|RD_3|WR_HILO,	0,		I3,		0,	I69 },
 {"ddiv",		"z,t",		0x5800ab3c, 0xfc1fffff,	RD_2|WR_HILO,		0,		I3,		0,	I69 },
 {"ddiv",		"d,v,t",	0,    (int) M_DDIV_3,	INSN_MACRO,		0,		I3,		0,	I69 },
 {"ddiv",		"d,v,I",	0,    (int) M_DDIV_3I,	INSN_MACRO,		0,		I3,		0,	I69 },
 /* For ddivu, see the comments about div.  */
-{"ddivu",		"d,+s,+t",	0x58000198, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		I69,		0,	0 },
+{"ddivu",		"d,+t,+s",	0x58000198, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		I69,		0,	0 },
 {"ddivu",		"z,s,t",	0x5800bb3c, 0xfc00ffff,	RD_2|RD_3|WR_HILO,	0,		I3,		0,	I69 },
 {"ddivu",		"z,t",		0x5800bb3c, 0xfc1fffff,	RD_2|WR_HILO,		0,		I3,		0,	I69 },
 {"ddivu",		"d,v,t",	0,    (int) M_DDIVU_3,	INSN_MACRO,		0,		I3,		0,	I69 },
@@ -1287,10 +1287,10 @@ const struct mips_opcode micromips_opcodes[] =
 {"xori",		"t,r,i",	0x70000000, 0xfc000000,	WR_1|RD_2,		0,		I1,		0,	0 },
 /* microMIPS R6 */
 /* FIXME: offsets are most likely shifted by 2 for conditional branches.  */
-{"aui",			"-s,t,u",	0x10000000, 0xfc000000,	WR_1|RD_2,		0,		I37,		0,	0 },
+{"aui",			"-t,s,u",	0x10000000, 0xfc000000,	WR_1|RD_2,		0,		I37,		0,	0 },
 {"aluipc",		"t,u",		0x781f0000, 0xfc1f0000, WR_1,			RD_pc,		I37,		0,	0 },
 {"auipc",		"t,u",		0x781e0000, 0xfc1f0000, WR_1,			RD_pc,		I37,		0,	0 },
-{"daui",		"-s,t,u",	0xf0000000, 0xfc000000,	WR_1|RD_2,		0,		I69,		0,	0 },
+{"daui",		"t,s,u",	0xf0000000, 0xfc000000,	WR_1|RD_2,		0,		I69,		0,	0 },
 
 {"align",		"d,s,t,+I",	0x0000001f, 0xfc0001ff,	WR_1|RD_2|RD_3,		0,		I37,		0,	0 },
 {"dalign",		"d,s,t,+O",	0x5800001c, 0xfc0000ff,	WR_1|RD_2|RD_3,		0,		I69,		0,	0 },

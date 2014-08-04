@@ -336,7 +336,7 @@ Disassembly of section .text:
 [	]*310: R_MICROMIPS_PC21_S1	.L11
 0+0314 <[^>]*> a403 8000 	jialc	v1,-32768
 0+0318 <[^>]*> a403 7fff 	jialc	v1,32767
-0+031c <[^>]*> 1043 ffff 	aui	v1,v0,0xffff
+0+031c <[^>]*> 1062 ffff 	aui	v1,v0,0xffff
 0+0320 <[^>]*> 7884 0000 	lapc	a0,fff00320 <[^>]*>
 [	]*320: R_MIPS_PC19_S2	L0
 0+0324 <[^>]*> 7883 ffff 	lapc	a0,00100320 <[^>]*>
