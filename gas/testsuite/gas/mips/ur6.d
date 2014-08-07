@@ -396,4 +396,3 @@ Disassembly of section .text:
 [	]*3cc: R_MICROMIPS_PC21_S1	.L11
 0+03d0 <[^>]*> 0c00      	nop
 0+03d2 <[^>]*> 0c00      	nop
-^(0+03d4 <[^>]*> 0000 0000 	nop|\t\.\.\.)

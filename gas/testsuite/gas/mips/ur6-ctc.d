@@ -212,4 +212,3 @@ Disassembly of section .text:
 0+018e <[^>]*> 4504      	jrcaddiusp	32
 0+0190 <[^>]*> 0c00      	nop
 0+0192 <[^>]*> 0c00      	nop
-\t\.\.\.
