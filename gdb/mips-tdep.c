@@ -2193,6 +2193,100 @@ mips32_bc1_pc (struct gdbarch *gdbarch, struct frame_info *frame,
   return pc;
 }
 
+/* Determine whether a vector branch will be taken.
+   Returns 1 if branch taken, 0 if branch not taken, -1 on error. */
+
+static int
+mips_bc1_w_taken (struct gdbarch *gdbarch, struct frame_info *frame,
+		  unsigned int op, unsigned int wt)
+{
+  int wr = gdbarch_num_regs (gdbarch) + mips_regnum (gdbarch)->w0;
+  int taken = -1;
+  int size, elem_size, tog;
+  gdb_byte *buf, *end, *elem_end;
+
+  if (wr == -1)
+    /* No way to handle; it'll most likely trap anyway.  */
+    return -1;
+  wr += wt;
+
+  /* Read vector register.  */
+  size = register_size (gdbarch, wr);
+  buf = alloca (size);
+  if (!deprecated_frame_register_read (frame, wr, buf))
+    return -1;
+
+  if ((op & 0x18) == 0x18)
+    {
+      elem_size = 1 << (op & 0x3);
+      /* Check whether this branch would be taken first:
+	 BZ.df: 110xx (branch if at least one element is zero) */
+      taken = 0;
+      for (end = buf + size; buf < end;)
+	{
+	  taken = 1;
+	  for (elem_end = buf + elem_size; buf < elem_end; ++buf)
+	    if (*buf)
+	      {
+		/* this element is non-zero */
+		taken = 0;
+		break;
+	      }
+	  if (taken)
+	    /* this element zero, branch taken */
+	    break;
+	  buf = elem_end;
+	}
+
+      if (op & 0x4)
+	/* BNZ.df: 111xx (branch if all elements are non-zero)
+	   Branch taken is inverted compared to BZ.df */
+	taken = !taken;
+    }
+  else if ((op & 0x1b) == 0x0b)
+    {
+      /* Check whether this branch would be taken first:
+	 BZ.V:  01011 (branch if all elements are zero) */
+      taken = 1;
+      for (end = buf + size; buf < end; ++buf)
+	if (*buf)
+	  {
+	    /* this element is non-zero, branch not taken */
+	    taken = 0;
+	    break;
+	  }
+      if (op & 0x4)
+	/* BNZ.V: 01111 (branch if any elements are non-zero)
+	   Branch taken is inverted compared to BZ.V */
+	taken = !taken;
+    }
+
+  return taken;
+}
+
+/* Determine the address of the next instruction executed after the INST
+   vector branch instruction at PC.  */
+
+static CORE_ADDR
+mips32_bc1_w_pc (struct gdbarch *gdbarch, struct frame_info *frame,
+		 ULONGEST inst, CORE_ADDR pc)
+{
+  int op = itype_rs (inst);
+  int wt = itype_rt (inst);
+  int taken;
+
+  /* Will the branch be taken? */
+  taken = mips_bc1_w_taken (gdbarch, frame, op, wt);
+
+  /* Calculate branch target */
+  if (taken > 0)
+    pc += mips32_relative_offset (inst);
+  else if (taken == 0)
+    pc += 4;
+
+  return pc;
+}
+
 /* Return nonzero if the gdbarch is an Octeon series.  */
 
 static int
@@ -2264,6 +2358,14 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
 	       && (itype_rt (inst) & 2) == 0)
 	/* BC1ANY4F, BC1ANY4T: 010001 01010 xxx0x */
 	pc = mips32_bc1_pc (gdbarch, frame, inst, pc + 4, 4);
+      else if (op == 17 && (itype_rs (inst) & 0x18) == 0x18)
+	/* BZ.df:  010001 110xx */
+	/* BNZ.df: 010001 111xx */
+	pc = mips32_bc1_w_pc (gdbarch, frame, inst, pc + 4);
+      else if (op == 17 && (itype_rs (inst) & 0x1b) == 0x0b)
+	/* BZ.V:   010001 01011 */
+	/* BNZ.V:  010001 01111 */
+	pc = mips32_bc1_w_pc (gdbarch, frame, inst, pc + 4);
       else if (op == 29)
 	/* JALX: 011101 */
 	/* The new PC will be alternate mode.  */
@@ -2490,6 +2592,30 @@ micromips_bc1_pc (struct gdbarch *gdbarch, struct frame_info *frame,
 }
 
 /* Calculate the address of the next microMIPS instruction to execute
+   after the INSN coprocessor 1 vector conditional branch instruction
+   at the address PC.  */
+
+static CORE_ADDR
+micromips_bc1_w_pc (struct gdbarch *gdbarch, struct frame_info *frame,
+		    ULONGEST insn, CORE_ADDR pc)
+{
+  int op = b5s5_op (insn >> 16);
+  int wt = b0s5_reg (insn >> 16);
+  int taken;
+
+  /* Will the branch be taken? */
+  taken = mips_bc1_w_taken (gdbarch, frame, op, wt);
+
+  /* Calculate branch target */
+  if (taken > 0)
+    pc += micromips_relative_offset16 (insn);
+  else if (taken == 0)
+    pc += micromips_pc_insn_size (gdbarch, pc);
+
+  return pc;
+}
+
+/* Calculate the address of the next microMIPS instruction to execute
    after the instruction at the address PC.  */
 
 static CORE_ADDR
@@ -2615,6 +2741,16 @@ micromips_next_pc (struct frame_info *frame, CORE_ADDR pc)
 		pc = micromips_bc1_pc (gdbarch, frame, insn, pc, 4);
 	      break;
 	    }
+	  break;
+
+	case 0x20: /* POOL32D: bits 100000 */
+	  if ((b5s5_op (insn) & 0x18) == 0x18
+			/* BZ.df:  bits 100000 110xx */
+			/* BNZ.df: bits 100000 111xx */
+	      || (b5s5_op (insn) & 0x1b) == 0x0b)
+			/* BZ.V:   bits 100000 01011 */
+			/* BNZ.V:  bits 100000 01111 */
+	      pc = micromips_bc1_w_pc (gdbarch, frame, insn, pc);
 	  break;
 
 	case 0x1d: /* JALS: bits 011101 */
@@ -4570,9 +4706,16 @@ mips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 	  is_branch = 1;
 	  break;
 	case 17: /* COP1 */
-	  is_branch = ((itype_rs (insn) == 9 || itype_rs (insn) == 10)
-		       && (itype_rt (insn) & 0x2) == 0);
-	  if (is_branch) /* BC1ANY2F, BC1ANY2T, BC1ANY4F, BC1ANY4T */
+	  is_branch = (((itype_rs (insn) == 9 || itype_rs (insn) == 10)
+			&& (itype_rt (insn) & 0x2) == 0)
+				/* BC1ANY2F, BC1ANY2T, BC1ANY4F, BC1ANY4T */
+		       || (itype_rs (insn) & 0x18) == 0x18
+				/* BZ.df:  010001 110xx */
+				/* BNZ.df: 010001 111xx */
+		       || (itype_rs (insn) & 0x1b) == 0x0b);
+				/* BZ.V:   010001 01011 */
+				/* BNZ.V:  010001 01111 */
+	  if (is_branch)
 	    break;
 	/* Fall through.  */
 	case 18: /* COP2 */
@@ -4668,6 +4811,16 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 	case 2 * MIPS_INSN16_SIZE:
 	  switch (micromips_op (insn))
 	    {
+	    case 0x20: /* POOL32D: bits 100000 */
+	      if ((b5s5_op (insn) & 0x18) != 0x18
+				/* BZ.df:  bits 100000 110xx */
+				/* BNZ.df: bits 100000 111xx */
+		  && (b5s5_op (insn) & 0x1b) != 0x0b)
+				/* BZ.V:   bits 100000 01011 */
+				/* BNZ.V:  bits 100000 01111 */
+		break;
+	      goto handle_branch;
+
 	    case 0x10: /* POOL32I: bits 010000 */
 	      if ((b5s5_op (insn) & 0x18) != 0x0
 				/* BLTZ, BLTZAL, BGEZ, BGEZAL: 010000 000xx */
@@ -4690,6 +4843,7 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 
 	    case 0x25: /* BEQ: bits 100101 */
 	    case 0x2d: /* BNE: bits 101101 */
+handle_branch:
 	      insn <<= 16;
 	      insn |= mips_fetch_instruction (gdbarch,
 					      ISA_MICROMIPS, loc, NULL);
@@ -7905,8 +8059,14 @@ mips32_instruction_has_delay_slot (struct gdbarch *gdbarch, ULONGEST inst)
 				/* BC1F, BC1FL, BC1T, BC1TL: 010001 01000  */
 		      || (rs == 9 && (rt & 0x2) == 0)
 				/* BC1ANY2F, BC1ANY2T: bits 010001 01001  */
-		      || (rs == 10 && (rt & 0x2) == 0))));
+		      || (rs == 10 && (rt & 0x2) == 0)
 				/* BC1ANY4F, BC1ANY4T: bits 010001 01010  */
+		      || ((rs & 0x18) == 0x18)
+				/* BZ.df:  bits 010001 110xx */
+				/* BNZ.df: bits 010001 111xx */
+		      || ((rs & 0x1b) == 0x0b))));
+				/* BZ.V:   bits 010001 01011 */
+				/* BNZ.V:  bits 010001 01111 */
     }
   else
     switch (op & 0x07)		/* extract bits 28,27,26  */
@@ -7977,6 +8137,13 @@ micromips_instruction_has_delay_slot (ULONGEST insn, int mustbe32)
     case 0x35:			/* J: bits 110101 */
     case 0x2d:			/* BNE: bits 101101 */
     case 0x25:			/* BEQ: bits 100101 */
+    case 0x20:			/* POOL32D: bits 100000 */
+      return ((b5s5_op (major) & 0x18) == 0x18
+				/* BZ.df:  bits 100000 110xx */
+				/* BNZ.df: bits 100000 111xx */
+	      || ((b5s5_op (major) & 0x1b) == 0x0b));
+				/* BZ.V:   bits 100000 01011 */
+				/* BNZ.V:  bits 100000 01111 */
     case 0x1d:			/* JALS: bits 011101 */
       return 1;
     case 0x10:			/* POOL32I: bits 010000 */
