@@ -147,6 +147,10 @@ if {[istarget mips*-*-elf]} {
 
     run_sim_tests r2-fpu.s $models $micromipsmodels
 
+    append SIMFLAGS " --memory-size=512M"
+    run_sim_test micromips.s $micromipsmodels
+    set SIMFLAGS ""
+
     run_sim_test r6-fpu.s $models
     run_micromips_test r6-fpu-mm.s $micromipsmodels
     run_sim_tests r6.s $models $micromipsmodels
