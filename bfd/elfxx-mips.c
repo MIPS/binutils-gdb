@@ -5869,9 +5869,6 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 16);
 
-      if ((symbol + addend) & 3)
-	return bfd_reloc_outofrange;
-
       value = symbol + addend - gp;
       /* If the symbol was local, any earlier relocatable links will
 	 have adjusted its addend with the gp offset, so compensate
