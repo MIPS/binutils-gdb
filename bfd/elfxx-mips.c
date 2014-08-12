@@ -13048,6 +13048,50 @@ static const struct opcode_descriptor nop_insn_32 =
 static const struct opcode_descriptor nop_insn_16 =
   { /* "nop",	"",		*/ 0x0c00,     0xffff };
 
+/* 'JALX' R6 instructions. */
+
+static const struct opcode_descriptor auipc_insn_32 =
+  { /* "auipc",	"s,u",		*/ 0xec1e0000, 0xfc1f0000 };
+
+static const struct opcode_descriptor auipc_insn_mm =
+  { /* "auipc",	"t,u",		*/ 0x781e0000, 0xfc1f0000 };
+
+static const struct opcode_descriptor jialc_insn_32 =
+  { /* "jialc",	"t,j",		*/ 0xf8000000, 0xffe00000 };
+
+static const struct opcode_descriptor jialc_insn_mm =
+  { /* "jialc",	"s,j",		*/ 0xa4000000, 0xffe00000 };
+
+static const struct opcode_descriptor jal_insn_32 =
+  { /* "jal",	"a",		*/ 0x0c000000, 0xfc000000 };
+
+static const struct opcode_descriptor jalc_insn_mm =
+  { /* "jalc",	"a",		*/ 0xf4000000, 0xfc000000 };
+
+static const struct opcode_descriptor balc_insn_32 =
+  { /* "balc",	"+'",		*/ 0xe8000000, 0xfc000000 };
+
+static const struct opcode_descriptor balc_insn_mm =
+  { /* "balc",	"+'",		*/ 0xb4000000, 0xfc000000 };
+
+static const struct opcode_descriptor jic_insn_32 =
+  { /* "jic",	"t,j",		*/ 0xd8000000, 0xffe00000 };
+
+static const struct opcode_descriptor jic_insn_mm =
+  { /* "jic",	"s,j",		*/ 0xa0000000, 0xffe00000 };
+
+static const struct opcode_descriptor j_insn_r6_32 =
+  { /* "j",	"a",		*/ 0x08000000, 0xfc000000 };
+
+static const struct opcode_descriptor jc_insn_mm =
+  { /* "jc",	"a",		*/ 0xd4000000, 0xfc000000 };
+
+static const struct opcode_descriptor bc_insn_r6_32 =
+  { /* "bc",	"+'",		*/ 0xc8000000, 0xfc000000 };
+
+static const struct opcode_descriptor bc_insn_mm =
+  { /* "bc",	"+'",		*/ 0x94000000, 0xfc000000 };
+
 
 /* Instruction match support.  */
 
@@ -13256,7 +13300,8 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
          this reloc.  */
       if (r_type != R_MICROMIPS_HI16
 	  && r_type != R_MICROMIPS_PC16_S1
-	  && r_type != R_MICROMIPS_26_S1)
+	  && r_type != R_MICROMIPS_26_S1
+	  && r_type != R_MIPS_PCHI16)
 	continue;
 
       /* Get the section contents if we haven't done so already.  */
@@ -13604,6 +13649,136 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
 	      /* Delete 2 bytes from irel->r_offset + 6.  */
 	      delcnt = 2;
 	      deloff = 6;
+	    }
+	}
+
+      /* R_MIPS_PCHI16 -- R6 'JALX' relaxation for close targets. */
+      else if (r_type == R_MIPS_PCHI16
+	       && (MATCH (opcode, auipc_insn_32)
+		   || MATCH (opcode, auipc_insn_mm)))
+	{
+	  unsigned long n32opc = bfd_get_micromips_32 (abfd, ptr + 4);
+	  unsigned rt = (opcode >> 21) & 0x1f;
+	  unsigned rs = (n32opc >> 16) & 0x1f;
+
+	  /* Definitely AUIPC followed by JIALC */
+	  if ((rt == rs)
+	      && ((MATCH (opcode, auipc_insn_32)
+		   && (MATCH (n32opc, jialc_insn_32)
+		       || MATCH (n32opc, jic_insn_32)))
+		  || (MATCH (opcode, auipc_insn_mm)
+		      && (MATCH (n32opc, jialc_insn_mm)
+			  || MATCH (n32opc, jic_insn_mm)))))
+	    {
+	      bfd_boolean cross_mode_switch_p =
+		(target_is_micromips_code_p
+		 && MATCH (opcode, auipc_insn_32))
+		|| (!target_is_micromips_code_p
+		    && MATCH (opcode, auipc_insn_mm));
+
+	      /* Give up if the next reloc is not a LO16 against this symbol.  */
+	      if (irel + 1 >= irelend
+		  || ELF32_R_TYPE (irel[1].r_info) != R_MIPS_PCLO16
+		  || ELF32_R_SYM (irel[1].r_info) != r_symndx)
+		continue;
+
+
+	      /* Not cross mode optimizations */
+	      if (!cross_mode_switch_p)
+		{
+		  unsigned long pc = sec->output_section->vma
+		    + sec->output_section->output_offset
+		    + irel->r_offset;
+		  unsigned long target = pc + pcrval;
+		  signed long offset = target - (pc + 4);
+		  bfd_boolean changed = FALSE;
+		  bfd_boolean linking_p = MATCH (n32opc, jialc_insn_32)
+		    || MATCH (n32opc, jialc_insn_mm);
+
+		  /* JIALC -> JAL(C)/BALC and JIC -> J(C)/BC */
+		  if (!target_is_micromips_code_p)
+		    {
+		      /* If target is not aligned, we can't relax it at all. */
+		      if (target & 3)
+			continue;
+
+		      /* Within signed(26-bit<<2) offset of PC+4? */
+		      if (offset <= 0x7ffffff && offset >= -0x8000000)
+			{
+			  if (linking_p)
+			    bfd_put_32 (abfd, balc_insn_32.match | 0x3ffffff, ptr);
+			  else
+			    bfd_put_32 (abfd, bc_insn_r6_32.match | 0x3ffffff, ptr);
+
+			  changed = TRUE;
+			  irel->r_info = ELF32_R_INFO (r_symndx,
+						       R_MIPS_PC26_S2);
+
+			  /* Delete the JIALC following. */
+			  delcnt = 4;
+			  deloff = 4;
+			}
+		      /* In the same 256MB region? */
+		      else if ((target & 0xf0000000) == (pc & 0xf0000000))
+			{
+			  if (linking_p)
+			    bfd_put_32 (abfd, jal_insn_32.match, ptr);
+			  else
+			    bfd_put_32 (abfd, j_insn_r6_32.match, ptr);
+
+			  changed = TRUE;
+			  irel->r_info = ELF32_R_INFO (r_symndx,
+						       R_MIPS_26);
+
+			  /* Insert a nop into the forbidden slot */
+			  bfd_put_32 (abfd, 0, ptr + 4);
+			}
+		    }
+		  else
+		    {
+		      /* Within signed(26-bit<<1) offset of PC+4? */
+		      if (offset <= 0x3ffffff && offset >= -0x4000000)
+			{
+			  if (linking_p)
+			    bfd_put_micromips_32 (abfd,
+						  balc_insn_mm.match | 0x3fffffe, ptr);
+			  else
+			    bfd_put_micromips_32 (abfd,
+						  bc_insn_mm.match | 0x3fffffe, ptr);
+			  changed = TRUE;
+			  irel->r_info = ELF32_R_INFO (r_symndx,
+						       R_MICROMIPS_PC26_S1);
+			}
+		      /* In the same 128MB region? */
+		      else if ((target & 0xf8000000) == (pc & 0xf8000000))
+			{
+			  if (linking_p)
+			    bfd_put_micromips_32 (abfd,
+						  jalc_insn_mm.match, ptr);
+			  else
+			    bfd_put_micromips_32 (abfd,
+						  jc_insn_mm.match, ptr);
+			  changed = TRUE;
+			  irel->r_info = ELF32_R_INFO (r_symndx,
+						       R_MICROMIPS_26_S1);
+			}
+
+		      if (changed)
+			{
+			  /* Delete the JIALC following. */
+			  delcnt = 4;
+			  deloff = 4;
+			}
+		    }
+
+		  if (changed)
+		    {
+		      /* Nullify the reloc for the JI(AL)C that followed */
+		      irel[1].r_info = 0;
+		      irel[1].r_addend = 0;
+		      irel[1].r_offset = 0;
+		    }
+		}
 	    }
 	}
 

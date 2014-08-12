@@ -11098,6 +11098,8 @@ macro (struct mips_cl_insn *ip, char *str)
       if (used_at || !mips_opts.at)
 	as_bad(_("AT needed for JALX expansion"));
 
+      gas_assert (offset_expr.X_op == O_symbol);
+
       used_at = 1;
       start_noreorder ();
       macro_build (&offset_expr, "auipc", AUIPC_FMT, AT, BFD_RELOC_HI16_S_PCREL);
@@ -16995,7 +16997,10 @@ mips_fix_adjustable (fixS *fixp)
      start address of the symbol's containing section.  */
   if (HAVE_IN_PLACE_ADDENDS
       && (limited_pcrel_reloc_p (fixp->fx_r_type)
-	  || jalr_reloc_p (fixp->fx_r_type)))
+	  || jalr_reloc_p (fixp->fx_r_type))
+      /* Don't fix the R6 JALX relocs */
+          || fixp->fx_r_type == BFD_RELOC_HI16_S_PCREL
+	  || fixp->fx_r_type == BFD_RELOC_LO16_PCREL)
     return 0;
 
   /* R_MIPS16_26 relocations against non-MIPS16 functions might resolve
