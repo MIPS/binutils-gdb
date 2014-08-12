@@ -1540,6 +1540,7 @@ enum
   M_JALS_1,
   M_JALS_2,
   M_JALS_A,
+  M_JALX_A,
   M_JRADDIUSP,
   M_JRC,
   M_L_DAB,

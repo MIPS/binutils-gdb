@@ -8244,18 +8244,22 @@ macro_end (void)
 /* Instruction operand formats used in macros that vary between
    standard MIPS and microMIPS code.  */
 
+static const char * const auipc_fmt[2] = { "s,u", "t,u" };
 static const char * const brk_fmt[2][2] = { { "c", "c" }, { "mF", "c" } };
 static const char * const cop12_fmt[2] = { "E,o(b)", "E,~(b)" };
 static const char * const jalr_fmt[2] = { "d,s", "t,s" };
+static const char * const jialc_fmt[2] = { "t,j" , "s,j" };
 static const char * const lui_fmt[2] = { "t,u", "s,u" };
 static const char * const mem12_fmt[2] = { "t,o(b)", "t,~(b)" };
 static const char * const mfhl_fmt[2][2] = { { "d", "d" }, { "mj", "s" } };
 static const char * const shft_fmt[2] = { "d,w,<", "t,r,<" };
 static const char * const trap_fmt[2] = { "s,t,q", "s,t,|" };
 
+#define AUIPC_FMT (auipc_fmt[mips_opts.micromips])
 #define BRK_FMT (brk_fmt[mips_opts.micromips][mips_opts.insn32])
 #define COP12_FMT (cop12_fmt[mips_opts.micromips])
 #define JALR_FMT (jalr_fmt[mips_opts.micromips])
+#define JIALC_FMT (jialc_fmt[mips_opts.micromips])
 #define LUI_FMT (lui_fmt[ISA_IS_R6 (mips_opts.isa) ? 0 : mips_opts.micromips])
 #define MEM12_FMT (mem12_fmt[mips_opts.micromips])
 #define MFHL_FMT (mfhl_fmt[mips_opts.micromips][mips_opts.insn32])
@@ -8369,7 +8373,8 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 		      || *r == BFD_RELOC_MIPS_HIGHER
 		      || *r == BFD_RELOC_HI16_S
 		      || *r == BFD_RELOC_LO16
-		      || *r == BFD_RELOC_MIPS_GOT_OFST);
+		      || *r == BFD_RELOC_MIPS_GOT_OFST
+		      || *r == BFD_RELOC_LO16_PCREL);
 	  break;
 
 	case 'o':
@@ -8386,7 +8391,8 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 				  || *r == BFD_RELOC_HI16
 				  || *r == BFD_RELOC_GPREL16
 				  || *r == BFD_RELOC_MIPS_GOT_HI16
-				  || *r == BFD_RELOC_MIPS_CALL_HI16))));
+				  || *r == BFD_RELOC_MIPS_CALL_HI16
+				  || *r == BFD_RELOC_HI16_S_PCREL))));
 	  break;
 
 	case 'p':
@@ -11086,6 +11092,18 @@ macro (struct mips_cl_insn *ip, char *str)
       else
 	abort ();
 
+      break;
+
+    case M_JALX_A:
+      if (used_at || !mips_opts.at)
+	as_bad(_("AT needed for JALX expansion"));
+
+      used_at = 1;
+      start_noreorder ();
+      macro_build (&offset_expr, "auipc", AUIPC_FMT, AT, BFD_RELOC_HI16_S_PCREL);
+      offset_expr.X_add_number = 4;
+      macro_build (&offset_expr, "jialc", JIALC_FMT, AT, BFD_RELOC_LO16_PCREL);
+      end_noreorder ();
       break;
 
     case M_LBUE_AB:
@@ -14626,6 +14644,18 @@ mips_force_relocation (fixS *fixp)
     return 1;
 
   return 0;
+}
+
+int
+mips_force_relocation_local (fixS *fixp)
+{
+  /* The R6 'JALX' PC-relative relocations need to be kept for relaxation. */
+  if (ISA_IS_R6 (mips_opts.isa)
+      && (fixp->fx_r_type == BFD_RELOC_HI16_S_PCREL
+	  || fixp->fx_r_type == BFD_RELOC_LO16_PCREL))
+    return 1;
+
+  return !fixp->fx_pcrel || mips_force_relocation(fixp);
 }
 
 /* Read the instruction associated with RELOC from BUF.  */

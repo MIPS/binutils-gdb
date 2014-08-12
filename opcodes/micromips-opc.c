@@ -863,6 +863,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"jals",		"a",		0,    (int) M_JALS_A,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"jals",		"a",		0x74000000, 0xfc000000,	WR_31|UBD,		BD16,		I1,		0,	I37 },
 {"jalx",		"+i",		0xf0000000, 0xfc000000,	WR_31|UBD,		BD32,		I1,		0,	I37 },
+{"jalx",		"+i",		0,    (int) M_JALX_A,	INSN_MACRO,		0,		I37,		0,	0 },
 {"la",			"t,A(b)",	0,    (int) M_LA_AB,	INSN_MACRO,		0,		I1,		0,	0 },
 {"lb",			"t,o(b)",	0x1c000000, 0xfc000000,	WR_1|RD_3|LM,		0,		I1,		0,	0 },
 {"lb",			"t,A(b)",	0,    (int) M_LB_AB,	INSN_MACRO,		0,		I1,		0,	0 },
