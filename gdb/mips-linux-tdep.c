@@ -960,6 +960,111 @@ static const struct tramp_frame micromips_linux_n64_rt_sigframe = {
 };
 
 /* *INDENT-OFF* */
+/* The unwinder for extended context in signal frames. Extended context looks
+   like this, at the beginning of a larger struct:
+
+   struct extcontext {
+     unsigned int      magic;
+     unsigned int      size;
+   };
+
+   struct msa_extcontext {
+     struct extcontext	  ext;
+     unsigned long long	  wr[32];
+     unsigned int	  csr;
+   };  */
+/* *INDENT-ON* */
+
+#define EXTCONTEXT_MAGIC_OFFSET	    (0 * 4)
+#define EXTCONTEXT_SIZE_OFFSET	    (1 * 4)
+#define EXTCONTEXT_SIZE		    (2 * 4)
+
+#define END_EXTCONTEXT_MAGIC  0x78454e44  /* xEND */
+#define MSA_EXTCONTEXT_MAGIC  0x784d5341  /* xMSA */
+
+#define MSA_EXTCONTEXT_WR_OFFSET    EXTCONTEXT_SIZE
+#define MSA_EXTCONTEXT_WREG_SIZE    8
+#define MSA_EXTCONTEXT_CSR_OFFSET   (EXTCONTEXT_SIZE \
+				     + 32 * MSA_EXTCONTEXT_WREG_SIZE)
+
+static void
+mips_linux_msa_extcontext_init (struct frame_info *this_frame,
+				struct trad_frame_cache *this_cache,
+				CORE_ADDR extcontext_base)
+{
+  struct gdbarch *gdbarch = get_frame_arch (this_frame);
+  const struct mips_regnum *regs = mips_regnum (gdbarch);
+  unsigned int i;
+
+  if (regs->w0 != -1)
+    for (i = 0; i < 32; ++i)
+      trad_frame_set_reg_addr (this_cache, regs->w0 + i
+			      + gdbarch_num_regs (gdbarch),
+			       extcontext_base + MSA_EXTCONTEXT_WR_OFFSET
+			       + i * MSA_EXTCONTEXT_WREG_SIZE);
+  if (regs->msa_csr != -1)
+    trad_frame_set_reg_addr (this_cache, regs->msa_csr,
+			     extcontext_base + MSA_EXTCONTEXT_CSR_OFFSET);
+}
+
+static void
+mips_linux_extcontext_init (struct frame_info *this_frame,
+			    struct trad_frame_cache *this_cache,
+			    CORE_ADDR extcontext_base)
+{
+  struct gdbarch *gdbarch = get_frame_arch (this_frame);
+  enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
+  gdb_byte buf[4];
+  uint32_t magic, size;
+  unsigned int i;
+
+  /* Limit the extended context blocks read */
+  for (i = 0; i < 10; ++i)
+    {
+      /* Read magic.  */
+      if (!safe_frame_unwind_memory (this_frame,
+				     extcontext_base + EXTCONTEXT_MAGIC_OFFSET,
+				     buf, 4))
+	break;
+      magic = extract_unsigned_integer (buf, 4, byte_order);
+      /* Stop at the END magic.  */
+      if (magic == END_EXTCONTEXT_MAGIC)
+	break;
+      /* Read size of extended context. */
+      if (!safe_frame_unwind_memory (this_frame,
+				     extcontext_base + EXTCONTEXT_SIZE_OFFSET,
+				     buf, 4))
+	break;
+      size = extract_unsigned_integer (buf, 4, byte_order);
+      /* We don't want to loop forever or fly off into the distance
+       * if something went terribly wrong.  */
+      if (!size || size > 4096)
+	{
+	  warning (_("%s: bad extended context size 0x%x"),
+		   __func__, size);
+	  break;
+	}
+      /* The rest depends on what type of context it is.  */
+      switch (magic)
+	{
+	case MSA_EXTCONTEXT_MAGIC:
+	  mips_linux_msa_extcontext_init (this_frame, this_cache,
+					  extcontext_base);
+	  break;
+
+	default:
+	  if (gdbarch_debug)
+	    fprintf_unfiltered (gdb_stdlog,
+				"%s: unrecognised extcontext magic = 0x%08x\n",
+				__func__, magic);
+	  break;
+	}
+      /* And skip to the next block of extended context.  */
+      extcontext_base += size;
+    }
+}
+
+/* *INDENT-OFF* */
 /* The unwinder for o32 signal frames.  The legacy structures look
    like this:
 
@@ -968,6 +1073,7 @@ static const struct tramp_frame micromips_linux_n64_rt_sigframe = {
      u32 sf_code[2];           [signal trampoline or fill]
      struct sigcontext sf_sc;
      sigset_t sf_mask;
+     struct extcontext sf_extcontext[0];
    };
 
    Pre-2.6.12 sigcontext:
@@ -1033,17 +1139,30 @@ static const struct tramp_frame micromips_linux_n64_rt_sigframe = {
      [Alignment hole of four bytes]
      struct sigcontext uc_mcontext;
      sigset_t          uc_sigmask;
+     struct extcontext uc_extcontext[0];
    };  */
 /* *INDENT-ON* */
 
+#define SIGCONTEXT_SIZE		     (74 * 8)
+#define SIGSET_T_SIZE		     (2 * 8)
+
 #define SIGFRAME_SIGCONTEXT_OFFSET   (6 * 4)
+#define SIGFRAME_EXTCONTEXT_OFFSET   (SIGFRAME_SIGCONTEXT_OFFSET \
+				      + SIGCONTEXT_SIZE \
+				      + SIGSET_T_SIZE)
 
 #define RTSIGFRAME_SIGINFO_SIZE      128
 #define STACK_T_SIZE                 (3 * 4)
 #define UCONTEXT_SIGCONTEXT_OFFSET   (2 * 4 + STACK_T_SIZE + 4)
+#define UCONTEXT_EXTCONTEXT_OFFSET   (UCONTEXT_SIGCONTEXT_OFFSET \
+				      + SIGCONTEXT_SIZE \
+				      + SIGSET_T_SIZE)
 #define RTSIGFRAME_SIGCONTEXT_OFFSET (SIGFRAME_SIGCONTEXT_OFFSET \
 				      + RTSIGFRAME_SIGINFO_SIZE \
 				      + UCONTEXT_SIGCONTEXT_OFFSET)
+#define RTSIGFRAME_EXTCONTEXT_OFFSET (SIGFRAME_SIGCONTEXT_OFFSET \
+				      + RTSIGFRAME_SIGINFO_SIZE \
+				      + UCONTEXT_EXTCONTEXT_OFFSET)
 
 #define SIGCONTEXT_PC       (1 * 8)
 #define SIGCONTEXT_REGS     (2 * 8)
@@ -1073,6 +1192,9 @@ static const struct tramp_frame micromips_linux_n64_rt_sigframe = {
 #ifndef USED_HYBRID_FPRS
 #define USED_HYBRID_FPRS    (1 << 2)
 #endif
+#ifndef USED_EXTCONTEXT
+#define USED_EXTCONTEXT	    (1 << 3)
+#endif
 
 static void
 mips_linux_o32_sigframe_init (const struct tramp_frame *self,
@@ -1083,7 +1205,7 @@ mips_linux_o32_sigframe_init (const struct tramp_frame *self,
   struct gdbarch *gdbarch = get_frame_arch (this_frame);
   int ireg;
   CORE_ADDR frame_sp = get_frame_sp (this_frame);
-  CORE_ADDR sigcontext_base;
+  CORE_ADDR sigcontext_base, extcontext_base;
   const struct mips_regnum *regs = mips_regnum (gdbarch);
   CORE_ADDR regs_base;
   gdb_byte buf[4];
@@ -1166,6 +1288,20 @@ mips_linux_o32_sigframe_init (const struct tramp_frame *self,
 			   (regs->fp_control_status
 			    + gdbarch_num_regs (gdbarch)),
 			   sigcontext_base + SIGCONTEXT_FPCSR);
+
+  if (used_math & USED_EXTCONTEXT)
+    {
+      /* Extended context is present,
+	 find base of extended context list.  */
+      if (self == &mips_linux_o32_sigframe)
+	extcontext_base = frame_sp + SIGFRAME_EXTCONTEXT_OFFSET;
+      else
+	extcontext_base = frame_sp + RTSIGFRAME_EXTCONTEXT_OFFSET;
+
+      /* And read the blocks of extended context.  */
+      mips_linux_extcontext_init (this_frame, this_cache,
+				  extcontext_base);
+    }
 
   if (regs->dspctl != -1)
     trad_frame_set_reg_addr (this_cache,
