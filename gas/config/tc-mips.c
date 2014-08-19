@@ -14975,9 +14975,8 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 
     case BFD_RELOC_MICROMIPS_21_PCREL_S1:
     case BFD_RELOC_MICROMIPS_26_PCREL_S1:
-      if ((*valP & 0x1) != 0)
-	as_bad_where (fixP->fx_file, fixP->fx_line,
-		      _("branch to misaligned address (%lx)"), (long) *valP);
+      /* Loose the micromips lsb bit. */
+      *valP = (*valP) & ~1;
 
       /* We need to save the bits in the instruction since fixup_segment()
 	 might be deleting the relocation entry (i.e., a branch within
