@@ -5992,7 +5992,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
     case R_MIPS_PCHI16:
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 16);
-      value = mips_elf_high (symbol + addend - p);
+      value = mips_elf_high (symbol + addend - (p & ~3));
       BFD_ASSERT (howto->rightshift == 16);
       overflowed_p = mips_elf_overflow_p (value, 16);
       value &= howto->dst_mask;
@@ -6001,7 +6001,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
     case R_MIPS_PCLO16:
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 16);
-      value = symbol + _bfd_mips_elf_sign_extend (addend, 16) - p;
+      value = symbol + _bfd_mips_elf_sign_extend (addend, 16) - (p & ~3);
       value &= howto->dst_mask;
       break;
 
