@@ -8248,6 +8248,7 @@ static const char * const auipc_fmt[2] = { "s,u", "t,u" };
 static const char * const brk_fmt[2][2] = { { "c", "c" }, { "mF", "c" } };
 static const char * const cop12_fmt[2] = { "E,o(b)", "E,~(b)" };
 static const char * const jalr_fmt[2] = { "d,s", "t,s" };
+static const char * const jic_fmt[2] = { "t,j" , "s,j" };
 static const char * const jialc_fmt[2] = { "t,j" , "s,j" };
 static const char * const lui_fmt[2] = { "t,u", "s,u" };
 static const char * const mem12_fmt[2] = { "t,o(b)", "t,~(b)" };
@@ -8259,6 +8260,7 @@ static const char * const trap_fmt[2] = { "s,t,q", "s,t,|" };
 #define BRK_FMT (brk_fmt[mips_opts.micromips][mips_opts.insn32])
 #define COP12_FMT (cop12_fmt[mips_opts.micromips])
 #define JALR_FMT (jalr_fmt[mips_opts.micromips])
+#define JIC_FMT (jic_fmt[mips_opts.micromips])
 #define JIALC_FMT (jialc_fmt[mips_opts.micromips])
 #define LUI_FMT (lui_fmt[ISA_IS_R6 (mips_opts.isa) ? 0 : mips_opts.micromips])
 #define MEM12_FMT (mem12_fmt[mips_opts.micromips])
@@ -10858,7 +10860,27 @@ macro (struct mips_cl_insn *ip, char *str)
 	 requires an absolute address.  We convert it to a b
 	 instruction.  */
       if (mips_pic == NO_PIC)
-	macro_build (&offset_expr, "j", "a");
+	{
+	  if (ISA_IS_R6 (mips_opts.isa))
+	    {
+	      if (used_at || !mips_opts.at)
+		      as_bad(_("AT needed for J expansion"));
+
+	      gas_assert (offset_expr.X_op == O_symbol);
+
+	      used_at = 1;
+	      start_noreorder ();
+	      macro_build (&offset_expr, "auipc", AUIPC_FMT, AT,
+			   BFD_RELOC_HI16_S_PCREL);
+	      offset_expr.X_add_number = 4;
+	      macro_build (&offset_expr, "jic", JIC_FMT, AT,
+			   BFD_RELOC_LO16_PCREL);
+	      end_noreorder ();
+
+	    }
+	  else
+	    macro_build (&offset_expr, "j", "a");
+	}
       else
 	macro_build (&offset_expr, "b", "p");
       break;

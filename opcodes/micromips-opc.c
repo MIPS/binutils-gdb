@@ -811,14 +811,14 @@ const struct mips_opcode micromips_opcodes[] =
 {"jr.hb",		"s",		0x00001f3c, 0xffe0ffff,	RD_1|UBD,		BD32,		I1,		0,	I37 }, /* jalr.hb */
 {"jr.hb",		"s",		0x00001f3c, 0xffe0ffff,	RD_1,			INSN2_ALIAS|UBR|CTC, I37,	0,	0 }, /* jalrc.hb */
 {"jrs.hb",		"s",		0x00005f3c, 0xffe0ffff,	RD_1|UBD,		BD16,		I1,		0,	I37 }, /* jalrs.hb */
+/* SVR4 PIC code requires special handling for j, so it must be a
+   macro.  */
+{"j",			"a",		0,    (int) M_J_A,	INSN_MACRO,		0,		I1,		0,	0 },
 {"j",			"mj",		    0x4580,     0xffe0,	RD_1|UBD,		0,		I1,		0,	I37 }, /* jr */
 {"j",			"mp",		    0x4403,     0xfc1f,	RD_1,			INSN2_ALIAS|UBR|CTC, I37,	0,	0 }, /* jrc16 */
 {"j",			"a",		0xd4000000, 0xfc000000,	0,			INSN2_ALIAS|UBR|CTC, I37,	0,	0 }, /* jc */
 {"j",			"s",		0x00000f3c, 0xffe0ffff,	RD_1|UBD,		BD32,		I1,		0,	I37 }, /* jr */
 {"j",			"s",		0x00000f3c, 0xffe0ffff,	RD_1,			INSN2_ALIAS|UBR|CTC, I37,	0,	0 }, /* jr->jalrc */
-/* SVR4 PIC code requires special handling for j, so it must be a
-   macro.  */
-{"j",			"a",		0,    (int) M_J_A,	INSN_MACRO,		0,		I1,		0,	I37 },
 /* This form of j is used by the disassembler and internally by the
    assembler, but will never match user input (because the line above
    will match first).  */
