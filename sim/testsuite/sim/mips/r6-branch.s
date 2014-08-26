@@ -234,22 +234,21 @@ L22:
 
 L23:
   writemsg "[23] Test JIC"
-  li $11, 0xfffffffc
   jal GetPC
   nop
-  and $6, $6, $11
-  jic $6, 20 #L24
+  jic $6, 28 #L24
   nop
   nop
   fail
+  nop
+  nop
 
 L24:
   writemsg "[24] Test JIALC"
   li $10, 1
   jal GetPC
   nop
-  and $6, $6, $11
-  jialc $6, 28 #LJIALCRET
+  jialc $6, 24 #LJIALCRET
   nop
   beqzc $10, L25
   nop
