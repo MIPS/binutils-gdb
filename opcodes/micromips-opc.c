@@ -1379,7 +1379,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"selnez.d",		"D,S,T",	0x54000278, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 },
 
 {"class.s",		"+D,+S",	0x54000060, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,		I37,		0,	0 },
-{"class.d",		"+D,+S",	0x54000860, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,		I37,		0,	0 },
+{"class.d",		"+D,+S",	0x54000260, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,		I37,		0,	0 },
 {"min.s",		"D,S,T",	0x54000003, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 },
 {"min.d",		"D,S,T",	0x54000043, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 },
 {"max.s",		"D,S,T",	0x5400000b, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 },
@@ -1389,7 +1389,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"maxa.s",		"D,S,T",	0x5400002b, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_S,	0,		I37,		0,	0 },
 {"maxa.d",		"D,S,T",	0x5400006b, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 }, 
 {"rint.s",		"+D,+S",	0x54000020, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,		I37,		0,	0 },
-{"rint.d",		"+D,+S",	0x54000820, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,		I37,		0,	0 },
+{"rint.d",		"+D,+S",	0x54000220, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,		I37,		0,	0 },
 
 {"bc1eqzc",		"+D,p",		0x41000000, 0xffe00000,	RD_1|FP_S,		CBR,		I37,		0,	0 },
 {"bc1nezc",		"+D,p",		0x41200000, 0xffe00000,	RD_1|FP_S,		CBR,		I37,		0,	0 },
