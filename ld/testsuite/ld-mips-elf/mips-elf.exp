@@ -839,3 +839,5 @@ run_dump_test "attr-gnu-8-12"
 run_dump_test "attr-gnu-8-20"
 run_dump_test "attr-gnu-8-21"
 run_dump_test "attr-gnu-8-22"
+
+run_dump_test "ur6-jalx"
