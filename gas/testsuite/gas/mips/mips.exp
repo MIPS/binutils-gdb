@@ -567,9 +567,9 @@ if { [istarget mips*-*-vxworks*] } {
     if { !$addr32 } {
 	run_dump_test_arches "dli"	[mips_arch_list_matching mips3]
     }
-    run_dump_test_arches "jal"		[mips_arch_list_matching mips1]
-    run_dump_test_arches "jal-mask-11"	[mips_arch_list_matching mips1]
-    run_dump_test_arches "jal-mask-12"	[mips_arch_list_matching mips1]
+    run_dump_test_arches "jal"		[mips_arch_list_matching mips1 !mips32r6]
+    run_dump_test_arches "jal-mask-11"	[mips_arch_list_matching mips1 !mips32r6]
+    run_dump_test_arches "jal-mask-12"	[mips_arch_list_matching mips1 !mips32r6]
     run_dump_test_arches "jal-mask-21"	[mips_arch_list_matching micromips]
     run_dump_test_arches "jal-mask-22"	[mips_arch_list_matching micromips]
     run_dump_test "eret-1"
@@ -610,7 +610,7 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test_arches "jal-svr4pic-noreorder" \
 					[mips_arch_list_matching mips1]
     run_dump_test "jal-xgot"
-    run_list_test_arches "jal-range" "-32" [mips_arch_list_matching mips1]
+    run_list_test_arches "jal-range" "-32" [mips_arch_list_matching mips1 !mips32r6]
     if $has_newabi { run_dump_test "jal-newabi" }
     run_dump_test "la"
     run_dump_test "la-svr4pic"
