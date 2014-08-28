@@ -1,6 +1,6 @@
 .*: Assembler messages:
 .*:15: Error: invalid operands `addu16 \$12,\$14'
-.*:18: Error: unrecognized 16-bit version of microMIPS opcode `add16\.ps \$f2,\$f4'
+.*:18: Error: unrecognized 16-bit version of microMIPS opcode `add16.ps \$f2,\$f4'
 .*:22: Error: unrecognized 32-bit version of microMIPS opcode `addiusp32 256'
 .*:25: Error: unrecognized opcode `jar \$23'
 .*:26: Error: unrecognized opcode `jar16 \$23'
@@ -9,9 +9,9 @@
 .*:50: Error: invalid operands `beqz16 \$27,bar'
 .*:58: Warning: wrong size instruction in a 32-bit branch delay slot
 .*:66: Warning: wrong size instruction in a 16-bit branch delay slot
-.*:70: Error: unrecognized 16-bit version of microMIPS opcode `add16\.ps \$f2,\$f4'
+.*:70: Error: unrecognized 16-bit version of microMIPS opcode `add16.ps \$f2,\$f4'
 .*:74: Warning: wrong size instruction in a 16-bit branch delay slot
-.*:76: Error: unrecognized 16-bit version of microMIPS opcode `add16\.ps \$f2,\$f4'
+.*:76: Error: unrecognized 16-bit version of microMIPS opcode `add16.ps \$f2,\$f4'
 .*:77: Warning: wrong size instruction in a 16-bit branch delay slot
 .*:78: Warning: wrong size instruction in a 16-bit branch delay slot
 .*:80: Warning: wrong size instruction in a 32-bit branch delay slot
@@ -21,7 +21,7 @@
 .*:95: Warning: macro instruction expanded into a wrong size instruction in a 16-bit branch delay slot
 .*:95: Warning: macro instruction expanded into multiple instructions in a branch delay slot
 .*:98: Warning: wrong size instruction in a 32-bit branch delay slot
-.*:104: Error: unrecognized 16-bit version of microMIPS opcode `add16\.ps \$f2,\$f4'
+.*:104: Error: unrecognized 16-bit version of microMIPS opcode `add16.ps \$f2,\$f4'
 .*:105: Warning: macro instruction expanded into multiple instructions in a branch delay slot
 .*:108: Warning: wrong size instruction in a 32-bit branch delay slot
 .*:110: Warning: wrong size instruction in a 32-bit branch delay slot
@@ -42,3 +42,4 @@
 .*:157: Error: operand 1 out of range `addiusp16 10'
 .*:160: Error: operand 1 out of range `addiusp16 1032'
 .*:162: Error: operand 1 out of range `addiusp16 -1036'
+
