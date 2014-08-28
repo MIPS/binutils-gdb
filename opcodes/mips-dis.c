@@ -770,6 +770,17 @@ is_micromips (Elf_Internal_Ehdr *header)
   return 0;
 }
 
+/* Check if ISA is R6.  */
+
+static int
+is_isa_r6 (unsigned long isa)
+{
+  if ((isa & INSN_ISA_MASK) == ISA_MIPS32R6
+      || ((isa & INSN_ISA_MASK) == ISA_MIPS64R6))
+    return 1;
+  return 0;
+}
+
 static void
 set_default_mips_dis_options (struct disassemble_info *info)
 {
@@ -1662,8 +1673,7 @@ print_insn_mips (bfd_vma memaddr,
 	      /* We always disassemble the jalx instruction, except for MIPS r6.  */
 	      if (!opcode_is_member (op, mips_isa, mips_ase, mips_processor)
 		 && (strcmp (op->name, "jalx")
-		     || (mips_isa & INSN_ISA_MASK) == ISA_MIPS32R6
-		     || (mips_isa & INSN_ISA_MASK) == ISA_MIPS64R6))
+		     || is_isa_r6 (mips_isa)))
 		continue;
 
 	      /* Figure out instruction type and branch delay information.  */
@@ -2173,6 +2183,8 @@ print_insn_micromips (bfd_vma memaddr, struct disassemble_info *info)
   else
     insn = bfd_getl16 (buffer);
 
+#if 0
+  /* Disabled as it conflicts with microMIPS R6 opcodes.  */
   if ((insn & 0xfc00) == 0x7c00)
     {
       /* This is a 48-bit microMIPS instruction.  */
@@ -2207,7 +2219,14 @@ print_insn_micromips (bfd_vma memaddr, struct disassemble_info *info)
       info->insn_type = dis_noninsn;
       return 6;
     }
-  else if ((insn & 0x1c00) == 0x0000 || (insn & 0x1000) == 0x1000)
+  else 
+#endif
+  if ((insn & 0x1c00) == 0x0000 
+      || (insn & 0x1000) == 0x1000
+      || (insn & 0xfc00) == 0x7c00
+      || (insn & 0xfc00) == 0xa400
+      || (insn & 0xfc00) == 0xe400
+      || (insn & 0xfc00) == 0xc400)
     {
       /* This is a 32-bit microMIPS instruction.  */
       higher = insn;
@@ -2249,6 +2268,61 @@ print_insn_micromips (bfd_vma memaddr, struct disassemble_info *info)
 	  && ((length == 2 && (op->mask & 0xffff0000) == 0)
 	      || (length == 4 && (op->mask & 0xffff0000) != 0)))
 	{
+          if ((!is_isa_r6 (mips_isa) && is_isa_r6 (op->membership))
+              || cpu_is_member (mips_processor, op->exclusions)
+              || (is_isa_r6 (op->membership) 
+                  && (op->pinfo2 & INSN2_CONVERTED_TO_COMPACT)))
+            continue;
+
+          if (strcmp (op->name, "bgezc") == 0
+              || strcmp (op->name, "bltzc") == 0
+              || strcmp (op->name, "bgezalc") == 0
+              || strcmp (op->name, "bltzalc") == 0)
+            {
+              if (((insn >> 16) & 31) != ((insn >> 21) & 31)
+                        || ((insn >> 21) & 31) == 0)
+                continue;
+            }
+          else if (strcmp (op->name, "blezalc") == 0
+                   || strcmp (op->name, "bgtzalc") == 0
+                   || strcmp (op->name, "blezc") == 0
+                   || strcmp (op->name, "bgtzc") == 0
+                   || strcmp (op->name, "beqzalc") == 0
+                   || strcmp (op->name, "bnezalc") == 0)
+            {
+              if (((insn >> 21) & 31) == 0)
+                continue;
+            }
+                else if (strcmp (op->name, "bgec") == 0
+                   || strcmp (op->name, "bltc") == 0
+                   || strcmp (op->name, "bbec") == 0
+                   || strcmp (op->name, "bstc") == 0)
+            {
+              if (((insn >> 16) & 31) == ((insn >> 21) & 31)
+                        || ((insn >> 21) & 31) == 0
+                        || ((insn >> 16) & 31) == 0)
+                continue;
+            }
+          else if (strcmp (op->name, "beqc") == 0
+                   || strcmp (op->name, "bnec") == 0)
+            {
+              if (((insn >> 16) & 31) >= ((insn >> 21) & 31)
+                        || ((insn >> 16) & 31) == 0)
+                continue;
+            }
+          else if (strcmp (op->name, "bovc") == 0
+                   || strcmp (op->name, "bnvc") == 0)
+            {
+              if (((insn >> 16) & 31) < ((insn >> 21) & 31))
+                continue;
+            }
+          else if (length == 4 && (strcmp (op->name, "beqzc") == 0
+                   || strcmp (op->name, "bnezc") == 0))
+            {
+              if (((insn >> 21) & 31) == 0)
+                continue;
+            }
+                
 	  infprintf (is, "%s", op->name);
 
 	  if (op->args[0])

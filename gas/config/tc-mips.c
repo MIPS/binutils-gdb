@@ -1645,12 +1645,12 @@ static const struct mips_ase mips_ases[] = {
   { "dsp", ASE_DSP, ASE_DSP64,
     OPTION_DSP, OPTION_NO_DSP,
     2, 2, 2, 2,
-    6, 6, 6, 6 },
+    6, 6, -1, -1 },
 
   { "dspr2", ASE_DSP | ASE_DSPR2, 0,
     OPTION_DSPR2, OPTION_NO_DSPR2,
     2, 2, 2, 2,
-    6, 6, 6, 6 },
+    6, 6, -1, -1 },
 
   { "eva", ASE_EVA, 0,
     OPTION_EVA, OPTION_NO_EVA,
@@ -3432,7 +3432,10 @@ validate_micromips_insn (const struct mips_opcode *opc,
     }
   major = opc->match >> (10 + 8 * (length - 2));
   if ((length == 2 && (major & 7) != 1 && (major & 6) != 2)
-      || (length == 4 && (major & 7) != 0 && (major & 4) != 4))
+      || ((length == 4 && (major & 7) != 0 && (major & 4) != 4)
+          && (!ISA_IS_R6 (mips_opts.isa) 
+              && opcode_is_member (opc, mips_opts.isa, mips_opts.ase, 
+                                   mips_opts.arch))))
     {
       as_bad (_("internal error: bad microMIPS opcode "
 		"(opcode/length mismatch): %s %s"), opc->name, opc->args);
@@ -3753,11 +3756,9 @@ mips_check_options (struct mips_set_options *opts, bfd_boolean abi_checks)
 
   if (opts->micromips == 1 && opts->mips16 == 1)
     as_bad (_("`mips16' cannot be used with `micromips'"));
-  else if (ISA_IS_R6 (mips_opts.isa)
-	   && (opts->micromips == 1
-	       || opts->mips16 == 1))
-    as_fatal (_("neither `micromips' nor `mips16' can be used with "
-		"`mips32r6' or `mips64r6'"));
+  else if (ISA_IS_R6 (mips_opts.isa) 
+	   && opts->mips16 == 1)
+    as_fatal (_("`mips16' cannot be used with `mips32r6' or `mips64r6'"));
 
   if (ISA_IS_R6 (opts->isa) && mips_relax_branch)
     as_fatal (_("branch relaxation is not supported in `mips32r6' "
@@ -3945,6 +3946,8 @@ micromips_reloc_p (bfd_reloc_code_real_type reloc)
     case BFD_RELOC_MICROMIPS_7_PCREL_S1:
     case BFD_RELOC_MICROMIPS_10_PCREL_S1:
     case BFD_RELOC_MICROMIPS_16_PCREL_S1:
+    case BFD_RELOC_MICROMIPS_21_PCREL_S1:
+    case BFD_RELOC_MICROMIPS_26_PCREL_S1:
     case BFD_RELOC_MICROMIPS_GPREL16:
     case BFD_RELOC_MICROMIPS_JMP:
     case BFD_RELOC_MICROMIPS_HI16:
@@ -4024,6 +4027,8 @@ limited_pcrel_reloc_p (bfd_reloc_code_real_type reloc)
     case BFD_RELOC_MICROMIPS_7_PCREL_S1:
     case BFD_RELOC_MICROMIPS_10_PCREL_S1:
     case BFD_RELOC_MICROMIPS_16_PCREL_S1:
+    case BFD_RELOC_MICROMIPS_21_PCREL_S1:
+    case BFD_RELOC_MICROMIPS_26_PCREL_S1:
     case BFD_RELOC_MIPS_21_PCREL_S2:
     case BFD_RELOC_MIPS_26_PCREL_S2:
     case BFD_RELOC_MIPS_18_PCREL_S3:
@@ -6645,6 +6650,11 @@ get_append_method (struct mips_cl_insn *ip, expressionS *address_expr,
   if (mips_relax.sequence == 2)
     return APPEND_ADD;
 
+  /* Convert a non-compact to compact branch/jump instruction.  */
+  if (ISA_IS_R6 (mips_opts.isa)
+      && (ip->insn_mo->pinfo2 & INSN2_CONVERTED_TO_COMPACT))
+    return APPEND_ADD_COMPACT;
+
   /* We must not dabble with instructions in a ".set norerorder" block.  */
   if (mips_opts.noreorder)
     return APPEND_ADD;
@@ -7112,6 +7122,21 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
       *reloc_type = BFD_RELOC_UNUSED;
     }
   else if (mips_opts.micromips
+           && ISA_IS_R6 (mips_opts.isa)
+           /* We check here if we deal with a branch/jump.  It's set to compact
+              as we have new instructions with old naming but with a flag 
+              marking them as pre-R6.  */
+           && compact_branch_p (&history[0])
+           && (history[0].insn_mo->pinfo2 & INSN2_CONVERTED_TO_COMPACT)
+           && history[0].noreorder_p
+           && strcmp (ip->insn_mo->name, "nop") != 0)
+    {
+      as_bad(_("expected a nop not `%s' in delay slot of `%s'"
+               " in noreorder block"),
+             ip->insn_mo->name, history[0].insn_mo->name);
+      add_fixed_insn (ip);
+    }
+  else if (mips_opts.micromips
 	   && address_expr
 	   && ((relax32 && *reloc_type == BFD_RELOC_16_PCREL_S2)
 	       || *reloc_type > BFD_RELOC_UNUSED)
@@ -7323,12 +7348,20 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
       break;
 
     case APPEND_ADD_COMPACT:
-      /* Convert MIPS16 jr/jalr into a "compact" jump.  */
-      gas_assert (mips_opts.mips16);
-      ip->insn_opcode |= 0x0080;
-      find_altered_mips16_opcode (ip);
-      install_insn (ip);
-      insert_into_history (0, 1, ip);
+      gas_assert(mips_opts.mips16 || mips_opts.micromips);
+      if (mips_opts.mips16)
+        {
+          /* Convert MIPS16 jr/jalr into a "compact" jump.  */
+          ip->insn_opcode |= 0x0080;
+          find_altered_mips16_opcode (ip);
+          install_insn (ip);
+          insert_into_history (0, 1, ip);
+        }
+      else if (mips_opts.micromips)
+        {
+          install_insn (ip);
+          insert_into_history (0, 1, ip);
+        }
       break;
 
     case APPEND_SWAP:
@@ -7365,8 +7398,9 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
     }
 
   /* If we have just completed an unconditional branch, clear the history.  */
-  if ((delayed_branch_p (&history[1]) && uncond_branch_p (&history[1]))
+  if (((delayed_branch_p (&history[1]) && uncond_branch_p (&history[1]))
       || (compact_branch_p (&history[0]) && uncond_branch_p (&history[0])))
+      && !(history[0].insn_mo->pinfo2 & INSN2_CONVERTED_TO_COMPACT))
     {
       unsigned int i;
 
@@ -7653,11 +7687,17 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	      break;
 
 	    case '\'':
-	      *offset_reloc = BFD_RELOC_MIPS_26_PCREL_S2;
+	      if (mips_opts.micromips)
+	        *offset_reloc = BFD_RELOC_MICROMIPS_26_PCREL_S1;
+	      else
+	        *offset_reloc = BFD_RELOC_MIPS_26_PCREL_S2;
 	      break;
 
 	    case '\"':
-	      *offset_reloc = BFD_RELOC_MIPS_21_PCREL_S2;
+	      if (mips_opts.micromips)
+	        *offset_reloc = BFD_RELOC_MICROMIPS_21_PCREL_S1;
+	      else
+	        *offset_reloc = BFD_RELOC_MIPS_21_PCREL_S2;
 	      break;
 	    }
 	  break;
@@ -8216,7 +8256,7 @@ static const char * const trap_fmt[2] = { "s,t,q", "s,t,|" };
 #define BRK_FMT (brk_fmt[mips_opts.micromips][mips_opts.insn32])
 #define COP12_FMT (cop12_fmt[mips_opts.micromips])
 #define JALR_FMT (jalr_fmt[mips_opts.micromips])
-#define LUI_FMT (lui_fmt[mips_opts.micromips])
+#define LUI_FMT (lui_fmt[ISA_IS_R6 (mips_opts.isa) ? 0 : mips_opts.micromips])
 #define MEM12_FMT (mem12_fmt[mips_opts.micromips])
 #define MFHL_FMT (mfhl_fmt[mips_opts.micromips][mips_opts.insn32])
 #define SHFT_FMT (shft_fmt[mips_opts.micromips])
@@ -14401,6 +14441,8 @@ md_pcrel_from (fixS *fixP)
       return addr + 2;
 
     case BFD_RELOC_MICROMIPS_16_PCREL_S1:
+    case BFD_RELOC_MICROMIPS_21_PCREL_S1:
+    case BFD_RELOC_MICROMIPS_26_PCREL_S1:
     case BFD_RELOC_MICROMIPS_JMP:
     case BFD_RELOC_16_PCREL_S2:
     case BFD_RELOC_MIPS_21_PCREL_S2:
@@ -14573,6 +14615,8 @@ mips_force_relocation (fixS *fixp)
   /* We want all PC-relative relocations to be kept for R6 relaxation.  */
   if (ISA_IS_R6 (mips_opts.isa)
       && (fixp->fx_r_type == BFD_RELOC_16_PCREL_S2
+          || fixp->fx_r_type == BFD_RELOC_MICROMIPS_21_PCREL_S1
+          || fixp->fx_r_type == BFD_RELOC_MICROMIPS_26_PCREL_S1
 	  || fixp->fx_r_type == BFD_RELOC_MIPS_21_PCREL_S2
 	  || fixp->fx_r_type == BFD_RELOC_MIPS_26_PCREL_S2
 	  || fixp->fx_r_type == BFD_RELOC_MIPS_18_PCREL_S3
@@ -14624,6 +14668,8 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       case BFD_RELOC_MICROMIPS_7_PCREL_S1:
       case BFD_RELOC_MICROMIPS_10_PCREL_S1:
       case BFD_RELOC_MICROMIPS_16_PCREL_S1:
+      case BFD_RELOC_MICROMIPS_21_PCREL_S1:
+      case BFD_RELOC_MICROMIPS_26_PCREL_S1:
       case BFD_RELOC_32_PCREL:
       case BFD_RELOC_MIPS_21_PCREL_S2:
       case BFD_RELOC_MIPS_26_PCREL_S2:
@@ -14840,7 +14886,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       break;
 
     case BFD_RELOC_MIPS_18_PCREL_S3:
-      if ((*valP & 0x7) != 0)
+      if ((*valP & 0x7) != 0 && !mips_opts.micromips)
 	as_bad_where (fixP->fx_file, fixP->fx_line,
 		      _("pc rel from misaligned address (%lx)"),
 		      (long) *valP);
@@ -14849,7 +14895,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       break;
 
     case BFD_RELOC_MIPS_19_PCREL_S2:
-      if ((*valP & 0x3) != 0)
+      if ((*valP & 0x3) != 0 && !mips_opts.micromips)
 	as_bad_where (fixP->fx_file, fixP->fx_line,
 		      _("pc rel from misaligned address (%lx)"),
 		      (long) *valP);
@@ -14927,6 +14973,32 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       abort ();
       break;
 
+    case BFD_RELOC_MICROMIPS_21_PCREL_S1:
+    case BFD_RELOC_MICROMIPS_26_PCREL_S1:
+      if ((*valP & 0x1) != 0)
+	as_bad_where (fixP->fx_file, fixP->fx_line,
+		      _("branch to misaligned address (%lx)"), (long) *valP);
+
+      /* We need to save the bits in the instruction since fixup_segment()
+	 might be deleting the relocation entry (i.e., a branch within
+	 the current segment).  */
+      if (! fixP->fx_done)
+	break;
+
+      /* Update old instruction data.  */
+      insn = read_insn (buf);
+
+      if (*valP + 0x400000 <= 0x7fffff)
+	{
+	  insn |= (*valP >> 1) & 0x1fffff;
+	  write_insn (buf, insn);
+	}
+      else
+	{
+	  /* CFU FIXME.  */
+	  gas_assert (0);
+	}
+      break;
     case BFD_RELOC_VTABLE_INHERIT:
       fixP->fx_done = 0;
       if (fixP->fx_addsy
@@ -16876,11 +16948,16 @@ mips_fix_adjustable (fixS *fixp)
      relocation, and has thus allowed orphaned R_MIPS_LO16 relocations to be
      placed anywhere.  Rather than break backwards compatibility by changing
      this, it seems better not to force the issue, and instead keep the
-     original symbol.  This will work with either linker behavior.  */
+     original symbol.  This will work with either linker behavior.
+
+     Additionally microMIPS HI16/LO16 relocation pairs may be subject to
+     linker relaxation to the PC-relative PC23_S2 relocation that may
+     overflow in the process.  */
   if ((lo16_reloc_p (fixp->fx_r_type)
        || reloc_needs_lo_p (fixp->fx_r_type))
       && HAVE_IN_PLACE_ADDENDS
-      && (S_GET_SEGMENT (fixp->fx_addsy)->flags & SEC_MERGE) != 0)
+      && (micromips_reloc_p (fixp->fx_r_type)
+	  || S_GET_SEGMENT (fixp->fx_addsy)->flags & SEC_MERGE) != 0)
     return 0;
 
   /* There is no place to store an in-place offset for JALR relocations.
@@ -16967,6 +17044,8 @@ tc_gen_reloc (asection *section ATTRIBUTE_UNUSED, fixS *fixp)
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_7_PCREL_S1
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_10_PCREL_S1
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_16_PCREL_S1
+		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_21_PCREL_S1
+		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_26_PCREL_S1
 		  || fixp->fx_r_type == BFD_RELOC_32_PCREL
 		  || fixp->fx_r_type == BFD_RELOC_MIPS_21_PCREL_S2
 		  || fixp->fx_r_type == BFD_RELOC_MIPS_26_PCREL_S2
@@ -17312,8 +17391,24 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	  /* We generate a fixup instead of applying it right now,
 	     because if there is linker relaxation, we're going to
 	     need the relocations.  */
+          int r_type = -1;
+
+          if (ISA_IS_R6(mips_opts.isa))
+          {
+	    insn = read_compressed_insn (buf, 2);
+ 
+            if ((insn & 0xdc00) == 0x8c00)      /* beqzc/bnezc */
+              r_type = BFD_RELOC_MICROMIPS_21_PCREL_S1;
+            else if ((insn & 0xfc00) == 0x7400)      /* bovc/beqzalc/beqc */
+              r_type = BFD_RELOC_MICROMIPS_16_PCREL_S1;
+            else
+              r_type = BFD_RELOC_MICROMIPS_26_PCREL_S1;
+          }
+          else
+            r_type = BFD_RELOC_MICROMIPS_16_PCREL_S1;
+
 	  fixp = fix_new_exp (fragp, buf - fragp->fr_literal, 4, &exp, TRUE,
-			      BFD_RELOC_MICROMIPS_16_PCREL_S1);
+			      r_type);
 	  fixp->fx_file = fragp->fr_file;
 	  fixp->fx_line = fragp->fr_line;
 
@@ -17326,16 +17421,25 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	{
 	  insn = read_compressed_insn (buf, 2);
 
-	  if ((insn & 0xfc00) == 0xcc00)		/* b16  */
+	  if ((insn & 0xfc00) == 0xcc00)		/* b[c]16  */
 	    insn = 0x94000000;				/* beq  */
-	  else if ((insn & 0xdc00) == 0x8c00)		/* beqz16/bnez16  */
+	  else if ((insn & 0xdc00) == 0x8c00)		/* beqz[c]16/bnez[c]16  */
 	    {
 	      unsigned long regno;
 
 	      regno = (insn >> MICROMIPSOP_SH_MD) & MICROMIPSOP_MASK_MD;
 	      regno = micromips_to_32_reg_d_map [regno];
-	      insn = ((insn & 0x2000) << 16) | 0x94000000;	/* beq/bne  */
-	      insn |= regno << MICROMIPSOP_SH_RS;
+
+	      if (ISA_IS_R6 (mips_opts.isa))
+	        {
+	          insn = ((insn & 0x2000) << 13) | 0xa0000000;	/* beqzc/bnezc  */
+	          insn |= regno << 21;
+	        }
+	      else
+	        {
+	          insn = ((insn & 0x2000) << 16) | 0x94000000;	/* beq/bne  */
+	          insn |= regno << MICROMIPSOP_SH_RS;
+	        }
 	    }
 	  else
 	    abort ();
@@ -17359,7 +17463,8 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
       /* Set the short-delay-slot bit.  */
       short_ds = al && (insn & 0x02000000) != 0;
 
-      if (!RELAX_MICROMIPS_UNCOND (fragp->fr_subtype))
+      if (!ISA_IS_R6 (mips_opts.isa) 
+          && !RELAX_MICROMIPS_UNCOND (fragp->fr_subtype))
 	{
 	  symbolS *l;
 
