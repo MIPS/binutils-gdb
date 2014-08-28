@@ -10979,7 +10979,12 @@ macro (struct mips_cl_insn *ip, char *str)
       /* Fall through.  */
     case M_JAL_A:
       if (mips_pic == NO_PIC)
-	macro_build (&offset_expr, jals ? "jals" : "jal", "a");
+	{
+	  if (ISA_IS_R6 (mips_opts.isa))
+	    macro_build (&offset_expr, mips_opts.micromips ? "jalc" : "jal", "a");
+	  else
+	    macro_build (&offset_expr, jals ? "jals" : "jal", "a");
+	}
       else if (mips_pic == SVR4_PIC)
 	{
 	  /* If this is a reference to an external symbol, and we are
