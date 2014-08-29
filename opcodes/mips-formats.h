@@ -53,6 +53,17 @@
     return &op.root; \
   }
 
+#define MAPPED_STRING(SIZE, LSB, MAP, ALLOW_CONSTANTS) \
+  { \
+    typedef char ATTRIBUTE_UNUSED \
+      static_assert[(1 << (SIZE)) == ARRAY_SIZE (MAP)]; \
+    static const struct mips_mapped_string_operand op = { \
+      { OP_MAPPED_STRING, SIZE, LSB }, MAP, ALLOW_CONSTANTS \
+    }; \
+    return &op.root; \
+  }
+
+
 #define MSB(SIZE, LSB, BIAS, ADD_LSB, OPSIZE) \
   { \
     static const struct mips_msb_operand op = { \

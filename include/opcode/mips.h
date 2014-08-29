@@ -419,7 +419,11 @@ enum mips_operand_type {
   OP_IMM_INDEX,
 
   /* An index selected by a register, e.g. [$2].  */
-  OP_REG_INDEX
+  OP_REG_INDEX,
+
+  OP_MAPPED_STRING,
+
+  OP_MXU_STRIDE
 };
 
 /* Enumerates the types of MIPS register.  */
@@ -466,7 +470,11 @@ enum mips_reg_operand_type {
   OP_REG_MSA,
 
   /* MSA control registers $0-$31.  */
-  OP_REG_MSA_CTRL
+  OP_REG_MSA_CTRL,
+
+  OP_REG_MXU,
+
+  OP_REG_MXU_GP
 };
 
 /* Base class for all operands.  */
@@ -519,6 +527,12 @@ struct mips_mapped_int_operand
   bfd_boolean print_hex;
 };
 
+struct mips_mapped_string_operand
+{
+  struct mips_operand root;
+  const char ** strings;
+  int allow_constants;
+};
 /* An operand that encodes the most significant bit position of a bitfield.
    Given a bitfield that spans bits [MSB, LSB], some operands of this type
    encode MSB directly while others encode MSB - LSB.  Each operand of this
@@ -946,6 +960,11 @@ struct mips_opcode
    "~!@#$%^&*|"
    "ABCEFGHJKLMNPQSTUVWXZ"
    "abcdefghijklmnopqrstuvwxyz"
+
+   Extension character sequences used so far ("`" followed by the
+   following), for quick reference when adding more:
+   "ABEIOPTRSU"
+   "abcdefgimopr"
 */
 
 /* These are the bits which may be set in the pinfo field of an
@@ -1189,6 +1208,8 @@ static const unsigned int mips_isa_table[] = {
 #define ASE_MSA64		0x00001000
 /* eXtended Physical Address (XPA) Extension.  */
 #define ASE_XPA			0x00002000
+/* MXU Extension.  */
+#define ASE_MXU			0x00004000
 
 /* MIPS ISA defines, use instead of hardcoding ISA level.  */
 
