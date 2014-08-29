@@ -58,7 +58,7 @@ WHICH = aarch64 \
 	i386/x32-avx i386/x32-avx-linux \
 	i386/x32-avx512 i386/x32-avx512-linux \
 	microblaze-with-stack-protect \
-	mips-linux mips-dsp-linux \
+	mips-linux mips-dsp-linux mips-fpu64-linux mips-fpu64-dsp-linux \
 	mips64-linux mips64-dsp-linux \
 	nios2-linux \
 	rs6000/powerpc-32 \
@@ -102,6 +102,8 @@ i386/x32-avx512-linux-expedite = rbp,rsp,rip
 microblaze-expedite = r1,rpc
 mips-expedite = r29,pc
 mips-dsp-expedite = r29,pc
+mips-fpu64-expedite = r29,pc
+mips-fpu64-dsp-expedite = r29,pc
 mips64-expedite = r29,pc
 mips64-dsp-expedite = r29,pc
 nios2-linux-expedite = sp,pc

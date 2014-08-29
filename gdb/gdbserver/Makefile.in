@@ -344,7 +344,8 @@ clean:
 	rm -f reg-tilegx.c reg-tilegx32.c
 	rm -f arm-with-iwmmxt.c
 	rm -f arm-with-vfpv2.c arm-with-vfpv3.c arm-with-neon.c
-	rm -f mips-linux.c mips-dsp-linux.c
+	rm -f mips-linux.c mips-dsp-linux.c mips-fpu64-linux.c
+	rm -f mips-fpu64-dsp-linux.c
 	rm -f mips64-linux.c mips64-dsp-linux.c
 	rm -f nios2-linux.c
 	rm -f powerpc-32.c powerpc-32l.c powerpc-64l.c powerpc-e500l.c
@@ -632,6 +633,10 @@ mips-linux.c : $(srcdir)/../regformats/mips-linux.dat $(regdat_sh)
 	$(SHELL) $(regdat_sh) $(srcdir)/../regformats/mips-linux.dat mips-linux.c
 mips-dsp-linux.c : $(srcdir)/../regformats/mips-dsp-linux.dat $(regdat_sh)
 	$(SHELL) $(regdat_sh) $(srcdir)/../regformats/mips-dsp-linux.dat mips-dsp-linux.c
+mips-fpu64-linux.c : $(srcdir)/../regformats/mips-fpu64-linux.dat $(regdat_sh)
+	$(SHELL) $(regdat_sh) $(srcdir)/../regformats/mips-fpu64-linux.dat mips-fpu64-linux.c
+mips-fpu64-dsp-linux.c : $(srcdir)/../regformats/mips-fpu64-dsp-linux.dat $(regdat_sh)
+	$(SHELL) $(regdat_sh) $(srcdir)/../regformats/mips-fpu64-dsp-linux.dat mips-fpu64-dsp-linux.c
 mips64-linux.c : $(srcdir)/../regformats/mips64-linux.dat $(regdat_sh)
 	$(SHELL) $(regdat_sh) $(srcdir)/../regformats/mips64-linux.dat mips64-linux.c
 mips64-dsp-linux.c : $(srcdir)/../regformats/mips64-dsp-linux.dat $(regdat_sh)
