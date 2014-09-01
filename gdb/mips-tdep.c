@@ -776,8 +776,12 @@ mips_register_reggroup_p (struct gdbarch *gdbarch, int regnum,
   int pseudo = regnum / gdbarch_num_regs (gdbarch);
   if (reggroup == all_reggroup)
     return pseudo;
-  vector_p = TYPE_VECTOR (register_type (gdbarch, regnum));
-  float_p = mips_float_register_p (gdbarch, rawnum);
+  vector_p = (TYPE_VECTOR (register_type (gdbarch, regnum)) ||
+	      rawnum == mips_regnum (gdbarch)->msa_csr ||
+	      rawnum == mips_regnum (gdbarch)->msa_ir);
+  float_p = (mips_float_register_p (gdbarch, rawnum) ||
+	     rawnum == mips_regnum (gdbarch)->fp_control_status ||
+	     rawnum == mips_regnum (gdbarch)->fp_implementation_revision);
   /* FIXME: cagney/2003-04-13: Can't yet use gdbarch_num_regs
      (gdbarch), as not all architectures are multi-arch.  */
   raw_p = rawnum < gdbarch_num_regs (gdbarch);
