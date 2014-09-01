@@ -7452,9 +7452,52 @@ mips_print_fp_register (struct ui_file *file, struct frame_info *frame,
     }
 }
 
+/* Print a single complex control register */
+
 static void
-mips_print_register (struct ui_file *file, struct frame_info *frame,
-		     int regnum)
+print_control_register (struct ui_file *file, struct frame_info *frame,
+			int regnum)
+{
+  struct gdbarch *gdbarch = get_frame_arch (frame);
+  const char *name = gdbarch_register_name (gdbarch, regnum);
+  struct value *val = value_of_register (regnum, frame);
+  struct type *regtype = value_type (val);
+  enum bfd_endian byte_order = gdbarch_byte_order (get_type_arch (regtype));
+  struct value_print_options opts;
+  const gdb_byte *valaddr;
+
+  fputs_filtered (name, file);
+  print_spaces_filtered (15 - strlen (name), file);
+
+  if (!value_entirely_available (val))
+    {
+      fprintf_filtered (file, "*value not available*\n");
+      return;
+    }
+  else if (value_optimized_out (val))
+    {
+      val_print_optimized_out (val, file);
+      fprintf_filtered (file, "\n");
+      return;
+    }
+
+  valaddr = value_contents_for_printing (val);
+
+  /* Print raw value */
+  fprintf_filtered (file, "\t");
+  print_hex_chars (file, valaddr, TYPE_LENGTH (regtype), byte_order);
+
+  /* Print it according to its natural format. */
+  get_user_print_options (&opts);
+  opts.deref_ref = 1;
+  fprintf_filtered (file, "\t");
+  val_print (regtype, valaddr,
+	     value_embedded_offset (val), 0,
+	     file, 0, val, &opts, current_language);
+}
+
+static void
+mips_print_register (struct ui_file *file, struct frame_info *frame, int regnum)
 {
   struct gdbarch *gdbarch = get_frame_arch (frame);
   struct value_print_options opts;
@@ -7468,6 +7511,13 @@ mips_print_register (struct ui_file *file, struct frame_info *frame,
   if (mips_vector_register_p (gdbarch, regnum))
     {
       default_print_registers_info (gdbarch, file, frame, regnum, 0);
+      return;
+    }
+  if (mips_register_reggroup_p (gdbarch, regnum, float_reggroup) ||
+      mips_register_reggroup_p (gdbarch, regnum, vector_reggroup))
+    {
+      /* FP & MSA control registers */
+      print_control_register (file, frame, regnum);
       return;
     }
 
@@ -7690,6 +7740,19 @@ print_gp_register_row (struct ui_file *file, struct frame_info *frame,
   return regnum;
 }
 
+/* Print a single complex control register row */
+
+static int
+print_control_register_row (struct ui_file *file, struct frame_info *frame,
+			    int regnum)
+{
+  print_control_register (file, frame, regnum);
+
+  fprintf_filtered (file, "\n");
+  ++regnum;
+  return regnum;
+}
+
 /* MIPS_DO_REGISTERS_INFO(): called by "info register" command.  */
 
 static void
@@ -7730,6 +7793,10 @@ mips_print_registers_info (struct gdbarch *gdbarch, struct ui_file *file,
 	      else
 		regnum += MIPS_NUMREGS;	/* Skip vector regs.  */
 	    }
+	  else if (mips_register_reggroup_p (gdbarch, regnum, float_reggroup) ||
+		   mips_register_reggroup_p (gdbarch, regnum, vector_reggroup))
+	    /* FP & MSA control registers */
+	    regnum = print_control_register_row (file, frame, regnum);
 	  else
 	    regnum = print_gp_register_row (file, frame, regnum);
 	}
