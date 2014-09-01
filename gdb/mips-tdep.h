@@ -70,6 +70,9 @@ struct mips_regnum
   int lo;		/* ...  */
   int dspacc;		/* SmartMIPS/DSP accumulators.  */
   int dspctl;		/* DSP control.  */
+  int w0;
+  int msa_ir;
+  int msa_csr;
   int linux_restart;
 };
 extern const struct mips_regnum *mips_regnum (struct gdbarch *gdbarch);
@@ -134,6 +137,7 @@ struct gdbarch_tdep
   struct type *fp32_type;
   struct type *fp64_type;
   struct type *fp96_type;
+  struct type *msa_128b_type;
 
   /* Return the expected next PC if FRAME is stopped at a syscall
      instruction.  */

@@ -221,6 +221,16 @@ mips_float_register_p (struct gdbarch *gdbarch, int regnum)
 	  && rawnum < mips_regnum (gdbarch)->fp0 + 32);
 }
 
+static int
+mips_vector_register_p (struct gdbarch *gdbarch, int regnum)
+{
+  int rawnum = regnum % gdbarch_num_regs (gdbarch);
+
+  return (mips_regnum (gdbarch)->w0 >= 0
+	  && rawnum >= mips_regnum (gdbarch)->w0
+	  && rawnum < mips_regnum (gdbarch)->w0 + 32);
+}
+
 #define MIPS_EABI(gdbarch) (gdbarch_tdep (gdbarch)->mips_abi \
 		     == MIPS_ABI_EABI32 \
 		   || gdbarch_tdep (gdbarch)->mips_abi == MIPS_ABI_EABI64)
@@ -684,6 +694,8 @@ static const char *
 mips_register_name (struct gdbarch *gdbarch, int regno)
 {
   struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
+  const struct mips_regnum *regnum = mips_regnum (gdbarch);
+
   /* GPR names for all ABIs other than n32/n64.  */
   static char *mips_gpr_names[] = {
     "zero", "at", "v0", "v1", "a0", "a1", "a2", "a3",
@@ -698,6 +710,14 @@ mips_register_name (struct gdbarch *gdbarch, int regno)
     "a4", "a5", "a6", "a7", "t0", "t1", "t2", "t3",
     "s0", "s1", "s2", "s3", "s4", "s5", "s6", "s7",
     "t8", "t9", "k0", "k1", "gp", "sp", "s8", "ra"
+  };
+
+  /* MSA vector register names.  */
+  static const char *const mips_msa_names[] = {
+      "w0", "w1", "w2", "w3", "w4", "w5", "w6", "w7",
+      "w8", "w9", "w10", "w11", "w12", "w13", "w14", "w15",
+      "w16", "w17", "w18", "w19", "w20", "w21", "w22", "w23",
+      "w24", "w25", "w26", "w27", "w28", "w29", "w30", "w31",
   };
 
   enum mips_abi abi = mips_abi (gdbarch);
@@ -727,6 +747,8 @@ mips_register_name (struct gdbarch *gdbarch, int regno)
       else
 	return mips_gpr_names[rawnum];
     }
+  else if (regnum->w0 >= 0 && rawnum >= regnum->w0 && rawnum < regnum->w0 + 32)
+    return mips_msa_names[rawnum - regnum->w0];
   else if (tdesc_has_registers (gdbarch_target_desc (gdbarch)))
     return tdesc_register_name (gdbarch, rawnum);
   else if (32 <= rawnum && rawnum < gdbarch_num_regs (gdbarch))
@@ -829,7 +851,7 @@ mips_get_fp_single_location (struct gdbarch *gdbarch,
   int raw_num = mips_regnum (gdbarch)->fp0;
   int raw_len = register_size (gdbarch, raw_num);
   enum mips_fpu_mode fp_mode = gdbarch_tdep (gdbarch)->fp_mode;
-  int big_endian;
+  int big_endian, offs;
 
   /* Only even doubles provided, in pairs of 32-bit registers.  */
   if (raw_len == 4)
@@ -844,11 +866,13 @@ mips_get_fp_single_location (struct gdbarch *gdbarch,
       return 1;
     }
 
-  if (raw_len != 8)
+  if (raw_len < 8)
     return 0;
 
-  /* All doubles provided.  */
+  /* All doubles provided, potentially at least significant end of vector
+     register.  */
   big_endian = (gdbarch_byte_order (gdbarch) == BFD_ENDIAN_BIG);
+  offs = big_endian ? (raw_len - 8) : 0;
 
   loc->size = 4;
   switch (fp_mode)
@@ -856,11 +880,11 @@ mips_get_fp_single_location (struct gdbarch *gdbarch,
     case MIPS_FPU_32:
     case MIPS_FPU_HYBRID:
       loc->regnum = raw_num + (idx & ~1);
-      loc->offset = 4 * (big_endian ^ (idx & 1));
+      loc->offset = offs + 4 * (big_endian ^ (idx & 1));
       return 1;
     case MIPS_FPU_64:
       loc->regnum = raw_num + idx;
-      loc->offset = 4 * big_endian;
+      loc->offset = offs + 4 * big_endian;
       return 1;
     default:
       return 0;
@@ -897,16 +921,17 @@ mips_get_fp_double_location (struct gdbarch *gdbarch,
       return 2;
     }
 
-  if (raw_len != 8)
+  if (raw_len < 8)
     return 0;
 
   /* FPU32 doesn't have odd doubles */
   if (fp_mode == MIPS_FPU_32 && idx & 1)
     return 0;
 
-  /* All doubles provided.  */
+  /* All doubles provided, potentially at least significant end of vector
+     register.  */
   loc->regnum = raw_num + idx;
-  loc->offset = 0;
+  loc->offset = big_endian ? (raw_len - 8) : 0;
   loc->size = 8;
   return 1;
 }
@@ -998,6 +1023,7 @@ mips_pseudo_register_read (struct gdbarch *gdbarch, struct regcache *regcache,
 			   int cookednum, gdb_byte *buf)
 {
   enum register_status ret;
+  int big_endian = (gdbarch_byte_order (gdbarch) == BFD_ENDIAN_BIG);
   int rawnum = cookednum % gdbarch_num_regs (gdbarch);
   int fpnum;
   int raw_len, cooked_len;
@@ -1016,6 +1042,22 @@ mips_pseudo_register_read (struct gdbarch *gdbarch, struct regcache *regcache,
       fpnum = rawnum - mips_regnum (gdbarch)->fp0;
       parts = mips_get_fp_multi_location (gdbarch, fpnum, cooked_len, loc);
       return mips_regcache_raw_read_parts (regcache, loc, parts, &buf);
+    }
+  else if (mips_vector_register_p (gdbarch, rawnum))
+    {
+      int fp_rawnum, fp_raw_len;
+
+      fpnum = rawnum - mips_regnum (gdbarch)->w0;
+      fp_rawnum = mips_regnum (gdbarch)->fp0 + fpnum;
+      fp_raw_len = register_size (gdbarch, fp_rawnum);
+
+      if (fp_raw_len < cooked_len)
+	return REG_UNAVAILABLE;
+
+      /* fill from normal fp register */
+      return regcache_raw_read_part (regcache, fp_rawnum,
+				     big_endian * (fp_raw_len - cooked_len),
+				     cooked_len, buf);
     }
   else if (raw_len == cooked_len)
     return regcache_raw_read (regcache, rawnum, buf);
@@ -1045,6 +1087,7 @@ mips_pseudo_register_write (struct gdbarch *gdbarch,
 			    const gdb_byte *buf)
 {
   enum register_status ret;
+  int big_endian = (gdbarch_byte_order (gdbarch) == BFD_ENDIAN_BIG);
   int rawnum = cookednum % gdbarch_num_regs (gdbarch);
   int fpnum;
   int raw_len, cooked_len;
@@ -1063,6 +1106,22 @@ mips_pseudo_register_write (struct gdbarch *gdbarch,
       fpnum = rawnum - mips_regnum (gdbarch)->fp0;
       parts = mips_get_fp_multi_location (gdbarch, fpnum, cooked_len, loc);
       mips_regcache_raw_write_parts (regcache, loc, parts, &buf);
+    }
+  else if (mips_vector_register_p (gdbarch, rawnum))
+    {
+      int fp_rawnum, fp_raw_len;
+
+      fpnum = rawnum - mips_regnum (gdbarch)->w0;
+      fp_rawnum = mips_regnum (gdbarch)->fp0 + fpnum;
+      fp_raw_len = register_size (gdbarch, fp_rawnum);
+
+      if (fp_raw_len < cooked_len)
+	return;
+
+      /* write to normal fp register */
+      regcache_raw_write_part (regcache, fp_rawnum,
+			       big_endian * (fp_raw_len - cooked_len),
+			       cooked_len, buf);
     }
   else if (raw_len == cooked_len)
     regcache_raw_write (regcache, rawnum, buf);
@@ -1486,6 +1545,59 @@ mips_fp_type (struct gdbarch *gdbarch, int fpnum)
     return mips_fp32_type (gdbarch);
 }
 
+/* FIXME: The vector types are not correctly ordered on big-endian
+   targets.  Just as s0 is the low bits of d0, d0[0] is also the low
+   bits of d0 - regardless of what unit size is being held in d0.  So
+   the offset of the first uint8 in d0 is 7, but the offset of the
+   first float is 4.  This code works as-is for little-endian
+   targets.  */
+
+static struct type *
+mips_msa_128b_type (struct gdbarch *gdbarch)
+{
+  struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
+
+  if (tdep->msa_128b_type == NULL)
+    {
+      const struct builtin_type *bt = builtin_type (gdbarch);
+      struct type *t;
+
+      /* The type we're building is this: */
+#if 0
+      union __gdb_builtin_type_msa_128
+      {
+        float    f32[4];
+        double   f64[2];
+        uint8_t  u8[16];
+        uint16_t u16[8];
+        uint32_t u32[4];
+        uint64_t u64[2];
+      };
+#endif
+
+      t = arch_composite_type (gdbarch, "__gdb_builtin_type_msa_128",
+			       TYPE_CODE_UNION);
+      append_composite_type_field (t, "u8",
+				   init_vector_type (bt->builtin_uint8, 16));
+      append_composite_type_field (t, "u16",
+				   init_vector_type (bt->builtin_uint16, 8));
+      append_composite_type_field (t, "u32",
+				   init_vector_type (bt->builtin_uint32, 4));
+      append_composite_type_field (t, "u64",
+				   init_vector_type (bt->builtin_uint64, 2));
+      append_composite_type_field (t, "f32",
+				   init_vector_type (bt->builtin_float,  4));
+      append_composite_type_field (t, "f64",
+				   init_vector_type (bt->builtin_double, 2));
+
+      TYPE_VECTOR (t) = 1;
+      TYPE_NAME (t) = "msa_128";
+      tdep->msa_128b_type = t;
+    }
+
+  return tdep->msa_128b_type;
+}
+
 /* Return the GDB type object for the "standard" data type of data in
    register REG.  */
 
@@ -1504,6 +1616,9 @@ mips_register_type (struct gdbarch *gdbarch, int regnum)
 	return (mips_float_regsize (gdbarch) == 4
 		? builtin_type (gdbarch)->builtin_float
 		: builtin_type (gdbarch)->builtin_double);
+      else if (mips_vector_register_p (gdbarch, regnum))
+	/* no raw representation, share fp registers */
+	return builtin_type (gdbarch)->builtin_int0;
       else
 	return (regsize == 4
 		? builtin_type (gdbarch)->builtin_int32
@@ -1521,9 +1636,13 @@ mips_register_type (struct gdbarch *gdbarch, int regnum)
          Use the current setting for cooked registers.  */
       if (mips_float_register_p (gdbarch, regnum))
 	return mips_fp_type (gdbarch, rawnum - mips_regnum (gdbarch)->fp0);
+      else if (mips_vector_register_p (gdbarch, regnum))
+	return mips_msa_128b_type (gdbarch);
       else if (rawnum == mips_regnum (gdbarch)->fp_control_status
 	  || rawnum == mips_regnum (gdbarch)->fp_implementation_revision
-	  || rawnum == mips_regnum (gdbarch)->config5)
+	  || rawnum == mips_regnum (gdbarch)->config5
+	  || rawnum == mips_regnum (gdbarch)->msa_csr
+	  || rawnum == mips_regnum (gdbarch)->msa_ir)
 	return builtin_type (gdbarch)->builtin_int32;
       else if (gdbarch_osabi (gdbarch) != GDB_OSABI_IRIX
 	       && gdbarch_osabi (gdbarch) != GDB_OSABI_LINUX
@@ -1562,8 +1681,13 @@ mips_pseudo_register_type (struct gdbarch *gdbarch, int regnum)
 
   gdb_assert (regnum >= num_regs && regnum < 2 * num_regs);
 
-  /* Absent registers are still absent.  */
   rawtype = gdbarch_register_type (gdbarch, rawnum);
+
+  /* Vector registers extend FP registers */
+  if (mips_vector_register_p (gdbarch, rawnum))
+    return mips_msa_128b_type (gdbarch);
+
+  /* Absent registers are still absent. */
   if (TYPE_LENGTH (rawtype) == 0)
     return rawtype;
 
@@ -6879,6 +7003,11 @@ mips_print_register (struct ui_file *file, struct frame_info *frame,
       mips_print_fp_register (file, frame, regnum);
       return;
     }
+  if (mips_vector_register_p (gdbarch, regnum))
+    {
+      default_print_registers_info (gdbarch, file, frame, regnum, 0);
+      return;
+    }
 
   val = get_frame_register_value (frame, regnum);
 
@@ -7025,7 +7154,8 @@ print_gp_register_row (struct ui_file *file, struct frame_info *frame,
     {
       if (*gdbarch_register_name (gdbarch, regnum) == '\0')
 	continue;		/* unused register */
-      if (mips_float_register_p (gdbarch, regnum))
+      if (mips_float_register_p (gdbarch, regnum) ||
+	  mips_vector_register_p (gdbarch, regnum))
 	break;			/* End the row: reached FP register.  */
       /* Large registers are handled separately.  */
       if (register_size (gdbarch, regnum) > mips_abi_regsize (gdbarch))
@@ -7064,7 +7194,8 @@ print_gp_register_row (struct ui_file *file, struct frame_info *frame,
     {
       if (*gdbarch_register_name (gdbarch, regnum) == '\0')
 	continue;		/* unused register */
-      if (mips_float_register_p (gdbarch, regnum))
+      if (mips_float_register_p (gdbarch, regnum) ||
+	  mips_vector_register_p (gdbarch, regnum))
 	break;			/* End row: reached FP register.  */
       if (register_size (gdbarch, regnum) > mips_abi_regsize (gdbarch))
 	break;			/* End row: large register.  */
@@ -7125,6 +7256,17 @@ mips_print_registers_info (struct gdbarch *gdbarch, struct ui_file *file,
 		regnum = print_fp_register_row (file, frame, regnum);
 	      else
 		regnum += MIPS_NUMREGS;	/* Skip floating point regs.  */
+	    }
+	  else if (mips_vector_register_p (gdbarch, regnum))
+	    {
+	      if (all)		/* True for "INFO ALL-REGISTERS" command.  */
+		{
+		  default_print_registers_info (gdbarch, file, frame, regnum,
+						all);
+		  ++regnum;
+		}
+	      else
+		regnum += MIPS_NUMREGS;	/* Skip vector regs.  */
 	    }
 	  else
 	    regnum = print_gp_register_row (file, frame, regnum);
@@ -8543,7 +8685,15 @@ mips_dwarf_dwarf2_ecoff_reg_to_regnum (struct gdbarch *gdbarch, int num)
   if (num >= 0 && num < 32)
     regnum = num;
   else if (num >= 32 && num < 64)
-    regnum = num + mips_regnum (gdbarch)->fp0 - 32;
+    {
+      /* If FR=1, it could be referring to an MSA vector register (which aliases
+	 the corresponding single and double precision fp register). Therefore
+	 if vector registers are available use them instead.  */
+      if (mips_regnum (gdbarch)->w0 != -1 && mips_float_regsize (gdbarch) == 8)
+	regnum = num + mips_regnum (gdbarch)->w0 - 32;
+      else
+	regnum = num + mips_regnum (gdbarch)->fp0 - 32;
+    }
   else if (num == 64)
     regnum = mips_regnum (gdbarch)->hi;
   else if (num == 65)
@@ -8719,6 +8869,9 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
 
   /* Fill in the OS dependent register numbers and names.  */
   mips_regnum.config5 = -1;
+  mips_regnum.w0 = -1;
+  mips_regnum.msa_ir = -1;
+  mips_regnum.msa_csr = -1;
   mips_regnum.linux_restart = -1;
   if (info.osabi == GDB_OSABI_IRIX)
     {
@@ -8918,6 +9071,29 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
 
 	      mips_regnum.dspacc = dspacc;
 	      mips_regnum.dspctl = dspctl;
+	    }
+	}
+
+      /* MSA vector control registers */
+      feature = tdesc_find_feature (info.target_desc,
+				    "org.gnu.gdb.mips.msa");
+      if (feature != NULL)
+	{
+	  /* Allocate a new registers.  */
+	  mips_regnum.w0 = num_regs;
+	  num_regs += 32;
+	  mips_regnum.msa_ir = num_regs++;
+	  mips_regnum.msa_csr = num_regs++;
+
+	  valid_p = 1;
+	  valid_p &= tdesc_numbered_register (feature, tdesc_data,
+					      mips_regnum.msa_csr, "msacsr");
+	  valid_p &= tdesc_numbered_register (feature, tdesc_data,
+					      mips_regnum.msa_ir, "msair");
+	  if (!valid_p)
+	    {
+	      tdesc_data_cleanup (tdesc_data);
+	      return NULL;
 	    }
 	}
 
@@ -9158,6 +9334,7 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   tdep->fp32_type = NULL;
   tdep->fp64_type = NULL;
   tdep->fp96_type = NULL;
+  tdep->msa_128b_type = NULL;
 
   if (info.target_desc)
     {
