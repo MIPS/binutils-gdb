@@ -1586,6 +1586,103 @@ mips_config5_type (struct gdbarch *gdbarch)
   return tdep->config5_type;
 }
 
+static struct type *
+mips_msacsr_type (struct gdbarch *gdbarch)
+{
+  struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
+
+  if (tdep->msa_csr_type == NULL)
+    {
+      const struct builtin_type *bt = builtin_type (gdbarch);
+      struct type *t, *cflags, *flags;
+      struct field *f;
+
+      /* Flags, Enables, Cause have common set of condition flags */
+      cflags = mips_fcflags_type (gdbarch);
+
+      /* Various bits at top end */
+      flags = arch_flags_type (gdbarch, "__gdb_builtin_type_msa_csr_flags", 2);
+      append_flags_type_flag (flags, 0, "NX");
+      append_flags_type_flag (flags, 3, "IMPL0");
+      append_flags_type_flag (flags, 4, "IMPL1");
+      append_flags_type_flag (flags, 6, "FS");
+
+      t = arch_composite_type (gdbarch, "__gdb_builtin_type_msa_csr",
+			       TYPE_CODE_STRUCT);
+
+      /* Rounding mode */
+      f = append_composite_type_field_raw (t, "rm", mips_frm_type (gdbarch));
+      SET_FIELD_BITPOS (*f, 0);
+      FIELD_BITSIZE (*f) = 2;
+
+      f = append_composite_type_field_raw (t, "flags", cflags);
+      SET_FIELD_BITPOS (*f, 2);
+      FIELD_BITSIZE (*f) = 5;
+
+      f = append_composite_type_field_raw (t, "enables", cflags);
+      SET_FIELD_BITPOS (*f, 7);
+      FIELD_BITSIZE (*f) = 5;
+
+      f = append_composite_type_field_raw (t, "cause", cflags);
+      SET_FIELD_BITPOS (*f, 12);
+      FIELD_BITSIZE (*f) = 6;
+
+      f = append_composite_type_field_raw (t, "", flags);
+      SET_FIELD_BITPOS (*f, 18);
+      FIELD_BITSIZE (*f) = 14;
+
+      TYPE_LENGTH (t) = 4;
+      TYPE_NAME (t) = "msa_csr";
+      tdep->msa_csr_type = t;
+    }
+
+  return tdep->msa_csr_type;
+}
+
+static struct type *
+mips_msair_type (struct gdbarch *gdbarch)
+{
+  struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
+
+  if (tdep->msa_ir_type == NULL)
+    {
+      const struct builtin_type *bt = builtin_type (gdbarch);
+      struct type *t, *flags;
+
+      /* top half has flags */
+      flags = arch_flags_type (gdbarch, "__gdb_builtin_type_msa_ir_flags", 2);
+      append_flags_type_flag (flags, 0, "WRP");
+
+      t = arch_composite_type (gdbarch, "__gdb_builtin_type_msa_ir",
+			       TYPE_CODE_STRUCT);
+
+      if (gdbarch_byte_order (gdbarch) == BFD_ENDIAN_LITTLE)
+	{
+	  /* bottom half has revision & processor id */
+	  append_composite_type_field (t, "rev", bt->builtin_uint8);
+	  append_composite_type_field (t, "prid", bt->builtin_uint8);
+
+	  /* top half has flags */
+	  append_composite_type_field (t, "", flags);
+	}
+      else
+	{
+	  /* top half has flags */
+	  append_composite_type_field (t, "", flags);
+
+	  /* bottom half has revision & processor id */
+	  append_composite_type_field (t, "prid", bt->builtin_uint8);
+	  append_composite_type_field (t, "rev", bt->builtin_uint8);
+	}
+
+      TYPE_LENGTH (t) = 4;
+      TYPE_NAME (t) = "msa_ir";
+      tdep->msa_ir_type = t;
+    }
+
+  return tdep->msa_ir_type;
+}
+
 /* Get 32-bit only floating point type, which can be interpreted as either a
    single precision float or a 32-bit signed integer.
    This is used for odd fp registers when FR=0. In this case there are no odd
@@ -1836,9 +1933,10 @@ mips_register_type (struct gdbarch *gdbarch, int regnum)
 	return mips_config5_type (gdbarch);
       else if (mips_vector_register_p (gdbarch, regnum))
 	return mips_msa_128b_type (gdbarch);
-      else if (rawnum == mips_regnum (gdbarch)->msa_csr
-	  || rawnum == mips_regnum (gdbarch)->msa_ir)
-	return builtin_type (gdbarch)->builtin_int32;
+      else if (rawnum == mips_regnum (gdbarch)->msa_csr)
+	return mips_msacsr_type (gdbarch);
+      else if (rawnum == mips_regnum (gdbarch)->msa_ir)
+	return mips_msair_type (gdbarch);
       else if (gdbarch_osabi (gdbarch) != GDB_OSABI_IRIX
 	       && gdbarch_osabi (gdbarch) != GDB_OSABI_LINUX
 	       && rawnum >= MIPS_FIRST_EMBED_REGNUM
@@ -1925,6 +2023,12 @@ mips_pseudo_register_type (struct gdbarch *gdbarch, int regnum)
 
   if (rawnum == mips_regnum (gdbarch)->config5)
     return mips_config5_type (gdbarch);
+
+  if (rawnum == mips_regnum (gdbarch)->msa_csr)
+    return mips_msacsr_type (gdbarch);
+
+  if (rawnum == mips_regnum (gdbarch)->msa_ir)
+    return mips_msair_type (gdbarch);
 
   if (gdbarch_osabi (gdbarch) != GDB_OSABI_IRIX
       && gdbarch_osabi (gdbarch) != GDB_OSABI_LINUX
@@ -9711,6 +9815,8 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   tdep->fp64_type = NULL;
   tdep->fp96_type = NULL;
   tdep->msa_128b_type = NULL;
+  tdep->msa_csr_type = NULL;
+  tdep->msa_ir_type = NULL;
 
   if (info.target_desc)
     {

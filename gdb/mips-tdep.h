@@ -143,6 +143,8 @@ struct gdbarch_tdep
   struct type *fp64_type;
   struct type *fp96_type;
   struct type *msa_128b_type;
+  struct type *msa_csr_type;
+  struct type *msa_ir_type;
 
   /* Return the expected next PC if FRAME is stopped at a syscall
      instruction.  */
