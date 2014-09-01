@@ -134,6 +134,7 @@ struct gdbarch_tdep
   enum mips_fpu_mode fp_mode;
 
   /* ISA-specific data types.  */
+  struct type *config5_type;
   struct type *fp_rm_type;
   struct type *fp_cflags_type;
   struct type *fp_csr_type;

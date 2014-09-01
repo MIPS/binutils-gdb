@@ -1567,6 +1567,25 @@ mips_fir_type (struct gdbarch *gdbarch)
   return tdep->fp_ir_type;
 }
 
+static struct type *
+mips_config5_type (struct gdbarch *gdbarch)
+{
+  struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
+
+  if (tdep->config5_type == NULL)
+    {
+      struct type *t;
+      /* top half has flags */
+      t = arch_flags_type (gdbarch, "__gdb_builtin_type_config5", 4);
+      append_flags_type_flag (t, 8, "FRE");
+
+      TYPE_NAME (t) = "config5";
+      tdep->config5_type = t;
+    }
+
+  return tdep->config5_type;
+}
+
 /* Get 32-bit only floating point type, which can be interpreted as either a
    single precision float or a 32-bit signed integer.
    This is used for odd fp registers when FR=0. In this case there are no odd
@@ -1813,10 +1832,11 @@ mips_register_type (struct gdbarch *gdbarch, int regnum)
 	return mips_fcsr_type (gdbarch);
       else if (rawnum == mips_regnum (gdbarch)->fp_implementation_revision)
 	return mips_fir_type (gdbarch);
+      else if (rawnum == mips_regnum (gdbarch)->config5)
+	return mips_config5_type (gdbarch);
       else if (mips_vector_register_p (gdbarch, regnum))
 	return mips_msa_128b_type (gdbarch);
-      else if (rawnum == mips_regnum (gdbarch)->config5
-	  || rawnum == mips_regnum (gdbarch)->msa_csr
+      else if (rawnum == mips_regnum (gdbarch)->msa_csr
 	  || rawnum == mips_regnum (gdbarch)->msa_ir)
 	return builtin_type (gdbarch)->builtin_int32;
       else if (gdbarch_osabi (gdbarch) != GDB_OSABI_IRIX
@@ -1902,6 +1922,9 @@ mips_pseudo_register_type (struct gdbarch *gdbarch, int regnum)
 
   if (rawnum == mips_regnum (gdbarch)->fp_implementation_revision)
     return mips_fir_type (gdbarch);
+
+  if (rawnum == mips_regnum (gdbarch)->config5)
+    return mips_config5_type (gdbarch);
 
   if (gdbarch_osabi (gdbarch) != GDB_OSABI_IRIX
       && gdbarch_osabi (gdbarch) != GDB_OSABI_LINUX
@@ -9679,6 +9702,7 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   tdep->register_size = 0;
   tdep->fp_mode = info.tdep_info->fp_mode;
   tdep->fp_register_mode_fixed_p = 0;
+  tdep->config5_type = NULL;
   tdep->fp_rm_type = NULL;
   tdep->fp_cflags_type = NULL;
   tdep->fp_csr_type = NULL;
