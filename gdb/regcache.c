@@ -472,6 +472,7 @@ struct regcache_list
 };
 
 static struct regcache_list *current_regcache;
+static int regcache_invalidated = 1;
 
 struct regcache *
 get_thread_arch_aspace_regcache (ptid_t ptid, struct gdbarch *gdbarch,
@@ -530,7 +531,7 @@ set_current_thread_ptid_arch (ptid_t ptid)
 struct regcache *
 get_thread_regcache (ptid_t ptid)
 {
-  int registers_changed_p = current_regcache == NULL;
+  int registers_changed_p = current_regcache == NULL || regcache_invalidated;
   struct regcache *new_regcache;
 
   set_current_thread_ptid_arch (ptid);
@@ -543,6 +544,7 @@ get_thread_regcache (ptid_t ptid)
       registers_changed ();
       set_current_thread_ptid_arch (ptid);
       new_regcache = get_thread_arch_regcache (ptid, current_thread_arch);
+      regcache_invalidated = 0;
     }
 
   return new_regcache;
@@ -629,6 +631,7 @@ registers_changed_ptid (ptid_t ptid)
 	 forget about any frames we have cached, too.  */
       reinit_frame_cache ();
     }
+  regcache_invalidated = 1;
 }
 
 void
