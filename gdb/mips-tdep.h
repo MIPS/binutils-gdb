@@ -63,6 +63,7 @@ struct mips_regnum
   int fp0;
   int fp_implementation_revision;
   int fp_control_status;
+  int config5;
   int badvaddr;		/* Bad vaddr for addressing exception.  */
   int cause;		/* Describes last exception.  */
   int hi;		/* Multiply/divide temp.  */

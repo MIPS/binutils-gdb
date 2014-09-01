@@ -8258,6 +8258,7 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
     info.tdep_info = &tdep_info;
 
   /* Fill in the OS dependent register numbers and names.  */
+  mips_regnum.config5 = -1;
   mips_regnum.linux_restart = -1;
   if (info.osabi == GDB_OSABI_IRIX)
     {
@@ -8372,6 +8373,15 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
 					  MIPS_PS_REGNUM, "status");
       valid_p &= tdesc_numbered_register (feature, tdesc_data,
 					  mips_regnum.cause, "cause");
+
+      /* Optionally, Config5 contains FP mode bits */
+      if (tdesc_unnumbered_register (feature, "config5"))
+	{
+	  /* Allocate a new register.  */
+	  mips_regnum.config5 = num_regs++;
+	  tdesc_numbered_register (feature, tdesc_data,
+				   mips_regnum.config5, "config5");
+	}
 
       if (!valid_p)
 	{
