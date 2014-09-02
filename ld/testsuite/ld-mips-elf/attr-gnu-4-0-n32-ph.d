@@ -5,7 +5,7 @@
 [^:]*:     file format elf32-ntradbigmips
 
 Program Header:
-0x70000003 off    0x000000.. vaddr 0x100000.. paddr 0x100000.. align 2\*\*3
+0x70000003 off    0x0000.... vaddr 0x100000.. paddr 0x100000.. align 2\*\*3
          filesz 0x00000018 memsz 0x00000018 flags r--
 #...
     LOAD off    0x00000000 vaddr 0x10000000 paddr 0x10000000 align 2\*\*16
