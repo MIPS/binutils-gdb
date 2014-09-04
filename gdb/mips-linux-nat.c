@@ -40,6 +40,8 @@
 
 #include "features/mips-linux.c"
 #include "features/mips-dsp-linux.c"
+#include "features/mips-fpu64-linux.c"
+#include "features/mips-fpu64-dsp-linux.c"
 #include "features/mips64-linux.c"
 #include "features/mips64-dsp-linux.c"
 
@@ -54,6 +56,8 @@
 #ifndef PTRACE_SETREGSET
 #define PTRACE_SETREGSET	0x4205
 #endif
+
+#define FIR_F64	  (1 << 22)
 
 /* Assume that we have PTRACE_GETREGS et al. support.  If we do not,
    we'll clear this and use PTRACE_PEEKUSER instead.  */
@@ -604,7 +608,41 @@ mips_linux_register_u_offset (struct gdbarch *gdbarch, int regno, int store_p)
 static const struct target_desc *
 mips_linux_read_description (struct target_ops *ops)
 {
+  const struct target_desc *tdescs[2][2] =
+    {
+	/* have_fpu64 = 0	have_fpu64 = 1 */
+	{ tdesc_mips_linux,	tdesc_mips_fpu64_linux },     /* have_dsp = 0 */
+	{ tdesc_mips_dsp_linux,	tdesc_mips_fpu64_dsp_linux }, /* have_dsp = 1 */
+    };
+
   static int have_dsp = -1;
+  static int have_fpu64 = -1;
+
+  if (have_fpu64 < 0)
+    {
+      int tid;
+      long fir;
+
+      tid = ptid_get_lwp (inferior_ptid);
+      if (tid == 0)
+	tid = ptid_get_pid (inferior_ptid);
+
+      /* Try peeking at FIR.F64 bit */
+      errno = 0;
+      fir = ptrace (PTRACE_PEEKUSER, tid, FPC_EIR, 0);
+      switch (errno)
+	{
+	case 0:
+	  have_fpu64 = !!(fir & FIR_F64);
+	  break;
+	case EIO:
+	  have_fpu64 = 0;
+	  break;
+	default:
+	  perror_with_name ("ptrace");
+	  break;
+	}
+    }
 
   if (have_dsp < 0)
     {
@@ -633,7 +671,7 @@ mips_linux_read_description (struct target_ops *ops)
   /* Report that target registers are a size we know for sure
      that we can get from ptrace.  */
   if (_MIPS_SIM == _ABIO32)
-    return have_dsp ? tdesc_mips_dsp_linux : tdesc_mips_linux;
+    return tdescs[have_dsp][have_fpu64];
   else
     return have_dsp ? tdesc_mips64_dsp_linux : tdesc_mips64_linux;
 }
@@ -988,6 +1026,8 @@ triggers a breakpoint or watchpoint."),
   /* Initialize the standard target descriptions.  */
   initialize_tdesc_mips_linux ();
   initialize_tdesc_mips_dsp_linux ();
+  initialize_tdesc_mips_fpu64_linux ();
+  initialize_tdesc_mips_fpu64_dsp_linux ();
   initialize_tdesc_mips64_linux ();
   initialize_tdesc_mips64_dsp_linux ();
 }
