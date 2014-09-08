@@ -3655,13 +3655,6 @@ md_begin (void)
 }
 
 static inline void
-fpabi_incompatible_with (int fpabi, const char *what)
-{
-  as_warn (_(".gnu_attribute %d,%d is incompatible with `%s'"),
-	   Tag_GNU_MIPS_ABI_FP, fpabi, what);
-}
-
-static inline void
 fpabi_requires (int fpabi, const char *what)
 {
   as_warn (_(".gnu_attribute %d,%d requires `%s'"),
@@ -3672,68 +3665,66 @@ fpabi_requires (int fpabi, const char *what)
 static void
 check_fpabi (int fpabi)
 {
-  bfd_boolean needs_check = FALSE;
-  switch (fpabi)
-    {
-    case Val_GNU_MIPS_ABI_FP_DOUBLE:
-      if (file_mips_opts.gp == 64 && file_mips_opts.fp == 32)
-	fpabi_incompatible_with (fpabi, "gp=64 fp=32");
-      else if (file_mips_opts.gp == 32 && file_mips_opts.fp == 64)
-	fpabi_incompatible_with (fpabi, "gp=32 fp=64");
-      else
-	needs_check = TRUE;
-      break;
+  if (fpabi == Val_GNU_MIPS_ABI_FP_SOFT && !file_mips_opts.soft_float)
+    fpabi_requires (fpabi, "softfloat");
+  else if ((fpabi == Val_GNU_MIPS_ABI_FP_DOUBLE
+	    || fpabi == Val_GNU_MIPS_ABI_FP_SINGLE
+	    || fpabi == Val_GNU_MIPS_ABI_FP_XX
+	    || fpabi == Val_GNU_MIPS_ABI_FP_64
+	    || fpabi == Val_GNU_MIPS_ABI_FP_64A)
+	   && file_mips_opts.soft_float)
+    fpabi_requires (fpabi, "hardfloat");
+  else if (fpabi == Val_GNU_MIPS_ABI_FP_SINGLE && !file_mips_opts.single_float)
+    fpabi_requires (fpabi, "singlefloat");
+  else if ((fpabi == Val_GNU_MIPS_ABI_FP_DOUBLE
+	    || fpabi == Val_GNU_MIPS_ABI_FP_XX
+	    || fpabi == Val_GNU_MIPS_ABI_FP_64
+	    || fpabi == Val_GNU_MIPS_ABI_FP_64A)
+	   && file_mips_opts.single_float)
+    fpabi_requires (fpabi, "doublefloat");
+  else
+    switch (fpabi)
+      {
+      case Val_GNU_MIPS_ABI_FP_DOUBLE:
+	if (file_mips_opts.gp == 64 && file_mips_opts.fp == 32)
+	  fpabi_requires (fpabi, "fp=64");
+	else if (file_mips_opts.gp == 32 && file_mips_opts.fp == 64)
+	  fpabi_requires (fpabi, "fp=32");
+	break;
 
-    case Val_GNU_MIPS_ABI_FP_XX:
-      if (mips_abi != O32_ABI)
-	fpabi_requires (fpabi, "-mabi=32");
-      else if (file_mips_opts.fp != 0)
-	fpabi_requires (fpabi, "fp=xx");
-      else
-	needs_check = TRUE;
-      break;
+      case Val_GNU_MIPS_ABI_FP_XX:
+	if (mips_abi != O32_ABI)
+	  fpabi_requires (fpabi, "-mabi=32");
+	else if (file_mips_opts.fp != 0)
+	  fpabi_requires (fpabi, "fp=xx");
+	break;
 
-    case Val_GNU_MIPS_ABI_FP_64A:
-    case Val_GNU_MIPS_ABI_FP_64:
-      if (mips_abi != O32_ABI)
-	fpabi_requires (fpabi, "-mabi=32");
-      else if (file_mips_opts.fp != 64)
-	fpabi_requires (fpabi, "fp=64");
-      else if (fpabi == Val_GNU_MIPS_ABI_FP_64 && !file_mips_opts.oddspreg)
-	fpabi_incompatible_with (fpabi, "nooddspreg");
-      else if (fpabi == Val_GNU_MIPS_ABI_FP_64A && file_mips_opts.oddspreg)
-	fpabi_requires (fpabi, "nooddspreg");
-      else
-	needs_check = TRUE;
-      break;
+      case Val_GNU_MIPS_ABI_FP_64A:
+      case Val_GNU_MIPS_ABI_FP_64:
+	if (mips_abi != O32_ABI)
+	  fpabi_requires (fpabi, "-mabi=32");
+	else if (file_mips_opts.fp != 64)
+	  fpabi_requires (fpabi, "fp=64");
+	else if (fpabi == Val_GNU_MIPS_ABI_FP_64 && !file_mips_opts.oddspreg)
+	  fpabi_requires (fpabi, "oddspreg");
+	else if (fpabi == Val_GNU_MIPS_ABI_FP_64A && file_mips_opts.oddspreg)
+	  fpabi_requires (fpabi, "nooddspreg");
+	break;
 
-    case Val_GNU_MIPS_ABI_FP_SINGLE:
-      if (file_mips_opts.soft_float)
-	fpabi_incompatible_with (fpabi, "softfloat");
-      else if (!file_mips_opts.single_float)
-	fpabi_requires (fpabi, "singlefloat");
-      break;
+      case Val_GNU_MIPS_ABI_FP_SOFT:
+      case Val_GNU_MIPS_ABI_FP_SINGLE:
+	break;
 
-    case Val_GNU_MIPS_ABI_FP_SOFT:
-      if (!file_mips_opts.soft_float)
-	fpabi_requires (fpabi, "softfloat");
-      break;
+      case Val_GNU_MIPS_ABI_FP_OLD_64:
+	as_warn (_(".gnu_attribute %d,%d is no longer supported"),
+		 Tag_GNU_MIPS_ABI_FP, fpabi);
+	break;
 
-    case Val_GNU_MIPS_ABI_FP_OLD_64:
-      as_warn (_(".gnu_attribute %d,%d is no longer supported"),
-	       Tag_GNU_MIPS_ABI_FP, fpabi);
-      break;
-
-    default:
-      as_warn (_(".gnu_attribute %d,%d is not a recognized"
-	         " floating-point ABI"), Tag_GNU_MIPS_ABI_FP, fpabi);
-      break;
-    }
-
-  if (needs_check && file_mips_opts.soft_float)
-    fpabi_incompatible_with (fpabi, "softfloat");
-  else if (needs_check && file_mips_opts.single_float)
-    fpabi_incompatible_with (fpabi, "singlefloat");
+      default:
+	as_warn (_(".gnu_attribute %d,%d is not a recognized"
+		   " floating-point ABI"), Tag_GNU_MIPS_ABI_FP, fpabi);
+	break;
+      }
 }
 
 /* Perform consistency checks on the current options.  */

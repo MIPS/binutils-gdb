@@ -1,2 +1,2 @@
 .*: Assembler messages:
-.*: Warning: .gnu_attribute 4,2 is incompatible with `softfloat'
+.*: Warning: .gnu_attribute 4,2 requires `hardfloat'
