@@ -1137,10 +1137,16 @@ mips_linux_o32_sigframe_init (const struct tramp_frame *self,
      the "high" bits depends on endianness.  */
   for (ireg = 0; ireg < 32; ireg++)
     if (used_math & USED_FR1)
-      trad_frame_set_reg_addr (this_cache,
-			       ireg + regs->fp0 + gdbarch_num_regs (gdbarch),
-			       (sigcontext_base + SIGCONTEXT_FPREGS
-				+ ireg * SIGCONTEXT_REG_SIZE));
+      {
+	trad_frame_set_reg_addr (this_cache,
+				 ireg + regs->fp0,
+				 (sigcontext_base + SIGCONTEXT_FPREGS
+				  + ireg * SIGCONTEXT_REG_SIZE));
+	trad_frame_set_reg_addr (this_cache,
+				 ireg + regs->fp0 + gdbarch_num_regs (gdbarch),
+				 (sigcontext_base + SIGCONTEXT_FPREGS
+				  + ireg * SIGCONTEXT_REG_SIZE));
+      }
     else if ((gdbarch_byte_order (gdbarch) == BFD_ENDIAN_BIG) != (ireg & 1))
       trad_frame_set_reg_addr (this_cache,
 			       ireg + regs->fp0 + gdbarch_num_regs (gdbarch),
