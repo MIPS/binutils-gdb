@@ -8303,6 +8303,7 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
   struct mips_cl_insn insn;
   va_list args;
   unsigned int uval;
+  char next_fmt = 0;
 
   va_start (args, fmt);
 
@@ -8389,6 +8390,7 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 				  || *r == BFD_RELOC_MIPS_CALL_HI16))));
 	  break;
 
+	case '"':
 	case 'p':
 	  gas_assert (ep != NULL);
 
@@ -8414,6 +8416,12 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	      insn.insn_opcode |= (ep->X_add_number >> 2) & 0xffff;
 	      ep = NULL;
 	    }
+	  else if (*fmt == '"' && mips_opts.micromips)
+	    {
+	      macro_read_relocs (&args, r);
+	      gas_assert (ep->X_op == O_symbol
+			  && *r == BFD_RELOC_MICROMIPS_21_PCREL_S1);
+	    }
 	  else
 	    *r = BFD_RELOC_16_PCREL_S2;
 	  break;
@@ -8424,6 +8432,7 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	  break;
 
 	default:
+	  next_fmt = *(fmt + 1);
 	  operand = (mips_opts.micromips
 		     ? decode_micromips_operand (fmt)
 		     : decode_mips_operand (fmt));
@@ -8431,11 +8440,13 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	    abort ();
 
 	  uval = va_arg (args, int);
-	  if (operand->type == OP_CLO_CLZ_DEST)
+	  if (operand->type == OP_CLO_CLZ_DEST
+	      || operand->type == OP_SAME_RS_RT)
 	    uval |= (uval << 5);
+
 	  insn_insert_operand (&insn, operand, uval);
 
-	  if (*fmt == '+' || *fmt == 'm' || *fmt == '-')
+	  if ((*fmt == '+' && next_fmt != '"') || *fmt == 'm' || *fmt == '-')
 	    ++fmt;
 	  break;
 	}
@@ -9455,7 +9466,17 @@ macro_build_branch_rs (int type, expressionS *ep, unsigned int sreg)
   if (mips_opts.micromips && brneg)
     macro_build_branch_likely (br, brneg, call, ep, "s,p", sreg, ZERO);
   else
-    macro_build (ep, br, "s,p", sreg);
+    if (ISA_IS_R6 (mips_opts.isa) && mips_opts.micromips)
+      {
+	if (sreg == 0)
+	  as_bad (_("the source register must not be $0"));
+	if (type == M_BGTZ || type == M_BLEZ)
+	  macro_build (ep, br, "-t,p", sreg);
+	else
+	  macro_build (ep, br, "+;,p", sreg);
+      }
+    else
+      macro_build (ep, br, "s,p", sreg);
 }
 
 /* Emit a three-argument branch macro specified by TYPE, using SREG and
@@ -9495,7 +9516,23 @@ macro_build_branch_rsrt (int type, expressionS *ep,
   if (mips_opts.micromips && brneg)
     macro_build_branch_likely (br, brneg, call, ep, "s,t,p", sreg, treg);
   else
-    macro_build (ep, br, "s,t,p", sreg, treg);
+    if (ISA_IS_R6 (mips_opts.isa) && mips_opts.micromips)
+      {
+	/* rs must not be equal to 0 for microMIPS R6 as it would generate
+	   different instruction for beqc/beqzc/bnec/bnezc: beqzalc, jic,
+	   bnezalc, and jialc respectively.  */
+	if (sreg == 0)
+	  as_bad (_("the source register must not be $0"));
+	if (treg == 0)
+	  macro_build (ep, br, "-t,z,+\"", sreg, treg,
+		       BFD_RELOC_MICROMIPS_21_PCREL_S1);
+	else if (treg > sreg)
+	  macro_build (ep, br, "-s,-u,p", sreg, treg);
+	else
+	  macro_build (ep, br, "t,-y,p", sreg, treg);
+      }
+    else
+      macro_build (ep, br, "s,t,p", sreg, treg);
 }
 
 /* Return the high part that should be loaded in order to make the low
