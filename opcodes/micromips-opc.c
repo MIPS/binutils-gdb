@@ -104,6 +104,7 @@ decode_micromips_operand (const char *p)
         case 'B': PCREL (18, 0, TRUE, 3, 3, FALSE, FALSE);
 
         case 'a': INT_ADJ (19, 0, 262143, 2, FALSE);
+	case 'b': INT_ADJ (18, 0, 131071, 3, FALSE);
 	case 's': PREV_CHECK (5, 16, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE);
 	case 't': PREV_CHECK (5, 21, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE);
 	case 'u': PREV_CHECK (5, 21, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE);
@@ -874,6 +875,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"lca",			"t,A(b)",	0,    (int) M_LCA_AB,	INSN_MACRO,		0,		I1,		0,	0 },
 /* The macro has to be first to handle o32 correctly.  */
 {"ldpc",		"t,-B",		0x78180000, 0xfc1c0000, WR_1,			RD_pc,		I69,		0,	0 },
+{"ld",			"t,-b(mr)",	0x78180000, 0xfc1c0000, WR_1,		        RD_pc,		I69,		0,	0 },
 {"ld",			"t,A(b)",	0,    (int) M_LD_AB,	INSN_MACRO,		0,		I1,		0,	0 },
 {"ld",			"t,o(b)",	0xdc000000, 0xfc000000,	WR_1|RD_3|LM,		0,		I3,		0,	0 },
 {"ldc1",		"T,o(b)",	0xbc000000, 0xfc000000,	WR_1|RD_3|FP_D|LM,	0,		I1,		0,	0 },
@@ -939,6 +941,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"lwr",			"t,A(b)",	0,    (int) M_LWR_AB,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"lwupc",		"t,-A",		0x78100000, 0xfc180000, WR_1|LM,		RD_pc,		I69,		0,	0 },
 {"lwu",			"t,~(b)",	0x6000e000, 0xfc00f000,	WR_1|RD_3|LM,		0,		I3,		0,	0 },
+{"lwu"	,		"t,-a(mr)",	0x78100000, 0xfc180000, WR_1|RD_pc,		0,		I69,		0,	0 },
 {"lwu",			"t,A(b)",	0,    (int) M_LWU_AB,	INSN_MACRO,		0,		I3,		0,	0 },
 {"lwxc1",		"D,t(b)",	0x54000048, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_S|LM,	0,		I1,		0,	I37 },
 {"flush",		"t,~(b)",	0x60001000, 0xfc00f000,	WR_1|RD_3,		0,		I1,		0,	0 }, /* same */

@@ -2219,6 +2219,7 @@ extern const int bfd_mips16_num_opcodes;
    "+s" 5-bit source register specifier (MICROMIPSOP_*_RS) at 21
    "+t" 5-bit target register (MICROMIPSOP_*_RT) at bit 16
    "-a" (-262144 .. 262143) << 2 at bit 0
+   "-b" (-131072 .. 131071) << 3 at bit 0
    "-s" 5 bit source register specifier (OP_*_RS) not $0
    "-t" 5 bit source register specifier (OP_*_RT) not $0
    "-u" 5 bit target register specifier (OP_*_RT) less than OP_*_RS
@@ -2289,7 +2290,7 @@ extern const int bfd_mips16_num_opcodes;
    ""
    ""
    "AB                        "
-   "a                 stuvwyxz"
+   "ab                stuvwyxz"
 */
 
 extern const struct mips_operand *decode_micromips_operand (const char *);
