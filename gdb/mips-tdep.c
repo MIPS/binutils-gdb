@@ -7367,6 +7367,18 @@ mips_print_fp_register (struct ui_file *file, struct frame_info *frame,
   fprintf_filtered (file, "%*s",
 		    4 - (int) strlen (gdbarch_register_name (gdbarch, regnum)),
 		    "");
+  switch (gdbarch_tdep (gdbarch)->fp_mode)
+    {
+    case MIPS_FPU_32:
+      fprintf_filtered (file, "FPU32 ");
+      break;
+    case MIPS_FPU_64:
+      fprintf_filtered (file, "FPU64 ");
+      break;
+    case MIPS_FPU_HYBRID:
+      fprintf_filtered (file, "HYBRID ");
+      break;
+    }
 
   if (fpsize == 4)
     {
