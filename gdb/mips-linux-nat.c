@@ -100,7 +100,7 @@ mips_linux_register_addr (struct gdbarch *gdbarch, int regno, int store)
     regaddr = DSP_BASE + (regno - mips_regnum (gdbarch)->dspacc);
   else if (regno == mips_regnum (gdbarch)->dspctl)
     regaddr = DSP_CONTROL;
-  else if (mips_linux_restart_reg_p (gdbarch) && regno == MIPS_RESTART_REGNUM)
+  else if (regno == mips_regnum (gdbarch)->linux_restart)
     regaddr = 0;
   else
     regaddr = (CORE_ADDR) -1;
@@ -141,7 +141,7 @@ mips64_linux_register_addr (struct gdbarch *gdbarch, int regno, int store)
     regaddr = DSP_BASE + (regno - mips_regnum (gdbarch)->dspacc);
   else if (regno == mips_regnum (gdbarch)->dspctl)
     regaddr = DSP_CONTROL;
-  else if (mips_linux_restart_reg_p (gdbarch) && regno == MIPS_RESTART_REGNUM)
+  else if (regno == mips_regnum (gdbarch)->linux_restart)
     regaddr = 0;
   else
     regaddr = (CORE_ADDR) -1;

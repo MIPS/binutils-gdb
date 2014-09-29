@@ -8258,6 +8258,7 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
     info.tdep_info = &tdep_info;
 
   /* Fill in the OS dependent register numbers and names.  */
+  mips_regnum.linux_restart = -1;
   if (info.osabi == GDB_OSABI_IRIX)
     {
       mips_regnum.fp0 = 32;

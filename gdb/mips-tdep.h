@@ -69,6 +69,7 @@ struct mips_regnum
   int lo;		/* ...  */
   int dspacc;		/* SmartMIPS/DSP accumulators.  */
   int dspctl;		/* DSP control.  */
+  int linux_restart;
 };
 extern const struct mips_regnum *mips_regnum (struct gdbarch *gdbarch);
 

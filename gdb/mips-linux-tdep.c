@@ -140,8 +140,9 @@ mips_supply_gregset (struct regcache *regcache,
   for (regi = EF_REG0 + 1; regi <= EF_REG31; regi++)
     supply_32bit_reg (regcache, regi - EF_REG0, regp + regi);
 
-  if (mips_linux_restart_reg_p (gdbarch))
-    supply_32bit_reg (regcache, MIPS_RESTART_REGNUM, regp + EF_REG0);
+  if (mips_regnum (gdbarch)->linux_restart >= 0)
+    supply_32bit_reg (regcache, mips_regnum (gdbarch)->linux_restart,
+		      regp + EF_REG0);
 
   supply_32bit_reg (regcache, mips_regnum (gdbarch)->lo, regp + EF_LO);
   supply_32bit_reg (regcache, mips_regnum (gdbarch)->hi, regp + EF_HI);
@@ -190,7 +191,9 @@ mips_fill_gregset (const struct regcache *regcache,
       mips_fill_gregset (regcache, gregsetp, mips_regnum (gdbarch)->badvaddr);
       mips_fill_gregset (regcache, gregsetp, MIPS_PS_REGNUM);
       mips_fill_gregset (regcache, gregsetp, mips_regnum (gdbarch)->cause);
-      mips_fill_gregset (regcache, gregsetp, MIPS_RESTART_REGNUM);
+      if (mips_regnum (gdbarch)->linux_restart >= 0)
+	mips_fill_gregset (regcache, gregsetp,
+			   mips_regnum (gdbarch)->linux_restart);
       return;
    }
 
@@ -213,8 +216,7 @@ mips_fill_gregset (const struct regcache *regcache,
     regaddr = EF_CP0_STATUS;
   else if (regno == mips_regnum (gdbarch)->cause)
     regaddr = EF_CP0_CAUSE;
-  else if (mips_linux_restart_reg_p (gdbarch)
-	   && regno == MIPS_RESTART_REGNUM)
+  else if (regno == mips_regnum (gdbarch)->linux_restart)
     regaddr = EF_REG0;
   else
     regaddr = -1;
@@ -386,8 +388,8 @@ mips64_supply_gregset (struct regcache *regcache,
     supply_64bit_reg (regcache, regi - MIPS64_EF_REG0,
 		      (const gdb_byte *) (regp + regi));
 
-  if (mips_linux_restart_reg_p (gdbarch))
-    supply_64bit_reg (regcache, MIPS_RESTART_REGNUM,
+  if (mips_regnum (gdbarch)->linux_restart >= 0)
+    supply_64bit_reg (regcache, mips_regnum (gdbarch)->linux_restart,
 		      (const gdb_byte *) (regp + MIPS64_EF_REG0));
 
   supply_64bit_reg (regcache, mips_regnum (gdbarch)->lo,
@@ -442,7 +444,8 @@ mips64_fill_gregset (const struct regcache *regcache,
 			   mips_regnum (gdbarch)->badvaddr);
       mips64_fill_gregset (regcache, gregsetp, MIPS_PS_REGNUM);
       mips64_fill_gregset (regcache, gregsetp,  mips_regnum (gdbarch)->cause);
-      mips64_fill_gregset (regcache, gregsetp, MIPS_RESTART_REGNUM);
+      mips64_fill_gregset (regcache, gregsetp,
+			   mips_regnum (gdbarch)->linux_restart);
       return;
    }
 
@@ -460,8 +463,7 @@ mips64_fill_gregset (const struct regcache *regcache,
     regaddr = MIPS64_EF_CP0_STATUS;
   else if (regno == mips_regnum (gdbarch)->cause)
     regaddr = MIPS64_EF_CP0_CAUSE;
-  else if (mips_linux_restart_reg_p (gdbarch)
-	   && regno == MIPS_RESTART_REGNUM)
+  else if (regno == mips_regnum (gdbarch)->linux_restart)
     regaddr = MIPS64_EF_REG0;
   else
     regaddr = -1;
@@ -1090,9 +1092,9 @@ mips_linux_o32_sigframe_init (const struct tramp_frame *self,
   else
     regs_base = sigcontext_base;
 
-  if (mips_linux_restart_reg_p (gdbarch))
+  if (mips_regnum (gdbarch)->linux_restart >= 0)
     trad_frame_set_reg_addr (this_cache,
-			     (MIPS_RESTART_REGNUM
+			     (mips_regnum (gdbarch)->linux_restart
 			      + gdbarch_num_regs (gdbarch)),
 			     regs_base + SIGCONTEXT_REGS);
 
@@ -1282,9 +1284,9 @@ mips_linux_n32n64_sigframe_init (const struct tramp_frame *self,
   else
     sigcontext_base = frame_sp + N64_SIGFRAME_SIGCONTEXT_OFFSET;
 
-  if (mips_linux_restart_reg_p (gdbarch))
+  if (mips_regnum (gdbarch)->linux_restart >= 0)
     trad_frame_set_reg_addr (this_cache,
-			     (MIPS_RESTART_REGNUM
+			     (mips_regnum (gdbarch)->linux_restart
 			      + gdbarch_num_regs (gdbarch)),
 			     sigcontext_base + N64_SIGCONTEXT_REGS);
 
@@ -1383,23 +1385,9 @@ mips_linux_write_pc (struct regcache *regcache, CORE_ADDR pc)
   mips_write_pc (regcache, pc);
 
   /* Clear the syscall restart flag.  */
-  if (mips_linux_restart_reg_p (gdbarch))
-    regcache_cooked_write_unsigned (regcache, MIPS_RESTART_REGNUM, 0);
-}
-
-/* Return 1 if MIPS_RESTART_REGNUM is usable.  */
-
-int
-mips_linux_restart_reg_p (struct gdbarch *gdbarch)
-{
-  /* If we do not have a target description with registers, then
-     MIPS_RESTART_REGNUM will not be included in the register set.  */
-  if (!tdesc_has_registers (gdbarch_target_desc (gdbarch)))
-    return 0;
-
-  /* If we do, then MIPS_RESTART_REGNUM is safe to check; it will
-     either be GPR-sized or missing.  */
-  return register_size (gdbarch, MIPS_RESTART_REGNUM) > 0;
+  if (mips_regnum (gdbarch)->linux_restart >= 0)
+    regcache_cooked_write_unsigned (regcache,
+				    mips_regnum (gdbarch)->linux_restart, 0);
 }
 
 /* When FRAME is at a syscall instruction, return the PC of the next
@@ -1739,19 +1727,27 @@ mips_linux_init_abi (struct gdbarch_info info,
     {
       const struct tdesc_feature *feature;
 
-      /* If we have target-described registers, then we can safely
-	 reserve a number for MIPS_RESTART_REGNUM (whether it is
-	 described or not).  */
-      gdb_assert (gdbarch_num_regs (gdbarch) <= MIPS_RESTART_REGNUM);
-      set_gdbarch_num_regs (gdbarch, MIPS_RESTART_REGNUM + 1);
-      set_gdbarch_num_pseudo_regs (gdbarch, MIPS_RESTART_REGNUM + 1);
-
-      /* If it's present, then assign it to the reserved number.  */
+      /* If "restart" is present in the target register description,
+	 then assign it to a new register number.  */
       feature = tdesc_find_feature (info.target_desc,
 				    "org.gnu.gdb.mips.linux");
-      if (feature != NULL)
-	tdesc_numbered_register (feature, info.tdep_info->tdesc_data,
-				 MIPS_RESTART_REGNUM, "restart");
+      if (feature != NULL
+	  && tdesc_unnumbered_register (feature, "restart"))
+	{
+	  int restart_regnum;
+	  /* We cast away const'ness in order to set linux_restart.
+	     */
+	  struct mips_regnum *regnum =
+			(struct mips_regnum *)mips_regnum (gdbarch);
+
+	  restart_regnum = gdbarch_num_regs (gdbarch);
+	  regnum->linux_restart = restart_regnum;
+	  set_gdbarch_num_regs (gdbarch, restart_regnum + 1);
+	  set_gdbarch_num_pseudo_regs (gdbarch, restart_regnum + 1);
+
+	  tdesc_numbered_register (feature, info.tdep_info->tdesc_data,
+				   restart_regnum, "restart");
+	}
     }
 }
 
