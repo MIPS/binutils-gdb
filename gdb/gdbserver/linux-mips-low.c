@@ -54,8 +54,8 @@ extern const struct target_desc *tdesc_mips64_dsp_linux;
 #include <sys/reg.h>
 #endif
 
-#define mips_num_regs 73
-#define mips_dsp_num_regs 80
+#define mips_num_regs 74
+#define mips_dsp_num_regs 81
 
 #include <asm/ptrace.h>
 
@@ -81,7 +81,7 @@ union mips_register
   16, 17, 18, 19, 20, 21, 22, 23,					\
   24, 25, 26, 27, 28, 29, 30, 31,					\
 									\
-  -1, MMLO, MMHI, BADVADDR, CAUSE, PC,					\
+  -1, MMLO, MMHI, BADVADDR, CAUSE, PC, -1,				\
 									\
   FPR_BASE,      FPR_BASE + 1,  FPR_BASE + 2,  FPR_BASE + 3,		\
   FPR_BASE + 4,  FPR_BASE + 5,  FPR_BASE + 6,  FPR_BASE + 7,		\
