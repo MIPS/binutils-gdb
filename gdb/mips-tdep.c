@@ -78,6 +78,10 @@ static void mips_print_float_info (struct gdbarch *, struct ui_file *,
 /* This bit is set if we are emulating 32-bit FPRs on a 64-bit chip.  */
 #define ST0_FR (1 << 26)
 
+/* A useful bit in the CP0 Config5 register.
+   This bit is set in hybrid 64-bit FPR mode.  */
+#define CONF5_FRE (1 << 8)
+
 /* The sizes of floating point registers.  */
 
 enum
@@ -309,7 +313,7 @@ mips_set_float_regsize (struct gdbarch *gdbarch, struct regcache *regcache)
   struct gdbarch_info info;
   enum mips_fpu_mode fp_mode;
   enum register_status status;
-  ULONGEST sr;
+  ULONGEST sr, config5;
 
   if (tdep->fp_register_mode_fixed_p)
     return 0;
@@ -320,6 +324,15 @@ mips_set_float_regsize (struct gdbarch *gdbarch, struct regcache *regcache)
   else
     fp_mode = mips_isa_regsize (gdbarch) == 8 ? MIPS_FPU_64 : MIPS_FPU_32;
 
+  if (fp_mode == MIPS_FPU_64 && mips_regnum (gdbarch)->config5 >= 0)
+    {
+      /* Find out if FRE is set */
+      status = regcache_raw_read_unsigned (regcache,
+					   mips_regnum (gdbarch)->config5,
+					   &config5);
+      if (status == REG_VALID && config5 & CONF5_FRE)
+	fp_mode = MIPS_FPU_HYBRID;
+    }
 
   if (fp_mode == tdep->fp_mode)
     return 0;
@@ -345,10 +358,20 @@ mips_float_regsize (struct gdbarch *gdbarch)
     case MIPS_FPU_32:
       return 4;
     case MIPS_FPU_64:
+    case MIPS_FPU_HYBRID:
       return 8;
     default:
       return 0;
     }
+}
+
+/* Return whether the FPU is currently in hybrid 64-bit mode (where odd singles
+   are found in the top half of the 64-bit even FP registers.  */
+
+static int
+mips_float_hybrid (struct gdbarch *gdbarch)
+{
+  return gdbarch_tdep (gdbarch)->fp_mode == MIPS_FPU_HYBRID;
 }
 
 /* MIPS16/microMIPS function addresses are odd (bit 0 is set).  Here
@@ -831,6 +854,7 @@ mips_get_fp_single_location (struct gdbarch *gdbarch,
   switch (fp_mode)
     {
     case MIPS_FPU_32:
+    case MIPS_FPU_HYBRID:
       loc->regnum = raw_num + (idx & ~1);
       loc->offset = 4 * (big_endian ^ (idx & 1));
       return 1;
@@ -888,7 +912,7 @@ mips_get_fp_double_location (struct gdbarch *gdbarch,
 }
 
 /* Get the raw register part(s) composing a cooked float register.
-   Returns the number of parts (maximum 2) written through loc.	 */
+   Returns the number of parts (maximum 3) written through loc.	 */
 
 static unsigned int
 mips_get_fp_multi_location (struct gdbarch *gdbarch,
@@ -900,8 +924,9 @@ mips_get_fp_multi_location (struct gdbarch *gdbarch,
 
   /* The cooked formats supported are:
      fp32 (len=4):  just a single.
-     fp64 (len=8):  double (with aliased single).  */
-  if (cooked_len > 8 || cooked_len < 4 || cooked_len & 0x3)
+     fp64 (len=8):  double (with aliased single).
+     fp96 (len=12): consecutive double and single.  */
+  if (cooked_len > 12 || cooked_len < 4 || cooked_len & 0x3)
     internal_error (__FILE__, __LINE__, _("bad cooked register size"));
 
   /* Formats containing a distinct double.  */
@@ -985,7 +1010,7 @@ mips_pseudo_register_read (struct gdbarch *gdbarch, struct regcache *regcache,
 
   if (mips_float_register_p (gdbarch, rawnum))
     {
-      struct mips_reg_part loc[2];
+      struct mips_reg_part loc[3];
       unsigned int parts;
 
       fpnum = rawnum - mips_regnum (gdbarch)->fp0;
@@ -1032,7 +1057,7 @@ mips_pseudo_register_write (struct gdbarch *gdbarch,
 
   if (mips_float_register_p (gdbarch, rawnum))
     {
-      struct mips_reg_part loc[2];
+      struct mips_reg_part loc[3];
       unsigned int parts;
 
       fpnum = rawnum - mips_regnum (gdbarch)->fp0;
@@ -1147,6 +1172,20 @@ mips_convert_register_float_case_p (struct gdbarch *gdbarch, int regnum,
 	  && TYPE_CODE (type) == TYPE_CODE_FLT && TYPE_LENGTH (type) == 4);
 }
 
+/* This predicate tests for the case of a 4 or 8 byte floating point
+   value that is being transferred to or from a floating point
+   register which is 12 bytes wide (containing both single and double).  */
+
+static int
+mips_convert_register_float_fre_case_p (struct gdbarch *gdbarch,
+					int regnum, struct type *type)
+{
+  return (register_size (gdbarch, regnum) == 12
+	  && mips_float_register_p (gdbarch, regnum)
+	  && TYPE_CODE (type) == TYPE_CODE_FLT
+          && (TYPE_LENGTH (type) == 4 || TYPE_LENGTH (type) == 8));
+}
+
 /* This predicate tests for the case of a value of less than 8
    bytes in width that is being transfered to or from an 8 byte
    general purpose register.  */
@@ -1166,6 +1205,7 @@ mips_convert_register_p (struct gdbarch *gdbarch,
 			 int regnum, struct type *type)
 {
   return (mips_convert_register_float_case_p (gdbarch, regnum, type)
+	  || mips_convert_register_float_fre_case_p (gdbarch, regnum, type)
 	  || mips_convert_register_gpreg_case_p (gdbarch, regnum, type));
 }
 
@@ -1188,6 +1228,26 @@ mips_register_to_value (struct frame_info *frame, int regnum,
       else
 	{
 	  if (!get_frame_register_bytes (frame, regnum, 0, 4, to,
+					 optimizedp, unavailablep))
+	    return 0;
+	}
+      *optimizedp = *unavailablep = 0;
+      return 1;
+    }
+  else if (mips_convert_register_float_fre_case_p (gdbarch, regnum, type))
+    {
+      int len = TYPE_LENGTH (type);
+      if (len == 8)
+	{
+	  /* double comes first */
+	  if (!get_frame_register_bytes (frame, regnum, 0, 8, to,
+					 optimizedp, unavailablep))
+	    return 0;
+	}
+      else
+	{
+	  /* followed by single */
+	  if (!get_frame_register_bytes (frame, regnum, 8, 4, to,
 					 optimizedp, unavailablep))
 	    return 0;
 	}
@@ -1227,6 +1287,16 @@ mips_value_to_register (struct frame_info *frame, int regnum,
 	put_frame_register_bytes (frame, regnum, 4, 4, from);
       else
 	put_frame_register_bytes (frame, regnum, 0, 4, from);
+    }
+  else if (mips_convert_register_float_fre_case_p (gdbarch, regnum, type))
+    {
+      int len = TYPE_LENGTH (type);
+      if (len == 8)
+	  /* double goes first */
+	  put_frame_register_bytes (frame, regnum, 0, 8, from);
+      else
+	  /* followed by single */
+	  put_frame_register_bytes (frame, regnum, 8, 4, from);
     }
   else if (mips_convert_register_gpreg_case_p (gdbarch, regnum, type))
     {
@@ -1347,6 +1417,56 @@ mips_fp64_type (struct gdbarch *gdbarch)
   return tdep->fp64_type;
 }
 
+/* Get FRE odd floating point type, which can contains separate single and
+   double precision floats, or a separate 32-bit or 64-bit signed integer.
+   This is used for odd fp registers when FR=1 and FRE=1 (the odd single comes
+   from the upper half of the even double, so odd singles and odd doubles do not
+   overlap).  */
+
+static struct type *
+mips_fp96_type (struct gdbarch *gdbarch)
+{
+  struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
+
+  if (tdep->fp96_type == NULL)
+    {
+      const struct builtin_type *bt = builtin_type (gdbarch);
+      struct type *t;
+      struct field *f;
+
+      /* The type we're building is roughly this: */
+#if 0
+      struct __gdb_builtin_mips_fp96 {
+	  union {
+	      double f64;
+	      int64  i64;
+	  };
+	  union {
+	      float  f32;
+	      int32  i32;
+	  };
+      };
+#endif
+
+      t = arch_composite_type (gdbarch, "__gdb_builtin_type_mips_fp96",
+			       TYPE_CODE_STRUCT);
+      f = append_composite_type_field_raw (t, "f32", bt->builtin_float);
+      SET_FIELD_BITPOS (*f, 64);
+      f = append_composite_type_field_raw (t, "f64", bt->builtin_double);
+      SET_FIELD_BITPOS (*f, 0);
+      f = append_composite_type_field_raw (t, "i32", bt->builtin_int32);
+      SET_FIELD_BITPOS (*f, 64);
+      f = append_composite_type_field_raw (t, "i64", bt->builtin_int64);
+      SET_FIELD_BITPOS (*f, 0);
+
+      TYPE_LENGTH (t) = 12;
+      TYPE_NAME (t) = "fp96";
+      tdep->fp96_type = t;
+    }
+
+  return tdep->fp96_type;
+}
+
 /* Get the floating point type for an arbitrary FP register. This returns the
    appropriate type depending on the possible types and overlaps of the
    register.  */
@@ -1354,9 +1474,12 @@ mips_fp64_type (struct gdbarch *gdbarch)
 static struct type *
 mips_fp_type (struct gdbarch *gdbarch, int fpnum)
 {
-  if ((fpnum & 1) == 0 || mips_float_regsize (gdbarch) == 8)
+  if ((fpnum & 1) == 1 && mips_float_hybrid (gdbarch) )
+    /* 64-bit hybrid registers: odd singles and doubles don't overlap.  */
+    return mips_fp96_type (gdbarch);
+  else if ((fpnum & 1) == 0 || mips_float_regsize (gdbarch) == 8)
     /* Even singles and doubles always overlap, as do odd singles and
-       doubles when FR=1.  */
+       doubles when FR=1 (and FRE=0).  */
     return mips_fp64_type (gdbarch);
   else
     /* 32-bit odd singles (there are no odd doubles).  */
@@ -6592,8 +6715,12 @@ mips_read_fp_register_single (struct frame_info *frame, int regno,
   if (!deprecated_frame_register_read (frame, regno, raw_buffer))
     return 0;
 
-  if (cooked_size == 8)
-    /* FR=1
+  if (cooked_size == 12)
+    /* FR=1, FRE=1
+       Single is after double. */
+    memcpy(rare_buffer, raw_buffer+8, 8);
+  else if (cooked_size == 8)
+    /* FR=1, FRE=0
        Single is overlapping double. */
     memcpy(rare_buffer, raw_buffer + 4*big_endian, 4);
   else
@@ -9028,6 +9155,7 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   tdep->fp_register_mode_fixed_p = 0;
   tdep->fp32_type = NULL;
   tdep->fp64_type = NULL;
+  tdep->fp96_type = NULL;
 
   if (info.target_desc)
     {

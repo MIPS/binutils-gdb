@@ -89,6 +89,8 @@ enum mips_fpu_mode
   MIPS_FPU_UNKNOWN = 0,
   MIPS_FPU_32,		/* FR=0, 32bit FP regs, doubles in pairs.  */
   MIPS_FPU_64,		/* FR=1, 64bit FP regs.  */
+  MIPS_FPU_HYBRID,	/* FR=1, FRE=1, 64bit FP regs, odd singles in upper half
+			   of even doubles.  */
 };
 
 /* MIPS specific per-architecture information.  */
@@ -123,14 +125,15 @@ struct gdbarch_tdep
   int register_size;
 
   /* The floating-point register mode determined at run time.
-     This corresponds to CP0 Status register's FR bit unless fixed_p is
-     set.  */
+     This corresponds to CP0 Status register's FR bit and Config5's FRE bit
+     unless fixed_p is set.  */
   int fp_register_mode_fixed_p;
   enum mips_fpu_mode fp_mode;
 
   /* ISA-specific data types.  */
   struct type *fp32_type;
   struct type *fp64_type;
+  struct type *fp96_type;
 
   /* Return the expected next PC if FRAME is stopped at a syscall
      instruction.  */
