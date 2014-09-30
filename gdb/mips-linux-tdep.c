@@ -1721,7 +1721,7 @@ mips_linux_init_abi (struct gdbarch_info info,
 				    mips_gdb_signal_to_target);
 
   tdep->syscall_next_pc = mips_linux_syscall_next_pc;
-  tdep->fp_register_size_fixed_p = 1;
+  tdep->fp_register_mode_fixed_p = 1;
 
   if (info.tdep_info->tdesc_data)
     {

@@ -84,6 +84,13 @@ enum mips_fpu_type
   MIPS_FPU_NONE			/* No floating point.  */
 };
 
+enum mips_fpu_mode
+{
+  MIPS_FPU_UNKNOWN = 0,
+  MIPS_FPU_32,		/* FR=0, 32bit FP regs, doubles in pairs.  */
+  MIPS_FPU_64,		/* FR=1, 64bit FP regs.  */
+};
+
 /* MIPS specific per-architecture information.  */
 struct gdbarch_tdep
 {
@@ -115,11 +122,11 @@ struct gdbarch_tdep
   int register_size_valid_p;
   int register_size;
 
-  /* The size of floating-point registers determined at the run time.
-     This corresponds to CP0 Status register's bit FR setting if
-     implemented unless fixed_p is set.  */
-  int fp_register_size_fixed_p;
-  int fp_register_size;
+  /* The floating-point register mode determined at run time.
+     This corresponds to CP0 Status register's FR bit unless fixed_p is
+     set.  */
+  int fp_register_mode_fixed_p;
+  enum mips_fpu_mode fp_mode;
 
   /* Return the expected next PC if FRAME is stopped at a syscall
      instruction.  */
@@ -132,8 +139,8 @@ struct gdbarch_tdep_info
   /* Target description data.  */
   struct tdesc_arch_data *tdesc_data;
 
-  /* The size of floating-point registers determined at the run time.  */
-  int fp_register_size;
+  /* The floating-point register mode determined at run time.  */
+  enum mips_fpu_mode fp_mode;
 };
 
 /* Register numbers of various important registers.  */
