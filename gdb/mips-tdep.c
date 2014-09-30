@@ -307,29 +307,27 @@ mips_set_float_regsize (struct gdbarch *gdbarch, struct regcache *regcache)
   struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
   struct gdbarch_tdep_info tdep_info = { NULL };
   struct gdbarch_info info;
-  int fpsize;
   enum mips_fpu_mode fp_mode;
+  enum register_status status;
+  ULONGEST sr;
 
   if (tdep->fp_register_mode_fixed_p)
     return 0;
 
-  fpsize = mips_isa_regsize (gdbarch);
-  fp_mode = fpsize == 8 ? MIPS_FPU_64 : MIPS_FPU_32;
-  if (fpsize == 8)
-    {
-      enum register_status status;
-      ULONGEST sr;
+  status = regcache_raw_read_unsigned (regcache, MIPS_PS_REGNUM, &sr);
+  if (status == REG_VALID)
+    fp_mode = (sr & ST0_FR) ? MIPS_FPU_64 : MIPS_FPU_32;
+  else
+    fp_mode = mips_isa_regsize (gdbarch) == 8 ? MIPS_FPU_64 : MIPS_FPU_32;
 
-      status = regcache_raw_read_unsigned (regcache, MIPS_PS_REGNUM, &sr);
-      if (status == REG_VALID)
-	fp_mode = (sr & ST0_FR) ? MIPS_FPU_64 : MIPS_FPU_32;
-    }
 
   if (fp_mode == tdep->fp_mode)
     return 0;
 
-  /* Need a new gdbarch, go get one.  */
+  /* Need a new gdbarch, go get one.
+     Be careful to preserve target description. */
   gdbarch_info_init (&info);
+  info.target_desc = target_current_description ();
   info.tdep_info = &tdep_info;
   info.tdep_info->fp_mode = fp_mode;
   gdbarch_update_p (info);
@@ -1061,11 +1059,12 @@ mips_register_type (struct gdbarch *gdbarch, int regnum)
   if (regnum < gdbarch_num_regs (gdbarch))
     {
       /* The raw or ISA registers.  These are all sized according to
-	 the ISA regsize.  */
+	 the ISA regsize, except FP registers which may be double
+	 even on MIPS32 since rev 2 of the architecture.  */
       int regsize = mips_isa_regsize (gdbarch);
 
       if (mips_float_register_p (gdbarch, regnum))
-	return (regsize == 4
+	return (mips_float_regsize (gdbarch) == 4
 		? builtin_type (gdbarch)->builtin_float
 		: builtin_type (gdbarch)->builtin_double);
       else
@@ -6338,7 +6337,7 @@ mips_print_fp_register (struct ui_file *file, struct frame_info *frame,
 			int regnum)
 {				/* Do values for FP (float) regs.  */
   struct gdbarch *gdbarch = get_frame_arch (frame);
-  int fpsize = register_size (gdbarch, regnum);
+  int fpsize = mips_float_regsize (gdbarch);
   gdb_byte *raw_buffer;
   double doub, flt1;	/* Doubles extracted from raw hex data.  */
   int inv1, inv2;
@@ -8341,7 +8340,6 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
       const struct tdesc_feature *feature;
       int valid_p;
       int fpsize;
-      enum mips_fpu_mode fpmode;
 
       feature = tdesc_find_feature (info.target_desc,
 				    "org.gnu.gdb.mips.cpu");
@@ -8414,12 +8412,10 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
          supplied the description got the current setting right wrt
          CP0 Status register's bit FR if applicable.  */
       fpsize = tdesc_register_size (feature, mips_fprs[0]) / 8;
-      fpmode = (fpsize == 8) ? MIPS_FPU_64 : MIPS_FPU_32;
 
       /* Only accept a description whose floating-point register size
          matches the requested size or if none was specified.  */
-      valid_p = (info.tdep_info->fp_mode == MIPS_FPU_UNKNOWN
-		 || info.tdep_info->fp_mode == fpmode);
+      valid_p = 1;
       for (i = 0; i < 32; i++)
 	valid_p &= tdesc_numbered_register (feature, tdesc_data,
 					    i + mips_regnum.fp0, mips_fprs[i]);
@@ -8473,9 +8469,6 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
 	      mips_regnum.dspctl = dspctl;
 	    }
 	}
-
-      /* Fix the floating-point register mode found.  */
-      info.tdep_info->fp_mode = fpmode;
 
       /* It would be nice to detect an attempt to use a 64-bit ABI
 	 when only 32-bit registers are provided.  */
