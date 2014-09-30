@@ -6597,7 +6597,7 @@ mips_print_registers_info (struct gdbarch *gdbarch, struct ui_file *file,
     {
       gdb_assert (regnum >= gdbarch_num_regs (gdbarch));
       if (*(gdbarch_register_name (gdbarch, regnum)) == '\0')
-	error (_("Not a valid register for the current processor type"));
+	return;
 
       mips_print_register (file, frame, regnum);
       fprintf_filtered (file, "\n");
