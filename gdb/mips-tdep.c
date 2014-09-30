@@ -1522,7 +1522,8 @@ mips_register_type (struct gdbarch *gdbarch, int regnum)
       if (mips_float_register_p (gdbarch, regnum))
 	return mips_fp_type (gdbarch, rawnum - mips_regnum (gdbarch)->fp0);
       else if (rawnum == mips_regnum (gdbarch)->fp_control_status
-	  || rawnum == mips_regnum (gdbarch)->fp_implementation_revision)
+	  || rawnum == mips_regnum (gdbarch)->fp_implementation_revision
+	  || rawnum == mips_regnum (gdbarch)->config5)
 	return builtin_type (gdbarch)->builtin_int32;
       else if (gdbarch_osabi (gdbarch) != GDB_OSABI_IRIX
 	       && gdbarch_osabi (gdbarch) != GDB_OSABI_LINUX
@@ -1554,6 +1555,7 @@ mips_register_type (struct gdbarch *gdbarch, int regnum)
 static struct type *
 mips_pseudo_register_type (struct gdbarch *gdbarch, int regnum)
 {
+  struct gdbarch_tdep *tdep = gdbarch_tdep (target_gdbarch ());
   const int num_regs = gdbarch_num_regs (gdbarch);
   int rawnum = regnum % num_regs;
   struct type *rawtype, *fp_rawtype;
