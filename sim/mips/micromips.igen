@@ -1488,6 +1488,8 @@
 
 001000,5.LWM32REGS,5.BASE,0101,12.IMMEDIATE:POOL32B:32::LWM32
 "lwm32 %s<LWM32REGS>, <IMMEDIATE>(r<BASE>)"
+*micromips32r6:
+*micromips64r6:
 *micromips32:
 *micromips64:
 {
@@ -2244,7 +2246,9 @@
 001000,5.LWM32REGS,5.BASE,1101,12.IMMEDIATE:POOL32B:32::SWM32
 "swm32 %s<LWM32REGS>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   int address_base = GPR[BASE] + EXTEND12 (IMMEDIATE);
   int reg_offset;

@@ -481,16 +481,16 @@
       ALU32_ADD (GPR[rt] & 0x0ffffffff);
 
       if (ALU32_HAD_OVERFLOW)
-	return CIA + offset + 4;
+	return nia + offset;
       else
 	FORBIDDEN_SLOT ();
     }
   else if (rs == 0)
     {
-      RA = (CIA + 4) | isa_mode;
+      RA = nia | isa_mode;
       //BEQZALC
       if (GPR[rt] == 0)
-	return CIA + offset + 4;
+	return nia + offset;
       else
 	FORBIDDEN_SLOT ();
     }
@@ -498,7 +498,7 @@
     {
       //BEQC
       if (GPR[rs] == GPR[rt])
-	return CIA + offset + 4;
+	return nia + offset;
       else
 	FORBIDDEN_SLOT ();
     }
@@ -518,16 +518,16 @@
       ALU32_ADD (GPR[rt] & 0x0ffffffff);
 
       if (!ALU32_HAD_OVERFLOW)
-	return CIA + offset + 4;
+	return nia + offset;
       else
 	FORBIDDEN_SLOT ();
     }
   else if (rs == 0 && rt > rs)
     {
       //BNEZALC
-      RA = (CIA + 4) | isa_mode;
+      RA = nia | isa_mode;
       if (GPR[rt] != 0)
-	return CIA + offset + 4;
+	return nia + offset;
       else
 	FORBIDDEN_SLOT ();
     }
@@ -535,7 +535,7 @@
     {
       //BNEC
       if (GPR[rt] != GPR[rs])
-	return CIA + offset + 4;
+	return nia + offset;
       else
 	FORBIDDEN_SLOT ();
     }
@@ -552,7 +552,7 @@
     {
       //BLEZC
       if ((signed_word)GPR[rt] <= 0)
-	return CIA + offset + 4;
+	return nia + offset;
       else
 	FORBIDDEN_SLOT ();
     }
@@ -560,7 +560,7 @@
     {
       //BGEZC
       if ((signed_word)GPR[rt] >= 0)
-	return CIA + offset + 4;
+	return nia + offset;
       else
 	FORBIDDEN_SLOT ();
     }
@@ -568,7 +568,7 @@
     {
       //BGEC
       if ((signed_word) GPR[rs] >= (signed_word) GPR[rt])
-	return CIA + offset + 4;
+	return nia + offset;
       else
 	FORBIDDEN_SLOT ();
     }
@@ -585,7 +585,7 @@
     {
       //BGTZC
       if ((signed_word)GPR[rt] > 0)
-	return CIA + offset + 4;
+	return nia + offset;
       else
 	FORBIDDEN_SLOT ();
     }
@@ -593,7 +593,7 @@
     {
       //BLTZC
       if ((signed_word)GPR[rt] < 0)
-	return CIA + offset + 4;
+	return nia + offset;
       else
 	FORBIDDEN_SLOT ();
     }
@@ -601,7 +601,7 @@
     {
       //BLTC
       if ((signed_word) GPR[rs] < (signed_word) GPR[rt])
-	return CIA + offset + 4;
+	return nia + offset;
       else
 	FORBIDDEN_SLOT ();
     }
@@ -617,18 +617,18 @@
   if (rs == 0 && rt != 0)
     {
       //BLEZALC
-      RA = (CIA + 4) | isa_mode;
+      RA = nia | isa_mode;
       if ((signed_word)GPR[rt] <= 0)
-	return CIA + offset + 4;
+	return nia + offset;
       else
 	FORBIDDEN_SLOT ();
     }
   else if (rs != 0 && rs == rt)
     {
       //BGEZALC
-      RA = (CIA + 4) | isa_mode;
+      RA = nia | isa_mode;
       if ((signed_word)GPR[rt] >= 0)
-	return CIA + offset + 4;
+	return nia + offset;
       else
 	FORBIDDEN_SLOT ();
     }
@@ -636,7 +636,7 @@
     {
       //BGEUC
       if (GPR[rs] >= GPR[rt])
-	return CIA + offset + 4;
+	return nia + offset;
       else
 	FORBIDDEN_SLOT ();
     }
@@ -652,18 +652,18 @@
   if (rs == 0 && rt != 0)
     {
       //BGTZALC
-      RA = (CIA + 4) | isa_mode;
+      RA = nia | isa_mode;
       if ((signed_word)GPR[rt] > 0)
-	return CIA + offset + 4;
+	return nia + offset;
       else
 	FORBIDDEN_SLOT ();
     }
   else if (rs != 0 && rs == rt)
     {
       //BLTZALC
-      RA = (CIA + 4) | isa_mode;
+      RA = nia | isa_mode;
       if ((signed_word)GPR[rt] < 0)
-	return CIA + offset + 4;
+	return nia + offset;
       else
 	FORBIDDEN_SLOT ();
     }
@@ -671,7 +671,7 @@
     {
       //BLTUC
       if (GPR[rs] < GPR[rt])
-	return CIA + offset + 4;
+	return nia + offset;
       else
 	FORBIDDEN_SLOT ();
     }
@@ -696,7 +696,7 @@
 *micromips64r6:
 {
   if (GPR[rs] == 0)
-    return CIA + offset + 4;
+    return nia + offset;
   else
     FORBIDDEN_SLOT ();
   return NIA;
@@ -709,7 +709,7 @@
 *micromips64r6:
 {
   if (GPR[rs] != 0)
-    return CIA + offset + 4;
+    return nia + offset;
   else
     FORBIDDEN_SLOT ();
   return NIA;

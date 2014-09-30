@@ -289,7 +289,7 @@ struct _sim_cpu {
 #define DSPC ((CPU)->dspc)
 
 #define DELAY_SLOT(TARGET) NIA = delayslot32 (SD_, (TARGET))
-#define FORBIDDEN_SLOT() { NIA = forbiddenslot32 (SD_); }
+#define FORBIDDEN_SLOT() { NIA = forbiddenslot32 (SD_, nia); }
 #define NULLIFY_NEXT_INSTRUCTION() NIA = nullify_next_insn32 (SD_)
 
 
@@ -1070,9 +1070,13 @@ INLINE_SIM_MAIN (unsigned16) ifetch16 (SIM_DESC sd, sim_cpu *cpu, address_word c
 						      (CIA + 2)))
 #define IMEM16_MICROMIPS(CIA) ifetch16 (SD, CPU, (CIA), ((CIA)))
 
-#define IS_MICROMIPS_MAJOR(INSN) ((((INSN) & 0x1800) == 0x0800) \
+#define IS_MICROMIPS_MAJOR(INSN) ((((INSN) & 0x1c00) == 0x0800) \
+                                  || (((INSN) & 0x1c00) == 0x0c00) \
 				  || ((((INSN) & 0x1c00)  == 0x0400) \
 				      && ((((INSN) & 0xe000) >> 12) <= 4)))
+
+#define MICROMIPS_MAJOR_OPCODE_0_2(INSN) ((INSN & 0xe000) >> 13)
+#define MICROMIPS_MAJOR_OPCODE_3_5(INSN) ((INSN & 0x1c00) >> 10)
 
 #define MICROMIPS_DELAYSLOT_SIZE_ANY 0
 #define MICROMIPS_DELAYSLOT_SIZE_16 2

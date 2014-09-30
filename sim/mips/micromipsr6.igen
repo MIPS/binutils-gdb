@@ -97,7 +97,7 @@
 {
   check_fpu (SD_);
   if ((FGR[FT] & 0x01) == 0)
-    NIA = CIA + (EXTEND16 (OFFSET) << 1) + 4;
+    NIA = NIA + (EXTEND16 (OFFSET) << 1);
 }
 
 010000,01001,5.FT,16.OFFSET:R6POOL32I:32,f::BC1NEZC
@@ -107,7 +107,7 @@
 {
   check_fpu (SD_);
   if ((FGR[FT] & 0x01) != 0)
-    NIA = CIA + (EXTEND16 (OFFSET) << 1) + 4;
+    NIA = NIA + (EXTEND16 (OFFSET) << 1);
 }
 
 010000,0101,1.EQ,5.RT,16.OFFSET:R6POOL32I:32,f::BC2xxZC
@@ -472,7 +472,7 @@
 *micromips32r6:
 *micromips64r6:
 {
-  do_auipc(SD_, RT, IMMEDIATE);
+  do_auipc (SD_, RT, IMMEDIATE);
 }
 
 011110,5.RT,11111,16.IMMEDIATE:MICROMIPSR6:32::ALUIPC
@@ -579,7 +579,7 @@
 *micromips32r6:
 *micromips64r6:
 {
-  RA = CIA | ISA_MODE_MICROMIPS;
+  RA = NIA | ISA_MODE_MICROMIPS;
   NIA = process_isa_mode (SD_, GPR[RS]);
 }
 
@@ -612,7 +612,7 @@
 *micromips32r6:
 *micromips64r6:
 {
-  NIA = CIA + (IMMEDIATE << 1);
+  NIA = NIA + (EXTEND10 (IMMEDIATE) << 1);
 }
 
 100011,3.RS,7.IMMEDIATE:R6MICROMIPS:16::BEQZC16
@@ -649,14 +649,14 @@
   NIA = (CIA & MASK(63, 27)) | IMM_SHIFT_1BIT;
 }
 
-:function:::address_word:do_micromips_jalrc:int rt, int rs
+:function:::address_word:do_micromips_jalrc:int rt, int rs, address_word nia
 *micromips32r6:
 *micromips64r6:
 {
   if (rs == rt)
     Unpredictable ();
 
-  GPR[rt] = RA | isa_mode;
+  GPR[rt] = nia | ISA_MODE_MICROMIPS;
   return process_isa_mode (SD_, GPR[rs]);
 }
 
@@ -666,7 +666,7 @@
 *micromips32r6:
 *micromips64r6:
 {
-  NIA = do_micromips_jalrc (SD_, RT, RS);
+  NIA = do_micromips_jalrc (SD_, RT, RS, NIA);
 }
 
 000000,00000,5.RS,0000111100,111100:R6POOL32A:32::JRC
@@ -683,5 +683,5 @@
 *micromips32r6:
 *micromips64r6:
 {
-  NIA = do_micromips_jalrc (SD_, RT, RS);
+  NIA = do_micromips_jalrc (SD_, RT, RS, NIA);
 }

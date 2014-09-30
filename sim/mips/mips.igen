@@ -154,7 +154,7 @@
 // Simulate a 32 bit forbidden slot instruction
 //
 
-:function:::address_word:forbiddenslot32:
+:function:::address_word:forbiddenslot32:address_word nia
 *mips32r6:
 *mips64r6:
 {
@@ -171,12 +171,12 @@
   return CIA + 4;
 }
 
-:function:::address_word:forbiddenslot32:
+:function:::address_word:forbiddenslot32:address_word nia
 *micromips32r6:
 *micromips64r6:
 {
   /* microMIPS R6 has no forbidden slots. */
-  return CIA + 4;
+  return nia;
 }
 
 :function:::address_word:nullify_next_insn32:
