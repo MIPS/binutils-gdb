@@ -128,6 +128,10 @@ struct gdbarch_tdep
   int fp_register_mode_fixed_p;
   enum mips_fpu_mode fp_mode;
 
+  /* ISA-specific data types.  */
+  struct type *fp32_type;
+  struct type *fp64_type;
+
   /* Return the expected next PC if FRAME is stopped at a syscall
      instruction.  */
   CORE_ADDR (*syscall_next_pc) (struct frame_info *frame);
