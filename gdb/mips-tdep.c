@@ -7673,6 +7673,9 @@ print_gp_register_row (struct ui_file *file, struct frame_info *frame,
       if (mips_float_register_p (gdbarch, regnum) ||
 	  mips_vector_register_p (gdbarch, regnum))
 	break;			/* End the row: reached FP register.  */
+      if (mips_register_reggroup_p (gdbarch, regnum, float_reggroup) ||
+	  mips_register_reggroup_p (gdbarch, regnum, vector_reggroup))
+	break;
       /* Large registers are handled separately.  */
       if (register_size (gdbarch, regnum) > mips_abi_regsize (gdbarch))
 	{
@@ -7713,6 +7716,9 @@ print_gp_register_row (struct ui_file *file, struct frame_info *frame,
       if (mips_float_register_p (gdbarch, regnum) ||
 	  mips_vector_register_p (gdbarch, regnum))
 	break;			/* End row: reached FP register.  */
+      if (mips_register_reggroup_p (gdbarch, regnum, float_reggroup) ||
+	  mips_register_reggroup_p (gdbarch, regnum, vector_reggroup))
+	break;
       if (register_size (gdbarch, regnum) > mips_abi_regsize (gdbarch))
 	break;			/* End row: large register.  */
 
@@ -7799,8 +7805,13 @@ mips_print_registers_info (struct gdbarch *gdbarch, struct ui_file *file,
 	    }
 	  else if (mips_register_reggroup_p (gdbarch, regnum, float_reggroup) ||
 		   mips_register_reggroup_p (gdbarch, regnum, vector_reggroup))
-	    /* FP & MSA control registers */
-	    regnum = print_control_register_row (file, frame, regnum);
+	    {
+	      /* FP & MSA control registers */
+	      if (all)		/* True for "INFO ALL-REGISTERS" command.  */
+		regnum = print_control_register_row (file, frame, regnum);
+	      else
+		++regnum;
+	    }
 	  else
 	    regnum = print_gp_register_row (file, frame, regnum);
 	}
