@@ -47,6 +47,7 @@ code on the hardware.
 #include <ansidecl.h>
 #include <ctype.h>
 #include <limits.h>
+#include <byteswap.h>
 #include <math.h>
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -1335,6 +1336,60 @@ sim_monitor (SIM_DESC sd,
       {
         char tmp = (char)(A0 & 0xFF);
         sim_io_write_stdout (sd, &tmp, sizeof(char));
+	break;
+      }
+
+    case 13: /* int unlink(const char *path) */
+      {
+	char *path = fetch_str (sd, A0);
+	V0 = sim_io_unlink (sd, path);
+	free (path);
+	break;
+      }
+
+    case 14: /* int lseek(int fd, int offset, int whence) */
+      {
+	V0 = sim_io_lseek (sd, A0, A1, A2);
+	break;
+      }
+
+/* We may need to swap stat data around before passing it on to the
+   program being run.  */
+#define copy16(x) (BigEndianMem ? bswap_16(x) : (x))
+#define copy32(x) (BigEndianMem ? bswap_32(x) : (x))
+
+    case 15: /* int stat(const char *path, struct stat *buf); */
+      {
+	/* We need to put the data into the type of stat structure
+	   that MIPS uses and make sure it has the correct endianness.
+	   We are assuming that the host and MIPS agree on what the bits
+	   in st_mode mean.  That appears to be true for x86 linux and
+	   MIPS.  */
+        struct stat host_stat;
+	struct __attribute__ ((__packed__)) mips_stat {
+		short st_dev;
+		unsigned short st_ino;
+		unsigned int st_mode;
+		unsigned short st_nlink;
+		unsigned short st_uid;
+		unsigned short st_gid;
+		short st_rdev;
+		int st_size;
+	} mips_stat;
+	char *buf;
+        char *path = fetch_str (sd, A0);
+	buf = (char *) A1;
+	V0 = sim_io_stat (sd, path, &host_stat);
+	free (path);
+	mips_stat.st_dev = copy16((short) host_stat.st_dev);
+	mips_stat.st_ino = copy16((unsigned short) host_stat.st_ino);
+	mips_stat.st_mode = copy32((int) host_stat.st_mode);
+	mips_stat.st_nlink = copy16((unsigned short) host_stat.st_nlink);
+	mips_stat.st_uid = copy16((unsigned short) host_stat.st_uid);
+	mips_stat.st_gid = copy16((unsigned short) host_stat.st_gid);
+	mips_stat.st_rdev = copy16((short) host_stat.st_rdev);
+	mips_stat.st_size = copy32((int) host_stat.st_size);
+	sim_write (sd, A1, (char *) &mips_stat, 20);
 	break;
       }
 
