@@ -1291,8 +1291,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"xor",			"t,r,I",	0,    (int) M_XOR_I,	INSN_MACRO,		0,		I1,		0,	0 },
 {"xori",		"t,r,i",	0x70000000, 0xfc000000,	WR_1|RD_2,		0,		I1,		0,	0 },
 /* microMIPS R6 */
-/* FIXME: offsets are most likely shifted by 2 for conditional branches.  */
-{"aui",			"-t,s,u",	0x10000000, 0xfc000000,	WR_1|RD_2,		0,		I37,		0,	0 },
+{"aui",			"t,s,u",	0x10000000, 0xfc000000,	WR_1|RD_2,		0,		I37,		0,	0 },
 {"aluipc",		"t,u",		0x781f0000, 0xfc1f0000, WR_1,			RD_pc,		I37,		0,	0 },
 {"auipc",		"t,u",		0x781e0000, 0xfc1f0000, WR_1,			RD_pc,		I37,		0,	0 },
 {"daui",		"t,s,u",	0xf0000000, 0xfc000000,	WR_1|RD_2,		0,		I69,		0,	0 },
