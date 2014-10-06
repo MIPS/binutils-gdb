@@ -196,5 +196,8 @@ extern int tc_mips_regname_to_dw2regnum (char *regname);
 
 #define CONVERT_SYMBOLIC_ATTRIBUTE(name) mips_convert_symbolic_attribute (name)
 extern int mips_convert_symbolic_attribute (const char *);
+void mips_mark_labels (void);
+
+#define md_cleanup() mips_mark_labels ()
 
 #endif /* TC_MIPS */

@@ -1854,7 +1854,6 @@ static struct insn_label_list *free_insn_labels;
 #define label_list tc_segment_info_data.labels
 
 static void mips_clear_insn_labels (void);
-static void mips_mark_labels (void);
 static void mips_compressed_mark_labels (void);
 
 static inline void
@@ -1876,7 +1875,7 @@ mips_clear_insn_labels (void)
 
 /* Mark instruction labels in MIPS16/microMIPS mode.  */
 
-static inline void
+void
 mips_mark_labels (void)
 {
   if (HAVE_CODE_COMPRESSION)
