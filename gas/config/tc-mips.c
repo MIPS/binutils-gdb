@@ -1402,6 +1402,8 @@ enum options
     OPTION_NO_SMARTMIPS,
     OPTION_DSPR2,
     OPTION_NO_DSPR2,
+    OPTION_DSPR6,
+    OPTION_NO_DSPR6,
     OPTION_EVA,
     OPTION_NO_EVA,
     OPTION_XPA,
@@ -1511,6 +1513,8 @@ struct option md_longopts[] =
   {"mno-smartmips", no_argument, NULL, OPTION_NO_SMARTMIPS},
   {"mdspr2", no_argument, NULL, OPTION_DSPR2},
   {"mno-dspr2", no_argument, NULL, OPTION_NO_DSPR2},
+  {"mdspr6", no_argument, NULL, OPTION_DSPR6},
+  {"mno-dspr6", no_argument, NULL, OPTION_NO_DSPR6},
   {"meva", no_argument, NULL, OPTION_EVA},
   {"mno-eva", no_argument, NULL, OPTION_NO_EVA},
   {"mmicromips", no_argument, NULL, OPTION_MICROMIPS},
@@ -1645,12 +1649,17 @@ static const struct mips_ase mips_ases[] = {
   { "dsp", ASE_DSP, ASE_DSP64,
     OPTION_DSP, OPTION_NO_DSP,
     2, 2, 2, 2,
-    6, 6, -1, -1 },
+    6, 6, 6, 6 },
 
   { "dspr2", ASE_DSP | ASE_DSPR2, 0,
     OPTION_DSPR2, OPTION_NO_DSPR2,
     2, 2, 2, 2,
-    6, 6, -1, -1 },
+    6, 6, 6, 6 },
+
+  { "dspr6", ASE_DSP | ASE_DSPR2 | ASE_DSPR6, 0,
+    OPTION_DSPR6, OPTION_NO_DSPR6,
+    -1, -1, 6, 6,
+    -1, -1, -1, -1 },
 
   { "eva", ASE_EVA, 0,
     OPTION_EVA, OPTION_NO_EVA,
@@ -1705,7 +1714,7 @@ static const struct mips_ase mips_ases[] = {
 
 /* Groups of ASE_* flags that represent different revisions of an ASE.  */
 static const unsigned int mips_ase_groups[] = {
-  ASE_DSP | ASE_DSPR2
+  ASE_DSP | ASE_DSPR2 | ASE_DSPR6
 };
 
 /* Pseudo-op table.
