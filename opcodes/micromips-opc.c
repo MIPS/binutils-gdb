@@ -261,6 +261,7 @@ decode_micromips_operand (const char *p)
 #define DSP_VOLA INSN_NO_DELAY_SLOT
 #define D32	ASE_DSP
 #define D33	ASE_DSPR2
+#define D34	ASE_DSPR3
 
 /* MIPS MCU (MicroController) ASE support.  */
 #define MC	ASE_MCU
@@ -1173,7 +1174,9 @@ const struct mips_opcode micromips_opcodes[] =
 {"addu_s.qb",		"d,s,t",	0x000004cd, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,		0,		D32,	0 },
 {"addwc",		"d,s,t",	0x000003c5, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,		0,		D32,	0 },
 {"bitrev",		"t,s",		0x0000313c, 0xfc00ffff,	WR_1|RD_2,		0,		0,		D32,	0 },
-{"bposge32",		"p",		0x43600000, 0xffff0000,	CBD,			0,		0,		D32,	0 },
+{"bposge32c",		"p",		0x43200000, 0xffff0000,	0,			CBR,		0,		D34,	0 },
+{"bposge32",		"p",		0x43200000, 0xffff0000,	0,			INSN2_ALIAS|CBR|CTC,		0,		D34,	0 },
+{"bposge32",		"p",		0x43600000, 0xffff0000,	CBD,			0,		0,		D32,	I37 },
 {"cmp.eq.ph",		"s,t",		0x00000005, 0xfc00ffff,	RD_1|RD_2,		0,		0,		D32,	0 },
 {"cmpgu.eq.qb",		"d,s,t",	0x000000c5, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		0,		D32,	0 },
 {"cmp.le.ph",		"s,t",		0x00000085, 0xfc00ffff,	RD_1|RD_2,		0,		0,		D32,	0 },
