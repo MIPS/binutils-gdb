@@ -338,9 +338,9 @@ Disassembly of section .text:
 0+0318 <[^>]*> a403 7fff 	jialc	v1,32767
 0+031c <[^>]*> 1062 ffff 	aui	v1,v0,0xffff
 0+0320 <[^>]*> 7884 0000 	lapc	a0,fff00320 <[^>]*>
-[	]*320: R_MIPS_PC19_S2	L0
+[	]*320: R_MICROMIPS_PC19_S2	L0
 0+0324 <[^>]*> 7883 ffff 	lapc	a0,00100320 <[^>]*>
-[	]*324: R_MIPS_PC19_S2	L0
+[	]*324: R_MICROMIPS_PC19_S2	L0
 0+0328 <[^>]*> 7884 0000 	lapc	a0,fff00328 <[^>]*>
 0+032c <[^>]*> 7883 ffff 	lapc	a0,00100328 <[^>]*>
 0+0330 <[^>]*> 7904 0000 	lapc	t0,fff00330 <[^>]*>
@@ -348,11 +348,11 @@ Disassembly of section .text:
 0+0338 <[^>]*> 787e ffff 	auipc	v1,0xffff
 0+033c <[^>]*> 787f ffff 	aluipc	v1,0xffff
 0+0340 <[^>]*> 7888 0000 	lwpc	a0,00000340 <[^>]*>
-[	]*340: R_MIPS_PC19_S2	.L11
+[	]*340: R_MICROMIPS_PC19_S2	.L11
 0+0344 <[^>]*> 788c 0000 	lwpc	a0,fff00344 <[^>]*>
-[	]*344: R_MIPS_PC19_S2	L0
+[	]*344: R_MICROMIPS_PC19_S2	L0
 0+0348 <[^>]*> 788b ffff 	lwpc	a0,00100344 <[^>]*>
-[	]*348: R_MIPS_PC19_S2	L0
+[	]*348: R_MICROMIPS_PC19_S2	L0
 0+034c <[^>]*> 788c 0000 	lwpc	a0,fff0034c <[^>]*>
 0+0350 <[^>]*> 788b ffff 	lwpc	a0,0010034c <[^>]*>
 0+0354 <[^>]*> 5462 0020 	rint.s	\$f2,\$f3

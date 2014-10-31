@@ -4038,6 +4038,8 @@ limited_pcrel_reloc_p (bfd_reloc_code_real_type reloc)
     case BFD_RELOC_MICROMIPS_16_PCREL_S1:
     case BFD_RELOC_MICROMIPS_21_PCREL_S1:
     case BFD_RELOC_MICROMIPS_26_PCREL_S1:
+    case BFD_RELOC_MICROMIPS_18_PCREL_S3:
+    case BFD_RELOC_MICROMIPS_19_PCREL_S2:
     case BFD_RELOC_MIPS_21_PCREL_S2:
     case BFD_RELOC_MIPS_26_PCREL_S2:
     case BFD_RELOC_MIPS_18_PCREL_S3:
@@ -6783,6 +6785,10 @@ micromips_map_reloc (bfd_reloc_code_real_type reloc)
       { BFD_RELOC_HI16_S, BFD_RELOC_MICROMIPS_HI16_S },
       { BFD_RELOC_LO16, BFD_RELOC_MICROMIPS_LO16 },
       { BFD_RELOC_MIPS_LITERAL, BFD_RELOC_MICROMIPS_LITERAL },
+      { BFD_RELOC_MIPS_21_PCREL_S2, BFD_RELOC_MICROMIPS_21_PCREL_S1 },
+      { BFD_RELOC_MIPS_26_PCREL_S2, BFD_RELOC_MICROMIPS_26_PCREL_S1 },
+      { BFD_RELOC_MIPS_18_PCREL_S3, BFD_RELOC_MICROMIPS_18_PCREL_S3 },
+      { BFD_RELOC_MIPS_19_PCREL_S2, BFD_RELOC_MICROMIPS_19_PCREL_S2 },
       { BFD_RELOC_MIPS_GOT16, BFD_RELOC_MICROMIPS_GOT16 },
       { BFD_RELOC_MIPS_CALL16, BFD_RELOC_MICROMIPS_CALL16 },
       { BFD_RELOC_MIPS_GOT_HI16, BFD_RELOC_MICROMIPS_GOT_HI16 },
@@ -6803,6 +6809,7 @@ micromips_map_reloc (bfd_reloc_code_real_type reloc)
       { BFD_RELOC_MIPS_TLS_GOTTPREL, BFD_RELOC_MICROMIPS_TLS_GOTTPREL },
       { BFD_RELOC_MIPS_TLS_TPREL_HI16, BFD_RELOC_MICROMIPS_TLS_TPREL_HI16 },
       { BFD_RELOC_MIPS_TLS_TPREL_LO16, BFD_RELOC_MICROMIPS_TLS_TPREL_LO16 }
+
     };
   bfd_reloc_code_real_type r;
   size_t i;
@@ -7696,17 +7703,11 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	      break;
 
 	    case '\'':
-	      if (mips_opts.micromips)
-	        *offset_reloc = BFD_RELOC_MICROMIPS_26_PCREL_S1;
-	      else
-	        *offset_reloc = BFD_RELOC_MIPS_26_PCREL_S2;
+	      *offset_reloc = BFD_RELOC_MIPS_26_PCREL_S2;
 	      break;
 
 	    case '\"':
-	      if (mips_opts.micromips)
-	        *offset_reloc = BFD_RELOC_MICROMIPS_21_PCREL_S1;
-	      else
-	        *offset_reloc = BFD_RELOC_MIPS_21_PCREL_S2;
+	      *offset_reloc = BFD_RELOC_MIPS_21_PCREL_S2;
 	      break;
 	    }
 	  break;
@@ -14661,8 +14662,10 @@ mips_force_relocation (fixS *fixp)
   /* We want all PC-relative relocations to be kept for R6 relaxation.  */
   if (ISA_IS_R6 (mips_opts.isa)
       && (fixp->fx_r_type == BFD_RELOC_16_PCREL_S2
-          || fixp->fx_r_type == BFD_RELOC_MICROMIPS_21_PCREL_S1
-          || fixp->fx_r_type == BFD_RELOC_MICROMIPS_26_PCREL_S1
+	  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_21_PCREL_S1
+	  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_26_PCREL_S1
+	  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_18_PCREL_S3
+	  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_19_PCREL_S2
 	  || fixp->fx_r_type == BFD_RELOC_MIPS_21_PCREL_S2
 	  || fixp->fx_r_type == BFD_RELOC_MIPS_26_PCREL_S2
 	  || fixp->fx_r_type == BFD_RELOC_MIPS_18_PCREL_S3
@@ -14716,6 +14719,8 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       case BFD_RELOC_MICROMIPS_16_PCREL_S1:
       case BFD_RELOC_MICROMIPS_21_PCREL_S1:
       case BFD_RELOC_MICROMIPS_26_PCREL_S1:
+      case BFD_RELOC_MICROMIPS_18_PCREL_S3:
+      case BFD_RELOC_MICROMIPS_19_PCREL_S2:
       case BFD_RELOC_32_PCREL:
       case BFD_RELOC_MIPS_21_PCREL_S2:
       case BFD_RELOC_MIPS_26_PCREL_S2:
@@ -14932,7 +14937,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       break;
 
     case BFD_RELOC_MIPS_18_PCREL_S3:
-      if ((*valP & 0x7) != 0 && !mips_opts.micromips)
+      if ((*valP & 0x7) != 0)
 	as_bad_where (fixP->fx_file, fixP->fx_line,
 		      _("pc rel from misaligned address (%lx)"),
 		      (long) *valP);
@@ -14941,7 +14946,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       break;
 
     case BFD_RELOC_MIPS_19_PCREL_S2:
-      if ((*valP & 0x3) != 0 && !mips_opts.micromips)
+      if ((*valP & 0x3) != 0)
 	as_bad_where (fixP->fx_file, fixP->fx_line,
 		      _("pc rel from misaligned address (%lx)"),
 		      (long) *valP);
@@ -15021,30 +15026,12 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 
     case BFD_RELOC_MICROMIPS_21_PCREL_S1:
     case BFD_RELOC_MICROMIPS_26_PCREL_S1:
-      if ((*valP & 0x1) != 0)
-	as_bad_where (fixP->fx_file, fixP->fx_line,
-		      _("branch to misaligned address (%lx)"), (long) *valP);
-
-      /* We need to save the bits in the instruction since fixup_segment()
-	 might be deleting the relocation entry (i.e., a branch within
-	 the current segment).  */
-      if (! fixP->fx_done)
-	break;
-
-      /* Update old instruction data.  */
-      insn = read_insn (buf);
-
-      if (*valP + 0x400000 <= 0x7fffff)
-	{
-	  insn |= (*valP >> 1) & 0x1fffff;
-	  write_insn (buf, insn);
-	}
-      else
-	{
-	  /* CFU FIXME.  */
-	  gas_assert (0);
-	}
+    case BFD_RELOC_MICROMIPS_18_PCREL_S3:
+    case BFD_RELOC_MICROMIPS_19_PCREL_S2:
+      gas_assert ((*valP & 0x1) == 0);
+      gas_assert (!fixP->fx_done);
       break;
+
     case BFD_RELOC_VTABLE_INHERIT:
       fixP->fx_done = 0;
       if (fixP->fx_addsy
@@ -17092,6 +17079,8 @@ tc_gen_reloc (asection *section ATTRIBUTE_UNUSED, fixS *fixp)
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_16_PCREL_S1
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_21_PCREL_S1
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_26_PCREL_S1
+		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_18_PCREL_S3
+		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_19_PCREL_S2
 		  || fixp->fx_r_type == BFD_RELOC_32_PCREL
 		  || fixp->fx_r_type == BFD_RELOC_MIPS_21_PCREL_S2
 		  || fixp->fx_r_type == BFD_RELOC_MIPS_26_PCREL_S2
