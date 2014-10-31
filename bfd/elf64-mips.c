@@ -2835,6 +2835,34 @@ static reloc_howto_type micromips_elf64_howto_table_rela[] =
 	 0x03ffffff,		/* src_mask */
 	 0x03ffffff,		/* dst_mask */
 	 TRUE),			/* pcrel_offset */
+
+  HOWTO (R_MICROMIPS_PC18_S3,	/* type */
+	 3,			/* rightshift */
+	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 18,			/* bitsize */
+	 TRUE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_signed, /* complain_on_overflow */
+	 _bfd_mips_elf_generic_reloc,   /* special_function */
+	 "R_MICROMIPS_PC18_S3",	/* name */
+	 TRUE,			/* partial_inplace */
+	 0x0003ffff,		/* src_mask */
+	 0x0003ffff,		/* dst_mask */
+	 TRUE),			/* pcrel_offset */
+
+  HOWTO (R_MICROMIPS_PC19_S2,	/* type */
+	 2,			/* rightshift */
+	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 19,			/* bitsize */
+	 TRUE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_signed, /* complain_on_overflow */
+	 _bfd_mips_elf_generic_reloc,   /* special_function */
+	 "R_MICROMIPS_PC19_S2",	/* name */
+	 TRUE,			/* partial_inplace */
+	 0x0007ffff,		/* src_mask */
+	 0x0007ffff,		/* dst_mask */
+	 TRUE),			/* pcrel_offset */
 };
 
 /* GNU extension to record C++ vtable hierarchy */
@@ -3523,6 +3551,8 @@ static const struct elf_reloc_map micromips_reloc_map[] =
   { BFD_RELOC_MICROMIPS_16_PCREL_S1, R_MICROMIPS_PC16_S1 - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_21_PCREL_S1, R_MICROMIPS_PC21_S1 - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_26_PCREL_S1, R_MICROMIPS_PC26_S1 - R_MICROMIPS_min },
+  { BFD_RELOC_MICROMIPS_18_PCREL_S3, R_MICROMIPS_PC18_S3 - R_MICROMIPS_min },
+  { BFD_RELOC_MICROMIPS_19_PCREL_S2, R_MICROMIPS_PC19_S2 - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_CALL16, R_MICROMIPS_CALL16 - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_GOT_DISP, R_MICROMIPS_GOT_DISP - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_GOT_PAGE, R_MICROMIPS_GOT_PAGE - R_MICROMIPS_min },

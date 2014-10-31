@@ -2215,7 +2215,9 @@ static inline bfd_boolean
 aligned_pcrel_reloc_p (int r_type)
 {
   return (r_type == R_MIPS_PC18_S3
-	  || r_type == R_MIPS_PC19_S2);
+	  || r_type == R_MIPS_PC19_S2
+	  || r_type == R_MICROMIPS_PC18_S3
+	  || r_type == R_MICROMIPS_PC19_S2);
 }
 
 static inline bfd_boolean
@@ -5964,10 +5966,11 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       break;
 
     case R_MIPS_PC18_S3:
+    case R_MICROMIPS_PC18_S3:
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 21);
 
-      if ((symbol + addend) & 7)
+      if (((target_is_micromips_code_p ? (symbol | 1) ^ 1 : symbol) + addend) & 7)
 	return bfd_reloc_outofrange;
 
       value = symbol + addend - ((p | 7) ^ 7);
@@ -5977,13 +5980,14 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       break;
 
     case R_MIPS_PC19_S2:
+    case R_MICROMIPS_PC19_S2:
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 21);
 
-      if ((symbol + addend) & 3)
+      if (((target_is_micromips_code_p ? (symbol | 1) ^ 1 : symbol) + addend) & 3)
 	return bfd_reloc_outofrange;
 
-      value = symbol + addend - p;
+      value = symbol + addend - ((p | 3) ^ 3);
       overflowed_p = mips_elf_overflow_p (value, 21);
       value >>= howto->rightshift;
       value &= howto->dst_mask;

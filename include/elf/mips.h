@@ -156,7 +156,9 @@ START_RELOC_NUMBERS (elf_mips_reloc_type)
   RELOC_NUMBER (R_MICROMIPS_PC23_S2, 173)
   RELOC_NUMBER (R_MICROMIPS_PC21_S1, 174)
   RELOC_NUMBER (R_MICROMIPS_PC26_S1, 175)
-  FAKE_RELOC (R_MICROMIPS_max, 176)
+  RELOC_NUMBER (R_MICROMIPS_PC18_S3, 176)
+  RELOC_NUMBER (R_MICROMIPS_PC19_S2, 177)
+  FAKE_RELOC (R_MICROMIPS_max, 178)
 
   /* This was a GNU extension used by embedded-PIC.  It was co-opted by
      mips-linux for exception-handling data.  GCC stopped using it in

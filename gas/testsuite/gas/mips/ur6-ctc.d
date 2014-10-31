@@ -4,7 +4,7 @@
 
 # Check mapping of microMIPS pre-R6 to R6 translation
 
-.*.o:     file format elf32-tradbigmips
+.*.o:     file format elf32-trad.*mips
 
 
 Disassembly of section .text:
