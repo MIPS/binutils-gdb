@@ -292,10 +292,12 @@ struct mips_elf_la25_stub {
 #define LA25_LUI(VAL) (0x3c190000 | (VAL))	/* lui t9,VAL */
 #define LA25_J(VAL) (0x08000000 | (((VAL) >> 2) & 0x3ffffff)) /* j VAL */
 #define LA25_ADDIU(VAL) (0x27390000 | (VAL))	/* addiu t9,t9,VAL */
-#define LA25_LUI_MICROMIPS(VAL)						\
-  (0x41b90000 | (VAL))				/* lui t9,VAL */
+#define LA25_LUI_MICROMIPS(abfd, VAL)					\
+  (MICROMIPSR6_P (abfd)							\
+   ? (0x13200000 | (VAL))			/* lui t9,VAL */	\
+   : (0x41b90000 | (VAL)))			/* lui t9,VAL */
 #define LA25_J_MICROMIPS(VAL)						\
-  (0xd4000000 | (((VAL) >> 1) & 0x3ffffff))	/* j VAL */
+  (0xd4000000 | (((VAL) >> 1) & 0x3ffffff))	/* j/jc VAL */
 #define LA25_ADDIU_MICROMIPS(VAL)					\
   (0x33390000 | (VAL))				/* addiu t9,t9,VAL */
 
@@ -796,6 +798,10 @@ static bfd *reldyn_sorting_bfd;
   ((elf_elfheader (abfd)->e_flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R6 \
     || (elf_elfheader (abfd)->e_flags & EF_MIPS_ARCH) == E_MIPS_ARCH_64R6)
 
+/* Nonzero if ABFD is microMIPS R6.  */
+#define MICROMIPSR6_P(abfd) \
+  (MIPSR6_P (abfd) && MICROMIPS_P (abfd))
+
 /* The IRIX compatibility level we are striving for.  */
 #define IRIX_COMPAT(abfd) \
   (get_elf_backend_data (abfd)->elf_backend_mips_irix_compat (abfd))
@@ -918,13 +924,18 @@ static bfd *reldyn_sorting_bfd;
    : 0xff3c8010)				/* lw t9,0x8010(gp) */
 #define STUB_MOVE_MICROMIPS 0x0dff		/* move t7,ra */
 #define STUB_MOVE32_MICROMIPS(abfd)					\
-   (ABI_64_P (abfd)							\
-    ? 0x581f7950				/* daddu t7,ra,zero */	\
-    : 0x001f7950)				/* addu t7,ra,zero */
-#define STUB_LUI_MICROMIPS(VAL)						\
-   (0x41b80000 + (VAL))				/* lui t8,VAL */
-#define STUB_JALR_MICROMIPS 0x45d9		/* jalr t9 */
-#define STUB_JALR32_MICROMIPS 0x03f90f3c	/* jalr ra,t9 */
+  (ABI_64_P (abfd)							\
+   ? 0x581f7950				/* daddu t7,ra,zero */		\
+   : 0x001f7950)				/* addu t7,ra,zero */
+#define STUB_LUI_MICROMIPS(abfd, VAL)					\
+  (MICROMIPSR6_P (abfd)							\
+   ? (0x13000000 + (VAL))			/* lui t8,VAL */	\
+   : (0x41b80000 + (VAL)))			/* lui t8,VAL */
+#define STUB_JALR_MICROMIPS(abfd)					\
+  (MICROMIPSR6_P (abfd)							\
+   ? 0x472b					/* jalrc t9 */		\
+   : 0x45d9)					/* jalr t9 */	
+#define STUB_JALR32_MICROMIPS 0x03f90f3c	/* jalr/jalrc ra,t9 */
 #define STUB_ORI_MICROMIPS(VAL)						\
   (0x53180000 + (VAL))				/* ori t8,t8,VAL */
 #define STUB_LI16U_MICROMIPS(VAL)					\
@@ -1070,6 +1081,19 @@ static const bfd_vma micromips_o32_exec_plt0_entry[] =
   0x0c00		/* nop						*/
 };
 
+static const bfd_vma micromipsr6_o32_exec_plt0_entry[] =
+{
+  0x7860, 0x0000,	/* addiupc $3, (&GOTPLT[0]) - .			*/
+  0xff23, 0x0000,	/* lw $25, 0($3)				*/
+  0x0535,		/* subu $2, $2, $3				*/
+  0x2525,		/* srl $2, $2, 2				*/
+  0x3302, 0xfffe,	/* subu $24, $2, 2				*/
+  0x0dff,		/* move $15, $31				*/
+  0x0f83,		/* move $28, $3					*/
+  0x472b,		/* jalrc $25					*/
+  0x0c00		/* nop						*/
+};
+
 /* The format of the microMIPS first PLT entry in an O32 executable
    in the insn32 mode.  */
 static const bfd_vma micromips_insn32_o32_exec_plt0_entry[] =
@@ -1082,6 +1106,18 @@ static const bfd_vma micromips_insn32_o32_exec_plt0_entry[] =
   0x0318, 0x1040,	/* srl $24, $24, 2				*/
   0x03f9, 0x0f3c,	/* jalr $25					*/
   0x3318, 0xfffe	/* subu $24, $24, 2				*/
+};
+
+static const bfd_vma micromipsr6_insn32_o32_exec_plt0_entry[] =
+{
+  0x1380, 0x0000,	/* lui $28, %hi(&GOTPLT[0])			*/
+  0xff3c, 0x0000,	/* lw $25, %lo(&GOTPLT[0])($28)			*/
+  0x339c, 0x0000,	/* addiu $28, $28, %lo(&GOTPLT[0])		*/
+  0x0398, 0xc1d0,	/* subu $24, $24, $28				*/
+  0x001f, 0x7950,	/* move $15, $31				*/
+  0x0318, 0x1040,	/* srl $24, $24, 2				*/
+  0x3318, 0xfffe,	/* subu $24, $24, 2				*/
+  0x03f9, 0x0f3c	/* jalrc $25					*/
 };
 
 /* The format of subsequent standard PLT entries.  */
@@ -1128,6 +1164,14 @@ static const bfd_vma micromips_o32_exec_plt_entry[] =
   0x0f02		/* move $24, $2				*/
 };
 
+static const bfd_vma micromipsr6_o32_exec_plt_entry[] =
+{
+  0x7840, 0x0000,	/* addiupc $2, (.got.plt entry) - .	*/
+  0xff22, 0x0000,	/* lw $25, 0($2)			*/
+  0x0f02,		/* move $24, $2				*/
+  0x4723		/* jrc $25				*/
+};
+
 /* The format of subsequent microMIPS o32 PLT entries in the insn32 mode.  */
 static const bfd_vma micromips_insn32_o32_exec_plt_entry[] =
 {
@@ -1135,6 +1179,14 @@ static const bfd_vma micromips_insn32_o32_exec_plt_entry[] =
   0xff2f, 0x0000,	/* lw $25, %lo(.got.plt entry)($15)	*/
   0x0019, 0x0f3c,	/* jr $25				*/
   0x330f, 0x0000	/* addiu $24, $15, %lo(.got.plt entry)	*/
+};
+
+static const bfd_vma micromipsr6_insn32_o32_exec_plt_entry[] =
+{
+  0x11e0, 0x0000,	/* lui $15, %hi(.got.plt entry)		*/
+  0xff2f, 0x0000,	/* lw $25, %lo(.got.plt entry)($15)	*/
+  0x330f, 0x0000,	/* addiu $24, $15, %lo(.got.plt entry)	*/
+  0xa019, 0x0000	/* jrc $25				*/
 };
 
 /* The format of the first PLT entry in a VxWorks executable.  */
@@ -9555,8 +9607,12 @@ _bfd_mips_elf_size_dynamic_sections (bfd *output_bfd,
 	    size = 4 * ARRAY_SIZE (mips_n32_exec_plt0_entry);
 	  else if (!micromips_p)
 	    size = 4 * ARRAY_SIZE (mips_o32_exec_plt0_entry);
+	  else if (htab->insn32 && MICROMIPSR6_P (output_bfd))
+	    size = 2 * ARRAY_SIZE (micromipsr6_insn32_o32_exec_plt0_entry);
 	  else if (htab->insn32)
 	    size = 2 * ARRAY_SIZE (micromips_insn32_o32_exec_plt0_entry);
+	  else if (MICROMIPSR6_P (output_bfd))
+	    size = 2 * ARRAY_SIZE (micromipsr6_o32_exec_plt0_entry);
 	  else
 	    size = 2 * ARRAY_SIZE (micromips_o32_exec_plt0_entry);
 
@@ -10316,7 +10372,8 @@ mips_elf_create_la25_stub (void **slot, void *data)
       if (ELF_ST_IS_MICROMIPS (stub->h->root.other))
 	{
 	  bfd_put_micromips_32 (hti->output_bfd,
-				LA25_LUI_MICROMIPS (target_high),
+				LA25_LUI_MICROMIPS (hti->output_bfd,
+						    target_high),
 				loc);
 	  bfd_put_micromips_32 (hti->output_bfd,
 				LA25_ADDIU_MICROMIPS (target_low),
@@ -10335,7 +10392,9 @@ mips_elf_create_la25_stub (void **slot, void *data)
       if (ELF_ST_IS_MICROMIPS (stub->h->root.other))
 	{
 	  bfd_put_micromips_32 (hti->output_bfd,
-				LA25_LUI_MICROMIPS (target_high), loc);
+				LA25_LUI_MICROMIPS (hti->output_bfd,
+						    target_high),
+				loc);
 	  bfd_put_micromips_32 (hti->output_bfd,
 				LA25_J_MICROMIPS (target), loc + 4);
 	  bfd_put_micromips_32 (hti->output_bfd,
@@ -10534,7 +10593,12 @@ _bfd_mips_elf_finish_dynamic_symbol (bfd *output_bfd,
 	    }
 	  else if (htab->insn32)
 	    {
-	      const bfd_vma *plt_entry = micromips_insn32_o32_exec_plt_entry;
+	      const bfd_vma *plt_entry;
+
+	      if (MICROMIPSR6_P (output_bfd))
+		plt_entry = micromipsr6_insn32_o32_exec_plt_entry;
+	      else
+		plt_entry = micromips_insn32_o32_exec_plt_entry;
 
 	      bfd_put_16 (output_bfd, plt_entry[0], loc);
 	      bfd_put_16 (output_bfd, got_address_high, loc + 2);
@@ -10547,7 +10611,13 @@ _bfd_mips_elf_finish_dynamic_symbol (bfd *output_bfd,
 	    }
 	  else
 	    {
-	      const bfd_vma *plt_entry = micromips_o32_exec_plt_entry;
+	      const bfd_vma *plt_entry;
+
+	      if (MICROMIPSR6_P (output_bfd))
+		plt_entry = micromipsr6_o32_exec_plt_entry;
+	      else
+		plt_entry = micromips_o32_exec_plt_entry;
+
 	      bfd_signed_vma gotpc_offset;
 	      bfd_vma loc_address;
 
@@ -10652,7 +10722,8 @@ _bfd_mips_elf_finish_dynamic_symbol (bfd *output_bfd,
 	      long dynindx_hi = (h->dynindx >> 16) & 0x7fff;
 
 	      bfd_put_micromips_32 (output_bfd,
-				    STUB_LUI_MICROMIPS (dynindx_hi),
+				    STUB_LUI_MICROMIPS (output_bfd,
+							dynindx_hi),
 				    stub + idx);
 	      idx += 4;
 	    }
@@ -10664,7 +10735,9 @@ _bfd_mips_elf_finish_dynamic_symbol (bfd *output_bfd,
 	    }
 	  else
 	    {
-	      bfd_put_16 (output_bfd, STUB_JALR_MICROMIPS, stub + idx);
+	      bfd_put_16 (output_bfd,
+			  STUB_JALR_MICROMIPS (output_bfd),
+			  stub + idx);
 	      idx += 2;
 	    }
 
@@ -11091,8 +11164,12 @@ mips_finish_exec_plt (bfd *output_bfd, struct bfd_link_info *info)
     plt_entry = mips_n32_exec_plt0_entry;
   else if (!htab->plt_header_is_comp)
     plt_entry = mips_o32_exec_plt0_entry;
+  else if (htab->insn32 && MICROMIPSR6_P (output_bfd))
+    plt_entry = micromipsr6_insn32_o32_exec_plt0_entry;
   else if (htab->insn32)
     plt_entry = micromips_insn32_o32_exec_plt0_entry;
+  else if (MICROMIPSR6_P (output_bfd))
+    plt_entry = micromipsr6_o32_exec_plt0_entry;
   else
     plt_entry = micromips_o32_exec_plt0_entry;
 
@@ -11139,7 +11216,38 @@ mips_finish_exec_plt (bfd *output_bfd, struct bfd_link_info *info)
       for (i = 2; i < ARRAY_SIZE (micromips_o32_exec_plt0_entry); i++)
 	bfd_put_16 (output_bfd, plt_entry[i], loc + (i * 2));
     }
-  else if (plt_entry == micromips_insn32_o32_exec_plt0_entry)
+  else if (plt_entry == micromipsr6_o32_exec_plt0_entry)
+    {
+      bfd_vma gotpc_offset;
+      bfd_vma loc_address;
+      size_t i;
+
+      BFD_ASSERT (gotplt_value % 4 == 0);
+
+      loc_address = (htab->splt->output_section->vma
+		     + htab->splt->output_offset);
+      gotpc_offset = gotplt_value - ((loc_address | 3) ^ 3);
+
+      /* ADDIUPC has a span of +/-1MB, check we're in range.  */
+      if (gotpc_offset + 0x100000 >= 0x200000)
+	{
+	  (*_bfd_error_handler)
+	    (_("%B: `%A' offset of %ld from `%A' beyond the range of ADDIUPC"),
+	     output_bfd,
+	     htab->sgotplt->output_section,
+	     htab->splt->output_section,
+	     (long) gotpc_offset);
+	  bfd_set_error (bfd_error_no_error);
+	  return FALSE;
+	}
+      bfd_put_16 (output_bfd,
+		  plt_entry[0] | ((gotpc_offset >> 18) & 0x7f), loc);
+      bfd_put_16 (output_bfd, (gotpc_offset >> 2) & 0xffff, loc + 2);
+      for (i = 2; i < ARRAY_SIZE (micromips_o32_exec_plt0_entry); i++)
+	bfd_put_16 (output_bfd, plt_entry[i], loc + (i * 2));
+    }
+  else if (plt_entry == micromips_insn32_o32_exec_plt0_entry
+	   || plt_entry == micromipsr6_insn32_o32_exec_plt0_entry)
     {
       size_t i;
 
