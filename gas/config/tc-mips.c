@@ -7273,6 +7273,21 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
       *reloc_type = BFD_RELOC_UNUSED;
     }
   else if (mips_opts.micromips
+	   && ISA_IS_R6 (mips_opts.isa)
+	   /* We check here if we deal with a branch/jump.  It's set to compact
+	      as we have new instructions with old naming but with a flag
+	      marking them as pre-R6.  */
+	   && compact_branch_p (&history[0])
+	   && (history[0].insn_mo->pinfo2 & INSN2_CONVERTED_TO_COMPACT)
+	   && history[0].noreorder_p
+	   && strcmp (ip->insn_mo->name, "nop") != 0)
+    {
+      as_bad(_("expected a nop not `%s' in delay slot of `%s'"
+	       " in noreorder block"),
+	     ip->insn_mo->name, history[0].insn_mo->name);
+      add_fixed_insn (ip);
+    }
+  else if (mips_opts.micromips
 	   && address_expr
 	   && ((relax32 && *reloc_type == BFD_RELOC_16_PCREL_S2)
 	       || *reloc_type > BFD_RELOC_UNUSED)

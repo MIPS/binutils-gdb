@@ -2242,7 +2242,9 @@ print_insn_micromips (bfd_vma memaddr, struct disassemble_info *info)
 	      || (length == 4 && (op->mask & 0xffff0000) != 0)))
 	{
 	  if ((!is_isa_r6 (mips_isa) && is_isa_r6 (op->membership))
-	      || cpu_is_member (mips_processor, op->exclusions))
+	      || cpu_is_member (mips_processor, op->exclusions)
+	      || (is_isa_r6 (op->membership)
+		  && (op->pinfo2 & INSN2_CONVERTED_TO_COMPACT)))
 	    continue;
 
 	  if (!validate_insn_args (op, decode_micromips_operand, insn))
