@@ -175,7 +175,7 @@ noreorder:
 	nop
 
 	jraddiusp 32		# jrcaddiusp
-	nop
+	li	$2, 0xf		# jraddiusp has no DS
 
 1:
 	nop

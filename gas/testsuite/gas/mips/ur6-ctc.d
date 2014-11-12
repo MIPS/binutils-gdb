@@ -210,5 +210,5 @@ Disassembly of section .text:
 0+0188 <[^>]*> 0085 1f3c 	jalrc.hb	a0,a1
 0+018c <[^>]*> 0c00      	nop
 0+018e <[^>]*> 4504      	jrcaddiusp	32
-0+0190 <[^>]*> 0c00      	nop
+0+0190 <[^>]*> ed0f      	li	v0,15
 0+0192 <[^>]*> 0c00      	nop

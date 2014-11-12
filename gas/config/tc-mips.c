@@ -7274,12 +7274,14 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
     }
   else if (mips_opts.micromips
 	   && ISA_IS_R6 (mips_opts.isa)
-	   /* We check here if we deal with a branch/jump.  It's set to compact
-	      as we have new instructions with old naming but with a flag
-	      marking them as pre-R6.  */
+	   /* microMIPS pre-R6 to R6 branch/jump instruction mapping in
+	      noreorder block is restricted to have only a nop in the delay
+	      slot.  JRADDIUSP is exempted from the check as it never had
+	      a delay slot.  */
 	   && compact_branch_p (&history[0])
 	   && (history[0].insn_mo->pinfo2 & INSN2_CONVERTED_TO_COMPACT)
 	   && history[0].noreorder_p
+	   && !((history[0].insn_opcode & 0xfc1c) == 0x4404) /* jraddiusp */
 	   && strcmp (ip->insn_mo->name, "nop") != 0)
     {
       as_bad(_("expected a nop not `%s' in delay slot of `%s'"
