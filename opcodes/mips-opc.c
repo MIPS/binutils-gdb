@@ -3440,6 +3440,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"jic",			"t,j",		0xd8000000, 0xffe00000,	RD_1|NODS,		0,		I37,		0,	0 },
 
 {"bnezc",		"-s,+\"",	0xf8000000, 0xfc000000,	RD_1|NODS,		FS,		I37,		0,	0 },
+{"jalrc",		"t",		0xf8000000, 0xffe0ffff, RD_1|NODS,		0,		I37,		0,	0 },
 {"jialc",		"t,j",		0xf8000000, 0xffe00000,	RD_1|NODS,		0,		I37,		0,	0 },
 
 {"cmp.af.s",		"D,S,T",	0x46800000, 0xffe0003f,	WR_1|RD_2|RD_3|FP_S,	0,		I37,		0,	0 },
