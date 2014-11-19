@@ -2235,41 +2235,11 @@ print_insn_micromips (bfd_vma memaddr, struct disassemble_info *info)
   else
     insn = bfd_getl16 (buffer);
 
-  if ((insn & 0xfc00) == 0x7c00)
-    {
-      /* This is a 48-bit microMIPS instruction.  */
-      higher = insn;
-
-      status = (*info->read_memory_func) (memaddr + 2, buffer, 2, info);
-      if (status != 0)
-	{
-	  infprintf (is, "micromips 0x%x", higher);
-	  (*info->memory_error_func) (status, memaddr + 2, info);
-	  return -1;
-	}
-      if (info->endian == BFD_ENDIAN_BIG)
-	insn = bfd_getb16 (buffer);
-      else
-	insn = bfd_getl16 (buffer);
-      higher = (higher << 16) | insn;
-
-      status = (*info->read_memory_func) (memaddr + 4, buffer, 2, info);
-      if (status != 0)
-	{
-	  infprintf (is, "micromips 0x%x", higher);
-	  (*info->memory_error_func) (status, memaddr + 4, info);
-	  return -1;
-	}
-      if (info->endian == BFD_ENDIAN_BIG)
-	insn = bfd_getb16 (buffer);
-      else
-	insn = bfd_getl16 (buffer);
-      infprintf (is, "0x%x%04x (48-bit insn)", higher, insn);
-
-      info->insn_type = dis_noninsn;
-      return 6;
-    }
-  else if ((insn & 0x1c00) == 0x0000 || (insn & 0x1000) == 0x1000)
+  if ((insn & 0x1c00) == 0x0000 || (insn & 0x1000) == 0x1000
+      || (insn & (OP_MASK_OP << (OP_SH_OP - 16))) == 0x7c00
+      || (insn & (OP_MASK_OP << (OP_SH_OP - 16))) == 0xa400
+      || (insn & (OP_MASK_OP << (OP_SH_OP - 16))) == 0xe400
+      || (insn & (OP_MASK_OP << (OP_SH_OP - 16))) == 0xc400)
     {
       /* This is a 32-bit microMIPS instruction.  */
       higher = insn;
@@ -2303,6 +2273,12 @@ print_insn_micromips (bfd_vma memaddr, struct disassemble_info *info)
 	  && ((length == 2 && (op->mask & 0xffff0000) == 0)
 	      || (length == 4 && (op->mask & 0xffff0000) != 0)))
 	{
+	  if ((!is_isa_r6 (mips_isa) && is_isa_r6 (op->membership))
+	      || cpu_is_member (mips_processor, op->exclusions)
+	      || (is_isa_r6 (op->membership)
+		  && (op->pinfo2 & INSN2_CONVERTED_TO_COMPACT)))
+	    continue;
+
 	  if (!validate_insn_args (op, decode_micromips_operand, insn))
 	    continue;
 
