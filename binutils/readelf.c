@@ -13120,6 +13120,8 @@ print_mips_ases (unsigned int mask)
     fputs ("\n\tDSP ASE", stdout);
   if (mask & AFL_ASE_DSPR2)
     fputs ("\n\tDSP R2 ASE", stdout);
+  if (mask & AFL_ASE_DSPR6)
+    fputs ("\n\tDSP R6 ASE", stdout);
   if (mask & AFL_ASE_EVA)
     fputs ("\n\tEnhanced VA Scheme", stdout);
   if (mask & AFL_ASE_MCU)
