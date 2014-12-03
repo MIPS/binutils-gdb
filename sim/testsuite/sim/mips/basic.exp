@@ -48,7 +48,8 @@ proc run_sim_tests { name requested_machs { requested_micromips_machs "" } } {
 
 # Runs the combination of instructions removed in R6 through the testsuite
 proc run_r6_removed_test {testfile models} {
-    set fd [open "sim/mips/r6-removed.csv" r]
+    global subdir srcdir
+    set fd [open "$srcdir/$subdir/r6-removed.csv" r]
     set file_data [read $fd]
     close $fd
     set data [split $file_data "\n"]
