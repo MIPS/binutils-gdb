@@ -67,12 +67,12 @@ noreorder:
 	li $2, 0x1
 
 
-	j	1f		# jc32
+	j	1f		# bc32
 	li $2, 0x1
-	j32 	1f		# jc32
+	j32 	1f		# bc32
 	li $2, 0x1
 
-	jal 	1f		# jalc
+	jal 	1f		# balc
 
 f:
 	li $2, 0x1

@@ -43,10 +43,10 @@ reorder:
 	jrc32	$2		# jic v0,0
 
 
-	j	1f		# jc32
-	j32 	1f		# jc32
+	j	1f		# bc32
+	j32 	1f		# bc32
 
-	jal 	1f		# jalc
+	jal 	1f		# balc
 
 	j32	$4		# jic a0,0
 	jr32	$4		# jic a0,0
@@ -138,12 +138,12 @@ noreorder:
 	jrc32	$2		# jic v0,0
 	nop
 
-	j	1f		# jc32
+	j	1f		# bc32
 	nop
-	j32 	1f		# jc32
+	j32 	1f		# bc32
 	nop
 
-	jal 	1f		# jalc
+	jal 	1f		# balc
 	nop
 
 	j32	$4		# jic a0,0

@@ -797,7 +797,6 @@ const struct mips_opcode micromips_opcodes[] =
 {"hypcall",		"+J",		0x0000c37c, 0xfc00ffff,	TRAP,			0,		0,		IVIRT,	0 },
 {"ins",			"t,r,+A,+B",	0x0000000c, 0xfc00003f, WR_1|RD_2,		0,		I1,		0,	0 },
 {"iret",		"",		0x0000d37c, 0xffffffff,	NODS,			0,		0,		MC,	0 },
-{"jc",			"a",		0xd4000000, 0xfc000000,	0,			UBR,		I37,		0,	0 },
 {"jr",			"mj",		    0x4580,     0xffe0,	RD_1|UBD,		0,		I1,		0,	I37 },
 {"jr",			"mp",		    0x4403,     0xfc1f,	RD_1,			INSN2_ALIAS|UBR|CTC, I37,	0,	0 }, /* jrc16 */
 {"jr",			"s",		0x00000f3c, 0xffe0ffff,	RD_1|UBD,		BD32,		I1,		0,	I37 }, /* jalr */
@@ -821,7 +820,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"jrs.hb",		"s",		0x00005f3c, 0xffe0ffff,	RD_1|UBD,		BD16,		I1,		0,	I37 }, /* jalrs.hb */
 {"j",			"mj",		    0x4580,     0xffe0,	RD_1|UBD,		0,		I1,		0,	I37 }, /* jr */
 {"j",			"mp",		    0x4403,     0xfc1f,	RD_1,			INSN2_ALIAS|UBR|CTC, I37,	0,	0 }, /* jrc16 */
-{"j",			"a",		0xd4000000, 0xfc000000,	0,			INSN2_ALIAS|UBR|CTC, I37,	0,	0 }, /* jc */
+{"j",			"+'",		0x94000000, 0xfc000000,	0,			INSN2_ALIAS|UBR|CTC, I37,	0,	0 }, /* bc */
 {"j",			"s",		0x00000f3c, 0xffe0ffff,	RD_1|UBD,		BD32,		I1,		0,	I37 }, /* jr */
 {"j",			"s",		0xa0000000, 0xffe0ffff,	RD_1,			INSN2_ALIAS|UBR|CTC, I37,	0,	0 }, /* jic */
 /* SVR4 PIC code requires special handling for j, so it must be a
@@ -855,10 +854,9 @@ const struct mips_opcode micromips_opcodes[] =
 {"jalrs",		"t,s",		0x00004f3c, 0xfc00ffff,	WR_1|RD_2|UBD,		BD16,		I1,		0,	I37 },
 {"jalrs.hb",		"s",		0x03e05f3c, 0xffe0ffff,	RD_1|WR_31|UBD,		BD16,		I1,		0,	I37 },
 {"jalrs.hb",		"t,s",		0x00005f3c, 0xfc00ffff,	WR_1|RD_2|UBD,		BD16,		I1,		0,	I37 },
-{"jalc",		"a",		0xf4000000, 0xfc000000,	WR_31,			UBR,		I37,		0,	0 },
 /* SVR4 PIC code requires special handling for jal, so it must be a
    macro.  */
-{"jal",			"a",		0xf4000000, 0xfc000000,	WR_31,			INSN2_ALIAS|UBR|CTC, I37,	0,	0 }, /* jalc */
+{"jal",			"+'",		0xb4000000, 0xfc000000,	WR_31,			INSN2_ALIAS|UBR|CTC, I37,	0,	0 }, /* balc */
 {"jal",			"d,s",		0,    (int) M_JAL_2,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"jal",			"s",		0,    (int) M_JAL_1,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"jal",			"a",		0,    (int) M_JAL_A,	INSN_MACRO,		0,		I1,		0,	I37 },
