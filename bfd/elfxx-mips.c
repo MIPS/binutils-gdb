@@ -10576,7 +10576,13 @@ _bfd_mips_elf_finish_dynamic_symbol (bfd *output_bfd,
 	  bfd_put_32 (output_bfd, plt_entry[1] | got_address_low | load,
 		      loc + 4);
 
-	  if (! LOAD_INTERLOCKS_P (output_bfd) || MIPSR6_P (output_bfd))
+	  if (MIPSR6_P (output_bfd)
+	      && !mips_elf_hash_table (info)->compact_branches)
+	    {
+	      bfd_put_32 (output_bfd, plt_entry[2], loc + 8);
+	      bfd_put_32 (output_bfd, plt_entry[3] | got_address_low, loc + 12);
+	    }
+	  else if (! LOAD_INTERLOCKS_P (output_bfd) || MIPSR6_P (output_bfd))
 	    {
 	      bfd_put_32 (output_bfd, plt_entry[2] | got_address_low, loc + 8);
 	      bfd_put_32 (output_bfd, plt_entry[3], loc + 12);
