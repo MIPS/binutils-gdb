@@ -34,6 +34,7 @@ static lang_input_statement_type *stub_file;
 static bfd *stub_bfd;
 
 static bfd_boolean insn32;
+static bfd_boolean compact_branches;
 
 static void
 mips_after_parse (void)
@@ -205,7 +206,10 @@ mips_create_output_section_statements (void)
     _bfd_mips_elf_insn32 (&link_info, insn32);
 
   if (is_mips_elf (link_info.output_bfd))
-    _bfd_mips_elf_init_stubs (&link_info, mips_add_stub_section);
+    {
+      _bfd_mips_elf_compact_branches (&link_info, compact_branches);
+      _bfd_mips_elf_init_stubs (&link_info, mips_add_stub_section);
+    }
 }
 
 /* This is called after we have merged the private data of the input bfds.  */
@@ -252,11 +256,15 @@ EOF
 PARSE_AND_LIST_PROLOGUE='
 #define OPTION_INSN32			301
 #define OPTION_NO_INSN32		(OPTION_INSN32 + 1)
+#define OPTION_COMPACT_BRANCHES		(OPTION_NO_INSN32 + 1)
+#define OPTION_NO_COMPACT_BRANCHES	(OPTION_COMPACT_BRANCHES + 1)
 '
 
 PARSE_AND_LIST_LONGOPTS='
   { "insn32", no_argument, NULL, OPTION_INSN32 },
   { "no-insn32", no_argument, NULL, OPTION_NO_INSN32 },
+  { "compact-branches", no_argument, NULL, OPTION_COMPACT_BRANCHES },
+  { "no-compact-branches", no_argument, NULL, OPTION_NO_COMPACT_BRANCHES },
 '
 
 PARSE_AND_LIST_OPTIONS='
@@ -265,6 +273,12 @@ PARSE_AND_LIST_OPTIONS='
 		   ));
   fprintf (file, _("\
   --no-insn32                 Generate all microMIPS instructions\n"
+		   ));
+  fprintf (file, _("\
+  --compact-branches          Generate compact branches/jumps for MIPS R6\n"
+		   ));
+  fprintf (file, _("\
+  --no-compact-branches       Generate delay slot branches/jumps for MIPS R6\n"
 		   ));
 '
 
@@ -275,6 +289,14 @@ PARSE_AND_LIST_ARGS_CASES='
 
     case OPTION_NO_INSN32:
       insn32 = FALSE;
+      break;
+
+    case OPTION_COMPACT_BRANCHES:
+      compact_branches = TRUE;
+      break;
+
+    case OPTION_NO_COMPACT_BRANCHES:
+      compact_branches = FALSE;
       break;
 '
 
