@@ -241,6 +241,9 @@ changequote([,])dnl
 	  mips64vr | mips64vrel)
 	    mips_cpu=vr4100
 	    ;;
+	  mips64*-*android*)
+	    mips_cpu=mips64r6
+	    ;;
 	  mipsisa32r2* | mipsisa64r2*)
 changequote(,)dnl
 	    mips_cpu=`echo $target_cpu | sed -e 's/[a-z]*..r2//' -e 's/el$//'`
@@ -293,7 +296,7 @@ changequote([,])dnl
 	  mips*-linux* | mips*-freebsd* | mips*-kfreebsd*-gnu)
 	    mips_default_abi=O32_ABI
 	    ;;
-	  mips64*-openbsd*)
+	  mips64*-openbsd* | mips64*-*android*)
 	    mips_default_abi=N64_ABI
 	    ;;
 	  *)
