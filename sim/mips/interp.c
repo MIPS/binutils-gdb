@@ -47,7 +47,30 @@ code on the hardware.
 #include <ansidecl.h>
 #include <ctype.h>
 #include <limits.h>
+
+#ifdef HAVE_BYTESWAP_H
 #include <byteswap.h>
+#else
+
+unsigned short bswap_16 (unsigned short v);
+unsigned int bswap_32 (unsigned int v);
+
+unsigned short
+bswap_16 (unsigned short v)
+{
+  return ((v >> 8) & 0xff) | ((v & 0xff) << 8);
+}
+
+unsigned int
+bswap_32 (unsigned int v)
+{
+  return (  ((v & 0xff000000) >> 24)
+	  | ((v & 0x00ff0000) >>  8)
+	  | ((v & 0x0000ff00) <<  8)
+	  | ((v & 0x000000ff) << 24));
+}
+#endif // !defined(HAVE_BYTESWAP_H)
+
 #include <math.h>
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
