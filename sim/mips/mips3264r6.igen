@@ -1103,9 +1103,9 @@
   check_fmt_p (SD_, FMT, instruction_0);
   TRACE_ALU_INPUT2 (ValueFPR(FS, FMT), FGR[FT]);
   if ((FGR[FT] & 0x01) == 0)
-    StoreFPR (FD, FMT, 0);
-  else
     StoreFPR (FD, FMT, ValueFPR (FS, FMT));
+  else
+    StoreFPR (FD, FMT, 0);
   TRACE_ALU_RESULT (ValueFPR(FD, FMT));
 }
 
@@ -1118,9 +1118,9 @@
   check_fmt_p (SD_, FMT, instruction_0);
   TRACE_ALU_INPUT2 (ValueFPR(FS, FMT), FGR[FT]);
   if ((FGR[FT] & 0x01) == 0)
-    StoreFPR (FD, FMT, ValueFPR (FS, FMT));
-  else
     StoreFPR (FD, FMT, 0);
+  else
+    StoreFPR (FD, FMT, ValueFPR (FS, FMT));
   TRACE_ALU_RESULT (ValueFPR(FD, FMT));
 }
 
