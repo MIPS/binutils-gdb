@@ -1,3 +1,8 @@
+2015-01-07  James Hogan  <james.hogan@imgtec.com>
+
+	* mips-tdep.c (mips_print_registers_info): Replace error for
+	single invalid register with silent return.
+
 2014-09-03  James Hogan  <james.hogan@imgtec.com>
 
 	* mips-linux-nat.c (mips_linux_read_description): Reset errno to 0
