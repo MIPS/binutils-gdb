@@ -6033,7 +6033,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 21);
 
-      if (((target_is_micromips_code_p ? (symbol | 1) ^ 1 : symbol) + addend) & 7)
+      if ((symbol + addend) & 7)
 	return bfd_reloc_outofrange;
 
       value = symbol + addend - ((p | 7) ^ 7);
@@ -6047,7 +6047,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 21);
 
-      if (((target_is_micromips_code_p ? (symbol | 1) ^ 1 : symbol) + addend) & 3)
+      if ((symbol + addend) & 3)
 	return bfd_reloc_outofrange;
 
       value = symbol + addend - ((p | 3) ^ 3);
