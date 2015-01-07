@@ -1451,4 +1451,23 @@ if { [istarget mips*-*-vxworks*] } {
     }
     run_list_test_arches "r6-removed"	"-32" [mips_arch_list_matching mips32r6]
     run_list_test_arches "r6-64-removed"	[mips_arch_list_matching mips64r6]
+
+    run_dump_test_arches "ur6" "-32 -mmicromips" \
+                              [mips_arch_list_matching mips32r6 !mips64r6]
+    run_list_test_arches "ur6-removed" "-32 -mmicromips -meva" \
+                              [mips_arch_list_matching mips32r6 !mips64r6]
+    run_list_test_arches "ur6-64-removed" "-64 -mmicromips" \
+                              [mips_arch_list_matching mips64r6]
+    run_dump_test_arches "ur6-ctc" "-32 -mmicromips" \
+                              [mips_arch_list_matching mips32r6 !mips64r6]
+    run_list_test_arches "ur6-ctc-err" "-32 -mmicromips" \
+                              [mips_arch_list_matching mips32r6 !mips64r6]
+    run_dump_test_arches "micromipsr6@blt" "-32 -mmicromips" \
+                              [mips_arch_list_matching mips32r6]
+    run_dump_test_arches "micromipsr6@bltu" "-32 -mmicromips" \
+                              [mips_arch_list_matching mips32r6]
+    run_dump_test_arches "micromipsr6@bge" "-32 -mmicromips" \
+                              [mips_arch_list_matching mips32r6]
+    run_dump_test_arches "micromipsr6@bgeu" "-32 -mmicromips" \
+                              [mips_arch_list_matching mips32r6]
 }

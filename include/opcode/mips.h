@@ -2227,6 +2227,32 @@ extern const int bfd_mips16_num_opcodes;
    microMIPS Enhanced VA Scheme:
    "+j" 9-bit signed offset in bit 0 (OP_*_EVAOFFSET)
 
+   microMIPS R6:
+   "+'" 26 bit PC relative branch target address
+   "+"" 21 bit PC relative branch target address
+   "+;" 5 bit same register in both OP_*_RS and OP_*_RT
+   "+D" 5-bit destination floating point register
+   "+I" 2bit unsigned bit position at bit 9
+   "+K" 4-bit immediate (0 .. 15) at bit 6
+   "+L" 4-bit immediate (0 .. 15) << 2 at bit 4
+   "+N" 2-bit immediate (0 .. 3) for register list at bit 8
+   "+O" 3bit unsigned bit position at bit 9
+   "+P" 5-bit immediate (0 .. 31) << 2 at bit 5
+   "+S" 5-bit fs source 1 floating point register
+   "+s" 5-bit source register specifier (MICROMIPSOP_*_RS) at 21
+   "+t" 5-bit target register (MICROMIPSOP_*_RT) at bit 16
+   "-a" (-262144 .. 262143) << 2 at bit 0
+   "-b" (-131072 .. 131071) << 3 at bit 0
+   "-s" 5 bit source register specifier (OP_*_RS) not $0
+   "-t" 5 bit source register specifier (OP_*_RT) not $0
+   "-u" 5 bit target register specifier (OP_*_RT) less than OP_*_RS
+   "-v" 5 bit target register specifier (OP_*_RT) not $0 different than OP_*_RS
+   "-w" 5 bit target register specifier (OP_*_RT) greater than OP_*_RS
+   "-x" 5 bit source register specifier (OP_*_RS) less than OP_*_RT
+   "-y" 5 bit source register specifier (OP_*_RS) greater than OP_*_RT
+   "-A" symbolic offset (-262144 .. 262143) << 2 at bit 0
+   "-B" symbolic offset (-131072 .. 131071) << 3 at bit 0
+
    MSA Extension:
    "+d" 5-bit MSA register (FD)
    "+e" 5-bit MSA register (FS)
@@ -2253,6 +2279,7 @@ extern const int bfd_mips16_num_opcodes;
    "+&" 0 vector element index
    "+*" 5-bit register vector element index at bit 16
    "+|" 8-bit mask at bit 16
+   "+:" microMIPS R6: 2 bit LSA/DLSA shift amount from 1 to 4 at bit 9
 
    Other:
    "()" parens surrounding optional value
@@ -2269,9 +2296,9 @@ extern const int bfd_mips16_num_opcodes;
    Extension character sequences used so far ("+" followed by the
    following), for quick reference when adding more:
    ""
-   "~!@#$%^&*|"
-   "ABCEFGHJTUVW"
-   "dehijklnouvwx"
+   "~!@#$%^&*|'":;"
+   "ABCDEFGHIJKL NOP  STUVW   "
+   "   de  hijkl no     uvwx  "
 
    Extension character sequences used so far ("m" followed by the
    following), for quick reference when adding more:
@@ -2284,7 +2311,8 @@ extern const int bfd_mips16_num_opcodes;
    following), for quick reference when adding more:
    ""
    ""
-   <none so far>
+   "AB                        "
+   "ab                stuvwyx "
 */
 
 extern const struct mips_operand *decode_micromips_operand (const char *);
