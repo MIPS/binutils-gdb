@@ -169,10 +169,11 @@ do_rmdir (void *arg)
 {
   const char *dir = arg;
   char *zap;
+  int ignored;
   
   gdb_assert (strncmp (dir, TMP_PREFIX, strlen (TMP_PREFIX)) == 0);
   zap = concat ("rm -rf ", dir, (char *) NULL);
-  system (zap);
+  ignored = system (zap);
 }
 
 /* Return the name of the temporary directory to use for .o files, and
