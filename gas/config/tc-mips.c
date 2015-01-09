@@ -4088,6 +4088,8 @@ micromips_reloc_p (bfd_reloc_code_real_type reloc)
     case BFD_RELOC_MICROMIPS_HIGHER:
     case BFD_RELOC_MICROMIPS_SCN_DISP:
     case BFD_RELOC_MICROMIPS_JALR:
+    case BFD_RELOC_MICROMIPS_HI16_S_PCREL:
+    case BFD_RELOC_MICROMIPS_LO16_PCREL:
       return TRUE;
 
     default:
@@ -4160,6 +4162,8 @@ limited_pcrel_reloc_p (bfd_reloc_code_real_type reloc)
     case BFD_RELOC_32_PCREL:
     case BFD_RELOC_HI16_S_PCREL:
     case BFD_RELOC_LO16_PCREL:
+    case BFD_RELOC_MICROMIPS_HI16_S_PCREL:
+    case BFD_RELOC_MICROMIPS_LO16_PCREL:
       return HAVE_64BIT_ADDRESSES;
 
     default:
@@ -6919,6 +6923,8 @@ micromips_map_reloc (bfd_reloc_code_real_type reloc)
       { BFD_RELOC_HI16, BFD_RELOC_MICROMIPS_HI16 },
       { BFD_RELOC_HI16_S, BFD_RELOC_MICROMIPS_HI16_S },
       { BFD_RELOC_LO16, BFD_RELOC_MICROMIPS_LO16 },
+      { BFD_RELOC_HI16_S_PCREL, BFD_RELOC_MICROMIPS_HI16_S_PCREL },
+      { BFD_RELOC_LO16_PCREL, BFD_RELOC_MICROMIPS_LO16_PCREL },
       { BFD_RELOC_MIPS_LITERAL, BFD_RELOC_MICROMIPS_LITERAL },
       { BFD_RELOC_MIPS_21_PCREL_S2, BFD_RELOC_MICROMIPS_21_PCREL_S1 },
       { BFD_RELOC_MIPS_26_PCREL_S2, BFD_RELOC_MICROMIPS_26_PCREL_S1 },
@@ -14851,7 +14857,9 @@ mips_force_relocation (fixS *fixp)
 	  || fixp->fx_r_type == BFD_RELOC_MIPS_18_PCREL_S3
 	  || fixp->fx_r_type == BFD_RELOC_MIPS_19_PCREL_S2
 	  || fixp->fx_r_type == BFD_RELOC_HI16_S_PCREL
-	  || fixp->fx_r_type == BFD_RELOC_LO16_PCREL))
+	  || fixp->fx_r_type == BFD_RELOC_LO16_PCREL
+	  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_HI16_S_PCREL
+	  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_LO16_PCREL))
     return 1;
 
   return 0;
@@ -14908,6 +14916,8 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       case BFD_RELOC_MIPS_19_PCREL_S2:
       case BFD_RELOC_HI16_S_PCREL:
       case BFD_RELOC_LO16_PCREL:
+      case BFD_RELOC_MICROMIPS_HI16_S_PCREL:
+      case BFD_RELOC_MICROMIPS_LO16_PCREL:
 	break;
 
       case BFD_RELOC_32:
@@ -15129,6 +15139,8 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 
     case BFD_RELOC_HI16_S_PCREL:
     case BFD_RELOC_LO16_PCREL:
+    case BFD_RELOC_MICROMIPS_HI16_S_PCREL:
+    case BFD_RELOC_MICROMIPS_LO16_PCREL:
       gas_assert (!fixP->fx_done);
       break;
 
@@ -17281,7 +17293,9 @@ tc_gen_reloc (asection *section ATTRIBUTE_UNUSED, fixS *fixp)
 		  || fixp->fx_r_type == BFD_RELOC_MIPS_18_PCREL_S3
 		  || fixp->fx_r_type == BFD_RELOC_MIPS_19_PCREL_S2
 		  || fixp->fx_r_type == BFD_RELOC_HI16_S_PCREL
-		  || fixp->fx_r_type == BFD_RELOC_LO16_PCREL);
+		  || fixp->fx_r_type == BFD_RELOC_LO16_PCREL
+		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_HI16_S_PCREL
+		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_LO16_PCREL);
 
       /* At this point, fx_addnumber is "symbol offset - pcrel address".
 	 Relocations want only the symbol offset.  */

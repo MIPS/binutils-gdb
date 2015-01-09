@@ -2960,6 +2960,8 @@ to compensate for the borrow when the low bits are added.  */
   BFD_RELOC_MICROMIPS_HI16,
   BFD_RELOC_MICROMIPS_HI16_S,
   BFD_RELOC_MICROMIPS_LO16,
+  BFD_RELOC_MICROMIPS_HI16_S_PCREL,
+  BFD_RELOC_MICROMIPS_LO16_PCREL,
 
 /* MIPS ELF relocations.  */
   BFD_RELOC_MIPS_GOT16,
