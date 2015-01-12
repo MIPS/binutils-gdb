@@ -830,14 +830,14 @@
 :function:::void:do_auipc:int rs, unsigned16 immediate
 {
   TRACE_ALU_INPUT1 (immediate);
-  GPR[rs] = loadstore_ea (SD_, CIA & ~3, EXTEND32 (immediate << 16));
+  GPR[rs] = loadstore_ea (SD_, CIA, EXTEND32 (immediate << 16));
   TRACE_ALU_RESULT (GPR[rs]);
 }
 
 :function:::void:do_aluipc:int rs, unsigned16 immediate
 {
   TRACE_ALU_INPUT1 (immediate);
-  GPR[rs] = ~0x0FFFF & loadstore_ea (SD_, CIA & ~3, EXTEND32 (immediate << 16));
+  GPR[rs] = ~0x0FFFF & loadstore_ea (SD_, CIA, EXTEND32 (immediate << 16));
   TRACE_ALU_RESULT (GPR[rs]);
 }
 
@@ -845,7 +845,7 @@
 {
   address_word offset = EXTEND19 (immediate) << 2;
   TRACE_ALU_INPUT1 (offset);
-  GPR[rs] = EXTEND32 (do_load (SD_, AccessLength_WORD, CIA, offset));
+  GPR[rs] = EXTEND32 (do_load (SD_, AccessLength_WORD, CIA & ~3, offset));
   TRACE_ALU_RESULT (GPR[rs]);
 }
 
@@ -853,7 +853,7 @@
 {
   address_word offset = EXTEND19 (immediate) << 2;
   TRACE_ALU_INPUT1 (offset);
-  GPR[rs] = do_load (SD_, AccessLength_WORD, CIA, offset);
+  GPR[rs] = do_load (SD_, AccessLength_WORD, CIA & ~3, offset);
   TRACE_ALU_RESULT (GPR[rs]);
 }
 
