@@ -2837,8 +2837,8 @@ static reloc_howto_type elf_micromips_howto_table_rela[] =
 	 complain_overflow_signed, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc, /* special_function */
 	 "R_MICROMIPS_PC21_S1",	/* name */
-	 TRUE,			/* partial_inplace */
-	 0x003fffff,		/* src_mask */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
 	 0x003fffff,		/* dst_mask */
 	 TRUE),			/* pcrel_offset */
 
@@ -2851,8 +2851,8 @@ static reloc_howto_type elf_micromips_howto_table_rela[] =
 	 complain_overflow_signed, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc, /* special_function */
 	 "R_MICROMIPS_PC26_S1",	/* name */
-	 TRUE,			/* partial_inplace */
-	 0x03ffffff,		/* src_mask */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
 	 0x03ffffff,		/* dst_mask */
 	 TRUE),			/* pcrel_offset */
 
@@ -2865,8 +2865,8 @@ static reloc_howto_type elf_micromips_howto_table_rela[] =
 	 complain_overflow_signed, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc,   /* special_function */
 	 "R_MICROMIPS_PC18_S3",	/* name */
-	 TRUE,			/* partial_inplace */
-	 0x0003ffff,		/* src_mask */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
 	 0x0003ffff,		/* dst_mask */
 	 TRUE),			/* pcrel_offset */
 
@@ -2879,8 +2879,8 @@ static reloc_howto_type elf_micromips_howto_table_rela[] =
 	 complain_overflow_signed, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc,   /* special_function */
 	 "R_MICROMIPS_PC19_S2",	/* name */
-	 TRUE,			/* partial_inplace */
-	 0x0007ffff,		/* src_mask */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
 	 0x0007ffff,		/* dst_mask */
 	 TRUE),			/* pcrel_offset */
 };
