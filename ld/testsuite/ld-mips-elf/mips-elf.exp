@@ -440,6 +440,7 @@ if {$has_newabi} {
     run_dump_test "undefweak-overflow-n32"
     run_dump_test "undefweak-overflow-n64"
 }
+run_dump_test "umips-undefweak-overflow"
 
 if {$has_newabi} {
     run_dump_test "jalbal" [list [list ld $abi_ldflags(n32)]]
