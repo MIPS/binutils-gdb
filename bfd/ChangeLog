@@ -1,3 +1,9 @@
+2015-01-14  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/17842
+	* elflink.c (bfd_elf_final_link): Assign the file position for
+	the symbol table only there are symbols to be emitted.
+
 2015-01-14  Jiong Wang  <jiong.wang@arm.com>
 
 	* elf32-arm.c (elf32_arm_final_link_relocate): Reject R_ARM_32/_NOI when

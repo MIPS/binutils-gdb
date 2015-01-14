@@ -10612,8 +10612,7 @@ bfd_elf_final_link (bfd *abfd, struct bfd_link_info *info)
   file_ptr off;
   Elf_Internal_Sym elfsym;
   unsigned int i;
-  Elf_Internal_Shdr *symtab_hdr;
-  Elf_Internal_Shdr *symtab_shndx_hdr;
+  Elf_Internal_Shdr *symtab_hdr = NULL;
   const struct elf_backend_data *bed = get_elf_backend_data (abfd);
   struct elf_outext_info eoinfo;
   bfd_boolean merged;
@@ -10874,19 +10873,22 @@ bfd_elf_final_link (bfd *abfd, struct bfd_link_info *info)
      .symtab, .strtab, and non-loaded reloc sections.  We start the
      .symtab section at the current file position, and write directly
      to it.  We build the .strtab section in memory.  */
-  bfd_get_symcount (abfd) = 0;
-  symtab_hdr = &elf_tdata (abfd)->symtab_hdr;
-  /* sh_name is set in prep_headers.  */
-  symtab_hdr->sh_type = SHT_SYMTAB;
-  /* sh_flags, sh_addr and sh_size all start off zero.  */
-  symtab_hdr->sh_entsize = bed->s->sizeof_sym;
-  /* sh_link is set in assign_section_numbers.  */
-  /* sh_info is set below.  */
-  /* sh_offset is set just below.  */
-  symtab_hdr->sh_addralign = (bfd_vma) 1 << bed->s->log_file_align;
-
   off = elf_next_file_pos (abfd);
-  off = _bfd_elf_assign_file_position_for_section (symtab_hdr, off, TRUE);
+  if (info->strip != strip_all)
+    {
+      bfd_get_symcount (abfd) = 0;
+      symtab_hdr = &elf_tdata (abfd)->symtab_hdr;
+      /* sh_name is set in prep_headers.  */
+      symtab_hdr->sh_type = SHT_SYMTAB;
+      /* sh_flags, sh_addr and sh_size all start off zero.  */
+      symtab_hdr->sh_entsize = bed->s->sizeof_sym;
+      /* sh_link is set in assign_section_numbers.  */
+      /* sh_info is set below.  */
+      /* sh_offset is set just below.  */
+      symtab_hdr->sh_addralign = (bfd_vma) 1 << bed->s->log_file_align;
+
+      off = _bfd_elf_assign_file_position_for_section (symtab_hdr, off, TRUE);
+    }
 
   /* Note that at this point elf_next_file_pos (abfd) is
      incorrect.  We do not yet know the size of the .symtab section.
@@ -11185,7 +11187,8 @@ bfd_elf_final_link (bfd *abfd, struct bfd_link_info *info)
      converted to local in a version script.  */
 
   /* The sh_info field records the index of the first non local symbol.  */
-  symtab_hdr->sh_info = bfd_get_symcount (abfd);
+  if (symtab_hdr)
+    symtab_hdr->sh_info = bfd_get_symcount (abfd);
 
   if (dynamic
       && flinfo.dynsym_sec != NULL
@@ -11294,31 +11297,32 @@ bfd_elf_final_link (bfd *abfd, struct bfd_link_info *info)
     return FALSE;
 
   /* Now we know the size of the symtab section.  */
-  off += symtab_hdr->sh_size;
-
-  symtab_shndx_hdr = &elf_tdata (abfd)->symtab_shndx_hdr;
-  if (symtab_shndx_hdr->sh_name != 0)
+  if (symtab_hdr)
     {
-      symtab_shndx_hdr->sh_type = SHT_SYMTAB_SHNDX;
-      symtab_shndx_hdr->sh_entsize = sizeof (Elf_External_Sym_Shndx);
-      symtab_shndx_hdr->sh_addralign = sizeof (Elf_External_Sym_Shndx);
-      amt = bfd_get_symcount (abfd) * sizeof (Elf_External_Sym_Shndx);
-      symtab_shndx_hdr->sh_size = amt;
+      Elf_Internal_Shdr *symtab_shndx_hdr;
+      Elf_Internal_Shdr *symstrtab_hdr;
 
-      off = _bfd_elf_assign_file_position_for_section (symtab_shndx_hdr,
-						       off, TRUE);
+      off += symtab_hdr->sh_size;
 
-      if (bfd_seek (abfd, symtab_shndx_hdr->sh_offset, SEEK_SET) != 0
-	  || (bfd_bwrite (flinfo.symshndxbuf, amt, abfd) != amt))
-	return FALSE;
-    }
+      symtab_shndx_hdr = &elf_tdata (abfd)->symtab_shndx_hdr;
+      if (symtab_shndx_hdr->sh_name != 0)
+	{
+	  symtab_shndx_hdr->sh_type = SHT_SYMTAB_SHNDX;
+	  symtab_shndx_hdr->sh_entsize = sizeof (Elf_External_Sym_Shndx);
+	  symtab_shndx_hdr->sh_addralign = sizeof (Elf_External_Sym_Shndx);
+	  amt = bfd_get_symcount (abfd) * sizeof (Elf_External_Sym_Shndx);
+	  symtab_shndx_hdr->sh_size = amt;
 
+	  off = _bfd_elf_assign_file_position_for_section (symtab_shndx_hdr,
+							   off, TRUE);
 
-  if (bfd_get_symcount (abfd) > 0)
-    {
+	  if (bfd_seek (abfd, symtab_shndx_hdr->sh_offset, SEEK_SET) != 0
+	      || (bfd_bwrite (flinfo.symshndxbuf, amt, abfd) != amt))
+	    return FALSE;
+	}
+
       /* Finish up and write out the symbol string table (.strtab)
 	 section.  */
-      Elf_Internal_Shdr *symstrtab_hdr;
 
       symstrtab_hdr = &elf_tdata (abfd)->strtab_hdr;
       /* sh_name was set in prep_headers.  */
