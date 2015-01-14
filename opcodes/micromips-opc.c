@@ -850,6 +850,12 @@ const struct mips_opcode micromips_opcodes[] =
 {"jalrc",		"t,s",		0x00000f3c, 0xfc00ffff,	WR_1|RD_2,		UBR,		I37,		0,	0 },
 {"jalrc.hb",		"s",		0x03e01f3c, 0xffe0ffff,	RD_1|WR_31,		UBR,		I37,		0,	0 },
 {"jalrc.hb",		"t,s",		0x00001f3c, 0xfc00ffff,	WR_1|RD_2,		UBR,		I37,		0,	0 },
+{"jalrs",		"mp",		    0x440b,     0xfc1f,	RD_1|WR_31,		INSN2_ALIAS|UBR|CTC,		I37,		0,	0 }, /* jalrc */
+{"jalrs",		"my,mp",	    0x440b,     0xfc1f,	RD_2|WR_31,		INSN2_ALIAS|UBR|CTC,		I37,		0,	0 }, /* jalrc */
+{"jalrs",		"s",		0x03e00f3c, 0xffe0ffff,	RD_1|WR_31,		INSN2_ALIAS|UBR|CTC,		I37,		0,	0 }, /* jalrc */
+{"jalrs",		"t,s",		0x00000f3c, 0xfc00ffff,	WR_1|RD_2,		INSN2_ALIAS|UBR|CTC,		I37,		0,	0 }, /* jalrc */
+{"jalrs.hb",		"s",		0x03e01f3c, 0xffe0ffff,	RD_1|WR_31,		INSN2_ALIAS|UBR|CTC,		I37,		0,	0 }, /* jalrc.hb */
+{"jalrs.hb",		"t,s",		0x00001f3c, 0xfc00ffff,	WR_1|RD_2,		INSN2_ALIAS|UBR|CTC,		I37,		0,	0 }, /* jalrc.hb */
 {"jalrs",		"mj",		    0x45e0,     0xffe0,	RD_1|WR_31|UBD,		BD16,		I1,		0,	I37 },
 {"jalrs",		"my,mj",	    0x45e0,     0xffe0,	RD_2|WR_31|UBD,		BD16,		I1,		0,	I37 },
 {"jalrs",		"s",		0x03e04f3c, 0xffe0ffff,	RD_1|WR_31|UBD,		BD16,		I1,		0,	I37 },
@@ -870,6 +876,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"jals",		"s",		0,    (int) M_JALS_1,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"jals",		"a",		0,    (int) M_JALS_A,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"jals",		"a",		0x74000000, 0xfc000000,	WR_31|UBD,		BD16,		I1,		0,	I37 },
+{"jals",		"+'",		0xb4000000, 0xfc000000,	WR_31,			INSN2_ALIAS|UBR|CTC, I37,	0,	0 }, /* balc */
 {"jalx",		"+i",		0xf0000000, 0xfc000000,	WR_31|UBD,		BD32,		I1,		0,	I37 },
 {"la",			"t,A(b)",	0,    (int) M_LA_AB,	INSN_MACRO,		0,		I1,		0,	0 },
 {"lb",			"t,o(b)",	0x1c000000, 0xfc000000,	WR_1|RD_3|LM,		0,		I1,		0,	0 },
