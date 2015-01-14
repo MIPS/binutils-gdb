@@ -854,12 +854,12 @@ const struct mips_opcode micromips_opcodes[] =
 {"jalrs",		"my,mp",	    0x440b,     0xfc1f,	RD_2|WR_31,		INSN2_ALIAS|UBR|CTC,		I37,		0,	0 }, /* jalrc */
 {"jalrs",		"s",		0x03e00f3c, 0xffe0ffff,	RD_1|WR_31,		INSN2_ALIAS|UBR|CTC,		I37,		0,	0 }, /* jalrc */
 {"jalrs",		"t,s",		0x00000f3c, 0xfc00ffff,	WR_1|RD_2,		INSN2_ALIAS|UBR|CTC,		I37,		0,	0 }, /* jalrc */
-{"jalrs.hb",		"s",		0x03e01f3c, 0xffe0ffff,	RD_1|WR_31,		INSN2_ALIAS|UBR|CTC,		I37,		0,	0 }, /* jalrc.hb */
-{"jalrs.hb",		"t,s",		0x00001f3c, 0xfc00ffff,	WR_1|RD_2,		INSN2_ALIAS|UBR|CTC,		I37,		0,	0 }, /* jalrc.hb */
 {"jalrs",		"mj",		    0x45e0,     0xffe0,	RD_1|WR_31|UBD,		BD16,		I1,		0,	I37 },
 {"jalrs",		"my,mj",	    0x45e0,     0xffe0,	RD_2|WR_31|UBD,		BD16,		I1,		0,	I37 },
 {"jalrs",		"s",		0x03e04f3c, 0xffe0ffff,	RD_1|WR_31|UBD,		BD16,		I1,		0,	I37 },
 {"jalrs",		"t,s",		0x00004f3c, 0xfc00ffff,	WR_1|RD_2|UBD,		BD16,		I1,		0,	I37 },
+{"jalrs.hb",		"s",		0x03e01f3c, 0xffe0ffff,	RD_1|WR_31,		INSN2_ALIAS|UBR|CTC,		I37,		0,	0 }, /* jalrc.hb */
+{"jalrs.hb",		"t,s",		0x00001f3c, 0xfc00ffff,	WR_1|RD_2,		INSN2_ALIAS|UBR|CTC,		I37,		0,	0 }, /* jalrc.hb */
 {"jalrs.hb",		"s",		0x03e05f3c, 0xffe0ffff,	RD_1|WR_31|UBD,		BD16,		I1,		0,	I37 },
 {"jalrs.hb",		"t,s",		0x00005f3c, 0xfc00ffff,	WR_1|RD_2|UBD,		BD16,		I1,		0,	I37 },
 /* SVR4 PIC code requires special handling for jal, so it must be a
