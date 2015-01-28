@@ -864,10 +864,9 @@ const struct mips_opcode micromips_opcodes[] =
 {"jalrs.hb",		"t,s",		0x00005f3c, 0xfc00ffff,	WR_1|RD_2|UBD,		BD16,		I1,		0,	I37 },
 /* SVR4 PIC code requires special handling for jal, so it must be a
    macro.  */
-{"jal",			"+'",		0xb4000000, 0xfc000000,	WR_31,			INSN2_ALIAS|UBR|CTC, I37,	0,	0 }, /* balc */
-{"jal",			"d,s",		0,    (int) M_JAL_2,	INSN_MACRO,		0,		I1,		0,	I37 },
-{"jal",			"s",		0,    (int) M_JAL_1,	INSN_MACRO,		0,		I1,		0,	I37 },
-{"jal",			"a",		0,    (int) M_JAL_A,	INSN_MACRO,		0,		I1,		0,	I37 },
+{"jal",			"d,s",		0,    (int) M_JAL_2,	INSN_MACRO,		0,		I1,		0,	0 },
+{"jal",			"s",		0,    (int) M_JAL_1,	INSN_MACRO,		0,		I1,		0,	0 },
+{"jal",			"a",		0,    (int) M_JAL_A,	INSN_MACRO,		0,		I1,		0,	0 },
 /* This form of jal is used by the disassembler and internally by the
    assembler, but will never match user input (because the line above
    will match first).  */

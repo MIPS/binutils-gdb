@@ -8587,6 +8587,11 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	  *r = BFD_RELOC_MIPS_JMP;
 	  break;
 
+	case '\'':
+	  gas_assert (ep != NULL);
+	  *r = BFD_RELOC_MIPS_26_PCREL_S2;
+	  break;
+
 	default:
 	  next_fmt = *(fmt + 1);
 	  operand = (mips_opts.micromips
@@ -8602,7 +8607,7 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 
 	  insn_insert_operand (&insn, operand, uval);
 
-	  if ((*fmt == '+' && next_fmt != '"') || *fmt == 'm' || *fmt == '-')
+	  if ((*fmt == '+' && next_fmt != '"' && next_fmt != '\'') || *fmt == 'm' || *fmt == '-')
 	    ++fmt;
 	  break;
 	}
@@ -8720,12 +8725,14 @@ macro_build_jalr (expressionS *ep, int cprestore)
     }
   if (mips_opts.micromips)
     {
-      jalr = ((mips_opts.noreorder && !cprestore) || mips_opts.insn32
-	      ? "jalr" : "jalrs");
+      jalr = (ISA_IS_R6 (mips_opts.isa) ? "jalrc" : ((mips_opts.noreorder && !cprestore) || mips_opts.insn32
+	      ? "jalr" : "jalrs"));
       if (MIPS_JALR_HINT_P (ep)
 	  || mips_opts.insn32
 	  || (history[0].insn_mo->pinfo2 & INSN2_BRANCH_DELAY_32BIT))
 	macro_build (NULL, jalr, "t,s", RA, PIC_CALL_REG);
+      else if (ISA_IS_R6 (mips_opts.isa))
+	macro_build (NULL, jalr, "mp", PIC_CALL_REG);
       else
 	macro_build (NULL, jalr, "mj", PIC_CALL_REG);
     }
@@ -11074,12 +11081,17 @@ macro (struct mips_cl_insn *ip, char *str)
     jal:
       if (mips_pic == NO_PIC)
 	{
-	  s = jals ? "jalrs" : "jalr";
+	  s = jals ? "jalrs" : ISA_IS_R6 (mips_opts.isa) ? "jalrc" : "jalr";
 	  if (mips_opts.micromips
 	      && !mips_opts.insn32
 	      && op[0] == RA
 	      && !(history[0].insn_mo->pinfo2 & INSN2_BRANCH_DELAY_32BIT))
-	    macro_build (NULL, s, "mj", op[1]);
+	    {
+	      if (ISA_IS_R6 (mips_opts.isa))
+		macro_build (NULL, s, "mp", op[1]);
+	      else
+		macro_build (NULL, s, "mj", op[1]);
+	    }
 	  else
 	    macro_build (NULL, s, JALR_FMT, op[0], op[1]);
 	}
@@ -11092,14 +11104,20 @@ macro (struct mips_cl_insn *ip, char *str)
 	    as_warn (_("MIPS PIC call to register other than $25"));
 
 	  s = ((mips_opts.micromips
+		&& !ISA_IS_R6 (mips_opts.isa)
 		&& !mips_opts.insn32
 		&& (!mips_opts.noreorder || cprestore))
-	       ? "jalrs" : "jalr");
+	       ? "jalrs" : (mips_opts.micromips && ISA_IS_R6 (mips_opts.isa)) ? "jalrc" : "jalr");
 	  if (mips_opts.micromips
 	      && !mips_opts.insn32
 	      && op[0] == RA
 	      && !(history[0].insn_mo->pinfo2 & INSN2_BRANCH_DELAY_32BIT))
-	    macro_build (NULL, s, "mj", op[1]);
+	    {
+	      if (ISA_IS_R6 (mips_opts.isa))
+		macro_build (NULL, s, "mp", op[1]);
+	      else
+		macro_build (NULL, s, "mj", op[1]);
+	    }
 	  else
 	    macro_build (NULL, s, JALR_FMT, op[0], op[1]);
 	  if (mips_pic == SVR4_PIC && !HAVE_NEWABI)
@@ -11120,7 +11138,7 @@ macro (struct mips_cl_insn *ip, char *str)
 		      /* Quiet this warning.  */
 		      mips_cprestore_valid = 1;
 		    }
-		  if (mips_opts.noreorder)
+		  if (mips_opts.noreorder && !(mips_opts.micromips && ISA_IS_R6 (mips_opts.isa)))
 		    macro_build (NULL, "nop", "");
 		  expr1.X_add_number = mips_cprestore_offset;
   		  macro_build_ldst_constoffset (&expr1, ADDRESS_LOAD_INSN,
@@ -11144,7 +11162,8 @@ macro (struct mips_cl_insn *ip, char *str)
       /* Fall through.  */
     case M_JAL_A:
       if (mips_pic == NO_PIC)
-	macro_build (&offset_expr, jals ? "jals" : "jal", "a");
+	macro_build (&offset_expr, jals ? "jals" : (mips_opts.micromips && ISA_IS_R6 (mips_opts.isa)) ? "balc" : "jal",
+		     (mips_opts.micromips && ISA_IS_R6 (mips_opts.isa)) ? "+'" : "a");
       else if (mips_pic == SVR4_PIC)
 	{
 	  /* If this is a reference to an external symbol, and we are
@@ -11264,7 +11283,7 @@ macro (struct mips_cl_insn *ip, char *str)
 		      /* Quiet this warning.  */
 		      mips_cprestore_valid = 1;
 		    }
-		  if (mips_opts.noreorder)
+		  if (mips_opts.noreorder && !(mips_opts.micromips && ISA_IS_R6 (mips_opts.isa)))
 		    macro_build (NULL, "nop", "");
 		  expr1.X_add_number = mips_cprestore_offset;
   		  macro_build_ldst_constoffset (&expr1, ADDRESS_LOAD_INSN,
