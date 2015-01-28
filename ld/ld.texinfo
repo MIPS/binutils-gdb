@@ -2819,6 +2819,13 @@ or in relaxation.  If @samp{--insn32} is used, then the linker only uses
 used, all instruction encodings are used, including 16-bit ones where
 possible.
 
+@kindex --compact-branches
+@item --compact-branches
+@kindex --no-compact-branches
+@item --compact-branches
+These options control the generation of compact instructions by the linker
+in the PLT entries for MIPS R6.
+
 @end table
 
 @c man end
