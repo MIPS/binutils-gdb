@@ -299,6 +299,35 @@ struct mips_elf_la25_stub {
 #define LA25_ADDIU_MICROMIPS(VAL)					\
   (0x33390000 | (VAL))				/* addiu t9,t9,VAL */
 
+
+/* Macros for creating the interlinking thunks.  */
+
+#define THUNK_AUIPC(VAL) (0xef200000 | (VAL))	/* adduipc t9,VAL */
+#define THUNK_JIC(VAL) (0xd8190000 | (VAL))	/* jic t9,VAL */
+
+#define THUNK_AUIPC_MICROMIPS(VAL) (0x7b3e0000 | (VAL))	/* adduipc t9,VAL */
+#define THUNK_JIC_MICROMIPS(VAL) (0xa0190000 | (VAL))	/* jic t9,VAL */
+
+#define THUNK_LUI(VAL) (0x3c190000 | (VAL))	/* lui t9,VAL */
+#define THUNK_ADDIU(VAL) (0x27390000 | (VAL))	/* addiu t9,t9,VAL */
+#define THUNK_JR (0x03200008)	/* jr t9 */
+#define THUNK_NOP (0x0) /* nop */
+
+#define THUNK_LUI_MICROMIPS(VAL) (0x41b90000 | (VAL))	/* lui t9,VAL */
+#define THUNK_ADDIU_MICROMIPS(VAL) (0x33390000 | (VAL))	/* addiu t9,t9,VAL */
+#define THUNK_JR_MICROMIPS (0x4599)	/* jr t9 */
+#define THUNK_NOP_MICROMIPS (0x0) /* nop */
+
+#define THUNK_SIZE(ABFD) (MIPSR6_P(ABFD) ? 8 : (MICROMIPS_P(ABFD) ? 12 : 16))
+
+#define THUNK_NOT_REQUIRED -1
+#define THUNK_RELOC_MIPS -2
+#define THUNK_RELOC_MICROMIPS -3
+#define THUNK_RELOC_BOTH -4
+
+#define THUNK_SYM_NAME ".thunk_"
+
+
 /* This structure is passed to mips_elf_sort_hash_table_f when sorting
    the dynamic symbols.  */
 
@@ -412,6 +441,9 @@ struct mips_elf_link_hash_entry
 
   /* Does this symbol resolve to a PLT entry?  */
   unsigned int use_plt_entry : 1;
+
+  /* An offset into the thunk section.  -1 means no thunk is required.  */
+  int thunk_offset;
 };
 
 /* MIPS ELF linker hash table.  */
@@ -512,6 +544,11 @@ struct mips_elf_link_hash_table
      The function returns the new section on success, otherwise it
      returns null.  */
   asection *(*add_stub_section) (const char *, asection *, asection *);
+  
+  /* A section used for interlinking thunks.  */
+  asection *sthunk;
+
+  int thunk_num;
 
   /* Small local sym cache.  */
   struct sym_cache sym_cache;
@@ -565,7 +602,10 @@ struct mips_elf_obj_tdata
   /* An array of stub sections indexed by symbol number.  */
   asection **local_stubs;
   asection **local_call_stubs;
-
+  
+  /* An array of offsets into the thunk section indexed by symbol number.  */
+  int *thunk_offsets;
+  
   /* The Irix 5 support uses two virtual sections, which represent
      text/data symbols defined in dynamic objects.  */
   asymbol *elf_data_symbol;
@@ -1296,6 +1336,7 @@ mips_elf_link_hash_newfunc (struct bfd_hash_entry *entry,
       ret->has_nonpic_branches = FALSE;
       ret->needs_lazy_stub = FALSE;
       ret->use_plt_entry = FALSE;
+      ret->thunk_offset = -1;
     }
 
   return (struct bfd_hash_entry *) ret;
@@ -1973,43 +2014,6 @@ mips_elf_add_la25_stub (struct bfd_link_info *info,
 	  : mips_elf_add_la25_intro (stub, info));
 }
 
-/* A mips_elf_link_hash_traverse callback that is called before sizing
-   sections.  DATA points to a mips_htab_traverse_info structure.  */
-
-static bfd_boolean
-mips_elf_check_symbols (struct mips_elf_link_hash_entry *h, void *data)
-{
-  struct mips_htab_traverse_info *hti;
-
-  hti = (struct mips_htab_traverse_info *) data;
-  if (!hti->info->relocatable)
-    mips_elf_check_mips16_stubs (hti->info, h);
-
-  if (mips_elf_local_pic_function_p (h))
-    {
-      /* PR 12845: If H is in a section that has been garbage
-	 collected it will have its output section set to *ABS*.  */
-      if (bfd_is_abs_section (h->root.root.u.def.section->output_section))
-	return TRUE;
-
-      /* H is a function that might need $25 to be valid on entry.
-	 If we're creating a non-PIC relocatable object, mark H as
-	 being PIC.  If we're creating a non-relocatable object with
-	 non-PIC branches and jumps to H, make sure that H has an la25
-	 stub.  */
-      if (hti->info->relocatable)
-	{
-	  if (!PIC_OBJECT_P (hti->output_bfd))
-	    h->root.other = ELF_ST_SET_MIPS_PIC (h->root.other);
-	}
-      else if (h->has_nonpic_branches && !mips_elf_add_la25_stub (hti->info, h))
-	{
-	  hti->error = TRUE;
-	  return FALSE;
-	}
-    }
-  return TRUE;
-}
 
 /* R_MIPS16_26 is used for the mips16 jal and jalx instructions.
    Most mips16 instructions are 16 bits, but these instructions
@@ -2586,6 +2590,211 @@ _bfd_mips_elf_generic_reloc (bfd *abfd ATTRIBUTE_UNUSED, arelent *reloc_entry,
   return bfd_reloc_ok;
 }
 
+static asection*
+mips_elf_get_thunk_section (bfd *abfd, struct bfd_link_info *info)
+{
+  struct mips_elf_link_hash_table *htab;
+  asection *s;
+  htab = mips_elf_hash_table (info);
+
+  if (htab->sthunk == NULL)
+    {
+      printf ("Creating thunk section.  \n");
+      s = bfd_make_section_anyway_with_flags (abfd, ".thunk",
+						   (SEC_ALLOC
+						    | SEC_LOAD
+						    | SEC_HAS_CONTENTS
+						    | SEC_IN_MEMORY
+						    /*| SEC_LINKER_CREATED*/
+						    | SEC_READONLY
+						    | SEC_CODE
+						    | SEC_KEEP));
+
+      
+
+      if (s == NULL)
+	return NULL;
+
+      if (!bfd_set_section_alignment (abfd, s, 4))
+	return NULL;
+
+      htab->sthunk = s;
+    }
+
+  return htab->sthunk;
+}
+
+
+static bfd_vma
+mips_elf_write_thunk_entry (bfd_vma sym_address, const char * sym_name, bfd_vma thunk_off, bfd *abfd, struct bfd_link_info *info, int r_type)
+{
+  asection *s;
+  bfd_vma sym_val;
+  struct bfd_link_hash_entry *bh;
+  struct elf_link_hash_entry *elfh;
+  struct mips_elf_link_hash_table *htab;
+  const char *temp_name;
+  int is_micromips = micromips_branch_reloc_p (r_type);
+
+  htab = mips_elf_hash_table (info);
+
+  printf ("Got thunk\n");
+  s = mips_elf_get_thunk_section (abfd, info);
+
+  /* Create the contents for the thunk.  */
+  if (s->contents == NULL)
+    {
+      s->contents = bfd_zalloc (abfd, s->size);
+      if (s->contents == NULL)
+	printf ("Unable to malloc section\n");
+    }
+
+  bfd_vma entry_address = s->output_section->vma + s->output_offset + thunk_off;
+  /* Is this calculation correct? */  
+  bfd_vma pc_rel_offset = (sym_address - entry_address) + 4;
+  bfd_byte *thunk_loc = s->contents + thunk_off;
+  bfd_vma pc_hi_address = mips_elf_high (pc_rel_offset);
+  bfd_vma pc_lo_address = pc_rel_offset & 0xffff;
+
+  bfd_vma abs_hi_address = mips_elf_high (sym_address);
+  bfd_vma abs_lo_address = sym_address & 0xffff;
+
+  sym_val = s->output_offset + thunk_off;
+  if (is_micromips)
+    {
+      entry_address |= 1;
+      sym_val |= 1;
+    }
+
+  /* Have we already written this thunk out? */
+  if (bfd_get_32 (abfd, thunk_loc) != 0)
+    return entry_address;
+
+  printf ("Writing thunk %d %s %x %x\n", thunk_off, sym_name, (unsigned int) entry_address, (unsigned int) thunk_loc);
+
+  if (is_micromips)
+    {
+      if (MIPSR6_P(abfd))
+	{
+	  bfd_put_micromips_32 (abfd, THUNK_AUIPC_MICROMIPS(pc_hi_address),
+				thunk_loc);
+	  bfd_put_micromips_32 (abfd, THUNK_JIC_MICROMIPS(pc_lo_address),
+				thunk_loc + 4);
+	}
+      else
+	{
+	  bfd_put_micromips_32 (abfd, THUNK_LUI_MICROMIPS(abs_hi_address),
+				thunk_loc);
+	  bfd_put_micromips_32 (abfd, THUNK_ADDIU_MICROMIPS(abs_lo_address),
+				thunk_loc + 4);
+	  bfd_put_16 (abfd, THUNK_JR_MICROMIPS, thunk_loc + 8);
+	  bfd_put_16 (abfd, THUNK_NOP, thunk_loc + 10);
+	}
+    }
+  else
+    {
+      if (MIPSR6_P(abfd))
+	{
+	  bfd_put_32 (abfd, THUNK_AUIPC(pc_hi_address), thunk_loc);
+	  bfd_put_32 (abfd, THUNK_JIC(pc_lo_address), thunk_loc + 4);
+	  printf ("MIPS THUNK\n%x\n%x", bfd_get_32 (abfd, thunk_loc), bfd_get_32 (abfd, thunk_loc+4));
+	}
+      else
+	{
+	  bfd_put_32 (abfd, THUNK_LUI(abs_hi_address), thunk_loc);
+	  bfd_put_32 (abfd, THUNK_ADDIU(abs_lo_address), thunk_loc + 4);
+	  bfd_put_32 (abfd, THUNK_JR, thunk_loc + 8);
+	  bfd_put_32 (abfd, THUNK_NOP, thunk_loc + 12);
+	}
+    }
+
+  bh = NULL;
+  if (*sym_name == '\0')
+    {
+      temp_name = malloc (strlen(THUNK_SYM_NAME) + 11);
+      sprintf (temp_name, THUNK_SYM_NAME "%d", htab->thunk_num++);
+    }
+  else
+    {
+      temp_name = malloc (strlen (THUNK_SYM_NAME) + strlen (sym_name) + 1);
+      sprintf (temp_name,THUNK_SYM_NAME "%s", sym_name);
+    }
+
+  if (!_bfd_generic_link_add_one_symbol (info, abfd, temp_name,
+					 BSF_LOCAL, s->output_section, sym_val, NULL,
+					 TRUE, FALSE, &bh))
+    return (bfd_vma) NULL;
+
+  elfh = (struct elf_link_hash_entry *) bh;
+  elfh->type = ELF_ST_INFO (STB_LOCAL, STT_FUNC);
+  elfh->size = THUNK_SIZE (abfd);
+  if (is_micromips)
+    elfh->other = ELF_ST_SET_MICROMIPS (elfh->other);
+  elfh->forced_local = 1;
+
+  free (temp_name);
+
+  return entry_address;
+}
+/* A mips_elf_link_hash_traverse callback that is called before sizing
+   sections.  DATA points to a mips_htab_traverse_info structure.  */
+
+static bfd_boolean
+mips_elf_check_symbols (struct mips_elf_link_hash_entry *h, void *data)
+{
+  struct mips_htab_traverse_info *hti;
+
+  hti = (struct mips_htab_traverse_info *) data;
+  if (!hti->info->relocatable)
+    mips_elf_check_mips16_stubs (hti->info, h);
+
+  /* Do we a symbol where we could not decide if we need 
+     to output a thunk?  */
+  if (h->thunk_offset < THUNK_NOT_REQUIRED)
+    {
+      if (h->root.root.type == bfd_link_hash_defined
+	  && (h->thunk_offset == THUNK_RELOC_BOTH 
+	      || (h->thunk_offset == THUNK_RELOC_MIPS
+		  && ELF_ST_IS_MICROMIPS (h->root.other))
+	      || (h->thunk_offset == THUNK_RELOC_MICROMIPS
+		  && !ELF_ST_IS_MICROMIPS (h->root.other))))
+	{
+	  asection* thunk_section;
+	  thunk_section = mips_elf_get_thunk_section (hti->output_bfd, 
+						      hti->info);
+	  h->thunk_offset = thunk_section->size;
+	  thunk_section->size += THUNK_SIZE(hti->output_bfd);
+	}
+      else
+	h->thunk_offset = THUNK_NOT_REQUIRED;
+    }
+
+  if (mips_elf_local_pic_function_p (h))
+    {
+      /* PR 12845: If H is in a section that has been garbage
+	 collected it will have its output section set to *ABS*.  */
+      if (bfd_is_abs_section (h->root.root.u.def.section->output_section))
+	return TRUE;
+
+      /* H is a function that might need $25 to be valid on entry.
+	 If we're creating a non-PIC relocatable object, mark H as
+	 being PIC.  If we're creating a non-relocatable object with
+	 non-PIC branches and jumps to H, make sure that H has an la25
+	 stub.  */
+      if (hti->info->relocatable)
+	{
+	  if (!PIC_OBJECT_P (hti->output_bfd))
+	    h->root.other = ELF_ST_SET_MIPS_PIC (h->root.other);
+	}
+      else if (h->has_nonpic_branches && !mips_elf_add_la25_stub (hti->info, h))
+	{
+	  hti->error = TRUE;
+	  return FALSE;
+	}
+    }
+  return TRUE;
+}
+
 /* Swap an entry in a .gptab section.  Note that these routines rely
    on the equivalence of the two elements of the union.  */
 
@@ -3188,6 +3397,9 @@ mips_elf_rel_dyn_section (struct bfd_link_info *info, bfd_boolean create_p)
     }
   return sreloc;
 }
+
+
+
 
 /* Return the GOT_TLS_* type required by relocation type R_TYPE.  */
 
@@ -5242,6 +5454,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
 			       asection **local_sections, bfd_vma *valuep,
 			       const char **namep,
 			       bfd_boolean *cross_mode_jump_p,
+			       bfd_boolean *thunk_created_p,
 			       bfd_boolean save_addend)
 {
   /* The eventual value we will return.  */
@@ -5591,11 +5804,34 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
   *cross_mode_jump_p = (!info->relocatable
 			&& !(h && h->root.root.type == bfd_link_hash_undefweak)
 			&& ((r_type == R_MIPS16_26 && !target_is_16_bit_code_p)
-			    || (r_type == R_MICROMIPS_26_S1
+			    || ((r_type == R_MICROMIPS_26_S1 
+				 || r_type == R_MICROMIPS_PC26_S1)
 				&& !target_is_micromips_code_p)
-			    || ((r_type == R_MIPS_26 || r_type == R_MIPS_JALR)
+			    || ((r_type == R_MIPS_26 || r_type == R_MIPS_PC26_S2 || r_type == R_MIPS_JALR)
 				&& (target_is_16_bit_code_p
 				    || target_is_micromips_code_p))));
+
+  if (*cross_mode_jump_p 
+      && (micromips_reloc_p (r_type) || target_is_micromips_code_p))
+    {
+      int thunk_off;
+      if (local_p)
+	thunk_off = mips_elf_tdata (input_bfd)->thunk_offsets[r_symndx];
+      else
+	thunk_off = h->thunk_offset;
+
+      if (thunk_off != THUNK_NOT_REQUIRED)
+	{
+	  printf ("Outputting thunk for %s %s\n", *namep, howto->name);
+	  symbol = mips_elf_write_thunk_entry (symbol, *namep, thunk_off, abfd, info, r_type);
+	}
+
+      /*What should sec be set to?  */
+
+      *cross_mode_jump_p = FALSE;
+      target_is_micromips_code_p = !target_is_micromips_code_p;
+
+    }
 
   local_p = (h == NULL || mips_use_local_got_p (info, h));
 
@@ -5796,10 +6032,12 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
 
 	/* Make sure the target of JALX is word-aligned.  Bit 0 must be
 	   the correct ISA mode selector and bit 1 must be 0.  */
+	/* FIXME */
 	if (*cross_mode_jump_p && (symbol & 3) != (r_type == R_MIPS_26))
 	  return bfd_reloc_outofrange;
 
 	/* Shift is 2, unusually, for microMIPS JALX.  */
+	/* FIXME */
 	shift = (!*cross_mode_jump_p && r_type == R_MICROMIPS_26_S1) ? 1 : 2;
 
 	if (was_local_p)
@@ -6258,7 +6496,8 @@ mips_elf_perform_relocation (struct bfd_link_info *info,
 			     const Elf_Internal_Rela *relocation,
 			     bfd_vma value, bfd *input_bfd,
 			     asection *input_section, bfd_byte *contents,
-			     bfd_boolean cross_mode_jump_p)
+			     bfd_boolean cross_mode_jump_p,
+			     bfd_boolean thunk_created_p)
 {
   bfd_vma x;
   bfd_byte *location;
@@ -6279,7 +6518,8 @@ mips_elf_perform_relocation (struct bfd_link_info *info,
   x |= (value & howto->dst_mask);
 
   /* If required, turn JAL into JALX.  */
-  if (cross_mode_jump_p && jal_reloc_p (r_type))
+  /* FIXME: We cant do this anymore, but we might need to do a JALX to JAL conversion */
+  if (!thunk_created_p && cross_mode_jump_p && jal_reloc_p (r_type))
     {
       bfd_boolean ok;
       bfd_vma opcode = x >> 26;
@@ -6322,6 +6562,7 @@ mips_elf_perform_relocation (struct bfd_link_info *info,
   /* Try converting JAL to BAL and J(AL)R to B(AL), if the target is in
      range.  */
   if (!info->relocatable
+      && !thunk_created_p
       && !cross_mode_jump_p
       && ((JAL_TO_BAL_P (input_bfd)
 	   && r_type == R_MIPS_26
@@ -8235,12 +8476,41 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
       bfd_boolean can_make_dynamic_p;
       bfd_boolean call_reloc_p;
       bfd_boolean constrain_symbol_p;
+      bfd_boolean target_is_micromips_code_p;
+      unsigned long opcode;
+      Elf_Internal_Sym *isymbuf = NULL;
+      Elf_Internal_Sym *isym;
+      asection* thunk_section = NULL;
+      struct mips_elf_link_hash_entry *h2;
+      const char *sym_name;
+      bfd_boolean sym_undefined = FALSE;
 
       r_symndx = ELF_R_SYM (abfd, rel->r_info);
       r_type = ELF_R_TYPE (abfd, rel->r_info);
 
       if (r_symndx < extsymoff)
-	h = NULL;
+	{
+	  /* Load the local symbols if we have not done already.  */
+	  if (isymbuf == NULL && symtab_hdr->sh_info != 0)
+	    {
+	      isymbuf = (Elf_Internal_Sym *) symtab_hdr->contents;
+	      if (isymbuf == NULL)
+		isymbuf = bfd_elf_get_elf_syms (abfd, symtab_hdr,
+						symtab_hdr->sh_info, 0,
+						NULL, NULL, NULL);
+	      if (isymbuf == NULL)
+		return FALSE;
+	    }
+	  isym = isymbuf + r_symndx;
+	  target_is_micromips_code_p = ELF_ST_IS_MICROMIPS (isym->st_other);
+	  h = NULL;
+	  /* Record the name of this symbol, for our caller.  */
+	  sym_name = bfd_elf_string_from_elf_section (abfd,
+						      symtab_hdr->sh_link,
+						      isym->st_name);
+	  if (sym_name == '\0')
+	    sym_name = bfd_section_name (abfd, sec);
+	}
       else if (r_symndx >= extsymoff + NUM_SHDR_ENTRIES (symtab_hdr))
 	{
 	  (*_bfd_error_handler)
@@ -8261,6 +8531,111 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 	      /* PR15323, ref flags aren't set for references in the
 		 same object.  */
 	      h->root.non_ir_ref = 1;
+
+	      h2 = ((struct mips_elf_link_hash_entry *) sym_hashes[r_symndx - extsymoff]);
+	      sym_name = h2->root.root.root.string;
+	      sym_undefined = (h->root.type == bfd_link_hash_undefined);
+	      target_is_micromips_code_p = ELF_ST_IS_MICROMIPS (h2->root.other);
+	    }
+	  /* What do we set target_is_micromips_code_p to when h is NULL? */
+	}
+
+      if (!mips_elf_get_section_contents (abfd, sec, &contents))
+	return FALSE;
+      
+      bfd_boolean is_jalx;
+
+      /* Check to see the instruction refers to is a JALX.  */
+      if (MIPSR6_P(abfd))
+	is_jalx = FALSE;
+      else if (micromips_reloc_p (r_type))
+	{
+	  opcode = bfd_get_micromips_32 (abfd, contents + rel->r_offset);
+	  is_jalx = ((opcode >> 26) == 0x3c);
+	}
+      else
+	{
+	  opcode = bfd_get_32 (abfd, contents + rel->r_offset);
+	  is_jalx = ((opcode >> 26) == 0x1d);
+	}
+
+      if (mips_elf_tdata (abfd)->thunk_offsets == NULL)
+	{
+	  printf ("Creating thunk offsets table.  \n");
+	  mips_elf_tdata (abfd)->thunk_offsets = 
+			    bfd_alloc (abfd, extsymoff * sizeof (unsigned int));
+	  memset (mips_elf_tdata (abfd)->thunk_offsets, THUNK_NOT_REQUIRED, extsymoff * sizeof (unsigned int));
+	}
+
+	printf ("Processing %s %s mm: %d jalx: %d\n", 
+		MIPS_ELF_RTYPE_TO_HOWTO(abfd, r_type, FALSE)->name,
+		sym_name,
+		target_is_micromips_code_p,
+		is_jalx);
+
+      /* Here we know the symbol the relocation is referencing is undefined, so
+	 we can't check if it is a micromips symbol or not.  We will mark
+	 the offsets field on the symbol correctly so that mips_elf_check_symbols
+	 can decide if the thunk is required later on.  */
+      if (h2 && sym_undefined && !is_jalx
+	  && (r_type == R_MICROMIPS_26_S1 || r_type == R_MICROMIPS_PC26_S1
+	      || r_type == R_MIPS_26 || r_type == R_MIPS_PC26_S2 
+	      || r_type == R_MIPS_JALR))
+	{
+	  /* Create a thunk section anyway, so that it get correctly assigned 
+	     to the .text output section.  */
+	  int thunk_type;
+	  thunk_section = mips_elf_get_thunk_section (abfd, info);
+
+	  switch (r_type)
+	    {
+	    case R_MICROMIPS_26_S1:
+	    case R_MICROMIPS_PC26_S1:
+	      thunk_type = THUNK_RELOC_MICROMIPS;
+	      break;
+
+	    case R_MIPS_26:
+	    case R_MIPS_PC26_S2:
+	    case R_MIPS_JALR:
+	      thunk_type = THUNK_RELOC_MIPS;
+	      break;
+
+	    default:
+	      printf ("Error");
+	    }
+
+	  if ((h2->thunk_offset == THUNK_RELOC_MIPS 
+	       && thunk_type == THUNK_RELOC_MICROMIPS)
+	      || (h2->thunk_offset == THUNK_RELOC_MICROMIPS
+		  && thunk_type == THUNK_RELOC_MIPS))
+	    h2->thunk_offset = THUNK_RELOC_BOTH;
+	  else if (h2->thunk_offset == THUNK_NOT_REQUIRED)
+	    h2->thunk_offset = thunk_type;
+	}
+      else if (!info->relocatable
+	  && (!is_jalx)
+	  && !(h2 && h2->root.root.type == bfd_link_hash_undefweak)
+	  && (((r_type == R_MICROMIPS_26_S1 || r_type == R_MICROMIPS_PC26_S1)
+	      && !target_is_micromips_code_p)
+	      || ((r_type == R_MIPS_26 || r_type == R_MIPS_PC26_S2 || r_type == R_MIPS_JALR)
+		    && target_is_micromips_code_p)))
+	{
+    
+	  unsigned int thunk_off;
+	  thunk_section = mips_elf_get_thunk_section (abfd, info);
+	  thunk_off = thunk_section->size;
+	  /* Is it a local symbol?  */
+	  if (h == NULL && mips_elf_tdata (abfd)->thunk_offsets[r_symndx] < 0) 
+	    {
+		  mips_elf_tdata (abfd)->thunk_offsets[r_symndx] = thunk_off;
+		  thunk_section->size += THUNK_SIZE(abfd);
+	    }
+	  /* We don't care here if the symbol has been previously marked, as we now
+	     know a thunk is required.  */
+	  else if (h != NULL && h2->thunk_offset < 0)
+	    {
+	      h2->thunk_offset = thunk_off;
+	      thunk_section->size += THUNK_SIZE(abfd);
 	    }
 	}
 
@@ -9283,6 +9658,7 @@ _bfd_mips_elf_always_size_sections (bfd *output_bfd,
   htab = mips_elf_hash_table (info);
   BFD_ASSERT (htab != NULL);
 
+
   /* The .reginfo section has a fixed size.  */
   sect = bfd_get_section_by_name (output_bfd, ".reginfo");
   if (sect != NULL)
@@ -9291,7 +9667,7 @@ _bfd_mips_elf_always_size_sections (bfd *output_bfd,
   /* The .MIPS.abiflags section has a fixed size.  */
   sect = bfd_get_section_by_name (output_bfd, ".MIPS.abiflags");
   if (sect != NULL)
-    bfd_set_section_size (output_bfd, sect, sizeof (Elf_External_ABIFlags_v0));
+     bfd_set_section_size (output_bfd, sect, sizeof (Elf_External_ABIFlags_v0));
 
   hti.info = info;
   hti.output_bfd = output_bfd;
@@ -9622,6 +9998,7 @@ _bfd_mips_elf_size_dynamic_sections (bfd *output_bfd,
   BFD_ASSERT (htab != NULL);
   dynobj = elf_hash_table (info)->dynobj;
   BFD_ASSERT (dynobj != NULL);
+
 
   if (elf_hash_table (info)->dynamic_sections_created)
     {
@@ -10048,6 +10425,7 @@ _bfd_mips_elf_relocate_section (bfd *output_bfd, struct bfd_link_info *info,
       bfd_vma value = 0;
       reloc_howto_type *howto;
       bfd_boolean cross_mode_jump_p = FALSE;
+      bfd_boolean thunk_created_p = FALSE;
       /* TRUE if the relocation is a RELA relocation, rather than a
          REL relocation.  */
       bfd_boolean rela_relocation_p = TRUE;
@@ -10220,7 +10598,7 @@ _bfd_mips_elf_relocate_section (bfd *output_bfd, struct bfd_link_info *info,
 
 	      if (! mips_elf_perform_relocation (info, howto, rel, addend,
 						 input_bfd, input_section,
-						 contents, FALSE))
+						 contents, FALSE, FALSE))
 		return FALSE;
 	    }
 
@@ -10245,6 +10623,7 @@ _bfd_mips_elf_relocate_section (bfd *output_bfd, struct bfd_link_info *info,
 					     addend, howto, local_syms,
 					     local_sections, &value,
 					     &name, &cross_mode_jump_p,
+					     &thunk_created_p,
 					     use_saved_addend_p))
 	{
 	case bfd_reloc_continue:
@@ -10314,6 +10693,7 @@ _bfd_mips_elf_relocate_section (bfd *output_bfd, struct bfd_link_info *info,
 	  /* Fall through.  */
 
 	default:
+	  printf ("Calculate reloc fail %s %s\n", name, howto->name);
 	  abort ();
 	  break;
 	}
@@ -10374,7 +10754,8 @@ _bfd_mips_elf_relocate_section (bfd *output_bfd, struct bfd_link_info *info,
       /* Actually perform the relocation.  */
       if (! mips_elf_perform_relocation (info, howto, rel, value,
 					 input_bfd, input_section,
-					 contents, cross_mode_jump_p))
+					 contents, cross_mode_jump_p,
+					 thunk_created_p))
 	return FALSE;
     }
 
@@ -14160,6 +14541,8 @@ _bfd_mips_elf_final_link (bfd *abfd, struct bfd_link_info *info)
   htab_traverse (htab->la25_stubs, mips_elf_create_la25_stub, &hti);
   if (hti.error)
     return FALSE;
+  
+  printf ("THUNK %d %d\n", htab->sthunk->size, htab->sthunk->rawsize);
 
   /* Get a value for the GP register.  */
   if (elf_gp (abfd) == 0)

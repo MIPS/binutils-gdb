@@ -20,7 +20,7 @@ INITIAL_READONLY_SECTIONS="${INITIAL_READONLY_SECTIONS}
   .MIPS.abiflags ${RELOCATING-0} : { *(.MIPS.abiflags) }
   .reginfo       ${RELOCATING-0} : { *(.reginfo) }
 "
-OTHER_TEXT_SECTIONS='*(.mips16.fn.*) *(.mips16.call.*)'
+OTHER_TEXT_SECTIONS='*(.thunk) *(.mips16.fn.*) *(.mips16.call.*)'
 # Unlike most targets, the MIPS backend puts all dynamic relocations
 # in a single dynobj section, which it also calls ".rel.dyn".  It does
 # this so that it can easily sort all dynamic relocations before the
