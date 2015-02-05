@@ -105,6 +105,8 @@ decode_micromips_operand (const char *p)
 
         case 'a': INT_ADJ (19, 0, 262143, 2, FALSE);
 	case 'b': INT_ADJ (18, 0, 131071, 3, FALSE);
+	case 'd': MAPPED_REG (3, 1, GP, reg_m16_map);
+	case 'e': OPTIONAL_MAPPED_REG (3, 7, GP, reg_m16_map);
 	case 's': SPECIAL (5, 16, NON_ZERO_REG);
 	case 't': SPECIAL (5, 21, NON_ZERO_REG);
 	case 'u': PREV_CHECK (5, 21, TRUE, FALSE, FALSE, TRUE);
@@ -387,7 +389,8 @@ const struct mips_opcode micromips_opcodes[] =
 {"addius5",		"mp,mX",	    0x4c00,     0xfc01,	MOD_1,			0,		I1,		0,	0 },
 {"addu",		"mp,mj,mz",	    0x0c00,     0xfc00,	WR_1|RD_2,		0,		I1,		0,	0 }, /* move */
 {"addu",		"mp,mz,mj",	    0x0c00,     0xfc00,	WR_1|RD_3,		0,		I1,		0,	0 }, /* move */
-{"addu",		"md,me,ml",	    0x0400,     0xfc01,	WR_1|RD_2|RD_3,		0,		I1,		0,	0 },
+{"addu",		"-d,-e,ml",	    0x0400,     0xfc01,	WR_1|RD_2|RD_3,		0,		I1,		0,	I37 },
+{"addu",		"md,me,ml",	    0x0400,     0xfc01,	WR_1|RD_2|RD_3,		0,		I37,		0,	0 },
 {"addu",		"d,v,t",	0x00000150, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,		I1,		0,	0 },
 {"addu",		"t,r,I",	0,    (int) M_ADDU_I,	INSN_MACRO,		0,		I1,		0,	0 },
 {"alnv.ps",		"D,V,T,y",	0x54000019, 0xfc00003f,	WR_1|RD_2|RD_3|RD_4|FP_D, 0,		I1,		0,	I37 },
@@ -1195,7 +1198,8 @@ const struct mips_opcode micromips_opcodes[] =
 {"sub.d",		"D,V,T",	0x54000170, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I1,		0,	0 },
 {"sub.s",		"D,V,T",	0x54000070, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_S,	0,		I1,		0,	0 },
 {"sub.ps",		"D,V,T",	0x54000270, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I1,		0,	I37 },
-{"subu",		"md,me,ml",	    0x0401,     0xfc01,	WR_1|RD_2|RD_3,		0,		I1,		0,	0 },
+{"subu",		"-d,-e,ml",	    0x0401,     0xfc01,	WR_1|RD_2|RD_3,		0,		I37,		0,	0 },
+{"subu",		"md,me,ml",	    0x0401,     0xfc01,	WR_1|RD_2|RD_3,		0,		I1,		0,	I37 },
 {"subu",		"d,v,t",	0x000001d0, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,		I1,		0,	0 },
 {"subu",		"d,v,I",	0,    (int) M_SUBU_I,	INSN_MACRO,		0,		I1,		0,	0 },
 {"suxc1",		"D,t(b)",	0x54000188, 0xfc0007ff,	RD_1|RD_2|RD_3|SM|FP_D,	0,		I1,		0,	I37 },
