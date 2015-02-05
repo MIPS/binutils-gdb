@@ -390,8 +390,8 @@ const struct mips_opcode micromips_opcodes[] =
 {"addius5",		"mp,mX",	    0x4c00,     0xfc01,	MOD_1,			0,		I1,		0,	0 },
 {"addu",		"mp,mj,mz",	    0x0c00,     0xfc00,	WR_1|RD_2,		0,		I1,		0,	0 }, /* move */
 {"addu",		"mp,mz,mj",	    0x0c00,     0xfc00,	WR_1|RD_3,		0,		I1,		0,	0 }, /* move */
-{"addu",		"-d,-e,ml",	    0x0400,     0xfc01,	WR_1|RD_2|RD_3,		0,		I1,		0,	I37 },
-{"addu",		"md,me,ml",	    0x0400,     0xfc01,	WR_1|RD_2|RD_3,		0,		I37,		0,	0 },
+{"addu",		"-d,-e,ml",	    0x0400,     0xfc01,	WR_1|RD_2|RD_3,		0,		I37,		0,	0 },
+{"addu",		"md,me,ml",	    0x0400,     0xfc01,	WR_1|RD_2|RD_3,		0,		I1,		0,	I37 },
 {"addu",		"d,v,t",	0x00000150, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,		I1,		0,	0 },
 {"addu",		"t,r,I",	0,    (int) M_ADDU_I,	INSN_MACRO,		0,		I1,		0,	0 },
 {"alnv.ps",		"D,V,T,y",	0x54000019, 0xfc00003f,	WR_1|RD_2|RD_3|RD_4|FP_D, 0,		I1,		0,	I37 },
@@ -531,7 +531,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"break",		"",		    0x441b,     0xffff,	TRAP,			0,		I37,		0,	0 },
 {"break",		"",		    0x4680,     0xffff,	TRAP,			0,		I1,		0,	I37 },
 {"break",		"",		0x00000007, 0xffffffff,	TRAP,			0,		I1,		0,	0 },
-{"break",		"+K",		    0x440c,     0xfc3f,	TRAP,			0,		I37,		0,	0 },
+{"break",		"+K",		    0x441b,     0xfc3f,	TRAP,			0,		I37,		0,	0 },
 {"break",		"mF",		    0x4680,     0xfff0,	TRAP,			0,		I1,		0,	I37 },
 {"break",		"c",		0x00000007, 0xfc00ffff,	TRAP,			0,		I1,		0,	0 },
 {"break",		"c,q",		0x00000007, 0xfc00003f,	TRAP,			0,		I1,		0,	0 },
@@ -810,7 +810,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"jrs",			"s",		0x00004f3c, 0xffe0ffff,	RD_1|UBD,		BD16,		I1,		0,	I37 }, /* jalrs */
 {"jrcaddiusp",		"+P",		    0x4413,     0xfc1f,	0,			WR_sp|RD_31|RD_sp|UBR, I37,	0,	0 },
 {"jraddiusp",		"mP",		    0x4700,     0xffe0,	NODS,			WR_sp|RD_31|RD_sp|UBR, I1,	0,	I37 },
-{"jraddiusp",		"+P",		    0x4404,     0xfc1f,	0,			INSN2_ALIAS|WR_sp|RD_31|RD_sp|UBR|CTC, I37,	0,	0 },
+{"jraddiusp",		"+P",		    0x4413,     0xfc1f,	0,			INSN2_ALIAS|WR_sp|RD_31|RD_sp|UBR|CTC, I37,	0,	0 },
 /* This macro is after the real instruction so that it only matches with
    -minsn32.  */
 {"jraddiusp",		"mP",		0,   (int) M_JRADDIUSP,	INSN_MACRO,		0,		I1,		0,	I37 },
@@ -1135,7 +1135,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"sdbbp",		"",		    0x443b,     0xffff,	TRAP,			0,		I37,		0,	0 },
 {"sdbbp",		"",		    0x46c0,     0xffff,	TRAP,			0,		I1,		0,	I37 },
 {"sdbbp",		"",		0x0000db7c, 0xffffffff,	TRAP,			0,		I1,		0,	0 },
-{"sdbbp",		"+K",		    0x442c,     0xfc3f,	TRAP,			0,		I37,		0,	0 },
+{"sdbbp",		"+K",		    0x443b,     0xfc3f,	TRAP,			0,		I37,		0,	0 },
 {"sdbbp",		"mO",		    0x46c0,     0xfff0,	TRAP,			0,		I1,		0,	I37 },
 {"sdbbp",		"+J",		0x0000db7c, 0xfc00ffff,	TRAP,			0,		I1,		0,	0 },
 {"sdc1",		"T,o(b)",	0xb8000000, 0xfc000000,	RD_1|RD_3|SM|FP_D,	0,		I1,		0,	0 },
