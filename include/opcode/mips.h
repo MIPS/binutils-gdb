@@ -486,6 +486,11 @@ struct mips_operand
   /* The operand occupies SIZE bits of the instruction, starting at LSB.  */
   unsigned short size;
   unsigned short lsb;
+
+  /* These are used to split a value across two different
+     parts of the instruction encoding.  */
+  unsigned int size_top;
+  unsigned int lsb_top;
 };
 
 /* Describes an integer operand with a regular encoding pattern.  */
@@ -627,10 +632,15 @@ mips_insert_operand (const struct mips_operand *operand, unsigned int insn,
 		     unsigned int uval)
 {
   unsigned int mask;
+  unsigned int size_bottom = operand->size - operand->size_top;
 
-  mask = (1 << operand->size) - 1;
+  mask = (1 << size_bottom) - 1;
   insn &= ~(mask << operand->lsb);
   insn |= (uval & mask) << operand->lsb;
+
+  mask = (1 << operand->size_top) - 1;
+  insn &= ~(mask << operand->lsb_top);
+  insn |= ((uval & (mask << size_bottom)) >> size_bottom) << operand->lsb_top;
   return insn;
 }
 
@@ -639,7 +649,13 @@ mips_insert_operand (const struct mips_operand *operand, unsigned int insn,
 static inline unsigned int
 mips_extract_operand (const struct mips_operand *operand, unsigned int insn)
 {
-  return (insn >> operand->lsb) & ((1 << operand->size) - 1);
+  unsigned int uval;
+  unsigned int size_bottom = operand->size - operand->size_top;
+
+  uval = (insn >> operand->lsb_top) & ((1 << operand->size_top) - 1);
+  uval <<= size_bottom;
+  uval |= (insn >> operand->lsb) & ((1 << size_bottom) - 1);
+  return uval;
 }
 
 /* UVAL is the value encoded by OPERAND.  Return it in signed form.  */
