@@ -184,5 +184,3 @@
 .*.s:186: Error: opcode not supported on this processor: .* \(.*\) `tltiu \$11,1024'
 .*.s:187: Error: opcode not supported on this processor: .* \(.*\) `tnei \$11,1024'
 .*.s:188: Error: opcode not supported on this processor: .* \(.*\) `sdxc1 \$f0,\$0\(\$0\)'
-.*.s:189: Error: opcode not supported on this processor: .* \(.*\) `jalrs \$2'
-.*.s:190: Error: opcode not supported on this processor: .* \(.*\) `jalrs.hb \$2'

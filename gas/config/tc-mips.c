@@ -7287,7 +7287,7 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	   && compact_branch_p (&history[0])
 	   && (history[0].insn_mo->pinfo2 & INSN2_CONVERTED_TO_COMPACT)
 	   && history[0].noreorder_p
-	   && !((history[0].insn_opcode & 0xfc1c) == 0x4404) /* jraddiusp */
+	   && !((history[0].insn_opcode & 0xfc1f) == 0x4413) /* jraddiusp */
 	   && strcmp (ip->insn_mo->name, "nop") != 0)
     {
       as_bad(_("expected a nop not `%s' in delay slot of `%s'"
@@ -11081,7 +11081,7 @@ macro (struct mips_cl_insn *ip, char *str)
     jal:
       if (mips_pic == NO_PIC)
 	{
-	  s = jals ? "jalrs" : ISA_IS_R6 (mips_opts.isa) ? "jalrc" : "jalr";
+	  s = jals ? "jalrs" : "jalr";
 	  if (mips_opts.micromips
 	      && !mips_opts.insn32
 	      && op[0] == RA
@@ -11107,7 +11107,7 @@ macro (struct mips_cl_insn *ip, char *str)
 		&& !ISA_IS_R6 (mips_opts.isa)
 		&& !mips_opts.insn32
 		&& (!mips_opts.noreorder || cprestore))
-	       ? "jalrs" : (mips_opts.micromips && ISA_IS_R6 (mips_opts.isa)) ? "jalrc" : "jalr");
+	       ? "jalrs" : "jalr");
 	  if (mips_opts.micromips
 	      && !mips_opts.insn32
 	      && op[0] == RA
@@ -11162,7 +11162,7 @@ macro (struct mips_cl_insn *ip, char *str)
       /* Fall through.  */
     case M_JAL_A:
       if (mips_pic == NO_PIC)
-	macro_build (&offset_expr, jals ? "jals" : (mips_opts.micromips && ISA_IS_R6 (mips_opts.isa)) ? "balc" : "jal",
+	macro_build (&offset_expr, jals ? "jals" : "jal",
 		     (mips_opts.micromips && ISA_IS_R6 (mips_opts.isa)) ? "+'" : "a");
       else if (mips_pic == SVR4_PIC)
 	{

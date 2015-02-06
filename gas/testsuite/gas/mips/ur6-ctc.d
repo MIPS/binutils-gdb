@@ -85,7 +85,7 @@ Disassembly of section .text:
 0+008c <[^>]*> 0004 1f3c 	jrc.hb	a0
 0+0090 <[^>]*> 03e4 1f3c 	jalrc.hb	a0
 0+0094 <[^>]*> 0085 1f3c 	jalrc.hb	a0,a1
-0+0098 <[^>]*> 4504      	jrcaddiusp	32
+0+0098 <[^>]*> 4513      	jrcaddiusp	32
 0+009a <[^>]*> cfff      	bc	0000009a <[^>]*>
 [	]*9a: R_MICROMIPS_PC10_S1	.L11
 0+009c <[^>]*> 0c00      	nop
@@ -209,6 +209,6 @@ Disassembly of section .text:
 0+0186 <[^>]*> 0c00      	nop
 0+0188 <[^>]*> 0085 1f3c 	jalrc.hb	a0,a1
 0+018c <[^>]*> 0c00      	nop
-0+018e <[^>]*> 4504      	jrcaddiusp	32
+0+018e <[^>]*> 4513      	jrcaddiusp	32
 0+0190 <[^>]*> ed0f      	li	v0,15
 0+0192 <[^>]*> 0c00      	nop

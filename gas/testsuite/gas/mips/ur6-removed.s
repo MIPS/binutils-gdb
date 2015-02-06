@@ -186,7 +186,5 @@ foo:
 	tltiu	$11,1024
 	tnei	$11,1024
 	sdxc1	$f0, $0($0)
-	jalrs   $2
-	jalrs.hb  $2
 1:
         nop

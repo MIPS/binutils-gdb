@@ -378,12 +378,12 @@ Disassembly of section .text:
 0+039c <[^>]*> 2225 d000 	swm	s0,ra,0\(a1\)
 0+03a0 <[^>]*> 4463      	jrc	v1
 0+03a2 <[^>]*> 444b      	jalrc	v0
-0+03a4 <[^>]*> 4424      	jrcaddiusp	4
-0+03a6 <[^>]*> 468c      	break	0xa
-0+03a8 <[^>]*> 442c      	sdbbp
-0+03aa <[^>]*> 442c      	sdbbp
-0+03ac <[^>]*> 446c      	sdbbp	0x1
-0+03ae <[^>]*> 47ec      	sdbbp	0xf
+0+03a4 <[^>]*> 4433      	jrcaddiusp	4
+0+03a6 <[^>]*> 469b      	break	0xa
+0+03a8 <[^>]*> 443b      	sdbbp
+0+03aa <[^>]*> 443b      	sdbbp
+0+03ac <[^>]*> 447b      	sdbbp	0x1
+0+03ae <[^>]*> 47fb      	sdbbp	0xf
 0+03b0 <[^>]*> 001f 1f3c 	jrc.hb	ra
 0+03b4 <[^>]*> 03e0 1f3c 	jalrc.hb	zero
 0+03b8 <[^>]*> 001f 1f3c 	jrc.hb	ra

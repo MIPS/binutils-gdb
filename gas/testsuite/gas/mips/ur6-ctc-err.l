@@ -43,8 +43,8 @@
 .*.s:108: Error: expected a nop not `li' in delay slot of `jalr.hb' in noreorder block
 .*.s:119: Error: expected a nop not `li' in delay slot of `j' in noreorder block
 .*.s:124: Error: expected a nop not `sh' in delay slot of `jal' in noreorder block
-.*.s:131: Error: invalid operands `beq \$3,\$3,ext'
-.*.s:132: Error: invalid operands `bne \$3,\$3,ext'
+.*.s:131: Error: operand 2 must be an immediate expression `beq \$3,\$3,ext'
+.*.s:132: Error: operand 2 must be an immediate expression `bne \$3,\$3,ext'
 .*.s:134: Error: the source register must not be \$0 `beqz \$0,1b'
 .*.s:135: Error: the source register must not be \$0 `bnez \$0,1b'
 .*.s:137: Error: the source register must not be \$0 `bgez \$0,1b'
