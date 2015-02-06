@@ -29,7 +29,7 @@
 #include "mips-formats.h"
 
 /* The 4-bit XYZW mask used in some VU0 instructions.  */
-const struct mips_operand mips_vu0_channel_mask = { OP_VU0_SUFFIX, 4, 21 };
+const struct mips_operand mips_vu0_channel_mask = { OP_VU0_SUFFIX, 4, 21, 0, 0 };
 
 const char * mxu_s32mad[] = {"A", "S"};
 
@@ -77,7 +77,7 @@ decode_mips_operand (const char *p)
 	case 'v': PREV_CHECK (5, 16, TRUE, TRUE, FALSE, FALSE);
 	case 'w': PREV_CHECK (5, 16, FALSE, TRUE, TRUE, TRUE);
 	case 'x': PREV_CHECK (5, 21, TRUE, FALSE, FALSE, TRUE);
-	case 'y': PREV_CHECK (5, 21, FALSE, TRUE, TRUE, FALSE);
+	case 'y': PREV_CHECK (5, 21, FALSE, TRUE, FALSE, FALSE);
 	case 'A': PCREL (19, 0, TRUE, 2, 2, FALSE, FALSE);
 	case 'B': PCREL (18, 0, TRUE, 3, 3, FALSE, FALSE);
 	}
