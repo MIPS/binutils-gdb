@@ -442,6 +442,9 @@ struct mips_elf_link_hash_table
   /* True if we can only use 32-bit microMIPS instructions.  */
   bfd_boolean insn32;
 
+  /* True if we are targetting R6 compact branches.  */
+  bfd_boolean compact_branches;
+
   /* True if we're generating code for VxWorks.  */
   bfd_boolean is_vxworks;
 
@@ -1105,15 +1108,20 @@ static const bfd_vma mips_exec_plt_entry[] =
   0x03200008	/* jr $25					*/
 };
 
-/* In the following PLT entry the JR and ADDIU instructions will
-   be swapped in _bfd_mips_elf_finish_dynamic_symbol because
-   LOAD_INTERLOCKS_P will be true for MIPS R6.  */
 static const bfd_vma mipsr6_exec_plt_entry[] =
 {
   0x3c0f0000,	/* lui $15, %hi(.got.plt entry)			*/
   0x01f90000,	/* l[wd] $25, %lo(.got.plt entry)($15)		*/
+  0x03200009,	/* jr $25					*/
+  0x25f80000	/* addiu $24, $15, %lo(.got.plt entry)		*/
+};
+
+static const bfd_vma mipsr6_exec_plt_entry_compact[] =
+{
+  0x3c0f0000,	/* lui $15, %hi(.got.plt entry)			*/
+  0x01f90000,	/* l[wd] $25, %lo(.got.plt entry)($15)		*/
   0x25f80000,	/* addiu $24, $15, %lo(.got.plt entry)		*/
-  0x03200009	/* jr $25					*/
+  0xd8190000	/* jic $25, 0					*/
 };
 
 /* The format of subsequent MIPS16 o32 PLT entries.  We use v0 ($2)
@@ -5928,7 +5936,8 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
 	 to them before.  */
       if (was_local_p)
 	value += gp0;
-      overflowed_p = mips_elf_overflow_p (value, 16);
+      if (was_local_p || h->root.root.type != bfd_link_hash_undefweak)
+	overflowed_p = mips_elf_overflow_p (value, 16);
       break;
 
     case R_MIPS16_GOT16:
@@ -5983,7 +5992,8 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
 	return bfd_reloc_outofrange;
 
       value = symbol + addend - p;
-      overflowed_p = mips_elf_overflow_p (value, 18);
+      if (was_local_p || h->root.root.type != bfd_link_hash_undefweak)
+	overflowed_p = mips_elf_overflow_p (value, 18);
       value >>= howto->rightshift;
       value &= howto->dst_mask;
       break;
@@ -5996,7 +6006,8 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
 	return bfd_reloc_outofrange;
 
       value = symbol + addend - p;
-      overflowed_p = mips_elf_overflow_p (value, 23);
+      if (was_local_p || h->root.root.type != bfd_link_hash_undefweak)
+	overflowed_p = mips_elf_overflow_p (value, 23);
       value >>= howto->rightshift;
       value &= howto->dst_mask;
       break;
@@ -6009,7 +6020,8 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
 	return bfd_reloc_outofrange;
 
       value = symbol + addend - p;
-      overflowed_p = mips_elf_overflow_p (value, 28);
+      if (was_local_p || h->root.root.type != bfd_link_hash_undefweak)
+	overflowed_p = mips_elf_overflow_p (value, 28);
       value >>= howto->rightshift;
       value &= howto->dst_mask;
       break;
@@ -6022,7 +6034,8 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
 	return bfd_reloc_outofrange;
 
       value = symbol + addend - ((p | 7) ^ 7);
-      overflowed_p = mips_elf_overflow_p (value, 21);
+      if (was_local_p || h->root.root.type != bfd_link_hash_undefweak)
+	overflowed_p = mips_elf_overflow_p (value, 21);
       value >>= howto->rightshift;
       value &= howto->dst_mask;
       break;
@@ -6035,14 +6048,16 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
 	return bfd_reloc_outofrange;
 
       value = symbol + addend - p;
-      overflowed_p = mips_elf_overflow_p (value, 21);
+      if (was_local_p || h->root.root.type != bfd_link_hash_undefweak)
+	overflowed_p = mips_elf_overflow_p (value, 21);
       value >>= howto->rightshift;
       value &= howto->dst_mask;
       break;
 
     case R_MIPS_PCHI16:
       value = mips_elf_high (symbol + addend - p);
-      overflowed_p = mips_elf_overflow_p (value, 16);
+      if (was_local_p || h->root.root.type != bfd_link_hash_undefweak)
+	overflowed_p = mips_elf_overflow_p (value, 16);
       value &= howto->dst_mask;
       break;
 
@@ -6057,7 +6072,8 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 8);
       value = symbol + addend - p;
-      overflowed_p = mips_elf_overflow_p (value, 8);
+      if (was_local_p || h->root.root.type != bfd_link_hash_undefweak)
+	overflowed_p = mips_elf_overflow_p (value, 8);
       value >>= howto->rightshift;
       value &= howto->dst_mask;
       break;
@@ -6066,7 +6082,8 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 11);
       value = symbol + addend - p;
-      overflowed_p = mips_elf_overflow_p (value, 11);
+      if (was_local_p || h->root.root.type != bfd_link_hash_undefweak)
+	overflowed_p = mips_elf_overflow_p (value, 11);
       value >>= howto->rightshift;
       value &= howto->dst_mask;
       break;
@@ -6075,7 +6092,8 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 17);
       value = symbol + addend - p;
-      overflowed_p = mips_elf_overflow_p (value, 17);
+      if (was_local_p || h->root.root.type != bfd_link_hash_undefweak)
+	overflowed_p = mips_elf_overflow_p (value, 17);
       value >>= howto->rightshift;
       value &= howto->dst_mask;
       break;
@@ -6084,7 +6102,8 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 25);
       value = symbol + addend - ((p | 3) ^ 3);
-      overflowed_p = mips_elf_overflow_p (value, 25);
+      if (was_local_p || h->root.root.type != bfd_link_hash_undefweak)
+	overflowed_p = mips_elf_overflow_p (value, 25);
       value >>= howto->rightshift;
       value &= howto->dst_mask;
       break;
@@ -10546,7 +10565,10 @@ _bfd_mips_elf_finish_dynamic_symbol (bfd *output_bfd,
 
 	  /* Fill in the PLT entry itself.  */
 
-	  if (MIPSR6_P (output_bfd))
+	  if (MIPSR6_P (output_bfd)
+	      && mips_elf_hash_table (info)->compact_branches)
+	    plt_entry = mipsr6_exec_plt_entry_compact;
+	  else if (MIPSR6_P (output_bfd))
 	    plt_entry = mipsr6_exec_plt_entry;
 	  else
 	    plt_entry = mips_exec_plt_entry;
@@ -10554,7 +10576,13 @@ _bfd_mips_elf_finish_dynamic_symbol (bfd *output_bfd,
 	  bfd_put_32 (output_bfd, plt_entry[1] | got_address_low | load,
 		      loc + 4);
 
-	  if (! LOAD_INTERLOCKS_P (output_bfd))
+	  if (MIPSR6_P (output_bfd)
+	      && !mips_elf_hash_table (info)->compact_branches)
+	    {
+	      bfd_put_32 (output_bfd, plt_entry[2], loc + 8);
+	      bfd_put_32 (output_bfd, plt_entry[3] | got_address_low, loc + 12);
+	    }
+	  else if (! LOAD_INTERLOCKS_P (output_bfd) || MIPSR6_P (output_bfd))
 	    {
 	      bfd_put_32 (output_bfd, plt_entry[2] | got_address_low, loc + 8);
 	      bfd_put_32 (output_bfd, plt_entry[3], loc + 12);
@@ -13865,6 +13893,13 @@ _bfd_mips_elf_insn32 (struct bfd_link_info *info, bfd_boolean on)
 {
   mips_elf_hash_table (info)->insn32 = on;
 }
+
+void
+_bfd_mips_elf_compact_branches (struct bfd_link_info *info, bfd_boolean on)
+{
+  mips_elf_hash_table (info)->compact_branches = on;
+}
+
 
 /* Return the .MIPS.abiflags value representing each ISA Extension.  */
 
@@ -15491,6 +15526,8 @@ print_mips_ases (FILE *file, unsigned int mask)
     fputs ("\n\tDSP ASE", file);
   if (mask & AFL_ASE_DSPR2)
     fputs ("\n\tDSP R2 ASE", file);
+  if (mask & AFL_ASE_DSPR3)
+    fputs ("\n\tDSP R3 ASE", file);
   if (mask & AFL_ASE_EVA)
     fputs ("\n\tEnhanced VA Scheme", file);
   if (mask & AFL_ASE_MCU)
