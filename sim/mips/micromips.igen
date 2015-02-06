@@ -25,6 +25,7 @@
 :compute:::int:TRT_S:RT_S:((RT_S == 1 ) ? 17 \: RT_S)
 :compute:::int:ERT:RT:(compute_movep_src_reg (SD_, RT))
 :compute:::int:ERS:RS:(compute_movep_src_reg (SD_, RS))
+:compute:::int:ERS_SPLIT:RST,RSB:(compute_movep_src_reg (SD_, ((RST<<2)|RSB)))
 
 :compute:::int:IMM_DEC1:IMMEDIATE:((IMMEDIATE == 7) ? -1 \: ((IMMEDIATE == 0) ? 1 \: IMMEDIATE << 2))
 :compute:::int:IMM_DEC2:IMMEDIATE:((IMMEDIATE < 8) ? IMMEDIATE \: (IMMEDIATE - 16))
@@ -231,9 +232,7 @@
 000001,3.RD,3.RT,3.RS,0:POOL16A:16::ADDU16
 "addu16 r<TRD>, r<TRS>, r<TRT>"
 *micromips32:
-*micromips32r6:
 *micromips64:
-*micromips64r6:
 {
   do_addu (SD_, TRS, TRT, TRD);
 }
@@ -524,9 +523,7 @@
 100001,3.DESTREGS,3.RT,3.RS,0:MICROMIPS:16::MOVEP
 "movep %s<DESTREGS> r<ERS>, r<ERT>"
 *micromips32:
-*micromips32r6:
 *micromips64:
-*micromips64r6:
 {
   int rd;
   int re;
@@ -630,9 +627,7 @@
 000001,3.RD,3.RT,3.RS,1:POOL16A:16::SUBU16
 "subu16 r<TRD>, r<TRS>, r<TRT>"
 *micromips32:
-*micromips32r6:
 *micromips64:
-*micromips64r6:
 {
   do_subu (SD_, TRS, TRT, TRD);
 }

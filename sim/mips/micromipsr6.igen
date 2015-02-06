@@ -583,29 +583,6 @@
   NIA = process_isa_mode (SD_, GPR[RS]);
 }
 
-010001,5.IMMEDIATE,00100:R6POOL16C:16::JRADDIUSP16
-"jraddiusp16 <IMMEDIATE>"
-*micromips32r6:
-*micromips64r6:
-{
-  NIA = do_jraddiusp (SD_, IMMEDIATE);
-}
-
-010001,4.CODE,001100:R6POOL16C:16::BREAK16
-"break16 %#lx<CODE>"
-*micromips32r6:
-*micromips64r6:
-{
-  do_break (SD_, instruction_0);
-}
-
-010001,4.CODE,101100:R6POOL16C:16::SDBBP16
-"sdbbp16 %#lx<CODE>"
-*micromips32r6:
-*micromips64r6:
-{
-  SignalException (DebugBreakPoint, instruction_0);
-}
 
 110011,10.IMMEDIATE:R6MICROMIPS:16::BC16
 "bc16 <IMMEDIATE>"
@@ -684,4 +661,76 @@
 *micromips64r6:
 {
   NIA = do_micromips_jalrc (SD_, RT, RS, NIA);
+}
+
+000001,3.RS,3.RT,3.RD,1:R6POOL16A:16::SUBU16
+"subu16 r<TRD>, r<TRS>, r<TRT>"
+*micromips32r6:
+*micromips64r6:
+{
+  do_subu (SD_, TRS, TRT, TRD);
+}
+
+000001,3.RS,3.RT,3.RD,0:R6POOL16A:16::ADDU16
+"addu16 r<TRD>, r<TRS>, r<TRT>"
+*micromips32r6:
+*micromips64r6:
+{
+  do_addu (SD_, TRS, TRT, TRD);
+}
+
+010001,3.DESTREGS,3.RT,1.RST,1,2.RSB:R6POOL16C:16::MOVEP
+"movep %s<DESTREGS> r<ERS_SPLIT>, r<ERT>"
+*micromips32r6:
+*micromips64r6:
+{
+  int rd;
+  int re;
+  int dest = DESTREGS;
+
+  if (dest == 0 || dest == 1)
+    rd = 5;
+  else if (dest == 2)
+    rd = 6;
+  else
+    rd = 4;
+
+  if (dest == 0 || dest == 6)
+    re = 6;
+  else if (dest == 1 || dest == 2 || dest == 7)
+    re = 7;
+  else if (dest == 3)
+    re = 21;
+  else if (dest == 4)
+    re = 22;
+  /* assume dest is 5 */
+  else
+    re = 5;
+
+  GPR[rd] = GPR[ERS_SPLIT];
+  GPR[re] = GPR[ERT];
+}
+
+010001,5.IMMEDIATE,10011:R6POOL16C:16::JRCADDIUSP16
+"jrcaddiusp16 <IMMEDIATE>"
+*micromips32r6:
+*micromips64r6:
+{
+  NIA = do_jraddiusp (SD_, IMMEDIATE);
+}
+
+010001,4.CODE,011011:R6POOL16C:16::BREAK16
+"break16 %#lx<CODE>"
+*micromips32r6:
+*micromips64r6:
+{
+  do_break (SD_, instruction_0);
+}
+
+010001,4.CODE,111011:R6POOL16C:16::SDBBP16
+"sdbbp16 %#lx<CODE>"
+*micromips32r6:
+*micromips64r6:
+{
+  SignalException (DebugBreakPoint, instruction_0);
 }
