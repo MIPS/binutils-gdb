@@ -65,6 +65,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define IO            4   /* V: Invalid Operation */
 #define UO            5   /* E: Unimplemented Operation (CAUSE field only) */
 
+/* FCSR bits for IEEE754-2008 compliance */
+#define NAN2008       0x00040000
+#define ABS2008       0x00080000
+
 #define FP_FLAGS(b)   (1 << ((b) + fcsr_FLAGS_shift))
 #define FP_ENABLE(b)  (1 << ((b) + fcsr_ENABLES_shift))
 #define FP_CAUSE(b)   (1 << ((b) + fcsr_CAUSE_shift))
