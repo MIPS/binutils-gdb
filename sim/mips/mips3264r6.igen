@@ -1,9 +1,876 @@
+:function:::void:do_rint:int fd, int fs, int fmt, instruction_word instruction_0
+{
+  unsigned64 result = 0;
+  check_fpu (SD_);
+  check_u64 (SD_, instruction_0);
+  check_fmt_p (SD_, fmt, instruction_0);
+  TRACE_ALU_INPUT1 (FGR[fs]);
+  RoundToIntegralExact (ValueFPR (fs, fmt), &result, fmt);
+  StoreFPR (fd, fmt, result);
+  TRACE_ALU_RESULT (FGR[fd]);
+}
+
+:function:::void:do_class:int fd, int fs, int fmt, instruction_word instruction_0
+{
+  check_fpu (SD_);
+  check_u64 (SD_, instruction_0);
+  check_fmt_p (SD_, fmt, instruction_0);
+  StoreFPR (fd, fmt, Classify (ValueFPR (fs, fmt), fmt));
+}
+
+:function:::void:do_min:int fd, int fs, int ft, int fmt, instruction_word instruction_0
+{
+  check_fpu (SD_);
+  check_u64 (SD_, instruction_0);
+  check_fmt_p (SD_, fmt, instruction_0);
+  TRACE_ALU_INPUT2 (FGR[fs], FGR[ft]);
+  StoreFPR (fd, fmt, Min (ValueFPR (fs, fmt), ValueFPR (ft, fmt), fmt));
+  TRACE_ALU_RESULT (FGR[fd]);
+}
+
+:function:::void:do_max:int fd, int fs, int ft, int fmt, instruction_word instruction_0
+{
+  check_fpu (SD_);
+  check_u64 (SD_, instruction_0);
+  check_fmt_p (SD_, fmt, instruction_0);
+  TRACE_ALU_INPUT2 (FGR[fs], FGR[ft]);
+  StoreFPR (fd, fmt, Max (ValueFPR (fs, fmt), ValueFPR (ft, fmt), fmt));
+  TRACE_ALU_RESULT (FGR[fd]);
+}
+
+:function:::void:do_mina:int fd, int fs, int ft, int fmt, instruction_word instruction_0
+{
+  check_fpu (SD_);
+  check_u64 (SD_, instruction_0);
+  check_fmt_p (SD_, fmt, instruction_0);
+  TRACE_ALU_INPUT2 (FGR[fs], FGR[ft]);
+  StoreFPR (fd, fmt, MinA (ValueFPR (fs, fmt), ValueFPR (ft, fmt), fmt));
+  TRACE_ALU_RESULT (FGR[fd]);
+}
+
+:function:::void:do_maxa:int fd, int fs, int ft, int fmt, instruction_word instruction_0
+{
+  check_fpu (SD_);
+  check_u64 (SD_, instruction_0);
+  check_fmt_p (SD_, fmt, instruction_0);
+  TRACE_ALU_INPUT2 (FGR[fs], FGR[ft]);
+  StoreFPR (fd, fmt, MaxA (ValueFPR (fs, fmt), ValueFPR (ft, fmt), fmt));
+  TRACE_ALU_RESULT (FGR[fd]);
+}
+
+:function:::void:do_maddf:int fd, int fs, int ft, int fmt, instruction_word instruction_0
+{
+  check_fpu (SD_);
+  check_u64 (SD_, instruction_0);
+  check_fmt_p (SD_, fmt, instruction_0);
+  TRACE_ALU_INPUT3 (FGR[fd], FGR[fs], FGR[ft]);
+  StoreFPR (fd, fmt, FusedMultiplyAdd (ValueFPR (fs, fmt),
+				       ValueFPR (ft, fmt),
+				       ValueFPR (fd, fmt), fmt));
+  TRACE_ALU_RESULT (FGR[fd]);
+}
+
+:function:::void:do_msubf:int fd, int fs, int ft, int fmt, instruction_word instruction_0
+{
+  check_fpu (SD_);
+  check_u64 (SD_, instruction_0);
+  check_fmt_p (SD_, fmt, instruction_0);
+  TRACE_ALU_INPUT3 (FGR[fd], FGR[fs], FGR[ft]);
+  StoreFPR (fd, fmt, FusedMultiplySub (ValueFPR (fs, fmt),
+				       ValueFPR (ft, fmt),
+				       ValueFPR (fd, fmt), fmt));
+  TRACE_ALU_RESULT (FGR[fd]);
+}
+
+:function:::void:do_cmp:int fd, int fs, int ft, int fmt, int condition
+{
+  unsigned64 result;
+  check_fpu (SD_);
+  TRACE_ALU_INPUT2 (ValueFPR (fs, fmt), ValueFPR (ft, fmt));
+  result = R6Compare (ValueFPR (fs, fmt), ValueFPR (ft, fmt), fmt, condition);
+  StoreFPR (fd, fmt, result);
+  TRACE_ALU_RESULT (result);
+}
+
+:function:::void:do_self:int fd, int fs, int ft, int fmt, instruction_word instruction_0
+{
+  check_fpu (SD_);
+  check_fmt_p (SD_, fmt, instruction_0);
+  TRACE_ALU_INPUT3 (FGR[fd], ValueFPR(fs, fmt), ValueFPR(ft, fmt));
+  if ((FGR[fd] & 0x01) != 0)
+    StoreFPR (fd, fmt, ValueFPR (ft, fmt));
+  else
+    StoreFPR (fd, fmt, ValueFPR (fs, fmt));
+  TRACE_ALU_RESULT (ValueFPR(fd, fmt));
+}
+
+:function:::void:do_seleqzf:int fd, int fs, int ft, int fmt, instruction_word instruction_0
+{
+  check_fpu (SD_);
+  check_fmt_p (SD_, fmt, instruction_0);
+  TRACE_ALU_INPUT2 (ValueFPR(fs, fmt), FGR[ft]);
+  if ((FGR[ft] & 0x01) == 0)
+    StoreFPR (fd, fmt, ValueFPR (fs, fmt));
+  else
+    StoreFPR (fd, fmt, 0);
+  TRACE_ALU_RESULT (ValueFPR(fd, fmt));
+}
+
+:function:::void:do_selnezf:int fd, int fs, int ft, int fmt, instruction_word instruction_0
+{
+  check_fpu (SD_);
+  check_fmt_p (SD_, fmt, instruction_0);
+  TRACE_ALU_INPUT2 (ValueFPR(fs, fmt), FGR[ft]);
+  if ((FGR[ft] & 0x01) == 0x1)
+    StoreFPR (fd, fmt, ValueFPR (fs, fmt));
+  else
+    StoreFPR (fd, fmt, 0);
+  TRACE_ALU_RESULT (ValueFPR(fd, fmt));
+}
+
+:function:::void:do_seleqz:int rd, int rs, int rt
+{
+  TRACE_ALU_INPUT2 (GPR[rs], GPR[rt]);
+  if (GPR[rt] != 0)
+    GPR[rd] = 0;
+  else
+    GPR[rd] = GPR[rs];
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_selnez:int rd, int rs, int rt
+{
+  TRACE_ALU_INPUT2 (GPR[rs], GPR[rt]);
+  if (GPR[rt] != 0)
+    GPR[rd] = GPR[rs];
+  else
+    GPR[rd] = 0;
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_muh:int rd, int rs, int rt
+{
+  signed64 prod;
+  if (NotWordValue (GPR[rs]) || NotWordValue (GPR[rt]))
+    Unpredictable ();
+  TRACE_ALU_INPUT2 (GPR[rs], GPR[rt]);
+  prod = ((signed64)(signed32) GPR[rs])
+    * ((signed64)(signed32) GPR[rt]);
+  GPR[rd] = EXTEND32 (VH4_8 (prod));
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_mulu:int rd, int rs, int rt
+{
+  unsigned64 prod;
+  if (NotWordValue (GPR[rs]) || NotWordValue (GPR[rt]))
+    Unpredictable ();
+  TRACE_ALU_INPUT2 (GPR[rs], GPR[rt]);
+  prod = ((unsigned64)(unsigned32) GPR[rs])
+    * ((unsigned64)(unsigned32) GPR[rt]);
+  GPR[rd] = EXTEND32 (VL4_8 (prod));
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_muhu:int rd, int rs, int rt
+{
+  unsigned64 prod;
+  if (NotWordValue (GPR[rs]) || NotWordValue (GPR[rt]))
+    Unpredictable ();
+  TRACE_ALU_INPUT2 (GPR[rs], GPR[rt]);
+  prod = ((unsigned64)(unsigned32) GPR[rs])
+    * ((unsigned64)(unsigned32) GPR[rt]);
+  GPR[rd] = EXTEND32 (VH4_8 (prod));
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_div:int rd, int rs, int rt
+*mips32r6:
+*micromips32r6:
+*mips64r6:
+*micromips64r6:
+{
+  signed32 n = GPR[rs];
+  signed32 d = GPR[rt];
+  TRACE_ALU_INPUT2 (n,d);
+  if (d == 0)
+    GPR[rd] = EXTEND32 (0x80000000);
+  else if (n == SIGNED32 (0x80000000) && d == -1)
+    GPR[rd] = EXTEND32 (0x80000000);
+  else
+    GPR[rd] = EXTEND32 (n / d);
+
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_mod:int rd, int rs, int rt
+{
+  signed32 n = GPR[rs];
+  signed32 d = GPR[rt];
+  TRACE_ALU_INPUT2 (n,d);
+  if (d == 0 || (n == SIGNED32 (0x80000000) && d == -1))
+    GPR[rd] = EXTEND32 (0);
+  else
+    GPR[rd] = EXTEND32 (n % d);
+
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_divu:int rd, int rs, int rt
+*mips32r6:
+*micromips32r6:
+*mips64r6:
+*micromips64r6:
+{
+  unsigned32 n = GPR[rs];
+  unsigned32 d = GPR[rt];
+  TRACE_ALU_INPUT2 (n,d);
+  if (d == 0)
+    GPR[rd] = EXTEND32 (0x80000000);
+  else
+    GPR[rd] = EXTEND32 (n / d);
+
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_modu:int rd, int rs, int rt
+{
+  unsigned32 n = GPR[rs];
+  unsigned32 d = GPR[rt];
+  TRACE_ALU_INPUT2 (n,d);
+  if (d == 0)
+    GPR[rd] = EXTEND32 (0);
+  else
+    GPR[rd] = EXTEND32 (n % d);
+
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_dmul:int rd, int rs, int rt, instruction_word instruction_0
+{
+  unsigned64 lo;
+  unsigned64 m00;
+  unsigned64 m01;
+  unsigned64 m10;
+  unsigned64 mid;
+  int sign;
+  unsigned64 op1 = GPR[rs];
+  unsigned64 op2 = GPR[rt];
+
+  check_u64 (SD_, instruction_0);
+  TRACE_ALU_INPUT2 (op1, op2);
+  /* make signed multiply unsigned */
+  sign = 0;
+  if ((signed64) op1 < 0)
+    {
+      op1 = - op1;
+      ++sign;
+    }
+  if ((signed64) op2 < 0)
+    {
+      op2 = - op2;
+      ++sign;
+    }
+  /* multiply out the sub products */
+  m00 = ((unsigned64) VL4_8 (op1) * (unsigned64) VL4_8 (op2));
+  m10 = ((unsigned64) VH4_8 (op1) * (unsigned64) VL4_8 (op2));
+  m01 = ((unsigned64) VL4_8 (op1) * (unsigned64) VH4_8 (op2));
+  /* add the products */
+  mid = ((unsigned64) VH4_8 (m00)
+	 + (unsigned64) VL4_8 (m10)
+	 + (unsigned64) VL4_8 (m01));
+  lo = U8_4 (mid, m00);
+  /* fix the sign */
+  if (sign & 1)
+    lo = -lo;
+
+  GPR[rd] = lo;
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_dmuh:int rd, int rs, int rt, instruction_word instruction_0
+{
+  unsigned64 lo;
+  unsigned64 hi;
+  unsigned64 m00;
+  unsigned64 m01;
+  unsigned64 m10;
+  unsigned64 m11;
+  unsigned64 mid;
+  int sign;
+  unsigned64 op1 = GPR[rs];
+  unsigned64 op2 = GPR[rt];
+
+  check_u64 (SD_, instruction_0);
+  TRACE_ALU_INPUT2 (op1, op2);
+  /* make signed multiply unsigned */
+  sign = 0;
+  if ((signed64) op1 < 0)
+    {
+      op1 = - op1;
+      ++sign;
+    }
+  if ((signed64) op2 < 0)
+    {
+      op2 = - op2;
+      ++sign;
+    }
+  /* multiply out the 4 sub products */
+  m00 = ((unsigned64) VL4_8 (op1) * (unsigned64) VL4_8 (op2));
+  m10 = ((unsigned64) VH4_8 (op1) * (unsigned64) VL4_8 (op2));
+  m01 = ((unsigned64) VL4_8 (op1) * (unsigned64) VH4_8 (op2));
+  m11 = ((unsigned64) VH4_8 (op1) * (unsigned64) VH4_8 (op2));
+  /* add the products */
+  mid = ((unsigned64) VH4_8 (m00)
+	 + (unsigned64) VL4_8 (m10)
+	 + (unsigned64) VL4_8 (m01));
+  lo = U8_4 (mid, m00);
+  hi = (m11
+	+ (unsigned64) VH4_8 (mid)
+	+ (unsigned64) VH4_8 (m01)
+	+ (unsigned64) VH4_8 (m10));
+  /* fix the sign */
+  if (sign & 1)
+    {
+      lo = -lo;
+      if (lo == 0)
+	hi = -hi;
+      else
+	hi = -hi - 1;
+    }
+
+  GPR[rd] = hi;
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_dmulu:int rd, int rs, int rt, instruction_word instruction_0
+{
+  unsigned64 lo;
+  unsigned64 m00;
+  unsigned64 m01;
+  unsigned64 m10;
+  unsigned64 mid;
+  unsigned64 op1 = GPR[rs];
+  unsigned64 op2 = GPR[rt];
+
+  check_u64 (SD_, instruction_0);
+  TRACE_ALU_INPUT2 (op1, op2);
+  /* multiply out the sub products */
+  m00 = ((unsigned64) VL4_8 (op1) * (unsigned64) VL4_8 (op2));
+  m10 = ((unsigned64) VH4_8 (op1) * (unsigned64) VL4_8 (op2));
+  m01 = ((unsigned64) VL4_8 (op1) * (unsigned64) VH4_8 (op2));
+  /* add the products */
+  mid = ((unsigned64) VH4_8 (m00)
+	 + (unsigned64) VL4_8 (m10)
+	 + (unsigned64) VL4_8 (m01));
+  lo = U8_4 (mid, m00);
+
+  GPR[rd] = lo;
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_dmuhu:int rd, int rs, int rt, instruction_word instruction_0
+{
+  unsigned64 lo;
+  unsigned64 hi;
+  unsigned64 m00;
+  unsigned64 m01;
+  unsigned64 m10;
+  unsigned64 m11;
+  unsigned64 mid;
+  unsigned64 op1 = GPR[rs];
+  unsigned64 op2 = GPR[rt];
+
+  check_u64 (SD_, instruction_0);
+  TRACE_ALU_INPUT2 (op1, op2);
+  /* multiply out the 4 sub products */
+  m00 = ((unsigned64) VL4_8 (op1) * (unsigned64) VL4_8 (op2));
+  m10 = ((unsigned64) VH4_8 (op1) * (unsigned64) VL4_8 (op2));
+  m01 = ((unsigned64) VL4_8 (op1) * (unsigned64) VH4_8 (op2));
+  m11 = ((unsigned64) VH4_8 (op1) * (unsigned64) VH4_8 (op2));
+  /* add the products */
+  mid = ((unsigned64) VH4_8 (m00)
+	 + (unsigned64) VL4_8 (m10)
+	 + (unsigned64) VL4_8 (m01));
+  lo = U8_4 (mid, m00);
+  hi = (m11
+	+ (unsigned64) VH4_8 (mid)
+	+ (unsigned64) VH4_8 (m01)
+	+ (unsigned64) VH4_8 (m10));
+
+  GPR[rd] = hi;
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_ddiv:int rd, int rs, int rt, instruction_word instruction_0
+*mips64r6:
+*micromips64r6:
+{
+  signed64 n = GPR[rs];
+  signed64 d = GPR[rt];
+
+  check_u64 (SD_, instruction_0);
+  TRACE_ALU_INPUT2 (n, d);
+  if (d == 0)
+    GPR[rd] = SIGNED64 (0x8000000000000000);
+  else if (d == -1 && n == SIGNED64 (0x8000000000000000))
+    GPR[rd] = SIGNED64 (0x8000000000000000);
+  else
+    GPR[rd] = (n / d);
+
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_dmod:int rd, int rs, int rt, instruction_word instruction_0
+{
+  signed64 n = GPR[rs];
+  signed64 d = GPR[rt];
+
+  check_u64 (SD_, instruction_0);
+  TRACE_ALU_INPUT2 (n, d);
+  if (d == 0 || (d == -1 && n == SIGNED64 (0x8000000000000000)))
+    GPR[rd] = SIGNED64 (0);
+  else
+    GPR[rd] = (n % d);
+
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_ddivu:int rd, int rs, int rt, instruction_word instruction_0
+*mips64r6:
+*micromips64r6:
+{
+  unsigned64 n = GPR[rs];
+  unsigned64 d = GPR[rt];
+
+  check_u64 (SD_, instruction_0);
+  TRACE_ALU_INPUT2 (n, d);
+  if (d == 0)
+    GPR[rd] = UNSIGNED64 (0x8000000000000000);
+  else
+    GPR[rd] = (n / d);
+
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_dmodu:int rd, int rs, int rt, instruction_word instruction_0
+{
+  unsigned64 n = GPR[rs];
+  unsigned64 d = GPR[rt];
+
+  check_u64 (SD_, instruction_0);
+  TRACE_ALU_INPUT2 (n, d);
+  if (d == 0)
+    GPR[rd] = UNSIGNED64 (0);
+  else
+    GPR[rd] = (n % d);
+
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::address_word:do_bxxxc:int rt, int rs, address_word offset, address_word nia
+*mips32r6:
+*mips64r6:
+*micromips32r6:
+*micromips64r6:
+{
+  if (rs >= rt)
+    {
+      //BOVC
+      ALU32_BEGIN (GPR[rs] & 0x0ffffffff);
+      ALU32_ADD (GPR[rt] & 0x0ffffffff);
+
+      if (ALU32_HAD_OVERFLOW)
+	return nia + offset;
+      else
+	FORBIDDEN_SLOT ();
+    }
+  else if (rs == 0)
+    {
+      RA = nia | isa_mode;
+      //BEQZALC
+      if (GPR[rt] == 0)
+	return nia + offset;
+      else
+	FORBIDDEN_SLOT ();
+    }
+  else
+    {
+      //BEQC
+      if (GPR[rs] == GPR[rt])
+	return nia + offset;
+      else
+	FORBIDDEN_SLOT ();
+    }
+  return NIA;
+}
+
+:function:::address_word:do_bnxxxc:int rt, int rs, address_word offset, address_word nia
+*mips32r6:
+*mips64r6:
+*micromips32r6:
+*micromips64r6:
+{
+  if (rs >= rt)
+    {
+      //BNVC
+      ALU32_BEGIN (GPR[rs] & 0x0ffffffff);
+      ALU32_ADD (GPR[rt] & 0x0ffffffff);
+
+      if (!ALU32_HAD_OVERFLOW)
+	return nia + offset;
+      else
+	FORBIDDEN_SLOT ();
+    }
+  else if (rs == 0 && rt > rs)
+    {
+      //BNEZALC
+      RA = nia | isa_mode;
+      if (GPR[rt] != 0)
+	return nia + offset;
+      else
+	FORBIDDEN_SLOT ();
+    }
+  else
+    {
+      //BNEC
+      if (GPR[rt] != GPR[rs])
+	return nia + offset;
+      else
+	FORBIDDEN_SLOT ();
+    }
+  return NIA;
+}
+
+:function:::address_word:do_b1xxc:int rt, int rs, address_word offset, address_word nia
+*mips32r6:
+*mips64r6:
+*micromips32r6:
+*micromips64r6:
+{
+  if (rs == 0 && rt != 0)
+    {
+      //BLEZC
+      if ((signed_word)GPR[rt] <= 0)
+	return nia + offset;
+      else
+	FORBIDDEN_SLOT ();
+    }
+  else if (rs != 0 && rs == rt)
+    {
+      //BGEZC
+      if ((signed_word)GPR[rt] >= 0)
+	return nia + offset;
+      else
+	FORBIDDEN_SLOT ();
+    }
+  else
+    {
+      //BGEC
+      if ((signed_word) GPR[rs] >= (signed_word) GPR[rt])
+	return nia + offset;
+      else
+	FORBIDDEN_SLOT ();
+    }
+  return NIA;
+}
+
+:function:::address_word:do_b2xxc:int rt, int rs, address_word offset, address_word nia
+*mips32r6:
+*mips64r6:
+*micromips32r6:
+*micromips64r6:
+{
+  if (rs == 0 && rt != 0)
+    {
+      //BGTZC
+      if ((signed_word)GPR[rt] > 0)
+	return nia + offset;
+      else
+	FORBIDDEN_SLOT ();
+    }
+  else if (rs != 0 && rs == rt)
+    {
+      //BLTZC
+      if ((signed_word)GPR[rt] < 0)
+	return nia + offset;
+      else
+	FORBIDDEN_SLOT ();
+    }
+  else
+    {
+      //BLTC
+      if ((signed_word) GPR[rs] < (signed_word) GPR[rt])
+	return nia + offset;
+      else
+	FORBIDDEN_SLOT ();
+    }
+  return NIA;
+}
+
+:function:::address_word:do_b3xxc:int rt, int rs, address_word offset, address_word nia
+*mips32r6:
+*mips64r6:
+*micromips32r6:
+*micromips64r6:
+{
+  if (rs == 0 && rt != 0)
+    {
+      //BLEZALC
+      RA = nia | isa_mode;
+      if ((signed_word)GPR[rt] <= 0)
+	return nia + offset;
+      else
+	FORBIDDEN_SLOT ();
+    }
+  else if (rs != 0 && rs == rt)
+    {
+      //BGEZALC
+      RA = nia | isa_mode;
+      if ((signed_word)GPR[rt] >= 0)
+	return nia + offset;
+      else
+	FORBIDDEN_SLOT ();
+    }
+  else
+    {
+      //BGEUC
+      if (GPR[rs] >= GPR[rt])
+	return nia + offset;
+      else
+	FORBIDDEN_SLOT ();
+    }
+  return NIA;
+}
+
+:function:::address_word:do_b4xxc:int rt, int rs, address_word offset, address_word nia
+*mips32r6:
+*mips64r6:
+*micromips32r6:
+*micromips64r6:
+{
+  if (rs == 0 && rt != 0)
+    {
+      //BGTZALC
+      RA = nia | isa_mode;
+      if ((signed_word)GPR[rt] > 0)
+	return nia + offset;
+      else
+	FORBIDDEN_SLOT ();
+    }
+  else if (rs != 0 && rs == rt)
+    {
+      //BLTZALC
+      RA = nia | isa_mode;
+      if ((signed_word)GPR[rt] < 0)
+	return nia + offset;
+      else
+	FORBIDDEN_SLOT ();
+    }
+  else
+    {
+      //BLTUC
+      if (GPR[rs] < GPR[rt])
+	return nia + offset;
+      else
+	FORBIDDEN_SLOT ();
+    }
+  return NIA;
+}
+
+:function:::address_word:do_bc:address_word offset
+{
+  return CIA + offset + 4;
+}
+
+:function:::address_word:do_balc:address_word offset
+{
+  RA = (CIA + 4) | isa_mode;
+  return CIA + offset + 4;
+}
+
+:function:::address_word:do_beqzc:int rs, address_word offset, address_word nia
+*mips32r6:
+*mips64r6:
+*micromips32r6:
+*micromips64r6:
+{
+  if (GPR[rs] == 0)
+    return nia + offset;
+  else
+    FORBIDDEN_SLOT ();
+  return NIA;
+}
+
+:function:::address_word:do_bnezc:int rs, address_word offset, address_word nia
+*mips32r6:
+*mips64r6:
+*micromips32r6:
+*micromips64r6:
+{
+  if (GPR[rs] != 0)
+    return nia + offset;
+  else
+    FORBIDDEN_SLOT ();
+  return NIA;
+}
+
+:function:::address_word:do_jic:int rt, unsigned16 offset
+*mips32r6:
+*mips64r6:
+*micromips32r6:
+*micromips64r6:
+{
+  return process_isa_mode (SD_, GPR[rt] + EXTEND16(offset));
+}
+
+:function:::address_word:do_jialc:int rt, unsigned16 offset
+*mips32r6:
+*mips64r6:
+*micromips32r6:
+*micromips64r6:
+{
+  RA = (CIA + 4) | isa_mode;
+  return process_isa_mode (SD_, GPR[rt] + EXTEND16(offset));
+}
+
+:function:::void:do_align:int rd, int rs, int rt, unsigned immediate
+{
+  unsigned32 grs = GPR[rs];
+  unsigned32 grt = GPR[rt];
+  TRACE_ALU_INPUT2 (grs, grt);
+  GPR[rd] = EXTEND32 (grs >> 8 * (4 - immediate) | grt << 8 * immediate);
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_dalign:int rd, int rs, int rt, unsigned immediate
+{
+  unsigned64 grs = GPR[rs];
+  unsigned64 grt = GPR[rt];
+  TRACE_ALU_INPUT2 (grs, grt);
+  GPR[rd] = grs >> 8 * (8 - immediate) | grt << 8 * immediate;
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_bitswap:int rd, int rt
+{
+  /* Taken from: http://graphics.stanford.edu/~seander/bithacks.html */
+  unsigned32 v = GPR[rt];
+
+  TRACE_ALU_INPUT1 (v);
+  v = ((v >> 1)  & 0x55555555) | ((v & 0x55555555) << 1);
+  v = ((v >> 2)  & 0x33333333) | ((v & 0x33333333) << 2);
+  v = ((v >> 4)  & 0x0F0F0F0F) | ((v & 0x0F0F0F0F) << 4);
+  GPR[rd] = EXTEND32 (v);
+  TRACE_ALU_RESULT(GPR[rd]);
+}
+
+:function:::void:do_dbitswap:int rd, int rt
+{
+  /* Taken from: http://graphics.stanford.edu/~seander/bithacks.html */
+  unsigned64 v = GPR[rt];
+
+  TRACE_ALU_INPUT1 (v);
+  v = ((v >> 1)  & 0x5555555555555555) | ((v & 0x5555555555555555) << 1);
+  v = ((v >> 2)  & 0x3333333333333333) | ((v & 0x3333333333333333) << 2);
+  v = ((v >> 4)  & 0x0F0F0F0F0F0F0F0F) | ((v & 0x0F0F0F0F0F0F0F0F) << 4);
+  TRACE_ALU_RESULT(v);
+  GPR[rd] = v;
+}
+
+:function:::void:do_lsa:int rd, int rs, int rt, unsigned immediate
+{
+  unsigned32 t = GPR[rs] << (immediate + 1);
+  GPR[rd] = EXTEND32(GPR[rt] + t);
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_dlsa:int rd, int rs, int rt, unsigned immediate
+{
+  unsigned64 t = GPR[rs] << (immediate + 1);
+  GPR[rd] = GPR[rt] + t;
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_aui:int rt, int rs, unsigned16 immediate
+{
+  TRACE_ALU_INPUT2 (GPR[rs], immediate);
+  GPR[rt] = EXTEND32 (GPR[rs] + (EXTEND16 (immediate) << 16));
+  TRACE_ALU_RESULT (GPR[rt]);
+}
+
+:function:::void:do_daui:int rt, int rs, unsigned16 immediate
+{
+  TRACE_ALU_INPUT2 (GPR[rs], immediate);
+  GPR[rt] = GPR[rs] + (EXTEND16 (immediate) << 16);
+  TRACE_ALU_RESULT (GPR[rt]);
+}
+
+:function:::void:do_dahi:int rs, unsigned16 immediate
+{
+  TRACE_ALU_INPUT2 (GPR[rs], immediate);
+  GPR[rs] = GPR[rs] + (EXTEND16 (immediate) << 32);
+  TRACE_ALU_RESULT (GPR[rs]);
+}
+
+:function:::void:do_dati:int rs, unsigned16 immediate
+{
+  TRACE_ALU_INPUT2 (GPR[rs], immediate);
+  GPR[rs] = GPR[rs] + (EXTEND16 (immediate) << 48);
+  TRACE_ALU_RESULT (GPR[rs]);
+}
+
+:function:::void:do_addiupc:int rs, unsigned32 immediate
+{
+  TRACE_ALU_INPUT1 (immediate);
+  GPR[rs] = loadstore_ea (SD_, CIA & ~3, EXTEND19 (immediate) << 2);
+  TRACE_ALU_RESULT (GPR[rs]);
+}
+
+:function:::void:do_auipc:int rs, unsigned16 immediate
+{
+  TRACE_ALU_INPUT1 (immediate);
+  GPR[rs] = loadstore_ea (SD_, CIA, EXTEND32 (immediate << 16));
+  TRACE_ALU_RESULT (GPR[rs]);
+}
+
+:function:::void:do_aluipc:int rs, unsigned16 immediate
+{
+  TRACE_ALU_INPUT1 (immediate);
+  GPR[rs] = ~0x0FFFF & loadstore_ea (SD_, CIA, EXTEND32 (immediate << 16));
+  TRACE_ALU_RESULT (GPR[rs]);
+}
+
+:function:::void:do_lwpc:int rs, unsigned32 immediate
+{
+  address_word offset = EXTEND19 (immediate) << 2;
+  TRACE_ALU_INPUT1 (offset);
+  GPR[rs] = EXTEND32 (do_load (SD_, AccessLength_WORD, CIA & ~3, offset));
+  TRACE_ALU_RESULT (GPR[rs]);
+}
+
+:function:::void:do_lwupc:int rs, unsigned32 immediate
+{
+  address_word offset = EXTEND19 (immediate) << 2;
+  TRACE_ALU_INPUT1 (offset);
+  GPR[rs] = do_load (SD_, AccessLength_WORD, CIA & ~3, offset);
+  TRACE_ALU_RESULT (GPR[rs]);
+}
+
+:function:::void:do_ldpc:int rs, unsigned32 immediate
+{
+  address_word offset = EXTEND18 (immediate) << 3;
+  TRACE_ALU_INPUT1 (offset);
+  GPR[rs] = do_load (SD_, AccessLength_DOUBLEWORD, CIA & ~7, offset);
+  TRACE_ALU_RESULT (GPR[rs]);
+}
+
 110010,26.OFFSET:POOL32X:32::BC
 "bc <OFFSET>"
 *mips32r6:
 *mips64r6:
 {
-  NIA = CIA + (EXTEND26 (OFFSET) << 2) + 4;
+  NIA = do_bc (SD_, EXTEND26 (OFFSET) << 2);
 }
 
 111010,26.OFFSET:POOL32X:32::BALC
@@ -11,8 +878,7 @@
 *mips32r6:
 *mips64r6:
 {
-  RA = CIA + 4;
-  NIA = CIA + (EXTEND26 (OFFSET) << 2) + 4;
+  NIA = do_balc (SD_, EXTEND26 (OFFSET) << 2);
 }
 
 110110,5.RS!0,21.OFFSET:POOL32X:32::BEQZC
@@ -20,10 +886,7 @@
 *mips32r6:
 *mips64r6:
 {
-  if (GPR[RS] == 0)
-    NIA = CIA + (EXTEND21 (OFFSET) << 2) + 4;
-  else
-    FORBIDDEN_SLOT ();
+  NIA = do_beqzc (SD_, RS, EXTEND21 (OFFSET) << 2, NIA);
 }
 
 110110,00000,5.RT,16.OFFSET:POOL32X:32::JIC
@@ -31,7 +894,7 @@
 *mips32r6:
 *mips64r6:
 {
-  NIA = GPR[RT] + (EXTEND16(OFFSET) << 2);
+  NIA = do_jic (SD_, RT, OFFSET);
 }
 
 111110,5.RS!0,21.OFFSET:POOL32X:32::BNEZC
@@ -39,10 +902,7 @@
 *mips32r6:
 *mips64r6:
 {
-  if (GPR[RS] != 0)
-    NIA = CIA + (EXTEND21 (OFFSET) << 2) + 4;
-  else
-    FORBIDDEN_SLOT ();
+  NIA = do_bnezc (SD_, RS, EXTEND21 (OFFSET) << 2, NIA);
 }
 
 111110,00000,5.RT,16.OFFSET:POOL32X:32::JIALC
@@ -50,8 +910,7 @@
 *mips32r6:
 *mips64r6:
 {
-  RA = CIA + 4;
-  NIA = GPR[RT] + EXTEND16(OFFSET);
+  NIA = do_jialc (SD_, RT, OFFSET);
 }
 
 010110,5.RS,5.RT,16.OFFSET:POOL32X:32::B1xxC
@@ -61,30 +920,7 @@
 *mips32r6:
 *mips64r6:
 {
-  if (RS == 0 && RT != 0)
-    {
-      //BLEZC
-      if ((signed_word)GPR[RT] <= 0)
-	NIA = CIA + (EXTEND16 (OFFSET) << 2) + 4;
-      else
-	FORBIDDEN_SLOT ();
-    }
-  else if (RS != 0 && RS == RT)
-    {
-      //BGEZC
-      if ((signed_word)GPR[RT] >= 0)
-	NIA = CIA + (EXTEND16 (OFFSET) << 2) + 4;
-      else
-	FORBIDDEN_SLOT ();
-    }
-  else
-    {
-      //BGEC
-      if ((signed_word) GPR[RS] >= (signed_word) GPR[RT])
-	NIA = CIA + (EXTEND16 (OFFSET) << 2) + 4;
-      else
-	FORBIDDEN_SLOT ();
-    }
+  NIA = do_b1xxc (SD_, RT, RS, EXTEND16 (OFFSET) << 2, NIA);
 }
 
 010111,5.RS,5.RT,16.OFFSET:POOL32X:32::B2xxC
@@ -94,30 +930,7 @@
 *mips32r6:
 *mips64r6:
 {
-  if (RS == 0 && RT != 0)
-    {
-      //BGTZC
-      if ((signed_word)GPR[RT] > 0)
-	NIA = CIA + (EXTEND16 (OFFSET) << 2) + 4;
-      else
-	FORBIDDEN_SLOT ();
-    }
-  else if (RS != 0 && RS == RT)
-    {
-      //BLTZC
-      if ((signed_word)GPR[RT] < 0)
-	NIA = CIA + (EXTEND16 (OFFSET) << 2) + 4;
-      else
-	FORBIDDEN_SLOT ();
-    }
-  else
-    {
-      //BLTC
-      if ((signed_word) GPR[RS] < (signed_word) GPR[RT])
-	NIA = CIA + (EXTEND16 (OFFSET) << 2) + 4;
-      else
-	FORBIDDEN_SLOT ();
-    }
+  NIA = do_b2xxc (SD_, RT, RS, EXTEND16 (OFFSET) << 2, NIA);
 }
 
 000110,5.RS,5.RT!0,16.OFFSET:POOL32X:32::B3xxC
@@ -127,32 +940,7 @@
 *mips32r6:
 *mips64r6:
 {
-  if (RS == 0 && RT != 0)
-    {
-      //BLEZALC
-      RA = CIA + 4;
-      if ((signed_word)GPR[RT] <= 0)
-	NIA = CIA + (EXTEND16 (OFFSET) << 2) + 4;
-      else
-	FORBIDDEN_SLOT ();
-    }
-  else if (RS != 0 && RS == RT)
-    {
-      //BGEZALC
-      RA = CIA + 4;
-      if ((signed_word)GPR[RT] >= 0)
-	NIA = CIA + (EXTEND16 (OFFSET) << 2) + 4;
-      else
-	FORBIDDEN_SLOT ();
-    }
-  else
-    {
-      //BGEUC
-      if (GPR[RS] >= GPR[RT])
-	NIA = CIA + (EXTEND16 (OFFSET) << 2) + 4;
-      else
-	FORBIDDEN_SLOT ();
-    }
+  NIA = do_b3xxc (SD_, RT, RS, EXTEND16 (OFFSET) << 2, NIA);
 }
 
 000111,5.RS,5.RT!0,16.OFFSET:POOL32X:32::B4xxC
@@ -162,32 +950,7 @@
 *mips32r6:
 *mips64r6:
 {
-  if (RS == 0 && RT != 0)
-    {
-      //BGTZALC
-      RA = CIA + 4;
-      if ((signed_word)GPR[RT] > 0)
-	NIA = CIA + (EXTEND16 (OFFSET) << 2) + 4;
-      else
-	FORBIDDEN_SLOT ();
-    }
-  else if (RS != 0 && RS == RT)
-    {
-      //BLTZALC
-      RA = CIA + 4;
-      if ((signed_word)GPR[RT] < 0)
-	NIA = CIA + (EXTEND16 (OFFSET) << 2) + 4;
-      else
-	FORBIDDEN_SLOT ();
-    }
-  else
-    {
-      //BLTUC
-      if (GPR[RS] < GPR[RT])
-	NIA = CIA + (EXTEND16 (OFFSET) << 2) + 4;
-      else
-	FORBIDDEN_SLOT ();
-    }
+  NIA = do_b4xxc (SD_, RT, RS, EXTEND16 (OFFSET) << 2, NIA);
 }
 
 001000,5.RS,5.RT,16.OFFSET:POOL32X:32::BxxxC
@@ -197,34 +960,7 @@
 *mips32r6:
 *mips64r6:
 {
-  if (RS >= RT)
-    {
-      //BOVC
-      ALU32_BEGIN (GPR[RS] & 0x0ffffffff);
-      ALU32_ADD (GPR[RT] & 0x0ffffffff);
-
-      if (ALU32_HAD_OVERFLOW)
-	NIA = CIA + (EXTEND16 (OFFSET) << 2) + 4;
-      else
-	FORBIDDEN_SLOT ();
-    }
-  else if (RS == 0)
-    {
-      RA = CIA + 4;
-      //BEQZALC
-      if (GPR[RT] == 0)
-	NIA = CIA + (EXTEND16 (OFFSET) << 2) + 4;
-      else
-	FORBIDDEN_SLOT ();
-    }
-  else
-    {
-      //BEQC
-      if (GPR[RS] == GPR[RT])
-	NIA = CIA + (EXTEND16 (OFFSET) << 2) + 4;
-      else
-	FORBIDDEN_SLOT ();
-    }
+  NIA = do_bxxxc (SD_, RT, RS, EXTEND16 (OFFSET) << 2, NIA);
 }
 
 011000,5.RS,5.RT,16.OFFSET:POOL32X:32::BNxxxC
@@ -234,34 +970,7 @@
 *mips32r6:
 *mips64r6:
 {
-  if (RS >= RT)
-    {
-      //BNVC
-      ALU32_BEGIN (GPR[RS] & 0x0ffffffff);
-      ALU32_ADD (GPR[RT] & 0x0ffffffff);
-
-      if (!ALU32_HAD_OVERFLOW)
-	NIA = CIA + (EXTEND16 (OFFSET) << 2) + 4;
-      else
-	FORBIDDEN_SLOT ();
-    }
-  else if (RS == 0 && RT > RS)
-    {
-      //BNEZALC
-      RA = CIA + 4;
-      if (GPR[RT] != 0)
-	NIA = CIA + (EXTEND16 (OFFSET) << 2) + 4;
-      else
-	FORBIDDEN_SLOT ();
-    }
-  else
-    {
-      //BNEC
-      if (GPR[RT] != GPR[RS])
-	NIA = CIA + (EXTEND16 (OFFSET) << 2) + 4;
-      else
-	FORBIDDEN_SLOT ();
-    }
+  NIA = do_bnxxxc (SD_, RT, RS, EXTEND16 (OFFSET) << 2, NIA);
 }
 
 :%s::::R6COND:int r6cond
@@ -322,13 +1031,7 @@
 *mips32r6:
 *mips64r6:
 {
-  unsigned64 result;
-  check_fpu (SD_);
-  TRACE_ALU_INPUT2 (ValueFPR (FS, FMT), ValueFPR (FT, FMT));
-
-  result = R6Compare (ValueFPR (FS, FMT), ValueFPR (FT, FMT), FMT, R6COND);
-  StoreFPR (FD, FMT, result);
-  TRACE_ALU_RESULT (result);
+  do_cmp (SD_, FD, FS, FT, FMT, R6COND);
 }
 
 010001,01001,5.FT,16.OFFSET:POOL32X:32,f::BC1EQZ
@@ -359,15 +1062,7 @@
 *mips32r6:
 *mips64r6:
 {
-  int fmt = FMT;
-  check_fpu (SD_);
-  check_u64 (SD_, instruction_0);
-  check_fmt_p (SD_, fmt, instruction_0);
-  TRACE_ALU_INPUT3 (FGR[FD], FGR[FS], FGR[FT]);
-  StoreFPR (FD, fmt, FusedMultiplyAdd (ValueFPR (FS, fmt),
-				       ValueFPR (FT, fmt),
-				       ValueFPR (FD, fmt), fmt));
-  TRACE_ALU_RESULT (FGR[FD]);
+  do_maddf (SD_, FD, FS, FT, FMT, instruction_0);
 }
 
 010001,1000,1.FMT,5.FT,5.FS,5.FD,011001:POOLX:32,f::MSUBF.fmt
@@ -375,15 +1070,7 @@
 *mips32r6:
 *mips64r6:
 {
-  int fmt = FMT;
-  check_fpu (SD_);
-  check_u64 (SD_, instruction_0);
-  check_fmt_p (SD_, fmt, instruction_0);
-  TRACE_ALU_INPUT3 (FGR[FD], FGR[FS], FGR[FT]);
-  StoreFPR (FD, fmt, FusedMultiplySub (ValueFPR (FS, fmt),
-				       ValueFPR (FT, fmt),
-				       ValueFPR (FD, fmt), fmt));
-  TRACE_ALU_RESULT (FGR[FD]);
+  do_msubf (SD_, FD, FS, FT, FMT, instruction_0);
 }
 
 000000,5.RS,5.RT,5.RD,000,2.IMM,000101:SPECIAL:32::LSA
@@ -391,18 +1078,14 @@
 *mips32r6:
 *mips64r6:
 {
-  unsigned32 t = GPR[RS] << (IMM + 1);
-  GPR[RD] = EXTEND32(GPR[RT] + t);
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_lsa (SD_, RD, RS, RT, IMM);
 }
 
 000000,5.RS,5.RT,5.RD,000,2.IMM,010101:SPECIAL:64::DLSA
 "dlsa r<RD>, r<RS>, r<RT>, <IMM + 1>"
 *mips64r6:
 {
-  unsigned64 t = GPR[RS] << (IMM + 1);
-  GPR[RD] = GPR[RT] + t;
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_dlsa (SD_, RD, RS, RT, IMM);
 }
 
 001111,5.RS!0,5.RT,16.IMMEDIATE:POOL32X:32::AUI
@@ -410,36 +1093,28 @@
 *mips32r6:
 *mips64r6:
 {
-  TRACE_ALU_INPUT2 (GPR[RS], IMMEDIATE);
-  GPR[RT] = EXTEND32 (GPR[RS] + (EXTEND16 (IMMEDIATE) << 16));
-  TRACE_ALU_RESULT (GPR[RT]);
+  do_aui (SD_, RT, RS, IMMEDIATE);
 }
 
 011101,5.RS!0,5.RT,16.IMMEDIATE:POOL32X:64::DAUI
 "daui r<RS>, r<RT>, <IMMEDIATE>"
 *mips64r6:
 {
-  TRACE_ALU_INPUT2 (GPR[RS], IMMEDIATE);
-  GPR[RT] = GPR[RS] + (EXTEND16 (IMMEDIATE) << 16);
-  TRACE_ALU_RESULT (GPR[RT]);
+  do_daui (SD_, RT, RS, IMMEDIATE);
 }
 
 000001,5.RS,00110,16.IMMEDIATE:POOL32X:64::DAHI
 "dahi r<RS>, <IMMEDIATE>"
 *mips64r6:
 {
-  TRACE_ALU_INPUT2 (GPR[RS], IMMEDIATE);
-  GPR[RS] = GPR[RS] + (EXTEND16 (IMMEDIATE) << 32);
-  TRACE_ALU_RESULT (GPR[RS]);
+  do_dahi (SD_, RS, IMMEDIATE);
 }
 
 000001,5.RS,11110,16.IMMEDIATE:POOL32X:64::DATI
 "dati r<RS>, <IMMEDIATE>"
 *mips64r6:
 {
-  TRACE_ALU_INPUT2 (GPR[RS], IMMEDIATE);
-  GPR[RS] = GPR[RS] + (EXTEND16 (IMMEDIATE) << 48);
-  TRACE_ALU_RESULT (GPR[RS]);
+  do_dati (SD_, RS, IMMEDIATE);
 }
 
 011111,5.RS,5.RT,5.RD,010,2.IMMEDIATE,100000:POOL32X:32::ALIGN
@@ -447,22 +1122,14 @@
 *mips32r6:
 *mips64r6:
 {
-  unsigned32 rs = GPR[RS];
-  unsigned32 rt = GPR[RT];
-  TRACE_ALU_INPUT2 (GPR[RS], GPR[RT]);
-  GPR[RD] = EXTEND32 (rs >> 8 * (4 - IMMEDIATE) | rt << 8 * IMMEDIATE);
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_align (SD_, RD, RS, RT, IMMEDIATE);
 }
 
 011111,5.RS,5.RT,5.RD,01,3.IMMEDIATE,100100:POOL32X:64::DALIGN
 "dalign r<RD>, r<RS>, r<RT>, <IMMEDIATE>"
 *mips64r6:
 {
-  unsigned64 rs = GPR[RS];
-  unsigned64 rt = GPR[RT];
-  TRACE_ALU_INPUT2 (GPR[RS], GPR[RT]);
-  GPR[RD] = rs >> 8 * (8 - IMMEDIATE) | rt << 8 * IMMEDIATE;
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_dalign (SD_, RD, RS, RT, IMMEDIATE);
 }
 
 011111,00000,5.RT,5.RD,00000,100000:POOL32X:32::BITSWAP
@@ -470,30 +1137,14 @@
 *mips32r6:
 *mips64r6:
 {
-  /* Taken from: http://graphics.stanford.edu/~seander/bithacks.html */
-  unsigned32 v = GPR[RT];
-
-  TRACE_ALU_INPUT1 (v);
-  v = ((v >> 1)  & 0x55555555) | ((v & 0x55555555) << 1);
-  v = ((v >> 2)  & 0x33333333) | ((v & 0x33333333) << 2);
-  v = ((v >> 4)  & 0x0F0F0F0F) | ((v & 0x0F0F0F0F) << 4);
-  GPR[RD] = EXTEND32 (v);
-  TRACE_ALU_RESULT(GPR[RD]);
+  do_bitswap (SD_, RD, RT);
 }
 
 011111,00000,5.RT,5.RD,00000,100100:POOL32X:64::DBITSWAP
 "dbitswap r<RD>, r<RT>"
 *mips64r6:
 {
-  /* Taken from: http://graphics.stanford.edu/~seander/bithacks.html */
-  unsigned64 v = GPR[RT];
-
-  TRACE_ALU_INPUT1 (v);
-  v = ((v >> 1)  & 0x5555555555555555) | ((v & 0x5555555555555555) << 1);
-  v = ((v >> 2)  & 0x3333333333333333) | ((v & 0x3333333333333333) << 2);
-  v = ((v >> 4)  & 0x0F0F0F0F0F0F0F0F) | ((v & 0x0F0F0F0F0F0F0F0F) << 4);
-  TRACE_ALU_RESULT(v);
-  GPR[RD] = v;
+  do_dbitswap (SD_, RD, RT);
 }
 
 111011,5.RS,00,19.IMMEDIATE:POOL32X:32::ADDIUPC
@@ -501,9 +1152,7 @@
 *mips32r6:
 *mips64r6:
 {
-  TRACE_ALU_INPUT1 (IMMEDIATE);
-  GPR[RS] = loadstore_ea (SD_, CIA, EXTEND19 (IMMEDIATE) << 2);
-  TRACE_ALU_RESULT (GPR[RS]);
+  do_addiupc (SD_, RS, IMMEDIATE);
 }
 
 111011,5.RS,11110,16.IMMEDIATE:POOL32X:32::AUIPC
@@ -511,9 +1160,7 @@
 *mips32r6:
 *mips64r6:
 {
-  TRACE_ALU_INPUT1 (IMMEDIATE);
-  GPR[RS] = loadstore_ea (SD_, CIA, EXTEND32 (IMMEDIATE << 16));
-  TRACE_ALU_RESULT (GPR[RS]);
+  do_auipc(SD_, RS, IMMEDIATE);
 }
 
 111011,5.RS,11111,16.IMMEDIATE:POOL32X:32::ALUIPC
@@ -521,9 +1168,7 @@
 *mips32r6:
 *mips64r6:
 {
-  TRACE_ALU_INPUT1 (IMMEDIATE);
-  GPR[RS] = ~0x0FFFF & loadstore_ea (SD_, CIA, EXTEND32 (IMMEDIATE << 16));
-  TRACE_ALU_RESULT (GPR[RS]);
+  do_aluipc (SD_, RS, IMMEDIATE);
 }
 
 111011,5.RS,01,19.IMMEDIATE:POOL32X:32::LWPC
@@ -531,45 +1176,28 @@
 *mips32r6:
 *mips64r6:
 {
-  unsigned32 offset = EXTEND19 (IMMEDIATE) << 2;
-  TRACE_ALU_INPUT1 (IMMEDIATE);
-  GPR[RS] = EXTEND32 (do_load (SD_, AccessLength_WORD, CIA, offset));
-  TRACE_ALU_RESULT (GPR[RS]);
+  do_lwpc (SD_, RS, IMMEDIATE);
 }
 
 111011,5.RS,10,19.IMMEDIATE:POOL32X:64::LWUPC
 "lwupc r<RS>, <IMMEDIATE>"
 *mips64r6:
 {
-  unsigned32 offset = EXTEND19 (IMMEDIATE) << 2;
-  TRACE_ALU_INPUT1 (CIA + offset);
-  GPR[RS] = do_load (SD_, AccessLength_WORD, CIA, offset);
-  TRACE_ALU_RESULT (GPR[RS]);
+  do_lwupc (SD_, RS, IMMEDIATE);
 }
 
 111011,5.RS,110,18.IMMEDIATE:POOL32X:64::LDPC
 "ldpc r<RS>, <IMMEDIATE>"
 *mips64r6:
 {
-  unsigned32 offset = EXTEND18 (IMMEDIATE) << 3;
-  TRACE_ALU_INPUT1 (IMMEDIATE);
-  GPR[RS] = do_load (SD_, AccessLength_DOUBLEWORD, CIA, offset);
-  TRACE_ALU_RESULT (GPR[RS]);
+  do_ldpc (SD_, RS, IMMEDIATE);
 }
 010001,1000,1.FMT,00000,5.FS,5.FD,011010::32,64,f::RINT.fmt
 "rint.%s<FMT> f<FD>, f<FS>"
 *mips32r6:
 *mips64r6:
 {
-  unsigned64 result;
-  int fmt = FMT;
-  check_fpu (SD_);
-  check_u64 (SD_, instruction_0);
-  check_fmt_p (SD_, fmt, instruction_0);
-  TRACE_ALU_INPUT1 (FGR[FS]);
-  RoundToIntegralExact (ValueFPR (FS, fmt), &result, fmt);
-  StoreFPR (FD, fmt, result);
-  TRACE_ALU_RESULT (FGR[FD]);
+  do_rint (SD_, FD, FS, FMT, instruction_0);
 }
 
 010001,1000,1.FMT,00000,5.FS,5.FD,011011::32,64,f::CLASS.fmt
@@ -577,11 +1205,7 @@
 *mips32r6:
 *mips64r6:
 {
-  int fmt = FMT;
-  check_fpu (SD_);
-  check_u64 (SD_, instruction_0);
-  check_fmt_p (SD_, fmt, instruction_0);
-  StoreFPR (FD, fmt, Classify (ValueFPR (FS, fmt), fmt));
+  do_class (SD_, FD, FS, FMT, instruction_0);
 }
 
 010001,1000,1.FMT,5.FT,5.FS,5.FD,011100::32,64,f::MIN.fmt
@@ -589,13 +1213,7 @@
 *mips32r6:
 *mips64r6:
 {
-  int fmt = FMT;
-  check_fpu (SD_);
-  check_u64 (SD_, instruction_0);
-  check_fmt_p (SD_, fmt, instruction_0);
-  TRACE_ALU_INPUT2 (FGR[FS], FGR[FT]);
-  StoreFPR (FD, fmt, Min (ValueFPR (FS, fmt), ValueFPR (FT, fmt), fmt));
-  TRACE_ALU_RESULT (FGR[FD]);
+  do_min (SD_, FD, FS, FT, FMT, instruction_0);
 }
 
 010001,1000,1.FMT,5.FT,5.FS,5.FD,011110::32,64,f::MAX.fmt
@@ -603,13 +1221,7 @@
 *mips32r6:
 *mips64r6:
 {
-  int fmt = FMT;
-  check_fpu (SD_);
-  check_u64 (SD_, instruction_0);
-  check_fmt_p (SD_, fmt, instruction_0);
-  TRACE_ALU_INPUT2 (FGR[FS], FGR[FT]);
-  StoreFPR (FD, fmt, Max (ValueFPR (FS, fmt), ValueFPR (FT, fmt), fmt));
-  TRACE_ALU_RESULT (FGR[FD]);
+  do_max (SD_, FD, FS, FT, FMT, instruction_0);
 }
 
 010001,1000,1.FMT,5.FT,5.FS,5.FD,011101::32,64,f::MINA.fmt
@@ -617,13 +1229,7 @@
 *mips32r6:
 *mips64r6:
 {
-  int fmt = FMT;
-  check_fpu (SD_);
-  check_u64 (SD_, instruction_0);
-  check_fmt_p (SD_, fmt, instruction_0);
-  TRACE_ALU_INPUT2 (FGR[FS], FGR[FT]);
-  StoreFPR (FD, fmt, MinA (ValueFPR (FS, fmt), ValueFPR (FT, fmt), fmt));
-  TRACE_ALU_RESULT (FGR[FD]);
+  do_mina (SD_, FD, FS, FT, FMT, instruction_0);
 }
 
 010001,1000,1.FMT,5.FT,5.FS,5.FD,011111::32,64,f::MAXA.fmt
@@ -631,27 +1237,15 @@
 *mips32r6:
 *mips64r6:
 {
-  int fmt = FMT;
-  check_fpu (SD_);
-  check_u64 (SD_, instruction_0);
-  check_fmt_p (SD_, fmt, instruction_0);
-  TRACE_ALU_INPUT2 (FGR[FS], FGR[FT]);
-  StoreFPR (FD, fmt, MaxA (ValueFPR (FS, fmt), ValueFPR (FT, fmt), fmt));
-  TRACE_ALU_RESULT (FGR[FD]);
+  do_maxa (SD_, FD, FS, FT, FMT, instruction_0);
 }
+
 000000,5.RS,5.RT,5.RD,00010,011000:POOL32X:32::MUL
 "mul r<RD>, r<RS>, r<RT>"
 *mips32r6:
 *mips64r6:
 {
-  signed64 prod;
-  if (NotWordValue (GPR[RS]) || NotWordValue (GPR[RT]))
-    Unpredictable ();
-  TRACE_ALU_INPUT2 (GPR[RS], GPR[RT]);
-  prod = ((signed64)(signed32) GPR[RS])
-    * ((signed64)(signed32) GPR[RT]);
-  GPR[RD] = EXTEND32 (VL4_8 (prod));
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_mul (SD_, RD, RS, RT);
 }
 
 000000,5.RS,5.RT,5.RD,00011,011000:POOL32X:32::MUH
@@ -659,14 +1253,7 @@
 *mips32r6:
 *mips64r6:
 {
-  signed64 prod;
-  if (NotWordValue (GPR[RS]) || NotWordValue (GPR[RT]))
-    Unpredictable ();
-  TRACE_ALU_INPUT2 (GPR[RS], GPR[RT]);
-  prod = ((signed64)(signed32) GPR[RS])
-    * ((signed64)(signed32) GPR[RT]);
-  GPR[RD] = EXTEND32 (VH4_8 (prod));
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_muh (SD_, RD, RS, RT);
 }
 
 000000,5.RS,5.RT,5.RD,00010,011001:POOL32X:32::MULU
@@ -674,14 +1261,7 @@
 *mips32r6:
 *mips64r6:
 {
-  unsigned64 prod;
-  if (NotWordValue (GPR[RS]) || NotWordValue (GPR[RT]))
-    Unpredictable ();
-  TRACE_ALU_INPUT2 (GPR[RS], GPR[RT]);
-  prod = ((unsigned64)(unsigned32) GPR[RS])
-    * ((unsigned64)(unsigned32) GPR[RT]);
-  GPR[RD] = EXTEND32 (VL4_8 (prod));
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_mulu (SD_, RD, RS, RT);
 }
 
 000000,5.RS,5.RT,5.RD,00011,011001:POOL32X:32::MUHU
@@ -689,14 +1269,7 @@
 *mips32r6:
 *mips64r6:
 {
-  unsigned64 prod;
-  if (NotWordValue (GPR[RS]) || NotWordValue (GPR[RT]))
-    Unpredictable ();
-  TRACE_ALU_INPUT2 (GPR[RS], GPR[RT]);
-  prod = ((unsigned64)(unsigned32) GPR[RS])
-    * ((unsigned64)(unsigned32) GPR[RT]);
-  GPR[RD] = EXTEND32 (VH4_8 (prod));
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_muhu (SD_, RD, RS, RT);
 }
 
 000000,5.RS,5.RT,5.RD,00010,011010:POOL32X:32::DIV
@@ -704,17 +1277,7 @@
 *mips32r6:
 *mips64r6:
 {
-  signed32 n = GPR[RS];
-  signed32 d = GPR[RT];
-  TRACE_ALU_INPUT2 (n,d);
-  if (d == 0)
-    GPR[RD] = EXTEND32 (0x80000000);
-  else if (n == SIGNED32 (0x80000000) && d == -1)
-    GPR[RD] = EXTEND32 (0x80000000);
-  else
-    GPR[RD] = EXTEND32 (n / d);
-
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_div (SD_, RD, RS, RT);
 }
 
 000000,5.RS,5.RT,5.RD,00011,011010:POOL32X:32::MOD
@@ -722,15 +1285,7 @@
 *mips32r6:
 *mips64r6:
 {
-  signed32 n = GPR[RS];
-  signed32 d = GPR[RT];
-  TRACE_ALU_INPUT2 (n,d);
-  if (d == 0 || (n == SIGNED32 (0x80000000) && d == -1))
-    GPR[RD] = EXTEND32 (0);
-  else
-    GPR[RD] = EXTEND32 (n % d);
-
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_mod (SD_, RD, RS, RT);
 }
 
 000000,5.RS,5.RT,5.RD,00010,011011:POOL32X:32::DIVU
@@ -738,15 +1293,7 @@
 *mips32r6:
 *mips64r6:
 {
-  unsigned32 n = GPR[RS];
-  unsigned32 d = GPR[RT];
-  TRACE_ALU_INPUT2 (n,d);
-  if (d == 0)
-    GPR[RD] = EXTEND32 (0x80000000);
-  else
-    GPR[RD] = EXTEND32 (n / d);
-
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_divu (SD_, RD, RS, RT);
 }
 
 000000,5.RS,5.RT,5.RD,00011,011011:POOL32X:32::MODU
@@ -754,249 +1301,63 @@
 *mips32r6:
 *mips64r6:
 {
-  unsigned32 n = GPR[RS];
-  unsigned32 d = GPR[RT];
-  TRACE_ALU_INPUT2 (n,d);
-  if (d == 0)
-    GPR[RD] = EXTEND32 (0);
-  else
-    GPR[RD] = EXTEND32 (n % d);
-
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_modu (SD_, RD, RS, RT);
 }
 
 000000,5.RS,5.RT,5.RD,00010,011100:POOL32X:64::DMUL
 "dmul r<RD>, r<RS>, r<RT>"
 *mips64r6:
 {
-  unsigned64 lo;
-  unsigned64 m00;
-  unsigned64 m01;
-  unsigned64 m10;
-  unsigned64 mid;
-  int sign;
-  unsigned64 op1 = GPR[RS];
-  unsigned64 op2 = GPR[RT];
-
-  check_u64 (SD_, instruction_0);
-  TRACE_ALU_INPUT2 (op1, op2);
-  /* make signed multiply unsigned */
-  sign = 0;
-  if ((signed64) op1 < 0)
-    {
-      op1 = - op1;
-      ++sign;
-    }
-  if ((signed64) op2 < 0)
-    {
-      op2 = - op2;
-      ++sign;
-    }
-  /* multiply out the sub products */
-  m00 = ((unsigned64) VL4_8 (op1) * (unsigned64) VL4_8 (op2));
-  m10 = ((unsigned64) VH4_8 (op1) * (unsigned64) VL4_8 (op2));
-  m01 = ((unsigned64) VL4_8 (op1) * (unsigned64) VH4_8 (op2));
-  /* add the products */
-  mid = ((unsigned64) VH4_8 (m00)
-	 + (unsigned64) VL4_8 (m10)
-	 + (unsigned64) VL4_8 (m01));
-  lo = U8_4 (mid, m00);
-  /* fix the sign */
-  if (sign & 1)
-    lo = -lo;
-
-  GPR[RD] = lo;
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_dmul (SD_, RD, RS, RT, instruction_0);
 }
 
 000000,5.RS,5.RT,5.RD,00011,011100:POOL32X:64::DMUH
 "dmuh r<RD>, r<RS>, r<RT>"
 *mips64r6:
 {
-  unsigned64 lo;
-  unsigned64 hi;
-  unsigned64 m00;
-  unsigned64 m01;
-  unsigned64 m10;
-  unsigned64 m11;
-  unsigned64 mid;
-  int sign;
-  unsigned64 op1 = GPR[RS];
-  unsigned64 op2 = GPR[RT];
-
-  check_u64 (SD_, instruction_0);
-  TRACE_ALU_INPUT2 (op1, op2);
-  /* make signed multiply unsigned */
-  sign = 0;
-  if ((signed64) op1 < 0)
-    {
-      op1 = - op1;
-      ++sign;
-    }
-  if ((signed64) op2 < 0)
-    {
-      op2 = - op2;
-      ++sign;
-    }
-  /* multiply out the 4 sub products */
-  m00 = ((unsigned64) VL4_8 (op1) * (unsigned64) VL4_8 (op2));
-  m10 = ((unsigned64) VH4_8 (op1) * (unsigned64) VL4_8 (op2));
-  m01 = ((unsigned64) VL4_8 (op1) * (unsigned64) VH4_8 (op2));
-  m11 = ((unsigned64) VH4_8 (op1) * (unsigned64) VH4_8 (op2));
-  /* add the products */
-  mid = ((unsigned64) VH4_8 (m00)
-	 + (unsigned64) VL4_8 (m10)
-	 + (unsigned64) VL4_8 (m01));
-  lo = U8_4 (mid, m00);
-  hi = (m11
-	+ (unsigned64) VH4_8 (mid)
-	+ (unsigned64) VH4_8 (m01)
-	+ (unsigned64) VH4_8 (m10));
-  /* fix the sign */
-  if (sign & 1)
-    {
-      lo = -lo;
-      if (lo == 0)
-	hi = -hi;
-      else
-	hi = -hi - 1;
-    }
-
-  GPR[RD] = hi;
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_dmuh (SD_, RD, RS, RT, instruction_0);
 }
 
 000000,5.RS,5.RT,5.RD,00010,011101:POOL32X:64::DMULU
 "dmulu r<RD>, r<RS>, r<RT>"
 *mips64r6:
 {
-  unsigned64 lo;
-  unsigned64 m00;
-  unsigned64 m01;
-  unsigned64 m10;
-  unsigned64 mid;
-  unsigned64 op1 = GPR[RS];
-  unsigned64 op2 = GPR[RT];
-
-  check_u64 (SD_, instruction_0);
-  TRACE_ALU_INPUT2 (op1, op2);
-  /* multiply out the sub products */
-  m00 = ((unsigned64) VL4_8 (op1) * (unsigned64) VL4_8 (op2));
-  m10 = ((unsigned64) VH4_8 (op1) * (unsigned64) VL4_8 (op2));
-  m01 = ((unsigned64) VL4_8 (op1) * (unsigned64) VH4_8 (op2));
-  /* add the products */
-  mid = ((unsigned64) VH4_8 (m00)
-	 + (unsigned64) VL4_8 (m10)
-	 + (unsigned64) VL4_8 (m01));
-  lo = U8_4 (mid, m00);
-
-  GPR[RD] = lo;
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_dmulu (SD_, RD, RS, RT, instruction_0);
 }
 
 000000,5.RS,5.RT,5.RD,00011,011101:POOL32X:64::DMUHU
 "dmuhu r<RD>, r<RS>, r<RT>"
 *mips64r6:
 {
-  unsigned64 lo;
-  unsigned64 hi;
-  unsigned64 m00;
-  unsigned64 m01;
-  unsigned64 m10;
-  unsigned64 m11;
-  unsigned64 mid;
-  unsigned64 op1 = GPR[RS];
-  unsigned64 op2 = GPR[RT];
-
-  check_u64 (SD_, instruction_0);
-  TRACE_ALU_INPUT2 (op1, op2);
-  /* multiply out the 4 sub products */
-  m00 = ((unsigned64) VL4_8 (op1) * (unsigned64) VL4_8 (op2));
-  m10 = ((unsigned64) VH4_8 (op1) * (unsigned64) VL4_8 (op2));
-  m01 = ((unsigned64) VL4_8 (op1) * (unsigned64) VH4_8 (op2));
-  m11 = ((unsigned64) VH4_8 (op1) * (unsigned64) VH4_8 (op2));
-  /* add the products */
-  mid = ((unsigned64) VH4_8 (m00)
-	 + (unsigned64) VL4_8 (m10)
-	 + (unsigned64) VL4_8 (m01));
-  lo = U8_4 (mid, m00);
-  hi = (m11
-	+ (unsigned64) VH4_8 (mid)
-	+ (unsigned64) VH4_8 (m01)
-	+ (unsigned64) VH4_8 (m10));
-
-  GPR[RD] = hi;
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_dmuhu (SD_, RD, RS, RT, instruction_0);
 }
 
 000000,5.RS,5.RT,5.RD,00010,011110:POOL32X:64::DDIV
 "ddiv r<RD>, r<RS>, r<RT>"
 *mips64r6:
 {
-  signed64 n = GPR[RS];
-  signed64 d = GPR[RT];
-
-  check_u64 (SD_, instruction_0);
-  TRACE_ALU_INPUT2 (n, d);
-  if (d == 0)
-    GPR[RD] = SIGNED64 (0x8000000000000000);
-  else if (d == -1 && n == SIGNED64 (0x8000000000000000))
-    GPR[RD] = SIGNED64 (0x8000000000000000);
-  else
-    GPR[RD] = (n / d);
-
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_ddiv (SD_, RD, RS, RT, instruction_0);
 }
 
 000000,5.RS,5.RT,5.RD,00011,011110:POOL32X:64::DMOD
 "dmod r<RD>, r<RS>, r<RT>"
 *mips64r6:
 {
-  signed64 n = GPR[RS];
-  signed64 d = GPR[RT];
-
-  check_u64 (SD_, instruction_0);
-  TRACE_ALU_INPUT2 (n, d);
-  if (d == 0 || (d == -1 && n == SIGNED64 (0x8000000000000000)))
-    GPR[RD] = SIGNED64 (0);
-  else
-    GPR[RD] = (n % d);
-
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_dmod (SD_, RD, RS, RT, instruction_0);
 }
 
 000000,5.RS,5.RT,5.RD,00010,011111:POOL32X:64::DDIVU
 "ddivu r<RD>, r<RS>, r<RT>"
 *mips64r6:
 {
-  unsigned64 n = GPR[RS];
-  unsigned64 d = GPR[RT];
-
-  check_u64 (SD_, instruction_0);
-  TRACE_ALU_INPUT2 (n, d);
-  if (d == 0)
-    GPR[RD] = UNSIGNED64 (0x8000000000000000);
-  else
-    GPR[RD] = (n / d);
-
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_ddivu (SD_, RD, RS, RT, instruction_0);
 }
 
 000000,5.RS,5.RT,5.RD,00011,011111:POOL32X:64::DMODU
 "dmodu r<RD>, r<RS>, r<RT>"
 *mips64r6:
 {
-  unsigned64 n = GPR[RS];
-  unsigned64 d = GPR[RT];
-
-  check_u64 (SD_, instruction_0);
-  TRACE_ALU_INPUT2 (n, d);
-  if (d == 0)
-    GPR[RD] = UNSIGNED64 (0);
-  else
-    GPR[RD] = (n % d);
-
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_dmodu (SD_, RD, RS, RT, instruction_0);
 }
 
 011111,5.BASE,5.RT,9.OFFSET,0,110110:SPECIAL3:32::LL
@@ -1084,14 +1445,7 @@
 *mips32r6:
 *mips64r6:
 {
-  check_fpu (SD_);
-  check_fmt_p (SD_, FMT, instruction_0);
-  TRACE_ALU_INPUT3 (FGR[FD], ValueFPR(FS, FMT), ValueFPR(FT, FMT));
-  if ((FGR[FD] & 0x01) != 0)
-    StoreFPR (FD, FMT, ValueFPR (FT, FMT));
-  else
-    StoreFPR (FD, FMT, ValueFPR (FS, FMT));
-  TRACE_ALU_RESULT (ValueFPR(FD, FMT));
+  do_self (SD_, FD, FS, FT, FMT, instruction_0);
 }
 
 010001,1000,1.FMT,5.FT,5.FS,5.FD,010100:POOL32X:32,f::SELEQZ.fmt
@@ -1099,14 +1453,7 @@
 *mips32r6:
 *mips64r6:
 {
-  check_fpu (SD_);
-  check_fmt_p (SD_, FMT, instruction_0);
-  TRACE_ALU_INPUT2 (ValueFPR(FS, FMT), FGR[FT]);
-  if ((FGR[FT] & 0x01) == 0)
-    StoreFPR (FD, FMT, ValueFPR (FS, FMT));
-  else
-    StoreFPR (FD, FMT, 0);
-  TRACE_ALU_RESULT (ValueFPR(FD, FMT));
+  do_seleqzf (SD_, FD, FS, FT, FMT, instruction_0);
 }
 
 010001,1000,1.FMT,5.FT,5.FS,5.FD,010111:POOL32X:32,f::SELNEZ.fmt
@@ -1114,14 +1461,7 @@
 *mips32r6:
 *mips64r6:
 {
-  check_fpu (SD_);
-  check_fmt_p (SD_, FMT, instruction_0);
-  TRACE_ALU_INPUT2 (ValueFPR(FS, FMT), FGR[FT]);
-  if ((FGR[FT] & 0x01) == 0)
-    StoreFPR (FD, FMT, 0);
-  else
-    StoreFPR (FD, FMT, ValueFPR (FS, FMT));
-  TRACE_ALU_RESULT (ValueFPR(FD, FMT));
+  do_selnezf (SD_, FD, FS, FT, FMT, instruction_0);
 }
 
 000000,5.RS,5.RT,5.RD,00000,110101:POOL32X:32::SELEQZ
@@ -1129,12 +1469,7 @@
 *mips32r6:
 *mips64r6:
 {
-  TRACE_ALU_INPUT2 (GPR[RS], GPR[RT]);
-  if (GPR[RT] != 0)
-    GPR[RD] = 0;
-  else
-    GPR[RD] = GPR[RS];
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_seleqz (SD_, RD, RS, RT);
 }
 
 000000,5.RS,5.RT,5.RD,00000,110111:POOL32X:32::SELNEZ
@@ -1142,10 +1477,5 @@
 *mips32r6:
 *mips64r6:
 {
-  TRACE_ALU_INPUT2 (GPR[RS], GPR[RT]);
-  if (GPR[RT] != 0)
-    GPR[RD] = GPR[RS];
-  else
-    GPR[RD] = 0;
-  TRACE_ALU_RESULT (GPR[RD]);
+  do_selnez (SD_, RD, RS, RT);
 }

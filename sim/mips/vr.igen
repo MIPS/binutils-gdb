@@ -39,6 +39,10 @@
 // - DOUBLE_P is true if the 64-bit accumulator is in LO, false it is a
 //     concatenation of the low 32 bits of HI and LO.
 :function:::void:do_vr_mul_op:int rd, int rs, int rt, int accumulate_p, int store_hi_p, int unsigned_p, int saturate_p, int subtract_p, int short_p, int double_p
+*vr4100:
+*vr4120:
+*vr5400:
+*vr5500:
 {
   unsigned64 lhs, x, y, xcut, ycut, product, result;
 

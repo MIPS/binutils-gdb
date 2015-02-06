@@ -115,6 +115,7 @@ MICROMIPS16_DC=$(srcdir)/micromips16.dc
 IGEN_INCLUDE=\
 	$(srcdir)/micromipsdsp.igen \
 	$(srcdir)/micromips.igen \
+	$(srcdir)/micromipsr6.igen \
 	$(srcdir)/m16.igen \
 	$(srcdir)/m16e.igen \
 	$(srcdir)/mdmx.igen \
@@ -559,19 +560,21 @@ $(BUILT_SRC_FROM_MULTI): tmp-multi
 tmp-multi: tmp-mach-multi tmp-itable-multi tmp-run-multi targ-vals.h
 tmp-mach-multi: $(IGEN_INSN) $(IGEN_DC) ../igen/igen $(IGEN_INCLUDE)
 	for t in $(SIM_MULTI_IGEN_CONFIGS); do \
-	  p=`echo $${t} | sed -e 's/:.*//'` ; \
-	  m=`echo $${t} | sed -e 's/.*:\(.*\):.*/\1/'` ; \
-	  f=`echo $${t} | sed -e 's/.*://'` ; \
+	  echo $${t} >> igen.cfg; \
+	  p=`echo $${t} | sed 's/:.*//'` ; \
+	  m=`echo $${t} | sed 's/.*:\(.*\):.*:.*:.*:.*/\1/'`; \
+	  sm=`echo $${t} | sed 's/.*:.*:\(.*\):.*:.*:.*/\1/'`; \
+	  f=`echo $${t} | sed 's/.*:.*:.*:\(.*\):.*:.*/\1/'`; \
 	  case $${p} in \
 	    micromips16*) e="-B 16 -H 15 -o $(MICROMIPS16_DC) -F 16" ;; \
 	    micromips32* | micromips64*) \
 		e="-B 32 -H 31 -o $(MICROMIPS32_DC) -F $${f}" ;; \
 	    micromips_m32*) \
 		e="-B 32 -H 31 -o $(IGEN_DC) -F $${f}"; \
-		m="mips32r2,mips3d,mdmx,dsp,dsp2,smartmips" ;; \
+		m=$${sm} ;; \
 	    micromips_m64*) \
 		e="-B 32 -H 31 -o $(IGEN_DC) -F $${f}"; \
-		m="mips64r2,mips3d,mdmx,dsp,dsp2,smartmips" ;; \
+		m=$${sm} ;; \
 	    m16*) e="-B 16 -H 15 -o $(M16_DC) -F 16" ;; \
 	    *) e="-B 32 -H 31 -o $(IGEN_DC) -F $${f}" ;; \
 	  esac; \
@@ -661,6 +664,7 @@ tmp-run-multi: $(srcdir)/m16run.c $(srcdir)/micromipsrun.c
 	      m=`echo $${t} | sed -e 's/^micromips32//' -e 's/:.*//'`; \
 	      sed <  $(srcdir)/micromipsrun.c > tmp-run \
 		    -e "s/^sim_/micromips32$${m}_/" \
+		    -e "s/micromips_instruction_decode/micromips32$${m}_instruction_decode/g" \
 		    -e "s/micromips16_/micromips16$${m}_/" \
 		    -e "s/micromips32_/micromips32$${m}_/" \
 		    -e "s/m32_/m32$${m}_/" ; \
@@ -671,6 +675,7 @@ tmp-run-multi: $(srcdir)/m16run.c $(srcdir)/micromipsrun.c
 	      m=`echo $${t} | sed -e 's/^micromips64//' -e 's/:.*//'`; \
 	      sed <  $(srcdir)/micromipsrun.c > tmp-run \
 		    -e "s/^sim_/micromips64$${m}_/" \
+		    -e "s/micromips_instruction_decode/micromips64$${m}_instruction_decode/g" \
 		    -e "s/micromips16_/micromips16$${m}_/" \
 		    -e "s/micromips32_/micromips64$${m}_/" \
 		    -e "s/m32_/m64$${m}_/" ; \
