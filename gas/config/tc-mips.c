@@ -6953,6 +6953,7 @@ micromips_map_reloc (bfd_reloc_code_real_type reloc)
       { BFD_RELOC_MIPS_TLS_GOTTPREL, BFD_RELOC_MICROMIPS_TLS_GOTTPREL },
       { BFD_RELOC_MIPS_TLS_TPREL_HI16, BFD_RELOC_MICROMIPS_TLS_TPREL_HI16 },
       { BFD_RELOC_MIPS_TLS_TPREL_LO16, BFD_RELOC_MICROMIPS_TLS_TPREL_LO16 }
+
     };
   bfd_reloc_code_real_type r;
   size_t i;
@@ -17659,8 +17660,24 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	  /* We generate a fixup instead of applying it right now,
 	     because if there is linker relaxation, we're going to
 	     need the relocations.  */
+	  int r_type = -1;
+
+	  if (ISA_IS_R6(mips_opts.isa))
+	  {
+	    insn = read_compressed_insn (buf, 2);
+
+	    if ((insn & 0xdc00) == 0x8c00)      /* beqzc/bnezc */
+	      r_type = BFD_RELOC_MICROMIPS_21_PCREL_S1;
+	    else if ((insn & 0xfc00) == 0x7400) /* bovc/beqzalc/beqc */
+	     r_type = BFD_RELOC_MICROMIPS_16_PCREL_S1;
+	    else
+	     r_type = BFD_RELOC_MICROMIPS_26_PCREL_S1;
+	  }
+	  else
+	    r_type = BFD_RELOC_MICROMIPS_16_PCREL_S1;
+
 	  fixp = fix_new_exp (fragp, buf - fragp->fr_literal, 4, &exp, TRUE,
-			      BFD_RELOC_MICROMIPS_16_PCREL_S1);
+			      r_type);
 	  fixp->fx_file = fragp->fr_file;
 	  fixp->fx_line = fragp->fr_line;
 
@@ -17673,16 +17690,25 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	{
 	  insn = read_compressed_insn (buf, 2);
 
-	  if ((insn & 0xfc00) == 0xcc00)		/* b16  */
+	  if ((insn & 0xfc00) == 0xcc00)		/* b[c]16  */
 	    insn = 0x94000000;				/* beq  */
-	  else if ((insn & 0xdc00) == 0x8c00)		/* beqz16/bnez16  */
+	  else if ((insn & 0xdc00) == 0x8c00)		/* beqz[c]16/bnez[c]16  */
 	    {
 	      unsigned long regno;
 
 	      regno = (insn >> MICROMIPSOP_SH_MD) & MICROMIPSOP_MASK_MD;
 	      regno = micromips_to_32_reg_d_map [regno];
-	      insn = ((insn & 0x2000) << 16) | 0x94000000;	/* beq/bne  */
-	      insn |= regno << MICROMIPSOP_SH_RS;
+
+	      if (ISA_IS_R6 (mips_opts.isa))
+	        {
+	          insn = ((insn & 0x2000) << 13) | 0xa0000000;	/* beqzc/bnezc  */
+	          insn |= regno << 21;
+	        }
+	      else
+	        {
+	          insn = ((insn & 0x2000) << 16) | 0x94000000;	/* beq/bne  */
+	          insn |= regno << MICROMIPSOP_SH_RS;
+	        }
 	    }
 	  else
 	    abort ();
@@ -17706,7 +17732,8 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
       /* Set the short-delay-slot bit.  */
       short_ds = al && (insn & 0x02000000) != 0;
 
-      if (!RELAX_MICROMIPS_UNCOND (fragp->fr_subtype))
+      if (!ISA_IS_R6 (mips_opts.isa)
+	  && !RELAX_MICROMIPS_UNCOND (fragp->fr_subtype))
 	{
 	  symbolS *l;
 
