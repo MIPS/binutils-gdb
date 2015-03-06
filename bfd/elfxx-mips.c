@@ -2197,7 +2197,8 @@ hi16_reloc_p (int r_type)
   return (r_type == R_MIPS_HI16
 	  || r_type == R_MIPS16_HI16
 	  || r_type == R_MICROMIPS_HI16
-	  || r_type == R_MIPS_PCHI16);
+	  || r_type == R_MIPS_PCHI16
+	  || r_type == R_MICROMIPS_PCHI16);
 }
 
 static inline bfd_boolean
@@ -2206,7 +2207,8 @@ lo16_reloc_p (int r_type)
   return (r_type == R_MIPS_LO16
 	  || r_type == R_MIPS16_LO16
 	  || r_type == R_MICROMIPS_LO16
-	  || r_type == R_MIPS_PCLO16);
+	  || r_type == R_MIPS_PCLO16
+	  || r_type == R_MICROMIPS_PCLO16);
 }
 
 static inline bfd_boolean
@@ -2227,7 +2229,9 @@ static inline bfd_boolean
 aligned_pcrel_reloc_p (int r_type)
 {
   return (r_type == R_MIPS_PC18_S3
-	  || r_type == R_MIPS_PC19_S2);
+	  || r_type == R_MIPS_PC19_S2
+	  || r_type == R_MICROMIPS_PC18_S3
+	  || r_type == R_MICROMIPS_PC19_S2);
 }
 
 static inline bfd_boolean
@@ -2235,6 +2239,8 @@ micromips_branch_reloc_p (int r_type)
 {
   return (r_type == R_MICROMIPS_26_S1
 	  || r_type == R_MICROMIPS_PC16_S1
+	  || r_type == R_MICROMIPS_PC21_S1
+	  || r_type == R_MICROMIPS_PC26_S1
 	  || r_type == R_MICROMIPS_PC10_S1
 	  || r_type == R_MICROMIPS_PC7_S1);
 }
@@ -5192,6 +5198,8 @@ mips_elf_relocation_needs_la25_stub (bfd *input_bfd, int r_type,
     case R_MICROMIPS_PC7_S1:
     case R_MICROMIPS_PC10_S1:
     case R_MICROMIPS_PC16_S1:
+    case R_MICROMIPS_PC21_S1:
+    case R_MICROMIPS_PC26_S1:
     case R_MICROMIPS_PC23_S2:
       return TRUE;
 
@@ -5572,7 +5580,8 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
      because the assembly writer may have "known" that any definition of the
      symbol would be 16-bit code, and that direct jumps were therefore
      acceptable.  */
-  *cross_mode_jump_p = (!info->relocatable
+  *cross_mode_jump_p = (!MIPSR6_P (abfd)
+			&& !info->relocatable
 			&& !(h && h->root.root.type == bfd_link_hash_undefweak)
 			&& ((r_type == R_MIPS16_26 && !target_is_16_bit_code_p)
 			    || (r_type == R_MICROMIPS_26_S1
@@ -6019,6 +6028,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       break;
 
     case R_MIPS_PC18_S3:
+    case R_MICROMIPS_PC18_S3:
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 21);
 
@@ -6033,13 +6043,14 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       break;
 
     case R_MIPS_PC19_S2:
+    case R_MICROMIPS_PC19_S2:
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 21);
 
       if ((symbol + addend) & 3)
 	return bfd_reloc_outofrange;
 
-      value = symbol + addend - p;
+      value = symbol + addend - ((p | 3) ^ 3);
       if (was_local_p || h->root.root.type != bfd_link_hash_undefweak)
 	overflowed_p = mips_elf_overflow_p (value, 21);
       value >>= howto->rightshift;
@@ -6047,6 +6058,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       break;
 
     case R_MIPS_PCHI16:
+    case R_MICROMIPS_PCHI16:
       value = mips_elf_high (symbol + addend - p);
       if (was_local_p || h->root.root.type != bfd_link_hash_undefweak)
 	overflowed_p = mips_elf_overflow_p (value, 16);
@@ -6054,6 +6066,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       break;
 
     case R_MIPS_PCLO16:
+    case R_MICROMIPS_PCLO16:
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 16);
       value = symbol + addend - p;
@@ -6086,6 +6099,26 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       value = symbol + addend - p;
       if (was_local_p || h->root.root.type != bfd_link_hash_undefweak)
 	overflowed_p = mips_elf_overflow_p (value, 17);
+      value >>= howto->rightshift;
+      value &= howto->dst_mask;
+      break;
+
+    case R_MICROMIPS_PC21_S1:
+      if (howto->partial_inplace)
+        addend = _bfd_mips_elf_sign_extend (addend, 22);
+      value = symbol + addend - p;
+      if (was_local_p || h->root.root.type != bfd_link_hash_undefweak)
+	overflowed_p = mips_elf_overflow_p (value, 22);
+      value >>= howto->rightshift;
+      value &= howto->dst_mask;
+      break;
+
+    case R_MICROMIPS_PC26_S1:
+      if (howto->partial_inplace)
+        addend = _bfd_mips_elf_sign_extend (addend, 27);
+      value = symbol + addend - p;
+      if (was_local_p || h->root.root.type != bfd_link_hash_undefweak)
+	overflowed_p = mips_elf_overflow_p (value, 27);
       value >>= howto->rightshift;
       value &= howto->dst_mask;
       break;
@@ -7817,6 +7850,8 @@ mips_elf_add_lo16_rel_addend (bfd *abfd,
   r_type = ELF_R_TYPE (abfd, rel->r_info);
   if (mips16_reloc_p (r_type))
     lo16_type = R_MIPS16_LO16;
+  else if (r_type == R_MICROMIPS_PCHI16)
+    lo16_type = R_MICROMIPS_PCLO16;
   else if (micromips_reloc_p (r_type))
     lo16_type = R_MICROMIPS_LO16;
   else if (r_type == R_MIPS_PCHI16)
@@ -8340,6 +8375,8 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 	case R_MICROMIPS_PC7_S1:
 	case R_MICROMIPS_PC10_S1:
 	case R_MICROMIPS_PC16_S1:
+	case R_MICROMIPS_PC21_S1:
+	case R_MICROMIPS_PC26_S1:
 	case R_MICROMIPS_PC23_S2:
 	  call_reloc_p = TRUE;
 	  break;
@@ -13381,7 +13418,8 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
      this section does not have relocs, or if this is not a
      code section.  */
 
-  if (link_info->relocatable
+  if (MIPSR6_P (abfd)
+      || link_info->relocatable
       || (sec->flags & SEC_RELOC) == 0
       || sec->reloc_count == 0
       || (sec->flags & SEC_CODE) == 0)

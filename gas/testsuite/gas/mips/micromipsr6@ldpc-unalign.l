@@ -1,0 +1,11 @@
+.*: Assembler messages:
+.*:2: Error: PC-relative access using misaligned symbol \(19\)
+.*:2: Error: PC-relative access using misaligned offset \(4\)
+.*:3: Error: PC-relative access using misaligned symbol \(19\)
+.*:3: Error: PC-relative access using misaligned offset \(4\)
+.*:4: Error: PC-relative access using misaligned symbol \(1b\)
+.*:5: Error: PC-relative access using misaligned symbol \(1b\)
+.*:6: Error: PC-relative access using misaligned symbol \(1b\)
+.*:6: Error: PC-relative access using misaligned offset \(4\)
+.*:7: Error: PC-relative access using misaligned symbol \(1b\)
+.*:7: Error: PC-relative access using misaligned offset \(4\)
