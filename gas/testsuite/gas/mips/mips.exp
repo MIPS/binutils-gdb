@@ -330,6 +330,9 @@ proc run_dump_test_arch { name opts arch } {
     if { [ string match "mips*r6" $proparch ]} {
 	lappend prefixes mipsr6@
     }
+    if { [ string match "micromipsr6" $proparch ]} {
+	lappend prefixes micromipsr6@
+    }
     foreach prefix ${prefixes} {
 	set archname ${prefix}${name}
 	if { [file exists "$srcdir/$subdir/${archname}.d"] } {
@@ -379,6 +382,9 @@ proc run_list_test_arch { name opts arch } {
     }
     if { [ string match "mips*r6" $proparch ]} {
 	lappend prefixes mipsr6@
+    }
+    if { [ string match "micromipsr6" $proparch ]} {
+	lappend prefixes micromipsr6@
     }
     foreach prefix ${prefixes} {
 	set archname ${prefix}${name}
@@ -474,6 +480,8 @@ mips_arch_create mips16	32	{}	{} \
 			{ -march=mips1 -mips16 } { -mmips:16 }
 mips_arch_create micromips 64	mips64r2 {} \
 			{ -march=mips64r2 -mmicromips } {}
+mips_arch_create micromipsr6 64	mips64r6 {} \
+			{ -march=mips64r6 -mmicromips } {}
 mips_arch_create r3000 	32	mips1	{} \
 			{ -march=r3000 -mtune=r3000 } { -mmips:3000 }
 mips_arch_create r3900 	32	mips1	{ gpr_ilocks } \
@@ -1454,4 +1462,15 @@ if { [istarget mips*-*-vxworks*] } {
     }
     run_list_test_arches "r6-removed"	"-32" [mips_arch_list_matching mips32r6]
     run_list_test_arches "r6-64-removed"	[mips_arch_list_matching mips64r6]
+
+    run_dump_test_arches "ur6" "-32 -mmicromips" \
+                              [mips_arch_list_matching mips32r6 !mips64r6]
+    run_list_test_arches "ur6-removed" "-32 -mmicromips -meva" \
+                              [mips_arch_list_matching mips32r6 !mips64r6]
+    run_list_test_arches "ur6-64-removed" "-64 -mmicromips" \
+                              [mips_arch_list_matching mips64r6]
+    run_dump_test_arches "ur6-ctc" "-32 -mmicromips" \
+                              [mips_arch_list_matching mips32r6 !mips64r6]
+    run_list_test_arches "ur6-ctc-err" "-32 -mmicromips" \
+                              [mips_arch_list_matching mips32r6 !mips64r6]
 }
