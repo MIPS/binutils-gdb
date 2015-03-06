@@ -29,7 +29,7 @@
 #include "mips-formats.h"
 
 /* The 4-bit XYZW mask used in some VU0 instructions.  */
-const struct mips_operand mips_vu0_channel_mask = { OP_VU0_SUFFIX, 4, 21 };
+const struct mips_operand mips_vu0_channel_mask = { OP_VU0_SUFFIX, 4, 21, 0, 0 };
 
 static unsigned char reg_0_map[] = { 0 };
 
@@ -52,7 +52,7 @@ decode_mips_operand (const char *p)
 	case 'v': PREV_CHECK (5, 16, TRUE, TRUE, FALSE, FALSE);
 	case 'w': PREV_CHECK (5, 16, FALSE, TRUE, TRUE, TRUE);
 	case 'x': PREV_CHECK (5, 21, TRUE, FALSE, FALSE, TRUE);
-	case 'y': PREV_CHECK (5, 21, FALSE, TRUE, TRUE, FALSE);
+	case 'y': PREV_CHECK (5, 21, FALSE, TRUE, FALSE, FALSE);
 	case 'A': PCREL (19, 0, TRUE, 2, 2, FALSE, FALSE);
 	case 'B': PCREL (18, 0, TRUE, 3, 3, FALSE, FALSE);
 	}
@@ -1148,6 +1148,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"dsubu",		"d,v,I",	0,    (int) M_DSUBU_I,	INSN_MACRO,		0,		I3,		0,	0 },
 {"dvpe",		"",		0x41600001, 0xffffffff, TRAP,			0,		0,		MT32,	0 },
 {"dvpe",		"t",		0x41600001, 0xffe0ffff, WR_1|TRAP,		0,		0,		MT32,	0 },
+{"dvp",			"t",		0x41600024, 0xffe0ffff, WR_1|TRAP,		0,		I37,		0,	0 },
 {"ei",			"",		0x42000038, 0xffffffff,	WR_C0,			0,		EE,		0,	0 },
 {"ei",			"",		0x41606020, 0xffffffff,	WR_C0,			0,		I33,		0,	0 },
 {"ei",			"t",		0x41606020, 0xffe0ffff,	WR_1|WR_C0,		0,		I33,		0,	0 },
@@ -1157,6 +1158,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"eretnc",		"",		0x42000058, 0xffffffff, NODS,      		0,		I36,		0,	0 },
 {"evpe",		"",		0x41600021, 0xffffffff, TRAP,			0,		0,		MT32,	0 },
 {"evpe",		"t",		0x41600021, 0xffe0ffff, WR_1|TRAP,		0,		0,		MT32,	0 },
+{"evp",			"t",		0x41600004, 0xffe0ffff, WR_1|TRAP,		0,		I37,		0,	0 },
 {"ext",			"t,r,+A,+C",	0x7c000000, 0xfc00003f, WR_1|RD_2,    		0,		I33,		0,	0 },
 {"exts32",		"t,r,+p,+s",	0x7000003b, 0xfc00003f, WR_1|RD_2,		0,		IOCT,		0,	0 },
 {"exts",		"t,r,+P,+S",	0x7000003b, 0xfc00003f, WR_1|RD_2,		0,		IOCT,		0,	0 }, /* exts32 */
