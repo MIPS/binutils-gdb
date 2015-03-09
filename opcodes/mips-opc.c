@@ -489,8 +489,8 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"b",			"p",		0x04010000, 0xffff0000,	UBD,			INSN2_ALIAS,	I1,		0,	0 },/* bgez 0 */
 {"nal",			"",		0x04100000, 0xffffffff,	WR_31|CBD,		INSN2_ALIAS,	I1,		0,	0 },/* bltzal 0 */
 {"bal",			"p",		0x04110000, 0xffff0000,	WR_31|UBD,		INSN2_ALIAS,	I1,		0,	0 },/* bgezal 0*/
-{"bc",			"+'",		0xc8000000, 0xfc000000,	NODS,			0,		I37,		0,	0 },
-{"balc",		"+'",		0xe8000000, 0xfc000000,	WR_31|NODS,		0,		I37,		0,	0 },
+{"bc",			"+'",		0xc8000000, 0xfc000000,	NODS,			FS,		I37,		0,	0 },
+{"balc",		"+'",		0xe8000000, 0xfc000000,	WR_31|NODS,		FS,		I37,		0,	0 },
 {"lapc",		"s,-A",		0xec000000, 0xfc180000, WR_1,			RD_pc,		I37,		0,	0 },
 {"la",			"t,A(b)",	0,    (int) M_LA_AB,	INSN_MACRO,		0,		I1,		0,	0 },
 
