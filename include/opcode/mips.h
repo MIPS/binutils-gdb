@@ -1275,6 +1275,7 @@ static const unsigned int mips_isa_table[] = {
 #define ASE_XPA			0x00002000
 /* MXU Extension.  */
 #define ASE_MXU			0x00004000
+#define ASE_DSPR3		0x00008000
 
 /* MIPS ISA defines, use instead of hardcoding ISA level.  */
 
