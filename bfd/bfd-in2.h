@@ -3062,6 +3062,9 @@ to compensate for the borrow when the low bits are added.  */
   BFD_RELOC_MIPS_JUMP_SLOT,
 
 
+/* MIPS support for STT_GNU_IFUNC.  */
+  BFD_RELOC_MIPS_IRELATIVE,
+
 /* Moxie ELF relocations.  */
   BFD_RELOC_MOXIE_10_PCREL,
 

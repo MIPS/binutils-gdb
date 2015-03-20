@@ -1,0 +1,5 @@
+Symbol table for image:
+  Num Buc:    Value  Size   Type   Bind Vis      Ndx Name
+    3   0: 00000000    76 FUNC    GLOBAL DEFAULT   1 ref1
+    4   0: 00000050     0 FUNC    GLOBAL DEFAULT UND func1
+    2   0: 00000000     0 SECTION GLOBAL DEFAULT ABS _gp_disp

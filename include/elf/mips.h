@@ -115,6 +115,9 @@ START_RELOC_NUMBERS (elf_mips_reloc_type)
   RELOC_NUMBER (R_MIPS_COPY, 126)
   RELOC_NUMBER (R_MIPS_JUMP_SLOT, 127)
 
+  /* STT_GNU_IFUNC support */
+  RELOC_NUMBER (R_MIPS_IRELATIVE, 128)
+
   /* These relocations are specific to microMIPS.  */
   FAKE_RELOC (R_MICROMIPS_min, 130)
   RELOC_NUMBER (R_MICROMIPS_26_S1, 133)
