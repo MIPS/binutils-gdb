@@ -1413,6 +1413,8 @@ enum options
     OPTION_NO_EVA,
     OPTION_XPA,
     OPTION_NO_XPA,
+    OPTION_MXU,
+    OPTION_NO_MXU,
     OPTION_MICROMIPS,
     OPTION_NO_MICROMIPS,
     OPTION_MCU,
@@ -1533,6 +1535,8 @@ struct option md_longopts[] =
   {"mno-msa", no_argument, NULL, OPTION_NO_MSA},
   {"mxpa", no_argument, NULL, OPTION_XPA},
   {"mno-xpa", no_argument, NULL, OPTION_NO_XPA},
+  {"mmxu", no_argument, NULL, OPTION_MXU},
+  {"mno-mxu", no_argument, NULL, OPTION_NO_MXU},
 
   /* Old-style architecture options.  Don't add more of these.  */
   {"m4650", no_argument, NULL, OPTION_M4650},
@@ -1707,6 +1711,11 @@ static const struct mips_ase mips_ases[] = {
   { "xpa", ASE_XPA, 0,
     OPTION_XPA, OPTION_NO_XPA,
      2,  2, -1, -1,
+    -1 },
+
+  { "mxu", ASE_MXU, 0,
+    OPTION_MXU, OPTION_NO_MXU,
+     1,  1, -1, -1,
     -1 },
 };
 
@@ -2490,7 +2499,7 @@ struct regname {
 };
 
 #define RNUM_MASK	0x00000ff
-#define RTYPE_MASK	0x0ffff00
+#define RTYPE_MASK	0x1ffff00
 #define RTYPE_NUM	0x0000100
 #define RTYPE_FPU	0x0000200
 #define RTYPE_FCC	0x0000400
@@ -2507,6 +2516,7 @@ struct regname {
 #define RTYPE_R5900_R	0x0200000
 #define RTYPE_R5900_ACC	0x0400000
 #define RTYPE_MSA	0x0800000
+#define RTYPE_MXU	0x1000000
 #define RWARN		0x8000000
 
 #define GENERIC_REGISTER_NUMBERS \
@@ -2711,6 +2721,26 @@ struct regname {
     {"$ac2",	RTYPE_ACC | 2}, \
     {"$ac3",	RTYPE_ACC | 3}
 
+#define MXU_REGISTER_NAMES \
+    {"xr0",    RTYPE_MXU | 0},  \
+    {"xr1",    RTYPE_MXU | 1},  \
+    {"xr2",    RTYPE_MXU | 2},  \
+    {"xr3",    RTYPE_MXU | 3},  \
+    {"xr4",    RTYPE_MXU | 4},  \
+    {"xr5",    RTYPE_MXU | 5},  \
+    {"xr6",    RTYPE_MXU | 6},  \
+    {"xr7",    RTYPE_MXU | 7},  \
+    {"xr8",    RTYPE_MXU | 8},  \
+    {"xr9",    RTYPE_MXU | 9},  \
+    {"xr10",   RTYPE_MXU | 10}, \
+    {"xr11",   RTYPE_MXU | 11}, \
+    {"xr12",   RTYPE_MXU | 12}, \
+    {"xr13",   RTYPE_MXU | 13}, \
+    {"xr14",   RTYPE_MXU | 14}, \
+    {"xr15",   RTYPE_MXU | 15}, \
+    {"xr16",   RTYPE_MXU | 16}, \
+    {"mxu_cr", RTYPE_MXU | 16}
+
 static const struct regname reg_names[] = {
   GENERIC_REGISTER_NUMBERS,
   FPU_REGISTER_NAMES,
@@ -2730,6 +2760,7 @@ static const struct regname reg_names[] = {
   R5900_R_NAMES,
   R5900_ACC_NAMES,
   MIPS_DSP_ACCUMULATOR_NAMES,
+  MXU_REGISTER_NAMES,
   {0, 0}
 };
 
@@ -3361,7 +3392,7 @@ validate_mips_insn (const struct mips_opcode *opcode,
 	      used_bits &= ~(mask & 0x700);
 	  }
 	/* Skip prefix characters.  */
-	if (decode_operand && (*s == '+' || *s == 'm' || *s == '-'))
+	if (decode_operand && (*s == '+' || *s == 'm' || *s == '-' || *s == '`'))
 	  ++s;
 	opno += 1;
 	break;
@@ -4415,6 +4446,8 @@ operand_reg_mask (const struct mips_cl_insn *insn,
     case OP_VU0_SUFFIX:
     case OP_VU0_MATCH_SUFFIX:
     case OP_IMM_INDEX:
+    case OP_MAPPED_STRING:
+    case OP_MXU_STRIDE:
       abort ();
 
     case OP_REG:
@@ -4788,6 +4821,12 @@ convert_reg_type (const struct mips_opcode *opcode,
 {
   switch (type)
     {
+    case OP_REG_MXU:
+      return RTYPE_NUM | RTYPE_MXU;
+
+    case OP_REG_MXU_GP:
+      return RTYPE_GP | RTYPE_MXU;
+
     case OP_REG_GP:
       return RTYPE_NUM | RTYPE_GP;
 
@@ -5113,6 +5152,65 @@ match_msb_operand (struct mips_arg_info *arg,
   return TRUE;
 }
 
+
+/* OP_MAPPED_STRING matcher.  */
+
+static bfd_boolean
+match_string_operand (struct mips_arg_info *arg,
+		      const struct mips_operand *operand_base)
+{
+  const struct mips_mapped_string_operand *operand;
+  expressionS ex;
+  bfd_reloc_code_real_type r[3];
+  int i;
+  unsigned int store_val;
+  const char * symbol_name;
+  bfd_boolean match;
+
+  operand = (const struct mips_mapped_string_operand *) operand_base;
+
+  if (!match_expression (arg, &ex, r))
+    return FALSE;
+
+  if (operand->allow_constants && ex.X_op == O_constant
+      && r[0] == BFD_RELOC_UNUSED)
+    store_val = ex.X_add_number;
+  else if (r[0] == BFD_RELOC_UNUSED && ex.X_op == O_symbol
+	   && ex.X_add_number == 0 && ex.X_op_symbol == NULL)
+    {
+      symbol_name = S_GET_NAME (ex.X_add_symbol);
+      match = FALSE;
+
+      for (i = 0 ; i < (1 << operand_base->size) ; i++)
+	{
+	  if (strcmp (operand->strings[i], symbol_name) == 0)
+	    {
+	      store_val = i;
+	      match = TRUE;
+	      break;
+	    }
+	}
+
+      if (!match)
+	{
+	  set_insn_error (arg->argnum, _("Invalid string in operand"));
+	  return FALSE;
+	}
+    }
+  else
+    return FALSE;
+
+  if (store_val >= (unsigned int) (1 << operand_base->size))
+    {
+      match_out_of_range (arg);
+      return FALSE;
+    }
+
+  insn_insert_operand (arg->insn, operand_base, store_val);
+  return TRUE;
+}
+
+
 /* OP_REG matcher.  */
 
 static bfd_boolean
@@ -5137,6 +5235,13 @@ match_reg_operand (struct mips_arg_info *arg,
     }
   else
     uval = regno;
+
+  if (operand_base->size > 0
+      && uval >= (unsigned int) (1 << operand_base->size))
+    {
+      match_out_of_range (arg);
+      return FALSE;
+    }
 
   arg->last_regno = regno;
   if (arg->opnum == 1)
@@ -5665,6 +5770,24 @@ match_imm_index_operand (struct mips_arg_info *arg,
   return TRUE;
 }
 
+/* OP_MXU_STRIDE matcher.  */
+
+static bfd_boolean
+match_mxu_stride_operand (struct mips_arg_info *arg,
+			  const struct mips_operand *operand)
+{
+  offsetT sval;
+
+  if (!match_const_int (arg, &sval))
+    return FALSE;
+
+  if (sval < 0 || sval > 2)
+    return FALSE;
+
+  insn_insert_operand (arg->insn, operand, sval);
+  return TRUE;
+}
+
 /* OP_REG_INDEX matcher.  */
 
 static bfd_boolean
@@ -5941,6 +6064,9 @@ match_operand (struct mips_arg_info *arg,
     case OP_MSB:
       return match_msb_operand (arg, operand);
 
+    case OP_MAPPED_STRING:
+      return match_string_operand (arg, operand);
+
     case OP_REG:
     case OP_OPTIONAL_REG:
       return match_reg_operand (arg, operand);
@@ -6001,6 +6127,9 @@ match_operand (struct mips_arg_info *arg,
 
     case OP_NON_ZERO_REG:
       return match_non_zero_reg_operand (arg, operand);
+
+    case OP_MXU_STRIDE:
+      return match_mxu_stride_operand (arg, operand);
     }
   abort ();
 }
@@ -7876,7 +8005,7 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	abort ();
 
       /* Skip prefixes.  */
-      if (*args == '+' || *args == 'm' || *args == '-')
+      if (*args == '+' || *args == 'm' || *args == '-' || *args == '`')
 	args++;
 
       if (mips_optional_operand_p (operand)
@@ -8530,7 +8659,7 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	    uval |= (uval << 5);
 	  insn_insert_operand (&insn, operand, uval);
 
-	  if (*fmt == '+' || *fmt == 'm' || *fmt == '-')
+	  if (*fmt == '+' || *fmt == 'm' || *fmt == '-' || *fmt == '`')
 	    ++fmt;
 	  break;
 	}
@@ -18924,6 +19053,9 @@ MIPS options:\n\
   fprintf (stream, _("\
 -mxpa			generate eXtended Physical Address (XPA) instructions\n\
 -mno-xpa		do not generate eXtended Physical Address (XPA) instructions\n"));
+  fprintf (stream, _("\
+-mmxu			generate MXU instructions\n\
+-mno-mxu		do not generate MXU instructions\n"));
   fprintf (stream, _("\
 -mvirt			generate Virtualization instructions\n\
 -mno-virt		do not generate Virtualization instructions\n"));
