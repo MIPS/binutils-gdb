@@ -17884,6 +17884,10 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
       else
 	insn = read_compressed_insn (buf, 4);
 
+      if (ISA_IS_R6 (mips_opts.isa))
+	as_bad_where (fragp->fr_file, fragp->fr_line,
+		      _("unable to relax out-of-range branch into a jump"));
+
       /* Relax 32-bit branches to a sequence of instructions.  */
       as_warn_where (fragp->fr_file, fragp->fr_line,
 		     _("relaxed out-of-range branch into a jump"));

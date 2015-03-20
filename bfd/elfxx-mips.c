@@ -13701,8 +13701,7 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
      this section does not have relocs, or if this is not a
      code section.  */
 
-  if (MIPSR6_P (abfd)
-      || link_info->relocatable
+  if (link_info->relocatable
       || (sec->flags & SEC_RELOC) == 0
       || sec->reloc_count == 0
       || (sec->flags & SEC_CODE) == 0)
