@@ -1,0 +1,6 @@
+Symbol table for image:
+  Num Buc:    Value  Size   Type   Bind Vis      Ndx Name
+    4   0: 00000070    60 FUNC    GLOBAL DEFAULT   1 ref1
+    2   0: 00000400    28 FUNC    GLOBAL DEFAULT   1 func1
+    1   1: 00000001     0 SECTION GLOBAL DEFAULT ABS _DYNAMIC_LINKING
+    3   2: 00001000     0 OBJECT  GLOBAL DEFAULT  11 __RLD_MAP

@@ -1,0 +1,148 @@
+# Expect script for MIPS IFUNC linker tests
+#   Copyright 2013
+#   Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+if {![istarget mips*-*-*] || ![is_elf_format]} {
+    return
+}
+
+# General setup
+#############################################
+set has_newabi [expr [istarget *-*-irix6*] \
+		     || [istarget mips*-*-linux*] \
+		     || [istarget mips*-sde-elf*]]
+set linux_gnu [expr [istarget mips*-*-linux*]]
+set embedded_elf [expr [istarget mips*-*-elf]]
+
+# Set defaults.
+set abi_asflags(o32) ""
+set abi_asflags(n32) "-march=from-abi -n32 -EB"
+set abi_asflags(n64) "-march=from-abi -64 -EB"
+set abi_ldflags(o32) ""
+set abi_ldflags(n32) -melf32bmipn32
+set abi_ldflags(n64) -melf64bmip
+
+# Override as needed.
+if { [istarget *-*-irix6*] } {
+    set abi_asflags(o32) "-32 -EB"
+    set abi_ldflags(o32) -melf32bsmip
+} elseif { [istarget mips64*-linux*] } {
+    set abi_asflags(o32) "-32 -EB"
+    set abi_ldflags(o32) -melf32btsmip
+} elseif { [istarget mips64*-*freebsd*] } {
+    set abi_asflags(o32) "-32 -EB"
+    set abi_ldflags(o32) -melf32btsmip_fbsd
+}
+if { [istarget mips*-*-linux*] || [istarget mips*-sde-elf*] } {
+    set abi_ldflags(n32) -melf32btsmipn32
+    set abi_ldflags(n64) -melf64btsmip
+} elseif { [istarget mips64*-*freebsd*] } {
+    set abi_ldflags(n32) -melf32btsmipn32_fbsd
+    set abi_ldflags(n64) -melf64btsmip_fbsd
+}
+#############################################
+
+
+# STT_GNU_IFUNC testing:
+#
+#    1. Dso with ifunc defined code
+#    2. Dso that references external ifunc'ed routines
+#    3. Dynamic executable with ifunc defined code
+#    4. Static executable with ifunc defined and referenced code
+#    5. Dso with with ifunc defined and referenced code
+#    6. Dynamic executable with ifunc defined and referenced code
+# STT_GNU_IFUNC tests.
+set abis [concat o32 [expr {$has_newabi ? "n32 n64" : ""}]]
+foreach { abi } $abis {
+    run_ld_link_tests [list \
+	[list \
+	    "IFUNC 1 (Simple dso with def) ${abi}" \
+	    "$abi_ldflags($abi) -shared -T ifunc-dyn.ld" "" \
+	    "$abi_asflags($abi)" \
+	    [list ifunc-dyn-def.s] \
+	    [list "readelf -Ds libifunc-1-${abi}.sym"] \
+	    "libifunc-1-${abi}.so" \
+        ] \
+	[list \
+	    "IFUNC 2 (Simple dso with ref) ${abi}" \
+	    "$abi_ldflags($abi) -shared -T ifunc-dyn.ld" "" \
+	    "$abi_asflags($abi)" \
+	    [list ifunc-dyn-ref.s] \
+	    [list "readelf -Ds libifunc-2-${abi}.sym"] \
+	    "libifunc-2-${abi}.so" \
+        ] \
+	[list \
+	    "IFUNC 3 (Simple dynamic executable with def) ${abi}" \
+	    "$abi_ldflags($abi) -Bdynamic -L./tmpdir -lifunc-2-${abi} -T ifunc-dyn.ld" "" \
+	    "$abi_asflags($abi)" \
+	    [list ifunc-dyn-main.s ifunc-dyn-def.s] \
+	    [list "readelf -Ds ifunc-3-${abi}.sym" \
+                  "readelf -r ifunc-3-${abi}.r" \
+                  "objdump -dj.iplt ifunc-3-${abi}.t"] \
+	    "ifunc-3-${abi}" \
+        ] \
+	[list \
+	    "IFUNC 4 (Simple static executable with def and ref) ${abi}" \
+	    "$abi_ldflags($abi) -Bstatic -T ifunc-static.ld" "" \
+	    "$abi_asflags($abi) -non_shared" \
+	    [list ifunc-static-main.s ifunc-static-def.s ifunc-static-ref.s] \
+	    [list "readelf -s ifunc-4-${abi}.sym" \
+                  "readelf -r ifunc-4-${abi}.r" \
+                  "objdump -dj.iplt ifunc-4-${abi}.t"] \
+	    "ifunc-4-${abi}" \
+        ] \
+	[list \
+	    "IFUNC 5 (Dynamic shared object with def and ref) ${abi}" \
+	    "$abi_ldflags($abi) -shared -T ifunc-dyn.ld" "" \
+	    "$abi_asflags($abi) -KPIC" \
+	    [list ifunc-dyn-def.s ifunc-dyn-ref.s] \
+	    [list "readelf -Ds ifunc-5-${abi}.sym" \
+                  "readelf -r ifunc-5-${abi}.r"] \
+	    "ifunc-5-${abi}" \
+        ] \
+	[list \
+	    "IFUNC 6 (Dynamic executable with def and ref) ${abi}" \
+	    "$abi_ldflags($abi) -Bdynamic -L./tmpdir -lifunc-2-${abi} -T ifunc-dyn.ld" "" \
+	    "$abi_asflags($abi)" \
+	    [list ifunc-dyn-main.s ifunc-dyn-def.s ifunc-dyn-ref.s] \
+	    [list "readelf -Ds ifunc-6-${abi}.sym" \
+                  "readelf -r ifunc-6-${abi}.r"] \
+	    "ifunc-6-${abi}" \
+        ] \
+    ]
+}
+
+# IPLT sequences change based on how big the address of the 
+# .igot.plt section is based on Mips loading immediate values. 
+# 
+set addrs { "0x400000" "0x400000000" "0x4000000000000" }
+foreach { addr } $addrs {
+    run_ld_link_tests [list \
+	[list \
+	    "IFUNC IPLT (Simple static executable with def and ref) ${addr}" \
+	    "$abi_ldflags(n64) -Bstatic -Ttext-segment ${addr}" "" \
+	    "$abi_asflags(n64) -non_shared" \
+	    [list ifunc-static-main.s ifunc-static-def.s ifunc-static-ref.s] \
+	    [list "objdump -dj.iplt ifunc-iplt-${addr}.t"] \
+	    "ifunc-iplt-${addr}" \
+        ] \
+    ]
+}
