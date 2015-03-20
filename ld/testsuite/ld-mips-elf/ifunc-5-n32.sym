@@ -1,0 +1,5 @@
+Symbol table for image:
+  Num Buc:    Value  Size   Type   Bind Vis      Ndx Name
+    2   0: 00000030    60 FUNC    GLOBAL DEFAULT   1 ref1
+    4   0: 0000000c    28 IFUNC   GLOBAL DEFAULT   1 func1
+    3   1: 0000000c    28 FUNC    GLOBAL DEFAULT   1 func1_ifunc
