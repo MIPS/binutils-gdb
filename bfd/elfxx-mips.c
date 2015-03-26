@@ -45,6 +45,7 @@
 #include "coff/mips.h"
 
 #include "hashtab.h"
+#include "objalloc.h"
 
 /* Types of TLS GOT entry.  */
 enum mips_got_tls_type {
@@ -422,6 +423,9 @@ struct mips_elf_link_hash_entry
 
   /* Does this symbol need an IPLT stub?  */
   unsigned int needs_iplt: 1;
+
+  /* Does this ifunc symbol need an GOT relocation?  */
+  unsigned int needs_ifunc_gotrel: 1;
 };
 
 /* MIPS ELF linker hash table.  */
@@ -528,6 +532,10 @@ struct mips_elf_link_hash_table
 
   /* Is the PLT header compressed?  */
   unsigned int plt_header_is_comp : 1;
+
+  /* Used by local STT_GNU_IFUNC symbols.  */
+  htab_t loc_hash_table;
+  void * loc_hash_memory;
 };
 
 /* Get the MIPS ELF linker hash table from a link_info structure.  */
@@ -763,8 +771,6 @@ static bfd_boolean mips_elf_create_dynamic_relocation
    bfd_vma *, asection *);
 static bfd_vma mips_elf_adjust_gp
   (bfd *, struct mips_got_info *, bfd *);
-static void mips_elf_allocate_ireloc
-  (struct bfd_link_info *);
 
 /* This will be used when we sort the dynamic relocation records.  */
 static bfd *reldyn_sorting_bfd;
@@ -1226,6 +1232,19 @@ static const bfd_vma mips32_exec_iplt_entry[] =
   0x00000000    /* nop                                  */
 };
 
+/* The format of dso IPLT entries.  */
+static const bfd_vma mips_dso_iplt_entry[] =
+{
+  0x03e07821,	/* addu t7, ra, r0				*/
+  0x04110001,	/* bal 8					*/
+  0x3c190000,	/* lui t9, %hi(<.got.plt slot offset>)		*/
+  0x033fc821,	/* addu t9, t9, ra				*/
+  0x8f390000,	/* l[wd] t9, %lo(<.got.plt slot offset>)(t9) 	*/
+  0x03200008,	/* jr $t9					*/
+  0x01e0f821,	/* addu ra, t7, r0				*/
+  0x00000000	/* nop						*/
+};
+
 /* The format of 64 bit IPLT entries.  */
 static const bfd_vma mips64_exec_iplt_entry[] =
 {
@@ -1338,6 +1357,7 @@ mips_elf_link_hash_newfunc (struct bfd_hash_entry *entry,
       ret->needs_lazy_stub = FALSE;
       ret->use_plt_entry = FALSE;
       ret->needs_iplt = FALSE;
+      ret->needs_ifunc_gotrel = FALSE;
       ret->iplt_offset = -1;
       ret->igot_offset = 0;
     }
@@ -2027,6 +2047,52 @@ mips_elf_add_la25_stub (struct bfd_link_info *info,
 	  : mips_elf_add_la25_intro (stub, info));
 }
 
+/* Return the dynamic relocation section.  If it doesn't exist, try to
+   create a new it if CREATE_P, otherwise return NULL.  Also return NULL
+   if creation fails.  */
+
+static asection *
+mips_elf_rel_dyn_section (struct bfd_link_info *info, bfd_boolean create_p)
+{
+  const char *dname;
+  asection *sreloc;
+  bfd *dynobj;
+
+  dname = MIPS_ELF_REL_DYN_NAME (info);
+  dynobj = elf_hash_table (info)->dynobj;
+  sreloc = bfd_get_linker_section (dynobj, dname);
+  if (sreloc == NULL && create_p)
+    {
+      sreloc = bfd_make_section_anyway_with_flags (dynobj, dname,
+						   (SEC_ALLOC
+						    | SEC_LOAD
+						    | SEC_HAS_CONTENTS
+						    | SEC_IN_MEMORY
+						    | SEC_LINKER_CREATED
+						    | SEC_READONLY));
+      if (sreloc == NULL
+	  || ! bfd_set_section_alignment (dynobj, sreloc,
+					  MIPS_ELF_LOG_FILE_ALIGN (dynobj)))
+	return NULL;
+    }
+  return sreloc;
+}
+
+/* Return section for R_MIPS_IRELATIVE relocations.  If the link is
+   dynamic, the relocations should go in .dynrel, otherwise they should
+   go in the special .rel.iplt section.  */
+
+static asection *
+get_irel_section(struct bfd_link_info *info,
+		 struct mips_elf_link_hash_table *htab)
+{
+  asection *srel = (elf_hash_table (info)->dynamic_sections_created)
+		    ? mips_elf_rel_dyn_section (info, FALSE)
+		    : htab->root.irelplt;
+  BFD_ASSERT (srel != NULL);
+  return srel;
+}
+
 /* Reserve space in the iplt and igot tables for another ifunc entry.
    Don't do anything if this is a dso link.  */
 static bfd_boolean
@@ -2034,12 +2100,12 @@ mips_elf_allocate_iplt (bfd *abfd, struct mips_elf_link_hash_table *mhtab,
 			struct bfd_link_info *info,
 			struct mips_elf_link_hash_entry *mh)
 {
-
   asection *s;
   int iplt_entry_size;
+  asection *srel;
+  bfd *dynobj;
 
   BFD_ASSERT (!mh->needs_iplt);
-  BFD_ASSERT (!info->shared);
   BFD_ASSERT (mhtab->root.iplt != NULL);
 
   s = mhtab->root.iplt;
@@ -2059,12 +2125,70 @@ mips_elf_allocate_iplt (bfd *abfd, struct mips_elf_link_hash_table *mhtab,
   BFD_ASSERT (mhtab->root.igotplt != NULL);
   mh->igot_offset = mhtab->root.igotplt->size;
   mhtab->root.igotplt->size += MIPS_ELF_GOT_SIZE (abfd);
-  mips_elf_allocate_ireloc (info);
+
+  srel = get_irel_section (info, mhtab);
+  dynobj = elf_hash_table (info)->dynobj;
+
+  if (mhtab->root.splt)
+    srel->size += MIPS_ELF_RELA_SIZE (dynobj);
+  else
+    srel->size += MIPS_ELF_REL_SIZE (dynobj);
 
   /* This should be the only place needs_iplt is set */
   mh->needs_iplt = TRUE;
 
   return TRUE;
+}
+
+/* hash_traverse callback that is called before sizing sections.
+   DATA points to a mips_htab_traverse_info structure.  */
+static bfd_boolean
+mips_elf_check_local_symbols (void **slot, void *data)
+{
+  struct mips_htab_traverse_info *hti =
+    (struct mips_htab_traverse_info *) data;
+  struct mips_elf_link_hash_entry *h =
+    (struct mips_elf_link_hash_entry *) *slot;
+
+  /* If the referenced symbol is ifunc, allocate an iplt for it.  */
+  if (h && !h->needs_iplt && h->root.type == STT_GNU_IFUNC)
+    {
+      struct bfd_link_info *info = hti->info;
+      if (!mips_elf_allocate_iplt (info->output_bfd,
+				   mips_elf_hash_table (info), info, h))
+	return FALSE;
+    }
+
+  return TRUE;
+}
+
+/* Add room for N relocations to the .rel(a).dyn section in ABFD.  */
+
+static void
+mips_elf_allocate_dynamic_relocations (bfd *abfd, struct bfd_link_info *info,
+				       unsigned int n)
+{
+  asection *s;
+  struct mips_elf_link_hash_table *htab;
+
+  htab = mips_elf_hash_table (info);
+  BFD_ASSERT (htab != NULL);
+
+  s = mips_elf_rel_dyn_section (info, FALSE);
+  BFD_ASSERT (s != NULL);
+
+  if (htab->is_vxworks)
+    s->size += n * MIPS_ELF_RELA_SIZE (abfd);
+  else
+    {
+      if (s->size == 0)
+	{
+	  /* Make room for a null element.  */
+	  s->size += MIPS_ELF_REL_SIZE (abfd);
+	  ++s->reloc_count;
+	}
+      s->size += n * MIPS_ELF_REL_SIZE (abfd);
+    }
 }
 
 /* A mips_elf_link_hash_traverse callback that is called before sizing
@@ -2080,13 +2204,22 @@ mips_elf_check_symbols (struct mips_elf_link_hash_entry *h, void *data)
     mips_elf_check_mips16_stubs (hti->info, h);
 
   /* If the referenced symbol is ifunc, allocate an iplt stub for it.  */
-  if (h && !h->needs_iplt && !hti->info->shared &&
+  if (h && !h->needs_iplt &&
       h->root.type == STT_GNU_IFUNC)
     {
       struct bfd_link_info *info = hti->info;
-      if (!mips_elf_allocate_iplt (info->output_bfd,
-				   mips_elf_hash_table (info), info, h))
-	return FALSE;
+
+      if (info->shared && !info->executable)
+	{
+	  h->needs_ifunc_gotrel = TRUE;
+	  mips_elf_allocate_dynamic_relocations (info->output_bfd, info, 1);
+	}
+      else
+	{
+	  if (!mips_elf_allocate_iplt (info->output_bfd,
+				       mips_elf_hash_table (info), info, h))
+	    return FALSE;
+	}
     }
 
   if (mips_elf_local_pic_function_p (h))
@@ -3244,37 +3377,6 @@ mips_elf_replace_bfd_got (bfd *abfd, struct mips_got_info *g)
   tdata->got = g;
 }
 
-/* Return the dynamic relocation section.  If it doesn't exist, try to
-   create a new it if CREATE_P, otherwise return NULL.  Also return NULL
-   if creation fails.  */
-
-static asection *
-mips_elf_rel_dyn_section (struct bfd_link_info *info, bfd_boolean create_p)
-{
-  const char *dname;
-  asection *sreloc;
-  bfd *dynobj;
-
-  dname = MIPS_ELF_REL_DYN_NAME (info);
-  dynobj = elf_hash_table (info)->dynobj;
-  sreloc = bfd_get_linker_section (dynobj, dname);
-  if (sreloc == NULL && create_p)
-    {
-      sreloc = bfd_make_section_anyway_with_flags (dynobj, dname,
-						   (SEC_ALLOC
-						    | SEC_LOAD
-						    | SEC_HAS_CONTENTS
-						    | SEC_IN_MEMORY
-						    | SEC_LINKER_CREATED
-						    | SEC_READONLY));
-      if (sreloc == NULL
-	  || ! bfd_set_section_alignment (dynobj, sreloc,
-					  MIPS_ELF_LOG_FILE_ALIGN (dynobj)))
-	return NULL;
-    }
-  return sreloc;
-}
-
 /* Return the GOT_TLS_* type required by relocation type R_TYPE.  */
 
 static int
@@ -3701,7 +3803,8 @@ mips_elf_got_page (bfd *abfd, bfd *ibfd, struct bfd_link_info *info,
 
 static bfd_vma
 mips_elf_got16_entry (bfd *abfd, bfd *ibfd, struct bfd_link_info *info,
-		      bfd_vma value, bfd_boolean external)
+		      bfd_vma value, bfd_boolean external,
+		      struct mips_elf_link_hash_entry *h)
 {
   struct mips_got_entry *entry;
 
@@ -3716,7 +3819,7 @@ mips_elf_got16_entry (bfd *abfd, bfd *ibfd, struct bfd_link_info *info,
      R_MIPS16_GOT16, R_MIPS_CALL16, etc.  The format of the entry is the
      same in all cases.  */
   entry = mips_elf_create_local_got_entry (abfd, info, ibfd, value, 0,
-					   NULL, R_MIPS_GOT16);
+					   h, R_MIPS_GOT16);
   if (entry)
     return entry->gotidx;
   else
@@ -3860,6 +3963,22 @@ mips_elf_create_local_got_entry (bfd *abfd, struct bfd_link_info *info,
       outrel.r_info = ELF32_R_INFO (STN_UNDEF, R_MIPS_32);
       outrel.r_addend = value;
       bfd_elf32_swap_reloca_out (abfd, &outrel, rloc);
+    }
+
+  if (h && h->needs_ifunc_gotrel)
+    {
+      asection *s;
+      bfd_vma got_address;
+
+      got_address = (htab->sgot->output_section->vma
+		     + htab->sgot->output_offset
+		     + entry->gotidx);
+      s = mips_elf_rel_dyn_section (info, FALSE);
+
+      mips_elf_output_dynamic_relocation (abfd, s,
+					  s->reloc_count++,
+					  0 /* sym_indx */,
+					  R_MIPS_IRELATIVE, got_address);
     }
 
   return entry;
@@ -4152,34 +4271,6 @@ mips_elf_record_got_page_ref (struct bfd_link_info *info, bfd *abfd,
   return TRUE;
 }
 
-/* Add room for N relocations to the .rel(a).dyn section in ABFD.  */
-
-static void
-mips_elf_allocate_dynamic_relocations (bfd *abfd, struct bfd_link_info *info,
-				       unsigned int n)
-{
-  asection *s;
-  struct mips_elf_link_hash_table *htab;
-
-  htab = mips_elf_hash_table (info);
-  BFD_ASSERT (htab != NULL);
-
-  s = mips_elf_rel_dyn_section (info, FALSE);
-  BFD_ASSERT (s != NULL);
-
-  if (htab->is_vxworks)
-    s->size += n * MIPS_ELF_RELA_SIZE (abfd);
-  else
-    {
-      if (s->size == 0)
-	{
-	  /* Make room for a null element.  */
-	  s->size += MIPS_ELF_REL_SIZE (abfd);
-	  ++s->reloc_count;
-	}
-      s->size += n * MIPS_ELF_REL_SIZE (abfd);
-    }
-}
 
 /* A htab_traverse callback for GOT entries, with DATA pointing to a
    mips_elf_traverse_got_arg structure.  Count the number of GOT
@@ -5199,9 +5290,10 @@ mips_elf_create_ifunc_sections (struct bfd_link_info *info)
   bfd *dynobj;
   asection *s;
   flagword flags;
+  const char *sect_names[2] = {".rel.iplt", ".rela.iplt"};
 
   /* Don't do anything if a dso link.  */
-  if (info->shared)
+  if (info->shared && !info->executable)
     return TRUE;
 
   htab = mips_elf_hash_table (info);
@@ -5217,27 +5309,34 @@ mips_elf_create_ifunc_sections (struct bfd_link_info *info)
   htab->root.iplt = s;
   if (ABI_64_P (dynobj))
     htab->iplt_entry_size = 4 * ARRAY_SIZE (mips64_exec_iplt_entry);
-  else
-    htab->iplt_entry_size = 4 * ARRAY_SIZE (mips32_exec_iplt_entry);
+  else 
+    {
+      if (info->shared)
+	htab->iplt_entry_size = 4 * ARRAY_SIZE (mips_dso_iplt_entry);
+      else
+	htab->iplt_entry_size = 4 * ARRAY_SIZE (mips32_exec_iplt_entry);
+    }
 
   BFD_ASSERT (htab->root.igotplt == NULL);
-      s = bfd_make_section_anyway_with_flags (dynobj, ".igot.plt", flags);
-      if (s == NULL
-	  || !bfd_set_section_alignment (dynobj, s, bed->s->log_file_align))
-	return FALSE;
-      htab->root.igotplt = s;
-      mips_elf_section_data (s)->elf.this_hdr.sh_flags |= SHF_ALLOC | SHF_WRITE;
+
+  s = bfd_make_section_anyway_with_flags (dynobj, ".igot.plt", flags);
+  if (s == NULL
+      || !bfd_set_section_alignment (dynobj, s, bed->s->log_file_align))
+    return FALSE;
+  htab->root.igotplt = s;
+  mips_elf_section_data (s)->elf.this_hdr.sh_flags |= SHF_ALLOC | SHF_WRITE;
 
   BFD_ASSERT (htab->root.irelplt == NULL);
-      s = bfd_make_section_with_flags (dynobj,
-				      ".rela.iplt",
-				      flags | SEC_READONLY);
-      if (s == NULL
-	  || !bfd_set_section_alignment (dynobj, s, bed->s->log_file_align))
-	return FALSE;
-      htab->root.irelplt = s;
-      mips_elf_section_data (s)->elf.this_hdr.sh_entsize =
-	MIPS_ELF_RELA_SIZE (dynobj);
+
+  s = bfd_make_section_with_flags (dynobj,
+				   sect_names[htab->root.splt?1:0],
+				   flags | SEC_READONLY);
+  if (s == NULL
+      || !bfd_set_section_alignment (dynobj, s, bed->s->log_file_align))
+    return FALSE;
+  htab->root.irelplt = s;
+/*   mips_elf_section_data (s)->elf.this_hdr.sh_entsize = */
+/*     MIPS_ELF_RELA_SIZE (dynobj); */
 
   return TRUE;
 }
@@ -5721,7 +5820,6 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
 		+ h->iplt_offset);
       if (ELF_ST_IS_MIPS16 (h->root.other))
 	symbol |= 1;
-
     }
 
   /* Make sure MIPS16 and microMIPS are not used together.  */
@@ -6110,7 +6208,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       if (!htab->is_vxworks && local_p)
 	{
 	  value = mips_elf_got16_entry (abfd, input_bfd, info,
-					symbol + addend, !was_local_p);
+					symbol + addend, !was_local_p, h);
 	  if (value == MINUS_ONE)
 	    return bfd_reloc_outofrange;
 	  value
@@ -8067,32 +8165,65 @@ mips_elf_make_plt_record (bfd *abfd)
   return entry;
 }
 
-/* Return section for R_MIPS_IRELATIVE relocations.  If the link is
-   dynamic, the relocations should go in .dynrel, otherwise they should
-   go in the special .rel.iplt section.  */
-
-static asection *
-get_irel_section(struct bfd_link_info *info,
-		 struct mips_elf_link_hash_table *htab)
+/* Find and/or create a hash entry for local symbol.  */
+static struct mips_elf_link_hash_entry *
+get_local_sym_hash (struct mips_elf_link_hash_table *htab,
+			     bfd *abfd, const Elf_Internal_Rela *rel)
 {
-  asection *srel = (elf_hash_table (info)->dynamic_sections_created)
-		    ? mips_elf_rel_dyn_section (info, FALSE)
-		    : htab->root.irelplt;
-  BFD_ASSERT (srel != NULL);
-  return srel;
-}
+  struct mips_elf_link_hash_entry e, *ret;
+  asection *sec;
+  hashval_t h;
+  void **slot;
+  Elf_Internal_Sym *isym;
+  Elf_Internal_Shdr *symtab_hdr;
+  char *namep;
 
-/* Reserve space for R_MIPS_IRELATIVE relocations.  */
+  sec = abfd->sections;
+  h = ELF_LOCAL_SYMBOL_HASH (sec->id, ELF_R_SYM (abfd, rel->r_info));
+  isym = bfd_sym_from_r_symndx (&htab->sym_cache, abfd,
+				ELF_R_SYM (abfd, rel->r_info));
+  symtab_hdr =  &elf_tdata (abfd)->symtab_hdr;
+  namep = bfd_elf_string_from_elf_section (abfd, symtab_hdr->sh_link,
+					   isym->st_name);
 
-static void
-mips_elf_allocate_ireloc (struct bfd_link_info *info)
-{
-  struct mips_elf_link_hash_table *htab = mips_elf_hash_table (info);
-  asection *srel = get_irel_section(info, htab);
-  bfd *dynobj = elf_hash_table (info)->dynobj;
-  BFD_ASSERT (dynobj != NULL);
+  if (ELF_ST_TYPE (isym->st_info) == STT_GNU_IFUNC)
+    elf_tdata (abfd)->has_gnu_symbols = TRUE;
 
-  srel->size += MIPS_ELF_RELA_SIZE (dynobj);
+  e.root.indx = sec->id;
+  e.root.dynstr_index = ELF_R_SYM (abfd, rel->r_info);
+  e.root.root.root.string = namep;
+
+  slot = htab_find_slot_with_hash (htab->loc_hash_table, &e, h, INSERT);
+  if (!slot)
+    return NULL;
+
+  /* Found match */
+  if (*slot)
+    {
+      ret = (struct mips_elf_link_hash_entry *) *slot;
+      return ret;
+    }
+
+  /* Allocate new slot */
+  ret = (struct mips_elf_link_hash_entry *)
+	objalloc_alloc ((struct objalloc *) htab->loc_hash_memory,
+			sizeof (struct mips_elf_link_hash_entry));
+
+  if (ret)
+    {
+      memset (ret, 0, sizeof (*ret));
+      ret->root.indx = sec->id;
+      ret->root.dynstr_index = ELF_R_SYM (abfd, rel->r_info);
+      ret->root.dynindx = -1;
+      ret->root.root.root.string = namep;
+      ret->root.root.u.def.section = sec;
+      ret->root.root.u.def.value = isym->st_value;
+      ret->root.got.offset = (bfd_vma) -1;
+      ret->global_got_area = GGA_NONE;
+      *slot = ret;
+    }
+
+  return ret;
 }
 
 /* Look through the relocs for a section during the first phase, and
@@ -8402,9 +8533,33 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 
       r_symndx = ELF_R_SYM (abfd, rel->r_info);
       r_type = ELF_R_TYPE (abfd, rel->r_info);
-
       if (r_symndx < extsymoff)
-	h = NULL;
+	{
+	  Elf_Internal_Sym *isym;
+	  isym = bfd_sym_from_r_symndx (&htab->sym_cache, abfd, r_symndx);
+
+	  if (isym == NULL)
+	    return FALSE;
+
+	  /* Check relocation for local STT_GNU_IFUNC symbol */
+	  if (isym->st_info == STT_GNU_IFUNC)
+	    {
+	      /* Add local IFUNC symbol to hash-table */
+	      struct mips_elf_link_hash_entry *h1 = get_local_sym_hash (htab, abfd, rel);
+	      h = &h1->root;
+	      if (h == NULL)
+		return FALSE;
+
+	      /* Fake a STT_GNU_IFUNC with the new hash entry */
+	      h->type = STT_GNU_IFUNC;
+	      h->def_regular = 1;
+	      h->ref_regular = 1;
+	      h->forced_local = 1;
+	      h->root.type = bfd_link_hash_defined;
+	    }
+	  else
+	    h = NULL;
+      }
       else if (r_symndx >= extsymoff + NUM_SHDR_ENTRIES (symtab_hdr))
 	{
 	  (*_bfd_error_handler)
@@ -9105,13 +9260,6 @@ allocate_dynrelocs (struct elf_link_hash_entry *h, void *inf)
   if (h->root.type == bfd_link_hash_indirect)
     return TRUE;
 
-  /* Record any ifunc symbols */
-  if (h && hmips->needs_iplt)
-    {
-      mips_elf_allocate_ireloc (info);
-      return TRUE;
-    }
-
   /* If this symbol is defined in a dynamic object, or we are creating
      a shared library, we will need to copy any R_MIPS_32 or
      R_MIPS_REL32 relocs against it into the output file.  */
@@ -9470,6 +9618,11 @@ _bfd_mips_elf_always_size_sections (bfd *output_bfd,
   hti.error = FALSE;
   mips_elf_link_hash_traverse (mips_elf_hash_table (info),
 			       mips_elf_check_symbols, &hti);
+
+  /* Allocate relocs for local IFUNC symbols */
+  htab_traverse (htab->loc_hash_table,
+		 mips_elf_check_local_symbols, &hti);
+
   if (hti.error)
     return FALSE;
 
@@ -10711,19 +10864,21 @@ mips_elf_create_iplt (bfd *output_bfd,
   bfd_byte *loc;
   bfd_vma igot_index = 0;
   bfd_vma igotplt_address = 0;
+  bfd_vma igot_offset = 0;
   bfd_vma load;
   const bfd_vma *iplt_entry;
   asection *gotsect, *relsect;
 
-  gotsect = htab->root.igotplt;
-  igot_index = hmips->igot_offset / MIPS_ELF_GOT_SIZE (dynobj);
+  relsect = get_irel_section (info, htab);
 
-  relsect = get_irel_section(info, htab);
+  gotsect = htab->root.igotplt;
+  igot_offset = hmips->igot_offset;
+  igot_index = igot_offset / MIPS_ELF_GOT_SIZE (dynobj);
 
   /* Calculate the address of the .igot.plt entry.  */
   igotplt_address = (gotsect->output_section->vma
 		     + gotsect->output_offset
-		     + hmips->igot_offset);
+		     + igot_offset);
 
   /* Initially point the .got.iplt entry at the user ifunc routine.  */
   if (!gotsect->contents)
@@ -10797,7 +10952,7 @@ mips_elf_create_iplt (bfd *output_bfd,
 	  bfd_put_16 (output_bfd, plt_entry[5], loc + 10);
 	  bfd_put_32 (output_bfd, igotplt_address, loc + 12);
 	}
-      else
+      else if (!info->shared)
 	{
 	  bfd_vma high = mips_elf_high (igotplt_address);
 	  bfd_vma low = igotplt_address & 0xffff;
@@ -10817,6 +10972,27 @@ mips_elf_create_iplt (bfd *output_bfd,
 	      bfd_put_32 (output_bfd, iplt_entry[2], loc + 12);
 	    }
 	}
+      else
+	{
+	  /* Dsos. */
+	  bfd_vma iplt_address = (htab->root.iplt->output_section->vma
+				  + htab->root.iplt->output_offset
+				  + hmips->iplt_offset
+				  + 8 /* bal target */);
+	  bfd_vma igotplt_offset = igotplt_address - (iplt_address + MIPS_ELF_GOT_SIZE (dynobj));
+	  bfd_vma igotplt_address_high = ((igotplt_offset + 0x8000) >> 16) & 0xffff;
+	  bfd_vma igotplt_address_low = igotplt_offset & 0xffff;
+
+	  iplt_entry = mips_dso_iplt_entry;
+	  bfd_put_32 (output_bfd, iplt_entry[0], loc);
+	  bfd_put_32 (output_bfd, iplt_entry[1] , loc + 4);
+	  bfd_put_32 (output_bfd, iplt_entry[2] | igotplt_address_high, loc + 8);
+	  bfd_put_32 (output_bfd, iplt_entry[3], loc + 12);
+	  bfd_put_32 (output_bfd, iplt_entry[4] | igotplt_address_low, loc + 16);
+	  bfd_put_32 (output_bfd, iplt_entry[5], loc + 20);
+	  bfd_put_32 (output_bfd, iplt_entry[6], loc + 24);
+	  bfd_put_32 (output_bfd, iplt_entry[7], loc + 28);
+	}
     }
 
   /* Emit an R_MIPS_IRELATIVE relocation against the igot entry.  */
@@ -10829,10 +11005,9 @@ mips_elf_create_iplt (bfd *output_bfd,
     }
 
   mips_elf_output_dynamic_relocation (output_bfd, relsect,
-      relsect->reloc_count,
+      relsect->reloc_count++,
       0 /* sym_indx */,
       R_MIPS_IRELATIVE, igotplt_address);
-  relsect->reloc_count++;
 
   return TRUE;
 }
@@ -11164,16 +11339,38 @@ _bfd_mips_elf_finish_dynamic_symbol (bfd *output_bfd,
       sym->st_other = other;
     }
 
-  /* IFUNC symbols get an iplt stub  */
-  if (hmips->needs_iplt)
+
+  if (h->type == STT_GNU_IFUNC)
     {
-      if (!mips_elf_create_iplt (output_bfd, dynobj, htab, hmips, sym, info))
-	return FALSE;
-      // Ifunc in static links do not go past here
-      if (!elf_hash_table (info)->dynamic_sections_created)
-	return TRUE;
-      if (h->dynindx == -1  && !h->forced_local)
-	return TRUE;
+      /* IFUNC symbols get an iplt stub  */
+      if (hmips->needs_iplt)
+	{
+	  if (!mips_elf_create_iplt (output_bfd, dynobj, htab, hmips,
+				     sym, info))
+	    return FALSE;
+	  if (!elf_hash_table (info)->dynamic_sections_created)
+	    return TRUE;
+	  if (h->dynindx == -1  && !h->forced_local)
+	    return TRUE;
+	}
+      /* Shared ifunc code needs an IRELATIVE reloc at the GOT entry */
+      else if (hmips->needs_ifunc_gotrel && hmips->global_got_area != GGA_NONE)
+	{
+	  asection *s;
+	  bfd_vma got_address;
+	  bfd_vma gotidx = mips_elf_primary_global_got_index (output_bfd,
+							      info, h);
+
+	  got_address = (htab->sgot->output_section->vma
+			 + htab->sgot->output_offset
+			 + gotidx);
+	  s = mips_elf_rel_dyn_section (info, FALSE);
+
+	  mips_elf_output_dynamic_relocation (output_bfd, s,
+					      s->reloc_count++,
+					      0 /* sym_indx */,
+					      R_MIPS_IRELATIVE, got_address);
+	}
     }
 
   /* If we have a MIPS16 function with a stub, the dynamic symbol must
@@ -11343,14 +11540,38 @@ _bfd_mips_elf_finish_dynamic_symbol (bfd *output_bfd,
     {
       /* Point at the iplt stub for this ifunc symbol.  */
       sym->st_value = htab->root.iplt->output_section->vma +
-		      htab->root.iplt->output_offset +
-		      hmips->iplt_offset;
+	htab->root.iplt->output_offset +
+	hmips->iplt_offset;
       sym->st_info = ELF_ST_INFO (STB_GLOBAL, STT_FUNC);
       if (ELF_ST_IS_MIPS16 (hmips->root.other))
 	sym->st_value |= 1;
     }
 
   return TRUE;
+}
+
+/* Finish up local dynamic symbol handling.  We set the contents of
+   various dynamic sections here.  */
+static bfd_boolean
+ elf_mips_finish_local_dynamic_symbol (void **slot, void *inf)
+{
+  struct mips_elf_link_hash_entry *h = (struct mips_elf_link_hash_entry *) *slot;
+  struct {
+    void *inf;
+    void *htab;
+  } *tinfo = inf;
+  struct bfd_link_info *info;
+  struct mips_elf_link_hash_table *htab;
+  Elf_Internal_Sym *isym;
+
+  info = (struct bfd_link_info *)tinfo->inf;
+  htab = (struct mips_elf_link_hash_table *)tinfo->htab;
+  isym = bfd_sym_from_r_symndx (&htab->sym_cache, info->output_bfd,
+				ELF_R_SYM (info->output_bfd,
+					   h->root.dynstr_index));
+
+  return _bfd_mips_elf_finish_dynamic_symbol (info->output_bfd, info,
+					      &h->root, isym);
 }
 
 /* Likewise, for VxWorks.  */
@@ -12178,6 +12399,19 @@ _bfd_mips_elf_finish_dynamic_sections (bfd *output_bfd,
 	    return FALSE;
 	}
     }
+
+  {
+    struct
+    {
+      struct bfd_link_info *info;
+      struct mips_elf_link_hash_table *htab;
+    } tinfo = {info, htab};
+
+    /* Fill PLT and GOT entries for local STT_GNU_IFUNC symbols.  */
+    htab_traverse (htab->loc_hash_table, elf_mips_finish_local_dynamic_symbol,
+		   &tinfo);
+  }
+
   return TRUE;
 }
 
@@ -14241,6 +14475,48 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
   return FALSE;
 }
 
+/* Compute a hash of a local hash entry.  We use elf_link_hash_entry
+  for local symbol so that we can handle local STT_GNU_IFUNC symbols
+  as global symbol.  We reuse indx and dynstr_index for local symbol
+  hash since they aren't used by global symbols in this backend.  */
+
+static hashval_t
+local_htab_hash (const void *ptr)
+{
+  struct  mips_elf_link_hash_entry *h =
+    (struct  mips_elf_link_hash_entry *) ptr;
+  return ELF_LOCAL_SYMBOL_HASH (h->root.indx, h->root.dynstr_index);
+}
+
+/* Compare local hash entries.  */
+
+static int
+local_htab_eq (const void *ptr1, const void *ptr2)
+{
+  struct mips_elf_link_hash_entry *h1 =
+    (struct mips_elf_link_hash_entry *) ptr1;
+  struct  mips_elf_link_hash_entry *h2 =
+    (struct  mips_elf_link_hash_entry *) ptr2;
+
+  return h1->root.indx == h2->root.indx &&
+    h1->root.dynstr_index == h2->root.dynstr_index;
+}
+
+/* Destroy a MIPS ELF linker hash table.  */
+
+static void
+_bfd_mips_elf_link_hash_table_free (bfd *obfd)
+{
+  struct mips_elf_link_hash_table *htab;
+
+  htab = (struct mips_elf_link_hash_table *) obfd->link.hash;
+  if (htab->loc_hash_table)
+    htab_delete (htab->loc_hash_table);
+  if (htab->loc_hash_memory)
+    objalloc_free ((struct objalloc *) htab->loc_hash_memory);
+  _bfd_elf_link_hash_table_free (obfd);
+}
+
 /* Create a MIPS ELF linker hash table.  */
 
 struct bfd_link_hash_table *
@@ -14264,6 +14540,16 @@ _bfd_mips_elf_link_hash_table_create (bfd *abfd)
   ret->root.init_plt_refcount.plist = NULL;
   ret->root.init_plt_offset.plist = NULL;
 
+  ret->loc_hash_table = htab_try_create (1024,
+					 local_htab_hash,
+					 local_htab_eq,
+					 NULL);
+  ret->loc_hash_memory = objalloc_create ();
+  if (!ret->loc_hash_table || !ret->loc_hash_memory)
+    {
+      _bfd_mips_elf_link_hash_table_free (abfd);
+      return NULL;
+    }
   return &ret->root.root;
 }
 
