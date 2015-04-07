@@ -96,6 +96,7 @@ extern struct bfd_elf_version_expr *ldemul_new_vers_pattern
   (struct bfd_elf_version_expr *);
 extern void ldemul_extra_map_file_text
   (bfd *, struct bfd_link_info *, FILE *);
+extern void gldelf_list_options (FILE *, bfd_boolean);
 
 typedef struct ld_emulation_xfer_struct {
   /* Run before parsing the command line and script file.
