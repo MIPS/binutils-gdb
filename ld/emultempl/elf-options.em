@@ -42,14 +42,12 @@ fragment <<EOF
    MA 02110-1301, USA.  */
 
 void
-gldelf_shlib_list_options (FILE * file)
+gld_shlib_list_options (FILE * file)
 {
   fprintf (file, _("\
   --audit=AUDITLIB            Specify a library to use for auditing\n"));
   fprintf (file, _("\
   -Bgroup                     Selects group name lookup rules for DSO\n"));
-  fprintf (file, _("\
-  --build-id[=STYLE]          Generate build ID note\n"));
   fprintf (file, _("\
   -P AUDITLIB, --depaudit=AUDITLIB\n" "\
 			      Specify a library to use for auditing dependencies\n"));
@@ -66,12 +64,6 @@ gldelf_shlib_list_options (FILE * file)
   fprintf (file, _("\
   -z combreloc                Merge dynamic relocs into one section and sort\n"));
   fprintf (file, _("\
-  -z common-page-size=SIZE    Set common page size to SIZE\n"));
-  fprintf (file, _("\
-  -z defs                     Report unresolved symbols in object files.\n"));
-  fprintf (file, _("\
-  -z execstack                Mark executable as requiring executable stack\n"));
-  fprintf (file, _("\
   -z global                   Make symbols in DSO available for subsequently\n\
 			       loaded objects\n"));
   fprintf (file, _("\
@@ -82,10 +74,6 @@ gldelf_shlib_list_options (FILE * file)
   -z lazy                     Mark object lazy runtime binding (default)\n"));
   fprintf (file, _("\
   -z loadfltr                 Mark object requiring immediate process\n"));
-  fprintf (file, _("\
-  -z max-page-size=SIZE       Set maximum page size to SIZE\n"));
-  fprintf (file, _("\
-  -z muldefs                  Allow multiple definitions\n"));
   fprintf (file, _("\
   -z nocombreloc              Don't merge dynamic relocs into one section\n"));
   fprintf (file, _("\
@@ -98,8 +86,6 @@ gldelf_shlib_list_options (FILE * file)
   -z nodlopen                 Mark DSO not available to dlopen\n"));
   fprintf (file, _("\
   -z nodump                   Mark DSO not available to dldump\n"));
-  fprintf (file, _("\
-  -z noexecstack              Mark executable as not requiring executable stack\n"));
   fprintf (file, _("\
   -z text                     Treat DT_TEXTREL in shared object as error\n"));
   fprintf (file, _("\
@@ -117,5 +103,24 @@ gldelf_shlib_list_options (FILE * file)
   -z relro                    Create RELRO program header\n"));
   fprintf (file, _("\
   -z stacksize=SIZE           Set size of stack segment\n"));
+}
+
+void
+gld_list_options (FILE * file)
+{
+  fprintf (file, _("\
+  --build-id[=STYLE]          Generate build ID note\n"));
+  fprintf (file, _("\
+  -z common-page-size=SIZE    Set common page size to SIZE\n"));
+  fprintf (file, _("\
+  -z max-page-size=SIZE       Set maximum page size to SIZE\n"));
+  fprintf (file, _("\
+  -z defs                     Report unresolved symbols in object files.\n"));
+  fprintf (file, _("\
+  -z muldefs                  Allow multiple definitions\n"));
+  fprintf (file, _("\
+  -z execstack                Mark executable as requiring executable stack\n"));
+  fprintf (file, _("\
+  -z noexecstack              Mark executable as not requiring executable stack\n"));
 }
 EOF
