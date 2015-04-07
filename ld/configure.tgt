@@ -791,6 +791,12 @@ z8k-*-coff) 		targ_emul=z8002; targ_extra_emuls=z8001
 
 esac
 
+case "${targ_emul} ${targ_extra_emuls}" in
+*elf*)
+  targ_extra_ofiles="$targ_extra_ofiles elf-options.o"
+  ;;
+esac
+
 NATIVE_LIB_DIRS='/usr/local/lib /lib /usr/lib'
 case "${target}" in
 

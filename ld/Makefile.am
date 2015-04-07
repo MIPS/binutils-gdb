@@ -501,7 +501,8 @@ ALL_64_EMULATIONS = $(ALL_64_EMULATION_SOURCES:.c=.@OBJEXT@)
 
 ALL_EMUL_EXTRA_OFILES = \
 	deffilep.@OBJEXT@ \
-	pe-dll.@OBJEXT@
+	pe-dll.@OBJEXT@ \
+	elf-options.@OBJEXT@
 
 ALL_64_EMUL_EXTRA_OFILES = \
 	pep-dll.@OBJEXT@
@@ -509,7 +510,7 @@ ALL_64_EMUL_EXTRA_OFILES = \
 CFILES = ldctor.c ldemul.c ldexp.c ldfile.c ldlang.c \
 	ldmain.c ldmisc.c ldver.c ldwrite.c lexsup.c \
 	mri.c ldcref.c pe-dll.c pep-dll.c ldlex-wrapper.c \
-	$(PLUGIN_C) ldbuildid.c
+	$(PLUGIN_C) ldbuildid.c elf-options.c
 
 HFILES = ld.h ldctor.h ldemul.h ldexp.h ldfile.h \
 	ldlang.h ldlex.h ldmain.h ldmisc.h ldver.h \
@@ -1992,7 +1993,7 @@ eshlelf64_nbsd.c: $(srcdir)/emulparams/shlelf64_nbsd.sh \
 # We need this for automake to use YLWRAP.
 EXTRA_ld_new_SOURCES = deffilep.y ldlex.l
 # Allow dependency tracking to work for these files, too.
-EXTRA_ld_new_SOURCES += pep-dll.c pe-dll.c
+EXTRA_ld_new_SOURCES += pep-dll.c pe-dll.c elf-options.c
 
 ld_new_SOURCES = ldgram.y ldlex-wrapper.c lexsup.c ldlang.c mri.c ldctor.c ldmain.c \
 	ldwrite.c ldexp.c ldemul.c ldver.c ldmisc.c ldfile.c ldcref.c $(PLUGIN_C) \
