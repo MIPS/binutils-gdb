@@ -110,7 +110,7 @@ if [ "$ver" != "$AUTOMAKE_VERSION" ]; then
 fi
 
 # Verify that we have the correct version of aclocal.
-ver=`aclocal --version 2>&1 | head -1 | sed 's/.*) //'`
+ver=`aclocal --version 2>&1 | grep -v "called too early to check prototype" | head -1 | sed 's/.*) //'`
 if [ "$ver" != "$ACLOCAL_VERSION" ]; then
    echo "Error: Wrong aclocal version: $ver. Aborting."
    exit 1
