@@ -10515,7 +10515,7 @@ mips_elf_create_la25_stub (void **slot, void *data)
   asection *s;
   bfd_byte *loc;
   bfd_vma offset, target, target_high, target_low;
-  bfd_vma pc;
+  bfd_vma branch_pc;
   bfd_signed_vma pcrel_offset = 0;
 
   stub = (struct mips_elf_la25_stub *) *slot;
@@ -10540,7 +10540,9 @@ mips_elf_create_la25_stub (void **slot, void *data)
   /* Work out where in the section this stub should go.  */
   offset = stub->offset;
 
-  pc = s->output_section->vma + s->output_offset + offset;
+  /* We add 8 here to account for the lui/addiu instructions
+     before the branch instruction.  */
+  branch_pc = s->output_section->vma + s->output_offset + offset + 8;
 
   /* Work out the target address.  */
   target = mips_elf_get_la25_target (stub, &s);
@@ -10557,7 +10559,7 @@ mips_elf_create_la25_stub (void **slot, void *data)
       /* TODO: We need to check if we have overflowed here, and use a
 	 out of range branch trampoline.  micromips and mips have
 	 different ranges here.  */
-      pcrel_offset = target - (pc + 4);
+      pcrel_offset = target - (branch_pc + 4);
     }
 
 
