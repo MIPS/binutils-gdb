@@ -296,7 +296,7 @@
   NIA = do_bnxxxc (SD_, RT, RS, EXTEND16 (OFFSET) << 1, NIA);
 }
 
-111001,5.RT,5.RS,16.OFFSET:MICROMIPSR6:32::B1xxC
+111101,5.RT,5.RS,16.OFFSET:MICROMIPSR6:32::B1xxC
 "blezc r<RT>, <OFFSET>": RS==0&&RT!=0
 "bgezc r<RT>, <OFFSET>":RS!=0&&RS==RT
 "bgec r<RS>, r<RT>, <OFFSET>"
@@ -306,7 +306,7 @@
   NIA = do_b1xxc (SD_, RT, RS, EXTEND16 (OFFSET) << 1, NIA);
 }
 
-110001,5.RT,5.RS,16.OFFSET:MICROMIPSR6:32::B2xxC
+110101,5.RT,5.RS,16.OFFSET:MICROMIPSR6:32::B2xxC
 "bgtzc r<RT>, <OFFSET>":RS==0&&RT!=0
 "bltzc r<RT>, <OFFSET>":RS!=0&&RS==RT
 "bltc r<RS>, r<RT>, <OFFSET>"
@@ -368,7 +368,7 @@
   NIA = do_jic (SD_, RT, OFFSET);
 }
 
-101001,5.RS!0,21.OFFSET:MICROMIPSR6:32::BNEZC
+100000,5.RS!0,21.OFFSET:MICROMIPSR6:32::BNEZC
 "bnezc r<RS>, <OFFSET>"
 *micromips32r6:
 *micromips64r6:
@@ -376,7 +376,7 @@
   NIA = do_bnezc (SD_, RS, EXTEND21 (OFFSET) << 1, NIA);
 }
 
-101001,00000,5.RT,16.OFFSET:MICROMIPSR6:32::JIALC
+100000,00000,5.RT,16.OFFSET:MICROMIPSR6:32::JIALC
 "jialc <OFFSET>(r<RT>)"
 *micromips32r6:
 *micromips64r6:
@@ -606,24 +606,6 @@
 *micromips64r6:
 {
   NIA = do_bnezc (SD_, TRS, EXTEND7 (IMMEDIATE) << 1, NIA);
-}
-
-110101,26.IMMEDIATE:MICROMIPS:32::JC
-"jc <IMM_SHIFT_1BIT>"
-*micromips32r6:
-*micromips64r6:
-{
-  NIA = (CIA & MASK (63, 27)) | IMM_SHIFT_1BIT;
-}
-
-
-111101,26.IMMEDIATE:MICROMIPS:32::JALC
-"jalc <IMM_SHIFT_1BIT>"
-*micromips32r6:
-*micromips64r6:
-{
-  RA = NIA | ISA_MODE_MICROMIPS;
-  NIA = (CIA & MASK(63, 27)) | IMM_SHIFT_1BIT;
 }
 
 :function:::address_word:do_micromips_jalrc:int rt, int rs, address_word nia
