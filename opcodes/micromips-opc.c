@@ -463,7 +463,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"bgeul",		"s,t,p",	0,    (int) M_BGEUL,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"bgeul",		"s,I,p",	0,    (int) M_BGEUL_I,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"bgez",		"s,p",		0x40400000, 0xffe00000,	RD_1|CBD,		0,		I1,		0,	I37 },
-{"bgez",		"+;,p",		0xe4000000, 0xfc000000,	RD_1,			INSN2_ALIAS|CBR|CTC, I37, 	0,	0 }, /* bgezc */
+{"bgez",		"+;,p",		0xf4000000, 0xfc000000,	RD_1,			INSN2_ALIAS|CBR|CTC, I37, 	0,	0 }, /* bgezc */
 {"bgezl",		"s,p",		0,    (int) M_BGEZL,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"bgezal",		"s,p",		0x40600000, 0xffe00000,	RD_1|WR_31|CBD,		BD32,		I1,		0,	I37 },
 {"bgezal",		"+;,p",		0xc0000000, 0xfc000000,	RD_1|WR_31,		INSN2_ALIAS|CBR|CTC,		I37,		0,	0 }, /* bgezalc */
@@ -478,7 +478,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"bgtul",		"s,t,p",	0,    (int) M_BGTUL,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"bgtul",		"s,I,p",	0,    (int) M_BGTUL_I,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"bgtz",		"s,p",		0x40c00000, 0xffe00000,	RD_1|CBD,		0,		I1,		0,	I37 },
-{"bgtz",		"-t,p",		0xc4000000, 0xfc1f0000,	RD_1,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* bgtzc */
+{"bgtz",		"-t,p",		0xd4000000, 0xfc1f0000,	RD_1,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* bgtzc */
 {"bgtzl",		"s,p",		0,    (int) M_BGTZL,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"ble",			"s,t,p",	0,    (int) M_BLE,	INSN_MACRO,		0,		I1,		0,	0 },
 {"ble",			"s,I,p",	0,    (int) M_BLE_I,	INSN_MACRO,		0,		I1,		0,	0 },
@@ -489,7 +489,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"bleul",		"s,t,p",	0,    (int) M_BLEUL,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"bleul",		"s,I,p",	0,    (int) M_BLEUL_I,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"blez",		"s,p",		0x40800000, 0xffe00000,	RD_1|CBD,		0,		I1,		0,	I37 },
-{"blez",		"-t,p",		0xe4000000, 0xfc1f0000,	RD_1,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* blezc */
+{"blez",		"-t,p",		0xf4000000, 0xfc1f0000,	RD_1,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* blezc */
 {"blezl",		"s,p",		0,    (int) M_BLEZL,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"blt",			"s,t,p",	0,    (int) M_BLT,	INSN_MACRO,		0,		I1,		0,	0 },
 {"blt",			"s,I,p",	0,    (int) M_BLT_I,	INSN_MACRO,		0,		I1,		0,	0 },
@@ -500,7 +500,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"bltul",		"s,t,p",	0,    (int) M_BLTUL,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"bltul",		"s,I,p",	0,    (int) M_BLTUL_I,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"bltz",		"s,p",		0x40000000, 0xffe00000,	RD_1|CBD,		0,		I1,		0,	I37 },
-{"bltz",		"+;,p",		0xc4000000, 0xfc000000,	RD_1,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* bltzc */
+{"bltz",		"+;,p",		0xd4000000, 0xfc000000,	RD_1,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* bltzc */
 {"bltzl",		"s,p",		0,    (int) M_BLTZL,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"bltzal",		"s,p",		0x40200000, 0xffe00000,	RD_1|WR_31|CBD,		BD32,		I1,		0,	I37 },
 {"bltzal",		"+;,p",		0xe0000000, 0xfc000000,	RD_1|WR_31,		INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* bltzalc */
@@ -509,9 +509,9 @@ const struct mips_opcode micromips_opcodes[] =
 {"bnez",		"md,mE",	    0xac00,     0xfc00,	RD_1|CBD,		0,		I1,		0,	I37 },
 {"bnez",		"md,mE",	    0xac00,     0xfc00,	RD_1,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* bnezc */
 {"bnez",		"s,p",		0xb4000000, 0xffe00000,	RD_1|CBD,		0,		I1,		0,	I37 },
-{"bnez",		"-t,+\"",	0xa4000000, 0xfc000000,	RD_1,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* bnezc */
+{"bnez",		"-t,+\"",	0x80000000, 0xfc000000,	RD_1,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* bnezc */
 {"bnezc",		"md,mE",	    0xac00,     0xfc00,	RD_1,			CBR,		I37,		0,	0 },
-{"bnezc",		"-t,+\"",	0xa4000000, 0xfc000000,	RD_1,			CBR,		I37,		0,	0 },
+{"bnezc",		"-t,+\"",	0x80000000, 0xfc000000,	RD_1,			CBR,		I37,		0,	0 },
 {"bnezc",		"s,p",		0x40a00000, 0xffe00000,	RD_1|NODS,		CBR,		I1,		0,	I37 },
 {"bnezl",		"s,p",		0,    (int) M_BNEL,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"bne",			"md,mz,mE",	    0xac00,     0xfc00,	RD_1|CBD,		0,		I1,		0,	I37 }, /* bnez */
@@ -520,8 +520,8 @@ const struct mips_opcode micromips_opcodes[] =
 {"bne",			"mz,md,mE",	    0xac00,     0xfc00,	RD_2,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* bnezc16 */
 {"bne",			"s,t,p",	0xb4000000, 0xfc000000,	RD_1|RD_2|CBD,		0,		I1,		0,	I37 },
 {"bne",			"s,I,p",	0,    (int) M_BNE_I,	INSN_MACRO,		0,		I1,		0,	0 },
-{"bne",			"-t,z,+\"",	0xa4000000, 0xfc000000,	RD_1,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* bnezc */
-{"bne",			"z,-t,+\"",	0xa4000000, 0xfc000000,	RD_2,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* bnezc */
+{"bne",			"-t,z,+\"",	0x80000000, 0xfc000000,	RD_1,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* bnezc */
+{"bne",			"z,-t,+\"",	0x80000000, 0xfc000000,	RD_2,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* bnezc */
 {"bne",			"-s,-u,p",	0x7c000000, 0xfc000000,	RD_1|RD_2,		INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* bnec */
 {"bne",			"t,-y,p",	0x7c000000, 0xfc000000,	RD_1|RD_2,		INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* bnec */
 {"bnvc",		"s,-w,p",	0x7c000000, 0xfc000000,	RD_1|RD_2,		CBR,		I37,		0,	0 },
@@ -529,8 +529,8 @@ const struct mips_opcode micromips_opcodes[] =
 {"bnezalc",		"-t,p",		0x7c000000, 0xfc1f0000,	RD_1|WR_31,		CBR,		I37,		0,	0 },
 {"bnec",		"md,mz,mE",	    0xac00,     0xfc00,	RD_1,			CBR,		I37,		0,	0 }, /* bnezc16 */
 {"bnec",		"mz,md,mE",	    0xac00,     0xfc00,	RD_2,			CBR,		I37,		0,	0 }, /* bnezc16 */
-{"bnec",		"-t,z,+\"",	0xa4000000, 0xfc000000,	RD_1,			INSN2_ALIAS|CBR, I37,		0,	0 }, /* bnezc */
-{"bnec",		"z,-t,+\"",	0xa4000000, 0xfc000000,	RD_2,			INSN2_ALIAS|CBR, I37,		0,	0 }, /* bnezc */
+{"bnec",		"-t,z,+\"",	0x80000000, 0xfc000000,	RD_1,			INSN2_ALIAS|CBR, I37,		0,	0 }, /* bnezc */
+{"bnec",		"z,-t,+\"",	0x80000000, 0xfc000000,	RD_2,			INSN2_ALIAS|CBR, I37,		0,	0 }, /* bnezc */
 {"bnec",		"-s,-u,p",	0x7c000000, 0xfc000000,	RD_1|RD_2,		CBR,		I37,		0,	0 },
 {"bnec",		"t,-y,p",	0x7c000000, 0xfc000000,	RD_1|RD_2,		INSN2_ALIAS|CBR, I37,		0,	0 },
 {"bnel",		"s,t,p",	0,    (int) M_BNEL,	INSN_MACRO,		0,		I1,		0,	I37 },
@@ -1326,12 +1326,12 @@ const struct mips_opcode micromips_opcodes[] =
 {"bitswap",		"v,w",		0x00000b3c, 0xfc00ffff,	WR_1|RD_2,		0,		I37,		0,	0 },
 {"dbitswap",		"v,w",		0x58000b3c, 0xfc00ffff,	WR_1|RD_2,		0,		I69,		0,	0 },
 
-{"blezc",		"-t,p",		0xe4000000, 0xfc1f0000,	RD_1,			CBR,		I37,		0,	0 },
-{"bgezc",		"+;,p",		0xe4000000, 0xfc000000,	RD_1,			CBR,		I37,		0,	0 },
-{"bgec",		"-s,-v,p",	0xe4000000, 0xfc000000,	RD_1|RD_2,		CBR,		I37,		0,	0 },
-{"bgtzc",		"-t,p",		0xc4000000, 0xfc1f0000,	RD_1,			CBR,		I37,		0,	0 },
-{"bltzc",		"+;,p",		0xc4000000, 0xfc000000,	RD_1,			CBR,		I37,		0,	0 },
-{"bltc",		"-s,-v,p",	0xc4000000, 0xfc000000,	RD_1|RD_2,		CBR,		I37,		0,	0 },
+{"blezc",		"-t,p",		0xf4000000, 0xfc1f0000,	RD_1,			CBR,		I37,		0,	0 },
+{"bgezc",		"+;,p",		0xf4000000, 0xfc000000,	RD_1,			CBR,		I37,		0,	0 },
+{"bgec",		"-s,-v,p",	0xf4000000, 0xfc000000,	RD_1|RD_2,		CBR,		I37,		0,	0 },
+{"bgtzc",		"-t,p",		0xd4000000, 0xfc1f0000,	RD_1,			CBR,		I37,		0,	0 },
+{"bltzc",		"+;,p",		0xd4000000, 0xfc000000,	RD_1,			CBR,		I37,		0,	0 },
+{"bltc",		"-s,-v,p",	0xd4000000, 0xfc000000,	RD_1|RD_2,		CBR,		I37,		0,	0 },
 {"blezalc",		"-t,p",		0xc0000000, 0xfc1f0000,	RD_1|WR_31,		CBR,		I37,		0,	0 },
 {"bgezalc",		"+;,p",		0xc0000000, 0xfc000000,	RD_1|WR_31,		CBR,		I37,		0,	0 },
 {"bgeuc",		"-s,-v,p",	0xc0000000, 0xfc000000,	RD_1|RD_2,		CBR,		I37,		0,	0 },
@@ -1340,7 +1340,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"bltuc",		"-s,-v,p",	0xe0000000, 0xfc000000,	RD_1|RD_2,		CBR,		I37,		0,	0 },
 
 {"jic",			"s,j",		0xa0000000, 0xffe00000,	RD_1,			UBR,		I37,		0,	0 },
-{"jialc",		"s,j",		0xa4000000, 0xffe00000,	RD_1,			UBR,		I37,		0,	0 },
+{"jialc",		"s,j",		0x80000000, 0xffe00000,	RD_1,			UBR,		I37,		0,	0 },
 
 {"cmp.af.s",		"D,S,T",	0x54000005, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_S,	0,		I37,		0,	0 },
 {"cmp.af.d",		"D,S,T",	0x54000015, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 },

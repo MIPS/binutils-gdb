@@ -29,6 +29,7 @@ reorder:
 	bne16	$3,$0,ext	# bnezc16 v1,ext [PC7]
 	bne16	$0,$3,ext	# bnezc16 v1,ext
 	bne	$3,$0,ext	# bnezc v1,ext [PC21]
+	bne	$0,$3,ext	# bnezc v1,ext [PC21]
 	bne	$3,$2,ext	# bnec v0,v1,ext [PC16]
 	bne	$2,$3,ext	# bnec v0,v1,ext
 	bnez16	$3,ext		# bnezc16 v1,ext [PC7]

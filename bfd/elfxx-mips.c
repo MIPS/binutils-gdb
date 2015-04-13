@@ -13332,7 +13332,7 @@ static const struct opcode_descriptor micromips_bc_PC26[] = {
 
 static const struct opcode_descriptor micromips_bc_PC21[] = {
   { 0xa0000000, 0xfc000000, 0x8c00 }, /* beqzc */
-  { 0xa4000000, 0xfc000000, 0xac00 }, /* bnezc */
+  { 0x80000000, 0xfc000000, 0xac00 }, /* bnezc */
   { 0, 0, 0 }  /* End marker for find_match().  */
 };
 
