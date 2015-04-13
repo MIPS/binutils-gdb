@@ -262,6 +262,8 @@ struct mips_set_options
   /* 1 if single-precision operations on odd-numbered registers are
      allowed.  */
   int oddspreg;
+
+  bfd_boolean forbidden_slots;
 };
 
 /* Specifies whether module level options have been checked yet.  */
@@ -283,7 +285,8 @@ static struct mips_set_options file_mips_opts =
   /* noreorder */ 0,  /* at */ ATREG, /* warn_about_macros */ 0,
   /* nomove */ 0, /* nobopt */ 0, /* noautoextend */ 0, /* insn32 */ FALSE,
   /* gp */ -1, /* fp */ -1, /* arch */ CPU_UNKNOWN, /* sym32 */ FALSE,
-  /* soft_float */ FALSE, /* single_float */ FALSE, /* oddspreg */ -1
+  /* soft_float */ FALSE, /* single_float */ FALSE, /* oddspreg */ -1,
+  /* forbidden_slots */ 0
 };
 
 /* This is similar to file_mips_opts, but for the current set of options.  */
@@ -294,7 +297,8 @@ static struct mips_set_options mips_opts =
   /* noreorder */ 0,  /* at */ ATREG, /* warn_about_macros */ 0,
   /* nomove */ 0, /* nobopt */ 0, /* noautoextend */ 0, /* insn32 */ FALSE,
   /* gp */ -1, /* fp */ -1, /* arch */ CPU_UNKNOWN, /* sym32 */ FALSE,
-  /* soft_float */ FALSE, /* single_float */ FALSE, /* oddspreg */ -1
+  /* soft_float */ FALSE, /* single_float */ FALSE, /* oddspreg */ -1,
+  /* forbidden_slots */ 0
 };
 
 /* Which bits of file_ase were explicitly set or cleared by ASE options.  */
@@ -1489,6 +1493,7 @@ enum options
     OPTION_NAN,
     OPTION_ODD_SPREG,
     OPTION_NO_ODD_SPREG,
+    OPTION_FORBIDDEN_SLOTS,
     OPTION_END_OF_ENUM
   };
 
@@ -1603,6 +1608,7 @@ struct option md_longopts[] =
   {"mdouble-float", no_argument, NULL, OPTION_DOUBLE_FLOAT},
   {"modd-spreg", no_argument, NULL, OPTION_ODD_SPREG},
   {"mno-odd-spreg", no_argument, NULL, OPTION_NO_ODD_SPREG},
+  {"mforbidden-slots", no_argument, NULL, OPTION_FORBIDDEN_SLOTS},
 
   /* Strictly speaking this next option is ELF specific,
      but we allow it for other ports as well in order to
@@ -3919,6 +3925,11 @@ mips_check_options (struct mips_set_options *opts, bfd_boolean abi_checks)
   if (ISA_IS_R6 (opts->isa) && mips_relax_branch)
     as_fatal (_("branch relaxation is not supported in `%s'"),
 	      mips_cpu_info_from_isa (opts->isa)->name);
+
+  if (ISA_IS_R6 (opts->isa)
+      && opts->micromips
+      && opts->ase & ASE_MSA)
+    as_fatal (_("`msa' is not supported for `micromips' and `mips32r6'"));
 }
 
 /* Perform consistency checks on the module level options exactly once.
@@ -6377,6 +6388,15 @@ insns_between (const struct mips_cl_insn *insn1,
   if ((insn1->insn_mo->pinfo2 & INSN2_FORBIDDEN_SLOT)
       && ((pinfo2 & INSN_NO_DELAY_SLOT)
 	  || (insn2 && delayed_branch_p (insn2))))
+    return 1;
+
+  if (mips_opts.forbidden_slots
+      && mips_opts.micromips
+      && (insn1->insn_mo->pinfo2 & INSN2_COND_BRANCH)
+      && (insn2
+         && (insn2->insn_mo->pinfo2 & INSN2_COND_BRANCH
+             || insn2->insn_mo->pinfo2 & INSN2_UNCOND_BRANCH
+             || pinfo2 & INSN_NO_DELAY_SLOT)))
     return 1;
 
   return 0;
@@ -14688,6 +14708,10 @@ md_parse_option (int c, char *arg)
       file_mips_opts.soft_float = 0;
       break;
 
+    case OPTION_FORBIDDEN_SLOTS:
+      file_mips_opts.forbidden_slots = 1;
+      break;
+
     case OPTION_MABI:
       if (strcmp (arg, "32") == 0)
 	mips_abi = O32_ABI;
@@ -15846,6 +15870,10 @@ parse_code_option (char * name)
     mips_opts.fp = 0;
   else if (strcmp (name, "fp=64") == 0)
     mips_opts.fp = 64;
+  else if (strcmp (name, "noforbidden-slots") == 0)
+    mips_opts.forbidden_slots = 0;
+  else if (strcmp (name, "forbidden-slots") == 0)
+    mips_opts.forbidden_slots = 1;
   else if (strcmp (name, "softfloat") == 0)
     mips_opts.soft_float = 1;
   else if (strcmp (name, "hardfloat") == 0)
