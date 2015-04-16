@@ -17865,15 +17865,17 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	     need the relocations.  */
 	  int r_type = -1;
 
-	  if (ISA_IS_R6(mips_opts.isa))
+	  if (ISA_IS_R6 (mips_opts.isa))
 	  {
 	    insn = read_compressed_insn (buf, 2);
 
-	    if ((insn & 0xdc00) == 0x8c00)      /* beqzc/bnezc */
+	    /* This code currently only deals with the case of
+	       converting a 16 bit branch to a 32 bit branch.
+	       So we only need to worry about relocs for bc32
+	       bnezc32 and beqzc32.  */
+	    if ((insn & 0xdc00) == 0x8c00)      /* beqzc16/bnezc16 */
 	      r_type = BFD_RELOC_MICROMIPS_21_PCREL_S1;
-	    else if ((insn & 0xfc00) == 0x7400) /* bovc/beqzalc/beqc */
-	     r_type = BFD_RELOC_MICROMIPS_16_PCREL_S1;
-	    else
+	    else /* bc16 */
 	     r_type = BFD_RELOC_MICROMIPS_26_PCREL_S1;
 	  }
 	  else
@@ -17894,7 +17896,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	  insn = read_compressed_insn (buf, 2);
 
 	  if ((insn & 0xfc00) == 0xcc00)		/* b[c]16  */
-	    insn = 0x94000000;				/* beq  */
+	    insn = 0x94000000;				/* beq/bc32  */
 	  else if ((insn & 0xdc00) == 0x8c00)		/* beqz[c]16/bnez[c]16  */
 	    {
 	      unsigned long regno;
@@ -17904,8 +17906,12 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 
 	      if (ISA_IS_R6 (mips_opts.isa))
 	        {
-	          insn = ((insn & 0x2000) << 13) | 0xa0000000;	/* beqzc/bnezc  */
-	          insn |= regno << 21;
+		  if ((insn & 0xfc00) == 0x8c00) /* beqzc32 */
+		    insn = 0xa0000000 | (regno << 21);
+		  else if ((insn & 0xfc00) == 0xac00) /* bnezc32 */
+		    insn = 0x80000000 | (regno << 21);
+		  else
+		    abort ();
 	        }
 	      else
 	        {
