@@ -25,6 +25,7 @@
 :compute:::int:TRT_S:RT_S:((RT_S == 1 ) ? 17 \: RT_S)
 :compute:::int:ERT:RT:(compute_movep_src_reg (SD_, RT))
 :compute:::int:ERS:RS:(compute_movep_src_reg (SD_, RS))
+:compute:::int:ERS_SPLIT:RST,RSB:(compute_movep_src_reg (SD_, ((RST<<2)|RSB)))
 
 :compute:::int:IMM_DEC1:IMMEDIATE:((IMMEDIATE == 7) ? -1 \: ((IMMEDIATE == 0) ? 1 \: IMMEDIATE << 2))
 :compute:::int:IMM_DEC2:IMMEDIATE:((IMMEDIATE < 8) ? IMMEDIATE \: (IMMEDIATE - 16))
@@ -41,6 +42,8 @@
 :function:::address_word:delayslot_micromips:address_word target, address_word nia, int delayslot_instruction_size
 *micromips32:
 *micromips64:
+*micromips32r6:
+*micromips64r6:
 {
   instruction_word delay_insn;
   sim_events_slip (SD, 1);
@@ -48,14 +51,18 @@
   CIA = nia;
   STATE |= simDELAYSLOT;
   ENGINE_ISSUE_PREFIX_HOOK();
-  micromips_instruction_decode (SD, CPU, CIA, delayslot_instruction_size);
+  MICROMIPS_INSTRUCTION_DECODE (SD, CPU, CIA, delayslot_instruction_size);
   STATE &= ~simDELAYSLOT;
   return target;
 }
 
 :function:::address_word:process_isa_mode:address_word target
+*mips32r6:
+*mips64r6:
 *micromips32:
 *micromips64:
+*micromips32r6:
+*micromips64r6:
 {
   isa_mode = target & 0x1;
   return (target & (-1 << 1));
@@ -64,6 +71,8 @@
 :function:::address_word:do_micromips_jalr:int rt, int rs, address_word nia, int delayslot_instruction_size
 *micromips32:
 *micromips64:
+*micromips32r6:
+*micromips64r6:
 {
   GPR[rt] = (nia + delayslot_instruction_size) | ISA_MODE_MICROMIPS;
   return (process_isa_mode (SD_,
@@ -73,6 +82,8 @@
 :function:::address_word:do_micromips_jal:address_word target, address_word nia, int delayslot_instruction_size
 *micromips32:
 *micromips64:
+*micromips32r6:
+*micromips64r6:
 {
   RA = (nia + delayslot_instruction_size) | ISA_MODE_MICROMIPS;
   return delayslot_micromips (SD_, target, nia, delayslot_instruction_size);
@@ -82,6 +93,8 @@
 :function:::unsigned32:compute_movep_src_reg:int reg
 *micromips32:
 *micromips64:
+*micromips32r6:
+*micromips64r6:
 {
   switch(reg)
     {
@@ -100,6 +113,8 @@
 :function:::unsigned32:compute_andi16_imm:int encoded_imm
 *micromips32:
 *micromips64:
+*micromips32r6:
+*micromips64r6:
 {
   switch (encoded_imm)
     {
@@ -126,6 +141,8 @@
 :function:::FP_formats:convert_fmt_micromips:int fmt
 *micromips32:
 *micromips64:
+*micromips32r6:
+*micromips64r6:
 {
   switch (fmt)
     {
@@ -139,6 +156,8 @@
 :function:::FP_formats:convert_fmt_micromips_cvt_d:int fmt
 *micromips32:
 *micromips64:
+*micromips32r6:
+*micromips64r6:
 {
   switch (fmt)
     {
@@ -153,6 +172,8 @@
 :function:::FP_formats:convert_fmt_micromips_cvt_s:int fmt
 *micromips32:
 *micromips64:
+*micromips32r6:
+*micromips64r6:
 {
   switch (fmt)
     {
@@ -167,7 +188,9 @@
 011011,3.RD,6.IMMEDIATE,1:POOL16E:16::ADDIUR1SP
 "addiur1sp r<TRD>, <IMMEDIATE>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_addiu (SD_, SPIDX, TRD, IMMEDIATE << 2);
 }
@@ -176,7 +199,9 @@
 011011,3.RD,3.RS,3.IMMEDIATE,0:POOL16E:16::ADDIUR2
 "addiur2 r<TRD>, r<TRS>, <IMM_DEC1>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_addiu (SD_, TRS, TRD, IMM_DEC1);
 }
@@ -185,7 +210,9 @@
 010011,5.RD,4.IMMEDIATE,0:POOL16D:16::ADDIUS5
 "addius5 r<RD>, <IMM_DEC2>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_addiu (SD_, RD, RD, IMM_DEC2);
 }
@@ -194,7 +221,9 @@
 010011,9.IMMEDIATE,1:POOL16D:16::ADDIUSP
 "addiusp <IMM_DEC3>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_addiu (SD_, SPIDX, SPIDX, IMM_DEC3 << 2);
 }
@@ -212,7 +241,9 @@
 001011,3.RD,3.RS,4.IMMEDIATE:MICROMIPS:16::ANDI16
 "andi16 r<TRD>, r<TRS>, <IMM_DEC4>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_andi (SD_, TRS, TRD, IMM_DEC4);
 }
@@ -296,14 +327,23 @@
 }
 
 
+:function:::address_word:do_jraddiusp:unsigned immediate
+*micromips32:
+*micromips64:
+*micromips32r6:
+*micromips64r6:
+{
+  address_word temp = RA;
+  do_addiu (SD_, SPIDX, SPIDX, immediate << 2);
+  return process_isa_mode (SD_, temp);
+}
+
 010001,11000,5.IMMEDIATE:POOL16C:16::JRADDIUSP
 "jraddiusp <IMMEDIATE>"
 *micromips32:
 *micromips64:
 {
-  address_word temp = RA;
-  do_addiu (SD_, SPIDX, SPIDX, IMMEDIATE << 2);
-  NIA = process_isa_mode (SD_, temp);
+  NIA = do_jraddiusp (SD_, IMMEDIATE);
 }
 
 
@@ -319,7 +359,9 @@
 000010,3.RT,3.BASE,4.IMMEDIATE:MICROMIPS:16::LBU16
 "lbu16 r<TRT>, <IMM_DEC5>(r<TBASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   /* LBU can have a negative offset.  As the offset argument to do_load is
      unsigned we need to do the address calcuation before the function call so
@@ -332,7 +374,9 @@
 001010,3.RT,3.BASE,4.IMMEDIATE:MICROMIPS:16::LHU16
 "lhu16 r<TRT>, <IMM_SHIFT_1BIT>(r<TBASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   GPR[TRT] = do_load (SD_, AccessLength_HALFWORD, GPR[TBASE], IMM_SHIFT_1BIT);
 }
@@ -341,7 +385,9 @@
 111011,3.RD,7.IMMEDIATE:MICROMIPS:16::LI16
 "li16 r<TRD>, <IMM_DEC6>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   GPR[TRD] = IMM_DEC6;
 }
@@ -350,7 +396,9 @@
 011010,3.RT,3.BASE,4.IMMEDIATE:MICROMIPS:16::LW16
 "lw16 r<TRT>, <IMM_SHIFT_2BIT>(r<TBASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   GPR[TRT] = EXTEND32 (
 	do_load (SD_, AccessLength_WORD, GPR[TBASE], IMM_SHIFT_2BIT));
@@ -358,7 +406,9 @@
 
 :%s::::LWMREGS:int lwmregs
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   if (lwmregs == 3)
     return "s0, s1, s2, s3, ra";
@@ -372,26 +422,37 @@
     return "";
 }
 
-010001,0100,2.LWMREGS,4.IMMEDIATE:POOL16C:16::LWM16
-"lwm16 %s<LWMREGS>, <IMM_SHIFT_2BIT>(sp)"
+:function:::void:do_lwm16:int lwmregs, unsigned immshift
 *micromips32:
 *micromips64:
+*micromips32r6:
+*micromips64r6:
 {
-  int address = GPR[SPIDX] + IMM_SHIFT_2BIT;
+  int address = GPR[SPIDX] + immshift;
   int reg_offset;
 
-  for (reg_offset = 0; reg_offset <= LWMREGS; reg_offset++)
+  for (reg_offset = 0; reg_offset <= lwmregs; reg_offset++)
     GPR[16 + reg_offset] = EXTEND32 (
 	do_load (SD_, AccessLength_WORD, address, reg_offset * 4));
 
   RA = EXTEND32 (do_load (SD_, AccessLength_WORD, address, reg_offset * 4));
 }
 
+010001,0100,2.LWMREGS,4.IMMEDIATE:POOL16C:16::LWM16
+"lwm16 %s<LWMREGS>, <IMM_SHIFT_2BIT>(sp)"
+*micromips32:
+*micromips64:
+{
+  do_lwm16 (SD_, LWMREGS, IMM_SHIFT_2BIT);
+}
+
 
 011001,3.RT,7.IMMEDIATE:MICROMIPS:16::LWGP
 "lwgp r<TRT>, <IMM_SHIFT_2BIT>(gp)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   GPR[TRT] = EXTEND32 (
 	do_load (SD_, AccessLength_WORD, GPR[28], IMM_SHIFT_2BIT));
@@ -401,7 +462,9 @@
 010010,5.RT,5.IMMEDIATE:MICROMIPS:16::LWSP
 "lwsp r<RT>, <IMM_SHIFT_2BIT>(sp)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   GPR[RT] = EXTEND32 (do_load (SD_, AccessLength_WORD, SP, IMM_SHIFT_2BIT));
 }
@@ -429,7 +492,9 @@
 "nop":RD==0&&RS==0
 "move16 r<RD>, r<RS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   GPR[RD] = GPR[RS];
 }
@@ -437,7 +502,9 @@
 
 :%s::::DESTREGS:int regs
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   switch (regs)
     {
@@ -507,7 +574,9 @@
 100010,3.RT_S,3.BASE,4.IMMEDIATE:MICROMIPS:16::SB16
 "sb16 r<TRT_S>, <IMMEDIATE>(r<TBASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_store (SD_, AccessLength_BYTE, GPR[TBASE], IMMEDIATE, GPR[TRT_S]);
 }
@@ -525,7 +594,9 @@
 101010,3.RT_S,3.BASE,4.IMMEDIATE:MICROMIPS:16::SH16
 "sh16 r<TRT_S>, <IMM_SHIFT_1BIT>(r<TBASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_store (SD_, AccessLength_HALFWORD, GPR[TBASE], IMM_SHIFT_1BIT, GPR[TRT_S]);
 }
@@ -534,7 +605,9 @@
 001001,3.RD,3.RT,3.SHIFT,0:POOL16B:16::SLL16
 "sll16 r<TRD>, r<TRT>, <SHIFT_DEC>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_sll (SD_, TRT, TRD, SHIFT_DEC);
 }
@@ -543,7 +616,9 @@
 001001,3.RD,3.RT,3.SHIFT,1:POOL16B:16::SRL16
 "srl16 r<TRD>, r<TRT>, <SHIFT_DEC>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_srl (SD_, TRT, TRD, SHIFT_DEC);
 }
@@ -561,7 +636,9 @@
 111010,3.RT_S,3.BASE,4.IMMEDIATE:MICROMIPS:16::SW16
 "sw16 r<TRT_S>, <IMM_SHIFT_2BIT>(r<TBASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_store (SD_, AccessLength_WORD, GPR[TBASE], IMM_SHIFT_2BIT, GPR[TRT_S]);
 }
@@ -570,25 +647,36 @@
 110010,5.RT,5.IMMEDIATE:MICROMIPS:16::SWSP
 "swsp r<RT>, <IMM_SHIFT_2BIT>(sp)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_store (SD_, AccessLength_WORD, SP, IMM_SHIFT_2BIT, GPR[RT]);
 }
 
+
+:function:::void:do_swm16:int lwmregs, unsigned immshift
+*micromips32:
+*micromips64:
+*micromips32r6:
+*micromips64r6:
+{
+  int address = GPR[SPIDX] + immshift;
+  int reg_offset;
+
+  for (reg_offset = 0; reg_offset <= lwmregs; reg_offset++)
+    do_store (SD_, AccessLength_WORD, address, reg_offset * 4,
+	GPR[16 + reg_offset]);
+
+  do_store (SD_, AccessLength_WORD, address, reg_offset * 4, RA);
+}
 
 010001,0101,2.LWMREGS,4.IMMEDIATE:POOL16C:16::SWM16
 "swm16 %s<LWMREGS>, <IMM_SHIFT_2BIT>(sp)"
 *micromips32:
 *micromips64:
 {
-  int address = GPR[SPIDX] + IMM_SHIFT_2BIT;
-  int reg_offset;
-
-  for (reg_offset = 0; reg_offset <= LWMREGS; reg_offset++)
-    do_store (SD_, AccessLength_WORD, address, reg_offset * 4,
-	GPR[16 + reg_offset]);
-
-  do_store (SD_, AccessLength_WORD, address, reg_offset * 4, RA);
+  do_swm16 (SD_, LWMREGS, IMM_SHIFT_2BIT);
 }
 
 
@@ -604,7 +692,9 @@
 000000,5.RT,5.RS,5.RD,00100,010000:POOL32A:32::ADD
 "add r<RD>, r<RS>, r<RT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_add (SD_, RS, RT, RD);
 }
@@ -623,7 +713,9 @@
 "li r<RT>, <IMMEDIATE>":RS==0
 "addiu r<RT>, r<RS>, <IMMEDIATE>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_addiu (SD_, RS, RT, IMMEDIATE);
 }
@@ -641,7 +733,9 @@
 000000,5.RT,5.RS,5.RD,00101,010000:POOL32A:32::ADDU
 "addu r<RD>, r<RS>, r<RT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_addu (SD_, RS, RT, RD);
 }
@@ -650,7 +744,9 @@
 000000,5.RT,5.RS,5.RD,01001,010000:POOL32A:32::AND
 "and r<RD>, r<RS>, r<RT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_and (SD_, RS, RT, RD);
 }
@@ -659,7 +755,9 @@
 110100,5.RT,5.RS,16.IMMEDIATE:MICROMIPS:32::ANDI
 "andi r<RT>, r<RS>, <IMMEDIATE>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_andi (SD_, RS, RT, IMMEDIATE);
 }
@@ -710,7 +808,6 @@
 			       MICROMIPS_DELAYSLOT_SIZE_ANY);
 }
 
-
 010000,00111,5.RS,16.IMMEDIATE:POOL32I:32::BEQZC
 "beqzc r<RS>, <IMMEDIATE>"
 *micromips32:
@@ -720,7 +817,6 @@
   if (GPR[RS] == 0)
     NIA = NIA + offset;
 }
-
 
 010000,00011,5.RS,16.IMMEDIATE:POOL32I:32::BGEZAL
 "bal <IMMEDIATE>":RS == 0
@@ -849,7 +945,9 @@
 000000,20.CODE,000111:POOL32A:32::BREAK
 "break %#lx<CODE>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_break (SD_, instruction_0);
 }
@@ -858,7 +956,9 @@
 001000,5.OP,5.BASE,0110,12.IMMEDIATE:POOL32B:32::CACHE
 "cache <OP>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   address_word base = GPR[BASE];
   address_word offset = EXTEND12 (IMMEDIATE);
@@ -874,13 +974,17 @@
 011000,5.OP,5.BASE,1010011,9.IMMEDIATE:POOL32C:32::CACHEE
 "cachee <OP>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 010101,5.RT,5.FS,0001000000,111011:POOL32F:32,f::CFC1
 "cfc1 r<RT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_cfc1 (SD_, RT, FS);
 }
@@ -889,13 +993,17 @@
 000000,5.RT,5.IMPL,1100110100,111100:POOL32A:32::CFC2
 "cfc2 r<RT>, <IMPL>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 000000,5.RT,5.RS,0100101100,111100:POOL32A:32::CLO
 "clo r<RT>, r<RS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_clo (SD_, RT, RS);
 }
@@ -904,7 +1012,9 @@
 000000,5.RT,5.RS,0101101100,111100:POOL32A:32::CLZ
 "clz r<RT>, r<RS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_clz (SD_, RT, RS);
 }
@@ -913,13 +1023,17 @@
 000000,23.COFUN,010:POOL32A:32::COP2
 "cop2 <COFUN>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 010101,5.RT,5.FS,0001100000,111011:POOL32F:32,f::CTC1
 "ctc1 r<RT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_ctc1 (SD_, RT, FS);
 }
@@ -928,20 +1042,26 @@
 000000,5.RT,5.IMPL,1101110100,111100:POOL32A:32::CTC2
 "ctc2 r<RT>, <IMPL>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 000000,00000000001110001101,111100:POOL32A:32::DERET
 "deret"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 000000,00000,5.RS,0100011101,111100:POOL32A:32::DI
 "di":RS == 0
 "di r<RS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_di (SD_, RS);
 }
@@ -967,14 +1087,18 @@
 000000,00000000000001100000,000000:POOL32A:32::EHB
 "ehb"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 000000,00000,5.RS,0101011101,111100:POOL32A:32::EI
 "ei":RS == 0
 "ei r<RS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_ei (SD_, RS);
 }
@@ -982,7 +1106,9 @@
 000000,00000000001111001101,111100:POOL32A:32::ERET
 "eret"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   if (SR & status_ERL)
     {
@@ -1002,7 +1128,9 @@
 000000,5.RT,5.RS,5.MSBD,5.LSB,101100:POOL32A:32::EXT
 "ext r<RT>, r<RS>, <LSB>, <MSBD+1>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_ext (SD_, RT, RS, LSB, MSBD);
 }
@@ -1011,7 +1139,9 @@
 000000,5.RT,5.RS,5.MSBD,5.LSB,001100:POOL32A:32::INS
 "ins r<RT>, r<RS>, <LSB>, <MSBD-LSB+1>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_ins (SD_, RT, RS, LSB, MSBD);
 }
@@ -1131,7 +1261,9 @@
 000111,5.RT,5.BASE,16.IMMEDIATE:MICROMIPS:32::LB
 "lb r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_lb (SD_, RT, IMMEDIATE, BASE);
 }
@@ -1140,13 +1272,17 @@
 011000,5.RT,5.BASE,0110100,9.IMMEDIATE:POOL32C:32::LBE
 "lbe r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 000101,5.RT,5.BASE,16.IMMEDIATE:MICROMIPS:32::LBU
 "lbu r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_lbu (SD_, RT, IMMEDIATE, BASE);
 }
@@ -1155,12 +1291,15 @@
 011000,5.RT,5.BASE,0110000,9.IMMEDIATE:POOL32C:32::LBUE
 "lbue r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 101111,5.FT,5.BASE,16.IMMEDIATE:MICROMIPS:32,f::LDC1a
 "ldc1 f<FT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 {
   check_fpu (SD_);
   COP_LD (1, FT, do_load_double (SD_, GPR[BASE], EXTEND16 (IMMEDIATE)));
@@ -1170,6 +1309,7 @@
 101111,5.FT,5.BASE,16.IMMEDIATE:MICROMIPS:32,f::LDC1b
 "ldc1 f<FT>, <IMMEDIATE>(r<BASE>)"
 *micromips64:
+*micromips64r6:
 {
   check_fpu (SD_);
   COP_LD (1, FT, do_load (SD_, AccessLength_DOUBLEWORD, GPR[BASE],
@@ -1180,13 +1320,17 @@
 001000,5.RT,5.BASE,0010,12.IMMEDIATE:POOL32B:32::LDC2
 "ldc2 r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 001111,5.RT,5.BASE,16.IMMEDIATE:MICROMIPS:32::LH
 "lh r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_lh (SD_, RT, IMMEDIATE, BASE);
 }
@@ -1195,13 +1339,17 @@
 011000,5.RT,5.BASE,0110101,9.IMMEDIATE:POOL32C:32::LHE
 "lhe r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 001101,5.RT,5.BASE,16.IMMEDIATE:MICROMIPS:32::LHU
 "lhu r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_lhu (SD_, RT, IMMEDIATE, BASE);
 }
@@ -1210,13 +1358,17 @@
 011000,5.RT,5.BASE,0110001,9.IMMEDIATE:POOL32C:32::LHUE
 "lhue r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 011000,5.RT,5.BASE,0011,12.IMMEDIATE:POOL32C:32::LL
 "ll r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_ll (SD_, RT, EXTEND12 (IMMEDIATE), BASE);
 }
@@ -1225,7 +1377,9 @@
 011000,5.RT,5.BASE,0110110,9.IMMEDIATE:POOL32C:32::LLE
 "lle r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 010000,01101,5.RS,16.IMMEDIATE:POOL32I:32::LUI
@@ -1233,7 +1387,7 @@
 *micromips32:
 *micromips64:
 {
-  do_lui (SD_, RS, IMMEDIATE);
+  do_aui (SD_, RS, 0, IMMEDIATE);
 }
 
 
@@ -1258,7 +1412,9 @@
 111111,5.RT,5.BASE,16.IMMEDIATE:MICROMIPS:32::LW
 "lw r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_lw (SD_, RT, IMMEDIATE, BASE);
 }
@@ -1267,7 +1423,9 @@
 100111,5.FT,5.BASE,16.IMMEDIATE:MICROMIPS:32,f::LWC1
 "lwc1 f<FT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_lwc1 (SD_, FT, IMMEDIATE, BASE);
 }
@@ -1276,19 +1434,25 @@
 001000,5.RT,5.BASE,0000,12.IMMEDIATE:POOL32B:32::LWC2
 "lwc2 r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 011000,5.RT,5.BASE,0110111,9.IMMEDIATE:POOL32C:32::LWE
 "lwe r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 011000,5.RT,5.BASE,0110011,9.IMMEDIATE:POOL32C:32::LWEE
 "lwee r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 011000,5.RT,5.BASE,0000,12.IMMEDIATE:POOL32C:32::LWL
@@ -1307,7 +1471,9 @@
 
 :%s::::LWM32REGS:int lwmregs
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   if (lwmregs & 0x10)
     {
@@ -1367,6 +1533,8 @@
 
 001000,5.LWM32REGS,5.BASE,0101,12.IMMEDIATE:POOL32B:32::LWM32
 "lwm32 %s<LWM32REGS>, <IMMEDIATE>(r<BASE>)"
+*micromips32r6:
+*micromips64r6:
 *micromips32:
 *micromips64:
 {
@@ -1388,7 +1556,9 @@
 001000,5.RD,5.BASE,0001,12.IMMEDIATE:POOL32B:32::LWP
 "lwp r<RD>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   if (BASE == RD || RD == 31)
     Unpredictable ();
@@ -1412,7 +1582,9 @@
 011000,5.RT,5.BASE,1110,12.IMMEDIATE:POOL32C:32::LWU
 "lwu r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_lwu (SD_, RT, IMMEDIATE, BASE, instruction_0);
 }
@@ -1427,13 +1599,22 @@
 }
 
 
+:function:::void:do_lwxs:int rd, int rindex, int rbase
+*micromips32:
+*micromips64:
+*micromips32r6:
+*micromips64r6:
+{
+  GPR[rd] = EXTEND32 (do_load (SD_, AccessLength_WORD, GPR[rbase],
+			       GPR[rindex] * 4));
+}
+
 000000,5.INDEX,5.BASE,5.RD,00100,011000:POOL32A:32::LWXS
 "lwxs r<RD>, r<INDEX>(r<BASE>)"
 *micromips32:
 *micromips64:
 {
-  GPR[RD] = EXTEND32 (do_load (SD_, AccessLength_WORD, GPR[BASE],
-			       GPR[INDEX] * 4));
+  do_lwxs (SD_, RD, INDEX, BASE);
 }
 
 
@@ -1459,7 +1640,9 @@
 "mfc0 r<RS>, r<RT>": SEL == 0
 "mfc0 r<RS>, r<RT>, <SEL>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   DecodeCoproc (instruction_0, 0, cp0_mfc0, RT, RS, SEL);
 }
@@ -1468,7 +1651,9 @@
 010101,5.RT,5.FS,0010000000,111011:POOL32F:32,f::MFC1
 "mfc1 r<RT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_mfc1b (SD_, RT, FS);
 }
@@ -1483,7 +1668,9 @@
 010101,5.RT,5.FS,0011000000,111011:POOL32F:32,f::MFHC1
 "mfhc1 r<RT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_mfhc1 (SD_, RT, FS);
 }
@@ -1492,7 +1679,9 @@
 000000,5.RT,5.IMPL,1000110100,111100:POOL32A:32::MFHC2
 "mfhc2 r<RT>, <IMPL>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 000000,00000,5.RS,0000110101,111100:POOL32A:32::MFHI
@@ -1564,7 +1753,9 @@
 "mtc0 r<RS>, r<RT>": SEL == 0
 "mtc0 r<RS>, r<RT>, <SEL>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   DecodeCoproc (instruction_0, 0, cp0_mtc0, RT, RS, SEL);
 }
@@ -1573,7 +1764,9 @@
 010101,5.RT,5.FS,0010100000,111011:POOL32F:32,f::MTC1
 "mtc1 r<RT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_mtc1b (SD_, RT, FS);
 }
@@ -1582,13 +1775,17 @@
 000000,5.RT,5.IMPL,0101110100,111100:POOL32A:32::MTC2
 "mtc2 r<RT>, <IMPL>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 010101,5.RT,5.FS,0011100000,111011:POOL32F:32,f::MTHC1
 "mthc1 r<RT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_mthc1 (SD_, RT, FS);
 }
@@ -1597,7 +1794,9 @@
 000000,5.RT,5.IMPL,1001110100,111100:POOL32A:32::MTHC2
 "mthc2 r<RT>, <IMPL>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 000000,00000,5.RS,0010110101,111100:POOL32A:32::MTHI
@@ -1648,7 +1847,9 @@
 000000,00000000000000000000,000000:POOL32A:32::NOP
 "nop"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
 }
 
@@ -1656,7 +1857,9 @@
 000000,5.RT,5.RS,5.RD,01011,010000:POOL32A:32::NOR
 "nor r<RD>, r<RS>, r<RT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_nor (SD_, RS, RT, RD);
 }
@@ -1665,7 +1868,9 @@
 000000,5.RT,5.RS,5.RD,01010,010000:POOL32A:32::OR
 "or r<RD>, r<RS>, r<RT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_or (SD_, RS, RT, RD);
 }
@@ -1674,7 +1879,9 @@
 010100,5.RT,5.RS,16.IMMEDIATE:MICROMIPS:32::ORI
 "ori r<RT>, r<RS>, <IMMEDIATE>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_ori (SD_, RS, RT, IMMEDIATE);
 }
@@ -1683,13 +1890,17 @@
 000000,00000000000010100000,000000:POOL32A:32::PAUSE
 "pause"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 011000,5.HINT,5.BASE,0010,12.IMMEDIATE:POOL32C:32::PREF
 "pref <HINT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_pref (SD_, HINT, EXTEND12 (IMMEDIATE), BASE);
 }
@@ -1698,7 +1909,9 @@
 011000,5.HINT,5.BASE,1010010,9.IMMEDIATE:POOL32C:32::PREFE
 "prefe <HINT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 010101,5.INDEX,5.BASE,5.HINT,00110,100000:POOL32F:32::PREFX
@@ -1712,7 +1925,9 @@
 000000,5.RT,5.RS,0110101100,111100:POOL32A:32::RDHWR
 "rdhwr r<RS>, r<RT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_rdhwr (SD_, RT, RS);
 }
@@ -1720,13 +1935,17 @@
 000000,5.RT,5.RS,1110000101,111100:POOL32A:32::RDPGPR
 "rdpgpr r<RS>, r<RT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 000000,5.RT,5.RS,5.SHIFT,00011,000000:POOL32A:32::ROTR
 "rotr r<RT>, r<RS>, <SHIFT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   GPR[RT] = do_ror (SD_, GPR[RS], SHIFT);
 }
@@ -1735,7 +1954,9 @@
 000000,5.RT,5.RS,5.RD,00011,010000:POOL32A:32::ROTRV
 "rotrv r<RD>, r<RT>, r<RS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   GPR[RD] = do_ror (SD_, GPR[RT], GPR[RS]);
 }
@@ -1744,7 +1965,9 @@
 000110,5.RT,5.BASE,16.IMMEDIATE:MICROMIPS:32::SB
 "sb r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_store (SD_, AccessLength_BYTE, GPR[BASE], EXTEND16 (IMMEDIATE), GPR[RT]);
 }
@@ -1753,13 +1976,17 @@
 011000,5.RT,5.BASE,1010101,9.IMMEDIATE:POOL32C:32::SBE
 "sbe r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 011000,5.RT,5.BASE,1011,12.IMMEDIATE:POOL32C:32::SC
 "sc r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_sc (SD_, RT, EXTEND12 (IMMEDIATE), BASE, instruction_0);
 }
@@ -1768,13 +1995,17 @@
 011000,5.RT,5.BASE,1010110,9.IMMEDIATE:POOL32C:32::SCE
 "sce r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 000000,10.CODE,1101101101,111100:POOL32A:32::SDBBP
 "sdbbp %#lx<CODE>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   SignalException (DebugBreakPoint, instruction_0);
 }
@@ -1783,6 +2014,7 @@
 101110,5.FT,5.BASE,16.IMMEDIATE:MICROMIPS:32,f::SDC1a
 "sdc1 f<FT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 {
   do_sdc1 (SD_, FT, IMMEDIATE, BASE);
 }
@@ -1791,6 +2023,7 @@
 101110,5.FT,5.BASE,16.IMMEDIATE:MICROMIPS:32,f::SDC1b
 "sdc1 f<FT>, <IMMEDIATE>(r<BASE>)"
 *micromips64:
+*micromips64r6:
 {
   check_fpu (SD_);
   do_store (SD_, AccessLength_DOUBLEWORD, GPR[BASE], EXTEND16 (IMMEDIATE),
@@ -1801,13 +2034,17 @@
 001000,5.RT,5.BASE,1010,12.IMMEDIATE:MICROMIPS:32::SDC2
 "sdc2 r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 000000,5.RT,5.RS,0010101100,111100:POOL32A:32::SEB
 "seb r<RT>, r<RS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_seb (SD_, RT, RS);
 }
@@ -1816,7 +2053,9 @@
 000000,5.RT,5.RS,0011101100,111100:POOL32A:32::SEH
 "seh r<RT>, r<RS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_seh (SD_, RT, RS);
 }
@@ -1825,7 +2064,9 @@
 001110,5.RT,5.BASE,16.IMMEDIATE:MICROMIPS:32::SH
 "sh r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_store (SD_, AccessLength_HALFWORD, GPR[BASE], EXTEND16 (IMMEDIATE),
 	    GPR[RT]);
@@ -1835,13 +2076,17 @@
 011000,5.RT,5.BASE,1010100,9.IMMEDIATE:POOL32C:32::SHE
 "she r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 000000,5.RT!0,5.RS!0,5.SHIFT,00000,000000:POOL32A:32::SLL
 "sll r<RT>, r<RS>, <SHIFT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_sll (SD_, RS, RT, SHIFT);
 }
@@ -1850,7 +2095,9 @@
 000000,5.RT,5.RS,5.RD,00000,010000:POOL32A:32::SLLV
 "sllv r<RD>, r<RT>, r<RS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_sllv (SD_, RS, RT, RD);
 }
@@ -1859,7 +2106,9 @@
 000000,5.RT,5.RS,5.RD,01101,010000:POOL32A:32::SLT
 "slt r<RD>, r<RS>, r<RT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_slt (SD_, RS, RT, RD);
 }
@@ -1868,7 +2117,9 @@
 100100,5.RT,5.RS,16.IMMEDIATE:MICROMIPS:32::SLTI
 "slti r<RT>, r<RS>, <IMMEDIATE>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_slti (SD_, RS, RT, IMMEDIATE);
 }
@@ -1877,7 +2128,9 @@
 101100,5.RT,5.RS,16.IMMEDIATE:MICROMIPS:32::SLTIU
 "sltiu r<RT>, r<RS>, <IMMEDIATE>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_sltiu (SD_, RS, RT, IMMEDIATE);
 }
@@ -1886,7 +2139,9 @@
 000000,5.RT,5.RS,5.RD,01110,010000:POOL32A:32::SLTU
 "sltu r<RD>, r<RS>, r<RT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_sltu (SD_, RS, RT, RD);
 }
@@ -1895,7 +2150,9 @@
 000000,5.RT,5.RS,5.SHIFT,00010,000000:POOL32A:32::SRA
 "sra r<RT>, r<RS>, <SHIFT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_sra (SD_, RS, RT, SHIFT);
 }
@@ -1904,7 +2161,9 @@
 000000,5.RT,5.RS,5.RD,00010,010000:POOL32A:32::SRAV
 "srav r<RD>, r<RT>, r<RS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_srav (SD_, RS, RT, RD);
 }
@@ -1913,7 +2172,9 @@
 000000,5.RT,5.RS,5.SHIFT,00001,000000:POOL32A:32::SRL
 "srl r<RT>, r<RS>, <SHIFT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_srl (SD_, RS, RT, SHIFT);
 }
@@ -1922,7 +2183,9 @@
 000000,5.RT,5.RS,5.RD,00001,010000:POOL32A:32::SRLV
 "srlv r<RD>, r<RT>, r<RS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_srlv (SD_, RS, RT, RD);
 }
@@ -1939,7 +2202,9 @@
 000000,5.RT,5.RS,5.RD,00110,010000:POOL32A:32::SUB
 "sub r<RD>, r<RS>, r<RT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_sub (SD_, RD, RS, RT);
 }
@@ -1948,7 +2213,9 @@
 000000,5.RT,5.RS,5.RD,00111,010000:POOL32A:32::SUBU
 "subu r<RD>, r<RS>, r<RT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_subu (SD_, RS, RT, RD);
 }
@@ -1974,7 +2241,9 @@
 111110,5.RT,5.BASE,16.IMMEDIATE:MICROMIPS:32::SW
 "sw r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_store (SD_, AccessLength_WORD, GPR[BASE], EXTEND16 (IMMEDIATE), GPR[RT]);
 }
@@ -1983,7 +2252,9 @@
 100110,5.FT,5.BASE,16.IMMEDIATE:MICROMIPS:32,f::SWC1
 "swc1 f<FT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_swc1 (SD_, FT, IMMEDIATE, BASE, instruction_0);
 }
@@ -1992,13 +2263,17 @@
 001000,5.RT,5.BASE,1000,12.IMMEDIATE:POOL32B:32::SWC2
 "swc2 r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 011000,5.RT,5.BASE,1010111,9.IMMEDIATE:POOL32C:32::SWE
 "swe r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 011000,5.RT,5.BASE,1000,12.IMMEDIATE:POOL32C:32::SWL
@@ -2020,7 +2295,9 @@
 001000,5.LWM32REGS,5.BASE,1101,12.IMMEDIATE:POOL32B:32::SWM32
 "swm32 %s<LWM32REGS>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   int address_base = GPR[BASE] + EXTEND12 (IMMEDIATE);
   int reg_offset;
@@ -2039,7 +2316,9 @@
 001000,5.RS1,5.BASE,1001,12.IMMEDIATE:POOL32B:32::SWP
 "swp r<RS1>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   if (RS1 == 31)
     Unpredictable ();
@@ -2079,7 +2358,9 @@
 000000,00000,5.STYPE,0110101101,111100:POOL32A:32::SYNC
 "sync <STYPE>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   SyncOperation (STYPE);
 }
@@ -2095,7 +2376,9 @@
 000000,10.CODE,1000101101,111100:POOL32A:32::SYSCALL
 "syscall %#lx<CODE>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   SignalException (SystemCall, instruction_0);
 }
@@ -2104,7 +2387,9 @@
 000000,5.RT,5.RS,4.CODE,000000,111100:POOL32A:32::TEQ
 "teq r<RS>, r<RT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_teq (SD_, RS, RT, instruction_0);
 }
@@ -2122,7 +2407,9 @@
 000000,5.RT,5.RS,4.CODE,001000,111100:POOL32A:32::TGE
 "tge r<RS>, r<RT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_tge (SD_, RS, RT, instruction_0);
 }
@@ -2149,7 +2436,9 @@
 000000,5.RT,5.RS,4.CODE,010000,111100:POOL32A:32::TGEU
 "tgeu r<RS>, r<RT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_tgeu (SD_, RS, RT, instruction_0);
 }
@@ -2158,25 +2447,33 @@
 000000,00000000000000001101,111100:POOL32A:32::TLBP
 "tlbp"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 000000,00000000000001001101,111100:POOL32A:32::TLBR
 "tlbr"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 000000,00000000000010001101,111100:POOL32A:32::TLBWI
 "tlbwi"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 000000,00000000000011001101,111100:POOL32A:32::TLBWR
 "tlbwr"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 000000,5.RT,5.RS,4.CODE,100000,111100:POOL32A:32::TLT
@@ -2209,7 +2506,9 @@
 000000,5.RT,5.RS,4.CODE,101000,111100:POOL32A:32::TLTU
 "tltu r<RS>, r<RT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_tltu (SD_, RS, RT, instruction_0);
 }
@@ -2218,7 +2517,9 @@
 000000,5.RT,5.RS,4.CODE,110000,111100:POOL32A:32::TNE
 "tne r<RS>, r<RT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_tne (SD_, RS, RT, instruction_0);
 }
@@ -2236,19 +2537,25 @@
 000000,10.CODE,1001001101,111100:POOL32A:32::WAIT
 "wait"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 000000,5.RT,5.RS,1111000101,111100:POOL32A:32::WRPGPR
 "wrpgpr r<RS>, r<RT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 
 
 000000,5.RT,5.RS,0111101100,111100:POOL32A:32::WSBH
 "wsbh r<RT>, r<RS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_wsbh (SD_, RT, RS);
 }
@@ -2257,7 +2564,9 @@
 000000,5.RT,5.RS,5.RD,01100,010000:POOL32A:32::XOR
 "xor r<RD>, r<RS>, r<RT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_xor (SD_, RS, RT, RD);
 }
@@ -2266,7 +2575,9 @@
 011100,5.RT,5.RS,16.IMMEDIATE:MICROMIPS:32::XORI
 "xori r<RT>, r<RS>, <IMMEDIATE>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_xori (SD_, RS, RT, IMMEDIATE);
 }
@@ -2311,7 +2622,9 @@
 010101,5.FT,5.FS,0,2.FMT_MICROMIPS!3,0001101,111011:POOL32F:32,f::ABS.fmt
 "abs.%s<FMT_MICROMIPS> f<FT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_abs_fmt (SD_, convert_fmt_micromips (SD_, FMT_MICROMIPS), FT, FS,
 	      instruction_0);
@@ -2321,7 +2634,9 @@
 010101,5.FT,5.FS,5.FD,0,2.FMT_MICROMIPS!3,00,110000:POOL32F:32,f::ADD.fmt
 "add.%s<FMT_MICROMIPS> f<FD>, f<FS>, f<FT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_add_fmt (SD_, convert_fmt_micromips (SD_, FMT_MICROMIPS), FD, FS, FT,
 	      instruction_0);
@@ -2341,7 +2656,9 @@
 "c.%s<COND>.%s<FMT_MICROMIPS> f<FS>, f<FT>":CC == 0
 "c.%s<COND>.%s<FMT_MICROMIPS> <CC>, f<FS>, f<FT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_c_cond_fmt (SD_, COND, convert_fmt_micromips (SD_, FMT_MICROMIPS), CC,
 		 FS, FT, instruction_0);
@@ -2351,7 +2668,9 @@
 010101,5.FT,5.FS,0,1.FMT_MICROMIPS,01001100,111011:POOL32F:32,f::CEIL.L.fmt
 "ceil.l.%s<FMT_MICROMIPS> f<FT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_ceil_fmt (SD_, fmt_long, FMT_MICROMIPS, FT, FS, instruction_0);
 }
@@ -2360,7 +2679,9 @@
 010101,5.FT,5.FS,0,1.FMT_MICROMIPS,01101100,111011:POOL32F:32,f::CEIL.W.fmt
 "ceil.w.%s<FMT_MICROMIPS> f<FT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_ceil_fmt (SD_, fmt_word, FMT_MICROMIPS, FT, FS, instruction_0);
 }
@@ -2369,7 +2690,9 @@
 010101,5.FT,5.FS,0,2.FMT_MICROMIPS_CVT_D!3,1001101,111011:POOL32F:32,f::CVT.D.fmt
 "cvt.d.%s<FMT_MICROMIPS_CVT_D> f<FT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_cvt_d_fmt (SD_, convert_fmt_micromips_cvt_d (SD_, FMT_MICROMIPS_CVT_D),
 		FT, FS, instruction_0);
@@ -2379,7 +2702,9 @@
 010101,5.FT,5.FS,0,1.FMT_MICROMIPS,00000100,111011:POOL32F:32,f::CVT.L.fmt
 "cvt.l.%s<FMT_MICROMIPS> f<FT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_cvt_l_fmt (SD_, FMT_MICROMIPS, FT, FS, instruction_0);
 }
@@ -2397,7 +2722,9 @@
 010101,5.FT,5.FS,0,2.FMT_MICROMIPS_CVT_S!3,1101101,111011:POOL32F:32,f::CVT.S.fmt
 "cvt.s.%s<FMT_MICROMIPS_CVT_S> f<FT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_cvt_s_fmt (SD_, convert_fmt_micromips_cvt_s (SD_, FMT_MICROMIPS_CVT_S),
 		FT, FS, instruction_0);
@@ -2407,7 +2734,9 @@
 010101,5.FT,5.FS,00,10000100,111011:POOL32F:32,f::CVT.S.PL
 "cvt.s.pl f<FT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_cvt_s_pl (SD_, FT, FS, instruction_0);
 }
@@ -2416,7 +2745,9 @@
 010101,5.FT,5.FS,00,10100100,111011:POOL32F:32,f::CVT.S.PU
 "cvt.s.pu f<FT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_cvt_s_pu (SD_, FT, FS, instruction_0);
 }
@@ -2425,7 +2756,9 @@
 010101,5.FT,5.FS,0,1.FMT_MICROMIPS,00100100,111011:POOL32F:32,f::CVT.W.fmt
 "cvt.w.%s<FMT_MICROMIPS> f<FT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_cvt_w_fmt (SD_, FMT_MICROMIPS, FT, FS, instruction_0);
 }
@@ -2434,7 +2767,9 @@
 010101,5.FT,5.FS,5.FD,0,2.FMT_MICROMIPS!2!3,11,110000:POOL32F:32,f::DIV.fmt
 "div.%s<FMT_MICROMIPS> f<FD>, f<FS>, f<FT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_div_fmt (SD_, FMT_MICROMIPS, FD, FS, FT, instruction_0);
 }
@@ -2443,7 +2778,9 @@
 010101,5.FT,5.FS,0,1.FMT_MICROMIPS,00001100,111011:POOL32F:32,f::FLOOR.L.fmt
 "floor.l.%s<FMT_MICROMIPS> f<FT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_floor_fmt (SD_, fmt_long, FMT_MICROMIPS, FT, FS);
 }
@@ -2452,7 +2789,9 @@
 010101,5.FT,5.FS,0,1.FMT_MICROMIPS,00101100,111011:POOL32F:32,f::FLOOR.W.fmt
 "floor.w.%s<FMT_MICROMIPS> f<FT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_floor_fmt (SD_, fmt_word, FMT_MICROMIPS, FT, FS);
 }
@@ -2470,7 +2809,9 @@
 010101,5.FT,5.FS,0,2.FMT_MICROMIPS!3,0000001,111011:POOL32F:32,f::MOV.fmt
 "mov.%s<FMT_MICROMIPS> f<FT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_mov_fmt (SD_, convert_fmt_micromips (SD_, FMT_MICROMIPS), FT, FS,
 	      instruction_0);
@@ -2516,7 +2857,9 @@
 010101,5.FT,5.FS,5.FD,0,2.FMT_MICROMIPS!3,10,110000:POOL32F:32,f::MUL.fmt
 "mul.%s<FMT_MICROMIPS> f<FD>, f<FS>, f<FT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_mul_fmt (SD_, convert_fmt_micromips (SD_, FMT_MICROMIPS), FD, FS, FT,
 	      instruction_0);
@@ -2526,7 +2869,9 @@
 010101,5.FT,5.FS,0,2.FMT_MICROMIPS!3,0101101,111011:POOL32F:32,f::NEG.fmt
 "neg.%s<FMT_MICROMIPS> f<FT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_neg_fmt (SD_, convert_fmt_micromips (SD_, FMT_MICROMIPS), FT, FS,
 	      instruction_0);
@@ -2591,7 +2936,9 @@
 010101,5.FT,5.FS,0,1.FMT_MICROMIPS,01001000,111011:POOL32F:32,f::RECIP.fmt
 "recip.%s<FMT_MICROMIPS> f<FT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_recip_fmt (SD_, FMT_MICROMIPS, FT, FS);
 }
@@ -2600,7 +2947,9 @@
 010101,5.FT,5.FS,0,1.FMT_MICROMIPS,11001100,111011:POOL32F:32,f::ROUND.L.fmt
 "round.l.%s<FMT_MICROMIPS> f<FT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_round_fmt (SD_, fmt_long, FMT_MICROMIPS, FT, FS);
 }
@@ -2609,7 +2958,9 @@
 010101,5.FT,5.FS,0,1.FMT_MICROMIPS,11101100,111011:POOL32F:32,f::ROUND.W.fmt
 "round.w.%s<FMT_MICROMIPS> f<FT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_round_fmt (SD_, fmt_word, FMT_MICROMIPS, FT, FS);
 }
@@ -2618,7 +2969,9 @@
 010101,5.FT,5.FS,0,1.FMT_MICROMIPS,00001000,111011:POOL32F:32,f::RSQRT.fmt
 "rsqrt.%s<FMT_MICROMIPS> f<FT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_rsqrt_fmt (SD_, FMT_MICROMIPS, FT, FS);
 }
@@ -2627,7 +2980,9 @@
 010101,5.FT,5.FS,0,1.FMT_MICROMIPS,00101000,111011:POOL32F:32,f::SQRT.fmt
 "sqrt.%s<FMT_MICROMIPS> f<FT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_sqrt_fmt (SD_, FMT_MICROMIPS, FT, FS);
 }
@@ -2636,7 +2991,9 @@
 010101,5.FT,5.FS,5.FD,0,2.FMT_MICROMIPS!3,01,110000:POOL32F:32,f::SUB.fmt
 "sub.%s<FMT_MICROMIPS> f<FD>, f<FS>, f<FT>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_sub_fmt (SD_, convert_fmt_micromips (SD_, FMT_MICROMIPS), FD, FS, FT,
 	      instruction_0);
@@ -2646,7 +3003,9 @@
 010101,5.FT,5.FS,0,1.FMT_MICROMIPS,10001100,111011:POOL32F:32,f::TRUNC.L.fmt
 "trunc.l.%s<FMT_MICROMIPS> f<FT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_trunc_fmt (SD_, fmt_long, FMT_MICROMIPS, FT, FS);
 }
@@ -2655,7 +3014,9 @@
 010101,5.FT,5.FS,0,1.FMT_MICROMIPS,10101100,111011:POOL32F:32,f::TRUNC.W.fmt
 "trunc.w.%s<FMT_MICROMIPS> f<FT>, f<FS>"
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   do_trunc_fmt (SD_, fmt_word, FMT_MICROMIPS, FT, FS);
 }
@@ -2663,6 +3024,7 @@
 001000,5.LWM32REGS,5.BASE,0111,12.OFFSET:POOL32B:64::LDM
 "ldm %s<LWM32REGS>, <OFFSET>(r<BASE>)"
 *micromips64:
+*micromips64r6:
 {
   int address_base = GPR[BASE] + EXTEND12 (OFFSET);
   int reg_offset;
@@ -2681,6 +3043,7 @@
 001000,5.RD,5.BASE,0100,12.OFFSET:POOL32B:64::LDP
 "ldp r<RD>, <OFFSET>(r<BASE>)"
 *micromips64:
+*micromips64r6:
 {
   if (BASE == RD || RD == 31)
     Unpredictable ();
@@ -2697,6 +3060,7 @@
 001000,5.LWM32REGS,5.BASE,1111,12.OFFSET:POOL32B:64::SDM
 "sdm %s<LWM32REGS>, <OFFSET>(r<BASE>)"
 *micromips64:
+*micromips64r6:
 {
   int address_base = GPR[BASE] + EXTEND12 (OFFSET);
   int reg_offset;
@@ -2714,6 +3078,7 @@
 001000,5.RD,5.BASE,1100,12.OFFSET:POOL32B:64::SDP
 "sdp r<RD>, <OFFSET>(r<BASE>)"
 *micromips64:
+*micromips64r6:
 {
   if (RD == 31)
     Unpredictable ();
@@ -2730,6 +3095,7 @@
 010110,5.RT,5.RS,5.RD,00,100010000:POOL32S:64::DADD
 "dadd r<RD>, r<RS>, r<RT>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_dadd (SD_, RD, RS, RT);
@@ -2746,6 +3112,7 @@
 010111,5.RT,5.RS,16.IMMEDIATE:MICROMIPS:64::DADDIU
 "daddiu r<RT>, r<RS>, <IMMEDIATE>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_daddiu (SD_, RS, RT, IMMEDIATE);
@@ -2754,6 +3121,7 @@
 010110,5.RT,5.RS,5.RD,00,101010000:POOL32S:64::DADDU
 "daddu r<RD>, r<RS>, r<RT>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_daddu (SD_, RS, RT, RD);
@@ -2762,6 +3130,7 @@
 010110,5.RT,5.RS,0100101100,111100:POOL32S:64::DCLO
 "dclo r<RT>, r<RS>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_dclo (SD_, RT, RS);
@@ -2770,6 +3139,7 @@
 010110,5.RT,5.RS,0101101100,111100:POOL32S:64::DCLZ
 "dclz r<RT>, r<RS>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_dclz (SD_, RT, RS);
@@ -2794,6 +3164,7 @@
 010110,5.RT,5.RS,5.SIZE,5.LSB,101100:POOL32S:64::DEXT
 "dext r<RT>, r<RS>, <LSB>, <SIZE+1>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_dext (SD_, RT, RS, LSB, SIZE);
@@ -2802,6 +3173,7 @@
 010110,5.RT,5.RS,5.SIZE,5.LSB,100100:POOL32S:64::DEXTM
 "dextm r<RT>, r<RS>, <LSB>, <SIZE+33>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_dextm (SD_, RT, RS, LSB, SIZE);
@@ -2810,6 +3182,7 @@
 010110,5.RT,5.RS,5.SIZE,5.LSB,010100:POOL32S:64::DEXTU
 "dextu r<RT>, r<RS>, <LSB+32>, <SIZE+1>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_dextu (SD_, RT, RS, LSB, SIZE);
@@ -2818,6 +3191,7 @@
 010110,5.RT,5.RS,5.MSB,5.LSB,001100:POOL32S:64::DINS
 "dins r<RT>, r<RS>, <LSB>, <MSB-LSB+1>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_dins (SD_, RT, RS, LSB, MSB);
@@ -2826,6 +3200,7 @@
 010110,5.RT,5.RS,5.MSB,5.LSB,000100:POOL32S:64::DINSM
 "dinsm r<RT>, r<RS>, <LSB>, <MSB+32-LSB+1>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_dinsm (SD_, RT, RS, LSB, MSB);
@@ -2834,6 +3209,7 @@
 010110,5.RT,5.RS,5.MSB,5.LSB,110100:POOL32S:64::DINSU
 "dinsu r<RT>, r<RS>, <LSB+32>, <MSB-LSB+1>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_dinsu (SD_, RT, RS, LSB, MSB);
@@ -2843,6 +3219,7 @@
 "dmfc0 r<RT>, r<RS>": SEL == 0
 "dmfc0 r<RT>, r<RS>, <SEL>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   DecodeCoproc (instruction_0, 0, cp0_dmfc0, RT, RS, SEL);
@@ -2851,6 +3228,7 @@
 010101,5.RT,5.FS,00,10010000,111011:POOL32F:64::DMFC1
 "dmfc1 r<RT>, f<FS>"
 *micromips64:
+*micromips64r6:
 {
   check_fpu (SD_);
   check_u64 (SD_, instruction_0);
@@ -2861,6 +3239,7 @@
 "dmtc0 r<RT>, r<RS>": SEL == 0
 "dmtc0 r<RT>, r<RS>, <SEL>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   DecodeCoproc (instruction_0, 0, cp0_dmtc0, RT, RS, SEL);
@@ -2869,6 +3248,7 @@
 010101,5.RT,5.FS,00,10110000,111011:POOL32F:64::DMTC1
 "dmtc1 r<RT>, f<FS>"
 *micromips64:
+*micromips64r6:
 {
   check_fpu (SD_);
   check_u64 (SD_, instruction_0);
@@ -2894,6 +3274,7 @@
 010110,5.RT,5.RS,5.SA,00,011000000:POOL32S:64::DROTR
 "drotr r<RT>, r<RS>, <SA>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   GPR[RT] = do_dror (SD_, GPR[RS], SA);
@@ -2902,6 +3283,7 @@
 010110,5.RT,5.RS,5.SA,00,011001000:POOL32S:64::DROTR32
 "drotr32 r<RT>, r<RS>, <SA+32>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   GPR[RT] = do_dror (SD_, GPR[RS], SA + 32);
@@ -2910,6 +3292,7 @@
 010110,5.RT,5.RS,5.RD,00,011010000:POOL32S:64::DROTRV
 "drotrv r<RD>, r<RT>, r<RS>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   GPR[RD] = do_dror (SD_, GPR[RT], GPR[RS]);
@@ -2918,6 +3301,7 @@
 010110,5.RT,5.RS,0111101100,111100:POOL32S:64::DSBH
 "dsbh r<RT>, r<RS>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_dsbh (SD_, RT, RS);
@@ -2926,6 +3310,7 @@
 010110,5.RT,5.RS,1111101100,111100:POOL32S:64::DSHD
 "dshd r<RT>, r<RS>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_dshd (SD_, RS, RT);
@@ -2934,6 +3319,7 @@
 010110,5.RT,5.RS,5.SA,00,000000000:POOL32S:64::DSLL
 "dsll r<RT>, r<RS>, <SA>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_dsll (SD_, RS, RT, SA);
@@ -2942,6 +3328,7 @@
 010110,5.RT,5.RS,5.SA,00,000001000:POOL32S:64::DSLL32
 "dsll32 r<RT>, r<RS>, <SA>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_dsll32 (SD_, RT, RS, SA);
@@ -2950,6 +3337,7 @@
 010110,5.RT,5.RS,5.RD,00,000010000:POOL32S:64::DSLLV
 "dsllv r<RD>, r<RT>, r<RS>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_dsllv (SD_, RS, RT, RD);
@@ -2958,6 +3346,7 @@
 010110,5.RT,5.RS,5.SA,00,010000000:POOL32S:64::DSRA
 "dsra r<RT>, r<RS>, <SA>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_dsra (SD_, RS, RT, SA);
@@ -2966,6 +3355,7 @@
 010110,5.RT,5.RS,5.SA,00,010001000:POOL32S:64::DSRA32
 "dsra32 r<RT>, r<RS>, <SA>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_dsra32 (SD_, RT, RS, SA);
@@ -2974,6 +3364,7 @@
 010110,5.RT,5.RS,5.RD,00,010010000:POOL32S:64::DSRAV
 "dsrav r<RD>, r<RS>, r<RT>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_dsrav (SD_, RS, RT, RD);
@@ -2982,6 +3373,7 @@
 010110,5.RT,5.RS,5.SA,00,001000000:POOL32S:64::DSRL
 "dsrl r<RT>, r<RS>, <SA>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_dsrl (SD_, RS, RT, SA);
@@ -2990,6 +3382,7 @@
 010110,5.RT,5.RS,5.SA,00,001001000:POOL32S:64::DSRL32
 "dsrl32 r<RT>, r<RS>, <SA>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_dsrl32 (SD_, RT, RS, SA);
@@ -2998,6 +3391,7 @@
 010110,5.RT,5.RS,5.RD,00,001010000:POOL32S:64::DSRLV
 "dsrlv r<RD>, r<RT>, r<RS>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_dsrlv (SD_, RS, RT, RD);
@@ -3006,6 +3400,7 @@
 010110,5.RT,5.RS,5.RD,00,110001000:POOL32S:64::DSUB
 "dsub r<RD>, r<RS>, r<RT>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_dsub (SD_, RD, RS, RT);
@@ -3014,6 +3409,7 @@
 010110,5.RT,5.RS,5.RD,00,111001000:POOL32S:64::DSUBU
 "dsubu r<RD>, r<RS>, r<RT>"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_dsubu (SD_, RS, RT, RD);
@@ -3022,6 +3418,7 @@
 110111,5.RT,5.BASE,16.OFFSET:MICROMIPS64:64::LD
 "ld r<RT>, <OFFSET>(r<BASE>)"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   GPR[RT] = EXTEND64 (do_load (SD_, AccessLength_DOUBLEWORD, GPR[BASE],
@@ -3058,6 +3455,7 @@
 011000,5.RT,5.BASE,0111,12.OFFSET:POOL32C:64::LLD
 "lld r<RT>, <OFFSET>(r<BASE>)"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_lld (SD_, RT, OFFSET, BASE);
@@ -3066,6 +3464,7 @@
 011000,5.RT,5.BASE,1111,12.OFFSET:POOL32C:64::SCD
 "scd r<RT>, <OFFSET>(r<BASE>)"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_scd (SD_, RT, OFFSET, BASE);
@@ -3074,6 +3473,7 @@
 110110,5.RT,5.BASE,16.OFFSET:MICROMIPS64:64::SD
 "sd r<RT>, <OFFSET>(r<BASE>)"
 *micromips64:
+*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_store (SD_, AccessLength_DOUBLEWORD, GPR[BASE], EXTEND16 (OFFSET),

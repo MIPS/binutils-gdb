@@ -13646,26 +13646,27 @@ case "${target}" in
   mips64vr-*-* | mips64vrel-*-*)
 			sim_gen=MULTI
 			sim_multi_configs="\
-			  vr4100:mipsIII,mips16,vr4100:32,64:mips4100,mips4111\
-			  vr4120:mipsIII,mips16,vr4120:32,64:mips4120\
-			  vr5000:mipsIV:32,64,f:mips4300,mips5000\
-			  vr5400:mipsIV,vr5400:32,64,f:mips5400\
-			  vr5500:mipsIV,vr5500:32,64,f:mips5500"
+			  vr4100:mipsIII,mips16,vr4100::32,64:mips4100,mips4111:\
+			  vr4120:mipsIII,mips16,vr4120::32,64:mips4120:\
+			  vr5000:mipsIV::32,64,f:mips4300,mips5000:\
+			  vr5400:mipsIV,vr5400::32,64,f:mips5400:\
+			  vr5500:mipsIV,vr5500::32,64,f:mips5500:"
 			sim_multi_default=mips5000
 			;;
   mips*-sde-elf* | mips*-mti-elf*)
 			sim_gen=MULTI
 			sim_multi_configs="\
-			  micromips:micromips64,micromipsdsp:32,64,f:mips_micromips\
-			  mips64r2:mips64r2,mips3d,mips16,mips16e,mdmx,dsp,dsp2,smartmips:32,64,f:mipsisa64r2"
+			  micromips:micromips64,micromipsdsp:mips64r2,mips3d,mdmx,dsp,dsp2,smartmips:32,64,f:mipsisa64r2,mipsisa32r2:EF_MIPS_ARCH_ASE_MICROMIPS\
+			  mips64r2:mips64r2,mips3d,mips16,mips16e,mdmx,dsp,dsp2,smartmips::32,64,f:mipsisa64r2:"
 			sim_multi_default=mipsisa64r2
 			;;
   mips*-img-elf*)
 			sim_gen=MULTI
 			sim_multi_configs="\
-			  micromips:micromips64,micromipsdsp:32,64,f:mips_micromips\
-			  mipsisa64r2:mips64r2,mips16,mips16e,mdmx,dsp,dsp2,mips3d,smartmips:32,64,f:mipsisa32r2,mipsisa64r2,mipsisa32r5,mipsisa64r5\
-			  mipsisa64r6:mips64r6:32,64,f:mipsisa64r6"
+			  micror6sim:micromips64r6:mips64r6:32,64,f:mipsisa64r6,mipsisa32r6:EF_MIPS_ARCH_ASE_MICROMIPS
+			  micror2sim:micromips64,micromipsdsp:mips64r2:32,64,f:mipsisa64r2,mipsisa32r2:EF_MIPS_ARCH_ASE_MICROMIPS
+			  r2sim:mips64r2,mips16,mips16e,mdmx,dsp,dsp2,mips3d,smartmips::32,64,f:mipsisa64r2,mipsisa32r2,mipsisa64r5,mipsisa32r5:\
+			  r6sim:mips64r6::32,64,f:mipsisa64r6,mipsisa32r6:"
 			sim_multi_default=mipsisa64r6
 			;;
   mips64*-*-*)		sim_igen_filter="32,64,f"
@@ -13677,8 +13678,8 @@ case "${target}" in
 			;;
   mipsisa32r2*-*-*)	sim_gen=MULTI
 			sim_multi_configs="\
-			  micromips:micromips32,micromipsdsp:32,f:mips_micromips\
-			  mips32r2:mips32r2,mips3d,mips16,mips16e,mdmx,dsp,dsp2,smartmips:32,f:mipsisa32r2"
+			  micromips:micromips32,micromipsdsp::32,f:mipsisa32r2,EF_MIPS_ARCH_ASE_MICROMIPS\
+			  mips32r2:mips32r2,mips3d,mips16,mips16e,mdmx,dsp,dsp2,smartmips::32,f:mipsisa32r2:"
 			sim_multi_default=mipsisa32r2
 			;;
   mipsisa32r6*-*-*)	sim_gen=M16
@@ -13733,14 +13734,20 @@ esac
 # variables: ${sim_multi_configs} and ${sim_multi_default}.
 #
 # ${sim_multi_configs} is the list of engines to build.  Each
-# space-separated entry has the form NAME:MACHINE:FILTER:BFDMACHS,
+# space-separated entry has the form NAME:MACHINE:SUBMACH:FILTER:BFDMACHS,
 # where:
 #
 # - NAME is a C-compatible prefix for the engine,
 # - MACHINE is a -M argument,
+# - SUBMACH is the machine type used as a secondary (micromips targets),
 # - FILTER is a -F argument, and
-# - BFDMACHS is a comma-separated list of bfd machines that the
-#     simulator can run.
+# - BFDMACHS is a single bfd_mach_ prefixed architecture that will be
+#     returned if requested for this engine, and
+# - EFLAGS is a comma-separated list of elf flags, is an && joined list of
+#     flags required to be met for this engine to be chosen
+#
+# The order of the entries does matter, particularly if flags are involved,
+# as the first matching entry will be the chosen engine.
 #
 # Each entry will have a separate simulation engine whose prefix is
 # m32<NAME>.  If the machine list includes "mips16", there will also
@@ -13751,10 +13758,9 @@ esac
 # FPU Bitsize state is taken from the original definitions and so will be the
 # same for all machines in a multisim.
 #
-# The simulator compares the bfd mach against BFDMACHS to decide
-# which engine to use.  Entries in BFDMACHS should be bfd_mach
-# values with "bfd_mach_" removed.  ${sim_multi_default} says
-# which entry should be the default.
+# The simulator compares the elf header against EMACHS/EFLAGS to decide
+# which engine to use. ${sim_multi_default} says which entry should be the
+# default.
 if test ${sim_gen} = MULTI; then
 
   # Simple sanity check.
@@ -13805,29 +13811,27 @@ sim_engine_run (SIM_DESC sd,
 		int nr_cpus,
 		int signal) /* ignore */
 {
-  int mach;
+  unsigned long bfdmach;
+  unsigned long e_flags = elf_elfheader (sd->base.prog_bfd)->e_flags;
 
-  if (STATE_ARCHITECTURE (sd) == NULL)
-    mach = bfd_mach_${sim_multi_default};
-  else if (elf_elfheader (sd->base.prog_bfd)->e_flags
-	   & EF_MIPS_ARCH_ASE_MICROMIPS)
-    mach = bfd_mach_mips_micromips;
+  if (STATE_ARCHITECTURE(SD) == NULL)
+    bfdmach = bfd_mach_${sim_multi_default};
   else
-    mach = STATE_ARCHITECTURE (SD)->mach;
+    bfdmach = STATE_ARCHITECTURE(SD)->mach;
 
-  switch (mach)
-    {
 __EOF__
 
+  bfdlist=""
+  micromips_configs=""
   for fc in ${sim_multi_configs}; do
 
-    # Split up the entry.  ${c} contains the first three elements.
-    # Note: outer sqaure brackets are m4 quotes.
-    c=`echo ${fc} | sed 's/:[^:]*$//'`
-    bfdmachs=`echo ${fc} | sed 's/.*://'`
-    name=`echo ${c} | sed 's/:.*//'`
-    machine=`echo ${c} | sed 's/.*:\(.*\):.*/\1/'`
-    filter=`echo ${c} | sed 's/.*://'`
+    # Split up the entry.  ${c} contains MACH/SUBMACH elements.
+    c=`echo ${fc} | sed 's/.*:\(.*\):\(.*\):.*:.*:.*/\1\2/'`
+    name=`echo ${fc} | sed 's/:.*//'`
+    machine=`echo ${fc} | sed 's/.*:\(.*\):.*:.*:.*:.*/\1/'`
+    filter=`echo ${fc} | sed 's/.*:.*:.*:\(.*\):.*:.*/\1/'`
+    bfdmachs=`echo ${fc} | sed 's/.*:.*:.*:.*:\(.*\):.*/\1/'`
+    eflags=`echo ${fc} | sed 's/.*://'`
 
     # Build the following lists:
     #
@@ -13843,7 +13847,7 @@ __EOF__
 
     # Check whether special handling is needed.
     case ${c} in
-      *:*mips16*:*)
+      *mips16*)
 	# Run igen twice, once for normal mode and once for mips16.
 	ws="m32 m16"
 
@@ -13854,10 +13858,11 @@ __EOF__
 	sim_multi_obj="${sim_multi_obj} m16${name}_run.o"
 	sim_multi_flags="${sim_multi_flags} -F 16"
 	;;
-      *:*micromips32*:*)
+      *micromips32*)
 	# Run igen thrice, once for micromips32, once for micromips16,
         # and once for m32.
 	ws="micromips_m32 micromips16 micromips32"
+	micromips_configs="${micromips_configs} micromips32${fc}"
 
 	# The top-level function for the micromips simulator is
 	# in a file micromips${name}_run.c, generated by the
@@ -13866,10 +13871,11 @@ __EOF__
 	sim_multi_obj="${sim_multi_obj} micromips${name}_run.o"
 	sim_multi_flags="${sim_multi_flags} -F 16,32"
 	;;
-      *:*micromips64*:*)
+      *micromips64*)
 	# Run igen thrice, once for micromips64, once for micromips16,
         # and once for m64.
 	ws="micromips_m64 micromips16 micromips64"
+	micromips_configs="${micromips_configs} micromips64${fc}"
 
 	# The top-level function for the micromips simulator is
 	# in a file micromips${name}_run.c, generated by the
@@ -13891,24 +13897,43 @@ __EOF__
 	sim_multi_src="${sim_multi_src} ${w}${name}_${base}.h"
 	sim_multi_obj="${sim_multi_obj} ${w}${name}_${base}.o"
       done
-      sim_multi_igen_configs="${sim_multi_igen_configs} ${w}${c}"
+      sim_multi_igen_configs="${sim_multi_igen_configs} ${w}${fc}"
     done
 
     # Add an include for the engine.h file.  This file declares the
     # top-level foo_engine_run() function.
     echo "#include \"${w}${name}_engine.h\"" >> multi-include.h
 
-    # Add case statements for this engine to sim_engine_run().
+    # Generate conditionals for machs and flags
+    machcond=""
     for mach in `echo ${bfdmachs} | sed 's/,/ /g'`; do
-      echo "    case bfd_mach_${mach}:" >> multi-run.c
+      machcond="${machcond} bfdmach == bfd_mach_${mach} ||"
+      bfdlist="${bfdlist} bfd_mach_${mach}"
       if test ${mach} = ${sim_multi_default}; then
-	echo "    default:" >> multi-run.c
+	default_wname="${w}${name}"
 	sim_seen_default=yes
       fi
     done
-    echo "      ${w}${name}_engine_run (sd, next_cpu_nr, nr_cpus, signal);" \
-      >> multi-run.c
-    echo "      break;" >> multi-run.c
+    machcond=`echo ${machcond} | sed 's/\(.*\) ||/\1/'`
+
+    flagcond=""
+    for flag in `echo ${eflags} | sed 's/,/ /g'`; do
+      flagcond="${flagcond} (e_flags & ${flag}) &&"
+    done
+    flagcond=`echo ${flagcond} | sed 's/\(.*\) &&/\1/'`
+
+    # Add if statements for this engine to sim_engine_run().
+    if [ "${eflags}" == "" ]; then
+      echo "  if (${machcond})" >> multi-run.c
+    else
+      echo "  if ((${machcond}) && (${flagcond}))" >> multi-run.c
+    fi
+    cat << __EOF__ >> multi-run.c
+    {
+      ${w}${name}_engine_run (sd, next_cpu_nr, nr_cpus, signal);
+    }
+  else
+__EOF__
   done
 
   # Check whether we added a 'default:' label.
@@ -13916,11 +13941,14 @@ __EOF__
     as_fn_error "Error in configure.in: \${sim_multi_configs} doesn't have an entry for \${sim_multi_default}" "$LINENO" 5
   fi
 
+  # Add the else-clause, and finish the rest of the file
   cat << __EOF__ >> multi-run.c
+    {
+      ${default_wname}_engine_run (sd, next_cpu_nr, nr_cpus, signal);
     }
 }
 
-int
+unsigned long
 mips_mach_multi (SIM_DESC sd)
 {
   if (STATE_ARCHITECTURE (sd) == NULL)
@@ -13931,22 +13959,55 @@ mips_mach_multi (SIM_DESC sd)
 __EOF__
 
   # Add case statements for this engine to mips_mach_multi().
-  for fc in ${sim_multi_configs}; do
-
-    # Split up the entry.  ${c} contains the first three elements.
-    # Note: outer sqaure brackets are m4 quotes.
-    c=`echo ${fc} | sed 's/:[^:]*$//'`
-    bfdmachs=`echo ${fc} | sed 's/.*://'`
-
-    for mach in `echo ${bfdmachs} | sed 's/,/ /g'`; do
-      echo "    case bfd_mach_${mach}:" >> multi-run.c
-    done
+  for bfd in $(echo ${bfdlist} | tr ' ' '\n' | sort -nu); do
+    echo "    case ${bfd}:" >> multi-run.c
   done
 
   cat << __EOF__ >> multi-run.c
       return (STATE_ARCHITECTURE (SD)->mach);
     default:
       return bfd_mach_${sim_multi_default};
+    }
+}
+
+address_word
+micromips_instruction_decode_multi (SIM_DESC sd,
+				    sim_cpu* cpu,
+				    address_word cia,
+				    int instruction_size)
+{
+  unsigned long bfdmach;
+  if (STATE_ARCHITECTURE(SD) == NULL)
+    bfdmach = bfd_mach_${sim_multi_default};
+  else
+    bfdmach = STATE_ARCHITECTURE(SD)->mach;
+
+  switch (bfdmach)
+    {
+__EOF__
+
+  # Add a case statement for each micromips-enabled engine
+  for fc in ${micromips_configs}; do
+    machine=`echo ${fc} | sed 's/.*:\(.*\):.*:.*:.*:.*/\1/'`
+    name=`echo ${fc} | sed 's/:.*//'`
+    bfdmachs=`echo ${fc} | sed 's/.*:.*:.*:.*:\(.*\):.*/\1/'`
+    case ${machine} in
+      micromips*)
+	for bfdmach in `echo ${bfdmachs} | sed 's/,/ /g'`; do
+	  echo "      case bfd_mach_${bfdmach}:" >> multi-run.c
+	done
+	echo "	return ${name}_instruction_decode (sd, cpu, cia, instruction_size);" >> multi-run.c
+	;;
+      *)
+	;;
+    esac
+  done
+
+  cat << __EOF__ >> multi-run.c
+      default:
+	fprintf(stderr, "no valid micromips instruction decoder for this micromips engine\n");
+	abort();
+	break;
     }
 }
 __EOF__
