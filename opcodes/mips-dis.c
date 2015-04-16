@@ -688,6 +688,7 @@ static const char * const *mips_hwr_names;
 
 /* Other options */
 static int no_aliases;	/* If set disassemble as most general inst.  */
+static int dis_both_r5_and_r6;
 
 static const struct mips_abi_choice *
 choose_abi_by_name (const char *name, unsigned int namelen)
@@ -702,6 +703,35 @@ choose_abi_by_name (const char *name, unsigned int namelen)
 
   return c;
 }
+
+#define DIS_BUF_SIZE 1000
+
+/* line_dis_buf is written to by fprintf_dis_buf, and line_dis_ptr
+   records where in the array to write to.  */
+static char line_dis_buf[DIS_BUF_SIZE];
+static char *line_dis_ptr;
+fprintf_ftype infprintf_prev;
+
+/* Fake a fprintf call by appending the string created from FORMAT to
+   the disassembly buffer (line_dis_buf) rather than to outputting it
+   to FILE.
+   This function is used by the print_insn_* functions to verify that
+   all the arguments to an instruction are valid before outputting its
+   disassembly.  */
+static int
+fprintf_dis_buf (void * file ATTRIBUTE_UNUSED, const char* format, ...)
+{
+  int chars;
+  va_list ap;
+  va_start (ap, format);
+  chars = vsnprintf (line_dis_ptr,
+                     DIS_BUF_SIZE - (line_dis_ptr - line_dis_buf), format, ap);
+  line_dis_ptr += chars;
+  va_end (ap);
+  return chars;
+}
+
+#undef DIS_BUF_SIZE
 
 static const struct mips_arch_choice *
 choose_arch_by_name (const char *name, unsigned int namelen)
@@ -792,6 +822,7 @@ set_default_mips_dis_options (struct disassemble_info *info)
   mips_cp1_names = mips_cp1_names_numeric;
   mips_hwr_names = mips_hwr_names_numeric;
   no_aliases = 0;
+  dis_both_r5_and_r6 = 0;
 
   /* Update settings according to the ELF file header flags.  */
   if (info->flavour == bfd_target_elf_flavour && info->section != NULL)
@@ -841,6 +872,14 @@ parse_mips_dis_option (const char *option, unsigned int len)
   if (CONST_STRNEQ (option, "no-aliases"))
     {
       no_aliases = 1;
+      return;
+    }
+
+  if (CONST_STRNEQ (option, "dis-both-r5-and-r6")
+      && ((mips_isa & INSN_ISA_MASK) == ISA_MIPS32R6
+           || (mips_isa & INSN_ISA_MASK) == ISA_MIPS64R6))
+    {
+      dis_both_r5_and_r6 = 1;
       return;
     }
 
@@ -1246,6 +1285,16 @@ print_insn_arg (struct disassemble_info *info,
 	if (info->flavour != bfd_target_unknown_flavour)
 	  info->target &= -2;
 
+	/* Unfortunately the print_address_func does not use the
+	   info->fprint_func to output its data.  This means we can't store its
+	   output in the disassembly buffer and print it out later on.
+	   We assume here that OP_PCREL is the last operand for the instruction,
+	   so we can infer it is valid, and we therefore can print out the
+	   disassembly buffer first and then call the print_address_func.  */
+	info->fprintf_func = infprintf_prev;
+	info->fprintf_func (is, "%s", line_dis_buf);
+	line_dis_ptr = line_dis_buf;
+	*line_dis_ptr = '\0';
 	(*info->print_address_func) (info->target, info);
       }
       break;
@@ -1566,34 +1615,6 @@ print_insn_args (struct disassemble_info *info,
 }
 
 
-#define DIS_BUF_SIZE 1000
-
-/* line_dis_buf is written to by fprintf_dis_buf, and line_dis_ptr
-   records where in the array to write to.  */
-static char line_dis_buf[DIS_BUF_SIZE];
-static char *line_dis_ptr;
-
-/* Fake a fprintf call by appending the string created from FORMAT to
-   the disassembly buffer (line_dis_buf) rather than to outputting it
-   to FILE.
-   This function is used by the print_insn_* functions to verify that
-   all the arguments to an instruction are valid before outputting its
-   disassembly.  */
-static int
-fprintf_dis_buf (void * file ATTRIBUTE_UNUSED, const char* format, ...)
-{
-  int chars;
-  va_list ap;
-  va_start (ap, format);
-  chars = vsnprintf (line_dis_ptr,
-                     DIS_BUF_SIZE - (line_dis_ptr - line_dis_buf), format, ap);
-  line_dis_ptr += chars;
-  va_end (ap);
-  return chars;
-}
-
-#undef DIS_BUF_SIZE
-
 /* Print the mips instruction at address MEMADDR in debugged memory,
    on using INFO.  Returns length of the instruction, in bytes, which is
    always INSNLEN.  BIGENDIAN must be 1 if this is big-endian code, 0 if
@@ -1608,10 +1629,21 @@ print_insn_mips (bfd_vma memaddr,
   (((insn) >> OP_SH_##field) & OP_MASK_##field)
   static const struct mips_opcode *mips_hash[OP_MASK_OP + 1];
   fprintf_ftype infprintf = info->fprintf_func;
-  const fprintf_ftype infprintf_prev = info->fprintf_func;
   const struct mips_opcode *op;
   static bfd_boolean init = 0;
   void *is = info->stream;
+  const struct mips_arch_choice *r5_isa;
+
+  infprintf_prev = info->fprintf_func;
+  if (dis_both_r5_and_r6)
+    {
+      if ((mips_isa & INSN_ISA_MASK) == ISA_MIPS32R6)
+	r5_isa = choose_arch_by_number (bfd_mach_mipsisa32r5);
+      else
+	r5_isa = choose_arch_by_number (bfd_mach_mipsisa64r5);
+    }
+  else
+    r5_isa = NULL;
 
   /* Build a hash table to shorten the search time.  */
   if (! init)
@@ -1661,11 +1693,17 @@ print_insn_mips (bfd_vma memaddr,
 	      && !(no_aliases && (op->pinfo2 & INSN2_ALIAS))
 	      && (word & op->mask) == op->match)
 	    {
-	      /* We always disassemble the jalx instruction, except for MIPS r6.  */
-	      if (!opcode_is_member (op, mips_isa, mips_ase, mips_processor)
-		 && (strcmp (op->name, "jalx")
-		     || (mips_isa & INSN_ISA_MASK) == ISA_MIPS32R6
-		     || (mips_isa & INSN_ISA_MASK) == ISA_MIPS64R6))
+	      if ((dis_both_r5_and_r6
+		   && !opcode_is_member (op, mips_isa, mips_ase, mips_processor)
+		   && !opcode_is_member (op, r5_isa->isa, r5_isa->ase,
+					 r5_isa->processor))
+		 /* We always disassemble the jalx instruction, except for MIPS r6.  */
+	         || (!dis_both_r5_and_r6
+		     && !opcode_is_member (op, mips_isa, mips_ase,
+					   mips_processor)
+		     && (strcmp (op->name, "jalx")
+			 || (mips_isa & INSN_ISA_MASK) == ISA_MIPS32R6
+			 || (mips_isa & INSN_ISA_MASK) == ISA_MIPS64R6)))
 		continue;
 
 	      /* Figure out instruction type and branch delay information.  */
@@ -1934,7 +1972,6 @@ static int
 print_insn_mips16 (bfd_vma memaddr, struct disassemble_info *info)
 {
   fprintf_ftype infprintf = info->fprintf_func;
-  const fprintf_ftype infprintf_prev = info->fprintf_func;
   int status;
   bfd_byte buffer[4];
   int length;
@@ -1945,6 +1982,7 @@ print_insn_mips16 (bfd_vma memaddr, struct disassemble_info *info)
   struct mips_print_arg_state state;
   void *is = info->stream;
 
+  infprintf_prev = info->fprintf_func;
   info->bytes_per_chunk = 2;
   info->display_endian = info->endian;
   info->insn_info_valid = 1;
@@ -2143,7 +2181,6 @@ static int
 print_insn_micromips (bfd_vma memaddr, struct disassemble_info *info)
 {
   fprintf_ftype infprintf = info->fprintf_func;
-  const fprintf_ftype infprintf_prev = info->fprintf_func;
   const struct mips_opcode *op, *opend;
   void *is = info->stream;
   bfd_byte buffer[2];
@@ -2152,6 +2189,7 @@ print_insn_micromips (bfd_vma memaddr, struct disassemble_info *info)
   int status;
   unsigned int insn;
 
+  infprintf_prev = info->fprintf_func;
   info->bytes_per_chunk = 2;
   info->display_endian = info->endian;
   info->insn_info_valid = 1;
