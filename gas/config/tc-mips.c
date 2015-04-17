@@ -7432,14 +7432,30 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	      slot.  JRADDIUSP is exempted from the check as it never had
 	      a delay slot.  */
 	   && compact_branch_p (&history[0])
+	   && strcmp (history[0].insn_mo->name, "jraddiusp")
 	   && (history[0].insn_mo->pinfo2 & INSN2_CONVERTED_TO_COMPACT)
 	   && history[0].noreorder_p
-	   && !((history[0].insn_opcode & 0xfc1f) == 0x4413) /* jraddiusp */
-	   && strcmp (ip->insn_mo->name, "nop") != 0)
+	   && strcmp (ip->insn_mo->name, "nop"))
     {
-      as_bad(_("expected a nop not `%s' in delay slot of `%s'"
-	       " in noreorder block"),
+      as_bad(_("unable to convert `%s' to its compact form because it has a non NOP "
+	        "instruction (`%s') in its delay slot.  Please move the delay slot "
+		"instruction before the branch and disable noreorder."),
 	     ip->insn_mo->name, history[0].insn_mo->name);
+      add_fixed_insn (ip);
+    }
+  else if (mips_opts.micromips
+	   && ISA_IS_R6 (mips_opts.isa)
+	   && history[0].noreorder_p
+	   && (strcmp (history[0].insn_mo->name, "bal") == 0
+	       || strcmp (history[0].insn_mo->name, "jal") == 0
+	       || strcmp (history[0].insn_mo->name, "bgezal") == 0
+	       || strcmp (history[0].insn_mo->name, "bltzal") == 0)
+	   && strcmp (ip->insn_mo->name, "nop") == 0)
+    {
+      as_bad(_("unable to convert `%s' to its compact form because the link register "
+		"would have a different value.  Please move the delay slot instruction "
+		"before the branch and disable noreorder."),
+	     history[0].insn_mo->name);
       add_fixed_insn (ip);
     }
   else if (mips_opts.micromips

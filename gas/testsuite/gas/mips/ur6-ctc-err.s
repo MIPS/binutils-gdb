@@ -137,3 +137,22 @@ text_label:
 	bgez  $0, 1b
 	bltz  $0, 1b
 	bltzal  $0, 1b
+
+	.set    noreorder
+	bal 2f
+	nop
+
+2:
+	bgezal $3, 3f
+	nop
+
+3:
+	bltzal $3, 4f
+	nop
+
+4:
+	jal 5f
+	nop
+
+5:
+	nop

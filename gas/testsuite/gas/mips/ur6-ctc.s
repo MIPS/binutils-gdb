@@ -36,7 +36,8 @@ reorder:
 
         bgez	$2, ext		# bgezc v0,ext
         bltz	$2, ext		# bgezc v0,ext
-        bltzal	$2, ext		# bgezc v0,ext
+        bltzal	$2, ext		# bltzalc v0,ext
+        bgezal	$2, ext		# bgezalc v0,ext
 
 	j16	$4		# jrc16 a0
 	jr	$2		# jrc16 v0
@@ -73,9 +74,6 @@ noreorder:
 	b16 1f			# bc16
 	nop
 	b32 1f			# bc32 (pre-r6 beq32)
-	nop
-
-	bal 1f			# balc
 	nop
 
 	beqz	$2,1f		# beqzc16 v0,1f [PC7]
@@ -128,8 +126,6 @@ noreorder:
 	nop
         bltz	$2, ext		# bgezc v0,ext
 	nop
-        bltzal	$2, ext		# bgezc v0,ext
-	nop
 
 	j16	$4		# jrc16 a0
 	nop
@@ -141,9 +137,6 @@ noreorder:
 	j	1f		# bc32
 	nop
 	j32 	1f		# bc32
-	nop
-
-	jal 	1f		# balc
 	nop
 
 	j32	$4		# jic a0,0
