@@ -1,3 +1,98 @@
+2015-03-12  Andrew Bennett  <andrew.bennett@imgtec.com>
+
+	* config/tc-mips.c (mips_cpu_info_table): Add i6400 entry.
+	* doc/c-mips.texi: Document i6400 -march option.
+
+2015-03-12  Nick Clifton  <nickc@redhat.com>
+
+	* config/tc-mips.c (md_apply_fix): Apply alignment check
+	to the symbol and offset rather than *valP for
+	BFD_RELOC_MIPS_18_PCREL_S3.  Also update the error message
+	for BFD_RELOC_MIPS_19_PCREL_S2.
+
+2014-12-14  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* config/tc-i386.c (flag_compress_debug): Default to compress
+	debug sections for Linux.
+	* NEWS: Mention it.
+
+2014-12-12  Alan Modra  <amodra@gmail.com>
+
+	* config/tc-ppc.h (md_reg_eh_frame_to_debug_frame): Match current
+	gcc behaviour.
+	* config/te-aix.h: New file.
+	* configure.tgt: Use em=aix for powerpc-aix.
+
+2014-12-09  Chen Gang  <gang.chen.5i5j@gmail.com>
+
+	* config/tc-tic4x.c (md_assemble): Ensure insn->name is zero
+	terminated.  Simplify concatenation of parallel insn.
+
+2014-12-06  Eric Botcazou  <ebotcazou@adacore.com>
+
+	* configure.tgt: Add Visium support.
+	* Makefile.am (TARGET_CPU_CFILES): Move config/tc-vax.c around
+	and add config/tc-visium.c.
+	(TARGET_CPU_HFILES): Move config/tc-vax.h around and add
+	config/tc-visium.h.
+	* Makefile.in: Regenerate.
+	* config/tc-visium.c: New file.
+	* config/tc-visium.h: Likewise.
+	* po/POTFILES.in: Regenerate.
+
+2014-11-28  Sandra Loosemore  <sandra@codesourcery.com>
+
+	* config/tc-nios2.c (can_evaluate_expr, get_expr_value): Delete.
+	(output_addi, output_andi, output_ori, output_xori): Delete.
+	(md_assemble): Remove calls to deleted functions.
+
+2014-11-25  Max Filippov  <jcmvbkbc@gmail.com>
+
+	* config/tc-xtensa.c (search_trampolines): Move post-loop
+	condition check outside the search loop.
+
+2014-11-24  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* configure: Regenerated.
+
+2014-11-21  Terry Guo  <terry.guo@arm.com>
+
+	* config/tc-arm.c (md_assemble): Do not consider relaxation.
+	(md_convert_frag): Test and set target arch attribute accordingly.
+	(aeabi_set_attribute_string): Turn it into a global function.
+	* config/tc-arm.h (md_post_relax_hook): Enable it for ARM target.
+	(aeabi_set_public_attributes): Declare it.
+
+2014-11-21  Terry Guo  <terry.guo@arm.com>
+
+	* config/tc-arm.c (fpu_vfp_ext_armv8xd): New.
+	(arm_cpus): Support cortex-m7.
+	(arm_fpus): Support fpv5-sp-d16 and fpv5-d16.
+	(do_vfp_nsyn_cvt_fpv8): Generate error when use D register for S
+	register only target like FPv5-SP-D16.
+	(do_neon_cvttb_1): Likewise.
+	(do_vfp_nsyn_fpv8): Likewise.
+	(do_vrint_1): Likewise.
+	(aeabi_set_public_attributes): Set proper FP arch for FPv5.
+	* doc/c-arm.texi: Document new cpu and fpu names for cortex-m7.
+
+2014-11-20  Richard Earnshaw  <rearnsha@arm.com>
+
+	* config/tc-arm.c (rotate_left): Avoid undefined behaviour when
+	N = 0.
+
+2014-11-20  Richard Earnshaw  <rearnsha@arm.com>
+
+	* config/tc-aarch64.c (warn_unpredictable_ldst): Check that transfer
+	registers are in the GP register set.  Adjust warnings.  Use correct
+	field member for address register.
+	* testsuite/gas/aarch64/diagnostic.l: Update.
+
+2014-11-19  Ryan Mansfield  <rmansfield@qnx.com>
+
+	* config/tc-aarch64.c (md_assemble): Call warn_unpredictable_ldst.
+	(warn_unpredictable_ldst): New.
+
 2014-11-18  Igor Zamyatin  <igor.zamyatin@intel.com>
 
 	* config/tc-i386-intel.c (i386_operator): Remove last argument
