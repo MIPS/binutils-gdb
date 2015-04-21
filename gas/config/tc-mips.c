@@ -1719,7 +1719,7 @@ static const struct mips_ase mips_ases[] = {
 
   { "xpa", ASE_XPA, 0,
     OPTION_XPA, OPTION_NO_XPA,
-     2,  2, -1, -1,
+     2,  2, 2, 2,
     -1 },
 
   { "mxu", ASE_MXU, 0,
@@ -2087,8 +2087,20 @@ mips_set_ase (const struct mips_ase *ase, struct mips_set_options *opts,
 
   mask = mips_ase_mask (ase->flags);
   opts->ase &= ~mask;
+  opts->ase &= ~ASE_VIRT_XPA;
+
   if (enabled_p)
     opts->ase |= ase->flags;
+
+  /* The Virtualization ASE has eXtended Physical Address (XPA) Extension
+     instructions which are only valid when both ASEs are enabled.
+     This sets the ASE_VIRT_XPA flag when both ASEs are present.  */
+  if (((opts->ase & ASE_XPA) != 0) && ((opts->ase & ASE_VIRT) != 0))
+    {
+      opts->ase |= ASE_VIRT_XPA;
+      mask |= ASE_VIRT_XPA;
+    }
+
   return mask;
 }
 
@@ -17218,11 +17230,16 @@ mips_fix_adjustable (fixS *fixp)
      relocation, and has thus allowed orphaned R_MIPS_LO16 relocations to be
      placed anywhere.  Rather than break backwards compatibility by changing
      this, it seems better not to force the issue, and instead keep the
-     original symbol.  This will work with either linker behavior.  */
+     original symbol.  This will work with either linker behavior.
+
+     Additionally microMIPS HI16/LO16 relocation pairs may be subject to
+     linker relaxation to the PC-relative PC23_S2 relocation that may
+     overflow in the process.  */
   if ((lo16_reloc_p (fixp->fx_r_type)
        || reloc_needs_lo_p (fixp->fx_r_type))
       && HAVE_IN_PLACE_ADDENDS
-      && (S_GET_SEGMENT (fixp->fx_addsy)->flags & SEC_MERGE) != 0)
+      && (micromips_reloc_p (fixp->fx_r_type)
+	  || S_GET_SEGMENT (fixp->fx_addsy)->flags & SEC_MERGE) != 0)
     return 0;
 
   /* There is no place to store an in-place offset for JALR relocations.
