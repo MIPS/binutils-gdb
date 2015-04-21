@@ -1668,7 +1668,7 @@ static const struct mips_ase mips_ases[] = {
 
   { "dspr3", ASE_DSP | ASE_DSPR2 | ASE_DSPR3, 0,
     OPTION_DSPR3, OPTION_NO_DSPR3,
-    6, 6, 6, 6,
+    6, 6, -1, -1,
     -1 },
 
   { "eva", ASE_EVA, 0,
