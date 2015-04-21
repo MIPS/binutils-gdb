@@ -19,9 +19,3 @@
 .*:2934: Warning: branch bleul is always true
 .*:2940: Warning: branch bleul is always true
 .*:2943: Warning: branch bleul is always true
-.*:4759: Warning: divide by zero
-.*:4762: Warning: divide by zero
-.*:4775: Warning: divide by zero
-.*:5180: Warning: divide by zero
-.*:5190: Warning: divide by zero
-.*:5200: Warning: divide by zero

@@ -1,0 +1,103 @@
+
+.* file format .*
+
+
+Disassembly of section \.plt:
+
+# All entries must be microMIPS.
+01010000 <_PROCEDURE_LINKAGE_TABLE_>:
+.*:	7860 4000 	lapc	\$3,1020000 <.*>
+.*:	ff23 0000 	lw	\$25,0\(\$3\)
+.*:	0535      	subu	\$2,\$2,\$3
+.*:	2525      	srl	\$2,\$2,2
+.*:	3302 fffe 	addiu	\$24,\$2,-2
+.*:	0dff      	move	\$15,\$31
+.*:	0f83      	move	\$28,\$3
+.*:	472b      	jalrc	\$25
+.*:	0c00      	nop
+
+01010018 <f_lo_ic@micromipsplt>:
+.*:	7840 3ffc 	lapc	\$2,1020008 <.*>
+#				    ^ 0x1020008
+.*:	ff22 0000 	lw	\$25,0\(\$2\)
+.*:	0f02      	move	\$24,\$2
+.*:	4723      	jrc	\$25
+
+01010024 <f_lo_dc@micromipsplt>:
+.*:	7840 3ffa 	lapc	\$2,102000c <.*>
+#				    ^ 0x102000c
+.*:	ff22 0000 	lw	\$25,0\(\$2\)
+.*:	0f02      	move	\$24,\$2
+.*:	4723      	jrc	\$25
+
+01010030 <f_dc@micromipsplt>:
+.*:	7840 3ff8 	lapc	\$2,1020010 <.*>
+#				    ^ 0x1020010
+.*:	ff22 0000 	lw	\$25,0\(\$2\)
+.*:	0f02      	move	\$24,\$2
+.*:	4723      	jrc	\$25
+
+0101003c <f_ic_dc@micromipsplt>:
+.*:	7840 3ff6 	lapc	\$2,1020014 <.*>
+#				    ^ 0x1020014
+.*:	ff22 0000 	lw	\$25,0\(\$2\)
+.*:	0f02      	move	\$24,\$2
+.*:	4723      	jrc	\$25
+
+01010048 <f_lo_ic_dc@micromipsplt>:
+.*:	7840 3ff4 	lapc	\$2,1020018 <.*>
+#				    ^ 0x1020018
+.*:	ff22 0000 	lw	\$25,0\(\$2\)
+.*:	0f02      	move	\$24,\$2
+.*:	4723      	jrc	\$25
+
+01010054 <f_lo@micromipsplt>:
+.*:	7840 3ff2 	lapc	\$2,102001c <.*>
+#				    ^ 0x102001c
+.*:	ff22 0000 	lw	\$25,0\(\$2\)
+.*:	0f02      	move	\$24,\$2
+.*:	4723      	jrc	\$25
+
+Disassembly of section \.MIPS\.stubs:
+
+01011000 <_MIPS_STUBS_>:
+# Lazy-binding stub for f_ic.
+.*:	ff3c 8010 	lw	\$25,-32752\(\$28\)
+.*:	0dff      	move	\$15,\$31
+.*:	3300 0009 	li	\$24,9
+.*:	472b      	jalrc	\$25
+	\.\.\.
+
+Disassembly of section \.text\.a:
+
+01012000 <testc>:
+.*:	.... .... 	balc	[0-9a-f]+ <f_dc@micromipsplt>
+.*:	.... .... 	bc	[0-9a-f]+ <f_dc@micromipsplt>
+.*:	fc43 8024 	lw	\$2,-32732\(\$3\)
+#				    ^ global GOT entry for f_ic
+.*:	.... .... 	balc	[0-9a-f]+ <f_ic_dc@micromipsplt>
+.*:	.... .... 	bc	[0-9a-f]+ <f_ic_dc@micromipsplt>
+.*:	fc43 8018 	lw	\$2,-32744\(\$3\)
+#				    ^ local GOT entry for f_ic_dc@micromipsplt
+.*:	.... .... 	balc	[0-9a-f]+ <f_lo_dc@micromipsplt>
+.*:	.... .... 	bc	[0-9a-f]+ <f_lo_dc@micromipsplt>
+.*:	fc43 801c 	lw	\$2,-32740\(\$3\)
+#				    ^ local GOT entry for f_lo_ic@micromipsplt
+.*:	.... .... 	balc	[0-9a-f]+ <f_lo_ic_dc@micromipsplt>
+.*:	.... .... 	bc	[0-9a-f]+ <f_lo_ic_dc@micromipsplt>
+.*:	fc43 8020 	lw	\$2,-32736\(\$3\)
+#				    ^ local GOT entry for f_lo_ic_dc@micromipsplt
+.*:	47e3      	jrc	\$31
+
+Disassembly of section \.text\.c:
+
+01013000 <testlo>:
+.*:	3040 0055 	li	\$2,85
+#				    ^ low 16 bits of f_lo@micromipsplt
+.*:	3040 0025 	li	\$2,37
+#				    ^ low 16 bits of f_lo_dc@micromipsplt
+.*:	3040 0019 	li	\$2,25
+#				    ^ low 16 bits of f_lo_ic@micromipsplt
+.*:	3040 0049 	li	\$2,73
+#				    ^ low 16 bits of f_lo_ic_dc@micromipsplt
+
