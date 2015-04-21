@@ -2,7 +2,9 @@
 	
 text_label:	
 	bltu	$4,$5,text_label
+	.ifndef compact_branches
 	bltu	$0,$5,text_label
+	.endif
 	# A second argument of 0 or $0 is always false
 	bltu	$4,1,text_label
 	bltu	$4,2,text_label

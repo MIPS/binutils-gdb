@@ -23,7 +23,9 @@ bar:
 	.align  4, 0
 	.globl	foo
 	.ent	foo
+	.ifndef compact_branches
 	.set	noreorder
+	.endif
 foo:
 	b	bar
 	b	bar

@@ -15,10 +15,17 @@
 	.globl	test
 test:
 	pref	0, 0
+	.ifndef r6
 	pref	0, 2047
 	pref	0, -2048
 	pref	0, 2048
 	pref	0, -2049
+	.else
+	pref	0, 255
+	pref	0, -256
+	pref	0, 256
+	pref	0, -257
+	.endif
 	pref	0, ($0)
 	pref	0, 0($0)
 	pref	1, 0($0)
@@ -28,19 +35,35 @@ test:
 	pref	5, 0($0)
 	pref	6, 0($0)
 	pref	7, 0($0)
+	.ifndef r6
 	pref	7, 511($0)
 	pref	7, -512($0)
 	pref	31, 2047($0)
 	pref	31, -2048($0)
 	pref	31, 2048($0)
 	pref	31, -2049($0)
+	.else
+	pref	7, 127($0)
+	pref	7, -128($0)
+	pref	31, 255($0)
+	pref	31, -256($0)
+	pref	31, 256($0)
+	pref	31, -257($0)
+	.endif
 	pref	3, 32767($0)
 	pref	3, -32768($0)
 
+	.ifndef r6
 	pref	31, 2047($2)
 	pref	31, -2048($2)
 	pref	31, 2048($2)
 	pref	31, -2049($2)
+	.else
+	pref	31, 255($2)
+	pref	31, -256($2)
+	pref	31, 256($2)
+	pref	31, -257($2)
+	.endif
 	pref	3, 32767($2)
 	pref	3, -32768($2)
 
@@ -142,6 +165,7 @@ test:
 	add	$29, $30, $31
 	add	$2, $2, $4
 	add	$2, $4
+	.ifndef r6
 	add	$2, $2, 0
 	add	$2, $2, 1
 	add	$2, $2, 32767
@@ -154,6 +178,7 @@ test:
 	addi	$3, $4, 65535
 	addi	$3, $3, 65535
 	addi	$3, 65535
+	.endif
 
 	addiu	$0, -8
 	addiu	$2, -8
@@ -339,6 +364,7 @@ test:
 	and	$2, $3, 65536
 	and	$2, $3, 0xffff0001
 
+	.ifndef r6
 	bc2f	test
 	bc2f	$cc0, test
 	bc2f	$cc1, test
@@ -370,7 +396,7 @@ test:
 	addu	$3, $4, $5
 	bc2tl	$cc4, test
 	addu	$6, $7, $8
-
+	.endif
 
 test2:
 	DSNOP
@@ -440,6 +466,7 @@ test2:
 	beq	$16, 32767, test2
 	beq	$16, 65536, test2
 
+	.ifndef r6
 	.set	noreorder
 	beql	$16, $17, test2
 	addu	$3, $4, $5
@@ -488,6 +515,7 @@ test2:
 	beql	$16, $17, test2
 
 	beqzl	$17, test2
+	.endif
 
 	DSNOP
 	DSNOP
@@ -584,15 +612,29 @@ test3:
 	break32	1023,1023
 
 	cache	0, 0
+	.ifndef r6
 	cache	0, -2048
 	cache	0, 2047
 	cache	0, -2049
 	cache	0, 2048
+	.else
+	cache	0, -256
+	cache	0, 255
+	cache	0, -257
+	cache	0, 256
+	.endif
 	cache	0, 0($2)
+	.ifndef r6
 	cache	0, -2048($2)
 	cache	0, 2047($2)
 	cache	0, -2049($2)
 	cache	0, 2048($2)
+	.else
+	cache	0, -256($2)
+	cache	0, 255($2)
+	cache	0, -257($2)
+	cache	0, 256($2)
+	.endif
 
 	cache	0, ($0)
 	cache	0, 0($0)
@@ -603,14 +645,26 @@ test3:
 	cache	5, 0($0)
 	cache	6, 0($0)
 	cache	31, 0($0)
+	.ifndef r6
 	cache	31, 2047($0)
 	cache	31, -2048($0)
 	cache	0, 2047($0)
 	cache	0, -2048($0)
+	.else
+	cache	31, 255($0)
+	cache	31, -256($0)
+	cache	0, 255($0)
+	cache	0, -256($0)
+	.endif
 
 	cache	31, 65536($3)
+	.ifndef r6
 	cache	31, 2048($3)
 	cache	31, -2049($3)
+	.else
+	cache	31, 256($3)
+	cache	31, -257($3)
+	.endif
 	cache	31, 65537($3)
 	cache	31, 0xffffffff($3)
 	cache	31, 0xffff0000($3)
@@ -618,8 +672,13 @@ test3:
 	cache	31, 0xffff($3)
 
 	cache	31, 65536($0)
+	.ifndef r6
 	cache	31, 2048($0)
 	cache	31, -2049($0)
+	.else
+	cache	31, 256($0)
+	cache	31, -257($0)
+	.endif
 	cache	31, 65537($0)
 	cache	31, 0xffffffff($0)
 	cache	31, 0xffff0000($0)
@@ -649,10 +708,12 @@ test3:
 	div	$2, $3, $0
 	div	$2, $3, $4
 
+	.ifndef r6
 	div	$3, $4, 0
 	div	$3, $4, 1
 	div	$3, $4, -1
 	div	$3, $4, 2
+	.endif
 
 	divu	$0, $2, $3
 	divu	$0, $30, $31
@@ -662,10 +723,12 @@ test3:
 	divu	$2, $3, $0
 	divu	$2, $3, $4
 
+	.ifndef r6
 	divu	$3, $4, 0
 	divu	$3, $4, 1
 	divu	$3, $4, -1
 	divu	$3, $4, 2
+	.endif
 
 	ei
 	ei	$0
@@ -844,8 +907,10 @@ test3:
 	jal	test
 	jal	test2
 
+	.ifndef r6
 	jalx	test
 	jalx	test4
+	.endif
 
 	la	$2, test
 	lca	$2, test
@@ -1222,6 +1287,7 @@ test3:
 	lwp	$2, 32767($0)
 	lwp	$2, 65535($0)
 
+	.ifndef r6
 	lwl	$3, 4
 	lwl	$3, 4($0)
 	lwl	$3, ($0)
@@ -1345,10 +1411,13 @@ test3:
 	flush	$3, 0xf0000000($4)
 	flush	$3, 0xffffffff($4)
 	flush	$3, 0x12345678($4)
+	.endif
 
 	lwxs	$3, $4($5)
+	.ifndef r6
 	madd	$4,$5
 	maddu	$4,$5
+	.endif
 
 	mfc0	$2, $0
 	mfc0	$2, $1
@@ -1408,6 +1477,7 @@ test3:
 	mfc0	$2, $2, 6
 	mfc0	$2, $2, 7
 
+	.ifndef r6
 	mfhi	$0
 	mfhi	$2
 	mfhi	$3
@@ -1450,6 +1520,7 @@ test3:
 
 	msub	$4,$5
 	msubu	$4,$5
+	.endif
 
 	mtc0	$2, $0
 	mtc0	$2, $1
@@ -1509,6 +1580,7 @@ test3:
 	mtc0	$2, $2, 6
 	mtc0	$2, $2, 7
 
+	.ifndef r6
 	mthi	$0
 	mthi	$2
 	mthi	$3
@@ -1524,11 +1596,13 @@ test3:
 	mtlo	$29
 	mtlo	$30
 	mtlo	$31
+	.endif
 
 	mul	$2, $3, $4
 	mul	$29, $30, $31
 	mul	$2, $2, $4
 	mul	$2, $4
+	.ifndef r6
 	mul	$2, $2, 0
 	mul	$2, $2, 1
 	mul	$2, $2, 32767
@@ -1542,6 +1616,7 @@ test3:
 
 	mult	$2, $3
 	multu	$2, $3
+	.endif
 
 	neg	$2, $3
 	neg	$2, $2
@@ -1641,6 +1716,7 @@ test3:
 	rdpgpr	$2, $2
 	rdpgpr	$2
 
+	.ifndef r6
 	rem	$0, $2, $3
 	rem	$0, $30, $31
 	rem	$0, $3
@@ -1666,6 +1742,7 @@ test3:
 	remu	$3, $4, 1
 	remu	$3, $4, -1
 	remu	$3, $4, 2
+	.endif
 
 	rol	$2, $3, $4
 	rol	$2, $2, $4
@@ -1755,8 +1832,13 @@ test3:
 
 	sc	$3, 4
 	sc	$3, 4($0)
+	.ifndef r6
 	sc	$3, 2047($0)
 	sc	$3, -2048($0)
+	.else
+	sc	$3, 255($0)
+	sc	$3, -256($0)
+	.endif
 	sc	$3, 32767($0)
 	sc	$3, -32768($0)
 	sc	$3, 65535($0)
@@ -1769,8 +1851,13 @@ test3:
 	sc	$3, 0x12345678($0)
 	sc	$3, ($4)
 	sc	$3, 0($4)
+	.ifndef r6
 	sc	$3, 2047($4)
 	sc	$3, -2048($4)
+	.else
+	sc	$3, 255($4)
+	sc	$3, -256($4)
+	.endif
 	sc	$3, 32767($4)
 	sc	$3, -32768($4)
 	sc	$3, 65535($4)
@@ -2076,11 +2163,13 @@ test3:
 	sub	$29, $30, $31
 	sub	$2, $2, $4
 	sub	$2, $4
+	.ifndef r6
 	sub	$2, $2, 0
 	sub	$2, $2, 1
 	sub	$2, $2, 32767
 	sub	$2, $2, -32768
 	sub	$2, $2, 65535
+	.endif
 
 	subu	$2, $3, $2
 	subu	$2, $3, $3
@@ -2193,6 +2282,7 @@ test3:
 	sw	$3, 0xffffffff($4)
 	sw	$3, 0x12345678($4)
 
+	.ifndef r6
 	swl	$3, 4
 	swl	$3, 4($0)
 	swl	$3, 2047($0)
@@ -2308,6 +2398,7 @@ test3:
 	invalidate	$3, 0xf0000000($4)
 	invalidate	$3, 0xffffffff($4)
 	invalidate	$3, 0x12345678($4)
+	.endif
 
 	swm	$s0, $ra, 12<<2($29)
 	swm	$s0, $s1, $ra, 12<<2($29)
@@ -2418,10 +2509,12 @@ test3:
 	syscall	2
 	syscall	255
 
+	.ifndef r6
 	teqi	$2, 0
 	teqi	$2, -32768
 	teqi	$2, 32767
 	teqi	$2, 65535
+	.endif
 	teq	$2, $3
 	teq	$3, $2
 	teq	$2, $3, 0
@@ -2432,10 +2525,12 @@ test3:
 	teq	$2, 32767
 	teq	$2, 65535
 
+	.ifndef r6
 	tgei	$2, 0
 	tgei	$2, -32768
 	tgei	$2, 32767
 	tgei	$2, 65535
+	.endif
 	tge	$2, $3
 	tge	$3, $2
 	tge	$2, $3, 0
@@ -2446,10 +2541,12 @@ test3:
 	tge	$2, 32767
 	tge	$2, 65535
 
+	.ifndef r6
 	tgeiu	$2, 0
 	tgeiu	$2, -32768
 	tgeiu	$2, 32767
 	tgeiu	$2, 65535
+	.endif
 	tgeu	$2, $3
 	tgeu	$3, $2
 	tgeu	$2, $3, 0
@@ -2465,10 +2562,12 @@ test3:
 	tlbwi
 	tlbwr
 
+	.ifndef r6
 	tlti	$2, 0
 	tlti	$2, -32768
 	tlti	$2, 32767
 	tlti	$2, 65535
+	.endif
 	tlt	$2, $3
 	tlt	$3, $2
 	tlt	$2, $3, 0
@@ -2479,10 +2578,12 @@ test3:
 	tlt	$2, 32767
 	tlt	$2, 65535
 
+	.ifndef r6
 	tltiu	$2, 0
 	tltiu	$2, -32768
 	tltiu	$2, 32767
 	tltiu	$2, 65535
+	.endif
 	tltu	$2, $3
 	tltu	$3, $2
 	tltu	$2, $3, 0
@@ -2495,10 +2596,12 @@ test3:
 	tltu	$2, 65536
 	tltu	$2, 0xffffffff
 
+	.ifndef r6
 	tnei	$2, 0
 	tnei	$2, -32768
 	tnei	$2, 32767
 	tnei	$2, 65535
+	.endif
 	tne	$2, $3
 	tne	$3, $2
 	tne	$2, $3, 0
@@ -2511,6 +2614,7 @@ test3:
 	tne	$2, 65536
 	tne	$2, 0xffffffff
 
+	.ifndef r6
 	ulh	$3, 4
 	ulh	$3, 4($0)
 	ulh	$3, ($4)
@@ -2622,6 +2726,7 @@ test3:
 	usw	$3, 0xf0000000($4)
 	usw	$3, 0xffffffff($4)
 	usw	$3, 0x12345678($4)
+	.endif
 
 	wait
 	wait	0
@@ -2676,6 +2781,7 @@ test3:
 
 	.set	noreorder
 
+	.ifndef r6
 	beqz	$9, test
 	addu	$3, $4, $5
 
@@ -3095,6 +3201,7 @@ test3:
 
 	bnel	$9, 1, test
 	addu	$3, $4, $5
+	.endif
 
 	.ifndef	insn32
 	addiur1sp	$2, 0
@@ -3430,18 +3537,23 @@ test3:
 	swp	$2, %lo(test)($3)
 	ll	$2, %lo(test)($3)
 	sc	$2, %lo(test)($3)
+
+	.ifndef r6
 	lwl	$2, %lo(test)($3)
 	lwr	$2, %lo(test)($3)
 	swl	$2, %lo(test)($3)
 	swr	$2, %lo(test)($3)
+	.endif
 	lwm	$16, %lo(test)($3)
 	swm	$16, %lo(test)($3)
 	lwc2	$16, %lo(test)($3)
 	swc2	$16, %lo(test)($3)
+	.ifndef r6
 	lcache	$2, %lo(test)($3)
 	flush	$2, %lo(test)($3)
 	scache	$2, %lo(test)($3)
 	invalidate	$2, %lo(test)($3)
+	.endif
 
 	sdbbp	1023
 	wait	1023
@@ -3456,6 +3568,7 @@ test3:
 	.ent	fp_test
 	.globl	fp_test
 fp_test:
+	.ifndef r6
 	prefx	0, $0($0)
 	prefx	0, $0($2)
 	prefx	0, $0($31)
@@ -3464,6 +3577,7 @@ fp_test:
 	prefx	1, $31($31)
 	prefx	2, $31($31)
 	prefx	31, $31($31)
+	.endif
 
 	abs.s	$f0, $f1
 	abs.s	$f30, $f31
@@ -3473,10 +3587,12 @@ fp_test:
 	abs.d	$f30, $f31
 	abs.d	$f2, $f2
 	abs.d	$f2
+	.ifndef r6
 	abs.ps	$f0, $f1
 	abs.ps	$f30, $f31
 	abs.ps	$f2, $f2
 	abs.ps	$f2
+	.endif
 
 	add.s	$f0, $f1, $f2
 	add.s	$f29, $f30, $f31
@@ -3486,6 +3602,7 @@ fp_test:
 	add.d	$f29, $f30, $f31
 	add.d	$f29, $f29, $f30
 	add.d	$f29, $f30
+	.ifndef r6
 	add.ps	$f0, $f1, $f2
 	add.ps	$f29, $f30, $f31
 	add.ps	$f29, $f29, $f30
@@ -3772,6 +3889,7 @@ fp_test:
 	c.ngt.ps	$fcc0, $f30, $f31
 	c.ngt.ps	$fcc2, $f30, $f31
 	c.ngt.ps	$fcc6, $f30, $f31
+	.endif
 
 	ceil.l.d	$f0, $f1
 	ceil.l.d	$f30, $f31
@@ -4033,10 +4151,12 @@ fp_test:
 	cvt.w.d	$f30, $f31
 	cvt.w.d	$f2, $f2
 
+	.ifndef r6
 	cvt.ps.s	$f0, $f1, $f2
 	cvt.ps.s	$f29, $f30, $f31
 	cvt.ps.s	$f29, $f29, $f31
 	cvt.ps.s	$f29, $f31
+	.endif
 
 	div.d	$f0, $f1, $f2
 	div.d	$f29, $f30, $f31
@@ -4106,6 +4226,7 @@ fp_test:
 	l.d	$f3, 32767($4)
 	l.d	$f3, -32768($4)
 
+	.ifndef r6
 	ldxc1	$f0, $0($0)
 	ldxc1	$f0, $0($2)
 	ldxc1	$f0, $0($31)
@@ -4123,6 +4244,7 @@ fp_test:
 	luxc1	$f1, $31($31)
 	luxc1	$f2, $31($31)
 	luxc1	$f31, $31($31)
+	.endif
 
 	lwc1	$3, 0
 	lwc1	$3, ($0)
@@ -4174,6 +4296,7 @@ fp_test:
 	l.s	$f3, 0xffffffff($4)
 	l.s	$f3, 0x12345678($4)
 
+	.ifndef r6
 	lwxc1	$f0, $0($0)
 	lwxc1	$f0, $0($2)
 	lwxc1	$f0, $0($31)
@@ -4189,6 +4312,7 @@ fp_test:
 	madd.s	$f28, $f29, $f30, $f31
 	madd.ps	$f0, $f1, $f2, $f3
 	madd.ps	$f28, $f29, $f30, $f31
+	.endif
 
 	mfc1	$5, $0
 	mfc1	$5, $1
@@ -4324,6 +4448,7 @@ fp_test:
 	mov.d	$f30, $f31
 	mov.s	$f0, $f1
 	mov.s	$f30, $f31
+	.ifndef r6
 	mov.ps	$f0, $f1
 	mov.ps	$f30, $f31
 
@@ -4381,6 +4506,7 @@ fp_test:
 	msub.s	$f28, $f29, $f30, $f31
 	msub.ps	$f0, $f1, $f2, $f3
 	msub.ps	$f28, $f29, $f30, $f31
+	.endif
 
 	mtc1	$5, $0
 	mtc1	$5, $1
@@ -4520,10 +4646,12 @@ fp_test:
 	mul.d	$f29, $f30, $f31
 	mul.d	$f29, $f29, $f30
 	mul.d	$f29, $f30
+	.ifndef r6
 	mul.ps	$f0, $f1, $f2
 	mul.ps	$f29, $f30, $f31
 	mul.ps	$f29, $f29, $f30
 	mul.ps	$f29, $f30
+	.endif
 
 	neg.s	$f0, $f1
 	neg.s	$f30, $f31
@@ -4533,6 +4661,7 @@ fp_test:
 	neg.d	$f30, $f31
 	neg.d	$f2, $f2
 	neg.d	$f2
+	.ifndef r6
 	neg.ps	$f0, $f1
 	neg.ps	$f30, $f31
 	neg.ps	$f2, $f2
@@ -4568,6 +4697,7 @@ fp_test:
 	puu.ps	$f29, $f30, $f31
 	puu.ps	$f29, $f29, $f30
 	puu.ps	$f29, $f30
+	.endif
 
 	recip.s	$f0, $f1
 	recip.s	$f30, $f31
@@ -4639,6 +4769,7 @@ fp_test:
 	s.d	$f3, 32767($4)
 	s.d	$f3, -32768($4)
 
+	.ifndef r6
 	sdxc1	$f0, $0($0)
 	sdxc1	$f0, $0($2)
 	sdxc1	$f0, $0($31)
@@ -4647,6 +4778,7 @@ fp_test:
 	sdxc1	$f1, $31($31)
 	sdxc1	$f2, $31($31)
 	sdxc1	$f31, $31($31)
+	.endif
 
 	sqrt.s	$f0, $f1
 	sqrt.s	$f30, $f31
@@ -4663,6 +4795,7 @@ fp_test:
 	sub.d	$f29, $f30, $f31
 	sub.d	$f29, $f29, $f30
 	sub.d	$f29, $f30
+	.ifndef r6
 	sub.ps	$f0, $f1, $f2
 	sub.ps	$f29, $f30, $f31
 	sub.ps	$f29, $f29, $f30
@@ -4676,6 +4809,7 @@ fp_test:
 	suxc1	$f1, $31($31)
 	suxc1	$f2, $31($31)
 	suxc1	$f31, $31($31)
+	.endif
 
 	swc1	$3, 0
 	swc1	$3, ($0)
@@ -4727,6 +4861,7 @@ fp_test:
 	s.s	$f3, 0xffffffff($4)
 	s.s	$f3, 0x12345678($4)
 
+	.ifndef r6
 	swxc1	$f0, $0($0)
 	swxc1	$f0, $0($2)
 	swxc1	$f0, $0($31)
@@ -4735,6 +4870,7 @@ fp_test:
 	swxc1	$f1, $31($31)
 	swxc1	$f2, $31($31)
 	swxc1	$f31, $31($31)
+	.endif
 
 	trunc.l.s	$f0, $f1
 	trunc.l.s	$f30, $f31
@@ -4750,6 +4886,7 @@ fp_test:
 	trunc.w.d	$f30, $f31
 	trunc.w.d	$f2, $f2
 
+	.ifndef r6
 	movf	$2, $3, $fcc0
 	movf	$30, $31, $fcc0
 	movf	$30, $31, $fcc1
@@ -4781,10 +4918,15 @@ fp_test:
 	addu	$3, $4, $5
 	bc1tl	$fcc4, test
 	addu	$6, $7, $8
+	.endif
 
 	.end	fp_test
 
+	.ifndef r6
 	.set	mips64r2
+	.else
+	.set	mips64r6
+	.endif
 	.globl	test_mips64
 	.ent	test_mips64
 
@@ -4798,6 +4940,7 @@ test_mips64:
 	dadd	$2, $2, $3
 	dadd	$2, $3
 
+	.ifndef r6
 	dadd	$2, $3, 0
 	dadd	$2, $3, 1
 	dadd	$2, $3, -512
@@ -4818,6 +4961,7 @@ test_mips64:
 	daddi	$2, $3, -32768
 	daddi	$2, $3, 65535
 	daddi	$2, $3, 0x12345678
+	.endif
 
 	daddiu	$2, $3, 0
 	daddiu	$2, $3, -32768
@@ -4843,29 +4987,37 @@ test_mips64:
 
 	ddiv	$0, $2, $3
 	ddiv	$0, $30, $31
+	.ifndef r6
 	ddiv	$0, $3
 	ddiv	$0, $31
+	.endif
 
 	ddiv	$2, $3, $0
 	ddiv	$2, $3, $4
 
+	.ifndef r6
 	ddiv	$3, $4, 0
 	ddiv	$3, $4, 1
 	ddiv	$3, $4, -1
 	ddiv	$3, $4, 2
+	.endif
 
 	ddivu	$0, $2, $3
 	ddivu	$0, $30, $31
+	.ifndef r6
 	ddivu	$0, $3
 	ddivu	$0, $31
+	.endif
 
 	ddivu	$2, $3, $0
 	ddivu	$2, $3, $4
 
+	.ifndef r6
 	ddivu	$3, $4, 0
 	ddivu	$3, $4, 1
 	ddivu	$3, $4, -1
 	ddivu	$3, $4, 2
+	.endif
 
 	dext	$2, $3, 31, 1
 	dext	$2, $3, 0, 32
@@ -5255,10 +5407,13 @@ test_mips64:
 	dmtc2	$2, $2, 7
 */
 
+	.ifndef r6
 	dmult	$2, $3
 	dmultu	$2, $3
+	.endif
 
 	dmul	$2, $3, $4
+	.ifndef r6
 	dmul	$2, $3, 0x12345678
 
 	dmulo	$2, $3, $4
@@ -5291,6 +5446,7 @@ test_mips64:
 	dremu	$3, $4, 1
 	dremu	$3, $4, -1
 	dremu	$3, $4, 2
+	.endif
 
 	drol	$2, $3, $4
 	drol	$2, $2, $4
@@ -5353,6 +5509,7 @@ test_mips64:
 	dsubu	$2, $3, 0x1234
 	dsubu	$2, $3, 0x12345678
 
+	.ifndef r6
 	dsub	$2, $3, 0
 	dsub	$2, $3, 1
 	dsub	$2, $3, 512
@@ -5362,6 +5519,7 @@ test_mips64:
 	dsub	$2, $3, 65535
 	dsub	$2, $3, 0x12345678
 	dsub	$2, $3, 0x8888111112345678
+	.endif
 
 	.set	push
 	.set	noreorder
@@ -5376,6 +5534,7 @@ test_mips64:
 	ld	$2, 32767($3)
 	.set	pop
 
+	.ifndef r6
 	ldl	$2, 0
 	ldl	$2, 4
 	ldl	$2, ($0)
@@ -5397,6 +5556,7 @@ test_mips64:
 	ldr	$2, 511($3)
 	ldr	$2, -32768($3)
 	ldr	$2, 0x12345678($3)
+	.endif
 
 	lld	$2, 0
 	lld	$2, 4
@@ -5404,8 +5564,13 @@ test_mips64:
 	lld	$2, 0($0)
 	lld	$2, 4($0)
 	lld	$2, 4($3)
+	.ifndef r6
 	lld	$2, -512($3)
 	lld	$2, 511($3)
+	.else
+	lld	$2, -256($3)
+	lld	$2, 255($3)
+	.endif
 	lld	$2, -32768($3)
 	lld	$2, 0x12345678($3)
 
@@ -5426,8 +5591,13 @@ test_mips64:
 	scd	$2, 0($0)
 	scd	$2, 4($0)
 	scd	$2, 4($3)
+	.ifndef r6
 	scd	$2, -512($3)
 	scd	$2, 511($3)
+	.else
+	scd	$2, -256($3)
+	scd	$2, 255($3)
+	.endif
 	scd	$2, -32768($3)
 	scd	$2, 0x12345678($3)
 
@@ -5444,6 +5614,7 @@ test_mips64:
 	sd	$2, 32767($3)
 	.set	pop
 
+	.ifndef r6
 	sdl	$2, 0
 	sdl	$2, 4
 	sdl	$2, ($0)
@@ -5463,6 +5634,7 @@ test_mips64:
 	sdr	$2, -32768($3)
 	sdr	$2, 32767($3)
 	sdr	$2, 0x12345678($3)
+	.endif
 
 	ldm	$s0, 0
 	ldm	$s0, 4
@@ -5558,6 +5730,7 @@ test_mips64:
 	sdp	$2, 65535($0)
 	sdp	$2, 0x12345678($0)
 
+	.ifndef r6
 	uld	$3, 0
 	uld	$3, ($0)
 	uld	$3, 4
@@ -5630,11 +5803,14 @@ test_mips64:
 
 	ldl	$16, %lo(test)($3)
 	ldr	$16, %lo(test)($3)
+	.endif
 	lld	$16, %lo(test)($3)
 	lwu	$16, %lo(test)($3)
 	scd	$16, %lo(test)($3)
+	.ifndef r6
 	sdl	$16, %lo(test)($3)
 	sdr	$16, %lo(test)($3)
+	.endif
 	ldm	$16, %lo(test)($3)
 	ldp	$16, %lo(test)($3)
 	sdm	$16, %lo(test)($3)
@@ -5650,10 +5826,14 @@ test_delay_slot:
 	bal	test_delay_slot
 	bgezal	$3, test_delay_slot
 	bltzal	$3, test_delay_slot
+	.ifndef r6
 	bgezall	$3, test_delay_slot
 	bltzall	$3, test_delay_slot
+	.endif
 	jal	test_delay_slot
+	.ifndef r6
 	jalx	test_delay_slot_ext
+	.endif
 	.ifndef	insn32
 	jalr16	$2
 	.endif
@@ -5670,9 +5850,11 @@ test_delay_slot:
 	jals	test_delay_slot
 	jalrs16	$2
 	jalrs32	$2
+	.ifndef r6
 	jrs	$2
 	jalrs.hb	$2
 	jrs.hb	$2
+	.endif
 	.endif
 
 	.end	test_delay_slot
@@ -5712,8 +5894,13 @@ test_spec102:
 	addiu	$7, $pc, 0
 	addiu	$16, $pc, 0
 	addiu	$17, $pc, 0
+	.ifndef r6
 	addiu	$17, $pc, 4194303 << 2
 	addiu	$17, $pc, -4194304 << 2
+	.else
+	addiu	$17, $pc, 262143 << 2
+	addiu	$17, $pc, -262144 << 2
+	.endif
 	addiupc	$2, 0
 	addiupc	$3, 0
 	addiupc	$4, 0
@@ -5722,8 +5909,13 @@ test_spec102:
 	addiupc	$7, 0
 	addiupc	$16, 0
 	addiupc	$17, 0
+	.ifndef r6
 	addiupc	$17, 4194303 << 2
 	addiupc	$17, -4194304 << 2
+	.else
+	addiupc	$17, 262143 << 2
+	addiupc	$17, -262144 << 2
+	.endif
 
 	.end	test_spec102
 
@@ -5752,6 +5944,7 @@ test_spec107:
 	movep	$4, $7, $20, $18
 	movep	$4, $7, $20, $19
 	movep	$4, $7, $20, $20
+	.ifndef r6
 	.ifndef	insn32
 	bals	test_spec107
 	nop
@@ -5766,5 +5959,6 @@ test_spec107:
 	nop
 	bltzal	$2, test_spec107
 	nop
+	.endif
 
 	.end	test_spec107

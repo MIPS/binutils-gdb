@@ -2407,6 +2407,10 @@ print_insn_micromips (bfd_vma memaddr, struct disassemble_info *info)
 	  && ((length == 2 && (op->mask & 0xffff0000) == 0)
 	      || (length == 4 && (op->mask & 0xffff0000) != 0)))
 	{
+	  if (!opcode_is_member (op, mips_isa, mips_ase, mips_processor)
+	      || (op->pinfo2 & INSN2_CONVERTED_TO_COMPACT))
+	    continue;
+
 	  if (!validate_insn_args (op, decode_micromips_operand, insn))
 	    continue;
 

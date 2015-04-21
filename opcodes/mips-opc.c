@@ -29,7 +29,7 @@
 #include "mips-formats.h"
 
 /* The 4-bit XYZW mask used in some VU0 instructions.  */
-const struct mips_operand mips_vu0_channel_mask = { OP_VU0_SUFFIX, 4, 21 };
+const struct mips_operand mips_vu0_channel_mask = { OP_VU0_SUFFIX, 4, 21, 0, 0 };
 
 static unsigned char reg_0_map[] = { 0 };
 

@@ -8,6 +8,7 @@ text_label:
 	# Unprivileged coprocessor instructions.
 	# These tests use cp2 to avoid other (cp0, fpu, prefetch) opcodes.
 
+	.ifndef r6
 	bc2f	text_label
 	nop
 	bc2fl	text_label
@@ -16,6 +17,7 @@ text_label:
 	nop
 	bc2tl	text_label
 	nop
+	.endif
 	# XXX other BCzCond encodings not currently expressable.
 
 	cfc2	$1, $2
@@ -28,6 +30,7 @@ text_label:
 	mtc2	$6, $7
 
 
+	.ifndef r6
 	# Cop2 branches with cond code number, like bc1t/f.
 	bc2f	$cc0,text_label
 	nop
@@ -37,6 +40,7 @@ text_label:
 	nop
 	bc2tl	$cc7,text_label
 	nop
+	.endif
 
 # Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
 	.align	2
