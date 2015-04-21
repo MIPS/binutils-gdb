@@ -557,7 +557,8 @@ const struct mips_arch_choice mips_arch_choices[] =
   { "mips32r2",	1, bfd_mach_mipsisa32r2, CPU_MIPS32R2,
     ISA_MIPS32R2,
     (ASE_SMARTMIPS | ASE_DSP | ASE_DSPR2 | ASE_EVA | ASE_MIPS3D
-     | ASE_MT | ASE_MCU | ASE_VIRT | ASE_MSA | ASE_XPA | ASE_MXU),
+     | ASE_MT | ASE_MCU | ASE_VIRT | ASE_VIRT_XPA | ASE_MSA | ASE_XPA
+     | ASE_MXU),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -565,7 +566,8 @@ const struct mips_arch_choice mips_arch_choices[] =
   { "mips32r3",	1, bfd_mach_mipsisa32r3, CPU_MIPS32R3,
     ISA_MIPS32R3,
     (ASE_SMARTMIPS | ASE_DSP | ASE_DSPR2 | ASE_EVA | ASE_MIPS3D
-     | ASE_MT | ASE_MCU | ASE_VIRT | ASE_MSA | ASE_XPA | ASE_MXU),
+     | ASE_MT | ASE_MCU | ASE_VIRT | ASE_VIRT_XPA | ASE_MSA | ASE_XPA
+     | ASE_MXU),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -573,15 +575,16 @@ const struct mips_arch_choice mips_arch_choices[] =
   { "mips32r5",	1, bfd_mach_mipsisa32r5, CPU_MIPS32R5,
     ISA_MIPS32R5,
     (ASE_SMARTMIPS | ASE_DSP | ASE_DSPR2 | ASE_EVA | ASE_MIPS3D
-     | ASE_MT | ASE_MCU | ASE_VIRT | ASE_MSA | ASE_XPA | ASE_MXU),
+     | ASE_MT | ASE_MCU | ASE_VIRT | ASE_VIRT_XPA | ASE_MSA | ASE_XPA
+     | ASE_MXU),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
 
   { "mips32r6",	1, bfd_mach_mipsisa32r6, CPU_MIPS32R6,
     ISA_MIPS32R6,
-    (ASE_EVA | ASE_MSA | ASE_VIRT | ASE_XPA | ASE_MCU | ASE_MT | ASE_DSP
-     | ASE_DSPR2 | ASE_DSPR3),
+    (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_VIRT | ASE_VIRT_XPA | ASE_XPA |
+     ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -596,8 +599,8 @@ const struct mips_arch_choice mips_arch_choices[] =
   { "mips64r2",	1, bfd_mach_mipsisa64r2, CPU_MIPS64R2,
     ISA_MIPS64R2,
     (ASE_MIPS3D | ASE_DSP | ASE_DSPR2 | ASE_DSP64 | ASE_EVA | ASE_MT
-     | ASE_MCU | ASE_VIRT | ASE_VIRT64 | ASE_MSA | ASE_MSA64 | ASE_XPA
-     | ASE_MXU),
+     | ASE_MCU | ASE_VIRT | ASE_VIRT_XPA | ASE_VIRT64 | ASE_MSA | ASE_MSA64
+     | ASE_XPA | ASE_MXU),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -605,8 +608,8 @@ const struct mips_arch_choice mips_arch_choices[] =
   { "mips64r3",	1, bfd_mach_mipsisa64r3, CPU_MIPS64R3,
     ISA_MIPS64R3,
     (ASE_MIPS3D | ASE_DSP | ASE_DSPR2 | ASE_DSP64 | ASE_EVA | ASE_MT
-     | ASE_MCU | ASE_VIRT | ASE_VIRT64 | ASE_MSA | ASE_MSA64 | ASE_XPA
-     | ASE_MXU),
+     | ASE_MCU | ASE_VIRT | ASE_VIRT_XPA | ASE_VIRT64 | ASE_MSA | ASE_MSA64
+     | ASE_XPA | ASE_MXU),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -614,16 +617,17 @@ const struct mips_arch_choice mips_arch_choices[] =
   { "mips64r5",	1, bfd_mach_mipsisa64r5, CPU_MIPS64R5,
     ISA_MIPS64R5,
     (ASE_MIPS3D | ASE_DSP | ASE_DSPR2 | ASE_DSP64 | ASE_EVA | ASE_MT
-     | ASE_MCU | ASE_VIRT | ASE_VIRT64 | ASE_MSA | ASE_MSA64 | ASE_XPA
-     | ASE_MXU),
+     | ASE_MCU | ASE_VIRT | ASE_VIRT_XPA | ASE_VIRT64 | ASE_MSA | ASE_MSA64
+     | ASE_XPA | ASE_MXU),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
 
   { "mips64r6",	1, bfd_mach_mipsisa64r6, CPU_MIPS64R6,
     ISA_MIPS64R6,
-    (ASE_EVA | ASE_MSA | ASE_MSA64 | ASE_XPA | ASE_VIRT | ASE_VIRT64
-     | ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3 | ASE_DSP64),
+    (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_MSA64 | ASE_XPA | ASE_VIRT
+     | ASE_VIRT_XPA | ASE_VIRT64 | ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2
+     | ASE_DSPR3 | ASE_DSP64),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -877,17 +881,23 @@ parse_mips_dis_option (const char *option, unsigned int len)
   if (CONST_STRNEQ (option, "virt"))
     {
       mips_ase |= ASE_VIRT;
+
       if (mips_isa & ISA_MIPS64R2
 	  || mips_isa & ISA_MIPS64R3
 	  || mips_isa & ISA_MIPS64R5
 	  || mips_isa & ISA_MIPS64R6)
 	mips_ase |= ASE_VIRT64;
+
+      if (mips_ase & ASE_XPA)
+	mips_ase |= ASE_VIRT_XPA;
       return;
     }
 
   if (CONST_STRNEQ (option, "xpa"))
     {
       mips_ase |= ASE_XPA;
+      if (mips_ase & ASE_VIRT)
+	mips_ase |= ASE_VIRT_XPA;
       return;
     }
   
@@ -2235,7 +2245,7 @@ print_insn_micromips (bfd_vma memaddr, struct disassemble_info *info)
   else
     insn = bfd_getl16 (buffer);
 
-  if ((insn & 0xfc00) == 0x7c00)
+  if (!is_isa_r6 (mips_isa) && (insn & 0xfc00) == 0x7c00)
     {
       /* This is a 48-bit microMIPS instruction.  */
       higher = insn;
@@ -2269,7 +2279,11 @@ print_insn_micromips (bfd_vma memaddr, struct disassemble_info *info)
       info->insn_type = dis_noninsn;
       return 6;
     }
-  else if ((insn & 0x1c00) == 0x0000 || (insn & 0x1000) == 0x1000)
+  else if ((insn & 0x1c00) == 0x0000 || (insn & 0x1000) == 0x1000
+      || (insn & (OP_MASK_OP << (OP_SH_OP - 16))) == 0x7c00
+      || (insn & (OP_MASK_OP << (OP_SH_OP - 16))) == 0xa400
+      || (insn & (OP_MASK_OP << (OP_SH_OP - 16))) == 0xe400
+      || (insn & (OP_MASK_OP << (OP_SH_OP - 16))) == 0xc400)
     {
       /* This is a 32-bit microMIPS instruction.  */
       higher = insn;
@@ -2303,6 +2317,10 @@ print_insn_micromips (bfd_vma memaddr, struct disassemble_info *info)
 	  && ((length == 2 && (op->mask & 0xffff0000) == 0)
 	      || (length == 4 && (op->mask & 0xffff0000) != 0)))
 	{
+	  if (!opcode_is_member (op, mips_isa, mips_ase, mips_processor)
+	      || (op->pinfo2 & INSN2_CONVERTED_TO_COMPACT))
+	    continue;
+
 	  if (!validate_insn_args (op, decode_micromips_operand, insn))
 	    continue;
 
