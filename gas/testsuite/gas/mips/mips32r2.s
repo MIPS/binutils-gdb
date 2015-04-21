@@ -15,9 +15,13 @@ text_label:
 	ins	$4, $5, 6, 8
 
 	jalr.hb	$8
+	nop
+
 	jalr.hb $20, $9
+	nop
 
 	jr.hb	$8
+	nop
 
 	# Note, further testing of rdhwr is done in hwr-names-mips32r2.d
 	rdhwr	$10, $0
@@ -66,4 +70,5 @@ text_label:
 	pause
 
 # Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
+	.align	2
 	.space  8

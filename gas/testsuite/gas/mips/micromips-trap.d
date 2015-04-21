@@ -1,6 +1,6 @@
 #objdump: -dr --show-raw-insn
 #name: microMIPS for MIPS32r2 (w/traps)
-#as: -mips32r2 -32 -trap -mfp64 -EB
+#as: -mips64r2 -32 -trap -mfp64 -EB
 #stderr: micromips-warn.l
 #source: micromips.s
 

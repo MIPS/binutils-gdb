@@ -21,7 +21,7 @@
 #define INT_BIAS(SIZE, LSB, MAX_VAL, BIAS, SHIFT, PRINT_HEX) \
   { \
     static const struct mips_int_operand op = { \
-      { OP_INT, SIZE, LSB }, MAX_VAL, BIAS, SHIFT, PRINT_HEX \
+      { OP_INT, SIZE, LSB, 0, 0 }, MAX_VAL, BIAS, SHIFT, PRINT_HEX \
     }; \
     return &op.root; \
   }
@@ -41,7 +41,7 @@
 #define BIT(SIZE, LSB, BIAS) \
   { \
     static const struct mips_int_operand op = { \
-      { OP_INT, SIZE, LSB }, (1 << (SIZE)) - 1, BIAS, 0, TRUE \
+      { OP_INT, SIZE, LSB, 0, 0 }, (1 << (SIZE)) - 1, BIAS, 0, TRUE \
     }; \
     return &op.root; \
   }
@@ -51,7 +51,7 @@
     typedef char ATTRIBUTE_UNUSED \
       static_assert[(1 << (SIZE)) == ARRAY_SIZE (MAP)]; \
     static const struct mips_mapped_int_operand op = { \
-      { OP_MAPPED_INT, SIZE, LSB }, MAP, PRINT_HEX \
+      { OP_MAPPED_INT, SIZE, LSB, 0, 0 }, MAP, PRINT_HEX \
     }; \
     return &op.root; \
   }
@@ -59,7 +59,7 @@
 #define MSB(SIZE, LSB, BIAS, ADD_LSB, OPSIZE) \
   { \
     static const struct mips_msb_operand op = { \
-      { OP_MSB, SIZE, LSB }, BIAS, ADD_LSB, OPSIZE \
+      { OP_MSB, SIZE, LSB, 0, 0 }, BIAS, ADD_LSB, OPSIZE \
     }; \
     return &op.root; \
   }
@@ -67,7 +67,7 @@
 #define REG(SIZE, LSB, BANK) \
   { \
     static const struct mips_reg_operand op = { \
-      { OP_REG, SIZE, LSB }, OP_REG_##BANK, 0 \
+      { OP_REG, SIZE, LSB, 0, 0 }, OP_REG_##BANK, 0 \
     }; \
     return &op.root; \
   }
@@ -75,7 +75,7 @@
 #define OPTIONAL_REG(SIZE, LSB, BANK) \
   { \
     static const struct mips_reg_operand op = { \
-      { OP_OPTIONAL_REG, SIZE, LSB }, OP_REG_##BANK, 0 \
+      { OP_OPTIONAL_REG, SIZE, LSB, 0, 0 }, OP_REG_##BANK, 0 \
     }; \
     return &op.root; \
   }
@@ -85,7 +85,17 @@
     typedef char ATTRIBUTE_UNUSED \
       static_assert[(1 << (SIZE)) == ARRAY_SIZE (MAP)]; \
     static const struct mips_reg_operand op = { \
-      { OP_REG, SIZE, LSB }, OP_REG_##BANK, MAP \
+      { OP_REG, SIZE, LSB, 0, 0 }, OP_REG_##BANK, MAP \
+    }; \
+    return &op.root; \
+  }
+
+#define SPLIT_MAPPED_REG(SIZE, LSB, SIZE_T, LSB_T, BANK, MAP) \
+  { \
+    typedef char ATTRIBUTE_UNUSED \
+      static_assert[(1 << (SIZE)) == ARRAY_SIZE (MAP)]; \
+    static const struct mips_reg_operand op = { \
+      { OP_REG, SIZE, LSB, SIZE_T, LSB_T }, OP_REG_##BANK, MAP \
     }; \
     return &op.root; \
   }
@@ -95,7 +105,7 @@
     typedef char ATTRIBUTE_UNUSED \
       static_assert[(1 << (SIZE)) == ARRAY_SIZE (MAP)]; \
     static const struct mips_reg_operand op = { \
-      { OP_OPTIONAL_REG, SIZE, LSB }, OP_REG_##BANK, MAP \
+      { OP_OPTIONAL_REG, SIZE, LSB, 0, 0 }, OP_REG_##BANK, MAP \
     }; \
     return &op.root; \
   }
@@ -107,7 +117,7 @@
     typedef char ATTRIBUTE_UNUSED \
       static_assert2[(1 << (SIZE)) == ARRAY_SIZE (MAP##2)]; \
     static const struct mips_reg_pair_operand op = { \
-      { OP_REG_PAIR, SIZE, LSB }, OP_REG_##BANK, MAP##1, MAP##2 \
+      { OP_REG_PAIR, SIZE, LSB, 0, 0 }, OP_REG_##BANK, MAP##1, MAP##2 \
     }; \
     return &op.root; \
   }
@@ -116,7 +126,7 @@
               FLIP_ISA_BIT) \
   { \
     static const struct mips_pcrel_operand op = { \
-      { { OP_PCREL, SIZE, LSB }, \
+      { { OP_PCREL, SIZE, LSB, 0, 0 }, \
 	(1 << ((SIZE) - (IS_SIGNED))) - 1, 0, SHIFT, TRUE }, \
       ALIGN_LOG2, INCLUDE_ISA_BIT, FLIP_ISA_BIT \
     }; \
@@ -134,14 +144,14 @@
 
 #define SPECIAL(SIZE, LSB, TYPE) \
   { \
-    static const struct mips_operand op = { OP_##TYPE, SIZE, LSB }; \
+    static const struct mips_operand op = { OP_##TYPE, SIZE, LSB, 0, 0 }; \
     return &op; \
   }
 
 #define PREV_CHECK(SIZE, LSB, GT_OK, LT_OK, EQ_OK, ZERO_OK) \
   { \
     static const struct mips_check_prev_operand op = { \
-      { OP_CHECK_PREV, SIZE, LSB }, GT_OK, LT_OK, EQ_OK, ZERO_OK \
+      { OP_CHECK_PREV, SIZE, LSB, 0, 0 }, GT_OK, LT_OK, EQ_OK, ZERO_OK \
     }; \
     return &op.root; \
   }

@@ -1,5 +1,5 @@
 #name: MIPSr6 link branch to unaligned symbol 1
-#as: -EB -n32 -march=from-abi
+#as: -EB -n32 -march=mips64r6
 #ld: -EB -Ttext 0x1c000000 -e 0x1c000000
 #source: ../../../gas/testsuite/gas/mips/unaligned-branch-r6-3.s
 #error: \A[^\n]*: in function `foo':\n
@@ -21,40 +21,24 @@
 #error:   \(\.text\+0x10ac\): branch to a non-instruction-aligned address\n
 #error:   \(\.text\+0x10b4\): branch to a non-instruction-aligned address\n
 #error:   \(\.text\+0x10bc\): branch to a non-instruction-aligned address\n
-#error:   \(\.text\+0x10dc\): cannot convert a branch to JALX for a non-word-aligned address\n
-#error:   \(\.text\+0x10dc\): unsupported branch between ISA modes\n
-#error:   \(\.text\+0x10e4\): cannot convert a branch to JALX for a non-word-aligned address\n
-#error:   \(\.text\+0x10e4\): unsupported branch between ISA modes\n
-#error:   \(\.text\+0x10ec\): unsupported branch between ISA modes\n
-#error:   \(\.text\+0x10f4\): cannot convert a branch to JALX for a non-word-aligned address\n
-#error:   \(\.text\+0x10f4\): unsupported branch between ISA modes\n
-#error:   \(\.text\+0x10fc\): cannot convert a branch to JALX for a non-word-aligned address\n
-#error:   \(\.text\+0x10fc\): unsupported branch between ISA modes\n
-#error:   \(\.text\+0x1104\): cannot convert a branch to JALX for a non-word-aligned address\n
-#error:   \(\.text\+0x1104\): unsupported branch between ISA modes\n
-#error:   \(\.text\+0x110c\): cannot convert a branch to JALX for a non-word-aligned address\n
-#error:   \(\.text\+0x110c\): unsupported branch between ISA modes\n
-#error:   \(\.text\+0x1114\): cannot convert a branch to JALX for a non-word-aligned address\n
-#error:   \(\.text\+0x1114\): unsupported branch between ISA modes\n
-#error:   \(\.text\+0x111c\): unsupported branch between ISA modes\n
-#error:   \(\.text\+0x1124\): cannot convert a branch to JALX for a non-word-aligned address\n
-#error:   \(\.text\+0x1124\): unsupported branch between ISA modes\n
-#error:   \(\.text\+0x112c\): cannot convert a branch to JALX for a non-word-aligned address\n
-#error:   \(\.text\+0x112c\): unsupported branch between ISA modes\n
-#error:   \(\.text\+0x1134\): cannot convert a branch to JALX for a non-word-aligned address\n
-#error:   \(\.text\+0x1134\): unsupported branch between ISA modes\n
-#error:   \(\.text\+0x113c\): cannot convert a branch to JALX for a non-word-aligned address\n
-#error:   \(\.text\+0x113c\): unsupported branch between ISA modes\n
-#error:   \(\.text\+0x1144\): cannot convert a branch to JALX for a non-word-aligned address\n
-#error:   \(\.text\+0x1144\): unsupported branch between ISA modes\n
-#error:   \(\.text\+0x114c\): cannot convert a branch to JALX for a non-word-aligned address\n
-#error:   \(\.text\+0x114c\): unsupported branch between ISA modes\n
-#error:   \(\.text\+0x1154\): unsupported branch between ISA modes\n
-#error:   \(\.text\+0x115c\): unsupported branch between ISA modes\n
-#error:   \(\.text\+0x1164\): cannot convert a branch to JALX for a non-word-aligned address\n
-#error:   \(\.text\+0x1164\): unsupported branch between ISA modes\n
-#error:   \(\.text\+0x116c\): cannot convert a branch to JALX for a non-word-aligned address\n
-#error:   \(\.text\+0x116c\): unsupported branch between ISA modes\n
-#error:   \(\.text\+0x1174\): cannot convert a branch to JALX for a non-word-aligned address\n
-#error:   \(\.text\+0x1174\): unsupported branch between ISA modes\n
-#error:   \(\.text\+0x117c\): unsupported branch between ISA modes\Z
+#error:   \(\.text\+0x10dc\): unsupported branch or jump between ISA modes; MIPS R6 does not support the JALX instruction\n
+#error:   \(\.text\+0x10e4\): unsupported branch or jump between ISA modes; MIPS R6 does not support the JALX instruction\n
+#error:   \(\.text\+0x10ec\): unsupported branch or jump between ISA modes; MIPS R6 does not support the JALX instruction\n
+#error:   \(\.text\+0x10f4\): unsupported branch or jump between ISA modes; MIPS R6 does not support the JALX instruction\n
+#error:   \(\.text\+0x10fc\): unsupported branch or jump between ISA modes; MIPS R6 does not support the JALX instruction\n
+#error:   \(\.text\+0x1104\): unsupported branch or jump between ISA modes; MIPS R6 does not support the JALX instruction\n
+#error:   \(\.text\+0x110c\): unsupported branch or jump between ISA modes; MIPS R6 does not support the JALX instruction\n
+#error:   \(\.text\+0x1114\): unsupported branch or jump between ISA modes; MIPS R6 does not support the JALX instruction\n
+#error:   \(\.text\+0x111c\): unsupported branch or jump between ISA modes; MIPS R6 does not support the JALX instruction\n
+#error:   \(\.text\+0x1124\): unsupported branch or jump between ISA modes; MIPS R6 does not support the JALX instruction\n
+#error:   \(\.text\+0x112c\): unsupported branch or jump between ISA modes; MIPS R6 does not support the JALX instruction\n
+#error:   \(\.text\+0x1134\): unsupported branch or jump between ISA modes; MIPS R6 does not support the JALX instruction\n
+#error:   \(\.text\+0x113c\): unsupported branch or jump between ISA modes; MIPS R6 does not support the JALX instruction\n
+#error:   \(\.text\+0x1144\): unsupported branch or jump between ISA modes; MIPS R6 does not support the JALX instruction\n
+#error:   \(\.text\+0x114c\): unsupported branch or jump between ISA modes; MIPS R6 does not support the JALX instruction\n
+#error:   \(\.text\+0x1154\): unsupported branch or jump between ISA modes; MIPS R6 does not support the JALX instruction\n
+#error:   \(\.text\+0x115c\): unsupported branch or jump between ISA modes; MIPS R6 does not support the JALX instruction\n
+#error:   \(\.text\+0x1164\): unsupported branch or jump between ISA modes; MIPS R6 does not support the JALX instruction\n
+#error:   \(\.text\+0x116c\): unsupported branch or jump between ISA modes; MIPS R6 does not support the JALX instruction\n
+#error:   \(\.text\+0x1174\): unsupported branch or jump between ISA modes; MIPS R6 does not support the JALX instruction\n
+#error:   \(\.text\+0x117c\): unsupported branch or jump between ISA modes; MIPS R6 does not support the JALX instruction\Z

@@ -7,10 +7,17 @@
 
 	.macro	test_one, name, types
 	.if	(\types) & DC
+	.if	micromips & 2
+	balc	\name
+	.else
 	jal	\name
 	nop
-	.if	micromips
+	.endif
 	.ifdef	o32
+	.if	micromips & 2
+	bc	\name
+	.endif
+	.if	micromips & 1
 	j	\name
 	nop
 	.endif

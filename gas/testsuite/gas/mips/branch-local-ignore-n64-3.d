@@ -8,7 +8,7 @@
 Disassembly of section \.text:
 	\.\.\.
 [0-9a-f]+ <[^>]*> 0000 02d0 	not	zero,zero
-[0-9a-f]+ <[^>]*> 001f 0f3c 	jr	ra
+[0-9a-f]+ <[^>]*> 001f 0f3c 	jrc	ra
 [0-9a-f]+ <[^>]*> 0000 02d0 	not	zero,zero
 [0-9a-f]+ <[^>]*> 0000 0000 	nop
 [0-9a-f]+ <[^>]*> 00000027 	nor	zero,zero,zero

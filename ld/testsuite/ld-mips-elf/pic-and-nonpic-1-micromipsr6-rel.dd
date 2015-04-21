@@ -1,0 +1,39 @@
+
+.*
+
+Disassembly of section \.text:
+
+00000000 <f1>:
+   0:	1380 0000 	lui	gp,0x0
+			0: R_MICROMIPS_HI16	_gp_disp
+   4:	339c 0000 	addiu	gp,gp,0
+			4: R_MICROMIPS_LO16	_gp_disp
+   8:	033c e150 	addu	gp,gp,t9
+   c:	b7ff fffe 	balc	c .*
+			c: R_MICROMIPS_PC26_S1	f3
+  10:	47e3      	jrc	ra
+
+00000012 <f2>:
+  12:	1380 0000 	lui	gp,0x0
+			12: R_MICROMIPS_HI16	_gp_disp
+  16:	339c 0000 	addiu	gp,gp,0
+			16: R_MICROMIPS_LO16	_gp_disp
+  1a:	033c e150 	addu	gp,gp,t9
+  1e:	47e3      	jrc	ra
+
+00000020 <f3>:
+  20:	1380 0000 	lui	gp,0x0
+			20: R_MICROMIPS_HI16	_gp_disp
+  24:	339c 0000 	addiu	gp,gp,0
+			24: R_MICROMIPS_LO16	_gp_disp
+  28:	033c e150 	addu	gp,gp,t9
+  2c:	0000 0000 	nop
+
+00000030 <__start>:
+  30:	b7ff fffe 	balc	30 .*
+			30: R_MICROMIPS_PC26_S1	f1
+  34:	b7ff fffe 	balc	34 .*
+			34: R_MICROMIPS_PC26_S1	f2
+  38:	b7ff fffe 	balc	38 .*
+			38: R_MICROMIPS_PC26_S1	f3
+  3c:	0000 0000 	nop

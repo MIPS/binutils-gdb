@@ -1,0 +1,21 @@
+	.text
+	blezc	    $0,.
+	bgezc	    $0,.
+	bgtzc	    $0,.
+	bltzc	    $0,.
+	beqzc	    $0,.
+	bnezc	    $0,.
+	bgec	    $0,$2,.
+	bgec	    $2,$0,.
+	bgec	    $2,$2,.
+	bgeuc	    $0,$2,.
+	bgeuc	    $2,$0,.
+	bgeuc	    $2,$2,.
+	bltc	    $0,$2,.
+	bltc	    $2,$0,.
+	bltc	    $2,$2,.
+	bltuc	    $0,$2,.
+	bltuc	    $2,$0,.
+	bltuc	    $2,$2,.
+	beqc	    $2,$2,.
+	bnec	    $2,$2,.
