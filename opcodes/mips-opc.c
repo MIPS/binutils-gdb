@@ -3206,7 +3206,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 /* MXU Extension.  */
 {"d16mul",		"`=,`b,`c,`d,`o",	0x70000008, 0xff00003f,	TRAP,		0,		0,		MXU,	0 },
 {"d16mulf",		"`=,`b,`c,`o",		0x70000009, 0xff3c003f,	TRAP,		0,		0,		MXU,	0 },
-{"d16mule",		"`=,`b,`c,`o",		0x71000009, 0xff3c003f,	TRAP,		0,		0,		MXU,	0 },
+{"d16mule",		"`=,`b,`c,`d,`o",	0x71000009, 0xff00003f,	TRAP,		0,		0,		MXU,	0 },
 {"d16mac",		"`=,`b,`c,`d,`a,`o",	0x7000000a, 0xfc00003f,	TRAP,		0,		0,		MXU,	0 },
 {"d16macf",		"`=,`b,`c,`d,`a,`o",	0x7000000b, 0xfc00003f,	TRAP,		0,		0,		MXU,	0 },
 {"d16madl",		"`=,`b,`c,`d,`a,`o",	0x7000000c, 0xfc00003f,	TRAP,		0,		0,		MXU,	0 },
