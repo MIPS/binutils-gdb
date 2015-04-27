@@ -10336,7 +10336,7 @@ _bfd_mips_elf_size_dynamic_sections (bfd *output_bfd,
 	  if (! MIPS_ELF_ADD_DYNAMIC_ENTRY (info, DT_MIPS_PLTGOT, 0))
 	    return FALSE;
 	}
-      if (info->shared && htab->root.iplt->size > 0)
+      if (info->shared && htab->root.iplt && htab->root.iplt->size > 0)
 	{
 	  if (! MIPS_ELF_ADD_DYNAMIC_ENTRY (info, DT_MIPS_IPLT, 0))
 	    return FALSE;
