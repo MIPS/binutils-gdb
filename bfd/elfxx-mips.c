@@ -10975,7 +10975,6 @@ _bfd_mips_elf_finish_dynamic_symbol (bfd *output_bfd,
 	    {
 	      long dynindx_hi = (h->dynindx >> 16) & 0x7fff;
 
-looks bad
 	      bfd_put_micromips_32 (output_bfd,
 				    STUB_LUI_MICROMIPS (output_bfd, dynindx_hi),
 				    stub + idx);
@@ -11505,7 +11504,7 @@ mips_finish_exec_plt (bfd *output_bfd, struct bfd_link_info *info)
 	bfd_put_16 (output_bfd, plt_entry[i], loc + (i * 2));
     }
   else if (plt_entry == micromips_insn32_o32_exec_plt0_entry
-	   || plt_entry == micromips_insn32_o32_exec_plt0_entry_compact)
+	   || plt_entry == micromipsr6_insn32_o32_exec_plt0_entry)
     {
       size_t i;
 

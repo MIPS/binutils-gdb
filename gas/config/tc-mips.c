@@ -7110,10 +7110,10 @@ micromips_map_reloc (bfd_reloc_code_real_type reloc)
       { BFD_RELOC_HI16_S_PCREL, BFD_RELOC_MICROMIPS_HI16_S_PCREL },
       { BFD_RELOC_LO16_PCREL, BFD_RELOC_MICROMIPS_LO16_PCREL },
       { BFD_RELOC_MIPS_LITERAL, BFD_RELOC_MICROMIPS_LITERAL },
-      { BFD_RELOC_MIPS_18_PCREL_S3, BFD_RELOC_MICROMIPS_18_PCREL_S3 },
-      { BFD_RELOC_MIPS_19_PCREL_S2, BFD_RELOC_MICROMIPS_19_PCREL_S2 },
       { BFD_RELOC_MIPS_21_PCREL_S2, BFD_RELOC_MICROMIPS_21_PCREL_S1 },
       { BFD_RELOC_MIPS_26_PCREL_S2, BFD_RELOC_MICROMIPS_26_PCREL_S1 },
+      { BFD_RELOC_MIPS_18_PCREL_S3, BFD_RELOC_MICROMIPS_18_PCREL_S3 },
+      { BFD_RELOC_MIPS_19_PCREL_S2, BFD_RELOC_MICROMIPS_19_PCREL_S2 },
       { BFD_RELOC_MIPS_GOT16, BFD_RELOC_MICROMIPS_GOT16 },
       { BFD_RELOC_MIPS_CALL16, BFD_RELOC_MICROMIPS_CALL16 },
       { BFD_RELOC_MIPS_GOT_HI16, BFD_RELOC_MICROMIPS_GOT_HI16 },
@@ -7443,8 +7443,8 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
       && address_expr
       && relax32
       && (*reloc_type == BFD_RELOC_16_PCREL_S2
-	  || *reloc_type == BFD_RELOC_21_PCREL_S2
-	  || *reloc_type == BFD_RELOC_26_PCREL_S2)
+	  || *reloc_type == BFD_RELOC_MIPS_21_PCREL_S2
+	  || *reloc_type == BFD_RELOC_MIPS_26_PCREL_S2)
       && delayed_branch_p (ip))
     {
       relaxed_branch = TRUE;
@@ -8664,7 +8664,6 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
   struct mips_cl_insn insn;
   va_list args;
   unsigned int uval;
-  char next_fmt = 0;
 
   va_start (args, fmt);
 
@@ -8722,7 +8721,7 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	case '(':
 	case ')':
 	case 'z':
-	  break;
+	  continue;
 
 	case 'i':
 	case 'j':
@@ -8732,11 +8731,11 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 		      || *r == BFD_RELOC_HI16_S
 		      || *r == BFD_RELOC_LO16
 		      || *r == BFD_RELOC_MIPS_GOT_OFST);
-	  break;
+	  continue;
 
 	case 'o':
 	  macro_read_relocs (&args, r);
-	  break;
+	  continue;
 
 	case 'u':
 	  macro_read_relocs (&args, r);
@@ -8749,12 +8748,12 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 				  || *r == BFD_RELOC_GPREL16
 				  || *r == BFD_RELOC_MIPS_GOT_HI16
 				  || *r == BFD_RELOC_MIPS_CALL_HI16))));
-	  break;
+	  continue;
 
 	case '+':
 	  if (*(fmt + 1) != '\"' && *(fmt + 1) != '\'')
 	    break;
-	  /* Fall through for +" and +' */
+	  /* Fall through for +", +' */
 	case 'p':
 	  gas_assert (ep != NULL);
 
@@ -8785,36 +8784,38 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	  else if (*fmt == '+' && *(fmt + 1) == '\'')
 	    *r = BFD_RELOC_MIPS_26_PCREL_S2;
 	  else if (*fmt == '+' && *(fmt + 1) == '\"')
-	    *r == BFD_RELOC_MIPS_21_PCREL_S2;
+	    *r = BFD_RELOC_MIPS_21_PCREL_S2;
 	  else
 	    *r = BFD_RELOC_16_PCREL_S2;
-	  break;
+
+	  if (*fmt == '+')
+	    fmt++;
+	  continue;
 
 	case 'a':
 	  gas_assert (ep != NULL);
 	  *r = BFD_RELOC_MIPS_JMP;
-	  break;
+	  continue;
 
 	default:
-	  next_fmt = *(fmt + 1);
-	  operand = (mips_opts.micromips
-		     ? decode_micromips_operand (fmt)
-		     : decode_mips_operand (fmt));
-	  if (!operand)
-	    abort ();
-
-	  uval = va_arg (args, int);
-	  if (operand->type == OP_CLO_CLZ_DEST
-	      || operand->type == OP_SAME_RS_RT)
-	    uval |= (uval << 5);
-
-	  insn_insert_operand (&insn, operand, uval);
-
-	  if ((*fmt == '+' && next_fmt != '"' && next_fmt != '\'') || *fmt == 'm' || *fmt == '-'
-	      || *fmt == '`')
-	    ++fmt;
 	  break;
 	}
+
+      operand = (mips_opts.micromips
+		 ? decode_micromips_operand (fmt)
+		 : decode_mips_operand (fmt));
+      if (!operand)
+	abort ();
+
+      uval = va_arg (args, int);
+      if (operand->type == OP_CLO_CLZ_DEST
+	  || operand->type == OP_SAME_RS_RT)
+	uval |= (uval << 5);
+
+      insn_insert_operand (&insn, operand, uval);
+
+      if ((*fmt == '+') || *fmt == 'm' || *fmt == '-' || *fmt == '`')
+	++fmt;
     }
   va_end (args);
   gas_assert (*r == BFD_RELOC_UNUSED ? ep == NULL : ep != NULL);
