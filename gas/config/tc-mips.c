@@ -3944,7 +3944,7 @@ mips_check_options (struct mips_set_options *opts, bfd_boolean abi_checks)
   if (ISA_IS_R6 (opts->isa)
       && opts->micromips
       && ((opts->ase & ASE_DSP)
-          || (opts->ase & ASE_DSPR2))
+	  || (opts->ase & ASE_DSPR2))
       && (!(opts->ase & ASE_DSPR3)))
     as_fatal (_("`mdsp' and `mdspr2' are not supported for `micromips' and `mips32r6' please use `mdspr3' instead"));
 }
@@ -4230,10 +4230,10 @@ limited_pcrel_reloc_p (bfd_reloc_code_real_type reloc)
     case BFD_RELOC_MICROMIPS_26_PCREL_S1:
     case BFD_RELOC_MICROMIPS_18_PCREL_S3:
     case BFD_RELOC_MICROMIPS_19_PCREL_S2:
-    case BFD_RELOC_MIPS_21_PCREL_S2:
-    case BFD_RELOC_MIPS_26_PCREL_S2:
     case BFD_RELOC_MIPS_18_PCREL_S3:
     case BFD_RELOC_MIPS_19_PCREL_S2:
+    case BFD_RELOC_MIPS_21_PCREL_S2:
+    case BFD_RELOC_MIPS_26_PCREL_S2:
     case BFD_RELOC_MICROMIPS_HI16_S_PCREL:
     case BFD_RELOC_MICROMIPS_LO16_PCREL:
       return TRUE;
@@ -6411,9 +6411,9 @@ insns_between (const struct mips_cl_insn *insn1,
       && mips_opts.micromips
       && (insn1->insn_mo->pinfo2 & INSN2_COND_BRANCH)
       && (insn2
-         && (insn2->insn_mo->pinfo2 & INSN2_COND_BRANCH
-             || insn2->insn_mo->pinfo2 & INSN2_UNCOND_BRANCH
-             || pinfo2 & INSN_NO_DELAY_SLOT)))
+	  && (insn2->insn_mo->pinfo2 & INSN2_COND_BRANCH
+	      || insn2->insn_mo->pinfo2 & INSN2_UNCOND_BRANCH
+	      || pinfo2 & INSN_NO_DELAY_SLOT)))
     return 1;
 
   return 0;
@@ -7110,10 +7110,10 @@ micromips_map_reloc (bfd_reloc_code_real_type reloc)
       { BFD_RELOC_HI16_S_PCREL, BFD_RELOC_MICROMIPS_HI16_S_PCREL },
       { BFD_RELOC_LO16_PCREL, BFD_RELOC_MICROMIPS_LO16_PCREL },
       { BFD_RELOC_MIPS_LITERAL, BFD_RELOC_MICROMIPS_LITERAL },
-      { BFD_RELOC_MIPS_21_PCREL_S2, BFD_RELOC_MICROMIPS_21_PCREL_S1 },
-      { BFD_RELOC_MIPS_26_PCREL_S2, BFD_RELOC_MICROMIPS_26_PCREL_S1 },
       { BFD_RELOC_MIPS_18_PCREL_S3, BFD_RELOC_MICROMIPS_18_PCREL_S3 },
       { BFD_RELOC_MIPS_19_PCREL_S2, BFD_RELOC_MICROMIPS_19_PCREL_S2 },
+      { BFD_RELOC_MIPS_21_PCREL_S2, BFD_RELOC_MICROMIPS_21_PCREL_S1 },
+      { BFD_RELOC_MIPS_26_PCREL_S2, BFD_RELOC_MICROMIPS_26_PCREL_S1 },
       { BFD_RELOC_MIPS_GOT16, BFD_RELOC_MICROMIPS_GOT16 },
       { BFD_RELOC_MIPS_CALL16, BFD_RELOC_MICROMIPS_CALL16 },
       { BFD_RELOC_MIPS_GOT_HI16, BFD_RELOC_MICROMIPS_GOT_HI16 },
@@ -7134,7 +7134,6 @@ micromips_map_reloc (bfd_reloc_code_real_type reloc)
       { BFD_RELOC_MIPS_TLS_GOTTPREL, BFD_RELOC_MICROMIPS_TLS_GOTTPREL },
       { BFD_RELOC_MIPS_TLS_TPREL_HI16, BFD_RELOC_MICROMIPS_TLS_TPREL_HI16 },
       { BFD_RELOC_MIPS_TLS_TPREL_LO16, BFD_RELOC_MICROMIPS_TLS_TPREL_LO16 }
-
     };
   bfd_reloc_code_real_type r;
   size_t i;
@@ -7443,7 +7442,9 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
   if (!HAVE_CODE_COMPRESSION
       && address_expr
       && relax32
-      && *reloc_type == BFD_RELOC_16_PCREL_S2
+      && (*reloc_type == BFD_RELOC_16_PCREL_S2
+	  || *reloc_type == BFD_RELOC_21_PCREL_S2
+	  || *reloc_type == BFD_RELOC_26_PCREL_S2)
       && delayed_branch_p (ip))
     {
       relaxed_branch = TRUE;
@@ -7472,12 +7473,12 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	   && strcmp (history[0].insn_mo->name, "jraddiusp")
 	   && (history[0].insn_mo->pinfo2 & INSN2_CONVERTED_TO_COMPACT)
 	   && history[0].noreorder_p
-	   && strcmp (ip->insn_mo->name, "nop"))
+	   && strcmp (ip->insn_mo->name, "nop") != 0)
     {
-      as_bad(_("unable to convert `%s' to its compact form because it has a non NOP "
-	        "instruction (`%s') in its delay slot.  Please move the delay slot "
+      as_bad (_("unable to convert `%s' to its compact form because it has a non NOP "
+		"instruction (`%s') in its delay slot.  Please move the delay slot "
 		"instruction before the branch and disable noreorder."),
-	     ip->insn_mo->name, history[0].insn_mo->name);
+	      ip->insn_mo->name, history[0].insn_mo->name);
       add_fixed_insn (ip);
     }
   else if (mips_opts.micromips
@@ -7489,15 +7490,17 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	       || strcmp (history[0].insn_mo->name, "bltzal") == 0)
 	   && strcmp (ip->insn_mo->name, "nop") == 0)
     {
-      as_bad(_("unable to convert `%s' to its compact form because the link register "
+      as_bad (_("unable to convert `%s' to its compact form because the link register "
 		"would have a different value.  Please move the delay slot instruction "
 		"before the branch and disable noreorder."),
-	     history[0].insn_mo->name);
+	      history[0].insn_mo->name);
       add_fixed_insn (ip);
     }
   else if (mips_opts.micromips
 	   && address_expr
-	   && ((relax32 && *reloc_type == BFD_RELOC_16_PCREL_S2)
+	   && ((relax32 && (*reloc_type == BFD_RELOC_16_PCREL_S2
+			    || *reloc_type == BFD_RELOC_MIPS_21_PCREL_S2
+			    || *reloc_type == BFD_RELOC_MIPS_26_PCREL_S2))
 	       || *reloc_type > BFD_RELOC_UNUSED)
 	   && (delayed_branch_p (ip) || compact_branch_p (ip))
 	   /* Don't try branch relaxation when users specify
@@ -8748,7 +8751,10 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 				  || *r == BFD_RELOC_MIPS_CALL_HI16))));
 	  break;
 
-	case '"':
+	case '+':
+	  if (*(fmt + 1) != '\"' && *(fmt + 1) != '\'')
+	    break;
+	  /* Fall through for +" and +' */
 	case 'p':
 	  gas_assert (ep != NULL);
 
@@ -8761,8 +8767,10 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	   */
 	  if (ep->X_op == O_constant)
 	    {
-	      /* For microMIPS we always use relocations for branches.
-	         So we should not resolve immediate values.  */
+	      /* For microMIPS or Release 6 we always use relocations for
+		 branches.  So we should not resolve immediate values.  */
+	      /* TODO: Change all MIPS R6 branches to use relocations
+		       from macros.  */
 	      gas_assert (!mips_opts.micromips);
 
 	      if ((ep->X_add_number & 3) != 0)
@@ -8774,12 +8782,10 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	      insn.insn_opcode |= (ep->X_add_number >> 2) & 0xffff;
 	      ep = NULL;
 	    }
-	  else if (*fmt == '"' && mips_opts.micromips)
-	    {
-	      macro_read_relocs (&args, r);
-	      gas_assert (ep->X_op == O_symbol
-			  && *r == BFD_RELOC_MICROMIPS_21_PCREL_S1);
-	    }
+	  else if (*fmt == '+' && *(fmt + 1) == '\'')
+	    *r = BFD_RELOC_MIPS_26_PCREL_S2;
+	  else if (*fmt == '+' && *(fmt + 1) == '\"')
+	    *r == BFD_RELOC_MIPS_21_PCREL_S2;
 	  else
 	    *r = BFD_RELOC_16_PCREL_S2;
 	  break;
@@ -8787,11 +8793,6 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	case 'a':
 	  gas_assert (ep != NULL);
 	  *r = BFD_RELOC_MIPS_JMP;
-	  break;
-
-	case '\'':
-	  gas_assert (ep != NULL);
-	  *r = BFD_RELOC_MIPS_26_PCREL_S2;
 	  break;
 
 	default:
@@ -8926,10 +8927,15 @@ macro_build_jalr (expressionS *ep, int cprestore)
       frag_grow (8);
       f = frag_more (0);
     }
+
   if (mips_opts.micromips)
     {
-      jalr = (ISA_IS_R6 (mips_opts.isa) ? "jalrc" : ((mips_opts.noreorder && !cprestore) || mips_opts.insn32
-	      ? "jalr" : "jalrs"));
+      jalr = ((!ISA_IS_R6 (mips_opts.isa)
+	       && !mips_opts.insn32
+	       && (!mips_opts.noreorder || cprestore))
+	      ? "jalrs" : ((IS_MICROMIPS_R6 (mips_opts.isa)
+			    && !mips_opts.noreorder) ? "jalrc": "jalr"));
+
       if (MIPS_JALR_HINT_P (ep)
 	  || mips_opts.insn32
 	  || (history[0].insn_mo->pinfo2 & INSN2_BRANCH_DELAY_32BIT))
@@ -9890,8 +9896,7 @@ macro_build_branch_rsrt (int type, expressionS *ep,
 	if (sreg == 0)
 	  as_bad (_("the source register must not be $0"));
 	if (treg == 0)
-	  macro_build (ep, br, "-t,z,+\"", sreg, treg,
-		       BFD_RELOC_MICROMIPS_21_PCREL_S1);
+	  macro_build (ep, br, "-t,z,+\"", sreg, treg);
 	else if (treg > sreg)
 	  macro_build (ep, br, "-s,-u,p", sreg, treg);
 	else
@@ -11319,7 +11324,8 @@ macro (struct mips_cl_insn *ip, char *str)
 		&& !ISA_IS_R6 (mips_opts.isa)
 		&& !mips_opts.insn32
 		&& (!mips_opts.noreorder || cprestore))
-	       ? "jalrs" : (IS_MICROMIPS_R6 (mips_opts.isa) ? "jalrc": "jalr"));
+	       ? "jalrs" : ((IS_MICROMIPS_R6 (mips_opts.isa)
+			     && !mips_opts.noreorder) ? "jalrc": "jalr"));
 	  if (mips_opts.micromips
 	      && !mips_opts.insn32
 	      && op[0] == RA
@@ -11334,6 +11340,9 @@ macro (struct mips_cl_insn *ip, char *str)
 	    macro_build (NULL, s, JALR_FMT, op[0], op[1]);
 	  if (mips_pic == SVR4_PIC && !HAVE_NEWABI)
 	    {
+	      /* TODO: There is a bug here in .set noreorder code where
+		       an explicitly filled delay slot of a JAL macro
+		       is moved out of the delay slot by the NOP below */
 	      if (mips_cprestore_offset < 0)
 		as_warn (_("no .cprestore pseudo-op used in PIC code"));
 	      else
@@ -11350,7 +11359,7 @@ macro (struct mips_cl_insn *ip, char *str)
 		      /* Quiet this warning.  */
 		      mips_cprestore_valid = 1;
 		    }
-		  if (mips_opts.noreorder && !IS_MICROMIPS_R6 (mips_opts.isa))
+		  if (mips_opts.noreorder)
 		    macro_build (NULL, "nop", "");
 		  expr1.X_add_number = mips_cprestore_offset;
   		  macro_build_ldst_constoffset (&expr1, ADDRESS_LOAD_INSN,
@@ -11375,7 +11384,7 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_JAL_A:
       if (mips_pic == NO_PIC)
 	macro_build (&offset_expr, jals ? "jals" : "jal",
-		     (mips_opts.micromips && ISA_IS_R6 (mips_opts.isa)) ? "+'" : "a");
+		     (IS_MICROMIPS_R6 (mips_opts.isa)) ? "+'" : "a");
       else if (mips_pic == SVR4_PIC)
 	{
 	  /* If this is a reference to an external symbol, and we are
@@ -11495,7 +11504,7 @@ macro (struct mips_cl_insn *ip, char *str)
 		      /* Quiet this warning.  */
 		      mips_cprestore_valid = 1;
 		    }
-		  if (mips_opts.noreorder && !(mips_opts.micromips && ISA_IS_R6 (mips_opts.isa)))
+		  if (mips_opts.noreorder)
 		    macro_build (NULL, "nop", "");
 		  expr1.X_add_number = mips_cprestore_offset;
   		  macro_build_ldst_constoffset (&expr1, ADDRESS_LOAD_INSN,
@@ -17170,6 +17179,7 @@ relaxed_branch_length (fragS *fragp, asection *sec, int update)
 
       val -= addr;
 
+      /* TODO: MIPSR6 branches are wider for beqzc,bnezc,bc */
       toofar = val < - (0x8000 << 2) || val >= (0x8000 << 2);
     }
   else if (fragp)
@@ -17240,6 +17250,7 @@ relaxed_micromips_32bit_branch_length (fragS *fragp, asection *sec, int update)
 
       val -= addr;
 
+      /* TODO: MIPSR6 branches are wider for beqzc,bnezc,bc */
       toofar = val < - (0x8000 << 1) || val >= (0x8000 << 1);
     }
   else if (fragp)
@@ -17901,10 +17912,14 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	  {
 	    insn = read_compressed_insn (buf, 2);
 
-	    /* This code currently only deals with the case of
-	       converting a 16 bit branch to a 32 bit branch.
-	       So we only need to worry about relocs for bc32
-	       bnezc32 and beqzc32.  */
+	    /* TODO: For microMIPSR6 relax32 is not currently supported
+	             therefore no 32-bit branches will be annotated
+		     with the relax macros.  This code also deals with
+		     16-bit branches that are out of range and
+		     determines the relocs needed for the corresponding
+		     32-bit branches.  */
+	    gas_assert (type != 0);
+
 	    if ((insn & 0xdc00) == 0x8c00)      /* beqzc16/bnezc16 */
 	      r_type = BFD_RELOC_MICROMIPS_21_PCREL_S1;
 	    else /* bc16 */
@@ -17937,19 +17952,16 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	      regno = micromips_to_32_reg_d_map [regno];
 
 	      if (ISA_IS_R6 (mips_opts.isa))
-	        {
-		  if ((insn & 0xfc00) == 0x8c00) /* beqzc32 */
-		    insn = 0xa0000000 | (regno << 21);
-		  else if ((insn & 0xfc00) == 0xac00) /* bnezc32 */
-		    insn = 0x80000000 | (regno << 21);
-		  else
-		    abort ();
-	        }
+		{
+		  /* The bit for EQ/NE is inverted in the new beqzc32/bnezc32 insns */
+		  insn = (((insn & 0x2000) ^ 0x2000) << 16) | 0x80000000;
+		  insn |= regno << MICROMIPSOP_SH_RT;
+		}
 	      else
-	        {
-	          insn = ((insn & 0x2000) << 16) | 0x94000000;	/* beq/bne  */
-	          insn |= regno << MICROMIPSOP_SH_RS;
-	        }
+		{
+		  insn = ((insn & 0x2000) << 16) | 0x94000000;	/* beq/bne  */
+		  insn |= regno << MICROMIPSOP_SH_RS;
+		}
 	    }
 	  else
 	    abort ();
@@ -17977,8 +17989,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
       /* Set the short-delay-slot bit.  */
       short_ds = al && (insn & 0x02000000) != 0;
 
-      if (!ISA_IS_R6 (mips_opts.isa)
-	  && !RELAX_MICROMIPS_UNCOND (fragp->fr_subtype))
+      if (!RELAX_MICROMIPS_UNCOND (fragp->fr_subtype))
 	{
 	  symbolS *l;
 

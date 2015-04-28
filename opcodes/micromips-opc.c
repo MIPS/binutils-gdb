@@ -100,10 +100,10 @@ decode_micromips_operand (const char *p)
     case '-':
       switch (p[1])
 	{
-        case 'A': PCREL (19, 0, TRUE, 2, 2, FALSE, FALSE);
-        case 'B': PCREL (18, 0, TRUE, 3, 3, FALSE, FALSE);
+	case 'A': PCREL (19, 0, TRUE, 2, 2, FALSE, FALSE);
+	case 'B': PCREL (18, 0, TRUE, 3, 3, FALSE, FALSE);
 
-        case 'a': INT_ADJ (19, 0, 262143, 2, FALSE);
+	case 'a': INT_ADJ (19, 0, 262143, 2, FALSE);
 	case 'b': INT_ADJ (18, 0, 131071, 3, FALSE);
 	case 'd': MAPPED_REG (3, 1, GP, reg_m16_map);
 	case 'e': OPTIONAL_MAPPED_REG (3, 7, GP, reg_m16_map);
@@ -115,7 +115,7 @@ decode_micromips_operand (const char *p)
 	case 'w': PREV_CHECK (5, 21, FALSE, TRUE, TRUE, TRUE);
 	case 'x': PREV_CHECK (5, 16, TRUE, FALSE, FALSE, TRUE);
 	case 'y': PREV_CHECK (5, 16, FALSE, TRUE, FALSE, FALSE);
-        }
+	}
       break;
 
     case '+':
