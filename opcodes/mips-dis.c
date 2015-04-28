@@ -576,7 +576,7 @@ const struct mips_arch_choice mips_arch_choices[] =
 
   { "mips32r6",	1, bfd_mach_mipsisa32r6, CPU_MIPS32R6,
     ISA_MIPS32R6,
-    (ASE_EVA | ASE_MSA | ASE_VIRT | ASE_XPA | ASE_MCU | ASE_MT),
+    (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_VIRT | ASE_XPA | ASE_MCU | ASE_MT),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -614,8 +614,8 @@ const struct mips_arch_choice mips_arch_choices[] =
 
   { "mips64r6",	1, bfd_mach_mipsisa64r6, CPU_MIPS64R6,
     ISA_MIPS64R6,
-    (ASE_EVA | ASE_MSA | ASE_MSA64 | ASE_XPA | ASE_VIRT | ASE_VIRT64
-     | ASE_MCU | ASE_MT),
+    (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_MSA64 | ASE_XPA | ASE_VIRT
+     | ASE_VIRT64 | ASE_MCU | ASE_MT),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
