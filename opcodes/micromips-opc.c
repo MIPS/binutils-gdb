@@ -449,8 +449,6 @@ const struct mips_opcode micromips_opcodes[] =
 {"beqzalc",		"-t,p",		0x74000000, 0xfc1f0000,	RD_1|WR_31,		CBR,		I37,		0,	0 },
 {"beqc",		"md,mz,mE",	    0x8c00,     0xfc00,	RD_1,			CBR,		I37,		0,	0 }, /* beqzc16 */
 {"beqc",		"mz,md,mE",	    0x8c00,     0xfc00,	RD_2,			CBR,		I37,		0,	0 }, /* beqzc16 */
-{"beqc",		"z,-t,+\"",	0xa0000000, 0xfc000000,	RD_1,			INSN2_ALIAS|CBR, I37,		0,	0 }, /* beqzc */
-{"beqc",		"-t,z,+\"",	0xa0000000, 0xfc000000,	RD_2,			INSN2_ALIAS|CBR, I37,		0,	0 }, /* beqzc */
 {"beqc",		"-s,-u,p",	0x74000000, 0xfc000000,	RD_1|RD_2,		CBR,		I37,		0,	0 },
 {"beqc",		"t,-y,p",	0x74000000, 0xfc000000,	RD_1|RD_2,		INSN2_ALIAS|CBR, I37,		0,	0 },
 {"beql",		"s,t,p",	0,    (int) M_BEQL,	INSN_MACRO,		0,		I1,		0,	I37 },
@@ -530,8 +528,6 @@ const struct mips_opcode micromips_opcodes[] =
 {"bnezalc",		"-t,p",		0x7c000000, 0xfc1f0000,	RD_1|WR_31,		CBR,		I37,		0,	0 },
 {"bnec",		"md,mz,mE",	    0xac00,     0xfc00,	RD_1,			CBR,		I37,		0,	0 }, /* bnezc16 */
 {"bnec",		"mz,md,mE",	    0xac00,     0xfc00,	RD_2,			CBR,		I37,		0,	0 }, /* bnezc16 */
-{"bnec",		"-t,z,+\"",	0x80000000, 0xfc000000,	RD_1,			INSN2_ALIAS|CBR, I37,		0,	0 }, /* bnezc */
-{"bnec",		"z,-t,+\"",	0x80000000, 0xfc000000,	RD_2,			INSN2_ALIAS|CBR, I37,		0,	0 }, /* bnezc */
 {"bnec",		"-s,-u,p",	0x7c000000, 0xfc000000,	RD_1|RD_2,		CBR,		I37,		0,	0 },
 {"bnec",		"t,-y,p",	0x7c000000, 0xfc000000,	RD_1|RD_2,		INSN2_ALIAS|CBR, I37,		0,	0 },
 {"bnel",		"s,t,p",	0,    (int) M_BNEL,	INSN_MACRO,		0,		I1,		0,	I37 },
