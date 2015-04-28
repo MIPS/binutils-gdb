@@ -390,10 +390,6 @@ Disassembly of section .text:
 [0-9a-f]+ <[^>]*> 005f 1f3c 	jalrc.hb	v0,ra
 [0-9a-f]+ <[^>]*> 0002 1f3c 	jrc.hb	v0
 [0-9a-f]+ <[^>]*> 000a 1f3c 	jrc.hb	t2
-[0-9a-f]+ <[^>]*> a05f fffe 	beqzc	v0,[0-9a-f]+ <[^>]*>
-[	]*[0-9a-f]+: R_MICROMIPS_PC21_S1	.L11
-[0-9a-f]+ <[^>]*> 805f fffe 	bnezc	v0,[0-9a-f]+ <[^>]*>
-[	]*[0-9a-f]+: R_MICROMIPS_PC21_S1	.L11
 [0-9a-f]+ <[^>]*> 0c00      	nop
 [0-9a-f]+ <[^>]*> 0c00      	nop
 	\.\.\.

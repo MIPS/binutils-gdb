@@ -1081,5 +1081,5 @@ Disassembly of section \.text:
 [ 0-9a-f]+:	3023 0000 	addiu	at,v1,0
 [ 	]*[0-9a-f]+: R_MICROMIPS_LO16	test
 [ 0-9a-f]+:	2201 a000 	sdc2	\$16,0\(at\)
-[ 0-9a-f]+:	0000 0000 	nop
+	\.\.\.
 #pass

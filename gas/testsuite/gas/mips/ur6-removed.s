@@ -187,4 +187,5 @@ foo:
 	tnei	$11,1024
 	sdxc1	$f0, $0($0)
 1:
-        nop
+        .align	2
+	.space	8

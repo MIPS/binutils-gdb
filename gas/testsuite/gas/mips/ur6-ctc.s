@@ -173,3 +173,5 @@ noreorder:
 
 1:
 	nop
+	.align	2	
+	.space	8

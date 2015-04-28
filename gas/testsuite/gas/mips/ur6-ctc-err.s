@@ -156,3 +156,6 @@ text_label:
 
 5:
 	nop
+
+	.align	  2
+	.space	  8

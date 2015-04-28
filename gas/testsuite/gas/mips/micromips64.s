@@ -860,3 +860,5 @@ test_mips64:
 	.end	test_mips64
 
 
+	.align	2
+	.space	8

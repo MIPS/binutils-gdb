@@ -273,9 +273,6 @@ foo:
         jalrc.hb $0, $v0
         jrc.hb   $10
 
-        beqc32 $2, $0, 1f # => beqzc $2, 1f
-        bnec32 $2, $0, 1f # => bnezc $2, 1f
-
 1:
         nop
 	.align	2
