@@ -2112,10 +2112,10 @@ mips_set_ase (const struct mips_ase *ase, struct mips_set_options *opts,
       mask |= ASE_VIRT_XPA;
     }
 
-  /* The eXtended Physical Address (XPA) Extension has instructions which
-     are only valid when the R6 ISA is enabled.  This sets the
-     ASE_EVA_R6 flag when both EVA and R6 ISA are present.  */
-  if (((opts->ase & ASE_XPA) != 0) && ISA_IS_R6 (opts->isa))
+  /* The EVA Extension has instructions which are only valid when the R6 ISA
+     is enabled.  This sets the ASE_EVA_R6 flag when both EVA and R6 ISA are
+     present.  */
+  if (((opts->ase & ASE_EVA) != 0) && ISA_IS_R6 (opts->isa))
     {
       opts->ase |= ASE_EVA_R6;
       mask |= ASE_EVA_R6;
