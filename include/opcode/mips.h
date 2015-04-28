@@ -1277,7 +1277,10 @@ static const unsigned int mips_isa_table[] = {
 #define ASE_XPA			0x00002000
 /* MXU Extension.  */
 #define ASE_MXU			0x00004000
-#define ASE_DSPR3		0x00004000
+#define ASE_DSPR3		0x00008000
+/* The eXtended Physical Address (XPA) Extension has instructions which are
+   only valid for the r6 ISA.  */
+#define ASE_EVA_R6		0x00010000
 
 /* MIPS ISA defines, use instead of hardcoding ISA level.  */
 
@@ -1643,6 +1646,9 @@ enum
   M_SC_AB,
   M_SCD_AB,
   M_SCE_AB,
+  M_SCX_AB,
+  M_SCDX_AB,
+  M_SCXE_AB,
   M_SD_AB,
   M_SDC1_AB,
   M_SDC2_AB,

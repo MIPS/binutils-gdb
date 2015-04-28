@@ -2087,8 +2087,20 @@ mips_set_ase (const struct mips_ase *ase, struct mips_set_options *opts,
 
   mask = mips_ase_mask (ase->flags);
   opts->ase &= ~mask;
+  opts->ase &= ~ASE_EVA_R6;
+
   if (enabled_p)
     opts->ase |= ase->flags;
+
+  /* The EVA extension has instructions which are only valid when the R6 ISA
+     is enabled.  This sets the ASE_EVA_R6 flag when both EVA and R6 ISA are
+     present.  */
+  if (((opts->ase & ASE_EVA) != 0) && ISA_IS_R6 (opts->isa))
+    {
+      opts->ase |= ASE_EVA_R6;
+      mask |= ASE_EVA_R6;
+    }
+
   return mask;
 }
 
@@ -11380,6 +11392,11 @@ macro (struct mips_cl_insn *ip, char *str)
       fmt = "t,+j(b)";
       offbits = 9;
       goto ld_st;
+    case M_SCXE_AB:
+      s = "scxe";
+      fmt = "t,+j(b)";
+      offbits = 9;
+      goto ld_st;
     case M_SCE_AB:
       s = "sce";
       fmt = "t,+j(b)";
@@ -11623,12 +11640,22 @@ macro (struct mips_cl_insn *ip, char *str)
 		 : ISA_IS_R6 (mips_opts.isa) ? 9
 		 : 16);
       goto ld_st;
+    case M_SCX_AB:
+      s = "scx";
+      fmt = LL_SC_FMT;
+      offbits = (mips_opts.micromips ? 12 : 9);
+      goto ld_st;
     case M_SCD_AB:
       s = "scd";
       fmt = LL_SC_FMT;
       offbits = (mips_opts.micromips ? 12
 		 : ISA_IS_R6 (mips_opts.isa) ? 9
 		 : 16);
+      goto ld_st;
+    case M_SCDX_AB:
+      s = "scdx";
+      fmt = LL_SC_FMT;
+      offbits = (mips_opts.micromips ? 12 : 9);
       goto ld_st;
     case M_CACHE_AB:
       s = "cache";
