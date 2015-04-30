@@ -5,5 +5,5 @@
 .*: +file format .*mips.*
 
 Disassembly of section \.text:
-[0-9a-f]+ <[^>]*> 0001f37c 	eretnc
+[0-9a-f]+ <[^>]*> 0001 f37c 	eretnc
 	...
