@@ -5712,9 +5712,12 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
   *cross_mode_jump_p = (!info->relocatable
 			&& !(h && h->root.root.type == bfd_link_hash_undefweak)
 			&& ((r_type == R_MIPS16_26 && !target_is_16_bit_code_p)
-			    || (micromips_branch_reloc_p (r_type)
+			    || ((r_type == R_MICROMIPS_26_S1
+				 || r_type == R_MICROMIPS_PC26_S1)
 				&& !target_is_micromips_code_p)
-			    || (mips_branch_reloc_p (r_type)
+			    || ((r_type == R_MIPS_26
+				 || r_type == R_MIPS_JALR
+				 || r_type == R_MIPS_PC26_S2)
 				&& (target_is_16_bit_code_p
 				    || target_is_micromips_code_p))));
 
@@ -6205,9 +6208,6 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 8);
 
-      if (((symbol + addend) & 3) && *cross_mode_jump_p)
-	return bfd_reloc_outofrange;
-
       value = symbol + addend - p;
       if (was_local_p || h->root.root.type != bfd_link_hash_undefweak)
 	overflowed_p = mips_elf_overflow_p (value, 8);
@@ -6218,9 +6218,6 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
     case R_MICROMIPS_PC10_S1:
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 11);
-
-      if (((symbol + addend) & 3) && *cross_mode_jump_p)
-	return bfd_reloc_outofrange;
 
       value = symbol + addend - p;
       if (was_local_p || h->root.root.type != bfd_link_hash_undefweak)
@@ -6233,9 +6230,6 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 17);
 
-      if (((symbol + addend) & 3) && *cross_mode_jump_p)
-	return bfd_reloc_outofrange;
-
       value = symbol + addend - p;
       if (was_local_p || h->root.root.type != bfd_link_hash_undefweak)
 	overflowed_p = mips_elf_overflow_p (value, 17);
@@ -6247,9 +6241,6 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 22);
 
-      if (((symbol + addend) & 3) && *cross_mode_jump_p)
-	return bfd_reloc_outofrange;
-
       value = symbol + addend - p;
       if (was_local_p || h->root.root.type != bfd_link_hash_undefweak)
 	overflowed_p = mips_elf_overflow_p (value, 22);
@@ -6260,9 +6251,6 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
     case R_MICROMIPS_PC26_S1:
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 27);
-
-      if (((symbol + addend) & 3) && *cross_mode_jump_p)
-	return bfd_reloc_outofrange;
 
       value = symbol + addend - p;
       if (was_local_p || h->root.root.type != bfd_link_hash_undefweak)
