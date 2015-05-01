@@ -6117,7 +6117,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 18);
 
-      if (((symbol + addend) & 3) != (unsigned)*cross_mode_jump_p)
+      if (((symbol + addend) & 3) && !*cross_mode_jump_p)
 	return bfd_reloc_outofrange;
 
       value = symbol + addend - p;
@@ -6131,7 +6131,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 23);
 
-      if (((symbol + addend) & 3) != (unsigned)*cross_mode_jump_p)
+      if (((symbol + addend) & 3) && !*cross_mode_jump_p)
 	return bfd_reloc_outofrange;
 
       value = symbol + addend - p;
@@ -6145,7 +6145,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 28);
 
-      if (((symbol + addend) & 3) != (unsigned)*cross_mode_jump_p)
+      if (((symbol + addend) & 3) && !*cross_mode_jump_p)
 	return bfd_reloc_outofrange;
 
       value = symbol + addend - p;
@@ -6205,7 +6205,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 8);
 
-      if (((symbol + addend) & 1) != (unsigned)!*cross_mode_jump_p)
+      if (((symbol + addend) & 3) && *cross_mode_jump_p)
 	return bfd_reloc_outofrange;
 
       value = symbol + addend - p;
@@ -6219,7 +6219,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 11);
 
-      if (((symbol + addend) & 1) != (unsigned)!*cross_mode_jump_p)
+      if (((symbol + addend) & 3) && *cross_mode_jump_p)
 	return bfd_reloc_outofrange;
 
       value = symbol + addend - p;
@@ -6233,7 +6233,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 17);
 
-      if (((symbol + addend) & 1) != (unsigned)!*cross_mode_jump_p)
+      if (((symbol + addend) & 3) && *cross_mode_jump_p)
 	return bfd_reloc_outofrange;
 
       value = symbol + addend - p;
@@ -6247,7 +6247,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 22);
 
-      if (((symbol + addend) & 1) != (unsigned)!*cross_mode_jump_p)
+      if (((symbol + addend) & 3) && *cross_mode_jump_p)
 	return bfd_reloc_outofrange;
 
       value = symbol + addend - p;
@@ -6261,7 +6261,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 27);
 
-      if (((symbol + addend) & 1) != (unsigned)!*cross_mode_jump_p)
+      if (((symbol + addend) & 3) && *cross_mode_jump_p)
 	return bfd_reloc_outofrange;
 
       value = symbol + addend - p;
@@ -10470,21 +10470,15 @@ _bfd_mips_elf_relocate_section (bfd *output_bfd, struct bfd_link_info *info,
 		(info, msg, name, input_bfd, input_section, rel->r_offset);
 	      return FALSE;
 	    }
-	  if (mips_branch_reloc_p (howto->type))
+	  else if (mips_branch_reloc_p (howto->type)
+		   || micromips_branch_reloc_p (howto->type))
 	    {
 	      msg = _("branch to a non-word-aligned address");
 	      info->callbacks->warning
 		(info, msg, name, input_bfd, input_section, rel->r_offset);
 	      return FALSE;
 	    }
-	  if (micromips_branch_reloc_p (howto->type))
-	    {
-	      msg = _("branch to a non-half-word-aligned address");
-	      info->callbacks->warning
-		(info, msg, name, input_bfd, input_section, rel->r_offset);
-	      return FALSE;
-	    }
-	  if (aligned_pcrel_reloc_p (howto->type))
+	  else if (aligned_pcrel_reloc_p (howto->type))
 	    {
 	      msg = _("PC-relative load from unaligned address");
 	      info->callbacks->warning
