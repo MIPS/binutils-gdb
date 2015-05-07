@@ -1102,6 +1102,8 @@ struct mips_opcode
 #define INSN2_VU0_CHANNEL_SUFFIX    0x00004000
 /* Instruction has a forbidden slot.  */
 #define INSN2_FORBIDDEN_SLOT        0x00008000
+/* Instruction prevents the following instruction from being in a DS */
+#define INSN2_NEXT_NO_DS	    0x00010000
 
 /* Masks used to mark instructions to indicate which MIPS ISA level
    they were introduced in.  INSN_ISA_MASK masks an enumeration that

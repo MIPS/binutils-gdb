@@ -6661,6 +6661,13 @@ can_swap_branch_p (struct mips_cl_insn *ip, expressionS *address_expr,
   if (prev_pinfo & INSN_NO_DELAY_SLOT)
     return FALSE;
 
+  /* We do not swap with instructions that must be kept together
+     with their preceeding instruction.  This cannot be described
+     with NO_DELAY_SLOT as the instructions can exist in delay
+     slots if not preceeded by such instructions.  */
+  if (history[1].insn_mo->pinfo2 & INSN2_NEXT_NO_DS)
+    return FALSE;
+
   /* Check for conflicts between the branch and the instructions
      before the candidate delay slot.  */
   if (nops_for_insn (0, history + 1, ip) > 0)
