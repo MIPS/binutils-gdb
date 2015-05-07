@@ -15178,7 +15178,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 {
   char *buf;
   unsigned long insn;
-  reloc_howto_type *howto;
+  reloc_howto_type *howto = NULL;
 
   if (fixP->fx_pcrel)
     switch (fixP->fx_r_type)
@@ -15430,6 +15430,12 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
     case BFD_RELOC_MICROMIPS_HI16_S_PCREL:
     case BFD_RELOC_MICROMIPS_LO16_PCREL:
       gas_assert (!fixP->fx_done);
+
+      if (howto->partial_inplace
+	  && fixP->fx_offset + 0x8000 > 0xffff)
+	as_bad_where (fixP->fx_file, fixP->fx_line,
+		      _("addend out of range (0x%lx)"),
+		      (long) fixP->fx_offset);
       break;
 
     case BFD_RELOC_16_PCREL_S2:
