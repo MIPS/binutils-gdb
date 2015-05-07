@@ -4214,6 +4214,28 @@ gprel16_reloc_p (bfd_reloc_code_real_type reloc)
 	  || reloc == BFD_RELOC_MICROMIPS_GPREL16);
 }
 
+static inline bfd_boolean
+pcrel_reloc_p (bfd_reloc_code_real_type reloc)
+{
+  return (reloc == BFD_RELOC_16_PCREL_S2
+	  || reloc == BFD_RELOC_MICROMIPS_7_PCREL_S1
+	  || reloc == BFD_RELOC_MICROMIPS_10_PCREL_S1
+	  || reloc == BFD_RELOC_MICROMIPS_16_PCREL_S1
+	  || reloc == BFD_RELOC_MICROMIPS_21_PCREL_S1
+	  || reloc == BFD_RELOC_MICROMIPS_26_PCREL_S1
+	  || reloc == BFD_RELOC_MICROMIPS_18_PCREL_S3
+	  || reloc == BFD_RELOC_MICROMIPS_19_PCREL_S2
+	  || reloc == BFD_RELOC_MIPS_18_PCREL_S3
+	  || reloc == BFD_RELOC_MIPS_19_PCREL_S2
+	  || reloc == BFD_RELOC_MIPS_21_PCREL_S2
+	  || reloc == BFD_RELOC_MIPS_26_PCREL_S2
+	  || reloc == BFD_RELOC_32_PCREL
+	  || reloc == BFD_RELOC_MICROMIPS_HI16_S_PCREL
+	  || reloc == BFD_RELOC_MICROMIPS_LO16_PCREL
+	  || reloc == BFD_RELOC_HI16_S_PCREL
+	  || reloc == BFD_RELOC_LO16_PCREL);
+}
+
 /* Return true if RELOC is a PC-relative relocation that does not have
    full address range.  */
 
@@ -4234,11 +4256,11 @@ limited_pcrel_reloc_p (bfd_reloc_code_real_type reloc)
     case BFD_RELOC_MIPS_19_PCREL_S2:
     case BFD_RELOC_MIPS_21_PCREL_S2:
     case BFD_RELOC_MIPS_26_PCREL_S2:
-    case BFD_RELOC_MICROMIPS_HI16_S_PCREL:
-    case BFD_RELOC_MICROMIPS_LO16_PCREL:
       return TRUE;
 
     case BFD_RELOC_32_PCREL:
+    case BFD_RELOC_MICROMIPS_HI16_S_PCREL:
+    case BFD_RELOC_MICROMIPS_LO16_PCREL:
     case BFD_RELOC_HI16_S_PCREL:
     case BFD_RELOC_LO16_PCREL:
       return HAVE_64BIT_ADDRESSES;
@@ -17459,26 +17481,29 @@ mips_fix_adjustable (fixS *fixp)
      this, it seems better not to force the issue, and instead keep the
      original symbol.  This will work with either linker behavior.
 
-     Additionally microMIPS HI16/LO16 relocation pairs may be subject to
-     linker relaxation to the PC-relative PC23_S2 relocation that may
-     overflow in the process.  */
+     Additionally microMIPS or MIPS R6 HI16/LO16 relocation pairs may be
+     subject to linker relaxation to the PC-relative PC23_S2 relocation
+     that may overflow in the process.  */
   if ((lo16_reloc_p (fixp->fx_r_type)
        || reloc_needs_lo_p (fixp->fx_r_type))
       && HAVE_IN_PLACE_ADDENDS
-      && (micromips_reloc_p (fixp->fx_r_type)
+      && (micromips_reloc_p (fixp->fx_r_type) || ISA_IS_R6 (mips_opts.isa)
 	  || S_GET_SEGMENT (fixp->fx_addsy)->flags & SEC_MERGE) != 0)
     return 0;
 
   /* There is no place to store an in-place offset for JALR relocations.
      Likewise an in-range offset of limited PC-relative relocations may
      overflow the in-place relocatable field if recalculated against the
-     start address of the symbol's containing section.
+     start address of the symbol's containing section.  */
 
-     Also, PC relative relocations for MIPS R6 need to be symbol rather than
-     section relative to allow linker relaxations to be performed later on.  */
-  if ((HAVE_IN_PLACE_ADDENDS || ISA_IS_R6 (mips_opts.isa))
+  if (HAVE_IN_PLACE_ADDENDS
       && (limited_pcrel_reloc_p (fixp->fx_r_type)
 	  || jalr_reloc_p (fixp->fx_r_type)))
+    return 0;
+
+  /* PC relative relocations for MIPS R6 need to be symbol rather than
+     section relative to allow linker relaxations to be performed later on.  */
+  if (ISA_IS_R6 (mips_opts.isa) && pcrel_reloc_p (fixp->fx_r_type))
     return 0;
 
   /* R_MIPS16_26 relocations against non-MIPS16 functions might resolve
