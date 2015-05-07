@@ -259,6 +259,7 @@ decode_micromips_operand (const char *p)
 #define RD_31	INSN2_READ_GPR_31
 #define RD_pc	INSN2_READ_PC
 #define CTC	INSN2_CONVERTED_TO_COMPACT
+#define NNODS	INSN2_NEXT_NO_DS
 
 /* For 32-bit microMIPS instructions.  */
 #define WR_31	INSN_WRITE_GPR_31
@@ -1125,12 +1126,12 @@ const struct mips_opcode micromips_opcodes[] =
 {"sb",			"mq,mL(ml)",        0x8800,     0xfc00,	RD_1|RD_3|SM,		0,		I1,		0,	0 },
 {"sb",			"t,o(b)",	0x18000000, 0xfc000000,	RD_1|RD_3|SM,		0,		I1,		0,	0 },
 {"sb",			"t,A(b)",	0,    (int) M_SB_AB,	INSN_MACRO,		0,		I1,		0,	0 },
-{"scx",			"t,~(b)",	0x60009000, 0xfc00f000,	MOD_1|RD_3|SM,		0,		I37,		0,	0 },
+{"scx",			"t,~(b)",	0x60009000, 0xfc00f000,	MOD_1|RD_3|SM|NODS,	NNODS,		I37,		0,	0 },
 {"scx",			"t,A(b)",	0,    (int) M_SCX_AB,	INSN_MACRO,		0,		I37,		0,	0 },
 {"sc",			"t,~(b)",	0x6000b000, 0xfc00f000,	MOD_1|RD_3|SM,		0,		I1,		0,	0 },
 {"sc",			"t,A(b)",	0,    (int) M_SC_AB,	INSN_MACRO,		0,		I1,		0,	0 },
-{"scdx",			"t,~(b)",	0x6000d000, 0xfc00f000,	MOD_1|RD_3|SM,		0,		I69,		0,	0 },
-{"scdx",			"t,A(b)",	0,    (int) M_SCDX_AB,	INSN_MACRO,		0,		I69,		0,	0 },
+{"scdx",		"t,~(b)",	0x6000d000, 0xfc00f000,	MOD_1|RD_3|SM|NODS,	NNODS,		I69,		0,	0 },
+{"scdx",		"t,A(b)",	0,    (int) M_SCDX_AB,	INSN_MACRO,		0,		I69,		0,	0 },
 {"scd",			"t,~(b)",	0x6000f000, 0xfc00f000,	MOD_1|RD_3|SM,		0,		I3,		0,	0 },
 {"scd",			"t,A(b)",	0,    (int) M_SCD_AB,	INSN_MACRO,		0,		I3,		0,	0 },
 /* The macro has to be first to handle o32 correctly.  */
@@ -1436,8 +1437,8 @@ const struct mips_opcode micromips_opcodes[] =
 {"lwre",		"t,A(b)",	0,    (int) M_LWRE_AB,	INSN_MACRO,		0,		0,		EVA,	I37 },
 {"sbe",			"t,+j(b)",	0x6000a800, 0xfc00fe00, WR_1|RD_3|SM,		0,		0,		EVA,	0 },
 {"sbe",			"t,A(b)",	0,    (int) M_SBE_AB,	INSN_MACRO,		0,		0,		EVA,	0 },
-{"scxe",			"t,+j(b)",	0x6000a000, 0xfc00fe00, MOD_1|RD_3|SM,		0,		0,		EVA_R6,	0 },
-{"scxe",			"t,A(b)",	0,    (int) M_SCXE_AB,	INSN_MACRO,		0,		0,		EVA_R6,	0 },
+{"scxe",		"t,+j(b)",	0x6000a000, 0xfc00fe00, MOD_1|RD_3|SM|NODS,	NNODS,		0,		EVA_R6,	0 },
+{"scxe",		"t,A(b)",	0,    (int) M_SCXE_AB,	INSN_MACRO,		0,		0,		EVA_R6,	0 },
 {"sce",			"t,+j(b)",	0x6000ac00, 0xfc00fe00, MOD_1|RD_3|SM,		0,		0,		EVA,	0 },
 {"sce",			"t,A(b)",	0,    (int) M_SCE_AB,	INSN_MACRO,		0,		0,		EVA,	0 },
 {"she",			"t,+j(b)",	0x6000aa00, 0xfc00fe00, WR_1|RD_3|SM,		0,		0,		EVA,	0 },
