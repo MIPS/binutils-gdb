@@ -6802,6 +6802,13 @@ can_swap_branch_p (struct mips_cl_insn *ip, expressionS *address_expr,
   if (prev_pinfo & INSN_NO_DELAY_SLOT)
     return FALSE;
 
+  /* We do not swap with instructions that must be kept together
+     with their preceeding instruction.  This cannot be described
+     with NO_DELAY_SLOT as the instructions can exist in delay
+     slots if not preceeded by such instructions.  */
+  if (history[1].insn_mo->pinfo2 & INSN2_NEXT_NO_DS)
+    return FALSE;
+
   /* Check for conflicts between the branch and the instructions
      before the candidate delay slot.  */
   if (nops_for_insn (0, history + 1, ip) > 0)
@@ -11372,6 +11379,11 @@ macro (struct mips_cl_insn *ip, char *str)
       fmt = "t,+j(b)";
       offbits = 9;
       goto ld_st;
+    case M_LLXE_AB:
+      s = "llxe";
+      fmt = "t,+j(b)";
+      offbits = 9;
+      goto ld_st;
     case M_LWE_AB:
       s = "lwe";
       fmt = "t,+j(b)";
@@ -11535,12 +11547,22 @@ macro (struct mips_cl_insn *ip, char *str)
 		 : ISA_IS_R6 (mips_opts.isa) ? 9
 		 : 16);
       goto ld;
+    case M_LLX_AB:
+      s = "llx";
+      fmt = LL_SC_FMT;
+      offbits = 9;
+      goto ld;
     case M_LLD_AB:
       s = "lld";
       fmt = LL_SC_FMT;
       offbits = (mips_opts.micromips ? 12
 		 : ISA_IS_R6 (mips_opts.isa) ? 9
 		 : 16);
+      goto ld;
+    case M_LLDX_AB:
+      s = "lldx";
+      fmt = LL_SC_FMT;
+      offbits = 9;
       goto ld;
     case M_LWU_AB:
       s = "lwu";
