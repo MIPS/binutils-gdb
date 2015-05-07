@@ -2279,11 +2279,7 @@ print_insn_micromips (bfd_vma memaddr, struct disassemble_info *info)
       info->insn_type = dis_noninsn;
       return 6;
     }
-  else if ((insn & 0x1c00) == 0x0000 || (insn & 0x1000) == 0x1000
-      || (insn & (OP_MASK_OP << (OP_SH_OP - 16))) == 0x7c00
-      || (insn & (OP_MASK_OP << (OP_SH_OP - 16))) == 0xa400
-      || (insn & (OP_MASK_OP << (OP_SH_OP - 16))) == 0xe400
-      || (insn & (OP_MASK_OP << (OP_SH_OP - 16))) == 0xc400)
+  else if ((insn & 0x1c00) == 0x0000 || (insn & 0x1000) == 0x1000)
     {
       /* This is a 32-bit microMIPS instruction.  */
       higher = insn;
