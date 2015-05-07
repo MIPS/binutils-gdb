@@ -429,17 +429,17 @@ const struct mips_opcode micromips_opcodes[] =
 {"beqz",		"md,mE",	    0x8c00,     0xfc00,	RD_1|CBD,		0,		I1,		0,	I37 },
 {"beqz",		"md,mE",	    0x8c00,     0xfc00,	RD_1,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* beqzc */
 {"beqz",		"s,p",		0x94000000, 0xffe00000,	RD_1|CBD,		0,		I1,		0,	I37 },
-{"beqz",		"-t,+\"",	0xa0000000, 0xfc000000,	RD_1,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* beqzc */
+{"beqz",		"-t,+\"",	0x80000000, 0xfc000000,	RD_1,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* beqzc */
 {"beqzc",		"md,mE",	    0x8c00,     0xfc00,	RD_1,			CBR,		I37,		0,	0 },
-{"beqzc",		"-t,+\"",	0xa0000000, 0xfc000000,	RD_1,			CBR,		I37,		0,	0 },
+{"beqzc",		"-t,+\"",	0x80000000, 0xfc000000,	RD_1,			CBR,		I37,		0,	0 },
 {"beqzc",		"s,p",		0x40e00000, 0xffe00000,	RD_1|NODS,		CBR,		I1,		0,	I37 },
 {"beqzl",		"s,p",		0,    (int) M_BEQL,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"beq",			"md,mz,mE",	    0x8c00,     0xfc00,	RD_1|CBD,		0,		I1,		0,	I37 }, /* beqz */
 {"beq",			"mz,md,mE",	    0x8c00,     0xfc00,	RD_2|CBD,		0,		I1,		0,	I37 }, /* beqz */
 {"beq",			"md,mz,mE",	    0x8c00,     0xfc00,	RD_1,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* beqzc16 */
 {"beq",			"mz,md,mE",	    0x8c00,     0xfc00,	RD_2,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* beqzc16 */
-{"beq",			"-t,z,+\"",	0xa0000000, 0xfc000000,	RD_1,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* beqzc */
-{"beq",			"z,-t,+\"",	0xa0000000, 0xfc000000,	RD_2,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* beqzc */
+{"beq",			"-t,z,+\"",	0x80000000, 0xfc000000,	RD_1,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* beqzc */
+{"beq",			"z,-t,+\"",	0x80000000, 0xfc000000,	RD_2,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* beqzc */
 {"beq",			"-s,-u,p",	0x74000000, 0xfc000000,	RD_1|RD_2,		INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* beqc */
 {"beq",			"t,-y,p",	0x74000000, 0xfc000000,	RD_1|RD_2,		INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* beqc */
 {"beq",			"s,t,p",	0x94000000, 0xfc000000,	RD_1|RD_2|CBD,		0,		I1,		0,	I37 },
@@ -447,8 +447,6 @@ const struct mips_opcode micromips_opcodes[] =
 {"bovc",		"s,-w,p",	0x74000000, 0xfc000000,	RD_1|RD_2,		CBR,		I37,		0,	0 },
 {"bovc",		"t,-x,p",	0x74000000, 0xfc000000,	RD_1|RD_2,		INSN2_ALIAS|CBR, I37,		0,	0 },
 {"beqzalc",		"-t,p",		0x74000000, 0xfc1f0000,	RD_1|WR_31,		CBR,		I37,		0,	0 },
-{"beqc",		"md,mz,mE",	    0x8c00,     0xfc00,	RD_1,			CBR,		I37,		0,	0 }, /* beqzc16 */
-{"beqc",		"mz,md,mE",	    0x8c00,     0xfc00,	RD_2,			CBR,		I37,		0,	0 }, /* beqzc16 */
 {"beqc",		"-s,-u,p",	0x74000000, 0xfc000000,	RD_1|RD_2,		CBR,		I37,		0,	0 },
 {"beqc",		"t,-y,p",	0x74000000, 0xfc000000,	RD_1|RD_2,		INSN2_ALIAS|CBR, I37,		0,	0 },
 {"beql",		"s,t,p",	0,    (int) M_BEQL,	INSN_MACRO,		0,		I1,		0,	I37 },
@@ -508,9 +506,9 @@ const struct mips_opcode micromips_opcodes[] =
 {"bnez",		"md,mE",	    0xac00,     0xfc00,	RD_1|CBD,		0,		I1,		0,	I37 },
 {"bnez",		"md,mE",	    0xac00,     0xfc00,	RD_1,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* bnezc */
 {"bnez",		"s,p",		0xb4000000, 0xffe00000,	RD_1|CBD,		0,		I1,		0,	I37 },
-{"bnez",		"-t,+\"",	0x80000000, 0xfc000000,	RD_1,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* bnezc */
+{"bnez",		"-t,+\"",	0xa0000000, 0xfc000000,	RD_1,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* bnezc */
 {"bnezc",		"md,mE",	    0xac00,     0xfc00,	RD_1,			CBR,		I37,		0,	0 },
-{"bnezc",		"-t,+\"",	0x80000000, 0xfc000000,	RD_1,			CBR,		I37,		0,	0 },
+{"bnezc",		"-t,+\"",	0xa0000000, 0xfc000000,	RD_1,			CBR,		I37,		0,	0 },
 {"bnezc",		"s,p",		0x40a00000, 0xffe00000,	RD_1|NODS,		CBR,		I1,		0,	I37 },
 {"bnezl",		"s,p",		0,    (int) M_BNEL,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"bne",			"md,mz,mE",	    0xac00,     0xfc00,	RD_1|CBD,		0,		I1,		0,	I37 }, /* bnez */
@@ -519,15 +517,13 @@ const struct mips_opcode micromips_opcodes[] =
 {"bne",			"mz,md,mE",	    0xac00,     0xfc00,	RD_2,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* bnezc16 */
 {"bne",			"s,t,p",	0xb4000000, 0xfc000000,	RD_1|RD_2|CBD,		0,		I1,		0,	I37 },
 {"bne",			"s,I,p",	0,    (int) M_BNE_I,	INSN_MACRO,		0,		I1,		0,	0 },
-{"bne",			"-t,z,+\"",	0x80000000, 0xfc000000,	RD_1,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* bnezc */
-{"bne",			"z,-t,+\"",	0x80000000, 0xfc000000,	RD_2,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* bnezc */
+{"bne",			"-t,z,+\"",	0xa0000000, 0xfc000000,	RD_1,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* bnezc */
+{"bne",			"z,-t,+\"",	0xa0000000, 0xfc000000,	RD_2,			INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* bnezc */
 {"bne",			"-s,-u,p",	0x7c000000, 0xfc000000,	RD_1|RD_2,		INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* bnec */
 {"bne",			"t,-y,p",	0x7c000000, 0xfc000000,	RD_1|RD_2,		INSN2_ALIAS|CBR|CTC, I37,	0,	0 }, /* bnec */
 {"bnvc",		"s,-w,p",	0x7c000000, 0xfc000000,	RD_1|RD_2,		CBR,		I37,		0,	0 },
 {"bnvc",		"t,-x,p",	0x7c000000, 0xfc000000,	RD_1|RD_2,		INSN2_ALIAS|CBR, I37,		0,	0 },
 {"bnezalc",		"-t,p",		0x7c000000, 0xfc1f0000,	RD_1|WR_31,		CBR,		I37,		0,	0 },
-{"bnec",		"md,mz,mE",	    0xac00,     0xfc00,	RD_1,			CBR,		I37,		0,	0 }, /* bnezc16 */
-{"bnec",		"mz,md,mE",	    0xac00,     0xfc00,	RD_2,			CBR,		I37,		0,	0 }, /* bnezc16 */
 {"bnec",		"-s,-u,p",	0x7c000000, 0xfc000000,	RD_1|RD_2,		CBR,		I37,		0,	0 },
 {"bnec",		"t,-y,p",	0x7c000000, 0xfc000000,	RD_1|RD_2,		INSN2_ALIAS|CBR, I37,		0,	0 },
 {"bnel",		"s,t,p",	0,    (int) M_BNEL,	INSN_MACRO,		0,		I1,		0,	I37 },

@@ -18009,8 +18009,8 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 
 	      if (ISA_IS_R6 (mips_opts.isa))
 		{
-		  /* The bit for EQ/NE is inverted in the new beqzc32/bnezc32 insns */
-		  insn = (((insn & 0x2000) ^ 0x2000) << 16) | 0x80000000;
+		  /* beqzc/bnezc */
+		  insn = ((insn & 0x2000) << 16) | 0x80000000;
 		  insn |= regno << MICROMIPSOP_SH_RT;
 		}
 	      else

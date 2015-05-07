@@ -13340,8 +13340,8 @@ static const struct opcode_descriptor micromips_bc_PC26[] = {
 };
 
 static const struct opcode_descriptor micromips_bc_PC21[] = {
-  { 0xa0000000, 0xfc000000, 0x8c00 }, /* beqzc */
-  { 0x80000000, 0xfc000000, 0xac00 }, /* bnezc */
+  { 0x80000000, 0xfc000000, 0x8c00 }, /* beqzc */
+  { 0xa0000000, 0xfc000000, 0xac00 }, /* bnezc */
   { 0, 0, 0 }  /* End marker for find_match().  */
 };
 
@@ -13883,7 +13883,7 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
 	  && (opcidx = find_match (opcode, micromips_bc_PC21)) >= 0)
 	{
 	  unsigned int reg, new_opcode;
-	  bfd_vma addend = opcode & 0x03ffffff;
+	  bfd_vma addend = opcode & 0x001fffff;
 
 	  reg = OP32_TREG (opcode);
 	  addend = _bfd_mips_elf_sign_extend (addend << 1, 22);
