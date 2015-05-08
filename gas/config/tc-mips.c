@@ -8645,9 +8645,8 @@ static const char * const trap_fmt[2] = { "s,t,q", "s,t,|" };
 #define JALR_FMT (jalr_fmt[mips_opts.micromips])
 #define LUI_FMT (lui_fmt[ISA_IS_R6 (mips_opts.isa) ? 0 : mips_opts.micromips])
 #define MEM12_FMT (mem12_fmt[mips_opts.micromips])
-#define LL_SC_FMT ((ISA_IS_R6 (mips_opts.isa)				      \
-		    && !mips_opts.micromips) ? "t,+j(b)"		      \
-					     : mem12_fmt[mips_opts.micromips])
+#define LL_SC_FMT (ISA_IS_R6 (mips_opts.isa)				      \
+		   ? "t,+j(b)" : mem12_fmt[mips_opts.micromips])
 #define MFHL_FMT (mfhl_fmt[mips_opts.micromips][mips_opts.insn32])
 #define SHFT_FMT (shft_fmt[mips_opts.micromips])
 #define TRAP_FMT (trap_fmt[mips_opts.micromips])
@@ -11742,8 +11741,8 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_LL_AB:
       s = "ll";
       fmt = LL_SC_FMT;
-      offbits = (mips_opts.micromips ? 12
-		 : ISA_IS_R6 (mips_opts.isa) ? 9
+      offbits = (ISA_IS_R6 (mips_opts.isa) ? 9
+		 : mips_opts.micromips ? 12
 		 : 16);
       goto ld;
     case M_LLX_AB:
@@ -11754,8 +11753,8 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_LLD_AB:
       s = "lld";
       fmt = LL_SC_FMT;
-      offbits = (mips_opts.micromips ? 12
-		 : ISA_IS_R6 (mips_opts.isa) ? 9
+      offbits = (ISA_IS_R6 (mips_opts.isa) ? 9
+		 : mips_opts.micromips ? 12
 		 : 16);
       goto ld;
     case M_LLDX_AB:
@@ -11857,34 +11856,34 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_SC_AB:
       s = "sc";
       fmt = LL_SC_FMT;
-      offbits = (mips_opts.micromips ? 12
-		 : ISA_IS_R6 (mips_opts.isa) ? 9
+      offbits = (ISA_IS_R6 (mips_opts.isa) ? 9
+		 : mips_opts.micromips ? 12
 		 : 16);
       goto ld_st;
     case M_SCX_AB:
       s = "scx";
       fmt = LL_SC_FMT;
-      offbits = (mips_opts.micromips ? 12 : 9);
+      offbits = 9;
       goto ld_st;
     case M_SCD_AB:
       s = "scd";
       fmt = LL_SC_FMT;
-      offbits = (mips_opts.micromips ? 12
-		 : ISA_IS_R6 (mips_opts.isa) ? 9
+      offbits = (ISA_IS_R6 (mips_opts.isa) ? 9
+		 : mips_opts.micromips ? 12
 		 : 16);
       goto ld_st;
     case M_SCDX_AB:
       s = "scdx";
       fmt = LL_SC_FMT;
-      offbits = (mips_opts.micromips ? 12 : 9);
+      offbits = 9;
       goto ld_st;
     case M_CACHE_AB:
       s = "cache";
-      fmt = (mips_opts.micromips ? "k,~(b)"
-	     : ISA_IS_R6 (mips_opts.isa) ? "k,+j(b)"
+      fmt = (ISA_IS_R6 (mips_opts.isa) ? "k,+j(b)"
+	     : mips_opts.micromips ? "k,~(b)"
 	     : "k,o(b)");
-      offbits = (mips_opts.micromips ? 12
-		 : ISA_IS_R6 (mips_opts.isa) ? 9
+      offbits = (ISA_IS_R6 (mips_opts.isa) ? 9
+		 : mips_opts.micromips ? 12
 		 : 16);
       goto ld_st;
     case M_CACHEE_AB:
@@ -11894,11 +11893,11 @@ macro (struct mips_cl_insn *ip, char *str)
       goto ld_st;
     case M_PREF_AB:
       s = "pref";
-      fmt = (mips_opts.micromips ? "k,~(b)"
-	     : ISA_IS_R6 (mips_opts.isa) ? "k,+j(b)"
+      fmt = (ISA_IS_R6 (mips_opts.isa) ? "k,+j(b)"
+	     : mips_opts.micromips ? "k,~(b)"
 	     : "k,o(b)");
-      offbits = (mips_opts.micromips ? 12
-		 : ISA_IS_R6 (mips_opts.isa) ? 9
+      offbits = (ISA_IS_R6 (mips_opts.isa) ? 9
+		 : mips_opts.micromips ? 12
 		 : 16);
       goto ld_st;
     case M_PREFE_AB:
