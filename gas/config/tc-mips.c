@@ -8792,7 +8792,7 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	   * We don't allow branch relaxation for these branches, as
 	   * they should only appear in ".set nomacro" anyway.
 	   */
-	  if (ep->X_op == O_constant)
+	  if (ep->X_op == O_constant && !IS_MICROMIPS_R6 (mips_opts.isa))
 	    {
 	      /* For microMIPS or Release 6 we always use relocations for
 		 branches.  So we should not resolve immediate values.  */
