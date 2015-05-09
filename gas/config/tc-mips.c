@@ -11224,6 +11224,11 @@ macro (struct mips_cl_insn *ip, char *str)
       fmt = "t,+j(b)";
       offbits = 9;
       goto ld_st;
+    case M_LLXE_AB:
+      s = "llxe";
+      fmt = "t,+j(b)";
+      offbits = 9;
+      goto ld_st;
     case M_LWE_AB:
       s = "lwe";
       fmt = "t,+j(b)";
@@ -11382,12 +11387,22 @@ macro (struct mips_cl_insn *ip, char *str)
 		 : ISA_IS_R6 (mips_opts.isa) ? 9
 		 : 16);
       goto ld;
+    case M_LLX_AB:
+      s = "llx";
+      fmt = LL_SC_FMT;
+      offbits = 9;
+      goto ld;
     case M_LLD_AB:
       s = "lld";
       fmt = LL_SC_FMT;
       offbits = (mips_opts.micromips ? 12
 		 : ISA_IS_R6 (mips_opts.isa) ? 9
 		 : 16);
+      goto ld;
+    case M_LLDX_AB:
+      s = "lldx";
+      fmt = LL_SC_FMT;
+      offbits = 9;
       goto ld;
     case M_LWU_AB:
       s = "lwu";
