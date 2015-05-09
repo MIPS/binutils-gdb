@@ -16,9 +16,9 @@ Disassembly of section .text:
 [	]*[0-9a-f]+: R_MICROMIPS_PC26_S1	.L11
 [0-9a-f]+ <[^>]*> b7ff fffe 	balc	[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC26_S1	.L11
-[0-9a-f]+ <[^>]*> a05f fffe 	beqzc	v0,[0-9a-f]+ <[^>]*>
+[0-9a-f]+ <[^>]*> 805f fffe 	beqzc	v0,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC21_S1	.L11
-[0-9a-f]+ <[^>]*> a05f fffe 	beqzc	v0,[0-9a-f]+ <[^>]*>
+[0-9a-f]+ <[^>]*> 805f fffe 	beqzc	v0,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC21_S1	.L11
 [0-9a-f]+ <[^>]*> 8d7f      	beqzc	v0,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC7_S1	.L11
@@ -26,9 +26,9 @@ Disassembly of section .text:
 [	]*[0-9a-f]+: R_MICROMIPS_PC7_S1	ext
 [0-9a-f]+ <[^>]*> 8dff      	beqzc	v1,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC7_S1	ext
-[0-9a-f]+ <[^>]*> a07f fffe 	beqzc	v1,[0-9a-f]+ <[^>]*>
+[0-9a-f]+ <[^>]*> 807f fffe 	beqzc	v1,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC21_S1	ext
-[0-9a-f]+ <[^>]*> a07f fffe 	beqzc	v1,[0-9a-f]+ <[^>]*>
+[0-9a-f]+ <[^>]*> 807f fffe 	beqzc	v1,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC21_S1	ext
 [0-9a-f]+ <[^>]*> 7462 fffe 	beqc	v0,v1,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC16_S1	ext
@@ -36,11 +36,11 @@ Disassembly of section .text:
 [	]*[0-9a-f]+: R_MICROMIPS_PC16_S1	ext
 [0-9a-f]+ <[^>]*> 8dff      	beqzc	v1,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC7_S1	ext
-[0-9a-f]+ <[^>]*> a07f fffe 	beqzc	v1,[0-9a-f]+ <[^>]*>
+[0-9a-f]+ <[^>]*> 807f fffe 	beqzc	v1,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC21_S1	ext
-[0-9a-f]+ <[^>]*> 805f fffe 	bnezc	v0,[0-9a-f]+ <[^>]*>
+[0-9a-f]+ <[^>]*> a05f fffe 	bnezc	v0,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC21_S1	.L11
-[0-9a-f]+ <[^>]*> 805f fffe 	bnezc	v0,[0-9a-f]+ <[^>]*>
+[0-9a-f]+ <[^>]*> a05f fffe 	bnezc	v0,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC21_S1	.L11
 [0-9a-f]+ <[^>]*> ad7f      	bnezc	v0,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC7_S1	.L11
@@ -48,9 +48,9 @@ Disassembly of section .text:
 [	]*[0-9a-f]+: R_MICROMIPS_PC7_S1	ext
 [0-9a-f]+ <[^>]*> adff      	bnezc	v1,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC7_S1	ext
-[0-9a-f]+ <[^>]*> 807f fffe 	bnezc	v1,[0-9a-f]+ <[^>]*>
+[0-9a-f]+ <[^>]*> a07f fffe 	bnezc	v1,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC21_S1	ext
-[0-9a-f]+ <[^>]*> 807f fffe 	bnezc	v1,[0-9a-f]+ <[^>]*>
+[0-9a-f]+ <[^>]*> a07f fffe 	bnezc	v1,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC21_S1	ext
 [0-9a-f]+ <[^>]*> 7c62 fffe 	bnec	v0,v1,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC16_S1	ext
@@ -58,7 +58,7 @@ Disassembly of section .text:
 [	]*[0-9a-f]+: R_MICROMIPS_PC16_S1	ext
 [0-9a-f]+ <[^>]*> adff      	bnezc	v1,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC7_S1	ext
-[0-9a-f]+ <[^>]*> 807f fffe 	bnezc	v1,[0-9a-f]+ <[^>]*>
+[0-9a-f]+ <[^>]*> a07f fffe 	bnezc	v1,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC21_S1	ext
 [0-9a-f]+ <[^>]*> f442 fffe 	bgezc	v0,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC16_S1	ext
@@ -99,10 +99,10 @@ Disassembly of section .text:
 [0-9a-f]+ <[^>]*> 97ff fffe 	bc	[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC26_S1	.L11
 [0-9a-f]+ <[^>]*> 0c00      	nop
-[0-9a-f]+ <[^>]*> a05f fffe 	beqzc	v0,[0-9a-f]+ <[^>]*>
+[0-9a-f]+ <[^>]*> 805f fffe 	beqzc	v0,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC21_S1	.L11
 [0-9a-f]+ <[^>]*> 0c00      	nop
-[0-9a-f]+ <[^>]*> a05f fffe 	beqzc	v0,[0-9a-f]+ <[^>]*>
+[0-9a-f]+ <[^>]*> 805f fffe 	beqzc	v0,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC21_S1	.L11
 [0-9a-f]+ <[^>]*> 0c00      	nop
 [0-9a-f]+ <[^>]*> 8d7f      	beqzc	v0,[0-9a-f]+ <[^>]*>
@@ -114,10 +114,10 @@ Disassembly of section .text:
 [0-9a-f]+ <[^>]*> 8dff      	beqzc	v1,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC7_S1	ext
 [0-9a-f]+ <[^>]*> 0c00      	nop
-[0-9a-f]+ <[^>]*> a07f fffe 	beqzc	v1,[0-9a-f]+ <[^>]*>
+[0-9a-f]+ <[^>]*> 807f fffe 	beqzc	v1,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC21_S1	ext
 [0-9a-f]+ <[^>]*> 0c00      	nop
-[0-9a-f]+ <[^>]*> a07f fffe 	beqzc	v1,[0-9a-f]+ <[^>]*>
+[0-9a-f]+ <[^>]*> 807f fffe 	beqzc	v1,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC21_S1	ext
 [0-9a-f]+ <[^>]*> 0c00      	nop
 [0-9a-f]+ <[^>]*> 7462 fffe 	beqc	v0,v1,[0-9a-f]+ <[^>]*>
@@ -129,13 +129,13 @@ Disassembly of section .text:
 [0-9a-f]+ <[^>]*> 8dff      	beqzc	v1,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC7_S1	ext
 [0-9a-f]+ <[^>]*> 0c00      	nop
-[0-9a-f]+ <[^>]*> a07f fffe 	beqzc	v1,[0-9a-f]+ <[^>]*>
+[0-9a-f]+ <[^>]*> 807f fffe 	beqzc	v1,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC21_S1	ext
 [0-9a-f]+ <[^>]*> 0c00      	nop
-[0-9a-f]+ <[^>]*> 805f fffe 	bnezc	v0,[0-9a-f]+ <[^>]*>
+[0-9a-f]+ <[^>]*> a05f fffe 	bnezc	v0,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC21_S1	.L11
 [0-9a-f]+ <[^>]*> 0c00      	nop
-[0-9a-f]+ <[^>]*> 805f fffe 	bnezc	v0,[0-9a-f]+ <[^>]*>
+[0-9a-f]+ <[^>]*> a05f fffe 	bnezc	v0,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC21_S1	.L11
 [0-9a-f]+ <[^>]*> 0c00      	nop
 [0-9a-f]+ <[^>]*> ad7f      	bnezc	v0,[0-9a-f]+ <[^>]*>
@@ -147,7 +147,7 @@ Disassembly of section .text:
 [0-9a-f]+ <[^>]*> adff      	bnezc	v1,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC7_S1	ext
 [0-9a-f]+ <[^>]*> 0c00      	nop
-[0-9a-f]+ <[^>]*> 807f fffe 	bnezc	v1,[0-9a-f]+ <[^>]*>
+[0-9a-f]+ <[^>]*> a07f fffe 	bnezc	v1,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC21_S1	ext
 [0-9a-f]+ <[^>]*> 0c00      	nop
 [0-9a-f]+ <[^>]*> 7c62 fffe 	bnec	v0,v1,[0-9a-f]+ <[^>]*>
@@ -159,7 +159,7 @@ Disassembly of section .text:
 [0-9a-f]+ <[^>]*> adff      	bnezc	v1,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC7_S1	ext
 [0-9a-f]+ <[^>]*> 0c00      	nop
-[0-9a-f]+ <[^>]*> 807f fffe 	bnezc	v1,[0-9a-f]+ <[^>]*>
+[0-9a-f]+ <[^>]*> a07f fffe 	bnezc	v1,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC21_S1	ext
 [0-9a-f]+ <[^>]*> 0c00      	nop
 [0-9a-f]+ <[^>]*> f442 fffe 	bgezc	v0,[0-9a-f]+ <[^>]*>
