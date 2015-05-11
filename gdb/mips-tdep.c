@@ -2289,10 +2289,12 @@ is_mipsr6_isa (struct gdbarch *gdbarch)
 #define b1s9_imm(x) (((x) >> 1) & 0x1ff)
 #define b2s3_cc(x) (((x) >> 2) & 0x7)
 #define b4s2_regl(x) (((x) >> 4) & 0x3)
+#define b4s4_imm(x) (((x) >> 4) & 0xf)
 #define b5s5_op(x) (((x) >> 5) & 0x1f)
 #define b5s5_reg(x) (((x) >> 5) & 0x1f)
 #define b6s4_op(x) (((x) >> 6) & 0xf)
 #define b7s3_reg(x) (((x) >> 7) & 0x7)
+#define b8s2_regl(x) (((x) >> 8) & 0x3)
 
 /* 32-bit instruction formats, B and S refer to the lowest bit and the size
    respectively of the field extracted.  */
@@ -2303,6 +2305,7 @@ is_mipsr6_isa (struct gdbarch *gdbarch)
 #define b0s21_imm(x) ((x) & 0x1fffff)
 #define b0s26_imm(x) ((x) & 0x3ffffff)
 #define b6s10_ext(x) (((x) >> 6) & 0x3ff)
+#define b9s3_op(x) (((x) >> 9) & 0x7)
 #define b11s5_reg(x) (((x) >> 11) & 0x1f)
 #define b12s4_op(x) (((x) >> 12) & 0xf)
 
@@ -2847,7 +2850,7 @@ mips32_next_pc (struct regcache *regcache, CORE_ADDR pc)
 		  pc += 8;	/* after the delay slot */
 		break;
 	      case 0x1c:	/* BPOSGE32 */
-	      case 0x1d:	/* BPOSGE32C */
+	      case 0x18:	/* BPOSGE32C */
 	      case 0x1e:	/* BPOSGE64 */
 		pc += 4;
 		if (itype_rs (inst) == 0)
@@ -2861,7 +2864,7 @@ mips32_next_pc (struct regcache *regcache, CORE_ADDR pc)
 		      break;
 
 		    /* BPOSGE32C */
-		    if (op == 0x1d)
+		    if (op == 0x18)
 		      {
 			if (!is_mipsr6_isa (gdbarch))
 			  break;
@@ -2953,6 +2956,24 @@ micromips_relative_offset16 (ULONGEST insn)
   return ((b0s16_imm (insn) ^ 0x8000) - 0x8000) << 1;
 }
 
+/* Extract the 21-bit signed immediate offset from the microMIPS instruction
+   INSN.  */
+
+static LONGEST
+micromips_relative_offset21 (ULONGEST insn)
+{
+  return ((b0s21_imm (insn) ^ 0x100000) - 0x100000) << 1;
+}
+
+/* Extract the 26-bit signed immediate offset from the microMIPS instruction
+   INSN.  */
+
+static LONGEST
+micromips_relative_offset26 (ULONGEST insn)
+{
+  return ((b0s26_imm (insn) ^ 0x2000000) - 0x2000000) << 1;
+}
+
 /* Return the size in bytes of the microMIPS instruction at the address PC.  */
 
 static int
@@ -3019,6 +3040,254 @@ micromips_bc1_w_pc (struct gdbarch *gdbarch, ULONGEST insn, CORE_ADDR pc)
   return pc;
 }
 
+static CORE_ADDR
+get_micromipsr6_branch_target (struct regcache *regcache, CORE_ADDR pc)
+{
+  struct gdbarch *gdbarch = regcache->arch ();
+  ULONGEST insn;
+  LONGEST reg_val1;
+  int mips64bitreg = 0;
+
+  if (mips_isa_regsize (gdbarch) == 8)
+    mips64bitreg = 1;
+
+  insn = mips_fetch_instruction (gdbarch, ISA_MICROMIPS, pc, NULL);
+  pc += MIPS_INSN16_SIZE;
+  switch (mips_insn_size (ISA_MICROMIPS, insn))
+    {
+    /* 32-bit instructions.  */
+    case 2 * MIPS_INSN16_SIZE:
+      insn <<= 16;
+      insn |= mips_fetch_instruction (gdbarch, ISA_MICROMIPS, pc, NULL);
+      pc += MIPS_INSN16_SIZE;
+      switch (micromips_op (insn >> 16))
+	{
+	case 0x00: /* POOL32A */
+	  if (b0s6_op (insn) == 0x3c) /* POOL32Axf */
+	    {
+	      /* JALRC and JALRC.HB */
+	      if (b6s10_ext (insn) == 0x3c || b6s10_ext (insn) == 0x7c)
+		pc = regcache_raw_get_signed (regcache,
+						b0s5_reg (insn >> 16));
+	    }
+	  break;
+	case 0x10: /* POOL32I */
+	  switch (b5s5_op (insn >> 16))
+	    {
+	    case 0x08: /* BC1EQZC */
+	    case 0x09: /* BC1NEZC */
+	      if (mips_regnum (gdbarch)->fp_control_status == -1)
+		break;
+	      reg_val1 = regcache_raw_get_signed (regcache,
+						    b0s5_reg (insn >> 16));
+	      if ((b5s5_op (insn >> 16) == 0x08 && (reg_val1 & 0x1) == 0)
+		  || (b5s5_op (insn >> 16) == 0x09 && (reg_val1 & 0x1) != 0))
+		pc += micromips_relative_offset16 (insn);
+	      break;
+	    case 0x0a: /* BC2EQZC */
+	    case 0x0b: /* BC2NEZC */
+	      /* BC2*: don't know how to handle these.  */
+	      break;
+	    case 0x19: /* BPOSGE32 */
+	      {
+		int dspctl = mips_regnum (gdbarch)->dspctl;
+		if (dspctl == -1)
+		  break;
+		if ((regcache_raw_get_unsigned (regcache,
+						  dspctl) & 0x7f) >= 32)
+		  pc += micromips_relative_offset16 (insn);
+		break;
+	      }
+	    }
+	    break;
+	case 0x20: /* BEQZC/JIC */
+	  if (b5s5_reg (insn >> 16) == 0) /* JIC */
+	    {
+	      reg_val1 = regcache_raw_get_signed (regcache,
+						      b0s5_reg (insn >> 16));
+	      pc = reg_val1 + ((b0s16_imm (insn) ^ 0x8000) - 0x8000);
+	    }
+	  else
+	    {
+	      reg_val1 = regcache_raw_get_signed (regcache,
+						      b5s5_reg (insn >> 16));
+	      if (reg_val1 == 0)
+		pc += micromips_relative_offset21 (insn);
+	    }
+	  break;
+	case 0x28: /* BNEZC/JIALC */
+	  if (b5s5_reg (insn >> 16) == 0) /* JIALC */
+	    {
+	      reg_val1 = regcache_raw_get_signed (regcache,
+						      b0s5_reg (insn >> 16));
+	      pc = reg_val1 + ((b0s16_imm (insn) ^ 0x8000) - 0x8000);
+	    }
+	  else
+	    {
+	      reg_val1 = regcache_raw_get_signed (regcache,
+						      b5s5_reg (insn >> 16));
+	      if (reg_val1 != 0)
+		pc += micromips_relative_offset21 (insn);
+	    }
+	  break;
+	case 0x30: /* BLEZALC/BGEZALC/BGEUC */
+	  {
+	    int rt, rs;
+	    rt = b5s5_reg (insn >> 16);
+	    rs = b0s5_reg (insn >> 16);
+
+	    if (((rt != 0 && rs == 0) /* BLEZALC */
+		&& regcache_raw_get_signed (regcache, rt) <= 0)
+		|| ((rt == rs && rt != 0) /* BGEZALC */
+		&& regcache_raw_get_signed (regcache, rt) >= 0)
+		|| ((rs != rt && rt != 0 && rs != 0) /* BGEUC */
+		&& (regcache_raw_get_unsigned (regcache, rs)
+		>= regcache_raw_get_unsigned (regcache, rt))))
+	      pc += micromips_relative_offset16 (insn);
+	    break;
+	  }
+	case 0x38: /* BGTZALC/BLTZALC/BLTUC */
+	  {
+	    int rt, rs;
+	    rt = b5s5_reg (insn >> 16);
+	    rs = b0s5_reg (insn >> 16);
+
+	    if (((rt != 0 && rs == 0) /* BGTZALC */
+		&& regcache_raw_get_signed (regcache, rt) > 0)
+		|| ((rt == rs && rt != 0) /* BLTZALC */
+		&& regcache_raw_get_signed (regcache, rt) < 0)
+		|| ((rs != rt && rt != 0 && rs != 0) /* BLTUC */
+		&& (regcache_raw_get_unsigned (regcache, rs)
+		< regcache_raw_get_unsigned (regcache, rt))))
+	      pc += micromips_relative_offset16 (insn);
+	    break;
+	  }
+	case 0x1d: /* BOVC/BEQC/BEQZALC */
+	  {
+	    int rt = b5s5_reg (insn >> 16);
+	    int rs = b0s5_reg (insn >> 16);
+	    LONGEST val_rs = regcache_raw_get_signed (regcache, rs);
+	    LONGEST val_rt = regcache_raw_get_signed (regcache, rt);
+	    int ovf;
+
+	    if (rs >= rt) /* BOVC */
+	      {
+		if (mips64bitreg == 1)
+		  ovf = is_add64bit_overflow (val_rs, val_rt);
+		else
+		  ovf = is_add32bit_overflow (val_rs, val_rt);
+		if (ovf == 1)
+		  pc += micromips_relative_offset16 (insn);
+		break;
+	      }
+
+	    if ((rs < rt && val_rt == val_rs)		/* BEQC */
+		|| (rt != 0 && rs == 0 && val_rt == 0))	/* BEQZALC */
+	      pc += micromips_relative_offset16 (insn);
+	    break;
+	  }
+	case 0x25: /* BC */
+	case 0x2d: /* BALC */
+	  pc += micromips_relative_offset26 (insn);
+	  break;
+	case 0x35: /* BGTZC/BLTZC/BLTC */
+	  {
+	    int rt, rs;
+	    rt = b5s5_reg (insn >> 16);
+	    rs = b0s5_reg (insn >> 16);
+
+	    if (((rt !=0 && rs == 0) /* BGTZC */
+		&& regcache_raw_get_signed (regcache, rt) > 0)
+		|| ((rt == rs && rt != 0) /* BLTZC */
+		&& regcache_raw_get_signed (regcache, rt) < 0)
+		|| ((rt != rs && rt != 0 && rs != 0) /* BLTC */
+		&& regcache_raw_get_signed (regcache, rs)
+		< regcache_raw_get_signed (regcache, rt)))
+	      pc += micromips_relative_offset16 (insn);
+	    break;
+	  }
+	case 0x3d: /* BLEZC/BGEZC/BGEC */
+	  {
+	    int rt, rs;
+	    rt = b5s5_reg (insn >> 16);
+	    rs = b0s5_reg (insn >> 16);
+
+	    if (((rt !=0 && rs == 0) /* BLEZC */
+		&& regcache_raw_get_signed (regcache, rt) <= 0)
+		|| ((rt == rs && rt != 0) /* BGEZC */
+		&& regcache_raw_get_signed (regcache, rt) >= 0)
+		|| ((rt != rs && rt != 0 && rs != 0) /* BGEC */
+		&& regcache_raw_get_signed (regcache, rs)
+		>= regcache_raw_get_signed (regcache, rt)))
+	      pc += micromips_relative_offset16 (insn);
+	    break;
+	  }
+	case 0x1f: /* BNVC/BNEC/BNEZALC */
+	  {
+	    int rt = b5s5_reg (insn >> 16);
+	    int rs = b0s5_reg (insn >> 16);
+	    LONGEST val_rs = regcache_raw_get_signed (regcache, rs);
+	    LONGEST val_rt = regcache_raw_get_signed (regcache, rt);
+	    int ovf;
+
+	    if (rs >= rt) /* BNVC */
+	      {
+		if (mips64bitreg == 1)
+		  ovf = is_add64bit_overflow (val_rs, val_rt);
+		else
+		  ovf = is_add32bit_overflow (val_rs, val_rt);
+		if (ovf == 0)
+		  pc += micromips_relative_offset16 (insn);
+		break;
+	      }
+
+	    if ((rs < rt && val_rt != val_rs)		  /* BNEC */
+		|| (rt != 0 && rs == 0 && val_rt != 0))  /* BNEZALC */
+	      pc += micromips_relative_offset16 (insn);
+	    break;
+	  }
+	}
+	break;
+
+    /* 16-bit instructions.  */
+    case MIPS_INSN16_SIZE:
+      switch (micromips_op (insn))
+	{
+	case 0x11: /* POOL16C */
+	  switch (b0s5_imm (insn))
+	    {
+	    case 0x03: /* JRC16 */
+	    case 0x0b: /* JALRC16 */
+	      pc = regcache_raw_get_signed (regcache, b5s5_reg (insn));
+	      break;
+	    case 0x13: /* JRCADDIUSP */
+	      pc = regcache_raw_get_signed (regcache, MIPS_RA_REGNUM);
+	      break;
+	    }
+	  break;
+	case 0x23: /* BEQZC16 */
+	  {
+	    int rs = mips_reg3_to_reg[b7s3_reg (insn)];
+	    if (regcache_raw_get_signed (regcache, rs) == 0)
+	      pc += micromips_relative_offset7 (insn);
+	    break;
+	  }
+	case 0x2b: /* BNEZC16 */
+	  {
+	    int rs = mips_reg3_to_reg[b7s3_reg (insn)];
+	    if (regcache_raw_get_signed (regcache, rs) != 0)
+	      pc += micromips_relative_offset7 (insn);
+	    break;
+	  }
+	case 0x33: /* BC16 */
+	  pc += micromips_relative_offset10 (insn);
+	  break;
+	}
+      break;
+    }
+  return pc;
+}
+
 /* Calculate the address of the next microMIPS instruction to execute
    after the instruction at the address PC.  */
 
@@ -3027,6 +3296,9 @@ micromips_next_pc (struct regcache *regcache, CORE_ADDR pc)
 {
   struct gdbarch *gdbarch = regcache->arch ();
   ULONGEST insn;
+
+  if (is_mipsr6_isa (gdbarch))
+    return get_micromipsr6_branch_target (regcache, pc);
 
   insn = mips_fetch_instruction (gdbarch, ISA_MICROMIPS, pc, NULL);
   pc += MIPS_INSN16_SIZE;
@@ -3541,21 +3813,93 @@ mips16_instruction_is_compact_branch (unsigned short insn)
    or jump.  */
 
 static int
-micromips_instruction_is_compact_branch (unsigned short insn)
+micromips_instruction_is_compact_branch (struct gdbarch *gdbarch,
+					 CORE_ADDR pc)
 {
-  switch (micromips_op (insn))
+  ULONGEST insn;
+
+  insn = mips_fetch_instruction (gdbarch, ISA_MICROMIPS, pc, NULL);
+  pc += MIPS_INSN16_SIZE;
+
+  if (! is_mipsr6_isa (gdbarch))
     {
-    case 0x11:			/* POOL16C: bits 010001 */
-      return (b5s5_op (insn) == 0x18
-				/* JRADDIUSP: bits 010001 11000 */
-	      || b5s5_op (insn) == 0xd);
-				/* JRC: bits 010011 01101 */
-    case 0x10:			/* POOL32I: bits 010000 */
-      return (b5s5_op (insn) & 0x1d) == 0x5;
-				/* BEQZC/BNEZC: bits 010000 001x1 */
-    default:
-      return 0;
+      switch (micromips_op (insn))
+	{
+	case 0x11:			/* POOL16C: bits 010001 */
+	  return (b5s5_op (insn) == 0x18
+				    /* JRADDIUSP: bits 010001 11000 */
+		  || b5s5_op (insn) == 0xd);
+				    /* JRC: bits 010011 01101 */
+	case 0x10:			/* POOL32I: bits 010000 */
+	  return (b5s5_op (insn) & 0x1d) == 0x5;
+				    /* BEQZC/BNEZC: bits 010000 001x1 */
+	default:
+	  return 0;
+	}
     }
+
+  switch (mips_insn_size (ISA_MICROMIPS, insn))
+    {
+    /* 32-bit instructions.  */
+    case 2 * MIPS_INSN16_SIZE:
+      insn <<= 16;
+      insn |= mips_fetch_instruction (gdbarch, ISA_MICROMIPS, pc, NULL);
+      pc += MIPS_INSN16_SIZE;
+      switch (micromips_op (insn >> 16))
+	{
+	case 0x00: /* POOL32A */
+	  if (b0s6_op (insn) == 0x3c) /* POOL32Axf */
+	    {
+	      /* JALRC and JALRC.HB */
+	      if (b6s10_ext (insn) == 0x3c || b6s10_ext (insn) == 0x7c)
+		return 1;
+	    }
+	  break;
+	case 0x10: /* POOL32I */
+	  switch (b5s5_op (insn >> 16))
+	    {
+	    case 0x08: /* BC1EQZC */
+	    case 0x09: /* BC1NEZC */
+	    case 0x0a: /* BC2EQZC */
+	    case 0x0b: /* BC2NEZC */
+	      return 1;
+	    }
+	    break;
+	case 0x20: /* BEQZC/JIC */
+	case 0x28: /* BNEZC/JIALC */
+	case 0x30: /* BLEZALC/BGEZALC/BGEUC */
+	case 0x38: /* BGTZALC/BLTZALC/BLTUC */
+	case 0x1d: /* BOVC/BEQC/BEQZALC */
+	case 0x25: /* BC */
+	case 0x2d: /* BALC */
+	case 0x35: /* BGTZC/BLTZC/BLTC */
+	case 0x3d: /* BLEZC/BGEZC/BGEC */
+	case 0x1f: /* BNVC/BNEC/BNEZALC */
+	  return 1;
+	}
+	break;
+
+    /* 16-bit instructions.  */
+    case MIPS_INSN16_SIZE:
+      switch (micromips_op (insn))
+	{
+	case 0x11: /* POOL16C */
+	  switch (b0s5_imm (insn))
+	    {
+	    case 0x03: /* JRC16 */
+	    case 0x0b: /* JALRC16 */
+	    case 0x13: /* JRCADDIUSP */
+	      return 1;
+	    }
+	  break;
+	case 0x23: /* BEQZC16 */
+	case 0x2b: /* BNEZC16 */
+	case 0x33: /* BC16 */
+	  return 1;
+	}
+      break;
+    }
+  return 0;
 }
 
 /* Return non-zero if the MIPS instruction INSN is a compact branch
@@ -3604,7 +3948,7 @@ mips32_instruction_is_compact_branch (struct gdbarch *gdbarch, ULONGEST insn)
     /* BPOSGE32C */
     case 1:
       if (is_mipsr6_isa (gdbarch)
-	  && itype_rt (insn) == 0x1d && itype_rs (insn) == 0)
+	  && itype_rt (insn) == 0x18 && itype_rs (insn) == 0)
 	return 2;
     }
   return 0;
@@ -4310,6 +4654,11 @@ micromips_scan_prologue (struct gdbarch *gdbarch,
 	    /* LUI $v1 is used for larger $sp adjustments.  */
 	    /* Discard LUI $gp used for PIC code.  */
 	    case 0x10: /* POOL32I: bits 010000 */
+	      if (is_mipsr6_isa (gdbarch))
+		{
+		  this_non_prologue_insn = 1;
+		  break;
+		}
 	      if (b5s5_op (insn >> 16) == 0xd
 				/* LUI: bits 010000 001101 */
 		  && b0s5_reg (insn >> 16) == 3)
@@ -4322,7 +4671,25 @@ micromips_scan_prologue (struct gdbarch *gdbarch,
 		this_non_prologue_insn = 1;
 	      break;
 
-	    /* ORI $v1 is used for larger $sp adjustments.  */
+	    case 0x04: /* R6 LUI/AUI */
+	      if (! is_mipsr6_isa (gdbarch))
+		{
+		  this_non_prologue_insn = 1;
+		  break;
+		}
+	      if (b0s5_reg (insn >> 16) == 0
+				/* LUI: bits 000100 rs 00000 */
+		  && b5s5_reg (insn >> 16) == 3)
+				/* LUI $v1, imm */
+		v1_off = ((b0s16_imm (insn) << 16) ^ 0x80000000) - 0x80000000;
+	      else if (b0s5_reg (insn >> 16) != 0
+				/* LUI: bits 000100 rs 00000 */
+		       || b5s5_reg (insn >> 16) != 28)
+				/* LUI $gp, imm */
+		this_non_prologue_insn = 1;
+	      break;
+
+		/* ORI $v1 is used for larger $sp adjustments.  */
 	    case 0x14: /* ORI: bits 010100 */
 	      sreg = b0s5_reg (insn >> 16);
 	      dreg = b5s5_reg (insn >> 16);
@@ -4381,11 +4748,20 @@ micromips_scan_prologue (struct gdbarch *gdbarch,
 	      break;
 
 	    case 0x11: /* POOL16C: bits 010001 */
-	      if (b6s4_op (insn) == 0x5)
+	      if (! is_mipsr6_isa (gdbarch) && b6s4_op (insn) == 0x5)
 				/* SWM: bits 010001 0101 */
 		{
 		  offset = ((b0s4_imm (insn) << 2) ^ 0x20) - 0x20;
 		  reglist = b4s2_regl (insn);
+		  for (i = 0; i <= reglist; i++)
+		    set_reg_offset (gdbarch, this_cache, 16 + i, sp + 4 * i);
+		  set_reg_offset (gdbarch, this_cache,
+				  MIPS_RA_REGNUM, sp + 4 * i++);
+		}
+	      else if (is_mipsr6_isa (gdbarch) && b0s4_imm (insn) == 0xa)
+		{
+		  offset = ((b4s4_imm (insn) << 2) ^ 0x20) - 0x20;
+		  reglist = b8s2_regl (insn);
 		  for (i = 0; i <= reglist; i++)
 		    set_reg_offset (gdbarch, this_cache, 16 + i, sp + 4 * i);
 		  set_reg_offset (gdbarch, this_cache,
@@ -4433,7 +4809,7 @@ micromips_scan_prologue (struct gdbarch *gdbarch,
          stack adjustment?  If so, then we must have reached the end
          of the prologue by now.  */
       if (prev_delay_slot || non_prologue_insns > 1 || sp_adj > 0
-	  || micromips_instruction_is_compact_branch (insn))
+	  || micromips_instruction_is_compact_branch (gdbarch, cur_pc))
 	break;
 
       prev_non_prologue_insn = this_non_prologue_insn;
@@ -5327,17 +5703,32 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
   ULONGEST insn;
   int insn_count;
   int index;
+  int ll_found = 0;
 
-  /* Assume all atomic sequences start with a ll/lld instruction.  */
+
+  /* Assume all atomic sequences start with a ll/lld/llwp/lldp/lle/llwpe
+     instruction.  */
   insn = mips_fetch_instruction (gdbarch, ISA_MICROMIPS, loc, NULL);
   if (micromips_op (insn) != 0x18)	/* POOL32C: bits 011000 */
     return {};
   loc += MIPS_INSN16_SIZE;
   insn <<= 16;
   insn |= mips_fetch_instruction (gdbarch, ISA_MICROMIPS, loc, NULL);
-  if ((b12s4_op (insn) & 0xb) != 0x3)	/* LL, LLD: bits 011000 0x11 */
-    return {};
   loc += MIPS_INSN16_SIZE;
+  if (b12s4_op (insn) == 0x6		    /* LD-EVA bits 0110 */
+      && (b9s3_op (insn) == 0x6		    /* LLE    bits 110 */
+	  || (is_mipsr6_isa (gdbarch)
+	      && b9s3_op (insn) == 0x2)))   /* LLWPE  bits 010 */
+    ll_found = 1;
+  else if (b12s4_op (insn) == 0x3	    /* LL     bits 0011 */
+	    || b12s4_op (insn) == 0x7       /* LLD    bits 0111 */
+	    || b12s4_op (insn) == 0x1       /* LLWPE  bits 0001 */
+	    || b12s4_op (insn) == 0x5)	    /* LLDP   bits 0101 */
+    ll_found = 1;
+
+  if (!ll_found)
+    return {};
+
 
   /* Assume all atomic sequences end with an sc/scd instruction.  Assume
      that no atomic sequence is longer than "atomic_sequence_length"
@@ -5350,6 +5741,138 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 
       insn = mips_fetch_instruction (gdbarch, ISA_MICROMIPS, loc, NULL);
       loc += MIPS_INSN16_SIZE;
+
+      if (is_mipsr6_isa (gdbarch))
+	{
+	  int rt, rs;
+	  switch (mips_insn_size (ISA_MICROMIPS, insn))
+	    {
+	    /* 32-bit instructions.  */
+	    case 2 * MIPS_INSN16_SIZE:
+	      insn <<= 16;
+	      insn |= mips_fetch_instruction (gdbarch, ISA_MICROMIPS,
+					      loc, NULL);
+	      loc += MIPS_INSN16_SIZE;
+	      switch (micromips_op (insn >> 16))
+		{
+		  case 0x00: /* POOL32A: bits 000000 */
+		    if (b0s6_op (insn) == 0x3c
+			&& ((b6s10_ext (insn) == 0x7c) /* JALRC.HB */
+			    || (b6s10_ext (insn) == 0x3c))) /* JALRC */
+		      return {};
+		    break;
+
+		case 0x10: /* POOL32I */
+		  switch (b5s5_op (insn >> 16))
+		    {
+		    case 0x08: /* BC1EQZC */
+		    case 0x09: /* BC1NEZC */
+		    case 0x0a: /* BC2EQZC */
+		    case 0x0b: /* BC2NEZC */
+		    case 0x19: /* BPOSGE32 */
+		      branch_bp = loc + micromips_relative_offset16 (insn);
+		      is_branch = 1;
+		    }
+		  break;
+
+		case 0x18: /* POOL32C: bits 011000 */
+		  if ((b12s4_op (insn) & 0xb) == 0xb)
+				/* SC, SCD: bits 011000 1x11 */
+		    sc_found = 1;
+		  else if (b12s4_op (insn) == 0xa     /* ST-EVA bits 1010 */
+			   && (b9s3_op (insn) == 0x6)  /* SCE bits 110 */
+			       || (is_mipsr6_isa (gdbarch)
+				   && b9s3_op (insn) == 0)) /* SCWPE */
+		    sc_found = 1;
+		  else if (b12s4_op (insn) == 0x9	/* SCWP */
+			   || b12s4_op (insn) == 0xd)   /* SCDP */
+		    sc_found = 1;
+		  break;
+
+		case 0x20: /* BEQZC/JIC */
+		case 0x28: /* BNEZC/JIALC */
+		  if (b5s5_reg (insn >> 16) == 0) /* JIC/JIALC */
+		    return {};
+		  else
+		    {
+		      branch_bp = loc + micromips_relative_offset21 (insn);
+		      is_branch = 1;
+		    }
+		  break;
+
+		case 0x30: /* BLEZALC/BGEZALC/BGEUC */
+		case 0x38: /* BGTZALC/BLTZALC/BLTUC */
+		case 0x35: /* BGTZC/BLTZC/BLTC */
+		case 0x3d: /* BLEZC/BGEZC/BGEC */
+		  rt = b5s5_reg (insn >> 16);
+		  rs = b0s5_reg (insn >> 16);
+		  if ((rt != 0 && rs == 0)
+			/* BLEZALC/BGTZALC/BGTZC/BLEZC */
+		      || (rt == rs && rt != 0)
+			/* BGEZALC/BLTZALC/BLTZC/BGEZC */
+		      || (rs != rt && rt != 0 && rs != 0))
+			/* BGEUC/BLTUC/BLTC/BGEC */
+		    {
+		      branch_bp = loc + micromips_relative_offset16 (insn);
+		      is_branch = 1;
+		    }
+		  break;
+
+		case 0x1d: /* BOVC/BEQC/BEQZALC */
+		case 0x1f: /* BNVC/BNEC/BNEZALC */
+		  rt = b5s5_reg (insn >> 16);
+		  rs = b0s5_reg (insn >> 16);
+		  if ((rs >= rt) /* BOVC/BNVC */
+		      || (rs < rt) /* BEQC/BNEC */
+		      || (rt != 0 && rs == 0)) /* BEQZALC/BNEZALC */
+		    {
+		      branch_bp = loc + micromips_relative_offset16 (insn);
+		      is_branch = 1;
+		    }
+		  break;
+
+		case 0x25: /* BC */
+		case 0x2d: /* BALC */
+		  return {};
+		}
+	      break;
+
+	    /* 16-bit instructions.  */
+	    case MIPS_INSN16_SIZE:
+	      switch (micromips_op (insn))
+		{
+		case 0x11: /* POOL16C */
+		  switch (b0s5_imm (insn))
+		    {
+		    case 0x03: /* JRC16 */
+		    case 0x0b: /* JALRC16 */
+		    case 0x13: /* JRCADDIUSP */
+		      return {};
+		    }
+		  break;
+
+		case 0x23: /* BEQZC16 */
+		case 0x2b: /* BNEZC16 */
+		  branch_bp = loc + micromips_relative_offset7 (insn);
+		  is_branch = 1;
+		  break;
+
+		case 0x33: /* BC16 */
+		  return {}; /* Fall back to the standard single-step code. */
+		}
+	      break;
+	    }/* switch */
+
+	  if (is_branch)
+	    {
+	      if (last_breakpoint >= 1)
+		return {}; /* More than one branch found, fallback to the
+			 standard single-step code.  */
+	      breaks[1] = branch_bp;
+	      last_breakpoint++;
+	    }
+	  continue;
+	}
 
       /* Assume that there is at most one conditional branch in the
          atomic sequence.  If a branch is found, put a breakpoint in
@@ -5420,8 +5943,14 @@ handle_branch:
 	      return {}; /* Fall back to the standard single-step code. */
 
 	    case 0x18: /* POOL32C: bits 011000 */
+	      insn <<= 16;
+	      insn |= mips_fetch_instruction (gdbarch,
+					      ISA_MICROMIPS, loc, NULL);
 	      if ((b12s4_op (insn) & 0xb) == 0xb)
 				/* SC, SCD: bits 011000 1x11 */
+		sc_found = 1;
+	      else if (b12s4_op (insn) == 0xa     /* ST-EVA bits 1010 */
+		       && b9s3_op (insn) == 0x6)  /* SCE bits 110 */
 		sc_found = 1;
 	      break;
 	    }
@@ -5672,11 +6201,26 @@ heuristic-fence-post' command.\n",
 	    break;
 
 	  case 0x10: /* POOL32I: bits 010000 */
-	    if (b5s5_op (insn) == 0xd
+	    if (! is_mipsr6_isa (gdbarch))
+	      {
+		if (b5s5_op (insn) == 0xd
 				/* LUI: bits 010000 001101 */
-		&& b0s5_reg (insn >> 16) == 28)
+               /* TODO(r6) check shift*/
+		    && b0s5_reg (insn) == 28)
 				/* LUI $gp, imm */
-	      stop = 1;
+		  stop = 1;
+	      }
+	    break;
+
+	  case 0x04: /* LUI/AUI: bits 000100 */
+	    if (is_mipsr6_isa (gdbarch))
+	      {
+		if (b0s5_reg (insn) == 0
+				/* LUI: bits 000100 rt 000100 */
+		    && b5s5_reg (insn) == 28)
+				/* LUI $gp, imm */
+		  stop = 1;
+	      }
 	    break;
 
 	  case 0x13: /* POOL16D: bits 010011 */
@@ -8202,13 +8746,26 @@ micromips_stack_frame_destroyed_p (struct gdbarch *gdbarch, CORE_ADDR pc)
 	      return 0;
 
 	    case 0x11: /* POOL16C: bits 010001 */
-	      if (b5s5_op (insn) == 0x18
+	      if (is_mipsr6_isa (gdbarch))
+		{
+		  if (b0s5_reg (insn) == 0x13
+				/* JRCADDIUSP: bits 010001 imm5 10011 */
+		      || (b0s5_reg (insn) == 0x3
+				/* JRC16: bits 010001 rs 00011 */
+		      && b5s5_op (insn) == MIPS_RA_REGNUM))
+				/* JRC16 $ra */
+		    break;
+		}
+	      else
+		{
+		  if (b5s5_op (insn) == 0x18
 				/* JRADDIUSP: bits 010011 11000 */
-		  || (b5s5_op (insn) == 0xd
+		      || (b5s5_op (insn) == 0xd
 				/* JRC: bits 010011 01101 */
 		      && b0s5_reg (insn) == MIPS_RA_REGNUM))
 				/* JRC $ra */
-		break;
+		    break;
+		}
 	      return 0;
 
 	    case 0x13: /* POOL16D: bits 010011 */
@@ -8480,15 +9037,15 @@ mips_sw_breakpoint_from_kind (struct gdbarch *gdbarch, int kind, int *size)
       }
     case MIPS_BP_KIND_MICROMIPS16:
       {
-	static gdb_byte micromips16_big_breakpoint[] = { 0x46, 0x85 };
-	static gdb_byte micromips16_little_breakpoint[] = { 0x85, 0x46 };
+	static gdb_byte micromips16_big_breakpoint[] = { 0x46, 0x85, 0x45, 0x5b };
+	static gdb_byte micromips16_little_breakpoint[] = { 0x85, 0x46, 0x5b, 0x45 };
 
 	*size = 2;
 
 	if (byte_order_for_code == BFD_ENDIAN_BIG)
-	  return micromips16_big_breakpoint;
+	  return &micromips16_big_breakpoint[!!is_mipsr6_isa (gdbarch) * 2];
 	else
-	  return micromips16_little_breakpoint;
+	  return &micromips16_little_breakpoint[!!is_mipsr6_isa (gdbarch) * 2];
       }
     case MIPS_BP_KIND_MICROMIPS32:
       {
@@ -8682,6 +9239,10 @@ micromips_insn_at_pc_has_delay_slot (struct gdbarch *gdbarch,
   ULONGEST insn;
   int status;
   int size;
+
+/* TODO(r6) check*/
+  if (is_mipsr6_isa (gdbarch))
+    return 0;
 
   insn = mips_fetch_instruction (gdbarch, ISA_MICROMIPS, addr, &status);
   if (status)
