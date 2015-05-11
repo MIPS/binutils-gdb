@@ -138,15 +138,15 @@ test_mxu:
 	d16mulf	xr1, xr2, xr3, 2
 	d16mulf	xr1, xr2, xr3, 3
 
-	d16mule	xr1, xr2, xr3, WW
-	d16mule	xr1, xr2, xr3, LW
-	d16mule	xr1, xr2, xr3, HW
-	d16mule	xr1, xr2, xr3, XW
+	d16mule	xr1, xr2, xr3, xr4, WW
+	d16mule	xr1, xr2, xr3, xr4, LW
+	d16mule	xr1, xr2, xr3, xr4, HW
+	d16mule	xr1, xr2, xr3, xr4, XW
 
-	d16mule	xr1, xr2, xr3, 0
-	d16mule	xr1, xr2, xr3, 1
-	d16mule	xr1, xr2, xr3, 2
-	d16mule	xr1, xr2, xr3, 3
+	d16mule	xr1, xr2, xr3, xr4, 0
+	d16mule	xr1, xr2, xr3, xr4, 1
+	d16mule	xr1, xr2, xr3, xr4, 2
+	d16mule	xr1, xr2, xr3, xr4, 3
 
 	s16mad	xr1, xr2, xr3, xr4,A,WW
 	s16mad	xr1, xr2, xr3, xr4,A,LW
