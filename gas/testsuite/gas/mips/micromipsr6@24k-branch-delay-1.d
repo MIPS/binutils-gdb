@@ -13,7 +13,7 @@ Disassembly of section \.text:
  *[0-9a-f]+:	e9a0      	sw	v1,0\(v0\)
  *[0-9a-f]+:	e9a2      	sw	v1,8\(v0\)
  *[0-9a-f]+:	e9a4      	sw	v1,16\(v0\)
- *([0-9a-f]+):	a07f fffe 	beqzc	v1,\1 <.*\+0x\1>
+ *([0-9a-f]+):	807f fffe 	beqzc	v1,\1 <.*\+0x\1>
 			[0-9a-f]+: R_MICROMIPS_PC21_S1	.*
  *[0-9a-f]+:	69a2      	lw	v1,8\(v0\)
 

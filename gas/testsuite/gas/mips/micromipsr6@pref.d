@@ -9,5 +9,5 @@
 
 Disassembly of section \.text:
 [0-9a-f]+ <[^>]*> 60a2 20ff 	pref	0x5,255\(v0\)
-[0-9a-f]+ <[^>]*> 60a3 2f00 	pref	0x5,-256\(v1\)
+[0-9a-f]+ <[^>]*> 60a3 2100 	pref	0x5,-256\(v1\)
 	\.\.\.

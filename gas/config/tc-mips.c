@@ -8639,15 +8639,13 @@ static const char * const shft_fmt[2] = { "d,w,<", "t,r,<" };
 static const char * const trap_fmt[2] = { "s,t,q", "s,t,|" };
 
 #define BRK_FMT (brk_fmt[mips_opts.micromips][mips_opts.insn32])
-#define COP12_FMT ((ISA_IS_R6 (mips_opts.isa)				      \
-		    && !mips_opts.micromips) ? "E,+:(d)"		      \
-					     : cop12_fmt[mips_opts.micromips])
+#define COP12_FMT (ISA_IS_R6 (mips_opts.isa)				      \
+		   ? "E,+:(d)" : cop12_fmt[mips_opts.micromips])
 #define JALR_FMT (jalr_fmt[mips_opts.micromips])
 #define LUI_FMT (lui_fmt[ISA_IS_R6 (mips_opts.isa) ? 0 : mips_opts.micromips])
 #define MEM12_FMT (mem12_fmt[mips_opts.micromips])
-#define LL_SC_FMT ((ISA_IS_R6 (mips_opts.isa)				      \
-		    && !mips_opts.micromips) ? "t,+j(b)"		      \
-					     : mem12_fmt[mips_opts.micromips])
+#define LL_SC_FMT (ISA_IS_R6 (mips_opts.isa)				      \
+		   ? "t,+j(b)" : mem12_fmt[mips_opts.micromips])
 #define MFHL_FMT (mfhl_fmt[mips_opts.micromips][mips_opts.insn32])
 #define SHFT_FMT (shft_fmt[mips_opts.micromips])
 #define TRAP_FMT (trap_fmt[mips_opts.micromips])
@@ -8793,7 +8791,7 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	   * We don't allow branch relaxation for these branches, as
 	   * they should only appear in ".set nomacro" anyway.
 	   */
-	  if (ep->X_op == O_constant)
+	  if (ep->X_op == O_constant && !IS_MICROMIPS_R6 (mips_opts.isa))
 	    {
 	      /* For microMIPS or Release 6 we always use relocations for
 		 branches.  So we should not resolve immediate values.  */
@@ -11679,8 +11677,8 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_LWC2_AB:
       s = "lwc2";
       fmt = COP12_FMT;
-      offbits = (mips_opts.micromips ? 12
-		 : ISA_IS_R6 (mips_opts.isa) ? 11
+      offbits = (ISA_IS_R6 (mips_opts.isa) ? 11
+		 : mips_opts.micromips ? 12
 		 : 16);
       /* Itbl support may require additional care here.  */
       coproc = 1;
@@ -11711,8 +11709,8 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_LDC2_AB:
       s = "ldc2";
       fmt = COP12_FMT;
-      offbits = (mips_opts.micromips ? 12
-		 : ISA_IS_R6 (mips_opts.isa) ? 11
+      offbits = (ISA_IS_R6 (mips_opts.isa) ? 11
+		 : mips_opts.micromips ? 12
 		 : 16);
       /* Itbl support may require additional care here.  */
       coproc = 1;
@@ -11742,8 +11740,8 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_LL_AB:
       s = "ll";
       fmt = LL_SC_FMT;
-      offbits = (mips_opts.micromips ? 12
-		 : ISA_IS_R6 (mips_opts.isa) ? 9
+      offbits = (ISA_IS_R6 (mips_opts.isa) ? 9
+		 : mips_opts.micromips ? 12
 		 : 16);
       goto ld;
     case M_LLX_AB:
@@ -11754,8 +11752,8 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_LLD_AB:
       s = "lld";
       fmt = LL_SC_FMT;
-      offbits = (mips_opts.micromips ? 12
-		 : ISA_IS_R6 (mips_opts.isa) ? 9
+      offbits = (ISA_IS_R6 (mips_opts.isa) ? 9
+		 : mips_opts.micromips ? 12
 		 : 16);
       goto ld;
     case M_LLDX_AB:
@@ -11831,8 +11829,8 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_SWC2_AB:
       s = "swc2";
       fmt = COP12_FMT;
-      offbits = (mips_opts.micromips ? 12
-		 : ISA_IS_R6 (mips_opts.isa) ? 11
+      offbits = (ISA_IS_R6 (mips_opts.isa) ? 11
+		 : mips_opts.micromips ? 12
 		 : 16);
       /* Itbl support may require additional care here.  */
       coproc = 1;
@@ -11857,34 +11855,34 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_SC_AB:
       s = "sc";
       fmt = LL_SC_FMT;
-      offbits = (mips_opts.micromips ? 12
-		 : ISA_IS_R6 (mips_opts.isa) ? 9
+      offbits = (ISA_IS_R6 (mips_opts.isa) ? 9
+		 : mips_opts.micromips ? 12
 		 : 16);
       goto ld_st;
     case M_SCX_AB:
       s = "scx";
       fmt = LL_SC_FMT;
-      offbits = (mips_opts.micromips ? 12 : 9);
+      offbits = 9;
       goto ld_st;
     case M_SCD_AB:
       s = "scd";
       fmt = LL_SC_FMT;
-      offbits = (mips_opts.micromips ? 12
-		 : ISA_IS_R6 (mips_opts.isa) ? 9
+      offbits = (ISA_IS_R6 (mips_opts.isa) ? 9
+		 : mips_opts.micromips ? 12
 		 : 16);
       goto ld_st;
     case M_SCDX_AB:
       s = "scdx";
       fmt = LL_SC_FMT;
-      offbits = (mips_opts.micromips ? 12 : 9);
+      offbits = 9;
       goto ld_st;
     case M_CACHE_AB:
       s = "cache";
-      fmt = (mips_opts.micromips ? "k,~(b)"
-	     : ISA_IS_R6 (mips_opts.isa) ? "k,+j(b)"
+      fmt = (ISA_IS_R6 (mips_opts.isa) ? "k,+j(b)"
+	     : mips_opts.micromips ? "k,~(b)"
 	     : "k,o(b)");
-      offbits = (mips_opts.micromips ? 12
-		 : ISA_IS_R6 (mips_opts.isa) ? 9
+      offbits = (ISA_IS_R6 (mips_opts.isa) ? 9
+		 : mips_opts.micromips ? 12
 		 : 16);
       goto ld_st;
     case M_CACHEE_AB:
@@ -11894,11 +11892,11 @@ macro (struct mips_cl_insn *ip, char *str)
       goto ld_st;
     case M_PREF_AB:
       s = "pref";
-      fmt = (mips_opts.micromips ? "k,~(b)"
-	     : ISA_IS_R6 (mips_opts.isa) ? "k,+j(b)"
+      fmt = (ISA_IS_R6 (mips_opts.isa) ? "k,+j(b)"
+	     : mips_opts.micromips ? "k,~(b)"
 	     : "k,o(b)");
-      offbits = (mips_opts.micromips ? 12
-		 : ISA_IS_R6 (mips_opts.isa) ? 9
+      offbits = (ISA_IS_R6 (mips_opts.isa) ? 9
+		 : mips_opts.micromips ? 12
 		 : 16);
       goto ld_st;
     case M_PREFE_AB:
@@ -11915,8 +11913,8 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_SDC2_AB:
       s = "sdc2";
       fmt = COP12_FMT;
-      offbits = (mips_opts.micromips ? 12
-		 : ISA_IS_R6 (mips_opts.isa) ? 11
+      offbits = (ISA_IS_R6 (mips_opts.isa) ? 11
+		 : mips_opts.micromips ? 12
 		 : 16);
       /* Itbl support may require additional care here.  */
       coproc = 1;
@@ -18009,8 +18007,8 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 
 	      if (ISA_IS_R6 (mips_opts.isa))
 		{
-		  /* The bit for EQ/NE is inverted in the new beqzc32/bnezc32 insns */
-		  insn = (((insn & 0x2000) ^ 0x2000) << 16) | 0x80000000;
+		  /* beqzc/bnezc */
+		  insn = ((insn & 0x2000) << 16) | 0x80000000;
 		  insn |= regno << MICROMIPSOP_SH_RT;
 		}
 	      else
