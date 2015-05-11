@@ -8639,9 +8639,8 @@ static const char * const shft_fmt[2] = { "d,w,<", "t,r,<" };
 static const char * const trap_fmt[2] = { "s,t,q", "s,t,|" };
 
 #define BRK_FMT (brk_fmt[mips_opts.micromips][mips_opts.insn32])
-#define COP12_FMT ((ISA_IS_R6 (mips_opts.isa)				      \
-		    && !mips_opts.micromips) ? "E,+:(d)"		      \
-					     : cop12_fmt[mips_opts.micromips])
+#define COP12_FMT (ISA_IS_R6 (mips_opts.isa)				      \
+		   ? "E,+:(d)" : cop12_fmt[mips_opts.micromips])
 #define JALR_FMT (jalr_fmt[mips_opts.micromips])
 #define LUI_FMT (lui_fmt[ISA_IS_R6 (mips_opts.isa) ? 0 : mips_opts.micromips])
 #define MEM12_FMT (mem12_fmt[mips_opts.micromips])
@@ -11678,8 +11677,8 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_LWC2_AB:
       s = "lwc2";
       fmt = COP12_FMT;
-      offbits = (mips_opts.micromips ? 12
-		 : ISA_IS_R6 (mips_opts.isa) ? 11
+      offbits = (ISA_IS_R6 (mips_opts.isa) ? 11
+		 : mips_opts.micromips ? 12
 		 : 16);
       /* Itbl support may require additional care here.  */
       coproc = 1;
@@ -11710,8 +11709,8 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_LDC2_AB:
       s = "ldc2";
       fmt = COP12_FMT;
-      offbits = (mips_opts.micromips ? 12
-		 : ISA_IS_R6 (mips_opts.isa) ? 11
+      offbits = (ISA_IS_R6 (mips_opts.isa) ? 11
+		 : mips_opts.micromips ? 12
 		 : 16);
       /* Itbl support may require additional care here.  */
       coproc = 1;
@@ -11830,8 +11829,8 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_SWC2_AB:
       s = "swc2";
       fmt = COP12_FMT;
-      offbits = (mips_opts.micromips ? 12
-		 : ISA_IS_R6 (mips_opts.isa) ? 11
+      offbits = (ISA_IS_R6 (mips_opts.isa) ? 11
+		 : mips_opts.micromips ? 12
 		 : 16);
       /* Itbl support may require additional care here.  */
       coproc = 1;
@@ -11914,8 +11913,8 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_SDC2_AB:
       s = "sdc2";
       fmt = COP12_FMT;
-      offbits = (mips_opts.micromips ? 12
-		 : ISA_IS_R6 (mips_opts.isa) ? 11
+      offbits = (ISA_IS_R6 (mips_opts.isa) ? 11
+		 : mips_opts.micromips ? 12
 		 : 16);
       /* Itbl support may require additional care here.  */
       coproc = 1;

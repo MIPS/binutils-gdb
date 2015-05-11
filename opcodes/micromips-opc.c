@@ -170,7 +170,8 @@ decode_micromips_operand (const char *p)
 	case '|': BIT (8, 16, 0);		/* (0 .. 255) */
 	case '\'': BRANCH (26, 0, 1);
 	case '"': BRANCH (21, 0, 1);
-	case ':': BIT (2, 9, 1);		/* (1 .. 4) */
+	case ':': SINT (11, 0);
+	case '.': BIT (2, 9, 1);		/* (1 .. 4) */
 	case ';': SPECIAL (10, 16, SAME_RS_RT);
 	}
       break;
@@ -901,7 +902,8 @@ const struct mips_opcode micromips_opcodes[] =
 {"ldc1",		"E,o(b)",	0xbc000000, 0xfc000000,	WR_1|RD_3|FP_D|LM,	0,		I1,		0,	0 },
 {"ldc1",		"T,A(b)",	0,    (int) M_LDC1_AB,	INSN_MACRO,		INSN2_M_FP_D,	I1,		0,	0 },
 {"ldc1",		"E,A(b)",	0,    (int) M_LDC1_AB,	INSN_MACRO,		INSN2_M_FP_D,	I1,		0,	0 },
-{"ldc2",		"E,~(b)",	0x20002000, 0xfc00f000,	RD_3|WR_CC|LM,		0,		I1,		0,	0 },
+{"ldc2",		"E,~(b)",	0x20002000, 0xfc00f000,	RD_3|WR_CC|LM,		0,		I1,		0,	I37 },
+{"ldc2",		"E,+:(b)",	0x20002000, 0xfc00f800,	RD_3|WR_CC|LM,		0,		I37,		0,	0 },
 {"ldc2",		"E,A(b)",	0,    (int) M_LDC2_AB,	INSN_MACRO,		0,		I1,		0,	0 },
 {"l.d",			"T,o(b)",	0xbc000000, 0xfc000000,	WR_1|RD_3|FP_D|LM,	0,		I1,		0,	0 }, /* ldc1 */
 {"l.d",			"T,A(b)",	0,    (int) M_LDC1_AB,	INSN_MACRO,		INSN2_M_FP_D,	I1,		0,	0 },
@@ -948,7 +950,8 @@ const struct mips_opcode micromips_opcodes[] =
 {"lwc1",		"E,o(b)",	0x9c000000, 0xfc000000,	WR_1|RD_3|FP_S|LM,	0,		I1,		0,	0 },
 {"lwc1",		"T,A(b)",	0,    (int) M_LWC1_AB,	INSN_MACRO,		INSN2_M_FP_S,	I1,		0,	0 },
 {"lwc1",		"E,A(b)",	0,    (int) M_LWC1_AB,	INSN_MACRO,		INSN2_M_FP_S,	I1,		0,	0 },
-{"lwc2",		"E,~(b)",	0x20000000, 0xfc00f000,	RD_3|WR_CC|LM,		0,		I1,		0,	0 },
+{"lwc2",		"E,~(b)",	0x20000000, 0xfc00f000,	RD_3|WR_CC|LM,		0,		I1,		0,	I37 },
+{"lwc2",		"E,+:(b)",	0x20000000, 0xfc00f800,	RD_3|WR_CC|LM,		0,		I37,		0,	0 },
 {"lwc2",		"E,A(b)",	0,    (int) M_LWC2_AB,	INSN_MACRO,		0,		I1,		0,	0 },
 {"l.s",			"T,o(b)",	0x9c000000, 0xfc000000,	WR_1|RD_3|FP_S|LM,	0,		I1,		0,	0 }, /* lwc1 */
 {"l.s",			"T,A(b)",	0,    (int) M_LWC1_AB,	INSN_MACRO,		INSN2_M_FP_S,	I1,		0,	0 },
@@ -1157,7 +1160,8 @@ const struct mips_opcode micromips_opcodes[] =
 {"sdc1",		"E,o(b)",	0xb8000000, 0xfc000000,	RD_1|RD_3|SM|FP_D,	0,		I1,		0,	0 },
 {"sdc1",		"T,A(b)",	0,    (int) M_SDC1_AB,	INSN_MACRO,		INSN2_M_FP_D,	I1,		0,	0 },
 {"sdc1",		"E,A(b)",	0,    (int) M_SDC1_AB,	INSN_MACRO,		INSN2_M_FP_D,	I1,		0,	0 },
-{"sdc2",		"E,~(b)",	0x2000a000, 0xfc00f000,	RD_3|RD_C2|SM,		0,		I1,		0,	0 },
+{"sdc2",		"E,~(b)",	0x2000a000, 0xfc00f000,	RD_3|RD_C2|SM,		0,		I1,		0,	I37 },
+{"sdc2",		"E,+:(b)",	0x2000a000, 0xfc00f800,	RD_3|RD_C2|SM,		0,		I37,		0,	0 },
 {"sdc2",		"E,A(b)",	0,    (int) M_SDC2_AB,	INSN_MACRO,		0,		I1,		0,	0 },
 {"s.d",			"T,o(b)",	0xb8000000, 0xfc000000,	RD_1|RD_3|SM|FP_D,	0,		I1,		0,	0 }, /* sdc1 */
 {"s.d",			"T,A(b)",	0,    (int) M_SDC1_AB,	INSN_MACRO,		INSN2_M_FP_D,	I1,		0,	0 },
@@ -1229,7 +1233,8 @@ const struct mips_opcode micromips_opcodes[] =
 {"swc1",		"E,o(b)",	0x98000000, 0xfc000000,	RD_1|RD_3|SM|FP_S,	0,		I1,		0,	0 },
 {"swc1",		"T,A(b)",	0,    (int) M_SWC1_AB,	INSN_MACRO,		INSN2_M_FP_S,	I1,		0,	0 },
 {"swc1",		"E,A(b)",	0,    (int) M_SWC1_AB,	INSN_MACRO,		INSN2_M_FP_S,	I1,		0,	0 },
-{"swc2",		"E,~(b)",	0x20008000, 0xfc00f000,	RD_3|RD_C2|SM,		0,		I1,		0,	0 },
+{"swc2",		"E,~(b)",	0x20008000, 0xfc00f000,	RD_3|RD_C2|SM,		0,		I1,		0,	I37 },
+{"swc2",		"E,+:(b)",	0x20008000, 0xfc00f800,	RD_3|RD_C2|SM,		0,		I37,		0,	0 },
 {"swc2",		"E,A(b)",	0,    (int) M_SWC2_AB,	INSN_MACRO,		0,		I1,		0,	0 },
 {"s.s",			"T,o(b)",	0x98000000, 0xfc000000,	RD_1|RD_3|SM|FP_S,	0,		I1,		0,	0 }, /* swc1 */
 {"s.s",			"T,A(b)",	0,    (int) M_SWC1_AB,	INSN_MACRO,		INSN2_M_FP_S,	I1,		0,	0 },
@@ -2153,9 +2158,9 @@ const struct mips_opcode micromips_opcodes[] =
 {"cfcmsa",		"+k,+n",	0x587e0016, 0xffff003f,	WR_1,			0,		0,		MSA,	0 },
 {"move.v",		"+d,+e",	0x58be0016, 0xffff003f,	WR_1|RD_2,		0,		0,		MSA,	0 },
 {"lsa",			"d,v,t,+~",	0x00000020, 0xfc00073f,	WR_1|RD_2|RD_3,		0,		0,		MSA,	I37 },
-{"lsa",			"d,v,t,+:",	0x0000000f, 0xfc0001ff,	WR_1|RD_2|RD_3,		0,		I37,		MSA,	0 },
+{"lsa",			"d,v,t,+.",	0x0000000f, 0xfc0001ff,	WR_1|RD_2|RD_3,		0,		I37,		MSA,	0 },
 {"dlsa",		"d,v,t,+~",	0x58000020, 0xfc00073f,	WR_1|RD_2|RD_3,		0,		0,		MSA64,	I69 },
-{"dlsa",		"d,v,t,+:",	0x58000108, 0xfc0001ff,	WR_1|RD_2|RD_3,		0,		I69,		MSA64,	0 },
+{"dlsa",		"d,v,t,+.",	0x58000108, 0xfc0001ff,	WR_1|RD_2|RD_3,		0,		I69,		MSA64,	0 },
 };
 
 const int bfd_micromips_num_opcodes =
