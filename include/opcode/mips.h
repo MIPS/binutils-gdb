@@ -1137,7 +1137,9 @@ struct mips_opcode
 /* Instruction has a forbidden slot.  */
 #define INSN2_FORBIDDEN_SLOT        0x00008000
 /* This indicates pre-R6 instructions mapped to R6 ones.  */
-#define INSN2_CONVERTED_TO_COMPACT    0x00010000
+#define INSN2_CONVERTED_TO_COMPACT  0x00010000
+/* Instruction prevents the following instruction from being in a DS */
+#define INSN2_NEXT_NO_DS	    0x00020000
 
 /* Masks used to mark instructions to indicate which MIPS ISA level
    they were introduced in.  INSN_ISA_MASK masks an enumeration that
@@ -1612,8 +1614,11 @@ enum
   M_LI_S,
   M_LI_SS,
   M_LL_AB,
+  M_LLX_AB,
   M_LLD_AB,
+  M_LLDX_AB,
   M_LLE_AB,
+  M_LLXE_AB,
   M_LQ_AB,
   M_LW_AB,
   M_LWE_AB,
