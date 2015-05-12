@@ -17,7 +17,7 @@ DIAG:
   jal GetPC
   nop
   move $11, $6
-  nal L1
+  nal
   nop
   addiu $11, 12
   beqc $11, $31, L1

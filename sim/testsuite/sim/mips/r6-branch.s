@@ -235,22 +235,25 @@ L22:
 L23:
   writemsg "[23] Test JIC"
   li $11, 0xfffffffc
+  .set push
+  .set reorder
   jal GetPC
-  nop
-  and $6, $6, $11
-  jic $6, 20 #L24
-  nop
-  nop
+  .set pop
+  addiu $12, $6, 8
+  jic $12, L24-L23f
+L23f:
   fail
 
 L24:
   writemsg "[24] Test JIALC"
   li $10, 1
+  .set push
+  .set reorder
   jal GetPC
-  nop
-  and $6, $6, $11
-  jialc $6, 28 #LJIALCRET
-  nop
+  .set pop
+  addiu $12, $6, 8
+  jialc $12, LJIALCRET-L24f
+L24f:
   beqzc $10, L25
   nop
   fail

@@ -956,9 +956,7 @@
 001000,5.OP,5.BASE,0110,12.IMMEDIATE:POOL32B:32::CACHE
 "cache <OP>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
-*micromips32r6:
 *micromips64:
-*micromips64r6:
 {
   address_word base = GPR[BASE];
   address_word offset = EXTEND12 (IMMEDIATE);
@@ -1320,9 +1318,7 @@
 001000,5.RT,5.BASE,0010,12.IMMEDIATE:POOL32B:32::LDC2
 "ldc2 r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
-*micromips32r6:
 *micromips64:
-*micromips64r6:
 
 
 001111,5.RT,5.BASE,16.IMMEDIATE:MICROMIPS:32::LH
@@ -1366,9 +1362,7 @@
 011000,5.RT,5.BASE,0011,12.IMMEDIATE:POOL32C:32::LL
 "ll r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
-*micromips32r6:
 *micromips64:
-*micromips64r6:
 {
   do_ll (SD_, RT, EXTEND12 (IMMEDIATE), BASE);
 }
@@ -1434,9 +1428,7 @@
 001000,5.RT,5.BASE,0000,12.IMMEDIATE:POOL32B:32::LWC2
 "lwc2 r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
-*micromips32r6:
 *micromips64:
-*micromips64r6:
 
 
 011000,5.RT,5.BASE,0110111,9.IMMEDIATE:POOL32C:32::LWE
@@ -1898,9 +1890,7 @@
 011000,5.HINT,5.BASE,0010,12.IMMEDIATE:POOL32C:32::PREF
 "pref <HINT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
-*micromips32r6:
 *micromips64:
-*micromips64r6:
 {
   do_pref (SD_, HINT, EXTEND12 (IMMEDIATE), BASE);
 }
@@ -1984,9 +1974,7 @@
 011000,5.RT,5.BASE,1011,12.IMMEDIATE:POOL32C:32::SC
 "sc r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
-*micromips32r6:
 *micromips64:
-*micromips64r6:
 {
   do_sc (SD_, RT, EXTEND12 (IMMEDIATE), BASE, instruction_0);
 }
@@ -2031,12 +2019,10 @@
 }
 
 
-001000,5.RT,5.BASE,1010,12.IMMEDIATE:MICROMIPS:32::SDC2
+001000,5.RT,5.BASE,1010,12.IMMEDIATE:POOL32B:32::SDC2
 "sdc2 r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
-*micromips32r6:
 *micromips64:
-*micromips64r6:
 
 
 000000,5.RT,5.RS,0010101100,111100:POOL32A:32::SEB
@@ -2263,9 +2249,7 @@
 001000,5.RT,5.BASE,1000,12.IMMEDIATE:POOL32B:32::SWC2
 "swc2 r<RT>, <IMMEDIATE>(r<BASE>)"
 *micromips32:
-*micromips32r6:
 *micromips64:
-*micromips64r6:
 
 
 011000,5.RT,5.BASE,1010111,9.IMMEDIATE:POOL32C:32::SWE
@@ -3455,7 +3439,6 @@
 011000,5.RT,5.BASE,0111,12.OFFSET:POOL32C:64::LLD
 "lld r<RT>, <OFFSET>(r<BASE>)"
 *micromips64:
-*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_lld (SD_, RT, OFFSET, BASE);
@@ -3464,7 +3447,6 @@
 011000,5.RT,5.BASE,1111,12.OFFSET:POOL32C:64::SCD
 "scd r<RT>, <OFFSET>(r<BASE>)"
 *micromips64:
-*micromips64r6:
 {
   check_u64 (SD_, instruction_0);
   do_scd (SD_, RT, OFFSET, BASE);

@@ -34,7 +34,7 @@
   do_class (SD_, FD, FS, FMT, instruction_0);
 }
 
-010101,5.FT,5.FS,5.FD,5.FMT,000011:R6POOL32F:32,f::MIN.fmt
+010101,5.FT,5.FS,5.FD,2.FMT,000000011:R6POOL32F:32,f::MIN.fmt
 "min.%s<FMT> f<FD>, f<FS>, f<FT>"
 *micromips32r6:
 *micromips64r6:
@@ -42,7 +42,7 @@
   do_min (SD_, FD, FS, FT, FMT, instruction_0);
 }
 
-010101,5.FT,5.FS,5.FD,5.FMT,001011:R6POOL32F:32,f::MAX.fmt
+010101,5.FT,5.FS,5.FD,2.FMT,000001011:R6POOL32F:32,f::MAX.fmt
 "max.%s<FMT> f<FD>, f<FS>, f<FT>"
 *micromips32r6:
 *micromips64r6:
@@ -50,7 +50,7 @@
   do_max (SD_, FD, FS, FT, FMT, instruction_0);
 }
 
-010101,5.FT,5.FS,5.FD,5.FMT,100011:R6POOL32F:32,f::MINA.fmt
+010101,5.FT,5.FS,5.FD,2.FMT,000100011:R6POOL32F:32,f::MINA.fmt
 "mina.%s<FMT> f<FD>, f<FS>, f<FT>"
 *micromips32r6:
 *micromips64r6:
@@ -58,7 +58,7 @@
   do_mina (SD_, FD, FS, FT, FMT, instruction_0);
 }
 
-010101,5.FT,5.FS,5.FD,5.FMT,101011:R6POOL32F:32,f::MAXA.fmt
+010101,5.FT,5.FS,5.FD,2.FMT,000101011:R6POOL32F:32,f::MAXA.fmt
 "maxa.%s<FMT> f<FD>, f<FS>, f<FT>"
 *micromips32r6:
 *micromips64r6:
@@ -352,7 +352,7 @@
   NIA = do_balc (SD_, EXTEND26 (OFFSET) << 1);
 }
 
-101000,5.RS!0,21.OFFSET:MICROMIPSR6:32::BEQZC
+100000,5.RS!0,21.OFFSET:MICROMIPSR6:32::BEQZC
 "beqzc r<RS>, <OFFSET>"
 *micromips32r6:
 *micromips64r6:
@@ -368,7 +368,7 @@
   NIA = do_jic (SD_, RT, OFFSET);
 }
 
-100000,5.RS!0,21.OFFSET:MICROMIPSR6:32::BNEZC
+101000,5.RS!0,21.OFFSET:MICROMIPSR6:32::BNEZC
 "bnezc r<RS>, <OFFSET>"
 *micromips32r6:
 *micromips64r6:
@@ -644,6 +644,91 @@
 {
   NIA = do_micromips_jalrc (SD_, RT, RS, NIA);
 }
+
+001000,5.RT,5.BASE,10100,11.IMMEDIATE:R6POOL32B:32::SDC2
+"sdc2 r<RT>, <IMMEDIATE>(r<BASE>)"
+*micromips32r6:
+*micromips64r6:
+
+
+001000,5.RT,5.BASE,00100,11.IMMEDIATE:R6POOL32B:32::LDC2
+"ldc2 r<RT>, <IMMEDIATE>(r<BASE>)"
+*micromips32r6:
+*micromips64r6:
+
+
+001000,5.RT,5.BASE,10000,11.IMMEDIATE:R6POOL32B:32::SWC2
+"swc2 r<RT>, <IMMEDIATE>(r<BASE>)"
+*micromips32r6:
+*micromips64r6:
+
+
+001000,5.RT,5.BASE,00000,11.IMMEDIATE:R6POOL32B:32::LWC2
+"lwc2 r<RT>, <IMMEDIATE>(r<BASE>)"
+*micromips32r6:
+*micromips64r6:
+
+
+011000,5.RT,5.BASE,0111000,9.OFFSET:R6POOL32C:64::LLD
+"lld r<RT>, <OFFSET>(r<BASE>)"
+*micromips64r6:
+{
+  check_u64 (SD_, instruction_0);
+  do_lld (SD_, RT, OFFSET, BASE);
+}
+
+
+011000,5.RT,5.BASE,1111000,9.OFFSET:R6POOL32C:64::SCD
+"scd r<RT>, <OFFSET>(r<BASE>)"
+*micromips64r6:
+{
+  check_u64 (SD_, instruction_0);
+  do_scd (SD_, RT, OFFSET, BASE);
+}
+
+
+011000,5.RT,5.BASE,1011000,9.IMMEDIATE:R6POOL32C:32::SC
+"sc r<RT>, <IMMEDIATE>(r<BASE>)"
+*micromips32r6:
+*micromips64r6:
+{
+  do_sc (SD_, RT, EXTEND9 (IMMEDIATE), BASE, instruction_0);
+}
+
+
+011000,5.RT,5.BASE,0011000,9.IMMEDIATE:R6POOL32C:32::LL
+"ll r<RT>, <IMMEDIATE>(r<BASE>)"
+*micromips32r6:
+*micromips64r6:
+{
+  do_ll (SD_, RT, EXTEND9 (IMMEDIATE), BASE);
+}
+
+
+001000,5.OP,5.BASE,0110000,9.IMMEDIATE:R6POOL32B:32::CACHE
+"cache <OP>, <IMMEDIATE>(r<BASE>)"
+*micromips32r6:
+*micromips64r6:
+{
+  address_word base = GPR[BASE];
+  address_word offset = EXTEND9 (IMMEDIATE);
+  address_word vaddr = loadstore_ea (SD_, base, offset);
+  address_word paddr;
+  int uncached;
+  if (AddressTranslation (vaddr, isDATA, isLOAD, &paddr, &uncached,
+			  isTARGET, isREAL))
+    CacheOp (OP, vaddr, paddr, instruction_0);
+}
+
+
+011000,5.HINT,5.BASE,0010000,9.IMMEDIATE:R6POOL32C:32::PREF
+"pref <HINT>, <IMMEDIATE>(r<BASE>)"
+*micromips32r6:
+*micromips64r6:
+{
+  do_pref (SD_, HINT, EXTEND9 (IMMEDIATE), BASE);
+}
+
 
 000001,3.RS,3.RT,3.RD,1:R6POOL16A:16::SUBU16
 "subu16 r<TRD>, r<TRS>, r<TRT>"

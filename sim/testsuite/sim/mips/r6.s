@@ -111,31 +111,37 @@ DIAG:
 
   li $13, 0xfffffffc
   writemsg "[17] Test ADDIUPC"
+  .set push
+  .set reorder
   jal GetPC
-  nop
-  addiu $4, $6, 8
+  .set pop
+  addiu $12, $6, 8
   addiupc $5, 4
-  and $4, $4, $13
+  and $4, $12, $13
   fp_assert $4, $5
 
+  li $13, 0xfffffffe
   writemsg "[18] Test AUIPC"
+  .set push
+  .set reorder
   jal GetPC
-  nop
-  addiu $4, $6, 8
-  aui $4, $4, 8
+  .set pop
+  addiu $12, $6, 8
+  aui $4, $12, 8
   auipc $5, 8
   and $4, $4, $13
   fp_assert $4, $5
 
   writemsg "[19] Test ALUIPC"
+  .set push
+  .set reorder
   jal GetPC
-  nop
-  addiu $4, $6, 16
-  aui $4, $4, 8
+  .set pop
+  addiu $12, $6, 16
+  aui $4, $12, 8
   li $7, 0xffff0000
   and $4, $4, $7
   aluipc $5, 8
-  and $4, $4, $13
   fp_assert $4, $5
 
   writemsg "[20] Test LWPC"
