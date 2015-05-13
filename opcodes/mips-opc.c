@@ -385,6 +385,7 @@ decode_mips_operand (const char *p)
 
 /* MIPS Enhanced VA Scheme.  */
 #define EVA	ASE_EVA
+#define EVA_R6	ASE_EVA_R6
 
 /* TLB invalidate instruction support.  */
 #define TLBINV	ASE_EVA
@@ -1262,12 +1263,12 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"ll",			"t,+j(b)",	0x7c000036, 0xfc00007f, WR_1|RD_3|LM,		0,		I37,		0,	0 },
 {"ll",			"t,o(b)",	0xc0000000, 0xfc000000, WR_1|RD_3|LM,		0,		I2,		0,	EE|I37 },
 {"ll",			"t,A(b)",	0,    (int) M_LL_AB,	INSN_MACRO,		0,		I2,		0,	EE },
-{"llx",			"t,+j(b)",	0x7c000076, 0xfc00007f, WR_1|RD_3|LM,		0,		I37,		0,	0 },
+{"llx",			"t,+j(b)",	0x7c000076, 0xfc00007f, WR_1|RD_3|LM|NODS,	NNODS,		I37,		0,	0 },
 {"llx",			"t,A(b)",	0,    (int) M_LLX_AB,	INSN_MACRO,		0,		I37,		0,	0 },
 {"lld",			"t,+j(b)",	0x7c000037, 0xfc00007f, WR_1|RD_3|LM,		0,		I69,		0,	0 },
 {"lld",			"t,o(b)",	0xd0000000, 0xfc000000, WR_1|RD_3|LM,		0,		I3,		0,	EE|I69 },
 {"lld",			"t,A(b)",	0,    (int) M_LLD_AB,	INSN_MACRO,		0,		I3,		0,	EE },
-{"lldx",		"t,+j(b)",	0x7c000077, 0xfc00007f, WR_1|RD_3|LM,		0,		I69,		0,	0 },
+{"lldx",		"t,+j(b)",	0x7c000077, 0xfc00007f, WR_1|RD_3|LM|NODS,	NNODS,		I69,		0,	0 },
 {"lldx",		"t,A(b)",	0,    (int) M_LLDX_AB,	INSN_MACRO,		0,		I69,		0,	0 },
 {"lq",			"t,o(b)",	0x78000000, 0xfc000000, WR_1|RD_3|LM,		0,		MMI,		0,	0 },
 {"lq",			"t,A(b)",	0,    (int) M_LQ_AB,	INSN_MACRO,		0,		MMI,		0,	0 },
@@ -2595,7 +2596,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"lhe",			"t,A(b)",	0,    (int) M_LHE_AB,	INSN_MACRO,		0,		0,		EVA,	0 },
 {"lle",			"t,+j(b)",	0x7c00002e, 0xfc00007f, WR_1|RD_3|LM,		0,		0,		EVA,	0 },
 {"lle",			"t,A(b)",	0,    (int) M_LLE_AB,	INSN_MACRO,		0,		0,		EVA,	0 },
-{"llxe",		"t,+j(b)",	0x7c00006e, 0xfc00007f, WR_1|RD_3|LM,		0,		0,		EVA_R6,	0 },
+{"llxe",		"t,+j(b)",	0x7c00006e, 0xfc00007f, WR_1|RD_3|LM|NODS,	NNODS,		0,		EVA_R6,	0 },
 {"llxe",		"t,A(b)",	0,    (int) M_LLXE_AB,	INSN_MACRO,		0,		0,		EVA_R6,	0 },
 {"lwe",			"t,+j(b)",	0x7c00002f, 0xfc00007f, WR_1|RD_3|LM,		0,		0,		EVA,	0 },
 {"lwe",			"t,A(b)",	0,    (int) M_LWE_AB,	INSN_MACRO,		0,		0,		EVA,	0 },
