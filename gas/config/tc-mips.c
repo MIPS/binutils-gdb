@@ -15425,26 +15425,44 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 
     case BFD_RELOC_MICROMIPS_18_PCREL_S3:
     case BFD_RELOC_MIPS_18_PCREL_S3:
-      if ((S_GET_VALUE (fixP->fx_addsy) & 0x7) != 0)
-	as_bad_where (fixP->fx_file, fixP->fx_line,
-		      _("PC-relative access using misaligned symbol (%lx)"),
-		      (long) S_GET_VALUE (fixP->fx_addsy));
-      if ((fixP->fx_offset & 0x7) != 0)
-	as_bad_where (fixP->fx_file, fixP->fx_line,
-		      _("PC-relative access using misaligned offset (%lx)"),
-		      (long) fixP->fx_offset);
+      {
+	bfd_vma sym_val = S_GET_VALUE (fixP->fx_addsy);;
 
-      gas_assert (!fixP->fx_done);
+	if (ELF_ST_IS_MICROMIPS (S_GET_OTHER (fixP->fx_addsy)))
+	  sym_val = (sym_val | 1) ^ 1;
+
+	if ((sym_val & 0x7) != 0)
+	  as_bad_where (fixP->fx_file, fixP->fx_line,
+			_("PC-relative access using misaligned symbol (%lx)"),
+			(long) sym_val);
+	if ((fixP->fx_offset & 0x7) != 0)
+	  as_bad_where (fixP->fx_file, fixP->fx_line,
+			_("PC-relative access using misaligned offset (%lx)"),
+			(long) fixP->fx_offset);
+
+	gas_assert (!fixP->fx_done);
+      }
       break;
 
     case BFD_RELOC_MICROMIPS_19_PCREL_S2:
     case BFD_RELOC_MIPS_19_PCREL_S2:
-      if ((*valP & 0x3) != 0)
-	as_bad_where (fixP->fx_file, fixP->fx_line,
-		      _("PC-relative access to misaligned address (%lx)"),
-		      (long) (S_GET_VALUE (fixP->fx_addsy) + fixP->fx_offset));
+      {
+	bfd_vma sym_val = S_GET_VALUE (fixP->fx_addsy);;
 
-      gas_assert (!fixP->fx_done);
+	if (ELF_ST_IS_MICROMIPS (S_GET_OTHER (fixP->fx_addsy)))
+	  sym_val = (sym_val | 1) ^ 1;
+
+	if ((sym_val & 0x3) != 0)
+	  as_bad_where (fixP->fx_file, fixP->fx_line,
+			_("PC-relative access using misaligned symbol (%lx)"),
+			(long) sym_val);
+	if ((fixP->fx_offset & 0x3) != 0)
+	  as_bad_where (fixP->fx_file, fixP->fx_line,
+			_("PC-relative access using misaligned offset (%lx)"),
+			(long) fixP->fx_offset);
+
+	gas_assert (!fixP->fx_done);
+      }
       break;
 
     case BFD_RELOC_HI16_S_PCREL:

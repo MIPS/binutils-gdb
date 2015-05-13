@@ -337,10 +337,25 @@ Disassembly of section .text:
 [0-9a-f]+ <[^>]*> 8003 8000 	jialc	v1,-[0-9]+
 [0-9a-f]+ <[^>]*> 8003 7fff 	jialc	v1,[0-9]+
 [0-9a-f]+ <[^>]*> 1062 ffff 	aui	v1,v0,0xffff
+[0-9a-f]+ <[^>]*> 00000004 	sllv	zero,zero,zero
+[0-9a-f]+ <[^>]*> 7887 fffc 	lapc	a0,[0-9a-f]+ <[^>]*>
+[	]*[0-9a-f]+: R_MICROMIPS_PC19_S2	.L21
+[0-9a-f]+ <[^>]*> 0c00      	nop
+[0-9a-f]+ <[^>]*> 7887 fffc 	lapc	a0,[0-9a-f]+ <[^>]*>
+[	]*[0-9a-f]+: R_MICROMIPS_PC19_S2	.L21
+[0-9a-f]+ <[^>]*> cfff      	bc	[0-9a-f]+ <[^>]*>
+[	]*[0-9a-f]+: R_MICROMIPS_PC10_S1	.L31
 [0-9a-f]+ <[^>]*> 7884 0000 	lapc	a0,[0-9a-f]+ <[^>]*>
-[	]*[0-9a-f]+: R_MICROMIPS_PC19_S2	L0
+[	]*[0-9a-f]+: R_MICROMIPS_PC19_S2	.L22
+[0-9a-f]+ <[^>]*> 0c00      	nop
+[0-9a-f]+ <[^>]*> 7884 0000 	lapc	a0,[0-9a-f]+ <[^>]*>
+[	]*[0-9a-f]+: R_MICROMIPS_PC19_S2	.L23
+[0-9a-f]+ <[^>]*> 0c00      	nop
 [0-9a-f]+ <[^>]*> 7883 ffff 	lapc	a0,[0-9a-f]+ <[^>]*>
-[	]*[0-9a-f]+: R_MICROMIPS_PC19_S2	L0
+[	]*[0-9a-f]+: R_MICROMIPS_PC19_S2	.L24
+[0-9a-f]+ <[^>]*> 0c00      	nop
+[0-9a-f]+ <[^>]*> 7883 ffff 	lapc	a0,[0-9a-f]+ <[^>]*>
+[	]*[0-9a-f]+: R_MICROMIPS_PC19_S2	.L25
 [0-9a-f]+ <[^>]*> 7884 0000 	lapc	a0,[0-9a-f]+ <[^>]*>
 [0-9a-f]+ <[^>]*> 7883 ffff 	lapc	a0,[0-9a-f]+ <[^>]*>
 [0-9a-f]+ <[^>]*> 7904 0000 	lapc	t0,[0-9a-f]+ <[^>]*>
@@ -349,10 +364,18 @@ Disassembly of section .text:
 [0-9a-f]+ <[^>]*> 787f ffff 	aluipc	v1,0xffff
 [0-9a-f]+ <[^>]*> 7888 0000 	lwpc	a0,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC19_S2	.L11
+[0-9a-f]+ <[^>]*> 0c00      	nop
 [0-9a-f]+ <[^>]*> 788c 0000 	lwpc	a0,[0-9a-f]+ <[^>]*>
-[	]*[0-9a-f]+: R_MICROMIPS_PC19_S2	L0
+[	]*[0-9a-f]+: R_MICROMIPS_PC19_S2	.L26
+[0-9a-f]+ <[^>]*> 0c00      	nop
+[0-9a-f]+ <[^>]*> 788c 0000 	lwpc	a0,[0-9a-f]+ <[^>]*>
+[	]*[0-9a-f]+: R_MICROMIPS_PC19_S2	.L27
+[0-9a-f]+ <[^>]*> 0c00      	nop
 [0-9a-f]+ <[^>]*> 788b ffff 	lwpc	a0,[0-9a-f]+ <[^>]*>
-[	]*[0-9a-f]+: R_MICROMIPS_PC19_S2	L0
+[	]*[0-9a-f]+: R_MICROMIPS_PC19_S2	.L28
+[0-9a-f]+ <[^>]*> 0c00      	nop
+[0-9a-f]+ <[^>]*> 788b ffff 	lwpc	a0,[0-9a-f]+ <[^>]*>
+[	]*[0-9a-f]+: R_MICROMIPS_PC19_S2	.L29
 [0-9a-f]+ <[^>]*> 788c 0000 	lwpc	a0,[0-9a-f]+ <[^>]*>
 [0-9a-f]+ <[^>]*> 788b ffff 	lwpc	a0,[0-9a-f]+ <[^>]*>
 [0-9a-f]+ <[^>]*> 5462 0020 	rint.s	\$f2,\$f3
@@ -391,6 +414,7 @@ Disassembly of section .text:
 [0-9a-f]+ <[^>]*> 0002 1f3c 	jrc.hb	v0
 [0-9a-f]+ <[^>]*> 000a 1f3c 	jrc.hb	t2
 [0-9a-f]+ <[^>]*> 0c00      	nop
+[0-9a-f]+ <[^>]*> 0c00      	nop
 [0-9a-f]+ <[^>]*> 6085 10ff 	llx	a0,255\(a1\)
 [0-9a-f]+ <[^>]*> 6085 1100 	llx	a0,-256\(a1\)
 [0-9a-f]+ <[^>]*> 3085 01f4 	addiu	a0,a1,500
@@ -400,10 +424,10 @@ Disassembly of section .text:
 [0-9a-f]+ <[^>]*> 3025 01f4 	addiu	at,a1,500
 [0-9a-f]+ <[^>]*> 6081 9000 	scx	a0,0\(at\)
 [0-9a-f]+ <[^>]*> 6085 b000 	sc	a0,0\(a1\)
-[0-9a-f]+ <[^>]*> cfff      	bc	000003ee <[^>]*>
+[0-9a-f]+ <[^>]*> cfff      	bc	0000041e <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC10_S1	.L1.1
 [0-9a-f]+ <[^>]*> 6085 b000 	sc	a0,0\(a1\)
-[0-9a-f]+ <[^>]*> cfff      	bc	000003f4 <[^>]*>
+[0-9a-f]+ <[^>]*> cfff      	bc	00000424 <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC10_S1	.L1.1
 [0-9a-f]+ <[^>]*> 6085 64ff 	llxe	a0,255\(a1\)
 [0-9a-f]+ <[^>]*> 6085 6500 	llxe	a0,-256\(a1\)
@@ -414,10 +438,10 @@ Disassembly of section .text:
 [0-9a-f]+ <[^>]*> 3025 01f4 	addiu	at,a1,500
 [0-9a-f]+ <[^>]*> 6081 a000 	scxe	a0,0\(at\)
 [0-9a-f]+ <[^>]*> 6085 ac00 	sce	a0,0\(a1\)
-[0-9a-f]+ <[^>]*> cfff      	bc	0000041a <[^>]*>
+[0-9a-f]+ <[^>]*> cfff      	bc	0000044a <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC10_S1	.L1.1
 [0-9a-f]+ <[^>]*> 6085 ac00 	sce	a0,0\(a1\)
-[0-9a-f]+ <[^>]*> cfff      	bc	00000420 <[^>]*>
+[0-9a-f]+ <[^>]*> cfff      	bc	00000450 <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC10_S1	.L1.1
 [0-9a-f]+ <[^>]*> 0c00      	nop
 	\.\.\.

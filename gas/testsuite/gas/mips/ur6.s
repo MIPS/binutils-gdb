@@ -221,8 +221,27 @@ foo:
         jialc        $3,32767
 
         aui      $3, $2, 0xffff
-        lapc     $4, .+(-262144 << 2)
-        lapc     $4, .+(262143 << 2)
+	.align 2
+2:
+	.word 4
+3:
+        lapc     $4, 2b+(-4 << 2)
+	nop16
+        lapc     $4, 2b+(-4 << 2)
+	b 3b
+	
+	.align 2
+2:
+        lapc     $4, 2b+(-262144 << 2)
+2:
+	nop16
+        lapc     $4, 2b+(-262144 << 2)
+	.align 2
+2:
+        lapc     $4, 2b+(262143 << 2)
+2:
+	nop16
+        lapc     $4, 2b+(262143 << 2)
         addiupc  $4, (-262144 << 2)
         addiupc  $4, (262143 << 2)
         addiu    $8,$pc, (-262144 << 2)
@@ -230,11 +249,20 @@ foo:
         auipc    $3, 0xffff
         aluipc   $3, 0xffff
         lwpc     $4, 1f
-        lwpc     $4, .+(-262144 << 2)
-        lwpc     $4, .+(262143 << 2)
+	.align 2
+2:
+        lwpc     $4, 2b+(-262144 << 2)
+2:
+	nop16
+        lwpc     $4, 2b+(-262144 << 2)
+	.align 2
+2:
+        lwpc     $4, 2b+(262143 << 2)
+2:
+	nop16
+        lwpc     $4, 2b+(262143 << 2)
         lw       $4, (-262144 << 2)($pc)
         lw       $4, (262143 << 2)($pc)
-
         rint.s   $f2,$f3
         rint.d   $f2,$f3
         class.s  $f2,$f3
@@ -273,6 +301,7 @@ foo:
         jalrc.hb $0, $v0
         jrc.hb   $10
 
+	.align 2
 1:
         nop
 

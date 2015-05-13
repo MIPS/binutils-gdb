@@ -6163,6 +6163,12 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 21);
 
+      /* If the user targetted a code label instead of data then
+	 we mask the LSB.  For data labels then we do a full alignment
+	 check.  */
+      if (target_is_micromips_code_p)
+	symbol = (symbol | 1) ^ 1;
+
       if ((symbol + addend) & 7)
 	return bfd_reloc_outofrange;
 
@@ -6177,6 +6183,12 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
     case R_MICROMIPS_PC19_S2:
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 21);
+
+      /* If the user targetted a code label instead of data then
+	 we mask the LSB.  For data labels then we do a full alignment
+	 check.  */
+      if (target_is_micromips_code_p)
+	symbol = (symbol | 1) ^ 1;
 
       if ((symbol + addend) & 3)
 	return bfd_reloc_outofrange;
