@@ -41,6 +41,8 @@ typedef address_word sim_cia;
 
 #include "sim-base.h"
 #include "bfd.h"
+#include "elf-bfd.h"
+#include "elf/mips.h"
 
 /* Deprecated macros and types for manipulating 64bit values.  Use
    ../common/sim-bits.h and ../common/sim-endian.h macros instead. */
@@ -59,6 +61,20 @@ typedef unsigned64 uword64;
 #define NOTHALFWORDVALUE(v) ((((((uword64)(v)>>16) == 0) && !((v) & ((unsigned)1 << 15))) || (((((uword64)(v)>>32) == 0xFFFFFFFF) && ((((uword64)(v)>>16) & 0xFFFF) == 0xFFFF)) && ((v) & ((unsigned)1 << 15)))) ? (1 == 0) : (1 == 1))
 
 
+typedef enum {
+  cp0_dmfc0,
+  cp0_dmtc0,
+  cp0_mfc0,
+  cp0_mtc0,
+  cp0_tlbr,
+  cp0_tlbwi,
+  cp0_tlbwr,
+  cp0_tlbp,
+  cp0_cache,
+  cp0_eret,
+  cp0_deret,
+  cp0_rfe
+} CP0_operation;
 
 /* Floating-point operations: */
 
@@ -73,6 +89,9 @@ typedef enum {
  fmt_word    = 4,
  fmt_long    = 5,
  fmt_ps      = 6,
+ /* The following is a special case for FP conditions where only
+    the lower 32bits are considered. This is a HACK */
+ fmt_dc32    = 7,
  /* The following are well outside the normal acceptable format
     range, and are used in the register status vector. */
  fmt_unknown       = 0x10000000,
@@ -98,6 +117,12 @@ typedef enum {
 #define SizeFGR() (WITH_TARGET_FLOATING_POINT_BITSIZE)
 #endif
 
+/* R6 onwards uses an IEEE754-2008 compliant floating point library,
+ * but everything up to R2 uses an IEEE752-1975 compliant system.
+ * Multi-simulators lets us have both R2+R6 compiled in, so we have to detect
+ * from the BFD as to which behaviour to use. */
+#define COP1_IS_IEEE754_2008(sd) (\
+	  elf_elfheader(STATE_PROG_BFD(sd))->e_flags & EF_MIPS_NAN2008)
 
 
 
@@ -264,6 +289,7 @@ struct _sim_cpu {
 #define DSPC ((CPU)->dspc)
 
 #define DELAY_SLOT(TARGET) NIA = delayslot32 (SD_, (TARGET))
+#define FORBIDDEN_SLOT() { NIA = forbiddenslot32 (SD_); }
 #define NULLIFY_NEXT_INSTRUCTION() NIA = nullify_next_insn32 (SD_)
 
 
@@ -274,15 +300,16 @@ struct _sim_cpu {
 #define DSSTATE ((CPU)->dsstate)
 
 /* Flags in the "state" variable: */
-#define simHALTEX       (1 << 2)  /* 0 = run; 1 = halt on exception */
-#define simHALTIN       (1 << 3)  /* 0 = run; 1 = halt on interrupt */
-#define simTRACE        (1 << 8)  /* 0 = do nothing; 1 = trace address activity */
-#define simPCOC0        (1 << 17) /* COC[1] from current */
-#define simPCOC1        (1 << 18) /* COC[1] from previous */
-#define simDELAYSLOT    (1 << 24) /* 0 = do nothing; 1 = delay slot entry exists */
-#define simSKIPNEXT     (1 << 25) /* 0 = do nothing; 1 = skip instruction */
-#define simSIGINT	(1 << 28)  /* 0 = do nothing; 1 = SIGINT has occured */
-#define simJALDELAYSLOT	(1 << 29) /* 1 = in jal delay slot */
+#define simHALTEX        (1 << 2)  /* 0 = run; 1 = halt on exception */
+#define simHALTIN        (1 << 3)  /* 0 = run; 1 = halt on interrupt */
+#define simTRACE         (1 << 8)  /* 0 = do nothing; 1 = trace address activity */
+#define simPCOC0         (1 << 17) /* COC[1] from current */
+#define simPCOC1         (1 << 18) /* COC[1] from previous */
+#define simDELAYSLOT     (1 << 24) /* 0 = do nothing; 1 = delay slot entry exists */
+#define simSKIPNEXT      (1 << 25) /* 0 = do nothing; 1 = skip instruction */
+#define simSIGINT        (1 << 28)  /* 0 = do nothing; 1 = SIGINT has occured */
+#define simJALDELAYSLOT  (1 << 29) /* 1 = in jal delay slot */
+#define simFORBIDDENSLOT (1 << 30) /* 1 = n forbidden slot */
 
 #ifndef ENGINE_ISSUE_PREFIX_HOOK
 #define ENGINE_ISSUE_PREFIX_HOOK() \
@@ -554,6 +581,10 @@ struct sim_state {
 /* Bits reserved for implementations:  */
 #define status_SBX       (1 << 16)      /* Enable SiByte SB-1 extensions.  */
 
+/* From R6 onwards, some instructions (e.g. ADDIUPC) change behaviour based
+ * on the Status.UX bits to either sign extend, or act as full 64 bit. */
+#define status_optional_EXTEND32(x) ((SR & status_UX) ? x : EXTEND32(x))
+
 #define cause_BD ((unsigned)1 << 31)    /* L1 Exception in branch delay slot */
 #define cause_BD2         (1 << 30)     /* L2 Exception in branch delay slot */
 #define cause_CE_mask     0x30000000	/* Coprocessor exception */
@@ -708,9 +739,12 @@ cop_sw (SD, CPU, cia, coproc_num, coproc_reg)
 cop_sd (SD, CPU, cia, coproc_num, coproc_reg)
 
 
-void decode_coproc (SIM_DESC sd, sim_cpu *cpu, address_word cia, unsigned int instruction);
-#define DecodeCoproc(instruction) \
-decode_coproc (SD, CPU, cia, (instruction))
+void decode_coproc (SIM_DESC sd, sim_cpu *cpu, address_word cia,
+		    unsigned int instruction, int coprocnum, CP0_operation op,
+		    int rt, int rd, int sel);
+#define DecodeCoproc(instruction,coprocnum,op,rt,rd,sel) \
+  decode_coproc (SD, CPU, cia, (instruction), (coprocnum), (op), \
+		 (rt), (rd), (sel))
 
 int sim_monitor (SIM_DESC sd, sim_cpu *cpu, address_word cia, unsigned int arg);
   
@@ -738,8 +772,52 @@ void test_fcsr (SIM_STATE);
 
 
 /* FPU operations.  */
+/* Non-signalling */
+#define FP_R6CMP_AF  0x0
+#define FP_R6CMP_EQ  0x2
+#define FP_R6CMP_LE  0x6
+#define FP_R6CMP_LT  0x4
+#define FP_R6CMP_NE  0x13
+#define FP_R6CMP_OR  0x11
+#define FP_R6CMP_UEQ 0x3
+#define FP_R6CMP_ULE 0x7
+#define FP_R6CMP_ULT 0x5
+#define FP_R6CMP_UN  0x1
+#define FP_R6CMP_UNE 0x12
+
+/* Signalling */
+#define FP_R6CMP_SAF  0x8
+#define FP_R6CMP_SEQ  0xa
+#define FP_R6CMP_SLE  0xe
+#define FP_R6CMP_SLT  0xc
+#define FP_R6CMP_SNE  0x1b
+#define FP_R6CMP_SOR  0x19
+#define FP_R6CMP_SUEQ 0xb
+#define FP_R6CMP_SULE 0xf
+#define FP_R6CMP_SULT 0xd
+#define FP_R6CMP_SUN  0x9
+#define FP_R6CMP_SUNE 0x1a
+
+/* FPU Class */
+#define FP_R6CLASS_SNAN    (1<<0)
+#define FP_R6CLASS_QNAN    (1<<1)
+#define FP_R6CLASS_NEGINF  (1<<2)
+#define FP_R6CLASS_NEGNORM (1<<3)
+#define FP_R6CLASS_NEGSUB  (1<<4)
+#define FP_R6CLASS_NEGZERO (1<<5)
+#define FP_R6CLASS_POSINF  (1<<6)
+#define FP_R6CLASS_POSNORM (1<<7)
+#define FP_R6CLASS_POSSUB  (1<<8)
+#define FP_R6CLASS_POSZERO (1<<9)
+
 void fp_cmp (SIM_STATE, unsigned64 op1, unsigned64 op2, FP_formats fmt, int abs, int cond, int cc);
 #define Compare(op1,op2,fmt,cond,cc) fp_cmp(SIM_ARGS, op1, op2, fmt, 0, cond, cc)
+unsigned64 fp_r6_cmp (SIM_STATE, unsigned64 op1, unsigned64 op2, FP_formats fmt, int cond);
+#define R6Compare(op1,op2,fmt,cond) fp_r6_cmp(SIM_ARGS, op1, op2, fmt, cond)
+unsigned64 fp_classify(SIM_STATE, unsigned64 op, FP_formats fmt);
+#define Classify(op, fmt) fp_classify(SIM_ARGS, op, fmt)
+int fp_rint(SIM_STATE, unsigned64 op, unsigned64 *ans, FP_formats fmt);
+#define RoundToIntegralExact(op, ans, fmt) fp_rint(SIM_ARGS, op, ans, fmt)
 unsigned64 fp_abs (SIM_STATE, unsigned64 op, FP_formats fmt);
 #define AbsoluteValue(op,fmt) fp_abs(SIM_ARGS, op, fmt)
 unsigned64 fp_neg (SIM_STATE, unsigned64 op, FP_formats fmt);
@@ -752,6 +830,14 @@ unsigned64 fp_mul (SIM_STATE, unsigned64 op1, unsigned64 op2, FP_formats fmt);
 #define Multiply(op1,op2,fmt) fp_mul(SIM_ARGS, op1, op2, fmt)
 unsigned64 fp_div (SIM_STATE, unsigned64 op1, unsigned64 op2, FP_formats fmt);
 #define Divide(op1,op2,fmt) fp_div(SIM_ARGS, op1, op2, fmt)
+unsigned64 fp_min (SIM_STATE, unsigned64 op1, unsigned64 op2, FP_formats fmt);
+#define Min(op1,op2,fmt) fp_min(SIM_ARGS, op1, op2, fmt)
+unsigned64 fp_max (SIM_STATE, unsigned64 op1, unsigned64 op2, FP_formats fmt);
+#define Max(op1,op2,fmt) fp_max(SIM_ARGS, op1, op2, fmt)
+unsigned64 fp_mina (SIM_STATE, unsigned64 op1, unsigned64 op2, FP_formats fmt);
+#define MinA(op1,op2,fmt) fp_mina(SIM_ARGS, op1, op2, fmt)
+unsigned64 fp_maxa (SIM_STATE, unsigned64 op1, unsigned64 op2, FP_formats fmt);
+#define MaxA(op1,op2,fmt) fp_maxa(SIM_ARGS, op1, op2, fmt)
 unsigned64 fp_recip (SIM_STATE, unsigned64 op, FP_formats fmt);
 #define Recip(op,fmt) fp_recip(SIM_ARGS, op, fmt)
 unsigned64 fp_sqrt (SIM_STATE, unsigned64 op, FP_formats fmt);
@@ -760,6 +846,12 @@ unsigned64 fp_rsqrt (SIM_STATE, unsigned64 op, FP_formats fmt);
 #define RSquareRoot(op,fmt) fp_rsqrt(SIM_ARGS, op, fmt)
 unsigned64 fp_madd (SIM_STATE, unsigned64 op1, unsigned64 op2,
 		    unsigned64 op3, FP_formats fmt);
+#define FusedMultiplyAdd(op1,op2,op3,fmt) fp_fmadd(SIM_ARGS, op1, op2, op3, fmt)
+unsigned64 fp_fmadd (SIM_STATE, unsigned64 op1, unsigned64 op2,
+                     unsigned64 op3, FP_formats fmt);
+#define FusedMultiplySub(op1,op2,op3,fmt) fp_fmsub(SIM_ARGS, op1, op2, op3, fmt)
+unsigned64 fp_fmsub (SIM_STATE, unsigned64 op1, unsigned64 op2,
+                     unsigned64 op3, FP_formats fmt);
 #define MultiplyAdd(op1,op2,op3,fmt) fp_madd(SIM_ARGS, op1, op2, op3, fmt)
 unsigned64 fp_msub (SIM_STATE, unsigned64 op1, unsigned64 op2,
 		    unsigned64 op3, FP_formats fmt);
@@ -775,7 +867,6 @@ unsigned64 convert (SIM_STATE, int rm, unsigned64 op, FP_formats from, FP_format
 unsigned64 convert_ps (SIM_STATE, int rm, unsigned64 op, FP_formats from,
 		       FP_formats to);
 #define ConvertPS(rm,op,from,to) convert_ps (SIM_ARGS, rm, op, from, to)
-
 
 /* MIPS-3D ASE operations.  */
 #define CompareAbs(op1,op2,fmt,cond,cc) \
@@ -974,6 +1065,25 @@ INLINE_SIM_MAIN (unsigned32) ifetch32 (SIM_DESC sd, sim_cpu *cpu, address_word c
 INLINE_SIM_MAIN (unsigned16) ifetch16 (SIM_DESC sd, sim_cpu *cpu, address_word cia, address_word vaddr);
 #define IMEM16(CIA) ifetch16 (SD, CPU, (CIA), ((CIA) & ~1))
 #define IMEM16_IMMED(CIA,NR) ifetch16 (SD, CPU, (CIA), ((CIA) & ~1) + 2 * (NR))
+#define IMEM32_MICROMIPS(CIA) \
+  (ifetch16 (SD, CPU, (CIA), (CIA)) << 16 | ifetch16 (SD, CPU, (CIA + 2), \
+						      (CIA + 2)))
+#define IMEM16_MICROMIPS(CIA) ifetch16 (SD, CPU, (CIA), ((CIA)))
+
+#define MICROMIPS_MINOR_OPCODE(INSN) ((INSN & 0x1C00) >> 10)
+
+#define MICROMIPS_DELAYSLOT_SIZE_ANY 0
+#define MICROMIPS_DELAYSLOT_SIZE_16 2
+#define MICROMIPS_DELAYSLOT_SIZE_32 4
+
+extern int isa_mode;
+
+#define ISA_MODE_MIPS32 0
+#define ISA_MODE_MICROMIPS 1
+
+address_word micromips_instruction_decode (SIM_DESC sd, sim_cpu * cpu,
+					   address_word cia,
+					   int instruction_size);
 
 void dotrace (SIM_DESC sd, sim_cpu *cpu, FILE *tracefh, int type, SIM_ADDR address, int width, char *comment, ...);
 extern FILE *tracefh;
