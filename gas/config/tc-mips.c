@@ -15425,7 +15425,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
     case BFD_RELOC_MICROMIPS_18_PCREL_S3:
     case BFD_RELOC_MIPS_18_PCREL_S3:
       {
-	bfd_vma sym_val = S_GET_VALUE (fixP->fx_addsy);;
+	bfd_vma sym_val = S_GET_VALUE (fixP->fx_addsy);
 
 	if (ELF_ST_IS_MICROMIPS (S_GET_OTHER (fixP->fx_addsy)))
 	  sym_val = (sym_val | 1) ^ 1;
@@ -15446,7 +15446,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
     case BFD_RELOC_MICROMIPS_19_PCREL_S2:
     case BFD_RELOC_MIPS_19_PCREL_S2:
       {
-	bfd_vma sym_val = S_GET_VALUE (fixP->fx_addsy);;
+	bfd_vma sym_val = S_GET_VALUE (fixP->fx_addsy);
 
 	if (ELF_ST_IS_MICROMIPS (S_GET_OTHER (fixP->fx_addsy)))
 	  sym_val = (sym_val | 1) ^ 1;
