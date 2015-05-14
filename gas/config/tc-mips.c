@@ -18671,7 +18671,7 @@ static const struct mips_cpu_info mips_cpu_info_table[] =
   { "1004kf",         0, ASE_DSP | ASE_MT,	ISA_MIPS32R2, CPU_MIPS32R2 },
   { "1004kf1_1",      0, ASE_DSP | ASE_MT,	ISA_MIPS32R2, CPU_MIPS32R2 },
   /* M5100 family */
-  { "m5100",          0, 0,			ISA_MIPS32R5, CPU_MIPS32R5 },
+  { "m5100",          0, ASE_MCU,		ISA_MIPS32R5, CPU_MIPS32R5 },
   /* P5600 with EVA and Virtualization ASEs, other ASEs are optional.  */
   { "p5600",          0, ASE_VIRT | ASE_EVA | ASE_XPA, 	ISA_MIPS32R5, CPU_MIPS32R5 },
 
