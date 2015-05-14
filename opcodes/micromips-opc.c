@@ -810,17 +810,17 @@ const struct mips_opcode micromips_opcodes[] =
 {"jr",			"mj",		    0x4580,     0xffe0,	RD_1|UBD,		0,		I1,		0,	I37 },
 {"jr",			"mp",		    0x4403,     0xfc1f,	RD_1,			INSN2_ALIAS|UBR|CTC, I37,	0,	0 }, /* jrc16 */
 {"jr",			"s",		0x00000f3c, 0xffe0ffff,	RD_1|UBD,		BD32,		I1,		0,	I37 }, /* jalr */
-{"jr",			"s",		0xa0000000, 0xffe0ffff,	RD_1,			INSN2_ALIAS|UBR|CTC, I37,	0,	0 }, /* jic */
+{"jr",			"s",		0x80000000, 0xffe0ffff,	RD_1,			INSN2_ALIAS|UBR|CTC, I37,	0,	0 }, /* jic */
 {"jrs",			"s",		0x00004f3c, 0xffe0ffff,	RD_1|UBD,		BD16,		I1,		0,	I37 }, /* jalrs */
 {"jrcaddiusp",		"+P",		    0x4413,     0xfc1f,	0,			WR_sp|RD_31|RD_sp|UBR, I37,	0,	0 },
 {"jraddiusp",		"mP",		    0x4700,     0xffe0,	NODS,			WR_sp|RD_31|RD_sp|UBR, I1,	0,	I37 },
-{"jraddiusp",		"+P",		    0x4413,     0xfc1f,	0,			INSN2_ALIAS|WR_sp|RD_31|RD_sp|UBR|CTC, I37,	0,	0 },
+{"jraddiusp",		"+P",		    0x4413,     0xfc1f,	0,			INSN2_ALIAS|WR_sp|RD_31|RD_sp|UBR, I37,	0,	0 },
 /* This macro is after the real instruction so that it only matches with
    -minsn32.  */
 {"jraddiusp",		"mP",		0,   (int) M_JRADDIUSP,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"jrc",			"mp",		    0x4403,     0xfc1f,	RD_1,			UBR,		I37,		0,	0 },
 {"jrc",			"mj",		    0x45a0,     0xffe0,	RD_1|NODS,		UBR,		I1,		0,	I37 },
-{"jrc",			"s",		0xa0000000, 0xffe0ffff,	RD_1,			INSN2_ALIAS|UBR|CTC, I37,	0,	0 }, /* jic */
+{"jrc",			"s",		0x80000000, 0xffe0ffff,	RD_1,			INSN2_ALIAS|UBR, I37,	0,	0 }, /* jic */
 /* This macro is after the real instruction so that it only matches with
    -minsn32.  */
 {"jrc",			"s",		0,    (int) M_JRC,	INSN_MACRO,		0,		I1,		0,	I37 },
@@ -832,7 +832,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"j",			"mp",		    0x4403,     0xfc1f,	RD_1,			INSN2_ALIAS|UBR|CTC, I37,	0,	0 }, /* jrc16 */
 {"j",			"+'",		0x94000000, 0xfc000000,	0,			INSN2_ALIAS|UBR|CTC, I37,	0,	0 }, /* bc */
 {"j",			"s",		0x00000f3c, 0xffe0ffff,	RD_1|UBD,		BD32,		I1,		0,	I37 }, /* jr */
-{"j",			"s",		0xa0000000, 0xffe0ffff,	RD_1,			INSN2_ALIAS|UBR|CTC, I37,	0,	0 }, /* jic */
+{"j",			"s",		0x80000000, 0xffe0ffff,	RD_1,			INSN2_ALIAS|UBR|CTC, I37,	0,	0 }, /* jic */
 /* SVR4 PIC code requires special handling for j, so it must be a
    macro.  */
 {"j",			"a",		0,    (int) M_J_A,	INSN_MACRO,		0,		I1,		0,	I37 },
@@ -1352,8 +1352,8 @@ const struct mips_opcode micromips_opcodes[] =
 {"bltzalc",		"+;,p",		0xe0000000, 0xfc000000,	RD_1|WR_31,		CBR,		I37,		0,	0 },
 {"bltuc",		"-s,-v,p",	0xe0000000, 0xfc000000,	RD_1|RD_2,		CBR,		I37,		0,	0 },
 
-{"jic",			"s,j",		0xa0000000, 0xffe00000,	RD_1,			UBR,		I37,		0,	0 },
-{"jialc",		"s,j",		0x80000000, 0xffe00000,	RD_1,			UBR,		I37,		0,	0 },
+{"jic",			"s,j",		0x80000000, 0xffe00000,	RD_1,			UBR,		I37,		0,	0 },
+{"jialc",		"s,j",		0xa0000000, 0xffe00000,	RD_1,			UBR,		I37,		0,	0 },
 
 {"cmp.af.s",		"D,S,T",	0x54000005, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_S,	0,		I37,		0,	0 },
 {"cmp.af.d",		"D,S,T",	0x54000015, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 },
