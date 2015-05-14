@@ -76,6 +76,8 @@ static int mips16_insn_at_pc_has_delay_slot (struct gdbarch *gdbarch,
 static void mips_print_float_info (struct gdbarch *, struct ui_file *,
 				   struct frame_info *, const char *);
 
+static void mips_read_fp_register_double (struct frame_info *frame, int regno,
+					  gdb_byte *rare_buffer);
 /* A useful bit in the CP0 status register (MIPS_PS_REGNUM).  */
 /* This bit is set if we are emulating 32-bit FPRs on a 64-bit chip.  */
 #define ST0_FR (1 << 26)
@@ -1601,6 +1603,16 @@ is_octeon_bbit_op (int op, struct gdbarch *gdbarch)
   return 0;
 }
 
+/* Return one if the gdbarch is based on MIPS Release 6.  */
+
+static int
+is_mipsr6_isa (struct gdbarch *gdbarch)
+{
+  const struct bfd_arch_info *info = gdbarch_bfd_arch_info (gdbarch);
+
+  return (info->mach == bfd_mach_mipsisa32r6
+	  || info->mach == bfd_mach_mipsisa64r6);
+}
 
 /* Determine where to set a single step breakpoint while considering
    branch prediction.  */
@@ -1633,6 +1645,46 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
 	      pc += 4;
 	    }
 	}
+      /* BC1EQZ.  This code will need checking when SEL.D is output
+	 from the compiler.  */
+      else if (is_mipsr6_isa (gdbarch) && op == 17 && itype_rs (inst) == 9)
+	{
+	  gdb_byte status;
+	  gdb_byte *raw_buffer = alloca (sizeof (gdb_byte) * 8);
+	  mips_read_fp_register_double (frame, itype_rt (inst) +
+					gdbarch_num_regs (gdbarch) +
+					mips_regnum (gdbarch)->fp0,
+					raw_buffer);
+	  if (gdbarch_byte_order (gdbarch) == BFD_ENDIAN_BIG)
+	    status = *(raw_buffer + 7);
+	  else
+	    status = *(raw_buffer);
+
+	  if ((status & 0x1) == 0)
+	    pc += mips32_relative_offset (inst) + 4;
+	  else
+	    pc += 8;
+	}
+      /* BC1NEZ.  This code will need checking when SEL.D is output
+	 from the compiler.  */
+      else if (is_mipsr6_isa (gdbarch) && op == 17 && itype_rs (inst) == 13)
+	{
+	  gdb_byte status;
+	  gdb_byte *raw_buffer = alloca (sizeof (gdb_byte) * 8);
+	  mips_read_fp_register_double (frame, itype_rt (inst) +
+					gdbarch_num_regs (gdbarch) +
+					mips_regnum (gdbarch)->fp0,
+					raw_buffer);
+	  if (gdbarch_byte_order (gdbarch) == BFD_ENDIAN_BIG)
+	    status = *(raw_buffer + 7);
+	  else
+	    status = *(raw_buffer);
+
+	  if ((status & 0x1) == 1)
+	    pc += mips32_relative_offset (inst) + 4;
+	  else
+	    pc += 8;
+	}
       else if (op == 17 && itype_rs (inst) == 8)
 	/* BC1F, BC1FL, BC1T, BC1TL: 010001 01000 */
 	pc = mips32_bc1_pc (gdbarch, frame, inst, pc + 4, 1);
@@ -1644,7 +1696,7 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
 	       && (itype_rt (inst) & 2) == 0)
 	/* BC1ANY4F, BC1ANY4T: 010001 01010 xxx0x */
 	pc = mips32_bc1_pc (gdbarch, frame, inst, pc + 4, 4);
-      else if (op == 29)
+      else if (!is_mipsr6_isa (gdbarch) && op == 29)
 	/* JALX: 011101 */
 	/* The new PC will be alternate mode.  */
 	{
@@ -3455,7 +3507,8 @@ restart:
       reg = high_word & 0x1f;
 
       if (high_word == 0x27bd		/* addiu $sp,$sp,-i */
-	  || high_word == 0x23bd	/* addi $sp,$sp,-i */
+	  || (high_word == 0x23bd	/* addi $sp,$sp,-i */
+	      && !is_mipsr6_isa (gdbarch))
 	  || high_word == 0x67bd)	/* daddiu $sp,$sp,-i */
 	{
 	  if (offset < 0)		/* Negative stack adjustment?  */
@@ -3895,6 +3948,11 @@ mips_addr_bits_remove (struct gdbarch *gdbarch, CORE_ADDR addr)
 #define LLD_OPCODE 0x34
 #define SC_OPCODE 0x38
 #define SCD_OPCODE 0x3c
+#define LLSC_R6_OPCODE 0x1f
+#define LL_R6_FUNCT 0x36
+#define LLD_R6_FUNCT 0x37
+#define SC_R6_FUNCT 0x26
+#define SCD_R6_FUNCT 0x27
 
 static int
 mips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
@@ -3908,10 +3966,16 @@ mips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
   int index;
   int last_breakpoint = 0; /* Defaults to 0 (no breakpoints placed).  */  
   const int atomic_sequence_length = 16; /* Instruction sequence length.  */
+  int is_mipsr6 = is_mipsr6_isa (gdbarch);
 
   insn = mips_fetch_instruction (gdbarch, ISA_MIPS, loc, NULL);
   /* Assume all atomic sequences start with a ll/lld instruction.  */
-  if (itype_op (insn) != LL_OPCODE && itype_op (insn) != LLD_OPCODE)
+  if (itype_op (insn) != LL_OPCODE
+      && itype_op (insn) != LLD_OPCODE
+      && (!is_mipsr6
+	  || rtype_op (insn) != LLSC_R6_OPCODE
+	  || (rtype_funct (insn) != LL_R6_FUNCT
+	      && rtype_funct (insn) != LLD_R6_FUNCT)))
     return 0;
 
   /* Assume that no atomic sequence is longer than "atomic_sequence_length" 
@@ -3946,18 +4010,23 @@ mips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 	case 20: /* BEQL */
 	case 21: /* BNEL */
 	case 22: /* BLEZL */
-	case 23: /* BGTTL */
+	case 23: /* BGTZL */
 	  is_branch = 1;
 	  break;
 	case 17: /* COP1 */
-	  is_branch = ((itype_rs (insn) == 9 || itype_rs (insn) == 10)
+	  is_branch = (!is_mipsr6
+		       && (itype_rs (insn) == 9 || itype_rs (insn) == 10)
 		       && (itype_rt (insn) & 0x2) == 0);
 	  if (is_branch) /* BC1ANY2F, BC1ANY2T, BC1ANY4F, BC1ANY4T */
 	    break;
 	/* Fall through.  */
 	case 18: /* COP2 */
 	case 19: /* COP3 */
-	  is_branch = (itype_rs (insn) == 8); /* BCzF, BCzFL, BCzT, BCzTL */
+			/* BCzF, BCzFL, BCzT, BCzTL, BC*EQZ, BC*NEZ */
+	  is_branch = (itype_rs (insn) == 8)
+		       || (is_mipsr6
+			   && (itype_rs (insn) == 9
+			       || itype_rs (insn) == 13));
 	  break;
 	}
       if (is_branch)
@@ -3970,12 +4039,22 @@ mips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 	  last_breakpoint++;
 	}
 
-      if (itype_op (insn) == SC_OPCODE || itype_op (insn) == SCD_OPCODE)
+      if (itype_op (insn) == SC_OPCODE
+	  || itype_op (insn) == SCD_OPCODE
+	  || (is_mipsr6
+	      && rtype_op (insn) == LLSC_R6_OPCODE
+	      && (rtype_funct (insn) == SC_R6_FUNCT
+		  || rtype_funct (insn) == SCD_R6_FUNCT)))
 	break;
     }
 
   /* Assume that the atomic sequence ends with a sc/scd instruction.  */
-  if (itype_op (insn) != SC_OPCODE && itype_op (insn) != SCD_OPCODE)
+    if (itype_op (insn) == SC_OPCODE
+	|| itype_op (insn) == SCD_OPCODE
+	|| (is_mipsr6
+	    && rtype_op (insn) == LLSC_R6_OPCODE
+	    && (rtype_funct (insn) == SC_R6_FUNCT
+		|| rtype_funct (insn) == SCD_R6_FUNCT)))
     return 0;
 
   loc += MIPS_INSN32_SIZE;
@@ -4203,8 +4282,14 @@ mips_about_to_return (struct gdbarch *gdbarch, CORE_ADDR pc)
   gdb_assert (mips_pc_is_mips (pc));
 
   insn = mips_fetch_instruction (gdbarch, ISA_MIPS, pc, NULL);
-  hint = 0x7c0;
-  return (insn & ~hint) == 0x3e00008;			/* jr(.hb) $ra */
+  /* Mask the hint and the jalr/jr bit */
+  hint = 0x7c1;
+
+  if (is_mipsr6_isa (gdbarch) && insn == 0xd81f0000) /* jrc $31 */
+    return 1;
+
+  /* jr(.hb) $ra and "jalr(.hb) $ra" */
+  return ((insn & ~hint) == 0x3e00008);
 }
 
 
@@ -6721,7 +6806,9 @@ mips32_in_function_epilogue_p (struct gdbarch *gdbarch, CORE_ADDR pc)
 
 	  if (high_word != 0x27bd	/* addiu $sp,$sp,offset */
 	      && high_word != 0x67bd	/* daddiu $sp,$sp,offset */
-	      && inst != 0x03e00008	/* jr $ra */
+	      && (inst & ~0x1) != 0x03e00008 /* jr $31 or jalr $0, $31 */
+	      && (!is_mipsr6_isa (gdbarch)
+		  || inst != 0xd81f0000) /* jrc $31 */
 	      && inst != 0x00000000)	/* nop */
 	    return 0;
 	}
@@ -7047,12 +7134,17 @@ gdb_print_insn_mips (bfd_vma memaddr, struct disassemble_info *info)
 
   /* Set the disassembler options.  */
   if (!info->disassembler_options)
+    {
     /* This string is not recognized explicitly by the disassembler,
        but it tells the disassembler to not try to guess the ABI from
        the bfd elf headers, such that, if the user overrides the ABI
        of a program linked as NewABI, the disassembly will follow the
        register naming conventions specified by the user.  */
-    info->disassembler_options = "gpr-names=32";
+      if (is_mipsr6_isa (gdbarch))
+	info->disassembler_options = "gpr-names=32,dis-both-r5-and-r6=1";
+      else
+	info->disassembler_options = "gpr-names=32";
+    }
 
   /* Call the appropriate disassembler based on the target endian-ness.  */
   if (info->endian == BFD_ENDIAN_BIG)
@@ -7066,7 +7158,10 @@ gdb_print_insn_mips_n32 (bfd_vma memaddr, struct disassemble_info *info)
 {
   /* Set up the disassembler info, so that we get the right
      register names from libopcodes.  */
-  info->disassembler_options = "gpr-names=n32";
+  if (is_mipsr6_isa (info->application_data))
+    info->disassembler_options = "gpr-names=n32,dis-both-r5-and-r6=1";
+  else
+    info->disassembler_options = "gpr-names=n32";
   info->flavour = bfd_target_elf_flavour;
 
   return gdb_print_insn_mips (memaddr, info);
@@ -7077,7 +7172,10 @@ gdb_print_insn_mips_n64 (bfd_vma memaddr, struct disassemble_info *info)
 {
   /* Set up the disassembler info, so that we get the right
      register names from libopcodes.  */
-  info->disassembler_options = "gpr-names=64";
+  if (is_mipsr6_isa (info->application_data))
+    info->disassembler_options = "gpr-names=64,dis-both-r5-and-r6=1";
+  else
+    info->disassembler_options = "gpr-names=64";
   info->flavour = bfd_target_elf_flavour;
 
   return gdb_print_insn_mips (memaddr, info);
@@ -7247,14 +7345,21 @@ mips32_instruction_has_delay_slot (struct gdbarch *gdbarch, ULONGEST inst)
       rt = itype_rt (inst);
       return (is_octeon_bbit_op (op, gdbarch) 
 	      || op >> 2 == 5	/* BEQL, BNEL, BLEZL, BGTZL: bits 0101xx  */
-	      || op == 29	/* JALX: bits 011101  */
+	      || (!is_mipsr6_isa (gdbarch) && op == 29)	/* JALX: bits 011101  */
 	      || (op == 17
 		  && (rs == 8
 				/* BC1F, BC1FL, BC1T, BC1TL: 010001 01000  */
 		      || (rs == 9 && (rt & 0x2) == 0)
 				/* BC1ANY2F, BC1ANY2T: bits 010001 01001  */
-		      || (rs == 10 && (rt & 0x2) == 0))));
+		      || (rs == 10 && (rt & 0x2) == 0)))
 				/* BC1ANY4F, BC1ANY4T: bits 010001 01010  */
+	      || (is_mipsr6_isa (gdbarch)
+		  && ((op == 17
+		       && (rs == 9  /* BC1EQZ: 010001 01001  */
+			   || rs == 13 /* BC1NEZ: 010001 01101  */ ))
+		      || (op == 18
+			  && (rs == 9 /* BC2EQZ: 010010 01001  */
+			      || rs == 13 /* BC2NEZ: 010010 01101  */ )))));
     }
   else
     switch (op & 0x07)		/* extract bits 28,27,26  */
