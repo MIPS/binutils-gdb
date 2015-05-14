@@ -9,6 +9,7 @@
 
   .data
 d0:   .dword 0
+.align 3
 dval: .dword 0xaa55bb66cc77dd88
 d1:   .dword 0xaaaabbbbccccdddd
 d2:   .dword 256
@@ -35,6 +36,7 @@ d19:  .dword 0xffffabcddead00dd
 d20:  .dword 0xc0de000000000000
 d21:  .dword 0x8000abcddead00dd
 dmask:.dword 0xffffffffffff0000
+.align 2
 dval1: .word 0x1234abcd
 dval2: .word 0xffee0000
 
@@ -121,8 +123,11 @@ DIAG:
 
   writemsg "[17] Test LDPC"
   ld $5, dval
-  nop
   ldpc $4, dval
+  fp_assert $4, $5
+  nop
+  ld $4, d21
+  ldpc $5, d21
   fp_assert $4, $5
 
   writemsg "[18] Test LWUPC"

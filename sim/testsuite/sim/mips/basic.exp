@@ -105,7 +105,7 @@ if {[istarget mips*-*-elf]} {
 	set submodels ""
 	append dspmodels " mips32r2 mips64r2 mips32r6 mips64r6"
 	append mdmxmodels " mips32r2 mips64r2 mips32r6 mips64r6"
-	append micromipsmodels " mips32r2 mips64r2"
+	append micromipsmodels " mips32r2 mips64r2 mips32r6 mips64r6"
 	append micromipsdspmodels " mips32r2 mips64r2"
     } elseif {[istarget mipsisa32*-*-elf]} {
 	set models "mips32 mips32r2"
@@ -146,12 +146,14 @@ if {[istarget mips*-*-elf]} {
     run_sim_tests mips32-dsp.s $dspmodels $micromipsdspmodels
     run_sim_tests mips32-dsp2.s $dspmodels $micromipsdspmodels
 
-    run_sim_test r2-fpu.s $models
+    run_sim_tests r2-fpu.s $models $micromipsmodels
 
     run_sim_test r6-fpu.s $models
-    run_sim_test r6.s $models
+    run_micromips_test r6-fpu-mm.s $micromipsmodels
+    run_sim_tests r6.s $models $micromipsmodels
     run_sim_test r6-forbidden.s $models
+    run_sim_test r6-special.s $models
     run_r6_removed_test r6-removed.s $models
-    run_sim_test r6-64.s $models
-    run_sim_test r6-branch.s $models
+    run_sim_tests r6-64.s $models $micromipsmodels
+    run_sim_tests r6-branch.s $models $micromipsmodels
 }
