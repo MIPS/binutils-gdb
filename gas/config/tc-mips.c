@@ -7499,7 +7499,6 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	      slot.  JRADDIUSP is exempted from the check as it never had
 	      a delay slot.  */
 	   && compact_branch_p (&history[0])
-	   && strcmp (history[0].insn_mo->name, "jraddiusp")
 	   && (history[0].insn_mo->pinfo2 & INSN2_CONVERTED_TO_COMPACT)
 	   && history[0].noreorder_p
 	   && strcmp (ip->insn_mo->name, "nop") != 0)
@@ -7507,7 +7506,7 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
       as_bad (_("unable to convert `%s' to its compact form because it has a non NOP "
 		"instruction (`%s') in its delay slot.  Please move the delay slot "
 		"instruction before the branch and disable noreorder."),
-	      ip->insn_mo->name, history[0].insn_mo->name);
+	      history[0].insn_mo->name, ip->insn_mo->name);
       add_fixed_insn (ip);
     }
   else if (mips_opts.micromips

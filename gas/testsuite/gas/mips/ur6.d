@@ -319,8 +319,8 @@ Disassembly of section .text:
 [	]*[0-9a-f]+: R_MICROMIPS_PC21_S1	L0
 [0-9a-f]+ <[^>]*> 805f fffe 	beqzc	v0,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC21_S1	.L11
-[0-9a-f]+ <[^>]*> a003 8000 	jic	v1,-[0-9]+
-[0-9a-f]+ <[^>]*> a003 7fff 	jic	v1,[0-9]+
+[0-9a-f]+ <[^>]*> 8003 8000 	jic	v1,-[0-9]+
+[0-9a-f]+ <[^>]*> 8003 7fff 	jic	v1,[0-9]+
 [0-9a-f]+ <[^>]*> 47e3      	jrc	ra
 [0-9a-f]+ <[^>]*> ad40      	bnezc	v0,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC7_S1	L0
@@ -334,8 +334,8 @@ Disassembly of section .text:
 [	]*[0-9a-f]+: R_MICROMIPS_PC21_S1	L0
 [0-9a-f]+ <[^>]*> a05f fffe 	bnezc	v0,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC21_S1	.L11
-[0-9a-f]+ <[^>]*> 8003 8000 	jialc	v1,-[0-9]+
-[0-9a-f]+ <[^>]*> 8003 7fff 	jialc	v1,[0-9]+
+[0-9a-f]+ <[^>]*> a003 8000 	jialc	v1,-[0-9]+
+[0-9a-f]+ <[^>]*> a003 7fff 	jialc	v1,[0-9]+
 [0-9a-f]+ <[^>]*> 1062 ffff 	aui	v1,v0,0xffff
 [0-9a-f]+ <[^>]*> 00000004 	sllv	zero,zero,zero
 [0-9a-f]+ <[^>]*> 7887 fffc 	lapc	a0,[0-9a-f]+ <[^>]*>

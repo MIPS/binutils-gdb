@@ -1258,7 +1258,7 @@ static const bfd_vma micromipsr6_insn32_o32_exec_plt_entry[] =
   0x41af, 0x0000,	/* lui $15, %hi(.got.plt entry)		*/
   0xff2f, 0x0000,	/* lw $25, %lo(.got.plt entry)($15)	*/
   0x330f, 0x0000,	/* addiu $24, $15, %lo(.got.plt entry)	*/
-  0xa019, 0x0000	/* jic $25,0				*/
+  0x8019, 0x0000	/* jic $25,0				*/
 };
 
 /* The format of the first PLT entry in a VxWorks executable.  */

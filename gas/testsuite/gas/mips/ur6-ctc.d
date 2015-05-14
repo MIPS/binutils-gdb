@@ -70,15 +70,15 @@ Disassembly of section .text:
 [	]*[0-9a-f]+: R_MICROMIPS_PC16_S1	ext
 [0-9a-f]+ <[^>]*> 4483      	jrc	a0
 [0-9a-f]+ <[^>]*> 4443      	jrc	v0
-[0-9a-f]+ <[^>]*> a002 0000 	jic	v0,0
+[0-9a-f]+ <[^>]*> 8002 0000 	jrc	v0
 [0-9a-f]+ <[^>]*> 97ff fffe 	bc	[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC26_S1	.L11
 [0-9a-f]+ <[^>]*> 97ff fffe 	bc	[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC26_S1	.L11
 [0-9a-f]+ <[^>]*> b7ff fffe 	balc	[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC26_S1	.L11
-[0-9a-f]+ <[^>]*> a004 0000 	jic	a0,0
-[0-9a-f]+ <[^>]*> a004 0000 	jic	a0,0
+[0-9a-f]+ <[^>]*> 8004 0000 	jrc	a0
+[0-9a-f]+ <[^>]*> 8004 0000 	jrc	a0
 [0-9a-f]+ <[^>]*> 448b      	jalrc	a0
 [0-9a-f]+ <[^>]*> 03e4 0f3c 	jalrc	a0
 [0-9a-f]+ <[^>]*> 0085 0f3c 	jalrc	a0,a1
@@ -172,7 +172,7 @@ Disassembly of section .text:
 [0-9a-f]+ <[^>]*> 0c00      	nop
 [0-9a-f]+ <[^>]*> 4443      	jrc	v0
 [0-9a-f]+ <[^>]*> 0c00      	nop
-[0-9a-f]+ <[^>]*> a002 0000 	jic	v0,0
+[0-9a-f]+ <[^>]*> 8002 0000 	jrc	v0
 [0-9a-f]+ <[^>]*> 0c00      	nop
 [0-9a-f]+ <[^>]*> 97ff fffe 	bc	[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC26_S1	.L11
@@ -180,9 +180,9 @@ Disassembly of section .text:
 [0-9a-f]+ <[^>]*> 97ff fffe 	bc	[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC26_S1	.L11
 [0-9a-f]+ <[^>]*> 0c00      	nop
-[0-9a-f]+ <[^>]*> a004 0000 	jic	a0,0
+[0-9a-f]+ <[^>]*> 8004 0000 	jrc	a0
 [0-9a-f]+ <[^>]*> 0c00      	nop
-[0-9a-f]+ <[^>]*> a004 0000 	jic	a0,0
+[0-9a-f]+ <[^>]*> 8004 0000 	jrc	a0
 [0-9a-f]+ <[^>]*> 0c00      	nop
 [0-9a-f]+ <[^>]*> 448b      	jalrc	a0
 [0-9a-f]+ <[^>]*> 0c00      	nop
