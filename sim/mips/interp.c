@@ -47,6 +47,30 @@ code on the hardware.
 #include <ansidecl.h>
 #include <ctype.h>
 #include <limits.h>
+
+#ifdef HAVE_BYTESWAP_H
+#include <byteswap.h>
+#else
+
+unsigned short bswap_16 (unsigned short v);
+unsigned int bswap_32 (unsigned int v);
+
+unsigned short
+bswap_16 (unsigned short v)
+{
+  return ((v >> 8) & 0xff) | ((v & 0xff) << 8);
+}
+
+unsigned int
+bswap_32 (unsigned int v)
+{
+  return (  ((v & 0xff000000) >> 24)
+	  | ((v & 0x00ff0000) >>  8)
+	  | ((v & 0x0000ff00) <<  8)
+	  | ((v & 0x000000ff) << 24));
+}
+#endif // !defined(HAVE_BYTESWAP_H)
+
 #include <math.h>
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
@@ -78,7 +102,7 @@ char* pr_uword64 (uword64 addr);
    trap is required. NOTE: Care must be taken, since this value may be
    used in later revisions of the MIPS ISA. */
 
-#define RSVD_INSTRUCTION           (0x00000005)
+#define RSVD_INSTRUCTION           (0x00000039)
 #define RSVD_INSTRUCTION_MASK      (0xFC00003F)
 
 #define RSVD_INSTRUCTION_ARG_SHIFT 6
@@ -153,6 +177,8 @@ static SIM_ADDR lsipmon_monitor_base = 0xBFC00200;
 
 static SIM_RC sim_firmware_command (SIM_DESC sd, char* arg);
 
+/* microMIPS ISA mode */
+int isa_mode;
 
 #define MEM_SIZE (8 << 20)	/* 8 MBytes */
 
@@ -1338,6 +1364,60 @@ sim_monitor (SIM_DESC sd,
 	break;
       }
 
+    case 13: /* int unlink(const char *path) */
+      {
+	char *path = fetch_str (sd, A0);
+	V0 = sim_io_unlink (sd, path);
+	free (path);
+	break;
+      }
+
+    case 14: /* int lseek(int fd, int offset, int whence) */
+      {
+	V0 = sim_io_lseek (sd, A0, A1, A2);
+	break;
+      }
+
+/* We may need to swap stat data around before passing it on to the
+   program being run.  */
+#define copy16(x) (BigEndianMem ? bswap_16(x) : (x))
+#define copy32(x) (BigEndianMem ? bswap_32(x) : (x))
+
+    case 15: /* int stat(const char *path, struct stat *buf); */
+      {
+	/* We need to put the data into the type of stat structure
+	   that MIPS uses and make sure it has the correct endianness.
+	   We are assuming that the host and MIPS agree on what the bits
+	   in st_mode mean.  That appears to be true for x86 linux and
+	   MIPS.  */
+        struct stat host_stat;
+	struct __attribute__ ((__packed__)) mips_stat {
+		short st_dev;
+		unsigned short st_ino;
+		unsigned int st_mode;
+		unsigned short st_nlink;
+		unsigned short st_uid;
+		unsigned short st_gid;
+		short st_rdev;
+		int st_size;
+	} mips_stat;
+	char *buf;
+        char *path = fetch_str (sd, A0);
+	buf = (char *) A1;
+	V0 = sim_io_stat (sd, path, &host_stat);
+	free (path);
+	mips_stat.st_dev = copy16((short) host_stat.st_dev);
+	mips_stat.st_ino = copy16((unsigned short) host_stat.st_ino);
+	mips_stat.st_mode = copy32((int) host_stat.st_mode);
+	mips_stat.st_nlink = copy16((unsigned short) host_stat.st_nlink);
+	mips_stat.st_uid = copy16((unsigned short) host_stat.st_uid);
+	mips_stat.st_gid = copy16((unsigned short) host_stat.st_gid);
+	mips_stat.st_rdev = copy16((short) host_stat.st_rdev);
+	mips_stat.st_size = copy32((int) host_stat.st_size);
+	sim_write (sd, A1, (char *) &mips_stat, 20);
+	break;
+      }
+
     case 17: /* void _exit() */
       {
 	sim_io_eprintf (sd, "sim_monitor(17): _exit(int reason) to be coded\n");
@@ -2199,18 +2279,17 @@ void
 decode_coproc (SIM_DESC sd,
 	       sim_cpu *cpu,
 	       address_word cia,
-	       unsigned int instruction)
+	       unsigned int instruction,
+	       int coprocnum,
+	       CP0_operation op,
+	       int rt,
+	       int rd,
+	       int sel)
 {
-  int coprocnum = ((instruction >> 26) & 3);
-
   switch (coprocnum)
     {
     case 0: /* standard CPU control and cache registers */
       {
-        int code = ((instruction >> 21) & 0x1F);
-	int rt = ((instruction >> 16) & 0x1F);
-	int rd = ((instruction >> 11) & 0x1F);
-	int tail = instruction & 0x3ff;
         /* R4000 Users Manual (second edition) lists the following CP0
            instructions:
 	                                                           CODE><-RT><RD-><--TAIL--->
@@ -2225,15 +2304,10 @@ decode_coproc (SIM_DESC sd,
 	   CACHE   Cache operation                 (VR4100 = 101111bbbbbpppppiiiiiiiiiiiiiiii)
 	   ERET    Exception return                (VR4100 = 01000010000000000000000000011000)
 	   */
-        if (((code == 0x00) || (code == 0x04)      /* MFC0  /  MTC0  */        
-	     || (code == 0x01) || (code == 0x05))  /* DMFC0 / DMTC0  */        
-	    && tail == 0)
+	if (((op == cp0_mfc0) || (op == cp0_mtc0)      /* MFC0  /  MTC0  */
+	     || (op == cp0_dmfc0) || (op == cp0_dmtc0))  /* DMFC0 / DMTC0  */
+	    && sel == 0)
 	  {
-	    /* Clear double/single coprocessor move bit. */
-	    code &= ~1;
-
-	    /* M[TF]C0 (32 bits) | DM[TF]C0 (64 bits) */
-	    
 	    switch (rd)  /* NOTEs: Standard CP0 registers */
 	      {
 		/* 0 = Index               R4000   VR4100  VR4300 */
@@ -2261,7 +2335,7 @@ decode_coproc (SIM_DESC sd,
 
 	      case 8:
 		/* 8 = BadVAddr            R4000   VR4100  VR4300 */
-		if (code == 0x00)
+		if (op == cp0_mfc0 || op == cp0_dmfc0)
 		  GPR[rt] = (signed_word) (signed_address) COP0_BADVADDR;
 		else
 		  COP0_BADVADDR = GPR[rt];
@@ -2269,21 +2343,21 @@ decode_coproc (SIM_DESC sd,
 
 #endif /* SUBTARGET_R3900 */
 	      case 12:
-		if (code == 0x00)
+		if (op == cp0_mfc0 || op == cp0_dmfc0)
 		  GPR[rt] = SR;
 		else
 		  SR = GPR[rt];
 		break;
 		/* 13 = Cause              R4000   VR4100  VR4300 */
 	      case 13:
-		if (code == 0x00)
+		if (op == cp0_mfc0 || op == cp0_dmfc0)
 		  GPR[rt] = CAUSE;
 		else
 		  CAUSE = GPR[rt];
 		break;
 		/* 14 = EPC                R4000   VR4100  VR4300 */
 	      case 14:
-		if (code == 0x00)
+		if (op == cp0_mfc0 || op == cp0_dmfc0)
 		  GPR[rt] = (signed_word) (signed_address) EPC;
 		else
 		  EPC = GPR[rt];
@@ -2292,7 +2366,7 @@ decode_coproc (SIM_DESC sd,
 #ifdef SUBTARGET_R3900
                 /* 16 = Debug */
               case 16:
-                if (code == 0x00)
+                if (op == cp0_mfc0 || op == cp0_dmfc0)
                   GPR[rt] = Debug;
                 else
                   Debug = GPR[rt];
@@ -2300,7 +2374,7 @@ decode_coproc (SIM_DESC sd,
 #else
 		/* 16 = Config             R4000   VR4100  VR4300 */
               case 16:
-		if (code == 0x00)
+	        if (op == cp0_mfc0 || op == cp0_dmfc0)
 		  GPR[rt] = C0_CONFIG;
 		else
 		  /* only bottom three bits are writable */
@@ -2310,7 +2384,7 @@ decode_coproc (SIM_DESC sd,
 #ifdef SUBTARGET_R3900
                 /* 17 = Debug */
               case 17:
-                if (code == 0x00)
+                if (op == cp0_mfc0 || op == cp0_dmfc0)
                   GPR[rt] = DEPC;
                 else
                   DEPC = GPR[rt];
@@ -2333,7 +2407,7 @@ decode_coproc (SIM_DESC sd,
 		GPR[rt] = 0xDEADC0DE; /* CPR[0,rd] */
 		/* CPR[0,rd] = GPR[rt]; */
 	      default:
-		if (code == 0x00)
+		if (op == cp0_mfc0 || op == cp0_dmfc0)
 		  GPR[rt] = (signed_word) (signed32) COP0_GPR[rd];
 		else
 		  COP0_GPR[rd] = GPR[rt];
@@ -2345,12 +2419,12 @@ decode_coproc (SIM_DESC sd,
 #endif
 	      }
 	  }
-	else if ((code == 0x00 || code == 0x01)
+	else if ((op == cp0_mfc0 || op == cp0_dmfc0)
 		 && rd == 16)
 	  {
 	    /* [D]MFC0 RT,C0_CONFIG,SEL */
 	    signed32 cfg = 0;
-	    switch (tail & 0x07) 
+	    switch (sel)
 	      {
 	      case 0:
 		cfg = C0_CONFIG;
@@ -2379,7 +2453,7 @@ decode_coproc (SIM_DESC sd,
 	      }
 	    GPR[rt] = cfg;
 	  }
-	else if (code == 0x10 && (tail & 0x3f) == 0x18)
+	else if (op == cp0_eret && sel == 0x18)
 	  {
 	    /* ERET */
 	    if (SR & status_ERL)
@@ -2395,7 +2469,7 @@ decode_coproc (SIM_DESC sd,
 		SR &= ~status_EXL;
 	      }
 	  }
-        else if (code == 0x10 && (tail & 0x3f) == 0x10)
+        else if (op == cp0_rfe && sel == 0x10)
           {
             /* RFE */
 #ifdef SUBTARGET_R3900
@@ -2407,7 +2481,7 @@ decode_coproc (SIM_DESC sd,
 	    /* TODO: CACHE register */
 #endif /* SUBTARGET_R3900 */
           }
-        else if (code == 0x10 && (tail & 0x3f) == 0x1F)
+        else if (op == cp0_deret && sel == 0x1F)
           {
             /* DERET */
             Debug &= ~Debug_DM;

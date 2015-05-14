@@ -41,7 +41,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #include "sim-io.h"
 #include "sim-assert.h"
 
-
 /* Debugging support.
    If digits is -1, then print all digits.  */
 
@@ -193,7 +192,10 @@ pack_fpu (const sim_fpu *src,
       fraction = src->fraction;
       fraction >>= NR_GUARDS;
 #ifdef SIM_QUIET_NAN_NEGATED
-      fraction |= QUIET_NAN - 1;
+      if (sim_fpu_is_ieee754_2008())
+        fraction |= QUIET_NAN;
+      else
+        fraction |= QUIET_NAN - 1;
 #else
       fraction |= QUIET_NAN;
 #endif
@@ -205,7 +207,10 @@ pack_fpu (const sim_fpu *src,
       fraction = src->fraction;
       fraction >>= NR_GUARDS;
 #ifdef SIM_QUIET_NAN_NEGATED
-      fraction |= QUIET_NAN;
+      if (sim_fpu_is_ieee754_2008())
+        fraction &= ~QUIET_NAN;
+      else
+        fraction |= QUIET_NAN;
 #else
       fraction &= ~QUIET_NAN;
 #endif
@@ -367,7 +372,10 @@ unpack_fpu (sim_fpu *dst, unsigned64 packed, int is_double)
 	  dst->sign = sign;
 	  dst->fraction = (fraction << NR_GUARDS);
 #ifdef SIM_QUIET_NAN_NEGATED
-	  qnan = (fraction & QUIET_NAN) == 0;
+	  if (sim_fpu_is_ieee754_2008())
+	    qnan = fraction >= QUIET_NAN;
+	  else
+	    qnan = (fraction & QUIET_NAN) == 0;
 #else
 	  qnan = fraction >= QUIET_NAN;
 #endif
@@ -1565,15 +1573,32 @@ sim_fpu_max (sim_fpu *f,
       f->class = sim_fpu_class_qnan;
       return sim_fpu_status_invalid_snan;
     }
-  if (sim_fpu_is_qnan (l))
+/* Refer to the explanation given in sim_fpu_min */
+  if (sim_fpu_is_ieee754_2008())
     {
-      *f = *l;
-      return 0;
+      if (sim_fpu_is_qnan (l))
+	{
+	  *f = *r;
+	  return 0;
+	}
+      if (sim_fpu_is_qnan (r))
+	{
+	  *f = *l;
+	  return 0;
+	}
     }
-  if (sim_fpu_is_qnan (r))
+    else
     {
-      *f = *r;
-      return 0;
+      if (sim_fpu_is_qnan (l))
+	{
+	  *f = *l;
+	  return 0;
+	}
+      if (sim_fpu_is_qnan (r))
+	{
+	  *f = *r;
+	  return 0;
+	}
     }
   if (sim_fpu_is_infinity (l))
     {
@@ -1648,16 +1673,41 @@ sim_fpu_min (sim_fpu *f,
       f->class = sim_fpu_class_qnan;
       return sim_fpu_status_invalid_snan;
     }
-  if (sim_fpu_is_qnan (l))
+  if (sim_fpu_is_ieee754_2008())
     {
-      *f = *l;
-      return 0;
+      /* In IEEE754-2008:
+       * "minNum(x, ) is x if x<y, y if y<x, the canonicalized number if one
+       * operand is a number and the other a qNaN. Otherwise it is either x
+       * or y, canonicalized." */
+      if (sim_fpu_is_qnan (l))
+	{
+	  *f = *r;
+	  return 0;
+	}
+      if (sim_fpu_is_qnan (r))
+	{
+	  *f = *l;
+	  return 0;
+	}
     }
-  if (sim_fpu_is_qnan (r))
-    {
-      *f = *r;
-      return 0;
-    }
+  else
+  {
+    /* In IEEE754-1985:
+     * "Every operation involving one or two input NaNs, none of them
+     * signalling, shall signal no exception, but if a floating-point result
+     * is to be delivered, shall deliver as its result a qNaN, which should
+     * be one of the input NaNs." */
+    if (sim_fpu_is_qnan (l))
+      {
+	*f = *l;
+	return 0;
+      }
+    if (sim_fpu_is_qnan (r))
+      {
+	*f = *r;
+	return 0;
+      }
+  }
   if (sim_fpu_is_infinity (l))
     {
       if (sim_fpu_is_infinity (r)
@@ -2296,6 +2346,23 @@ sim_fpu_is_gt (const sim_fpu *l, const sim_fpu *r)
   return is;
 }
 
+INLINE_SIM_FPU (int)
+sim_fpu_is_un (const sim_fpu *l,
+    const sim_fpu *r)
+{
+  int is;
+  sim_fpu_un (&is, l, r);
+  return is;
+}
+
+INLINE_SIM_FPU (int)
+sim_fpu_is_or (const sim_fpu *l,
+    const sim_fpu *r)
+{
+  int is;
+  sim_fpu_or (&is, l, r);
+  return is;
+}
 
 /* Compare operators */
 
@@ -2419,10 +2486,38 @@ sim_fpu_gt (int *is,
   return sim_fpu_lt (is, r, l);
 }
 
+INLINE_SIM_FPU (int)
+sim_fpu_un (int *is,
+             const sim_fpu *l,
+             const sim_fpu *r)
+{
+  if (sim_fpu_is_nan (l) || sim_fpu_is_nan (r))
+  {
+    *is = 1;
+    return 0;
+  }
+
+  *is = 0;
+  return 0;
+}
+
+INLINE_SIM_FPU (int)
+sim_fpu_or (int *is,
+            const sim_fpu *l,
+            const sim_fpu *r)
+{
+  sim_fpu_un (is, l, r);
+
+  /* Invert result */
+  *is = (*is) ? 0 : 1;
+  return 0;
+}
 
 /* A number of useful constants */
 
 #if EXTERN_SIM_FPU_P
+sim_fpu_mode sim_fpu_current_mode = sim_fpu_ieee754_1985;
+
 const sim_fpu sim_fpu_zero = {
   sim_fpu_class_zero, 0, 0, 0
 };
@@ -2443,6 +2538,24 @@ const sim_fpu sim_fpu_max64 = {
 };
 #endif
 
+/* Specification swapping behaviour */
+INLINE_SIM_FPU (int)
+sim_fpu_is_ieee754_1985 (void)
+{
+  return (sim_fpu_current_mode == sim_fpu_ieee754_1985);
+}
+
+INLINE_SIM_FPU (int)
+sim_fpu_is_ieee754_2008 (void)
+{
+  return (sim_fpu_current_mode == sim_fpu_ieee754_2008);
+}
+
+INLINE_SIM_FPU (void)
+sim_fpu_set_mode (const sim_fpu_mode m)
+{
+  sim_fpu_current_mode = m;
+}
 
 /* For debugging */
 
