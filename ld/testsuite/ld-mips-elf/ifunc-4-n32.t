@@ -8,4 +8,3 @@ Disassembly of section .iplt:
    80004:	8df90800 	lw	t9,2048\(t3\)
    80008:	03200008 	jr	t9
    8000c:	00000000 	nop
-   80010:	00000000 	nop

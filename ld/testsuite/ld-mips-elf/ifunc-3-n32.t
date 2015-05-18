@@ -8,4 +8,3 @@ Disassembly of section .iplt:
  404:	8df90800 	lw	t9,2048\(t3\)
  408:	03200008 	jr	t9
  40c:	00000000 	nop
- 410:	00000000 	nop
