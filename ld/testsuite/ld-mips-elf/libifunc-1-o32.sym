@@ -1,4 +1,4 @@
 Symbol table for image:
   Num Buc:    Value  Size   Type   Bind Vis      Ndx Name
-    3   0: 0000000c    40 FUNC    GLOBAL DEFAULT   1 func1_ifunc
-    2   0: 0000000c    40 IFUNC   GLOBAL DEFAULT   1 func1
+    2   0: 0000000c    40 FUNC    GLOBAL DEFAULT   1 func1_ifunc
+    3   0: 0000000c    40 IFUNC   GLOBAL DEFAULT   1 func1

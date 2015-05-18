@@ -104,8 +104,7 @@ foreach { abi } $abis {
 	    "$abi_ldflags($abi) -Bstatic -T ifunc-static.ld" "" \
 	    "$abi_asflags($abi) -non_shared" \
 	    [list ifunc-static-main.s ifunc-static-def.s ifunc-static-ref.s] \
-	    [list "readelf -s ifunc-4-${abi}.sym" \
-                  "readelf -r ifunc-4-${abi}.r" \
+	    [list "readelf -r ifunc-4-${abi}.r" \
                   "objdump -dj.iplt ifunc-4-${abi}.t"] \
 	    "ifunc-4-${abi}" \
         ] \
@@ -126,23 +125,6 @@ foreach { abi } $abis {
 	    [list "readelf -Ds ifunc-6-${abi}.sym" \
                   "readelf -r ifunc-6-${abi}.r"] \
 	    "ifunc-6-${abi}" \
-        ] \
-    ]
-}
-
-# IPLT sequences change based on how big the address of the 
-# .igot.plt section is based on Mips loading immediate values. 
-# 
-set addrs { "0x400000" "0x400000000" "0x4000000000000" }
-foreach { addr } $addrs {
-    run_ld_link_tests [list \
-	[list \
-	    "IFUNC IPLT (Simple static executable with def and ref) ${addr}" \
-	    "$abi_ldflags(n64) -Bstatic -Ttext-segment ${addr}" "" \
-	    "$abi_asflags(n64) -non_shared" \
-	    [list ifunc-static-main.s ifunc-static-def.s ifunc-static-ref.s] \
-	    [list "objdump -dj.iplt ifunc-iplt-${addr}.t"] \
-	    "ifunc-iplt-${addr}" \
         ] \
     ]
 }
