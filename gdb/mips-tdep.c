@@ -74,8 +74,8 @@ static int mips16_insn_at_pc_has_delay_slot (struct gdbarch *gdbarch,
 static void mips_print_float_info (struct gdbarch *, struct ui_file *,
 				   struct frame_info *, const char *);
 
-static void mips_read_fp_register_double (struct frame_info *frame, int regno,
-					  gdb_byte *rare_buffer);
+static int mips_read_fp_register_single (struct frame_info *frame, int regno,
+					 gdb_byte *rare_buffer);
 /* A useful bit in the CP0 status register (MIPS_PS_REGNUM).  */
 /* This bit is set if we are emulating 32-bit FPRs on a 64-bit chip.  */
 #define ST0_FR (1 << 26)
@@ -2687,12 +2687,12 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
 	{
 	  gdb_byte status;
 	  gdb_byte *raw_buffer = alloca (sizeof (gdb_byte) * 8);
-	  mips_read_fp_register_double (frame, itype_rt (inst) +
+	  mips_read_fp_register_single (frame, itype_rt (inst) +
 					gdbarch_num_regs (gdbarch) +
 					mips_regnum (gdbarch)->fp0,
 					raw_buffer);
 	  if (gdbarch_byte_order (gdbarch) == BFD_ENDIAN_BIG)
-	    status = *(raw_buffer + 7);
+	    status = *(raw_buffer + 3);
 	  else
 	    status = *(raw_buffer);
 
@@ -2707,12 +2707,12 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
 	{
 	  gdb_byte status;
 	  gdb_byte *raw_buffer = alloca (sizeof (gdb_byte) * 8);
-	  mips_read_fp_register_double (frame, itype_rt (inst) +
+	  mips_read_fp_register_single (frame, itype_rt (inst) +
 					gdbarch_num_regs (gdbarch) +
 					mips_regnum (gdbarch)->fp0,
 					raw_buffer);
 	  if (gdbarch_byte_order (gdbarch) == BFD_ENDIAN_BIG)
-	    status = *(raw_buffer + 7);
+	    status = *(raw_buffer + 3);
 	  else
 	    status = *(raw_buffer);
 
@@ -7934,7 +7934,7 @@ mips_print_fp_register (struct ui_file *file, struct frame_info *frame,
   struct gdbarch *gdbarch = get_frame_arch (frame);
   int fpsize = mips_float_regsize (gdbarch);
   gdb_byte *raw_buffer;
-  double doub, flt1;	/* Doubles extracted from raw hex data.  */
+  double doub = 0.0, flt1 = 0.0; /* Doubles extracted from raw hex data.  */
   int res1, res2, inv1, inv2;
 
   raw_buffer = alloca (2 * fpsize);
@@ -8859,7 +8859,7 @@ gdb_print_insn_mips (bfd_vma memaddr, struct disassemble_info *info)
        the bfd elf headers, such that, if the user overrides the ABI
        of a program linked as NewABI, the disassembly will follow the
        register naming conventions specified by the user.  */
-      if (is_mipsr6_isa (gdbarch))
+      if (is_mipsr6_isa (gdbarch) && !mips_pc_is_micromips (gdbarch, memaddr))
 	info->disassembler_options = "gpr-names=32,dis-both-r5-and-r6=1";
       else
 	info->disassembler_options = "gpr-names=32";
