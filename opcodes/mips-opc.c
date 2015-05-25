@@ -707,7 +707,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"adda.ob",		"Y,Q",		0x78000037, 0xfc2007ff,	RD_1|RD_2|FP_D,		WR_MACC,	SB1,		MX,	0 },
 {"adda.qh",		"Y,Q",		0x78200037, 0xfc2007ff,	RD_1|RD_2|FP_D,		WR_MACC,	0,		MX,	0 },
 {"adda.s",		"S,T",		0x46000018, 0xffe007ff,	RD_1|RD_2|FP_S,		0,		EE,		0,	0 },
-{"addi",		"t,r,j",	0x20000000, 0xfc000000,	WR_1|RD_2,		0,		I1,		0,	I37 },
+/* addi moved to end of the table to allow R6 to override.  */
 {"addiu",		"t,r,j",	0x24000000, 0xfc000000,	WR_1|RD_2,		0,		I1,		0,	0 },
 {"addiu",		"s,+R,-a",	0xec000000, 0xfc180000, WR_1,			RD_pc,		I37,		0,	0 },
 {"addiupc",		"s,-a",		0xec000000, 0xfc180000, WR_1,			RD_pc,		I37,		0,	0 },
@@ -1045,7 +1045,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"dadd",		"t,r,I",	0,    (int) M_DADD_I,	INSN_MACRO,		0,		I3,		0,	I69 },
 {"dadd",		"D,S,T",	0x45e00000, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		IL2E,		0,	0 },
 {"dadd",		"D,S,T",	0x4b60000c, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		IL2F|IL3A,	0,	0 },
-{"daddi",		"t,r,j",	0x60000000, 0xfc000000, WR_1|RD_2,		0,		I3,		0,	I69 },
+/* daddi moved to end of the table to allow R6 to override.  */
 {"daddiu",		"t,r,j",	0x64000000, 0xfc000000, WR_1|RD_2,		0,		I3,		0,	0 },
 {"daddu",		"d,v,t",	0x0000002d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,		I3,		0,	0 },
 {"daddu",		"t,r,I",	0,    (int) M_DADDU_I,	INSN_MACRO,		0,		I3,		0,	0 },
@@ -1264,7 +1264,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
    assembler, but will never match user input (because the line above
    will match first).  */
 {"jal",			"a",		0x0c000000, 0xfc000000,	WR_31|UBD,		0,		I1,		0,	0 },
-{"jalx",		"+i",		0x74000000, 0xfc000000, WR_31|UBD,		0,		I1,		0,	I37 },
+/* jalx moved to end of the table to allow R6 to override.  */
 {"laa",			"d,(b),t",	0x7000049f, 0xfc0007ff, WR_1|RD_2|RD_3|LM|SM,	0,		IOCT2,		0,	0 },
 {"laad",		"d,(b),t",	0x700004df, 0xfc0007ff, WR_1|RD_2|RD_3|LM|SM,	0,		IOCT2,		0,	0 },
 {"lac",			"d,(b)",	0x7000039f, 0xfc1f07ff, WR_1|RD_2|LM|SM,	0,		IOCT2,		0,	0 },
@@ -3550,6 +3550,12 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"cop3",		"C",		0,    (int) M_COP3,	INSN_MACRO,		0,		I1,		0,	IOCT|IOCTP|IOCT2 },
 /* RFE conflicts with the new Virt spec instruction tlbgp. */
 {"rfe",			"",		0x42000010, 0xffffffff,	0,			0,		I1|T3,		0,	0 },
+
+/* These three instructions are removed from MIPS32R6/MIPS64R6 and the
+   opcodes reused, ensure R6 insns are found first when enabled.  */
+{"addi",		"t,r,j",	0x20000000, 0xfc000000,	WR_1|RD_2,		0,		I1,		0,	I37 },
+{"daddi",		"t,r,j",	0x60000000, 0xfc000000, WR_1|RD_2,		0,		I3,		0,	I69 },
+{"jalx",		"+i",		0x74000000, 0xfc000000, WR_31|UBD,		0,		I1,		0,	I37 },
 };
 
 #define MIPS_NUM_OPCODES \
