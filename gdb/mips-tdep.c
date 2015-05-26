@@ -8867,6 +8867,9 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
       switch (elf_fpu_type)
 	{
 	case Val_GNU_MIPS_ABI_FP_DOUBLE:
+	case Val_GNU_MIPS_ABI_FP_XX:
+	case Val_GNU_MIPS_ABI_FP_64:
+	case Val_GNU_MIPS_ABI_FP_64A:
 	  fpu_type = MIPS_FPU_DOUBLE;
 	  break;
 	case Val_GNU_MIPS_ABI_FP_SINGLE:
