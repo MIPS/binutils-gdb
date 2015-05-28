@@ -1,3 +1,26 @@
+2014-09-03  James Hogan  <james.hogan@imgtec.com>
+
+	* mips-linux-nat.c (mips_linux_read_description): Reset errno to 0
+	prior to reading DSP_CONTROL with PTRACE_PEEKUSER ptrace call.
+
+2015-01-02  Maciej W. Rozycki  <macro@codesourcery.com>
+
+	* mips-tdep.c (mips32_scan_prologue): Keep the extracted stack
+	offset signed.
+
+2015-01-02  Maciej W. Rozycki  <macro@codesourcery.com>
+
+	* mips-tdep.c (mips32_scan_prologue): Keep the extracted stack
+	offset signed.
+
+2014-12-18  Nigel Stephens  <nigel@mips.com>
+	    Maciej W. Rozycki  <macro@codesourcery.com>
+
+	* mips-tdep.c (print_fpu_flags): New function.
+	(mips_print_float_info): Likewise.
+	(mips_gdbarch_init): Install mips_print_float_info as gdbarch
+	print_float_info routine.
+
 2014-05-05  Joel Brobecker  <brobecker@adacore.com>
 
 	* version.in: Set GDB version number to 7.7.1.
