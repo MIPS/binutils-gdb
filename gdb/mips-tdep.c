@@ -2681,11 +2681,13 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
       else if (op == 17 && itype_rs (inst) == 8)
 	/* BC1F, BC1FL, BC1T, BC1TL: 010001 01000 */
 	pc = mips32_bc1_pc (gdbarch, frame, inst, pc + 4, 1);
-      else if (op == 17 && itype_rs (inst) == 9
+      else if (!is_mipsr6_isa (gdbarch)
+	       && op == 17 && itype_rs (inst) == 9
 	       && (itype_rt (inst) & 2) == 0)
 	/* BC1ANY2F, BC1ANY2T: 010001 01001 xxx0x */
 	pc = mips32_bc1_pc (gdbarch, frame, inst, pc + 4, 2);
-      else if (op == 17 && itype_rs (inst) == 10
+      else if (!is_mipsr6_isa (gdbarch)
+	       && op == 17 && itype_rs (inst) == 10
 	       && (itype_rt (inst) & 2) == 0)
 	/* BC1ANY4F, BC1ANY4T: 010001 01010 xxx0x */
 	pc = mips32_bc1_pc (gdbarch, frame, inst, pc + 4, 4);
@@ -5298,6 +5300,7 @@ mips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 			/* BCzF, BCzFL, BCzT, BCzTL, BC*EQZ, BC*NEZ */
 	  is_branch = (itype_rs (insn) == 8)
 		       || (is_mipsr6
+			   && itype_op (insn) != 19
 			   && (itype_rs (insn) == 9
 			       || itype_rs (insn) == 13));
 	  break;
@@ -8785,9 +8788,11 @@ mips32_instruction_has_delay_slot (struct gdbarch *gdbarch, ULONGEST inst)
 	      || op >> 2 == 5	/* BEQL, BNEL, BLEZL, BGTZL: bits 0101xx  */
 	      || (!is_mipsr6_isa (gdbarch) && op == 29)	/* JALX: bits 011101  */
 	      || (op == 17
-		  && (rs == 8
+		  && (rs == 8))
 				/* BC1F, BC1FL, BC1T, BC1TL: 010001 01000  */
-		      || (rs == 9 && (rt & 0x2) == 0)
+	      || (op == 17
+		  && !is_mipsr6_isa (gdbarch)
+		  && ((rs == 9 && (rt & 0x2) == 0)
 				/* BC1ANY2F, BC1ANY2T: bits 010001 01001  */
 		      || (rs == 10 && (rt & 0x2) == 0)
 				/* BC1ANY4F, BC1ANY4T: bits 010001 01010  */
