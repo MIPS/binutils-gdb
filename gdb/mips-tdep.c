@@ -74,7 +74,7 @@ static int mips16_insn_at_pc_has_delay_slot (struct gdbarch *gdbarch,
 static void mips_print_float_info (struct gdbarch *, struct ui_file *,
 				   struct frame_info *, const char *);
 
-static void mips_read_fp_register_single (struct frame_info *, int,
+static int mips_read_fp_register_single (struct frame_info *, int,
 					  gdb_byte *);
 /* A useful bit in the CP0 status register (MIPS_PS_REGNUM).  */
 /* This bit is set if we are emulating 32-bit FPRs on a 64-bit chip.  */
