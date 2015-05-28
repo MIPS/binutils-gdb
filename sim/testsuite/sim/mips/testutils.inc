@@ -28,9 +28,9 @@
 902:
 	.previous
 	.set push
-	.set noreorder
-	jal	_dowrite
+	.set reorder
 	li	$4, 0
+	jal	_dowrite
 	.set pop
 	.endm
 
@@ -51,9 +51,8 @@
 _start:
 __start:
 	.set push
-	.set noreorder
+	.set reorder
 	j	DIAG
-	nop
 	.set pop
 	.end _start
 
@@ -80,7 +79,8 @@ _pass:
 	.ent _dowrite
 _dowrite:
 	# Write opcode (reserved instruction).  See sim_monitor and its
-	# callers in sim/mips/interp.c.
+	# callers in sim/mips/interp.c. The nop is required here.
+	nop
 	.word	0x00000039 | ((8 << 1) << 6)
 	.end _dowrite
 
@@ -89,18 +89,16 @@ _dowrite:
 
 	.macro pass
 	.set push
-	.set noreorder
+	.set reorder
 	j	_pass
-	nop	
 	.set pop
 	.endm
 
 
 	.macro fail
 	.set push
-	.set noreorder
+	.set reorder
 	j	_fail
-	nop	
 	.set pop
 	.endm
 
@@ -123,9 +121,8 @@ _dowrite:
 	.macro checkreg reg, expreg
 	.set push
 	.set noat
-	.set noreorder
+	.set reorder
 	beq	\expreg, \reg, 901f
-	nop
 	fail
 901:
 	.set pop

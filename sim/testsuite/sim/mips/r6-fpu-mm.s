@@ -1,6 +1,6 @@
 # mips r6 fpu test for FMADD/FMSUB etc.
 # mach:  mips32r6 mips64r6
-# as:    -mabi=eabi
+# as:    -mabi=eabi -mmicromips
 # ld:    -N -Ttext=0x80010000
 # output: *\\npass\\n
 
@@ -396,7 +396,7 @@ DIAG:
   r6ck_3s seleqz.s, 0x0, 0x1234abcd, 0x0, 0x1234abcd
   r6ck_3s seleqz.s, 0x0, 0xabcdef01, 0x1, 0x0
   r6ck_3s seleqz.s, 0x0, 0xffeebbcc, 0xfffffffe, 0xffeebbcc
-  r6ck_3s seleqz.s, 0x0, 0x12345678, 0xffffffff, 0
+  r6ck_3s seleqz.s, 0x0, 0x12345678, 0xffffffff, 0x0
 
   writemsg "[43] Test seleqz.d"
   r6ck_3d seleqz.d, 0x0, 0x1234abcddcba4321, 0x0, 0x1234abcddcba4321
@@ -416,25 +416,21 @@ DIAG:
   r6ck_3d selnez.d, 0x0, 0xffeebbccccbbeeff, 0xfffffffffffffffe, 0x0
   r6ck_3d selnez.d, 0x0, 0x1234567887654321, 0xffffffffffffffff, 0x1234567887654321
 
-  writemsg "[46] Test bc1eqz"
+  writemsg "[46] Test bc1eqzc"
   li $10, 0x01
   mtc1 $10, $f2
   mtc1 $0, $f4
-  bc1eqz $f2, L1
-  nop
-  bc1eqz $f4, L2
-  nop
+  bc1eqzc $f2, L1
+  bc1eqzc $f4, L2
   fail
 
 L1:
   fail
 
 L2:
-  writemsg "[47] Test bc1nez"
-  bc1nez $f4, L3
-  nop
-  bc1nez $f2, L4
-  nop
+  writemsg "[47] Test bc1nezc"
+  bc1nezc $f4, L3
+  bc1nezc $f2, L4
   fail
 
 L3:
