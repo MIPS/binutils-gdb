@@ -299,6 +299,14 @@ mips64_linux_regsets_fetch_registers (struct target_ops *ops,
 			     (const mips64_elf_gregset_t *) &regs);
     }
 
+  /* Set the default value of the Config5 register.  */
+  if (mips_regnum (gdbarch)->config5 >= 0)
+    {
+      unsigned int config5_default = 0;
+      regcache_raw_supply (regcache, mips_regnum (gdbarch)->config5,
+			   &config5_default);
+    }
+
   if (is_fp || is_vec)
     {
       const struct mips_regnum *rn = mips_regnum (gdbarch);
