@@ -167,7 +167,7 @@ mips_read_description (void)
 
   if (have_fpu64 < 0)
     {
-      int pid = lwpid_of (current_thread);
+      int pid = lwpid_of (get_thread_lwp (current_inferior));
       long fir;
 
       /* Try peeking at FIR.F64 bit */
@@ -191,7 +191,8 @@ mips_read_description (void)
   /* Check for MSA, which requires FR=1 */
   if (have_msa < 0)
     {
-      int pid = lwpid_of (current_thread);
+#ifdef NT_MIPS_MSA
+      int pid = lwpid_of (get_thread_lwp (current_inferior));
       int res;
       uint32_t regs[32*4 + 8];
       struct iovec iov;
@@ -204,6 +205,9 @@ mips_read_description (void)
       iov.iov_len = sizeof(regs);
       res = ptrace (PTRACE_GETREGSET, pid, NT_MIPS_MSA, &iov);
       have_msa = (res >= 0) && regs[32*4 + 0];
+#else
+      have_msa = 0;
+#endif
     }
 
   if (have_dsp < 0)
@@ -884,6 +888,7 @@ mips_store_fpregset (struct regcache *regcache, const void *buf)
 }
 #endif /* HAVE_PTRACE_GETREGS */
 
+#ifdef NT_MIPS_MSA
 static void
 mips_fill_msa_regset (struct regcache *regcache, void *buf)
 {
@@ -975,6 +980,7 @@ mips_store_msa_regset (struct regcache *regcache, const void *buf)
   bufp += 4;
   supply_register (regcache, config5, bufp);
 }
+#endif // defined(NT_MIPS_MSA)
 
 static struct regset_info mips_regsets[] = {
 #ifdef HAVE_PTRACE_GETREGS
@@ -982,8 +988,10 @@ static struct regset_info mips_regsets[] = {
     mips_fill_gregset, mips_store_gregset },
   { PTRACE_GETFPREGS, PTRACE_SETFPREGS, 0, 33 * 8, FP_REGS,
     mips_fill_fpregset, mips_store_fpregset },
+#ifdef NT_MIPS_MSA
   { PTRACE_GETREGSET, PTRACE_SETREGSET, NT_MIPS_MSA, 34*16, EXTENDED_REGS,
     mips_fill_msa_regset, mips_store_msa_regset },
+#endif
 #endif /* HAVE_PTRACE_GETREGS */
   { 0, 0, 0, -1, -1, NULL, NULL }
 };
