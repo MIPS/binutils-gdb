@@ -8842,17 +8842,18 @@ mips32_instruction_has_delay_slot (struct gdbarch *gdbarch, ULONGEST inst)
 		  && (rs == 8))
 				/* BC1F, BC1FL, BC1T, BC1TL: 010001 01000  */
 	      || (op == 17
-		  && !is_mipsr6_isa (gdbarch)
-		  && ((rs == 9 && (rt & 0x2) == 0)
-				/* BC1ANY2F, BC1ANY2T: bits 010001 01001  */
-		      || (rs == 10 && (rt & 0x2) == 0)
-				/* BC1ANY4F, BC1ANY4T: bits 010001 01010  */
-		      || ((rs & 0x18) == 0x18)
+		  && (((rs & 0x18) == 0x18)
 				/* BZ.df:  bits 010001 110xx */
 				/* BNZ.df: bits 010001 111xx */
 		      || ((rs & 0x1b) == 0x0b)))
 				/* BZ.V:   bits 010001 01011 */
 				/* BNZ.V:  bits 010001 01111 */
+	      || (op == 17
+		  && !is_mipsr6_isa (gdbarch)
+		  && ((rs == 9 && (rt & 0x2) == 0)
+				/* BC1ANY2F, BC1ANY2T: bits 010001 01001  */
+		      || (rs == 10 && (rt & 0x2) == 0)))
+				/* BC1ANY4F, BC1ANY4T: bits 010001 01010  */
 	      || (is_mipsr6_isa (gdbarch)
 		  && ((op == 17
 		       && (rs == 9  /* BC1EQZ: 010001 01001  */
