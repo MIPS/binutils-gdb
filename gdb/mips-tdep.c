@@ -7992,11 +7992,18 @@ gdb_print_insn_mips (bfd_vma memaddr, struct disassemble_info *info)
   if (mips_pc_is_mips16 (gdbarch, memaddr))
     info->mach = bfd_mach_mips16;
   else if (mips_pc_is_micromips (gdbarch, memaddr))
-    info->mach = bfd_mach_mips_micromips;
+    {
+      if (is_mipsr6_isa (gdbarch))
+	info->mach = bfd_mach_mips_micromipsr6;
+      else
+	info->mach = bfd_mach_mips_micromips;
+    }
+
 
   /* Round down the instruction address to the appropriate boundary.  */
   memaddr &= (info->mach == bfd_mach_mips16
-	      || info->mach == bfd_mach_mips_micromips) ? ~1 : ~3;
+	      || info->mach == bfd_mach_mips_micromips
+	      || info->mach == bfd_mach_mips_micromipsr6) ? ~1 : ~3;
 
   /* Set the disassembler options.  */
   if (!info->disassembler_options)
