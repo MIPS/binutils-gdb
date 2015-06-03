@@ -1621,12 +1621,11 @@ mips32_blez_pc (struct gdbarch *gdbarch, struct frame_info *frame,
   ULONGEST uval_rs = get_frame_register_unsigned (frame, rs);
   ULONGEST uval_rt = get_frame_register_unsigned (frame, rt);
   int taken = 0;
-  int delay_slot_size = 0;
+  int delay_slot_size = 4;
 
   /* BLEZ, BLEZL, BGTZ, BGTZL */
   if (rt == 0)
     {
-      delay_slot_size = 4;
       taken = (val_rs <= 0);
     }
   else if (is_mipsr6_isa (gdbarch))
@@ -1640,6 +1639,12 @@ mips32_blez_pc (struct gdbarch *gdbarch, struct frame_info *frame,
       /* BGEUC, BLTUC */
       else if (rs != rt && rs != 0 && rt != 0)
 	taken = (uval_rs >= uval_rt);
+
+      /* Step through the forbidden slot to avoid repeated exceptions we do
+	 not currently have access to the BD bit when hitting a breakpoint
+	 and therefore cannot tell if the breakpoint hit on the branch or the
+	 forbidden slot.  */
+      /* delay_slot_size = 0; */
     }
 
   if (invert)
@@ -1811,7 +1816,11 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
 	      if (taken)
 		pc += mips32_relative_offset (inst) + 4;
 	      else
-		pc += 4;
+		/* Step through the forbidden slot to avoid repeated exceptions
+		   we do not currently have access to the BD bit when hitting a
+		   breakpoint and therefore cannot tell if the breakpoint
+		   hit on the branch or the forbidden slot.  */
+		pc += 8;
 	    }
 	  /* BC1EQZ, BC1NEZ */
 	  else if (op == 17 && (itype_rs (inst) == 9 || itype_rs (inst) == 13))
@@ -1859,7 +1868,11 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
 	      if (taken)
 		pc += mips32_relative_offset (inst) + 4;
 	      else
-		pc += 4;
+		/* Step through the forbidden slot to avoid repeated exceptions
+		   we do not currently have access to the BD bit when hitting a
+		   breakpoint and therefore cannot tell if the breakpoint
+		   hit on the branch or the forbidden slot.  */
+		pc += 8;
 	    }
 	  else if (op == 50 || op == 58)
 	  /* BC, BALC */
@@ -1882,7 +1895,11 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
 	      if (taken)
 		pc += mips32_relative_offset21 (inst) + 4;
 	      else
-		pc += 4;
+		/* Step through the forbidden slot to avoid repeated exceptions
+		   we do not currently have access to the BD bit when hitting a
+		   breakpoint and therefore cannot tell if the breakpoint
+		   hit on the branch or the forbidden slot.  */
+		pc += 8;
 	    }
 	  else
 	    pc += 4;		/* Not a branch, next instruction is easy.  */
@@ -1963,7 +1980,13 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
 		      {
 			if (!is_mipsr6_isa (gdbarch))
 			  break;
-			delay_slot_size = 0;
+
+			/* Step through the forbidden slot to avoid repeated
+			   exceptions we do not currently have access to the BD
+			   bit when hitting a breakpoint and therefore cannot
+			   tell if the breakpoint hit on the branch or the
+			   forbidden slot.  */
+			/* delay_slot_size = 0; */
 		      }
 
 		    if ((get_frame_register_unsigned (frame,
@@ -2970,26 +2993,36 @@ micromips_instruction_is_compact_branch (struct frame_info *frame,
 }
 
 /* Return non-zero if the MIPS instruction INSN is a compact branch
-   or jump.  */
+   or jump.  A value of 1 indicates an unconditional compact branch
+   and a value of 2 indicates a conditional compact branch.  */
 
 static int
 mips32_instruction_is_compact_branch (struct gdbarch *gdbarch, ULONGEST insn)
 {
   switch (itype_op (insn))
     {
-    /* BOVC, BEQZALC, BEQC */
-    case 8:
-    /* BNVC, BNEZALC, BNEC */
-    case 24:
     /* BC */
     case 50:
     /* BALC */
     case 58:
+      if (is_mipsr6_isa (gdbarch))
+	return 1;
+      break;
+    /* BOVC, BEQZALC, BEQC */
+    case 8:
+    /* BNVC, BNEZALC, BNEC */
+    case 24:
+      if (is_mipsr6_isa (gdbarch))
+	return 2;
+      break;
     /* BEQZC, JIC */
     case 54:
     /* BNEZC, JIALC */
     case 62:
-      return is_mipsr6_isa (gdbarch);
+      if (is_mipsr6_isa (gdbarch))
+	/* JIC, JIALC are unconditional */
+	return (itype_rs (insn) == 0) ? 1 : 2;
+      break;
     /* BLEZC, BGEZC, BGEC */
     case 22:
     /* BGTZC, BLTZC, BLTC */
@@ -2998,15 +3031,33 @@ mips32_instruction_is_compact_branch (struct gdbarch *gdbarch, ULONGEST insn)
     case 6:
     /* BGTZALC, BLTZALC, BLTUC */
     case 7:
-      return (is_mipsr6_isa (gdbarch)
-	      && itype_rt (insn) != 0);
+      if (is_mipsr6_isa (gdbarch)
+	  && itype_rt (insn) != 0)
+	return 2;
+      break;
     /* BPOSGE32C */
     case 1:
-      return (is_mipsr6_isa (gdbarch)
-	      && itype_rt (insn) == 0x1d && itype_rs (insn) == 0);
-    default:
-      return 0;
+      if (is_mipsr6_isa (gdbarch)
+	  && itype_rt (insn) == 0x1d && itype_rs (insn) == 0)
+	return 2;
     }
+  return 0;
+}
+
+/* Return non-zero if a standard MIPS instruction at ADDR has a branch
+   forbidden slot (i.e. it is a conditional compact branch instruction).  */
+
+static int
+mips32_insn_at_pc_has_forbidden_slot (struct gdbarch *gdbarch, CORE_ADDR addr)
+{
+  ULONGEST insn;
+  int status;
+
+  insn = mips_fetch_instruction (gdbarch, ISA_MIPS, addr, &status);
+  if (status)
+    return 0;
+
+  return mips32_instruction_is_compact_branch (gdbarch, insn) == 2;
 }
 
 struct mips_frame_cache
@@ -8414,7 +8465,18 @@ mips_adjust_breakpoint_address (struct gdbarch *gdbarch, CORE_ADDR bpaddr)
 
      So, we'll use the second solution.  To do this we need to know if
      the instruction we're trying to set the breakpoint on is in the
-     branch delay slot.  */
+     branch delay slot.
+
+     A similar problem occurs for breakpoints on forbidden slots where
+     the trap will be reported for the branch with the BD bit set.
+     In this case it would be ideal to recover using solution 1 from
+     above as there is no problem with the branch being skipped
+     (since the forbidden slot only exists on not-taken branches).
+     However, the BD bit is not available in all scenarios currently
+     so instead we move the breakpoint on to the next instruction.
+     This means that it is not possible to stop on an instruction
+     that can be in a forbidden slot even if that instruction is
+     jumped to directly.  */
 
   boundary = mips_segment_boundary (bpaddr);
 
@@ -8436,6 +8498,13 @@ mips_adjust_breakpoint_address (struct gdbarch *gdbarch, CORE_ADDR bpaddr)
       prev_addr = bpaddr - 4;
       if (mips32_insn_at_pc_has_delay_slot (gdbarch, prev_addr))
 	bpaddr = prev_addr;
+      /* If the previous instruction has a forbidden slot, we have to
+	 move the breakpoint to the following instruction to prevent
+	 breakpoints in forbidden slots being reported as unknown
+	 traps.  */
+      else if (mips32_insn_at_pc_has_forbidden_slot (gdbarch, prev_addr))
+
+	bpaddr += 4;
     }
   else
     {
