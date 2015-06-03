@@ -158,7 +158,8 @@ static const bfd_arch_info_type arch_info_struct[] =
   N (64, 64, bfd_mach_mips_xlr, "mips:xlr",	  FALSE, NN(I_xlr)),
   N (32, 32, bfd_mach_mips_interaptiv_mr2, "mips:interaptiv-mr2", FALSE,
      NN(I_interaptiv_mr2)),
-  N (64, 64, bfd_mach_mips_micromips,"mips:micromips",FALSE,0)
+  N (64, 64, bfd_mach_mips_micromips,"mips:micromips",FALSE,0),
+  N (64, 64, bfd_mach_mips_micromipsr6,"mips:micromipsr6",FALSE,0)
 };
 
 /* The default architecture is mips:3000, but with a machine number of
