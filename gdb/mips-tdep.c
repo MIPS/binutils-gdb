@@ -1530,12 +1530,12 @@ is_mipsr6_isa (struct gdbarch *gdbarch)
    instruction set.  */
 
 static int
-mips_insn_size (enum mips_isa isa, ULONGEST insn)
+mips_insn_size (struct gdbarch *gdbarch, enum mips_isa isa, ULONGEST insn)
 {
   switch (isa)
     {
     case ISA_MICROMIPS:
-      if (micromips_op (insn) == 0x1f)
+      if (!is_mipsr6_isa (gdbarch) && micromips_op (insn) == 0x1f)
         return 3 * MIPS_INSN16_SIZE;
       else if (((micromips_op (insn) & 0x4) == 0x4)
 	       || ((micromips_op (insn) & 0x7) == 0x0))
@@ -2094,7 +2094,7 @@ micromips_pc_insn_size (struct gdbarch *gdbarch, CORE_ADDR pc)
   ULONGEST insn;
 
   insn = mips_fetch_instruction (gdbarch, ISA_MICROMIPS, pc, NULL);
-  return mips_insn_size (ISA_MICROMIPS, insn);
+  return mips_insn_size (gdbarch, ISA_MICROMIPS, insn);
 }
 
 /* Calculate the address of the next microMIPS instruction to execute
@@ -2141,7 +2141,7 @@ get_micromipsr6_branch_target (struct frame_info *frame, CORE_ADDR pc)
 
   insn = mips_fetch_instruction (gdbarch, ISA_MICROMIPS, pc, NULL);
   pc += MIPS_INSN16_SIZE;
-  switch (mips_insn_size (ISA_MICROMIPS, insn))
+  switch (mips_insn_size (gdbarch, ISA_MICROMIPS, insn))
     {
     /* 48-bit instructions.  */
     case 3 * MIPS_INSN16_SIZE: /* POOL48A: bits 011111 */
@@ -2282,7 +2282,7 @@ get_micromipsr6_branch_target (struct frame_info *frame, CORE_ADDR pc)
 	  }
 	case 0x25: /* BC */
 	case 0x2d: /* BALC */
-	  pc += micromips_relative_offset26 (insn) + 4;
+	  pc += micromips_relative_offset26 (insn);
 	  break;
 	case 0x35: /* BGTZC/BLTZC/BLTC */
 	  {
@@ -2396,7 +2396,7 @@ micromips_next_pc (struct frame_info *frame, CORE_ADDR pc)
 
   insn = mips_fetch_instruction (gdbarch, ISA_MICROMIPS, pc, NULL);
   pc += MIPS_INSN16_SIZE;
-  switch (mips_insn_size (ISA_MICROMIPS, insn))
+  switch (mips_insn_size (gdbarch, ISA_MICROMIPS, insn))
     {
     /* 48-bit instructions.  */
     case 3 * MIPS_INSN16_SIZE: /* POOL48A: bits 011111 */
@@ -2928,7 +2928,7 @@ micromips_instruction_is_compact_branch (struct frame_info *frame,
 	}
     }
 
-  switch (mips_insn_size (ISA_MICROMIPS, insn))
+  switch (mips_insn_size (gdbarch, ISA_MICROMIPS, insn))
     {
     /* 32-bit instructions.  */
     case 2 * MIPS_INSN16_SIZE:
@@ -3648,7 +3648,7 @@ micromips_scan_prologue (struct gdbarch *gdbarch,
       loc = 0;
       insn = mips_fetch_instruction (gdbarch, ISA_MICROMIPS, cur_pc, NULL);
       loc += MIPS_INSN16_SIZE;
-      switch (mips_insn_size (ISA_MICROMIPS, insn))
+      switch (mips_insn_size (gdbarch, ISA_MICROMIPS, insn))
 	{
 	/* 48-bit instructions.  */
 	case 3 * MIPS_INSN16_SIZE:
@@ -4799,6 +4799,7 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
   int insn_count;
   int index;
 
+
   /* Assume all atomic sequences start with a ll/lld instruction.  */
   insn = mips_fetch_instruction (gdbarch, ISA_MICROMIPS, loc, NULL);
   if (micromips_op (insn) != 0x18)	/* POOL32C: bits 011000 */
@@ -4825,7 +4826,7 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
       if (is_mipsr6_isa (gdbarch))
 	{
 	  int rt, rs;
-	  switch (mips_insn_size (ISA_MICROMIPS, insn))
+	  switch (mips_insn_size (gdbarch, ISA_MICROMIPS, insn))
 	    {
 	    /* 48-bit instructions.  */
 	    case 3 * MIPS_INSN16_SIZE: /* POOL48A: bits 011111 */
@@ -4840,6 +4841,13 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 	      loc += MIPS_INSN16_SIZE;
 	      switch (micromips_op (insn >> 16))
 		{
+		  case 0x00: /* POOL32A: bits 000000 */
+		    if (b0s6_op (insn) == 0x3c
+			&& ((b6s10_ext (insn) == 0x7c) /* JALRC.HB */
+			    || (b6s10_ext (insn) == 0x3c))) /* JALRC */
+		      return 0;
+		    break;
+
 		case 0x10: /* POOL32I */
 		  switch (b5s5_op (insn >> 16))
 		    {
@@ -4848,7 +4856,7 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 		    case 0x0a: /* BC2EQZC */
 		    case 0x0b: /* BC2NEZC */
 		    case 0x19: /* BPOSGE32 */
-		      branch_bp = micromips_relative_offset16 (insn);
+		      branch_bp = loc + micromips_relative_offset16 (insn);
 		      is_branch = 1;
 		    }
 		  break;
@@ -4865,7 +4873,7 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 		    return 0;
 		  else
 		    {
-		      branch_bp = micromips_relative_offset21 (insn);
+		      branch_bp = loc + micromips_relative_offset21 (insn);
 		      is_branch = 1;
 		    }
 		  break;
@@ -4883,7 +4891,7 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 		      || (rs != rt && rt != 0 && rs != 0))
 			/* BGEUC/BLTUC/BLTC/BGEC */
 		    {
-		      branch_bp = micromips_relative_offset16 (insn);
+		      branch_bp = loc + micromips_relative_offset16 (insn);
 		      is_branch = 1;
 		    }
 		  break;
@@ -4896,7 +4904,7 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 		      || (rs < rt) /* BEQC/BNEC */
 		      || (rt != 0 && rs == 0)) /* BEQZALC/BNEZALC */
 		    {
-		      branch_bp = micromips_relative_offset16 (insn);
+		      branch_bp = loc + micromips_relative_offset16 (insn);
 		      is_branch = 1;
 		    }
 		  break;
@@ -4923,7 +4931,7 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 
 		case 0x23: /* BEQZC16 */
 		case 0x2b: /* BNEZC16 */
-		  branch_bp = micromips_relative_offset7 (insn);
+		  branch_bp = loc + micromips_relative_offset7 (insn);
 		  is_branch = 1;
 		  break;
 
@@ -4947,7 +4955,7 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
       /* Assume that there is at most one conditional branch in the
          atomic sequence.  If a branch is found, put a breakpoint in
          its destination address.  */
-      switch (mips_insn_size (ISA_MICROMIPS, insn))
+      switch (mips_insn_size (gdbarch, ISA_MICROMIPS, insn))
 	{
 	/* 48-bit instructions.  */
 	case 3 * MIPS_INSN16_SIZE: /* POOL48A: bits 011111 */
@@ -7575,7 +7583,7 @@ mips_single_step_through_delay (struct gdbarch *gdbarch,
   isa = mips_pc_isa (gdbarch, pc);
   /* _has_delay_slot above will have validated the read.  */
   insn = mips_fetch_instruction (gdbarch, isa, pc, NULL);
-  size = mips_insn_size (isa, insn);
+  size = mips_insn_size (gdbarch, isa, insn);
   aspace = get_frame_address_space (frame);
   return breakpoint_here_p (aspace, pc + size) != no_breakpoint_here;
 }
@@ -7695,7 +7703,7 @@ micromips_in_function_epilogue_p (struct gdbarch *gdbarch, CORE_ADDR pc)
       loc = 0;
       insn = mips_fetch_instruction (gdbarch, ISA_MICROMIPS, pc, NULL);
       loc += MIPS_INSN16_SIZE;
-      switch (mips_insn_size (ISA_MICROMIPS, insn))
+      switch (mips_insn_size (gdbarch, ISA_MICROMIPS, insn))
 	{
 	/* 48-bit instructions.  */
 	case 3 * MIPS_INSN16_SIZE:
@@ -8078,7 +8086,7 @@ mips_breakpoint_from_pc (struct gdbarch *gdbarch,
 
 	  insn = mips_fetch_instruction (gdbarch, ISA_MICROMIPS, pc, &status);
 	  size = status ? 2
-			: mips_insn_size (ISA_MICROMIPS, insn) == 2 ? 2 : 4;
+			: mips_insn_size (gdbarch, ISA_MICROMIPS, insn) == 2 ? 2 : 4;
 	  *pcptr = unmake_compact_addr (pc);
 	  *lenptr = size;
 	  return (size == 2) ? ptr_16bit_bp
@@ -8136,7 +8144,7 @@ mips_breakpoint_from_pc (struct gdbarch *gdbarch,
 
 	  insn = mips_fetch_instruction (gdbarch, ISA_MICROMIPS, pc, &status);
 	  size = status ? 2
-			: mips_insn_size (ISA_MICROMIPS, insn) == 2 ? 2 : 4;
+			: mips_insn_size (gdbarch, ISA_MICROMIPS, insn) == 2 ? 2 : 4;
 	  *pcptr = unmake_compact_addr (pc);
 	  *lenptr = size;
 	  return (size == 2) ? ptr_16bit_bp
@@ -8191,7 +8199,7 @@ mips_remote_breakpoint_from_pc (struct gdbarch *gdbarch, CORE_ADDR *pcptr,
       int size;
 
       insn = mips_fetch_instruction (gdbarch, ISA_MICROMIPS, pc, &status);
-      size = status ? 2 : mips_insn_size (ISA_MICROMIPS, insn) == 2 ? 2 : 4;
+      size = status ? 2 : mips_insn_size (gdbarch, ISA_MICROMIPS, insn) == 2 ? 2 : 4;
       *pcptr = unmake_compact_addr (pc);
       *kindptr = size | 1;
     }
@@ -8353,7 +8361,7 @@ micromips_insn_at_pc_has_delay_slot (struct gdbarch *gdbarch,
   if (status)
     return 0;
   insn <<= 16;
-  if (mips_insn_size (ISA_MICROMIPS, insn) == 2 * MIPS_INSN16_SIZE)
+  if (mips_insn_size (gdbarch, ISA_MICROMIPS, insn) == 2 * MIPS_INSN16_SIZE)
     {
       insn |= mips_fetch_instruction (gdbarch, ISA_MICROMIPS, addr, &status);
       if (status)
