@@ -3770,7 +3770,7 @@ micromips_scan_prologue (struct gdbarch *gdbarch,
 		this_non_prologue_insn = 1;
 	      break;
 
-	    case 0x03: /* R6 LUI/AUI */
+	    case 0x04: /* R6 LUI/AUI */
 	      if (! is_mipsr6_isa (gdbarch))
 		{
 		  this_non_prologue_insn = 1;
