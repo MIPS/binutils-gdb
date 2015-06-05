@@ -779,6 +779,7 @@ mips_store_gregset (struct regcache *regcache, const void *buf)
 {
   const union mips_register *regset = buf;
   int i, use_64bit;
+  int config5 = find_regno (regcache->tdesc, "config5");
 
   use_64bit = (register_size (regcache->tdesc, 0) == 8);
 
@@ -800,6 +801,13 @@ mips_store_gregset (struct regcache *regcache, const void *buf)
 
   mips_supply_register (regcache, use_64bit,
 			find_regno (regcache->tdesc, "restart"), regset + 0);
+
+  if (config5 != -1)
+    {
+      union mips_register reg;
+      reg.reg64 = 0;
+      mips_supply_register (regcache, use_64bit, config5, &reg);
+    }
 }
 
 static void
