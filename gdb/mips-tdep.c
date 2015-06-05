@@ -5033,6 +5033,9 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 	      return 0; /* Fall back to the standard single-step code. */
 
 	    case 0x18: /* POOL32C: bits 011000 */
+	      insn <<= 16;
+	      insn |= mips_fetch_instruction (gdbarch,
+					      ISA_MICROMIPS, loc, NULL);
 	      if ((b12s4_op (insn) & 0xb) == 0xb)
 				/* SC, SCD: bits 011000 1x11 */
 		sc_found = 1;
