@@ -1523,6 +1523,7 @@ is_mipsr6_isa (struct gdbarch *gdbarch)
 #define b0s21_imm(x) ((x) & 0x1fffff)
 #define b0s26_imm(x) ((x) & 0x3ffffff)
 #define b6s10_ext(x) (((x) >> 6) & 0x3ff)
+#define b9s3_op(x) (((x) >> 9) & 0x7)
 #define b11s5_reg(x) (((x) >> 11) & 0x1f)
 #define b12s4_op(x) (((x) >> 12) & 0xf)
 
@@ -4798,18 +4799,32 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
   ULONGEST insn;
   int insn_count;
   int index;
+  int ll_found = 0;
 
 
-  /* Assume all atomic sequences start with a ll/lld instruction.  */
+  /* Assume all atomic sequences start with a ll/lld/llx/lldx/lle/llxe
+     instruction.  */
   insn = mips_fetch_instruction (gdbarch, ISA_MICROMIPS, loc, NULL);
   if (micromips_op (insn) != 0x18)	/* POOL32C: bits 011000 */
     return 0;
   loc += MIPS_INSN16_SIZE;
   insn <<= 16;
   insn |= mips_fetch_instruction (gdbarch, ISA_MICROMIPS, loc, NULL);
-  if ((b12s4_op (insn) & 0xb) != 0x3)	/* LL, LLD: bits 011000 0x11 */
-    return 0;
   loc += MIPS_INSN16_SIZE;
+  if (b12s4_op (insn) == 0x6		    /* LD-EVA bits 0110 */
+      && (b9s3_op (insn) == 0x6		    /* LLE    bits 110 */
+	  || (is_mipsr6_isa (gdbarch)
+	      && b9s3_op (insn) == 0x2)))   /* LLXE   bits 010 */
+    ll_found = 1;
+  else if (b12s4_op (insn) == 0x3	    /* LL     bits 0011 */
+	    || b12s4_op (insn) == 0x7       /* LLD    bits 0111 */
+	    || b12s4_op (insn) == 0x1       /* LLX    bits 0001 */
+	    || b12s4_op (insn) == 0x5)	    /* LLDX   bits 0101 */
+    ll_found = 1;
+
+  if (!ll_found)
+    return 0;
+
 
   /* Assume all atomic sequences end with an sc/scd instruction.  Assume
      that no atomic sequence is longer than "atomic_sequence_length"
@@ -4864,6 +4879,9 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 		case 0x18: /* POOL32C: bits 011000 */
 		  if ((b12s4_op (insn) & 0xb) == 0xb)
 				/* SC, SCD: bits 011000 1x11 */
+		    sc_found = 1;
+		  else if (b12s4_op (insn) == 0xa     /* ST-EVA bits 1010 */
+			   && b9s3_op (insn) == 0x6)  /* SCE bits 110 */
 		    sc_found = 1;
 		  break;
 
@@ -5017,6 +5035,9 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 	    case 0x18: /* POOL32C: bits 011000 */
 	      if ((b12s4_op (insn) & 0xb) == 0xb)
 				/* SC, SCD: bits 011000 1x11 */
+		sc_found = 1;
+	      else if (b12s4_op (insn) == 0xa     /* ST-EVA bits 1010 */
+		       && b9s3_op (insn) == 0x6)  /* SCE bits 110 */
 		sc_found = 1;
 	      break;
 	    }
