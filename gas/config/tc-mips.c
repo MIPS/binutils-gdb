@@ -17302,6 +17302,7 @@ relaxed_micromips_32bit_branch_length (fragS *fragp, asection *sec, int update)
   int length;
 
   if (fragp
+      && fragp->fr_symbol
       && S_IS_DEFINED (fragp->fr_symbol)
       && sec == S_GET_SEGMENT (fragp->fr_symbol))
     {
@@ -17397,6 +17398,7 @@ relaxed_micromips_16bit_branch_length (fragS *fragp, asection *sec, int update)
   bfd_boolean toofar;
 
   if (fragp
+      && fragp->fr_symbol
       && S_IS_DEFINED (fragp->fr_symbol)
       && sec == S_GET_SEGMENT (fragp->fr_symbol))
     {
