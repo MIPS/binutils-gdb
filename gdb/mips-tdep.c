@@ -8256,9 +8256,8 @@ mips32_instruction_has_delay_slot (struct gdbarch *gdbarch, ULONGEST inst)
       rt = itype_rt (inst);
       return (is_octeon_bbit_op (op, gdbarch) 
 	      || (op >> 1 == 10) /* BEQL, BNEL: bits 01010x  */
-	      || (!is_mipsr6_isa (gdbarch)
-		  && (op >> 1 == 11 /* BLEZL, BGTZL: bits 01011x  */
-		      || op == 29)) /* JALX: bits 011101  */
+	      || (op >> 1 == 11 && rt == 0) /* BLEZL, BGTZL: bits 01011x  */
+	      || (!is_mipsr6_isa (gdbarch) && op == 29)	/* JALX: bits 011101  */
 	      || (op == 17
 		  && (rs == 8))
 				/* BC1F, BC1FL, BC1T, BC1TL: 010001 01000  */
@@ -8295,7 +8294,7 @@ mips32_instruction_has_delay_slot (struct gdbarch *gdbarch, ULONGEST inst)
 	break;			/* end REGIMM  */
 	case 6:			/* BLEZ  */
 	case 7:			/* BGTZ  */
-	 return (!is_mipsr6_isa (gdbarch));
+	 return (itype_rt (inst) == 0);
 	 break;
       default:			/* J, JAL, BEQ, BNE  */
 	return 1;
