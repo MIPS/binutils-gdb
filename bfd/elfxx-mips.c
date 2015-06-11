@@ -7819,7 +7819,7 @@ _bfd_mips_elf_create_dynamic_sections (bfd *abfd, struct bfd_link_info *info)
   htab->sstubs = s;
 
   if (!mips_elf_hash_table (info)->use_rld_obj_head
-      && !info->shared
+      && info->executable
       && bfd_get_linker_section (abfd, ".rld_map") == NULL)
     {
       s = bfd_make_section_anyway_with_flags (abfd, ".rld_map",
@@ -7883,7 +7883,7 @@ _bfd_mips_elf_create_dynamic_sections (bfd *abfd, struct bfd_link_info *info)
 	(void) bfd_set_section_alignment (abfd, s, MIPS_ELF_LOG_FILE_ALIGN (abfd));
     }
 
-  if (!info->shared)
+  if (info->executable)
     {
       const char *name;
 
@@ -9929,7 +9929,7 @@ _bfd_mips_elf_size_dynamic_sections (bfd *output_bfd,
 	      info->combreloc = 0;
 	    }
 	}
-      else if (! info->shared
+      else if (info->executable
 	       && ! mips_elf_hash_table (info)->use_rld_obj_head
 	       && CONST_STRNEQ (name, ".rld_map"))
 	{
@@ -9990,6 +9990,10 @@ _bfd_mips_elf_size_dynamic_sections (bfd *output_bfd,
 	 may only look at the first one they see.  */
       if (!info->shared
 	  && !MIPS_ELF_ADD_DYNAMIC_ENTRY (info, DT_MIPS_RLD_MAP, 0))
+	return FALSE;
+
+      if (info->executable
+	  && !MIPS_ELF_ADD_DYNAMIC_ENTRY (info, DT_MIPS_RLD_MAP2, 0))
 	return FALSE;
 
       /* The DT_DEBUG entry may be filled in by the dynamic linker and
@@ -11816,6 +11820,27 @@ _bfd_mips_elf_finish_dynamic_sections (bfd *output_bfd,
 		s = h->root.u.def.section;
 		dyn.d_un.d_ptr = (s->output_section->vma + s->output_offset
 				  + h->root.u.def.value);
+	      }
+	      break;
+
+	    case DT_MIPS_RLD_MAP2:
+	      {
+		struct elf_link_hash_entry *h;
+		bfd_vma dt_addr, rld_addr;
+		h = mips_elf_hash_table (info)->rld_symbol;
+		if (!h)
+		  {
+		    dyn_to_skip = MIPS_ELF_DYN_SIZE (dynobj);
+		    swap_out_p = FALSE;
+		    break;
+		  }
+		s = h->root.u.def.section;
+
+		dt_addr = (sdyn->output_section->vma + sdyn->output_offset
+			   + b - sdyn->contents);
+		rld_addr = (s->output_section->vma + s->output_offset
+			    + h->root.u.def.value);
+		dyn.d_un.d_ptr = rld_addr - dt_addr;
 	      }
 	      break;
 
@@ -15940,6 +15965,8 @@ _bfd_mips_elf_get_target_dtag (bfd_vma dtag)
       return "MIPS_HIPAGENO";
     case DT_MIPS_RLD_MAP:
       return "MIPS_RLD_MAP";
+    case DT_MIPS_RLD_MAP2:
+      return "MIPS_RLD_MAP2";
     case DT_MIPS_DELTA_CLASS:
       return "MIPS_DELTA_CLASS";
     case DT_MIPS_DELTA_CLASS_NO:
