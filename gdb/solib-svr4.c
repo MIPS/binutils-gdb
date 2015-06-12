@@ -708,7 +708,7 @@ scan_dyntag (const int desired_dyntag, bfd *abfd, CORE_ADDR *ptr,
 	       dyn_ptr = extract_typed_address (ptr_buf, ptr_type);
 	     *ptr = dyn_ptr;
 	     if (ptr_addr)
-	       *ptr_addr = ptr_addr_1;
+	       *ptr_addr = dyn_addr + (buf - bufstart);
 	   }
 	 return 1;
        }
