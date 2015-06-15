@@ -1730,7 +1730,9 @@ get_mips_dynamic_type (unsigned long type)
     case DT_MIPS_PLTGOT: return "MIPS_PLTGOT";
     case DT_MIPS_RWPLT: return "MIPS_RWPLT";
     case DT_MIPS_IPLT: return "MIPS_IPLT";
-    case DT_MIPS_IFUNC_DYNINDX: return "MIPS_IFUNC_DYNINDX";
+    case DT_MIPS_IFUNC_INDX: return "MIPS_IFUNC_INDX";
+    case DT_MIPS_IPLTREL: return "MIPS_IPLTREL";
+    case DT_MIPS_IFUNCREL_INDX: return "MIPS_IFUNCREL_INDX";
 
     default:
       return NULL;
