@@ -5491,7 +5491,8 @@ mips_elf_create_ifunc_sections (struct bfd_link_info *info)
 	htab->iplt_entry_size = 4 * (ARRAY_SIZE (micromips32_dso_iplt_entry)
 					 * 2 / 3);
       else
-	htab->iplt_entry_size = 4 * ARRAY_SIZE (mips32_dso_iplt_entry);
+	htab->iplt_entry_size = 4 * (ARRAY_SIZE (mips32_dso_iplt_entry)
+				     + (LOAD_INTERLOCKS_P (dynobj)? 0 : 1));
     }
   else 
     {
@@ -5504,7 +5505,8 @@ mips_elf_create_ifunc_sections (struct bfd_link_info *info)
 	    htab->iplt_entry_size = 4
 	      * (ARRAY_SIZE (micromips32_exec_iplt_entry) * 3 / 4);
       else
-	htab->iplt_entry_size = 4 * ARRAY_SIZE (mips32_exec_iplt_entry);
+	htab->iplt_entry_size = 4 * (ARRAY_SIZE (mips32_exec_iplt_entry)
+				     + (LOAD_INTERLOCKS_P (dynobj)? 0 : 1));
     }
 
   BFD_ASSERT (htab->root.igotplt == NULL);
@@ -11143,14 +11145,23 @@ mips_elf_create_iplt (bfd *output_bfd,
 	  bfd_put_16 (output_bfd, iplt_entry[4], loc + 12);
 	  bfd_put_16 (output_bfd, iplt_entry[5], loc + 14);
 	}
-      else if (info->shared)
+      else
 	{
 	  iplt_entry = mips32_dso_iplt_entry;
 	  bfd_put_32 (output_bfd, iplt_entry[0] | high, loc);
 	  bfd_put_32 (output_bfd, iplt_entry[1], loc + 4);
 	  bfd_put_32 (output_bfd, iplt_entry[2] | low, loc + 8);
-	  bfd_put_32 (output_bfd, iplt_entry[3], loc + 12);
-	  bfd_put_32 (output_bfd, iplt_entry[4], loc + 16);
+	  if (LOAD_INTERLOCKS_P (output_bfd))
+	    {
+	      bfd_put_32 (output_bfd, iplt_entry[3], loc + 12);
+	      bfd_put_32 (output_bfd, iplt_entry[4], loc + 16);
+	    }
+	  else
+	    {
+	      bfd_put_32 (output_bfd, iplt_entry[4], loc + 12);
+	      bfd_put_32 (output_bfd, iplt_entry[3], loc + 16);
+	      bfd_put_32 (output_bfd, iplt_entry[4], loc + 20);
+	    }
 	}
     }
   else
@@ -11195,8 +11206,17 @@ mips_elf_create_iplt (bfd *output_bfd,
 	  iplt_entry = mips32_exec_iplt_entry;
 	  bfd_put_32 (output_bfd, iplt_entry[0] | high, loc);
 	  bfd_put_32 (output_bfd, iplt_entry[1] | low, loc + 4);
-	  bfd_put_32 (output_bfd, iplt_entry[2], loc + 8);
-	  bfd_put_32 (output_bfd, iplt_entry[3], loc + 12);
+	  if (LOAD_INTERLOCKS_P (output_bfd))
+	    {
+	      bfd_put_32 (output_bfd, iplt_entry[2], loc + 8);
+	      bfd_put_32 (output_bfd, iplt_entry[3], loc + 12);
+	    }
+	  else
+	    {
+	      bfd_put_32 (output_bfd, iplt_entry[3], loc + 8);
+	      bfd_put_32 (output_bfd, iplt_entry[2], loc + 12);
+	      bfd_put_32 (output_bfd, iplt_entry[3], loc + 16);
+	    }
 	}
     }
 
