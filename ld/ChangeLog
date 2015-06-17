@@ -1,3 +1,8 @@
+2015-06-17  Matthew Fortune  <matthew.fortune@imgtec.com>
+
+	* emulparams/elf64btsmip.sh: Remove TEXT_START_ADDR to support
+	n64 -msym32 objects.
+
 2015-06-15  Nick Clifton  <nickc@redhat.com>
 
 	PR ld/18466

@@ -12,5 +12,3 @@ OTHER_SECTIONS='
   .gptab.sdata : { *(.gptab.data) *(.gptab.sdata) }
   .gptab.sbss : { *(.gptab.bss) *(.gptab.sbss) }
 '
-
-TEXT_START_ADDR="0x120000000"
