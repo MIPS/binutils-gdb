@@ -5456,7 +5456,7 @@ mips_elf_create_compact_rel_section
   return TRUE;
 }
 
-/* Create the .iplt, .rel(a).iplt and .igot.plt sections.  */
+/* Create the .iplt, .rel(a).iplt and .igot sections.  */
 
 static bfd_boolean
 mips_elf_create_ifunc_sections (struct bfd_link_info *info)
@@ -5466,7 +5466,6 @@ mips_elf_create_ifunc_sections (struct bfd_link_info *info)
   bfd *dynobj;
   asection *s;
   flagword flags;
-  const char *sect_names[2] = {".rel.iplt", ".rela.iplt"};
 
   htab = mips_elf_hash_table (info);
   dynobj = htab->root.dynobj;
@@ -5511,7 +5510,7 @@ mips_elf_create_ifunc_sections (struct bfd_link_info *info)
 
   BFD_ASSERT (htab->root.igotplt == NULL);
 
-  s = bfd_make_section_anyway_with_flags (dynobj, ".igot.plt", flags);
+  s = bfd_make_section_anyway_with_flags (dynobj, ".igot", flags);
   if (s == NULL
       || !bfd_set_section_alignment (dynobj, s, bed->s->log_file_align))
     return FALSE;
@@ -5520,9 +5519,7 @@ mips_elf_create_ifunc_sections (struct bfd_link_info *info)
 
   BFD_ASSERT (htab->root.irelplt == NULL);
 
-  s = bfd_make_section_with_flags (dynobj,
-				   sect_names[htab->root.splt?1:0],
-				   flags | SEC_READONLY);
+  s = bfd_make_section_with_flags (dynobj, ".rel.iplt", flags | SEC_READONLY);
   if (s == NULL
       || !bfd_set_section_alignment (dynobj, s, bed->s->log_file_align))
     return FALSE;
@@ -7553,7 +7550,7 @@ _bfd_mips_elf_section_processing (bfd *abfd, Elf_Internal_Shdr *hdr)
 		hdr->sh_size += hdr->sh_addralign - adjust;
 	    }
 	}
-      else if (strcmp (name, ".igot.plt") == 0)
+      else if (strcmp (name, ".igot") == 0)
 	hdr->sh_entsize =  MIPS_ELF_GOT_SIZE (abfd);
     }
 
