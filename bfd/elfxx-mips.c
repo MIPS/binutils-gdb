@@ -1231,8 +1231,8 @@ static const bfd_vma mips16_exec_iplt_entry[] =
   0x0000, 0x0000	/* .word (.igot address)	*/
 };
 
-/* The format of MIPS16 o32 IPLT entries for DSOs.  */
-static const bfd_vma mips16_dso_iplt_entry[] =
+/* The format of MIPS16 o32 IPLT entries for PIC.  */
+static const bfd_vma mips16_so_iplt_entry[] =
 {
   0x0b00,		/* addiu $3, $pc, 0		*/
   0x9b43,		/* lw    $2, 12($3)		*/
@@ -1252,8 +1252,8 @@ static const bfd_vma mips32_exec_iplt_entry[] =
   0x00000000    /* nop					*/
 };
 
-/* The format of dso IPLT entries.  */
-static const bfd_vma mips32_dso_iplt_entry[] =
+/* The format of MIPS32 IPLT entries for PIC.  */
+static const bfd_vma mips32_so_iplt_entry[] =
 {
   0x3c170000,	/* lui  $23, %hi(.igot offset)		*/
   0x02f9b821,	/* addu $23, $23, $25			*/
@@ -1271,8 +1271,8 @@ static const bfd_vma micromips32_exec_iplt_entry[] =
   0x0c00,	/* nop					*/
 };
 
-/* The format of 32-bit micromips dso IPLT entries.  */
-static const bfd_vma micromips32_dso_iplt_entry[] =
+/* The format of 32-bit micromips IPLT entries for PIC.  */
+static const bfd_vma micromips32_so_iplt_entry[] =
 {
   0x79000000,	/* addiu   $2, pc, %lo(.igot offset)	*/
   0x41a30000,	/* lui     $3, %hi(.igot offset)	*/
@@ -1295,8 +1295,8 @@ static const bfd_vma mips64_exec_iplt_entry[] =
   0x00000000	/* nop						*/
 };
 
-/* The format of 64-bit dso IPLT entries.  */
-static const bfd_vma mips64_dso_iplt_entry[] =
+/* The format of 64-bit IPLT entries for PIC.  */
+static const bfd_vma mips64_so_iplt_entry[] =
 {
   0x3c0f0000,   /* lui     $15, %highest(.igot offset)		*/
   0x65ef0000,   /* daddiu  $15, $15, %higher(.igot offset)	*/
@@ -1727,7 +1727,7 @@ mips_elf_create_stub_symbol (struct bfd_link_info *info,
   elfh->type = ELF_ST_INFO (STB_LOCAL, STT_FUNC);
   elfh->size = size;
   elfh->forced_local = 1;
-  
+
   if (ELF_ST_IS_MIPS16 (h->root.other) && h->needs_iplt)
     elfh->other = STO_MIPS16;
 
@@ -2173,7 +2173,7 @@ mips_use_local_got_p (struct bfd_link_info *info,
 }
 
 /* Reserve space in the iplt and igot tables for another ifunc entry.
-   Don't allocate igot entry if this is a DSO link.  */
+   Don't allocate igot entry if this is a shared object.  */
 
 static bfd_boolean
 mips_elf_allocate_iplt (bfd *abfd, struct mips_elf_link_hash_table *mhtab,
@@ -2265,8 +2265,8 @@ mips_elf_check_local_symbols (void **slot, void *data)
   if (h && !h->needs_iplt && h->root.type == STT_GNU_IFUNC)
     {
       struct bfd_link_info *info = hti->info;
-      /* .iplt entry is needed for non-PIC objects.
-	 IREL fixup is sufficient for PIC objects.  */
+      /* .iplt entry is needed for executable objects.
+	 IREL fixup is sufficient for shared objects.  */
       if (info->shared)
 	mips_elf_allocate_dynamic_relocations (info->output_bfd, info, 1);
       else
@@ -2294,11 +2294,11 @@ mips_elf_check_symbols (struct mips_elf_link_hash_entry *h, void *data)
       h->root.type == STT_GNU_IFUNC)
     {
       struct bfd_link_info *info = hti->info;
-      
+
       /* If visibility is restricted(local), we only need reloc entry for IREL
 	 fixup, else we need IPLT stub for cross-object symbol resolution.  */
-      if (ELF_ST_VISIBILITY (h->root.other) == STV_HIDDEN ||
-	  ELF_ST_VISIBILITY (h->root.other) == STV_INTERNAL)
+      if (ELF_ST_VISIBILITY (h->root.other) == STV_HIDDEN
+	  || ELF_ST_VISIBILITY (h->root.other) == STV_INTERNAL)
 	mips_elf_allocate_dynamic_relocations (info->output_bfd, info, 1);
       else
 	{
@@ -3078,7 +3078,7 @@ sort_dynamic_relocs (const void *arg1, const void *arg2)
   if (ELF32_R_TYPE (int_reloc1.r_info) == R_MIPS_IRELATIVE
       && ELF32_R_TYPE (int_reloc2.r_info) != R_MIPS_IRELATIVE)
     return 1;
-  else if (ELF32_R_TYPE (int_reloc2.r_info) == R_MIPS_IRELATIVE 
+  else if (ELF32_R_TYPE (int_reloc2.r_info) == R_MIPS_IRELATIVE
 	   && ELF32_R_TYPE (int_reloc1.r_info) != R_MIPS_IRELATIVE)
     return -1;
 
@@ -4108,8 +4108,8 @@ mips_elf_set_iplt_offsets (struct mips_elf_link_hash_entry *h, void *data)
   /* .iplt stubs are assigned in ascending order of dynamic indices:
      all GP-relative referenced IFUNC symbols, followed by by all reloc-only
      IFUNC symbols.  */
-  if (h->root.type == STT_GNU_IFUNC && 
-      info->shared && h->root.dynindx >= htab->ifunc_dynindx)
+  if (h->root.type == STT_GNU_IFUNC
+      && info->shared && h->root.dynindx >= htab->ifunc_dynindx)
     {
       char *stubname =  ACONCAT ((".iplt.", h->root.root.root.string, NULL));
       struct bfd_link_hash_entry *bh;
@@ -4193,7 +4193,7 @@ mips_elf_sort_hash_table (bfd *abfd, struct bfd_link_info *info)
 
   /* Set iplt_offset for each IFUNC stub according to sort order.  */
   mips_elf_link_hash_traverse (htab, mips_elf_set_iplt_offsets, info);
-  
+
   /* There should have been enough room in the symbol table to
      accommodate both the GOT and non-GOT symbols.  */
   BFD_ASSERT (hsd.max_non_got_dynindx <= hsd.min_got_dynindx);
@@ -4819,7 +4819,7 @@ mips_elf_count_local_got_symbols (void **slot, void *inf)
   struct mips_elf_link_hash_table *htab;
   struct mips_got_info *g;
 
-  BFD_ASSERT (h != NULL && h->root.type == STT_GNU_IFUNC && 
+  BFD_ASSERT (h != NULL && h->root.type == STT_GNU_IFUNC &&
 	      h->root.forced_local);
 
   info = (struct bfd_link_info *) inf;
@@ -5482,18 +5482,18 @@ mips_elf_create_ifunc_sections (struct bfd_link_info *info)
   if (info->shared)
     {
       if (ABI_64_P (dynobj))
-	htab->iplt_entry_size = 4 * ARRAY_SIZE (mips64_dso_iplt_entry);
+	htab->iplt_entry_size = 4 * ARRAY_SIZE (mips64_so_iplt_entry);
       else if (MIPS16_P (dynobj))
-	htab->iplt_entry_size = 2 * ARRAY_SIZE (mips16_dso_iplt_entry);
+	htab->iplt_entry_size = 2 * ARRAY_SIZE (mips16_so_iplt_entry);
       else if (MICROMIPS_P (dynobj))
 	  /* Multiply by compression ratio for micromips.  */
-	htab->iplt_entry_size = 4 * (ARRAY_SIZE (micromips32_dso_iplt_entry)
+	htab->iplt_entry_size = 4 * (ARRAY_SIZE (micromips32_so_iplt_entry)
 					 * 2 / 3);
       else
-	htab->iplt_entry_size = 4 * (ARRAY_SIZE (mips32_dso_iplt_entry)
+	htab->iplt_entry_size = 4 * (ARRAY_SIZE (mips32_so_iplt_entry)
 				     + (LOAD_INTERLOCKS_P (dynobj)? 0 : 1));
     }
-  else 
+  else
     {
       if (ABI_64_P (dynobj))
 	htab->iplt_entry_size = 4 * ARRAY_SIZE (mips64_exec_iplt_entry);
@@ -5844,7 +5844,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
 
       target_is_16_bit_code_p = ELF_ST_IS_MIPS16 (sym->st_other);
       target_is_micromips_code_p = ELF_ST_IS_MICROMIPS (sym->st_other);
-      
+
       if (sym->st_info == STT_GNU_IFUNC)
 	{
 	  h = get_local_sym_hash (mips_elf_hash_table (info), input_bfd, relocation);
@@ -11074,7 +11074,7 @@ static bfd_boolean
 mips_elf_create_iplt (bfd *output_bfd,
 		      struct mips_elf_link_hash_table *htab,
 		      struct mips_elf_link_hash_entry *hmips,
-		      struct bfd_link_info *info, 
+		      struct bfd_link_info *info,
 		      bfd_vma igotplt_address)
 {
   bfd_byte *loc;
@@ -11108,7 +11108,7 @@ mips_elf_create_iplt (bfd *output_bfd,
 	  bfd_vma highest = mips_elf_highest (igotplt_offset);
 	  bfd_vma higher = mips_elf_higher (igotplt_offset);
 
-	  iplt_entry = mips64_dso_iplt_entry;
+	  iplt_entry = mips64_so_iplt_entry;
 	  bfd_put_32 (output_bfd, iplt_entry[0] | highest, loc);
 	  bfd_put_32 (output_bfd, iplt_entry[1] | higher, loc + 4);
 	  bfd_put_32 (output_bfd, iplt_entry[2], loc + 8);
@@ -11121,7 +11121,7 @@ mips_elf_create_iplt (bfd *output_bfd,
 	}
       else if (ELF_ST_IS_MIPS16 (hmips->root.other))
 	{
-	  iplt_entry = mips16_dso_iplt_entry;
+	  iplt_entry = mips16_so_iplt_entry;
 	  bfd_put_16 (output_bfd, iplt_entry[0], loc);
 	  bfd_put_16 (output_bfd, iplt_entry[1], loc + 2);
 	  bfd_put_16 (output_bfd, iplt_entry[2], loc + 4);
@@ -11134,7 +11134,7 @@ mips_elf_create_iplt (bfd *output_bfd,
 	{
 	  /* Compensate for offset scale-up performed by addiupc.  */
 	  low = low >> 2;
-	  iplt_entry = micromips32_dso_iplt_entry;
+	  iplt_entry = micromips32_so_iplt_entry;
 	  bfd_put_micromips_32 (output_bfd, iplt_entry[0] | low, loc);
 	  bfd_put_micromips_32 (output_bfd, iplt_entry[1] | high, loc + 4);
 	  bfd_put_16 (output_bfd, iplt_entry[2], loc + 8);
@@ -11144,7 +11144,7 @@ mips_elf_create_iplt (bfd *output_bfd,
 	}
       else
 	{
-	  iplt_entry = mips32_dso_iplt_entry;
+	  iplt_entry = mips32_so_iplt_entry;
 	  bfd_put_32 (output_bfd, iplt_entry[0] | high, loc);
 	  bfd_put_32 (output_bfd, iplt_entry[1], loc + 4);
 	  bfd_put_32 (output_bfd, iplt_entry[2] | low, loc + 8);
@@ -11222,7 +11222,7 @@ mips_elf_create_iplt (bfd *output_bfd,
 
 /* Return the GOT index of global symbol H in the secondary GOT.  */
 
-static bfd_vma 
+static bfd_vma
 mips_elf_multi_got_index (bfd *ibfd,
 				struct bfd_link_info *info,
 				struct elf_link_hash_entry *h)
@@ -11334,7 +11334,7 @@ mips_elf_create_ireloc (bfd *output_bfd,
   mips_elf_output_dynamic_relocation (output_bfd, relsect,
 				      relsect->reloc_count++, symindx,
 				      R_MIPS_IRELATIVE, igotplt_address);
-  
+
   /* If necessary, generate the corresponding .iplt entry.  */
   if (hmips->needs_iplt)
     return mips_elf_create_iplt (output_bfd, htab, hmips, info,
