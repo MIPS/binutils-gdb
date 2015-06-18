@@ -8,7 +8,7 @@ SECTIONS
   .iplt : { *(.iplt) }
 
   . = ALIGN (0x400);
-  .igot.plt : { *(.igot.plt) }
+  .igot : { *(.igot) }
 
   . = ALIGN (0x400);
   .got : { *(.got) }
