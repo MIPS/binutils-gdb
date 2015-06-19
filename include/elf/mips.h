@@ -759,13 +759,13 @@ extern void bfd_mips_elf32_swap_reginfo_out
 #define DT_MIPS_IPLT           0x70000036
 
 /* INDEX of the first IFUNC symbol in dynsym table */
-#define DT_MIPS_IFUNC_INDX  0x70000036
+#define DT_MIPS_IFUNC_INDX  0x70000037
 
 /* Points to start of reloc-only IFUNC stubs in IPLT section */
-#define DT_MIPS_IPLTREL  0x70000037
+#define DT_MIPS_IPLTREL  0x70000038
 
 /* INDEX of the first reloc-only IFUNC symbol in dynsym table */
-#define DT_MIPS_IFUNCREL_INDX  0x70000038
+#define DT_MIPS_IFUNCREL_INDX  0x70000039
 
 
 /* Flags which may appear in a DT_MIPS_FLAGS entry.  */
