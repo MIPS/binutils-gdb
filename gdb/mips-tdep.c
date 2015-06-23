@@ -1963,7 +1963,7 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
 		  pc += 8;	/* after the delay slot */
 		break;
 	      case 0x1c:	/* BPOSGE32 */
-	      case 0x1d:	/* BPOSGE32C */
+	      case 0x18:	/* BPOSGE32C */
 	      case 0x1e:	/* BPOSGE64 */
 		pc += 4;
 		if (itype_rs (inst) == 0)
@@ -1977,7 +1977,7 @@ mips32_next_pc (struct frame_info *frame, CORE_ADDR pc)
 		      break;
 
 		    /* BPOSGE32C */
-		    if (op == 0x1d)
+		    if (op == 0x18)
 		      {
 			if (!is_mipsr6_isa (gdbarch))
 			  break;
@@ -3039,7 +3039,7 @@ mips32_instruction_is_compact_branch (struct gdbarch *gdbarch, ULONGEST insn)
     /* BPOSGE32C */
     case 1:
       if (is_mipsr6_isa (gdbarch)
-	  && itype_rt (insn) == 0x1d && itype_rs (insn) == 0)
+	  && itype_rt (insn) == 0x18 && itype_rs (insn) == 0)
 	return 2;
     }
   return 0;
