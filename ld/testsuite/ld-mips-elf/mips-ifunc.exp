@@ -104,7 +104,8 @@ foreach { abi } $abis {
 	    "$abi_ldflags($abi) -Bstatic -T ifunc-static.ld" "" \
 	    "$abi_asflags($abi) -non_shared" \
 	    [list ifunc-static-main.s ifunc-static-def.s ifunc-static-ref.s] \
-	    [list "readelf -r ifunc-4-${abi}.r" \
+	    [list "readelf -s ifunc-4-${abi}.sym" \
+		  "readelf -r ifunc-4-${abi}.r" \
                   "objdump -dj.iplt ifunc-4-${abi}.t"] \
 	    "ifunc-4-${abi}" \
         ] \
