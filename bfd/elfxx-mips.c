@@ -11870,6 +11870,7 @@ _bfd_mips_elf_finish_local_dynamic_symbol (void **slot, void *inf)
 
   isym.st_value = h->root.root.u.def.section->output_section->vma
     + h->root.root.u.def.section->output_offset + h->root.root.u.def.value;
+  isym.st_other = h->root.other;
 
   return _bfd_mips_elf_finish_dynamic_symbol (info->output_bfd, info,
 					      &h->root, &isym);
