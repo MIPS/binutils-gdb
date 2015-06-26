@@ -2297,8 +2297,9 @@ mips_elf_check_symbols (struct mips_elf_link_hash_entry *h, void *data)
 
       /* If visibility is restricted(local), we only need reloc entry for IREL
 	 fixup, else we need IPLT stub for cross-object symbol resolution.  */
-      if (ELF_ST_VISIBILITY (h->root.other) == STV_HIDDEN
-	  || ELF_ST_VISIBILITY (h->root.other) == STV_INTERNAL)
+      if (info->shared &&
+	  (ELF_ST_VISIBILITY (h->root.other) == STV_HIDDEN
+	   || ELF_ST_VISIBILITY (h->root.other) == STV_INTERNAL))
 	mips_elf_allocate_dynamic_relocations (info->output_bfd, info, 1);
       else
 	{
