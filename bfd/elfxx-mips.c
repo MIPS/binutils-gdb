@@ -2096,13 +2096,10 @@ mips_elf_allocate_ireloc (struct bfd_link_info *info,
   asection *srel;
   bfd *dynobj;
 
-  if (mh->needs_igot || mh->global_got_area != GGA_NONE
-      || mh->root.dynindx == -1)
-    {
-      srel = mips_get_irel_section (info, mhtab);
-      dynobj = elf_hash_table (info)->dynobj;
-      srel->size += MIPS_ELF_REL_SIZE (dynobj);
-    }
+  BFD_ASSERT (mh);
+  srel = mips_get_irel_section (info, mhtab);
+  dynobj = elf_hash_table (info)->dynobj;
+  srel->size += MIPS_ELF_REL_SIZE (dynobj);
 
   return TRUE;
 }
@@ -10951,40 +10948,6 @@ mips_elf_create_iplt (bfd *output_bfd,
   return TRUE;
 }
 
-/* Return the GOT index of global symbol H in the secondary GOT.  */
-
-static bfd_vma
-mips_elf_multi_got_index (bfd *ibfd,
-				struct bfd_link_info *info,
-				struct elf_link_hash_entry *h)
-{
-  struct mips_got_entry e, *p;
-
-  struct mips_got_info *g, *gg;
-  struct mips_elf_link_hash_table *htab;
-  struct mips_elf_link_hash_entry *hmips;
-
-  htab = mips_elf_hash_table (info);
-  BFD_ASSERT (htab != NULL);
-  hmips = (struct mips_elf_link_hash_entry *) h;
-
-  g = htab->got_info;
-  gg = g;
-
-  e.abfd = ibfd;
-  e.symndx = -1;
-  e.d.h = hmips;
-  e.tls_type = GOT_TLS_NONE;
-
-  for (g = g->next; g->next != gg; g = g->next)
-    {
-      if (g->got_entries
-	  && (p = (struct mips_got_entry *) htab_find (g->got_entries, &e)))
-	      return p->gotidx;
-    }
-  return 0;
-}
-
 /* Create the IRELATIVE relocation for an IFUNC symbol.  */
 
 static bfd_boolean
@@ -10999,23 +10962,13 @@ mips_elf_create_ireloc (bfd *output_bfd,
   int igot_offset = -1;
   asection *gotsect, *relsect;
 
-  if (!hmips->needs_igot)
+  if (!hmips->needs_igot && mips_use_local_got_p (info, hmips))
     {
-      /* Symbol already has local/global GOT entry, use it as IGOT entry.  */
       gotsect = htab->sgot;
-      if (hmips->global_got_area != GGA_NONE)
-	{
-	  igot_offset = mips_elf_primary_global_got_index (output_bfd,
-							   info, &hmips->root);
-	  /* If offset exceeds 16 bits, lookup in secondary GOTs.  */
-	  if (igot_offset > MIPS_ELF_GOT_MAX_SIZE(info))
-	    igot_offset = mips_elf_multi_got_index (output_bfd, info,
-						    &hmips->root);
-	}
-      else if (mips_use_local_got_p (info, hmips))
-	  igot_offset = mips_elf_local_got_index (output_bfd, output_bfd,
-						  info, sym->st_value, 0,
-						  hmips, R_MIPS_32);
+      igot_offset = mips_elf_local_got_index (output_bfd, output_bfd,
+					      info, sym->st_value, 0,
+					      hmips, R_MIPS_32);
+      hmips->needs_igot = TRUE;
     }
   else
     {
@@ -11047,7 +11000,7 @@ mips_elf_create_ireloc (bfd *output_bfd,
   igotplt_address = (gotsect->output_section->vma + gotsect->output_offset
 		     + igot_offset);
 
-  if (igot_offset >= 0)
+  if (hmips->needs_igot)
     {
       relsect = mips_get_irel_section (info, htab);
       if (relsect->contents == NULL)
