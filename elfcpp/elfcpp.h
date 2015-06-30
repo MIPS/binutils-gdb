@@ -871,10 +871,6 @@ enum DT
   DT_MIPS_RWPLT = 0x70000034,
   // Relative offset of run time loader map, used for debugging.
   DT_MIPS_RLD_MAP_REL = 0x70000035,
-  // Points to first IGOT entry.
-  DT_MIPS_IGOT = 0x70000036
-  // Number of IGOT entries.
-  DT_MIPS_IGOT_SIZE = 0x70000037
 
   DT_AUXILIARY = 0x7ffffffd,
   DT_USED = 0x7ffffffe,
