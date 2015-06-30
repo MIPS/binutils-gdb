@@ -866,10 +866,6 @@ enum DT
   DT_MIPS_PLTGOT = 0x70000032,
   // Points to the base of a writable PLT.
   DT_MIPS_RWPLT = 0x70000034,
-  // Points to first IGOT entry.
-  DT_MIPS_IGOT = 0x70000036
-  // Number of IGOT entries.
-  DT_MIPS_IGOT_SIZE = 0x70000037
 
   DT_AUXILIARY = 0x7ffffffd,
   DT_USED = 0x7ffffffe,
