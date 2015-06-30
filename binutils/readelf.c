@@ -1729,8 +1729,6 @@ get_mips_dynamic_type (unsigned long type)
     case DT_MIPS_AUX_DYNAMIC: return "MIPS_AUX_DYNAMIC";
     case DT_MIPS_PLTGOT: return "MIPS_PLTGOT";
     case DT_MIPS_RWPLT: return "MIPS_RWPLT";
-    case DT_MIPS_IGOT: return "MIPS_IGOT";
-    case DT_MIPS_IGOT_SIZE: return "MIPS_IGOT_SIZE";
 
     default:
       return NULL;

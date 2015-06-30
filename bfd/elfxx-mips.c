@@ -2096,10 +2096,19 @@ mips_elf_allocate_ireloc (struct bfd_link_info *info,
   asection *srel;
   bfd *dynobj;
 
-  BFD_ASSERT (mh);
-  srel = mips_get_irel_section (info, mhtab);
-  dynobj = elf_hash_table (info)->dynobj;
-  srel->size += MIPS_ELF_REL_SIZE (dynobj);
+  if (mh->needs_igot || mh->global_got_area != GGA_NONE
+      || mh->root.dynindx == -1)
+    {
+      srel = mips_get_irel_section (info, mhtab);
+      dynobj = elf_hash_table (info)->dynobj;
+      if (srel != mhtab->root.irelplt && srel->size == 0)
+	{
+	  /* Make room for a null element.  */
+	  srel->size += MIPS_ELF_REL_SIZE (dynobj);
+	  ++srel->reloc_count;
+	}
+      srel->size += MIPS_ELF_REL_SIZE (dynobj);
+    }
 
   return TRUE;
 }
@@ -2951,6 +2960,14 @@ sort_dynamic_relocs (const void *arg1, const void *arg2)
   bfd_elf32_swap_reloc_in (reldyn_sorting_bfd, arg1, &int_reloc1);
   bfd_elf32_swap_reloc_in (reldyn_sorting_bfd, arg2, &int_reloc2);
 
+  /* Ensure that IRELATIVE relocs are applied after all others.  */
+  if (ELF32_R_TYPE (int_reloc1.r_info) == R_MIPS_IRELATIVE
+      && ELF32_R_TYPE (int_reloc2.r_info) != R_MIPS_IRELATIVE)
+    return 1;
+  else if (ELF32_R_TYPE (int_reloc2.r_info) == R_MIPS_IRELATIVE
+	   && ELF32_R_TYPE (int_reloc1.r_info) != R_MIPS_IRELATIVE)
+    return -1;
+
   diff = ELF32_R_SYM (int_reloc1.r_info) - ELF32_R_SYM (int_reloc2.r_info);
   if (diff != 0)
     return diff;
@@ -2976,6 +2993,14 @@ sort_dynamic_relocs_64 (const void *arg1 ATTRIBUTE_UNUSED,
     (reldyn_sorting_bfd, arg1, int_reloc1);
   (*get_elf_backend_data (reldyn_sorting_bfd)->s->swap_reloc_in)
     (reldyn_sorting_bfd, arg2, int_reloc2);
+
+  /* Ensure that IRELATIVE relocs are applied after all others.  */
+  if (ELF64_R_TYPE (int_reloc1[0].r_info) == R_MIPS_IRELATIVE
+      && ELF64_R_TYPE (int_reloc2[0].r_info) != R_MIPS_IRELATIVE)
+    return 1;
+  else if (ELF64_R_TYPE (int_reloc2[0].r_info) == R_MIPS_IRELATIVE
+	   && ELF64_R_TYPE (int_reloc1[0].r_info) != R_MIPS_IRELATIVE)
+    return -1;
 
   if (ELF64_R_SYM (int_reloc1[0].r_info) < ELF64_R_SYM (int_reloc2[0].r_info))
     return -1;
@@ -10270,14 +10295,6 @@ _bfd_mips_elf_size_dynamic_sections (bfd *output_bfd,
 	    return FALSE;
 	}
 
-      if (htab->root.igotplt && htab->root.igotplt->size)
-	{
-	  if (! MIPS_ELF_ADD_DYNAMIC_ENTRY (info, DT_MIPS_IGOT, 0))
-	    return FALSE;
-	  if (! MIPS_ELF_ADD_DYNAMIC_ENTRY (info, DT_MIPS_IGOT_SIZE, 0))
-	    return FALSE;
-	}
-
       if (htab->is_vxworks
 	  && !elf_vxworks_add_dynamic_entries (output_bfd, info))
 	return FALSE;
@@ -12115,14 +12132,6 @@ _bfd_mips_elf_finish_dynamic_sections (bfd *output_bfd,
 	      s = (bfd_get_section_by_name
 		   (output_bfd, MIPS_ELF_OPTIONS_SECTION_NAME (output_bfd)));
 	      dyn.d_un.d_ptr = s->vma;
-	      break;
-
-	    case DT_MIPS_IGOT:
-	      dyn.d_un.d_val = htab->root.igotplt->output_section->vma;
-	      break;
-
-	    case DT_MIPS_IGOT_SIZE:
-	      dyn.d_un.d_val = htab->root.igotplt->size;
 	      break;
 
 	    case DT_RELASZ:
@@ -16171,10 +16180,6 @@ _bfd_mips_elf_get_target_dtag (bfd_vma dtag)
       return "DT_MIPS_PLTGOT";
     case DT_MIPS_RWPLT:
       return "DT_MIPS_RWPLT";
-    case DT_MIPS_IGOT:
-      return "DT_MIPS_IGOT";
-    case DT_MIPS_IGOT_SIZE:
-      return "DT_MIPS_IGOT_SIZE";
    }
 }
 

@@ -755,12 +755,6 @@ extern void bfd_mips_elf32_swap_reginfo_out
 /* Relative offset of run time loader map, used for debugging.  */
 #define DT_MIPS_RLD_MAP_REL    0x70000035
 
-/* Points to first IGOT entry.  */
-#define DT_MIPS_IGOT		0x70000036
-
-/* Number of IGOT entries.  */
-#define DT_MIPS_IGOT_SIZE	0x70000037
-
 
 /* Flags which may appear in a DT_MIPS_FLAGS entry.  */
 
