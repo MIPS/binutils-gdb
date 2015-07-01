@@ -1231,6 +1231,15 @@ static const bfd_vma mips32_exec_iplt_entry[] =
   0x00000000    /* nop					*/
 };
 
+/* Format of 32 bit IPLT entries for R6. JR encoding differs.  */
+static const bfd_vma mips32r6_exec_iplt_entry[] =
+{
+  0x3c0f0000,   /* lui $15, %hi(.igot address)		*/
+  0x8df90000,   /* lw  $25, %lo(.igot address)($15)	*/
+  0x03200009,   /* jr  $25				*/
+  0x00000000    /* nop					*/
+};
+
 /* The format of 32-bit micromips IPLT entries.  */
 static const bfd_vma micromips32_exec_iplt_entry[] =
 {
@@ -10946,7 +10955,10 @@ mips_elf_create_iplt (bfd *output_bfd,
     }
   else
     {
-      iplt_entry = mips32_exec_iplt_entry;
+      if (MIPSR6_P(output_bfd))
+	iplt_entry = mips32r6_exec_iplt_entry;
+      else
+	iplt_entry = mips32_exec_iplt_entry;
       bfd_put_32 (output_bfd, iplt_entry[0] | high, loc);
       bfd_put_32 (output_bfd, iplt_entry[1] | low, loc + 4);
       if (LOAD_INTERLOCKS_P (output_bfd))
