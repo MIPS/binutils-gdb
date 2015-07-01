@@ -2969,14 +2969,6 @@ sort_dynamic_relocs (const void *arg1, const void *arg2)
   bfd_elf32_swap_reloc_in (reldyn_sorting_bfd, arg1, &int_reloc1);
   bfd_elf32_swap_reloc_in (reldyn_sorting_bfd, arg2, &int_reloc2);
 
-  /* Ensure that IRELATIVE relocs are applied after all others.  */
-  if (ELF32_R_TYPE (int_reloc1.r_info) == R_MIPS_IRELATIVE
-      && ELF32_R_TYPE (int_reloc2.r_info) != R_MIPS_IRELATIVE)
-    return 1;
-  else if (ELF32_R_TYPE (int_reloc2.r_info) == R_MIPS_IRELATIVE
-	   && ELF32_R_TYPE (int_reloc1.r_info) != R_MIPS_IRELATIVE)
-    return -1;
-
   diff = ELF32_R_SYM (int_reloc1.r_info) - ELF32_R_SYM (int_reloc2.r_info);
   if (diff != 0)
     return diff;
@@ -3002,14 +2994,6 @@ sort_dynamic_relocs_64 (const void *arg1 ATTRIBUTE_UNUSED,
     (reldyn_sorting_bfd, arg1, int_reloc1);
   (*get_elf_backend_data (reldyn_sorting_bfd)->s->swap_reloc_in)
     (reldyn_sorting_bfd, arg2, int_reloc2);
-
-  /* Ensure that IRELATIVE relocs are applied after all others.  */
-  if (ELF64_R_TYPE (int_reloc1[0].r_info) == R_MIPS_IRELATIVE
-      && ELF64_R_TYPE (int_reloc2[0].r_info) != R_MIPS_IRELATIVE)
-    return 1;
-  else if (ELF64_R_TYPE (int_reloc2[0].r_info) == R_MIPS_IRELATIVE
-	   && ELF64_R_TYPE (int_reloc1[0].r_info) != R_MIPS_IRELATIVE)
-    return -1;
 
   if (ELF64_R_SYM (int_reloc1[0].r_info) < ELF64_R_SYM (int_reloc2[0].r_info))
     return -1;
