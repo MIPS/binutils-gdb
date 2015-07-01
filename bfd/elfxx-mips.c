@@ -1252,14 +1252,14 @@ static const bfd_vma micromips32_exec_iplt_entry[] =
 /* The format of 64-bit IPLT entries.  */
 static const bfd_vma mips64_exec_iplt_entry[] =
 {
-  0x3c0f0000,   /* lui    $15, %highest(.igot address)		*/
-  0x65ef0000,   /* daddiu $15, $15, %higher(.igot address) 	*/
-  0x000f7c38,   /* dsll   $15,$15, 16				*/
-  0x65ef0000,   /* daddiu $15, $15, %hi(.igot address)		*/
-  0x000f7c38,   /* dsll   $15,$15, 16				*/
-  0xddf90000,   /* ld     $25, %lo(.igot address)($15)		*/
-  0x03200008,   /* jr     $25					*/
-  0x00000000	/* nop						*/
+  0x3c0f0000,	/* lui $15, %highest(.got.iplt entry)        */
+  0x3c0e0000,	/* lui $14, %hi(.got.iplt entry)             */
+  0x25ef0000,	/* addiu $15, $15, %higher(.got.iplt entry)  */
+  0x000f783c,	/* dsll32 $15, $15, 0x0                      */
+  0x01ee782d,	/* daddu $15, $15, $14                       */
+  0xddf90000,	/* ld $25, %lo(.got.iplt entry)($15)         */
+  0x03200008,	/* jr $25                                    */
+  0x00000000,	/* nop                                       */
 };
 
 
@@ -10911,9 +10911,9 @@ mips_elf_create_iplt (bfd *output_bfd,
 
       iplt_entry = mips64_exec_iplt_entry;
       bfd_put_32 (output_bfd, iplt_entry[0] | highest, loc);
-      bfd_put_32 (output_bfd, iplt_entry[1] | higher, loc + 4);
-      bfd_put_32 (output_bfd, iplt_entry[2], loc + 8);
-      bfd_put_32 (output_bfd, iplt_entry[3] | high , loc + 12);
+      bfd_put_32 (output_bfd, iplt_entry[1] | high, loc + 4);
+      bfd_put_32 (output_bfd, iplt_entry[2] | higher, loc + 8);
+      bfd_put_32 (output_bfd, iplt_entry[3], loc + 12);
       bfd_put_32 (output_bfd, iplt_entry[4], loc + 16);
       bfd_put_32 (output_bfd, iplt_entry[5] | low, loc + 20);
       bfd_put_32 (output_bfd, iplt_entry[6], loc + 24);
