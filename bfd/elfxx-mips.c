@@ -6223,7 +6223,15 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
     case R_MICROMIPS_LO16:
     case R_MICROMIPS_HI0_LO16:
       if (!gp_disp_p)
-	value = (symbol + addend) & howto->dst_mask;
+	{
+	  /* Local IFUNCs have their own GOT slots. The preceeding
+	     GOT_HI16 will correctly resolve the ifunc. This LO16
+	     addition is redundant, hence we force it to zero */
+	  if (local_gnu_ifunc_p && info->shared)
+	    value = 0;
+	  else
+	    value = (symbol + addend) & howto->dst_mask;
+	}
       else
 	{
 	  /* See the comment for R_MIPS16_HI16 above for the reason
