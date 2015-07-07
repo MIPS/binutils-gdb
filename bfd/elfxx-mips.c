@@ -166,10 +166,14 @@ struct mips_got_info
   unsigned int tls_assigned_gotno;
   /* The number of local .got entries, eventually including page entries.  */
   unsigned int local_gotno;
+  /* The number of explicitly relocated .got entries.  */
+  unsigned int general_gotno;
   /* The maximum number of page entries needed.  */
   unsigned int page_gotno;
   /* The number of relocations needed for the GOT entries.  */
   unsigned int relocs;
+  /* The first unused general .got entry.  */
+  unsigned int assigned_general_gotno;
   /* The first unused local .got entry.  */
   unsigned int assigned_low_gotno;
   /* The last unused local .got entry.  */
@@ -3452,7 +3456,14 @@ mips_elf_count_got_entry (struct bfd_link_info *info,
 					? &entry->d.h->root : NULL);
     }
   else if (entry->symndx >= 0 || entry->d.h->global_got_area == GGA_NONE)
-    g->local_gotno += 1;
+    {
+      /* Count IFUNCs as general GOT entries since they will need
+	 explicit IRELATIVE relocations.  */
+      if (entry->symndx < 0 && entry->d.h->root.type == STT_GNU_IFUNC)
+	g->general_gotno += 1;
+      else
+	g->local_gotno += 1;
+    }
   else
     g->global_gotno += 1;
 }
@@ -3900,7 +3911,8 @@ mips_elf_create_local_got_entry (bfd *abfd, struct bfd_link_info *info,
   if (entry)
     return entry;
 
-  if (g->assigned_low_gotno > g->assigned_high_gotno)
+  if (g->assigned_low_gotno > g->assigned_high_gotno ||
+      g->assigned_general_gotno > g->assigned_low_gotno)
     {
       /* We didn't allocate enough space in the GOT.  */
       (*_bfd_error_handler)
@@ -3913,7 +3925,11 @@ mips_elf_create_local_got_entry (bfd *abfd, struct bfd_link_info *info,
   if (!entry)
     return NULL;
 
-  if (got16_reloc_p (r_type)
+  if (h && h->root.type == STT_GNU_IFUNC)
+    /* Allocate IFUNC slots in the general GOT region since they
+       will need explicit IRELATIVE relocations.  */
+    lookup.gotidx = MIPS_ELF_GOT_SIZE (abfd) * g->assigned_general_gotno++;
+  else if (got16_reloc_p (r_type)
       || call16_reloc_p (r_type)
       || got_page_reloc_p (r_type)
       || got_disp_reloc_p (r_type))
@@ -4648,11 +4664,11 @@ mips_elf_count_got_symbols (struct mips_elf_link_hash_entry *h, void *data)
 }
 
 /* A elf_link_hash_traverse callback for which INF points to the
-   link_info structure. Count the number of local IFUNC symbols
-   by iterating over the local hash table.  */
+   link_info structure. Count the number of GOT entries that need
+   explicit relocations by iterating over the local hash table.  */
 
 static int
-mips_elf_count_local_got_symbols (void **slot, void *inf)
+mips_elf_count_general_got_symbols (void **slot, void *inf)
 {
   struct mips_elf_link_hash_entry *h =
     (struct mips_elf_link_hash_entry *) *slot;
@@ -4660,14 +4676,13 @@ mips_elf_count_local_got_symbols (void **slot, void *inf)
   struct mips_elf_link_hash_table *htab;
   struct mips_got_info *g;
 
-  BFD_ASSERT (h != NULL && h->root.type == STT_GNU_IFUNC &&
-	      h->root.forced_local);
-
   info = (struct bfd_link_info *) inf;
   htab = mips_elf_hash_table (info);
 
   g = htab->got_info;
-  g->local_gotno++;
+  if (h != NULL && h->root.type == STT_GNU_IFUNC &&
+      (h->root.forced_local || h->global_got_area == GGA_NONE))
+    g->general_gotno++;
   return 1;
 }
 
@@ -5674,7 +5689,8 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
 
       if (sym->st_info == STT_GNU_IFUNC)
 	{
-	  h = get_local_sym_hash (mips_elf_hash_table (info), input_bfd, relocation);
+	  h = get_local_sym_hash (mips_elf_hash_table (info), input_bfd,
+				  relocation);
 	  local_gnu_ifunc_p = TRUE;
 	}
     }
@@ -6814,31 +6830,41 @@ mips_elf_create_dynamic_relocation (bfd *output_bfd,
   if (defined_p && r_type != R_MIPS_REL32)
     *addendp += symbol;
 
-  if (htab->is_vxworks)
-    /* VxWorks uses non-relative relocations for this.  */
-    outrel[0].r_info = ELF32_R_INFO (indx, R_MIPS_32);
+  if (h && !indx && h->root.type == STT_GNU_IFUNC)
+    {
+      outrel[0].r_info = ELF_R_INFO (output_bfd, (unsigned long) indx,
+				     R_MIPS_IRELATIVE);
+      outrel[1].r_info = ELF_R_INFO (output_bfd, 0,
+				     R_MIPS_NONE);
+    }
   else
-    /* The relocation is always an REL32 relocation because we don't
-       know where the shared library will wind up at load-time.  */
-    outrel[0].r_info = ELF_R_INFO (output_bfd, (unsigned long) indx,
-				   R_MIPS_REL32);
+    {
+      if (htab->is_vxworks)
+	/* VxWorks uses non-relative relocations for this.  */
+	outrel[0].r_info = ELF32_R_INFO (indx, R_MIPS_32);
+      else
+	/* The relocation is always an REL32 relocation because we don't
+	   know where the shared library will wind up at load-time.  */
+	outrel[0].r_info = ELF_R_INFO (output_bfd, (unsigned long) indx,
+				       R_MIPS_REL32);
 
-  /* For strict adherence to the ABI specification, we should
-     generate a R_MIPS_64 relocation record by itself before the
-     _REL32/_64 record as well, such that the addend is read in as
-     a 64-bit value (REL32 is a 32-bit relocation, after all).
-     However, since none of the existing ELF64 MIPS dynamic
-     loaders seems to care, we don't waste space with these
-     artificial relocations.  If this turns out to not be true,
-     mips_elf_allocate_dynamic_relocation() should be tweaked so
-     as to make room for a pair of dynamic relocations per
-     invocation if ABI_64_P, and here we should generate an
-     additional relocation record with R_MIPS_64 by itself for a
-     NULL symbol before this relocation record.  */
-  outrel[1].r_info = ELF_R_INFO (output_bfd, 0,
-				 ABI_64_P (output_bfd)
-				 ? R_MIPS_64
-				 : R_MIPS_NONE);
+      /* For strict adherence to the ABI specification, we should
+	 generate a R_MIPS_64 relocation record by itself before the
+	 _REL32/_64 record as well, such that the addend is read in as
+	 a 64-bit value (REL32 is a 32-bit relocation, after all).
+	 However, since none of the existing ELF64 MIPS dynamic
+	 loaders seems to care, we don't waste space with these
+	 artificial relocations.  If this turns out to not be true,
+	 mips_elf_allocate_dynamic_relocation() should be tweaked so
+	 as to make room for a pair of dynamic relocations per
+	 invocation if ABI_64_P, and here we should generate an
+	 additional relocation record with R_MIPS_64 by itself for a
+	 NULL symbol before this relocation record.  */
+      outrel[1].r_info = ELF_R_INFO (output_bfd, 0,
+				     ABI_64_P (output_bfd)
+				     ? R_MIPS_64
+				     : R_MIPS_NONE);
+    }
   outrel[2].r_info = ELF_R_INFO (output_bfd, 0, R_MIPS_NONE);
 
   /* Adjust the output offset of the relocation to reference the
@@ -9342,6 +9368,7 @@ allocate_dynrelocs (struct elf_link_hash_entry *h, void *inf)
 
 	  mips_elf_allocate_dynamic_relocations
 	    (dynobj, info, hmips->possibly_dynamic_relocs);
+
 	  if (hmips->readonly_reloc)
 	    /* We tell the dynamic linker that there are relocations
 	       against the text segment.  */
@@ -9703,9 +9730,16 @@ mips_elf_lay_out_got (bfd *output_bfd, struct bfd_link_info *info)
      count the number of reloc-only GOT symbols.  */
   mips_elf_link_hash_traverse (htab, mips_elf_count_got_symbols, info);
 
-  htab_traverse (htab->loc_hash_table, mips_elf_count_local_got_symbols, info);
+  /* Count local IFUNC symbols. These need general GOT entries that
+     are fixed-up by explicit IRELATIVE relocations.  */
+  htab_traverse (htab->loc_hash_table, mips_elf_count_general_got_symbols, info);
+
   if (!mips_elf_resolve_final_got_entries (info, g))
     return FALSE;
+
+  g->assigned_general_gotno = htab->reserved_gotno;
+  g->local_gotno += g->general_gotno;
+  g->assigned_low_gotno += g->general_gotno;
 
   /* Calculate the total loadable size of the output.  That
      will give us the maximum number of GOT_PAGE entries
@@ -10293,6 +10327,12 @@ _bfd_mips_elf_size_dynamic_sections (bfd *output_bfd,
 	    return FALSE;
 
 	  if (! MIPS_ELF_ADD_DYNAMIC_ENTRY (info, DT_MIPS_PLTGOT, 0))
+	    return FALSE;
+	}
+
+      if (htab->got_info->general_gotno > 0)
+	{
+	  if (! MIPS_ELF_ADD_DYNAMIC_ENTRY (info, DT_MIPS_GENERAL_GOTNO, 0))
 	    return FALSE;
 	}
 
@@ -11021,10 +11061,13 @@ mips_elf_create_ireloc (bfd *output_bfd,
   igotplt_address = (gotsect->output_section->vma + gotsect->output_offset
 		     + igot_offset);
 
-  if (hmips->needs_igot)
+  relsect = mips_get_irel_section (info, htab);
+  
+  /* For GOT entries, 0 will never be a valid offset because GOT[0] is
+     known to be reserved.  */
+  if (igot_offset >= 0)
     {
-      relsect = mips_get_irel_section (info, htab);
-      if (relsect->contents == NULL)
+      if (hmips->needs_igot && relsect->contents == NULL)
 	{
 	  /* Allocate memory for the relocation section contents.  */
 	  relsect->contents = bfd_zalloc (dynobj, relsect->size);
@@ -11032,10 +11075,25 @@ mips_elf_create_ireloc (bfd *output_bfd,
 	    return FALSE;
 	}
       
-      /* Emit an R_MIPS_IRELATIVE relocation against the IGOT entry.  */
-      mips_elf_output_dynamic_relocation (output_bfd, relsect,
-					  relsect->reloc_count++, 0,
-					  R_MIPS_IRELATIVE, igotplt_address);
+      if (hmips->needs_igot || hmips->global_got_area == GGA_NONE)
+	/* Emit an R_MIPS_IRELATIVE relocation against the [I]GOT entry.  */
+	mips_elf_output_dynamic_relocation (output_bfd, relsect,
+					    relsect->reloc_count++, 0,
+					    R_MIPS_IRELATIVE, igotplt_address);
+      else
+	{
+	  /* Emit an R_MIPS_REL32 relocation against global GOT entry for
+	     a preemptible symbol.  */
+	  asection *sec = hmips->root.root.u.def.section;
+	  Elf_Internal_Rela rel[3];
+
+	  memset (rel, 0, sizeof (rel));
+	  rel[0].r_info = ELF_R_INFO (output_bfd, 0, R_MIPS_REL32);
+	  rel[0].r_offset = rel[1].r_offset = rel[2].r_offset = igot_offset;
+
+	  mips_elf_create_dynamic_relocation (output_bfd, info, rel, hmips,
+					      sec, sym->st_value, NULL, gotsect);
+	}
     }
   /* If necessary, generate the corresponding .iplt entry.  */
   if (hmips->needs_iplt)
@@ -12138,6 +12196,10 @@ _bfd_mips_elf_finish_dynamic_sections (bfd *output_bfd,
 	      dyn.d_un.d_ptr = s->vma;
 	      break;
 
+	    case DT_MIPS_GENERAL_GOTNO:
+	      dyn.d_un.d_val = htab->reserved_gotno + gg->general_gotno;
+	      break;
+	      
 	    case DT_RELASZ:
 	      BFD_ASSERT (htab->is_vxworks);
 	      /* The count does not include the JUMP_SLOT relocations.  */
@@ -16184,6 +16246,8 @@ _bfd_mips_elf_get_target_dtag (bfd_vma dtag)
       return "DT_MIPS_PLTGOT";
     case DT_MIPS_RWPLT:
       return "DT_MIPS_RWPLT";
+    case DT_MIPS_GENERAL_GOTNO:
+      return "DT_MIPS_GENERAL_GOTNO";
    }
 }
 

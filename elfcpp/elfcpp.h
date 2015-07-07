@@ -866,6 +866,8 @@ enum DT
   DT_MIPS_PLTGOT = 0x70000032,
   // Points to the base of a writable PLT.
   DT_MIPS_RWPLT = 0x70000034,
+  // The GOT index of the first implicitly relocated GOT entry.
+  DT_MIPS_GENERAL_GOTNO = 0x70000036,
 
   DT_AUXILIARY = 0x7ffffffd,
   DT_USED = 0x7ffffffe,

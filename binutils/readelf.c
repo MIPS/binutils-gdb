@@ -1729,6 +1729,7 @@ get_mips_dynamic_type (unsigned long type)
     case DT_MIPS_AUX_DYNAMIC: return "MIPS_AUX_DYNAMIC";
     case DT_MIPS_PLTGOT: return "MIPS_PLTGOT";
     case DT_MIPS_RWPLT: return "MIPS_RWPLT";
+    case DT_MIPS_GENERAL_GOTNO: return "MIPS_GENERAL_GOTNO";
 
     default:
       return NULL;
@@ -8640,6 +8641,7 @@ dynamic_section_mips_val (Elf_Internal_Dyn * entry)
     case DT_MIPS_DELTA_SYM_NO:
     case DT_MIPS_DELTA_CLASSSYM_NO:
     case DT_MIPS_COMPACT_SIZE:
+    case DT_MIPS_GENERAL_GOTNO:
       print_vma (entry->d_un.d_ptr, DEC);
       break;
 
