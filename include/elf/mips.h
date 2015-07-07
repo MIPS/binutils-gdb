@@ -755,6 +755,9 @@ extern void bfd_mips_elf32_swap_reginfo_out
 /* Relative offset of run time loader map, used for debugging.  */
 #define DT_MIPS_RLD_MAP_REL    0x70000035
 
+/* The GOT index of the first implicitly relocated GOT entry.  */
+#define DT_MIPS_GENERAL_GOTNO  0x70000036
+
 
 /* Flags which may appear in a DT_MIPS_FLAGS entry.  */
 
