@@ -4925,6 +4925,31 @@ mips_elf_set_global_got_area (void **entryp, void *data)
   return 1;
 }
 
+/* A htab_traverse callback for GOT entries, where DATA points to a
+   mips_elf_traverse_got_arg. Deallocate dedicated REL32 relocations
+   for global IFUNCs that are marked RELOC_ONLY.  */
+
+static int
+mips_elf_deallocate_irelocs (void **entryp, void *data)
+{
+  struct mips_got_entry *entry;
+
+  entry = (struct mips_got_entry *) *entryp;
+  if (entry->abfd != NULL
+      && entry->symndx == -1
+      && entry->d.h->global_got_area == GGA_RELOC_ONLY
+      && entry->d.h->root.type == STT_GNU_IFUNC
+      && entry->d.h->needs_ireloc)
+    {
+      struct mips_elf_traverse_got_arg *arg
+	= (struct mips_elf_traverse_got_arg *) data;
+      asection *srel = mips_elf_rel_dyn_section (arg->info, FALSE);
+      srel->size -= MIPS_ELF_REL_SIZE (elf_hash_table (arg->info)->dynobj);
+      entry->d.h->needs_ireloc = FALSE;
+    }
+  return 1;
+}
+
 /* A htab_traverse callback for secondary GOT entries, where DATA points
    to a mips_elf_traverse_got_arg.  Assign GOT indices to global entries
    and record the number of relocations they require.  DATA->value is
@@ -5078,6 +5103,11 @@ mips_elf_multi_got (bfd *abfd, struct bfd_link_info *info,
   htab_traverse (gg->got_entries, mips_elf_set_global_got_area, &tga);
   tga.value = GGA_NORMAL;
   htab_traverse (g->got_entries, mips_elf_set_global_got_area, &tga);
+
+  /* Deallocate extra relocation intended for IFUNCs that have been marked
+     as RELOC_ONLY. These entries will get explicit relocs due to multi-got
+     which will work just as well for IFUNC resolution.  */
+  htab_traverse (gg->got_entries, mips_elf_deallocate_irelocs, &tga);
 
   /* Now go through the GOTs assigning them offset ranges.
      [assigned_low_gotno, local_gotno[ will be set to the range of local
@@ -11011,6 +11041,38 @@ mips_elf_create_iplt (bfd *output_bfd,
   return TRUE;
 }
 
+/* Find local GOT index for VALUE. Return -1 if no GOT slot is found.  */
+
+static bfd_vma
+mips_elf_check_local_got_index (bfd *abfd, struct bfd_link_info *info,
+				 bfd_vma value)
+{
+  struct mips_got_entry lookup, *entry;
+  void **loc;
+  struct mips_got_info *g;
+  struct mips_elf_link_hash_table *htab;
+
+  htab = mips_elf_hash_table (info);
+  BFD_ASSERT (htab != NULL);
+
+  g = mips_elf_bfd_got (abfd, FALSE);
+  BFD_ASSERT (g != NULL);
+
+  lookup.abfd = NULL;
+  lookup.symndx = -1;
+  lookup.d.address = value;
+  lookup.tls_type = GOT_TLS_NONE;
+  loc = htab_find_slot (g->got_entries, &lookup, NO_INSERT);
+  if (!loc)
+    return -1;
+
+  entry = (struct mips_got_entry *) *loc;
+  if (entry)
+    return entry->gotidx;
+  else
+    return -1;
+}
+
 /* Create the IRELATIVE relocation for an IFUNC symbol.  */
 
 static bfd_boolean
@@ -11028,18 +11090,12 @@ mips_elf_create_ireloc (bfd *output_bfd,
   if (!hmips->needs_iplt)
     {
       gotsect = htab->sgot;
-      if (hmips->global_got_area != GGA_NONE)
-	{
+      if (hmips->global_got_area == GGA_NORMAL)
 	  igot_offset = mips_elf_primary_global_got_index (output_bfd,
 							   info, &hmips->root);
-	  /* If offset exceeds 16 bits, lookup in secondary GOTs.  */
-	  if (igot_offset > MIPS_ELF_GOT_MAX_SIZE(info))
-	    igot_offset = mips_elf_multi_got_index (output_bfd, info,
-						    &hmips->root);
-	}
-      else if (mips_use_local_got_p (info, hmips))
-	igot_offset = mips_elf_check_local_got_index (output_bfd, info,
-						      sym->st_value);
+      else if (hmips->global_got_area == GGA_NONE)
+	  igot_offset = mips_elf_check_local_got_index (output_bfd, info,
+							sym->st_value);
     }
   else
     {
@@ -11072,7 +11128,7 @@ mips_elf_create_ireloc (bfd *output_bfd,
 		     + igot_offset);
 
   relsect = mips_get_irel_section (info, htab);
-  
+
   if (igot_offset >= 0)
     {
       if (hmips->needs_iplt && relsect->contents == NULL)
@@ -11100,7 +11156,8 @@ mips_elf_create_ireloc (bfd *output_bfd,
 	  rel[0].r_offset = rel[1].r_offset = rel[2].r_offset = igot_offset;
 
 	  mips_elf_create_dynamic_relocation (output_bfd, info, rel, hmips,
-					      sec, sym->st_value, NULL, gotsect);
+					      sec, sym->st_value, NULL,
+					      gotsect);
 	}
     }
   /* If necessary, generate the corresponding .iplt entry.  */
@@ -11108,7 +11165,7 @@ mips_elf_create_ireloc (bfd *output_bfd,
       && !mips_elf_create_iplt (output_bfd, htab, hmips, igotplt_address))
     return FALSE;
 
-    return TRUE;
+  return TRUE;
 }
 
 /* Finish up dynamic symbol handling.  We set the contents of various
