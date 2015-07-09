@@ -429,7 +429,7 @@ struct mips_elf_link_hash_entry
   unsigned int needs_iplt : 1;
 
   /* Does this ifunc symbol need an IGOT entry?  */
-  unsigned int needs_igot : 1;
+  unsigned int needs_ireloc : 1;
 };
 
 /* MIPS ELF linker hash table.  */
@@ -1365,7 +1365,7 @@ mips_elf_link_hash_newfunc (struct bfd_hash_entry *entry,
       ret->needs_lazy_stub = FALSE;
       ret->use_plt_entry = FALSE;
       ret->needs_iplt = FALSE;
-      ret->needs_igot = FALSE;
+      ret->needs_ireloc = FALSE;
       ret->iplt_offset = -1;
       ret->igot_offset = 0;
     }
@@ -2109,7 +2109,7 @@ mips_elf_allocate_ireloc (struct bfd_link_info *info,
   asection *srel;
   bfd *dynobj;
 
-  if (mh->needs_igot || mh->global_got_area != GGA_NONE
+  if (mh->needs_iplt || mh->global_got_area != GGA_NONE
       || mh->root.dynindx == -1)
     {
       srel = mips_get_irel_section (info, mhtab);
@@ -2121,6 +2121,7 @@ mips_elf_allocate_ireloc (struct bfd_link_info *info,
 	  ++srel->reloc_count;
 	}
       srel->size += MIPS_ELF_REL_SIZE (dynobj);
+      mh->needs_ireloc = TRUE;
     }
 
   return TRUE;
@@ -2150,11 +2151,9 @@ mips_elf_allocate_iplt (struct bfd_link_info *info,
   BFD_ASSERT (mhtab->root.igotplt != NULL);
   mh->igot_offset = mhtab->root.igotplt->size;
   mhtab->root.igotplt->size += MIPS_ELF_GOT_SIZE (abfd);
-  mh->needs_igot = TRUE;
-
-  /* This should be the only place needs_iplt is set.  */
   mh->needs_iplt = TRUE;
-  return mips_elf_allocate_ireloc (info, mhtab, mh);
+
+  return TRUE;
 }
 
 /* hash_traverse callback that is called before sizing sections.
@@ -2172,13 +2171,14 @@ mips_elf_check_local_symbols (void **slot, void *data)
   if (h && !h->needs_iplt && h->root.type == STT_GNU_IFUNC)
     {
       struct bfd_link_info *info = hti->info;
-      /* .iplt entry is needed for executable objects.
-	 IREL fixup is sufficient for shared objects.  */
-      if (info->shared)
-	mips_elf_allocate_ireloc (info, mips_elf_hash_table (info), h);
-      else
-	if (!mips_elf_allocate_iplt (info, mips_elf_hash_table (info), h))
-	  return FALSE;
+      /* .iplt entry is needed only for executable objects.  */
+      if (!info->shared &&
+	  !mips_elf_allocate_iplt (info, mips_elf_hash_table (info), h))
+	return FALSE;
+
+      /* IRELATIVE fixup will be needed for each local IFUNC.  */
+      if (!mips_elf_allocate_ireloc (info, mips_elf_hash_table (info), h))
+	return FALSE;
     }
 
   return TRUE;
@@ -2200,11 +2200,13 @@ mips_elf_check_symbols (struct mips_elf_link_hash_entry *h, void *data)
       h->root.type == STT_GNU_IFUNC)
     {
       struct bfd_link_info *info = hti->info;
-      if (info->shared)
-	mips_elf_allocate_ireloc (info, mips_elf_hash_table (info), h);
-      else
-	if (!mips_elf_allocate_iplt (info, mips_elf_hash_table (info), h))
-	  return FALSE;
+      /* .iplt entry is needed only for executable objects.  */
+      if (!info->shared
+	  && !mips_elf_allocate_iplt (info, mips_elf_hash_table (info), h))
+	return FALSE;
+      /* Allocate an extra relocation for this IFUNC, if needed.  */
+      if (!mips_elf_allocate_ireloc (info, mips_elf_hash_table (info), h))
+	return FALSE;
     }
 
   if (mips_elf_local_pic_function_p (h))
@@ -11023,13 +11025,21 @@ mips_elf_create_ireloc (bfd *output_bfd,
   int igot_offset = -1;
   asection *gotsect, *relsect;
 
-  if (!hmips->needs_igot && mips_use_local_got_p (info, hmips))
+  if (!hmips->needs_iplt)
     {
       gotsect = htab->sgot;
-      igot_offset = mips_elf_local_got_index (output_bfd, output_bfd,
-					      info, sym->st_value, 0,
-					      hmips, R_MIPS_32);
-      hmips->needs_igot = TRUE;
+      if (hmips->global_got_area != GGA_NONE)
+	{
+	  igot_offset = mips_elf_primary_global_got_index (output_bfd,
+							   info, &hmips->root);
+	  /* If offset exceeds 16 bits, lookup in secondary GOTs.  */
+	  if (igot_offset > MIPS_ELF_GOT_MAX_SIZE(info))
+	    igot_offset = mips_elf_multi_got_index (output_bfd, info,
+						    &hmips->root);
+	}
+      else if (mips_use_local_got_p (info, hmips))
+	igot_offset = mips_elf_check_local_got_index (output_bfd, info,
+						      sym->st_value);
     }
   else
     {
@@ -11063,11 +11073,9 @@ mips_elf_create_ireloc (bfd *output_bfd,
 
   relsect = mips_get_irel_section (info, htab);
   
-  /* For GOT entries, 0 will never be a valid offset because GOT[0] is
-     known to be reserved.  */
   if (igot_offset >= 0)
     {
-      if (hmips->needs_igot && relsect->contents == NULL)
+      if (hmips->needs_iplt && relsect->contents == NULL)
 	{
 	  /* Allocate memory for the relocation section contents.  */
 	  relsect->contents = bfd_zalloc (dynobj, relsect->size);
@@ -11075,12 +11083,12 @@ mips_elf_create_ireloc (bfd *output_bfd,
 	    return FALSE;
 	}
       
-      if (hmips->needs_igot || hmips->global_got_area == GGA_NONE)
+      if (hmips->needs_iplt || hmips->global_got_area == GGA_NONE)
 	/* Emit an R_MIPS_IRELATIVE relocation against the [I]GOT entry.  */
 	mips_elf_output_dynamic_relocation (output_bfd, relsect,
 					    relsect->reloc_count++, 0,
 					    R_MIPS_IRELATIVE, igotplt_address);
-      else
+      else if (hmips->global_got_area == GGA_NORMAL)
 	{
 	  /* Emit an R_MIPS_REL32 relocation against global GOT entry for
 	     a preemptible symbol.  */
@@ -11096,9 +11104,10 @@ mips_elf_create_ireloc (bfd *output_bfd,
 	}
     }
   /* If necessary, generate the corresponding .iplt entry.  */
-  if (hmips->needs_iplt)
-    return mips_elf_create_iplt (output_bfd, htab, hmips, igotplt_address);
-  else
+  if (hmips->needs_iplt
+      && !mips_elf_create_iplt (output_bfd, htab, hmips, igotplt_address))
+    return FALSE;
+
     return TRUE;
 }
 
@@ -11431,11 +11440,13 @@ _bfd_mips_elf_finish_dynamic_symbol (bfd *output_bfd,
 
   if (hmips->root.type == STT_GNU_IFUNC)
     {
-      if (!mips_elf_create_ireloc (output_bfd, dynobj, htab, hmips,
-				 sym, info))
+      if (hmips->needs_ireloc
+	  && !mips_elf_create_ireloc (output_bfd, dynobj, htab,
+				      hmips, sym, info))
 	return FALSE;
+
       if (!elf_hash_table (info)->dynamic_sections_created)
-	  return TRUE;
+	return TRUE;
       if (h->dynindx == -1  && !h->forced_local)
 	return TRUE;
     }
