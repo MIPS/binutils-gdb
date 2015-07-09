@@ -6536,7 +6536,12 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
 
     case R_MIPS_GOT_PAGE:
     case R_MICROMIPS_GOT_PAGE:
-      value = mips_elf_got_page (abfd, input_bfd, info, symbol + addend, NULL);
+      if (local_gnu_ifunc_p)
+	  value = mips_elf_local_got_index (abfd, input_bfd, info,
+					    symbol + addend, r_symndx, h, r_type);
+      else
+	  value = mips_elf_got_page (abfd, input_bfd, info, symbol + addend, NULL);
+
       if (value == MINUS_ONE)
 	return bfd_reloc_outofrange;
       value = mips_elf_got_offset_from_index (info, abfd, input_bfd, value);
@@ -6546,7 +6551,12 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
     case R_MIPS_GOT_OFST:
     case R_MICROMIPS_GOT_OFST:
       if (local_p)
-	mips_elf_got_page (abfd, input_bfd, info, symbol + addend, &value);
+	{
+	  if (local_gnu_ifunc_p)
+	    value = 0;
+	  else
+	    mips_elf_got_page (abfd, input_bfd, info, symbol + addend, &value);
+	}
       else
 	value = addend;
       overflowed_p = mips_elf_overflow_p (value, 16);
