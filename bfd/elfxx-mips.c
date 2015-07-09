@@ -2109,8 +2109,8 @@ mips_elf_allocate_ireloc (struct bfd_link_info *info,
   asection *srel;
   bfd *dynobj;
 
-  if (mh->needs_iplt || mh->global_got_area != GGA_NONE
-      || mh->root.dynindx == -1)
+  if (mh->needs_iplt || mh->global_got_area == GGA_NORMAL
+      || mh->root.forced_local)
     {
       srel = mips_get_irel_section (info, mhtab);
       dynobj = elf_hash_table (info)->dynobj;
@@ -6275,7 +6275,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
 	  /* Local IFUNCs have their own GOT slots. The preceeding
 	     GOT_HI16 will correctly resolve the ifunc. This LO16
 	     addition is redundant, hence we force it to zero */
-	  if (local_gnu_ifunc_p && info->shared)
+	  if (local_gnu_ifunc_p)
 	    value = 0;
 	  else
 	    value = (symbol + addend) & howto->dst_mask;
