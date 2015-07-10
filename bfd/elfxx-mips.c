@@ -6271,15 +6271,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
     case R_MICROMIPS_LO16:
     case R_MICROMIPS_HI0_LO16:
       if (!gp_disp_p)
-	{
-	  /* Local IFUNCs have their own GOT slots. The preceeding
-	     GOT_HI16 will correctly resolve the ifunc. This LO16
-	     addition is redundant, hence we force it to zero */
-	  if (local_gnu_ifunc_p)
-	    value = 0;
-	  else
-	    value = (symbol + addend) & howto->dst_mask;
-	}
+	value = (symbol + addend) & howto->dst_mask;
       else
 	{
 	  /* See the comment for R_MIPS16_HI16 above for the reason
@@ -6536,12 +6528,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
 
     case R_MIPS_GOT_PAGE:
     case R_MICROMIPS_GOT_PAGE:
-      if (local_gnu_ifunc_p)
-	  value = mips_elf_local_got_index (abfd, input_bfd, info,
-					    symbol + addend, r_symndx, h, r_type);
-      else
-	  value = mips_elf_got_page (abfd, input_bfd, info, symbol + addend, NULL);
-
+      value = mips_elf_got_page (abfd, input_bfd, info, symbol + addend, NULL);
       if (value == MINUS_ONE)
 	return bfd_reloc_outofrange;
       value = mips_elf_got_offset_from_index (info, abfd, input_bfd, value);
@@ -6551,12 +6538,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
     case R_MIPS_GOT_OFST:
     case R_MICROMIPS_GOT_OFST:
       if (local_p)
-	{
-	  if (local_gnu_ifunc_p)
-	    value = 0;
-	  else
-	    mips_elf_got_page (abfd, input_bfd, info, symbol + addend, &value);
-	}
+	mips_elf_got_page (abfd, input_bfd, info, symbol + addend, &value);
       else
 	value = addend;
       overflowed_p = mips_elf_overflow_p (value, 16);
@@ -8656,7 +8638,7 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 	  if (isym->st_info == STT_GNU_IFUNC)
 	    {
 	      /* Ensure that we have a hash entry for this symbol.  */
-	      if ( get_local_sym_hash (htab, abfd, rel) == NULL )
+	      if (get_local_sym_hash (htab, abfd, rel) == NULL)
 		return FALSE;
 	      local_gnu_ifunc_p = TRUE;
 	    }
@@ -9410,7 +9392,6 @@ allocate_dynrelocs (struct elf_link_hash_entry *h, void *inf)
 
 	  mips_elf_allocate_dynamic_relocations
 	    (dynobj, info, hmips->possibly_dynamic_relocs);
-
 	  if (hmips->readonly_reloc)
 	    /* We tell the dynamic linker that there are relocations
 	       against the text segment.  */
@@ -10509,6 +10490,7 @@ _bfd_mips_elf_relocate_section (bfd *output_bfd, struct bfd_link_info *info,
       Elf_Internal_Shdr *symtab_hdr;
       struct elf_link_hash_entry *h;
       bfd_boolean rel_reloc;
+      bfd_boolean local_gnu_ifunc_p = FALSE;
 
       rel_reloc = (NEWABI_P (input_bfd)
 		   && mips_elf_rel_relocation_p (input_bfd, input_section,
@@ -10522,6 +10504,23 @@ _bfd_mips_elf_relocate_section (bfd *output_bfd, struct bfd_link_info *info,
 	{
 	  sec = local_sections[r_symndx];
 	  h = NULL;
+
+	  Elf_Internal_Sym *isym;
+	  struct mips_elf_link_hash_table *htab;
+	  htab = mips_elf_hash_table (info);
+	  isym = bfd_sym_from_r_symndx (&htab->sym_cache, input_bfd, r_symndx);
+
+	  if (isym == NULL)
+	    return FALSE;
+
+	  /* Relocation is for local STT_GNU_IFUNC symbol.  */
+	  if (isym->st_info == STT_GNU_IFUNC)
+	    {
+	      /* Ensure that we have a hash entry for this symbol.  */
+	      if (get_local_sym_hash (htab, input_bfd, rel) == NULL)
+		return FALSE;
+	      local_gnu_ifunc_p = TRUE;
+	    }
 	}
       else
 	{
@@ -10582,8 +10581,9 @@ _bfd_mips_elf_relocate_section (bfd *output_bfd, struct bfd_link_info *info,
 		      && mips_elf_local_relocation_p (input_bfd, rel,
 						      local_sections)))
 		{
-		  if (!mips_elf_add_lo16_rel_addend (input_bfd, rel, relend,
-						     contents, &addend))
+		  if (!local_gnu_ifunc_p
+		      && !mips_elf_add_lo16_rel_addend (input_bfd, rel, relend,
+							contents, &addend))
 		    {
 		      if (h)
 			name = h->root.root.string;
@@ -10982,7 +10982,7 @@ mips_elf_create_iplt (bfd *output_bfd,
   const bfd_vma *iplt_entry;
   bfd_vma high = mips_elf_high (igotplt_address);
   bfd_vma low = igotplt_address & 0xffff;
-  
+
   /* Find out where the .iplt entry should go.  */
   if (!htab->root.iplt->contents)
     {
@@ -11148,7 +11148,7 @@ mips_elf_create_ireloc (bfd *output_bfd,
 	  if (relsect->contents == NULL)
 	    return FALSE;
 	}
-      
+
       if (hmips->needs_iplt || hmips->global_got_area == GGA_NONE)
 	/* Emit an R_MIPS_IRELATIVE relocation against the [I]GOT entry.  */
 	mips_elf_output_dynamic_relocation (output_bfd, relsect,
@@ -12277,7 +12277,7 @@ _bfd_mips_elf_finish_dynamic_sections (bfd *output_bfd,
 	    case DT_MIPS_GENERAL_GOTNO:
 	      dyn.d_un.d_val = htab->reserved_gotno + gg->general_gotno;
 	      break;
-	      
+
 	    case DT_RELASZ:
 	      BFD_ASSERT (htab->is_vxworks);
 	      /* The count does not include the JUMP_SLOT relocations.  */
