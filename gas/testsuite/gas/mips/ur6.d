@@ -443,5 +443,13 @@ Disassembly of section .text:
 [0-9a-f]+ <[^>]*> 6085 ac00 	sce	a0,0\(a1\)
 [0-9a-f]+ <[^>]*> cfff      	bc	00000450 <[^>]*>
 [	]*[0-9a-f]+: R_MICROMIPS_PC10_S1	.L1.1
+[0-9a-f]+ <[^>]*> 0004 01c0 	rdhwr	zero,\$4
+[0-9a-f]+ <[^>]*> 0004 09c0 	rdhwr	zero,\$4,1
+[0-9a-f]+ <[^>]*> 0004 11c0 	rdhwr	zero,\$4,2
+[0-9a-f]+ <[^>]*> 0004 19c0 	rdhwr	zero,\$4,3
+[0-9a-f]+ <[^>]*> 0004 21c0 	rdhwr	zero,\$4,4
+[0-9a-f]+ <[^>]*> 0004 29c0 	rdhwr	zero,\$4,5
+[0-9a-f]+ <[^>]*> 0004 31c0 	rdhwr	zero,\$4,6
+[0-9a-f]+ <[^>]*> 0004 39c0 	rdhwr	zero,\$4,7
 [0-9a-f]+ <[^>]*> 0c00      	nop
 	\.\.\.

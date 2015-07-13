@@ -330,5 +330,14 @@ foo:
 	b	1b
 	.set pop
 
+	rdhwr	$0, $4, 0
+	rdhwr	$0, $4, 1
+	rdhwr	$0, $4, 2
+	rdhwr	$0, $4, 3
+	rdhwr	$0, $4, 4
+	rdhwr	$0, $4, 5
+	rdhwr	$0, $4, 6
+	rdhwr	$0, $4, 7
+
 	.align	2
 	.space	8
