@@ -12062,7 +12062,7 @@ _bfd_mips_elf_additional_program_headers (bfd *abfd,
     ++ret;
 
   /* See if we need a PT_MIPS_ABIFLAGS segment.  */
-  if (bfd_get_section_by_name (abfd, ".MIPS.abiflags"))
+  if (bfd_get_section_by_name (abfd, ".MIPS.abiflags") && info != NULL)
     ++ret;
 
   /* See if we need a PT_MIPS_OPTIONS segment.  */
@@ -12130,7 +12130,7 @@ _bfd_mips_elf_modify_segment_map (bfd *abfd,
   /* If there is a .MIPS.abiflags section, we need a PT_MIPS_ABIFLAGS
      segment.  */
   s = bfd_get_section_by_name (abfd, ".MIPS.abiflags");
-  if (s != NULL && (s->flags & SEC_LOAD) != 0)
+  if (s != NULL && (s->flags & SEC_LOAD) != 0 && info != NULL)
     {
       for (m = elf_seg_map (abfd); m != NULL; m = m->next)
 	if (m->p_type == PT_MIPS_ABIFLAGS)
