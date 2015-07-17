@@ -692,6 +692,7 @@ if $has_newabi {
   run_dump_test "attr-gnu-4-3-n64-ph"
 }
 
+run_dump_test "abiflags-fake"
 run_dump_test "abiflags-strip1-ph" $o32flagslist
 run_dump_test "abiflags-strip2-ph" $o32flagslist
 run_dump_test "abiflags-strip3-ph" $o32flagslist
