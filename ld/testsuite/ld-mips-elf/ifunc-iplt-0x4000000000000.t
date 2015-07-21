@@ -1,0 +1,14 @@
+tmpdir/ifunc-iplt-0x4000000000000:     file format elf64-tradbigmips
+
+
+Disassembly of section .iplt:
+
+0004000000000188 <.iplt.func1>:
+   4000000000188:	3c0f0004 	lui	t3,0x4
+   400000000018c:	3c0e0001 	lui	t2,0x1
+   4000000000190:	25ef0000 	addiu	t3,t3,0
+   4000000000194:	000f783c 	dsll32	t3,t3,0x0
+   4000000000198:	01ee782d 	daddu	t3,t3,t2
+   400000000019c:	ddf90320 	ld	t9,800\(t3\)
+   40000000001a0:	03200008 	jr	t9
+   40000000001a4:	00000000 	nop
