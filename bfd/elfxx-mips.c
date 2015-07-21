@@ -1266,6 +1266,16 @@ static const bfd_vma mips64_exec_iplt_entry[] =
   0x00000000,	/* nop                                       */
 };
 
+static const bfd_vma mips64_48b_exec_iplt_entry[] =
+{
+  0x3c0f0000,	/* lui $15, %higher(.got.iplt entry)         */
+  0x25ef0000,	/* addiu $15, $15, %high(.got.iplt entry)    */
+  0x000f7c38,	/* dsll $15, $15, 16  			     */
+  0xddf90000,	/* ld $25, %lo(.got.iplt entry)($15)         */
+  0x03200008,	/* jr $25                                    */
+  0x00000000,	/* nop                                       */
+};
+
 
 /* microMIPS 32-bit opcode helper installer.  */
 
@@ -10998,16 +11008,39 @@ mips_elf_create_iplt (bfd *output_bfd,
     {
       bfd_vma highest = mips_elf_highest (igotplt_address);
       bfd_vma higher = mips_elf_higher (igotplt_address);
-
       iplt_entry = mips64_exec_iplt_entry;
-      bfd_put_32 (output_bfd, iplt_entry[0] | highest, loc);
-      bfd_put_32 (output_bfd, iplt_entry[1] | high, loc + 4);
-      bfd_put_32 (output_bfd, iplt_entry[2] | higher, loc + 8);
-      bfd_put_32 (output_bfd, iplt_entry[3], loc + 12);
-      bfd_put_32 (output_bfd, iplt_entry[4], loc + 16);
-      bfd_put_32 (output_bfd, iplt_entry[5] | low, loc + 20);
-      bfd_put_32 (output_bfd, iplt_entry[6], loc + 24);
-      bfd_put_32 (output_bfd, iplt_entry[7], loc + 28);
+
+      if (highest)
+	{
+	  /* Full 64-bit address space */
+	  bfd_put_32 (output_bfd, iplt_entry[0] | highest, loc);
+	  bfd_put_32 (output_bfd, iplt_entry[1] | high, loc + 4);
+	  bfd_put_32 (output_bfd, iplt_entry[2] | higher, loc + 8);
+	  bfd_put_32 (output_bfd, iplt_entry[3], loc + 12);
+	  bfd_put_32 (output_bfd, iplt_entry[4], loc + 16);
+	  bfd_put_32 (output_bfd, iplt_entry[5] | low, loc + 20);
+	  bfd_put_32 (output_bfd, iplt_entry[6], loc + 24);
+	  bfd_put_32 (output_bfd, iplt_entry[7], loc + 28);
+	}
+      else if (higher)
+	{
+	  /* 48-bit address space */
+	  iplt_entry = mips64_48b_exec_iplt_entry;
+	  bfd_put_32 (output_bfd, iplt_entry[0] | higher, loc);
+	  bfd_put_32 (output_bfd, iplt_entry[1] | high, loc + 4);
+	  bfd_put_32 (output_bfd, iplt_entry[2], loc + 8);
+	  bfd_put_32 (output_bfd, iplt_entry[3] | low, loc + 12);
+	  bfd_put_32 (output_bfd, iplt_entry[4], loc + 16);
+	  bfd_put_32 (output_bfd, iplt_entry[5], loc + 20);
+	}
+      else
+	{
+	  /* 32-bit address space */
+	  bfd_put_32 (output_bfd, iplt_entry[0] | high, loc);
+	  bfd_put_32 (output_bfd, iplt_entry[5] | low, loc + 4);
+	  bfd_put_32 (output_bfd, iplt_entry[6], loc + 8);
+	  bfd_put_32 (output_bfd, iplt_entry[7], loc + 12);
+	}
     }
   else if (ELF_ST_IS_MIPS16 (hmips->root.other))
     {
