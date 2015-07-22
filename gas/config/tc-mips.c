@@ -9635,8 +9635,7 @@ move_register (int dest, int source)
       && !(history[0].insn_mo->pinfo2 & INSN2_BRANCH_DELAY_32BIT))
     macro_build (NULL, "move", "mp,mj", dest, source);
   else
-    macro_build (NULL, GPR_SIZE == 32 ? "addu" : "daddu", "d,v,t",
-		 dest, source, 0);
+    macro_build (NULL, "or", "d,v,t", dest, source, 0);
 }
 
 /* Emit an SVR4 PIC sequence to load address LOCAL into DEST, where
@@ -16413,8 +16412,7 @@ s_cpsetup (int ignore ATTRIBUTE_UNUSED)
 		   BFD_RELOC_LO16, SP);
     }
   else
-    macro_build (NULL, "daddu", "d,v,t", mips_cpreturn_register,
-		 mips_gp_register, 0);
+    move_register(mips_cpreturn_register, mips_gp_register);
 
   if (mips_in_shared || HAVE_64BIT_SYMBOLS)
     {

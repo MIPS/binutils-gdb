@@ -11,7 +11,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <test_mips64>:
 [ 0-9a-f]+:	4043 0000 	bgez	v1,[0-9a-f]+ <.*>
 [ 	]*[0-9a-f]+: R_MICROMIPS_PC16_S1	.*
-[ 0-9a-f]+:	5803 1150 	move	v0,v1
+[ 0-9a-f]+:	0003 1290 	move	v0,v1
 [ 0-9a-f]+:	5860 1190 	dneg	v0,v1
 [ 0-9a-f]+:	4042 0000 	bgez	v0,[0-9a-f]+ <.*>
 [ 	]*[0-9a-f]+: R_MICROMIPS_PC16_S1	.*
@@ -100,7 +100,7 @@ Disassembly of section \.text:
 [ 0-9a-f]+:	0006 0007 	break	0x6
 [ 0-9a-f]+:	0002 1d7c 	mflo	v0
 [ 0-9a-f]+:	0007 0007 	break	0x7
-[ 0-9a-f]+:	5804 1950 	move	v1,a0
+[ 0-9a-f]+:	0004 1a90 	move	v1,a0
 [ 0-9a-f]+:	5880 1990 	dneg	v1,a0
 [ 0-9a-f]+:	3020 0002 	li	at,2
 [ 0-9a-f]+:	5824 ab3c 	ddiv	zero,a0,at
@@ -120,7 +120,7 @@ Disassembly of section \.text:
 [ 0-9a-f]+:	0007 0007 	break	0x7
 [ 0-9a-f]+:	0002 1d7c 	mflo	v0
 [ 0-9a-f]+:	0007 0007 	break	0x7
-[ 0-9a-f]+:	5804 1950 	move	v1,a0
+[ 0-9a-f]+:	0004 1a90 	move	v1,a0
 [ 0-9a-f]+:	3020 ffff 	li	at,-1
 [ 0-9a-f]+:	5824 bb3c 	ddivu	zero,a0,at
 [ 0-9a-f]+:	0003 1d7c 	mflo	v1
@@ -499,8 +499,8 @@ Disassembly of section \.text:
 [ 0-9a-f]+:	0000 0000 	nop
 [ 0-9a-f]+:	0006 0007 	break	0x6
 [ 0-9a-f]+:	0007 0007 	break	0x7
-[ 0-9a-f]+:	5800 1950 	move	v1,zero
-[ 0-9a-f]+:	5800 1950 	move	v1,zero
+[ 0-9a-f]+:	0000 1a90 	move	v1,zero
+[ 0-9a-f]+:	0000 1a90 	move	v1,zero
 [ 0-9a-f]+:	3020 0002 	li	at,2
 [ 0-9a-f]+:	5824 ab3c 	ddiv	zero,a0,at
 [ 0-9a-f]+:	0003 0d7c 	mfhi	v1
@@ -535,8 +535,8 @@ Disassembly of section \.text:
 [ 0-9a-f]+:	0006 0007 	break	0x6
 [ 0-9a-f]+:	0000 0d7c 	mfhi	zero
 [ 0-9a-f]+:	0007 0007 	break	0x7
-[ 0-9a-f]+:	5800 1950 	move	v1,zero
-[ 0-9a-f]+:	5800 1950 	move	v1,zero
+[ 0-9a-f]+:	0000 1a90 	move	v1,zero
+[ 0-9a-f]+:	0000 1a90 	move	v1,zero
 [ 0-9a-f]+:	3020 0002 	li	at,2
 [ 0-9a-f]+:	5824 ab3c 	ddiv	zero,a0,at
 [ 0-9a-f]+:	0003 0d7c 	mfhi	v1
@@ -553,7 +553,7 @@ Disassembly of section \.text:
 [ 0-9a-f]+:	0007 0007 	break	0x7
 [ 0-9a-f]+:	0000 0d7c 	mfhi	zero
 [ 0-9a-f]+:	0007 0007 	break	0x7
-[ 0-9a-f]+:	5800 1950 	move	v1,zero
+[ 0-9a-f]+:	0000 1a90 	move	v1,zero
 [ 0-9a-f]+:	3020 ffff 	li	at,-1
 [ 0-9a-f]+:	5824 bb3c 	ddivu	zero,a0,at
 [ 0-9a-f]+:	0003 0d7c 	mfhi	v1

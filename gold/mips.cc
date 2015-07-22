@@ -6158,7 +6158,7 @@ const uint32_t Mips_output_data_plt<size, big_endian>::plt0_entry_o32[] =
   0x8f990000,         // lw $25, %lo(&GOTPLT[0])($28)
   0x279c0000,         // addiu $28, $28, %lo(&GOTPLT[0])
   0x031cc023,         // subu $24, $24, $28
-  0x03e07821,         // move $15, $31        # 32-bit move (addu)
+  0x03e07825,         // move $15, $31        # 32-bit move (or)
   0x0018c082,         // srl $24, $24, 2
   0x0320f809,         // jalr $25
   0x2718fffe          // subu $24, $24, 2
@@ -6173,7 +6173,7 @@ const uint32_t Mips_output_data_plt<size, big_endian>::plt0_entry_n32[] =
   0x8dd90000,         // lw $25, %lo(&GOTPLT[0])($14)
   0x25ce0000,         // addiu $14, $14, %lo(&GOTPLT[0])
   0x030ec023,         // subu $24, $24, $14
-  0x03e07821,         // move $15, $31        # 32-bit move (addu)
+  0x03e07825,         // move $15, $31        # 32-bit move (or)
   0x0018c082,         // srl $24, $24, 2
   0x0320f809,         // jalr $25
   0x2718fffe          // subu $24, $24, 2
@@ -6188,7 +6188,7 @@ const uint32_t Mips_output_data_plt<size, big_endian>::plt0_entry_n64[] =
   0xddd90000,         // ld $25, %lo(&GOTPLT[0])($14)
   0x25ce0000,         // addiu $14, $14, %lo(&GOTPLT[0])
   0x030ec023,         // subu $24, $24, $14
-  0x03e07821,         // move $15, $31        # 64-bit move (daddu)
+  0x03e07825,         // move $15, $31        # 64-bit move (or)
   0x0018c0c2,         // srl $24, $24, 3
   0x0320f809,         // jalr $25
   0x2718fffe          // subu $24, $24, 2
@@ -6225,7 +6225,7 @@ plt0_entry_micromips32_o32[] =
   0xff3c, 0x0000,      // lw $25, %lo(&GOTPLT[0])($28)
   0x339c, 0x0000,      // addiu $28, $28, %lo(&GOTPLT[0])
   0x0398, 0xc1d0,      // subu $24, $24, $28
-  0x001f, 0x7950,      // move $15, $31
+  0x001f, 0x7A90,      // move $15, $31
   0x0318, 0x1040,      // srl $24, $24, 2
   0x03f9, 0x0f3c,      // jalr $25
   0x3318, 0xfffe       // subu $24, $24, 2
