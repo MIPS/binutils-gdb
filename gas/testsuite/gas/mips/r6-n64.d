@@ -746,4 +746,6 @@ Disassembly of section .text:
 0+057c <[^>]*> ec8bffff 	lwpc	a0,0000000000100578 <[^>]*>
 0+0580 <[^>]*> 00000000 	nop
 0+0584 <[^>]*> ec83ffff 	lapc	a0,0000000000100580 <[^>]*>
+0+0588 <[^>]*> 41700000 	sigrie	0x0
+0+058c <[^>]*> 4170ffff 	sigrie	0xffff
 	\.\.\.
