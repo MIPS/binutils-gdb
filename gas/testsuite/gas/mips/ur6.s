@@ -339,5 +339,8 @@ foo:
 	rdhwr	$0, $4, 6
 	rdhwr	$0, $4, 7
 
+	sigrie	0
+	sigrie	0xffff
+
 	.align	2
 	.space	8

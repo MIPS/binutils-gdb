@@ -2266,6 +2266,7 @@ extern const int bfd_mips16_num_opcodes;
    "+I" 2bit unsigned bit position at bit 9
    "+K" 4-bit immediate (0 .. 15) at bit 6
    "+L" 4-bit immediate (0 .. 15) << 2 at bit 4
+   "+M" 16-bit unsigned immediate at bit 6
    "+N" 2-bit immediate (0 .. 3) for register list at bit 8
    "+O" 3bit unsigned bit position at bit 9
    "+P" 5-bit immediate (0 .. 31) << 2 at bit 5
@@ -2328,7 +2329,7 @@ extern const int bfd_mips16_num_opcodes;
    following), for quick reference when adding more:
    ""
    "~!@#$%^&*|'":;"
-   "ABCDEFGHIJKL NOP  STUVW   "
+   "ABCDEFGHIJKLMNOP  STUVW   "
    "   de  hijkl no     uvwx  "
 
    Extension character sequences used so far ("m" followed by the

@@ -451,5 +451,7 @@ Disassembly of section .text:
 [0-9a-f]+ <[^>]*> 0004 29c0 	rdhwr	zero,\$4,5
 [0-9a-f]+ <[^>]*> 0004 31c0 	rdhwr	zero,\$4,6
 [0-9a-f]+ <[^>]*> 0004 39c0 	rdhwr	zero,\$4,7
+[0-9a-f]+ <[^>]*> 0000 003f 	sigrie	0x0
+[0-9a-f]+ <[^>]*> 003f ffff 	sigrie	0xffff
 [0-9a-f]+ <[^>]*> 0c00      	nop
 	\.\.\.
