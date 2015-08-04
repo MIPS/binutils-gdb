@@ -5590,6 +5590,10 @@ get_local_sym_hash (struct mips_elf_link_hash_table *htab,
       ret->root.ref_regular = 1;
       ret->root.forced_local = 1;
       ret->root.root.type = bfd_link_hash_defined;
+      if (MIPS16_P (abfd))
+	ret->root.other = STO_MIPS16;
+      if (MICROMIPS_P (abfd))
+	ret->root.other = STO_MICROMIPS;
 
       *slot = ret;
     }
@@ -11129,6 +11133,10 @@ mips_elf_create_ireloc (bfd *output_bfd,
   bfd_vma igotplt_address = 0;
   int igot_offset = -1;
   asection *gotsect, *relsect;
+  bfd_vma value = sym->st_value;
+
+  if (MIPS16_P (output_bfd) || MICROMIPS_P (output_bfd))
+    value |= 1;
 
   if (!hmips->needs_iplt)
     {
@@ -11138,7 +11146,7 @@ mips_elf_create_ireloc (bfd *output_bfd,
 							   info, &hmips->root);
       else if (hmips->global_got_area == GGA_NONE)
 	  igot_offset = mips_elf_check_local_got_index (output_bfd, info,
-							sym->st_value);
+							value);
     }
   else
     {
@@ -11162,9 +11170,9 @@ mips_elf_create_ireloc (bfd *output_bfd,
 	+ igot_index * MIPS_ELF_GOT_SIZE (dynobj);
 
       if (ABI_64_P (output_bfd))
-	bfd_put_64 (output_bfd, sym->st_value, loc);
+	bfd_put_64 (output_bfd, value, loc);
       else
-	bfd_put_32 (output_bfd, sym->st_value, loc);
+	bfd_put_32 (output_bfd, value, loc);
     }
 
   igotplt_address = (gotsect->output_section->vma + gotsect->output_offset
@@ -11199,7 +11207,7 @@ mips_elf_create_ireloc (bfd *output_bfd,
 	  rel[0].r_offset = rel[1].r_offset = rel[2].r_offset = igot_offset;
 
 	  mips_elf_create_dynamic_relocation (output_bfd, info, rel, hmips,
-					      sec, sym->st_value, NULL,
+					      sec, value, NULL,
 					      gotsect);
 	}
     }
@@ -11740,6 +11748,8 @@ _bfd_mips_elf_finish_local_dynamic_symbol (void **slot, void *inf)
   isym.st_value = h->root.root.u.def.section->output_section->vma
     + h->root.root.u.def.section->output_offset + h->root.root.u.def.value;
   isym.st_other = h->root.other;
+  if (ELF_ST_IS_COMPRESSED (isym.st_other))
+    isym.st_value |= 1;
 
   return _bfd_mips_elf_finish_dynamic_symbol (info->output_bfd, info,
 					      &h->root, &isym);
