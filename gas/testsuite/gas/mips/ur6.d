@@ -390,7 +390,6 @@ Disassembly of section .text:
 [0-9a-f]+ <[^>]*> 5483 1223 	mina.d	\$f2,\$f3,\$f4
 [0-9a-f]+ <[^>]*> 5483 102b 	maxa.s	\$f2,\$f3,\$f4
 [0-9a-f]+ <[^>]*> 5483 122b 	maxa.d	\$f2,\$f3,\$f4
-[0-9a-f]+ <[^>]*> 0002 0100 	lwxs	zero,zero\(v0\)
 [0-9a-f]+ <[^>]*> 4180 ffff 	synci	-1\(zero\)
 [0-9a-f]+ <[^>]*> 1040 ffff 	lui	v0,0xffff
 [0-9a-f]+ <[^>]*> 4530      	not	v0,v1

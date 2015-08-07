@@ -1256,7 +1256,11 @@ test3:
 	flush	$3, 0xffffffff($4)
 	flush	$3, 0x12345678($4)
 
+	.set push
+	.set mips32r2
+	; There is no micromips r6 support for lwxs
 	lwxs	$3, $4($5)
+	.set pop
 	madd	$4,$5
 	maddu	$4,$5
 
