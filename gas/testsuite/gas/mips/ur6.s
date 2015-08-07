@@ -276,7 +276,6 @@ foo:
         maxa.s   $f2,$f3,$f4
         maxa.d   $f2,$f3,$f4
 
-        lwxs     $0,$0($2)
         synci    0xffff
         lui      $2,0xffff
         not16    $2,$3
