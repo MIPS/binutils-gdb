@@ -18,9 +18,30 @@
 # We drive non-stop mode from a separate file because the whole test
 # takes a while to run.  This way, we can test both modes in parallel.
 
-set saved_gdbflags $GDBFLAGS
-append GDBFLAGS " -ex \"set non-stop on\""
+# Run BODY in the context of the caller, with EXTRA_GDBFLAGS appended
+# to the global GDBFLAGS.  Returns the result of BODY.
+#
+proc with_extra_gdbflags { extra_gdbflags body } {
+    global GDBFLAGS
 
-source $srcdir/$subdir/checkpoint.exp
+    set saved_gdbflags $GDBFLAGS
+    append GDBFLAGS $extra_gdbflags
 
-set GDBFLAGS $saved_gdbflags
+    set code [catch {uplevel 1 $body} result]
+
+    set GDBFLAGS $saved_gdbflags
+
+    if {$code == 1} {
+	global errorInfo errorCode
+	return -code $code -errorinfo $errorInfo -errorcode $errorCode $result
+    } else {
+	return -code $code $result
+    }
+}
+
+# Wrap with with_extra_gdbflags to restore GDBFLAGS, as otherwise a
+# continue/return from the sourced script would return straight to our
+# caller.
+with_extra_gdbflags " -ex \"set non-stop on\"" {
+    source $srcdir/$subdir/checkpoint.exp
+}
