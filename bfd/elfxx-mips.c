@@ -2119,20 +2119,16 @@ mips_elf_allocate_ireloc (struct bfd_link_info *info,
   asection *srel;
   bfd *dynobj;
 
-  if (mh->needs_iplt || mh->global_got_area == GGA_NORMAL
-      || mh->root.forced_local)
+  srel = mips_get_irel_section (info, mhtab);
+  dynobj = elf_hash_table (info)->dynobj;
+  if (srel != mhtab->root.irelplt && srel->size == 0)
     {
-      srel = mips_get_irel_section (info, mhtab);
-      dynobj = elf_hash_table (info)->dynobj;
-      if (srel != mhtab->root.irelplt && srel->size == 0)
-	{
-	  /* Make room for a null element.  */
-	  srel->size += MIPS_ELF_REL_SIZE (dynobj);
-	  ++srel->reloc_count;
-	}
+      /* Make room for a null element.  */
       srel->size += MIPS_ELF_REL_SIZE (dynobj);
-      mh->needs_ireloc = TRUE;
+      ++srel->reloc_count;
     }
+  srel->size += MIPS_ELF_REL_SIZE (dynobj);
+  mh->needs_ireloc = TRUE;
 
   return TRUE;
 }
@@ -3467,15 +3463,12 @@ mips_elf_count_got_entry (struct bfd_link_info *info,
 					entry->symndx < 0
 					? &entry->d.h->root : NULL);
     }
+  /* Count IFUNCs as general GOT entries since they will need
+     explicit IRELATIVE relocations.  */
+  else if (entry->symndx < 0 && entry->d.h->root.type == STT_GNU_IFUNC)
+    g->general_gotno += 1;
   else if (entry->symndx >= 0 || entry->d.h->global_got_area == GGA_NONE)
-    {
-      /* Count IFUNCs as general GOT entries since they will need
-	 explicit IRELATIVE relocations.  */
-      if (entry->symndx < 0 && entry->d.h->root.type == STT_GNU_IFUNC)
-	g->general_gotno += 1;
-      else
 	g->local_gotno += 1;
-    }
   else
     g->global_gotno += 1;
 }
@@ -4169,7 +4162,11 @@ mips_elf_record_global_got_symbol (struct elf_link_hash_entry *h,
     }
 
   tls_type = mips_elf_reloc_tls_type (r_type);
-  if (tls_type == GOT_TLS_NONE && hmips->global_got_area > GGA_NORMAL)
+  /* IFUNC symbols use explicitly relocated GOT region, instead of the ABI
+     global GOT, but we don't distinguish these from the local GOT region
+     just yet.  */
+  if (tls_type == GOT_TLS_NONE && hmips->global_got_area > GGA_NORMAL
+      && hmips->root.type != STT_GNU_IFUNC)
     hmips->global_got_area = GGA_NORMAL;
 
   entry.abfd = abfd;
@@ -4615,7 +4612,9 @@ mips_use_local_got_p (struct bfd_link_info *info,
      local GOT.  This includes symbols that are completely undefined
      and which therefore don't bind locally.  We'll report undefined
      symbols later if appropriate.  */
-  if (h->root.dynindx == -1)
+  /* Both global & local IFUNC symbols actually use the explicitly relocated
+     GOT region, but we don't distinguish it from local GOT at this stage.  */
+  if (h->root.dynindx == -1 || h->root.type == STT_GNU_IFUNC)
     return TRUE;
 
   /* Symbols that bind locally can (and in the case of forced-local
@@ -4672,6 +4671,11 @@ mips_elf_count_got_symbols (struct mips_elf_link_hash_entry *h, void *data)
 	  g->global_gotno++;
 	}
     }
+
+  if (h->root.type == STT_GNU_IFUNC)
+    /* Count IFUNCs towards explicitly relocated GOT.  */
+    g->general_gotno++;
+
   return 1;
 }
 
@@ -4692,8 +4696,7 @@ mips_elf_count_general_got_symbols (void **slot, void *inf)
   htab = mips_elf_hash_table (info);
 
   g = htab->got_info;
-  if (h != NULL && h->root.type == STT_GNU_IFUNC &&
-      (h->root.forced_local || h->global_got_area == GGA_NONE))
+  if (h != NULL && h->root.type == STT_GNU_IFUNC && !h->needs_iplt)
     g->general_gotno++;
   return 1;
 }
@@ -6069,6 +6072,16 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
 	      BFD_ASSERT (h->root.needs_plt);
 	      g = mips_elf_gotplt_index (info, &h->root);
 	    }
+	  /* IFUNCs use explicit GOT, however we don't distinguish it
+	     from local GOT at this stage.  */
+	  else if (h && h->root.type == STT_GNU_IFUNC && !h->needs_iplt)
+	    {
+	      g = mips_elf_local_got_index (abfd, input_bfd, info,
+					    symbol + addend, r_symndx,
+					    h, r_type);
+	      if (g == MINUS_ONE)
+		return bfd_reloc_outofrange;
+	    }
 	  else
 	    {
 	      BFD_ASSERT (addend == 0);
@@ -6809,7 +6822,8 @@ mips_elf_create_dynamic_relocation (bfd *output_bfd,
      in the relocation.  */
   if (h != NULL && ! SYMBOL_REFERENCES_LOCAL (info, &h->root))
     {
-      BFD_ASSERT (htab->is_vxworks || h->global_got_area != GGA_NONE);
+      BFD_ASSERT (htab->is_vxworks || h->global_got_area != GGA_NONE
+		  || h->root.type == STT_GNU_IFUNC);
       indx = h->root.dynindx;
       if (SGI_COMPAT (output_bfd))
 	defined_p = h->root.def_regular;
@@ -11141,12 +11155,13 @@ mips_elf_create_ireloc (bfd *output_bfd,
   if (!hmips->needs_iplt)
     {
       gotsect = htab->sgot;
-      if (hmips->global_got_area == GGA_NORMAL)
-	  igot_offset = mips_elf_primary_global_got_index (output_bfd,
-							   info, &hmips->root);
-      else if (hmips->global_got_area == GGA_NONE)
-	  igot_offset = mips_elf_check_local_got_index (output_bfd, info,
-							value);
+      /* Check if IFUNC symbol already has an assigned GOT slots; assign
+	 a new slot if necessary */
+      igot_offset = mips_elf_check_local_got_index (output_bfd, info, value);
+      if (igot_offset < 0)
+	igot_offset = mips_elf_local_got_index (output_bfd, output_bfd, info,
+						value, hmips->root.dynindx,
+						hmips, R_MIPS_REL32);
     }
   else
     {
@@ -11190,12 +11205,12 @@ mips_elf_create_ireloc (bfd *output_bfd,
 	    return FALSE;
 	}
 
-      if (hmips->needs_iplt || hmips->global_got_area == GGA_NONE)
+      if (hmips->needs_iplt || hmips->root.dynindx < 0)
 	/* Emit an R_MIPS_IRELATIVE relocation against the [I]GOT entry.  */
 	mips_elf_output_dynamic_relocation (output_bfd, relsect,
 					    relsect->reloc_count++, 0,
 					    R_MIPS_IRELATIVE, igotplt_address);
-      else if (hmips->global_got_area == GGA_NORMAL)
+      else
 	{
 	  /* Emit an R_MIPS_REL32 relocation against global GOT entry for
 	     a preemptible symbol.  */
