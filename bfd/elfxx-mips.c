@@ -5555,7 +5555,7 @@ get_local_sym_hash (struct mips_elf_link_hash_table *htab,
 					   isym->st_name);
 
   if (ELF_ST_TYPE (isym->st_info) == STT_GNU_IFUNC)
-    elf_tdata (abfd)->has_gnu_symbols = TRUE;
+    elf_tdata (abfd)->has_gnu_symbols |= elf_gnu_symbol_ifunc;
 
   e.root.indx = sec->id;
   e.root.dynstr_index = ELF_R_SYM (abfd, rel->r_info);
@@ -7828,7 +7828,7 @@ _bfd_mips_elf_add_symbol_hook (bfd *abfd, struct bfd_link_info *info,
 			       asection **secp, bfd_vma *valp)
 {
   if (ELF_ST_TYPE (sym->st_info) == STT_GNU_IFUNC)
-    elf_tdata (info->output_bfd)->has_gnu_symbols = TRUE;
+    elf_tdata (info->output_bfd)->has_gnu_symbols |= elf_gnu_symbol_ifunc;
 
   if (SGI_COMPAT (abfd)
       && (abfd->flags & DYNAMIC) != 0
