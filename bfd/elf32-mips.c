@@ -1646,7 +1646,7 @@ static reloc_howto_type elf_mips_eh_howto =
 	 0xffffffff,	        /* dst_mask */
 	 FALSE);		/* pcrel_offset */
 
-/* STT_GNU_IFUNC support: */
+/* STT_GNU_IFUNC support.  */
 static reloc_howto_type elf_mips_irelative_howto =
   HOWTO (R_MIPS_IRELATIVE,	/* type */
 	 0,			/* rightshift */

@@ -1266,6 +1266,7 @@ static const bfd_vma mips64_exec_iplt_entry[] =
   0x00000000,	/* nop                                       */
 };
 
+/* The format of 64-bit IPLT entries for 48bit address.  */
 static const bfd_vma mips64_48b_exec_iplt_entry[] =
 {
   0x3c0f0000,	/* lui $15, %higher(.got.iplt entry)         */
@@ -1679,7 +1680,7 @@ mips_elf_create_stub_symbol (struct bfd_link_info *info,
 
   if (ELF_ST_IS_MICROMIPS (h->root.other)
       || (ELF_ST_IS_MIPS16 (h->root.other) && h->root.type == STT_GNU_IFUNC))
-      value |= 1;
+    value |= 1;
 
   /* Create a new symbol.  */
   name = ACONCAT ((prefix, h->root.root.root.string, NULL));
@@ -2064,7 +2065,7 @@ mips_elf_add_la25_stub (struct bfd_link_info *info,
 }
 
 /* Return the dynamic relocation section.  If it doesn't exist, try to
-   create a new it if CREATE_P, otherwise return NULL.  Also return NULL
+   create a new one if CREATE_P, otherwise return NULL.  Also return NULL
    if creation fails.  */
 
 static asection *
@@ -2134,7 +2135,7 @@ mips_elf_allocate_ireloc (struct bfd_link_info *info,
 }
 
 /* Reserve space in the iplt and igot tables for an ifunc entry
-and allocate space for an IRELATIVE relocation.  */
+   and allocate space for an IRELATIVE relocation.  */
 
 static bfd_boolean
 mips_elf_allocate_iplt (struct bfd_link_info *info,
@@ -2210,7 +2211,7 @@ mips_elf_check_symbols (struct mips_elf_link_hash_entry *h, void *data)
       if (!info->shared
 	  && !mips_elf_allocate_iplt (info, mips_elf_hash_table (info), h))
 	return FALSE;
-      /* Allocate an extra relocation for this IFUNC, if needed.  */
+      /* IREL or REL32 fixup is needed for each global IFUNC.  */
       if (!mips_elf_allocate_ireloc (info, mips_elf_hash_table (info), h))
 	return FALSE;
     }
@@ -3468,7 +3469,7 @@ mips_elf_count_got_entry (struct bfd_link_info *info,
   else if (entry->symndx < 0 && entry->d.h->root.type == STT_GNU_IFUNC)
     g->general_gotno += 1;
   else if (entry->symndx >= 0 || entry->d.h->global_got_area == GGA_NONE)
-	g->local_gotno += 1;
+    g->local_gotno += 1;
   else
     g->global_gotno += 1;
 }
@@ -4613,7 +4614,7 @@ mips_use_local_got_p (struct bfd_link_info *info,
      and which therefore don't bind locally.  We'll report undefined
      symbols later if appropriate.  */
   /* Both global & local IFUNC symbols actually use the explicitly relocated
-     GOT region, but we don't distinguish it from local GOT at this stage.  */
+     GOT region, but we don't distinguish it from local GOT just yet.  */
   if (h->root.dynindx == -1 || h->root.type == STT_GNU_IFUNC)
     return TRUE;
 
@@ -4680,7 +4681,7 @@ mips_elf_count_got_symbols (struct mips_elf_link_hash_entry *h, void *data)
 }
 
 /* A elf_link_hash_traverse callback for which INF points to the
-   link_info structure. Count the number of GOT entries that need
+   link_info structure.  Count the number of GOT entries that need
    explicit relocations by iterating over the local hash table.  */
 
 static int
@@ -4696,7 +4697,7 @@ mips_elf_count_general_got_symbols (void **slot, void *inf)
   htab = mips_elf_hash_table (info);
 
   g = htab->got_info;
-  if (h != NULL && h->root.type == STT_GNU_IFUNC && !h->needs_iplt)
+  if (h != NULL && h->root.type == STT_GNU_IFUNC)
     g->general_gotno++;
   return 1;
 }
@@ -4938,31 +4939,6 @@ mips_elf_set_global_got_area (void **entryp, void *data)
   return 1;
 }
 
-/* A htab_traverse callback for GOT entries, where DATA points to a
-   mips_elf_traverse_got_arg. Deallocate dedicated REL32 relocations
-   for global IFUNCs that are marked RELOC_ONLY.  */
-
-static int
-mips_elf_deallocate_irelocs (void **entryp, void *data)
-{
-  struct mips_got_entry *entry;
-
-  entry = (struct mips_got_entry *) *entryp;
-  if (entry->abfd != NULL
-      && entry->symndx == -1
-      && entry->d.h->global_got_area == GGA_RELOC_ONLY
-      && entry->d.h->root.type == STT_GNU_IFUNC
-      && entry->d.h->needs_ireloc)
-    {
-      struct mips_elf_traverse_got_arg *arg
-	= (struct mips_elf_traverse_got_arg *) data;
-      asection *srel = mips_elf_rel_dyn_section (arg->info, FALSE);
-      srel->size -= MIPS_ELF_REL_SIZE (elf_hash_table (arg->info)->dynobj);
-      entry->d.h->needs_ireloc = FALSE;
-    }
-  return 1;
-}
-
 /* A htab_traverse callback for secondary GOT entries, where DATA points
    to a mips_elf_traverse_got_arg.  Assign GOT indices to global entries
    and record the number of relocations they require.  DATA->value is
@@ -5116,11 +5092,6 @@ mips_elf_multi_got (bfd *abfd, struct bfd_link_info *info,
   htab_traverse (gg->got_entries, mips_elf_set_global_got_area, &tga);
   tga.value = GGA_NORMAL;
   htab_traverse (g->got_entries, mips_elf_set_global_got_area, &tga);
-
-  /* Deallocate extra relocation intended for IFUNCs that have been marked
-     as RELOC_ONLY. These entries will get explicit relocs due to multi-got
-     which will work just as well for IFUNC resolution.  */
-  htab_traverse (gg->got_entries, mips_elf_deallocate_irelocs, &tga);
 
   /* Now go through the GOTs assigning them offset ranges.
      [assigned_low_gotno, local_gotno[ will be set to the range of local
@@ -5565,14 +5536,14 @@ get_local_sym_hash (struct mips_elf_link_hash_table *htab,
   if (!slot)
     return NULL;
 
-  /* Found match */
+  /* Found match.  */
   if (*slot)
     {
       ret = (struct mips_elf_link_hash_entry *) *slot;
       return ret;
     }
 
-  /* Allocate new slot */
+  /* Allocate new slot.  */
   ret = (struct mips_elf_link_hash_entry *)
     objalloc_alloc ((struct objalloc *) htab->loc_hash_memory,
 		    sizeof (struct mips_elf_link_hash_entry));
@@ -5653,7 +5624,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
   /* TRUE if the symbol referred to by this relocation is a local
      symbol.  */
   bfd_boolean local_p, was_local_p;
-  /* TRUE if the symbol referred to by this relocation is a local IFUNC */
+  /* TRUE if the symbol referred to by this relocation is a local IFUNC.  */
   bfd_boolean local_gnu_ifunc_p = FALSE;
   /* TRUE if the symbol referred to by this relocation is "_gp_disp".  */
   bfd_boolean gp_disp_p = FALSE;
@@ -6371,10 +6342,10 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
     case R_MICROMIPS_CALL16:
       /* VxWorks does not have separate local and global semantics for
 	 R_MIPS*_GOT16; every relocation evaluates to "G".  */
-      /* Local IFUNC symbols must be accessed through GOT, similar to global
-	 symbols, to allow for indirection */
       if (!htab->is_vxworks && local_p)
 	{
+	  /* Local IFUNC symbols must be accessed through GOT, similar to
+	     global symbols, to allow for indirection.  */
 	  value = mips_elf_got16_entry (abfd, input_bfd, info,
 					symbol + addend,
 					!was_local_p || local_gnu_ifunc_p, h);
@@ -6882,6 +6853,7 @@ mips_elf_create_dynamic_relocation (bfd *output_bfd,
   if (defined_p && r_type != R_MIPS_REL32)
     *addendp += symbol;
 
+  /* Morph REL32 in to IRELATIVE fix-up for local IFUNC reference.  */
   if (h && !indx && h->root.type == STT_GNU_IFUNC)
     {
       outrel[0].r_info = ELF_R_INFO (output_bfd, (unsigned long) indx,
@@ -8381,7 +8353,7 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
   bed = get_elf_backend_data (abfd);
   rel_end = relocs + sec->reloc_count * bed->s->int_rels_per_ext_rel;
 
-  /* This needs to happen early. If the sections aren't needed
+  /* This needs to happen early.  If the sections aren't needed
      they will not get generated.  */
   if (htab->root.dynobj == NULL)
     htab->root.dynobj = abfd;
@@ -8884,7 +8856,7 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 	case R_MIPS_CALL16:
 	case R_MIPS16_CALL16:
 	case R_MICROMIPS_CALL16:
-	  /* Exclude local IFUNCs from check */
+	  /* Exclude local IFUNCs from check.  */
 	  if (h == NULL && !local_gnu_ifunc_p)
 	    {
 	      (*_bfd_error_handler)
@@ -9734,8 +9706,7 @@ _bfd_mips_elf_always_size_sections (bfd *output_bfd,
 			       mips_elf_check_symbols, &hti);
 
   /* Allocate relocs for local IFUNC symbols.  */
-  htab_traverse (htab->loc_hash_table,
-		 mips_elf_check_local_symbols, &hti);
+  htab_traverse (htab->loc_hash_table, mips_elf_check_local_symbols, &hti);
 
   if (hti.error)
     return FALSE;
@@ -9781,7 +9752,7 @@ mips_elf_lay_out_got (bfd *output_bfd, struct bfd_link_info *info)
      count the number of reloc-only GOT symbols.  */
   mips_elf_link_hash_traverse (htab, mips_elf_count_got_symbols, info);
 
-  /* Count local IFUNC symbols. These need general GOT entries that
+  /* Count local IFUNC symbols.  These need general GOT entries that
      are fixed-up by explicit IRELATIVE relocations.  */
   htab_traverse (htab->loc_hash_table, mips_elf_count_general_got_symbols, info);
 
@@ -11030,7 +11001,7 @@ mips_elf_create_iplt (bfd *output_bfd,
 
       if (highest)
 	{
-	  /* Full 64-bit address space */
+	  /* Full 64-bit address space.  */
 	  bfd_put_32 (output_bfd, iplt_entry[0] | highest, loc);
 	  bfd_put_32 (output_bfd, iplt_entry[1] | high, loc + 4);
 	  bfd_put_32 (output_bfd, iplt_entry[2] | higher, loc + 8);
@@ -11042,7 +11013,7 @@ mips_elf_create_iplt (bfd *output_bfd,
 	}
       else if (higher)
 	{
-	  /* 48-bit address space */
+	  /* 48-bit address space.  */
 	  iplt_entry = mips64_48b_exec_iplt_entry;
 	  bfd_put_32 (output_bfd, iplt_entry[0] | higher, loc);
 	  bfd_put_32 (output_bfd, iplt_entry[1] | high, loc + 4);
@@ -11053,7 +11024,7 @@ mips_elf_create_iplt (bfd *output_bfd,
 	}
       else
 	{
-	  /* 32-bit address space */
+	  /* 32-bit address space.  */
 	  bfd_put_32 (output_bfd, iplt_entry[0] | high, loc);
 	  bfd_put_32 (output_bfd, iplt_entry[5] | low, loc + 4);
 	  bfd_put_32 (output_bfd, iplt_entry[6], loc + 8);
@@ -11156,7 +11127,7 @@ mips_elf_create_ireloc (bfd *output_bfd,
     {
       gotsect = htab->sgot;
       /* Check if IFUNC symbol already has an assigned GOT slots; assign
-	 a new slot if necessary */
+	 a new slot if necessary.  */
       igot_offset = mips_elf_check_local_got_index (output_bfd, info, value);
       if (igot_offset < 0)
 	igot_offset = mips_elf_local_got_index (output_bfd, output_bfd, info,
@@ -14735,16 +14706,15 @@ _bfd_mips_elf_link_hash_table_create (bfd *abfd)
   ret->root.init_plt_offset.plist = NULL;
 
   /* Create hash table for local IFUNC symbols.  */
-  ret->loc_hash_table = htab_try_create (1024,
-					 local_htab_hash,
-					 local_htab_eq,
-					 NULL);
+  ret->loc_hash_table = htab_try_create (1024, local_htab_hash,
+					 local_htab_eq, NULL);
   ret->loc_hash_memory = objalloc_create ();
   if (!ret->loc_hash_table || !ret->loc_hash_memory)
     {
       _bfd_mips_elf_link_hash_table_free (abfd);
       return NULL;
     }
+
   return &ret->root.root;
 }
 
