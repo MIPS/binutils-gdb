@@ -390,7 +390,6 @@ Disassembly of section .text:
 [0-9a-f]+ <[^>]*> 5483 1223 	mina.d	\$f2,\$f3,\$f4
 [0-9a-f]+ <[^>]*> 5483 102b 	maxa.s	\$f2,\$f3,\$f4
 [0-9a-f]+ <[^>]*> 5483 122b 	maxa.d	\$f2,\$f3,\$f4
-[0-9a-f]+ <[^>]*> 0002 0100 	lwxs	zero,zero\(v0\)
 [0-9a-f]+ <[^>]*> 4180 ffff 	synci	-1\(zero\)
 [0-9a-f]+ <[^>]*> 1040 ffff 	lui	v0,0xffff
 [0-9a-f]+ <[^>]*> 4530      	not	v0,v1
@@ -451,5 +450,7 @@ Disassembly of section .text:
 [0-9a-f]+ <[^>]*> 0004 29c0 	rdhwr	zero,\$4,5
 [0-9a-f]+ <[^>]*> 0004 31c0 	rdhwr	zero,\$4,6
 [0-9a-f]+ <[^>]*> 0004 39c0 	rdhwr	zero,\$4,7
+[0-9a-f]+ <[^>]*> 0000 003f 	sigrie	0x0
+[0-9a-f]+ <[^>]*> 003f ffff 	sigrie	0xffff
 [0-9a-f]+ <[^>]*> 0c00      	nop
 	\.\.\.

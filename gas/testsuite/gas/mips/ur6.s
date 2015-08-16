@@ -276,7 +276,6 @@ foo:
         maxa.s   $f2,$f3,$f4
         maxa.d   $f2,$f3,$f4
 
-        lwxs     $0,$0($2)
         synci    0xffff
         lui      $2,0xffff
         not16    $2,$3
@@ -338,6 +337,9 @@ foo:
 	rdhwr	$0, $4, 5
 	rdhwr	$0, $4, 6
 	rdhwr	$0, $4, 7
+
+	sigrie	0
+	sigrie	0xffff
 
 	.align	2
 	.space	8
