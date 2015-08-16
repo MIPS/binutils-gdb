@@ -505,14 +505,6 @@
   do_ldpc (SD_, RT, IMMEDIATE);
 }
 
-000000,5.INDEX,5.BASE,5.RD,0,0100000000:R6POOL32A:32::LWXS
-"lwxs r<RD>, r<INDEX>(r<BASE>)"
-*micromips32r6:
-*micromips64r6:
-{
-  do_lwxs (SD_, RD, INDEX, BASE);
-}
-
 010000,01100,5.BASE,16.IMMEDIATE:R6POOL32I:32::SYNCI
 "synci <IMMEDIATE>(r<BASE>)"
 *micromips32r6:
