@@ -493,4 +493,7 @@ Disassembly of section .text:
 0+0588 <[^>]*> f8040000 	jalrc	a0
 0+058c <[^>]*> 04100000 	nal
 0+0590 <[^>]*> 00000000 	nop
+0+0594 <[^>]*> 41700000 	sigrie	0x0
+0+0598 <[^>]*> 4170ffff 	sigrie	0xffff
+>>>>>>> 56e03d0... Add SIGRIE instruction for MIPSR6
 	\.\.\.
