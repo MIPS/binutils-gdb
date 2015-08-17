@@ -8,7 +8,7 @@
 
 Disassembly of section .text:
 0+ <.*>:
-   0:	03e06825 	move	t5,ra
-   4:	03e06821 	move	t5,ra
-   8:	03e0682d 	move	t5,ra
-   c:	03e06825 	move	t5,ra
+   0:	03e08025 	move	s0,ra
+   4:	03e08021 	move	s0,ra
+   8:	03e0802d 	move	s0,ra
+   c:	03e08025 	move	s0,ra
