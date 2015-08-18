@@ -2175,7 +2175,8 @@ mips_elf_check_local_symbols (void **slot, void *data)
     (struct mips_elf_link_hash_entry *) *slot;
 
   /* If the referenced symbol is ifunc, allocate an iplt for it.  */
-  if (h && !h->needs_iplt && h->root.type == STT_GNU_IFUNC)
+  if (h && !h->needs_iplt && h->root.type == STT_GNU_IFUNC
+      && h->root.def_regular)
     {
       struct bfd_link_info *info = hti->info;
       /* .iplt entry is needed only for executable objects.  */
@@ -2203,8 +2204,8 @@ mips_elf_check_symbols (struct mips_elf_link_hash_entry *h, void *data)
   if (!bfd_link_relocatable (hti->info))
     mips_elf_check_mips16_stubs (hti->info, h);
 
-  if (h && !h->needs_iplt &&
-      h->root.type == STT_GNU_IFUNC)
+  if (h && !h->needs_iplt && h->root.type == STT_GNU_IFUNC
+      && h->root.def_regular)
     {
       struct bfd_link_info *info = hti->info;
       /* .iplt entry is needed only for executable objects.  */
@@ -3466,7 +3467,7 @@ mips_elf_count_got_entry (struct bfd_link_info *info,
     }
   /* Count IFUNCs as general GOT entries since they will need
      explicit IRELATIVE relocations.  */
-  else if (entry->symndx < 0 && entry->d.h->root.type == STT_GNU_IFUNC)
+  else if (entry->symndx < 0 && entry->d.h->needs_ireloc)
     g->general_gotno += 1;
   else if (entry->symndx >= 0 || entry->d.h->global_got_area == GGA_NONE)
     g->local_gotno += 1;
@@ -4167,7 +4168,7 @@ mips_elf_record_global_got_symbol (struct elf_link_hash_entry *h,
      global GOT, but we don't distinguish these from the local GOT region
      just yet.  */
   if (tls_type == GOT_TLS_NONE && hmips->global_got_area > GGA_NORMAL
-      && hmips->root.type != STT_GNU_IFUNC)
+      && !hmips->needs_ireloc)
     hmips->global_got_area = GGA_NORMAL;
 
   entry.abfd = abfd;
@@ -4615,7 +4616,7 @@ mips_use_local_got_p (struct bfd_link_info *info,
      symbols later if appropriate.  */
   /* Both global & local IFUNC symbols actually use the explicitly relocated
      GOT region, but we don't distinguish it from local GOT just yet.  */
-  if (h->root.dynindx == -1 || h->root.type == STT_GNU_IFUNC)
+  if (h->root.dynindx == -1 || h->needs_ireloc)
     return TRUE;
 
   /* Symbols that bind locally can (and in the case of forced-local
@@ -4673,7 +4674,7 @@ mips_elf_count_got_symbols (struct mips_elf_link_hash_entry *h, void *data)
 	}
     }
 
-  if (h->root.type == STT_GNU_IFUNC)
+  if (h->needs_ireloc)
     /* Count IFUNCs towards explicitly relocated GOT.  */
     g->general_gotno++;
 
@@ -4697,7 +4698,7 @@ mips_elf_count_general_got_symbols (void **slot, void *inf)
   htab = mips_elf_hash_table (info);
 
   g = htab->got_info;
-  if (h != NULL && h->root.type == STT_GNU_IFUNC)
+  if (h != NULL && h->needs_ireloc)
     g->general_gotno++;
   return 1;
 }
@@ -6045,7 +6046,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
 	    }
 	  /* IFUNCs use explicit GOT, however we don't distinguish it
 	     from local GOT at this stage.  */
-	  else if (h && h->root.type == STT_GNU_IFUNC && !h->needs_iplt)
+	  else if (h && h->needs_ireloc && !h->needs_iplt)
 	    {
 	      g = mips_elf_local_got_index (abfd, input_bfd, info,
 					    symbol + addend, r_symndx,
