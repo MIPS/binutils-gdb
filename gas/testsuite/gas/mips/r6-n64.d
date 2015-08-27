@@ -791,4 +791,6 @@ Disassembly of section .text:
 [	]*604: R_MIPS_NONE	\*ABS\*-0x4
 [	]*604: R_MIPS_NONE	\*ABS\*-0x4
 0+0608 <[^>]*> 7ca4001e 	sce	a0,0\(a1\)
+0+060c <[^>]*> 41700000 	sigrie	0x0
+0+0610 <[^>]*> 4170ffff 	sigrie	0xffff
 	\.\.\.

@@ -527,4 +527,6 @@ Disassembly of section .text:
 0+0604 <[^>]*> 10000000 	b	00000608 <[^>]*>
 [	]*604: R_MIPS_PC16	.L1.2-0x4
 0+0608 <[^>]*> 7ca4001e 	sce	a0,0\(a1\)
+0+060c <[^>]*> 41700000 	sigrie	0x0
+0+0610 <[^>]*> 4170ffff 	sigrie	0xffff
 	\.\.\.

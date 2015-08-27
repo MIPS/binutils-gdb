@@ -290,6 +290,8 @@ new:	maddf.s	$f0,$f1,$f2
 	sce	$4, 0($5)
 	b	1b
 	.set pop
+	sigrie	0
+	sigrie	0xffff
 
 # Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
 	.align  2
