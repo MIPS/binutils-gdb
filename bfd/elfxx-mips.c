@@ -428,7 +428,7 @@ struct mips_elf_link_hash_entry
   /* Does this symbol need an IPLT stub?  */
   unsigned int needs_iplt : 1;
 
-  /* Does this ifunc symbol need an IGOT entry?  */
+  /* Does this ifunc symbol need an IRELATIVE relocation?  */
   unsigned int needs_ireloc : 1;
 };
 
@@ -3932,7 +3932,7 @@ mips_elf_create_local_got_entry (bfd *abfd, struct bfd_link_info *info,
   if (!entry)
     return NULL;
 
-  if (h && h->root.type == STT_GNU_IFUNC)
+  if (h && h->needs_ireloc)
     /* Allocate IFUNC slots in the general GOT region since they
        will need explicit IRELATIVE relocations.  */
     lookup.gotidx = MIPS_ELF_GOT_SIZE (abfd) * g->assigned_general_gotno++;
