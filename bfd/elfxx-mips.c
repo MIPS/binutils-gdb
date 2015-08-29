@@ -2179,6 +2179,8 @@ mips_elf_check_local_symbols (void **slot, void *data)
       && h->root.def_regular)
     {
       struct bfd_link_info *info = hti->info;
+      elf_tdata (info->output_bfd)->has_gnu_symbols |= elf_gnu_symbol_ifunc; 
+
       /* .iplt entry is needed only for executable objects.  */
       if (!info->shared &&
 	  !mips_elf_allocate_iplt (info, mips_elf_hash_table (info), h))
@@ -2208,6 +2210,8 @@ mips_elf_check_symbols (struct mips_elf_link_hash_entry *h, void *data)
       && h->root.def_regular)
     {
       struct bfd_link_info *info = hti->info;
+      elf_tdata (info->output_bfd)->has_gnu_symbols |= elf_gnu_symbol_ifunc; 
+
       /* .iplt entry is needed only for executable objects.  */
       if (!info->shared
 	  && !mips_elf_allocate_iplt (info, mips_elf_hash_table (info), h))
@@ -5526,9 +5530,6 @@ get_local_sym_hash (struct mips_elf_link_hash_table *htab,
   namep = bfd_elf_string_from_elf_section (abfd, symtab_hdr->sh_link,
 					   isym->st_name);
 
-  if (ELF_ST_TYPE (isym->st_info) == STT_GNU_IFUNC)
-    elf_tdata (abfd)->has_gnu_symbols |= elf_gnu_symbol_ifunc;
-
   e.root.indx = sec->id;
   e.root.dynstr_index = ELF_R_SYM (abfd, rel->r_info);
   e.root.root.root.string = namep;
@@ -7800,9 +7801,6 @@ _bfd_mips_elf_add_symbol_hook (bfd *abfd, struct bfd_link_info *info,
 			       flagword *flagsp ATTRIBUTE_UNUSED,
 			       asection **secp, bfd_vma *valp)
 {
-  if (ELF_ST_TYPE (sym->st_info) == STT_GNU_IFUNC)
-    elf_tdata (info->output_bfd)->has_gnu_symbols |= elf_gnu_symbol_ifunc;
-
   if (SGI_COMPAT (abfd)
       && (abfd->flags & DYNAMIC) != 0
       && strcmp (*namep, "_rld_new_interface") == 0)
