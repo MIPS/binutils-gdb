@@ -3469,13 +3469,12 @@ mips_elf_count_got_entry (struct bfd_link_info *info,
 					entry->symndx < 0
 					? &entry->d.h->root : NULL);
     }
-  /* Count IFUNCs as general GOT entries since they will need
-     explicit IRELATIVE relocations.  */
-  else if (entry->symndx < 0 && entry->d.h->needs_ireloc)
-    g->general_gotno += 1;
-  else if (entry->symndx >= 0 || entry->d.h->global_got_area == GGA_NONE)
+  /* Skip IFUNCs from local/global GOT, they are already counted as general
+     GOT entries with explicit relocations.  */
+  else if (entry->symndx >= 0 || (entry->d.h->global_got_area == GGA_NONE
+				 && !entry->d.h->needs_ireloc))
     g->local_gotno += 1;
-  else
+  else if (!entry->d.h->needs_ireloc)
     g->global_gotno += 1;
 }
 
