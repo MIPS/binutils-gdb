@@ -11075,7 +11075,8 @@ mips_elf_create_iplt (bfd *output_bfd,
 
 static bfd_vma
 mips_elf_check_local_got_index (bfd *abfd, struct bfd_link_info *info,
-				 bfd_vma value)
+				struct mips_elf_link_hash_entry *h,
+				bfd_vma value)
 {
   struct mips_got_entry lookup, *entry;
   void **loc;
@@ -11088,19 +11089,40 @@ mips_elf_check_local_got_index (bfd *abfd, struct bfd_link_info *info,
   g = mips_elf_bfd_got (abfd, FALSE);
   BFD_ASSERT (g != NULL);
 
+  /* Check for existing local GOT entry.  */
   lookup.abfd = NULL;
   lookup.symndx = -1;
   lookup.d.address = value;
   lookup.tls_type = GOT_TLS_NONE;
   loc = htab_find_slot (g->got_entries, &lookup, NO_INSERT);
-  if (!loc)
-    return -1;
 
-  entry = (struct mips_got_entry *) *loc;
-  if (entry)
-    return entry->gotidx;
+  if (loc && *loc)
+    entry = (struct mips_got_entry *) *loc;
   else
-    return -1;
+    {
+      /* Need to create and initialize a new GOT entry. We only get here
+	 global IFUNC symbol and we need distinct hashes entries for aliased
+	 symbols.  */
+      lookup.symndx = h->root.dynindx;
+      lookup.abfd = abfd;
+      if (h->root.dynindx < 0)
+	lookup.d.h = h;
+      loc = htab_find_slot (g->got_entries, &lookup, INSERT);
+
+      if (!loc)
+	return -1;
+
+      entry = (struct mips_got_entry *) bfd_alloc (abfd, sizeof (*entry));
+      if (!entry)
+	return -1;
+
+      lookup.gotidx = MIPS_ELF_GOT_SIZE (abfd) * g->assigned_general_gotno++;
+      *entry = lookup;
+      *loc = entry;
+      MIPS_ELF_PUT_WORD (abfd, value, htab->sgot->contents + entry->gotidx);
+    }
+
+  return entry->gotidx;
 }
 
 /* Create the IRELATIVE relocation for an IFUNC symbol.  */
@@ -11126,7 +11148,8 @@ mips_elf_create_ireloc (bfd *output_bfd,
       gotsect = htab->sgot;
       /* Check if IFUNC symbol already has an assigned GOT slots; assign
 	 a new slot if necessary.  */
-      igot_offset = mips_elf_check_local_got_index (output_bfd, info, value);
+      igot_offset = mips_elf_check_local_got_index (output_bfd, info,
+						    hmips, value);
       if (igot_offset < 0)
 	igot_offset = mips_elf_local_got_index (output_bfd, output_bfd, info,
 						value, hmips->root.dynindx,
