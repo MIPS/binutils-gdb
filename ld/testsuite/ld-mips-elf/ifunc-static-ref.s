@@ -1,15 +1,12 @@
 	.file	1 "ifunc_ref.c"
 	.section .mdebug.abi32
 	.previous
-	.nan	legacy
-	.gnu_attribute 4, 1
 	.abicalls
 	.option	pic0
 	.text
 	.align	2
 	.globl	ref1
-	.set	nomips16
-	.set	nomicromips
+	.set 	mips32r2
 	.ent	ref1
 	.type	ref1, @function
 ref1:

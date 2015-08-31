@@ -147,3 +147,37 @@ foreach { addr } $addrs {
     ]
 }
 
+run_ld_link_tests [list \
+	[list \
+	    "IFUNC IPLT (Simple static executable with def and ref) mips32r6" \
+	    "" "" \
+	    "$abi_asflags(o32) -mips32r6" \
+	    [list ifunc-static-main.s ifunc-static-def.s] \
+	    [list "objdump -dj.iplt ifunc-iplt-mips32r6.t"] \
+	    "ifunc-iplt-mips32r6" \
+    ] \
+]
+
+run_ld_link_tests [list \
+	[list \
+	    "IFUNC IPLT (Simple static executable with def and ref) micromips" \
+	    "" "" \
+	    "$abi_asflags(o32) -mmicromips" \
+	    [list ifunc-static-main.s ifunc-static-def.s] \
+	    [list "objdump -dj.iplt ifunc-iplt-micromips.t" \
+		 "objdump -dj.igot ifunc-iplt-micromips.igot"] \
+	    "ifunc-iplt-micromips" \
+    ] \
+]
+
+run_ld_link_tests [list \
+	[list \
+	    "IFUNC IPLT (Simple static executable with def and ref) mips16" \
+	    "" "" \
+	    "$abi_asflags(o32) -mips32r2 -mips16" \
+	    [list ifunc-static-main-mips16.s ifunc-static-def-mips16.s] \
+	    [list "objdump -dj.iplt ifunc-iplt-mips16.t" \
+		 "objdump -dj.igot ifunc-iplt-mips16.igot"] \
+	    "ifunc-iplt-mips16" \
+    ] \
+]

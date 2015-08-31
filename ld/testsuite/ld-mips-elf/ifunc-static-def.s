@@ -1,14 +1,10 @@
 	.file	1 "ifunc.c"
 	.section .mdebug.abi32
 	.previous
-	.nan	legacy
-	.gnu_attribute 4, 1
 	.abicalls
 	.option	pic0
 	.text
 	.align	2
-	.set	nomips16
-	.set	nomicromips
 	.ent	f1_a
 	.type	f1_a, @function
 f1_a:
@@ -32,8 +28,6 @@ f1_a:
 	.end	f1_a
 	.size	f1_a, .-f1_a
 	.align	2
-	.set	nomips16
-	.set	nomicromips
 	.ent	f1_b
 	.type	f1_b, @function
 f1_b:
@@ -57,8 +51,6 @@ f1_b:
 	.end	f1_b
 	.size	f1_b, .-f1_b
 	.align	2
-	.set	nomips16
-	.set	nomicromips
 	.ent	f1_c
 	.type	f1_c, @function
 f1_c:
@@ -83,8 +75,6 @@ f1_c:
 	.size	f1_c, .-f1_c
 	.align	2
 	.globl	func1_ifunc
-	.set	nomips16
-	.set	nomicromips
 	.ent	func1_ifunc
 	.type	func1_ifunc, @function
 func1_ifunc:
