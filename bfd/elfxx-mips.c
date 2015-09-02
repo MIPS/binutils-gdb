@@ -2182,7 +2182,7 @@ mips_elf_check_local_symbols (void **slot, void *data)
       elf_tdata (info->output_bfd)->has_gnu_symbols |= elf_gnu_symbol_ifunc;
 
       /* .iplt entry is needed only for executable objects.  */
-      if (!info->shared &&
+      if (!bfd_link_pic (info) &&
 	  !mips_elf_allocate_iplt (info, mips_elf_hash_table (info), h))
 	return FALSE;
 
@@ -2213,7 +2213,7 @@ mips_elf_check_symbols (struct mips_elf_link_hash_entry *h, void *data)
       elf_tdata (info->output_bfd)->has_gnu_symbols |= elf_gnu_symbol_ifunc;
 
       /* .iplt entry is needed only for executable objects.  */
-      if (!info->shared
+      if (!bfd_link_pic (info)
 	  && !mips_elf_allocate_iplt (info, mips_elf_hash_table (info), h))
 	return FALSE;
       /* IREL or REL32 fixup is needed for each global IFUNC.  */
@@ -5355,7 +5355,7 @@ mips_elf_create_ifunc_sections (struct bfd_link_info *info)
 
   htab->root.iplt = s;
 
-  if (!info->shared)
+  if (!bfd_link_pic (info))
     {
       if (ABI_64_P (dynobj))
 	htab->iplt_entry_size = 4 * ARRAY_SIZE (mips64_exec_iplt_entry);
