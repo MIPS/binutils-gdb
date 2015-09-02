@@ -755,17 +755,11 @@ extern void bfd_mips_elf32_swap_reginfo_out
 /* Relative offset of run time loader map, used for debugging.  */
 #define DT_MIPS_RLD_MAP_REL    0x70000035
 
-/* Points to the start of the IFUNC PLT section */
-#define DT_MIPS_IPLT           0x70000036
+/* Points to first IGOT entry.  */
+#define DT_MIPS_IGOT		0x70000036
 
-/* INDEX of the first IFUNC symbol in dynsym table */
-#define DT_MIPS_IFUNC_INDX  0x70000037
-
-/* Points to start of reloc-only IFUNC stubs in IPLT section */
-#define DT_MIPS_IPLTREL  0x70000038
-
-/* INDEX of the first reloc-only IFUNC symbol in dynsym table */
-#define DT_MIPS_IFUNCREL_INDX  0x70000039
+/* Number of IGOT entries.  */
+#define DT_MIPS_IGOT_SIZE	0x70000037
 
 
 /* Flags which may appear in a DT_MIPS_FLAGS entry.  */
