@@ -754,6 +754,13 @@ extern void bfd_mips_elf32_swap_reginfo_out
 
 /* Relative offset of run time loader map, used for debugging.  */
 #define DT_MIPS_RLD_MAP_REL    0x70000035
+
+/* Points to the start of the IFUNC PLT section */
+#define DT_MIPS_IPLT           0x70000036
+
+/* INDEX of the first IFUNC symbol in dynsym table */
+#define DT_MIPS_IFUNC_DYNINDX  0x70000037
+
 
 /* Flags which may appear in a DT_MIPS_FLAGS entry.  */
 

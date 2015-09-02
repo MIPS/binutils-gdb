@@ -866,6 +866,10 @@ enum DT
   DT_MIPS_PLTGOT = 0x70000032,
   // Points to the base of a writable PLT.
   DT_MIPS_RWPLT = 0x70000034,
+  // Points to the start of the IFUNC PLT section
+  DT_MIPS_IPLT = 0x70000035,
+  // INDEX of the first IFUNC symbol in dynsym table
+  DT_MIPS_IFUNC_DYNINDX = 0x70000036,
 
   DT_AUXILIARY = 0x7ffffffd,
   DT_USED = 0x7ffffffe,
