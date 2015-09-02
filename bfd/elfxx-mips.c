@@ -2179,7 +2179,7 @@ mips_elf_check_local_symbols (void **slot, void *data)
       && h->root.def_regular)
     {
       struct bfd_link_info *info = hti->info;
-      elf_tdata (info->output_bfd)->has_gnu_symbols |= elf_gnu_symbol_ifunc; 
+      elf_tdata (info->output_bfd)->has_gnu_symbols |= elf_gnu_symbol_ifunc;
 
       /* .iplt entry is needed only for executable objects.  */
       if (!info->shared &&
@@ -2210,7 +2210,7 @@ mips_elf_check_symbols (struct mips_elf_link_hash_entry *h, void *data)
       && h->root.def_regular)
     {
       struct bfd_link_info *info = hti->info;
-      elf_tdata (info->output_bfd)->has_gnu_symbols |= elf_gnu_symbol_ifunc; 
+      elf_tdata (info->output_bfd)->has_gnu_symbols |= elf_gnu_symbol_ifunc;
 
       /* .iplt entry is needed only for executable objects.  */
       if (!info->shared
@@ -3472,7 +3472,7 @@ mips_elf_count_got_entry (struct bfd_link_info *info,
   /* Skip IFUNCs from local/global GOT, they are already counted as general
      GOT entries with explicit relocations.  */
   else if (entry->symndx >= 0 || (entry->d.h->global_got_area == GGA_NONE
-				 && !entry->d.h->needs_ireloc))
+				  && !entry->d.h->needs_ireloc))
     g->local_gotno += 1;
   else if (!entry->d.h->needs_ireloc)
     g->global_gotno += 1;
@@ -11100,7 +11100,7 @@ mips_elf_check_local_got_index (bfd *abfd, struct bfd_link_info *info,
     entry = (struct mips_got_entry *) *loc;
   else
     {
-      /* Need to create and initialize a new GOT entry. We only get here
+      /* Need to create and initialize a new GOT entry.  We only get here
 	 global IFUNC symbol and we need distinct hashes entries for aliased
 	 symbols.  */
       lookup.symndx = h->root.dynindx;
