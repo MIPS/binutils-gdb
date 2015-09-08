@@ -14829,6 +14829,10 @@ mips_mach_extends_p (unsigned long base, unsigned long extension)
       && mips_mach_extends_p (bfd_mach_mipsisa64r2, extension))
     return TRUE;
 
+  if (base == bfd_mach_mipsisa32r6
+      && mips_mach_extends_p (bfd_mach_mipsisa64r6, extension))
+    return TRUE;
+
   for (i = 0; i < ARRAY_SIZE (mips_mach_extensions); i++)
     if (extension == mips_mach_extensions[i].extension)
       {
