@@ -386,7 +386,7 @@ decode_mips_operand (const char *p)
 #define EVA	ASE_EVA
 
 /* TLB invalidate instruction support.  */
-#define TLBINV	ASE_EVA
+#define TLBINV	(ASE_EVA | ASE_VIRT)
 
 /* MSA support.  */
 #define MSA	ASE_MSA
@@ -1992,8 +1992,8 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"tgeu",		"s,t,q",	0x00000031, 0xfc00003f, RD_1|RD_2|TRAP,		0,		I2,		0,	0 },
 {"tgeu",		"s,j",		0x04090000, 0xfc1f0000, RD_1|TRAP,		0,		I2,		0,	I37 }, /* tgeiu */
 {"tgeu",		"s,I",		0,    (int) M_TGEU_I,	INSN_MACRO,		0,		I2,		0,	0 },
-{"tlbinv",		"",		0x42000003, 0xffffffff, INSN_TLB,       	0,		I37,		TLBINV,	0 },
-{"tlbinvf",		"",		0x42000004, 0xffffffff, INSN_TLB,       	0,		I37,		TLBINV,	0 },
+{"tlbinv",		"",		0x42000003, 0xffffffff, INSN_TLB,       	0,		I34,		TLBINV,	0 },
+{"tlbinvf",		"",		0x42000004, 0xffffffff, INSN_TLB,       	0,		I34,		TLBINV,	0 },
 {"tlbp",		"",		0x42000008, 0xffffffff, INSN_TLB,       	0,		I1,		0,	0 },
 {"tlbr",		"",		0x42000001, 0xffffffff, INSN_TLB,       	0,		I1,		0,	0 },
 {"tlbwi",		"",		0x42000002, 0xffffffff, INSN_TLB,       	0,		I1,		0,	0 },

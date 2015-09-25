@@ -269,7 +269,7 @@ decode_micromips_operand (const char *p)
 #define EVA	ASE_EVA
 
 /* TLB invalidate instruction support.  */
-#define TLBINV	ASE_EVA
+#define TLBINV	(ASE_EVA | ASE_VIRT)
 
 /* MIPS Virtualization ASE.  */
 #define IVIRT	ASE_VIRT
@@ -1081,8 +1081,8 @@ const struct mips_opcode micromips_opcodes[] =
 {"tgeu",		"s,t,|",	0x0000043c, 0xfc000fff,	RD_1|RD_2|TRAP,		0,		I1,		0,	0 },
 {"tgeu",		"s,j",		0x41600000, 0xffe00000,	RD_1|TRAP,		0,		I1,		0,	0 }, /* tgeiu */
 {"tgeu",		"s,I",		0,    (int) M_TGEU_I,	INSN_MACRO,		0,		I1,		0,	0 },
-{"tlbinv",		"",		0x0000437c, 0xffffffff,	INSN_TLB,		0,		0,		TLBINV,	0 },
-{"tlbinvf",		"",		0x0000537c, 0xffffffff,	INSN_TLB,		0,		0,		TLBINV,	0 },
+{"tlbinv",		"",		0x0000437c, 0xffffffff,	INSN_TLB,		0,		I1,		0,	0 },
+{"tlbinvf",		"",		0x0000537c, 0xffffffff,	INSN_TLB,		0,		I1,		0,	0 },
 {"tlbginv",		"",		0x0000417c, 0xffffffff,	INSN_TLB,		0,		0,		IVIRT,	0 },
 {"tlbginvf",		"",		0x0000517c, 0xffffffff,	INSN_TLB,		0,		0,		IVIRT,	0 },
 {"tlbgp",		"",		0x0000017c, 0xffffffff,	INSN_TLB,		0,		0,		IVIRT,	0 },
