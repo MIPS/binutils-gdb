@@ -1675,12 +1675,7 @@ mips_elf_create_stub_symbol (struct bfd_link_info *info,
   char *name;
   bfd_boolean res;
 
-<<<<<<< HEAD
   if (micromips_p || mips16_p)
-=======
-  if (ELF_ST_IS_MICROMIPS (h->root.other)
-      || (ELF_ST_IS_MIPS16 (h->root.other) && h->root.type == STT_GNU_IFUNC))
->>>>>>> cbeffbf... Source formatting and comments
     value |= 1;
 
   /* Create a new symbol.  */
@@ -2155,11 +2150,14 @@ mips_elf_allocate_iplt (struct bfd_link_info *info,
 {
   asection *s;
   bfd *abfd = info->output_bfd;
+  unsigned int other = 0;
 
   BFD_ASSERT (!mh->needs_iplt);
   BFD_ASSERT (mhtab->root.iplt != NULL);
 
   s = mhtab->root.iplt;
+  if (ELF_ST_IS_MIPS16 (mh->root.other))
+    other = STO_MIPS16;
 
   mh->iplt_offset = s->size;
   mips_elf_create_stub_symbol (info, mh, ".iplt.", mhtab->root.iplt,
@@ -5682,14 +5680,10 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
   /* TRUE if the symbol referred to by this relocation is a local
      symbol.  */
   bfd_boolean local_p, was_local_p;
-<<<<<<< HEAD
   /* TRUE if the symbol referred to by this relocation is a section
      symbol.  */
   bfd_boolean section_p = FALSE;
   /* TRUE if the symbol referred to by this relocation is a local IFUNC */
-=======
-  /* TRUE if the symbol referred to by this relocation is a local IFUNC.  */
->>>>>>> cbeffbf... Source formatting and comments
   bfd_boolean local_gnu_ifunc_p = FALSE;
   /* TRUE if the symbol referred to by this relocation is "_gp_disp".  */
   bfd_boolean gp_disp_p = FALSE;
