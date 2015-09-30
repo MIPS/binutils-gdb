@@ -1672,7 +1672,7 @@ static bfd_boolean
 mips_elf_create_stub_symbol (struct bfd_link_info *info,
 			     struct mips_elf_link_hash_entry *h,
 			     const char *prefix, asection *s, bfd_vma value,
-			     bfd_vma size)
+			     bfd_vma size, unsigned int other)
 {
   struct bfd_link_hash_entry *bh;
   struct elf_link_hash_entry *elfh;
@@ -1695,9 +1695,7 @@ mips_elf_create_stub_symbol (struct bfd_link_info *info,
   elfh->type = ELF_ST_INFO (STB_LOCAL, STT_FUNC);
   elfh->size = size;
   elfh->forced_local = 1;
-
-  if (ELF_ST_IS_MIPS16 (h->root.other) && h->needs_iplt)
-    elfh->other = STO_MIPS16;
+  elfh->other = other;
 
   return TRUE;
 }
@@ -1964,7 +1962,7 @@ mips_elf_add_la25_intro (struct mips_elf_la25_stub *stub,
     s->size = (1 << align) - 8;
 
   /* Create a symbol for the stub.  */
-  mips_elf_create_stub_symbol (info, stub->h, ".pic.", s, s->size, 8);
+  mips_elf_create_stub_symbol (info, stub->h, ".pic.", s, s->size, 8, 0);
   stub->stub_section = s;
   stub->offset = s->size;
 
@@ -2001,7 +1999,7 @@ mips_elf_add_la25_trampoline (struct mips_elf_la25_stub *stub,
     }
 
   /* Create a symbol for the stub.  */
-  mips_elf_create_stub_symbol (info, stub->h, ".pic.", s, s->size, 16);
+  mips_elf_create_stub_symbol (info, stub->h, ".pic.", s, s->size, 16, 0);
   stub->stub_section = s;
   stub->offset = s->size;
 
@@ -2144,15 +2142,18 @@ mips_elf_allocate_iplt (struct bfd_link_info *info,
 {
   asection *s;
   bfd *abfd = info->output_bfd;
+  unsigned int other = 0;
 
   BFD_ASSERT (!mh->needs_iplt);
   BFD_ASSERT (mhtab->root.iplt != NULL);
 
   s = mhtab->root.iplt;
+  if (ELF_ST_IS_MIPS16 (mh->root.other))
+    other = STO_MIPS16;
 
   mh->iplt_offset = s->size;
   mips_elf_create_stub_symbol (info, mh, ".iplt.", mhtab->root.iplt,
-			       s->size, mhtab->iplt_entry_size);
+			       s->size, mhtab->iplt_entry_size, other);
   s->size += mhtab->iplt_entry_size;
 
   BFD_ASSERT (mhtab->root.igotplt != NULL);
