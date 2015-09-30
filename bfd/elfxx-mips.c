@@ -2168,7 +2168,7 @@ mips_elf_allocate_iplt (struct bfd_link_info *info,
    DATA points to a mips_htab_traverse_info structure.  */
 
 static bfd_boolean
-mips_elf_check_local_symbols (void **slot, void *data)
+mips_elf_check_ifunc_symbols (void **slot, void *data)
 {
   struct mips_htab_traverse_info *hti =
     (struct mips_htab_traverse_info *) data;
@@ -2215,22 +2215,9 @@ mips_elf_check_symbols (struct mips_elf_link_hash_entry *h, void *data)
   if (!bfd_link_relocatable (hti->info))
     mips_elf_check_mips16_stubs (hti->info, h);
 
-  if (h
-      && !h->needs_iplt
-      && h->root.type == STT_GNU_IFUNC
-      && h->root.def_regular)
-    {
-      struct bfd_link_info *info = hti->info;
-      elf_tdata (info->output_bfd)->has_gnu_symbols |= elf_gnu_symbol_ifunc;
-
-      /* .iplt entry is needed only for executable objects.  */
-      if (!bfd_link_pic (info)
-	  && !mips_elf_allocate_iplt (info, mips_elf_hash_table (info), h))
-	return FALSE;
-      /* IREL or REL32 fixup is needed for each global IFUNC.  */
-      if (!mips_elf_allocate_ireloc (info, mips_elf_hash_table (info), h))
-	return FALSE;
-    }
+  /* Create stubs and relocations for IFUNC symbols.  */
+  if (!mips_elf_check_ifunc_symbols ((void *)&h, data))
+    return FALSE;
 
   if (mips_elf_local_pic_function_p (h))
     {
@@ -9716,7 +9703,7 @@ _bfd_mips_elf_always_size_sections (bfd *output_bfd,
 			       mips_elf_check_symbols, &hti);
 
   /* Allocate relocs for local IFUNC symbols.  */
-  htab_traverse (htab->loc_hash_table, mips_elf_check_local_symbols, &hti);
+  htab_traverse (htab->loc_hash_table, mips_elf_check_ifunc_symbols, &hti);
 
   if (hti.error)
     return FALSE;
