@@ -4165,12 +4165,7 @@ mips_elf_record_global_got_symbol (struct elf_link_hash_entry *h,
     }
 
   tls_type = mips_elf_reloc_tls_type (r_type);
-  /* IFUNC symbols use explicitly relocated GOT region, instead of the ABI
-     global GOT, but we don't distinguish these from the local GOT region
-     just yet.  */
-  if (tls_type == GOT_TLS_NONE
-      && hmips->global_got_area > GGA_NORMAL
-      && !hmips->needs_ireloc)
+  if (tls_type == GOT_TLS_NONE && hmips->global_got_area > GGA_NORMAL)
     hmips->global_got_area = GGA_NORMAL;
 
   entry.abfd = abfd;
