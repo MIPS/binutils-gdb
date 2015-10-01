@@ -11140,14 +11140,9 @@ mips_elf_create_ireloc (bfd *output_bfd,
   if (!hmips->needs_iplt)
     {
       gotsect = htab->sgot;
-      /* Check if IFUNC symbol already has an assigned GOT slots; assign
-	 a new slot if necessary.  */
+      /* If IFUNC symbol already has an assigned GOT slots.  */
       igot_offset = mips_elf_check_local_got_index (output_bfd, info,
 						    hmips, value);
-      if (igot_offset < 0)
-	igot_offset = mips_elf_local_got_index (output_bfd, output_bfd, info,
-						value, hmips->root.dynindx,
-						hmips, R_MIPS_REL32);
     }
   else
     {
