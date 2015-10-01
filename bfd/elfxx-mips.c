@@ -10570,10 +10570,10 @@ _bfd_mips_elf_relocate_section (bfd *output_bfd, struct bfd_link_info *info,
 	      if (hi16_reloc_p (r_type)
 		  || (got16_reloc_p (r_type)
 		      && mips_elf_local_relocation_p (input_bfd, rel,
-						      local_sections)))
+						      local_sections)
+		      && !local_gnu_ifunc_p))
 		{
-		  if (!local_gnu_ifunc_p
-		      && !mips_elf_add_lo16_rel_addend (input_bfd, rel, relend,
+		  if (!mips_elf_add_lo16_rel_addend (input_bfd, rel, relend,
 							contents, &addend))
 		    {
 		      if (h)
