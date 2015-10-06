@@ -40,19 +40,33 @@
         lwu      $4, (-262144 << 2)($pc)
         lwu      $4, (262143 << 2)($pc)
 
-        .align 3
         ldpc     $4, 1f
-        .align 3
-        ldpc     $4, .+(-131072 << 3)
-        .align 3
-        ldpc     $4, .+(131071 << 3)
-        .align 3
+        ldpc     $4, 1f
+	.align 3
+3:
+	ldpc     $4, 3b+(-131072 << 3)
+	ldpc     $4, 3b+(-131072 << 3)
+	.align 3
+3:
+	ldpc     $4, 3b+(131071 << 3)
+	ldpc     $4, 3b+(131071 << 3)
         ld     $4, (-131072 << 3)($pc)
-        .align 3
+        ld     $4, (-131072 << 3)($pc)
+        ld     $4, (131071 << 3)($pc)
         ld     $4, (131071 << 3)($pc)
         .align 3
 1:
-        nop
+	lldx	$4, 0xff($5)
+	lldx	$4, -0x100($5)
+	lldx	$4, 500($5)
+	scdx	$4, 0xff($5)
+	scdx	$4, -0x100($5)
+	scdx	$4, 500($5)
+
+	scd	$4, 0($5)
+	b	1b
+	scd	$4, 0($5)
+	b	1b
 
 # Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
 	.align  2

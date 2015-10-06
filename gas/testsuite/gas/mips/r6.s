@@ -258,6 +258,41 @@ new:	maddf.s	$f0,$f1,$f2
         nop
 	addiu	$4, $pc, (262143 << 2)
 
+	jalrc	$4
+	nal
+
+	evp
+	dvp
+	evp	$2
+	dvp	$2
+
+	llx	$4, 0xff($5)
+	llx	$4, -0x100($5)
+	llx	$4, 500($5)
+	scx	$4, 0xff($5)
+	scx	$4, -0x100($5)
+	scx	$4, 500($5)
+	sc	$4, 0($5)
+	b	1b
+	sc	$4, 0($5)
+	b	1b
+
+	.set push
+	.set eva
+	llxe	$4, 0xff($5)
+	llxe	$4, -0x100($5)
+	llxe	$4, 500($5)
+	scxe	$4, 0xff($5)
+	scxe	$4, -0x100($5)
+	scxe	$4, 500($5)
+	sce	$4, 0($5)
+	b	1b
+	sce	$4, 0($5)
+	b	1b
+	.set pop
+	sigrie	0
+	sigrie	0xffff
+
 # Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
 	.align  2
 	.space  8

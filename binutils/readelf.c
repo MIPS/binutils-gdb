@@ -1618,6 +1618,7 @@ get_mips_dynamic_type (unsigned long type)
     case DT_MIPS_GOTSYM: return "MIPS_GOTSYM";
     case DT_MIPS_HIPAGENO: return "MIPS_HIPAGENO";
     case DT_MIPS_RLD_MAP: return "MIPS_RLD_MAP";
+    case DT_MIPS_RLD_MAP_REL: return "MIPS_RLD_MAP_REL";
     case DT_MIPS_DELTA_CLASS: return "MIPS_DELTA_CLASS";
     case DT_MIPS_DELTA_CLASS_NO: return "MIPS_DELTA_CLASS_NO";
     case DT_MIPS_DELTA_INSTANCE: return "MIPS_DELTA_INSTANCE";
@@ -13120,6 +13121,8 @@ print_mips_ases (unsigned int mask)
     fputs ("\n\tDSP ASE", stdout);
   if (mask & AFL_ASE_DSPR2)
     fputs ("\n\tDSP R2 ASE", stdout);
+  if (mask & AFL_ASE_DSPR3)
+    fputs ("\n\tDSP R3 ASE", stdout);
   if (mask & AFL_ASE_EVA)
     fputs ("\n\tEnhanced VA Scheme", stdout);
   if (mask & AFL_ASE_MCU)

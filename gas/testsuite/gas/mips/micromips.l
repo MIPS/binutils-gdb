@@ -88,20 +88,14 @@
 .*:3069: Error: opcode not supported in the `insn32' mode `addius5 \$31,-6'
 .*:3070: Error: opcode not supported in the `insn32' mode `addius5 \$31,-7'
 .*:3071: Error: opcode not supported in the `insn32' mode `addius5 \$31,-8'
-.*:4759: Warning: divide by zero
-.*:4762: Warning: divide by zero
-.*:4775: Warning: divide by zero
-.*:5180: Warning: divide by zero
-.*:5190: Warning: divide by zero
-.*:5200: Warning: divide by zero
-.*:5568: Error: opcode not supported in the `insn32' mode `jalr16 \$2'
-.*:5572: Error: opcode not supported in the `insn32' mode `jr16 \$2'
-.*:5579: Error: opcode not supported in the `insn32' mode `jals test_delay_slot'
-.*:5580: Error: opcode not supported in the `insn32' mode `jalrs16 \$2'
-.*:5581: Error: opcode not supported in the `insn32' mode `jalrs32 \$2'
-.*:5582: Error: opcode not supported in the `insn32' mode `jrs \$2'
-.*:5583: Error: opcode not supported in the `insn32' mode `jalrs\.hb \$2'
-.*:5584: Error: opcode not supported in the `insn32' mode `jrs\.hb \$2'
-.*:5665: Error: opcode not supported in the `insn32' mode `bals test_spec107'
-.*:5667: Error: opcode not supported in the `insn32' mode `bgezals \$2,test_spec107'
-.*:5669: Error: opcode not supported in the `insn32' mode `bltzals \$2,test_spec107'
+.*:4708: Error: opcode not supported in the `insn32' mode `jalr16 \$2'
+.*:4712: Error: opcode not supported in the `insn32' mode `jr16 \$2'
+.*:4719: Error: opcode not supported in the `insn32' mode `jals test_delay_slot'
+.*:4720: Error: opcode not supported in the `insn32' mode `jalrs16 \$2'
+.*:4721: Error: opcode not supported in the `insn32' mode `jalrs32 \$2'
+.*:4722: Error: opcode not supported in the `insn32' mode `jrs \$2'
+.*:4723: Error: opcode not supported in the `insn32' mode `jalrs\.hb \$2'
+.*:4724: Error: opcode not supported in the `insn32' mode `jrs\.hb \$2'
+.*:4805: Error: opcode not supported in the `insn32' mode `bals test_spec107'
+.*:4807: Error: opcode not supported in the `insn32' mode `bgezals \$2,test_spec107'
+.*:4809: Error: opcode not supported in the `insn32' mode `bltzals \$2,test_spec107'

@@ -2,7 +2,9 @@
 	
 text_label:	
 	bgeu	$4,$5,text_label
+	.ifndef compact_branches
 	bgeu	$0,$5,text_label
+	.endif
 	# A second argument of 0 or $0 is always true
 	bgeu	$4,1,text_label
 	bgeu	$4,2,text_label
