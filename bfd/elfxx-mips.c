@@ -2161,6 +2161,10 @@ mips_elf_allocate_iplt (struct bfd_link_info *info,
   mhtab->root.igotplt->size += MIPS_ELF_GOT_SIZE (abfd);
   mh->needs_iplt = TRUE;
 
+  /* IRELATIVE fixup will be needed for each local IFUNC.  */
+  if (!mips_elf_allocate_ireloc (info, mips_elf_hash_table (info), mh))
+      return FALSE;
+
   return TRUE;
 }
 
@@ -2187,13 +2191,6 @@ mips_elf_check_ifunc_symbols (void **slot, void *data)
       /* .iplt entry is needed only for executable objects.  */
       if (!bfd_link_pic (info)
 	  && !mips_elf_allocate_iplt (info, mips_elf_hash_table (info), h))
-	{
-	  hti->error = TRUE;
-	  return FALSE;
-	}
-
-      /* IRELATIVE fixup will be needed for each local IFUNC.  */
-      if (!mips_elf_allocate_ireloc (info, mips_elf_hash_table (info), h))
 	{
 	  hti->error = TRUE;
 	  return FALSE;
@@ -3473,7 +3470,10 @@ mips_elf_count_got_entry (struct bfd_link_info *info,
     {
       if (entry->symndx < 0 && entry->d.h->root.type == STT_GNU_IFUNC
 	   && entry->d.h->root.def_regular)
-	g->general_gotno += 1;
+	{
+	  g->general_gotno += 1;
+	  mips_elf_allocate_ireloc (info, mips_elf_hash_table (info), entry->d.h);
+	}
       else
 	g->local_gotno += 1;
     }
@@ -4632,7 +4632,9 @@ mips_use_local_got_p (struct bfd_link_info *info,
      symbols later if appropriate.  */
   /* Both global & local IFUNC symbols actually use the explicitly relocated
      GOT region, but we don't distinguish it from local the GOT just yet.  */
-  if (h->root.dynindx == -1 || h->needs_ireloc)
+  if (h->root.dynindx == -1
+      || (h->root.type == STT_GNU_IFUNC
+	  && h->root.def_regular))
     return TRUE;
 
   /* Symbols that bind locally can (and in the case of forced-local
