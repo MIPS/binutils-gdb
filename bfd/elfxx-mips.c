@@ -6616,7 +6616,8 @@ mips_elf_perform_relocation (struct bfd_link_info *info,
 			     const Elf_Internal_Rela *relocation,
 			     bfd_vma value, bfd *input_bfd,
 			     asection *input_section, bfd_byte *contents,
-			     bfd_boolean cross_mode_jump_p)
+			     bfd_boolean cross_mode_jump_p,
+			     bfd_boolean ifunc_p)
 {
   bfd_vma x;
   bfd_byte *location;
@@ -6686,6 +6687,7 @@ mips_elf_perform_relocation (struct bfd_link_info *info,
 	   && r_type == R_MIPS_26
 	   && (x >> 26) == 0x3)		/* jal addr */
 	  || (JALR_TO_BAL_P (input_bfd)
+	      && !ifunc_p
 	      && r_type == R_MIPS_JALR
 	      && x == 0x0320f809)	/* jalr t9 */
 	  || (JR_TO_B_P (input_bfd)
@@ -10487,6 +10489,7 @@ _bfd_mips_elf_relocate_section (bfd *output_bfd, struct bfd_link_info *info,
       struct elf_link_hash_entry *h;
       bfd_boolean rel_reloc;
       bfd_boolean local_gnu_ifunc_p = FALSE;
+      bfd_boolean gnu_ifunc_p = FALSE;      
 
       rel_reloc = (NEWABI_P (input_bfd)
 		   && mips_elf_rel_relocation_p (input_bfd, input_section,
@@ -10543,6 +10546,8 @@ _bfd_mips_elf_relocate_section (bfd *output_bfd, struct bfd_link_info *info,
 						rel_reloc, howto, contents);
 	  continue;
 	}
+
+      gnu_ifunc_p = (local_gnu_ifunc_p || (h && h->type == STT_GNU_IFUNC));
 
       if (r_type == R_MIPS_64 && ! NEWABI_P (input_bfd))
 	{
@@ -10667,7 +10672,7 @@ _bfd_mips_elf_relocate_section (bfd *output_bfd, struct bfd_link_info *info,
 
 	      if (! mips_elf_perform_relocation (info, howto, rel, addend,
 						 input_bfd, input_section,
-						 contents, FALSE))
+						 contents, FALSE, gnu_ifunc_p))
 		return FALSE;
 	    }
 
@@ -10821,7 +10826,8 @@ _bfd_mips_elf_relocate_section (bfd *output_bfd, struct bfd_link_info *info,
       /* Actually perform the relocation.  */
       if (! mips_elf_perform_relocation (info, howto, rel, value,
 					 input_bfd, input_section,
-					 contents, cross_mode_jump_p))
+					 contents, cross_mode_jump_p,
+					 gnu_ifunc_p))
 	return FALSE;
     }
 
@@ -11168,7 +11174,7 @@ mips_elf_create_ireloc (bfd *output_bfd,
 	    return FALSE;
 	}
 
-      if (hmips->needs_iplt || hmips->root.dynindx < 0)
+      if (hmips->needs_ireloc || bfd_link_pic (info))
 	/* Emit an IRELATIVE relocation against the [I]GOT entry.  */
 	mips_elf_output_dynamic_relocation (output_bfd, relsect,
 					    relsect->reloc_count++, 0,
