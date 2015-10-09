@@ -6991,14 +6991,8 @@ _bfd_mips_elf_symbol_processing (bfd *abfd, asymbol *asym)
 
   /* If this is an odd-valued function symbol, assume it's a MIPS16
      or microMIPS one.  */
-  if ((asym->value & 1) != 0
-       && (ELF_ST_TYPE (elfsym->internal_elf_sym.st_info) == STT_FUNC
-       /* Previous versions of binutils would not always fully copy the
-	  metadata from one symbol to another, e.g. microMIPS.  Consider
-	  odd symbols with an unspecified type that are part of the .text
-	  section to actually be microMIPS/MIPS16e.  */
-       || (ELF_ST_TYPE (elfsym->internal_elf_sym.st_info) == STT_NOTYPE
-	   && asym->section == bfd_get_section_by_name (abfd, ".text"))))
+  if (ELF_ST_TYPE (elfsym->internal_elf_sym.st_info) == STT_FUNC
+      && (asym->value & 1) != 0)
     {
       asym->value--;
       if (MICROMIPS_P (abfd))
