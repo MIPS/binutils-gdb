@@ -921,10 +921,7 @@ static bfd *reldyn_sorting_bfd;
   ((ABI_64_P (abfd)							\
     ? 0xdf998010				/* ld t9,0x8010(gp) */	\
     : 0x8f998010))              		/* lw t9,0x8010(gp) */
-#define STUB_MOVE(abfd)							\
-   ((ABI_64_P (abfd)							\
-     ? 0x03e0782d				/* daddu t7,ra */	\
-     : 0x03e07821))				/* addu t7,ra */
+#define STUB_MOVE 0x03e07825			/* or t7,ra,zero */
 #define STUB_LUI(VAL) (0x3c180000 + (VAL))	/* lui t8,VAL */
 #define STUB_JALR 0x0320f809			/* jalr t9,ra */
 #define STUB_JALRC 0xf8190000			/* jalrc t9,ra */
@@ -941,10 +938,7 @@ static bfd *reldyn_sorting_bfd;
    ? 0xdf3c8010					/* ld t9,0x8010(gp) */	\
    : 0xff3c8010)				/* lw t9,0x8010(gp) */
 #define STUB_MOVE_MICROMIPS 0x0dff		/* move t7,ra */
-#define STUB_MOVE32_MICROMIPS(abfd)					\
-   (ABI_64_P (abfd)							\
-    ? 0x581f7950				/* daddu t7,ra,zero */	\
-    : 0x001f7950)				/* addu t7,ra,zero */
+#define STUB_MOVE32_MICROMIPS 0x001f7a90	/* or t7,ra,zero */
 #define STUB_LUI_MICROMIPS(abfd, VAL)		/* lui t8,VAL */	\
    (MIPSR6_P (abfd) ? 0x41b80000 + (VAL) : 0x13000000 + (VAL))
 #define STUB_JALR_MICROMIPS 0x45d9		/* jalr t9 */
@@ -1043,7 +1037,7 @@ static const bfd_vma mips_o32_exec_plt0_entry[] =
   0x8f990000,	/* lw $25, %lo(&GOTPLT[0])($28)				*/
   0x279c0000,	/* addiu $28, $28, %lo(&GOTPLT[0])			*/
   0x031cc023,	/* subu $24, $24, $28					*/
-  0x03e07821,	/* move $15, $31	# 32-bit move (addu)		*/
+  0x03e07825,	/* or t7, ra, zero					*/
   0x0018c082,	/* srl $24, $24, 2					*/
   0x0320f809,	/* jalr $25						*/
   0x2718fffe	/* subu $24, $24, 2					*/
@@ -1071,7 +1065,7 @@ static const bfd_vma mips_n32_exec_plt0_entry[] =
   0x8dd90000,	/* lw $25, %lo(&GOTPLT[0])($14)				*/
   0x25ce0000,	/* addiu $14, $14, %lo(&GOTPLT[0])			*/
   0x030ec023,	/* subu $24, $24, $14					*/
-  0x03e07821,	/* move $15, $31	# 32-bit move (addu)		*/
+  0x03e07825,	/* or t7, ra, zero					*/
   0x0018c082,	/* srl $24, $24, 2					*/
   0x0320f809,	/* jalr $25						*/
   0x2718fffe	/* subu $24, $24, 2					*/
@@ -1100,7 +1094,7 @@ static const bfd_vma mips_n64_exec_plt0_entry[] =
   0xddd90000,	/* ld $25, %lo(&GOTPLT[0])($14)				*/
   0x25ce0000,	/* addiu $14, $14, %lo(&GOTPLT[0])			*/
   0x030ec023,	/* subu $24, $24, $14					*/
-  0x03e0782d,	/* move $15, $31	# 64-bit move (daddu)		*/
+  0x03e07825,	/* or t7, ra, zero					*/
   0x0018c0c2,	/* srl $24, $24, 3					*/
   0x0320f809,	/* jalr $25						*/
   0x2718fffe	/* subu $24, $24, 2					*/
@@ -1163,7 +1157,7 @@ static const bfd_vma micromips_insn32_o32_exec_plt0_entry[] =
   0xff3c, 0x0000,	/* lw $25, %lo(&GOTPLT[0])($28)			*/
   0x339c, 0x0000,	/* addiu $28, $28, %lo(&GOTPLT[0])		*/
   0x0398, 0xc1d0,	/* subu $24, $24, $28				*/
-  0x001f, 0x7950,	/* move $15, $31				*/
+  0x001f, 0x7a90,	/* or $15, $31, zero				*/
   0x0318, 0x1040,	/* srl $24, $24, 2				*/
   0x03f9, 0x0f3c,	/* jalr $25					*/
   0x3318, 0xfffe	/* subu $24, $24, 2				*/
@@ -7813,7 +7807,7 @@ _bfd_mips_elf_create_dynamic_sections (bfd *abfd, struct bfd_link_info *info)
   htab->sstubs = s;
 
   if (!mips_elf_hash_table (info)->use_rld_obj_head
-      && !info->shared
+      && info->executable
       && bfd_get_linker_section (abfd, ".rld_map") == NULL)
     {
       s = bfd_make_section_anyway_with_flags (abfd, ".rld_map",
@@ -7877,7 +7871,7 @@ _bfd_mips_elf_create_dynamic_sections (bfd *abfd, struct bfd_link_info *info)
 	(void) bfd_set_section_alignment (abfd, s, MIPS_ELF_LOG_FILE_ALIGN (abfd));
     }
 
-  if (!info->shared)
+  if (info->executable)
     {
       const char *name;
 
@@ -9923,7 +9917,7 @@ _bfd_mips_elf_size_dynamic_sections (bfd *output_bfd,
 	      info->combreloc = 0;
 	    }
 	}
-      else if (! info->shared
+      else if (info->executable
 	       && ! mips_elf_hash_table (info)->use_rld_obj_head
 	       && CONST_STRNEQ (name, ".rld_map"))
 	{
@@ -9984,6 +9978,10 @@ _bfd_mips_elf_size_dynamic_sections (bfd *output_bfd,
 	 may only look at the first one they see.  */
       if (!info->shared
 	  && !MIPS_ELF_ADD_DYNAMIC_ENTRY (info, DT_MIPS_RLD_MAP, 0))
+	return FALSE;
+
+      if (info->executable
+	  && !MIPS_ELF_ADD_DYNAMIC_ENTRY (info, DT_MIPS_RLD_MAP_REL, 0))
 	return FALSE;
 
       /* The DT_DEBUG entry may be filled in by the dynamic linker and
@@ -10992,8 +10990,7 @@ _bfd_mips_elf_finish_dynamic_symbol (bfd *output_bfd,
 	  if (htab->insn32)
 	    {
 	      bfd_put_micromips_32 (output_bfd,
-				    STUB_MOVE32_MICROMIPS (output_bfd),
-				    stub + idx);
+				    STUB_MOVE32_MICROMIPS, stub + idx);
 	      idx += 4;
 	    }
 	  else
@@ -11057,7 +11054,7 @@ _bfd_mips_elf_finish_dynamic_symbol (bfd *output_bfd,
 	  idx = 0;
 	  bfd_put_32 (output_bfd, STUB_LW (output_bfd), stub + idx);
 	  idx += 4;
-	  bfd_put_32 (output_bfd, STUB_MOVE (output_bfd), stub + idx);
+	  bfd_put_32 (output_bfd, STUB_MOVE, stub + idx);
 	  idx += 4;
 	  if (stub_size == stub_big_size)
 	    {
@@ -11810,8 +11807,34 @@ _bfd_mips_elf_finish_dynamic_sections (bfd *output_bfd,
 		    break;
 		  }
 		s = h->root.u.def.section;
+
+		/* The MIPS_RLD_MAP tag stores the absolute address of the
+		   debug pointer.  */
 		dyn.d_un.d_ptr = (s->output_section->vma + s->output_offset
 				  + h->root.u.def.value);
+	      }
+	      break;
+
+	    case DT_MIPS_RLD_MAP_REL:
+	      {
+		struct elf_link_hash_entry *h;
+		bfd_vma dt_addr, rld_addr;
+		h = mips_elf_hash_table (info)->rld_symbol;
+		if (!h)
+		  {
+		    dyn_to_skip = MIPS_ELF_DYN_SIZE (dynobj);
+		    swap_out_p = FALSE;
+		    break;
+		  }
+		s = h->root.u.def.section;
+
+		/* The MIPS_RLD_MAP_REL tag stores the offset to the debug
+		   pointer, relative to the address of the tag.  */
+		dt_addr = (sdyn->output_section->vma + sdyn->output_offset
+			   + (b - sdyn->contents));
+		rld_addr = (s->output_section->vma + s->output_offset
+			    + h->root.u.def.value);
+		dyn.d_un.d_ptr = rld_addr - dt_addr;
 	      }
 	      break;
 
@@ -12355,7 +12378,7 @@ _bfd_mips_elf_additional_program_headers (bfd *abfd,
     ++ret;
 
   /* See if we need a PT_MIPS_ABIFLAGS segment.  */
-  if (bfd_get_section_by_name (abfd, ".MIPS.abiflags"))
+  if (bfd_get_section_by_name (abfd, ".MIPS.abiflags") && info != NULL)
     ++ret;
 
   /* See if we need a PT_MIPS_OPTIONS segment.  */
@@ -12423,7 +12446,7 @@ _bfd_mips_elf_modify_segment_map (bfd *abfd,
   /* If there is a .MIPS.abiflags section, we need a PT_MIPS_ABIFLAGS
      segment.  */
   s = bfd_get_section_by_name (abfd, ".MIPS.abiflags");
-  if (s != NULL && (s->flags & SEC_LOAD) != 0)
+  if (s != NULL && (s->flags & SEC_LOAD) != 0 && info != NULL)
     {
       for (m = elf_seg_map (abfd); m != NULL; m = m->next)
 	if (m->p_type == PT_MIPS_ABIFLAGS)
@@ -15384,6 +15407,10 @@ mips_mach_extends_p (unsigned long base, unsigned long extension)
       && mips_mach_extends_p (bfd_mach_mipsisa64r2, extension))
     return TRUE;
 
+  if (base == bfd_mach_mipsisa32r6
+      && mips_mach_extends_p (bfd_mach_mipsisa64r6, extension))
+    return TRUE;
+
   for (i = 0; i < ARRAY_SIZE (mips_mach_extensions); i++)
     if (extension == mips_mach_extensions[i].extension)
       {
@@ -15955,6 +15982,8 @@ _bfd_mips_elf_get_target_dtag (bfd_vma dtag)
       return "MIPS_HIPAGENO";
     case DT_MIPS_RLD_MAP:
       return "MIPS_RLD_MAP";
+    case DT_MIPS_RLD_MAP_REL:
+      return "MIPS_RLD_MAP_REL";
     case DT_MIPS_DELTA_CLASS:
       return "MIPS_DELTA_CLASS";
     case DT_MIPS_DELTA_CLASS_NO:

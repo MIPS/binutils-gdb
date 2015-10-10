@@ -133,6 +133,7 @@ decode_micromips_operand (const char *p)
 	case 'J': HINT (10, 16);
 	case 'K': HINT (4, 6);
 	case 'L': INT_ADJ (4, 4, 15, 2, FALSE);	 /* (0 .. 15) << 2 */
+	case 'M': HINT (16, 6);
 	case 'N': SPECIAL (2, 8, LWM_SWM_LIST);
 	case 'O': UINT (3, 8);
 	case 'P': INT_ADJ (5, 5, 31, 2, FALSE);	 /* (0 .. 31) << 2 */
@@ -352,9 +353,9 @@ const struct mips_opcode micromips_opcodes[] =
 {"li",			"t,I",		0,    (int) M_LI,	INSN_MACRO,		0,		I1,		0,	0 },
 {"move",		"d,s",		0,    (int) M_MOVE,	INSN_MACRO,		0,		I1,		0,	0 },
 {"move",		"mp,mj",	    0x0c00,     0xfc00,	WR_1|RD_2,		0,		I1,		0,	0 },
+{"move",		"d,s",		0x00000290, 0xffe007ff,	WR_1|RD_2,		INSN2_ALIAS,	I1,		0,	0 }, /* or */
 {"move",		"d,s",		0x58000150, 0xffe007ff,	WR_1|RD_2,		INSN2_ALIAS,	I3,		0,	0 }, /* daddu */
 {"move",		"d,s",		0x00000150, 0xffe007ff,	WR_1|RD_2,		INSN2_ALIAS,	I1,		0,	0 }, /* addu */
-{"move",		"d,s",		0x00000290, 0xffe007ff,	WR_1|RD_2,		INSN2_ALIAS,	I1,		0,	0 }, /* or */
 {"b",			"mD",		    0xcc00,     0xfc00,	UBD,			0,		I1,		0,	I37 },
 {"b",			"mD",		    0xcc00,     0xfc00,	0,			INSN2_ALIAS|UBR|CTC, I37,	0,	0 }, /* bc */
 {"b",			"p",		0x94000000, 0xffff0000,	UBD,			INSN2_ALIAS,	I1,		0,	I37 }, /* beq 0, 0 */
@@ -974,7 +975,6 @@ const struct mips_opcode micromips_opcodes[] =
 {"lwxc1",		"D,t(b)",	0x54000048, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_S|LM,	0,		I1,		0,	I37 },
 {"flush",		"t,~(b)",	0x60001000, 0xfc00f000,	WR_1|RD_3,		0,		I1,		0,	I37 }, /* same */
 {"flush",		"t,A(b)",	0,    (int) M_LWR_AB,	INSN_MACRO,		0,		I1,		0,	I37 },
-{"lwxs",		"d,t(b)",	0x00000100, 0xfc0007ff,	WR_1|RD_2|RD_3|LM,	0,		I37,		0,	0 },
 {"lwxs",		"d,t(b)",	0x00000118, 0xfc0007ff,	WR_1|RD_2|RD_3|LM,	0,		I1,		0,	I37 },
 {"madd",		"s,t",		0x0000cb3c, 0xfc00ffff,	RD_1|RD_2|MOD_HILO,	0,		I1,		0,	I37 },
 {"madd",		"7,s,t",	0x00000abc, 0xfc003fff,	RD_2|RD_3|MOD_a,	0,		0,		D32,	0 },
@@ -1115,7 +1115,9 @@ const struct mips_opcode micromips_opcodes[] =
 {"remu",		"z,s,t",	0x0000bb3c, 0xfc00ffff,	RD_2|RD_3|WR_HILO,	0,		I1,		0,	I37 },
 {"remu",		"d,v,t",	0,    (int) M_REMU_3,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"remu",		"d,v,I",	0,    (int) M_REMU_3I,	INSN_MACRO,		0,		I1,		0,	I37 },
-{"rdhwr",		"t,K",		0x00006b3c, 0xfc00ffff,	WR_1,			0,		I1,		0,	0 },
+{"rdhwr",		"t,K",		0x00006b3c, 0xfc00ffff,	WR_1,			0,		I1,		0,	I37 },
+{"rdhwr",		"t,K",		0x000001c0, 0xfc00ffff,	WR_1,			0,		I37,		0,	0 },
+{"rdhwr",		"t,K,H",	0x000001c0, 0xfc00c7ff,	WR_1,			0,		I37,		0,	0 },
 {"rdpgpr",		"t,r",		0x0000e17c, 0xfc00ffff,	WR_1,			0,		I1,		0,	0 },
 {"rol",			"d,v,t",	0,    (int) M_ROL,	INSN_MACRO,		0,		I1,		0,	0 },
 {"rol",			"d,v,I",	0,    (int) M_ROL_I,	INSN_MACRO,		0,		I1,		0,	0 },
@@ -1189,6 +1191,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"sh",			"mq,mH(ml)",	    0xa800,     0xfc00,	RD_1|RD_3|SM,		0,		I1,		0,	0 },
 {"sh",			"t,o(b)",	0x38000000, 0xfc000000,	RD_1|RD_3|SM,		0,		I1,		0,	0 },
 {"sh",			"t,A(b)",	0,    (int) M_SH_AB,	INSN_MACRO,		0,		I1,		0,	0 },
+{"sigrie",		"+M",		0x0000003f, 0xffc0003f,	TRAP,			0,		I37,		0,	0 },
 {"sle",			"d,v,t",	0,    (int) M_SLE,	INSN_MACRO,		0,		I1,		0,	0 },
 {"sle",			"d,v,I",	0,    (int) M_SLE_I,	INSN_MACRO,		0,		I1,		0,	0 },
 {"sleu",		"d,v,t",	0,    (int) M_SLEU,	INSN_MACRO,		0,		I1,		0,	0 },

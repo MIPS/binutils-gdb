@@ -486,9 +486,9 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"li",			"t,i",		0x34000000, 0xffe00000, WR_1,			INSN2_ALIAS,	I1,		0,	0 }, /* ori */
 {"li",			"t,I",		0,    (int) M_LI,	INSN_MACRO,		0,		I1,		0,	0 },
 {"move",		"d,s",		0,    (int) M_MOVE,	INSN_MACRO,		0,		I1,		0,	0 },
+{"move",		"d,s",		0x00000025, 0xfc1f07ff,	WR_1|RD_2,		INSN2_ALIAS,	I1,		0,	0 },/* or */
 {"move",		"d,s",		0x0000002d, 0xfc1f07ff, WR_1|RD_2,		INSN2_ALIAS,	I3,		0,	0 },/* daddu */
 {"move",		"d,s",		0x00000021, 0xfc1f07ff, WR_1|RD_2,		INSN2_ALIAS,	I1,		0,	0 },/* addu */
-{"move",		"d,s",		0x00000025, 0xfc1f07ff,	WR_1|RD_2,		INSN2_ALIAS,	I1,		0,	0 },/* or */
 {"b",			"p",		0x10000000, 0xffff0000,	UBD,			INSN2_ALIAS,	I1,		0,	0 },/* beq 0,0 */
 {"b",			"p",		0x04010000, 0xffff0000,	UBD,			INSN2_ALIAS,	I1,		0,	0 },/* bgez 0 */
 {"nal",			"",		0x04100000, 0xffffffff,	WR_31|CBD,		INSN2_ALIAS,	I1,		0,	0 },/* bltzal 0 */
@@ -1818,6 +1818,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"remu",		"d,v,t",	0,    (int) M_REMU_3,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"remu",		"d,v,I",	0,    (int) M_REMU_3I,	INSN_MACRO,		0,		I1,		0,	I37 },
 {"rdhwr",		"t,K",		0x7c00003b, 0xffe007ff, WR_1,			0,		I33,		0,	0 },
+{"rdhwr",		"t,K,+O",	0x7c00003b, 0xffe0063f, WR_1,			0,		I37,		0,	0 },
 {"rdpgpr",		"d,w",		0x41400000, 0xffe007ff, WR_1,			0,		I33,		0,	0 },
 /* rfe is moved below as it now conflicts with tlbgp */
 {"rnas.qh",		"X,Q",		0x78200025, 0xfc20f83f,	WR_1|RD_2|FP_D,		RD_MACC,	0,		MX,	0 },
@@ -1931,6 +1932,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"shfl.repa.qh",	"X,Y,Z",	0x7b20001f, 0xffe0003f, WR_1|RD_2|RD_3|FP_D,	0,		0,		MX,	0 },
 {"shfl.repb.qh",	"X,Y,Z",	0x7ba0001f, 0xffe0003f, WR_1|RD_2|RD_3|FP_D,	0,		0,		MX,	0 },
 {"shfl.upsl.ob",	"X,Y,Z",	0x78c0001f, 0xffe0003f, WR_1|RD_2|RD_3|FP_D,	0,		SB1,		MX,	0 },
+{"sigrie",		"u",		0x41700000, 0xffff0000,	TRAP,			0,		I37,		0,	0 },
 {"sle",			"d,v,t",	0,    (int) M_SLE,	INSN_MACRO,		0,		I1,		0,	0 },
 {"sle",			"d,v,I",	0,    (int) M_SLE_I,	INSN_MACRO,		0,		I1,		0,	0 },
 {"sle",			"S,T",		0x46a0003e, 0xffe007ff,	RD_1|RD_2|WR_CC|FP_D,	0,		IL2E,		0,	0 },
@@ -3087,8 +3089,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"copy_s.d",		"+k,+e+w",	0x78b80019, 0xfffe003f,	WR_1|RD_2,		0,		0,		MSA64,	0 },
 {"copy_u.b",		"+k,+e+o",	0x78c00019, 0xfff0003f,	WR_1|RD_2,		0,		0,		MSA,	0 },
 {"copy_u.h",		"+k,+e+u",	0x78e00019, 0xfff8003f,	WR_1|RD_2,		0,		0,		MSA,	0 },
-{"copy_u.w",		"+k,+e+v",	0x78f00019, 0xfffc003f,	WR_1|RD_2,		0,		0,		MSA,	0 },
-{"copy_u.d",		"+k,+e+w",	0x78f80019, 0xfffe003f,	WR_1|RD_2,		0,		0,		MSA64,	0 },
+{"copy_u.w",		"+k,+e+v",	0x78f00019, 0xfffc003f,	WR_1|RD_2,		0,		0,		MSA64,	0 },
 {"insert.b",		"+d+o,d",	0x79000019, 0xfff0003f,	MOD_1|RD_3,		0,		0,		MSA,	0 },
 {"insert.h",		"+d+u,d",	0x79200019, 0xfff8003f,	MOD_1|RD_3,		0,		0,		MSA,	0 },
 {"insert.w",		"+d+v,d",	0x79300019, 0xfffc003f,	MOD_1|RD_3,		0,		0,		MSA,	0 },
