@@ -11168,7 +11168,7 @@ mips_elf_create_ireloc (bfd *output_bfd,
 	    return FALSE;
 	}
 
-      if (hmips->needs_ireloc || bfd_link_pic (info))
+      if (hmips->needs_iplt || hmips->root.dynindx < 0)
 	/* Emit an IRELATIVE relocation against the [I]GOT entry.  */
 	mips_elf_output_dynamic_relocation (output_bfd, relsect,
 					    relsect->reloc_count++, 0,
