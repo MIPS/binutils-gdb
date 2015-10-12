@@ -5557,10 +5557,7 @@ get_local_sym_hash (struct mips_elf_link_hash_table *htab,
       ret->root.ref_regular = 1;
       ret->root.forced_local = 1;
       ret->root.root.type = bfd_link_hash_defined;
-      if (MIPS16_P (abfd))
-	ret->root.other = STO_MIPS16;
-      if (MICROMIPS_P (abfd))
-	ret->root.other = STO_MICROMIPS;
+      ret->root.other = isym->st_other;
 
       *slot = ret;
     }
