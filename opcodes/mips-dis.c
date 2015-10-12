@@ -2119,7 +2119,7 @@ enum match_kind
 /* Disassemble mips16 instructions.  */
 
 static int
-print_insn_mips16 (bfd_vma memaddr, struct disassemble_info *info)
+print_insn_mips16 (bfd_vma memaddr_base, struct disassemble_info *info)
 {
   const fprintf_ftype infprintf = info->fprintf_func;
   int status;
@@ -2132,6 +2132,10 @@ print_insn_mips16 (bfd_vma memaddr, struct disassemble_info *info)
   unsigned int second;
   unsigned int first;
   unsigned int full;
+
+  /* Some users of bfd may supply an address with the MIPS16 flag set,
+     e.g. objdump.  MIPS16 instructions must be at least 2 byte aligned.  */
+  bfd_vma memaddr = memaddr_base & ~1;
 
   info->bytes_per_chunk = 2;
   info->display_endian = info->endian;
@@ -2339,7 +2343,7 @@ print_insn_mips16 (bfd_vma memaddr, struct disassemble_info *info)
 /* Disassemble microMIPS instructions.  */
 
 static int
-print_insn_micromips (bfd_vma memaddr, struct disassemble_info *info)
+print_insn_micromips (bfd_vma memaddr_base, struct disassemble_info *info)
 {
   const fprintf_ftype infprintf = info->fprintf_func;
   const struct mips_opcode *op, *opend;
@@ -2349,6 +2353,10 @@ print_insn_micromips (bfd_vma memaddr, struct disassemble_info *info)
   unsigned int length;
   int status;
   unsigned int insn;
+
+  /* Some users of bfd may supply an address with the micromips flag set,
+     e.g. objdump.  microMIPS instructions must be at least 2 byte aligned.  */
+  bfd_vma memaddr = memaddr_base & ~1;
 
   info->bytes_per_chunk = 2;
   info->display_endian = info->endian;
