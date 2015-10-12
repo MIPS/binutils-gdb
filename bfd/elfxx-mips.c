@@ -5338,13 +5338,6 @@ mips_elf_create_ifunc_sections (struct bfd_link_info *info)
   bed = get_elf_backend_data (dynobj);
   flags = bed->dynamic_sec_flags;
 
-  s = bfd_make_section_anyway_with_flags (dynobj, ".iplt",
-					  flags | SEC_READONLY | SEC_CODE);
-  if (s == NULL || !bfd_set_section_alignment (dynobj, s, bed->plt_alignment))
-    return FALSE;
-
-  htab->root.iplt = s;
-
   if (!bfd_link_pic (info))
     {
       if (ABI_64_P (dynobj))
@@ -5358,16 +5351,25 @@ mips_elf_create_ifunc_sections (struct bfd_link_info *info)
       else
 	htab->iplt_entry_size = 4 * (ARRAY_SIZE (mips32_exec_iplt_entry)
 				     + (LOAD_INTERLOCKS_P (dynobj) ? 0 : 1));
+
+      s = bfd_make_section_anyway_with_flags (dynobj, ".iplt",
+					      flags | SEC_READONLY | SEC_CODE);
+      if (s == NULL ||
+	  !bfd_set_section_alignment (dynobj, s, bed->plt_alignment))
+	return FALSE;
+
+      htab->root.iplt = s;
+
+      BFD_ASSERT (htab->root.igotplt == NULL);
+
+      s = bfd_make_section_anyway_with_flags (dynobj, ".igot", flags);
+      if (s == NULL
+	  || !bfd_set_section_alignment (dynobj, s, bed->s->log_file_align))
+	return FALSE;
+      htab->root.igotplt = s;
+      mips_elf_section_data (s)->elf.this_hdr.sh_flags
+	|= (SHF_ALLOC | SHF_WRITE);
     }
-
-  BFD_ASSERT (htab->root.igotplt == NULL);
-
-  s = bfd_make_section_anyway_with_flags (dynobj, ".igot", flags);
-  if (s == NULL
-      || !bfd_set_section_alignment (dynobj, s, bed->s->log_file_align))
-    return FALSE;
-  htab->root.igotplt = s;
-  mips_elf_section_data (s)->elf.this_hdr.sh_flags |= SHF_ALLOC | SHF_WRITE;
 
   BFD_ASSERT (htab->root.irelplt == NULL);
 
@@ -8347,7 +8349,7 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
      they will not get generated.  */
   if (htab->root.dynobj == NULL)
     htab->root.dynobj = abfd;
-  if (!htab->root.iplt && !mips_elf_create_ifunc_sections (info))
+  if (!htab->root.irelplt && !mips_elf_create_ifunc_sections (info))
     return FALSE;
 
   /* Check for the mips16 stub sections.  */
