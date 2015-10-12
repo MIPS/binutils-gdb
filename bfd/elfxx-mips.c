@@ -2189,7 +2189,7 @@ mips_elf_check_ifunc_symbols (void **slot, void *data)
       elf_tdata (info->output_bfd)->has_gnu_symbols |= elf_gnu_symbol_ifunc;
 
       /* .iplt entry is needed only for executable objects.  */
-      if (h->has_static_relocs
+      if (!bfd_link_pic (info)
 	  && !mips_elf_allocate_iplt (info, mips_elf_hash_table (info), h))
 	{
 	  hti->error = TRUE;
@@ -8837,12 +8837,6 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 						 r_type, NULL))
 	    return FALSE;
 	}
-      else if (local_gnu_ifunc_p && !bfd_link_pic (info))
-	{
-	  if (constrain_symbol_p && !can_make_dynamic_p)
-		localh->has_static_relocs = 1;
-	}
-
 
       if (h != NULL
 	  && mips_elf_relocation_needs_la25_stub (abfd, r_type,
