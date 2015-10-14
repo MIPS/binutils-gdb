@@ -5513,7 +5513,7 @@ get_local_sym_hash (struct mips_elf_link_hash_table *htab,
   Elf_Internal_Shdr *symtab_hdr;
   char *namep;
 
-  sec = bfd_get_section_by_name (abfd, ".text");
+  sec = abfd->sections;
   h = ELF_LOCAL_SYMBOL_HASH (sec->id, ELF_R_SYM (abfd, rel->r_info));
   isym = bfd_sym_from_r_symndx (&htab->sym_cache, abfd,
 				ELF_R_SYM (abfd, rel->r_info));
