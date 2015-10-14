@@ -1249,8 +1249,7 @@ static const bfd_vma micromips32_exec_iplt_entry[] =
 {
   0x41a30000, 	/* lui $2, %hi(.igot address)		*/
   0xff230000,	/* lw  $2, %lo(.igot address)($2) 	*/
-  0x4599,	/* jr  $25				*/
-  0x0c00,	/* nop					*/
+  0x45b9,	/* jr  $25				*/
 };
 
 /* The format of 64-bit IPLT entries.  */
@@ -5345,9 +5344,8 @@ mips_elf_create_ifunc_sections (struct bfd_link_info *info)
       else if (MIPS16_P (dynobj))
 	htab->iplt_entry_size = 2 * ARRAY_SIZE (mips16_exec_iplt_entry);
       else if (MICROMIPS_P (dynobj))
-	/* Multiply by compression ratio for micromips.  */
-	htab->iplt_entry_size = 4
-	  * (ARRAY_SIZE (micromips32_exec_iplt_entry) * 3 / 4);
+	htab->iplt_entry_size = (4 * ARRAY_SIZE (micromips32_exec_iplt_entry)
+				 - 2);
       else
 	htab->iplt_entry_size = 4 * (ARRAY_SIZE (mips32_exec_iplt_entry)
 				     + (LOAD_INTERLOCKS_P (dynobj) ? 0 : 1));
