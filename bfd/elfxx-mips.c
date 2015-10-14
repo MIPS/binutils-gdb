@@ -16980,7 +16980,8 @@ _bfd_mips_post_process_headers (bfd *abfd, struct bfd_link_info *link_info)
       || mips_elf_tdata (abfd)->abiflags.fp_abi == Val_GNU_MIPS_ABI_FP_64A)
     i_ehdrp->e_ident[EI_ABIVERSION] = 3;
 
-  if (elf_tdata (abfd)->has_gnu_symbols & elf_gnu_symbol_ifunc)
+  if ((elf_tdata (abfd)->has_gnu_symbols & elf_gnu_symbol_ifunc)
+      && elf_hash_table (link_info)->dynamic_sections_created)
     i_ehdrp->e_ident[EI_ABIVERSION] = 4;
 
   if (elf_stack_flags (abfd) && !(elf_stack_flags (abfd) & PF_X))
