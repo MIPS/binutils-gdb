@@ -115,7 +115,8 @@ foreach { abi } $abis {
 	    "$abi_asflags($abi) -KPIC" \
 	    [list ifunc-dyn-def.s ifunc-dyn-ref.s] \
 	    [list "readelf -Ds ifunc-5-${abi}.sym" \
-                  "readelf -r ifunc-5-${abi}.r"] \
+                  "readelf -r ifunc-5-${abi}.r" \
+                  "objdump -dj.got ifunc-5-${abi}.g"] \
 	    "ifunc-5-${abi}" \
         ] \
 	[list \
