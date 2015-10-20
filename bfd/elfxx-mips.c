@@ -4690,10 +4690,8 @@ mips_elf_count_got_symbols (struct mips_elf_link_hash_entry *h, void *data)
 	  g->global_gotno++;
 	}
     }
-
   return 1;
 }
-
 
 /* A htab_traverse callback for GOT entries.  Add each one to the GOT
    given in mips_elf_traverse_got_arg DATA.  Clear DATA->G on error.  */
