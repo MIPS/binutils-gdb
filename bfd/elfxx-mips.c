@@ -16965,7 +16965,7 @@ _bfd_mips_elf_get_synthetic_symtab (bfd *abfd,
 void
 _bfd_mips_post_process_headers (bfd *abfd, struct bfd_link_info *link_info)
 {
-  struct mips_elf_link_hash_table *htab;
+  struct mips_elf_link_hash_table *htab = NULL;
   Elf_Internal_Ehdr *i_ehdrp;
 
   i_ehdrp = elf_elfheader (abfd);
@@ -16985,7 +16985,9 @@ _bfd_mips_post_process_headers (bfd *abfd, struct bfd_link_info *link_info)
     i_ehdrp->e_ident[EI_ABIVERSION] = 3;
 
   if ((elf_tdata (abfd)->has_gnu_symbols & elf_gnu_symbol_ifunc)
-      && elf_hash_table (link_info)->dynamic_sections_created)
+      && htab != NULL
+      && htab->got_info != NULL
+      && htab->got_info->general_gotno > 0)
     i_ehdrp->e_ident[EI_ABIVERSION] = 4;
 
   if (elf_stack_flags (abfd) && !(elf_stack_flags (abfd) & PF_X))
