@@ -3467,11 +3467,14 @@ mips_elf_count_got_entry (struct bfd_link_info *info,
      GOT entries with explicit relocations.  */
   else if (entry->symndx >= 0 || (entry->d.h->global_got_area == GGA_NONE))
     {
-      if (entry->symndx < 0 && entry->d.h->root.type == STT_GNU_IFUNC
-	   && entry->d.h->root.def_regular)
+      if (entry->symndx < 0
+	  && entry->d.h->root.type == STT_GNU_IFUNC
+	  && entry->d.h->root.def_regular
+	  && !entry->d.h->needs_iplt)
 	{
 	  g->general_gotno += 1;
-	  mips_elf_allocate_ireloc (info, mips_elf_hash_table (info), entry->d.h);
+	  mips_elf_allocate_ireloc (info, mips_elf_hash_table (info),
+				    entry->d.h);
 	}
       else
 	g->local_gotno += 1;
@@ -3947,7 +3950,7 @@ mips_elf_create_local_got_entry (bfd *abfd, struct bfd_link_info *info,
   if (!entry)
     return NULL;
 
-  if (h && h->needs_ireloc)
+  if (h && h->needs_ireloc && !h->needs_iplt)
     /* Allocate IFUNC slots in the general GOT region since they
        will need explicit IRELATIVE relocations.  */
     lookup.gotidx = MIPS_ELF_GOT_SIZE (abfd) * g->assigned_general_gotno++;
