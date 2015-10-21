@@ -8915,8 +8915,13 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 		}
 	      else
 		addend = rel->r_addend;
-	      if (!mips_elf_record_got_page_ref (info, abfd, r_symndx,
-						 h, addend))
+	      if (local_gnu_ifunc_p && 
+		  !mips_elf_record_local_got_symbol (abfd, -1, rel->r_addend,
+						     info, r_type, localh))
+		return FALSE;
+	      else
+		if (!mips_elf_record_got_page_ref (info, abfd, r_symndx,
+						   h, addend))
 		return FALSE;
 
 	      if (h)
