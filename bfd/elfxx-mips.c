@@ -4240,7 +4240,7 @@ mips_elf_record_global_got_symbol (struct elf_link_hash_entry *h,
 
 static bfd_boolean
 mips_elf_record_local_got_symbol (bfd *abfd, long symndx, bfd_vma addend,
-				  struct bfd_link_info *info, int r_type, 
+				  struct bfd_link_info *info, int r_type,
 				  struct mips_elf_link_hash_entry *h)
 {
   struct mips_elf_link_hash_table *htab;
@@ -9052,7 +9052,7 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 		h->type = STT_FUNC;
 	    }
 	  else
-	    if (local_gnu_ifunc_p && 
+	    if (local_gnu_ifunc_p &&
 		!mips_elf_record_local_got_symbol (abfd, -1, rel->r_addend,
 						   info, r_type, localh))
 		return FALSE;
@@ -9088,7 +9088,7 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 		}
 	      else
 		addend = rel->r_addend;
-	      if (local_gnu_ifunc_p && 
+	      if (local_gnu_ifunc_p &&
 		  !mips_elf_record_local_got_symbol (abfd, -1, rel->r_addend,
 						     info, r_type, localh))
 		return FALSE;
@@ -10674,7 +10674,7 @@ _bfd_mips_elf_relocate_section (bfd *output_bfd, struct bfd_link_info *info,
       struct elf_link_hash_entry *h;
       bfd_boolean rel_reloc;
       bfd_boolean local_gnu_ifunc_p = FALSE;
-      bfd_boolean gnu_ifunc_p = FALSE;      
+      bfd_boolean gnu_ifunc_p = FALSE;
 
       rel_reloc = (NEWABI_P (input_bfd)
 		   && mips_elf_rel_relocation_p (input_bfd, input_section,
@@ -11294,7 +11294,7 @@ mips_elf_check_local_got_index (bfd *abfd, struct bfd_link_info *info,
 
   if (loc && *loc)
     {
-      entry = (struct mips_got_entry *) *loc;   
+      entry = (struct mips_got_entry *) *loc;
       return entry->gotidx;
     }
   else return -1;
