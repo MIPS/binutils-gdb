@@ -2080,6 +2080,7 @@ mips_elf_check_symbols (struct mips_elf_link_hash_entry *h, void *data)
 	R_MIPS16_CALL16		R_MIPS_CALL16
 	R_MIPS16_HI16		R_MIPS_HI16
 	R_MIPS16_LO16		R_MIPS_LO16
+        R_MIPS16_PCREL_S2
 
    A typical instruction will have a format like this:
 
@@ -2103,6 +2104,7 @@ mips16_reloc_p (int r_type)
     {
     case R_MIPS16_26:
     case R_MIPS16_GPREL:
+    case R_MIPS16_PCREL_S2:
     case R_MIPS16_GOT16:
     case R_MIPS16_CALL16:
     case R_MIPS16_HI16:
@@ -2235,7 +2237,8 @@ static inline bfd_boolean
 aligned_pcrel_reloc_p (int r_type)
 {
   return (r_type == R_MIPS_PC18_S3
-	  || r_type == R_MIPS_PC19_S2);
+	  || r_type == R_MIPS_PC19_S2
+	  || r_type == R_MIPS16_PCREL_S2);
 }
 
 static inline bfd_boolean
@@ -5992,6 +5995,26 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
 	return bfd_reloc_outofrange;
 
       value = symbol + addend - p;
+      if (was_local_p || h->root.root.type != bfd_link_hash_undefweak)
+	overflowed_p = mips_elf_overflow_p (value, 18);
+      value >>= howto->rightshift;
+      value &= howto->dst_mask;
+      break;
+
+    case R_MIPS16_PCREL_S2:
+      if (howto->partial_inplace)
+	addend = _bfd_mips_elf_sign_extend (addend, 18);
+
+      /* If the user targetted a code label instead of data then
+       * we mask the LSB.  For data labels then we do a full alignment
+       * check.  */
+      if (target_is_16_bit_code_p)
+        symbol = (symbol | 1) ^ 1;
+
+      if ((symbol + addend) & 3)
+	return bfd_reloc_outofrange;
+
+      value = symbol + addend - (p & ~(bfd_vma) 0x3);
       if (was_local_p || h->root.root.type != bfd_link_hash_undefweak)
 	overflowed_p = mips_elf_overflow_p (value, 18);
       value >>= howto->rightshift;

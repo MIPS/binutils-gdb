@@ -4087,6 +4087,7 @@ mips16_reloc_p (bfd_reloc_code_real_type reloc)
   switch (reloc)
     {
     case BFD_RELOC_MIPS16_JMP:
+    case BFD_RELOC_MIPS16_PCREL_S2:
     case BFD_RELOC_MIPS16_GPREL:
     case BFD_RELOC_MIPS16_GOT16:
     case BFD_RELOC_MIPS16_CALL16:
@@ -4184,6 +4185,7 @@ limited_pcrel_reloc_p (bfd_reloc_code_real_type reloc)
   switch (reloc)
     {
     case BFD_RELOC_16_PCREL_S2:
+    case BFD_RELOC_MIPS16_PCREL_S2:
     case BFD_RELOC_MICROMIPS_7_PCREL_S1:
     case BFD_RELOC_MICROMIPS_10_PCREL_S1:
     case BFD_RELOC_MICROMIPS_16_PCREL_S1:
@@ -14054,6 +14056,7 @@ static const struct percent_op_match mips16_percent_op[] =
 {
   {"%lo", BFD_RELOC_MIPS16_LO16},
   {"%gprel", BFD_RELOC_MIPS16_GPREL},
+  {"%pcrel", BFD_RELOC_MIPS16_PCREL_S2},
   {"%got", BFD_RELOC_MIPS16_GOT16},
   {"%call16", BFD_RELOC_MIPS16_CALL16},
   {"%hi", BFD_RELOC_MIPS16_HI16_S},
@@ -15007,6 +15010,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       case BFD_RELOC_MIPS_19_PCREL_S2:
       case BFD_RELOC_HI16_S_PCREL:
       case BFD_RELOC_LO16_PCREL:
+      case BFD_RELOC_MIPS16_PCREL_S2:
 	break;
 
       case BFD_RELOC_32:
@@ -15232,6 +15236,10 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 
     case BFD_RELOC_HI16_S_PCREL:
     case BFD_RELOC_LO16_PCREL:
+      gas_assert (!fixP->fx_done);
+      break;
+
+    case BFD_RELOC_MIPS16_PCREL_S2:
       gas_assert (!fixP->fx_done);
       break;
 
@@ -17358,6 +17366,7 @@ tc_gen_reloc (asection *section ATTRIBUTE_UNUSED, fixS *fixp)
   if (fixp->fx_pcrel)
     {
       gas_assert (fixp->fx_r_type == BFD_RELOC_16_PCREL_S2
+		  || fixp->fx_r_type == BFD_RELOC_MIPS16_PCREL_S2
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_7_PCREL_S1
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_10_PCREL_S1
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_16_PCREL_S1

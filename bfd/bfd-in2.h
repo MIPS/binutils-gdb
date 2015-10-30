@@ -2889,6 +2889,9 @@ between two procedure entry points is < 2^21, or else a hint.  */
 /* MIPS16 GP relative reloc.  */
   BFD_RELOC_MIPS16_GPREL,
 
+/* MIPS16 PC relative reloc.  */
+  BFD_RELOC_MIPS16_PCREL_S2,
+
 /* High 16 bits of 32-bit value; simple reloc.  */
   BFD_RELOC_HI16,
 
