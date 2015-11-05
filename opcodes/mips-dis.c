@@ -1945,7 +1945,7 @@ print_mips16_insn_arg (struct disassemble_info *info,
 		{
 		  operand = ext_operand;
 		  if (operand->size == 16)
-		    uval |= ((extend & 0x1f) << 11) | (extend & 0x7e0);
+		    uval = (((extend & 0x1f) << 11) | (extend & 0x7e0) | (insn & 0x1f));
 		  else if (operand->size == 15)
 		    uval |= ((extend & 0xf) << 11) | (extend & 0x7f0);
 		  else
@@ -2118,6 +2118,10 @@ print_insn_mips16 (bfd_vma memaddr, struct disassemble_info *info)
 	  && (insn & op->mask) == op->match)
 	{
 	  const char *s;
+
+	  /* LUI/ORI are extended only instructions */
+	  if (strcmp (op->args, "x,F") == 0 && !use_extend)
+	    continue;
 
 	  if (op->args[0] == 'a' || op->args[0] == 'i')
 	    {
