@@ -3402,7 +3402,10 @@ validate_mips_insn (const struct mips_opcode *opcode,
 	  }
 	gas_assert (opno < MAX_OPERANDS);
 	operands->operand[opno] = operand;
-	if (operand && operand->type != OP_VU0_MATCH_SUFFIX)
+	if (!decode_operand && *s == 'N')
+	  /* Skip processing of LUI */
+	  used_bits |= 0x7f8;
+	else if (operand && operand->type != OP_VU0_MATCH_SUFFIX)
 	  {
 	    used_bits = mips_insert_operand (operand, used_bits, -1);
 	    if (operand->type == OP_MDMX_IMM_REG)
@@ -4101,6 +4104,19 @@ mips16_reloc_p (bfd_reloc_code_real_type reloc)
 }
 
 static inline bfd_boolean
+mips16_lui_reloc_p (bfd_reloc_code_real_type reloc)
+{
+  switch (reloc)
+    {
+    case BFD_RELOC_MIPS16_LUI:
+      return TRUE;
+
+    default:
+      return FALSE;
+    }
+}
+
+static inline bfd_boolean
 micromips_reloc_p (bfd_reloc_code_real_type reloc)
 {
   switch (reloc)
@@ -4152,6 +4168,7 @@ static inline bfd_boolean
 hi16_reloc_p (bfd_reloc_code_real_type reloc)
 {
   return (reloc == BFD_RELOC_HI16_S || reloc == BFD_RELOC_MIPS16_HI16_S
+	  || reloc == BFD_RELOC_MIPS16_LUI
 	  || reloc == BFD_RELOC_MICROMIPS_HI16_S);
 }
 
@@ -7116,6 +7133,7 @@ calculate_reloc (bfd_reloc_code_real_type reloc, offsetT operand,
 
     case BFD_RELOC_HI16_S:
     case BFD_RELOC_MICROMIPS_HI16_S:
+    case BFD_RELOC_MIPS16_LUI:
     case BFD_RELOC_MIPS16_HI16_S:
       *result = ((operand + 0x8000) >> 16) & 0xffff;
       return TRUE;
@@ -8187,6 +8205,16 @@ match_mips16_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	case 'i':
 	  *offset_reloc = BFD_RELOC_MIPS16_JMP;
 	  insn->insn_opcode <<= 16;
+	  break;
+
+	case 'N':
+	  *offset_reloc = BFD_RELOC_MIPS16_LUI;
+	  /* Shuffle the destination register into place.  */
+	  insn->insn_opcode = (((insn->insn_opcode & 0x7) << 21)
+			       | (insn->insn_opcode & 0xf800));
+
+	  forced_insn_length = 4;
+	  insn->insn_opcode |= MIPS16_EXTEND;
 	  break;
 	}
 
@@ -13926,6 +13954,21 @@ mips16_immed_extend (offsetT val, unsigned int nbits)
   return (extval << 16) | val;
 }
 
+static unsigned long
+mips16_lui_immed_extend (offsetT val, unsigned int nbits)
+{
+  int extval;
+  if (nbits == 16)
+    {
+      extval = (val >> 11) & 0x1f;
+      val &= 0x7ff;
+    }
+  else
+    abort ();
+
+  return (extval << 16) | val;
+}
+
 /* Like decode_mips16_operand, but require the operand to be defined and
    require it to be an integer.  */
 
@@ -14057,6 +14100,7 @@ static const struct percent_op_match mips16_percent_op[] =
   {"%got", BFD_RELOC_MIPS16_GOT16},
   {"%call16", BFD_RELOC_MIPS16_CALL16},
   {"%hi", BFD_RELOC_MIPS16_HI16_S},
+  {"%luihi", BFD_RELOC_MIPS16_LUI},
   {"%tlsgd", BFD_RELOC_MIPS16_TLS_GD},
   {"%tlsldm", BFD_RELOC_MIPS16_TLS_LDM},
   {"%dtprel_hi", BFD_RELOC_MIPS16_TLS_DTPREL_HI16},
@@ -15122,6 +15166,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
     case BFD_RELOC_MIPS16_GPREL:
     case BFD_RELOC_MIPS16_GOT16:
     case BFD_RELOC_MIPS16_CALL16:
+    case BFD_RELOC_MIPS16_LUI:
     case BFD_RELOC_MIPS16_HI16:
     case BFD_RELOC_MIPS16_HI16_S:
     case BFD_RELOC_MIPS16_LO16:
@@ -15154,7 +15199,9 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 	  if (calculate_reloc (fixP->fx_r_type, *valP, &value))
 	    {
 	      insn = read_reloc_insn (buf, fixP->fx_r_type);
-	      if (mips16_reloc_p (fixP->fx_r_type))
+	      if (mips16_lui_reloc_p (fixP->fx_r_type))
+		insn |= mips16_lui_immed_extend (value, 16);
+	      else if (mips16_reloc_p (fixP->fx_r_type))
 		insn |= mips16_immed_extend (value, 16);
 	      else
 		insn |= (value & 0xffff);

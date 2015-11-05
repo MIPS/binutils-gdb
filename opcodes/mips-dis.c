@@ -1934,6 +1934,8 @@ print_mips16_insn_arg (struct disassemble_info *info,
 	/* In this case INSN is the first two bytes of the instruction
 	   and EXTEND is the second two bytes.  */
 	uval = ((insn & 0x1f) << 21) | ((insn & 0x3e0) << 11) | extend;
+      else if (type == 'N')
+	uval = ((extend & 0x1f) << 11) | (insn & 0x7ff);
       else
 	{
 	  /* Calculate the full field value.  */
@@ -2118,6 +2120,10 @@ print_insn_mips16 (bfd_vma memaddr, struct disassemble_info *info)
 	  && (insn & op->mask) == op->match)
 	{
 	  const char *s;
+
+	  /* LUI is only an extended instruction */
+	  if (strcmp (op->name, "lui") == 0 && !use_extend)
+	    continue;
 
 	  if (op->args[0] == 'a' || op->args[0] == 'i')
 	    {
