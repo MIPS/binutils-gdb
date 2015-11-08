@@ -71,6 +71,7 @@ decode_mips_operand (const char *p)
 	case 'a': INT_ADJ (19, 0, 262143, 2, FALSE);
 	case 'b': INT_ADJ (18, 0, 131071, 3, FALSE);
 	case 'd': SPECIAL (0, 0, REPEAT_DEST_REG);
+	case 'm': SPECIAL (20, 6, SAVE_RESTORE_LIST);
 	case 's': SPECIAL (5, 21, NON_ZERO_REG);
 	case 't': SPECIAL (5, 16, NON_ZERO_REG);
 	case 'u': PREV_CHECK (5, 16, TRUE, FALSE, FALSE, FALSE);
@@ -286,6 +287,7 @@ decode_mips_operand (const char *p)
 #define RD_2	INSN_READ_2
 #define RD_3	INSN_READ_3
 #define RD_4	INSN_READ_4
+#define RD_31	INSN2_READ_GPR_31
 #define MOD_1	(WR_1|RD_1)
 #define MOD_2	(WR_2|RD_2)
 
@@ -314,6 +316,10 @@ decode_mips_operand (const char *p)
 #define WR_HILO WR_HI|WR_LO
 #define RD_HILO RD_HI|RD_LO
 #define MOD_HILO WR_HILO|RD_HILO
+
+#define RD_SP	INSN2_READ_SP
+#define WR_SP	INSN2_WRITE_SP
+#define MOD_SP	(RD_SP|WR_SP)
 
 #define IS_M    INSN_MULT
 
@@ -2132,6 +2138,10 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"yield",		"d,s",		0x7c000009, 0xfc1f07ff, WR_1|RD_2|NODS,		0,		0,		MT32,	0 },
 {"zcb",			"(b)",		0x7000071f, 0xfc1fffff, RD_1|SM,		0,		IOCT2,		0,	0 },
 {"zcbt",		"(b)",		0x7000075f, 0xfc1fffff, RD_1|SM,		0,		IOCT2,		0,	0 },
+
+/* Code density ASE */
+{"restore",		"-m",		0x7000001f, 0xfc00203f, WR_31|NODS,             MOD_SP,		I33,		0,	0 },
+{"save",		"-m",		0x7000201f, 0xfc00203f, NODS,                   RD_31|MOD_SP,	I33,		0,	0 },
 
 /* Coprocessor 0 move instructions cfc0 and ctc0 conflict with the 
    mfhc0 and mthc0 XPA instructions, so they have been placed here 
