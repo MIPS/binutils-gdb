@@ -2103,7 +2103,6 @@ mips16_reloc_p (int r_type)
     {
     case R_MIPS16_26:
     case R_MIPS16_GPREL:
-    case R_MIPS16_LUI:
     case R_MIPS16_GOT16:
     case R_MIPS16_CALL16:
     case R_MIPS16_HI16:
@@ -2204,7 +2203,6 @@ static inline bfd_boolean
 hi16_reloc_p (int r_type)
 {
   return (r_type == R_MIPS_HI16
-	  || r_type == R_MIPS16_LUI
 	  || r_type == R_MIPS16_HI16
 	  || r_type == R_MICROMIPS_HI16
 	  || r_type == R_MIPS_PCHI16);
@@ -2287,9 +2285,6 @@ _bfd_mips_elf_reloc_unshuffle (bfd *abfd, int r_type,
   second = bfd_get_16 (abfd, data + 2);
   if (micromips_reloc_p (r_type) || (r_type == R_MIPS16_26 && !jal_shuffle))
     val = first << 16 | second;
-  else if (r_type == R_MIPS16_LUI)
-    val = (((first & 0xffe0) << 16) | ((second & 0xf800) << 5)
-	   | ((first & 0x1f) << 11) | ((second & 0x7ff)));
   else if (r_type != R_MIPS16_26)
     val = (((first & 0xf800) << 16) | ((second & 0xffe0) << 11)
 	   | ((first & 0x1f) << 11) | (first & 0x7e0) | (second & 0x1f));
@@ -2313,11 +2308,6 @@ _bfd_mips_elf_reloc_shuffle (bfd *abfd, int r_type,
     {
       second = val & 0xffff;
       first = val >> 16;
-    }
-  else if (r_type == R_MIPS16_LUI)
-    {
-      second = ((val >> 5) & 0xf800) | (val & 0x7ff);
-      first = ((val >> 16) & 0xffe0) | ((val >> 11) & 0x1f);
     }
   else if (r_type != R_MIPS16_26)
     {
@@ -5848,11 +5838,6 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       break;
 
     case R_MIPS_HI16:
-      /* The R_MIPS16_LUI performs the same calculation as
-	 R_MIPS_HI16, but stores the relocated bits in a different
-	 order.  We don't need to do anything special here; the
-	 differences are handled in mips_elf_perform_relocation.  */
-    case R_MIPS16_LUI:
     case R_MIPS16_HI16:
     case R_MICROMIPS_HI16:
       if (!gp_disp_p)
@@ -5872,7 +5857,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
 	     base $pc is that used by the ADDIUPC instruction at $t9 + 4.
 	     ADDIUPC clears the low two bits of the instruction address,
 	     so the base is ($t9 + 4) & ~3.  */
-	  if (r_type == R_MIPS16_HI16 || r_type == R_MIPS16_LUI)
+	  if (r_type == R_MIPS16_HI16)
 	    value = mips_elf_high (addend + gp - ((p + 4) & ~(bfd_vma) 0x3));
 	  /* The microMIPS .cpload sequence uses the same assembly
 	     instructions as the traditional psABI version, but the
@@ -8690,7 +8675,6 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 	{
 	  switch (r_type)
 	    {
-	    case R_MIPS16_LUI:
 	    case R_MIPS16_HI16:
 	    case R_MIPS_HI16:
 	    case R_MIPS_HIGHER:

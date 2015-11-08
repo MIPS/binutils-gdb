@@ -3402,10 +3402,7 @@ validate_mips_insn (const struct mips_opcode *opcode,
 	  }
 	gas_assert (opno < MAX_OPERANDS);
 	operands->operand[opno] = operand;
-	if (!decode_operand && *s == 'N')
-	  /* Skip processing of LUI */
-	  used_bits |= 0x7f8;
-	else if (operand && operand->type != OP_VU0_MATCH_SUFFIX)
+	if (operand && operand->type != OP_VU0_MATCH_SUFFIX)
 	  {
 	    used_bits = mips_insert_operand (operand, used_bits, -1);
 	    if (operand->type == OP_MDMX_IMM_REG)
@@ -4104,19 +4101,6 @@ mips16_reloc_p (bfd_reloc_code_real_type reloc)
 }
 
 static inline bfd_boolean
-mips16_lui_reloc_p (bfd_reloc_code_real_type reloc)
-{
-  switch (reloc)
-    {
-    case BFD_RELOC_MIPS16_LUI:
-      return TRUE;
-
-    default:
-      return FALSE;
-    }
-}
-
-static inline bfd_boolean
 micromips_reloc_p (bfd_reloc_code_real_type reloc)
 {
   switch (reloc)
@@ -4168,7 +4152,6 @@ static inline bfd_boolean
 hi16_reloc_p (bfd_reloc_code_real_type reloc)
 {
   return (reloc == BFD_RELOC_HI16_S || reloc == BFD_RELOC_MIPS16_HI16_S
-	  || reloc == BFD_RELOC_MIPS16_LUI
 	  || reloc == BFD_RELOC_MICROMIPS_HI16_S);
 }
 
@@ -7133,7 +7116,6 @@ calculate_reloc (bfd_reloc_code_real_type reloc, offsetT operand,
 
     case BFD_RELOC_HI16_S:
     case BFD_RELOC_MICROMIPS_HI16_S:
-    case BFD_RELOC_MIPS16_LUI:
     case BFD_RELOC_MIPS16_HI16_S:
       *result = ((operand + 0x8000) >> 16) & 0xffff;
       return TRUE;
@@ -8207,12 +8189,8 @@ match_mips16_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	  insn->insn_opcode <<= 16;
 	  break;
 
-	case 'N':
-	  *offset_reloc = BFD_RELOC_MIPS16_LUI;
-	  /* Shuffle the destination register into place.  */
-	  insn->insn_opcode = (((insn->insn_opcode & 0x7) << 21)
-			       | (insn->insn_opcode & 0xf800));
-
+	/* Special case for LUI/ORI where it must be 4-byte/extended */
+	case 'F':
 	  forced_insn_length = 4;
 	  insn->insn_opcode |= MIPS16_EXTEND;
 	  break;
@@ -13954,21 +13932,6 @@ mips16_immed_extend (offsetT val, unsigned int nbits)
   return (extval << 16) | val;
 }
 
-static unsigned long
-mips16_lui_immed_extend (offsetT val, unsigned int nbits)
-{
-  int extval;
-  if (nbits == 16)
-    {
-      extval = (val >> 11) & 0x1f;
-      val &= 0x7ff;
-    }
-  else
-    abort ();
-
-  return (extval << 16) | val;
-}
-
 /* Like decode_mips16_operand, but require the operand to be defined and
    require it to be an integer.  */
 
@@ -13977,6 +13940,8 @@ mips16_immed_operand (int type, bfd_boolean extended_p)
 {
   const struct mips_operand *operand;
 
+  if (type == 'F')
+    extended_p = TRUE;
   operand = decode_mips16_operand (type, extended_p);
   if (!operand || (operand->type != OP_INT && operand->type != OP_PCREL))
     abort ();
@@ -14026,7 +13991,7 @@ mips16_immed (char *file, unsigned int line, int type,
   unsigned int uval, length;
 
   operand = mips16_immed_operand (type, FALSE);
-  if (!mips16_immed_in_range_p (operand, reloc, val))
+  if (type == 'F' || !mips16_immed_in_range_p (operand, reloc, val))
     {
       /* We need an extended instruction.  */
       if (user_insn_length == 2)
@@ -14100,7 +14065,6 @@ static const struct percent_op_match mips16_percent_op[] =
   {"%got", BFD_RELOC_MIPS16_GOT16},
   {"%call16", BFD_RELOC_MIPS16_CALL16},
   {"%hi", BFD_RELOC_MIPS16_HI16_S},
-  {"%luihi", BFD_RELOC_MIPS16_LUI},
   {"%tlsgd", BFD_RELOC_MIPS16_TLS_GD},
   {"%tlsldm", BFD_RELOC_MIPS16_TLS_LDM},
   {"%dtprel_hi", BFD_RELOC_MIPS16_TLS_DTPREL_HI16},
@@ -15166,7 +15130,6 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
     case BFD_RELOC_MIPS16_GPREL:
     case BFD_RELOC_MIPS16_GOT16:
     case BFD_RELOC_MIPS16_CALL16:
-    case BFD_RELOC_MIPS16_LUI:
     case BFD_RELOC_MIPS16_HI16:
     case BFD_RELOC_MIPS16_HI16_S:
     case BFD_RELOC_MIPS16_LO16:
@@ -15199,9 +15162,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 	  if (calculate_reloc (fixP->fx_r_type, *valP, &value))
 	    {
 	      insn = read_reloc_insn (buf, fixP->fx_r_type);
-	      if (mips16_lui_reloc_p (fixP->fx_r_type))
-		insn |= mips16_lui_immed_extend (value, 16);
-	      else if (mips16_reloc_p (fixP->fx_r_type))
+	      if (mips16_reloc_p (fixP->fx_r_type))
 		insn |= mips16_immed_extend (value, 16);
 	      else
 		insn |= (value & 0xffff);
@@ -17012,7 +16973,7 @@ mips16_extended_frag (fragS *fragp, asection *sec, long stretch)
   else if (symsec != absolute_section && sec != NULL)
     as_bad_where (fragp->fr_file, fragp->fr_line, _("unsupported relocation"));
 
-  return !mips16_immed_in_range_p (operand, BFD_RELOC_UNUSED, val);
+  return type == 'F' || !mips16_immed_in_range_p (operand, BFD_RELOC_UNUSED, val);
 }
 
 /* Compute the length of a branch sequence, and adjust the

@@ -1027,21 +1027,6 @@ static reloc_howto_type elf_mips16_howto_table_rel[] =
 	 0x0000ffff,		/* src_mask */
 	 0x0000ffff,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
-
-  /* MIPS16 LUI high 16 bits of symbol value.  */
-  HOWTO (R_MIPS16_LUI,		/* type */
-	 16,			/* rightshift */
-	 2,			/* size (0 = byte, 1 = short, 2 = long) */
-	 16,			/* bitsize */
-	 FALSE,			/* pc_relative */
-	 0,			/* bitpos */
-	 complain_overflow_dont, /* complain_on_overflow */
-	 _bfd_mips_elf_hi16_reloc, /* special_function */
-	 "R_MIPS16_LUI",	/* name */
-	 TRUE,			/* partial_inplace */
-	 0x0000ffff,		/* src_mask */
-	 0x0000ffff,	        /* dst_mask */
-	 FALSE),		/* pcrel_offset */
 };
 
 static reloc_howto_type elf_micromips_howto_table_rel[] =
@@ -2026,7 +2011,6 @@ static const struct elf_reloc_map mips16_reloc_map[] =
 {
   { BFD_RELOC_MIPS16_JMP, R_MIPS16_26 - R_MIPS16_min },
   { BFD_RELOC_MIPS16_GPREL, R_MIPS16_GPREL - R_MIPS16_min },
-  { BFD_RELOC_MIPS16_LUI, R_MIPS16_LUI - R_MIPS16_min },
   { BFD_RELOC_MIPS16_GOT16, R_MIPS16_GOT16 - R_MIPS16_min },
   { BFD_RELOC_MIPS16_CALL16, R_MIPS16_CALL16 - R_MIPS16_min },
   { BFD_RELOC_MIPS16_HI16_S, R_MIPS16_HI16 - R_MIPS16_min },
