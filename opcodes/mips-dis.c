@@ -1190,6 +1190,76 @@ mips_seen_register (struct mips_print_arg_state *state,
     }
 }
 
+static void
+mips_print_save_restore (struct disassemble_info *info, unsigned int amask,
+			 unsigned int nsreg, unsigned int ra,
+			 unsigned int s0, unsigned int s1,
+			 unsigned int frame_size)
+{
+  unsigned int nargs, nstatics, smask, i, j;
+  const char *sep;
+  const fprintf_ftype infprintf = info->fprintf_func;
+  void *is = info->stream;
+
+  if (amask == MIPS16_ALL_ARGS)
+    {
+      nargs = 4;
+      nstatics = 0;
+    }
+  else if (amask == MIPS16_ALL_STATICS)
+    {
+      nargs = 0;
+      nstatics = 4;
+    }
+  else
+    {
+      nargs = amask >> 2;
+      nstatics = amask & 3;
+    }
+
+  sep = "";
+  if (nargs > 0)
+    {
+      infprintf (is, "%s", mips_gpr_names[4]);
+      if (nargs > 1)
+	infprintf (is, "-%s", mips_gpr_names[4 + nargs - 1]);
+      sep = ",";
+    }
+
+  infprintf (is, "%s%d", sep, frame_size);
+
+  if (ra)		/* $ra */
+    infprintf (is, ",%s", mips_gpr_names[31]);
+
+  smask = 0;
+  if (s0)		/* $s0 */
+    smask |= 1 << 0;
+  if (s1)		/* $s1 */
+    smask |= 1 << 1;
+  if (nsreg > 0)		/* $s2-$s8 */
+    smask |= ((1 << nsreg) - 1) << 2;
+
+  for (i = 0; i < 9; i++)
+    if (smask & (1 << i))
+      {
+	infprintf (is, ",%s", mips_gpr_names[i == 8 ? 30 : (16 + i)]);
+	/* Skip over string of set bits.  */
+	for (j = i; smask & (2 << j); j++)
+	  continue;
+	if (j > i)
+	  infprintf (is, "-%s", mips_gpr_names[j == 8 ? 30 : (16 + j)]);
+	i = j + 1;
+      }
+  /* Statics $ax - $a3.  */
+  if (nstatics == 1)
+    infprintf (is, ",%s", mips_gpr_names[7]);
+  else if (nstatics > 0)
+    infprintf (is, ",%s-%s",
+	       mips_gpr_names[7 - nstatics + 1],
+	       mips_gpr_names[7]);
+}
+
+
 /* Print operand OPERAND of OPCODE, using STATE to track inter-operand state.
    UVAL is the encoding of the operand (shifted into bit 0) and BASE_PC is
    the base address for OP_PCREL operands.  */
@@ -1428,8 +1498,20 @@ print_insn_arg (struct disassemble_info *info,
       break;
 
     case OP_SAVE_RESTORE_LIST:
-      /* Should be handled by the caller due to extend behavior.  */
-      abort ();
+      {
+	/* Handle this case here because of the complex interation
+	   with the EXTEND opcode.  */
+	unsigned int amask = (uval >> 15) & 0xf;
+	unsigned int nsreg = (uval >> 23) & 0x7;
+	unsigned int ra = (uval & 0x1000);		/* $ra */
+	unsigned int s0 = (uval & 0x800);		/* $s0 */
+	unsigned int s1 = (uval & 0x400);		/* $s1 */
+	unsigned int frame_size = (((uval >> 15) & 0xf0)
+				   | ((uval >> 6) & 0x0f)) * 8;
+	mips_print_save_restore (info, amask, nsreg, ra, s0, s1,
+				 frame_size);
+      }
+      break;
 
     case OP_MDMX_IMM_REG:
       {
@@ -1590,11 +1672,8 @@ validate_insn_args (const struct mips_opcode *opcode,
 		case OP_REG_INDEX:
 		case OP_MXU_STRIDE:
 		case OP_MAPPED_STRING:
-		  break;
-
 		case OP_SAVE_RESTORE_LIST:
-		/* Should be handled by the caller due to extend behavior.  */
-		  abort ();
+		  break;
 		}
 	    }
 	  if (*s == 'm' || *s == '+' || *s == '-' || *s == '`')
@@ -1863,70 +1942,16 @@ print_mips16_insn_arg (struct disassemble_info *info,
 	{
 	  /* Handle this case here because of the complex interation
 	     with the EXTEND opcode.  */
-	  unsigned int amask, nargs, nstatics, nsreg, smask, frame_size, i, j;
-	  const char *sep;
-
-	  amask = extend & 0xf;
-	  if (amask == MIPS16_ALL_ARGS)
-	    {
-	      nargs = 4;
-	      nstatics = 0;
-	    }
-	  else if (amask == MIPS16_ALL_STATICS)
-	    {
-	      nargs = 0;
-	      nstatics = 4;
-	    }
-	  else
-	    {
-	      nargs = amask >> 2;
-	      nstatics = amask & 3;
-	    }
-
-	  sep = "";
-	  if (nargs > 0)
-	    {
-	      infprintf (is, "%s", mips_gpr_names[4]);
-	      if (nargs > 1)
-		infprintf (is, "-%s", mips_gpr_names[4 + nargs - 1]);
-	      sep = ",";
-	    }
-
-	  frame_size = ((extend & 0xf0) | (insn & 0x0f)) * 8;
+	  unsigned int amask = extend & 0xf;
+	  unsigned int nsreg = (extend >> 8) & 0x7;
+	  unsigned int ra = (insn & 0x40);		/* $ra */
+	  unsigned int s0 = (insn & 0x20);		/* $s0 */
+	  unsigned int s1 = (insn & 0x10);		/* $s1 */
+	  unsigned int frame_size = ((extend & 0xf0) | (insn & 0x0f)) * 8;
 	  if (frame_size == 0 && !use_extend)
 	    frame_size = 128;
-	  infprintf (is, "%s%d", sep, frame_size);
-
-	  if (insn & 0x40)		/* $ra */
-	    infprintf (is, ",%s", mips_gpr_names[31]);
-
-	  nsreg = (extend >> 8) & 0x7;
-	  smask = 0;
-	  if (insn & 0x20)		/* $s0 */
-	    smask |= 1 << 0;
-	  if (insn & 0x10)		/* $s1 */
-	    smask |= 1 << 1;
-	  if (nsreg > 0)		/* $s2-$s8 */
-	    smask |= ((1 << nsreg) - 1) << 2;
-
-	  for (i = 0; i < 9; i++)
-	    if (smask & (1 << i))
-	      {
-		infprintf (is, ",%s", mips_gpr_names[i == 8 ? 30 : (16 + i)]);
-		/* Skip over string of set bits.  */
-		for (j = i; smask & (2 << j); j++)
-		  continue;
-		if (j > i)
-		  infprintf (is, "-%s", mips_gpr_names[j == 8 ? 30 : (16 + j)]);
-		i = j + 1;
-	      }
-	  /* Statics $ax - $a3.  */
-	  if (nstatics == 1)
-	    infprintf (is, ",%s", mips_gpr_names[7]);
-	  else if (nstatics > 0)
-	    infprintf (is, ",%s-%s",
-		       mips_gpr_names[7 - nstatics + 1],
-		       mips_gpr_names[7]);
+	  mips_print_save_restore (info, amask, nsreg, ra, s0, s1,
+				   frame_size);
 	  break;
 	}
 
