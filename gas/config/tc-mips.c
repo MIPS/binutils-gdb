@@ -3402,7 +3402,9 @@ validate_mips_insn (const struct mips_opcode *opcode,
 	  }
 	gas_assert (opno < MAX_OPERANDS);
 	operands->operand[opno] = operand;
-	if (operand && operand->type != OP_VU0_MATCH_SUFFIX)
+	if (decode_operand && *s == '-' && *(s+1) == 'm')
+	  used_bits |= 0x03ffdfc0;
+	else if (operand && operand->type != OP_VU0_MATCH_SUFFIX)
 	  {
 	    used_bits = mips_insert_operand (operand, used_bits, -1);
 	    if (operand->type == OP_MDMX_IMM_REG)
@@ -5593,7 +5595,7 @@ match_save_restore_list_operand (struct mips_arg_info *arg)
 		sregs |= 1 << 8;
 	      else if (regno1 == 31)
 		/* Add $ra to insn.  */
-		opcode |= 0x40;
+		opcode |= 0x40 << (mips_opts.mips16 ? 0 : 6);
 	      else
 		return FALSE;
 	      regno1 += 1;
@@ -5609,10 +5611,10 @@ match_save_restore_list_operand (struct mips_arg_info *arg)
     return FALSE;
   else if (args == 0xf)
     /* All $a0-$a3 are args.  */
-    opcode |= MIPS16_ALL_ARGS << 16;
+    opcode |= MIPS16_ALL_ARGS << (mips_opts.mips16 ? 16 : 15);
   else if (statics == 0xf)
     /* All $a0-$a3 are statics.  */
-    opcode |= MIPS16_ALL_STATICS << 16;
+    opcode |= MIPS16_ALL_STATICS << (mips_opts.mips16 ? 16 : 15);
   else
     {
       /* Count arg registers.  */
@@ -5636,14 +5638,14 @@ match_save_restore_list_operand (struct mips_arg_info *arg)
 	return FALSE;
 
       /* Encode args/statics.  */
-      opcode |= ((num_args << 2) | num_statics) << 16;
+      opcode |= ((num_args << 2) | num_statics) << (mips_opts.mips16 ? 16 : 15);
     }
 
   /* Encode $s0/$s1.  */
   if (sregs & (1 << 0))		/* $s0 */
-    opcode |= 0x20;
+    opcode |= 0x20 << (mips_opts.mips16 ? 0 : 6);
   if (sregs & (1 << 1))		/* $s1 */
-    opcode |= 0x10;
+    opcode |= 0x10 << (mips_opts.mips16 ? 0 : 6);
   sregs >>= 2;
 
   /* Encode $s2-$s8. */
@@ -5655,7 +5657,7 @@ match_save_restore_list_operand (struct mips_arg_info *arg)
     }
   if (sregs != 0)
     return FALSE;
-  opcode |= num_sregs << 24;
+  opcode |= num_sregs << (mips_opts.mips16 ? 24 : 23);
 
   /* Encode frame size.  */
   if (num_frame_sizes == 0)
@@ -5676,12 +5678,13 @@ match_save_restore_list_operand (struct mips_arg_info *arg)
   if (frame_size != 128 || (opcode >> 16) != 0)
     {
       frame_size /= 8;
-      opcode |= (((frame_size & 0xf0) << 16)
-		 | (frame_size & 0x0f));
+      opcode |= (((frame_size & 0xf0) << (mips_opts.mips16 ? 16 : 15))
+		 | ((frame_size & 0x0f) << (mips_opts.mips16 ? 0 : 6)));
     }
 
   /* Finally build the instruction.  */
-  if ((opcode >> 16) != 0 || frame_size == 0)
+  if (mips_opts.mips16
+      && ((opcode >> 16) != 0 || frame_size == 0))
     opcode |= MIPS16_EXTEND;
   arg->insn->insn_opcode = opcode;
   return TRUE;

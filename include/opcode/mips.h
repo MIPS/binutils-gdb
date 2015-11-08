@@ -984,6 +984,8 @@ struct mips_opcode
    "-A" symbolic offset (-262144 .. 262143) << 2 at bit 0
    "-B" symbolic offset (-131072 .. 131071) << 3 at bit 0
 
+   "-m" MIPS SAVE/RESTORE list
+
    Other:
    "()" parens surrounding optional value
    ","  separates operands
@@ -1005,7 +1007,7 @@ struct mips_opcode
    Extension character sequences used so far ("-" followed by the
    following), for quick reference when adding more:
    "AB"
-   "abdstuvwxy"
+   "abdmstuvwxy"
 
    Extension character sequences used so far ("`" followed by the
    following), for quick reference when adding more:
