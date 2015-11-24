@@ -152,6 +152,8 @@ extern void _bfd_mips_elf_insn32
   (struct bfd_link_info *, bfd_boolean);
 extern void _bfd_mips_elf_compact_branches
   (struct bfd_link_info *, bfd_boolean);
+extern void _bfd_mips_elf_user_def_sdata_sections
+  (struct bfd_link_info *, bfd_boolean);
 extern bfd_boolean _bfd_mips_elf_init_stubs
   (struct bfd_link_info *,
    asection *(*) (const char *, asection *, asection *));
