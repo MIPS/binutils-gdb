@@ -90,6 +90,7 @@ decode_mips16_operand (char type, bfd_boolean extended_p)
       case 'C': SINT (16, 0);
       case 'D': SINT (16, 0);
       case 'E': PCREL (16, 0, TRUE, 0, 2, FALSE, FALSE);
+      case 'F': HINT (16, 0);
       case 'H': SINT (16, 0);
       case 'K': SINT (16, 0);
       case 'U': UINT (16, 0);
@@ -119,6 +120,7 @@ decode_mips16_operand (char type, bfd_boolean extended_p)
       case 'C': INT_ADJ (8, 0, 255, 3, FALSE);	/* (0 .. 255) << 3 */
       case 'D': INT_ADJ (5, 0, 31, 3, FALSE);	/* (0 .. 31) << 3 */
       case 'E': PCREL (5, 0, FALSE, 2, 2, FALSE, FALSE);
+      case 'F': HINT (5, 0);
       case 'H': INT_ADJ (5, 0, 31, 1, FALSE);	/* (0 .. 31) << 1 */
       case 'K': INT_ADJ (8, 0, 127, 3, FALSE);	/* (-128 .. 127) << 3 */
       case 'U': UINT (8, 0);
@@ -301,6 +303,9 @@ const struct mips_opcode mips16_opcodes[] =
 {"ld",	    "y,D(S)",	0xf800, 0xff00,		WR_1,			RD_SP,		I3,	0,	0 },
 {"lh",	    "y,H(x)",	0x8800, 0xf800,		WR_1|RD_3,		0,		I1,	0,	0 },
 {"lhu",	    "y,H(x)",	0xa800, 0xf800,		WR_1|RD_3,		0,		I1,	0,	0 },
+/* LUI goes above as it is more specialised then li and is extended only */
+{"lui",	    "x,F",	0x6820, 0xf8e0,		WR_1,			0,		I1,	0,	0 },
+{"ori",	    "x,F",	0x6840, 0xf8e0,		WR_1,			0,		I1,	0,	0 },
 {"li",	    "x,U",	0x6800, 0xf800,		WR_1,			0,		I1,	0,	0 },
 {"lw",	    "y,W(x)",	0x9800, 0xf800,		WR_1|RD_3,		0,		I1,	0,	0 },
 {"lw",	    "x,A",	0xb000, 0xf800,		WR_1,			RD_PC,		I1,	0,	0 },
