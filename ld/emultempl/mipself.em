@@ -35,6 +35,7 @@ static bfd *stub_bfd;
 
 static bfd_boolean insn32;
 static bfd_boolean compact_branches;
+static bfd_boolean user_def_sdata_sections;
 
 static void
 mips_after_parse (void)
@@ -208,6 +209,7 @@ mips_create_output_section_statements (void)
   if (is_mips_elf (link_info.output_bfd))
     {
       _bfd_mips_elf_compact_branches (&link_info, compact_branches);
+      _bfd_mips_elf_user_def_sdata_sections (&link_info, user_def_sdata_sections);
       _bfd_mips_elf_init_stubs (&link_info, mips_add_stub_section);
     }
 }
@@ -258,6 +260,8 @@ PARSE_AND_LIST_PROLOGUE='
 #define OPTION_NO_INSN32		(OPTION_INSN32 + 1)
 #define OPTION_COMPACT_BRANCHES		(OPTION_NO_INSN32 + 1)
 #define OPTION_NO_COMPACT_BRANCHES	(OPTION_COMPACT_BRANCHES + 1)
+#define OPTION_USER_DEF_SDATA_SECTIONS	(OPTION_NO_COMPACT_BRANCHES + 1)
+#define OPTION_NO_USER_DEF_SDATA_SECTIONS (OPTION_USER_DEF_SDATA_SECTIONS + 1)
 '
 
 PARSE_AND_LIST_LONGOPTS='
@@ -265,6 +269,8 @@ PARSE_AND_LIST_LONGOPTS='
   { "no-insn32", no_argument, NULL, OPTION_NO_INSN32 },
   { "compact-branches", no_argument, NULL, OPTION_COMPACT_BRANCHES },
   { "no-compact-branches", no_argument, NULL, OPTION_NO_COMPACT_BRANCHES },
+  { "user-defined-sdata-sections", no_argument, NULL, OPTION_USER_DEF_SDATA_SECTIONS },
+  { "no-user-defined-sdata-sections", no_argument, NULL, OPTION_NO_USER_DEF_SDATA_SECTIONS },
 '
 
 PARSE_AND_LIST_OPTIONS='
@@ -280,6 +286,17 @@ PARSE_AND_LIST_OPTIONS='
   fprintf (file, _("\
   --no-compact-branches       Generate delay slot branches/jumps for MIPS R6\n"
 		   ));
+  fprintf (file, _("\
+  --user-defined-sdata-sections\n\
+                              When processing a gp relative relocation against a symbol\n\
+                              in a .sdata_<num>/.sbss_<num> section use the gp value\n\
+                              based on the address of the _gp_<num> symbol where <num> is\n\
+                              the number of the .sbss/.sdata section the symbol is in\n"));
+  fprintf (file, _("\
+  --no-user-defined-sdata-sections\n\
+                              When processing a gp relative relocation against a symbol\n\
+                              in a .sdata_<num>/.sbss_<num> section use the gp value\n\
+                              based on the address of the _gp symbol."));
 '
 
 PARSE_AND_LIST_ARGS_CASES='
@@ -297,6 +314,14 @@ PARSE_AND_LIST_ARGS_CASES='
 
     case OPTION_NO_COMPACT_BRANCHES:
       compact_branches = FALSE;
+      break;
+
+    case OPTION_USER_DEF_SDATA_SECTIONS:
+      user_def_sdata_sections = TRUE;
+      break;
+
+    case OPTION_NO_USER_DEF_SDATA_SECTIONS:
+      user_def_sdata_sections = FALSE;
       break;
 '
 
