@@ -2188,7 +2188,8 @@ mips_elf_check_ifunc_symbols (void **slot, void *data)
       elf_tdata (info->output_bfd)->has_gnu_symbols |= elf_gnu_symbol_ifunc;
 
       /* .iplt entry is needed only for executable objects.  */
-      if (!bfd_link_pic (info)
+      if (((h->root.dynindx == -1 && h->has_static_relocs)
+	   || (h->root.dynindx > 0 && !bfd_link_pic (info)))
 	  && !mips_elf_allocate_iplt (info, mips_elf_hash_table (info), h))
 	{
 	  hti->error = TRUE;
@@ -8758,8 +8759,9 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 		   && strcmp (h->root.root.string, "__gnu_local_gp") != 0
 		   && !(!info->nocopyreloc
 			&& !PIC_OBJECT_P (abfd)
-			&& MIPS_ELF_READONLY_SECTION (sec))))
-	      && (sec->flags & SEC_ALLOC) != 0)
+			&& MIPS_ELF_READONLY_SECTION (sec))
+		   && (h->type != STT_GNU_IFUNC)))
+	       && (sec->flags & SEC_ALLOC) != 0)
 	    {
 	      can_make_dynamic_p = TRUE;
 	      if (dynobj == NULL)
@@ -8816,6 +8818,11 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 		   relocations against the text segment.  */
 		info->flags |= DF_TEXTREL;
 	    }
+	}
+      else if (localh && localh->root.type == STT_GNU_IFUNC)
+	{
+	  if (!can_make_dynamic_p && !bfd_link_pic (info))
+	    localh->has_static_relocs = 1;
 	}
       else if (call_lo16_reloc_p (r_type)
 	       || got_lo16_reloc_p (r_type)
