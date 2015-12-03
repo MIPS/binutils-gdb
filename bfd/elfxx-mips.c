@@ -5608,7 +5608,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
   if (gnu_local_gp_p)
     symbol = gp;
 
-  if (mips_elf_hash_table (info)->user_def_sdata_sections)
+  if (mips_elf_hash_table (info)->user_def_sdata_sections && sec != NULL)
     {
       if (strncmp (".sdata_", sec->name, 7) == 0)
 	gp_sec_num = atoi (&sec->name[7]);
