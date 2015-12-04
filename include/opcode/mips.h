@@ -351,6 +351,12 @@ enum mips_operand_type {
   /* Described by mips_reg_pair_operand.  */
   OP_REG_PAIR,
 
+  /* Described by mips_extend_reg_operand.  */
+  OP_EXTEND_REG,
+
+  /* Described by mips_split_reg_operand.  */
+  OP_SPLIT_REG,
+
   /* Described by mips_pcrel_operand.  */
   OP_PCREL,
 
@@ -601,6 +607,39 @@ struct mips_reg_pair_operand
   unsigned char *reg2_map;
 };
 
+/* Describes an operand that encodes a register in a side field. */
+struct mips_extend_reg_operand
+{
+  /* Holds the first part of the register encoding.  */
+  struct mips_operand root;
+  
+  /* The type of register.  */
+  enum mips_reg_operand_type reg_type;
+
+  /* If nonnull, REG_MAP[N] gives the register associated with combined
+     encoding N, otherwise the encoding is the same as the register number.  */
+  const unsigned char *reg_map;
+};
+
+/* Describes an operand that encodes a register using a field and a seperate
+   bit. */
+
+struct mips_split_reg_operand
+{
+  /* Holds the first part of the register encoding.  */
+  struct mips_operand root;
+
+  /* The additional bit location in the instruction.  */
+  unsigned int bit;
+
+  /* The type of register.  */
+  enum mips_reg_operand_type reg_type;
+
+  /* If nonnull, REG_MAP[N] gives the register associated with combined
+     encoding N, otherwise the encoding is the same as the register number.  */
+  const unsigned char *reg_map;
+};
+
 /* Describes an operand that is calculated relative to a base PC.
    The base PC is usually the address of the following instruction,
    but the rules for MIPS16 instructions like ADDIUPC are more complicated.  */
@@ -644,6 +683,13 @@ mips_insert_operand (const struct mips_operand *operand, unsigned int insn,
   mask = (1 << operand->size) - 1;
   insn &= ~(mask << operand->lsb);
   insn |= (uval & mask) << operand->lsb;
+  if (operand->type == OP_SPLIT_REG)
+    {
+      const struct mips_split_reg_operand * op
+	= (const struct mips_split_reg_operand *)operand;
+      insn &= ~(1 << op->bit);
+      insn |= (((uval>>3) & 0x1) << op->bit);
+    }
   return insn;
 }
 
@@ -652,7 +698,11 @@ mips_insert_operand (const struct mips_operand *operand, unsigned int insn,
 static inline unsigned int
 mips_extract_operand (const struct mips_operand *operand, unsigned int insn)
 {
-  return (insn >> operand->lsb) & ((1 << operand->size) - 1);
+  unsigned int ret = (insn >> operand->lsb) & ((1 << operand->size) - 1);
+  if (operand->type == OP_SPLIT_REG)
+    ret |= (insn >> (((const struct mips_split_reg_operand*)operand)->bit) & 1)
+	    << 3;
+  return ret;
 }
 
 /* UVAL is the value encoded by OPERAND.  Return it in signed form.  */
@@ -1284,8 +1334,10 @@ static const unsigned int mips_isa_table[] = {
 #define ASE_DSPR3		0x00008000
 /* The eXtended Physical Address (XPA) Extension has instructions which are
    only valid for the r6 ISA.  */
-#define ASE_EVA_R6		0x00010000
-
+#define ASE_EVA_R6		0x00000000
+/* MIPS16E2 ASE.
+   ??? Not strictly an ASE, but we'll fix this later. */
+#define ASE_MIPS16E2		0x00000000
 /* MIPS ISA defines, use instead of hardcoding ISA level.  */
 
 #define       ISA_UNKNOWN     0               /* Gas internal use.  */

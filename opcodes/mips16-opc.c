@@ -28,6 +28,7 @@ static unsigned char reg_0_map[] = { 0 };
 static unsigned char reg_29_map[] = { 29 };
 static unsigned char reg_31_map[] = { 31 };
 static unsigned char reg_m16_map[] = { 16, 17, 2, 3, 4, 5, 6, 7 };
+static unsigned char reg_m16_st_map[] = {16, 17, 2, 3, 4, 5, 6, 7, 18, 19, 20, 21, 22, 23, 24};
 static unsigned char reg32r_map[] = {
   0, 8, 16, 24,
   1, 9, 17, 25,
@@ -70,6 +71,23 @@ decode_mips16_operand (char type, bfd_boolean extended_p)
     case 'x': MAPPED_REG (3, 8, GP, reg_m16_map);
     case 'y': MAPPED_REG (3, 5, GP, reg_m16_map);
     case 'z': MAPPED_REG (3, 2, GP, reg_m16_map);
+
+    case 'o': MAPPED_SPLIT_REG (3, 0, 16, GP, reg_m16_st_map);
+
+    /* The ry extended register encoding, the lower 3 bits are held in the
+       5-7 bits (ry) and bit 16 (EXTEND2).  For the RR encoding.  */
+    case 'h': MAPPED_SPLIT_REG (3, 5, 16, GP, reg_m16_st_map);
+
+    /* The addition argument register,  bits 17-20 (EXTEND2) for the
+       RR encoding.  */
+    case 'N': MAPPED_EXTEND_REG (GP, reg_m16_st_map);
+
+    /* The rx extended register encoding, the lower 3 bits are hild in the
+       8-11 bits (rx) and bit 21 (EXTEND2).  For the RR, RRI-A, RRR
+       encodings.  */
+    case 'd': MAPPED_SPLIT_REG (3, 8, 21, GP, reg_m16_st_map);
+
+    case 'f': MAPPED_REG (3, 0, GP, reg_m16_st_map);
     }
 
   if (extended_p)
@@ -181,6 +199,8 @@ decode_mips16_operand (char type, bfd_boolean extended_p)
 #define I64	INSN_ISA64
 #define T3	INSN_3900
 
+#define M16E2	ASE_MIPS16E2
+
 const struct mips_opcode mips16_opcodes[] =
 {
 /* name,    args,	match,	mask,		pinfo,	         	pinfo2, membership */
@@ -188,18 +208,24 @@ const struct mips_opcode mips16_opcodes[] =
 {"la",	    "x,A",	0x0800, 0xf800,		WR_1,			RD_PC,		I1,	0,	0 },
 {"abs",	    "x,w",	0, (int) M_ABS,		INSN_MACRO,		0,		I1,	0,	0 },
 {"addiu",   "y,x,4",	0x4000, 0xf810,		WR_1|RD_2,		0,		I1,	0,	0 },
+/* M16E2 Note 1: M16E2 variant should be second, otherwise we'll always get the extended version.  */
+{"addiu",   "y,d,4",	0x4000, 0xf810,		WR_1|RD_2,		0,		I1,	M16E2,	0 },
+{"addiu",   "x,N,k",	0x4800, 0xf800,		WR_1|RD_2,		0,		I1,	M16E2,	0 },
 {"addiu",   "x,k",	0x4800, 0xf800,		MOD_1,			0,		I1,	0,	0 },
 {"addiu",   "S,K",	0x6300, 0xff00,		0,			MOD_SP,		I1,	0,	0 },
 {"addiu",   "S,S,K",	0x6300, 0xff00,		0,			MOD_SP,		I1,	0,	0 },
 {"addiu",   "x,P,V",	0x0800, 0xf800,		WR_1,			RD_PC,		I1,	0,	0 },
 {"addiu",   "x,S,V",	0x0000, 0xf800,		WR_1,			RD_SP,		I1,	0,	0 },
 {"addu",    "z,v,y",	0xe001, 0xf803,		WR_1|RD_2|RD_3,		0,		I1,	0,	0 },
+/* See Note 1.  */
+{"addu",    "z,d,h",    0xe001, 0xf803, 	WR_1|RD_2|RD_3,		0,		I1,	M16E2,	0 },
 {"addu",    "y,x,4",	0x4000, 0xf810,		WR_1|RD_2,		0,		I1,	0,	0 },
 {"addu",    "x,k",	0x4800, 0xf800,		MOD_1,			0,		I1,	0,	0 },
 {"addu",    "S,K",	0x6300, 0xff00,		0,			MOD_SP,		I1,	0,	0 },
 {"addu",    "S,S,K",	0x6300, 0xff00,		0,			MOD_SP,		I1,	0,	0 },
 {"addu",    "x,P,V",	0x0800, 0xf800,		WR_1,			RD_PC,		I1,	0,	0 },
 {"addu",    "x,S,V",	0x0000, 0xf800,		WR_1,			RD_SP,		I1,	0,	0 },
+{"and",     "x,h,N",	0xe80c, 0xf81f,		WR_1|RD_2|RD_3,		0,		I1,	M16E2,	0 },
 {"and",	    "x,y",	0xe80c, 0xf81f,		MOD_1|RD_2,		0,		I1,	0,	0 },
 {"b",	    "q",	0x1000, 0xf800,		0,			UBR,		I1,	0,	0 },
 {"beq",	    "x,y,p",	0, (int) M_BEQ,		INSN_MACRO,		0,		I1,	0,	0 },
@@ -228,8 +254,9 @@ const struct mips_opcode mips16_opcodes[] =
 {"bteqz",   "p",	0x6000, 0xff00,		RD_T,			CBR,		I1,	0,	0 },
 {"btnez",   "p",	0x6100, 0xff00,		RD_T,			CBR,		I1,	0,	0 },
 {"cmpi",    "x,U",	0x7000, 0xf800,		RD_1|WR_T,		0,		I1,	0,	0 },
-{"cmp",	    "x,y",	0xe80a, 0xf81f,		RD_1|RD_2|WR_T,		0,		I1,	0,	0 },
+{"cmp",     "x,y",	0xe80a, 0xf81f,		RD_1|RD_2|WR_T,		0,		I1,	0,	0 },
 {"cmp",     "x,U",	0x7000, 0xf800,		RD_1|WR_T,		0,		I1,	0,	0 },
+{"cmp",	    "d,h",	0xe80a, 0xf81f,		RD_1|RD_2|WR_T,		0,		I1,	M16E2,	0 },
 {"dla",	    "y,E",	0xfe00, 0xff00,		WR_1, 			RD_PC,		I3,	0,	0 },
 {"daddiu",  "y,x,4",	0x4010, 0xf810,		WR_1|RD_2, 		0,		I3,	0,	0 },
 {"daddiu",  "y,j",	0xfd00, 0xff00,		MOD_1,			0,		I3,	0,	0 },
@@ -249,8 +276,10 @@ const struct mips_opcode mips16_opcodes[] =
 {"ddivu",   "0,x,y",	0xe81f, 0xf81f,		RD_2|RD_3|WR_HI|WR_LO, 	0,		I3,	0,	0 },
 {"ddivu",   "z,v,y",	0, (int) M_DDIVU_3,	INSN_MACRO,		0,		I1,	0,	0 },
 {"div",     "0,x,y",	0xe81a, 0xf81f,		RD_2|RD_3|WR_HI|WR_LO,	0,		I1,	0,	0 },
+{"div",     "0,d,h",	0xe81a, 0xf81f,		RD_2|RD_3|WR_HI|WR_LO,	0,		I1,	M16E2,	0 },
 {"div",     "z,v,y",	0, (int) M_DIV_3,	INSN_MACRO,		0,		I1,	0,	0 },
 {"divu",    "0,x,y",	0xe81b, 0xf81f,		RD_2|RD_3|WR_HI|WR_LO,	0,		I1,	0,	0 },
+{"divu",    "0,d,h",	0xe81b, 0xf81f,		RD_2|RD_3|WR_HI|WR_LO,	0,		I1,	M16E2,	0 },
 {"divu",    "z,v,y",	0, (int) M_DIVU_3,	INSN_MACRO,		0,		I1,	0,	0 },
 {"dmul",    "z,v,y",	0, (int) M_DMUL,	INSN_MACRO, 		0,		I3,	0,	0 },
 {"dmult",   "x,y",	0xe81c, 0xf81f, 	RD_1|RD_2|WR_HI|WR_LO, 	0,		I3,	0,	0 },
@@ -278,6 +307,7 @@ const struct mips_opcode mips16_opcodes[] =
 {"entry",   "",		0xe809, 0xffff,		TRAP,			0,		I1,	0,	0 },
 {"entry",   "l",	0xe809, 0xf81f,		TRAP,			0,		I1,	0,	0 },
 {"extend",  "e",	0xf000, 0xf800,		0,			0,		I1,	0,	0 },
+{"extend2",  "e",	0xf800, 0xf800,		0,			0,		I1,	M16E2,	0 },
 {"jalr",    "x",	0xe840, 0xf8ff,		RD_1|WR_31|UBD,		0,		I1,	0,	0 },
 {"jalr",    "R,x",	0xe840, 0xf8ff,		RD_2|WR_31|UBD,		0,		I1,	0,	0 },
 {"jal",     "x",	0xe840, 0xf8ff,		RD_1|WR_31|UBD,		0,		I1,	0,	0 },
@@ -315,53 +345,76 @@ const struct mips_opcode mips16_opcodes[] =
 {"mfhi",    "x",	0xe810, 0xf8ff,		WR_1|RD_HI,		0,		I1,	0,	0 },
 {"mflo",    "x",	0xe812, 0xf8ff,		WR_1|RD_LO,		0,		I1,	0,	0 },
 {"move",    "y,X",	0x6700, 0xff00,		WR_1|RD_2, 		0,		I1,	0,	0 },
+{"move",    "h,X,",	0x6700, 0xff00,		WR_1|RD_2,		0,		I1,	M16E2,	0 },
 {"move",    "Y,Z",	0x6500, 0xff00,		WR_1|RD_2,		0,		I1,	0,	0 },
+{"move",    "Y,o",	0x6500, 0xff00,		WR_1|RD_2,		0,		I1,	M16E2,	0 },
 {"mul",     "z,v,y",	0, (int) M_MUL, 	INSN_MACRO,		0,		I1,	0,	0 },
+{"mult",    "d,h",	0xe818, 0xf81f,		RD_1|RD_2|WR_HI|WR_LO,	0,		I1,	M16E2,	0 },
 {"mult",    "x,y",	0xe818, 0xf81f,		RD_1|RD_2|WR_HI|WR_LO,	0,		I1,	0,	0 },
+{"multu",   "d,h",	0xe819, 0xf81f,		RD_1|RD_2|WR_HI|WR_LO,	0,		I1,	M16E2,	0 },
 {"multu",   "x,y",	0xe819, 0xf81f,		RD_1|RD_2|WR_HI|WR_LO,	0,		I1,	0,	0 },
+{"neg",	    "x,h",	0xe80b, 0xf81f,		WR_1|RD_2,		0,		I1,	0,	0 },
 {"neg",	    "x,w",	0xe80b, 0xf81f,		WR_1|RD_2,		0,		I1,	0,	0 },
+{"not",	    "x,h",	0xe80f, 0xf81f,		WR_1|RD_2,		0,		I1,	0,	0 },
 {"not",	    "x,w",	0xe80f, 0xf81f,		WR_1|RD_2,		0,		I1,	0,	0 },
+{"or",      "x,h,N",	0xe80d, 0xf81f,		WR_1|RD_2|RD_3,		0,		I1,	M16E2,	0 },
 {"or",	    "x,y",	0xe80d, 0xf81f,		MOD_1|RD_2,		0,		I1,	0,	0 },
 {"rem",     "0,x,y",	0xe81a, 0xf81f,		RD_2|RD_3|WR_HI|WR_LO,	0,		I1,	0,	0 },
+{"rem",     "0,d,h",	0xe81a, 0xf81f,		RD_2|RD_3|WR_HI|WR_LO,	0,		I1,	M16E2,	0 },
 {"rem",     "z,v,y",	0, (int) M_REM_3,	INSN_MACRO,		0,		I1,	0,	0 },
 {"remu",    "0,x,y",	0xe81b, 0xf81f,		RD_2|RD_3|WR_HI|WR_LO,	0,		I1,	0,	0 },
+{"remu",    "0,d,h",	0xe81b, 0xf81f,		RD_2|RD_3|WR_HI|WR_LO,	0,		I1,	M16E2,	0 },
 {"remu",    "z,v,y",	0, (int) M_REMU_3,	INSN_MACRO,		0,		I1,	0,	0 },
 {"sb",	    "y,5(x)",	0xc000, 0xf800,		RD_1|RD_3,		0,		I1,	0,	0 },
 {"sd",	    "y,D(x)",	0x7800, 0xf800,		RD_1|RD_3, 		0,		I3,	0,	0 },
 {"sd",	    "y,D(S)",	0xf900, 0xff00,		RD_1, 			RD_PC,		I3,	0,	0 },
 {"sd",	    "R,C(S)",	0xfa00, 0xff00,		0,			RD_31|RD_PC,	I1,	0,	0 },
 {"sh",	    "y,H(x)",	0xc800, 0xf800,		RD_1|RD_3,		0,		I1,	0,	0 },
-{"sllv",    "y,x",	0xe804, 0xf81f,		MOD_1|RD_2, 	0,		I1,	0,	0 },
-{"sll",	    "x,w,<",	0x3000, 0xf803,		WR_1|RD_2,		0,		I1,	0,	0 },
+{"sllv",    "y,x",	0xe804, 0xf81f,		MOD_1|RD_2, 		0,		I1,	0,	0 },
+{"sllv",    "y,d,N",	0xe804, 0xf81f,		WR_1|RD_2|RD_3, 	0,		I1,	M16E2,	0 },
+{"sll",    "x,w,<",	0x3000, 0xf803,		WR_1|RD_2,		0,		I1,	0,	0 },
+{"sll",    "x,h,<",	0x3000, 0xf803,		WR_1|RD_2,		0,		I1,	M16E2,	0 },
 {"sll",     "y,x",	0xe804, 0xf81f,		MOD_1|RD_2,		0,		I1,	0,	0 },
 {"slti",    "x,8",	0x5000, 0xf800,		RD_1|WR_T,		0,		I1,	0,	0 },
+{"slt",	    "d,h",	0xe802, 0xf81f,		RD_1|RD_2|WR_T,		0,		I1,	M16E2,	0 },
 {"slt",	    "x,y",	0xe802, 0xf81f,		RD_1|RD_2|WR_T,		0,		I1,	0,	0 },
 {"slt",     "x,8",	0x5000, 0xf800,		RD_1|WR_T,		0,		I1,	0,	0 },
 {"sltiu",   "x,8",	0x5800, 0xf800,		RD_1|WR_T,		0,		I1,	0,	0 },
 {"sltu",    "x,y",	0xe803, 0xf81f,		RD_1|RD_2|WR_T,		0,		I1,	0,	0 },
+{"sltu",    "d,h",	0xe803, 0xf81f,		RD_1|RD_2|WR_T,		0,		I1,	M16E2,	0 },
 {"sltu",    "x,8",	0x5800, 0xf800,		RD_1|WR_T,		0,		I1,	0,	0 },
+{"srav",    "y,d,N",	0xe807, 0xf81f,		WR_1|RD_2|RD_3,		0,		I1,	M16E2,	0 },
 {"srav",    "y,x",	0xe807, 0xf81f,		MOD_1|RD_2,		0,		I1,	0,	0 },
+{"sra",	    "x,h,<",	0x3003, 0xf803,		WR_1|RD_2,		0,		I1,	M16E2,	0 },
 {"sra",	    "x,w,<",	0x3003, 0xf803,		WR_1|RD_2,		0,		I1,	0,	0 },
 {"sra",     "y,x",	0xe807, 0xf81f,		MOD_1|RD_2,		0,		I1,	0,	0 },
+{"srlv",    "y,d,N",	0xe806, 0xf81f,		WR_1|RD_2|RD_3,		0,		I1,	M16E2,	0 },
 {"srlv",    "y,x",	0xe806, 0xf81f,		MOD_1|RD_2,		0,		I1,	0,	0 },
+{"srl",	    "x,h,<",	0x3002, 0xf803,		WR_1|RD_2,		0,		I1,	M16E2,	0 },
 {"srl",	    "x,w,<",	0x3002, 0xf803,		WR_1|RD_2,		0,		I1,	0,	0 },
 {"srl",     "y,x",	0xe806, 0xf81f,		MOD_1|RD_2,		0,		I1,	0,	0 },
+//{"subu",    "z,d,h",	0xe003, 0xf803,		WR_1|RD_2|RD_3,		0,		I1,	M16E2,	0 },
 {"subu",    "z,v,y",	0xe003, 0xf803,		WR_1|RD_2|RD_3,		0,		I1,	0,	0 },
 {"subu",    "y,x,I",	0, (int) M_SUBU_I,	INSN_MACRO,		0,		I1,	0,	0 },
 {"subu",    "x,I",	0, (int) M_SUBU_I_2,	INSN_MACRO,		0,		I1,	0,	0 },
 {"sw",	    "y,W(x)",	0xd800, 0xf800,		RD_1|RD_3,		0,		I1,	0,	0 },
 {"sw",	    "x,V(S)",	0xd000, 0xf800,		RD_1,			RD_SP,		I1,	0,	0 },
 {"sw",	    "R,V(S)",	0x6200, 0xff00,		0,			RD_31|RD_SP,	I1,	0,	0 },
+{"xor",	    "x,h,N",	0xe80e, 0xf81f,		WR_1|RD_2|RD_3,		0,		I1,	M16E2,	0 },
 {"xor",	    "x,y",	0xe80e, 0xf81f,		MOD_1|RD_2, 	0,		I1,	0,	0 },
   /* MIPS16e additions */
 {"restore", "M",	0x6400, 0xff80,		WR_31|NODS,		MOD_SP,		I32,	0,	0 },
 {"save",    "m",	0x6480, 0xff80,		NODS,			RD_31|MOD_SP,	I32,	0,	0 },
 {"sdbbp",   "6",	0xe801, 0xf81f,		TRAP,			0,		I32,	0,	0 },
 {"seb",	    "x",	0xe891, 0xf8ff,		MOD_1,			0,		I32,	0,	0 },
+{"seb",	    "x,N",	0xe891, 0xf8ff,		WR_1|RD_2,		0,		I32,	M16E2,	0 },
 {"seh",	    "x",	0xe8b1, 0xf8ff,		MOD_1,			0,		I32,	0,	0 },
+{"seh",	    "x,N",	0xe8b1, 0xf8ff,		WR_1|RD_2,		0,		I32,	M16E2,	0 },
 {"sew",	    "x",	0xe8d1, 0xf8ff,		MOD_1,			0,		I64,	0,	0 },
 {"zeb",	    "x",	0xe811, 0xf8ff,		MOD_1,			0,		I32,	0,	0 },
+{"zeb",	    "x,N",	0xe811, 0xf8ff,		WR_1|RD_2,		0,		I32,	M16E2,	0 },
 {"zeh",	    "x",	0xe831, 0xf8ff,		MOD_1,			0,		I32,	0,	0 },
+{"zeh",	    "x,N",	0xe831, 0xf8ff,		WR_1|RD_2,		0,		I32,	M16E2,	0 },
 {"zew",	    "x",	0xe851, 0xf8ff,		MOD_1,			0,		I64,	0,	0 },
 };
 

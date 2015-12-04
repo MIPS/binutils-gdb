@@ -97,6 +97,24 @@
     return &op.root; \
   }
 
+#define MAPPED_EXTEND_REG(BANK, MAP) \
+  { \
+    static const struct mips_extend_reg_operand op = { \
+      { OP_EXTEND_REG, 4, 17}, OP_REG_##BANK, MAP \
+    }; \
+    return &op.root; \
+  }
+
+#define MAPPED_SPLIT_REG(SIZE, LSB, BIT, BANK, MAP) \
+  { \
+    typedef char ATTRIBUTE_UNUSED \
+      static_assert[(1 << (SIZE)) == ARRAY_SIZE (MAP)]; \
+    static const struct mips_split_reg_operand op = { \
+      { OP_SPLIT_REG, SIZE, LSB }, BIT, OP_REG_##BANK, MAP \
+    }; \
+    return &op.root; \
+  }
+
 #define OPTIONAL_MAPPED_REG(SIZE, LSB, BANK, MAP) \
   { \
     typedef char ATTRIBUTE_UNUSED \

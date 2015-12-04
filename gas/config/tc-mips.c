@@ -1226,6 +1226,9 @@ static int mips_relax_branch;
 
 /* The MIPS16 EXTEND opcode, shifted left 16 places.  */
 #define MIPS16_EXTEND (0xf000U << 16)
+
+/* The MIPS16E2 EXTEND2 opcode, shifted left 16 places.  */
+#define MIPS16_EXTEND2 (0xf800U << 16)
 
 /* Whether or not we are emitting a branch-likely macro.  */
 static bfd_boolean emit_branch_likely_macro = FALSE;
@@ -3363,7 +3366,7 @@ validate_mips_insn (const struct mips_opcode *opcode,
 		    struct mips_operand_array *operands)
 {
   const char *s;
-  unsigned long used_bits, doubled, undefined, opno, mask;
+  unsigned long used_bits, doubled, undefined, opno, mask, extend2_mask;
   const struct mips_operand *operand;
 
   mask = (opcode->pinfo == INSN_MACRO ? 0 : opcode->mask);
@@ -3413,6 +3416,12 @@ validate_mips_insn (const struct mips_opcode *opcode,
 	      used_bits &= ~(1 << (operand->lsb + 5));
 	    if (operand->type == OP_ENTRY_EXIT_LIST)
 	      used_bits &= ~(mask & 0x700);
+	    /* Clear off the extended register bits.  FIXME: This is probably
+	       the incorecct way to handle this.  */
+	    if (operand->type == OP_EXTEND_REG)
+	      used_bits &= ~(mips_insert_operand (operand, 0, -1));
+	    if (operand->type == OP_SPLIT_REG)
+	      used_bits &= ~(1 << ((struct mips_split_reg_operand*)(operand))->bit);
 	  }
 	/* Skip prefix characters.  */
 	if (decode_operand && (*s == '+' || *s == 'm' || *s == '-' || *s == '`'))
@@ -4475,6 +4484,7 @@ operand_reg_mask (const struct mips_cl_insn *insn,
 
     case OP_REG:
     case OP_OPTIONAL_REG:
+    case OP_EXTEND_REG:
       {
 	const struct mips_reg_operand *reg_op;
 
@@ -4483,6 +4493,16 @@ operand_reg_mask (const struct mips_cl_insn *insn,
 	  return 0;
 	uval = insn_extract_operand (insn, operand);
 	return 1 << mips_decode_reg_operand (reg_op, uval);
+      }
+    case OP_SPLIT_REG:
+      {
+	const struct mips_split_reg_operand *reg_op;
+
+	reg_op = (const struct mips_split_reg_operand *) operand;
+	if (!(type_mask & (1 << reg_op->reg_type)))
+	  return 0;
+	uval = insn_extract_operand (insn, operand);
+	return 1 << mips_decode_reg_operand ((const struct mips_reg_operand *)reg_op, uval);
       }
 
     case OP_REG_PAIR:
@@ -4495,7 +4515,6 @@ operand_reg_mask (const struct mips_cl_insn *insn,
 	uval = insn_extract_operand (insn, operand);
 	return (1 << pair_op->reg1_map[uval]) | (1 << pair_op->reg2_map[uval]);
       }
-
     case OP_CLO_CLZ_DEST:
       if (!(type_mask & (1 << OP_REG_GP)))
 	return 0;
@@ -5261,6 +5280,47 @@ match_reg_operand (struct mips_arg_info *arg,
 
   if (operand_base->size > 0
       && uval >= (unsigned int) (1 << operand_base->size))
+    {
+      match_out_of_range (arg);
+      return FALSE;
+    }
+
+  arg->last_regno = regno;
+  if (arg->opnum == 1)
+    arg->dest_regno = regno;
+  insn_insert_operand (arg->insn, operand_base, uval);
+  return TRUE;
+}
+
+/* OP_SPLIT_REG matcher.  Difference from the above is that
+   is that we treat num_vals as 1 << size+1 since the extended
+   bit is stored elsewhere.  */
+
+static bfd_boolean
+match_spilt_reg_operand (struct mips_arg_info *arg,
+		   const struct mips_operand *operand_base)
+{
+  const struct mips_split_reg_operand *operand;
+  unsigned int regno, uval, num_vals;
+
+  operand = (const struct mips_split_reg_operand *) operand_base;
+  if (!match_reg (arg, operand->reg_type, &regno))
+    return FALSE;
+
+  if (operand->reg_map)
+    {
+      num_vals = 1 << (1 + operand->root.size);
+      for (uval = 0; uval < num_vals; uval++)
+	if (operand->reg_map[uval] == regno)
+	  break;
+      if (num_vals == uval)
+	return FALSE;
+    }
+  else
+    uval = regno;
+
+  if (operand_base->size > 0
+      && uval >= (unsigned int) (1 << (1 + operand_base->size)))
     {
       match_out_of_range (arg);
       return FALSE;
@@ -6092,8 +6152,12 @@ match_operand (struct mips_arg_info *arg,
       return match_string_operand (arg, operand);
 
     case OP_REG:
+    case OP_EXTEND_REG:
     case OP_OPTIONAL_REG:
       return match_reg_operand (arg, operand);
+
+    case OP_SPLIT_REG:
+      return match_spilt_reg_operand (arg, operand);
 
     case OP_REG_PAIR:
       return match_reg_pair_operand (arg, operand);
@@ -8196,6 +8260,11 @@ match_mips16_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	case 'F':
 	  forced_insn_length = 4;
 	  insn->insn_opcode |= MIPS16_EXTEND;
+	  break;
+	case 'h':
+	case 'N':
+	  forced_insn_length = 4;
+	  insn->insn_opcode |= MIPS16_EXTEND2;
 	  break;
 	}
 
@@ -14002,7 +14071,17 @@ mips16_immed (char *file, unsigned int line, int type,
       else
 	*insn |= MIPS16_EXTEND;
     }
-  else if (user_insn_length == 4)
+  else if (type == 'h' || type == 'N')
+    {
+      *insn |= MIPS16_EXTEND2;
+    }
+
+ else if (user_insn_length == 4)
+            /* ??? I have my doubts about this.  There is at least one
+               execution path that leads here from match_mips16_insn that
+               passed forced_insn_length as user_insn_length.  Silence
+               the warning for MIPS16E for the moment.
+            && ((MIPS16_EXTEND2 & *insn) != MIPS16_EXTEND2))*/
     {
       /* The operand doesn't force an unextended instruction to be extended.
 	 Warn if the user wanted an extended instruction anyway.  */

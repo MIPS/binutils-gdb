@@ -1317,8 +1317,21 @@ print_insn_arg (struct disassemble_info *info,
 
     case OP_REG:
     case OP_OPTIONAL_REG:
+    case OP_EXTEND_REG:
       {
 	const struct mips_reg_operand *reg_op;
+
+	reg_op = (const struct mips_reg_operand *) operand;
+	uval = mips_decode_reg_operand (reg_op, uval);
+	print_reg (info, opcode, reg_op->reg_type, uval);
+
+	mips_seen_register (state, uval, reg_op->reg_type);
+      }
+      break;
+
+    case OP_SPLIT_REG:
+      {
+	const struct mips_split_reg_operand *reg_op;
 
 	reg_op = (const struct mips_reg_operand *) operand;
 	uval = mips_decode_reg_operand (reg_op, uval);
@@ -1664,6 +1677,7 @@ validate_insn_args (const struct mips_opcode *opcode,
 		case OP_MXU_STRIDE:
 		case OP_MAPPED_STRING:
 		case OP_SAVE_RESTORE_LIST:
+		case OP_SPLIT_REG:
 		  break;
 		}
 	    }
@@ -1747,7 +1761,7 @@ print_insn_args (struct disassemble_info *info,
 	  else
 	    {
 	      bfd_vma base_pc = insn_pc;
-
+	      unsigned int uval = 0;
 	      /* Adjust the PC relative base so that branch/jump insns use
 		 the following PC as the base but genuinely PC relative
 		 operands use the current PC.  */
@@ -1761,7 +1775,6 @@ print_insn_args (struct disassemble_info *info,
 		  if (pcrel_op->include_isa_bit)
 		    base_pc += length;
 		}
-
 	      print_insn_arg (info, &state, opcode, operand, base_pc,
 			      mips_extract_operand (operand, insn));
 	    }
@@ -1963,7 +1976,9 @@ print_mips16_insn_arg (struct disassemble_info *info,
 	{
 	  /* Calculate the full field value.  */
 	  uval = mips_extract_operand (operand, insn);
-	  if (use_extend)
+	  if (use_extend
+	      && operand->type != OP_SPLIT_REG
+	      && operand->type != OP_EXTEND_REG)
 	    {
 	      ext_operand = decode_mips16_operand (type, TRUE);
 	      if (ext_operand != operand)
@@ -1976,6 +1991,12 @@ print_mips16_insn_arg (struct disassemble_info *info,
 		  else
 		    uval = ((extend >> 6) & 0x1f) | (extend & 0x20);
 		}
+	    }
+	  else if (use_extend
+		   && (operand->type == OP_SPLIT_REG
+		       || operand->type == OP_EXTEND_REG))
+	    {
+	      uval = mips_extract_operand (operand, (extend << 16) | insn);
 	    }
 	}
 
@@ -2050,6 +2071,7 @@ print_insn_mips16 (bfd_vma memaddr, struct disassemble_info *info)
   int insn;
   bfd_boolean use_extend;
   int extend = 0;
+  int extend_mask = 0;
   const struct mips_opcode *op, *opend;
   struct mips_print_arg_state state;
   void *is = info->stream;
@@ -2102,11 +2124,11 @@ print_insn_mips16 (bfd_vma memaddr, struct disassemble_info *info)
 
   /* Handle the extend opcode specially.  */
   use_extend = FALSE;
-  if ((insn & 0xf800) == 0xf000)
+  if (((insn & 0xf800) == 0xf000) || (insn & 0xf800) == 0xf800)
     {
       use_extend = TRUE;
       extend = insn & 0x7ff;
-
+      extend_mask = insn ^ extend;
       memaddr += 2;
 
       status = (*info->read_memory_func) (memaddr, buffer, 2, info);
@@ -2123,7 +2145,7 @@ print_insn_mips16 (bfd_vma memaddr, struct disassemble_info *info)
 	insn = bfd_getl16 (buffer);
 
       /* Check for an extend opcode followed by an extend opcode.  */
-      if ((insn & 0xf800) == 0xf000)
+      if (((insn & 0xf800) == 0xf000) || ((insn & 0xf800) == 0xf800))
 	{
 	  infprintf (is, "extend 0x%x", (unsigned int) extend);
 	  info->insn_type = dis_noninsn;
@@ -2221,7 +2243,7 @@ print_insn_mips16 (bfd_vma memaddr, struct disassemble_info *info)
 #undef GET_OP
 
   if (use_extend)
-    infprintf (is, "0x%x", extend | 0xf000);
+    infprintf (is, "0x%x", extend | extend_mask);
   infprintf (is, "0x%x", insn);
   info->insn_type = dis_noninsn;
 
