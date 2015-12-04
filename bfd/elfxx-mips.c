@@ -2350,7 +2350,8 @@ aligned_pcrel_reloc_p (int r_type)
   return (r_type == R_MIPS_PC18_S3
 	  || r_type == R_MIPS_PC19_S2
 	  || r_type == R_MICROMIPS_PC18_S3
-	  || r_type == R_MICROMIPS_PC19_S2);
+	  || r_type == R_MICROMIPS_PC19_S2
+	  || r_type == R_MICROMIPS_PC23_S2);
 }
 
 static inline bfd_boolean
