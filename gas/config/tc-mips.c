@@ -4149,6 +4149,7 @@ micromips_reloc_p (bfd_reloc_code_real_type reloc)
     case BFD_RELOC_MICROMIPS_16_PCREL_S1:
     case BFD_RELOC_MICROMIPS_18_PCREL_S3:
     case BFD_RELOC_MICROMIPS_19_PCREL_S2:
+    case BFD_RELOC_MICROMIPS_23_PCREL_S2:
     case BFD_RELOC_MICROMIPS_21_PCREL_S1:
     case BFD_RELOC_MICROMIPS_26_PCREL_S1:
     case BFD_RELOC_MICROMIPS_GPREL16:
@@ -4231,6 +4232,7 @@ pcrel_reloc_p (bfd_reloc_code_real_type reloc)
 	  || reloc == BFD_RELOC_MICROMIPS_26_PCREL_S1
 	  || reloc == BFD_RELOC_MICROMIPS_18_PCREL_S3
 	  || reloc == BFD_RELOC_MICROMIPS_19_PCREL_S2
+	  || reloc == BFD_RELOC_MICROMIPS_23_PCREL_S2
 	  || reloc == BFD_RELOC_MIPS_18_PCREL_S3
 	  || reloc == BFD_RELOC_MIPS_19_PCREL_S2
 	  || reloc == BFD_RELOC_MIPS_21_PCREL_S2
@@ -5142,6 +5144,57 @@ match_int_operand (struct mips_arg_info *arg,
 	  if (!arg->lax_match && sval <= max_val)
 	    return FALSE;
 	}
+    }
+  else if (mips_opts.micromips
+	   && operand_base->lsb == 0
+	   && operand_base->size == 23
+	   && operand->shift == 2
+	   && operand->bias == 0
+	   && operand->max_val == 4194303)
+    {
+      /* The operand can be relocated.  */
+      if (!match_expression (arg, &offset_expr, offset_reloc))
+	return FALSE;
+
+      if (offset_reloc[0] != BFD_RELOC_UNUSED)
+	/* Relocation operators were used.  Accept the argument and
+	   leave the relocation value in offset_expr and offset_relocs
+	   for the caller to process.  */
+	return TRUE;
+
+      if (offset_expr.X_op != O_constant)
+	return FALSE;
+
+      /* Clear the global state; we're going to install the operand
+	 ourselves.  */
+      sval = offset_expr.X_add_number;
+      offset_expr.X_op = O_absent;
+    }
+  else if (mips_opts.micromips
+	   && ISA_IS_R6 (mips_opts.isa)
+	   && operand_base->lsb == 0
+	   && operand_base->size == 19
+	   && operand->shift == 2
+	   && operand->bias == 0
+	   && operand->max_val == 262143)
+    {
+      /* The operand can be relocated.  */
+      if (!match_expression (arg, &offset_expr, offset_reloc))
+	return FALSE;
+
+      if (offset_reloc[0] != BFD_RELOC_UNUSED)
+	/* Relocation operators were used.  Accept the argument and
+	   leave the relocation value in offset_expr and offset_relocs
+	   for the caller to process.  */
+	return TRUE;
+
+      if (offset_expr.X_op != O_constant)
+	return FALSE;
+
+      /* Clear the global state; we're going to install the operand
+	 ourselves.  */
+      sval = offset_expr.X_add_number;
+      offset_expr.X_op = O_absent;
     }
   else
     {
@@ -14251,6 +14304,67 @@ static const struct percent_op_match mips_percent_op[] =
   {"%pcrel_lo", BFD_RELOC_LO16_PCREL}
 };
 
+static const struct percent_op_match micromips_percent_op[] =
+{
+  {"%lo", BFD_RELOC_LO16},
+  {"%call_hi", BFD_RELOC_MIPS_CALL_HI16},
+  {"%call_lo", BFD_RELOC_MIPS_CALL_LO16},
+  {"%call16", BFD_RELOC_MIPS_CALL16},
+  {"%got_disp", BFD_RELOC_MIPS_GOT_DISP},
+  {"%got_page", BFD_RELOC_MIPS_GOT_PAGE},
+  {"%got_ofst", BFD_RELOC_MIPS_GOT_OFST},
+  {"%got_hi", BFD_RELOC_MIPS_GOT_HI16},
+  {"%got_lo", BFD_RELOC_MIPS_GOT_LO16},
+  {"%got", BFD_RELOC_MIPS_GOT16},
+  {"%gp_rel", BFD_RELOC_GPREL16},
+  {"%half", BFD_RELOC_16},
+  {"%highest", BFD_RELOC_MIPS_HIGHEST},
+  {"%higher", BFD_RELOC_MIPS_HIGHER},
+  {"%neg", BFD_RELOC_MIPS_SUB},
+  {"%tlsgd", BFD_RELOC_MIPS_TLS_GD},
+  {"%tlsldm", BFD_RELOC_MIPS_TLS_LDM},
+  {"%dtprel_hi", BFD_RELOC_MIPS_TLS_DTPREL_HI16},
+  {"%dtprel_lo", BFD_RELOC_MIPS_TLS_DTPREL_LO16},
+  {"%tprel_hi", BFD_RELOC_MIPS_TLS_TPREL_HI16},
+  {"%tprel_lo", BFD_RELOC_MIPS_TLS_TPREL_LO16},
+  {"%gottprel", BFD_RELOC_MIPS_TLS_GOTTPREL},
+  {"%hi", BFD_RELOC_HI16_S},
+  {"%pcrel_hi", BFD_RELOC_HI16_S_PCREL},
+  {"%pcrel_lo", BFD_RELOC_LO16_PCREL},
+  {"%pcrel", BFD_RELOC_MICROMIPS_23_PCREL_S2}
+};
+
+static const struct percent_op_match micromips_r6_percent_op[] =
+{
+  {"%lo", BFD_RELOC_LO16},
+  {"%call_hi", BFD_RELOC_MIPS_CALL_HI16},
+  {"%call_lo", BFD_RELOC_MIPS_CALL_LO16},
+  {"%call16", BFD_RELOC_MIPS_CALL16},
+  {"%got_disp", BFD_RELOC_MIPS_GOT_DISP},
+  {"%got_page", BFD_RELOC_MIPS_GOT_PAGE},
+  {"%got_ofst", BFD_RELOC_MIPS_GOT_OFST},
+  {"%got_hi", BFD_RELOC_MIPS_GOT_HI16},
+  {"%got_lo", BFD_RELOC_MIPS_GOT_LO16},
+  {"%got", BFD_RELOC_MIPS_GOT16},
+  {"%gp_rel", BFD_RELOC_GPREL16},
+  {"%half", BFD_RELOC_16},
+  {"%highest", BFD_RELOC_MIPS_HIGHEST},
+  {"%higher", BFD_RELOC_MIPS_HIGHER},
+  {"%neg", BFD_RELOC_MIPS_SUB},
+  {"%tlsgd", BFD_RELOC_MIPS_TLS_GD},
+  {"%tlsldm", BFD_RELOC_MIPS_TLS_LDM},
+  {"%dtprel_hi", BFD_RELOC_MIPS_TLS_DTPREL_HI16},
+  {"%dtprel_lo", BFD_RELOC_MIPS_TLS_DTPREL_LO16},
+  {"%tprel_hi", BFD_RELOC_MIPS_TLS_TPREL_HI16},
+  {"%tprel_lo", BFD_RELOC_MIPS_TLS_TPREL_LO16},
+  {"%gottprel", BFD_RELOC_MIPS_TLS_GOTTPREL},
+  {"%hi", BFD_RELOC_HI16_S},
+  {"%pcrel_hi", BFD_RELOC_HI16_S_PCREL},
+  {"%pcrel_lo", BFD_RELOC_LO16_PCREL},
+  {"%pcrel", BFD_RELOC_MICROMIPS_19_PCREL_S2}
+};
+
+
 static const struct percent_op_match mips16_percent_op[] =
 {
   {"%lo", BFD_RELOC_MIPS16_LO16},
@@ -14282,6 +14396,19 @@ parse_relocation (char **str, bfd_reloc_code_real_type *reloc)
     {
       percent_op = mips16_percent_op;
       limit = ARRAY_SIZE (mips16_percent_op);
+    }
+  else if (mips_opts.micromips)
+    {
+      if (ISA_IS_R6 (mips_opts.isa))
+        {
+	  percent_op = micromips_r6_percent_op;
+	  limit = ARRAY_SIZE (micromips_r6_percent_op);
+        }
+      else
+        {
+	  percent_op = micromips_percent_op;
+	  limit = ARRAY_SIZE (micromips_percent_op);
+        }
     }
   else
     {
@@ -15151,7 +15278,8 @@ mips_force_relocation (fixS *fixp)
      so that the linker relaxation can update targets.  */
   if (fixp->fx_r_type == BFD_RELOC_MICROMIPS_7_PCREL_S1
       || fixp->fx_r_type == BFD_RELOC_MICROMIPS_10_PCREL_S1
-      || fixp->fx_r_type == BFD_RELOC_MICROMIPS_16_PCREL_S1)
+      || fixp->fx_r_type == BFD_RELOC_MICROMIPS_16_PCREL_S1
+      || fixp->fx_r_type == BFD_RELOC_MICROMIPS_23_PCREL_S2)
     return 1;
 
   /* We want all PC-relative relocations to be kept for R6 relaxation.  */
@@ -15218,6 +15346,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       case BFD_RELOC_MICROMIPS_26_PCREL_S1:
       case BFD_RELOC_MICROMIPS_18_PCREL_S3:
       case BFD_RELOC_MICROMIPS_19_PCREL_S2:
+      case BFD_RELOC_MICROMIPS_23_PCREL_S2:
       case BFD_RELOC_32_PCREL:
       case BFD_RELOC_MIPS_21_PCREL_S2:
       case BFD_RELOC_MIPS_26_PCREL_S2:
@@ -15449,6 +15578,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       }
       break;
 
+    case BFD_RELOC_MICROMIPS_23_PCREL_S2:
     case BFD_RELOC_MICROMIPS_19_PCREL_S2:
     case BFD_RELOC_MIPS_19_PCREL_S2:
       {
@@ -17640,6 +17770,7 @@ tc_gen_reloc (asection *section ATTRIBUTE_UNUSED, fixS *fixp)
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_26_PCREL_S1
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_18_PCREL_S3
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_19_PCREL_S2
+		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_23_PCREL_S2
 		  || fixp->fx_r_type == BFD_RELOC_32_PCREL
 		  || fixp->fx_r_type == BFD_RELOC_MIPS_21_PCREL_S2
 		  || fixp->fx_r_type == BFD_RELOC_MIPS_26_PCREL_S2
