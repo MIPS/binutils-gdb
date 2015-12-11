@@ -1540,6 +1540,10 @@ print_insn_arg (struct disassemble_info *info,
       infprintf (is, "$pc");
       break;
 
+    case OP_REG28:
+      infprintf (is, "$28");
+      break;
+
     case OP_VU0_SUFFIX:
     case OP_VU0_MATCH_SUFFIX:
       print_vu0_channel (info, operand, uval);
@@ -1657,6 +1661,7 @@ validate_insn_args (const struct mips_opcode *opcode,
 		case OP_REPEAT_PREV_REG:
 		case OP_REPEAT_DEST_REG:
 		case OP_PC:
+		case OP_REG28:
 		case OP_VU0_SUFFIX:
 		case OP_VU0_MATCH_SUFFIX:
 		case OP_IMM_INDEX:
@@ -2144,8 +2149,11 @@ print_insn_mips16 (bfd_vma memaddr, struct disassemble_info *info)
 	{
 	  const char *s;
 
-	  /* LUI/ORI are extended only instructions */
-	  if (strcmp (op->args, "x,F") == 0 && !use_extend)
+	  /* LUI/ORI/L*GP/S*GP are extended only instructions */
+	  if ((strcmp (op->args, "x,F") == 0
+	       || strcmp (op->args, "x,G,J") == 0
+	       || strcmp (op->args, "x,J(G)") == 0)
+	      && !use_extend)
 	    continue;
 
 	  if (op->args[0] == 'a' || op->args[0] == 'i')
