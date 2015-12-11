@@ -107,6 +107,10 @@
 // format routines for save/restore
 :%s::::RAS:int ras
 *mips16e
+*mips32r2
+*mips32r6
+*mips64r2
+*mips64r6
 {
   static char buf[10];
   buf[0] = '\0';
@@ -121,6 +125,10 @@
 
 :%s::::XSREGS:int xsregs
 *mips16e
+*mips32r2
+*mips32r6
+*mips64r2
+*mips64r6
 {
   if (xsregs > 6)
     return "s2,s3,s4,s5,s6,s7,s8,";
@@ -141,6 +149,10 @@
 
 :%s::::AREGS:int aregs
 *mips16e
+*mips32r2
+*mips32r6
+*mips64r2
+*mips64r6
 {
   // Fixme: how is the arg/static distinction made by the assembler?
   static const char * const aregstr[16] = {
@@ -284,6 +296,10 @@
 
 :function:::void:do_restore:int xsregs, int aregs, int ras0s1, int framesize
 *mips16e
+*mips32r2
+*mips32r6
+*mips64r2
+*mips64r6
 {
   unsigned_word temp, temp2;    
   int astatic;
@@ -365,4 +381,24 @@
 *mips16e
 {
   do_restore (SD_,XSREGS,AREGS,RAS,BFRAME);
+}
+
+011100,3.XSREGS,4.FSHI,4.AREGS,00,3.RAS,4.FSLO,011111:SPECIAL:32::RESTORE
+"restore %s<RAS>%s<XSREGS>%s<AREGS><BFRAME>"
+*mips32r2
+*mips32r6
+*mips64r2
+*mips64r6
+{
+  do_restore (SD_,XSREGS,AREGS,RAS,BFRAME);
+}
+
+011100,3.XSREGS,4.FSHI,4.AREGS,01,3.RAS,4.FSLO,011111:SPECIAL:32::SAVE
+"save %s<RAS>%s<XSREGS>%s<AREGS><BFRAME>"
+*mips32r2
+*mips32r6
+*mips64r2
+*mips64r6
+{
+  do_save (SD_,XSREGS,AREGS,RAS,BFRAME);
 }
