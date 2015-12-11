@@ -393,7 +393,19 @@
   do_ori (SD_, 0, TRX, IMMEDIATE);
 }
 
+11110,6.IMM_10_5,5.IMM_15_11 + 01101,3.RX,010,5.IMM_4_0:EXT-RI:16::ORI
+"li r<TRX>, <IMMEDIATE>"
+*mips16:
+{
+  do_ori (SD_, TRX, TRX, IMMEDIATE);
+}
 
+11110,6.IMM_10_5,5.IMM_15_11 + 01101,3.RX,001,5.IMM_4_0:EXT-RI:16::LUI
+"lui r<TRX>, <IMMEDIATE>"
+*mips16:
+{
+  do_aui (SD_, TRX, 0, IMMEDIATE);
+}
 
 01000,3.RX,3.RY,0,4.IMMED:RRI-A:16::ADDIU
 "addiu r<TRY>, r<TRX>, <IMMED>"
