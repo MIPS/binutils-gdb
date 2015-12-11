@@ -443,6 +443,8 @@ struct _sim_cpu {
 #define A3      (REGISTERS[7])
 #define T8IDX   24
 #define T8	(REGISTERS[T8IDX])
+#define GPIDX   28
+#define GP      (REGISTERS[GPIDX])
 #define SPIDX   29
 #define SP      (REGISTERS[SPIDX])
 #define RAIDX   31

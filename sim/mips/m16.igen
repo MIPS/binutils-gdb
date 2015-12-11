@@ -155,7 +155,45 @@
   GPR[TRX] = EXTEND32 (do_load (SD_, AccessLength_WORD, SP, EXTEND16 (IMMEDIATE)));
 }
 
+11110,6.IMM_10_5,5.IMM_15_11 + 10010,3.RX,001,5.IMM_4_0:EXT-RI:16::LWGP
+"lw r<TRX>, <IMMEDIATE> (GP)"
+*mips16:
+*vr4100:
+{
+  GPR[TRX] = EXTEND32 (do_load (SD_, AccessLength_WORD, GP, EXTEND16 (IMMEDIATE)));
+}
 
+11110,6.IMM_10_5,5.IMM_15_11 + 10010,3.RX,010,5.IMM_4_0:EXT-RI:16::LHGP
+"lh r<TRX>, <IMMEDIATE> (GP)"
+*mips16:
+*vr4100:
+{
+  GPR[TRX] = EXTEND32 (do_load (SD_, AccessLength_HALFWORD, GP, EXTEND16 (IMMEDIATE)));
+}
+
+11110,6.IMM_10_5,5.IMM_15_11 + 10010,3.RX,011,5.IMM_4_0:EXT-RI:16::LBGP
+"lb r<TRX>, <IMMEDIATE> (GP)"
+*mips16:
+*vr4100:
+{
+  GPR[TRX] = EXTEND32 (do_load (SD_, AccessLength_BYTE, GP, EXTEND16 (IMMEDIATE)));
+}
+
+11110,6.IMM_10_5,5.IMM_15_11 + 10010,3.RX,100,5.IMM_4_0:EXT-RI:16::LHUGP
+"lhu r<TRX>, <IMMEDIATE> (GP)"
+*mips16:
+*vr4100:
+{
+  GPR[TRX] = do_load (SD_, AccessLength_HALFWORD, GP, EXTEND16 (IMMEDIATE));
+}
+
+11110,6.IMM_10_5,5.IMM_15_11 + 10010,3.RX,101,5.IMM_4_0:EXT-RI:16::LBUGP
+"lbu r<TRX>, <IMMEDIATE> (GP)"
+*mips16:
+*vr4100:
+{
+  GPR[TRX] = do_load (SD_, AccessLength_BYTE, GP, EXTEND16 (IMMEDIATE));
+}
 
 10111,3.RX,3.RY,5.IMMED:RRI:16::LWU
 "lwu r<TRY>, <IMMED> (r<TRX>)"
@@ -300,6 +338,29 @@
   do_store (SD_, AccessLength_WORD, SP, EXTEND16 (IMMEDIATE), GPR[TRX]);
 }
 
+11110,6.IMM_10_5,5.IMM_15_11 + 11010,3.RX,001,5.IMM_4_0:EXT-RI:16::SWGP
+"sw r<TRX>, <IMMEDIATE> (GP)"
+*mips16:
+*vr4100:
+{
+  do_store (SD_, AccessLength_WORD, GP, EXTEND16 (IMMEDIATE), GPR[TRX]);
+}
+
+11110,6.IMM_10_5,5.IMM_15_11 + 11010,3.RX,010,5.IMM_4_0:EXT-RI:16::SHGP
+"sh r<TRX>, <IMMEDIATE> (GP)"
+*mips16:
+*vr4100:
+{
+  do_store (SD_, AccessLength_HALFWORD, GP, EXTEND16 (IMMEDIATE), GPR[TRX]);
+}
+
+11110,6.IMM_10_5,5.IMM_15_11 + 11010,3.RX,011,5.IMM_4_0:EXT-RI:16::SBGP
+"sb r<TRX>, <IMMEDIATE> (GP)"
+*mips16:
+*vr4100:
+{
+  do_store (SD_, AccessLength_BYTE, GP, EXTEND16 (IMMEDIATE), GPR[TRX]);
+}
 
 
 01100,010,8.IMMED:I8:16::SWRASP
@@ -497,6 +558,13 @@
   do_addiu (SD_, SPIDX, TRX, EXTEND16 (IMMEDIATE));
 }
 
+11110,6.IMM_10_5,5.IMM_15_11 + 00000,3.RX,001,5.IMM_4_0:EXT-RI:16::ADDIUGP
+"addiu r<TRX>, GP, <IMMEDIATE>"
+*mips16:
+*vr4100:
+{
+  do_addiu (SD_, GPIDX, TRX, EXTEND16 (IMMEDIATE));
+}
 
 
 01000,3.RX,3.RY,1,4.IMMED:RRI-A:16::DADDIU
