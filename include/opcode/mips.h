@@ -405,6 +405,9 @@ enum mips_operand_type {
   /* $pc, which has no encoding in the architectural instruction.  */
   OP_PC,
 
+  /* $28, which has no encoding in the MIPS16e architectural instruction.  */
+  OP_REG28,
+
   /* A 4-bit XYZW channel mask or 2-bit XYZW index; the size determines
      which.  */
   OP_VU0_SUFFIX,

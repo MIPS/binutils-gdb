@@ -54,6 +54,7 @@ decode_mips16_operand (char type, bfd_boolean extended_p)
     case 'L': SPECIAL (6, 5, ENTRY_EXIT_LIST);
     case 'M': SPECIAL (7, 0, SAVE_RESTORE_LIST);
     case 'P': SPECIAL (0, 0, PC);
+    case 'G': SPECIAL (0, 0, REG28);
     case 'R': MAPPED_REG (0, 0, GP, reg_31_map);
     case 'S': MAPPED_REG (0, 0, GP, reg_29_map);
     case 'X': REG (5, 0, GP);
@@ -91,6 +92,7 @@ decode_mips16_operand (char type, bfd_boolean extended_p)
       case 'D': SINT (16, 0);
       case 'E': PCREL (16, 0, TRUE, 0, 2, FALSE, FALSE);
       case 'F': HINT (16, 0);
+      case 'J': SINT (16, 0);
       case 'H': SINT (16, 0);
       case 'K': SINT (16, 0);
       case 'U': UINT (16, 0);
@@ -121,6 +123,7 @@ decode_mips16_operand (char type, bfd_boolean extended_p)
       case 'D': INT_ADJ (5, 0, 31, 3, FALSE);	/* (0 .. 31) << 3 */
       case 'E': PCREL (5, 0, FALSE, 2, 2, FALSE, FALSE);
       case 'F': HINT (5, 0);
+      case 'J': SINT (5, 0);
       case 'H': INT_ADJ (5, 0, 31, 1, FALSE);	/* (0 .. 31) << 1 */
       case 'K': INT_ADJ (8, 0, 127, 3, FALSE);	/* (-128 .. 127) << 3 */
       case 'U': UINT (8, 0);
@@ -192,6 +195,7 @@ const struct mips_opcode mips16_opcodes[] =
 {"addiu",   "S,K",	0x6300, 0xff00,		0,			MOD_SP,		I1,	0,	0 },
 {"addiu",   "S,S,K",	0x6300, 0xff00,		0,			MOD_SP,		I1,	0,	0 },
 {"addiu",   "x,P,V",	0x0800, 0xf800,		WR_1,			RD_PC,		I1,	0,	0 },
+{"addiu",   "x,G,J",	0x0020, 0xf8e0,		WR_1|RD_2,		0,		I1,	0,	0 },
 {"addiu",   "x,S,V",	0x0000, 0xf800,		WR_1,			RD_SP,		I1,	0,	0 },
 {"addu",    "z,v,y",	0xe001, 0xf803,		WR_1|RD_2|RD_3,		0,		I1,	0,	0 },
 {"addu",    "y,x,4",	0x4000, 0xf810,		WR_1|RD_2,		0,		I1,	0,	0 },
@@ -295,13 +299,17 @@ const struct mips_opcode mips16_opcodes[] =
 {"jalrc",   "R,x",	0xe8c0, 0xf8ff,		RD_2|WR_31|NODS,	UBR,		I32,	0,	0 },
 {"jrc",	    "x",	0xe880, 0xf8ff,		RD_1|NODS,		UBR,		I32,	0,	0 },
 {"jrc",	    "R",	0xe8a0, 0xffff,		NODS,			RD_31|UBR,	I32,	0,	0 },
+{"lb",	    "x,J(G)",	0x9060, 0xf8e0,		WR_1|RD_3,		0,		I1,	0,	0 },
 {"lb",	    "y,5(x)",	0x8000, 0xf800,		WR_1|RD_3,		0,		I1,	0,	0 },
+{"lbu",	    "x,J(G)",	0x90a0, 0xf8e0,		WR_1|RD_3,		0,		I1,	0,	0 },
 {"lbu",	    "y,5(x)",	0xa000, 0xf800,		WR_1|RD_3,		0,		I1,	0,	0 },
 {"ld",	    "y,D(x)",	0x3800, 0xf800,		WR_1|RD_3, 		0,		I3,	0,	0 },
 {"ld",	    "y,B",	0xfc00, 0xff00,		WR_1,	 		RD_PC,		I3,	0,	0 },
 {"ld",	    "y,D(P)",	0xfc00, 0xff00,		WR_1,	 		RD_PC,		I3,	0,	0 },
 {"ld",	    "y,D(S)",	0xf800, 0xff00,		WR_1,			RD_SP,		I3,	0,	0 },
+{"lh",	    "x,J(G)",	0x9040, 0xf8e0,		WR_1|RD_3,		0,		I1,	0,	0 },
 {"lh",	    "y,H(x)",	0x8800, 0xf800,		WR_1|RD_3,		0,		I1,	0,	0 },
+{"lhu",	    "x,J(G)",	0x9080, 0xf8e0,		WR_1|RD_3,		0,		I1,	0,	0 },
 {"lhu",	    "y,H(x)",	0xa800, 0xf800,		WR_1|RD_3,		0,		I1,	0,	0 },
 /* LUI goes above as it is more specialised then li and is extended only */
 {"lui",	    "x,F",	0x6820, 0xf8e0,		WR_1,			0,		I1,	0,	0 },
@@ -310,6 +318,7 @@ const struct mips_opcode mips16_opcodes[] =
 {"lw",	    "y,W(x)",	0x9800, 0xf800,		WR_1|RD_3,		0,		I1,	0,	0 },
 {"lw",	    "x,A",	0xb000, 0xf800,		WR_1,			RD_PC,		I1,	0,	0 },
 {"lw",	    "x,V(P)",	0xb000, 0xf800,		WR_1,			RD_PC,		I1,	0,	0 },
+{"lw",	    "x,J(G)",	0x9020, 0xf8e0,		WR_1|RD_3,		0,		I1,	0,	0 },
 {"lw",	    "x,V(S)",	0x9000, 0xf800,		WR_1,			RD_SP,		I1,	0,	0 },
 {"lwu",     "y,W(x)",	0xb800, 0xf800,		WR_1|RD_3, 		0,		I3,	0,	0 },
 {"mfhi",    "x",	0xe810, 0xf8ff,		WR_1|RD_HI,		0,		I1,	0,	0 },
@@ -326,10 +335,12 @@ const struct mips_opcode mips16_opcodes[] =
 {"rem",     "z,v,y",	0, (int) M_REM_3,	INSN_MACRO,		0,		I1,	0,	0 },
 {"remu",    "0,x,y",	0xe81b, 0xf81f,		RD_2|RD_3|WR_HI|WR_LO,	0,		I1,	0,	0 },
 {"remu",    "z,v,y",	0, (int) M_REMU_3,	INSN_MACRO,		0,		I1,	0,	0 },
+{"sb",	    "x,J(G)",	0xd080, 0xf8e0,		RD_1|RD_3,		0,		I1,	0,	0 },
 {"sb",	    "y,5(x)",	0xc000, 0xf800,		RD_1|RD_3,		0,		I1,	0,	0 },
 {"sd",	    "y,D(x)",	0x7800, 0xf800,		RD_1|RD_3, 		0,		I3,	0,	0 },
 {"sd",	    "y,D(S)",	0xf900, 0xff00,		RD_1, 			RD_PC,		I3,	0,	0 },
 {"sd",	    "R,C(S)",	0xfa00, 0xff00,		0,			RD_31|RD_PC,	I1,	0,	0 },
+{"sh",	    "x,J(G)",	0xd040, 0xf8e0,		RD_1|RD_3,		0,		I1,	0,	0 },
 {"sh",	    "y,H(x)",	0xc800, 0xf800,		RD_1|RD_3,		0,		I1,	0,	0 },
 {"sllv",    "y,x",	0xe804, 0xf81f,		MOD_1|RD_2, 	0,		I1,	0,	0 },
 {"sll",	    "x,w,<",	0x3000, 0xf803,		WR_1|RD_2,		0,		I1,	0,	0 },
@@ -350,6 +361,7 @@ const struct mips_opcode mips16_opcodes[] =
 {"subu",    "y,x,I",	0, (int) M_SUBU_I,	INSN_MACRO,		0,		I1,	0,	0 },
 {"subu",    "x,I",	0, (int) M_SUBU_I_2,	INSN_MACRO,		0,		I1,	0,	0 },
 {"sw",	    "y,W(x)",	0xd800, 0xf800,		RD_1|RD_3,		0,		I1,	0,	0 },
+{"sw",	    "x,J(G)",	0xd020, 0xf8e0,		RD_1|RD_3,		0,		I1,	0,	0 },
 {"sw",	    "x,V(S)",	0xd000, 0xf800,		RD_1,			RD_SP,		I1,	0,	0 },
 {"sw",	    "R,V(S)",	0x6200, 0xff00,		0,			RD_31|RD_SP,	I1,	0,	0 },
 {"xor",	    "x,y",	0xe80e, 0xf81f,		MOD_1|RD_2, 	0,		I1,	0,	0 },

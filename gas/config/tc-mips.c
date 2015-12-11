@@ -4473,6 +4473,9 @@ operand_reg_mask (const struct mips_cl_insn *insn,
     case OP_MXU_STRIDE:
       abort ();
 
+    case OP_REG28:
+      return 1 << 28;
+
     case OP_REG:
     case OP_OPTIONAL_REG:
       {
@@ -5844,6 +5847,22 @@ match_pc_operand (struct mips_arg_info *arg)
   return FALSE;
 }
 
+/* OP_REG28 matcher.  */
+
+static bfd_boolean
+match_reg28_operand (struct mips_arg_info *arg)
+{
+  int regno;
+  if (arg->token->type == OT_REG
+      && match_regno (arg, OP_REG_GP, arg->token->u.regno, &regno)
+      && regno == 28)
+    {
+      ++arg->token;
+      return TRUE;
+    }
+  return FALSE;
+}
+
 /* OP_NON_ZERO_REG matcher.  */
 
 static bfd_boolean
@@ -6130,6 +6149,9 @@ match_operand (struct mips_arg_info *arg,
 
     case OP_PC:
       return match_pc_operand (arg);
+
+    case OP_REG28:
+      return match_reg28_operand (arg);
 
     case OP_VU0_SUFFIX:
       return match_vu0_suffix_operand (arg, operand, FALSE);
@@ -8194,6 +8216,7 @@ match_mips16_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 
 	/* Special case for LUI/ORI where it must be 4-byte/extended */
 	case 'F':
+	case 'J':
 	  forced_insn_length = 4;
 	  insn->insn_opcode |= MIPS16_EXTEND;
 	  break;
@@ -13943,7 +13966,7 @@ mips16_immed_operand (int type, bfd_boolean extended_p)
 {
   const struct mips_operand *operand;
 
-  if (type == 'F')
+  if (type == 'F' || type == 'J')
     extended_p = TRUE;
   operand = decode_mips16_operand (type, extended_p);
   if (!operand || (operand->type != OP_INT && operand->type != OP_PCREL))
@@ -13994,7 +14017,7 @@ mips16_immed (char *file, unsigned int line, int type,
   unsigned int uval, length;
 
   operand = mips16_immed_operand (type, FALSE);
-  if (type == 'F' || !mips16_immed_in_range_p (operand, reloc, val))
+  if (type == 'F' || type == 'J' || !mips16_immed_in_range_p (operand, reloc, val))
     {
       /* We need an extended instruction.  */
       if (user_insn_length == 2)
@@ -14065,6 +14088,7 @@ static const struct percent_op_match mips16_percent_op[] =
 {
   {"%lo", BFD_RELOC_MIPS16_LO16},
   {"%gprel", BFD_RELOC_MIPS16_GPREL},
+  {"%gp_rel", BFD_RELOC_MIPS16_GPREL},
   {"%got", BFD_RELOC_MIPS16_GOT16},
   {"%call16", BFD_RELOC_MIPS16_CALL16},
   {"%hi", BFD_RELOC_MIPS16_HI16_S},
@@ -16976,7 +17000,7 @@ mips16_extended_frag (fragS *fragp, asection *sec, long stretch)
   else if (symsec != absolute_section && sec != NULL)
     as_bad_where (fragp->fr_file, fragp->fr_line, _("unsupported relocation"));
 
-  return type == 'F' || !mips16_immed_in_range_p (operand, BFD_RELOC_UNUSED, val);
+  return type == 'F' || type == 'J' || !mips16_immed_in_range_p (operand, BFD_RELOC_UNUSED, val);
 }
 
 /* Compute the length of a branch sequence, and adjust the
