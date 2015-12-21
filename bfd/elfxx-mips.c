@@ -5960,9 +5960,13 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       target_is_16_bit_code_p = !micromips_p;
       target_is_micromips_code_p = micromips_p;
     }
-
-  /* If this symbol is an ifunc, point to the iplt stub for it.  */
-  if (h && h->needs_iplt)
+  else 
+    /* If this symbol is an ifunc, point to the iplt stub for it.  */
+    if (h
+	&& h->needs_iplt
+	&& (h->needs_igot
+	    || (!call16_reloc_p (r_type)
+		&& !got16_reloc_p (r_type))))
     {
       BFD_ASSERT (htab->root.iplt != NULL);
       symbol = (htab->root.iplt->output_section->vma
