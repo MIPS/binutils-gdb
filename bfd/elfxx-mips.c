@@ -2171,7 +2171,7 @@ mips_elf_allocate_iplt (struct bfd_link_info *info,
   s->size += mhtab->iplt_entry_size;
 
   BFD_ASSERT (mhtab->root.igotplt != NULL);
- 
+
   if (!mh->has_got_relocs || mh->root.pointer_equality_needed)
     {
       mh->igot_offset = mhtab->root.igotplt->size;
@@ -6026,13 +6026,12 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       target_is_16_bit_code_p = !micromips_p;
       target_is_micromips_code_p = micromips_p;
     }
-  else 
-    /* If this symbol is an ifunc, point to the iplt stub for it.  */
-    if (h
-	&& h->needs_iplt
-	&& (h->needs_igot
-	    || (!call16_reloc_p (r_type)
-		&& !got16_reloc_p (r_type))))
+  /* If this symbol is an ifunc, point to the iplt stub for it.  */
+  else if (h
+	   && h->needs_iplt
+	   && (h->needs_igot
+	       || (!call16_reloc_p (r_type)
+		   && !got16_reloc_p (r_type))))
     {
       BFD_ASSERT (htab->root.iplt != NULL);
       symbol = (htab->root.iplt->output_section->vma
@@ -9076,9 +9075,8 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 	    }
 	  if (h && h->type == STT_GNU_IFUNC)
 	    ((struct mips_elf_link_hash_entry *)h)->has_got_relocs = TRUE;
-	  else
-	    if (local_gnu_ifunc_p)
-	      localh->has_got_relocs = TRUE;
+	  else if (local_gnu_ifunc_p)
+	    localh->has_got_relocs = TRUE;
 	  /* Fall through.  */
 
 	case R_MIPS_CALL_HI16:
@@ -9149,10 +9147,9 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 		return FALSE;
 
 	      if (h && h->type == STT_GNU_IFUNC)
-		  ((struct mips_elf_link_hash_entry *)h)->has_got_relocs = TRUE;
-	      else 
-		if (local_gnu_ifunc_p)
-		  localh->has_got_relocs = TRUE;
+		((struct mips_elf_link_hash_entry *)h)->has_got_relocs = TRUE;
+	      else if (local_gnu_ifunc_p)
+		localh->has_got_relocs = TRUE;
 
 	      if (h)
 		{
@@ -11349,7 +11346,6 @@ mips_elf_check_local_got_index (bfd *abfd, struct bfd_link_info *info,
       lookup.symndx = -1;
       lookup.d.h = h;
       lookup.tls_type = GOT_TLS_NONE;
-  
       loc = htab_find_slot (g->got_entries, &lookup, NO_INSERT);
     }
   else
