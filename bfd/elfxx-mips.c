@@ -1254,7 +1254,7 @@ static const bfd_vma micromips32_exec_iplt_entry[] =
 {
   0x41a30000, 	/* lui $2, %hi(.igot address)		*/
   0xff230000,	/* lw  $2, %lo(.igot address)($2) 	*/
-  0x45b9,	/* jr  $25				*/
+  0x45b9,	/* jrc $25				*/
 };
 
 /* The format of 64-bit IPLT entries.  */
@@ -2200,7 +2200,8 @@ mips_elf_check_ifunc_symbols (void **slot, void *data)
       elf_tdata (info->output_bfd)->has_gnu_symbols |= elf_gnu_symbol_ifunc;
 
       /* .iplt entry is needed only for executable objects.  */
-      if (h->has_static_relocs
+      if (((h->root.forced_local && h->has_static_relocs)
+	   || !bfd_link_pic (info))
 	  && !mips_elf_allocate_iplt (info, mips_elf_hash_table (info), h))
 	{
 	  hti->error = TRUE;
@@ -2224,22 +2225,8 @@ mips_elf_check_symbols (struct mips_elf_link_hash_entry *h, void *data)
     mips_elf_check_mips16_stubs (hti->info, h);
 
   /* Create stubs and relocations for IFUNC symbols.  */
-  if (h
-      && !h->needs_iplt
-      && h->root.type == STT_GNU_IFUNC
-      && h->root.def_regular)
-    {
-      struct bfd_link_info *info = hti->info;
-      elf_tdata (info->output_bfd)->has_gnu_symbols |= elf_gnu_symbol_ifunc;
-
-      /* .iplt entry is needed only for executable objects.  */
-      if (!bfd_link_pic (info)
-	  && !mips_elf_allocate_iplt (info, mips_elf_hash_table (info), h))
-	{
-	  hti->error = TRUE;
-	  return FALSE;
-	}
-    }
+  if (!mips_elf_check_ifunc_symbols (&h, hti))
+    return FALSE;
 
   if (mips_elf_local_pic_function_p (h))
     {
@@ -8797,7 +8784,7 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 		   && !(!info->nocopyreloc
 			&& !PIC_OBJECT_P (abfd)
 			&& MIPS_ELF_READONLY_SECTION (sec))))
-	       && (sec->flags & SEC_ALLOC) != 0)
+	      && (sec->flags & SEC_ALLOC) != 0)
 	    {
 	      can_make_dynamic_p = TRUE;
 	      if (dynobj == NULL)
