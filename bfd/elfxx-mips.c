@@ -2165,12 +2165,17 @@ mips_elf_allocate_iplt (struct bfd_link_info *info,
 
   BFD_ASSERT (mhtab->root.igotplt != NULL);
 
+  /* Only create IGOT entry if there are no GOT relocations, or when
+     there are non-CALL references to the symbol.  In the latter case,
+     existing GOT entry must point to IPLT, so an IGOT entry is needed
+     to catch the result of the IRELATIVE relocation resolution.  */
   if (!mh->has_got_relocs || mh->root.pointer_equality_needed)
     {
       mh->igot_offset = mhtab->root.igotplt->size;
       mhtab->root.igotplt->size += MIPS_ELF_GOT_SIZE (abfd);
       mh->needs_igot = TRUE;
     }
+
   mh->needs_iplt = TRUE;
 
   /* IRELATIVE fixup will be needed for each local IFUNC.  */
@@ -2191,7 +2196,6 @@ mips_elf_check_ifunc_symbols (void **slot, void *data)
   struct mips_elf_link_hash_entry *h =
     (struct mips_elf_link_hash_entry *) *slot;
 
-  /* If the referenced symbol is ifunc, allocate an iplt for it.  */
   if (h
       && !h->needs_iplt
       && h->root.type == STT_GNU_IFUNC
@@ -2200,7 +2204,9 @@ mips_elf_check_ifunc_symbols (void **slot, void *data)
       struct bfd_link_info *info = hti->info;
       elf_tdata (info->output_bfd)->has_gnu_symbols |= elf_gnu_symbol_ifunc;
 
-      /* .iplt entry is needed only for executable objects.  */
+      /* For global symbols, .iplt entry is needed only for all non-shared-
+	 objects.  For local symbols, it is needed only if the symbol has
+	 static relocations.  */
       if (((h->root.forced_local && h->has_static_relocs)
 	   || !bfd_link_pic (info))
 	  && !mips_elf_allocate_iplt (info, mips_elf_hash_table (info), h))
@@ -2226,7 +2232,9 @@ mips_elf_check_symbols (struct mips_elf_link_hash_entry *h, void *data)
     mips_elf_check_mips16_stubs (hti->info, h);
 
   /* Create stubs and relocations for IFUNC symbols.  */
-  if (!mips_elf_check_ifunc_symbols ((void **)&h, hti))
+  if (h
+      && h->root.type == STT_GNU_IFUNC
+      && !mips_elf_check_ifunc_symbols ((void **)&h, hti))
     return FALSE;
 
   if (mips_elf_local_pic_function_p (h))
@@ -2240,7 +2248,7 @@ mips_elf_check_symbols (struct mips_elf_link_hash_entry *h, void *data)
 	 If we're creating a non-PIC relocatable object, mark H as
 	 being PIC.  If we're creating a non-relocatable object with
 	 non-PIC branches and jumps to H, make sure that H has an la25
-	 stub. IFUNCs with IPLT stubs don't need an la25 stub.  */
+	 stub.  IFUNCs with IPLT stubs don't need an la25 stub.  */
       if (bfd_link_relocatable (hti->info))
 	{
 	  if (!PIC_OBJECT_P (hti->output_bfd))
@@ -3479,10 +3487,10 @@ mips_elf_count_got_entry (struct bfd_link_info *info,
 					entry->symndx < 0
 					? &entry->d.h->root : NULL);
     }
-  /* Skip IFUNCs from local/global GOT, they are already counted as general
-     GOT entries with explicit relocations.  */
   else if (entry->symndx >= 0 || (entry->d.h->global_got_area == GGA_NONE))
     {
+      /* Skip IFUNCs from local/global GOT, they are already counted
+	 as general GOT entries with explicit relocations.  */
       if (entry->symndx < 0
 	  && entry->d.h->root.type == STT_GNU_IFUNC
 	  && entry->d.h->root.def_regular
@@ -3931,16 +3939,15 @@ mips_elf_create_local_got_entry (bfd *abfd, struct bfd_link_info *info,
       return entry;
     }
 
+  lookup.symndx = -1;
   if (h && h->root.type == STT_GNU_IFUNC)
     {
       lookup.abfd = ibfd;
-      lookup.symndx = -1;
       lookup.d.h = h;
     }
   else
     {
       lookup.abfd = NULL;
-      lookup.symndx = -1;
       lookup.d.address = value;
     }
 
@@ -8632,11 +8639,10 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
       unsigned long r_symndx;
       unsigned int r_type;
       struct elf_link_hash_entry *h;
-      struct mips_elf_link_hash_entry *localh = NULL;
+      struct mips_elf_link_hash_entry *ih = NULL;
       bfd_boolean can_make_dynamic_p;
       bfd_boolean call_reloc_p;
       bfd_boolean constrain_symbol_p;
-      bfd_boolean local_gnu_ifunc_p = FALSE;
 
       r_symndx = ELF_R_SYM (abfd, rel->r_info);
       r_type = ELF_R_TYPE (abfd, rel->r_info);
@@ -8653,9 +8659,8 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 	  if (isym->st_info == STT_GNU_IFUNC)
 	    {
 	      /* Ensure that we have a hash entry for this symbol.  */
-	      if ((localh = get_local_sym_hash (htab, abfd, rel)) == NULL)
+	      if ((ih = get_local_sym_hash (htab, abfd, rel)) == NULL)
 		return FALSE;
-	      local_gnu_ifunc_p = TRUE;
 	    }
 
 	  h = NULL;
@@ -8843,12 +8848,12 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 		info->flags |= DF_TEXTREL;
 	    }
 	}
-      else if (local_gnu_ifunc_p)
+      else if (ih)
 	{
 	  if (!bfd_link_pic (info) && !can_make_dynamic_p)
-	    localh->has_static_relocs = 1;
+	    ih->has_static_relocs = 1;
 	  if (!call_reloc_p)
-	    localh->root.pointer_equality_needed = 1;
+	    ih->root.pointer_equality_needed = 1;
 	}
       else if (call_lo16_reloc_p (r_type)
 	       || got_lo16_reloc_p (r_type)
@@ -8880,7 +8885,7 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 	case R_MIPS16_CALL16:
 	case R_MICROMIPS_CALL16:
 	  /* Exclude local IFUNCs from check.  */
-	  if (h == NULL && !local_gnu_ifunc_p)
+	  if (h == NULL && ih == NULL)
 	    {
 	      (*_bfd_error_handler)
 		(_("%B: CALL16 reloc at 0x%lx not against global symbol"),
@@ -8890,8 +8895,8 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 	    }
 	  if (h && h->type == STT_GNU_IFUNC)
 	    ((struct mips_elf_link_hash_entry *)h)->has_got_relocs = TRUE;
-	  else if (local_gnu_ifunc_p)
-	    localh->has_got_relocs = TRUE;
+	  else if (ih)
+	    ih->has_got_relocs = TRUE;
 	  /* Fall through.  */
 
 	case R_MIPS_CALL_HI16:
@@ -8916,9 +8921,9 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 		h->type = STT_FUNC;
 	    }
 	  else
-	    if (local_gnu_ifunc_p &&
+	    if (ih &&
 		!mips_elf_record_local_got_symbol (abfd, -1, rel->r_addend,
-						   info, r_type, localh))
+						   info, r_type, ih))
 	      return FALSE;
 	  break;
 
@@ -8952,9 +8957,9 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 		}
 	      else
 		addend = rel->r_addend;
-	      if (local_gnu_ifunc_p &&
+	      if (ih &&
 		  !mips_elf_record_local_got_symbol (abfd, -1, rel->r_addend,
-						     info, r_type, localh))
+						     info, r_type, ih))
 		return FALSE;
 	      else if (!mips_elf_record_got_page_ref (info, abfd, r_symndx,
 						   h, addend))
@@ -8962,8 +8967,8 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 
 	      if (h && h->type == STT_GNU_IFUNC)
 		((struct mips_elf_link_hash_entry *)h)->has_got_relocs = TRUE;
-	      else if (local_gnu_ifunc_p)
-		localh->has_got_relocs = TRUE;
+	      else if (ih)
+		ih->has_got_relocs = TRUE;
 
 	      if (h)
 		{
@@ -10622,7 +10627,7 @@ _bfd_mips_elf_relocate_section (bfd *output_bfd, struct bfd_link_info *info,
 		      && !local_gnu_ifunc_p))
 		{
 		  if (!mips_elf_add_lo16_rel_addend (input_bfd, rel, relend,
-							contents, &addend))
+						     contents, &addend))
 		    {
 		      if (h)
 			name = h->root.root.string;
@@ -11114,7 +11119,7 @@ mips_elf_create_iplt (bfd *output_bfd,
   return TRUE;
 }
 
-/* Find local GOT index for VALUE. Return -1 if no GOT slot is found.  */
+/* Find local GOT index for VALUE.  Return -1 if no GOT slot is found.  */
 
 static bfd_vma
 mips_elf_check_local_got_index (bfd *abfd, struct bfd_link_info *info,
@@ -11172,7 +11177,7 @@ mips_elf_create_ireloc (bfd *output_bfd,
   if (!hmips->needs_igot)
     {
       gotsect = htab->sgot;
-      /* Check if IFUNC symbol already has an assigned GOT slots.  */
+      /* Check if IFUNC symbol already has an assigned GOT slot.  */
       igot_offset = mips_elf_check_local_got_index (output_bfd, info, hmips);
     }
   else
