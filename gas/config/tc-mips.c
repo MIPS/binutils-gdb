@@ -1305,6 +1305,7 @@ static void macro (struct mips_cl_insn *ip, char *str);
 static void mips16_macro (struct mips_cl_insn * ip);
 static void mips_ip (char *str, struct mips_cl_insn * ip);
 static void mips16_ip (char *str, struct mips_cl_insn * ip);
+static unsigned long mips16_immed_extend (offsetT, unsigned int);
 static void mips16_immed
   (char *, unsigned int, int, bfd_reloc_code_real_type, offsetT,
    unsigned int, unsigned long *);
@@ -1421,6 +1422,8 @@ enum options
     OPTION_NO_MICROMIPS,
     OPTION_MCU,
     OPTION_NO_MCU,
+    OPTION_MIPS16E2,
+    OPTION_NO_MIPS16E2,
     OPTION_COMPAT_ARCH_BASE,
     OPTION_M4650,
     OPTION_NO_M4650,
@@ -1541,6 +1544,8 @@ struct option md_longopts[] =
   {"mno-xpa", no_argument, NULL, OPTION_NO_XPA},
   {"mmxu", no_argument, NULL, OPTION_MXU},
   {"mno-mxu", no_argument, NULL, OPTION_NO_MXU},
+  {"mmips16e2", no_argument, NULL, OPTION_MIPS16E2},
+  {"mno-mips16e2", no_argument, NULL, OPTION_NO_MIPS16E2},
 
   /* Old-style architecture options.  Don't add more of these.  */
   {"m4650", no_argument, NULL, OPTION_M4650},
@@ -1726,6 +1731,11 @@ static const struct mips_ase mips_ases[] = {
     OPTION_MXU, OPTION_NO_MXU,
      1,  1, -1, -1,
     -1 },
+
+  { "mips16e2", ASE_MIPS16E2, 0,
+    OPTION_MIPS16E2, OPTION_NO_MIPS16E2,
+    2,  2, -1, -1,
+    6 },
 };
 
 /* The set of ASEs that require -mfp64.  */
@@ -2101,6 +2111,12 @@ mips_set_ase (const struct mips_ase *ase, struct mips_set_options *opts,
       mask |= ASE_EVA_R6;
     }
 
+  if ((opts->ase & (ASE_MIPS16E2 | ASE_MT)) == (ASE_MIPS16E2 | ASE_MT))
+    {
+      opts->ase |= ASE_MIPS16E2_MT;
+      mask |= ASE_MIPS16E2_MT;
+    }
+
   return mask;
 }
 
@@ -2126,7 +2142,7 @@ mips_lookup_ase (const char *name)
 static inline unsigned int
 micromips_insn_length (const struct mips_opcode *mo)
 {
-  return (mo->mask >> 16) == 0 ? 2 : 4;
+  return mips_opcode_32bit_p (mo) ? 4 : 2;
 }
 
 /* Return the length of MIPS16 instruction OPCODE.  */
@@ -2209,7 +2225,12 @@ static inline void
 insn_insert_operand (struct mips_cl_insn *insn,
 		     const struct mips_operand *operand, unsigned int uval)
 {
-  insn->insn_opcode = mips_insert_operand (operand, insn->insn_opcode, uval);
+  if (mips_opts.mips16
+      && operand->type == OP_INT && operand->lsb == 0
+      && mips_opcode_32bit_p (insn->insn_mo))
+    insn->insn_opcode |= mips16_immed_extend (uval, operand->size);
+  else
+    insn->insn_opcode = mips_insert_operand (operand, insn->insn_opcode, uval);
 }
 
 /* Extract the value of OPERAND from INSN.  */
@@ -3252,7 +3273,7 @@ is_opcode_valid (const struct mips_opcode *mo)
   int fp_s, fp_d;
   unsigned int i;
 
-  if (ISA_HAS_64BIT_REGS (mips_opts.isa))
+  if (ISA_HAS_64BIT_REGS (isa))
     for (i = 0; i < ARRAY_SIZE (mips_ases); i++)
       if ((ase & mips_ases[i].flags) == mips_ases[i].flags)
 	ase |= mips_ases[i].flags64;
@@ -3289,7 +3310,16 @@ is_opcode_valid (const struct mips_opcode *mo)
 static bfd_boolean
 is_opcode_valid_16 (const struct mips_opcode *mo)
 {
-  return opcode_is_member (mo, mips_opts.isa, 0, mips_opts.arch);
+  int isa = mips_opts.isa;
+  int ase = mips_opts.ase;
+  unsigned int i;
+
+  if (ISA_HAS_64BIT_REGS (isa))
+    for (i = 0; i < ARRAY_SIZE (mips_ases); i++)
+      if ((ase & mips_ases[i].flags) == mips_ases[i].flags)
+	ase |= mips_ases[i].flags64;
+
+  return opcode_is_member (mo, isa, ase, mips_opts.arch);
 }
 
 /* Return TRUE if the size of the microMIPS opcode MO matches one
@@ -3391,7 +3421,7 @@ validate_mips_insn (const struct mips_opcode *opcode,
 
       default:
 	if (!decode_operand)
-	  operand = decode_mips16_operand (*s, FALSE);
+	  operand = decode_mips16_operand (*s, mips_opcode_32bit_p (opcode));
 	else
 	  operand = decode_operand (s);
 	if (!operand && opcode->pinfo != INSN_MACRO)
@@ -3404,6 +3434,10 @@ validate_mips_insn (const struct mips_opcode *opcode,
 	operands->operand[opno] = operand;
 	if (decode_operand && *s == '-' && *(s+1) == 'm')
 	  used_bits |= 0x03ffdfc0;
+	else if (!decode_operand && operand
+		 && operand->type == OP_INT && operand->lsb == 0
+		 && mips_opcode_32bit_p (opcode))
+	  used_bits |= mips16_immed_extend (-1, operand->size);
 	else if (operand && operand->type != OP_VU0_MATCH_SUFFIX)
 	  {
 	    used_bits = mips_insert_operand (operand, used_bits, -1);
@@ -3451,18 +3485,9 @@ static int
 validate_mips16_insn (const struct mips_opcode *opcode,
 		      struct mips_operand_array *operands)
 {
-  if (opcode->args[0] == 'a' || opcode->args[0] == 'i')
-    {
-      /* In this case OPCODE defines the first 16 bits in a 32-bit jump
-	 instruction.  Use TMP to describe the full instruction.  */
-      struct mips_opcode tmp;
+  unsigned long insn_bits = mips_opcode_32bit_p (opcode) ? 0xffffffff : 0xffff;
 
-      tmp = *opcode;
-      tmp.match <<= 16;
-      tmp.mask <<= 16;
-      return validate_mips_insn (&tmp, 0xffffffff, 0, operands);
-    }
-  return validate_mips_insn (opcode, 0xffff, 0, operands);
+  return validate_mips_insn (opcode, insn_bits, 0, operands);
 }
 
 /* The microMIPS version of validate_mips_insn.  */
@@ -5852,10 +5877,11 @@ match_pc_operand (struct mips_arg_info *arg)
 static bfd_boolean
 match_reg28_operand (struct mips_arg_info *arg)
 {
-  int regno;
+  unsigned int regno;
+
   if (arg->token->type == OT_REG
       && match_regno (arg, OP_REG_GP, arg->token->u.regno, &regno)
-      && regno == 28)
+      && regno == GP)
     {
       ++arg->token;
       return TRUE;
@@ -8211,18 +8237,10 @@ match_mips16_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	case 'a':
 	case 'i':
 	  *offset_reloc = BFD_RELOC_MIPS16_JMP;
-	  insn->insn_opcode <<= 16;
-	  break;
-
-	/* Special case for LUI/ORI where it must be 4-byte/extended */
-	case 'F':
-	case 'J':
-	  forced_insn_length = 4;
-	  insn->insn_opcode |= MIPS16_EXTEND;
 	  break;
 	}
 
-      operand = decode_mips16_operand (c, FALSE);
+      operand = decode_mips16_operand (c, mips_opcode_32bit_p (opcode));
       if (!operand)
 	abort ();
 
@@ -13878,7 +13896,7 @@ mips16_ip (char *str, struct mips_cl_insn *insn)
 
   forced_insn_length = 0;
 
-  for (s = str; ISLOWER (*s); ++s)
+  for (s = str; ISLOWER (*s) || ISDIGIT (*s); ++s)
     ;
   end = s;
   c = *end;
@@ -13940,7 +13958,9 @@ static unsigned long
 mips16_immed_extend (offsetT val, unsigned int nbits)
 {
   int extval;
-  if (nbits == 16)
+
+  val &= (1U << nbits) - 1;
+  if (nbits == 16 || nbits == 9 || nbits == 2)
     {
       extval = ((val >> 11) & 0x1f) | (val & 0x7e0);
       val &= 0x1f;
@@ -13949,6 +13969,11 @@ mips16_immed_extend (offsetT val, unsigned int nbits)
     {
       extval = ((val >> 11) & 0xf) | (val & 0x7f0);
       val &= 0xf;
+    }
+  else if (nbits == 3)
+    {
+      extval = (val & 0x7) << 5;
+      val = 0;
     }
   else
     {
@@ -13966,8 +13991,6 @@ mips16_immed_operand (int type, bfd_boolean extended_p)
 {
   const struct mips_operand *operand;
 
-  if (type == 'F' || type == 'J')
-    extended_p = TRUE;
   operand = decode_mips16_operand (type, extended_p);
   if (!operand || (operand->type != OP_INT && operand->type != OP_PCREL))
     abort ();
@@ -14017,7 +14040,7 @@ mips16_immed (char *file, unsigned int line, int type,
   unsigned int uval, length;
 
   operand = mips16_immed_operand (type, FALSE);
-  if (type == 'F' || type == 'J' || !mips16_immed_in_range_p (operand, reloc, val))
+  if (!mips16_immed_in_range_p (operand, reloc, val))
     {
       /* We need an extended instruction.  */
       if (user_insn_length == 2)
@@ -17000,7 +17023,7 @@ mips16_extended_frag (fragS *fragp, asection *sec, long stretch)
   else if (symsec != absolute_section && sec != NULL)
     as_bad_where (fragp->fr_file, fragp->fr_line, _("unsupported relocation"));
 
-  return type == 'F' || type == 'J' || !mips16_immed_in_range_p (operand, BFD_RELOC_UNUSED, val);
+  return !mips16_immed_in_range_p (operand, BFD_RELOC_UNUSED, val);
 }
 
 /* Compute the length of a branch sequence, and adjust the

@@ -765,6 +765,14 @@ struct mips_opcode
   unsigned long exclusions;
 };
 
+/* Return true if MO is an instruction that requires 32-bit encoding.  */
+
+static inline bfd_boolean
+mips_opcode_32bit_p (const struct mips_opcode *mo)
+{
+  return mo->mask >> 16 != 0;
+}
+
 /* These are the characters which may appear in the args field of an
    instruction.  They appear in the order in which the fields appear
    when the instruction is used.  Commas and parentheses in the args
@@ -1129,6 +1137,8 @@ struct mips_opcode
 #define INSN2_CONVERTED_TO_COMPACT    0x00010000
 /* Instruction prevents the following instruction from being in a DS */
 #define INSN2_NEXT_NO_DS	    0x00020000
+/* Instruction only has a short MIPS16 form in disassembly.  */
+#define INSN2_SHORT_ONLY	    0x00040000
 
 /* Masks used to mark instructions to indicate which MIPS ISA level
    they were introduced in.  INSN_ISA_MASK masks an enumeration that
@@ -1288,6 +1298,10 @@ static const unsigned int mips_isa_table[] = {
 /* The eXtended Physical Address (XPA) Extension has instructions which are
    only valid for the r6 ISA.  */
 #define ASE_EVA_R6		0x00010000
+/* MIPS16e2 Extension.  */
+#define ASE_MIPS16E2		0x00020000
+/* MIPS16e2 MT ASE instructions.  */
+#define ASE_MIPS16E2_MT		0x00040000
 
 /* MIPS ISA defines, use instead of hardcoding ISA level.  */
 
@@ -1831,6 +1845,23 @@ extern int bfd_mips_num_opcodes;
    "e" 11 bit extension value
    "l" register list for entry instruction
    "L" register list for exit instruction
+   "9" 9-bit signed immediate
+   "F" 16-bit unsigned immediate
+   "G" global pointer ($gp or $28)
+   "N" 5-bit coprocessor register
+   "O" 3-bit sel field for MFC0/MTC0
+   "Q" 5-bit hardware register
+   "T" 5-bit CACHE opcode or PREF hint
+   "b" 5-bit INS/EXT position, which becomes LSB
+       Enforces: 0 <= pos < 32.
+   "c" 5-bit INS size, which becomes MSB
+       Requires that "b" occurs first to set position.
+       Enforces: 0 < (pos+size) <= 32.
+   "d" 5-bit EXT size, which becomes MSBD
+       Requires that "b" occurs first to set position.
+       Enforces: 0 < (pos+size) <= 32.
+   "n" 2-bit immediate (1 .. 4)
+   "o" 5-bit unsigned immediate * 16
 
    "I" an immediate value used for macros
 
@@ -1859,6 +1890,12 @@ extern int bfd_mips_num_opcodes;
    "E" 5 bit PC relative address * 4 (MIPS16OP_*_IMM5)
    "m" 7 bit register list for save instruction (18 bit extended)
    "M" 7 bit register list for restore instruction (18 bit extended)
+
+   Characters used so far, for quick reference when adding more:
+   "   456 890"
+   "[]<>"
+   "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+   "abcde   ijklmnopq    vwxyz"
   */
 
 /* Save/restore encoding for the args field when all 4 registers are
