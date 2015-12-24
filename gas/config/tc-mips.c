@@ -8238,6 +8238,11 @@ match_mips16_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	case 'i':
 	  *offset_reloc = BFD_RELOC_MIPS16_JMP;
 	  break;
+	case 'F':
+	   if (!match_expression (&arg, &offset_expr, offset_reloc))
+	     return FALSE;
+	   relax_char = c;
+	   continue;
 	}
 
       operand = decode_mips16_operand (c, mips_opcode_32bit_p (opcode));
