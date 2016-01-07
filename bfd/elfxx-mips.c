@@ -2207,8 +2207,8 @@ mips_elf_check_ifunc_symbols (void **slot, void *data)
       /* For global symbols, .iplt entry is needed only for all non-shared-
 	 objects.  For local symbols, it is needed only if the symbol has
 	 static relocations.  */
-      if (((h->root.dynindx == -1 && h->has_static_relocs)
-	   || (h->root.dynindx != -1 && !bfd_link_pic (info)))
+      if (((h->root.forced_local && h->has_static_relocs)
+	   || (!h->root.forced_local && !bfd_link_pic (info)))
 	  && !mips_elf_allocate_iplt (info, mips_elf_hash_table (info), h))
 	{
 	  hti->error = TRUE;
@@ -6881,7 +6881,7 @@ mips_elf_create_dynamic_relocation (bfd *output_bfd,
   /* Morph REL32 in to IRELATIVE fix-up for local IFUNC reference.  */
   if (h
       && h->root.type == STT_GNU_IFUNC
-      && SYMBOL_CALLS_LOCAL (info, &h->root))
+      && SYMBOL_REFERENCES_LOCAL (info, &h->root))
     {
       outrel[0].r_info = ELF_R_INFO (output_bfd, 0,
 				     R_MIPS_IRELATIVE);
@@ -11225,7 +11225,7 @@ mips_elf_create_ireloc (bfd *output_bfd,
 	    return FALSE;
 	}
 
-      if (hmips->needs_iplt || SYMBOL_CALLS_LOCAL (info, &hmips->root))
+      if (hmips->needs_iplt || SYMBOL_REFERENCES_LOCAL (info, &hmips->root))
 	/* Emit an IRELATIVE relocation against the [I]GOT entry.  */
 	mips_elf_output_dynamic_relocation (output_bfd, relsect,
 					    relsect->reloc_count++, 0,
