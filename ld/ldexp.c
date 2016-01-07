@@ -1068,8 +1068,6 @@ exp_fold_tree_1 (etree_type *tree)
 		tree->type.node_class = etree_provided;
 
 	      /* Copy the symbol type if this is a simple assignment of
-	         one symbol to another.  This could be more general
-		 (e.g. a ?: operator with NAMEs in each branch).  */
 	         one symbol to another.  Also, handle the case of a foldable
 		 ternary conditional with names on either side.  */
 	      if (tree->assign.src->type.node_class == etree_name)
