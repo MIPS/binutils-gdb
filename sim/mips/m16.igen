@@ -26,6 +26,8 @@
 
 :compute:::address_word:IMMEDIATE:IMM_10_4,IMM_14_11,IMM_3_0:(LSINSERTED (IMM_10_4, 10, 4) | LSINSERTED (IMM_14_11, 14, 11) | LSINSERTED (IMM_3_0, 3, 0))
 
+:compute:::int:COPY_COUNT:COUNT:(COUNT + 1)
+:compute:::int:COPY_OFFSET:OFFSET:(OFFSET << 4)
 
 // Load and Store Instructions
 
@@ -1313,4 +1315,36 @@
 *vr4100:
 {
   do_break16 (SD_, instruction_0);
+}
+
+11110,00000,1.ALIGN,5.OFFSET + 11100,3.RY,3.RX,000,2.COUNT:EXT-COPY:16::COPY
+"copy r<TRY> r<TRX> <COPY_OFFSET> <COPY_COUNT>" : ALIGN == 1
+"ucopy r<TRY> r<TRX> <COPY_OFFSET> <COPY_COUNT>"
+*mips16:
+{
+  int i;
+  /* Perform a byte copy */
+  for (i = 0 ; i < (COPY_COUNT << 2) ; i++)
+     {
+       GPR[12] = EXTEND8 (do_load (SD_, AccessLength_BYTE, GPR[TRX], (COPY_OFFSET + i)));
+       do_store (SD_, AccessLength_BYTE, GPR[TRY], (COPY_OFFSET + i), GPR[12]);
+     }
+}
+
+11110,5.LSB,1,5.SIZE + 00110,3.RX,3.RY,010,00:EXT-SHIFT:16::EXT
+"ext r<TRY>, r<TRX>, <LSB>, <SIZE+1>"
+*mips16:
+{
+  do_ext (SD_, TRY, TRX, LSB, SIZE);
+}
+
+11110,5.LSB,1.*,5.MSB + 00110,3.RX,3.RY,001,00:EXT-SHIFT:16::INS
+"ins r<TRY>, r0, <LSB>, <MSB-LSB+1>" : RX == 0
+"ins r<TRY>, r<TRX>, <LSB>, <MSB-LSB+1>"
+*mips16:
+{
+  if (RX == 0)
+    do_ins (SD_, TRY, 0, LSB, MSB);
+  else
+    do_ins (SD_, TRY, TRX, LSB, MSB);
 }
