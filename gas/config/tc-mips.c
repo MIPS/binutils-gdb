@@ -8160,6 +8160,7 @@ match_mips16_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
   arg.last_regno = ILLEGAL_REG;
   arg.dest_regno = ILLEGAL_REG;
   relax_char = 0;
+  forced_insn_length = 0;
   for (args = opcode->args;; ++args)
     {
       int c;
@@ -8263,6 +8264,9 @@ match_mips16_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	  break;
 	case 'h':
 	case 'N':
+	case 'd':
+	case 'o':
+	case 'f':
 	  forced_insn_length = 4;
 	  insn->insn_opcode |= MIPS16_EXTEND2;
 	  break;
@@ -14076,12 +14080,12 @@ mips16_immed (char *file, unsigned int line, int type,
       *insn |= MIPS16_EXTEND2;
     }
 
- else if (user_insn_length == 4)
+ else if (user_insn_length == 4
             /* ??? I have my doubts about this.  There is at least one
                execution path that leads here from match_mips16_insn that
                passed forced_insn_length as user_insn_length.  Silence
-               the warning for MIPS16E for the moment.
-            && ((MIPS16_EXTEND2 & *insn) != MIPS16_EXTEND2))*/
+               the warning for MIPS16E for the moment.  */
+            && ((MIPS16_EXTEND2 & *insn) != MIPS16_EXTEND2))
     {
       /* The operand doesn't force an unextended instruction to be extended.
 	 Warn if the user wanted an extended instruction anyway.  */
