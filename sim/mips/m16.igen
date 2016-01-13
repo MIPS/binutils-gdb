@@ -1338,13 +1338,16 @@
   do_ext (SD_, TRY, TRX, LSB, SIZE);
 }
 
-11110,5.LSB,1.*,5.MSB + 00110,3.RX,3.RY,001,00:EXT-SHIFT:16::INS
-"ins r<TRY>, r0, <LSB>, <MSB-LSB+1>" : RX == 0
+11110,5.LSB,1,5.MSB + 00110,3.RX,3.RY,001,00:EXT-SHIFT:16::INS
 "ins r<TRY>, r<TRX>, <LSB>, <MSB-LSB+1>"
 *mips16:
 {
-  if (RX == 0)
-    do_ins (SD_, TRY, 0, LSB, MSB);
-  else
     do_ins (SD_, TRY, TRX, LSB, MSB);
+}
+
+11110,5.LSB,0,5.MSB + 00110,3.RX,3.RY,001,00:EXT-SHIFT:16::INS0
+"ins r<TRY>, r0, <LSB>, <MSB-LSB+1>"
+*mips16:
+{
+    do_ins (SD_, TRY, 0, LSB, MSB);
 }
