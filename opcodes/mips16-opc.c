@@ -413,10 +413,18 @@ const struct mips_opcode mips16_opcodes[] =
 {"zeh",	    "x",	0xe831, 0xf8ff,		MOD_1,			0,		I32,	0,	0 },
 {"zew",	    "x",	0xe851, 0xf8ff,		MOD_1,			0,		I64,	0,	0 },
   /* MIPS16e2 MT ASE instructions.  */
-{"dmt",      "y",	0xf0226701, 0xffffff1f,	WR_1,	 		0,		0,	E2MT,	0 },
-{"dvpe",     "y",	0xf0226700, 0xffffff1f,	WR_1,	 		0,		0,	E2MT,	0 },
-{"emt",      "y",	0xf0236701, 0xffffff1f,	WR_1,	 		0,		0,	E2MT,	0 },
-{"evpe",     "y",	0xf0236700, 0xffffff1f,	WR_1,	 		0,		0,	E2MT,	0 },
+{"dmt",	    "",		0xf0266701, 0xffffffff,	WR_C0,	 		0,		0,	E2MT,	0 },
+{"dmt",	    "0",	0xf0266701, 0xffffffff,	WR_C0,	 		0,		0,	E2MT,	0 },
+{"dmt",	    "y",	0xf0226701, 0xffffff1f,	WR_1|WR_C0, 		0,		0,	E2MT,	0 },
+{"dvpe",    "",		0xf0266700, 0xffffffff,	WR_C0,	 		0,		0,	E2MT,	0 },
+{"dvpe",    "0",	0xf0266700, 0xffffffff,	WR_C0,	 		0,		0,	E2MT,	0 },
+{"dvpe",    "y",	0xf0226700, 0xffffff1f,	WR_1|WR_C0, 		0,		0,	E2MT,	0 },
+{"emt",	    "",		0xf0276701, 0xffffffff,	WR_C0,	 		0,		0,	E2MT,	0 },
+{"emt",	    "0",	0xf0276701, 0xffffffff,	WR_C0,	 		0,		0,	E2MT,	0 },
+{"emt",	    "y",	0xf0236701, 0xffffff1f,	WR_1|WR_C0, 		0,		0,	E2MT,	0 },
+{"evpe",    "",		0xf0276700, 0xffffffff,	WR_C0,	 		0,		0,	E2MT,	0 },
+{"evpe",    "0",	0xf0276700, 0xffffffff,	WR_C0,	 		0,		0,	E2MT,	0 },
+{"evpe",    "y",	0xf0236700, 0xffffff1f,	WR_1|WR_C0, 		0,		0,	E2MT,	0 },
   /* Place EXTEND last so that it catches any prefix that didn't match
      anything.  */
 {"extend",  "e",	0xf000, 0xf800,		0,			SH,		I1,	0,	0 },
