@@ -251,7 +251,7 @@ const struct mips_opcode mips16_opcodes[] =
 {"cmpi",    "x,U",	0x7000, 0xf800,		RD_1|WR_T,		0,		I1,	0,	0 },
 {"cmp",	    "x,y",	0xe80a, 0xf81f,		RD_1|RD_2|WR_T,		0,		I1,	0,	0 },
 {"cmp",     "x,U",	0x7000, 0xf800,		RD_1|WR_T,		0,		I1,	0,	0 },
-{"copy",    "x,y,o,n",	0xf000e000, 0xffe0f81c,	RD_1|RD_2|NODS,		0,		0,	E2,	0 },
+{"copyw",   "x,y,o,n",	0xf000e000, 0xffe0f81c,	RD_1|RD_2|NODS,		0,		0,	E2,	0 },
 {"dla",	    "y,E",	0xfe00, 0xff00,		WR_1, 			RD_PC,		I3,	0,	0 },
 {"daddiu",  "y,x,4",	0x4010, 0xf810,		WR_1|RD_2, 		0,		I3,	0,	0 },
 {"daddiu",  "y,j",	0xfd00, 0xff00,		MOD_1,			0,		I3,	0,	0 },
@@ -400,7 +400,7 @@ const struct mips_opcode mips16_opcodes[] =
 {"sw",	    "x,V(S)",	0xf000d000, 0xf800f8e0,	RD_1,			RD_SP,		I1,	0,	0 },
 {"sw",	    "R,V(S)",	0x6200, 0xff00,		0,			RD_31|RD_SP,	I1,	0,	0 },
 {"sw",	    "x,V(G)",	0xf000d020, 0xf800f8e0,	RD_1|RD_3,		0,		0,	E2,	0 },
-{"ucopy",   "x,y,o,n",	0xf020e000, 0xffe0f81c,	RD_1|RD_2|NODS,		0,		0,	E2,	0 },
+{"ucopyw",  "x,y,o,n",	0xf020e000, 0xffe0f81c,	RD_1|RD_2|NODS,		0,		0,	E2,	0 },
 {"xor",	    "x,y",	0xe80e, 0xf81f,		MOD_1|RD_2, 	0,		I1,	0,	0 },
   /* MIPS16e additions */
 {"restore", "M",	0x6400, 0xff80,		WR_31|NODS,		MOD_SP,		I32,	0,	0 },
