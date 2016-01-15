@@ -29,6 +29,13 @@
 :compute:::int:COPY_COUNT:COUNT:(COUNT + 1)
 :compute:::int:COPY_OFFSET:OFFSET:(OFFSET << 4)
 
+:function:::void:do_aui:int rt, int rs, unsigned16 immediate
+{
+  TRACE_ALU_INPUT2 (GPR[rs], immediate);
+  GPR[rt] = EXTEND32 (GPR[rs] + (EXTEND16 (immediate) << 16));
+  TRACE_ALU_RESULT (GPR[rt]);
+}
+
 // Load and Store Instructions
 
 
