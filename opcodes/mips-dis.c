@@ -1979,6 +1979,8 @@ print_mips16_insn_arg (struct disassemble_info *info,
 			    | (uval & 0x1f));
 		  else if (operand->size == 15)
 		    uval |= ((extend & 0xf) << 11) | (extend & 0x7f0);
+		  else if (operand->size == 8)
+		    uval = ((extend & 0x7) << 5) | (insn & 0x1f);
 		  else if (operand->size != 2)
 		    uval = ((extend >> 6) & 0x1f) | (extend & 0x20);
 		  uval &= (1U << operand->size) - 1;

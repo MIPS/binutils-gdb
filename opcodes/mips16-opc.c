@@ -54,6 +54,7 @@ decode_mips16_operand (char type, bfd_boolean extended_p)
 
     case 'F': HINT (16, 0);
     case 'G': SPECIAL (0, 0, REG28);
+    case 'J': UINT (8, 0);
     case 'L': SPECIAL (6, 5, ENTRY_EXIT_LIST);
     case 'M': SPECIAL (7, 0, SAVE_RESTORE_LIST);
     case 'N': REG (5, 0, COPRO);
@@ -401,6 +402,8 @@ const struct mips_opcode mips16_opcodes[] =
 {"sw",	    "R,V(S)",	0x6200, 0xff00,		0,			RD_31|RD_SP,	I1,	0,	0 },
 {"sw",	    "x,V(G)",	0xf000d020, 0xf800f8e0,	RD_1|RD_3,		0,		0,	E2,	0 },
 {"ucopyw",  "x,y,o,n",	0xf000e000, 0xffe0f81c,	RD_1|RD_2|NODS,		0,		0,	E2,	0 },
+{"ulw",	    "x,J(y)",	0xf040e000, 0xfff8f800,	RD_1|RD_3|NODS,		0,		0,	E2,	0 },
+{"usw",	    "x,J(y)",	0xf048e000, 0xfff8f800,	RD_1|RD_3|NODS,		0,		0,	E2,	0 },
 {"xor",	    "x,y",	0xe80e, 0xf81f,		MOD_1|RD_2, 	0,		I1,	0,	0 },
   /* MIPS16e additions */
 {"restore", "M",	0x6400, 0xff80,		WR_31|NODS,		MOD_SP,		I32,	0,	0 },

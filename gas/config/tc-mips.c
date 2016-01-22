@@ -13977,6 +13977,11 @@ mips16_immed_extend (offsetT val, unsigned int nbits)
       extval = ((val >> 11) & 0xf) | (val & 0x7f0);
       val &= 0xf;
     }
+  else if (nbits == 8)
+    {
+      extval = (val >> 5) & 0x7;
+      val &= 0x1f;
+    }
   else if (nbits == 3)
     {
       extval = (val & 0x7) << 5;
