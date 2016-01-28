@@ -14840,7 +14840,6 @@ md_pcrel_from (fixS *fixP)
       return addr + 2;
 
     case BFD_RELOC_MICROMIPS_16_PCREL_S1:
-    case BFD_RELOC_MICROMIPS_JMP:
     case BFD_RELOC_16_PCREL_S2:
     case BFD_RELOC_MIPS_21_PCREL_S2:
     case BFD_RELOC_MIPS_26_PCREL_S2:
