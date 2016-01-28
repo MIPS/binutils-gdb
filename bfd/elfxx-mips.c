@@ -2240,10 +2240,28 @@ jal_reloc_p (int r_type)
 }
 
 static inline bfd_boolean
+b_reloc_p (int r_type)
+{
+  return (r_type == R_MIPS_PC16
+	  || r_type == R_MIPS_GNU_REL16_S2
+	  || r_type == R_MICROMIPS_PC16_S1
+	  || r_type == R_MICROMIPS_PC10_S1
+	  || r_type == R_MICROMIPS_PC7_S1);
+}
+
+static inline bfd_boolean
 aligned_pcrel_reloc_p (int r_type)
 {
   return (r_type == R_MIPS_PC18_S3
 	  || r_type == R_MIPS_PC19_S2);
+}
+
+static inline bfd_boolean
+branch_reloc_p (int r_type)
+{
+  return (r_type == R_MIPS_26
+	  || r_type == R_MIPS_PC16
+	  || r_type == R_MIPS_GNU_REL16_S2);
 }
 
 static inline bfd_boolean
@@ -5592,9 +5610,11 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
   *cross_mode_jump_p = (!info->relocatable
 			&& !(h && h->root.root.type == bfd_link_hash_undefweak)
 			&& ((r_type == R_MIPS16_26 && !target_is_16_bit_code_p)
-			    || (r_type == R_MICROMIPS_26_S1
+			    || ((micromips_branch_reloc_p (r_type)
+				 || r_type == R_MICROMIPS_JALR)
 				&& !target_is_micromips_code_p)
-			    || ((r_type == R_MIPS_26 || r_type == R_MIPS_JALR)
+			    || ((branch_reloc_p (r_type)
+				 || r_type == R_MIPS_JALR)
 				&& (target_is_16_bit_code_p
 				    || target_is_micromips_code_p))));
 
@@ -6018,7 +6038,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 18);
 
-      if ((symbol + addend) & 3)
+      if (((symbol + addend) & 3) && !*cross_mode_jump_p)
 	return bfd_reloc_outofrange;
 
       value = symbol + addend - p;
@@ -6275,6 +6295,17 @@ mips_elf_perform_relocation (struct bfd_link_info *info,
 
   /* Set the field.  */
   x |= (value & howto->dst_mask);
+
+  if (cross_mode_jump_p && b_reloc_p (howto->type))
+    {
+      (*_bfd_error_handler)
+	(_("%B: %A+0x%lx: Unsupported branch between ISA modes."),
+	 input_bfd,
+	 input_section,
+	 (unsigned long) relocation->r_offset);
+      bfd_set_error (bfd_error_bad_value);
+      return FALSE;
+    }
 
   /* If required, turn JAL into JALX.  */
   if (cross_mode_jump_p && jal_reloc_p (r_type))
