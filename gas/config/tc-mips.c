@@ -16890,7 +16890,9 @@ mips16_extended_frag (fragS *fragp, asection *sec, long stretch)
   if (RELAX_MIPS16_USER_EXT (fragp->fr_subtype))
     return 1;
 
-  if (S_FORCE_RELOC (fragp->fr_symbol, TRUE))
+  symsec = S_GET_SEGMENT (fragp->fr_symbol);
+
+  if (S_FORCE_RELOC (fragp->fr_symbol, TRUE) || sec != symsec)
     return 1;
 
   type = RELAX_MIPS16_TYPE (fragp->fr_subtype);
@@ -16898,7 +16900,6 @@ mips16_extended_frag (fragS *fragp, asection *sec, long stretch)
 
   sym_frag = symbol_get_frag (fragp->fr_symbol);
   val = S_GET_VALUE (fragp->fr_symbol);
-  symsec = S_GET_SEGMENT (fragp->fr_symbol);
 
   if (operand->root.type == OP_PCREL)
     {
@@ -16906,47 +16907,13 @@ mips16_extended_frag (fragS *fragp, asection *sec, long stretch)
       addressT addr;
       offsetT maxtiny;
 
-      /* We won't have the section when we are called from
-         mips_relax_frag.  However, we will always have been called
-         from md_estimate_size_before_relax first.  If this is a
-         branch to a different section, we mark it as such.  If SEC is
-         NULL, and the frag is not marked, then it must be a branch to
-         the same section.  */
       pcrel_op = (const struct mips_pcrel_operand *) operand;
-      if (sec == NULL)
-	{
-	  if (RELAX_MIPS16_LONG_BRANCH (fragp->fr_subtype))
-	    return 1;
-	}
-      else
-	{
-	  /* Must have been called from md_estimate_size_before_relax.  */
-	  if (symsec != sec)
-	    {
-	      fragp->fr_subtype =
-		RELAX_MIPS16_MARK_LONG_BRANCH (fragp->fr_subtype);
 
-	      /* FIXME: We should support this, and let the linker
-                 catch branches and loads that are out of range.  */
-	      as_bad_where (fragp->fr_file, fragp->fr_line,
-			    _("unsupported PC relative reference to different section"));
-
-	      return 1;
-	    }
-	  if (fragp != sym_frag && sym_frag->fr_address == 0)
-	    /* Assume non-extended on the first relaxation pass.
-	       The address we have calculated will be bogus if this is
-	       a forward branch to another frag, as the forward frag
-	       will have fr_address == 0.  */
-	    return 0;
-	}
-
-      /* In this case, we know for sure that the symbol fragment is in
-	 the same section.  If the relax_marker of the symbol fragment
-	 differs from the relax_marker of this fragment, we have not
-	 yet adjusted the symbol fragment fr_address.  We want to add
-	 in STRETCH in order to get a better estimate of the address.
-	 This particularly matters because of the shift bits.  */
+      /* If the relax_marker of the symbol fragment differs from the
+	 relax_marker of this fragment, we have not yet adjusted the
+	 symbol fragment fr_address.  We want to add in STRETCH in
+	 order to get a better estimate of the address.  This
+	 particularly matters because of the shift bits.  */
       if (stretch != 0
 	  && sym_frag->relax_marker != fragp->relax_marker)
 	{
@@ -17507,7 +17474,7 @@ mips_relax_frag (asection *sec, fragS *fragp, long stretch)
   if (! RELAX_MIPS16_P (fragp->fr_subtype))
     return 0;
 
-  if (mips16_extended_frag (fragp, NULL, stretch))
+  if (mips16_extended_frag (fragp, sec, stretch))
     {
       if (RELAX_MIPS16_EXTENDED (fragp->fr_subtype))
 	return 0;
@@ -18021,7 +17988,8 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
       else
 	user_length = 0;
 
-      if (S_FORCE_RELOC (fragp->fr_symbol, TRUE))
+      if (S_FORCE_RELOC (fragp->fr_symbol, TRUE)
+	  || asec != S_GET_SEGMENT (fragp->fr_symbol))
 	{
 	  gas_assert (ext);
 
