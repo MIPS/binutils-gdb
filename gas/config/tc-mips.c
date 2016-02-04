@@ -16890,6 +16890,9 @@ mips16_extended_frag (fragS *fragp, asection *sec, long stretch)
   if (RELAX_MIPS16_USER_EXT (fragp->fr_subtype))
     return 1;
 
+  if (RELAX_MIPS16_LONG_BRANCH (fragp->fr_subtype))
+    return 1;
+
   symsec = S_GET_SEGMENT (fragp->fr_symbol);
 
   if (S_FORCE_RELOC (fragp->fr_symbol, TRUE) || sec != symsec)
@@ -16973,9 +16976,8 @@ mips16_extended_frag (fragS *fragp, asection *sec, long stretch)
       /* If any of the shifted bits are set, we must use an extended
          opcode.  If the address depends on the size of this
          instruction, this can lead to a loop, so we arrange to always
-         use an extended opcode.  We only check this when we are in
-         the main relaxation loop, when SEC is NULL.  */
-      if ((val & ((1 << operand->shift) - 1)) != 0 && sec == NULL)
+         use an extended opcode.  */
+      if ((val & ((1 << operand->shift) - 1)) != 0)
 	{
 	  fragp->fr_subtype =
 	    RELAX_MIPS16_MARK_LONG_BRANCH (fragp->fr_subtype);
@@ -16996,16 +16998,13 @@ mips16_extended_frag (fragS *fragp, asection *sec, long stretch)
 	 extended with the next value above maxtiny.  */
       maxtiny = mips_int_operand_max (operand);
       if (val == maxtiny + (1 << operand->shift)
-	  && ! RELAX_MIPS16_EXTENDED (fragp->fr_subtype)
-	  && sec == NULL)
+	  && ! RELAX_MIPS16_EXTENDED (fragp->fr_subtype))
 	{
 	  fragp->fr_subtype =
 	    RELAX_MIPS16_MARK_LONG_BRANCH (fragp->fr_subtype);
 	  return 1;
 	}
     }
-  else if (symsec != absolute_section && sec != NULL)
-    as_bad_where (fragp->fr_file, fragp->fr_line, _("unsupported relocation"));
 
   return !mips16_immed_in_range_p (operand, BFD_RELOC_UNUSED, val);
 }
