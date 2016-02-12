@@ -1863,12 +1863,14 @@ extern int bfd_mips_num_opcodes;
        Enforces: 0 < (pos+size) <= 32.
    "n" 2-bit immediate (1 .. 4)
    "o" 5-bit unsigned immediate * 16
+   "r" 3-bit register
 
    "I" an immediate value used for macros
 
    The remaining codes may be extended.  Except as otherwise noted,
    the full extended operand is a 16 bit signed value.
-   "<" 3 bit unsigned shift count * 0 (MIPS16OP_*_RZ) (full 5 bit unsigned)
+   "<" 3 bit unsigned shift count * 0 (MIPS16OP_*_RZ) (full 5 bit unsigned;
+						       also SYNC code)
    ">" 3 bit unsigned shift count * 0 (MIPS16OP_*_RX) (full 5 bit unsigned)
    "[" 3 bit unsigned shift count * 0 (MIPS16OP_*_RZ) (full 6 bit unsigned)
    "]" 3 bit unsigned shift count * 0 (MIPS16OP_*_RX) (full 6 bit unsigned)
@@ -1896,7 +1898,7 @@ extern int bfd_mips_num_opcodes;
    "   456 890"
    "[]<>"
    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-   "abcde   ijklmnopq    vwxyz"
+   "abcde   ijklmnopqr   vwxyz"
   */
 
 /* Save/restore encoding for the args field when all 4 registers are

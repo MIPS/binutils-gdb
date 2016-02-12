@@ -78,6 +78,7 @@ decode_mips16_operand (char type, bfd_boolean extended_p)
     case 'm': SPECIAL (7, 0, SAVE_RESTORE_LIST);
     case 'n': INT_BIAS (2, 0, 3, 1, 0, FALSE);	/* (1 .. 4) */
     case 'o': INT_ADJ (5, 16, 31, 4, FALSE);	/* (0 .. 31) << 4 */
+    case 'r': MAPPED_REG (3, 16, GP, reg_m16_map);
     case 'v': OPTIONAL_MAPPED_REG (3, 8, GP, reg_m16_map);
     case 'w': OPTIONAL_MAPPED_REG (3, 5, GP, reg_m16_map);
     case 'x': MAPPED_REG (3, 8, GP, reg_m16_map);
@@ -343,6 +344,7 @@ const struct mips_opcode mips16_opcodes[] =
 {"lhu",	    "x,V(G)",	0xf0009080, 0xf800f8e0,	WR_1|RD_3,		0,		0,	E2,	0 },
 {"li",	    "x,U",	0x6800, 0xf800,		WR_1,			SH,		I1,	0,	0 },
 {"li",	    "x,U",	0xf0006800, 0xf800f8e0,	WR_1,			0,		I1,	0,	0 },
+{"ll",	    "r,9(x)",	0xf00090c0, 0xfe18f8e0,	WR_1|RD_3,		0,		0,	E2,	0 },
 {"lui",	    "x,F",	0xf0006820, 0xf800f8e0,	WR_1,			0,		0,	E2,	0 },
 {"lw",	    "y,W(x)",	0x9800, 0xf800,		WR_1|RD_3,		0,		I1,	0,	0 },
 {"lw",	    "x,A",	0xb000, 0xf800,		WR_1,			RD_PC,		I1,	0,	0 },
@@ -366,6 +368,7 @@ const struct mips_opcode mips16_opcodes[] =
 {"not",	    "x,w",	0xe80f, 0xf81f,		WR_1|RD_2,		0,		I1,	0,	0 },
 {"or",	    "x,y",	0xe80d, 0xf81f,		MOD_1|RD_2,		0,		I1,	0,	0 },
 {"ori",	    "x,F",	0xf0006840, 0xf800f8e0,	WR_1,			0,		0,	E2,	0 },
+{"pause",   "",		0xf1403018, 0xffffffff,	0,			0,		0,	E2,	0 },
 {"pref",    "T,9(x)",	0xf000d080, 0xfe00f8e0,	RD_3,			0,		0,	E2,	0 },
 {"rdhwr",   "y,Q",	0xf000300c, 0xffe0ff1f,	WR_1,			0,		0,	E2,	0 },
 {"rem",     "0,x,y",	0xe81a, 0xf81f,		RD_2|RD_3|WR_HI|WR_LO,	0,		I1,	0,	0 },
@@ -374,6 +377,7 @@ const struct mips_opcode mips16_opcodes[] =
 {"remu",    "z,v,y",	0, (int) M_REMU_3,	INSN_MACRO,		0,		I1,	0,	0 },
 {"sb",	    "y,5(x)",	0xc000, 0xf800,		RD_1|RD_3,		0,		I1,	0,	0 },
 {"sb",	    "x,V(G)",	0xf000d060, 0xf800f8e0,	RD_1|RD_3,		0,		0,	E2,	0 },
+{"sc",	    "r,9(x)",	0xf000d0c0, 0xfe18f8e0,	RD_1|RD_3,		0,		0,	E2,	0 },
 {"sd",	    "y,D(x)",	0x7800, 0xf800,		RD_1|RD_3, 		0,		I3,	0,	0 },
 {"sd",	    "y,D(S)",	0xf900, 0xff00,		RD_1, 			RD_PC,		I3,	0,	0 },
 {"sd",	    "R,C(S)",	0xfa00, 0xff00,		0,			RD_31|RD_PC,	I1,	0,	0 },
@@ -403,6 +407,8 @@ const struct mips_opcode mips16_opcodes[] =
 {"sw",	    "x,V(S)",	0xf000d000, 0xf800f8e0,	RD_1,			RD_SP,		I1,	0,	0 },
 {"sw",	    "R,V(S)",	0x6200, 0xff00,		0,			RD_31|RD_SP,	I1,	0,	0 },
 {"sw",	    "x,V(G)",	0xf000d020, 0xf800f8e0,	RD_1|RD_3,		0,		0,	E2,	0 },
+{"sync",    "",		0xf0003014, 0xffffffff,	0,			0,		0,	E2,	0 },
+{"sync",    "<",	0xf0003014, 0xf83fffff,	0,			0,		0,	E2,	0 },
 {"ucopyw",  "x,y,o,n",	0xf000e000, 0xffe0f81c,	RD_1|RD_2|NODS,		0,		0,	E2,	0 },
 {"ulw",	    "x,J(y)",	0xf040e000, 0xfff8f800,	RD_1|RD_3|NODS,		0,		0,	E2,	0 },
 {"usw",	    "x,J(y)",	0xf048e000, 0xfff8f800,	RD_1|RD_3|NODS,		0,		0,	E2,	0 },
