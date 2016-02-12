@@ -1868,6 +1868,7 @@ extern int bfd_mips_num_opcodes;
    "9" 9-bit signed immediate
    "F" 16-bit unsigned immediate
    "G" global pointer ($gp or $28)
+   "J" 8-bit signed immediate
    "N" 5-bit coprocessor register
    "O" 3-bit sel field for MFC0/MTC0
    "Q" 5-bit hardware register
