@@ -367,7 +367,7 @@ const struct mips_opcode mips16_opcodes[] =
 {"or",	    "x,y",	0xe80d, 0xf81f,		MOD_1|RD_2,		0,		I1,	0,	0 },
 {"ori",	    "x,F",	0xf0006840, 0xf800f8e0,	WR_1,			0,		0,	E2,	0 },
 {"pref",    "T,9(x)",	0xf000d080, 0xfe00f8e0,	RD_3,			0,		0,	E2,	0 },
-{"rdhwr",   "y,Q",	0xf020300c, 0xffe0ff1f,	WR_1,			0,		0,	E2,	0 },
+{"rdhwr",   "y,Q",	0xf000300c, 0xffe0ff1f,	WR_1,			0,		0,	E2,	0 },
 {"rem",     "0,x,y",	0xe81a, 0xf81f,		RD_2|RD_3|WR_HI|WR_LO,	0,		I1,	0,	0 },
 {"rem",     "z,v,y",	0, (int) M_REM_3,	INSN_MACRO,		0,		I1,	0,	0 },
 {"remu",    "0,x,y",	0xe81b, 0xf81f,		RD_2|RD_3|WR_HI|WR_LO,	0,		I1,	0,	0 },
