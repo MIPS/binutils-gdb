@@ -16894,8 +16894,8 @@ mips16_extended_frag (fragS *fragp, asection *sec, long stretch)
     return 1;
 
   symsec = S_GET_SEGMENT (fragp->fr_symbol);
-
-  if (S_FORCE_RELOC (fragp->fr_symbol, TRUE) || sec != symsec)
+  if (S_FORCE_RELOC (fragp->fr_symbol, TRUE)
+      || (sec != symsec && !bfd_is_abs_section (symsec)))
     return 1;
 
   type = RELAX_MIPS16_TYPE (fragp->fr_subtype);
@@ -17928,6 +17928,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
       unsigned long insn;
       bfd_boolean ext;
       expressionS exp;
+      segT symsec;
       fixS *fixp;
 
       type = RELAX_MIPS16_TYPE (fragp->fr_subtype);
@@ -17987,8 +17988,9 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
       else
 	user_length = 0;
 
+      symsec = S_GET_SEGMENT (fragp->fr_symbol);
       if (S_FORCE_RELOC (fragp->fr_symbol, TRUE)
-	  || asec != S_GET_SEGMENT (fragp->fr_symbol))
+	  || (asec != symsec && !bfd_is_abs_section (symsec)))
 	{
 	  gas_assert (ext);
 
