@@ -4368,6 +4368,21 @@ branch_likely_p (const struct mips_cl_insn *ip)
   return (ip->insn_mo->pinfo & INSN_COND_BRANCH_LIKELY) != 0;
 }
 
+/* Return true if IP is a branch with an alternate short-delay opcode
+   which should be preferred for compact code generation.
+
+   j and jalx don't have alternate short-delay opcodes.
+   jal is unsuitable because the linker might change it to a jalx
+   based on the ISA of the destination label.  */
+
+static inline bfd_boolean
+compactible_delay_branch_p (const struct mips_cl_insn *ip)
+{
+  return ((ip->insn_mo->pinfo2 & INSN2_BRANCH_DELAY_32BIT) != 0
+	  && (strcmp (ip->insn_mo->name, "jal") != 0)
+	  && (strcmp (ip->insn_mo->name, "jalx") != 0));
+}
+
 /* Return the type of nop that should be used to fill the delay slot
    of delayed branch IP.  */
 
@@ -6826,6 +6841,24 @@ find_altered_mips16_opcode (struct mips_cl_insn *ip)
   abort ();
 }
 
+/* IP is a MICROMIPS instruction whose opcode we have just changed.
+   Point IP->insn_mo to the new opcode's definition.  */
+
+static void
+find_altered_micromips_opcode (struct mips_cl_insn *ip)
+{
+  const struct mips_opcode *mo, *end;
+
+  end = &micromips_opcodes[bfd_micromips_num_opcodes];
+  for (mo = ip->insn_mo; mo < end; mo++)
+    if ((ip->insn_opcode & mo->mask) == mo->match && mo->match)
+      {
+	ip->insn_mo = mo;
+	return;
+      }
+  abort ();
+}
+
 /* For microMIPS macros, we need to generate a local number label
    as the target of branches.  */
 #define MICROMIPS_LABEL_CHAR		'\037'
@@ -6986,6 +7019,26 @@ calculate_reloc (bfd_reloc_code_real_type reloc, offsetT operand,
     default:
       return FALSE;
     }
+}
+
+/* Translate a delayed branch micromips opcode with a 32-bit delay slot
+   into the corresponding micromips opcode with a 16-bit delay slot.  */
+
+static unsigned long
+trans_micromips_opcode_bd16 (unsigned long insn)
+{
+  if ((insn & 0xffe00000) == 0x40600000 		/* bgezal */
+      || (insn & 0xffe00000) == 0x40200000)		/* bltzal */
+    return (insn | 0x02000000);
+  else if ((insn & 0xffe0ffff) == 0x00000f3c 		/* jr */
+	   || (insn & 0xffe0ffff) == 0x00001f3c		/* jr.hb */
+	   || (insn & 0xfc00ffff) == 0x00000f3c		/* jalr32 */
+	   || (insn & 0xfc00ffff) == 0x00001f3c)	/* jalr32.hb */
+    return (insn | 0x000004000);
+  else if ((insn & 0xffe0) == 0x45c0)			/* jalr16 */
+    return (insn | 0x0020);
+  else
+    return insn;
 }
 
 /* Output an instruction.  IP is the instruction information.
@@ -7204,6 +7257,19 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
     }
 
   method = get_append_method (ip, address_expr, reloc_type);
+
+  /* For a branch where short delay slot is possible and swapping
+     with the preceding instruction is not an option, we prefer the
+     short delay slot version.  */
+  if (method == APPEND_ADD_WITH_NOP
+      && mips_opts.micromips
+      && compactible_delay_branch_p (ip))
+    {
+      ip->insn_opcode = trans_micromips_opcode_bd16 (ip->insn_opcode);
+      find_altered_micromips_opcode (ip);
+      method = get_append_method (ip, address_expr, reloc_type);
+    }
+
   branch_disp = method == APPEND_SWAP ? insn_length (history) : 0;
 
   dwarf2_emit_insn (0);
