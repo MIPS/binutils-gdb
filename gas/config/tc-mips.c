@@ -3262,6 +3262,21 @@ is_size_valid (const struct mips_opcode *mo)
   return forced_insn_length == micromips_insn_length (mo);
 }
 
+/* Return true if IP is a branch with an alternate short-delay opcode
+   which should be preferred for compact code generation.
+
+   j and jalx don't have alternate short-delay opcodes.
+   jal is unsuitable because the linker might change it to a jalx
+   based on the ISA of the destination label.  */
+
+static inline bfd_boolean
+compactible_delay_branch_p (const struct mips_cl_insn *ip)
+{
+  return ((ip->insn_mo->pinfo2 & INSN2_BRANCH_DELAY_32BIT) != 0
+	  && (strcmp (ip->insn_mo->name, "jal") != 0)
+	  && (strcmp (ip->insn_mo->name, "jalx") != 0));
+}
+
 /* Return TRUE if the microMIPS opcode MO is valid for the delay slot
    of the preceding instruction.  Always TRUE in the standard MIPS mode.
 
@@ -3286,7 +3301,12 @@ is_delay_slot_valid (const struct mips_opcode *mo)
     return (history[0].insn_mo->pinfo2 & INSN2_BRANCH_DELAY_16BIT) == 0;
   if ((history[0].insn_mo->pinfo2 & INSN2_BRANCH_DELAY_32BIT) != 0
       && micromips_insn_length (mo) != 4)
-    return FALSE;
+    {
+      if (history[0].noreorder_p && compactible_delay_branch_p (history))
+	return TRUE;
+      else
+	return FALSE;
+    }
   if ((history[0].insn_mo->pinfo2 & INSN2_BRANCH_DELAY_16BIT) != 0
       && micromips_insn_length (mo) != 2)
     return FALSE;
@@ -4366,21 +4386,6 @@ static inline bfd_boolean
 branch_likely_p (const struct mips_cl_insn *ip)
 {
   return (ip->insn_mo->pinfo & INSN_COND_BRANCH_LIKELY) != 0;
-}
-
-/* Return true if IP is a branch with an alternate short-delay opcode
-   which should be preferred for compact code generation.
-
-   j and jalx don't have alternate short-delay opcodes.
-   jal is unsuitable because the linker might change it to a jalx
-   based on the ISA of the destination label.  */
-
-static inline bfd_boolean
-compactible_delay_branch_p (const struct mips_cl_insn *ip)
-{
-  return ((ip->insn_mo->pinfo2 & INSN2_BRANCH_DELAY_32BIT) != 0
-	  && (strcmp (ip->insn_mo->name, "jal") != 0)
-	  && (strcmp (ip->insn_mo->name, "jalx") != 0));
 }
 
 /* Return the type of nop that should be used to fill the delay slot
@@ -7071,8 +7076,21 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	   && micromips_insn_length (ip->insn_mo) != 2)
 	  || ((prev_pinfo2 & INSN2_BRANCH_DELAY_32BIT) != 0
 	      && micromips_insn_length (ip->insn_mo) != 4)))
-    as_warn (_("wrong size instruction in a %u-bit branch delay slot"),
-	     (prev_pinfo2 & INSN2_BRANCH_DELAY_16BIT) != 0 ? 16 : 32);
+    {
+      if (compactible_delay_branch_p (history) &&
+	  (prev_pinfo2 & INSN2_BRANCH_DELAY_32BIT) != 0)
+      /* We deliberately chose the 16-bit encoding to force a short delay slot,
+	 so lets quietly force it.  */
+	{
+	  unsigned long insn = history[0].insn_opcode;
+	  history[0].insn_opcode = trans_micromips_opcode_bd16 (insn);
+	  find_altered_micromips_opcode (history);
+	  install_insn (history);
+	}
+      else
+	as_warn (_("wrong size instruction in a %u-bit branch delay slot"),
+		 (prev_pinfo2 & INSN2_BRANCH_DELAY_16BIT) != 0 ? 16 : 32);
+    }
 
   if (address_expr == NULL)
     ip->complete_p = 1;
