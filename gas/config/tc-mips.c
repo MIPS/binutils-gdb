@@ -17713,13 +17713,29 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 		   || (insn & 0xffe00000) == 0x40400000		/* bgez  */
 		   || (insn & 0xffe00000) == 0x40800000		/* blez  */
 		   || (insn & 0xffe00000) == 0x40c00000		/* bgtz  */
-		   || (insn & 0xffe00000) == 0x40a00000		/* bnezc  */
-		   || (insn & 0xffe00000) == 0x40e00000		/* beqzc  */
 		   || (insn & 0xffe00000) == 0x40200000		/* bltzal  */
 		   || (insn & 0xffe00000) == 0x40600000		/* bgezal  */
 		   || (insn & 0xffe00000) == 0x42200000		/* bltzals  */
 		   || (insn & 0xffe00000) == 0x42600000)	/* bgezals  */
 	    insn ^= 0x00400000;
+	  else if ((insn & 0xffe00000) == 0x40a00000		/* bnezc  */
+		   || (insn & 0xffe00000) == 0x40e00000)	/* beqzc  */
+	    {
+	      unsigned long reg32, reg16;
+
+	      reg32 = (insn >> OP_SH_RT) & OP_MASK_RT;
+	      reg16 = reg32 & MICROMIPSOP_MASK_MD;
+	      if (reg32 != 0 && reg16 == 0)
+		/* Operands not suitable for 16-bit, keep 32-bit format.  */
+		insn ^= 0x00400000;
+	      else
+		{
+		  /* Construct compressed instruction with negated branch.  */
+		  insn = ((insn & 0x400000) >> 9) ^ 0x8c00;
+		  insn |= (reg16 << MICROMIPSOP_SH_MD);
+		  type = 'E';
+		}
+	    }
 	  else if ((insn & 0xffe30000) == 0x43800000		/* bc1f  */
 		   || (insn & 0xffe30000) == 0x43a00000		/* bc1t  */
 		   || (insn & 0xffe30000) == 0x42800000		/* bc2f  */
