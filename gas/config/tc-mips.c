@@ -3304,7 +3304,9 @@ is_delay_slot_valid (const struct mips_opcode *mo)
   if ((history[0].insn_mo->pinfo2 & INSN2_BRANCH_DELAY_32BIT) != 0
       && micromips_insn_length (mo) != 4)
     {
-      if (history[0].noreorder_p && compactible_delay_branch_p (history))
+      if (history[0].noreorder_p
+	  && compactible_delay_branch_p (history)
+	  && mips_optimize >= 3)
 	return TRUE;
       else
 	return FALSE;
@@ -7092,7 +7094,7 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	      && micromips_insn_length (ip->insn_mo) != 4)))
     {
       if (compactible_delay_branch_p (history) &&
-	  (prev_pinfo2 & INSN2_BRANCH_DELAY_32BIT) != 0)
+	  (prev_pinfo2 & INSN2_BRANCH_DELAY_32BIT) != 0 && mips_optimize >= 3)
       /* We deliberately chose the 16-bit encoding to force a short delay slot,
 	 so lets quietly force it.  */
 	{
@@ -7295,7 +7297,8 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
      short delay slot version.  */
   if (method == APPEND_ADD_WITH_NOP
       && mips_opts.micromips
-      && compactible_delay_branch_p (ip))
+      && compactible_delay_branch_p (ip)
+      && mips_optimize >= 3)
     {
       ip->insn_opcode = trans_micromips_opcode_bd16 (ip->insn_opcode);
       find_altered_micromips_opcode (ip);
@@ -7373,7 +7376,9 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
       relaxed_branch = TRUE;
       length32 = relaxed_micromips_32bit_branch_length (NULL, NULL, uncond);
 
-      if (compactible_branch_p (ip) && method == APPEND_ADD_WITH_NOP)
+      if (compactible_branch_p (ip)
+	  && method == APPEND_ADD_WITH_NOP
+	  && mips_optimize >= 3)
 	{
 	  method = APPEND_ADD;
 	  addnop = 1;
@@ -7615,7 +7620,9 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
   /* If we have just completed an unconditional branch, clear the history.  */
   if ((delayed_branch_p (&history[1]) && uncond_branch_p (&history[1]))
       || (compact_branch_p (&history[0]) && uncond_branch_p (&history[0]))
-      || (compactible_branch_p (&history[0]) && relaxed_branch))
+      || (compactible_branch_p (&history[0])
+	  && relaxed_branch
+	  && mips_optimize >= 3))
     {
       unsigned int i;
 
@@ -14195,6 +14202,8 @@ md_parse_option (int c, char *arg)
 	mips_optimize = 0;
       else if (arg[0] == '1')
 	mips_optimize = 1;
+      else if (arg[0] == '3')
+	mips_optimize = 3;
       else
 	mips_optimize = 2;
       break;
@@ -17047,7 +17056,9 @@ relaxed_micromips_32bit_branch_length (fragS *fragp, asection *sec, int update)
        */
       if (!uncond)
 	{
-	  if (fragp && RELAX_MICROMIPS_TYPE (fragp->fr_subtype) != 0)
+	  if (fragp
+	      && RELAX_MICROMIPS_TYPE (fragp->fr_subtype) != 0
+	      && mips_optimize >= 3)
 	    length += 4;
 	  else
 	    length += (compact_known && compact) ? 4 : 6;
@@ -17653,7 +17664,8 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	}
 
       /* Relax 16-bit branches to 32-bit branches.  */
-      if (type != 0 && (!RELAX_MICROMIPS_RELAX32 (fragp->fr_subtype)
+      if (type != 0 && (mips_optimize < 3
+			|| !RELAX_MICROMIPS_RELAX32 (fragp->fr_subtype)
 			|| !RELAX_MICROMIPS_TOOFAR32 (fragp->fr_subtype)))
 	{
 	  insn = read_compressed_insn (buf, 2);
@@ -17680,10 +17692,16 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	    }
 	  else
 	    abort ();
-
-	  buf = write_compressed_insn (buf, insn, 4);
-	  gas_assert (buf == fragp->fr_literal + fragp->fr_fix);
-	  return;
+	  
+	  if (!RELAX_MICROMIPS_RELAX32 (fragp->fr_subtype)
+	      || !RELAX_MICROMIPS_TOOFAR32 (fragp->fr_subtype))
+	    {
+	      buf = write_compressed_insn (buf, insn, 4);
+	      gas_assert (buf == fragp->fr_literal + fragp->fr_fix);
+	      return;
+	    }
+	  else
+	    type = 0;
 	}
       else
 	insn = read_compressed_insn (buf, type == 0 ? 4 : 2);
@@ -17722,10 +17740,10 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 		   || (insn & 0xffe00000) == 0x40e00000)	/* beqzc  */
 	    {
 	      unsigned long reg32, reg16;
-
 	      reg32 = (insn >> OP_SH_RT) & OP_MASK_RT;
 	      reg16 = reg32 & MICROMIPSOP_MASK_MD;
-	      if (reg32 != 0 && reg16 == 0)
+
+	      if ((reg32 != 0 && reg16 == 0) || mips_optimize < 3)
 		/* Operands not suitable for 16-bit, keep 32-bit format.  */
 		insn ^= 0x00400000;
 	      else
