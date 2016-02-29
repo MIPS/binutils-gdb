@@ -17007,8 +17007,7 @@ relaxed_micromips_32bit_branch_length (fragS *fragp, asection *sec, int update)
       bfd_boolean uncond;
 
       if (compact_known)
-	compact = (RELAX_MICROMIPS_COMPACT (fragp->fr_subtype)
-		   || RELAX_MICROMIPS_ADDNOP (fragp->fr_subtype));
+	compact = RELAX_MICROMIPS_COMPACT (fragp->fr_subtype);
       if (fragp)
 	uncond = RELAX_MICROMIPS_UNCOND (fragp->fr_subtype);
       else
@@ -17047,7 +17046,12 @@ relaxed_micromips_32bit_branch_length (fragS *fragp, asection *sec, int update)
 			nop				# 2 bytes if !compact
        */
       if (!uncond)
-	length += (compact_known && compact) ? 4 : 6;
+	{
+	  if (fragp && RELAX_MICROMIPS_TYPE (fragp->fr_subtype) != 0)
+	    length += 4;
+	  else
+	    length += (compact_known && compact) ? 4 : 6;
+	}
     }
 
   return length;
@@ -17649,7 +17653,8 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	}
 
       /* Relax 16-bit branches to 32-bit branches.  */
-      if (type != 0)
+      if (type != 0 && (!RELAX_MICROMIPS_RELAX32 (fragp->fr_subtype)
+			|| !RELAX_MICROMIPS_TOOFAR32 (fragp->fr_subtype)))
 	{
 	  insn = read_compressed_insn (buf, 2);
 
@@ -17676,17 +17681,12 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	  else
 	    abort ();
 
-	  /* Nothing else to do, just write it out.  */
-	  if (!RELAX_MICROMIPS_RELAX32 (fragp->fr_subtype)
-	      || !RELAX_MICROMIPS_TOOFAR32 (fragp->fr_subtype))
-	    {
-	      buf = write_compressed_insn (buf, insn, 4);
-	      gas_assert (buf == fragp->fr_literal + fragp->fr_fix);
-	      return;
-	    }
+	  buf = write_compressed_insn (buf, insn, 4);
+	  gas_assert (buf == fragp->fr_literal + fragp->fr_fix);
+	  return;
 	}
       else
-	insn = read_compressed_insn (buf, 4);
+	insn = read_compressed_insn (buf, type == 0 ? 4 : 2);
 
       /* Relax 32-bit branches to a sequence of instructions.  */
       as_warn_where (fragp->fr_file, fragp->fr_line,
@@ -17696,15 +17696,18 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
       short_ds = al && (insn & 0x02000000) != 0;
       
       /* Choose compact encoding for 32-bit compactible branch.  */
-      compact = (addnop || RELAX_MICROMIPS_COMPACT (fragp->fr_subtype));
+      compact = RELAX_MICROMIPS_COMPACT (fragp->fr_subtype);
 
       if (!RELAX_MICROMIPS_UNCOND (fragp->fr_subtype))
 	{
 	  symbolS *l;
 
 	  /* Reverse the branch.  */
-	  if ((insn & 0xfc000000) == 0x94000000			/* beq  */
-	      || (insn & 0xfc000000) == 0xb4000000)		/* bne  */
+	  if ((type != 0) && 
+	      (insn & 0xdc00) == 0x8c00) 		/* beqz16/bnez16  */
+	    insn ^= 0x2000;
+	  else if ((insn & 0xfc000000) == 0x94000000		/* beq  */
+		   || (insn & 0xfc000000) == 0xb4000000)	/* bne  */
 	    insn ^= 0x20000000;
 	  else if ((insn & 0xffe00000) == 0x40000000		/* bltz  */
 		   || (insn & 0xffe00000) == 0x40400000		/* bgez  */
@@ -17746,14 +17749,21 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	  S_SET_OTHER (l, ELF_ST_SET_MICROMIPS (S_GET_OTHER (l)));
 
 	  /* Refer to it.  */
-	  fixp = fix_new (fragp, buf - fragp->fr_literal, 4, l, 0, TRUE,
-			  BFD_RELOC_MICROMIPS_16_PCREL_S1);
+	  if (type == 'D')
+	    fixp = fix_new (fragp, buf - fragp->fr_literal, 2, l, 0, TRUE,
+				BFD_RELOC_MICROMIPS_10_PCREL_S1);
+	  else if (type == 'E')
+	    fixp = fix_new (fragp, buf - fragp->fr_literal, 2, l, 0, TRUE,
+				BFD_RELOC_MICROMIPS_7_PCREL_S1);
+	  else	    
+	    fixp = fix_new (fragp, buf - fragp->fr_literal, 4, l, 0, TRUE,
+			    BFD_RELOC_MICROMIPS_16_PCREL_S1);
 	  fixp->fx_file = fragp->fr_file;
 	  fixp->fx_line = fragp->fr_line;
 
 	  /* Branch over the jump.  */
-	  buf = write_compressed_insn (buf, insn, 4);
-	  if (!compact)
+	  buf = write_compressed_insn (buf, insn, type == 0 ? 4 : 2);
+	  if (!compact || type == 'E')
 	    /* nop */
 	    buf = write_compressed_insn (buf, 0x0c00, 2);
 	}
