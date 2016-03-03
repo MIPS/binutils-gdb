@@ -200,6 +200,7 @@ decode_mips16_operand (char type, bfd_boolean extended_p)
 
 #define E2	ASE_MIPS16E2
 #define E2MT	ASE_MIPS16E2_MT
+#define CP	ASE_MIPS16CP
 
 const struct mips_opcode mips16_opcodes[] =
 {
@@ -256,7 +257,7 @@ const struct mips_opcode mips16_opcodes[] =
 {"cmpi",    "x,U",	0x7000, 0xf800,		RD_1|WR_T,		0,		I1,	0,	0 },
 {"cmp",	    "x,y",	0xe80a, 0xf81f,		RD_1|RD_2|WR_T,		0,		I1,	0,	0 },
 {"cmp",     "x,U",	0x7000, 0xf800,		RD_1|WR_T,		0,		I1,	0,	0 },
-{"copyw",   "x,y,o,n",	0xf020e000, 0xffe0f81c,	RD_1|RD_2|NODS,		0,		0,	E2,	0 },
+{"copyw",   "x,y,o,n",	0xf020e000, 0xffe0f81c,	RD_1|RD_2|NODS,		0,		0,	CP,	0 },
 {"dla",	    "y,E",	0xfe00, 0xff00,		WR_1, 			RD_PC,		I3,	0,	0 },
 {"daddiu",  "y,x,4",	0x4010, 0xf810,		WR_1|RD_2, 		0,		I3,	0,	0 },
 {"daddiu",  "y,j",	0xfd00, 0xff00,		MOD_1,			0,		I3,	0,	0 },
@@ -423,7 +424,7 @@ const struct mips_opcode mips16_opcodes[] =
 {"swr",	    "r,9(x)",	0xf010d0e0, 0xfe18f8e0,	RD_1|RD_3,		0,		0,	E2,	0 },
 {"sync",    "",		0xf0003014, 0xffffffff,	0,			0,		0,	E2,	0 },
 {"sync",    "<",	0xf0003014, 0xf83fffff,	0,			0,		0,	E2,	0 },
-{"ucopyw",  "x,y,o,n",	0xf000e000, 0xffe0f81c,	RD_1|RD_2|NODS,		0,		0,	E2,	0 },
+{"ucopyw",  "x,y,o,n",	0xf000e000, 0xffe0f81c,	RD_1|RD_2|NODS,		0,		0,	CP,	0 },
 {"ulw",	    "x,J(y)",	0xf040e000, 0xfff8f800,	RD_1|RD_3|NODS,		0,		0,	E2,	0 },
 {"usw",	    "x,J(y)",	0xf048e000, 0xfff8f800,	RD_1|RD_3|NODS,		0,		0,	E2,	0 },
 {"xor",	    "x,y",	0xe80e, 0xf81f,		MOD_1|RD_2, 	0,		I1,	0,	0 },

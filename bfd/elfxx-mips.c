@@ -15662,6 +15662,10 @@ print_mips_ases (FILE *file, unsigned int mask)
     fputs ("\n\tMICROMIPS ASE", file);
   if (mask & AFL_ASE_XPA)
     fputs ("\n\tXPA ASE", file);
+  if (mask & AFL_ASE_MIPS16E2)
+    fputs ("\n\tMIPS16 E2 Extension", file);
+  if (mask & AFL_ASE_MIPS16CP)
+    fputs ("\n\tMIPS16 CP Extension", file);
   if (mask == 0)
     fprintf (file, "\n\t%s", _("None"));
   else if ((mask & ~AFL_ASE_MASK) != 0)

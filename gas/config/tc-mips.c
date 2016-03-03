@@ -1424,6 +1424,8 @@ enum options
     OPTION_NO_MCU,
     OPTION_MIPS16E2,
     OPTION_NO_MIPS16E2,
+    OPTION_MIPS16CP,
+    OPTION_NO_MIPS16CP,
     OPTION_COMPAT_ARCH_BASE,
     OPTION_M4650,
     OPTION_NO_M4650,
@@ -1546,6 +1548,8 @@ struct option md_longopts[] =
   {"mno-mxu", no_argument, NULL, OPTION_NO_MXU},
   {"mmips16e2", no_argument, NULL, OPTION_MIPS16E2},
   {"mno-mips16e2", no_argument, NULL, OPTION_NO_MIPS16E2},
+  {"mmips16cp", no_argument, NULL, OPTION_MIPS16CP},
+  {"mno-mips16cp", no_argument, NULL, OPTION_NO_MIPS16CP},
 
   /* Old-style architecture options.  Don't add more of these.  */
   {"m4650", no_argument, NULL, OPTION_M4650},
@@ -1734,6 +1738,11 @@ static const struct mips_ase mips_ases[] = {
 
   { "mips16e2", ASE_MIPS16E2, 0,
     OPTION_MIPS16E2, OPTION_NO_MIPS16E2,
+    2,  2, -1, -1,
+    6 },
+
+  { "mips16cp", ASE_MIPS16CP, 0,
+    OPTION_MIPS16CP, OPTION_NO_MIPS16CP,
     2,  2, -1, -1,
     6 },
 };
@@ -18210,6 +18219,10 @@ mips_convert_ase_flags (int ase)
     ext_ases |= AFL_ASE_MSA;
   if (ase & ASE_XPA)
     ext_ases |= AFL_ASE_XPA;
+  if (ase & ASE_MIPS16E2)
+    ext_ases |= file_ase_mips16 ? AFL_ASE_MIPS16E2 : 0;
+  if (ase & ASE_MIPS16CP)
+    ext_ases |= file_ase_mips16 ? AFL_ASE_MIPS16CP : 0;
 
   return ext_ases;
 }
