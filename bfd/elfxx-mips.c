@@ -1220,9 +1220,9 @@ static const bfd_vma mips_vxworks_shared_plt_entry[] =
 static const bfd_vma mips16_exec_iplt_entry[] =
 {
   0xb202,		/* lw	 $2, 8($pc)		*/
-  0x9a60,		/* lw	 $3, 0($2)		*/
-  0xeb00,		/* jr	 $3			*/
-  0x653b,		/* move  $25, $3		*/
+  0x9a40,		/* lw	 $2, 0($2)		*/
+  0xea00,		/* jr	 $2			*/
+  0x653a,		/* move  $25, $2		*/
   0x0000, 0x0000	/* .word (.igot address)	*/
 };
 
@@ -1238,18 +1238,18 @@ static const bfd_vma mips32_exec_iplt_entry[] =
 /* Format of 32 bit IPLT entries for R6. JR encoding differs.  */
 static const bfd_vma mips32r6_exec_iplt_entry[] =
 {
-  0x3c0f0000,	/* lui $15, %hi(.igot address)		*/
-  0x8df90000,	/* lw  $25, %lo(.igot address)($15)	*/
-  0x03200009,	/* jr  $25				*/
-  0x00000000	/* nop					*/
+  0x3c0f0000,	/* lui	$15, %hi(.igot address)		*/
+  0x8df90000,	/* lw	$25, %lo(.igot address)($15)	*/
+  0xd8190000	/* jrc	$25				*/
 };
 
 /* The format of 32-bit micromips IPLT entries.  */
 static const bfd_vma micromips32_exec_iplt_entry[] =
 {
-  0x41a30000,	/* lui $2, %hi(.igot address)		*/
-  0xff230000,	/* lw  $2, %lo(.igot address)($2)	*/
-  0x45b9,	/* jrc $25				*/
+  0x41af, 0x0000,	/* lui $15, %hi(.igot address)		*/
+  0xff2f, 0x0000,	/* lw  $25, %lo(.igot address)($15)	*/
+  0x45b9,		/* jrc $25				*/
+  0x0c00		/* nop					*/
 };
 
 /* The format of 64-bit IPLT entries.  */
@@ -5416,8 +5416,9 @@ mips_elf_create_ifunc_sections (struct bfd_link_info *info)
       else if (MIPS16_P (dynobj))
 	htab->iplt_entry_size = 2 * ARRAY_SIZE (mips16_exec_iplt_entry);
       else if (MICROMIPS_P (dynobj))
-	htab->iplt_entry_size = (4 * ARRAY_SIZE (micromips32_exec_iplt_entry)
-				 - 2);
+	htab->iplt_entry_size = 2 * ARRAY_SIZE (micromips32_exec_iplt_entry);
+      else if (MIPSR6_P (dynobj))
+	htab->iplt_entry_size = 4 * ARRAY_SIZE (mips32r6_exec_iplt_entry);
       else
 	htab->iplt_entry_size = 4 * (ARRAY_SIZE (mips32_exec_iplt_entry)
 				     + (LOAD_INTERLOCKS_P (dynobj) ? 0 : 1));
@@ -11287,11 +11288,12 @@ mips_elf_create_iplt (bfd *output_bfd,
   else if (ELF_ST_IS_MICROMIPS (hmips->root.other))
     {
       iplt_entry = micromips32_exec_iplt_entry;
-      bfd_put_micromips_32 (output_bfd, iplt_entry[0] | high, loc);
-      bfd_put_micromips_32 (output_bfd, iplt_entry[1] | low , loc + 4);
-
-      bfd_put_16 (output_bfd, iplt_entry[2], loc + 8);
-      bfd_put_16 (output_bfd, iplt_entry[3], loc + 10);
+      bfd_put_16 (output_bfd, iplt_entry[0], loc);
+      bfd_put_16 (output_bfd, high, loc + 2);
+      bfd_put_16 (output_bfd, iplt_entry[2], loc + 4);
+      bfd_put_16 (output_bfd, low, loc + 6);
+      bfd_put_16 (output_bfd, iplt_entry[4], loc + 8);
+      bfd_put_16 (output_bfd, iplt_entry[5], loc + 10);
     }
   else
     {
@@ -11301,7 +11303,9 @@ mips_elf_create_iplt (bfd *output_bfd,
 	iplt_entry = mips32_exec_iplt_entry;
       bfd_put_32 (output_bfd, iplt_entry[0] | high, loc);
       bfd_put_32 (output_bfd, iplt_entry[1] | low, loc + 4);
-      if (LOAD_INTERLOCKS_P (output_bfd))
+      if (MIPSR6_P (output_bfd))
+	  bfd_put_32 (output_bfd, iplt_entry[2], loc + 8);
+      else if (LOAD_INTERLOCKS_P (output_bfd))
 	{
 	  bfd_put_32 (output_bfd, iplt_entry[2], loc + 8);
 	  bfd_put_32 (output_bfd, iplt_entry[3], loc + 12);
