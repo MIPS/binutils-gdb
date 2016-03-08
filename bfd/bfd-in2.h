@@ -3056,14 +3056,14 @@ to compensate for the borrow when the low bits are added.  */
   BFD_RELOC_MICROMIPS_TLS_TPREL_LO16,
   BFD_RELOC_MIPS_EH,
 
+/* MIPS support for STT_GNU_IFUNC.  */
+  BFD_RELOC_MIPS_IRELATIVE,
+
 
 /* MIPS ELF relocations (VxWorks and PLT extensions).  */
   BFD_RELOC_MIPS_COPY,
   BFD_RELOC_MIPS_JUMP_SLOT,
 
-
-/* MIPS support for STT_GNU_IFUNC.  */
-  BFD_RELOC_MIPS_IRELATIVE,
 
 /* Moxie ELF relocations.  */
   BFD_RELOC_MOXIE_10_PCREL,
