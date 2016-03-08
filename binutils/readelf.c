@@ -1730,7 +1730,6 @@ get_mips_dynamic_type (unsigned long type)
     case DT_MIPS_PLTGOT: return "MIPS_PLTGOT";
     case DT_MIPS_RWPLT: return "MIPS_RWPLT";
     case DT_MIPS_GENERAL_GOTNO: return "MIPS_GENERAL_GOTNO";
-
     default:
       return NULL;
     }

@@ -1225,9 +1225,9 @@ static const bfd_vma mips_vxworks_shared_plt_entry[] =
    directly addressable.  */
 static const bfd_vma mips16_exec_iplt_entry[] =
 {
-  0xb202,		/* lw 	 $2, 8($pc)       	*/
-  0x9a60,		/* lw 	 $3, 0($2)		*/
-  0xeb00,		/* jr 	 $3			*/
+  0xb202,		/* lw	 $2, 8($pc)		*/
+  0x9a60,		/* lw	 $3, 0($2)		*/
+  0xeb00,		/* jr	 $3			*/
   0x653b,		/* move  $25, $3		*/
   0x0000, 0x0000	/* .word (.igot address)	*/
 };
@@ -1235,51 +1235,51 @@ static const bfd_vma mips16_exec_iplt_entry[] =
 /* The format of 32 bit IPLT entries.  */
 static const bfd_vma mips32_exec_iplt_entry[] =
 {
-  0x3c0f0000,   /* lui $15, %hi(.igot address)		*/
-  0x8df90000,   /* lw  $25, %lo(.igot address)($15)	*/
-  0x03200008,   /* jr  $25				*/
-  0x00000000    /* nop					*/
+  0x3c0f0000,	/* lui $15, %hi(.igot address)		*/
+  0x8df90000,	/* lw  $25, %lo(.igot address)($15)	*/
+  0x03200008,	/* jr  $25				*/
+  0x00000000	/* nop					*/
 };
 
 /* Format of 32 bit IPLT entries for R6. JR encoding differs.  */
 static const bfd_vma mips32r6_exec_iplt_entry[] =
 {
-  0x3c0f0000,   /* lui $15, %hi(.igot address)		*/
-  0x8df90000,   /* lw  $25, %lo(.igot address)($15)	*/
-  0x03200009,   /* jr  $25				*/
-  0x00000000    /* nop					*/
+  0x3c0f0000,	/* lui $15, %hi(.igot address)		*/
+  0x8df90000,	/* lw  $25, %lo(.igot address)($15)	*/
+  0x03200009,	/* jr  $25				*/
+  0x00000000	/* nop					*/
 };
 
 /* The format of 32-bit micromips IPLT entries.  */
 static const bfd_vma micromips32_exec_iplt_entry[] =
 {
-  0x41a30000, 	/* lui $2, %hi(.igot address)		*/
-  0xff230000,	/* lw  $2, %lo(.igot address)($2) 	*/
+  0x41a30000,	/* lui $2, %hi(.igot address)		*/
+  0xff230000,	/* lw  $2, %lo(.igot address)($2)	*/
   0x45b9,	/* jrc $25				*/
 };
 
 /* The format of 64-bit IPLT entries.  */
 static const bfd_vma mips64_exec_iplt_entry[] =
 {
-  0x3c0f0000,	/* lui $15, %highest(.got.iplt entry)        */
-  0x3c0e0000,	/* lui $14, %hi(.got.iplt entry)             */
-  0x25ef0000,	/* addiu $15, $15, %higher(.got.iplt entry)  */
-  0x000f783c,	/* dsll32 $15, $15, 0x0                      */
-  0x01ee782d,	/* daddu $15, $15, $14                       */
-  0xddf90000,	/* ld $25, %lo(.got.iplt entry)($15)         */
-  0x03200008,	/* jr $25                                    */
-  0x00000000,	/* nop                                       */
+  0x3c0f0000,	/* lui $15, %highest(.got.iplt entry)		*/
+  0x3c0e0000,	/* lui $14, %hi(.got.iplt entry)		*/
+  0x25ef0000,	/* addiu $15, $15, %higher(.got.iplt entry)	*/
+  0x000f783c,	/* dsll32 $15, $15, 0x0				*/
+  0x01ee782d,	/* daddu $15, $15, $14				*/
+  0xddf90000,	/* ld $25, %lo(.got.iplt entry)($15)		*/
+  0x03200008,	/* jr $25					*/
+  0x00000000,	/* nop						*/
 };
 
 /* The format of 64-bit IPLT entries for 48bit address.  */
 static const bfd_vma mips64_48b_exec_iplt_entry[] =
 {
-  0x3c0f0000,	/* lui $15, %higher(.got.iplt entry)         */
-  0x25ef0000,	/* addiu $15, $15, %high(.got.iplt entry)    */
-  0x000f7c38,	/* dsll $15, $15, 16  			     */
-  0xddf90000,	/* ld $25, %lo(.got.iplt entry)($15)         */
-  0x03200008,	/* jr $25                                    */
-  0x00000000,	/* nop                                       */
+  0x3c0f0000,	/* lui $15, %higher(.got.iplt entry)		*/
+  0x25ef0000,	/* addiu $15, $15, %high(.got.iplt entry)	*/
+  0x000f7c38,	/* dsll $15, $15, 16				*/
+  0xddf90000,	/* ld $25, %lo(.got.iplt entry)($15)		*/
+  0x03200008,	/* jr $25					*/
+  0x00000000,	/* nop						*/
 };
 
 
