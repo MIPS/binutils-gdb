@@ -74,7 +74,7 @@ set abis [concat o32 [expr {$has_newabi ? "n32 n64" : ""}]]
 foreach { abi } $abis {
     run_ld_link_tests [list \
 	[list \
-	    "IFUNC 1 (Simple dso with def) ${abi}" \
+	    "IFUNC 1 (DSO with def) ${abi}" \
 	    "$abi_ldflags($abi) -shared -T ifunc-dyn.ld" "" \
 	    "$abi_asflags($abi)" \
 	    [list ifunc-dyn-def.s] \
@@ -82,7 +82,7 @@ foreach { abi } $abis {
 	    "libifunc-1-${abi}.so" \
         ] \
 	[list \
-	    "IFUNC 2 (Simple dso with ref) ${abi}" \
+	    "IFUNC 2 (DSO with ref) ${abi}" \
 	    "$abi_ldflags($abi) -shared -T ifunc-dyn.ld" "" \
 	    "$abi_asflags($abi)" \
 	    [list ifunc-dyn-ref.s] \
@@ -90,7 +90,7 @@ foreach { abi } $abis {
 	    "libifunc-2-${abi}.so" \
         ] \
 	[list \
-	    "IFUNC 3 (Simple dynamic executable with def) ${abi}" \
+	    "IFUNC 3 (Dynamic executable with def) ${abi}" \
 	    "$abi_ldflags($abi) -Bdynamic -L./tmpdir -lifunc-2-${abi} -T ifunc-dyn.ld" "" \
 	    "$abi_asflags($abi)" \
 	    [list ifunc-dyn-main.s ifunc-dyn-def.s] \
@@ -100,7 +100,7 @@ foreach { abi } $abis {
 	    "ifunc-3-${abi}" \
         ] \
 	[list \
-	    "IFUNC 4 (Simple static executable with def and ref) ${abi}" \
+	    "IFUNC 4 (Static executable with def and ref) ${abi}" \
 	    "$abi_ldflags($abi) -Bstatic -T ifunc-static.ld" "" \
 	    "$abi_asflags($abi) -non_shared" \
 	    [list ifunc-static-main.s ifunc-static-def.s ifunc-static-ref.s] \
@@ -110,7 +110,7 @@ foreach { abi } $abis {
 	    "ifunc-4-${abi}" \
         ] \
 	[list \
-	    "IFUNC 5 (Dynamic shared object with def and ref) ${abi}" \
+	    "IFUNC 5 (DSO with def and ref) ${abi}" \
 	    "$abi_ldflags($abi) -shared -T ifunc-dyn.ld" "" \
 	    "$abi_asflags($abi) -KPIC" \
 	    [list ifunc-dyn-def.s ifunc-dyn-ref.s] \
@@ -140,7 +140,7 @@ set addrs { "0x400000" "0x400000000" "0x4000000000000" }
 foreach { addr } $addrs {
     run_ld_link_tests [list \
 	[list \
-	    "IFUNC IPLT (Simple static executable with def and ref) ${addr}" \
+	    "IFUNC IPLT (Static executable with def and ref) ${addr}" \
 	    "$abi_ldflags(n64) -Bstatic -Ttext-segment ${addr}" "" \
 	    "$abi_asflags(n64) -non_shared" \
 	    [list ifunc-static-main.s ifunc-static-def.s ifunc-static-ref.s] \
@@ -154,7 +154,7 @@ foreach { addr } $addrs {
 set abi o32
 run_ld_link_tests [list \
 	[list \
-	    "LIBIFUNC 3 (Simple dso with local def) ${abi}" \
+	    "LIBIFUNC 3 (DSO with local def) ${abi}" \
 	    "$abi_ldflags($abi) -shared -T ifunc-dyn.ld" "" \
 	    "$abi_asflags($abi)" \
 	    [list ifunc-local-ref.s ifunc-local-def.s] \
@@ -162,7 +162,7 @@ run_ld_link_tests [list \
 	    "libifunc-3-${abi}.so" \
 	] \
 	[list \
-	    "IFUNC 7 (Simple static executable with def) ${abi}" \
+	    "IFUNC 7 (Local binding with non-PIC call-only ref) ${abi}" \
 	    "$abi_ldflags($abi) -static -Bstatic" "" \
 	    "$abi_asflags($abi)" \
 	     [list ifunc-local-1.s] \
@@ -171,7 +171,7 @@ run_ld_link_tests [list \
 	    "ifunc-7-${abi}" \
 	] \
 	[list \
-	    "IFUNC 8 (Simple dynamic executable with def) ${abi}" \
+	    "IFUNC 8 (Local binding with PIC call-only ref) ${abi}" \
 	    "$abi_ldflags($abi) -static" "" \
 	    "$abi_asflags($abi)" \
 	     [list ifunc-local-2.s] \
@@ -181,7 +181,7 @@ run_ld_link_tests [list \
 	    "ifunc-8-${abi}" \
 	] \
 	[list \
-	    "IFUNC 9 (Simple dynamic executable with def & PIC/non-PIC refs) ${abi}" \
+	    "IFUNC 9 (Local binding with PIC/non-PIC call-only refs) ${abi}" \
 	    "$abi_ldflags($abi) -static -Bstatic" "" \
 	    "$abi_asflags($abi) -non_shared" \
 	     [list ifunc-local-3.s] \
@@ -193,7 +193,7 @@ run_ld_link_tests [list \
 	    "ifunc-9-${abi}" \
 	] \
 	[list \
-	    "IFUNC 10 (Simple static executable with def & non-call ref) ${abi}" \
+	    "IFUNC 10 (Local binding with non-PIC call/non-call refs) ${abi}" \
 	    "$abi_ldflags($abi) -static -Bstatic" "" \
 	    "$abi_asflags($abi) -non_shared" \
 	     [list ifunc-local-4.s] \
@@ -202,7 +202,7 @@ run_ld_link_tests [list \
 	    "ifunc-10-${abi}" \
 	] \
 	[list \
-	    "IFUNC 11 (Simple dynamic executable with def & non-call ref) ${abi}" \
+	    "IFUNC 11 (Local binding with PIC-only call/non-call refs) ${abi}" \
 	    "$abi_ldflags($abi) -static" "" \
 	    "$abi_asflags($abi)" \
 	     [list ifunc-local-5.s] \
@@ -212,7 +212,7 @@ run_ld_link_tests [list \
 	    "ifunc-11-${abi}" \
 	] \
 	[list \
-	    "IFUNC 12 (Simple static executable with def, PIC/non-PIC, call/non-call refs) ${abi}" \
+	    "IFUNC 12 (Local binding with PIC/non-PIC, call/non-call refs) ${abi}" \
 	    "$abi_ldflags($abi) -static -Bstatic" "" \
 	    "$abi_asflags($abi) -non_shared" \
 	     [list ifunc-local-6.s] \
@@ -235,7 +235,7 @@ run_ld_link_tests [list \
 
 run_ld_link_tests [list \
 	[list \
-	    "IFUNC IPLT (Simple static executable with def and ref) mips32r6" \
+	    "IFUNC IPLT (Static executable with def and ref) mips32r6" \
 	    "" "" \
 	    "$abi_asflags(o32) -mips32r6" \
 	    [list ifunc-static-main.s ifunc-static-def.s] \
@@ -246,7 +246,7 @@ run_ld_link_tests [list \
 
 run_ld_link_tests [list \
 	[list \
-	    "IFUNC IPLT (Simple static executable with def and ref) micromips" \
+	    "IFUNC IPLT (Static executable with def and ref) micromips" \
 	    "" "" \
 	    "$abi_asflags(o32) -mmicromips" \
 	    [list ifunc-static-main.s ifunc-static-def.s] \
@@ -258,7 +258,7 @@ run_ld_link_tests [list \
 
 run_ld_link_tests [list \
 	[list \
-	    "IFUNC IPLT (Simple static executable with def and ref) mips16" \
+	    "IFUNC IPLT (Static executable with def and ref) mips16" \
 	    "" "" \
 	    "$abi_asflags(o32) -mips32r2 -mips16" \
 	    [list ifunc-static-main-mips16.s ifunc-static-def-mips16.s] \
