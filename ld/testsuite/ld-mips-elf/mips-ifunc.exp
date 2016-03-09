@@ -1,5 +1,5 @@
 # Expect script for MIPS IFUNC linker tests
-#   Copyright 2013
+#   Copyright 2016
 #   Free Software Foundation, Inc.
 #
 # This file is part of the GNU Binutils.
@@ -80,7 +80,7 @@ foreach { abi } $abis {
 	    [list ifunc-dyn-def.s] \
 	    [list "readelf -Ds libifunc-1-${abi}.sym"] \
 	    "libifunc-1-${abi}.so" \
-        ] \
+	] \
 	[list \
 	    "IFUNC 2 (DSO with ref) ${abi}" \
 	    "$abi_ldflags($abi) -shared -T ifunc-dyn.ld" "" \
@@ -88,48 +88,48 @@ foreach { abi } $abis {
 	    [list ifunc-dyn-ref.s] \
 	    [list "readelf -Ds libifunc-2-${abi}.sym"] \
 	    "libifunc-2-${abi}.so" \
-        ] \
+	] \
 	[list \
 	    "IFUNC 3 (Dynamic executable with def) ${abi}" \
 	    "$abi_ldflags($abi) -Bdynamic -L./tmpdir -lifunc-2-${abi} -T ifunc-dyn.ld" "" \
 	    "$abi_asflags($abi)" \
 	    [list ifunc-dyn-main.s ifunc-dyn-def.s] \
 	    [list "readelf -Ds ifunc-3-${abi}.sym" \
-                  "readelf -r ifunc-3-${abi}.r" \
-                  "objdump -dj.iplt ifunc-3-${abi}.t"] \
+		"readelf -r ifunc-3-${abi}.r" \
+		"objdump -dj.iplt ifunc-3-${abi}.t"] \
 	    "ifunc-3-${abi}" \
-        ] \
+	] \
 	[list \
 	    "IFUNC 4 (Static executable with def and ref) ${abi}" \
 	    "$abi_ldflags($abi) -Bstatic -T ifunc-static.ld" "" \
 	    "$abi_asflags($abi) -non_shared" \
 	    [list ifunc-static-main.s ifunc-static-def.s ifunc-static-ref.s] \
 	    [list "readelf -s ifunc-4-${abi}.sym" \
-		  "readelf -r ifunc-4-${abi}.r" \
-                  "objdump -dj.iplt ifunc-4-${abi}.t"] \
+		"readelf -r ifunc-4-${abi}.r" \
+		"objdump -dj.iplt ifunc-4-${abi}.t"] \
 	    "ifunc-4-${abi}" \
-        ] \
+	] \
 	[list \
 	    "IFUNC 5 (DSO with def and ref) ${abi}" \
 	    "$abi_ldflags($abi) -shared -T ifunc-dyn.ld" "" \
 	    "$abi_asflags($abi) -KPIC" \
 	    [list ifunc-dyn-def.s ifunc-dyn-ref.s] \
 	    [list "readelf -Ds ifunc-5-${abi}.sym" \
-                  "readelf -r ifunc-5-${abi}.r" \
-		  "readelf -d ifunc-5.dyn" \
-                  "objdump -dj.got ifunc-5-${abi}.g"] \
+		"readelf -r ifunc-5-${abi}.r" \
+		"readelf -d ifunc-5.dyn" \
+		"objdump -dj.got ifunc-5-${abi}.g"] \
 	    "ifunc-5-${abi}" \
-        ] \
+	] \
 	[list \
 	    "IFUNC 6 (Dynamic executable with def and ref) ${abi}" \
 	    "$abi_ldflags($abi) -Bdynamic -L./tmpdir -lifunc-2-${abi} -T ifunc-dyn.ld" "" \
 	    "$abi_asflags($abi)" \
 	    [list ifunc-dyn-main.s ifunc-dyn-def.s ifunc-dyn-ref.s] \
 	    [list "readelf -Ds ifunc-6-${abi}.sym" \
-		  "readelf -d ifunc-6.dyn" \
-                  "readelf -r ifunc-6-${abi}.r"] \
+		"readelf -d ifunc-6.dyn" \
+		"readelf -r ifunc-6-${abi}.r"] \
 	    "ifunc-6-${abi}" \
-        ] \
+	] \
     ]
 }
 
@@ -146,7 +146,7 @@ foreach { addr } $addrs {
 	    [list ifunc-static-main.s ifunc-static-def.s ifunc-static-ref.s] \
 	    [list "objdump -dj.iplt ifunc-iplt-${addr}.t"] \
 	    "ifunc-iplt-${addr}" \
-        ] \
+	] \
     ]
 }
 
@@ -167,7 +167,7 @@ run_ld_link_tests [list \
 	    "$abi_asflags($abi)" \
 	     [list ifunc-local-1.s] \
 	     [list "readelf -r ifunc-7-${abi}.r" \
-		  "readelf -S ifunc-7-${abi}.sec"] \
+		 "readelf -S ifunc-7-${abi}.sec"] \
 	    "ifunc-7-${abi}" \
 	] \
 	[list \
@@ -175,9 +175,9 @@ run_ld_link_tests [list \
 	    "$abi_ldflags($abi) -static" "" \
 	    "$abi_asflags($abi)" \
 	     [list ifunc-local-2.s] \
- 	     [list "readelf -r ifunc-8-${abi}.r" \
- 		  "readelf -S ifunc-8-${abi}.sec" \
- 		  "objdump -Dj.got ifunc-8-${abi}.g"] \
+	     [list "readelf -r ifunc-8-${abi}.r" \
+		 "readelf -S ifunc-8-${abi}.sec" \
+		 "objdump -sj.got ifunc-8-${abi}.got"] \
 	    "ifunc-8-${abi}" \
 	] \
 	[list \
@@ -186,10 +186,10 @@ run_ld_link_tests [list \
 	    "$abi_asflags($abi) -non_shared" \
 	     [list ifunc-local-3.s] \
 	     [list "readelf -r ifunc-9-${abi}.r" \
-		  "readelf -S ifunc-9-${abi}.sec" \
-		  "readelf -S ifunc-9-${abi}-x.sec" \
-		  "objdump -Dj.got ifunc-9-${abi}.g" \
-		  "objdump -dj.iplt ifunc-9-${abi}.t"] \
+		 "readelf -S ifunc-9-${abi}.sec" \
+		 "readelf -S ifunc-9-${abi}-x.sec" \
+		 "objdump -sj.got ifunc-9-${abi}.got" \
+		 "objdump -dj.iplt ifunc-9-${abi}.t"] \
 	    "ifunc-9-${abi}" \
 	] \
 	[list \
@@ -198,7 +198,7 @@ run_ld_link_tests [list \
 	    "$abi_asflags($abi) -non_shared" \
 	     [list ifunc-local-4.s] \
 	     [list "readelf -r ifunc-10-${abi}.r" \
-		  "readelf -S ifunc-10-${abi}.sec"] \
+		 "readelf -S ifunc-10-${abi}.sec"] \
 	    "ifunc-10-${abi}" \
 	] \
 	[list \
@@ -206,9 +206,9 @@ run_ld_link_tests [list \
 	    "$abi_ldflags($abi) -static" "" \
 	    "$abi_asflags($abi)" \
 	     [list ifunc-local-5.s] \
- 	     [list "readelf -r ifunc-11-${abi}.r" \
- 		  "readelf -S ifunc-11-${abi}.sec" \
- 		  "objdump -Dj.got ifunc-11-${abi}.g"] \
+	     [list "readelf -r ifunc-11-${abi}.r" \
+		 "readelf -S ifunc-11-${abi}.sec" \
+		 "objdump -sj.got ifunc-11-${abi}.got"] \
 	    "ifunc-11-${abi}" \
 	] \
 	[list \
@@ -216,9 +216,9 @@ run_ld_link_tests [list \
 	    "$abi_ldflags($abi) -static -Bstatic" "" \
 	    "$abi_asflags($abi) -non_shared" \
 	     [list ifunc-local-6.s] \
- 	     [list "readelf -r ifunc-12-${abi}.r" \
- 		  "readelf -S ifunc-12-${abi}.sec" \
- 		  "objdump -Dj.got ifunc-12-${abi}.g"] \
+	     [list "readelf -r ifunc-12-${abi}.r" \
+		 "readelf -S ifunc-12-${abi}.sec" \
+		 "objdump -sj.got ifunc-12-${abi}.got"] \
 	    "ifunc-12-${abi}" \
 	] \
 	[list \
@@ -226,9 +226,9 @@ run_ld_link_tests [list \
 	    "$abi_ldflags($abi) -static -Bstatic" "" \
 	    "$abi_asflags($abi) -non_shared" \
 	     [list ifunc-dyn-def.s ifunc-dyn-ref.s ifunc-static-main.s] \
- 	     [list "readelf -r ifunc-13-${abi}.r" \
- 		  "readelf -S ifunc-13-${abi}.sec" \
- 		  "objdump -Dj.text ifunc-13-${abi}.t"] \
+	     [list "readelf -r ifunc-13-${abi}.r" \
+		 "readelf -S ifunc-13-${abi}.sec" \
+		 "objdump -Dj.text ifunc-13-${abi}.t"] \
 	    "ifunc-13-${abi}" \
 	] \
 ]
@@ -251,7 +251,7 @@ run_ld_link_tests [list \
 	    "$abi_asflags(o32) -mmicromips" \
 	    [list ifunc-static-main.s ifunc-static-def.s] \
 	    [list "objdump -dj.iplt ifunc-iplt-micromips.t" \
-		 "objdump -dj.igot ifunc-iplt-micromips.igot"] \
+		"objdump -dj.igot ifunc-iplt-micromips.igot"] \
 	    "ifunc-iplt-micromips" \
     ] \
 ]
@@ -263,7 +263,7 @@ run_ld_link_tests [list \
 	    "$abi_asflags(o32) -mips32r2 -mips16" \
 	    [list ifunc-static-main-mips16.s ifunc-static-def-mips16.s] \
 	    [list "objdump -dj.iplt ifunc-iplt-mips16.t" \
-		 "objdump -dj.igot ifunc-iplt-mips16.igot"] \
+		"objdump -dj.igot ifunc-iplt-mips16.igot"] \
 	    "ifunc-iplt-mips16" \
     ] \
 ]
