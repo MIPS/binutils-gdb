@@ -508,8 +508,11 @@ struct mips_elf_link_hash_table
   /* The index of the next .got.plt entry to create.  */
   bfd_vma plt_got_index;
 
-  /* The size of an IPLT entry in bytes.  */
+  /* The size of a regular IPLT entry in bytes.  */
   bfd_vma iplt_entry_size;
+
+  /* The size of a compressed IPLT entry in bytes.  */
+  bfd_vma iplt_comp_entry_size;
 
   /* The number of functions that need a lazy-binding stub.  */
   bfd_vma lazy_stub_count;
@@ -1252,12 +1255,21 @@ static const bfd_vma mips32r6_exec_iplt_entry[] =
 /* The format of micromips IPLT entries.  We add an extra NOP to round
    of the entry,  in spite of the compact branch to avoid 32-bit
    instructions spanning a cache-line boundary.  */
-static const bfd_vma micromips32_exec_iplt_entry[] =
+static const bfd_vma micromips_exec_iplt_entry[] =
 {
   0x41af, 0x0000,	/* lui $15, %hi(.igot address)		*/
   0xff2f, 0x0000,	/* lw  $25, %lo(.igot address)($15)	*/
   0x45b9,		/* jrc $25				*/
   0x0c00		/* nop					*/
+};
+
+/* The format of 32-bit micromips IPLT entries.  */
+static const bfd_vma micromips_insn32_exec_iplt_entry[] =
+{
+  0x41af, 0x0000,	/* lui $15, %hi(.igot address)		*/
+  0xff2f, 0x0000,	/* lw  $25, %lo(.igot address)($15)	*/
+  0x0019, 0x0f3c,	/* jr $25				*/
+  0x0000, 0x0000,	/* nop					*/
 };
 
 /* The format of 64-bit IPLT entries.  */
@@ -2158,11 +2170,16 @@ mips_elf_allocate_iplt (struct bfd_link_info *info,
   s = mhtab->root.iplt;
   if (ELF_ST_IS_MIPS16 (mh->root.other))
     other = STO_MIPS16;
+  else if (ELF_ST_IS_MICROMIPS (mh->root.other))
+    other = STO_MICROMIPS;
 
   mh->iplt_offset = s->size;
   mips_elf_create_stub_symbol (info, mh, ".iplt.", mhtab->root.iplt,
 			       s->size, mhtab->iplt_entry_size, other);
-  s->size += mhtab->iplt_entry_size;
+  if (ELF_ST_IS_COMPRESSED (other))
+    s->size += mhtab->iplt_comp_entry_size;
+  else
+    s->size += mhtab->iplt_entry_size;
 
   BFD_ASSERT (mhtab->root.igotplt != NULL);
 
@@ -3960,7 +3977,7 @@ mips_elf_create_local_got_entry (bfd *abfd, struct bfd_link_info *info,
   entry = (struct mips_got_entry *) *loc;
   if (entry && entry->gotidx >= 0)
     return entry;
-  
+
   general_got_p = (h && h->needs_ireloc && !h->needs_igot);
 
   if ((!general_got_p && g->assigned_low_gotno > g->assigned_high_gotno)
@@ -5373,17 +5390,30 @@ mips_elf_create_ifunc_sections (struct bfd_link_info *info)
 
   if (!bfd_link_pic (info))
     {
+      int mips32_size = MIPSR6_P (dynobj)
+	? 4 * ARRAY_SIZE (mips32r6_exec_iplt_entry)
+	: 4 * ARRAY_SIZE (mips32_exec_iplt_entry);
+
       if (ABI_64_P (dynobj))
 	htab->iplt_entry_size = 4 * ARRAY_SIZE (mips64_exec_iplt_entry);
-      else if (MIPS16_P (dynobj))
-	htab->iplt_entry_size = 2 * ARRAY_SIZE (mips16_exec_iplt_entry);
-      else if (MICROMIPS_P (dynobj))
-	htab->iplt_entry_size = 2 * ARRAY_SIZE (micromips32_exec_iplt_entry);
-      else if (MIPSR6_P (dynobj))
-	htab->iplt_entry_size = 4 * ARRAY_SIZE (mips32r6_exec_iplt_entry);
-      else
-	htab->iplt_entry_size = 4 * (ARRAY_SIZE (mips32_exec_iplt_entry)
-				     + (LOAD_INTERLOCKS_P (dynobj) ? 0 : 1));
+      else if (! MICROMIPS_P (dynobj)) 	/* mips32/mips16  */
+	{
+	  htab->iplt_entry_size = mips32_size
+	    + (LOAD_INTERLOCKS_P (dynobj) ? 0 : 4);
+	  htab->iplt_comp_entry_size = 2 * ARRAY_SIZE (mips16_exec_iplt_entry);
+	}
+      else if (htab->insn32)		/* mips32/micromips + insn32  */
+	{
+	  htab->iplt_entry_size = mips32_size;
+	  htab->iplt_comp_entry_size = 2
+	    * ARRAY_SIZE (micromips_insn32_exec_iplt_entry);
+	}
+      else				/* mips32/micromips  */
+	{
+	  htab->iplt_entry_size = mips32_size;
+	  htab->iplt_comp_entry_size = 2
+	    * ARRAY_SIZE (micromips_exec_iplt_entry);
+	}
 
       s = bfd_make_section_anyway_with_flags (dynobj, ".iplt",
 					      flags | SEC_READONLY | SEC_CODE);
@@ -11097,13 +11127,20 @@ mips_elf_create_iplt (bfd *output_bfd,
     }
   else if (ELF_ST_IS_MICROMIPS (hmips->root.other))
     {
-      iplt_entry = micromips32_exec_iplt_entry;
+      iplt_entry = htab->insn32 ?
+	micromips_insn32_exec_iplt_entry : micromips_exec_iplt_entry;
+
       bfd_put_16 (output_bfd, iplt_entry[0], loc);
       bfd_put_16 (output_bfd, high, loc + 2);
       bfd_put_16 (output_bfd, iplt_entry[2], loc + 4);
       bfd_put_16 (output_bfd, low, loc + 6);
       bfd_put_16 (output_bfd, iplt_entry[4], loc + 8);
       bfd_put_16 (output_bfd, iplt_entry[5], loc + 10);
+      if (htab->insn32)
+	{
+	  bfd_put_16 (output_bfd, iplt_entry[6], loc + 12);
+	  bfd_put_16 (output_bfd, iplt_entry[7], loc + 14);
+	}
     }
   else
     {
