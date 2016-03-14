@@ -11220,9 +11220,6 @@ mips_elf_create_ireloc (bfd *output_bfd,
   asection *gotsect, *relsect;
   bfd_vma value = sym->st_value;
 
-  if (ELF_ST_IS_COMPRESSED (hmips->root.other))
-    value |= 1;
-
   if (!hmips->needs_igot)
     {
       gotsect = htab->sgot;
