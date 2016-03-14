@@ -1249,7 +1249,9 @@ static const bfd_vma mips32r6_exec_iplt_entry[] =
   0xd8190000	/* jrc	$25				*/
 };
 
-/* The format of 32-bit micromips IPLT entries.  */
+/* The format of micromips IPLT entries.  We add an extra NOP to round
+   of the entry,  in spite of the compact branch to avoid 32-bit
+   instructions spanning a cache-line boundary.  */
 static const bfd_vma micromips32_exec_iplt_entry[] =
 {
   0x41af, 0x0000,	/* lui $15, %hi(.igot address)		*/
@@ -3894,6 +3896,7 @@ mips_elf_create_local_got_entry (bfd *abfd, struct bfd_link_info *info,
   struct mips_got_info *g;
   struct mips_elf_link_hash_table *htab;
   bfd_vma gotidx;
+  bfd_boolean general_got_p;
 
   htab = mips_elf_hash_table (info);
   BFD_ASSERT (htab != NULL);
@@ -3957,13 +3960,16 @@ mips_elf_create_local_got_entry (bfd *abfd, struct bfd_link_info *info,
   entry = (struct mips_got_entry *) *loc;
   if (entry && entry->gotidx >= 0)
     return entry;
+  
+  general_got_p = (h && h->needs_ireloc && !h->needs_igot);
 
-  if (g->assigned_low_gotno > g->assigned_high_gotno
+  if ((!general_got_p && g->assigned_low_gotno > g->assigned_high_gotno)
       || g->assigned_general_gotno > g->local_gotno)
     {
       /* We didn't allocate enough space in the GOT.  */
       (*_bfd_error_handler)
-	(_("not enough GOT space for local GOT entries"));
+	(_("not enough GOT space for %s GOT entries"),
+	 general_got_p ? "general" : "local");
       bfd_set_error (bfd_error_bad_value);
       return NULL;
     }
@@ -3972,7 +3978,7 @@ mips_elf_create_local_got_entry (bfd *abfd, struct bfd_link_info *info,
   if (!entry)
     return NULL;
 
-  if (h && h->needs_ireloc && !h->needs_igot)
+  if (general_got_p)
     /* Allocate IFUNC slots in the general GOT region since they
        will need explicit IRELATIVE relocations.  */
     {
