@@ -7087,25 +7087,29 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
   pinfo = ip->insn_mo->pinfo;
 
   if (mips_opts.micromips
+      && mips_optimize >= 3
+      && (prev_pinfo2 & INSN2_BRANCH_DELAY_32BIT) != 0
+      && micromips_insn_length (ip->insn_mo) != 4
+      && compactible_delay_branch_p (history))
+    /* We deliberately chose the 16-bit encoding to force a short delay slot,
+       so lets quietly force it.  */
+    {
+      unsigned long insn = history[0].insn_opcode;
+      history[0].insn_opcode = trans_micromips_opcode_bd16 (insn);
+      find_altered_micromips_opcode (history);
+      install_insn (history);
+      prev_pinfo2 = history[0].insn_mo->pinfo2;
+    }
+
+  if (mips_opts.micromips
       && !expansionp
       && (((prev_pinfo2 & INSN2_BRANCH_DELAY_16BIT) != 0
 	   && micromips_insn_length (ip->insn_mo) != 2)
 	  || ((prev_pinfo2 & INSN2_BRANCH_DELAY_32BIT) != 0
 	      && micromips_insn_length (ip->insn_mo) != 4)))
     {
-      if (compactible_delay_branch_p (history) &&
-	  (prev_pinfo2 & INSN2_BRANCH_DELAY_32BIT) != 0 && mips_optimize >= 3)
-      /* We deliberately chose the 16-bit encoding to force a short delay slot,
-	 so lets quietly force it.  */
-	{
-	  unsigned long insn = history[0].insn_opcode;
-	  history[0].insn_opcode = trans_micromips_opcode_bd16 (insn);
-	  find_altered_micromips_opcode (history);
-	  install_insn (history);
-	}
-      else
-	as_warn (_("wrong size instruction in a %u-bit branch delay slot"),
-		 (prev_pinfo2 & INSN2_BRANCH_DELAY_16BIT) != 0 ? 16 : 32);
+      as_warn (_("wrong size instruction in a %u-bit branch delay slot"),
+	       (prev_pinfo2 & INSN2_BRANCH_DELAY_16BIT) != 0 ? 16 : 32);
     }
 
   if (address_expr == NULL)
@@ -7298,7 +7302,8 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
   if (method == APPEND_ADD_WITH_NOP
       && mips_opts.micromips
       && compactible_delay_branch_p (ip)
-      && mips_optimize >= 3)
+      && mips_optimize >= 3
+      && !mips_opts.insn32)
     {
       ip->insn_opcode = trans_micromips_opcode_bd16 (ip->insn_opcode);
       find_altered_micromips_opcode (ip);
@@ -17743,7 +17748,9 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	      reg32 = (insn >> OP_SH_RT) & OP_MASK_RT;
 	      reg16 = reg32 & MICROMIPSOP_MASK_MD;
 
-	      if ((reg32 != 0 && reg16 == 0) || mips_optimize < 3)
+	      if (mips_opts.insn32
+		  || (reg32 != 0 && reg16 == 0)
+		  || mips_optimize < 3)
 		/* Operands not suitable for 16-bit, keep 32-bit format.  */
 		insn ^= 0x00400000;
 	      else
@@ -17823,7 +17830,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	{
 	  unsigned long at = RELAX_MICROMIPS_AT (fragp->fr_subtype);
 	  unsigned long jalr = short_ds ? 0x45e0 : 0x45c0;	/* jalr/s  */
-	  unsigned long jr = compact ? 0x45a0 : 0x4580;		/* jr/c  */
+	  unsigned long jr = (compact || addnop) ? 0x45a0 : 0x4580; /* jr/c  */
 
 	  /* lw/ld $at, <sym>($gp)  R_MICROMIPS_GOT16  */
 	  insn = HAVE_64BIT_ADDRESSES ? 0xdc1c0000 : 0xfc1c0000;
