@@ -184,56 +184,53 @@ run_ld_link_tests [list \
 	    "IFUNC 9 (Local binding with PIC/non-PIC call-only refs) ${abi}" \
 	    "$abi_ldflags($abi) -static -Bstatic" "" \
 	    "$abi_asflags($abi) -non_shared" \
-	     [list ifunc-local-3.s] \
-	     [list "readelf -r ifunc-9-${abi}.r" \
-		 "readelf -S ifunc-9-${abi}.sec" \
-		 "readelf -S ifunc-9-${abi}-x.sec" \
-		 "objdump -sj.got ifunc-9-${abi}.got" \
-		 "objdump -dj.iplt ifunc-9-${abi}.t"] \
+	    [list ifunc-local-3.s] \
+	    [list "readelf -r ifunc-9-${abi}.r" \
+		"readelf -S ifunc-9-${abi}.sec" \
+		"readelf -S ifunc-9-${abi}-x.sec" \
+		"objdump -sj.got ifunc-9-${abi}.got" \
+		"objdump -dj.iplt ifunc-9-${abi}.t"] \
 	    "ifunc-9-${abi}" \
 	] \
 	[list \
 	    "IFUNC 10 (Local binding with non-PIC call/non-call refs) ${abi}" \
 	    "$abi_ldflags($abi) -static -Bstatic" "" \
 	    "$abi_asflags($abi) -non_shared" \
-	     [list ifunc-local-4.s] \
-	     [list "readelf -r ifunc-10-${abi}.r" \
-		 "readelf -S ifunc-10-${abi}.sec"] \
+	    [list ifunc-local-4.s] \
+	    [list "readelf -r ifunc-10-${abi}.r" \
+		"readelf -S ifunc-10-${abi}.sec"] \
 	    "ifunc-10-${abi}" \
 	] \
 	[list \
 	    "IFUNC 11 (Local binding with PIC-only call/non-call refs) ${abi}" \
 	    "$abi_ldflags($abi) -static" "" \
 	    "$abi_asflags($abi)" \
-	     [list ifunc-local-5.s] \
-	     [list "readelf -r ifunc-11-${abi}.r" \
-		 "readelf -S ifunc-11-${abi}.sec" \
-		 "objdump -sj.got ifunc-11-${abi}.got"] \
+	    [list ifunc-local-5.s] \
+	    [list "readelf -r ifunc-11-${abi}.r" \
+		"readelf -S ifunc-11-${abi}.sec" \
+		"objdump -sj.got ifunc-11-${abi}.got"] \
 	    "ifunc-11-${abi}" \
 	] \
 	[list \
 	    "IFUNC 12 (Local binding with PIC/non-PIC, call/non-call refs) ${abi}" \
 	    "$abi_ldflags($abi) -static -Bstatic" "" \
 	    "$abi_asflags($abi) -non_shared" \
-	     [list ifunc-local-6.s] \
-	     [list "readelf -r ifunc-12-${abi}.r" \
-		 "readelf -S ifunc-12-${abi}.sec" \
-		 "objdump -sj.got ifunc-12-${abi}.got"] \
+	    [list ifunc-local-6.s] \
+	    [list "readelf -r ifunc-12-${abi}.r" \
+		"readelf -S ifunc-12-${abi}.sec" \
+		"objdump -sj.got ifunc-12-${abi}.got"] \
 	    "ifunc-12-${abi}" \
 	] \
 	[list \
 	    "IFUNC 13 non-PIC calls to PIC IFUNC ${abi}" \
 	    "$abi_ldflags($abi) -static -Bstatic" "" \
 	    "$abi_asflags($abi) -non_shared" \
-	     [list ifunc-dyn-def.s ifunc-dyn-ref.s ifunc-static-main.s] \
-	     [list "readelf -r ifunc-13-${abi}.r" \
-		 "readelf -S ifunc-13-${abi}.sec" \
-		 "objdump -Dj.text ifunc-13-${abi}.t"] \
+	    [list ifunc-dyn-def.s ifunc-dyn-ref.s ifunc-static-main.s] \
+	    [list "readelf -r ifunc-13-${abi}.r" \
+		"readelf -S ifunc-13-${abi}.sec" \
+		"objdump -Dj.text ifunc-13-${abi}.t"] \
 	    "ifunc-13-${abi}" \
 	] \
-]
-
-run_ld_link_tests [list \
 	[list \
 	    "IFUNC IPLT (Static executable with def and ref) mips32r6" \
 	    "" "" \
@@ -241,10 +238,7 @@ run_ld_link_tests [list \
 	    [list ifunc-static-main.s ifunc-static-def.s] \
 	    [list "objdump -dj.iplt ifunc-iplt-mips32r6.t"] \
 	    "ifunc-iplt-mips32r6" \
-    ] \
-]
-
-run_ld_link_tests [list \
+	] \
 	[list \
 	    "IFUNC IPLT (Static executable with def and ref) micromips" \
 	    "" "" \
@@ -253,10 +247,7 @@ run_ld_link_tests [list \
 	    [list "objdump -dj.iplt ifunc-iplt-micromips.t" \
 		"objdump -dj.igot ifunc-iplt-micromips.igot"] \
 	    "ifunc-iplt-micromips" \
-    ] \
-]
-
-run_ld_link_tests [list \
+	] \
 	[list \
 	    "IFUNC IPLT (Static executable with def and ref) mips16" \
 	    "" "" \
@@ -265,5 +256,27 @@ run_ld_link_tests [list \
 	    [list "objdump -dj.iplt ifunc-iplt-mips16.t" \
 		"objdump -dj.igot ifunc-iplt-mips16.igot"] \
 	    "ifunc-iplt-mips16" \
-    ] \
+	] \
+	[list \
+	    "IFUNC IPLT Mix 1 (mips32 & mips16)" \
+	    "$abi_ldflags($abi) -static -Bstatic" "" \
+	    "$abi_asflags($abi) -mips2" \
+	    [list ifunc-mix-1.s] \
+	    [list "readelf -s ifunc-mix-1.sym" \
+		"objdump -sj.igot ifunc-mix-1.igot" \
+		"objdump -dj.iplt ifunc-iplt-mix-1.t" \
+		"objdump -dj.text --no-show-raw-insn ifunc-mix-1.t"] \
+	    "ifunc-mix-1" \
+	] \
+	[list \
+	    "IFUNC IPLT Mix 2 (mips32 & micromips)" \
+	    "$abi_ldflags($abi) -static -Bstatic" "" \
+	    "$abi_asflags($abi)" \
+	    [list ifunc-mix-2.s] \
+	    [list "readelf -s ifunc-mix-2.sym" \
+		"objdump -sj.igot ifunc-mix-2.igot" \
+		"objdump -dj.iplt --no-show-raw-insn ifunc-iplt-mix-2.t" \
+		"objdump -dj.text --no-show-raw-insn ifunc-mix-2.t"] \
+	    "ifunc-mix-2" \
+	] \
 ]
