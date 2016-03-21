@@ -405,20 +405,20 @@
 }
 
 11110,00,4.IMM_8_5,00,3.RY + 10010,3.RX,110,5.IMM_4_0:EXT-ATOMIC:16::LL
-"ll r<TRY>, <IMMEDIATE>(r<TRX>)"
+"ll r<TRX>, <IMMEDIATE>(r<TRY>)"
 *mips16e:
 {
-    do_ll (SD_, TRY, IMMEDIATE, TRX);
+    do_ll (SD_, TRX, IMMEDIATE, TRY);
 }
 
 11110,00,4.IMM_8_5,00,3.RY + 11010,3.RX,110,5.IMM_4_0:EXT-ATOMIC:16::SC
-"sc r<TRY>, <IMMEDIATE>(r<TRX>)"
+"sc r<TRX>, <IMMEDIATE>(r<TRY>)"
 *mips16e:
 {
     /* The last parameter of the do_sc function is the instruction itself.
        This is not used in the call to do_sc so for the moment just set
        it to 0.  */
-    do_sc (SD_, TRY, IMMEDIATE, TRX, 0);
+    do_sc (SD_, TRX, IMMEDIATE, TRY, 0);
 }
 
 11110,5.STYPE,000000 + 00110,000,000,101,00:EXT-ATOMIC:16::SYNC
@@ -430,31 +430,31 @@
 }
 
 11110,00,4.IMM_8_5,00,3.RY + 10010,3.RX,111,5.IMM_4_0:EXT-RI:16::LWL
-"lwl r<TRY>, <IMMEDIATE>(r<TRX>)"
+"lwl r<TRX>, <IMMEDIATE>(r<TRY>)"
 *mips16e:
 {
-    do_lwl (SD_, TRY, IMMEDIATE, TRX);
+    do_lwl (SD_, TRX, IMMEDIATE, TRY);
 }
 
 11110,00,4.IMM_8_5,10,3.RY + 10010,3.RX,111,5.IMM_4_0:EXT-RI:16::LWR
-"lwr r<TRY>, <IMMEDIATE>(r<TRX>)"
+"lwr r<TRX>, <IMMEDIATE>(r<TRY>)"
 *mips16e:
 {
-    do_lwr (SD_, TRY, IMMEDIATE, TRX);
+    do_lwr (SD_, TRX, IMMEDIATE, TRY);
 }
 
 11110,00,4.IMM_8_5,00,3.RY + 11010,3.RX,111,5.IMM_4_0:EXT-RI:16::SWL
-"swl r<TRY>, <IMMEDIATE>(r<TRX>)"
+"swl r<TRX>, <IMMEDIATE>(r<TRY>)"
 *mips16e:
 {
-    do_store_left (SD_, AccessLength_WORD, GPR[TRX], EXTEND9 (IMMEDIATE), GPR[TRY]);
+    do_store_left (SD_, AccessLength_WORD, GPR[TRY], EXTEND9 (IMMEDIATE), GPR[TRX]);
 }
 
 11110,00,4.IMM_8_5,10,3.RY + 11010,3.RX,111,5.IMM_4_0:EXT-RI:16::SWR
 "swr r<TRY>, <IMMEDIATE>(r<TRX>)"
 *mips16e:
 {
-    do_store_right (SD_, AccessLength_WORD, GPR[TRX], EXTEND9 (IMMEDIATE), GPR[TRY]);
+    do_store_right (SD_, AccessLength_WORD, GPR[TRY], EXTEND9 (IMMEDIATE), GPR[TRX]);
 }
 
 11110,6.IMM_10_5,5.IMM_15_11 + 01101,3.RX,011,5.IMM_4_0:EXT-RI:16::ANDI
