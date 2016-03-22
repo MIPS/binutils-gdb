@@ -869,10 +869,10 @@ if { [istarget mips*-*-vxworks*] } {
 
     # New micromips optimizations at -O3
     run_dump_test_arches "micromips-short-delay" "-O3 -relax-branch" \
-	[mips_arch_list_matching micromips !mips32r6]
+	[mips_arch_list_matching micromips !mips32r6 !mips64r6]
     run_dump_test_arches "micromips-compact-branch" "-O3 -relax-branch" \
 	[mips_arch_list_matching micromips !mips32r6 !mips64r6]
-    run_dump_test_arches "micromips-relax-O3" "-O3 -relax-branch" \
+    run_dump_test_arches "micromips-relax-compress" "-O3 -relax-branch" \
 	[mips_arch_list_matching micromips !mips32r6 !mips64r6]
 
     # Make sure that -mcpu=FOO and -mFOO are equivalent.  Assemble a file

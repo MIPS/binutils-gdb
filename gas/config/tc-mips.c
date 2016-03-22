@@ -1154,9 +1154,10 @@ static int mips_relax_branch;
    selected as the assembler temporary, whether the branch is
    unconditional, whether it is compact, whether it stores the link
    address implicitly in $ra, whether relaxation of out-of-range 32-bit
-   branches to a sequence of instructions is enabled, and whether the
+   branches to a sequence of instructions is enabled, whether the
    displacement of a branch is too large to fit as an immediate argument
-   of a 16-bit and a 32-bit branch, respectively.  */
+   of a 16-bit and a 32-bit branch, respectively, and whether a NOP
+   intended for the delay-slot is pending for branch compaction.  */
 #define RELAX_MICROMIPS_ENCODE(type, at, uncond, compact, link, 	\
 			       relax32, toofar16, toofar32, addnop)	\
   (0x40000000							\
@@ -3304,6 +3305,9 @@ is_delay_slot_valid (const struct mips_opcode *mo)
   if ((history[0].insn_mo->pinfo2 & INSN2_BRANCH_DELAY_32BIT) != 0
       && micromips_insn_length (mo) != 4)
     {
+      /* Provisionally allow 16-bit instruction in a 32-bit delay slot with
+	 the expectation that the preceding branch will be modified to use
+	 a short-delay slot variant.  */
       if (history[0].noreorder_p
 	  && compactible_delay_branch_p (history)
 	  && mips_optimize >= 3)
@@ -7048,15 +7052,15 @@ calculate_reloc (bfd_reloc_code_real_type reloc, offsetT operand,
 static unsigned long
 trans_micromips_opcode_bd16 (unsigned long insn)
 {
-  if ((insn & 0xffe00000) == 0x40600000 		/* bgezal */
-      || (insn & 0xffe00000) == 0x40200000)		/* bltzal */
+  if ((insn & 0xffe00000) == 0x40600000 		/* bgezal  */
+      || (insn & 0xffe00000) == 0x40200000)		/* bltzal  */
     return (insn | 0x02000000);
-  else if ((insn & 0xffe0ffff) == 0x00000f3c 		/* jr */
-	   || (insn & 0xffe0ffff) == 0x00001f3c		/* jr.hb */
-	   || (insn & 0xfc00ffff) == 0x00000f3c		/* jalr32 */
-	   || (insn & 0xfc00ffff) == 0x00001f3c)	/* jalr32.hb */
+  else if ((insn & 0xffe0ffff) == 0x00000f3c 		/* jr  */
+	   || (insn & 0xffe0ffff) == 0x00001f3c		/* jr.hb  */
+	   || (insn & 0xfc00ffff) == 0x00000f3c		/* jalr32  */
+	   || (insn & 0xfc00ffff) == 0x00001f3c)	/* jalr32.hb  */
     return (insn | 0x000004000);
-  else if ((insn & 0xffe0) == 0x45c0)			/* jalr16 */
+  else if ((insn & 0xffe0) == 0x45c0)			/* jalr16  */
     return (insn | 0x0020);
   else
     return insn;
@@ -7107,10 +7111,8 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	   && micromips_insn_length (ip->insn_mo) != 2)
 	  || ((prev_pinfo2 & INSN2_BRANCH_DELAY_32BIT) != 0
 	      && micromips_insn_length (ip->insn_mo) != 4)))
-    {
-      as_warn (_("wrong size instruction in a %u-bit branch delay slot"),
-	       (prev_pinfo2 & INSN2_BRANCH_DELAY_16BIT) != 0 ? 16 : 32);
-    }
+    as_warn (_("wrong size instruction in a %u-bit branch delay slot"),
+	     (prev_pinfo2 & INSN2_BRANCH_DELAY_16BIT) != 0 ? 16 : 32);
 
   if (address_expr == NULL)
     ip->complete_p = 1;
@@ -7296,8 +7298,8 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 
   method = get_append_method (ip, address_expr, reloc_type);
 
-  /* For a branch where short delay slot is possible and swapping
-     with the preceding instruction is not an option, we prefer the
+  /* For a branch where a short delay slot is possible and swapping
+     with the preceding instruction is not an option,  we prefer the
      short delay slot version.  */
   if (method == APPEND_ADD_WITH_NOP
       && mips_opts.micromips
@@ -7385,6 +7387,7 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	  && method == APPEND_ADD_WITH_NOP
 	  && mips_optimize >= 3)
 	{
+	  /* Add the branch, but mark its delay-slot NOP as pending.  */
 	  method = APPEND_ADD;
 	  addnop = 1;
 	}
@@ -7622,7 +7625,8 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
       break;
     }
 
-  /* If we have just completed an unconditional branch, clear the history.  */
+  /* If we have just completed an unconditional branch, clear the history.
+     Likewise for a compactible branch with a pending NOP.  */
   if ((delayed_branch_p (&history[1]) && uncond_branch_p (&history[1]))
       || (compact_branch_p (&history[0]) && uncond_branch_p (&history[0]))
       || (compactible_branch_p (&history[0])
@@ -17058,6 +17062,12 @@ relaxed_micromips_32bit_branch_length (fragS *fragp, asection *sec, int update)
 
 			<brneg>	0f			# 4 bytes
 			nop				# 2 bytes if !compact
+
+	 Alternatively, for a 16-bit branch, we can use this optimized sequence
+	 because the branch target is known to be within range
+
+			<brneg>16  0f			# 2 bytes
+			nop16				# 2 bytes
        */
       if (!uncond)
 	{
@@ -17122,6 +17132,7 @@ relaxed_micromips_16bit_branch_length (fragS *fragp, asection *sec, int update)
       = toofar ? RELAX_MICROMIPS_MARK_TOOFAR16 (fragp->fr_subtype)
 	       : RELAX_MICROMIPS_CLEAR_TOOFAR16 (fragp->fr_subtype);
 
+  /* A 16-bit branch may have a pending NOP in the delay slot.  */
   if (toofar || RELAX_MICROMIPS_ADDNOP (fragp->fr_subtype))
     return 4;
 
@@ -17643,6 +17654,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	     2 octets.  */
 	  fixp->fx_no_overflow = 1;
 
+	  /* Emit a pending NOP in the delay slot.  */
 	  if (addnop)
 	    {
 	      buf = fragp->fr_literal + fragp->fr_fix - 2;
@@ -17675,8 +17687,10 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	{
 	  insn = read_compressed_insn (buf, 2);
 
-	  if ((insn & 0xfc00) == 0xcc00)		/* b16  */
+	  if ((insn & 0xfc00) == 0xcc00)	/* b16  */
 	    {
+	      /* For a 32-bit branch, we might as well use the compact
+		 variant in lieu of the pending NOP.  */
 	      if (addnop)
 		insn = 0x40e00000;	/* bc  */
 	      else
@@ -17688,8 +17702,10 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 
 	      regno = (insn >> MICROMIPSOP_SH_MD) & MICROMIPSOP_MASK_MD;
 	      regno = micromips_to_32_reg_d_map [regno];
+
+	      /* For a 32-bit branch, we might as well use the compact
+		 variant in lieu of the pending NOP.  */
 	      if (addnop)
-		/* Relax to 32-bit compact conditional branch.  */
 		insn = ((insn & 0x2000) << 9) ^ 0x40e00000;	/* beqz/bnez  */
 	      else
 		insn = ((insn & 0x2000) << 16) | 0x94000000;	/* beq/bne  */
@@ -17697,7 +17713,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	    }
 	  else
 	    abort ();
-	  
+
 	  if (!RELAX_MICROMIPS_RELAX32 (fragp->fr_subtype)
 	      || !RELAX_MICROMIPS_TOOFAR32 (fragp->fr_subtype))
 	    {
@@ -17717,8 +17733,8 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 
       /* Set the short-delay-slot bit.  */
       short_ds = al && (insn & 0x02000000) != 0;
-      
-      /* Choose compact encoding for 32-bit compactible branch.  */
+
+      /* Prefer compact encoding for a 32-bit compactible branch.  */
       compact = RELAX_MICROMIPS_COMPACT (fragp->fr_subtype);
 
       if (!RELAX_MICROMIPS_UNCOND (fragp->fr_subtype))
@@ -17726,8 +17742,8 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	  symbolS *l;
 
 	  /* Reverse the branch.  */
-	  if ((type != 0) && 
-	      (insn & 0xdc00) == 0x8c00) 		/* beqz16/bnez16  */
+	  if ((type != 0)
+	      && (insn & 0xdc00) == 0x8c00) 		/* beqz16/bnez16  */
 	    insn ^= 0x2000;
 	  else if ((insn & 0xfc000000) == 0x94000000		/* beq  */
 		   || (insn & 0xfc000000) == 0xb4000000)	/* bne  */
@@ -17755,9 +17771,10 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 		insn ^= 0x00400000;
 	      else
 		{
-		  /* Construct compressed instruction with negated branch.  */
+		  /* Construct 16-bit instruction with negated branch.  */
 		  insn = ((insn & 0x400000) >> 9) ^ 0x8c00;
 		  insn |= (reg16 << MICROMIPSOP_SH_MD);
+		  /* Branch needs 7-bit fix-up and a NOP in the delay slot.  */
 		  type = 'E';
 		}
 	    }
@@ -17796,7 +17813,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	  else if (type == 'E')
 	    fixp = fix_new (fragp, buf - fragp->fr_literal, 2, l, 0, TRUE,
 				BFD_RELOC_MICROMIPS_7_PCREL_S1);
-	  else	    
+	  else
 	    fixp = fix_new (fragp, buf - fragp->fr_literal, 4, l, 0, TRUE,
 			    BFD_RELOC_MICROMIPS_16_PCREL_S1);
 	  fixp->fx_file = fragp->fr_file;
@@ -17805,7 +17822,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	  /* Branch over the jump.  */
 	  buf = write_compressed_insn (buf, insn, type == 0 ? 4 : 2);
 	  if (!compact || type == 'E')
-	    /* nop */
+	    /* nop  */
 	    buf = write_compressed_insn (buf, 0x0c00, 2);
 	}
 
@@ -17830,6 +17847,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	{
 	  unsigned long at = RELAX_MICROMIPS_AT (fragp->fr_subtype);
 	  unsigned long jalr = short_ds ? 0x45e0 : 0x45c0;	/* jalr/s  */
+	  /* Treat a delayed jump with a pending NOP as a compact jump.  */
 	  unsigned long jr = (compact || addnop) ? 0x45a0 : 0x4580; /* jr/c  */
 
 	  /* lw/ld $at, <sym>($gp)  R_MICROMIPS_GOT16  */
