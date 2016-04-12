@@ -668,6 +668,7 @@ const struct mips_arch_choice mips_arch_choices[] =
    values.  */
 static int mips_processor;
 static int mips_isa;
+static int alt_isa = -1;
 static int mips_ase;
 static int micromips_ase;
 static const char * const *mips_gpr_names;
@@ -833,6 +834,17 @@ parse_mips_dis_option (const char *option, unsigned int len)
   if (CONST_STRNEQ (option, "no-aliases"))
     {
       no_aliases = 1;
+      return;
+    }
+
+  if (CONST_STRNEQ (option, "dis-both-r5-and-r6"))
+    {
+      if ((mips_isa & INSN_ISA_MASK) == ISA_MIPS32R6)
+	alt_isa = ISA_MIPS32R5;
+      else if ((mips_isa & INSN_ISA_MASK) == ISA_MIPS64R6)
+	alt_isa = ISA_MIPS64R5;
+      else
+	alt_isa = -1;
       return;
     }
 
@@ -1703,9 +1715,11 @@ print_insn_mips (bfd_vma memaddr,
 	    {
 	      /* We always disassemble the jalx instruction, except for MIPS r6.  */
 	      if (!opcode_is_member (op, mips_isa, mips_ase, mips_processor)
-		 && (strcmp (op->name, "jalx")
-		     || (mips_isa & INSN_ISA_MASK) == ISA_MIPS32R6
-		     || (mips_isa & INSN_ISA_MASK) == ISA_MIPS64R6))
+		   && (alt_isa == -1
+		       || !opcode_is_member (op, alt_isa, 0, 0))
+		   && (strcmp (op->name, "jalx")
+		       || is_isa_r6 (mips_isa)))
+		  || (op->pinfo2 & INSN2_CONVERTED_TO_COMPACT))
 		continue;
 
 	      /* Figure out instruction type and branch delay information.  */

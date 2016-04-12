@@ -1243,9 +1243,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"ldc1",		"E,A(b)",	0,    (int) M_LDC1_AB,	INSN_MACRO,		INSN2_M_FP_D,	I2,		0,	SF },
 {"l.d",			"T,o(b)",	0xd4000000, 0xfc000000, WR_1|RD_3|CLD|FP_D,	0,		I2,		0,	SF }, /* ldc1 */
 {"l.d",			"T,A(b)",	0,    (int) M_L_DAB,	INSN_MACRO,		INSN2_M_FP_D,	I1,		0,	0 },
-{"ldc2",		"E,+:(d)",	0x49c00000, 0xffe00000,	RD_3|WR_C2|CLD,		0,		I37,		0,	0 },
-{"ldc2",		"E,o(b)",	0xd8000000, 0xfc000000,	RD_3|WR_CC|CLD,		0,		I2,		0,	IOCT|IOCTP|IOCT2|EE|I37 },
-{"ldc2",		"E,A(b)",	0,    (int) M_LDC2_AB,	INSN_MACRO,		0,		I2,		0,	IOCT|IOCTP|IOCT2|EE },
+/* ldc2 is at the end of the table.  */
 {"ldc3",		"E,o(b)",	0xdc000000, 0xfc000000,	RD_3|WR_CC|CLD,		0,		I2,		0,	IOCT|IOCTP|IOCT2|EE },
 {"ldc3",		"E,A(b)",	0,    (int) M_LDC3_AB,	INSN_MACRO,		0,		I2,		0,	IOCT|IOCTP|IOCT2|EE },
 {"ldl",			"t,o(b)",	0x68000000, 0xfc000000, WR_1|RD_3|LM,		0,		I3,		0,	I69 },
@@ -1812,9 +1810,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"sdc1",		"E,o(b)",	0xf4000000, 0xfc000000, RD_1|RD_3|SM|FP_D,	0,		I2,		0,	SF },
 {"sdc1",		"T,A(b)",	0,    (int) M_SDC1_AB,	INSN_MACRO,		INSN2_M_FP_D,	I2,		0,	SF },
 {"sdc1",		"E,A(b)",	0,    (int) M_SDC1_AB,	INSN_MACRO,		INSN2_M_FP_D,	I2,		0,	SF },
-{"sdc2",		"E,+:(d)",	0x49e00000, 0xffe00000,	RD_3|RD_C2|SM,		0,		I37,		0,	0 },
-{"sdc2",		"E,o(b)",	0xf8000000, 0xfc000000,	RD_3|RD_C2|SM,		0,		I2,		0,	IOCT|IOCTP|IOCT2|EE|I37 },
-{"sdc2",		"E,A(b)",	0,    (int) M_SDC2_AB,	INSN_MACRO,		0,		I2,		0,	IOCT|IOCTP|IOCT2|EE },
+/* sdc2 is at the end of the table.  */
 {"sdc3",		"E,o(b)",	0xfc000000, 0xfc000000,	RD_3|RD_C3|SM,		0,		I2,		0,	IOCT|IOCTP|IOCT2|EE },
 {"sdc3",		"E,A(b)",	0,    (int) M_SDC3_AB,	INSN_MACRO,		0,		I2,		0,	IOCT|IOCTP|IOCT2|EE },
 {"s.d",			"T,o(b)",	0xf4000000, 0xfc000000, RD_1|RD_3|SM|FP_D,	0,		I2,		0,	SF },
@@ -3347,6 +3343,12 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"cop3",		"C",		0,    (int) M_COP3,	INSN_MACRO,		0,		I1,		0,	IOCT|IOCTP|IOCT2 },
 /* RFE conflicts with the new Virt spec instruction tlbgp. */
 {"rfe",			"",		0x42000010, 0xffffffff,	0,			0,		I1|T3,		0,	0 },
+{"ldc2",		"E,+:(d)",	0x49c00000, 0xffe00000,	RD_3|WR_C2|CLD,		0,		I37,		0,	0 },
+{"ldc2",		"E,o(b)",	0xd8000000, 0xfc000000,	RD_3|WR_CC|CLD,		0,		I2,		0,	IOCT|IOCTP|IOCT2|EE|I37 },
+{"ldc2",		"E,A(b)",	0,    (int) M_LDC2_AB,	INSN_MACRO,		0,		I2,		0,	IOCT|IOCTP|IOCT2|EE },
+{"sdc2",		"E,+:(d)",	0x49e00000, 0xffe00000,	RD_3|RD_C2|SM,		0,		I37,		0,	0 },
+{"sdc2",		"E,o(b)",	0xf8000000, 0xfc000000,	RD_3|RD_C2|SM,		0,		I2,		0,	IOCT|IOCTP|IOCT2|EE|I37 },
+{"sdc2",		"E,A(b)",	0,    (int) M_SDC2_AB,	INSN_MACRO,		0,		I2,		0,	IOCT|IOCTP|IOCT2|EE },
 };
 
 #define MIPS_NUM_OPCODES \
