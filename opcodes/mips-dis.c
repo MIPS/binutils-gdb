@@ -661,6 +661,23 @@ const struct mips_arch_choice mips_arch_choices[] =
   { "",		1, bfd_mach_mips16, CPU_MIPS16, ISA_MIPS3, 0,
     mips_cp0_names_numeric, NULL, 0, mips_cp1_names_numeric,
     mips_hwr_names_numeric },
+
+  { "",	1, bfd_mach_mips_micromips, CPU_MIPS32R5,
+    ISA_MIPS32R5,
+    (ASE_SMARTMIPS | ASE_DSP | ASE_DSPR2 | ASE_EVA | ASE_MIPS3D
+     | ASE_MT | ASE_MCU | ASE_VIRT | ASE_VIRT_XPA | ASE_MSA | ASE_XPA
+     | ASE_MXU),
+    mips_cp0_names_mips3264r2,
+    mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
+    mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
+
+  { "",	1, bfd_mach_mips_micromipsr6, CPU_MIPS32R6,
+    ISA_MIPS32R6,
+    (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_VIRT | ASE_VIRT_XPA | ASE_XPA |
+     ASE_MCU | ASE_MT | ASE_DSPR3),
+    mips_cp0_names_mips3264r2,
+    mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
+    mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 }
 };
 
 /* ISA and processor type to disassemble for, and register names to use.
@@ -2334,7 +2351,8 @@ _print_insn_mips (bfd_vma memaddr,
 
   if (info->mach == bfd_mach_mips16)
     return print_insn_mips16 (memaddr, info);
-  if (info->mach == bfd_mach_mips_micromips)
+  if (info->mach == bfd_mach_mips_micromips
+      || info->mach == bfd_mach_mips_micromipsr6)
     return print_insn_micromips (memaddr, info);
 
   print_insn_compr = !micromips_ase ? print_insn_mips16 : print_insn_micromips;

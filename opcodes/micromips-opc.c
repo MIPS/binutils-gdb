@@ -108,6 +108,7 @@ decode_micromips_operand (const char *p)
 	case 'G': MSB (5, 11, 33, FALSE, 64);	 /* (33 .. 64), 64-bit op */
 	case 'H': MSB (5, 11, 1, FALSE, 64);	 /* (1 .. 32), 64-bit op */
 	case 'J': HINT (10, 16);
+	case 'M': HINT (16, 6);
 	case 'T': INT_ADJ (10, 16, 511, 0, FALSE);	/* (-512 .. 511) << 0 */
 	case 'U': INT_ADJ (10, 16, 511, 1, FALSE);	/* (-512 .. 511) << 1 */
 	case 'V': INT_ADJ (10, 16, 511, 2, FALSE);	/* (-512 .. 511) << 2 */
@@ -995,6 +996,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"sh",			"mq,mH(ml)",	    0xa800,     0xfc00,	RD_1|RD_3|SM,		0,		I1,		0,	0 },
 {"sh",			"t,o(b)",	0x38000000, 0xfc000000,	RD_1|RD_3|SM,		0,		I1,		0,	0 },
 {"sh",			"t,A(b)",	0,    (int) M_SH_AB,	INSN_MACRO,		0,		I1,		0,	0 },
+{"sigrie",		"+M",		0x0000003f, 0xffc0003f,	TRAP,			0,		I37,		0,	0 },
 {"sle",			"d,v,t",	0,    (int) M_SLE,	INSN_MACRO,		0,		I1,		0,	0 },
 {"sle",			"d,v,I",	0,    (int) M_SLE_I,	INSN_MACRO,		0,		I1,		0,	0 },
 {"sleu",		"d,v,t",	0,    (int) M_SLEU,	INSN_MACRO,		0,		I1,		0,	0 },
