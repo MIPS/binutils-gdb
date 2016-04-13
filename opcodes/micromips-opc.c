@@ -254,6 +254,9 @@ decode_micromips_operand (const char *p)
    are accepted as 64-bit microMIPS ISA.  */
 #define I1	INSN_ISA1
 #define I3	INSN_ISA3
+#define I36	INSN_ISA32R5
+#define I37	INSN_ISA32R6
+#define I69	INSN_ISA64R6
 
 /* MIPS DSP ASE support.  */
 #define WR_a	WR_HILO		/* Write DSP accumulators (reuse WR_HILO).  */

@@ -1102,6 +1102,10 @@ struct mips_opcode
 #define INSN2_VU0_CHANNEL_SUFFIX    0x00004000
 /* Instruction has a forbidden slot.  */
 #define INSN2_FORBIDDEN_SLOT        0x00008000
+/* This indicates pre-R6 instructions mapped to R6 ones.  */
+#define INSN2_CONVERTED_TO_COMPACT  0x00010000
+/* Instruction prevents the following instruction from being in a DS */
+#define INSN2_NEXT_NO_DS	    0x00020000
 
 /* Masks used to mark instructions to indicate which MIPS ISA level
    they were introduced in.  INSN_ISA_MASK masks an enumeration that
@@ -1256,6 +1260,15 @@ static const unsigned int mips_isa_table[] = {
 #define ASE_MSA64		0x00001000
 /* eXtended Physical Address (XPA) Extension.  */
 #define ASE_XPA			0x00002000
+/* MXU Extension.  */
+#define ASE_MXU			0x00004000
+#define ASE_DSPR3		0x00008000
+/* The Virtualization ASE has eXtended Physical Address (XPA) Extension
+   instructions which are only valid when both ASEs are enabled.  */
+#define ASE_VIRT_XPA		0x00010000
+/* The eXtended Physical Address (XPA) Extension has instructions which are
+   only valid for the r6 ISA.  */
+#define ASE_EVA_R6		0x00020000
 
 /* MIPS ISA defines, use instead of hardcoding ISA level.  */
 
