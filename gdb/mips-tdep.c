@@ -5686,7 +5686,7 @@ is_ll_insn (struct gdbarch *gdbarch, ULONGEST insn)
       && (insn & 0x40) == 0)
     return 1;
 
-  /* Handle LL and LLX varieties.  */
+  /* Handle LL and LLP varieties.  */
   if (is_mipsr6_isa (gdbarch)
       && rtype_op (insn) == LLSC_R6_OPCODE
       && (rtype_funct (insn) == LL_R6_FUNCT
@@ -5709,13 +5709,12 @@ is_sc_insn (struct gdbarch *gdbarch, ULONGEST insn)
       && (insn & 0x40) == 0)
     return 1;
 
-  /* Handle SC and NOT SCX.  The SCX must come first so we
-     do not want to prematurely end the sequence.  */
+  /* Handle SC and SCP varieties.  */
   if (is_mipsr6_isa (gdbarch)
       && rtype_op (insn) == LLSC_R6_OPCODE
       && (rtype_funct (insn) == SC_R6_FUNCT
-	  || rtype_funct (insn) == SCD_R6_FUNCT)
-      && (insn & 0x40) == 0)
+	  || rtype_funct (insn) == SCD_R6_FUNCT
+	  || rtype_funct (insn) == SCE_FUNCT))
     return 1;
 
   return 0;
