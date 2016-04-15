@@ -1253,7 +1253,7 @@
   }
 }
 
-:function:::void:do_sc:int rt, int offsetarg, int basereg, address_word instruction_0
+:function:::void:do_sc:int rt, int offsetarg, int basereg, address_word instruction_0, int store_ll_bit
 {
   unsigned32 instruction = instruction_0;
   address_word base = GPR[basereg];
@@ -1288,13 +1288,14 @@
 		StoreMemory (uncached, AccessLength_WORD, memval, memval1,
 			     paddr, vaddr, isREAL);
 	      }
-	    GPR[rt] = LLBIT;
+	    if (store_ll_bit)
+	      GPR[rt] = LLBIT;
 	  }
       }
   }
 }
 
-:function:::void:do_scd:int rt, int roffset, int rbase
+:function:::void:do_scd:int rt, int roffset, int rbase, int store_ll_bit
 {
   address_word base = GPR[rbase];
   address_word offset = EXTEND16 (roffset);
@@ -1320,7 +1321,8 @@
 		StoreMemory (uncached, AccessLength_DOUBLEWORD, memval, memval1,
 			     paddr, vaddr, isREAL);
 	      }
-	    GPR[rt] = LLBIT;
+	    if (store_ll_bit)
+	      GPR[rt] = LLBIT;
 	  }
       }
   }
@@ -4557,7 +4559,7 @@
 *vr4100:
 *vr5000:
 {
-  do_sc (SD_, RT, OFFSET, BASE, instruction_0);
+  do_sc (SD_, RT, OFFSET, BASE, instruction_0, 1);
 }
 
 
@@ -4572,7 +4574,7 @@
 *vr5000:
 {
   check_u64 (SD_, instruction_0);
-  do_scd (SD_, RT, OFFSET, BASE);
+  do_scd (SD_, RT, OFFSET, BASE, 1);
 }
 
 

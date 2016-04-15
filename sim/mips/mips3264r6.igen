@@ -1368,12 +1368,22 @@
   do_ll (SD_, RT, OFFSET, BASE);
 }
 
+011111,5.BASE,5.RT,5.RD,0000,1,110110:SPECIAL3:32::LLWP
+"llwp r<RT>, r<RD>, (r<BASE>)"
+*mips32r6:
+*mips64r6:
+{
+  do_ll (SD_, RT, 0, BASE);
+  do_ll (SD_, RD, 4, BASE);
+}
+
+
 011111,5.BASE,5.RT,9.OFFSET,0,100110:SPECIAL3:32::SC
 "sc r<RT>, <OFFSET>(r<BASE>)"
 *mips32r6:
 *mips64r6:
 {
-  do_sc (SD_, RT, OFFSET, BASE, instruction_0);
+  do_sc (SD_, RT, OFFSET, BASE, instruction_0, 1);
 }
 
 011111,5.BASE,5.RT,9.OFFSET,0,110111:SPECIAL3:64::LLD
@@ -1384,12 +1394,40 @@
   do_lld (SD_, RT, OFFSET, BASE);
 }
 
+
+011111,5.BASE,5.RT,5.RD,0000,1,100110:SPECIAL3:32::SCWP
+"scwp r<RT>, r<RD>, (r<BASE>)"
+*mips32r6:
+*mips64r6:
+{
+  do_sc (SD_, RT, 0, BASE, instruction_0, 1);
+  do_sc (SD_, RD, 4, BASE, instruction_0, 0);
+}
+
+011111,5.BASE,5.RT,5.RD,0000,1,110111:SPECIAL3:64::LLDP
+"lldp r<RT>, r<RD>, (r<BASE>)"
+*mips64r6:
+{
+  check_u64 (SD_, instruction_0);
+  do_lld (SD_, RT, 0, BASE);
+  do_lld (SD_, RD, 8, BASE);
+}
+
 011111,5.BASE,5.RT,9.OFFSET,0,100111:SPECIAL3:64::SCD
 "scd r<RT>, <OFFSET>(r<BASE>)"
 *mips64r6:
 {
   check_u64 (SD_, instruction_0);
-  do_scd (SD_, RT, OFFSET, BASE);
+  do_scd (SD_, RT, OFFSET, BASE, 1);
+}
+
+011111,5.BASE,5.RT,5.RD,0000,1,100111:SPECIAL3:64::SCDP
+"scdp r<RT>, r<RD>, (r<BASE>)"
+*mips64r6:
+{
+  check_u64 (SD_, instruction_0);
+  do_scd (SD_, RT, 0, BASE, 1);
+  do_scd (SD_, RD, 8, BASE, 0);
 }
 
 011111,5.BASE,5.HINT,9.OFFSET,0,110101:SPECIAL3:32::PREF
