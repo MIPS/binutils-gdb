@@ -5883,7 +5883,7 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
   int ll_found = 0;
 
 
-  /* Assume all atomic sequences start with a ll/lld/llx/lldx/lle/llxe
+  /* Assume all atomic sequences start with a ll/lld/llwp/lldp/lle/llwpe
      instruction.  */
   insn = mips_fetch_instruction (gdbarch, ISA_MICROMIPS, loc, NULL);
   if (micromips_op (insn) != 0x18)	/* POOL32C: bits 011000 */
@@ -5895,12 +5895,12 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
   if (b12s4_op (insn) == 0x6		    /* LD-EVA bits 0110 */
       && (b9s3_op (insn) == 0x6		    /* LLE    bits 110 */
 	  || (is_mipsr6_isa (gdbarch)
-	      && b9s3_op (insn) == 0x2)))   /* LLXE   bits 010 */
+	      && b9s3_op (insn) == 0x2)))   /* LLWPE  bits 010 */
     ll_found = 1;
   else if (b12s4_op (insn) == 0x3	    /* LL     bits 0011 */
 	    || b12s4_op (insn) == 0x7       /* LLD    bits 0111 */
-	    || b12s4_op (insn) == 0x1       /* LLX    bits 0001 */
-	    || b12s4_op (insn) == 0x5)	    /* LLDX   bits 0101 */
+	    || b12s4_op (insn) == 0x1       /* LLWPE  bits 0001 */
+	    || b12s4_op (insn) == 0x5)	    /* LLDP   bits 0101 */
     ll_found = 1;
 
   if (!ll_found)
@@ -5962,7 +5962,12 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 				/* SC, SCD: bits 011000 1x11 */
 		    sc_found = 1;
 		  else if (b12s4_op (insn) == 0xa     /* ST-EVA bits 1010 */
-			   && b9s3_op (insn) == 0x6)  /* SCE bits 110 */
+			   && (b9s3_op (insn) == 0x6)  /* SCE bits 110 */
+			       || (is_mipsr6_isa (gdbarch)
+				   && b9s3_op (insn) == 0)) /* SCWPE */
+		    sc_found = 1;
+		  else if (b12s4_op (insn) == 0x9	/* SCWP */
+			   || b12s4_op (insn) == 0xd)   /* SCDP */
 		    sc_found = 1;
 		  break;
 
