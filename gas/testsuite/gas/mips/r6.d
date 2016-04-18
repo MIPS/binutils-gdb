@@ -498,4 +498,20 @@ Disassembly of section .text:
 0+05a0 <[^>]*> 41620024 	dvp	v0
 0+05a4 <[^>]*> 41700000 	sigrie	0x0
 0+05a8 <[^>]*> 4170ffff 	sigrie	0xffff
+0+05ac <[^>]*> 7cc52076 	llwp	a1,a0,a2
+0+05b0 <[^>]*> 7cc52066 	scwp	a1,a0,a2
+0+05b4 <[^>]*> 1000ffff 	b	000005b4 <[^>]*>
+[	]*5b4: R_MIPS_PC16	.L1.2
+0+05b8 <[^>]*> 7ca40026 	sc	a0,0\(a1\)
+0+05bc <[^>]*> 1000ffff 	b	000005bc <[^>]*>
+[	]*5bc: R_MIPS_PC16	.L1.2
+0+05c0 <[^>]*> 7ca40026 	sc	a0,0\(a1\)
+0+05c4 <[^>]*> 7cc5206e 	llwpe	a1,a0,a2
+0+05c8 <[^>]*> 7cc5205e 	scwpe	a1,a0,a2
+0+05cc <[^>]*> 1000ffff 	b	000005cc <[^>]*>
+[	]*5cc: R_MIPS_PC16	.L1.2
+0+05d0 <[^>]*> 7ca4001e 	sce	a0,0\(a1\)
+0+05d4 <[^>]*> 1000ffff 	b	000005d4 <[^>]*>
+[	]*5d4: R_MIPS_PC16	.L1.2
+0+05d8 <[^>]*> 7ca4001e 	sce	a0,0\(a1\)
 	\.\.\.

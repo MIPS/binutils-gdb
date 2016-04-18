@@ -2029,4 +2029,7 @@ if { [istarget mips*-*-vxworks*] } {
 
     run_list_test_arches "r6-branch-constraints"  "-32" \
 			[mips_arch_list_matching mips32r6]
+
+    run_dump_test "llpscp-32"
+    run_dump_test "llpscp-64"
 }
