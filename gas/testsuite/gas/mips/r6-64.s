@@ -56,8 +56,13 @@
         ld     $4, (131071 << 3)($pc)
         .align 3
 1:
-        nop
-	nop
+	lldp	$5, $4, $6
+	scdp	$5, $4, $6
+
+	scd	$4, 0($5)
+	b	1b
+	scd	$4, 0($5)
+	b	1b
 
 # Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
 	.align  2

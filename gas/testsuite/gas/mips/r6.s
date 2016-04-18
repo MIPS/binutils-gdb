@@ -269,6 +269,23 @@ new:	maddf.s	$f0,$f1,$f2
 	sigrie	0
 	sigrie	0xffff
 
+	llwp	$5, $4, $6
+	scwp	$5, $4, $6
+	sc	$4, 0($5)
+	b	1b
+	sc	$4, 0($5)
+	b	1b
+
+	.set push
+	.set eva
+	llwpe	$5, $4, $6
+	scwpe	$5, $4, $6
+	sce	$4, 0($5)
+	b	1b
+	sce	$4, 0($5)
+	b	1b
+	.set pop
+
 # Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
 	.align  2
 	.space  8
