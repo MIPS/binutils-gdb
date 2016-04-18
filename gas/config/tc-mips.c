@@ -8711,6 +8711,7 @@ static const char * const trap_fmt[2] = { "s,t,q", "s,t,|" };
 #define MFHL_FMT (mfhl_fmt[mips_opts.micromips][mips_opts.insn32])
 #define SHFT_FMT (shft_fmt[mips_opts.micromips])
 #define TRAP_FMT (trap_fmt[mips_opts.micromips])
+#define LL_SC_PAIRED_FMT (mips_opts.micromips ? "t,-p,s" : "t,d,s")
 
 /* Read a macro's relocation codes from *ARGS and store them in *R.
    The first argument in *ARGS will be either the code for a single
@@ -11798,19 +11799,19 @@ macro (struct mips_cl_insn *ip, char *str)
       goto ld;
     case M_LLWPE_AB:
       s = "llwpe";
-      fmt = "t,d,s";
+      fmt = LL_SC_PAIRED_FMT;
       ld_st_paired = 1;
       offbits = 0;
       goto ld;
     case M_LLWP_AB:
       s = "llwp";
-      fmt = "t,d,s";
+      fmt = LL_SC_PAIRED_FMT;
       ld_st_paired = 1;
       offbits = 0;
       goto ld;
     case M_LLDP_AB:
       s = "lldp";
-      fmt = "t,d,s";
+      fmt = LL_SC_PAIRED_FMT;
       ld_st_paired = 1;
       offbits = 0;
       goto ld;
@@ -11944,19 +11945,19 @@ macro (struct mips_cl_insn *ip, char *str)
       goto ld_st;
     case M_SCWPE_AB:
       s = "scwpe";
-      fmt = "t,d,s";
+      fmt = LL_SC_PAIRED_FMT;
       ld_st_paired = 1;
       offbits = 0;
       goto ld_st;
     case M_SCWP_AB:
       s = "scwp";
-      fmt = "t,d,s";
+      fmt = LL_SC_PAIRED_FMT;
       ld_st_paired = 1;
       offbits = 0;
       goto ld_st;
     case M_SCDP_AB:
       s = "scdp";
-      fmt = "t,d,s";
+      fmt = LL_SC_PAIRED_FMT;
       ld_st_paired = 1;
       offbits = 0;
       goto ld_st;
