@@ -304,12 +304,8 @@ foo:
 1:
         nop
 
-	llx	$4, 0xff($5)
-	llx	$4, -0x100($5)
-	llx	$4, 500($5)
-	scx	$4, 0xff($5)
-	scx	$4, -0x100($5)
-	scx	$4, 500($5)
+	llwp	$5, $4, $6
+	scwp	$5, $4, $6
 	sc	$4, 0($5)
 	b	1b
 	sc	$4, 0($5)
@@ -317,12 +313,8 @@ foo:
 
 	.set push
 	.set eva
-	llxe	$4, 0xff($5)
-	llxe	$4, -0x100($5)
-	llxe	$4, 500($5)
-	scxe	$4, 0xff($5)
-	scxe	$4, -0x100($5)
-	scxe	$4, 500($5)
+	llwpe	$5, $4, $6
+	scwpe	$5, $4, $6
 	sce	$4, 0($5)
 	b	1b
 	sce	$4, 0($5)
