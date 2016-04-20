@@ -855,6 +855,14 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test "mips-gp64-fp32"
     run_dump_test "mips-gp64-fp64"
 
+    # New micromips optimizations at -O3
+    run_dump_test_arches "micromips-short-delay" "-O3 -relax-branch" \
+	[mips_arch_list_matching micromips !mips32r6 !mips64r6]
+    run_dump_test_arches "micromips-compact-branch" "-O3 -relax-branch" \
+	[mips_arch_list_matching micromips !mips32r6 !mips64r6]
+    run_dump_test_arches "micromips-relax-compress" "-O3 -relax-branch" \
+	[mips_arch_list_matching micromips !mips32r6 !mips64r6]
+
     # Make sure that -mcpu=FOO and -mFOO are equivalent.  Assemble a file
     # containing 4650-specific instructions with -m4650 and -mcpu=4650,
     # and verify that they're the same.  Specifically, we're checking
