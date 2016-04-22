@@ -2157,7 +2157,8 @@ print_insn_mips16 (bfd_vma memaddr_base, struct disassemble_info *info)
       enum match_kind match;
 
       if (op->pinfo == INSN_MACRO
-	  || (no_aliases && (op->pinfo2 & INSN2_ALIAS)))
+	  || (no_aliases && (op->pinfo2 & INSN2_ALIAS))
+	  || !opcode_is_member (op, mips_isa, mips_ase, mips_processor))
 	match = MATCH_NONE;
       else if (mips_opcode_32bit_p (op))
 	{
