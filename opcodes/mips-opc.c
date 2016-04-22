@@ -381,6 +381,7 @@ decode_mips_operand (const char *p)
 #define IOCTP	(INSN_OCTEONP | INSN_OCTEON2)
 #define IOCT2	INSN_OCTEON2
 #define XLR     INSN_XLR
+#define IAMR2	INSN_INTERAPTIV_MR2
 #define IVIRT	ASE_VIRT
 #define IVIRT64	ASE_VIRT64
 #define IVIRT_XPA ASE_VIRT_XPA
@@ -2139,9 +2140,9 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"zcb",			"(b)",		0x7000071f, 0xfc1fffff, RD_1|SM,		0,		IOCT2,		0,	0 },
 {"zcbt",		"(b)",		0x7000075f, 0xfc1fffff, RD_1|SM,		0,		IOCT2,		0,	0 },
 
-/* Code density ASE */
-{"restore",		"-m",		0x7000001f, 0xfc00203f, WR_31|NODS,             MOD_SP,		I33,		0,	0 },
-{"save",		"-m",		0x7000201f, 0xfc00203f, NODS,                   RD_31|MOD_SP,	I33,		0,	0 },
+/* interAptiv MR2 instruction extensions.  */
+{"restore",		"-m",		0x7000001f, 0xfc00203f, WR_31|NODS,             MOD_SP,		IAMR2,		0,	0 },
+{"save",		"-m",		0x7000201f, 0xfc00203f, NODS,                   RD_31|MOD_SP,	IAMR2,		0,	0 },
 
 /* Coprocessor 0 move instructions cfc0 and ctc0 conflict with the 
    mfhc0 and mthc0 XPA instructions, so they have been placed here 

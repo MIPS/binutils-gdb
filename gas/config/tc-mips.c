@@ -1438,8 +1438,6 @@ enum options
     OPTION_NO_MCU,
     OPTION_MIPS16E2,
     OPTION_NO_MIPS16E2,
-    OPTION_MIPS16CP,
-    OPTION_NO_MIPS16CP,
     OPTION_COMPAT_ARCH_BASE,
     OPTION_M4650,
     OPTION_NO_M4650,
@@ -1563,8 +1561,6 @@ struct option md_longopts[] =
   {"mno-mxu", no_argument, NULL, OPTION_NO_MXU},
   {"mmips16e2", no_argument, NULL, OPTION_MIPS16E2},
   {"mno-mips16e2", no_argument, NULL, OPTION_NO_MIPS16E2},
-  {"mmips16cp", no_argument, NULL, OPTION_MIPS16CP},
-  {"mno-mips16cp", no_argument, NULL, OPTION_NO_MIPS16CP},
 
   /* Old-style architecture options.  Don't add more of these.  */
   {"m4650", no_argument, NULL, OPTION_M4650},
@@ -1754,11 +1750,6 @@ static const struct mips_ase mips_ases[] = {
 
   { "mips16e2", ASE_MIPS16E2, 0,
     OPTION_MIPS16E2, OPTION_NO_MIPS16E2,
-    2,  2, -1, -1,
-    6 },
-
-  { "mips16cp", ASE_MIPS16CP, 0,
-    OPTION_MIPS16CP, OPTION_NO_MIPS16CP,
     2,  2, -1, -1,
     6 },
 };
@@ -18533,8 +18524,6 @@ mips_convert_ase_flags (int ase)
     ext_ases |= AFL_ASE_XPA;
   if (ase & ASE_MIPS16E2)
     ext_ases |= file_ase_mips16 ? AFL_ASE_MIPS16E2 : 0;
-  if (ase & ASE_MIPS16CP)
-    ext_ases |= file_ase_mips16 ? AFL_ASE_MIPS16CP : 0;
 
   return ext_ases;
 }
@@ -19262,6 +19251,9 @@ static const struct mips_cpu_info mips_cpu_info_table[] =
   { "1004kf1_1",      0, ASE_DSP | ASE_MT,	ISA_MIPS32R2, CPU_MIPS32R2 },
   /* interaptiv is the new name for 1004kf */
   { "interaptiv",     0, ASE_DSP | ASE_MT,	ISA_MIPS32R2, CPU_MIPS32R2 },
+  { "interaptiv-mr2", 0, ASE_DSP | ASE_MT | ASE_MIPS16E2 | ASE_MIPS16E2_MT
+			 | ASE_EVA,		ISA_MIPS32R2,
+						CPU_INTERAPTIV_MR2 },
   /* M5100 family */
   { "m5100",          0, ASE_MCU,		ISA_MIPS32R5, CPU_MIPS32R5 },
   { "m5101",          0, ASE_MCU,		ISA_MIPS32R5, CPU_MIPS32R5 },

@@ -6895,6 +6895,9 @@ _bfd_elf_mips_mach (flagword flags)
     case E_MIPS_MACH_XLR:
       return bfd_mach_mips_xlr;
 
+    case E_MIPS_MACH_IAMR2:
+      return bfd_mach_mips_interaptiv_mr2;
+
     default:
       switch (flags & EF_MIPS_ARCH)
 	{
@@ -12322,6 +12325,10 @@ mips_set_isa_flags (bfd *abfd)
       val = E_MIPS_ARCH_64R2 | E_MIPS_MACH_OCTEON2;
       break;
 
+    case bfd_mach_mips_interaptiv_mr2:
+      val = E_MIPS_ARCH_32R2 | E_MIPS_MACH_IAMR2;
+      break;
+
     case bfd_mach_mipsisa32:
       val = E_MIPS_ARCH_32;
       break;
@@ -14581,6 +14588,8 @@ bfd_mips_isa_ext (bfd *abfd)
       return AFL_EXT_OCTEON2;
     case bfd_mach_mips_xlr:
       return AFL_EXT_XLR;
+    case bfd_mach_mips_interaptiv_mr2:
+      return AFL_EXT_INTERAPTIV_MR2;
     }
   return 0;
 }
@@ -15476,6 +15485,9 @@ static const struct mips_mach_extension mips_mach_extensions[] =
   { bfd_mach_mips4010, bfd_mach_mips4000 },
   { bfd_mach_mips5900, bfd_mach_mips4000 },
 
+  /* MIPS32r2 extensions.  */
+  { bfd_mach_mips_interaptiv_mr2, bfd_mach_mipsisa32r2 },
+
   /* MIPS32 extensions.  */
   { bfd_mach_mipsisa32r2, bfd_mach_mipsisa32 },
 
@@ -16212,8 +16224,6 @@ print_mips_ases (FILE *file, unsigned int mask)
     fputs ("\n\tXPA ASE", file);
   if (mask & AFL_ASE_MIPS16E2)
     fputs ("\n\tMIPS16 E2 Extension", file);
-  if (mask & AFL_ASE_MIPS16CP)
-    fputs ("\n\tMIPS16 CP Extension", file);
   if (mask == 0)
     fprintf (file, "\n\t%s", _("None"));
   else if ((mask & ~AFL_ASE_MASK) != 0)
@@ -16281,6 +16291,9 @@ print_mips_isa_ext (FILE *file, unsigned int isa_ext)
       break;
     case AFL_EXT_LOONGSON_2F:
       fputs ("ST Microelectronics Loongson 2F", file);
+      break;
+    case AFL_EXT_INTERAPTIV_MR2:
+      fputs ("Imagination interAptiv MR2", file);
       break;
     default:
       fprintf (file, "%s (%d)", _("Unknown"), isa_ext);

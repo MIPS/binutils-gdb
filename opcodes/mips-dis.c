@@ -543,6 +543,13 @@ const struct mips_arch_choice mips_arch_choices[] =
     mips_cp0_names_numeric, NULL, 0, mips_cp1_names_numeric,
     mips_hwr_names_numeric },
 
+  { "interaptiv-mr2",	1, bfd_mach_mips_interaptiv_mr2, CPU_INTERAPTIV_MR2,
+    ISA_MIPS32R2,
+    ASE_MT | ASE_EVA | ASE_DSP | ASE_DSPR2 | ASE_MIPS16E2 | ASE_MIPS16E2_MT,
+    mips_cp0_names_mips3264r2,
+    mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
+    mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
+
   /* For stock MIPS32, disassemble all applicable MIPS-specified ASEs.
      Note that MIPS-3D and MDMX are not applicable to MIPS32.  (See
      _MIPS32 Architecture For Programmers Volume I: Introduction to the
@@ -678,7 +685,7 @@ const struct mips_arch_choice mips_arch_choices[] =
 
   /* This entry, mips16, is here only for ISA/processor selection; do
      not print its name.  */
-  { "",		1, bfd_mach_mips16, CPU_MIPS16, ISA_MIPS3, 0,
+  { "",		1, bfd_mach_mips16, CPU_MIPS16, ISA_MIPS64, 0,
     mips_cp0_names_numeric, NULL, 0, mips_cp1_names_numeric,
     mips_hwr_names_numeric },
 };
