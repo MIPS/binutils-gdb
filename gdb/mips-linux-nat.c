@@ -66,7 +66,7 @@
 static int have_ptrace_regsets = 1;
 
 /* Does the current host support PTRACE_GETREGSET?  */
-static int have_ptrace_getregset = 1;
+static int have_ptrace_getregset_gp = 1;
 static int have_ptrace_getregset_fp = 1;
 static int have_ptrace_getregset_msa = 1;
 
@@ -309,7 +309,7 @@ mips64_linux_regsets_fetch_registers (struct target_ops *ops,
 
       /* Try the MSA regset first if vector registers are desired */
       if (rn->msa_csr != -1
-	  && have_ptrace_getregset && have_ptrace_getregset_msa)
+	  && have_ptrace_getregset_gp && have_ptrace_getregset_msa)
 	{
 	  unsigned char w_regs[34][16];
 	  unsigned char buf[16];
@@ -323,7 +323,7 @@ mips64_linux_regsets_fetch_registers (struct target_ops *ops,
 	  if (ret < 0)
 	    {
 	      if (errno == EIO)
-		have_ptrace_getregset = 0;
+		have_ptrace_getregset_gp = 0;
 	      else if (errno == EINVAL)
 		have_ptrace_getregset_msa = 0;
 	      else
@@ -367,7 +367,7 @@ mips64_linux_regsets_fetch_registers (struct target_ops *ops,
 	}
 
       /* Try the FP regset next as it may contain Config5 */
-      if (is_fp && have_ptrace_getregset && have_ptrace_getregset_fp)
+      if (is_fp && have_ptrace_getregset_gp && have_ptrace_getregset_fp)
 	{
 	  unsigned char fp_regs[34][8];
 	  struct iovec iovec;
@@ -380,7 +380,7 @@ mips64_linux_regsets_fetch_registers (struct target_ops *ops,
 	  if (ret < 0)
 	    {
 	      if (errno == EIO)
-		have_ptrace_getregset = 0;
+		have_ptrace_getregset_gp = 0;
 	      else if (errno == EINVAL)
 		have_ptrace_getregset_fp = 0;
 	      else
@@ -539,7 +539,7 @@ mips64_linux_regsets_store_registers (struct target_ops *ops,
 
       /* Try the MSA regset first if vector registers are desired */
       if (rn->msa_csr != -1
-	  && have_ptrace_getregset && have_ptrace_getregset_msa)
+	  && have_ptrace_getregset_gp && have_ptrace_getregset_msa)
 	{
 	  unsigned char w_regs[34][16];
 	  unsigned char buf[16];
@@ -553,7 +553,7 @@ mips64_linux_regsets_store_registers (struct target_ops *ops,
 	  if (ret < 0)
 	    {
 	      if (errno == EIO)
-		have_ptrace_getregset = 0;
+		have_ptrace_getregset_gp = 0;
 	      else if (errno == EINVAL)
 		have_ptrace_getregset_msa = 0;
 	      else
@@ -591,7 +591,7 @@ mips64_linux_regsets_store_registers (struct target_ops *ops,
 	      if (ret < 0)
 		{
 		  if (errno == EIO)
-		    have_ptrace_getregset = 0;
+		    have_ptrace_getregset_gp = 0;
 		  if (errno == EINVAL)
 		    have_ptrace_getregset_msa = 0;
 		  else
@@ -606,7 +606,7 @@ mips64_linux_regsets_store_registers (struct target_ops *ops,
 	}
 
       /* Try the FP regset next as it may contain Config5 */
-      if (is_fp && have_ptrace_getregset && have_ptrace_getregset_fp)
+      if (is_fp && have_ptrace_getregset_gp && have_ptrace_getregset_fp)
 	{
 	  unsigned char fp_regs[34][8];
 	  struct iovec iovec;
@@ -619,7 +619,7 @@ mips64_linux_regsets_store_registers (struct target_ops *ops,
 	  if (ret < 0)
 	    {
 	      if (errno == EIO)
-		have_ptrace_getregset = 0;
+		have_ptrace_getregset_gp = 0;
 	      else if (errno == EINVAL)
 		have_ptrace_getregset_fp = 0;
 	      else
@@ -666,7 +666,7 @@ mips64_linux_regsets_store_registers (struct target_ops *ops,
 	      if (ret < 0)
 		{
 		  if (errno == EIO)
-		    have_ptrace_getregset = 0;
+		    have_ptrace_getregset_gp = 0;
 		  else if (errno == EINVAL)
 		    have_ptrace_getregset_fp = 0;
 		  else
