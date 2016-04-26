@@ -448,6 +448,12 @@ struct mips_elf_link_hash_table
   /* True if we are targetting R6 compact branches.  */
   bfd_boolean compact_branches;
 
+  /* When True and processing a gp relative relocation against a symbol
+     in a .sdata_<num>/.sbss_<num> section use the gp value
+     based on the address of the _gp_<num> symbol where <num> is
+     the number of the .sbss/.sdata section the symbol is in.  */
+  bfd_boolean user_def_sdata_sections;
+
   /* True if we're generating code for VxWorks.  */
   bfd_boolean is_vxworks;
 
@@ -575,6 +581,8 @@ struct mips_elf_obj_tdata
   asymbol *elf_text_symbol;
   asection *elf_data_section;
   asection *elf_text_section;
+
+  bfd_signed_vma sdata_section[1000];
 };
 
 /* Get MIPS ELF private object data from BFD's tdata.  */
@@ -2192,7 +2200,11 @@ mips_elf_check_symbols (struct mips_elf_link_hash_entry *h, void *data)
 
    All we need to do here is shuffle the bits appropriately.
    As above, the two 16-bit halves must be swapped on a
-   little-endian system.  */
+   little-endian system.
+
+   Finally R_MIPS16_PC16_S1 corresponds to R_MIPS_PC16, however the
+   relocatable field is shifted by 1 rather than 2 and the same bit
+   shuffling is done as with the relocations above.  */
 
 static inline bfd_boolean
 mips16_reloc_p (int r_type)
@@ -2212,6 +2224,7 @@ mips16_reloc_p (int r_type)
     case R_MIPS16_TLS_GOTTPREL:
     case R_MIPS16_TLS_TPREL_HI16:
     case R_MIPS16_TLS_TPREL_LO16:
+    case R_MIPS16_PC16_S1:
       return TRUE;
 
     default:
@@ -2339,12 +2352,44 @@ balc_reloc_p (int r_type)
 }
 
 static inline bfd_boolean
+b_reloc_p (int r_type)
+{
+  return (r_type == R_MIPS_PC16
+	  || r_type == R_MIPS_PC21_S2
+	  || r_type == R_MIPS_PC26_S2
+	  || r_type == R_MIPS_GNU_REL16_S2
+	  || r_type == R_MIPS16_PC16_S1
+	  || r_type == R_MICROMIPS_PC26_S1
+	  || r_type == R_MICROMIPS_PC21_S1
+	  || r_type == R_MICROMIPS_PC16_S1
+	  || r_type == R_MICROMIPS_PC10_S1
+	  || r_type == R_MICROMIPS_PC7_S1);
+}
+
+static inline bfd_boolean
 aligned_pcrel_reloc_p (int r_type)
 {
   return (r_type == R_MIPS_PC18_S3
 	  || r_type == R_MIPS_PC19_S2
 	  || r_type == R_MICROMIPS_PC18_S3
 	  || r_type == R_MICROMIPS_PC19_S2);
+}
+
+static inline bfd_boolean
+branch_reloc_p (int r_type)
+{
+  return (r_type == R_MIPS_26
+	  || r_type == R_MIPS_PC16
+	  || r_type == R_MIPS_GNU_REL16_S2
+	  || r_type == R_MIPS_PC21_S2
+	  || r_type == R_MIPS_PC26_S2);
+}
+
+static inline bfd_boolean
+mips16_branch_reloc_p (int r_type)
+{
+  return (r_type == R_MIPS16_26
+	  || r_type == R_MIPS16_PC16_S1);
 }
 
 static inline bfd_boolean
@@ -5400,6 +5445,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
   bfd_boolean target_is_micromips_code_p = FALSE;
   struct mips_elf_link_hash_table *htab;
   bfd *dynobj;
+  int gp_sec_num = 0;
 
   dynobj = elf_hash_table (info)->dynobj;
   htab = mips_elf_hash_table (info);
@@ -5689,7 +5735,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
     }
 
   /* Make sure MIPS16 and microMIPS are not used together.  */
-  if ((r_type == R_MIPS16_26 && target_is_micromips_code_p)
+  if ((mips16_branch_reloc_p (r_type) && target_is_micromips_code_p)
       || (micromips_branch_reloc_p (r_type) && target_is_16_bit_code_p))
    {
       (*_bfd_error_handler)
@@ -5705,13 +5751,13 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
      acceptable.  */
   *cross_mode_jump_p = (!info->relocatable
 			&& !(h && h->root.root.type == bfd_link_hash_undefweak)
-			&& ((r_type == R_MIPS16_26 && !target_is_16_bit_code_p)
-			    || ((r_type == R_MICROMIPS_26_S1
-				 || r_type == R_MICROMIPS_PC26_S1)
+			&& ((mips16_branch_reloc_p (r_type)
+			     && !target_is_16_bit_code_p)
+			    || ((micromips_branch_reloc_p (r_type)
+				 || r_type == R_MICROMIPS_JALR)
 				&& !target_is_micromips_code_p)
-			    || ((r_type == R_MIPS_26
-				 || r_type == R_MIPS_JALR
-				 || r_type == R_MIPS_PC26_S2)
+			    || ((branch_reloc_p (r_type)
+				 || r_type == R_MIPS_JALR)
 				&& (target_is_16_bit_code_p
 				    || target_is_micromips_code_p))));
 
@@ -5725,6 +5771,27 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
   if (gnu_local_gp_p)
     symbol = gp;
 
+  if (mips_elf_hash_table (info)->user_def_sdata_sections && sec != NULL)
+    {
+      if (strncmp (".sdata_", sec->name, 7) == 0)
+	gp_sec_num = atoi (&sec->name[7]);
+      else if (strncmp (".sbss_", sec->name, 6) == 0)
+	gp_sec_num = atoi (&sec->name[6]);
+
+      if (gp_sec_num)
+	{
+	  if (gp_sec_num < 0 || gp_sec_num > 999
+	      || mips_elf_tdata(abfd)->sdata_section[gp_sec_num] == -1)
+	    {
+	      (*_bfd_error_handler)
+		(_("%B: Error: Unable to apply gp relocation to section `%s'"),
+		   abfd, sec->name);
+	      bfd_set_error (bfd_error_bad_value);
+	    }
+	}
+
+      gp = mips_elf_tdata(abfd)->sdata_section[gp_sec_num];
+    }
   /* Global R_MIPS_GOT_PAGE/R_MICROMIPS_GOT_PAGE relocations are equivalent
      to R_MIPS_GOT_DISP/R_MICROMIPS_GOT_DISP.  The addend is applied by the
      corresponding R_MIPS_GOT_OFST/R_MICROMIPS_GOT_OFST.  */
@@ -6124,6 +6191,16 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       value &= howto->dst_mask;
       break;
 
+    case R_MIPS16_PC16_S1:
+      if (howto->partial_inplace)
+	addend = _bfd_mips_elf_sign_extend (addend, 17);
+      value = symbol + addend - p;
+      if (was_local_p || h->root.root.type != bfd_link_hash_undefweak)
+	overflowed_p = mips_elf_overflow_p (value, 17);
+      value >>= howto->rightshift;
+      value &= howto->dst_mask;
+      break;
+
     case R_MIPS_PC21_S2:
       if (howto->partial_inplace)
 	addend = _bfd_mips_elf_sign_extend (addend, 23);
@@ -6421,6 +6498,17 @@ mips_elf_perform_relocation (struct bfd_link_info *info,
 
   /* Set the field.  */
   x |= (value & howto->dst_mask);
+
+  if (cross_mode_jump_p && b_reloc_p (howto->type))
+    {
+      (*_bfd_error_handler)
+	(_("%B: %A+0x%lx: Unsupported branch between ISA modes."),
+	 input_bfd,
+	 input_section,
+	 (unsigned long) relocation->r_offset);
+      bfd_set_error (bfd_error_bad_value);
+      return FALSE;
+    }
 
   /* If required, turn JAL into JALX.  */
   if (cross_mode_jump_p && r_type != R_MIPS_JALR)
@@ -6810,6 +6898,9 @@ _bfd_elf_mips_mach (flagword flags)
     case E_MIPS_MACH_XLR:
       return bfd_mach_mips_xlr;
 
+    case E_MIPS_MACH_IAMR2:
+      return bfd_mach_mips_interaptiv_mr2;
+
     default:
       switch (flags & EF_MIPS_ARCH)
 	{
@@ -7195,7 +7286,8 @@ _bfd_mips_elf_section_processing (bfd *abfd, Elf_Internal_Shdr *hdr)
 	 on it in an input file will be followed.  */
       if (strcmp (name, ".sdata") == 0
 	  || strcmp (name, ".lit8") == 0
-	  || strcmp (name, ".lit4") == 0)
+	  || strcmp (name, ".lit4") == 0
+	  || strncmp (name, ".sdata_", 7) == 0)
 	hdr->sh_flags |= SHF_ALLOC | SHF_WRITE | SHF_MIPS_GPREL;
       else if (strcmp (name, ".srdata") == 0)
 	hdr->sh_flags |= SHF_ALLOC | SHF_MIPS_GPREL;
@@ -7476,7 +7568,9 @@ _bfd_mips_elf_fake_sections (bfd *abfd, Elf_Internal_Shdr *hdr, asection *sec)
   else if (strcmp (name, ".got") == 0
 	   || strcmp (name, ".srdata") == 0
 	   || strcmp (name, ".sdata") == 0
+	   || strncmp (name, ".sdata_", 7) == 0
 	   || strcmp (name, ".sbss") == 0
+	   || strncmp (name, ".sbss_", 6) == 0
 	   || strcmp (name, ".lit4") == 0
 	   || strcmp (name, ".lit8") == 0)
     hdr->sh_flags |= SHF_MIPS_GPREL;
@@ -8532,6 +8626,7 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 	case R_MIPS_PC21_S2:
 	case R_MIPS_PC26_S2:
 	case R_MIPS16_26:
+	case R_MIPS16_PC16_S1:
 	case R_MICROMIPS_26_S1:
 	case R_MICROMIPS_PC7_S1:
 	case R_MICROMIPS_PC10_S1:
@@ -12230,6 +12325,10 @@ mips_set_isa_flags (bfd *abfd)
       val = E_MIPS_ARCH_64R2 | E_MIPS_MACH_OCTEON2;
       break;
 
+    case bfd_mach_mips_interaptiv_mr2:
+      val = E_MIPS_ARCH_32R2 | E_MIPS_MACH_IAMR2;
+      break;
+
     case bfd_mach_mipsisa32:
       val = E_MIPS_ARCH_32;
       break;
@@ -14451,6 +14550,12 @@ _bfd_mips_elf_compact_branches (struct bfd_link_info *info, bfd_boolean on)
   mips_elf_hash_table (info)->compact_branches = on;
 }
 
+void
+_bfd_mips_elf_user_def_sdata_sections (struct bfd_link_info *info, bfd_boolean on)
+{
+  mips_elf_hash_table (info)->user_def_sdata_sections = on;
+}
+
 
 /* Return the .MIPS.abiflags value representing each ISA Extension.  */
 
@@ -14497,6 +14602,8 @@ bfd_mips_isa_ext (bfd *abfd)
       return AFL_EXT_OCTEON2;
     case bfd_mach_mips_xlr:
       return AFL_EXT_XLR;
+    case bfd_mach_mips_interaptiv_mr2:
+      return AFL_EXT_INTERAPTIV_MR2;
     }
   return 0;
 }
@@ -14677,6 +14784,23 @@ _bfd_mips_elf_final_link (bfd *abfd, struct bfd_link_info *info)
   htab_traverse (htab->la25_stubs, mips_elf_create_la25_stub, &hti);
   if (hti.error)
     return FALSE;
+
+  unsigned int gp_num;
+  for (gp_num = 0 ; gp_num < 1000 ; gp_num++)
+    {
+      struct bfd_link_hash_entry *h;
+      char gp_name[8];
+      bfd_signed_vma gp_vma = -1;
+
+      sprintf (gp_name, "_gp_%d", gp_num);
+      h = bfd_link_hash_lookup (info->hash, gp_name, FALSE, FALSE, TRUE);
+      if (h != NULL && h->type == bfd_link_hash_defined)
+	gp_vma = (h->u.def.value
+		  + h->u.def.section->output_section->vma
+		  + h->u.def.section->output_offset);
+
+      mips_elf_tdata(abfd)->sdata_section[gp_num] = gp_vma;
+    }
 
   /* Get a value for the GP register.  */
   if (elf_gp (abfd) == 0)
@@ -15375,6 +15499,9 @@ static const struct mips_mach_extension mips_mach_extensions[] =
   { bfd_mach_mips4100, bfd_mach_mips4000 },
   { bfd_mach_mips4010, bfd_mach_mips4000 },
   { bfd_mach_mips5900, bfd_mach_mips4000 },
+
+  /* MIPS32r2 extensions.  */
+  { bfd_mach_mips_interaptiv_mr2, bfd_mach_mipsisa32r2 },
 
   /* MIPS32 extensions.  */
   { bfd_mach_mipsisa32r2, bfd_mach_mipsisa32 },
@@ -16110,6 +16237,8 @@ print_mips_ases (FILE *file, unsigned int mask)
     fputs ("\n\tMICROMIPS ASE", file);
   if (mask & AFL_ASE_XPA)
     fputs ("\n\tXPA ASE", file);
+  if (mask & AFL_ASE_MIPS16E2)
+    fputs ("\n\tMIPS16 E2 Extension", file);
   if (mask == 0)
     fprintf (file, "\n\t%s", _("None"));
   else if ((mask & ~AFL_ASE_MASK) != 0)
@@ -16180,6 +16309,9 @@ print_mips_isa_ext (FILE *file, unsigned int isa_ext)
       break;
     case AFL_EXT_LOONGSON_2F:
       fputs ("ST Microelectronics Loongson 2F", file);
+      break;
+    case AFL_EXT_INTERAPTIV_MR2:
+      fputs ("Imagination interAptiv MR2", file);
       break;
     default:
       fprintf (file, "%s (%d)", _("Unknown"), isa_ext);
