@@ -487,6 +487,10 @@ mips_arch_create r3000 	32	mips1	{} \
 mips_arch_create r3900 	32	mips1	{ gpr_ilocks } \
 			{ -march=r3900 -mtune=r3900 } { -mmips:3900 } \
 			{ mipstx39-*-* mipstx39el-*-* }
+mips_arch_create interaptivmr2 	32	mips32r2  { } \
+			{ -march=interaptiv-mr2 -mtune=interaptiv-mr2 } \
+			{ -mmips:interaptiv-mr2 } \
+			{ }
 mips_arch_create r4000 	64	mips3	{} \
 			{ -march=r4000 -mtune=r4000 } { -mmips:4000 }
 mips_arch_create vr5400	64	mips4	{ ror } \
@@ -1214,7 +1218,7 @@ if { [istarget mips*-*-vxworks*] } {
     run_list_test "micromips-ill"
 
     run_dump_test_arches "mcu"		[mips_arch_list_matching mips32r2 \
-					    !octeon]
+					    !octeon !interaptivmr2]
     run_dump_test_arches "hilo-diff-eb"	[mips_arch_list_all]
     run_dump_test_arches "hilo-diff-el"	[mips_arch_list_all]
     if $has_newabi {

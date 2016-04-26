@@ -1967,6 +1967,7 @@ enum bfd_architecture
 #define bfd_mach_mips_octeonp          6601
 #define bfd_mach_mips_octeon2          6502
 #define bfd_mach_mips_xlr              887682   /* decimal 'XLR'  */
+#define bfd_mach_mips_interaptiv_mr2   736550   /* decimal 'IA2'  */
 #define bfd_mach_mipsisa32             32
 #define bfd_mach_mipsisa32r2           33
 #define bfd_mach_mipsisa32r3           34
@@ -2948,6 +2949,9 @@ to compensate for the borrow when the low bits are added.  */
   BFD_RELOC_MICROMIPS_26_PCREL_S1,
   BFD_RELOC_MICROMIPS_18_PCREL_S3,
   BFD_RELOC_MICROMIPS_19_PCREL_S2,
+
+/* MIPS16 PC-relative relocation.  */
+  BFD_RELOC_MIPS16_16_PCREL_S1,
 
 /* MIPS PC-relative relocations.  */
   BFD_RELOC_MIPS_21_PCREL_S2,

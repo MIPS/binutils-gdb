@@ -2899,6 +2899,7 @@ get_machine_flags (unsigned e_flags, unsigned e_machine)
 	    case E_MIPS_MACH_OCTEON2: strcat (buf, ", octeon2"); break;
 	    case E_MIPS_MACH_OCTEON3: strcat (buf, ", octeon3"); break;
 	    case E_MIPS_MACH_XLR:  strcat (buf, ", xlr"); break;
+	    case E_MIPS_MACH_IAMR2:  strcat (buf, ", interaptiv-mr2"); break;
 	    case 0:
 	    /* We simply ignore the field in this case to avoid confusion:
 	       MIPS ELF does not specify EF_MIPS_MACH, it is a GNU
@@ -13145,6 +13146,8 @@ print_mips_ases (unsigned int mask)
     fputs ("\n\tMICROMIPS ASE", stdout);
   if (mask & AFL_ASE_XPA)
     fputs ("\n\tXPA ASE", stdout);
+  if (mask & AFL_ASE_MIPS16E2)
+    fputs ("\n\tMIPS16 E2 Extension", stdout);
   if (mask == 0)
     fprintf (stdout, "\n\t%s", _("None"));
   else if ((mask & ~AFL_ASE_MASK) != 0)
@@ -13212,6 +13215,9 @@ print_mips_isa_ext (unsigned int isa_ext)
       break;
     case AFL_EXT_LOONGSON_2F:
       fputs ("ST Microelectronics Loongson 2F", stdout);
+      break;
+    case AFL_EXT_INTERAPTIV_MR2:
+      fputs ("Imagination interAptiv MR2", stdout);
       break;
     default:
       fprintf (stdout, "%s (%d)", _("Unknown"), isa_ext);
