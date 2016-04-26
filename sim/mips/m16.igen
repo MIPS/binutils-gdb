@@ -26,6 +26,8 @@
 
 :compute:::address_word:IMMEDIATE:IMM_10_4,IMM_14_11,IMM_3_0:(LSINSERTED (IMM_10_4, 10, 4) | LSINSERTED (IMM_14_11, 14, 11) | LSINSERTED (IMM_3_0, 3, 0))
 
+:compute:::int:COPY_COUNT:COUNT:(COUNT + 1)
+:compute:::int:COPY_OFFSET:OFFSET:(OFFSET << 4)
 
 // Load and Store Instructions
 
@@ -155,7 +157,45 @@
   GPR[TRX] = EXTEND32 (do_load (SD_, AccessLength_WORD, SP, EXTEND16 (IMMEDIATE)));
 }
 
+11110,6.IMM_10_5,5.IMM_15_11 + 10010,3.RX,001,5.IMM_4_0:EXT-RI:16::LWGP
+"lw r<TRX>, <IMMEDIATE> (GP)"
+*mips16:
+*vr4100:
+{
+  GPR[TRX] = EXTEND32 (do_load (SD_, AccessLength_WORD, GP, EXTEND16 (IMMEDIATE)));
+}
 
+11110,6.IMM_10_5,5.IMM_15_11 + 10010,3.RX,010,5.IMM_4_0:EXT-RI:16::LHGP
+"lh r<TRX>, <IMMEDIATE> (GP)"
+*mips16:
+*vr4100:
+{
+  GPR[TRX] = EXTEND16 (do_load (SD_, AccessLength_HALFWORD, GP, EXTEND16 (IMMEDIATE)));
+}
+
+11110,6.IMM_10_5,5.IMM_15_11 + 10010,3.RX,011,5.IMM_4_0:EXT-RI:16::LBGP
+"lb r<TRX>, <IMMEDIATE> (GP)"
+*mips16:
+*vr4100:
+{
+  GPR[TRX] = EXTEND8 (do_load (SD_, AccessLength_BYTE, GP, EXTEND16 (IMMEDIATE)));
+}
+
+11110,6.IMM_10_5,5.IMM_15_11 + 10010,3.RX,100,5.IMM_4_0:EXT-RI:16::LHUGP
+"lhu r<TRX>, <IMMEDIATE> (GP)"
+*mips16:
+*vr4100:
+{
+  GPR[TRX] = do_load (SD_, AccessLength_HALFWORD, GP, EXTEND16 (IMMEDIATE));
+}
+
+11110,6.IMM_10_5,5.IMM_15_11 + 10010,3.RX,101,5.IMM_4_0:EXT-RI:16::LBUGP
+"lbu r<TRX>, <IMMEDIATE> (GP)"
+*mips16:
+*vr4100:
+{
+  GPR[TRX] = do_load (SD_, AccessLength_BYTE, GP, EXTEND16 (IMMEDIATE));
+}
 
 10111,3.RX,3.RY,5.IMMED:RRI:16::LWU
 "lwu r<TRY>, <IMMED> (r<TRX>)"
@@ -300,6 +340,29 @@
   do_store (SD_, AccessLength_WORD, SP, EXTEND16 (IMMEDIATE), GPR[TRX]);
 }
 
+11110,6.IMM_10_5,5.IMM_15_11 + 11010,3.RX,001,5.IMM_4_0:EXT-RI:16::SWGP
+"sw r<TRX>, <IMMEDIATE> (GP)"
+*mips16:
+*vr4100:
+{
+  do_store (SD_, AccessLength_WORD, GP, EXTEND16 (IMMEDIATE), GPR[TRX]);
+}
+
+11110,6.IMM_10_5,5.IMM_15_11 + 11010,3.RX,010,5.IMM_4_0:EXT-RI:16::SHGP
+"sh r<TRX>, <IMMEDIATE> (GP)"
+*mips16:
+*vr4100:
+{
+  do_store (SD_, AccessLength_HALFWORD, GP, EXTEND16 (IMMEDIATE), GPR[TRX]);
+}
+
+11110,6.IMM_10_5,5.IMM_15_11 + 11010,3.RX,011,5.IMM_4_0:EXT-RI:16::SBGP
+"sb r<TRX>, <IMMEDIATE> (GP)"
+*mips16:
+*vr4100:
+{
+  do_store (SD_, AccessLength_BYTE, GP, EXTEND16 (IMMEDIATE), GPR[TRX]);
+}
 
 
 01100,010,8.IMMED:I8:16::SWRASP
@@ -393,7 +456,19 @@
   do_ori (SD_, 0, TRX, IMMEDIATE);
 }
 
+11110,6.IMM_10_5,5.IMM_15_11 + 01101,3.RX,010,5.IMM_4_0:EXT-RI:16::ORI
+"li r<TRX>, <IMMEDIATE>"
+*mips16:
+{
+  do_ori (SD_, TRX, TRX, IMMEDIATE);
+}
 
+11110,6.IMM_10_5,5.IMM_15_11 + 01101,3.RX,001,5.IMM_4_0:EXT-RI:16::LUI
+"lui r<TRX>, <IMMEDIATE>"
+*mips16:
+{
+  do_aui (SD_, TRX, 0, IMMEDIATE);
+}
 
 01000,3.RX,3.RY,0,4.IMMED:RRI-A:16::ADDIU
 "addiu r<TRY>, r<TRX>, <IMMED>"
@@ -485,6 +560,13 @@
   do_addiu (SD_, SPIDX, TRX, EXTEND16 (IMMEDIATE));
 }
 
+11110,6.IMM_10_5,5.IMM_15_11 + 00000,3.RX,001,5.IMM_4_0:EXT-RI:16::ADDIUGP
+"addiu r<TRX>, GP, <IMMEDIATE>"
+*mips16:
+*vr4100:
+{
+  do_addiu (SD_, GPIDX, TRX, EXTEND16 (IMMEDIATE));
+}
 
 
 01000,3.RX,3.RY,1,4.IMMED:RRI-A:16::DADDIU
@@ -1233,4 +1315,39 @@
 *vr4100:
 {
   do_break16 (SD_, instruction_0);
+}
+
+11110,00000,1.ALIGN,5.OFFSET + 11100,3.RY,3.RX,000,2.COUNT:EXT-COPY:16::COPY
+"copy r<TRY> r<TRX> <COPY_OFFSET> <COPY_COUNT>" : ALIGN == 1
+"ucopy r<TRY> r<TRX> <COPY_OFFSET> <COPY_COUNT>"
+*mips16:
+{
+  int i;
+  /* Perform a byte copy */
+  for (i = 0 ; i < (COPY_COUNT << 2) ; i++)
+     {
+       GPR[12] = EXTEND8 (do_load (SD_, AccessLength_BYTE, GPR[TRX], (COPY_OFFSET + i)));
+       do_store (SD_, AccessLength_BYTE, GPR[TRY], (COPY_OFFSET + i), GPR[12]);
+     }
+}
+
+11110,5.LSB,1,5.SIZE + 00110,3.RX,3.RY,010,00:EXT-SHIFT:16::EXT
+"ext r<TRY>, r<TRX>, <LSB>, <SIZE+1>"
+*mips16:
+{
+  do_ext (SD_, TRY, TRX, LSB, SIZE);
+}
+
+11110,5.LSB,1,5.MSB + 00110,3.RX,3.RY,001,00:EXT-SHIFT:16::INS
+"ins r<TRY>, r<TRX>, <LSB>, <MSB-LSB+1>"
+*mips16:
+{
+    do_ins (SD_, TRY, TRX, LSB, MSB);
+}
+
+11110,5.LSB,0,5.MSB + 00110,3.RX,3.RY,001,00:EXT-SHIFT:16::INS0
+"ins r<TRY>, r0, <LSB>, <MSB-LSB+1>"
+*mips16:
+{
+    do_ins (SD_, TRY, 0, LSB, MSB);
 }
