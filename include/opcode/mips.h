@@ -405,6 +405,9 @@ enum mips_operand_type {
   /* $pc, which has no encoding in the architectural instruction.  */
   OP_PC,
 
+  /* $28, which has no encoding in the MIPS16e architectural instruction.  */
+  OP_REG28,
+
   /* A 4-bit XYZW channel mask or 2-bit XYZW index; the size determines
      which.  */
   OP_VU0_SUFFIX,
@@ -778,6 +781,14 @@ struct mips_opcode
   unsigned long exclusions;
 };
 
+/* Return true if MO is an instruction that requires 32-bit encoding.  */
+
+static inline bfd_boolean
+mips_opcode_32bit_p (const struct mips_opcode *mo)
+{
+  return mo->mask >> 16 != 0;
+}
+
 /* These are the characters which may appear in the args field of an
    instruction.  They appear in the order in which the fields appear
    when the instruction is used.  Commas and parentheses in the args
@@ -1000,6 +1011,8 @@ struct mips_opcode
    "-A" symbolic offset (-262144 .. 262143) << 2 at bit 0
    "-B" symbolic offset (-131072 .. 131071) << 3 at bit 0
 
+   "-m" MIPS SAVE/RESTORE list
+
    Other:
    "()" parens surrounding optional value
    ","  separates operands
@@ -1021,7 +1034,7 @@ struct mips_opcode
    Extension character sequences used so far ("-" followed by the
    following), for quick reference when adding more:
    "AB"
-   "abdstuvwxy"
+   "abdmstuvwxy"
 
    Extension character sequences used so far ("`" followed by the
    following), for quick reference when adding more:
@@ -1140,6 +1153,8 @@ struct mips_opcode
 #define INSN2_CONVERTED_TO_COMPACT  0x00010000
 /* Instruction prevents the following instruction from being in a DS */
 #define INSN2_NEXT_NO_DS	    0x00020000
+/* Instruction only has a short MIPS16 form in disassembly.  */
+#define INSN2_SHORT_ONLY	    0x00040000
 
 /* Masks used to mark instructions to indicate which MIPS ISA level
    they were introduced in.  INSN_ISA_MASK masks an enumeration that
@@ -1228,7 +1243,7 @@ static const unsigned int mips_isa_table[] = {
 #undef ISAF
 
 /* Masks used for Chip specific instructions.  */
-#define INSN_CHIP_MASK		  0xc3ff0f20
+#define INSN_CHIP_MASK		  0xc7ff0f20
 
 /* Cavium Networks Octeon instructions.  */
 #define INSN_OCTEON		  0x00000800
@@ -1267,6 +1282,8 @@ static const unsigned int mips_isa_table[] = {
 #define INSN_LOONGSON_3A          0x00000400
 /* RMI Xlr instruction */
 #define INSN_XLR                 0x00000020
+/* Imagination interAptiv MR2.  */
+#define INSN_INTERAPTIV_MR2	  0x04000000
 
 /* DSP ASE */
 #define ASE_DSP			0x00000001
@@ -1302,7 +1319,10 @@ static const unsigned int mips_isa_table[] = {
 /* The eXtended Physical Address (XPA) Extension has instructions which are
    only valid for the r6 ISA.  */
 #define ASE_EVA_R6		0x00020000
-
+/* MIPS16e2 Extension.  */
+#define ASE_MIPS16E2		0x00040000
+/* MIPS16e2 MT ASE instructions.  */
+#define ASE_MIPS16E2_MT		0x00080000
 /* MIPS ISA defines, use instead of hardcoding ISA level.  */
 
 #define       ISA_UNKNOWN     0               /* Gas internal use.  */
@@ -1371,6 +1391,7 @@ static const unsigned int mips_isa_table[] = {
 #define CPU_OCTEONP	6601
 #define CPU_OCTEON2	6502
 #define CPU_XLR     	887682   	/* decimal 'XLR'   */
+#define CPU_INTERAPTIV_MR2 736550	/* decimal 'IA2'  */
 
 /* Return true if the given CPU is included in INSN_* mask MASK.  */
 
@@ -1437,6 +1458,9 @@ cpu_is_member (int cpu, unsigned int mask)
 
     case CPU_XLR:
       return (mask & INSN_XLR) != 0;
+
+    case CPU_INTERAPTIV_MR2:
+      return (mask & INSN_INTERAPTIV_MR2) != 0;
 
     case CPU_MIPS32R6:
       return (mask & INSN_ISA_MASK) == INSN_ISA32R6;
@@ -1845,12 +1869,32 @@ extern int bfd_mips_num_opcodes;
    "e" 11 bit extension value
    "l" register list for entry instruction
    "L" register list for exit instruction
+   "9" 9-bit signed immediate
+   "F" 16-bit unsigned immediate
+   "G" global pointer ($gp or $28)
+   "J" 8-bit signed immediate
+   "N" 5-bit coprocessor register
+   "O" 3-bit sel field for MFC0/MTC0
+   "Q" 5-bit hardware register
+   "T" 5-bit CACHE opcode or PREF hint
+   "b" 5-bit INS/EXT position, which becomes LSB
+       Enforces: 0 <= pos < 32.
+   "c" 5-bit INS size, which becomes MSB
+       Requires that "b" occurs first to set position.
+       Enforces: 0 < (pos+size) <= 32.
+   "d" 5-bit EXT size, which becomes MSBD
+       Requires that "b" occurs first to set position.
+       Enforces: 0 < (pos+size) <= 32.
+   "n" 2-bit immediate (1 .. 4)
+   "o" 5-bit unsigned immediate * 16
+   "r" 3-bit register
 
    "I" an immediate value used for macros
 
    The remaining codes may be extended.  Except as otherwise noted,
    the full extended operand is a 16 bit signed value.
-   "<" 3 bit unsigned shift count * 0 (MIPS16OP_*_RZ) (full 5 bit unsigned)
+   "<" 3 bit unsigned shift count * 0 (MIPS16OP_*_RZ) (full 5 bit unsigned;
+						       also SYNC code)
    ">" 3 bit unsigned shift count * 0 (MIPS16OP_*_RX) (full 5 bit unsigned)
    "[" 3 bit unsigned shift count * 0 (MIPS16OP_*_RZ) (full 6 bit unsigned)
    "]" 3 bit unsigned shift count * 0 (MIPS16OP_*_RX) (full 6 bit unsigned)
@@ -1873,6 +1917,12 @@ extern int bfd_mips_num_opcodes;
    "E" 5 bit PC relative address * 4 (MIPS16OP_*_IMM5)
    "m" 7 bit register list for save instruction (18 bit extended)
    "M" 7 bit register list for restore instruction (18 bit extended)
+
+   Characters used so far, for quick reference when adding more:
+   "   456 890"
+   "[]<>"
+   "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+   "abcde   ijklmnopqr   vwxyz"
   */
 
 /* Save/restore encoding for the args field when all 4 registers are
