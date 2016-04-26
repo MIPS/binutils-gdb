@@ -1324,6 +1324,10 @@ static const unsigned int mips_isa_table[] = {
 #define ASE_MIPS16E2		0x00040000
 /* MIPS16e2 MT ASE instructions.  */
 #define ASE_MIPS16E2_MT		0x00080000
+/* Cyclic redundancy check (CRC) ASE */
+#define ASE_CRC			0x00100000
+#define ASE_CRC64		0x00200000
+
 /* MIPS ISA defines, use instead of hardcoding ISA level.  */
 
 #define       ISA_UNKNOWN     0               /* Gas internal use.  */
@@ -1643,11 +1647,11 @@ enum
   M_LI_S,
   M_LI_SS,
   M_LL_AB,
-  M_LLX_AB,
+  M_LLWP_AB,
   M_LLD_AB,
-  M_LLDX_AB,
+  M_LLDP_AB,
   M_LLE_AB,
-  M_LLXE_AB,
+  M_LLWPE_AB,
   M_LQ_AB,
   M_LW_AB,
   M_LWE_AB,
@@ -1699,9 +1703,9 @@ enum
   M_SC_AB,
   M_SCD_AB,
   M_SCE_AB,
-  M_SCX_AB,
-  M_SCDX_AB,
-  M_SCXE_AB,
+  M_SCWP_AB,
+  M_SCDP_AB,
+  M_SCWPE_AB,
   M_SD_AB,
   M_SDC1_AB,
   M_SDC2_AB,
