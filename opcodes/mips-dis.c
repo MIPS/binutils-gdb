@@ -1540,15 +1540,14 @@ print_insn_arg (struct disassemble_info *info,
 
     case OP_SAVE_RESTORE_LIST:
       {
-	/* Handle this case here because of the complex interation
-	   with the EXTEND opcode.  */
-	unsigned int amask = (uval >> 15) & 0xf;
-	unsigned int nsreg = (uval >> 23) & 0x7;
-	unsigned int ra = (uval & 0x1000);		/* $ra */
-	unsigned int s0 = (uval & 0x800);		/* $s0 */
-	unsigned int s1 = (uval & 0x400);		/* $s1 */
-	unsigned int frame_size = (((uval >> 15) & 0xf0)
-				   | ((uval >> 6) & 0x0f)) * 8;
+	/* uval contains bits 6 to 25 of the SAVE/RESTORE instruction.  */
+	unsigned int amask = (uval >> 9) & 0xf;
+	unsigned int nsreg = (uval >> 17) & 0x7;
+	unsigned int ra = (uval & 0x40);		/* $ra */
+	unsigned int s0 = (uval & 0x20);		/* $s0 */
+	unsigned int s1 = (uval & 0x10);		/* $s1 */
+	unsigned int frame_size = (((uval >> 9) & 0xf0)
+				   | (uval & 0x0f)) * 8;
 	mips_print_save_restore (info, amask, nsreg, ra, s0, s1,
 				 frame_size);
       }
