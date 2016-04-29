@@ -5897,15 +5897,16 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
   insn |= mips_fetch_instruction (gdbarch, ISA_MICROMIPS, loc, NULL);
   loc += MIPS_INSN16_SIZE;
   if (b12s4_op (insn) == 0x6		    /* LD-EVA bits 0110 */
-      && (b9s3_op (insn) == 0x6		    /* LLE    bits 110 */
-	  || (is_mipsr6_isa (gdbarch)
-	      && b9s3_op (insn) == 0x2)))   /* LLWPE  bits 010 */
+      && (b9s3_op (insn) == 0x6	    	    /* LLE    bits  110 */
+	  || b9s3_op (insn) == 0x2))        /* LLWPE  bits  010 */
     ll_found = 1;
   else if (b12s4_op (insn) == 0x3	    /* LL     bits 0011 */
-	    || b12s4_op (insn) == 0x7       /* LLD    bits 0111 */
-	    || b12s4_op (insn) == 0x1       /* LLWPE  bits 0001 */
-	    || b12s4_op (insn) == 0x5)	    /* LLDP   bits 0101 */
+	   || b12s4_op (insn) == 0x7        /* LLD    bits 0111 */
+	   || b12s4_op (insn) == 0x5)	    /* LLDP   bits 0101 */
     ll_found = 1;
+  else if (is_mipsr6_isa (gdbarch)
+	   && b12s4_op (insn) == 0x1)       /* LLWP   bits 0001 */
+	ll_found = 1;
 
   if (!ll_found)
     return 0;
@@ -5962,17 +5963,16 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 		  break;
 
 		case 0x18: /* POOL32C: bits 011000 */
-		  if ((b12s4_op (insn) & 0xb) == 0xb)
-				/* SC, SCD: bits 011000 1x11 */
+		  if ((b12s4_op (insn) & 0xb) == 0xb	/* SC, SCD: bits 1x11 */
+		      || b12s4_op (insn) == 0xd)   	/* SCDP     bits 1101 */
 		    sc_found = 1;
-		  else if (b12s4_op (insn) == 0xa     /* ST-EVA bits 1010 */
-			   && (b9s3_op (insn) == 0x6)  /* SCE bits 110 */
-			       || (is_mipsr6_isa (gdbarch)
-				   && b9s3_op (insn) == 0)) /* SCWPE */
+		  else if (b12s4_op (insn) == 0xa       /* ST-EVA bits 1010 */
+			   && (b9s3_op (insn) == 0x6    /* SCE bits     110 */
+			      || b9s3_op (insn) == 0)) 	/* SCWPE bits   000 */
 		    sc_found = 1;
-		  else if (b12s4_op (insn) == 0x9	/* SCWP */
-			   || b12s4_op (insn) == 0xd)   /* SCDP */
-		    sc_found = 1;
+		  else if (is_mipsr6_isa (gdbarch)
+			   && b12s4_op (insn) == 0x9)	/* SCWP bits   1001 */
+			sc_found = 1;
 		  break;
 
 		case 0x20: /* BEQZC/JIC */
@@ -6137,12 +6137,16 @@ handle_branch:
 	      insn <<= 16;
 	      insn |= mips_fetch_instruction (gdbarch,
 					      ISA_MICROMIPS, loc, NULL);
-	      if ((b12s4_op (insn) & 0xb) == 0xb)
-				/* SC, SCD: bits 011000 1x11 */
+	      if ((b12s4_op (insn) & 0xb) == 0xb 	/* SC, SCD: bits 1x11 */
+		  || b12s4_op (insn) == 0xd)   	 	/* SCDP bits     1101 */
 		sc_found = 1;
-	      else if (b12s4_op (insn) == 0xa     /* ST-EVA bits 1010 */
-		       && b9s3_op (insn) == 0x6)  /* SCE bits 110 */
+	      else if (b12s4_op (insn) == 0xa     	/* ST-EVA bits 1010 */
+		       && (b9s3_op (insn) == 0x6  	/* SCE bits     110 */
+			   || b9s3_op (insn) == 0)) 	/* SCWPE bits 	000 */
 		sc_found = 1;
+	      else if (is_mipsr6_isa (gdbarch)
+		       && b12s4_op (insn) == 0x9)      	/* SCWP bits   	1001 */
+		    sc_found = 1;
 	      break;
 	    }
 	  loc += MIPS_INSN16_SIZE;
