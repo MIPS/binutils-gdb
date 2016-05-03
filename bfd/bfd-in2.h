@@ -2949,6 +2949,11 @@ to compensate for the borrow when the low bits are added.  */
   BFD_RELOC_MICROMIPS_18_PCREL_S3,
   BFD_RELOC_MICROMIPS_19_PCREL_S2,
 
+/* Relocation against a microMIPS ALIGN directive.  */
+  BFD_RELOC_MICROMIPS_ALIGN,
+  BFD_RELOC_MICROMIPS_FILL,
+  BFD_RELOC_MICROMIPS_MAX,
+
 /* MIPS PC-relative relocations.  */
   BFD_RELOC_MIPS_21_PCREL_S2,
   BFD_RELOC_MIPS_26_PCREL_S2,
@@ -3025,7 +3030,6 @@ to compensate for the borrow when the low bits are added.  */
 /* MIPS ELF relocations (VxWorks and PLT extensions).  */
   BFD_RELOC_MIPS_COPY,
   BFD_RELOC_MIPS_JUMP_SLOT,
-
 
 /* Moxie ELF relocations.  */
   BFD_RELOC_MOXIE_10_PCREL,

@@ -162,6 +162,9 @@ enum
   R_MICROMIPS_SHORT_LO4 = 179,
   R_MICROMIPS_WORD_LO4 = 180,
   R_MICROMIPS_BYTE_LO7 = 181,
+  R_MICROMIPS_ALIGN = 182,
+  R_MICROMIPS_FILL = 183,
+  R_MICROMIPS_MAX = 184,
 
   // This was a GNU extension used by embedded-PIC.  It was co-opted by
   // mips-linux for exception-handling data.  GCC stopped using it in

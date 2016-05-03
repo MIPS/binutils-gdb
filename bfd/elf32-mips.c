@@ -1667,6 +1667,48 @@ static reloc_howto_type elf_micromips_howto_table_rel[] =
 	 0x0000007f,		/* src_mask */
 	 0x0000007f,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
+
+  HOWTO (R_MICROMIPS_ALIGN,	/* type */
+	 0,			/* rightshift */
+	 0,			/* size (0 = byte, 1 = short, 2 = long) */
+	 32,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont,/* complain_on_overflow */
+	 NULL, 			/* special handler.  */
+	 "R_MICROMIPS_ALIGN",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0,			/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
+  HOWTO (R_MICROMIPS_FILL,	/* type */
+	 0,			/* rightshift */
+	 0,			/* size (0 = byte, 1 = short, 2 = long) */
+	 32,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont,/* complain_on_overflow */
+	 NULL, 			/* special handler.  */
+	 "R_MICROMIPS_FILL",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0,			/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
+  HOWTO (R_MICROMIPS_MAX,	/* type */
+	 0,			/* rightshift */
+	 0,			/* size (0 = byte, 1 = short, 2 = long) */
+	 32,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont,/* complain_on_overflow */
+	 NULL, 			/* special handler.  */
+	 "R_MICROMIPS_MAX",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0,			/* dst_mask */
+	 FALSE),		/* pcrel_offset */
 };
 
 /* 16 bit offset for pc-relative branches.  */
@@ -2209,6 +2251,9 @@ static const struct elf_reloc_map micromips_reloc_map[] =
     R_MICROMIPS_TLS_TPREL_LO16 - R_MICROMIPS_min },
   /* There is no BFD reloc for R_MICROMIPS_GPREL7_S2.  */
   /* There is no BFD reloc for R_MICROMIPS_PC23_S2.  */
+  { BFD_RELOC_MICROMIPS_ALIGN, R_MICROMIPS_ALIGN - R_MICROMIPS_min },
+  { BFD_RELOC_MICROMIPS_FILL, R_MICROMIPS_FILL - R_MICROMIPS_min },
+  { BFD_RELOC_MICROMIPS_MAX, R_MICROMIPS_MAX - R_MICROMIPS_min },
 };
 
 /* Given a BFD reloc type, return a howto structure.  */

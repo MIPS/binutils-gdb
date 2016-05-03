@@ -15272,6 +15272,11 @@ mips_force_relocation (fixS *fixp)
   if (generic_force_reloc (fixp))
     return 1;
 
+  if (fixp->fx_r_type == BFD_RELOC_MICROMIPS_ALIGN
+      || fixp->fx_r_type == BFD_RELOC_MICROMIPS_FILL
+      || fixp->fx_r_type == BFD_RELOC_MICROMIPS_MAX)
+    return 1;
+
   /* We want to keep BFD_RELOC_MICROMIPS_*_PCREL_S1 relocation,
      so that the linker relaxation can update targets.  */
   if (fixp->fx_r_type == BFD_RELOC_MICROMIPS_7_PCREL_S1
@@ -15363,6 +15368,11 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 		      _("PC-relative reference to a different section"));
 	break;
       }
+
+  if (fixP->fx_r_type == BFD_RELOC_MICROMIPS_ALIGN
+      || fixP->fx_r_type == BFD_RELOC_MICROMIPS_FILL
+      || fixP->fx_r_type == BFD_RELOC_MICROMIPS_MAX)
+    return;
 
   /* Handle BFD_RELOC_8, since it's easy.  Punt on other bfd relocations
      that have no MIPS ELF equivalent.  */
@@ -18871,6 +18881,73 @@ mips_handle_align (fragS *fragp)
   char *p;
   int bytes, size, excess;
   valueT opcode;
+
+  /* Create R_MICROMIPS_ALIGN to record the alignment request.  Value of the
+     absolute symbol gives alignment requested.  The relocation is created at
+     the start of padding bytes.  Create R_MICROMIPS_FILL and R_MICROMIPS_MAX
+     to record fill value and maximum alignment respectively.  */
+  if (mips_opts.micromips && (fragp->fr_fix != 0)
+      && (now_seg->flags & SEC_CODE) != 0)
+    {
+      symbolS *sym;
+      char sname[30];
+
+      /* The '\2' ensures that no other symbol will get the
+	 same name as this.  */
+      sprintf (sname, "__reloc_align_\2_%ld", fragp->fr_offset);
+      sym = symbol_find (sname);
+      if (sym == NULL)
+	{
+	  sym = symbol_new (sname, absolute_section, fragp->fr_offset,
+			    &zero_address_frag);
+	  symbol_table_insert (sym);
+	}
+
+      fix_new (fragp, fragp->fr_fix, 0, sym, 0, FALSE,
+	       BFD_RELOC_MICROMIPS_ALIGN);
+
+      if (fragp->fr_type == rs_align)
+	{
+	  int i;
+	  unsigned int fill = 0;
+
+	  /* Find the fill value.  */
+	  p = fragp->fr_literal + fragp->fr_fix;
+	  for (i = 0; i < fragp->fr_var; i++)
+	    fill = (fill << 8) | (unsigned char) p[i];
+
+	  /* Generate fill reloc.  Default fill value is micromips nop32.  */
+	  if (fill != NOP_OPCODE_MICROMIPS)
+	    {
+	      sprintf (sname, "__reloc_fill_\2_%x", fill);
+	      sym = symbol_find (sname);
+	      if (sym == NULL)
+		{
+		  sym = symbol_new (sname, absolute_section, fill, 
+				    &zero_address_frag);
+		  symbol_table_insert (sym);
+		}
+	      fix_new (fragp, fragp->fr_fix, 0, sym, 0, FALSE,
+		       BFD_RELOC_MICROMIPS_FILL);
+	    }
+
+	  /* Genetate max reloc.  */
+	  if (fragp->fr_subtype != 0)
+	    {
+	      sprintf (sname, "__reloc_max_\2_%x", fragp->fr_subtype);
+	      sym = symbol_find (sname);
+	      if (sym == NULL)
+		{
+		  sym = symbol_new (sname, absolute_section,
+				    fragp->fr_subtype,
+				    &zero_address_frag);
+		  symbol_table_insert (sym);
+		}
+	      fix_new (fragp, fragp->fr_fix, 0, sym, 0, FALSE,
+		       BFD_RELOC_MICROMIPS_MAX);
+	    }
+	}
+    }
 
   if (fragp->fr_type != rs_align_code)
     return;
