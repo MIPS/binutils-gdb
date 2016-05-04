@@ -1,3 +1,12 @@
+2016-05-04  Jaydeep Patil  <jaydeep.patil@imgtec.com>
+
+	* tc-mips.c (mips_handle_align): Generate BFD_RELOC_MICROMIPS_ALIGN,
+	BFD_RELOC_MICROMIPS_FILL and BFD_RELOC_MICROMIPS_MAX fixups to record
+	alignment requests.
+	(mips_force_relocation): Handle BFD_RELOC_MICROMIPS_ALIGN,
+	BFD_RELOC_MICROMIPS_FILL and BFD_RELOC_MICROMIPS_MAX relocs.
+	(md_apply_fix): Likewise.
+
 2015-03-12  Andrew Bennett  <andrew.bennett@imgtec.com>
 
 	* config/tc-mips.c (mips_cpu_info_table): Add i6400 entry.

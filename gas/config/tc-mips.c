@@ -18923,7 +18923,7 @@ mips_handle_align (fragS *fragp)
 	      sym = symbol_find (sname);
 	      if (sym == NULL)
 		{
-		  sym = symbol_new (sname, absolute_section, fill, 
+		  sym = symbol_new (sname, absolute_section, fill,
 				    &zero_address_frag);
 		  symbol_table_insert (sym);
 		}

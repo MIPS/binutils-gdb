@@ -1,3 +1,8 @@
+2016-05-04  Jaydeep Patil  <jaydeep.patil@imgtec.com>
+
+	* mips.h (R_MICROMIPS_ALIGN, R_MICROMIPS_FILL): Add.
+	(R_MICROMIPS_MAX): Add.
+
 2014-10-09  Jose E. Marchesi  <jose.marchesi@oracle.com>
 
 	* sparc.h (Tag_GNU_Sparc_HWCAPS2): New object attribute.
