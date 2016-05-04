@@ -700,9 +700,26 @@
 "lldp r<RT>, r<RD>, (r<BASE>)"
 *micromips64r6:
 {
+  int first, second;
+  int offset;
+
   check_u64 (SD_, instruction_0);
-  do_lld (SD_, RT, 0, BASE);
-  do_lld (SD_, RD, 8, BASE);
+
+  if (RT == BASE)
+  {
+    first = RD;
+    second = RT;
+    offset = BigEndianCPU ? 0 : 8;
+  }
+  else
+  {
+    first = RT;
+    second = RD;
+    offset = BigEndianCPU ? 8 : 0;
+  }
+
+  do_lld (SD_, first, offset, BASE);
+  do_lld (SD_, second, offset^8, BASE);
 }
 
 
@@ -710,9 +727,11 @@
 "scdp r<RT>, r<RD>, (r<BASE>)"
 *micromips64r6:
 {
+  int offset = BigEndianCPU ? 0 : 8;
   check_u64 (SD_, instruction_0);
-  do_scd (SD_, RT, 0, BASE, 1);
-  do_scd (SD_, RD, 8, BASE, 0);
+
+  do_scd (SD_, RD, offset, BASE, 0);
+  do_scd (SD_, RT, offset^8, BASE, 1);
 }
 
 
@@ -721,8 +740,10 @@
 *micromips32r6:
 *micromips64r6:
 {
-  do_sc (SD_, RT, 0, BASE, instruction_0, 1);
-  do_sc (SD_, RD, 4, BASE, instruction_0, 0);
+  int offset = BigEndianCPU ? 0 : 4;
+
+  do_sc (SD_, RD, offset, BASE, instruction_0, 0);
+  do_sc (SD_, RT, offset^4, BASE, instruction_0, 1);
 }
 
 
@@ -731,8 +752,24 @@
 *micromips32r6:
 *micromips64r6:
 {
-  do_ll (SD_, RT, 0, BASE);
-  do_ll (SD_, RD, 4, BASE);
+  int first, second;
+  int offset;
+
+  if (RT == BASE)
+  {
+    first = RD;
+    second = RT;
+    offset = BigEndianCPU ? 0 : 4;
+  }
+  else
+  {
+    first = RT;
+    second = RD;
+    offset = BigEndianCPU ? 4 : 0;
+  }
+
+  do_ll (SD_, first, offset, BASE);
+  do_ll (SD_, second, offset^4, BASE);
 }
 
 
