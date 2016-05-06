@@ -2306,6 +2306,21 @@ ENUMDOC
   Relocation against a microMIPS ALIGN directive.
 
 ENUM
+  BFD_RELOC_MICROMIPS_INSN32
+ENUMX
+  BFD_RELOC_MICROMIPS_INSN16
+ENUMDOC
+  These relocation types are just place holders and inform
+linker to honour the instruction length during
+relaxation/transformation.
+
+ENUM
+  BFD_RELOC_MICROMIPS_FIXED
+ENUMDOC
+  This relocation type informs linker to keep the instruction
+as it is during any transformation/relaxation.
+
+ENUM
   BFD_RELOC_MIPS_21_PCREL_S2
 ENUMX
   BFD_RELOC_MIPS_26_PCREL_S2

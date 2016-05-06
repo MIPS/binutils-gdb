@@ -7837,6 +7837,28 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	    ip->fixp[0]->fx_tcbit = 1;
 	    ip->fixp[i]->fx_tcbit = 1;
 	  }
+
+      if (forced_insn_length == 4 || forced_insn_length == 2)
+	{
+	  symbolS *sym;
+	  char sname[30];
+
+	  /* The '\2' ensures that no other symbol will get the
+	     same name as this.  */
+	  sprintf (sname, "__reloc_insn_\2_%d", forced_insn_length);
+	  sym = symbol_find (sname);
+	  if (sym == NULL)
+	    {
+	      sym = symbol_new (sname, absolute_section, forced_insn_length,
+				&zero_address_frag);
+	      symbol_table_insert (sym);
+	    }
+
+	  fix_new (ip->frag, ip->where, 0, sym, 0,
+		   FALSE,
+		   forced_insn_length == 2 ? BFD_RELOC_MICROMIPS_INSN16
+					   : BFD_RELOC_MICROMIPS_INSN32);
+	}
     }
   install_insn (ip);
 
@@ -15277,6 +15299,11 @@ mips_force_relocation (fixS *fixp)
       || fixp->fx_r_type == BFD_RELOC_MICROMIPS_MAX)
     return 1;
 
+  if (fixp->fx_r_type == BFD_RELOC_MICROMIPS_INSN32
+      || fixp->fx_r_type == BFD_RELOC_MICROMIPS_INSN16
+      || fixp->fx_r_type == BFD_RELOC_MICROMIPS_FIXED)
+    return 1;
+
   /* We want to keep BFD_RELOC_MICROMIPS_*_PCREL_S1 relocation,
      so that the linker relaxation can update targets.  */
   if (fixp->fx_r_type == BFD_RELOC_MICROMIPS_7_PCREL_S1
@@ -15372,6 +15399,11 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
   if (fixP->fx_r_type == BFD_RELOC_MICROMIPS_ALIGN
       || fixP->fx_r_type == BFD_RELOC_MICROMIPS_FILL
       || fixP->fx_r_type == BFD_RELOC_MICROMIPS_MAX)
+    return;
+
+  if (fixP->fx_r_type == BFD_RELOC_MICROMIPS_INSN32
+      || fixP->fx_r_type == BFD_RELOC_MICROMIPS_INSN16
+      || fixP->fx_r_type == BFD_RELOC_MICROMIPS_FIXED)
     return;
 
   /* Handle BFD_RELOC_8, since it's easy.  Punt on other bfd relocations

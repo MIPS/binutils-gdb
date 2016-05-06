@@ -1,3 +1,12 @@
+2016-05-06  Jaydeep Patil  <jaydeep.patil@imgtec.com>
+
+	* reloc.c (BFD_RELOC_MICROMIPS_INSN32): Add.
+	(BFD_RELOC_MICROMIPS_INSN16, BFD_RELOC_MICROMIPS_FIXED): Add.
+	* libbfd.h: Regenerated.
+	* bfd-in2.h: Regenerated.
+	* elf32-mips.c (micromips_reloc_map): Add new relocations.
+	(elf_micromips_howto_table_rel): Add new relocations.
+
 2016-05-04  Jaydeep Patil  <jaydeep.patil@imgtec.com>
 
 	* reloc.c (BFD_RELOC_MICROMIPS_ALIGN, BFD_RELOC_MICROMIPS_FILL): Add.

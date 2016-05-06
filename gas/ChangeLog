@@ -1,3 +1,11 @@
+2016-05-06  Jaydeep Patil  <jaydeep.patil@imgtec.com>
+
+	* tc-mips.c (append_insn): Generate BFD_RELOC_MICROMIPS_INSN32,
+	and BFD_RELOC_MICROMIPS_INSN16 to record instruction length.
+	(mips_force_relocation): Handle BFD_RELOC_MICROMIPS_INSN32
+	BFD_RELOC_MICROMIPS_INSN16 and BFD_RELOC_MICROMIPS_FIXED.
+	(md_apply_fix): Likewise.
+
 2016-05-04  Jaydeep Patil  <jaydeep.patil@imgtec.com>
 
 	* tc-mips.c (mips_handle_align): Generate BFD_RELOC_MICROMIPS_ALIGN,

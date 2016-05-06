@@ -1709,6 +1709,48 @@ static reloc_howto_type elf_micromips_howto_table_rel[] =
 	 0,			/* src_mask */
 	 0,			/* dst_mask */
 	 FALSE),		/* pcrel_offset */
+
+  HOWTO (R_MICROMIPS_INSN32,	/* type */
+	 0,			/* rightshift */
+	 0,			/* size (0 = byte, 1 = short, 2 = long) */
+	 32,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont,/* complain_on_overflow */
+	 NULL, 			/* special handler.  */
+	 "R_MICROMIPS_INSN32",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0,			/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
+  HOWTO (R_MICROMIPS_INSN16,	/* type */
+	 0,			/* rightshift */
+	 0,			/* size (0 = byte, 1 = short, 2 = long) */
+	 32,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont,/* complain_on_overflow */
+	 NULL, 			/* special handler.  */
+	 "R_MICROMIPS_INSN16",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0,			/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
+  HOWTO (R_MICROMIPS_FIXED,	/* type */
+	 0,			/* rightshift */
+	 0,			/* size (0 = byte, 1 = short, 2 = long) */
+	 32,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont,/* complain_on_overflow */
+	 NULL, 			/* special handler.  */
+	 "R_MICROMIPS_FIXED",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0,			/* dst_mask */
+	 FALSE),		/* pcrel_offset */
 };
 
 /* 16 bit offset for pc-relative branches.  */
@@ -2254,6 +2296,9 @@ static const struct elf_reloc_map micromips_reloc_map[] =
   { BFD_RELOC_MICROMIPS_ALIGN, R_MICROMIPS_ALIGN - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_FILL, R_MICROMIPS_FILL - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_MAX, R_MICROMIPS_MAX - R_MICROMIPS_min },
+  { BFD_RELOC_MICROMIPS_INSN32, R_MICROMIPS_INSN32 - R_MICROMIPS_min },
+  { BFD_RELOC_MICROMIPS_INSN16, R_MICROMIPS_INSN16 - R_MICROMIPS_min },
+  { BFD_RELOC_MICROMIPS_FIXED, R_MICROMIPS_FIXED - R_MICROMIPS_min },
 };
 
 /* Given a BFD reloc type, return a howto structure.  */

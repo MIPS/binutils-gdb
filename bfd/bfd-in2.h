@@ -2954,6 +2954,16 @@ to compensate for the borrow when the low bits are added.  */
   BFD_RELOC_MICROMIPS_FILL,
   BFD_RELOC_MICROMIPS_MAX,
 
+/* These relocation types are just place holders and inform
+linker to honour the instruction length during
+relaxation/transformation.  */
+  BFD_RELOC_MICROMIPS_INSN32,
+  BFD_RELOC_MICROMIPS_INSN16,
+
+/* This relocation type informs linker to keep the instruction
+as it is during any transformation/relaxation.  */
+  BFD_RELOC_MICROMIPS_FIXED,
+
 /* MIPS PC-relative relocations.  */
   BFD_RELOC_MIPS_21_PCREL_S2,
   BFD_RELOC_MIPS_26_PCREL_S2,
