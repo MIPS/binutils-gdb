@@ -5733,15 +5733,21 @@ mips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
   int last_breakpoint = 0; /* Defaults to 0 (no breakpoints placed).  */  
   const int atomic_sequence_length = 16; /* Instruction sequence length.  */
   int is_mipsr6 = is_mipsr6_isa (gdbarch);
+  CORE_ADDR branches[atomic_sequence_length / 2];
+  int bcount=0;
+  CORE_ADDR start, end = 0;
 
   insn = mips_fetch_instruction (gdbarch, ISA_MIPS, loc, NULL);
   /* Assume all atomic sequences start with a ll/lld instruction.  */
   if (!is_ll_insn (gdbarch, insn))
     return 0;
 
+  start = loc;
   /* Assume that no atomic sequence is longer than "atomic_sequence_length" 
      instructions.  */
-  for (insn_count = 0; insn_count < atomic_sequence_length; ++insn_count)
+  for (insn_count = 0;
+       insn_count < atomic_sequence_length && last_breakpoint <= 1;
+       ++insn_count)
     {
       int is_branch = 0;
       loc += MIPS_INSN32_SIZE;
@@ -5837,30 +5843,51 @@ mips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 	    branch_bp = loc + mips32_relative_offset21 (insn) + 4;
 	  else
 	    branch_bp = loc + mips32_relative_offset (insn) + 4;
-	  if (last_breakpoint >= 1)
-	    return 0; /* More than one branch found, fallback to the
-			 standard single-step code.  */
-	  breaks[1] = branch_bp;
-	  last_breakpoint++;
-	}
 
-      if (is_sc_insn (gdbarch, insn))
-	break;
+	  /* Out-of-sequence branch going back to before the start
+	     of the sequence can be counted immediately,  as can
+	     forward branches going past atomic_sequence_length.  */
+	  if ((branch_bp < start ||
+	       branch_bp > (start
+			    + ((atomic_sequence_length + 1)
+			       * MIPS_INSN32_SIZE)))
+	      && branch_bp != breaks[1])
+	    {
+	      breaks[1] = branch_bp;
+	      last_breakpoint++;
+	    }
+	  /* Track forward branches for processing after end is found.
+	     At best,  if next instruction is SC,  then there is already
+	     a break-point following it.  We can safely look 3 instructions
+	     ahead for a unique out-of-sequence forward branch.  */
+	  else if (branch_bp >= loc + 3 * MIPS_INSN32_SIZE)
+	    branches[bcount++] = branch_bp;
+	}
+      else if (is_sc_insn (gdbarch, insn))
+	{
+	  end = loc + 4;
+	  break;
+	}
     }
 
-  /* Assume that the atomic sequence ends with a sc/scd instruction.  */
-  if (!is_sc_insn (gdbarch, insn))
+  /* No store conditional found within atomic_sequence_length instructions.  */
+  if (end == 0)
     return 0;
 
-  loc += MIPS_INSN32_SIZE;
+  /* Check forward branches for unique out-of-sequence destinations.  */
+  for (insn_count = 0; insn_count < bcount && last_breakpoint <= 1; insn_count++)
+    if (branches[insn_count] > end && branches[insn_count] != breaks[1])
+      {
+	breaks[1] = branches[insn_count];
+	last_breakpoint++;
+      }
+
+  /* Too many control transfers to track, give up.  */
+  if (last_breakpoint > 1)
+    return 0;
 
   /* Insert a breakpoint right after the end of the atomic sequence.  */
-  breaks[0] = loc;
-
-  /* Check for duplicated breakpoints.  Check also for a breakpoint
-     placed (branch instruction's destination) in the atomic sequence.  */
-  if (last_breakpoint && pc <= breaks[1] && breaks[1] <= breaks[0])
-    last_breakpoint = 0;
+  breaks[0] = end;
 
   /* Effectively inserts the breakpoints.  */
   for (index = 0; index <= last_breakpoint; index++)
