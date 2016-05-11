@@ -2236,7 +2236,11 @@ micromips_reloc_shuffle_p (unsigned int r_type)
 {
   return (micromips_reloc_p (r_type)
 	  && r_type != R_MICROMIPS_PC7_S1
-	  && r_type != R_MICROMIPS_PC10_S1);
+	  && r_type != R_MICROMIPS_PC10_S1
+	  && r_type != R_MICROMIPS_BYTE_LO4
+	  && r_type != R_MICROMIPS_SHORT_LO4
+	  && r_type != R_MICROMIPS_WORD_LO4
+	  && r_type != R_MICROMIPS_BYTE_LO7);
 }
 
 static inline bfd_boolean
@@ -6359,6 +6363,15 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
     case R_MIPS_GNU_VTINHERIT:
     case R_MIPS_GNU_VTENTRY:
       /* We don't do anything with these at present.  */
+      return bfd_reloc_continue;
+
+    case R_MICROMIPS_ALIGN:
+    case R_MICROMIPS_FILL:
+    case R_MICROMIPS_MAX:
+    case R_MICROMIPS_INSN32:
+    case R_MICROMIPS_INSN16:
+    case R_MICROMIPS_FIXED:
+      /* These relocations are handled during relaxation pass.  */
       return bfd_reloc_continue;
 
     default:
@@ -13724,6 +13737,28 @@ check_relocated_bzc (bfd *abfd, const bfd_byte *ptr, bfd_vma offset,
   return FALSE;
 }
 
+/* Return TRUE if there is a R_MICROMIPS_INSN32 or R_MICROMIPS_FIXED
+   relocation at offset OFFSET starting form relocation REL.  */
+
+static bfd_boolean
+is_norelax (const bfd_vma offset, const Elf_Internal_Rela *rel,
+	    const Elf_Internal_Rela *relend)
+{
+  /* If this is last reloctionation.  */
+  if (rel >= relend)
+    return FALSE;
+
+  for (; rel < relend; rel++)
+    {
+      if (offset == rel->r_offset
+	  && (ELF32_R_TYPE (rel->r_info) == R_MICROMIPS_INSN32
+	      || ELF32_R_TYPE (rel->r_info) == R_MICROMIPS_FIXED))
+	return TRUE;
+    }
+
+  return FALSE;
+}
+
 /* Bitsize checking.  */
 #define IS_BITSIZE(val, N)						\
   (((((val) & ((1ULL << (N)) - 1)) ^ (1ULL << ((N) - 1)))		\
@@ -13749,8 +13784,7 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
      this section does not have relocs, or if this is not a
      code section.  */
 
-  if (MIPSR6_P (abfd)
-      || link_info->relocatable
+  if (link_info->relocatable
       || (sec->flags & SEC_RELOC) == 0
       || sec->reloc_count == 0
       || (sec->flags & SEC_CODE) == 0)
@@ -13792,6 +13826,11 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
 	  && r_type != R_MICROMIPS_PC26_S1
 	  && r_type != R_MICROMIPS_PC21_S1
 	  && r_type != R_MICROMIPS_LO16)
+	continue;
+
+      /* Skip instructions marked with R_MICROMIPS_INSN32 and/or
+         R_MICROMIPS_FIXED relocations.  */
+      if (is_norelax (irel->r_offset, irel + 1, irelend))
 	continue;
 
       /* Get the section contents if we haven't done so already.  */
@@ -13885,7 +13924,7 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
 		- irel->r_offset);
 
       /* R_MICROMIPS_PC26_S1 relaxation to R_MICROMIPS_PC10_S1.  */
-      if (!insn32
+      if (!insn32 && MIPSR6_P (abfd)
 	  && r_type == R_MICROMIPS_PC26_S1
 	  && (opcidx = find_match (opcode, micromips_bc_PC26)) >= 0)
 	{
@@ -13913,7 +13952,7 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
 	}
 
       /* R_MICROMIPS_PC21_S1 relaxation to R_MICROMIPS_PC7_S1.  */
-      if (!insn32
+      if (!insn32 && MIPSR6_P (abfd)
 	  && r_type == R_MICROMIPS_PC21_S1
 	  && (opcidx = find_match (opcode, micromips_bc_PC21)) >= 0)
 	{
@@ -13945,22 +13984,18 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
 	    }
 	}
 
-#if 0
-This code needs retesting before enabling.  The store memory instructions
-had the wrong set of source registers.
       /* R_MICROMIPS_LO16 relaxation to R_MICROMIPS_XXXX_LO4.  */
-      if (!insn32
+      if (!insn32 && MIPSR6_P (abfd)
 	  && r_type == R_MICROMIPS_LO16
 	  && (opcidx = find_match (opcode, micromips_ldst_LO16)) >= 0)
 	{
-	  bfd_boolean target_within_range = FALSE;
 	  int shift = 0, target_reloc = R_MICROMIPS_BYTE_LO4;
 	  unsigned int rt, base, new_opcode;
 	  bfd_signed_vma target_addr, addend;
 
 	  base = OP32_SREG (opcode);
 	  rt = OP32_TREG (opcode);
-	  addend = _bfd_mips_elf_sign_extend (opcode, 16);
+	  addend = _bfd_mips_elf_sign_extend (opcode & 0xffff, 16);
 	  new_opcode = micromips_ldst_LO16[opcidx].dst_opcode;
 
 	  /* Calulate target relocation and shift amount.  */
@@ -13978,22 +14013,41 @@ had the wrong set of source registers.
 	    target_reloc = R_MICROMIPS_BYTE_LO7;
 
 	  /* Calculate target address.  */
-	  target_addr = _bfd_mips_elf_sign_extend (symval + addend, 16);
+	  target_addr = _bfd_mips_elf_sign_extend ((symval + addend) & 0xffff,
+						   16);
 
-	  /* Check if the target address is in range.  lbu16 and
-	     li16 have 4bit encoded offset.  */
+	  /* Check if the resulting target address and addend is in range.
+	     The addend must be recoded based on target opcode.
+	     lbu16 and li16 have 4bit encoded offset.  */
 	  switch (new_opcode)
 	    {
 	    case 0x0800:	/* lbu16 */
-	      if (target_addr < -1 || target_addr > 14)
+	      if (target_addr < -1 || target_addr > 14 || addend < -1
+		  || addend > 14)
 		continue;
 	      break;
 	    case 0xec00:	/* li16 */
-	      if (target_addr < -1 || target_addr > 126)
+	      if (target_addr < -1 || target_addr > 126 || addend < -1
+		  || addend > 126)
 		continue;
 	      break;
-	    default:
-	      if (target_addr < 0 || target_addr > 63)
+	    case 0x2800:	/* lhu16 */
+	    case 0xa800:	/* sh16 */
+	      if (target_addr < 0 || target_addr > 30 || addend < 0
+		  || addend > 30 || (target_addr & 1) != 0
+		  || (addend & 1) != 0)
+		continue;
+	      break;
+	    case 0x6800:	/* lw16 */
+	    case 0xe800:	/* sw16 */
+	      if (target_addr < 0 || target_addr > 60 || addend < 0
+		  || addend > 60 || (target_addr & 3) != 0
+		  || (addend & 3) != 0)
+		continue;
+	      break;
+	    default:	/* sb16 */
+	      if (target_addr < 0 || target_addr > 15 || addend < 0
+		  || addend > 15)
 		continue;
 	      break;
 	    }
@@ -14004,7 +14058,7 @@ had the wrong set of source registers.
 	    case 0x8800:	/* sb16 */
 	    case 0xa800:	/* sh16 */
 	    case 0xe800:	/* sw16 */
-	      if (rt != 0 && rt != 17 && (rt < 2 || rt > 7))
+	      if (rt != 0 && rt != 16 && rt != 17 && (rt < 2 || rt > 7))
 		continue;
 	      if (base != 16 && base != 17 && (base < 2 || base > 7))
 		continue;
@@ -14015,6 +14069,10 @@ had the wrong set of source registers.
 	      if (rt != 16 && rt != 17 && (rt < 2 || rt > 7))
 		continue;
 	      if (base != 16 && base != 17 && (base < 2 || base > 7))
+		continue;
+	      break;
+	    case 0xec00:	/* li16 */
+	      if (rt != 16 && rt != 17 && (rt < 2 || rt > 7))
 		continue;
 	      break;
 	    default:
@@ -14042,13 +14100,10 @@ had the wrong set of source registers.
 			 | LS16_BASE_REG_FIELD (base)
 			 | ((addend >> shift) & 0xf)), ptr);
 
-
-
 	  /* Delete 2 bytes from irel->r_offset + 2.  */
 	  delcnt = 2;
 	  deloff = 2;
 	}
-#endif
 
       /* R_MICROMIPS_HI16 / LUI relaxation to nil, performing relaxation
          of corresponding R_MICROMIPS_LO16 to R_MICROMIPS_HI0_LO16 or
@@ -14059,7 +14114,8 @@ had the wrong set of source registers.
          where pcrval has first to be adjusted to apply against the LO16
          location (we make the adjustment later on, when we have figured
          out the offset).  */
-      if (r_type == R_MICROMIPS_HI16 && MATCH (opcode, lui_insn))
+      if (!MIPSR6_P (abfd)
+	  && r_type == R_MICROMIPS_HI16 && MATCH (opcode, lui_insn))
 	{
 	  bfd_boolean bzc = FALSE;
 	  unsigned long nextopc;
@@ -14185,7 +14241,7 @@ had the wrong set of source registers.
          employed by the compiler/assembler, compact branches are not
          always generated.  Obviously, this can/will be fixed elsewhere,
          but there is no drawback in double checking it here.  */
-      else if (r_type == R_MICROMIPS_PC16_S1
+      else if (r_type == R_MICROMIPS_PC16_S1 && !MIPSR6_P (abfd)
 	       && irel->r_offset + 5 < sec->size
 	       && ((fndopc = find_match (opcode, bz_rs_insns_32)) >= 0
 		   || (fndopc = find_match (opcode, bz_rt_insns_32)) >= 0)
@@ -14215,7 +14271,7 @@ had the wrong set of source registers.
 
       /* R_MICROMIPS_PC16_S1 relaxation to R_MICROMIPS_PC10_S1.  We need
          to check the distance from the next instruction, so subtract 2.  */
-      else if (!insn32
+      else if (!insn32 && !MIPSR6_P (abfd)
 	       && r_type == R_MICROMIPS_PC16_S1
 	       && IS_BITSIZE (pcrval - 2, 11)
 	       && find_match (opcode, b_insns_32) >= 0)
@@ -14236,7 +14292,7 @@ had the wrong set of source registers.
 
       /* R_MICROMIPS_PC16_S1 relaxation to R_MICROMIPS_PC7_S1.  We need
          to check the distance from the next instruction, so subtract 2.  */
-      else if (!insn32
+      else if (!insn32 && !MIPSR6_P (abfd)
 	       && r_type == R_MICROMIPS_PC16_S1
 	       && IS_BITSIZE (pcrval - 2, 8)
 	       && (((fndopc = find_match (opcode, bz_rs_insns_32)) >= 0
@@ -14264,7 +14320,7 @@ had the wrong set of source registers.
 	}
 
       /* R_MICROMIPS_26_S1 -- JAL to JALS relaxation for microMIPS targets.  */
-      else if (!insn32
+      else if (!insn32 && !MIPSR6_P (abfd)
 	       && r_type == R_MICROMIPS_26_S1
 	       && target_is_micromips_code_p
 	       && irel->r_offset + 7 < sec->size
