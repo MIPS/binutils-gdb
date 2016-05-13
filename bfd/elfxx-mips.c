@@ -8915,8 +8915,7 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 	case R_MIPS_CALL16:
 	case R_MIPS16_CALL16:
 	case R_MICROMIPS_CALL16:
-	  /* Exclude local IFUNCs from check.  */
-	  if (h == NULL && ih == NULL)
+	  if (h == NULL)
 	    {
 	      (*_bfd_error_handler)
 		(_("%B: CALL16 reloc at 0x%lx not against global symbol"),
@@ -8924,10 +8923,8 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 	      bfd_set_error (bfd_error_bad_value);
 	      return FALSE;
 	    }
-	  if (h && h->type == STT_GNU_IFUNC)
+	  else if (h->type == STT_GNU_IFUNC)
 	    ((struct mips_elf_link_hash_entry *) h)->has_got_relocs = TRUE;
-	  else if (ih)
-	    ih->has_got_relocs = TRUE;
 	  /* Fall through.  */
 
 	case R_MIPS_CALL_HI16:
@@ -9022,6 +9019,11 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 	  if (h && !mips_elf_record_global_got_symbol (h, abfd, info,
 						       FALSE, r_type))
 	    return FALSE;
+
+	  if (h && h->type == STT_GNU_IFUNC)
+	    ((struct mips_elf_link_hash_entry *) h)->has_got_relocs = TRUE;
+	  else if (ih)
+	    ih->has_got_relocs = TRUE;
 	  break;
 
 	case R_MIPS_TLS_GOTTPREL:
