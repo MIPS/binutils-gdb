@@ -9000,6 +9000,7 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 		}
 	      else
 		addend = rel->r_addend;
+
 	      if (ih &&
 		  !mips_elf_record_local_got_symbol (abfd, -1, rel->r_addend,
 						     info, r_type, ih))
@@ -9007,11 +9008,6 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 	      else if (!mips_elf_record_got_page_ref (info, abfd, r_symndx,
 						   h, addend))
 		return FALSE;
-
-	      if (h && h->type == STT_GNU_IFUNC)
-		((struct mips_elf_link_hash_entry *) h)->has_got_relocs = TRUE;
-	      else if (ih)
-		ih->has_got_relocs = TRUE;
 
 	      if (h)
 		{
