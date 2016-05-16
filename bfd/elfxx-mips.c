@@ -3494,7 +3494,7 @@ mips_tls_got_relocs (struct bfd_link_info *info, unsigned char tls_type,
 /* Add the number of GOT entries and TLS relocations required by ENTRY
    to G.  */
 
-static void
+static bfd_boolean
 mips_elf_count_got_entry (struct bfd_link_info *info,
 			  struct mips_got_info *g,
 			  struct mips_got_entry *entry)
@@ -3516,11 +3516,14 @@ mips_elf_count_got_entry (struct bfd_link_info *info,
       /* Skip IFUNCs from local/global GOT, they are already counted
 	 as general GOT entries with explicit relocations.  */
       g->general_gotno += 1;
-      mips_elf_allocate_ireloc (info, mips_elf_hash_table (info),
-				entry->d.h);
+      if (!mips_elf_allocate_ireloc (info, mips_elf_hash_table (info),
+				     entry->d.h))
+	return FALSE;
     }
   else
     g->local_gotno += 1;
+
+  return TRUE;
 }
 
 /* Output a simple dynamic relocation into SRELOC.  */
@@ -4382,7 +4385,11 @@ mips_elf_check_recreate_got (void **entryp, void *data)
 	  return 0;
 	}
     }
-  mips_elf_count_got_entry (arg->info, arg->g, entry);
+  if (!mips_elf_count_got_entry (arg->info, arg->g, entry))
+    {
+      arg->g = NULL;
+      return 0;
+    }
   return 1;
 }
 
@@ -4438,7 +4445,11 @@ mips_elf_recreate_got (void **entryp, void *data)
 	  *entry = new_entry;
 	}
       *slot = entry;
-      mips_elf_count_got_entry (arg->info, arg->g, entry);
+      if (!mips_elf_count_got_entry (arg->info, arg->g, entry))
+	{
+	  arg->g = NULL;
+	  return 0;
+	}
     }
   return 1;
 }
@@ -4765,7 +4776,11 @@ mips_elf_add_got_entry (void **entryp, void *data)
   if (!*slot)
     {
       *slot = entry;
-      mips_elf_count_got_entry (arg->info, arg->g, entry);
+      if (!mips_elf_count_got_entry (arg->info, arg->g, entry))
+	{
+	  arg->g = NULL;
+	  return 0;
+	}
     }
   return 1;
 }
