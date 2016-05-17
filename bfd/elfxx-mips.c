@@ -13355,6 +13355,99 @@ mips_elf_relax_delete_bytes (bfd *abfd,
   return TRUE;
 }
 
+static void
+mips_elf_relax_add_bytes (bfd *abfd,
+			  asection *sec, bfd_vma addr, unsigned int fill,
+			  int fill_size, int count)
+{
+  Elf_Internal_Shdr *symtab_hdr;
+  unsigned int sec_shndx;
+  bfd_byte *contents, *ptr;
+  Elf_Internal_Rela *irel, *irelend;
+  Elf_Internal_Sym *isym;
+  Elf_Internal_Sym *isymend;
+  struct elf_link_hash_entry **sym_hashes;
+  struct elf_link_hash_entry **end_hashes;
+  struct elf_link_hash_entry **start_hashes;
+  unsigned int symcount;
+  int i;
+
+  sec_shndx = _bfd_elf_section_from_bfd_section (abfd, sec);
+  contents = elf_section_data (sec)->this_hdr.contents;
+
+  irel = elf_section_data (sec)->relocs;
+  irelend = irel + sec->reloc_count;
+
+  /* We don't need to reallocate the CONTENTS as there is enough space
+     available for COUNT bytes.  The mips_elf_relax_delete_bytes hasn't
+     really reduced the space allocated to CONTENTS.  */
+  memmove (contents + addr + count, contents + addr,
+	   (size_t) (sec->size - addr));
+
+  /* Fill the CONTENTS with FILL bytes.  The FILL_SIZE is either
+     2 (for .align, .p2alignw) or 4 (for .p2alignl).  The COUNT is
+     also either 2 or 4.  If we have to add 2 bytes and if fill
+     is of 4 bytes then insert a NOP instead of truncating the fill.  */
+  if (fill_size > count)
+    {
+      fill = 0x0c00;	/* micromips nop16 */
+      fill_size = 2;
+    }
+
+  ptr = contents + addr;
+  for (i = 0; i < count; i += fill_size, ptr += fill_size)
+    {
+      if (fill_size == 2)
+	bfd_put_16 (abfd, fill, ptr);
+      else
+	bfd_put_32 (abfd, fill, ptr);
+    }
+
+  sec->size += count;
+
+  /* Adjust all the relocs.  */
+  for (irel = elf_section_data (sec)->relocs; irel < irelend; irel++)
+    {
+      /* Get the new reloc address.  */
+      if (irel->r_offset >= addr)
+	irel->r_offset += count;
+    }
+
+  BFD_ASSERT (addr % 2 == 0);
+  BFD_ASSERT (count % 2 == 0);
+
+  /* Adjust the local symbols defined in this section.  */
+  symtab_hdr = &elf_tdata (abfd)->symtab_hdr;
+  isym = (Elf_Internal_Sym *) symtab_hdr->contents;
+  for (isymend = isym + symtab_hdr->sh_info; isym < isymend; isym++)
+    if (isym->st_shndx == sec_shndx && isym->st_value >= addr)
+      isym->st_value += count;
+
+  /* Now adjust the global symbols defined in this section.  */
+  symcount = (symtab_hdr->sh_size / sizeof (Elf32_External_Sym)
+	      - symtab_hdr->sh_info);
+  sym_hashes = start_hashes = elf_sym_hashes (abfd);
+  end_hashes = sym_hashes + symcount;
+
+  for (; sym_hashes < end_hashes; sym_hashes++)
+    {
+      struct elf_link_hash_entry *sym_hash = *sym_hashes;
+
+      if ((sym_hash->root.type == bfd_link_hash_defined
+	   || sym_hash->root.type == bfd_link_hash_defweak)
+	  && sym_hash->root.u.def.section == sec)
+	{
+	  bfd_vma value = sym_hash->root.u.def.value;
+
+	  if (ELF_ST_IS_MICROMIPS (sym_hash->other))
+	    value &= MINUS_TWO;
+	  if (value >= addr)
+	    sym_hash->root.u.def.value += count;
+	}
+    }
+
+  return;
+}
 
 /* Opcodes needed for microMIPS relaxation as found in
    opcodes/micromips-opc.c.  */
@@ -13735,6 +13828,44 @@ check_relocated_bzc (bfd *abfd, const bfd_byte *ptr, bfd_vma offset,
       return TRUE;
 
   return FALSE;
+}
+
+/* Find R_MICROMIPS_FILL and R_MICROMIPS_MAX relative to REL
+   and return it through FILL and MAX.  */
+
+static void
+mips_find_fill_max (const Elf_Internal_Rela *rel,
+		    const Elf_Internal_Rela *relend,
+		    Elf_Internal_Sym *isymbuf, unsigned int *fill,
+		    int *fill_size, unsigned int *max)
+{
+  Elf_Internal_Sym *isym;
+  bfd_vma offset = rel->r_offset;
+
+  *fill = 0x0c00;	/* micromips nop16 */
+  *fill_size = 2;
+  *max = -1;
+
+  rel++;	/* skip R_MICROMIPS_ALIGN */
+  if (rel > relend)
+    return;
+
+  for (; rel < relend; rel++)
+    {
+      if (offset == rel->r_offset)
+	{
+	  isym = isymbuf + ELF32_R_SYM (rel->r_info);
+	  if (ELF32_R_TYPE (rel->r_info) == R_MICROMIPS_FILL)
+	    {
+	      *fill = isym->st_value;
+	      *fill_size = isym->st_size;
+	    }
+	  else if (ELF32_R_TYPE (rel->r_info) == R_MICROMIPS_MAX)
+	    *max = isym->st_value;
+	}
+    }
+
+  return;
 }
 
 /* Return TRUE if there is a R_MICROMIPS_INSN32 or R_MICROMIPS_FIXED
@@ -14379,6 +14510,45 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
 	  /* That will change things, so we should relax again.
 	     Note that this is not required, and it may be slow.  */
 	  *again = TRUE;
+	}
+
+      /* Honour alignments */
+      if (*again == TRUE)
+	{
+	  Elf_Internal_Sym *isym;
+	  Elf_Internal_Rela *arel;
+	  bfd_vma pc_val, new_pc_val, mask;
+	  unsigned int fill, max, excess;
+	  int fill_size;
+
+	  /* Search R_MICROMIPS_ALIGN relocations after irel */
+	  for (arel = irel; arel < irelend; arel++)
+	    {
+	      if (ELF32_R_TYPE (arel->r_info) == R_MICROMIPS_ALIGN)
+		{
+		  elf_section_data (sec)->relocs = internal_relocs;
+		  elf_section_data (sec)->this_hdr.contents = contents;
+		  symtab_hdr->contents = (unsigned char *) isymbuf;
+
+		  mips_find_fill_max (arel, irelend, isymbuf,
+				      &fill, &fill_size, &max);
+
+		  pc_val = sec->output_section->vma + sec->output_offset
+			  + arel->r_offset;
+
+		  isym = isymbuf + ELF32_R_SYM (arel->r_info);
+
+		  mask = ~((bfd_vma) ~0 << isym->st_value);
+		  new_pc_val = (pc_val + mask) & (~mask);
+		  excess = new_pc_val - pc_val;
+
+		  /* Assembler skips the align if padding bytes exceed
+		     max bytes. */
+		  if ((excess <= max) && (excess != 0))
+		    mips_elf_relax_add_bytes (abfd, sec,
+				arel->r_offset, fill, fill_size, delcnt);
+		}
+	    }
 	}
     }
 

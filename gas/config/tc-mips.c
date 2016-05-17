@@ -18945,7 +18945,7 @@ mips_handle_align (fragS *fragp)
 
 	  /* Find the fill value.  */
 	  p = fragp->fr_literal + fragp->fr_fix;
-	  for (i = 0; i < fragp->fr_var; i++)
+	  for (i = fragp->fr_var - 1; i >= 0; i--)
 	    fill = (fill << 8) | (unsigned char) p[i];
 
 	  /* Generate fill reloc.  Default fill value is micromips nop32.  */
@@ -18957,6 +18957,8 @@ mips_handle_align (fragS *fragp)
 		{
 		  sym = symbol_new (sname, absolute_section, fill,
 				    &zero_address_frag);
+		  elf_symbol (symbol_get_bfdsym (sym))
+			->internal_elf_sym.st_size = fragp->fr_var;
 		  symbol_table_insert (sym);
 		}
 	      fix_new (fragp, fragp->fr_fix, 0, sym, 0, FALSE,
