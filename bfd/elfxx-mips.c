@@ -2553,6 +2553,13 @@ micromips_branch_reloc_p (int r_type)
 }
 
 static inline bfd_boolean
+relax_reloc_p (unsigned int r_type)
+{
+  return (r_type == R_MIPS_JALR
+	  || r_type == R_MICROMIPS_JALR);
+}
+
+static inline bfd_boolean
 tls_gd_reloc_p (unsigned int r_type)
 {
   return (r_type == R_MIPS_TLS_GD
@@ -6752,8 +6759,13 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
     case R_MICROMIPS_JALR:
       /* This relocation is only a hint.  In some cases, we optimize
 	 it into a bal instruction.  But we don't try to optimize
-	 when the symbol does not resolve locally.  */
-      if (h != NULL && !SYMBOL_CALLS_LOCAL (info, &h->root))
+	 when the symbol does not resolve locally.  Likewise for
+         IFUNCs that don't have an IPLT stub, since there is no 
+         canonical address for the jump.  */
+      if ((h != NULL && !SYMBOL_CALLS_LOCAL (info, &h->root))
+	  || (h
+	      && h->root.type == STT_GNU_IFUNC
+	      && !h->needs_iplt))
 	return bfd_reloc_continue;
       value = symbol + addend;
       break;
@@ -6807,8 +6819,7 @@ mips_elf_perform_relocation (struct bfd_link_info *info,
 			     const Elf_Internal_Rela *relocation,
 			     bfd_vma value, bfd *input_bfd,
 			     asection *input_section, bfd_byte *contents,
-			     bfd_boolean cross_mode_jump_p,
-			     bfd_boolean ifunc_p)
+			     bfd_boolean cross_mode_jump_p)
 {
   bfd_vma x;
   bfd_byte *location;
@@ -6937,7 +6948,6 @@ mips_elf_perform_relocation (struct bfd_link_info *info,
 	   && r_type == R_MIPS_26
 	   && (x >> 26) == 0x3)		/* jal addr */
 	  || (JALR_TO_BAL_P (input_bfd)
-	      && !ifunc_p
 	      && r_type == R_MIPS_JALR
 	      && x == 0x0320f809)	/* jalr t9 */
 	  || (JR_TO_B_P (input_bfd)
@@ -9071,7 +9081,9 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 	}
       else if (ih)
 	{
-	  if (!bfd_link_pic (info) && !can_make_dynamic_p)
+	  if (!bfd_link_pic (info)
+	      && !can_make_dynamic_p
+	      && !relax_reloc_p (r_type))
 	    ih->has_static_relocs = 1;
 	  if (!call_reloc_p)
 	    ih->root.pointer_equality_needed = 1;
@@ -10767,7 +10779,6 @@ _bfd_mips_elf_relocate_section (bfd *output_bfd, struct bfd_link_info *info,
       struct elf_link_hash_entry *h;
       bfd_boolean rel_reloc;
       bfd_boolean local_gnu_ifunc_p = FALSE;
-      bfd_boolean gnu_ifunc_p = FALSE;
 
       rel_reloc = (NEWABI_P (input_bfd)
 		   && mips_elf_rel_relocation_p (input_bfd, input_section,
@@ -10824,8 +10835,6 @@ _bfd_mips_elf_relocate_section (bfd *output_bfd, struct bfd_link_info *info,
 						rel_reloc, howto, contents);
 	  continue;
 	}
-
-      gnu_ifunc_p = local_gnu_ifunc_p || (h && h->type == STT_GNU_IFUNC);
 
       if (r_type == R_MIPS_64 && ! NEWABI_P (input_bfd))
 	{
@@ -10951,7 +10960,7 @@ _bfd_mips_elf_relocate_section (bfd *output_bfd, struct bfd_link_info *info,
 
 	      if (! mips_elf_perform_relocation (info, howto, rel, addend,
 						 input_bfd, input_section,
-						 contents, FALSE, gnu_ifunc_p))
+						 contents, FALSE))
 		return FALSE;
 	    }
 
@@ -11111,8 +11120,7 @@ _bfd_mips_elf_relocate_section (bfd *output_bfd, struct bfd_link_info *info,
       /* Actually perform the relocation.  */
       if (! mips_elf_perform_relocation (info, howto, rel, value,
 					 input_bfd, input_section,
-					 contents, cross_mode_jump_p,
-					 gnu_ifunc_p))
+					 contents, cross_mode_jump_p))
 	return FALSE;
     }
 
