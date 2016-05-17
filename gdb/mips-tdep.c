@@ -2002,6 +2002,10 @@ mips_pseudo_register_type (struct gdbarch *gdbarch, int regnum)
        as necessary, this has been already verified in mips_gdbarch_init.  */
     return mips_fp_type (gdbarch, rawnum - mips_regnum (gdbarch)->fp0);
 
+  /* Type/size of badvaddr is same as that of its raw register.  */
+  if (rawnum == mips_regnum (gdbarch)->badvaddr)
+    return rawtype;
+
   /* msacsr, msair */
 
   /* Use pointer types for registers if we can.  For n32 we can not,
