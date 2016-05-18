@@ -5410,16 +5410,16 @@ mips_elf_create_ifunc_sections (struct bfd_link_info *info)
 
   if (!bfd_link_pic (info))
     {
-      int mips32_size = MIPSR6_P (dynobj)
-	? 4 * ARRAY_SIZE (mips32r6_exec_iplt_entry)
-	: 4 * ARRAY_SIZE (mips32_exec_iplt_entry);
+      int mips32_size = (MIPSR6_P (info->output_bfd)
+			 ? 4 * ARRAY_SIZE (mips32r6_exec_iplt_entry)
+			 : 4 * ARRAY_SIZE (mips32_exec_iplt_entry));
 
-      if (ABI_64_P (dynobj))
+      if (ABI_64_P (info->output_bfd))
 	htab->iplt_entry_size = 4 * ARRAY_SIZE (mips64_exec_iplt_entry);
-      else if (!MICROMIPS_P (dynobj)) 	/* mips32/mips16  */
+      else if (!MICROMIPS_P (info->output_bfd)) 	/* mips32/mips16  */
 	{
 	  htab->iplt_entry_size = mips32_size
-	    + (LOAD_INTERLOCKS_P (dynobj) ? 0 : 4);
+	    + (LOAD_INTERLOCKS_P (info->output_bfd) ? 0 : 4);
 	  htab->iplt_comp_entry_size = 2 * ARRAY_SIZE (mips16_exec_iplt_entry);
 	}
       else if (htab->insn32)		/* mips32/micromips + insn32  */
