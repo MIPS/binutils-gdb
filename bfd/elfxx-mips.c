@@ -13409,7 +13409,7 @@ mips_elf_relax_add_bytes (bfd *abfd,
   for (irel = elf_section_data (sec)->relocs; irel < irelend; irel++)
     {
       /* Get the new reloc address.  */
-      if (irel->r_offset >= addr)
+      if (irel->r_offset > addr)
 	irel->r_offset += count;
     }
 
@@ -14533,10 +14533,9 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
 		  mips_find_fill_max (arel, irelend, isymbuf,
 				      &fill, &fill_size, &max);
 
+		  isym = isymbuf + ELF32_R_SYM (arel->r_info);
 		  pc_val = sec->output_section->vma + sec->output_offset
 			  + arel->r_offset;
-
-		  isym = isymbuf + ELF32_R_SYM (arel->r_info);
 
 		  mask = ~((bfd_vma) ~0 << isym->st_value);
 		  new_pc_val = (pc_val + mask) & (~mask);
@@ -14544,9 +14543,21 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
 
 		  /* Assembler skips the align if padding bytes exceed
 		     max bytes. */
-		  if ((excess <= max) && (excess != 0))
-		    mips_elf_relax_add_bytes (abfd, sec,
+		  if ((excess <= max) && (excess != isym->st_size))
+		    {
+		      if (excess > isym->st_size)
+			{
+			  isym->st_size += delcnt;
+			  mips_elf_relax_add_bytes (abfd, sec,
 				arel->r_offset, fill, fill_size, delcnt);
+			}
+		      else if (excess < isym->st_size)
+			{
+			  mips_elf_relax_delete_bytes (abfd, sec,
+					arel->r_offset, isym->st_size - excess);
+			  isym->st_size = excess;
+			}
+		    }
 		}
 	    }
 	}

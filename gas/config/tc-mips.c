@@ -18913,6 +18913,7 @@ mips_handle_align (fragS *fragp)
   char *p;
   int bytes, size, excess;
   valueT opcode;
+  static int symidx = 1;
 
   /* Create R_MICROMIPS_ALIGN to record the alignment request.  Value of the
      absolute symbol gives alignment requested.  The relocation is created at
@@ -18923,18 +18924,21 @@ mips_handle_align (fragS *fragp)
     {
       symbolS *sym;
       char sname[30];
+      bfd_vma pc_val, new_pc_val, mask;
 
       /* The '\2' ensures that no other symbol will get the
 	 same name as this.  */
-      sprintf (sname, "__reloc_align_\2_%ld", fragp->fr_offset);
+      sprintf (sname, "__reloc_align_\2_%d", symidx++);
       sym = symbol_find (sname);
-      if (sym == NULL)
-	{
-	  sym = symbol_new (sname, absolute_section, fragp->fr_offset,
-			    &zero_address_frag);
-	  symbol_table_insert (sym);
-	}
+      sym = symbol_new (sname, absolute_section, fragp->fr_offset,
+			&zero_address_frag);
+      symbol_table_insert (sym);
 
+      mask = ~((bfd_vma) ~0 << fragp->fr_offset);
+      pc_val = fragp->fr_address + fragp->fr_fix;
+      new_pc_val = (pc_val + mask) & (~mask);
+      excess = new_pc_val - pc_val;
+      elf_symbol (symbol_get_bfdsym (sym))->internal_elf_sym.st_size = excess;
       fix_new (fragp, fragp->fr_fix, 0, sym, 0, FALSE,
 	       BFD_RELOC_MICROMIPS_ALIGN);
 
