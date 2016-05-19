@@ -2231,8 +2231,6 @@ mips_elf_check_ifunc_symbols (void **slot, void *data)
     {
       struct bfd_link_info *info = hti->info;
 
-      elf_tdata (info->output_bfd)->has_gnu_symbols |= elf_gnu_symbol_ifunc;
-
       /* For global symbols, an .iplt entry is needed in non-PIC
 	 binaries.  For local symbols, it is needed only if the symbol
 	 has static relocations.  */
@@ -5439,7 +5437,7 @@ mips_elf_create_compact_rel_section
 /* Create the .iplt, .rel(a).iplt and .igot sections.  */
 
 static bfd_boolean
-mips_elf_create_ifunc_sections (struct bfd_link_info *info)
+mips_elf_create_ifunc_sections (bfd *abfd, struct bfd_link_info *info)
 {
   struct mips_elf_link_hash_table * volatile htab;
   const struct elf_backend_data *bed;
@@ -5448,9 +5446,15 @@ mips_elf_create_ifunc_sections (struct bfd_link_info *info)
   flagword flags;
 
   htab = mips_elf_hash_table (info);
+  if (htab->root.dynobj == NULL)
+    htab->root.dynobj = abfd;
   dynobj = htab->root.dynobj;
   bed = get_elf_backend_data (dynobj);
   flags = bed->dynamic_sec_flags;
+
+  /* This function may be called multiple times.  */
+  if ((elf_tdata (info->output_bfd)->has_gnu_symbols & elf_gnu_symbol_ifunc))
+    return TRUE;
 
   if (!bfd_link_pic (info))
     {
@@ -5460,7 +5464,7 @@ mips_elf_create_ifunc_sections (struct bfd_link_info *info)
 
       if (ABI_64_P (dynobj))
 	htab->iplt_entry_size = 4 * ARRAY_SIZE (mips64_exec_iplt_entry);
-      else if (!MICROMIPS_P (dynobj)) 	/* mips32/mips16  */
+      else if (!MICROMIPS_P (dynobj))	/* mips32/mips16  */
 	{
 	  htab->iplt_entry_size = mips32_size
 	    + (LOAD_INTERLOCKS_P (dynobj) ? 0 : 4);
@@ -5479,16 +5483,15 @@ mips_elf_create_ifunc_sections (struct bfd_link_info *info)
 	    * ARRAY_SIZE (micromips_exec_iplt_entry);
 	}
 
+      BFD_ASSERT (htab->root.iplt == NULL);
       s = bfd_make_section_anyway_with_flags (dynobj, ".iplt",
 					      flags | SEC_READONLY | SEC_CODE);
       if (s == NULL ||
 	  !bfd_set_section_alignment (dynobj, s, bed->plt_alignment))
 	return FALSE;
-
       htab->root.iplt = s;
 
       BFD_ASSERT (htab->root.igotplt == NULL);
-
       s = bfd_make_section_anyway_with_flags (dynobj, ".igot", flags);
       if (s == NULL
 	  || !bfd_set_section_alignment (dynobj, s, bed->s->log_file_align))
@@ -5497,13 +5500,15 @@ mips_elf_create_ifunc_sections (struct bfd_link_info *info)
     }
 
   BFD_ASSERT (htab->root.irelplt == NULL);
-
   s = bfd_make_section_with_flags (dynobj, ".rel.iplt", flags | SEC_READONLY);
   if (s == NULL
       || !bfd_set_section_alignment (dynobj, s, bed->s->log_file_align))
     return FALSE;
-
   htab->root.irelplt = s;
+
+  /* Mark the output BFD.  */
+  elf_tdata (info->output_bfd)->has_gnu_symbols |= elf_gnu_symbol_ifunc;
+
   return TRUE;
 }
 
@@ -5668,6 +5673,9 @@ get_local_sym_hash (struct mips_elf_link_hash_table *htab,
   ret = (struct mips_elf_link_hash_entry *)
     objalloc_alloc ((struct objalloc *) htab->loc_hash_memory,
 		    sizeof (struct mips_elf_link_hash_entry));
+
+  /* Mark the input BFD that declared this IFUNC.  */
+  elf_tdata (abfd)->has_gnu_symbols |= elf_gnu_symbol_ifunc;
 
   if (ret)
     {
@@ -8213,6 +8221,10 @@ _bfd_mips_elf_add_symbol_hook (bfd *abfd, struct bfd_link_info *info,
   if (ELF_ST_IS_COMPRESSED (sym->st_other))
     ++*valp;
 
+  /* Mark the input BFD that declares an IFUNC.  */
+  if (ELF_ST_TYPE(sym->st_info) == STT_GNU_IFUNC)
+    elf_tdata (abfd)->has_gnu_symbols |= elf_gnu_symbol_ifunc;
+
   return TRUE;
 }
 
@@ -8598,13 +8610,6 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 
   bed = get_elf_backend_data (abfd);
   rel_end = relocs + sec->reloc_count * bed->s->int_rels_per_ext_rel;
-
-  /* This needs to happen early.  If the sections aren't needed
-     they will not get generated.  */
-  if (htab->root.dynobj == NULL)
-    htab->root.dynobj = abfd;
-  if (!htab->root.irelplt && !mips_elf_create_ifunc_sections (info))
-    return FALSE;
 
   /* Check for the mips16 stub sections.  */
 
@@ -9433,6 +9438,12 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 	    }
 	}
     }
+
+  /* This needs to happen early.  If the sections aren't needed
+     they will not get generated.  */
+  if ((elf_tdata (abfd)->has_gnu_symbols & elf_gnu_symbol_ifunc)
+      && !mips_elf_create_ifunc_sections (abfd, info))
+    return FALSE;
 
   return TRUE;
 }
