@@ -5409,7 +5409,8 @@ mips_elf_create_ifunc_sections (bfd *abfd, struct bfd_link_info *info)
   flags = bed->dynamic_sec_flags;
 
   /* This function may be called multiple times.  */
-  if ((elf_tdata (info->output_bfd)->has_gnu_symbols & elf_gnu_symbol_ifunc))
+  if ((elf_tdata (info->output_bfd)->has_gnu_symbols & elf_gnu_symbol_ifunc)
+      == elf_gnu_symbol_ifunc)
     return TRUE;
 
   if (!bfd_link_pic (info))
@@ -9263,7 +9264,8 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 
   /* This needs to happen early.  If the sections aren't needed
      they will not get generated.  */
-  if ((elf_tdata (abfd)->has_gnu_symbols & elf_gnu_symbol_ifunc)
+  if (((elf_tdata (abfd)->has_gnu_symbols & elf_gnu_symbol_ifunc)
+       == elf_gnu_symbol_ifunc)
       && !mips_elf_create_ifunc_sections (abfd, info))
     return FALSE;
 
@@ -10460,7 +10462,8 @@ _bfd_mips_elf_size_dynamic_sections (bfd *output_bfd,
 	    return FALSE;
 	}
 
-      if (elf_tdata (output_bfd)->has_gnu_symbols & elf_gnu_symbol_ifunc)
+      if ((elf_tdata (output_bfd)->has_gnu_symbols & elf_gnu_symbol_ifunc)
+	  == elf_gnu_symbol_ifunc)
 	{
 	  if (!MIPS_ELF_ADD_DYNAMIC_ENTRY (info, DT_MIPS_GENERAL_GOTNO, 0))
 	    return FALSE;
@@ -17106,7 +17109,8 @@ _bfd_mips_post_process_headers (bfd *abfd, struct bfd_link_info *link_info)
       || mips_elf_tdata (abfd)->abiflags.fp_abi == Val_GNU_MIPS_ABI_FP_64A)
     i_ehdrp->e_ident[EI_ABIVERSION] = 3;
 
-  if (elf_tdata (abfd)->has_gnu_symbols & elf_gnu_symbol_ifunc)
+  if ((elf_tdata (abfd)->has_gnu_symbols & elf_gnu_symbol_ifunc)
+      == elf_gnu_symbol_ifunc)
     i_ehdrp->e_ident[EI_ABIVERSION] = 4;
 
   if (elf_stack_flags (abfd) && !(elf_stack_flags (abfd) & PF_X))
