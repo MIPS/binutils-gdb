@@ -1654,8 +1654,8 @@ static reloc_howto_type elf_mips_irelative_howto =
 	 32,			/* bitsize */
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
-	 complain_overflow_bitfield,/* complain_on_overflow */
-	 bfd_elf_generic_reloc, /* special_function */
+	 complain_overflow_bitfield,	/* complain_on_overflow */
+	 _bfd_mips_elf_generic_reloc,	/* special_function */
 	 "R_MIPS_IRELATIVE",	/* name */
 	 TRUE,			/* partial_inplace */
 	 0xffffffff,		/* src_mask */
