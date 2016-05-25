@@ -11272,7 +11272,6 @@ mips_elf_create_iplt (bfd *output_bfd,
 	  bfd_put_32 (output_bfd, iplt_entry[4], loc + 16);
 	  bfd_put_32 (output_bfd, iplt_entry[5] | low, loc + 20);
 	  bfd_put_32 (output_bfd, iplt_entry[6], loc + 24);
-	  dslot = loc + 28;
 	}
       else if (higher)
 	{
@@ -11283,7 +11282,8 @@ mips_elf_create_iplt (bfd *output_bfd,
 	  bfd_put_32 (output_bfd, iplt_entry[2], loc + 8);
 	  bfd_put_32 (output_bfd, iplt_entry[3] | low, loc + 12);
 	  bfd_put_32 (output_bfd, iplt_entry[4], loc + 16);
-	  dslot = loc + 20;
+	  bfd_put_32 (output_bfd, MIPS_NOP_INSN, loc + 20);
+	  bfd_put_32 (output_bfd, MIPS_NOP_INSN, loc + 24);
 	}
       else
 	{
@@ -11291,8 +11291,12 @@ mips_elf_create_iplt (bfd *output_bfd,
 	  bfd_put_32 (output_bfd, iplt_entry[0] | high, loc);
 	  bfd_put_32 (output_bfd, iplt_entry[5] | low, loc + 4);
 	  bfd_put_32 (output_bfd, iplt_entry[6], loc + 8);
-	  dslot = loc + 12;
+	  bfd_put_32 (output_bfd, MIPS_NOP_INSN, loc + 12);
+	  bfd_put_32 (output_bfd, MIPS_NOP_INSN, loc + 16);
+	  bfd_put_32 (output_bfd, MIPS_NOP_INSN, loc + 20);
+	  bfd_put_32 (output_bfd, MIPS_NOP_INSN, loc + 24);
 	}
+      dslot = loc + 28;
     }
   else
     {
