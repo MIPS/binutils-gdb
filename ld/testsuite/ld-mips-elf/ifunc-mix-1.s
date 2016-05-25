@@ -1,5 +1,3 @@
-	.section .mdebug.abi32
-	.previous
 	.abicalls
 	.option	pic0
 	.text

@@ -1,6 +1,3 @@
-	.section .mdebug.abi32
-	.previous
-	.nan	legacy
 	.gnu_attribute 4, 1
 	.abicalls
 	.text
@@ -109,4 +106,3 @@ main:
 	.size	fptr, 4
 fptr:
 	.word	func1
-	.ident	"GCC: (GNU) 4.9.0 20130930 (experimental)"

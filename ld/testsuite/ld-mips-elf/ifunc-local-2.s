@@ -1,6 +1,3 @@
-	.section .mdebug.abi32
-	.previous
-	.nan	legacy
 	.gnu_attribute 4, 1
 	.abicalls
 	.text
@@ -96,4 +93,3 @@ main:
 	.set	reorder
 	.end	main
 	.size	main, .-main
-	.ident	"GCC: (GNU) 4.9.0 20130930 (experimental)"

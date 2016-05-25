@@ -1,13 +1,15 @@
 #...
-    10: 00400140    16 FUNC    LOCAL  DEFAULT    5 \.iplt\.func1
+     9: 00400158    16 FUNC    LOCAL  DEFAULT    5 \.iplt\.func1
 .*
-    12: 00400150    16 FUNC    LOCAL  DEFAULT \[MICROMIPS\]     5 \.iplt\.func2
-.*
-.*
-    15: 00400100     8 IFUNC   GLOBAL DEFAULT    4 func1
-.*
+    11: 0040014d    12 FUNC    LOCAL  DEFAULT    5 \.iplt\.comp\.func2
+    12: 00400141    12 FUNC    LOCAL  DEFAULT    5 \.iplt\.comp\.func1
+    13: 00400168    16 FUNC    LOCAL  DEFAULT    5 \.iplt\.func2
 .*
 .*
+    16: 00400100     8 IFUNC   GLOBAL DEFAULT    4 func1
 .*
-    20: 00400108     4 IFUNC   GLOBAL DEFAULT \[MICROMIPS\]     4 func2
+.*
+.*
+.*
+    21: 00400108     4 IFUNC   GLOBAL DEFAULT \[MICROMIPS\]     4 func2
 #pass

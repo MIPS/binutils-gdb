@@ -1,6 +1,3 @@
-	.file	1 "ifunc_ref_main_1.c"
-	.section .mdebug.abi32
-	.previous
 	.abicalls
 	.option	pic0
 	.text
@@ -9,11 +6,7 @@
 	.ent	main
 	.type	main, @function
 main:
-	.frame	$fp,32,$31		# vars= 0, regs= 2/0, args= 16, gp= 8
-	.mask	0xc0000000,-4
-	.fmask	0x00000000,0
 	.set	noreorder
-	.set	nomacro
 	addiu	$sp,$sp,-32
 	sw	$31,28($sp)
 	sw	$fp,24($sp)
@@ -28,8 +21,6 @@ main:
 	j	$31
 	nop
 
-	.set	macro
 	.set	reorder
 	.end	main
 	.size	main, .-main
-	.ident	"GCC: (GNU) 4.9.0 20130930 (experimental)"
