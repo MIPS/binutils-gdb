@@ -1,7 +1,3 @@
-	.file	1 "ifunc_ref.c"
-	.section .mdebug.abi32
-	.previous
-	.nan	legacy
 	.gnu_attribute 4, 1
 	.abicalls
 	.text
@@ -40,4 +36,3 @@ ref1:
 	.set	reorder
 	.end	ref1
 	.size	ref1, .-ref1
-	.ident	"GCC: (GNU) 4.9.0 20130930 (experimental)"

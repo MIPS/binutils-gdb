@@ -1,5 +1,3 @@
-	.section .mdebug.abi32
-	.previous
 	.abicalls
 	.option	pic0
 	.text
@@ -173,4 +171,3 @@ main:
 	.set	reorder
 	.end	main
 	.size	main, .-main
-	.ident	"GCC: (GNU) 4.9.0 20130930 (experimental)"

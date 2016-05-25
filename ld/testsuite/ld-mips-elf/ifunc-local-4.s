@@ -1,5 +1,3 @@
-	.section .mdebug.abi32
-	.previous
 	.abicalls
 	.option	pic0
 	.text
@@ -180,4 +178,3 @@ main:
         .size   fptr, 4
 fptr:
         .word   func1
-	.ident	"GCC: (GNU) 4.9.0 20130930 (experimental)"

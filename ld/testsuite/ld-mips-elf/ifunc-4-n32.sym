@@ -1,4 +1,4 @@
 #...
-    22: 00080000    16 FUNC    LOCAL  DEFAULT    1 .iplt.func1
-    23: 0008049c   156 IFUNC   GLOBAL DEFAULT    2 func1
+    19: 00080000    16 FUNC    LOCAL  DEFAULT    1 .iplt.func1
+    20: 0008049c   156 IFUNC   GLOBAL DEFAULT    2 func1
 #pass

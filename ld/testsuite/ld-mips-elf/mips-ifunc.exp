@@ -271,7 +271,7 @@ run_ld_link_tests [list \
 	[list \
 	    "IFUNC IPLT Mix 2 (mips32 & micromips)" \
 	    "$abi_ldflags($abi) -static -Bstatic" "" \
-	    "$abi_asflags($abi)" \
+	    "$abi_asflags($abi) -mips2" \
 	    [list ifunc-mix-2.s] \
 	    [list "readelf -s ifunc-mix-2.sym" \
 		"objdump -sj.igot ifunc-mix-2.igot" \

@@ -1,6 +1,3 @@
-	.section .mdebug.abi32
-	.previous
-	.nan	legacy
 	.gnu_attribute 4, 1
 	.abicalls
 	.text

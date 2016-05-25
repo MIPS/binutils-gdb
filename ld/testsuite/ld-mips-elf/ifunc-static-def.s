@@ -1,6 +1,3 @@
-	.file	1 "ifunc.c"
-	.section .mdebug.abi32
-	.previous
 	.abicalls
 	.option	pic0
 	.text
@@ -142,4 +139,3 @@ $L13:
 	.globl	func1
 	.type	func1, @gnu_indirect_function
 	func1 = func1_ifunc
-	.ident	"GCC: (GNU) 4.9.0 20130930 (experimental)"

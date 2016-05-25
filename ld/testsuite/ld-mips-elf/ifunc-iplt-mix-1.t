@@ -1,16 +1,30 @@
 #...
 Disassembly of section .iplt:
 
-00400140 <.iplt.func1>:
-  400140:	3c0f0041 	lui	t7,0x41
-  400144:	8df90160 	lw	t9,352\(t7\)
-  400148:	03200008 	jr	t9
-  40014c:	00000000 	nop
+00400140 <.iplt.comp.func1>:
+  400140:	b202      	lw	v0,400148 <.iplt.comp.func1\+0x8>
+  400142:	9a40      	lw	v0,0\(v0\)
+  400144:	ea00      	jr	v0
+  400146:	653a      	move	t9,v0
+  400148:	0041      	addiu	s0,sp,260
+  40014a:	0180      	addiu	s1,sp,512
 
-00400150 <.iplt.func2>:
-  400150:	b202      	lw	v0,400158 <\.iplt\.func2\+0x8>
-  400152:	9a40      	lw	v0,0\(v0\)
-  400154:	ea00      	jr	v0
-  400156:	653a      	move	t9,v0
-  400158:	0041      	addiu	s0,sp,260
-  40015a:	0164      	addiu	s1,sp,400
+0040014c <.iplt.comp.func2>:
+  40014c:	b202      	lw	v0,400154 <.iplt.comp.func2\+0x8>
+  40014e:	9a40      	lw	v0,0\(v0\)
+  400150:	ea00      	jr	v0
+  400152:	653a      	move	t9,v0
+  400154:	0041      	addiu	s0,sp,260
+  400156:	0184      	addiu	s1,sp,528
+
+00400158 <.iplt.func1>:
+  400158:	3c0f0041 	lui	t7,0x41
+  40015c:	8df90180 	lw	t9,384\(t7\)
+  400160:	03200008 	jr	t9
+  400164:	00000000 	nop
+
+00400168 <.iplt.func2>:
+  400168:	3c0f0041 	lui	t7,0x41
+  40016c:	8df90184 	lw	t9,388\(t7\)
+  400170:	03200008 	jr	t9
+  400174:	00000000 	nop
