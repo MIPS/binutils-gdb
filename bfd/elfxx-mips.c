@@ -13852,17 +13852,17 @@ mips_find_fill_max (const Elf_Internal_Rela *rel,
 
   for (; rel < relend; rel++)
     {
-      if (offset == rel->r_offset)
-	{
-	  isym = isymbuf + ELF32_R_SYM (rel->r_info);
-	  if (ELF32_R_TYPE (rel->r_info) == R_MICROMIPS_FILL)
-	    {
-	      *fill = isym->st_value;
-	      *fill_size = isym->st_size;
-	    }
-	  else if (ELF32_R_TYPE (rel->r_info) == R_MICROMIPS_MAX)
-	    *max = isym->st_value;
-	}
+      if (offset != rel->r_offset)
+	break;
+
+      isym = isymbuf + ELF32_R_SYM (rel->r_info);
+      if (ELF32_R_TYPE (rel->r_info) == R_MICROMIPS_FILL)
+        {
+          *fill = isym->st_value;
+          *fill_size = isym->st_size;
+        }
+      else if (ELF32_R_TYPE (rel->r_info) == R_MICROMIPS_MAX)
+        *max = isym->st_value;
     }
 
   return;
@@ -13881,13 +13881,122 @@ is_norelax (const bfd_vma offset, const Elf_Internal_Rela *rel,
 
   for (; rel < relend; rel++)
     {
-      if (offset == rel->r_offset
-	  && (ELF32_R_TYPE (rel->r_info) == R_MICROMIPS_INSN32
-	      || ELF32_R_TYPE (rel->r_info) == R_MICROMIPS_FIXED))
+      if (offset != rel->r_offset)
+	break;
+
+      if (ELF32_R_TYPE (rel->r_info) == R_MICROMIPS_INSN32
+	  || ELF32_R_TYPE (rel->r_info) == R_MICROMIPS_FIXED)
 	return TRUE;
     }
 
   return FALSE;
+}
+
+/* Return TRUE if the branch instruction at BREL would go out of range
+   due adding of padding bytes required for R_MICROMIPS_ALIGN.  */
+
+static bfd_boolean
+is_out_of_range_due_to_align (Elf_Internal_Rela *brel,
+			      Elf_Internal_Rela *brelend,
+			      bfd_vma pcrval, bfd_vma dstval,
+			      Elf_Internal_Sym *srcsymbuf,
+			      asection *srcsec, asection *dstsec,
+			      bfd_boolean keep_memory, int relbits)
+{
+  bfd_boolean is_out_of_range = FALSE;
+  Elf_Internal_Rela *arel;
+  Elf_Internal_Sym *asym;
+  bfd_vma pc;
+  int excess;
+  bfd_vma new_pc_val, mask;
+
+  /* PC of the instruction we are about to relax.  */
+  pc = srcsec->output_section->vma + srcsec->output_offset + brel->r_offset;
+
+  if (dstval > pc)	/* Forward branch.  */
+    {
+      for (arel = brel; arel < brelend; arel++)
+	{
+	  /* Find the first R_MICROMIPS_ALIGN after this instruction.
+	     If PC at this R_MICROMIPS_ALIGN is aligned to its required
+	     boundary, then all other R_MICROMIPS_ALIGNs after this are
+	     guaranteed to be aligned.  If the instruction we are relaxing
+	     is going out of range due to extra padding bytes required to
+	     align this R_MICROMIPS_ALIGN then do not relax the
+	     instruction.  */
+	  if (ELF32_R_TYPE (arel->r_info) == R_MICROMIPS_ALIGN)
+	    {
+	      asym = srcsymbuf + ELF32_R_SYM (arel->r_info);
+
+	      mask = ~((bfd_vma) ~0 << asym->st_value);
+	      new_pc_val = (2 + mask) & (~mask);
+	      excess = new_pc_val - 2;
+
+	      if (mips_elf_overflow_p ((pcrval + excess), relbits))
+		is_out_of_range = TRUE;
+
+	      break;	/* Analyze first R_MICROMIPS_ALIGN only.  */
+	    }
+	}
+    }
+  else	/* Backward branch.  */
+    {
+      bfd *target_bfd;
+      bfd_vma symoffset;
+      Elf_Internal_Shdr *symtab_hdr;
+      Elf_Internal_Sym *dstsymbuf;
+      Elf_Internal_Rela *internal_relocs;
+
+      /* Find the first R_MICROMIPS_ALIGN after the target symbol in the
+         target section.  Apply the same rule mentioned above.  */
+
+      target_bfd = dstsec->owner;
+      internal_relocs = _bfd_elf_link_read_relocs (target_bfd,
+						   dstsec, NULL,
+						   (Elf_Internal_Rela *) NULL,
+						   keep_memory);
+
+      symtab_hdr = &elf_tdata (target_bfd)->symtab_hdr;
+
+      if (internal_relocs == NULL || symtab_hdr->sh_info == 0)
+	return TRUE;
+
+      dstsymbuf = (Elf_Internal_Sym *) symtab_hdr->contents;
+      if (dstsymbuf == NULL)
+	dstsymbuf = bfd_elf_get_elf_syms (target_bfd, symtab_hdr,
+					  symtab_hdr->sh_info, 0,
+					  NULL, NULL, NULL);
+
+      if (dstsymbuf == NULL)
+	return TRUE;
+
+      symoffset = dstval - (dstsec->output_section->vma
+		    + dstsec->output_offset);
+
+      brelend = internal_relocs + dstsec->reloc_count;
+      for (arel = internal_relocs; arel < brelend; arel++)
+	{
+	  /* Skip this relocation if it appears before target symbol.  */
+	  if (arel->r_offset <= symoffset)
+	    continue;
+
+	  if (ELF32_R_TYPE (arel->r_info) == R_MICROMIPS_ALIGN)
+	    {
+	      asym = dstsymbuf + ELF32_R_SYM (arel->r_info);
+
+	      mask = ~((bfd_vma) ~0 << asym->st_value);
+	      new_pc_val = (2 + mask) & (~mask);
+	      excess = new_pc_val - 2;
+
+	      if (mips_elf_overflow_p ((pcrval - excess), relbits))
+		is_out_of_range = TRUE;
+
+	      break;	/* Analyze first R_MICROMIPS_ALIGN only.  */
+	    }
+	}
+    }
+
+  return is_out_of_range;
 }
 
 /* Bitsize checking.  */
@@ -13907,6 +14016,8 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
   Elf_Internal_Rela *irel, *irelend;
   bfd_byte *contents = NULL;
   Elf_Internal_Sym *isymbuf = NULL;
+  asection *target_sec = NULL;
+  bfd_boolean do_align = FALSE;
 
   /* Assume nothing changes.  */
   *again = FALSE;
@@ -13956,7 +14067,8 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
 	  && r_type != R_MICROMIPS_26_S1
 	  && r_type != R_MICROMIPS_PC26_S1
 	  && r_type != R_MICROMIPS_PC21_S1
-	  && r_type != R_MICROMIPS_LO16)
+	  && r_type != R_MICROMIPS_LO16
+	  && r_type != R_MICROMIPS_ALIGN)
 	continue;
 
       /* Skip instructions marked with R_MICROMIPS_INSN32 and/or
@@ -14004,6 +14116,7 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
 	    sym_sec = bfd_com_section_ptr;
 	  else
 	    sym_sec = bfd_section_from_elf_index (abfd, isym->st_shndx);
+	  target_sec = sym_sec;
 	  symval = (isym->st_value
 		    + sym_sec->output_section->vma
 		    + sym_sec->output_offset);
@@ -14026,6 +14139,7 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
 	       regular reloc processing.  */
 	    continue;
 
+	  target_sec = h->root.u.def.section;
 	  symval = (h->root.u.def.value
 		    + h->root.u.def.section->output_section->vma
 		    + h->root.u.def.section->output_offset);
@@ -14054,10 +14168,64 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
 		- (sec->output_section->vma + sec->output_offset)
 		- irel->r_offset);
 
+      /* Align first R_MICROMIPS_ALIGN found after the relaxed branch.
+         If the first R_MICROMIPS_ALIGN is aligned then all other
+         R_MICROMIPS_ALIGNs in the same section are guaranteed to be
+         aligned.  */
+      if (r_type == R_MICROMIPS_ALIGN && do_align == TRUE)
+	{
+	  int fill_size;
+	  Elf_Internal_Sym *isym;
+	  unsigned int fill, max, excess;
+	  bfd_vma pc_val, new_pc_val, mask;
+
+	  /* do_align is set to TRUE when we have relaxed a branch.  */
+	  do_align = FALSE;
+
+	  elf_section_data (sec)->relocs = internal_relocs;
+	  elf_section_data (sec)->this_hdr.contents = contents;
+	  symtab_hdr->contents = (unsigned char *) isymbuf;
+
+	  mips_find_fill_max (irel, irelend, isymbuf,
+			      &fill, &fill_size, &max);
+
+	  isym = isymbuf + ELF32_R_SYM (irel->r_info);
+	  pc_val = sec->output_section->vma + sec->output_offset
+		  + irel->r_offset;
+
+	  /* Calculate the padding required due to relaxation.  */
+	  mask = ~((bfd_vma) ~0 << isym->st_value);
+	  new_pc_val = (pc_val + mask) & (~mask);
+	  excess = new_pc_val - pc_val;
+
+	  /* If the padding added by assembler (specified in st_size) is
+	     less than the padding required now then add those extra bytes.
+	     If it is more than the required padding then delete padding added
+	     by assembler.  Do not add/delete any padding if padding bytes
+	     exceed max bytes.  */
+	  if ((excess <= max) && (excess != isym->st_size))
+	    {
+	      if (excess > isym->st_size)
+		{
+		  mips_elf_relax_add_bytes (abfd, sec,
+			irel->r_offset, fill, fill_size,
+			(excess - isym->st_size));
+		  isym->st_size = excess;
+		}
+	      else if (excess < isym->st_size)
+		{
+		  mips_elf_relax_delete_bytes (abfd, sec,
+				irel->r_offset, isym->st_size - excess);
+		  isym->st_size = excess;
+		}
+	    }
+	  continue;
+	}
+
       /* R_MICROMIPS_PC26_S1 relaxation to R_MICROMIPS_PC10_S1.  */
-      if (!insn32 && MIPSR6_P (abfd)
-	  && r_type == R_MICROMIPS_PC26_S1
-	  && (opcidx = find_match (opcode, micromips_bc_PC26)) >= 0)
+      else if (!insn32 && MIPSR6_P (abfd)
+	       && r_type == R_MICROMIPS_PC26_S1
+	       && (opcidx = find_match (opcode, micromips_bc_PC26)) >= 0)
 	{
 	  bfd_vma addend = opcode & 0x03ffffff;
 	  unsigned int new_opcode;
@@ -14065,7 +14233,12 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
 	  addend = _bfd_mips_elf_sign_extend (addend << 1, 27);
 	  new_opcode = micromips_bc_PC26[opcidx].dst_opcode;
 
-	  if (! mips_elf_overflow_p ((pcrval + addend), 11))
+	  if (! mips_elf_overflow_p ((pcrval + addend), 11)
+	      && (is_out_of_range_due_to_align (irel, irelend,
+					       pcrval + addend, symval,
+					       isymbuf, sec, target_sec,
+					       link_info->keep_memory, 11)
+					       == FALSE))
 	    {
 	      /* Calculate new addend.  */
 	      addend = (addend + 4 - 2) >> 1;
@@ -14083,9 +14256,9 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
 	}
 
       /* R_MICROMIPS_PC21_S1 relaxation to R_MICROMIPS_PC7_S1.  */
-      if (!insn32 && MIPSR6_P (abfd)
-	  && r_type == R_MICROMIPS_PC21_S1
-	  && (opcidx = find_match (opcode, micromips_bc_PC21)) >= 0)
+      else if (!insn32 && MIPSR6_P (abfd)
+	       && r_type == R_MICROMIPS_PC21_S1
+	       && (opcidx = find_match (opcode, micromips_bc_PC21)) >= 0)
 	{
 	  unsigned int reg, new_opcode;
 	  bfd_vma addend = opcode & 0x001fffff;
@@ -14095,7 +14268,12 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
 	  new_opcode = micromips_bc_PC21[opcidx].dst_opcode;
 
 	  if (! mips_elf_overflow_p ((pcrval + addend), 8)
-	      && ((reg >= 2 && reg <= 7) || reg == 16 || reg == 17))
+	      && ((reg >= 2 && reg <= 7) || reg == 16 || reg == 17)
+	      && (is_out_of_range_due_to_align (irel, irelend,
+					        pcrval + addend, symval,
+					        isymbuf, sec, target_sec,
+					        link_info->keep_memory, 8)
+					        == FALSE))
 	    {
 	      /* Calculate new addend.  */
 	      addend = (addend + 4 - 2) >> 1;
@@ -14116,9 +14294,9 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
 	}
 
       /* R_MICROMIPS_LO16 relaxation to R_MICROMIPS_XXXX_LO4.  */
-      if (!insn32 && MIPSR6_P (abfd)
-	  && r_type == R_MICROMIPS_LO16
-	  && (opcidx = find_match (opcode, micromips_ldst_LO16)) >= 0)
+      else if (!insn32 && MIPSR6_P (abfd)
+	       && r_type == R_MICROMIPS_LO16
+	       && (opcidx = find_match (opcode, micromips_ldst_LO16)) >= 0)
 	{
 	  int shift = 0, target_reloc = R_MICROMIPS_BYTE_LO4;
 	  unsigned int rt, base, new_opcode;
@@ -14128,6 +14306,33 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
 	  rt = OP32_TREG (opcode);
 	  addend = _bfd_mips_elf_sign_extend (opcode & 0xffff, 16);
 	  new_opcode = micromips_ldst_LO16[opcidx].dst_opcode;
+
+	  /* Check registers */
+	  switch (new_opcode)
+	    {
+	    case 0x8800:	/* sb16 */
+	    case 0xa800:	/* sh16 */
+	    case 0xe800:	/* sw16 */
+	      if (rt != 0 && rt != 16 && rt != 17 && (rt < 2 || rt > 7))
+		continue;
+	      if (base != 16 && base != 17 && (base < 2 || base > 7))
+		continue;
+	      break;
+	    case 0x0800:	/* lbu16 */
+	    case 0x2800:	/* lhu16 */
+	    case 0x6800:	/* lw16 */
+	      if (rt != 16 && rt != 17 && (rt < 2 || rt > 7))
+		continue;
+	      if (base != 16 && base != 17 && (base < 2 || base > 7))
+		continue;
+	      break;
+	    case 0xec00:	/* li16 */
+	      if (rt != 16 && rt != 17 && (rt < 2 || rt > 7))
+		continue;
+	      break;
+	    default:
+	      break;
+	    }
 
 	  /* Calulate target relocation and shift amount.  */
 	  if (new_opcode == 0x2800 || new_opcode == 0xa800)
@@ -14183,33 +14388,6 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
 	      break;
 	    }
 
-	  /* Check registers */
-	  switch (new_opcode)
-	    {
-	    case 0x8800:	/* sb16 */
-	    case 0xa800:	/* sh16 */
-	    case 0xe800:	/* sw16 */
-	      if (rt != 0 && rt != 16 && rt != 17 && (rt < 2 || rt > 7))
-		continue;
-	      if (base != 16 && base != 17 && (base < 2 || base > 7))
-		continue;
-	      break;
-	    case 0x0800:	/* lbu16 */
-	    case 0x2800:	/* lhu16 */
-	    case 0x6800:	/* lw16 */
-	      if (rt != 16 && rt != 17 && (rt < 2 || rt > 7))
-		continue;
-	      if (base != 16 && base != 17 && (base < 2 || base > 7))
-		continue;
-	      break;
-	    case 0xec00:	/* li16 */
-	      if (rt != 16 && rt != 17 && (rt < 2 || rt > 7))
-		continue;
-	      break;
-	    default:
-	      break;
-	    }
-
 	  irel->r_info = ELF32_R_INFO (r_symndx, target_reloc);
 
 	  /* Replace the 32-bit load/store with a 16-bit.  */
@@ -14245,8 +14423,8 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
          where pcrval has first to be adjusted to apply against the LO16
          location (we make the adjustment later on, when we have figured
          out the offset).  */
-      if (!MIPSR6_P (abfd)
-	  && r_type == R_MICROMIPS_HI16 && MATCH (opcode, lui_insn))
+      else if (!MIPSR6_P (abfd)
+	       && r_type == R_MICROMIPS_HI16 && MATCH (opcode, lui_insn))
 	{
 	  bfd_boolean bzc = FALSE;
 	  unsigned long nextopc;
@@ -14404,50 +14582,71 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
          to check the distance from the next instruction, so subtract 2.  */
       else if (!insn32 && !MIPSR6_P (abfd)
 	       && r_type == R_MICROMIPS_PC16_S1
-	       && IS_BITSIZE (pcrval - 2, 11)
 	       && find_match (opcode, b_insns_32) >= 0)
 	{
-	  /* Fix the relocation's type.  */
-	  irel->r_info = ELF32_R_INFO (r_symndx, R_MICROMIPS_PC10_S1);
+	  bfd_vma addend = opcode & 0xffff;
 
-	  /* Replace the 32-bit opcode with a 16-bit opcode.  */
-	  bfd_put_16 (abfd,
-		      (b_insn_16.match
-		       | (opcode & 0x3ff)),		/* Addend value.  */
-		      ptr);
+	  addend = _bfd_mips_elf_sign_extend (addend << 1, 17);
 
-	  /* Delete 2 bytes from irel->r_offset + 2.  */
-	  delcnt = 2;
-	  deloff = 2;
+	  if (IS_BITSIZE (pcrval + addend, 11)
+	      && (is_out_of_range_due_to_align (irel, irelend,
+					        pcrval + addend, symval,
+					        isymbuf, sec, target_sec,
+					        link_info->keep_memory, 11)
+					        == FALSE))
+	    {
+	      /* Fix the relocation's type.  */
+	      irel->r_info = ELF32_R_INFO (r_symndx, R_MICROMIPS_PC10_S1);
+
+	      /* Replace the 32-bit opcode with a 16-bit opcode.  */
+	      bfd_put_16 (abfd,
+			  (b_insn_16.match
+			  | (opcode & 0x3ff)),		/* Addend value.  */
+			  ptr);
+
+	      /* Delete 2 bytes from irel->r_offset + 2.  */
+	      delcnt = 2;
+	      deloff = 2;
+	    }
 	}
 
       /* R_MICROMIPS_PC16_S1 relaxation to R_MICROMIPS_PC7_S1.  We need
          to check the distance from the next instruction, so subtract 2.  */
       else if (!insn32 && !MIPSR6_P (abfd)
 	       && r_type == R_MICROMIPS_PC16_S1
-	       && IS_BITSIZE (pcrval - 2, 8)
 	       && (((fndopc = find_match (opcode, bz_rs_insns_32)) >= 0
 		    && OP16_VALID_REG (OP32_SREG (opcode)))
 		   || ((fndopc = find_match (opcode, bz_rt_insns_32)) >= 0
 		       && OP16_VALID_REG (OP32_TREG (opcode)))))
 	{
 	  unsigned long reg;
+	  bfd_vma addend = opcode & 0xffff;
 
-	  reg = OP32_SREG (opcode) ? OP32_SREG (opcode) : OP32_TREG (opcode);
+	  addend = _bfd_mips_elf_sign_extend (addend << 1, 17);
 
-	  /* Fix the relocation's type.  */
-	  irel->r_info = ELF32_R_INFO (r_symndx, R_MICROMIPS_PC7_S1);
+	  if (IS_BITSIZE (pcrval + addend, 8)
+	      && (is_out_of_range_due_to_align (irel, irelend,
+					        pcrval + addend, symval,
+					        isymbuf, sec, target_sec,
+					        link_info->keep_memory, 8)
+					        == FALSE))
+	    {
+	      reg = OP32_SREG (opcode) ? OP32_SREG (opcode) : OP32_TREG (opcode);
 
-	  /* Replace the 32-bit opcode with a 16-bit opcode.  */
-	  bfd_put_16 (abfd,
-		      (bz_insns_16[fndopc].match
-		       | BZ16_REG_FIELD (reg)
-		       | (opcode & 0x7f)),		/* Addend value.  */
-		      ptr);
+	      /* Fix the relocation's type.  */
+	      irel->r_info = ELF32_R_INFO (r_symndx, R_MICROMIPS_PC7_S1);
 
-	  /* Delete 2 bytes from irel->r_offset + 2.  */
-	  delcnt = 2;
-	  deloff = 2;
+	      /* Replace the 32-bit opcode with a 16-bit opcode.  */
+	      bfd_put_16 (abfd,
+			  (bz_insns_16[fndopc].match
+			  | BZ16_REG_FIELD (reg)
+			  | (opcode & 0x7f)),		/* Addend value.  */
+			  ptr);
+
+	      /* Delete 2 bytes from irel->r_offset + 2.  */
+	      delcnt = 2;
+	      deloff = 2;
+	    }
 	}
 
       /* R_MICROMIPS_26_S1 -- JAL to JALS relaxation for microMIPS targets.  */
@@ -14510,56 +14709,10 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
 	  /* That will change things, so we should relax again.
 	     Note that this is not required, and it may be slow.  */
 	  *again = TRUE;
-	}
 
-      /* Honour alignments */
-      if (*again == TRUE)
-	{
-	  Elf_Internal_Sym *isym;
-	  Elf_Internal_Rela *arel;
-	  bfd_vma pc_val, new_pc_val, mask;
-	  unsigned int fill, max, excess;
-	  int fill_size;
-
-	  /* Search R_MICROMIPS_ALIGN relocations after irel */
-	  for (arel = irel; arel < irelend; arel++)
-	    {
-	      if (ELF32_R_TYPE (arel->r_info) == R_MICROMIPS_ALIGN)
-		{
-		  elf_section_data (sec)->relocs = internal_relocs;
-		  elf_section_data (sec)->this_hdr.contents = contents;
-		  symtab_hdr->contents = (unsigned char *) isymbuf;
-
-		  mips_find_fill_max (arel, irelend, isymbuf,
-				      &fill, &fill_size, &max);
-
-		  isym = isymbuf + ELF32_R_SYM (arel->r_info);
-		  pc_val = sec->output_section->vma + sec->output_offset
-			  + arel->r_offset;
-
-		  mask = ~((bfd_vma) ~0 << isym->st_value);
-		  new_pc_val = (pc_val + mask) & (~mask);
-		  excess = new_pc_val - pc_val;
-
-		  /* Assembler skips the align if padding bytes exceed
-		     max bytes. */
-		  if ((excess <= max) && (excess != isym->st_size))
-		    {
-		      if (excess > isym->st_size)
-			{
-			  isym->st_size += delcnt;
-			  mips_elf_relax_add_bytes (abfd, sec,
-				arel->r_offset, fill, fill_size, delcnt);
-			}
-		      else if (excess < isym->st_size)
-			{
-			  mips_elf_relax_delete_bytes (abfd, sec,
-					arel->r_offset, isym->st_size - excess);
-			  isym->st_size = excess;
-			}
-		    }
-		}
-	    }
+	  /* As we have deleted delcnt bytes, we might have disturbed the
+	     alignment reqruied at R_MICROMIPS_ALIGN relocations.  */
+	  do_align = TRUE;
 	}
     }
 
