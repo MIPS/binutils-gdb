@@ -936,6 +936,9 @@ static bfd *reldyn_sorting_bfd;
 #define MIPS_ELF_LOAD_WORD(abfd) \
   (ABI_64_P (abfd) ? 0xdc000000 : 0x8c000000)
 
+/* Opcode for NOP instruction.  */
+#define MIPS_NOP_INSN 0
+
 /* Add a dynamic symbol table-entry.  */
 #define MIPS_ELF_ADD_DYNAMIC_ENTRY(info, tag, val)	\
   _bfd_elf_add_dynamic_entry (info, tag, val)
@@ -1263,8 +1266,7 @@ static const bfd_vma mips32_exec_iplt_entry[] =
 {
   0x3c0f0000,	/* lui $15, %hi(.igot address)		*/
   0x8df90000,	/* lw  $25, %lo(.igot address)($15)	*/
-  0x03200008,	/* jr  $25				*/
-  0x00000000	/* nop					*/
+  0x03200008	/* jr  $25				*/
 };
 
 /* Format of 32 bit IPLT entries for R6. JR encoding differs.  */
@@ -1291,8 +1293,7 @@ static const bfd_vma micromips_insn32_exec_iplt_entry[] =
 {
   0x41af, 0x0000,	/* lui $15, %hi(.igot address)		*/
   0xff2f, 0x0000,	/* lw  $25, %lo(.igot address)($15)	*/
-  0x0019, 0x0f3c,	/* jr $25				*/
-  0x0000, 0x0000,	/* nop					*/
+  0x0019, 0x0f3c	/* jr $25				*/
 };
 
 /* The format of 64-bit IPLT entries.  */
@@ -1304,8 +1305,7 @@ static const bfd_vma mips64_exec_iplt_entry[] =
   0x000f783c,	/* dsll32 $15, $15, 0x0			*/
   0x01ee782d,	/* daddu $15, $15, $14				*/
   0xddf90000,	/* ld $25, %lo(.igot address)($15)		*/
-  0x03200008,	/* jr $25					*/
-  0x00000000,	/* nop						*/
+  0x03200008	/* jr $25					*/
 };
 
 /* The format of 64-bit IPLT entries for 48bit address.  */
@@ -1315,8 +1315,7 @@ static const bfd_vma mips64_48b_exec_iplt_entry[] =
   0x25ef0000,	/* addiu $15, $15, %high(.got.iplt entry)	*/
   0x000f7c38,	/* dsll $15, $15, 16				*/
   0xddf90000,	/* ld $25, %lo(.got.iplt entry)($15)		*/
-  0x03200008,	/* jr $25					*/
-  0x00000000,	/* nop						*/
+  0x03200008	/* jr $25					*/
 };
 
 
@@ -2208,11 +2207,12 @@ mips_elf_allocate_iplt (struct bfd_link_info *info,
   /* Compressed entries can be allocated immediately.  */
   if (mh->needs_iplt_comp)
     {
+      int entry_size = (mhtab->iplt_comp_entry_size
+			+ (mhtab->insn32 ? 4 : 0));
       mh->iplt_comp_offset = mhtab->iplt_comp_offset;
       if (!mips_elf_create_stub_symbol (info, mh, ".iplt.comp.",
 					mhtab->root.iplt,
-					mhtab->iplt_comp_offset,
-					mhtab->iplt_comp_entry_size,
+					mhtab->iplt_comp_offset, entry_size,
 					STO_MIPS16 | STO_MICROMIPS))
 	return FALSE;
       mhtab->iplt_comp_offset += mhtab->iplt_comp_entry_size;
@@ -2294,11 +2294,13 @@ mips_elf_lay_out_iplt (void **slot, void *data)
     {
       struct bfd_link_info *info = hti->info;
       struct mips_elf_link_hash_table *mhtab = mips_elf_hash_table (info);
+      int entry_size = (mhtab->iplt_entry_size
+			+ (MIPSR6_P (mhtab->root.dynobj) ? 0 : 4));
 
       h->iplt_mips_offset += mhtab->iplt_comp_offset;
       if (!mips_elf_create_stub_symbol (info, h, ".iplt.", mhtab->root.iplt,
 					h->iplt_mips_offset,
-					mhtab->iplt_entry_size, 0))
+					entry_size, 0))
 	{
 	  hti->error = TRUE;
 	  return FALSE;
@@ -9953,6 +9955,10 @@ _bfd_mips_elf_always_size_sections (bfd *output_bfd,
   /* All compressed IPLT entries have been allocated.  Now we can lay-out
      the regular IPLT entries and create corresponding stub symbols.  */
 
+  /* Add space for a NOP in the last delay slot of insn32 stub.  */
+  if (htab->iplt_comp_offset != 0 && htab->insn32)
+    htab->iplt_comp_offset += 4;
+
   /* Global IFUNCs.  */
   mips_elf_link_hash_traverse (htab, mips_elf_lay_out_iplt_wrap, &hti);
   if (hti.error)
@@ -9962,6 +9968,10 @@ _bfd_mips_elf_always_size_sections (bfd *output_bfd,
   htab_traverse (htab->loc_hash_table, mips_elf_lay_out_iplt, &hti);
   if (hti.error)
     return FALSE;
+
+  /* Add space for a NOP in the last delay slot.  */
+  if (!MIPSR6_P (output_bfd) && htab->iplt_mips_offset != 0)
+    htab->iplt_mips_offset += 4;
 
   /* Calculate final size of IPLT section.  */
   if (htab->root.iplt)
@@ -11230,7 +11240,7 @@ mips_elf_create_iplt (bfd *output_bfd,
 		      struct mips_elf_link_hash_entry *hmips,
 		      const bfd_vma igotplt_address)
 {
-  bfd_byte *loc;
+  bfd_byte *loc, *dslot;
   const bfd_vma *iplt_entry;
   bfd_vma high = mips_elf_high (igotplt_address);
   bfd_vma low = igotplt_address & 0xffff;
@@ -11262,7 +11272,7 @@ mips_elf_create_iplt (bfd *output_bfd,
 	  bfd_put_32 (output_bfd, iplt_entry[4], loc + 16);
 	  bfd_put_32 (output_bfd, iplt_entry[5] | low, loc + 20);
 	  bfd_put_32 (output_bfd, iplt_entry[6], loc + 24);
-	  bfd_put_32 (output_bfd, iplt_entry[7], loc + 28);
+	  dslot = loc + 28;
 	}
       else if (higher)
 	{
@@ -11273,7 +11283,7 @@ mips_elf_create_iplt (bfd *output_bfd,
 	  bfd_put_32 (output_bfd, iplt_entry[2], loc + 8);
 	  bfd_put_32 (output_bfd, iplt_entry[3] | low, loc + 12);
 	  bfd_put_32 (output_bfd, iplt_entry[4], loc + 16);
-	  bfd_put_32 (output_bfd, iplt_entry[5], loc + 20);
+	  dslot = loc + 20;
 	}
       else
 	{
@@ -11281,7 +11291,7 @@ mips_elf_create_iplt (bfd *output_bfd,
 	  bfd_put_32 (output_bfd, iplt_entry[0] | high, loc);
 	  bfd_put_32 (output_bfd, iplt_entry[5] | low, loc + 4);
 	  bfd_put_32 (output_bfd, iplt_entry[6], loc + 8);
-	  bfd_put_32 (output_bfd, iplt_entry[7], loc + 12);
+	  dslot = loc + 12;
 	}
     }
   else
@@ -11297,15 +11307,21 @@ mips_elf_create_iplt (bfd *output_bfd,
       else if (LOAD_INTERLOCKS_P (output_bfd))
 	{
 	  bfd_put_32 (output_bfd, iplt_entry[2], loc + 8);
-	  bfd_put_32 (output_bfd, iplt_entry[3], loc + 12);
+	  dslot = loc + 12;
 	}
       else
 	{
 	  bfd_put_32 (output_bfd, iplt_entry[3], loc + 8);
 	  bfd_put_32 (output_bfd, iplt_entry[2], loc + 12);
-	  bfd_put_32 (output_bfd, iplt_entry[3], loc + 16);
+	  dslot = loc + 16;
 	}
     }
+
+  /* Emit a NOP in the delay slot for the last stub.  */
+  if (!MIPSR6_P (output_bfd)
+      && (hmips->iplt_mips_offset + htab->iplt_entry_size
+	  == htab->iplt_mips_offset - 4))
+    bfd_put_32 (output_bfd, MIPS_NOP_INSN, dslot);
 
   return TRUE;
 }
@@ -11354,10 +11370,13 @@ mips_elf_create_comp_iplt (bfd *output_bfd,
       bfd_put_16 (output_bfd, iplt_entry[4], loc + 8);
       bfd_put_16 (output_bfd, iplt_entry[5], loc + 10);
 
-      if (htab->insn32)
+      /* Emit a NOP in the delay slot for the last insn32 stub.  */
+      if (htab->insn32
+	  && (hmips->iplt_comp_offset + htab->iplt_comp_entry_size
+	      == htab->iplt_comp_offset - 4))
 	{
-	  bfd_put_16 (output_bfd, iplt_entry[6], loc + 12);
-	  bfd_put_16 (output_bfd, iplt_entry[7], loc + 14);
+	  bfd_put_16 (output_bfd, MIPS_NOP_INSN, loc + 12);
+	  bfd_put_16 (output_bfd, MIPS_NOP_INSN, loc + 14);
 	}
     }
 
