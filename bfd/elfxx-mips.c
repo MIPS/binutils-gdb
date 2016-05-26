@@ -3630,6 +3630,9 @@ mips_elf_output_dynamic_relocation (bfd *output_bfd,
 
   if (ABI_64_P (output_bfd))
     {
+      if (r_type == R_MIPS_IRELATIVE)
+	rel[1].r_info = ELF_R_INFO (output_bfd, indx, R_MIPS_64);
+
       (*get_elf_backend_data (output_bfd)->s->swap_reloc_out)
 	(output_bfd, &rel[0],
 	 (sreloc->contents
@@ -7043,10 +7046,10 @@ mips_elf_create_dynamic_relocation (bfd *output_bfd,
       && h->root.type == STT_GNU_IFUNC
       && SYMBOL_REFERENCES_LOCAL (info, &h->root))
     {
-      outrel[0].r_info = ELF_R_INFO (output_bfd, 0,
-				     R_MIPS_IRELATIVE);
-      outrel[1].r_info = ELF_R_INFO (output_bfd, 0,
-				     R_MIPS_NONE);
+      outrel[0].r_info = ELF_R_INFO (output_bfd, 0, R_MIPS_IRELATIVE);
+      outrel[1].r_info = ELF_R_INFO (output_bfd, 0, (ABI_64_P (output_bfd)
+						     ? R_MIPS_64
+						     : R_MIPS_NONE));
     }
   else
     {
@@ -9177,6 +9180,10 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 	case R_MICROMIPS_GOT_DISP:
 	  if (h && !mips_elf_record_global_got_symbol (h, abfd, info,
 						       FALSE, r_type))
+	    return FALSE;
+	  else if (ih && !mips_elf_record_local_got_symbol (abfd, -1,
+							    rel->r_addend,
+							    info, r_type, ih))
 	    return FALSE;
 	  break;
 
