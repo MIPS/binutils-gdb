@@ -18920,7 +18920,7 @@ mips_handle_align (fragS *fragp)
      the start of padding bytes.  Create R_MICROMIPS_FILL and R_MICROMIPS_MAX
      to record fill value and maximum alignment respectively.  */
   if (mips_opts.micromips && ((fragp->fr_address + fragp->fr_fix) > 0)
-      && (now_seg->flags & SEC_CODE) != 0)
+      && fragp->fr_offset && (now_seg->flags & SEC_CODE) != 0)
     {
       symbolS *sym;
       char sname[30];
