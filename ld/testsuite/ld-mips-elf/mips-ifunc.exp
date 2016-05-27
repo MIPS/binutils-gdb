@@ -154,14 +154,6 @@ foreach { addr } $addrs {
 set abi o32
 run_ld_link_tests [list \
 	[list \
-	    "LIBIFUNC 3 (DSO with local def) ${abi}" \
-	    "$abi_ldflags($abi) -shared -T ifunc-dyn.ld" "" \
-	    "$abi_asflags($abi)" \
-	    [list ifunc-local-ref.s ifunc-local-def.s] \
-	    [list "readelf -Ds libifunc-3-${abi}.sym"] \
-	    "libifunc-3-${abi}.so" \
-	] \
-	[list \
 	    "IFUNC 7 (Local binding with non-PIC call-only ref) ${abi}" \
 	    "$abi_ldflags($abi) -static -Bstatic" "" \
 	    "$abi_asflags($abi)" \
@@ -187,7 +179,6 @@ run_ld_link_tests [list \
 	    [list ifunc-local-3.s] \
 	    [list "readelf -r ifunc-9-${abi}.r" \
 		"readelf -S ifunc-9-${abi}.sec" \
-		"readelf -S ifunc-9-${abi}-x.sec" \
 		"objdump -sj.got ifunc-9-${abi}.got" \
 		"objdump -dj.iplt ifunc-9-${abi}.t"] \
 	    "ifunc-9-${abi}" \
@@ -262,10 +253,10 @@ run_ld_link_tests [list \
 	    "$abi_ldflags($abi) -static -Bstatic" "" \
 	    "$abi_asflags($abi) -mips2" \
 	    [list ifunc-mix-1.s] \
-	    [list "readelf -s ifunc-mix-1.sym" \
-		"objdump -sj.igot ifunc-mix-1.igot" \
-		"objdump -dj.iplt ifunc-iplt-mix-1.t" \
-		"objdump -dj.text --no-show-raw-insn ifunc-mix-1.t"] \
+	     { { readelf -s ifunc-mix-1.sym } \
+	      { objdump -sj.igot ifunc-mix-1.igot } \
+	      { objdump {-dj.iplt --no-show-raw-insn} ifunc-iplt-mix-1.t } \
+	      { objdump {-dj.text --no-show-raw-insn} ifunc-mix-1.t } }\
 	    "ifunc-mix-1" \
 	] \
 	[list \
@@ -273,10 +264,43 @@ run_ld_link_tests [list \
 	    "$abi_ldflags($abi) -static -Bstatic" "" \
 	    "$abi_asflags($abi) -mips2" \
 	    [list ifunc-mix-2.s] \
-	    [list "readelf -s ifunc-mix-2.sym" \
-		"objdump -sj.igot ifunc-mix-2.igot" \
-		"objdump -dj.iplt --no-show-raw-insn ifunc-iplt-mix-2.t" \
-		"objdump -dj.text --no-show-raw-insn ifunc-mix-2.t"] \
+	     { { readelf -s ifunc-mix-2.sym } \
+	       { objdump -sj.igot ifunc-mix-2.igot } \
+	       { objdump { -dj.iplt --no-show-raw-insn } ifunc-iplt-mix-2.t } \
+	       { objdump { -dj.text --no-show-raw-insn } ifunc-mix-2.t } } \
 	    "ifunc-mix-2" \
 	] \
 ]
+
+
+# set abi n32
+# run_ld_link_tests [list \
+# 	[list \
+# 	    "IFUNC 9 (Local binding with PIC/non-PIC call-only refs) ${abi}" \
+# 	    "$abi_ldflags($abi) -static -Bstatic -" "" \
+# 	    "$abi_asflags($abi) -non_shared" \
+# 	    [list ifunc-local-3.s] \
+# 	    [list "readelf -r ifunc-9-${abi}.r" \
+# 		"readelf -S ifunc-9-${abi}.sec" \
+# 		"readelf -S ifunc-9-${abi}-x.sec" \
+# 		"objdump -sj.got ifunc-9-${abi}.got" \
+# 		"objdump -dj.iplt ifunc-9-${abi}.t"] \
+# 	    "ifunc-9-${abi}" \
+# 	] \
+# 		       ]
+
+# set abi n64
+# run_ld_link_tests [list \
+# 	[list \
+# 	    "IFUNC 9 (Local binding with PIC/non-PIC call-only refs) ${abi}" \
+# 	    "$abi_ldflags($abi) -static -Bstatic -" "" \
+# 	    "$abi_asflags($abi) -non_shared" \
+# 	    [list ifunc-local-3.s] \
+# 	    [list "readelf -r ifunc-9-${abi}.r" \
+# 		"readelf -S ifunc-9-${abi}.sec" \
+# 		"readelf -S ifunc-9-${abi}-x.sec" \
+# 		"objdump -sj.got ifunc-9-${abi}.got" \
+# 		"objdump -dj.iplt ifunc-9-${abi}.t"] \
+# 	    "ifunc-9-${abi}" \
+# 	] \
+# 		       ]
