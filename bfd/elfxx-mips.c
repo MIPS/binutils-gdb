@@ -6110,6 +6110,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
   /* If this symbol is an ifunc, point to the iplt stub for it.  */
   else if (h
 	   && h->has_iplt
+	   && r_type != R_MIPS_GPREL16
 	   && (h->needs_igot
 	       || (!call16_reloc_p (r_type)
 		   && !got16_reloc_p (r_type))))
@@ -9185,6 +9186,11 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
 							    rel->r_addend,
 							    info, r_type, ih))
 	    return FALSE;
+
+	  if (h != NULL)
+	    ((struct mips_elf_link_hash_entry *) h)->has_got_relocs = TRUE;
+	  else if (ih != NULL)
+	    ih->has_got_relocs = TRUE;
 	  break;
 
 	case R_MIPS_TLS_GOTTPREL:
