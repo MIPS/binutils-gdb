@@ -78,7 +78,7 @@ main:
 	sw	$fp,24($sp)
 	move	$fp,$sp
 	.cprestore	16
-	lw	$2,%got16(func1)($28)
+	lw	$2,%got(func1)($28)
 	move	$25,$2
 	.reloc	1f,R_MIPS_JALR,func1
 1:	jalr	$25
