@@ -1496,4 +1496,9 @@ if { [istarget mips*-*-vxworks*] } {
                               [mips_arch_list_matching mips32r6 !mips64r6]
     run_list_test_arches "ur6-ctc-err" "-32 -mmicromips" \
                               [mips_arch_list_matching mips32r6 !mips64r6]
+
+    run_dump_test "llpscp-32"
+    run_dump_test "llpscp-32-micromips"
+    run_dump_test "llpscp-64"
+    run_dump_test "llpscp-64-micromips"
 }

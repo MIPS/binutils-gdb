@@ -79,23 +79,16 @@ Disassembly of section .text:
 0+00a4 <[^>]*> ec9a0000 	ldpc	a0,f+ff000a0 <[^>]*>
 0+00a8 <[^>]*> ec99ffff 	ldpc	a0,0+01000a0 <[^>]*>
 0+00ac <[^>]*> ec99ffff 	ldpc	a0,0+01000a0 <[^>]*>
-0+00b0 <[^>]*> 7ca47ff7 	lldx	a0,255\(a1\)
-0+00b4 <[^>]*> 7ca48077 	lldx	a0,-256\(a1\)
-0+00b8 <[^>]*> 64a401f4 	daddiu	a0,a1,500
-0+00bc <[^>]*> 7c840077 	lldx	a0,0\(a0\)
-0+00c0 <[^>]*> 7ca47fe7 	scdx	a0,255\(a1\)
-0+00c4 <[^>]*> 7ca48067 	scdx	a0,-256\(a1\)
-0+00c8 <[^>]*> 64a101f4 	daddiu	at,a1,500
-0+00cc <[^>]*> 7c240067 	scdx	a0,0\(at\)
-0+00d0 <[^>]*> 7ca40027 	scd	a0,0\(a1\)
-0+00d4 <[^>]*> 10000000 	b	00000000000000d8 <[^>]*>
-[	]*d4: R_MIPS_PC16	.L1.1-0x4
-[	]*d4: R_MIPS_NONE	\*ABS\*-0x4
-[	]*d4: R_MIPS_NONE	\*ABS\*-0x4
-0+00d8 <[^>]*> 00000000 	nop
-0+00dc <[^>]*> 10000000 	b	00000000000000e0 <[^>]*>
-[	]*dc: R_MIPS_PC16	.L1.1-0x4
-[	]*dc: R_MIPS_NONE	\*ABS\*-0x4
-[	]*dc: R_MIPS_NONE	\*ABS\*-0x4
-0+00e0 <[^>]*> 7ca40027 	scd	a0,0\(a1\)
+0+00b0 <[^>]*> 7cc52077 	lldp	a1,a0,a2
+0+00b4 <[^>]*> 7cc52067 	scdp	a1,a0,a2
+0+00b8 <[^>]*> 10000000 	b	00000000000000bc <[^>]*>
+[	]*b8: R_MIPS_PC16	.L1.1-0x4
+[	]*b8: R_MIPS_NONE	\*ABS\*-0x4
+[	]*b8: R_MIPS_NONE	\*ABS\*-0x4
+0+00bc <[^>]*> 7ca40027 	scd	a0,0\(a1\)
+0+00c0 <[^>]*> 10000000 	b	00000000000000c4 <[^>]*>
+[	]*c0: R_MIPS_PC16	.L1.1-0x4
+[	]*c0: R_MIPS_NONE	\*ABS\*-0x4
+[	]*c0: R_MIPS_NONE	\*ABS\*-0x4
+0+00c4 <[^>]*> 7ca40027 	scd	a0,0\(a1\)
 	\.\.\.
