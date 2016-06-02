@@ -40,6 +40,23 @@ proc run_micromips_test { name requested_machs } {
     set global_as_options $gas_old
 }
 
+# Runs endian tests
+proc run_endian_tests { name requested_machs { requested_micromips_machs "" } } {
+    global global_as_options;
+    global global_ld_options;
+    run_sim_test $name $requested_machs
+    run_micromips_test $name $requested_micromips_machs
+    set gas_old $global_as_options;
+    set ld_old $global_ld_options;
+    append global_as_options " -EL "
+    append global_ld_options " -EL "
+    run_sim_test $name $requested_machs
+    append global_as_options " --defsym __micromipsel__=1 "
+    run_micromips_test $name $requested_micromips_machs
+    set global_as_options $gas_old
+    set global_ld_options $ld_old
+}
+
 # Runs all specified tests
 proc run_sim_tests { name requested_machs { requested_micromips_machs "" } } {
     run_sim_test $name $requested_machs
@@ -156,4 +173,6 @@ if {[istarget mips*-*-elf]} {
     run_r6_removed_test r6-removed.s $models
     run_sim_tests r6-64.s $models $micromipsmodels
     run_sim_tests r6-branch.s $models $micromipsmodels
+    run_endian_tests r6-llsc-wp.s "mips32r6" "mips32r6"
+    run_endian_tests r6-llsc-dp.s "mips64r6" "mips64r6"
 }

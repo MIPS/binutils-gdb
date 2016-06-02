@@ -5686,7 +5686,7 @@ is_ll_insn (struct gdbarch *gdbarch, ULONGEST insn)
       && (insn & 0x40) == 0)
     return 1;
 
-  /* Handle LL and LLX varieties.  */
+  /* Handle LL and LLP varieties.  */
   if (is_mipsr6_isa (gdbarch)
       && rtype_op (insn) == LLSC_R6_OPCODE
       && (rtype_funct (insn) == LL_R6_FUNCT
@@ -5709,13 +5709,12 @@ is_sc_insn (struct gdbarch *gdbarch, ULONGEST insn)
       && (insn & 0x40) == 0)
     return 1;
 
-  /* Handle SC and NOT SCX.  The SCX must come first so we
-     do not want to prematurely end the sequence.  */
+  /* Handle SC and SCP varieties.  */
   if (is_mipsr6_isa (gdbarch)
       && rtype_op (insn) == LLSC_R6_OPCODE
       && (rtype_funct (insn) == SC_R6_FUNCT
-	  || rtype_funct (insn) == SCD_R6_FUNCT)
-      && (insn & 0x40) == 0)
+	  || rtype_funct (insn) == SCD_R6_FUNCT
+	  || rtype_funct (insn) == SCE_FUNCT))
     return 1;
 
   return 0;
@@ -5734,15 +5733,21 @@ mips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
   int last_breakpoint = 0; /* Defaults to 0 (no breakpoints placed).  */  
   const int atomic_sequence_length = 16; /* Instruction sequence length.  */
   int is_mipsr6 = is_mipsr6_isa (gdbarch);
+  CORE_ADDR branches[atomic_sequence_length / 2];
+  int bcount=0;
+  CORE_ADDR start, end = 0;
 
   insn = mips_fetch_instruction (gdbarch, ISA_MIPS, loc, NULL);
   /* Assume all atomic sequences start with a ll/lld instruction.  */
   if (!is_ll_insn (gdbarch, insn))
     return 0;
 
+  start = loc;
   /* Assume that no atomic sequence is longer than "atomic_sequence_length" 
      instructions.  */
-  for (insn_count = 0; insn_count < atomic_sequence_length; ++insn_count)
+  for (insn_count = 0;
+       insn_count < atomic_sequence_length && last_breakpoint <= 1;
+       ++insn_count)
     {
       int is_branch = 0;
       loc += MIPS_INSN32_SIZE;
@@ -5838,30 +5843,51 @@ mips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 	    branch_bp = loc + mips32_relative_offset21 (insn) + 4;
 	  else
 	    branch_bp = loc + mips32_relative_offset (insn) + 4;
-	  if (last_breakpoint >= 1)
-	    return 0; /* More than one branch found, fallback to the
-			 standard single-step code.  */
-	  breaks[1] = branch_bp;
-	  last_breakpoint++;
-	}
 
-      if (is_sc_insn (gdbarch, insn))
-	break;
+	  /* Out-of-sequence branch going back to before the start
+	     of the sequence can be counted immediately,  as can
+	     forward branches going past atomic_sequence_length.  */
+	  if ((branch_bp < start ||
+	       branch_bp > (start
+			    + ((atomic_sequence_length + 1)
+			       * MIPS_INSN32_SIZE)))
+	      && branch_bp != breaks[1])
+	    {
+	      breaks[1] = branch_bp;
+	      last_breakpoint++;
+	    }
+	  /* Track forward branches for processing after end is found.
+	     At best,  if next instruction is SC,  then there is already
+	     a break-point following it.  We can safely look 3 instructions
+	     ahead for a unique out-of-sequence forward branch.  */
+	  else if (branch_bp >= loc + 3 * MIPS_INSN32_SIZE)
+	    branches[bcount++] = branch_bp;
+	}
+      else if (is_sc_insn (gdbarch, insn))
+	{
+	  end = loc + 4;
+	  break;
+	}
     }
 
-  /* Assume that the atomic sequence ends with a sc/scd instruction.  */
-  if (!is_sc_insn (gdbarch, insn))
+  /* No store conditional found within atomic_sequence_length instructions.  */
+  if (end == 0)
     return 0;
 
-  loc += MIPS_INSN32_SIZE;
+  /* Check forward branches for unique out-of-sequence destinations.  */
+  for (insn_count = 0; insn_count < bcount && last_breakpoint <= 1; insn_count++)
+    if (branches[insn_count] > end && branches[insn_count] != breaks[1])
+      {
+	breaks[1] = branches[insn_count];
+	last_breakpoint++;
+      }
+
+  /* Too many control transfers to track, give up.  */
+  if (last_breakpoint > 1)
+    return 0;
 
   /* Insert a breakpoint right after the end of the atomic sequence.  */
-  breaks[0] = loc;
-
-  /* Check for duplicated breakpoints.  Check also for a breakpoint
-     placed (branch instruction's destination) in the atomic sequence.  */
-  if (last_breakpoint && pc <= breaks[1] && breaks[1] <= breaks[0])
-    last_breakpoint = 0;
+  breaks[0] = end;
 
   /* Effectively inserts the breakpoints.  */
   for (index = 0; index <= last_breakpoint; index++)
@@ -5888,7 +5914,7 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
   int ll_found = 0;
 
 
-  /* Assume all atomic sequences start with a ll/lld/llx/lldx/lle/llxe
+  /* Assume all atomic sequences start with a ll/lld/llwp/lldp/lle/llwpe
      instruction.  */
   insn = mips_fetch_instruction (gdbarch, ISA_MICROMIPS, loc, NULL);
   if (micromips_op (insn) != 0x18)	/* POOL32C: bits 011000 */
@@ -5898,15 +5924,16 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
   insn |= mips_fetch_instruction (gdbarch, ISA_MICROMIPS, loc, NULL);
   loc += MIPS_INSN16_SIZE;
   if (b12s4_op (insn) == 0x6		    /* LD-EVA bits 0110 */
-      && (b9s3_op (insn) == 0x6		    /* LLE    bits 110 */
-	  || (is_mipsr6_isa (gdbarch)
-	      && b9s3_op (insn) == 0x2)))   /* LLXE   bits 010 */
+      && (b9s3_op (insn) == 0x6	    	    /* LLE    bits  110 */
+	  || b9s3_op (insn) == 0x2))        /* LLWPE  bits  010 */
     ll_found = 1;
   else if (b12s4_op (insn) == 0x3	    /* LL     bits 0011 */
-	    || b12s4_op (insn) == 0x7       /* LLD    bits 0111 */
-	    || b12s4_op (insn) == 0x1       /* LLX    bits 0001 */
-	    || b12s4_op (insn) == 0x5)	    /* LLDX   bits 0101 */
+	   || b12s4_op (insn) == 0x7        /* LLD    bits 0111 */
+	   || b12s4_op (insn) == 0x5)	    /* LLDP   bits 0101 */
     ll_found = 1;
+  else if (is_mipsr6_isa (gdbarch)
+	   && b12s4_op (insn) == 0x1)       /* LLWP   bits 0001 */
+	ll_found = 1;
 
   if (!ll_found)
     return 0;
@@ -5963,12 +5990,16 @@ micromips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 		  break;
 
 		case 0x18: /* POOL32C: bits 011000 */
-		  if ((b12s4_op (insn) & 0xb) == 0xb)
-				/* SC, SCD: bits 011000 1x11 */
+		  if ((b12s4_op (insn) & 0xb) == 0xb	/* SC, SCD: bits 1x11 */
+		      || b12s4_op (insn) == 0xd)   	/* SCDP     bits 1101 */
 		    sc_found = 1;
-		  else if (b12s4_op (insn) == 0xa     /* ST-EVA bits 1010 */
-			   && b9s3_op (insn) == 0x6)  /* SCE bits 110 */
+		  else if (b12s4_op (insn) == 0xa       /* ST-EVA bits 1010 */
+			   && (b9s3_op (insn) == 0x6    /* SCE bits     110 */
+			      || b9s3_op (insn) == 0)) 	/* SCWPE bits   000 */
 		    sc_found = 1;
+		  else if (is_mipsr6_isa (gdbarch)
+			   && b12s4_op (insn) == 0x9)	/* SCWP bits   1001 */
+			sc_found = 1;
 		  break;
 
 		case 0x20: /* BEQZC/JIC */
@@ -6133,12 +6164,16 @@ handle_branch:
 	      insn <<= 16;
 	      insn |= mips_fetch_instruction (gdbarch,
 					      ISA_MICROMIPS, loc, NULL);
-	      if ((b12s4_op (insn) & 0xb) == 0xb)
-				/* SC, SCD: bits 011000 1x11 */
+	      if ((b12s4_op (insn) & 0xb) == 0xb 	/* SC, SCD: bits 1x11 */
+		  || b12s4_op (insn) == 0xd)   	 	/* SCDP bits     1101 */
 		sc_found = 1;
-	      else if (b12s4_op (insn) == 0xa     /* ST-EVA bits 1010 */
-		       && b9s3_op (insn) == 0x6)  /* SCE bits 110 */
+	      else if (b12s4_op (insn) == 0xa     	/* ST-EVA bits 1010 */
+		       && (b9s3_op (insn) == 0x6  	/* SCE bits     110 */
+			   || b9s3_op (insn) == 0)) 	/* SCWPE bits 	000 */
 		sc_found = 1;
+	      else if (is_mipsr6_isa (gdbarch)
+		       && b12s4_op (insn) == 0x9)      	/* SCWP bits   	1001 */
+		    sc_found = 1;
 	      break;
 	    }
 	  loc += MIPS_INSN16_SIZE;
