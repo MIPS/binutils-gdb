@@ -1323,6 +1323,10 @@ static const unsigned int mips_isa_table[] = {
 #define ASE_MIPS16E2		0x00040000
 /* MIPS16e2 MT ASE instructions.  */
 #define ASE_MIPS16E2_MT		0x00080000
+/* Cyclic redundancy check (CRC) ASE */
+#define ASE_CRC			0x00100000
+#define ASE_CRC64		0x00200000
+
 /* MIPS ISA defines, use instead of hardcoding ISA level.  */
 
 #define       ISA_UNKNOWN     0               /* Gas internal use.  */

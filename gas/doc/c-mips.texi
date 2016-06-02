@@ -172,6 +172,13 @@ Generate code for the MIPS-3D Application Specific Extension.
 This tells the assembler to accept MIPS-3D instructions.
 @samp{-no-mips3d} turns off this option.
 
+@item -mcrc
+@itemx -mno-crc
+Generate code for the cyclic redundancy check (CRC) Application Specific
+Extension.
+This tells the assembler to accept CRC instructions.
+@samp{-mno-crc} turns off this option.
+
 @item -mdmx
 @itemx -no-mdmx
 Generate code for the MDMX Application Specific Extension.
@@ -1060,6 +1067,13 @@ from the XPA Extension from that point on in the assembly.  The
 The directive @code{.set mxu} makes the assembler accept instructions
 from the MXU Extension from that point on in the assembly.  The
 @code{.set nomxu} directive prevents MXU instructions from being accepted.
+
+@cindex MIPS cyclic redundancy check (CRC) instruction generation override
+@kindex @code{.set crc}
+@kindex @code{.set nocrc}
+The directive @code{.set crc} makes the assembler accept instructions
+from the CRC Extension from that point on in the assembly.  The
+@code{.set nocrc} directive prevents CRC instructions from being accepted.
 
 Traditional MIPS assemblers do not support these directives.
 
