@@ -463,6 +463,10 @@ decode_mips_operand (const char *p)
 /* MXU support.  */
 #define MXU	ASE_MXU
 
+/* Cyclic redundancy check instruction (CRC) support.  */
+#define CRC	ASE_CRC
+#define CRC64	ASE_CRC64
+
 /* The order of overloaded instructions matters.  Label arguments and
    register arguments look the same. Instructions that can have either
    for arguments must apear in the correct order in this table for the
@@ -1327,13 +1331,13 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"ll",			"t,+j(b)",	0x7c000036, 0xfc00007f, WR_1|RD_3|LM,		0,		I37,		0,	0 },
 {"ll",			"t,o(b)",	0xc0000000, 0xfc000000, WR_1|RD_3|LM,		0,		I2,		0,	EE|I37 },
 {"ll",			"t,A(b)",	0,    (int) M_LL_AB,	INSN_MACRO,		0,		I2,		0,	EE },
-{"llx",			"t,+j(b)",	0x7c000076, 0xfc00007f, WR_1|RD_3|LM|NODS,	NNODS,		I37,		0,	0 },
-{"llx",			"t,A(b)",	0,    (int) M_LLX_AB,	INSN_MACRO,		0,		I37,		0,	0 },
+{"llwp",		"t,d,s",	0x7c000076, 0xfc0007ff, WR_1|WR_2|RD_3|LM,	0,		I37,		0,	0 },
+{"llwp",		"t,d,A(b)",	0,    (int) M_LLWP_AB,	INSN_MACRO,		0,		I37,		0,	0 },
 {"lld",			"t,+j(b)",	0x7c000037, 0xfc00007f, WR_1|RD_3|LM,		0,		I69,		0,	0 },
 {"lld",			"t,o(b)",	0xd0000000, 0xfc000000, WR_1|RD_3|LM,		0,		I3,		0,	EE|I69 },
 {"lld",			"t,A(b)",	0,    (int) M_LLD_AB,	INSN_MACRO,		0,		I3,		0,	EE },
-{"lldx",		"t,+j(b)",	0x7c000077, 0xfc00007f, WR_1|RD_3|LM|NODS,	NNODS,		I69,		0,	0 },
-{"lldx",		"t,A(b)",	0,    (int) M_LLDX_AB,	INSN_MACRO,		0,		I69,		0,	0 },
+{"lldp",		"t,d,s",	0x7c000077, 0xfc0007ff, WR_1|WR_2|RD_3|LM,	0,		I69,		0,	0 },
+{"lldp",		"t,d,A(b)",	0,    (int) M_LLDP_AB,	INSN_MACRO,		0,		I69,		0,	0 },
 {"lq",			"t,o(b)",	0x78000000, 0xfc000000, WR_1|RD_3|LM,		0,		MMI,		0,	0 },
 {"lq",			"t,A(b)",	0,    (int) M_LQ_AB,	INSN_MACRO,		0,		MMI,		0,	0 },
 {"lqc2",		"+7,o(b)",	0xd8000000, 0xfc000000,	RD_3|WR_C2|LM,		0,		EE,		0,	0 },
@@ -1867,13 +1871,13 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"saad",		"t,(b)",	0x70000019, 0xfc00ffff,	RD_1|RD_2|SM,		0,		IOCTP,		0,	0 },
 {"sb",			"t,o(b)",	0xa0000000, 0xfc000000,	RD_1|RD_3|SM,		0,		I1,		0,	0 },
 {"sb",			"t,A(b)",	0,    (int) M_SB_AB,	INSN_MACRO,		0,		I1,		0,	0 },
-{"scx",			"t,+j(b)",	0x7c000066, 0xfc00007f, MOD_1|RD_3|SM|NODS,	NNODS,		I37,		0,	0 },
-{"scx",			"t,A(b)",	0,    (int) M_SCX_AB,	INSN_MACRO,		0,		I37,		0,	0 },
+{"scwp",		"t,d,s",	0x7c000066, 0xfc0007ff, MOD_1|RD_2|RD_3|SM,	0,		I37,		0,	0 },
+{"scwp",		"t,d,A(b)",	0,    (int) M_SCWP_AB,	INSN_MACRO,		0,		I37,		0,	0 },
 {"sc",			"t,+j(b)",	0x7c000026, 0xfc00007f, MOD_1|RD_3|SM,		0,		I37,		0,	0 },
 {"sc",			"t,o(b)",	0xe0000000, 0xfc000000, MOD_1|RD_3|SM,		0,		I2,		0,	EE|I37 },
 {"sc",			"t,A(b)",	0,    (int) M_SC_AB,	INSN_MACRO,		0,		I2,		0,	EE },
-{"scdx",		"t,+j(b)",	0x7c000067, 0xfc00007f, MOD_1|RD_3|SM|NODS,	NNODS,		I69,		0,	0 },
-{"scdx",		"t,A(b)",	0,    (int) M_SCDX_AB,	INSN_MACRO,		0,		I69,		0,	0 },
+{"scdp",		"t,d,s",	0x7c000067, 0xfc0007ff, MOD_1|RD_2|RD_3|SM,	0,		I69,		0,	0 },
+{"scdp",		"t,d,A(b)",	0,    (int) M_SCDP_AB,	INSN_MACRO,		0,		I69,		0,	0 },
 {"scd",			"t,+j(b)",	0x7c000027, 0xfc00007f, MOD_1|RD_3|SM,		0,		I69,		0,	0 },
 {"scd",			"t,o(b)",	0xf0000000, 0xfc000000, MOD_1|RD_3|SM,		0,		I3,		0,	EE|I69 },
 {"scd",			"t,A(b)",	0,    (int) M_SCD_AB,	INSN_MACRO,		0,		I3,		0,	EE },
@@ -2678,8 +2682,8 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"lhe",			"t,A(b)",	0,    (int) M_LHE_AB,	INSN_MACRO,		0,		0,		EVA,	0 },
 {"lle",			"t,+j(b)",	0x7c00002e, 0xfc00007f, WR_1|RD_3|LM,		0,		0,		EVA,	0 },
 {"lle",			"t,A(b)",	0,    (int) M_LLE_AB,	INSN_MACRO,		0,		0,		EVA,	0 },
-{"llxe",		"t,+j(b)",	0x7c00006e, 0xfc00007f, WR_1|RD_3|LM|NODS,	NNODS,		0,		EVA_R6,	0 },
-{"llxe",		"t,A(b)",	0,    (int) M_LLXE_AB,	INSN_MACRO,		0,		0,		EVA_R6,	0 },
+{"llwpe",		"t,d,s",	0x7c00006e, 0xfc0007ff, WR_1|WR_2|RD_3|LM,	0,		0,		EVA_R6,	0 },
+{"llwpe",		"t,d,A(b)",	0,    (int) M_LLWPE_AB,	INSN_MACRO,		0,		0,		EVA_R6,	0 },
 {"lwe",			"t,+j(b)",	0x7c00002f, 0xfc00007f, WR_1|RD_3|LM,		0,		0,		EVA,	0 },
 {"lwe",			"t,A(b)",	0,    (int) M_LWE_AB,	INSN_MACRO,		0,		0,		EVA,	0 },
 {"lwle",		"t,+j(b)",	0x7c000019, 0xfc00007f, WR_1|RD_3|LM,		0,		0,		EVA,	I37 },
@@ -2688,8 +2692,8 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"lwre",		"t,A(b)",	0,    (int) M_LWRE_AB,	INSN_MACRO,		0,		0,		EVA,	I37 },
 {"sbe",			"t,+j(b)",	0x7c00001c, 0xfc00007f, RD_1|RD_3|SM,		0,		0,		EVA,	0 },
 {"sbe",			"t,A(b)",	0,    (int) M_SBE_AB,	INSN_MACRO,		0,		0,		EVA,	0 },
-{"scxe",		"t,+j(b)",	0x7c00005e, 0xfc00007f, MOD_1|RD_3|SM|NODS,	NNODS,		0,		EVA_R6,	0 },
-{"scxe",		"t,A(b)",	0,    (int) M_SCXE_AB,	INSN_MACRO,		0,		0,		EVA_R6,	0 },
+{"scwpe",		"t,d,s",	0x7c00005e, 0xfc0007ff, MOD_1|RD_2|RD_3|SM,	0,		0,		EVA_R6,	0 },
+{"scwpe",		"t,d,A(b)",	0,    (int) M_SCWPE_AB,	INSN_MACRO,		0,		0,		EVA_R6,	0 },
 {"sce",			"t,+j(b)",	0x7c00001e, 0xfc00007f, MOD_1|RD_3|SM,		0,		0,		EVA,	0 },
 {"sce",			"t,A(b)",	0,    (int) M_SCE_AB,	INSN_MACRO,		0,		0,		EVA,	0 },
 {"she",			"t,+j(b)",	0x7c00001d, 0xfc00007f, RD_1|RD_3|SM,		0,		0,		EVA,	0 },
@@ -3234,6 +3238,15 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"ctcmsa",		"+l,d",		0x783e0019, 0xffff003f,	RD_2|CM,		0,		0,		MSA,	0 },
 {"cfcmsa",		"+k,+n",	0x787e0019, 0xffff003f,	WR_1|CM,		0,		0,		MSA,	0 },
 {"move.v",		"+d,+e",	0x78be0019, 0xffff003f,	WR_1|RD_2,		0,		0,		MSA,	0 },
+/* MIPS cyclic redundancy check (CRC) ASE.  */
+{"crc32b",		"t,s,-d",	0x7C00000f, 0xfc00ffff,	MOD_1|RD_2,		0,		0,		CRC,	0 },
+{"crc32h",		"t,s,-d",	0x7C00004f, 0xfc00ffff,	MOD_1|RD_2,		0,		0,		CRC,	0 },
+{"crc32w",		"t,s,-d",	0x7C00008f, 0xfc00ffff,	MOD_1|RD_2,		0,		0,		CRC,	0 },
+{"crc32d",		"t,s,-d",	0x7C0000cf, 0xfc00ffff,	MOD_1|RD_2,		0,		0,		CRC64,	0 },
+{"crc32cb",		"t,s,-d",	0x7C00010f, 0xfc00ffff,	MOD_1|RD_2,		0,		0,		CRC,	0 },
+{"crc32ch",		"t,s,-d",	0x7C00014f, 0xfc00ffff,	MOD_1|RD_2,		0,		0,		CRC,	0 },
+{"crc32cw",		"t,s,-d",	0x7C00018f, 0xfc00ffff,	MOD_1|RD_2,		0,		0,		CRC,	0 },
+{"crc32cd",		"t,s,-d",	0x7C0001cf, 0xfc00ffff,	MOD_1|RD_2,		0,		0,		CRC64,	0 },
 
 /* MXU Extension.  */
 {"d16mul",		"`=,`b,`c,`d,`o",	0x70000008, 0xff00003f,	TRAP,		0,		0,		MXU,	0 },
