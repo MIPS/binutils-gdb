@@ -413,6 +413,7 @@ gcc(1), ld(1), and the Info entries for @file{binutils} and @file{ld}.
    [@b{-msmartmips}] [@b{-mno-smartmips}]
    [@b{-mips3d}] [@b{-no-mips3d}]
    [@b{-mcrc}] [@b{-mno-crc}]
+   [@b{-mcrypto}] [@b{-mno-crypto}]
    [@b{-mdmx}] [@b{-no-mdmx}]
    [@b{-mdsp}] [@b{-mno-dsp}]
    [@b{-mdspr2}] [@b{-mno-dspr2}]
@@ -1377,6 +1378,12 @@ This tells the assembler to accept MIPS-3D instructions.
 Generate code for the MIPS cyclic redundancy check (CRC) Application Specific Extension.
 This tells the assembler to accept CRC instructions.
 @samp{-mno-crc} turns off this option.
+
+@item -mcrypto
+@itemx -mno-crypto
+Generate code for the MIPS Crypto Application Specific Extension.
+This tells the assembler to accept crypto instructions.
+@samp{-mno-crypto} turns off this option.
 
 @item -mdmx
 @itemx -no-mdmx

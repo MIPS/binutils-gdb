@@ -98,6 +98,14 @@
 	crc32b	$4,$7,$4	# ERROR: crc not enabled
 	crc32d	$4,$7,$4	# ERROR: crc not enabled
 
+	.set mips64r6
+	.set crypto		# OK
+	aes128.enc	$4,$7	# OK
+	.set mips32r5		# ERROR: too low
+	aes256.enc	$4,$7,$6	# OK
+	.set nocrypto
+	sha1.ms.1	$4,$7,$6	# ERROR: crypto not enabled
+
 	# There should be no errors after this.
 	.set fp=32
 	.set mips4

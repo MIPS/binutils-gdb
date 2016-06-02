@@ -1326,6 +1326,8 @@ static const unsigned int mips_isa_table[] = {
 /* Cyclic redundancy check (CRC) ASE */
 #define ASE_CRC			0x00100000
 #define ASE_CRC64		0x00200000
+/* Crypto ASE */
+#define ASE_CRYPTO		0x00400000
 
 /* MIPS ISA defines, use instead of hardcoding ISA level.  */
 

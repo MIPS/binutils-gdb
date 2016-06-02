@@ -179,6 +179,13 @@ Extension.
 This tells the assembler to accept CRC instructions.
 @samp{-mno-crc} turns off this option.
 
+@item -mcrypto
+@itemx -mno-crypto
+Generate code for the Crypto Application Specific
+Extension.
+This tells the assembler to accept crypto instructions.
+@samp{-mno-crypto} turns off this option.
+
 @item -mdmx
 @itemx -no-mdmx
 Generate code for the MDMX Application Specific Extension.
@@ -1074,6 +1081,13 @@ from the MXU Extension from that point on in the assembly.  The
 The directive @code{.set crc} makes the assembler accept instructions
 from the CRC Extension from that point on in the assembly.  The
 @code{.set nocrc} directive prevents CRC instructions from being accepted.
+
+@cindex MIPS crypto instruction generation override
+@kindex @code{.set crypto}
+@kindex @code{.set nocrypto}
+The directive @code{.set crypto} makes the assembler accept instructions
+from the crypto extension from that point on in the assembly.  The
+@code{.set nocrypto} directive prevents crypto instructions from being accepted.
 
 Traditional MIPS assemblers do not support these directives.
 

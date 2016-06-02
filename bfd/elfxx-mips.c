@@ -16226,6 +16226,8 @@ print_mips_ases (FILE *file, unsigned int mask)
     fputs ("\n\tMIPS16 E2 Extension", file);
   if (mask & AFL_ASE_CRC)
     fputs ("\n\tCRC ASE", file);
+  if (mask & AFL_ASE_CRYPTO)
+    fputs ("\n\tCRYPTO ASE", file);
   if (mask == 0)
     fprintf (file, "\n\t%s", _("None"));
   else if ((mask & ~AFL_ASE_MASK) != 0)

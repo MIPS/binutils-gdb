@@ -37,3 +37,7 @@
 .*:94: Warning: the `crc' extension requires MIPS64 revision 6 or greater
 .*:98: Error: opcode not supported.* `crc32b \$4,\$7,\$4'
 .*:99: Error: opcode not supported.* `crc32d \$4,\$7,\$4'
+# ----------------------------------------------------------------------------
+.*:118: Warning: the `crypto' extension requires MIPS64 revision 6 or greater
+.*:121: Error: opcode not supported.* `sha1.ms.1	\$4,\$7,\$6'
+# ----------------------------------------------------------------------------
