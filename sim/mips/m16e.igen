@@ -418,7 +418,7 @@
     /* The last parameter of the do_sc function is the instruction itself.
        This is not used in the call to do_sc so for the moment just set
        it to 0.  */
-    do_sc (SD_, TRX, IMMEDIATE, TRY, 0);
+    do_sc (SD_, TRX, IMMEDIATE, TRY, 0, 1);
 }
 
 11110,5.STYPE,000000 + 00110,000,000,101,00:EXT-ATOMIC:16::SYNC
