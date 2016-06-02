@@ -13148,6 +13148,8 @@ print_mips_ases (unsigned int mask)
     fputs ("\n\tXPA ASE", stdout);
   if (mask & AFL_ASE_MIPS16E2)
     fputs ("\n\tMIPS16 E2 Extension", stdout);
+  if (mask & AFL_ASE_CRC)
+    fputs ("\n\tCRC ASE", stdout);
   if (mask == 0)
     fprintf (stdout, "\n\t%s", _("None"));
   else if ((mask & ~AFL_ASE_MASK) != 0)

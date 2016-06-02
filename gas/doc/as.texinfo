@@ -412,6 +412,7 @@ gcc(1), ld(1), and the Info entries for @file{binutils} and @file{ld}.
    [@b{-mmicromips}] [@b{-mno-micromips}]
    [@b{-msmartmips}] [@b{-mno-smartmips}]
    [@b{-mips3d}] [@b{-no-mips3d}]
+   [@b{-mcrc}] [@b{-mno-crc}]
    [@b{-mdmx}] [@b{-no-mdmx}]
    [@b{-mdsp}] [@b{-mno-dsp}]
    [@b{-mdspr2}] [@b{-mno-dspr2}]
@@ -1370,6 +1371,12 @@ equivalent to putting @code{.set smartmips} at the start of the assembly file.
 Generate code for the MIPS-3D Application Specific Extension.
 This tells the assembler to accept MIPS-3D instructions.
 @samp{-no-mips3d} turns off this option.
+
+@item -mcrc
+@itemx -mno-crc
+Generate code for the MIPS cyclic redundancy check (CRC) Application Specific Extension.
+This tells the assembler to accept CRC instructions.
+@samp{-mno-crc} turns off this option.
 
 @item -mdmx
 @itemx -no-mdmx

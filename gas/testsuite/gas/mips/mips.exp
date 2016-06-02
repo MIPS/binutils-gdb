@@ -1272,6 +1272,9 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test_arches "xpa"		[mips_arch_list_matching mips32r2]
     run_dump_test_arches "r5" "-32"	[mips_arch_list_matching mips32r5]
 
+    run_dump_test_arches "crc-mips32"	[mips_arch_list_matching mips32r6 !micromips !micromipsr6]
+    run_dump_test_arches "crc-mips64"	[mips_arch_list_matching mips64r6 !micromips !micromipsr6]
+
     run_dump_test "pcrel-1"
     run_dump_test "pcrel-2"
     run_list_test "pcrel-3" "" "Invalid cross-section PC-relative references"

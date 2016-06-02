@@ -462,6 +462,10 @@ decode_mips_operand (const char *p)
 /* MXU support.  */
 #define MXU	ASE_MXU
 
+/* Cyclic redundancy check instruction (CRC) support.  */
+#define CRC	ASE_CRC
+#define CRC64	ASE_CRC64
+
 /* The order of overloaded instructions matters.  Label arguments and
    register arguments look the same. Instructions that can have either
    for arguments must apear in the correct order in this table for the
@@ -3235,6 +3239,15 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"ctcmsa",		"+l,d",		0x783e0019, 0xffff003f,	RD_2|CM,		0,		0,		MSA,	0 },
 {"cfcmsa",		"+k,+n",	0x787e0019, 0xffff003f,	WR_1|CM,		0,		0,		MSA,	0 },
 {"move.v",		"+d,+e",	0x78be0019, 0xffff003f,	WR_1|RD_2,		0,		0,		MSA,	0 },
+/* MIPS cyclic redundancy check (CRC) ASE.  */
+{"crc32b",		"t,s,-d",	0x7C00000f, 0xfc00ffff,	MOD_1|RD_2,		0,		0,		CRC,	0 },
+{"crc32h",		"t,s,-d",	0x7C00004f, 0xfc00ffff,	MOD_1|RD_2,		0,		0,		CRC,	0 },
+{"crc32w",		"t,s,-d",	0x7C00008f, 0xfc00ffff,	MOD_1|RD_2,		0,		0,		CRC,	0 },
+{"crc32d",		"t,s,-d",	0x7C0000cf, 0xfc00ffff,	MOD_1|RD_2,		0,		0,		CRC64,	0 },
+{"crc32cb",		"t,s,-d",	0x7C00010f, 0xfc00ffff,	MOD_1|RD_2,		0,		0,		CRC,	0 },
+{"crc32ch",		"t,s,-d",	0x7C00014f, 0xfc00ffff,	MOD_1|RD_2,		0,		0,		CRC,	0 },
+{"crc32cw",		"t,s,-d",	0x7C00018f, 0xfc00ffff,	MOD_1|RD_2,		0,		0,		CRC,	0 },
+{"crc32cd",		"t,s,-d",	0x7C0001cf, 0xfc00ffff,	MOD_1|RD_2,		0,		0,		CRC64,	0 },
 
 /* MXU Extension.  */
 {"d16mul",		"`=,`b,`c,`d,`o",	0x70000008, 0xff00003f,	TRAP,		0,		0,		MXU,	0 },
