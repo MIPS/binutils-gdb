@@ -1315,6 +1315,9 @@ static const unsigned int mips_isa_table[] = {
 /* The Enhanced VA Scheme (EVA) extension has instructions which are
    only valid for the R6 ISA.  */
 #define ASE_EVA_R6		0x00040000
+/* Cyclic redundancy check (CRC) ASE */
+#define ASE_CRC			0x00100000
+#define ASE_CRC64		0x00200000
 
 /* MIPS ISA defines, use instead of hardcoding ISA level.  */
 

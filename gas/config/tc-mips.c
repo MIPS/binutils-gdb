@@ -1446,6 +1446,8 @@ enum options
     OPTION_NO_MSA,
     OPTION_SMARTMIPS,
     OPTION_NO_SMARTMIPS,
+    OPTION_CRC,
+    OPTION_NO_CRC,
     OPTION_DSPR2,
     OPTION_NO_DSPR2,
     OPTION_DSPR3,
@@ -1582,6 +1584,8 @@ struct option md_longopts[] =
   {"mno-xpa", no_argument, NULL, OPTION_NO_XPA},
   {"mmips16e2", no_argument, NULL, OPTION_MIPS16E2},
   {"mno-mips16e2", no_argument, NULL, OPTION_NO_MIPS16E2},
+  {"mcrc", no_argument, NULL, OPTION_CRC},
+  {"mno-crc", no_argument, NULL, OPTION_NO_CRC},
 
   /* Old-style architecture options.  Don't add more of these.  */
   {"m4650", no_argument, NULL, OPTION_M4650},
@@ -1703,6 +1707,11 @@ struct mips_ase
 
 /* A table of all supported ASEs.  */
 static const struct mips_ase mips_ases[] = {
+  { "crc", ASE_CRC, ASE_CRC64,
+    OPTION_CRC, OPTION_NO_CRC,
+    6,  6, -1, -1,
+    -1 },
+
   { "dsp", ASE_DSP, ASE_DSP64,
     OPTION_DSP, OPTION_NO_DSP,
     2, 2, 2, 2,
@@ -19292,6 +19301,8 @@ mips_convert_ase_flags (int ase)
 {
   unsigned int ext_ases = 0;
 
+  if (ase & ASE_CRC)
+    ext_ases |= AFL_ASE_CRC;
   if (ase & ASE_DSP)
     ext_ases |= AFL_ASE_DSP;
   if (ase & ASE_DSPR2)
@@ -20308,6 +20319,9 @@ MIPS options:\n\
   fprintf (stream, _("\
 -msmartmips		generate smartmips instructions\n\
 -mno-smartmips		do not generate smartmips instructions\n"));
+  fprintf (stream, _("\
+-mcrc			generate CRC instructions\n\
+-mno-crc		do not generate CRC instructions\n"));
   fprintf (stream, _("\
 -mdsp			generate DSP instructions\n\
 -mno-dsp		do not generate DSP instructions\n"));
