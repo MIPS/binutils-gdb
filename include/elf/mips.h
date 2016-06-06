@@ -261,6 +261,12 @@ END_RELOC_NUMBERS (R_MIPS_maxext)
 /* -mips64r6 code.  */
 #define E_MIPS_ARCH_64R6        0xa0000000
 
+/* -mips32r7 code.  */
+#define E_MIPS_ARCH_32R7        0xb0000000
+
+/* -mips64r7 code.  */
+#define E_MIPS_ARCH_64R7        0xc0000000
+
 /* The ABI of the file.  Also see EF_MIPS_ABI2 above. */
 #define EF_MIPS_ABI		0x0000F000
 

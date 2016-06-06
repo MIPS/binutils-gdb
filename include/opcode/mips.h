@@ -1175,20 +1175,22 @@ mips_opcode_32bit_p (const struct mips_opcode *mo)
 #define INSN_ISA32R3              8
 #define INSN_ISA32R5              9
 #define INSN_ISA32R6              10
-#define INSN_ISA64                11 
-#define INSN_ISA64R2              12
-#define INSN_ISA64R3              13
-#define INSN_ISA64R5              14
-#define INSN_ISA64R6              15
+#define INSN_ISA32R7              11
+#define INSN_ISA64                12 
+#define INSN_ISA64R2              13
+#define INSN_ISA64R3              14
+#define INSN_ISA64R5              15
+#define INSN_ISA64R6              16
+#define INSN_ISA64R7              17
 /* Below this point the INSN_* values correspond to combinations of ISAs.
    They are only for use in the opcodes table to indicate membership of
    a combination of ISAs that cannot be expressed using the usual inclusion
    ordering on the above INSN_* values.  */
-#define INSN_ISA3_32              16
-#define INSN_ISA3_32R2            17
-#define INSN_ISA4_32              18
-#define INSN_ISA4_32R2            19
-#define INSN_ISA5_32R2            20
+#define INSN_ISA3_32              18
+#define INSN_ISA3_32R2            19
+#define INSN_ISA4_32              20
+#define INSN_ISA4_32R2            21
+#define INSN_ISA5_32R2            22
 
 /* The R6 definitions shown below state that they support all previous ISAs.
    This is not actually true as some instructions are removed in R6.
@@ -1234,11 +1236,13 @@ static const unsigned int mips_isa_table[] = {
   INSN_UPTO32R3,
   INSN_UPTO32R5,
   INSN_UPTO32R6,
+  ISAF(32R7),
   INSN_UPTO64,
   INSN_UPTO64R2,
   INSN_UPTO64R3,
   INSN_UPTO64R5,
-  INSN_UPTO64R6
+  INSN_UPTO64R6,
+  ISAF(32R7) | ISAF(64R7)
 };
 #undef ISAF
 
@@ -1345,6 +1349,9 @@ static const unsigned int mips_isa_table[] = {
 #define       ISA_MIPS32R6    INSN_ISA32R6
 #define       ISA_MIPS64R6    INSN_ISA64R6
 
+#define       ISA_MIPS32R7    INSN_ISA32R7
+#define       ISA_MIPS64R7    INSN_ISA64R7
+
 /* CPU defines, use instead of hardcoding processor number. Keep this
    in sync with bfd/archures.c in order for machine selection to work.  */
 #define CPU_UNKNOWN	0               /* Gas internal use.  */
@@ -1377,12 +1384,14 @@ static const unsigned int mips_isa_table[] = {
 #define CPU_MIPS32R3	34
 #define CPU_MIPS32R5	36
 #define CPU_MIPS32R6	37
+#define CPU_MIPS32R7	38
 #define CPU_MIPS5       5
 #define CPU_MIPS64      64
 #define CPU_MIPS64R2	65
 #define CPU_MIPS64R3	66
 #define CPU_MIPS64R5	68
 #define CPU_MIPS64R6	69
+#define CPU_MIPS64R7	70
 #define CPU_SB1         12310201        /* octal 'SB', 01.  */
 #define CPU_LOONGSON_2E 3001
 #define CPU_LOONGSON_2F 3002
@@ -1469,6 +1478,13 @@ cpu_is_member (int cpu, unsigned int mask)
       return ((mask & INSN_ISA_MASK) == INSN_ISA32R6)
 	     || ((mask & INSN_ISA_MASK) == INSN_ISA64R6);
 
+    case CPU_MIPS32R7:
+      return (mask & INSN_ISA_MASK) == INSN_ISA32R7;
+
+    case CPU_MIPS64R7:
+      return ((mask & INSN_ISA_MASK) == INSN_ISA32R7)
+	     || ((mask & INSN_ISA_MASK) == INSN_ISA64R7);
+
     default:
       return FALSE;
     }
@@ -1479,12 +1495,13 @@ cpu_is_member (int cpu, unsigned int mask)
    ISA/ASE bitmask to test against; and CPU is the CPU specific ISA to
    test, or zero if no CPU specific ISA test is desired.  Return true
    if instruction INSN is available to the given ISA and CPU. */
-
+#include <stdio.h>
 static inline bfd_boolean
 opcode_is_member (const struct mips_opcode *insn, int isa, int ase, int cpu)
 {
   if (!cpu_is_member (cpu, insn->exclusions))
     {
+      fprintf(stderr, "isa %x %x %x\n", isa & INSN_ISA_MASK, insn->membership & INSN_ISA_MASK, mips_isa_table[(isa & INSN_ISA_MASK) - 1]);
       /* Test for ISA level compatibility.  */
       if ((isa & INSN_ISA_MASK) != 0
 	  && (insn->membership & INSN_ISA_MASK) != 0
