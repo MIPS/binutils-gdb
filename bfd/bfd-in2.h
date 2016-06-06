@@ -1948,11 +1948,13 @@ enum bfd_architecture
 #define bfd_mach_mipsisa32r3           34
 #define bfd_mach_mipsisa32r5           36
 #define bfd_mach_mipsisa32r6           37
+#define bfd_mach_mipsisa32r7           38
 #define bfd_mach_mipsisa64             64
 #define bfd_mach_mipsisa64r2           65
 #define bfd_mach_mipsisa64r3           66
 #define bfd_mach_mipsisa64r5           68
 #define bfd_mach_mipsisa64r6           69
+#define bfd_mach_mipsisa64r7           70
 #define bfd_mach_mips_micromips        96
 #define bfd_mach_mips_micromipsr6      97
   bfd_arch_i386,      /* Intel 386 */

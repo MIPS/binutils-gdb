@@ -6937,6 +6937,12 @@ _bfd_elf_mips_mach (flagword flags)
 
 	case E_MIPS_ARCH_64R6:
 	  return bfd_mach_mipsisa64r6;
+
+	case E_MIPS_ARCH_32R7:
+	  return bfd_mach_mipsisa32r7;
+
+	case E_MIPS_ARCH_64R7:
+	  return bfd_mach_mipsisa64r7;
 	}
     }
 
@@ -12356,6 +12362,14 @@ mips_set_isa_flags (bfd *abfd)
     case bfd_mach_mipsisa64r6:
       val = E_MIPS_ARCH_64R6;
       break;
+
+    case bfd_mach_mipsisa32r7:
+      val = E_MIPS_ARCH_32R7;
+      break;
+
+    case bfd_mach_mipsisa64r7:
+      val = E_MIPS_ARCH_64R7;
+      break;
     }
   elf_elfheader (abfd)->e_flags &= ~(EF_MIPS_ARCH | EF_MIPS_MACH);
   elf_elfheader (abfd)->e_flags |= val;
@@ -14649,6 +14663,10 @@ update_mips_abiflags_isa (bfd *abfd, Elf_Internal_ABIFlags_v0 *abiflags)
       abiflags->isa_level = 32;
       abiflags->isa_rev = 6;
       break;
+    case E_MIPS_ARCH_32R7:
+      abiflags->isa_level = 32;
+      abiflags->isa_rev = 7;
+      break;
     case E_MIPS_ARCH_64:
       abiflags->isa_level = 64;
       abiflags->isa_rev = 1;
@@ -14662,6 +14680,10 @@ update_mips_abiflags_isa (bfd *abfd, Elf_Internal_ABIFlags_v0 *abiflags)
     case E_MIPS_ARCH_64R6:
       abiflags->isa_level = 64;
       abiflags->isa_rev = 6;
+      break;
+    case E_MIPS_ARCH_64R7:
+      abiflags->isa_level = 64;
+      abiflags->isa_rev = 7;
       break;
     default:
       (*_bfd_error_handler)
@@ -14684,7 +14706,8 @@ mips_32bit_flags_p (flagword flags)
 	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_2
 	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32
 	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R2
-	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R6);
+	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R6
+	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R7);
 }
 
 /* Infer the content of the ABI flags based on the elf header.  */
@@ -15536,6 +15559,10 @@ mips_mach_extends_p (unsigned long base, unsigned long extension)
 
   if (base == bfd_mach_mipsisa32r6
       && mips_mach_extends_p (bfd_mach_mipsisa64r6, extension))
+    return TRUE;
+
+  if (base == bfd_mach_mipsisa32r7
+      && mips_mach_extends_p (bfd_mach_mipsisa64r7, extension))
     return TRUE;
 
   for (i = 0; i < ARRAY_SIZE (mips_mach_extensions); i++)
@@ -16416,6 +16443,10 @@ _bfd_mips_elf_print_private_bfd_data (bfd *abfd, void *ptr)
     fprintf (file, " [mips32r6]");
   else if ((elf_elfheader (abfd)->e_flags & EF_MIPS_ARCH) == E_MIPS_ARCH_64R6)
     fprintf (file, " [mips64r6]");
+  else if ((elf_elfheader (abfd)->e_flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R7)
+    fprintf (file, " [mips32r7]");
+  else if ((elf_elfheader (abfd)->e_flags & EF_MIPS_ARCH) == E_MIPS_ARCH_64R7)
+    fprintf (file, " [mips64r7]");
   else
     fprintf (file, _(" [unknown ISA]"));
 

@@ -377,11 +377,13 @@ static int mips_32bitmode = 0;
    || (ISA) == ISA_MIPS32R3		\
    || (ISA) == ISA_MIPS32R5		\
    || (ISA) == ISA_MIPS32R6		\
+   || (ISA) == ISA_MIPS32R7		\
    || (ISA) == ISA_MIPS64		\
    || (ISA) == ISA_MIPS64R2		\
    || (ISA) == ISA_MIPS64R3		\
    || (ISA) == ISA_MIPS64R5		\
-   || (ISA) == ISA_MIPS64R6)
+   || (ISA) == ISA_MIPS64R6		\
+   || (ISA) == ISA_MIPS64R7)
 
 /* Return true if ISA supports 64-bit right rotate (dror et al.)
    instructions.  */
@@ -416,11 +418,13 @@ static int mips_32bitmode = 0;
     || (ISA) == ISA_MIPS32R3		\
     || (ISA) == ISA_MIPS32R5		\
     || (ISA) == ISA_MIPS32R6		\
+    || (ISA) == ISA_MIPS32R7		\
     || (ISA) == ISA_MIPS64		\
     || (ISA) == ISA_MIPS64R2		\
     || (ISA) == ISA_MIPS64R3		\
     || (ISA) == ISA_MIPS64R5		\
     || (ISA) == ISA_MIPS64R6		\
+    || (ISA) == ISA_MIPS64R7		\
     || (CPU) == CPU_R5900)		\
    && (CPU) != CPU_LOONGSON_3A)
 
@@ -431,10 +435,12 @@ static int mips_32bitmode = 0;
    || (ISA) == ISA_MIPS32R3		\
    || (ISA) == ISA_MIPS32R5		\
    || (ISA) == ISA_MIPS32R6		\
+   || (ISA) == ISA_MIPS32R7		\
    || (ISA) == ISA_MIPS64R2		\
    || (ISA) == ISA_MIPS64R3		\
    || (ISA) == ISA_MIPS64R5		\
-   || (ISA) == ISA_MIPS64R6)
+   || (ISA) == ISA_MIPS64R6		\
+   || (ISA) == ISA_MIPS64R7)
 
 /*  Return true if ISA supports legacy NAN.  */
 #define ISA_HAS_LEGACY_NAN(ISA)		\
@@ -538,11 +544,13 @@ static int mips_32bitmode = 0;
    || mips_opts.isa == ISA_MIPS32R3                   \
    || mips_opts.isa == ISA_MIPS32R5                   \
    || mips_opts.isa == ISA_MIPS32R6                   \
+   || mips_opts.isa == ISA_MIPS32R7                   \
    || mips_opts.isa == ISA_MIPS64                     \
    || mips_opts.isa == ISA_MIPS64R2                   \
    || mips_opts.isa == ISA_MIPS64R3                   \
    || mips_opts.isa == ISA_MIPS64R5                   \
    || mips_opts.isa == ISA_MIPS64R6                   \
+   || mips_opts.isa == ISA_MIPS64R7                   \
    || mips_opts.arch == CPU_R4010                     \
    || mips_opts.arch == CPU_R5900                     \
    || mips_opts.arch == CPU_R10000                    \
@@ -1388,10 +1396,12 @@ enum options
     OPTION_MIPS32R3,
     OPTION_MIPS32R5,
     OPTION_MIPS32R6,
+    OPTION_MIPS32R7,
     OPTION_MIPS64R2,
     OPTION_MIPS64R3,
     OPTION_MIPS64R5,
     OPTION_MIPS64R6,
+    OPTION_MIPS64R7,
     OPTION_MIPS16,
     OPTION_NO_MIPS16,
     OPTION_MIPS3D,
@@ -1502,10 +1512,12 @@ struct option md_longopts[] =
   {"mips32r3", no_argument, NULL, OPTION_MIPS32R3},
   {"mips32r5", no_argument, NULL, OPTION_MIPS32R5},
   {"mips32r6", no_argument, NULL, OPTION_MIPS32R6},
+  {"mips32r7", no_argument, NULL, OPTION_MIPS32R7},
   {"mips64r2", no_argument, NULL, OPTION_MIPS64R2},
   {"mips64r3", no_argument, NULL, OPTION_MIPS64R3},
   {"mips64r5", no_argument, NULL, OPTION_MIPS64R5},
   {"mips64r6", no_argument, NULL, OPTION_MIPS64R6},
+  {"mips64r7", no_argument, NULL, OPTION_MIPS64R7},
 
   /* Options which specify Application Specific Extensions (ASEs).  */
   {"mips16", no_argument, NULL, OPTION_MIPS16},
@@ -1972,6 +1984,9 @@ mips_isa_rev (void)
 
   if (mips_opts.isa == ISA_MIPS32R6 || mips_opts.isa == ISA_MIPS64R6)
     return 6;
+
+  if (mips_opts.isa == ISA_MIPS32R7 || mips_opts.isa == ISA_MIPS64R7)
+    return 7;
 
   /* microMIPS implies revision 2 or above.  */
   if (mips_opts.micromips)
@@ -14129,6 +14144,10 @@ md_parse_option (int c, char *arg)
       file_mips_opts.isa = ISA_MIPS32R6;
       break;
 
+    case OPTION_MIPS32R7:
+      file_mips_opts.isa = ISA_MIPS32R7;
+      break;
+
     case OPTION_MIPS64R2:
       file_mips_opts.isa = ISA_MIPS64R2;
       break;
@@ -14143,6 +14162,10 @@ md_parse_option (int c, char *arg)
 
     case OPTION_MIPS64R6:
       file_mips_opts.isa = ISA_MIPS64R6;
+      break;
+
+    case OPTION_MIPS64R7:
+      file_mips_opts.isa = ISA_MIPS64R7;
       break;
 
     case OPTION_MIPS64:
@@ -15714,6 +15737,7 @@ s_mipsset (int x ATTRIBUTE_UNUSED)
 	    mips_opts.fp = 32;
 	  break;
 	case ISA_MIPS32R6:
+	case ISA_MIPS32R7:
 	  mips_opts.gp = 32;
 	  mips_opts.fp = 64;
 	  break;
@@ -15725,6 +15749,7 @@ s_mipsset (int x ATTRIBUTE_UNUSED)
 	case ISA_MIPS64R3:
 	case ISA_MIPS64R5:
 	case ISA_MIPS64R6:
+	case ISA_MIPS64R7:
 	  mips_opts.gp = 64;
 	  if (mips_opts.fp != 0)
 	    {
@@ -17979,6 +18004,10 @@ mips_elf_final_processing (void)
       flags.isa_level = 32;
       flags.isa_rev = 6;
       break;
+    case INSN_ISA32R7:
+      flags.isa_level = 32;
+      flags.isa_rev = 7;
+      break;
     case INSN_ISA64:
       flags.isa_level = 64;
       flags.isa_rev = 1;
@@ -17998,6 +18027,10 @@ mips_elf_final_processing (void)
     case INSN_ISA64R6:
       flags.isa_level = 64;
       flags.isa_rev = 6;
+      break;
+    case INSN_ISA64R7:
+      flags.isa_level = 64;
+      flags.isa_rev = 7;
       break;
     }
 
@@ -18547,11 +18580,13 @@ static const struct mips_cpu_info mips_cpu_info_table[] =
   { "mips32r3",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS32R3, CPU_MIPS32R3 },
   { "mips32r5",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS32R5, CPU_MIPS32R5 },
   { "mips32r6",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS32R6, CPU_MIPS32R6 },
+  { "mips32r7",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS32R7, CPU_MIPS32R7 },
   { "mips64",         MIPS_CPU_IS_ISA, 0,	ISA_MIPS64,   CPU_MIPS64 },
   { "mips64r2",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS64R2, CPU_MIPS64R2 },
   { "mips64r3",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS64R3, CPU_MIPS64R3 },
   { "mips64r5",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS64R5, CPU_MIPS64R5 },
   { "mips64r6",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS64R6, CPU_MIPS64R6 },
+  { "mips64r7",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS64R7, CPU_MIPS64R7 },
 
   /* MIPS I */
   { "r3000",          0, 0,			ISA_MIPS1,    CPU_R3000 },
@@ -18869,11 +18904,13 @@ MIPS options:\n\
 -mips32r3               generate MIPS32 release 3 ISA instructions\n\
 -mips32r5               generate MIPS32 release 5 ISA instructions\n\
 -mips32r6               generate MIPS32 release 6 ISA instructions\n\
+-mips32r7               generate MIPS32 release 7 ISA instructions\n\
 -mips64                 generate MIPS64 ISA instructions\n\
 -mips64r2               generate MIPS64 release 2 ISA instructions\n\
 -mips64r3               generate MIPS64 release 3 ISA instructions\n\
 -mips64r5               generate MIPS64 release 5 ISA instructions\n\
 -mips64r6               generate MIPS64 release 6 ISA instructions\n\
+-mips64r7               generate MIPS64 release 7 ISA instructions\n\
 -march=CPU/-mtune=CPU	generate code/schedule for CPU, where CPU is one of:\n"));
 
   first = 1;
