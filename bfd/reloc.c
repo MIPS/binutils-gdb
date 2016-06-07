@@ -2321,6 +2321,13 @@ ENUMDOC
 as it is during any transformation/relaxation.
 
 ENUM
+  BFD_RELOC_MICROMIPS_RELAX
+ENUMX
+  BFD_RELOC_MICROMIPS_NORELAX
+ENUMDOC
+  Code regions marked with these relocations are not relaxed.
+
+ENUM
   BFD_RELOC_MIPS_21_PCREL_S2
 ENUMX
   BFD_RELOC_MIPS_26_PCREL_S2

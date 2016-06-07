@@ -170,7 +170,9 @@ START_RELOC_NUMBERS (elf_mips_reloc_type)
   RELOC_NUMBER (R_MICROMIPS_INSN32, 185)
   RELOC_NUMBER (R_MICROMIPS_INSN16, 186)
   RELOC_NUMBER (R_MICROMIPS_FIXED, 187)
-  FAKE_RELOC (R_MICROMIPS_max, 188)
+  RELOC_NUMBER (R_MICROMIPS_RELAX, 188)
+  RELOC_NUMBER (R_MICROMIPS_NORELAX, 189)
+  FAKE_RELOC (R_MICROMIPS_max, 190)
 
   /* This was a GNU extension used by embedded-PIC.  It was co-opted by
      mips-linux for exception-handling data.  GCC stopped using it in
@@ -1269,6 +1271,9 @@ extern void bfd_mips_elf_swap_abiflags_v0_out
 
 /* Masks for the flags1 word of an ABI flags structure.  */
 #define AFL_FLAGS1_ODDSPREG   1	 /* Uses odd single-precision registers.  */
+
+/* Masks for the flags2 word of an ABI flags structure.  */
+#define AFL_FLAGS2_RELAX      1	 /* Module is safe to relax.  */
 
 extern unsigned int bfd_mips_isa_ext (bfd *);
 

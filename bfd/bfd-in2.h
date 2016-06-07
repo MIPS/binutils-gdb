@@ -2964,6 +2964,10 @@ relaxation/transformation.  */
 as it is during any transformation/relaxation.  */
   BFD_RELOC_MICROMIPS_FIXED,
 
+/* Code regions marked with these relocations are not relaxed.  */
+  BFD_RELOC_MICROMIPS_RELAX,
+  BFD_RELOC_MICROMIPS_NORELAX,
+
 /* MIPS PC-relative relocations.  */
   BFD_RELOC_MIPS_21_PCREL_S2,
   BFD_RELOC_MIPS_26_PCREL_S2,

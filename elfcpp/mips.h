@@ -168,6 +168,8 @@ enum
   R_MICROMIPS_INSN32 = 185,
   R_MICROMIPS_INSN16 = 186,
   R_MICROMIPS_FIXED = 187,
+  R_MICROMIPS_RELAX = 188,
+  R_MICROMIPS_NORELAX = 189,
 
   // This was a GNU extension used by embedded-PIC.  It was co-opted by
   // mips-linux for exception-handling data.  GCC stopped using it in

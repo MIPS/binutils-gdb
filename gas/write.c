@@ -1189,6 +1189,23 @@ get_frag_for_reloc (fragS *last_frag,
   return NULL;
 }
 
+/* Comparison function used by qsort.  */
+
+static int
+reloc_sort (const void *a, const void *b)
+{
+  const arelent *reloc1 = *(arelent **)a;
+  const arelent *reloc2 = *(arelent **)b;
+
+  if (reloc1->address < reloc2->address)
+    return -1;
+  if (reloc1->address > reloc2->address)
+    return 1;
+
+  return 0;
+}
+
+
 static void
 write_relocs (bfd *abfd, asection *sec, void *xxx ATTRIBUTE_UNUSED)
 {
@@ -1321,6 +1338,7 @@ write_relocs (bfd *abfd, asection *sec, void *xxx ATTRIBUTE_UNUSED)
     {
       flagword flags = bfd_get_section_flags (abfd, sec);
       flags |= SEC_RELOC;
+      qsort (relocs, n, sizeof (relocs[0]), reloc_sort);
       bfd_set_section_flags (abfd, sec, flags);
       bfd_set_reloc (stdoutput, sec, relocs, n);
     }

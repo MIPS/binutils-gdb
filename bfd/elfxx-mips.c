@@ -6365,15 +6365,6 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       /* We don't do anything with these at present.  */
       return bfd_reloc_continue;
 
-    case R_MICROMIPS_ALIGN:
-    case R_MICROMIPS_FILL:
-    case R_MICROMIPS_MAX:
-    case R_MICROMIPS_INSN32:
-    case R_MICROMIPS_INSN16:
-    case R_MICROMIPS_FIXED:
-      /* These relocations are handled during relaxation pass.  */
-      return bfd_reloc_continue;
-
     default:
       /* An unrecognized relocation type.  */
       return bfd_reloc_notsupported;
@@ -10236,6 +10227,13 @@ _bfd_mips_elf_relocate_section (bfd *output_bfd, struct bfd_link_info *info,
       struct elf_link_hash_entry *h;
       bfd_boolean rel_reloc;
 
+      /* These relocations are handled during relaxation pass.  */
+      if (r_type == R_MICROMIPS_ALIGN || r_type == R_MICROMIPS_FILL
+	  || r_type == R_MICROMIPS_MAX || r_type == R_MICROMIPS_INSN32
+	  || r_type == R_MICROMIPS_INSN16 || r_type == R_MICROMIPS_FIXED
+	  || r_type == R_MICROMIPS_RELAX || r_type == R_MICROMIPS_NORELAX)
+	continue;
+
       rel_reloc = (NEWABI_P (input_bfd)
 		   && mips_elf_rel_relocation_p (input_bfd, input_section,
 						 relocs, rel));
@@ -10411,7 +10409,15 @@ _bfd_mips_elf_relocate_section (bfd *output_bfd, struct bfd_link_info *info,
 	 for the next.  */
       if (rel + 1 < relend
 	  && rel->r_offset == rel[1].r_offset
-	  && ELF_R_TYPE (input_bfd, rel[1].r_info) != R_MIPS_NONE)
+	  && ELF_R_TYPE (input_bfd, rel[1].r_info) != R_MIPS_NONE
+	  && ELF_R_TYPE (input_bfd, rel[1].r_info) != R_MICROMIPS_ALIGN
+	  && ELF_R_TYPE (input_bfd, rel[1].r_info) != R_MICROMIPS_FILL
+	  && ELF_R_TYPE (input_bfd, rel[1].r_info) != R_MICROMIPS_MAX
+	  && ELF_R_TYPE (input_bfd, rel[1].r_info) != R_MICROMIPS_INSN32
+	  && ELF_R_TYPE (input_bfd, rel[1].r_info) != R_MICROMIPS_INSN16
+	  && ELF_R_TYPE (input_bfd, rel[1].r_info) != R_MICROMIPS_FIXED
+	  && ELF_R_TYPE (input_bfd, rel[1].r_info) != R_MICROMIPS_RELAX
+	  && ELF_R_TYPE (input_bfd, rel[1].r_info) != R_MICROMIPS_NORELAX)
 	use_saved_addend_p = TRUE;
       else
 	use_saved_addend_p = FALSE;
@@ -13408,8 +13414,13 @@ mips_elf_relax_add_bytes (bfd *abfd,
   /* Adjust all the relocs.  */
   for (irel = elf_section_data (sec)->relocs; irel < irelend; irel++)
     {
+      /* Do not move R_MICROMIPS_ALIGN relocations.  */
+      if (irel->r_offset == addr
+	  && ELF32_R_TYPE (irel->r_info) == R_MICROMIPS_ALIGN)
+	continue;
+
       /* Get the new reloc address.  */
-      if (irel->r_offset > addr)
+      if (irel->r_offset >= addr)
 	irel->r_offset += count;
     }
 
@@ -13885,7 +13896,8 @@ is_norelax (const bfd_vma offset, const Elf_Internal_Rela *rel,
 	break;
 
       if (ELF32_R_TYPE (rel->r_info) == R_MICROMIPS_INSN32
-	  || ELF32_R_TYPE (rel->r_info) == R_MICROMIPS_FIXED)
+	  || ELF32_R_TYPE (rel->r_info) == R_MICROMIPS_FIXED
+	  || ELF32_R_TYPE (rel->r_info) == R_MICROMIPS_NORELAX)
 	return TRUE;
     }
 
@@ -14018,6 +14030,7 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
   Elf_Internal_Sym *isymbuf = NULL;
   asection *target_sec = NULL;
   bfd_boolean do_align = FALSE;
+  bfd_boolean seen_norelax = FALSE;
 
   /* Assume nothing changes.  */
   *again = FALSE;
@@ -14030,6 +14043,11 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
       || (sec->flags & SEC_RELOC) == 0
       || sec->reloc_count == 0
       || (sec->flags & SEC_CODE) == 0)
+    return TRUE;
+
+  /* Do not relax this module if it is not marked with AFL_FLAGS2_RELAX.  */
+  if ((mips_elf_tdata (abfd)->abiflags.flags2 & AFL_FLAGS2_RELAX)
+      != AFL_FLAGS2_RELAX)
     return TRUE;
 
   symtab_hdr = &elf_tdata (abfd)->symtab_hdr;
@@ -14068,12 +14086,13 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
 	  && r_type != R_MICROMIPS_PC26_S1
 	  && r_type != R_MICROMIPS_PC21_S1
 	  && r_type != R_MICROMIPS_LO16
-	  && r_type != R_MICROMIPS_ALIGN)
+	  && r_type != R_MICROMIPS_ALIGN
+	  && r_type != R_MICROMIPS_NORELAX
+	  && r_type != R_MICROMIPS_RELAX)
 	continue;
 
-      /* Skip instructions marked with R_MICROMIPS_INSN32 and/or
-         R_MICROMIPS_FIXED relocations.  */
-      if (is_norelax (irel->r_offset, irel + 1, irelend))
+      /* Only 32-bit instructions relaxed.  */
+      if (irel->r_offset + 4 > sec->size)
 	continue;
 
       /* Get the section contents if we haven't done so already.  */
@@ -14156,10 +14175,6 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
          that would be more work, but would require less memory when
          the linker is run.  */
 
-      /* Only 32-bit instructions relaxed.  */
-      if (irel->r_offset + 4 > sec->size)
-	continue;
-
       opcode = bfd_get_micromips_32 (abfd, ptr);
 
       /* This is the pc-relative distance from the instruction the
@@ -14222,10 +14237,38 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
 	  continue;
 	}
 
+      /* The R_MICROMIPS_NORELAX and R_MICROMIPS_RELAX are generated at
+         the start of relocation table.  A module might contain any one or
+         both of these relocations.  Presence of R_MICROMIPS_RELAX without
+         R_MICROMIPS_NORELAX has no meaning because a module is relaxed only
+         if AFL_FLAGS2_RELAX flag is set.  Thus user cannot select a region
+         of code to relax whereas rest of the module is a no-relax.  However
+         reverse is possible with the help of R_MICROMIPS_NORELAX followed by
+         a R_MICROMIPS_RELAX relocation.  */
+      if (r_type == R_MICROMIPS_NORELAX)
+	{
+	  seen_norelax = TRUE;
+	  continue;
+	}
+
+      if (r_type == R_MICROMIPS_RELAX)
+	{
+	  seen_norelax = FALSE;
+	  continue;
+	}
+
+      if (seen_norelax == TRUE)
+	continue;
+
+      /* Skip instructions marked with R_MICROMIPS_INSN32 and/or
+         R_MICROMIPS_FIXED relocations.  */
+      if (is_norelax (irel->r_offset, irel + 1, irelend))
+	continue;
+
       /* R_MICROMIPS_PC26_S1 relaxation to R_MICROMIPS_PC10_S1.  */
-      else if (!insn32 && MIPSR6_P (abfd)
-	       && r_type == R_MICROMIPS_PC26_S1
-	       && (opcidx = find_match (opcode, micromips_bc_PC26)) >= 0)
+      if (!insn32 && MIPSR6_P (abfd)
+	  && r_type == R_MICROMIPS_PC26_S1
+	  && (opcidx = find_match (opcode, micromips_bc_PC26)) >= 0)
 	{
 	  bfd_vma addend = opcode & 0x03ffffff;
 	  unsigned int new_opcode;
@@ -16056,17 +16099,13 @@ _bfd_mips_elf_merge_private_bfd_data (bfd *ibfd, bfd *obfd)
 	(*_bfd_error_handler)
 	  (_("%B: warning: Inconsistent ISA extensions between e_flags and "
 	     ".MIPS.abiflags"), ibfd);
-      if (in_abiflags.flags2 != 0)
-	(*_bfd_error_handler)
-	  (_("%B: warning: Unexpected flag in the flags2 field of "
-	     ".MIPS.abiflags (0x%lx)"), ibfd,
-	   (unsigned long) in_abiflags.flags2);
     }
 
   if (!mips_elf_tdata (obfd)->abiflags_valid)
     {
       /* Copy input abiflags if output abiflags are not already valid.  */
       mips_elf_tdata (obfd)->abiflags = mips_elf_tdata (ibfd)->abiflags;
+      mips_elf_tdata (obfd)->abiflags.flags2 = (unsigned long) -1;
       mips_elf_tdata (obfd)->abiflags_valid = TRUE;
     }
 
@@ -16116,6 +16155,8 @@ _bfd_mips_elf_merge_private_bfd_data (bfd *ibfd, bfd *obfd)
     |= mips_elf_tdata (ibfd)->abiflags.ases;
   mips_elf_tdata (obfd)->abiflags.flags1
     |= mips_elf_tdata (ibfd)->abiflags.flags1;
+  mips_elf_tdata (obfd)->abiflags.flags2
+    &= mips_elf_tdata (ibfd)->abiflags.flags2;
 
   new_flags = elf_elfheader (ibfd)->e_flags;
   elf_elfheader (obfd)->e_flags |= new_flags & EF_MIPS_NOREORDER;
