@@ -280,9 +280,13 @@ struct mips_set_options
 
   /* Enable/disable balc stub optimization.  */
   bfd_boolean no_balc_stubs;
+
   /* Whether we are assembling for the nanoMIPS ASE.  Always enabled for
      ISAR7 and above.  */
   int nanomips;
+
+  /* True if module is safe to relax.  Set by .relax directive.  */
+  bfd_boolean relax;
 
   /* Enable/disable register names, only for nanoMIPS.  */
   bfd_boolean legacyregs;
@@ -309,7 +313,7 @@ static struct mips_set_options file_mips_opts =
   /* gp */ -1, /* fp */ -1, /* arch */ CPU_UNKNOWN, /* sym32 */ FALSE,
   /* soft_float */ FALSE, /* single_float */ FALSE, /* oddspreg */ -1,
   /* init_ase */ 0, /* forbidden_slots */ 0, /* no_balc_stubs */ FALSE,
-  /* nanomips */ FALSE, /* legacyregs */ FALSE
+  /* nanomips */ FALSE, /* relax */ FALSE, /* legacyregs */ FALSE
 };
 
 /* This is similar to file_mips_opts, but for the current set of options.  */
@@ -322,7 +326,7 @@ static struct mips_set_options mips_opts =
   /* gp */ -1, /* fp */ -1, /* arch */ CPU_UNKNOWN, /* sym32 */ FALSE,
   /* soft_float */ FALSE, /* single_float */ FALSE, /* oddspreg */ -1,
   /* init_ase */ 0, /* forbidden_slots */ 0, /* no_balc_stubs */ FALSE,
-  /* nanomips */ FALSE, /* legacyregs */ FALSE
+  /* nanomips */ FALSE, /* relax */, /* legacyregs */ FALSE
 };
 
 /* Which bits of file_ase were explicitly set or cleared by ASE options.  */
@@ -687,6 +691,10 @@ static int mips_disable_float_construction;
 /* Non-zero if any .set noreorder directives were used.  */
 
 static int mips_any_noreorder;
+
+/* Non-zero if .set [no]relax directive was used */
+static int mips_set_relax = 0;
+static int mips_set_norelax = 0;
 
 /* Non-zero if nops should be inserted when the register referenced in
    an mfhi/mflo instruction is read in the next two instructions.  */
@@ -1493,6 +1501,7 @@ static void s_mips_stab (int);
 static void s_mips_weakext (int);
 static void s_mips_file (int);
 static void s_mips_loc (int);
+static void s_relax (int);
 static bfd_boolean pic_need_relax (symbolS *, asection *);
 static int relaxed_branch_length (fragS *, asection *, int);
 static int relaxed_micromips_16bit_branch_length (fragS *, asection *, int);
@@ -2020,6 +2029,8 @@ static const pseudo_typeS mips_pseudo_table[] =
      for jump offset tables.  */
   {"sbyte", s_sign_cons, 0},
   {"shword", s_sign_cons, 1},
+
+  { "relax", s_relax, 0},
 
   { NULL, NULL, 0 },
 };
@@ -9704,6 +9715,20 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 					   : BFD_RELOC_MICROMIPS_INSN32);
 	}
     }
+
+  if (mips_set_norelax != 0)
+    {
+      mips_set_norelax = 0;
+      fix_new (ip->frag, ip->where, 0, &abs_symbol, 0, FALSE,
+	       BFD_RELOC_MICROMIPS_NORELAX);
+    }
+  else if (mips_set_relax != 0)
+    {
+      mips_set_relax = 0;
+      fix_new (ip->frag, ip->where, 0, &abs_symbol, 0, FALSE,
+	       BFD_RELOC_MICROMIPS_RELAX);
+    }
+
   install_insn (ip);
 
   /* Update the register mask information.  */
@@ -20068,7 +20093,9 @@ mips_force_relocation (fixS *fixp)
 
   if (fixp->fx_r_type == BFD_RELOC_MICROMIPS_INSN32
       || fixp->fx_r_type == BFD_RELOC_MICROMIPS_INSN16
-      || fixp->fx_r_type == BFD_RELOC_MICROMIPS_FIXED)
+      || fixp->fx_r_type == BFD_RELOC_MICROMIPS_FIXED
+      || fixp->fx_r_type == BFD_RELOC_MICROMIPS_RELAX
+      || fixp->fx_r_type == BFD_RELOC_MICROMIPS_NORELAX)
     return 1;
 
   /* We want to keep BFD_RELOC_MICROMIPS_*_PCREL_S1 relocation,
@@ -20200,7 +20227,9 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 
   if (fixP->fx_r_type == BFD_RELOC_MICROMIPS_INSN32
       || fixP->fx_r_type == BFD_RELOC_MICROMIPS_INSN16
-      || fixP->fx_r_type == BFD_RELOC_MICROMIPS_FIXED)
+      || fixP->fx_r_type == BFD_RELOC_MICROMIPS_FIXED
+      || fixP->fx_r_type == BFD_RELOC_MICROMIPS_RELAX
+      || fixP->fx_r_type == BFD_RELOC_MICROMIPS_NORELAX)
     return;
 
   /* Handle BFD_RELOC_8, since it's easy.  Punt on other bfd relocations
@@ -21274,6 +21303,10 @@ s_mipsset (int x ATTRIBUTE_UNUSED)
 	  free (s);
 	}
     }
+  else if (strcmp (name, "norelax") == 0)
+    mips_set_norelax = 1;
+  else if (strcmp (name, "relax") == 0)
+    mips_set_relax = 1;
   else if (!parse_code_option (name))
     as_warn (_("tried to set unrecognized symbol: %s\n"), name);
 
@@ -24179,6 +24212,8 @@ mips_elf_final_processing (void)
       && file_mips_opts.oddspreg)
     flags.flags1 |= AFL_FLAGS1_ODDSPREG;
   flags.flags2 = 0;
+  if (mips_opts.relax == TRUE)
+    flags.flags2 |= AFL_FLAGS2_RELAX;
 
   bfd_mips_elf_swap_abiflags_v0_out (stdoutput, &flags,
 				     ((Elf_External_ABIFlags_v0 *)
@@ -24542,6 +24577,14 @@ s_mips_loc (int x ATTRIBUTE_UNUSED)
 {
   if (!ECOFF_DEBUGGING)
     dwarf2_directive_loc (0);
+}
+
+/* The .relax directive.  */
+
+static void
+s_relax (int x ATTRIBUTE_UNUSED)
+{
+  mips_opts.relax = TRUE;
 }
 
 /* The .end directive.  */
