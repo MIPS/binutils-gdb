@@ -1,0 +1,68 @@
+// Simulator definition for the micromips ASE.
+// Copyright (C) 2005-2014 Free Software Foundation, Inc.
+// Contributed by Imagination Technologies, Ltd.
+// Written by Ali Lown <ali.lown@imgtec.com>
+//
+// This file is part of GDB, the GNU debugger.
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+00000000000000000000000000000000:R7DUMMY:32,f::DUMMY0.fmt
+"dummy 0"
+*mips32r7:
+*mips64r7:
+{
+  /* Just needed so GNUSIM builds */
+}
+
+00000000000000000000000000000001:R7DUMMY:32,f::DUMMY1.fmt
+"dummy 1"
+*mips32r7:
+*mips64r7:
+{
+  /* Just needed so GNUSIM builds (needs at least 2 instructions) */
+}
+
+001000,5.RT,5.RS,5.RD,0,1001010,000:R7POOL32A0:32::AND
+"and r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_and (SD_, RS, RT, RD);
+}
+
+001000,5.RT,5.RS,5.RD,0,1010010,000:R7POOL32A0:32::OR
+"or r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_or (SD_, RS, RT, RD);
+}
+
+010100,3.RD,3.RS,10,0,0:R7POOL16C00:16::AND16
+"and16 r<TRD>, r<TRS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_and (SD_, TRS, TRD, TRD);
+}
+
+010100,3.RD,3.RS,11,0,0:R7POOL16C00:16::OR16
+"or16 r<TRD>, r<TRS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_or (SD_, TRS, TRD, TRD);
+}
+

@@ -47,9 +47,11 @@
 :model:::mips32:mipsisa32:
 :model:::mips32r2:mipsisa32r2:
 :model:::mips32r6:mipsisa32r6:
+:model:::mips32r7:mipsisa32r7:
 :model:::mips64:mipsisa64:
 :model:::mips64r2:mipsisa64r2:
 :model:::mips64r6:mipsisa64r6:
+:model:::mips64r7:mipsisa64r7:
 
 //  Vendor ISAs:
 //
@@ -80,7 +82,9 @@
 :model:::micromips64:micromips64:	// micromips.igen
 :model:::micromipsdsp:micromipsdsp:	// micromipsdsp.igen
 :model:::micromips32r6:micromips32r6:	// micromipsr6.igen
+:model:::micromips32r7:micromips32r7:	// micromipsr7.igen
 :model:::micromips64r6:micromips64r6:	// micromipsr6.igen
+:model:::micromips64r7:micromips64r7:	// micromipsr7.igen
 
 //  Vendor Extensions
 //
@@ -5560,16 +5564,20 @@
 *mips32:
 *mips32r2:
 *mips32r6:
+*mips32r7:
 *mips64:
 *mips64r2:
 *mips64r6:
+*mips64r7:
 *vr4100:
 *vr5000:
 *r3900:
 *micromips32:
 *micromips32r6:
+*micromips32r7:
 *micromips64:
 *micromips64r6:
+*micromips64r7:
 {
   if (! COP_Usable (1))
     SignalExceptionCoProcessorUnusable (1);
@@ -7162,3 +7170,4 @@
 :include:::micromips.igen
 :include:::micromipsdsp.igen
 :include:::micromipsr6.igen
+:include:::micromipsr7.igen

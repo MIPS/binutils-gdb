@@ -116,6 +116,7 @@ IGEN_INCLUDE=\
 	$(srcdir)/micromipsdsp.igen \
 	$(srcdir)/micromips.igen \
 	$(srcdir)/micromipsr6.igen \
+	$(srcdir)/micromipsr7.igen \
 	$(srcdir)/m16.igen \
 	$(srcdir)/m16e.igen \
 	$(srcdir)/mdmx.igen \

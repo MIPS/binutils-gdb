@@ -151,10 +151,12 @@ case "${target}" in
   mips*-img-elf*)
 			sim_gen=MULTI
 			sim_multi_configs="\
-			  micror6sim:micromips64r6,micromipsdsp:mips64r6:32,64,f:mipsisa64r6,mipsisa32r6:EF_MIPS_ARCH_ASE_MICROMIPS
+			  micror7sim:micromips64r7:mips64r7:32,64,f:mipsisa64r7,mipsisa32r7:EF_MIPS_ARCH_ASE_MICROMIPS
+			  micror6sim:micromips64r6:mips64r6:32,64,f:mipsisa64r6,mipsisa32r6:EF_MIPS_ARCH_ASE_MICROMIPS
 			  micror2sim:micromips64,micromipsdsp:mips64r2:32,64,f:mipsisa64r2,mipsisa32r2:EF_MIPS_ARCH_ASE_MICROMIPS
 			  r2sim:mips64r2,mips16,mips16e,mdmx,dsp,dsp2,mips3d,smartmips::32,64,f:mipsisa64r2,mipsisa32r2,mipsisa64r5,mipsisa32r5:\
-			  r6sim:mips64r6::32,64,f:mipsisa64r6,mipsisa32r6:"
+			  r6sim:mips64r6::32,64,f:mipsisa64r6,mipsisa32r6:\
+			  r7sim:mips64r7::32,64,f:mipsisa64r7,mipsisa32r7:"
 			sim_multi_default=mipsisa64r6
 			;;
   mips64*-*-*)		sim_igen_filter="32,64,f"
