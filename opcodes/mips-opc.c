@@ -3253,12 +3253,12 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"crc32cd",		"t,s,-d",	0x7C0001cf, 0xfc00ffff,	MOD_1|RD_2,		0,		0,		CRC64,	0 },
 
 /* MIPS Crypto ASE.  */
-{"aes128.enc",		"+d,+e",	0x78000008, 0xffff003f,	MOD_1|RD_2,		0,		0,		CRYPTO,	0 },
-{"aes128.dec",		"+d,+e",	0x78010008, 0xffff003f,	MOD_1|RD_2,		0,		0,		CRYPTO,	0 },
-{"aes192.enc",		"+d,+e,+h",	0x78400008, 0xffe0003f,	MOD_1|RD_2|RD_3,	0,		0,		CRYPTO,	0 },
-{"aes192.dec",		"+d,+e,+h",	0x78600008, 0xffe0003f,	MOD_1|RD_2|RD_3,	0,		0,		CRYPTO,	0 },
-{"aes256.enc",		"+d,+e,+h",	0x78800008, 0xffe0003f,	MOD_1|RD_2|RD_3,	0,		0,		CRYPTO,	0 },
-{"aes256.dec",		"+d,+e,+h",	0x78a00008, 0xffe0003f,	MOD_1|RD_2|RD_3,	0,		0,		CRYPTO,	0 },
+{"aes128.enc",		"+d,+e",	0x78000017, 0xffff003f,	MOD_1|RD_2,		0,		0,		CRYPTO,	0 },
+{"aes128.dec",		"+d,+e",	0x78010017, 0xffff003f,	MOD_1|RD_2,		0,		0,		CRYPTO,	0 },
+{"aes192.enc",		"+d,+e,+h",	0x78400017, 0xffe0003f,	MOD_1|RD_2|RD_3,	0,		0,		CRYPTO,	0 },
+{"aes192.dec",		"+d,+e,+h",	0x78600017, 0xffe0003f,	MOD_1|RD_2|RD_3,	0,		0,		CRYPTO,	0 },
+{"aes256.enc",		"+d,+e,+h",	0x78800017, 0xffe0003f,	MOD_1|RD_2|RD_3,	0,		0,		CRYPTO,	0 },
+{"aes256.dec",		"+d,+e,+h",	0x78a00017, 0xffe0003f,	MOD_1|RD_2|RD_3,	0,		0,		CRYPTO,	0 },
 {"aes.kg",		"+d,+e",	0x781a0017, 0xffff003f,	MOD_1|RD_2,		0,		0,		CRYPTO,	0 },
 {"aes.fr.enc",		"+d,+e",	0x78100017, 0xffff003f,	MOD_1|RD_2,		0,		0,		CRYPTO,	0 },
 {"aes.fr.dec",		"+d,+e",	0x78110017, 0xffff003f,	MOD_1|RD_2,		0,		0,		CRYPTO,	0 },
