@@ -101,6 +101,7 @@
 	.set mips64r6
 	.set crypto		# OK
 	aes128.enc	$4,$7	# OK
+	sha1.ms.2	$4,$7,$6	# ERROR: Invalid operands
 	.set mips32r5		# ERROR: too low
 	aes256.enc	$4,$7,$6	# OK
 	.set nocrypto
