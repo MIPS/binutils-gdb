@@ -187,8 +187,10 @@
 :function:::void:do_div:int rd, int rs, int rt
 *mips32r6:
 *micromips32r6:
+*micromips32r7:
 *mips64r6:
 *micromips64r6:
+*micromips64r7:
 {
   signed32 n = GPR[rs];
   signed32 d = GPR[rt];
@@ -219,8 +221,10 @@
 :function:::void:do_divu:int rd, int rs, int rt
 *mips32r6:
 *micromips32r6:
+*micromips32r7:
 *mips64r6:
 *micromips64r6:
+*micromips64r7:
 {
   unsigned32 n = GPR[rs];
   unsigned32 d = GPR[rt];

@@ -63,6 +63,8 @@
 *micromips64:
 *micromips32r6:
 *micromips64r6:
+*micromips32r7:
+*micromips64r7:
 {
   isa_mode = target & 0x1;
   return (target & (-1 << 1));

@@ -106,6 +106,79 @@
   do_or (SD_, TRS, TRD, TRD);
 }
 
+000100,3.RD,3.RS,3.RT,0:R7P16ADDU:16::ADDU16
+"addu16 r<TRD>, r<TRS>, r<TRT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_addu (SD_, TRS, TRT, TRD);
+}
+
+001000,5.RT,5.RS,5.RD,0,0101010,000:R7POOL32A0:32::ADDU
+"addu r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_addu (SD_, RS, RT, RD);
+}
+
+000100,3.RD,3.RS,3.RT,1:R7P16ADDU:16::SUBU16
+"subu16 r<TRD>, r<TRS>, r<TRT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_subu (SD_, TRS, TRT, TRD);
+}
+
+001000,5.RT,5.RS,5.RD,0,0110011,000:R7POOL32A0:32::DIVU
+"divu r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_divu (SD_, RD, RS, RT);
+}
+
+001000,5.RT,5.RS,5.RD,0,0100011,000:R7POOL32A0:32::DIV
+"div r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_div (SD_, RD, RS, RT);
+}
+
+001000,5.RT,5.RS,0000101,100,111,111:R7POOL32A0:32::BITSWAP
+"bitswap r<RT>, r<RS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_bitswap (SD_, RT, RS);
+}
+
+001000,5.RT,5.RS,5.RD,2.IMMEDIATE,000,011,111:R7POOL32A0:32::ALIGN
+"align r<RD>, r<RS>, r<RT>, <IMMEDIATE>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_align (SD_, RD, RS, RT, IMMEDIATE);
+}
+
+010110,5.RS,0,0000:R7P16JRC:16::JRC16
+"jrc16 r<TRS>"
+*micromips32r7:
+*micromips64r7:
+{
+  NIA = process_isa_mode (SD_, GPR[TRS]);
+}
+
+010110,5.RS,1,0000:R7P16JRC:16::JALRC16
+"jalrc16 r<TRS>"
+*micromips32r7:
+*micromips64r7:
+{
+  RA = NIA | ISA_MODE_MICROMIPS;
+  NIA = process_isa_mode (SD_, GPR[TRS]);
+}
+
 010100,3.RD,3.RS,01,0,0:R7POOL16C00:16::XOR16
 "xor16 r<TRD>, r<TRS>"
 *micromips32r7:

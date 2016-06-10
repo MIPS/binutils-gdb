@@ -257,6 +257,8 @@
 *micromips32r6:
 *micromips64:
 *micromips64r6:
+*micromips32r7:
+*micromips64r7:
 *mips64r6:
 {
 #if WITH_TARGET_WORD_BITSIZE == 64
@@ -296,6 +298,8 @@
 *micromips32r6:
 *micromips64:
 *micromips64r6:
+*micromips32r7:
+*micromips64r7:
 *mips64r6:
 {
   unpredictable_action (CPU, CIA);
