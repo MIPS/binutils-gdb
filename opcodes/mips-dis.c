@@ -815,6 +815,22 @@ is_isa_r6 (unsigned long isa)
     return 1;
   return 0;
 }
+/* Check if ISA is R7.  */
+
+static inline int
+is_isa_r7 (unsigned long isa)
+{
+  if ((isa & INSN_ISA_MASK) == ISA_MIPS32R7
+      || ((isa & INSN_ISA_MASK) == ISA_MIPS64R7))
+    return 1;
+  return 0;
+}
+
+static inline int
+is_isa_prer6 (unsigned long isa)
+{
+  return !(is_isa_r6 (isa) || is_isa_r7 (isa));
+}
 
 static void
 set_default_mips_dis_options (struct disassemble_info *info)
@@ -2331,7 +2347,7 @@ print_insn_micromips (bfd_vma memaddr_base, struct disassemble_info *info)
   else
     insn = bfd_getl16 (buffer);
 
-  if (!is_isa_r6 (mips_isa) && (insn & 0xfc00) == 0x7c00)
+  if (is_isa_prer6 (mips_isa) && (insn & 0xfc00) == 0x7c00)
     {
       /* This is a 48-bit microMIPS instruction.  */
       higher = insn;
@@ -2365,7 +2381,9 @@ print_insn_micromips (bfd_vma memaddr_base, struct disassemble_info *info)
       info->insn_type = dis_noninsn;
       return 6;
     }
-  else if ((insn & 0x1c00) == 0x0000 || (insn & 0x1000) == 0x1000)
+  else if ((is_isa_r7 (mips_isa) && (insn & 0x1000) == 0x0)
+	   || (!is_isa_r7 (mips_isa)
+	       && ((insn & 0x1c00) == 0x0000 || (insn & 0x1000) == 0x1000)))
     {
       /* This is a 32-bit microMIPS instruction.  */
       higher = insn;
@@ -2389,9 +2407,24 @@ print_insn_micromips (bfd_vma memaddr_base, struct disassemble_info *info)
     }
 
   /* FIXME: Should probably use a hash table on the major opcode here.  */
+  struct mips_opcode *opcodes;
+  int num_opcodes;
+  const struct mips_operand *(*decode) (const char *);
+  if (is_isa_r7 (mips_isa))
+    {
+      opcodes = micromipspp_opcodes;
+      num_opcodes = bfd_micromipspp_num_opcodes;
+      decode = decode_micromipspp_operand;
+    }
+  else
+    {
+      opcodes = micromips_opcodes;
+      num_opcodes = bfd_micromips_num_opcodes;
+      decode = decode_micromips_operand;
+    }
 
-  opend = micromips_opcodes + bfd_micromips_num_opcodes;
-  for (op = micromips_opcodes; op < opend; op++)
+  opend = opcodes + num_opcodes;
+  for (op = opcodes; op < opend; op++)
     {
       if (op->pinfo != INSN_MACRO
 	  && !(no_aliases && (op->pinfo2 & INSN2_ALIAS))
@@ -2403,7 +2436,7 @@ print_insn_micromips (bfd_vma memaddr_base, struct disassemble_info *info)
 	      || (op->pinfo2 & INSN2_CONVERTED_TO_COMPACT))
 	    continue;
 
-	  if (!validate_insn_args (op, decode_micromips_operand, insn))
+	  if (!validate_insn_args (op, decode, insn))
 	    continue;
 
 	  infprintf (is, "%s", op->name);
@@ -2411,7 +2444,7 @@ print_insn_micromips (bfd_vma memaddr_base, struct disassemble_info *info)
 	  if (op->args[0])
 	    {
 	      infprintf (is, "\t");
-	      print_insn_args (info, op, decode_micromips_operand, insn,
+	      print_insn_args (info, op, decode, insn,
 			       memaddr + 1, length);
 	    }
 

@@ -367,13 +367,17 @@ static int mips_32bitmode = 0;
   ((ISA) == ISA_MIPS32R6		\
    || (ISA) == ISA_MIPS64R6)
 
+#define ISA_IS_R7(ISA)			\
+  ((ISA) == ISA_MIPS32R7		\
+   || (ISA) == ISA_MIPS64R7)
+
 #define IS_MICROMIPS_R6(ISA)		\
   (ISA_IS_R6 (ISA)			\
    && mips_opts.micromips)
 
-#define ISA_IS_R7(ISA)			\
-  ((ISA) == ISA_MIPS32R7		\
-   || (ISA) == ISA_MIPS64R7)
+#define IS_MICROMIPS_R7(ISA)		\
+  (ISA_IS_R7 (ISA)			\
+   && mips_opts.micromips)
 
 /*  Return true if ISA supports 64 bit wide gp registers.  */
 #define ISA_HAS_64BIT_REGS(ISA)		\
@@ -692,6 +696,9 @@ static struct hash_control *mips16_op_hash = NULL;
 /* The opcode hash table we use for the microMIPS ASE.  */
 static struct hash_control *micromips_op_hash = NULL;
 
+/* The opcode hash table we use for the microMIPS++ ASE.  */
+static struct hash_control *micromipspp_op_hash = NULL;
+
 /* This array holds the chars that always start a comment.  If the
     pre-processor is disabled, these aren't very useful */
 const char comment_chars[] = "#";
@@ -824,20 +831,24 @@ struct mips_operand_array {
 static struct mips_operand_array *mips_operands;
 static struct mips_operand_array *mips16_operands;
 static struct mips_operand_array *micromips_operands;
+static struct mips_operand_array *micromipspp_operands;
 
 /* Nop instructions used by emit_nop.  */
 static struct mips_cl_insn nop_insn;
 static struct mips_cl_insn mips16_nop_insn;
 static struct mips_cl_insn micromips_nop16_insn;
 static struct mips_cl_insn micromips_nop32_insn;
+static struct mips_cl_insn micromipspp_nop16_insn;
 
 /* The appropriate nop for the current mode.  */
 #define NOP_INSN (mips_opts.mips16					\
 		  ? &mips16_nop_insn					\
 		  : (mips_opts.micromips				\
-		     ? (mips_opts.insn32				\
-			? &micromips_nop32_insn				\
-			: &micromips_nop16_insn)			\
+		     ? (ISA_IS_R7 (mips_opts.isa)			\
+			? &micromipspp_nop16_insn 			\
+			: (mips_opts.insn32				\
+			   ? &micromips_nop32_insn			\
+			   : &micromips_nop16_insn))			\
 		     : &nop_insn))
 
 /* The size of NOP_INSN in bytes.  */
@@ -2252,6 +2263,10 @@ insn_operands (const struct mips_cl_insn *insn)
       && insn->insn_mo < &micromips_opcodes[bfd_micromips_num_opcodes])
     return &micromips_operands[insn->insn_mo - &micromips_opcodes[0]];
 
+  if (insn->insn_mo >= &micromipspp_opcodes[0]
+      && insn->insn_mo < &micromipspp_opcodes[bfd_micromipspp_num_opcodes])
+    return &micromipspp_operands[insn->insn_mo - &micromipspp_opcodes[0]];
+
   abort ();
 }
 
@@ -3580,6 +3595,42 @@ validate_micromips_insn (const struct mips_opcode *opc,
 			     operands);
 }
 
+static int
+validate_micromipspp_insn (const struct mips_opcode *opc,
+			 struct mips_operand_array *operands)
+{
+  unsigned long insn_bits;
+  unsigned long major;
+  unsigned int length;
+
+  if (opc->pinfo == INSN_MACRO)
+    return validate_mips_insn (opc, 0xffffffff, decode_micromips_operand,
+			       operands);
+
+  length = micromips_insn_length (opc);
+  if (length != 2 && length != 4)
+    {
+      as_bad (_("internal error: bad microMIPS opcode (incorrect length: %u): "
+		"%s %s"), length, opc->name, opc->args);
+      return 0;
+    }
+  major = opc->match >> (10 + 8 * (length - 2));
+  if ((length == 2 && !(major & 4))
+      || (length == 4 && (major & 4)))
+    {
+      as_bad (_("internal error: bad microMIPS opcode "
+		"(opcode/length mismatch): %s %s"), opc->name, opc->args);
+      return 0;
+    }
+
+  /* Shift piecewise to avoid an overflow where unsigned long is 32-bit.  */
+  insn_bits = 1 << 4 * length;
+  insn_bits <<= 4 * length;
+  insn_bits -= 1;
+  return validate_mips_insn (opc, insn_bits, decode_micromipspp_operand,
+			     operands);
+}
+
 /* This function is called once, at assembler startup time.  It should set up
    all the tables, etc. that the MD part of the assembler will need.  */
 
@@ -3702,6 +3753,45 @@ md_begin (void)
       while (++i < bfd_micromips_num_opcodes
 	     && strcmp (micromips_opcodes[i].name, name) == 0);
     }
+
+  micromipspp_op_hash = hash_new ();
+  micromipspp_operands = XCNEWVEC (struct mips_operand_array,
+				 bfd_micromipspp_num_opcodes);
+
+  i = 0;
+  while (i < bfd_micromipspp_num_opcodes)
+    {
+      const char *name = micromipspp_opcodes[i].name;
+
+      retval = hash_insert (micromipspp_op_hash, name,
+			    (void *) &micromipspp_opcodes[i]);
+      if (retval != NULL)
+	as_fatal (_("internal: can't hash `%s': %s"),
+		  micromipspp_opcodes[i].name, retval);
+      do
+	{
+	  struct mips_cl_insn *micromips_nop_insn;
+
+	  if (!validate_micromipspp_insn (&micromipspp_opcodes[i],
+					  &micromipspp_operands[i]))
+	    broken = 1;
+
+	  if (micromipspp_opcodes[i].pinfo != INSN_MACRO)
+	    {
+	      micromips_nop_insn = &micromipspp_nop16_insn;
+
+	      if (micromips_nop_insn->insn_mo == NULL
+		  && strcmp (name, "nop") == 0)
+		{
+		  create_insn (micromips_nop_insn, micromipspp_opcodes + i);
+		  micromips_nop_insn->fixed_p = 1;
+		}
+	    }
+	}
+      while (++i < bfd_micromipspp_num_opcodes
+	     && strcmp (micromipspp_opcodes[i].name, name) == 0);
+    }
+
 
   if (broken)
     as_fatal (_("broken assembler, no assembly attempted"));
@@ -8060,7 +8150,9 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	  if (arg.opnum == 1 && *args == ',')
 	    {
 	      operand = (mips_opts.micromips
-			 ? decode_micromips_operand (args + 1)
+			 ? (ISA_IS_R7 (mips_opts.isa)
+			    ? decode_micromipspp_operand (args + 1)
+			    : decode_micromips_operand (args + 1))
 			 : decode_mips_operand (args + 1));
 	      if (operand && mips_optional_operand_p (operand))
 		{
@@ -8244,7 +8336,9 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	}
 
       operand = (mips_opts.micromips
-		 ? decode_micromips_operand (args)
+		 ? (ISA_IS_R7 (mips_opts.isa)
+		    ? decode_micromipspp_operand (args)
+		    : decode_micromips_operand (args))
 		 : decode_mips_operand (args));
       if (!operand)
 	abort ();
@@ -14075,8 +14169,16 @@ mips_ip (char *str, struct mips_cl_insn *insn)
 
   if (mips_opts.micromips)
     {
-      hash = micromips_op_hash;
-      past = &micromips_opcodes[bfd_micromips_num_opcodes];
+      if (mips_opts.isa == ISA_MIPS32R7)
+	{
+	  hash = micromipspp_op_hash;
+	  past = &micromipspp_opcodes[bfd_micromipspp_num_opcodes];
+	}
+      else
+	{
+	  hash = micromips_op_hash;
+	  past = &micromips_opcodes[bfd_micromips_num_opcodes];
+	}
     }
   else
     {
@@ -18800,8 +18902,16 @@ mips_handle_align (fragS *fragp)
   switch (nop_opcode)
     {
     case NOP_OPCODE_MICROMIPS:
-      opcode = micromips_nop32_insn.insn_opcode;
-      size = 4;
+      if (ISA_IS_R7 (mips_opts.isa))
+	{
+	  opcode = micromipspp_nop16_insn.insn_opcode;
+	  size = 2;
+	}
+      else
+	{
+	  opcode = micromips_nop32_insn.insn_opcode;
+	  size = 4;
+	}
       break;
     case NOP_OPCODE_MIPS16:
       opcode = mips16_nop_insn.insn_opcode;
