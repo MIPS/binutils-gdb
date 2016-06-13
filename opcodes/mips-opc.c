@@ -456,6 +456,9 @@ decode_mips_operand (const char *p)
 #define MSA	ASE_MSA
 #define MSA64	ASE_MSA64
 
+/* Crypto support.  */
+#define CRYPTO	ASE_CRYPTO
+
 /* eXtended Physical Address (XPA) support.  */
 #define XPA     ASE_XPA
 
@@ -3248,6 +3251,37 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"crc32ch",		"t,s,-d",	0x7c00014f, 0xfc00ffff,	MOD_1|RD_2,		0,		0,		CRC,	0 },
 {"crc32cw",		"t,s,-d",	0x7c00018f, 0xfc00ffff,	MOD_1|RD_2,		0,		0,		CRC,	0 },
 {"crc32cd",		"t,s,-d",	0x7c0001cf, 0xfc00ffff,	MOD_1|RD_2,		0,		0,		CRC64,	0 },
+
+/* MIPS Crypto ASE.  */
+{"aes128.enc",		"+d,+e",	0x78000017, 0xffff003f,	MOD_1|RD_2,		0,		0,		CRYPTO,	0 },
+{"aes128.dec",		"+d,+e",	0x78010017, 0xffff003f,	MOD_1|RD_2,		0,		0,		CRYPTO,	0 },
+{"aes192.enc",		"+d,+e,+h",	0x78400017, 0xffe0003f,	MOD_1|RD_2|RD_3,	0,		0,		CRYPTO,	0 },
+{"aes192.dec",		"+d,+e,+h",	0x78600017, 0xffe0003f,	MOD_1|RD_2|RD_3,	0,		0,		CRYPTO,	0 },
+{"aes256.enc",		"+d,+e,+h",	0x78800017, 0xffe0003f,	MOD_1|RD_2|RD_3,	0,		0,		CRYPTO,	0 },
+{"aes256.dec",		"+d,+e,+h",	0x78a00017, 0xffe0003f,	MOD_1|RD_2|RD_3,	0,		0,		CRYPTO,	0 },
+{"aes.kg",		"+d,+e",	0x781a0017, 0xffff003f,	MOD_1|RD_2,		0,		0,		CRYPTO,	0 },
+{"aes.fr.enc",		"+d,+e",	0x78100017, 0xffff003f,	MOD_1|RD_2,		0,		0,		CRYPTO,	0 },
+{"aes.fr.dec",		"+d,+e",	0x78110017, 0xffff003f,	MOD_1|RD_2,		0,		0,		CRYPTO,	0 },
+{"aes.lr.enc",		"+d,+e",	0x78120017, 0xffff003f,	MOD_1|RD_2,		0,		0,		CRYPTO,	0 },
+{"aes.lr.dec",		"+d,+e",	0x78130017, 0xffff003f,	MOD_1|RD_2,		0,		0,		CRYPTO,	0 },
+{"aes.mc.enc",		"+d",		0x78160017, 0xfffff83f,	MOD_1,			0,		0,		CRYPTO,	0 },
+{"aes.mc.dec",		"+d",		0x78170017, 0xfffff83f,	MOD_1,			0,		0,		CRYPTO,	0 },
+{"aes.sb.enc",		"+d",		0x78140017, 0xfffff83f,	MOD_1,			0,		0,		CRYPTO,	0 },
+{"aes.sb.dec",		"+d",		0x78150017, 0xfffff83f,	MOD_1,			0,		0,		CRYPTO,	0 },
+{"aes.sr.enc",		"+d",		0x78180017, 0xfffff83f,	MOD_1,			0,		0,		CRYPTO,	0 },
+{"aes.sr.dec",		"+d",		0x78190017, 0xfffff83f,	MOD_1,			0,		0,		CRYPTO,	0 },
+{"md5.ms",		"+d,+e,+h",	0x7be00017, 0xffe0003f,	MOD_1|RD_2|RD_3,	0,		0,		CRYPTO,	0 },
+{"md5.4r",		"+d,+e,+h",	0x7ae00017, 0xffe0003f,	MOD_1|RD_2|RD_3,	0,		0,		CRYPTO,	0 },
+{"sha1.ms.1",		"+d,+e,+h",	0x7b000017, 0xffe0003f,	MOD_1|RD_2|RD_3,	0,		0,		CRYPTO,	0 },
+{"sha1.ms.2",		"+d,+e,-d",	0x7b200017, 0xffff003f,	MOD_1|RD_2,		0,		0,		CRYPTO,	0 },
+{"sha1.hash.4r",	"+d,+e,+h",	0x7a000017, 0xffe0003f,	MOD_1|RD_2|RD_3,	0,		0,		CRYPTO,	0 },
+{"sha256.ms.1",		"+d,+e,+h",	0x7b400017, 0xffe0003f,	WR_1|RD_2|RD_3,		0,		0,		CRYPTO,	0 },
+{"sha256.ms.2",		"+d,+e,+h",	0x7b600017, 0xffe0003f,	WR_1|RD_2|RD_3,		0,		0,		CRYPTO,	0 },
+{"sha256.hash.2r",	"+d,+e,+h",	0x7a400017, 0xffe0003f,	MOD_1|RD_2|RD_3,	0,		0,		CRYPTO,	0 },
+{"sha512.ms.1",		"+d,+e,+h",	0x7b800017, 0xffe0003f,	MOD_1|RD_2|RD_3,	0,		0,		CRYPTO,	0 },
+{"sha512.ms.2",		"+d,+e,+h",	0x7ba00017, 0xffe0003f,	MOD_1|RD_2|RD_3,	0,		0,		CRYPTO,	0 },
+{"sha512.hash.r.1",	"+d,+e,+h",	0x7a800017, 0xffe0003f,	MOD_1|RD_2|RD_3,	0,		0,		CRYPTO,	0 },
+{"sha512.hash.r.2",	"+d,+e,+h",	0x7aa00017, 0xffe0003f,	MOD_1|RD_2|RD_3,	0,		0,		CRYPTO,	0 },
 
 /* MXU Extension.  */
 {"d16mul",		"`=,`b,`c,`d,`o",	0x70000008, 0xff00003f,	TRAP,		0,		0,		MXU,	0 },

@@ -999,7 +999,7 @@ mips_opcode_32bit_p (const struct mips_opcode *mo)
    "+R" must be program counter
    "-a" (-262144 .. 262143) << 2 at bit 0
    "-b" (-131072 .. 131071) << 3 at bit 0
-   "-d" Same as destination register GP
+   "-d" Same as destination register (GP or MSA)
    "-s" 5 bit source register specifier (OP_*_RS) not $0
    "-t" 5 bit source register specifier (OP_*_RT) not $0
    "-u" 5 bit source register specifier (OP_*_RT) greater than OP_*_RS
@@ -1326,6 +1326,8 @@ static const unsigned int mips_isa_table[] = {
 /* Cyclic redundancy check (CRC) ASE */
 #define ASE_CRC			0x00100000
 #define ASE_CRC64		0x00200000
+/* Crypto ASE */
+#define ASE_CRYPTO		0x00400000
 
 /* MIPS ISA defines, use instead of hardcoding ISA level.  */
 

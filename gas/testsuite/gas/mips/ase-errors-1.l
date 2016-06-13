@@ -45,3 +45,8 @@
 .*:109: Error: opcode not supported.* `crc32d \$4,\$7,\$4'
 .*:110: Warning: the `crc' extension requires MIPS32 revision 6 or greater
 .*:113: Error: opcode not supported.* `crc32b \$4,\$7,\$4'
+# ----------------------------------------------------------------------------
+.*:118: Error: invalid operands `sha1.ms.2	\$4,\$7,\$6'
+.*:119: Warning: the `crypto' extension requires MIPS32 revision 6 or greater
+.*:122: Error: opcode not supported.* `sha1.ms.1	\$4,\$7,\$6'
+# ----------------------------------------------------------------------------
