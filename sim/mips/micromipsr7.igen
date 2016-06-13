@@ -50,6 +50,46 @@
   do_or (SD_, RS, RT, RD);
 }
 
+001000,5.RT,5.RS,5.RD,0,1100010,000:R7POOL32A0:32::XOR
+"xor r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_xor (SD_, RS, RT, RD);
+}
+
+001000,5.RT,5.RS,5.RD,0,1011010,000:R7POOL32A0:32::NOR
+"nor r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_nor (SD_, RS, RT, RD);
+}
+
+100000,5.RT,5.RS,0010,12.U:R7PU12:32::ANDI
+"andi r<RT>, r<RS>, <U>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_andi (SD_, RS, RT, U);
+}
+
+100000,5.RT,5.RS,0000,12.U:R7PU12:32::ORI
+"ori r<RT>, r<RS>, <U>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_ori (SD_, RS, RT, U);
+}
+
+100000,5.RT,5.RS,0001,12.U:R7PU12:32::XORI
+"xori r<RT>, r<RS>, <U>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_xori (SD_, RS, RT, U);
+}
+
 010100,3.RD,3.RS,10,0,0:R7POOL16C00:16::AND16
 "and16 r<TRD>, r<TRS>"
 *micromips32r7:
@@ -66,3 +106,26 @@
   do_or (SD_, TRS, TRD, TRD);
 }
 
+010100,3.RD,3.RS,01,0,0:R7POOL16C00:16::XOR16
+"xor16 r<TRD>, r<TRS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_xor (SD_, TRS, TRD, TRD);
+}
+
+010100,3.RD,3.RS,00,0,0:R7POOL16C00:16::NOT16
+"not16 r<TRD>, r<TRS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_nor (SD_, 0, TRS, TRD);
+}
+
+111100,3.RD,3.RS,4.U:R7ANDI16:16::ANDI16
+"andi16 r<TRD>, r<TRS>, <U>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_andi (SD_, TRS, TRD, U);
+}
