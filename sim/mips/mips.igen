@@ -178,6 +178,8 @@
 :function:::address_word:forbiddenslot32:address_word nia
 *micromips32r6:
 *micromips64r6:
+*micromips32r7:
+*micromips64r7:
 {
   /* microMIPS R6 has no forbidden slots. */
   return nia;
