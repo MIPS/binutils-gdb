@@ -210,6 +210,7 @@
 *r3900:
 *micromips32:
 *micromips32r6:
+*micromips32r7:
 {
   return base + offset;
 }
@@ -219,6 +220,7 @@
 *mips64r2:
 *micromips64:
 *micromips64r6:
+*micromips64r7:
 *mips64r6:
 {
   /* If in user mode and UX is not set, use the 32-bit compatibility

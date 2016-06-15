@@ -18,6 +18,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+:compute:::int:U_SHIFT_1BIT:U:(U << 1)
+:compute:::int:U_DEC127:U:((U < 127) ? U \: -1)
+
 00000000000000000000000000000000:R7DUMMY:32,f::DUMMY0.fmt
 "dummy 0"
 *mips32r7:
@@ -201,4 +204,45 @@
 *micromips64r7:
 {
   do_andi (SD_, TRS, TRD, U);
+}
+
+000101,3.RT,3.BASE,00,2.U:R7P16LB:16::LB16
+"lb16 r<TRT>, <U>(r<TBASE>)"
+*micromips32r7:
+*micromips64r7:
+{
+  GPR[TRT] = EXTEND8 (do_load (SD_, AccessLength_BYTE, GPR[TBASE], U));
+}
+
+000101,3.RT,3.BASE,10,2.U:R7P16LB:16::LBU16
+"lbu16 r<TRT>, <U>(r<TBASE>)"
+*micromips32r7:
+*micromips64r7:
+{
+  GPR[TRT] = do_load (SD_, AccessLength_BYTE, GPR[TBASE], U);
+}
+
+001101,3.RT,3.BASE,0,2.U,0:R7P16LH:16::LH16
+"lh16 r<TRT>, <U>(r<TBASE>)"
+*micromips32r7:
+*micromips64r7:
+{
+  GPR[TRT] = EXTEND16 (do_load (SD_, AccessLength_HALFWORD, GPR[TBASE],
+                                U_SHIFT_1BIT));
+}
+
+001101,3.RT,3.BASE,1,2.U,0:R7P16LH:16::LHU16
+"lhu16 r<TRT>, <U>(r<TBASE>)"
+*micromips32r7:
+*micromips64r7:
+{
+  GPR[TRT] = do_load (SD_, AccessLength_HALFWORD, GPR[TBASE], U_SHIFT_1BIT);
+}
+
+110100,3.RD,7.U:R7LI16:16::LI16
+"li16 r<TRD>, <U_DEC127>"
+*micromips32r7:
+*micromips64r7:
+{
+  GPR[TRD] = U_DEC127;
 }
