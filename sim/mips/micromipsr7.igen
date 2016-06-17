@@ -20,7 +20,21 @@
 
 :compute:::int:ADDRESS:S1,S2:((S1 << 1) + S2)
 :compute:::int:U_SHIFT_1BIT:U:(U << 1)
+:compute:::int:U_SHIFT_2BIT:U:(U << 2)
 :compute:::int:U_DEC127:U:((U < 127) ? U \: -1)
+:compute:::int:TRT4:RT:(compute_gpr4in5_reg (SD_, RT))
+:compute:::int:TBASE4:BASE:(compute_gpr4in5_reg (SD_, BASE))
+:compute:::int:U_LW4X4:BASE,RT:(((GPR[BASE] & 0x4) << 1) | (GPR[RT] & 0x4))
+
+:function:::unsigned32:compute_gpr4in5_reg:int reg
+*micromips32r7:
+*micromips64r7:
+{
+  if (reg < 8 || (reg >= 16 && reg < 24))
+    return reg;
+  else if ((reg >=8 && reg < 16) || (reg >= 24 && reg < 32))
+    return reg - 8;
+}
 
 00000000000000000000000000000000:R7DUMMY:32,f::DUMMY0.fmt
 "dummy 0"
@@ -265,7 +279,7 @@
 }
 
 001101,3.RT,3.BASE,0,2.U,0:R7P16LH:16::LH16
-"lh16 r<TRT>, <U>(r<TBASE>)"
+"lh16 r<TRT>, <U_SHIFT_1BIT>(r<TBASE>)"
 *micromips32r7:
 *micromips64r7:
 {
@@ -274,7 +288,7 @@
 }
 
 001101,3.RT,3.BASE,1,2.U,0:R7P16LH:16::LHU16
-"lhu16 r<TRT>, <U>(r<TBASE>)"
+"lhu16 r<TRT>, <U_SHIFT_1BIT>(r<TBASE>)"
 *micromips32r7:
 *micromips64r7:
 {
@@ -287,4 +301,47 @@
 *micromips64r7:
 {
   GPR[TRD] = U_DEC127;
+}
+
+100101,5.RT,5.BASE:R7LW4X4:16::LW4X4
+"lw4x4 r<TRT4>, <U_LW4X4>(r<TBASE4>)"
+*micromips32r7:
+*micromips64r7:
+{
+  GPR[TRT4] = EXTEND32 (do_load (SD_, AccessLength_WORD, GPR[TBASE4], U_LW4X4));
+}
+
+011101,3.RT,3.BASE,4.U:R7LW16:16::LW16
+"lw16 r<TRT>, <U_SHIFT_2BIT>(r<TBASE>)"
+*micromips32r7:
+*micromips64r7:
+{
+  GPR[TRT] = EXTEND32 (do_load (SD_, AccessLength_WORD, GPR[TBASE],
+                                U_SHIFT_2BIT));
+}
+
+101101,3.RT,7.U:R7LWGP16:16::LWGP16
+"lw16 r<TRT>, <U_SHIFT_2BIT>(gp)"
+*micromips32r7:
+*micromips64r7:
+{
+  GPR[TRT] = EXTEND32 (do_load (SD_, AccessLength_WORD, GPR[28],
+                                U_SHIFT_2BIT));
+}
+
+010101,5.RT,5.U:R7LWSP:16::LWSP
+"lw16 r<TRT>, <U_SHIFT_2BIT>(sp)"
+*micromips32r7:
+*micromips64r7:
+{
+  GPR[TRT] = EXTEND32 (do_load (SD_, AccessLength_WORD, SP, U_SHIFT_2BIT));
+}
+
+010100,3.RD,3.RS,3.RT,1:R7POOL16C_0:16::LWXS16
+"lwxs16 r<TRD>, r<TRS>, r<TRT>"
+*micromips32r7:
+*micromips64r7:
+{
+  GPR[TRD] = EXTEND32 (do_load (SD_, AccessLength_WORD, GPR[TRS] << 2,
+                                GPR[TRT]));
 }
