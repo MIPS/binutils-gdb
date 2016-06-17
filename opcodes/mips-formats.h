@@ -29,6 +29,25 @@
 #define INT_ADJ(SIZE, LSB, MAX_VAL, SHIFT, PRINT_HEX) \
   INT_BIAS(SIZE, LSB, MAX_VAL, 0, SHIFT, PRINT_HEX)
 
+
+#define UINT_SPLIT(SIZE, LSB, SHIFT, SIZE_TOP, LSB_TOP)	\
+  { \
+    static const struct mips_int_operand op = { \
+      { OP_INT, SIZE, LSB, SIZE_TOP, LSB_TOP }, \
+      (1 << ((SIZE) -1)), 0, SHIFT, 0	\
+    }; \
+    return &op.root; \
+  }
+
+#define SINT_SPLIT(SIZE, LSB, SHIFT, SIZE_TOP, LSB_TOP)	\
+  { \
+    static const struct mips_int_operand op = { \
+      { OP_INT, SIZE, LSB, SIZE_TOP, LSB_TOP }, \
+      (1 << ((SIZE) -1)) - 1, 0, SHIFT, 0	\
+    }; \
+    return &op.root; \
+  }
+
 #define UINT(SIZE, LSB) \
   INT_ADJ(SIZE, LSB, (1 << (SIZE)) - 1, 0, FALSE)
 
@@ -37,6 +56,9 @@
 
 #define HINT(SIZE, LSB) \
   INT_ADJ(SIZE, LSB, (1 << (SIZE)) - 1, 0, TRUE)
+
+#define HINT_SPLIT(SIZE, LSB, SIZE_T, LSB_T)	\
+  SINT_SPLIT(SIZE, LSB, 0, SIZE_T, LSB_T)
 
 #define BIT(SIZE, LSB, BIAS) \
   { \
@@ -152,9 +174,44 @@
 #define BRANCH(SIZE, LSB, SHIFT) \
   PCREL (SIZE, LSB, TRUE, SHIFT, 0, TRUE, FALSE)
 
+#define BRANCH_UNORD_SPLIT(SIZE, SHIFT) \
+  { \
+    static const struct mips_pcrel_operand op = { \
+      { { OP_PCREL, SIZE, 1, 1, 0 }, \
+	(1 << ((SIZE) - 1)) - 1, 0, SHIFT, TRUE }, \
+      0, TRUE, FALSE \
+    }; \
+    return &op.root.root; \
+  }
+
+#define BRANCH_SPLIT(SIZE, LSB, SHIFT, SIZE_TOP, LSB_TOP)	\
+  { \
+    static const struct mips_pcrel_operand op = { \
+      { { OP_PCREL, SIZE, 1, SIZE_TOP, LSB_TOP }, \
+	(1 << ((SIZE) - 1)) - 1, LSB, SHIFT, TRUE }, \
+      0, TRUE, FALSE \
+    }; \
+    return &op.root.root; \
+  }
+
 #define SPECIAL(SIZE, LSB, TYPE) \
   { \
     static const struct mips_operand op = { OP_##TYPE, SIZE, LSB, 0, 0 }; \
+    return &op; \
+  }
+
+#define SPECIAL_SPLIT(SIZE, LSB, SIZE_T, LSB_T, TYPE)	\
+  { \
+    static const struct mips_operand op = { OP_##TYPE, SIZE, LSB, SIZE_T, LSB_T }; \
+    return &op; \
+  }
+
+#define SPECIAL2(SIZE, LSB, T_SIZE, T_LSB, TYPE, DECODE)	\
+  { \
+    static const struct mips_special2_operand op = {	\
+	{ OP_##TYPE, SIZE, LSB, T_SIZE, T_LSB },			\
+	DECODE						\
+    };							\
     return &op; \
   }
 

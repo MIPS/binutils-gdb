@@ -433,7 +433,17 @@ enum mips_operand_type {
   OP_NON_ZERO_REG,
 
   OP_MAPPED_STRING,
-  OP_MXU_STRIDE
+  OP_MXU_STRIDE,
+
+  /* Fractured upper immediate PC-offset for umips++ */
+  OP_HI20_PCREL,
+
+  /* Fractured upper immediate 20-bit signed integer for umips++ */
+  OP_HI20_INT,
+
+  /* A non-zero PC-relative offset.  */
+  OP_NON_ZERO_PCREL_S1,
+
 };
 
 /* Enumerates the types of MIPS register.  */
@@ -631,6 +641,15 @@ struct mips_pcrel_operand
   unsigned int flip_isa_bit : 1;
 };
 
+/* Describes an operand that encapsulates a decoder.  */
+struct mips_special2_operand
+{
+  /* Encodes the offset.  */
+  struct mips_operand root;
+
+  struct mips_operand dec_root;
+};
+
 /* Return true if the assembly syntax allows OPERAND to be omitted.  */
 
 static inline bfd_boolean
@@ -744,6 +763,47 @@ mips_decode_pcrel_operand (const struct mips_pcrel_operand *operand,
   if (operand->flip_isa_bit)
     addr ^= 1;
   return addr;
+}
+
+/* Re-organize HI20 bits of OPERAND encoded as UVAL.  */
+
+#define SIGNEX_VALUE(OP) {OP_INT, OP->size - 1, 0, 0, 0}
+
+static inline int
+mips_decode_hi20_operand (const struct mips_operand *operand,
+			      unsigned int uval)
+{
+  const struct mips_int_operand op_ext = SIGNEX_VALUE (operand);
+  const struct mips_operand op_shuffle = {OP_INT, 19, 10, 10, 0};
+  unsigned int low19 = mips_extract_operand (&op_shuffle, uval);
+  return mips_insert_operand (&op_ext, uval, low19);
+}
+
+/* Decode HI20 signed integer.  */
+
+#define SIGNED_VALUE(OP) {OP_INT, OP->size, 0, 0, 0}
+
+static inline int
+mips_decode_hi20_int_operand (const struct mips_operand *operand,
+			      unsigned int uval)
+{
+  const struct mips_operand op_enc = SIGNED_VALUE (operand);
+  uval = mips_decode_hi20_operand (operand, uval);
+  return (mips_signed_operand (&op_enc, uval));
+}
+
+/* Decode HI20 PCREL  */
+
+#define PCREL_VALUE(OP) { { { OP_PCREL, OP->size, 0, 0, 0}, \
+	(1 << (OP->size - 1)) - 1, 0, 0, FALSE}, 0, 0, 0}
+
+static inline bfd_vma
+mips_decode_hi20_pcrel_operand (const struct mips_operand *operand,
+			   bfd_vma base_pc, unsigned int uval)
+{
+  const struct mips_pcrel_operand pcrel_op = PCREL_VALUE (operand);
+  uval = mips_decode_hi20_operand (operand, uval);
+  return mips_decode_pcrel_operand (&pcrel_op, base_pc, uval);
 }
 
 /* This structure holds information for a particular instruction.  */
@@ -1327,7 +1387,8 @@ static const unsigned int mips_isa_table[] = {
 #define ASE_MIPS16E2		0x00040000
 /* MIPS16e2 MT ASE instructions.  */
 #define ASE_MIPS16E2_MT		0x00080000
-/* MIPS ISA defines, use instead of hardcoding ISA level.  */
+/* MICROMIPS++ low power instructions.  */
+#define ASE_XLP			0x00100000
 
 #define       ISA_UNKNOWN     0               /* Gas internal use.  */
 #define       ISA_MIPS1       INSN_ISA1

@@ -621,6 +621,12 @@ disassemble_init_for_target (struct disassemble_info * info)
       disassemble_init_powerpc (info);
       break;
 #endif
+#ifdef ARCH_mips
+    case bfd_arch_mips:
+      if (info->mach == bfd_mach_mipsisa32r7)
+	info->disassembler_needs_relocs = TRUE;
+      break;
+#endif
     default:
       break;
     }

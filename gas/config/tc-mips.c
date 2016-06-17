@@ -495,7 +495,7 @@ static int mips_32bitmode = 0;
 #define HAVE_64BIT_OBJECTS (mips_abi == N64_ABI)
 
 /* True if relocations are stored in-place.  */
-#define HAVE_IN_PLACE_ADDENDS (!HAVE_NEWABI)
+#define HAVE_IN_PLACE_ADDENDS (!HAVE_NEWABI && !ISA_IS_R7(mips_opts.isa))
 
 /* The ABI-derived address size.  */
 #define HAVE_64BIT_ADDRESSES \
@@ -1779,6 +1779,7 @@ static const struct mips_ase mips_ases[] = {
     OPTION_MIPS16E2, OPTION_NO_MIPS16E2,
     2,  2, -1, -1,
     6 },
+
 };
 
 /* The set of ASEs that require -mfp64.  */
@@ -3509,7 +3510,8 @@ validate_mips_insn (const struct mips_opcode *opcode,
 	      used_bits &= ~(1 << (operand->lsb + 5));
 	    if (operand->type == OP_ENTRY_EXIT_LIST)
 	      used_bits &= ~(mask & 0x700);
-	    if (decode_operand && operand->type == OP_SAVE_RESTORE_LIST)
+	    if (decode_operand && operand->type == OP_SAVE_RESTORE_LIST
+		&& !ISA_IS_R7(opcode->membership))
 	      used_bits &= ~0x2000;
 	  }
 	/* Skip prefix characters.  */
@@ -4187,6 +4189,9 @@ file_mips_check_options (void)
     as_fatal (_("`%s' does not support legacy NaN"),
 	      mips_cpu_info_from_arch (file_mips_opts.arch)->name);
 
+  if (ISA_IS_R7 (file_mips_opts.isa))
+    file_mips_opts.ase |= ASE_XLP;
+
   /* Some ASEs require 64-bit FPRs, so -mfp32 should stop those ASEs from
      being selected implicitly.  */
   if (file_mips_opts.fp != 64)
@@ -4673,6 +4678,7 @@ operand_reg_mask (const struct mips_cl_insn *insn,
     case OP_MAPPED_INT:
     case OP_MSB:
     case OP_PCREL:
+    case OP_NON_ZERO_PCREL_S1:
     case OP_PERF_REG:
     case OP_ADDIUSP_INT:
     case OP_ENTRY_EXIT_LIST:
@@ -4684,6 +4690,8 @@ operand_reg_mask (const struct mips_cl_insn *insn,
     case OP_IMM_INDEX:
     case OP_MAPPED_STRING:
     case OP_MXU_STRIDE:
+    case OP_HI20_PCREL:
+    case OP_HI20_INT:
       abort ();
 
     case OP_REG28:
@@ -4736,6 +4744,8 @@ operand_reg_mask (const struct mips_cl_insn *insn,
       abort ();
 
     case OP_SAVE_RESTORE_LIST:
+      if (ISA_IS_R7(insn->insn_mo->membership))
+	return 0;
       abort ();
 
     case OP_MDMX_IMM_REG:
@@ -5234,6 +5244,30 @@ match_reg_range (struct mips_arg_info *arg, enum mips_reg_operand_type type,
 /* OP_INT matcher.  */
 
 static bfd_boolean
+match_relocatable_int_operand (const struct mips_operand *operand_base)
+{
+  const struct mips_int_operand *operand;
+  unsigned int op_size;
+  int max_val;
+
+  operand = (const struct mips_int_operand *) operand_base;
+  op_size = operand_base->size;
+  max_val = operand->max_val;
+
+  if (ISA_IS_R7 (mips_opts.isa)
+      && (op_size == 7 || op_size == 12  || op_size == 14
+	  || op_size == 19 || op_size == 20))
+	return TRUE;
+  else if (operand_base->lsb == 0
+      && op_size == 16
+      && operand->shift == 0
+      && operand->bias == 0
+      && (max_val == 32767 || max_val == 65535))
+    return TRUE;
+  return FALSE;
+}
+
+static bfd_boolean
 match_int_operand (struct mips_arg_info *arg,
 		   const struct mips_operand *operand_base)
 {
@@ -5247,11 +5281,7 @@ match_int_operand (struct mips_arg_info *arg,
   min_val = mips_int_operand_min (operand);
   max_val = mips_int_operand_max (operand);
 
-  if (operand_base->lsb == 0
-      && operand_base->size == 16
-      && operand->shift == 0
-      && operand->bias == 0
-      && (operand->max_val == 32767 || operand->max_val == 65535))
+  if (match_relocatable_int_operand (operand_base))
     {
       /* The operand can be relocated.  */
       if (!match_expression (arg, &offset_expr, offset_reloc))
@@ -5333,8 +5363,33 @@ match_int_operand (struct mips_arg_info *arg,
   return TRUE;
 }
 
-/* OP_MAPPED_INT matcher.  */
+/* OP_HI20_INT matcher.  */
 
+static bfd_boolean
+match_hi20_int_operand (struct mips_arg_info *arg,
+			const struct mips_operand *operand_base)
+{
+  unsigned int uval;
+  const struct mips_int_operand op_enc = {{OP_INT, 20, 2, 1, 0},
+					  (1 << ((20) - 1)) - 1,
+					  0, 0, FALSE};
+  const struct mips_operand op_ext = {OP_INT, 19, 2, 0, 0};
+  const struct mips_int_operand op_shuffle = {{OP_INT, 19, 12, 10, 2},
+					      ((1 << 19) - 1),
+					      0, 0, FALSE};
+
+  /* Encode full 20-bit signed value.  */
+  if (!match_int_operand (arg, &op_enc.root))
+    return FALSE;
+  /* Extract lower 19-bits, exluding sign.  */
+  uval = mips_extract_operand (&op_ext, arg->insn->insn_opcode);
+  /* Re-shuffle and insert lower 19-bits, exluding sign.  */
+  insn_insert_operand (arg->insn, &op_shuffle.root, uval);
+
+  return TRUE;
+}
+
+/* OP_MAPPED_INT matcher.  */
 static bfd_boolean
 match_mapped_int_operand (struct mips_arg_info *arg,
 			  const struct mips_operand *operand_base)
@@ -5523,6 +5578,57 @@ match_pcrel_operand (struct mips_arg_info *arg)
   bfd_reloc_code_real_type r[3];
 
   return match_expression (arg, &offset_expr, r) && r[0] == BFD_RELOC_UNUSED;
+}
+
+static bfd_boolean
+match_non_zero_pcrel_operand (struct mips_arg_info *arg)
+{
+  bfd_reloc_code_real_type r[3];
+
+  if (!match_expression (arg, &offset_expr, r) || r[0] != BFD_RELOC_UNUSED)
+    return FALSE;
+
+  if (!offset_expr.X_add_symbol && offset_expr.X_add_number == 0)
+    {
+      set_insn_error (arg->argnum, _("the PC relative offset must not be $0"));
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+
+/* OP_HI20_PCREL matcher.  Relocation must be specified.  */
+/* FIXME check for correct type of relocation, PCHI not yet added  */
+static bfd_boolean
+match_hi20_pcrel_operand (struct mips_arg_info *arg)
+{
+  const struct mips_int_operand op_enc = {{OP_INT, 20, 2, 1, 0},
+					  (1 << 20) - 1,
+					  0, 0, FALSE};
+  const struct mips_int_operand op_shuffle = {{OP_INT, 19, 10, 10, 0},
+					  (1 << 19) - 1,
+					  0, 0, FALSE};
+  /* Encode full 20-bit signed value.  */
+  if (!match_expression (arg, &offset_expr, offset_reloc))
+    return FALSE;
+
+  if (offset_reloc[0] == BFD_RELOC_UNUSED)
+    {
+      unsigned int uval = offset_expr.X_add_number;
+      /* Re-shuffle and insert lower 19-bits, exluding sign.  */
+      uval = mips_insert_operand (&op_shuffle.root,
+				  uval & 0x80000, uval & 0x7ffff);
+      /* Insert 20-bits in to instruction.  */
+      insn_insert_operand (arg->insn, &op_enc.root, uval);
+      /* Expression is completely handled, we don't want append_insn
+	 messing up the opcode.  */
+      offset_expr.X_op = O_absent;
+      return TRUE;
+    }
+  else
+    return (offset_reloc[0] == BFD_RELOC_MICROMIPSPP_HI20_PCREL
+	    || offset_reloc[0] == BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12);
 }
 
 /* OP_PERF_REG matcher.  */
@@ -5761,10 +5867,10 @@ match_entry_exit_operand (struct mips_arg_info *arg,
   return TRUE;
 }
 
-/* OP_SAVE_RESTORE_LIST matcher.  */
+/* OP_SAVE_RESTORE_LIST matcher for mips/mips16.  */
 
 static bfd_boolean
-match_save_restore_list_operand (struct mips_arg_info *arg)
+match_mips_save_restore_list_operand (struct mips_arg_info *arg)
 {
   unsigned int opcode, args, statics, sregs;
   unsigned int num_frame_sizes, num_args, num_statics, num_sregs;
@@ -5904,6 +6010,116 @@ match_save_restore_list_operand (struct mips_arg_info *arg)
     opcode |= MIPS16_EXTEND;
   arg->insn->insn_opcode = opcode;
   return TRUE;
+}
+
+/* OP_SAVE_RESTORE_LIST matcher for microMIPS++.  */
+
+static bfd_boolean
+match_micromipspp_save_restore_list_operand (struct mips_arg_info *arg,
+					     struct mips_operand *operand)
+{
+  unsigned int opval, gp, fp, count;
+  int first_reg;
+  bfd_boolean mode16 = (insn_length (arg->insn) == 2);
+
+  count = gp = fp = 0;
+  first_reg = -1;
+  do
+    {
+      unsigned int regno1, regno2;
+
+      if (!match_reg_range (arg, OP_REG_GP, &regno1, &regno2))
+	{
+	  arg->token--;
+	  break;
+	}
+
+      if (regno1 == 29)
+	return FALSE;
+      else if (regno1 == 30)
+	fp = 1;
+      else if (regno1 == 28)
+	gp = 1;
+      else if (regno1 >= 16 && regno2 <= 28 && regno1 != regno2)
+	{
+	  /* $s0-$s7 */
+	  while (regno1 <= regno2)
+	    {
+	      regno1 += 1;
+	      count += 1;
+	    }
+	}
+      else if (first_reg == -1)
+	first_reg = regno1;
+      else
+	return FALSE;
+    }
+  while (match_char (arg, ','));
+
+  /* 16-bit format admits only $31 for the first register.  */
+  if (mode16 && (first_reg != 31 || gp != 0))
+    return FALSE;
+
+  if (first_reg == -1)
+    {
+      if (count != 0)
+	{
+	  count -= 1;
+	  first_reg = 16 + count;
+	}
+      else if (fp != 0)
+	{
+	  first_reg = fp;
+	  fp = 0;
+	}
+      else if (gp != 0)
+	{
+	  first_reg = gp;
+	  gp = 0;
+	}
+    }
+
+  if (count == 13)
+    {
+      if (fp | gp)
+	return FALSE;
+      else if (!mode16)
+	{
+	  count -= 1;
+	  gp = 1;
+	}
+    }
+
+  if (count == 12 && fp != 0 && gp != 0)
+    return FALSE;
+
+  /* 16-bit format gives exactly one avenue of saving fp.  */
+  if (mode16 && (fp|gp) && (count != 8 || fp != 1 || gp != 0))
+    return FALSE;
+
+  count += fp;
+  count += gp;
+
+  if (mode16)
+    opval = count;
+  else
+    opval = ((first_reg << 6) | (count << 2) | (fp << 1) | gp);
+
+  /* Finally build the instruction.  */
+  insn_insert_operand (arg->insn, operand, opval);
+  return TRUE;
+}
+
+/* OP_SAVE_RESTORE_LIST matcher.  */
+
+static bfd_boolean
+match_save_restore_list_operand (struct mips_arg_info *arg,
+				 const struct mips_operand *operand)
+{
+  if (ISA_IS_R7 (mips_opts.isa))
+    return match_micromipspp_save_restore_list_operand (arg, operand);
+  else
+    return match_mips_save_restore_list_operand (arg);
 }
 
 /* OP_MDMX_IMM_REG matcher.  */
@@ -6353,7 +6569,7 @@ match_operand (struct mips_arg_info *arg,
       return match_entry_exit_operand (arg, operand);
 
     case OP_SAVE_RESTORE_LIST:
-      return match_save_restore_list_operand (arg);
+      return match_save_restore_list_operand (arg, operand);
 
     case OP_MDMX_IMM_REG:
       return match_mdmx_imm_reg_operand (arg, operand);
@@ -6391,8 +6607,17 @@ match_operand (struct mips_arg_info *arg,
     case OP_NON_ZERO_REG:
       return match_non_zero_reg_operand (arg, operand);
 
+    case OP_NON_ZERO_PCREL_S1:
+      return match_non_zero_pcrel_operand (arg);
+
     case OP_MXU_STRIDE:
       return match_mxu_stride_operand (arg, operand);
+
+    case OP_HI20_PCREL:
+      return match_hi20_pcrel_operand (arg);
+
+    case OP_HI20_INT:
+      return match_hi20_int_operand (arg, operand);
     }
   abort ();
 }
@@ -8104,6 +8329,43 @@ normalize_address_expr (expressionS *ex)
 			- 0x80000000);
 }
 
+struct gprel_insn_match
+{
+  const char *str;
+  bfd_reloc_code_real_type reloc;
+};
+
+static const struct gprel_insn_match micromipspp_gprel_map[] =
+{
+  {"lw", BFD_RELOC_MICROMIPSPP_GPREL7_S2},
+  {"sw", BFD_RELOC_MICROMIPSPP_GPREL19_S2},
+  {"lh", BFD_RELOC_MICROMIPSPP_GPREL18}, 
+  {"lhu", BFD_RELOC_MICROMIPSPP_GPREL18}, 
+  {"sh", BFD_RELOC_MICROMIPSPP_GPREL18}, 
+  {"lb", BFD_RELOC_MICROMIPSPP_GPREL18}, 
+  {"lbu", BFD_RELOC_MICROMIPSPP_GPREL18}, 
+  {"sb", BFD_RELOC_MICROMIPSPP_GPREL18}, 
+  {"addiu", BFD_RELOC_MICROMIPSPP_GPREL14},
+};
+
+static bfd_reloc_code_real_type
+gprel_for_micromipspp_insn (const char *insn)
+{
+  unsigned int i;
+  for (i = 0; i < ARRAY_SIZE (micromipspp_gprel_map); i++)
+    if (strncasecmp (insn, micromipspp_gprel_map[i].str,
+		     strlen (micromipspp_gprel_map[i].str)) == 0)
+      {
+	int len = strlen (micromipspp_gprel_map[i].str);
+
+	if (insn[len] && !ISSPACE (insn[len]))
+	  continue;
+
+	return micromipspp_gprel_map[i].reloc;
+      }
+  return BFD_RELOC_UNUSED;
+}
+
 /* Try to match TOKENS against OPCODE, storing the result in INSN.
    Return true if the match was successful.
 
@@ -8343,6 +8605,50 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
       if (!operand)
 	abort ();
 
+      if ((operand->type == OP_PCREL
+	   || operand->type == OP_NON_ZERO_PCREL_S1
+	   || operand->type == OP_HI20_PCREL)
+	  && ISA_IS_R7 (mips_opts.isa))
+	switch (*args)
+	  {
+	  case '+':
+	    switch (args[1])
+	      {
+	      case '8':
+		*offset_reloc = BFD_RELOC_MICROMIPSPP_26_PCREL_S1;
+		break;
+
+	      case '0':
+		*offset_reloc = BFD_RELOC_MICROMIPSPP_14_PCREL_S1;
+		break;
+	      }
+	    break;
+
+	  case 'o':
+	    *offset_reloc = BFD_RELOC_MICROMIPSPP_20_PCREL_S1;
+	    break;
+
+	  case '~':
+	    *offset_reloc = BFD_RELOC_MICROMIPSPP_11_PCREL_S1;
+	    break;
+
+	  case 'm':
+	    c = args[1];
+	    switch (c)
+	      {
+	      case 'D':
+		*offset_reloc = BFD_RELOC_MICROMIPSPP_10_PCREL_S1;
+		break;
+	      case 'E':
+		*offset_reloc = BFD_RELOC_MICROMIPSPP_7_PCREL_S1;
+		break;
+	      case 'F':
+		*offset_reloc = BFD_RELOC_MICROMIPSPP_4_PCREL_S1;
+		break;
+	      }
+	    break;
+	  }
+
       /* Skip prefixes.  */
       if (*args == '+' || *args == 'm' || *args == '-' || *args == '`')
 	args++;
@@ -8360,6 +8666,13 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 
       if (!match_operand (&arg, operand))
 	return FALSE;
+
+      if (*offset_reloc == BFD_RELOC_MICROMIPSPP_GPREL7_S2)
+	*offset_reloc = gprel_for_micromipspp_insn (insn->insn_mo->name);
+
+      if (*offset_reloc == BFD_RELOC_MICROMIPSPP_GPREL7_S2
+	  && insn_length (insn) == 4)
+	*offset_reloc = BFD_RELOC_MICROMIPSPP_GPREL19_S2;
     }
 }
 
@@ -14440,6 +14753,37 @@ static const struct percent_op_match mips_percent_op[] =
   {"%pcrel_lo", BFD_RELOC_LO16_PCREL}
 };
 
+/* FIXME: replacing relevant entries for umips++ only, for now.  */
+static const struct percent_op_match micromipspp_percent_op[] =
+{
+  {"%lo", BFD_RELOC_MICROMIPSPP_LO12},
+  {"%call_hi", BFD_RELOC_MIPS_CALL_HI16},
+  {"%call_lo", BFD_RELOC_MIPS_CALL_LO16},
+  {"%call16", BFD_RELOC_MIPS_CALL16},
+  {"%got_disp", BFD_RELOC_MIPS_GOT_DISP},
+  {"%got_page", BFD_RELOC_MIPS_GOT_PAGE},
+  {"%got_ofst", BFD_RELOC_MIPS_GOT_OFST},
+  {"%got_hi", BFD_RELOC_MIPS_GOT_HI16},
+  {"%got_lo", BFD_RELOC_MIPS_GOT_LO16},
+  {"%got", BFD_RELOC_MIPS_GOT16},
+  {"%gp_rel", BFD_RELOC_MICROMIPSPP_GPREL7_S2},
+  {"%half", BFD_RELOC_16},
+  {"%highest", BFD_RELOC_MIPS_HIGHEST},
+  {"%higher", BFD_RELOC_MIPS_HIGHER},
+  {"%neg", BFD_RELOC_MIPS_SUB},
+  {"%tlsgd", BFD_RELOC_MIPS_TLS_GD},
+  {"%tlsldm", BFD_RELOC_MIPS_TLS_LDM},
+  {"%dtprel_hi", BFD_RELOC_MIPS_TLS_DTPREL_HI16},
+  {"%dtprel_lo", BFD_RELOC_MIPS_TLS_DTPREL_LO16},
+  {"%tprel_hi", BFD_RELOC_MIPS_TLS_TPREL_HI16},
+  {"%tprel_lo", BFD_RELOC_MIPS_TLS_TPREL_LO16},
+  {"%gottprel", BFD_RELOC_MIPS_TLS_GOTTPREL},
+  {"%hi", BFD_RELOC_MICROMIPSPP_HI20},
+  {"%pcrel_hi", BFD_RELOC_MICROMIPSPP_HI20_PCREL},
+  {"%pcrel_lo", BFD_RELOC_MICROMIPSPP_LO12_PCREL},
+  {"%pcrel_himask", BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12}
+};
+
 static const struct percent_op_match mips16_percent_op[] =
 {
   {"%lo", BFD_RELOC_MIPS16_LO16},
@@ -14472,6 +14816,11 @@ parse_relocation (char **str, bfd_reloc_code_real_type *reloc)
     {
       percent_op = mips16_percent_op;
       limit = ARRAY_SIZE (mips16_percent_op);
+    }
+  else if (mips_opts.micromips && ISA_IS_R7 (mips_opts.isa))
+    {
+      percent_op = micromipspp_percent_op;
+      limit = ARRAY_SIZE (micromipspp_percent_op);
     }
   else
     {
@@ -15368,6 +15717,20 @@ mips_force_relocation (fixS *fixp)
 	  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_HI16_S_PCREL
 	  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_LO16_PCREL))
     return 1;
+  /* and for R7 expansions */
+  if (ISA_IS_R7 (mips_opts.isa)
+      && (fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_4_PCREL_S1
+	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_7_PCREL_S1
+	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_10_PCREL_S1
+	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_11_PCREL_S1
+	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_14_PCREL_S1
+	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_20_PCREL_S1
+	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_21_PCREL_S1
+	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_26_PCREL_S1
+	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_HI20_PCREL
+	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_LO12_PCREL
+	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12))
+    return 1;
 
   return 0;
 }
@@ -15426,6 +15789,17 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       case BFD_RELOC_LO16_PCREL:
       case BFD_RELOC_MICROMIPS_HI16_S_PCREL:
       case BFD_RELOC_MICROMIPS_LO16_PCREL:
+      case BFD_RELOC_MICROMIPSPP_4_PCREL_S1:
+      case BFD_RELOC_MICROMIPSPP_7_PCREL_S1:
+      case BFD_RELOC_MICROMIPSPP_10_PCREL_S1:
+      case BFD_RELOC_MICROMIPSPP_11_PCREL_S1:
+      case BFD_RELOC_MICROMIPSPP_14_PCREL_S1:
+      case BFD_RELOC_MICROMIPSPP_20_PCREL_S1:
+      case BFD_RELOC_MICROMIPSPP_21_PCREL_S1:
+      case BFD_RELOC_MICROMIPSPP_26_PCREL_S1:
+      case BFD_RELOC_MICROMIPSPP_HI20_PCREL:
+      case BFD_RELOC_MICROMIPSPP_LO12_PCREL:
+      case BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12:
 	break;
 
       case BFD_RELOC_32:
@@ -15682,6 +16056,18 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 		      (long) fixP->fx_offset);
       break;
 
+    case BFD_RELOC_MICROMIPSPP_LO12:
+    case BFD_RELOC_MICROMIPSPP_LO12_PCREL:
+    case BFD_RELOC_MICROMIPSPP_GPREL18:
+    case BFD_RELOC_MICROMIPSPP_GPREL19_S2:
+    case BFD_RELOC_MICROMIPSPP_GPREL7_S2:
+    case BFD_RELOC_MICROMIPSPP_GPREL14:
+    case BFD_RELOC_MICROMIPSPP_HI20:
+    case BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12:
+    case BFD_RELOC_MICROMIPSPP_HI20_PCREL:
+      gas_assert (!fixP->fx_done);
+      break;
+
     case BFD_RELOC_16_PCREL_S2:
       if ((*valP & 0x3) != 0)
 	as_bad_where (fixP->fx_file, fixP->fx_line,
@@ -15737,6 +16123,14 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
     case BFD_RELOC_MICROMIPS_7_PCREL_S1:
     case BFD_RELOC_MICROMIPS_10_PCREL_S1:
     case BFD_RELOC_MICROMIPS_16_PCREL_S1:
+    case BFD_RELOC_MICROMIPSPP_4_PCREL_S1:
+    case BFD_RELOC_MICROMIPSPP_7_PCREL_S1:
+    case BFD_RELOC_MICROMIPSPP_10_PCREL_S1:
+    case BFD_RELOC_MICROMIPSPP_11_PCREL_S1:
+    case BFD_RELOC_MICROMIPSPP_14_PCREL_S1:
+    case BFD_RELOC_MICROMIPSPP_20_PCREL_S1:
+    case BFD_RELOC_MICROMIPSPP_21_PCREL_S1:
+    case BFD_RELOC_MICROMIPSPP_26_PCREL_S1:
       /* We adjust the offset back to even.  */
       if ((*valP & 0x1) != 0)
 	--(*valP);
@@ -17821,7 +18215,18 @@ tc_gen_reloc (asection *section ATTRIBUTE_UNUSED, fixS *fixp)
 		  || fixp->fx_r_type == BFD_RELOC_HI16_S_PCREL
 		  || fixp->fx_r_type == BFD_RELOC_LO16_PCREL
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_HI16_S_PCREL
-		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_LO16_PCREL);
+		  || fixp->fx_r_type == BFD_RELOC_MICROMIPS_LO16_PCREL
+		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_4_PCREL_S1
+		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_7_PCREL_S1
+		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_10_PCREL_S1
+		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_11_PCREL_S1
+		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_14_PCREL_S1
+		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_20_PCREL_S1
+		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_21_PCREL_S1
+		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_26_PCREL_S1
+		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_HI20_PCREL
+		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_LO12_PCREL
+		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12);
 
       /* At this point, fx_addnumber is "symbol offset - pcrel address".
 	 Relocations want only the symbol offset.  */

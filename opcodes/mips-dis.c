@@ -598,7 +598,7 @@ const struct mips_arch_choice mips_arch_choices[] =
 
   { "mips32r7",	1, bfd_mach_mipsisa32r7, CPU_MIPS32R7,
     ISA_MIPS32R7,
-    0 /* NO ASES */,
+    ASE_XLP /* FIXME: should be optional */,
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -648,7 +648,7 @@ const struct mips_arch_choice mips_arch_choices[] =
 
   { "mips64r7",	1, bfd_mach_mipsisa64r7, CPU_MIPS64R7,
     ISA_MIPS64R7,
-    0 /* NO ASES */,
+    ASE_XLP /* FIXME: should be optional */,
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -1296,6 +1296,57 @@ mips_print_save_restore (struct disassemble_info *info, unsigned int amask,
 	       mips_gpr_names[7]);
 }
 
+static void
+micromipspp_print_save_restore (struct disassemble_info *info,
+				unsigned int uval, bfd_boolean mode16)
+{
+  const fprintf_ftype infprintf = info->fprintf_func;
+  void *is = info->stream;
+  char *comma=",";
+  unsigned int pending = 0;
+  unsigned int freg, count, fp, gp;
+
+  if (mode16)
+    {
+      freg = 31;
+      fp = gp = 0;
+      count = uval;
+      if (count == 9)
+	fp = 1;
+    }
+  else
+    {
+      freg = (uval >> 6) & 0x1f;
+      count = (uval >> 2) & 0xf;
+      fp = (uval >> 1) & 1;
+      gp = uval & 1;
+    }
+
+  if (freg == 16 + count - fp - gp)
+    count++;
+  else
+    {
+      infprintf (is, "%s", mips_gpr_names[freg]);
+      pending = 1;
+    }
+
+  if (count - gp - fp > 0)
+    {
+      infprintf (is, "%s%s-%s", (pending ? comma : ""),
+		 mips_gpr_names[16], mips_gpr_names[16+count-fp-gp-1]);
+      pending = 1;
+    }
+
+  if (gp)
+    {
+      infprintf (is, "%s%s", (pending ? comma : ""), mips_gpr_names[28]);
+      pending = 1;
+    }
+  if (fp)
+    {
+      infprintf (is, "%s%s", (pending ? comma : ""), mips_gpr_names[30]);
+    }
+}
 
 /* Print operand OPERAND of OPCODE, using STATE to track inter-operand state.
    UVAL is the encoding of the operand (shifted into bit 0) and BASE_PC is
@@ -1393,6 +1444,24 @@ print_insn_arg (struct disassemble_info *info,
 
 	pcrel_op = (const struct mips_pcrel_operand *) operand;
 	info->target = mips_decode_pcrel_operand (pcrel_op, base_pc, uval);
+
+	/* Preserve the ISA bit for the GDB disassembler,
+	   otherwise clear it.  */
+	if (info->flavour != bfd_target_unknown_flavour)
+	  info->target &= -2;
+
+	(*info->print_address_func) (info->target, info);
+      }
+      break;
+
+    case OP_NON_ZERO_PCREL_S1:
+      {
+	const struct mips_pcrel_operand pcrel_op
+	  = { { { OP_PCREL, operand->size, operand->lsb, 0, 0 },
+		0, 0, 1, TRUE },
+	      0, 0, 0};
+
+	info->target = mips_decode_pcrel_operand (&pcrel_op, base_pc, uval);
 
 	/* Preserve the ISA bit for the GDB disassembler,
 	   otherwise clear it.  */
@@ -1535,18 +1604,21 @@ print_insn_arg (struct disassemble_info *info,
       break;
 
     case OP_SAVE_RESTORE_LIST:
-      {
-	/* uval contains bits 6 to 25 of the SAVE/RESTORE instruction.  */
-	unsigned int amask = (uval >> 9) & 0xf;
-	unsigned int nsreg = (uval >> 17) & 0x7;
-	unsigned int ra = (uval & 0x40);		/* $ra */
-	unsigned int s0 = (uval & 0x20);		/* $s0 */
-	unsigned int s1 = (uval & 0x10);		/* $s1 */
-	unsigned int frame_size = (((uval >> 9) & 0xf0)
-				   | (uval & 0x0f)) * 8;
-	mips_print_save_restore (info, amask, nsreg, ra, s0, s1,
-				 frame_size);
-      }
+      if (is_isa_r7 (mips_isa))
+	  micromipspp_print_save_restore (info, uval, opcode->mask >> 16 == 0 );
+      else
+	{
+	  /* uval contains bits 6 to 25 of the SAVE/RESTORE instruction.  */
+	  unsigned int amask = (uval >> 9) & 0xf;
+	  unsigned int nsreg = (uval >> 17) & 0x7;
+	  unsigned int ra = (uval & 0x40);		/* $ra */
+	  unsigned int s0 = (uval & 0x20);		/* $s0 */
+	  unsigned int s1 = (uval & 0x10);		/* $s1 */
+	  unsigned int frame_size = (((uval >> 9) & 0xf0)
+				     | (uval & 0x0f)) * 8;
+	  mips_print_save_restore (info, amask, nsreg, ra, s0, s1,
+				   frame_size);
+	}
       break;
 
     case OP_MDMX_IMM_REG:
@@ -1607,6 +1679,31 @@ print_insn_arg (struct disassemble_info *info,
       print_reg (info, opcode, OP_REG_GP, uval);
       infprintf (is, "]");
       break;
+
+    case OP_HI20_PCREL:
+      {
+	info->target = mips_decode_hi20_pcrel_operand (operand, base_pc,
+						       uval);
+
+	/* Preserve the ISA bit for the GDB disassembler,
+	   otherwise clear it.  */
+	if (info->flavour != bfd_target_unknown_flavour)
+	  info->target &= -2;
+
+	(*info->print_address_func) (info->target, info);
+      }
+      break;
+
+      case OP_HI20_INT:
+      {
+	uval = mips_decode_hi20_int_operand (operand, uval);
+	state->last_int = uval;
+	if (((struct mips_int_operand *)operand)->print_hex)
+	  infprintf (is, "0x%x", uval);
+	else
+	  infprintf (is, "%d", uval);
+      }
+      break;
     }
 }
 
@@ -1616,7 +1713,7 @@ print_insn_arg (struct disassemble_info *info,
 static bfd_boolean
 validate_insn_args (const struct mips_opcode *opcode,
 		    const struct mips_operand *(*decode_operand) (const char *),
-		    unsigned int insn)
+		    unsigned int insn, struct disassemble_info *info)
 {
   struct mips_print_arg_state state;
   const struct mips_operand *operand;
@@ -1692,6 +1789,13 @@ validate_insn_args (const struct mips_opcode *opcode,
 		  }
 		break;
 
+		case OP_NON_ZERO_PCREL_S1:
+		  {
+		    if (uval == 0 && (info->flags & INSN_HAS_RELOC) == 0)
+		      return FALSE;
+		  }
+		break;
+
 		case OP_INT:
 		case OP_MAPPED_INT:
 		case OP_MSB:
@@ -1714,6 +1818,8 @@ validate_insn_args (const struct mips_opcode *opcode,
 		case OP_MXU_STRIDE:
 		case OP_MAPPED_STRING:
 		case OP_SAVE_RESTORE_LIST:
+		case OP_HI20_INT:
+		case OP_HI20_PCREL:
 		  break;
 		}
 	    }
@@ -1910,7 +2016,7 @@ print_insn_mips (bfd_vma memaddr,
 				     | INSN_LOAD_MEMORY)) != 0)
 		info->insn_type = dis_dref;
 
-	      if (!validate_insn_args (op, decode_mips_operand, word))
+	      if (!validate_insn_args (op, decode_mips_operand, word, info))
 		continue;
 
 	      infprintf (is, "%s", op->name);
@@ -2409,7 +2515,7 @@ print_insn_micromips (bfd_vma memaddr_base, struct disassemble_info *info)
   /* FIXME: Should probably use a hash table on the major opcode here.  */
   struct mips_opcode *opcodes;
   int num_opcodes;
-  const struct mips_operand *(*decode) (const char *);
+  struct mips_operand const *(*decode) (const char *);
   if (is_isa_r7 (mips_isa))
     {
       opcodes = micromipspp_opcodes;
@@ -2436,7 +2542,7 @@ print_insn_micromips (bfd_vma memaddr_base, struct disassemble_info *info)
 	      || (op->pinfo2 & INSN2_CONVERTED_TO_COMPACT))
 	    continue;
 
-	  if (!validate_insn_args (op, decode, insn))
+	  if (!validate_insn_args (op, decode, insn, info))
 	    continue;
 
 	  infprintf (is, "%s", op->name);
