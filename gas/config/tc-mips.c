@@ -371,6 +371,10 @@ static int mips_32bitmode = 0;
   (ISA_IS_R6 (ISA)			\
    && mips_opts.micromips)
 
+#define ISA_IS_R7(ISA)			\
+  ((ISA) == ISA_MIPS32R7		\
+   || (ISA) == ISA_MIPS64R7)
+
 /*  Return true if ISA supports 64 bit wide gp registers.  */
 #define ISA_HAS_64BIT_REGS(ISA)		\
   ((ISA) == ISA_MIPS3			\
@@ -1998,12 +2002,16 @@ mips_target_format (void)
 		 ? ELF_TARGET ("elf64-", "big")
 		 : (HAVE_NEWABI
 		    ? ELF_TARGET ("elf32-n", "big")
-		    : ELF_TARGET ("elf32-", "big")))
+		    : (ISA_IS_R7 (mips_opts.isa)
+		       ? ELF_TARGET ("elf32-r7", "big")
+		       : ELF_TARGET ("elf32-", "big"))))
 	      : (HAVE_64BIT_OBJECTS
 		 ? ELF_TARGET ("elf64-", "little")
 		 : (HAVE_NEWABI
 		    ? ELF_TARGET ("elf32-n", "little")
-		    : ELF_TARGET ("elf32-", "little"))));
+		    : (ISA_IS_R7 (mips_opts.isa)
+		       ? ELF_TARGET ("elf32-r7", "little")
+		       : ELF_TARGET ("elf32-", "little")))));
     default:
       abort ();
       return NULL;

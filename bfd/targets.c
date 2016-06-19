@@ -733,6 +733,8 @@ extern const bfd_target mips_elf32_ntradfbsd_be_vec;
 extern const bfd_target mips_elf32_ntradfbsd_le_vec;
 extern const bfd_target mips_elf32_trad_be_vec;
 extern const bfd_target mips_elf32_trad_le_vec;
+extern const bfd_target mips_elf32_r7trad_be_vec;
+extern const bfd_target mips_elf32_r7trad_le_vec;
 extern const bfd_target mips_elf32_tradfbsd_be_vec;
 extern const bfd_target mips_elf32_tradfbsd_le_vec;
 extern const bfd_target mips_elf32_vxworks_be_vec;
@@ -1194,6 +1196,8 @@ static const bfd_target * const _bfd_target_vector[] =
 	&mips_elf32_ntradfbsd_le_vec,
 	&mips_elf32_trad_be_vec,
 	&mips_elf32_trad_le_vec,
+	&mips_elf32_r7trad_be_vec,
+	&mips_elf32_r7trad_le_vec,
 	&mips_elf32_tradfbsd_be_vec,
 	&mips_elf32_tradfbsd_le_vec,
 	&mips_elf32_vxworks_be_vec,

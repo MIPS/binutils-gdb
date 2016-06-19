@@ -1684,6 +1684,48 @@ static reloc_howto_type elf_micromips_howto_table_rel[] =
 	 FALSE),		/* pcrel_offset */
 };
 
+static reloc_howto_type elf_micromips_howto_table_rela[] =
+{
+  EMPTY_HOWTO (130),
+  EMPTY_HOWTO (131),
+  EMPTY_HOWTO (132),
+  EMPTY_HOWTO (133),
+  EMPTY_HOWTO (134),
+  EMPTY_HOWTO (135),
+  EMPTY_HOWTO (136),
+  EMPTY_HOWTO (137),
+  EMPTY_HOWTO (138),
+
+  /* This is for microMIPS branches.  */
+  HOWTO (R_MICROMIPS_PC7_S1,	/* type */
+	 1,			/* rightshift */
+	 1,			/* size (0 = byte, 1 = short, 2 = long) */
+	 7,			/* bitsize */
+	 TRUE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_signed, /* complain_on_overflow */
+	 _bfd_mips_elf_generic_reloc, /* special_function */
+	 "R_MICROMIPS_PC7_S1",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0x0000007f,		/* dst_mask */
+	 TRUE),			/* pcrel_offset */
+
+  HOWTO (R_MICROMIPS_PC10_S1,	/* type */
+	 1,			/* rightshift */
+	 1,			/* size (0 = byte, 1 = short, 2 = long) */
+	 10,			/* bitsize */
+	 TRUE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_signed, /* complain_on_overflow */
+	 _bfd_mips_elf_generic_reloc, /* special_function */
+	 "R_MICROMIPS_PC10_S1",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0x000003ff,		/* dst_mask */
+	 TRUE),			/* pcrel_offset */
+};
+
 /* 16 bit offset for pc-relative branches.  */
 static reloc_howto_type elf_mips_gnu_rel16_s2 =
   HOWTO (R_MIPS_GNU_REL16_S2,	/* type */
@@ -2235,7 +2277,19 @@ bfd_elf32_bfd_reloc_type_lookup (bfd *abfd, bfd_reloc_code_real_type code)
   unsigned int i;
   reloc_howto_type *howto_table = elf_mips_howto_table_rel;
   reloc_howto_type *howto16_table = elf_mips16_howto_table_rel;
-  reloc_howto_type *howto_micromips_table = elf_micromips_howto_table_rel;
+  const struct elf_backend_data *bed = get_elf_backend_data (abfd);
+  reloc_howto_type *howto_micromips_table;
+
+  if (bed->default_use_rela_p)
+    {
+      howto_table = elf_mips_howto_table_rela;
+      howto_micromips_table = elf_micromips_howto_table_rela;
+    }
+  else
+    {
+      howto_table = elf_mips_howto_table_rel;
+      howto_micromips_table = elf_micromips_howto_table_rel;
+    }
 
   for (i = 0; i < sizeof (mips_reloc_map) / sizeof (struct elf_reloc_map);
        i++)
@@ -2341,7 +2395,7 @@ bfd_elf32_bfd_reloc_name_lookup (bfd *abfd ATTRIBUTE_UNUSED,
 
 static reloc_howto_type *
 mips_elf32_rtype_to_howto (unsigned int r_type,
-			   bfd_boolean rela_p ATTRIBUTE_UNUSED)
+			   bfd_boolean rela_p)
 {
   switch (r_type)
     {
@@ -2361,7 +2415,12 @@ mips_elf32_rtype_to_howto (unsigned int r_type,
       return &elf_mips_eh_howto;
     default:
       if (r_type >= R_MICROMIPS_min && r_type < R_MICROMIPS_max)
-	return &elf_micromips_howto_table_rel[r_type - R_MICROMIPS_min];
+	{
+	  if (rela_p)
+	    return &elf_micromips_howto_table_rela[r_type - R_MICROMIPS_min];
+	  else
+	    return &elf_micromips_howto_table_rel[r_type - R_MICROMIPS_min];
+	}
       if (r_type >= R_MIPS16_min && r_type < R_MIPS16_max)
         return &elf_mips16_howto_table_rel[r_type - R_MIPS16_min];
       BFD_ASSERT (r_type < (unsigned int) R_MIPS_max);
@@ -2395,7 +2454,13 @@ mips_info_to_howto_rel (bfd *abfd, arelent *cache_ptr, Elf_Internal_Rela *dst)
 static void
 mips_info_to_howto_rela (bfd *abfd, arelent *cache_ptr, Elf_Internal_Rela *dst)
 {
-  mips_info_to_howto_rel (abfd, cache_ptr, dst);
+  const struct elf_backend_data *bed;
+  unsigned int r_type;
+
+  r_type = ELF32_R_TYPE (dst->r_info);
+  bed = get_elf_backend_data (abfd);
+  cache_ptr->howto = bed->elf_backend_mips_rtype_to_howto (r_type, TRUE);
+  cache_ptr->addend = dst->r_addend;
 
   /* If we ever need to do any extra processing with dst->r_addend
      (the field omitted in an Elf_Internal_Rel) we can do it here.  */
@@ -2693,6 +2758,34 @@ static const struct ecoff_debug_swap mips_elf32_ecoff_debug_swap = {
 
 /* Include the target file again for this target.  */
 #include "elf32-target.h"
+
+/* Support for mips32 ISAR7 target.  */
+
+#undef TARGET_LITTLE_SYM
+#undef TARGET_LITTLE_NAME
+#undef TARGET_BIG_SYM
+#undef TARGET_BIG_NAME
+
+#define TARGET_LITTLE_SYM               mips_elf32_r7trad_le_vec
+#define TARGET_LITTLE_NAME              "elf32-r7tradlittlemips"
+#define TARGET_BIG_SYM                  mips_elf32_r7trad_be_vec
+#define TARGET_BIG_NAME                 "elf32-r7tradbigmips"
+
+#undef elf_backend_may_use_rela_p
+#define elf_backend_may_use_rela_p	1
+#undef elf_backend_default_use_rela_p
+#define elf_backend_default_use_rela_p	1
+
+#undef elf32_bed
+#define elf32_bed			elf32_r7tradbed
+
+/* Include the target file again for this target.  */
+#include "elf32-target.h"
+
+#undef elf_backend_may_use_rela_p
+#define elf_backend_may_use_rela_p	0
+#undef elf_backend_default_use_rela_p
+#define elf_backend_default_use_rela_p	0
 
 /* FreeBSD support.  */
 
