@@ -163,7 +163,7 @@
 }
 
 010100,3.RD,3.RS,10,0,0:R7POOL16C00:16::AND16
-"and16 r<TRD>, r<TRS>"
+"and r<TRD>, r<TRS>"
 *micromips32r7:
 *micromips64r7:
 {
@@ -171,7 +171,7 @@
 }
 
 010100,3.RD,3.RS,11,0,0:R7POOL16C00:16::OR16
-"or16 r<TRD>, r<TRS>"
+"or r<TRD>, r<TRS>"
 *micromips32r7:
 *micromips64r7:
 {
@@ -252,7 +252,7 @@
 }
 
 010100,3.RD,3.RS,01,0,0:R7POOL16C00:16::XOR16
-"xor16 r<TRD>, r<TRS>"
+"xor r<TRD>, r<TRS>"
 *micromips32r7:
 *micromips64r7:
 {
@@ -260,7 +260,7 @@
 }
 
 010100,3.RD,3.RS,00,0,0:R7POOL16C00:16::NOT16
-"not16 r<TRD>, r<TRS>"
+"not r<TRD>, r<TRS>"
 *micromips32r7:
 *micromips64r7:
 {
@@ -268,7 +268,7 @@
 }
 
 111100,3.RD,3.RS,4.U:R7ANDI16:16::ANDI16
-"andi16 r<TRD>, r<TRS>, <U>"
+"andi r<TRD>, r<TRS>, <U>"
 *micromips32r7:
 *micromips64r7:
 {
@@ -317,7 +317,7 @@
 }
 
 000101,3.RT,3.BASE,00,2.U:R7P16LB:16::LB16
-"lb16 r<TRT>, <U>(r<TBASE>)"
+"lb r<TRT>, <U>(r<TBASE>)"
 *micromips32r7:
 *micromips64r7:
 {
@@ -325,7 +325,7 @@
 }
 
 000101,3.RT,3.BASE,10,2.U:R7P16LB:16::LBU16
-"lbu16 r<TRT>, <U>(r<TBASE>)"
+"lbu r<TRT>, <U>(r<TBASE>)"
 *micromips32r7:
 *micromips64r7:
 {
@@ -333,7 +333,7 @@
 }
 
 001101,3.RT,3.BASE,0,2.U,0:R7P16LH:16::LH16
-"lh16 r<TRT>, <U_SHIFT_1BIT>(r<TBASE>)"
+"lh r<TRT>, <U_SHIFT_1BIT>(r<TBASE>)"
 *micromips32r7:
 *micromips64r7:
 {
@@ -342,7 +342,7 @@
 }
 
 001101,3.RT,3.BASE,1,2.U,0:R7P16LH:16::LHU16
-"lhu16 r<TRT>, <U_SHIFT_1BIT>(r<TBASE>)"
+"lhu r<TRT>, <U_SHIFT_1BIT>(r<TBASE>)"
 *micromips32r7:
 *micromips64r7:
 {
@@ -350,7 +350,7 @@
 }
 
 110100,3.RD,7.U:R7LI16:16::LI16
-"li16 r<TRD>, <U_DEC127>"
+"li r<TRD>, <U_DEC127>"
 *micromips32r7:
 *micromips64r7:
 {
@@ -358,7 +358,7 @@
 }
 
 100101,5.RT,5.BASE:R7LW4X4:16::LW4X4
-"lw4x4 r<TRT4>, <U_LW4X4>(r<TBASE4>)"
+"lw r<TRT4>, <U_LW4X4>(r<TBASE4>)"
 *micromips32r7:
 *micromips64r7:
 {
@@ -366,7 +366,7 @@
 }
 
 011101,3.RT,3.BASE,4.U:R7LW16:16::LW16
-"lw16 r<TRT>, <U_SHIFT_2BIT>(r<TBASE>)"
+"lw r<TRT>, <U_SHIFT_2BIT>(r<TBASE>)"
 *micromips32r7:
 *micromips64r7:
 {
@@ -375,7 +375,7 @@
 }
 
 101101,3.RT,7.U:R7LWGP16:16::LWGP16
-"lw16 r<TRT>, <U_SHIFT_2BIT>(gp)"
+"lw r<TRT>, <U_SHIFT_2BIT>(gp)"
 *micromips32r7:
 *micromips64r7:
 {
@@ -384,7 +384,7 @@
 }
 
 010101,5.RT,5.U:R7LWSP:16::LWSP
-"lw16 r<TRT>, <U_SHIFT_2BIT>(sp)"
+"lw r<TRT>, <U_SHIFT_2BIT>(sp)"
 *micromips32r7:
 *micromips64r7:
 {
@@ -392,7 +392,7 @@
 }
 
 010100,3.RD,3.RS,3.RT,1:R7POOL16C_0:16::LWXS16
-"lwxs16 r<TRD>, r<TRS>, r<TRT>"
+"lwxs r<TRD>, r<TRS>, r<TRT>"
 *micromips32r7:
 *micromips64r7:
 {
