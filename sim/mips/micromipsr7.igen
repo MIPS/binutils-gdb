@@ -25,6 +25,10 @@
 :compute:::int:TRT4:RT:(compute_gpr4in5_reg (SD_, RT))
 :compute:::int:TBASE4:BASE:(compute_gpr4in5_reg (SD_, BASE))
 :compute:::int:U_LW4X4:BASE,RT:(((GPR[BASE] & 0x4) << 1) | (GPR[RT] & 0x4))
+:compute:::int:TRD2:RD20,RD21:(compute_gpr2_dest1_reg (SD_, (RD21 | RD20)))
+:compute:::int:TRE2:RD20,RD21:(compute_gpr2_dest2_reg (SD_, (RD21 | RD20)))
+:compute:::int:TRS2:RS4,RS2_0:((RS4 << 3) | (RS2_0 >> 1))
+:compute:::int:TRT2:RT4,RT2_0:((RT4 << 3) | (RT2_0 >> 1))
 
 :function:::unsigned32:compute_gpr4in5_reg:int reg
 *micromips32r7:
@@ -34,6 +38,34 @@
     return reg;
   else if ((reg >=8 && reg < 16) || (reg >= 24 && reg < 32))
     return reg - 8;
+}
+
+:function:::unsigned32:compute_gpr2_dest1_reg:int reg
+*micromips32r7:
+*micromips64r7:
+{
+  switch(reg)
+    {
+    case 0: return 4;
+    case 1: return 5;
+    case 2: return 6;
+    case 3: return 7;
+    default: return 4;
+    }
+}
+
+:function:::unsigned32:compute_gpr2_dest2_reg:int reg
+*micromips32r7:
+*micromips64r7:
+{
+  switch(reg)
+    {
+    case 0: return 5;
+    case 1: return 6;
+    case 2: return 7;
+    case 3: return 4;
+    default: return 5;
+    }
 }
 
 :function:::void:do_sll_mm_r7:int rs, int rd, int shift
@@ -366,4 +398,45 @@
 {
   GPR[TRD] = EXTEND32 (do_load (SD_, AccessLength_WORD, GPR[TRS] << 2,
                                 GPR[TRT]));
+}
+
+101111,1.RS4,1.RD20,3.RS2_0,1.RT4,1.RD21,3.RT2_0:R7MOVEP:16::MOVEP
+"movep r<TRD2>, r<TRE2>, r<TRS2>, r<TRT2>"
+*micromips32r7:
+*micromips64r7:
+{
+  GPR[TRD2] = GPR[TRS2];
+  GPR[TRE2] = GPR[TRT2];
+}
+
+000101,3.RT_S,3.BASE,01,2.U:R7P16LB:16::SB16
+"sb r<TRT_S>, <U>(r<TBASE>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_store (SD_, AccessLength_BYTE, GPR[TBASE], U, GPR[TRT_S]);
+}
+
+001101,3.RT_S,3.BASE,0,2.U,1:R7P16LH:16::SH16
+"sh r<TRT_S>, <U_SHIFT_1BIT>(r<TBASE>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_store (SD_, AccessLength_HALFWORD, GPR[TBASE], U_SHIFT_1BIT, GPR[TRT_S]);
+}
+
+111101,3.RT_S,3.BASE,4.U:R7SW16:16::SW16
+"sw r<TRT_S>, <U_SHIFT_2BIT>(r<TBASE>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_store (SD_, AccessLength_WORD, GPR[TBASE], U_SHIFT_2BIT, GPR[TRT_S]);
+}
+
+110101,5.RT,5.U:R7SWSP:16::SWSP
+"sw r<TRT>, <U_SHIFT_2BIT>(sp)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_store (SD_, AccessLength_WORD, SP, U_SHIFT_2BIT, GPR[TRT]);
 }
