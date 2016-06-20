@@ -36,6 +36,28 @@
     return reg - 8;
 }
 
+:function:::void:do_sll_mm_r7:int rs, int rd, int shift
+*micromips32r7:
+*micromips64r7:
+{
+  shift = (shift == 0) ? 8 : shift;
+  unsigned32 temp = (GPR[rs] << shift);
+  TRACE_ALU_INPUT2 (GPR[rs], shift);
+  GPR[rd] = EXTEND32 (temp);
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_srl_mm_r7:int rs, int rd, int shift
+*micromips32r7:
+*micromips64r7:
+{
+  shift = (shift == 0) ? 8 : shift;
+  unsigned32 temp = (GPR[rs] >> shift);
+  TRACE_ALU_INPUT2 (GPR[rs], shift);
+  GPR[rd] = EXTEND32 (temp);
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
 00000000000000000000000000000000:R7DUMMY:32,f::DUMMY0.fmt
 "dummy 0"
 *mips32r7:
@@ -222,24 +244,24 @@
 }
 
 001100,3.RD,3.RS,0,3.SHIFT:P16SHIFT:16::SLL16
-"sll16 r<TRD>, r<TRS>, <SHIFT_DEC>"
+"sll r<TRD>, r<TRS>, <SHIFT_DEC>"
 *micromips32r7:
 *micromips64r7:
 {
-  do_sll (SD_, TRS, TRD, SHIFT_DEC);
+  do_sll_mm_r7 (SD_, TRS, TRD, SHIFT_DEC);
 }
 
 001100,3.RD,3.RS,1,3.SHIFT:P16SHIFT:16::SRL16
-"srl16 r<TRD>, r<TRS>, <SHIFT_DEC>"
+"srl r<TRD>, r<TRS>, <SHIFT_DEC>"
 *micromips32r7:
 *micromips64r7:
 {
-  do_srl (SD_, TRS, TRD, SHIFT_DEC);
+  do_srl_mm_r7 (SD_, TRS, TRD, SHIFT_DEC);
 }
 
 101100,5.RD,5.RS:P16MOVE:16::MOVE16
 "nop":RD==0&&RS==0
-"move16 r<TRD>, r<TRS>"
+"move r<TRD>, r<TRS>"
 *micromips32r7:
 *micromips64r7:
 {
@@ -247,7 +269,7 @@
 }
 
 100110,3.RS,6.S1,1.S2:R7BEQZC16:16::BEQZC16
-"beqzc16 r<TRS>, <ADDRESS>"
+"beqzc r<TRS>, <ADDRESS>"
 *micromips32r7:
 *micromips64r7:
 {
@@ -255,7 +277,7 @@
 }
 
 101110,3.RS,6.S1,1.S2:R7BNEZC16:16::BNEZC16
-"bnezc16 r<TRS>, <ADDRESS>"
+"bnezc r<TRS>, <ADDRESS>"
 *micromips32r7:
 *micromips64r7:
 {
