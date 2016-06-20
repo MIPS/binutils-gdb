@@ -147,7 +147,7 @@
 }
 
 000100,3.RD,3.RS,3.RT,0:R7P16ADDU:16::ADDU16
-"addu16 r<TRD>, r<TRS>, r<TRT>"
+"addu r<TRD>, r<TRS>, r<TRT>"
 *micromips32r7:
 *micromips64r7:
 {
@@ -163,7 +163,7 @@
 }
 
 000100,3.RD,3.RS,3.RT,1:R7P16ADDU:16::SUBU16
-"subu16 r<TRD>, r<TRS>, r<TRT>"
+"subu r<TRD>, r<TRS>, r<TRT>"
 *micromips32r7:
 *micromips64r7:
 {
@@ -203,7 +203,7 @@
 }
 
 010110,5.RS,0,0000:R7P16JRC:16::JRC16
-"jrc16 r<TRS>"
+"jrc r<TRS>"
 *micromips32r7:
 *micromips64r7:
 {
@@ -211,7 +211,7 @@
 }
 
 010110,5.RS,1,0000:R7P16JRC:16::JALRC16
-"jalrc16 r<TRS>"
+"jalrc r<TRS>"
 *micromips32r7:
 *micromips64r7:
 {
