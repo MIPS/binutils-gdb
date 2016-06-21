@@ -24,6 +24,10 @@
 :compute:::int:TRT4:RT:(compute_gpr4in5_reg (SD_, RT))
 :compute:::int:TBASE4:BASE:(compute_gpr4in5_reg (SD_, BASE))
 :compute:::int:U_LW4X4:BASE,RT:(((GPR[BASE] & 0x4) << 1) | (GPR[RT] & 0x4))
+:compute:::int:MOVE_RS:CODE,MINOR_OPCODE:(CODE << 2 | MINOR_OPCODE)
+:compute:::int:AXUIPC_S_LO:S1,S2,S3:((EXTEND32((S3 << 31) | (S2 << 21) | (S1 << 12))) & 0x0000ffff)
+:compute:::int:AXUIPC_S_HI:S1,S2,S3:((EXTEND32((S3 << 31) | (S2 << 21) | (S1 << 12))) & 0xffff0000)
+:compute:::int:AXUIPC_S:S1,S2,S3:(EXTEND32((S3 << 31) | (S2 << 21) | (S1 << 12)))
 :compute:::int:TRD2:RD20,RD21:(compute_gpr2_dest1_reg (SD_, (RD21 | RD20)))
 :compute:::int:TRE2:RD20,RD21:(compute_gpr2_dest2_reg (SD_, (RD21 | RD20)))
 :compute:::int:TRS2:RS4,RS2_0:((RS4 << 3) | (RS2_0 >> 1))
@@ -92,6 +96,45 @@
   TRACE_ALU_INPUT2 (GPR[rs], shift);
   GPR[rd] = EXTEND32 (temp);
   TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_p16move:int rd, int code, int minor_opcode, address_word instruction_0
+*micromips32r7:
+*micromips64r7:
+{
+  if (rd == 0 && code == 0 && minor_opcode == 0)
+  {
+    // NOP
+  }
+  else if (rd == 0 && minor_opcode == 0x1)
+  {
+    // BREAK
+    do_break (SD_, instruction_0);
+  }
+  else if (rd == 0 && minor_opcode == 0x3)
+  {
+    // SDBBP
+    SignalException (DebugBreakPoint, instruction_0);
+  }
+  else
+  {
+    // MOVE
+    GPR[rd] = GPR[code << 2 | minor_opcode];
+  }
+}
+
+:function:::void:do_pauipc: int rt, int s
+*micromips32r7:
+*micromips64r7:
+{
+    int address = loadstore_ea (SD_, CIA, s);
+    if (rt == 0)
+    {
+        GPR[rt] = address & ~0xfff;
+    }
+    else {
+        GPR[rt] = address;
+    }
 }
 
 :function:::address_word:do_bc16:address_word offset
@@ -317,13 +360,15 @@
   do_srl_mm_r7 (SD_, TRS, TRD, SHIFT_DEC);
 }
 
-101100,5.RD,5.RS:P16MOVE:16::MOVE16
-"nop":RD==0&&RS==0
-"move r<TRD>, r<TRS>"
+101100,5.RD,3.CODE, 2.MINOR_OPCODE:R7P16MOVE:16::MOVE16
+"nop": RD == 0 && CODE == 0 && MINOR_OPCODE == 0
+"break %#lx<CODE>": RD == 0 && MINOR_OPCODE == 0x1
+"sdbbp %#lx<CODE>": RD == 0 && MINOR_OPCODE == 0x3
+"move r<RD>, r<MOVE_RS>"
 *micromips32r7:
 *micromips64r7:
 {
-  GPR[TRD] = GPR[TRS];
+  do_p16move (SD_, RD, CODE, MINOR_OPCODE, instruction_0);
 }
 
 100110,3.RS,6.S1,1.S2:R7BEQZC16:16::BEQZC16
@@ -424,6 +469,33 @@
 {
   GPR[TRD] = EXTEND32 (do_load (SD_, AccessLength_WORD, GPR[TRS] << 2,
                                 GPR[TRT]));
+}
+
+111000,5.RT,9.S1,10.S2,1,1.S3:R7PAUIPC:32::AxUIPC
+"auipc r<RT>, <AXUIPC_S_HI>":RT != 0 && AXUIPC_S_LO==0
+"aluipc r28, <AXUIPC_S_HI>":RT == 0 && AXUIPC_S_LO==0
+"auipc r<RT>, <AXUIPC_S_HI>, <AXUIPC_S_LO>":RT != 0
+"aluipc r28, <AXUIPC_S_HI>, <AXUIPC_S_LO>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_pauipc(SD_, RT, AXUIPC_S);
+}
+
+001000,5.RT,5.RS,0100101,100,111,111:R7POOL32A0:32::CLO
+"clo r<RT>, r<RS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_clo (SD_, RT, RS);
+}
+
+001000,5.RT,5.RS,0101101,100,111,111:R7POOL32A0:32::CLZ
+"clz r<RT>, r<RS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_clz (SD_, RT, RS);
 }
 
 101111,1.RS4,1.RD20,3.RS2_0,1.RT4,1.RD21,3.RT2_0:R7MOVEP:16::MOVEP
