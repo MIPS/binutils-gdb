@@ -181,7 +181,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  /* microMIPS R6 has no forbidden slots. */
+  /* microMIPS R6 and microMIPS R7 have no forbidden slots. */
   return nia;
 }
 

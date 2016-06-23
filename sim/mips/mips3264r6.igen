@@ -477,6 +477,8 @@
 *mips64r6:
 *micromips32r6:
 *micromips64r6:
+*micromips32r7:
+*micromips64r7:
 {
   if (rs >= rt)
     {
@@ -514,6 +516,8 @@
 *mips64r6:
 *micromips32r6:
 *micromips64r6:
+*micromips32r7:
+*micromips64r7:
 {
   if (rs >= rt)
     {

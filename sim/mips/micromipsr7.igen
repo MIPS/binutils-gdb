@@ -18,7 +18,6 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-:compute:::int:ADDRESS:S1,S2:((S1 << 1) + S2)
 :compute:::int:U_SHIFT_1BIT:U:(U << 1)
 :compute:::int:U_SHIFT_2BIT:U:(U << 2)
 :compute:::int:U_DEC127:U:((U < 127) ? U \: -1)
@@ -29,6 +28,11 @@
 :compute:::int:TRE2:RD20,RD21:(compute_gpr2_dest2_reg (SD_, (RD21 | RD20)))
 :compute:::int:TRS2:RS4,RS2_0:((RS4 << 3) | (RS2_0 >> 1))
 :compute:::int:TRT2:RT4,RT2_0:((RT4 << 3) | (RT2_0 >> 1))
+:compute:::int:ADDRESS8:S1,S2:((S2 << 7) | (S1 << 1))
+:compute:::int:ADDRESS11:S1,S2:((S2 << 10) | (S1 << 1))
+:compute:::int:ADDRESS15:S1,S2:((S2 << 14) | (S1 << 1))
+:compute:::int:ADDRESS21:S1,S2:((S2 << 20) | (S1 << 1))
+:compute:::int:ADDRESS26:S1,S2:((S2 << 25) | (S1 << 1))
 
 :function:::unsigned32:compute_gpr4in5_reg:int reg
 *micromips32r7:
@@ -88,6 +92,28 @@
   TRACE_ALU_INPUT2 (GPR[rs], shift);
   GPR[rd] = EXTEND32 (temp);
   TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::address_word:do_bc16:address_word offset
+{
+  return CIA + offset;
+}
+
+:function:::address_word:do_balc16:address_word offset
+{
+  RA = CIA | isa_mode;
+  return CIA + offset;
+}
+
+:function:::address_word:do_beqc16_bnec16:int rs, int rt, address_word offset, address_word nia
+*micromips32r7:
+*micromips64r7:
+{
+  if (rs < rt && GPR[rs] == GPR[rt])
+    return nia + offset; //BEQC
+  if (GPR[rs] != GPR[rt])
+    return nia + offset; //BNEC
+  return NIA;
 }
 
 00000000000000000000000000000000:R7DUMMY:32,f::DUMMY0.fmt
@@ -301,19 +327,19 @@
 }
 
 100110,3.RS,6.S1,1.S2:R7BEQZC16:16::BEQZC16
-"beqzc r<TRS>, <ADDRESS>"
+"beqzc r<TRS>, <ADDRESS8>"
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_beqzc (SD_, TRS, EXTEND7 (ADDRESS), NIA);
+  NIA = do_beqzc (SD_, TRS, EXTEND8 (ADDRESS8), NIA);
 }
 
 101110,3.RS,6.S1,1.S2:R7BNEZC16:16::BNEZC16
-"bnezc r<TRS>, <ADDRESS>"
+"bnezc r<TRS>, <ADDRESS8>"
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_bnezc (SD_, TRS, EXTEND7 (ADDRESS), NIA);
+  NIA = do_bnezc (SD_, TRS, EXTEND8 (ADDRESS8), NIA);
 }
 
 000101,3.RT,3.BASE,00,2.U:R7P16LB:16::LB16
@@ -439,4 +465,77 @@
 *micromips64r7:
 {
   do_store (SD_, AccessLength_WORD, SP, U_SHIFT_2BIT, GPR[TRT]);
+}
+
+001110,9.S1,1.S2:R7BALC16:16::BALC16
+"balc <ADDRESS11>"
+*micromips32r7:
+*micromips64r7:
+{
+  NIA = do_balc16 (SD_, EXTEND11 (ADDRESS11));
+}
+
+000010,1,24.S1,1.S2:R7PBAL:32::BALC
+"balc <ADDRESS26>"
+*micromips32r7:
+*micromips64r7:
+{
+  NIA = do_balc16 (SD_, EXTEND26 (ADDRESS26));
+}
+
+000110,9.S1,1.S2:R7BC16:16::BC16
+"bc <ADDRESS11>"
+*micromips32r7:
+*micromips64r7:
+{
+  NIA = do_bc16 (SD_, EXTEND11 (ADDRESS11));
+}
+
+000010,0,24.S1,1.S2:R7PBAL:32::BC
+"bc <ADDRESS26>"
+*micromips32r7:
+*micromips64r7:
+{
+  NIA = do_bc16 (SD_, EXTEND26 (ADDRESS26));
+}
+
+101010,5.RS!0,0,19.S1,1.S2:R7PBZ:32::BEQZC
+"beqzc r<RS>, <ADDRESS21>"
+*micromips32r7:
+*micromips64r7:
+{
+  NIA = do_beqzc (SD_, RS, EXTEND21 (ADDRESS21), NIA);
+}
+
+101010,5.RS!0,1,19.S1,1.S2:R7PBZ:32::BNEZC
+"bnezc r<RS>, <ADDRESS21>"
+*micromips32r7:
+*micromips64r7:
+{
+  NIA = do_bnezc (SD_, RS, EXTEND21 (ADDRESS21), NIA);
+}
+
+010110,3.RT,3.RS,4.U!0:R7P16BR1:16::BxxxC16
+"beqc r<TRS>, r<TRT>, <U_SHIFT_1BIT>":RS<RT
+"bnec r<TRS>, r<TRT>, <U_SHIFT_1BIT>"
+*micromips32r7:
+*micromips64r7:
+{
+  NIA = do_beqc16_bnec16 (SD_, TRS, TRT, U_SHIFT_1BIT, NIA);
+}
+
+111010,5.RT,5.RS,00,13.S1,1.S2:R7PBR2:32::BEQC
+"beqc r<RS>, r<RT>, <ADDRESS15>"
+*micromips32r7:
+*micromips64r7:
+{
+  NIA = do_bxxxc (SD_, RS, RT, EXTEND15 (ADDRESS15), NIA);
+}
+
+111010,5.RT,5.RS,01,13.S1,1.S2:R7PBR2:32::BNEC
+"bnec r<RS>, r<RT>, <ADDRESS15>"
+*micromips32r7:
+*micromips64r7:
+{
+  NIA = do_bnxxxc (SD_, RS, RT, EXTEND15 (ADDRESS15), NIA);
 }
