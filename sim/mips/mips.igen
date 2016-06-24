@@ -104,6 +104,37 @@
 // For grep - RSVD_INSTRUCTION, RSVD_INSTRUCTION_MASK
 000000,5.*,5.*,5.*,5.OP,111001:SPECIAL:32::RSVD
 "rsvd <OP>"
+*mipsI:
+*mipsII:
+*mipsIII:
+*mipsIV:
+*mipsV:
+*mips32:
+*mips32r2:
+*mips32r6:
+*mips32r7:
+*mips64:
+*mips64r2:
+*mips64r6:
+*mips64r7:
+*vr4100:
+*vr4120:
+*vr5000:
+*vr5400:
+*vr5500:
+*r3900:
+*mips16:
+*mips16e:
+*mips3d:
+*mdmx:
+*dsp:
+*dsp2:
+*smartmips:
+*micromips32:
+*micromips64:
+*micromipsdsp:
+*micromips32r6:
+*micromips64r6:
 {
   SignalException (ReservedInstruction, instruction_0);
 }

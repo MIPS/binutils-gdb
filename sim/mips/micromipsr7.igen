@@ -37,6 +37,8 @@
 :compute:::int:ADDRESS15:S1,S2:((S2 << 14) | (S1 << 1))
 :compute:::int:ADDRESS21:S1,S2:((S2 << 20) | (S1 << 1))
 :compute:::int:ADDRESS26:S1,S2:((S2 << 25) | (S1 << 1))
+:compute:::int:S_14_BIT:S1,S2:((S1 << 13) | S2)
+:compute:::int:S_4_BIT:S1,S2:((S1 << 3) | S2)
 
 :function:::unsigned32:compute_gpr4in5_reg:int reg
 *micromips32r7:
@@ -610,4 +612,64 @@
 *micromips64r7:
 {
   NIA = do_bnxxxc (SD_, RS, RT, EXTEND15 (ADDRESS15), NIA);
+}
+
+000000,5.RT!0,5.RS,1.S1,00,13.S2:R7PPADDIU:32::ADDIU
+"addiu r<RT>, r<RS>, <S_14_BIT>"
+*micromips32r7:
+*micromips64r7:
+{
+  if (NotWordValue (GPR[RS]))
+    Unpredictable ();
+  TRACE_ALU_INPUT2 (GPR[RS], EXTEND14 (S_14_BIT));
+  GPR[RT] = EXTEND32 (GPR[RS] + EXTEND14 (S_14_BIT));
+  TRACE_ALU_RESULT (GPR[RT]);
+}
+
+010000,5.RT,19.U,00:R7PGPREL:32::ADDIUGP
+"addiu r<RT>, GP, <U_SHIFT_2BIT>"
+*micromips32r7:
+*micromips64r7:
+{
+  if (NotWordValue (GPR[GPIDX]))
+    Unpredictable ();
+  TRACE_ALU_INPUT2 (GPR[GPIDX], U_SHIFT_2BIT);
+  GPR[RT] = GPR[GPIDX] + U_SHIFT_2BIT;
+  TRACE_ALU_RESULT (GPR[RT]);
+}
+
+011100,3.RD,1,6.U:R7P16ADDIU1:16::ADDIUR1SP
+"addiu r<TRD>, SP, <U_SHIFT_2BIT>"
+*micromips32r7:
+*micromips64r7:
+{
+  if (NotWordValue (GPR[SPIDX]))
+    Unpredictable ();
+  TRACE_ALU_INPUT2 (GPR[SPIDX], U_SHIFT_2BIT);
+  GPR[TRD] = EXTEND32 (GPR[SPIDX] + U_SHIFT_2BIT);
+  TRACE_ALU_RESULT (GPR[TRD]);
+}
+
+100100,3.RD,3.RS,0,3.U:R7P16ADDIU2:16::ADDIUR2
+"addiu r<TRD>, r<TRS>, <U_SHIFT_2BIT>"
+*micromips32r7:
+*micromips64r7:
+{
+  if (NotWordValue (GPR[TRS]))
+    Unpredictable ();
+  TRACE_ALU_INPUT2 (GPR[TRS], U_SHIFT_2BIT);
+  GPR[TRD] = EXTEND32 (GPR[TRS] + U_SHIFT_2BIT);
+  TRACE_ALU_RESULT (GPR[TRD]);
+}
+
+100100,5.RD,1.S1,1,3.S2:R7P16ADDIU2:16::ADDIURS5
+"addiu r<TRD>, <S_4_BIT>"
+*micromips32r7:
+*micromips64r7:
+{
+  if (NotWordValue (GPR[TRD]))
+    Unpredictable ();
+  TRACE_ALU_INPUT2 (GPR[TRD], EXTEND4 (S_4_BIT));
+  GPR[TRD] = EXTEND32 (GPR[TRD] + EXTEND4 (S_4_BIT));
+  TRACE_ALU_RESULT (GPR[TRD]);
 }
