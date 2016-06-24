@@ -39,6 +39,18 @@
 :compute:::int:ADDRESS21:S1,S2:((S2 << 20) | (S1 << 1))
 :compute:::int:ADDRESS22:S1,S2:((S2 << 21) | (S1 << 1))
 :compute:::int:ADDRESS26:S1,S2:((S2 << 25) | (S1 << 1))
+:compute:::int:INS_POS:LSB:(LSB)
+:compute:::int:INS_SIZE:LSB,MSBD:(1 + MSBD - LSB)
+:compute:::address_word:BEQIC_ADDRESS:S1,S2:(nia + EXTEND12(S2 << 11 | S1 << 1))
+:compute:::address_word:BGEC_ADDRESS:S1,S2:(nia + EXTEND15(S2 << 14 | S1 << 1))
+:compute:::address_word:BGEIC_ADDRESS:S1,S2:(nia + EXTEND12(S2 << 11 | S1 << 1))
+:compute:::address_word:BGEUC_ADDRESS:S1,S2:(nia + EXTEND15(S2 << 14 | S1 << 1))
+:compute:::address_word:BGEUIC_ADDRESS:S1,S2:(nia + EXTEND12(S2 << 11 | S1 << 1))
+:compute:::address_word:BLTC_ADDRESS:S1,S2:(nia + EXTEND15(S2 << 14 | S1 << 1))
+:compute:::address_word:BLTIC_ADDRESS:S1,S2:(nia + EXTEND12(S2 << 11 | S1 << 1))
+:compute:::address_word:BLTUC_ADDRESS:S1,S2:(nia + EXTEND15(S2 << 14 | S1 << 1))
+:compute:::address_word:BLTUIC_ADDRESS:S1,S2:(nia + EXTEND12(S2 << 11 | S1 << 1))
+:compute:::address_word:BNEIC_ADDRESS:S1,S2:(nia + EXTEND12(S2 << 11 | S1 << 1))
 :compute:::int:S_14_BIT:S1,S2:((S1 << 13) | S2)
 :compute:::int:S_4_BIT:S1,S2:((S1 << 3) | S2)
 :compute:::int:S_8_BIT:S1,S2:((S1 << 7) | S2)
@@ -164,6 +176,18 @@
   if (GPR[rs] != GPR[rt])
     return nia + offset; //BNEC
   return NIA;
+}
+
+:function:::void:do_ins_mm_r7:int rt, int rs, int pos, int size
+{
+  TRACE_ALU_INPUT4 (GPR[rt], GPR[rs], pos, size);
+  if (size < 1)
+    Unpredictable ();
+
+  int merge_mask = ((1 << size) - 1) << pos;
+  int result = GPR[rt] & ~merge_mask | (GPR[rs] << pos) & merge_mask;
+  GPR[rt] = EXTEND32 (result);
+  TRACE_ALU_RESULT1 (GPR[rt]);
 }
 
 :function:::unsigned32:compute_gpr1_dest_reg:int reg
@@ -643,6 +667,127 @@
 *micromips64r7:
 {
   NIA = do_bnxxxc (SD_, RS, RT, EXTEND15 (ADDRESS15), NIA);
+}
+
+100000,5.RT,5.RS,1110,0,5.MSBD,0,5.LSB:R7PINS:32::INS
+"ins r<RT>, r<RS>, <INS_POS>, <INS_SIZE>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_ins_mm_r7 (SD_, RT, RS, INS_POS, INS_SIZE);
+}
+
+100010,5.RT,5.RS,0000,12.OFFSET:R7PJ:32::JIALC
+"jrc r<RS>": RT==31 && OFFSET==0
+"jalrc r<RS>": RT==31 && OFFSET==0
+"jalrc r<RT>, r<RS>": OFFSET==0
+"jialc r<RS>, <OFFSET>": RT==31
+"jialc r<RT>, r<RS>, <OFFSET>"
+*micromips32r7:
+*micromips64r7:
+{
+  NIA = do_jialc_mm_r7 (SD_, RT, RS, OFFSET);
+}
+
+010010,5.RS,000,7.U,10.S1,1.S2:P7PBRI:32::BEQIC
+"beqic r<RS>, <U>, <BEQIC_ADDRESS>"
+*micromips32r7:
+*micromips64r7:
+{
+  if (GPR[RS] != 0) {
+    NIA = BEQIC_ADDRESS;
+  }
+}
+
+110010,5.RT,5.RS,00,13.S1,1.S2:P7PBR1:32::BGEC
+"bgec r<RS>, r<RT>, <BGEC_ADDRESS>"
+*micromips32r7:
+*micromips64r7:
+{
+   if (GPR[RS] >= GPR[RT]) {
+     NIA = BGEC_ADDRESS;
+   }
+}
+
+010010,5.RS,101,7.U,10.S1,1.S2:P7PBRI:32::BGEIC
+"bgeic r<RS>, <U>, <BGEIC_ADDRESS>"
+*micromips32r7:
+*micromips64r7:
+{
+  if (GPR[RS] >= U) {
+    NIA = BGEIC_ADDRESS;
+  }
+}
+
+# BGEUC
+110010,5.RT,5.RS,10,13.S1,1.S2:P7PBR1:32::BGEUC
+"bgeuc r<RS>, r<RT>, <BGEUC_ADDRESS>"
+*micromips32r7:
+*micromips64r7:
+{
+  if ((unsigned32) (GPR[RS]) >= (unsigned32) (GPR[RT])) {
+    NIA = BGEUC_ADDRESS;
+  }
+}
+
+010010,5.RS,111,7.U,10.S1,1.S2:P7PBRI:32::BGEUIC
+"bgeuic r<RS>, <U>, <BGEUIC_ADDRESS>"
+*micromips32r7:
+*micromips64r7:
+{
+  if ((unsigned32) (GPR[RS]) >= U) {
+    NIA = BGEUIC_ADDRESS;
+  }
+}
+
+110010,5.RT,5.RS,01,13.S1,1.S2:P7PBR1:32::BLTC
+"bltc r<RS>, r<RT>, <BLTC_ADDRESS>"
+*micromips32r7:
+*micromips64r7:
+{
+  if (GPR[RS] < GPR[RT]) {
+    NIA = BLTC_ADDRESS;
+  }
+}
+
+010010,5.RS,100,7.U,10.S1,1.S2:P7PBRI:32::BLTIC
+"bltic r<RS>, <U>, <BLTIC_ADDRESS>"
+*micromips32r7:
+*micromips64r7:
+{
+  if (GPR[RS] < U) {
+    NIA = BLTIC_ADDRESS;
+  }
+}
+
+110010,5.RT,5.RS,11,13.S1,1.S2:P7PBR1:32::BLTUC
+"bltuc r<RS>, r<RT>, <BLTUC_ADDRESS>"
+*micromips32r7:
+*micromips64r7:
+{
+  if ((unsigned32) (GPR[RS]) < (unsigned32)(GPR[RT])) {
+    NIA = BLTUC_ADDRESS;
+  }
+}
+
+010010,5.RS,110,7.U,10.S1,1.S2:P7PBRI:32::BLTUIC
+"bltuic RS, U, <BLTUIC_ADDRESS>"
+*micromips32r7:
+*micromips64r7:
+{
+  if ((unsigned32)(GPR[RS]) < U) {
+    NIA = BLTUIC_ADDRESS;
+  }
+}
+
+010010,5.RS,001,7.U,10.S1,1.S2:P7PBRI:32::BNEIC
+"bneic RS, U, <BNEIC_ADDRESS>"
+*micromips32r7:
+*micromips64r7:
+{
+  if (GPR[RS] != U) {
+    NIA = BNEIC_ADDRESS;
+  }
 }
 
 000000,5.RT!0,5.RS,1.S1,00,13.S2:R7PPADDIU:32::ADDIU
