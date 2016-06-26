@@ -16179,7 +16179,7 @@ parse_code_option (char * name)
 	    {
 	      mips_opts.arch = p->cpu;
 	      mips_opts.isa = p->isa;
-	      mips_opts.ase = p->ase;
+	      mips_opts.init_ase = p->ase;
 	    }
 	}
       else
