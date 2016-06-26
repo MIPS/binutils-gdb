@@ -100,12 +100,12 @@
 
 	.set mips64r6
 	.set crypto		# OK
-	aes128.enc	$4,$7	# OK
-	sha1.ms.2	$4,$7,$6	# ERROR: Invalid operands
-	.set mips32r5		# ERROR: too low
-	aes256.enc	$4,$7,$6	# OK
+	aes128.enc	$w4,$w7	# OK
+	sha1.ms.2	$w4,$w7,$w6	# ERROR: Invalid operands
+	.set mips64r5		# ERROR: too low
+	aes256.enc	$w4,$w7,$w6	# OK
 	.set nocrypto
-	sha1.ms.1	$4,$7,$6	# ERROR: crypto not enabled
+	sha1.ms.1	$w4,$w7,$w6	# ERROR: crypto not enabled
 
 	# There should be no errors after this.
 	.set fp=32
