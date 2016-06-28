@@ -20,6 +20,7 @@
 
 :compute:::int:U_SHIFT_1BIT:U:(U << 1)
 :compute:::int:U_SHIFT_2BIT:U:(U << 2)
+:compute:::int:U_SHIFT_3BIT:U:(U << 3)
 :compute:::int:U_DEC127:U:((U < 127) ? U \: -1)
 :compute:::int:TRT4:RT:(compute_gpr4in5_reg (SD_, RT))
 :compute:::int:TBASE4:BASE:(compute_gpr4in5_reg (SD_, BASE))
@@ -36,9 +37,13 @@
 :compute:::int:ADDRESS11:S1,S2:((S2 << 10) | (S1 << 1))
 :compute:::int:ADDRESS15:S1,S2:((S2 << 14) | (S1 << 1))
 :compute:::int:ADDRESS21:S1,S2:((S2 << 20) | (S1 << 1))
+:compute:::int:ADDRESS22:S1,S2:((S2 << 21) | (S1 << 1))
 :compute:::int:ADDRESS26:S1,S2:((S2 << 25) | (S1 << 1))
 :compute:::int:S_14_BIT:S1,S2:((S1 << 13) | S2)
 :compute:::int:S_4_BIT:S1,S2:((S1 << 3) | S2)
+:compute:::int:S_8_BIT:S1,S2:((S1 << 7) | S2)
+:compute:::int:RD1:RD:(compute_gpr1_dest_reg (SD_, RD))
+:compute:::int:RS_5_BIT:RS1,RS2:((RS1 << 4) | RS2)
 
 :function:::unsigned32:compute_gpr4in5_reg:int reg
 *micromips32r7:
@@ -159,6 +164,32 @@
   if (GPR[rs] != GPR[rt])
     return nia + offset; //BNEC
   return NIA;
+}
+
+:function:::unsigned32:compute_gpr1_dest_reg:int reg
+*micromips32r7:
+*micromips64r7:
+{
+  switch(reg)
+    {
+    case 0: return 4;
+    case 1: return 5;
+    default: return 4;
+    }
+}
+
+:function:::address_word:do_jialc_mm_r7:int rt, int rs, unsigned16 offset
+{
+  rt = CIA | isa_mode;
+  unsigned_word address = do_load (SD_, AccessLength_WORD, GPR[rs], offset);
+  isa_mode = address & 1;
+  return address & ~1;
+}
+
+:function:::unsigned_word:zero_extend:signed_word value, unsigned32 from_nbits
+{
+  unsigned32 low_bits_mask = (1 << from_nbits) - 1;
+  return value & low_bits_mask;
 }
 
 00000000000000000000000000000000:R7DUMMY:32,f::DUMMY0.fmt
@@ -672,4 +703,71 @@
   TRACE_ALU_INPUT2 (GPR[TRD], EXTEND4 (S_4_BIT));
   GPR[TRD] = EXTEND32 (GPR[TRD] + EXTEND4 (S_4_BIT));
   TRACE_ALU_RESULT (GPR[TRD]);
+}
+
+
+001000,00000,5.RS,01,00011,101,111,111:R7POOL32A0:32::DI
+"di":RS == 0
+"di r<RS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_di (SD_, RS);
+}
+
+001000,00000,5.RS,01,01011,101,111,111:R7POOL32A0:32::EI
+"ei":RS == 0
+"ei r<RS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_ei (SD_, RS);
+}
+
+101001,5.OP,5.BASE,1.S1,0011001,8.S2:R7PLSS1:32::CACHE
+"cache <OP>, <S_8_BIT>(r<BASE>)"
+*micromips32r7:
+*micromips64r7:
+{
+  address_word vaddr;
+  address_word paddr;
+  int uncached;
+  vaddr = loadstore_ea (SD_, GPR[BASE], EXTEND9 (S_8_BIT));
+  if (AddressTranslation (vaddr, isDATA, isLOAD, &paddr, &uncached, isTARGET,
+                          isREAL))
+    CacheOp (OP, vaddr, paddr, instruction_0);
+}
+
+011010,1.RS1,1.RD,3.RS2,20.S1,1.S2:R7MOVEBALC:32::MOVE.BALC
+"move.balc r<RD1>, r<RS_5_BIT>, <ADDRESS22>"
+*micromips32r7:
+*micromips64r7:
+{
+  GPR[RD1] = GPR[RS_5_BIT];
+  NIA = do_balc16 (SD_, EXTEND22 (ADDRESS22));
+}
+
+100010,5.RT,5.RS,0001,12.U:R7PJ:32::JIALC.HB
+"jalrc.hb r<RS>":RT==31&&U==0
+"jalrc.hb r<RT>, r<RS>":U==0
+"jialc.hb r<RS>, <U>":RT==31
+"jialc.hb r<RT>, r<RS>, <U>"
+*micromips32r7:
+*micromips64r7:
+{
+  NIA = do_jialc_mm_r7 (SD_, RT, RS, U);
+  //TODO: ClearHazards()?
+}
+
+100000,5.RT,5.RS,11110,5.MSBD,0,5.LSB:R7PEXT:32::EXT
+"ext r<RT>, r<RS>, <LSB>, <MSBD+1>"
+*micromips32r7:
+*micromips64r7:
+{
+  if (LSB + MSBD + 1 > 32)
+    Unpredictable ();
+
+  TRACE_ALU_INPUT3 (GPR[RS], LSB,  MSBD + 1);
+  GPR[RT] = EXTEND32 (zero_extend(SD_, GPR[RS] >> LSB, MSBD + 1));
+  TRACE_ALU_RESULT1 (GPR[RT]);
 }
