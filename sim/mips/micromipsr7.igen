@@ -48,6 +48,7 @@
 :compute:::int:RT_5_BIT:RT1,RT2:((RT1 << 4) | RT2)
 :compute:::int:RS_5_BIT:RS1,RS2:((RS1 << 4) | RS2)
 :compute:::int:TRTZ:RTZ:((RTZ == 1) ? 17 \: RTZ)
+:compute:::int:EU_12_13:EU:((EU == 12) ? 255 \: ((EU == 13) ? 65535 \: EU))
 
 :function:::unsigned32:compute_gpr2_dest1_reg:int reg
 *micromips32r7:
@@ -270,12 +271,12 @@
   do_xori (SD_, RS, RT, U);
 }
 
-010100,3.RD,3.RS,10,0,0:R7POOL16C00:16::AND16
-"and r<TRD>, r<TRS>"
+010100,3.RT,3.RS,10,0,0:R7POOL16C00:16::AND16
+"and r<TRT>, r<TRS>"
 *micromips32r7:
 *micromips64r7:
 {
-  do_and (SD_, TRS, TRD, TRD);
+  do_and (SD_, TRS, TRT, TRT);
 }
 
 010100,3.RD,3.RS,11,0,0:R7POOL16C00:16::OR16
@@ -359,28 +360,28 @@
   NIA = process_isa_mode (SD_, GPR[TRS]);
 }
 
-010100,3.RD,3.RS,01,0,0:R7POOL16C00:16::XOR16
-"xor r<TRD>, r<TRS>"
+010100,3.RT,3.RS,01,0,0:R7POOL16C00:16::XOR16
+"xor r<TRT>, r<TRS>"
 *micromips32r7:
 *micromips64r7:
 {
-  do_xor (SD_, TRS, TRD, TRD);
+  do_xor (SD_, TRS, TRT, TRT);
 }
 
-010100,3.RD,3.RS,00,0,0:R7POOL16C00:16::NOT16
-"not r<TRD>, r<TRS>"
+010100,3.RT,3.RS,00,0,0:R7POOL16C00:16::NOT16
+"not r<TRT>, r<TRS>"
 *micromips32r7:
 *micromips64r7:
 {
-  do_nor (SD_, 0, TRS, TRD);
+  do_nor (SD_, 0, TRS, TRT);
 }
 
-111100,3.RD,3.RS,4.U:R7ANDI16:16::ANDI16
-"andi r<TRD>, r<TRS>, <U>"
+111100,3.RT,3.RS,4.EU:R7ANDI16:16::ANDI16
+"andi r<TRT>, r<TRS>, <EU_12_13>"
 *micromips32r7:
 *micromips64r7:
 {
-  do_andi (SD_, TRS, TRD, U);
+  do_andi (SD_, TRS, TRT, EU_12_13);
 }
 
 001100,3.RD,3.RS,0,3.SHIFT:P16SHIFT:16::SLL16
