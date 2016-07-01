@@ -48,6 +48,7 @@
 :compute:::int:S_8_BIT:S1,S2:((S1 << 7) | S2)
 :compute:::int:RD1:RD:(compute_gpr1_dest_reg (SD_, RD))
 :compute:::int:RS_5_BIT:RS1,RS2:((RS1 << 4) | RS2)
+:compute:::int:TRTZ:RTZ:((RTZ == 1) ? 17 \: RTZ)
 
 :function:::unsigned32:compute_gpr4in5_reg:int reg
 *micromips32r7:
@@ -547,7 +548,7 @@
   do_clz (SD_, RT, RS);
 }
 
-101111,1.RS4,1.RD20,3.RS2_0,1.RT4,1.RD21,3.RT2_0:R7MOVEP:16::MOVEP
+101111,1.RT4,1.RD20,3.RT2_0,1.RS4,1.RD21,3.RS2_0:R7MOVEP:16::MOVEP
 "movep r<TRD2>, r<TRE2>, r<TRS2>, r<TRT2>"
 *micromips32r7:
 *micromips64r7:
@@ -556,28 +557,31 @@
   GPR[TRE2] = GPR[TRT2];
 }
 
-000101,3.RT_S,3.BASE,01,2.U:R7P16LB:16::SB16
-"sb r<TRT_S>, <U>(r<TBASE>)"
+000101,3.RTZ,3.RS,01,2.U:R7P16LB:16::SB16
+"sb r<TRTZ>, <U>(r<TRS>)"
 *micromips32r7:
 *micromips64r7:
 {
-  do_store (SD_, AccessLength_BYTE, GPR[TBASE], U, GPR[TRT_S]);
+  do_store (SD_, AccessLength_BYTE, GPR[TRS], U, zero_extend(SD_, GPR[TRTZ],
+                                                             8));
 }
 
-001101,3.RT_S,3.BASE,0,2.U,1:R7P16LH:16::SH16
-"sh r<TRT_S>, <U_SHIFT_1BIT>(r<TBASE>)"
+001101,3.RTZ,3.RS,0,2.U,1:R7P16LH:16::SH16
+"sh r<TRTZ>, <U_SHIFT_1BIT>(r<TRS>)"
 *micromips32r7:
 *micromips64r7:
 {
-  do_store (SD_, AccessLength_HALFWORD, GPR[TBASE], U_SHIFT_1BIT, GPR[TRT_S]);
+  do_store (SD_, AccessLength_HALFWORD, GPR[TRS], U_SHIFT_1BIT,
+            zero_extend(SD_, GPR[TRTZ], 16));
 }
 
-111101,3.RT_S,3.BASE,4.U:R7SW16:16::SW16
-"sw r<TRT_S>, <U_SHIFT_2BIT>(r<TBASE>)"
+111101,3.RTZ,3.RS,4.U:R7SW16:16::SW16
+"sw r<TRTZ>, <U_SHIFT_2BIT>(r<TRS>)"
 *micromips32r7:
 *micromips64r7:
 {
-  do_store (SD_, AccessLength_WORD, GPR[TBASE], U_SHIFT_2BIT, GPR[TRT_S]);
+  do_store (SD_, AccessLength_WORD, GPR[TRS], U_SHIFT_2BIT,
+            zero_extend(SD_, GPR[TRTZ], 32));
 }
 
 110101,5.RT,5.U:R7SWSP:16::SWSP
@@ -585,7 +589,8 @@
 *micromips32r7:
 *micromips64r7:
 {
-  do_store (SD_, AccessLength_WORD, SP, U_SHIFT_2BIT, GPR[TRT]);
+  do_store (SD_, AccessLength_WORD, SP, U_SHIFT_2BIT, zero_extend(SD_, GPR[TRT],
+                                                                  32));
 }
 
 001110,9.S1,1.S2:R7BALC16:16::BALC16
