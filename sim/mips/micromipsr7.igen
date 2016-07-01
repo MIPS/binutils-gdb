@@ -21,7 +21,7 @@
 :compute:::int:U_SHIFT_1BIT:U:(U << 1)
 :compute:::int:U_SHIFT_2BIT:U:(U << 2)
 :compute:::int:U_SHIFT_3BIT:U:(U << 3)
-:compute:::int:U_DEC127:U:((U < 127) ? U \: -1)
+:compute:::int:EU_127:EU:((EU == 127) ? -1 \: EU)
 :compute:::int:TRT4:RT:(compute_gpr4in5_reg (SD_, RT))
 :compute:::int:TBASE4:BASE:(compute_gpr4in5_reg (SD_, BASE))
 :compute:::int:U_LW4X4:BASE,RT:(((GPR[BASE] & 0x4) << 1) | (GPR[RT] & 0x4))
@@ -437,45 +437,45 @@
   NIA = do_bnezc (SD_, TRS, EXTEND8 (ADDRESS8), NIA);
 }
 
-000101,3.RT,3.BASE,00,2.U:R7P16LB:16::LB16
-"lb r<TRT>, <U>(r<TBASE>)"
+000101,3.RT,3.RS,00,2.U:R7P16LB:16::LB16
+"lb r<TRT>, <U>(r<TRS>)"
 *micromips32r7:
 *micromips64r7:
 {
-  GPR[TRT] = EXTEND8 (do_load (SD_, AccessLength_BYTE, GPR[TBASE], U));
+  GPR[TRT] = EXTEND8 (do_load (SD_, AccessLength_BYTE, GPR[TRS], U));
 }
 
-000101,3.RT,3.BASE,10,2.U:R7P16LB:16::LBU16
-"lbu r<TRT>, <U>(r<TBASE>)"
+000101,3.RT,3.RS,10,2.U:R7P16LB:16::LBU16
+"lbu r<TRT>, <U>(r<TRS>)"
 *micromips32r7:
 *micromips64r7:
 {
-  GPR[TRT] = do_load (SD_, AccessLength_BYTE, GPR[TBASE], U);
+  GPR[TRT] = do_load (SD_, AccessLength_BYTE, GPR[TRS], U);
 }
 
-001101,3.RT,3.BASE,0,2.U,0:R7P16LH:16::LH16
-"lh r<TRT>, <U_SHIFT_1BIT>(r<TBASE>)"
+001101,3.RT,3.RS,0,2.U,0:R7P16LH:16::LH16
+"lh r<TRT>, <U_SHIFT_1BIT>(r<TRS>)"
 *micromips32r7:
 *micromips64r7:
 {
-  GPR[TRT] = EXTEND16 (do_load (SD_, AccessLength_HALFWORD, GPR[TBASE],
+  GPR[TRT] = EXTEND16 (do_load (SD_, AccessLength_HALFWORD, GPR[TRS],
                                 U_SHIFT_1BIT));
 }
 
-001101,3.RT,3.BASE,1,2.U,0:R7P16LH:16::LHU16
-"lhu r<TRT>, <U_SHIFT_1BIT>(r<TBASE>)"
+001101,3.RT,3.RS,1,2.U,0:R7P16LH:16::LHU16
+"lhu r<TRT>, <U_SHIFT_1BIT>(r<TRS>)"
 *micromips32r7:
 *micromips64r7:
 {
-  GPR[TRT] = do_load (SD_, AccessLength_HALFWORD, GPR[TBASE], U_SHIFT_1BIT);
+  GPR[TRT] = do_load (SD_, AccessLength_HALFWORD, GPR[TRS], U_SHIFT_1BIT);
 }
 
-110100,3.RD,7.U:R7LI16:16::LI16
-"li r<TRD>, <U_DEC127>"
+110100,3.RT,7.EU:R7LI16:16::LI16
+"li r<TRT>, <EU_127>"
 *micromips32r7:
 *micromips64r7:
 {
-  GPR[TRD] = U_DEC127;
+  GPR[TRT] = EU_127;
 }
 
 100101,5.RT,5.BASE:R7LW4X4:16::LW4X4
