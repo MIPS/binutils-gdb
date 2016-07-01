@@ -677,79 +677,38 @@
   NIA = do_jialc_mm_r7 (SD_, RT, RS, OFFSET);
 }
 
-010010,5.RS,000,7.U,10.S1,1.S2:P7PBRI:32::BEQIC
-"beqic r<RS>, <U>, <P7PBRI_ADDRESS>"
+010010,5.RT,000,7.U,10.S1,1.S2:P7PBRI:32::BEQIC
+"beqic r<RT>, <U>, <P7PBRI_ADDRESS>"
 *micromips32r7:
 *micromips64r7:
 {
-  if (GPR[RS] != 0) {
+  if (GPR[RT] == U) {
     NIA = P7PBRI_ADDRESS;
   }
 }
 
-110010,5.RT,5.RS,00,13.S1,1.S2:P7PBR1:32::BGEC
+110010,5.RT,5.RS,10,13.S1,1.S2:P7PBR1:32::P7PBR1
+"bltc r<RS>, r<RT>, <P7PBR1_ADDRESS>": GPR[RS] < GPR[RT]
 "bgec r<RS>, r<RT>, <P7PBR1_ADDRESS>"
 *micromips32r7:
 *micromips64r7:
 {
-   if (GPR[RS] >= GPR[RT]) {
-     NIA = P7PBR1_ADDRESS;
-   }
+  NIA = P7PBR1_ADDRESS;
 }
 
-010010,5.RS,101,7.U,10.S1,1.S2:P7PBRI:32::BGEIC
-"bgeic r<RS>, <U>, <P7PBRI_ADDRESS>"
+010010,5.RT,010,7.U,10.S1,1.S2:P7PBRI:32::BGEIC
+"bgeic r<RT>, <U>, <P7PBRI_ADDRESS>"
 *micromips32r7:
 *micromips64r7:
 {
-  if (GPR[RS] >= U) {
+  if (GPR[RT] >= U) {
     NIA = P7PBRI_ADDRESS;
   }
 }
 
-# BGEUC
-110010,5.RT,5.RS,10,13.S1,1.S2:P7PBR1:32::BGEUC
+110010,5.RT,5.RS,11,13.S1,1.S2:P7PBR2:32::P7PBR2
+"bltuc r<RS>, r<RT>, <P7PBR1_ADDRESS>": GPR[RS] < GPR[RT]
 "bgeuc r<RS>, r<RT>, <P7PBR1_ADDRESS>"
-*micromips32r7:
-*micromips64r7:
-{
-  if ((unsigned32) (GPR[RS]) >= (unsigned32) (GPR[RT])) {
-    NIA = P7PBR1_ADDRESS;
-  }
-}
-
-010010,5.RS,111,7.U,10.S1,1.S2:P7PBRI:32::BGEUIC
-"bgeuic r<RS>, <U>, <P7PBRI_ADDRESS>"
-*micromips32r7:
-*micromips64r7:
-{
-  if ((unsigned32) (GPR[RS]) >= U) {
-    NIA = P7PBRI_ADDRESS;
-  }
-}
-
-110010,5.RT,5.RS,01,13.S1,1.S2:P7PBR1:32::BLTC
-"bltc r<RS>, r<RT>, <P7PBR1_ADDRESS>"
-*micromips32r7:
-*micromips64r7:
-{
-  if (GPR[RS] < GPR[RT]) {
-    NIA = P7PBR1_ADDRESS;
-  }
-}
-
-010010,5.RS,100,7.U,10.S1,1.S2:P7PBRI:32::BLTIC
-"bltic r<RS>, <U>, <P7PBRI_ADDRESS>"
-*micromips32r7:
-*micromips64r7:
-{
-  if (GPR[RS] < U) {
-    NIA = P7PBRI_ADDRESS;
-  }
-}
-
-110010,5.RT,5.RS,11,13.S1,1.S2:P7PBR1:32::BLTUC
-"bltuc r<RS>, r<RT>, <P7PBR1_ADDRESS>"
 *micromips32r7:
 *micromips64r7:
 {
@@ -758,22 +717,42 @@
   }
 }
 
-010010,5.RS,110,7.U,10.S1,1.S2:P7PBRI:32::BLTUIC
-"bltuic RS, U, <P7PBRI_ADDRESS>"
+010010,5.RT,011,7.U,10.S1,1.S2:P7PBRI:32::BGEUIC
+"bgeuic r<RT>, <U>, <P7PBRI_ADDRESS>"
 *micromips32r7:
 *micromips64r7:
 {
-  if ((unsigned32)(GPR[RS]) < U) {
+  if ((unsigned32) (GPR[RT]) >= U) {
     NIA = P7PBRI_ADDRESS;
   }
 }
 
-010010,5.RS,001,7.U,10.S1,1.S2:P7PBRI:32::BNEIC
-"bneic RS, U, <P7PBRI_ADDRESS>"
+010010,5.RT,110,7.U,10.S1,1.S2:P7PBRI:32::BLTIC
+"bltic r<RT>, <U>, <P7PBRI_ADDRESS>"
 *micromips32r7:
 *micromips64r7:
 {
-  if (GPR[RS] != U) {
+  if (GPR[RT] < U) {
+    NIA = P7PBRI_ADDRESS;
+  }
+}
+
+010010,5.RT,111,7.U,10.S1,1.S2:P7PBRI:32::BLTUIC
+"bltuic RT, U, <P7PBRI_ADDRESS>"
+*micromips32r7:
+*micromips64r7:
+{
+  if ((unsigned32)(GPR[RT]) < U) {
+    NIA = P7PBRI_ADDRESS;
+  }
+}
+
+010010,5.RT,100,7.U,10.S1,1.S2:P7PBRI:32::BNEIC
+"bneic RT, U, <P7PBRI_ADDRESS>"
+*micromips32r7:
+*micromips64r7:
+{
+  if (GPR[RT] != U) {
     NIA = P7PBRI_ADDRESS;
   }
 }
