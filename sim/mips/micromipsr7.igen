@@ -150,7 +150,7 @@
   return CIA + offset;
 }
 
-:function:::address_word:do_beqc16_bnec16:int rs, int rt, address_word offset, address_word nia
+:function:::address_word:do_bxxxc16:int rs, int rt, address_word offset, address_word nia
 *micromips32r7:
 *micromips64r7:
 {
@@ -616,20 +616,20 @@
   NIA = do_bc16 (SD_, EXTEND26 (ADDRESS26));
 }
 
-101010,5.RS!0,0,19.S1,1.S2:R7PBZ:32::BEQZC
-"beqzc r<RS>, <ADDRESS21>"
+101010,5.RT,0,19.S1,1.S2:R7PBZ:32::BEQZC
+"beqzc r<RT>, <ADDRESS21>"
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_beqzc (SD_, RS, EXTEND21 (ADDRESS21), NIA);
+  NIA = do_beqzc (SD_, RT, EXTEND21 (ADDRESS21), NIA);
 }
 
-101010,5.RS!0,1,19.S1,1.S2:R7PBZ:32::BNEZC
-"bnezc r<RS>, <ADDRESS21>"
+101010,5.RT!0,1,19.S1,1.S2:R7PBZ:32::BNEZC
+"bnezc r<RT>, <ADDRESS21>"
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_bnezc (SD_, RS, EXTEND21 (ADDRESS21), NIA);
+  NIA = do_bnezc (SD_, RT, EXTEND21 (ADDRESS21), NIA);
 }
 
 010110,3.RT,3.RS,4.U!0:R7P16BR1:16::BxxxC16
@@ -638,23 +638,16 @@
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_beqc16_bnec16 (SD_, TRS, TRT, U_SHIFT_1BIT, NIA);
+  NIA = do_bxxxc16 (SD_, TRS, TRT, U_SHIFT_1BIT, NIA);
 }
 
-111010,5.RT,5.RS,00,13.S1,1.S2:R7PBR2:32::BEQC
-"beqc r<RS>, r<RT>, <ADDRESS15>"
-*micromips32r7:
-*micromips64r7:
-{
-  NIA = do_bxxxc (SD_, RS, RT, EXTEND15 (ADDRESS15), NIA);
-}
-
-111010,5.RT,5.RS,01,13.S1,1.S2:R7PBR2:32::BNEC
+111010,5.RT,5.RS,00,13.S1,1.S2:R7PBR2:32::BxxxC
+"beqc r<RS>, r<RT>, <ADDRESS15>":RS<RT
 "bnec r<RS>, r<RT>, <ADDRESS15>"
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_bnxxxc (SD_, RS, RT, EXTEND15 (ADDRESS15), NIA);
+  NIA = do_bxxxc16 (SD_, RS, RT, EXTEND15 (ADDRESS15), NIA);
 }
 
 100000,5.RT,5.RS,1110,0,5.MSBD,0,5.LSB:R7PINS:32::INS
