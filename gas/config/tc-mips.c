@@ -1232,6 +1232,11 @@ static int mips_relax_branch;
   (((x) &~ (offsetT) 0x7fff) == 0					\
    || (((x) &~ (offsetT) 0x7fff) == ~ (offsetT) 0x7fff))
 
+/* Is the given value a sign-extended 14-bit value?  */
+#define IS_SEXT_14BIT_NUM(x)						\
+  (((x) &~ (offsetT) 0x1fff) == 0					\
+   || (((x) &~ (offsetT) 0x1fff) == ~ (offsetT) 0x1fff))
+
 /* Is the given value a sign-extended 12-bit value?  */
 #define IS_SEXT_12BIT_NUM(x)						\
   (((((x) & 0xfff) ^ 0x800LL) - 0x800LL) == (x))
@@ -7710,6 +7715,20 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	  }
 	  break;
 
+	case BFD_RELOC_MICROMIPSPP_HI20:
+
+	  ip->insn_opcode |= ((address_expr->X_add_number >> 12) & 0x1ff) << 12
+			  | ((address_expr->X_add_number >> 21) & 0x3ff) << 2
+			  | ((address_expr->X_add_number >> 31) & 1);
+	  ip->complete_p = 1;
+	  break;
+
+	case BFD_RELOC_MICROMIPSPP_LO12:
+
+	  ip->insn_opcode |= address_expr->X_add_number & 0xfff;
+	  ip->complete_p = 1;
+	  break;
+
 	case BFD_RELOC_MIPS_21_PCREL_S2:
 	  {
 	    int shift;
@@ -9196,7 +9215,16 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
   r[0] = BFD_RELOC_UNUSED;
   r[1] = BFD_RELOC_UNUSED;
   r[2] = BFD_RELOC_UNUSED;
-  hash = mips_opts.micromips ? micromips_op_hash : op_hash;
+  if (mips_opts.micromips)
+    {
+      if (mips_opts.isa == ISA_MIPS32R7)
+	hash = micromipspp_op_hash;
+      else
+	hash = micromips_op_hash;
+    }
+  else
+    hash = op_hash;
+
   amo = (struct mips_opcode *) hash_find (hash, name);
   gas_assert (amo);
   gas_assert (strcmp (name, amo->name) == 0);
@@ -9321,7 +9349,9 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	}
 
       operand = (mips_opts.micromips
-		 ? decode_micromips_operand (fmt)
+		 ? (ISA_IS_R7 (mips_opts.isa)
+		    ? decode_micromipspp_operand (fmt)
+		    : decode_micromips_operand (fmt))
 		 : decode_mips_operand (fmt));
       if (!operand)
 	abort ();
@@ -9645,28 +9675,57 @@ load_register (int reg, expressionS *ep, int dbl)
       if (!dbl)
 	normalize_constant_expr (ep);
 
-      if (IS_SEXT_16BIT_NUM (ep->X_add_number))
+      if (mips_opts.isa == ISA_MIPS32R7)
 	{
-	  /* We can handle 16 bit signed values with an addiu to
-	     $zero.  No need to ever use daddiu here, since $zero and
-	     the result are always correct in 32 bit mode.  */
-	  macro_build (ep, "addiu", "t,r,j", reg, 0, BFD_RELOC_LO16);
-	  return;
+	  if (IS_SEXT_14BIT_NUM (ep->X_add_number))
+	    {
+	      /* We can handle 14 bit signed values with an addiu to
+		 $zero.  No need to ever use daddiu here, since $zero and
+		 the result are always correct in 32 bit mode.  */
+	      macro_build (ep, "addiu", "-t,s,j", reg, 0, 0);
+	      return;
+	    }
+	  else if (ep->X_add_number >= 0 && ep->X_add_number < 0x1000)
+	    {
+	      /* We can handle 12 bit unsigned values with an ori to
+		 $zero.  */
+	      macro_build (ep, "ori", "t,s,i", reg, 0, BFD_RELOC_MICROMIPSPP_LO12);
+	      return;
+	    }
+	  else if ((IS_SEXT_32BIT_NUM (ep->X_add_number)))
+	    {
+	      /* 32 bit values require an lui.  */
+	      macro_build (ep, "lui", "t,u", reg, BFD_RELOC_MICROMIPSPP_HI20);
+	      if ((ep->X_add_number & 0xfff) != 0)
+		macro_build (ep, "ori", "t,s,i", reg, reg, BFD_RELOC_MICROMIPSPP_LO12);
+	      return;
+	    }
 	}
-      else if (ep->X_add_number >= 0 && ep->X_add_number < 0x10000)
+      else
 	{
-	  /* We can handle 16 bit unsigned values with an ori to
-             $zero.  */
-	  macro_build (ep, "ori", "t,r,i", reg, 0, BFD_RELOC_LO16);
-	  return;
-	}
-      else if ((IS_SEXT_32BIT_NUM (ep->X_add_number)))
-	{
-	  /* 32 bit values require an lui.  */
-	  macro_build (ep, "lui", LUI_FMT, reg, BFD_RELOC_HI16);
-	  if ((ep->X_add_number & 0xffff) != 0)
-	    macro_build (ep, "ori", "t,r,i", reg, reg, BFD_RELOC_LO16);
-	  return;
+	  if (IS_SEXT_16BIT_NUM (ep->X_add_number))
+	    {
+	      /* We can handle 16 bit signed values with an addiu to
+		 $zero.  No need to ever use daddiu here, since $zero and
+		 the result are always correct in 32 bit mode.  */
+	      macro_build (ep, "addiu", "t,r,j", reg, 0, BFD_RELOC_LO16);
+	      return;
+	    }
+	  else if (ep->X_add_number >= 0 && ep->X_add_number < 0x10000)
+	    {
+	      /* We can handle 16 bit unsigned values with an ori to
+		 $zero.  */
+	      macro_build (ep, "ori", "t,r,i", reg, 0, BFD_RELOC_LO16);
+	      return;
+	    }
+	  else if ((IS_SEXT_32BIT_NUM (ep->X_add_number)))
+	    {
+	      /* 32 bit values require an lui.  */
+	      macro_build (ep, "lui", LUI_FMT, reg, BFD_RELOC_HI16);
+	      if ((ep->X_add_number & 0xffff) != 0)
+		macro_build (ep, "ori", "t,r,i", reg, reg, BFD_RELOC_LO16);
+	      return;
+	    }
 	}
     }
 
@@ -16056,13 +16115,35 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 		      (long) fixP->fx_offset);
       break;
 
+    case BFD_RELOC_MICROMIPSPP_HI20:
+      if (! fixP->fx_done)
+	break;
+
+      insn = read_reloc_insn (buf, fixP->fx_r_type);
+
+      insn |= ((*valP >> 12) & 0x1ff) << 12
+	      | ((*valP >> 21) & 0x3ff) << 2
+	      | ((*valP >> 31) & 1);
+
+      write_reloc_insn (buf, fixP->fx_r_type, insn);
+      break;
+
     case BFD_RELOC_MICROMIPSPP_LO12:
+      if (! fixP->fx_done)
+	break;
+
+      insn = read_reloc_insn (buf, fixP->fx_r_type);
+
+      insn |= *valP & 0xfff;
+
+      write_reloc_insn (buf, fixP->fx_r_type, insn);
+      break;
+
     case BFD_RELOC_MICROMIPSPP_LO12_PCREL:
     case BFD_RELOC_MICROMIPSPP_GPREL18:
     case BFD_RELOC_MICROMIPSPP_GPREL19_S2:
     case BFD_RELOC_MICROMIPSPP_GPREL7_S2:
     case BFD_RELOC_MICROMIPSPP_GPREL14:
-    case BFD_RELOC_MICROMIPSPP_HI20:
     case BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12:
     case BFD_RELOC_MICROMIPSPP_HI20_PCREL:
       gas_assert (!fixP->fx_done);

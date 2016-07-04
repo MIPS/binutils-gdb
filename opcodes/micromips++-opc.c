@@ -653,6 +653,9 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"lhx",	"d,s,t",		0x20000207, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,		0,		0},
 {"lhxs",	"d,s,t",		0x20000247, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,		0,		0},
 {"li",		"md,mI",		0xd000,	0xfc00,		WR_1,		0,	I38,		0,		0}, /* LI[16] */
+{"li",		"t,i",		0x80000000, 0xfc1ff000,	WR_1,		INSN2_ALIAS,	I38,		0,		0}, /* ORI */
+{"li",		"-t,j",		0x00000000, 0xfc1f6000,	WR_1,		INSN2_ALIAS,	I38,		0,		0}, /* ADDIU */
+{"li",		"t,I",          0,    (int) M_LI,       INSN_MACRO,             0,              I38,             0,      0 },
 {"ll",		"t,+m(s)",		0xa4004100, 0xfc007f03,	WR_1|RD_3,		0,	I38,		0,		0},
 {"lld",	"t,+q(s)",		0xa4006100, 0xfc007f07,	WR_1|RD_3,		0,	I70,		0,		0},
 {"lldp",	"t,mu,(s)",		0xa4006101, 0xfc00ff07, WR_1|WR_2|RD_3,		0,	I70,		0,		0},
