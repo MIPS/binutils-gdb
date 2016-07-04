@@ -33,8 +33,6 @@ static unsigned char reg_m16_map[] = { 16, 17, 2, 3, 4, 5, 6, 7 };
 static unsigned char reg_q_map[] = { 0, 17, 2, 3, 4, 5, 6, 7 };
 
 static unsigned char reg_4to5_map[] = { 0, 1, 2, 3, 4, 5, 6, 7,
-					0, 1, 2, 3, 4, 5, 6, 7,
-					16, 17, 18, 19, 20, 21, 22, 23,
 					16, 17, 18, 19, 20, 21, 22, 23 };
 
 static unsigned char reg_4or5_map[] = { 4, 5 };
@@ -47,7 +45,7 @@ static int int_b_map[] = {
 };
 
 static int int_c_map[] = {
-  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 255, 65536, 14, 15
+  0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 255, 65535, 14, 15
 };
 
 
@@ -183,7 +181,7 @@ decode_micromipspp_operand (const char *p)
 /* 	case 'e': REG (5, 11, MSA); */
 /* 	case 'h': REG (5, 16, MSA); */
 	case 'i': HINT (5, 11);
-	case 'j': UINT_SPLIT (9, 0, 0, 1, 15);
+	case 'j': SINT_SPLIT (9, 0, 0, 1, 15);
 /* 	case 'k': REG (5, 6, GP); */
 /* 	case 'l': REG (5, 6, MSA_CTRL); */
 	case 'm': SINT_SPLIT (7, 2, 2, 1, 15); /* split 7-bit signed << 2 */

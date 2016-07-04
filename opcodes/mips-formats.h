@@ -29,12 +29,11 @@
 #define INT_ADJ(SIZE, LSB, MAX_VAL, SHIFT, PRINT_HEX) \
   INT_BIAS(SIZE, LSB, MAX_VAL, 0, SHIFT, PRINT_HEX)
 
-
 #define UINT_SPLIT(SIZE, LSB, SHIFT, SIZE_TOP, LSB_TOP)	\
   { \
     static const struct mips_int_operand op = { \
       { OP_INT, SIZE, LSB, SIZE_TOP, LSB_TOP }, \
-      (1 << ((SIZE) -1)), 0, SHIFT, 0	\
+      (1 << (SIZE)) - 1, 0, SHIFT, 0	\
     }; \
     return &op.root; \
   }
