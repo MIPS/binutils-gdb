@@ -811,44 +811,44 @@
 }
 
 
-001000,00000,5.RS,01,00011,101,111,111:R7POOL32A0:32::DI
-"di":RS == 0
-"di r<RS>"
+001000,5.RT,00000,01,00011,101,111,111:R7POOL32A0:32::DI
+"di":RT == 0
+"di r<RT>"
 *micromips32r7:
 *micromips64r7:
 {
-  do_di (SD_, RS);
+  do_di (SD_, RT);
 }
 
-001000,00000,5.RS,01,01011,101,111,111:R7POOL32A0:32::EI
-"ei":RS == 0
-"ei r<RS>"
+001000,5.RT,00000,01,01011,101,111,111:R7POOL32A0:32::EI
+"ei":RT == 0
+"ei r<RT>"
 *micromips32r7:
 *micromips64r7:
 {
-  do_ei (SD_, RS);
+  do_ei (SD_, RT);
 }
 
-101001,5.OP,5.BASE,1.S1,0011001,8.S2:R7PLSS1:32::CACHE
-"cache <OP>, <S_8_BIT>(r<BASE>)"
+101001,5.OP,5.RS,1.S1,0011001,8.S2:R7PLSS1:32::CACHE
+"cache <OP>, <S_8_BIT>(r<RS>)"
 *micromips32r7:
 *micromips64r7:
 {
   address_word vaddr;
   address_word paddr;
   int uncached;
-  vaddr = loadstore_ea (SD_, GPR[BASE], EXTEND9 (S_8_BIT));
+  vaddr = loadstore_ea (SD_, GPR[RS], EXTEND9 (S_8_BIT));
   if (AddressTranslation (vaddr, isDATA, isLOAD, &paddr, &uncached, isTARGET,
                           isREAL))
     CacheOp (OP, vaddr, paddr, instruction_0);
 }
 
-011010,1.RS1,1.RD,3.RS2,20.S1,1.S2:R7MOVEBALC:32::MOVE.BALC
-"move.balc r<RD1>, r<RS_5_BIT>, <ADDRESS22>"
+011010,1.RT1,1.RD,3.RT2,20.S1,1.S2:R7MOVEBALC:32::MOVE.BALC
+"move.balc r<RD1>, r<RT_5_BIT>, <ADDRESS22>"
 *micromips32r7:
 *micromips64r7:
 {
-  GPR[RD1] = GPR[RS_5_BIT];
+  GPR[RD1] = GPR[RT_5_BIT];
   NIA = do_balc16 (SD_, EXTEND22 (ADDRESS22));
 }
 
