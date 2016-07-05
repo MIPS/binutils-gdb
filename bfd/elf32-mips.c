@@ -1686,10 +1686,12 @@ static reloc_howto_type elf_micromips_howto_table_rel[] =
 
 static reloc_howto_type elf_micromips_howto_table_rela[] =
 {
+#ifdef RELOC_REUSE_MICROMIPSPP
   EMPTY_HOWTO (130),
   EMPTY_HOWTO (131),
   EMPTY_HOWTO (132),
   EMPTY_HOWTO (133),
+#endif /* RELOC_REUSE_MICROMIPSPP */
 
   /* High 16 bits of symbol value.  */
   HOWTO (R_MICROMIPSPP_HI20,	/* type */
@@ -1735,8 +1737,10 @@ static reloc_howto_type elf_micromips_howto_table_rela[] =
 	 0x00003fff,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
+#ifdef RELOC_REUSE_MICROMIPSPP
   EMPTY_HOWTO (137),
   EMPTY_HOWTO (138),
+#endif /* RELOC_REUSE_MICROMIPSPP */
 
   /* This is for microMIPS branches.  */
   HOWTO (R_MICROMIPSPP_PC7_S1,	/* type */
@@ -1781,6 +1785,7 @@ static reloc_howto_type elf_micromips_howto_table_rela[] =
 	 0x003ffffd,		/* dst_mask */
 	 TRUE),			/* pcrel_offset */
 
+#ifdef RELOC_REUSE_MICROMIPSPP
   EMPTY_HOWTO (142),
   EMPTY_HOWTO (143),
   EMPTY_HOWTO (144),
@@ -1797,6 +1802,7 @@ static reloc_howto_type elf_micromips_howto_table_rela[] =
   EMPTY_HOWTO (155),
   EMPTY_HOWTO (156),
   EMPTY_HOWTO (157),
+#endif
 
   HOWTO (R_MICROMIPSPP_PCHI20, /* type */
 	 12,			/* rightshift */
@@ -1826,6 +1832,7 @@ static reloc_howto_type elf_micromips_howto_table_rela[] =
 	 0x00000fff,		/* dst_mask */
 	 TRUE),			/* pcrel_offset */
 
+#ifdef RELOC_REUSE_MICROMIPSPP
   EMPTY_HOWTO (160),
   EMPTY_HOWTO (161),
   EMPTY_HOWTO (162),
@@ -1838,6 +1845,7 @@ static reloc_howto_type elf_micromips_howto_table_rela[] =
   EMPTY_HOWTO (169),
   EMPTY_HOWTO (170),
   EMPTY_HOWTO (171),
+#endif /* RELOC_REUSE_MICROMIPSPP */
 
     /* GP- and PC-relative relocations.  */
   HOWTO (R_MICROMIPSPP_GPREL7_S2,	/* type */
@@ -1932,14 +1940,16 @@ static reloc_howto_type elf_micromips_howto_table_rela[] =
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
 	 complain_overflow_unsigned, /* complain_on_overflow */
-	 _bfd_mips_elf32_gprel16_reloc, /* special_function */
+	 _bfd_mips_elf_generic_reloc, /* special_function */
 	 "R_MICROMIPS_GPREL18",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 0x0003ffff,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
+#ifdef RELOC_REUSE_MICROMIPSPP
   EMPTY_HOWTO (179),
+#endif /* RELOC_REUSE_MICROMIPSPP */
 
   /* GP relative reference.  */
   HOWTO (R_MICROMIPSPP_GPREL19_S2,	/* type */
@@ -1949,7 +1959,7 @@ static reloc_howto_type elf_micromips_howto_table_rela[] =
 	 FALSE,			/* pc_relative */
 	 2,			/* bitpos */
 	 complain_overflow_unsigned, /* complain_on_overflow */
-	 _bfd_mips_elf32_gprel16_reloc, /* special_function */
+	 _bfd_mips_elf_generic_reloc, /* special_function */
 	 "R_MICROMIPS_GPREL19_S2",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
@@ -2471,28 +2481,19 @@ static const struct elf_reloc_map micromips_reloc_map[] =
 {
   { BFD_RELOC_MICROMIPS_JMP, R_MICROMIPS_26_S1 - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_HI16_S, R_MICROMIPS_HI16 - R_MICROMIPS_min },
-  { BFD_RELOC_MICROMIPSPP_HI20, R_MICROMIPSPP_HI20 - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_LO16, R_MICROMIPS_LO16 - R_MICROMIPS_min },
-  { BFD_RELOC_MICROMIPSPP_LO12, R_MICROMIPSPP_LO12 - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_HI16_S_PCREL, R_MICROMIPS_PCHI16 - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_LO16_PCREL, R_MICROMIPS_PCLO16 - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_GPREL16, R_MICROMIPS_GPREL16 - R_MICROMIPS_min },
-  { BFD_RELOC_MICROMIPSPP_GPREL14, R_MICROMIPSPP_GPREL14 - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_LITERAL, R_MICROMIPS_LITERAL - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_GOT16, R_MICROMIPS_GOT16 - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_7_PCREL_S1, R_MICROMIPS_PC7_S1 - R_MICROMIPS_min },
-  { BFD_RELOC_MICROMIPSPP_7_PCREL_S1, R_MICROMIPSPP_PC7_S1 - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_10_PCREL_S1, R_MICROMIPS_PC10_S1 - R_MICROMIPS_min },
-  { BFD_RELOC_MICROMIPSPP_10_PCREL_S1, R_MICROMIPSPP_PC10_S1 - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_16_PCREL_S1, R_MICROMIPS_PC16_S1 - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_21_PCREL_S1, R_MICROMIPS_PC21_S1 - R_MICROMIPS_min },
-  { BFD_RELOC_MICROMIPSPP_21_PCREL_S1, R_MICROMIPSPP_PC21_S1 - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_26_PCREL_S1, R_MICROMIPS_PC26_S1 - R_MICROMIPS_min },
-  { BFD_RELOC_MICROMIPSPP_25_PCREL_S1, R_MICROMIPSPP_PC25_S1 - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_18_PCREL_S3, R_MICROMIPS_PC18_S3 - R_MICROMIPS_min },
-  { BFD_RELOC_MICROMIPSPP_14_PCREL_S1, R_MICROMIPSPP_PC14_S1 - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_19_PCREL_S2, R_MICROMIPS_PC19_S2 - R_MICROMIPS_min },
-  { BFD_RELOC_MICROMIPSPP_20_PCREL_S1, R_MICROMIPSPP_PC20_S1 - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_CALL16, R_MICROMIPS_CALL16 - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_GOT_DISP, R_MICROMIPS_GOT_DISP - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_GOT_PAGE, R_MICROMIPS_GOT_PAGE - R_MICROMIPS_min },
@@ -2521,14 +2522,40 @@ static const struct elf_reloc_map micromips_reloc_map[] =
     R_MICROMIPS_TLS_TPREL_LO16 - R_MICROMIPS_min },
   /* There is no BFD reloc for R_MICROMIPS_GPREL7_S2.  */
   /* There is no BFD reloc for R_MICROMIPS_PC23_S2.  */
-  { BFD_RELOC_MICROMIPSPP_GPREL7_S2, R_MICROMIPSPP_GPREL7_S2 - R_MICROMIPS_min },
-  { BFD_RELOC_MICROMIPSPP_11_PCREL_S1, R_MICROMIPSPP_PC11_S1 - R_MICROMIPS_min },
-  { BFD_RELOC_MICROMIPSPP_GPREL18, R_MICROMIPSPP_GPREL18 - R_MICROMIPS_min },
-  { BFD_RELOC_MICROMIPSPP_GPREL19_S2, R_MICROMIPSPP_GPREL19_S2 - R_MICROMIPS_min },
-  { BFD_RELOC_MICROMIPSPP_4_PCREL_S1, R_MICROMIPSPP_PC4_S1 - R_MICROMIPS_min },
-  { BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12, R_MICROMIPSPP_PCHI20_M12 - R_MICROMIPS_min },
-  { BFD_RELOC_MICROMIPSPP_HI20_PCREL, R_MICROMIPSPP_PCHI20 - R_MICROMIPS_min },
-  { BFD_RELOC_MICROMIPSPP_LO12_PCREL, R_MICROMIPSPP_PCLO12 - R_MICROMIPS_min },
+};
+
+static const struct elf_reloc_map micromipspp_reloc_map[] =
+{
+  { BFD_RELOC_MICROMIPSPP_HI20, R_MICROMIPSPP_HI20 - R_MICROMIPSPP_min },
+  { BFD_RELOC_MICROMIPSPP_LO12, R_MICROMIPSPP_LO12 - R_MICROMIPSPP_min },
+  { BFD_RELOC_MICROMIPSPP_GPREL14, R_MICROMIPSPP_GPREL14 - R_MICROMIPSPP_min },
+  { BFD_RELOC_MICROMIPSPP_7_PCREL_S1,
+    R_MICROMIPSPP_PC7_S1 - R_MICROMIPSPP_min },
+  { BFD_RELOC_MICROMIPSPP_10_PCREL_S1,
+    R_MICROMIPSPP_PC10_S1 - R_MICROMIPSPP_min },
+  { BFD_RELOC_MICROMIPSPP_21_PCREL_S1,
+    R_MICROMIPSPP_PC21_S1 - R_MICROMIPSPP_min },
+  { BFD_RELOC_MICROMIPSPP_25_PCREL_S1,
+    R_MICROMIPSPP_PC25_S1 - R_MICROMIPSPP_min },
+  { BFD_RELOC_MICROMIPSPP_14_PCREL_S1,
+    R_MICROMIPSPP_PC14_S1 - R_MICROMIPSPP_min },
+  { BFD_RELOC_MICROMIPSPP_20_PCREL_S1,
+    R_MICROMIPSPP_PC20_S1 - R_MICROMIPSPP_min },
+  { BFD_RELOC_MICROMIPSPP_GPREL7_S2,
+    R_MICROMIPSPP_GPREL7_S2 - R_MICROMIPSPP_min },
+  { BFD_RELOC_MICROMIPSPP_11_PCREL_S1,
+    R_MICROMIPSPP_PC11_S1 - R_MICROMIPSPP_min },
+  { BFD_RELOC_MICROMIPSPP_GPREL18, R_MICROMIPSPP_GPREL18 - R_MICROMIPSPP_min },
+  { BFD_RELOC_MICROMIPSPP_GPREL19_S2,
+    R_MICROMIPSPP_GPREL19_S2 - R_MICROMIPSPP_min },
+  { BFD_RELOC_MICROMIPSPP_4_PCREL_S1,
+    R_MICROMIPSPP_PC4_S1 - R_MICROMIPSPP_min },
+  { BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12,
+    R_MICROMIPSPP_PCHI20_M12 - R_MICROMIPSPP_min },
+  { BFD_RELOC_MICROMIPSPP_HI20_PCREL,
+    R_MICROMIPSPP_PCHI20 - R_MICROMIPSPP_min },
+  { BFD_RELOC_MICROMIPSPP_LO12_PCREL,
+    R_MICROMIPSPP_PCLO12 - R_MICROMIPSPP_min },
 };
 
 /* Given a BFD reloc type, return a howto structure.  */
@@ -2564,7 +2591,9 @@ bfd_elf32_bfd_reloc_type_lookup (bfd *abfd, bfd_reloc_code_real_type code)
   for (i = 0; i < sizeof (micromips_reloc_map) / sizeof (struct elf_reloc_map);
        i++)
     {
-      if (micromips_reloc_map[i].bfd_val == code)
+      if (bed->default_use_rela_p && micromipspp_reloc_map[i].bfd_val == code)
+	return &howto_micromips_table[(int) micromipspp_reloc_map[i].elf_val];
+      else if (micromips_reloc_map[i].bfd_val == code)
 	return &howto_micromips_table[(int) micromips_reloc_map[i].elf_val];
     }
 
@@ -2670,13 +2699,10 @@ mips_elf32_rtype_to_howto (unsigned int r_type,
     case R_MIPS_EH:
       return &elf_mips_eh_howto;
     default:
-      if (r_type >= R_MICROMIPS_min && r_type < R_MICROMIPS_max)
-	{
-	  if (rela_p)
-	    return &elf_micromips_howto_table_rela[r_type - R_MICROMIPS_min];
-	  else
-	    return &elf_micromips_howto_table_rel[r_type - R_MICROMIPS_min];
-	}
+      if (rela_p && r_type >= R_MICROMIPSPP_min && r_type < R_MICROMIPSPP_max)
+	return &elf_micromips_howto_table_rela[r_type - R_MICROMIPSPP_min];
+      else if (r_type >= R_MICROMIPS_min && r_type < R_MICROMIPS_max)
+	return &elf_micromips_howto_table_rel[r_type - R_MICROMIPS_min];
       if (r_type >= R_MIPS16_min && r_type < R_MIPS16_max)
         return &elf_mips16_howto_table_rel[r_type - R_MIPS16_min];
       BFD_ASSERT (r_type < (unsigned int) R_MIPS_max);
