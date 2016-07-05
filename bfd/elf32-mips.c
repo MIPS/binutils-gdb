@@ -1684,27 +1684,6 @@ static reloc_howto_type elf_micromips_howto_table_rel[] =
 	 FALSE),		/* pcrel_offset */
 };
 
-enum micromipspp_to_micromips_reloc
-{
-    R_MICROMIPSPP_HI20=R_MICROMIPS_HI16,
-    R_MICROMIPSPP_LO12=R_MICROMIPS_LO16,
-    R_MICROMIPSPP_PCHI20_M12=R_MICROMIPS_PC16_S1,
-    R_MICROMIPSPP_PCHI20=R_MICROMIPS_PCHI16,
-    R_MICROMIPSPP_PCLO12=R_MICROMIPS_PCLO16,
-    R_MICROMIPSPP_GPREL19_S2=R_MICROMIPS_WORD_LO4,
-    R_MICROMIPSPP_GPREL18=R_MICROMIPS_BYTE_LO4,
-    R_MICROMIPSPP_GPREL7_S2=R_MICROMIPS_GPREL7_S2,
-    R_MICROMIPSPP_GPREL14=R_MICROMIPS_GPREL16,
-    R_MICROMIPSPP_PC4_S1=R_MICROMIPS_BYTE_LO7,
-    R_MICROMIPSPP_PC7_S1=R_MICROMIPS_PC7_S1,
-    R_MICROMIPSPP_PC10_S1=R_MICROMIPS_PC10_S1,
-    R_MICROMIPSPP_PC11_S1=R_MICROMIPS_PC23_S2,
-    R_MICROMIPSPP_PC14_S1=R_MICROMIPS_PC18_S3,
-    R_MICROMIPSPP_PC20_S1=R_MICROMIPS_PC19_S2,
-    R_MICROMIPSPP_PC21_S1=R_MICROMIPS_PC21_S1,
-    R_MICROMIPSPP_PC26_S1=R_MICROMIPS_PC26_S1,
-};
-
 static reloc_howto_type elf_micromips_howto_table_rela[] =
 {
   EMPTY_HOWTO (130),
@@ -1903,18 +1882,18 @@ static reloc_howto_type elf_micromips_howto_table_rela[] =
 	 0x0001ffff,		/* dst_mask */
 	 TRUE),			/* pcrel_offset */
 
-  HOWTO (R_MICROMIPSPP_PC26_S1,	/* type */
+  HOWTO (R_MICROMIPSPP_PC25_S1,	/* type */
 	 1,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
-	 26,			/* bitsize */
+	 25,			/* bitsize */
 	 TRUE,			/* pc_relative */
 	 0,			/* bitpos */
 	 complain_overflow_signed, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc, /* special_function */
-	 "R_MICROMIPS_PC26_S1",	/* name */
+	 "R_MICROMIPS_PC25_S1",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
-	 0x003fffff,		/* dst_mask */
+	 0x01ffffff,		/* dst_mask */
 	 TRUE),			/* pcrel_offset */
 
   HOWTO (R_MICROMIPSPP_PC14_S1,	/* type */
@@ -2509,7 +2488,7 @@ static const struct elf_reloc_map micromips_reloc_map[] =
   { BFD_RELOC_MICROMIPS_21_PCREL_S1, R_MICROMIPS_PC21_S1 - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPSPP_21_PCREL_S1, R_MICROMIPSPP_PC21_S1 - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_26_PCREL_S1, R_MICROMIPS_PC26_S1 - R_MICROMIPS_min },
-  { BFD_RELOC_MICROMIPSPP_26_PCREL_S1, R_MICROMIPSPP_PC26_S1 - R_MICROMIPS_min },
+  { BFD_RELOC_MICROMIPSPP_25_PCREL_S1, R_MICROMIPSPP_PC25_S1 - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_18_PCREL_S3, R_MICROMIPS_PC18_S3 - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPSPP_14_PCREL_S1, R_MICROMIPSPP_PC14_S1 - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_19_PCREL_S2, R_MICROMIPS_PC19_S2 - R_MICROMIPS_min },

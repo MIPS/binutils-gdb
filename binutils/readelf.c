@@ -1249,7 +1249,10 @@ dump_relocations (FILE * file,
 
 	case EM_MIPS:
 	case EM_MIPS_RS3_LE:
-	  rtype = elf_mips_reloc_type (type);
+	  if ((elf_header.e_flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R7)
+	    rtype = elf_mipsr7_reloc_type (type);
+	  else
+	    rtype = elf_mips_reloc_type (type);
 	  break;
 
 	case EM_ALPHA:

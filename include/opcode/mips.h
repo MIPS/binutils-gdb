@@ -773,7 +773,7 @@ static inline int
 mips_decode_hi20_operand (const struct mips_operand *operand,
 			      unsigned int uval)
 {
-  const struct mips_int_operand op_ext = SIGNEX_VALUE (operand);
+  const struct mips_operand op_ext = SIGNEX_VALUE (operand);
   const struct mips_operand op_shuffle = {OP_INT, 19, 10, 10, 0};
   unsigned int low19 = mips_extract_operand (&op_shuffle, uval);
   return mips_insert_operand (&op_ext, uval, low19);

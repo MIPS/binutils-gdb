@@ -48,14 +48,6 @@ static int int_c_map[] = {
   0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 255, 65535, 14, 15
 };
 
-
-#define ALUI_PCREL_DEC \
-    { \
-      { { OP_PCREL, 20, 0, 0, 0 }, \
-	(1 << ((20) - (1))) - 1, 0, 12, TRUE }, \
-      0, FALSE, FALSE				\
-    }
-
 /* Return the mips_operand structure for the operand at the beginning of P.  */
 
 /* FIXME: Unused pre-R7 cases left commented in-place for quick reminder 

@@ -2513,7 +2513,7 @@ print_insn_micromips (bfd_vma memaddr_base, struct disassemble_info *info)
     }
 
   /* FIXME: Should probably use a hash table on the major opcode here.  */
-  struct mips_opcode *opcodes;
+  const struct mips_opcode *opcodes;
   int num_opcodes;
   struct mips_operand const *(*decode) (const char *);
   if (is_isa_r7 (mips_isa))

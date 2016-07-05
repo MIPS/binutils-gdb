@@ -1219,6 +1219,17 @@ static int mips_relax_branch;
 #define RELAX_MICROMIPS_MARK_TOOFAR32(i) ((i) | 0x40000)
 #define RELAX_MICROMIPS_CLEAR_TOOFAR32(i) ((i) & ~0x40000)
 
+#define RELAX_MICROMIPSPP_ENCODE(type, at, toofar16)	\
+  (0x20000000							\
+   | ((type) & 0xff)						\
+   | ((toofar16) ? 0x20000 : 0))
+#define RELAX_MICROMIPSPP_P(i) (((i) & 0xe0000000) == 0x20000000)
+#define RELAX_MICROMIPSPP_TYPE(i) ((i) & 0xff)
+
+#define RELAX_MICROMIPSPP_TOOFAR16(i) (((i) & 0x20000) != 0)
+#define RELAX_MICROMIPSPP_MARK_TOOFAR16(i) ((i) | 0x20000)
+#define RELAX_MICROMIPSPP_CLEAR_TOOFAR16(i) ((i) & ~0x20000)
+
 /* Sign-extend 16-bit value X.  */
 #define SEXT_16BIT(X) ((((X) + 0x8000) & 0xffff) - 0x8000)
 
@@ -4348,14 +4359,17 @@ static inline bfd_boolean
 hi16_reloc_p (bfd_reloc_code_real_type reloc)
 {
   return (reloc == BFD_RELOC_HI16_S || reloc == BFD_RELOC_MIPS16_HI16_S
-	  || reloc == BFD_RELOC_MICROMIPS_HI16_S);
+	  || reloc == BFD_RELOC_MICROMIPS_HI16_S
+	  || reloc == BFD_RELOC_MICROMIPSPP_HI20);
 }
 
 static inline bfd_boolean
 lo16_reloc_p (bfd_reloc_code_real_type reloc)
 {
   return (reloc == BFD_RELOC_LO16 || reloc == BFD_RELOC_MIPS16_LO16
-	  || reloc == BFD_RELOC_MICROMIPS_LO16);
+	  || reloc == BFD_RELOC_MICROMIPS_LO16
+	  || reloc == BFD_RELOC_MICROMIPSPP_LO12);
+
 }
 
 static inline bfd_boolean
@@ -4368,7 +4382,11 @@ static inline bfd_boolean
 gprel16_reloc_p (bfd_reloc_code_real_type reloc)
 {
   return (reloc == BFD_RELOC_GPREL16 || reloc == BFD_RELOC_MIPS16_GPREL
-	  || reloc == BFD_RELOC_MICROMIPS_GPREL16);
+	  || reloc == BFD_RELOC_MICROMIPS_GPREL16
+	  || reloc == BFD_RELOC_MICROMIPSPP_GPREL7_S2
+	  || reloc == BFD_RELOC_MICROMIPSPP_GPREL14
+	  || reloc == BFD_RELOC_MICROMIPSPP_GPREL18
+	  || reloc == BFD_RELOC_MICROMIPSPP_GPREL19_S2);
 }
 
 static inline bfd_boolean
@@ -4390,7 +4408,17 @@ pcrel_reloc_p (bfd_reloc_code_real_type reloc)
 	  || reloc == BFD_RELOC_MICROMIPS_HI16_S_PCREL
 	  || reloc == BFD_RELOC_MICROMIPS_LO16_PCREL
 	  || reloc == BFD_RELOC_HI16_S_PCREL
-	  || reloc == BFD_RELOC_LO16_PCREL);
+	  || reloc == BFD_RELOC_LO16_PCREL
+	  || reloc == BFD_RELOC_MICROMIPSPP_4_PCREL_S1
+	  || reloc == BFD_RELOC_MICROMIPSPP_7_PCREL_S1
+	  || reloc == BFD_RELOC_MICROMIPSPP_10_PCREL_S1
+	  || reloc == BFD_RELOC_MICROMIPSPP_11_PCREL_S1
+	  || reloc == BFD_RELOC_MICROMIPSPP_14_PCREL_S1
+	  || reloc == BFD_RELOC_MICROMIPSPP_20_PCREL_S1
+	  || reloc == BFD_RELOC_MICROMIPSPP_21_PCREL_S1
+	  || reloc == BFD_RELOC_MICROMIPSPP_25_PCREL_S1
+	  || reloc == BFD_RELOC_MICROMIPSPP_HI20_PCREL
+	  || reloc == BFD_RELOC_MICROMIPSPP_LO12_PCREL);
 }
 
 /* Return true if RELOC is a PC-relative relocation that does not have
@@ -4414,6 +4442,14 @@ limited_pcrel_reloc_p (bfd_reloc_code_real_type reloc)
     case BFD_RELOC_MIPS_19_PCREL_S2:
     case BFD_RELOC_MIPS_21_PCREL_S2:
     case BFD_RELOC_MIPS_26_PCREL_S2:
+    case BFD_RELOC_MICROMIPSPP_4_PCREL_S1:
+    case BFD_RELOC_MICROMIPSPP_7_PCREL_S1:
+    case BFD_RELOC_MICROMIPSPP_10_PCREL_S1:
+    case BFD_RELOC_MICROMIPSPP_11_PCREL_S1:
+    case BFD_RELOC_MICROMIPSPP_14_PCREL_S1:
+    case BFD_RELOC_MICROMIPSPP_20_PCREL_S1:
+    case BFD_RELOC_MICROMIPSPP_21_PCREL_S1:
+    case BFD_RELOC_MICROMIPSPP_25_PCREL_S1:
       return TRUE;
 
     case BFD_RELOC_32_PCREL:
@@ -4421,6 +4457,8 @@ limited_pcrel_reloc_p (bfd_reloc_code_real_type reloc)
     case BFD_RELOC_MICROMIPS_LO16_PCREL:
     case BFD_RELOC_HI16_S_PCREL:
     case BFD_RELOC_LO16_PCREL:
+    case BFD_RELOC_MICROMIPSPP_HI20_PCREL:
+    case BFD_RELOC_MICROMIPSPP_LO12_PCREL:
       return HAVE_64BIT_ADDRESSES;
 
     default:
@@ -5370,26 +5408,28 @@ match_int_operand (struct mips_arg_info *arg,
 
 /* OP_HI20_INT matcher.  */
 
+#define SIGNED_OPVALUE(OP)					\
+{ { OP_INT, OP->size, OP->lsb, OP->size_top, OP->lsb_top },	\
+    ((1 << (OP->size - 1)) - 1), 0, 0, FALSE }
+
+#define SIGNEX_OPVALUE(OP) { OP_INT, OP->size - 1, OP->lsb, 0, 0 }
+
 static bfd_boolean
 match_hi20_int_operand (struct mips_arg_info *arg,
 			const struct mips_operand *operand_base)
 {
   unsigned int uval;
-  const struct mips_int_operand op_enc = {{OP_INT, 20, 2, 1, 0},
-					  (1 << ((20) - 1)) - 1,
-					  0, 0, FALSE};
-  const struct mips_operand op_ext = {OP_INT, 19, 2, 0, 0};
-  const struct mips_int_operand op_shuffle = {{OP_INT, 19, 12, 10, 2},
-					      ((1 << 19) - 1),
-					      0, 0, FALSE};
+  const struct mips_int_operand op_enc = SIGNED_OPVALUE (operand_base);
+  const struct mips_operand op_ext = SIGNEX_OPVALUE (operand_base);
+  const struct mips_operand op_shuffle = {OP_INT, 19, 12, 10, 2};
 
   /* Encode full 20-bit signed value.  */
   if (!match_int_operand (arg, &op_enc.root))
     return FALSE;
-  /* Extract lower 19-bits, exluding sign.  */
+  /* Extract lower 19-bits, excluding sign.  */
   uval = mips_extract_operand (&op_ext, arg->insn->insn_opcode);
-  /* Re-shuffle and insert lower 19-bits, exluding sign.  */
-  insn_insert_operand (arg->insn, &op_shuffle.root, uval);
+  /* Re-shuffle and insert lower 19-bits, excluding sign.  */
+  insn_insert_operand (arg->insn, &op_shuffle, uval);
 
   return TRUE;
 }
@@ -6021,7 +6061,7 @@ match_mips_save_restore_list_operand (struct mips_arg_info *arg)
 
 static bfd_boolean
 match_micromipspp_save_restore_list_operand (struct mips_arg_info *arg,
-					     struct mips_operand *operand)
+					     const struct mips_operand *operand)
 {
   unsigned int opval, gp, fp, count;
   int first_reg;
@@ -6039,40 +6079,35 @@ match_micromipspp_save_restore_list_operand (struct mips_arg_info *arg,
 	  break;
 	}
 
-      if (regno1 == 29)
-	return FALSE;
-      else if (regno1 == 30)
+      if (regno1 == 30 && fp == 0)
 	fp = 1;
-      else if (regno1 == 28)
+      else if (regno1 == 28 && gp == 0)
 	gp = 1;
-      else if (regno1 >= 16 && regno2 <= 28 && regno1 != regno2)
+      else if (regno1 == 16 && regno2 <= 31 && regno1 != regno2 && count == 0)
 	{
-	  /* $s0-$s7 */
+	  /* $s0 .. sequence  */
 	  while (regno1 <= regno2)
 	    {
 	      regno1 += 1;
 	      count += 1;
 	    }
 	}
-      else if (first_reg == -1)
+      /* first_reg cannot be $sp  */
+      else if (first_reg == -1 && regno1 != 29)
 	first_reg = regno1;
       else
 	return FALSE;
     }
   while (match_char (arg, ','));
 
-  /* 16-bit format admits only $31 for the first register.  */
+  /* 16-bit format admits only $31 for the first register and no $gp.  */
   if (mode16 && (first_reg != 31 || gp != 0))
     return FALSE;
 
+  /* Must have a valid first_reg!  */
   if (first_reg == -1)
     {
-      if (count != 0)
-	{
-	  count -= 1;
-	  first_reg = 16 + count;
-	}
-      else if (fp != 0)
+      if (fp != 0)
 	{
 	  first_reg = fp;
 	  fp = 0;
@@ -6082,24 +6117,41 @@ match_micromipspp_save_restore_list_operand (struct mips_arg_info *arg,
 	  first_reg = gp;
 	  gp = 0;
 	}
-    }
-
-  if (count == 13)
-    {
-      if (fp | gp)
-	return FALSE;
-      else if (!mode16)
+      else if (count != 0)
 	{
 	  count -= 1;
+	  first_reg = 16 + count;
+	}
+      else
+	return FALSE;
+    }
+
+  switch (count)
+    {
+    case 15:
+      if (fp != 0 || gp != 0)
+	return FALSE;
+      if (!mode16)
+	{
+	  fp = 1;
+	  count -= 1;
+	}
+      break;
+    case 14:
+      if (fp != 0 && gp != 0)
+	return FALSE;
+      break;
+    case 13:
+      if (!mode16 && gp == 0)
+	{
 	  gp = 1;
+	  count -= 1;
 	}
     }
 
-  if (count == 12 && fp != 0 && gp != 0)
-    return FALSE;
-
-  /* 16-bit format gives exactly one avenue of saving fp.  */
-  if (mode16 && (fp|gp) && (count != 8 || fp != 1 || gp != 0))
+  /* 16-bit format gives exactly one avenue of saving fp.
+     gp is guaranteed to be 0 due to checks above.  */
+  if (mode16 && fp && (count != 8))
     return FALSE;
 
   count += fp;
@@ -7970,6 +8022,23 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 			address_expr->X_add_number);
       *reloc_type = BFD_RELOC_UNUSED;
     }
+  else if (mips_opts.micromips
+	   && address_expr
+	   && ISA_IS_R7 (mips_opts.isa)
+	   && *reloc_type > BFD_RELOC_UNUSED)
+    {
+      int type = *reloc_type - BFD_RELOC_UNUSED;
+
+      gas_assert (address_expr != NULL);
+      gas_assert (!mips_relax.sequence);
+
+      relaxed_branch = TRUE;
+      add_relaxed_insn (ip, 4, 2,
+			RELAX_MICROMIPSPP_ENCODE (type, FALSE, 0),
+			address_expr->X_add_symbol,
+			address_expr->X_add_number);
+      *reloc_type = BFD_RELOC_UNUSED;
+    }
   else if (mips_opts.mips16 && *reloc_type > BFD_RELOC_UNUSED)
     {
       /* We need to set up a variant frag.  */
@@ -8634,7 +8703,7 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	    switch (args[1])
 	      {
 	      case '8':
-		*offset_reloc = BFD_RELOC_MICROMIPSPP_26_PCREL_S1;
+		*offset_reloc = BFD_RELOC_MICROMIPSPP_25_PCREL_S1;
 		break;
 
 	      case '0':
@@ -8656,14 +8725,21 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	    switch (c)
 	      {
 	      case 'D':
-		*offset_reloc = BFD_RELOC_MICROMIPSPP_10_PCREL_S1;
-		break;
 	      case 'E':
-		*offset_reloc = BFD_RELOC_MICROMIPSPP_7_PCREL_S1;
-		break;
 	      case 'F':
-		*offset_reloc = BFD_RELOC_MICROMIPSPP_4_PCREL_S1;
-		break;
+		{
+		  const bfd_reloc_code_real_type rtype[] =
+		    { BFD_RELOC_MICROMIPS_10_PCREL_S1,
+		      BFD_RELOC_MICROMIPSPP_7_PCREL_S1,
+		      BFD_RELOC_MICROMIPSPP_4_PCREL_S1 };
+		  if (!forced_insn_length)
+		    /* Instruction is candidate for relaxation. Pick unused
+		       reloc codes from no-man's land for now.  */
+		    *offset_reloc = (int) BFD_RELOC_UNUSED + c;
+		  else
+		    *offset_reloc = rtype [c - 'D'];
+		  break;
+		}
 	      }
 	    break;
 	  }
@@ -15585,6 +15661,9 @@ md_pcrel_from (fixS *fixP)
     {
     case BFD_RELOC_MICROMIPS_7_PCREL_S1:
     case BFD_RELOC_MICROMIPS_10_PCREL_S1:
+    case BFD_RELOC_MICROMIPSPP_7_PCREL_S1:
+    case BFD_RELOC_MICROMIPSPP_10_PCREL_S1:
+    case BFD_RELOC_MICROMIPSPP_4_PCREL_S1:
       /* Return the address of the delay slot.  */
       return addr + 2;
 
@@ -15596,6 +15675,13 @@ md_pcrel_from (fixS *fixP)
     case BFD_RELOC_MIPS_21_PCREL_S2:
     case BFD_RELOC_MIPS_26_PCREL_S2:
     case BFD_RELOC_MIPS_JMP:
+    case BFD_RELOC_MICROMIPSPP_11_PCREL_S1:
+    case BFD_RELOC_MICROMIPSPP_14_PCREL_S1:
+    case BFD_RELOC_MICROMIPSPP_20_PCREL_S1:
+    case BFD_RELOC_MICROMIPSPP_21_PCREL_S1:
+    case BFD_RELOC_MICROMIPSPP_25_PCREL_S1:
+    case BFD_RELOC_MICROMIPSPP_HI20_PCREL:
+    case BFD_RELOC_MICROMIPSPP_LO12_PCREL:
       /* Return the address of the delay slot.  */
       return addr + 4;
 
@@ -15785,7 +15871,7 @@ mips_force_relocation (fixS *fixp)
 	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_14_PCREL_S1
 	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_20_PCREL_S1
 	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_21_PCREL_S1
-	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_26_PCREL_S1
+	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_25_PCREL_S1
 	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_HI20_PCREL
 	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_LO12_PCREL
 	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12))
@@ -15855,7 +15941,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       case BFD_RELOC_MICROMIPSPP_14_PCREL_S1:
       case BFD_RELOC_MICROMIPSPP_20_PCREL_S1:
       case BFD_RELOC_MICROMIPSPP_21_PCREL_S1:
-      case BFD_RELOC_MICROMIPSPP_26_PCREL_S1:
+      case BFD_RELOC_MICROMIPSPP_25_PCREL_S1:
       case BFD_RELOC_MICROMIPSPP_HI20_PCREL:
       case BFD_RELOC_MICROMIPSPP_LO12_PCREL:
       case BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12:
@@ -16211,7 +16297,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
     case BFD_RELOC_MICROMIPSPP_14_PCREL_S1:
     case BFD_RELOC_MICROMIPSPP_20_PCREL_S1:
     case BFD_RELOC_MICROMIPSPP_21_PCREL_S1:
-    case BFD_RELOC_MICROMIPSPP_26_PCREL_S1:
+    case BFD_RELOC_MICROMIPSPP_25_PCREL_S1:
       /* We adjust the offset back to even.  */
       if ((*valP & 0x1) != 0)
 	--(*valP);
@@ -18080,6 +18166,8 @@ relaxed_micromips_16bit_branch_length (fragS *fragp, asection *sec, int update)
 	toofar = val < - (0x200 << 1) || val >= (0x200 << 1);
       else if (type == 'E')
 	toofar = val < - (0x40 << 1) || val >= (0x40 << 1);
+      else if (type == 'F')
+	toofar = val <= 0 || val >= 32;
       else
 	abort ();
     }
@@ -18135,6 +18223,17 @@ md_estimate_size_before_relax (fragS *fragp, asection *segtype)
 
       return length;
     }
+  else if (RELAX_MICROMIPSPP_P (fragp->fr_subtype))
+    {
+      int length = 4;
+
+      if (RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) != 0)
+	length = relaxed_micromips_16bit_branch_length (fragp, segtype, FALSE);
+
+      fragp->fr_var = length;
+      return length;
+    }
+
 
   if (mips_pic == NO_PIC)
     change = nopic_need_relax (fragp->fr_symbol, 0);
@@ -18205,7 +18304,8 @@ mips_fix_adjustable (fixS *fixp)
 
   /* PC relative relocations for MIPS R6 need to be symbol rather than
      section relative to allow linker relaxations to be performed later on.  */
-  if (ISA_IS_R6 (mips_opts.isa) && pcrel_reloc_p (fixp->fx_r_type))
+  if ((ISA_IS_R6 (mips_opts.isa)
+       || ISA_IS_R7 (mips_opts.isa)) && pcrel_reloc_p (fixp->fx_r_type))
     return 0;
 
   /* R_MIPS16_26 relocations against non-MIPS16 functions might resolve
@@ -18304,7 +18404,7 @@ tc_gen_reloc (asection *section ATTRIBUTE_UNUSED, fixS *fixp)
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_14_PCREL_S1
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_20_PCREL_S1
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_21_PCREL_S1
-		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_26_PCREL_S1
+		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_25_PCREL_S1
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_HI20_PCREL
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_LO12_PCREL
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12);
@@ -18367,6 +18467,18 @@ mips_relax_frag (asection *sec, fragS *fragp, long stretch)
 
       return new_var - old_var;
     }
+  else if (RELAX_MICROMIPSPP_P (fragp->fr_subtype))
+    {
+      offsetT old_var = fragp->fr_var;
+      offsetT new_var = 4;
+
+      if (RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) != 0)
+	new_var = relaxed_micromips_16bit_branch_length (fragp, sec, TRUE);
+      fragp->fr_var = new_var;
+
+      return new_var - old_var;
+    }
+
 
   if (! RELAX_MIPS16_P (fragp->fr_subtype))
     return 0;
@@ -18847,6 +18959,92 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	  buf = write_compressed_insn (buf, insn, 2);
 	}
 
+      gas_assert (buf == fragp->fr_literal + fragp->fr_fix);
+      return;
+    }
+  else if (RELAX_MICROMIPSPP_P (fragp->fr_subtype))
+    {
+      char *buf = fragp->fr_literal + fragp->fr_fix;
+      int type = RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype);
+      unsigned long insn;
+      expressionS exp;
+      fixS *fixp;
+      const bfd_reloc_code_real_type rtype[]
+	= { BFD_RELOC_MICROMIPSPP_10_PCREL_S1,
+	    BFD_RELOC_MICROMIPSPP_7_PCREL_S1,
+	    BFD_RELOC_MICROMIPSPP_4_PCREL_S1,
+	    BFD_RELOC_MICROMIPSPP_25_PCREL_S1,
+	    BFD_RELOC_MICROMIPSPP_20_PCREL_S1,
+	    BFD_RELOC_MICROMIPSPP_14_PCREL_S1 };
+
+      exp.X_op = O_symbol;
+      exp.X_add_symbol = fragp->fr_symbol;
+      exp.X_add_number = fragp->fr_offset;
+
+      fragp->fr_fix += fragp->fr_var;
+
+      /* We generate a fixup instead of applying it right now,
+	 because if there is linker relaxation, we're going to
+	 need the relocations.  */
+      switch (type)
+	{
+	  case 'D':
+	  case 'E':
+	  case 'F':
+	    fixp = fix_new_exp (fragp, buf - fragp->fr_literal, 2, &exp, TRUE,
+				rtype[type - 'D'
+				      + (RELAX_MICROMIPSPP_TOOFAR16
+					 (fragp->fr_subtype) ? 3 : 0)]);
+	    break;
+	  default:
+	    abort ();
+	}
+
+      fixp->fx_file = fragp->fr_file;
+      fixp->fx_line = fragp->fr_line;
+
+      /* These relocations can have an addend that won't fit in
+	 2 octets.  */
+      fixp->fx_no_overflow = 1;
+
+      /* Nothing left to do for 16-bit branches that fit.  */
+      if (!RELAX_MICROMIPSPP_TOOFAR16 (fragp->fr_subtype))
+	return;
+
+      /* Relax 16-bit branches to 32-bit branches.  */
+      insn = read_compressed_insn (buf, 2);
+
+      if ((insn & 0xfc00) == 0x5800)	/* beqc[16]/bnec[16]  */
+	{
+	  unsigned long rt = (insn & 0x0380) >> 7;
+	  unsigned long rs = (insn & 0x0070) >> 4;
+	  if (rt > rs)
+	    insn = 0xc8000000; /* beqc  */
+	  else
+	    insn = 0xe8000000; /* bnec  */
+	  rt = micromips_to_32_reg_d_map [rt];
+	  rs = micromips_to_32_reg_d_map [rs];
+	  insn |= (rt << 21);
+	  insn |= (rs << 16);
+	}
+      else if ((insn & 0xdc00) == 0x9800)	/* beqzc[16]/bnezc[16]  */
+	{
+	  unsigned long rt = (insn & 0x0380) >> 7;
+	  rt = micromips_to_32_reg_d_map [rt];
+	  /* beqzc: 0x9800 -> 0xa8000000
+	     bnezc: 0xb800 -> 0xa8100000  */
+	  insn = 0xa8000000 | (((insn & 0x2000) >> 13) << 20);
+	  insn |= (rt < 21);
+	}
+      else if ((insn & 0xdc00) == 0x1800)	/* bc[16]/balc[16]  */
+	/* bc:		0x1800 -> 0x08000000
+	   balc:	0x3800 -> 0x0a000000  */
+	insn = 0x08000000 | (((insn & 0x2000) >> 13) << 25);
+      else
+	abort ();
+
+      /* Nothing else to do, just write it out.  */
+      buf = write_compressed_insn (buf, insn, 4);
       gas_assert (buf == fragp->fr_literal + fragp->fr_fix);
       return;
     }

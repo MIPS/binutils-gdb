@@ -179,6 +179,43 @@ START_RELOC_NUMBERS (elf_mips_reloc_type)
   RELOC_NUMBER (R_MIPS_GNU_VTENTRY, 254)
 END_RELOC_NUMBERS (R_MIPS_maxext)
 
+/* Macros to override micromips relocations.  */
+#ifdef RELOC_MACROS_GEN_FUNC
+#define R7_RELOC_OVERRIDE(type,number)		\
+    case number: return "R_MICROMIPS_"#type;
+
+#define R7_END_RELOC_OVERRIDE(name)		\
+  default: return elf_mips_reloc_type (rtype);	\
+  }						\
+}
+#else /* Default to generating enum.  */
+#define R7_RELOC_OVERRIDE(type, number) R_MICROMIPSPP_##type = number,
+#define R7_END_RELOC_OVERRIDE(name)     name };
+#endif
+
+/* Re-purpose microMIPS relocation for microMIPS++.  */
+START_RELOC_NUMBERS (elf_mipsr7_reloc_type)
+  FAKE_RELOC (R_MICROMIPSPP_min, 130)
+  R7_RELOC_OVERRIDE (HI20, 134)		/* R_MICROMIPS_HI16	*/
+  R7_RELOC_OVERRIDE (LO12, 135)		/* R_MICROMIPS_LO16	*/
+  R7_RELOC_OVERRIDE (GPREL14, 136)	/* R_MICROMIPS_GPREL16	*/
+  R7_RELOC_OVERRIDE (PC7_S1, 139)	/* R_MICROMIPS_PC7_S1	*/
+  R7_RELOC_OVERRIDE (PC10_S1, 140)	/* R_MICROMIPS_PC10_S1	*/
+  R7_RELOC_OVERRIDE (PCHI20_M12, 141)	/* R_MICROMIPS_PC16_S1	*/
+  R7_RELOC_OVERRIDE (PCHI20, 158)	/* R_MICROMIPS_PCHI16	*/
+  R7_RELOC_OVERRIDE (PCLO12, 159)	/* R_MICROMIPS_PCLO16	*/
+  R7_RELOC_OVERRIDE (GPREL7_S2, 172)	/* R_MICROMIPS_GPREL7_S2  */
+  R7_RELOC_OVERRIDE (PC11_S1, 173)	/* R_MICROMIPS_PC23_S2	*/
+  R7_RELOC_OVERRIDE (PC21_S1, 174)	/* R_MICROMIPS_PC21_S1	*/
+  R7_RELOC_OVERRIDE (PC25_S1, 175)	/* R_MICROMIPS_PC26_S1	*/
+  R7_RELOC_OVERRIDE (PC14_S1, 176)	/* R_MICROMIPS_PC18_S3	*/
+  R7_RELOC_OVERRIDE (PC20_S1, 177)	/* R_MICROMIPS_PC19_S2	*/
+  R7_RELOC_OVERRIDE (GPREL18, 178)	/* R_MICROMIPS_BYTE_LO4 */
+  R7_RELOC_OVERRIDE (GPREL19_S2, 180)	/* R_MICROMIPS_WORD_LO4  */
+  R7_RELOC_OVERRIDE (PC4_S1, 181)	/* R_MICROMIPS_BYTE_LO7  */
+  FAKE_RELOC (R_MICROMIPSPP_max, 182)
+R7_END_RELOC_OVERRIDE (R_MIPSR7_maxext)
+
 /* Processor specific flags for the ELF header e_flags field.  */
 
 /* At least one .noreorder directive appears in the source.  */
