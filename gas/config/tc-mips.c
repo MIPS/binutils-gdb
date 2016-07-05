@@ -8425,7 +8425,7 @@ struct gprel_insn_match
 
 static const struct gprel_insn_match micromipspp_gprel_map[] =
 {
-  {"lw", BFD_RELOC_MICROMIPSPP_GPREL7_S2},
+  {"lw", BFD_RELOC_MICROMIPSPP_GPREL19_S2},
   {"sw", BFD_RELOC_MICROMIPSPP_GPREL19_S2},
   {"lh", BFD_RELOC_MICROMIPSPP_GPREL18}, 
   {"lhu", BFD_RELOC_MICROMIPSPP_GPREL18}, 
@@ -8433,7 +8433,7 @@ static const struct gprel_insn_match micromipspp_gprel_map[] =
   {"lb", BFD_RELOC_MICROMIPSPP_GPREL18}, 
   {"lbu", BFD_RELOC_MICROMIPSPP_GPREL18}, 
   {"sb", BFD_RELOC_MICROMIPSPP_GPREL18}, 
-  {"addiu", BFD_RELOC_MICROMIPSPP_GPREL14},
+  {"addiu", BFD_RELOC_MICROMIPSPP_GPREL19_S2},
 };
 
 static bfd_reloc_code_real_type
