@@ -356,8 +356,8 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"addiu",	"md,ms,mW",		0x7040,	0xfc40,	WR_1|RD_2,		0,	I38,		0,		0}, /* ADDIU[R1.SP] */
 {"addiu",	"md,mc,mB",		0x9000,	0xfc08,	WR_1|RD_2,		0,	I38,		0,		0}, /* ADDIU[R2] */
 {"addiu",	"mp,+6",		0x9008,	0xfc08,		MOD_1,		0,	I38,		0,		0}, /* ADDIU[RS5] */
-{"addiu",	"-t,s,j",		0x00000000, 0xfc006000,	WR_1|RD_2,		0,	I38,		0,		0}, /* preceded by SIGRIE */
 {"addiu",	"t,ma,.",		0x40000000, 0xfc000003,	WR_1|RD_2,		0,	I38,		0,		0}, /* ADDIU[GP] */
+{"addiu",	"-t,s,j",		0x00000000, 0xfc006000,	WR_1|RD_2,		0,	I38,		0,		0}, /* preceded by SIGRIE */
 {"addq.ph",	"d,s,t",		0x2000000d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
 {"addqh.ph",	"d,s,t",		0x2000004d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
 {"addqh.w",	"d,s,t",		0x2000008d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
@@ -658,10 +658,10 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"lui",	"t,u",		0xe0000000, 0xfc000002,		WR_1,		0,	I38,		0,		0},
 {"lw",		"md,mJ(mc)",		0x7400,	0xfc00,	WR_1|RD_3,		0,	I38,		0,		0}, /* LW[16] */
 {"lw",		"m1,mN(m2)",		0x9400,	0xfc00,	WR_1|RD_3,		0,	0,	XLP,		0}, /* LW[4X4] */
-{"lw",		"md,mA(ma)",		0xb400,	0xfc00,	WR_1|RD_3,		0,	I38,		0,		0}, /* LW[GP16] */
 {"lw",		"mp,mU(ms)",		0x5400,	0xfc00,	WR_1|RD_3,		0,	I38,		0,		0}, /* LW[SP] */
-{"lw",		"t,i(s)",		0x84008000, 0xfc00f000,	WR_1|RD_3,		0,	I38,		0,		0},
 {"lw",		"t,.(ma)",		0x40000002, 0xfc000003,	WR_1|RD_3,		0,	I38,		0,		0}, /* LW[GP] */
+{"lw",		"md,mA(ma)",		0xb400,	0xfc00,	WR_1|RD_3,		0,	I38,		0,		0}, /* LW[GP16] */
+{"lw",		"t,i(s)",		0x84008000, 0xfc00f000,	WR_1|RD_3,		0,	I38,		0,		0},
 {"lw",		"t,+j(s)",		0xa4004000, 0xfc007f00,	WR_1|RD_3,		0,	I38,		0,		0}, /* LW[S9] */
 {"lwc1",	"T,i(s)",		0x8400a000, 0xfc00f000,	WR_1|RD_3,		0,	I38,	0,		0},
 {"lwc1",	"T,+2(ma)",		0x440c0000, 0xfc1c0003,	WR_1|RD_3,		0,	I38,	0,		0}, /* LWC1[GP] */

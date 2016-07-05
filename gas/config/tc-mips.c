@@ -8762,7 +8762,7 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
       if (!match_operand (&arg, operand))
 	return FALSE;
 
-      if (*offset_reloc == BFD_RELOC_MICROMIPSPP_GPREL7_S2)
+      if (*offset_reloc == BFD_RELOC_MICROMIPSPP_GPREL19_S2)
 	*offset_reloc = gprel_for_micromipspp_insn (insn->insn_mo->name);
 
       if (*offset_reloc == BFD_RELOC_MICROMIPSPP_GPREL7_S2
@@ -14901,7 +14901,7 @@ static const struct percent_op_match micromipspp_percent_op[] =
   {"%got_hi", BFD_RELOC_MIPS_GOT_HI16},
   {"%got_lo", BFD_RELOC_MIPS_GOT_LO16},
   {"%got", BFD_RELOC_MIPS_GOT16},
-  {"%gp_rel", BFD_RELOC_MICROMIPSPP_GPREL7_S2},
+  {"%gp_rel", BFD_RELOC_MICROMIPSPP_GPREL19_S2},
   {"%half", BFD_RELOC_16},
   {"%highest", BFD_RELOC_MIPS_HIGHEST},
   {"%higher", BFD_RELOC_MIPS_HIGHER},
