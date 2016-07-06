@@ -265,6 +265,10 @@ enum
   E_MIPS_ARCH_32R6 = 0x90000000,
   // -mips64r6 code.
   E_MIPS_ARCH_64R6 = 0xa0000000,
+  // -mips32r7 code.
+  E_MIPS_ARCH_32R7 = 0xb0000000,
+  // -mips64r7 code.
+  E_MIPS_ARCH_64R7 = 0xc0000000
 };
 
 // Values for the xxx_size bytes of an ABI flags structure.

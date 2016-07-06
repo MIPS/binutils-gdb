@@ -3940,11 +3940,13 @@ class Target_mips : public Sized_target<size, big_endian>
     mach_mipsisa32r3          = 34,
     mach_mipsisa32r5          = 36,
     mach_mipsisa32r6          = 37,
+    mach_mipsisa32r7          = 38,
     mach_mipsisa64            = 64,
     mach_mipsisa64r2          = 65,
     mach_mipsisa64r3          = 66,
     mach_mipsisa64r5          = 68,
     mach_mipsisa64r6          = 69,
+    mach_mipsisa64r7          = 70,
     mach_mips_micromips       = 96
   };
 
@@ -8690,7 +8692,8 @@ Target_mips<size, big_endian>::mips_32bit_flags(elfcpp::Elf_Word flags)
           || (flags & elfcpp::EF_MIPS_ARCH) == elfcpp::E_MIPS_ARCH_2
           || (flags & elfcpp::EF_MIPS_ARCH) == elfcpp::E_MIPS_ARCH_32
           || (flags & elfcpp::EF_MIPS_ARCH) == elfcpp::E_MIPS_ARCH_32R2
-          || (flags & elfcpp::EF_MIPS_ARCH) == elfcpp::E_MIPS_ARCH_32R6);
+          || (flags & elfcpp::EF_MIPS_ARCH) == elfcpp::E_MIPS_ARCH_32R6
+          || (flags & elfcpp::EF_MIPS_ARCH) == elfcpp::E_MIPS_ARCH_32R7);
 }
 
 // Return the MACH for a MIPS e_flags value.
@@ -8790,6 +8793,12 @@ Target_mips<size, big_endian>::elf_mips_mach(elfcpp::Elf_Word flags)
 
         case elfcpp::E_MIPS_ARCH_64R6:
           return mach_mipsisa64r6;
+
+        case elfcpp::E_MIPS_ARCH_32R7:
+          return mach_mipsisa32r7;
+
+        case elfcpp::E_MIPS_ARCH_64R7:
+          return mach_mipsisa64r7;
         }
     }
 
@@ -8967,6 +8976,9 @@ Target_mips<size, big_endian>::update_abiflags_isa(const std::string& name,
     case elfcpp::E_MIPS_ARCH_32R6:
       new_isa = this->level_rev(32, 6);
       break;
+    case elfcpp::E_MIPS_ARCH_32R7:
+      new_isa = this->level_rev(32, 7);
+      break;
     case elfcpp::E_MIPS_ARCH_64:
       new_isa = this->level_rev(64, 1);
       break;
@@ -8975,6 +8987,9 @@ Target_mips<size, big_endian>::update_abiflags_isa(const std::string& name,
       break;
     case elfcpp::E_MIPS_ARCH_64R6:
       new_isa = this->level_rev(64, 6);
+      break;
+    case elfcpp::E_MIPS_ARCH_64R7:
+      new_isa = this->level_rev(64, 7);
       break;
     default:
       gold_error(_("%s: Unknown architecture %s"), name.c_str(),
@@ -9237,6 +9252,10 @@ Target_mips<size, big_endian>::mips_mach_extends(unsigned int base,
 
   if ((base == mach_mipsisa32r2)
       && this->mips_mach_extends(mach_mipsisa64r2, extension))
+    return true;
+
+  if ((base == mach_mipsisa32r7)
+      && this->mips_mach_extends(mach_mipsisa64r7, extension))
     return true;
 
   for (unsigned int i = 0; i < this->mips_mach_extensions_.size(); ++i)
@@ -12395,6 +12414,12 @@ Target_mips<size, big_endian>::elf_mips_mach_name(elfcpp::Elf_Word e_flags)
 
         case elfcpp::E_MIPS_ARCH_64R6:
           return "mips:isa64r6";
+
+        case elfcpp::E_MIPS_ARCH_32R7:
+          return "mips:isa32r7";
+
+        case elfcpp::E_MIPS_ARCH_64R7:
+          return "mips:isa64r7";
         }
     }
     return "unknown CPU";
