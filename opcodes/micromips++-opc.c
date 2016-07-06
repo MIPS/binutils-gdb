@@ -335,7 +335,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"break",	"+K",		0xb001,	0xffe3,		0,		0,	I38,		0,		0},
 {"dvp",	"t",		0x20000390, 0xfc1fffff,		WR_1,		0,	I38,		0,		0},
 {"nop",	"",		0xb000,	0xffff,		0,		0,	I38,		0,		0}, /* NOP[16] */
-{"sdbbp",	"+K",		0xb003,	0xffe3,		0,		0,	0,	EJTAG,		0},
+{"sdbbp",	"+K",		0xb003,	0xffe3,		0,		0,	I38,	EJTAG,		0},
 {"sdbbp",	"+M",		0x2000897f, 0xfc00ffff,		0,		0,	I38,		0,		0},
 {"sigrie",	"+J",		0x00000000, 0xfff80000,		0,		0,	I38,		0,		0},
 {"synci",	"i(s)",		0x87e03000, 0xffe0f000,		RD_2,		0,	I38,		0,		0},
