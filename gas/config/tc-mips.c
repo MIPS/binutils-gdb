@@ -9355,6 +9355,7 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 		      || *r == BFD_RELOC_MIPS_HIGHER
 		      || *r == BFD_RELOC_HI16_S
 		      || *r == BFD_RELOC_LO16
+		      || *r == BFD_RELOC_MICROMIPSPP_LO12
 		      || *r == BFD_RELOC_MIPS_GOT_OFST);
 	  continue;
 
