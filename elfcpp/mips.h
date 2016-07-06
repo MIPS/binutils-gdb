@@ -129,8 +129,6 @@ enum
   R_MICROMIPS_GPREL16 = 136,       // In Elf 64: alias R_MICROMIPS_GPREL
   R_MICROMIPS_LITERAL = 137,
   R_MICROMIPS_GOT16 = 138,         // In Elf 64: alias R_MICROMIPS_GOT
-  R_MICROMIPS_PC7_S1 = 139,
-  R_MICROMIPS_PC10_S1 = 140,
   R_MICROMIPS_PC16_S1 = 141,
   R_MICROMIPS_CALL16 = 142,        // In Elf 64: alias R_MICROMIPS_CALL
   R_MICROMIPS_GOT_DISP = 145,
@@ -155,8 +153,28 @@ enum
   R_MICROMIPS_TLS_TPREL_HI16 = 169,
   R_MICROMIPS_TLS_TPREL_LO16 = 170,
   // microMIPS GP- and PC-relative relocations.
-  R_MICROMIPS_GPREL7_S2 = 172,
   R_MICROMIPS_PC23_S2 = 173,
+
+  // uMIPS++ relocations.
+  // FIXME: This is temporary.
+  R_MICROMIPS_HI20 = 182,
+  R_MICROMIPS_LO12 = 183,
+  R_MICROMIPS_GPREL14 = 184,
+  R_MICROMIPS_PC7_S1 = 185,
+  R_MICROMIPS_PC10_S1 = 186,
+  R_MICROMIPS_PCHI20 = 188,
+  R_MICROMIPS_PCLO12 = 189,
+  R_MICROMIPS_GPREL7_S2 = 190,
+  R_MICROMIPS_PC11_S1 = 191,
+  R_MICROMIPS_PC21_S1 = 192,
+  R_MICROMIPS_PC25_S1 = 193,
+  R_MICROMIPS_PC14_S1 = 194,
+  R_MICROMIPS_PC20_S1 = 195,
+  R_MICROMIPS_GPREL18 = 196,
+  R_MICROMIPS_GPREL19_S2 = 197,
+  R_MICROMIPS_PC4_S1 = 198,
+  R_MICROMIPS_GPREL18_S3 = 199,
+  R_MICROMIPS_GPREL16_S2 = 200,
 
   // This was a GNU extension used by embedded-PIC.  It was co-opted by
   // mips-linux for exception-handling data.  GCC stopped using it in
@@ -495,6 +513,14 @@ r6_isa(elfcpp::Elf_Word e_flags)
 {
   return ((e_flags & elfcpp::EF_MIPS_ARCH) == elfcpp::E_MIPS_ARCH_32R6)
            || ((e_flags & elfcpp::EF_MIPS_ARCH) == elfcpp::E_MIPS_ARCH_64R6);
+}
+
+// Whether the ISA is R7.
+bool
+r7_isa(elfcpp::Elf_Word e_flags)
+{
+  return ((e_flags & elfcpp::EF_MIPS_ARCH) == elfcpp::E_MIPS_ARCH_32R7)
+           || ((e_flags & elfcpp::EF_MIPS_ARCH) == elfcpp::E_MIPS_ARCH_64R7);
 }
 
 // Whether the file has microMIPS code.
