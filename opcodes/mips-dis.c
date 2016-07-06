@@ -1332,8 +1332,12 @@ micromipspp_print_save_restore (struct disassemble_info *info,
 
   if (count - gp - fp > 0)
     {
-      infprintf (is, "%s%s-%s", (pending ? comma : ""),
-		 mips_gpr_names[16], mips_gpr_names[16+count-fp-gp-1]);
+      if (count - fp - gp - 1 != 0)
+	infprintf (is, "%s%s-%s", (pending ? comma : ""),
+		   mips_gpr_names[16],
+		   mips_gpr_names[16 + count - fp - gp - 1]);
+      else
+	infprintf (is, "%s%s", (pending ? comma : ""), mips_gpr_names[16]);
       pending = 1;
     }
 
@@ -1342,6 +1346,7 @@ micromipspp_print_save_restore (struct disassemble_info *info,
       infprintf (is, "%s%s", (pending ? comma : ""), mips_gpr_names[28]);
       pending = 1;
     }
+
   if (fp)
     {
       infprintf (is, "%s%s", (pending ? comma : ""), mips_gpr_names[30]);

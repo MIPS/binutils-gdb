@@ -6083,7 +6083,7 @@ match_micromipspp_save_restore_list_operand (struct mips_arg_info *arg,
 	fp = 1;
       else if (regno1 == 28 && gp == 0)
 	gp = 1;
-      else if (regno1 == 16 && regno2 <= 31 && regno1 != regno2 && count == 0)
+      else if (regno1 == 16 && regno2 <= 31 && count == 0)
 	{
 	  /* $s0 .. sequence  */
 	  while (regno1 <= regno2)
@@ -6128,6 +6128,8 @@ match_micromipspp_save_restore_list_operand (struct mips_arg_info *arg,
 
   switch (count)
     {
+    case 16:
+      return FALSE;
     case 15:
       if (fp != 0 || gp != 0)
 	return FALSE;
@@ -18158,7 +18160,6 @@ relaxed_micromips_16bit_branch_length (fragS *fragp, asection *sec, int update)
 
       /* We try to avoid the infinite loop by not adding 2 more bytes for
 	 long branches.  */
-
       val -= addr;
 
       type = RELAX_MICROMIPS_TYPE (fragp->fr_subtype);
@@ -19034,7 +19035,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	  /* beqzc: 0x9800 -> 0xa8000000
 	     bnezc: 0xb800 -> 0xa8100000  */
 	  insn = 0xa8000000 | (((insn & 0x2000) >> 13) << 20);
-	  insn |= (rt < 21);
+	  insn |= (rt << 21);
 	}
       else if ((insn & 0xdc00) == 0x1800)	/* bc[16]/balc[16]  */
 	/* bc:		0x1800 -> 0x08000000

@@ -381,7 +381,7 @@ enum mips_operand_type {
   OP_ENTRY_EXIT_LIST,
 
   /* The register list and frame size for a MIPS16 SAVE or RESTORE
-     instruction.  */
+     instruction. Only register-list for microMIPS R7 SAVE or RESTORE */
   OP_SAVE_RESTORE_LIST,
 
   /* A 10-bit field VVVVVNNNNN used for octobyte and quadhalf instructions:
