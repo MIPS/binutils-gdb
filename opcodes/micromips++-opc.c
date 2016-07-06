@@ -793,6 +793,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"replv.qb",	"t,s",		0x2000133f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32,		0},
 {"restore",	"mG",		0x1fe0,	0xffe1,		0,		0,	0,	XLP,		0}, /* RESTORE[16] */
 {"restore",	"mY,n",		0x80013000, 0xfc01f004,		0,		0,	I38,		0,		0},
+{"restore.jrc", "mG",		0x1fa0,	0xffe1,		0,		0,	0,	XLP,		0}, /* RESTORE.JRC[16] */
 {"restore.jrc", "mG,+N",		0x1c20,	0xfc21,		0,		0,	0,	XLP,		0}, /* RESTORE.JRC[16], preceded by RESTORE[16] */
 {"restore.jrc", "mY,n",	0x80013004, 0xfc01f004,		0,		0,	I38,		0,		0},
 /*
@@ -810,6 +811,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"round.w.s",	"T,S",		0xa0003b3b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"rsqrt.d",	"T,S",		0xa000423b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"rsqrt.s",	"T,S",		0xa000023b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
+{"save",	"mG",		0x1fc0,	0xffe1,		0,		0,	0,	XLP,		0}, /* SAVE[16] */
 {"save",	"mG,+N",		0x1c00,	0xfc21,		0,		0,	0,	XLP,		0}, /* SAVE[16] */
 {"save",	"mY,n",		0x80003000, 0xfc01f004,		0,		0,	I38,		0,		0},
 /*
