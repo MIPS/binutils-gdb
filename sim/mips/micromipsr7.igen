@@ -199,6 +199,194 @@
   return value & low_bits_mask;
 }
 
+:function:::char*:do_get_save_restore_gpr_list:int first_gpr, int count, int fp, int gp
+*micromips32r7:
+*micromips64r7:
+{
+  int fp_pending;
+  int gp_pending;
+  int num_pending;
+  int i;
+  static char gpr_list[100];
+  int is_first_gpr;
+
+  fp_pending = fp || (count==9 && !gp);
+  gp_pending = gp;
+  num_pending = count;
+  gpr_list[0] = '\0';
+
+  is_first_gpr = ((first_gpr >= 16 && first_gpr <= 23) ||
+                 first_gpr == 28 ||
+                 first_gpr == 30 ||
+                 first_gpr == 31) ? 1 : 0;
+
+  i = 0;
+
+  if (fp_pending)
+    num_pending--;
+  if (gp_pending)
+    num_pending--;
+
+  while (i<num_pending)
+    {
+      char str1[3];
+      sprintf(str1, "%d", i);
+
+      if (i>0)
+        strcat (gpr_list,",");
+      strcat (gpr_list,"s");
+      strcat (gpr_list,str1);
+      i++;
+    }
+
+  if (fp_pending)
+    {
+      if (i > 0)
+        strcat (gpr_list,",");
+      strcat (gpr_list,"fp");
+    }
+
+  if (gp_pending)
+    {
+      if (i > 0 || fp_pending)
+        strcat (gpr_list,",");
+      strcat (gpr_list,"ra");
+    }
+
+  if ((i > 0 || fp_pending || gp_pending) && is_first_gpr)
+    strcat (gpr_list,",");
+
+  if (first_gpr >= 16 && first_gpr <= 23)
+    {
+      char str2[3];
+      sprintf(str2, "%d", first_gpr-16);
+
+      strcat (gpr_list,"s");
+      strcat (gpr_list,str2);
+    }
+  else if (first_gpr == 28)
+    strcat (gpr_list,"gp");
+  else if (first_gpr == 30)
+    strcat (gpr_list,"fp");
+  else if (first_gpr == 31)
+    strcat (gpr_list,"ra");
+
+  return (gpr_list);
+}
+
+:function:::void:do_save_gprs_to_stack_and_adjust_sp: int first_gpr, int count, int fp, int gp, int offset
+*micromips32r7:
+*micromips64r7:
+{
+  unsigned_word va;
+
+  int fp_pending;
+  int gp_pending;
+  int num_pending;
+  int idx;
+
+  fp_pending = fp || (count==9 && !gp);
+  gp_pending = gp;
+  num_pending = count;
+
+  va = GPR[SPIDX];
+
+  if (first_gpr >= 16 && first_gpr <= 23)
+    {
+      idx = first_gpr-16;
+      do_store (SD_,AccessLength_WORD, va -= 4, 0, GPR[idx]);
+    }
+  else if (first_gpr == 28)
+    {
+      idx = 28;
+      do_store (SD_,AccessLength_WORD, va -= 4, 0, GPR[idx]);
+    }
+  else if (first_gpr == 30)
+    {
+      idx = 30;
+      do_store (SD_,AccessLength_WORD, va -= 4, 0, GPR[idx]);
+    }
+  else if (first_gpr == 31)
+    {
+      idx = 31;
+      do_store (SD_,AccessLength_WORD, va -= 4, 0, GPR[idx]);
+    }
+
+  while (num_pending > 0)
+    {
+      if (fp_pending)
+        {
+          do_store (SD_, AccessLength_WORD, va -= 4, 0, GPR[30]);
+          fp_pending = 0;
+        }
+      else if (gp_pending)
+        {
+          do_store (SD_, AccessLength_WORD, va -= 4, 0, GPR[31]);
+          gp_pending = 0;
+        }
+      else
+        {
+          idx = 16 | (num_pending - 1);
+          do_store (SD_, AccessLength_WORD, va -= 4, 0, GPR[idx]);
+        }
+
+        num_pending--;
+    }
+
+  GPR[SPIDX] -= offset;
+}
+
+:%s::::GPR_LIST_SAVE16:int count
+*micromips32r7:
+*micromips64r7:
+{
+  if (count == 14 || count == 15 )
+    return "";
+  else
+    return do_get_save_restore_gpr_list(SD_, 31, count, 0, 0);
+}
+
+:%s::::GPR_LIST_SAVE:int count
+*micromips32r7:
+*micromips64r7:
+{
+  return do_get_save_restore_gpr_list (SD_, -1, count, 0, 0);
+}
+
+:%s::::GP_SAVE:int gp
+*micromips32r7:
+*micromips64r7:
+{
+  return (gp > 0) ? ",gp" : "";
+}
+
+:%s::::FP_SAVE:int fp
+*micromips32r7:
+*micromips64r7:
+{
+  return (fp > 0) ? ",fp" : "";
+}
+
+:%s::::RT_SAVE:int rt
+*micromips32r7:
+*micromips64r7:
+{
+  if (rt >= 16 && rt <= 23)
+    {
+      char str[4];
+      sprintf(str, ",s%d", rt-16);
+      return str;
+    }
+  else if (rt == 28)
+    return ",gp";
+  else if (rt == 30)
+    return ",fp";
+  else if (rt == 31)
+    return ",ra";
+
+  return "";
+}
+
 00000000000000000000000000000000:R7DUMMY:32,f::DUMMY0.fmt
 "dummy 0"
 *mips32r7:
@@ -875,4 +1063,22 @@
   TRACE_ALU_INPUT3 (GPR[RS], LSB,  MSBD + 1);
   GPR[RT] = EXTEND32 (zero_extend(SD_, GPR[RS] >> LSB, MSBD + 1));
   TRACE_ALU_RESULT1 (GPR[RT]);
+}
+
+000111,4.GPR_LIST_SAVE16,0,4.U,0:R7P16SRW:16::SAVE16
+"SAVE %s<GPR_LIST_SAVE16>, <U_SHIFT_3BIT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_save_gprs_to_stack_and_adjust_sp(SD_, 31, GPR_LIST_SAVE16, 0, 0,
+                                      U_SHIFT_3BIT);
+}
+
+100000,5.RT_SAVE,4.GPR_LIST_SAVE,0,0011,9.U,0,1.FP_SAVE,1.GP_SAVE:R7PSR:32::SAVE
+"SAVE %s<GPR_LIST_SAVE>%s<GP_SAVE>%s<FP_SAVE>%s<RT_SAVE>, <U_SHIFT_3BIT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_save_gprs_to_stack_and_adjust_sp(SD_, RT_SAVE, GPR_LIST_SAVE, FP_SAVE,
+                                      GP_SAVE, U_SHIFT_3BIT);
 }
