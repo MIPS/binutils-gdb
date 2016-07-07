@@ -404,6 +404,33 @@
   GPR[SPIDX] += offset;
 }
 
+:function:::address_word:do_eret:int nc, address_word nia
+*micromips32r7:
+*micromips64r7:
+{
+  if (SR & status_ERL)
+    {
+      /* Oops, not yet available */
+      sim_io_printf (SD, "Warning: ERET when SR[ERL] set not supported");
+      nia = EPC;
+      SR &= ~status_ERL;
+    }
+  else
+    {
+      nia = EPC;
+      SR &= ~status_EXL;
+      //if ( SRSCtl.HSS > 0 && Status.BEV == 0)
+      //  SRSCtl.CSS = SRSCtl.PSS
+  }
+
+  //TODO: clear LLbit for ERET
+  //if (!nc)
+  //  LLbit = 0;
+
+  //TODO: ClearHazards()
+  return NIA;
+}
+
 :%s::::GPR_LIST_SAVE16:int count
 *micromips32r7:
 *micromips64r7:
@@ -1189,4 +1216,22 @@
 
   isa_mode =  GPR[RAIDX] & 0x1;
   NIA = GPR[RAIDX] & (-1 << 1);
+}
+
+001000,000000000,0,11,11001,101,111,111:R7POOL32A0:32::ERET
+"eret"
+*micromips32r7:
+*micromips64r7:
+{
+  //TODO: signal coprocessor_exception(0) if !IsCoprocessor0Enabled()
+  NIA = do_eret(SD_, 0, NIA);
+}
+
+001000,000000000,1,11,11001,101,111,111:R7POOL32A0:32::ERETNC
+"eretnc"
+*micromips32r7:
+*micromips64r7:
+{
+  //TODO: signal coprocessor_exception(0) if !IsCoprocessor0Enabled()
+  NIA = do_eret(SD_, 1, NIA);
 }
