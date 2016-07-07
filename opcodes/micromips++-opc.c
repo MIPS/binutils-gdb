@@ -932,6 +932,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"swe",	"t,+j(s)",		0xa4004c00, 0xfc007f00,	RD_1|RD_3,		0,	0,	EVA,		0},
 {"swx",	"d,s(t)",		0x20000487, 0xfc0007ff, RD_1|RD_2|RD_3,		0,	0,	XLP,		0},
 {"swxs",	"d,s(t)",		0x200004c7, 0xfc0007ff, RD_1|RD_2|RD_3,		0,	0,	XLP,		0},
+{"sync",	"",		0x20006b7f, 0xffffffff,		0,		0,	I38,		0,		0},
 {"sync",	"1",		0x20006b7f, 0xffe0ffff,		0,		0,	I38,		0,		0},
 {"syscall",	"+M",		0x20008b7f, 0xfc00ffff,		0,		0,	I38,		0,		0},
 {"tlbginv",	"",		0x2000417f, 0xffffffff,		0,		0,	0,	TLBINV,		0},
