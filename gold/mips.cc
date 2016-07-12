@@ -10014,7 +10014,7 @@ Target_mips<size, big_endian>::do_finalize_sections(Layout* layout,
   // Check whether the entry symbol is mips16 or micromips.  This is needed to
   // adjust entry address in ELF header.
   Mips_symbol<size>* entry =
-    static_cast<Mips_symbol<size>*>(symtab->lookup(this->entry_symbol_name()));
+    static_cast<Mips_symbol<size>*>(symtab->lookup(parameters->entry()));
   this->entry_symbol_is_compressed_ = (entry != NULL && (entry->is_mips16()
                                        || entry->is_micromips()));
 
