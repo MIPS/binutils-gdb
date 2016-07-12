@@ -811,6 +811,105 @@ static reloc_howto_type elf_mips_howto_table_rel[] =
 	 TRUE),			/* pcrel_offset */
 };
 
+/* The relocation table used for SHT_RELA sections.
+This variant is currently only used for microMIPS++, where R_MIPS_32
+is needed to make sense of debug-info. Other slots have deliberately
+been left empty.  */
+
+static reloc_howto_type elf_mips_howto_table_rela[] =
+{
+  /* No relocation.  */
+  HOWTO (R_MIPS_NONE,		/* type */
+	 0,			/* rightshift */
+	 0,			/* size (0 = byte, 1 = short, 2 = long) */
+	 0,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont, /* complain_on_overflow */
+	 _bfd_mips_elf_generic_reloc, /* special_function */
+	 "R_MIPS_NONE",		/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0,			/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
+  EMPTY_HOWTO (1),
+
+  /* 32 bit symbol relative relocation.  */
+  HOWTO (R_MIPS_REL32,		/* type */
+	 0,			/* rightshift */
+	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 32,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont, /* complain_on_overflow */
+	 _bfd_mips_elf_generic_reloc, /* special_function */
+	 "R_MIPS_REL32",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0xffffffff,		/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
+  EMPTY_HOWTO (3),
+  EMPTY_HOWTO (4),
+  EMPTY_HOWTO (5),
+  EMPTY_HOWTO (6),
+  EMPTY_HOWTO (7),
+  EMPTY_HOWTO (8),
+  EMPTY_HOWTO (9),
+  EMPTY_HOWTO (10),
+  EMPTY_HOWTO (11),
+  EMPTY_HOWTO (12),
+  EMPTY_HOWTO (13),
+  EMPTY_HOWTO (14),
+  EMPTY_HOWTO (15),
+  EMPTY_HOWTO (16),
+  EMPTY_HOWTO (17),
+  EMPTY_HOWTO (18),
+  EMPTY_HOWTO (19),
+  EMPTY_HOWTO (20),
+  EMPTY_HOWTO (21),
+  EMPTY_HOWTO (22),
+  EMPTY_HOWTO (23),
+  EMPTY_HOWTO (24),
+  EMPTY_HOWTO (25),
+  EMPTY_HOWTO (26),
+  EMPTY_HOWTO (27),
+  EMPTY_HOWTO (28),
+  EMPTY_HOWTO (29),
+  EMPTY_HOWTO (30),
+  EMPTY_HOWTO (31),
+  EMPTY_HOWTO (32),
+  EMPTY_HOWTO (33),
+  EMPTY_HOWTO (34),
+  EMPTY_HOWTO (35),
+  EMPTY_HOWTO (36),
+  EMPTY_HOWTO (37),
+  EMPTY_HOWTO (38),
+  EMPTY_HOWTO (39),
+  EMPTY_HOWTO (40),
+  EMPTY_HOWTO (41),
+  EMPTY_HOWTO (42),
+  EMPTY_HOWTO (43),
+  EMPTY_HOWTO (44),
+  EMPTY_HOWTO (45),
+  EMPTY_HOWTO (46),
+  EMPTY_HOWTO (47),
+  EMPTY_HOWTO (48),
+  EMPTY_HOWTO (49),
+  EMPTY_HOWTO (50),
+  EMPTY_HOWTO (51),
+  EMPTY_HOWTO (52),
+  EMPTY_HOWTO (53),
+  EMPTY_HOWTO (54),
+  EMPTY_HOWTO (55),
+  EMPTY_HOWTO (56),
+  EMPTY_HOWTO (57),
+  EMPTY_HOWTO (58),
+  EMPTY_HOWTO (59),
+};
+
+
 /* The reloc used for BFD_RELOC_CTOR when doing a 64 bit link.  This
    is a hack to make the linker think that we need 64 bit values.  */
 static reloc_howto_type elf_mips_ctor64_howto =
@@ -2564,15 +2663,21 @@ static reloc_howto_type *
 bfd_elf32_bfd_reloc_type_lookup (bfd *abfd, bfd_reloc_code_real_type code)
 {
   unsigned int i;
-  reloc_howto_type *howto_table = elf_mips_howto_table_rel;
+  reloc_howto_type *howto_table;
   reloc_howto_type *howto16_table = elf_mips16_howto_table_rel;
   const struct elf_backend_data *bed = get_elf_backend_data (abfd);
   reloc_howto_type *howto_micromips_table;
 
   if (bed->default_use_rela_p)
-    howto_micromips_table = elf_micromips_howto_table_rela;
+    {
+      howto_table = elf_mips_howto_table_rela;
+      howto_micromips_table = elf_micromips_howto_table_rela;
+    }
   else
-    howto_micromips_table = elf_micromips_howto_table_rel;
+    {
+      howto_table = elf_mips_howto_table_rel;
+      howto_micromips_table = elf_micromips_howto_table_rel;
+    }
 
   for (i = 0; i < sizeof (mips_reloc_map) / sizeof (struct elf_reloc_map);
        i++)
@@ -2706,7 +2811,10 @@ mips_elf32_rtype_to_howto (unsigned int r_type,
       if (r_type >= R_MIPS16_min && r_type < R_MIPS16_max)
         return &elf_mips16_howto_table_rel[r_type - R_MIPS16_min];
       BFD_ASSERT (r_type < (unsigned int) R_MIPS_max);
-      return &elf_mips_howto_table_rel[r_type];
+      if (rela_p)
+	return &elf_mips_howto_table_rela[r_type];
+      else
+	return &elf_mips_howto_table_rel[r_type];
     }
 }
 
