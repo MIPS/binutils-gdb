@@ -118,7 +118,7 @@ decode_micromipspp_operand (const char *p)
 	case '6': SPLIT_MAPPED_REG (2, 3, 1, 8, GP, reg_gpr2d2_map);
 	case '7': SPLIT_MAPPED_REG (4, 21, 1, 25, GP, reg_4to5_map);
 	case '8': HINT (23, 3);
-	case '9': BRANCH (7, 11, 0);
+	case '9': UINT (7, 11);
 	}
       break;
 
