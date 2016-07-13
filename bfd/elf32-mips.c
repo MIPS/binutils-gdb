@@ -835,8 +835,8 @@ static reloc_howto_type elf_mips_howto_table_rela[] =
 
   EMPTY_HOWTO (1),
 
-  /* 32 bit symbol relative relocation.  */
-  HOWTO (R_MIPS_REL32,		/* type */
+  /* 32 bit relocation.  */
+  HOWTO (R_MIPS_32,		/* type */
 	 0,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 32,			/* bitsize */
@@ -844,7 +844,7 @@ static reloc_howto_type elf_mips_howto_table_rela[] =
 	 0,			/* bitpos */
 	 complain_overflow_dont, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc, /* special_function */
-	 "R_MIPS_REL32",	/* name */
+	 "R_MIPS_32",		/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 0xffffffff,		/* dst_mask */
