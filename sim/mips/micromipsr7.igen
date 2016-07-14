@@ -1249,3 +1249,44 @@
 {
   SignalException (DebugBreakPoint, instruction_0);
 }
+
+100001,5.RT,5.RS,0101,12.U:R7PLSU12:32::SH
+"sh r<RT>, <U>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_store (SD_, AccessLength_HALFWORD, GPR[RS], EXTEND16 (U),
+      GPR[RT]);
+}
+
+100001,5.RT,5.RS,0001,12.U:R7PLSU12:32::SB
+"sb r<RT>, <U>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_store (SD_, AccessLength_BYTE, GPR[RS], EXTEND16 (U), GPR[RT]);
+}
+
+001000,5.RT,5.RS,5.RD,0,1101010,000:R7POOL32A0:32::SLT
+"slt r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_slt (SD_, RS, RT, RD);
+}
+
+001000,5.RT,5.RS,5.RD,0,1110010,000:R7POOL32A0:32::SLTU
+"sltu r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_sltu (SD_, RS, RT, RD);
+}
+
+001000,5.RS,5.RT,5.RD,0,1000010,000:R7POOL32A0:32::MOVZ
+"movz r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_movz (SD_, RD, RS, RT);
+}
