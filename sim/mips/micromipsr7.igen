@@ -1340,3 +1340,43 @@
 {
   do_movz (SD_, RD, RS, RT);
 }
+
+100000,5.RT,5.RS,0101,12.U:R7PU12:32::SLTIU
+"sltiu r<RT>, r<RS>, <U>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_sltiu (SD_, RS, RT, U);
+}
+
+001000,5.RT,5.RS,5.RD,1000,0,000,111:R7PPLSX:32::LWX
+"lwx r<RD>, r<RS>(r<RT>)"
+*micromips32r7:
+*micromips64r7:
+{
+  GPR[RD] = EXTEND32 (do_load (SD_, AccessLength_WORD, GPR[RS], GPR[RT]));
+}
+
+001000,5.RT,5.RS,5.RD,1001,0,000,111:R7PPLSX:32::SWX
+"swx r<RD>, r<RS>(r<RT>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_store (SD_, AccessLength_WORD, GPR[RT], GPR[RS], GPR[RD]);
+}
+
+001000,5.RT,5.RS,5.RD,0,0000011,000:R7POOL32A0:32::MUL
+"mul r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_mul (SD_, RD, RS, RT);
+}
+
+001000,5.RT,5.RS,5.RD,2.U,000,001,111:R7POOL32A7:32::LSA
+"lsa r<RD>, r<RS>, r<RT>, <U + 1>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_lsa (SD_, RD, RS, RT, U);
+}
