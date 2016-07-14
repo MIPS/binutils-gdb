@@ -1250,6 +1250,56 @@
   SignalException (DebugBreakPoint, instruction_0);
 }
 
+111000,5.RT,9.S1,10.S2,0,1.S3:R7PLUI:32::LUI
+"lui r<RT>, <AXUIPC_S>"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT2 (GPR[0], AXUIPC_S);
+  GPR[RT] = EXTEND32 (GPR[0] + EXTEND32(AXUIPC_S));
+  TRACE_ALU_RESULT (GPR[RT]);
+}
+
+100001,5.RT,5.RS,0000,12.U:R7PLSU12:32::LB
+"lb r<RT>, <U>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_lb (SD_, RT, U, RS);
+}
+
+100001,5.RT,5.RS,0010,12.U:R7PLSU12:32::LBU
+"lbu r<RT>, <U>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_lbu (SD_, RT, U, RS);
+}
+
+100001,5.RT,5.RS,0100,12.U:R7PLSU12:32::LH
+"lh r<RT>, <U>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_lh (SD_, RT, U, RS);
+}
+
+100001,5.RT,5.RS,0110,12.U:R7PLSU12:32::LHU
+"lhu r<RT>, <U>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_lhu (SD_, RT, U, RS);
+}
+
+100001,5.RT,5.RS,1000,12.U:R7PLSU12:32::LW
+"lw r<RT>, <U>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_lw (SD_, RT, U, RS);
+}
+
 100001,5.RT,5.RS,0101,12.U:R7PLSU12:32::SH
 "sh r<RT>, <U>(r<RS>)"
 *micromips32r7:
