@@ -1380,3 +1380,27 @@
 {
   do_lsa (SD_, RD, RS, RT, U);
 }
+
+001000,5.RT,5.RS,0111101,100,111,111:R7POOL32A0:32::WSBH
+"wsbh r<RT>, r<RS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_wsbh (SD_, RT, RS);
+}
+
+100000,5.RT,5.RS,1100,000,0110,5.SHIFT:R7PSHIFT:32::ROTR
+"rotr r<RT>, r<RS>, <SHIFT>"
+*micromips32r7:
+*micromips64r7:
+{
+  GPR[RT] = do_ror (SD_, GPR[RS], SHIFT);
+}
+
+001000,5.RT,5.RS,5.RD,0,0011010,000:R7POOL32A0:32::ROTRV
+"rotrv r<RD>, r<RT>, r<RS>"
+*micromips32r7:
+*micromips64r7:
+{
+  GPR[RD] = do_ror (SD_, GPR[RT], GPR[RS]);
+}
