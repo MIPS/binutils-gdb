@@ -205,19 +205,21 @@
     return &op; \
   }
 
-#define SPECIAL2(SIZE, LSB, T_SIZE, T_LSB, TYPE, DECODE)	\
-  { \
-    static const struct mips_special2_operand op = {	\
-	{ OP_##TYPE, SIZE, LSB, T_SIZE, T_LSB },			\
-	DECODE						\
-    };							\
-    return &op; \
-  }
-
 #define PREV_CHECK(SIZE, LSB, GT_OK, LT_OK, EQ_OK, ZERO_OK) \
   { \
     static const struct mips_check_prev_operand op = { \
       { OP_CHECK_PREV, SIZE, LSB, 0, 0 }, GT_OK, LT_OK, EQ_OK, ZERO_OK \
+    }; \
+    return &op.root; \
+  }
+
+#define MAPPED_PREV_CHECK(SIZE, LSB, BANK, MAP, GT_OK, LT_OK, EQ_OK, ZERO_OK) \
+  { \
+    typedef char ATTRIBUTE_UNUSED \
+      static_assert[(1 << (SIZE)) == ARRAY_SIZE (MAP)]; \
+    static const struct mips_mapped_check_prev_operand op = { \
+      { OP_MAPPED_CHECK_PREV, SIZE, LSB, 0, 0 }, OP_REG_##BANK, MAP, \
+      GT_OK, LT_OK, EQ_OK, ZERO_OK \
     }; \
     return &op.root; \
   }

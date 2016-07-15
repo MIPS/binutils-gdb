@@ -444,6 +444,9 @@ enum mips_operand_type {
   /* A non-zero PC-relative offset.  */
   OP_NON_ZERO_PCREL_S1,
 
+  /* To check a mapped register against a previous operand.  */
+  OP_MAPPED_CHECK_PREV,
+
 };
 
 /* Enumerates the types of MIPS register.  */
@@ -641,13 +644,19 @@ struct mips_pcrel_operand
   unsigned int flip_isa_bit : 1;
 };
 
-/* Describes an operand that encapsulates a decoder.  */
-struct mips_special2_operand
+/* Describes an operand that encapsulates a mapped register with
+   a check against the previous operand.  */
+struct mips_mapped_check_prev_operand
 {
-  /* Encodes the offset.  */
   struct mips_operand root;
 
-  struct mips_operand dec_root;
+  enum mips_reg_operand_type reg_type;
+  const unsigned char *reg_map;
+
+  bfd_boolean greater_than_ok;
+  bfd_boolean less_than_ok;
+  bfd_boolean equal_ok;
+  bfd_boolean zero_ok;
 };
 
 /* Return true if the assembly syntax allows OPERAND to be omitted.  */
@@ -744,6 +753,23 @@ mips_decode_reg_operand (const struct mips_reg_operand *operand,
 {
   if (operand->reg_map)
     uval = operand->reg_map[uval];
+  return uval;
+}
+
+/* Return the UVAL encoding of REGNO as OPERAND.  */
+
+static inline unsigned int
+mips_encode_reg_operand (const struct mips_operand *operand,
+			 int regno)
+{
+  unsigned int uval;
+  const unsigned int num_vals = 1 << operand->size;
+  const struct mips_reg_operand *reg_op
+    = (const struct mips_reg_operand *) operand;
+
+  for (uval = 0; uval < num_vals; uval++)
+    if (reg_op->reg_map[uval] == regno)
+      break;
   return uval;
 }
 

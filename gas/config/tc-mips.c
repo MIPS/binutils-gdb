@@ -4778,6 +4778,7 @@ operand_reg_mask (const struct mips_cl_insn *insn,
 
     case OP_CHECK_PREV:
     case OP_NON_ZERO_REG:
+    case OP_MAPPED_CHECK_PREV:
       if (!(type_mask & (1 << OP_REG_GP)))
 	return 0;
       uval = insn_extract_operand (insn, operand);
@@ -5776,6 +5777,34 @@ match_check_prev_operand (struct mips_arg_info *arg,
   return FALSE;
 }
 
+/* OP_MAPPED_CHECK_PREV matcher.  */
+
+static bfd_boolean
+match_mapped_check_prev_operand (struct mips_arg_info *arg,
+				 const struct mips_operand *operand_base)
+{
+  unsigned char uval, last_uval;
+  const struct mips_mapped_check_prev_operand *operand
+    = (const struct mips_mapped_check_prev_operand *) operand_base;
+
+  last_uval = mips_encode_reg_operand (operand_base, arg->last_regno);
+
+  if (!match_reg_operand (arg, operand_base))
+    return FALSE;
+
+  if (!operand->zero_ok && arg->last_regno == 0)
+    return FALSE;
+
+  uval = mips_encode_reg_operand (operand_base, arg->last_regno);
+
+  if ((operand->less_than_ok && uval < last_uval)
+      || (operand->greater_than_ok && uval > last_uval)
+	|| (operand->equal_ok && uval == last_uval))
+    return TRUE;
+
+  return FALSE;
+}
+
 /* OP_SAME_RS_RT matcher.  */
 
 static bfd_boolean
@@ -6677,6 +6706,9 @@ match_operand (struct mips_arg_info *arg,
 
     case OP_HI20_INT:
       return match_hi20_int_operand (arg, operand);
+
+    case OP_MAPPED_CHECK_PREV:
+      return match_mapped_check_prev_operand (arg, operand);
     }
   abort ();
 }

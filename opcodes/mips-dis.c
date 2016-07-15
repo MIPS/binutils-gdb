@@ -1419,6 +1419,7 @@ print_insn_arg (struct disassemble_info *info,
 
     case OP_REG:
     case OP_OPTIONAL_REG:
+    case OP_MAPPED_CHECK_PREV:
       {
 	const struct mips_reg_operand *reg_op;
 
@@ -1783,6 +1784,22 @@ validate_insn_args (const struct mips_opcode *opcode,
 			|| (prev_op->greater_than_ok && uval > state.last_regno)
 			|| (prev_op->equal_ok && uval == state.last_regno)))
 		      break;
+
+		    return FALSE;
+		  }
+
+		case OP_MAPPED_CHECK_PREV:
+		  {
+		    const struct mips_mapped_check_prev_operand *prev_op
+		      = (const struct mips_mapped_check_prev_operand *) operand;
+		    unsigned int last_uval;
+
+		    last_uval = mips_encode_reg_operand (operand, state.last_regno);
+
+		    if (((prev_op->less_than_ok && uval < last_uval)
+			|| (prev_op->greater_than_ok && uval > last_uval)
+			|| (prev_op->equal_ok && uval == last_uval)))
+			break;
 
 		    return FALSE;
 		  }

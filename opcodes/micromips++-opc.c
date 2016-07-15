@@ -135,9 +135,9 @@ decode_micromipspp_operand (const char *p)
 /* 	case 'm': SPLIT_MAPPED_REG (3, 0, 1, 3, GP, reg_mn_map); */
 	case 's': SPECIAL (5, 16, NON_ZERO_REG);
 	case 't': SPECIAL (5, 21, NON_ZERO_REG);
-	case 'u': PREV_CHECK (3, 7, TRUE, FALSE, FALSE, FALSE);
+	case 'u': MAPPED_PREV_CHECK (3, 7, GP, reg_m16_map, TRUE, FALSE, FALSE, FALSE);
 /* 	case 'v': PREV_CHECK (5, 21, TRUE, TRUE, FALSE, FALSE); */
-	case 'w': PREV_CHECK (3, 7, FALSE, TRUE, TRUE, TRUE);
+	case 'w': MAPPED_PREV_CHECK (3, 7, GP, reg_m16_map, FALSE, TRUE, TRUE, TRUE);
 /* 	case 'x': PREV_CHECK (5, 16, TRUE, FALSE, FALSE, TRUE); */
 /* 	case 'y': PREV_CHECK (5, 16, FALSE, TRUE, FALSE, FALSE); */
 	}
