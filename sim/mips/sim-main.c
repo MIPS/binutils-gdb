@@ -135,7 +135,7 @@ load_memory (SIM_DESC SD,
   uword64 value1 = 0;
 
 #ifdef DEBUG
-  sim_io_printf(sd,"DBG: LoadMemory(%p,%p,%d,%d,0x%s,0x%s,%s)\n",memvalp,memval1p,CCA,AccessLength,pr_addr(pAddr),pr_addr(vAddr),(IorD ? "isDATA" : "isINSTRUCTION"));
+  sim_io_printf(SD,"DBG: LoadMemory(%p,%p,%d,%d,0x%s,0x%s,%s)\n",memvalp,memval1p,CCA,AccessLength,pr_addr(pAddr),pr_addr(vAddr),(IorD ? "isDATA" : "isINSTRUCTION"));
 #endif /* DEBUG */
 
 #if defined(WARN_MEM)
@@ -250,7 +250,7 @@ store_memory (SIM_DESC SD,
 	      address_word vAddr)
 {
 #ifdef DEBUG
-  sim_io_printf(sd,"DBG: StoreMemory(%d,%d,0x%s,0x%s,0x%s,0x%s)\n",CCA,AccessLength,pr_uword64(MemElem),pr_uword64(MemElem1),pr_addr(pAddr),pr_addr(vAddr));
+  sim_io_printf(SD,"DBG: StoreMemory(%d,%d,0x%s,0x%s,0x%s,0x%s)\n",CCA,AccessLength,pr_uword64(MemElem),pr_uword64(MemElem1),pr_addr(pAddr),pr_addr(vAddr));
 #endif /* DEBUG */
   
 #if defined(WARN_MEM)
@@ -286,7 +286,7 @@ store_memory (SIM_DESC SD,
     }
   
 #ifdef DEBUG
-  printf("DBG: StoreMemory: shift = %d MemElem = 0x%s%s\n",shift,pr_uword64(MemElem1),pr_uword64(MemElem));
+  printf("DBG: StoreMemory: Shifted MemElem = 0x%s%s\n",pr_uword64(MemElem1),pr_uword64(MemElem));
 #endif /* DEBUG */
   
   switch (AccessLength)
