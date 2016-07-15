@@ -136,9 +136,9 @@ decode_micromipspp_operand (const char *p)
 	case 's': SPECIAL (5, 16, NON_ZERO_REG);
 	case 't': SPECIAL (5, 21, NON_ZERO_REG);
 	case 'u': MAPPED_PREV_CHECK (3, 7, GP, reg_m16_map, TRUE, FALSE, FALSE, FALSE);
-/* 	case 'v': PREV_CHECK (5, 21, TRUE, TRUE, FALSE, FALSE); */
+	case 'v': MAPPED_PREV_CHECK (3, 4, GP, reg_m16_map, FALSE, TRUE, TRUE, TRUE);
 	case 'w': MAPPED_PREV_CHECK (3, 7, GP, reg_m16_map, FALSE, TRUE, TRUE, TRUE);
-/* 	case 'x': PREV_CHECK (5, 16, TRUE, FALSE, FALSE, TRUE); */
+	case 'x': MAPPED_PREV_CHECK (3, 4, GP, reg_m16_map, TRUE, FALSE, FALSE, FALSE);
 /* 	case 'y': PREV_CHECK (5, 16, FALSE, TRUE, FALSE, FALSE); */
 	}
       break;
@@ -396,6 +396,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"bc2eqzc",	"E,+0",		0xc8024000, 0xfc1fc000,		RD_1,		0,	0,	CP2,		0},
 {"bc2nezc",	"E,+0",		0xc8034000, 0xfc1fc000,		RD_1,		0,	0,	CP2,		0},
 {"beqc",	"mc,-u,mF",	0x5800,	0xfc00,	RD_1|RD_2,		0,	0,	XLP,		0}, /* BEQC[16], with rs3<rt3 && u[4:1]!=0 */
+{"beqc",	"md,-v,mF",	0x5800,	0xfc00,	RD_1|RD_2,	INSN2_ALIAS,	0,	XLP,		0}, /* BEQC[16], with operands commutated */
 {"beqc",	"s,t,+0",	0xc8000000, 0xfc00c000,	RD_1|RD_2,		0,	I38,		0,		0},
 {"beqic",	"t,m9,~",	0x48000000, 0xfc1c0000,		RD_1,		0,	0,	XLP,		0},
 {"beqzc",	"md,mE",		0x9800,	0xfc00,		RD_1,		0,	I38,		0,		0}, /* BEQZC[16] */
@@ -415,6 +416,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"bltuc",	"s,t,+0",	0xe800c000, 0xfc00c000,	RD_1|RD_2,		0,	I38,		0,		0},
 {"bltuic",	"t,m9,~",	0x481c0000, 0xfc1c0000,		RD_1,		0,	0,	XLP,		0},
 {"bnec",	"mc,-w,mF",	0x5800,	0xfc00,	RD_1|RD_2,		0,	0,	XLP,		0}, /* BNEC[16], with rs3>=rt3 && u[4:1]!=0 */
+{"bnec",	"md,-x,mF",	0x5800,	0xfc00,	RD_1|RD_2,	0,	INSN2_ALIAS,	XLP,		0}, /* BNEC[16], with operands commutated */
 {"bnec",	"s,t,+0",	0xe8000000, 0xfc00c000,	RD_1|RD_2,		0,	I38,		0,		0},
 {"bneic",	"t,m9,~",	0x48100000, 0xfc1c0000,		RD_1,		0,	0,	XLP,		0},
 {"bnezc",	"md,mE",		0xb800,	0xfc00,		RD_1,		0,	I38,		0,		0}, /* BNEZC[16] */
