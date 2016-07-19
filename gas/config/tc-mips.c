@@ -8743,6 +8743,10 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	      case '0':
 		*offset_reloc = BFD_RELOC_MICROMIPSPP_14_PCREL_S1;
 		break;
+
+	      case 'r':
+		*offset_reloc = BFD_RELOC_MICROMIPSPP_21_PCREL_S1;
+		break;
 	      }
 	    break;
 

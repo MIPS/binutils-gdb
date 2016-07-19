@@ -180,7 +180,7 @@ decode_micromipspp_operand (const char *p)
 /* 	case 'n': REG (5, 11, MSA_CTRL); */
 /* 	case 'o': SPECIAL (4, 16, IMM_INDEX); */
 	case 'q': SINT_SPLIT (6, 3, 3, 1, 15); /* split 6-bit signed << 3 */
-	case 'r': SINT_SPLIT (21, 1, 1, 1, 0); /* split 21-bit signed << 1 */
+	case 'r': BRANCH_UNORD_SPLIT (21, 1); /* split 21-bit signed << 1 */
 	case 's': REG (5, 21, GP);
 	case 't': REG (5, 16, GP);
 	case 'u': INT_ADJ (14, 0, ((1<<14)-1), 1, FALSE);
@@ -927,8 +927,8 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"subu_s.qb",	"d,s,t",		0x200006cd, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
 {"sw",		"mq,mJ(mc)",		0xf400,	0xfc00,	RD_1|RD_3,		0,	I38,		0,		0}, /* SW[16] */
 {"sw",		"mp,mU(ms)",		0xd400,	0xfc00,	RD_1|RD_3,		0,	I38,		0,		0}, /* SW[SP] */
-{"sw",		"t,i(s)",		0x84009000, 0xfc00f000,	RD_1|RD_3,		0,	I38,		0,		0},
 {"sw",		"t,.(ma)",		0x40000003, 0xfc000003,	RD_1|RD_3,		0,	I38,		0,		0}, /* SW[GP] */
+{"sw",		"t,i(s)",		0x84009000, 0xfc00f000,	RD_1|RD_3,		0,	I38,		0,		0},
 {"sw",		"t,+j(s)",		0xa4004800, 0xfc007f00,	RD_1|RD_3,		0,	I38,		0,		0}, /* SW[S9] */
 {"swc1",	"T,i(s)",		0x8400b000, 0xfc00f000,	RD_1|RD_3,		0,	I38,	0,		0},
 {"swc1",	"T,+2(ma)",		0x440c0001, 0xfc1c0003,	RD_1|RD_3,		0,	I38,	0,		0}, /* SWC1[GP] */
