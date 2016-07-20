@@ -135,18 +135,18 @@
     }
 }
 
-:function:::address_word:do_bc16:address_word offset
+:function:::address_word:do_r7pbal_bc:address_word offset, int nextInstructionOffset
 {
-  return CIA + offset;
+  return CIA + nextInstructionOffset + offset;
 }
 
-:function:::address_word:do_balc16:address_word offset
+:function:::address_word:do_r7movebalc_balc:address_word offset, int nextInstructionOffset
 {
-  RA = CIA | isa_mode;
-  return CIA + offset;
+  RA = (CIA + nextInstructionOffset) | isa_mode;
+  return CIA + nextInstructionOffset + offset;
 }
 
-:function:::address_word:do_bxxxc16:int rs, int rt, address_word offset, address_word nia
+:function:::address_word:do_bxxxc_mm_r7:int rs, int rt, address_word offset, address_word nia
 *micromips32r7:
 *micromips64r7:
 {
@@ -183,7 +183,7 @@
 
 :function:::address_word:do_jialc_mm_r7:int rt, int rs, unsigned16 offset
 {
-  rt = CIA | isa_mode;
+  rt = (CIA + 4) | isa_mode;
   unsigned_word address = do_load (SD_, AccessLength_WORD, GPR[rs], offset);
   isa_mode = address & 1;
   return address & ~1;
@@ -867,7 +867,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_balc16 (SD_, EXTEND11 (ADDRESS11));
+  NIA = do_r7movebalc_balc (SD_, EXTEND11 (ADDRESS11), 2);
 }
 
 000010,1,24.S1,1.S2:R7PBAL:32::BALC
@@ -875,7 +875,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_balc16 (SD_, EXTEND26 (ADDRESS26));
+  NIA = do_r7movebalc_balc (SD_, EXTEND26 (ADDRESS26), 4);
 }
 
 000110,9.S1,1.S2:R7BC16:16::BC16
@@ -883,7 +883,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_bc16 (SD_, EXTEND11 (ADDRESS11));
+  NIA = do_r7pbal_bc (SD_, EXTEND11 (ADDRESS11), 2);
 }
 
 000010,0,24.S1,1.S2:R7PBAL:32::BC
@@ -891,7 +891,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_bc16 (SD_, EXTEND26 (ADDRESS26));
+  NIA = do_r7pbal_bc (SD_, EXTEND26 (ADDRESS26), 4);
 }
 
 101010,5.RT,0,19.S1,1.S2:R7PBZ:32::BEQZC
@@ -916,7 +916,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_bxxxc16 (SD_, TRS, TRT, U_SHIFT_1BIT, NIA);
+  NIA = do_bxxxc_mm_r7 (SD_, TRS, TRT, U_SHIFT_1BIT, NIA);
 }
 
 111010,5.RT,5.RS,00,13.S1,1.S2:R7PBR2:32::BxxxC
@@ -925,7 +925,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_bxxxc16 (SD_, RS, RT, EXTEND15 (ADDRESS15), NIA);
+  NIA = do_bxxxc_mm_r7 (SD_, RS, RT, EXTEND15 (ADDRESS15), NIA);
 }
 
 100000,5.RT,5.RS,1110,0,5.MSBD,0,5.LSB:R7PINS:32::INS
@@ -954,7 +954,7 @@
 *micromips64r7:
 {
   if (GPR[RT] == U) {
-    NIA = P7PBRI_ADDRESS;
+    NIA = P7PBRI_ADDRESS + 4;
   }
 }
 
@@ -964,7 +964,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = P7PBR1_ADDRESS;
+  NIA = P7PBR1_ADDRESS + 4;
 }
 
 010010,5.RT,010,7.U,10.S1,1.S2:P7PBRI:32::BGEIC
@@ -973,7 +973,7 @@
 *micromips64r7:
 {
   if (GPR[RT] >= U) {
-    NIA = P7PBRI_ADDRESS;
+    NIA = P7PBRI_ADDRESS + 4;
   }
 }
 
@@ -984,7 +984,7 @@
 *micromips64r7:
 {
   if ((unsigned32) (GPR[RS]) < (unsigned32)(GPR[RT])) {
-    NIA = P7PBR1_ADDRESS;
+    NIA = P7PBR1_ADDRESS + 4;
   }
 }
 
@@ -994,7 +994,7 @@
 *micromips64r7:
 {
   if ((unsigned32) (GPR[RT]) >= U) {
-    NIA = P7PBRI_ADDRESS;
+    NIA = P7PBRI_ADDRESS + 4;
   }
 }
 
@@ -1004,7 +1004,7 @@
 *micromips64r7:
 {
   if (GPR[RT] < U) {
-    NIA = P7PBRI_ADDRESS;
+    NIA = P7PBRI_ADDRESS + 4;
   }
 }
 
@@ -1014,7 +1014,7 @@
 *micromips64r7:
 {
   if ((unsigned32)(GPR[RT]) < U) {
-    NIA = P7PBRI_ADDRESS;
+    NIA = P7PBRI_ADDRESS + 4;
   }
 }
 
@@ -1024,7 +1024,7 @@
 *micromips64r7:
 {
   if (GPR[RT] != U) {
-    NIA = P7PBRI_ADDRESS;
+    NIA = P7PBRI_ADDRESS + 4;
   }
 }
 
@@ -1130,7 +1130,7 @@
 *micromips64r7:
 {
   GPR[RD1] = GPR[RT_5_BIT];
-  NIA = do_balc16 (SD_, EXTEND22 (ADDRESS22));
+  NIA = do_r7movebalc_balc (SD_, EXTEND22 (ADDRESS22), 4);
 }
 
 100010,5.RT,5.RS,0001,12.U:R7PJ:32::JIALC.HB
