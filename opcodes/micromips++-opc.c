@@ -38,7 +38,7 @@ static unsigned char reg_4to5_map[] = { 0, 1, 2, 3, 4, 5, 6, 7,
 static unsigned char reg_4or5_map[] = { 4, 5 };
 
 static unsigned char reg_gpr2d1_map[] = {4, 5, 6, 7};
-static unsigned char reg_gpr2d2_map[] = {7, 4, 5, 6};
+static unsigned char reg_gpr2d2_map[] = {5, 6, 7, 4};
 
 static int int_b_map[] = {
   0, 4, 8, 12, 16, 20, 24, 28
