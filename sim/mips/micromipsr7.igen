@@ -43,7 +43,7 @@
 :compute:::address_word:P7PBR1_ADDRESS:S1,S2:(nia + EXTEND15(S2 << 14 | S1 << 1))
 :compute:::int:S_14_BIT:S1,S2:((S1 << 13) | S2)
 :compute:::int:S_4_BIT:S1,S2:((S1 << 3) | S2)
-:compute:::int:S_8_BIT:S1,S2:((S1 << 7) | S2)
+:compute:::int:S_9_BIT:S1,S2:((S1 << 8) | S2)
 :compute:::int:RD1:RD:(compute_gpr1_dest_reg (SD_, RD))
 :compute:::int:RT_5_BIT:RT1,RT2:((RT1 << 4) | RT2)
 :compute:::int:RS_5_BIT:RS1,RS2:((RS1 << 4) | RS2)
@@ -135,15 +135,10 @@
     }
 }
 
-:function:::address_word:do_bc16:address_word offset
+:function:::address_word:do_balc16:address_word offset, address_word nia
 {
-  return CIA + offset;
-}
-
-:function:::address_word:do_balc16:address_word offset
-{
-  RA = CIA | isa_mode;
-  return CIA + offset;
+  RA = nia | isa_mode;
+  return nia + offset;
 }
 
 :function:::address_word:do_bxxxc16:int rs, int rt, address_word offset, address_word nia
@@ -152,9 +147,9 @@
 {
   if (rs < rt && GPR[rs] == GPR[rt])
     return nia + offset; //BEQC
-  if (GPR[rs] != GPR[rt])
+  if (rs >= rt && GPR[rs] != GPR[rt])
     return nia + offset; //BNEC
-  return NIA;
+  return nia;
 }
 
 :function:::void:do_ins_mm_r7:int rt, int rs, int pos, int size
@@ -181,9 +176,9 @@
     }
 }
 
-:function:::address_word:do_jialc_mm_r7:int rt, int rs, unsigned16 offset
+:function:::address_word:do_jialc_mm_r7:int rt, int rs, unsigned16 offset, address_word nia
 {
-  rt = CIA | isa_mode;
+  rt = nia | isa_mode;
   unsigned_word address = do_load (SD_, AccessLength_WORD, GPR[rs], offset);
   isa_mode = address & 1;
   return address & ~1;
@@ -566,7 +561,7 @@
   do_or (SD_, TRS, TRD, TRD);
 }
 
-101100,3.RT,3.RS,3.RD,0:R7P16ADDU:16::ADDU16
+000100,3.RT,3.RS,3.RD,0:R7P16ADDU:16::ADDU16
 "addu r<TRD>, r<TRS>, r<TRT>"
 *micromips32r7:
 *micromips64r7:
@@ -582,7 +577,7 @@
   do_addu (SD_, RS, RT, RD);
 }
 
-101100,3.RT,3.RS,3.RD,1:R7P16ADDU:16::SUBU16
+000000,3.RT,3.RS,3.RD,1:R7P16ADDU:16::SUBU16
 "subu r<TRD>, r<TRS>, r<TRT>"
 *micromips32r7:
 *micromips64r7:
@@ -679,7 +674,7 @@
   do_srl_mm_r7 (SD_, TRS, TRD, SHIFT_DEC);
 }
 
-000100,5.RT,2.RS1,3.RS2:R7P16MOVE:16::MOVE16
+101100,5.RT,2.RS1,3.RS2:R7P16MOVE:16::MOVE16
 "break %#lx<RS2>":RT==0&&RS1==0x2
 "sdbbp %#lx<RS2>":RT==0&&RS1==0x3
 "move r<RT>, r<MOVE_RS>"
@@ -853,6 +848,23 @@
             zero_extend(SD_, GPR[TRTZ], 32));
 }
 
+101001,5.RT,5.RS,1.S1,1001000,8.S2:R7SWS9:32::SWS9
+"sw r<RT>, <S_9_BIT>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_store (SD_, AccessLength_WORD, SP, EXTEND9 (S_9_BIT),
+	    zero_extend(SD_, GPR[RT], 32));
+}
+
+100001,5.RT,5.RS,1001,12.U:R7SW:32::SW
+"sw r<RT>, <U>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_store (SD_, AccessLength_WORD, SP, U, GPR[RT]);
+}
+
 110101,5.RT,5.U:R7SWSP:16::SWSP
 "sw r<TRT>, <U_SHIFT_2BIT>(sp)"
 *micromips32r7:
@@ -862,12 +874,20 @@
                                                                   32));
 }
 
+010000,5.RT,19.U,11:R7SWGP:32::SWGP
+"sw r<RT>, <U_SHIFT_2BIT>(gp)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_store (SD_, AccessLength_WORD, GP, U_SHIFT_2BIT, GPR[RT]);
+}
+
 001110,9.S1,1.S2:R7BALC16:16::BALC16
 "balc <ADDRESS11>"
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_balc16 (SD_, EXTEND11 (ADDRESS11));
+  NIA = do_balc16 (SD_, EXTEND11 (ADDRESS11), NIA);
 }
 
 000010,1,24.S1,1.S2:R7PBAL:32::BALC
@@ -875,7 +895,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_balc16 (SD_, EXTEND26 (ADDRESS26));
+  NIA = do_balc16 (SD_, EXTEND26 (ADDRESS26), NIA);
 }
 
 000110,9.S1,1.S2:R7BC16:16::BC16
@@ -883,7 +903,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_bc16 (SD_, EXTEND11 (ADDRESS11));
+  NIA = NIA + EXTEND11 (ADDRESS11);
 }
 
 000010,0,24.S1,1.S2:R7PBAL:32::BC
@@ -891,7 +911,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_bc16 (SD_, EXTEND26 (ADDRESS26));
+  NIA = NIA + EXTEND26 (ADDRESS26);
 }
 
 101010,5.RT,0,19.S1,1.S2:R7PBZ:32::BEQZC
@@ -919,13 +939,22 @@
   NIA = do_bxxxc16 (SD_, TRS, TRT, U_SHIFT_1BIT, NIA);
 }
 
-111010,5.RT,5.RS,00,13.S1,1.S2:R7PBR2:32::BxxxC
-"beqc r<RS>, r<RT>, <ADDRESS15>":RS<RT
+111010,5.RT,5.RS,00,13.S1,1.S2:R7PBR2:32::BNEC
 "bnec r<RS>, r<RT>, <ADDRESS15>"
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_bxxxc16 (SD_, RS, RT, EXTEND15 (ADDRESS15), NIA);
+  if (GPR[RS] != GPR[RT])
+    NIA = NIA + EXTEND15 (ADDRESS15);
+}
+
+110010,5.RT,5.RS,00,13.S1,1.S2:R7PBR2:32::BEQC
+"beqc r<RS>, r<RT>, <ADDRESS15>"
+*micromips32r7:
+*micromips64r7:
+{
+  if (GPR[RS] == GPR[RT])
+    NIA = NIA + EXTEND15 (ADDRESS15);
 }
 
 100000,5.RT,5.RS,1110,0,5.MSBD,0,5.LSB:R7PINS:32::INS
@@ -945,7 +974,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_jialc_mm_r7 (SD_, RT, RS, OFFSET);
+  NIA = do_jialc_mm_r7 (SD_, RT, RS, OFFSET, NIA);
 }
 
 010010,5.RT,000,7.U,10.S1,1.S2:P7PBRI:32::BEQIC
@@ -1111,14 +1140,14 @@
 }
 
 101001,5.OP,5.RS,1.S1,0011001,8.S2:R7PLSS1:32::CACHE
-"cache <OP>, <S_8_BIT>(r<RS>)"
+"cache <OP>, <S_9_BIT>(r<RS>)"
 *micromips32r7:
 *micromips64r7:
 {
   address_word vaddr;
   address_word paddr;
   int uncached;
-  vaddr = loadstore_ea (SD_, GPR[RS], EXTEND9 (S_8_BIT));
+  vaddr = loadstore_ea (SD_, GPR[RS], EXTEND9 (S_9_BIT));
   if (AddressTranslation (vaddr, isDATA, isLOAD, &paddr, &uncached, isTARGET,
                           isREAL))
     CacheOp (OP, vaddr, paddr, instruction_0);
@@ -1130,7 +1159,7 @@
 *micromips64r7:
 {
   GPR[RD1] = GPR[RT_5_BIT];
-  NIA = do_balc16 (SD_, EXTEND22 (ADDRESS22));
+  NIA = do_balc16 (SD_, EXTEND22 (ADDRESS22), NIA);
 }
 
 100010,5.RT,5.RS,0001,12.U:R7PJ:32::JIALC.HB
@@ -1141,7 +1170,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_jialc_mm_r7 (SD_, RT, RS, U);
+  NIA = do_jialc_mm_r7 (SD_, RT, RS, U, NIA);
   //TODO: ClearHazards()?
 }
 
@@ -1298,6 +1327,14 @@
 *micromips64r7:
 {
   do_lw (SD_, RT, U, RS);
+}
+
+010000,5.RT,19.U,10:R7LWGP:32::LWGP
+"lw r<RT>, <U_SHIFT_2BIT>(gp)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_lw (SD_, RT, U_SHIFT_2BIT, GPIDX);
 }
 
 100001,5.RT,5.RS,0101,12.U:R7PLSU12:32::SH

@@ -42,13 +42,16 @@ micromips_instruction_decode (SIM_DESC sd, sim_cpu * cpu,
     {
       micromips16_instruction_word instruction_0 = IMEM16_MICROMIPS (cia);
 
-      if (mips_mach_multi (sd) != bfd_mach_mipsisa32r7
+      if (STATE_ARCHITECTURE (sd)->mach != bfd_mach_mipsisa32r7
+	  && STATE_ARCHITECTURE (sd)->mach != bfd_mach_mipsisa64r7
 	  && (MICROMIPS_MAJOR_OPCODE_3_5 (instruction_0) == 2
 	      || MICROMIPS_MAJOR_OPCODE_3_5 (instruction_0) == 3
 	      || (MICROMIPS_MAJOR_OPCODE_3_5 (instruction_0) == 1
 		  && MICROMIPS_MAJOR_OPCODE_0_2 (instruction_0) < 5)))
 	return micromips16_idecode_issue (sd, instruction_0, cia);
-      else if ((MICROMIPS_MAJOR_OPCODE_3_5 (instruction_0) & 0x4) == 4)
+      else if ((STATE_ARCHITECTURE (sd)->mach == bfd_mach_mipsisa32r7
+		|| STATE_ARCHITECTURE (sd)->mach == bfd_mach_mipsisa64r7)
+	       && (MICROMIPS_MAJOR_OPCODE_3_5 (instruction_0) & 0x4) == 4)
 	return micromips16_idecode_issue (sd, instruction_0, cia);
       else
 	{
