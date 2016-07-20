@@ -1394,12 +1394,60 @@
   GPR[RD] = EXTEND32 (do_load (SD_, AccessLength_WORD, GPR[RS], GPR[RT]));
 }
 
+001000,5.RT,5.RS,5.RD,0110,0,000,111:R7PPLSX:32::LHUX
+"lhux r<RD>, r<RS>(r<RT>)"
+*micromips32r7:
+*micromips64r7:
+{
+  GPR[RD] = do_load (SD_, AccessLength_HALFWORD, GPR[RS], GPR[RT]);
+}
+
+001000,5.RT,5.RS,5.RD,0100,0,000,111:R7PPLSX:32::LHX
+"lhx r<RD>, r<RS>(r<RT>)"
+*micromips32r7:
+*micromips64r7:
+{
+  GPR[RD] = EXTEND16 (do_load (SD_, AccessLength_HALFWORD, GPR[RS], GPR[RT]));
+}
+
+001000,5.RT,5.RS,5.RD,0010,0,000,111:R7PPLSX:32::LBUX
+"lbux r<RD>, r<RS>(r<RT>)"
+*micromips32r7:
+*micromips64r7:
+{
+  GPR[RD] = do_load (SD_, AccessLength_BYTE, GPR[RS], GPR[RT]);
+}
+
+001000,5.RT,5.RS,5.RD,0000,0,000,111:R7PPLSX:32::LBX
+"lbx r<RD>, r<RS>(r<RT>)"
+*micromips32r7:
+*micromips64r7:
+{
+  GPR[RD] = EXTEND8 (do_load (SD_, AccessLength_BYTE, GPR[RS], GPR[RT]));
+}
+
 001000,5.RT,5.RS,5.RD,1001,0,000,111:R7PPLSX:32::SWX
 "swx r<RD>, r<RS>(r<RT>)"
 *micromips32r7:
 *micromips64r7:
 {
   do_store (SD_, AccessLength_WORD, GPR[RT], GPR[RS], GPR[RD]);
+}
+
+001000,5.RT,5.RS,5.RD,0101,0,000,111:R7PPLSX:32::SHX
+"shx r<RD>, r<RS>(r<RT>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_store (SD_, AccessLength_HALFWORD, GPR[RT], GPR[RS], GPR[RD]);
+}
+
+001000,5.RT,5.RS,5.RD,0001,0,000,111:R7PPLSX:32::SBX
+"sbx r<RD>, r<RS>(r<RT>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_store (SD_, AccessLength_BYTE, GPR[RT], GPR[RS], GPR[RD]);
 }
 
 001000,5.RT,5.RS,5.RD,0,0000011,000:R7POOL32A0:32::MUL
