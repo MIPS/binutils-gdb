@@ -1489,3 +1489,19 @@
 {
   GPR[RD] = do_ror (SD_, GPR[RT], GPR[RS]);
 }
+
+001000,5.RT,5.RS,5.RD,0,0111010,000:R7POOL32A0:32::SUBU
+"subu r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_subu (SD_, RS, RT, RD);
+}
+
+100000,5.RT,5.RS,1100,000,0010,5.SHIFT:R7PSHIFT:32::SRL
+"srl r<RT>, r<RS>, <SHIFT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_srl (SD_, RS, RT, SHIFT);
+}
