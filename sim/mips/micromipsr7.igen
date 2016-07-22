@@ -1301,12 +1301,28 @@
   do_lb (SD_, RT, U, RS);
 }
 
+010001,5.RT,000,18.U:R7PLSGP:32::LBGP
+"lb r<RT>, <U>(gp)"
+*micromips32r7:
+*micromips64r7:
+{
+  GPR[RT] = EXTEND8 (do_load (SD_, AccessLength_BYTE, GP, U));
+}
+
 100001,5.RT,5.RS,0010,12.U:R7PLSU12:32::LBU
 "lbu r<RT>, <U>(r<RS>)"
 *micromips32r7:
 *micromips64r7:
 {
   do_lbu (SD_, RT, U, RS);
+}
+
+010001,5.RT,010,18.U:R7PLSGP:32::LBUGP
+"lbu r<RT>, <U>(gp)"
+*micromips32r7:
+*micromips64r7:
+{
+  GPR[RT] = do_load (SD_, AccessLength_BYTE, GP, U);
 }
 
 100001,5.RT,5.RS,0100,12.U:R7PLSU12:32::LH
@@ -1317,12 +1333,28 @@
   do_lh (SD_, RT, U, RS);
 }
 
+010001,5.RT,100,18.U:R7PLSGP:32::LHGP
+"lh r<RT>, <U>(gp)"
+*micromips32r7:
+*micromips64r7:
+{
+  GPR[RT] = EXTEND16 (do_load (SD_, AccessLength_HALFWORD, GP, U));
+}
+
 100001,5.RT,5.RS,0110,12.U:R7PLSU12:32::LHU
 "lhu r<RT>, <U>(r<RS>)"
 *micromips32r7:
 *micromips64r7:
 {
   do_lhu (SD_, RT, U, RS);
+}
+
+010001,5.RT,110,18.U:R7PLSGP:32::LHUGP
+"lhu r<RT>, <U>(gp)"
+*micromips32r7:
+*micromips64r7:
+{
+  GPR[RT] = do_load (SD_, AccessLength_HALFWORD, GP, U);
 }
 
 100001,5.RT,5.RS,1000,12.U:R7PLSU12:32::LW
@@ -1350,12 +1382,28 @@
       GPR[RT]);
 }
 
+010001,5.RT,101,18.U:R7PLSGP:32::SHGP
+"sh r<RT>, <U>(gp)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_store (SD_, AccessLength_HALFWORD, GP, U, GPR[RT]);
+}
+
 100001,5.RT,5.RS,0001,12.U:R7PLSU12:32::SB
 "sb r<RT>, <U>(r<RS>)"
 *micromips32r7:
 *micromips64r7:
 {
   do_store (SD_, AccessLength_BYTE, GPR[RS], EXTEND16 (U), GPR[RT]);
+}
+
+010001,5.RT,001,18.U:R7PLSGP:32::SBGP
+"sb r<RT>, <U>(gp)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_store (SD_, AccessLength_BYTE, GP, U, GPR[RT]);
 }
 
 001000,5.RT,5.RS,5.RD,0,1101010,000:R7POOL32A0:32::SLT
@@ -1540,20 +1588,4 @@
 *micromips64r7:
 {
   GPR[RD] = do_ror (SD_, GPR[RT], GPR[RS]);
-}
-
-010001,5.RT,001,18.U:R7PLSGP:32::SBGP
-"sb r<RT>, <U>(gp)"
-*micromips32r7:
-*micromips64r7:
-{
-  do_store (SD_, AccessLength_BYTE, GPR[28], EXTEND18 (U), GPR[RT]);
-}
-
-010001,5.RT,010,18.U:R7PLSGP:32::LBUGP
-"lbu r<RT>, <U>(gp)"
-*micromips32r7:
-*micromips64r7:
-{
-  do_lbu (SD_, RT, U, 28);
 }
