@@ -563,6 +563,14 @@
   do_subu (SD_, TRS, TRT, TRD);
 }
 
+001000,5.RT,5.RS,5.RD,0,0111010,000:R7POOL32A0:32::SUBU
+"subu r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_subu (SD_, RS, RT, RD);
+}
+
 001000,5.RT,5.RS,5.RD,0,0110011,000:R7POOL32A0:32::DIVU
 "divu r<RD>, r<RS>, r<RT>"
 *micromips32r7:
@@ -1514,14 +1522,6 @@
 *micromips64r7:
 {
   GPR[RD] = do_ror (SD_, GPR[RT], GPR[RS]);
-}
-
-001000,5.RT,5.RS,5.RD,0,0111010,000:R7POOL32A0:32::SUBU
-"subu r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_subu (SD_, RS, RT, RD);
 }
 
 010001,5.RT,001,18.U:R7PLSGP:32::SBGP
