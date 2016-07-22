@@ -973,13 +973,22 @@
   }
 }
 
-110010,5.RT,5.RS,10,13.S1,1.S2:P7PBR1:32::P7PBR1
-"bltc r<RS>, r<RT>, <P7PBR1_ADDRESS>": GPR[RS] < GPR[RT]
+111010,5.RT,5.RS,10,13.S1,1.S2:P7PBR1:32::BLTC
+"bltc r<RS>, r<RT>, <P7PBR1_ADDRESS>"
+*micromips32r7:
+*micromips64r7:
+{
+  if ((signed_word) GPR[RS] < (signed_word) GPR[RT])
+    NIA = P7PBR1_ADDRESS;
+}
+
+110010,5.RT,5.RS,10,13.S1,1.S2:P7PBR1:32::BGEC
 "bgec r<RS>, r<RT>, <P7PBR1_ADDRESS>"
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = P7PBR1_ADDRESS;
+  if ((signed_word) GPR[RS] >= (signed_word) GPR[RT])
+    NIA = P7PBR1_ADDRESS;
 }
 
 010010,5.RT,010,7.U,10.S1,1.S2:P7PBRI:32::BGEIC
@@ -987,18 +996,27 @@
 *micromips32r7:
 *micromips64r7:
 {
-  if (GPR[RT] >= U) {
+  if ((signed_word) GPR[RT] >= U) {
     NIA = P7PBRI_ADDRESS;
   }
 }
 
-110010,5.RT,5.RS,11,13.S1,1.S2:P7PBR2:32::P7PBR2
-"bltuc r<RS>, r<RT>, <P7PBR1_ADDRESS>": GPR[RS] < GPR[RT]
+111010,5.RT,5.RS,11,13.S1,1.S2:P7PBR2:32::BLTUC
+"bltuc r<RS>, r<RT>, <P7PBR1_ADDRESS>"
+*micromips32r7:
+*micromips64r7:
+{
+  if ((unsigned_word) GPR[RS] < (unsigned_word) GPR[RT]) {
+    NIA = P7PBR1_ADDRESS;
+  }
+}
+
+110010,5.RT,5.RS,11,13.S1,1.S2:P7PBR2:32::BGEUC
 "bgeuc r<RS>, r<RT>, <P7PBR1_ADDRESS>"
 *micromips32r7:
 *micromips64r7:
 {
-  if ((unsigned32) (GPR[RS]) < (unsigned32)(GPR[RT])) {
+  if ((unsigned_word) (GPR[RS]) >= (unsigned_word)(GPR[RT])) {
     NIA = P7PBR1_ADDRESS;
   }
 }
@@ -1008,7 +1026,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  if ((unsigned32) (GPR[RT]) >= U) {
+  if ((unsigned_word) GPR[RT] >= U) {
     NIA = P7PBRI_ADDRESS;
   }
 }
@@ -1018,7 +1036,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  if (GPR[RT] < U) {
+  if ((signed_word) GPR[RT] < U) {
     NIA = P7PBRI_ADDRESS;
   }
 }
@@ -1028,7 +1046,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  if ((unsigned32)(GPR[RT]) < U) {
+  if ((unsigned_word) GPR[RT] < U) {
     NIA = P7PBRI_ADDRESS;
   }
 }
