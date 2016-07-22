@@ -539,7 +539,7 @@
   do_or (SD_, TRS, TRD, TRD);
 }
 
-000100,3.RT,3.RS,3.RD,0:R7P16ADDU:16::ADDU16
+101100,3.RT,3.RS,3.RD,0:R7P16ADDU:16::ADDU16
 "addu r<TRD>, r<TRS>, r<TRT>"
 *micromips32r7:
 *micromips64r7:
@@ -555,7 +555,7 @@
   do_addu (SD_, RS, RT, RD);
 }
 
-000000,3.RT,3.RS,3.RD,1:R7P16ADDU:16::SUBU16
+101100,3.RT,3.RS,3.RD,1:R7P16ADDU:16::SUBU16
 "subu r<TRD>, r<TRS>, r<TRT>"
 *micromips32r7:
 *micromips64r7:
@@ -652,7 +652,7 @@
   do_srl (SD_, TRS, TRD, SHIFT_DEC);
 }
 
-101100,5.RT,2.RS1,3.RS2:R7P16MOVE:16::MOVE16
+000100,5.RT,2.RS1,3.RS2:R7P16MOVE:16::MOVE16
 "break %#lx<RS2>":RT==0&&RS1==0x2
 "sdbbp %#lx<RS2>":RT==0&&RS1==0x3
 "move r<RT>, r<MOVE_RS>"
