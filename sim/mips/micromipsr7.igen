@@ -839,7 +839,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  do_store (SD_, AccessLength_WORD, SP, EXTEND9 (S_9_BIT),
+  do_store (SD_, AccessLength_WORD, GPR[RS], EXTEND9 (S_9_BIT),
 	    zero_extend(SD_, GPR[RT], 32));
 }
 
@@ -848,7 +848,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  do_store (SD_, AccessLength_WORD, SP, U, GPR[RT]);
+  do_store (SD_, AccessLength_WORD, GPR[RS], U, GPR[RT]);
 }
 
 110101,5.RT,5.U:R7SWSP:16::SWSP
