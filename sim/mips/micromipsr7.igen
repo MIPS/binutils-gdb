@@ -755,11 +755,11 @@
 }
 
 010101,5.RT,5.U:R7LWSP:16::LWSP
-"lw r<TRT>, <U_SHIFT_2BIT>(sp)"
+"lw r<RT>, <U_SHIFT_2BIT>(sp)"
 *micromips32r7:
 *micromips64r7:
 {
-  GPR[TRT] = EXTEND32 (do_load (SD_, AccessLength_WORD, SP, U_SHIFT_2BIT));
+  GPR[RT] = EXTEND32 (do_load (SD_, AccessLength_WORD, SP, U_SHIFT_2BIT));
 }
 
 010100,3.RT,3.RS,3.RD,1:R7POOL16C_0:16::LWXS16
@@ -852,11 +852,11 @@
 }
 
 110101,5.RT,5.U:R7SWSP:16::SWSP
-"sw r<TRT>, <U_SHIFT_2BIT>(sp)"
+"sw r<RT>, <U_SHIFT_2BIT>(sp)"
 *micromips32r7:
 *micromips64r7:
 {
-  do_store (SD_, AccessLength_WORD, SP, U_SHIFT_2BIT, zero_extend(SD_, GPR[TRT],
+  do_store (SD_, AccessLength_WORD, SP, U_SHIFT_2BIT, zero_extend(SD_, GPR[RT],
                                                                   32));
 }
 
