@@ -78,28 +78,6 @@
     }
 }
 
-:function:::void:do_sll_mm_r7:int rs, int rd, int shift
-*micromips32r7:
-*micromips64r7:
-{
-  shift = (shift == 0) ? 8 : shift;
-  unsigned32 temp = (GPR[rs] << shift);
-  TRACE_ALU_INPUT2 (GPR[rs], shift);
-  GPR[rd] = EXTEND32 (temp);
-  TRACE_ALU_RESULT (GPR[rd]);
-}
-
-:function:::void:do_srl_mm_r7:int rs, int rd, int shift
-*micromips32r7:
-*micromips64r7:
-{
-  shift = (shift == 0) ? 8 : shift;
-  unsigned32 temp = (GPR[rs] >> shift);
-  TRACE_ALU_INPUT2 (GPR[rs], shift);
-  GPR[rd] = EXTEND32 (temp);
-  TRACE_ALU_RESULT (GPR[rd]);
-}
-
 :function:::void:do_p16move:int rt, int rs1, int rs2, address_word instruction_0
 *micromips32r7:
 *micromips64r7:
@@ -663,7 +641,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  do_sll_mm_r7 (SD_, TRS, TRD, SHIFT_DEC);
+  do_sll (SD_, TRS, TRD, SHIFT_DEC);
 }
 
 001100,3.RD,3.RS,1,3.SHIFT:P16SHIFT:16::SRL16
@@ -671,7 +649,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  do_srl_mm_r7 (SD_, TRS, TRD, SHIFT_DEC);
+  do_srl (SD_, TRS, TRD, SHIFT_DEC);
 }
 
 101100,5.RT,2.RS1,3.RS2:R7P16MOVE:16::MOVE16
@@ -1370,6 +1348,54 @@
   do_sltu (SD_, RS, RT, RD);
 }
 
+100000,5.RT,5.RS,11000000000,5.SHIFT:R7PSHIFT:32::SLL
+"sll r<RT>, r<RS>, #<SHIFT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_sll (SD_, RS, RT, SHIFT);
+}
+
+100000,5.RT,5.RS,11000000010,5.SHIFT:R7PSHIFT:32::SRL
+"srl r<RT>, r<RS>, #<SHIFT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_srl (SD_, RS, RT, SHIFT);
+}
+
+100000,5.RT,5.RS,11000000100,5.SHIFT:R7PSHIFT:32::SRA
+"sra r<RT>, r<RS>, #<SHIFT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_sra (SD_, RS, RT, SHIFT);
+}
+
+001000,5.RT,5.RS,5.RD,0,0000010,000:R7POOL32A0:32::SLLV
+"sllv r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_sllv (SD_, RS, RT, RD);
+}
+
+001000,5.RT,5.RS,5.RD,0,0001010,000:R7POOL32A0:32::SRLV
+"srlv r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_srlv (SD_, RS, RT, RD);
+}
+
+001000,5.RT,5.RS,5.RD,0,0010010,000:R7POOL32A0:32::SRAV
+"srav r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_srav (SD_, RS, RT, RD);
+}
+
 001000,5.RS,5.RT,5.RD,0,1000010,000:R7POOL32A0:32::MOVZ
 "movz r<RD>, r<RS>, r<RT>"
 *micromips32r7:
@@ -1496,14 +1522,6 @@
 *micromips64r7:
 {
   do_subu (SD_, RS, RT, RD);
-}
-
-100000,5.RT,5.RS,1100,000,0010,5.SHIFT:R7PSHIFT:32::SRL
-"srl r<RT>, r<RS>, <SHIFT>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_srl (SD_, RS, RT, SHIFT);
 }
 
 010001,5.RT,001,18.U:R7PLSGP:32::SBGP
