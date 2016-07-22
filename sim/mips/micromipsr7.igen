@@ -1505,3 +1505,19 @@
 {
   do_srl (SD_, RS, RT, SHIFT);
 }
+
+010001,5.RT,001,18.U:R7PLSGP:32::SBGP
+"sb r<RT>, <U>(gp)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_store (SD_, AccessLength_BYTE, GPR[28], EXTEND18 (U), GPR[RT]);
+}
+
+010001,5.RT,010,18.U:R7PLSGP:32::LBUGP
+"lbu r<RT>, <U>(gp)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_lbu (SD_, RT, U, 28);
+}
