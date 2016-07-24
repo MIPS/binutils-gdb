@@ -1,3 +1,4 @@
+
 // -*- C -*-
 //
 //    <insn> ::=
@@ -1339,6 +1340,16 @@
     SignalException (ReservedInstruction, instruction_0);
   StoreFPR (fd, fmt_double, Convert (GETRM (), ValueFPR (fs, fmt), fmt,
 	    fmt_double));
+}
+
+:function:::void:do_sin_d:int fmt, int fd, int fs, address_word instruction_0
+{
+  unsigned64 value =  ValueFPR (fs, fmt_double);
+  double my_var;
+  my_var = *(double *)&value;
+  my_var = sin(my_var);
+  value = *(unsigned64 *)&my_var;
+  StoreFPR (fd, fmt_double, value);
 }
 
 :function:::void:do_cvt_l_fmt:int fmt, int fd, int fs, address_word instruction_0
@@ -5448,6 +5459,23 @@
   do_cvt_d_fmt (SD_, FMT, FD, FS, instruction_0);
 }
 
+010001,01,101,5.FD,5.FS,00000000000:COP1:32,f::SIN.D
+"sin.d f<FD>, f<FS>"
+*mipsI:
+*mipsII:
+*mipsIII:
+*mipsIV:
+*mipsV:
+*mips32:
+*mips32r2:
+*mips64:
+*mips64r2:
+*vr4100:
+*vr5000:
+*r3900:
+{
+  do_sin_d (SD_, 5, FD, FS, instruction_0);
+}
 
 010001,10,3.FMT!2!3!4!5!6!7,00000,5.FS,5.FD,100101:COP1:32,f::CVT.L.fmt
 "cvt.l.%s<FMT> f<FD>, f<FS>"
