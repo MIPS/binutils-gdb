@@ -3336,6 +3336,12 @@ const struct mips_opcode mips_builtin_opcodes[] =
 
 {"aluipc",		"s,u",		0xec1f0000, 0xfc1f0000, WR_1,			RD_pc,		I37,		0,	0 },
 
+/* Start of Joe's additional code */
+
+{"sin.d",             "T,S",          0x45a00000, 0xffe007ff, WR_1|RD_2|FP_S|FP_D,         0,              I3_33,          0,      0 },
+        
+/* End of additional code */
+
 /* No hazard protection on coprocessor instructions--they shouldn't
    change the state of the processor and if they do it's up to the
    user to put in nops as necessary.  These are at the end so that the
