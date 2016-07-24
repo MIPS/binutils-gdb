@@ -3152,6 +3152,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"move.v",		"+d,+e",	0x78be0019, 0xffff003f,	WR_1|RD_2,		0,		0,		MSA,	0 },
 
 /* User Defined Instruction.  */
+{"udi0",		"R,T,+2",	0x70000010, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
 {"udi0",		"s,t,d,+1",	0x70000010, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
 {"udi0",		"s,t,+2",	0x70000010, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
 {"udi0",		"s,+3",		0x70000010, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
