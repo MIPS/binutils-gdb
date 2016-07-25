@@ -5752,7 +5752,7 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     if (local)
       x += object->gp_value();
 
-    val = Bits<19>::bit_select32(val, x, 0x7fffc);
+    val = Bits<19>::bit_select32(val, x, 0x1ffffc);
     elfcpp::Swap<32, big_endian>::writeval(wv, val);
 
     return check_overflow<21>(x, CHECK_UNSIGNED);
@@ -5778,7 +5778,7 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     if (local)
       x += object->gp_value();
 
-    val = Bits<18>::bit_select32(val, x, 0x3fff8);
+    val = Bits<18>::bit_select32(val, x, 0x1ffff8);
     elfcpp::Swap<32, big_endian>::writeval(wv, val);
 
     return check_overflow<21>(x, CHECK_UNSIGNED);
@@ -5830,7 +5830,7 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     if (local)
       x += object->gp_value();
 
-    val = Bits<16>::bit_select32(val, x, 0xfffc);
+    val = Bits<16>::bit_select32(val, x, 0x3fffc);
     elfcpp::Swap<32, big_endian>::writeval(wv, val);
 
     return check_overflow<18>(x, CHECK_UNSIGNED);
