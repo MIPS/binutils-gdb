@@ -49,6 +49,7 @@
 :compute:::int:RS_5_BIT:RS1,RS2:((RS1 << 4) | RS2)
 :compute:::int:TRTZ:RTZ:((RTZ == 1) ? 17 \: RTZ)
 :compute:::int:EU_12_13:EU:((EU == 12) ? 255 \: ((EU == 13) ? 65535 \: EU))
+:compute:::int:R7PLSS0_PREFS9_S:S8,S70:(EXTEND9((S8 << 8) | S70))
 
 :function:::unsigned32:compute_gpr2_dest1_reg:int reg
 *micromips32r7:
@@ -1596,4 +1597,69 @@
 *micromips64r7:
 {
   GPR[RD] = do_ror (SD_, GPR[RT], GPR[RS]);
+}
+
+101001,5.RT,5.RS,1.S8,0000000,8.S70:R7PLSS0:32::LBS9
+"lb r<RT>, <R7PLSS0_PREFS9_S>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_lb (SD_, RT, R7PLSS0_PREFS9_S, RS);
+}
+
+101001,5.RT,5.RS,1.S8,0010,0,00,8.S70:R7PLSS0:32::LBUS9
+"lbu r<RT>, <R7PLSS0_PREFS9_S>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_lbu (SD_, RT, R7PLSS0_PREFS9_S, RS);
+}
+
+101001,5.RT,5.RS,1.S8,0100,0,00,8.S70:R7PLSS0:32::LHS9
+"lh r<RT>, <R7PLSS0_PREFS9_S>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_lh (SD_, RT, R7PLSS0_PREFS9_S, RS);
+}
+
+101001,5.RT,5.RS,1.S8,0110,0,00,8.S70:R7PLSS0:32::LHUS9
+"lhu r<RT>, <R7PLSS0_PREFS9_S>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_lhu (SD_, RT, R7PLSS0_PREFS9_S, RS);
+}
+
+101001,5.HINT!31,5.RS,1.S8,0011,0,00,8.S70:R7PPREFS:32::PREFS9
+"pref <HINT>, <R7PLSS0_PREFS9_S>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_pref (SD_, HINT, EXTEND12 (R7PLSS0_PREFS9_S), RS);
+}
+
+101001,5.RT,5.RS,1.S8,0001,0,00,8.S70:R7PLSS0:32::SBS9
+"sb r<RT>, <R7PLSS0_PREFS9_S>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_store (SD_, AccessLength_BYTE, GPR[RS], EXTEND16 (R7PLSS0_PREFS9_S), GPR[RT]);
+}
+
+101001,5.RT,5.RS,1.S8,0101,0,00,8.S70:R7PLSS0:32::SHS9
+"sh r<RT>, <R7PLSS0_PREFS9_S>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_store (SD_, AccessLength_HALFWORD, GPR[RS], EXTEND16 (R7PLSS0_PREFS9_S),
+      GPR[RT]);
+}
+
+000000,00000,00,19.CODE:R7PRI:32::SIGRIE
+"sigrie %#lx<CODE>"
+*micromips32r7:
+*micromips64r7:
+{
+  SignalException (ReservedInstruction, instruction_0);
 }
