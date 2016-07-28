@@ -40,6 +40,7 @@
 :compute:::int:INS_SIZE:LSB,MSBD:(1 + MSBD - LSB)
 :compute:::address_word:P7PBRI_ADDRESS:S1,S2:(nia + EXTEND12(S2 << 11 | S1 << 1))
 :compute:::address_word:P7PBR1_ADDRESS:S1,S2:(nia + EXTEND15(S2 << 14 | S1 << 1))
+:compute:::int:S_7_BIT:S1,S2:(EXTEND7((S1 << 6) | S2))
 :compute:::int:S_14_BIT:S1,S2:(EXTEND14 ((S1 << 13) | S2))
 :compute:::int:S_4_BIT:S1,S2:(EXTEND4((S1 << 3) | S2))
 :compute:::int:S_9_BIT:S1,S2:((S1 << 8) | S2)
@@ -1548,6 +1549,30 @@
   do_mul (SD_, RD, RS, RT);
 }
 
+001000,5.RT,5.RS,5.RD,0,0001011,000:R7POOL32A0:32::MUH
+"muh r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_muh (SD_, RD, RS, RT);
+}
+
+001000,5.RT,5.RS,5.RD,0,0010011,000:R7POOL32A0:32::MULU
+"mulu r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_mulu (SD_, RD, RS, RT);
+}
+
+001000,5.RT,5.RS,5.RD,0,0011011,000:R7POOL32A0:32::MUHU
+"muhu r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_muhu (SD_, RD, RS, RT);
+}
+
 001000,5.RT,5.RS,5.RD,2.U,000,001,111:R7POOL32A7:32::LSA
 "lsa r<RD>, r<RS>, r<RT>, <U + 1>"
 *micromips32r7:
@@ -1578,6 +1603,30 @@
 *micromips64r7:
 {
   GPR[RD] = do_ror (SD_, GPR[RT], GPR[RS]);
+}
+
+101001,5.RT,5.RS,1.S1,1001,0,01,6.S2,00:R7PSC:32::SC
+"sc r<RT>, <S_7_BIT>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_sc (SD_, RT, S_7_BIT, RS, instruction_0);
+}
+
+101001,5.RT,5.RS,1.S1,1000,0,01,6.S2,00:R7PLL:32::LL
+"ll r<RT>, <S_7_BIT>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_ll (SD_, RT, S_7_BIT, RS);
+}
+
+001000,5.RT,5.RS,5.RD,00110010,000:R7POOL32A0:32::SUB
+"sub r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_sub (SD_, RD, RS, RT);
 }
 
 000100,00000,10,3.CODE:R7P16RI:16::BREAK16
