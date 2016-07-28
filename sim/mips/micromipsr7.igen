@@ -49,7 +49,6 @@
 :compute:::int:RS_5_BIT:RS1,RS2:((RS1 << 4) | RS2)
 :compute:::int:TRTZ:RTZ:((RTZ == 1) ? 17 \: RTZ)
 :compute:::int:EU_12_13:EU:((EU == 12) ? 255 \: ((EU == 13) ? 65535 \: EU))
-:compute:::int:R7PLSS0_PREFS9_S:S8,S70:(EXTEND9((S8 << 8) | S70))
 
 :function:::unsigned32:compute_gpr2_dest1_reg:int reg
 *micromips32r7:
@@ -1596,60 +1595,60 @@
   GPR[RD] = do_ror (SD_, GPR[RT], GPR[RS]);
 }
 
-101001,5.RT,5.RS,1.S8,0000000,8.S70:R7PLSS0:32::LBS9
-"lb r<RT>, <R7PLSS0_PREFS9_S>(r<RS>)"
+101001,5.RT,5.RS,1.S1,0000000,8.S2:R7PLSS0:32::LBS9
+"lb r<RT>, <S_9_BIT>(r<RS>)"
 *micromips32r7:
 *micromips64r7:
 {
-  do_lb (SD_, RT, R7PLSS0_PREFS9_S, RS);
+  do_lb (SD_, RT, S_9_BIT, RS);
 }
 
-101001,5.RT,5.RS,1.S8,0010,0,00,8.S70:R7PLSS0:32::LBUS9
-"lbu r<RT>, <R7PLSS0_PREFS9_S>(r<RS>)"
+101001,5.RT,5.RS,1.S1,0010,0,00,8.S2:R7PLSS0:32::LBUS9
+"lbu r<RT>, <S_9_BIT>(r<RS>)"
 *micromips32r7:
 *micromips64r7:
 {
-  do_lbu (SD_, RT, R7PLSS0_PREFS9_S, RS);
+  do_lbu (SD_, RT, S_9_BIT, RS);
 }
 
-101001,5.RT,5.RS,1.S8,0100,0,00,8.S70:R7PLSS0:32::LHS9
-"lh r<RT>, <R7PLSS0_PREFS9_S>(r<RS>)"
+101001,5.RT,5.RS,1.S1,0100,0,00,8.S2:R7PLSS0:32::LHS9
+"lh r<RT>, <S_9_BIT>(r<RS>)"
 *micromips32r7:
 *micromips64r7:
 {
-  do_lh (SD_, RT, R7PLSS0_PREFS9_S, RS);
+  do_lh (SD_, RT, S_9_BIT, RS);
 }
 
-101001,5.RT,5.RS,1.S8,0110,0,00,8.S70:R7PLSS0:32::LHUS9
-"lhu r<RT>, <R7PLSS0_PREFS9_S>(r<RS>)"
+101001,5.RT,5.RS,1.S1,0110,0,00,8.S2:R7PLSS0:32::LHUS9
+"lhu r<RT>, <S_9_BIT>(r<RS>)"
 *micromips32r7:
 *micromips64r7:
 {
-  do_lhu (SD_, RT, R7PLSS0_PREFS9_S, RS);
+  do_lhu (SD_, RT, S_9_BIT, RS);
 }
 
-101001,5.HINT!31,5.RS,1.S8,0011,0,00,8.S70:R7PPREFS:32::PREFS9
-"pref <HINT>, <R7PLSS0_PREFS9_S>(r<RS>)"
+101001,5.HINT!31,5.RS,1.S1,0011,0,00,8.S2:R7PPREFS:32::PREFS9
+"pref <HINT>, <S_9_BIT>(r<RS>)"
 *micromips32r7:
 *micromips64r7:
 {
-  do_pref (SD_, HINT, EXTEND12 (R7PLSS0_PREFS9_S), RS);
+  do_pref (SD_, HINT, EXTEND12 (S_9_BIT), RS);
 }
 
-101001,5.RT,5.RS,1.S8,0001,0,00,8.S70:R7PLSS0:32::SBS9
-"sb r<RT>, <R7PLSS0_PREFS9_S>(r<RS>)"
+101001,5.RT,5.RS,1.S1,0001,0,00,8.S2:R7PLSS0:32::SBS9
+"sb r<RT>, <S_9_BIT>(r<RS>)"
 *micromips32r7:
 *micromips64r7:
 {
-  do_store (SD_, AccessLength_BYTE, GPR[RS], EXTEND16 (R7PLSS0_PREFS9_S), GPR[RT]);
+  do_store (SD_, AccessLength_BYTE, GPR[RS], EXTEND16 (S_9_BIT), GPR[RT]);
 }
 
-101001,5.RT,5.RS,1.S8,0101,0,00,8.S70:R7PLSS0:32::SHS9
-"sh r<RT>, <R7PLSS0_PREFS9_S>(r<RS>)"
+101001,5.RT,5.RS,1.S1,0101,0,00,8.S2:R7PLSS0:32::SHS9
+"sh r<RT>, <S_9_BIT>(r<RS>)"
 *micromips32r7:
 *micromips64r7:
 {
-  do_store (SD_, AccessLength_HALFWORD, GPR[RS], EXTEND16 (R7PLSS0_PREFS9_S),
+  do_store (SD_, AccessLength_HALFWORD, GPR[RS], EXTEND16 (S_9_BIT),
       GPR[RT]);
 }
 
@@ -1659,4 +1658,28 @@
 *micromips64r7:
 {
   SignalException (ReservedInstruction, instruction_0);
+}
+
+101001,11111,5.RS,1.S1,0011,0,00,8.S2:R7PPREFS:32::SYNCIS9
+"synci <S_9_BIT>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  // sync i-cache - nothing to do currently
+}
+
+001000,0000000000,01,00001,101,111,111:R7POOL32AXF5GROUP1:32::TLBINV
+"tlbinv"
+*micromips32r7:
+*micromips64r7:
+{
+  // invalidate a set of TLB entries based on ASID and Index match - nothing to do currently
+}
+
+001000,0000000000,01,01001,101,111,111:R7POOL32AXF5GROUP1:32::TLBINVF
+"tlbinvf"
+*micromips32r7:
+*micromips64r7:
+{
+  // invalidate a set of TLB entries based on Index match - nothing to do currently
 }
