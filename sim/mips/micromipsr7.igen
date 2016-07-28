@@ -23,7 +23,6 @@
 :compute:::int:U_SHIFT_3BIT:U:(U << 3)
 :compute:::int:EU_127:EU:((EU == 127) ? -1 \: EU)
 :compute:::int:U_LW4X4:U2,U3:((U3 << 3) | (U2 << 2))
-:compute:::int:MOVE_RS:RS1,RS2:((RS1 << 3) | RS2)
 :compute:::int:AXUIPC_S_LO:S1,S2,S3:((EXTEND32((S3 << 31) | (S2 << 21) | (S1 << 12))) & 0x0000ffff)
 :compute:::int:AXUIPC_S_HI:S1,S2,S3:((EXTEND32((S3 << 31) | (S2 << 21) | (S1 << 12))) & 0xffff0000)
 :compute:::int:AXUIPC_S:S1,S2,S3:(EXTEND32((S3 << 31) | (S2 << 21) | (S1 << 12)))
@@ -78,25 +77,13 @@
     }
 }
 
-:function:::void:do_p16move:int rt, int rs1, int rs2, address_word instruction_0
+:function:::void:do_p16move:int rt, int rs
 *micromips32r7:
 *micromips64r7:
 {
-  if (rt == 0 && rs1 == 0x2)
-  {
-    // BREAK
-    do_break (SD_, instruction_0);
-  }
-  else if (rt == 0 && rs1 == 0x3)
-  {
-    // SDBBP
-    SignalException (DebugBreakPoint, instruction_0);
-  }
-  else
-  {
-    // MOVE
-    GPR[rt] = GPR[(rs1 << 3) | rs2];
-  }
+  TRACE_ALU_INPUT2 (GPR[rt], GPR[rs]);
+  GPR[rt] = GPR[rs];
+  TRACE_ALU_RESULT2 (GPR[rt], GPR[rs]);
 }
 
 :function:::void:do_pauipc: int rt, int s
@@ -654,14 +641,12 @@
   do_srl (SD_, TRS, TRD, SHIFT_DEC);
 }
 
-000100,5.RT,2.RS1,3.RS2:R7P16MOVE:16::MOVE16
-"break %#lx<RS2>":RT==0&&RS1==0x2
-"sdbbp %#lx<RS2>":RT==0&&RS1==0x3
-"move r<RT>, r<MOVE_RS>"
+000100,5.RT!0,5.RS:R7P16MOVE:16::MOVE
+"move r<RT>, r<RS>"
 *micromips32r7:
 *micromips64r7:
 {
-  do_p16move (SD_, RT, RS1, RS2, instruction_0);
+  do_p16move (SD_, RT, RS);
 }
 
 100110,3.RS,6.S1,1.S2:R7BEQZC16:16::BEQZC16
@@ -1593,6 +1578,30 @@
 *micromips64r7:
 {
   GPR[RD] = do_ror (SD_, GPR[RT], GPR[RS]);
+}
+
+000100,00000,10,3.CODE:R7P16RI:16::BREAK16
+"break16 %#lx<CODE>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_break (SD_, instruction_0);
+}
+
+000100,00000,11,3.CODE:R7P16RI:16::SDBBP16
+"sdbbp16 %#lx<CODE>"
+*micromips32r7:
+*micromips64r7:
+{
+  SignalException (DebugBreakPoint, instruction_0);
+}
+
+001000,5.RT,5.RS,5.RD,00100010000:R7POOL32A0:32::ADD
+"add r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_add (SD_, RS, RT, RD);
 }
 
 101001,5.RT,5.RS,1.S1,0000000,8.S2:R7PLSS0:32::LBS9
