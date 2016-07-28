@@ -1683,3 +1683,19 @@
 {
   // invalidate a set of TLB entries based on Index match - nothing to do currently
 }
+
+001000,5.RT,5.RS,5.RD,1000,1,000,111:R7PPLSXS:32::LWXS
+"lwxs r<RD>, r<RS>(r<RT>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_lwxs (SD_, RD, RS, RT);
+}
+
+001000,10.CODE,10,00101,101,111,111:POOL32AXF5GROUP2:32::SYSCALL
+"syscall %#lx<CODE>"
+*micromips32r7:
+*micromips64r7:
+{
+  SignalException (SystemCall, instruction_0);
+}

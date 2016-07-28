@@ -1598,6 +1598,8 @@
 *micromips64:
 *micromips32r6:
 *micromips64r6:
+*micromips32r7:
+*micromips64r7:
 {
   GPR[rd] = EXTEND32 (do_load (SD_, AccessLength_WORD, GPR[rbase],
 			       GPR[rindex] * 4));
