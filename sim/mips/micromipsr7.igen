@@ -32,17 +32,17 @@
 :compute:::int:TRS2:RS4,RS2_0:((RS4 << 4) | RS2_0)
 :compute:::int:TRT2:RT4,RT2_0:((RT4 << 4) | RT2_0)
 :compute:::int:ADDRESS8:S1,S2:((S2 << 7) | (S1 << 1))
-:compute:::int:ADDRESS11:S1,S2:((S2 << 10) | (S1 << 1))
+:compute:::address_word:ADDRESS11:S1,S2:(nia + EXTEND11((S2 << 10) | (S1 << 1)))
 :compute:::int:ADDRESS15:S1,S2:((S2 << 14) | (S1 << 1))
 :compute:::int:ADDRESS21:S1,S2:((S2 << 20) | (S1 << 1))
-:compute:::int:ADDRESS22:S1,S2:((S2 << 21) | (S1 << 1))
-:compute:::int:ADDRESS26:S1,S2:((S2 << 25) | (S1 << 1))
+:compute:::address_word:ADDRESS22:S1,S2:(nia + EXTEND22((S2 << 21) | (S1 << 1)))
+:compute:::address_word:ADDRESS26:S1,S2:(nia + EXTEND26((S2 << 25) | (S1 << 1)))
 :compute:::int:INS_POS:LSB:(LSB)
 :compute:::int:INS_SIZE:LSB,MSBD:(1 + MSBD - LSB)
 :compute:::address_word:P7PBRI_ADDRESS:S1,S2:(nia + EXTEND12(S2 << 11 | S1 << 1))
 :compute:::address_word:P7PBR1_ADDRESS:S1,S2:(nia + EXTEND15(S2 << 14 | S1 << 1))
-:compute:::int:S_14_BIT:S1,S2:((S1 << 13) | S2)
-:compute:::int:S_4_BIT:S1,S2:((S1 << 3) | S2)
+:compute:::int:S_14_BIT:S1,S2:(EXTEND14 ((S1 << 13) | S2))
+:compute:::int:S_4_BIT:S1,S2:(EXTEND4((S1 << 3) | S2))
 :compute:::int:S_9_BIT:S1,S2:((S1 << 8) | S2)
 :compute:::int:RD1:RD:(compute_gpr1_dest_reg (SD_, RD))
 :compute:::int:RT_5_BIT:RT1,RT2:((RT1 << 4) | RT2)
@@ -112,12 +112,6 @@
     else {
         GPR[rt] = address;
     }
-}
-
-:function:::address_word:do_balc16:address_word offset, address_word nia
-{
-  RA = nia | isa_mode;
-  return nia + offset;
 }
 
 :function:::address_word:do_bxxxc16:int rs, int rt, address_word offset, address_word nia
@@ -874,7 +868,8 @@
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_balc16 (SD_, EXTEND11 (ADDRESS11), NIA);
+  RA = NIA | isa_mode;
+  NIA = ADDRESS11;
 }
 
 000010,1,24.S1,1.S2:R7PBAL:32::BALC
@@ -882,7 +877,8 @@
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_balc16 (SD_, EXTEND26 (ADDRESS26), NIA);
+  RA = NIA | isa_mode;
+  NIA = ADDRESS26;
 }
 
 000110,9.S1,1.S2:R7BC16:16::BC16
@@ -890,7 +886,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = NIA + EXTEND11 (ADDRESS11);
+  NIA = ADDRESS11;
 }
 
 000010,0,24.S1,1.S2:R7PBAL:32::BC
@@ -898,7 +894,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = NIA + EXTEND26 (ADDRESS26);
+  NIA = ADDRESS26;
 }
 
 101010,5.RT,0,19.S1,1.S2:R7PBZ:32::BEQZC
@@ -1069,8 +1065,8 @@
 {
   if (NotWordValue (GPR[RS]))
     Unpredictable ();
-  TRACE_ALU_INPUT2 (GPR[RS], EXTEND14 (S_14_BIT));
-  GPR[RT] = EXTEND32 (GPR[RS] + EXTEND14 (S_14_BIT));
+  TRACE_ALU_INPUT2 (GPR[RS], S_14_BIT);
+  GPR[RT] = EXTEND32 (GPR[RS] + S_14_BIT);
   TRACE_ALU_RESULT (GPR[RT]);
 }
 
@@ -1120,8 +1116,8 @@
   {
     if (NotWordValue (GPR[RT]))
       Unpredictable ();
-    TRACE_ALU_INPUT2 (GPR[RT], EXTEND4 (S_4_BIT));
-    GPR[RT] = EXTEND32 (GPR[RT] + EXTEND4 (S_4_BIT));
+    TRACE_ALU_INPUT2 (GPR[RT], S_4_BIT);
+    GPR[RT] = EXTEND32 (GPR[RT] + S_4_BIT);
     TRACE_ALU_RESULT (GPR[RT]);
   }
 }
@@ -1164,7 +1160,8 @@
 *micromips64r7:
 {
   GPR[RD1] = GPR[RT_5_BIT];
-  NIA = do_balc16 (SD_, EXTEND22 (ADDRESS22), NIA);
+  RA = NIA | isa_mode;
+  NIA = ADDRESS22;
 }
 
 100010,5.RT,5.RS,0001,12.U:R7PJ:32::JIALC.HB
