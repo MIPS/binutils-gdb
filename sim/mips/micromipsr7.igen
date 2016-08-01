@@ -1364,6 +1364,25 @@
   do_lw (SD_, RT, U_SHIFT_2BIT, GPIDX);
 }
 
+
+001000,5.RT,5.C0S,00,3.SEL,0,0000110,000:R7POOL32A0:32::MFC0
+"mfc0 r<C0S>, r<RT>": SEL == 0
+"mfc0 r<C0S>, r<RT>, <SEL>"
+*micromips32r7:
+*micromips64r7:
+{
+  DecodeCoproc (instruction_0, 0, cp0_mfc0, RT, C0S, SEL);
+}
+
+001000,5.RT,5.C0S,00,3.SEL,0,0001110,000:R7POOL32A0:32::MTC0
+"mtc0 r<C0S>, r<RT>": SEL == 0
+"mtc0 r<C0S>, r<RT>, <SEL>"
+*micromips32r7:
+*micromips64r7:
+{
+  DecodeCoproc (instruction_0, 0, cp0_mtc0, RT, C0S, SEL);
+}
+
 100001,5.RT,5.RS,0101,12.U:R7PLSU12:32::SH
 "sh r<RT>, <U>(r<RS>)"
 *micromips32r7:
@@ -1397,12 +1416,28 @@
   do_store (SD_, AccessLength_BYTE, GP, U, GPR[RT]);
 }
 
+001000,5.RT,5.RS,0011101,100,111,111:R7POOL32A0:32::SEH
+"seh r<RT>, r<RS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_seh (SD_, RT, RS);
+}
+
 001000,5.RT,5.RS,5.RD,0,1101010,000:R7POOL32A0:32::SLT
 "slt r<RD>, r<RS>, r<RT>"
 *micromips32r7:
 *micromips64r7:
 {
   do_slt (SD_, RS, RT, RD);
+}
+
+100000,5.RT,5.RS,0100,12.IMMEDIATE:R7PU12:32::SLTI
+"slti r<RT>, r<RS>, <IMMEDIATE>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_slti (SD_, RS, RT, IMMEDIATE);
 }
 
 001000,5.RT,5.RS,5.RD,0,1110010,000:R7POOL32A0:32::SLTU
