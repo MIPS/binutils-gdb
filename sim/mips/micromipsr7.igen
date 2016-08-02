@@ -1792,3 +1792,35 @@
 {
   SignalException (SystemCall, instruction_0);
 }
+
+001000,5.RT,5.RS,5.RD,00101011000:R7POOL32A0:32::MOD
+"mod r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+ do_mod (SD_, RD, RS, RT);
+}
+
+001000,5.RT,5.RS,5.RD,00111011000:R7POOL32A0:32::MODU
+"modu r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_modu (SD_, RD, RS, RT);
+}
+
+001000,5.RS,5.RT,5.RD,11000010000:R7POOL32A0:32::MOVN
+"movn r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_movn (SD_, RD, RS, RT);
+}
+
+100001,5.HINT,5.RS,0011,12.IMMEDIATE:R7POOL32C:32::PREF
+"pref <HINT>, <IMMEDIATE>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_pref (SD_, HINT, IMMEDIATE, RS);
+}
