@@ -270,6 +270,9 @@ struct mips_set_options
   int init_ase;
 
   bfd_boolean forbidden_slots;
+
+  /* Enable/disable balc stub optimization.  */
+  bfd_boolean no_balc_stubs;
 };
 
 /* Specifies whether module level options have been checked yet.  */
@@ -292,7 +295,7 @@ static struct mips_set_options file_mips_opts =
   /* nomove */ 0, /* nobopt */ 0, /* noautoextend */ 0, /* insn32 */ FALSE,
   /* gp */ -1, /* fp */ -1, /* arch */ CPU_UNKNOWN, /* sym32 */ FALSE,
   /* soft_float */ FALSE, /* single_float */ FALSE, /* oddspreg */ -1,
-  /* init_ase */ 0, /* forbidden_slots */ 0
+  /* init_ase */ 0, /* forbidden_slots */ 0, /* no_balc_stubs */ FALSE
 };
 
 /* This is similar to file_mips_opts, but for the current set of options.  */
@@ -304,7 +307,7 @@ static struct mips_set_options mips_opts =
   /* nomove */ 0, /* nobopt */ 0, /* noautoextend */ 0, /* insn32 */ FALSE,
   /* gp */ -1, /* fp */ -1, /* arch */ CPU_UNKNOWN, /* sym32 */ FALSE,
   /* soft_float */ FALSE, /* single_float */ FALSE, /* oddspreg */ -1,
-  /* init_ase */ 0, /* forbidden_slots */ 0
+  /* init_ase */ 0, /* forbidden_slots */ 0, /* no_balc_stubs */ FALSE
 };
 
 /* Which bits of file_ase were explicitly set or cleared by ASE options.  */
@@ -1219,12 +1222,43 @@ static int mips_relax_branch;
 #define RELAX_MICROMIPS_MARK_TOOFAR32(i) ((i) | 0x40000)
 #define RELAX_MICROMIPS_CLEAR_TOOFAR32(i) ((i) & ~0x40000)
 
-#define RELAX_MICROMIPSPP_ENCODE(type, at, toofar16)	\
+/* For microMIPS++ code, we use relaxation similar to one we use for
+   microMIPS code.  Some instructions that take immediate values support
+   two encodings: a small one which takes some small value, and a
+   larger one which takes a 16 bit value.  As some branches also follow
+   this pattern, relaxing these values is required.
+
+   There are no delayed branches in microMIPS++ and we do not relax
+   32-bit branch instructions that do not fit within 32-bit range at
+   assembly, so attributes related to those features are removed.
+   Instead we relax 32-bit calls that do not fit within 16-bit range
+   in to calls to 32-bit unconditional branch stubs which can fit within
+   16-bit range.
+
+   USESTUB and ONCESTUB track calls which can be relaxed to stubs. KEEPSTUB
+   tracks stubs that have sufficient calls (at least 3)  against them to be
+   instantiated for reducing code size.
+*/
+
+#define RELAX_MICROMIPSPP_ENCODE(type, link)			\
   (0x20000000							\
    | ((type) & 0xff)						\
-   | ((toofar16) ? 0x20000 : 0))
+   | ((link) ? 0x2000 : 0))
 #define RELAX_MICROMIPSPP_P(i) (((i) & 0xe0000000) == 0x20000000)
 #define RELAX_MICROMIPSPP_TYPE(i) ((i) & 0xff)
+#define RELAX_MICROMIPSPP_LINK(i) (((i) & 0x2000) != 0)
+
+#define RELAX_MICROMIPSPP_KEEPSTUB(i) (((i) & 0x4000) != 0)
+#define RELAX_MICROMIPSPP_MARK_KEEPSTUB(i) ((i) | 0x4000)
+#define RELAX_MICROMIPSPP_CLEAR_KEEPSTUB(i) ((i) & ~0x4000)
+
+#define RELAX_MICROMIPSPP_USESTUB(i) (((i) & 0x8000) != 0)
+#define RELAX_MICROMIPSPP_MARK_USESTUB(i) ((i) | 0x8000)
+#define RELAX_MICROMIPSPP_CLEAR_USESTUB(i) ((i) & ~0x8000)
+
+#define RELAX_MICROMIPSPP_ONCESTUB(i) (((i) & 0x10000) != 0)
+#define RELAX_MICROMIPSPP_MARK_ONCESTUB(i) ((i) | 0x10000)
+#define RELAX_MICROMIPSPP_CLEAR_ONCESTUB(i) ((i) & ~0x10000)
 
 #define RELAX_MICROMIPSPP_TOOFAR16(i) (((i) & 0x20000) != 0)
 #define RELAX_MICROMIPSPP_MARK_TOOFAR16(i) ((i) | 0x20000)
@@ -1544,6 +1578,8 @@ enum options
     OPTION_ODD_SPREG,
     OPTION_NO_ODD_SPREG,
     OPTION_FORBIDDEN_SLOTS,
+    OPTION_BALC_STUBS,
+    OPTION_NO_BALC_STUBS,
     OPTION_END_OF_ENUM
   };
 
@@ -1663,6 +1699,8 @@ struct option md_longopts[] =
   {"modd-spreg", no_argument, NULL, OPTION_ODD_SPREG},
   {"mno-odd-spreg", no_argument, NULL, OPTION_NO_ODD_SPREG},
   {"mforbidden-slots", no_argument, NULL, OPTION_FORBIDDEN_SLOTS},
+  {"mbalc-stubs", no_argument, NULL, OPTION_BALC_STUBS},
+  {"mno-balc-stubs", no_argument, NULL, OPTION_NO_BALC_STUBS},
 
   /* Strictly speaking this next option is ELF specific,
      but we allow it for other ports as well in order to
@@ -1909,6 +1947,43 @@ static const pseudo_typeS mips_nonecoff_pseudo_table[] =
   {"verstamp", s_ignore, 0},
   { NULL, NULL, 0 },
 };
+
+/* Data structures for BALC stub optimization for R7 ISA.  */
+/* List of call-sites to be resolved by a stub.  */
+struct call_list
+{
+  bfd_vma callsite;
+  struct call_list *next;
+};
+
+/* Tracking info for each planned stub.  */
+struct balc_stub
+{
+  unsigned int numcalls;
+  struct call_list *first_call;
+  struct call_list *last_call;
+  fragS *fragp;
+  symbolS *sym;
+};
+
+/* Doubly linked list of all planned stubs groups. */
+typedef struct stub_group_s
+{
+  struct hash_control *stubtable;
+  bfd_vma next_offset;
+  fragS *fragp;
+  struct stub_group_s *prev;
+  struct stub_group_s *next;
+  asection *seg;
+} stub_group;
+
+/* Master-table of all stubgroups by section-name.  */
+static struct hash_control *balc_stubgroup_table = NULL;
+/* Quick pointer to the stubgroup currently under consideration
+   for relaxation.  */
+static stub_group *stubg_now = NULL;
+/* BC32 to be used as a call-stub.  */
+static struct mips_cl_insn micromipspp_bc32_insn;
 
 /* Export the ABI address size for use by TC_ADDRESS_BYTES for the
    purpose of the `.dc.a' internal pseudo-op.  */
@@ -3788,7 +3863,7 @@ md_begin (void)
 		  micromipspp_opcodes[i].name, retval);
       do
 	{
-	  struct mips_cl_insn *micromips_nop_insn;
+	  struct mips_cl_insn *insn;
 
 	  if (!validate_micromipspp_insn (&micromipspp_opcodes[i],
 					  &micromipspp_operands[i]))
@@ -3796,13 +3871,23 @@ md_begin (void)
 
 	  if (micromipspp_opcodes[i].pinfo != INSN_MACRO)
 	    {
-	      micromips_nop_insn = &micromipspp_nop16_insn;
+	      insn = &micromipspp_nop16_insn;
 
-	      if (micromips_nop_insn->insn_mo == NULL
+	      if (insn->insn_mo == NULL
 		  && strcmp (name, "nop") == 0)
 		{
-		  create_insn (micromips_nop_insn, micromipspp_opcodes + i);
-		  micromips_nop_insn->fixed_p = 1;
+		  create_insn (insn, micromipspp_opcodes + i);
+		  insn->fixed_p = 1;
+		}
+
+	      insn = &micromipspp_bc32_insn;
+
+	      if (insn->insn_mo == NULL
+		  && strcmp (name, "bc") == 0
+		  && micromipspp_opcodes[i].mask >= 0xffff)
+		{
+		  create_insn (insn, micromipspp_opcodes + i);
+		  insn->fixed_p = 1;
 		}
 	    }
 	}
@@ -4207,6 +4292,9 @@ file_mips_check_options (void)
 
   if (ISA_IS_R7 (file_mips_opts.isa))
     file_mips_opts.ase |= ASE_XLP;
+  else
+    /* BALC stub optimization is only implemented for R7.  */
+    file_mips_opts.no_balc_stubs = TRUE;
 
   /* Some ASEs require 64-bit FPRs, so -mfp32 should stop those ASEs from
      being selected implicitly.  */
@@ -4246,6 +4334,7 @@ md_assemble (char *str)
   mips_mark_labels ();
   mips_assembling_insn = TRUE;
   clear_insn_error ();
+
 
   if (mips_opts.mips16)
     mips16_ip (str, &insn);
@@ -7714,6 +7803,459 @@ calculate_reloc (bfd_reloc_code_real_type reloc, offsetT operand,
     }
 }
 
+/* Remove first call from call-list and decrement numcalls.  */
+static void
+stublist_pop_call (struct balc_stub *stub)
+{
+  struct call_list *ptr = stub->first_call;
+
+  if (ptr)
+    {
+      if (stub->last_call == ptr)
+	stub->last_call = NULL;
+
+      stub->first_call = ptr->next;
+      xfree (ptr);
+      stub->numcalls -= 1;
+    }
+
+  return;
+}
+
+/* Remove all calls greater than or equal to CALLSITE
+   from call-list and decrement numcalls.  LIST is guaranteed
+   to have at least 2 elements when this is called.  */
+static void
+stublist_trunc_calls (struct balc_stub *stub, bfd_vma callsite)
+{
+  struct call_list *list = stub->first_call;
+
+  while (list && list->next)
+    {
+      if (list->next->callsite < callsite)
+	list = list->next;
+      else
+	break;
+    }
+
+  if (list)
+    {
+      stub->last_call = list;
+      list = list->next;
+      stub->last_call->next = NULL;
+      while (list)
+	{
+	  struct call_list *ptr = list;
+	  list = list->next;
+	  stub->numcalls -= 1;
+	  xfree (ptr);
+	}
+    }
+
+  return;
+}
+
+/* Add call to call-list.  */
+static void
+stublist_append_call (struct balc_stub *stub, bfd_vma callsite)
+{
+  struct call_list *next
+    = (struct call_list *) xmalloc (sizeof (struct call_list *));
+  memset (next, 0, sizeof (struct call_list));
+  next->callsite = callsite;
+
+  if (stub->first_call == NULL)
+    stub->first_call = stub->last_call = next;
+  else if (callsite < stub->first_call->callsite)
+    {
+      next->next = stub->first_call;
+      stub->first_call = next;
+    }
+  else if (callsite > stub->last_call->callsite)
+    {
+      stub->last_call->next = next;
+      stub->last_call = next;
+    }
+  else
+    {
+      struct call_list *list = stub->first_call;
+
+      while (list && list->next)
+	{
+	  if (list->next->callsite < callsite)
+	    list = list->next;
+	  else
+	    break;
+	}
+
+      next->next = list->next;
+      list->next = next;
+    }
+
+  stub->numcalls += 1;
+  return;
+}
+
+static void
+stublist_merge_forward_calls (struct balc_stub *dest, struct balc_stub *src)
+{
+  src->last_call->next = dest->first_call;
+  dest->first_call = src->first_call;
+  if (dest->last_call == NULL)
+    dest->last_call = dest->first_call;
+  dest->numcalls += src->numcalls;
+}
+
+static void
+stublist_merge_backward_calls (struct balc_stub *dest, struct balc_stub *src)
+{
+  dest->last_call->next = src->first_call;
+  dest->last_call = src->last_call;
+  dest->numcalls += src->numcalls;
+}
+
+/* FIXME: Using a hash-table as a stubtable for now. We ideally want
+   these to be sorted on first_offset, so a different data structure
+   is required to get the best possible results.  */
+#define stubtable_find hash_find
+#define stubtable_create hash_new
+#define stubtable_insert hash_insert
+#define stubtable_delete hash_delete
+#define stubtable_traverse hash_traverse
+
+static bfd_boolean
+balc_in_stub_range (const bfd_vma callsite,
+		    const stub_group *stubg)
+{
+  fragS *fragp;
+  bfd_vma minaddr;
+
+  if (stubg == NULL
+      || stubg->fragp == NULL
+      || stubg->fragp->fr_address + stubg->fragp->fr_fix == 0)
+    return FALSE;
+
+  fragp = stubg->fragp;
+
+  /* 10-bit left shifted +ve offset taken from NextPC
+     gives a range of 1024 from current call-site.  */
+  if (fragp->fr_address + fragp->fr_fix >= 1024)
+    minaddr = (fragp->fr_address + fragp->fr_fix - 1024);
+  else
+    minaddr = 0;
+
+  /* Only the lowest address of the stub needs to be reachable.  */
+  if (stubg->next_offset != 0)
+    minaddr += (stubg->next_offset - 4);
+
+  /* 10-bit left shifted -ve offset taken from NextPC
+     gives a range of 1022 from the current call-site.  */
+  if (callsite > (fragp->fr_address + fragp->fr_fix + 1022)
+      || callsite < minaddr)
+    return FALSE;
+
+  return TRUE;
+}
+
+static bfd_boolean
+balc_in_stub_group (const char *func, const bfd_vma callsite,
+		    const stub_group *stubg, struct balc_stub **stub)
+{
+  gas_assert (func != NULL && stubg != NULL);
+
+  if (!balc_in_stub_range (callsite, stubg)
+      || (stubg->stubtable == NULL))
+    return FALSE;
+
+  *stub = stubtable_find (stubg->stubtable, func);
+  return (*stub != NULL);
+}
+
+static bfd_boolean
+balc_add_stub (symbolS *sym, stub_group *stubg)
+{
+  struct balc_stub *stub = NULL;
+  const char *func = S_GET_NAME (sym);
+
+  gas_assert (func != NULL && stubg != NULL);
+
+  if (!stubg->stubtable)
+    stubg->stubtable = stubtable_create ();
+
+  stub = (struct balc_stub *) stubtable_find (stubg->stubtable, func);
+
+  if (stub == NULL)
+    {
+      stub = (struct balc_stub *) xmalloc (sizeof (struct balc_stub));
+
+      if (stub == NULL)
+	return FALSE;
+
+      memset (stub, 0, sizeof (struct balc_stub));
+      stub->sym = sym;
+
+      if (stubtable_insert (stubg->stubtable, func, (void *)stub) != NULL)
+	return FALSE;
+    }
+
+  return TRUE;
+}
+
+/* Consolidate this stub with a preceding or succeeding stub if all
+   calls to this stub can reach the alternative just as well.  */
+static bfd_boolean
+balc_merge_stub (const char *func, stub_group *stubg,
+			 struct balc_stub *stub)
+{
+  stub_group *next = stubg->next;
+  stub_group *prev = stubg->prev;
+  struct balc_stub *prevstub = NULL;
+  struct balc_stub *nextstub = NULL;
+  bfd_vma callsite = stub->first_call->callsite;
+
+  /* Correction to account for the fact that the 4-byte stub will also move
+     forward from its current position to end of target stub-group.  */
+  if (stub->fragp && RELAX_MICROMIPSPP_KEEPSTUB (stub->fragp->fr_subtype))
+    callsite += 4;
+
+  while (next && balc_in_stub_range (callsite, next))
+    {
+      if (next->stubtable == NULL)
+	break;
+
+      nextstub = (struct balc_stub *) stubtable_find (next->stubtable, func);
+
+      if (nextstub)
+	break;
+      next = next->next;
+    }
+
+  callsite = stub->last_call->callsite;
+
+  /* Correction to account for the fact that the 4-byte stub will also move
+     backward from its current position to end of target stub-group.  */
+  if (stub->fragp && RELAX_MICROMIPSPP_KEEPSTUB (stub->fragp->fr_subtype)
+      && callsite > stub->fragp->fr_address)
+    callsite -= 4;
+
+  while (prev && balc_in_stub_range (callsite, prev))
+    {
+      if (prev->stubtable == NULL)
+	break;
+
+      prevstub = (struct balc_stub *) stubtable_find (prev->stubtable, func);
+
+      if (prevstub && prevstub->numcalls)
+	break;
+      prev = prev->prev;
+    }
+
+  /* If we have 2 candidates, then we favour the preceding one only if it
+     already has more calls than the succeeding one.  */
+  if (prevstub)
+    {
+      if (nextstub &&
+	  (nextstub->numcalls >= prevstub->numcalls))
+	stublist_merge_forward_calls (nextstub, stub);
+      else
+	stublist_merge_backward_calls (prevstub, stub);
+      xfree (stubtable_delete (stubg->stubtable, func, 0));
+      return TRUE;
+    }
+  else if (nextstub)
+    {
+	  stublist_merge_forward_calls (nextstub, stub);
+	  xfree (stubtable_delete (stubg->stubtable, func, 0));
+	  return TRUE;
+    }
+  else
+    return FALSE;
+}
+
+/* hash traverse - add stub for each function to current stub-group.  */
+static void
+balc_add_traverse (const char *key, void *value)
+{
+  struct balc_stub *stub = (struct balc_stub *)value;
+  symbolS *sym = stub->fragp ? stub->fragp->fr_symbol : stub->sym;
+
+  gas_assert (strcmp (key, S_GET_NAME (sym)) == 0);
+  balc_add_stub (sym, stubg_now);
+  return;
+}
+
+/* hash traverse - create a frag stub for each function.  */
+static void
+balc_frag_traverse (const char *key ATTRIBUTE_UNUSED, void *value)
+{
+  struct balc_stub *stub = (struct balc_stub *)value;
+  symbolS *l;
+  fragS *old_frag = stub->fragp;
+
+  if (old_frag)
+    {
+      old_frag->fr_subtype
+	= RELAX_MICROMIPSPP_CLEAR_KEEPSTUB (old_frag->fr_subtype);
+      stub->sym = old_frag->fr_symbol;
+    }
+
+  l = symbol_new (micromips_label_name (), now_seg, frag_now->fr_fix, frag_now);
+  micromips_label_inc ();
+  S_SET_OTHER (l, ELF_ST_SET_MICROMIPS (S_GET_OTHER (l)));
+  stub->fragp = frag_now;
+  add_relaxed_insn (&micromipspp_bc32_insn, 4, 0,
+		    RELAX_MICROMIPSPP_ENCODE ('G', 0),
+		    stub->sym, 0);
+  stub->sym = l;
+  if (stub->numcalls >= 3)
+    stub->fragp->fr_subtype
+      = RELAX_MICROMIPSPP_MARK_KEEPSTUB (stub->fragp->fr_subtype);
+  if (stubg_now->fragp == NULL)
+    stubg_now->fragp = stub->fragp;
+
+  return;
+}
+
+/* Find an elligible stub for a function call.  */
+static bfd_boolean
+balc_find_stub_inrange (const char *func, const bfd_vma callsite,
+			stub_group *stubg, struct balc_stub **stub)
+{
+  stub_group *plink;
+  stub_group *nlink;
+  struct balc_stub *pstub = NULL;
+  struct balc_stub *nstub = NULL;
+
+  /* Search backwards within range.  */
+  plink = stubg->prev;
+  while (plink != NULL
+	 && !balc_in_stub_group (func, callsite, plink, &pstub)
+	 && balc_in_stub_range (callsite, plink))
+    plink = plink->prev;
+
+  /* Search forwards within range.  */
+  nlink = stubg;
+  while (nlink != NULL
+	 && !balc_in_stub_group (func, callsite, nlink, &nstub)
+	 && balc_in_stub_range (callsite, nlink))
+    nlink = nlink->next;
+
+  /* When 2 possible stub candidates are available, choose the preceeding one
+     only if it already has more associated calls than the suceeding one.  */
+  if (pstub)
+    {
+      if (nstub && (pstub->numcalls <= nstub->numcalls))
+	*stub = nstub;
+      else
+	*stub = pstub;
+
+      return TRUE;
+    }
+  else if (nstub)
+    {
+      *stub = nstub;
+      return TRUE;
+    }
+
+  return FALSE;
+}
+
+/* Find closest elligible stub for this function call.  */
+static bfd_boolean
+balc_get_stub_for_symbol (const char *func, const bfd_vma callsite,
+			  stub_group *stubg, symbolS **symbol)
+{
+  stub_group *plink = stubg->prev;
+  stub_group *nlink = stubg;
+  struct balc_stub *stub;
+
+  while (plink != NULL || nlink != NULL)
+    {
+      if (((nlink && balc_in_stub_group (func, callsite, nlink, &stub))
+	   || (plink && balc_in_stub_group (func, callsite, plink, &stub)))
+	  && stub->numcalls >= 3)
+	{
+	  *symbol = stub->sym;
+	  return TRUE;
+	}
+
+      if (plink != NULL)
+	plink = plink->prev;
+      if (nlink != NULL)
+	nlink = nlink->next;
+    }
+
+  return FALSE;
+}
+
+/* Initialize new stub-group at entry to a function.  */
+static void
+stubgroup_new (asection *sec)
+{
+  stub_group *stubg = NULL;
+
+  /* Create the master table.  */
+  if (balc_stubgroup_table == NULL)
+    balc_stubgroup_table = hash_new ();
+
+  if (stubg_now)
+    {
+      if (stubg_now->seg != sec)
+	{
+	  /* Change of sections, find the end of correct list.  */
+	  stubg_now = hash_find (balc_stubgroup_table, sec->name);
+	  while (stubg_now && stubg_now->next)
+	    stubg_now = stubg_now->next;
+	}
+
+      /* Re-cycle the previous stubgroup, if unused.  */
+      if (stubg_now && stubg_now->stubtable == NULL)
+	stubg = stubg_now;
+    }
+
+  if (stubg == NULL)
+    {
+      stubg = (stub_group *) xmalloc (sizeof (stub_group));
+      memset (stubg, 0, sizeof (stub_group));
+      stubg->seg = sec;
+    }
+
+  if (stubg_now == NULL)
+    /* First stubgroup for this section, add to master table.  */
+    hash_insert (balc_stubgroup_table, sec->name, (void *)stubg);
+  else if (stubg_now != stubg)
+    {
+      /* Link in with existing stub-groups for this section  */
+      stubg_now->next = stubg;
+      stubg->prev = stubg_now;
+    }
+
+  stubg_now = stubg;
+}
+
+/* Finalize the stub-group at the end of each function.  */
+static void
+stubgroup_wane (void)
+{
+  frag_wane (frag_now);
+  frag_new (0);
+  /* Carry forward stubs for all previous function calls within
+     this section.  */
+  if (stubg_now != NULL
+      && stubg_now->prev != NULL
+      && stubg_now->prev->stubtable != NULL)
+    stubtable_traverse (stubg_now->prev->stubtable, balc_add_traverse);
+
+  /* Create a frag for each stub - this must be done now and for *all*
+     possible called functions, because frags can not be inserted in a
+     position retroactively. This is also the reason why we include all
+     previously called functions within the section - to allow for forward
+     consolidation of stubs, knowing that many of these stubs will eventually
+     not be instantiated, due to either paucity of calls or consolidation.  */
+  if (stubg_now->stubtable)
+    stubtable_traverse (stubg_now->stubtable, balc_frag_traverse);
+}
+
 /* Output an instruction.  IP is the instruction information.
    ADDRESS_EXPR is an operand of the instruction to be used with
    RELOC_TYPE.  EXPANSIONP is true if the instruction is part of
@@ -8062,15 +8604,21 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	   && *reloc_type > BFD_RELOC_UNUSED)
     {
       int type = *reloc_type - BFD_RELOC_UNUSED;
+      int al = pinfo & INSN_WRITE_GPR_31;
 
       gas_assert (address_expr != NULL);
       gas_assert (!mips_relax.sequence);
 
       relaxed_branch = TRUE;
       add_relaxed_insn (ip, 4, 2,
-			RELAX_MICROMIPSPP_ENCODE (type, FALSE, 0),
+			RELAX_MICROMIPSPP_ENCODE (type, al),
 			address_expr->X_add_symbol,
 			address_expr->X_add_number);
+      /* Track this call for balcp-to-stub relaxation.  */
+      if (!mips_opts.no_balc_stubs
+	  && type == 'D' && (ip->insn_mo->pinfo & INSN_WRITE_GPR_31) != 0)
+	  balc_add_stub (address_expr->X_add_symbol, stubg_now);
+
       *reloc_type = BFD_RELOC_UNUSED;
     }
   else if (mips_opts.mips16 && *reloc_type > BFD_RELOC_UNUSED)
@@ -15503,6 +16051,14 @@ md_parse_option (int c, char *arg)
       file_mips_opts.oddspreg = 0;
       break;
 
+    case OPTION_BALC_STUBS:
+      file_mips_opts.no_balc_stubs = FALSE;
+      break;
+
+    case OPTION_NO_BALC_STUBS:
+      file_mips_opts.no_balc_stubs = TRUE;
+      break;
+
     case OPTION_SINGLE_FLOAT:
       file_mips_opts.single_float = 1;
       break;
@@ -18200,7 +18756,7 @@ relaxed_micromips_16bit_branch_length (fragS *fragp, asection *sec, int update)
       val -= addr;
 
       type = RELAX_MICROMIPS_TYPE (fragp->fr_subtype);
-      if (type == 'D')
+      if (type == 'D' || type == 'G')
 	toofar = val < - (0x200 << 1) || val >= (0x200 << 1);
       else if (type == 'E')
 	toofar = val < - (0x40 << 1) || val >= (0x40 << 1);
@@ -18224,6 +18780,144 @@ relaxed_micromips_16bit_branch_length (fragS *fragp, asection *sec, int update)
     return 4;
 
   return 2;
+}
+
+/* Compute the length of a call potentially going through a BALC stub
+   and adjust the RELAX_MICROMIPSPP_USESTUB bit accordingly.  */
+
+static int
+relaxed_micromipspp_stub_call_length (fragS *fragp, asection *sec,
+				      bfd_boolean toofar16,
+				      bfd_boolean update)
+{
+  bfd_boolean usestub = FALSE;
+  bfd_boolean keepstub = FALSE;
+  addressT callsite;
+  struct balc_stub *stub = NULL;
+
+  /* Assume this is a 2-byte branch.  */
+  callsite = fragp->fr_address + fragp->fr_fix;
+
+  /* Find start of correct stub-group list, if in different section or
+     at end of current list.  */
+  if ((stubg_now->seg != sec)
+      || (stubg_now->prev
+	  && stubg_now->prev->fragp
+	  && callsite < stubg_now->prev->fragp->fr_address))
+    stubg_now = hash_find (balc_stubgroup_table, sec->name);
+
+  while (stubg_now->fragp->fr_address + stubg_now->fragp->fr_fix > 0
+	 && stubg_now->fragp->fr_address + stubg_now->fragp->fr_fix < callsite)
+    if (stubg_now->next && stubg_now->next->fragp)
+      stubg_now = stubg_now->next;
+    else
+      break;
+
+  gas_assert (stubg_now->seg == sec);
+
+  usestub = balc_find_stub_inrange (S_GET_NAME (fragp->fr_symbol),
+				    callsite, stubg_now, &stub);
+
+  if (usestub && stub->fragp)
+    keepstub = RELAX_MICROMIPSPP_KEEPSTUB (stub->fragp->fr_subtype);
+
+  /* We need this to happen only once per call frag, but as early as
+     possible in the estimation phase, before actual relaxation.  */
+  if (usestub && !toofar16)
+    {
+      usestub = FALSE;
+      if (RELAX_MICROMIPSPP_ONCESTUB (fragp->fr_subtype))
+	{
+	  fragp->fr_subtype
+	    = RELAX_MICROMIPSPP_CLEAR_ONCESTUB (fragp->fr_subtype);
+	  if (callsite == stub->first_call->callsite)
+	    stublist_pop_call (stub);
+	  else
+	    stublist_trunc_calls (stub, callsite);
+	}
+    }
+
+  /* Only track calls that cannot fit within 16-bit instruction.  */
+  if (usestub && toofar16
+      && usestub != RELAX_MICROMIPSPP_ONCESTUB (fragp->fr_subtype))
+    {
+      stublist_append_call (stub, callsite);
+      fragp->fr_subtype = RELAX_MICROMIPSPP_MARK_ONCESTUB (fragp->fr_subtype);
+    }
+
+  if (update && usestub != RELAX_MICROMIPSPP_USESTUB (fragp->fr_subtype))
+    fragp->fr_subtype
+      = ((usestub && keepstub)
+	 ? RELAX_MICROMIPSPP_MARK_USESTUB (fragp->fr_subtype)
+	 : RELAX_MICROMIPSPP_CLEAR_USESTUB (fragp->fr_subtype));
+
+  if ((usestub && keepstub) || !toofar16)
+    return 2;
+  else
+    return 4;
+}
+
+/* Compute the length of a BALC stub and adjust the RELAX_MICROMIPSPP_KEEPSTUB
+   bit accordingly. If a stub is not to be instantiated, its length is 0.  */
+static int
+relaxed_micromipspp_stub_length (fragS *fragp, asection *sec,
+				 bfd_boolean update)
+{
+  bfd_boolean keepstub = FALSE;
+  addressT stubsite;
+  struct balc_stub *stub;
+
+  /* Assume this is a 2-byte branch.  */
+  stubsite = fragp->fr_address + fragp->fr_fix;
+
+  if (stubg_now->fragp)
+    {
+      /* Section change.  */
+      if (stubg_now->seg != sec
+	  || (stubg_now->fragp->fr_address > stubsite))
+	stubg_now = hash_find (balc_stubgroup_table, sec->name);
+
+      while (stubg_now->fragp->fr_address < stubsite)
+	if (stubg_now->next && stubg_now->next->fragp
+	    && stubg_now->next->fragp->fr_address <= stubsite)
+	  stubg_now = stubg_now->next;
+	else
+	  break;
+    }
+
+  gas_assert (stubg_now->seg == sec);
+
+  /* Retain this stub only if it has sufficient associated
+     calls and cannot be merged with another elligible stub.  */
+  if (balc_in_stub_group (S_GET_NAME (fragp->fr_symbol),
+			  stubsite, stubg_now, &stub)
+      && stub->numcalls > 0
+      && !balc_merge_stub (S_GET_NAME (fragp->fr_symbol),
+			   stubg_now, stub)
+      && stub->numcalls >= 3)
+    keepstub = TRUE;
+
+  if (keepstub != RELAX_MICROMIPSPP_KEEPSTUB (fragp->fr_subtype))
+    {
+      if (update)
+	fragp->fr_subtype
+	  = keepstub ? RELAX_MICROMIPSPP_MARK_KEEPSTUB (fragp->fr_subtype)
+	  : RELAX_MICROMIPSPP_CLEAR_KEEPSTUB (fragp->fr_subtype);
+
+      stubg_now->next_offset += (keepstub ? 4 : -4);
+    }
+
+  if (keepstub)
+      return 4;
+  else
+    {
+      /* A stub that is unused right up to the update stage
+	 can be summarily pruned from the table.  */
+      if (update && stub && stub->numcalls == 0)
+	xfree (stubtable_delete (stubg_now->stubtable,
+				 S_GET_NAME (fragp->fr_symbol), 0));
+      return 0;
+    }
 }
 
 /* Estimate the size of a frag before relaxing.  Unless this is the
@@ -18265,13 +18959,23 @@ md_estimate_size_before_relax (fragS *fragp, asection *segtype)
     {
       int length = 4;
 
-      if (RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) != 0)
-	length = relaxed_micromips_16bit_branch_length (fragp, segtype, FALSE);
+      if (!mips_opts.no_balc_stubs
+	  && RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) == 'G')
+	length = relaxed_micromipspp_stub_length (fragp, segtype, FALSE);
+      else
+	if (RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) != 0)
+	  length = relaxed_micromips_16bit_branch_length (fragp, segtype,
+							  FALSE);
+      /* Try to relax 32-bit call through a stub.  */
+      if (!mips_opts.no_balc_stubs
+	  && RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) == 'D'
+	  && RELAX_MICROMIPSPP_LINK (fragp->fr_subtype))
+	length = relaxed_micromipspp_stub_call_length (fragp, segtype,
+						       length > 2, FALSE);
 
       fragp->fr_var = length;
       return length;
     }
-
 
   if (mips_pic == NO_PIC)
     change = nopic_need_relax (fragp->fr_symbol, 0);
@@ -18510,13 +19214,24 @@ mips_relax_frag (asection *sec, fragS *fragp, long stretch)
       offsetT old_var = fragp->fr_var;
       offsetT new_var = 4;
 
-      if (RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) != 0)
-	new_var = relaxed_micromips_16bit_branch_length (fragp, sec, TRUE);
+      if (!mips_opts.no_balc_stubs
+	  && RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) == 'G')
+	new_var = relaxed_micromipspp_stub_length (fragp, sec, TRUE);
+      else
+	if (RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) != 0)
+	  new_var = relaxed_micromips_16bit_branch_length (fragp, sec, TRUE);
+
+      /* Try to relax 32-bit call through a stub.  */
+      if (!mips_opts.no_balc_stubs
+	  && RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) == 'D'
+	  && RELAX_MICROMIPSPP_LINK (fragp->fr_subtype))
+	new_var = relaxed_micromipspp_stub_call_length (fragp, sec,
+							new_var > 2, TRUE);
+
       fragp->fr_var = new_var;
 
       return new_var - old_var;
     }
-
 
   if (! RELAX_MIPS16_P (fragp->fr_subtype))
     return 0;
@@ -19007,6 +19722,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
       unsigned long insn;
       expressionS exp;
       fixS *fixp;
+      symbolS *stubsym = NULL;
       const bfd_reloc_code_real_type rtype[]
 	= { BFD_RELOC_MICROMIPSPP_10_PCREL_S1,
 	    BFD_RELOC_MICROMIPSPP_7_PCREL_S1,
@@ -19015,9 +19731,30 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	    BFD_RELOC_MICROMIPSPP_20_PCREL_S1,
 	    BFD_RELOC_MICROMIPSPP_14_PCREL_S1 };
 
+      if ((stubg_now->seg != (asection *)asec)
+	  || (stubg_now->prev
+	      && stubg_now->prev->fragp
+	      && (fragp->fr_address + fragp->fr_fix
+		  < stubg_now->prev->fragp->fr_address)))
+	stubg_now = hash_find (balc_stubgroup_table, asec->name);
+
       exp.X_op = O_symbol;
-      exp.X_add_symbol = fragp->fr_symbol;
-      exp.X_add_number = fragp->fr_offset;
+      if (RELAX_MICROMIPSPP_USESTUB (fragp->fr_subtype)
+	  && balc_get_stub_for_symbol (S_GET_NAME (fragp->fr_symbol),
+				       fragp->fr_address + fragp->fr_fix,
+				       stubg_now, &stubsym))
+	{
+	  /* Resolve call through a stub symbol.  */
+	  exp.X_add_symbol = stubsym;
+	  exp.X_add_number = 0;
+	  fragp->fr_subtype
+	    = RELAX_MICROMIPSPP_CLEAR_TOOFAR16 (fragp->fr_subtype);
+	}
+      else
+	{
+	  exp.X_add_symbol = fragp->fr_symbol;
+	  exp.X_add_number = fragp->fr_offset;
+	}
 
       fragp->fr_fix += fragp->fr_var;
 
@@ -19034,6 +19771,12 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 				      + (RELAX_MICROMIPSPP_TOOFAR16
 					 (fragp->fr_subtype) ? 3 : 0)]);
 	    break;
+	  case 'G':
+	    if (!RELAX_MICROMIPSPP_KEEPSTUB (fragp->fr_subtype))
+	      return;
+	    fixp = fix_new_exp (fragp, buf - fragp->fr_literal, 4, &exp, TRUE,
+				rtype[3]);
+	    break;
 	  default:
 	    abort ();
 	}
@@ -19045,8 +19788,18 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	 2 octets.  */
       fixp->fx_no_overflow = 1;
 
-      /* Nothing left to do for 16-bit branches that fit.  */
-      if (!RELAX_MICROMIPSPP_TOOFAR16 (fragp->fr_subtype))
+      if (RELAX_MICROMIPSPP_USESTUB (fragp->fr_subtype)
+	  && stubsym != NULL)
+	{
+	  /* Relax 32-bit call to 16-bit call to stub.  */
+	  buf = write_compressed_insn (buf, 0x3800, 2);
+	  return;
+	}
+
+      /* Nothing left to do for 16-bit branches that fit,
+	 or for balc stubs */
+      if (!RELAX_MICROMIPSPP_TOOFAR16 (fragp->fr_subtype)
+	  || type == 'G')
 	return;
 
       /* Relax 16-bit branches to 32-bit branches.  */
@@ -19820,6 +20573,9 @@ s_mips_end (int x ATTRIBUTE_UNUSED)
       OBJ_SYMFIELD_TYPE *obj = symbol_get_obj (p);
       expressionS *exp = xmalloc (sizeof (expressionS));
 
+      if (!mips_opts.no_balc_stubs)
+	stubgroup_wane ();
+
       obj->size = exp;
       exp->X_op = O_subtract;
       exp->X_add_symbol = symbol_temp_new_now ();
@@ -19907,6 +20663,7 @@ s_mips_ent (int aent)
 
   symbol_get_bfdsym (symbolP)->flags |= BSF_FUNCTION;
 
+  stubgroup_new (now_seg);
   demand_empty_rest_of_line ();
 }
 
