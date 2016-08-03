@@ -330,6 +330,8 @@ const struct mips_opcode micromipspp_opcodes[] =
    them first.  The assemblers uses a hash table based on the
    instruction name anyhow.  */
 /* name,		args,		match,      mask,	pinfo,			pinfo2,		membership,	ase,	exclusions */
+/* Pure macros */
+{"la",			"t,A(b)",	0,    (int) M_LA_AB,	INSN_MACRO,		0,		I38,		0,	0 },
 /* Precedence=1 */
 {"aluipc",	"ma,mK",		0xe0000002, 0xffe00002,		WR_1,		0,	I38,		0,		0}, /* ALUIPC[GP] */
 {"break",	"+K",		0x1010,	0xfff8,		0,		0,	I38,		0,		0},

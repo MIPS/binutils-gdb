@@ -374,6 +374,10 @@ static int mips_32bitmode = 0;
   ((ISA) == ISA_MIPS32R7		\
    || (ISA) == ISA_MIPS64R7)
 
+#define ISA_IS_PRER6(ISA)		\
+  (!ISA_IS_R6 (ISA) &&			\
+   !ISA_IS_R7 (ISA))
+
 #define IS_MICROMIPS_R6(ISA)		\
   (ISA_IS_R6 (ISA)			\
    && mips_opts.micromips)
@@ -7757,6 +7761,69 @@ micromips_map_reloc (bfd_reloc_code_real_type reloc)
   return reloc;
 }
 
+/* If assembling microMIPS++ code, then return the microMIPS++
+   reloc corresponding to the requested one if any.  Otherwise
+   return the reloc unchanged.  
+   FIXME: We only handle the currently supported set of uMIPS++
+   relocs correctly.  The rest fall-back to microMIPS relocs.
+*/
+
+static bfd_reloc_code_real_type
+micromipspp_map_reloc (bfd_reloc_code_real_type reloc)
+{
+  static const bfd_reloc_code_real_type relocs[][2] =
+    {
+      /* Keep sorted incrementally by the left-hand key.  */
+      { BFD_RELOC_16_PCREL_S2, BFD_RELOC_MICROMIPSPP_14_PCREL_S1 },
+      { BFD_RELOC_GPREL16, BFD_RELOC_MICROMIPSPP_GPREL19_S2 },
+      { BFD_RELOC_MIPS_JMP, BFD_RELOC_MICROMIPS_JMP },
+      { BFD_RELOC_HI16, BFD_RELOC_MICROMIPSPP_HI20 },
+      { BFD_RELOC_HI16_S, BFD_RELOC_MICROMIPSPP_HI20 },
+      { BFD_RELOC_LO16, BFD_RELOC_MICROMIPSPP_LO12 },
+      { BFD_RELOC_HI16_S_PCREL, BFD_RELOC_MICROMIPSPP_HI20_PCREL },
+      { BFD_RELOC_LO16_PCREL, BFD_RELOC_MICROMIPSPP_LO12_PCREL },
+      { BFD_RELOC_MIPS_LITERAL, BFD_RELOC_MICROMIPS_LITERAL },
+      { BFD_RELOC_MIPS_21_PCREL_S2, BFD_RELOC_MICROMIPSPP_21_PCREL_S1 },
+      { BFD_RELOC_MIPS_26_PCREL_S2, BFD_RELOC_MICROMIPSPP_25_PCREL_S1 },
+      { BFD_RELOC_MIPS_18_PCREL_S3, BFD_RELOC_MICROMIPSPP_14_PCREL_S1 },
+      { BFD_RELOC_MIPS_19_PCREL_S2, BFD_RELOC_MICROMIPSPP_20_PCREL_S1 },
+      { BFD_RELOC_MIPS_GOT16, BFD_RELOC_MICROMIPS_GOT16 },
+      { BFD_RELOC_MIPS_CALL16, BFD_RELOC_MICROMIPS_CALL16 },
+      { BFD_RELOC_MIPS_GOT_HI16, BFD_RELOC_MICROMIPS_GOT_HI16 },
+      { BFD_RELOC_MIPS_GOT_LO16, BFD_RELOC_MICROMIPS_GOT_LO16 },
+      { BFD_RELOC_MIPS_CALL_HI16, BFD_RELOC_MICROMIPS_CALL_HI16 },
+      { BFD_RELOC_MIPS_CALL_LO16, BFD_RELOC_MICROMIPS_CALL_LO16 },
+      { BFD_RELOC_MIPS_SUB, BFD_RELOC_MICROMIPS_SUB },
+      { BFD_RELOC_MIPS_GOT_PAGE, BFD_RELOC_MICROMIPS_GOT_PAGE },
+      { BFD_RELOC_MIPS_GOT_OFST, BFD_RELOC_MICROMIPS_GOT_OFST },
+      { BFD_RELOC_MIPS_GOT_DISP, BFD_RELOC_MICROMIPS_GOT_DISP },
+      { BFD_RELOC_MIPS_HIGHEST, BFD_RELOC_MICROMIPS_HIGHEST },
+      { BFD_RELOC_MIPS_HIGHER, BFD_RELOC_MICROMIPS_HIGHER },
+      { BFD_RELOC_MIPS_SCN_DISP, BFD_RELOC_MICROMIPS_SCN_DISP },
+      { BFD_RELOC_MIPS_TLS_GD, BFD_RELOC_MICROMIPS_TLS_GD },
+      { BFD_RELOC_MIPS_TLS_LDM, BFD_RELOC_MICROMIPS_TLS_LDM },
+      { BFD_RELOC_MIPS_TLS_DTPREL_HI16, BFD_RELOC_MICROMIPS_TLS_DTPREL_HI16 },
+      { BFD_RELOC_MIPS_TLS_DTPREL_LO16, BFD_RELOC_MICROMIPS_TLS_DTPREL_LO16 },
+      { BFD_RELOC_MIPS_TLS_GOTTPREL, BFD_RELOC_MICROMIPS_TLS_GOTTPREL },
+      { BFD_RELOC_MIPS_TLS_TPREL_HI16, BFD_RELOC_MICROMIPS_TLS_TPREL_HI16 },
+      { BFD_RELOC_MIPS_TLS_TPREL_LO16, BFD_RELOC_MICROMIPS_TLS_TPREL_LO16 }
+    };
+  bfd_reloc_code_real_type r;
+  size_t i;
+
+  if (!mips_opts.micromips)
+    return reloc;
+  for (i = 0; i < ARRAY_SIZE (relocs); i++)
+    {
+      r = relocs[i][0];
+      if (r > reloc)
+	return reloc;
+      if (r == reloc)
+	return relocs[i][1];
+    }
+  return reloc;
+}
+
 /* Try to resolve relocation RELOC against constant OPERAND at assembly time.
    Return true on success, storing the resolved value in RESULT.  */
 
@@ -8691,7 +8758,10 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
       /* Perform any necessary conversion to microMIPS relocations
 	 and find out how many relocations there actually are.  */
       for (i = 0; i < 3 && reloc_type[i] != BFD_RELOC_UNUSED; i++)
-	final_type[i] = micromips_map_reloc (reloc_type[i]);
+	if (ISA_IS_R7 (mips_opts.isa))
+	  final_type[i] = micromipspp_map_reloc (reloc_type[i]);
+	else
+	  final_type[i] = micromips_map_reloc (reloc_type[i]);
 
       /* In a compound relocation, it is the final (outermost)
 	 operator that determines the relocated field.  */
@@ -9806,6 +9876,8 @@ static const char * const brk_fmt[2][2] = { { "c", "c" }, { "mF", "c" } };
 static const char * const cop12_fmt[2] = { "E,o(b)", "E,~(b)" };
 static const char * const jalr_fmt[2] = { "d,s", "t,s" };
 static const char * const lui_fmt[2] = { "t,u", "s,u" };
+static const char * const addiu_fmt[2] = { "-t,s,j", "t,r,j" };
+static const char * const addiugp_fmt[2] = { "t,ma,.", "t,r,j" };
 static const char * const mem12_fmt[2] = { "t,o(b)", "t,~(b)" };
 static const char * const mfhl_fmt[2][2] = { { "d", "d" }, { "mj", "s" } };
 static const char * const shft_fmt[2] = { "d,w,<", "t,r,<" };
@@ -9815,7 +9887,15 @@ static const char * const trap_fmt[2] = { "s,t,q", "s,t,|" };
 #define COP12_FMT (ISA_IS_R6 (mips_opts.isa)				      \
 		   ? "E,+:(d)" : cop12_fmt[mips_opts.micromips])
 #define JALR_FMT (jalr_fmt[mips_opts.micromips])
-#define LUI_FMT (lui_fmt[ISA_IS_R6 (mips_opts.isa) ? 0 : mips_opts.micromips])
+#define LUI_FMT (lui_fmt[!ISA_IS_PRER6 (mips_opts.isa)	\
+			 ? 0				\
+			 : mips_opts.micromips])
+#define ADDIU_FMT (addiu_fmt[ISA_IS_R7 (mips_opts.isa)	\
+			     ? 0			\
+			     : mips_opts.micromips])
+#define ADDIUGP_FMT (addiugp_fmt[ISA_IS_R7 (mips_opts.isa)	\
+				 ? 0				\
+				 : mips_opts.micromips])
 #define MEM12_FMT (mem12_fmt[mips_opts.micromips])
 #define LL_SC_FMT (ISA_IS_R6 (mips_opts.isa)				      \
 		   ? "t,+j(b)" : mem12_fmt[mips_opts.micromips])
@@ -10007,6 +10087,13 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	  *r = BFD_RELOC_MIPS_JMP;
 	  continue;
 
+	case '.':
+	  macro_read_relocs (&args, r);
+	  gas_assert (ep != NULL
+		      && (ep->X_op == O_constant
+			  || (ep->X_op == O_symbol
+			      && *r == BFD_RELOC_GPREL16)));
+	  continue;
 	default:
 	  break;
 	}
@@ -12001,14 +12088,14 @@ macro (struct mips_cl_insn *ip, char *str)
 		  && !nopic_need_relax (offset_expr.X_add_symbol, 1))
 		{
 		  relax_start (offset_expr.X_add_symbol);
-		  macro_build (&offset_expr, ADDRESS_ADDI_INSN, "t,r,j",
+		  macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDIUGP_FMT,
 			       tempreg, mips_gp_register, BFD_RELOC_GPREL16);
 		  relax_switch ();
 		}
 	      if (!IS_SEXT_32BIT_NUM (offset_expr.X_add_number))
 		as_bad (_("offset too large"));
 	      macro_build_lui (&offset_expr, tempreg);
-	      macro_build (&offset_expr, ADDRESS_ADDI_INSN, "t,r,j",
+	      macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDIU_FMT,
 			   tempreg, tempreg, BFD_RELOC_LO16);
 	      if (mips_relax.sequence)
 		relax_end ();
