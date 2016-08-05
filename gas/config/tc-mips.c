@@ -9667,6 +9667,16 @@ match_insns (struct mips_cl_insn *insn, const struct mips_opcode *first,
 		      if (!invalid_delay_slot)
 			invalid_delay_slot = opcode;
 		    }
+		  else if (ISA_IS_R7 (opcode->membership)
+			   && insn->noreorder_p
+			   && ((opcode->pinfo2 & INSN2_CONVERTED_TO_COMPACT)
+			       != 0))
+		    {
+		      set_insn_error (0, _("delayed branch opcode not supported"
+					   " in .noreorder block"));
+		      seen_valid_for_isa = FALSE;
+		      break;
+		    }
 		  else
 		    return TRUE;
 		}
