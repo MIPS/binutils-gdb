@@ -8683,7 +8683,9 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 			address_expr->X_add_number);
       /* Track this call for balcp-to-stub relaxation.  */
       if (!mips_opts.no_balc_stubs
-	  && type == 'D' && (ip->insn_mo->pinfo & INSN_WRITE_GPR_31) != 0)
+	  && stubg_now != NULL
+	  && type == 'D'
+	  && (ip->insn_mo->pinfo & INSN_WRITE_GPR_31) != 0)
 	  balc_add_stub (address_expr->X_add_symbol, stubg_now);
 
       *reloc_type = BFD_RELOC_UNUSED;
@@ -19047,6 +19049,7 @@ md_estimate_size_before_relax (fragS *fragp, asection *segtype)
       int length = 4;
 
       if (!mips_opts.no_balc_stubs
+	  && stubg_now != NULL
 	  && RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) == 'G')
 	length = relaxed_micromipspp_stub_length (fragp, segtype, FALSE);
       else
@@ -19055,6 +19058,7 @@ md_estimate_size_before_relax (fragS *fragp, asection *segtype)
 							  FALSE);
       /* Try to relax 32-bit call through a stub.  */
       if (!mips_opts.no_balc_stubs
+	  && stubg_now != NULL
 	  && RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) == 'D'
 	  && RELAX_MICROMIPSPP_LINK (fragp->fr_subtype))
 	length = relaxed_micromipspp_stub_call_length (fragp, segtype,
@@ -19302,6 +19306,7 @@ mips_relax_frag (asection *sec, fragS *fragp, long stretch)
       offsetT new_var = 4;
 
       if (!mips_opts.no_balc_stubs
+	  && stubg_now != NULL
 	  && RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) == 'G')
 	new_var = relaxed_micromipspp_stub_length (fragp, sec, TRUE);
       else
@@ -19310,6 +19315,7 @@ mips_relax_frag (asection *sec, fragS *fragp, long stretch)
 
       /* Try to relax 32-bit call through a stub.  */
       if (!mips_opts.no_balc_stubs
+	  && stubg_now != NULL
 	  && RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) == 'D'
 	  && RELAX_MICROMIPSPP_LINK (fragp->fr_subtype))
 	new_var = relaxed_micromipspp_stub_call_length (fragp, sec,
@@ -19818,11 +19824,12 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	    BFD_RELOC_MICROMIPSPP_20_PCREL_S1,
 	    BFD_RELOC_MICROMIPSPP_14_PCREL_S1 };
 
-      if ((stubg_now->seg != (asection *)asec)
-	  || (stubg_now->prev
-	      && stubg_now->prev->fragp
-	      && (fragp->fr_address + fragp->fr_fix
-		  < stubg_now->prev->fragp->fr_address)))
+      if (RELAX_MICROMIPSPP_USESTUB (fragp->fr_subtype)
+	  && ((stubg_now->seg != (asection *)asec)
+	      || (stubg_now->prev
+		  && stubg_now->prev->fragp
+		  && (fragp->fr_address + fragp->fr_fix
+		      < stubg_now->prev->fragp->fr_address))))
 	stubg_now = hash_find (balc_stubgroup_table, asec->name);
 
       exp.X_op = O_symbol;
@@ -20660,7 +20667,7 @@ s_mips_end (int x ATTRIBUTE_UNUSED)
       OBJ_SYMFIELD_TYPE *obj = symbol_get_obj (p);
       expressionS *exp = xmalloc (sizeof (expressionS));
 
-      if (!mips_opts.no_balc_stubs)
+      if (!mips_opts.no_balc_stubs && stubg_now != NULL)
 	stubgroup_wane ();
 
       obj->size = exp;
