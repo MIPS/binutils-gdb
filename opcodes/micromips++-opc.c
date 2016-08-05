@@ -370,9 +370,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"addq_s.w",	"d,s,t",		0x20000305, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
 {"addsc",	"d,s,t",		0x20000385, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
 {"addu",	"me,mc,md",		0xb000,	0xfc01, WR_1|RD_2|RD_3,		0,	I38,		0,		0}, /* ADDU[16] */
-{"addu",	"mp,mx,+6",		0x9008,	0xfc08,		MOD_1,	INSN2_ALIAS,	I38,		0,		0}, /* ADDIU[RS5] */
-{"addu",	"d,s,t",	0x20000150, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,		0,		0},
-{"addu",	"-t,s,j",	0x00000000, 0xfc006000,	WR_1|RD_2,    INSN2_ALIAS,	I38,		0,		0}, /* ADDIU */
+{"addu",	"d,s,t",		0x20000150, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,		0,		0},
 {"addu.ph",	"d,s,t",		0x2000010d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
 {"addu.qb",	"d,s,t",		0x200000cd, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
 {"adduh.qb",	"d,s,t",		0x2000014d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
@@ -543,7 +541,6 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"dadd",	"d,s,t",		0xc0000110, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
 {"daddiu",	"t,s,j",		0x00002000, 0xfc006000,	WR_1|RD_2,		0,	I70,		0,		0}, /* preceded by SIGRIE */
 {"daddu",	"d,s,t",		0xc0000150, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
-{"daddu",	"t,s,j",	0x00002000, 0xfc006000,	WR_1|RD_2,	INSN2_ALIAS,	I70,		0,		0}, /* DADDIU */
 {"dahi",	"t,mO",		0x80008000, 0xfc00f000,		WR_1,		0,	I70,		0,		0},
 {"dalign",	"d,s,t,+O",	0xc000001c, 0xfc0000ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
 {"dati",	"t,mP",		0x80009000, 0xfc10f000,		WR_1,		0,	I70,		0,		0},
