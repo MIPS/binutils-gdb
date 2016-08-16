@@ -1568,6 +1568,14 @@
   do_store (SD_, AccessLength_HALFWORD, GPR[RT], GPR[RS], GPR[RD]);
 }
 
+001000,5.RT,5.RS,5.RD,0101,1,000,111:R7PPLSXS:32::SHXS
+"shx r<RD>, r<RS>(r<RT>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_store (SD_, AccessLength_HALFWORD, GPR[RT], GPR[RS] << 1, GPR[RD]);
+}
+
 001000,5.RT,5.RS,5.RD,0001,0,000,111:R7PPLSX:32::SBX
 "sbx r<RD>, r<RS>(r<RT>)"
 *micromips32r7:
