@@ -423,11 +423,9 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"bgezc",	"s,+0",		0x88008000, 0xffe0c000,	RD_1,	INSN2_ALIAS,	I38,		0,		0}, /* BGEC s, $0 */
 {"bgez",	"s,+0",		0x88008000, 0xffe0c000,	RD_1, INSN2_ALIAS|CTC,	I38,		0,		0}, /* BGEC s, $0 */
 {"bgeic",	"t,m9,~",	0xc8080000, 0xfc1c0000,		RD_1,		0,	0,	XLP,		0},
-{"bgei",	"t,m9,~",	0xc8080000, 0xfc1c0000,	RD_1,	INSN2_ALIAS|CTC,	0,	XLP,		0}, /* BGEIC */
 {"bgeuc",	"s,t,+0",	0x8800c000, 0xfc00c000,	RD_1|RD_2,		0,	I38,		0,		0},
 {"bgeu",	"s,t,+0",	0x8800c000, 0xfc00c000,	RD_1|RD_2, INSN2_ALIAS|CTC,	I38,		0,		0}, /* BGEUC */
 {"bgeuic",	"t,m9,~",	0xc80c0000, 0xfc1c0000,		RD_1,		0,	0,	XLP,		0},
-{"bgeui",	"t,m9,~",	0xc80c0000, 0xfc1c0000,		RD_1, INSN2_ALIAS|CTC,	0,	XLP,		0}, /* BGEUIC */
 {"bitrev",	"t,s",		0x2000313f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32,		0},
 {"bitswap",	"t,s",		0x20000b3f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	XLP,		0},
 {"bltc",	"s,t,+0",	0xa8008000, 0xfc00c000,	RD_1|RD_2,		0,	I38,		0,		0},
@@ -437,11 +435,9 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"bltzc",	"s,+0",		0xa8008000, 0xffe0c000,	RD_1,	INSN2_ALIAS,	I38,		0,		0}, /* BLTC s, $0 */
 {"bltz",	"s,+0",		0xa8008000, 0xffe0c000,	RD_1, INSN2_ALIAS|CTC,	I38,		0,		0}, /* BLTC s, $0 */
 {"bltic",	"t,m9,~",	0xc8180000, 0xfc1c0000,		RD_1,		0,	0,	XLP,		0},
-{"blti",	"t,m9,~",	0xc8180000, 0xfc1c0000,		RD_1, INSN2_ALIAS|CTC,	0,	XLP,		0}, /* BLTIC */ 
 {"bltuc",	"s,t,+0",	0xa800c000, 0xfc00c000,	RD_1|RD_2,		0,	I38,		0,		0},
 {"bltu",	"s,t,+0",	0xa800c000, 0xfc00c000,	RD_1|RD_2, INSN2_ALIAS|CTC,	I38,		0,		0}, /* BLTUC */
 {"bltuic",	"t,m9,~",	0xc81c0000, 0xfc1c0000,		RD_1,		0,	0,	XLP,		0},
-{"bltui",	"t,m9,~",	0xc81c0000, 0xfc1c0000,		RD_1, INSN2_ALIAS|CTC,	0,	XLP,		0}, /* BLTUIC */
 {"bnec",	"mc,-w,mF",	0x5800,	0xfc00,	RD_1|RD_2,		0,	0,	XLP,		0}, /* BNEC[16], with rs3>=rt3 && u[4:1]!=0 */
 {"bnec",	"md,-x,mF",	0x5800,	0xfc00,	RD_1|RD_2,	INSN2_ALIAS,	0,	XLP,		0}, /* BNEC[16], with operands commutated */
 {"bnec",	"s,t,+0",	0xa8000000, 0xfc00c000,	RD_1|RD_2,		0,	I38,		0,		0},
