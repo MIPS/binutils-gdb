@@ -30,16 +30,16 @@
 :compute:::int:TRE2:RD20,RD21:(compute_gpr2_dest2_reg (SD_, (RD21 | RD20)))
 :compute:::int:TRS2:RS4,RS2_0:((RS4 << 4) | RS2_0)
 :compute:::int:TRT2:RT4,RT2_0:((RT4 << 4) | RT2_0)
-:compute:::int:ADDRESS8:S1,S2:(nia + EXTEND8((S2 << 7) | (S1 << 1)))
+:compute:::address_word:ADDRESS8:S1,S2:(nia + EXTEND8((S2 << 7) | (S1 << 1)))
 :compute:::address_word:ADDRESS11:S1,S2:(nia + EXTEND11((S2 << 10) | (S1 << 1)))
-:compute:::int:ADDRESS15:S1,S2:((S2 << 14) | (S1 << 1))
-:compute:::int:ADDRESS21:S1,S2:((S2 << 20) | (S1 << 1))
+:compute:::address_word:ADDRESS15:S1,S2:(nia + EXTEND15((S2 << 14) | (S1 << 1)))
+:compute:::address_word:ADDRESS21:S1,S2:(nia + EXTEND21((S2 << 20) | (S1 << 1)))
 :compute:::address_word:ADDRESS22:S1,S2:(nia + EXTEND22((S2 << 21) | (S1 << 1)))
 :compute:::address_word:ADDRESS26:S1,S2:(nia + EXTEND26((S2 << 25) | (S1 << 1)))
 :compute:::int:INS_POS:LSB:(LSB)
 :compute:::int:INS_SIZE:LSB,MSBD:(1 + MSBD - LSB)
-:compute:::address_word:P7PBRI_ADDRESS:S1,S2:(nia + EXTEND12(S2 << 11 | S1 << 1))
-:compute:::address_word:P7PBR1_ADDRESS:S1,S2:(nia + EXTEND15(S2 << 14 | S1 << 1))
+:compute:::address_word:ADDRESS12:S1,S2:(nia + EXTEND12(S2 << 11 | S1 << 1))
+:compute:::address_word:ADDRESS15:S1,S2:(nia + EXTEND15(S2 << 14 | S1 << 1))
 :compute:::int:S_7_BIT:S1,S2:(EXTEND7((S1 << 6) | S2))
 :compute:::int:S_14_BIT:S1,S2:(EXTEND14 ((S1 << 13) | S2))
 :compute:::int:S_4_BIT:S1,S2:(EXTEND4((S1 << 3) | S2))
@@ -75,20 +75,6 @@
     case 2: return 7;
     case 3: return 4;
     default: return 5;
-    }
-}
-
-:function:::void:do_pauipc: int rt, int s
-*micromips32r7:
-*micromips64r7:
-{
-    int address = loadstore_ea (SD_, CIA, s);
-    if (rt == 0)
-    {
-        GPR[rt] = address & ~0xfff;
-    }
-    else {
-        GPR[rt] = address;
     }
 }
 
@@ -800,12 +786,245 @@
 
 // 32-bit instructions
 
+001000,5.RT,5.RS,5.RD,0,0100010000:R7POOL32A0:32::ADD
+"add r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_add (SD_, RS, RT, RD);
+}
+
+000000,5.RT!0,5.RS,1.S1,00,13.S2:R7PPADDIU:32::ADDIU
+"addiu r<RT>, r<RS>, <S_14_BIT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_addiu (SD_, RS, RT, S_14_BIT);
+}
+
+010000,5.RT,19.U,00:R7PGPREL:32::ADDIUGP
+"addiu r<RT>, GP, <U_SHIFT_2BIT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_addiu (SD_, GPIDX, RT, U_SHIFT_2BIT);
+}
+
+111000,5.RT,9.S1,10.S2,1,1.S3:R7PAUIPC:32::AxUIPC
+"auipc r<RT>, <AXUIPC_S_HI>":RT != 0 && AXUIPC_S_LO==0
+"aluipc GP, <AXUIPC_S_HI>":RT == 0 && AXUIPC_S_LO==0
+"auipc r<RT>, <AXUIPC_S_HI>, <AXUIPC_S_LO>":RT != 0
+"aluipc GP, <AXUIPC_S_HI>, <AXUIPC_S_LO>"
+*micromips32r7:
+*micromips64r7:
+{
+  address_word address = NIA + AXUIPC_S;
+  if (RT == 0)
+  {
+    GPR[GPIDX] = address & ~0xfff;
+  }
+  else {
+    GPR[RT] = address;
+  }
+}
+
+001000,5.RT,5.RS,5.RD,0,0101010,000:R7POOL32A0:32::ADDU
+"addu r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_addu (SD_, RS, RT, RD);
+}
+
+001000,5.RT,5.RS,5.RD,2.IMMEDIATE,000,011,111:R7POOL32A0:32::ALIGN
+"align r<RD>, r<RS>, r<RT>, <IMMEDIATE>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_align (SD_, RD, RS, RT, IMMEDIATE);
+}
+
 001000,5.RT,5.RS,5.RD,0,1001010,000:R7POOL32A0:32::AND
 "and r<RD>, r<RS>, r<RT>"
 *micromips32r7:
 *micromips64r7:
 {
   do_and (SD_, RS, RT, RD);
+}
+
+100000,5.RT,5.RS,0010,12.U:R7PU12:32::ANDI
+"andi r<RT>, r<RS>, <U>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_andi (SD_, RS, RT, U);
+}
+
+000010,1,24.S1,1.S2:R7PBAL:32::BALC
+"balc <ADDRESS26>"
+*micromips32r7:
+*micromips64r7:
+{
+  RA = NIA | isa_mode;
+  NIA = ADDRESS26;
+}
+
+000010,0,24.S1,1.S2:R7PBAL:32::BC
+"bc <ADDRESS26>"
+*micromips32r7:
+*micromips64r7:
+{
+  NIA = ADDRESS26;
+}
+
+110010,5.RT,5.RS,00,13.S1,1.S2:R7PBR2:32::BEQC
+"beqc r<RS>, r<RT>, <ADDRESS15>"
+*micromips32r7:
+*micromips64r7:
+{
+  if (GPR[RS] == GPR[RT])
+    NIA = ADDRESS15;
+}
+
+010010,5.RT,000,7.U,10.S1,1.S2:P7PBRI:32::BEQIC
+"beqic r<RT>, <U>, <ADDRESS12>"
+*micromips32r7:
+*micromips64r7:
+{
+  if (GPR[RT] == U) {
+    NIA = ADDRESS12;
+  }
+}
+
+101010,5.RT,0,19.S1,1.S2:R7PBZ:32::BEQZC
+"beqzc r<RT>, <ADDRESS21>"
+*micromips32r7:
+*micromips64r7:
+{
+  if (GPR[RT] == 0)
+    NIA = ADDRESS21;
+}
+
+110010,5.RT,5.RS,10,13.S1,1.S2:P7PBR1:32::BGEC
+"bgec r<RS>, r<RT>, <ADDRESS15>"
+*micromips32r7:
+*micromips64r7:
+{
+  if ((signed_word) GPR[RS] >= (signed_word) GPR[RT])
+    NIA = ADDRESS15;
+}
+
+010010,5.RT,010,7.U,10.S1,1.S2:P7PBRI:32::BGEIC
+"bgeic r<RT>, <U>, <ADDRESS12>"
+*micromips32r7:
+*micromips64r7:
+{
+  if ((signed_word) GPR[RT] >= U) {
+    NIA = ADDRESS12;
+  }
+}
+
+110010,5.RT,5.RS,11,13.S1,1.S2:P7PBR2:32::BGEUC
+"bgeuc r<RS>, r<RT>, <ADDRESS15>"
+*micromips32r7:
+*micromips64r7:
+{
+  if ((unsigned_word) (GPR[RS]) >= (unsigned_word)(GPR[RT])) {
+    NIA = ADDRESS15;
+  }
+}
+
+010010,5.RT,011,7.U,10.S1,1.S2:P7PBRI:32::BGEUIC
+"bgeuic r<RT>, <U>, <ADDRESS12>"
+*micromips32r7:
+*micromips64r7:
+{
+  if ((unsigned_word) GPR[RT] >= U) {
+    NIA = ADDRESS12;
+  }
+}
+
+001000,5.RT,5.RS,0000101,100,111,111:R7POOL32A0:32::BITSWAP
+"bitswap r<RT>, r<RS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_bitswap (SD_, RT, RS);
+}
+
+111010,5.RT,5.RS,10,13.S1,1.S2:P7PBR1:32::BLTC
+"bltc r<RS>, r<RT>, <ADDRESS15>"
+*micromips32r7:
+*micromips64r7:
+{
+  if ((signed_word) GPR[RS] < (signed_word) GPR[RT])
+    NIA = ADDRESS15;
+}
+
+010010,5.RT,110,7.U,10.S1,1.S2:P7PBRI:32::BLTIC
+"bltic r<RT>, <U>, <ADDRESS12>"
+*micromips32r7:
+*micromips64r7:
+{
+  if ((signed_word) GPR[RT] < U) {
+    NIA = ADDRESS12;
+  }
+}
+
+111010,5.RT,5.RS,11,13.S1,1.S2:P7PBR2:32::BLTUC
+"bltuc r<RS>, r<RT>, <ADDRESS15>"
+*micromips32r7:
+*micromips64r7:
+{
+  if ((unsigned_word) GPR[RS] < (unsigned_word) GPR[RT]) {
+    NIA = ADDRESS15;
+  }
+}
+
+010010,5.RT,111,7.U,10.S1,1.S2:P7PBRI:32::BLTUIC
+"bltuic RT, U, <ADDRESS12>"
+*micromips32r7:
+*micromips64r7:
+{
+  if ((unsigned_word) GPR[RT] < U) {
+    NIA = ADDRESS12;
+  }
+}
+
+111010,5.RT,5.RS,00,13.S1,1.S2:R7PBR2:32::BNEC
+"bnec r<RS>, r<RT>, <ADDRESS15>"
+*micromips32r7:
+*micromips64r7:
+{
+  if (GPR[RS] != GPR[RT])
+    NIA = ADDRESS15;
+}
+
+010010,5.RT,100,7.U,10.S1,1.S2:P7PBRI:32::BNEIC
+"bneic RT, U, <ADDRESS12>"
+*micromips32r7:
+*micromips64r7:
+{
+  if (GPR[RT] != U) {
+    NIA = ADDRESS12;
+  }
+}
+
+101010,5.RT!0,1,19.S1,1.S2:R7PBZ:32::BNEZC
+"bnezc r<RT>, <ADDRESS21>"
+*micromips32r7:
+*micromips64r7:
+{
+  if (GPR[RT] != 0)
+    NIA = ADDRESS21;
+}
+
+000000,00000,10,19.CODE:R7PRI:32::BREAK
+"break %#lx<CODE>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_break (SD_, instruction_0);
 }
 
 001000,5.RT,5.RS,5.RD,0,1010010,000:R7POOL32A0:32::OR
@@ -832,14 +1051,6 @@
   do_nor (SD_, RS, RT, RD);
 }
 
-100000,5.RT,5.RS,0010,12.U:R7PU12:32::ANDI
-"andi r<RT>, r<RS>, <U>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_andi (SD_, RS, RT, U);
-}
-
 100000,5.RT,5.RS,0000,12.U:R7PU12:32::ORI
 "ori r<RT>, r<RS>, <U>"
 *micromips32r7:
@@ -854,14 +1065,6 @@
 *micromips64r7:
 {
   do_xori (SD_, RS, RT, U);
-}
-
-001000,5.RT,5.RS,5.RD,0,0101010,000:R7POOL32A0:32::ADDU
-"addu r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_addu (SD_, RS, RT, RD);
 }
 
 001000,5.RT,5.RS,5.RD,0,0111010,000:R7POOL32A0:32::SUBU
@@ -886,33 +1089,6 @@
 *micromips64r7:
 {
   do_div (SD_, RD, RS, RT);
-}
-
-001000,5.RT,5.RS,0000101,100,111,111:R7POOL32A0:32::BITSWAP
-"bitswap r<RT>, r<RS>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_bitswap (SD_, RT, RS);
-}
-
-001000,5.RT,5.RS,5.RD,2.IMMEDIATE,000,011,111:R7POOL32A0:32::ALIGN
-"align r<RD>, r<RS>, r<RT>, <IMMEDIATE>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_align (SD_, RD, RS, RT, IMMEDIATE);
-}
-
-111000,5.RT,9.S1,10.S2,1,1.S3:R7PAUIPC:32::AxUIPC
-"auipc r<RT>, <AXUIPC_S_HI>":RT != 0 && AXUIPC_S_LO==0
-"aluipc r28, <AXUIPC_S_HI>":RT == 0 && AXUIPC_S_LO==0
-"auipc r<RT>, <AXUIPC_S_HI>, <AXUIPC_S_LO>":RT != 0
-"aluipc r28, <AXUIPC_S_HI>, <AXUIPC_S_LO>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_pauipc(SD_, RT, AXUIPC_S);
 }
 
 001000,5.RT,5.RS,0100101,100,111,111:R7POOL32A0:32::CLO
@@ -956,57 +1132,6 @@
   do_store (SD_, AccessLength_WORD, GP, U_SHIFT_2BIT, GPR[RT]);
 }
 
-000010,1,24.S1,1.S2:R7PBAL:32::BALC
-"balc <ADDRESS26>"
-*micromips32r7:
-*micromips64r7:
-{
-  RA = NIA | isa_mode;
-  NIA = ADDRESS26;
-}
-
-000010,0,24.S1,1.S2:R7PBAL:32::BC
-"bc <ADDRESS26>"
-*micromips32r7:
-*micromips64r7:
-{
-  NIA = ADDRESS26;
-}
-
-101010,5.RT,0,19.S1,1.S2:R7PBZ:32::BEQZC
-"beqzc r<RT>, <ADDRESS21>"
-*micromips32r7:
-*micromips64r7:
-{
-  NIA = do_beqzc (SD_, RT, EXTEND21 (ADDRESS21), NIA);
-}
-
-101010,5.RT!0,1,19.S1,1.S2:R7PBZ:32::BNEZC
-"bnezc r<RT>, <ADDRESS21>"
-*micromips32r7:
-*micromips64r7:
-{
-  NIA = do_bnezc (SD_, RT, EXTEND21 (ADDRESS21), NIA);
-}
-
-111010,5.RT,5.RS,00,13.S1,1.S2:R7PBR2:32::BNEC
-"bnec r<RS>, r<RT>, <ADDRESS15>"
-*micromips32r7:
-*micromips64r7:
-{
-  if (GPR[RS] != GPR[RT])
-    NIA = NIA + EXTEND15 (ADDRESS15);
-}
-
-110010,5.RT,5.RS,00,13.S1,1.S2:R7PBR2:32::BEQC
-"beqc r<RS>, r<RT>, <ADDRESS15>"
-*micromips32r7:
-*micromips64r7:
-{
-  if (GPR[RS] == GPR[RT])
-    NIA = NIA + EXTEND15 (ADDRESS15);
-}
-
 100000,5.RT,5.RS,1110,0,5.MSBD,0,5.LSB:R7PINS:32::INS
 "ins r<RT>, r<RS>, <INS_POS>, <INS_SIZE>"
 *micromips32r7:
@@ -1026,129 +1151,6 @@
 {
   NIA = do_jialc_mm_r7 (SD_, RT, RS, OFFSET, NIA);
 }
-
-010010,5.RT,000,7.U,10.S1,1.S2:P7PBRI:32::BEQIC
-"beqic r<RT>, <U>, <P7PBRI_ADDRESS>"
-*micromips32r7:
-*micromips64r7:
-{
-  if (GPR[RT] == U) {
-    NIA = P7PBRI_ADDRESS;
-  }
-}
-
-111010,5.RT,5.RS,10,13.S1,1.S2:P7PBR1:32::BLTC
-"bltc r<RS>, r<RT>, <P7PBR1_ADDRESS>"
-*micromips32r7:
-*micromips64r7:
-{
-  if ((signed_word) GPR[RS] < (signed_word) GPR[RT])
-    NIA = P7PBR1_ADDRESS;
-}
-
-110010,5.RT,5.RS,10,13.S1,1.S2:P7PBR1:32::BGEC
-"bgec r<RS>, r<RT>, <P7PBR1_ADDRESS>"
-*micromips32r7:
-*micromips64r7:
-{
-  if ((signed_word) GPR[RS] >= (signed_word) GPR[RT])
-    NIA = P7PBR1_ADDRESS;
-}
-
-010010,5.RT,010,7.U,10.S1,1.S2:P7PBRI:32::BGEIC
-"bgeic r<RT>, <U>, <P7PBRI_ADDRESS>"
-*micromips32r7:
-*micromips64r7:
-{
-  if ((signed_word) GPR[RT] >= U) {
-    NIA = P7PBRI_ADDRESS;
-  }
-}
-
-111010,5.RT,5.RS,11,13.S1,1.S2:P7PBR2:32::BLTUC
-"bltuc r<RS>, r<RT>, <P7PBR1_ADDRESS>"
-*micromips32r7:
-*micromips64r7:
-{
-  if ((unsigned_word) GPR[RS] < (unsigned_word) GPR[RT]) {
-    NIA = P7PBR1_ADDRESS;
-  }
-}
-
-110010,5.RT,5.RS,11,13.S1,1.S2:P7PBR2:32::BGEUC
-"bgeuc r<RS>, r<RT>, <P7PBR1_ADDRESS>"
-*micromips32r7:
-*micromips64r7:
-{
-  if ((unsigned_word) (GPR[RS]) >= (unsigned_word)(GPR[RT])) {
-    NIA = P7PBR1_ADDRESS;
-  }
-}
-
-010010,5.RT,011,7.U,10.S1,1.S2:P7PBRI:32::BGEUIC
-"bgeuic r<RT>, <U>, <P7PBRI_ADDRESS>"
-*micromips32r7:
-*micromips64r7:
-{
-  if ((unsigned_word) GPR[RT] >= U) {
-    NIA = P7PBRI_ADDRESS;
-  }
-}
-
-010010,5.RT,110,7.U,10.S1,1.S2:P7PBRI:32::BLTIC
-"bltic r<RT>, <U>, <P7PBRI_ADDRESS>"
-*micromips32r7:
-*micromips64r7:
-{
-  if ((signed_word) GPR[RT] < U) {
-    NIA = P7PBRI_ADDRESS;
-  }
-}
-
-010010,5.RT,111,7.U,10.S1,1.S2:P7PBRI:32::BLTUIC
-"bltuic RT, U, <P7PBRI_ADDRESS>"
-*micromips32r7:
-*micromips64r7:
-{
-  if ((unsigned_word) GPR[RT] < U) {
-    NIA = P7PBRI_ADDRESS;
-  }
-}
-
-010010,5.RT,100,7.U,10.S1,1.S2:P7PBRI:32::BNEIC
-"bneic RT, U, <P7PBRI_ADDRESS>"
-*micromips32r7:
-*micromips64r7:
-{
-  if (GPR[RT] != U) {
-    NIA = P7PBRI_ADDRESS;
-  }
-}
-
-000000,5.RT!0,5.RS,1.S1,00,13.S2:R7PPADDIU:32::ADDIU
-"addiu r<RT>, r<RS>, <S_14_BIT>"
-*micromips32r7:
-*micromips64r7:
-{
-  if (NotWordValue (GPR[RS]))
-    Unpredictable ();
-  TRACE_ALU_INPUT2 (GPR[RS], S_14_BIT);
-  GPR[RT] = EXTEND32 (GPR[RS] + S_14_BIT);
-  TRACE_ALU_RESULT (GPR[RT]);
-}
-
-010000,5.RT,19.U,00:R7PGPREL:32::ADDIUGP
-"addiu r<RT>, GP, <U_SHIFT_2BIT>"
-*micromips32r7:
-*micromips64r7:
-{
-  if (NotWordValue (GPR[GPIDX]))
-    Unpredictable ();
-  TRACE_ALU_INPUT2 (GPR[GPIDX], U_SHIFT_2BIT);
-  GPR[RT] = GPR[GPIDX] + U_SHIFT_2BIT;
-  TRACE_ALU_RESULT (GPR[RT]);
-}
-
 
 001000,5.RT,00000,01,00011,101,111,111:R7POOL32A0:32::DI
 "di":RT == 0
@@ -1263,14 +1265,6 @@
 {
   //TODO: signal coprocessor_exception(0) if !IsCoprocessor0Enabled()
   NIA = do_eret(SD_, 1, NIA);
-}
-
-000000,00000,10,19.CODE:R7PRI:32::BREAK
-"break %#lx<CODE>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_break (SD_, instruction_0);
 }
 
 000000,00000,11,19.CODE:R7PRI:32::SDBBP
@@ -1685,14 +1679,6 @@
 *micromips64r7:
 {
   do_sub (SD_, RD, RS, RT);
-}
-
-001000,5.RT,5.RS,5.RD,00100010000:R7POOL32A0:32::ADD
-"add r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_add (SD_, RS, RT, RD);
 }
 
 101001,5.RT,5.RS,1.S1,0000000,8.S2:R7PLSS0:32::LBS9
