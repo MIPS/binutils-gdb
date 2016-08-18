@@ -30,7 +30,7 @@
 :compute:::int:TRE2:RD20,RD21:(compute_gpr2_dest2_reg (SD_, ((RD21 << 1) | RD20)))
 :compute:::int:TRS2:RS4,RS2_0:((RS4 << 4) | RS2_0)
 :compute:::int:TRT2:RT4,RT2_0:((RT4 << 4) | RT2_0)
-:compute:::int:ADDRESS8:S1,S2:((S2 << 7) | (S1 << 1))
+:compute:::int:ADDRESS8:S1,S2:(nia + EXTEND8((S2 << 7) | (S1 << 1)))
 :compute:::address_word:ADDRESS11:S1,S2:(nia + EXTEND11((S2 << 10) | (S1 << 1)))
 :compute:::int:ADDRESS15:S1,S2:((S2 << 14) | (S1 << 1))
 :compute:::int:ADDRESS21:S1,S2:((S2 << 20) | (S1 << 1))
@@ -76,15 +76,6 @@
     case 3: return 4;
     default: return 5;
     }
-}
-
-:function:::void:do_p16move:int rt, int rs
-*micromips32r7:
-*micromips64r7:
-{
-  TRACE_ALU_INPUT2 (GPR[rt], GPR[rs]);
-  GPR[rt] = GPR[rs];
-  TRACE_ALU_RESULT2 (GPR[rt], GPR[rs]);
 }
 
 :function:::void:do_pauipc: int rt, int s
@@ -449,76 +440,44 @@
   /* Just needed so GNUSIM builds (needs at least 2 instructions) */
 }
 
-001000,5.RT,5.RS,5.RD,0,1001010,000:R7POOL32A0:32::AND
-"and r<RD>, r<RS>, r<RT>"
+011100,3.RT,1,6.U:R7P16ADDIU1:16::ADDIUR1SP
+"addiu r<TRT>, SP, <U_SHIFT_2BIT>"
 *micromips32r7:
 *micromips64r7:
 {
-  do_and (SD_, RS, RT, RD);
+  if (NotWordValue (GPR[SPIDX]))
+    Unpredictable ();
+  TRACE_ALU_INPUT2 (GPR[SPIDX], U_SHIFT_2BIT);
+  GPR[TRT] = EXTEND32 (GPR[SPIDX] + U_SHIFT_2BIT);
+  TRACE_ALU_RESULT (GPR[TRT]);
 }
 
-001000,5.RT,5.RS,5.RD,0,1010010,000:R7POOL32A0:32::OR
-"or r<RD>, r<RS>, r<RT>"
+100100,3.RT,3.RS,0,3.U:R7P16ADDIU2:16::ADDIUR2
+"addiu r<TRT>, r<TRS>, <U_SHIFT_2BIT>"
 *micromips32r7:
 *micromips64r7:
 {
-  do_or (SD_, RS, RT, RD);
+  if (NotWordValue (GPR[TRS]))
+    Unpredictable ();
+  TRACE_ALU_INPUT2 (GPR[TRS], U_SHIFT_2BIT);
+  GPR[TRT] = EXTEND32 (GPR[TRS] + U_SHIFT_2BIT);
+  TRACE_ALU_RESULT (GPR[TRT]);
 }
 
-001000,5.RT,5.RS,5.RD,0,1100010,000:R7POOL32A0:32::XOR
-"xor r<RD>, r<RS>, r<RT>"
+100100,5.RT,1.S1,1,3.S2:R7P16ADDIU2:16::ADDIURS5
+"nop":RT==0
+"addiu r<RT>, <S_4_BIT>"
 *micromips32r7:
 *micromips64r7:
 {
-  do_xor (SD_, RS, RT, RD);
-}
-
-001000,5.RT,5.RS,5.RD,0,1011010,000:R7POOL32A0:32::NOR
-"nor r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_nor (SD_, RS, RT, RD);
-}
-
-100000,5.RT,5.RS,0010,12.U:R7PU12:32::ANDI
-"andi r<RT>, r<RS>, <U>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_andi (SD_, RS, RT, U);
-}
-
-100000,5.RT,5.RS,0000,12.U:R7PU12:32::ORI
-"ori r<RT>, r<RS>, <U>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_ori (SD_, RS, RT, U);
-}
-
-100000,5.RT,5.RS,0001,12.U:R7PU12:32::XORI
-"xori r<RT>, r<RS>, <U>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_xori (SD_, RS, RT, U);
-}
-
-010100,3.RT,3.RS,10,0,0:R7POOL16C00:16::AND16
-"and r<TRT>, r<TRS>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_and (SD_, TRS, TRT, TRT);
-}
-
-010100,3.RD,3.RS,11,0,0:R7POOL16C00:16::OR16
-"or r<TRD>, r<TRS>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_or (SD_, TRS, TRD, TRD);
+  if (RT != 0)
+  {
+    if (NotWordValue (GPR[RT]))
+      Unpredictable ();
+    TRACE_ALU_INPUT2 (GPR[RT], S_4_BIT);
+    GPR[RT] = EXTEND32 (GPR[RT] + S_4_BIT);
+    TRACE_ALU_RESULT (GPR[RT]);
+  }
 }
 
 101100,3.RT,3.RS,3.RD,0:R7P16ADDU:16::ADDU16
@@ -529,93 +488,12 @@
   do_addu (SD_, TRS, TRT, TRD);
 }
 
-001000,5.RT,5.RS,5.RD,0,0101010,000:R7POOL32A0:32::ADDU
-"addu r<RD>, r<RS>, r<RT>"
+010100,3.RT,3.RS,10,0,0:R7POOL16C00:16::AND16
+"and r<TRT>, r<TRS>"
 *micromips32r7:
 *micromips64r7:
 {
-  do_addu (SD_, RS, RT, RD);
-}
-
-101100,3.RT,3.RS,3.RD,1:R7P16ADDU:16::SUBU16
-"subu r<TRD>, r<TRS>, r<TRT>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_subu (SD_, TRS, TRT, TRD);
-}
-
-001000,5.RT,5.RS,5.RD,0,0111010,000:R7POOL32A0:32::SUBU
-"subu r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_subu (SD_, RS, RT, RD);
-}
-
-001000,5.RT,5.RS,5.RD,0,0110011,000:R7POOL32A0:32::DIVU
-"divu r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_divu (SD_, RD, RS, RT);
-}
-
-001000,5.RT,5.RS,5.RD,0,0100011,000:R7POOL32A0:32::DIV
-"div r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_div (SD_, RD, RS, RT);
-}
-
-001000,5.RT,5.RS,0000101,100,111,111:R7POOL32A0:32::BITSWAP
-"bitswap r<RT>, r<RS>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_bitswap (SD_, RT, RS);
-}
-
-001000,5.RT,5.RS,5.RD,2.IMMEDIATE,000,011,111:R7POOL32A0:32::ALIGN
-"align r<RD>, r<RS>, r<RT>, <IMMEDIATE>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_align (SD_, RD, RS, RT, IMMEDIATE);
-}
-
-010110,5.RS,0,0000:R7P16JRC:16::JRC16
-"jrc r<TRS>"
-*micromips32r7:
-*micromips64r7:
-{
-  NIA = process_isa_mode (SD_, GPR[TRS]);
-}
-
-010110,5.RS,1,0000:R7P16JRC:16::JALRC16
-"jalrc r<TRS>"
-*micromips32r7:
-*micromips64r7:
-{
-  RA = NIA | ISA_MODE_MICROMIPS;
-  NIA = process_isa_mode (SD_, GPR[TRS]);
-}
-
-010100,3.RT,3.RS,01,0,0:R7POOL16C00:16::XOR16
-"xor r<TRT>, r<TRS>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_xor (SD_, TRS, TRT, TRT);
-}
-
-010100,3.RT,3.RS,00,0,0:R7POOL16C00:16::NOT16
-"not r<TRT>, r<TRS>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_nor (SD_, 0, TRS, TRT);
+  do_and (SD_, TRS, TRT, TRT);
 }
 
 111100,3.RT,3.RS,4.EU:R7ANDI16:16::ANDI16
@@ -626,44 +504,73 @@
   do_andi (SD_, TRS, TRT, EU_12_13);
 }
 
-001100,3.RD,3.RS,0,3.SHIFT:P16SHIFT:16::SLL16
-"sll r<TRD>, r<TRS>, <SHIFT_DEC>"
+001110,9.S1,1.S2:R7BALC16:16::BALC16
+"balc <ADDRESS11>"
 *micromips32r7:
 *micromips64r7:
 {
-  do_sll (SD_, TRS, TRD, SHIFT_DEC);
+  RA = NIA | isa_mode;
+  NIA = ADDRESS11;
 }
 
-001100,3.RD,3.RS,1,3.SHIFT:P16SHIFT:16::SRL16
-"srl r<TRD>, r<TRS>, <SHIFT_DEC>"
+000110,9.S1,1.S2:R7BC16:16::BC16
+"bc <ADDRESS11>"
 *micromips32r7:
 *micromips64r7:
 {
-  do_srl (SD_, TRS, TRD, SHIFT_DEC);
+  NIA = ADDRESS11;
 }
 
-000100,5.RT!0,5.RS:R7P16MOVE:16::MOVE
-"move r<RT>, r<RS>"
+010110,3.RT,3.RS,4.U!0:R7P16BR1:16::BxxC16
+"beqc r<TRS>, r<TRT>, <U_SHIFT_1BIT>":RS<RT
+"bnec r<TRS>, r<TRT>, <U_SHIFT_1BIT>"
 *micromips32r7:
 *micromips64r7:
 {
-  do_p16move (SD_, RT, RS);
+  NIA = do_bxxxc16 (SD_, TRS, TRT, U_SHIFT_1BIT, NIA);
 }
 
-100110,3.RS,6.S1,1.S2:R7BEQZC16:16::BEQZC16
-"beqzc r<TRS>, <ADDRESS8>"
+100110,3.RT,6.S1,1.S2:R7BEQZC16:16::BEQZC16
+"beqzc r<TRT>, <ADDRESS8>"
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_beqzc (SD_, TRS, EXTEND8 (ADDRESS8), NIA);
+  if(GPR[TRT] == 0)
+    NIA = ADDRESS8;
 }
 
-101110,3.RS,6.S1,1.S2:R7BNEZC16:16::BNEZC16
-"bnezc r<TRS>, <ADDRESS8>"
+101110,3.RT,6.S1,1.S2:R7BNEZC16:16::BNEZC16
+"bnezc r<TRT>, <ADDRESS8>"
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_bnezc (SD_, TRS, EXTEND8 (ADDRESS8), NIA);
+  if(GPR[TRT] != 0)
+    NIA = ADDRESS8;
+}
+
+000100,00000,10,3.CODE:R7P16RI:16::BREAK16
+"break16 %#lx<CODE>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_break (SD_, instruction_0);
+}
+
+010110,5.RT,1,0000:R7P16JRC:16::JALRC16
+"jalrc r<TRT>"
+*micromips32r7:
+*micromips64r7:
+{
+  RA = NIA | ISA_MODE_MICROMIPS;
+  NIA = process_isa_mode (SD_, GPR[TRT]);
+}
+
+010110,5.RT,0,0000:R7P16JRC:16::JRC16
+"jrc r<TRT>"
+*micromips32r7:
+*micromips64r7:
+{
+  NIA = process_isa_mode (SD_, GPR[TRT]);
 }
 
 000101,3.RT,3.RS,00,2.U:R7P16LB:16::LB16
@@ -751,6 +658,252 @@
                                 GPR[TRT]));
 }
 
+000100,5.RT!0,5.RS:R7P16MOVE:16::MOVE
+"move r<RT>, r<RS>"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT2 (GPR[RT], GPR[RS]);
+  GPR[RT] = GPR[RS];
+  TRACE_ALU_RESULT2 (GPR[RT], GPR[RS]);
+}
+
+101111,1.RT4,1.RD20,3.RT2_0,1.RS4,1.RD21,3.RS2_0:R7MOVEP:16::MOVEP
+"movep r<TRD2>, r<TRE2>, r<TRS2>, r<TRT2>"
+*micromips32r7:
+*micromips64r7:
+{
+  GPR[TRD2] = GPR[TRS2];
+  GPR[TRE2] = GPR[TRT2];
+}
+
+010100,3.RT,3.RS,00,0,0:R7POOL16C00:16::NOT16
+"not r<TRT>, r<TRS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_nor (SD_, 0, TRS, TRT);
+}
+
+010100,3.RT,3.RS,11,0,0:R7POOL16C00:16::OR16
+"or r<TRT>, r<TRS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_or (SD_, TRS, TRT, TRT);
+}
+
+000111,4.GPR_LIST_SAVE16,1,4.U,0:R7PRESTORE16:16::RESTORE16
+"restore <U_SHIFT_3BIT>":GPR_LIST_SAVE16==15
+"restore.jrc %s<GPR_LIST_SAVE16>, <U_SHIFT_3BIT>"
+*micromips32r7:
+*micromips64r7:
+{
+  if (GPR_LIST_SAVE16==14 || GPR_LIST_SAVE16==15)
+    do_restore_gprs_from_stack_and_adjust_sp(SD_, -1, 0, 0, 0, U_SHIFT_3BIT);
+  else
+    do_restore_gprs_from_stack_and_adjust_sp(SD_, 31, GPR_LIST_SAVE16, 0, 0,
+                                             U_SHIFT_3BIT);
+  if (GPR_LIST_SAVE16 != 15) {
+    isa_mode =  GPR[RAIDX] & 0x1;
+    NIA = GPR[RAIDX] & (-1 << 1);
+  }
+}
+
+000111,4.GPR_LIST_SAVE16,0,4.U,0:R7P16SRW:16::SAVE16
+"save %s<GPR_LIST_SAVE16>, <U_SHIFT_3BIT>"
+*micromips32r7:
+*micromips64r7:
+{
+  if (GPR_LIST_SAVE16==14 || GPR_LIST_SAVE16==15)
+    do_save_gprs_to_stack_and_adjust_sp(SD_, -1, 0, 0, 0, U_SHIFT_3BIT);
+  else
+    do_save_gprs_to_stack_and_adjust_sp(SD_, 31, GPR_LIST_SAVE16, 0, 0,
+                                        U_SHIFT_3BIT);
+}
+
+000101,3.RTZ,3.RS,01,2.U:R7P16LB:16::SB16
+"sb r<TRTZ>, <U>(r<TRS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_store (SD_, AccessLength_BYTE, GPR[TRS], U,
+            zero_extend(SD_, GPR[TRTZ], 8));
+}
+
+001101,3.RTZ,3.RS,0,2.U,1:R7P16LH:16::SH16
+"sh r<TRTZ>, <U_SHIFT_1BIT>(r<TRS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_store (SD_, AccessLength_HALFWORD, GPR[TRS], U_SHIFT_1BIT,
+            zero_extend(SD_, GPR[TRTZ], 16));
+}
+
+001100,3.RD,3.RS,0,3.SHIFT:P16SHIFT:16::SLL16
+"sll r<TRD>, r<TRS>, <SHIFT_DEC>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_sll (SD_, TRS, TRD, SHIFT_DEC);
+}
+
+001100,3.RD,3.RS,1,3.SHIFT:P16SHIFT:16::SRL16
+"srl r<TRD>, r<TRS>, <SHIFT_DEC>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_srl (SD_, TRS, TRD, SHIFT_DEC);
+}
+
+101100,3.RT,3.RS,3.RD,1:R7P16ADDU:16::SUBU16
+"subu r<TRD>, r<TRS>, r<TRT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_subu (SD_, TRS, TRT, TRD);
+}
+
+111101,3.RTZ,3.RS,4.U:R7SW16:16::SW16
+"sw r<TRTZ>, <U_SHIFT_2BIT>(r<TRS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_store (SD_, AccessLength_WORD, GPR[TRS], U_SHIFT_2BIT,
+            zero_extend(SD_, GPR[TRTZ], 32));
+}
+
+110101,5.RT,5.U:R7SWSP:16::SWSP
+"sw r<RT>, <U_SHIFT_2BIT>(sp)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_store (SD_, AccessLength_WORD, SP, U_SHIFT_2BIT,
+            zero_extend(SD_, GPR[RT], 32));
+}
+
+010100,3.RT,3.RS,01,0,0:R7POOL16C00:16::XOR16
+"xor r<TRT>, r<TRS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_xor (SD_, TRS, TRT, TRT);
+}
+
+000100,00000,11,3.CODE:R7P16RI:16::SDBBP16
+"sdbbp16 %#lx<CODE>"
+*micromips32r7:
+*micromips64r7:
+{
+  SignalException (DebugBreakPoint, instruction_0);
+}
+
+// 32-bit instructions
+
+001000,5.RT,5.RS,5.RD,0,1001010,000:R7POOL32A0:32::AND
+"and r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_and (SD_, RS, RT, RD);
+}
+
+001000,5.RT,5.RS,5.RD,0,1010010,000:R7POOL32A0:32::OR
+"or r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_or (SD_, RS, RT, RD);
+}
+
+001000,5.RT,5.RS,5.RD,0,1100010,000:R7POOL32A0:32::XOR
+"xor r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_xor (SD_, RS, RT, RD);
+}
+
+001000,5.RT,5.RS,5.RD,0,1011010,000:R7POOL32A0:32::NOR
+"nor r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_nor (SD_, RS, RT, RD);
+}
+
+100000,5.RT,5.RS,0010,12.U:R7PU12:32::ANDI
+"andi r<RT>, r<RS>, <U>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_andi (SD_, RS, RT, U);
+}
+
+100000,5.RT,5.RS,0000,12.U:R7PU12:32::ORI
+"ori r<RT>, r<RS>, <U>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_ori (SD_, RS, RT, U);
+}
+
+100000,5.RT,5.RS,0001,12.U:R7PU12:32::XORI
+"xori r<RT>, r<RS>, <U>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_xori (SD_, RS, RT, U);
+}
+
+001000,5.RT,5.RS,5.RD,0,0101010,000:R7POOL32A0:32::ADDU
+"addu r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_addu (SD_, RS, RT, RD);
+}
+
+001000,5.RT,5.RS,5.RD,0,0111010,000:R7POOL32A0:32::SUBU
+"subu r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_subu (SD_, RS, RT, RD);
+}
+
+001000,5.RT,5.RS,5.RD,0,0110011,000:R7POOL32A0:32::DIVU
+"divu r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_divu (SD_, RD, RS, RT);
+}
+
+001000,5.RT,5.RS,5.RD,0,0100011,000:R7POOL32A0:32::DIV
+"div r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_div (SD_, RD, RS, RT);
+}
+
+001000,5.RT,5.RS,0000101,100,111,111:R7POOL32A0:32::BITSWAP
+"bitswap r<RT>, r<RS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_bitswap (SD_, RT, RS);
+}
+
+001000,5.RT,5.RS,5.RD,2.IMMEDIATE,000,011,111:R7POOL32A0:32::ALIGN
+"align r<RD>, r<RS>, r<RT>, <IMMEDIATE>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_align (SD_, RD, RS, RT, IMMEDIATE);
+}
+
 111000,5.RT,9.S1,10.S2,1,1.S3:R7PAUIPC:32::AxUIPC
 "auipc r<RT>, <AXUIPC_S_HI>":RT != 0 && AXUIPC_S_LO==0
 "aluipc r28, <AXUIPC_S_HI>":RT == 0 && AXUIPC_S_LO==0
@@ -778,42 +931,6 @@
   do_clz (SD_, RT, RS);
 }
 
-101111,1.RT4,1.RD20,3.RT2_0,1.RS4,1.RD21,3.RS2_0:R7MOVEP:16::MOVEP
-"movep r<TRD2>, r<TRE2>, r<TRS2>, r<TRT2>"
-*micromips32r7:
-*micromips64r7:
-{
-  GPR[TRD2] = GPR[TRS2];
-  GPR[TRE2] = GPR[TRT2];
-}
-
-000101,3.RTZ,3.RS,01,2.U:R7P16LB:16::SB16
-"sb r<TRTZ>, <U>(r<TRS>)"
-*micromips32r7:
-*micromips64r7:
-{
-  do_store (SD_, AccessLength_BYTE, GPR[TRS], U, zero_extend(SD_, GPR[TRTZ],
-                                                             8));
-}
-
-001101,3.RTZ,3.RS,0,2.U,1:R7P16LH:16::SH16
-"sh r<TRTZ>, <U_SHIFT_1BIT>(r<TRS>)"
-*micromips32r7:
-*micromips64r7:
-{
-  do_store (SD_, AccessLength_HALFWORD, GPR[TRS], U_SHIFT_1BIT,
-            zero_extend(SD_, GPR[TRTZ], 16));
-}
-
-111101,3.RTZ,3.RS,4.U:R7SW16:16::SW16
-"sw r<TRTZ>, <U_SHIFT_2BIT>(r<TRS>)"
-*micromips32r7:
-*micromips64r7:
-{
-  do_store (SD_, AccessLength_WORD, GPR[TRS], U_SHIFT_2BIT,
-            zero_extend(SD_, GPR[TRTZ], 32));
-}
-
 101001,5.RT,5.RS,1.S1,1001000,8.S2:R7SWS9:32::SWS9
 "sw r<RT>, <S_9_BIT>(r<RS>)"
 *micromips32r7:
@@ -831,30 +948,12 @@
   do_store (SD_, AccessLength_WORD, GPR[RS], U, GPR[RT]);
 }
 
-110101,5.RT,5.U:R7SWSP:16::SWSP
-"sw r<RT>, <U_SHIFT_2BIT>(sp)"
-*micromips32r7:
-*micromips64r7:
-{
-  do_store (SD_, AccessLength_WORD, SP, U_SHIFT_2BIT, zero_extend(SD_, GPR[RT],
-                                                                  32));
-}
-
 010000,5.RT,19.U,11:R7SWGP:32::SWGP
 "sw r<RT>, <U_SHIFT_2BIT>(gp)"
 *micromips32r7:
 *micromips64r7:
 {
   do_store (SD_, AccessLength_WORD, GP, U_SHIFT_2BIT, GPR[RT]);
-}
-
-001110,9.S1,1.S2:R7BALC16:16::BALC16
-"balc <ADDRESS11>"
-*micromips32r7:
-*micromips64r7:
-{
-  RA = NIA | isa_mode;
-  NIA = ADDRESS11;
 }
 
 000010,1,24.S1,1.S2:R7PBAL:32::BALC
@@ -864,14 +963,6 @@
 {
   RA = NIA | isa_mode;
   NIA = ADDRESS26;
-}
-
-000110,9.S1,1.S2:R7BC16:16::BC16
-"bc <ADDRESS11>"
-*micromips32r7:
-*micromips64r7:
-{
-  NIA = ADDRESS11;
 }
 
 000010,0,24.S1,1.S2:R7PBAL:32::BC
@@ -896,15 +987,6 @@
 *micromips64r7:
 {
   NIA = do_bnezc (SD_, RT, EXTEND21 (ADDRESS21), NIA);
-}
-
-010110,3.RT,3.RS,4.U!0:R7P16BR1:16::BxxxC16
-"beqc r<TRS>, r<TRT>, <U_SHIFT_1BIT>":RS<RT
-"bnec r<TRS>, r<TRT>, <U_SHIFT_1BIT>"
-*micromips32r7:
-*micromips64r7:
-{
-  NIA = do_bxxxc16 (SD_, TRS, TRT, U_SHIFT_1BIT, NIA);
 }
 
 111010,5.RT,5.RS,00,13.S1,1.S2:R7PBR2:32::BNEC
@@ -1067,45 +1149,6 @@
   TRACE_ALU_RESULT (GPR[RT]);
 }
 
-011100,3.RT,1,6.U:R7P16ADDIU1:16::ADDIUR1SP
-"addiu r<TRT>, SP, <U_SHIFT_2BIT>"
-*micromips32r7:
-*micromips64r7:
-{
-  if (NotWordValue (GPR[SPIDX]))
-    Unpredictable ();
-  TRACE_ALU_INPUT2 (GPR[SPIDX], U_SHIFT_2BIT);
-  GPR[TRT] = EXTEND32 (GPR[SPIDX] + U_SHIFT_2BIT);
-  TRACE_ALU_RESULT (GPR[TRT]);
-}
-
-100100,3.RT,3.RS,0,3.U:R7P16ADDIU2:16::ADDIUR2
-"addiu r<TRT>, r<TRS>, <U_SHIFT_2BIT>"
-*micromips32r7:
-*micromips64r7:
-{
-  if (NotWordValue (GPR[TRS]))
-    Unpredictable ();
-  TRACE_ALU_INPUT2 (GPR[TRS], U_SHIFT_2BIT);
-  GPR[TRT] = EXTEND32 (GPR[TRS] + U_SHIFT_2BIT);
-  TRACE_ALU_RESULT (GPR[TRT]);
-}
-
-100100,5.RT,1.S1,1,3.S2:R7P16ADDIU2:16::ADDIURS5
-"nop":RT==0
-"addiu r<RT>, <S_4_BIT>"
-*micromips32r7:
-*micromips64r7:
-{
-  if (RT != 0)
-  {
-    if (NotWordValue (GPR[RT]))
-      Unpredictable ();
-    TRACE_ALU_INPUT2 (GPR[RT], S_4_BIT);
-    GPR[RT] = EXTEND32 (GPR[RT] + S_4_BIT);
-    TRACE_ALU_RESULT (GPR[RT]);
-  }
-}
 
 001000,5.RT,00000,01,00011,101,111,111:R7POOL32A0:32::DI
 "di":RT == 0
@@ -1174,18 +1217,6 @@
   TRACE_ALU_RESULT1 (GPR[RT]);
 }
 
-000111,4.GPR_LIST_SAVE16,0,4.U,0:R7P16SRW:16::SAVE16
-"save %s<GPR_LIST_SAVE16>, <U_SHIFT_3BIT>"
-*micromips32r7:
-*micromips64r7:
-{
-  if (GPR_LIST_SAVE16==14 || GPR_LIST_SAVE16==15)
-    do_save_gprs_to_stack_and_adjust_sp(SD_, -1, 0, 0, 0, U_SHIFT_3BIT);
-  else
-    do_save_gprs_to_stack_and_adjust_sp(SD_, 31, GPR_LIST_SAVE16, 0, 0,
-                                        U_SHIFT_3BIT);
-}
-
 100000,5.RT_SAVE,4.GPR_LIST_SAVE,0,0011,9.U,0,1.FP_SAVE,1.GP_SAVE:R7PSR:32::SAVE
 "save %s<GPR_LIST_SAVE>%s<GP_SAVE>%s<FP_SAVE>%s<RT_SAVE>, <U_SHIFT_3BIT>"
 *micromips32r7:
@@ -1193,22 +1224,6 @@
 {
   do_save_gprs_to_stack_and_adjust_sp(SD_, RT_SAVE, GPR_LIST_SAVE, FP_SAVE,
                                       GP_SAVE, U_SHIFT_3BIT);
-}
-
-000111,4.GPR_LIST_SAVE16,1,4.U,0:R7PRESTORE16:16::RESTORE16
-"restore <U_SHIFT_3BIT>":GPR_LIST_SAVE16==15
-"restore.jrc %s<GPR_LIST_SAVE16>, <U_SHIFT_3BIT>"
-*micromips32r7:
-*micromips64r7:
-{
-  if (GPR_LIST_SAVE16==14 || GPR_LIST_SAVE16==15)
-    do_restore_gprs_from_stack_and_adjust_sp(SD_, -1, 0, 0, 0, U_SHIFT_3BIT);
-  else
-    do_restore_gprs_from_stack_and_adjust_sp(SD_, 31, GPR_LIST_SAVE16, 0, 0,
-                                             U_SHIFT_3BIT);
-
-  isa_mode =  GPR[RAIDX] & 0x1;
-  NIA = GPR[RAIDX] & (-1 << 1);
 }
 
 100000,5.RT_SAVE,4.GPR_LIST_SAVE,10011,9.U,0,1.FP_SAVE,1.GP_SAVE:R7PRESTORE:32::RESTORE
@@ -1670,22 +1685,6 @@
 *micromips64r7:
 {
   do_sub (SD_, RD, RS, RT);
-}
-
-000100,00000,10,3.CODE:R7P16RI:16::BREAK16
-"break16 %#lx<CODE>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_break (SD_, instruction_0);
-}
-
-000100,00000,11,3.CODE:R7P16RI:16::SDBBP16
-"sdbbp16 %#lx<CODE>"
-*micromips32r7:
-*micromips64r7:
-{
-  SignalException (DebugBreakPoint, instruction_0);
 }
 
 001000,5.RT,5.RS,5.RD,00100010000:R7POOL32A0:32::ADD
