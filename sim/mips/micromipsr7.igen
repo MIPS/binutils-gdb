@@ -351,12 +351,11 @@
       //  SRSCtl.CSS = SRSCtl.PSS
   }
 
-  //TODO: clear LLbit for ERET
-  //if (!nc)
-  //  LLbit = 0;
+  if (!nc)
+    LLBIT = 0;
 
   //TODO: ClearHazards()
-  return NIA;
+  return nia;
 }
 
 :%s::::GPR_LIST_SAVE16:int count
@@ -1027,6 +1026,134 @@
   do_break (SD_, instruction_0);
 }
 
+101001,5.OP,5.RS,1.S1,0011001,8.S2:R7PLSS1:32::CACHE
+"cache <OP>, <S_9_BIT>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  address_word vaddr;
+  address_word paddr;
+  int uncached;
+  vaddr = loadstore_ea (SD_, GPR[RS], EXTEND9 (S_9_BIT));
+  if (AddressTranslation (vaddr, isDATA, isLOAD, &paddr, &uncached, isTARGET,
+                          isREAL))
+    CacheOp (OP, vaddr, paddr, instruction_0);
+}
+
+001000,5.RT,5.RS,0100101,100,111,111:R7POOL32A0:32::CLO
+"clo r<RT>, r<RS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_clo (SD_, RT, RS);
+}
+
+001000,5.RT,5.RS,0101101,100,111,111:R7POOL32A0:32::CLZ
+"clz r<RT>, r<RS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_clz (SD_, RT, RS);
+}
+
+001000,5.RT,00000,01,00011,101,111,111:R7POOL32A0:32::DI
+"di":RT == 0
+"di r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_di (SD_, RT);
+}
+
+
+001000,5.RT,5.RS,5.RD,0,0100011,000:R7POOL32A0:32::DIV
+"div r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_div (SD_, RD, RS, RT);
+}
+
+001000,5.RT,5.RS,5.RD,0,0110011,000:R7POOL32A0:32::DIVU
+"divu r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_divu (SD_, RD, RS, RT);
+}
+
+001000,5.RT,00000,01,01011,101,111,111:R7POOL32A0:32::EI
+"ei":RT == 0
+"ei r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_ei (SD_, RT);
+}
+
+001000,000000000,0,11,11001,101,111,111:R7POOL32A0:32::ERET
+"eret"
+*micromips32r7:
+*micromips64r7:
+{
+  //TODO: signal coprocessor_exception(0) if !IsCoprocessor0Enabled()
+  NIA = do_eret(SD_, 0, NIA);
+}
+
+001000,000000000,1,11,11001,101,111,111:R7POOL32A0:32::ERETNC
+"eretnc"
+*micromips32r7:
+*micromips64r7:
+{
+  //TODO: signal coprocessor_exception(0) if !IsCoprocessor0Enabled()
+  NIA = do_eret(SD_, 1, NIA);
+}
+
+100000,5.RT,5.RS,11110,5.MSBD,0,5.LSB:R7PEXT:32::EXT
+"ext r<RT>, r<RS>, <LSB>, <MSBD+1>"
+*micromips32r7:
+*micromips64r7:
+{
+  if (LSB + MSBD + 1 > 32)
+    Unpredictable ();
+
+  TRACE_ALU_INPUT3 (GPR[RS], LSB,  MSBD + 1);
+  GPR[RT] = EXTEND32 (zero_extend(SD_, GPR[RS] >> LSB, MSBD + 1));
+  TRACE_ALU_RESULT1 (GPR[RT]);
+}
+
+100000,5.RT,5.RS,1110,0,5.MSBD,0,5.LSB:R7PINS:32::INS
+"ins r<RT>, r<RS>, <INS_POS>, <INS_SIZE>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_ins_mm_r7 (SD_, RT, RS, INS_POS, INS_SIZE);
+}
+
+100010,5.RT,5.RS,0000,12.OFFSET:R7PJ:32::JIALC
+"jrc r<RS>": RT==31 && OFFSET==0
+"jalrc r<RS>": RT==31 && OFFSET==0
+"jalrc r<RT>, r<RS>": OFFSET==0
+"jialc r<RS>, <OFFSET>": RT==31
+"jialc r<RT>, r<RS>, <OFFSET>"
+*micromips32r7:
+*micromips64r7:
+{
+  NIA = do_jialc_mm_r7 (SD_, RT, RS, OFFSET, NIA);
+}
+
+100010,5.RT,5.RS,0001,12.U:R7PJ:32::JIALC.HB
+"jalrc.hb r<RS>":RT==31&&U==0
+"jalrc.hb r<RT>, r<RS>":U==0
+"jialc.hb r<RS>, <U>":RT==31
+"jialc.hb r<RT>, r<RS>, <U>"
+*micromips32r7:
+*micromips64r7:
+{
+  NIA = do_jialc_mm_r7 (SD_, RT, RS, U, NIA);
+  //TODO: ClearHazards()?
+}
+
 001000,5.RT,5.RS,5.RD,0,1010010,000:R7POOL32A0:32::OR
 "or r<RD>, r<RS>, r<RT>"
 *micromips32r7:
@@ -1075,38 +1202,6 @@
   do_subu (SD_, RS, RT, RD);
 }
 
-001000,5.RT,5.RS,5.RD,0,0110011,000:R7POOL32A0:32::DIVU
-"divu r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_divu (SD_, RD, RS, RT);
-}
-
-001000,5.RT,5.RS,5.RD,0,0100011,000:R7POOL32A0:32::DIV
-"div r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_div (SD_, RD, RS, RT);
-}
-
-001000,5.RT,5.RS,0100101,100,111,111:R7POOL32A0:32::CLO
-"clo r<RT>, r<RS>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_clo (SD_, RT, RS);
-}
-
-001000,5.RT,5.RS,0101101,100,111,111:R7POOL32A0:32::CLZ
-"clz r<RT>, r<RS>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_clz (SD_, RT, RS);
-}
-
 101001,5.RT,5.RS,1.S1,1001000,8.S2:R7SWS9:32::SWS9
 "sw r<RT>, <S_9_BIT>(r<RS>)"
 *micromips32r7:
@@ -1132,58 +1227,6 @@
   do_store (SD_, AccessLength_WORD, GP, U_SHIFT_2BIT, GPR[RT]);
 }
 
-100000,5.RT,5.RS,1110,0,5.MSBD,0,5.LSB:R7PINS:32::INS
-"ins r<RT>, r<RS>, <INS_POS>, <INS_SIZE>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_ins_mm_r7 (SD_, RT, RS, INS_POS, INS_SIZE);
-}
-
-100010,5.RT,5.RS,0000,12.OFFSET:R7PJ:32::JIALC
-"jrc r<RS>": RT==31 && OFFSET==0
-"jalrc r<RS>": RT==31 && OFFSET==0
-"jalrc r<RT>, r<RS>": OFFSET==0
-"jialc r<RS>, <OFFSET>": RT==31
-"jialc r<RT>, r<RS>, <OFFSET>"
-*micromips32r7:
-*micromips64r7:
-{
-  NIA = do_jialc_mm_r7 (SD_, RT, RS, OFFSET, NIA);
-}
-
-001000,5.RT,00000,01,00011,101,111,111:R7POOL32A0:32::DI
-"di":RT == 0
-"di r<RT>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_di (SD_, RT);
-}
-
-001000,5.RT,00000,01,01011,101,111,111:R7POOL32A0:32::EI
-"ei":RT == 0
-"ei r<RT>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_ei (SD_, RT);
-}
-
-101001,5.OP,5.RS,1.S1,0011001,8.S2:R7PLSS1:32::CACHE
-"cache <OP>, <S_9_BIT>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
-{
-  address_word vaddr;
-  address_word paddr;
-  int uncached;
-  vaddr = loadstore_ea (SD_, GPR[RS], EXTEND9 (S_9_BIT));
-  if (AddressTranslation (vaddr, isDATA, isLOAD, &paddr, &uncached, isTARGET,
-                          isREAL))
-    CacheOp (OP, vaddr, paddr, instruction_0);
-}
-
 011010,1.RT1,1.RD,3.RT2,20.S1,1.S2:R7MOVEBALC:32::MOVE.BALC
 "move.balc r<RD1>, r<RT_5_BIT>, <ADDRESS22>"
 *micromips32r7:
@@ -1192,31 +1235,6 @@
   GPR[RD1] = GPR[RT_5_BIT];
   RA = NIA | isa_mode;
   NIA = ADDRESS22;
-}
-
-100010,5.RT,5.RS,0001,12.U:R7PJ:32::JIALC.HB
-"jalrc.hb r<RS>":RT==31&&U==0
-"jalrc.hb r<RT>, r<RS>":U==0
-"jialc.hb r<RS>, <U>":RT==31
-"jialc.hb r<RT>, r<RS>, <U>"
-*micromips32r7:
-*micromips64r7:
-{
-  NIA = do_jialc_mm_r7 (SD_, RT, RS, U, NIA);
-  //TODO: ClearHazards()?
-}
-
-100000,5.RT,5.RS,11110,5.MSBD,0,5.LSB:R7PEXT:32::EXT
-"ext r<RT>, r<RS>, <LSB>, <MSBD+1>"
-*micromips32r7:
-*micromips64r7:
-{
-  if (LSB + MSBD + 1 > 32)
-    Unpredictable ();
-
-  TRACE_ALU_INPUT3 (GPR[RS], LSB,  MSBD + 1);
-  GPR[RT] = EXTEND32 (zero_extend(SD_, GPR[RS] >> LSB, MSBD + 1));
-  TRACE_ALU_RESULT1 (GPR[RT]);
 }
 
 100000,5.RT_SAVE,4.GPR_LIST_SAVE,0,0011,9.U,0,1.FP_SAVE,1.GP_SAVE:R7PSR:32::SAVE
@@ -1247,24 +1265,6 @@
 
   isa_mode =  GPR[RAIDX] & 0x1;
   NIA = GPR[RAIDX] & (-1 << 1);
-}
-
-001000,000000000,0,11,11001,101,111,111:R7POOL32A0:32::ERET
-"eret"
-*micromips32r7:
-*micromips64r7:
-{
-  //TODO: signal coprocessor_exception(0) if !IsCoprocessor0Enabled()
-  NIA = do_eret(SD_, 0, NIA);
-}
-
-001000,000000000,1,11,11001,101,111,111:R7POOL32A0:32::ERETNC
-"eretnc"
-*micromips32r7:
-*micromips64r7:
-{
-  //TODO: signal coprocessor_exception(0) if !IsCoprocessor0Enabled()
-  NIA = do_eret(SD_, 1, NIA);
 }
 
 000000,00000,11,19.CODE:R7PRI:32::SDBBP
