@@ -9360,10 +9360,6 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 		*offset_reloc = BFD_RELOC_MICROMIPSPP_25_PCREL_S1;
 		break;
 
-	      case '0':
-		*offset_reloc = BFD_RELOC_MICROMIPSPP_14_PCREL_S1;
-		break;
-
 	      case 'r':
 		*offset_reloc = BFD_RELOC_MICROMIPSPP_21_PCREL_S1;
 		break;
@@ -9372,6 +9368,10 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 
 	  case 'o':
 	    *offset_reloc = BFD_RELOC_MICROMIPSPP_20_PCREL_S1;
+	    break;
+
+	  case 'p':
+	    *offset_reloc = BFD_RELOC_MICROMIPSPP_14_PCREL_S1;
 	    break;
 
 	  case '~':
