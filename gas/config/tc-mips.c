@@ -8085,11 +8085,9 @@ balc_merge_stub (const char *func, stub_group *stubg,
   if (stub->fragp && RELAX_MICROMIPSPP_KEEPSTUB (stub->fragp->fr_subtype))
     callsite += 4;
 
-  while (next && balc_in_stub_range (callsite, next))
+  /* Any forward stub that we find can be the target for merge.  */
+  while (next && next->stubtable && balc_in_stub_range (callsite, next))
     {
-      if (next->stubtable == NULL)
-	break;
-
       nextstub = (struct balc_stub *) stubtable_find (next->stubtable, func);
 
       if (nextstub)
@@ -8105,15 +8103,17 @@ balc_merge_stub (const char *func, stub_group *stubg,
       && callsite > stub->fragp->fr_address)
     callsite -= 4;
 
-  while (prev && balc_in_stub_range (callsite, prev))
+  /* A previous stub can be a target only if it already has calls.  */
+  while (prev && prev->stubtable && balc_in_stub_range (callsite, prev))
     {
-      if (prev->stubtable == NULL)
-	break;
+      struct balc_stub *pstub
+	= (struct balc_stub *) stubtable_find (prev->stubtable, func);
 
-      prevstub = (struct balc_stub *) stubtable_find (prev->stubtable, func);
-
-      if (prevstub && prevstub->numcalls)
-	break;
+      if (pstub && pstub->numcalls)
+	{
+	  prevstub = pstub;
+	  break;
+	}
       prev = prev->prev;
     }
 
