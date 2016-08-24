@@ -344,6 +344,8 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"sigrie",	"+J",		0x00000000, 0xfff80000,		0,		0,	I38,		0,		0},
 {"synci",	"+j(s)",		0xa7e01800, 0xffe07f00,		RD_2,		0,	I38,		0,		0}, /* SYNCI[S9] */
 {"syncie",	"+j(s)",		0xa7e01c00, 0xffe07f00,		RD_2,		0,	0,	EVA,		0},
+{"jrc",		"mp",		0x5800,		0xfc1f,		RD_1,		0,	I38,		0,		0},
+{"jr",		"mp",		0x5800,		0xfc1f,		RD_1, INSN2_ALIAS|CTC,	I38,		0,		0}, /* JRC */
 	
 /* Precedence=0 */
 {"abs.d",	"T,S",		0xa000237b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
@@ -648,8 +650,6 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"jalr",	"t,s",		0x48000000, 0xfc00ffff,	WR_1|RD_2, INSN2_ALIAS|CTC,	I38,		0,		0}, /* JALRC */
 {"jalrc.hb",	"t,s",		0x48001000, 0xfc00ffff,	WR_1|RD_2,		0,	I38,		0,		0},
 {"jalr.hb",	"t,s",		0x48001000, 0xfc00ffff,	WR_1|RD_2, INSN2_ALIAS|CTC,	I38,		0,		0}, /* JALRC.HB */
-{"jrc",	"mp",		0x5800,	0xfc1f,		RD_1,		0,	I38,		0,		0},
-{"jr",	"mp",		0x5800,	0xfc1f,		RD_1, INSN2_ALIAS|CTC,	I38,		0,		0}, /* JRC */
 {"lb",		"md,mL(mc)",		0x1400,	0xfc0c,	WR_1|RD_3,		0,	I38,		0,		0}, /* LB[16] */
 {"lb",		"t,+1(ma)",		0x44000000, 0xfc1c0000,	WR_1|RD_3,		0,	I38,		0,		0}, /* LB[GP] */
 {"lb",		"t,i(s)",		0x84000000, 0xfc00f000,	WR_1|RD_3,		0,	I38,		0,		0},
