@@ -10098,12 +10098,15 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	  continue;
 
 	case '.':
-	  macro_read_relocs (&args, r);
-	  gas_assert (ep != NULL
-		      && (ep->X_op == O_constant
-			  || (ep->X_op == O_symbol
-			      && *r == BFD_RELOC_GPREL16)));
-	  continue;
+	  if (ISA_IS_R7 (mips_opts.isa))
+	    {
+	      macro_read_relocs (&args, r);
+	      gas_assert (ep != NULL
+			  && (ep->X_op == O_constant
+			      || (ep->X_op == O_symbol
+				  && *r == BFD_RELOC_GPREL16)));
+	      continue;
+	    }
 	default:
 	  break;
 	}
