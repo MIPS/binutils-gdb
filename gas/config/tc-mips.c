@@ -9888,6 +9888,7 @@ static const char * const brk_fmt[2][2] = { { "c", "c" }, { "mF", "c" } };
 static const char * const cop12_fmt[2] = { "E,o(b)", "E,~(b)" };
 static const char * const jalr_fmt[2] = { "d,s", "t,s" };
 static const char * const lui_fmt[2] = { "t,u", "s,u" };
+static const char * const addiu_fmt[2] = { "-t,s,j", "t,r,j" };
 static const char * const addiugp_fmt[2] = { "t,ma,.", "t,r,j" };
 static const char * const mem12_fmt[2] = { "t,o(b)", "t,~(b)" };
 static const char * const mfhl_fmt[2][2] = { { "d", "d" }, { "mj", "s" } };
@@ -9901,10 +9902,10 @@ static const char * const trap_fmt[2] = { "s,t,q", "s,t,|" };
 #define LUI_FMT (lui_fmt[!ISA_IS_PRER6 (mips_opts.isa)	\
 			 ? 0				\
 			 : mips_opts.micromips])
-#define ADDIU_FMT "t,r,j"
+#define ADDIU_FMT (addiu_fmt[ISA_IS_R7 (mips_opts.isa)	\
+		   ? 0 : 1])
 #define ADDIUGP_FMT (addiugp_fmt[ISA_IS_R7 (mips_opts.isa)	\
-				 ? 0				\
-				 : mips_opts.micromips])
+				 ? 0 : 1])
 #define MEM12_FMT (mem12_fmt[mips_opts.micromips])
 #define LL_SC_FMT (ISA_IS_R6 (mips_opts.isa)				      \
 		   ? "t,+j(b)" : mem12_fmt[mips_opts.micromips])
