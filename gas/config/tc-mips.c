@@ -19915,9 +19915,9 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	  unsigned long rt = (insn & 0x0380) >> 7;
 	  unsigned long rs = (insn & 0x0070) >> 4;
 	  if (rt > rs)
-	    insn = 0xc8000000; /* beqc  */
+	    insn = 0x88000000; /* beqc  */
 	  else
-	    insn = 0xe8000000; /* bnec  */
+	    insn = 0xa8000000; /* bnec  */
 	  rt = micromips_to_32_reg_d_map [rt];
 	  rs = micromips_to_32_reg_d_map [rs];
 	  insn |= (rt << 21);
@@ -19927,15 +19927,15 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	{
 	  unsigned long rt = (insn & 0x0380) >> 7;
 	  rt = micromips_to_32_reg_d_map [rt];
-	  /* beqzc: 0x9800 -> 0xa8000000
-	     bnezc: 0xb800 -> 0xa8100000  */
-	  insn = 0xa8000000 | (((insn & 0x2000) >> 13) << 20);
+	  /* beqzc: 0x9800 -> 0xe8000000
+	     bnezc: 0xb800 -> 0xe8100000  */
+	  insn = 0xe8000000 | (((insn & 0x2000) >> 13) << 20);
 	  insn |= (rt << 21);
 	}
       else if ((insn & 0xdc00) == 0x1800)	/* bc[16]/balc[16]  */
-	/* bc:		0x1800 -> 0x08000000
-	   balc:	0x3800 -> 0x0a000000  */
-	insn = 0x08000000 | (((insn & 0x2000) >> 13) << 25);
+	/* bc:		0x1800 -> 0x28000000
+	   balc:	0x3800 -> 0x2a000000  */
+	insn = 0x28000000 | (((insn & 0x2000) >> 13) << 25);
       else
 	abort ();
 
