@@ -136,7 +136,7 @@
     }
 }
 
-:function:::address_word:do_jialc_mm_r7:int rt, int rs, unsigned16 offset, address_word nia
+:function:::address_word:do_jalrc_mm_r7:int rt, int rs, unsigned16 offset, address_word nia
 {
   rt = nia | isa_mode;
   unsigned_word address = do_load (SD_, AccessLength_WORD, GPR[rs], offset);
@@ -382,6 +382,13 @@
   return NIA;
 }
 
+:function:::void:do_lsa_mm_r7:int rd, int rs, int rt, unsigned immediate
+{
+  unsigned32 sum = (GPR[rs] << immediate) + GPR[rt];
+  GPR[rd] = EXTEND32(sum);
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
 :%s::::GPR_LIST_SAVE16:int count
 *micromips32r7:
 *micromips64r7:
@@ -577,7 +584,7 @@
   do_bitswap (SD_, RT, RS);
 }
 
-001000,5.RT,5.RS,5.RD,2.IMMEDIATE,000,011,111:R7POOL32A0:32::ALIGN
+001000,5.RT,5.RS,5.RD,5.IMMEDIATE,011,111:R7POOL32A0:32::ALIGN
 "align r<RD>, r<RS>, r<RT>, <IMMEDIATE>"
 *micromips32r7:
 *micromips64r7:
@@ -857,7 +864,7 @@
   NIA = ADDRESS11;
 }
 
-000010,1,24.S1,1.S2:R7PBAL:32::BALC
+001010,1,24.S1,1.S2:R7PBAL:32::BALC
 "balc <ADDRESS26>"
 *micromips32r7:
 *micromips64r7:
@@ -874,7 +881,7 @@
   NIA = ADDRESS11;
 }
 
-000010,0,24.S1,1.S2:R7PBAL:32::BC
+001010,0,24.S1,1.S2:R7PBAL:32::BC
 "bc <ADDRESS26>"
 *micromips32r7:
 *micromips64r7:
@@ -882,7 +889,7 @@
   NIA = ADDRESS26;
 }
 
-101010,5.RT,0,19.S1,1.S2:R7PBZ:32::BEQZC
+111010,5.RT,0,19.S1,1.S2:R7PBZ:32::BEQZC
 "beqzc r<RT>, <ADDRESS21>"
 *micromips32r7:
 *micromips64r7:
@@ -890,7 +897,7 @@
   NIA = do_beqzc (SD_, RT, EXTEND21 (ADDRESS21), NIA);
 }
 
-101010,5.RT!0,1,19.S1,1.S2:R7PBZ:32::BNEZC
+111010,5.RT!0,1,19.S1,1.S2:R7PBZ:32::BNEZC
 "bnezc r<RT>, <ADDRESS21>"
 *micromips32r7:
 *micromips64r7:
@@ -907,7 +914,7 @@
   NIA = do_bxxxc16 (SD_, TRS, TRT, U_SHIFT_1BIT, NIA);
 }
 
-111010,5.RT,5.RS,00,13.S1,1.S2:R7PBR2:32::BNEC
+101010,5.RT,5.RS,00,13.S1,1.S2:R7PBR2:32::BNEC
 "bnec r<RS>, r<RT>, <ADDRESS15>"
 *micromips32r7:
 *micromips64r7:
@@ -916,7 +923,7 @@
     NIA = NIA + EXTEND15 (ADDRESS15);
 }
 
-110010,5.RT,5.RS,00,13.S1,1.S2:R7PBR2:32::BEQC
+100010,5.RT,5.RS,00,13.S1,1.S2:R7PBR2:32::BEQC
 "beqc r<RS>, r<RT>, <ADDRESS15>"
 *micromips32r7:
 *micromips64r7:
@@ -933,19 +940,15 @@
   do_ins_mm_r7 (SD_, RT, RS, INS_POS, INS_SIZE);
 }
 
-100010,5.RT,5.RS,0000,12.OFFSET:R7PJ:32::JIALC
-"jrc r<RS>": RT==31 && OFFSET==0
-"jalrc r<RS>": RT==31 && OFFSET==0
-"jalrc r<RT>, r<RS>": OFFSET==0
-"jialc r<RS>, <OFFSET>": RT==31
-"jialc r<RT>, r<RS>, <OFFSET>"
+010010,5.RT,5.RS,0000,12.OFFSET:R7PJ:32::JALRC
+"jalrc r<RT>, r<RS>"
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_jialc_mm_r7 (SD_, RT, RS, OFFSET, NIA);
+  NIA = do_jalrc_mm_r7 (SD_, RT, RS, OFFSET, NIA);
 }
 
-010010,5.RT,000,7.U,10.S1,1.S2:P7PBRI:32::BEQIC
+110010,5.RT,000,7.U,10.S1,1.S2:P7PBRI:32::BEQIC
 "beqic r<RT>, <U>, <P7PBRI_ADDRESS>"
 *micromips32r7:
 *micromips64r7:
@@ -955,7 +958,7 @@
   }
 }
 
-111010,5.RT,5.RS,10,13.S1,1.S2:P7PBR1:32::BLTC
+101010,5.RT,5.RS,10,13.S1,1.S2:P7PBR1:32::BLTC
 "bltc r<RS>, r<RT>, <P7PBR1_ADDRESS>"
 *micromips32r7:
 *micromips64r7:
@@ -964,7 +967,7 @@
     NIA = P7PBR1_ADDRESS;
 }
 
-110010,5.RT,5.RS,10,13.S1,1.S2:P7PBR1:32::BGEC
+100010,5.RT,5.RS,10,13.S1,1.S2:P7PBR1:32::BGEC
 "bgec r<RS>, r<RT>, <P7PBR1_ADDRESS>"
 *micromips32r7:
 *micromips64r7:
@@ -973,7 +976,7 @@
     NIA = P7PBR1_ADDRESS;
 }
 
-010010,5.RT,010,7.U,10.S1,1.S2:P7PBRI:32::BGEIC
+110010,5.RT,010,7.U,10.S1,1.S2:P7PBRI:32::BGEIC
 "bgeic r<RT>, <U>, <P7PBRI_ADDRESS>"
 *micromips32r7:
 *micromips64r7:
@@ -983,7 +986,7 @@
   }
 }
 
-111010,5.RT,5.RS,11,13.S1,1.S2:P7PBR2:32::BLTUC
+101010,5.RT,5.RS,11,13.S1,1.S2:P7PBR2:32::BLTUC
 "bltuc r<RS>, r<RT>, <P7PBR1_ADDRESS>"
 *micromips32r7:
 *micromips64r7:
@@ -993,7 +996,7 @@
   }
 }
 
-110010,5.RT,5.RS,11,13.S1,1.S2:P7PBR2:32::BGEUC
+100010,5.RT,5.RS,11,13.S1,1.S2:P7PBR2:32::BGEUC
 "bgeuc r<RS>, r<RT>, <P7PBR1_ADDRESS>"
 *micromips32r7:
 *micromips64r7:
@@ -1003,7 +1006,7 @@
   }
 }
 
-010010,5.RT,011,7.U,10.S1,1.S2:P7PBRI:32::BGEUIC
+110010,5.RT,011,7.U,10.S1,1.S2:P7PBRI:32::BGEUIC
 "bgeuic r<RT>, <U>, <P7PBRI_ADDRESS>"
 *micromips32r7:
 *micromips64r7:
@@ -1013,7 +1016,7 @@
   }
 }
 
-010010,5.RT,110,7.U,10.S1,1.S2:P7PBRI:32::BLTIC
+110010,5.RT,110,7.U,10.S1,1.S2:P7PBRI:32::BLTIC
 "bltic r<RT>, <U>, <P7PBRI_ADDRESS>"
 *micromips32r7:
 *micromips64r7:
@@ -1023,7 +1026,7 @@
   }
 }
 
-010010,5.RT,111,7.U,10.S1,1.S2:P7PBRI:32::BLTUIC
+110010,5.RT,111,7.U,10.S1,1.S2:P7PBRI:32::BLTUIC
 "bltuic RT, U, <P7PBRI_ADDRESS>"
 *micromips32r7:
 *micromips64r7:
@@ -1033,7 +1036,7 @@
   }
 }
 
-010010,5.RT,100,7.U,10.S1,1.S2:P7PBRI:32::BNEIC
+110010,5.RT,100,7.U,10.S1,1.S2:P7PBRI:32::BNEIC
 "bneic RT, U, <P7PBRI_ADDRESS>"
 *micromips32r7:
 *micromips64r7:
@@ -1139,7 +1142,7 @@
     CacheOp (OP, vaddr, paddr, instruction_0);
 }
 
-011010,1.RT1,1.RD,3.RT2,20.S1,1.S2:R7MOVEBALC:32::MOVE.BALC
+000010,1.RT1,1.RD,3.RT2,20.S1,1.S2:R7MOVEBALC:32::MOVE.BALC
 "move.balc r<RD1>, r<RT_5_BIT>, <ADDRESS22>"
 *micromips32r7:
 *micromips64r7:
@@ -1149,15 +1152,12 @@
   NIA = ADDRESS22;
 }
 
-100010,5.RT,5.RS,0001,12.U:R7PJ:32::JIALC.HB
-"jalrc.hb r<RS>":RT==31&&U==0
-"jalrc.hb r<RT>, r<RS>":U==0
-"jialc.hb r<RS>, <U>":RT==31
-"jialc.hb r<RT>, r<RS>, <U>"
+010010,5.RT,5.RS,0001,12.U:R7PJ:32::JALRC.HB
+"jalrc.hb r<RT>, r<RS>"
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_jialc_mm_r7 (SD_, RT, RS, U, NIA);
+  NIA = do_jalrc_mm_r7 (SD_, RT, RS, U, NIA);
   //TODO: ClearHazards()?
 }
 
@@ -1365,18 +1365,16 @@
 }
 
 
-001000,5.RT,5.C0S,00,3.SEL,0,0000110,000:R7POOL32A0:32::MFC0
-"mfc0 r<C0S>, r<RT>": SEL == 0
-"mfc0 r<C0S>, r<RT>, <SEL>"
+001000,5.RT,5.C0S,2.X1,3.SEL,1.X2,0000110,000:R7POOL32A0:32::MFC0
+"mfc0 r<RT>, r<C0S>, <SEL>"
 *micromips32r7:
 *micromips64r7:
 {
   DecodeCoproc (instruction_0, 0, cp0_mfc0, RT, C0S, SEL);
 }
 
-001000,5.RT,5.C0S,00,3.SEL,0,0001110,000:R7POOL32A0:32::MTC0
-"mtc0 r<C0S>, r<RT>": SEL == 0
-"mtc0 r<C0S>, r<RT>, <SEL>"
+001000,5.RT,5.C0S,2.X1,3.SEL,1.X2,0001110,000:R7POOL32A0:32::MTC0
+"mtc0 r<RT>, r<C0S>, <SEL>"
 *micromips32r7:
 *micromips64r7:
 {
@@ -1448,7 +1446,7 @@
   do_sltu (SD_, RS, RT, RD);
 }
 
-100000,5.RT,5.RS,11000000000,5.SHIFT:R7PSHIFT:32::SLL
+100000,5.RT!0,5.RS,1100,3.X,0000,5.SHIFT:R7PSHIFT:32::SLL
 "sll r<RT>, r<RS>, #<SHIFT>"
 *micromips32r7:
 *micromips64r7:
@@ -1616,12 +1614,12 @@
   do_muhu (SD_, RD, RS, RT);
 }
 
-001000,5.RT,5.RS,5.RD,2.U,000,001,111:R7POOL32A7:32::LSA
-"lsa r<RD>, r<RS>, r<RT>, <U + 1>"
+001000,5.RT,5.RS,5.RD,2.U,3.X,001,111:R7POOL32A7:32::LSA
+"lsa r<RD>, r<RS>, r<RT>, <U>"
 *micromips32r7:
 *micromips64r7:
 {
-  do_lsa (SD_, RD, RS, RT, U);
+  do_lsa_mm_r7 (SD_, RD, RS, RT, U);
 }
 
 001000,5.RT,5.RS,0111101,100,111,111:R7POOL32A0:32::WSBH
@@ -1793,7 +1791,15 @@
   do_lwxs (SD_, RD, RS, RT);
 }
 
-001000,10.CODE,10,00101,101,111,111:POOL32AXF5GROUP2:32::SYSCALL
+001000,10.CODE,10,00101,101,111,111:R7PSYSCALL:32::SYSCALL
+"syscall %#lx<CODE>"
+*micromips32r7:
+*micromips64r7:
+{
+  SignalException (SystemCall, instruction_0);
+}
+
+000100,00000,01,0,2.CODE:R7P16SYSCALL:16::SYSCALL16
 "syscall %#lx<CODE>"
 *micromips32r7:
 *micromips64r7:
@@ -1825,10 +1831,29 @@
   do_movn (SD_, RD, RS, RT);
 }
 
-100001,5.HINT,5.RS,0011,12.IMMEDIATE:R7POOL32C:32::PREF
-"pref <HINT>, <IMMEDIATE>(r<RS>)"
+100000,5.RT,5.RS,0110,12.IMMEDIATE:R7PU12:32::SEQI
+"seqi r<RT>, r<RS>, <IMMEDIATE>"
 *micromips32r7:
 *micromips64r7:
 {
-  do_pref (SD_, HINT, IMMEDIATE, RS);
+  GPR[RT] = (GPR[RS] == IMMEDIATE) ? 1 : 0;
 }
+
+100000,00000,5.STYPE,1100,3.X,0000,00110:R7PHB:32::SYNC
+"sync":STYPE==0
+"sync <STYPE>"
+*micromips32r7:
+*micromips64r7:
+{
+  SyncOperation (STYPE);
+}
+
+100000,00000,5.X1,1100,3.X2,0000,00011:R7PHB:32::EHB
+"ehb"
+*micromips32r7:
+*micromips64r7:
+
+100000,00000,5.X1,1100,3.X2,0000,00101:R7PHB:32::PAUSE
+"pause"
+*micromips32r7:
+*micromips64r7:
