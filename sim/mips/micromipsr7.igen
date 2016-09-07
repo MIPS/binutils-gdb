@@ -835,7 +835,8 @@
 *micromips32r7:
 *micromips64r7:
 {
-  do_store (SD_, AccessLength_WORD, GPR[RS], U, GPR[RT]);
+  do_store (SD_, AccessLength_WORD, GPR[RS], U, zero_extend(SD_, GPR[RT],
+                                                                  32));
 }
 
 110101,5.RT,5.U:R7SWSP:16::SWSP
@@ -1027,7 +1028,7 @@
 }
 
 110010,5.RT,111,7.U,10.S1,1.S2:P7PBRI:32::BLTUIC
-"bltuic RT, U, <P7PBRI_ADDRESS>"
+"bltuic r<RT>, <U>, <P7PBRI_ADDRESS>"
 *micromips32r7:
 *micromips64r7:
 {
@@ -1037,7 +1038,7 @@
 }
 
 110010,5.RT,100,7.U,10.S1,1.S2:P7PBRI:32::BNEIC
-"bneic RT, U, <P7PBRI_ADDRESS>"
+"bneic r<RT>, <U>, <P7PBRI_ADDRESS>"
 *micromips32r7:
 *micromips64r7:
 {
@@ -1329,7 +1330,10 @@
 *micromips32r7:
 *micromips64r7:
 {
-  do_lhu (SD_, RT, U, RS);
+  TRACE_ALU_INPUT3 (GPR[RT], U, GPR[RS]);
+  GPR[RT] = do_load (SD_, AccessLength_HALFWORD, GPR[RS], EXTEND16 (U));
+  TRACE_ALU_RESULT(GPR[RT]);
+
 }
 
 010001,5.RT,110,18.U:R7PLSGP:32::LHUGP
@@ -1345,7 +1349,10 @@
 *micromips32r7:
 *micromips64r7:
 {
-  do_lw (SD_, RT, U, RS);
+  TRACE_ALU_INPUT3 (GPR[RT], U, GPR[RS]);
+  GPR[RT] = EXTEND32 (do_load (SD_, AccessLength_WORD, GPR[RS],
+             EXTEND16 (U)));
+  TRACE_ALU_RESULT(GPR[RT]);
 }
 
 101001,5.RT,5.RS,1.S1,1000000,8.S2:R7SWS9:32::LWS9
@@ -1475,7 +1482,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  do_sllv (SD_, RS, RT, RD);
+  do_sllv (SD_, RT, RS, RD);
 }
 
 001000,5.RT,5.RS,5.RD,0,0001010,000:R7POOL32A0:32::SRLV
@@ -1539,7 +1546,8 @@
 *micromips32r7:
 *micromips64r7:
 {
-  GPR[RD] = do_load (SD_, AccessLength_BYTE, GPR[RS], GPR[RT]);
+  TRACE_ALU_INPUT3(GPR[RD], GPR[RS], GPR[RT]);
+  GPR[RD] = do_load (SD_, AccessLength_BYTE, GPR[RT], GPR[RS]);
 }
 
 001000,5.RT,5.RS,5.RD,0000,0,000,111:R7PPLSX:32::LBX
@@ -1567,11 +1575,19 @@
 }
 
 001000,5.RT,5.RS,5.RD,0101,1,000,111:R7PPLSXS:32::SHXS
-"shx r<RD>, r<RS>(r<RT>)"
+"shxs r<RD>, r<RS>(r<RT>)"
 *micromips32r7:
 *micromips64r7:
 {
   do_store (SD_, AccessLength_HALFWORD, GPR[RT], GPR[RS] << 1, GPR[RD]);
+}
+
+001000,5.RT,5.RS,5.RD,1001,1,000,111:R7PPLSXS:32::SWXS
+"swxs r<RD>, r<RS>(r<RT>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_store (SD_, AccessLength_WORD, GPR[RT], GPR[RS] << 2, GPR[RD]);
 }
 
 001000,5.RT,5.RS,5.RD,0001,0,000,111:R7PPLSX:32::SBX
@@ -1619,7 +1635,10 @@
 *micromips32r7:
 *micromips64r7:
 {
-  do_lsa_mm_r7 (SD_, RD, RS, RT, U);
+  TRACE_ALU_INPUT3(GPR[RD], GPR[RS], GPR[RT]);
+  // TODO: assembler needs to change first
+  // do_lsa_mm_r7 (SD_, RD, RS, RT, U);
+  do_lsa (SD_, RD, RS, RT, U);
 }
 
 001000,5.RT,5.RS,0111101,100,111,111:R7POOL32A0:32::WSBH
