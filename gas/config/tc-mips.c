@@ -9372,7 +9372,7 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	      }
 	    break;
 
-	  case 'o':
+	  case 'q':
 	    *offset_reloc = BFD_RELOC_MICROMIPSPP_20_PCREL_S1;
 	    break;
 
@@ -9910,7 +9910,8 @@ static const char * const trap_fmt[2] = { "s,t,q", "s,t,|" };
 static const char * const aclr_fmt[2] = { "\\,~(b)", "\\,+j(b)" };
 static const char * const bcondz1_fmt[2] = { "s,p", "+;,p" };
 static const char * const bcondz2_fmt[4] = { "s,p", "-t,p", "t,p" };
-static const char * const b_fmt[2] = { "p", "+8" };
+static const char * const b_fmt[2] = { "p", "+'" };
+static const char * const jal_fmt[2] = { "a", "+'"};
 static const char * const op_imm_fmt[2] = { "t,r,j", "t,r,i" };
 static const char * const pref_fmt[4] = { "k,o(b)", "k,~(b)",
 					   "k,+j(b)", "k,+j(b)" };
@@ -9938,6 +9939,8 @@ static const char * const div_fmt[2] = { "z,s,t", "d,v,t" };
 				 ? 2 : (IS_MICROMIPS_R6 (mips_opts.isa)	\
 					? 1 : 0)])
 #define B_FMT (b_fmt[IS_MICROMIPS_R7 (mips_opts.isa) ? 1 : 0])
+#define JAL_FMT (jal_fmt[(ISA_IS_PRER6 (mips_opts.isa)	\
+			  || !mips_opts.micromips) ? 0 : 1])
 #define OP_IMM_FMT (op_imm_fmt[ISA_IS_R7 (mips_opts.isa) ? 1 : 0])
 #define PREF_FMT (pref_fmt[ISA_FMT_INDEX])
 #define BITW_FMT (bitw_fmt[ISA_IS_R7 (mips_opts.isa) ? 1 : 0])
@@ -9989,6 +9992,9 @@ macro_match_micromipspp_reloc (const char *fmt, bfd_reloc_code_real_type *r)
       else
 	*r = BFD_RELOC_MICROMIPSPP_14_PCREL_S1;
     }
+  else if (*r == BFD_RELOC_MIPS_26_PCREL_S2
+	   && (*fmt == '+' && *(fmt + 1) == '\''))
+    *r = BFD_RELOC_MICROMIPSPP_25_PCREL_S1;
   else
     gas_assert (*r == BFD_RELOC_MICROMIPSPP_LO12
 		|| *r == BFD_RELOC_MICROMIPSPP_IMM14
@@ -10126,9 +10132,9 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	      fmt++;
 	      continue;
 	    }
-	  if (*(fmt + 1) != '\"' && *(fmt + 1) != '\'' && *(fmt + 1) != '8')
+	  if (*(fmt + 1) != '\"' && *(fmt + 1) != '\'')
 	    break;
-	  /* Fall through for +", +', +8 */
+	  /* Fall through for +", +' */
 	case 'p':
 	  gas_assert (ep != NULL);
 
@@ -12816,7 +12822,7 @@ macro (struct mips_cl_insn *ip, char *str)
 	      && op[0] == RA
 	      && !(history[0].insn_mo->pinfo2 & INSN2_BRANCH_DELAY_32BIT))
 	    {
-	      if (ISA_IS_R6 (mips_opts.isa))
+	      if (ISA_IS_R6 (mips_opts.isa) || ISA_IS_R7 (mips_opts.isa))
 		macro_build (NULL, s, "mp", op[1]);
 	      else
 		macro_build (NULL, s, "mj", op[1]);
@@ -12895,8 +12901,7 @@ macro (struct mips_cl_insn *ip, char *str)
       /* Fall through.  */
     case M_JAL_A:
       if (mips_pic == NO_PIC)
-	macro_build (&offset_expr, jals ? "jals" : "jal",
-		     (IS_MICROMIPS_R6 (mips_opts.isa)) ? "+'" : "a");
+	macro_build (&offset_expr, jals ? "jals" : "jal", JAL_FMT);
       else if (mips_pic == SVR4_PIC)
 	{
 	  /* If this is a reference to an external symbol, and we are
@@ -13839,12 +13844,21 @@ macro (struct mips_cl_insn *ip, char *str)
 
     case M_JRADDIUSP:
       gas_assert (mips_opts.micromips);
-      gas_assert (mips_opts.insn32);
-      start_noreorder ();
-      macro_build (NULL, "jr", "s", RA);
-      expr1.X_add_number = op[0] << 2;
-      macro_build (&expr1, "addiu", "t,r,j", SP, SP, BFD_RELOC_LO16);
-      end_noreorder ();
+      if (ISA_IS_R7 (mips_opts.isa))
+	{
+	  macro_build (&imm_expr, "addiu", ADDIU_FMT, SP, SP,
+		       BFD_RELOC_MICROMIPSPP_IMM14);
+	  macro_build (NULL, "jrc", "s", RA);
+	}
+      else
+	{
+	  gas_assert (mips_opts.insn32);
+	  start_noreorder ();
+	  macro_build (NULL, "jr", "s", RA);
+	  expr1.X_add_number = op[0] << 2;
+	  macro_build (&expr1, "addiu", "t,r,j", SP, SP, BFD_RELOC_LO16);
+	  end_noreorder ();
+	}
       break;
 
     case M_JRC:
@@ -14438,8 +14452,13 @@ macro (struct mips_cl_insn *ip, char *str)
 	 anyway.  */
       used_at = 1;
       load_register (AT, &imm_expr, dbl);
-      macro_build (NULL, dbl ? "dmult" : "mult", "s,t", op[1], AT);
-      macro_build (NULL, "mflo", MFHL_FMT, op[0]);
+      if (ISA_IS_R7 (mips_opts.isa))
+	macro_build (NULL, dbl ? "dmul" : "mul", "d,v,t", op[0], op[1], AT);
+      else
+	{
+	  macro_build (NULL, dbl ? "dmult" : "mult", "s,t", op[1], AT);
+	  macro_build (NULL, "mflo", MFHL_FMT, op[0]);
+	}
       break;
 
     case M_DMULO_I:
@@ -14995,48 +15014,89 @@ macro (struct mips_cl_insn *ip, char *str)
       break;
 
     case M_ULH_AB:
-      s = "lb";
-      s2 = "lbu";
-      off = 1;
+      if (ISA_IS_PRER6 (mips_opts.isa))
+	{
+	  s = "lb";
+	  s2 = "lbu";
+	  off = 1;
+	}
+      else
+	s = "lh";
       goto uld_st;
     case M_ULHU_AB:
-      s = "lbu";
-      s2 = "lbu";
-      off = 1;
+      if (ISA_IS_PRER6 (mips_opts.isa))
+	{
+	  s = "lbu";
+	  s2 = "lbu";
+	  off = 1;
+	}
+      else
+	s = "lh";
       goto uld_st;
     case M_ULW_AB:
-      s = "lwl";
-      s2 = "lwr";
-      offbits = (mips_opts.micromips ? 12 : 16);
-      off = 3;
+      if (ISA_IS_PRER6 (mips_opts.isa))
+	{
+	  s = "lwl";
+	  s2 = "lwr";
+	  off = 3;
+	  offbits = (mips_opts.micromips ? 12 : 16);
+	}
+      else
+	s = "lw";
       goto uld_st;
     case M_ULD_AB:
-      s = "ldl";
-      s2 = "ldr";
+      if (ISA_IS_PRER6 (mips_opts.isa))
+	{
+	  s = "ldl";
+	  s2 = "ldr";
+	  off = 7;
       offbits = (mips_opts.micromips ? 12 : 16);
-      off = 7;
+	}
+      else
+	s = "ld";
       goto uld_st;
     case M_USH_AB:
-      s = "sb";
-      s2 = "sb";
-      off = 1;
-      ust = 1;
+      if (ISA_IS_PRER6 (mips_opts.isa))
+	{
+	  s = "sb";
+	  s2 = "sb";
+	  off = 1;
+	  ust = 1;
+	}
+      else
+	s = "sh";
       goto uld_st;
-    case M_USW_AB:
-      s = "swl";
-      s2 = "swr";
-      offbits = (mips_opts.micromips ? 12 : 16);
-      off = 3;
-      ust = 1;
-      goto uld_st;
-    case M_USD_AB:
-      s = "sdl";
-      s2 = "sdr";
-      offbits = (mips_opts.micromips ? 12 : 16);
-      off = 7;
-      ust = 1;
+      case M_USW_AB:
+	if (ISA_IS_PRER6 (mips_opts.isa))
+	  {
+	    s = "swl";
+	    s2 = "swr";
+	    off = 3;
+	    ust = 1;
+	    offbits = (mips_opts.micromips ? 12 : 16);
+	  }
+	else
+	  s = "sw";
+	goto uld_st;
+      case M_USD_AB:
+	if (ISA_IS_PRER6 (mips_opts.isa))
+	  {
+	    s = "sdl";
+	    s2 = "sdr";
+	    off = 7;
+	    ust = 1;
+	    offbits = (mips_opts.micromips ? 12 : 16);
+	  }
+	else
+	  s = "sw";
 
     uld_st:
+      if (!ISA_IS_PRER6 (mips_opts.isa))
+	{
+	  fmt = "t,o(b)";
+	  goto ld_st;
+	}
+
       breg = op[2];
       large_offset = !small_offset_p (off, align, offbits);
       ep = &offset_expr;
