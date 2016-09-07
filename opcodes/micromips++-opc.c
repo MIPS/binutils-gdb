@@ -338,7 +338,8 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"break",	"+J",		0x00100000, 0xfff80000,		0,		0,	I38,		0,		0},
 {"break",	"",		0x00100000, 0xffffffff,		0,	INSN2_ALIAS,	I38,		0,		0},
 {"dvp",	"t",		0x20000390, 0xfc1fffff,		WR_1,		0,	I38,		0,		0},
-{"nop",	"",		0x9008,	0xffff,		0,		0,	I38,		0,		0}, /* NOP[16] */
+{"nop",		"",	0x9008,		0xffff,		0,		0,	I38,		0,		0}, /* NOP[16] */
+{"nop",		"",	0x8000c000,	0xffffffff,	0,		0,	I38,		0,		0}, /* NOP */
 {"sdbbp",	"+K",		0x1018,	0xfff8,		0,		0,	I38,	EJTAG,		0},
 {"sdbbp",	"+J",		0x00180000, 0xfff80000,		0,		0,	I38,		0,		0},
 {"sdbbp",	"",		0x001fffff, 0xffffffff,		0,	INSN2_ALIAS,	I38,		0,		0},
