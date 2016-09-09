@@ -1329,9 +1329,9 @@
 *micromips64r7:
 {
   TRACE_ALU_INPUT4 (GPR[RD], GPR[RD], GPR[RD], U);
-  // FIXME: Should be like this, waiting on assembler to change
-  //unsigned32 sum = (GPR[RS] << U) + GPR[RT];
-  unsigned32 sum = (GPR[RS] << U + 1) + GPR[RT];
+  unsigned32 sum = (GPR[RS] << U) + GPR[RT];
+  // old way:
+  //unsigned32 sum = (GPR[RS] << U + 1) + GPR[RT];
   GPR[RD] = EXTEND32(sum);
   TRACE_ALU_RESULT (GPR[RD]);
 }
