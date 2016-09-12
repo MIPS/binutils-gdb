@@ -13060,7 +13060,7 @@ macro (struct mips_cl_insn *ip, char *str)
       goto ld_st;
     case M_LLE_AB:
       s = "lle";
-      fmt = "t,+j(b)";
+      fmt = LL_SC_FMT;
       offbits = 9;
       goto ld_st;
     case M_LLXE_AB:
@@ -13095,7 +13095,7 @@ macro (struct mips_cl_insn *ip, char *str)
       goto ld_st;
     case M_SCE_AB:
       s = "sce";
-      fmt = "t,+j(b)";
+      fmt = LL_SC_FMT;
       offbits = 9;
       goto ld_st;
     case M_SHE_AB:
@@ -13227,9 +13227,9 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_LL_AB:
       s = "ll";
       fmt = LL_SC_FMT;
-      offbits = (ISA_IS_R6 (mips_opts.isa) ? 9
-		 : mips_opts.micromips ? 12
-		 : 16);
+      offbits = (!ISA_IS_PRER6 (mips_opts.isa) ? 9
+		     : mips_opts.micromips ? 12
+		     : 16);
       goto ld;
     case M_LLX_AB:
       s = "llx";
@@ -13342,7 +13342,7 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_SC_AB:
       s = "sc";
       fmt = LL_SC_FMT;
-      offbits = (ISA_IS_R6 (mips_opts.isa) ? 9
+      offbits = (!ISA_IS_PRER6 (mips_opts.isa) ? 9
 		 : mips_opts.micromips ? 12
 		 : 16);
       goto ld_st;

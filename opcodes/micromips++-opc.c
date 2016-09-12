@@ -700,6 +700,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"jalr.hb",	"t,s",		0x48001000, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS|CTC,	I38,	0,		0}, /* JALRC.HB */
 {"jalr.hb",	"s",		0x4be01000, 0xffe0ffff,	RD_1,		INSN2_ALIAS|CTC,	I38,	0,		0}, /* JALRC.HB */
 {"j",		"s",		0x48000000, 0xffe0ffff,	RD_1,		INSN2_ALIAS,		I38,	0,		0}, /* JALRC */
+{"j",		"+'",		0x28000000, 0xfe000000,	0, 		INSN2_ALIAS,		I38,	0,		0}, /* BC */
 /* SVR4 PIC code requires special handling for jal, so it must be a
    macro.  */
 {"jal",		"d,s",		0,    (int) M_JAL_2,	INSN_MACRO,	0,	I38,		0,		0},
