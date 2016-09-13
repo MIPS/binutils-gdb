@@ -3703,7 +3703,7 @@ validate_micromipspp_insn (const struct mips_opcode *opc,
   unsigned int length;
 
   if (opc->pinfo == INSN_MACRO)
-    return validate_mips_insn (opc, 0xffffffff, decode_micromips_operand,
+    return validate_mips_insn (opc, 0xffffffff, decode_micromipspp_operand,
 			       operands);
 
   length = micromips_insn_length (opc);
@@ -9904,6 +9904,7 @@ static const char * const addiu_fmt[2] = { "t,r,j", "-t,r,j" };
 static const char * const addiugp_fmt[2] = { "t,ma,.", "t,r,j" };
 static const char * const mem12_fmt[4] = { "t,o(b)", "t,~(b)",
 					   "t,+j(b)", "t,+m(b)" };
+static const char * const lle_sce_fmt[2] = { "t,+j(b)", "t,+m(b)" };
 static const char * const mfhl_fmt[2][2] = { { "d", "d" }, { "mj", "s" } };
 static const char * const shft_fmt[2] = { "d,w,<", "t,r,<" };
 static const char * const trap_fmt[2] = { "s,t,q", "s,t,|" };
@@ -9930,6 +9931,7 @@ static const char * const div_fmt[2] = { "z,s,t", "d,v,t" };
 #define MEM12_FMT (mem12_fmt[mips_opts.micromips			\
 			     + (ISA_IS_R7 (mips_opts.isa)? 2 : 0)])
 #define LL_SC_FMT (mem12_fmt[ISA_FMT_INDEX])
+#define LLE_SCE_FMT (lle_sce_fmt[ISA_IS_R7 (mips_opts.isa) ? 1 : 0])
 #define MFHL_FMT (mfhl_fmt[mips_opts.micromips][mips_opts.insn32])
 #define SHFT_FMT (shft_fmt[mips_opts.micromips])
 #define TRAP_FMT (trap_fmt[mips_opts.micromips])
@@ -11369,7 +11371,6 @@ static void
 macro_build_branch_rtim (int type, expressionS *ep,
 			 unsigned int sreg, expressionS *im)
 {
-  const int call = 0;
   const char *br;
 
   switch (type)
@@ -11515,21 +11516,31 @@ macro (struct mips_cl_insn *ip, char *str)
 	micromips_label_expr (&label_expr);
       else
 	label_expr.X_add_number = 8;
-      if (IS_MICROMIPS_R6 (mips_opts.isa) || IS_MICROMIPS_R7 (mips_opts.isa))
+      if (IS_MICROMIPS_R7 (mips_opts.isa))
 	{
 	  if (op[0] != op[1])
 	    move_register (op[0], op[1]);
 	  macro_build (&label_expr, "bgezc", BCONDZ1_FMT, op[1]);
+	  macro_build (NULL, dbl ? "dsubu" : "subu", "d,v,t", op[0], 0, op[1]);
 	}
       else
 	{
-	  macro_build (&label_expr, "bgez", BCONDZ1_FMT, op[1]);
-	  if (op[0] == op[1])
-	    macro_build (NULL, "nop", "");
+	  if (IS_MICROMIPS_R6 (mips_opts.isa))
+	    {
+	      if (op[0] != op[1])
+		move_register (op[0], op[1]);
+	      macro_build (&label_expr, "bgezc", BCONDZ1_FMT, op[1]);
+	    }
 	  else
-	    move_register (op[0], op[1]);
+	    {
+	      macro_build (&label_expr, "bgez", BCONDZ1_FMT, op[1]);
+	      if (op[0] == op[1])
+		macro_build (NULL, "nop", "");
+	      else
+		move_register (op[0], op[1]);
+	    }
+	  macro_build (NULL, dbl ? "dsub" : "sub", "d,v,t", op[0], 0, op[1]);
 	}
-      macro_build (NULL, dbl ? "dsub" : "sub", "d,v,t", op[0], 0, op[1]);
       if (mips_opts.micromips)
 	micromips_add_label ();
 
@@ -11683,6 +11694,21 @@ macro (struct mips_cl_insn *ip, char *str)
 	  macro_build_branch_rsrt (likely ? M_BEQL : M_BEQ,
 				   &offset_expr, AT, ZERO);
 	}
+      break;
+
+    case M_BGEZAL:
+      s = "bltzc";
+      goto brcond_al;
+    case M_BLTZAL:
+      s = "bgezc";
+    brcond_al:
+      gas_assert (IS_MICROMIPS_R7 (mips_opts.isa));
+      start_noreorder ();
+      micromips_label_expr (&label_expr);
+      macro_build (&label_expr, s, BCONDZ1_FMT, op[0]);
+      macro_build (&offset_expr, "balc", B_FMT);
+      micromips_add_label ();
+      end_noreorder ();
       break;
 
     case M_BGEZL:
@@ -11941,6 +11967,18 @@ macro (struct mips_cl_insn *ip, char *str)
 	  macro_build_branch_rsrt (likely ? M_BNEL : M_BNE,
 				   &offset_expr, AT, ZERO);
 	}
+      break;
+
+    case M_EXT:
+      gas_assert (IS_MICROMIPS_R7 (mips_opts.isa));
+      /* TODO */
+      gas_assert (FALSE);
+      break;
+
+    case M_INS:
+      gas_assert (IS_MICROMIPS_R7 (mips_opts.isa));
+      /* TODO */
+      gas_assert (FALSE);
       break;
 
     case M_DDIV_3:
@@ -12786,7 +12824,10 @@ macro (struct mips_cl_insn *ip, char *str)
       /* The j instruction may not be used in PIC code, since it
 	 requires an absolute address.  We convert it to a b
 	 instruction.  */
-      if (mips_pic == NO_PIC)
+      /* Likewise for R7 which has no absolute jump instruction.  */
+      if (ISA_IS_R7 (mips_opts.isa))
+	macro_build (&offset_expr, "bc", B_FMT);
+      else if (mips_pic == NO_PIC)
 	macro_build (&offset_expr, "j", "a");
       else
 	macro_build (&offset_expr, "b", B_FMT);
@@ -13060,7 +13101,7 @@ macro (struct mips_cl_insn *ip, char *str)
       goto ld_st;
     case M_LLE_AB:
       s = "lle";
-      fmt = LL_SC_FMT;
+      fmt = LLE_SCE_FMT;
       offbits = 9;
       goto ld_st;
     case M_LLXE_AB:
@@ -13095,7 +13136,7 @@ macro (struct mips_cl_insn *ip, char *str)
       goto ld_st;
     case M_SCE_AB:
       s = "sce";
-      fmt = LL_SC_FMT;
+      fmt = LLE_SCE_FMT;
       offbits = 9;
       goto ld_st;
     case M_SHE_AB:
