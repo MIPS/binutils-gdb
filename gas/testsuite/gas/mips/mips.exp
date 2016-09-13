@@ -333,6 +333,9 @@ proc run_dump_test_arch { name opts arch } {
     if { [ string match "micromipsr6" $proparch ]} {
 	lappend prefixes micromips@
     }
+    if { [ string match "micromipsr7" $proparch ]} {
+	lappend prefixes micromips@
+    }
     foreach prefix ${prefixes} {
 	set archname ${prefix}${name}
 	if { [file exists "$srcdir/$subdir/${archname}.d"] } {
@@ -384,6 +387,9 @@ proc run_list_test_arch { name opts arch } {
 	lappend prefixes mipsr6@
     }
     if { [ string match "micromipsr6" $proparch ]} {
+	lappend prefixes micromips@
+    }
+    if { [ string match "micromipsr7" $proparch ]} {
 	lappend prefixes micromips@
     }
     foreach prefix ${prefixes} {
@@ -482,6 +488,8 @@ mips_arch_create micromips 64	mips64r2 {} \
 			{ -march=mips64r2 -mmicromips } {}
 mips_arch_create micromipsr6 64	mips64r6 {} \
 			{ -march=mips64r6 -mmicromips --defsym r6= --defsym compact_branches=} {}
+mips_arch_create micromipsr7 32	"" {} \
+			{ -march=mips32r7 -mmicromips --defsym r7= --defsym compact_branches=} {}
 mips_arch_create r3000 	32	mips1	{} \
 			{ -march=r3000 -mtune=r3000 } { -mmips:3000 }
 mips_arch_create r3900 	32	mips1	{ gpr_ilocks } \
@@ -560,7 +568,7 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test_arches "bgeu"		[mips_arch_list_matching mips1]
     run_dump_test_arches "blt"		[mips_arch_list_matching mips1]
     run_dump_test_arches "bltu"		[mips_arch_list_matching mips1]
-    run_dump_test_arches "branch-likely" [mips_arch_list_matching mips2 !mips32r6 !micromipsr6]
+    run_dump_test_arches "branch-likely" [mips_arch_list_matching mips2 !mips32r6 !micromipsr6 !micromipsr7]
     run_dump_test_arches "branch-misc-1" [mips_arch_list_matching mips1]
     run_dump_test_arches "branch-misc-2" [mips_arch_list_matching mips1]
     run_dump_test_arches "branch-misc-2pic" [mips_arch_list_matching mips1]
@@ -586,8 +594,8 @@ if { [istarget mips*-*-vxworks*] } {
 	run_dump_test_arches "dli"	[mips_arch_list_matching mips3]
     }
     run_dump_test_arches "jal"		[mips_arch_list_matching mips1]
-    run_dump_test_arches "jal-mask-11"	[mips_arch_list_matching mips1 !micromipsr6]
-    run_dump_test_arches "jal-mask-12"	[mips_arch_list_matching mips1 !micromipsr6]
+    run_dump_test_arches "jal-mask-11"	[mips_arch_list_matching mips1 !micromipsr6 !micromipsr7]
+    run_dump_test_arches "jal-mask-12"	[mips_arch_list_matching mips1 !micromipsr6 !micromipsr7]
     run_dump_test_arches "jal-mask-21"	[mips_arch_list_matching micromips]
     run_dump_test_arches "jal-mask-22"	[mips_arch_list_matching micromips]
     run_dump_test "eret-1"
@@ -957,14 +965,15 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test "elf-rel25a"
     run_dump_test "elf-rel26"
 
-    run_dump_test_arches "elf-rel27" [mips_arch_list_all]
+    run_dump_test_arches "elf-rel27" [mips_arch_list_matching mips1]
 
     if $has_newabi {
 	run_dump_test "elf-rel28-n32"
 	run_dump_test "elf-rel28-n64"
 	run_dump_test_arches "elf-rel29" [mips_arch_list_matching mips3]
     }
-    run_list_test_arches "elf-rel30" "-32" [mips_arch_list_all]
+    run_list_test_arches "elf-rel30" "-32" [mips_arch_list_matching mips1 \
+					    !micromipsr7]
 
     run_dump_test "${tmips}mips${el}16-e"
     run_dump_test "${tmips}mips${el}16-f"
@@ -977,14 +986,14 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test "tls-relw"
     run_dump_test "jalr2"
     run_dump_test_arches "jalr3"	[mips_arch_list_matching mips1 \
-					    !micromips !micromipsr6]
+					    !micromips !micromipsr6 !micromipsr7]
     if $has_newabi {
 	run_dump_test_arches "jalr3-n32" \
 					[mips_arch_list_matching mips3 \
-					    !micromips !micromipsr6]
+					    !micromips !micromipsr6 !micromipsr7]
 	run_dump_test_arches "jalr3-n64" \
 					[mips_arch_list_matching mips3 \
-					    !micromips !micromipsr6]
+					    !micromips !micromipsr6 !micromipsr7]
     }
 
     run_dump_test_arches "aent"	[mips_arch_list_matching mips1]
@@ -993,11 +1002,11 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test_arches "branch-misc-4-64"	[mips_arch_list_matching mips3]
 
     run_dump_test_arches "loc-swap"	[mips_arch_list_matching mips1 \
-					    !micromipsr6]
+					    !micromipsr6 !micromipsr7]
     run_dump_test_arches "loc-swap-dis"	[mips_arch_list_matching mips1 \
-					    !micromipsr6]
+					    !micromipsr6 !micromipsr7]
     run_dump_test_arches "loc-swap-2"	[mips_arch_list_matching mips1 \
-					    !micromipsr6]
+					    !micromipsr6 !micromipsr7]
     run_dump_test_arches "loc-swap-3"	[mips_arch_list_all]
 
     run_dump_test "nan-legacy-1"
@@ -1069,7 +1078,7 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test "hwr-names-mips32r2"
     run_dump_test "hwr-names-mips64r2"
     run_dump_test_arches "hwr-names" \
-		  [mips_arch_list_matching mips32r6 !micromipsr6]
+		  [mips_arch_list_matching mips32r6 !micromipsr6 !micromipsr7]
 
     run_dump_test "ldstla-32"
     run_dump_test "ldstla-32-mips3"
@@ -1219,8 +1228,8 @@ if { [istarget mips*-*-vxworks*] } {
 
     run_dump_test_arches "mcu"		[mips_arch_list_matching mips32r2 \
 					    !octeon !interaptivmr2]
-    run_dump_test_arches "hilo-diff-eb"	[mips_arch_list_all]
-    run_dump_test_arches "hilo-diff-el"	[mips_arch_list_all]
+    run_dump_test_arches "hilo-diff-eb"	[mips_arch_list_matching mips1 !micromipsr7]
+    run_dump_test_arches "hilo-diff-el"	[mips_arch_list_matching mips1 !micromipsr7]
     if $has_newabi {
 	run_dump_test_arches "hilo-diff-eb-n32" [mips_arch_list_matching mips3]
 	run_dump_test_arches "hilo-diff-el-n32" [mips_arch_list_matching mips3]
@@ -1263,12 +1272,12 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test "l_d-reloc"
     run_list_test "bltzal"
 
-    run_dump_test_arches "msa"		[mips_arch_list_matching mips32r2 !micromipsr6]
-    run_dump_test_arches "msa64"	[mips_arch_list_matching mips64r2 !micromipsr6]
+    run_dump_test_arches "msa"		[mips_arch_list_matching mips32r2 !micromipsr6 !micromipsr7]
+    run_dump_test_arches "msa64"	[mips_arch_list_matching mips64r2 !micromipsr6 !micromipsr7]
     run_dump_test_arches "msa-relax"	[mips_arch_list_matching mips32r2 !mips32r6]
-    run_dump_test_arches "msa-branch"	[mips_arch_list_matching mips32r2 !micromipsr6]
+    run_dump_test_arches "msa-branch"	[mips_arch_list_matching mips32r2 !micromipsr6 !micromipsr7]
 
-    run_dump_test_arches "mxu"		[mips_arch_list_matching mips32 !micromips !octeon !micromipsr6]
+    run_dump_test_arches "mxu"		[mips_arch_list_matching mips32 !micromips !octeon !micromipsr6 !micromipsr7]
     run_dump_test_arches "xpa"		[mips_arch_list_matching mips32r2]
     run_dump_test_arches "r5" "-32"	[mips_arch_list_matching mips32r5]
 
@@ -1473,16 +1482,16 @@ if { [istarget mips*-*-vxworks*] } {
 
     run_dump_test "li-d"
 
-    run_dump_test_arches "r6"		[mips_arch_list_matching mips32r6 !micromipsr6]
+    run_dump_test_arches "r6"		[mips_arch_list_matching mips32r6 !micromipsr6 !micromipsr7]
     if $has_newabi {
-	run_dump_test_arches "r6-n32"	[mips_arch_list_matching mips64r6 !micromipsr6]
-	run_dump_test_arches "r6-n64"	[mips_arch_list_matching mips64r6 !micromipsr6]
-	run_dump_test_arches "r6-64-n32"	[mips_arch_list_matching mips64r6 !micromipsr6]
-	run_dump_test_arches "r6-64-n64"	[mips_arch_list_matching mips64r6 !micromipsr6]
+	run_dump_test_arches "r6-n32"	[mips_arch_list_matching mips64r6 !micromipsr6 !micromipsr7]
+	run_dump_test_arches "r6-n64"	[mips_arch_list_matching mips64r6 !micromipsr6 !micromipsr7]
+	run_dump_test_arches "r6-64-n32"	[mips_arch_list_matching mips64r6 !micromipsr6 !micromipsr7]
+	run_dump_test_arches "r6-64-n64"	[mips_arch_list_matching mips64r6 !micromipsr6 !micromipsr7]
 	run_list_test_arches "ldpc-unalign" "-64" [mips_arch_list_matching mips64r6]
     }
-    run_list_test_arches "r6-removed"	"-32" [mips_arch_list_matching mips32r6 !micromipsr6]
-    run_list_test_arches "r6-64-removed"	[mips_arch_list_matching mips64r6 !micromipsr6]
+    run_list_test_arches "r6-removed"	"-32" [mips_arch_list_matching mips32r6 !micromipsr6 !micromipsr7]
+    run_list_test_arches "r6-64-removed"	[mips_arch_list_matching mips64r6 !micromipsr6 !micromipsr7]
 
     run_list_test_arches "r6-branch-constraints"	[mips_arch_list_matching mips32r6]
 
@@ -1496,4 +1505,22 @@ if { [istarget mips*-*-vxworks*] } {
                               [mips_arch_list_matching mips32r6 !mips64r6]
     run_list_test_arches "ur6-ctc-err" "-32 -mmicromips" \
                               [mips_arch_list_matching mips32r6 !mips64r6]
+
+    run_dump_test "ur7"
+    run_dump_test "ur7-ctc"
+#    run_dump_test "ur7-relax" - TODO
+
+    run_dump_test "ur7-noxlp"
+    run_dump_test "ur7-ld"
+    run_dump_test "ur7-l_d"
+    run_dump_test "ur7-sd"
+    run_dump_test "ur7-s_d"
+    run_dump_test "ur7-lw"
+    run_dump_test "ur7-sw"
+    run_dump_test "ur7-ldc1"
+    run_dump_test "ur7-sdc1"
+    run_dump_test "ur7-save"
+    run_dump_test "ur7-dsp"
+    run_dump_test "ur7-dspr2"
+    run_dump_test "ur7-mt"
 }

@@ -38,6 +38,18 @@
 	sdc1	\ops
 	.endm
 	.endif
+# If defined, test lw instead.
+	.ifdef	tlw
+	.macro	lw ops:vararg
+	lw	\ops
+	.endm
+	.endif
+# If defined, test sw instead.
+	.ifdef	tsw
+	.macro	sw ops:vararg
+	sw	\ops
+	.endm
+	.endif
 
 	.macro	data
 	.bss
