@@ -991,9 +991,9 @@ const struct mips_opcode micromipspp_opcodes[] =
 */
 {"sb",		"mq,mL(ml)",		0x1404,	0xfc0c,	RD_1|RD_3,		0,	I38,		0,		0}, /* SB[16] */
 {"sb",		"t,+1(ma)",		0x44040000, 0xfc1c0000,	RD_1|RD_3,		0,	I38,		0,		0}, /* SB[GP] */
-{"sb",		"t,A(b)",		0,    (int) M_SB_AB,	INSN_MACRO,		0,	I38,		0,		0},
 {"sb",		"t,o(b)",		0x84001000, 0xfc00f000,	RD_1|RD_3,		0,	I38,		0,		0},
 {"sb",		"t,+j(b)",		0xa4000800, 0xfc007f00,	RD_1|RD_3,		0,	I38,		0,		0}, /* SB[S9] */
+{"sb",		"t,A(b)",		0,    (int) M_SB_AB,	INSN_MACRO,		0,	I38,		0,		0},
 {"sbe",	"t,+j,(b)",		0xa4000c00, 0xfc007f00,	RD_1|RD_3,		0,	0,	EVA,		0},
 {"sbx",	"d,s(t)",		0x20000087, 0xfc0007ff, RD_1|RD_2|RD_3,		0,	0,	XLP,		0},
 {"sc",		"t,+m(b)",		0xa4004900, 0xfc007f03,	MOD_1|RD_3,		0,	I38,		0,		0},
