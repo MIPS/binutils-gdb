@@ -287,47 +287,40 @@
     {
       idx = first_gpr-16;
       GPR[idx] = EXTEND32 (do_load(SD_, AccessLength_WORD, va -= 4, 0));
+
     }
   else if (first_gpr == 28)
     {
       idx = 28;
       GPR[idx] = EXTEND32 (do_load(SD_, AccessLength_WORD, va -= 4, 0));
-      //do_store (SD_, AccessLength_WORD, va -= 4, 0, GPR[idx]);
     }
   else if (first_gpr == 30)
     {
       idx = 30;
       GPR[idx] = EXTEND32 (do_load(SD_, AccessLength_WORD, va -= 4, 0));
-      //do_store (SD_, AccessLength_WORD, va -= 4, 0, GPR[idx]);
     }
   else if (first_gpr == 31)
     {
       idx = 31;
       GPR[idx] = EXTEND32 (do_load(SD_, AccessLength_WORD, va -= 4, 0));
-      //do_store (SD_, AccessLength_WORD, va -= 4, 0, GPR[idx]);
     }
-
   while (num_pending > 0)
     {
       if (fp_pending)
         {
           GPR[idx] = EXTEND32 (do_load(SD_, AccessLength_WORD, va -= 4, 0));
-          //do_store (SD_, AccessLength_WORD, va -= 4, 0, GPR[30]);
           fp_pending = 0;
         }
       else if (gp_pending)
         {
           GPR[idx] = EXTEND32 (do_load(SD_, AccessLength_WORD, va -= 4, 0));
-          //do_store (SD_, AccessLength_WORD, va -= 4, 0, GPR[31]);
           gp_pending = 0;
         }
       else
         {
           idx = 16 | (num_pending - 1);
-          //do_store (SD_, AccessLength_WORD, va -= 4, 0, GPR[idx]);
           GPR[idx] = EXTEND32 (do_load(SD_, AccessLength_WORD, va -= 4, 0));
         }
-
         num_pending--;
     }
 
@@ -363,6 +356,7 @@
 // op: 0 = NORMAL,  1 = EXTEND8, 2 = EXTEND16, 3 = EXTEND32
 :function:::void:do_lxx_mmr7:int rd, int base, int index, int op
 {
+  TRACE_ALU_INPUT3(GPR[rd], GPR[index], GPR[base]);
   if (op == 0)
     GPR[rd] = do_load (SD_, AccessLength_BYTE, GPR[base], GPR[index]);
   else if (op == 1)
@@ -374,6 +368,7 @@
   else if (op == 3)
     GPR[rd] = EXTEND32 (do_load (SD_, AccessLength_WORD, GPR[base],
                                  GPR[index]));
+  TRACE_ALU_RESULT(GPR[rd]);
 }
 
 :function:::void:do_lsa_mm_r7:int rd, int rs, int rt, unsigned immediate
@@ -519,8 +514,10 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT1(RA);
   RA = NIA | isa_mode;
   NIA = ADDRESS11;
+  TRACE_ALU_RESULT(RA);
 }
 
 000110,9.S1,1.S2:R7BC16:16::BC16
@@ -573,6 +570,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT1(RA);
   RA = NIA | isa_mode;
   NIA = process_isa_mode (SD_, GPR[TRT]);
 }
@@ -582,6 +580,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT1(GPR[TRT]);
   NIA = process_isa_mode (SD_, GPR[TRT]);
 }
 
@@ -680,13 +679,13 @@
 }
 
 010100,3.RT,3.RS,3.RD,1:R7POOL16C_0:16::LWXS16
-"lwxs r<TRD>, r<TRS>, r<TRT>"
+"lwxs r<TRD>, r<TRS>(r<TRT>)"
 *micromips32r7:
 *micromips64r7:
 {
   TRACE_ALU_INPUT3(GPR[TRD], GPR[TRS], GPR[TRT]);
-  GPR[TRD] = EXTEND32 (do_load (SD_, AccessLength_WORD, GPR[TRS] << 2,
-                                GPR[TRT]));
+  GPR[TRD] = EXTEND32 (do_load (SD_, AccessLength_WORD, GPR[TRT],
+                                GPR[TRS] << 2));
   TRACE_ALU_RESULT(GPR[TRD]);
 }
 
@@ -896,10 +895,14 @@
   address_word address = NIA + AXUIPC_S;
   if (RT == 0)
   {
+    TRACE_ALU_INPUT2(GPR[GPIDX], address);
     GPR[GPIDX] = address & ~0xfff;
+    TRACE_ALU_RESULT(GPR[GPIDX]);
   }
   else {
+    TRACE_ALU_INPUT2(GPR[RT], address);
     GPR[RT] = address;
+    TRACE_ALU_RESULT(GPR[RT]);
   }
 }
 
@@ -911,12 +914,18 @@
   do_addu (SD_, RS, RT, RD);
 }
 
-001000,5.RT,5.RS,5.RD,2.IMMEDIATE,000,011,111:R7POOL32A0:32::ALIGN
+001000,5.RT,5.RS,5.RD,5.IMMEDIATE,011,111:R7POOL32A0:32::ALIGN
 "align r<RD>, r<RS>, r<RT>, <IMMEDIATE>"
 *micromips32r7:
 *micromips64r7:
 {
-  do_align (SD_, RD, RS, RT, IMMEDIATE);
+  //do_align (SD_, RD, RS, RT, IMMEDIATE);
+  unsigned64 tmp = (GPR[RT] << 32) | GPR[RS];
+  TRACE_ALU_INPUT4 (GPR[RD], GPR[RS], GPR[RT], tmp);
+  // FIXME: check if tmp is calculated correctly
+  GPR[RD] = EXTEND32 (tmp >> IMMEDIATE);
+  TRACE_ALU_RESULT (GPR[RD]);
+
 }
 
 001000,5.RT,5.RS,5.RD,0,1001010,000:R7POOL32A0:32::AND
@@ -940,8 +949,10 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT1(RA);
   RA = NIA | isa_mode;
   NIA = ADDRESS26;
+  TRACE_ALU_RESULT(RA);
 }
 
 001010,0,24.S1,1.S2:R7PBAL:32::BC
@@ -957,6 +968,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT2(GPR[RS], GPR[RT]);
   if (GPR[RS] == GPR[RT])
     NIA = ADDRESS15;
 }
@@ -966,6 +978,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT2(GPR[RT], U);
   if (GPR[RT] == U) {
     NIA = ADDRESS12;
   }
@@ -976,6 +989,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT1(GPR[RT]);
   if (GPR[RT] == 0)
     NIA = ADDRESS21;
 }
@@ -985,6 +999,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT2(GPR[RS], GPR[RT]);
   if ((signed_word) GPR[RS] >= (signed_word) GPR[RT])
     NIA = ADDRESS15;
 }
@@ -994,6 +1009,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT2(GPR[RT], U);
   if ((signed_word) GPR[RT] >= U) {
     NIA = ADDRESS12;
   }
@@ -1004,6 +1020,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT2(GPR[RS], GPR[RT]);
   if ((unsigned_word) (GPR[RS]) >= (unsigned_word)(GPR[RT])) {
     NIA = ADDRESS15;
   }
@@ -1014,6 +1031,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT2(GPR[RT], U);
   if ((unsigned_word) GPR[RT] >= U) {
     NIA = ADDRESS12;
   }
@@ -1032,6 +1050,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT2(GPR[RS], GPR[RT]);
   if ((signed_word) GPR[RS] < (signed_word) GPR[RT])
     NIA = ADDRESS15;
 }
@@ -1041,6 +1060,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT2(GPR[RT], U);
   if ((signed_word) GPR[RT] < U) {
     NIA = ADDRESS12;
   }
@@ -1051,16 +1071,18 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT2(GPR[RS], GPR[RT]);
   if ((unsigned_word) GPR[RS] < (unsigned_word) GPR[RT]) {
     NIA = ADDRESS15;
   }
 }
 
 110010,5.RT,111,7.U,10.S1,1.S2:P7PBRI:32::BLTUIC
-"bltuic RT, U, <ADDRESS12>"
+"bltuic <RT>, <U>, <ADDRESS12>"
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT2(GPR[RT], U);
   if ((unsigned_word) GPR[RT] < U) {
     NIA = ADDRESS12;
   }
@@ -1071,6 +1093,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT2(GPR[RS], GPR[RT]);
   if (GPR[RS] != GPR[RT])
     NIA = ADDRESS15;
 }
@@ -1080,6 +1103,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT2(GPR[RT], U);
   if (GPR[RT] != U) {
     NIA = ADDRESS12;
   }
@@ -1090,6 +1114,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT1(GPR[RT]);
   if (GPR[RT] != 0)
     NIA = ADDRESS21;
 }
@@ -1192,7 +1217,7 @@
   if (LSB + MSBD + 1 > 32)
     Unpredictable ();
 
-  TRACE_ALU_INPUT3 (GPR[RS], LSB,  MSBD + 1);
+  TRACE_ALU_INPUT4 (GPR[RT], GPR[RS], LSB,  MSBD + 1);
   GPR[RT] = EXTEND32 (zero_extend(SD_, GPR[RS] >> LSB, MSBD + 1));
   TRACE_ALU_RESULT1 (GPR[RT]);
 }
@@ -1205,20 +1230,28 @@
   do_ins_mm_r7 (SD_, RT, RS, INS_POS, INS_SIZE);
 }
 
-010010,5.RT,5.RS,0000,12.U:R7PJ:32::JALRC
+010010,5.RT,5.RS,0000,12.X:R7PJ:32::JALRC
 "jalrc.hb r<RT>, r<RS>"
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_jalrc_mm_r7 (SD_, RT, RS, U, NIA);
+  //NIA = do_jalrc_mm_r7 (SD_, RT, RS, U, NIA);
+  GPR[RT] = NIA | isa_mode;
+  unsigned_word address = GPR[RS];
+  isa_mode = address & 1;
+  NIA = address & ~1;
 }
 
-010010,5.RT,5.RS,0001,12.U:R7PJ:32::JALRC.HB
+010010,5.RT,5.RS,0001,12.X:R7PJ:32::JALRC.HB
 "jalrc.hb r<RT>, r<RS>"
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_jalrc_mm_r7 (SD_, RT, RS, U, NIA);
+  //NIA = do_jalrc_mm_r7 (SD_, RT, RS, U, NIA);
+  GPR[RT] = NIA | isa_mode;
+  unsigned_word address = GPR[RS];
+  isa_mode = address & 1;
+  NIA = address & ~1;
   //TODO: ClearHazards()?
 }
 
@@ -1227,7 +1260,9 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT3(GPR[RT], U, GPR[RS]);
   GPR[RT] = EXTEND8 (do_load (SD_, AccessLength_BYTE, GPR[RS],U));
+  TRACE_ALU_RESULT(GPR[RT]);
 }
 
 010001,5.RT,000,18.U:R7PLSGP:32::LBGP
@@ -1235,7 +1270,9 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT3(GPR[RT], U, GP);
   GPR[RT] = EXTEND8 (do_load (SD_, AccessLength_BYTE, GP, U));
+  TRACE_ALU_RESULT(GPR[RT]);
 }
 
 101001,5.RT,5.RS,1.S1,0000000,8.S2:R7PLSS0:32::LBS9
@@ -1243,7 +1280,9 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT3(GPR[RT], S_9_BIT, GPR[RS]);
   GPR[RT] = EXTEND8 (do_load (SD_, AccessLength_BYTE, GPR[RS], S_9_BIT));
+  TRACE_ALU_RESULT(GPR[RT]);
 }
 
 100001,5.RT,5.RS,0010,12.U:R7PLSU12:32::LBU
@@ -1251,7 +1290,9 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT3(GPR[RT], U, GPR[RS]);
   GPR[RT] = do_load (SD_, AccessLength_BYTE, GPR[RS], U);
+  TRACE_ALU_RESULT(GPR[RT]);
 }
 
 010001,5.RT,010,18.U:R7PLSGP:32::LBUGP
@@ -1259,7 +1300,9 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT3(GPR[RT], U, GP);
   GPR[RT] = do_load (SD_, AccessLength_BYTE, GP, U);
+  TRACE_ALU_RESULT(GPR[RT]);
 }
 
 101001,5.RT,5.RS,1.S1,0010,0,00,8.S2:R7PLSS0:32::LBUS9
@@ -1267,7 +1310,9 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT3(GPR[RT], S_9_BIT, GPR[RS]);
   GPR[RT] = do_load (SD_, AccessLength_BYTE, GPR[RS], S_9_BIT);
+  TRACE_ALU_RESULT(GPR[RT]);
 }
 
 001000,5.RT,5.RS,5.RD,0010,0,000,111:R7PPLSX:32::LBUX
@@ -1291,7 +1336,9 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT3(GPR[RT], U, GPR[RS]);
   GPR[RT] = EXTEND16 (do_load (SD_, AccessLength_HALFWORD, GPR[RS], U));
+  TRACE_ALU_RESULT(GPR[RT]);
 }
 
 010001,5.RT,100,18.U:R7PLSGP:32::LHGP
@@ -1299,7 +1346,9 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT3(GPR[RT], U, GP);
   GPR[RT] = EXTEND16 (do_load (SD_, AccessLength_HALFWORD, GP, U));
+  TRACE_ALU_RESULT(GPR[RT]);
 }
 
 101001,5.RT,5.RS,1.S1,0100,0,00,8.S2:R7PLSS0:32::LHS9
@@ -1307,7 +1356,9 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT3(GPR[RT], S_9_BIT, GPR[RS]);
   GPR[RT] = EXTEND16 (do_load (SD_, AccessLength_HALFWORD, GPR[RS], S_9_BIT));
+  TRACE_ALU_RESULT(GPR[RT]);
 }
 
 100001,5.RT,5.RS,0110,12.U:R7PLSU12:32::LHU
@@ -1315,7 +1366,9 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT3(GPR[RT], U, GPR[RS]);
   GPR[RT] = do_load (SD_, AccessLength_HALFWORD, GPR[RS], U);
+  TRACE_ALU_RESULT(GPR[RT]);
 }
 
 010001,5.RT,110,18.U:R7PLSGP:32::LHUGP
@@ -1323,7 +1376,9 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT3(GPR[RT], U, GP);
   GPR[RT] = do_load (SD_, AccessLength_HALFWORD, GP, U);
+  TRACE_ALU_RESULT(GPR[RT]);
 }
 
 101001,5.RT,5.RS,1.S1,0110,0,00,8.S2:R7PLSS0:32::LHUS9
@@ -1331,7 +1386,9 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT3(GPR[RT], S_9_BIT, GPR[RS]);
   GPR[RT] = do_load (SD_, AccessLength_HALFWORD, GPR[RS], S_9_BIT);
+  TRACE_ALU_RESULT(GPR[RT]);
 }
 
 001000,5.RT,5.RS,5.RD,0110,0,000,111:R7PPLSX:32::LHUX
@@ -1339,7 +1396,9 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT3(GPR[RD], GPR[RS], GPR[RT]);
   GPR[RD] = do_load (SD_, AccessLength_HALFWORD, GPR[RT], GPR[RS]);
+  TRACE_ALU_RESULT(GPR[RD]);
 }
 
 001000,5.RT,5.RS,5.RD,0110,1,000,111:R7PPLSXS:32::LHUXS
@@ -1347,7 +1406,9 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT3(GPR[RD], GPR[RS], GPR[RT]);
   GPR[RD] = do_load (SD_, AccessLength_HALFWORD, GPR[RT], GPR[RS] << 1);
+  TRACE_ALU_RESULT(GPR[RD]);
 }
 
 001000,5.RT,5.RS,5.RD,0100,0,000,111:R7PPLSX:32::LHX
@@ -1363,8 +1424,10 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT3(GPR[RD], GPR[RS], GPR[RT]);
   GPR[RD] = EXTEND16 (do_load (SD_, AccessLength_HALFWORD, GPR[RT],
                      GPR[RS] << 1));
+  TRACE_ALU_RESULT(GPR[RD]);
 }
 
 101001,5.RT,5.RS,1.S1,1000,0,01,6.S2,00:R7PLL:32::LL
@@ -1372,7 +1435,9 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT3(GPR[RT], S_9_BIT_LL, GPR[RS]);
   do_ll (SD_, RT, S_9_BIT_LL, RS);
+  TRACE_ALU_RESULT(GPR[RT]);
 }
 
 001000,5.RT,5.RS,5.RD,2.U,000,001,111:R7POOL32A7:32::LSA
@@ -1380,7 +1445,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  TRACE_ALU_INPUT4 (GPR[RD], GPR[RD], GPR[RD], U);
+  TRACE_ALU_INPUT4 (GPR[RD], GPR[RS], GPR[RT], U);
   unsigned32 sum = (GPR[RS] << U) + GPR[RT];
   // old way:
   //unsigned32 sum = (GPR[RS] << U + 1) + GPR[RT];
@@ -1389,12 +1454,13 @@
 }
 
 111000,5.RT,9.S1,10.S2,0,1.S3:R7PLUI:32::LUI
-"lui r<RT>, <AXUIPC_S>"
+"lui r<RT>, <AXUIPC_S_HI>, <AXUIPC_S_LO>":AXUIPC_S_LO != 0
+"lui r<RT>, <AXUIPC_S_HI>"
 *micromips32r7:
 *micromips64r7:
 {
-  TRACE_ALU_INPUT2 (GPR[0], AXUIPC_S);
-  GPR[RT] = EXTEND32 (GPR[0] + AXUIPC_S);
+  TRACE_ALU_INPUT2 (GPR[RT], AXUIPC_S);
+  GPR[RT] = EXTEND32 (AXUIPC_S);
   TRACE_ALU_RESULT (GPR[RT]);
 }
 
@@ -1403,7 +1469,9 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT3(GPR[RT], U, GPR[RS]);
   GPR[RT] = EXTEND32 (do_load (SD_, AccessLength_WORD, GPR[RS], U));
+  TRACE_ALU_RESULT(GPR[RT]);
 }
 
 101001,5.RT,5.RS,1.S1,1000000,8.S2:R7SWS9:32::LWS9
@@ -1411,7 +1479,9 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT3(GPR[RT], S_9_BIT, GPR[RS]);
   GPR[RT] = EXTEND32 (do_load (SD_, AccessLength_WORD, GPR[RS], S_9_BIT));
+  TRACE_ALU_RESULT(GPR[RT]);
 }
 
 010000,5.RT,19.U,10:R7LWGP:32::LWGP
@@ -1419,7 +1489,9 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT3(GPR[RT], U_SHIFT_2BIT, GP);
   GPR[RT] = EXTEND32 (do_load (SD_, AccessLength_WORD, GP, U_SHIFT_2BIT));
+  TRACE_ALU_RESULT(GPR[RT]);
 
 }
 
@@ -1437,9 +1509,10 @@
 *micromips32r7:
 *micromips64r7:
 {
-  //do_lwxs (SD_, RD, RS, RT);
+  TRACE_ALU_INPUT3(GPR[RD], GPR[RS], GPR[RT]);
   GPR[RD] = EXTEND32 (do_load (SD_, AccessLength_WORD, GPR[RT],
                                GPR[RS] << 2));
+  TRACE_ALU_RESULT(GPR[RD]);
 }
 
 001000,5.RT,5.RS,5.RD,0,1010010,000:R7POOL32A0:32::OR
