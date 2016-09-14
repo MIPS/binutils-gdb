@@ -40,11 +40,10 @@
 :compute:::int:INS_SIZE:LSB,MSBD:(1 + MSBD - LSB)
 :compute:::address_word:ADDRESS12:S1,S2:(nia + EXTEND12(S2 << 11 | S1 << 1))
 :compute:::address_word:ADDRESS15:S1,S2:(nia + EXTEND15(S2 << 14 | S1 << 1))
-:compute:::int:S_7_BIT:S1,S2:(EXTEND7((S1 << 6) | S2))
 :compute:::int:S_14_BIT:S1,S2:(EXTEND14 ((S1 << 13) | S2))
 :compute:::int:S_4_BIT:S1,S2:(EXTEND4((S1 << 3) | S2))
 :compute:::int:S_9_BIT:S1,S2:(EXTEND9((S1 << 8) | S2))
-:compute:::int:S_9_BIT_LL:S1,S2:(EXTEND9((S1 << 8) | (S2 << 2)))
+:compute:::int:S_9_BIT_LLSC:S1,S2:(EXTEND9((S1 << 8) | (S2 << 2)))
 :compute:::int:RD1:RD:(compute_gpr1_dest_reg (SD_, RD))
 :compute:::int:RT_5_BIT:RT1,RT2:((RT1 << 4) | RT2)
 :compute:::int:RS_5_BIT:RS1,RS2:((RS1 << 4) | RS2)
@@ -123,7 +122,7 @@
   return address & ~1;
 }
 
-:function:::unsigned_word:zero_extend:signed_word value, unsigned32 from_nbits
+:function:::unsigned:zero_extend:signed_word value, unsigned32 from_nbits
 {
   unsigned32 low_bits_mask = (1 << from_nbits) - 1;
   return value & low_bits_mask;
@@ -1431,12 +1430,12 @@
 }
 
 101001,5.RT,5.RS,1.S1,1000,0,01,6.S2,00:R7PLL:32::LL
-"ll r<RT>, <S_9_BIT_LL>(r<RS>)"
+"ll r<RT>, <S_9_BIT_LLSC>(r<RS>)"
 *micromips32r7:
 *micromips64r7:
 {
-  TRACE_ALU_INPUT3(GPR[RT], S_9_BIT_LL, GPR[RS]);
-  do_ll (SD_, RT, S_9_BIT_LL, RS);
+  TRACE_ALU_INPUT3(GPR[RT], S_9_BIT_LLSC, GPR[RS]);
+  do_ll (SD_, RT, S_9_BIT_LLSC, RS);
   TRACE_ALU_RESULT(GPR[RT]);
 }
 
@@ -1699,39 +1698,6 @@
   do_xori (SD_, RS, RT, U);
 }
 
-001000,5.RT,5.RS,5.RD,0,0111010,000:R7POOL32A0:32::SUBU
-"subu r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_subu (SD_, RS, RT, RD);
-}
-
-101001,5.RT,5.RS,1.S1,1001000,8.S2:R7SWS9:32::SWS9
-"sw r<RT>, <S_9_BIT>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
-{
-  do_store (SD_, AccessLength_WORD, GPR[RS], EXTEND9 (S_9_BIT),
-	    zero_extend(SD_, GPR[RT], 32));
-}
-
-100001,5.RT,5.RS,1001,12.U:R7SW:32::SW
-"sw r<RT>, <U>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
-{
-  do_store (SD_, AccessLength_WORD, GPR[RS], U, GPR[RT]);
-}
-
-010000,5.RT,19.U,11:R7SWGP:32::SWGP
-"sw r<RT>, <U_SHIFT_2BIT>(gp)"
-*micromips32r7:
-*micromips64r7:
-{
-  do_store (SD_, AccessLength_WORD, GP, U_SHIFT_2BIT, GPR[RT]);
-}
-
 100000,5.RT_SAVE,4.GPR_LIST_SAVE,0,0011,9.U,0,1.FP_SAVE,1.GP_SAVE:R7PSR:32::SAVE
 "save %s<GPR_LIST_SAVE>%s<GP_SAVE>%s<FP_SAVE>%s<RT_SAVE>, <U_SHIFT_3BIT>"
 *micromips32r7:
@@ -1741,37 +1707,15 @@
                                       GP_SAVE, U_SHIFT_3BIT);
 }
 
-000000,00000,11,19.CODE:R7PRI:32::SDBBP
-"sdbbp %#lx<CODE>"
-*micromips32r7:
-*micromips64r7:
-{
-  SignalException (DebugBreakPoint, instruction_0);
-}
-
-100001,5.RT,5.RS,0101,12.U:R7PLSU12:32::SH
-"sh r<RT>, <U>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
-{
-  do_store (SD_, AccessLength_HALFWORD, GPR[RS], EXTEND16 (U),
-      GPR[RT]);
-}
-
-010001,5.RT,101,18.U:R7PLSGP:32::SHGP
-"sh r<RT>, <U>(gp)"
-*micromips32r7:
-*micromips64r7:
-{
-  do_store (SD_, AccessLength_HALFWORD, GP, U, GPR[RT]);
-}
-
 100001,5.RT,5.RS,0001,12.U:R7PLSU12:32::SB
 "sb r<RT>, <U>(r<RS>)"
 *micromips32r7:
 *micromips64r7:
 {
-  do_store (SD_, AccessLength_BYTE, GPR[RS], EXTEND16 (U), GPR[RT]);
+  TRACE_ALU_INPUT3(GPR[RT], U, GPR[RS]);
+  do_store (SD_, AccessLength_BYTE, GPR[RS], U, GPR[RT]);
+  unsigned32 temp = do_load(SD_, AccessLength_BYTE, GPR[RS], U);
+  TRACE_ALU_RESULT(temp);
 }
 
 010001,5.RT,001,18.U:R7PLSGP:32::SBGP
@@ -1779,7 +1723,40 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT3(GPR[RT], U, GP);
   do_store (SD_, AccessLength_BYTE, GP, U, GPR[RT]);
+  unsigned32 temp = do_load(SD_, AccessLength_BYTE, GP, U);
+  TRACE_ALU_RESULT(temp);
+}
+
+101001,5.RT,5.RS,1.S1,0001,0,00,8.S2:R7PLSS0:32::SBS9
+"sb r<RT>, <S_9_BIT>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT3(GPR[RT], S_9_BIT, GPR[RS]);
+  do_store (SD_, AccessLength_BYTE, GPR[RS], S_9_BIT, GPR[RT]);
+  unsigned32 temp = do_load(SD_, AccessLength_BYTE, GPR[RS], S_9_BIT);
+  TRACE_ALU_RESULT(temp);
+}
+
+001000,5.RT,5.RS,5.RD,0001,0,000,111:R7PPLSX:32::SBX
+"sbx r<RD>, r<RS>(r<RT>)"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT3(GPR[RD], GPR[RS], GPR[RT]);
+  do_store (SD_, AccessLength_BYTE, GPR[RT], GPR[RS], GPR[RD]);
+  unsigned32 temp = do_load(SD_, AccessLength_BYTE, GPR[RT], GPR[RS]);
+  TRACE_ALU_RESULT(temp);
+}
+
+101001,5.RT,5.RS,1.S1,1001,0,01,6.S2,00:R7PSC:32::SC
+"sc r<RT>, <S_9_BIT_LLSC>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_sc (SD_, RT, S_9_BIT_LLSC, RS, instruction_0);
 }
 
 001000,5.RT,5.RS,0011101,100,111,111:R7POOL32A0:32::SEH
@@ -1788,6 +1765,105 @@
 *micromips64r7:
 {
   do_seh (SD_, RT, RS);
+}
+
+100000,5.RT,5.RS,0110,12.IMMEDIATE:R7PU12:32::SEQI
+"seqi r<RT>, r<RS>, <IMMEDIATE>"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT3(GPR[RT], GPR[RS], IMMEDIATE);
+  GPR[RT] = (GPR[RS] == IMMEDIATE) ? 1 : 0;
+  TRACE_ALU_RESULT(GPR[RT]);
+}
+
+100001,5.RT,5.RS,0101,12.U:R7PLSU12:32::SH
+"sh r<RT>, <U>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT3(GPR[RT], U, GPR[RS]);
+  do_store (SD_, AccessLength_HALFWORD, GPR[RS], U, GPR[RT]);
+  unsigned32 temp = do_load(SD_, AccessLength_HALFWORD, GPR[RS], U);
+  TRACE_ALU_RESULT(temp);
+}
+
+010001,5.RT,101,18.U:R7PLSGP:32::SHGP
+"sh r<RT>, <U>(gp)"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT3(GPR[RT], U, GP);
+  do_store (SD_, AccessLength_HALFWORD, GP, U, GPR[RT]);
+  unsigned32 temp = do_load(SD_, AccessLength_HALFWORD, GP, U);
+  TRACE_ALU_RESULT(temp);
+}
+
+101001,5.RT,5.RS,1.S1,0101,0,00,8.S2:R7PLSS0:32::SHS9
+"sh r<RT>, <S_9_BIT>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT3(GPR[RT], S_9_BIT, GPR[RS]);
+  do_store (SD_, AccessLength_HALFWORD, GPR[RS], S_9_BIT, GPR[RT]);
+  unsigned32 temp = do_load(SD_, AccessLength_HALFWORD, GPR[RS], S_9_BIT);
+  TRACE_ALU_RESULT(temp);
+}
+
+001000,5.RT,5.RS,5.RD,0101,0,000,111:R7PPLSX:32::SHX
+"shx r<RD>, r<RS>(r<RT>)"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT3(GPR[RD], GPR[RS], GPR[RT]);
+  do_store (SD_, AccessLength_HALFWORD, GPR[RT], GPR[RS], GPR[RD]);
+  unsigned32 temp = do_load(SD_, AccessLength_HALFWORD, GPR[RT], GPR[RS]);
+  TRACE_ALU_RESULT(temp);
+}
+
+001000,5.RT,5.RS,5.RD,0101,1,000,111:R7PPLSXS:32::SHXS
+"shxs r<RD>, r<RS>(r<RT>)"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT3(GPR[RD], GPR[RS], GPR[RT]);
+  do_store (SD_, AccessLength_HALFWORD, GPR[RT], GPR[RS] << 1, GPR[RD]);
+  unsigned32 temp = do_load(SD_, AccessLength_HALFWORD, GPR[RT], GPR[RS] << 1);
+  TRACE_ALU_RESULT(temp);
+}
+
+000000,00000,00,19.CODE:R7PRI:32::SIGRIE
+"sigrie %#lx<CODE>"
+*micromips32r7:
+*micromips64r7:
+{
+  SignalException (ReservedInstruction, instruction_0);
+}
+
+
+100000,5.RT!0,5.RS,1100,3.X,0000,5.SHIFT:R7PSHIFT:32::SLL
+"sll r<RT>, r<RS>, <SHIFT>"
+*micromips32r7:
+*micromips64r7:
+{
+  //do_sll (SD_, RS, RT, SHIFT);
+  unsigned32 temp = (GPR[RS] << SHIFT);
+  TRACE_ALU_INPUT3 (GPR[RT], GPR[RS], SHIFT);
+  GPR[RT] = EXTEND32 (temp);
+  TRACE_ALU_RESULT (GPR[RT]);
+}
+
+001000,5.RT,5.RS,5.RD,0,0000010,000:R7POOL32A0:32::SLLV
+"sllv r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  //do_sllv (SD_, RT, RS, RD);
+  int s = MASKED (GPR[RT], 4, 0);
+  unsigned32 temp = (GPR[RS] << s);
+  TRACE_ALU_INPUT3 (GPR[RD], GPR[RS], s);
+  GPR[RD] = EXTEND32 (temp);
+  TRACE_ALU_RESULT (GPR[RD]);
 }
 
 001000,5.RT,5.RS,5.RD,0,1101010,000:R7POOL32A0:32::SLT
@@ -1806,6 +1882,14 @@
   do_slti (SD_, RS, RT, IMMEDIATE);
 }
 
+100000,5.RT,5.RS,0101,12.U:R7PU12:32::SLTIU
+"sltiu r<RT>, r<RS>, <U>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_sltiu (SD_, RS, RT, U);
+}
+
 001000,5.RT,5.RS,5.RD,0,1110010,000:R7POOL32A0:32::SLTU
 "sltu r<RD>, r<RS>, r<RT>"
 *micromips32r7:
@@ -1814,44 +1898,18 @@
   do_sltu (SD_, RS, RT, RD);
 }
 
-100000,5.RT!0,5.RS,1100,3.X,0000,5.SHIFT:R7PSHIFT:32::SLL
-"sll r<RT>, r<RS>, #<SHIFT>"
+100000,5.RT,5.RS,1100,3.X,0100,5.SHIFT:R7PSHIFT:32::SRA
+"sra r<RT>, r<RS>, <SHIFT>"
 *micromips32r7:
 *micromips64r7:
 {
-  do_sll (SD_, RS, RT, SHIFT);
-}
-
-100000,5.RT,5.RS,11000000010,5.SHIFT:R7PSHIFT:32::SRL
-"srl r<RT>, r<RS>, #<SHIFT>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_srl (SD_, RS, RT, SHIFT);
-}
-
-100000,5.RT,5.RS,11000000100,5.SHIFT:R7PSHIFT:32::SRA
-"sra r<RT>, r<RS>, #<SHIFT>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_sra (SD_, RS, RT, SHIFT);
-}
-
-001000,5.RT,5.RS,5.RD,0,0000010,000:R7POOL32A0:32::SLLV
-"sllv r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_sllv (SD_, RT, RS, RD);
-}
-
-001000,5.RT,5.RS,5.RD,0,0001010,000:R7POOL32A0:32::SRLV
-"srlv r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_srlv (SD_, RS, RT, RD);
+  //do_sra (SD_, RS, RT, SHIFT);
+  signed32 temp = (signed32) GPR[RS] >> SHIFT;
+  if (NotWordValue (GPR[RS]))
+    Unpredictable ();
+  TRACE_ALU_INPUT3 (GPR[RT], GPR[RS], SHIFT);
+  GPR[RT] = temp;
+  TRACE_ALU_RESULT (GPR[RT]);
 }
 
 001000,5.RT,5.RS,5.RD,0,0010010,000:R7POOL32A0:32::SRAV
@@ -1862,71 +1920,29 @@
   do_srav (SD_, RS, RT, RD);
 }
 
-100000,5.RT,5.RS,0101,12.U:R7PU12:32::SLTIU
-"sltiu r<RT>, r<RS>, <U>"
+100000,5.RT,5.RS,11000000010,5.SHIFT:R7PSHIFT:32::SRL
+"srl r<RT>, r<RS>, <SHIFT>"
 *micromips32r7:
 *micromips64r7:
 {
-  do_sltiu (SD_, RS, RT, U);
+  //do_srl (SD_, RS, RT, SHIFT);
+  unsigned32 temp = (unsigned32) GPR[RS] >> SHIFT;
+  if (NotWordValue (GPR[RS]))
+    Unpredictable ();
+  TRACE_ALU_INPUT3 (GPR[RT], GPR[RS], SHIFT);
+  GPR[RT] = temp;
+  TRACE_ALU_RESULT (GPR[RT]);
 }
 
-001000,5.RT,5.RS,5.RD,1001,0,000,111:R7PPLSX:32::SWX
-"swx r<RD>, r<RS>(r<RT>)"
+001000,5.RT,5.RS,5.RD,0,0001010,000:R7POOL32A0:32::SRLV
+"srlv r<RD>, r<RS>, r<RT>"
 *micromips32r7:
 *micromips64r7:
 {
-  do_store (SD_, AccessLength_WORD, GPR[RT], GPR[RS], GPR[RD]);
+  do_srlv (SD_, RS, RT, RD);
 }
 
-001000,5.RT,5.RS,5.RD,0101,0,000,111:R7PPLSX:32::SHX
-"shx r<RD>, r<RS>(r<RT>)"
-*micromips32r7:
-*micromips64r7:
-{
-  do_store (SD_, AccessLength_HALFWORD, GPR[RT], GPR[RS], GPR[RD]);
-}
-
-001000,5.RT,5.RS,5.RD,0101,1,000,111:R7PPLSXS:32::SHXS
-"shxs r<RD>, r<RS>(r<RT>)"
-*micromips32r7:
-*micromips64r7:
-{
-  do_store (SD_, AccessLength_HALFWORD, GPR[RT], GPR[RS] << 1, GPR[RD]);
-}
-
-001000,5.RT,5.RS,5.RD,1001,1,000,111:R7PPLSXS:32::SWXS
-"swxs r<RD>, r<RS>(r<RT>)"
-*micromips32r7:
-*micromips64r7:
-{
-  do_store (SD_, AccessLength_WORD, GPR[RT], GPR[RS] << 2, GPR[RD]);
-}
-
-001000,5.RT,5.RS,5.RD,0001,0,000,111:R7PPLSX:32::SBX
-"sbx r<RD>, r<RS>(r<RT>)"
-*micromips32r7:
-*micromips64r7:
-{
-  do_store (SD_, AccessLength_BYTE, GPR[RT], GPR[RS], GPR[RD]);
-}
-
-001000,5.RT,5.RS,0111101,100,111,111:R7POOL32A0:32::WSBH
-"wsbh r<RT>, r<RS>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_wsbh (SD_, RT, RS);
-}
-
-101001,5.RT,5.RS,1.S1,1001,0,01,6.S2,00:R7PSC:32::SC
-"sc r<RT>, <S_7_BIT>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
-{
-  do_sc (SD_, RT, S_7_BIT, RS, instruction_0);
-}
-
-001000,5.RT,5.RS,5.RD,00110010,000:R7POOL32A0:32::SUB
+001000,5.RT,5.RS,5.RD,1.X,0110010,000:R7POOL32A0:32::SUB
 "sub r<RD>, r<RS>, r<RT>"
 *micromips32r7:
 *micromips64r7:
@@ -1934,29 +1950,80 @@
   do_sub (SD_, RD, RS, RT);
 }
 
-101001,5.RT,5.RS,1.S1,0001,0,00,8.S2:R7PLSS0:32::SBS9
-"sb r<RT>, <S_9_BIT>(r<RS>)"
+001000,5.RT,5.RS,5.RD,1.X,0111010,000:R7POOL32A0:32::SUBU
+"subu r<RD>, r<RS>, r<RT>"
 *micromips32r7:
 *micromips64r7:
 {
-  do_store (SD_, AccessLength_BYTE, GPR[RS], EXTEND16 (S_9_BIT), GPR[RT]);
+  do_subu (SD_, RS, RT, RD);
 }
 
-101001,5.RT,5.RS,1.S1,0101,0,00,8.S2:R7PLSS0:32::SHS9
-"sh r<RT>, <S_9_BIT>(r<RS>)"
+100001,5.RT,5.RS,1001,12.U:R7SW:32::SW
+"sw r<RT>, <U>(r<RS>)"
 *micromips32r7:
 *micromips64r7:
 {
-  do_store (SD_, AccessLength_HALFWORD, GPR[RS], EXTEND16 (S_9_BIT),
-      GPR[RT]);
+  TRACE_ALU_INPUT3(GPR[RT], U, GPR[RS]);
+  do_store (SD_, AccessLength_WORD, GPR[RS], U, zero_extend(SD_, GPR[RT], 32));
+  unsigned32 temp = do_load(SD_, AccessLength_WORD, GPR[RS], U);
+  TRACE_ALU_RESULT(temp);
 }
 
-000000,00000,00,19.CODE:R7PRI:32::SIGRIE
-"sigrie %#lx<CODE>"
+101001,5.RT,5.RS,1.S1,1001000,8.S2:R7SWS9:32::SWS9
+"sw r<RT>, <S_9_BIT>(r<RS>)"
 *micromips32r7:
 *micromips64r7:
 {
-  SignalException (ReservedInstruction, instruction_0);
+  TRACE_ALU_INPUT3(GPR[RT], S_9_BIT, GPR[RS]);
+  do_store (SD_, AccessLength_WORD, GPR[RS], S_9_BIT,
+            zero_extend(SD_, GPR[RT], 32));
+  unsigned32 temp = do_load(SD_, AccessLength_WORD, GPR[RS], S_9_BIT);
+  TRACE_ALU_RESULT(temp);
+}
+
+010000,5.RT,19.U,11:R7SWGP:32::SWGP
+"sw r<RT>, <U_SHIFT_2BIT>(gp)"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT3(GPR[RT], U_SHIFT_2BIT, GP);
+  do_store (SD_, AccessLength_WORD, GP, U_SHIFT_2BIT,
+            zero_extend(SD_, GPR[RT], 32));
+  unsigned32 temp = do_load(SD_, AccessLength_WORD, GP, U_SHIFT_2BIT);
+  TRACE_ALU_RESULT(temp);
+}
+
+001000,5.RT,5.RS,5.RD,1001,0,000,111:R7PPLSX:32::SWX
+"swx r<RD>, r<RS>(r<RT>)"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT3(GPR[RD], GPR[RS], GPR[RT]);
+  do_store (SD_, AccessLength_WORD, GPR[RT], GPR[RS],
+            zero_extend(SD_, GPR[RD], 32));
+  unsigned32 temp = do_load(SD_, AccessLength_WORD, GPR[RT], GPR[RS]);
+  TRACE_ALU_RESULT(temp);
+}
+
+001000,5.RT,5.RS,5.RD,1001,1,000,111:R7PPLSXS:32::SWXS
+"swxs r<RD>, r<RS>(r<RT>)"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT3(GPR[RD], GPR[RS], GPR[RT]);
+  do_store (SD_, AccessLength_WORD, GPR[RT], GPR[RS] << 2,
+            zero_extend(SD_, GPR[RD], 32));
+  unsigned32 temp = do_load(SD_, AccessLength_WORD, GPR[RT], GPR[RS] << 2);
+  TRACE_ALU_RESULT(temp);
+}
+
+100000,00000,5.STYPE,1100,3.X,0000,00110:R7PHB:32::SYNC
+"sync":STYPE==0
+"sync <STYPE>"
+*micromips32r7:
+*micromips64r7:
+{
+  SyncOperation (STYPE);
 }
 
 101001,11111,5.RS,1.S1,0011,0,00,8.S2:R7PPREFS:32::SYNCIS9
@@ -1965,6 +2032,22 @@
 *micromips64r7:
 {
   // sync i-cache - nothing to do currently
+}
+
+000000,00000,11,19.CODE:R7PRI:32::SDBBP
+"sdbbp %#lx<CODE>"
+*micromips32r7:
+*micromips64r7:
+{
+  SignalException (DebugBreakPoint, instruction_0);
+}
+
+001000,5.RT,5.RS,0111101,100,111,111:R7POOL32A0:32::WSBH
+"wsbh r<RT>, r<RS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_wsbh (SD_, RT, RS);
 }
 
 001000,0000000000,01,00001,101,111,111:R7POOL32AXF5GROUP1:32::TLBINV
@@ -1989,23 +2072,6 @@
 *micromips64r7:
 {
   SignalException (SystemCall, instruction_0);
-}
-
-100000,5.RT,5.RS,0110,12.IMMEDIATE:R7PU12:32::SEQI
-"seqi r<RT>, r<RS>, <IMMEDIATE>"
-*micromips32r7:
-*micromips64r7:
-{
-  GPR[RT] = (GPR[RS] == IMMEDIATE) ? 1 : 0;
-}
-
-100000,00000,5.STYPE,1100,3.X,0000,00110:R7PHB:32::SYNC
-"sync":STYPE==0
-"sync <STYPE>"
-*micromips32r7:
-*micromips64r7:
-{
-  SyncOperation (STYPE);
 }
 
 100000,00000,5.X1,1100,3.X2,0000,00011:R7PHB:32::EHB
