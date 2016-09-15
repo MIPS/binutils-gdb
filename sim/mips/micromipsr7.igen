@@ -219,27 +219,8 @@
   num_pending = count;
 
   va = GPR[SPIDX];
-
-  if (first_gpr >= 16 && first_gpr <= 23)
-    {
-      idx = first_gpr-16;
-      do_store (SD_,AccessLength_WORD, va -= 4, 0, GPR[idx]);
-    }
-  else if (first_gpr == 28)
-    {
-      idx = 28;
-      do_store (SD_,AccessLength_WORD, va -= 4, 0, GPR[idx]);
-    }
-  else if (first_gpr == 30)
-    {
-      idx = 30;
-      do_store (SD_,AccessLength_WORD, va -= 4, 0, GPR[idx]);
-    }
-  else if (first_gpr == 31)
-    {
-      idx = 31;
-      do_store (SD_,AccessLength_WORD, va -= 4, 0, GPR[idx]);
-    }
+  if (first_gpr >= 0 && first_gpr < 32)
+    do_store (SD_,AccessLength_WORD, va -= 4, 0, GPR[first_gpr]);
 
   while (num_pending > 0)
     {
@@ -250,7 +231,7 @@
         }
       else if (gp_pending)
         {
-          do_store (SD_, AccessLength_WORD, va -= 4, 0, GPR[31]);
+          do_store (SD_, AccessLength_WORD, va -= 4, 0, GPR[GPIDX]);
           gp_pending = 0;
         }
       else
@@ -281,38 +262,19 @@
   num_pending = count;
 
   va = GPR[SPIDX] + offset;
+  if (first_gpr >= 0 && first_gpr < 32)
+    GPR[first_gpr] = EXTEND32 (do_load(SD_, AccessLength_WORD, va -= 4, 0));
 
-  if (first_gpr >= 16 && first_gpr <= 23)
-    {
-      idx = first_gpr-16;
-      GPR[idx] = EXTEND32 (do_load(SD_, AccessLength_WORD, va -= 4, 0));
-
-    }
-  else if (first_gpr == 28)
-    {
-      idx = 28;
-      GPR[idx] = EXTEND32 (do_load(SD_, AccessLength_WORD, va -= 4, 0));
-    }
-  else if (first_gpr == 30)
-    {
-      idx = 30;
-      GPR[idx] = EXTEND32 (do_load(SD_, AccessLength_WORD, va -= 4, 0));
-    }
-  else if (first_gpr == 31)
-    {
-      idx = 31;
-      GPR[idx] = EXTEND32 (do_load(SD_, AccessLength_WORD, va -= 4, 0));
-    }
   while (num_pending > 0)
     {
       if (fp_pending)
         {
-          GPR[idx] = EXTEND32 (do_load(SD_, AccessLength_WORD, va -= 4, 0));
+          GPR[30] = EXTEND32 (do_load(SD_, AccessLength_WORD, va -= 4, 0));
           fp_pending = 0;
         }
       else if (gp_pending)
         {
-          GPR[idx] = EXTEND32 (do_load(SD_, AccessLength_WORD, va -= 4, 0));
+          GPR[GPIDX] = EXTEND32 (do_load(SD_, AccessLength_WORD, va -= 4, 0));
           gp_pending = 0;
         }
       else
