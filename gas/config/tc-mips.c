@@ -20177,7 +20177,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
       /* Relax 16-bit branches to 32-bit branches.  */
       insn = read_compressed_insn (buf, 2);
 
-      if ((insn & 0xfc00) == 0x5800)	/* beqc[16]/bnec[16]  */
+      if ((insn & 0xfc00) == 0xd800)	/* beqc[16]/bnec[16]  */
 	{
 	  unsigned long rt = (insn & 0x0380) >> 7;
 	  unsigned long rs = (insn & 0x0070) >> 4;
