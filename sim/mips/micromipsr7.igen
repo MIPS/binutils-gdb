@@ -489,7 +489,7 @@
   NIA = ADDRESS11;
 }
 
-010110,3.RT,3.RS,4.U!0:R7P16BR1:16::BxxC16
+110110,3.RT,3.RS,4.U!0:R7P16BR1:16::BxxC16
 "beqc r<TRS>, r<TRT>, <U_SHIFT_1BIT>":RS<RT
 "bnec r<TRS>, r<TRT>, <U_SHIFT_1BIT>"
 *micromips32r7:
@@ -526,7 +526,7 @@
   do_break (SD_, instruction_0);
 }
 
-010110,5.RT,1,0000:R7P16JRC:16::JALRC16
+110110,5.RT,1,0000:R7P16JRC:16::JALRC16
 "jalrc r<TRT>"
 *micromips32r7:
 *micromips64r7:
@@ -536,7 +536,7 @@
   NIA = process_isa_mode (SD_, GPR[TRT]);
 }
 
-010110,5.RT,0,0000:R7P16JRC:16::JRC16
+110110,5.RT,0,0000:R7P16JRC:16::JRC16
 "jrc r<TRT>"
 *micromips32r7:
 *micromips64r7:
