@@ -103,10 +103,10 @@ char* pr_uword64 (uword64 addr);
    used in later revisions of the MIPS ISA. */
 
 #define RSVD_INSTRUCTION           (0x00000039)
-#define RSVD_INSTRUCTION_MASK      (0xFC00003F)
+#define RSVD_INSTRUCTION_MASK      (0xFFF8003F)
 
 #define RSVD_INSTRUCTION_ARG_SHIFT 6
-#define RSVD_INSTRUCTION_ARG_MASK  0xFFFFF  
+#define RSVD_INSTRUCTION_ARG_MASK  0x1FFF  
 
 
 /* Bits in the Debug register */
