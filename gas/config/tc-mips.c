@@ -4171,6 +4171,8 @@ mips_check_options (struct mips_set_options *opts, bfd_boolean abi_checks)
 	as_warn (_("`fp=32' used with a 64-bit ABI"));
       if (ISA_IS_R6 (mips_opts.isa) && opts->single_float == 0)
 	as_bad (_("`fp=32' used with a MIPS R6 cpu"));
+      if (ISA_IS_R7 (mips_opts.isa) && opts->single_float == 0)
+	as_bad (_("`fp=32' used with a MIPS R7 cpu"));
       break;
     default:
       as_bad (_("Unknown size of floating point registers"));
@@ -4182,7 +4184,7 @@ mips_check_options (struct mips_set_options *opts, bfd_boolean abi_checks)
 
   if (opts->micromips == 1 && opts->mips16 == 1)
     as_bad (_("`mips16' cannot be used with `micromips'"));
-  else if (ISA_IS_R6 (mips_opts.isa)
+  else if ((ISA_IS_R6 (mips_opts.isa) || ISA_IS_R7 (mips_opts.isa))
 	   && (opts->mips16 == 1))
     as_fatal (_("`%s' can not be used with `%s'"), "mips16",
 	      mips_cpu_info_from_isa (mips_opts.isa)->name);
@@ -4196,7 +4198,7 @@ mips_check_options (struct mips_set_options *opts, bfd_boolean abi_checks)
       && opts->ase & ASE_MSA)
     as_fatal (_("`msa' is not supported for `micromips' and `mips32r6'"));
 
-  if (ISA_IS_R6 (opts->isa)
+  if ((ISA_IS_R6 (opts->isa) || ISA_IS_R7 (opts->isa))
       && opts->micromips
       && ((opts->ase & ASE_DSP)
 	  || (opts->ase & ASE_DSPR2))
@@ -4250,7 +4252,7 @@ file_mips_check_options (void)
 	       && ISA_HAS_64BIT_FPRS (file_mips_opts.isa))
 	/* Handle ASEs that require 64-bit float registers, if possible.  */
 	file_mips_opts.fp = 64;
-      else if (ISA_IS_R6 (mips_opts.isa))
+      else if (ISA_IS_R6 (mips_opts.isa) || ISA_IS_R7 (mips_opts.isa))
 	/* R6 implies 64-bit float registers.  */
 	file_mips_opts.fp = 64;
       else
