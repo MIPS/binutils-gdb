@@ -5724,7 +5724,8 @@ match_pcrel_operand (struct mips_arg_info *arg)
 }
 
 static bfd_boolean
-match_non_zero_pcrel_operand (struct mips_arg_info *arg)
+match_non_zero_pcrel_operand (struct mips_arg_info *arg,
+			      const struct mips_operand *operand_base)
 {
   bfd_reloc_code_real_type r[3];
 
@@ -5737,6 +5738,14 @@ match_non_zero_pcrel_operand (struct mips_arg_info *arg)
       return FALSE;
     }
 
+  /* Enforce operand bits in the instruction encoding as non-zero
+     so that it can be distinguished from another instructions with the same
+     encoding and 0 in these bit positions.  Requires the relocation
+     scheme to be RELA,  which is trivially true only for R7.  The check
+     for ISA just to be on the safe side.  */
+  if (ISA_IS_R7 (mips_opts.isa))
+    insn_insert_operand (arg->insn, operand_base,
+			 (1 << operand_base->size) - 1);
   return TRUE;
 }
 
@@ -6793,7 +6802,7 @@ match_operand (struct mips_arg_info *arg,
       return match_non_zero_reg_operand (arg, operand);
 
     case OP_NON_ZERO_PCREL_S1:
-      return match_non_zero_pcrel_operand (arg);
+      return match_non_zero_pcrel_operand (arg, operand);
 
     case OP_MXU_STRIDE:
       return match_mxu_stride_operand (arg, operand);
