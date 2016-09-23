@@ -1620,7 +1620,7 @@ read_script_file(const char* filename, Command_line* cmdline,
   Parser_closure closure(filename,
 			 cmdline->position_dependent_options(),
 			 first_token == Lex::DYNAMIC_LIST,
-			 false,
+			 cmdline->inputs().in_group(),
 			 input_file.is_in_sysroot(),
                          cmdline,
 			 script_options,
@@ -2713,7 +2713,10 @@ script_add_file(void* closurev, const char* name, size_t length)
 			   Input_file_argument::INPUT_FILE_TYPE_FILE,
 			   extra_search_path, false,
 			   closure->position_dependent_options());
-  Input_argument& arg = closure->inputs()->add_file(file);
+  Input_arguments* inputs = (closure->command_line() != NULL)
+      ? &(closure->command_line()->inputs())
+      : closure->inputs();
+  Input_argument& arg = inputs->add_file(file);
   arg.set_script_info(closure->script_info());
 }
 
@@ -2732,7 +2735,10 @@ script_add_library(void* closurev, const char* name, size_t length)
 			   Input_file_argument::INPUT_FILE_TYPE_LIBRARY,
 			   "", false,
 			   closure->position_dependent_options());
-  Input_argument& arg = closure->inputs()->add_file(file);
+  Input_arguments* inputs = (closure->command_line() != NULL)
+      ? &(closure->command_line()->inputs())
+      : closure->inputs();
+  Input_argument& arg = inputs->add_file(file);
   arg.set_script_info(closure->script_info());
 }
 
@@ -2752,7 +2758,12 @@ script_start_group(void* closurev)
 {
   Parser_closure* closure = static_cast<Parser_closure*>(closurev);
   if (!closure->in_group())
-    closure->inputs()->start_group();
+    {
+      if (closure->command_line() != NULL)
+	  closure->command_line()->inputs().start_group();
+      else
+	  closure->inputs()->start_group();
+    }
 }
 
 // Called by the bison parser at the end of a group.
@@ -2762,7 +2773,12 @@ script_end_group(void* closurev)
 {
   Parser_closure* closure = static_cast<Parser_closure*>(closurev);
   if (!closure->in_group())
-    closure->inputs()->end_group();
+    {
+      if (closure->command_line() != NULL)
+	  closure->command_line()->inputs().end_group();
+      else
+	  closure->inputs()->end_group();
+    }
 }
 
 // Called by the bison parser to start an AS_NEEDED list.
