@@ -10008,6 +10008,13 @@ macro_match_micromipspp_reloc (const char *fmt, bfd_reloc_code_real_type *r)
   else if (*r == BFD_RELOC_MIPS_26_PCREL_S2
 	   && (*fmt == '+' && *(fmt + 1) == '\''))
     *r = BFD_RELOC_MICROMIPSPP_25_PCREL_S1;
+  else if (*r == BFD_RELOC_GPREL16)
+    {
+      if (*fmt == '.')
+	*r = BFD_RELOC_MICROMIPSPP_GPREL19_S2;
+      else
+	*r = BFD_RELOC_MICROMIPSPP_LO12;
+    }
   else
     gas_assert (*r == BFD_RELOC_MICROMIPSPP_LO12
 		|| *r == BFD_RELOC_MICROMIPSPP_IMM14
@@ -10200,12 +10207,11 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	  if (ISA_IS_R7 (mips_opts.isa))
 	    {
 	      macro_read_relocs (&args, r);
-	      gas_assert (ep != NULL
-			  && (ep->X_op == O_constant
-			      || (ep->X_op == O_symbol
-				  && *r == BFD_RELOC_GPREL16)));
+	      if (ISA_IS_R7 (mips_opts.isa))
+		macro_match_micromipspp_reloc (fmt, r);
 	      continue;
 	    }
+
 	default:
 	  break;
 	}
@@ -13510,13 +13516,16 @@ macro (struct mips_cl_insn *ip, char *str)
 	  /* The first case exists for M_LD_AB and M_SD_AB, which are
 	     macros for o32 but which should act like normal instructions
 	     otherwise.  */
-	  if (offbits == ISA_OFFBITS)
+	  if (offbits == 16)
 	    macro_build (&offset_expr, s, fmt, op[0], -1, offset_reloc[0],
 			 offset_reloc[1], offset_reloc[2], breg);
 	  else if (small_offset_p (0, align, offbits))
 	    {
 	      if (offbits == 0)
 		macro_build (NULL, s, fmt, op[0], breg);
+	      else if (ISA_IS_R7 (mips_opts.isa) && offbits == ISA_OFFBITS)
+		macro_build (&offset_expr, s, fmt, op[0], -1, offset_reloc[0],
+			     offset_reloc[1], offset_reloc[2], breg);
 	      else
 		macro_build (NULL, s, fmt, op[0],
 			     (int) offset_expr.X_add_number, breg);
@@ -13716,6 +13725,7 @@ macro (struct mips_cl_insn *ip, char *str)
 		  && !nopic_need_relax (offset_expr.X_add_symbol, 1))
 		{
 		  relax_start (offset_expr.X_add_symbol);
+		  fmt = (ISA_IS_R7 (mips_opts.isa) ? "t,.(ma)" : fmt);
 		  macro_build (&offset_expr, s, fmt, op[0], BFD_RELOC_GPREL16,
 			       mips_gp_register);
 		  relax_switch ();
@@ -14247,6 +14257,7 @@ macro (struct mips_cl_insn *ip, char *str)
 	      if (breg == 0)
 		{
 		  tempreg = mips_gp_register;
+		  fmt = (ISA_IS_R7 (mips_opts.isa) ? "t,.(ma)" : fmt);
 		}
 	      else
 		{
