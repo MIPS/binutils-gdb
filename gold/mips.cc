@@ -5615,13 +5615,14 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
   relmicromips_pc25_s1(unsigned char* view,
                        const Mips_relobj<size, big_endian>* object,
                        const Symbol_value<size>* psymval, Mips_address address,
-                       Mips_address addend)
+                       Mips_address addend, bool should_check_overflow)
   {
     Valtype32* wv = reinterpret_cast<Valtype32*>(view);
     Valtype32 val = elfcpp::Swap<32, big_endian>::readval(wv);
 
     Valtype x = psymval->value(object, addend) - address;
-    if (check_overflow<26>(x, CHECK_SIGNED) == This::STATUS_OVERFLOW)
+    if (should_check_overflow
+        && (check_overflow<26>(x, CHECK_SIGNED) == This::STATUS_OVERFLOW))
       return This::STATUS_OVERFLOW;
 
     x = ((x & ~0x1) | ((x >> 25) & 0x1));
@@ -5636,13 +5637,14 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
   relmicromips_pc21_s1(unsigned char* view,
                        const Mips_relobj<size, big_endian>* object,
                        const Symbol_value<size>* psymval, Mips_address address,
-                       Mips_address addend)
+                       Mips_address addend, bool should_check_overflow)
   {
     Valtype32* wv = reinterpret_cast<Valtype32*>(view);
     Valtype32 val = elfcpp::Swap<32, big_endian>::readval(wv);
 
     Valtype x = psymval->value(object, addend) - address;
-    if (check_overflow<22>(x, CHECK_SIGNED) == This::STATUS_OVERFLOW)
+    if (should_check_overflow
+        && (check_overflow<22>(x, CHECK_SIGNED) == This::STATUS_OVERFLOW))
       return This::STATUS_OVERFLOW;
 
     x = ((x & ~0x1) | ((x >> 21) & 0x1));
@@ -5657,13 +5659,14 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
   relmicromips_pc20_s1(unsigned char* view,
                        const Mips_relobj<size, big_endian>* object,
                        const Symbol_value<size>* psymval, Mips_address address,
-                       Mips_address addend)
+                       Mips_address addend, bool should_check_overflow)
   {
     Valtype32* wv = reinterpret_cast<Valtype32*>(view);
     Valtype32 val = elfcpp::Swap<32, big_endian>::readval(wv);
 
     Valtype x = psymval->value(object, addend) - address;
-    if (check_overflow<21>(x, CHECK_SIGNED) == This::STATUS_OVERFLOW)
+    if (should_check_overflow
+        && (check_overflow<21>(x, CHECK_SIGNED) == This::STATUS_OVERFLOW))
       return This::STATUS_OVERFLOW;
 
     x = ((x & ~0x1) | ((x >> 20) & 0x1));
@@ -5678,13 +5681,14 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
   relmicromips_pc14_s1(unsigned char* view,
                        const Mips_relobj<size, big_endian>* object,
                        const Symbol_value<size>* psymval, Mips_address address,
-                       Mips_address addend)
+                       Mips_address addend, bool should_check_overflow)
   {
     Valtype32* wv = reinterpret_cast<Valtype32*>(view);
     Valtype32 val = elfcpp::Swap<32, big_endian>::readval(wv);
 
     Valtype x = psymval->value(object, addend) - address;
-    if (check_overflow<15>(x, CHECK_SIGNED) == This::STATUS_OVERFLOW)
+    if (should_check_overflow
+        && (check_overflow<15>(x, CHECK_SIGNED) == This::STATUS_OVERFLOW))
       return This::STATUS_OVERFLOW;
 
     x = ((x & ~0x1) | ((x >> 14) & 0x1));
@@ -5699,13 +5703,14 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
   relmicromips_pc11_s1(unsigned char* view,
                        const Mips_relobj<size, big_endian>* object,
                        const Symbol_value<size>* psymval, Mips_address address,
-                       Mips_address addend)
+                       Mips_address addend, bool should_check_overflow)
   {
     Valtype32* wv = reinterpret_cast<Valtype32*>(view);
     Valtype32 val = elfcpp::Swap<32, big_endian>::readval(wv);
 
     Valtype x = psymval->value(object, addend) - address;
-    if (check_overflow<12>(x, CHECK_SIGNED) == This::STATUS_OVERFLOW)
+    if (should_check_overflow
+        && (check_overflow<12>(x, CHECK_SIGNED) == This::STATUS_OVERFLOW))
       return This::STATUS_OVERFLOW;
 
     x = ((x & ~0x1) | ((x >> 11) & 0x1));
@@ -5737,7 +5742,8 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
   relmicromips_gprel19_s2(unsigned char* view,
                           const Mips_relobj<size, big_endian>* object,
                           const Symbol_value<size>* psymval, Mips_address gp,
-                          Mips_address addend, bool local)
+                          Mips_address addend, bool local,
+                          bool should_check_overflow)
   {
     Valtype32* wv = reinterpret_cast<Valtype32*>(view);
     Valtype32 val = elfcpp::Swap<32, big_endian>::readval(wv);
@@ -5755,7 +5761,8 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     val = Bits<19>::bit_select32(val, x, 0x1ffffc);
     elfcpp::Swap<32, big_endian>::writeval(wv, val);
 
-    return check_overflow<21>(x, CHECK_UNSIGNED);
+    return (should_check_overflow ? check_overflow<21>(x, CHECK_UNSIGNED)
+                                  : This::STATUS_OKAY);
   }
 
   // R_MICROMIPS_GPREL18_S3
@@ -5763,7 +5770,8 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
   relmicromips_gprel18_s3(unsigned char* view,
                           const Mips_relobj<size, big_endian>* object,
                           const Symbol_value<size>* psymval, Mips_address gp,
-                          Mips_address addend, bool local)
+                          Mips_address addend, bool local,
+                          bool should_check_overflow)
   {
     Valtype32* wv = reinterpret_cast<Valtype32*>(view);
     Valtype32 val = elfcpp::Swap<32, big_endian>::readval(wv);
@@ -5781,7 +5789,8 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     val = Bits<18>::bit_select32(val, x, 0x1ffff8);
     elfcpp::Swap<32, big_endian>::writeval(wv, val);
 
-    return check_overflow<21>(x, CHECK_UNSIGNED);
+    return (should_check_overflow ? check_overflow<21>(x, CHECK_UNSIGNED)
+                                  : This::STATUS_OKAY);
   }
 
   // R_MICROMIPS_GPREL18
@@ -5789,7 +5798,8 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
   relmicromips_gprel18(unsigned char* view,
                        const Mips_relobj<size, big_endian>* object,
                        const Symbol_value<size>* psymval, Mips_address gp,
-                       Mips_address addend, bool local)
+                       Mips_address addend, bool local,
+                       bool should_check_overflow)
   {
     Valtype32* wv = reinterpret_cast<Valtype32*>(view);
     Valtype32 val = elfcpp::Swap<32, big_endian>::readval(wv);
@@ -5807,7 +5817,8 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     val = Bits<18>::bit_select32(val, x, 0x3ffff);
     elfcpp::Swap<32, big_endian>::writeval(wv, val);
 
-    return check_overflow<18>(x, CHECK_UNSIGNED);
+    return (should_check_overflow ? check_overflow<18>(x, CHECK_UNSIGNED)
+                                  : This::STATUS_OKAY);
   }
 
   // R_MICROMIPS_GPREL16_S2
@@ -5815,7 +5826,8 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
   relmicromips_gprel16_s2(unsigned char* view,
                           const Mips_relobj<size, big_endian>* object,
                           const Symbol_value<size>* psymval, Mips_address gp,
-                          Mips_address addend, bool local)
+                          Mips_address addend, bool local,
+                          bool should_check_overflow)
   {
     Valtype32* wv = reinterpret_cast<Valtype32*>(view);
     Valtype32 val = elfcpp::Swap<32, big_endian>::readval(wv);
@@ -5833,7 +5845,8 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     val = Bits<16>::bit_select32(val, x, 0x3fffc);
     elfcpp::Swap<32, big_endian>::writeval(wv, val);
 
-    return check_overflow<18>(x, CHECK_UNSIGNED);
+    return (should_check_overflow ? check_overflow<18>(x, CHECK_UNSIGNED)
+                                  : This::STATUS_OKAY);
   }
 
   // R_MICROMIPS_GPREL7_S2
@@ -5841,7 +5854,7 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
   relmicromips_gprel7_s2(unsigned char* view,
                          const Mips_relobj<size, big_endian>* object,
                          const Symbol_value<size>* psymval, Mips_address gp,
-                         Mips_address addend, bool local)
+                         Mips_address addend, bool local, bool should_check_overflow)
   {
     Valtype16* wv = reinterpret_cast<Valtype16*>(view);
     Valtype16 val = elfcpp::Swap<16, big_endian>::readval(wv);
@@ -5859,7 +5872,8 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     val = Bits<7>::bit_select32(val, x >> 2, 0x7f);
     elfcpp::Swap<16, big_endian>::writeval(wv, val);
 
-    return check_overflow<9>(x, CHECK_UNSIGNED);
+    return (should_check_overflow ? check_overflow<9>(x, CHECK_UNSIGNED)
+                                  : This::STATUS_OKAY);
   }
 
   // R_MICROMIPS_GPREL14
@@ -5867,7 +5881,8 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
   relmicromips_gprel14(unsigned char* view,
                        const Mips_relobj<size, big_endian>* object,
                        const Symbol_value<size>* psymval, Mips_address gp,
-                       Mips_address addend, bool local)
+                       Mips_address addend, bool local,
+                       bool should_check_overflow)
   {
     Valtype32* wv = reinterpret_cast<Valtype32*>(view);
     Valtype32 val = elfcpp::Swap<32, big_endian>::readval(wv);
@@ -5882,7 +5897,8 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     if (local)
       x += object->gp_value();
 
-    if (check_overflow<14>(x, CHECK_SIGNED) == This::STATUS_OVERFLOW)
+    if (should_check_overflow
+        && (check_overflow<14>(x, CHECK_SIGNED) == This::STATUS_OVERFLOW))
       return This::STATUS_OVERFLOW;
 
     val = ((val & 0xffff6000) | ((x << 2) & 0x8000) | (x & 0x1fff));
@@ -12028,6 +12044,9 @@ Target_mips<size, big_endian>::Relocate::relocate(
   unsigned int got_offset = 0;
   int gp_offset = 0;
 
+  // Don't check overflow for weak undefined symbols.
+  bool check_overflow = gsym != NULL ? !gsym->is_weak_undefined()
+                                     : true;
   bool calculate_only = false;
   Valtype calculated_value = 0;
   bool extract_addend = rel_type == elfcpp::SHT_REL;
@@ -12524,27 +12543,32 @@ Target_mips<size, big_endian>::Relocate::relocate(
         case elfcpp::R_MICROMIPS_PC25_S1:
           reloc_status = Reloc_funcs::relmicromips_pc25_s1(view, object,
                                                            psymval, address,
-                                                           r_addend);
+                                                           r_addend,
+                                                           check_overflow);
           break;
         case elfcpp::R_MICROMIPS_PC21_S1:
           reloc_status = Reloc_funcs::relmicromips_pc21_s1(view, object,
                                                            psymval, address,
-                                                           r_addend);
+                                                           r_addend,
+                                                           check_overflow);
           break;
         case elfcpp::R_MICROMIPS_PC20_S1:
           reloc_status = Reloc_funcs::relmicromips_pc20_s1(view, object,
                                                            psymval, address,
-                                                           r_addend);
+                                                           r_addend,
+                                                           check_overflow);
           break;
         case elfcpp::R_MICROMIPS_PC14_S1:
           reloc_status = Reloc_funcs::relmicromips_pc14_s1(view, object,
                                                            psymval, address,
-                                                           r_addend);
+                                                           r_addend,
+                                                           check_overflow);
           break;
         case elfcpp::R_MICROMIPS_PC11_S1:
           reloc_status = Reloc_funcs::relmicromips_pc11_s1(view, object,
                                                            psymval, address,
-                                                           r_addend);
+                                                           r_addend,
+                                                           check_overflow);
           break;
         case elfcpp::R_MICROMIPS_PC4_S1:
           reloc_status = Reloc_funcs::relmicromips_pc4_s1(view, object,
@@ -12554,32 +12578,32 @@ Target_mips<size, big_endian>::Relocate::relocate(
         case elfcpp::R_MICROMIPS_GPREL19_S2:
           reloc_status = Reloc_funcs::relmicromips_gprel19_s2(view, object,
                                      psymval, target->adjusted_gp_value(object),
-                                     r_addend, gsym == NULL);
+                                     r_addend, gsym == NULL, check_overflow);
           break;
         case elfcpp::R_MICROMIPS_GPREL18_S3:
           reloc_status = Reloc_funcs::relmicromips_gprel18_s3(view, object,
                                      psymval, target->adjusted_gp_value(object),
-                                     r_addend, gsym == NULL);
+                                     r_addend, gsym == NULL, check_overflow);
           break;
         case elfcpp::R_MICROMIPS_GPREL18:
           reloc_status = Reloc_funcs::relmicromips_gprel18(view, object,
                                      psymval, target->adjusted_gp_value(object),
-                                     r_addend, gsym == NULL);
+                                     r_addend, gsym == NULL, check_overflow);
           break;
         case elfcpp::R_MICROMIPS_GPREL16_S2:
           reloc_status = Reloc_funcs::relmicromips_gprel16_s2(view, object,
                                      psymval, target->adjusted_gp_value(object),
-                                     r_addend, gsym == NULL);
+                                     r_addend, gsym == NULL, check_overflow);
           break;
         case elfcpp::R_MICROMIPS_GPREL7_S2:
           reloc_status = Reloc_funcs::relmicromips_gprel7_s2(view, object,
                                      psymval, target->adjusted_gp_value(object),
-                                     r_addend, gsym == NULL);
+                                     r_addend, gsym == NULL, check_overflow);
           break;
         case elfcpp::R_MICROMIPS_GPREL14:
           reloc_status = Reloc_funcs::relmicromips_gprel14(view, object,
                                      psymval, target->adjusted_gp_value(object),
-                                     r_addend, gsym == NULL);
+                                     r_addend, gsym == NULL, check_overflow);
           break;
         case elfcpp::R_MICROMIPS_HI20:
           reloc_status = Reloc_funcs::relmicromips_hi20(view, object, psymval,
