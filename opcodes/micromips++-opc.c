@@ -154,9 +154,9 @@ decode_micromipspp_operand (const char *p)
 /* 	case 'H': MSB (5, 11, 1, FALSE, 64);	 /\* (1 .. 32), 64-bit op *\/ */
 	case 'I': UINT (5, 6); /* (0 .. 31) */
 	case 'K': HINT (3, 0);
-/* 	case 'L': INT_ADJ (4, 4, 15, 2, FALSE);	 /\* (0 .. 15) << 2 *\/ */
+	case 'L': HINT (10, 16);
 	case 'J': HINT (19, 0);
-	case 'M': HINT (10, 16);
+	case 'M': HINT (18, 0);
  	case 'N': SPECIAL (4, 6, SAVE_RESTORE_LIST);
 	case 'O': UINT (3, 8);
 	case 'Q': HINT (3, 2);
@@ -726,7 +726,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"floor.l.s",	"T,S",		0xa000033b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"floor.w.d",	"T,S",		0xa0004b3b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"floor.w.s",	"T,S",		0xa0000b3b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
-{"hypcall",	"+M",		0x2000c37f, 0xfc00ffff,		0,		0,	0,		IVIRT,		0},
+{"hypcall",	"+M",		0x000c0000, 0xfffc0000,		0,		0,	0,		IVIRT,		0},
 {"ins",		"t,r,+A,+B",	0x8000e000, 0xfc00f820,	WR_1|RD_2,		0,	0,	XLP,		0},
 {"ins",		"t,r,+A,+B",	0,    (int) M_INS,	INSN_MACRO,		0,	I38,	0,		0},
 {"insv",	"t,s",		0x2000413f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32,		0},
@@ -1217,8 +1217,8 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"swxc1",	"R,s(t)",		0x20000587, 0xfc0007ff, RD_1|RD_2|RD_3,	INSN2_ALIAS,	I38,	0,		0}, /* SWC1X */
 {"syscall",	"mL",		0x1008,     0xfffc,		0,		0,	I38,		0,		0}, /* SYSCALL[16] */
 {"syscall",	"",		0x1008,     0xffff,		0,	INSN2_ALIAS,	I38,		0,		0}, /* SYSCALL[16] */
-{"syscall",	"+M",		0x20008b7f, 0xfc00ffff,		0,		0,	I38,		0,		0},
-{"syscall",	"",		0x20008b7f, 0xffffffff,		0,	INSN2_ALIAS,	I38,		0,		0},
+{"syscall",	"+M",		0x00080000, 0xfffc0000,		0,		0,	I38,		0,		0},
+{"syscall",	"",		0x00080000, 0xffffffff,		0,	INSN2_ALIAS,	I38,		0,		0},
 {"tlbginv",	"",		0x2000417f, 0xffffffff,		0,		0,	0,	TLBINV,		0},
 {"tlbginvf",	"",		0x2000517f, 0xffffffff,		0,		0,	0,	TLBINV,		0},
 {"tlbgp",	"",		0x2000017f, 0xffffffff,		0,		0,	0,		IVIRT,		0},
@@ -1245,7 +1245,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"ush",		"t,A(b)",	0,    (int) M_USH_AB,	INSN_MACRO,		0,	I38,	0,		0},
 {"usw",		"t,A(b)",	0,    (int) M_USW_AB,	INSN_MACRO,		0,	I38,	0,		0},
 {"udi",	"m8",		0x20000003, 0xfc000007,		0,		0,	0,	UDI,		0},
-{"wait",	"+M",		0x2000937f, 0xfc00ffff,		0,		0,	I38,		0,		0},
+{"wait",	"+L",		0x2000c37f, 0xfc00ffff,		0,		0,	I38,		0,		0},
 {"wait",	"",		0x2000937f, 0xffffffff,		0,	INSN2_ALIAS,	I38,		0,		0},
 {"wrdsp",	"t,8",		0x2000167f, 0xfc003fff,		RD_1,		0,	0,	D32,		0},
 {"wrdsp",	"t",		0x2000167f, 0xfc1fffff,		RD_1,	INSN2_ALIAS,	0,	D32,		0},
