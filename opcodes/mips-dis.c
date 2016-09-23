@@ -1706,10 +1706,7 @@ print_insn_arg (struct disassemble_info *info,
       {
 	uval = mips_decode_hi20_int_operand (operand, uval);
 	state->last_int = uval;
-	if (((struct mips_int_operand *)operand)->print_hex)
-	  infprintf (is, "0x%x", uval);
-	else
-	  infprintf (is, "%d", uval);
+	infprintf (is, "0x%x", uval & 0xfffff);
       }
       break;
     }
