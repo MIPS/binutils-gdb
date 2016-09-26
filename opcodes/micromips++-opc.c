@@ -152,7 +152,7 @@ decode_micromipspp_operand (const char *p)
 /* 	case 'F': MSB (5, 11, 33, TRUE, 64);	 /\* (33 .. 64), 64-bit op *\/ */
 /* 	case 'G': MSB (5, 11, 33, FALSE, 64);	 /\* (33 .. 64), 64-bit op *\/ */
 /* 	case 'H': MSB (5, 11, 1, FALSE, 64);	 /\* (1 .. 32), 64-bit op *\/ */
-	case 'I': UINT (5, 6); /* (0 .. 31) */
+	case 'I': BIT (5, 6, 0); /* (0 .. 31) */
 	case 'K': HINT (3, 0);
 	case 'L': HINT (10, 16);
 	case 'J': HINT (19, 0);

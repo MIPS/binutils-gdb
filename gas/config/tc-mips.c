@@ -1519,6 +1519,8 @@ enum options
     OPTION_NO_MCU,
     OPTION_MIPS16E2,
     OPTION_NO_MIPS16E2,
+    OPTION_XLP,
+    OPTION_NO_XLP,
     OPTION_COMPAT_ARCH_BASE,
     OPTION_M4650,
     OPTION_NO_M4650,
@@ -1646,6 +1648,8 @@ struct option md_longopts[] =
   {"mno-mxu", no_argument, NULL, OPTION_NO_MXU},
   {"mmips16e2", no_argument, NULL, OPTION_MIPS16E2},
   {"mno-mips16e2", no_argument, NULL, OPTION_NO_MIPS16E2},
+  {"mxlp", no_argument, NULL, OPTION_XLP},
+  {"mno-xlp", no_argument, NULL, OPTION_NO_XLP},
 
   /* Old-style architecture options.  Don't add more of these.  */
   {"m4650", no_argument, NULL, OPTION_M4650},
@@ -1840,6 +1844,10 @@ static const struct mips_ase mips_ases[] = {
     2,  2, -1, -1,
     6 },
 
+  { "xlp", ASE_XLP, 0,
+    OPTION_XLP, OPTION_NO_XLP,
+     -1,  -1, 7, 7,
+    -1 },
 };
 
 /* The set of ASEs that require -mfp64.  */
@@ -4299,7 +4307,10 @@ file_mips_check_options (void)
 	      mips_cpu_info_from_arch (file_mips_opts.arch)->name);
 
   if (ISA_IS_R7 (file_mips_opts.isa))
-    file_mips_opts.ase |= ASE_XLP;
+    {
+      if ((file_ase_explicit & ASE_XLP) == 0)
+	file_mips_opts.ase |= ASE_XLP;
+    }
   else
     /* BALC stub optimization is only implemented for R7.  */
     file_mips_opts.no_balc_stubs = TRUE;
@@ -11988,14 +11999,23 @@ macro (struct mips_cl_insn *ip, char *str)
 
     case M_EXT:
       gas_assert (IS_MICROMIPS_R7 (mips_opts.isa));
-      /* TODO */
-      gas_assert (FALSE);
+      if (31 - op[2] - op[3] > 0)
+	{
+	  macro_build (NULL, "sll", SHFT_FMT, op[0], op[1],
+		       31 - op[2] - op[3]);
+	  macro_build (NULL, "srl", SHFT_FMT, op[0], op[0], 31 - op[2]);
+	}
+      else
+	macro_build (NULL, "srl", SHFT_FMT, op[0], op[0], op[2]);
       break;
 
     case M_INS:
       gas_assert (IS_MICROMIPS_R7 (mips_opts.isa));
-      /* TODO */
-      gas_assert (FALSE);
+      macro_build (NULL, "align", "d,s,t,+I", op[0], op[0], op[0], op[2]);
+      if (op[3] + 1 - op[2] < 31)
+	macro_build (NULL, "align", "d,s,t,+I", op[0], op[0], op[1], op[3]+1-op[2]);
+      if (op[3] < 31)
+	macro_build (NULL, "align", "d,s,t,+I", op[0], op[0], op[0], 31 - op[3]);
       break;
 
     case M_DDIV_3:
@@ -20529,6 +20549,8 @@ mips_convert_ase_flags (int ase)
     ext_ases |= AFL_ASE_XPA;
   if (ase & ASE_MIPS16E2)
     ext_ases |= file_ase_mips16 ? AFL_ASE_MIPS16E2 : 0;
+  if (ase & ASE_XLP)
+    ext_ases |= AFL_ASE_XLP;
 
   return ext_ases;
 }
@@ -21569,6 +21591,9 @@ MIPS options:\n\
   fprintf (stream, _("\
 -mvirt			generate Virtualization instructions\n\
 -mno-virt		do not generate Virtualization instructions\n"));
+  fprintf (stream, _("\
+-mxlp			generate XLP instructions\n\
+-mno-xlp		do not generate XLP instructions\n"));
   fprintf (stream, _("\
 -minsn32		only generate 32-bit microMIPS instructions\n\
 -mno-insn32		generate all microMIPS instructions\n"));
