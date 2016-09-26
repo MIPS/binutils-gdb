@@ -6255,12 +6255,12 @@ match_micromipspp_save_restore_list_operand (struct mips_arg_info *arg,
     {
       if (fp != 0)
 	{
-	  first_reg = fp;
+	  first_reg = 30;
 	  fp = 0;
 	}
       else if (gp != 0)
 	{
-	  first_reg = gp;
+	  first_reg = 28;
 	  gp = 0;
 	}
       else if (count != 0)
