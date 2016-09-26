@@ -9415,7 +9415,7 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	      case 'F':
 		{
 		  const bfd_reloc_code_real_type rtype[] =
-		    { BFD_RELOC_MICROMIPS_10_PCREL_S1,
+		    { BFD_RELOC_MICROMIPSPP_10_PCREL_S1,
 		      BFD_RELOC_MICROMIPSPP_7_PCREL_S1,
 		      BFD_RELOC_MICROMIPSPP_4_PCREL_S1 };
 		  if (!forced_insn_length)
