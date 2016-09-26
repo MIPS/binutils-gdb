@@ -907,7 +907,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"mov.d",	"T,S",		0xa000207b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"mov.s",	"T,S",		0xa000007b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"move",	"mp,mj",		0x1000,	0xfc00,	WR_1|RD_2,		0,	I38,		0,		0}, /* preceded by BREAK, SDBBP */
-{"move",	"d,s",		0x20000210, 0xffe007ff, WR_1|RD_2,	INSN2_ALIAS,	I38,		0,		0}, /* MOVZ */
+{"move",	"d,s",		0x20000290, 0xffe007ff, WR_1|RD_2,	INSN2_ALIAS,	I38,		0,		0}, /* OR */
 {"move.balc",	"m4,m7,+r",	0x08000000, 0xfc000000,	WR_1|RD_2,		0,	0,	XLP,		0},
 {"move.bal",	"m4,m7,+r",	0x08000000, 0xfc000000,	WR_1|RD_2, INSN2_ALIAS|CTC,	0,	XLP,		0}, /* MOVE.BALC */
 {"movep",	"m5,m6,m2,m1",		0xbc00,	0xfc00,WR_1|WR_2|RD_3|RD_4,		0,	0,	XLP,		0},
