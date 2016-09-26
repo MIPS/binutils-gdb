@@ -1366,6 +1366,24 @@ Input_arguments::add_file(Input_file_argument& file)
   return this->input_argument_list_.back();
 }
 
+// Add a file to the first position in the list.
+
+Input_argument&
+Input_arguments::add_first_file(Input_file_argument& file)
+{
+  if (this->added_first_file_)
+  {
+    gold_warning(_("multiple STARTUP files"));
+    return this->input_argument_list_.front();
+  }
+
+  this->added_first_file_ = true;
+  file.set_arg_serial(++this->file_count_);
+  this->input_argument_list_.insert(this->input_argument_list_.begin(),
+                                    Input_argument(file));
+  return this->input_argument_list_.front();
+}
+
 // Start a group.
 
 void

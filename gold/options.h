@@ -2016,12 +2016,18 @@ class Input_arguments
   typedef Input_argument_list::const_iterator const_iterator;
 
   Input_arguments()
-    : input_argument_list_(), in_group_(false), in_lib_(false), file_count_(0)
+    : input_argument_list_(), in_group_(false), in_lib_(false),
+      added_first_file_(false), file_count_(0)
   { }
 
   // Add a file.
   Input_argument&
   add_file(Input_file_argument& arg);
+
+  // Add a file to the first position in the list.  This is used for
+  // STARTUP linker script command.
+  Input_argument&
+  add_first_file(Input_file_argument& arg);
 
   // Start a group (the --start-group option).
   void
@@ -2080,6 +2086,7 @@ class Input_arguments
   Input_argument_list input_argument_list_;
   bool in_group_;
   bool in_lib_;
+  bool added_first_file_;
   unsigned int file_count_;
 };
 

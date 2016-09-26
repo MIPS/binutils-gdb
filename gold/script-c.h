@@ -234,7 +234,7 @@ script_add_extern(void* closure, const char*, size_t);
 /* Called by the bison parser to add a file to the link.  */
 
 extern void
-script_add_file(void* closure, const char*, size_t);
+script_add_file(void* closure, const char*, size_t, int);
 
 /* Called by the bison parser to add a library to the link.  */
 

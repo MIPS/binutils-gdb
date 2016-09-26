@@ -2644,7 +2644,8 @@ script_add_extern(void* closurev, const char* name, size_t length)
 // Called by the bison parser to add a file to the link.
 
 extern "C" void
-script_add_file(void* closurev, const char* name, size_t length)
+script_add_file(void* closurev, const char* name, size_t length,
+                int is_first_file)
 {
   Parser_closure* closure = static_cast<Parser_closure*>(closurev);
 
@@ -2684,7 +2685,10 @@ script_add_file(void* closurev, const char* name, size_t length)
   Input_arguments* inputs = (closure->command_line() != NULL)
       ? &(closure->command_line()->inputs())
       : closure->inputs();
-  Input_argument& arg = inputs->add_file(file);
+
+  bool first_file = is_first_file != 0;
+  Input_argument& arg = !first_file ? inputs->add_file(file)
+                                    : inputs->add_first_file(file);
   arg.set_script_info(closure->script_info());
 }
 

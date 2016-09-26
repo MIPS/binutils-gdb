@@ -258,6 +258,8 @@ file_cmd:
 	| INHIBIT_COMMON_ALLOCATION
 	    { script_set_common_allocation(closure, 0); }
 	| INPUT '(' input_list ')'
+	| STARTUP '(' string ')'
+	    { script_add_file(closure, $3.value, $3.length, 1); }
 	| MEMORY '{' memory_defs '}'
         | OPTION '(' string ')'
 	    { script_parse_option(closure, $3.value, $3.length); }
@@ -335,7 +337,7 @@ input_list:
 /* An input file name.  */
 input_list_element:
 	  string
-	    { script_add_file(closure, $1.value, $1.length); }
+	    { script_add_file(closure, $1.value, $1.length, 0); }
 	| '-' STRING
 	    { script_add_library(closure, $2.value, $2.length); }
 	| AS_NEEDED
