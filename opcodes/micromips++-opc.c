@@ -978,9 +978,10 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"negu",	"d,w",		0x200001d0, 0xfc1f07ff, WR_1|RD_2,	INSN2_ALIAS,	I38,	0,		0}, /* SUBU */
 {"neg.d",	"T,V",		0xa0002b7b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"neg.s",	"T,V",		0xa0000b7b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
-{"nor",	"d,v,t",		0x200002d0, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,		0,		0},
+{"not",		"md,ml",	0x5000,		0xfc0f,	WR_1|RD_2,		0,	I38,		0,		0}, /* NOT[16] */
+{"not",		"d,v",		0x200002d0, 0xffe007ff, WR_1|RD_2|RD_3, INSN2_ALIAS,	I38,		0,		0}, /* NOR */
+{"nor",		"d,v,t",	0x200002d0, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,		0,		0},
 {"nor",		"t,r,I",	0,    (int) M_NOR_I,	INSN_MACRO,		0,	I38,		0,		0},
-{"not",	"md,ml",		0x5000,	0xfc0f,	WR_1|RD_2,		0,	I38,		0,		0}, /* NOT[16] */
 {"or",		"md,mx,ml",		0x500c,	0xfc0f,	WR_1|RD_3,	INSN2_ALIAS,	I38,		0,		0}, /* OR[16] */
 {"or",		"md,ml,mx",		0x500c,	0xfc0f,	WR_1|RD_2,	INSN2_ALIAS,	I38,		0,		0}, /* OR[16] */
 {"or",		"md,ml",		0x500c,	0xfc0f,	WR_1|RD_2,		0,	I38,		0,		0}, /* OR[16] */
