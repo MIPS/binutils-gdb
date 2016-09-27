@@ -1355,6 +1355,19 @@ micromipspp_print_save_restore (struct disassemble_info *info,
     }
 }
 
+static void
+micromipspp_print_save_restore_fp (struct disassemble_info *info,
+				   unsigned int count)
+{
+  const fprintf_ftype infprintf = info->fprintf_func;
+  void *is = info->stream;
+
+  if (count == 1)
+    infprintf (is, "%s", mips_fpr_names[0]);
+  else
+    infprintf (is, "%s-%s", mips_fpr_names[0], mips_fpr_names[count - 1]);
+}
+
 /* Print operand OPERAND of OPCODE, using STATE to track inter-operand state.
    UVAL is the encoding of the operand (shifted into bit 0) and BASE_PC is
    the base address for OP_PCREL operands.  */
@@ -1613,7 +1626,7 @@ print_insn_arg (struct disassemble_info *info,
 
     case OP_SAVE_RESTORE_LIST:
       if (is_isa_r7 (mips_isa))
-	  micromipspp_print_save_restore (info, uval, opcode->mask >> 16 == 0 );
+	micromipspp_print_save_restore (info, uval, opcode->mask >> 16 == 0);
       else
 	{
 	  /* uval contains bits 6 to 25 of the SAVE/RESTORE instruction.  */
@@ -1627,6 +1640,11 @@ print_insn_arg (struct disassemble_info *info,
 	  mips_print_save_restore (info, amask, nsreg, ra, s0, s1,
 				   frame_size);
 	}
+      break;
+
+    case OP_SAVE_RESTORE_FP_LIST:
+      if (is_isa_r7 (mips_isa))
+	micromipspp_print_save_restore_fp (info, uval);
       break;
 
     case OP_MDMX_IMM_REG:
@@ -1839,6 +1857,7 @@ validate_insn_args (const struct mips_opcode *opcode,
 		case OP_MXU_STRIDE:
 		case OP_MAPPED_STRING:
 		case OP_SAVE_RESTORE_LIST:
+		case OP_SAVE_RESTORE_FP_LIST:
 		case OP_HI20_INT:
 		case OP_HI20_PCREL:
 		  break;

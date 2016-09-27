@@ -384,6 +384,10 @@ enum mips_operand_type {
      instruction. Only register-list for microMIPS R7 SAVE or RESTORE */
   OP_SAVE_RESTORE_LIST,
 
+  /* The floating-point register list for a microMIPS R7 SAVE or RESTORE 
+     instruction. */
+  OP_SAVE_RESTORE_FP_LIST,
+
   /* A 10-bit field VVVVVNNNNN used for octobyte and quadhalf instructions:
 
      V      Meaning

@@ -4896,6 +4896,7 @@ operand_reg_mask (const struct mips_cl_insn *insn,
       abort ();
 
     case OP_SAVE_RESTORE_LIST:
+    case OP_SAVE_RESTORE_FP_LIST:
       if (ISA_IS_R7(insn->insn_mo->membership))
 	return 0;
       abort ();
@@ -6315,6 +6316,29 @@ match_micromipspp_save_restore_list_operand (struct mips_arg_info *arg,
   return TRUE;
 }
 
+/* OP_SAVE_RESTORE_FP_LIST matcher for microMIPS R7.  */
+
+static bfd_boolean
+match_save_restore_fp_list_operand (struct mips_arg_info *arg,
+				 const struct mips_operand *operand)
+{
+  unsigned int opval, count;
+  unsigned int regno1, regno2;
+
+  gas_assert (ISA_IS_R7 (mips_opts.isa));
+
+  if (!match_reg_range (arg, OP_REG_FP, &regno1, &regno2))
+    return FALSE;
+
+  if (regno1 != 0 || regno2 > 31)
+    return FALSE;
+  
+  opval = regno2 + 1;
+
+  insn_insert_operand (arg->insn, operand, opval);
+  return TRUE;
+}
+
 /* OP_SAVE_RESTORE_LIST matcher.  */
 
 static bfd_boolean
@@ -6775,6 +6799,9 @@ match_operand (struct mips_arg_info *arg,
 
     case OP_SAVE_RESTORE_LIST:
       return match_save_restore_list_operand (arg, operand);
+
+    case OP_SAVE_RESTORE_FP_LIST:
+      return match_save_restore_fp_list_operand (arg, operand);
 
     case OP_MDMX_IMM_REG:
       return match_mdmx_imm_reg_operand (arg, operand);

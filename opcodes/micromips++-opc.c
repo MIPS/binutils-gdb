@@ -158,6 +158,7 @@ decode_micromipspp_operand (const char *p)
 	case 'J': HINT (19, 0);
 	case 'M': HINT (18, 0);
  	case 'N': SPECIAL (4, 6, SAVE_RESTORE_LIST);
+	case 'P': SPECIAL (4, 17, SAVE_RESTORE_FP_LIST);
 	case 'O': UINT (3, 8);
 	case 'Q': HINT (3, 2);
 /* 	case 'P': INT_ADJ (5, 5, 31, 2, FALSE);	 /\* (0 .. 31) << 2 *\/ */
@@ -1035,9 +1036,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"restore.jrc", "mY,n",	0x80013004, 0xfc01f004,		0,		0,	I38,		0,		0},
 {"jraddiusp",	"mG",	0x1fa0,		0xffe1,		0,	INSN2_ALIAS,	0,		XLP,		0}, /* RESTORE.JRC[16] */
 {"jraddiusp",	"I",	0,   (int) M_JRADDIUSP,	INSN_MACRO,		0,	I38,		0,		0},
-/*
-{"restoref",	"fpr_list,mY",		0x80017000, 0xffe1f007,		WR_1,		0,	I38,	0,		0},
-*/
+{"restoref",	"mY,+P",	0x80017000, 0xffe1f007,	0,			0,	I38,	0,		0},
 {"rint.d",	"T,S",		0xa0000220, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"rint.s",	"T,S",		0xa0000020, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"rol", 	"d,v,t",		0,    (int) M_ROL,	INSN_MACRO,		0,	I38,		0,		0},
@@ -1061,9 +1060,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"save",	"mG",		0x1fc0,	0xffe1,		0,		0,	0,	XLP,		0}, /* SAVE[16] */
 {"save",	"mG,+N",		0x1c00,	0xfc21,		0,		0,	0,	XLP,		0}, /* SAVE[16] */
 {"save",	"mY,n",		0x80003000, 0xfc01f004,		0,		0,	I38,		0,		0},
-/*
-{"savef",	"fpr_list,mY",		0x80007000, 0xffe1f007,		RD_1,		0,	I38,	0,		0},
-*/
+{"savef",	"mY,+P",	0x80007000, 0xffe1f007,	    	0,		0,	I38,		0,		0},
 {"sb",		"mq,mL(ml)",		0x1404,	0xfc0c,	RD_1|RD_3,		0,	I38,		0,		0}, /* SB[16] */
 {"sb",		"t,+1(ma)",		0x44040000, 0xfc1c0000,	RD_1|RD_3,		0,	I38,		0,		0}, /* SB[GP] */
 {"sb",		"t,o(b)",		0x84001000, 0xfc00f000,	RD_1|RD_3,		0,	I38,		0,		0},
