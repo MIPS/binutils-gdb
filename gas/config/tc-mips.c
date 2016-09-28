@@ -10053,6 +10053,8 @@ macro_match_micromipspp_reloc (const char *fmt, bfd_reloc_code_real_type *r)
       else
 	*r = BFD_RELOC_MICROMIPSPP_LO12;
     }
+  else if (*r == _dummy_first_bfd_reloc_code_real)
+    *r = BFD_RELOC_UNUSED;
   else
     gas_assert (*r == BFD_RELOC_MICROMIPSPP_LO12
 		|| *r == BFD_RELOC_MICROMIPSPP_IMM14
