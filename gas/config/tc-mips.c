@@ -9998,6 +9998,15 @@ static const char * const div_fmt[2] = { "z,s,t", "d,v,t" };
 #define DIV_FMT (div_fmt[ISA_IS_R7 (mips_opts.isa) ? 1 : 0])
 #define ISA_OFFBITS (ISA_IS_R7 (mips_opts.isa)? 12 : 16)
 #define ISA_ADD_OFFBITS (ISA_IS_R7 (mips_opts.isa)? 14 : 16)
+#define ISA_COP2_OFFBITS (ISA_IS_R7 (mips_opts.isa) ? 9 	\
+			  : (ISA_IS_R6 (mips_opts.isa) ? 11	\
+			     : (mips_opts.micromips ? 12	\
+				: 16)))
+#define ISA_LLSC_OFFBITS					\
+  (ISA_IS_R6 (mips_opts.isa) || ISA_IS_R7 (mips_opts.isa) ? 9	\
+   : (mips_opts.micromips ? 12					\
+      : 16))
+#define ISA_CACHE_OFFBITS ISA_LLSC_OFFBITS
 
 /* Read a macro's relocation codes from *ARGS and store them in *R.
    The first argument in *ARGS will be either the code for a single
@@ -13271,9 +13280,7 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_LWC2_AB:
       s = "lwc2";
       fmt = COP12_FMT;
-      offbits = (ISA_IS_R6 (mips_opts.isa) ? 11
-		 : mips_opts.micromips ? 12
-		 : 16);
+      offbits = ISA_COP2_OFFBITS;
       /* Itbl support may require additional care here.  */
       coproc = 1;
       goto ld_st;
@@ -13303,9 +13310,7 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_LDC2_AB:
       s = "ldc2";
       fmt = COP12_FMT;
-      offbits = (ISA_IS_R6 (mips_opts.isa) ? 11
-		 : mips_opts.micromips ? 12
-		 : 16);
+      offbits = ISA_COP2_OFFBITS;
       /* Itbl support may require additional care here.  */
       coproc = 1;
       goto ld_st;
@@ -13334,9 +13339,7 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_LL_AB:
       s = "ll";
       fmt = LL_SC_FMT;
-      offbits = (!ISA_IS_PRER6 (mips_opts.isa) ? 9
-		     : mips_opts.micromips ? 12
-		     : 16);
+      offbits = ISA_LLSC_OFFBITS;
       goto ld;
     case M_LLX_AB:
       s = "llx";
@@ -13346,9 +13349,7 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_LLD_AB:
       s = "lld";
       fmt = LL_SC_FMT;
-      offbits = (ISA_IS_R6 (mips_opts.isa) ? 9
-		 : mips_opts.micromips ? 12
-		 : 16);
+      offbits = ISA_LLSC_OFFBITS;
       goto ld;
     case M_LLDX_AB:
       s = "lldx";
@@ -13423,9 +13424,7 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_SWC2_AB:
       s = "swc2";
       fmt = COP12_FMT;
-      offbits = (ISA_IS_R6 (mips_opts.isa) ? 11
-		 : mips_opts.micromips ? 12
-		 : 16);
+      offbits = ISA_COP2_OFFBITS;
       /* Itbl support may require additional care here.  */
       coproc = 1;
       goto ld_st;
@@ -13449,9 +13448,7 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_SC_AB:
       s = "sc";
       fmt = LL_SC_FMT;
-      offbits = (!ISA_IS_PRER6 (mips_opts.isa) ? 9
-		 : mips_opts.micromips ? 12
-		 : 16);
+      offbits = ISA_LLSC_OFFBITS;
       goto ld_st;
     case M_SCX_AB:
       s = "scx";
@@ -13461,9 +13458,7 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_SCD_AB:
       s = "scd";
       fmt = LL_SC_FMT;
-      offbits = (ISA_IS_R6 (mips_opts.isa) ? 9
-		 : mips_opts.micromips ? 12
-		 : 16);
+      offbits = ISA_LLSC_OFFBITS;
       goto ld_st;
     case M_SCDX_AB:
       s = "scdx";
@@ -13473,9 +13468,7 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_CACHE_AB:
       s = "cache";
       fmt = PREF_FMT;
-      offbits = (!ISA_IS_PRER6 (mips_opts.isa) ? 9
-		 : mips_opts.micromips ? 12
-		 : 16);
+      offbits = ISA_CACHE_OFFBITS;
       goto ld_st;
     case M_CACHEE_AB:
       s = "cachee";
@@ -13485,9 +13478,7 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_PREF_AB:
       s = "pref";
       fmt = PREF_FMT;
-      offbits = (!ISA_IS_PRER6 (mips_opts.isa) ? 9
-		 : mips_opts.micromips ? 12
-		 : 16);
+      offbits = ISA_CACHE_OFFBITS;
       goto ld_st;
     case M_PREFE_AB:
       s = "prefe";
@@ -13503,9 +13494,7 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_SDC2_AB:
       s = "sdc2";
       fmt = COP12_FMT;
-      offbits = (ISA_IS_R6 (mips_opts.isa) ? 11
-		 : mips_opts.micromips ? 12
-		 : 16);
+      offbits = ISA_COP2_OFFBITS;
       /* Itbl support may require additional care here.  */
       coproc = 1;
       goto ld_st;
