@@ -4494,7 +4494,9 @@ gprel16_reloc_p (bfd_reloc_code_real_type reloc)
 	  || reloc == BFD_RELOC_MICROMIPSPP_GPREL7_S2
 	  || reloc == BFD_RELOC_MICROMIPSPP_GPREL14
 	  || reloc == BFD_RELOC_MICROMIPSPP_GPREL18
-	  || reloc == BFD_RELOC_MICROMIPSPP_GPREL19_S2);
+	  || reloc == BFD_RELOC_MICROMIPSPP_GPREL19_S2
+	  || reloc == BFD_RELOC_MICROMIPSPP_GPREL16_S2
+	  || reloc == BFD_RELOC_MICROMIPSPP_GPREL18_S3);
 }
 
 static inline bfd_boolean
@@ -9143,6 +9145,13 @@ static const struct gprel_insn_match micromipspp_gprel_map[] =
   {"lbu", BFD_RELOC_MICROMIPSPP_GPREL18}, 
   {"sb", BFD_RELOC_MICROMIPSPP_GPREL18}, 
   {"addiu", BFD_RELOC_MICROMIPSPP_GPREL19_S2},
+  {"ldc1", BFD_RELOC_MICROMIPSPP_GPREL16_S2},
+  {"sdc1", BFD_RELOC_MICROMIPSPP_GPREL16_S2},
+  {"swc1", BFD_RELOC_MICROMIPSPP_GPREL16_S2},
+  {"lwc1", BFD_RELOC_MICROMIPSPP_GPREL16_S2},
+  {"lwu", BFD_RELOC_MICROMIPSPP_GPREL16_S2},
+  {"ld", BFD_RELOC_MICROMIPSPP_GPREL18_S3},
+  {"sd", BFD_RELOC_MICROMIPSPP_GPREL18_S3},
 };
 
 static bfd_reloc_code_real_type
@@ -10059,6 +10068,12 @@ macro_match_micromipspp_reloc (const char *fmt, bfd_reloc_code_real_type *r)
     {
       if (*fmt == '.')
 	*r = BFD_RELOC_MICROMIPSPP_GPREL19_S2;
+      else if (*fmt == '+' && *(fmt + 1) == '2')
+	*r = BFD_RELOC_MICROMIPSPP_GPREL16_S2;
+      else if (*fmt == '+' && *(fmt + 1) == '1')
+	*r = BFD_RELOC_MICROMIPSPP_GPREL18;
+      else if (*fmt == 'm' && *(fmt + 1) == 'V')
+	*r = BFD_RELOC_MICROMIPSPP_GPREL18_S3;
       else
 	*r = BFD_RELOC_MICROMIPSPP_LO12;
     }
@@ -10193,7 +10208,8 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 
 	case '+':
 	  if (ISA_IS_R7 (mips_opts.isa)
-	      && (*(fmt + 1) == 'm' || *(fmt + 1) == 'j')
+	      && (*(fmt + 1) == 'm' || *(fmt + 1) == 'j' ||
+		  *(fmt + 1) == '1' || *(fmt + 1) == '2')
 	      && ep != NULL)
 	    {
 	      macro_read_relocs (&args, r);
@@ -10252,6 +10268,11 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	  *r = BFD_RELOC_MIPS_JMP;
 	  continue;
 
+	case 'm':
+	  if (*(fmt + 1) != 'V')
+	    break;
+	  /* Fall through */
+
 	case '.':
 	  if (ISA_IS_R7 (mips_opts.isa))
 	    {
@@ -10260,6 +10281,7 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 		macro_match_micromipspp_reloc (fmt, r);
 	      continue;
 	    }
+	  /* Fall through */
 
 	default:
 	  break;
@@ -11528,6 +11550,7 @@ macro (struct mips_cl_insn *ip, char *str)
   const char *s;
   const char *s2;
   const char *fmt;
+  const char *gpfmt = NULL;
   int likely = 0;
   int coproc = 0;
   int offbits = ISA_OFFBITS;
@@ -13247,22 +13270,32 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_LB_AB:
       s = "lb";
       fmt = "t,o(b)";
+      if (ISA_IS_R7 (mips_opts.isa))
+	gpfmt = "t,+1(ma)";
       goto ld;
     case M_LBU_AB:
       s = "lbu";
       fmt = "t,o(b)";
+      if (ISA_IS_R7 (mips_opts.isa))
+	gpfmt = "t,+1(ma)";
       goto ld;
     case M_LH_AB:
       s = "lh";
       fmt = "t,o(b)";
+      if (ISA_IS_R7 (mips_opts.isa))
+	gpfmt = "t,+1(ma)";
       goto ld;
     case M_LHU_AB:
       s = "lhu";
       fmt = "t,o(b)";
+      if (ISA_IS_R7 (mips_opts.isa))
+	gpfmt = "t,+1(ma)";
       goto ld;
     case M_LW_AB:
       s = "lw";
       fmt = "t,o(b)";
+      if (ISA_IS_R7 (mips_opts.isa))
+	gpfmt = "t,.(ma)";
       goto ld;
     case M_LWC0_AB:
       gas_assert (!mips_opts.micromips);
@@ -13274,6 +13307,8 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_LWC1_AB:
       s = "lwc1";
       fmt = "T,o(b)";
+      if (ISA_IS_R7 (mips_opts.isa))
+	gpfmt = "T,+2(ma)";
       /* Itbl support may require additional care here.  */
       coproc = 1;
       goto ld_st;
@@ -13304,6 +13339,8 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_LDC1_AB:
       s = "ldc1";
       fmt = "T,o(b)";
+      if (ISA_IS_R7 (mips_opts.isa))
+	gpfmt = "T,+2(ma)";
       /* Itbl support may require additional care here.  */
       coproc = 1;
       goto ld_st;
@@ -13359,6 +13396,8 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_LWU_AB:
       s = "lwu";
       fmt = MEM12_FMT;
+      if (ISA_IS_R7 (mips_opts.isa))
+	gpfmt = "t,+2(ma)";
       offbits = (mips_opts.micromips ? 12 : 16);
       goto ld;
     case M_LWP_AB:
@@ -13399,14 +13438,20 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_SB_AB:
       s = "sb";
       fmt = "t,o(b)";
+      if (ISA_IS_R7 (mips_opts.isa))
+	gpfmt = "t,+1(ma)";
       goto ld_st;
     case M_SH_AB:
       s = "sh";
       fmt = "t,o(b)";
+      if (ISA_IS_R7 (mips_opts.isa))
+	gpfmt = "t,+1(ma)";
       goto ld_st;
     case M_SW_AB:
       s = "sw";
       fmt = "t,o(b)";
+      if (ISA_IS_R7 (mips_opts.isa))
+	gpfmt = "t,.(ma)";
       goto ld_st;
     case M_SWC0_AB:
       gas_assert (!mips_opts.micromips);
@@ -13418,6 +13463,8 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_SWC1_AB:
       s = "swc1";
       fmt = "T,o(b)";
+      if (ISA_IS_R7 (mips_opts.isa))
+	gpfmt = "T,+2(ma)";
       /* Itbl support may require additional care here.  */
       coproc = 1;
       goto ld_st;
@@ -13488,6 +13535,8 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_SDC1_AB:
       s = "sdc1";
       fmt = "T,o(b)";
+      if (ISA_IS_R7 (mips_opts.isa))
+	gpfmt = "T,+2(ma)";
       coproc = 1;
       /* Itbl support may require additional care here.  */
       goto ld_st;
@@ -13763,7 +13812,8 @@ macro (struct mips_cl_insn *ip, char *str)
 		  && !nopic_need_relax (offset_expr.X_add_symbol, 1))
 		{
 		  relax_start (offset_expr.X_add_symbol);
-		  fmt = (ISA_IS_R7 (mips_opts.isa) ? "t,.(ma)" : fmt);
+		  fmt = ((ISA_IS_R7 (mips_opts.isa) && gpfmt != NULL)
+			 ? gpfmt : fmt);
 		  macro_build (&offset_expr, s, fmt, op[0], BFD_RELOC_GPREL16,
 			       mips_gp_register);
 		  relax_switch ();
@@ -14191,6 +14241,8 @@ macro (struct mips_cl_insn *ip, char *str)
 
     case M_LD_AB:
       fmt = "t,o(b)";
+      if (ISA_IS_R7 (mips_opts.isa))
+	gpfmt = "t,mV(ma)";
       if (GPR_SIZE == 64)
 	{
 	  s = "ld";
@@ -14201,6 +14253,8 @@ macro (struct mips_cl_insn *ip, char *str)
 
     case M_SD_AB:
       fmt = "t,o(b)";
+      if (ISA_IS_R7 (mips_opts.isa))
+	gpfmt = "t,mV(ma)";
       if (GPR_SIZE == 64)
 	{
 	  s = "sd";
@@ -17250,6 +17304,8 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
     case BFD_RELOC_MICROMIPSPP_LO12_PCREL:
     case BFD_RELOC_MICROMIPSPP_GPREL18:
     case BFD_RELOC_MICROMIPSPP_GPREL19_S2:
+    case BFD_RELOC_MICROMIPSPP_GPREL16_S2:
+    case BFD_RELOC_MICROMIPSPP_GPREL18_S3:
     case BFD_RELOC_MICROMIPSPP_GPREL7_S2:
     case BFD_RELOC_MICROMIPSPP_GPREL14:
     case BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12:
