@@ -26,8 +26,8 @@
 :compute:::int:AXUIPC_S_LO:S1,S2,S3:((EXTEND32((S3 << 31) | (S2 << 21) | (S1 << 12))) & 0x0000ffff)
 :compute:::int:AXUIPC_S_HI:S1,S2,S3:((EXTEND32((S3 << 31) | (S2 << 21) | (S1 << 12))) & 0xffff0000)
 :compute:::int:AXUIPC_S:S1,S2,S3:(EXTEND32((S3 << 31) | (S2 << 21) | (S1 << 12)))
-:compute:::int:TRD2:RD20,RD21:(compute_gpr2_dest1_reg (SD_, (RD21 | RD20)))
-:compute:::int:TRE2:RD20,RD21:(compute_gpr2_dest2_reg (SD_, (RD21 | RD20)))
+:compute:::int:TRD2:RD20,RD21:(compute_gpr2_dest1_reg (SD_, (RD21 << 1 | RD20)))
+:compute:::int:TRE2:RD20,RD21:(compute_gpr2_dest2_reg (SD_, (RD21 << 1 | RD20)))
 :compute:::int:TRS2:RS4,RS2_0:((RS4 << 4) | RS2_0)
 :compute:::int:TRT2:RT4,RT2_0:((RT4 << 4) | RT2_0)
 :compute:::address_word:ADDRESS8:S1,S2:(nia + EXTEND8((S2 << 7) | (S1 << 1)))
@@ -128,81 +128,6 @@
   return value & low_bits_mask;
 }
 
-:function:::char*:do_get_save_restore_gpr_list:int first_gpr, int count, int fp, int gp
-*micromips32r7:
-*micromips64r7:
-{
-  int fp_pending;
-  int gp_pending;
-  int num_pending;
-  int i;
-  static char gpr_list[100];
-  int is_first_gpr;
-
-  fp_pending = fp || (count==9 && !gp);
-  gp_pending = gp;
-  num_pending = count;
-  gpr_list[0] = '\0';
-
-  is_first_gpr = ((first_gpr >= 16 && first_gpr <= 23) ||
-                 first_gpr == 28 ||
-                 first_gpr == 30 ||
-                 first_gpr == 31) ? 1 : 0;
-
-  i = 0;
-
-  if (fp_pending)
-    num_pending--;
-  if (gp_pending)
-    num_pending--;
-
-  while (i<num_pending)
-    {
-      char str1[3];
-      sprintf(str1, "%d", i);
-
-      if (i>0)
-        strcat (gpr_list,",");
-      strcat (gpr_list,"s");
-      strcat (gpr_list,str1);
-      i++;
-    }
-
-  if (fp_pending)
-    {
-      if (i > 0)
-        strcat (gpr_list,",");
-      strcat (gpr_list,"fp");
-    }
-
-  if (gp_pending)
-    {
-      if (i > 0 || fp_pending)
-        strcat (gpr_list,",");
-      strcat (gpr_list,"ra");
-    }
-
-  if ((i > 0 || fp_pending || gp_pending) && is_first_gpr)
-    strcat (gpr_list,",");
-
-  if (first_gpr >= 16 && first_gpr <= 23)
-    {
-      char str2[3];
-      sprintf(str2, "%d", first_gpr-16);
-
-      strcat (gpr_list,"s");
-      strcat (gpr_list,str2);
-    }
-  else if (first_gpr == 28)
-    strcat (gpr_list,"gp");
-  else if (first_gpr == 30)
-    strcat (gpr_list,"fp");
-  else if (first_gpr == 31)
-    strcat (gpr_list,"ra");
-
-  return (gpr_list);
-}
-
 :function:::void:do_save_gprs_to_stack_and_adjust_sp: int first_gpr, int count, int fp, int gp, int offset
 *micromips32r7:
 *micromips64r7:
@@ -220,7 +145,7 @@
 
   va = GPR[SPIDX];
   if (first_gpr >= 0 && first_gpr < 32)
-    do_store (SD_,AccessLength_WORD, va -= 4, 0, GPR[first_gpr]);
+    do_store (SD_, AccessLength_WORD, va -= 4, 0, GPR[first_gpr]);
 
   while (num_pending > 0)
     {
@@ -339,35 +264,44 @@
   TRACE_ALU_RESULT (GPR[rd]);
 }
 
-:%s::::GPR_LIST_SAVE16:int count
-*micromips32r7:
-*micromips64r7:
-{
-  if (count == 14 || count == 15 )
-    return "";
-  else
-    return do_get_save_restore_gpr_list(SD_, 31, count, 0, 0);
-}
-
 :%s::::GPR_LIST_SAVE:int count
 *micromips32r7:
 *micromips64r7:
 {
-  return do_get_save_restore_gpr_list (SD_, -1, count, 0, 0);
+  int i;
+  static char gpr_list[100];
+
+  gpr_list[0] = '\0';
+
+  i = 0;
+
+  while (i<count)
+    {
+      char str1[3];
+      sprintf(str1, "%d", i);
+
+      if (i>0)
+        strcat (gpr_list,", ");
+      strcat (gpr_list,"s");
+      strcat (gpr_list,str1);
+      i++;
+    }
+  return (gpr_list);
+  //return do_get_save_restore_gpr_list (SD_, -1, count, 0, 0);
 }
 
 :%s::::GP_SAVE:int gp
 *micromips32r7:
 *micromips64r7:
 {
-  return (gp > 0) ? ",gp" : "";
+  return (gp > 0) ? "gp" : "";
 }
 
 :%s::::FP_SAVE:int fp
 *micromips32r7:
 *micromips64r7:
 {
-  return (fp > 0) ? ",fp" : "";
+  return (fp > 0) ? "fp" : "";
 }
 
 :%s::::RT_SAVE:int rt
@@ -375,17 +309,23 @@
 *micromips64r7:
 {
   if (rt >= 16 && rt <= 23)
-    {
-      char str[4];
-      sprintf(str, ",s%d", rt-16);
-      return str;
-    }
+  {
+    char str[4];
+    sprintf(str, "s%d", rt-16);
+    return str;
+  }
   else if (rt == 28)
-    return ",gp";
+    return "gp";
   else if (rt == 30)
-    return ",fp";
+    return "fp";
   else if (rt == 31)
-    return ",ra";
+    return "ra";
+  else if (rt >= 0 && rt < 28)
+  {
+    char str[4];
+    sprintf(str, "r%d", rt);
+    return str;
+  }
 
   return "";
 }
@@ -687,32 +627,37 @@
   do_or (SD_, TRS, TRT, TRT);
 }
 
-000111,4.GPR_LIST_SAVE16,1,4.U,0:R7PRESTORE16:16::RESTORE16
-"restore <U_SHIFT_3BIT>":GPR_LIST_SAVE16==15
-"restore.jrc %s<GPR_LIST_SAVE16>, <U_SHIFT_3BIT>"
+000111,4.GPR_LIST_SAVE,1,4.U,0:R7PRESTORE16:16::RESTORE16
+"restore <U_SHIFT_3BIT>":GPR_LIST_SAVE==15
+"restore.jrc <U_SHIFT_3BIT>":GPR_LIST_SAVE==14
+"restore.jrc <U_SHIFT_3BIT>, ra, fp, s0-s7":GPR_LIST_SAVE==9
+"restore.jrc <U_SHIFT_3BIT>, ra, %s<GPR_LIST_SAVE>"
 *micromips32r7:
 *micromips64r7:
 {
-  if (GPR_LIST_SAVE16==14 || GPR_LIST_SAVE16==15)
+  if (GPR_LIST_SAVE==14 || GPR_LIST_SAVE==15)
     do_restore_gprs_from_stack_and_adjust_sp(SD_, -1, 0, 0, 0, U_SHIFT_3BIT);
   else
-    do_restore_gprs_from_stack_and_adjust_sp(SD_, 31, GPR_LIST_SAVE16, 0, 0,
+    do_restore_gprs_from_stack_and_adjust_sp(SD_, 31, GPR_LIST_SAVE, 0, 0,
                                              U_SHIFT_3BIT);
-  if (GPR_LIST_SAVE16 != 15) {
+  if (GPR_LIST_SAVE != 15) {
     isa_mode =  GPR[RAIDX] & 0x1;
     NIA = GPR[RAIDX] & ~1;
   }
 }
 
-000111,4.GPR_LIST_SAVE16,0,4.U,0:R7P16SRW:16::SAVE16
-"save %s<GPR_LIST_SAVE16>, <U_SHIFT_3BIT>"
+000111,4.GPR_LIST_SAVE,0,4.U,0:R7P16SRW:16::SAVE16
+"save <U_SHIFT_3BIT>": GPR_LIST_SAVE == 14 || GPR_LIST_SAVE == 15
+"save <U_SHIFT_3BIT>, ra": GPR_LIST_SAVE == 0
+"save <U_SHIFT_3BIT>, ra, fp, s0-s7": GPR_LIST_SAVE == 9
+"save <U_SHIFT_3BIT>, ra, %s<GPR_LIST_SAVE>"
 *micromips32r7:
 *micromips64r7:
 {
-  if (GPR_LIST_SAVE16==14 || GPR_LIST_SAVE16==15)
+  if (GPR_LIST_SAVE==14 || GPR_LIST_SAVE==15)
     do_save_gprs_to_stack_and_adjust_sp(SD_, -1, 0, 0, 0, U_SHIFT_3BIT);
   else
-    do_save_gprs_to_stack_and_adjust_sp(SD_, 31, GPR_LIST_SAVE16, 0, 0,
+    do_save_gprs_to_stack_and_adjust_sp(SD_, 31, GPR_LIST_SAVE, 0, 0,
                                         U_SHIFT_3BIT);
 }
 
@@ -1060,7 +1005,7 @@
 }
 
 110010,5.RT,100,7.U,10.S1,1.S2:P7PBRI:32::BNEIC
-"bneic RT, U, <ADDRESS12>"
+"bneic r<RT>, <U>, <ADDRESS12>"
 *micromips32r7:
 *micromips64r7:
 {
@@ -1192,7 +1137,7 @@
 }
 
 010010,5.RT,5.RS,0000,12.X:R7PJ:32::JALRC
-"jalrc.hb r<RT>, r<RS>"
+"jalrc r<RT>, r<RS>"
 *micromips32r7:
 *micromips64r7:
 {
@@ -1381,7 +1326,7 @@
 }
 
 001000,5.RT,5.RS,5.RD,0100,1,000,111:R7PPLSXS:32::LHXS
-"lhx r<RD>, r<RS>(r<RT>)"
+"lhxs r<RD>, r<RS>(r<RT>)"
 *micromips32r7:
 *micromips64r7:
 {
@@ -1608,7 +1553,14 @@
 }
 
 100000,5.RT_SAVE,4.GPR_LIST_SAVE,10011,9.U,0,1.FP_SAVE,1.GP_SAVE:R7PRESTORE:32::RESTORE
-"restore %s<GPR_LIST_SAVE>%s<GP_SAVE>%s<FP_SAVE>%s<RT_SAVE>, <U_SHIFT_3BIT>"
+"restore <U_SHIFT_3BIT>, %s<RT_SAVE>": GPR_LIST_SAVE == 0
+"restore <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GPR_LIST_SAVE>": (!FP_SAVE && !GP_SAVE) && GPR_LIST_SAVE != 0
+"restore <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<FP_SAVE>": FP_SAVE && !GP_SAVE && GPR_LIST_SAVE < 2
+"restore <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<FP_SAVE>, %s<GPR_LIST_SAVE>" : FP_SAVE && !GP_SAVE && GPR_LIST_SAVE >=2
+"restore <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GP_SAVE>": GP_SAVE && !FP_SAVE && GPR_LIST_SAVE < 2
+"restore <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GP_SAVE>, %s<GPR_LIST_SAVE>" : !FP_SAVE && GP_SAVE && GPR_LIST_SAVE >=2
+"restore <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<FP_SAVE>, %s<GP_SAVE>": (FP_SAVE && GP_SAVE) && GPR_LIST_SAVE < 3
+"restore <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<FP_SAVE>, %s<GP_SAVE>, %s<GPR_LIST_SAVE>"
 *micromips32r7:
 *micromips64r7:
 {
@@ -1617,7 +1569,14 @@
 }
 
 100000,5.RT_SAVE,4.GPR_LIST_SAVE,10011,9.U,1,1.FP_SAVE,1.GP_SAVE:R7PRESTORE:32::RESTORE.JRC
-"restore.jrc %s<GPR_LIST_SAVE>%s<GP_SAVE>%s<FP_SAVE>%s<RT_SAVE>, <U_SHIFT_3BIT>"
+"restore.jrc <U_SHIFT_3BIT>, %s<RT_SAVE>": GPR_LIST_SAVE == 0
+"restore.jrc <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GPR_LIST_SAVE>": (!FP_SAVE && !GP_SAVE) && GPR_LIST_SAVE != 0
+"restore.jrc <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<FP_SAVE>": FP_SAVE && !GP_SAVE && GPR_LIST_SAVE < 2
+"restore.jrc <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<FP_SAVE>, %s<GPR_LIST_SAVE>" : FP_SAVE && !GP_SAVE && GPR_LIST_SAVE >=2
+"restore.jrc <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GP_SAVE>": GP_SAVE && !FP_SAVE && GPR_LIST_SAVE < 2
+"restore.jrc <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GP_SAVE>, %s<GPR_LIST_SAVE>" : !FP_SAVE && GP_SAVE && GPR_LIST_SAVE >=2
+"restore.jrc <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<FP_SAVE>, %s<GP_SAVE>": (FP_SAVE && GP_SAVE) && GPR_LIST_SAVE < 3
+"restore.jrc <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<FP_SAVE>, %s<GP_SAVE>, %s<GPR_LIST_SAVE>"
 *micromips32r7:
 *micromips64r7:
 {
@@ -1660,8 +1619,15 @@
   do_xori (SD_, RS, RT, U);
 }
 
-100000,5.RT_SAVE,4.GPR_LIST_SAVE,0,0011,9.U,0,1.FP_SAVE,1.GP_SAVE:R7PSR:32::SAVE
-"save %s<GPR_LIST_SAVE>%s<GP_SAVE>%s<FP_SAVE>%s<RT_SAVE>, <U_SHIFT_3BIT>"
+100000,5.RT_SAVE,4.GPR_LIST_SAVE,0,0011,9.U,1.X,1.FP_SAVE,1.GP_SAVE:R7PSR:32::SAVE
+"save <U_SHIFT_3BIT>, %s<RT_SAVE>": GPR_LIST_SAVE == 0
+"save <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GPR_LIST_SAVE>": (!FP_SAVE && !GP_SAVE) && GPR_LIST_SAVE != 0
+"save <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<FP_SAVE>": FP_SAVE && !GP_SAVE && GPR_LIST_SAVE < 2
+"save <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<FP_SAVE>, %s<GPR_LIST_SAVE>" : FP_SAVE && !GP_SAVE && GPR_LIST_SAVE >=2
+"save <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GP_SAVE>": GP_SAVE && !FP_SAVE && GPR_LIST_SAVE < 2
+"save <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GP_SAVE>, %s<GPR_LIST_SAVE>" : !FP_SAVE && GP_SAVE && GPR_LIST_SAVE >=2
+"save <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<FP_SAVE>, %s<GP_SAVE>": (FP_SAVE && GP_SAVE) && GPR_LIST_SAVE < 3
+"save <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<FP_SAVE>, %s<GP_SAVE>, %s<GPR_LIST_SAVE>"
 *micromips32r7:
 *micromips64r7:
 {
@@ -1719,6 +1685,14 @@
 *micromips64r7:
 {
   do_sc (SD_, RT, S_9_BIT_LLSC, RS, instruction_0);
+}
+
+001000,5.RT,5.RS,0010101100111111:R7POOL32A0:32::SEB
+"seb r<RT>, r<RS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_seb (SD_, RT, RS);
 }
 
 001000,5.RT,5.RS,0011101,100,111,111:R7POOL32A0:32::SEH
