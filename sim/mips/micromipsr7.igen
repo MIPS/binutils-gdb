@@ -1600,7 +1600,8 @@
 *micromips32r7:
 *micromips64r7:
 {
-  GPR[RD] = do_ror (SD_, GPR[RT], GPR[RS]);
+  unsigned32 shift = GPR[RT] & 0x1f;
+  GPR[RD] = do_ror (SD_, GPR[RT], shift);
 }
 
 001000,5.RT,5.RS,5.RD,0,1100010,000:R7POOL32A0:32::XOR
@@ -1839,7 +1840,6 @@
 *micromips32r7:
 *micromips64r7:
 {
-  //do_sra (SD_, RS, RT, SHIFT);
   signed32 temp = (signed32) GPR[RS] >> SHIFT;
   if (NotWordValue (GPR[RS]))
     Unpredictable ();
@@ -1853,7 +1853,15 @@
 *micromips32r7:
 *micromips64r7:
 {
-  do_srav (SD_, RS, RT, RD);
+  int s = MASKED (GPR[RT], 4, 0);
+  signed32 temp = (signed32) GPR[RS] >> s;
+  if (NotWordValue (GPR[RS]))
+    Unpredictable ();
+  TRACE_ALU_INPUT3 (GPR[RD], GPR[RS], s);
+  GPR[RD] = EXTEND32 (temp);
+  TRACE_ALU_RESULT (GPR[RD]);
+
+  //do_srav (SD_, RS, RT, RD);
 }
 
 100000,5.RT,5.RS,11000000010,5.SHIFT:R7PSHIFT:32::SRL
@@ -1861,7 +1869,6 @@
 *micromips32r7:
 *micromips64r7:
 {
-  //do_srl (SD_, RS, RT, SHIFT);
   unsigned32 temp = (unsigned32) GPR[RS] >> SHIFT;
   if (NotWordValue (GPR[RS]))
     Unpredictable ();
@@ -1875,7 +1882,14 @@
 *micromips32r7:
 *micromips64r7:
 {
-  do_srlv (SD_, RS, RT, RD);
+  int s = MASKED (GPR[RT], 4, 0);
+  unsigned32 temp = (unsigned32) GPR[RS] >> s;
+  if (NotWordValue (GPR[RS]))
+    Unpredictable ();
+  TRACE_ALU_INPUT3 (GPR[RD], GPR[RS], s);
+  GPR[RD] = zero_extend(SD_, temp, 32);
+  TRACE_ALU_RESULT (GPR[RD]);
+  //do_srlv (SD_, RS, RT, RD);
 }
 
 001000,5.RT,5.RS,5.RD,1.X,0110010,000:R7POOL32A0:32::SUB
@@ -1883,7 +1897,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  do_sub (SD_, RD, RS, RT);
+  do_sub (SD_, RS, RT, RD);
 }
 
 001000,5.RT,5.RS,5.RD,1.X,0111010,000:R7POOL32A0:32::SUBU
