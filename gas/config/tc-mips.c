@@ -6324,7 +6324,7 @@ static bfd_boolean
 match_save_restore_fp_list_operand (struct mips_arg_info *arg,
 				 const struct mips_operand *operand)
 {
-  unsigned int opval, count;
+  unsigned int opval;
   unsigned int regno1, regno2;
 
   gas_assert (ISA_IS_R7 (mips_opts.isa));
