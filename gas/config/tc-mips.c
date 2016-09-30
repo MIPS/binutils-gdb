@@ -4206,7 +4206,7 @@ mips_check_options (struct mips_set_options *opts, bfd_boolean abi_checks)
       && opts->ase & ASE_MSA)
     as_fatal (_("`msa' is not supported for `micromips' and `mips32r6'"));
 
-  if ((ISA_IS_R6 (opts->isa) || ISA_IS_R7 (opts->isa))
+  if (ISA_IS_R6 (opts->isa)
       && opts->micromips
       && ((opts->ase & ASE_DSP)
 	  || (opts->ase & ASE_DSPR2))
@@ -6335,7 +6335,7 @@ match_save_restore_fp_list_operand (struct mips_arg_info *arg,
   if (regno1 != 0 || regno2 > 31)
     return FALSE;
   
-  opval = regno2 + 1;
+  opval = regno2;
 
   insn_insert_operand (arg->insn, operand, opval);
   return TRUE;

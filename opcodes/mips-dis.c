@@ -1644,7 +1644,7 @@ print_insn_arg (struct disassemble_info *info,
 
     case OP_SAVE_RESTORE_FP_LIST:
       if (is_isa_r7 (mips_isa))
-	micromipspp_print_save_restore_fp (info, uval);
+	micromipspp_print_save_restore_fp (info, uval + 1);
       break;
 
     case OP_MDMX_IMM_REG:
