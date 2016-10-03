@@ -5755,8 +5755,13 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     val = Bits<19>::bit_select32(val, x, 0x1ffffc);
     elfcpp::Swap<32, big_endian>::writeval(wv, val);
 
-    return (should_check_overflow ? check_overflow<21>(x, CHECK_UNSIGNED)
-                                  : This::STATUS_OKAY);
+    if (should_check_overflow
+        && (check_overflow<21>(x, CHECK_UNSIGNED) == This::STATUS_OVERFLOW))
+      {
+        gold_error(_("small-data section exceeds 2MB"));
+        return This::STATUS_OVERFLOW;
+      }
+    return This::STATUS_OKAY;
   }
 
   // R_MICROMIPS_GPREL18_S3
@@ -5783,8 +5788,13 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     val = Bits<18>::bit_select32(val, x, 0x1ffff8);
     elfcpp::Swap<32, big_endian>::writeval(wv, val);
 
-    return (should_check_overflow ? check_overflow<21>(x, CHECK_UNSIGNED)
-                                  : This::STATUS_OKAY);
+    if (should_check_overflow
+        && (check_overflow<21>(x, CHECK_UNSIGNED) == This::STATUS_OVERFLOW))
+      {
+        gold_error(_("small-data section exceeds 2MB"));
+        return This::STATUS_OVERFLOW;
+      }
+    return This::STATUS_OKAY;
   }
 
   // R_MICROMIPS_GPREL18
