@@ -783,7 +783,8 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"ldc1",	"T,A(b)",		0,    (int) M_LDC1_AB,	INSN_MACRO,		0,	I38,	0,		0},
 {"ldc1",	"E,A(b)",		0,    (int) M_LDC1_AB,	INSN_MACRO,		0,	I38,	0,		0},
 {"ldc1x",	"R,s(t)",		0x20000707, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0,		0},
-{"l.d",		"T,o(b)",		0x8400e000, 0xfc00f000,	WR_1|RD_3,		0,	I38,	0,		0}, /* LDC1 */
+{"l.d",	        "T,+2(ma)",		0x440c0002, 0xfc1c0003,	WR_1|RD_3,	INSN2_ALIAS,	I38,	0,		0}, /* LDC1[GP] */
+{"l.d",		"T,o(b)",		0x8400e000, 0xfc00f000,	WR_1|RD_3,	INSN2_ALIAS,	I38,	0,		0}, /* LDC1 */
 {"l.d",		"T,A(b)",		0,    (int) M_LDC1_AB,	INSN_MACRO,		0,	I38,	0,		0},
 {"ldc1xs",	"R,s(t)",		0x20000747, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0,		0},
 {"ldc2",	"E,+j(b)",		0xa4007100, 0xfc007f00,	WR_1|RD_3,		0,	I38,	0,		0},
@@ -838,7 +839,8 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"lwc1",	"T,+j(b)",		0xa4005000, 0xfc007f00,	WR_1|RD_3,		0,	I38,	0,		0}, /* LWC1[S9] */
 {"lwc1",	"T,A(b)",		0,    (int) M_LWC1_AB,	INSN_MACRO,		0,	I38,	0,		0},
 {"lwc1",	"E,A(b)",		0,    (int) M_LWC1_AB,	INSN_MACRO,		0,	I38,	0,		0},
-{"l.s",		"T,o(b)",		0x8400a000, 0xfc00f000,	WR_1|RD_3,		0,	I38,	0,		0}, /* LWC1 */
+{"l.s",	        "T,+2(ma)",		0x440c0000, 0xfc1c0003,	WR_1|RD_3,      INSN2_ALIAS,	I38,	0,		0}, /* LWC1[GP] */
+{"l.s",		"T,o(b)",		0x8400a000, 0xfc00f000,	WR_1|RD_3,	INSN2_ALIAS,	I38,	0,		0}, /* LWC1 */
 {"l.s",		"T,A(b)",		0,    (int) M_LWC1_AB,	INSN_MACRO,		0,	I38,	0,		0},
 {"lwc1x",	"R,s(t)",		0x20000507, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0,		0},
 {"lwc1xs",	"R,s(t)",		0x20000547, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0,		0},
@@ -1085,7 +1087,8 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"sdc1",	"T,+j(b)",		0xa4007800, 0xfc007f00,	RD_1|RD_3,		0,	I38,	0,		0}, /* SDC1[S9] */
 {"sdc1",	"T,A(b)",		0,    (int) M_SDC1_AB,	INSN_MACRO,		0,	I38,	0,		0},
 {"sdc1",	"E,A(b)",		0,    (int) M_SDC1_AB,	INSN_MACRO,		0,	I38,	0,		0},
-{"s.d", 	"T,o(b)",		0x8400f000, 0xfc00f000,	RD_1|RD_3,		0,	I38,	0,		0}, /* SDC1 */
+{"s.d", 	"T,+2(ma)",		0x440c0003, 0xfc1c0003,	RD_1|RD_3,	INSN2_ALIAS,	I38,	0,		0}, /* SDC1[GP] */
+{"s.d", 	"T,o(b)",		0x8400f000, 0xfc00f000,	RD_1|RD_3,	INSN2_ALIAS,	I38,	0,		0}, /* SDC1 */
 {"s.d", 	"T,A(b)",		0,    (int) M_SDC1_AB,	INSN_MACRO,		0,	I38,	0,		0},
 {"sdc1x",	"R,s(t)",		0x20000787, 0xfc0007ff, RD_1|RD_2|RD_3,		0,	I38,	0,		0},
 {"sdc1xs",	"R,s(t)",		0x200007c7, 0xfc0007ff, RD_1|RD_2|RD_3,		0,	I38,	0,		0},
@@ -1205,7 +1208,8 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"swc1",	"T,+j(b)",		0xa4005800, 0xfc007f00,	RD_1|RD_3,		0,	I38,	0,		0}, /* SWC1[S9] */
 {"swc1",	"T,A(b)",		0,    (int) M_SWC1_AB,	INSN_MACRO,		0,	I38,	0,		0},
 {"swc1",	"E,A(b)",		0,    (int) M_SWC1_AB,	INSN_MACRO,		0,	I38,	0,		0},
-{"s.s", 	"T,o(b)",		0x8400b000, 0xfc00f000,	RD_1|RD_3,		0,	I38,	0,		0}, /* SWC1 */
+{"s.s",         "T,+2(ma)",		0x440c0001, 0xfc1c0003,	RD_1|RD_3,	INSN2_ALIAS,	I38,	0,		0}, /* SWC1[GP] */
+{"s.s", 	"T,o(b)",		0x8400b000, 0xfc00f000,	RD_1|RD_3,	INSN2_ALIAS,	I38,	0,		0}, /* SWC1 */
 {"s.s", 	"T,A(b)",		0,    (int) M_SWC1_AB,	INSN_MACRO,		0,	I38,	0,		0},
 {"swc1x",	"R,s(t)",		0x20000587, 0xfc0007ff, RD_1|RD_2|RD_3,		0,	I38,	0,		0},
 {"swc1xs",	"R,s(t)",		0x200005c7, 0xfc0007ff, RD_1|RD_2|RD_3,		0,	I38,	0,		0},
