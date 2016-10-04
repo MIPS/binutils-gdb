@@ -12809,7 +12809,7 @@ Target_mips<size, big_endian>::Relocate::relocate(
         {
           gold_error_at_location(relinfo, relnum, r_offset,
                                  _("relocation overflow: "
-                                 "%s against local symbol %u:\n"
+                                 "%s against local symbol %u: "
                                  "cannot encode a value of 0x%lx "
                                  "in a field of %u bits of instruction 0x%x"),
                                  overflow_info.name, r_sym, overflow_info.value,
@@ -12819,7 +12819,7 @@ Target_mips<size, big_endian>::Relocate::relocate(
         {
           gold_error_at_location(relinfo, relnum, r_offset,
                                  _("relocation overflow: "
-                                 "%s against '%s' defined in %s:\n"
+                                 "%s against '%s' defined in %s: "
                                  "cannot encode a value of 0x%lx "
                                  "in a field of %u bits of instruction 0x%x"),
                                  overflow_info.name, gsym->name(),
@@ -12831,7 +12831,7 @@ Target_mips<size, big_endian>::Relocate::relocate(
         {
           gold_error_at_location(relinfo, relnum, r_offset,
                                  _("relocation overflow: "
-                                 "%s against '%s':\n"
+                                 "%s against '%s': "
                                  "cannot encode a value of 0x%lx "
                                  "in a field of %u bits of instruction 0x%x"),
                                  overflow_info.name, gsym->name(),
