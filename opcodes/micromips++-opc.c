@@ -749,7 +749,9 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"floor.l.s",	"T,S",		0xa000033b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"floor.w.d",	"T,S",		0xa0004b3b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"floor.w.s",	"T,S",		0xa0000b3b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
+{"hypcall",	"",		0x100c,		0xffff,		0,	INSN2_ALIAS,	0,	IVIRT,		0}, /* HYPCALL[16] */
 {"hypcall",	"mL",		0x100c,		0xfffc,		0,		0,	0,	IVIRT,		0}, /* HYPCALL[16] */
+{"hypcall",	"",		0x000c0000, 0xffffffff,		0,	INSN2_ALIAS,	0,	IVIRT,		0},
 {"hypcall",	"+M",		0x000c0000, 0xfffc0000,		0,		0,	0,	IVIRT,		0},
 {"ins",		"t,r,+A,+B",	0x8000e000, 0xfc00f820,	WR_1|RD_2,		0,	0,	XLP,		0},
 {"ins",		"t,r,+A,+B",	0,    (int) M_INS,	INSN_MACRO,		0,	I38,	0,		0},
