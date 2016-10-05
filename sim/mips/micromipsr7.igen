@@ -467,7 +467,7 @@
 }
 
 110110,5.RT,1,0000:R7P16JRC:16::JALRC16
-"jalrc r<TRT>"
+"jalrc r<RT>"
 *micromips32r7:
 *micromips64r7:
 {
@@ -477,7 +477,7 @@
 }
 
 110110,5.RT,0,0000:R7P16JRC:16::JRC16
-"jrc r<TRT>"
+"jrc r<RT>"
 *micromips32r7:
 *micromips64r7:
 {
