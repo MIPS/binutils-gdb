@@ -10079,12 +10079,15 @@ macro_match_micromipspp_reloc (const char *fmt, bfd_reloc_code_real_type *r)
       else if (*fmt == 'm' && *(fmt + 1) == 'V')
 	*r = BFD_RELOC_MICROMIPSPP_GPREL18_S3;
       else
-	*r = BFD_RELOC_MICROMIPSPP_LO12;
+	gas_assert (FALSE);
     }
+  else if (*r == BFD_RELOC_HI16_S)
+    *r = BFD_RELOC_MICROMIPSPP_HI20;
   else if (*r == _dummy_first_bfd_reloc_code_real)
     *r = BFD_RELOC_UNUSED;
   else
     gas_assert (*r == BFD_RELOC_MICROMIPSPP_LO12
+		|| *r == BFD_RELOC_MICROMIPSPP_HI20
 		|| *r == BFD_RELOC_MICROMIPSPP_IMM14
 		|| *r == BFD_RELOC_MICROMIPSPP_11_PCREL_S1);
 }
@@ -10208,6 +10211,8 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 				  || *r == BFD_RELOC_GPREL16
 				  || *r == BFD_RELOC_MIPS_GOT_HI16
 				  || *r == BFD_RELOC_MIPS_CALL_HI16))));
+	  if (ISA_IS_R7 (mips_opts.isa))
+	    macro_match_micromipspp_reloc (fmt, r);
 	  continue;
 
 	case '+':
@@ -13816,10 +13821,10 @@ macro (struct mips_cl_insn *ip, char *str)
 		  && !nopic_need_relax (offset_expr.X_add_symbol, 1))
 		{
 		  relax_start (offset_expr.X_add_symbol);
-		  fmt = ((ISA_IS_R7 (mips_opts.isa) && gpfmt != NULL)
-			 ? gpfmt : fmt);
-		  macro_build (&offset_expr, s, fmt, op[0], BFD_RELOC_GPREL16,
-			       mips_gp_register);
+		  if (!ISA_IS_R7 (mips_opts.isa) || gpfmt == NULL)
+		    gpfmt = fmt;
+		  macro_build (&offset_expr, s, gpfmt, op[0],
+			       BFD_RELOC_GPREL16, mips_gp_register);
 		  relax_switch ();
 		}
 	      macro_build_lui (&offset_expr, tempreg);
@@ -13830,7 +13835,8 @@ macro (struct mips_cl_insn *ip, char *str)
 	    }
 	  else
 	    {
-	      if ((valueT) offset_expr.X_add_number <= MAX_GPREL_OFFSET
+	      if (!ISA_IS_R7 (mips_opts.isa)
+		  && (valueT) offset_expr.X_add_number <= MAX_GPREL_OFFSET
 		  && !nopic_need_relax (offset_expr.X_add_symbol, 1))
 		{
 		  relax_start (offset_expr.X_add_symbol);
@@ -14347,13 +14353,15 @@ macro (struct mips_cl_insn *ip, char *str)
 	     the last case.  */
 	  if (offset_expr.X_op == O_symbol
 	      && (valueT) offset_expr.X_add_number <= MAX_GPREL_OFFSET
+	      && (breg == 0 || !ISA_IS_R7 (mips_opts.isa))
 	      && !nopic_need_relax (offset_expr.X_add_symbol, 1))
 	    {
+	      char *sfmt = fmt;
 	      relax_start (offset_expr.X_add_symbol);
 	      if (breg == 0)
 		{
 		  tempreg = mips_gp_register;
-		  fmt = (ISA_IS_R7 (mips_opts.isa) ? "t,.(ma)" : fmt);
+		  sfmt = (ISA_IS_R7 (mips_opts.isa) ? "t,.(ma)" : fmt);
 		}
 	      else
 		{
@@ -14364,7 +14372,7 @@ macro (struct mips_cl_insn *ip, char *str)
 		}
 
 	      /* Itbl support may require additional care here.  */
-	      macro_build (&offset_expr, s, fmt, coproc ? op[0] + 1 : op[0],
+	      macro_build (&offset_expr, s, sfmt, coproc ? op[0] + 1 : op[0],
 			   BFD_RELOC_GPREL16, tempreg);
 	      offset_expr.X_add_number += 4;
 
@@ -14373,7 +14381,7 @@ macro (struct mips_cl_insn *ip, char *str)
 	      hold_mips_optimize = mips_optimize;
 	      mips_optimize = 2;
 	      /* Itbl support may require additional care here.  */
-	      macro_build (&offset_expr, s, fmt, coproc ? op[0] : op[0] + 1,
+	      macro_build (&offset_expr, s, sfmt, coproc ? op[0] : op[0] + 1,
 			   BFD_RELOC_GPREL16, tempreg);
 	      mips_optimize = hold_mips_optimize;
 

@@ -1,5 +1,5 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
-#as: -mmicromips -mips32r7 -32 --defsym tsw=1
+#as: -mmicromips -mips32r7 -32 --defsym tsw=1 --defsym r7=1
 #name: microMIPS R7 sw
 #source: ld.s
 

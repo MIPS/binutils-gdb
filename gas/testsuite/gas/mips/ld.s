@@ -40,15 +40,23 @@
 	.endif
 # If defined, test lw instead.
 	.ifdef	tlw
-	.macro	lw ops:vararg
+	.macro	ld ops:vararg
 	lw	\ops
 	.endm
 	.endif
 # If defined, test sw instead.
 	.ifdef	tsw
-	.macro	sw ops:vararg
+	.macro	sd ops:vararg
 	sw	\ops
 	.endm
+	.endif
+
+	.ifdef	r7
+	.equ lo_max,0x800
+	.equ hi_min,0x1000
+	.else
+	.equ lo_max,0x8000
+	.equ hi_min,0x10000
 	.endif
 
 	.macro	data
@@ -76,15 +84,15 @@ data_label:
 text_label:
 	ld	r4,0
 	ld	r4,1
-	ld	r4,0x8000
-	ld	r4,-0x8000
-	ld	r4,0x10000
+	ld	r4,lo_max
+	ld	r4,-lo_max
+	ld	r4,hi_min
 	ld	r4,0x1a5a5
 	ld	r4,0($5)
 	ld	r4,1($5)
-	ld	r4,0x8000($5)
-	ld	r4,-0x8000($5)
-	ld	r4,0x10000($5)
+	ld	r4,lo_max($5)
+	ld	r4,-lo_max($5)
+	ld	r4,hi_min($5)
 	ld	r4,0x1a5a5($5)
 	ld	r4,data_label
 	ld	r4,big_external_data_label
@@ -100,27 +108,27 @@ text_label:
 	ld	r4,small_external_common+1
 	ld	r4,big_local_common+1
 	ld	r4,small_local_common+1
-	ld	r4,data_label+0x8000
-	ld	r4,big_external_data_label+0x8000
-	ld	r4,small_external_data_label+0x8000
-	ld	r4,big_external_common+0x8000
-	ld	r4,small_external_common+0x8000
-	ld	r4,big_local_common+0x8000
-	ld	r4,small_local_common+0x8000
-	ld	r4,data_label-0x8000
-	ld	r4,big_external_data_label-0x8000
-	ld	r4,small_external_data_label-0x8000
-	ld	r4,big_external_common-0x8000
-	ld	r4,small_external_common-0x8000
-	ld	r4,big_local_common-0x8000
-	ld	r4,small_local_common-0x8000
-	ld	r4,data_label+0x10000
-	ld	r4,big_external_data_label+0x10000
-	ld	r4,small_external_data_label+0x10000
-	ld	r4,big_external_common+0x10000
-	ld	r4,small_external_common+0x10000
-	ld	r4,big_local_common+0x10000
-	ld	r4,small_local_common+0x10000
+	ld	r4,data_label+lo_max
+	ld	r4,big_external_data_label+lo_max
+	ld	r4,small_external_data_label+lo_max
+	ld	r4,big_external_common+lo_max
+	ld	r4,small_external_common+lo_max
+	ld	r4,big_local_common+lo_max
+	ld	r4,small_local_common+lo_max
+	ld	r4,data_label-lo_max
+	ld	r4,big_external_data_label-lo_max
+	ld	r4,small_external_data_label-lo_max
+	ld	r4,big_external_common-lo_max
+	ld	r4,small_external_common-lo_max
+	ld	r4,big_local_common-lo_max
+	ld	r4,small_local_common-lo_max
+	ld	r4,data_label+hi_min
+	ld	r4,big_external_data_label+hi_min
+	ld	r4,small_external_data_label+hi_min
+	ld	r4,big_external_common+hi_min
+	ld	r4,small_external_common+hi_min
+	ld	r4,big_local_common+hi_min
+	ld	r4,small_local_common+hi_min
 	ld	r4,data_label+0x1a5a5
 	ld	r4,big_external_data_label+0x1a5a5
 	ld	r4,small_external_data_label+0x1a5a5
@@ -142,27 +150,27 @@ text_label:
 	ld	r4,small_external_common+1($5)
 	ld	r4,big_local_common+1($5)
 	ld	r4,small_local_common+1($5)
-	ld	r4,data_label+0x8000($5)
-	ld	r4,big_external_data_label+0x8000($5)
-	ld	r4,small_external_data_label+0x8000($5)
-	ld	r4,big_external_common+0x8000($5)
-	ld	r4,small_external_common+0x8000($5)
-	ld	r4,big_local_common+0x8000($5)
-	ld	r4,small_local_common+0x8000($5)
-	ld	r4,data_label-0x8000($5)
-	ld	r4,big_external_data_label-0x8000($5)
-	ld	r4,small_external_data_label-0x8000($5)
-	ld	r4,big_external_common-0x8000($5)
-	ld	r4,small_external_common-0x8000($5)
-	ld	r4,big_local_common-0x8000($5)
-	ld	r4,small_local_common-0x8000($5)
-	ld	r4,data_label+0x10000($5)
-	ld	r4,big_external_data_label+0x10000($5)
-	ld	r4,small_external_data_label+0x10000($5)
-	ld	r4,big_external_common+0x10000($5)
-	ld	r4,small_external_common+0x10000($5)
-	ld	r4,big_local_common+0x10000($5)
-	ld	r4,small_local_common+0x10000($5)
+	ld	r4,data_label+lo_max($5)
+	ld	r4,big_external_data_label+lo_max($5)
+	ld	r4,small_external_data_label+lo_max($5)
+	ld	r4,big_external_common+lo_max($5)
+	ld	r4,small_external_common+lo_max($5)
+	ld	r4,big_local_common+lo_max($5)
+	ld	r4,small_local_common+lo_max($5)
+	ld	r4,data_label-lo_max($5)
+	ld	r4,big_external_data_label-lo_max($5)
+	ld	r4,small_external_data_label-lo_max($5)
+	ld	r4,big_external_common-lo_max($5)
+	ld	r4,small_external_common-lo_max($5)
+	ld	r4,big_local_common-lo_max($5)
+	ld	r4,small_local_common-lo_max($5)
+	ld	r4,data_label+hi_min($5)
+	ld	r4,big_external_data_label+hi_min($5)
+	ld	r4,small_external_data_label+hi_min($5)
+	ld	r4,big_external_common+hi_min($5)
+	ld	r4,small_external_common+hi_min($5)
+	ld	r4,big_local_common+hi_min($5)
+	ld	r4,small_local_common+hi_min($5)
 	ld	r4,data_label+0x1a5a5($5)
 	ld	r4,big_external_data_label+0x1a5a5($5)
 	ld	r4,small_external_data_label+0x1a5a5($5)

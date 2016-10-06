@@ -1,5 +1,5 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
-#as: -mmicromips -mips32r7 -32 --defsym tldc1=1
+#as: -mmicromips -mips32r7 -32 --defsym tldc1=1  --defsym r7=1
 #name: microMIPS R7 ldc1
 #source: ld.s
 

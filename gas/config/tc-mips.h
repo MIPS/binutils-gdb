@@ -46,7 +46,7 @@ extern int mips_address_bytes (void);
 
 /* Maximum symbol offset that can be encoded in a BFD_RELOC_GPREL16
    relocation.  */
-#define MAX_GPREL_OFFSET (0x7FF0)
+#define MAX_GPREL_OFFSET (ISA_IS_R7 (mips_opts.isa) ? 0x1fffc : 0x7FF0)
 
 #define md_relax_frag(segment, fragp, stretch) \
   mips_relax_frag(segment, fragp, stretch)
