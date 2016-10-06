@@ -114,14 +114,6 @@
     }
 }
 
-:function:::address_word:do_jalrc_mm_r7:int rt, int rs, unsigned16 offset, address_word nia
-{
-  rt = nia | isa_mode;
-  unsigned_word address = do_load (SD_, AccessLength_WORD, GPR[rs], offset);
-  isa_mode = address & 1;
-  return address & ~1;
-}
-
 :function:::unsigned:zero_extend:signed_word value, unsigned32 from_nbits
 {
   unsigned32 low_bits_mask = (1 << from_nbits) - 1;
@@ -287,7 +279,6 @@
       i++;
     }
   return (gpr_list);
-  //return do_get_save_restore_gpr_list (SD_, -1, count, 0, 0);
 }
 
 :%s::::GP_SAVE:int gp
@@ -691,7 +682,6 @@
 *micromips32r7:
 *micromips64r7:
 {
-  //do_sll (SD_, TRS, TRD, SHIFT_DEC);
   unsigned32 temp = (GPR[TRS] << SHIFT_DEC);
   TRACE_ALU_INPUT3 (GPR[TRT], GPR[TRS], SHIFT_DEC);
   GPR[TRT] = EXTEND32 (temp);
@@ -703,7 +693,6 @@
 *micromips32r7:
 *micromips64r7:
 {
-  //do_srl (SD_, TRS, TRD, SHIFT_DEC);
   TRACE_ALU_INPUT3 (GPR[TRT], GPR[TRS], SHIFT_DEC);
   GPR[TRT] = GPR[TRS] >> SHIFT_DEC;
   TRACE_ALU_RESULT (GPR[TRT]);
@@ -826,10 +815,8 @@
 *micromips32r7:
 *micromips64r7:
 {
-  //do_align (SD_, RD, RS, RT, IMMEDIATE);
   unsigned64 tmp = (GPR[RT] << 32) | GPR[RS];
   TRACE_ALU_INPUT4 (GPR[RD], GPR[RS], GPR[RT], tmp);
-  // FIXME: check if tmp is calculated correctly
   GPR[RD] = EXTEND32 (tmp >> IMMEDIATE);
   TRACE_ALU_RESULT (GPR[RD]);
 
@@ -1142,7 +1129,6 @@
 *micromips32r7:
 *micromips64r7:
 {
-  //NIA = do_jalrc_mm_r7 (SD_, RT, RS, U, NIA);
   GPR[RT] = NIA | isa_mode;
   unsigned_word address = GPR[RS];
   isa_mode = address & 1;
@@ -1154,7 +1140,6 @@
 *micromips32r7:
 *micromips64r7:
 {
-  //NIA = do_jalrc_mm_r7 (SD_, RT, RS, U, NIA);
   GPR[RT] = NIA | isa_mode;
   unsigned_word address = GPR[RS];
   isa_mode = address & 1;
@@ -1354,8 +1339,6 @@
 {
   TRACE_ALU_INPUT4 (GPR[RD], GPR[RS], GPR[RT], U);
   unsigned32 sum = (GPR[RS] << U) + GPR[RT];
-  // old way:
-  //unsigned32 sum = (GPR[RS] << U + 1) + GPR[RT];
   GPR[RD] = EXTEND32(sum);
   TRACE_ALU_RESULT (GPR[RD]);
 }
@@ -1408,7 +1391,6 @@
 *micromips64r7:
 {
   do_lxx_mmr7 (SD_, RD, RT, RS, 3);
-  //GPR[RD] = EXTEND32 (do_load (SD_, AccessLength_WORD, GPR[RS], GPR[RT]));
 }
 
 001000,5.RT,5.RS,5.RD,1000,1,000,111:R7PPLSXS:32::LWXS
@@ -1543,6 +1525,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  sim_io_printf (SD, "Not implemented");
 }
 
 101001,5.HINT!31,5.RS,1.S1,0011,0,00,8.S2:R7PPREFS:32::PREF
@@ -1784,7 +1767,6 @@
 *micromips32r7:
 *micromips64r7:
 {
-  //do_sll (SD_, RS, RT, SHIFT);
   unsigned32 temp = (GPR[RS] << SHIFT);
   TRACE_ALU_INPUT3 (GPR[RT], GPR[RS], SHIFT);
   GPR[RT] = EXTEND32 (temp);
@@ -1861,8 +1843,6 @@
   TRACE_ALU_INPUT3 (GPR[RD], GPR[RS], s);
   GPR[RD] = EXTEND32 (temp);
   TRACE_ALU_RESULT (GPR[RD]);
-
-  //do_srav (SD_, RS, RT, RD);
 }
 
 100000,5.RT,5.RS,11000000010,5.SHIFT:R7PSHIFT:32::SRL
@@ -1890,7 +1870,6 @@
   TRACE_ALU_INPUT3 (GPR[RD], GPR[RS], s);
   GPR[RD] = zero_extend(SD_, temp, 32);
   TRACE_ALU_RESULT (GPR[RD]);
-  //do_srlv (SD_, RS, RT, RD);
 }
 
 001000,5.RT,5.RS,5.RD,1.X,0110010,000:R7POOL32A0:32::SUB
@@ -1977,12 +1956,13 @@
   SyncOperation (STYPE);
 }
 
-101001,11111,5.RS,1.S1,0011,0,00,8.S2:R7PPREFS:32::SYNCIS9
+101001,11111,5.RS,1.S1,0011,0,00,8.S2:R7PPREFS:32::SYNCI
 "synci <S_9_BIT>(r<RS>)"
 *micromips32r7:
 *micromips64r7:
 {
   // sync i-cache - nothing to do currently
+  sim_io_printf (SD, "Not implemented");
 }
 
 000000,00000,11,19.CODE:R7PRI:32::SDBBP
@@ -2007,6 +1987,7 @@
 *micromips64r7:
 {
   // invalidate a set of TLB entries based on ASID and Index match - nothing to do currently
+  sim_io_printf (SD, "Not implemented");
 }
 
 001000,0000000000,01,01001,101,111,111:R7POOL32AXF5GROUP1:32::TLBINVF
@@ -2015,6 +1996,7 @@
 *micromips64r7:
 {
   // invalidate a set of TLB entries based on Index match - nothing to do currently
+  sim_io_printf (SD, "Not implemented");
 }
 
 001000,10.CODE,10,00101,101,111,111:R7PSYSCALL:32::SYSCALL
@@ -2029,3 +2011,57 @@
 "ehb"
 *micromips32r7:
 *micromips64r7:
+
+001000,5.RT,5.HS,2.X1,3.SEL,1.X2,0111000,000:R7POOL32A0:32::RDHWR
+"rdhwr r<HS>, r<RT>, <SEL>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_rdhwr (SD_, RT, HS);
+}
+
+001000,5.RT,5.RS,11,10000,101,111,111:R7POOL32A0:32::RDPGPR
+"rdpgpr r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  // nothing to do currently
+  sim_io_printf (SD, "Not implemented");
+}
+
+001000,5.RT,5.RS,5.RD,1.X,1111010,000:R7POOL32A0:32::SOV
+"SOV r<RD>, r<RS>, r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  // nothing to do currently
+  sim_io_printf (SD, "Not implemented");
+}
+
+001000,10.X,11,10001,101,111,111:R7POOL32A0:32::DERET
+"deret"
+*micromips32r7:
+*micromips64r7:
+{
+  // nothing to do currently
+  sim_io_printf (SD, "Not implemented");
+}
+
+001000,5.RT,5.X,00000,1,1110010,000:R7PDVP:32::EVP
+"evp r<RT>" : RT!=0
+"evp"
+*micromips32r7:
+*micromips64r7:
+{
+  // nothing to do currently
+  sim_io_printf (SD, "Not implemented");
+}
+
+001000,10.CODE,110000110,1111111:R7POOL32AXF5GROUP2:32::WAIT
+"wait"
+*micromips32r7:
+*micromips64r7:
+{
+  // nothing to do currently
+  sim_io_printf (SD, "Not implemented");
+}
