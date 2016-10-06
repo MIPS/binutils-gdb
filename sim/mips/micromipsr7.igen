@@ -471,9 +471,10 @@
 *micromips32r7:
 *micromips64r7:
 {
-  TRACE_ALU_INPUT1(RA);
+  TRACE_ALU_INPUT2(GPR[RT], RA);
   RA = NIA | isa_mode;
-  NIA = process_isa_mode (SD_, GPR[TRT]);
+  NIA = process_isa_mode (SD_, GPR[RT]);
+  TRACE_ALU_RESULT(RA);
 }
 
 110110,5.RT,0,0000:R7P16JRC:16::JRC16
@@ -481,8 +482,8 @@
 *micromips32r7:
 *micromips64r7:
 {
-  TRACE_ALU_INPUT1(GPR[TRT]);
-  NIA = process_isa_mode (SD_, GPR[TRT]);
+  TRACE_ALU_INPUT1(GPR[RT]);
+  NIA = process_isa_mode (SD_, GPR[RT]);
 }
 
 000101,3.RT,3.RS,00,2.U:R7P16LB:16::LB16
