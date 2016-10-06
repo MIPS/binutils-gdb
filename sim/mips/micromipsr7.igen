@@ -1496,6 +1496,13 @@
   do_mulu (SD_, RD, RS, RT);
 }
 
+10000000000,5.X1,1100,3.X2,000000000:R7PHB:32::NOP
+"nop"
+*micromips32r7:
+*micromips64r7:
+{
+}
+
 001000,5.RT,5.RS,5.RD,0,1011010,000:R7POOL32A0:32::NOR
 "nor r<RD>, r<RS>, r<RT>"
 *micromips32r7:
@@ -1810,7 +1817,7 @@
   do_sltiu (SD_, RS, RT, U);
 }
 
-001000,5.RT,5.RS,5.RD,0,1110010,000:R7POOL32A0:32::SLTU
+001000,5.RT,5.RS,5.RD!0,0,1110010,000:R7POOL32A0:32::SLTU
 "sltu r<RD>, r<RS>, r<RT>"
 *micromips32r7:
 *micromips64r7:
@@ -1981,6 +1988,34 @@
   do_wsbh (SD_, RT, RS);
 }
 
+001000,10.X,00,00001,101,111,111:R7POOL32AXF5GROUP0:32::TLBP
+"tlbp"
+*micromips32r7:
+*micromips64r7:
+{
+  // nothing to do currently
+  sim_io_printf (SD, "Not implemented");
+}
+
+001000,10.X,00,10001,101,111,111:R7POOL32AXF5GROUP0:32::TLBWI
+"tlbwi"
+*micromips32r7:
+*micromips64r7:
+{
+  // nothing to do currently
+  sim_io_printf (SD, "Not implemented");
+}
+
+001000,10.X,00,11001,101,111,111:R7POOL32AXF5GROUP0:32::TLBWR
+"tlbwr"
+*micromips32r7:
+*micromips64r7:
+{
+  // nothing to do currently
+  sim_io_printf (SD, "Not implemented");
+}
+
+
 001000,0000000000,01,00001,101,111,111:R7POOL32AXF5GROUP1:32::TLBINV
 "tlbinv"
 *micromips32r7:
@@ -2011,6 +2046,37 @@
 "ehb"
 *micromips32r7:
 *micromips64r7:
+{
+  sim_io_printf (SD, "Not implemented");
+}
+
+101001,5.RT,5.RS,1.S1,0000001,8.S2:R7PLSS1:32::UALW
+"ualw r<RT>, <S_9_BIT>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  // TODO check: unaligned_support=always
+  GPR[RT] = EXTEND32 (do_load (SD_, AccessLength_WORD, GPR[RT], S_9_BIT));
+}
+
+101001,5.RT,5.RS,1.S1,0001001,8.S2:R7PLSS1:32::UASW
+"uasw r<RT>, <S_9_BIT>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  // TODO check: unaligned_support=always
+  do_store (SD_, AccessLength_WORD, GPR[RS], S_9_BIT, zero_extend(SD_, GPR[RT], 32));
+}
+
+001000,5.RT,5.X,00000,0,1110010,000:R7PDVP:32::DVP
+"dvp r<RT>"
+*micromips32r7:
+*micromips64r7:
+{
+  // nothing to do currently
+  sim_io_printf (SD, "Not implemented");
+}
+
 
 001000,5.RT,5.HS,2.X1,3.SEL,1.X2,0111000,000:R7POOL32A0:32::RDHWR
 "rdhwr r<HS>, r<RT>, <SEL>"
