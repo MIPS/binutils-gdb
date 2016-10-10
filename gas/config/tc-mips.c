@@ -10062,6 +10062,8 @@ macro_match_micromipspp_reloc (const char *fmt, bfd_reloc_code_real_type *r)
     {
       if (*fmt == '+' && *(fmt + 1) == '8')
 	*r = BFD_RELOC_MICROMIPSPP_25_PCREL_S1;
+      else if (*fmt == 'q')
+	*r = BFD_RELOC_MICROMIPSPP_20_PCREL_S1;
       else
 	*r = BFD_RELOC_MICROMIPSPP_14_PCREL_S1;
     }
@@ -10286,11 +10288,19 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	  if (ISA_IS_R7 (mips_opts.isa))
 	    {
 	      macro_read_relocs (&args, r);
-	      if (ISA_IS_R7 (mips_opts.isa))
-		macro_match_micromipspp_reloc (fmt, r);
+	      macro_match_micromipspp_reloc (fmt, r);
 	      continue;
 	    }
-	  /* Fall through */
+	  break;
+
+	case 'q':
+	  if (ISA_IS_R7 (mips_opts.isa))
+	    {
+	      *r = BFD_RELOC_16_PCREL_S2;
+	      macro_match_micromipspp_reloc (fmt, r);
+	      continue;
+	    }
+	  break;
 
 	default:
 	  break;
@@ -11457,6 +11467,9 @@ macro_build_branch_rsrt (int type, expressionS *ep,
 	else
 	  macro_build (ep, br, "t,-y,p", sreg, treg);
       }
+  else
+    if (ISA_IS_R7 (mips_opts.isa) && mips_opts.micromips && treg == 0)
+      macro_build (ep, br, "t,z,q", sreg, treg);
     else
       macro_build (ep, br, "s,t,p", sreg, treg);
 }
@@ -12250,9 +12263,13 @@ macro (struct mips_cl_insn *ip, char *str)
 
       used_at = 1;
       load_register (AT, &imm_expr, dbl);
-      macro_build (NULL, s, DIV_FMT, op[1], AT);
-      if (!ISA_IS_R7 (mips_opts.isa))
-	macro_build (NULL, s2, MFHL_FMT, op[0]);
+      if (ISA_IS_R7 (mips_opts.isa))
+	macro_build (NULL, s, DIV_FMT, op[0], op[1], AT);
+      else
+	{
+	  macro_build (NULL, s, DIV_FMT, op[1], AT);
+	  macro_build (NULL, s2, MFHL_FMT, op[0]);
+	}
       break;
 
     case M_DIVU_3:
