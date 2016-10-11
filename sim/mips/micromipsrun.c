@@ -130,6 +130,8 @@ sim_engine_run (SIM_DESC sd, int next_cpu_nr, int nr_cpus,
 #if defined (ENGINE_ISSUE_POSTFIX_HOOK)
       ENGINE_ISSUE_POSTFIX_HOOK ();
 #endif
+      // Cycle counting
+      COP0_COUNT++;
 
       /* Update the instruction address */
       cia = nia;

@@ -136,8 +136,10 @@
   num_pending = count;
 
   va = GPR[SPIDX];
-  if (first_gpr >= 0 && first_gpr < 32)
+  if (first_gpr >= 0 && first_gpr < 32) {
     do_store (SD_, AccessLength_WORD, va -= 4, 0, GPR[first_gpr]);
+    COP0_COUNT++;
+  }
 
   while (num_pending > 0)
     {
@@ -156,7 +158,7 @@
           idx = 16 | (num_pending - 1);
           do_store (SD_, AccessLength_WORD, va -= 4, 0, GPR[idx]);
         }
-
+        COP0_COUNT++;
         num_pending--;
     }
 
@@ -179,8 +181,10 @@
   num_pending = count;
 
   va = GPR[SPIDX] + offset;
-  if (first_gpr >= 0 && first_gpr < 32)
+  if (first_gpr >= 0 && first_gpr < 32) {
     GPR[first_gpr] = EXTEND32 (do_load(SD_, AccessLength_WORD, va -= 4, 0));
+    COP0_COUNT++;
+  }
 
   while (num_pending > 0)
     {
@@ -199,6 +203,7 @@
           idx = 16 | (num_pending - 1);
           GPR[idx] = EXTEND32 (do_load(SD_, AccessLength_WORD, va -= 4, 0));
         }
+        COP0_COUNT++;
         num_pending--;
     }
 
@@ -410,6 +415,9 @@
   RA = NIA | isa_mode;
   NIA = ADDRESS11;
   TRACE_ALU_RESULT(RA);
+
+  // For cycle counting
+  COP0_COUNT++;
 }
 
 000110,9.S1,1.S2:R7BC16:16::BC16
@@ -466,6 +474,9 @@
   RA = NIA | isa_mode;
   NIA = process_isa_mode (SD_, GPR[RT]);
   TRACE_ALU_RESULT(RA);
+
+  // For cycle counting
+  COP0_COUNT++;
 }
 
 110110,5.RT,0,0000:R7P16JRC:16::JRC16
@@ -601,6 +612,9 @@
   GPR[TRD2] = GPR[TRS2];
   GPR[TRE2] = GPR[TRT2];
   TRACE_ALU_RESULT2 (GPR[TRD2], GPR[TRE2]);
+
+  // For cycle counting
+  COP0_COUNT++;
 }
 
 010100,3.RT,3.RS,00,0,0:R7POOL16C00:16::NOT16
@@ -847,6 +861,9 @@
   RA = NIA | isa_mode;
   NIA = ADDRESS26;
   TRACE_ALU_RESULT(RA);
+
+  // For cycle counting
+  COP0_COUNT++;
 }
 
 001010,0,24.S1,1.S2:R7PBAL:32::BC
@@ -1133,6 +1150,9 @@
   unsigned_word address = GPR[RS];
   isa_mode = address & 1;
   NIA = address & ~1;
+
+  // For cycle counting
+  COP0_COUNT++;
 }
 
 010010,5.RT,5.RS,0001,12.X:R7PJ:32::JALRC.HB
@@ -1145,6 +1165,9 @@
   isa_mode = address & 1;
   NIA = address & ~1;
   //TODO: ClearHazards()?
+
+  // For cycle counting
+  COP0_COUNT++;
 }
 
 100001,5.RT,5.RS,0000,12.U:R7PLSU12:32::LB
@@ -1438,6 +1461,9 @@
   RA = NIA | isa_mode;
   NIA = ADDRESS22;
   TRACE_ALU_RESULT(GPR[RD1]);
+
+  // For cycle counting
+  COP0_COUNT += 2;
 }
 
 001000,5.RT,5.RS,5.RD,11000010000:R7POOL32A0:32::MOVN

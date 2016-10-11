@@ -2342,6 +2342,13 @@ decode_coproc (SIM_DESC sd,
 		break;
 
 #endif /* SUBTARGET_R3900 */
+        case 9:
+    /* 9 = Count               R4000   VR4100  VR4300 */
+    if (op == cp0_mfc0 || op == cp0_dmfc0)
+      GPR[rt] = COP0_COUNT;
+    else
+      COP0_COUNT = GPR[rt];
+    break;
 	      case 12:
 		if (op == cp0_mfc0 || op == cp0_dmfc0)
 		  GPR[rt] = SR;
