@@ -275,12 +275,13 @@
   while (i<count)
     {
       char str1[3];
-      sprintf(str1, "%d", i);
-
-      if (i>0)
-        strcat (gpr_list,", ");
-      strcat (gpr_list,"s");
-      strcat (gpr_list,str1);
+      if (i == 0 || i==count-1) {
+        sprintf(str1, "%d", i);
+        strcat (gpr_list,"s");
+        strcat (gpr_list,str1);
+        if(i==0 && count > 1)
+          strcat (gpr_list,"-");
+      }
       i++;
     }
   return (gpr_list);
@@ -2085,9 +2086,9 @@
   address_word base = GPR[RS];
   address_word index = GPR[S_9_BIT];
   address_word vaddr = base + index;
-  /* Arrange for the bottom 3 bits of (base + index) to be 0.  */
-  if ((vaddr & 0x7) != 0)
-    index -= (vaddr & 0x7);
+  /* Arrange for the bottom 2 bits of (base + index) to be 0.  */
+  if ((vaddr & 0x3) != 0)
+    index -= (vaddr & 0x3);
 
   TRACE_ALU_INPUT3(GPR[RT], S_9_BIT, GPR[RS]);
   GPR[RT] = EXTEND32 (do_load (SD_, AccessLength_WORD, base, index));
@@ -2103,9 +2104,9 @@
   address_word base = GPR[RS];
   address_word index = GPR[S_9_BIT];
   address_word vaddr = base + index;
-  /* Arrange for the bottom 3 bits of (base + index) to be 0.  */
-  if ((vaddr & 0x7) != 0)
-    index -= (vaddr & 0x7);
+  /* Arrange for the bottom 2 bits of (base + index) to be 0.  */
+  if ((vaddr & 0x3) != 0)
+    index -= (vaddr & 0x3);
 
   TRACE_ALU_INPUT3(GPR[RT], S_9_BIT, GPR[RS]);
   do_store (SD_, AccessLength_WORD, base, index, zero_extend(SD_, GPR[RT], 32));
@@ -2175,4 +2176,14 @@
 {
   // nothing to do currently
   sim_io_printf (SD, "Not implemented");
+}
+
+011000,5.RT,00000,32.U:R7POOL48I:48::LI48
+"li r<RT>, <U>"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT2(GPR[RT], U);
+  GPR[RT] = U;
+  TRACE_ALU_RESULT(GPR[RT]);
 }
