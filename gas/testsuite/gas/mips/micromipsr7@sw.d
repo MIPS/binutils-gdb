@@ -1,5 +1,5 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
-#as: -mmicromips -mips32r7 -32 --defsym tsw=1 --defsym r7=1
+#as: -32 --defsym tsw=1
 #name: microMIPS R7 sw
 #source: ld.s
 
@@ -566,5 +566,5 @@ Disassembly of section \.text:
 			4f0: R_MICROMIPS_LO12	.sbss\+0x1a5a5
 0+04f4 <text_label\+0x4f4> 84a1 8000 	lw	a1,0\(at\)
 			4f4: R_MICROMIPS_LO12	.sbss\+0x1a5a9
-	...
+	\.\.\.
 #pass

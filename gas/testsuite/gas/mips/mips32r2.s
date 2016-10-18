@@ -1,6 +1,8 @@
 # source file to test assembly of mips32r2 *non-fp* instructions
 
+	.ifndef r7
         .set noreorder
+	.endif
 	.set noat
 
 	.text
@@ -48,7 +50,11 @@ text_label:
 	seh	$7
 	seh	$8, $10
 
+	.ifdef r7
+	synci	0x35($10)
+	.else
 	synci	0x5555($10)
+	.endif
 
 	wsbh	$7
 	wsbh	$8, $10

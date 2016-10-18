@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: MIPS DSP ASE for MIPS32R7
-#as: -mdsp -32 -mips32r7 -mmicromips
+#as: -mdsp -32
 #source: mips32-dsp.s
 
 # Check MIPS DSP ASE for MIPS32R7 Instruction Assembly (microMIPS)
@@ -126,12 +126,12 @@ Disassembly of section .text:
 0+01cc <text_label\+0x1cc> 2020 507f 	mflo	at,\$ac1
 0+01d0 <text_label\+0x1d0> 2002 a07f 	mthi	v0,\$ac2
 0+01d4 <text_label\+0x1d4> 2003 f07f 	mtlo	v1,\$ac3
-0+01d8 <text_label\+0x1d8> 2080 167f 	wrdsp	a0,0x0
+0+01d8 <text_label\+0x1d8> 2080 167f 	wrdsp	a0
 0+01dc <text_label\+0x1dc> 208f d67f 	wrdsp	a0,0x3f
-0+01e0 <text_label\+0x1e0> 20a0 167f 	wrdsp	a1,0x0
-0+01e4 <text_label\+0x1e4> 20c0 067f 	rddsp	a2,0x0
+0+01e0 <text_label\+0x1e0> 20a0 167f 	wrdsp	a1
+0+01e4 <text_label\+0x1e4> 20c0 067f 	rddsp	a2
 0+01e8 <text_label\+0x1e8> 20cf c67f 	rddsp	a2,0x3f
-0+01ec <text_label\+0x1ec> 20e0 067f 	rddsp	a3,0x0
+0+01ec <text_label\+0x1ec> 20e0 067f 	rddsp	a3
 0+01f0 <text_label\+0x1f0> 2149 4107 	lbux	t0,t1\(t2\)
 0+01f4 <text_label\+0x1f4> 216a 4a07 	lhx	t1,t2\(t3\)
 0+01f8 <text_label\+0x1f8> 218b 5407 	lwx	t2,t3\(t4\)

@@ -13,6 +13,7 @@ data_label:
 	.lcomm small_local_common,1
 	
 	.text
+text_label:
 	ulh	$4,data_label
 	ulhu	$4,big_external_data_label
 	ulw	$4,small_external_data_label

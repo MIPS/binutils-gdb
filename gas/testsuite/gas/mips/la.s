@@ -10,6 +10,7 @@ data_label:
 	.lcomm small_local_common,1
 	
 	.text
+text_label:
 	la	$4,0
 	la	$4,1
 	la	$4,0x8000
