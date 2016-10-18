@@ -296,7 +296,7 @@ PARSE_AND_LIST_OPTIONS='
   --no-user-defined-sdata-sections\n\
                               When processing a gp relative relocation against a symbol\n\
                               in a .sdata_<num>/.sbss_<num> section use the gp value\n\
-                              based on the address of the _gp symbol."));
+                              based on the address of the _gp symbol\n"));
 '
 
 PARSE_AND_LIST_ARGS_CASES='
