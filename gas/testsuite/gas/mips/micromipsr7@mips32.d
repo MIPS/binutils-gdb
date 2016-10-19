@@ -18,8 +18,8 @@ Disassembly of section \.text:
 0+001c <text_label\+0x1c> 2000 137f 	tlbr
 0+0020 <text_label\+0x20> 2000 237f 	tlbwi
 0+0024 <text_label\+0x24> 2000 337f 	tlbwr
-0+0028 <text_label\+0x28> 2000 937f 	wait
-0+002c <text_label\+0x2c> 2000 c37f 	wait	0x0
+0+0028 <text_label\+0x28> 2000 c37f 	wait
+0+002c <text_label\+0x2c> 2000 c37f 	wait
 0+0030 <text_label\+0x30> 2345 c37f 	wait	0x345
 0+0034 <text_label\+0x34> 1010      	break
 0+0036 <text_label\+0x36> 1010      	break

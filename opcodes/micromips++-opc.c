@@ -1268,7 +1268,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"ush",		"t,A(b)",	0,    (int) M_USH_AB,	INSN_MACRO,		0,	I38,	0,		0},
 {"usw",		"t,A(b)",	0,    (int) M_USW_AB,	INSN_MACRO,		0,	I38,	0,		0},
 {"udi",	"m8",		0x20000003, 0xfc000007,		0,		0,	0,	UDI,		0},
-{"wait",	"",		0x2000937f, 0xffffffff,		0,	INSN2_ALIAS,	I38,		0,		0},
+{"wait",	"",		0x2000c37f, 0xffffffff,		0,	INSN2_ALIAS,	I38,		0,		0},
 {"wait",	"+L",		0x2000c37f, 0xfc00ffff,		0,		0,	I38,		0,		0},
 {"wrdsp",	"t",		0x2000167f, 0xfc1fffff,		RD_1,	INSN2_ALIAS,	0,	D32,		0},
 {"wrdsp",	"t,8",		0x2000167f, 0xfc003fff,		RD_1,		0,	0,	D32,		0},

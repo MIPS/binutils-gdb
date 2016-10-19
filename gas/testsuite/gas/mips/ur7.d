@@ -2415,8 +2415,8 @@ Disassembly of section \.text:
 0+2026 <test3\+0x1bb0> e034 5244 	lui	at,0x12345
 0+202a <test3\+0x1bb4> 2081 0950 	addu	at,at,a0
 0+202e <test3\+0x1bb8> 8461 9678 	sw	v1,1656\(at\)
-0+2032 <test3\+0x1bbc> 2000 937f 	wait
-0+2036 <test3\+0x1bc0> 2000 c37f 	wait	0x0
+0+2032 <test3\+0x1bbc> 2000 c37f 	wait
+0+2036 <test3\+0x1bc0> 2000 c37f 	wait
 0+203a <test3\+0x1bc4> 2001 c37f 	wait	0x1
 0+203e <test3\+0x1bc8> 20ff c37f 	wait	0xff
 0+2042 <test3\+0x1bcc> 2043 f17f 	wrpgpr	v0,v1
