@@ -136,7 +136,7 @@ Disassembly of section .text:
 0+01f4 <text_label\+0x1f4> 216a 4a07 	lhx	t1,t2\(t3\)
 0+01f8 <text_label\+0x1f8> 218b 5407 	lwx	t2,t3\(t4\)
 0+01fc <text_label\+0x1fc> 8804 4000 	bposge32c	0
-			1fc: R_MICROMIPS_LO12	.text\+0x1
+			1fc: R_MICROMIPS_LO12	text_label
 0+0200 <text_label\+0x200> 9008      	nop
 0+0202 <text_label\+0x202> 218b 8abf 	madd	\$ac2,t3,t4
 0+0206 <text_label\+0x206> 21ac dabf 	maddu	\$ac3,t4,t5
@@ -145,4 +145,4 @@ Disassembly of section .text:
 0+0212 <text_label\+0x212> 22d5 ccbf 	mult	\$ac3,s5,s6
 0+0216 <text_label\+0x216> 22f6 1cbf 	multu	\$ac0,s6,s7
 0+021a <text_label\+0x21a> 9008      	nop
-	...
+	\.\.\.

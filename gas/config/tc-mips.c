@@ -10063,6 +10063,9 @@ static const char * const div_fmt[2] = { "z,s,t", "d,v,t" };
 
 #define MIN_ADDI_OFFSET (ISA_IS_R7 (mips_opts.isa)? -0x2000 : -0x8000)
 
+#define ISA_BFD_RELOC_LOW (ISA_IS_R7 (mips_opts.isa) \
+			      ? BFD_RELOC_MICROMIPSPP_LO12 : BFD_RELOC_LO16 )
+
 /* Read a macro's relocation codes from *ARGS and store them in *R.
    The first argument in *ARGS will be either the code for a single
    relocation or -1 followed by the three codes that make up a
@@ -10220,13 +10223,12 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	  macro_read_relocs (&args, r);
 	  if (ISA_IS_R7 (mips_opts.isa))
 	    macro_match_micromipspp_reloc (fmt, r);
-	  gas_assert (*r == BFD_RELOC_GPREL16
-		      || *r == BFD_RELOC_MIPS_HIGHER
-		      || *r == BFD_RELOC_HI16_S
-		      || *r == BFD_RELOC_LO16
-		      || *r == BFD_RELOC_MICROMIPSPP_LO12
-		      || *r == BFD_RELOC_MICROMIPSPP_IMM14
-		      || *r == BFD_RELOC_MIPS_GOT_OFST);
+	  else
+	    gas_assert (*r == BFD_RELOC_GPREL16
+			|| *r == BFD_RELOC_MIPS_HIGHER
+			|| *r == BFD_RELOC_HI16_S
+			|| *r == BFD_RELOC_LO16
+			|| *r == BFD_RELOC_MIPS_GOT_OFST);
 	  continue;
 
 	case '~':
@@ -10709,14 +10711,6 @@ load_register (int reg, expressionS *ep, int dbl)
 			   BFD_RELOC_MICROMIPSPP_IMM14);
 	      return;
 	    }
-	  else if (ep->X_add_number >= 0 && ep->X_add_number < 0x1000)
-	    {
-	      /* We can handle 12 bit unsigned values with an ori to
-		 $zero.  */
-	      macro_build (ep, "ori", OP_IMM_FMT, reg, 0,
-			   BFD_RELOC_MICROMIPSPP_LO12);
-	      return;
-	    }
 	  else if ((IS_SEXT_32BIT_NUM (ep->X_add_number)))
 	    {
 	      /* 32 bit values require an lui.  */
@@ -11045,7 +11039,7 @@ load_address (int reg, expressionS *ep, int *used_at)
 	    }
 	  macro_build_lui (ep, reg);
 	  macro_build (ep, ADDRESS_ADDI_INSN, ADDIU_FMT,
-		       reg, reg, BFD_RELOC_LO16);
+		       reg, reg, ISA_BFD_RELOC_LOW);
 	  if (mips_relax.sequence)
 	    relax_end ();
 	}
@@ -11288,7 +11282,7 @@ add_got_offset_hilo (int dest, expressionS *local, int tmp)
   mips_optimize = 2;
   macro_build_lui (&global, tmp);
   mips_optimize = hold_mips_optimize;
-  macro_build (local, ADDRESS_ADDI_INSN, "t,r,j", tmp, tmp, BFD_RELOC_LO16);
+  macro_build (local, ADDRESS_ADDI_INSN, "t,r,j", tmp, tmp, ISA_BFD_RELOC_LOW);
   relax_end ();
 
   macro_build (NULL, ADDRESS_ADD_INSN, "d,v,t", dest, dest, tmp);
@@ -12488,7 +12482,7 @@ macro (struct mips_cl_insn *ip, char *str)
 		as_bad (_("offset too large"));
 	      macro_build_lui (&offset_expr, tempreg);
 	      macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDIU_FMT,
-			   tempreg, tempreg, BFD_RELOC_LO16);
+			   tempreg, tempreg, ISA_BFD_RELOC_LOW);
 	      if (mips_relax.sequence)
 		relax_end ();
 	    }
@@ -14475,7 +14469,53 @@ macro (struct mips_cl_insn *ip, char *str)
 	  if (mips_relax.sequence)
 	    relax_end ();
 	}
-      else if (!mips_big_got)
+      else if (!mips_big_got && ISA_IS_R7 (mips_opts.isa))
+	{
+	  /* If this is a reference to an external symbol, we want
+	       lw	$at,<sym>($gp)		(BFD_RELOC_MIPS_GOT16)
+	       nop
+	       <op>	op[0],0($at)
+	       <op>	op[0]+1,4($at)
+	     Otherwise we want
+	       lw	$at,<sym>($gp)		(BFD_RELOC_MIPS_GOT16)
+	       nop
+	       <op>	op[0],<sym>($at)	(BFD_RELOC_LO16)
+	       <op>	op[0]+1,<sym>+4($at)	(BFD_RELOC_LO16)
+	     If there is a base register we add it to $at before the
+	     lwc1 instructions.  If there is a constant we include it
+	     in the lwc1 instructions.  */
+	  used_at = 1;
+	  expr1.X_add_number = offset_expr.X_add_number;
+	  if (expr1.X_add_number < MIN_PIC_OFFSET
+	      || expr1.X_add_number >= MAX_PIC_OFFSET - 4)
+	    as_bad (_("PIC code offset overflow (max 21 bits)"));
+
+
+
+	  relax_start (offset_expr.X_add_symbol);
+	  macro_build (&offset_expr, ADDRESS_LOAD_INSN, "t,o(b)", AT,
+		       BFD_RELOC_MIPS_GOT_DISP, mips_gp_register);
+	  if (breg != 0)
+	    macro_build (NULL, ADDRESS_ADD_INSN, "d,v,t", AT, breg, AT);
+	  macro_build (&expr1, s, fmt, coproc ? op[0] + 1 : op[0],
+		       BFD_RELOC_MICROMIPSPP_LO12, AT);
+	  expr1.X_add_number += 4;
+	  macro_build (&expr1, s, fmt, coproc ? op[0] : op[0] + 1,
+		       BFD_RELOC_MICROMIPSPP_LO12, AT);
+	  relax_switch ();
+	  macro_build (&offset_expr, ADDRESS_LOAD_INSN, "t,o(b)", AT,
+		       BFD_RELOC_MIPS_GOT_PAGE, mips_gp_register);
+	  if (breg != 0)
+	    macro_build (NULL, ADDRESS_ADD_INSN, "d,v,t", AT, breg, AT);
+
+	  macro_build (&offset_expr, s, fmt, coproc ? op[0] + 1 : op[0],
+		       BFD_RELOC_MIPS_GOT_OFST, AT);
+	  offset_expr.X_add_number += 4;
+	  macro_build (&offset_expr, s, fmt, coproc ? op[0] : op[0] + 1,
+		       BFD_RELOC_MIPS_GOT_OFST, AT);
+	  relax_end ();
+	}
+      else if (!mips_big_got && !ISA_IS_R7 (mips_opts.isa))
 	{
 	  /* If this is a reference to an external symbol, we want
 	       lw	$at,<sym>($gp)		(BFD_RELOC_MIPS_GOT16)
@@ -18767,7 +18807,7 @@ s_cpadd (int ignore ATTRIBUTE_UNUSED)
   file_mips_check_options ();
 
   /* This is ignored when not generating SVR4 PIC code.  */
-  if (mips_pic != SVR4_PIC)
+  if (mips_pic != SVR4_PIC || ISA_IS_R7 (mips_opts.isa))
     {
       s_ignore (0);
       return;
@@ -19677,7 +19717,8 @@ mips_fix_adjustable (fixS *fixp)
   /* PC relative relocations for MIPS R6 need to be symbol rather than
      section relative to allow linker relaxations to be performed later on.  */
   if ((ISA_IS_R6 (mips_opts.isa)
-	|| ISA_IS_R7 (mips_opts.isa)) && pcrel_reloc_p (fixp->fx_r_type))
+       || ISA_IS_R7 (mips_opts.isa))
+      && pcrel_reloc_p (fixp->fx_r_type))
     return 0;
 
   /* R_MIPS16_26 relocations against non-MIPS16 functions might resolve
