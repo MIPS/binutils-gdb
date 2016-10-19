@@ -19721,6 +19721,19 @@ mips_fix_adjustable (fixS *fixp)
       && pcrel_reloc_p (fixp->fx_r_type))
     return 0;
 
+  /* hi/lo relocations need to be symbol rather than section relative for
+     R7 text symbols, to allow linker expansions and relaxations without 
+     having to adjust addends.  */
+  if (ISA_IS_R7 (mips_opts.isa)
+      && (hi16_reloc_p (fixp->fx_r_type)
+	  || lo16_reloc_p (fixp->fx_r_type)))
+    {
+      asymbol *sym = symbol_get_bfdsym (fixp->fx_addsy);
+      asection *sect = (sym == NULL ? NULL : bfd_get_section (sym));
+      if ((sect->flags & SEC_CODE) != 0)
+	return 0;
+    }
+
   /* R_MIPS16_26 relocations against non-MIPS16 functions might resolve
      to a floating-point stub.  The same is true for non-R_MIPS16_26
      relocations against MIPS16 functions; in this case, the stub becomes
