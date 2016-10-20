@@ -78,18 +78,6 @@
     }
 }
 
-:function:::address_word:do_bxxxc16:int rs, int rt, address_word offset, address_word nia
-*micromips32r7:
-*micromips64r7:
-{
-  TRACE_ALU_INPUT2(GPR[rs], GPR[rt]);
-  if (rs < rt && GPR[rs] == GPR[rt])
-    return nia + offset; //BEQC
-  if (rs >= rt && GPR[rs] != GPR[rt])
-    return nia + offset; //BNEC
-  return nia;
-}
-
 :function:::void:do_ins_mm_r7:int rt, int rs, int pos, int size
 {
   TRACE_ALU_INPUT4 (GPR[rt], GPR[rs], pos, size);
@@ -435,7 +423,11 @@
 *micromips32r7:
 *micromips64r7:
 {
-  NIA = do_bxxxc16 (SD_, TRS, TRT, U_SHIFT_1BIT, NIA);
+  TRACE_ALU_INPUT2(GPR[TRS], GPR[TRT]);
+  if (RS < RT && GPR[TRS] == GPR[TRT])
+    NIA = NIA + U_SHIFT_1BIT; //BEQC
+  else if (RS >= RT && GPR[TRS] != GPR[TRT])
+    NIA = NIA + U_SHIFT_1BIT; //BNEC
 }
 
 100110,3.RT,6.S1,1.S2:R7BEQZC16:16::BEQZC16
