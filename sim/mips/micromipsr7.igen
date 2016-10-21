@@ -2170,6 +2170,7 @@
   sim_io_printf (SD, "Not implemented");
 }
 
+// FIXME: 48-bit instructions don't work yet
 011000,5.RT,00000,32.U:R7POOL48I:48::LI48
 "li r<RT>, <U>"
 *micromips32r7:
@@ -2178,4 +2179,30 @@
   TRACE_ALU_INPUT2(GPR[RT], U);
   GPR[RT] = U;
   TRACE_ALU_RESULT(GPR[RT]);
+}
+
+//////////////////////////////////////////////////////////////////////
+// Not yet in the specification.
+//////////////////////////////////////////////////////////////////////
+
+100001,5.FT,5.RS,1111,12.U:R7PLSU12:32::SDC1
+"sdc1 r<FT>, <U>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT3(GPR[FT], U, GPR[RS]);
+  do_store (SD_, AccessLength_DOUBLEWORD, GPR[RS], EXTEND16 (U), COP_SD (1, FT));
+  unsigned64 temp;
+  COP_LD (1, temp, do_load (SD_, AccessLength_DOUBLEWORD, GPR[RS], EXTEND16 (U)));
+  TRACE_ALU_RESULT(temp);
+}
+
+100001,5.FT,5.RS,1110,12.U:R7PLSU12:32::LDC1
+"ldc1 r<FT>, <U>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT3(GPR[FT], U, GPR[RS]);
+  COP_LD (1, FT, do_load (SD_, AccessLength_DOUBLEWORD, GPR[RS], EXTEND16 (U)));
+  TRACE_ALU_RESULT(GPR[FT]);
 }
