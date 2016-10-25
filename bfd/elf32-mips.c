@@ -1852,7 +1852,22 @@ static reloc_howto_type elf_micromips_howto_table_rela[] =
 	 0x00003fff,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-  EMPTY_HOWTO (138), /* Used to be GOT16 */
+  /* Refers to low 32-bits of 48-bit instruction. The 32-bit value
+     is encoded as microMIPS instruction stream - so it will be
+     half-word swapped on little endian targets.  */
+  HOWTO (R_MICROMIPSPP_32,	/* type */
+	 0,			/* rightshift */
+	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 32,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont, /* complain_on_overflow */
+	 _bfd_mips_elf_generic_reloc, /* special_function */
+	 "R_MICROMIPS_32",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0x0,			/* src_mask */
+	 0xffffffff,		/* dst_mask */
+	 FALSE),		/* pcrel_offset */
 
 #endif /* RELOC_REUSE_MICROMIPSPP */
 
@@ -2402,6 +2417,23 @@ static reloc_howto_type elf_micromips_howto_table_rela[] =
 	 0x0,			/* src_mask */
 	 0x00000fff,		/* dst_mask */
 	 TRUE),			/* pcrel_offset */
+
+  /* Refers to low 32-bits of 48-bit instruction. The 32-bit value
+     is encoded as microMIPS instruction stream - so it will be
+     half-word swapped on little endian targets.  */
+  HOWTO (R_MICROMIPSPP_32,	/* type */
+	 0,			/* rightshift */
+	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 32,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont, /* complain_on_overflow */
+	 _bfd_mips_elf_generic_reloc, /* special_function */
+	 "R_MICROMIPS_32",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0x0,			/* src_mask */
+	 0xffffffff,		/* dst_mask */
+	 FALSE),		/* pcrel_offset */
 
 #endif /* !RELOC_REUSE_MICROMIPSPP */
 
@@ -3005,6 +3037,8 @@ static const struct elf_reloc_map micromipspp_reloc_map[] =
     R_MICROMIPSPP_CALL_LO12 - R_MICROMIPSPP_min },
   { BFD_RELOC_MICROMIPSPP_LITERAL,
     R_MICROMIPSPP_LITERAL - R_MICROMIPSPP_min },
+  { BFD_RELOC_MICROMIPSPP_32,
+    R_MICROMIPSPP_32 - R_MICROMIPSPP_min },
 };
 
 /* Given a BFD reloc type, return a howto structure.  */

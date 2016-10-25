@@ -451,6 +451,7 @@ enum mips_operand_type {
   /* To check a mapped register against a previous operand.  */
   OP_MAPPED_CHECK_PREV,
 
+  OP_IMM_WORD,
 };
 
 /* Enumerates the types of MIPS register.  */
@@ -877,6 +878,15 @@ static inline bfd_boolean
 mips_opcode_32bit_p (const struct mips_opcode *mo)
 {
   return mo->mask >> 16 != 0;
+}
+
+/* Return true if MO is an instruction that requires 48-bit encoding.  */
+
+static inline bfd_boolean
+mips_opcode_48bit_p (const struct mips_opcode *mo)
+{
+  return ((mo->mask >> 16 == 0)
+	  && ((mo->match >> 10) == 0x18));
 }
 
 /* These are the characters which may appear in the args field of an

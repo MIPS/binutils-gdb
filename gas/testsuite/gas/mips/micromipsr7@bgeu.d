@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: MIPS R7 bgeu
-#as: -32
+#as: -32 -mno-xlp
 #source: bgeu.s
 
 # Test the bgeu macro.

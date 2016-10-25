@@ -1,5 +1,5 @@
 #objdump: -dr --prefix-addresses
-#as: -32
+#as: -32 -mno-xlp
 #name: MIPS R7 II load $zero
 #source: ld-zero-2.s
 

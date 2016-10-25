@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: MIPS relaxed macro with branch swapping
-#as: -32
+#as: -32 -mno-xlp
 #source: relax-swap3.s
 
 .*: +file format .*mips.*

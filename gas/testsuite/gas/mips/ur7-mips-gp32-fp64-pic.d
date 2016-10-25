@@ -1,5 +1,5 @@
 #objdump: -dr --show-raw-insn --prefix-addresses
-#as: -32 -mgp32 -mfp64 -KPIC -mips32r7 -mmicromips
+#as: -32 -mgp32 -mfp64 -KPIC -mips32r7 -mmicromips -mno-xlp
 #name: MIPSR7 -mgp32 -mfp64 (SVR4 PIC)
 #source: mips-gp32-fp64-pic.s
 

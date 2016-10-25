@@ -99,7 +99,7 @@ decode_micromipspp_operand (const char *p)
 	case 'N': UINT_SPLIT (2, 8, 2, 1, 3); /* split encoded 2-bit offset << 2 */
 	case 'O': UINT_SPLIT (17, 0, 0, 5, 16); /* split 17-bit offset */
 	case 'P': UINT_SPLIT (16, 0, 0, 4, 16); /* split 16-bit offset */
-/* 	case 'Q': INT_ADJ (23, 0, 4194303, 2, FALSE); */
+	case 'Q': SPECIAL (0, 0, IMM_WORD);
 	case 'S': UINT (4, 17); /* (0 .. 15) */
 	case 'T': UINT (4, 6); /* (0 .. 15) */
 	case 'U': INT_ADJ (5, 0, 31, 2, FALSE);	 /* (0 .. 31) << 2 */
@@ -378,6 +378,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"li",		"md,mI",	0xd000,		0xfc00,	WR_1,		0,	I38,		0,		0}, /* LI[16] */
 {"li",		"t,i",		0x80000000, 0xfc1ff000,	WR_1,	INSN2_ALIAS,	I38,		0,		0}, /* ORI */
 {"li",		"-t,j",		0x00000000, 0xfc1f6000,	WR_1,	INSN2_ALIAS,	I38,		0,		0}, /* ADDIU */
+{"li",		"mp,mQ",	0x6000, 	0xfc1f,		WR_1,	0,	0,		XLP,		0}, /* LI[48] */
 {"li",		"t,I",		0,	(int) M_LI,	INSN_MACRO,	0,	I38,		0,		0},
 
 /* Precedence=0 */
@@ -621,7 +622,9 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"dabs",	"d,v",		0,    	  (int) M_DABS,	INSN_MACRO,		0,	I38,	0,		0},
 {"dadd",	"d,v,t",	0xc0000110, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
 {"dadd",	"t,r,I",	0,    (int) M_DADD_I,	INSN_MACRO,		0,	I70,		0,		0},
-{"daddiu",	"t,r,j",		0x00002000, 0xfc006000,	WR_1|RD_2,		0,	I70,		0,		0}, /* preceded by SIGRIE */
+{"daddiu",	"t,r,j",	0x00002000, 0xfc006000,	WR_1|RD_2,		0,	I70,		0,		0}, /* preceded by SIGRIE */
+{"daddiu",	"mp,mQ",	0x6011, 	0xfc1f,	WR_1,			0,	I70,		0,		0}, /* DADDIU[48] */
+{"daddiu",	"mp,mx,mQ",	0x6011, 	0xfc1f,	WR_1,		INSN2_ALIAS,	I70,		0,		0}, /* DADDIU[48] */
 {"daddu",	"d,v,t",		0xc0000150, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
 {"daddu",	"t,r,I",		0,    (int) M_DADDU_I,	INSN_MACRO,		0,	I70,		0,		0},
 {"dahi",	"t,mO",		0x80008000, 0xfc00f000,		WR_1,		0,	I70,		0,		0},
@@ -651,6 +654,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"dli", 	"-t,j",		0x00002000, 0xfc1f6000,	WR_1|RD_2,			0,	I70,		0,		0}, /* daddiu */
 {"dli", 	"t,I",		0,    (int) M_DLI,	INSN_MACRO,			0,	I70,		0,		0},
 {"dlsa",	"d,v,t,+.",		0xc0000008, 0xfc0001ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
+{"dlui",	"mp,mQ",	0x6014, 	0xfc1f,		WR_1,		0,	I70,		0,		0}, /* DLUI[48] */
 {"dmfc0",	"t,G",		0x20000130, 0xfc00ffff,		WR_1,	INSN2_ALIAS,	I70,		0,		0}, /* DMFC0 with sel=0 */
 {"dmfc0",	"t,G,H",	0x20000130, 0xfc00c7ff,		WR_1,		0,	I70,		0,		0},
 {"dmfc1",	"t,S",		0xa000243b, 0xfc00ffff,	WR_1|RD_2,		0,	I70,	0,		0},

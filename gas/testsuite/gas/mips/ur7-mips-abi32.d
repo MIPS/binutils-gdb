@@ -1,5 +1,5 @@
 #objdump: -dr --prefix-addresses  --show-raw-insn
-#as: -EB -mabi=32 -mips32r7 -mmicromips
+#as: -EB -mabi=32 -mips32r7 -mmicromips -mno-xlp
 #name: MIPSR7 -mabi=32
 #source: mips-abi32.s
 

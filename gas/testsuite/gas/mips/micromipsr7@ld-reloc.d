@@ -1,4 +1,4 @@
-#as: -32
+#as: -32 -mno-xlp
 #objdump: -dr --prefix-addresses --show-raw-insn -Mgpr-names=numeric
 #name: LD with relocation operators for R7
 #source: ld-reloc.s

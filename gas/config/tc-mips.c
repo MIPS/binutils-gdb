@@ -140,6 +140,9 @@ struct mips_cl_insn
      decided to use an extended MIPS16 instruction, this includes the
      extension.  */
   unsigned long insn_opcode;
+  
+  /* The lower 32-bits of a 48-bit instruction. */
+  unsigned long insn_opcode_ext;
 
   /* The frag that contains the instruction.  */
   struct frag *frag;
@@ -2308,7 +2311,7 @@ mips_lookup_ase (const char *name)
 static inline unsigned int
 micromips_insn_length (const struct mips_opcode *mo)
 {
-  return mips_opcode_32bit_p (mo) ? 4 : 2;
+  return  mips_opcode_48bit_p (mo) ? 6 : (mips_opcode_32bit_p (mo) ? 4 : 2);
 }
 
 /* Return the length of MIPS16 instruction OPCODE.  */
@@ -2489,7 +2492,15 @@ install_insn (const struct mips_cl_insn *insn)
 {
   char *f = insn->frag->fr_literal + insn->where;
   if (HAVE_CODE_COMPRESSION)
-    write_compressed_insn (f, insn->insn_opcode, insn_length (insn));
+    {
+      if (insn_length (insn) == 6)
+	{
+	  write_compressed_insn (f, insn->insn_opcode, 2);
+	  write_compressed_insn (f+2, insn->insn_opcode_ext, 4);
+	}
+      else
+	write_compressed_insn (f, insn->insn_opcode, insn_length (insn));
+    }
   else
     write_insn (f, insn->insn_opcode);
   mips_record_compressed_mode ();
@@ -3715,24 +3726,38 @@ validate_micromipspp_insn (const struct mips_opcode *opc,
 			       operands);
 
   length = micromips_insn_length (opc);
-  if (length != 2 && length != 4)
+  if (length != 2 && length != 4 && length != 6)
     {
       as_bad (_("internal error: bad microMIPS opcode (incorrect length: %u): "
 		"%s %s"), length, opc->name, opc->args);
       return 0;
     }
-  major = opc->match >> (10 + 8 * (length - 2));
+
+  if (length == 6)
+    /* 48-bit instruction is encoded as 16-bits in the opcode table.  */
+    major = opc->match >> 10;
+  else
+    major = opc->match >> (10 + 8 * (length - 2));
+
   if ((length == 2 && !(major & 4))
-      || (length == 4 && (major & 4)))
+       || (length == 4 && (major & 4))
+       || (length == 6 && !(major & 18)))
     {
       as_bad (_("internal error: bad microMIPS opcode "
 		"(opcode/length mismatch): %s %s"), opc->name, opc->args);
       return 0;
     }
 
-  /* Shift piecewise to avoid an overflow where unsigned long is 32-bit.  */
-  insn_bits = 1 << 4 * length;
-  insn_bits <<= 4 * length;
+  if (length == 6)
+    /* 48-bit instruction is encoded as 16-bits in the opcode table.  */
+    insn_bits = 1 << 16;
+  else
+    {
+      /* Shift piecewise to avoid an overflow where unsigned long is 32-bit.  */
+      insn_bits = 1 << 4 * length;
+      insn_bits <<= 4 * length;
+    }
+
   insn_bits -= 1;
   return validate_mips_insn (opc, insn_bits, decode_micromipspp_operand,
 			     operands);
@@ -4440,11 +4465,18 @@ micromipspp_reloc_p (bfd_reloc_code_real_type reloc)
       case BFD_RELOC_MICROMIPSPP_GOT_OFST:
       case BFD_RELOC_MICROMIPSPP_GOT_DISP:
       case BFD_RELOC_MICROMIPSPP_IMM14:
+      case BFD_RELOC_MICROMIPSPP_32:
       return TRUE;
 
     default:
       return FALSE;
     }
+}
+
+static inline bfd_boolean
+micromipspp_48bit_reloc_p (bfd_reloc_code_real_type reloc)
+{
+  return (reloc == BFD_RELOC_MICROMIPSPP_32);
 }
 
 static inline bfd_boolean
@@ -4883,6 +4915,7 @@ operand_reg_mask (const struct mips_cl_insn *insn,
     case OP_MXU_STRIDE:
     case OP_HI20_PCREL:
     case OP_HI20_INT:
+    case OP_IMM_WORD:
       abort ();
 
     case OP_REG28:
@@ -5555,6 +5588,39 @@ match_int_operand (struct mips_arg_info *arg,
   insn_insert_operand (arg->insn, operand_base, uval);
   return TRUE;
 }
+
+static bfd_boolean
+match_immediate_word (struct mips_arg_info *arg)
+{
+  unsigned int uval;
+  
+  if (match_expression (arg, &offset_expr, offset_reloc))
+    {
+      if (offset_reloc[0] != BFD_RELOC_UNUSED)
+	/* Relocation operators not allowed in this position.  */
+	return FALSE;
+
+      offset_reloc[0] = BFD_RELOC_MICROMIPSPP_32;
+      if (offset_expr.X_op != O_constant)
+	{
+	  arg->insn->insn_opcode_ext = 0;
+	  return TRUE;
+	}
+      else
+	if ((offset_expr.X_add_number & 0xfff) != 0)
+	/* We don't match the 48-bit instruction, when we could make
+	   do with 32-bit LUI.  */
+	{
+	  uval = offset_expr.X_add_number;	  
+	  arg->last_op_int = uval;
+	  arg->insn->insn_opcode_ext = uval;
+	  return TRUE;
+	}
+    }
+
+  return FALSE;
+}
+
 
 /* OP_HI20_INT matcher.  */
 
@@ -6893,7 +6959,10 @@ match_operand (struct mips_arg_info *arg,
 
     case OP_MAPPED_CHECK_PREV:
       return match_mapped_check_prev_operand (arg, operand);
-    }
+ 
+   case OP_IMM_WORD:
+      return match_immediate_word (arg);
+   }
   abort ();
 }
 
@@ -8549,6 +8618,14 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	  }
 	  break;
 
+	case BFD_RELOC_MICROMIPSPP_32:
+	  ip->insn_opcode_ext = address_expr->X_add_number;
+	  /* Fall-through */
+
+	case BFD_RELOC_MICROMIPSPP_CALL:
+	  ip->complete_p = 1;
+	  break;
+
 	default:
 	  {
 	    offsetT value;
@@ -8847,6 +8924,7 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
       reloc_howto_type *howto0;
       reloc_howto_type *howto;
       int i;
+      unsigned where;
 
       /* Perform any necessary conversion to microMIPS relocations
 	 and find out how many relocations there actually are.  */
@@ -8864,7 +8942,15 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 
       if (i > 1)
 	howto0 = bfd_reloc_type_lookup (stdoutput, final_type[0]);
-      ip->fixp[0] = fix_new_exp (ip->frag, ip->where,
+
+      where = ip->where;
+      /* For 48-bit uMIPS R7 instructions, we want the relocation
+	 to be on the lower 32-bits of the instruction.  */
+      if (ISA_IS_R7 (mips_opts.isa)
+	  && (final_type[0] == BFD_RELOC_MICROMIPSPP_32))
+	where = ip->where + 2;
+
+      ip->fixp[0] = fix_new_exp (ip->frag, where,
 				 bfd_get_reloc_size (howto),
 				 address_expr,
 				 howto0 && howto0->pc_relative,
@@ -9451,7 +9537,8 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 
       if ((operand->type == OP_PCREL
 	   || operand->type == OP_NON_ZERO_PCREL_S1
-	   || operand->type == OP_HI20_PCREL)
+	   || operand->type == OP_HI20_PCREL
+	   || operand->type == OP_IMM_WORD)
 	  && ISA_IS_R7 (mips_opts.isa))
 	switch (*args)
 	  {
@@ -9500,6 +9587,9 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 		    *offset_reloc = rtype [c - 'D'];
 		  break;
 		}
+		case 'Q':
+		  *offset_reloc = BFD_RELOC_MICROMIPSPP_32;
+		  break;
 	      }
 	    break;
 	  }
@@ -10319,9 +10409,17 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	  continue;
 
 	case 'm':
-	  if (*(fmt + 1) != 'V' && *(fmt + 1) != 'K')
-	    break;
-	  /* Fall through */
+	  if (ISA_IS_R7 (mips_opts.isa)
+	      && (*(fmt + 1) == 'V' || *(fmt + 1) == 'K' || *(fmt + 1) == 'Q'))
+	    {
+	      macro_read_relocs (&args, r);
+	      macro_match_micromipspp_reloc (fmt, r);
+	      if (*(fmt +1) == 'Q')
+		break;
+	      fmt++;
+	      continue;
+	    }
+	  break;
 
 	case '.':
 	  if (ISA_IS_R7 (mips_opts.isa))
@@ -10358,7 +10456,10 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	  || operand->type == OP_SAME_RS_RT)
 	uval |= (uval << 5);
 
-      insn_insert_operand (&insn, operand, uval);
+      if (operand->type == OP_IMM_WORD)
+	insn.insn_opcode_ext = 0;
+      else
+	insn_insert_operand (&insn, operand, uval);
 
       if ((*fmt == '+') || *fmt == 'm' || *fmt == '-' || *fmt == '`')
 	++fmt;
@@ -10713,11 +10814,17 @@ load_register (int reg, expressionS *ep, int dbl)
 	    }
 	  else if ((IS_SEXT_32BIT_NUM (ep->X_add_number)))
 	    {
-	      /* 32 bit values require an lui.  */
-	      macro_build (ep, "lui", "t,u", reg, BFD_RELOC_MICROMIPSPP_HI20);
-	      if ((ep->X_add_number & 0xfff) != 0)
-		macro_build (ep, "ori", OP_IMM_FMT, reg, reg,
-			     BFD_RELOC_MICROMIPSPP_LO12);
+	      if ((mips_opts.ase & ASE_XLP) != 0
+		  && (ep->X_add_number & 0xfff) != 0)
+		macro_build (ep, "li", "mp,mQ", reg, BFD_RELOC_MICROMIPSPP_32);
+	      else
+		{
+		  /* 32 bit values require an lui.  */
+		  macro_build (ep, "lui", "t,u", reg, BFD_RELOC_MICROMIPSPP_HI20);
+		  if ((ep->X_add_number & 0xfff) != 0)
+		    macro_build (ep, "ori", OP_IMM_FMT, reg, reg,
+				 BFD_RELOC_MICROMIPSPP_LO12);
+		}
 	      return;
 	    }
 	}
@@ -11037,9 +11144,14 @@ load_address (int reg, expressionS *ep, int *used_at)
 			   mips_gp_register, BFD_RELOC_GPREL16);
 	      relax_switch ();
 	    }
-	  macro_build_lui (ep, reg);
-	  macro_build (ep, ADDRESS_ADDI_INSN, ADDIU_FMT,
-		       reg, reg, ISA_BFD_RELOC_LOW);
+	  if ((mips_opts.ase & ASE_XLP) != 0)
+	      macro_build (ep, "li", "mp,mQ", reg, BFD_RELOC_MICROMIPSPP_32);
+	  else
+	    {
+	      macro_build_lui (ep, reg);
+	      macro_build (ep, ADDRESS_ADDI_INSN, ADDIU_FMT,
+			   reg, reg, ISA_BFD_RELOC_LOW);
+	    }
 	  if (mips_relax.sequence)
 	    relax_end ();
 	}
@@ -11515,9 +11627,10 @@ macro_build_branch_rsrt (int type, expressionS *ep,
 
 static void
 macro_build_branch_rtim (int type, expressionS *ep,
-			 unsigned int sreg, expressionS *im)
+			 unsigned int sreg, expressionS *imex)
 {
   const char *br;
+  int imm = imex->X_add_number;
 
   switch (type)
     {
@@ -11546,7 +11659,7 @@ macro_build_branch_rtim (int type, expressionS *ep,
       abort ();
     }
 
-  macro_build (ep, br, "t,m9,~", sreg, im->X_add_number,
+  macro_build (ep, br, "t,m9,~", sreg, imm,
 	       BFD_RELOC_MICROMIPSPP_11_PCREL_S1);
 }
 
@@ -12480,9 +12593,15 @@ macro (struct mips_cl_insn *ip, char *str)
 		}
 	      if (!IS_SEXT_32BIT_NUM (offset_expr.X_add_number))
 		as_bad (_("offset too large"));
-	      macro_build_lui (&offset_expr, tempreg);
-	      macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDIU_FMT,
-			   tempreg, tempreg, ISA_BFD_RELOC_LOW);
+	      if ((mips_opts.ase & ASE_XLP) != 0)
+		macro_build (&offset_expr, "li", "mp,mQ", tempreg,
+			     BFD_RELOC_MICROMIPSPP_32);
+	      else
+		{
+		  macro_build_lui (&offset_expr, tempreg);
+		  macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDIU_FMT,
+			       tempreg, tempreg, ISA_BFD_RELOC_LOW);
+		}
 	      if (mips_relax.sequence)
 		relax_end ();
 	    }
@@ -17184,6 +17303,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 
   gas_assert (fixP->fx_size == 2
 	      || fixP->fx_size == 4
+	      || fixP->fx_r_type == BFD_RELOC_MICROMIPSPP_32
 	      || fixP->fx_r_type == BFD_RELOC_8
 	      || fixP->fx_r_type == BFD_RELOC_16
 	      || fixP->fx_r_type == BFD_RELOC_64
@@ -17435,6 +17555,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       write_reloc_insn (buf, fixP->fx_r_type, insn);
       break;
 
+    case BFD_RELOC_MICROMIPSPP_32:
     case BFD_RELOC_MICROMIPSPP_LO12:
     case BFD_RELOC_MICROMIPSPP_IMM14:
       if (! fixP->fx_done)

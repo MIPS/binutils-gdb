@@ -1,7 +1,7 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: MIPS R7 li
 #source: li.s
-#as: -32
+#as: -32 -mno-xlp
 
 # Test the li macro (microMIPS R7).
 

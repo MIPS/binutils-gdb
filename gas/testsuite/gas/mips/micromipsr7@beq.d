@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: MIPS R7 beq
-#as: -32
+#as: -32 -mno-xlp
 #source: beq.s
 
 # Test the beq macro on R7.

@@ -3063,6 +3063,7 @@ to compensate for the borrow when the low bits are added.  */
   BFD_RELOC_MICROMIPSPP_GOT_PAGE,
   BFD_RELOC_MICROMIPSPP_GOT_OFST,
   BFD_RELOC_MICROMIPSPP_LITERAL,
+  BFD_RELOC_MICROMIPSPP_32,
 
 
 /* Moxie ELF relocations.  */

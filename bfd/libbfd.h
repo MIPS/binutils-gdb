@@ -1223,6 +1223,7 @@ static const char *const bfd_reloc_code_real_names[] = { "@@uninitialized@@",
   "BFD_RELOC_MICROMIPSPP_GOT_PAGE",
   "BFD_RELOC_MICROMIPSPP_GOT_OFST",
   "BFD_RELOC_MICROMIPSPP_LITERAL",
+  "BFD_RELOC_MICROMIPSPP_32",
 
   "BFD_RELOC_MOXIE_10_PCREL",
 

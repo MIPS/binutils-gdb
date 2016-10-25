@@ -1,5 +1,5 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
-#as: -KPIC -mabi=32 -mips32r7 -mmicromips
+#as: -KPIC -mabi=32 -mips32r7 -mmicromips -mno-xlp
 #name: MIPSR7 -mabi=32 (SVR4 PIC)
 #source: mips-abi32-pic.s
 

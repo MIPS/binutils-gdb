@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: MIPS R7 blt
-#as: -32
+#as: -32 -mno-xlp
 #source: blt.s
 
 # Test the blt macro.

@@ -1,9 +1,9 @@
 #objdump: -dr --prefix-addresses
 #name: MIPS32R7 and
 #source: and.s
-#as: -32
+#as: -32 -mno-xlp
 
-# Test the add macro for R7
+# Test the and macro for R7
 
 .*: +file format .*mips.*
 
