@@ -370,11 +370,19 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"sdbbp",	"",		0x001fffff, 0xffffffff,		0,	INSN2_ALIAS,	I38,		0,		0},
 {"sigrie",	"+J",		0x00000000, 0xfff80000,		0,		0,	I38,		0,		0},
 {"synci",	"+j(b)",	0xa7e01800, 0xffe07f00,		RD_2,		0,	I38,		0,		0}, /* SYNCI[S9] */
-{"syncie",	"+j(b)",		0xa7e01c00, 0xffe07f00,		RD_2,		0,	0,	EVA,		0},
-{"jrc", 	"mp",		0xd800,		0xfc1f,	RD_1,		0,	I38,		0,		0},
-{"jrc", 	"s",		0x48000000, 0xffe0ffff,	RD_1,	INSN2_ALIAS,	I38,		0,		0}, /* JALRC */
-{"jr",		"mp",		0xd800,		0xfc1f,	RD_1, INSN2_ALIAS|CTC,	I38,		0,		0}, /* JRC */
-{"jr",		"s",		0x48000000, 0xffe0ffff,	RD_1, INSN2_ALIAS|CTC,	I38,		0,		0}, /* JALRC */
+{"syncie",	"+j(b)",	0xa7e01c00, 0xffe07f00,		RD_2,		0,	0,		EVA,		0},
+{"jrc", 	"mp",		0xd800,		0xfc1f,		RD_1,		0,	I38,		0,		0}, /* JALRC */
+{"jrc", 	"s",		0x48000000, 0xffe0ffff,		RD_1,	INSN2_ALIAS,	I38,		0,		0}, /* JALRC */
+{"jalrc",	"mp",		0xd810,	0xfc1f,		WR_31|RD_1,		0,	I38,		0,		0}, /* JALRC[16] */
+{"jalrc",	"my,mp",	0xd810,	0xfc1f,		WR_31|RD_1,	INSN2_ALIAS,	I38,		0,		0}, /* JALRC[16] */
+{"jalrc",	"s",		0x4be00000, 0xffe0ffff,	RD_1,		INSN2_ALIAS,	I38,		0,		0},
+{"jalrc",	"t,s",		0x48000000, 0xfc00ffff,	WR_1|RD_2,		0,	I38,		0,		0},
+{"jr",		"mp",		0xd800,		0xfc1f,	RD_1, 	    INSN2_ALIAS|CTC,	I38,		0,		0}, /* JRC */
+{"jr",		"s",		0x48000000, 0xffe0ffff,	RD_1, 	    INSN2_ALIAS|CTC,	I38,		0,		0}, /* JALRC */
+{"jalr",	"my,mp",	0xd810,		0xfc1f,	WR_31|RD_1, INSN2_ALIAS|CTC,	I38,		0,		0}, /* JALRC[16] */
+{"jalr",	"mp",		0xd810,		0xfc1f,	WR_31|RD_1, INSN2_ALIAS|CTC,	I38,		0,		0}, /* JALRC[16] */
+{"jalr",	"s",		0x4be00000, 0xffe0ffff,	RD_1,	    INSN2_ALIAS|CTC,	I38,		0,		0}, /* JALRC */
+{"jalr",	"t,s",		0x48000000, 0xfc00ffff,	WR_1|RD_2,  INSN2_ALIAS|CTC,	I38,		0,		0}, /* JALRC */
 {"li",		"md,mI",	0xd000,		0xfc00,	WR_1,		0,	I38,		0,		0}, /* LI[16] */
 {"li",		"t,i",		0x80000000, 0xfc1ff000,	WR_1,	INSN2_ALIAS,	I38,		0,		0}, /* ORI */
 {"li",		"-t,j",		0x00000000, 0xfc1f6000,	WR_1,	INSN2_ALIAS,	I38,		0,		0}, /* ADDIU */
@@ -766,14 +774,6 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"j",		"+'",		0x28000000, 0xfe000000,	0, 		INSN2_ALIAS,		I38,	0,		0}, /* BC */
 {"j",		"s",		0x48000000, 0xffe0ffff,	RD_1,		INSN2_ALIAS|CTC,	I38,	0,		0}, /* JALRC */
 {"j",		"a",		0,    (int) M_J_A,	INSN_MACRO,	0,		I38,		0,		0},
-{"jalrc",	"mp",		0xd810,	0xfc1f,	WR_31|RD_1,		0,	I38,		0,		0}, 	/* JALRC[16] */
-{"jalrc",	"my,mp",	0xd810,	0xfc1f,	WR_31|RD_1,	INSN2_ALIAS,	I38,		0,		0}, 	/* JALRC[16] */
-{"jalrc",	"s",		0x4be00000, 0xffe0ffff,	RD_1,		INSN2_ALIAS,	I38,		0,		0},
-{"jalrc",	"t,s",		0x48000000, 0xfc00ffff,	WR_1|RD_2,		0,	I38,		0,		0},
-{"jalr",	"my,mp",	0xd810,		0xfc1f,	WR_31|RD_1, INSN2_ALIAS|CTC,	I38,		0,		0}, 	/* JALRC[16] */
-{"jalr",	"mp",		0xd810,		0xfc1f,	WR_31|RD_1, INSN2_ALIAS|CTC,	I38,		0,		0}, 	/* JALRC[16] */
-{"jalr",	"s",		0x4be00000, 0xffe0ffff,	RD_1,	    INSN2_ALIAS|CTC,	I38,		0,		0}, /* JALRC */
-{"jalr",	"t,s",		0x48000000, 0xfc00ffff,	WR_1|RD_2,  INSN2_ALIAS|CTC,	I38,		0,		0}, /* JALRC */
 {"jrc.hb",	"s",		0x48001000, 0xffe0ffff,	RD_1,	INSN2_ALIAS,	I38,		0,		0}, /* JALRC.HB */
 {"jr.hb",	"s",		0x48001000, 0xffe0ffff,	RD_1, INSN2_ALIAS|CTC,	I38,		0,		0}, /* JALRC.HB */
 {"jalrc.hb",	"s",		0x4be01000, 0xffe0ffff,	RD_1,		INSN2_ALIAS,	I38,		0,		0}, /* JALRC.HB */

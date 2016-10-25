@@ -10570,7 +10570,7 @@ macro_build_jalr (expressionS *ep, int cprestore)
   const char *jalr;
   char *f = NULL;
 
-  if (MIPS_JALR_HINT_P (ep))
+  if (MIPS_JALR_HINT_P (ep) && !ISA_IS_R7 (mips_opts.isa))
     {
       frag_grow (8);
       f = frag_more (0);
@@ -10586,18 +10586,18 @@ macro_build_jalr (expressionS *ep, int cprestore)
 			     || IS_MICROMIPS_R7 (mips_opts.isa))
 			    && !mips_opts.noreorder) ? "jalrc": "jalr"));
 
-      if (MIPS_JALR_HINT_P (ep)
+      if ((MIPS_JALR_HINT_P (ep) && !ISA_IS_R7 (mips_opts.isa))
 	  || mips_opts.insn32
 	  || (history[0].insn_mo->pinfo2 & INSN2_BRANCH_DELAY_32BIT))
 	macro_build (NULL, jalr, "t,s", RA, PIC_CALL_REG);
-      else if (ISA_IS_R6 (mips_opts.isa))
+      else if (ISA_IS_R6 (mips_opts.isa) || ISA_IS_R7 (mips_opts.isa))
 	macro_build (NULL, jalr, "mp", PIC_CALL_REG);
       else
 	macro_build (NULL, jalr, "mj", PIC_CALL_REG);
     }
   else
     macro_build (NULL, "jalr", "d,s", RA, PIC_CALL_REG);
-  if (MIPS_JALR_HINT_P (ep))
+  if (MIPS_JALR_HINT_P (ep) && !ISA_IS_R7 (mips_opts.isa))
     fix_new_exp (frag_now, f - frag_now->fr_literal, 4, ep, FALSE, jalr_reloc);
 }
 
@@ -19842,16 +19842,14 @@ mips_fix_adjustable (fixS *fixp)
       && pcrel_reloc_p (fixp->fx_r_type))
     return 0;
 
-  /* hi/lo relocations need to be symbol rather than section relative for
-     R7 text symbols, to allow linker expansions and relaxations without 
+  /* Relocations to code sections need to be symbol rather than section
+     relative for R7, to allow linker expansions and relaxations without
      having to adjust addends.  */
-  if (ISA_IS_R7 (mips_opts.isa)
-      && (hi16_reloc_p (fixp->fx_r_type)
-	  || lo16_reloc_p (fixp->fx_r_type)))
+  if (ISA_IS_R7 (mips_opts.isa))
     {
       asymbol *sym = symbol_get_bfdsym (fixp->fx_addsy);
       asection *sect = (sym == NULL ? NULL : bfd_get_section (sym));
-      if ((sect->flags & SEC_CODE) != 0)
+      if (sect != NULL && (sect->flags & SEC_CODE) != 0)
 	return 0;
     }
 
