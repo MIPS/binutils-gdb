@@ -1,6 +1,7 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: MIPS R7 branch-misc-4
 #as: -32
+#source: branch-misc-4.s
 
 # Verify PC-relative relocations do not overflow.
 

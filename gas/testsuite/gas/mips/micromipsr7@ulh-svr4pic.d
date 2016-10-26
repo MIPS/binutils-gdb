@@ -29,13 +29,13 @@ Disassembly of section \.text:
 0+0024 <text_label\+0x24> 8481 9000 	sw	a0,0\(at\)
 			24: R_MICROMIPS_GOT_OFST	small_external_common
 0+0028 <text_label\+0x28> 843c 8000 	lw	at,0\(gp\)
-			28: R_MICROMIPS_GOT_PAGE	\.bss)
+			28: R_MICROMIPS_GOT_PAGE	\.bss
 0+002c <text_label\+0x2c> 8481 4000 	lh	a0,0\(at\)
-			2c: R_MICROMIPS_GOT_OFST	\.bss)
+			2c: R_MICROMIPS_GOT_OFST	\.bss
 0+0030 <text_label\+0x30> 843c 8000 	lw	at,0\(gp\)
-			30: R_MICROMIPS_GOT_PAGE	\.bss)\+0x3e8
+			30: R_MICROMIPS_GOT_PAGE	\.bss\+0x3e8
 0+0034 <text_label\+0x34> 8481 4000 	lh	a0,0\(at\)
-			34: R_MICROMIPS_GOT_OFST	\.bss)\+0x3e8
+			34: R_MICROMIPS_GOT_OFST	\.bss\+0x3e8
 0+0038 <text_label\+0x38> 843c 8000 	lw	at,0\(gp\)
 			38: R_MICROMIPS_GOT_PAGE	.data\+0x1
 0+003c <text_label\+0x3c> 8481 8000 	lw	a0,0\(at\)
@@ -57,13 +57,13 @@ Disassembly of section \.text:
 0+005c <text_label\+0x5c> 8481 4000 	lh	a0,0\(at\)
 			5c: R_MICROMIPS_GOT_OFST	small_external_common\+0x1
 0+0060 <text_label\+0x60> 843c 8000 	lw	at,0\(gp\)
-			60: R_MICROMIPS_GOT_PAGE	\.bss)\+0x1
+			60: R_MICROMIPS_GOT_PAGE	\.bss\+0x1
 0+0064 <text_label\+0x64> 8481 8000 	lw	a0,0\(at\)
-			64: R_MICROMIPS_GOT_OFST	\.bss)\+0x1
+			64: R_MICROMIPS_GOT_OFST	\.bss\+0x1
 0+0068 <text_label\+0x68> 843c 8000 	lw	at,0\(gp\)
-			68: R_MICROMIPS_GOT_PAGE	\.bss)\+0x3e9
+			68: R_MICROMIPS_GOT_PAGE	\.bss\+0x3e9
 0+006c <text_label\+0x6c> 8481 5000 	sh	a0,0\(at\)
-			6c: R_MICROMIPS_GOT_OFST	\.bss)\+0x3e9
+			6c: R_MICROMIPS_GOT_OFST	\.bss\+0x3e9
 0+0070 <text_label\+0x70> 9008      	nop
 0+0072 <text_label\+0x72> 9008      	nop
 0+0074 <text_label\+0x74> 9008      	nop

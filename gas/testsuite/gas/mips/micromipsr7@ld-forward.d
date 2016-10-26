@@ -60,15 +60,15 @@ Disassembly of section \.text:
 0+009c <text_label\+0x9c> lw	a1,0\(gp\)
 			9c: R_MICROMIPS_GPREL19_S2	small_external_common\+0x4
 0+00a0 <text_label\+0xa0> lui	at,0x0
-			a0: R_MICROMIPS_HI20	\.bss)
+			a0: R_MICROMIPS_HI20	\.bss
 0+00a4 <text_label\+0xa4> lw	a0,0\(at\)
-			a4: R_MICROMIPS_LO12	\.bss)
+			a4: R_MICROMIPS_LO12	\.bss
 0+00a8 <text_label\+0xa8> lw	a1,0\(at\)
-			a8: R_MICROMIPS_LO12	\.bss)\+0x4
+			a8: R_MICROMIPS_LO12	\.bss\+0x4
 0+00ac <text_label\+0xac> lw	a0,0\(gp\)
-			ac: R_MICROMIPS_GPREL19_S2	\.sbss)
+			ac: R_MICROMIPS_GPREL19_S2	\.sbss
 0+00b0 <text_label\+0xb0> lw	a1,0\(gp\)
-			b0: R_MICROMIPS_GPREL19_S2	\.sbss)\+0x4
+			b0: R_MICROMIPS_GPREL19_S2	\.sbss\+0x4
 0+00b4 <text_label\+0xb4> lui	at,0x0
 			b4: R_MICROMIPS_HI20	.data\+0x1
 0+00b8 <text_label\+0xb8> lw	a0,0\(at\)
@@ -96,15 +96,15 @@ Disassembly of section \.text:
 0+00e4 <text_label\+0xe4> lw	a1,0\(gp\)
 			e4: R_MICROMIPS_GPREL19_S2	small_external_common\+0x5
 0+00e8 <text_label\+0xe8> lui	at,0x0
-			e8: R_MICROMIPS_HI20	\.bss)\+0x1
+			e8: R_MICROMIPS_HI20	\.bss\+0x1
 0+00ec <text_label\+0xec> lw	a0,0\(at\)
-			ec: R_MICROMIPS_LO12	\.bss)\+0x1
+			ec: R_MICROMIPS_LO12	\.bss\+0x1
 0+00f0 <text_label\+0xf0> lw	a1,0\(at\)
-			f0: R_MICROMIPS_LO12	\.bss)\+0x5
+			f0: R_MICROMIPS_LO12	\.bss\+0x5
 0+00f4 <text_label\+0xf4> lw	a0,0\(gp\)
-			f4: R_MICROMIPS_GPREL19_S2	\.sbss)\+0x1
+			f4: R_MICROMIPS_GPREL19_S2	\.sbss\+0x1
 0+00f8 <text_label\+0xf8> lw	a1,0\(gp\)
-			f8: R_MICROMIPS_GPREL19_S2	\.sbss)\+0x5
+			f8: R_MICROMIPS_GPREL19_S2	\.sbss\+0x5
 0+00fc <text_label\+0xfc> lui	at,0x0
 			fc: R_MICROMIPS_HI20	.data\+0x800
 0+0100 <text_label\+0x100> lw	a0,0\(at\)
@@ -132,15 +132,15 @@ Disassembly of section \.text:
 0+012c <text_label\+0x12c> lw	a1,0\(gp\)
 			12c: R_MICROMIPS_GPREL19_S2	small_external_common\+0x804
 0+0130 <text_label\+0x130> lui	at,0x0
-			130: R_MICROMIPS_HI20	\.bss)\+0x800
+			130: R_MICROMIPS_HI20	\.bss\+0x800
 0+0134 <text_label\+0x134> lw	a0,0\(at\)
-			134: R_MICROMIPS_LO12	\.bss)\+0x800
+			134: R_MICROMIPS_LO12	\.bss\+0x800
 0+0138 <text_label\+0x138> lw	a1,0\(at\)
-			138: R_MICROMIPS_LO12	\.bss)\+0x804
+			138: R_MICROMIPS_LO12	\.bss\+0x804
 0+013c <text_label\+0x13c> lw	a0,0\(gp\)
-			13c: R_MICROMIPS_GPREL19_S2	\.sbss)\+0x800
+			13c: R_MICROMIPS_GPREL19_S2	\.sbss\+0x800
 0+0140 <text_label\+0x140> lw	a1,0\(gp\)
-			140: R_MICROMIPS_GPREL19_S2	\.sbss)\+0x804
+			140: R_MICROMIPS_GPREL19_S2	\.sbss\+0x804
 0+0144 <text_label\+0x144> lui	at,0x0
 			144: R_MICROMIPS_HI20	.data-0x800
 0+0148 <text_label\+0x148> lw	a0,0\(at\)
@@ -172,17 +172,17 @@ Disassembly of section \.text:
 0+017c <text_label\+0x17c> lw	a1,0\(at\)
 			17c: R_MICROMIPS_LO12	small_external_common-0x7fc
 0+0180 <text_label\+0x180> lui	at,0x0
-			180: R_MICROMIPS_HI20	\.bss)-0x800
+			180: R_MICROMIPS_HI20	\.bss-0x800
 0+0184 <text_label\+0x184> lw	a0,0\(at\)
-			184: R_MICROMIPS_LO12	\.bss)-0x800
+			184: R_MICROMIPS_LO12	\.bss-0x800
 0+0188 <text_label\+0x188> lw	a1,0\(at\)
-			188: R_MICROMIPS_LO12	\.bss)-0x7fc
+			188: R_MICROMIPS_LO12	\.bss-0x7fc
 0+018c <text_label\+0x18c> lui	at,0x0
-			18c: R_MICROMIPS_HI20	\.sbss)-0x800
+			18c: R_MICROMIPS_HI20	\.sbss-0x800
 0+0190 <text_label\+0x190> lw	a0,0\(at\)
-			190: R_MICROMIPS_LO12	\.sbss)-0x800
+			190: R_MICROMIPS_LO12	\.sbss-0x800
 0+0194 <text_label\+0x194> lw	a1,0\(at\)
-			194: R_MICROMIPS_LO12	\.sbss)-0x7fc
+			194: R_MICROMIPS_LO12	\.sbss-0x7fc
 0+0198 <text_label\+0x198> lui	at,0x0
 			198: R_MICROMIPS_HI20	.data\+0x1000
 0+019c <text_label\+0x19c> lw	a0,0\(at\)
@@ -210,15 +210,15 @@ Disassembly of section \.text:
 0+01c8 <text_label\+0x1c8> lw	a1,0\(gp\)
 			1c8: R_MICROMIPS_GPREL19_S2	small_external_common\+0x1004
 0+01cc <text_label\+0x1cc> lui	at,0x0
-			1cc: R_MICROMIPS_HI20	\.bss)\+0x1000
+			1cc: R_MICROMIPS_HI20	\.bss\+0x1000
 0+01d0 <text_label\+0x1d0> lw	a0,0\(at\)
-			1d0: R_MICROMIPS_LO12	\.bss)\+0x1000
+			1d0: R_MICROMIPS_LO12	\.bss\+0x1000
 0+01d4 <text_label\+0x1d4> lw	a1,0\(at\)
-			1d4: R_MICROMIPS_LO12	\.bss)\+0x1004
+			1d4: R_MICROMIPS_LO12	\.bss\+0x1004
 0+01d8 <text_label\+0x1d8> lw	a0,0\(gp\)
-			1d8: R_MICROMIPS_GPREL19_S2	\.sbss)\+0x1000
+			1d8: R_MICROMIPS_GPREL19_S2	\.sbss\+0x1000
 0+01dc <text_label\+0x1dc> lw	a1,0\(gp\)
-			1dc: R_MICROMIPS_GPREL19_S2	\.sbss)\+0x1004
+			1dc: R_MICROMIPS_GPREL19_S2	\.sbss\+0x1004
 0+01e0 <text_label\+0x1e0> lui	at,0x0
 			1e0: R_MICROMIPS_HI20	.data\+0x1a5a5
 0+01e4 <text_label\+0x1e4> lw	a0,0\(at\)
@@ -246,15 +246,15 @@ Disassembly of section \.text:
 0+0210 <text_label\+0x210> lw	a1,0\(gp\)
 			210: R_MICROMIPS_GPREL19_S2	small_external_common\+0x1a5a9
 0+0214 <text_label\+0x214> lui	at,0x0
-			214: R_MICROMIPS_HI20	\.bss)\+0x1a5a5
+			214: R_MICROMIPS_HI20	\.bss\+0x1a5a5
 0+0218 <text_label\+0x218> lw	a0,0\(at\)
-			218: R_MICROMIPS_LO12	\.bss)\+0x1a5a5
+			218: R_MICROMIPS_LO12	\.bss\+0x1a5a5
 0+021c <text_label\+0x21c> lw	a1,0\(at\)
-			21c: R_MICROMIPS_LO12	\.bss)\+0x1a5a9
+			21c: R_MICROMIPS_LO12	\.bss\+0x1a5a9
 0+0220 <text_label\+0x220> lw	a0,0\(gp\)
-			220: R_MICROMIPS_GPREL19_S2	\.sbss)\+0x1a5a5
+			220: R_MICROMIPS_GPREL19_S2	\.sbss\+0x1a5a5
 0+0224 <text_label\+0x224> lw	a1,0\(gp\)
-			224: R_MICROMIPS_GPREL19_S2	\.sbss)\+0x1a5a9
+			224: R_MICROMIPS_GPREL19_S2	\.sbss\+0x1a5a9
 0+0228 <text_label\+0x228> lui	at,0x0
 			228: R_MICROMIPS_HI20	.data
 0+022c <text_label\+0x22c> addu	at,a1,at
@@ -291,19 +291,19 @@ Disassembly of section \.text:
 0+0274 <text_label\+0x274> lw	a1,0\(at\)
 			274: R_MICROMIPS_LO12	small_external_common\+0x4
 0+0278 <text_label\+0x278> lui	at,0x0
-			278: R_MICROMIPS_HI20	\.bss)
+			278: R_MICROMIPS_HI20	\.bss
 0+027c <text_label\+0x27c> addu	at,a1,at
 0+0280 <text_label\+0x280> lw	a0,0\(at\)
-			280: R_MICROMIPS_LO12	\.bss)
+			280: R_MICROMIPS_LO12	\.bss
 0+0284 <text_label\+0x284> lw	a1,0\(at\)
-			284: R_MICROMIPS_LO12	\.bss)\+0x4
+			284: R_MICROMIPS_LO12	\.bss\+0x4
 0+0288 <text_label\+0x288> lui	at,0x0
-			288: R_MICROMIPS_HI20	\.sbss)
+			288: R_MICROMIPS_HI20	\.sbss
 0+028c <text_label\+0x28c> addu	at,a1,at
 0+0290 <text_label\+0x290> lw	a0,0\(at\)
-			290: R_MICROMIPS_LO12	\.sbss)
+			290: R_MICROMIPS_LO12	\.sbss
 0+0294 <text_label\+0x294> lw	a1,0\(at\)
-			294: R_MICROMIPS_LO12	\.sbss)\+0x4
+			294: R_MICROMIPS_LO12	\.sbss\+0x4
 0+0298 <text_label\+0x298> lui	at,0x0
 			298: R_MICROMIPS_HI20	.data\+0x1
 0+029c <text_label\+0x29c> addu	at,a1,at
@@ -340,19 +340,19 @@ Disassembly of section \.text:
 0+02e4 <text_label\+0x2e4> lw	a1,0\(at\)
 			2e4: R_MICROMIPS_LO12	small_external_common\+0x5
 0+02e8 <text_label\+0x2e8> lui	at,0x0
-			2e8: R_MICROMIPS_HI20	\.bss)\+0x1
+			2e8: R_MICROMIPS_HI20	\.bss\+0x1
 0+02ec <text_label\+0x2ec> addu	at,a1,at
 0+02f0 <text_label\+0x2f0> lw	a0,0\(at\)
-			2f0: R_MICROMIPS_LO12	\.bss)\+0x1
+			2f0: R_MICROMIPS_LO12	\.bss\+0x1
 0+02f4 <text_label\+0x2f4> lw	a1,0\(at\)
-			2f4: R_MICROMIPS_LO12	\.bss)\+0x5
+			2f4: R_MICROMIPS_LO12	\.bss\+0x5
 0+02f8 <text_label\+0x2f8> lui	at,0x0
-			2f8: R_MICROMIPS_HI20	\.sbss)\+0x1
+			2f8: R_MICROMIPS_HI20	\.sbss\+0x1
 0+02fc <text_label\+0x2fc> addu	at,a1,at
 0+0300 <text_label\+0x300> lw	a0,0\(at\)
-			300: R_MICROMIPS_LO12	\.sbss)\+0x1
+			300: R_MICROMIPS_LO12	\.sbss\+0x1
 0+0304 <text_label\+0x304> lw	a1,0\(at\)
-			304: R_MICROMIPS_LO12	\.sbss)\+0x5
+			304: R_MICROMIPS_LO12	\.sbss\+0x5
 0+0308 <text_label\+0x308> lui	at,0x0
 			308: R_MICROMIPS_HI20	.data\+0x800
 0+030c <text_label\+0x30c> addu	at,a1,at
@@ -389,19 +389,19 @@ Disassembly of section \.text:
 0+0354 <text_label\+0x354> lw	a1,0\(at\)
 			354: R_MICROMIPS_LO12	small_external_common\+0x804
 0+0358 <text_label\+0x358> lui	at,0x0
-			358: R_MICROMIPS_HI20	\.bss)\+0x800
+			358: R_MICROMIPS_HI20	\.bss\+0x800
 0+035c <text_label\+0x35c> addu	at,a1,at
 0+0360 <text_label\+0x360> lw	a0,0\(at\)
-			360: R_MICROMIPS_LO12	\.bss)\+0x800
+			360: R_MICROMIPS_LO12	\.bss\+0x800
 0+0364 <text_label\+0x364> lw	a1,0\(at\)
-			364: R_MICROMIPS_LO12	\.bss)\+0x804
+			364: R_MICROMIPS_LO12	\.bss\+0x804
 0+0368 <text_label\+0x368> lui	at,0x0
-			368: R_MICROMIPS_HI20	\.sbss)\+0x800
+			368: R_MICROMIPS_HI20	\.sbss\+0x800
 0+036c <text_label\+0x36c> addu	at,a1,at
 0+0370 <text_label\+0x370> lw	a0,0\(at\)
-			370: R_MICROMIPS_LO12	\.sbss)\+0x800
+			370: R_MICROMIPS_LO12	\.sbss\+0x800
 0+0374 <text_label\+0x374> lw	a1,0\(at\)
-			374: R_MICROMIPS_LO12	\.sbss)\+0x804
+			374: R_MICROMIPS_LO12	\.sbss\+0x804
 0+0378 <text_label\+0x378> lui	at,0x0
 			378: R_MICROMIPS_HI20	.data-0x800
 0+037c <text_label\+0x37c> addu	at,a1,at
@@ -438,19 +438,19 @@ Disassembly of section \.text:
 0+03c4 <text_label\+0x3c4> lw	a1,0\(at\)
 			3c4: R_MICROMIPS_LO12	small_external_common-0x7fc
 0+03c8 <text_label\+0x3c8> lui	at,0x0
-			3c8: R_MICROMIPS_HI20	\.bss)-0x800
+			3c8: R_MICROMIPS_HI20	\.bss-0x800
 0+03cc <text_label\+0x3cc> addu	at,a1,at
 0+03d0 <text_label\+0x3d0> lw	a0,0\(at\)
-			3d0: R_MICROMIPS_LO12	\.bss)-0x800
+			3d0: R_MICROMIPS_LO12	\.bss-0x800
 0+03d4 <text_label\+0x3d4> lw	a1,0\(at\)
-			3d4: R_MICROMIPS_LO12	\.bss)-0x7fc
+			3d4: R_MICROMIPS_LO12	\.bss-0x7fc
 0+03d8 <text_label\+0x3d8> lui	at,0x0
-			3d8: R_MICROMIPS_HI20	\.sbss)-0x800
+			3d8: R_MICROMIPS_HI20	\.sbss-0x800
 0+03dc <text_label\+0x3dc> addu	at,a1,at
 0+03e0 <text_label\+0x3e0> lw	a0,0\(at\)
-			3e0: R_MICROMIPS_LO12	\.sbss)-0x800
+			3e0: R_MICROMIPS_LO12	\.sbss-0x800
 0+03e4 <text_label\+0x3e4> lw	a1,0\(at\)
-			3e4: R_MICROMIPS_LO12	\.sbss)-0x7fc
+			3e4: R_MICROMIPS_LO12	\.sbss-0x7fc
 0+03e8 <text_label\+0x3e8> lui	at,0x0
 			3e8: R_MICROMIPS_HI20	.data\+0x1000
 0+03ec <text_label\+0x3ec> addu	at,a1,at
@@ -487,19 +487,19 @@ Disassembly of section \.text:
 0+0434 <text_label\+0x434> lw	a1,0\(at\)
 			434: R_MICROMIPS_LO12	small_external_common\+0x1004
 0+0438 <text_label\+0x438> lui	at,0x0
-			438: R_MICROMIPS_HI20	\.bss)\+0x1000
+			438: R_MICROMIPS_HI20	\.bss\+0x1000
 0+043c <text_label\+0x43c> addu	at,a1,at
 0+0440 <text_label\+0x440> lw	a0,0\(at\)
-			440: R_MICROMIPS_LO12	\.bss)\+0x1000
+			440: R_MICROMIPS_LO12	\.bss\+0x1000
 0+0444 <text_label\+0x444> lw	a1,0\(at\)
-			444: R_MICROMIPS_LO12	\.bss)\+0x1004
+			444: R_MICROMIPS_LO12	\.bss\+0x1004
 0+0448 <text_label\+0x448> lui	at,0x0
-			448: R_MICROMIPS_HI20	\.sbss)\+0x1000
+			448: R_MICROMIPS_HI20	\.sbss\+0x1000
 0+044c <text_label\+0x44c> addu	at,a1,at
 0+0450 <text_label\+0x450> lw	a0,0\(at\)
-			450: R_MICROMIPS_LO12	\.sbss)\+0x1000
+			450: R_MICROMIPS_LO12	\.sbss\+0x1000
 0+0454 <text_label\+0x454> lw	a1,0\(at\)
-			454: R_MICROMIPS_LO12	\.sbss)\+0x1004
+			454: R_MICROMIPS_LO12	\.sbss\+0x1004
 0+0458 <text_label\+0x458> lui	at,0x0
 			458: R_MICROMIPS_HI20	.data\+0x1a5a5
 0+045c <text_label\+0x45c> addu	at,a1,at
@@ -536,18 +536,18 @@ Disassembly of section \.text:
 0+04a4 <text_label\+0x4a4> lw	a1,0\(at\)
 			4a4: R_MICROMIPS_LO12	small_external_common\+0x1a5a9
 0+04a8 <text_label\+0x4a8> lui	at,0x0
-			4a8: R_MICROMIPS_HI20	\.bss)\+0x1a5a5
+			4a8: R_MICROMIPS_HI20	\.bss\+0x1a5a5
 0+04ac <text_label\+0x4ac> addu	at,a1,at
 0+04b0 <text_label\+0x4b0> lw	a0,0\(at\)
-			4b0: R_MICROMIPS_LO12	\.bss)\+0x1a5a5
+			4b0: R_MICROMIPS_LO12	\.bss\+0x1a5a5
 0+04b4 <text_label\+0x4b4> lw	a1,0\(at\)
-			4b4: R_MICROMIPS_LO12	\.bss)\+0x1a5a9
+			4b4: R_MICROMIPS_LO12	\.bss\+0x1a5a9
 0+04b8 <text_label\+0x4b8> lui	at,0x0
-			4b8: R_MICROMIPS_HI20	\.sbss)\+0x1a5a5
+			4b8: R_MICROMIPS_HI20	\.sbss\+0x1a5a5
 0+04bc <text_label\+0x4bc> addu	at,a1,at
 0+04c0 <text_label\+0x4c0> lw	a0,0\(at\)
-			4c0: R_MICROMIPS_LO12	\.sbss)\+0x1a5a5
+			4c0: R_MICROMIPS_LO12	\.sbss\+0x1a5a5
 0+04c4 <text_label\+0x4c4> lw	a1,0\(at\)
-			4c4: R_MICROMIPS_LO12	\.sbss)\+0x1a5a9
+			4c4: R_MICROMIPS_LO12	\.sbss\+0x1a5a9
 	\.\.\.
 #pass

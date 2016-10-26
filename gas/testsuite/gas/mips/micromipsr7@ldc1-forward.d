@@ -42,11 +42,11 @@ Disassembly of section \.text:
 0+0068 <text_label\+0x68> ldc1	\$f4,0\(gp\)
 			68: R_MICROMIPS_GPREL16_S2	small_external_common
 0+006c <text_label\+0x6c> lui	at,0x0
-			6c: R_MICROMIPS_HI20	\.bss)
+			6c: R_MICROMIPS_HI20	\.bss
 0+0070 <text_label\+0x70> ldc1	\$f4,0\(at\)
-			70: R_MICROMIPS_LO12	\.bss)
+			70: R_MICROMIPS_LO12	\.bss
 0+0074 <text_label\+0x74> ldc1	\$f4,0\(gp\)
-			74: R_MICROMIPS_GPREL16_S2	\.sbss)
+			74: R_MICROMIPS_GPREL16_S2	\.sbss
 0+0078 <text_label\+0x78> lui	at,0x0
 			78: R_MICROMIPS_HI20	.data\+0x1
 0+007c <text_label\+0x7c> ldc1	\$f4,0\(at\)
@@ -64,11 +64,11 @@ Disassembly of section \.text:
 0+0094 <text_label\+0x94> ldc1	\$f4,0\(gp\)
 			94: R_MICROMIPS_GPREL16_S2	small_external_common\+0x1
 0+0098 <text_label\+0x98> lui	at,0x0
-			98: R_MICROMIPS_HI20	\.bss)\+0x1
+			98: R_MICROMIPS_HI20	\.bss\+0x1
 0+009c <text_label\+0x9c> ldc1	\$f4,0\(at\)
-			9c: R_MICROMIPS_LO12	\.bss)\+0x1
+			9c: R_MICROMIPS_LO12	\.bss\+0x1
 0+00a0 <text_label\+0xa0> ldc1	\$f4,0\(gp\)
-			a0: R_MICROMIPS_GPREL16_S2	\.sbss)\+0x1
+			a0: R_MICROMIPS_GPREL16_S2	\.sbss\+0x1
 0+00a4 <text_label\+0xa4> lui	at,0x0
 			a4: R_MICROMIPS_HI20	.data\+0x800
 0+00a8 <text_label\+0xa8> ldc1	\$f4,0\(at\)
@@ -86,11 +86,11 @@ Disassembly of section \.text:
 0+00c0 <text_label\+0xc0> ldc1	\$f4,0\(gp\)
 			c0: R_MICROMIPS_GPREL16_S2	small_external_common\+0x800
 0+00c4 <text_label\+0xc4> lui	at,0x0
-			c4: R_MICROMIPS_HI20	\.bss)\+0x800
+			c4: R_MICROMIPS_HI20	\.bss\+0x800
 0+00c8 <text_label\+0xc8> ldc1	\$f4,0\(at\)
-			c8: R_MICROMIPS_LO12	\.bss)\+0x800
+			c8: R_MICROMIPS_LO12	\.bss\+0x800
 0+00cc <text_label\+0xcc> ldc1	\$f4,0\(gp\)
-			cc: R_MICROMIPS_GPREL16_S2	\.sbss)\+0x800
+			cc: R_MICROMIPS_GPREL16_S2	\.sbss\+0x800
 0+00d0 <text_label\+0xd0> lui	at,0x0
 			d0: R_MICROMIPS_HI20	.data-0x800
 0+00d4 <text_label\+0xd4> ldc1	\$f4,0\(at\)
@@ -112,13 +112,13 @@ Disassembly of section \.text:
 0+00f4 <text_label\+0xf4> ldc1	\$f4,0\(at\)
 			f4: R_MICROMIPS_LO12	small_external_common-0x800
 0+00f8 <text_label\+0xf8> lui	at,0x0
-			f8: R_MICROMIPS_HI20	\.bss)-0x800
+			f8: R_MICROMIPS_HI20	\.bss-0x800
 0+00fc <text_label\+0xfc> ldc1	\$f4,0\(at\)
-			fc: R_MICROMIPS_LO12	\.bss)-0x800
+			fc: R_MICROMIPS_LO12	\.bss-0x800
 0+0100 <text_label\+0x100> lui	at,0x0
-			100: R_MICROMIPS_HI20	\.sbss)-0x800
+			100: R_MICROMIPS_HI20	\.sbss-0x800
 0+0104 <text_label\+0x104> ldc1	\$f4,0\(at\)
-			104: R_MICROMIPS_LO12	\.sbss)-0x800
+			104: R_MICROMIPS_LO12	\.sbss-0x800
 0+0108 <text_label\+0x108> lui	at,0x0
 			108: R_MICROMIPS_HI20	.data\+0x1000
 0+010c <text_label\+0x10c> ldc1	\$f4,0\(at\)
@@ -136,11 +136,11 @@ Disassembly of section \.text:
 0+0124 <text_label\+0x124> ldc1	\$f4,0\(gp\)
 			124: R_MICROMIPS_GPREL16_S2	small_external_common\+0x1000
 0+0128 <text_label\+0x128> lui	at,0x0
-			128: R_MICROMIPS_HI20	\.bss)\+0x1000
+			128: R_MICROMIPS_HI20	\.bss\+0x1000
 0+012c <text_label\+0x12c> ldc1	\$f4,0\(at\)
-			12c: R_MICROMIPS_LO12	\.bss)\+0x1000
+			12c: R_MICROMIPS_LO12	\.bss\+0x1000
 0+0130 <text_label\+0x130> ldc1	\$f4,0\(gp\)
-			130: R_MICROMIPS_GPREL16_S2	\.sbss)\+0x1000
+			130: R_MICROMIPS_GPREL16_S2	\.sbss\+0x1000
 0+0134 <text_label\+0x134> lui	at,0x0
 			134: R_MICROMIPS_HI20	.data\+0x1a5a5
 0+0138 <text_label\+0x138> ldc1	\$f4,0\(at\)
@@ -158,11 +158,11 @@ Disassembly of section \.text:
 0+0150 <text_label\+0x150> ldc1	\$f4,0\(gp\)
 			150: R_MICROMIPS_GPREL16_S2	small_external_common\+0x1a5a5
 0+0154 <text_label\+0x154> lui	at,0x0
-			154: R_MICROMIPS_HI20	\.bss)\+0x1a5a5
+			154: R_MICROMIPS_HI20	\.bss\+0x1a5a5
 0+0158 <text_label\+0x158> ldc1	\$f4,0\(at\)
-			158: R_MICROMIPS_LO12	\.bss)\+0x1a5a5
+			158: R_MICROMIPS_LO12	\.bss\+0x1a5a5
 0+015c <text_label\+0x15c> ldc1	\$f4,0\(gp\)
-			15c: R_MICROMIPS_GPREL16_S2	\.sbss)\+0x1a5a5
+			15c: R_MICROMIPS_GPREL16_S2	\.sbss\+0x1a5a5
 0+0160 <text_label\+0x160> lui	at,0x0
 			160: R_MICROMIPS_HI20	.data
 0+0164 <text_label\+0x164> addu	at,at,a1
@@ -189,15 +189,15 @@ Disassembly of section \.text:
 0+0198 <text_label\+0x198> ldc1	\$f4,0\(at\)
 			198: R_MICROMIPS_LO12	small_external_common
 0+019c <text_label\+0x19c> lui	at,0x0
-			19c: R_MICROMIPS_HI20	\.bss)
+			19c: R_MICROMIPS_HI20	\.bss
 0+01a0 <text_label\+0x1a0> addu	at,at,a1
 0+01a4 <text_label\+0x1a4> ldc1	\$f4,0\(at\)
-			1a4: R_MICROMIPS_LO12	\.bss)
+			1a4: R_MICROMIPS_LO12	\.bss
 0+01a8 <text_label\+0x1a8> lui	at,0x0
-			1a8: R_MICROMIPS_HI20	\.sbss)
+			1a8: R_MICROMIPS_HI20	\.sbss
 0+01ac <text_label\+0x1ac> addu	at,at,a1
 0+01b0 <text_label\+0x1b0> ldc1	\$f4,0\(at\)
-			1b0: R_MICROMIPS_LO12	\.sbss)
+			1b0: R_MICROMIPS_LO12	\.sbss
 0+01b4 <text_label\+0x1b4> lui	at,0x0
 			1b4: R_MICROMIPS_HI20	.data\+0x1
 0+01b8 <text_label\+0x1b8> addu	at,at,a1
@@ -224,15 +224,15 @@ Disassembly of section \.text:
 0+01ec <text_label\+0x1ec> ldc1	\$f4,0\(at\)
 			1ec: R_MICROMIPS_LO12	small_external_common\+0x1
 0+01f0 <text_label\+0x1f0> lui	at,0x0
-			1f0: R_MICROMIPS_HI20	\.bss)\+0x1
+			1f0: R_MICROMIPS_HI20	\.bss\+0x1
 0+01f4 <text_label\+0x1f4> addu	at,at,a1
 0+01f8 <text_label\+0x1f8> ldc1	\$f4,0\(at\)
-			1f8: R_MICROMIPS_LO12	\.bss)\+0x1
+			1f8: R_MICROMIPS_LO12	\.bss\+0x1
 0+01fc <text_label\+0x1fc> lui	at,0x0
-			1fc: R_MICROMIPS_HI20	\.sbss)\+0x1
+			1fc: R_MICROMIPS_HI20	\.sbss\+0x1
 0+0200 <text_label\+0x200> addu	at,at,a1
 0+0204 <text_label\+0x204> ldc1	\$f4,0\(at\)
-			204: R_MICROMIPS_LO12	\.sbss)\+0x1
+			204: R_MICROMIPS_LO12	\.sbss\+0x1
 0+0208 <text_label\+0x208> lui	at,0x0
 			208: R_MICROMIPS_HI20	.data\+0x800
 0+020c <text_label\+0x20c> addu	at,at,a1
@@ -259,15 +259,15 @@ Disassembly of section \.text:
 0+0240 <text_label\+0x240> ldc1	\$f4,0\(at\)
 			240: R_MICROMIPS_LO12	small_external_common\+0x800
 0+0244 <text_label\+0x244> lui	at,0x0
-			244: R_MICROMIPS_HI20	\.bss)\+0x800
+			244: R_MICROMIPS_HI20	\.bss\+0x800
 0+0248 <text_label\+0x248> addu	at,at,a1
 0+024c <text_label\+0x24c> ldc1	\$f4,0\(at\)
-			24c: R_MICROMIPS_LO12	\.bss)\+0x800
+			24c: R_MICROMIPS_LO12	\.bss\+0x800
 0+0250 <text_label\+0x250> lui	at,0x0
-			250: R_MICROMIPS_HI20	\.sbss)\+0x800
+			250: R_MICROMIPS_HI20	\.sbss\+0x800
 0+0254 <text_label\+0x254> addu	at,at,a1
 0+0258 <text_label\+0x258> ldc1	\$f4,0\(at\)
-			258: R_MICROMIPS_LO12	\.sbss)\+0x800
+			258: R_MICROMIPS_LO12	\.sbss\+0x800
 0+025c <text_label\+0x25c> lui	at,0x0
 			25c: R_MICROMIPS_HI20	.data-0x800
 0+0260 <text_label\+0x260> addu	at,at,a1
@@ -294,15 +294,15 @@ Disassembly of section \.text:
 0+0294 <text_label\+0x294> ldc1	\$f4,0\(at\)
 			294: R_MICROMIPS_LO12	small_external_common-0x800
 0+0298 <text_label\+0x298> lui	at,0x0
-			298: R_MICROMIPS_HI20	\.bss)-0x800
+			298: R_MICROMIPS_HI20	\.bss-0x800
 0+029c <text_label\+0x29c> addu	at,at,a1
 0+02a0 <text_label\+0x2a0> ldc1	\$f4,0\(at\)
-			2a0: R_MICROMIPS_LO12	\.bss)-0x800
+			2a0: R_MICROMIPS_LO12	\.bss-0x800
 0+02a4 <text_label\+0x2a4> lui	at,0x0
-			2a4: R_MICROMIPS_HI20	\.sbss)-0x800
+			2a4: R_MICROMIPS_HI20	\.sbss-0x800
 0+02a8 <text_label\+0x2a8> addu	at,at,a1
 0+02ac <text_label\+0x2ac> ldc1	\$f4,0\(at\)
-			2ac: R_MICROMIPS_LO12	\.sbss)-0x800
+			2ac: R_MICROMIPS_LO12	\.sbss-0x800
 0+02b0 <text_label\+0x2b0> lui	at,0x0
 			2b0: R_MICROMIPS_HI20	.data\+0x1000
 0+02b4 <text_label\+0x2b4> addu	at,at,a1
@@ -329,15 +329,15 @@ Disassembly of section \.text:
 0+02e8 <text_label\+0x2e8> ldc1	\$f4,0\(at\)
 			2e8: R_MICROMIPS_LO12	small_external_common\+0x1000
 0+02ec <text_label\+0x2ec> lui	at,0x0
-			2ec: R_MICROMIPS_HI20	\.bss)\+0x1000
+			2ec: R_MICROMIPS_HI20	\.bss\+0x1000
 0+02f0 <text_label\+0x2f0> addu	at,at,a1
 0+02f4 <text_label\+0x2f4> ldc1	\$f4,0\(at\)
-			2f4: R_MICROMIPS_LO12	\.bss)\+0x1000
+			2f4: R_MICROMIPS_LO12	\.bss\+0x1000
 0+02f8 <text_label\+0x2f8> lui	at,0x0
-			2f8: R_MICROMIPS_HI20	\.sbss)\+0x1000
+			2f8: R_MICROMIPS_HI20	\.sbss\+0x1000
 0+02fc <text_label\+0x2fc> addu	at,at,a1
 0+0300 <text_label\+0x300> ldc1	\$f4,0\(at\)
-			300: R_MICROMIPS_LO12	\.sbss)\+0x1000
+			300: R_MICROMIPS_LO12	\.sbss\+0x1000
 0+0304 <text_label\+0x304> lui	at,0x0
 			304: R_MICROMIPS_HI20	.data\+0x1a5a5
 0+0308 <text_label\+0x308> addu	at,at,a1
@@ -364,14 +364,14 @@ Disassembly of section \.text:
 0+033c <text_label\+0x33c> ldc1	\$f4,0\(at\)
 			33c: R_MICROMIPS_LO12	small_external_common\+0x1a5a5
 0+0340 <text_label\+0x340> lui	at,0x0
-			340: R_MICROMIPS_HI20	\.bss)\+0x1a5a5
+			340: R_MICROMIPS_HI20	\.bss\+0x1a5a5
 0+0344 <text_label\+0x344> addu	at,at,a1
 0+0348 <text_label\+0x348> ldc1	\$f4,0\(at\)
-			348: R_MICROMIPS_LO12	\.bss)\+0x1a5a5
+			348: R_MICROMIPS_LO12	\.bss\+0x1a5a5
 0+034c <text_label\+0x34c> lui	at,0x0
-			34c: R_MICROMIPS_HI20	\.sbss)\+0x1a5a5
+			34c: R_MICROMIPS_HI20	\.sbss\+0x1a5a5
 0+0350 <text_label\+0x350> addu	at,at,a1
 0+0354 <text_label\+0x354> ldc1	\$f4,0\(at\)
-			354: R_MICROMIPS_LO12	\.sbss)\+0x1a5a5
+			354: R_MICROMIPS_LO12	\.sbss\+0x1a5a5
 	\.\.\.
 #pass
