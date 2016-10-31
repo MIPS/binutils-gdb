@@ -5481,8 +5481,8 @@ match_relocatable_int_operand (const struct mips_operand *operand_base)
   max_val = operand->max_val;
 
   if (ISA_IS_R7 (mips_opts.isa)
-      && (op_size == 12  || op_size == 14 || op_size == 18
-	  || op_size == 19 || op_size == 20))
+      && (op_size == 12  || op_size == 14 || op_size == 16
+	  || op_size == 18 || op_size == 19 || op_size == 20))
 	return TRUE;
   else if (operand_base->lsb == 0
       && op_size == 16

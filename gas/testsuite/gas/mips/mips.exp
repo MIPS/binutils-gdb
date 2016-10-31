@@ -1526,17 +1526,7 @@ if { [istarget mips*-*-vxworks*] } {
 #    run_dump_test "ur7-relax" - TODO
 
     run_dump_test "ur7-noxlp"
-#    run_dump_test "ur7-ld"
-#    run_dump_test "ur7-l_d"
-#    run_dump_test "ur7-sd"
-#    run_dump_test "ur7-s_d"
-#    run_dump_test "ur7-lw"
-#    run_dump_test "ur7-sw"
-#    run_dump_test "ur7-ldc1"
-#    run_dump_test "ur7-sdc1"
     run_dump_test "ur7-save"
-#    run_dump_test "ur7-dsp"
-#    run_dump_test "ur7-dspr2"
     run_dump_test "ur7-mt"
 #    run_dump_test "elf-rel-got-ur7"
 #    run_dump_test "elf-rel-xgot-ur7" - disabled for now
@@ -1548,4 +1538,5 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test "ur7-mips-abi32-pic"
     run_dump_test "ur7-mips-abi32-pic2"
     run_dump_test "ur7-mips-gp32-fp64-pic"
+    run_dump_test "ur7-percent"
 }
