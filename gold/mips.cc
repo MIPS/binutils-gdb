@@ -83,6 +83,14 @@ class Mips16_stub_section_base;
 template<int size, bool big_endian>
 class Mips16_stub_section;
 
+template<int size, bool big_endian>
+class Mips_relocate_functions;
+
+template<int size, bool big_endian>
+class Micromips_insn;
+
+class Mips_input_section;
+
 // The ABI says that every symbol used by dynamic relocations must have
 // a global GOT entry.  Among other things, this provides the dynamic
 // linker with a free, directly-indexed cache.  The GOT can therefore
@@ -224,6 +232,40 @@ local_pic_function(Mips_symbol<size>* sym)
         return true;
     }
   return false;
+}
+
+// Return TRUE if this is a relocation for 16bit microMIPS instruction.
+static inline bool
+micromips_16bit_reloc(unsigned int r_type)
+{
+  return (r_type == elfcpp::R_MICROMIPS_PC10_S1
+          || r_type == elfcpp::R_MICROMIPS_PC7_S1
+          || r_type == elfcpp::R_MICROMIPS_PC4_S1
+          || r_type == elfcpp::R_MICROMIPS_GPREL7_S2
+          || r_type == elfcpp::R_MICROMIPS_LO4_S2);
+}
+
+// Return TRUE if for this relocation we may need to do expansion.
+static inline bool
+is_expand_reloc(unsigned int r_type)
+{
+  return (r_type == elfcpp::R_MICROMIPS_PC25_S1
+          || r_type == elfcpp::R_MICROMIPS_PC21_S1
+          || r_type == elfcpp::R_MICROMIPS_PC11_S1
+          || r_type == elfcpp::R_MICROMIPS_GPREL19_S2
+          || r_type == elfcpp::R_MICROMIPS_GPREL18
+          || micromips_16bit_reloc(r_type));
+}
+
+// Return TRUE if for this relocation we may do relaxation.
+static inline bool
+is_relax_reloc(unsigned int r_type)
+{
+  return (r_type == elfcpp::R_MICROMIPS_PC25_S1
+          || r_type == elfcpp::R_MICROMIPS_PC20_S1
+          || r_type == elfcpp::R_MICROMIPS_PC14_S1
+          || r_type == elfcpp::R_MICROMIPS_GPREL19_S2
+          || r_type == elfcpp::R_MICROMIPS_LO12);
 }
 
 static inline bool
@@ -420,6 +462,8 @@ micromips_reloc(unsigned int r_type)
     case elfcpp::R_MICROMIPS_LO12:
     case elfcpp::R_MICROMIPS_PCHI20:
     case elfcpp::R_MICROMIPS_PCLO12:
+    case elfcpp::R_MICROMIPS_GPRELHI20:
+    case elfcpp::R_MICROMIPS_GPRELLO12:
       return true;
 
     default:
@@ -1661,6 +1705,27 @@ class Mips_relobj : public Sized_relobj_file<size, big_endian>
   as_mips_relobj(const Relobj* relobj)
   { return static_cast<const Mips_relobj<size, big_endian>*>(relobj); }
 
+  // Scan all relocation sections for relaxations or expansions.
+  bool
+  scan_sections_for_relax_or_expand(Target_mips<size, big_endian>*,
+                                    const Symbol_table*, const Layout*);
+
+  // Adjust values of the local symbols.  This is used in relaxation passes.
+  void
+  adjust_local_symbols(Mips_address, unsigned int, int);
+
+  // Adjust values of the global symbols.  This is used in relaxation passes.
+  void
+  adjust_global_symbols(Mips_address, unsigned int, int);
+
+  // Convert regular input section with index SHNDX to a relaxed section.
+  void
+  convert_input_section_to_relaxed_section(unsigned shndx)
+  {
+    this->set_section_offset(shndx, -1ULL);
+    this->set_relocs_must_follow_section_writes();
+  }
+
   // Processor-specific flags in ELF file header.  This is valid only after
   // reading symbols.
   elfcpp::Elf_Word
@@ -1927,6 +1992,18 @@ class Mips_relobj : public Sized_relobj_file<size, big_endian>
   do_read_symbols(Read_symbols_data* sd);
 
  private:
+  // Whether a section needs to be scanned for relocation relaxations
+  // or expansions.
+  bool
+  section_needs_reloc_scanning(const elfcpp::Shdr<size, big_endian>&,
+                               const Relobj::Output_sections&,
+                               const Symbol_table*, const unsigned char*);
+
+  // Whether a section is a scannable for relaxations or expansions.
+  bool
+  section_is_scannable(const elfcpp::Shdr<size, big_endian>&, unsigned int,
+                       const Output_section*, const Symbol_table*);
+
   // The name of the options section.
   const char* mips_elf_options_section_name()
   { return this->is_newabi() ? ".MIPS.options" : ".options"; }
@@ -2892,6 +2969,295 @@ class Mips_output_section_abiflags : public Output_section_data
   const Mips_abiflags<big_endian>& abiflags_;
 };
 
+// Opcodes needed for microMIPS relaxations and expansions.
+
+struct opcode_descriptor
+{
+  uint32_t match;
+  uint32_t mask;
+  uint32_t relax_opcode;
+  uint32_t expand_opcode1;
+  uint32_t expand_opcode2;
+  uint32_t expand_opcode3;
+  uint32_t expand_opcode4;
+};
+
+// Helper class used for microMIPS relaxations and expansions.
+
+template<int size, bool big_endian>
+class Micromips_insn
+{
+  typedef typename elfcpp::Swap<size, big_endian>::Valtype Valtype;
+  typedef typename elfcpp::Swap<16, big_endian>::Valtype Valtype16;
+  typedef typename elfcpp::Swap<32, big_endian>::Valtype Valtype32;
+  typedef Mips_relocate_functions<size, big_endian> Reloc_funcs;
+  typedef typename Reloc_types<elfcpp::SHT_RELA, size, big_endian>::Reloc_write
+    Reltype_write;
+
+ public:
+  Micromips_insn()
+    : new_insn_(NULL), insn_(0), r_type_(0), count_(0), offset_(0)
+  { }
+
+  // Initialize the microMIPS instruction.
+  void
+  init(const unsigned char* view, unsigned int r_type)
+  {
+    this->new_insn_ = NULL;
+    this->r_type_ = r_type;
+    this->count_ = 0;
+    this->offset_ = 0;
+    if (micromips_16bit_reloc(r_type))
+      this->insn_ = elfcpp::Swap<16, big_endian>::readval(view);
+    else
+      this->insn_ = this->get_insn_32(view);
+  }
+
+  // Return true if we can relax instruction.
+  bool
+  can_relax(Valtype value);
+
+  // Relax instruction.
+  void
+  relax(unsigned char* insn_view, unsigned char* preloc_current,
+        unsigned int r_sym,
+        typename elfcpp::Elf_types<size>::Elf_Swxword r_addend);
+
+  // Return true if we must expand instruction.
+  bool
+  must_expand(Valtype value);
+
+  // Expand instruction.
+  void
+  expand(unsigned char* insn_view, unsigned char* preloc_current,
+         unsigned int r_sym, unsigned int r_offset,
+         typename elfcpp::Elf_types<size>::Elf_Swxword r_addend,
+         Mips_input_section* pmis, bool* is_reloc_added);
+
+  // Return the number of bytes to delete or add.
+  int
+  count() const
+  { return this->count_; }
+
+  // Return the offset where to delete or add bytes starting at r_offset.
+  int
+  offset() const
+  { return this->offset_; }
+
+ private:
+  // Match instruction.
+  bool
+  find_match(const opcode_descriptor* insn)
+  {
+    for (unsigned int i = 0; insn[i].mask != 0; ++i)
+      {
+        if ((this->insn_ & insn[i].mask) == insn[i].match)
+          {
+            this->new_insn_ = &insn[i];
+            return true;
+          }
+      }
+    return false;
+  }
+
+  // Read microMIPS 32-bit instruction.
+  uint32_t
+  get_insn_32(const unsigned char* view) const
+  {
+    Valtype16 first = elfcpp::Swap<16, big_endian>::readval(view);
+    Valtype16 second = elfcpp::Swap<16, big_endian>::readval(view + 2);
+    return (first << 16 | second);
+  }
+
+  // Write microMIPS 32-bit instruction.
+  void
+  put_insn_32(unsigned char* view, uint32_t insn) const
+  {
+    elfcpp::Swap<16, big_endian>::writeval(view, (insn >> 16) & 0xffff);
+    elfcpp::Swap<16, big_endian>::writeval(view + 2, insn & 0xffff);
+  }
+
+  // Convert register in 16bit instruction to register in 32 bit instruction.
+  unsigned int
+  reg_16_to_32(unsigned int reg) const
+  { return (reg == 0 || reg == 1) ? reg + 16 : reg; }
+
+  // Return target register in microMIPS 32-bit instruction.
+  unsigned int
+  treg_32() const
+  { return ((this->insn_ >> 21) & 0x1f); }
+
+  // Return source register in microMIPS 32-bit instruction.
+  unsigned int
+  sreg_32() const
+  { return ((this->insn_ >> 16) & 0x1f); }
+
+  // Return target register in microMIPS 16-bit instruction.
+  unsigned int
+  treg_16() const
+  { return ((this->insn_ >> 7) & 0x7); }
+
+  // Return source register in microMIPS 16-bit instruction.
+  unsigned int
+  sreg_16() const
+  { return ((this->insn_ >> 4) & 0x7); }
+
+  // Check if a 5-bit register index can be abbreviated to 3 bits.
+  bool
+  valid_reg_16(unsigned int reg) const
+  { return ((reg >= 2 && reg <= 7) || reg == 16 || reg == 17); }
+
+  // New instruction.  In case of relaxation there is only 1 instruction,
+  // but for expansions there can be many.
+  const opcode_descriptor* new_insn_;
+  // The microMIPS instruction.
+  uint32_t insn_;
+  // The relocation type.
+  unsigned int r_type_;
+  // The number of bytes to delete or add.
+  unsigned int count_;
+  // The offset where to delete or add bytes starting at r_offset.
+  unsigned int offset_;
+
+  // Opcodes for expansions and relaxations.
+  static const opcode_descriptor micromips_pc25_s1[];
+  static const opcode_descriptor micromips_pc20_s1_relax[];
+  static const opcode_descriptor micromips_pc14_s1_relax[];
+  static const opcode_descriptor micromips_lwgp_relax[];
+  static const opcode_descriptor micromips_lo12_relax[];
+  static const opcode_descriptor micromips_move_balc_expand[];
+  static const opcode_descriptor micromips_pc11_s1_expand[];
+  static const opcode_descriptor micromips_gprel19_s2_expand[];
+  static const opcode_descriptor micromips_gprel18_expand[];
+  static const opcode_descriptor micromips_pc10_s1_expand[];
+  static const opcode_descriptor micromips_pc7_s1_expand[];
+  static const opcode_descriptor micromips_pc4_s1_expand[];
+  static const opcode_descriptor micromips_lwgp_expand[];
+  static const opcode_descriptor micromips_lo4_s2_expand[];
+};
+
+// A class to wrap an ordinary input section.
+
+class Mips_input_section : public Output_relaxed_input_section
+{
+ public:
+  Mips_input_section(Relobj* relobj, unsigned int shndx,
+                     Output_section* os)
+    : Output_relaxed_input_section(relobj, shndx, 1),
+      addralign_(1), section_contents_(""), rel_("")
+  {
+    this->set_output_section(os);
+
+    std::vector<Output_relaxed_input_section*> new_relaxed;
+    new_relaxed.push_back(this);
+    os->convert_input_sections_to_relaxed_sections(new_relaxed);
+  }
+
+  ~Mips_input_section()
+  { }
+
+  // Initialize.
+  void
+  init(unsigned int reloc_shndx);
+
+  // Return the section contents.
+  unsigned char*
+  section_contents()
+  { return reinterpret_cast<unsigned char*>(&this->section_contents_[0]); }
+
+  // Return the relocations for this section.
+  unsigned char*
+  relocs()
+  { return reinterpret_cast<unsigned char*>(&this->rel_[0]); }
+
+  // Return the relocations for this section.
+  const unsigned char*
+  relocs() const
+  { return reinterpret_cast<const unsigned char*>(this->rel_.data()); }
+
+  // Delete the bytes for relaxation.
+  void
+  relax(size_t pos, size_t size)
+  { this->section_contents_.erase(pos, size); }
+
+  // Add the bytes for expansion.
+  void
+  expand(size_t pos, size_t size)
+  { this->section_contents_.insert(pos, size, ' '); }
+
+  // Add new relocation.
+  void
+  add_reloc(unsigned char* new_reloc, int size)
+  { this->rel_.append(reinterpret_cast<const char*>(new_reloc), size); }
+
+  // Return the size of the relocation section.
+  size_t
+  relocs_size() const
+  { return this->rel_.size(); }
+
+  // Downcast a base pointer to a Mips_input_section pointer.  This is
+  // not type-safe but we only use Mips_input_section not the base class.
+  static const Mips_input_section*
+  as_mips_input_section(const Output_relaxed_input_section* poris)
+  { return static_cast<const Mips_input_section*>(poris); }
+
+  // Downcast a base pointer to a Mips_input_section pointer.  This is
+  // not type-safe but we only use Mips_input_section not the base class.
+  static Mips_input_section*
+  as_mips_input_section(Output_relaxed_input_section* poris)
+  { return static_cast<Mips_input_section*>(poris); }
+
+ protected:
+  // Write out this input section.
+  void
+  do_write(Output_file*);
+
+  // Set the final size.
+  void
+  set_final_data_size()
+  {
+    off_t off = convert_types<off_t, size_t>(this->section_contents_.size());
+    this->set_data_size(off);
+  }
+
+  // Output offset.
+  bool
+  do_output_offset(const Relobj* object, unsigned int shndx,
+                   section_offset_type offset,
+                   section_offset_type* poutput) const
+  {
+    if ((object == this->relobj())
+        && (shndx == this->shndx())
+        && (offset >= 0)
+        && (offset <=
+            convert_types<section_offset_type, size_t>(
+              this->section_contents_.size())))
+      {
+        *poutput = offset;
+         return true;
+      }
+    else
+      return false;
+  }
+
+  // Return required alignment of this.
+  uint64_t
+  do_addralign() const
+  { return this->addralign_; }
+
+ private:
+  // Copying is not allowed.
+  Mips_input_section(const Mips_input_section&);
+  Mips_input_section& operator=(const Mips_input_section&);
+
+  // Address alignment.
+  uint64_t addralign_;
+  // The section contents.
+  std::string section_contents_;
+  // The relocations for this section.
+  std::string rel_;
+};
+
 // The MIPS target has relocation types which default handling of relocatable
 // relocation cannot process.  So we have to extend the default code.
 
@@ -3343,8 +3709,9 @@ class Target_mips : public Sized_target<size, big_endian>
       got_plt_(NULL), rel_dyn_(NULL), rld_map_(NULL), copy_relocs_(),
       dyn_relocs_(), la25_stub_(NULL), mips_mach_extensions_(),
       mips_stubs_(NULL), attributes_section_data_(NULL), abiflags_(NULL),
-      mach_(0), layout_(NULL), got16_addends_(), has_abiflags_section_(false),
-      entry_symbol_is_compressed_(false), insn32_(false)
+      mach_(0), layout_(NULL), state_(EXPAND), got16_addends_(),
+      has_abiflags_section_(false), entry_symbol_is_compressed_(false),
+      insn32_(false)
   {
     this->add_machine_extensions();
   }
@@ -3389,6 +3756,17 @@ class Target_mips : public Sized_target<size, big_endian>
               bool needs_special_offset_handling,
               size_t local_symbol_count,
               const unsigned char* plocal_symbols);
+
+  // We don't want to do expansions or relaxations if we are doing
+  // relocatable linking.
+  bool
+  do_may_relax() const
+  { return !parameters->options().relocatable(); }
+
+  // Relaxation hook.  This is where we do relaxations and expansions of
+  // microMIPS instructions.
+  bool
+  do_relax(int, const Input_objects*, Symbol_table*, Layout*, const Task*);
 
   // Finalize the sections.
   void
@@ -3466,6 +3844,18 @@ class Target_mips : public Sized_target<size, big_endian>
                                Mips_address view_address,
                                section_size_type view_size,
                                unsigned char* preloc_out);
+
+  // Scan a section for relaxations or expansions.
+  bool
+  scan_section_for_relax_or_expand(const Relocate_info<size, big_endian>*
+                                     relinfo,
+                                   unsigned int sh_type,
+                                   const unsigned char* prelocs,
+                                   size_t reloc_count,
+                                   Output_section* os,
+                                   Mips_input_section* pmis,
+                                   const unsigned char* view,
+                                   Mips_address view_address);
 
   // Return whether SYM is defined by the ABI.
   bool
@@ -3617,7 +4007,6 @@ class Target_mips : public Sized_target<size, big_endian>
   bool
   is_output_micromips() const
   {
-    gold_assert(this->are_processor_specific_flags_set());
     return elfcpp::is_micromips(this->processor_specific_flags());
   }
 
@@ -3941,6 +4330,26 @@ class Target_mips : public Sized_target<size, big_endian>
     Mips_address r_offset_;
   };
 
+  // Scan a relocation section for relaxations or expansions.
+  template<int sh_type>
+  bool
+  scan_reloc_section_for_relax_or_expand(const Relocate_info<size, big_endian>*,
+                                         const unsigned char*, size_t,
+                                         Output_section*, Mips_input_section*,
+                                         const unsigned char*, Mips_address);
+
+  // Make a new Mips_input_section object.
+  Mips_input_section*
+  new_mips_input_section(Mips_relobj<size, big_endian>*,
+                         const Relocate_info<size, big_endian>*,
+                         Output_section*);
+
+  // Update content for relaxations or expansions.
+  template<int sh_type>
+  void
+  update_content(Mips_input_section*, Mips_relobj<size, big_endian>*,
+                 Mips_address, int);
+
   // Adjust TLS relocation type based on the options and whether this
   // is a local symbol.
   static tls::Tls_optimization
@@ -4261,6 +4670,17 @@ class Target_mips : public Sized_target<size, big_endian>
   unsigned int mach_;
   Layout* layout_;
 
+  typedef enum
+  {
+    // Instruction expansion state.
+    EXPAND,
+    // Instruction relaxation state.
+    RELAX
+  } State;
+
+  // States used in relaxation passes.
+  State state_;
+
   typename std::list<got16_addend<size, big_endian> > got16_addends_;
 
   // Whether there is an input .MIPS.abiflags section.
@@ -4336,6 +4756,12 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
   static typename std::list<reloc_high<size, big_endian> > got16_relocs;
   static typename std::list<reloc_high<size, big_endian> > pchi16_relocs;
 
+  static inline bool
+  should_shuffle_micromips_reloc(unsigned int r_type)
+  { return (micromips_reloc(r_type) && !micromips_16bit_reloc(r_type)); }
+
+ public:
+
   template<int valsize>
   static inline typename This::Status
   check_overflow(Valtype value, Overflow_check check)
@@ -4366,17 +4792,6 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
 
   }
 
-  static inline bool
-  should_shuffle_micromips_reloc(unsigned int r_type)
-  {
-    return (micromips_reloc(r_type)
-            && r_type != elfcpp::R_MICROMIPS_PC7_S1
-            && r_type != elfcpp::R_MICROMIPS_PC10_S1
-            && r_type != elfcpp::R_MICROMIPS_PC4_S1
-            && r_type != elfcpp::R_MICROMIPS_GPREL7_S2);
-  }
-
- public:
   //   R_MIPS16_26 is used for the mips16 jal and jalx instructions.
   //   Most mips16 instructions are 16 bits, but these instructions
   //   are 32 bits.
@@ -6076,6 +6491,32 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     return This::STATUS_OKAY;
   }
 
+  // R_MICROMIPS_LO4_S2
+  static inline typename This::Status
+  relmicromips_lo4_s2(unsigned char* view,
+                      const Mips_relobj<size, big_endian>* object,
+                      const Symbol_value<size>* psymval, Mips_address addend,
+                      Overflow_info<big_endian>* overflow_info)
+  {
+    Valtype16* wv = reinterpret_cast<Valtype16*>(view);
+    Valtype16 val = elfcpp::Swap<16, big_endian>::readval(wv);
+
+    Valtype x = psymval->value(object, addend) & 0xfff;
+    if (check_overflow<6>(x, CHECK_UNSIGNED) == This::STATUS_OVERFLOW)
+      {
+        overflow_info->value = x;
+        overflow_info->insn = val;
+        overflow_info->name = "R_MICROMIPS_LO4_S2";
+        overflow_info->bitsize = 6;
+        return This::STATUS_OVERFLOW;
+      }
+
+    val = Bits<4>::bit_select32(val, x >> 2, 0xf);
+    elfcpp::Swap<16, big_endian>::writeval(wv, val);
+
+    return This::STATUS_OKAY;
+  }
+
   // R_MICROMIPS_PCHI20
   static inline typename This::Status
   relmicromips_pchi20(unsigned char* view,
@@ -6105,6 +6546,59 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     Valtype32 val = elfcpp::Swap<32, big_endian>::readval(wv);
 
     Valtype x = psymval->value(object, addend) - address;
+    val = Bits<12>::bit_select32(val, x, 0xfff);
+    elfcpp::Swap<32, big_endian>::writeval(wv, val);
+
+    return This::STATUS_OKAY;
+  }
+
+  // R_MICROMIPS_GPRELHI20
+  static inline typename This::Status
+  relmicromips_gprelhi20(unsigned char* view,
+                         const Mips_relobj<size, big_endian>* object,
+                         const Symbol_value<size>* psymval, Mips_address gp,
+                         Mips_address addend, bool local)
+  {
+    Valtype32* wv = reinterpret_cast<Valtype32*>(view);
+    Valtype32 val = elfcpp::Swap<32, big_endian>::readval(wv);
+
+    Valtype x = psymval->value(object, addend) - gp;
+
+    // If the symbol was local, any earlier relocatable links will
+    // have adjusted its addend with the gp offset, so compensate
+    // for that now.  Don't do it for symbols forced local in this
+    // link, though, since they won't have had the gp offset applied
+    // to them before.
+    if (local)
+      x += object->gp_value();
+
+    val = ((val & 0xffe00002) | (x & 0x1ff000) | ((x >> 19) & 0xffc)
+            | ((x >> 31) & 0x1));
+    elfcpp::Swap<32, big_endian>::writeval(wv, val);
+
+    return This::STATUS_OKAY;
+  }
+
+  // R_MICROMIPS_GPRELLO12
+  static inline typename This::Status
+  relmicromips_gprello12(unsigned char* view,
+                         const Mips_relobj<size, big_endian>* object,
+                         const Symbol_value<size>* psymval, Mips_address gp,
+                         Mips_address addend, bool local)
+  {
+    Valtype32* wv = reinterpret_cast<Valtype32*>(view);
+    Valtype32 val = elfcpp::Swap<32, big_endian>::readval(wv);
+
+    Valtype x = psymval->value(object, addend) - gp;
+
+    // If the symbol was local, any earlier relocatable links will
+    // have adjusted its addend with the gp offset, so compensate
+    // for that now.  Don't do it for symbols forced local in this
+    // link, though, since they won't have had the gp offset applied
+    // to them before.
+    if (local)
+      x += object->gp_value();
+
     val = Bits<12>::bit_select32(val, x, 0xfff);
     elfcpp::Swap<32, big_endian>::writeval(wv, val);
 
@@ -7461,6 +7955,249 @@ Mips_relobj<size, big_endian>::do_read_symbols(Read_symbols_data* sd)
     }
 }
 
+// Adjust values of the local symbols.  This is used in relaxation passes.
+
+template<int size, bool big_endian>
+void
+Mips_relobj<size, big_endian>::adjust_local_symbols(
+    Mips_address address,
+    unsigned int shndx,
+    int count)
+{
+  const unsigned int loccount = this->local_symbol_count();
+  if (loccount == 0)
+    return;
+
+  typename Sized_relobj_file<size, big_endian>::Local_values* plocal_values =
+    this->local_values();
+
+  // Adjust the local symbols.
+  for (unsigned int i = 1; i < loccount; ++i)
+    {
+      Symbol_value<size>& lv((*plocal_values)[i]);
+      Mips_address input_value = lv.input_value();
+      bool is_ordinary;
+      unsigned int sym_shndx = lv.input_shndx(&is_ordinary);
+
+      if (shndx == sym_shndx && input_value >= address)
+        lv.set_input_value(input_value + count);
+    }
+}
+
+// Adjust values of the global symbols.  This is used in relaxation passes.
+
+template<int size, bool big_endian>
+void
+Mips_relobj<size, big_endian>::adjust_global_symbols(
+    Mips_address address,
+    unsigned int shndx,
+    int count)
+{
+  const Object::Symbols* syms = this->get_global_symbols();
+  unsigned int nsyms = syms->size();
+  if (nsyms == 0)
+    return;
+
+  // Adjust the global symbols.
+  for (unsigned int i = 0; i < nsyms; ++i)
+    {
+      Sized_symbol<size>* gsym = static_cast<Sized_symbol<size>*>((*syms)[i]);
+      Mips_address gsym_value = gsym->value();
+      bool dummy;
+
+      if (gsym->source() == Symbol::FROM_OBJECT
+          && gsym->object() == this
+          && gsym->is_defined()
+          && shndx == gsym->shndx(&dummy)
+          && gsym_value >= address)
+        gsym->set_value(gsym_value + count);
+    }
+}
+
+// Determine if an input section is scannable for relaxations or expansions.
+
+template<int size, bool big_endian>
+bool
+Mips_relobj<size, big_endian>::section_is_scannable(
+    const elfcpp::Shdr<size, big_endian>& shdr,
+    unsigned int shndx,
+    const Output_section* os,
+    const Symbol_table* symtab)
+{
+  // Skip empty and non-executable sections.
+  if (shdr.get_sh_size() == 0
+      || ((shdr.get_sh_flags() & (elfcpp::SHF_ALLOC | elfcpp::SHF_EXECINSTR))
+          != (elfcpp::SHF_ALLOC | elfcpp::SHF_EXECINSTR))
+      || shdr.get_sh_type() != elfcpp::SHT_PROGBITS)
+    return false;
+
+  // Skip any discarded or ICF'ed sections.
+  if (os == NULL || symtab->is_section_folded(this, shndx))
+    return false;
+
+  // If this requires special offset handling, check to see if it is
+  // a relaxed section.  If this is not, then it is a merged section that
+  // we cannot handle.
+  if (this->is_output_section_offset_invalid(shndx))
+    {
+      const Output_relaxed_input_section* poris =
+        os->find_relaxed_input_section(this, shndx);
+      if (poris == NULL)
+        return false;
+    }
+
+  return true;
+}
+
+// Determine whether a section needs to be scanned for relaxations
+// or expansions.
+
+template<int size, bool big_endian>
+bool
+Mips_relobj<size, big_endian>::section_needs_reloc_scanning(
+    const elfcpp::Shdr<size, big_endian>& shdr,
+    const Relobj::Output_sections& osections,
+    const Symbol_table* symtab,
+    const unsigned char* pshdrs)
+{
+  unsigned int sh_type = shdr.get_sh_type();
+  if (sh_type != elfcpp::SHT_REL && sh_type != elfcpp::SHT_RELA)
+    return false;
+
+  // Ignore empty section.
+  off_t sh_size = shdr.get_sh_size();
+  if (sh_size == 0)
+    return false;
+
+  // Ignore reloc section with unexpected symbol table.  The
+  // error will be reported in the final link.
+  if (this->adjust_shndx(shdr.get_sh_link()) != this->symtab_shndx())
+    return false;
+
+  unsigned int reloc_size;
+  if (sh_type == elfcpp::SHT_REL)
+    reloc_size = elfcpp::Elf_sizes<size>::rel_size;
+  else
+    reloc_size = elfcpp::Elf_sizes<size>::rela_size;
+
+  // Ignore reloc section with unexpected entsize or uneven size.
+  // The error will be reported in the final link.
+  if (reloc_size != shdr.get_sh_entsize() || sh_size % reloc_size != 0)
+    return false;
+
+  // Ignore reloc section with bad info.  This error will be
+  // reported in the final link.
+  unsigned int index = this->adjust_shndx(shdr.get_sh_info());
+  if (index >= this->shnum())
+    return false;
+
+  const unsigned int shdr_size = elfcpp::Elf_sizes<size>::shdr_size;
+  const elfcpp::Shdr<size, big_endian> text_shdr(pshdrs + index * shdr_size);
+  return this->section_is_scannable(text_shdr, index, osections[index], symtab);
+}
+
+// Scan relocation section for relaxations or expansions.
+
+template<int size, bool big_endian>
+bool
+Mips_relobj<size, big_endian>::scan_sections_for_relax_or_expand(
+    Target_mips<size, big_endian>* target,
+    const Symbol_table* symtab,
+    const Layout* layout)
+{
+  unsigned int shnum = this->shnum();
+  const unsigned int shdr_size = elfcpp::Elf_sizes<size>::shdr_size;
+  const Mips_address invalid_address = static_cast<Mips_address>(0) - 1;
+  const bool emit_relocs = parameters->options().emit_relocs();
+  bool again = false;
+
+  // Read the section headers.
+  const unsigned char* pshdrs = this->get_view(this->elf_file()->shoff(),
+                                               shnum * shdr_size,
+                                               true, true);
+
+  // To speed up processing, we set up hash tables for fast lookup of
+  // input offsets to output addresses.
+  this->initialize_input_to_output_maps();
+
+  const Relobj::Output_sections& osections(this->output_sections());
+
+  Relocate_info<size, big_endian> relinfo;
+  relinfo.symtab = symtab;
+  relinfo.layout = layout;
+  relinfo.object = this;
+  relinfo.rr = NULL;
+
+  // Do relocation relaxation or expansion scanning.
+  const unsigned char* p = pshdrs + shdr_size;
+  for (unsigned int i = 1; i < shnum; ++i, p += shdr_size)
+    {
+      const elfcpp::Shdr<size, big_endian> shdr(p);
+      if (this->section_needs_reloc_scanning(shdr, osections, symtab, pshdrs))
+        {
+          unsigned int index = this->adjust_shndx(shdr.get_sh_info());
+          Mips_address output_offset = this->get_output_section_offset(index);
+          Mips_input_section* pmis = NULL;
+          unsigned int sh_type = shdr.get_sh_type();
+          Mips_address output_address = 0;
+          const unsigned char* prelocs = NULL;
+          const unsigned char* input_view = NULL;
+          size_t relocs_size = 0;
+
+          if (output_offset != invalid_address)
+            {
+              output_address = osections[index]->address() + output_offset;
+              // Get the relocations.
+              prelocs = this->get_view(shdr.get_sh_offset(), shdr.get_sh_size(),
+                                       true, false);
+              // Get the section contents.  This does work for the case in which
+              // we modify the contents of an input section. We need to pass the
+              // output view under such circumstances.
+              section_size_type input_view_size;
+              input_view =
+                this->section_contents(index, &input_view_size, false);
+              relocs_size = shdr.get_sh_size();
+            }
+          else
+            {
+              // Currently this only happens for a relaxed section.
+              Output_relaxed_input_section* poris =
+                osections[index]->find_relaxed_input_section(this, index);
+              gold_assert(poris != NULL);
+              pmis = Mips_input_section::as_mips_input_section(poris);
+
+              output_address = pmis->address();
+              prelocs = pmis->relocs();
+              relocs_size = pmis->relocs_size();
+              input_view = pmis->section_contents();
+            }
+
+          relinfo.reloc_shndx = i;
+          relinfo.data_shndx = index;
+          Output_section* os = osections[index];
+          if (emit_relocs)
+            relinfo.rr = this->relocatable_relocs(i);
+
+          size_t reloc_count;
+          if (sh_type == elfcpp::SHT_REL)
+            reloc_count = relocs_size / elfcpp::Elf_sizes<size>::rel_size;
+          else
+            reloc_count = relocs_size / elfcpp::Elf_sizes<size>::rela_size;
+
+          if (target->scan_section_for_relax_or_expand(&relinfo, sh_type,
+                                                       prelocs, reloc_count, os,
+                                                       pmis, input_view,
+                                                       output_address))
+            again = true;
+        }
+    }
+
+  // After we've done the relocations, we release the hash tables,
+  // since we no longer need them.
+  this->free_input_to_output_maps();
+  return again;
+}
+
 // Discard MIPS16 stub secions that are not needed.
 
 template<int size, bool big_endian>
@@ -8694,6 +9431,647 @@ Mips_output_section_abiflags<size, big_endian>::do_write(Output_file* of)
   of->write_output_view(offset, data_size, view);
 }
 
+// Micromips_insn methods.
+
+// Opcodes for R_MICROMIPS_PC25_S1 expansion and relaxation.
+template<int size, bool big_endian>
+const opcode_descriptor
+Micromips_insn<size, big_endian>::micromips_pc25_s1[] =
+{
+  { 0x28000000, 0xfe000000, 0x1800, 0xe0200002, 0x00210000, 0xd820, 0 },// bc
+  { 0x2a000000, 0xfe000000, 0x3800, 0xe0200002, 0x00210000, 0xd830, 0 },// balc
+  { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
+};
+
+// Opcodes for R_MICROMIPS_PC20_S1 relaxation.
+template<int size, bool big_endian>
+const opcode_descriptor
+Micromips_insn<size, big_endian>::micromips_pc20_s1_relax[] =
+{
+  { 0xe8000000, 0xfc100000, 0x9800, 0, 0, 0, 0 },// beqzc
+  { 0xe8100000, 0xfc100000, 0xb800, 0, 0, 0, 0 },// bnezc
+  { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
+};
+
+// Opcodes for R_MICROMIPS_PC14_S1 relaxation.
+template<int size, bool big_endian>
+const opcode_descriptor
+Micromips_insn<size, big_endian>::micromips_pc14_s1_relax[] =
+{
+  { 0x88000000, 0xfc00c000, 0xd800, 0, 0, 0, 0 },// beqc
+  { 0xa8000000, 0xfc00c000, 0xd800, 0, 0, 0, 0 },// bnec
+  { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
+};
+
+// Opcode for lw[gp] relaxation.
+template<int size, bool big_endian>
+const opcode_descriptor
+Micromips_insn<size, big_endian>::micromips_lwgp_relax[] =
+{
+  { 0x40000002, 0xfc000003, 0xb400, 0, 0, 0, 0 },// lw[gp]
+  { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
+};
+
+// Opcodes for R_MICROMIPS_LO12 relaxation.
+template<int size, bool big_endian>
+const opcode_descriptor
+Micromips_insn<size, big_endian>::micromips_lo12_relax[] =
+{
+  { 0x84008000, 0xfc00f000, 0x7400, 0, 0, 0, 0 },// lw
+  { 0x84009000, 0xfc00f000, 0xf400, 0, 0, 0, 0 },// sw
+  { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
+};
+
+// Opcodes for move.balc expansion.
+template<int size, bool big_endian>
+const opcode_descriptor
+Micromips_insn<size, big_endian>::micromips_move_balc_expand[] =
+{
+  { 0x08000000, 0xfc000000, 0, 0x1000, 0x2a000000, 0, 0 },
+  { 0x08000000, 0xfc000000, 0, 0x1000, 0xe0200002, 0x00210000, 0xd830 },
+  { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
+};
+
+// Opcodes for R_MICROMIPS_PC11_S1 expansion.
+template<int size, bool big_endian>
+const opcode_descriptor
+Micromips_insn<size, big_endian>::micromips_pc11_s1_expand[] =
+{
+  { 0xc8000000, 0xfc1c0000, 0, 0x00200000, 0x88200000, 0, 0 },// beqic
+  { 0xc8080000, 0xfc1c0000, 0, 0x00200000, 0x88208000, 0, 0 },// bgeic
+  { 0xc80c0000, 0xfc1c0000, 0, 0x00200000, 0x8820c000, 0, 0 },// bgeuic
+  { 0xc8180000, 0xfc1c0000, 0, 0x00200000, 0xa8208000, 0, 0 },// bltic
+  { 0xc81c0000, 0xfc1c0000, 0, 0x00200000, 0xa820c000, 0, 0 },// bltuic
+  { 0xc8100000, 0xfc1c0000, 0, 0x00200000, 0xa8200000, 0, 0 },// bneic
+  { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
+};
+
+// Opcodes for R_MICROMIPS_GPREL19_S2 expansion.
+template<int size, bool big_endian>
+const opcode_descriptor
+Micromips_insn<size, big_endian>::micromips_gprel19_s2_expand[] =
+{
+  { 0x40000002, 0xfc000003, 0, 0xe0200000, 0x23810950, 0x84018000, 0 },// lw[gp]
+  { 0x40000003, 0xfc000003, 0, 0xe0200000, 0x23810950, 0x84019000, 0 },// sw[gp]
+  { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
+};
+
+// Opcodes for R_MICROMIPS_GPREL18 expansion.
+template<int size, bool big_endian>
+const opcode_descriptor
+Micromips_insn<size, big_endian>::micromips_gprel18_expand[] =
+{
+  { 0x44000000, 0xfc1c0000, 0, 0xe0200000, 0x23810950, 0x84010000, 0 },// lb[gp]
+  { 0x44080000, 0xfc1c0000, 0, 0xe0200000, 0x23810950, 0x84012000, 0 },// lbu[gp]
+  { 0x44100000, 0xfc1c0000, 0, 0xe0200000, 0x23810950, 0x84014000, 0 },// lh[gp]
+  { 0x44180000, 0xfc1c0000, 0, 0xe0200000, 0x23810950, 0x84016000, 0 },// lhu[gp]
+  { 0x44040000, 0xfc1c0000, 0, 0xe0200000, 0x23810950, 0x84011000, 0 },// sb[gp]
+  { 0x44140000, 0xfc1c0000, 0, 0xe0200000, 0x23810950, 0x84015000, 0 },// sh[gp]
+  { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
+};
+
+// Opcodes for R_MICROMIPS_PC10_S1 expansion.
+template<int size, bool big_endian>
+const opcode_descriptor
+Micromips_insn<size, big_endian>::micromips_pc10_s1_expand[] =
+{
+  { 0x1800, 0xfc00, 0, 0x28000000, 0, 0, 0 },// bc[16]
+  { 0x3800, 0xfc00, 0, 0x2a000000, 0, 0, 0 },// balc[16]
+  { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
+};
+
+// Opcodes for R_MICROMIPS_PC7_S1 expansion.
+template<int size, bool big_endian>
+const opcode_descriptor
+Micromips_insn<size, big_endian>::micromips_pc7_s1_expand[] =
+{
+  { 0x9800, 0xfc00, 0, 0xe8000000, 0, 0, 0 },// beqzc[16]
+  { 0xb800, 0xfc00, 0, 0xe8100000, 0, 0, 0 },// bnezc[16]
+  { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
+};
+
+// Opcodes for R_MICROMIPS_PC4_S1 expansion.
+template<int size, bool big_endian>
+const opcode_descriptor
+Micromips_insn<size, big_endian>::micromips_pc4_s1_expand[] =
+{
+  { 0xd800, 0xfc00, 0, 0x88000000, 0, 0, 0 },// beqc[16]
+  { 0xd800, 0xfc00, 0, 0xa8000000, 0, 0, 0 },// bnec[16]
+  { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
+};
+
+// Opcode for lw[gp16] expansion.
+template<int size, bool big_endian>
+const opcode_descriptor
+Micromips_insn<size, big_endian>::micromips_lwgp_expand[] =
+{
+  { 0xb400, 0xfc00, 0, 0x40000002, 0, 0, 0 },// lw[gp16]
+  { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
+};
+
+// Opcodes for R_MICROMIPS_LO4_S2 expansion.
+template<int size, bool big_endian>
+const opcode_descriptor
+Micromips_insn<size, big_endian>::micromips_lo4_s2_expand[] =
+{
+  { 0x7400, 0xfc00, 0, 0x84008000, 0, 0, 0 },// lw[16]
+  { 0xf400, 0xfc00, 0, 0x84009000, 0, 0, 0 },// sw[16]
+  { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
+};
+
+// Return true if we can relax instruction.
+
+template<int size, bool big_endian>
+bool
+Micromips_insn<size, big_endian>::can_relax(Valtype value)
+{
+  this->count_ = -2;
+  this->offset_ = 2;
+
+  // bc/balc relaxation to bc[16]/balc[16]
+  if (this->r_type_ == elfcpp::R_MICROMIPS_PC25_S1
+      && this->find_match(micromips_pc25_s1)
+      && Reloc_funcs::template
+           check_overflow<11>(value, Reloc_funcs::CHECK_SIGNED) ==
+             Reloc_funcs::STATUS_OKAY)
+    return true;
+  // beqzc/bnezc relaxation to beqzc[16]/bnezc[16]
+  else if (this->r_type_ == elfcpp::R_MICROMIPS_PC20_S1
+           && this->find_match(micromips_pc20_s1_relax)
+           && this->valid_reg_16(this->treg_32())
+           && Reloc_funcs::template
+                check_overflow<8>(value, Reloc_funcs::CHECK_SIGNED) ==
+                  Reloc_funcs::STATUS_OKAY)
+    return true;
+  // beqc/bnec relaxation to beqc[16]/bnec[16]
+  else if (this->r_type_ == elfcpp::R_MICROMIPS_PC14_S1
+           && this->find_match(micromips_pc14_s1_relax)
+           && this->valid_reg_16(this->treg_32())
+           && this->valid_reg_16(this->sreg_32())
+           && Reloc_funcs::template
+                check_overflow<5>(value, Reloc_funcs::CHECK_UNSIGNED) ==
+                  Reloc_funcs::STATUS_OKAY)
+    return true;
+  // lw[gp] relaxation to lw[gp16]
+  else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL19_S2
+           && this->find_match(micromips_lwgp_relax)
+           && this->valid_reg_16(this->treg_32())
+           && Reloc_funcs::template
+                check_overflow<9>(value, Reloc_funcs::CHECK_UNSIGNED) ==
+                  Reloc_funcs::STATUS_OKAY)
+    return true;
+  // lw/sw relaxation to lw[16]/sw[16]
+  else if (this->r_type_ == elfcpp::R_MICROMIPS_LO12
+           && this->find_match(micromips_lo12_relax)
+           && ((value & 3) == 0)
+           && this->valid_reg_16(this->sreg_32())
+           && Reloc_funcs::template
+                check_overflow<6>(value, Reloc_funcs::CHECK_UNSIGNED) ==
+                  Reloc_funcs::STATUS_OKAY)
+    {
+      unsigned int treg = this->treg_32();
+      // Check if a 5-bit register index can be abbreviated to 3 bits
+      // for rt register in sw instruction.
+      if ((this->insn_ & 0xfc00f000) == 0x84009000)
+        return ((treg >= 2 && treg <= 7) || treg == 0 || treg == 17);
+      else
+        return this->valid_reg_16(treg);
+    }
+
+  return false;
+}
+
+// Return true if we must expand instruction.
+
+template<int size, bool big_endian>
+bool
+Micromips_insn<size, big_endian>::must_expand(Valtype value)
+{
+  // bc/balc expansion to auipc, addiu, jrc16/jalrc[16].
+  if (this->r_type_ == elfcpp::R_MICROMIPS_PC25_S1
+      && this->find_match(micromips_pc25_s1)
+      && Reloc_funcs::template
+           check_overflow<26>(value, Reloc_funcs::CHECK_SIGNED) ==
+             Reloc_funcs::STATUS_OVERFLOW)
+    {
+      this->offset_ = 4;
+      this->count_ = 6;
+      return true;
+    }
+  // move.balc expansion.
+  else if (this->r_type_ == elfcpp::R_MICROMIPS_PC21_S1
+           && this->find_match(micromips_move_balc_expand)
+           && Reloc_funcs::template
+                check_overflow<22>(value, Reloc_funcs::CHECK_SIGNED) ==
+                  Reloc_funcs::STATUS_OVERFLOW)
+    {
+      // Default expansion to move16, balc.
+      this->offset_ = 4;
+      this->count_ = 2;
+
+      // If we can't jump with balc, we need to expand to
+      // move16, auipc, addiu, jalrc[16].
+      if (Reloc_funcs::template
+            check_overflow<26>(value, Reloc_funcs::CHECK_SIGNED) ==
+              Reloc_funcs::STATUS_OVERFLOW)
+        {
+          this->count_ = 8;
+          this->new_insn_ = &micromips_move_balc_expand[1];
+        }
+      return true;
+    }
+  // b<cc>ic expansion to addiu, b<cc>c
+  else if (this->r_type_ == elfcpp::R_MICROMIPS_PC11_S1
+           && this->find_match(micromips_pc11_s1_expand)
+           && Reloc_funcs::template
+                check_overflow<12>(value, Reloc_funcs::CHECK_SIGNED) ==
+                  Reloc_funcs::STATUS_OVERFLOW)
+    {
+      this->offset_ = 4;
+      this->count_ = 4;
+      return true;
+    }
+  // lw[gp]/sw[gp] expansion to lui, addiu, lw/sw
+  else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL19_S2
+           && this->find_match(micromips_gprel19_s2_expand)
+           && Reloc_funcs::template
+                check_overflow<21>(value, Reloc_funcs::CHECK_UNSIGNED) ==
+                  Reloc_funcs::STATUS_OVERFLOW)
+    {
+      this->offset_ = 4;
+      this->count_ = 8;
+      return true;
+    }
+  // load[gp]/store[gp] expansion to lui, addiu, load/store
+  else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL18
+           && this->find_match(micromips_gprel18_expand)
+           && Reloc_funcs::template
+                check_overflow<18>(value, Reloc_funcs::CHECK_UNSIGNED) ==
+                  Reloc_funcs::STATUS_OVERFLOW)
+    {
+      this->offset_ = 4;
+      this->count_ = 8;
+      return true;
+    }
+  // bc[16]/balc[16] expansion to bc/balc
+  else if (this->r_type_ == elfcpp::R_MICROMIPS_PC10_S1
+           && this->find_match(micromips_pc10_s1_expand)
+           && Reloc_funcs::template
+                check_overflow<11>(value, Reloc_funcs::CHECK_SIGNED) ==
+                  Reloc_funcs::STATUS_OVERFLOW)
+    {
+      this->offset_ = 2;
+      this->count_ = 2;
+      return true;
+    }
+  // beqzc[16]/bnezc[16] expansion to beqzc/bnezc
+  else if (this->r_type_ == elfcpp::R_MICROMIPS_PC7_S1
+           && this->find_match(micromips_pc7_s1_expand)
+           && Reloc_funcs::template
+                check_overflow<8>(value, Reloc_funcs::CHECK_SIGNED) ==
+                  Reloc_funcs::STATUS_OVERFLOW)
+    {
+      this->offset_ = 2;
+      this->count_ = 2;
+      return true;
+    }
+  // beqc[16]/bnec[16] expansion to beqc/bnec
+  else if (this->r_type_ == elfcpp::R_MICROMIPS_PC4_S1
+           && this->find_match(micromips_pc4_s1_expand)
+           && Reloc_funcs::template
+                check_overflow<5>(value, Reloc_funcs::CHECK_UNSIGNED) ==
+                  Reloc_funcs::STATUS_OVERFLOW)
+    {
+      // If rs3>=rt3 then this is bnec[16] instruction.
+      if (this->sreg_16() >= this->treg_16())
+        this->new_insn_ = &micromips_pc4_s1_expand[1];
+
+      this->offset_ = 2;
+      this->count_ = 2;
+      return true;
+    }
+  // lw[gp16] expansion to lw[gp]
+  else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL7_S2
+           && this->find_match(micromips_lwgp_expand)
+           && Reloc_funcs::template
+                check_overflow<9>(value, Reloc_funcs::CHECK_UNSIGNED) ==
+                  Reloc_funcs::STATUS_OVERFLOW)
+    {
+      this->offset_ = 2;
+      this->count_ = 2;
+      return true;
+    }
+  // lw[16]/sw[16] expansion to lw/sw
+  else if (this->r_type_ == elfcpp::R_MICROMIPS_LO4_S2
+           && this->find_match(micromips_lo4_s2_expand)
+           && ((value & 3)
+               || Reloc_funcs::template
+                    check_overflow<6>(value, Reloc_funcs::CHECK_UNSIGNED) ==
+                      Reloc_funcs::STATUS_OVERFLOW))
+    {
+      this->offset_ = 2;
+      this->count_ = 2;
+      return true;
+    }
+
+  return false;
+}
+
+// Relax instruction.
+
+template<int size, bool big_endian>
+void
+Micromips_insn<size, big_endian>::relax(
+    unsigned char* insn_view,
+    unsigned char* preloc_current,
+    unsigned int r_sym,
+    typename elfcpp::Elf_types<size>::Elf_Swxword r_addend)
+{
+  gold_assert(this->new_insn_ != NULL);
+  Valtype16 relax_insn = static_cast<Valtype16>(this->new_insn_->relax_opcode);
+  Reltype_write reloc_current(preloc_current);
+  unsigned int relax_r_type;
+
+  if (this->r_type_ == elfcpp::R_MICROMIPS_PC25_S1)
+    {
+      relax_r_type = elfcpp::R_MICROMIPS_PC10_S1;
+      reloc_current.put_r_addend(r_addend + 2);
+    }
+  else if (this->r_type_ == elfcpp::R_MICROMIPS_PC20_S1)
+    {
+      relax_insn |= ((this->treg_32() & 7) << 7);
+      relax_r_type = elfcpp::R_MICROMIPS_PC7_S1;
+      reloc_current.put_r_addend(r_addend + 2);
+    }
+  else if (this->r_type_ == elfcpp::R_MICROMIPS_PC14_S1)
+    {
+      relax_insn |= (((this->treg_32() & 7) << 7)
+                     | ((this->sreg_32() & 7) << 4));
+      relax_r_type = elfcpp::R_MICROMIPS_PC4_S1;
+      reloc_current.put_r_addend(r_addend + 2);
+    }
+  else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL19_S2)
+    {
+      relax_insn |= ((this->treg_32() & 7) << 7);
+      relax_r_type = elfcpp::R_MICROMIPS_GPREL7_S2;
+    }
+  else if (this->r_type_ == elfcpp::R_MICROMIPS_LO12)
+    {
+      relax_insn |= (((this->treg_32() & 7) << 7)
+                     | ((this->sreg_32() & 7) << 4));
+      relax_r_type = elfcpp::R_MICROMIPS_LO4_S2;
+    }
+  else
+    gold_unreachable();
+
+  // Update current relocation.
+  reloc_current.put_r_info(elfcpp::elf_r_info<size>(r_sym, relax_r_type));
+  // Write relaxed instruction.
+  elfcpp::Swap<16, big_endian>::writeval(insn_view, relax_insn);
+}
+
+// Expand instruction.
+
+template<int size, bool big_endian>
+void
+Micromips_insn<size, big_endian>::expand(
+    unsigned char* insn_view,
+    unsigned char* preloc_current,
+    unsigned int r_sym,
+    unsigned int r_offset,
+    typename elfcpp::Elf_types<size>::Elf_Swxword r_addend,
+    Mips_input_section* pmis,
+    bool* is_reloc_added)
+{
+  gold_assert(this->new_insn_ != NULL);
+  const int reloc_size =
+    Reloc_types<elfcpp::SHT_RELA, size, big_endian>::reloc_size;
+  Reltype_write reloc_current(preloc_current);
+
+  if (this->r_type_ == elfcpp::R_MICROMIPS_PC25_S1)
+    {
+      // Change existing relocation.
+      reloc_current.put_r_info(
+        elfcpp::elf_r_info<size>(r_sym, elfcpp::R_MICROMIPS_PCHI20));
+      reloc_current.put_r_addend(-4);
+
+      // Add new relocation.
+      unsigned char new_reloc[reloc_size];
+      Reltype_write reloc_new(new_reloc);
+
+      reloc_new.put_r_info(
+        elfcpp::elf_r_info<size>(r_sym, elfcpp::R_MICROMIPS_PCLO12));
+      reloc_new.put_r_addend(0);
+      reloc_new.put_r_offset(r_offset + 4);
+      pmis->add_reloc(new_reloc, reloc_size);
+      *is_reloc_added = true;
+
+      // Write instructions.
+      this->put_insn_32(insn_view, this->new_insn_->expand_opcode1);
+      this->put_insn_32(insn_view + 4, this->new_insn_->expand_opcode2);
+      Valtype16 jump_insn =
+        static_cast<Valtype16>(this->new_insn_->expand_opcode3);
+      elfcpp::Swap<16, big_endian>::writeval(insn_view + 8, jump_insn);
+    }
+  else if (this->r_type_ == elfcpp::R_MICROMIPS_PC21_S1)
+    {
+       // Write move16 insn.
+       unsigned int rd = ((this->insn_ >> 24) & 0x1) + 4;
+       unsigned int rt = ((this->insn_ >> 21) & 0x17);
+       Valtype16 move_insn =
+         static_cast<Valtype16>(this->new_insn_->expand_opcode1);
+       move_insn |= ((rd << 5) | rt);
+       elfcpp::Swap<16, big_endian>::writeval(insn_view, move_insn);
+
+       if (this->new_insn_->expand_opcode4 == 0)
+         {
+           // Expansion to move16, balc.
+           // Change existing relocation.
+           reloc_current.put_r_info(
+             elfcpp::elf_r_info<size>(r_sym, elfcpp::R_MICROMIPS_PC25_S1));
+           reloc_current.put_r_offset(r_offset + 2);
+
+           // Write instruction.
+           this->put_insn_32(insn_view + 2, this->new_insn_->expand_opcode2);
+         }
+       else
+         {
+           // Expansion to move16, auipc, addiu, jalrc[16].
+           // Change existing relocation.
+           reloc_current.put_r_info(
+             elfcpp::elf_r_info<size>(r_sym, elfcpp::R_MICROMIPS_PCHI20));
+           reloc_current.put_r_addend(-4);
+           reloc_current.put_r_offset(r_offset + 2);
+
+           // Add new relocation.
+           unsigned char new_reloc[reloc_size];
+           Reltype_write reloc_new(new_reloc);
+
+           reloc_new.put_r_info(
+             elfcpp::elf_r_info<size>(r_sym, elfcpp::R_MICROMIPS_PCLO12));
+           reloc_new.put_r_addend(0);
+           reloc_new.put_r_offset(r_offset + 6);
+           pmis->add_reloc(new_reloc, reloc_size);
+           *is_reloc_added = true;
+
+           // Write instructions.
+           this->put_insn_32(insn_view + 2, this->new_insn_->expand_opcode2);
+           this->put_insn_32(insn_view + 6, this->new_insn_->expand_opcode3);
+           Valtype16 jalrc_insn =
+             static_cast<Valtype16>(this->new_insn_->expand_opcode4);
+           elfcpp::Swap<16, big_endian>::writeval(insn_view + 10, jalrc_insn);
+         }
+    }
+  else if (this->r_type_ == elfcpp::R_MICROMIPS_PC11_S1)
+    {
+      // Write addiu $at, $zero, imm insn.
+      Valtype32 addiu_insn =
+        this->new_insn_->expand_opcode1 | ((this->insn_ >> 11) & 0x7f);
+      this->put_insn_32(insn_view, addiu_insn);
+
+      // Change existing relocation.
+      reloc_current.put_r_info(
+        elfcpp::elf_r_info<size>(r_sym, elfcpp::R_MICROMIPS_PC14_S1));
+      reloc_current.put_r_offset(r_offset + 4);
+
+      // Write b<cc>c instruction.
+      Valtype32 b_cc_c_insn =
+        this->new_insn_->expand_opcode2 | (this->treg_32() << 16);
+      this->put_insn_32(insn_view + 4, b_cc_c_insn);
+    }
+  else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL19_S2
+           || this->r_type_ == elfcpp::R_MICROMIPS_GPREL18)
+    {
+      // Change existing relocation.
+      reloc_current.put_r_info(
+        elfcpp::elf_r_info<size>(r_sym, elfcpp::R_MICROMIPS_GPRELHI20));
+
+      // Add new relocation.
+      unsigned char new_reloc[reloc_size];
+      Reltype_write reloc_new(new_reloc);
+
+      reloc_new.put_r_info(
+        elfcpp::elf_r_info<size>(r_sym, elfcpp::R_MICROMIPS_GPRELLO12));
+      reloc_new.put_r_addend(r_addend);
+      reloc_new.put_r_offset(r_offset + 8);
+      pmis->add_reloc(new_reloc, reloc_size);
+      *is_reloc_added = true;
+
+      // Write instructions.
+      Valtype32 ld_st =
+        this->new_insn_->expand_opcode3 | (this->treg_32() << 21);
+      this->put_insn_32(insn_view, this->new_insn_->expand_opcode1);
+      this->put_insn_32(insn_view + 4, this->new_insn_->expand_opcode2);
+      this->put_insn_32(insn_view + 8, ld_st);
+    }
+  else if (micromips_16bit_reloc(this->r_type_))
+    {
+      // Expansion from 16 bit to 32 bit instructions.
+      Valtype32 expand_insn = this->new_insn_->expand_opcode1;
+      unsigned int expand_r_type;
+
+      if (this->r_type_ == elfcpp::R_MICROMIPS_PC10_S1)
+        {
+          expand_r_type = elfcpp::R_MICROMIPS_PC25_S1;
+          reloc_current.put_r_addend(r_addend - 2);
+        }
+      else if (this->r_type_ == elfcpp::R_MICROMIPS_PC7_S1)
+        {
+          unsigned int treg32 = this->reg_16_to_32(this->treg_16());
+          expand_insn |= (treg32 << 21);
+
+          expand_r_type = elfcpp::R_MICROMIPS_PC20_S1;
+          reloc_current.put_r_addend(r_addend - 2);
+        }
+      else if (this->r_type_ == elfcpp::R_MICROMIPS_PC4_S1)
+        {
+          unsigned int treg32 = this->reg_16_to_32(this->treg_16());
+          unsigned int sreg32 = this->reg_16_to_32(this->sreg_16());
+          expand_insn |= ((treg32 << 21) | (sreg32 << 16));
+
+          expand_r_type = elfcpp::R_MICROMIPS_PC14_S1;
+          reloc_current.put_r_addend(r_addend - 2);
+        }
+      else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL7_S2)
+        {
+          unsigned int treg32 = this->reg_16_to_32(this->treg_16());
+          expand_insn |= (treg32 << 21);
+
+          expand_r_type = elfcpp::R_MICROMIPS_GPREL19_S2;
+        }
+      else if (this->r_type_ == elfcpp::R_MICROMIPS_LO4_S2)
+        {
+          unsigned int sreg32 = this->reg_16_to_32(this->sreg_16());
+          unsigned int treg32 = this->treg_16();
+
+          // Convert 16bit to 32bit target register in sw instruction.
+          if ((this->insn_ & 0xfc00) == 0xf400)
+            treg32 = ((treg32 == 1) ? treg32 + 16 : treg32);
+          else
+            treg32 = this->reg_16_to_32(treg32);
+
+          expand_insn |= ((treg32 << 21) | (sreg32 << 16));
+          expand_r_type = elfcpp::R_MICROMIPS_LO12;
+        }
+      else
+        gold_unreachable();
+
+      // Update current relocation.
+      reloc_current.put_r_info(elfcpp::elf_r_info<size>(r_sym, expand_r_type));
+      // Write expanded instruction.
+      this->put_insn_32(insn_view, expand_insn);
+    }
+  else
+    gold_unreachable();
+}
+
+// Mips_input_section methods.
+
+// Initialize a Mips_input_section.
+
+void
+Mips_input_section::init(unsigned int reloc_shndx)
+{
+  Relobj* relobj = this->relobj();
+  unsigned int data_shndx = this->shndx();
+
+  // Cache alignment of the original file.
+  this->addralign_ = relobj->section_addralign(data_shndx);
+
+  // Copy content from input section.
+  section_size_type section_size;
+  const unsigned char* section_contents =
+    relobj->section_contents(data_shndx, &section_size, false);
+  gold_assert(this->section_contents_.empty());
+  this->section_contents_.append(
+    reinterpret_cast<const char*>(section_contents), section_size);
+
+  // Copy relocations for this section.
+  section_size_type relocs_size;
+  const unsigned char* relocs =
+    relobj->section_contents(reloc_shndx, &relocs_size, false);
+  gold_assert(this->rel_.empty());
+  this->rel_.append(reinterpret_cast<const char*>(relocs), relocs_size);
+
+  // Set address and offset.
+  Output_section* os = this->output_section();
+  off_t offset = relobj->output_section_offset(data_shndx);
+  gold_assert(!relobj->is_output_section_offset_invalid(data_shndx));
+  this->set_address(os->address() + offset);
+  this->set_file_offset(os->offset() + offset);
+}
+
+// Write data to output file.
+
+void
+Mips_input_section::do_write(Output_file* of)
+{
+  // Write out the section content.
+  gold_assert(!this->section_contents_.empty());
+  of->write(this->offset(), this->section_contents_.data(),
+            this->section_contents_.size());
+}
+
 // Mips_copy_relocs methods.
 
 // Emit any saved relocs.
@@ -9093,6 +10471,65 @@ Target_mips<size, big_endian>::la25_stub_section(Layout* layout)
                                       this->la25_stub_, ORDER_TEXT, false);
     }
   return this->la25_stub_;
+}
+
+// Relaxation hook.  This is where we do relaxations and expansions of
+// microMIPS instructions.
+
+template<int size, bool big_endian>
+bool
+Target_mips<size, big_endian>::do_relax(
+    int pass,
+    const Input_objects* input_objects,
+    Symbol_table* symtab,
+    Layout* layout,
+    const Task* task)
+{
+  // For now, we only do relaxations and expansions for microMIPSR7.
+  if (!this->is_output_r7() || !this->is_output_micromips())
+    return false;
+
+  // Set the state to RELAX if a -relax option is passed.
+  if (pass == 1
+      && parameters->options().relax())
+    this->state_ = RELAX;
+
+  // Whether we need to continue doing relaxations or expansions.
+  bool again = false;
+  // Whether the state is changed from RELAX to EXPAND.
+  bool state_changed;
+
+  do
+    {
+      state_changed = false;
+      // Scan relocs for relaxations or expansions.
+      for (Input_objects::Relobj_iterator p = input_objects->relobj_begin();
+           p != input_objects->relobj_end();
+           ++p)
+        {
+          Mips_relobj<size, big_endian>* mips_relobj =
+            Mips_relobj<size, big_endian>::as_mips_relobj(*p);
+
+          // Lock the object so we can read from it.  This is only called
+          // single-threaded from Layout::finalize, so it is OK to lock.
+          Task_lock_obj<Object> tl(task, mips_relobj);
+          if (mips_relobj->scan_sections_for_relax_or_expand(this, symtab, layout))
+            again = true;
+        }
+
+      // Change the state to EXPAND if we are done with relaxations.
+      if (!again
+          && this->state_ == RELAX)
+        {
+          this->state_ = EXPAND;
+          state_changed = true;
+        }
+    }
+  // If the state is changed, we don't want to call relaxation pass because
+  // there is no changes in previous state.
+  while (state_changed);
+
+  return again;
 }
 
 // Process the relocations to determine unreferenced sections for
@@ -10414,6 +11851,41 @@ Target_mips<size, big_endian>::relocate_section(
   typedef Target_mips<size, big_endian> Mips;
   typedef typename Target_mips<size, big_endian>::Relocate Mips_relocate;
 
+  // See if we are relocating a relaxed input section.  If so, the view
+  // covers the whole output section and we need to adjust accordingly.
+  if (needs_special_offset_handling)
+    {
+      const Output_relaxed_input_section* poris =
+        output_section->find_relaxed_input_section(relinfo->object,
+                                                   relinfo->data_shndx);
+      const Mips_input_section* pmis =
+        Mips_input_section::as_mips_input_section(poris);
+
+      if (pmis != NULL)
+        {
+          Mips_address section_address = pmis->address();
+          section_size_type section_size = pmis->data_size();
+
+          gold_assert((section_address >= address)
+                      && ((section_address + section_size)
+                          <= (address + view_size)));
+
+          off_t offset = section_address - address;
+          view += offset;
+          address += offset;
+          view_size = section_size;
+          prelocs = pmis->relocs();
+
+          unsigned int reloc_size;
+          if (sh_type == elfcpp::SHT_REL)
+            reloc_size = elfcpp::Elf_sizes<size>::rel_size;
+          else
+            reloc_size = elfcpp::Elf_sizes<size>::rela_size;
+
+          reloc_count = pmis->relocs_size() / reloc_size;
+        }
+    }
+
   if (sh_type == elfcpp::SHT_REL)
     {
       typedef Mips_classify_reloc<elfcpp::SHT_REL, size, big_endian>
@@ -10670,6 +12142,43 @@ Target_mips<size, big_endian>::relocate_relocs(
                         unsigned char* reloc_view,
                         section_size_type reloc_view_size)
 {
+  const Mips_address invalid_address = static_cast<Mips_address>(0) - 1;
+
+  // See if we are relocating relocs for a relaxed input section.  If so,
+  // the view covers the whole output section and we need to adjust accordingly.
+  if (offset_in_output_section == invalid_address)
+    {
+      const Output_relaxed_input_section* poris =
+        output_section->find_relaxed_input_section(relinfo->object,
+                                                   relinfo->data_shndx);
+      const Mips_input_section* pmis =
+        Mips_input_section::as_mips_input_section(poris);
+
+      if (pmis != NULL)
+        {
+          Mips_address section_address = pmis->address();
+          section_size_type section_size = pmis->data_size();
+
+          gold_assert((section_address >= view_address)
+                      && ((section_address + section_size)
+                          <= (view_address + view_size)));
+
+          off_t offset = section_address - view_address;
+          view += offset;
+          view_address += offset;
+          view_size = section_size;
+          prelocs = pmis->relocs();
+
+          unsigned int reloc_size;
+          if (sh_type == elfcpp::SHT_REL)
+            reloc_size = elfcpp::Elf_sizes<size>::rel_size;
+          else
+            reloc_size = elfcpp::Elf_sizes<size>::rela_size;
+
+          reloc_count = pmis->relocs_size() / reloc_size;
+        }
+    }
+
   if (sh_type == elfcpp::SHT_REL)
     {
       typedef Mips_classify_reloc<elfcpp::SHT_REL, size, big_endian>
@@ -10706,6 +12215,342 @@ Target_mips<size, big_endian>::relocate_relocs(
     }
   else
     gold_unreachable();
+}
+
+// Scan an input section for relaxations and expansions.
+
+template<int size, bool big_endian>
+bool
+Target_mips<size, big_endian>::scan_section_for_relax_or_expand(
+    const Relocate_info<size, big_endian>* relinfo,
+    unsigned int sh_type,
+    const unsigned char* prelocs,
+    size_t reloc_count,
+    Output_section* os,
+    Mips_input_section* pmis,
+    const unsigned char* view,
+    Mips_address view_address)
+{
+  // This is only enabled for uMIPS++.
+  gold_assert(sh_type == elfcpp::SHT_RELA);
+
+  return this->scan_reloc_section_for_relax_or_expand<elfcpp::SHT_RELA>(
+           relinfo,
+           prelocs,
+           reloc_count,
+           os,
+           pmis,
+           view,
+           view_address);
+}
+
+// Make a new Mips_input_section object.
+
+template<int size, bool big_endian>
+Mips_input_section*
+Target_mips<size, big_endian>::new_mips_input_section(
+    Mips_relobj<size, big_endian>* mips_relobj,
+    const Relocate_info<size, big_endian>* relinfo,
+    Output_section* os)
+{
+  unsigned int data_shndx = relinfo->data_shndx;
+
+  Mips_input_section* pmis = new Mips_input_section(mips_relobj, data_shndx, os);
+  pmis->init(relinfo->reloc_shndx);
+  mips_relobj->convert_input_section_to_relaxed_section(data_shndx);
+
+  return pmis;
+}
+
+// Update content for relaxations or expansions.
+
+template<int size, bool big_endian>
+template<int sh_type>
+void
+Target_mips<size, big_endian>::update_content(
+    Mips_input_section* pmis,
+    Mips_relobj<size, big_endian>* mips_relobj,
+    Mips_address address,
+    int count)
+{
+  typedef typename Reloc_types<sh_type, size, big_endian>::Reloc
+    Reltype;
+  typedef typename Reloc_types<sh_type, size, big_endian>::Reloc_write
+    Reltype_write;
+  const int reloc_size = Reloc_types<sh_type, size, big_endian>::reloc_size;
+
+  if (this->state_ == RELAX)
+    // Delete the bytes.
+    pmis->relax(address, abs(count));
+  else
+    // Add the bytes.
+    pmis->expand(address, count);
+
+  size_t reloc_count = pmis->relocs_size() / reloc_size;
+  const unsigned char* preloc_read = pmis->relocs();
+  unsigned char* preloc_write = pmis->relocs();
+
+  // Adjust all the relocs.
+  for (size_t i = 0; i < reloc_count; ++i)
+    {
+      Reltype reloc(preloc_read);
+      Reltype_write reloc_write(preloc_write);
+      Mips_address r_offset = reloc.get_r_offset();
+
+      if (r_offset >= address)
+        reloc_write.put_r_offset(r_offset + count);
+
+      preloc_read += reloc_size;
+      preloc_write += reloc_size;
+    }
+
+  // Adjust the local and global symbols defined in this section.
+  unsigned int shndx = pmis->shndx();
+  mips_relobj->adjust_local_symbols(address, shndx, count);
+  mips_relobj->adjust_global_symbols(address, shndx, count);
+}
+
+// This function scans a relocation sections for relaxations or expansions.
+
+template<int size, bool big_endian>
+template<int sh_type>
+bool inline
+Target_mips<size, big_endian>::scan_reloc_section_for_relax_or_expand(
+    const Relocate_info<size, big_endian>* relinfo,
+    const unsigned char* prelocs,
+    size_t reloc_count,
+    Output_section* os,
+    Mips_input_section* pmis,
+    const unsigned char* view,
+    Mips_address view_address)
+{
+  typedef typename Reloc_types<sh_type, size, big_endian>::Reloc Reltype;
+  const int reloc_size = Reloc_types<sh_type, size, big_endian>::reloc_size;
+  bool again = false;
+
+  Mips_relobj<size, big_endian>* mips_relobj =
+    Mips_relobj<size, big_endian>::as_mips_relobj(relinfo->object);
+  const unsigned int local_count = mips_relobj->local_symbol_count();
+
+  gold::Default_comdat_behavior default_comdat_behavior;
+  Comdat_behavior comdat_behavior = CB_UNDETERMINED;
+  Relocatable_relocs* rr = relinfo->rr;
+  Micromips_insn<size, big_endian> insn;
+
+  for (size_t i = 0; i < reloc_count; ++i)
+    {
+      Reltype reloc(prelocs + i * reloc_size);
+
+      typename elfcpp::Elf_types<size>::Elf_WXword r_info = reloc.get_r_info();
+      unsigned int r_sym = elfcpp::elf_r_sym<size>(r_info);
+      unsigned int r_type = elfcpp::elf_r_type<size>(r_info);
+      Mips_address r_offset = reloc.get_r_offset();
+
+      // If this isn't something that can be relaxed or expand, then ignore
+      // this relocation.
+      if (((this->state_ == RELAX) && !is_relax_reloc(r_type))
+          || ((this->state_ == EXPAND) && !is_expand_reloc(r_type)))
+        continue;
+
+      section_offset_type offset = convert_to_section_size_type(r_offset);
+
+      Symbol_value<size> symval;
+      const Symbol_value<size>* psymval;
+      bool is_defined_in_discarded_section;
+      unsigned int shndx;
+      if (r_sym < local_count)
+        {
+          psymval = mips_relobj->local_symbol(r_sym);
+
+          // If the local symbol belongs to a section we are discarding,
+          // and that section is a debug section, try to find the
+          // corresponding kept section and map this symbol to its
+          // counterpart in the kept section.  The symbol must not
+          // correspond to a section we are folding.
+          bool is_ordinary;
+          shndx = psymval->input_shndx(&is_ordinary);
+          is_defined_in_discarded_section =
+            (is_ordinary
+             && shndx != elfcpp::SHN_UNDEF
+             && !mips_relobj->is_section_included(shndx)
+             && !relinfo->symtab->is_section_folded(mips_relobj, shndx));
+
+          // We need to compute the would-be final value of this local
+          // symbol.
+          if (!is_defined_in_discarded_section)
+            {
+              typedef Sized_relobj_file<size, big_endian> ObjType;
+              symval = *psymval;
+              typename ObjType::Compute_final_local_value_status status =
+                mips_relobj->compute_final_local_value(r_sym, psymval, &symval,
+                                                       relinfo->symtab);
+              if (status != ObjType::CFLV_OK)
+                continue;
+              psymval = &symval;
+            }
+        }
+      else
+        {
+          const Symbol* gsym = mips_relobj->global_symbol(r_sym);
+          gold_assert(gsym != NULL);
+          if (gsym->is_forwarder())
+            gsym = relinfo->symtab->resolve_forwards(gsym);
+
+          // Ignore reference to weak undefined symbols.
+          if (gsym->is_weak_undefined())
+            continue;
+
+          // We need to compute the would-be final value of this global
+          // symbol.
+          const Symbol_table* symtab = relinfo->symtab;
+          const Sized_symbol<size>* sized_symbol =
+            symtab->get_sized_symbol<size>(gsym);
+          Symbol_table::Compute_final_value_status status;
+          Mips_address value =
+            symtab->compute_final_value<size>(sized_symbol, &status);
+          if (status != Symbol_table::CFVS_OK)
+            continue;
+
+          symval.set_output_value(value);
+          psymval = &symval;
+
+          is_defined_in_discarded_section =
+            (gsym->is_defined_in_discarded_section()
+             && gsym->is_undefined());
+          shndx = 0;
+        }
+
+      Symbol_value<size> symval2;
+      if (is_defined_in_discarded_section)
+        {
+          if (comdat_behavior == CB_UNDETERMINED)
+            {
+              std::string name = mips_relobj->section_name(relinfo->data_shndx);
+              comdat_behavior = default_comdat_behavior.get(name.c_str());
+            }
+          if (comdat_behavior == CB_PRETEND)
+            {
+              // FIXME: This case does not work for global symbols.
+              // We have no place to store the original section index.
+              // Fortunately this does not matter for comdat sections,
+              // only for sections explicitly discarded by a linker
+              // script.
+              bool found;
+              typename elfcpp::Elf_types<size>::Elf_Addr value =
+                mips_relobj->map_to_kept_section(shndx, &found);
+              if (found)
+                symval2.set_output_value(value + psymval->input_value());
+              else
+                symval2.set_output_value(0);
+            }
+          else
+            {
+              if (comdat_behavior == CB_WARNING)
+                gold_warning_at_location(relinfo, i, offset,
+                                         _("relocation refers to discarded "
+                                           "section"));
+              symval2.set_output_value(0);
+            }
+          psymval = &symval2;
+        }
+
+      // Relocation value.
+      Valtype value;
+      typename elfcpp::Elf_types<size>::Elf_Swxword r_addend =
+        reloc.get_r_addend();
+
+      // Calculate relocation value.
+      switch (r_type)
+        {
+        case elfcpp::R_MICROMIPS_PC25_S1:
+        case elfcpp::R_MICROMIPS_PC21_S1:
+        case elfcpp::R_MICROMIPS_PC20_S1:
+        case elfcpp::R_MICROMIPS_PC14_S1:
+        case elfcpp::R_MICROMIPS_PC11_S1:
+        case elfcpp::R_MICROMIPS_PC10_S1:
+        case elfcpp::R_MICROMIPS_PC7_S1:
+        case elfcpp::R_MICROMIPS_PC4_S1:
+          value =
+            psymval->value(mips_relobj, r_addend) - (view_address + offset);
+          break;
+        case elfcpp::R_MICROMIPS_LO12:
+        case elfcpp::R_MICROMIPS_LO4_S2:
+          value = psymval->value(mips_relobj, r_addend) & 0xfff;
+          break;
+        case elfcpp::R_MICROMIPS_GPREL19_S2:
+        case elfcpp::R_MICROMIPS_GPREL18:
+        case elfcpp::R_MICROMIPS_GPREL7_S2:
+          {
+            if (this->gp_ == NULL)
+              continue;
+
+            // We need to compute the would-be final value of the gp.
+            const Symbol_table* symtab = relinfo->symtab;
+            Symbol_table::Compute_final_value_status status;
+            Mips_address gp =
+              symtab->compute_final_value<size>(this->gp_, &status);
+
+            if (status != Symbol_table::CFVS_OK)
+              continue;
+
+            value = psymval->value(mips_relobj, r_addend) - gp;
+            break;
+          }
+        default:
+          gold_unreachable();
+        }
+
+      // Initialize microMIPS instruction.
+      insn.init(view + offset, r_type);
+
+      if (((this->state_ == RELAX) && insn.can_relax(value))
+          || ((this->state_ == EXPAND) && insn.must_expand(value)))
+        {
+          // That will change things, so we should relax or expand again.
+          again = true;
+
+          // Create a new relaxed input section if needed.
+          if (pmis == NULL)
+            pmis = this->new_mips_input_section(mips_relobj, relinfo, os);
+
+          // Update content for relaxation or expansion.
+          this->update_content<sh_type>(pmis, mips_relobj,
+                                        r_offset + insn.offset(),
+                                        insn.count());
+
+          unsigned char* insn_view = pmis->section_contents() + offset;
+          unsigned char* preloc_current = pmis->relocs() + i * reloc_size;
+
+          if (this->state_ == RELAX)
+            insn.relax(insn_view, preloc_current, r_sym, r_addend);
+          else
+            {
+              bool is_reloc_added = false;
+              insn.expand(insn_view, preloc_current, r_sym, r_offset, r_addend,
+                          pmis, &is_reloc_added);
+
+              // For new relocation, we just use strategy from current relocation.
+              // This is used for --emit-relocs option.
+              if (rr != NULL && is_reloc_added)
+                rr->set_next_reloc_strategy(rr->strategy(i));
+            }
+
+          // Update pointers in case they are changed.
+          prelocs = pmis->relocs();
+          view = pmis->section_contents();
+        }
+    }
+
+  if (again)
+    {
+      // Update size of the section.
+      pmis->reset_data_size();
+      pmis->finalize_data_size();
+
+      os->set_section_offsets_need_adjustment();
+    }
+
+  return again;
 }
 
 // Perform target-specific processing in a relocatable link.  This is
@@ -12766,6 +14611,11 @@ Target_mips<size, big_endian>::Relocate::relocate(
           reloc_status = Reloc_funcs::relmicromips_lo12(view, object, psymval,
                                                         r_addend);
           break;
+        case elfcpp::R_MICROMIPS_LO4_S2:
+          reloc_status = Reloc_funcs::relmicromips_lo4_s2(view, object, psymval,
+                                                          r_addend,
+                                                          &overflow_info);
+          break;
         case elfcpp::R_MICROMIPS_PCHI20:
           reloc_status = Reloc_funcs::relmicromips_pchi20(view, object,
                                                           psymval, address,
@@ -12775,6 +14625,16 @@ Target_mips<size, big_endian>::Relocate::relocate(
           reloc_status = Reloc_funcs::relmicromips_pclo12(view, object,
                                                           psymval, address,
                                                           r_addend);
+          break;
+        case elfcpp::R_MICROMIPS_GPRELHI20:
+          reloc_status = Reloc_funcs::relmicromips_gprelhi20(view, object,
+                                     psymval, target->adjusted_gp_value(object),
+                                     r_addend, gsym == NULL);
+          break;
+        case elfcpp::R_MICROMIPS_GPRELLO12:
+          reloc_status = Reloc_funcs::relmicromips_gprello12(view, object,
+                                     psymval, target->adjusted_gp_value(object),
+                                     r_addend, gsym == NULL);
           break;
         default:
           gold_error_at_location(relinfo, relnum, r_offset,
@@ -12878,6 +14738,7 @@ Target_mips<size, big_endian>::Scan::get_reference_flags(
     case elfcpp::R_MICROMIPS_LO16:
     case elfcpp::R_MICROMIPS_HI20:
     case elfcpp::R_MICROMIPS_LO12:
+    case elfcpp::R_MICROMIPS_LO4_S2:
       return Symbol::ABSOLUTE_REF;
 
     case elfcpp::R_MIPS_26:
@@ -12899,6 +14760,10 @@ Target_mips<size, big_endian>::Scan::get_reference_flags(
     case elfcpp::R_MICROMIPS_GPREL16_S2:
     case elfcpp::R_MICROMIPS_GPREL14:
     case elfcpp::R_MICROMIPS_GPREL7_S2:
+    case elfcpp::R_MICROMIPS_PCHI20:
+    case elfcpp::R_MICROMIPS_PCLO12:
+    case elfcpp::R_MICROMIPS_GPRELHI20:
+    case elfcpp::R_MICROMIPS_GPRELLO12:
       return Symbol::RELATIVE_REF;
 
     case elfcpp::R_MIPS_PC16:
