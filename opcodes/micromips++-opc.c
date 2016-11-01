@@ -202,7 +202,7 @@ decode_micromipspp_operand (const char *p)
 	case '.': BIT (2, 9, 0);		/* (0 .. 3) */
 /* 	case ';': SPECIAL (10, 16, SAME_RS_RT); */
 	case '1': UINT (18, 0);
-	case '2': INT_ADJ (16, 2, 2, 0, FALSE);
+	case '2': INT_ADJ (16, 2, (1 << 16)-1, 2, FALSE);
 	case '6': SINT_SPLIT (4, 0, 0, 1, 4);
 	}
       break;

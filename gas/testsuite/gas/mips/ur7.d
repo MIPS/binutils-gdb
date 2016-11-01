@@ -4126,6 +4126,16 @@ Disassembly of section \.text:
 0+396c <test_spec107\+0x22> be5c      	movep	a2,a3,s4,s2
 0+396e <test_spec107\+0x24> be7c      	movep	a2,a3,s4,s3
 0+3970 <test_spec107\+0x26> be9c      	movep	a2,a3,s4,s4
-0+3972 <test_spec107\+0x28> 9008      	nop
-0+3974 <test_spec107\+0x2a> 9008      	nop
-0+3976 <test_spec107\+0x2c> 9008      	nop
+0+3972 <test_spec107\+0x28> 446c 0000 	lwc1	\$f3,0\(gp\)
+0+3976 <test_spec107\+0x2c> 446c 0000 	lwc1	\$f3,0\(gp\)
+0+397a <test_spec107\+0x30> 446c 0004 	lwc1	\$f3,4\(gp\)
+0+397e <test_spec107\+0x34> 446c 4000 	lwc1	\$f3,16384\(gp\)
+0+3982 <test_spec107\+0x38> 446f fffc 	lwc1	\$f3,262140\(gp\)
+0+3986 <test_spec107\+0x3c> 446c 0001 	swc1	\$f3,0\(gp\)
+0+398a <test_spec107\+0x40> 446c 0001 	swc1	\$f3,0\(gp\)
+0+398e <test_spec107\+0x44> 446c 0005 	swc1	\$f3,4\(gp\)
+0+3992 <test_spec107\+0x48> 446c 4001 	swc1	\$f3,16384\(gp\)
+0+3996 <test_spec107\+0x4c> 446f fffd 	swc1	\$f3,262140\(gp\)
+0+399a <test_spec107\+0x50> 9008      	nop
+0+399c <test_spec107\+0x52> 9008      	nop
+0+399e <test_spec107\+0x54> 9008      	nop

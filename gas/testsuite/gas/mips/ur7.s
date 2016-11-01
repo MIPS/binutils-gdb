@@ -4868,6 +4868,19 @@ test_spec107:
 	movep	$4, $7, $20, $18
 	movep	$4, $7, $20, $19
 	movep	$4, $7, $20, $20
+
+	lwc1	$f3, ($28)
+	lwc1	$f3, 0($28)
+	lwc1	$f3, 4($28)
+	lwc1	$f3, 16384($gp)
+	lwc1	$f3, 262140($gp)
+
+	swc1	$f3, ($28)
+	swc1	$f3, 0($28)
+	swc1	$f3, 4($28)
+	swc1	$f3, 16384($28)
+	swc1	$f3, 262140($28)
+
 /*
 	.ifndef	insn32
 	bals	test_spec107
