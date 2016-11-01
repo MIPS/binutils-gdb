@@ -173,8 +173,8 @@ enum
   R_MICROMIPS_GPREL18 = 196,
   R_MICROMIPS_GPREL19_S2 = 197,
   R_MICROMIPS_PC4_S1 = 198,
-  R_MICROMIPS_GPREL18_S3 = 199,
-  R_MICROMIPS_GPREL16_S2 = 200,
+  R_MICROMIPS_GPREL16_S2 = 199,
+  R_MICROMIPS_GPREL18_S3 = 200,
 
   // This was a GNU extension used by embedded-PIC.  It was co-opted by
   // mips-linux for exception-handling data.  GCC stopped using it in
