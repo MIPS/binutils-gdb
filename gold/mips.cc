@@ -3044,6 +3044,76 @@ class Micromips_insn
   offset() const
   { return this->offset_; }
 
+  // For debugging purposes.
+  void
+  print_relax(const std::string& obj_name, const std::string& sec_name,
+              unsigned int r_offset) const
+  {
+    const char* r_type;
+    const char* r_type_relax;
+    if (this->r_type_ == elfcpp::R_MICROMIPS_PC25_S1)
+      {
+        r_type = "R_MICROMIPS_PC25_S1";
+        r_type_relax = "R_MICROMIPS_PC10_S1";
+      }
+    else if (this->r_type_ == elfcpp::R_MICROMIPS_PC20_S1)
+      {
+        r_type = "R_MICROMIPS_PC20_S1";
+        r_type_relax = "R_MICROMIPS_PC7_S1";
+      }
+    else if (this->r_type_ == elfcpp::R_MICROMIPS_PC14_S1)
+      {
+        r_type = "R_MICROMIPS_PC14_S1";
+        r_type_relax = "R_MICROMIPS_PC4_S1";
+      }
+    else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL19_S2)
+      {
+        r_type = "R_MICROMIPS_GPREL19_S2";
+        r_type_relax = "R_MICROMIPS_GPREL7_S2";
+      }
+    else if (this->r_type_ == elfcpp::R_MICROMIPS_LO12)
+      {
+        r_type = "R_MICROMIPS_LO12";
+        r_type_relax = "R_MICROMIPS_LO4_S2";
+      }
+
+    fprintf(stderr, "%s(%s+0x%x): %s is relaxed to %s\n",
+            obj_name.c_str(), sec_name.c_str(), r_offset,
+            r_type, r_type_relax);
+  }
+
+  // For debugging purposes.
+  void
+  print_expand(const std::string& obj_name, const std::string& sec_name,
+               unsigned int r_offset) const
+  {
+    const char* r_type;
+    if (this->r_type_ == elfcpp::R_MICROMIPS_PC25_S1)
+      r_type = "R_MICROMIPS_PC25_S1";
+    else if (this->r_type_ == elfcpp::R_MICROMIPS_PC21_S1)
+      r_type = "R_MICROMIPS_PC21_S1";
+    else if (this->r_type_ == elfcpp::R_MICROMIPS_PC11_S1)
+        r_type = "R_MICROMIPS_PC11_S1";
+    else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL19_S2)
+        r_type = "R_MICROMIPS_GPREL19_S2";
+    else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL18)
+        r_type = "R_MICROMIPS_GPREL18";
+    else if (this->r_type_ == elfcpp::R_MICROMIPS_PC10_S1)
+      r_type = "R_MICROMIPS_PC10_S1";
+    else if (this->r_type_ == elfcpp::R_MICROMIPS_PC7_S1)
+      r_type = "R_MICROMIPS_PC7_S1";
+    else if (this->r_type_ == elfcpp::R_MICROMIPS_PC4_S1)
+        r_type = "R_MICROMIPS_PC4_S1";
+    else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL7_S2)
+        r_type = "R_MICROMIPS_GPREL7_S2";
+    else if (this->r_type_ == elfcpp::R_MICROMIPS_LO4_S2)
+        r_type = "R_MICROMIPS_LO4_S2";
+
+    fprintf(stderr, "%s(%s+0x%x): %s expanded\n",
+            obj_name.c_str(), sec_name.c_str(), r_offset,
+            r_type);
+  }
+
  private:
   // Match instruction.
   bool
@@ -10502,6 +10572,14 @@ Target_mips<size, big_endian>::do_relax(
   do
     {
       state_changed = false;
+      if (is_debugging_enabled(DEBUG_TARGET))
+        {
+          if (this->state_ == RELAX)
+            fprintf(stderr, "%d pass: Relaxations\n", pass);
+          else
+            fprintf(stderr, "%d pass: Expansions\n", pass);
+        }
+
       // Scan relocs for relaxations or expansions.
       for (Input_objects::Relobj_iterator p = input_objects->relobj_begin();
            p != input_objects->relobj_end();
@@ -12522,12 +12600,21 @@ Target_mips<size, big_endian>::scan_reloc_section_for_relax_or_expand(
           unsigned char* preloc_current = pmis->relocs() + i * reloc_size;
 
           if (this->state_ == RELAX)
-            insn.relax(insn_view, preloc_current, r_sym, r_addend);
+            {
+              insn.relax(insn_view, preloc_current, r_sym, r_addend);
+              if (is_debugging_enabled(DEBUG_TARGET))
+                insn.print_relax(mips_relobj->name(),
+                                 mips_relobj->section_name(relinfo->data_shndx),
+                                 r_offset);
+            }
           else
             {
               bool is_reloc_added = false;
               insn.expand(insn_view, preloc_current, r_sym, r_offset, r_addend,
                           pmis, &is_reloc_added);
+              if (is_debugging_enabled(DEBUG_TARGET))
+                insn.print_expand(mips_relobj->name(),
+                      mips_relobj->section_name(relinfo->data_shndx), r_offset);
 
               // For new relocation, we just use strategy from current relocation.
               // This is used for --emit-relocs option.
