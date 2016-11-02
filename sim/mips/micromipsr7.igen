@@ -231,7 +231,7 @@
   if (op == 0)
     GPR[rd] = do_load (SD_, AccessLength_BYTE, GPR[base], GPR[index]);
   else if (op == 1)
-    GPR[rd] = EXTEND8 (do_load (SD_, AccessLength_HALFWORD, GPR[base],
+    GPR[rd] = EXTEND8 (do_load (SD_, AccessLength_BYTE, GPR[base],
                                 GPR[index]));
   else if (op == 2)
     GPR[rd] = EXTEND16 (do_load (SD_, AccessLength_HALFWORD, GPR[base],
