@@ -464,6 +464,7 @@ micromips_reloc(unsigned int r_type)
     case elfcpp::R_MICROMIPS_PCLO12:
     case elfcpp::R_MICROMIPS_GPREL_HI20:
     case elfcpp::R_MICROMIPS_GPREL_LO12:
+    case elfcpp::R_MICROMIPS_32:
       return true;
 
     default:
@@ -5035,26 +5036,6 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     return check_overflow<16>(x, CHECK_SIGNED);
   }
 
-  // R_MIPS_32: S + A
-  static inline typename This::Status
-  rel32(unsigned char* view, const Mips_relobj<size, big_endian>* object,
-        const Symbol_value<size>* psymval, Mips_address addend_a,
-        bool extract_addend, bool calculate_only, Valtype* calculated_value)
-  {
-    Valtype32* wv = reinterpret_cast<Valtype32*>(view);
-    Valtype addend = (extract_addend
-                        ? elfcpp::Swap<32, big_endian>::readval(wv)
-                        : addend_a);
-    Valtype x = psymval->value(object, addend);
-
-    if (calculate_only)
-      *calculated_value = x;
-    else
-      elfcpp::Swap<32, big_endian>::writeval(wv, x);
-
-    return This::STATUS_OKAY;
-  }
-
   // R_MIPS_JALR, R_MICROMIPS_JALR
   static inline typename This::Status
   reljalr(unsigned char* view, const Mips_relobj<size, big_endian>* object,
@@ -6672,6 +6653,18 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     val = Bits<12>::bit_select32(val, x, 0xfff);
     elfcpp::Swap<32, big_endian>::writeval(wv, val);
 
+    return This::STATUS_OKAY;
+  }
+
+  // R_MIPS_32, R_MICROMIPS_32
+  static inline typename This::Status
+  rel32(unsigned char* view, const Mips_relobj<size, big_endian>* object,
+        const Symbol_value<size>* psymval, Mips_address addend)
+  {
+    Valtype32* wv = reinterpret_cast<Valtype32*>(view);
+    Valtype x = psymval->value(object, addend);
+
+    elfcpp::Swap<32, big_endian>::writeval(wv, x);
     return This::STATUS_OKAY;
   }
 };
@@ -14190,9 +14183,8 @@ Target_mips<size, big_endian>::Relocate::relocate(
         case elfcpp::R_MIPS_32:
           if (should_apply_static_reloc(mips_sym, r_types[i], output_section,
                                         target))
-            reloc_status = Reloc_funcs::rel32(view, object, psymval, r_addend,
-                                              extract_addend, calculate_only,
-                                              &calculated_value);
+            reloc_status = Reloc_funcs::rel32(view, object, psymval, r_addend);
+
           if (mips_sym != NULL
               && (mips_sym->is_mips16() || mips_sym->is_micromips())
               && mips_sym->global_got_area() == GGA_RELOC_ONLY)
@@ -14723,6 +14715,9 @@ Target_mips<size, big_endian>::Relocate::relocate(
                                      psymval, target->adjusted_gp_value(object),
                                      r_addend, gsym == NULL);
           break;
+        case elfcpp::R_MICROMIPS_32:
+          reloc_status = Reloc_funcs::rel32(view, object, psymval, r_addend);
+          break;
         default:
           gold_error_at_location(relinfo, relnum, r_offset,
                                  _("unsupported reloc %u"), r_types[i]);
@@ -14826,6 +14821,7 @@ Target_mips<size, big_endian>::Scan::get_reference_flags(
     case elfcpp::R_MICROMIPS_HI20:
     case elfcpp::R_MICROMIPS_LO12:
     case elfcpp::R_MICROMIPS_LO4_S2:
+    case elfcpp::R_MICROMIPS_32:
       return Symbol::ABSOLUTE_REF;
 
     case elfcpp::R_MIPS_26:
