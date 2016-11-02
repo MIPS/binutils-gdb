@@ -2206,3 +2206,20 @@
   COP_LD (1, FT, do_load (SD_, AccessLength_DOUBLEWORD, GPR[RS], EXTEND16 (U)));
   TRACE_ALU_RESULT(GPR[FT]);
 }
+
+100001,5.FT,5.BASE,1010,12.OFFSET:P.LS.U12:32::LWC1
+"lwc1 f<FT>, <OFFSET>(r<BASE>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_lwc1 (SD_, FT, OFFSET, BASE);
+}
+
+111001,5.BASE,5.FT,16.OFFSET:COP1:32,f::SWC1
+"swc1 f<FT>, <OFFSET>(r<BASE>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_swc1 (SD_, FT, OFFSET, BASE, instruction_0);
+}
+
