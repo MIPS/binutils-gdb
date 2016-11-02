@@ -462,8 +462,8 @@ micromips_reloc(unsigned int r_type)
     case elfcpp::R_MICROMIPS_LO12:
     case elfcpp::R_MICROMIPS_PCHI20:
     case elfcpp::R_MICROMIPS_PCLO12:
-    case elfcpp::R_MICROMIPS_GPRELHI20:
-    case elfcpp::R_MICROMIPS_GPRELLO12:
+    case elfcpp::R_MICROMIPS_GPREL_HI20:
+    case elfcpp::R_MICROMIPS_GPREL_LO12:
       return true;
 
     default:
@@ -6622,12 +6622,12 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     return This::STATUS_OKAY;
   }
 
-  // R_MICROMIPS_GPRELHI20
+  // R_MICROMIPS_GPREL_HI20
   static inline typename This::Status
-  relmicromips_gprelhi20(unsigned char* view,
-                         const Mips_relobj<size, big_endian>* object,
-                         const Symbol_value<size>* psymval, Mips_address gp,
-                         Mips_address addend, bool local)
+  relmicromips_gprel_hi20(unsigned char* view,
+                          const Mips_relobj<size, big_endian>* object,
+                          const Symbol_value<size>* psymval, Mips_address gp,
+                          Mips_address addend, bool local)
   {
     Valtype32* wv = reinterpret_cast<Valtype32*>(view);
     Valtype32 val = elfcpp::Swap<32, big_endian>::readval(wv);
@@ -6649,12 +6649,12 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     return This::STATUS_OKAY;
   }
 
-  // R_MICROMIPS_GPRELLO12
+  // R_MICROMIPS_GPREL_LO12
   static inline typename This::Status
-  relmicromips_gprello12(unsigned char* view,
-                         const Mips_relobj<size, big_endian>* object,
-                         const Symbol_value<size>* psymval, Mips_address gp,
-                         Mips_address addend, bool local)
+  relmicromips_gprel_lo12(unsigned char* view,
+                          const Mips_relobj<size, big_endian>* object,
+                          const Symbol_value<size>* psymval, Mips_address gp,
+                          Mips_address addend, bool local)
   {
     Valtype32* wv = reinterpret_cast<Valtype32*>(view);
     Valtype32 val = elfcpp::Swap<32, big_endian>::readval(wv);
@@ -10014,14 +10014,14 @@ Micromips_insn<size, big_endian>::expand(
     {
       // Change existing relocation.
       reloc_current.put_r_info(
-        elfcpp::elf_r_info<size>(r_sym, elfcpp::R_MICROMIPS_GPRELHI20));
+        elfcpp::elf_r_info<size>(r_sym, elfcpp::R_MICROMIPS_GPREL_HI20));
 
       // Add new relocation.
       unsigned char new_reloc[reloc_size];
       Reltype_write reloc_new(new_reloc);
 
       reloc_new.put_r_info(
-        elfcpp::elf_r_info<size>(r_sym, elfcpp::R_MICROMIPS_GPRELLO12));
+        elfcpp::elf_r_info<size>(r_sym, elfcpp::R_MICROMIPS_GPREL_LO12));
       reloc_new.put_r_addend(r_addend);
       reloc_new.put_r_offset(r_offset + 8);
       pmis->add_reloc(new_reloc, reloc_size);
@@ -14716,13 +14716,13 @@ Target_mips<size, big_endian>::Relocate::relocate(
                                                           psymval, address,
                                                           r_addend);
           break;
-        case elfcpp::R_MICROMIPS_GPRELHI20:
-          reloc_status = Reloc_funcs::relmicromips_gprelhi20(view, object,
+        case elfcpp::R_MICROMIPS_GPREL_HI20:
+          reloc_status = Reloc_funcs::relmicromips_gprel_hi20(view, object,
                                      psymval, target->adjusted_gp_value(object),
                                      r_addend, gsym == NULL);
           break;
-        case elfcpp::R_MICROMIPS_GPRELLO12:
-          reloc_status = Reloc_funcs::relmicromips_gprello12(view, object,
+        case elfcpp::R_MICROMIPS_GPREL_LO12:
+          reloc_status = Reloc_funcs::relmicromips_gprel_lo12(view, object,
                                      psymval, target->adjusted_gp_value(object),
                                      r_addend, gsym == NULL);
           break;
@@ -14852,8 +14852,8 @@ Target_mips<size, big_endian>::Scan::get_reference_flags(
     case elfcpp::R_MICROMIPS_GPREL7_S2:
     case elfcpp::R_MICROMIPS_PCHI20:
     case elfcpp::R_MICROMIPS_PCLO12:
-    case elfcpp::R_MICROMIPS_GPRELHI20:
-    case elfcpp::R_MICROMIPS_GPRELLO12:
+    case elfcpp::R_MICROMIPS_GPREL_HI20:
+    case elfcpp::R_MICROMIPS_GPREL_LO12:
       return Symbol::RELATIVE_REF;
 
     case elfcpp::R_MIPS_PC16:
