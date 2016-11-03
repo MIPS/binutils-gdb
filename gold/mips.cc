@@ -3077,6 +3077,8 @@ class Micromips_insn
         r_type = "R_MICROMIPS_LO12";
         r_type_relax = "R_MICROMIPS_LO4_S2";
       }
+    else
+      gold_unreachable ();
 
     fprintf(stderr, "%s(%s+0x%x): %s is relaxed to %s\n",
             obj_name.c_str(), sec_name.c_str(), r_offset,
@@ -3109,6 +3111,8 @@ class Micromips_insn
         r_type = "R_MICROMIPS_GPREL7_S2";
     else if (this->r_type_ == elfcpp::R_MICROMIPS_LO4_S2)
         r_type = "R_MICROMIPS_LO4_S2";
+    else
+      gold_unreachable ();
 
     fprintf(stderr, "%s(%s+0x%x): %s expanded\n",
             obj_name.c_str(), sec_name.c_str(), r_offset,
