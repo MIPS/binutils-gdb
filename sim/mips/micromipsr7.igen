@@ -315,6 +315,17 @@
   return "";
 }
 
+:%s::::LI48_IMM:int U
+*micromips32r7:
+*micromips64r7:
+{
+  unsigned16 U2 = do_load (SD_, AccessLength_HALFWORD, CIA + 4, 0);
+  unsigned32 total = U << 16 | U2;
+  char str[32];
+  sprintf(str, "%u", total);
+  return str;
+}
+
 00000000000000000000000000000000:R7DUMMY:32,f::DUMMY0.fmt
 "dummy 0"
 *mips32r7:
@@ -2170,15 +2181,18 @@
   sim_io_printf (SD, "Not implemented");
 }
 
-// FIXME: 48-bit instructions don't work yet
-011000,5.RT,00000,32.U:R7POOL48I:48::LI48
-"li r<RT>, <U>"
+// FIXME: there should be a better way to implement 48-bit instructions
+011000,5.RT,00000,16.LI48_IMM:R7POOL48I:32::LI48
+"li r<RT>, %s<LI48_IMM>"
 *micromips32r7:
 *micromips64r7:
 {
-  TRACE_ALU_INPUT2(GPR[RT], U);
-  GPR[RT] = U;
+  unsigned16 U2 = do_load (SD_, AccessLength_HALFWORD, CIA + 4, 0);
+  unsigned32 total = LI48_IMM << 16 | U2;
+  TRACE_ALU_INPUT2(GPR[RT], total);
+  GPR[RT] = total;
   TRACE_ALU_RESULT(GPR[RT]);
+  NIA = CIA + 6;
 }
 
 //////////////////////////////////////////////////////////////////////
