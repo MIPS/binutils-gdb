@@ -2087,7 +2087,7 @@
 {
   // TODO check: unaligned_support=always
   address_word base = GPR[RS];
-  address_word index = GPR[S_9_BIT];
+  address_word index = S_9_BIT;
   address_word vaddr = base + index;
   /* Arrange for the bottom 2 bits of (base + index) to be 0.  */
   if ((vaddr & 0x3) != 0)
@@ -2105,7 +2105,7 @@
 {
   // TODO check: unaligned_support=always
   address_word base = GPR[RS];
-  address_word index = GPR[S_9_BIT];
+  address_word index = S_9_BIT;
   address_word vaddr = base + index;
   /* Arrange for the bottom 2 bits of (base + index) to be 0.  */
   if ((vaddr & 0x3) != 0)
