@@ -846,14 +846,12 @@
 
 :function:::void:do_lb:int rt, int offset, int base
 {
-  GPR[rt] = EXTEND8 (do_load (SD_, AccessLength_BYTE, GPR[base],
-			      EXTEND16 (offset)));
+  GPR[rt] = EXTEND8 (do_load (SD_, AccessLength_BYTE, GPR[base], offset));
 }
 
 :function:::void:do_lh:int rt, int offset, int base
 {
-  GPR[rt] = EXTEND16 (do_load (SD_, AccessLength_HALFWORD, GPR[base],
-			       EXTEND16 (offset)));
+  GPR[rt] = EXTEND16 (do_load (SD_, AccessLength_HALFWORD, GPR[base], offset));
 }
 
 :function:::void:do_lwr:int rt, int offset, int base
@@ -876,8 +874,7 @@
 
 :function:::void:do_lw:int rt, int offset, int base
 {
-  GPR[rt] = EXTEND32 (do_load (SD_, AccessLength_WORD, GPR[base],
-			       EXTEND16 (offset)));
+  GPR[rt] = EXTEND32 (do_load (SD_, AccessLength_WORD, GPR[base], offset));
 }
 
 :function:::void:do_lwu:int rt, int offset, int base, address_word instruction_0
@@ -888,7 +885,7 @@
 
 :function:::void:do_lhu:int rt, int offset, int base
 {
-  GPR[rt] = do_load (SD_, AccessLength_HALFWORD, GPR[base], EXTEND16 (offset));
+  GPR[rt] = do_load (SD_, AccessLength_HALFWORD, GPR[base], offset);
 }
 
 :function:::void:do_ldc:int num, int rt, int offset, int base
@@ -899,7 +896,7 @@
 
 :function:::void:do_lbu:int rt, int offset, int base
 {
-  GPR[rt] = do_load (SD_, AccessLength_BYTE, GPR[base], EXTEND16 (offset));
+  GPR[rt] = do_load (SD_, AccessLength_BYTE, GPR[base], offset);
 }
 
 :function:::void:do_ll:int rt, int insn_offset, int basereg
@@ -2037,12 +2034,12 @@
 
 
 
-:function:::void:do_addiu:int rs, int rt, unsigned16 immediate
+:function:::void:do_addiu:int rs, int rt, int immediate
 {
   if (NotWordValue (GPR[rs]))
     Unpredictable ();
-  TRACE_ALU_INPUT2 (GPR[rs], EXTEND16 (immediate));
-  GPR[rt] = EXTEND32 (GPR[rs] + EXTEND16 (immediate));
+  TRACE_ALU_INPUT2 (GPR[rs], immediate);
+  GPR[rt] = EXTEND32 (GPR[rs] + immediate);
   TRACE_ALU_RESULT (GPR[rt]);
 }
 
@@ -2063,7 +2060,7 @@
 *vr5000:
 *r3900:
 {
-  do_addiu (SD_, RS, RT, IMMEDIATE);
+  do_addiu (SD_, RS, RT, EXTEND16(IMMEDIATE));
 }
 
 
@@ -3642,7 +3639,7 @@
 *vr5000:
 *r3900:
 {
-  do_lb (SD_,RT,OFFSET,BASE);
+  do_lb (SD_,RT,EXTEND16(OFFSET),BASE);
 }
 
 
@@ -3663,7 +3660,7 @@
 *vr5000:
 *r3900:
 {
-  do_lbu (SD_, RT,OFFSET,BASE);
+  do_lbu (SD_, RT,EXTEND16(OFFSET),BASE);
 }
 
 
@@ -3750,7 +3747,7 @@
 *vr5000:
 *r3900:
 {
-  do_lh (SD_,RT,OFFSET,BASE);
+  do_lh (SD_,RT,EXTEND16(OFFSET),BASE);
 }
 
 
@@ -3771,7 +3768,7 @@
 *vr5000:
 *r3900:
 {
-  do_lhu (SD_,RT,OFFSET,BASE);
+  do_lhu (SD_,RT,EXTEND16(OFFSET),BASE);
 }
 
 
@@ -3845,7 +3842,7 @@
 *vr5000:
 *r3900:
 {
-  do_lw (SD_,RT,OFFSET,BASE);
+  do_lw (SD_,RT,EXTEND16(OFFSET),BASE);
 }
 
 
@@ -4824,10 +4821,10 @@
 }
 
 
-:function:::void:do_slti:int rs, int rt, unsigned16 immediate
+:function:::void:do_slti:int rs, int rt, signed_word immediate
 {
-  TRACE_ALU_INPUT2 (GPR[rs], EXTEND16 (immediate));
-  GPR[rt] = ((signed_word) GPR[rs] < (signed_word) EXTEND16 (immediate));
+  TRACE_ALU_INPUT2 (GPR[rs], immediate);
+  GPR[rt] = ((signed_word) GPR[rs] < immediate);
   TRACE_ALU_RESULT (GPR[rt]);
 }
 
@@ -4848,14 +4845,14 @@
 *vr5000:
 *r3900:
 {
-  do_slti (SD_, RS, RT, IMMEDIATE);
+  do_slti (SD_, RS, RT, EXTEND16 (IMMEDIATE));
 }
 
 
-:function:::void:do_sltiu:int rs, int rt, unsigned16 immediate
+:function:::void:do_sltiu:int rs, int rt, unsigned_word immediate
 {
-  TRACE_ALU_INPUT2 (GPR[rs], EXTEND16 (immediate));
-  GPR[rt] = ((unsigned_word) GPR[rs] < (unsigned_word) EXTEND16 (immediate));
+  TRACE_ALU_INPUT2 (GPR[rs], immediate);
+  GPR[rt] = ((unsigned_word) GPR[rs] < immediate);
   TRACE_ALU_RESULT (GPR[rt]);
 }
 
@@ -4876,7 +4873,7 @@
 *vr5000:
 *r3900:
 {
-  do_sltiu (SD_, RS, RT, IMMEDIATE);
+  do_sltiu (SD_, RS, RT, EXTEND16 (IMMEDIATE));
 }
 
 
@@ -6960,10 +6957,9 @@
 *vr4100:
 *vr5000:
 
-:function:::void:do_cache:int op, int rbase, int roffset, address_word instruction_0
+:function:::void:do_cache:int op, int rbase, address_word offset, address_word instruction_0
 {
   address_word base = GPR[rbase];
-  address_word offset = EXTEND16 (roffset);
   {
     address_word vaddr = loadstore_ea (SD_, base, offset);
     address_word paddr;
@@ -6986,7 +6982,7 @@
 *vr5000:
 *r3900:
 {
-  do_cache (SD_, OP, BASE, OFFSET, instruction_0);
+  do_cache (SD_, OP, BASE, EXTEND16(OFFSET), instruction_0);
 }
 
 

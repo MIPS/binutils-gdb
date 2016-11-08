@@ -419,7 +419,7 @@
 *micromips32r6:
 *micromips64r6:
 {
-  do_lsa (SD_, RD, RS, RT, IMM);
+  do_lsa (SD_, RD, RS, RT, IMM + 1);
 }
 
 010110,5.RT,5.RS,5.RD,2.IMM,100001000:R6POOL32S:64::DLSA
