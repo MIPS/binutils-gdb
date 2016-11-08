@@ -664,7 +664,7 @@
 *mips16:
 *vr4100:
 {
-  do_slti (SD_, TRX, T8IDX, IMMED);
+  do_slti (SD_, TRX, T8IDX, EXTEND16 (IMMED));
 }
 
 11110,6.IMM_10_5,5.IMM_15_11 + 01010,3.RX,000,5.IMM_4_0:EXT-RI:16::SLTI
@@ -672,7 +672,7 @@
 *mips16:
 *vr4100:
 {
-  do_slti (SD_, TRX, T8IDX, IMMEDIATE);
+  do_slti (SD_, TRX, T8IDX, EXTEND16 (IMMEDIATE));
 }
 
 
@@ -682,7 +682,7 @@
 *mips16:
 *vr4100:
 {
-  do_sltiu (SD_, TRX, T8IDX, IMMED);
+  do_sltiu (SD_, TRX, T8IDX, EXTEND16 (IMMED));
 }
 
 11110,6.IMM_10_5,5.IMM_15_11 + 01011,3.RX,000,5.IMM_4_0:EXT-RI:16::SLTIU
@@ -690,7 +690,7 @@
 *mips16:
 *vr4100:
 {
-  do_sltiu (SD_, TRX, T8IDX, IMMEDIATE);
+  do_sltiu (SD_, TRX, T8IDX, EXTEND16 (IMMEDIATE));
 }
 
 

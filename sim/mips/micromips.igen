@@ -194,7 +194,7 @@
 *micromips64:
 *micromips64r6:
 {
-  do_addiu (SD_, SPIDX, TRD, IMMEDIATE << 2);
+  do_addiu (SD_, SPIDX, TRD, EXTEND16(IMMEDIATE << 2));
 }
 
 
@@ -205,7 +205,7 @@
 *micromips64:
 *micromips64r6:
 {
-  do_addiu (SD_, TRS, TRD, IMM_DEC1);
+  do_addiu (SD_, TRS, TRD, EXTEND16(IMM_DEC1));
 }
 
 
@@ -216,7 +216,7 @@
 *micromips64:
 *micromips64r6:
 {
-  do_addiu (SD_, RD, RD, IMM_DEC2);
+  do_addiu (SD_, RD, RD, EXTEND16(IMM_DEC2));
 }
 
 
@@ -227,7 +227,7 @@
 *micromips64:
 *micromips64r6:
 {
-  do_addiu (SD_, SPIDX, SPIDX, IMM_DEC3 << 2);
+  do_addiu (SD_, SPIDX, SPIDX, EXTEND16(IMM_DEC3 << 2));
 }
 
 
@@ -336,7 +336,7 @@
 *micromips64r6:
 {
   address_word temp = RA;
-  do_addiu (SD_, SPIDX, SPIDX, immediate << 2);
+  do_addiu (SD_, SPIDX, SPIDX, EXTEND16(immediate << 2));
   return process_isa_mode (SD_, temp);
 }
 
@@ -719,7 +719,7 @@
 *micromips64:
 *micromips64r6:
 {
-  do_addiu (SD_, RS, RT, IMMEDIATE);
+  do_addiu (SD_, RS, RT, EXTEND16(IMMEDIATE));
 }
 
 
@@ -1265,7 +1265,7 @@
 *micromips64:
 *micromips64r6:
 {
-  do_lb (SD_, RT, IMMEDIATE, BASE);
+  do_lb (SD_, RT, EXTEND16(IMMEDIATE), BASE);
 }
 
 
@@ -1284,7 +1284,7 @@
 *micromips64:
 *micromips64r6:
 {
-  do_lbu (SD_, RT, IMMEDIATE, BASE);
+  do_lbu (SD_, RT, EXTEND16(IMMEDIATE), BASE);
 }
 
 
@@ -1330,7 +1330,7 @@
 *micromips64:
 *micromips64r6:
 {
-  do_lh (SD_, RT, IMMEDIATE, BASE);
+  do_lh (SD_, RT, EXTEND16(IMMEDIATE), BASE);
 }
 
 
@@ -1349,7 +1349,7 @@
 *micromips64:
 *micromips64r6:
 {
-  do_lhu (SD_, RT, IMMEDIATE, BASE);
+  do_lhu (SD_, RT, EXTEND16(IMMEDIATE), BASE);
 }
 
 
@@ -1412,7 +1412,7 @@
 *micromips64:
 *micromips64r6:
 {
-  do_lw (SD_, RT, IMMEDIATE, BASE);
+  do_lw (SD_, RT, EXTEND16(IMMEDIATE), BASE);
 }
 
 
@@ -2111,7 +2111,7 @@
 *micromips64:
 *micromips64r6:
 {
-  do_slti (SD_, RS, RT, IMMEDIATE);
+  do_slti (SD_, RS, RT, EXTEND16 (IMMEDIATE));
 }
 
 
@@ -2122,7 +2122,7 @@
 *micromips64:
 *micromips64r6:
 {
-  do_sltiu (SD_, RS, RT, IMMEDIATE);
+  do_sltiu (SD_, RS, RT, EXTEND16 (IMMEDIATE));
 }
 
 

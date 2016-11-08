@@ -792,7 +792,7 @@
 
 :function:::void:do_lsa:int rd, int rs, int rt, unsigned immediate
 {
-  unsigned32 t = GPR[rs] << (immediate + 1);
+  unsigned32 t = GPR[rs] << immediate;
   GPR[rd] = EXTEND32(GPR[rt] + t);
   TRACE_ALU_RESULT (GPR[rd]);
 }
@@ -1090,7 +1090,7 @@
 *mips32r6:
 *mips64r6:
 {
-  do_lsa (SD_, RD, RS, RT, IMM);
+  do_lsa (SD_, RD, RS, RT, IMM + 1);
 }
 
 000000,5.RS,5.RT,5.RD,000,2.IMM,010101:SPECIAL:64::DLSA
@@ -1417,7 +1417,7 @@
 *mips32r6:
 *mips64r6:
 {
-  do_cache (SD_, HINT, BASE, OFFSET, instruction_0);
+  do_cache (SD_, HINT, BASE, EXTEND16(OFFSET), instruction_0);
 }
 
 
