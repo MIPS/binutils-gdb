@@ -688,13 +688,16 @@ enum ExceptionCause {
    is used by gdb for break-points.  NOTE: Care must be taken, since 
    this value may be used in later revisions of the MIPS ISA. */
 #define HALT_INSTRUCTION_MASK   (0x03FFFFC0)
+#define HALT_INSTRUCTION_MASKR7 (0x0007FFFF)
 
 #define HALT_INSTRUCTION        (0x03ff000d)
 #define HALT_INSTRUCTION2       (0x0000ffcd)
+#define HALT_INSTRUCTIONR7      (0x001003FF)
 
 
 #define BREAKPOINT_INSTRUCTION  (0x0005000d)
 #define BREAKPOINT_INSTRUCTION2 (0x0000014d)
+#define BREAKPOINT_INSTRUCTIONR7  (0x00101400)
 
 
 

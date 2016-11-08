@@ -275,6 +275,30 @@
   return (gpr_list);
 }
 
+:function:::void:do_break_r7:address_word instruction_0
+{
+  /* Check for some break instruction which are reserved for use by the
+     simulator.  */
+  unsigned int break_code = instruction_0 & HALT_INSTRUCTION_MASKR7;
+  if (break_code == (HALT_INSTRUCTIONR7 & HALT_INSTRUCTION_MASKR7))
+    {
+      sim_engine_halt (SD, CPU, NULL, cia,
+           sim_exited, (unsigned int)(A0 & 0xFFFFFFFF));
+    }
+  else if (break_code == (BREAKPOINT_INSTRUCTIONR7 & HALT_INSTRUCTION_MASKR7))
+    {
+      PC = cia;
+      SignalException (BreakPoint, instruction_0);
+    }
+
+  else
+    {
+    /* If we get this far, we're not an instruction reserved by the sim. Raise
+       the exception. */
+      SignalException (BreakPoint, instruction_0);
+    }
+}
+
 :%s::::GP_SAVE:int gp
 *micromips32r7:
 *micromips64r7:
@@ -466,7 +490,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  do_break (SD_, instruction_0);
+  do_break_r7 (SD_, instruction_0);
 }
 
 110110,5.RT,1,0000:R7P16JRC:16::JALRC16
@@ -1039,7 +1063,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  do_break (SD_, instruction_0);
+  do_break_r7 (SD_, instruction_0);
 }
 
 101001,5.OP,5.RS,1.S1,0011001,8.S2:R7PLSS1:32::CACHE
