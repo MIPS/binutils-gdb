@@ -1885,16 +1885,13 @@
 *micromips32r7:
 *micromips64r7:
 {
-  // TODO check: unaligned_support=always
   address_word base = GPR[RS];
-  address_word index = S_9_BIT;
-  address_word vaddr = base + index;
-  /* Arrange for the bottom 2 bits of (base + index) to be 0.  */
-  if ((vaddr & 0x3) != 0)
-    index -= (vaddr & 0x3);
 
   TRACE_ALU_INPUT3(GPR[RT], S_9_BIT, GPR[RS]);
-  GPR[RT] = EXTEND32 (do_load (SD_, AccessLength_WORD, base, index));
+  GPR[RT] = do_load_right (SD_, AccessLength_WORD, base, EXTEND16 (S_9_BIT),
+                           GPR[RT]);
+  GPR[RT] = do_load_left (SD_, AccessLength_WORD, base,
+                          EXTEND16 (S_9_BIT + AccessLength_WORD), GPR[RT]);
   TRACE_ALU_RESULT(GPR[RT]);
 }
 
@@ -1903,18 +1900,9 @@
 *micromips32r7:
 *micromips64r7:
 {
-  // TODO check: unaligned_support=always
-  address_word base = GPR[RS];
-  address_word index = S_9_BIT;
-  address_word vaddr = base + index;
-  /* Arrange for the bottom 2 bits of (base + index) to be 0.  */
-  if ((vaddr & 0x3) != 0)
-    index -= (vaddr & 0x3);
-
-  TRACE_ALU_INPUT3(GPR[RT], S_9_BIT, GPR[RS]);
-  do_store (SD_, AccessLength_WORD, base, index, zero_extend(SD_, GPR[RT], 32));
-  unsigned32 temp = do_load(SD_, AccessLength_WORD, base, index);
-  TRACE_ALU_RESULT(temp);
+  do_store_right (SD_, AccessLength_WORD, GPR[RS], EXTEND16 (S_9_BIT), GPR[RT]);
+  do_store_left (SD_, AccessLength_WORD, GPR[RS],
+                 EXTEND16 (S_9_BIT + AccessLength_WORD), GPR[RT]);
 }
 
 001000,5.RT,5.X,00000,0,1110010,000:R7PDVP:32::DVP
