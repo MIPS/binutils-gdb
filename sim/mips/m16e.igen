@@ -101,6 +101,7 @@
 *mips16e:
 {
   RA = NIA;
+  COP0_COUNT++;
   NIA = GPR[TRX];
 }
 
@@ -208,41 +209,61 @@
   }
   if (args > 0) {
     do_store (SD_, AccessLength_WORD, temp, 0, GPR[4]); 
+    COP0_COUNT++;
     if (args > 1) {
       do_store (SD_,AccessLength_WORD, temp, 4 , GPR[5]); 
+      COP0_COUNT++;
       if (args > 2) {
 	do_store (SD_,AccessLength_WORD, temp, 8 , GPR[6]); 
+        COP0_COUNT++;
 	if (args > 3) {
 	  do_store (SD_,AccessLength_WORD, temp, 12, GPR[7]);
+          COP0_COUNT++;
 	}
       }
     }
   }
 
   if (ras0s1 & 4)
-    do_store (SD_,AccessLength_WORD, temp -= 4, 0, GPR[31]); 
+    {
+      do_store (SD_,AccessLength_WORD, temp -= 4, 0, GPR[31]); 
+      COP0_COUNT++;
+    }
 
   switch (xsregs) {
   case 7:
     do_store (SD_,AccessLength_WORD, temp -= 4, 0, GPR[30]); 
+    COP0_COUNT++;
   case 6:
     do_store (SD_,AccessLength_WORD, temp -= 4, 0, GPR[23]); 
+    COP0_COUNT++;
   case 5:
     do_store (SD_,AccessLength_WORD, temp -= 4, 0, GPR[22]); 
+    COP0_COUNT++;
   case 4:
     do_store (SD_,AccessLength_WORD, temp -= 4, 0, GPR[21]); 
+    COP0_COUNT++;
   case 3:
     do_store (SD_,AccessLength_WORD, temp -= 4, 0, GPR[20]); 
+    COP0_COUNT++;
   case 2:
     do_store (SD_,AccessLength_WORD, temp -= 4, 0, GPR[19]); 
+    COP0_COUNT++;
   case 1:
     do_store (SD_,AccessLength_WORD, temp -= 4, 0, GPR[18]); 
+    COP0_COUNT++;
   }
 
   if (ras0s1 & 1)
-    do_store (SD_,AccessLength_WORD, temp -= 4, 0, GPR[17]); 
+    {
+      do_store (SD_,AccessLength_WORD, temp -= 4, 0, GPR[17]); 
+      COP0_COUNT++;
+    }
   if (ras0s1 & 2)
-    do_store (SD_,AccessLength_WORD, temp -= 4, 0, GPR[16]); 
+    {
+      do_store (SD_,AccessLength_WORD, temp -= 4, 0, GPR[16]); 
+      COP0_COUNT++;
+    }
 
   switch (aregs) {
   case 0: case 4: case 8: case 12: case 14:
@@ -265,18 +286,24 @@
   }
   if (astatic > 0) {
     do_store (SD_, AccessLength_WORD, temp -= 4, 0, GPR[7]);
+    COP0_COUNT++;
     if (astatic > 1) {
       do_store (SD_, AccessLength_WORD, temp -= 4, 0, GPR[6]);
+      COP0_COUNT++;
       if (astatic > 2) {
 	do_store (SD_, AccessLength_WORD, temp -= 4, 0, GPR[5]);
+        COP0_COUNT++;
 	if (astatic > 3) {
 	  do_store (SD_, AccessLength_WORD, temp -= 4, 0, GPR[4]);
+          COP0_COUNT++;
 	}
       }
     }
   }
 
   GPR[29] -= framesize;
+  /* We don't increment the COP0_COUNT register here, because it will be incremented in the 
+     sim_engine_run function when we return.  */ 
 }
 
 01100,100,1,3.RAS,4.FS:I8:16::SAVE
@@ -311,29 +338,45 @@
   /* reads are in the same order as the hardware description... */
 
   if (ras0s1 & 4)
-    GPR[31] = EXTEND32 (do_load(SD_, AccessLength_WORD, temp -= 4, 0));
+    {
+      COP0_COUNT++;
+      GPR[31] = EXTEND32 (do_load(SD_, AccessLength_WORD, temp -= 4, 0));
+    }
 
   switch (xsregs) {
   case 7:
     GPR[30] = EXTEND32 (do_load (SD_,AccessLength_WORD, temp -= 4, 0)); 
+    COP0_COUNT++;
   case 6:
     GPR[23] = EXTEND32 (do_load (SD_,AccessLength_WORD, temp -= 4, 0)); 
+    COP0_COUNT++;
   case 5:
     GPR[22] = EXTEND32 (do_load (SD_,AccessLength_WORD, temp -= 4, 0)); 
+    COP0_COUNT++;
   case 4:
     GPR[21] = EXTEND32 (do_load (SD_,AccessLength_WORD, temp -= 4, 0)); 
+    COP0_COUNT++;
   case 3:
     GPR[20] = EXTEND32 (do_load (SD_,AccessLength_WORD, temp -= 4, 0)); 
+    COP0_COUNT++;
   case 2:
     GPR[19] = EXTEND32 (do_load (SD_,AccessLength_WORD, temp -= 4, 0)); 
+    COP0_COUNT++;
   case 1:
     GPR[18] = EXTEND32 (do_load (SD_,AccessLength_WORD, temp -= 4, 0)); 
+    COP0_COUNT++;
   }
 
   if (ras0s1 & 1)
-    GPR[17] = EXTEND32 (do_load (SD_,AccessLength_WORD, temp -= 4, 0)); 
+    {
+      GPR[17] = EXTEND32 (do_load (SD_,AccessLength_WORD, temp -= 4, 0)); 
+      COP0_COUNT++;
+    }
   if (ras0s1 & 2)
-    GPR[16] = EXTEND32 (do_load (SD_,AccessLength_WORD, temp -= 4, 0)); 
+    {
+      GPR[16] = EXTEND32 (do_load (SD_,AccessLength_WORD, temp -= 4, 0)); 
+      COP0_COUNT++;
+    }
 
   switch (aregs) {
   case 0: case 4: case 8: case 12: case 14:
@@ -356,18 +399,24 @@
   }
   if (astatic > 0) {
     GPR[7] = EXTEND32 (do_load (SD_,AccessLength_WORD, temp -= 4, 0));
+    COP0_COUNT++;
     if (astatic > 1) {
       GPR[6] = EXTEND32 (do_load (SD_,AccessLength_WORD, temp -= 4, 0));
+      COP0_COUNT++;
       if (astatic > 2) {
 	GPR[5] = EXTEND32 (do_load (SD_,AccessLength_WORD, temp -= 4, 0));
+        COP0_COUNT++;
 	if (astatic > 3) {
 	  GPR[4] = EXTEND32 (do_load (SD_,AccessLength_WORD, temp -= 4, 0));
+          COP0_COUNT++;
 	}
       }
     }
   }
 
   GPR[29] = temp2;
+  /* We don't increment the COP0_COUNT register here, because it will be incremented in the 
+     sim_engine_run function when we return.  */ 
 }
 
 01100,100,0,3.RAS,4.FS:I8:16::RESTORE

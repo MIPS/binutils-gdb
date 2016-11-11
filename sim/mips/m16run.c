@@ -57,6 +57,8 @@ sim_engine_run (SIM_DESC sd,
 	  nia = m32_idecode_issue (sd, instruction_0, cia);
 	}
 
+      COP0_COUNT++;
+
 #if defined (ENGINE_ISSUE_POSTFIX_HOOK)
       ENGINE_ISSUE_POSTFIX_HOOK ();
 #endif

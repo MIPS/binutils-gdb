@@ -120,6 +120,8 @@ sim_engine_run (SIM_DESC sd, int next_cpu_nr, int nr_cpus,
 	default:
 	  nia = NULL_CIA;
 	}
+    
+      COP0_COUNT++;
 
 #if defined (ENGINE_ISSUE_POSTFIX_HOOK)
       ENGINE_ISSUE_POSTFIX_HOOK ();

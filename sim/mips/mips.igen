@@ -2227,6 +2227,7 @@
 {
   address_word offset = EXTEND16 (OFFSET) << 2;
   RA = (CIA + 8);
+  COP0_COUNT++;
   DELAY_SLOT (NIA + offset);
 }
 
@@ -3405,6 +3406,7 @@
      current instruction */
   address_word region = (NIA & MASK (63, 28));
   GPR[31] = CIA + 8;
+  COP0_COUNT++;
   DELAY_SLOT (region | (INSTR_INDEX << 2));
 }
 
@@ -3428,6 +3430,7 @@
 {
   address_word temp = GPR[RS];
   GPR[RD] = CIA + 8;
+  COP0_COUNT++;
   DELAY_SLOT (temp);
 }
 
@@ -3441,6 +3444,7 @@
 {
   address_word temp = GPR[RS];
   GPR[RD] = CIA + 8;
+  COP0_COUNT++;
   DELAY_SLOT (temp);
 }
 

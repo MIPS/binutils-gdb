@@ -1148,6 +1148,7 @@
 {
   address_word region = (NIA & MASK (63, 28));
   RA = NIA + 2; /* skip 16 bit delayslot insn */
+  COP0_COUNT++;
   NIA = delayslot16 (SD_, NIA, (region | (IMMEDIATE << 2))) | 1;
 }
 
@@ -1166,6 +1167,7 @@
 {
   address_word region = (NIA & MASK (63, 28));
   RA = NIA + 4; /* skip 32 bit delayslot insn */
+  COP0_COUNT++;
   NIA = delayslot32 (SD_, (region | (IMMED << 2)) | 1);
 }
 
@@ -1176,6 +1178,7 @@
 {
   address_word region = (NIA & MASK (63, 28));
   RA = NIA + 2; /* 16 bit INSN */
+  COP0_COUNT++;
   NIA = delayslot16 (SD_, NIA, (region | (IMMEDIATE << 2)) & ~1);
 }
 
@@ -1206,6 +1209,7 @@
 *vr4100:
 {
   RA = NIA + 2;
+  COP0_COUNT++;
   NIA = delayslot16 (SD_, NIA, GPR[TRX]);
 }
 
@@ -1327,8 +1331,13 @@
   for (i = 0 ; i < (COPY_COUNT << 2) ; i++)
      {
        GPR[12] = EXTEND8 (do_load (SD_, AccessLength_BYTE, GPR[TRX], (COPY_OFFSET + i)));
+       COP0_COUNT++;
        do_store (SD_, AccessLength_BYTE, GPR[TRY], (COPY_OFFSET + i), GPR[12]);
+       COP0_COUNT++;
      }
+   
+  /* Take one off the count register because it will be incremented again in the sim_engine_run function.  */
+  COP0_COUNT--;
 }
 
 11110,5.LSB,1,5.SIZE + 00110,3.RX,3.RY,010,00:EXT-SHIFT:16::EXT
