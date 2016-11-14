@@ -52,6 +52,7 @@
   STATE |= simDELAYSLOT;
   ENGINE_ISSUE_PREFIX_HOOK();
   MICROMIPS_INSTRUCTION_DECODE (SD, CPU, CIA, delayslot_instruction_size);
+  COP0_COUNT++;
   STATE &= ~simDELAYSLOT;
   return target;
 }
@@ -87,6 +88,7 @@
 *micromips64r6:
 {
   RA = (nia + delayslot_instruction_size) | ISA_MODE_MICROMIPS;
+  COP0_COUNT++;
   return delayslot_micromips (SD_, target, nia, delayslot_instruction_size);
 }
 
@@ -843,6 +845,7 @@
   if (RS == 31)
     Unpredictable ();
   RA = (NIA + MICROMIPS_DELAYSLOT_SIZE_32) | ISA_MODE_MICROMIPS;
+  COP0_COUNT++;
   if ((signed_word) GPR[RS] >= 0)
     NIA = delayslot_micromips (SD_, NIA + offset, NIA,
 			       MICROMIPS_DELAYSLOT_SIZE_32);
@@ -871,6 +874,7 @@
   if (RS == 31)
     Unpredictable ();
   RA = (NIA + MICROMIPS_DELAYSLOT_SIZE_16) | ISA_MODE_MICROMIPS;
+  COP0_COUNT++;
   if ((signed_word) GPR[RS] >= 0)
     NIA = delayslot_micromips (SD_, NIA + offset, NIA,
 			       MICROMIPS_DELAYSLOT_SIZE_16);
@@ -912,6 +916,7 @@
   if (RS == 31)
     Unpredictable ();
   RA = (NIA + MICROMIPS_DELAYSLOT_SIZE_32) | ISA_MODE_MICROMIPS;
+  COP0_COUNT++;
   /* NOTE: The branch occurs AFTER the next instruction has been
      executed */
   if ((signed_word) GPR[RS] < 0)
@@ -928,6 +933,7 @@
   if (RS == 31)
     Unpredictable ();
   RA = (NIA + MICROMIPS_DELAYSLOT_SIZE_16) | ISA_MODE_MICROMIPS;
+  COP0_COUNT++;
   if ((signed_word) GPR[RS] < 0)
     NIA = delayslot_micromips (SD_, NIA + offset, NIA,
 			       MICROMIPS_DELAYSLOT_SIZE_16);

@@ -146,6 +146,7 @@
   signal_if_cti (SD_, delay_insn);
   ENGINE_ISSUE_PREFIX_HOOK();
   idecode_issue (CPU_, delay_insn, (CIA));
+  COP0_COUNT++;
   STATE &= ~simDELAYSLOT;
   return target;
 }
@@ -167,6 +168,7 @@
   signal_if_cti (SD_, delay_insn);
   ENGINE_ISSUE_PREFIX_HOOK();
   idecode_issue (CPU_, delay_insn, (CIA));
+  COP0_COUNT++;
   STATE &= ~simFORBIDDENSLOT;
   return CIA + 4;
 }
@@ -2214,6 +2216,7 @@
   if (RS == 31)
     Unpredictable ();
   RA = (CIA + 8);
+  COP0_COUNT++;
   if ((signed_word) GPR[RS] >= 0)
     {
       DELAY_SLOT (NIA + offset);
@@ -2249,6 +2252,7 @@
   if (RS == 31)
     Unpredictable ();
   RA = (CIA + 8);
+  COP0_COUNT++;
   /* NOTE: The branch occurs AFTER the next instruction has been
      executed */
   if ((signed_word) GPR[RS] >= 0)
@@ -2437,6 +2441,7 @@
   if (RS == 31)
     Unpredictable ();
   RA = (CIA + 8);
+  COP0_COUNT++;
   /* NOTE: The branch occurs AFTER the next instruction has been
      executed */
   if ((signed_word) GPR[RS] < 0)
@@ -2477,6 +2482,7 @@
   if (RS == 31)
     Unpredictable ();
   RA = (CIA + 8);
+  COP0_COUNT++;
   if ((signed_word) GPR[RS] < 0)
     {
       DELAY_SLOT (NIA + offset);
