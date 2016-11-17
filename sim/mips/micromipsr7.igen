@@ -48,6 +48,8 @@
 :compute:::int:RS_5_BIT:RS1,RS2:((RS1 << 4) | RS2)
 :compute:::int:TRTZ:RTZ:((RTZ == 1) ? 17 \: RTZ)
 :compute:::int:EU_12_13:EU:((EU == 12) ? 255 \: ((EU == 13) ? 65535 \: EU))
+:compute:::int:RS_MOVE:RS1,RS_CODE_1,RS_CODE_2:((RS1 << 3) | (RS_CODE_1 << 2) | RS_CODE_2)
+:compute:::int:CODE_BREAK:RS_CODE_1,RS_CODE_2:((RS_CODE_1 << 2) | RS_CODE_2)
 
 :function:::unsigned32:compute_gpr2_dest1_reg:int reg
 *micromips32r7:
@@ -433,14 +435,6 @@
     NIA = ADDRESS8;
 }
 
-000100,00000,10,3.CODE:R7P16RI:16::BREAK16
-"break16 %#lx<CODE>"
-*micromips32r7:
-*micromips64r7:
-{
-  do_break_r7 (SD_, instruction_0);
-}
-
 110110,5.RT,1,0000:R7P16JRC:16::JALRC16
 "jalrc r<RT>"
 *micromips32r7:
@@ -546,14 +540,29 @@
   do_lw (SD_, TRD, GPR[TRS] << 2, TRT);
 }
 
-000100,5.RT!0,5.RS:R7P16MOVE:16::MOVE
-"move r<RT>, r<RS>"
+// These four instructions are grouped together because of a bug in GNUSIM
+// pattern recognition
+000100,5.RT,2.RS1,1.RS_CODE_1,2.RS_CODE_2:R7P16MOVE:16::P16MOVE_P16RI
+"move r<RT>, r<RS_MOVE>": RT != 0
+"syscall <RS_CODE_2>": RS1 == 1
+"sdbbp <CODE_BREAK>": RS1 == 3
+"break <CODE_BREAK>"
 *micromips32r7:
 *micromips64r7:
 {
-  TRACE_ALU_INPUT2 (GPR[RT], GPR[RS]);
-  GPR[RT] = GPR[RS];
-  TRACE_ALU_RESULT2 (GPR[RT], GPR[RS]);
+  if (RT == 0) {
+    if (RS1 == 1)
+      SignalException (SystemCall, instruction_0);
+    else if (RS1 == 3)
+      SignalException (DebugBreakPoint, instruction_0);
+    else
+      do_break_r7 (SD_, instruction_0);
+  }
+  else {
+    TRACE_ALU_INPUT2 (GPR[RT], GPR[RS_MOVE]);
+    GPR[RT] = GPR[RS_MOVE];
+    TRACE_ALU_RESULT2 (GPR[RT], GPR[RS_MOVE]);
+  }
 }
 
 101111,1.RT4,1.RD20,3.RT2_0,1.RS4,1.RD21,3.RS2_0:R7MOVEP:16::MOVEP
@@ -674,28 +683,12 @@
   do_store (SD_, AccessLength_WORD, SP, U_SHIFT_2BIT, GPR[RT]);
 }
 
-000100,00000,01,0,2.CODE:R7P16SYSCALL:16::SYSCALL16
-"syscall %#lx<CODE>"
-*micromips32r7:
-*micromips64r7:
-{
-  SignalException (SystemCall, instruction_0);
-}
-
 010100,3.RT,3.RS,01,0,0:R7POOL16C00:16::XOR16
 "xor r<TRT>, r<TRS>"
 *micromips32r7:
 *micromips64r7:
 {
   do_xor (SD_, TRT, TRS, TRT);
-}
-
-000100,00000,11,3.CODE:R7P16RI:16::SDBBP16
-"sdbbp16 %#lx<CODE>"
-*micromips32r7:
-*micromips64r7:
-{
-  SignalException (DebugBreakPoint, instruction_0);
 }
 
 // 32-bit instructions
