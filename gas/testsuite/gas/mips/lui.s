@@ -20,7 +20,9 @@ baz:
 	lui	$2, 4f
 4:
 	lui	$2, min + 1
+	.ifndef r7_broken
 	lui	$2, max - 1
+	.endif
 	.eqv	min, -1
 	.eqv	max, 65536
 

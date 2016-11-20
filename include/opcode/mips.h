@@ -834,7 +834,7 @@ mips_decode_hi20_pcrel_operand (const struct mips_operand *operand,
 {
   const struct mips_pcrel_operand pcrel_op = PCREL_VALUE (operand);
   uval = mips_decode_hi20_operand (operand, uval);
-  return mips_decode_pcrel_operand (&pcrel_op, base_pc, uval);
+  return mips_decode_pcrel_operand (&pcrel_op, base_pc, uval << 12);
 }
 
 /* This structure holds information for a particular instruction.  */

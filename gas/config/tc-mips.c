@@ -5624,9 +5624,9 @@ match_immediate_word (struct mips_arg_info *arg)
 
 /* OP_HI20_INT matcher.  */
 
-#define SIGNED_OPVALUE(OP)					\
+#define UNSIGNED_OPVALUE(OP)					\
 { { OP_INT, OP->size, OP->lsb, OP->size_top, OP->lsb_top },	\
-    ((1 << (OP->size - 1)) - 1), 0, 0, FALSE }
+    ((1 << OP->size) - 1), 0, 0, FALSE }
 
 #define SIGNEX_OPVALUE(OP) { OP_INT, OP->size - 1, OP->lsb, 0, 0 }
 
@@ -5635,7 +5635,7 @@ match_hi20_int_operand (struct mips_arg_info *arg,
 			const struct mips_operand *operand_base)
 {
   unsigned int uval;
-  const struct mips_int_operand op_enc = SIGNED_OPVALUE (operand_base);
+  const struct mips_int_operand op_enc = UNSIGNED_OPVALUE (operand_base);
   const struct mips_operand op_ext = SIGNEX_OPVALUE (operand_base);
   const struct mips_operand op_shuffle = {OP_INT, 19, 12, 10, 2};
 
@@ -10796,7 +10796,7 @@ load_register (int reg, expressionS *ep, int dbl)
 
       if (mips_opts.isa == ISA_MIPS32R7)
 	{
-	  if (ep->X_add_number >= -1 && ep->X_add_number < 126
+	  if (ep->X_add_number >= -1 && ep->X_add_number <= 126
 	      && (reg == 16 || reg == 17 || (reg >= 2 && reg <= 7)))
 	    {
 	      /* 7-bit values loaded using LI[16].  */
@@ -19849,7 +19849,8 @@ mips_fix_adjustable (fixS *fixp)
     {
       asymbol *sym = symbol_get_bfdsym (fixp->fx_addsy);
       asection *sect = (sym == NULL ? NULL : bfd_get_section (sym));
-      if (sect != NULL && (sect->flags & SEC_CODE) != 0)
+      if (sect != NULL && (sect->flags & SEC_CODE) != 0
+	  && ELF_ST_IS_MICROMIPS (S_GET_OTHER (fixp->fx_addsy)))
 	return 0;
     }
 

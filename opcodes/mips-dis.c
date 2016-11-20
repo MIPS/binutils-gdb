@@ -1711,6 +1711,9 @@ print_insn_arg (struct disassemble_info *info,
 	info->target = mips_decode_hi20_pcrel_operand (operand, base_pc,
 						       uval);
 
+	/* PC-relative instruction refers to the next PC value.  */
+	info->target += 4;
+
 	/* Preserve the ISA bit for the GDB disassembler,
 	   otherwise clear it.  */
 	if (info->flavour != bfd_target_unknown_flavour)

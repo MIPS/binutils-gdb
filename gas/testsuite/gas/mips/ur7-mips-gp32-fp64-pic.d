@@ -6,7 +6,7 @@
 .*: +file format.*
 
 Disassembly of section \.text:
-0+0000 <func> e000 0002 	aluipc	gp,00000000 <_gp>
+0+0000 <func> e000 0002 	aluipc	gp,00000004 <_gp\+0x4>
 			0: R_MICROMIPS_PCHI20_M12	_gp
 0+0004 <func\+0x4> e094 5244 	lui	a0,0x12345
 0+0008 <func\+0x8> 8084 0678 	ori	a0,a0,1656
@@ -15,11 +15,11 @@ Disassembly of section \.text:
 0+0010 <func\+0x10> 849c 8000 	lw	a0,0\(gp\)
 			10: R_MICROMIPS_GOT_DISP	\.data
 0+0014 <func\+0x14> 849c 8000 	lw	a0,0\(gp\)
-			14: R_MICROMIPS_GOT_DISP	end
+			14: R_MICROMIPS_GOT_DISP	\.text\+0xea
 0+0018 <func\+0x18> 2800 0000 	bc	00000106 <end\+0x1c>
 			18: R_MICROMIPS_PC25_S1	end-0x4
 0+001c <func\+0x1c> 873c 8000 	lw	t9,0\(gp\)
-			1c: R_MICROMIPS_GOT_DISP	end
+			1c: R_MICROMIPS_GOT_DISP	\.text\+0xea
 0+0020 <func\+0x20> db30      	jalrc	t9
 0+0022 <func\+0x22> 849c 8000 	lw	a0,0\(gp\)
 			22: R_MICROMIPS_GOT_PAGE	\.sdata
@@ -30,9 +30,9 @@ Disassembly of section \.text:
 0+002e <func\+0x2e> 8484 8000 	lw	a0,0\(a0\)
 			2e: R_MICROMIPS_GOT_OFST	\.data
 0+0032 <func\+0x32> 849c 8000 	lw	a0,0\(gp\)
-			32: R_MICROMIPS_GOT_PAGE	end
+			32: R_MICROMIPS_GOT_PAGE	\.text\+0xea
 0+0036 <func\+0x36> 8484 8000 	lw	a0,0\(a0\)
-			36: R_MICROMIPS_GOT_OFST	end
+			36: R_MICROMIPS_GOT_OFST	\.text\+0xea
 0+003a <func\+0x3a> 843c 8000 	lw	at,0\(gp\)
 			3a: R_MICROMIPS_GOT_PAGE	\.sdata
 0+003e <func\+0x3e> 8481 8000 	lw	a0,0\(at\)
@@ -46,11 +46,11 @@ Disassembly of section \.text:
 0+004e <func\+0x4e> 84a1 8000 	lw	a1,0\(at\)
 			4e: R_MICROMIPS_GOT_OFST	\.data\+0x4
 0+0052 <func\+0x52> 843c 8000 	lw	at,0\(gp\)
-			52: R_MICROMIPS_GOT_PAGE	end
+			52: R_MICROMIPS_GOT_PAGE	\.text\+0xea
 0+0056 <func\+0x56> 8481 8000 	lw	a0,0\(at\)
-			56: R_MICROMIPS_GOT_OFST	end
+			56: R_MICROMIPS_GOT_OFST	\.text\+0xea
 0+005a <func\+0x5a> 84a1 8000 	lw	a1,0\(at\)
-			5a: R_MICROMIPS_GOT_OFST	end\+0x4
+			5a: R_MICROMIPS_GOT_OFST	\.text\+0xee
 0+005e <func\+0x5e> 843c 8000 	lw	at,0\(gp\)
 			5e: R_MICROMIPS_GOT_PAGE	\.sdata
 0+0062 <func\+0x62> 8481 9000 	sw	a0,0\(at\)
