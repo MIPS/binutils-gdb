@@ -12235,7 +12235,7 @@ macro (struct mips_cl_insn *ip, char *str)
 	{
 	  macro_build (NULL, "sll", SHFT_FMT, op[0], op[1],
 		       31 - op[2] - op[3]);
-	  macro_build (NULL, "srl", SHFT_FMT, op[0], op[0], 31 - op[2]);
+	  macro_build (NULL, "srl", SHFT_FMT, op[0], op[0], 31 - op[3]);
 	}
       else
 	macro_build (NULL, "srl", SHFT_FMT, op[0], op[0], op[2]);
