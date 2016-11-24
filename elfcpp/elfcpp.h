@@ -175,7 +175,11 @@ enum EM
   EM_88K = 5,
   EM_IAMCU = 6,
   EM_860 = 7,
+#if 0 	// FIXME: Roll-back once new R7 ABI is finalized
   EM_MIPS = 8,
+#else 	// !0
+  EM_MIPS = 0x5237  // Experimental MIPSR7 ABI development
+#endif	// 0
   EM_S370 = 9,
   EM_MIPS_RS3_LE = 10,
   // 11 was the old Sparc V9 ABI.
