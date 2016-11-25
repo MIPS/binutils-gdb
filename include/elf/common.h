@@ -107,7 +107,12 @@
 #define EM_88K		  5	/* Motorola m88k family */
 #define EM_486		  6	/* Intel 80486 *//* Reserved for future use */
 #define EM_860		  7	/* Intel 80860 */
-#define EM_MIPS		  8	/* MIPS R3000 (officially, big-endian only) */
+#if 0  /* FIXME: Roll-back once new R7 ABI is finalized */
+#define EM_MIPS                  8     /* MIPS R3000 (officially, big-endian only) */
+#else  /* !0 */
+#define EM_MIPS                0x5237  /* Experimental MIPSR7 ABI development */
+#endif  /* 0 */
+
 #define EM_S370		  9	/* IBM System/370 */
 #define EM_MIPS_RS3_LE	 10	/* MIPS R3000 little-endian (Oct 4 1999 Draft) Deprecated */
 #define EM_res011	 11	/* Reserved */

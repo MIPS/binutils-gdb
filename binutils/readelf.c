@@ -2061,7 +2061,11 @@ get_machine_name (unsigned e_machine)
     case EM_88K:		return "MC88000";
     case EM_486:		return "Intel 80486";
     case EM_860:		return "Intel 80860";
-    case EM_MIPS:		return "MIPS R3000";
+#if 0  /* FIXME: Roll-back once new R7 ABI is finalized */
+     case EM_MIPS:              return "MIPS R3000";
+#else  /* !0 */
+    case EM_MIPS:              return "MIPS R7 experimental";
+#endif  /* 0 */
     case EM_S370:		return "IBM System/370";
     case EM_MIPS_RS3_LE:	return "MIPS R4000 big-endian";
     case EM_OLD_SPARCV9:	return "Sparc v9 (old)";
