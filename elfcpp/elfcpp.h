@@ -178,7 +178,7 @@ enum EM
 #if 0 	// FIXME: Roll-back once new R7 ABI is finalized
   EM_MIPS = 8,
 #else 	// !0
-  EM_MIPS = 0x5237  // Experimental MIPSR7 ABI development
+  EM_MIPS = 0x5237,  // Experimental MIPSR7 ABI development
 #endif	// 0
   EM_S370 = 9,
   EM_MIPS_RS3_LE = 10,
