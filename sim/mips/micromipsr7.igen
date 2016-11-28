@@ -50,6 +50,9 @@
 :compute:::int:EU_12_13:EU:((EU == 12) ? 255 \: ((EU == 13) ? 65535 \: EU))
 :compute:::int:RS_MOVE:RS1,RS_CODE_1,RS_CODE_2:((RS1 << 3) | (RS_CODE_1 << 2) | RS_CODE_2)
 :compute:::int:CODE_BREAK:RS_CODE_1,RS_CODE_2:((RS_CODE_1 << 2) | RS_CODE_2)
+:compute:::int:TRD_R7:RD:((RD < 4) ? (16 + RD) \: RD)
+:compute:::int:TRS_R7:RS:((RS < 4) ? (16 + RS) \: RS)
+:compute:::int:TRT_R7:RT:((RT < 4) ? (16 + RT) \: RT)
 
 :function:::unsigned32:compute_gpr2_dest1_reg:int reg
 *micromips32r7:
@@ -74,7 +77,7 @@
     case 0: return 5;
     case 1: return 6;
     case 2: return 7;
-    case 3: return 4;
+    case 3: return 8;
     default: return 5;
     }
 }
