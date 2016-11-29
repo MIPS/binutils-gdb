@@ -62,8 +62,8 @@ Disassembly of section \.text:
 0+00c4 <test\+0xc4> 8000 c000 	nop
 0+00c8 <test\+0xc8> 8000 c003 	ehb
 0+00cc <test\+0xcc> 8000 c005 	pause
-0+00d0 <test\+0xd0> d17f      	li	v0,-1
-0+00d2 <test\+0xd2> d1ff      	li	v1,-1
+0+00d0 <test\+0xd0> d17f      	li	s2,-1
+0+00d2 <test\+0xd2> d1ff      	li	s3,-1
 0+00d4 <test\+0xd4> d27f      	li	a0,-1
 0+00d6 <test\+0xd6> d2ff      	li	a1,-1
 0+00d8 <test\+0xd8> d37f      	li	a2,-1
@@ -203,26 +203,26 @@ Disassembly of section \.text:
 0+025a <\.L3\+0xc4> 0050 9fff 	addiu	v0,s0,-1
 0+025e <\.L3\+0xc8> 0051 9fff 	addiu	v0,s1,-1
 0+0262 <\.L3\+0xcc> 0051 0001 	addiu	v0,s1,1
-0+0266 <\.L3\+0xd0> 9111      	addiu	v0,s1,4
-0+0268 <\.L3\+0xd2> 9112      	addiu	v0,s1,8
-0+026a <\.L3\+0xd4> 9113      	addiu	v0,s1,12
-0+026c <\.L3\+0xd6> 9114      	addiu	v0,s1,16
-0+026e <\.L3\+0xd8> 9115      	addiu	v0,s1,20
-0+0270 <\.L3\+0xda> 9116      	addiu	v0,s1,24
-0+0272 <\.L3\+0xdc> 9196      	addiu	v1,s1,24
+0+0266 <\.L3\+0xd0> 9111      	addiu	s2,s1,4
+0+0268 <\.L3\+0xd2> 9112      	addiu	s2,s1,8
+0+026a <\.L3\+0xd4> 9113      	addiu	s2,s1,12
+0+026c <\.L3\+0xd6> 9114      	addiu	s2,s1,16
+0+026e <\.L3\+0xd8> 9115      	addiu	s2,s1,20
+0+0270 <\.L3\+0xda> 9116      	addiu	s2,s1,24
+0+0272 <\.L3\+0xdc> 9196      	addiu	s3,s1,24
 0+0274 <\.L3\+0xde> 9216      	addiu	a0,s1,24
 0+0276 <\.L3\+0xe0> 9296      	addiu	a1,s1,24
 0+0278 <\.L3\+0xe2> 9316      	addiu	a2,s1,24
 0+027a <\.L3\+0xe4> 9396      	addiu	a3,s1,24
 0+027c <\.L3\+0xe6> 9016      	addiu	s0,s1,24
 0+027e <\.L3\+0xe8> 9096      	addiu	s1,s1,24
-0+0280 <\.L3\+0xea> 7140      	addiu	v0,sp,0
-0+0282 <\.L3\+0xec> 7141      	addiu	v0,sp,4
-0+0284 <\.L3\+0xee> 717e      	addiu	v0,sp,248
-0+0286 <\.L3\+0xf0> 717f      	addiu	v0,sp,252
+0+0280 <\.L3\+0xea> 7140      	addiu	s2,sp,0
+0+0282 <\.L3\+0xec> 7141      	addiu	s2,sp,4
+0+0284 <\.L3\+0xee> 717e      	addiu	s2,sp,248
+0+0286 <\.L3\+0xf0> 717f      	addiu	s2,sp,252
 0+0288 <\.L3\+0xf2> 005d 0100 	addiu	v0,sp,256
-0+028c <\.L3\+0xf6> 717f      	addiu	v0,sp,252
-0+028e <\.L3\+0xf8> 71ff      	addiu	v1,sp,252
+0+028c <\.L3\+0xf6> 717f      	addiu	s2,sp,252
+0+028e <\.L3\+0xf8> 71ff      	addiu	s3,sp,252
 0+0290 <\.L3\+0xfa> 727f      	addiu	a0,sp,252
 0+0292 <\.L3\+0xfc> 72ff      	addiu	a1,sp,252
 0+0294 <\.L3\+0xfe> 737f      	addiu	a2,sp,252
@@ -230,7 +230,7 @@ Disassembly of section \.text:
 0+0298 <\.L3\+0x102> 707f      	addiu	s0,sp,252
 0+029a <\.L3\+0x104> 70ff      	addiu	s1,sp,252
 0+029c <\.L3\+0x106> 0064 8000 	addiu	v1,a0,-8192
-0+02a0 <\.L3\+0x10a> 91c0      	addiu	v1,a0,0
+0+02a0 <\.L3\+0x10a> 91c0      	addiu	s3,a0,0
 0+02a2 <\.L3\+0x10c> 0064 1fff 	addiu	v1,a0,8191
 0+02a6 <\.L3\+0x110> 0064 9fff 	addiu	v1,a0,-1
 0+02aa <\.L3\+0x114> 0063 9fff 	addiu	v1,v1,-1
@@ -239,33 +239,33 @@ Disassembly of section \.text:
 0+02b6 <\.L3\+0x120> 2002 b150 	addu	s6,v0,zero
 0+02ba <\.L3\+0x124> 22c0 1150 	addu	v0,zero,s6
 0+02be <\.L3\+0x128> 2040 b150 	addu	s6,zero,v0
-0+02c2 <\.L3\+0x12c> b134      	addu	v0,v1,v0
-0+02c4 <\.L3\+0x12e> b1b4      	addu	v0,v1,v1
-0+02c6 <\.L3\+0x130> b234      	addu	v0,v1,a0
-0+02c8 <\.L3\+0x132> b2b4      	addu	v0,v1,a1
-0+02ca <\.L3\+0x134> b334      	addu	v0,v1,a2
-0+02cc <\.L3\+0x136> b3b4      	addu	v0,v1,a3
-0+02ce <\.L3\+0x138> b034      	addu	v0,v1,s0
-0+02d0 <\.L3\+0x13a> b0b4      	addu	v0,v1,s1
-0+02d2 <\.L3\+0x13c> b0a4      	addu	v0,v0,s1
-0+02d4 <\.L3\+0x13e> b0b4      	addu	v0,v1,s1
-0+02d6 <\.L3\+0x140> b0c4      	addu	v0,a0,s1
-0+02d8 <\.L3\+0x142> b0d4      	addu	v0,a1,s1
-0+02da <\.L3\+0x144> b0e4      	addu	v0,a2,s1
-0+02dc <\.L3\+0x146> b0f4      	addu	v0,a3,s1
-0+02de <\.L3\+0x148> b084      	addu	v0,s0,s1
-0+02e0 <\.L3\+0x14a> b094      	addu	v0,s1,s1
-0+02e2 <\.L3\+0x14c> b0a4      	addu	v0,v0,s1
-0+02e4 <\.L3\+0x14e> b0a6      	addu	v1,v0,s1
-0+02e6 <\.L3\+0x150> b0a8      	addu	a0,v0,s1
-0+02e8 <\.L3\+0x152> b0aa      	addu	a1,v0,s1
-0+02ea <\.L3\+0x154> b0ac      	addu	a2,v0,s1
-0+02ec <\.L3\+0x156> b0ae      	addu	a3,v0,s1
-0+02ee <\.L3\+0x158> b0a0      	addu	s0,v0,s1
-0+02f0 <\.L3\+0x15a> b0a2      	addu	s1,v0,s1
-0+02f2 <\.L3\+0x15c> b17e      	addu	a3,a3,v0
-0+02f4 <\.L3\+0x15e> b17e      	addu	a3,a3,v0
-0+02f6 <\.L3\+0x160> b3ae      	addu	a3,v0,a3
+0+02c2 <\.L3\+0x12c> b134      	addu	s2,s3,s2
+0+02c4 <\.L3\+0x12e> b1b4      	addu	s2,s3,s3
+0+02c6 <\.L3\+0x130> b234      	addu	s2,s3,a0
+0+02c8 <\.L3\+0x132> b2b4      	addu	s2,s3,a1
+0+02ca <\.L3\+0x134> b334      	addu	s2,s3,a2
+0+02cc <\.L3\+0x136> b3b4      	addu	s2,s3,a3
+0+02ce <\.L3\+0x138> b034      	addu	s2,s3,s0
+0+02d0 <\.L3\+0x13a> b0b4      	addu	s2,s3,s1
+0+02d2 <\.L3\+0x13c> b0a4      	addu	s2,s2,s1
+0+02d4 <\.L3\+0x13e> b0b4      	addu	s2,s3,s1
+0+02d6 <\.L3\+0x140> b0c4      	addu	s2,a0,s1
+0+02d8 <\.L3\+0x142> b0d4      	addu	s2,a1,s1
+0+02da <\.L3\+0x144> b0e4      	addu	s2,a2,s1
+0+02dc <\.L3\+0x146> b0f4      	addu	s2,a3,s1
+0+02de <\.L3\+0x148> b084      	addu	s2,s0,s1
+0+02e0 <\.L3\+0x14a> b094      	addu	s2,s1,s1
+0+02e2 <\.L3\+0x14c> b0a4      	addu	s2,s2,s1
+0+02e4 <\.L3\+0x14e> b0a6      	addu	s3,s2,s1
+0+02e6 <\.L3\+0x150> b0a8      	addu	a0,s2,s1
+0+02e8 <\.L3\+0x152> b0aa      	addu	a1,s2,s1
+0+02ea <\.L3\+0x154> b0ac      	addu	a2,s2,s1
+0+02ec <\.L3\+0x156> b0ae      	addu	a3,s2,s1
+0+02ee <\.L3\+0x158> b0a0      	addu	s0,s2,s1
+0+02f0 <\.L3\+0x15a> b0a2      	addu	s1,s2,s1
+0+02f2 <\.L3\+0x15c> b17e      	addu	a3,a3,s2
+0+02f4 <\.L3\+0x15e> b17e      	addu	a3,a3,s2
+0+02f6 <\.L3\+0x160> b3ae      	addu	a3,s2,a3
 0+02f8 <\.L3\+0x162> 23fe e950 	addu	sp,s8,ra
 0+02fc <\.L3\+0x166> 0042 0000 	addiu	v0,v0,0
 0+0300 <\.L3\+0x16a> 0042 0001 	addiu	v0,v0,1
@@ -275,50 +275,50 @@ Disassembly of section \.text:
 0+0312 <\.L3\+0x17c> 2022 1150 	addu	v0,v0,at
 0+0316 <\.L3\+0x180> 6020 0000 ffff 	li	at,0xffff
 0+031c <\.L3\+0x186> 2022 1150 	addu	v0,v0,at
-0+0320 <\.L3\+0x18a> 5128      	and	v0,v0,v0
-0+0322 <\.L3\+0x18c> 5138      	and	v0,v0,v1
-0+0324 <\.L3\+0x18e> 5148      	and	v0,v0,a0
-0+0326 <\.L3\+0x190> 5158      	and	v0,v0,a1
-0+0328 <\.L3\+0x192> 5168      	and	v0,v0,a2
-0+032a <\.L3\+0x194> 5178      	and	v0,v0,a3
-0+032c <\.L3\+0x196> 5108      	and	v0,v0,s0
-0+032e <\.L3\+0x198> 5118      	and	v0,v0,s1
-0+0330 <\.L3\+0x19a> 51a8      	and	v1,v1,v0
-0+0332 <\.L3\+0x19c> 5228      	and	a0,a0,v0
-0+0334 <\.L3\+0x19e> 52a8      	and	a1,a1,v0
-0+0336 <\.L3\+0x1a0> 5328      	and	a2,a2,v0
-0+0338 <\.L3\+0x1a2> 53a8      	and	a3,a3,v0
-0+033a <\.L3\+0x1a4> 5028      	and	s0,s0,v0
-0+033c <\.L3\+0x1a6> 50a8      	and	s1,s1,v0
-0+033e <\.L3\+0x1a8> 5138      	and	v0,v0,v1
-0+0340 <\.L3\+0x1aa> 5138      	and	v0,v0,v1
-0+0342 <\.L3\+0x1ac> 5138      	and	v0,v0,v1
-0+0344 <\.L3\+0x1ae> 5138      	and	v0,v0,v1
+0+0320 <\.L3\+0x18a> 5128      	and	s2,s2,s2
+0+0322 <\.L3\+0x18c> 5138      	and	s2,s2,s3
+0+0324 <\.L3\+0x18e> 5148      	and	s2,s2,a0
+0+0326 <\.L3\+0x190> 5158      	and	s2,s2,a1
+0+0328 <\.L3\+0x192> 5168      	and	s2,s2,a2
+0+032a <\.L3\+0x194> 5178      	and	s2,s2,a3
+0+032c <\.L3\+0x196> 5108      	and	s2,s2,s0
+0+032e <\.L3\+0x198> 5118      	and	s2,s2,s1
+0+0330 <\.L3\+0x19a> 51a8      	and	s3,s3,s2
+0+0332 <\.L3\+0x19c> 5228      	and	a0,a0,s2
+0+0334 <\.L3\+0x19e> 52a8      	and	a1,a1,s2
+0+0336 <\.L3\+0x1a0> 5328      	and	a2,a2,s2
+0+0338 <\.L3\+0x1a2> 53a8      	and	a3,a3,s2
+0+033a <\.L3\+0x1a4> 5028      	and	s0,s0,s2
+0+033c <\.L3\+0x1a6> 50a8      	and	s1,s1,s2
+0+033e <\.L3\+0x1a8> 5138      	and	s2,s2,s3
+0+0340 <\.L3\+0x1aa> 5138      	and	s2,s2,s3
+0+0342 <\.L3\+0x1ac> 5138      	and	s2,s2,s3
+0+0344 <\.L3\+0x1ae> 5138      	and	s2,s2,s3
 0+0346 <\.L3\+0x1b0> 2062 1250 	and	v0,v0,v1
-0+034a <\.L3\+0x1b4> f121      	andi	v0,v0,0x1
-0+034c <\.L3\+0x1b6> f122      	andi	v0,v0,0x2
-0+034e <\.L3\+0x1b8> f123      	andi	v0,v0,0x3
-0+0350 <\.L3\+0x1ba> f124      	andi	v0,v0,0x4
-0+0352 <\.L3\+0x1bc> f127      	andi	v0,v0,0x7
-0+0354 <\.L3\+0x1be> f128      	andi	v0,v0,0x8
-0+0356 <\.L3\+0x1c0> f12f      	andi	v0,v0,0xf
+0+034a <\.L3\+0x1b4> f121      	andi	s2,s2,0x1
+0+034c <\.L3\+0x1b6> f122      	andi	s2,s2,0x2
+0+034e <\.L3\+0x1b8> f123      	andi	s2,s2,0x3
+0+0350 <\.L3\+0x1ba> f124      	andi	s2,s2,0x4
+0+0352 <\.L3\+0x1bc> f127      	andi	s2,s2,0x7
+0+0354 <\.L3\+0x1be> f128      	andi	s2,s2,0x8
+0+0356 <\.L3\+0x1c0> f12f      	andi	s2,s2,0xf
 0+0358 <\.L3\+0x1c2> 8042 2010 	andi	v0,v0,16
 0+035c <\.L3\+0x1c6> 8042 201f 	andi	v0,v0,31
 0+0360 <\.L3\+0x1ca> 8042 2020 	andi	v0,v0,32
 0+0364 <\.L3\+0x1ce> 8042 203f 	andi	v0,v0,63
 0+0368 <\.L3\+0x1d2> 8042 2040 	andi	v0,v0,64
 0+036c <\.L3\+0x1d6> 8042 2080 	andi	v0,v0,128
-0+0370 <\.L3\+0x1da> f12c      	andi	v0,v0,0xff
+0+0370 <\.L3\+0x1da> f12c      	andi	s2,s2,0xff
 0+0372 <\.L3\+0x1dc> 8042 2fff 	andi	v0,v0,4095
-0+0376 <\.L3\+0x1e0> f12d      	andi	v0,v0,0xffff
-0+0378 <\.L3\+0x1e2> f13d      	andi	v0,v1,0xffff
-0+037a <\.L3\+0x1e4> f14d      	andi	v0,a0,0xffff
-0+037c <\.L3\+0x1e6> f15d      	andi	v0,a1,0xffff
-0+037e <\.L3\+0x1e8> f16d      	andi	v0,a2,0xffff
-0+0380 <\.L3\+0x1ea> f17d      	andi	v0,a3,0xffff
-0+0382 <\.L3\+0x1ec> f10d      	andi	v0,s0,0xffff
-0+0384 <\.L3\+0x1ee> f11d      	andi	v0,s1,0xffff
-0+0386 <\.L3\+0x1f0> f19d      	andi	v1,s1,0xffff
+0+0376 <\.L3\+0x1e0> f12d      	andi	s2,s2,0xffff
+0+0378 <\.L3\+0x1e2> f13d      	andi	s2,s3,0xffff
+0+037a <\.L3\+0x1e4> f14d      	andi	s2,a0,0xffff
+0+037c <\.L3\+0x1e6> f15d      	andi	s2,a1,0xffff
+0+037e <\.L3\+0x1e8> f16d      	andi	s2,a2,0xffff
+0+0380 <\.L3\+0x1ea> f17d      	andi	s2,a3,0xffff
+0+0382 <\.L3\+0x1ec> f10d      	andi	s2,s0,0xffff
+0+0384 <\.L3\+0x1ee> f11d      	andi	s2,s1,0xffff
+0+0386 <\.L3\+0x1f0> f19d      	andi	s3,s1,0xffff
 0+0388 <\.L3\+0x1f2> f21d      	andi	a0,s1,0xffff
 0+038a <\.L3\+0x1f4> f29d      	andi	a1,s1,0xffff
 0+038c <\.L3\+0x1f6> f31d      	andi	a2,s1,0xffff
@@ -338,9 +338,9 @@ Disassembly of section \.text:
 0+03b8 <\.L3\+0x222> 2023 1250 	and	v0,v1,at
 0+03bc <\.L3\+0x226> 6020 ffff 0001 	li	at,0xffff0001
 0+03c2 <\.L3\+0x22c> 2023 1250 	and	v0,v1,at
-0+03c6 <test2> 9900      	beqzc	v0,0000078e <test3\+0x332>
+0+03c6 <test2> 9900      	beqzc	s2,0000078e <test3\+0x332>
 			3c6: R_MICROMIPS_PC7_S1	test2-0x2
-0+03c8 <test2\+0x2> 9980      	beqzc	v1,00000790 <test3\+0x334>
+0+03c8 <test2\+0x2> 9980      	beqzc	s3,00000790 <test3\+0x334>
 			3c8: R_MICROMIPS_PC7_S1	test2-0x2
 0+03ca <test2\+0x4> 9a00      	beqzc	a0,00000792 <test3\+0x336>
 			3ca: R_MICROMIPS_PC7_S1	test2-0x2
@@ -354,9 +354,9 @@ Disassembly of section \.text:
 			3d2: R_MICROMIPS_PC7_S1	test2-0x2
 0+03d4 <test2\+0xe> 9880      	beqzc	s1,0000079c <test3\+0x340>
 			3d4: R_MICROMIPS_PC7_S1	test2-0x2
-0+03d6 <test2\+0x10> 9900      	beqzc	v0,0000079e <test3\+0x342>
+0+03d6 <test2\+0x10> 9900      	beqzc	s2,0000079e <test3\+0x342>
 			3d6: R_MICROMIPS_PC7_S1	test2-0x2
-0+03d8 <test2\+0x12> 9980      	beqzc	v1,000007a0 <test3\+0x344>
+0+03d8 <test2\+0x12> 9980      	beqzc	s3,000007a0 <test3\+0x344>
 			3d8: R_MICROMIPS_PC7_S1	test2-0x2
 0+03da <test2\+0x14> 9a00      	beqzc	a0,000007a2 <test3\+0x346>
 			3da: R_MICROMIPS_PC7_S1	test2-0x2
@@ -370,9 +370,9 @@ Disassembly of section \.text:
 			3e2: R_MICROMIPS_PC7_S1	test2-0x2
 0+03e4 <test2\+0x1e> 9880      	beqzc	s1,000007ac <test3\+0x350>
 			3e4: R_MICROMIPS_PC7_S1	test2-0x2
-0+03e6 <test2\+0x20> 9900      	beqzc	v0,000007ae <test3\+0x352>
+0+03e6 <test2\+0x20> 9900      	beqzc	s2,000007ae <test3\+0x352>
 			3e6: R_MICROMIPS_PC7_S1	test2-0x2
-0+03e8 <test2\+0x22> 9980      	beqzc	v1,000007b0 <test3\+0x354>
+0+03e8 <test2\+0x22> 9980      	beqzc	s3,000007b0 <test3\+0x354>
 			3e8: R_MICROMIPS_PC7_S1	test2-0x2
 0+03ea <test2\+0x24> 9a00      	beqzc	a0,000007b2 <test3\+0x356>
 			3ea: R_MICROMIPS_PC7_S1	test2-0x2
@@ -406,9 +406,9 @@ Disassembly of section \.text:
 0+0416 <test2\+0x50> e021 0000 	lui	at,0x10
 0+041a <test2\+0x54> 8830 0000 	beqc	s0,at,000007e4 <test3\+0x388>
 			41a: R_MICROMIPS_PC14_S1	test2-0x4
-0+041e <test2\+0x58> b900      	bnezc	v0,0000087c <test3\+0x420>
+0+041e <test2\+0x58> b900      	bnezc	s2,0000087c <test3\+0x420>
 			41e: R_MICROMIPS_PC7_S1	test3-0x2
-0+0420 <test2\+0x5a> b980      	bnezc	v1,0000087e <test3\+0x422>
+0+0420 <test2\+0x5a> b980      	bnezc	s3,0000087e <test3\+0x422>
 			420: R_MICROMIPS_PC7_S1	test3-0x2
 0+0422 <test2\+0x5c> ba00      	bnezc	a0,00000880 <test3\+0x424>
 			422: R_MICROMIPS_PC7_S1	test3-0x2
@@ -422,9 +422,9 @@ Disassembly of section \.text:
 			42a: R_MICROMIPS_PC7_S1	test3-0x2
 0+042c <test2\+0x66> b880      	bnezc	s1,0000088a <test3\+0x42e>
 			42c: R_MICROMIPS_PC7_S1	test3-0x2
-0+042e <test2\+0x68> b900      	bnezc	v0,0000088c <test3\+0x430>
+0+042e <test2\+0x68> b900      	bnezc	s2,0000088c <test3\+0x430>
 			42e: R_MICROMIPS_PC7_S1	test3-0x2
-0+0430 <test2\+0x6a> b980      	bnezc	v1,0000088e <test3\+0x432>
+0+0430 <test2\+0x6a> b980      	bnezc	s3,0000088e <test3\+0x432>
 			430: R_MICROMIPS_PC7_S1	test3-0x2
 0+0432 <test2\+0x6c> ba00      	bnezc	a0,00000890 <test3\+0x434>
 			432: R_MICROMIPS_PC7_S1	test3-0x2
@@ -438,9 +438,9 @@ Disassembly of section \.text:
 			43a: R_MICROMIPS_PC7_S1	test3-0x2
 0+043c <test2\+0x76> b880      	bnezc	s1,0000089a <test3\+0x43e>
 			43c: R_MICROMIPS_PC7_S1	test3-0x2
-0+043e <test2\+0x78> b900      	bnezc	v0,0000089c <test3\+0x440>
+0+043e <test2\+0x78> b900      	bnezc	s2,0000089c <test3\+0x440>
 			43e: R_MICROMIPS_PC7_S1	test3-0x2
-0+0440 <test2\+0x7a> b980      	bnezc	v1,0000089e <test3\+0x442>
+0+0440 <test2\+0x7a> b980      	bnezc	s3,0000089e <test3\+0x442>
 			440: R_MICROMIPS_PC7_S1	test3-0x2
 0+0442 <test2\+0x7c> ba00      	bnezc	a0,000008a0 <test3\+0x444>
 			442: R_MICROMIPS_PC7_S1	test3-0x2
@@ -762,8 +762,8 @@ Disassembly of section \.text:
 0+0886 <test3\+0x42a> 8463 0000 	lb	v1,0\(v1\)
 0+088a <test3\+0x42e> e074 5244 	lui	v1,0x12345
 0+088e <test3\+0x432> 8463 0678 	lb	v1,1656\(v1\)
-0+0892 <test3\+0x436> 15c0      	lb	v1,0\(a0\)
-0+0894 <test3\+0x438> 15c0      	lb	v1,0\(a0\)
+0+0892 <test3\+0x436> 15c0      	lb	s3,0\(a0\)
+0+0894 <test3\+0x438> 15c0      	lb	s3,0\(a0\)
 0+0896 <test3\+0x43a> 8464 0004 	lb	v1,4\(a0\)
 0+089a <test3\+0x43e> e060 7000 	lui	v1,0x7
 0+089e <test3\+0x442> 2083 1950 	addu	v1,v1,a0
@@ -795,11 +795,11 @@ Disassembly of section \.text:
 0+0906 <test3\+0x4aa> 2083 1950 	addu	v1,v1,a0
 0+090a <test3\+0x4ae> 8463 0678 	lb	v1,1656\(v1\)
 0+090e <test3\+0x4b2> a443 90ff 	lbu	v0,-1\(v1\)
-0+0912 <test3\+0x4b6> 1538      	lbu	v0,0\(v1\)
-0+0914 <test3\+0x4b8> 1538      	lbu	v0,0\(v1\)
-0+0916 <test3\+0x4ba> 1539      	lbu	v0,1\(v1\)
-0+0918 <test3\+0x4bc> 153a      	lbu	v0,2\(v1\)
-0+091a <test3\+0x4be> 153b      	lbu	v0,3\(v1\)
+0+0912 <test3\+0x4b6> 1538      	lbu	s2,0\(s3\)
+0+0914 <test3\+0x4b8> 1538      	lbu	s2,0\(s3\)
+0+0916 <test3\+0x4ba> 1539      	lbu	s2,1\(s3\)
+0+0918 <test3\+0x4bc> 153a      	lbu	s2,2\(s3\)
+0+091a <test3\+0x4be> 153b      	lbu	s2,3\(s3\)
 0+091c <test3\+0x4c0> 8443 2004 	lbu	v0,4\(v1\)
 0+0920 <test3\+0x4c4> 8443 2005 	lbu	v0,5\(v1\)
 0+0924 <test3\+0x4c8> 8443 2006 	lbu	v0,6\(v1\)
@@ -849,8 +849,8 @@ Disassembly of section \.text:
 0+09d4 <test3\+0x578> 8463 2000 	lbu	v1,0\(v1\)
 0+09d8 <test3\+0x57c> e074 5244 	lui	v1,0x12345
 0+09dc <test3\+0x580> 8463 2678 	lbu	v1,1656\(v1\)
-0+09e0 <test3\+0x584> 15c8      	lbu	v1,0\(a0\)
-0+09e2 <test3\+0x586> 15c8      	lbu	v1,0\(a0\)
+0+09e0 <test3\+0x584> 15c8      	lbu	s3,0\(a0\)
+0+09e2 <test3\+0x586> 15c8      	lbu	s3,0\(a0\)
 0+09e4 <test3\+0x588> 8464 2004 	lbu	v1,4\(a0\)
 0+09e8 <test3\+0x58c> e060 7000 	lui	v1,0x7
 0+09ec <test3\+0x590> 2083 1950 	addu	v1,v1,a0
@@ -905,9 +905,9 @@ Disassembly of section \.text:
 0+0ab0 <test3\+0x654> 8463 4000 	lh	v1,0\(v1\)
 0+0ab4 <test3\+0x658> e074 5244 	lui	v1,0x12345
 0+0ab8 <test3\+0x65c> 8463 4678 	lh	v1,1656\(v1\)
-0+0abc <test3\+0x660> 35c0      	lh	v1,0\(a0\)
-0+0abe <test3\+0x662> 35c0      	lh	v1,0\(a0\)
-0+0ac0 <test3\+0x664> 35c4      	lh	v1,4\(a0\)
+0+0abc <test3\+0x660> 35c0      	lh	s3,0\(a0\)
+0+0abe <test3\+0x662> 35c0      	lh	s3,0\(a0\)
+0+0ac0 <test3\+0x664> 35c4      	lh	s3,4\(a0\)
 0+0ac2 <test3\+0x666> e060 7000 	lui	v1,0x7
 0+0ac6 <test3\+0x66a> 2083 1950 	addu	v1,v1,a0
 0+0aca <test3\+0x66e> 8463 4fff 	lh	v1,4095\(v1\)
@@ -937,11 +937,11 @@ Disassembly of section \.text:
 0+0b2a <test3\+0x6ce> e074 5244 	lui	v1,0x12345
 0+0b2e <test3\+0x6d2> 2083 1950 	addu	v1,v1,a0
 0+0b32 <test3\+0x6d6> 8463 4678 	lh	v1,1656\(v1\)
-0+0b36 <test3\+0x6da> 3538      	lhu	v0,0\(v1\)
-0+0b38 <test3\+0x6dc> 3538      	lhu	v0,0\(v1\)
-0+0b3a <test3\+0x6de> 353a      	lhu	v0,2\(v1\)
-0+0b3c <test3\+0x6e0> 353c      	lhu	v0,4\(v1\)
-0+0b3e <test3\+0x6e2> 353e      	lhu	v0,6\(v1\)
+0+0b36 <test3\+0x6da> 3538      	lhu	s2,0\(s3\)
+0+0b38 <test3\+0x6dc> 3538      	lhu	s2,0\(s3\)
+0+0b3a <test3\+0x6de> 353a      	lhu	s2,2\(s3\)
+0+0b3c <test3\+0x6e0> 353c      	lhu	s2,4\(s3\)
+0+0b3e <test3\+0x6e2> 353e      	lhu	s2,6\(s3\)
 0+0b40 <test3\+0x6e4> 8443 6008 	lhu	v0,8\(v1\)
 0+0b44 <test3\+0x6e8> 8443 600a 	lhu	v0,10\(v1\)
 0+0b48 <test3\+0x6ec> 8443 600c 	lhu	v0,12\(v1\)
@@ -992,9 +992,9 @@ Disassembly of section \.text:
 0+0bfc <test3\+0x7a0> 8463 6000 	lhu	v1,0\(v1\)
 0+0c00 <test3\+0x7a4> e074 5244 	lui	v1,0x12345
 0+0c04 <test3\+0x7a8> 8463 6678 	lhu	v1,1656\(v1\)
-0+0c08 <test3\+0x7ac> 35c8      	lhu	v1,0\(a0\)
-0+0c0a <test3\+0x7ae> 35c8      	lhu	v1,0\(a0\)
-0+0c0c <test3\+0x7b0> 35cc      	lhu	v1,4\(a0\)
+0+0c08 <test3\+0x7ac> 35c8      	lhu	s3,0\(a0\)
+0+0c0a <test3\+0x7ae> 35c8      	lhu	s3,0\(a0\)
+0+0c0c <test3\+0x7b0> 35cc      	lhu	s3,4\(a0\)
 0+0c0e <test3\+0x7b2> e060 7000 	lui	v1,0x7
 0+0c12 <test3\+0x7b6> 2083 1950 	addu	v1,v1,a0
 0+0c16 <test3\+0x7ba> 8463 6fff 	lhu	v1,4095\(v1\)
@@ -1081,31 +1081,31 @@ Disassembly of section \.text:
 0+0d5e <test3\+0x902> e060 0000 	lui	v1,0x0
 0+0d62 <test3\+0x906> e07f f0fc 	lui	v1,0x7fff
 0+0d66 <test3\+0x90a> e07f f1fc 	lui	v1,0xffff
-0+0d6a <test3\+0x90e> 7540      	lw	v0,0\(a0\)
-0+0d6c <test3\+0x910> 7540      	lw	v0,0\(a0\)
-0+0d6e <test3\+0x912> 7541      	lw	v0,4\(a0\)
-0+0d70 <test3\+0x914> 7542      	lw	v0,8\(a0\)
-0+0d72 <test3\+0x916> 7543      	lw	v0,12\(a0\)
-0+0d74 <test3\+0x918> 7544      	lw	v0,16\(a0\)
-0+0d76 <test3\+0x91a> 7545      	lw	v0,20\(a0\)
-0+0d78 <test3\+0x91c> 7546      	lw	v0,24\(a0\)
-0+0d7a <test3\+0x91e> 7547      	lw	v0,28\(a0\)
-0+0d7c <test3\+0x920> 7548      	lw	v0,32\(a0\)
-0+0d7e <test3\+0x922> 7549      	lw	v0,36\(a0\)
-0+0d80 <test3\+0x924> 754a      	lw	v0,40\(a0\)
-0+0d82 <test3\+0x926> 754b      	lw	v0,44\(a0\)
-0+0d84 <test3\+0x928> 754c      	lw	v0,48\(a0\)
-0+0d86 <test3\+0x92a> 754d      	lw	v0,52\(a0\)
-0+0d88 <test3\+0x92c> 754e      	lw	v0,56\(a0\)
-0+0d8a <test3\+0x92e> 754f      	lw	v0,60\(a0\)
-0+0d8c <test3\+0x930> 755f      	lw	v0,60\(a1\)
-0+0d8e <test3\+0x932> 756f      	lw	v0,60\(a2\)
-0+0d90 <test3\+0x934> 757f      	lw	v0,60\(a3\)
-0+0d92 <test3\+0x936> 752f      	lw	v0,60\(v0\)
-0+0d94 <test3\+0x938> 753f      	lw	v0,60\(v1\)
-0+0d96 <test3\+0x93a> 750f      	lw	v0,60\(s0\)
-0+0d98 <test3\+0x93c> 751f      	lw	v0,60\(s1\)
-0+0d9a <test3\+0x93e> 759f      	lw	v1,60\(s1\)
+0+0d6a <test3\+0x90e> 7540      	lw	s2,0\(a0\)
+0+0d6c <test3\+0x910> 7540      	lw	s2,0\(a0\)
+0+0d6e <test3\+0x912> 7541      	lw	s2,4\(a0\)
+0+0d70 <test3\+0x914> 7542      	lw	s2,8\(a0\)
+0+0d72 <test3\+0x916> 7543      	lw	s2,12\(a0\)
+0+0d74 <test3\+0x918> 7544      	lw	s2,16\(a0\)
+0+0d76 <test3\+0x91a> 7545      	lw	s2,20\(a0\)
+0+0d78 <test3\+0x91c> 7546      	lw	s2,24\(a0\)
+0+0d7a <test3\+0x91e> 7547      	lw	s2,28\(a0\)
+0+0d7c <test3\+0x920> 7548      	lw	s2,32\(a0\)
+0+0d7e <test3\+0x922> 7549      	lw	s2,36\(a0\)
+0+0d80 <test3\+0x924> 754a      	lw	s2,40\(a0\)
+0+0d82 <test3\+0x926> 754b      	lw	s2,44\(a0\)
+0+0d84 <test3\+0x928> 754c      	lw	s2,48\(a0\)
+0+0d86 <test3\+0x92a> 754d      	lw	s2,52\(a0\)
+0+0d88 <test3\+0x92c> 754e      	lw	s2,56\(a0\)
+0+0d8a <test3\+0x92e> 754f      	lw	s2,60\(a0\)
+0+0d8c <test3\+0x930> 755f      	lw	s2,60\(a1\)
+0+0d8e <test3\+0x932> 756f      	lw	s2,60\(a2\)
+0+0d90 <test3\+0x934> 757f      	lw	s2,60\(a3\)
+0+0d92 <test3\+0x936> 752f      	lw	s2,60\(s2\)
+0+0d94 <test3\+0x938> 753f      	lw	s2,60\(s3\)
+0+0d96 <test3\+0x93a> 750f      	lw	s2,60\(s0\)
+0+0d98 <test3\+0x93c> 751f      	lw	s2,60\(s1\)
+0+0d9a <test3\+0x93e> 759f      	lw	s3,60\(s1\)
 0+0d9c <test3\+0x940> 761f      	lw	a0,60\(s1\)
 0+0d9e <test3\+0x942> 769f      	lw	a1,60\(s1\)
 0+0da0 <test3\+0x944> 771f      	lw	a2,60\(s1\)
@@ -1167,9 +1167,9 @@ Disassembly of section \.text:
 0+0e48 <test3\+0x9ec> 8463 8000 	lw	v1,0\(v1\)
 0+0e4c <test3\+0x9f0> e074 5244 	lui	v1,0x12345
 0+0e50 <test3\+0x9f4> 8463 8678 	lw	v1,1656\(v1\)
-0+0e54 <test3\+0x9f8> 75c0      	lw	v1,0\(a0\)
-0+0e56 <test3\+0x9fa> 75c0      	lw	v1,0\(a0\)
-0+0e58 <test3\+0x9fc> 75c1      	lw	v1,4\(a0\)
+0+0e54 <test3\+0x9f8> 75c0      	lw	s3,0\(a0\)
+0+0e56 <test3\+0x9fa> 75c0      	lw	s3,0\(a0\)
+0+0e58 <test3\+0x9fc> 75c1      	lw	s3,4\(a0\)
 0+0e5a <test3\+0x9fe> e060 7000 	lui	v1,0x7
 0+0e5e <test3\+0xa02> 2083 1950 	addu	v1,v1,a0
 0+0e62 <test3\+0xa06> 8463 8fff 	lw	v1,4095\(v1\)
@@ -1199,7 +1199,7 @@ Disassembly of section \.text:
 0+0ec2 <test3\+0xa66> e074 5244 	lui	v1,0x12345
 0+0ec6 <test3\+0xa6a> 2083 1950 	addu	v1,v1,a0
 0+0eca <test3\+0xa6e> 8463 8678 	lw	v1,1656\(v1\)
-0+0ece <test3\+0xa72> 52c7      	lwxs	v1,a0\(a1\)
+0+0ece <test3\+0xa72> 52c7      	lwxs	s3,a0\(a1\)
 0+0ed0 <test3\+0xa74> 2040 0030 	mfc0	v0,c0_index
 0+0ed4 <test3\+0xa78> 2041 0030 	mfc0	v0,c0_random
 0+0ed8 <test3\+0xa7c> 2042 0030 	mfc0	v0,c0_entrylo0
@@ -1341,16 +1341,16 @@ Disassembly of section \.text:
 0+10fc <test3\+0xca0> 2060 11d0 	negu	v0,v1
 0+1100 <test3\+0xca4> 2040 11d0 	negu	v0,v0
 0+1104 <test3\+0xca8> 2040 11d0 	negu	v0,v0
-0+1108 <test3\+0xcac> 5120      	not	v0,v0
-0+110a <test3\+0xcae> 5120      	not	v0,v0
-0+110c <test3\+0xcb0> 5130      	not	v0,v1
-0+110e <test3\+0xcb2> 5140      	not	v0,a0
-0+1110 <test3\+0xcb4> 5150      	not	v0,a1
-0+1112 <test3\+0xcb6> 5160      	not	v0,a2
-0+1114 <test3\+0xcb8> 5170      	not	v0,a3
-0+1116 <test3\+0xcba> 5100      	not	v0,s0
-0+1118 <test3\+0xcbc> 5110      	not	v0,s1
-0+111a <test3\+0xcbe> 5190      	not	v1,s1
+0+1108 <test3\+0xcac> 5120      	not	s2,s2
+0+110a <test3\+0xcae> 5120      	not	s2,s2
+0+110c <test3\+0xcb0> 5130      	not	s2,s3
+0+110e <test3\+0xcb2> 5140      	not	s2,a0
+0+1110 <test3\+0xcb4> 5150      	not	s2,a1
+0+1112 <test3\+0xcb6> 5160      	not	s2,a2
+0+1114 <test3\+0xcb8> 5170      	not	s2,a3
+0+1116 <test3\+0xcba> 5100      	not	s2,s0
+0+1118 <test3\+0xcbc> 5110      	not	s2,s1
+0+111a <test3\+0xcbe> 5190      	not	s3,s1
 0+111c <test3\+0xcc0> 5210      	not	a0,s1
 0+111e <test3\+0xcc2> 5290      	not	a1,s1
 0+1120 <test3\+0xcc4> 5310      	not	a2,s1
@@ -1377,24 +1377,24 @@ Disassembly of section \.text:
 0+1170 <test3\+0xd14> 2002 b290 	move	s6,v0
 0+1174 <test3\+0xd18> 22c0 1290 	or	v0,zero,s6
 0+1178 <test3\+0xd1c> 2040 b290 	or	s6,zero,v0
-0+117c <test3\+0xd20> 512c      	or	v0,v0,v0
-0+117e <test3\+0xd22> 513c      	or	v0,v0,v1
-0+1180 <test3\+0xd24> 514c      	or	v0,v0,a0
-0+1182 <test3\+0xd26> 515c      	or	v0,v0,a1
-0+1184 <test3\+0xd28> 516c      	or	v0,v0,a2
-0+1186 <test3\+0xd2a> 517c      	or	v0,v0,a3
-0+1188 <test3\+0xd2c> 510c      	or	v0,v0,s0
-0+118a <test3\+0xd2e> 511c      	or	v0,v0,s1
-0+118c <test3\+0xd30> 51ac      	or	v1,v1,v0
-0+118e <test3\+0xd32> 522c      	or	a0,a0,v0
-0+1190 <test3\+0xd34> 52ac      	or	a1,a1,v0
-0+1192 <test3\+0xd36> 532c      	or	a2,a2,v0
-0+1194 <test3\+0xd38> 53ac      	or	a3,a3,v0
-0+1196 <test3\+0xd3a> 502c      	or	s0,s0,v0
-0+1198 <test3\+0xd3c> 50ac      	or	s1,s1,v0
-0+119a <test3\+0xd3e> 512c      	or	v0,v0,v0
-0+119c <test3\+0xd40> 513c      	or	v0,v0,v1
-0+119e <test3\+0xd42> 513c      	or	v0,v0,v1
+0+117c <test3\+0xd20> 512c      	or	s2,s2,s2
+0+117e <test3\+0xd22> 513c      	or	s2,s2,s3
+0+1180 <test3\+0xd24> 514c      	or	s2,s2,a0
+0+1182 <test3\+0xd26> 515c      	or	s2,s2,a1
+0+1184 <test3\+0xd28> 516c      	or	s2,s2,a2
+0+1186 <test3\+0xd2a> 517c      	or	s2,s2,a3
+0+1188 <test3\+0xd2c> 510c      	or	s2,s2,s0
+0+118a <test3\+0xd2e> 511c      	or	s2,s2,s1
+0+118c <test3\+0xd30> 51ac      	or	s3,s3,s2
+0+118e <test3\+0xd32> 522c      	or	a0,a0,s2
+0+1190 <test3\+0xd34> 52ac      	or	a1,a1,s2
+0+1192 <test3\+0xd36> 532c      	or	a2,a2,s2
+0+1194 <test3\+0xd38> 53ac      	or	a3,a3,s2
+0+1196 <test3\+0xd3a> 502c      	or	s0,s0,s2
+0+1198 <test3\+0xd3c> 50ac      	or	s1,s1,s2
+0+119a <test3\+0xd3e> 512c      	or	s2,s2,s2
+0+119c <test3\+0xd40> 513c      	or	s2,s2,s3
+0+119e <test3\+0xd42> 513c      	or	s2,s2,s3
 0+11a0 <test3\+0xd44> 2083 1290 	or	v0,v1,a0
 0+11a4 <test3\+0xd48> 23fe ea90 	or	sp,s8,ra
 0+11a8 <test3\+0xd4c> 2082 1290 	or	v0,v0,a0
@@ -1461,11 +1461,11 @@ Disassembly of section \.text:
 0+129a <test3\+0xe3e> 2082 10d0 	rotr	v0,v0,a0
 0+129e <test3\+0xe42> 2083 10d0 	rotr	v0,v1,a0
 0+12a2 <test3\+0xe46> 2082 10d0 	rotr	v0,v0,a0
-0+12a6 <test3\+0xe4a> 1434      	sb	zero,0\(v1\)
-0+12a8 <test3\+0xe4c> 1434      	sb	zero,0\(v1\)
-0+12aa <test3\+0xe4e> 1435      	sb	zero,1\(v1\)
-0+12ac <test3\+0xe50> 1436      	sb	zero,2\(v1\)
-0+12ae <test3\+0xe52> 1437      	sb	zero,3\(v1\)
+0+12a6 <test3\+0xe4a> 1434      	sb	zero,0\(s3\)
+0+12a8 <test3\+0xe4c> 1434      	sb	zero,0\(s3\)
+0+12aa <test3\+0xe4e> 1435      	sb	zero,1\(s3\)
+0+12ac <test3\+0xe50> 1436      	sb	zero,2\(s3\)
+0+12ae <test3\+0xe52> 1437      	sb	zero,3\(s3\)
 0+12b0 <test3\+0xe54> 8403 1004 	sb	zero,4\(v1\)
 0+12b4 <test3\+0xe58> 8403 1005 	sb	zero,5\(v1\)
 0+12b8 <test3\+0xe5c> 8403 1006 	sb	zero,6\(v1\)
@@ -1720,11 +1720,11 @@ Disassembly of section \.text:
 0+16a6 <test3\+0x124a> 2061 1390 	sltu	v0,at,v1
 0+16aa <test3\+0x124e> 6020 ffff 7fff 	li	at,0xffff7fff
 0+16b0 <test3\+0x1254> 2061 1390 	sltu	v0,at,v1
-0+16b4 <test3\+0x1258> 3531      	sh	v0,0\(v1\)
-0+16b6 <test3\+0x125a> 3531      	sh	v0,0\(v1\)
-0+16b8 <test3\+0x125c> 3533      	sh	v0,2\(v1\)
-0+16ba <test3\+0x125e> 3535      	sh	v0,4\(v1\)
-0+16bc <test3\+0x1260> 3537      	sh	v0,6\(v1\)
+0+16b4 <test3\+0x1258> 3531      	sh	s2,0\(s3\)
+0+16b6 <test3\+0x125a> 3531      	sh	s2,0\(s3\)
+0+16b8 <test3\+0x125c> 3533      	sh	s2,2\(s3\)
+0+16ba <test3\+0x125e> 3535      	sh	s2,4\(s3\)
+0+16bc <test3\+0x1260> 3537      	sh	s2,6\(s3\)
 0+16be <test3\+0x1262> 8443 5008 	sh	v0,8\(v1\)
 0+16c2 <test3\+0x1266> 8443 500a 	sh	v0,10\(v1\)
 0+16c6 <test3\+0x126a> 8443 500c 	sh	v0,12\(v1\)
@@ -1850,30 +1850,30 @@ Disassembly of section \.text:
 0+18b0 <test3\+0x1454> 6020 ffff 7fff 	li	at,0xffff7fff
 0+18b6 <test3\+0x145a> 2061 1390 	sltu	v0,at,v1
 0+18ba <test3\+0x145e> 8042 1001 	xori	v0,v0,1
-0+18be <test3\+0x1462> 3121      	sll	v0,v0,1
-0+18c0 <test3\+0x1464> 3122      	sll	v0,v0,2
-0+18c2 <test3\+0x1466> 3123      	sll	v0,v0,3
-0+18c4 <test3\+0x1468> 3124      	sll	v0,v0,4
-0+18c6 <test3\+0x146a> 3125      	sll	v0,v0,5
-0+18c8 <test3\+0x146c> 3126      	sll	v0,v0,6
-0+18ca <test3\+0x146e> 3127      	sll	v0,v0,7
-0+18cc <test3\+0x1470> 3120      	sll	v0,v0,8
-0+18ce <test3\+0x1472> 3130      	sll	v0,v1,8
-0+18d0 <test3\+0x1474> 3140      	sll	v0,a0,8
-0+18d2 <test3\+0x1476> 3150      	sll	v0,a1,8
-0+18d4 <test3\+0x1478> 3160      	sll	v0,a2,8
-0+18d6 <test3\+0x147a> 3170      	sll	v0,a3,8
-0+18d8 <test3\+0x147c> 3100      	sll	v0,s0,8
-0+18da <test3\+0x147e> 3110      	sll	v0,s1,8
-0+18dc <test3\+0x1480> 31a0      	sll	v1,v0,8
-0+18de <test3\+0x1482> 3220      	sll	a0,v0,8
-0+18e0 <test3\+0x1484> 32a0      	sll	a1,v0,8
-0+18e2 <test3\+0x1486> 3320      	sll	a2,v0,8
-0+18e4 <test3\+0x1488> 33a0      	sll	a3,v0,8
-0+18e6 <test3\+0x148a> 3020      	sll	s0,v0,8
-0+18e8 <test3\+0x148c> 30a0      	sll	s1,v0,8
-0+18ea <test3\+0x148e> 3121      	sll	v0,v0,1
-0+18ec <test3\+0x1490> 31b1      	sll	v1,v1,1
+0+18be <test3\+0x1462> 3121      	sll	s2,s2,1
+0+18c0 <test3\+0x1464> 3122      	sll	s2,s2,2
+0+18c2 <test3\+0x1466> 3123      	sll	s2,s2,3
+0+18c4 <test3\+0x1468> 3124      	sll	s2,s2,4
+0+18c6 <test3\+0x146a> 3125      	sll	s2,s2,5
+0+18c8 <test3\+0x146c> 3126      	sll	s2,s2,6
+0+18ca <test3\+0x146e> 3127      	sll	s2,s2,7
+0+18cc <test3\+0x1470> 3120      	sll	s2,s2,8
+0+18ce <test3\+0x1472> 3130      	sll	s2,s3,8
+0+18d0 <test3\+0x1474> 3140      	sll	s2,a0,8
+0+18d2 <test3\+0x1476> 3150      	sll	s2,a1,8
+0+18d4 <test3\+0x1478> 3160      	sll	s2,a2,8
+0+18d6 <test3\+0x147a> 3170      	sll	s2,a3,8
+0+18d8 <test3\+0x147c> 3100      	sll	s2,s0,8
+0+18da <test3\+0x147e> 3110      	sll	s2,s1,8
+0+18dc <test3\+0x1480> 31a0      	sll	s3,s2,8
+0+18de <test3\+0x1482> 3220      	sll	a0,s2,8
+0+18e0 <test3\+0x1484> 32a0      	sll	a1,s2,8
+0+18e2 <test3\+0x1486> 3320      	sll	a2,s2,8
+0+18e4 <test3\+0x1488> 33a0      	sll	a3,s2,8
+0+18e6 <test3\+0x148a> 3020      	sll	s0,s2,8
+0+18e8 <test3\+0x148c> 30a0      	sll	s1,s2,8
+0+18ea <test3\+0x148e> 3121      	sll	s2,s2,1
+0+18ec <test3\+0x1490> 31b1      	sll	s3,s3,1
 0+18ee <test3\+0x1492> 2083 1010 	sll	v0,v1,a0
 0+18f2 <test3\+0x1496> 2082 1010 	sll	v0,v0,a0
 0+18f6 <test3\+0x149a> 2082 1010 	sll	v0,v0,a0
@@ -1943,35 +1943,35 @@ Disassembly of section \.text:
 0+1a04 <test3\+0x15a8> 2082 1050 	srl	v0,v0,a0
 0+1a08 <test3\+0x15ac> 2082 1050 	srl	v0,v0,a0
 0+1a0c <test3\+0x15b0> 8044 c040 	srl	v0,a0,0x0
-0+1a10 <test3\+0x15b4> 3149      	srl	v0,a0,1
+0+1a10 <test3\+0x15b4> 3149      	srl	s2,a0,1
 0+1a12 <test3\+0x15b6> 8044 c05f 	srl	v0,a0,0x1f
 0+1a16 <test3\+0x15ba> 8042 c05f 	srl	v0,v0,0x1f
 0+1a1a <test3\+0x15be> 8042 c05f 	srl	v0,v0,0x1f
-0+1a1e <test3\+0x15c2> 3129      	srl	v0,v0,1
-0+1a20 <test3\+0x15c4> 312a      	srl	v0,v0,2
-0+1a22 <test3\+0x15c6> 312b      	srl	v0,v0,3
-0+1a24 <test3\+0x15c8> 312c      	srl	v0,v0,4
-0+1a26 <test3\+0x15ca> 312d      	srl	v0,v0,5
-0+1a28 <test3\+0x15cc> 312e      	srl	v0,v0,6
-0+1a2a <test3\+0x15ce> 312f      	srl	v0,v0,7
-0+1a2c <test3\+0x15d0> 3128      	srl	v0,v0,8
-0+1a2e <test3\+0x15d2> 3138      	srl	v0,v1,8
-0+1a30 <test3\+0x15d4> 3148      	srl	v0,a0,8
-0+1a32 <test3\+0x15d6> 3158      	srl	v0,a1,8
-0+1a34 <test3\+0x15d8> 3168      	srl	v0,a2,8
-0+1a36 <test3\+0x15da> 3178      	srl	v0,a3,8
-0+1a38 <test3\+0x15dc> 3108      	srl	v0,s0,8
-0+1a3a <test3\+0x15de> 3118      	srl	v0,s1,8
-0+1a3c <test3\+0x15e0> 3128      	srl	v0,v0,8
-0+1a3e <test3\+0x15e2> 31a8      	srl	v1,v0,8
-0+1a40 <test3\+0x15e4> 3228      	srl	a0,v0,8
-0+1a42 <test3\+0x15e6> 32a8      	srl	a1,v0,8
-0+1a44 <test3\+0x15e8> 3328      	srl	a2,v0,8
-0+1a46 <test3\+0x15ea> 33a8      	srl	a3,v0,8
-0+1a48 <test3\+0x15ec> 3028      	srl	s0,v0,8
-0+1a4a <test3\+0x15ee> 30a8      	srl	s1,v0,8
-0+1a4c <test3\+0x15f0> 31b9      	srl	v1,v1,1
-0+1a4e <test3\+0x15f2> 31b9      	srl	v1,v1,1
+0+1a1e <test3\+0x15c2> 3129      	srl	s2,s2,1
+0+1a20 <test3\+0x15c4> 312a      	srl	s2,s2,2
+0+1a22 <test3\+0x15c6> 312b      	srl	s2,s2,3
+0+1a24 <test3\+0x15c8> 312c      	srl	s2,s2,4
+0+1a26 <test3\+0x15ca> 312d      	srl	s2,s2,5
+0+1a28 <test3\+0x15cc> 312e      	srl	s2,s2,6
+0+1a2a <test3\+0x15ce> 312f      	srl	s2,s2,7
+0+1a2c <test3\+0x15d0> 3128      	srl	s2,s2,8
+0+1a2e <test3\+0x15d2> 3138      	srl	s2,s3,8
+0+1a30 <test3\+0x15d4> 3148      	srl	s2,a0,8
+0+1a32 <test3\+0x15d6> 3158      	srl	s2,a1,8
+0+1a34 <test3\+0x15d8> 3168      	srl	s2,a2,8
+0+1a36 <test3\+0x15da> 3178      	srl	s2,a3,8
+0+1a38 <test3\+0x15dc> 3108      	srl	s2,s0,8
+0+1a3a <test3\+0x15de> 3118      	srl	s2,s1,8
+0+1a3c <test3\+0x15e0> 3128      	srl	s2,s2,8
+0+1a3e <test3\+0x15e2> 31a8      	srl	s3,s2,8
+0+1a40 <test3\+0x15e4> 3228      	srl	a0,s2,8
+0+1a42 <test3\+0x15e6> 32a8      	srl	a1,s2,8
+0+1a44 <test3\+0x15e8> 3328      	srl	a2,s2,8
+0+1a46 <test3\+0x15ea> 33a8      	srl	a3,s2,8
+0+1a48 <test3\+0x15ec> 3028      	srl	s0,s2,8
+0+1a4a <test3\+0x15ee> 30a8      	srl	s1,s2,8
+0+1a4c <test3\+0x15f0> 31b9      	srl	s3,s3,1
+0+1a4e <test3\+0x15f2> 31b9      	srl	s3,s3,1
 0+1a50 <test3\+0x15f4> 2083 1190 	sub	v0,v1,a0
 0+1a54 <test3\+0x15f8> 23fe e990 	sub	sp,s8,ra
 0+1a58 <test3\+0x15fc> 2082 1190 	sub	v0,v0,a0
@@ -1984,31 +1984,31 @@ Disassembly of section \.text:
 0+1a76 <test3\+0x161a> 2022 1190 	sub	v0,v0,at
 0+1a7a <test3\+0x161e> 6020 0000 ffff 	li	at,0xffff
 0+1a80 <test3\+0x1624> 2022 1190 	sub	v0,v0,at
-0+1a84 <test3\+0x1628> b135      	subu	v0,v1,v0
-0+1a86 <test3\+0x162a> b1b5      	subu	v0,v1,v1
-0+1a88 <test3\+0x162c> b235      	subu	v0,v1,a0
-0+1a8a <test3\+0x162e> b2b5      	subu	v0,v1,a1
-0+1a8c <test3\+0x1630> b335      	subu	v0,v1,a2
-0+1a8e <test3\+0x1632> b3b5      	subu	v0,v1,a3
-0+1a90 <test3\+0x1634> b035      	subu	v0,v1,s0
-0+1a92 <test3\+0x1636> b0b5      	subu	v0,v1,s1
-0+1a94 <test3\+0x1638> b0a5      	subu	v0,v0,s1
-0+1a96 <test3\+0x163a> b0c5      	subu	v0,a0,s1
-0+1a98 <test3\+0x163c> b0d5      	subu	v0,a1,s1
-0+1a9a <test3\+0x163e> b0e5      	subu	v0,a2,s1
-0+1a9c <test3\+0x1640> b0f5      	subu	v0,a3,s1
-0+1a9e <test3\+0x1642> b085      	subu	v0,s0,s1
-0+1aa0 <test3\+0x1644> b095      	subu	v0,s1,s1
-0+1aa2 <test3\+0x1646> b0a5      	subu	v0,v0,s1
-0+1aa4 <test3\+0x1648> b0a7      	subu	v1,v0,s1
-0+1aa6 <test3\+0x164a> b0a9      	subu	a0,v0,s1
-0+1aa8 <test3\+0x164c> b0ab      	subu	a1,v0,s1
-0+1aaa <test3\+0x164e> b0ad      	subu	a2,v0,s1
-0+1aac <test3\+0x1650> b0af      	subu	a3,v0,s1
-0+1aae <test3\+0x1652> b0a1      	subu	s0,v0,s1
-0+1ab0 <test3\+0x1654> b0a3      	subu	s1,v0,s1
-0+1ab2 <test3\+0x1656> b17f      	subu	a3,a3,v0
-0+1ab4 <test3\+0x1658> b17f      	subu	a3,a3,v0
+0+1a84 <test3\+0x1628> b135      	subu	s2,s3,s2
+0+1a86 <test3\+0x162a> b1b5      	subu	s2,s3,s3
+0+1a88 <test3\+0x162c> b235      	subu	s2,s3,a0
+0+1a8a <test3\+0x162e> b2b5      	subu	s2,s3,a1
+0+1a8c <test3\+0x1630> b335      	subu	s2,s3,a2
+0+1a8e <test3\+0x1632> b3b5      	subu	s2,s3,a3
+0+1a90 <test3\+0x1634> b035      	subu	s2,s3,s0
+0+1a92 <test3\+0x1636> b0b5      	subu	s2,s3,s1
+0+1a94 <test3\+0x1638> b0a5      	subu	s2,s2,s1
+0+1a96 <test3\+0x163a> b0c5      	subu	s2,a0,s1
+0+1a98 <test3\+0x163c> b0d5      	subu	s2,a1,s1
+0+1a9a <test3\+0x163e> b0e5      	subu	s2,a2,s1
+0+1a9c <test3\+0x1640> b0f5      	subu	s2,a3,s1
+0+1a9e <test3\+0x1642> b085      	subu	s2,s0,s1
+0+1aa0 <test3\+0x1644> b095      	subu	s2,s1,s1
+0+1aa2 <test3\+0x1646> b0a5      	subu	s2,s2,s1
+0+1aa4 <test3\+0x1648> b0a7      	subu	s3,s2,s1
+0+1aa6 <test3\+0x164a> b0a9      	subu	a0,s2,s1
+0+1aa8 <test3\+0x164c> b0ab      	subu	a1,s2,s1
+0+1aaa <test3\+0x164e> b0ad      	subu	a2,s2,s1
+0+1aac <test3\+0x1650> b0af      	subu	a3,s2,s1
+0+1aae <test3\+0x1652> b0a1      	subu	s0,s2,s1
+0+1ab0 <test3\+0x1654> b0a3      	subu	s1,s2,s1
+0+1ab2 <test3\+0x1656> b17f      	subu	a3,a3,s2
+0+1ab4 <test3\+0x1658> b17f      	subu	a3,a3,s2
 0+1ab6 <test3\+0x165a> 2083 11d0 	subu	v0,v1,a0
 0+1aba <test3\+0x165e> 23fe e9d0 	subu	sp,s8,ra
 0+1abe <test3\+0x1662> 2082 11d0 	subu	v0,v0,a0
@@ -2021,37 +2021,37 @@ Disassembly of section \.text:
 0+1adc <test3\+0x1680> 2022 11d0 	subu	v0,v0,at
 0+1ae0 <test3\+0x1684> 6020 0000 ffff 	li	at,0xffff
 0+1ae6 <test3\+0x168a> 2022 11d0 	subu	v0,v0,at
-0+1aea <test3\+0x168e> f540      	sw	v0,0\(a0\)
-0+1aec <test3\+0x1690> f540      	sw	v0,0\(a0\)
-0+1aee <test3\+0x1692> f541      	sw	v0,4\(a0\)
-0+1af0 <test3\+0x1694> f542      	sw	v0,8\(a0\)
-0+1af2 <test3\+0x1696> f543      	sw	v0,12\(a0\)
-0+1af4 <test3\+0x1698> f544      	sw	v0,16\(a0\)
-0+1af6 <test3\+0x169a> f545      	sw	v0,20\(a0\)
-0+1af8 <test3\+0x169c> f546      	sw	v0,24\(a0\)
-0+1afa <test3\+0x169e> f547      	sw	v0,28\(a0\)
-0+1afc <test3\+0x16a0> f548      	sw	v0,32\(a0\)
-0+1afe <test3\+0x16a2> f549      	sw	v0,36\(a0\)
-0+1b00 <test3\+0x16a4> f54a      	sw	v0,40\(a0\)
-0+1b02 <test3\+0x16a6> f54b      	sw	v0,44\(a0\)
-0+1b04 <test3\+0x16a8> f54c      	sw	v0,48\(a0\)
-0+1b06 <test3\+0x16aa> f54d      	sw	v0,52\(a0\)
-0+1b08 <test3\+0x16ac> f54e      	sw	v0,56\(a0\)
-0+1b0a <test3\+0x16ae> f54f      	sw	v0,60\(a0\)
-0+1b0c <test3\+0x16b0> f55f      	sw	v0,60\(a1\)
-0+1b0e <test3\+0x16b2> f56f      	sw	v0,60\(a2\)
-0+1b10 <test3\+0x16b4> f57f      	sw	v0,60\(a3\)
-0+1b12 <test3\+0x16b6> f50f      	sw	v0,60\(s0\)
-0+1b14 <test3\+0x16b8> f51f      	sw	v0,60\(s1\)
-0+1b16 <test3\+0x16ba> f52f      	sw	v0,60\(v0\)
-0+1b18 <test3\+0x16bc> f53f      	sw	v0,60\(v1\)
-0+1b1a <test3\+0x16be> f5bf      	sw	v1,60\(v1\)
-0+1b1c <test3\+0x16c0> f63f      	sw	a0,60\(v1\)
-0+1b1e <test3\+0x16c2> f6bf      	sw	a1,60\(v1\)
-0+1b20 <test3\+0x16c4> f73f      	sw	a2,60\(v1\)
-0+1b22 <test3\+0x16c6> f7bf      	sw	a3,60\(v1\)
-0+1b24 <test3\+0x16c8> f4bf      	sw	s1,60\(v1\)
-0+1b26 <test3\+0x16ca> f43f      	sw	zero,60\(v1\)
+0+1aea <test3\+0x168e> f540      	sw	s2,0\(a0\)
+0+1aec <test3\+0x1690> f540      	sw	s2,0\(a0\)
+0+1aee <test3\+0x1692> f541      	sw	s2,4\(a0\)
+0+1af0 <test3\+0x1694> f542      	sw	s2,8\(a0\)
+0+1af2 <test3\+0x1696> f543      	sw	s2,12\(a0\)
+0+1af4 <test3\+0x1698> f544      	sw	s2,16\(a0\)
+0+1af6 <test3\+0x169a> f545      	sw	s2,20\(a0\)
+0+1af8 <test3\+0x169c> f546      	sw	s2,24\(a0\)
+0+1afa <test3\+0x169e> f547      	sw	s2,28\(a0\)
+0+1afc <test3\+0x16a0> f548      	sw	s2,32\(a0\)
+0+1afe <test3\+0x16a2> f549      	sw	s2,36\(a0\)
+0+1b00 <test3\+0x16a4> f54a      	sw	s2,40\(a0\)
+0+1b02 <test3\+0x16a6> f54b      	sw	s2,44\(a0\)
+0+1b04 <test3\+0x16a8> f54c      	sw	s2,48\(a0\)
+0+1b06 <test3\+0x16aa> f54d      	sw	s2,52\(a0\)
+0+1b08 <test3\+0x16ac> f54e      	sw	s2,56\(a0\)
+0+1b0a <test3\+0x16ae> f54f      	sw	s2,60\(a0\)
+0+1b0c <test3\+0x16b0> f55f      	sw	s2,60\(a1\)
+0+1b0e <test3\+0x16b2> f56f      	sw	s2,60\(a2\)
+0+1b10 <test3\+0x16b4> f57f      	sw	s2,60\(a3\)
+0+1b12 <test3\+0x16b6> f50f      	sw	s2,60\(s0\)
+0+1b14 <test3\+0x16b8> f51f      	sw	s2,60\(s1\)
+0+1b16 <test3\+0x16ba> f52f      	sw	s2,60\(s2\)
+0+1b18 <test3\+0x16bc> f53f      	sw	s2,60\(s3\)
+0+1b1a <test3\+0x16be> f5bf      	sw	s3,60\(s3\)
+0+1b1c <test3\+0x16c0> f63f      	sw	a0,60\(s3\)
+0+1b1e <test3\+0x16c2> f6bf      	sw	a1,60\(s3\)
+0+1b20 <test3\+0x16c4> f73f      	sw	a2,60\(s3\)
+0+1b22 <test3\+0x16c6> f7bf      	sw	a3,60\(s3\)
+0+1b24 <test3\+0x16c8> f4bf      	sw	s1,60\(s3\)
+0+1b26 <test3\+0x16ca> f43f      	sw	zero,60\(s3\)
 0+1b28 <test3\+0x16cc> d400      	sw	zero,0\(sp\)
 0+1b2a <test3\+0x16ce> d400      	sw	zero,0\(sp\)
 0+1b2c <test3\+0x16d0> d401      	sw	zero,4\(sp\)
@@ -2370,24 +2370,24 @@ Disassembly of section \.text:
 0+1fea <test3\+0x1b8e> 2044 7b3f 	wsbh	v0,a0
 0+1fee <test3\+0x1b92> 2042 7b3f 	wsbh	v0,v0
 0+1ff2 <test3\+0x1b96> 2042 7b3f 	wsbh	v0,v0
-0+1ff6 <test3\+0x1b9a> 5124      	xor	v0,v0,v0
-0+1ff8 <test3\+0x1b9c> 5134      	xor	v0,v0,v1
-0+1ffa <test3\+0x1b9e> 5144      	xor	v0,v0,a0
-0+1ffc <test3\+0x1ba0> 5154      	xor	v0,v0,a1
-0+1ffe <test3\+0x1ba2> 5164      	xor	v0,v0,a2
-0+2000 <test3\+0x1ba4> 5174      	xor	v0,v0,a3
-0+2002 <test3\+0x1ba6> 5104      	xor	v0,v0,s0
-0+2004 <test3\+0x1ba8> 5114      	xor	v0,v0,s1
-0+2006 <test3\+0x1baa> 5194      	xor	v1,v1,s1
+0+1ff6 <test3\+0x1b9a> 5124      	xor	s2,s2,s2
+0+1ff8 <test3\+0x1b9c> 5134      	xor	s2,s2,s3
+0+1ffa <test3\+0x1b9e> 5144      	xor	s2,s2,a0
+0+1ffc <test3\+0x1ba0> 5154      	xor	s2,s2,a1
+0+1ffe <test3\+0x1ba2> 5164      	xor	s2,s2,a2
+0+2000 <test3\+0x1ba4> 5174      	xor	s2,s2,a3
+0+2002 <test3\+0x1ba6> 5104      	xor	s2,s2,s0
+0+2004 <test3\+0x1ba8> 5114      	xor	s2,s2,s1
+0+2006 <test3\+0x1baa> 5194      	xor	s3,s3,s1
 0+2008 <test3\+0x1bac> 5214      	xor	a0,a0,s1
 0+200a <test3\+0x1bae> 5294      	xor	a1,a1,s1
 0+200c <test3\+0x1bb0> 5314      	xor	a2,a2,s1
 0+200e <test3\+0x1bb2> 5394      	xor	a3,a3,s1
 0+2010 <test3\+0x1bb4> 5014      	xor	s0,s0,s1
 0+2012 <test3\+0x1bb6> 5094      	xor	s1,s1,s1
-0+2014 <test3\+0x1bb8> 5134      	xor	v0,v0,v1
-0+2016 <test3\+0x1bba> 5134      	xor	v0,v0,v1
-0+2018 <test3\+0x1bbc> 5134      	xor	v0,v0,v1
+0+2014 <test3\+0x1bb8> 5134      	xor	s2,s2,s3
+0+2016 <test3\+0x1bba> 5134      	xor	s2,s2,s3
+0+2018 <test3\+0x1bbc> 5134      	xor	s2,s2,s3
 0+201a <test3\+0x1bbe> 2083 1310 	xor	v0,v1,a0
 0+201e <test3\+0x1bc2> 23fe eb10 	xor	sp,s8,ra
 0+2022 <test3\+0x1bc6> 2082 1310 	xor	v0,v0,a0
@@ -2406,208 +2406,208 @@ Disassembly of section \.text:
 0+205a <test3\+0x1bfe> 8063 1fff 	xori	v1,v1,4095
 0+205e <test3\+0x1c02> e920 0000 	beqzc	t1,00002062 <test3\+0x1c06>
 			205e: R_MICROMIPS_PC20_S1	test-0x4
-0+2062 <test3\+0x1c06> b2c6      	addu	v1,a0,a1
+0+2062 <test3\+0x1c06> b2c6      	addu	s3,a0,a1
 0+2064 <test3\+0x1c08> 8949 0000 	beqc	t1,t2,00002068 <test3\+0x1c0c>
 			2064: R_MICROMIPS_PC14_S1	test-0x4
-0+2068 <test3\+0x1c0c> b2c6      	addu	v1,a0,a1
+0+2068 <test3\+0x1c0c> b2c6      	addu	s3,a0,a1
 0+206a <test3\+0x1c0e> e920 0000 	beqzc	t1,0000206e <test3\+0x1c12>
 			206a: R_MICROMIPS_PC20_S1	test-0x4
-0+206e <test3\+0x1c12> b2c6      	addu	v1,a0,a1
+0+206e <test3\+0x1c12> b2c6      	addu	s3,a0,a1
 0+2070 <test3\+0x1c14> c920 0800 	beqic	t1,1,00002074 <test3\+0x1c18>
 			2070: R_MICROMIPS_PC11_S1	test-0x4
-0+2074 <test3\+0x1c18> b2c6      	addu	v1,a0,a1
+0+2074 <test3\+0x1c18> b2c6      	addu	s3,a0,a1
 0+2076 <test3\+0x1c1a> 880a 8000 	bgezc	t2,0000207a <test3\+0x1c1e>
 			2076: R_MICROMIPS_PC14_S1	test-0x4
-0+207a <test3\+0x1c1e> b2c6      	addu	v1,a0,a1
+0+207a <test3\+0x1c1e> b2c6      	addu	s3,a0,a1
 0+207c <test3\+0x1c20> 880a 8000 	bgezc	t2,00002080 <test3\+0x1c24>
 			207c: R_MICROMIPS_PC14_S1	test-0x4
-0+2080 <test3\+0x1c24> b2c6      	addu	v1,a0,a1
+0+2080 <test3\+0x1c24> b2c6      	addu	s3,a0,a1
 0+2082 <test3\+0x1c26> 8940 8000 	blezc	t2,00002086 <test3\+0x1c2a>
 			2082: R_MICROMIPS_PC14_S1	test-0x4
-0+2086 <test3\+0x1c2a> b2c6      	addu	v1,a0,a1
+0+2086 <test3\+0x1c2a> b2c6      	addu	s3,a0,a1
 0+2088 <test3\+0x1c2c> 896a 8000 	bgec	t2,t3,0000208c <test3\+0x1c30>
 			2088: R_MICROMIPS_PC14_S1	test-0x4
-0+208c <test3\+0x1c30> b2c6      	addu	v1,a0,a1
+0+208c <test3\+0x1c30> b2c6      	addu	s3,a0,a1
 0+208e <test3\+0x1c32> 880a 8000 	bgezc	t2,00002092 <test3\+0x1c36>
 			208e: R_MICROMIPS_PC14_S1	test-0x4
-0+2092 <test3\+0x1c36> b2c6      	addu	v1,a0,a1
+0+2092 <test3\+0x1c36> b2c6      	addu	s3,a0,a1
 0+2094 <test3\+0x1c38> a940 8000 	bgtzc	t2,00002098 <test3\+0x1c3c>
 			2094: R_MICROMIPS_PC14_S1	test-0x4
-0+2098 <test3\+0x1c3c> b2c6      	addu	v1,a0,a1
+0+2098 <test3\+0x1c3c> b2c6      	addu	s3,a0,a1
 0+209a <test3\+0x1c3e> c948 1000 	bgeic	t2,2,0000209e <test3\+0x1c42>
 			209a: R_MICROMIPS_PC11_S1	test-0x4
-0+209e <test3\+0x1c42> b2c6      	addu	v1,a0,a1
+0+209e <test3\+0x1c42> b2c6      	addu	s3,a0,a1
 0+20a0 <test3\+0x1c44> 2800 0000 	bc	000020a4 <test3\+0x1c48>
 			20a0: R_MICROMIPS_PC25_S1	test-0x4
-0+20a4 <test3\+0x1c48> b2c6      	addu	v1,a0,a1
+0+20a4 <test3\+0x1c48> b2c6      	addu	s3,a0,a1
 0+20a6 <test3\+0x1c4a> 8802 c000 	bgeuc	v0,zero,000020aa <test3\+0x1c4e>
 			20a6: R_MICROMIPS_PC14_S1	test-0x4
-0+20aa <test3\+0x1c4e> b2c6      	addu	v1,a0,a1
+0+20aa <test3\+0x1c4e> b2c6      	addu	s3,a0,a1
 0+20ac <test3\+0x1c50> 8840 c000 	bgeuc	zero,v0,000020b0 <test3\+0x1c54>
 			20ac: R_MICROMIPS_PC14_S1	test-0x4
-0+20b0 <test3\+0x1c54> b2c6      	addu	v1,a0,a1
+0+20b0 <test3\+0x1c54> b2c6      	addu	s3,a0,a1
 0+20b2 <test3\+0x1c56> 8862 c000 	bgeuc	v0,v1,000020b6 <test3\+0x1c5a>
 			20b2: R_MICROMIPS_PC14_S1	test-0x4
-0+20b6 <test3\+0x1c5a> b2c6      	addu	v1,a0,a1
+0+20b6 <test3\+0x1c5a> b2c6      	addu	s3,a0,a1
 0+20b8 <test3\+0x1c5c> 2800 0000 	bc	000020bc <test3\+0x1c60>
 			20b8: R_MICROMIPS_PC25_S1	test-0x4
-0+20bc <test3\+0x1c60> b2c6      	addu	v1,a0,a1
+0+20bc <test3\+0x1c60> b2c6      	addu	s3,a0,a1
 0+20be <test3\+0x1c62> e850 0000 	bnezc	v0,000020c2 <test3\+0x1c66>
 			20be: R_MICROMIPS_PC20_S1	test-0x4
-0+20c2 <test3\+0x1c66> b2c6      	addu	v1,a0,a1
+0+20c2 <test3\+0x1c66> b2c6      	addu	s3,a0,a1
 0+20c4 <test3\+0x1c68> c84c 1000 	bgeuic	v0,2,000020c8 <test3\+0x1c6c>
 			20c4: R_MICROMIPS_PC11_S1	test-0x4
-0+20c8 <test3\+0x1c6c> b2c6      	addu	v1,a0,a1
+0+20c8 <test3\+0x1c6c> b2c6      	addu	s3,a0,a1
 0+20ca <test3\+0x1c6e> 8802 8000 	bgezc	v0,000020ce <test3\+0x1c72>
 			20ca: R_MICROMIPS_PC14_S1	test-0x4
-0+20ce <test3\+0x1c72> b2c6      	addu	v1,a0,a1
+0+20ce <test3\+0x1c72> b2c6      	addu	s3,a0,a1
 0+20d0 <test3\+0x1c74> a840 8000 	bgtzc	v0,000020d4 <test3\+0x1c78>
 			20d0: R_MICROMIPS_PC14_S1	test-0x4
-0+20d4 <test3\+0x1c78> b2c6      	addu	v1,a0,a1
+0+20d4 <test3\+0x1c78> b2c6      	addu	s3,a0,a1
 0+20d6 <test3\+0x1c7a> a802 8000 	bltzc	v0,000020da <test3\+0x1c7e>
 			20d6: R_MICROMIPS_PC14_S1	test-0x4
-0+20da <test3\+0x1c7e> b2c6      	addu	v1,a0,a1
+0+20da <test3\+0x1c7e> b2c6      	addu	s3,a0,a1
 0+20dc <test3\+0x1c80> 212a 0b50 	slt	at,t2,t1
 0+20e0 <test3\+0x1c84> e830 0000 	bnezc	at,000020e4 <test3\+0x1c88>
 			20e0: R_MICROMIPS_PC20_S1	test-0x4
-0+20e4 <test3\+0x1c88> b2c6      	addu	v1,a0,a1
+0+20e4 <test3\+0x1c88> b2c6      	addu	s3,a0,a1
 0+20e6 <test3\+0x1c8a> 9008      	nop
-0+20e8 <test3\+0x1c8c> b2c6      	addu	v1,a0,a1
+0+20e8 <test3\+0x1c8c> b2c6      	addu	s3,a0,a1
 0+20ea <test3\+0x1c8e> 8809 8000 	bgezc	t1,000020ee <test3\+0x1c92>
 			20ea: R_MICROMIPS_PC14_S1	test-0x4
-0+20ee <test3\+0x1c92> b2c6      	addu	v1,a0,a1
+0+20ee <test3\+0x1c92> b2c6      	addu	s3,a0,a1
 0+20f0 <test3\+0x1c94> a920 8000 	bgtzc	t1,000020f4 <test3\+0x1c98>
 			20f0: R_MICROMIPS_PC14_S1	test-0x4
-0+20f4 <test3\+0x1c98> b2c6      	addu	v1,a0,a1
+0+20f4 <test3\+0x1c98> b2c6      	addu	s3,a0,a1
 0+20f6 <test3\+0x1c9a> c928 1000 	bgeic	t1,2,000020fa <test3\+0x1c9e>
 			20f6: R_MICROMIPS_PC11_S1	test-0x4
-0+20fa <test3\+0x1c9e> b2c6      	addu	v1,a0,a1
+0+20fa <test3\+0x1c9e> b2c6      	addu	s3,a0,a1
 0+20fc <test3\+0x1ca0> 6020 8000 0001 	li	at,0x80000001
 0+2102 <test3\+0x1ca6> 2029 0b50 	slt	at,t1,at
 0+2106 <test3\+0x1caa> e820 0000 	beqzc	at,0000210a <test3\+0x1cae>
 			2106: R_MICROMIPS_PC20_S1	test-0x4
-0+210a <test3\+0x1cae> b2c6      	addu	v1,a0,a1
+0+210a <test3\+0x1cae> b2c6      	addu	s3,a0,a1
 0+210c <test3\+0x1cb0> e930 0000 	bnezc	t1,00002110 <test3\+0x1cb4>
 			210c: R_MICROMIPS_PC20_S1	test-0x4
-0+2110 <test3\+0x1cb4> b2c6      	addu	v1,a0,a1
+0+2110 <test3\+0x1cb4> b2c6      	addu	s3,a0,a1
 0+2112 <test3\+0x1cb6> 9008      	nop
-0+2114 <test3\+0x1cb8> b2c6      	addu	v1,a0,a1
+0+2114 <test3\+0x1cb8> b2c6      	addu	s3,a0,a1
 0+2116 <test3\+0x1cba> 212a 0b90 	sltu	at,t2,t1
 0+211a <test3\+0x1cbe> e830 0000 	bnezc	at,0000211e <test3\+0x1cc2>
 			211a: R_MICROMIPS_PC20_S1	test-0x4
-0+211e <test3\+0x1cc2> b2c6      	addu	v1,a0,a1
+0+211e <test3\+0x1cc2> b2c6      	addu	s3,a0,a1
 0+2120 <test3\+0x1cc4> 9008      	nop
-0+2122 <test3\+0x1cc6> b2c6      	addu	v1,a0,a1
+0+2122 <test3\+0x1cc6> b2c6      	addu	s3,a0,a1
 0+2124 <test3\+0x1cc8> 9008      	nop
-0+2126 <test3\+0x1cca> b2c6      	addu	v1,a0,a1
+0+2126 <test3\+0x1cca> b2c6      	addu	s3,a0,a1
 0+2128 <test3\+0x1ccc> 9008      	nop
-0+212a <test3\+0x1cce> b2c6      	addu	v1,a0,a1
+0+212a <test3\+0x1cce> b2c6      	addu	s3,a0,a1
 0+212c <test3\+0x1cd0> e930 0000 	bnezc	t1,00002130 <test3\+0x1cd4>
 			212c: R_MICROMIPS_PC20_S1	test-0x4
-0+2130 <test3\+0x1cd4> b2c6      	addu	v1,a0,a1
+0+2130 <test3\+0x1cd4> b2c6      	addu	s3,a0,a1
 0+2132 <test3\+0x1cd6> c92c 1000 	bgeuic	t1,2,00002136 <test3\+0x1cda>
 			2132: R_MICROMIPS_PC11_S1	test-0x4
-0+2136 <test3\+0x1cda> b2c6      	addu	v1,a0,a1
+0+2136 <test3\+0x1cda> b2c6      	addu	s3,a0,a1
 0+2138 <test3\+0x1cdc> a920 8000 	bgtzc	t1,0000213c <test3\+0x1ce0>
 			2138: R_MICROMIPS_PC14_S1	test-0x4
-0+213c <test3\+0x1ce0> b2c6      	addu	v1,a0,a1
+0+213c <test3\+0x1ce0> b2c6      	addu	s3,a0,a1
 0+213e <test3\+0x1ce2> 8920 8000 	blezc	t1,00002142 <test3\+0x1ce6>
 			213e: R_MICROMIPS_PC14_S1	test-0x4
-0+2142 <test3\+0x1ce6> b2c6      	addu	v1,a0,a1
+0+2142 <test3\+0x1ce6> b2c6      	addu	s3,a0,a1
 0+2144 <test3\+0x1ce8> 880a 8000 	bgezc	t2,00002148 <test3\+0x1cec>
 			2144: R_MICROMIPS_PC14_S1	test-0x4
-0+2148 <test3\+0x1cec> b2c6      	addu	v1,a0,a1
+0+2148 <test3\+0x1cec> b2c6      	addu	s3,a0,a1
 0+214a <test3\+0x1cee> 212a 0b50 	slt	at,t2,t1
 0+214e <test3\+0x1cf2> e820 0000 	beqzc	at,00002152 <test3\+0x1cf6>
 			214e: R_MICROMIPS_PC20_S1	test-0x4
-0+2152 <test3\+0x1cf6> b2c6      	addu	v1,a0,a1
+0+2152 <test3\+0x1cf6> b2c6      	addu	s3,a0,a1
 0+2154 <test3\+0x1cf8> 2800 0000 	bc	00002158 <test3\+0x1cfc>
 			2154: R_MICROMIPS_PC25_S1	test-0x4
-0+2158 <test3\+0x1cfc> b2c6      	addu	v1,a0,a1
+0+2158 <test3\+0x1cfc> b2c6      	addu	s3,a0,a1
 0+215a <test3\+0x1cfe> a809 8000 	bltzc	t1,0000215e <test3\+0x1d02>
 			215a: R_MICROMIPS_PC14_S1	test-0x4
-0+215e <test3\+0x1d02> b2c6      	addu	v1,a0,a1
+0+215e <test3\+0x1d02> b2c6      	addu	s3,a0,a1
 0+2160 <test3\+0x1d04> 8920 8000 	blezc	t1,00002164 <test3\+0x1d08>
 			2160: R_MICROMIPS_PC14_S1	test-0x4
-0+2164 <test3\+0x1d08> b2c6      	addu	v1,a0,a1
+0+2164 <test3\+0x1d08> b2c6      	addu	s3,a0,a1
 0+2166 <test3\+0x1d0a> c938 1000 	bltic	t1,2,0000216a <test3\+0x1d0e>
 			2166: R_MICROMIPS_PC11_S1	test-0x4
-0+216a <test3\+0x1d0e> b2c6      	addu	v1,a0,a1
+0+216a <test3\+0x1d0e> b2c6      	addu	s3,a0,a1
 0+216c <test3\+0x1d10> e920 0000 	beqzc	t1,00002170 <test3\+0x1d14>
 			216c: R_MICROMIPS_PC20_S1	test-0x4
-0+2170 <test3\+0x1d14> b2c6      	addu	v1,a0,a1
+0+2170 <test3\+0x1d14> b2c6      	addu	s3,a0,a1
 0+2172 <test3\+0x1d16> 2800 0000 	bc	00002176 <test3\+0x1d1a>
 			2172: R_MICROMIPS_PC25_S1	test-0x4
-0+2176 <test3\+0x1d1a> b2c6      	addu	v1,a0,a1
+0+2176 <test3\+0x1d1a> b2c6      	addu	s3,a0,a1
 0+2178 <test3\+0x1d1c> 212a 0b90 	sltu	at,t2,t1
 0+217c <test3\+0x1d20> e820 0000 	beqzc	at,00002180 <test3\+0x1d24>
 			217c: R_MICROMIPS_PC20_S1	test-0x4
-0+2180 <test3\+0x1d24> b2c6      	addu	v1,a0,a1
+0+2180 <test3\+0x1d24> b2c6      	addu	s3,a0,a1
 0+2182 <test3\+0x1d26> 2800 0000 	bc	00002186 <test3\+0x1d2a>
 			2182: R_MICROMIPS_PC25_S1	test-0x4
-0+2186 <test3\+0x1d2a> b2c6      	addu	v1,a0,a1
+0+2186 <test3\+0x1d2a> b2c6      	addu	s3,a0,a1
 0+2188 <test3\+0x1d2c> 2800 0000 	bc	0000218c <test3\+0x1d30>
 			2188: R_MICROMIPS_PC25_S1	test-0x4
-0+218c <test3\+0x1d30> b2c6      	addu	v1,a0,a1
+0+218c <test3\+0x1d30> b2c6      	addu	s3,a0,a1
 0+218e <test3\+0x1d32> e920 0000 	beqzc	t1,00002192 <test3\+0x1d36>
 			218e: R_MICROMIPS_PC20_S1	test-0x4
-0+2192 <test3\+0x1d36> b2c6      	addu	v1,a0,a1
+0+2192 <test3\+0x1d36> b2c6      	addu	s3,a0,a1
 0+2194 <test3\+0x1d38> c93c 1000 	bltuic	t1,2,00002198 <test3\+0x1d3c>
 			2194: R_MICROMIPS_PC11_S1	test-0x4
-0+2198 <test3\+0x1d3c> b2c6      	addu	v1,a0,a1
+0+2198 <test3\+0x1d3c> b2c6      	addu	s3,a0,a1
 0+219a <test3\+0x1d3e> 8920 8000 	blezc	t1,0000219e <test3\+0x1d42>
 			219a: R_MICROMIPS_PC14_S1	test-0x4
-0+219e <test3\+0x1d42> b2c6      	addu	v1,a0,a1
+0+219e <test3\+0x1d42> b2c6      	addu	s3,a0,a1
 0+21a0 <test3\+0x1d44> a809 8000 	bltzc	t1,000021a4 <test3\+0x1d48>
 			21a0: R_MICROMIPS_PC14_S1	test-0x4
-0+21a4 <test3\+0x1d48> b2c6      	addu	v1,a0,a1
+0+21a4 <test3\+0x1d48> b2c6      	addu	s3,a0,a1
 0+21a6 <test3\+0x1d4a> a940 8000 	bgtzc	t2,000021aa <test3\+0x1d4e>
 			21a6: R_MICROMIPS_PC14_S1	test-0x4
-0+21aa <test3\+0x1d4e> b2c6      	addu	v1,a0,a1
+0+21aa <test3\+0x1d4e> b2c6      	addu	s3,a0,a1
 0+21ac <test3\+0x1d50> a949 8000 	bltc	t1,t2,000021b0 <test3\+0x1d54>
 			21ac: R_MICROMIPS_PC14_S1	test-0x4
-0+21b0 <test3\+0x1d54> b2c6      	addu	v1,a0,a1
+0+21b0 <test3\+0x1d54> b2c6      	addu	s3,a0,a1
 0+21b2 <test3\+0x1d56> a809 8000 	bltzc	t1,000021b6 <test3\+0x1d5a>
 			21b2: R_MICROMIPS_PC14_S1	test-0x4
-0+21b6 <test3\+0x1d5a> b2c6      	addu	v1,a0,a1
+0+21b6 <test3\+0x1d5a> b2c6      	addu	s3,a0,a1
 0+21b8 <test3\+0x1d5c> 8920 8000 	blezc	t1,000021bc <test3\+0x1d60>
 			21b8: R_MICROMIPS_PC14_S1	test-0x4
-0+21bc <test3\+0x1d60> b2c6      	addu	v1,a0,a1
+0+21bc <test3\+0x1d60> b2c6      	addu	s3,a0,a1
 0+21be <test3\+0x1d62> c938 1000 	bltic	t1,2,000021c2 <test3\+0x1d66>
 			21be: R_MICROMIPS_PC11_S1	test-0x4
-0+21c2 <test3\+0x1d66> b2c6      	addu	v1,a0,a1
+0+21c2 <test3\+0x1d66> b2c6      	addu	s3,a0,a1
 0+21c4 <test3\+0x1d68> a809 c000 	bltuc	t1,zero,000021c8 <test3\+0x1d6c>
 			21c4: R_MICROMIPS_PC14_S1	test-0x4
-0+21c8 <test3\+0x1d6c> b2c6      	addu	v1,a0,a1
+0+21c8 <test3\+0x1d6c> b2c6      	addu	s3,a0,a1
 0+21ca <test3\+0x1d6e> a940 c000 	bltuc	zero,t2,000021ce <test3\+0x1d72>
 			21ca: R_MICROMIPS_PC14_S1	test-0x4
-0+21ce <test3\+0x1d72> b2c6      	addu	v1,a0,a1
+0+21ce <test3\+0x1d72> b2c6      	addu	s3,a0,a1
 0+21d0 <test3\+0x1d74> a949 c000 	bltuc	t1,t2,000021d4 <test3\+0x1d78>
 			21d0: R_MICROMIPS_PC14_S1	test-0x4
-0+21d4 <test3\+0x1d78> b2c6      	addu	v1,a0,a1
+0+21d4 <test3\+0x1d78> b2c6      	addu	s3,a0,a1
 0+21d6 <test3\+0x1d7a> 9008      	nop
-0+21d8 <test3\+0x1d7c> b2c6      	addu	v1,a0,a1
+0+21d8 <test3\+0x1d7c> b2c6      	addu	s3,a0,a1
 0+21da <test3\+0x1d7e> e920 0000 	beqzc	t1,000021de <test3\+0x1d82>
 			21da: R_MICROMIPS_PC20_S1	test-0x4
-0+21de <test3\+0x1d82> b2c6      	addu	v1,a0,a1
+0+21de <test3\+0x1d82> b2c6      	addu	s3,a0,a1
 0+21e0 <test3\+0x1d84> c93c 1000 	bltuic	t1,2,000021e4 <test3\+0x1d88>
 			21e0: R_MICROMIPS_PC11_S1	test-0x4
-0+21e4 <test3\+0x1d88> b2c6      	addu	v1,a0,a1
+0+21e4 <test3\+0x1d88> b2c6      	addu	s3,a0,a1
 0+21e6 <test3\+0x1d8a> a809 8000 	bltzc	t1,000021ea <test3\+0x1d8e>
 			21e6: R_MICROMIPS_PC14_S1	test-0x4
-0+21ea <test3\+0x1d8e> b2c6      	addu	v1,a0,a1
+0+21ea <test3\+0x1d8e> b2c6      	addu	s3,a0,a1
 0+21ec <test3\+0x1d90> e930 0000 	bnezc	t1,000021f0 <test3\+0x1d94>
 			21ec: R_MICROMIPS_PC20_S1	test-0x4
-0+21f0 <test3\+0x1d94> b2c6      	addu	v1,a0,a1
+0+21f0 <test3\+0x1d94> b2c6      	addu	s3,a0,a1
 0+21f2 <test3\+0x1d96> a949 0000 	bnec	t1,t2,000021f6 <test3\+0x1d9a>
 			21f2: R_MICROMIPS_PC14_S1	test-0x4
-0+21f6 <test3\+0x1d9a> b2c6      	addu	v1,a0,a1
+0+21f6 <test3\+0x1d9a> b2c6      	addu	s3,a0,a1
 0+21f8 <test3\+0x1d9c> e930 0000 	bnezc	t1,000021fc <test3\+0x1da0>
 			21f8: R_MICROMIPS_PC20_S1	test-0x4
-0+21fc <test3\+0x1da0> b2c6      	addu	v1,a0,a1
+0+21fc <test3\+0x1da0> b2c6      	addu	s3,a0,a1
 0+21fe <test3\+0x1da2> c930 0800 	bneic	t1,1,00002202 <test3\+0x1da6>
 			21fe: R_MICROMIPS_PC11_S1	test-0x4
-0+2202 <test3\+0x1da6> b2c6      	addu	v1,a0,a1
+0+2202 <test3\+0x1da6> b2c6      	addu	s3,a0,a1
 0+2204 <test3\+0x1da8> 8460 9004 	sw	v1,4\(zero\)
 0+2208 <test3\+0x1dac> 8480 9008 	sw	a0,8\(zero\)
 0+220c <test3\+0x1db0> 8460 9004 	sw	v1,4\(zero\)
@@ -4082,8 +4082,8 @@ Disassembly of section \.text:
 0+38f2 <test_delay_slot\+0xa> 4802 0000 	jrc	v0
 0+38f6 <test_delay_slot\+0xe> 4be2 1000 	jalrc\.hb	v0
 0+38fa <test_delay_slot\+0x12> 4802 1000 	jrc\.hb	v0
-0+38fe <test_spec102> b540      	lw	v0,-256\(gp\)
-0+3900 <test_spec102\+0x2> b5c0      	lw	v1,-256\(gp\)
+0+38fe <test_spec102> b540      	lw	s2,-256\(gp\)
+0+3900 <test_spec102\+0x2> b5c0      	lw	s3,-256\(gp\)
 0+3902 <test_spec102\+0x4> b640      	lw	a0,-256\(gp\)
 0+3904 <test_spec102\+0x6> b6c0      	lw	a1,-256\(gp\)
 0+3906 <test_spec102\+0x8> b740      	lw	a2,-256\(gp\)
@@ -4108,34 +4108,34 @@ Disassembly of section \.text:
 0+3946 <test_spec102\+0x48> 863b 8000 	lw	s1,0\(k1\)
 0+394a <test_spec107> bd00      	movep	a1,a2,zero,zero
 0+394c <test_spec107\+0x2> bc08      	movep	a2,a3,zero,zero
-0+394e <test_spec107\+0x4> bc08      	movep	a2,a3,zero,zero
-0+3950 <test_spec107\+0x6> bc00      	movep	a0,a1,zero,zero
-0+3952 <test_spec107\+0x8> bd00      	movep	a1,a2,zero,zero
-0+3954 <test_spec107\+0xa> bc08      	movep	a2,a3,zero,zero
-0+3956 <test_spec107\+0xc> bc19      	movep	a2,a3,s1,zero
-0+3958 <test_spec107\+0xe> bc0a      	movep	a2,a3,v0,zero
-0+395a <test_spec107\+0x10> bc0b      	movep	a2,a3,v1,zero
-0+395c <test_spec107\+0x12> bc18      	movep	a2,a3,s0,zero
-0+395e <test_spec107\+0x14> bc1a      	movep	a2,a3,s2,zero
-0+3960 <test_spec107\+0x16> bc1b      	movep	a2,a3,s3,zero
-0+3962 <test_spec107\+0x18> bc1c      	movep	a2,a3,s4,zero
-0+3964 <test_spec107\+0x1a> be3c      	movep	a2,a3,s4,s1
-0+3966 <test_spec107\+0x1c> bc5c      	movep	a2,a3,s4,v0
-0+3968 <test_spec107\+0x1e> bc7c      	movep	a2,a3,s4,v1
-0+396a <test_spec107\+0x20> be1c      	movep	a2,a3,s4,s0
-0+396c <test_spec107\+0x22> be5c      	movep	a2,a3,s4,s2
-0+396e <test_spec107\+0x24> be7c      	movep	a2,a3,s4,s3
-0+3970 <test_spec107\+0x26> be9c      	movep	a2,a3,s4,s4
-0+3972 <test_spec107\+0x28> 446c 0000 	lwc1	\$f3,0\(gp\)
-0+3976 <test_spec107\+0x2c> 446c 0000 	lwc1	\$f3,0\(gp\)
-0+397a <test_spec107\+0x30> 446c 0004 	lwc1	\$f3,4\(gp\)
-0+397e <test_spec107\+0x34> 446c 4000 	lwc1	\$f3,16384\(gp\)
-0+3982 <test_spec107\+0x38> 446f fffc 	lwc1	\$f3,262140\(gp\)
-0+3986 <test_spec107\+0x3c> 446c 0001 	swc1	\$f3,0\(gp\)
-0+398a <test_spec107\+0x40> 446c 0001 	swc1	\$f3,0\(gp\)
-0+398e <test_spec107\+0x44> 446c 0005 	swc1	\$f3,4\(gp\)
-0+3992 <test_spec107\+0x48> 446c 4001 	swc1	\$f3,16384\(gp\)
-0+3996 <test_spec107\+0x4c> 446f fffd 	swc1	\$f3,262140\(gp\)
+0+394e <test_spec107\+0x4> bc00      	movep	a0,a1,zero,zero
+0+3950 <test_spec107\+0x6> bd00      	movep	a1,a2,zero,zero
+0+3952 <test_spec107\+0x8> bc08      	movep	a2,a3,zero,zero
+0+3954 <test_spec107\+0xa> bc19      	movep	a2,a3,s1,zero
+0+3956 <test_spec107\+0xc> bc0a      	movep	a2,a3,v0,zero
+0+3958 <test_spec107\+0xe> bc0b      	movep	a2,a3,v1,zero
+0+395a <test_spec107\+0x10> bc18      	movep	a2,a3,s0,zero
+0+395c <test_spec107\+0x12> bc1a      	movep	a2,a3,s2,zero
+0+395e <test_spec107\+0x14> bc1b      	movep	a2,a3,s3,zero
+0+3960 <test_spec107\+0x16> bc1c      	movep	a2,a3,s4,zero
+0+3962 <test_spec107\+0x18> be3c      	movep	a2,a3,s4,s1
+0+3964 <test_spec107\+0x1a> bc5c      	movep	a2,a3,s4,v0
+0+3966 <test_spec107\+0x1c> bc7c      	movep	a2,a3,s4,v1
+0+3968 <test_spec107\+0x1e> be1c      	movep	a2,a3,s4,s0
+0+396a <test_spec107\+0x20> be5c      	movep	a2,a3,s4,s2
+0+396c <test_spec107\+0x22> be7c      	movep	a2,a3,s4,s3
+0+396e <test_spec107\+0x24> be9c      	movep	a2,a3,s4,s4
+0+3970 <test_spec107\+0x26> 446c 0000 	lwc1	\$f3,0\(gp\)
+0+3974 <test_spec107\+0x2a> 446c 0000 	lwc1	\$f3,0\(gp\)
+0+3978 <test_spec107\+0x2e> 446c 0004 	lwc1	\$f3,4\(gp\)
+0+397c <test_spec107\+0x32> 446c 4000 	lwc1	\$f3,16384\(gp\)
+0+3980 <test_spec107\+0x36> 446f fffc 	lwc1	\$f3,262140\(gp\)
+0+3984 <test_spec107\+0x3a> 446c 0001 	swc1	\$f3,0\(gp\)
+0+3988 <test_spec107\+0x3e> 446c 0001 	swc1	\$f3,0\(gp\)
+0+398c <test_spec107\+0x42> 446c 0005 	swc1	\$f3,4\(gp\)
+0+3990 <test_spec107\+0x46> 446c 4001 	swc1	\$f3,16384\(gp\)
+0+3994 <test_spec107\+0x4a> 446f fffd 	swc1	\$f3,262140\(gp\)
+0+3998 <test_spec107\+0x4e> 9008      	nop
 0+399a <test_spec107\+0x50> 9008      	nop
 0+399c <test_spec107\+0x52> 9008      	nop
 0+399e <test_spec107\+0x54> 9008      	nop

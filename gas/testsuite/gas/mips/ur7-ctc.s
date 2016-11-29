@@ -9,37 +9,37 @@ reorder:
 
 	bal 1f			# balc
 
-	beqz	$2,1f		# beqzc16 v0,1f [PC7]
-	beqz32 	$2,1f		# beqzc32 v0,1f
-	beqz16 	$2,1f		# beqzc16 v0,1f
+	beqz	$18,1f		# beqzc16 s2,1f [PC7]
+	beqz32 	$18,1f		# beqzc32 s2,1f
+	beqz16 	$18,1f		# beqzc16 s2,1f
 
-	beq16	$3,$4,ext	# beqzc16 v1,ext [PC7]
-	beq16	$4,$3,ext	# beqzc16 v1,ext
-	beq	$3,$0,ext	# beqzc v1,ext [PC21]
-	beq	$0,$3,ext	# beqzc v1,ext
-	beq	$3,$2,ext	# beqc v0,v1,ext [PC16]
-	beq	$2,$3,ext	# beqc v0,v1,ext
-	beqz16	$3,ext		# beqzc16 v1,ext [PC7]
-	beqzc	$3,ext		# beqzc v1,ext [new reloc=PC21]
+	beq16	$19,$4,ext	# beqzc16 s3,ext [PC7]
+	beq16	$4,$19,ext	# beqzc16 s3,ext
+	beq	$19,$0,ext	# beqzc s3,ext [PC21]
+	beq	$0,$19,ext	# beqzc s3,ext
+	beq	$19,$18,ext	# beqc s2,s3,ext [PC16]
+	beq	$18,$19,ext	# beqc s2,s3,ext
+	beqz16	$19,ext		# beqzc16 s3,ext [PC7]
+	beqzc	$19,ext		# beqzc s3,ext [new reloc=PC21]
 
-	bnez	$2,1f		# bnezc16 v0,1f [PC7]
-	bnez32	$2,1f		# bnezc32 v0,1f [PC7]
-	bnez16 	$2,1f		# bnezc16 v0,1f
+	bnez	$18,1f		# bnezc16 s2,1f [PC7]
+	bnez32	$18,1f		# bnezc32 s2,1f [PC7]
+	bnez16 	$18,1f		# bnezc16 s2,1f
 
-	bne16	$3,$4,ext	# bnezc16 v1,ext [PC7]
-	bne16	$4,$3,ext	# bnezc16 v1,ext
-	bne	$3,$0,ext	# bnezc v1,ext [PC21]
-	bne	$0,$3,ext	# bnezc v1,ext [PC21]
-	bne	$3,$2,ext	# bnec v0,v1,ext [PC16]
-	bne	$2,$3,ext	# bnec v0,v1,ext
-	bnez16	$3,ext		# bnezc16 v1,ext [PC7]
-	bnezc	$3,ext		# bnezc v1,ext [new reloc=PC21]
+	bne16	$19,$4,ext	# bnezc16 s3,ext [PC7]
+	bne16	$4,$19,ext	# bnezc16 s3,ext
+	bne	$19,$0,ext	# bnezc s3,ext [PC21]
+	bne	$0,$19,ext	# bnezc s3,ext [PC21]
+	bne	$19,$18,ext	# bnec s2,s3,ext [PC16]
+	bne	$18,$19,ext	# bnec s2,s3,ext
+	bnez16	$19,ext		# bnezc16 s3,ext [PC7]
+	bnezc	$19,ext		# bnezc s3,ext [new reloc=PC21]
 
-        bgez	$2, ext		# bgezc v0,ext
-        bltz	$2, ext		# bgezc v0,ext
+        bgez	$18, ext	# bgezc s2,ext
+        bltz	$18, ext	# bgezc s2,ext
 
-        bltzal	$2, ext		# bltzalc v0,ext
-        bgezal	$2, ext		# bgezalc v0,ext
+        bltzal	$18, ext	# bltzalc s2,ext
+        bgezal	$18, ext	# bgezalc s2,ext
 
 	j16	$4		# jrc16 a0
 	jr	$2		# jrc16 v0
@@ -62,7 +62,7 @@ reorder:
 	jalr	$2		# jalrc16 v0
 	jalr16	$2		# jalrc16 v0
 
-	jalr16	$31,$2		# jalrc16 v0
+	jalr16	$31,$v0		# jalrc16 v0
 	jr.hb $4		# jrc.hb a0
 	jalr.hb $4		# jalrc.hb a0
 	jalr.hb $4,$5		# jalrc.hb a0,a1

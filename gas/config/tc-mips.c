@@ -925,6 +925,13 @@ static const unsigned int mips16_to_32_reg_map[] =
 
 #define micromips_to_32_reg_d_map	mips16_to_32_reg_map
 
+/* Map microMIPS register numbers to normal MIPS register numbers.  */
+
+static const unsigned int micromipspp_to_32_reg_d_map[] =
+{
+  16, 17, 18, 19, 4, 5, 6, 7
+};
+
 /* The microMIPS registers with type h.  */
 static const unsigned int micromips_to_32_reg_h_map1[] =
 {
@@ -20620,15 +20627,15 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	    insn = 0x88000000; /* beqc  */
 	  else
 	    insn = 0xa8000000; /* bnec  */
-	  rt = micromips_to_32_reg_d_map [rt];
-	  rs = micromips_to_32_reg_d_map [rs];
+	  rt = micromipspp_to_32_reg_d_map [rt];
+	  rs = micromipspp_to_32_reg_d_map [rs];
 	  insn |= (rt << 21);
 	  insn |= (rs << 16);
 	}
       else if ((insn & 0xdc00) == 0x9800)	/* beqzc[16]/bnezc[16]  */
 	{
 	  unsigned long rt = (insn & 0x0380) >> 7;
-	  rt = micromips_to_32_reg_d_map [rt];
+	  rt = micromipspp_to_32_reg_d_map [rt];
 	  /* beqzc: 0x9800 -> 0xe8000000
 	     bnezc: 0xb800 -> 0xe8100000  */
 	  insn = 0xe8000000 | (((insn & 0x2000) >> 13) << 20);

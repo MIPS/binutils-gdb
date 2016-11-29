@@ -29,8 +29,8 @@ static unsigned char reg_28_opt_map[] = { 0, 28 };
 static unsigned char reg_29_map[] = { 29 };
 static unsigned char reg_30_opt_map[] = { 0, 30 };
 static unsigned char reg_31_map[] = { 31 };
-static unsigned char reg_m16_map[] = { 16, 17, 2, 3, 4, 5, 6, 7 };
-static unsigned char reg_q_map[] = { 0, 17, 2, 3, 4, 5, 6, 7 };
+static unsigned char reg_m16_map[] = { 16, 17, 18, 19, 4, 5, 6, 7 };
+static unsigned char reg_q_map[] = { 0, 17, 18, 19, 4, 5, 6, 7 };
 
 static unsigned char reg_4to5_map[] = { 0, 1, 2, 3, 4, 5, 6, 7,
 					16, 17, 18, 19, 20, 21, 22, 23 };
@@ -38,7 +38,7 @@ static unsigned char reg_4to5_map[] = { 0, 1, 2, 3, 4, 5, 6, 7,
 static unsigned char reg_4or5_map[] = { 4, 5 };
 
 static unsigned char reg_gpr2d1_map[] = {4, 5, 6, 7};
-static unsigned char reg_gpr2d2_map[] = {5, 6, 7, 4};
+static unsigned char reg_gpr2d2_map[] = {5, 6, 7, 8};
 
 static int int_b_map[] = {
   0, 4, 8, 12, 16, 20, 24, 28
@@ -1005,7 +1005,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"neg.d",	"T,V",		0xa0002b7b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"neg.s",	"T,V",		0xa0000b7b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"not",		"md,ml",	0x5000,		0xfc0f,	WR_1|RD_2,		0,	I38,		0,		0}, /* NOT[16] */
-{"not",		"d,v",		0x200002d0, 0xffe007ff, WR_1|RD_2|RD_3, INSN2_ALIAS,	I38,		0,		0}, /* NOR */
+{"not",		"d,v",		0x200002d0, 0xffe007ff, WR_1|RD_2, 	INSN2_ALIAS,	I38,		0,		0}, /* NOR */
 {"nor",		"d,v,t",	0x200002d0, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,		0,		0},
 {"nor",		"t,r,I",	0,    (int) M_NOR_I,	INSN_MACRO,		0,	I38,		0,		0},
 {"or",		"md,mx,ml",		0x500c,	0xfc0f,	WR_1|RD_3,	INSN2_ALIAS,	I38,		0,		0}, /* OR[16] */

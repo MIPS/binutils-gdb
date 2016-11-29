@@ -45,8 +45,8 @@ test:
 	ehb
 	pause
 
-	li	$2, -1
-	li	$3, -1
+	li	$18, -1
+	li	$19, -1
 	li	$4, -1
 	li	$5, -1
 	li	$6, -1
@@ -180,13 +180,13 @@ test:
 	addiu	$2, $16, -1
 	addiu	$2, $17, -1
 	addiu	$2, $17, 1
-	addiu	$2, $17, 4
-	addiu	$2, $17, 8
-	addiu	$2, $17, 12
-	addiu	$2, $17, 16
-	addiu	$2, $17, 20
-	addiu	$2, $17, 24
-	addiu	$3, $17, 24
+	addiu	$18, $17, 4
+	addiu	$18, $17, 8
+	addiu	$18, $17, 12
+	addiu	$18, $17, 16
+	addiu	$18, $17, 20
+	addiu	$18, $17, 24
+	addiu	$19, $17, 24
 	addiu	$4, $17, 24
 	addiu	$5, $17, 24
 	addiu	$6, $17, 24
@@ -194,13 +194,13 @@ test:
 	addiu	$16, $17, 24
 	addiu	$17, $17, 24
 
-	addiu	$2, $29, 0 << 2
-	addiu	$2, $29, 1 << 2
-	addiu	$2, $29, 62 << 2
-	addiu	$2, $29, 63 << 2
+	addiu	$18, $29, 0 << 2
+	addiu	$18, $29, 1 << 2
+	addiu	$18, $29, 62 << 2
+	addiu	$18, $29, 63 << 2
 	addiu	$2, $29, 64 << 2
-	addiu	$2, $29, 63 << 2
-	addiu	$3, $29, 63 << 2
+	addiu	$18, $29, 63 << 2
+	addiu	$19, $29, 63 << 2
 	addiu	$4, $29, 63 << 2
 	addiu	$5, $29, 63 << 2
 	addiu	$6, $29, 63 << 2
@@ -209,7 +209,7 @@ test:
 	addiu	$17, $29, 63 << 2
 
 	addiu	$3, $4, -8192
-	addiu	$3, $4, 0
+	addiu	$19, $4, 0
 	addiu	$3, $4, 8191
 
 	addiu	$3, $4, 16383 
@@ -221,36 +221,36 @@ test:
 	addu	$2, $0, $22
 	addu	$22, $0, $2
 
-	addu	$2, $3, $2
-	addu	$2, $3, $3
-	addu	$2, $3, $4
-	addu	$2, $3, $5
-	addu	$2, $3, $6
-	addu	$2, $3, $7
-	addu	$2, $3, $16
-	addu	$2, $3, $17
+	addu	$18, $19, $18
+	addu	$18, $19, $19
+	addu	$18, $19, $4
+	addu	$18, $19, $5
+	addu	$18, $19, $6
+	addu	$18, $19, $7
+	addu	$18, $19, $16
+	addu	$18, $19, $17
 
-	addu	$2, $2, $17
-	addu	$2, $3, $17
-	addu	$2, $4, $17
-	addu	$2, $5, $17
-	addu	$2, $6, $17
-	addu	$2, $7, $17
-	addu	$2, $16, $17
-	addu	$2, $17, $17
+	addu	$18, $18, $17
+	addu	$18, $19, $17
+	addu	$18, $4, $17
+	addu	$18, $5, $17
+	addu	$18, $6, $17
+	addu	$18, $7, $17
+	addu	$18, $16, $17
+	addu	$18, $17, $17
 
-	addu	$2, $2, $17
-	addu	$3, $2, $17
-	addu	$4, $2, $17
-	addu	$5, $2, $17
-	addu	$6, $2, $17
-	addu	$7, $2, $17
-	addu	$16, $2, $17
-	addu	$17, $2, $17
+	addu	$18, $18, $17
+	addu	$19, $18, $17
+	addu	$4, $18, $17
+	addu	$5, $18, $17
+	addu	$6, $18, $17
+	addu	$7, $18, $17
+	addu	$16, $18, $17
+	addu	$17, $18, $17
 
-	addu	$7, $7, $2
-	addu	$7, $2
-	addu	$7, $2, $7
+	addu	$7, $7, $18
+	addu	$7, $18
+	addu	$7, $18, $7
 
 	addu	$29, $30, $31
 	addu	$2, $2, 0
@@ -259,54 +259,54 @@ test:
 	addu	$2, $2, -32768
 	addu	$2, $2, 65535
 
-	and	$2, $2
-	and	$2, $3
-	and	$2, $4
-	and	$2, $5
-	and	$2, $6
-	and	$2, $7
-	and	$2, $16
-	and	$2, $17
-	and	$3, $2
-	and	$4, $2
-	and	$5, $2
-	and	$6, $2
-	and	$7, $2
-	and	$16, $2
-	and	$17, $2
+	and	$18, $18
+	and	$18, $19
+	and	$18, $4
+	and	$18, $5
+	and	$18, $6
+	and	$18, $7
+	and	$18, $16
+	and	$18, $17
+	and	$19, $18
+	and	$4, $18
+	and	$5, $18
+	and	$6, $18
+	and	$7, $18
+	and	$16, $18
+	and	$17, $18
 
-	and	$2, $3
-	and	$2, $2, $3
-	and	$2, $3, $2
+	and	$18, $19
+	and	$18, $18, $19
+	and	$18, $19, $18
 	.ifndef	insn32
-	and16	$2, $2, $3
+	and16	$18, $18, $19
 	.endif
 	and32	$2, $2, $3
 
-	andi	$2,$2,1
-	andi	$2,$2,2
-	andi	$2,$2,3
-	andi	$2,$2,4
-	andi	$2,$2,7
-	andi	$2,$2,8
-	andi	$2,$2,15
+	andi	$18,$18,1
+	andi	$18,$18,2
+	andi	$18,$18,3
+	andi	$18,$18,4
+	andi	$18,$18,7
+	andi	$18,$18,8
+	andi	$18,$18,15
 	andi	$2,$2,16
 	andi	$2,$2,31
 	andi	$2,$2,32
 	andi	$2,$2,63
 	andi	$2,$2,64
 	andi	$2,$2,128
-	andi	$2,$2,255
+	andi	$18,$18,255
 	andi	$2,$2,4095
-	andi	$2,$2,65535
-	andi	$2,$3,65535
-	andi	$2,$4,65535
-	andi	$2,$5,65535
-	andi	$2,$6,65535
-	andi	$2,$7,65535
-	andi	$2,$16,65535
-	andi	$2,$17,65535
-	andi	$3,$17,65535
+	andi	$18,$18,65535
+	andi	$18,$19,65535
+	andi	$18,$4,65535
+	andi	$18,$5,65535
+	andi	$18,$6,65535
+	andi	$18,$7,65535
+	andi	$18,$16,65535
+	andi	$18,$17,65535
+	andi	$19,$17,65535
 	andi	$4,$17,65535
 	andi	$5,$17,65535
 	andi	$6,$17,65535
@@ -320,9 +320,7 @@ test:
 	.ifndef	insn32
 	andi16	$7,65535
 	.endif
-/*
-	andi32	$7,65535
-*/
+
 	and32	$2, $3, $4
 	and32	$2, $2, $4
 	and32	$2, $4
@@ -330,59 +328,26 @@ test:
 	and	$2, $3, 65535
 	and	$2, $3, 65536
 	and	$2, $3, 0xffff0001
-	/*
-	bc2f	test
-	bc2f	$cc0, test
-	bc2f	$cc1, test
-	bc2f	$cc2, test
-	bc2f	$cc3, test
-	bc2f	$cc4, test
-	bc2f	$cc5, test
-	bc2f	$cc6, test
-	bc2f	$cc7, test
-
-	bc2t	test
-	bc2t	$cc0, test
-	bc2t	$cc1, test
-	bc2t	$cc2, test
-	bc2t	$cc3, test
-	bc2t	$cc4, test
-	bc2t	$cc5, test
-	bc2t	$cc6, test
-	bc2t	$cc7, test
-
-	.set	noreorder
-	bc2fl	$cc1, test
-	addu	$3, $4, $5
-	bc2tl	$cc2, test
-	addu	$6, $7, $8
-	.set	reorder
-
-	bc2fl	$cc3, test
-	addu	$3, $4, $5
-	bc2tl	$cc4, test
-	addu	$6, $7, $8
-*/
 
 test2:
-	beqz	$2, test2
-	beqz	$3, test2
+	beqz	$18, test2
+	beqz	$19, test2
 	beqz	$4, test2
 	beqz	$5, test2
 	beqz	$6, test2
 	beqz	$7, test2
 	beqz	$16, test2
 	beqz	$17, test2
-	beq	$2, $0, test2
-	beq	$3, $0, test2
+	beq	$18, $0, test2
+	beq	$19, $0, test2
 	beq	$4, $0, test2
 	beq	$5, $0, test2
 	beq	$6, $0, test2
 	beq	$7, $0, test2
 	beq	$16, $0, test2
 	beq	$17, $0, test2
-	beq	$0, $2, test2
-	beq	$0, $3, test2
+	beq	$0, $18, test2
+	beq	$0, $19, test2
 	beq	$0, $4, test2
 	beq	$0, $5, test2
 	beq	$0, $6, test2
@@ -404,74 +369,24 @@ test2:
 	beq	$16, 32767, test2
 	beq	$16, 65536, test2
 
-/*
-	.set	noreorder
-	beql	$16, $17, test2
-	addu	$3, $4, $5
-	beql	$16, $17, 1f
-	addu	$3, $4, $5
-	beql	$16, 0, test2
-	addu	$3, $4, $5
-	beql	$16, 0, 1f
-	addu	$3, $4, $5
-	beql	$16, 10, test2
-	addu	$3, $4, $5
-	beql	$16, 10, 1f
-	addu	$3, $4, $5
-	beql	$16, 32767, test2
-	addu	$3, $4, $5
-	beql	$16, 32767, 1f
-	addu	$3, $4, $5
-	beql	$16, 65535, test2
-	addu	$3, $4, $5
-	beql	$16, 65535, 1f
-	addu	$3, $4, $5
-
-	beql	$16, $17, test2
-	addu	$3, $4, $29
-	beql	$16, $17, 1f
-	addu	$3, $4, $29
-	beql	$16, 0, test2
-	addu	$3, $4, $29
-	beql	$16, 0, 1f
-	addu	$3, $4, $29
-	beql	$16, 10, test2
-	addu	$3, $4, $29
-	beql	$16, 10, 1f
-	addu	$3, $4, $29
-	beql	$16, 32767, test2
-	addu	$3, $4, $29
-	beql	$16, 32767, 1f
-	addu	$3, $4, $29
-	beql	$16, 65535, test2
-	addu	$3, $4, $29
-	beql	$16, 65535, 1f
-	addu	$3, $4, $29
-1:
-	.set	reorder
-
-	beql	$16, $17, test2
-
-	beqzl	$17, test2
-*/
-	bnez	$2, test3
-	bnez	$3, test3
+	bnez	$18, test3
+	bnez	$19, test3
 	bnez	$4, test3
 	bnez	$5, test3
 	bnez	$6, test3
 	bnez	$7, test3
 	bnez	$16, test3
 	bnez	$17, test3
-	bne	$2, $0, test3
-	bne	$3, $0, test3
+	bne	$18, $0, test3
+	bne	$19, $0, test3
 	bne	$4, $0, test3
 	bne	$5, $0, test3
 	bne	$6, $0, test3
 	bne	$7, $0, test3
 	bne	$16, $0, test3
 	bne	$17, $0, test3
-	bne	$0, $2, test3
-	bne	$0, $3, test3
+	bne	$0, $18, test3
+	bne	$0, $19, test3
 	bne	$0, $4, test3
 	bne	$0, $5, test3
 	bne	$0, $6, test3
@@ -508,9 +423,6 @@ test3:
 	break	63
 	break	64
 	break	1023
-/*
-	break	1023,1023
-*/
 	break32
 	
 	break32	0
@@ -520,9 +432,6 @@ test3:
 	break32	63
 	break32	64
 	break32	1023
-/*
-	break32	1023,1023
-*/
 	cache	0, 0
 	cache	0, -2048
 	cache	0, 2047
@@ -766,14 +675,7 @@ test3:
 
 	jal	test
 	jal	test2
-	/*
-	jalx	test
-	jalx	test2
-	*/
 	la	$2, test
-/*
-	lca	$2, test
-*/
 	lb	$3, 0
 	lb	$3, 4
 	lb	$3, 0($0)
@@ -788,8 +690,8 @@ test3:
 	lb	$3, 0xf0000000($0)
 	lb	$3, 0xffffffff($0)
 	lb	$3, 0x12345678($0)
-	lb	$3, ($4)
-	lb	$3, 0($4)
+	lb	$19, ($4)
+	lb	$19, 0($4)
 	lb	$3, 4($4)
 	lb	$3, 32767($4)
 	lb	$3, -32768($4)
@@ -803,11 +705,11 @@ test3:
 	lb	$3, 0x12345678($4)
 
 	lbu	$2, -1($3)
-	lbu	$2, 0($3)
-	lbu	$2, ($3)
-	lbu	$2, 1($3)
-	lbu	$2, 2($3)
-	lbu	$2, 3($3)
+	lbu	$18, 0($19)
+	lbu	$18, ($19)
+	lbu	$18, 1($19)
+	lbu	$18, 2($19)
+	lbu	$18, 3($19)
 	lbu	$2, 4($3)
 	lbu	$2, 5($3)
 	lbu	$2, 6($3)
@@ -849,8 +751,8 @@ test3:
 	lbu	$3, 0xffffffff($0)
 	lbu	$3, 0x12345678($0)
 
-	lbu	$3, ($4)
-	lbu	$3, 0($4)
+	lbu	$19, ($4)
+	lbu	$19, 0($4)
 	lbu	$3, 4($4)
 	lbu	$3, 32767($4)
 	lbu	$3, -32768($4)
@@ -877,9 +779,9 @@ test3:
 	lh	$3, 0xf0000000($0)
 	lh	$3, 0xffffffff($0)
 	lh	$3, 0x12345678($0)
-	lh	$3, ($4)
-	lh	$3, 0($4)
-	lh	$3, 4($4)
+	lh	$19, ($4)
+	lh	$19, 0($4)
+	lh	$19, 4($4)
 	lh	$3, 32767($4)
 	lh	$3, -32768($4)
 	lh	$3, 65535($4)
@@ -891,11 +793,11 @@ test3:
 	lh	$3, 0xffffffff($4)
 	lh	$3, 0x12345678($4)
 
-	lhu	$2, ($3)
-	lhu	$2, 0<<1($3)
-	lhu	$2, 1<<1($3)
-	lhu	$2, 2<<1($3)
-	lhu	$2, 3<<1($3)
+	lhu	$18, ($19)
+	lhu	$18, 0<<1($19)
+	lhu	$18, 1<<1($19)
+	lhu	$18, 2<<1($19)
+	lhu	$18, 3<<1($19)
 	lhu	$2, 4<<1($3)
 	lhu	$2, 5<<1($3)
 	lhu	$2, 6<<1($3)
@@ -937,9 +839,9 @@ test3:
 	lhu	$3, 0xf0000000($0)
 	lhu	$3, 0xffffffff($0)
 	lhu	$3, 0x12345678($0)
-	lhu	$3, ($4)
-	lhu	$3, 0($4)
-	lhu	$3, 4($4)
+	lhu	$19, ($4)
+	lhu	$19, 0($4)
+	lhu	$19, 4($4)
 	lhu	$3, 32767($4)
 	lhu	$3, -32768($4)
 	lhu	$3, 65535($4)
@@ -983,31 +885,31 @@ test3:
 	lui	$3, 32767
 	lui	$3, 65535
 
-	lw	$2, ($4)
-	lw	$2, 0($4)
-	lw	$2, 1<<2($4)
-	lw	$2, 2<<2($4)
-	lw	$2, 3<<2($4)
-	lw	$2, 4<<2($4)
-	lw	$2, 5<<2($4)
-	lw	$2, 6<<2($4)
-	lw	$2, 7<<2($4)
-	lw	$2, 8<<2($4)
-	lw	$2, 9<<2($4)
-	lw	$2, 10<<2($4)
-	lw	$2, 11<<2($4)
-	lw	$2, 12<<2($4)
-	lw	$2, 13<<2($4)
-	lw	$2, 14<<2($4)
-	lw	$2, 15<<2($4)
-	lw	$2, 15<<2($5)
-	lw	$2, 15<<2($6)
-	lw	$2, 15<<2($7)
-	lw	$2, 15<<2($2)
-	lw	$2, 15<<2($3)
-	lw	$2, 15<<2($16)
-	lw	$2, 15<<2($17)
-	lw	$3, 15<<2($17)
+	lw	$18, ($4)
+	lw	$18, 0($4)
+	lw	$18, 1<<2($4)
+	lw	$18, 2<<2($4)
+	lw	$18, 3<<2($4)
+	lw	$18, 4<<2($4)
+	lw	$18, 5<<2($4)
+	lw	$18, 6<<2($4)
+	lw	$18, 7<<2($4)
+	lw	$18, 8<<2($4)
+	lw	$18, 9<<2($4)
+	lw	$18, 10<<2($4)
+	lw	$18, 11<<2($4)
+	lw	$18, 12<<2($4)
+	lw	$18, 13<<2($4)
+	lw	$18, 14<<2($4)
+	lw	$18, 15<<2($4)
+	lw	$18, 15<<2($5)
+	lw	$18, 15<<2($6)
+	lw	$18, 15<<2($7)
+	lw	$18, 15<<2($18)
+	lw	$18, 15<<2($19)
+	lw	$18, 15<<2($16)
+	lw	$18, 15<<2($17)
+	lw	$19, 15<<2($17)
 	lw	$4, 15<<2($17)
 	lw	$5, 15<<2($17)
 	lw	$6, 15<<2($17)
@@ -1062,9 +964,9 @@ test3:
 	lw	$3, 0xf0000000($0)
 	lw	$3, 0xffffffff($0)
 	lw	$3, 0x12345678($0)
-	lw	$3, ($4)
-	lw	$3, 0($4)
-	lw	$3, 4($4)
+	lw	$19, ($4)
+	lw	$19, 0($4)
+	lw	$19, 4($4)
 	lw	$3, 32767($4)
 	lw	$3, -32768($4)
 	lw	$3, 65535($4)
@@ -1271,7 +1173,7 @@ test3:
 	flush	$3, 0x12345678($4)
 */
 	.set push
-	lwxs	$3, $4($5)
+	lwxs	$19, $4($5)
 	.set pop
 /*
 	madd	$4,$5
@@ -1334,40 +1236,6 @@ test3:
 	mfc0	$2, $2, 5
 	mfc0	$2, $2, 6
 	mfc0	$2, $2, 7
-
-	/*
-	mfhi	$0
-	mfhi	$2
-	mfhi	$3
-	mfhi	$4
-	mfhi	$29
-	mfhi	$30
-	mfhi	$31
-
-	mfhi32	$0
-	mfhi32	$2
-	mfhi32	$3
-	mfhi32	$4
-	mfhi32	$29
-	mfhi32	$30
-	mfhi32	$31
-
-	mflo	$0
-	mflo	$2
-	mflo	$3
-	mflo	$4
-	mflo	$29
-	mflo	$30
-	mflo	$31
-
-	mflo32	$0
-	mflo32	$2
-	mflo32	$3
-	mflo32	$4
-	mflo32	$29
-	mflo32	$30
-	mflo32	$31
-*/
 
 	movn	$2, $3
 	movn	$2, $2, $3
@@ -1437,23 +1305,6 @@ test3:
 	mtc0	$2, $2, 5
 	mtc0	$2, $2, 6
 	mtc0	$2, $2, 7
-/*
-	mthi	$0
-	mthi	$2
-	mthi	$3
-	mthi	$4
-	mthi	$29
-	mthi	$30
-	mthi	$31
-
-	mtlo	$0
-	mtlo	$2
-	mtlo	$3
-	mtlo	$4
-	mtlo	$29
-	mtlo	$30
-	mtlo	$31
-*/
 	mul	$2, $3, $4
 	mul	$29, $30, $31
 	mul	$2, $2, $4
@@ -1482,16 +1333,16 @@ test3:
 	negu32	$2, $2
 	negu32	$2
 
-	not	$2, $2
-	not	$2, $2
-	not	$2, $3
-	not	$2, $4
-	not	$2, $5
-	not	$2, $6
-	not	$2, $7
-	not	$2, $16
-	not	$2, $17
-	not	$3, $17
+	not	$18, $18
+	not	$18, $18
+	not	$18, $19
+	not	$18, $4
+	not	$18, $5
+	not	$18, $6
+	not	$18, $7
+	not	$18, $16
+	not	$18, $17
+	not	$19, $17
 	not	$4, $17
 	not	$5, $17
 	not	$6, $17
@@ -1518,24 +1369,24 @@ test3:
 	or	$2, $0, $22
 	or	$22, $0, $2
 
-	or	$2, $2
-	or	$2, $3
-	or	$2, $4
-	or	$2, $5
-	or	$2, $6
-	or	$2, $7
-	or	$2, $16
-	or	$2, $17
-	or	$3, $2
-	or	$4, $2
-	or	$5, $2
-	or	$6, $2
-	or	$7, $2
-	or	$16, $2
-	or	$17, $2
-	or	$2, $2
-	or	$2, $2, $3
-	or	$2, $3, $2
+	or	$18, $18
+	or	$18, $19
+	or	$18, $4
+	or	$18, $5
+	or	$18, $6
+	or	$18, $7
+	or	$18, $16
+	or	$18, $17
+	or	$19, $18
+	or	$4, $18
+	or	$5, $18
+	or	$6, $18
+	or	$7, $18
+	or	$16, $18
+	or	$17, $18
+	or	$18, $18
+	or	$18, $18, $19
+	or	$18, $19, $18
 
 	or32	$2, $3, $4
 	or32	$29, $30, $31
@@ -1624,11 +1475,11 @@ test3:
 	rotrv	$2, $3, $4
 	rotrv	$2, $2, $4
 
-	sb	$0, ($3)
-	sb	$0, 0($3)
-	sb	$0, 1($3)
-	sb	$0, 2($3)
-	sb	$0, 3($3)
+	sb	$0, ($19)
+	sb	$0, 0($19)
+	sb	$0, 1($19)
+	sb	$0, 2($19)
+	sb	$0, 3($19)
 	sb	$0, 4($3)
 	sb	$0, 5($3)
 	sb	$0, 6($3)
@@ -1799,11 +1650,11 @@ test3:
 	sgtu	$2, $3, 65536
 	sgtu	$2, $3, -32769
 
-	sh	$2, ($3)
-	sh	$2, 0<<1($3)
-	sh	$2, 1<<1($3)
-	sh	$2, 2<<1($3)
-	sh	$2, 3<<1($3)
+	sh	$18, ($19)
+	sh	$18, 0<<1($19)
+	sh	$18, 1<<1($19)
+	sh	$18, 2<<1($19)
+	sh	$18, 3<<1($19)
 	sh	$2, 4<<1($3)
 	sh	$2, 5<<1($3)
 	sh	$2, 6<<1($3)
@@ -1882,30 +1733,30 @@ test3:
 	sleu	$2, $3, 65536
 	sleu	$2, $3, -32769
 
-	sll	$2, $2, 1
-	sll	$2, $2, 2
-	sll	$2, $2, 3
-	sll	$2, $2, 4
-	sll	$2, $2, 5
-	sll	$2, $2, 6
-	sll	$2, $2, 7
-	sll	$2, $2, 8
-	sll	$2, $3, 8
-	sll	$2, $4, 8
-	sll	$2, $5, 8
-	sll	$2, $6, 8
-	sll	$2, $7, 8
-	sll	$2, $16, 8
-	sll	$2, $17, 8
-	sll	$3, $2, 8
-	sll	$4, $2, 8
-	sll	$5, $2, 8
-	sll	$6, $2, 8
-	sll	$7, $2, 8
-	sll	$16, $2, 8
-	sll	$17, $2, 8
-	sll	$2, $2, 1
-	sll	$3, 1
+	sll	$18, $18, 1
+	sll	$18, $18, 2
+	sll	$18, $18, 3
+	sll	$18, $18, 4
+	sll	$18, $18, 5
+	sll	$18, $18, 6
+	sll	$18, $18, 7
+	sll	$18, $18, 8
+	sll	$18, $19, 8
+	sll	$18, $4, 8
+	sll	$18, $5, 8
+	sll	$18, $6, 8
+	sll	$18, $7, 8
+	sll	$18, $16, 8
+	sll	$18, $17, 8
+	sll	$19, $18, 8
+	sll	$4, $18, 8
+	sll	$5, $18, 8
+	sll	$6, $18, 8
+	sll	$7, $18, 8
+	sll	$16, $18, 8
+	sll	$17, $18, 8
+	sll	$18, $18, 1
+	sll	$19, 1
 
 	sllv	$2, $3, $4
 	sllv	$2, $2, $4
@@ -1982,36 +1833,36 @@ test3:
 	srl	$2, $2, $4
 	srl	$2, $4
 	srl	$2, $4, 0
-	srl	$2, $4, 1
+	srl	$18, $4, 1
 	srl	$2, $4, 31
 	srl	$2, $2, 31
 	srl	$2, 31
 
-	srl	$2, $2, 1
-	srl	$2, $2, 2
-	srl	$2, $2, 3
-	srl	$2, $2, 4
-	srl	$2, $2, 5
-	srl	$2, $2, 6
-	srl	$2, $2, 7
-	srl	$2, $2, 8
-	srl	$2, $3, 8
-	srl	$2, $4, 8
-	srl	$2, $5, 8
-	srl	$2, $6, 8
-	srl	$2, $7, 8
-	srl	$2, $16, 8
-	srl	$2, $17, 8
-	srl	$2, $2, 8
-	srl	$3, $2, 8
-	srl	$4, $2, 8
-	srl	$5, $2, 8
-	srl	$6, $2, 8
-	srl	$7, $2, 8
-	srl	$16, $2, 8
-	srl	$17, $2, 8
-	srl	$3, $3, 1
-	srl	$3, 1
+	srl	$18, $18, 1
+	srl	$18, $18, 2
+	srl	$18, $18, 3
+	srl	$18, $18, 4
+	srl	$18, $18, 5
+	srl	$18, $18, 6
+	srl	$18, $18, 7
+	srl	$18, $18, 8
+	srl	$18, $19, 8
+	srl	$18, $4, 8
+	srl	$18, $5, 8
+	srl	$18, $6, 8
+	srl	$18, $7, 8
+	srl	$18, $16, 8
+	srl	$18, $17, 8
+	srl	$18, $18, 8
+	srl	$19, $18, 8
+	srl	$4, $18, 8
+	srl	$5, $18, 8
+	srl	$6, $18, 8
+	srl	$7, $18, 8
+	srl	$16, $18, 8
+	srl	$17, $18, 8
+	srl	$19, $19, 1
+	srl	$19, 1
 	
 	sub	$2, $3, $4
 	sub	$29, $30, $31
@@ -2022,31 +1873,31 @@ test3:
 	sub	$2, $2, 32767
 	sub	$2, $2, -32768
 	sub	$2, $2, 65535
-	subu	$2, $3, $2
-	subu	$2, $3, $3
-	subu	$2, $3, $4
-	subu	$2, $3, $5
-	subu	$2, $3, $6
-	subu	$2, $3, $7
-	subu	$2, $3, $16
-	subu	$2, $3, $17
-	subu	$2, $2, $17
-	subu	$2, $4, $17
-	subu	$2, $5, $17
-	subu	$2, $6, $17
-	subu	$2, $7, $17
-	subu	$2, $16, $17
-	subu	$2, $17, $17
-	subu	$2, $2, $17
-	subu	$3, $2, $17
-	subu	$4, $2, $17
-	subu	$5, $2, $17
-	subu	$6, $2, $17
-	subu	$7, $2, $17
-	subu	$16, $2, $17
-	subu	$17, $2, $17
-	subu	$7, $7, $2
-	subu	$7, $2
+	subu	$18, $19, $18
+	subu	$18, $19, $19
+	subu	$18, $19, $4
+	subu	$18, $19, $5
+	subu	$18, $19, $6
+	subu	$18, $19, $7
+	subu	$18, $19, $16
+	subu	$18, $19, $17
+	subu	$18, $18, $17
+	subu	$18, $4, $17
+	subu	$18, $5, $17
+	subu	$18, $6, $17
+	subu	$18, $7, $17
+	subu	$18, $16, $17
+	subu	$18, $17, $17
+	subu	$18, $18, $17
+	subu	$19, $18, $17
+	subu	$4, $18, $17
+	subu	$5, $18, $17
+	subu	$6, $18, $17
+	subu	$7, $18, $17
+	subu	$16, $18, $17
+	subu	$17, $18, $17
+	subu	$7, $7, $18
+	subu	$7, $18
 
 	subu32	$2, $3, $4
 	subu32	$29, $30, $31
@@ -2058,37 +1909,37 @@ test3:
 	subu	$2, $2, -32768
 	subu	$2, $2, 65535
 
-	sw	$2, ($4)
-	sw	$2, 0($4)
-	sw	$2, 1<<2($4)
-	sw	$2, 2<<2($4)
-	sw	$2, 3<<2($4)
-	sw	$2, 4<<2($4)
-	sw	$2, 5<<2($4)
-	sw	$2, 6<<2($4)
-	sw	$2, 7<<2($4)
-	sw	$2, 8<<2($4)
-	sw	$2, 9<<2($4)
-	sw	$2, 10<<2($4)
-	sw	$2, 11<<2($4)
-	sw	$2, 12<<2($4)
-	sw	$2, 13<<2($4)
-	sw	$2, 14<<2($4)
-	sw	$2, 15<<2($4)
-	sw	$2, 15<<2($5)
-	sw	$2, 15<<2($6)
-	sw	$2, 15<<2($7)
-	sw	$2, 15<<2($16)
-	sw	$2, 15<<2($17)
-	sw	$2, 15<<2($2)
-	sw	$2, 15<<2($3)
-	sw	$3, 15<<2($3)
-	sw	$4, 15<<2($3)
-	sw	$5, 15<<2($3)
-	sw	$6, 15<<2($3)
-	sw	$7, 15<<2($3)
-	sw	$17, 15<<2($3)
-	sw	$0, 15<<2($3)
+	sw	$18, ($4)
+	sw	$18, 0($4)
+	sw	$18, 1<<2($4)
+	sw	$18, 2<<2($4)
+	sw	$18, 3<<2($4)
+	sw	$18, 4<<2($4)
+	sw	$18, 5<<2($4)
+	sw	$18, 6<<2($4)
+	sw	$18, 7<<2($4)
+	sw	$18, 8<<2($4)
+	sw	$18, 9<<2($4)
+	sw	$18, 10<<2($4)
+	sw	$18, 11<<2($4)
+	sw	$18, 12<<2($4)
+	sw	$18, 13<<2($4)
+	sw	$18, 14<<2($4)
+	sw	$18, 15<<2($4)
+	sw	$18, 15<<2($5)
+	sw	$18, 15<<2($6)
+	sw	$18, 15<<2($7)
+	sw	$18, 15<<2($16)
+	sw	$18, 15<<2($17)
+	sw	$18, 15<<2($18)
+	sw	$18, 15<<2($19)
+	sw	$19, 15<<2($19)
+	sw	$4, 15<<2($19)
+	sw	$5, 15<<2($19)
+	sw	$6, 15<<2($19)
+	sw	$7, 15<<2($19)
+	sw	$17, 15<<2($19)
+	sw	$0, 15<<2($19)
 
 	sw	$0, ($29)
 	sw	$0, 0($29)
@@ -2586,24 +2437,24 @@ test3:
 	wsbh	$2, $2
 	wsbh	$2
 
-	xor	$2, $2
-	xor	$2, $3
-	xor	$2, $4
-	xor	$2, $5
-	xor	$2, $6
-	xor	$2, $7
-	xor	$2, $16
-	xor	$2, $17
-	xor	$3, $17
+	xor	$18, $18
+	xor	$18, $19
+	xor	$18, $4
+	xor	$18, $5
+	xor	$18, $6
+	xor	$18, $7
+	xor	$18, $16
+	xor	$18, $17
+	xor	$19, $17
 	xor	$4, $17
 	xor	$5, $17
 	xor	$6, $17
 	xor	$7, $17
 	xor	$16, $17
 	xor	$17, $17
-	xor	$2, $3
-	xor	$2, $2, $3
-	xor	$2, $3, $2
+	xor	$18, $19
+	xor	$18, $18, $19
+	xor	$18, $19, $18
 
 	xor32	$2, $3, $4
 	xor32	$29, $30, $31
@@ -2623,425 +2474,214 @@ test3:
 	.set	noreorder
 */
 	beqz	$9, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	beq	$9, $10, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	beq	$9, 0, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	beq	$9, 1, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bge	$10, $0, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bge	$10, $0, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bge	$0, $10, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bge	$10, $11, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bge	$10, 0, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bge	$10, 1, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bge	$10, 2, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bge	$10, 0x80000000, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bgeu	$2, $0, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bgeu	$0, $2, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bgeu	$2, $3, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bgeu	$2, 0, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bgeu	$2, 1, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bgeu	$2, 2, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bgez	$2, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 /*
 	bgezal	$2, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 */
 	bgt	$2, $0, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bgt	$0, $2, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bgt	$9, $10, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bgt	$9, 0x7fffffff, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bgt	$9, -1, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bgt	$9, 0, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bgt	$9, 1, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bgt	$9, 0x80000000, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bgtu	$9, $0, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bgtu	$0, $9, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bgtu	$9, $10, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bgtu	$0, 0, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bgtu	$9, 0xffffffff, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bgtu	$9, -1, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bgtu	$9, 0, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bgtu	$9, 1, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bgtz	$9, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	ble	$9, $0, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	ble	$0, $10, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	ble	$9, $10, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	ble	$9, 0x7fffffff, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	ble	$9, -1, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	ble	$9, 0, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	ble	$9, 1, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bleu	$9, $0, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bleu	$0, $10, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bleu	$9, $10, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bleu	$0, $10, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bleu	$9, 0xffffffff, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bleu	$9, 0, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bleu	$9, 1, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	blez	$9, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	blt	$9, $0, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	blt	$0, $10, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	blt	$9, $10, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	blt	$9, 0, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	blt	$9, 1, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	blt	$9, 2, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bltu	$9, $0, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bltu	$0, $10, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bltu	$9, $10, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bltu	$9, 0, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bltu	$9, 1, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bltu	$9, 2, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bltz	$9, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 /*
 	bltzal	$9, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 */
 	bnez	$9, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bne	$9, $10, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bne	$9, 0, test
-	addu	$3, $4, $5
+	addu	$19, $4, $5
 
 	bne	$9, 1, test
-	addu	$3, $4, $5
-/*
-	beqzl	$9, test
-	addu	$3, $4, $5
-
-	beql	$9, $10, test
-	addu	$3, $4, $5
-
-	beql	$9, 0, test
-	addu	$3, $4, $5
-
-	beql	$9, 1, test
-	addu	$3, $4, $5
-
-	bgel	$10, $0, test
-	addu	$3, $4, $5
-
-	bgel	$10, $0, test
-	addu	$3, $4, $5
-
-	bgel	$0, $10, test
-	addu	$3, $4, $5
-
-	bgel	$10, $11, test
-	addu	$3, $4, $5
-
-	bgel	$10, 0, test
-	addu	$3, $4, $5
-
-	bgel	$10, 1, test
-	addu	$3, $4, $5
-
-	bgel	$10, 2, test
-	addu	$3, $4, $5
-
-	bgel	$10, 0x80000000, test
-	addu	$3, $4, $5
-
-	bgeul	$2, $0, test
-	addu	$3, $4, $5
-
-	bgeul	$0, $2, test
-	addu	$3, $4, $5
-
-	bgeul	$2, $3, test
-	addu	$3, $4, $5
-
-	bgeul	$2, 0, test
-	addu	$3, $4, $5
-
-	bgeul	$2, 1, test
-	addu	$3, $4, $5
-
-	bgeul	$2, 2, test
-	addu	$3, $4, $5
-
-	bgezl	$2, test
-	addu	$3, $4, $5
-
-	bgezall	$2, test
-	addu	$3, $4, $5
-
-	bgtl	$2, $0, test
-	addu	$3, $4, $5
-
-	bgtl	$0, $2, test
-	addu	$3, $4, $5
-
-	bgtl	$9, $10, test
-	addu	$3, $4, $5
-
-	bgtl	$9, 0x7fffffff, test
-	addu	$3, $4, $5
-
-	bgtl	$9, -1, test
-	addu	$3, $4, $5
-
-	bgtl	$9, 0, test
-	addu	$3, $4, $5
-
-	bgtl	$9, 1, test
-	addu	$3, $4, $5
-
-	bgtl	$9, 0x80000000, test
-	addu	$3, $4, $5
-
-	bgtul	$9, $0, test
-	addu	$3, $4, $5
-
-	bgtul	$0, $9, test
-	addu	$3, $4, $5
-
-	bgtul	$9, $10, test
-	addu	$3, $4, $5
-
-	bgtul	$0, 0, test
-	addu	$3, $4, $5
-
-	bgtul	$9, 0xffffffff, test
-	addu	$3, $4, $5
-
-	bgtul	$9, -1, test
-	addu	$3, $4, $5
-
-	bgtul	$9, 0, test
-	addu	$3, $4, $5
-
-	bgtul	$9, 1, test
-	addu	$3, $4, $5
-
-	bgtzl	$9, test
-	addu	$3, $4, $5
-
-	blel	$9, $0, test
-	addu	$3, $4, $5
-
-	blel	$0, $10, test
-	addu	$3, $4, $5
-
-	blel	$9, $10, test
-	addu	$3, $4, $5
-
-	blel	$9, 0x7fffffff, test
-	addu	$3, $4, $5
-
-	blel	$9, -1, test
-	addu	$3, $4, $5
-
-	blel	$9, 0, test
-	addu	$3, $4, $5
-
-	blel	$9, 1, test
-	addu	$3, $4, $5
-
-	bleul	$9, $0, test
-	addu	$3, $4, $5
-
-	bleul	$0, $10, test
-	addu	$3, $4, $5
-
-	bleul	$9, $10, test
-	addu	$3, $4, $5
-
-	bleul	$0, $10, test
-	addu	$3, $4, $5
-
-	bleul	$9, 0xffffffff, test
-	addu	$3, $4, $5
-
-	bleul	$9, 0, test
-	addu	$3, $4, $5
-
-	bleul	$9, 1, test
-	addu	$3, $4, $5
-
-	blezl	$9, test
-	addu	$3, $4, $5
-
-	bltl	$9, $0, test
-	addu	$3, $4, $5
-
-	bltl	$0, $10, test
-	addu	$3, $4, $5
-
-	bltl	$9, $10, test
-	addu	$3, $4, $5
-
-	bltl	$9, 0, test
-	addu	$3, $4, $5
-
-	bltl	$9, 1, test
-	addu	$3, $4, $5
-
-	bltl	$9, 2, test
-	addu	$3, $4, $5
-
-	bltul	$9, $0, test
-	addu	$3, $4, $5
-
-	bltul	$0, $10, test
-	addu	$3, $4, $5
-
-	bltul	$9, $10, test
-	addu	$3, $4, $5
-
-	bltul	$9, 0, test
-	addu	$3, $4, $5
-
-	bltul	$9, 1, test
-	addu	$3, $4, $5
-
-	bltul	$9, 2, test
-	addu	$3, $4, $5
-
-	bltzl	$9, test
-	addu	$3, $4, $5
-
-	bltzall	$9, test
-	addu	$3, $4, $5
-
-	bnezl	$9, test
-	addu	$3, $4, $5
-
-	bnel	$9, $10, test
-	addu	$3, $4, $5
-
-	bnel	$9, 0, test
-	addu	$3, $4, $5
-
-	bnel	$9, 1, test
-	addu	$3, $4, $5
-*/
+	addu	$19, $4, $5
 	
 /* 
 	.ifndef	insn32
@@ -4792,8 +4432,8 @@ test_delay_slot:
 	.set	noreorder
 	.ent	test_spec102
 test_spec102:
-	lw	$2, -64<<2 ($28)
-	lw	$3, -64<<2 ($28)
+	lw	$18, -64<<2 ($28)
+	lw	$19, -64<<2 ($28)
 	lw	$4, -64<<2 ($28)
 	lw	$5, -64<<2 ($28)
 	lw	$6, -64<<2 ($28)
@@ -4815,59 +4455,30 @@ test_spec102:
 	lw	$17, -2 ($28)
 	lw	$17, -3 ($28)
 	lw	$17, 0 ($27)
-	/*
-	addiu	$2, $pc, 0
-	addiu	$3, $pc, 0
-	addiu	$4, $pc, 0
-	addiu	$5, $pc, 0
-	addiu	$6, $pc, 0
-	addiu	$7, $pc, 0
-	addiu	$16, $pc, 0
-	addiu	$17, $pc, 0
-	addiu	$17, $pc, 4194303 << 2
-	addiu	$17, $pc, -4194304 << 2
-	*/
-	/*
-	addiupc	$2, 0
-	addiupc	$3, 0
-	addiupc	$4, 0
-	addiupc	$5, 0
-	addiupc	$6, 0
-	addiupc	$7, 0
-	addiupc	$16, 0
-	addiupc	$17, 0
-	addiupc	$17, 4194303 << 2
-	addiupc	$17, -4194304 << 2
-*/
 	.end	test_spec102
 
 	.set	noreorder
 	.ent	test_spec107
 test_spec107:
 	movep	$5, $6, $0, $0
-	movep	$5, $7, $0, $0
 	movep	$6, $7, $0, $0
-	/*
-	movep	$4, $21, $0, $0
-	movep	$4, $22, $0, $0
-	*/
 	movep	$4, $5, $0, $0
-	movep	$4, $6, $0, $0
-	movep	$4, $7, $0, $0
-	movep	$4, $7, $17, $0
-	movep	$4, $7, $2, $0
-	movep	$4, $7, $3, $0
-	movep	$4, $7, $16, $0
-	movep	$4, $7, $18, $0
-	movep	$4, $7, $19, $0
-	movep	$4, $7, $20, $0
-	movep	$4, $7, $20, $17
-	movep	$4, $7, $20, $2
-	movep	$4, $7, $20, $3
-	movep	$4, $7, $20, $16
-	movep	$4, $7, $20, $18
-	movep	$4, $7, $20, $19
-	movep	$4, $7, $20, $20
+	movep	$5, $6, $0, $0
+	movep	$6, $7, $0, $0
+	movep	$6, $7, $17, $0
+	movep	$6, $7, $2, $0
+	movep	$6, $7, $3, $0
+	movep	$6, $7, $16, $0
+	movep	$6, $7, $18, $0
+	movep	$6, $7, $19, $0
+	movep	$6, $7, $20, $0
+	movep	$6, $7, $20, $17
+	movep	$6, $7, $20, $2
+	movep	$6, $7, $20, $3
+	movep	$6, $7, $20, $16
+	movep	$6, $7, $20, $18
+	movep	$6, $7, $20, $19
+	movep	$6, $7, $20, $20
 
 	lwc1	$f3, ($28)
 	lwc1	$f3, 0($28)
