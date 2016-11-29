@@ -1734,6 +1734,13 @@ print_insn_arg (struct disassemble_info *info,
     case OP_IMM_WORD:
       {
 	state->last_int = uval;
+	infprintf (is, "%d", uval);
+      }
+      break;
+
+    case OP_UIMM_WORD:
+      {
+	state->last_int = uval;
 	infprintf (is, "0x%x", uval);
       }
       break;
@@ -1871,6 +1878,7 @@ validate_insn_args (const struct mips_opcode *opcode,
 		case OP_HI20_INT:
 		case OP_HI20_PCREL:
 		case OP_IMM_WORD:
+		case OP_UIMM_WORD:
 		  break;
 		}
 	    }
@@ -1969,7 +1977,7 @@ print_insn_args (struct disassemble_info *info,
 		    base_pc += length;
 		}
 
-	      if (operand->type == OP_IMM_WORD)
+	      if (operand->type == OP_IMM_WORD || operand->type == OP_UIMM_WORD)
 		print_insn_arg (info, &state, opcode, operand, base_pc,
 				insn >> 32);
 	      else
@@ -2543,7 +2551,7 @@ print_insn_micromips (bfd_vma memaddr_base, struct disassemble_info *info)
       info->insn_type = dis_noninsn;
       return 6;
     }
-  if (is_isa_r7 (mips_isa) && (insn & 0xfc1f) == 0x6000)
+  if (is_isa_r7 (mips_isa) && (insn & 0xfc0c) == 0x6000)
     {
       unsigned imm;
       /* This is a 48-bit microMIPS R7 instruction. */

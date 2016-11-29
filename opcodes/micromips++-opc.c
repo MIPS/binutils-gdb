@@ -76,7 +76,7 @@ decode_micromipspp_operand (const char *p)
 	case 'q': MAPPED_REG (3, 7, GP, reg_q_map);
 /* 	case 'r': SPECIAL (0, 0, PC); */
 	case 's': MAPPED_REG (0, 0, GP, reg_29_map);
-/* 	case 't': SPECIAL (0, 0, REPEAT_PREV_REG); */
+ 	case 't': SPECIAL (0, 0, REPEAT_PREV_REG);
 	case 'u': REG (5, 3, GP); // New
 	case 'w': MAPPED_REG (1, 0, GP, reg_30_opt_map);
  	case 'x': SPECIAL (0, 0, REPEAT_DEST_REG);
@@ -99,7 +99,6 @@ decode_micromipspp_operand (const char *p)
 	case 'N': UINT_SPLIT (2, 8, 2, 1, 3); /* split encoded 2-bit offset << 2 */
 	case 'O': UINT_SPLIT (17, 0, 0, 5, 16); /* split 17-bit offset */
 	case 'P': UINT_SPLIT (16, 0, 0, 4, 16); /* split 16-bit offset */
-	case 'Q': SPECIAL (0, 0, IMM_WORD);
 	case 'S': UINT (4, 17); /* (0 .. 15) */
 	case 'T': UINT (4, 6); /* (0 .. 15) */
 	case 'U': INT_ADJ (5, 0, 31, 2, FALSE);	 /* (0 .. 31) << 2 */
@@ -160,7 +159,8 @@ decode_micromipspp_operand (const char *p)
  	case 'N': SPECIAL (4, 6, SAVE_RESTORE_LIST);
 	case 'P': SPECIAL (4, 17, SAVE_RESTORE_FP_LIST);
 	case 'O': UINT (3, 8);
-	case 'Q': HINT (3, 2);
+	case 'Q': SPECIAL (0, 0, UIMM_WORD);
+	case 'R': SPECIAL (0, 0, IMM_WORD);
 /* 	case 'P': INT_ADJ (5, 5, 31, 2, FALSE);	 /\* (0 .. 31) << 2 *\/ */
 /* 	case 'S': REG (5, 21, FP); */
 /* 	case 'T': INT_ADJ (10, 16, 511, 0, FALSE);	/\* (-512 .. 511) << 0 *\/ */
@@ -386,7 +386,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"li",		"md,mI",	0xd000,		0xfc00,	WR_1,		0,	I38,		0,		0}, /* LI[16] */
 {"li",		"t,i",		0x80000000, 0xfc1ff000,	WR_1,	INSN2_ALIAS,	I38,		0,		0}, /* ORI */
 {"li",		"-t,j",		0x00000000, 0xfc1f6000,	WR_1,	INSN2_ALIAS,	I38,		0,		0}, /* ADDIU */
-{"li",		"mp,mQ",	0x6000, 	0xfc1f,		WR_1,	0,	0,		XLP,		0}, /* LI[48] */
+{"li",		"mp,+Q",	0x6000, 	0xfc1f,		WR_1,	0,	0,		XLP,		0}, /* LI[48] */
 {"li",		"t,I",		0,	(int) M_LI,	INSN_MACRO,	0,	I38,		0,		0},
 
 /* Precedence=0 */
@@ -409,6 +409,8 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"addiu",	"mp,+6",		0x9008,	0xfc08,		MOD_1,		0,	I38,		0,		0}, /* ADDIU[RS5], preceded by NOP[16] */
 {"addiu",	"t,ma,.",		0x40000000, 0xfc000003,	WR_1|RD_2,		0,	I38,		0,		0}, /* ADDIU[GP] */
 {"addiu",	"-t,r,j",		0x00000000, 0xfc006000,	WR_1|RD_2,		0,	I38,		0,		0}, /* preceded by SIGRIE */
+{"addiu",	"mp,mt,+R",		0x6001,     0xfc1f,	MOD_1,			0,	0,		XLP,		0}, /* ADDIU[48] */
+{"addiu",	"mp,mt,+R",		0x6002,     0xfc1f,	WR_1|RD_2,		0,	0,		XLP,		0}, /* ADDIU[GP48] */
 {"addq.ph",	"d,s,t",		0x2000000d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
 {"addqh.ph",	"d,s,t",		0x2000004d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
 {"addqh.w",	"d,s,t",		0x2000008d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
@@ -534,6 +536,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"bneic",	"t,m9,~",	0xc8100000, 0xfc1c0000,		RD_1,		0,	I38,	0,		0},
 {"bposge32c",	"+u",		0x88044000, 0xffffc000,		0,		0,	0,	D32,		0},
 {"bposge32",	"+u",		0x88044000, 0xffffc000,		0,    INSN2_ALIAS|CTC,	0,	D32,		0}, /* BPOSGE32C */
+{"brsc",	"s",		0x48008200, 0xffe0ffff,		RD_1,		0,	I38,	0,		0},
 {"cache",	"k,+j(b)",		0xa4001900, 0xfc007f00,		RD_3,		0,	I38,		0,		0},
 {"cache",	"k,A(b)",		0,    (int) M_CACHE_AB,		INSN_MACRO,	0,	I38,		0,		0},
 {"cachee",	"k,+j(b)",		0xa4001d00, 0xfc007f00,		RD_3,		0,	0,	EVA,		0},
@@ -631,8 +634,8 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"dadd",	"d,v,t",	0xc0000110, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
 {"dadd",	"t,r,I",	0,    (int) M_DADD_I,	INSN_MACRO,		0,	I70,		0,		0},
 {"daddiu",	"t,r,j",	0x00002000, 0xfc006000,	WR_1|RD_2,		0,	I70,		0,		0}, /* preceded by SIGRIE */
-{"daddiu",	"mp,mQ",	0x6011, 	0xfc1f,	WR_1,			0,	I70,		0,		0}, /* DADDIU[48] */
-{"daddiu",	"mp,mx,mQ",	0x6011, 	0xfc1f,	WR_1,		INSN2_ALIAS,	I70,		0,		0}, /* DADDIU[48] */
+{"daddiu",	"mp,mt,+R",	0x6011, 	0xfc1f,	MOD_1,			0,	I70,		0,		0}, /* DADDIU[48] */
+{"daddiu",	"mp,ma,+R",	0x6012,		0xfc1f,	WR_1|RD_2,		0,	I70,		0,		0}, /* DADDIU[GP48] */
 {"daddu",	"d,v,t",		0xc0000150, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
 {"daddu",	"t,r,I",		0,    (int) M_DADDU_I,	INSN_MACRO,		0,	I70,		0,		0},
 {"dahi",	"t,mO",		0x80008000, 0xfc00f000,		WR_1,		0,	I70,		0,		0},
@@ -662,7 +665,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"dli", 	"-t,j",		0x00002000, 0xfc1f6000,	WR_1|RD_2,			0,	I70,		0,		0}, /* daddiu */
 {"dli", 	"t,I",		0,    (int) M_DLI,	INSN_MACRO,			0,	I70,		0,		0},
 {"dlsa",	"d,v,t,+.",		0xc0000008, 0xfc0001ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
-{"dlui",	"mp,mQ",	0x6014, 	0xfc1f,		WR_1,		0,	I70,		0,		0}, /* DLUI[48] */
+{"dlui",	"mp,+Q",	0x6014, 	0xfc1f,		WR_1,		0,	I70,		0,		0}, /* DLUI[48] */
 {"dmfc0",	"t,G",		0x20000130, 0xfc00ffff,		WR_1,	INSN2_ALIAS,	I70,		0,		0}, /* DMFC0 with sel=0 */
 {"dmfc0",	"t,G,H",	0x20000130, 0xfc00c7ff,		WR_1,		0,	I70,		0,		0},
 {"dmfc1",	"t,S",		0xa000243b, 0xfc00ffff,	WR_1|RD_2,		0,	I70,	0,		0},
@@ -939,6 +942,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"move.balc",	"m4,m7,+r",	0x08000000, 0xfc000000,	WR_1|RD_2,		0,	0,	XLP,		0},
 {"move.bal",	"m4,m7,+r",	0x08000000, 0xfc000000,	WR_1|RD_2, INSN2_ALIAS|CTC,	0,	XLP,		0}, /* MOVE.BALC */
 {"movep",	"m5,m6,m2,m1",		0xbc00,	0xfc00,WR_1|WR_2|RD_3|RD_4,		0,	0,	XLP,		0},
+{"movep",	"m2,m1,m5,m6",		0xfc00,	0xfc00,WR_1|WR_2|RD_3|RD_4,		0,	0,	XLP,		0}, /* MOVEP[REV] */
 {"movn",	"d,v,t",		0x20000610, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0,		0},
 {"movz",	"d,v,t",		0x20000210, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0,		0},
 {"msub",	"7,s,t",		0x20002abf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32,		0}, /* MSUB[DSP] */
@@ -1222,6 +1226,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"subu_s.qb",	"d,s,t",		0x200006cd, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
 {"sw",		"mq,mJ(ml)",		0xf400,	0xfc00,	RD_1|RD_3,		0,	I38,		0,		0}, /* SW[16] */
 {"sw",		"mp,mU(ms)",		0xd400,	0xfc00,	RD_1|RD_3,		0,	I38,		0,		0}, /* SW[SP] */
+{"sw",		"m1,mN(m2)",		0x9c00,	0xfc00,	RD_1|RD_3,		0,	0,		XLP,		0}, /* SW[4X4] */
 {"sw",		"t,.(ma)",		0x40000003, 0xfc000003,	RD_1|RD_3,		0,	I38,		0,		0}, /* SW[GP] */
 {"sw",		"t,o(b)",		0x84009000, 0xfc00f000,	RD_1|RD_3,		0,	I38,		0,		0},
 {"sw",		"t,+j(b)",		0xa4004800, 0xfc007f00,	RD_1|RD_3,		0,	I38,		0,		0}, /* SW[S9] */

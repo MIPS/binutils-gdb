@@ -1539,4 +1539,5 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test "ur7-mips-abi32-pic2"
     run_dump_test "ur7-mips-gp32-fp64-pic"
     run_dump_test "ur7-percent"
+    run_dump_test "ur7-exc"
 }

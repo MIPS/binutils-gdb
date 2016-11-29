@@ -451,6 +451,10 @@ enum mips_operand_type {
   /* To check a mapped register against a previous operand.  */
   OP_MAPPED_CHECK_PREV,
 
+  /* Immediate unsigned word operand.  */
+  OP_UIMM_WORD,
+
+  /* Immediate signed word operand.  */
   OP_IMM_WORD,
 };
 
