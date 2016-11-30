@@ -6651,7 +6651,17 @@ match_non_zero_reg_operand (struct mips_arg_info *arg,
 
   if (regno == 0)
     {
-      set_insn_error (arg->argnum, _("the source register must not be $0"));
+      unsigned int regtype;
+
+      if ((arg->opnum == 1 && (arg->insn->insn_mo->pinfo & INSN_WRITE_1) != 0)
+	  || (arg->opnum == 2 && (arg->insn->insn_mo->pinfo & INSN_WRITE_2) != 0))
+	regtype = 1;
+      else
+	regtype = 0;
+
+      set_insn_error_ss (arg->argnum, _("the %s register must not be $0%s"),
+			 regtype == 1 ? "target" : "source",
+			 "");
       return FALSE;
     }
 

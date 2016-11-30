@@ -83,7 +83,13 @@ test:
 	sw	$18, 8($22)
 	sw	$19, 12($23)
 
-	brsc	$1
+	brc	$3
 	brsc	$16
-	
+
+	balrc	$4, $5
+	balrc	$5
+
+	balrsc	$16, $17
+	balrsc	$17
+
 .end	test

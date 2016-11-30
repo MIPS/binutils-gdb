@@ -446,6 +446,10 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"bal",		"mD",		0x3800,	0xfc00,		WR_31,	INSN2_ALIAS|CTC,	I38,		0,		0}, /* BALC[16] */
 {"bal",		"+'",		0x2a000000, 0xfe000000,	WR_31,	INSN2_ALIAS|CTC,	I38,		0,		0}, /* BALC */
 {"balign",	"t,s,2",		0x200008bf, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32,		0},
+{"balrc",	"-t,s",		0x48008000, 0xfc00ffff,		WR_1|RD_2,		0,	I38,		0,		0},
+{"balrc",	"s",		0x4be08000, 0xffe0ffff,		RD_1|WR_31,		0,	I38,		0,		0}, /* BALRC */
+{"balrsc",	"-t,s",		0x48008200, 0xfc00ffff,		WR_1|RD_2,		0,	I38,		0,		0},
+{"balrsc",	"s",		0x4be08200, 0xffe0ffff,		RD_1|WR_31,		0,	I38,		0,		0}, /* BALRSC */
 {"bc",		"mD",		0x1800,	0xfc00,		0,		0,	I38,		0,		0}, /* BC[16] */
 {"bc",		"+'",		0x28000000, 0xfe000000,		0,		0,	I38,		0,		0},
 {"b",		"mD",		0x1800,		0xfc00,		0, INSN2_ALIAS|CTC,	I38,		0,		0}, /* BC[16] */
@@ -536,6 +540,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"bneic",	"t,m9,~",	0xc8100000, 0xfc1c0000,		RD_1,		0,	I38,	0,		0},
 {"bposge32c",	"+u",		0x88044000, 0xffffc000,		0,		0,	0,	D32,		0},
 {"bposge32",	"+u",		0x88044000, 0xffffc000,		0,    INSN2_ALIAS|CTC,	0,	D32,		0}, /* BPOSGE32C */
+{"brc",		"s",		0x48008000, 0xffe0ffff,		RD_1,		0,	I38,	0,		0},
 {"brsc",	"s",		0x48008200, 0xffe0ffff,		RD_1,		0,	I38,	0,		0},
 {"cache",	"k,+j(b)",		0xa4001900, 0xfc007f00,		RD_3,		0,	I38,		0,		0},
 {"cache",	"k,A(b)",		0,    (int) M_CACHE_AB,		INSN_MACRO,	0,	I38,		0,		0},
