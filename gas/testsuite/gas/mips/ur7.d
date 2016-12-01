@@ -84,7 +84,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]*> 6040 ffff 8001 	li	v0,0xffff8001
 [0-9a-f]+ <[^>]*> 6040 ffff ffff 	li	v0,0xffffffff
 [0-9a-f]+ <[^>]*> 6040 1234 5678 	li	v0,0x12345678
-[0-9a-f]+ <[^>]*> 1016      	break	0x6
+[0-9a-f]+ <[^>]*> 2016 0290 	move	zero,s6
 [0-9a-f]+ <[^>]*> 1056      	move	v0,s6
 [0-9a-f]+ <[^>]*> 1076      	move	v1,s6
 [0-9a-f]+ <[^>]*> 1096      	move	a0,s6
@@ -96,18 +96,18 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]*> 1156      	move	t2,s6
 [0-9a-f]+ <[^>]*> 13d6      	move	s8,s6
 [0-9a-f]+ <[^>]*> 13f6      	move	ra,s6
-[0-9a-f]+ <[^>]*> 1000      	move	zero,zero
-[0-9a-f]+ <[^>]*> 1002      	move	zero,v0
-[0-9a-f]+ <[^>]*> 1003      	move	zero,v1
-[0-9a-f]+ <[^>]*> 1004      	move	zero,a0
-[0-9a-f]+ <[^>]*> 1005      	move	zero,a1
-[0-9a-f]+ <[^>]*> 1006      	move	zero,a2
-[0-9a-f]+ <[^>]*> 1007      	move	zero,a3
-[0-9a-f]+ <[^>]*> 1008      	move	zero,t0
-[0-9a-f]+ <[^>]*> 1009      	move	zero,t1
-[0-9a-f]+ <[^>]*> 100a      	move	zero,t2
-[0-9a-f]+ <[^>]*> 101e      	sdbbp	0x6
-[0-9a-f]+ <[^>]*> 101f      	sdbbp	0x7
+[0-9a-f]+ <[^>]*> 2000 0290 	move	zero,zero
+[0-9a-f]+ <[^>]*> 2002 0290 	move	zero,v0
+[0-9a-f]+ <[^>]*> 2003 0290 	move	zero,v1
+[0-9a-f]+ <[^>]*> 2004 0290 	move	zero,a0
+[0-9a-f]+ <[^>]*> 2005 0290 	move	zero,a1
+[0-9a-f]+ <[^>]*> 2006 0290 	move	zero,a2
+[0-9a-f]+ <[^>]*> 2007 0290 	move	zero,a3
+[0-9a-f]+ <[^>]*> 2008 0290 	move	zero,t0
+[0-9a-f]+ <[^>]*> 2009 0290 	move	zero,t1
+[0-9a-f]+ <[^>]*> 200a 0290 	move	zero,t2
+[0-9a-f]+ <[^>]*> 201e 0290 	move	zero,s8
+[0-9a-f]+ <[^>]*> 201f 0290 	move	zero,ra
 [0-9a-f]+ <[^>]*> 12c2      	move	s6,v0
 [0-9a-f]+ <[^>]*> 1056      	move	v0,s6
 [0-9a-f]+ <[^>]*> 12c2      	move	s6,v0
@@ -2129,10 +2129,10 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]*> a7e3 1800 	synci	0\(v1\)
 [0-9a-f]+ <[^>]*> a7e3 18ff 	synci	255\(v1\)
 [0-9a-f]+ <[^>]*> a7e3 9800 	synci	-256\(v1\)
-[0-9a-f]+ <[^>]*> 1008      	move	zero,t0
-[0-9a-f]+ <[^>]*> 1008      	move	zero,t0
-[0-9a-f]+ <[^>]*> 1009      	move	zero,t1
-[0-9a-f]+ <[^>]*> 100a      	move	zero,t2
+[0-9a-f]+ <[^>]*> 1008      	syscall
+[0-9a-f]+ <[^>]*> 1008      	syscall
+[0-9a-f]+ <[^>]*> 1009      	syscall	1
+[0-9a-f]+ <[^>]*> 100a      	syscall	2
 [0-9a-f]+ <[^>]*> 0008 00ff 	syscall	0xff
 [0-9a-f]+ <[^>]*> 8460 4004 	lh	v1,4\(zero\)
 [0-9a-f]+ <[^>]*> 8460 4004 	lh	v1,4\(zero\)
@@ -3064,6 +3064,9 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]*> 0018 03ff 	sdbbp	0x3ff
 [0-9a-f]+ <[^>]*> 23ff c37f 	wait	0x3ff
 [0-9a-f]+ <[^>]*> 0008 03ff 	syscall	0x3ff
+[0-9a-f]+ <[^>]*> 9008      	nop
+[0-9a-f]+ <[^>]*> 9008      	nop
+[0-9a-f]+ <[^>]*> 9008      	nop
 [0-9a-f]+ <[^>]*> a001 037b 	abs\.s	\$f0,\$f1
 [0-9a-f]+ <[^>]*> a3df 037b 	abs\.s	\$f30,\$f31
 [0-9a-f]+ <[^>]*> a042 037b 	abs\.s	\$f2,\$f2

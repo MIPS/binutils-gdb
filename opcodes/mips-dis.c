@@ -1744,6 +1744,9 @@ print_insn_arg (struct disassemble_info *info,
 	infprintf (is, "0x%x", uval);
       }
       break;
+
+    case OP_DONT_CARE:
+      break;
     }
 }
 
@@ -1879,6 +1882,7 @@ validate_insn_args (const struct mips_opcode *opcode,
 		case OP_HI20_PCREL:
 		case OP_IMM_WORD:
 		case OP_UIMM_WORD:
+		case OP_DONT_CARE:
 		  break;
 		}
 	    }
@@ -1905,6 +1909,7 @@ print_insn_args (struct disassemble_info *info,
   struct mips_print_arg_state state;
   const struct mips_operand *operand;
   const char *s;
+  int pending_sep = 0;
 
   init_print_arg_state (&state);
   for (s = opcode->args; *s; ++s)
@@ -1912,7 +1917,14 @@ print_insn_args (struct disassemble_info *info,
       switch (*s)
 	{
 	case ',':
+	  pending_sep = 1;
+	  break;
 	case '(':
+	  if (pending_sep)
+	    {
+	      infprintf (is, ",");
+	      pending_sep = 0;
+	    }
 	case ')':
 	  infprintf (is, "%c", *s);
 	  break;
@@ -1932,6 +1944,13 @@ print_insn_args (struct disassemble_info *info,
 			 opcode->name, opcode->args);
 	      return;
 	    }
+
+	  if (operand->type != OP_DONT_CARE && pending_sep)
+	    {
+	      infprintf (is, ",");
+	      pending_sep = 0;
+	    }
+
 	  if (operand->type == OP_REG
 	      && s[1] == ','
 	      && s[2] == 'H'
@@ -1980,7 +1999,7 @@ print_insn_args (struct disassemble_info *info,
 	      if (operand->type == OP_IMM_WORD || operand->type == OP_UIMM_WORD)
 		print_insn_arg (info, &state, opcode, operand, base_pc,
 				insn >> 32);
-	      else
+	      else if (operand->type != OP_DONT_CARE)
 		print_insn_arg (info, &state, opcode, operand, base_pc,
 				mips_extract_operand (operand, insn));
 	    }

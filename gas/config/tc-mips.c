@@ -4924,6 +4924,7 @@ operand_reg_mask (const struct mips_cl_insn *insn,
     case OP_HI20_INT:
     case OP_IMM_WORD:
     case OP_UIMM_WORD:
+    case OP_DONT_CARE:
       abort ();
 
     case OP_REG28:
@@ -6651,17 +6652,18 @@ match_non_zero_reg_operand (struct mips_arg_info *arg,
 
   if (regno == 0)
     {
+      const unsigned long pinfo = arg->insn->insn_mo->pinfo;
       unsigned int regtype;
+      const char *regstr[] = {"source", "target"};
 
-      if ((arg->opnum == 1 && (arg->insn->insn_mo->pinfo & INSN_WRITE_1) != 0)
-	  || (arg->opnum == 2 && (arg->insn->insn_mo->pinfo & INSN_WRITE_2) != 0))
+      if ((arg->opnum == 1 && (pinfo & INSN_WRITE_1) != 0)
+	  || (arg->opnum == 2 && (pinfo & INSN_WRITE_2) != 0))
 	regtype = 1;
       else
 	regtype = 0;
 
       set_insn_error_ss (arg->argnum, _("the %s register must not be $0%s"),
-			 regtype == 1 ? "target" : "source",
-			 "");
+			 regstr[regtype], "");
       return FALSE;
     }
 
@@ -6983,6 +6985,9 @@ match_operand (struct mips_arg_info *arg,
     case OP_UIMM_WORD:
     case OP_IMM_WORD:
       return match_immediate_word (arg);
+
+    case OP_DONT_CARE:
+      return FALSE;
    }
   abort ();
 }
@@ -9360,19 +9365,22 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	{
 	  /* Handle unary instructions in which only one operand is given.
 	     The source is then the same as the destination.  */
-	  if (arg.opnum == 1 && *args == ',')
+	  if ((arg.opnum == 1 && *args == ',')
+	      || (arg.opnum == 0 && *args != 0))
 	    {
 	      operand = (mips_opts.micromips
 			 ? (ISA_IS_R7 (mips_opts.isa)
-			    ? decode_micromipspp_operand (args + 1)
-			    : decode_micromips_operand (args + 1))
-			 : decode_mips_operand (args + 1));
+			    ? decode_micromipspp_operand (args + arg.opnum)
+			    : decode_micromips_operand (args + arg.opnum))
+			 : decode_mips_operand (args + arg.opnum));
 	      if (operand && mips_optional_operand_p (operand))
 		{
 		  arg.token = tokens;
 		  arg.argnum = 1;
 		  continue;
 		}
+	      if (operand && operand->type == OP_DONT_CARE)
+		return TRUE;
 	    }
 
 	  /* Treat elided base registers as $0.  */
@@ -10127,6 +10135,7 @@ static const char * const pref_fmt[4] = { "k,o(b)", "k,~(b)",
 					   "k,+j(b)", "k,+j(b)" };
 static const char * const bitw_fmt[2] = { "d,t,s", "d,v,t" };
 static const char * const div_fmt[2] = { "z,s,t", "d,v,t" };
+static const char * const move_fmt[2] = { "mp,mj", "-p,mj" };
 #define BRK_FMT (brk_fmt[ISA_IS_R7 (mips_opts.isa) ? 2 \
 			 : mips_opts.micromips][mips_opts.insn32])
 #define COP12_FMT (cop12_fmt[ISA_FMT_INDEX])
@@ -10156,6 +10165,7 @@ static const char * const div_fmt[2] = { "z,s,t", "d,v,t" };
 #define PREF_FMT (pref_fmt[ISA_FMT_INDEX])
 #define BITW_FMT (bitw_fmt[ISA_IS_R7 (mips_opts.isa) ? 1 : 0])
 #define DIV_FMT (div_fmt[ISA_IS_R7 (mips_opts.isa) ? 1 : 0])
+#define MOVE_FMT (move_fmt[ISA_IS_R7 (mips_opts.isa) ? 1 : 0])
 #define ISA_OFFBITS (ISA_IS_R7 (mips_opts.isa)? 12 : 16)
 #define ISA_ADD_OFFBITS (ISA_IS_R7 (mips_opts.isa)? 14 : 16)
 #define ISA_COP2_OFFBITS (ISA_IS_R7 (mips_opts.isa) ? 9 	\
@@ -11344,7 +11354,7 @@ move_register (int dest, int source)
   if (mips_opts.micromips
       && !mips_opts.insn32
       && !(history[0].insn_mo->pinfo2 & INSN2_BRANCH_DELAY_32BIT))
-    macro_build (NULL, "move", "mp,mj", dest, source);
+    macro_build (NULL, "move", MOVE_FMT, dest, source);
   else
     macro_build (NULL, "or", "d,v,t", dest, source, 0);
 }

@@ -456,6 +456,10 @@ enum mips_operand_type {
 
   /* Immediate signed word operand.  */
   OP_IMM_WORD,
+
+  /* Don't care bits.  */
+  OP_DONT_CARE,
+
 };
 
 /* Enumerates the types of MIPS register.  */

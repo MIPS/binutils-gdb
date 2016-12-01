@@ -1,0 +1,13 @@
+.*.s: Assembler messages:
+.*:11: Error: invalid operands `movep \$5,\$5,\$16,\$0'
+.*:12: Error: invalid operands `movep \$6,\$5,\$17,\$1'
+.*:13: Error: invalid operands `movep \$7,\$6,\$18,\$2'
+.*:14: Error: invalid operands `movep \$7,\$7,\$19,\$3'
+.*:15: Error: invalid operands `movep \$4,\$20,\$4,\$8'
+.*:16: Error: invalid operands `movep \$5,\$21,\$5,\$7'
+.*:17: Error: invalid operands `movep \$6,\$22,\$6,\$8'
+.*:18: Error: invalid operands `movep \$7,\$23,\$6,\$6'
+.*:20: Error: the target register must not be \$0 `balrc \$0,\$4'
+.*:21: Error: the target register must not be \$0 `balrsc \$0,\$6'
+.*:23: Error: the target register must not be \$0 `auipc \$0,1'
+.*:24: Error: the target register must not be \$0 `move16 \$0,\$1'

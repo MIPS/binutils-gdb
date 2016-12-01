@@ -131,6 +131,19 @@
     return &op.root; \
   }
 
+#define SPLIT_MAPPED_REG_PAIR(SIZE, LSB, SIZE_T, LSB_T, BANK, MAP) \
+  { \
+    typedef char ATTRIBUTE_UNUSED \
+      static_assert1[(1 << (SIZE)) == ARRAY_SIZE (MAP##1)]; \
+    typedef char ATTRIBUTE_UNUSED \
+      static_assert2[(1 << (SIZE)) == ARRAY_SIZE (MAP##2)]; \
+    static const struct mips_reg_pair_operand op = { \
+      { OP_REG_PAIR, SIZE, LSB, SIZE_T, LSB_T }, OP_REG_##BANK, \
+      MAP##1, MAP##2 \
+    }; \
+    return &op.root; \
+  }
+
 #define OPTIONAL_MAPPED_REG(SIZE, LSB, BANK, MAP) \
   { \
     typedef char ATTRIBUTE_UNUSED \

@@ -1540,4 +1540,5 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test "ur7-mips-gp32-fp64-pic"
     run_dump_test "ur7-percent"
     run_dump_test "ur7-exc"
+    run_list_test_arches "ur7-error" [mips_arch_list_matching micromipsr7]
 }
