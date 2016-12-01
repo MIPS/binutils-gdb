@@ -3155,7 +3155,7 @@ class Micromips_insn
   // Convert register in 16bit instruction to register in 32 bit instruction.
   unsigned int
   reg_16_to_32(unsigned int reg) const
-  { return (reg == 0 || reg == 1) ? reg + 16 : reg; }
+  { return ((0 <= reg && reg <= 3) ? reg + 16 : reg); }
 
   // Return target register in microMIPS 32-bit instruction.
   unsigned int
@@ -3180,7 +3180,7 @@ class Micromips_insn
   // Check if a 5-bit register index can be abbreviated to 3 bits.
   bool
   valid_reg_16(unsigned int reg) const
-  { return ((reg >= 2 && reg <= 7) || reg == 16 || reg == 17); }
+  { return ((4 <= reg && reg <= 7) || (16 <= reg && reg <= 19)); }
 
   // New instruction.  In case of relaxation there is only 1 instruction,
   // but for expansions there can be many.
@@ -9700,7 +9700,8 @@ Micromips_insn<size, big_endian>::can_relax(Valtype value)
       // Check if a 5-bit register index can be abbreviated to 3 bits
       // for rt register in sw instruction.
       if ((this->insn_ & 0xfc00f000) == 0x84009000)
-        return ((treg >= 2 && treg <= 7) || treg == 0 || treg == 17);
+        return ((4 <= treg && treg <= 7) || (17 <= treg && treg <= 19)
+                || treg == 0);
       else
         return this->valid_reg_16(treg);
     }
@@ -10073,7 +10074,7 @@ Micromips_insn<size, big_endian>::expand(
 
           // Convert 16bit to 32bit target register in sw instruction.
           if ((this->insn_ & 0xfc00) == 0xf400)
-            treg32 = ((treg32 == 1) ? treg32 + 16 : treg32);
+            treg32 = ((1 <= treg32 && treg32 <= 3) ? treg32 + 16 : treg32);
           else
             treg32 = this->reg_16_to_32(treg32);
 
