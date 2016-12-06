@@ -50,7 +50,7 @@
 :compute:::int:RD1:RD:(compute_gpr1_dest_reg (SD_, RD))
 :compute:::int:RT_5_BIT:RT1,RT2:((RT1 << 4) | RT2)
 :compute:::int:RS_5_BIT:RS1,RS2:((RS1 << 4) | RS2)
-:compute:::int:TRTZ:RTZ:((RTZ == 1) ? 17 \: RTZ)
+:compute:::int:TRTZ:RTZ:((RTZ >= 1 && RTZ <= 3) ? (16 + RTZ) \: RTZ)
 :compute:::int:EU_12_13:EU:((EU == 12) ? 255 \: ((EU == 13) ? 65535 \: EU))
 :compute:::int:RS_MOVE:RS1,RS_CODE_1,RS_CODE_2:((RS1 << 3) | (RS_CODE_1 << 2) | RS_CODE_2)
 :compute:::int:CODE_BREAK:RS_CODE_1,RS_CODE_2:((RS_CODE_1 << 2) | RS_CODE_2)
