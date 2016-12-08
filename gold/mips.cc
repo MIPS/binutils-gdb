@@ -3155,7 +3155,7 @@ class Micromips_insn
   // Convert register in 16bit instruction to register in 32 bit instruction.
   unsigned int
   reg_16_to_32(unsigned int reg) const
-  { return ((0 <= reg && reg <= 3) ? reg + 16 : reg); }
+  { return ((reg <= 3) ? reg + 16 : reg); }
 
   // Return target register in microMIPS 32-bit instruction.
   unsigned int
