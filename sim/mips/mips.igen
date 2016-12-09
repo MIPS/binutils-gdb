@@ -146,7 +146,7 @@
   signal_if_cti (SD_, delay_insn);
   ENGINE_ISSUE_PREFIX_HOOK();
   idecode_issue (CPU_, delay_insn, (CIA));
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   STATE &= ~simDELAYSLOT;
   return target;
 }
@@ -168,7 +168,7 @@
   signal_if_cti (SD_, delay_insn);
   ENGINE_ISSUE_PREFIX_HOOK();
   idecode_issue (CPU_, delay_insn, (CIA));
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   STATE &= ~simFORBIDDENSLOT;
   return CIA + 4;
 }
@@ -2216,7 +2216,7 @@
   if (RS == 31)
     Unpredictable ();
   RA = (CIA + 8);
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   if ((signed_word) GPR[RS] >= 0)
     {
       DELAY_SLOT (NIA + offset);
@@ -2230,7 +2230,7 @@
 {
   address_word offset = EXTEND16 (OFFSET) << 2;
   RA = (CIA + 8);
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   DELAY_SLOT (NIA + offset);
 }
 
@@ -2252,7 +2252,7 @@
   if (RS == 31)
     Unpredictable ();
   RA = (CIA + 8);
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   /* NOTE: The branch occurs AFTER the next instruction has been
      executed */
   if ((signed_word) GPR[RS] >= 0)
@@ -2441,7 +2441,7 @@
   if (RS == 31)
     Unpredictable ();
   RA = (CIA + 8);
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   /* NOTE: The branch occurs AFTER the next instruction has been
      executed */
   if ((signed_word) GPR[RS] < 0)
@@ -2482,7 +2482,7 @@
   if (RS == 31)
     Unpredictable ();
   RA = (CIA + 8);
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   if ((signed_word) GPR[RS] < 0)
     {
       DELAY_SLOT (NIA + offset);
@@ -3412,7 +3412,7 @@
      current instruction */
   address_word region = (NIA & MASK (63, 28));
   GPR[31] = CIA + 8;
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   DELAY_SLOT (region | (INSTR_INDEX << 2));
 }
 
@@ -3436,7 +3436,7 @@
 {
   address_word temp = GPR[RS];
   GPR[RD] = CIA + 8;
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   DELAY_SLOT (temp);
 }
 
@@ -3450,7 +3450,7 @@
 {
   address_word temp = GPR[RS];
   GPR[RD] = CIA + 8;
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   DELAY_SLOT (temp);
 }
 

@@ -686,7 +686,7 @@
 :function:::address_word:do_balc:address_word offset
 {
   RA = (CIA + 4) | isa_mode;
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   return CIA + offset + 4;
 }
 
@@ -1391,7 +1391,7 @@
   }
 
   do_ll (SD_, first, offset, BASE);
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   do_ll (SD_, second, offset ^ 4, BASE);
 }
 
@@ -1421,7 +1421,7 @@
   int offset = BigEndianCPU ? 0 : 4;
 
   do_sc (SD_, RD, offset, BASE, instruction_0, 0);
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   do_sc (SD_, RT, offset ^ 4, BASE, instruction_0, 1);
 }
 
@@ -1448,7 +1448,7 @@
   }
 
   do_lld (SD_, first, offset, BASE);
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   do_lld (SD_, second, offset ^ 8, BASE);
 }
 
@@ -1468,7 +1468,7 @@
   check_u64 (SD_, instruction_0);
 
   do_scd (SD_, RD, offset, BASE, 0);
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   do_scd (SD_, RT, offset ^ 8, BASE, 1);
 }
 

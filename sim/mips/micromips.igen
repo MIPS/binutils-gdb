@@ -52,7 +52,7 @@
   STATE |= simDELAYSLOT;
   ENGINE_ISSUE_PREFIX_HOOK();
   MICROMIPS_INSTRUCTION_DECODE (SD, CPU, CIA, delayslot_instruction_size);
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   STATE &= ~simDELAYSLOT;
   return target;
 }
@@ -76,7 +76,7 @@
 *micromips64r6:
 {
   GPR[rt] = (nia + delayslot_instruction_size) | ISA_MODE_MICROMIPS;
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   return (process_isa_mode (SD_,
 	delayslot_micromips (SD_, GPR[rs], nia, delayslot_instruction_size)));
 }
@@ -88,7 +88,7 @@
 *micromips64r6:
 {
   RA = (nia + delayslot_instruction_size) | ISA_MODE_MICROMIPS;
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   return delayslot_micromips (SD_, target, nia, delayslot_instruction_size);
 }
 
@@ -338,7 +338,7 @@
 {
   address_word temp = RA;
   do_addiu (SD_, SPIDX, SPIDX, immediate << 2);
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   return process_isa_mode (SD_, temp);
 }
 
@@ -439,7 +439,7 @@
      {
 	GPR[16 + reg_offset] = EXTEND32 (
                  do_load (SD_, AccessLength_WORD, address, reg_offset * 4));
-        COP0_COUNT++;
+        COP0_COUNT_INCREMENT;
      }
 
   /* We don't increment the COP0_COUNT register here, because it will be incremented in the 
@@ -558,7 +558,7 @@
     re = 5;
 
   GPR[rd] = GPR[ERS];
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   GPR[re] = GPR[ERT];
   /* We don't increment the COP0_COUNT register here, because it will be incremented in the 
      sim_engine_run function when we return.  */ 
@@ -680,7 +680,7 @@
      {
 	do_store (SD_, AccessLength_WORD, address, reg_offset * 4,
 		  GPR[16 + reg_offset]);
-	COP0_COUNT++;
+	COP0_COUNT_INCREMENT;
      }
 
   /* We don't increment the COP0_COUNT register here, because it will be incremented in the 
@@ -845,7 +845,7 @@
   if (RS == 31)
     Unpredictable ();
   RA = (NIA + MICROMIPS_DELAYSLOT_SIZE_32) | ISA_MODE_MICROMIPS;
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   if ((signed_word) GPR[RS] >= 0)
     NIA = delayslot_micromips (SD_, NIA + offset, NIA,
 			       MICROMIPS_DELAYSLOT_SIZE_32);
@@ -874,7 +874,7 @@
   if (RS == 31)
     Unpredictable ();
   RA = (NIA + MICROMIPS_DELAYSLOT_SIZE_16) | ISA_MODE_MICROMIPS;
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   if ((signed_word) GPR[RS] >= 0)
     NIA = delayslot_micromips (SD_, NIA + offset, NIA,
 			       MICROMIPS_DELAYSLOT_SIZE_16);
@@ -916,7 +916,7 @@
   if (RS == 31)
     Unpredictable ();
   RA = (NIA + MICROMIPS_DELAYSLOT_SIZE_32) | ISA_MODE_MICROMIPS;
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   /* NOTE: The branch occurs AFTER the next instruction has been
      executed */
   if ((signed_word) GPR[RS] < 0)
@@ -933,7 +933,7 @@
   if (RS == 31)
     Unpredictable ();
   RA = (NIA + MICROMIPS_DELAYSLOT_SIZE_16) | ISA_MODE_MICROMIPS;
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   if ((signed_word) GPR[RS] < 0)
     NIA = delayslot_micromips (SD_, NIA + offset, NIA,
 			       MICROMIPS_DELAYSLOT_SIZE_16);
@@ -1559,14 +1559,14 @@
       int dst = (reg_offset == 8) ? 30 : 16 + reg_offset;
       GPR[dst] = EXTEND32 (do_load (SD_, AccessLength_WORD, address_base,
 				    4 * reg_offset));
-      COP0_COUNT++;
+      COP0_COUNT_INCREMENT;
     }
 
   if (LWM32REGS & 0x10)
     {
       RA = EXTEND32 (do_load (SD_, AccessLength_WORD, address_base,
    			      4 * reg_offset));
-      COP0_COUNT++;
+      COP0_COUNT_INCREMENT;
     }
   COP0_COUNT--;
     
@@ -1585,7 +1585,7 @@
   else
     {
       do_lw (SD_, RD, EXTEND12 (IMMEDIATE), BASE);
-      COP0_COUNT++;
+      COP0_COUNT_INCREMENT;
       do_lw (SD_, RD + 1, EXTEND12 (IMMEDIATE) + 4, BASE);
       /* We don't increment the COP0_COUNT register here, because it will be incremented in the 
          sim_engine_run function when we return.  */ 
@@ -2321,13 +2321,13 @@
       int src = (reg_offset == 8) ? 30 : 16 + reg_offset;
       do_store (SD_, AccessLength_WORD, address_base, 4 * reg_offset,
 		GPR[src]);
-      COP0_COUNT++;
+      COP0_COUNT_INCREMENT;
     }
 
   if (LWM32REGS & 0x10)
     {
       do_store (SD_, AccessLength_WORD, address_base, 4 * reg_offset, RA);
-      COP0_COUNT++;
+      COP0_COUNT_INCREMENT;
     }
   COP0_COUNT--;
 }
@@ -2345,7 +2345,7 @@
   else
     {
       do_sw (SD_, RS1, EXTEND12 (IMMEDIATE), BASE);
-      COP0_COUNT++;
+      COP0_COUNT_INCREMENT;
       do_sw (SD_, RS1 + 1, EXTEND12 (IMMEDIATE) + 4, BASE);
       /* We don't increment the COP0_COUNT register here, because it will be incremented in the 
          sim_engine_run function when we return.  */ 
@@ -3056,7 +3056,7 @@
       int dst = (reg_offset == 8) ? 30 : 16 + reg_offset;
       GPR[dst] = EXTEND64 (do_load (SD_, AccessLength_DOUBLEWORD, address_base,
 	  			    8 * reg_offset));
-      COP0_COUNT++;
+      COP0_COUNT_INCREMENT;
      
     }
 
@@ -3064,7 +3064,7 @@
     {
       RA = EXTEND64 (do_load (SD_, AccessLength_DOUBLEWORD, address_base,
 			    8 * reg_offset));
-      COP0_COUNT++;
+      COP0_COUNT_INCREMENT;
     }
   COP0_COUNT--;
 }
@@ -3081,7 +3081,7 @@
       check_u64 (SD_, instruction_0);
       GPR[RD] = EXTEND64 (do_load (SD_, AccessLength_DOUBLEWORD, GPR[BASE],
 				   EXTEND12 (OFFSET)));
-      COP0_COUNT++;
+      COP0_COUNT_INCREMENT;
       GPR[RD + 1] = EXTEND64 (do_load (SD_, AccessLength_DOUBLEWORD, GPR[BASE],
 				       EXTEND12 (OFFSET) + 8));
       /* We don't increment the COP0_COUNT register here, because it will be incremented in the 
@@ -3101,13 +3101,13 @@
       int src = (reg_offset == 8) ? 30 : 16 + reg_offset;
       do_store (SD_, AccessLength_DOUBLEWORD, address_base, 8 * reg_offset,
 		GPR[src]);
-      COP0_COUNT++;
+      COP0_COUNT_INCREMENT;
     }
 
   if (LWM32REGS & 0x10)
     {
       do_store (SD_, AccessLength_DOUBLEWORD, address_base, 8 * reg_offset, RA);
-      COP0_COUNT++;
+      COP0_COUNT_INCREMENT;
     }
   COP0_COUNT--;
 }
@@ -3124,7 +3124,7 @@
       check_u64 (SD_, instruction_0);
       do_store (SD_, AccessLength_DOUBLEWORD, GPR[BASE], EXTEND12 (OFFSET),
 		GPR[RD]);
-      COP0_COUNT++;
+      COP0_COUNT_INCREMENT;
       do_store (SD_, AccessLength_DOUBLEWORD, GPR[BASE], EXTEND12 (OFFSET) + 8,
 		GPR[RD + 1]);
     }

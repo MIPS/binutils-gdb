@@ -572,7 +572,7 @@
 *micromips64r6:
 {
   RA = NIA | ISA_MODE_MICROMIPS;
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   NIA = process_isa_mode (SD_, GPR[RS]);
 }
 
@@ -609,7 +609,7 @@
     Unpredictable ();
 
   GPR[rt] = nia | ISA_MODE_MICROMIPS;
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   return process_isa_mode (SD_, GPR[rs]);
 }
 
@@ -721,7 +721,7 @@
   }
 
   do_lld (SD_, first, offset, BASE);
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   do_lld (SD_, second, offset^8, BASE);
 }
 
@@ -734,7 +734,7 @@
   check_u64 (SD_, instruction_0);
 
   do_scd (SD_, RD, offset, BASE, 0);
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   do_scd (SD_, RT, offset^8, BASE, 1);
 }
 
@@ -747,7 +747,7 @@
   int offset = BigEndianCPU ? 0 : 4;
 
   do_sc (SD_, RD, offset, BASE, instruction_0, 0);
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   do_sc (SD_, RT, offset^4, BASE, instruction_0, 1);
 }
 
@@ -774,7 +774,7 @@
   }
 
   do_ll (SD_, first, offset, BASE);
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   do_ll (SD_, second, offset^4, BASE);
 }
 
@@ -849,7 +849,7 @@
     re = 5;
 
   GPR[rd] = GPR[ERS_SPLIT];
-  COP0_COUNT++;
+  COP0_COUNT_INCREMENT;
   GPR[re] = GPR[ERT];
 }
 
