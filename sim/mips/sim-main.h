@@ -722,6 +722,9 @@ void signal_exception (SIM_DESC sd, sim_cpu *cpu, address_word cia, int exceptio
 #define SignalExceptionMCheck()              signal_exception (SD, CPU, cia, MCheck)
 #define SignalExceptionCacheErr()            signal_exception (SD, CPU, cia, CacheErr)
 
+void increment_cycle_counter (SIM_DESC sd, sim_cpu *cpu, address_word cia);
+#define COP0_COUNT_INCREMENT increment_cycle_counter (SD, CPU, cia)
+
 /* Co-processor accesses */
 
 /* XXX FIXME: For now, assume that FPU (cp1) is always usable.  */

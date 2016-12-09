@@ -194,6 +194,10 @@ static const char * get_insn_name (sim_cpu *, int);
 /* simulation target board.  NULL=canonical */
 static char* board = NULL;
 
+static const char * current_function_cycle_name;
+static int current_function_cycle_pos;
+static const char ** function_cycle_names;
+static int * function_cycle_count;
 
 static DECLARE_OPTION_HANDLER (mips_option_handler);
 
@@ -859,6 +863,23 @@ sim_close (sd, quitting)
   printf("DBG: sim_close: entered (quitting = %d)\n",quitting);
 #endif
 
+  if (function_cycle_names != NULL)
+    {
+      FILE *fp;
+      fp = fopen ("function_cycle_count.dat", "w");
+      if (fp)
+        {
+          const char ** function_name_ptr = function_cycle_names;
+          while (*function_name_ptr)
+               {
+                 fprintf (fp, "%s,%d\n", *function_name_ptr, function_cycle_count[(function_name_ptr - function_cycle_names)]);
+                 function_name_ptr++;
+               }
+          fclose(fp);
+        }
+      free (function_cycle_count);
+      free (function_cycle_names);
+    }
 
   /* "quitting" is non-zero if we cannot hang on errors */
 
@@ -2675,6 +2696,74 @@ mips_cpu_exception_resume(SIM_DESC sd, sim_cpu* cpu, int exception)
   cpu->exc_suspended = 0; 
 }
 
+void
+increment_cycle_counter (SIM_DESC sd, sim_cpu* cpu, address_word cia)
+{
+  const char *pc_filename = (const char *)0;
+  const char *pc_function = (const char *)0;
+  unsigned int pc_linenum = 0;
+  bfd *abfd;
+  asymbol **asymbols;
+
+  /* Move to sim_open/sim_close and remember to remove malloced names.  */
+  /* Base the malloc on the number of functions from the symbol table.  */
+  if (function_cycle_names == NULL)
+    {
+       function_cycle_names = xmalloc (sizeof (char *) * 10000);
+       memset (function_cycle_names, 0, sizeof (char *) * 10000);
+       function_cycle_count = xmalloc (sizeof (int) * 10000);
+       memset (function_cycle_count, 0, sizeof (int) * 10000);
+       current_function_cycle_name = NULL;
+       current_function_cycle_pos = 0;
+    }
+
+  COP0_COUNT++;
+
+  abfd = STATE_PROG_BFD (sd);
+  asymbols = STATE_PROG_SYMS (sd);
+
+  if (asymbols == NULL)
+    {
+      long symsize;
+      long symbol_count;
+      symsize = bfd_get_symtab_upper_bound (abfd);
+      if (symsize < 0)
+	sim_engine_abort (sd, cpu, cia, "could not read symbols");
+
+      asymbols = (asymbol **) xmalloc (symsize);
+      symbol_count = bfd_canonicalize_symtab (abfd, asymbols);
+
+      if (symbol_count < 0)
+	sim_engine_abort (sd, cpu, cia, "could not canonicalize symbols");
+
+      STATE_PROG_SYMS (sd) = asymbols;
+    }
+
+  if (bfd_find_nearest_line (abfd,
+			     STATE_TEXT_SECTION (sd),
+			     asymbols,
+			     cia - STATE_TEXT_START (sd),
+			     &pc_filename, &pc_function, &pc_linenum))
+    {
+      if (pc_function)
+	{
+	  if (current_function_cycle_name == NULL
+	      || (current_function_cycle_name != pc_function && pc_function[0] != '.'))
+	     {
+		const char ** function_name_ptr = function_cycle_names;
+		while (*function_name_ptr && *function_name_ptr != pc_function)
+	           function_name_ptr++;
+
+		if (*function_name_ptr == NULL)
+		  *function_name_ptr = pc_function;
+
+		current_function_cycle_name = *function_name_ptr;
+		current_function_cycle_pos = (function_name_ptr - function_cycle_names);
+	     }
+          function_cycle_count [current_function_cycle_pos]++;
+	}
+    }
+}
 
 /*---------------------------------------------------------------------------*/
 /*> EOF interp.c <*/
