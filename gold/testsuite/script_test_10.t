@@ -29,6 +29,9 @@ SECTIONS
   .secz : { *(.secz) }
   .sec3 : { *(.sec3) }
   .data : { *(.data) }
+  /* Required by the MIPS target. */
+  .reginfo : { *(.reginfo) }
+  .MIPS.abiflags : { *(.MIPS.abiflags) }
   .bss : { *(.bss) }
 }
 
