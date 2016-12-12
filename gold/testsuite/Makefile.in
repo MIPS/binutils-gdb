@@ -904,10 +904,26 @@ check_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
 @DEFAULT_TARGET_S390_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	split_s390x_z1_ns split_s390x_z2_ns split_s390x_z3_ns \
 @DEFAULT_TARGET_S390_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	split_s390x_z4_ns split_s390x_n1_ns split_s390x_n2_ns split_s390x_r
 
-@DEFAULT_TARGET_X86_64_TRUE@am__append_92 = *.dwo *.dwp
-@DEFAULT_TARGET_X86_64_TRUE@am__append_93 = dwp_test_1.sh \
+
+# Check expansions of branch instructions.
+
+# Check expansions of gp-relative load and store instructions.
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@am__append_92 = umipsr7_branch_out_of_range.sh \
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	umipsr7_gprel_out_of_range.sh
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@am__append_93 = umipsr7_b_out_of_range.stdout \
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	umipsr7_bci_out_of_range.stdout \
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	umipsr7_move_balc_1_out_of_range.stdout \
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	umipsr7_move_balc_2_out_of_range.stdout \
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	umipsr7_gprel_out_of_range.stdout
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@am__append_94 = umipsr7_b_out_of_range \
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	umipsr7_bci_out_of_range \
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	umipsr7_move_balc_1_out_of_range \
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	umipsr7_move_balc_2_out_of_range \
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	umipsr7_gprel_out_of_range
+@DEFAULT_TARGET_X86_64_TRUE@am__append_95 = *.dwo *.dwp
+@DEFAULT_TARGET_X86_64_TRUE@am__append_96 = dwp_test_1.sh \
 @DEFAULT_TARGET_X86_64_TRUE@	dwp_test_2.sh
-@DEFAULT_TARGET_X86_64_TRUE@am__append_94 = dwp_test_1.stdout \
+@DEFAULT_TARGET_X86_64_TRUE@am__append_97 = dwp_test_1.stdout \
 @DEFAULT_TARGET_X86_64_TRUE@	dwp_test_2.stdout
 subdir = testsuite
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am
@@ -2616,7 +2632,7 @@ MOSTLYCLEANFILES = *.so *.syms *.stdout $(am__append_4) \
 	$(am__append_68) $(am__append_71) $(am__append_73) \
 	$(am__append_76) $(am__append_79) $(am__append_82) \
 	$(am__append_85) $(am__append_88) $(am__append_91) \
-	$(am__append_92)
+	$(am__append_94) $(am__append_95)
 
 # We will add to these later, for each individual test.  Note
 # that we add each test under check_SCRIPTS or check_PROGRAMS;
@@ -2626,13 +2642,15 @@ check_SCRIPTS = $(am__append_2) $(am__append_21) $(am__append_27) \
 	$(am__append_43) $(am__append_47) $(am__append_50) \
 	$(am__append_66) $(am__append_69) $(am__append_74) \
 	$(am__append_77) $(am__append_80) $(am__append_83) \
-	$(am__append_86) $(am__append_89) $(am__append_93)
+	$(am__append_86) $(am__append_89) $(am__append_92) \
+	$(am__append_96)
 check_DATA = $(am__append_3) $(am__append_22) $(am__append_28) \
 	$(am__append_31) $(am__append_37) $(am__append_40) \
 	$(am__append_44) $(am__append_48) $(am__append_51) \
 	$(am__append_67) $(am__append_70) $(am__append_75) \
 	$(am__append_78) $(am__append_81) $(am__append_84) \
-	$(am__append_87) $(am__append_90) $(am__append_94)
+	$(am__append_87) $(am__append_90) $(am__append_93) \
+	$(am__append_97)
 BUILT_SOURCES = $(am__append_34)
 TESTS = $(check_SCRIPTS) $(check_PROGRAMS)
 
@@ -4699,6 +4717,10 @@ arm_farcall_thumb_arm.sh.log: arm_farcall_thumb_arm.sh
 	@p='arm_farcall_thumb_arm.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 split_s390.sh.log: split_s390.sh
 	@p='split_s390.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
+umipsr7_branch_out_of_range.sh.log: umipsr7_branch_out_of_range.sh
+	@p='umipsr7_branch_out_of_range.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
+umipsr7_gprel_out_of_range.sh.log: umipsr7_gprel_out_of_range.sh
+	@p='umipsr7_gprel_out_of_range.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 dwp_test_1.sh.log: dwp_test_1.sh
 	@p='dwp_test_1.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 dwp_test_2.sh.log: dwp_test_2.sh
@@ -7215,6 +7237,48 @@ uninstall-am:
 @DEFAULT_TARGET_S390_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_OBJDUMP) -d $< > $@
 @DEFAULT_TARGET_S390_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@split_s390x_r.stdout: split_s390x_1_z1.o split_s390x_2_ns.o ../ld-new
 @DEFAULT_TARGET_S390_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new -r split_s390x_1_z1.o split_s390x_2_ns.o -o split_s390x_r > $@ 2>&1 || exit 0
+
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@umipsr7_b_out_of_range.stdout: umipsr7_b_out_of_range
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_OBJDUMP) -d $< > $@
+
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@umipsr7_b_out_of_range: umipsr7_b_out_of_range.o ../ld-new
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new --section-start .text=0x1000 --section-start .foo=0x2001020 -o $@ $<
+
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@umipsr7_b_out_of_range.o: umipsr7_b_out_of_range.s
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_AS) -EL -mips32r7 -mmicromips -mabi=32 -o $@ $<
+
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@umipsr7_bci_out_of_range.stdout: umipsr7_bci_out_of_range
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_OBJDUMP) -d $< > $@
+
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@umipsr7_bci_out_of_range: umipsr7_bci_out_of_range.o ../ld-new
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new --section-start .text=0x1000 --section-start .foo=0x3020 -o $@ $<
+
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@umipsr7_bci_out_of_range.o: umipsr7_bci_out_of_range.s
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_AS) -EL -mips32r7 -mmicromips -mabi=32 -o $@ $<
+
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@umipsr7_move_balc_1_out_of_range.stdout: umipsr7_move_balc_1_out_of_range
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_OBJDUMP) -d $< > $@
+
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@umipsr7_move_balc_2_out_of_range.stdout: umipsr7_move_balc_2_out_of_range
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_OBJDUMP) -d $< > $@
+
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@umipsr7_move_balc_1_out_of_range: umipsr7_move_balc_out_of_range.o ../ld-new
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new --section-start .text=0x1000 --section-start .foo=0x201020 -o $@ $<
+
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@umipsr7_move_balc_2_out_of_range: umipsr7_move_balc_out_of_range.o ../ld-new
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new --section-start .text=0x1000 --section-start .foo=0x2001020 -o $@ $<
+
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@umipsr7_move_balc_out_of_range.o: umipsr7_move_balc_out_of_range.s
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_AS) -EL -mips32r7 -mmicromips -mabi=32 -o $@ $<
+
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@umipsr7_gprel_out_of_range.stdout: umipsr7_gprel_out_of_range
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_OBJDUMP) -d $< > $@
+
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@umipsr7_gprel_out_of_range: umipsr7_gprel_out_of_range.o ../ld-new
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new -T $(srcdir)/umipsr7_gprel_out_of_range.t -o $@ $<
+
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@umipsr7_gprel_out_of_range.o: umipsr7_gprel_out_of_range.s
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_AS) -EL -mips32r7 -mmicromips -mabi=32 -o $@ $<
 
 # Tests for the dwp tool.
 # We don't want to rely yet on GCC support for -gsplit-dwarf,
