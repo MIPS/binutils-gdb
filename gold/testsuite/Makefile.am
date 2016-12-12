@@ -3980,6 +3980,70 @@ MOSTLYCLEANFILES += split_s390_z1 split_s390_z2 split_s390_z3 \
 
 endif DEFAULT_TARGET_S390
 
+if DEFAULT_TARGET_MIPS
+
+# Check expansions of branch instructions.
+
+check_SCRIPTS += umipsr7_branch_out_of_range.sh
+check_DATA += umipsr7_b_out_of_range.stdout \
+	      umipsr7_bci_out_of_range.stdout \
+	      umipsr7_move_balc_1_out_of_range.stdout \
+	      umipsr7_move_balc_2_out_of_range.stdout
+
+umipsr7_b_out_of_range.stdout: umipsr7_b_out_of_range
+	$(TEST_OBJDUMP) -d $< > $@
+
+umipsr7_b_out_of_range: umipsr7_b_out_of_range.o ../ld-new
+	../ld-new --section-start .text=0x1000 --section-start .foo=0x2001020 -o $@ $<
+
+umipsr7_b_out_of_range.o: umipsr7_b_out_of_range.s
+	$(TEST_AS) -EL -mips32r7 -mmicromips -mabi=32 -o $@ $<
+
+umipsr7_bci_out_of_range.stdout: umipsr7_bci_out_of_range
+	$(TEST_OBJDUMP) -d $< > $@
+
+umipsr7_bci_out_of_range: umipsr7_bci_out_of_range.o ../ld-new
+	../ld-new --section-start .text=0x1000 --section-start .foo=0x3020 -o $@ $<
+
+umipsr7_bci_out_of_range.o: umipsr7_bci_out_of_range.s
+	$(TEST_AS) -EL -mips32r7 -mmicromips -mabi=32 -o $@ $<
+
+umipsr7_move_balc_1_out_of_range.stdout: umipsr7_move_balc_1_out_of_range
+	$(TEST_OBJDUMP) -d $< > $@
+
+umipsr7_move_balc_2_out_of_range.stdout: umipsr7_move_balc_2_out_of_range
+	$(TEST_OBJDUMP) -d $< > $@
+
+umipsr7_move_balc_1_out_of_range: umipsr7_move_balc_out_of_range.o ../ld-new
+	../ld-new --section-start .text=0x1000 --section-start .foo=0x201020 -o $@ $<
+
+umipsr7_move_balc_2_out_of_range: umipsr7_move_balc_out_of_range.o ../ld-new
+	../ld-new --section-start .text=0x1000 --section-start .foo=0x2001020 -o $@ $<
+
+umipsr7_move_balc_out_of_range.o: umipsr7_move_balc_out_of_range.s
+	$(TEST_AS) -EL -mips32r7 -mmicromips -mabi=32 -o $@ $<
+
+MOSTLYCLEANFILES += umipsr7_b_out_of_range  umipsr7_bci_out_of_range \
+		    umipsr7_move_balc_1_out_of_range umipsr7_move_balc_2_out_of_range
+
+# Check expansions of gp-relative load and store instructions.
+
+check_SCRIPTS += umipsr7_gprel_out_of_range.sh
+check_DATA += umipsr7_gprel_out_of_range.stdout
+
+umipsr7_gprel_out_of_range.stdout: umipsr7_gprel_out_of_range
+	$(TEST_OBJDUMP) -d $< > $@
+
+umipsr7_gprel_out_of_range: umipsr7_gprel_out_of_range.o ../ld-new
+	../ld-new -T $(srcdir)/umipsr7_gprel_out_of_range.t -o $@ $<
+
+umipsr7_gprel_out_of_range.o: umipsr7_gprel_out_of_range.s
+	$(TEST_AS) -EL -mips32r7 -mmicromips -mabi=32 -o $@ $<
+
+MOSTLYCLEANFILES += umipsr7_gprel_out_of_range
+
+endif DEFAULT_TARGET_MIPS
+
 endif NATIVE_OR_CROSS_LINKER
 
 # Tests for the dwp tool.
