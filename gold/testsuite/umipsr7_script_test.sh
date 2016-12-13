@@ -1,0 +1,53 @@
+#!/bin/sh
+
+# umipsr7_script_test.sh -- test sorting small data section.
+
+# Copyright (C) 2016 Free Software Foundation, Inc.
+# Written by Vladimir Radosavljevic <vladimir.radosavljevic@imgtec.com>.
+
+# This file is part of gold.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+# This file goes with umipsr7_script_test.t and with umipsr7_script_test.s.
+
+check()
+{
+    if ! grep -q "$2" "$1"
+    then
+	echo "Did not find expected section in $1:"
+	echo "   $2"
+	echo ""
+	echo "Actual output below:"
+	cat "$1"
+	exit 1
+    fi
+}
+
+# Symbol c must be at the beginning of the section because it has been
+# read with lw[gp] instruction 3 times (objdump prints symbol c as _gp
+# because they have the same address).
+check umipsr7_script_test.stdout "00400060 <_gp>"
+# Sumbol d has been read 2 times with lw[gp] instruction.  Note that we
+# don't take into account instruction where 5-bit register index can't
+# be abbreviated to 3 bits, and store instructions.
+check umipsr7_script_test.stdout "00400064 <d>"
+# Symbol b has been read 1 time.
+check umipsr7_script_test.stdout "00400068 <b>"
+# After most commonly read symbols with lw[gp] instruction, we place bytes,
+# halfwords and words.
+check umipsr7_script_test.stdout "0040006c <a>"
+check umipsr7_script_test.stdout "0040006e <e>"

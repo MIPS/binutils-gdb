@@ -4042,6 +4042,21 @@ umipsr7_gprel_out_of_range.o: umipsr7_gprel_out_of_range.s
 
 MOSTLYCLEANFILES += umipsr7_gprel_out_of_range
 
+# Test sorting small data section.
+check_SCRIPTS += umipsr7_script_test.sh
+check_DATA += umipsr7_script_test.stdout
+
+umipsr7_script_test.stdout: umipsr7_script_test
+	$(TEST_OBJDUMP) -D -j.sdata $< > $@
+
+umipsr7_script_test: umipsr7_script_test.o ../ld-new
+	../ld-new -T $(srcdir)/umipsr7_script_test.t -o $@ $<
+
+umipsr7_script_test.o: umipsr7_script_test.s
+	$(TEST_AS) -EL -mips32r7 -mmicromips -mabi=32 -o $@ $<
+
+MOSTLYCLEANFILES += umipsr7_script_test
+
 endif DEFAULT_TARGET_MIPS
 
 endif NATIVE_OR_CROSS_LINKER
