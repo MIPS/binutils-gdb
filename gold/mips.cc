@@ -46,6 +46,7 @@
 #include "gc.h"
 #include "attributes.h"
 #include "nacl.h"
+#include "script-c.h"
 
 namespace
 {
@@ -1673,6 +1674,8 @@ class Mips_relobj : public Sized_relobj_file<size, big_endian>
   typedef std::map<unsigned int, Mips16_stub_section<size, big_endian>*>
     Mips16_stubs_int_map;
   typedef typename elfcpp::Swap<size, big_endian>::Valtype Valtype;
+  typedef Unordered_map<unsigned int, unsigned int>
+    Input_section_read;
 
  public:
   Mips_relobj(const std::string& name, Input_file* input_file, off_t offset,
@@ -1682,7 +1685,7 @@ class Mips_relobj : public Sized_relobj_file<size, big_endian>
       local_symbol_is_micromips_(), mips16_stub_sections_(),
       local_non_16bit_calls_(), local_16bit_calls_(), local_mips16_fn_stubs_(),
       local_mips16_call_stubs_(), gp_(0), has_reginfo_section_(false),
-      got_info_(NULL), section_is_mips16_fn_stub_(),
+      got_info_(NULL), section_is_mips16_fn_stub_(), input_section_read_(),
       section_is_mips16_call_stub_(), section_is_mips16_call_fp_stub_(),
       pdr_shndx_(-1U), attributes_section_data_(NULL), abiflags_(NULL),
       gprmask_(0), cprmask1_(0), cprmask2_(0), cprmask3_(0), cprmask4_(0)
@@ -1814,6 +1817,29 @@ class Mips_relobj : public Sized_relobj_file<size, big_endian>
     this->local_mips16_call_stubs_.insert(
       std::pair<unsigned int, Mips16_stub_section<size, big_endian>*>(
         r_sym, stub));
+  }
+
+  // Increase the input section read.
+  void
+  add_input_section_read(unsigned int shndx)
+  {
+    // In order to replace maximum number of lw[gp] instructions with lw[gp16],
+    // increase the input section read only for 4 byte size sections.
+    // We are relying that user passed -fdata-sections option to compiler.
+    if (this->section_size(shndx) == 4)
+      ++this->input_section_read_[shndx];
+  }
+
+  // Return the number of how many times section has been read
+  // with lw[gp] instruction.
+  unsigned int
+  input_section_read(unsigned int shndx) const
+  {
+    typename Input_section_read::const_iterator it =
+      this->input_section_read_.find(shndx);
+    if (it != this->input_section_read_.end())
+      return it->second;
+    return 0;
   }
 
   // Record that we found "non 16-bit" call relocation against local symbol
@@ -2055,6 +2081,10 @@ class Mips_relobj : public Sized_relobj_file<size, big_endian>
   // Bit vector to tell if a section is a MIPS16 fn stub section or not.
   // This is only valid after do_read_symbols is called.
   std::vector<bool> section_is_mips16_fn_stub_;
+
+  // A map to track the number of how many times input section has been
+  // read with lw[gp] instruction.
+  Input_section_read input_section_read_;
 
   // Bit vector to tell if a section is a MIPS16 call stub section or not.
   // This is only valid after do_read_symbols is called.
@@ -3014,6 +3044,16 @@ class Micromips_insn
       this->insn_ = this->get_insn_32(view);
   }
 
+  // Return true if we may relax lw[gp] instruction.  This is only used
+  // for sorting small data sections.
+  bool
+  may_relax_lwgp()
+  {
+    gold_assert(this->r_type_ == elfcpp::R_MICROMIPS_GPREL19_S2);
+    return (this->find_match(micromips_lwgp_relax)
+            && this->valid_reg_16(this->treg_32()));
+  }
+
   // Return true if we can relax instruction.
   bool
   can_relax(Valtype value);
@@ -3842,6 +3882,10 @@ class Target_mips : public Sized_target<size, big_endian>
   // microMIPS instructions.
   bool
   do_relax(int, const Input_objects*, Symbol_table*, Layout*, const Task*);
+
+  // This is called when keyword SORT_BY_READ is found in the linker script.
+  void
+  do_sort_input_sections(int, std::vector<Input_section_info>*) const;
 
   // Finalize the sections.
   void
@@ -10608,6 +10652,59 @@ Target_mips<size, big_endian>::do_relax(
   return again;
 }
 
+// A class to sort the input sections.
+
+template<int size, bool big_endian>
+class Input_section_sorter
+{
+ public:
+  bool
+  operator()(const Input_section_info& isi1,
+             const Input_section_info& isi2) const
+  {
+    const Mips_relobj<size, big_endian>* isi1_relobj =
+      Mips_relobj<size, big_endian>::as_mips_relobj(isi1.relobj());
+    const Mips_relobj<size, big_endian>* isi2_relobj =
+      Mips_relobj<size, big_endian>::as_mips_relobj(isi2.relobj());
+
+    // Sort by most commonly read sections.
+    unsigned int isi1_read = isi1_relobj->input_section_read(isi1.shndx());
+    unsigned int isi2_read = isi2_relobj->input_section_read(isi2.shndx());
+    if (isi1_read != isi2_read)
+      return isi1_read > isi2_read;
+
+    // Sort by ascending size.
+    uint64_t isi1_size = isi1.size();
+    uint64_t isi2_size = isi2.size();
+    if (isi1_size != isi2_size)
+      return isi1_size < isi2_size;
+
+    // When the sections are the same size, we sort them by
+    // alignment, largest alignment first.
+    uint64_t isi1_align = isi1.addralign();
+    uint64_t isi2_align = isi2.addralign();
+    if (isi1_align != isi2_align)
+      return isi1_align > isi2_align;
+
+    // The sections seem practically identical.  Sort by name to get a
+    // stable sort.
+    return isi1.section_name() < isi2.section_name();
+  }
+};
+
+// This is called when keyword SORT_BY_READ is found in the linker script.
+
+template<int size, bool big_endian>
+void
+Target_mips<size, big_endian>::do_sort_input_sections(
+    int sort,
+    std::vector<Input_section_info>* input_sections) const
+{
+  gold_assert(sort == static_cast<int>(SORT_WILDCARD_BY_READ));
+  std::sort(input_sections->begin(), input_sections->end(),
+            Input_section_sorter<size, big_endian>());
+}
+
 // Process the relocations to determine unreferenced sections for
 // garbage collection.
 
@@ -12832,6 +12929,25 @@ Target_mips<size, big_endian>::Scan::local(
               ->new_local_reloc_found(r_type, r_sym);
     }
 
+  if (r_type == elfcpp::R_MICROMIPS_GPREL19_S2)
+    {
+      Micromips_insn<size, big_endian> insn;
+      section_size_type view_size = 0;
+      const unsigned char* view = object->section_contents(data_shndx,
+                                                           &view_size, false);
+      view += r_offset;
+      insn.init(view, r_type);
+      // Check if a lw[gp] instruction may be relaxed into lw[gp16]
+      // in a relaxation pass.
+      if (insn.may_relax_lwgp())
+        {
+          unsigned int shndx = lsym.get_st_shndx();
+          bool dummy;
+          shndx = mips_obj->adjust_sym_shndx(r_sym, shndx, &dummy);
+          mips_obj->add_input_section_read(shndx);
+        }
+    }
+
   if (r_type == elfcpp::R_MIPS_NONE)
     // R_MIPS_NONE is used in mips16 stub sections, to define the target of the
     // mips16 stub.
@@ -13277,6 +13393,27 @@ Target_mips<size, big_endian>::Scan::global(
     {
       mips_obj->get_mips16_stub_section(data_shndx)
               ->new_global_reloc_found(r_type, mips_sym);
+    }
+
+  if (r_type == elfcpp::R_MICROMIPS_GPREL19_S2)
+    {
+      Micromips_insn<size, big_endian> insn;
+      section_size_type view_size = 0;
+      const unsigned char* view = object->section_contents(data_shndx,
+                                                           &view_size, false);
+      view += r_offset;
+      insn.init(view, r_type);
+      // Check if a lw[gp] instruction may be relaxed into lw[gp16]
+      // in a relaxation pass.
+      if (insn.may_relax_lwgp()
+          && (mips_sym->source() == Symbol::FROM_OBJECT))
+        {
+          bool dummy;
+          unsigned int shndx = mips_sym->shndx(&dummy);
+          Mips_relobj<size, big_endian>* sym_obj =
+            static_cast<Mips_relobj<size, big_endian>*>(mips_sym->object());
+          sym_obj->add_input_section_read(shndx);
+        }
     }
 
   if (r_type == elfcpp::R_MIPS_NONE)

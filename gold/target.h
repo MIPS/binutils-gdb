@@ -63,6 +63,7 @@ class Input_objects;
 class Task;
 struct Symbol_location;
 class Versions;
+class Input_section_info;
 
 // The abstract class for target specific handling.
 
@@ -479,6 +480,12 @@ class Target
                                        versions, symtab);
   }
 
+  // For targets with custom sorting mechanism in linker scripts.
+  void
+  sort_input_sections(int sort,
+                      std::vector<Input_section_info>* input_sections) const
+  { this->do_sort_input_sections(sort, input_sections); }
+
   // Get the custom dynamic tag value.
   unsigned int
   dynamic_tag_custom_value(elfcpp::DT tag) const
@@ -780,6 +787,11 @@ class Target
   do_set_dynsym_indexes(std::vector<Symbol*>*, unsigned int,
                         std::vector<Symbol*>*, Stringpool*, Versions*,
                         Symbol_table*) const
+  { gold_unreachable(); }
+
+  // This may be overridden by the child class.
+  virtual void
+  do_sort_input_sections(int, std::vector<Input_section_info>*) const
   { gold_unreachable(); }
 
   // This may be overridden by the child class.

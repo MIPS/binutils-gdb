@@ -1440,77 +1440,6 @@ Output_section_element_input::match_name(const char* file_name,
   return false;
 }
 
-// Information we use to sort the input sections.
-
-class Input_section_info
-{
- public:
-  Input_section_info(const Output_section::Input_section& input_section)
-    : input_section_(input_section), section_name_(),
-      size_(0), addralign_(1)
-  { }
-
-  // Return the simple input section.
-  const Output_section::Input_section&
-  input_section() const
-  { return this->input_section_; }
-
-  // Return the object.
-  Relobj*
-  relobj() const
-  { return this->input_section_.relobj(); }
-
-  // Return the section index.
-  unsigned int
-  shndx()
-  { return this->input_section_.shndx(); }
-
-  // Return the section name.
-  const std::string&
-  section_name() const
-  { return this->section_name_; }
-
-  // Set the section name.
-  void
-  set_section_name(const std::string name)
-  {
-    if (is_compressed_debug_section(name.c_str()))
-      this->section_name_ = corresponding_uncompressed_section_name(name);
-    else
-      this->section_name_ = name;
-  }
-
-  // Return the section size.
-  uint64_t
-  size() const
-  { return this->size_; }
-
-  // Set the section size.
-  void
-  set_size(uint64_t size)
-  { this->size_ = size; }
-
-  // Return the address alignment.
-  uint64_t
-  addralign() const
-  { return this->addralign_; }
-
-  // Set the address alignment.
-  void
-  set_addralign(uint64_t addralign)
-  { this->addralign_ = addralign; }
-
- private:
-  // Input section, can be a relaxed section.
-  Output_section::Input_section input_section_;
-  // Name of the section. 
-  std::string section_name_;
-  // Section size.
-  uint64_t size_;
-  // Address alignment.
-  uint64_t addralign_;
-};
-
 // A class to sort the input sections.
 
 class Input_section_sorter
@@ -1595,6 +1524,7 @@ Output_section_element_input::set_section_addresses(
 
   typedef std::vector<std::vector<Input_section_info> > Matching_sections;
   size_t input_pattern_count = this->input_section_patterns_.size();
+  size_t bin_count = 1;
   bool any_patterns_with_sort = false;
   for (size_t i = 0; i < input_pattern_count; ++i)
     {
@@ -1602,9 +1532,9 @@ Output_section_element_input::set_section_addresses(
       if (isp.sort != SORT_WILDCARD_NONE)
 	any_patterns_with_sort = true;
     }
-  if (input_pattern_count == 0 || !any_patterns_with_sort)
-    input_pattern_count = 1;
-  Matching_sections matching_sections(input_pattern_count);
+  if (any_patterns_with_sort)
+    bin_count = input_pattern_count;
+  Matching_sections matching_sections(bin_count);
 
   // Look through the list of sections for this output section.  Add
   // each one which matches to one of the elements of
@@ -1661,11 +1591,11 @@ Output_section_element_input::set_section_addresses(
 		break;
 	    }
 
-	  if (i >= this->input_section_patterns_.size())
+	  if (i >= input_pattern_count)
 	    ++p;
 	  else
 	    {
-	      if (!any_patterns_with_sort)
+	      if (i >= bin_count)
 		i = 0;
 	      matching_sections[i].push_back(isi);
 	      p = input_sections->erase(p);
@@ -1679,7 +1609,7 @@ Output_section_element_input::set_section_addresses(
   // output section.
 
   uint64_t dot = *dot_value;
-  for (size_t i = 0; i < input_pattern_count; ++i)
+  for (size_t i = 0; i < bin_count; ++i)
     {
       if (matching_sections[i].empty())
 	continue;
@@ -1689,10 +1619,17 @@ Output_section_element_input::set_section_addresses(
       const Input_section_pattern& isp(this->input_section_patterns_[i]);
       if (isp.sort != SORT_WILDCARD_NONE
 	  || this->filename_sort_ != SORT_WILDCARD_NONE)
-	std::stable_sort(matching_sections[i].begin(),
-			 matching_sections[i].end(),
-			 Input_section_sorter(this->filename_sort_,
-					      isp.sort));
+      {
+        if (isp.sort != SORT_WILDCARD_BY_READ)
+          std::stable_sort(matching_sections[i].begin(),
+                           matching_sections[i].end(),
+                           Input_section_sorter(this->filename_sort_,
+                                                isp.sort));
+        else
+          // Allow a target to sort input sections.
+          parameters->target().sort_input_sections(static_cast<int>(isp.sort),
+                                                   &matching_sections[i]);
+      }
 
       for (std::vector<Input_section_info>::const_iterator p =
 	     matching_sections[i].begin();
@@ -1825,6 +1762,10 @@ Output_section_element_input::print(FILE* f) const
 	    case SORT_WILDCARD_BY_ALIGNMENT_BY_NAME:
 	      fprintf(f, "SORT_BY_ALIGNMENT(SORT_BY_NAME(");
 	      close_parens = 2;
+	      break;
+	    case SORT_WILDCARD_BY_READ:
+	      fprintf(f, "SORT_BY_READ(");
+	      close_parens = 1;
 	      break;
 	    default:
 	      gold_unreachable();

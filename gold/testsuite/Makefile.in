@@ -908,18 +908,23 @@ check_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
 # Check expansions of branch instructions.
 
 # Check expansions of gp-relative load and store instructions.
+
+# Test sorting small data section.
 @DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@am__append_92 = umipsr7_branch_out_of_range.sh \
-@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	umipsr7_gprel_out_of_range.sh
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	umipsr7_gprel_out_of_range.sh \
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	umipsr7_script_test.sh
 @DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@am__append_93 = umipsr7_b_out_of_range.stdout \
 @DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	umipsr7_bci_out_of_range.stdout \
 @DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	umipsr7_move_balc_1_out_of_range.stdout \
 @DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	umipsr7_move_balc_2_out_of_range.stdout \
-@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	umipsr7_gprel_out_of_range.stdout
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	umipsr7_gprel_out_of_range.stdout \
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	umipsr7_script_test.stdout
 @DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@am__append_94 = umipsr7_b_out_of_range \
 @DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	umipsr7_bci_out_of_range \
 @DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	umipsr7_move_balc_1_out_of_range \
 @DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	umipsr7_move_balc_2_out_of_range \
-@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	umipsr7_gprel_out_of_range
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	umipsr7_gprel_out_of_range \
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	umipsr7_script_test
 @DEFAULT_TARGET_X86_64_TRUE@am__append_95 = *.dwo *.dwp
 @DEFAULT_TARGET_X86_64_TRUE@am__append_96 = dwp_test_1.sh \
 @DEFAULT_TARGET_X86_64_TRUE@	dwp_test_2.sh
@@ -4721,6 +4726,8 @@ umipsr7_branch_out_of_range.sh.log: umipsr7_branch_out_of_range.sh
 	@p='umipsr7_branch_out_of_range.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 umipsr7_gprel_out_of_range.sh.log: umipsr7_gprel_out_of_range.sh
 	@p='umipsr7_gprel_out_of_range.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
+umipsr7_script_test.sh.log: umipsr7_script_test.sh
+	@p='umipsr7_script_test.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 dwp_test_1.sh.log: dwp_test_1.sh
 	@p='dwp_test_1.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 dwp_test_2.sh.log: dwp_test_2.sh
@@ -7278,6 +7285,15 @@ uninstall-am:
 @DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new -T $(srcdir)/umipsr7_gprel_out_of_range.t -o $@ $<
 
 @DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@umipsr7_gprel_out_of_range.o: umipsr7_gprel_out_of_range.s
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_AS) -EL -mips32r7 -mmicromips -mabi=32 -o $@ $<
+
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@umipsr7_script_test.stdout: umipsr7_script_test
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_OBJDUMP) -D -j.sdata $< > $@
+
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@umipsr7_script_test: umipsr7_script_test.o ../ld-new
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new -T $(srcdir)/umipsr7_script_test.t -o $@ $<
+
+@DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@umipsr7_script_test.o: umipsr7_script_test.s
 @DEFAULT_TARGET_MIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_AS) -EL -mips32r7 -mmicromips -mabi=32 -o $@ $<
 
 # Tests for the dwp tool.
