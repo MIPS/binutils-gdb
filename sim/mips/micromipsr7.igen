@@ -310,7 +310,7 @@
   return "";
 }
 
-:%s::::LI48_IMM:int U
+:%s::::IMM48:int U
 *micromips32r7:
 *micromips64r7:
 {
@@ -1992,16 +1992,38 @@
 }
 
 // FIXME: there should be a better way to implement 48-bit instructions
-011000,5.RT,00000,16.LI48_IMM:R7POOL48I:32::LI48
-"li r<RT>, %s<LI48_IMM>"
+011000,5.RT,00000,16.IMM48:R7POOL48I:32::LI48
+"li r<RT>, %s<IMM48>"
 *micromips32r7:
 *micromips64r7:
 {
   unsigned16 U2 = do_load (SD_, AccessLength_HALFWORD, CIA + 4, 0);
-  unsigned32 total = LI48_IMM << 16 | U2;
+  unsigned32 total = IMM48 << 16 | U2;
   TRACE_ALU_INPUT2(GPR[RT], total);
   GPR[RT] = EXTEND32(total);
   TRACE_ALU_RESULT(GPR[RT]);
+  NIA = CIA + 6;
+}
+
+011000,5.RT,00001,16.IMM48:R7POOL48I:32::ADDIU48
+"addiu r<RT>, %s<IMM48>"
+*micromips32r7:
+*micromips64r7:
+{
+  unsigned16 S2 = do_load(SD_, AccessLength_HALFWORD, CIA + 4, 0);
+  unsigned32 total = IMM48 << 16 | S2;
+  do_addiu(SD_, RT, RT, total);
+  NIA = CIA + 6;
+}
+
+011000,5.RT,00010,16.IMM48:R7POOL48I:32::ADDIUGP48
+"addiu r<RT>, GP, %s<IMM48>"
+*micromips32r7:
+*micromips64r7:
+{
+  unsigned16 S2 = do_load(SD_, AccessLength_HALFWORD, CIA + 4, 0);
+  unsigned32 total = IMM48 << 16 | S2;
+  do_addiu (SD_, GPIDX, RT, total);
   NIA = CIA + 6;
 }
 
