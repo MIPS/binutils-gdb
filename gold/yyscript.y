@@ -178,6 +178,7 @@
 %token SORT_BY_ALIGNMENT
 %token SORT_BY_INIT_PRIORITY
 %token SORT_BY_NAME
+%token SORT_BY_READ
 %token SPECIAL
 %token SQUAD
 %token STARTUP
@@ -685,6 +686,11 @@ wildcard_section:
 	    {
 	      $$.name = $3;
 	      $$.sort = SORT_WILDCARD_BY_INIT_PRIORITY;
+	    }
+	| SORT_BY_READ '(' wildcard_name ')'
+	    {
+	      $$.name = $3;
+	      $$.sort = SORT_WILDCARD_BY_READ;
 	    }
 	;
 
