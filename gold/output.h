@@ -4637,6 +4637,77 @@ class Output_section : public Output_data
   Output_section* reloc_section_;
 };
 
+// Information we use to sort the input sections in the linker scripts.
+
+class Input_section_info
+{
+ public:
+  Input_section_info(const Output_section::Input_section& input_section)
+    : input_section_(input_section), section_name_(),
+      size_(0), addralign_(1)
+  { }
+
+  // Return the simple input section.
+  const Output_section::Input_section&
+  input_section() const
+  { return this->input_section_; }
+
+  // Return the object.
+  Relobj*
+  relobj() const
+  { return this->input_section_.relobj(); }
+
+  // Return the section index.
+  unsigned int
+  shndx() const
+  { return this->input_section_.shndx(); }
+
+  // Return the section name.
+  const std::string&
+  section_name() const
+  { return this->section_name_; }
+
+  // Set the section name.
+  void
+  set_section_name(const std::string name)
+  {
+    if (is_compressed_debug_section(name.c_str()))
+      this->section_name_ = corresponding_uncompressed_section_name(name);
+    else
+      this->section_name_ = name;
+  }
+
+  // Return the section size.
+  uint64_t
+  size() const
+  { return this->size_; }
+
+  // Set the section size.
+  void
+  set_size(uint64_t size)
+  { this->size_ = size; }
+
+  // Return the address alignment.
+  uint64_t
+  addralign() const
+  { return this->addralign_; }
+
+  // Set the address alignment.
+  void
+  set_addralign(uint64_t addralign)
+  { this->addralign_ = addralign; }
+
+ private:
+  // Input section, can be a relaxed section.
+  Output_section::Input_section input_section_;
+  // Name of the section.
+  std::string section_name_;
+  // Section size.
+  uint64_t size_;
+  // Address alignment.
+  uint64_t addralign_;
+};
+
 // An output segment.  PT_LOAD segments are built from collections of
 // output sections.  Other segments typically point within PT_LOAD
 // segments, and are built directly as needed.
