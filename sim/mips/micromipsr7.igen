@@ -2027,6 +2027,26 @@
   NIA = CIA + 6;
 }
 
+01001000000,5.RS,1000,2.X1,0,9.X2:R7BRC:32::BRC
+"brc r<RS>"
+*micromips32r7:
+*micromips64r7:
+{
+  unsigned_word address = NIA + GPR[RS];
+  isa_mode = address & 1;
+  NIA = address & ~1;
+}
+
+01001000000,5.RS,1000,2.X1,1,9.X2:R7BRSC:32::BRSC
+"brsc r<RS>"
+*micromips32r7:
+*micromips64r7:
+{
+  unsigned_word address = NIA + GPR[RS];
+  isa_mode = address & 1;
+  NIA = address & ~1;
+}
+
 010010,5.RT!0,5.RS,1000,2.X1,0,9.X2:R7PBALRC:32::BALRC
 "balrc r<RT> r<RS>"
 *micromips32r7:
