@@ -92,4 +92,14 @@ test:
 	balrsc	$16, $17
 	balrsc	$17
 
+	addiu	$3, $28, 0x12345
+	addiu	$3, $28, 0x12345678
+	addiu	$3, $28, -0x12345
+	addiu	$3, $28, -0x12345678
+
+	addiu	$3, $3, 0x12345
+	addiu	$3, 0x12345678
+	addiu	$3, $3, -0x12345
+	addiu	$3, -0x12345678
+	
 .end	test

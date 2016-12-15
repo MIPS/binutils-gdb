@@ -78,3 +78,11 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 4be5 8000 	balrc	ra,a1
 [0-9a-f]+ <[^>]+> 4a11 8200 	balrsc	s0,s1
 [0-9a-f]+ <[^>]+> 4bf1 8200 	balrsc	ra,s1
+[0-9a-f]+ <[^>]+> 6062 0001 2345 	addiu	v1,gp,74565
+[0-9a-f]+ <[^>]+> 6062 1234 5678 	addiu	v1,gp,305419896
+[0-9a-f]+ <[^>]+> 6062 fffe dcbb 	addiu	v1,gp,-74565
+[0-9a-f]+ <[^>]+> 6062 edcb a988 	addiu	v1,gp,-305419896
+[0-9a-f]+ <[^>]+> 6061 0001 2345 	addiu	v1,v1,74565
+[0-9a-f]+ <[^>]+> 6061 1234 5678 	addiu	v1,v1,305419896
+[0-9a-f]+ <[^>]+> 6061 fffe dcbb 	addiu	v1,v1,-74565
+[0-9a-f]+ <[^>]+> 6061 edcb a988 	addiu	v1,v1,-305419896

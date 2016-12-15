@@ -48,6 +48,17 @@ static int int_c_map[] = {
   0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 255, 65535, 14, 15
 };
 
+static int int_6_map[] = {
+  0x1, 0x3, 0x7, 0xf,
+  0x1f, 0x3f, 0x7f, 0xff,
+  0x1ff, 0x3ff, 0x7ff, 0xfff,
+  0x1fff, 0x3fff, 0x7fff, 0xffff,
+  0x1ffff, 0x3ffff, 0x7ffff, 0xfffff,
+  0x1fffff, 0x3fffff, 0x7fffff, 0xffffff,
+  0x1ffffff,0x3ffffff,0x7ffffff,0xfffffff,
+  0x1fffffff, 0x3fffffff, 0x7fffffff, 0xffffffff
+};
+
 /* Return the mips_operand structure for the operand at the beginning of P.  */
 
 /* FIXME: Unused pre-R7 cases left commented in-place for quick reminder 
@@ -112,7 +123,7 @@ decode_micromipspp_operand (const char *p)
 	case '3': SPLIT_MAPPED_REG (4, 5, 1, 9, GP, reg_4to5_map);
 	case '4': MAPPED_REG (1, 24, GP, reg_4or5_map);
 	case '5': SPLIT_MAPPED_REG_PAIR (2, 8, 1, 3, GP, reg_gpr2d_map);
-/* 	case '6': SPLIT_MAPPED_REG (2, 8, 1, 3, GP, reg_gpr2d_map1); */
+ 	case '6': MAPPED_INT (5, 6, int_6_map, TRUE);
 	case '7': SPLIT_MAPPED_REG (4, 21, 1, 25, GP, reg_4to5_map);
 	case '8': HINT (23, 3);
 	case '9': UINT (7, 11);
@@ -387,10 +398,11 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"jalr",	"s",		0x4be00000, 0xffe0ffff,	RD_1,	    INSN2_ALIAS|CTC,	I38,		0,		0}, /* JALRC */
 {"jalr",	"t,s",		0x48000000, 0xfc00ffff,	WR_1|RD_2,  INSN2_ALIAS|CTC,	I38,		0,		0}, /* JALRC */
 {"li",		"md,mI",	0xd000,		0xfc00,	WR_1,		0,	I38,		0,		0}, /* LI[16] */
-{"li",		"t,i",		0x80000000, 0xfc1ff000,	WR_1,	INSN2_ALIAS,	I38,		0,		0}, /* ORI */
 {"li",		"-t,j",		0x00000000, 0xfc1f6000,	WR_1,	INSN2_ALIAS,	I38,		0,		0}, /* ADDIU */
 {"li",		"mp,+Q",	0x6000, 	0xfc1f,		WR_1,	0,	0,		XLP,		0}, /* LI[48] */
 {"li",		"t,I",		0,	(int) M_LI,	INSN_MACRO,	0,	I38,		0,		0},
+{"ext",		"t,r,+A,+C",	0x8000f000, 0xfc00f820,	WR_1|RD_2,			0,	0,	XLP,		0},
+{"ext",		"t,r,+A,+C",	0,    (int) M_EXT,	INSN_MACRO,			0,	I38,	0,		0},
 
 /* Precedence=0 */
 {"abs", 	"d,v",		0,    	   (int) M_ABS,	INSN_MACRO,		0,	I38,	0,		0},
@@ -413,7 +425,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"addiu",	"t,ma,.",		0x40000000, 0xfc000003,	WR_1|RD_2,		0,	I38,		0,		0}, /* ADDIU[GP] */
 {"addiu",	"-t,r,j",		0x00000000, 0xfc006000,	WR_1|RD_2,		0,	I38,		0,		0}, /* preceded by SIGRIE */
 {"addiu",	"mp,mt,+R",		0x6001,     0xfc1f,	MOD_1,			0,	0,		XLP,		0}, /* ADDIU[48] */
-{"addiu",	"mp,mt,+R",		0x6002,     0xfc1f,	WR_1|RD_2,		0,	0,		XLP,		0}, /* ADDIU[GP48] */
+{"addiu",	"mp,ma,+R",		0x6002,     0xfc1f,	WR_1|RD_2,		0,	0,		XLP,		0}, /* ADDIU[GP48] */
 {"addq.ph",	"d,s,t",		0x2000000d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
 {"addqh.ph",	"d,s,t",		0x2000004d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
 {"addqh.w",	"d,s,t",		0x2000008d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
@@ -440,6 +452,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"and",	"t,r,I",		0,    (int) M_AND_I,	INSN_MACRO,		0,	I38,		0,		0},
 {"andi",	"md,mc,mC",		0xf000,	0xfc00,	WR_1|RD_2,		0,	I38,		0,		0}, /* ANDI[16] */
 {"andi",	"t,r,i",		0x80002000, 0xfc00f000,	WR_1|RD_2,		0,	I38,		0,		0},
+{"andi",	"t,r,m6",		0x8000f000, 0xfc00f83f,	WR_1|RD_2,	INSN2_ALIAS,	0,	XLP,		0}, /* EXT */
 {"append",	"t,s,^",		0x20000215, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32,		0},
 {"aset",	"\\,+j(b)",		0xa4001100, 0xff007f00,		RD_3,		0,	0,	MC,		0},
 {"aset",	"\\,A(b)",		0,    (int) M_ASET_AB,		INSN_MACRO,	0,	0,	MC,		0},
@@ -753,8 +766,6 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"evpe",	"",		0x20000f38, 0xffffffff,		0,	INSN2_ALIAS,	0,		MT32,		0},
 {"evpe",	"t",		0x20000f38, 0xfc1fffff,		WR_1,		0,	0,		MT32,		0},
 {"evp", 	"t,-a",		0x20000790, 0xfc00ffff,		WR_1,		0,	I38,		0,		0},
-{"ext",		"t,r,+A,+C",	0x8000f000, 0xfc00f820,	WR_1|RD_2,			0,	0,	XLP,		0},
-{"ext",		"t,r,+A,+C",	0,    (int) M_EXT,	INSN_MACRO,			0,	I38,	0,		0},
 {"extp",	"t,7,6",		0x2000267f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32,		0},
 {"extpdp",	"t,7,6",		0x2000367f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32,		0},
 {"extpdpv",	"t,7,s",		0x200038bf, 0xfc003fff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},

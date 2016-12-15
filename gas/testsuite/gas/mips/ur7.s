@@ -4492,6 +4492,16 @@ test_spec107:
 	swc1	$f3, 16384($28)
 	swc1	$f3, 262140($28)
 
+	andi	$2, $2, 0xfff
+	andi	$2, $3, 0x1fff
+	andi	$2, $4, 0x3fff
+	andi	$2, $5, 0x7fff
+	andi	$2, $6, 0xffff
+	andi	$2, $7, 0x1fffff
+	andi	$2, $8, 0x3fffff
+	andi	$2, $9, 0x7fffff
+	andi	$2, $16, 0xffffff
+	
 /*
 	.ifndef	insn32
 	bals	test_spec107
