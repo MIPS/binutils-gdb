@@ -1910,10 +1910,10 @@
   address_word base = GPR[RS];
 
   TRACE_ALU_INPUT3(GPR[RT], S_9_BIT, GPR[RS]);
-  GPR[RT] = do_load_right (SD_, AccessLength_WORD, base, EXTEND16 (S_9_BIT),
-                           GPR[RT]);
-  GPR[RT] = do_load_left (SD_, AccessLength_WORD, base,
-                          EXTEND16 (S_9_BIT + AccessLength_WORD), GPR[RT]);
+  GPR[RT] = EXTEND32 (do_load_right (SD_, AccessLength_WORD, base,
+		      EXTEND16 (S_9_BIT), GPR[RT]));
+  GPR[RT] = EXTEND32 (do_load_left (SD_, AccessLength_WORD, base,
+		      EXTEND16 (S_9_BIT + AccessLength_WORD), GPR[RT]));
   TRACE_ALU_RESULT(GPR[RT]);
 }
 
