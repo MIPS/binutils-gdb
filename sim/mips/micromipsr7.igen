@@ -2042,8 +2042,7 @@
 *micromips32r7:
 *micromips64r7:
 {
-  unsigned_word address = NIA + GPR[RS];
-  isa_mode = address & 1;
+  unsigned_word address = NIA + (GPR[RS] << 1);
   NIA = address & ~1;
 }
 
@@ -2068,7 +2067,6 @@
   unsigned_word address = NIA + (GPR[RS] << 1);
 
   GPR[RT] = NIA | isa_mode;
-  isa_mode = address & 1;
   NIA = address & ~1;
 }
 
