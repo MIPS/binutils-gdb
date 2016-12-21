@@ -30,7 +30,8 @@ if {!(([istarget "i?86-*-*"]
        || [istarget "powerpc*-*-*"]
        || [istarget "aarch64*-*-*"]
        || [istarget "sparc*-*-*"]
-       || [istarget "s390*-*-*"])
+       || [istarget "s390*-*-*"]
+       || [istarget "mips*-*-*"])
       && ([istarget "*-*-elf*"]
 	  || [istarget "*-*-nacl*"]
 	  || (([istarget "*-*-linux*"]
@@ -38,15 +39,6 @@ if {!(([istarget "i?86-*-*"]
 	      && ![istarget "*-*-*aout*"]
 	      && ![istarget "*-*-*oldld*"]))) } {
     verbose "IFUNC tests not run - target does not support IFUNC"
-    return
-}
-
-# We need a native system.  FIXME: Strictly speaking this
-# is not true, we just need to know how to create a fully
-# linked executable, including the C and Z libraries, using
-# the linker that is under test.
-if ![isnative] {
-    verbose "IFUNC tests not run - not a native toolchain"
     return
 }
 
@@ -183,7 +175,7 @@ if ![ld_compile "$CC -c -DWITHOUT_IFUNC" "$srcdir/$subdir/lib.c" "tmpdir/static_
     fail "Could not create an ordinary non-PIC object file"
     set fails [expr $fails + 1]
 }
-if ![ld_assemble $as "$srcdir/ld-elf/empty.s" "tmpdir/empty.o"] {
+if ![ld_assemble "$as -mabi=32" "$srcdir/ld-elf/empty.s" "tmpdir/empty.o"] {
     fail "Could not create an empty object file"
     set fails [expr $fails + 1]
 }
@@ -213,27 +205,29 @@ if { $fails != 0 } {
     return
 }
 
-if ![default_ld_link $ld "tmpdir/dynamic_prog" "-Ltmpdir tmpdir/shared_prog.o -Bdynamic -lshared_ifunc -rpath ./tmpdir"] {
+set ild "$ld --sysroot=/home/frs/build/install-mips-mti-linux-gnu/sysroot/mips-r2-hard -lc  -e 0x4003b0 -L /home/frs/build/install-mips-mti-linux-gnu/lib/gcc/mips-mti-linux-gnu/6.0.0/mipsel-r2-hard/lib"
+
+if ![default_ld_link "$ild $ILDFLAGS" "tmpdir/dynamic_prog" "-Ltmpdir tmpdir/shared_prog.o -Bdynamic -lshared_ifunc -rpath ./tmpdir"] {
     fail "Could not link a dynamic executable"
     set fails [expr $fails + 1]
 }
-if ![default_ld_link $ld "tmpdir/local_prog" "-Ltmpdir tmpdir/static_prog.o -lifunc"] {
+if ![default_ld_link $ild "tmpdir/local_prog" "-Ltmpdir tmpdir/static_prog.o -lc -lifunc "] {
     fail "Could not link a dynamic executable using local ifunc"
     set fails [expr $fails + 1]
 }
-if ![default_ld_link $ld "tmpdir/static_prog" "-static -Ltmpdir tmpdir/static_prog.o -lifunc"] {
+if ![default_ld_link $ild "tmpdir/static_prog" "-static -Ltmpdir tmpdir/static_prog.o -lc -lifunc --start-group -lgcc -lgcc_eh -lc --end-group"] {
     fail "Could not link a static executable"
     set fails [expr $fails + 1]
 }
-if ![ld_simple_link $ld "tmpdir/static_nonifunc_prog" "-static tmpdir/empty.o"] {
+if ![ld_simple_link $ild "tmpdir/static_nonifunc_prog" "-static tmpdir/empty.o"] {
     fail "Could not link a non-ifunc using static executable"
     set fails [expr $fails + 1]
 }
-if ![default_ld_link $ld "tmpdir/test-1" "tmpdir/test-1.o tmpdir/libshared_ifunc.so"] {
+if ![default_ld_link $ild "tmpdir/test-1" "tmpdir/test-1.o tmpdir/libshared_ifunc.so -lc"] {
     fail "Could not link test-1"
     set fails [expr $fails + 1]
 }
-if ![ld_simple_link $ld "tmpdir/libtest-2.so" "-shared tmpdir/test-2.o"] {
+if ![ld_simple_link $ild "tmpdir/libtest-2.so" "-shared tmpdir/test-2.o"] {
     fail "Could not link libtest-2.so"
     set fails [expr $fails + 1]
 }
@@ -406,6 +400,7 @@ run_ld_link_exec_tests [list \
 	"-g" \
     ] \
 ]
+}
 
 set test_list [lsort [glob -nocomplain $srcdir/$subdir/*.d]]
 foreach t $test_list {
@@ -458,6 +453,7 @@ run_ld_link_exec_tests [list \
 	"-fpic" \
     ] \
 ]
+}
 
 # Run-time tests which require working ifunc attribute support.
 if { ![check_ifunc_attribute_available] } {
@@ -533,3 +529,4 @@ run_ld_link_exec_tests [list \
 	"pr18841.out" \
     ] \
 ]
+}
