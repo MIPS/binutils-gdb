@@ -1,0 +1,17 @@
+#...
+Section Headers:
+!.* \.igot .*
+!.* \.igot .*
+!.* \.igot .*
+!.* \.igot .*
+!.* \.igot .*
+!.* \.igot .*
+.* \.iplt .*
+.* \.got .*
+!.* \.igot .*
+!.* \.igot .*
+!.* \.igot .*
+!.* \.igot .*
+!.* \.igot .*
+!.* \.igot .*
+#pass

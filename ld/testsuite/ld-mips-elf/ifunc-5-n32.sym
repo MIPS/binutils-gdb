@@ -1,0 +1,4 @@
+#...
+    2   0: 0000040c    28 IFUNC   GLOBAL DEFAULT   1 func1
+    4   1: 0000040c    28 FUNC    GLOBAL DEFAULT   1 func1_ifunc
+#pass

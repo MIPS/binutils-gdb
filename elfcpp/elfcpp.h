@@ -870,6 +870,8 @@ enum DT
   DT_MIPS_RWPLT = 0x70000034,
   // Relative offset of run time loader map, used for debugging.
   DT_MIPS_RLD_MAP_REL = 0x70000035,
+  // The GOT index of the first implicitly relocated GOT entry.
+  DT_MIPS_GENERAL_GOTNO = 0x70000036,
 
   DT_AUXILIARY = 0x7ffffffd,
   DT_USED = 0x7ffffffe,

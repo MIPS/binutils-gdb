@@ -120,6 +120,9 @@ START_RELOC_NUMBERS (elf_mips_reloc_type)
   RELOC_NUMBER (R_MIPS_COPY, 126)
   RELOC_NUMBER (R_MIPS_JUMP_SLOT, 127)
 
+  /* STT_GNU_IFUNC support.  */
+  RELOC_NUMBER (R_MIPS_IRELATIVE, 128)
+
   /* These relocations are specific to microMIPS.  */
   FAKE_RELOC (R_MICROMIPS_min, 130)
   RELOC_NUMBER (R_MICROMIPS_26_S1, 133)
@@ -756,6 +759,10 @@ extern void bfd_mips_elf32_swap_reginfo_out
 
 /* Relative offset of run time loader map, used for debugging.  */
 #define DT_MIPS_RLD_MAP_REL    0x70000035
+
+/* The GOT index of the first implicitly relocated GOT entry.  */
+#define DT_MIPS_GENERAL_GOTNO  0x70000036
+
 
 /* Flags which may appear in a DT_MIPS_FLAGS entry.  */
 
