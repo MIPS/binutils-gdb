@@ -1959,8 +1959,18 @@
 *micromips32r7:
 *micromips64r7:
 {
-  // nothing to do currently
-  sim_io_printf (SD, "Not implemented");
+  if (NotWordValue (GPR[RS]) || NotWordValue (GPR[RT]))
+    Unpredictable ();
+  TRACE_ALU_INPUT2 (GPR[RS], GPR[RT]);
+  {
+    ALU32_BEGIN (GPR[RS]);
+    ALU32_ADD (GPR[RT]);
+    if (ALU32_HAD_OVERFLOW)
+      GPR[RD] = 1;
+    else
+      GPR[RD] = 0;
+  }
+  TRACE_ALU_RESULT (GPR[RD]);
 }
 
 001000,10.X,11,10001,101,111,111:R7POOL32A0:32::DERET
@@ -2112,3 +2122,11 @@
   do_swc1 (SD_, FT, OFFSET, BASE, instruction_0);
 }
 
+001000,10.X,00,01001,101,111,111:R7POOL32AXF5GROUP0:32::TLBR
+"tlbr"
+*micromips32r7:
+*micromips64r7:
+{
+  // nothing to do currently
+  sim_io_printf (SD, "Not implemented");
+}
