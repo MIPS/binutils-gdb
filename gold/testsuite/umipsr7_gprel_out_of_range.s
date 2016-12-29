@@ -11,6 +11,7 @@ __start:
 	lhu	$s4,%gp_rel(var)($gp)
 	sb	$t1,%gp_rel(var)($gp)
 	sh	$t5,%gp_rel(var)($gp)
+	addiu	$t6,$gp, %gp_rel(var)
 	.end	__start
 	.size	__start, .-__start
 

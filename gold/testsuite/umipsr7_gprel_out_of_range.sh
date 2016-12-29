@@ -70,9 +70,14 @@ check umipsr7_gprel_out_of_range.stdout " 1048:	e030 003c 	lui	at,0x1f00"
 check umipsr7_gprel_out_of_range.stdout " 104c:	2381 0950 	addu	at,at,gp"
 check umipsr7_gprel_out_of_range.stdout " 1050:	8521 1000 	sb	t1,0(at)"
 
-# Test shu[gp] expansion to lui, addu, shu.
+# Test sh[gp] expansion to lui, addu, sh.
 check umipsr7_gprel_out_of_range.stdout " 1054:	e030 003c 	lui	at,0x1f00"
 check umipsr7_gprel_out_of_range.stdout " 1058:	2381 0950 	addu	at,at,gp"
 check umipsr7_gprel_out_of_range.stdout " 105c:	85a1 5000 	sh	t5,0(at)"
+
+# Test addiu[gp] expansion to lui, addu, addiu.
+check umipsr7_gprel_out_of_range.stdout " 1060:	e030 003c 	lui	at,0x1f00"
+check umipsr7_gprel_out_of_range.stdout " 1064:	2381 0950 	addu	at,at,gp"
+check umipsr7_gprel_out_of_range.stdout " 1068:	01c1 0000 	addiu	t6,at,0"
 
 exit 0
