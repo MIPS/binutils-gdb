@@ -1674,6 +1674,7 @@ class Mips_relobj : public Sized_relobj_file<size, big_endian>
   typedef std::map<unsigned int, Mips16_stub_section<size, big_endian>*>
     Mips16_stubs_int_map;
   typedef typename elfcpp::Swap<size, big_endian>::Valtype Valtype;
+  typedef typename Sized_relobj_file<size, big_endian>::Size_type Size_type;
   typedef Unordered_map<unsigned int, unsigned int>
     Input_section_read;
 
@@ -1687,8 +1688,9 @@ class Mips_relobj : public Sized_relobj_file<size, big_endian>
       local_mips16_call_stubs_(), gp_(0), has_reginfo_section_(false),
       got_info_(NULL), section_is_mips16_fn_stub_(), input_section_read_(),
       section_is_mips16_call_stub_(), section_is_mips16_call_fp_stub_(),
-      pdr_shndx_(-1U), attributes_section_data_(NULL), abiflags_(NULL),
-      gprmask_(0), cprmask1_(0), cprmask2_(0), cprmask3_(0), cprmask4_(0)
+      pdr_shndx_(-1U), local_symbol_size_(), attributes_section_data_(NULL),
+      abiflags_(NULL), gprmask_(0), cprmask1_(0), cprmask2_(0), cprmask3_(0),
+      cprmask4_(0)
   {
     this->is_pic_ = (ehdr.get_e_flags() & elfcpp::EF_MIPS_PIC) != 0;
     this->is_n32_ = elfcpp::abi_n32(ehdr.get_e_flags());
@@ -1714,11 +1716,13 @@ class Mips_relobj : public Sized_relobj_file<size, big_endian>
   scan_sections_for_relax_or_expand(Target_mips<size, big_endian>*,
                                     const Symbol_table*, const Layout*);
 
-  // Adjust values of the local symbols.  This is used in relaxation passes.
+  // Adjust values of the local symbols.  Also adjust sizes of the function
+  // symbols.  This is used in a relaxation passes.
   void
   adjust_local_symbols(Mips_address, unsigned int, int);
 
-  // Adjust values of the global symbols.  This is used in relaxation passes.
+  // Adjust values of the global symbols.  Also adjust sizes of the function
+  // symbols.  This is used in a relaxation passes.
   void
   adjust_global_symbols(Mips_address, unsigned int, int);
 
@@ -1752,6 +1756,27 @@ class Mips_relobj : public Sized_relobj_file<size, big_endian>
   {
     gold_assert(r_sym < this->local_symbol_is_micromips_.size());
     return this->local_symbol_is_micromips_[r_sym];
+  }
+
+  bool
+  do_local_symbol_size_changed() const
+  { return true; }
+
+  // Return the local symbol size.  This is only valid after
+  // do_count_local_symbol is called.
+  Size_type
+  do_local_symbol_size(unsigned int symndx) const
+  {
+    gold_assert(symndx < this->local_symbol_size_.size());
+    return this->local_symbol_size_[symndx];
+  }
+
+  // Set the local symbol size.
+  void
+  set_local_symbol_size(unsigned int symndx, Size_type symsize)
+  {
+    gold_assert(symndx < this->local_symbol_size_.size());
+    this->local_symbol_size_[symndx] = symsize;
   }
 
   // Get or create MIPS16 stub section.
@@ -2096,6 +2121,9 @@ class Mips_relobj : public Sized_relobj_file<size, big_endian>
 
   // .pdr section index.
   unsigned int pdr_shndx_;
+
+  // Size of the local symbols.
+  std::vector<Size_type> local_symbol_size_;
 
   // Object attributes if there is a .gnu.attributes section or NULL.
   Attributes_section_data* attributes_section_data_;
@@ -7833,6 +7861,9 @@ Mips_relobj<size, big_endian>::do_count_local_symbols(
   this->local_symbol_is_mips16_.resize(loccount, false);
   this->local_symbol_is_micromips_.resize(loccount, false);
 
+  // Initialize the local symbol size vector.
+  this->local_symbol_size_.resize(loccount);
+
   // Read the symbol table section header.
   const unsigned int symtab_shndx = this->symtab_shndx();
   elfcpp::Shdr<size, big_endian>
@@ -7846,7 +7877,8 @@ Mips_relobj<size, big_endian>::do_count_local_symbols(
   const unsigned char* psyms = this->get_view(symtabshdr.get_sh_offset(),
                                               locsize, true, true);
 
-  // Loop over the local symbols and mark any MIPS16 or microMIPS local symbols.
+  // Loop over the local symbols and mark any MIPS16 or microMIPS local symbols,
+  // and cache size of the local symbols.
 
   // Skip the first dummy symbol.
   psyms += sym_size;
@@ -7857,6 +7889,7 @@ Mips_relobj<size, big_endian>::do_count_local_symbols(
       this->local_symbol_is_mips16_[i] = elfcpp::elf_st_is_mips16(st_other);
       this->local_symbol_is_micromips_[i] =
         elfcpp::elf_st_is_micromips(st_other);
+      this->local_symbol_size_[i] = sym.get_st_size();
     }
 }
 
@@ -8066,7 +8099,8 @@ Mips_relobj<size, big_endian>::do_read_symbols(Read_symbols_data* sd)
     }
 }
 
-// Adjust values of the local symbols.  This is used in relaxation passes.
+// Adjust values of the local symbols.  Also adjust sizes of the function
+// symbols.  This is used in a relaxation passes.
 
 template<int size, bool big_endian>
 void
@@ -8079,23 +8113,53 @@ Mips_relobj<size, big_endian>::adjust_local_symbols(
   if (loccount == 0)
     return;
 
-  typename Sized_relobj_file<size, big_endian>::Local_values* plocal_values =
-    this->local_values();
+  // Read the symbol table section header.
+  const unsigned int symtab_shndx = this->symtab_shndx();
+  elfcpp::Shdr<size, big_endian>
+    symtabshdr(this, this->elf_file()->section_header(symtab_shndx));
+  gold_assert(symtabshdr.get_sh_type() == elfcpp::SHT_SYMTAB);
+
+  // Read the local symbols.
+  const int sym_size = elfcpp::Elf_sizes<size>::sym_size;
+  gold_assert(loccount == symtabshdr.get_sh_info());
+  off_t locsize = loccount * sym_size;
+  const unsigned char* psyms = this->get_view(symtabshdr.get_sh_offset(),
+                                              locsize, true, true);
 
   // Adjust the local symbols.
-  for (unsigned int i = 1; i < loccount; ++i)
+
+  // Skip the first dummy symbol.
+  psyms += sym_size;
+  typename Sized_relobj_file<size, big_endian>::Local_values* plocal_values =
+    this->local_values();
+  for (unsigned int i = 1; i < loccount; ++i, psyms += sym_size)
     {
       Symbol_value<size>& lv((*plocal_values)[i]);
-      Mips_address input_value = lv.input_value();
+      elfcpp::Sym<size, big_endian> sym(psyms);
+      Mips_address value = lv.input_value();
       bool is_ordinary;
       unsigned int sym_shndx = lv.input_shndx(&is_ordinary);
 
-      if (shndx == sym_shndx && input_value >= address)
-        lv.set_input_value(input_value + count);
+      if (is_ordinary && shndx == sym_shndx)
+        {
+          // Adjust value of the symbol, if needed.
+          if (value >= address)
+            {
+              value += count;
+              lv.set_input_value(value);
+            }
+
+          // Adjust the function symbol's size, if needed.
+          bool is_func = sym.get_st_type() == elfcpp::STT_FUNC;
+          Size_type symsize = this->do_local_symbol_size(i);
+          if (is_func && value <= address && value + symsize >= address)
+            this->set_local_symbol_size(i, symsize + count);
+        }
     }
 }
 
-// Adjust values of the global symbols.  This is used in relaxation passes.
+// Adjust values of the global symbols.  Also adjust sizes of the function
+// symbols.  This is used in a relaxation passes.
 
 template<int size, bool big_endian>
 void
@@ -8113,15 +8177,26 @@ Mips_relobj<size, big_endian>::adjust_global_symbols(
   for (unsigned int i = 0; i < nsyms; ++i)
     {
       Sized_symbol<size>* gsym = static_cast<Sized_symbol<size>*>((*syms)[i]);
-      Mips_address gsym_value = gsym->value();
+      Mips_address value = gsym->value();
       bool dummy;
 
       if (gsym->source() == Symbol::FROM_OBJECT
           && gsym->object() == this
-          && gsym->is_defined()
           && shndx == gsym->shndx(&dummy)
-          && gsym_value >= address)
-        gsym->set_value(gsym_value + count);
+          && gsym->is_defined())
+        {
+          // Adjust value of the symbol, if needed.
+          if (value >= address)
+            {
+              value += count;
+              gsym->set_value(value);
+            }
+
+          // Adjust the function symbol's size, if needed.
+          Size_type symsize = gsym->symsize();
+          if (gsym->is_func() && value <= address && value + symsize >= address)
+            gsym->set_symsize(symsize + count);
+        }
     }
 }
 
