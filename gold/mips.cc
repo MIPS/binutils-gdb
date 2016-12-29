@@ -9622,8 +9622,12 @@ template<int size, bool big_endian>
 const opcode_descriptor
 Micromips_insn<size, big_endian>::micromips_gprel19_s2_expand[] =
 {
-  { 0x40000002, 0xfc000003, 0, 0xe0200000, 0x23810950, 0x84018000, 0 },// lw[gp]
-  { 0x40000003, 0xfc000003, 0, 0xe0200000, 0x23810950, 0x84019000, 0 },// sw[gp]
+  // lw[gp]
+  { 0x40000002, 0xfc000003, 0, 0xe0200000, 0x23810950, 0x84018000, 0 },
+  // sw[gp]
+  { 0x40000003, 0xfc000003, 0, 0xe0200000, 0x23810950, 0x84019000, 0 },
+  // addiu[gp]
+  { 0x40000000, 0xfc000003, 0, 0xe0200000, 0x23810950, 0x00010000, 0 },
   { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
 };
 
@@ -9803,7 +9807,7 @@ Micromips_insn<size, big_endian>::must_expand(Valtype value)
       this->count_ = 4;
       return true;
     }
-  // lw[gp]/sw[gp] expansion to lui, addiu, lw/sw
+  // lw[gp]/sw[gp]/addiu[gp] expansion to lui, addu, lw/sw/addiu
   else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL19_S2
            && this->find_match(micromips_gprel19_s2_expand)
            && Reloc_funcs::template
@@ -9814,7 +9818,7 @@ Micromips_insn<size, big_endian>::must_expand(Valtype value)
       this->count_ = 8;
       return true;
     }
-  // load[gp]/store[gp] expansion to lui, addiu, load/store
+  // load[gp]/store[gp] expansion to lui, addu, load/store
   else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL18
            && this->find_match(micromips_gprel18_expand)
            && Reloc_funcs::template
@@ -10070,11 +10074,11 @@ Micromips_insn<size, big_endian>::expand(
       *is_reloc_added = true;
 
       // Write instructions.
-      Valtype32 ld_st =
+      Valtype32 third_insn =
         this->new_insn_->expand_opcode3 | (this->treg_32() << 21);
       this->put_insn_32(insn_view, this->new_insn_->expand_opcode1);
       this->put_insn_32(insn_view + 4, this->new_insn_->expand_opcode2);
-      this->put_insn_32(insn_view + 8, ld_st);
+      this->put_insn_32(insn_view + 8, third_insn);
     }
   else if (micromips_16bit_reloc(this->r_type_))
     {
