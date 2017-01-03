@@ -1532,8 +1532,8 @@ if { [istarget mips*-*-vxworks*] } {
 #    run_dump_test "elf-rel-xgot-ur7" - disabled for now
     run_dump_test "ur7-la"
     run_dump_test "ur7-la-no-xlp"
-    run_dump_test "ur7-la-reloc-no-xlp"
     run_dump_test "ur7-la-svr4pic"
+    run_dump_test "ur7-ld-svr4pic"
     run_dump_test "ur7-mips-abi32"
     run_dump_test "ur7-mips-abi32-pic"
     run_dump_test "ur7-mips-abi32-pic2"
