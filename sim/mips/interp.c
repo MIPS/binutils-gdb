@@ -2345,7 +2345,7 @@ decode_coproc (SIM_DESC sd,
 	      case 9:
 		/* 9 = Count               R4000   VR4100  VR4300 */
 		if (op == cp0_mfc0 || op == cp0_dmfc0)
-		  GPR[rt] = COP0_COUNT;
+		  GPR[rt] = (signed_word) (signed32) COP0_COUNT;
 		else
 		  COP0_COUNT = GPR[rt];
 		break;
