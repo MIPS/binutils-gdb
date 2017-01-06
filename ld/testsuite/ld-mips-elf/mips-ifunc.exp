@@ -117,7 +117,7 @@ foreach { abi } $abis {
 	    [list "readelf -Ds ifunc-5-${abi}.sym" \
 		"readelf -r ifunc-5-${abi}.r" \
 		"readelf -d ifunc-5.dyn" \
-		"objdump -dj.got ifunc-5-${abi}.g"] \
+		"objdump -sj.got ifunc-5-${abi}.g"] \
 	    "ifunc-5-${abi}" \
 	] \
 	[list \

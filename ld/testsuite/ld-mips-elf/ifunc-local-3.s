@@ -111,7 +111,7 @@ main:
 	move	$fp,$sp
 	.cprestore	16
 .reloc	1f,R_MIPS16_CALL16,func1
-1:	lw	$2,%got(func1)($28)
+1:	lw	$2,%call16(func1)($28)
 	move	$25,$2
 	jalr	$25
 	nop
