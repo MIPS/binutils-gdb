@@ -1,12 +1,6 @@
-
 tmpdir/ifunc-5-n64:     file format elf64-tradbigmips
 
-
-Disassembly of section .got:
-
-0000000000000400 <.got>:
-	...
- 408:	80000000 	lb	zero,0\(zero\)
-	...
- 414:	0000000c 	syscall
-	...
+Contents of section \.got:
+ 0400 00000000 00000000 80000000 00000000  .*
+ 0410 00000000 0000000c 00000000 00000000  .*
+ 0420 00000000 00000000                    .*

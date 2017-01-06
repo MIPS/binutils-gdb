@@ -1278,7 +1278,7 @@ static const bfd_vma mips32r6_exec_iplt_entry[] =
 };
 
 /* The format of micromips IPLT entries.  We add an extra NOP to round
-   of the entry,  in spite of the compact branch to avoid 32-bit
+   off the entry,  in spite of the compact branch to avoid 32-bit
    instructions spanning a cache-line boundary.  */
 static const bfd_vma micromips_exec_iplt_entry[] =
 {
@@ -2164,6 +2164,9 @@ mips_elf_allocate_ireloc (struct bfd_link_info *info,
 {
   asection *srel;
   bfd *dynobj;
+
+  if (mh->needs_ireloc)
+    return TRUE;
 
   srel = mips_get_irel_section (info, mhtab);
   dynobj = elf_hash_table (info)->dynobj;
@@ -6127,7 +6130,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
 	    of calling code to avoid cross-mode jumps.
 	 3. If pointer-equality is needed, choose stub according to
 	    type of resolver function.
-	 4. Else choose by mode of referring code.  */	    
+	 4. Else choose by mode of referring code.  */
       if (h->needs_iplt_mips ^ h->needs_iplt_comp)
 	comp_p = h->needs_iplt_comp;
       else if (r_type == R_MIPS16_26 || r_type == R_MICROMIPS_26_S1)
