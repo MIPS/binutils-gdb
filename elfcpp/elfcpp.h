@@ -871,14 +871,10 @@ enum DT
   DT_MIPS_RWPLT = 0x70000034,
   // Relative offset of run time loader map, used for debugging.
   DT_MIPS_RLD_MAP_REL = 0x70000035,
-  // Points to the start of the IFUNC PLT section
-  DT_MIPS_IPLT = 0x70000036,
-  // INDEX of the first IFUNC symbol in dynsym table
-  DT_MIPS_IFUNC_INDX = 0x70000037,
-  // Points to start of reloc-only IFUNC stubs in IPLT section
-  DT_MIPS_IPLTREL = 0x70000038
-  // INDEX of the first reloc-only IFUNC symbol in dynsym table
-  DT_MIPS_IFUNCREL_INDX = 0x70000039
+  // Points to first IGOT entry.
+  DT_MIPS_IGOT = 0x70000036
+  // Number of IGOT entries.
+  DT_MIPS_IGOT_SIZE = 0x70000037
 
   DT_AUXILIARY = 0x7ffffffd,
   DT_USED = 0x7ffffffe,
