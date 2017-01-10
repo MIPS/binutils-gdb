@@ -1,6 +1,8 @@
 ENTRY(_start)
 SECTIONS
 {
+  . = 0 + SIZEOF_HEADERS;
+
   . = ALIGN (0x400);
   .text : { *(.text) }
 
