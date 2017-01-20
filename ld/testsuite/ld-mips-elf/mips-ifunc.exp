@@ -117,7 +117,7 @@ foreach { abi } $abis {
 	    [list "readelf -Ds ifunc-5-${abi}.sym" \
 		"readelf -r ifunc-5-${abi}.r" \
 		"readelf -d ifunc-5.dyn" \
-		"objdump -sj.got ifunc-5-${abi}.g"] \
+		"readelf -A ifunc-5-${abi}.got"] \
 	    "ifunc-5-${abi}" \
 	] \
 	[list \
@@ -157,7 +157,7 @@ run_ld_link_tests [list \
 	    "IFUNC 7 (Local binding with non-PIC call-only ref) ${abi}" \
 	    "$abi_ldflags($abi) -static -Bstatic" "" \
 	    "$abi_asflags($abi)" \
-	     [list ifunc-local-1.s] \
+	     [list ifunc-7.s] \
 	     [list "readelf -r ifunc-7-${abi}.r" \
 		 "readelf -S ifunc-7-${abi}.sec"] \
 	    "ifunc-7-${abi}" \
@@ -166,7 +166,7 @@ run_ld_link_tests [list \
 	    "IFUNC 8 (Local binding with PIC call-only ref) ${abi}" \
 	    "$abi_ldflags($abi) -static" "" \
 	    "$abi_asflags($abi)" \
-	     [list ifunc-local-2.s] \
+	     [list ifunc-8.s] \
 	     [list "readelf -r ifunc-8-${abi}.r" \
 		 "readelf -S ifunc-8-${abi}.sec" \
 		 "objdump -sj.got ifunc-8-${abi}.got"] \
@@ -176,7 +176,7 @@ run_ld_link_tests [list \
 	    "IFUNC 9 (Local binding with PIC/non-PIC call-only refs) ${abi}" \
 	    "$abi_ldflags($abi) -static -Bstatic" "" \
 	    "$abi_asflags($abi) -non_shared" \
-	    [list ifunc-local-3.s] \
+	    [list ifunc-9.s] \
 	    [list "readelf -r ifunc-9-${abi}.r" \
 		"readelf -S ifunc-9-${abi}.sec" \
 		"objdump -sj.got ifunc-9-${abi}.got" \
@@ -187,7 +187,7 @@ run_ld_link_tests [list \
 	    "IFUNC 10 (Local binding with non-PIC call/non-call refs) ${abi}" \
 	    "$abi_ldflags($abi) -static -Bstatic" "" \
 	    "$abi_asflags($abi) -non_shared" \
-	    [list ifunc-local-4.s] \
+	    [list ifunc-10.s] \
 	    [list "readelf -r ifunc-10-${abi}.r" \
 		"readelf -S ifunc-10-${abi}.sec"] \
 	    "ifunc-10-${abi}" \
@@ -196,7 +196,7 @@ run_ld_link_tests [list \
 	    "IFUNC 11 (Local binding with PIC-only call/non-call refs) ${abi}" \
 	    "$abi_ldflags($abi) -static" "" \
 	    "$abi_asflags($abi)" \
-	    [list ifunc-local-5.s] \
+	    [list ifunc-11.s] \
 	    [list "readelf -r ifunc-11-${abi}.r" \
 		"readelf -S ifunc-11-${abi}.sec" \
 		"objdump -sj.got ifunc-11-${abi}.got"] \
@@ -206,7 +206,7 @@ run_ld_link_tests [list \
 	    "IFUNC 12 (Local binding with PIC/non-PIC, call/non-call refs) ${abi}" \
 	    "$abi_ldflags($abi) -static -Bstatic" "" \
 	    "$abi_asflags($abi) -non_shared" \
-	    [list ifunc-local-6.s] \
+	    [list ifunc-12.s] \
 	    [list "readelf -r ifunc-12-${abi}.r" \
 		"readelf -S ifunc-12-${abi}.sec" \
 		"objdump -sj.got ifunc-12-${abi}.got"] \
@@ -271,36 +271,3 @@ run_ld_link_tests [list \
 	    "ifunc-mix-2" \
 	] \
 ]
-
-
-# set abi n32
-# run_ld_link_tests [list \
-# 	[list \
-# 	    "IFUNC 9 (Local binding with PIC/non-PIC call-only refs) ${abi}" \
-# 	    "$abi_ldflags($abi) -static -Bstatic -" "" \
-# 	    "$abi_asflags($abi) -non_shared" \
-# 	    [list ifunc-local-3.s] \
-# 	    [list "readelf -r ifunc-9-${abi}.r" \
-# 		"readelf -S ifunc-9-${abi}.sec" \
-# 		"readelf -S ifunc-9-${abi}-x.sec" \
-# 		"objdump -sj.got ifunc-9-${abi}.got" \
-# 		"objdump -dj.iplt ifunc-9-${abi}.t"] \
-# 	    "ifunc-9-${abi}" \
-# 	] \
-# 		       ]
-
-# set abi n64
-# run_ld_link_tests [list \
-# 	[list \
-# 	    "IFUNC 9 (Local binding with PIC/non-PIC call-only refs) ${abi}" \
-# 	    "$abi_ldflags($abi) -static -Bstatic -" "" \
-# 	    "$abi_asflags($abi) -non_shared" \
-# 	    [list ifunc-local-3.s] \
-# 	    [list "readelf -r ifunc-9-${abi}.r" \
-# 		"readelf -S ifunc-9-${abi}.sec" \
-# 		"readelf -S ifunc-9-${abi}-x.sec" \
-# 		"objdump -sj.got ifunc-9-${abi}.got" \
-# 		"objdump -dj.iplt ifunc-9-${abi}.t"] \
-# 	    "ifunc-9-${abi}" \
-# 	] \
-# 		       ]

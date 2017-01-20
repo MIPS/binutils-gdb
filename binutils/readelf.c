@@ -14665,6 +14665,7 @@ process_mips_specific (FILE * file)
   bfd_vma mips_pltgot = 0;
   bfd_vma jmprel = 0;
   bfd_vma local_gotno = 0;
+  bfd_vma general_gotno = 0;
   bfd_vma gotsym = 0;
   bfd_vma symtabno = 0;
 
@@ -14757,6 +14758,9 @@ process_mips_specific (FILE * file)
 	break;
       case DT_MIPS_LOCAL_GOTNO:
 	local_gotno = entry->d_un.d_val;
+	break;
+      case DT_MIPS_GENERAL_GOTNO:
+	general_gotno = entry->d_un.d_val;
 	break;
       case DT_MIPS_GOTSYM:
 	gotsym = entry->d_un.d_val;
@@ -15157,7 +15161,7 @@ process_mips_specific (FILE * file)
 
   if (pltgot != 0 && local_gotno != 0)
     {
-      bfd_vma ent, local_end, global_end;
+      bfd_vma ent, local_end, global_end, general_end;
       size_t i, offset;
       unsigned char * data;
       unsigned char * data_end;
@@ -15166,6 +15170,7 @@ process_mips_specific (FILE * file)
       ent = pltgot;
       addr_size = (is_32bit_elf ? 4 : 8);
       local_end = pltgot + local_gotno * addr_size;
+      general_end = pltgot + general_gotno * addr_size;
 
       /* PR binutils/17533 file: 012-111227-0.004  */
       if (symtabno < gotsym)
@@ -15214,6 +15219,22 @@ process_mips_specific (FILE * file)
 	    goto got_print_fail;
 	}
       printf ("\n");
+
+      if (ent < general_end)
+	{
+	  printf (_(" General entries:\n"));
+	  printf ("  %*s %10s %*s\n",
+		  addr_size * 2, _("Address"), _("Access"),
+		  addr_size * 2, _("Initial"));
+	  while (ent < general_end)
+	    {
+	      ent = print_mips_got_entry (data, pltgot, ent, data_end);
+	      printf ("\n");
+	      if (ent == (bfd_vma) -1)
+		goto got_print_fail;
+	    }
+	  printf ("\n");
+	}
 
       if (ent < local_end)
 	{
