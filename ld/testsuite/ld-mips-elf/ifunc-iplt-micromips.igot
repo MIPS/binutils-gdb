@@ -1,7 +1,4 @@
 tmpdir/ifunc-iplt-micromips:     file format elf32-tradbigmips
 
-
-Disassembly of section .igot:
-
-004101d0 <_fdata>:
-  4101d0:	0040014d 	break	0x40,0x5
+Contents of section .igot:
+ 4101c0 00400141 .*

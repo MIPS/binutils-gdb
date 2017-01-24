@@ -236,7 +236,7 @@ run_ld_link_tests [list \
 	    "$abi_asflags(o32) -mmicromips" \
 	    [list ifunc-static-main.s ifunc-static-def.s] \
 	    [list "objdump -dj.iplt ifunc-iplt-micromips.t" \
-		"objdump -dj.igot ifunc-iplt-micromips.igot"] \
+		"objdump -sj.igot ifunc-iplt-micromips.igot"] \
 	    "ifunc-iplt-micromips" \
 	] \
 	[list \
@@ -245,7 +245,7 @@ run_ld_link_tests [list \
 	    "$abi_asflags(o32) -mips32r2 -mips16" \
 	    [list ifunc-static-main-mips16.s ifunc-static-def-mips16.s] \
 	    [list "objdump -dj.iplt ifunc-iplt-mips16.t" \
-		"objdump -dj.igot ifunc-iplt-mips16.igot"] \
+		"objdump -sj.igot ifunc-iplt-mips16.igot"] \
 	    "ifunc-iplt-mips16" \
 	] \
 	[list \

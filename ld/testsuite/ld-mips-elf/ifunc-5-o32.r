@@ -1,3 +1,3 @@
 #...
-00000808  00000303 R_MIPS_REL32      func1\(\)    func1
+00000808  00000203 R_MIPS_REL32      func1\(\)    func1
 #pass

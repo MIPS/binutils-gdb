@@ -1,8 +1,4 @@
-
 tmpdir/ifunc-iplt-mips16:     file format elf32-tradbigmips
 
-
-Disassembly of section .igot:
-
-00410190 <.igot>:
-  410190:	00400125 	0x400125
+Contents of section .igot:
+ 410190 00400125 .*

@@ -12,9 +12,8 @@
   400128:	move	a3,ra
   40012a:	jal	40014c <\.iplt\.comp\.func2>
   40012e:	nop
-  400132:	nop
-  400134:	jal	400140 <\.iplt\.comp\.func1>
-  400138:	nop
-  40013c:	jr	a3
-  40013e:	nop
+  400132:	jal	400140 <\.iplt\.comp\.func1>
+  400136:	nop
+  40013a:	jrc	a3
+  40013c:	nop
 #pass
