@@ -9045,7 +9045,7 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
       for (i = 1; i < 3; i++)
 	if (reloc_type[i] != BFD_RELOC_UNUSED)
 	  {
-	    ip->fixp[i] = fix_new (ip->frag, ip->where,
+	    ip->fixp[i] = fix_new (ip->frag, where,
 				   ip->fixp[0]->fx_size, NULL, 0,
 				   FALSE, final_type[i]);
 
@@ -15997,6 +15997,8 @@ mips_lookup_insn (struct hash_control *hash, const char *start,
 	suffix = 2;
       else if (name[opend - 2] == '3' && name[opend - 1] == '2')
 	suffix = 4;
+      else if (name[opend - 2] == '4' && name[opend - 1] == '8')
+	suffix = 6;
       else
 	suffix = 0;
       if (suffix)
