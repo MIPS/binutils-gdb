@@ -1665,6 +1665,59 @@ class Mips16_stub_section : public Mips16_stub_section_base
   bool found_r_mips_none_;
 };
 
+// This class is used to hold information for which relocation we have added
+// fixup.  This is used for addiu[gp] instruction in cases where we can't reach
+// a char/short symbol.
+
+class Micromips_addiugp_fixup
+{
+ public:
+  Micromips_addiugp_fixup(unsigned int reloc_shndx, unsigned int reloc_index)
+    : reloc_shndx_(reloc_shndx), reloc_index_(reloc_index)
+  { }
+
+  // Whether this equals to another Micromips_addiugp_fixup.
+  bool
+  eq(const Micromips_addiugp_fixup& fix) const
+  {
+    return (this->reloc_shndx_ == fix.reloc_shndx_
+            && this->reloc_index_ == fix.reloc_index_);
+  }
+
+  // Compute a hash value for this using 64-bit FNV-1a hash.
+  size_t
+  hash_value() const
+  {
+    uint64_t h = 14695981039346656037ULL; // FNV offset basis.
+    uint64_t prime = 1099511628211ULL;
+    h = (h ^ static_cast<uint64_t>(this->reloc_shndx_)) * prime;
+    h = (h ^ static_cast<uint64_t>(this->reloc_index_)) * prime;
+    return h;
+  }
+
+  // Functors for associative containers.
+  struct equal_to
+  {
+    bool
+    operator()(const Micromips_addiugp_fixup& fix1,
+               const Micromips_addiugp_fixup& fix2) const
+    { return fix1.eq(fix2); }
+  };
+
+  struct hash
+  {
+    size_t
+    operator()(const Micromips_addiugp_fixup& fix) const
+    { return fix.hash_value(); }
+  };
+
+ private:
+  // Section index of relocation section.
+  unsigned int reloc_shndx_;
+  // Relocation index in the relocation section.
+  unsigned int reloc_index_;
+};
+
 // Mips_relobj class.
 
 template<int size, bool big_endian>
@@ -1677,13 +1730,15 @@ class Mips_relobj : public Sized_relobj_file<size, big_endian>
   typedef typename Sized_relobj_file<size, big_endian>::Size_type Size_type;
   typedef Unordered_map<unsigned int, unsigned int>
     Input_section_read;
+  typedef Unordered_set<Micromips_addiugp_fixup, Micromips_addiugp_fixup::hash,
+                        Micromips_addiugp_fixup::equal_to> Addiugp_fixup;
 
  public:
   Mips_relobj(const std::string& name, Input_file* input_file, off_t offset,
               const typename elfcpp::Ehdr<size, big_endian>& ehdr)
     : Sized_relobj_file<size, big_endian>(name, input_file, offset, ehdr),
       processor_specific_flags_(0), local_symbol_is_mips16_(),
-      local_symbol_is_micromips_(), mips16_stub_sections_(),
+      local_symbol_is_micromips_(), mips16_stub_sections_(), addiugp_fixup_(),
       local_non_16bit_calls_(), local_16bit_calls_(), local_mips16_fn_stubs_(),
       local_mips16_call_stubs_(), gp_(0), has_reginfo_section_(false),
       got_info_(NULL), section_is_mips16_fn_stub_(), input_section_read_(),
@@ -2033,6 +2088,27 @@ class Mips_relobj : public Sized_relobj_file<size, big_endian>
   attributes_section_data() const
   { return this->attributes_section_data_; }
 
+  // Add micromips addiugp fixup.
+  void
+  add_addiugp_fixup(unsigned int reloc_shndx, unsigned int reloc_index)
+  {
+    Micromips_addiugp_fixup fix(reloc_shndx, reloc_index);
+    std::pair<typename Addiugp_fixup::iterator, bool> ins =
+      this->addiugp_fixup_.insert(fix);
+    // We should insert a fixup once only.
+    gold_assert(ins.second);
+  }
+
+  // Return whether we have already added micromips addiugp fixup.
+  bool
+  has_addiugp_fixup(unsigned int reloc_shndx, unsigned int reloc_index) const
+  {
+    Micromips_addiugp_fixup fix(reloc_shndx, reloc_index);
+    typename Addiugp_fixup::const_iterator it =
+      this->addiugp_fixup_.find(fix);
+    return (it != this->addiugp_fixup_.end());
+  }
+
  protected:
   // Count the local symbols.
   void
@@ -2074,6 +2150,9 @@ class Mips_relobj : public Sized_relobj_file<size, big_endian>
   // Map from section index to the MIPS16 stub for that section.  This contains
   // all stubs found in this object.
   Mips16_stubs_int_map mips16_stub_sections_;
+
+  // A hash table holding information for which relocation we have added fixup.
+  Addiugp_fixup addiugp_fixup_;
 
   // Local symbols that have "non 16-bit" call relocation.  This relocation
   // would need to refer to a MIPS16 fn stub, if there is one.
@@ -3053,9 +3132,20 @@ class Micromips_insn
   typedef typename Reloc_types<elfcpp::SHT_RELA, size, big_endian>::Reloc_write
     Reltype_write;
 
+  enum Addiugp_fix_type
+  {
+    // Don't do anything.
+    NO_FIX,
+    // Convert addiu[gp] into addiu.
+    CONVERT,
+    // Add addiu[rs5] instruction as a fixup.
+    FIXUP
+  };
+
  public:
   Micromips_insn()
-    : new_insn_(NULL), insn_(0), r_type_(0), count_(0), offset_(0)
+    : new_insn_(NULL), insn_(0), r_type_(0), count_(0), offset_(0),
+      addiugp_fix_type_(NO_FIX)
   { }
 
   // Initialize the microMIPS instruction.
@@ -3066,6 +3156,7 @@ class Micromips_insn
     this->r_type_ = r_type;
     this->count_ = 0;
     this->offset_ = 0;
+    this->addiugp_fix_type_ = NO_FIX;
     if (micromips_16bit_reloc(r_type))
       this->insn_ = elfcpp::Swap<16, big_endian>::readval(view);
     else
@@ -3101,7 +3192,18 @@ class Micromips_insn
   expand(unsigned char* insn_view, unsigned char* preloc_current,
          unsigned int r_sym, unsigned int r_offset,
          typename elfcpp::Elf_types<size>::Elf_Swxword r_addend,
-         Mips_input_section* pmis, bool* is_reloc_added);
+         Mips_input_section* pmis, bool* is_reloc_added, Valtype value);
+
+  // Return true if we must fix addiu[gp] instruction for cases we can't reach
+  // char/short symbols.
+  bool
+  must_fix_addiugp(Mips_relobj<size, big_endian>* mips_relobj, Valtype value,
+                   unsigned int reloc_shndx, unsigned int reloc_index);
+
+  // Fix addiu[gp] instruction.
+  void
+  fix_addiugp(unsigned char* insn_view, unsigned char* preloc_current,
+              unsigned int r_sym, Valtype value);
 
   // Return the number of bytes to delete or add.
   int
@@ -3261,6 +3363,9 @@ class Micromips_insn
   unsigned int count_;
   // The offset where to delete or add bytes starting at r_offset.
   unsigned int offset_;
+  // Fix type for addiu[gp] instruction for cases we can't reach char/short
+  // symbols.
+  Addiugp_fix_type addiugp_fix_type_;
 
   // Opcodes for expansions and relaxations.
   static const opcode_descriptor micromips_pc25_s1[];
@@ -3277,6 +3382,7 @@ class Micromips_insn
   static const opcode_descriptor micromips_pc4_s1_expand[];
   static const opcode_descriptor micromips_lwgp_expand[];
   static const opcode_descriptor micromips_lo4_s2_expand[];
+  static const opcode_descriptor micromips_addiugp_fix[];
 };
 
 // A class to wrap an ordinary input section.
@@ -9706,6 +9812,18 @@ Micromips_insn<size, big_endian>::micromips_gprel19_s2_expand[] =
   { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
 };
 
+// Opcodes for addiu[gp] fix for cases we can't reach char/short symbols.
+template<int size, bool big_endian>
+const opcode_descriptor
+Micromips_insn<size, big_endian>::micromips_addiugp_fix[] =
+{
+  // addiu[gp] conversion into addiu.
+  { 0x40000000, 0xfc000003, 0, 0x001c0000, 0, 0, 0 },
+  // addiu[gp] plus addiu[rs5] fixup.
+  { 0x40000000, 0xfc000003, 0, 0x9008, 0, 0, 0 },
+  { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
+};
+
 // Opcodes for R_MICROMIPS_GPREL18 expansion.
 template<int size, bool big_endian>
 const opcode_descriptor
@@ -9968,6 +10086,46 @@ Micromips_insn<size, big_endian>::must_expand(Valtype value)
   return false;
 }
 
+// Return true if we must fix addiu[gp] instruction for cases we can't reach
+// char/short symbols.
+
+template<int size, bool big_endian>
+bool
+Micromips_insn<size, big_endian>::must_fix_addiugp(
+    Mips_relobj<size, big_endian>* mips_relobj,
+    Valtype value,
+    unsigned int reloc_shndx,
+    unsigned int reloc_index)
+{
+  if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL19_S2
+      && this->find_match(micromips_addiugp_fix)
+      && (value & 3)
+      && !mips_relobj->has_addiugp_fixup(reloc_shndx, reloc_index))
+    {
+      // Try to convert addiu[gp] into addiu $reg, $gp, imm.
+      if (Reloc_funcs::template
+            check_overflow<14>(value, Reloc_funcs::CHECK_SIGNED) ==
+              Reloc_funcs::STATUS_OKAY)
+        {
+          this->addiugp_fix_type_ = CONVERT;
+          this->count_ = 0;
+        }
+      else
+        {
+          // Add addiu[rs5] instruction as a fixup.
+          this->addiugp_fix_type_ = FIXUP;
+          this->new_insn_ = &micromips_addiugp_fix[1];
+          this->count_ = 2;
+          mips_relobj->add_addiugp_fixup(reloc_shndx, reloc_index);
+        }
+
+      this->offset_ = 4;
+      return true;
+    }
+
+  return false;
+}
+
 // Relax instruction.
 
 template<int size, bool big_endian>
@@ -10032,12 +10190,20 @@ Micromips_insn<size, big_endian>::expand(
     unsigned int r_offset,
     typename elfcpp::Elf_types<size>::Elf_Swxword r_addend,
     Mips_input_section* pmis,
-    bool* is_reloc_added)
+    bool* is_reloc_added,
+    Valtype value)
 {
   gold_assert(this->new_insn_ != NULL);
   const int reloc_size =
     Reloc_types<elfcpp::SHT_RELA, size, big_endian>::reloc_size;
   Reltype_write reloc_current(preloc_current);
+
+  // Check if we need to fix addiu[gp] instruction.
+  if (this->addiugp_fix_type_ != NO_FIX)
+    {
+      this->fix_addiugp(insn_view, preloc_current, r_sym, value);
+      return;
+    }
 
   if (this->r_type_ == elfcpp::R_MICROMIPS_PC25_S1)
     {
@@ -10211,6 +10377,44 @@ Micromips_insn<size, big_endian>::expand(
       reloc_current.put_r_info(elfcpp::elf_r_info<size>(r_sym, expand_r_type));
       // Write expanded instruction.
       this->put_insn_32(insn_view, expand_insn);
+    }
+  else
+    gold_unreachable();
+}
+
+// Fix addiu[gp] instruction.
+
+template<int size, bool big_endian>
+void
+Micromips_insn<size, big_endian>::fix_addiugp(
+    unsigned char* insn_view,
+    unsigned char* preloc_current,
+    unsigned int r_sym,
+    Valtype value)
+{
+  gold_assert(this->new_insn_ != NULL);
+  gold_assert(this->r_type_ == elfcpp::R_MICROMIPS_GPREL19_S2);
+  Reltype_write reloc_current(preloc_current);
+
+  if (this->addiugp_fix_type_ == CONVERT)
+    {
+      // Change existing relocation.
+      reloc_current.put_r_info(
+        elfcpp::elf_r_info<size>(r_sym, elfcpp::R_MICROMIPS_GPREL14));
+
+      // Write addiu instruction.
+      Valtype32 insn =
+        this->new_insn_->expand_opcode1 | (this->treg_32() << 21);
+      this->put_insn_32(insn_view, insn);
+    }
+  else if (this->addiugp_fix_type_ == FIXUP)
+    {
+      // Write addiurs5 instruction.
+      Valtype16 addiurs5 =
+        static_cast<Valtype16>(this->new_insn_->expand_opcode1);
+
+      addiurs5 |= ((this->treg_32() << 5) | (value & 3));
+      elfcpp::Swap<16, big_endian>::writeval(insn_view + 4, addiurs5);
     }
   else
     gold_unreachable();
@@ -12525,6 +12729,10 @@ Target_mips<size, big_endian>::update_content(
     Mips_address address,
     int count)
 {
+  // Don't do anything if count is 0.
+  if (count == 0)
+    return;
+
   typedef typename Reloc_types<sh_type, size, big_endian>::Reloc
     Reltype;
   typedef typename Reloc_types<sh_type, size, big_endian>::Reloc_write
@@ -12756,7 +12964,10 @@ Target_mips<size, big_endian>::scan_reloc_section_for_relax_or_expand(
       insn.init(view + offset, r_type);
 
       if (((this->state_ == RELAX) && insn.can_relax(value))
-          || ((this->state_ == EXPAND) && insn.must_expand(value)))
+          || ((this->state_ == EXPAND)
+               && (insn.must_expand(value)
+                   || insn.must_fix_addiugp(mips_relobj, value,
+                                            relinfo->reloc_shndx, i))))
         {
           // That will change things, so we should relax or expand again.
           again = true;
@@ -12784,8 +12995,9 @@ Target_mips<size, big_endian>::scan_reloc_section_for_relax_or_expand(
           else
             {
               bool is_reloc_added = false;
-              insn.expand(insn_view, preloc_current, r_sym, r_offset, r_addend,
-                          pmis, &is_reloc_added);
+              insn.expand(insn_view, preloc_current, r_sym, r_offset,
+                          r_addend, pmis, &is_reloc_added, value);
+
               if (is_debugging_enabled(DEBUG_TARGET))
                 insn.print_expand(mips_relobj->name(),
                       mips_relobj->section_name(relinfo->data_shndx), r_offset);
