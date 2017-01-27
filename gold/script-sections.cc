@@ -2927,8 +2927,13 @@ class Orphan_output_section : public Sections_element
 {
  public:
   Orphan_output_section(Output_section* os)
-    : os_(os)
+    : final_dot_value_(0), os_(os)
   { }
+
+  // Finalize symbols--just update the value of the dot symbol.
+  void
+  finalize_symbols(Symbol_table*, const Layout*, uint64_t* dot_value)
+  { *dot_value = this->final_dot_value_; }
 
   // Return whether the orphan output section is relro.  We can just
   // check the output section because we always set the flag, if
@@ -2968,6 +2973,8 @@ class Orphan_output_section : public Sections_element
   }
 
  private:
+  // The value of dot after including all input sections.
+  uint64_t final_dot_value_;
   Output_section* os_;
 };
 
@@ -3048,6 +3055,8 @@ Orphan_output_section::set_section_addresses(Symbol_table*, Layout*,
 
       *dot_value = address;
     }
+
+  this->final_dot_value_ = *dot_value;
 }
 
 // Get the list of segments to use for an allocated section when using
