@@ -220,6 +220,9 @@ changequote([,])dnl
 	  mipsisa32r6 | mipsisa32r6el)
 	    mips_cpu=mips32r6
 	    ;;
+	  mipsisa32r7 | mipsisa32r7el)
+	    mips_cpu=mips32r7
+	    ;;
 	  mipsisa64 | mipsisa64el)
 	    mips_cpu=mips64
 	    ;;
@@ -234,6 +237,9 @@ changequote([,])dnl
 	    ;;
 	  mipsisa64r6 | mipsisa64r6el)
 	    mips_cpu=mips64r6
+	    ;;
+	  mipsisa64r7 | mipsisa64r7el)
+	    mips_cpu=mips64r7
 	    ;;
 	  mipstx39 | mipstx39el)
 	    mips_cpu=r3900
@@ -252,6 +258,11 @@ changequote([,])dnl
 	  mipsisa32r6* | mipsisa64r6*)
 changequote(,)dnl
 	    mips_cpu=`echo $target_cpu | sed -e 's/[a-z]*..r6//' -e 's/el$//'`
+changequote([,])dnl
+	    ;;
+	  mipsisa32r7* | mipsisa64r7*)
+changequote(,)dnl
+	    mips_cpu=`echo $target_cpu | sed -e 's/[a-z]*..r7//' -e 's/el$//'`
 changequote([,])dnl
 	    ;;
 	  mips64* | mipsisa64* | mipsisa32*)

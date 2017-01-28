@@ -118,6 +118,7 @@ decode_micromipspp_operand (const char *p)
 	case 'X': INT_ADJ (4, 2, 15, 4, FALSE);	 /* 4-bit << 3 */
 	case 'Y': INT_ADJ (9, 3, 511, 3, FALSE);	 /* 9-bit << 3 */
 /* 	case 'Z': UINT (0, 0);			 /\* 0 only *\/ */
+	case '0': INT_ADJ (4, 2, 15, 4, FALSE);
 	case '1': SPLIT_MAPPED_REG (4, 5, 1, 9, GP, reg_4to5_map);
 	case '2': SPLIT_MAPPED_REG (4, 0, 1, 4, GP, reg_4to5_map);
 	case '3': SPLIT_MAPPED_REG (4, 5, 1, 9, GP, reg_4to5_map);
@@ -161,10 +162,10 @@ decode_micromipspp_operand (const char *p)
 	case 'B': MSB (5, 6, 1, TRUE, 32);	 /* (1 .. 32), 32-bit op */
 	case 'C': MSB (5, 6, 1, FALSE, 32);	 /* (1 .. 32), 32-bit op */
 /* 	case 'D': REG (5, 16, FP); */
-/* 	case 'E': BIT (5, 6, 32);		 /\* (32 .. 63) *\/ */
-/* 	case 'F': MSB (5, 11, 33, TRUE, 64);	 /\* (33 .. 64), 64-bit op *\/ */
-/* 	case 'G': MSB (5, 11, 33, FALSE, 64);	 /\* (33 .. 64), 64-bit op *\/ */
-/* 	case 'H': MSB (5, 11, 1, FALSE, 64);	 /\* (1 .. 32), 64-bit op *\/ */
+	case 'E': BIT (5, 0, 32);		 /* (32 .. 63) */
+ 	case 'F': MSB (5, 6, 33, TRUE, 64);	 /* (33 .. 64), 64-bit op */
+ 	case 'G': MSB (5, 6, 33, FALSE, 64);	 /* (33 .. 64), 64-bit op */
+ 	case 'H': MSB (5, 6, 1, FALSE, 64);	 /* (1 .. 32), 64-bit op */
 	case 'I': BIT (5, 6, 0); /* (0 .. 31) */
 	case 'K': HINT (3, 0);
 	case 'L': HINT (10, 16);
@@ -382,6 +383,10 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"sdbbp",	"",		0x101f,		0xffff,		0,	INSN2_ALIAS,	I38,	EJTAG,		0},
 {"sdbbp",	"+J",		0x00180000, 0xfff80000,		0,		0,	I38,		0,		0},
 {"sdbbp",	"",		0x001fffff, 0xffffffff,		0,	INSN2_ALIAS,	I38,		0,		0},
+{"move",	"-p,mj",	0x1000,		0xfc00,	WR_1|RD_2,		0,	I38,		0,		0}, /* preceded by BREAK, SDBBP */
+{"move",	"d,s",		0x20000290, 0xffe007ff, WR_1|RD_2,	INSN2_ALIAS,	I38,		0,		0}, /* OR */
+{"move",	"d,s",		0x20000150, 0xffe007ff, WR_1|RD_2,	INSN2_ALIAS,	I38,		0,		0}, /* ADDU */
+{"move",	"d,s",		0xc0000150, 0xffe007ff, WR_1|RD_2,	INSN2_ALIAS,	I70,		0,		0}, /* DADDU */
 {"sigrie",	"+J",		0x00000000, 0xfff80000,		0,		0,	I38,		0,		0},
 {"synci",	"+j(b)",	0xa7e01800, 0xffe07f00,		RD_2,		0,	I38,		0,		0}, /* SYNCI[S9] */
 {"syncie",	"+j(b)",	0xa7e01c00, 0xffe07f00,		RD_2,		0,	0,		EVA,		0},
@@ -654,11 +659,12 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"dabs",	"d,v",		0,    	  (int) M_DABS,	INSN_MACRO,		0,	I38,	0,		0},
 {"dadd",	"d,v,t",	0xc0000110, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
 {"dadd",	"t,r,I",	0,    (int) M_DADD_I,	INSN_MACRO,		0,	I70,		0,		0},
-{"daddiu",	"t,r,j",	0x00002000, 0xfc006000,	WR_1|RD_2,		0,	I70,		0,		0}, /* preceded by SIGRIE */
+{"daddiu",	"-t,r,j",	0x00002000, 0xfc006000,	WR_1|RD_2,		0,	I70,		0,		0}, /* preceded by SIGRIE */
+{"daddiu",	"t,ma,.",	0x40000000, 0xfc000003,	WR_1|RD_2,		0,	I70,		0,		0}, /* ADDIU[GP] */
 {"daddiu",	"mp,mt,+R",	0x6011, 	0xfc1f,	MOD_1,			0,	I70,		0,		0}, /* DADDIU[48] */
 {"daddiu",	"mp,ma,+R",	0x6012,		0xfc1f,	WR_1|RD_2,		0,	I70,		0,		0}, /* DADDIU[GP48] */
-{"daddu",	"d,v,t",		0xc0000150, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
-{"daddu",	"t,r,I",		0,    (int) M_DADDU_I,	INSN_MACRO,		0,	I70,		0,		0},
+{"daddu",	"d,v,t",	0xc0000150, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
+{"daddu",	"t,r,I",	0,    (int) M_DADDU_I,	INSN_MACRO,		0,	I70,		0,		0},
 {"dahi",	"t,mO",		0x80008000, 0xfc00f000,		WR_1,		0,	I70,		0,		0},
 {"dalign",	"d,s,t,+I",	0xc0000004, 0xfc00003f, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
 {"dalign32",	"d,s,t,+I",	0xc000000c, 0xfc00003f, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
@@ -669,21 +675,25 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"ddiv",	"d,v,t",		0xc0000118, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
 {"ddivu",	"d,v,t",		0xc0000198, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
 {"deret",	"",		0x2000e37f, 0xffffffff,		0,		0,	I38,	0,		0},
-{"dext",	"t,r,+A,+C",	0x8000f820, 0xfc00f820,	WR_1|RD_2,		0,	I70,		0,		0},
-{"dextm",	"t,r,+A,+C",	0x8000f800, 0xfc00f820,	WR_1|RD_2,		0,	I70,		0,		0},
-{"dextu",	"t,r,+A,+C",	0x8000f020, 0xfc00f820,	WR_1|RD_2,		0,	I70,		0,		0},
+{"dext",	"t,r,+A,+H",	0x8000f820, 0xfc00f820,	WR_1|RD_2,		0,	I70,		0,		0},
+{"dext",	"t,r,+A,+G",	0x8000f800, 0xfc00f820,	WR_1|RD_2,	INSN2_ALIAS,	I70,		0,		0}, /* DEXTM */
+{"dext",	"t,r,+E,+H",	0x8000f020, 0xfc00f820,	WR_1|RD_2,	INSN2_ALIAS,	I70,		0,		0}, /* DEXTU */
+{"dextm",	"t,r,+A,+G",	0x8000f800, 0xfc00f820,	WR_1|RD_2,		0,	I70,		0,		0},
+{"dextu",	"t,r,+E,+H",	0x8000f020, 0xfc00f820,	WR_1|RD_2,		0,	I70,		0,		0},
 {"di",		"",		0x2000477f, 0xffffffff,		0,	INSN2_ALIAS,	I38,		0,		0},
 {"di",		"w",		0x2000477f, 0xfc1fffff,		WR_1,		0,	I38,		0,		0},
 {"dins",	"t,r,+A,+B",	0x8000e820, 0xfc00f820,	WR_1|RD_2,		0,	I70,		0,		0},
-{"dinsm",	"t,r,+A,+B",	0x8000e800, 0xfc00f820,	WR_1|RD_2,		0,	I70,		0,		0},
-{"dinsu",	"t,r,+A,+B",	0x8000e020, 0xfc00f820,	WR_1|RD_2,		0,	I70,		0,		0},
+{"dins",	"t,r,+A,+F",	0x8000e800, 0xfc00f820,	WR_1|RD_2,	INSN2_ALIAS,	I70,		0,		0}, /* DINSM */
+{"dins",	"t,r,+E,+F",	0x8000e020, 0xfc00f820,	WR_1|RD_2,	INSN2_ALIAS,	I70,		0,		0}, /* DINSU */
+{"dinsm",	"t,r,+A,+F",	0x8000e800, 0xfc00f820,	WR_1|RD_2,		0,	I70,		0,		0},
+{"dinsu",	"t,r,+E,+F",	0x8000e020, 0xfc00f820,	WR_1|RD_2,		0,	I70,		0,		0},
 {"div", 	"d,v,t",	0x20000118, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,		0,		0},
 {"div", 	"d,v,I",	0,    (int) M_DIV_3I,	INSN_MACRO,		0,	I38,		0,		0},
 {"div.d",	"D,V,T",		0xa00001f0, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0,		0},
 {"div.s",	"D,V,T",		0xa00000f0, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0,		0},
 {"divu",	"d,v,t",		0x20000198, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,		0,		0},
 {"divu",	"d,v,I",		0,    (int) M_DIVU_3I,	INSN_MACRO,		0,	I38,		0,		0},
-{"dli", 	"-t,j",		0x00002000, 0xfc1f6000,	WR_1|RD_2,			0,	I70,		0,		0}, /* daddiu */
+{"dli", 	"-t,j",		0x00002000, 0xfc1f6000,	WR_1|RD_2,			0,	I70,		0,		0}, /* DADDIU */
 {"dli", 	"t,I",		0,    (int) M_DLI,	INSN_MACRO,			0,	I70,		0,		0},
 {"dlsa",	"d,v,t,+.",		0xc0000008, 0xfc0001ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
 {"dlui",	"mp,+Q",	0x6014, 	0xfc1f,		WR_1,		0,	I70,		0,		0}, /* DLUI[48] */
@@ -707,6 +717,8 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"dmuhu",	"d,s,t",		0xc00000d8, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
 {"dmul",	"d,v,t",		0xc0000018, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
 {"dmulu",	"d,s,t",		0xc0000098, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
+{"dneg",	"d,w",		0xc0000190, 0xfc1f07ff, WR_1|RD_2,	INSN2_ALIAS,	I70,		0,		0}, /* DSUB */
+{"dnegu",	"d,w",		0xc00001d0, 0xfc1f07ff, WR_1|RD_2,	INSN2_ALIAS,	I70,		0,		0}, /* DSUBU */
 {"dpa.w.ph",	"7,s,t",		0x200000bf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32,		0},
 {"dpaqx_s.w.ph", "7,s,t",		0x200022bf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32,		0},
 {"dpaqx_sa.w.ph", "7,s,t",		0x200032bf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32,		0},
@@ -723,22 +735,22 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"dpsu.h.qbl", "7,s,t",		0x200024bf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32,		0},
 {"dpsu.h.qbr", "7,s,t",		0x200034bf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32,		0},
 {"dpsx.w.ph",	"7,s,t",		0x200014bf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32,		0},
-/*
-{"drestore",	"count,mX",		0x1c03,	0xfc03,		0,		0,	I70,		0,		0}, /\* DRESTORE[16] *\/
-{"drestore",	"t,countA,mY,j,mw,mb", 0x8001b000, 0xfc01f000,		WR_1,		0,	I70,		0,		0},
-*/
-{"drol",	"d,v,t",		0,    (int) M_ROL,	INSN_MACRO,		0,	I70,		0,		0},
-{"drol",	"d,v,I",		0,    (int) M_ROL_I,	INSN_MACRO,		0,	I70,		0,		0},
-{"drotl",	"d,v,t",		0,    (int) M_ROL,	INSN_MACRO,		0,	I70,		0,		0},
-{"drotl",	"d,v,I",		0,    (int) M_ROL_I,	INSN_MACRO,		0,	I70,		0,		0},
-{"drotr",	"t,r,<",		0x8000c1c0, 0xfc00ffe0,	WR_1|RD_2,		0,	I70,		0,		0},
+{"drestore",	"m0",	0x1c03,		0xffc3,		0,			0,	I70,	0,		0}, /* DRESTORE[16] */
+{"drestore",	"m0,+N",	0x1c03,		0xfc03,		0,			0,	I70,	0,		0}, /* DRESTORE[16] */
+{"drestore",	"mY,n", 	0x8001b004, 0xfc01f004,		0,			0,	I70,	0,		0},
+{"drol",	"d,v,t",		0,    (int) M_DROL,	INSN_MACRO,		0,	I70,		0,		0},
+{"drol",	"d,v,I",		0,    (int) M_DROL_I,	INSN_MACRO,		0,	I70,		0,		0},
+{"drotl",	"d,v,t",		0,    (int) M_DROL,	INSN_MACRO,		0,	I70,		0,		0},
+{"drotl",	"d,v,I",		0,    (int) M_DROL_I,	INSN_MACRO,		0,	I70,		0,		0},
 {"dror",	"t,r,<",		0x8000c1c0, 0xfc00ffe0,	WR_1|RD_2,    INSN2_ALIAS,	I70,		0,		0}, /* DROTR */
+{"drotr",	"t,r,<",		0x8000c1c0, 0xfc00ffe0,	WR_1|RD_2,		0,	I70,		0,		0},
+{"dror32",	"t,r,<",		0x8000c1e0, 0xfc00ffe0,	WR_1|RD_2,    INSN2_ALIAS,	I70,		0,		0}, /* DROTR32 */
 {"drotr32",	"t,r,<",		0x8000c1e0, 0xfc00ffe0,	WR_1|RD_2,		0,	I70,		0,		0},
-{"drotrv",	"d,s,t",		0xc00000d0, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
-/*
-{"dsave",	"count,mX",		0x1c01,	0xfc03,		0,		0,	I70,		0,		0}, /\* DSAVE[16] *\/
-{"dsave",	"t,countA,mY,mw,mb",	0x8000b000, 0xfc01f004,		WR_1,		0,	I70,		0,		0},
-*/
+{"drorv",	"d,v,t",		0xc00000d0, 0xfc0007ff, WR_1|RD_2|RD_3,	INSN2_ALIAS,	I70,		0,		0}, /* DROTRV */
+{"drotrv",	"d,v,t",		0xc00000d0, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
+{"dsave",	"m0",			0x1c01,		0xffc3,		0,		0,	I70,		0,		0}, /* DSAVE[16] */
+{"dsave",	"m0,+N",		0x1c01,		0xfc03,		0,		0,	I70,		0,		0}, /* DSAVE[16] */
+{"dsave",	"mY,n",			0x8000b004, 0xfc01f004,		0,		0,	I70,		0,		0},
 {"dsbh",	"t,r",		0xc0007b3c, 0xfc00ffff,	WR_1|RD_2,		0,	I70,		0,		0},
 {"dshd",	"t,r",		0xc000fb3c, 0xfc00ffff,	WR_1|RD_2,		0,	I70,		0,		0},
 {"dsll",	"t,r,<",		0x8000c100, 0xfc00ffe0,	WR_1|RD_2,		0,	I70,		0,		0},
@@ -895,7 +907,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"lwu",	"t,+2(ma)",		0x441c0000, 0xfc1c0003,	WR_1|RD_3,		0,	I70,		0,		0}, /* LWU[GP] */
 {"lwu",	"t,o(b)",		0x84007000, 0xfc00f000,	WR_1|RD_3,		0,	I70,		0,		0},
 {"lwu",	"t,+j(b)",		0xa4003800, 0xfc007f00,	WR_1|RD_3,		0,	I70,		0,		0}, /* LWU[S9] */
-{"lwu",		"t,A(b)",	0,    (int) M_LWU_AB,	INSN_MACRO,		0,	I38,		0,		0},
+{"lwu",		"t,A(b)",	0,    (int) M_LWU_AB,	INSN_MACRO,		0,	I70,		0,		0},
 {"lwux",	"d,s(t)",		0x20000387, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
 {"lwuxs",	"d,s(t)",		0x200003c7, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
 {"lwx",	"d,s(t)",		0x20000407, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,		0,		0},
@@ -956,8 +968,6 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"modu",	"d,v,t",		0x200001d8, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0,		0},
 {"mov.d",	"T,S",		0xa000207b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"mov.s",	"T,S",		0xa000007b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
-{"move",	"-p,mj",	0x1000,		0xfc00,	WR_1|RD_2,		0,	I38,		0,		0}, /* preceded by BREAK, SDBBP */
-{"move",	"d,s",		0x20000290, 0xffe007ff, WR_1|RD_2,	INSN2_ALIAS,	I38,		0,		0}, /* OR */
 {"move.balc",	"m4,m7,+r",	0x08000000, 0xfc000000,	WR_1|RD_2,		0,	0,	XLP,		0},
 {"move.bal",	"m4,m7,+r",	0x08000000, 0xfc000000,	WR_1|RD_2, INSN2_ALIAS|CTC,	0,	XLP,		0}, /* MOVE.BALC */
 {"movep",	"m5,m2,m1",	0xbc00,		0xfc00,	WR_1|RD_2|RD_3,		0,	0,	XLP,		0},

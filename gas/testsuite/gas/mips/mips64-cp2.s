@@ -10,8 +10,12 @@ text_label:
       # these tests use cp2 to avoid other (cp0, fpu, prefetch) opcodes.
 
       dmfc2   $3, $4
+      .ifndef	r7
       dmfc2   $4, $5, 0               # disassembles without sel
       dmfc2   $5, $6, 7
+      .endif
       dmtc2   $6, $7
+      .ifndef	r7
       dmtc2   $7, $8, 0               # disassembles without sel
       dmtc2   $8, $9, 7
+      .endif

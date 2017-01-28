@@ -178,7 +178,9 @@ enum mips_abi_level
   O64_ABI,
   N32_ABI,
   N64_ABI,
-  EABI_ABI
+  EABI_ABI,
+  P32_ABI,
+  P64_ABI,
 };
 
 /* MIPS ABI we are using for this output file.  */
@@ -361,13 +363,14 @@ static const char *mips_tune_string;
 static int mips_32bitmode = 0;
 
 /* True if the given ABI requires 32-bit registers.  */
-#define ABI_NEEDS_32BIT_REGS(ABI) ((ABI) == O32_ABI)
+#define ABI_NEEDS_32BIT_REGS(ABI) ((ABI) == O32_ABI || (ABI) == P32_ABI)
 
 /* Likewise 64-bit registers.  */
 #define ABI_NEEDS_64BIT_REGS(ABI)	\
   ((ABI) == N32_ABI 			\
    || (ABI) == N64_ABI			\
-   || (ABI) == O64_ABI)
+   || (ABI) == O64_ABI			\
+   || (ABI) == P64_ABI)			\
 
 #define ISA_IS_R6(ISA)			\
   ((ISA) == ISA_MIPS32R6		\
@@ -398,7 +401,8 @@ static int mips_32bitmode = 0;
    || (ISA) == ISA_MIPS64R2		\
    || (ISA) == ISA_MIPS64R3		\
    || (ISA) == ISA_MIPS64R5		\
-   || (ISA) == ISA_MIPS64R6)
+   || (ISA) == ISA_MIPS64R6		\
+   || (ISA) == ISA_MIPS64R7)
 
 /*  Return true if ISA supports 64 bit wide float registers.  */
 #define ISA_HAS_64BIT_FPRS(ISA)		\
@@ -504,14 +508,15 @@ static int mips_32bitmode = 0;
 
 #define HAVE_NEWABI (mips_abi == N32_ABI || mips_abi == N64_ABI)
 
-#define HAVE_64BIT_OBJECTS (mips_abi == N64_ABI)
+#define HAVE_64BIT_OBJECTS (mips_abi == N64_ABI || mips_abi == P64_ABI)
 
 /* True if relocations are stored in-place.  */
 #define HAVE_IN_PLACE_ADDENDS (!HAVE_NEWABI && !ISA_IS_R7(mips_opts.isa))
 
 /* The ABI-derived address size.  */
 #define HAVE_64BIT_ADDRESSES \
-  (GPR_SIZE == 64 && (mips_abi == EABI_ABI || mips_abi == N64_ABI))
+  (GPR_SIZE == 64 && \
+   (mips_abi == EABI_ABI || mips_abi == N64_ABI || mips_abi == P64_ABI))
 #define HAVE_32BIT_ADDRESSES (!HAVE_64BIT_ADDRESSES)
 
 /* The size of symbolic constants (i.e., expressions of the form
@@ -1587,6 +1592,8 @@ enum options
     OPTION_MABI,
     OPTION_N32,
     OPTION_64,
+    OPTION_P32,
+    OPTION_P64,
     OPTION_MDEBUG,
     OPTION_NO_MDEBUG,
     OPTION_PDR,
@@ -1736,6 +1743,8 @@ struct option md_longopts[] =
   {"mabi", required_argument, NULL, OPTION_MABI},
   {"n32", no_argument, NULL, OPTION_N32},
   {"64", no_argument, NULL, OPTION_64},
+  {"p32", no_argument, NULL, OPTION_P32},
+  {"p64", no_argument, NULL, OPTION_P64},
   {"mdebug", no_argument, NULL, OPTION_MDEBUG},
   {"no-mdebug", no_argument, NULL, OPTION_NO_MDEBUG},
   {"mpdr", no_argument, NULL, OPTION_PDR},
@@ -2126,18 +2135,22 @@ mips_target_format (void)
 #endif
       return (target_big_endian
 	      ? (HAVE_64BIT_OBJECTS
-		 ? ELF_TARGET ("elf64-", "big")
+		 ? (ISA_IS_R7 (mips_opts.isa)
+		    ? ELF_TARGET ("elf64-p", "big")
+		    : ELF_TARGET ("elf64-", "big"))
 		 : (HAVE_NEWABI
 		    ? ELF_TARGET ("elf32-n", "big")
 		    : (ISA_IS_R7 (mips_opts.isa)
-		       ? ELF_TARGET ("elf32-r7", "big")
+		       ? ELF_TARGET ("elf32-p", "big")
 		       : ELF_TARGET ("elf32-", "big"))))
 	      : (HAVE_64BIT_OBJECTS
-		 ? ELF_TARGET ("elf64-", "little")
+		 ? (ISA_IS_R7 (mips_opts.isa)
+		    ? ELF_TARGET ("elf64-p", "big")
+		    : ELF_TARGET ("elf64-", "little"))
 		 : (HAVE_NEWABI
 		    ? ELF_TARGET ("elf32-n", "little")
 		    : (ISA_IS_R7 (mips_opts.isa)
-		       ? ELF_TARGET ("elf32-r7", "little")
+		       ? ELF_TARGET ("elf32-p", "little")
 		       : ELF_TARGET ("elf32-", "little")))));
     default:
       abort ();
@@ -4027,7 +4040,7 @@ md_begin (void)
     if (strncmp (TARGET_OS, "elf", 3) != 0)
       flags |= SEC_ALLOC | SEC_LOAD;
 
-    if (mips_abi != N64_ABI)
+    if (!HAVE_64BIT_OBJECTS)
       {
 	sec = subseg_new (".reginfo", (subsegT) 0);
 
@@ -4318,7 +4331,7 @@ file_mips_check_options (void)
      32-bit wide registers.  Note that EABI does not use it.  */
   if (ISA_HAS_64BIT_REGS (file_mips_opts.isa)
       && ((mips_abi == NO_ABI && file_mips_opts.gp == 32)
-	  || mips_abi == O32_ABI))
+	  || mips_abi == O32_ABI || mips_abi == P32_ABI))
     mips_32bitmode = 1;
 
   if (file_mips_opts.isa == ISA_MIPS1 && mips_trap)
@@ -10133,6 +10146,9 @@ static const char * const lwgp_fmt[2] = { "t,.(ma)", "t,o(b)" };
 static const char * const mem12_fmt[4] = { "t,o(b)", "t,~(b)",
 					   "t,+j(b)", "t,+m(b)" };
 static const char * const lle_sce_fmt[2] = { "t,+j(b)", "t,+m(b)" };
+static const char * const lld_scd_fmt[4] = { "t,o(b)", "t,~(b)",
+					     "t,+j(b)", "t,+q(b)" };
+static const char * const lwu_fmt[4] = { "t,o(b)", "t,~(b)"};
 static const char * const mfhl_fmt[2][2] = { { "d", "d" }, { "mj", "s" } };
 static const char * const shft_fmt[2] = { "d,w,<", "t,r,<" };
 static const char * const trap_fmt[2] = { "s,t,q", "s,t,|" };
@@ -10158,9 +10174,13 @@ static const char * const move_fmt[2] = { "mp,mj", "-p,mj" };
 #define ADDIUGP_FMT (addiugp_fmt[ISA_IS_R7 (mips_opts.isa) ? 0 : 1])
 #define LWGP_FMT (lwgp_fmt[ISA_IS_R7 (mips_opts.isa)	? 0 : 1])
 #define MEM12_FMT (mem12_fmt[mips_opts.micromips			\
-			     + (ISA_IS_R7 (mips_opts.isa)? 2 : 0)])
+			     + (ISA_IS_R7 (mips_opts.isa) ? 2 : 0)])
 #define LL_SC_FMT (mem12_fmt[ISA_FMT_INDEX])
+#define LLD_SCD_FMT (lld_scd_fmt[ISA_FMT_INDEX])
 #define LLE_SCE_FMT (lle_sce_fmt[ISA_IS_R7 (mips_opts.isa) ? 1 : 0])
+#define LWU_FMT (lwu_fmt[((ISA_IS_R7 (mips_opts.isa) || !mips_opts.micromips) \
+			  ? 0						\
+			  : 1 )])
 #define MFHL_FMT (mfhl_fmt[mips_opts.micromips][mips_opts.insn32])
 #define SHFT_FMT (shft_fmt[mips_opts.micromips])
 #define TRAP_FMT (trap_fmt[mips_opts.micromips])
@@ -10187,6 +10207,10 @@ static const char * const move_fmt[2] = { "mp,mj", "-p,mj" };
   (ISA_IS_R6 (mips_opts.isa) || ISA_IS_R7 (mips_opts.isa) ? 9	\
    : (mips_opts.micromips ? 12					\
       : 16))
+
+#define ISA_LLDSCD_OFFBITS					\
+  (ISA_IS_R7 (mips_opts.isa) ? 6 : ISA_LLSC_OFFBITS)
+
 #define ISA_CACHE_OFFBITS ISA_LLSC_OFFBITS
 
 #define MAX_PIC_OFFSET (ISA_IS_R7 (mips_opts.isa)? 0x1fffc : 0x8000)
@@ -10299,7 +10323,7 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
   r[2] = BFD_RELOC_UNUSED;
   if (mips_opts.micromips)
     {
-      if (mips_opts.isa == ISA_MIPS32R7)
+      if (ISA_IS_R7 (mips_opts.isa))
 	hash = micromipspp_op_hash;
       else
 	hash = micromips_op_hash;
@@ -13629,7 +13653,7 @@ macro (struct mips_cl_insn *ip, char *str)
       goto ld;
     case M_LLD_AB:
       s = "lld";
-      fmt = LL_SC_FMT;
+      fmt = LLD_SCD_FMT;
       offbits = ISA_LLSC_OFFBITS;
       goto ld;
     case M_LLDX_AB:
@@ -13639,7 +13663,7 @@ macro (struct mips_cl_insn *ip, char *str)
       goto ld;
     case M_LWU_AB:
       s = "lwu";
-      fmt = MEM12_FMT;
+      fmt = LWU_FMT;
       if (ISA_IS_R7 (mips_opts.isa))
 	gpfmt = "t,+2(ma)";
       offbits = (mips_opts.micromips ? 12 : 16);
@@ -13748,8 +13772,8 @@ macro (struct mips_cl_insn *ip, char *str)
       goto ld_st;
     case M_SCD_AB:
       s = "scd";
-      fmt = LL_SC_FMT;
-      offbits = ISA_LLSC_OFFBITS;
+      fmt = LLD_SCD_FMT;
+      offbits = ISA_LLDSCD_OFFBITS;
       goto ld_st;
     case M_SCDX_AB:
       s = "scdx";
@@ -15026,7 +15050,7 @@ macro (struct mips_cl_insn *ip, char *str)
 	  else
 	    tempreg = op[0];
 	  macro_build (NULL, "dnegu", "d,w", tempreg, op[2]);
-	  macro_build (NULL, "drorv", "d,t,s", op[0], op[1], tempreg);
+	  macro_build (NULL, "drorv", BITW_FMT, op[0], op[1], tempreg);
 	  break;
 	}
       used_at = 1;
@@ -15114,7 +15138,7 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_DROR:
       if (ISA_HAS_DROR (mips_opts.isa) || CPU_HAS_DROR (mips_opts.arch))
 	{
-	  macro_build (NULL, "drorv", "d,t,s", op[0], op[1], op[2]);
+	  macro_build (NULL, "drorv", BITW_FMT, op[0], op[1], op[2]);
 	  break;
 	}
       used_at = 1;
@@ -15526,7 +15550,7 @@ macro (struct mips_cl_insn *ip, char *str)
       else
 	{
 	  gpfmt = "t,.(ma)";
-	s = "lw";
+	  s = "lw";
 	}
       goto uld_st;
     case M_ULD_AB:
@@ -16034,7 +16058,7 @@ mips_ip (char *str, struct mips_cl_insn *insn)
 
   if (mips_opts.micromips)
     {
-      if (mips_opts.isa == ISA_MIPS32R7)
+      if (ISA_IS_R7 (mips_opts.isa))
 	{
 	  hash = micromipspp_op_hash;
 	  past = &micromipspp_opcodes[bfd_micromipspp_num_opcodes];
@@ -16831,7 +16855,7 @@ md_parse_option (int c, char *arg)
          when accessing the got in SVR4_PIC mode.  It is for Irix
          compatibility.  */
       /* Not supported for R7, where expansion to 32-bit offsets 
-	 is done by the linker as needed. */
+	 is done by the linker as needed.  */
     case OPTION_XGOT:
       if (!ISA_IS_R7 (file_mips_opts.isa))
 	mips_big_got = 1;
@@ -16854,6 +16878,18 @@ md_parse_option (int c, char *arg)
 
     case OPTION_64:
       mips_abi = N64_ABI;
+      if (!support_64bit_objects())
+	as_fatal (_("no compiled in support for 64 bit object file format"));
+      break;
+
+      /* The -p32 and -p64 options are shortcuts for -mabi=p32
+	 and -mabi=p64.  */
+    case OPTION_P32:
+      mips_abi = P32_ABI;
+      break;
+
+    case OPTION_P64:
+      mips_abi = P64_ABI;
       if (!support_64bit_objects())
 	as_fatal (_("no compiled in support for 64 bit object file format"));
       break;
@@ -16930,6 +16966,15 @@ md_parse_option (int c, char *arg)
 	}
       else if (strcmp (arg, "eabi") == 0)
 	mips_abi = EABI_ABI;
+      else if (strcmp (arg, "p32") == 0)
+	mips_abi = P32_ABI;
+      else if (strcmp (arg, "p64") == 0)
+	{
+	  mips_abi = P64_ABI;
+	  if (! support_64bit_objects())
+	    as_fatal (_("no compiled in support for 64 bit object file "
+			"format"));
+	}
       else
 	{
 	  as_fatal (_("invalid abi -mabi=%s"), arg);
@@ -17010,9 +17055,6 @@ mips_after_parse_args (void)
       g_switch_value = 0;
     }
 
-  if (mips_abi == NO_ABI)
-    mips_abi = MIPS_DEFAULT_ABI;
-
   /* The following code determines the architecture.
      Similar code was added to GCC 3.3 (see override_options() in
      config/mips/mips.c).  The GAS and GCC code should be kept in sync
@@ -17046,6 +17088,24 @@ mips_after_parse_args (void)
       arch_info = mips_parse_cpu ("default CPU", MIPS_CPU_STRING_DEFAULT);
       gas_assert (arch_info);
     }
+
+  if (mips_abi == NO_ABI)
+    {
+      if (ISA_IS_R7 (arch_info->isa))
+	mips_abi = P32_ABI;
+      else
+	mips_abi = MIPS_DEFAULT_ABI;
+    }
+  /* FIXME: Override other ABI selection options for now. This should
+     probably generate errors when done right.  */
+  else if (ISA_IS_R7 (arch_info->isa))
+    {
+      if (mips_abi == N64_ABI)
+	mips_abi = P64_ABI;
+      else if (mips_abi != P32_ABI)
+	mips_abi = P32_ABI;
+    }
+	   
 
   if (ABI_NEEDS_64BIT_REGS (mips_abi) && !ISA_HAS_64BIT_REGS (arch_info->isa))
     as_bad (_("-march=%s is not compatible with the selected ABI"),
@@ -21212,6 +21272,10 @@ mips_elf_final_processing (void)
     }
   else if (mips_abi == N32_ABI)
     elf_elfheader (stdoutput)->e_flags |= EF_MIPS_ABI2;
+  else if (mips_abi == P32_ABI)
+    elf_elfheader (stdoutput)->e_flags |= E_MIPS_ABI_P32;
+  else if (mips_abi == P64_ABI)
+    elf_elfheader (stdoutput)->e_flags |= E_MIPS_ABI_P64;
 
   /* Nothing to do for N64_ABI.  */
 
@@ -22133,13 +22197,17 @@ MIPS options:\n\
   show (stream, "n32", &column, &first);
   show (stream, "64", &column, &first);
   show (stream, "eabi", &column, &first);
+  show (stream, "p32", &column, &first);
+  show (stream, "p64", &column, &first);
 
   fputc ('\n', stream);
 
   fprintf (stream, _("\
 -32			create o32 ABI object file (default)\n\
 -n32			create n32 ABI object file\n\
--64			create 64 ABI object file\n"));
+-64			create 64 ABI object file\n\
+-p32			create p32 ABI object file (default)\n\
+-p64			create p64 ABI object file\n"));
 }
 
 #ifdef TE_IRIX

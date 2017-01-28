@@ -1,5 +1,6 @@
 	.set	micromips
 	.set	insn32
+test:
 	move	$13, $31
 	addu	$13, $31, $0
 	daddu	$13, $31, $0

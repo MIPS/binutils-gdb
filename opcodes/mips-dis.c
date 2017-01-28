@@ -650,7 +650,9 @@ const struct mips_arch_choice mips_arch_choices[] =
 
   { "mips64r7",	1, bfd_mach_mipsisa64r7, CPU_MIPS64R7,
     ISA_MIPS64R7,
-    ASE_XLP /* FIXME: should be optional */,
+    (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_MSA64 | ASE_VIRT | ASE_VIRT_XPA
+     | ASE_XPA | ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3 | ASE_DSP64
+     | ASE_XLP) /* FIXME: should be optional */,
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -786,7 +788,8 @@ static int
 is_newabi (Elf_Internal_Ehdr *header)
 {
   /* There are no old-style ABIs which use 64-bit ELF.  */
-  if (header->e_ident[EI_CLASS] == ELFCLASS64)
+  if (header->e_ident[EI_CLASS] == ELFCLASS64
+      && ((header->e_flags & E_MIPS_ABI_P64) != E_MIPS_ABI_P64))
     return 1;
 
   /* If a 32-bit ELF file, n32 is a new-style ABI.  */

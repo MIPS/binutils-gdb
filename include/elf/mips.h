@@ -380,6 +380,12 @@ R7_END_RELOC_OVERRIDE (R_MIPSR7_maxext)
 /* EABI in 64 bit mode */
 #define E_MIPS_ABI_EABI64       0x00004000
 
+/* R7 ABI in 32 bit mode */
+#define E_MIPS_ABI_P32       0x00005000
+
+/* R7 ABI in 64 bit mode */
+#define E_MIPS_ABI_P64       0x00006000
+
 
 /* Machine variant if we know it.  This field was invented at Cygnus,
    but it is hoped that other vendors will adopt it.  If some standard

@@ -1249,7 +1249,8 @@ dump_relocations (FILE * file,
 
 	case EM_MIPS:
 	case EM_MIPS_RS3_LE:
-	  if ((elf_header.e_flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R7)
+	  if ((elf_header.e_flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R7
+	      || (elf_header.e_flags & EF_MIPS_ARCH) == E_MIPS_ARCH_64R7)
 	    rtype = elf_mipsr7_reloc_type (type);
 	  else
 	    rtype = elf_mips_reloc_type (type);
@@ -1568,7 +1569,9 @@ dump_relocations (FILE * file,
       putchar ('\n');
 
 #ifdef BFD64
-      if (! is_32bit_elf && elf_header.e_machine == EM_MIPS)
+      if (! is_32bit_elf
+	  && elf_header.e_machine == EM_MIPS
+	  && (elf_header.e_flags & E_MIPS_ABI_P64) != E_MIPS_ABI_P64)
 	{
 	  bfd_vma type2 = ELF64_MIPS_R_TYPE2 (inf);
 	  bfd_vma type3 = ELF64_MIPS_R_TYPE3 (inf);
@@ -2921,6 +2924,8 @@ get_machine_flags (unsigned e_flags, unsigned e_machine)
 	    case E_MIPS_ABI_O64: strcat (buf, ", o64"); break;
 	    case E_MIPS_ABI_EABI32: strcat (buf, ", eabi32"); break;
 	    case E_MIPS_ABI_EABI64: strcat (buf, ", eabi64"); break;
+	    case E_MIPS_ABI_P32: strcat (buf, ", p32"); break;
+	    case E_MIPS_ABI_P64: strcat (buf, ", p64"); break;
 	    case 0:
 	    /* We simply ignore the field in this case to avoid confusion:
 	       MIPS ELF does not specify EF_MIPS_ABI, it is a GNU extension.

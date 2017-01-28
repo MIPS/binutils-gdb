@@ -131,6 +131,10 @@ static bfd_boolean elf64_mips_grok_psinfo
 extern const bfd_target mips_elf64_be_vec;
 extern const bfd_target mips_elf64_le_vec;
 
+/* Nonzero if ABFD is using the P64 ABI.  */
+#define ABI_P64_P(abfd) \
+  ((elf_elfheader (abfd)->e_flags & E_MIPS_ABI_P64) == E_MIPS_ABI_P64)
+
 /* In case we're on a 32-bit machine, construct a 64-bit "-1" value
    from smaller values.  Start with zero, widen, *then* decrement.  */
 #define MINUS_ONE	(((bfd_vma)0) - 1)
@@ -4447,6 +4451,9 @@ static bfd_boolean
 mips_elf64_object_p (bfd *abfd)
 {
   unsigned long mach;
+
+  if (ABI_P64_P (abfd))
+    return FALSE;
 
   /* Irix 6 is broken.  Object file symbol tables are not always
      sorted correctly such that local symbols precede global symbols,

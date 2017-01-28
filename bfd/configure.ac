@@ -857,8 +857,8 @@ do
     mips_elf32_ntradfbsd_le_vec) tb="$tb elfn32-mips.lo elfxx-mips.lo elf-vxworks.lo elf32.lo $elf ecofflink.lo"; target_size=64 ;;
     mips_elf32_trad_be_vec)	 tb="$tb elf32-mips.lo elfxx-mips.lo elf-vxworks.lo elf32.lo $elf ecofflink.lo" ;;
     mips_elf32_trad_le_vec)	 tb="$tb elf32-mips.lo elfxx-mips.lo elf-vxworks.lo elf32.lo $elf ecofflink.lo" ;;
-    mips_elf32_r7trad_be_vec)	 tb="$tb elf32-mips.lo elfxx-mips.lo elf32.lo $elf ecofflink.lo" ;;
-    mips_elf32_r7trad_le_vec)	 tb="$tb elf32-mips.lo elfxx-mips.lo elf32.lo $elf ecofflink.lo" ;;
+    mips_elf32_ptrad_be_vec)	 tb="$tb elfp32-mips.lo elfxx-mips.lo elf32.lo $elf ecofflink.lo" ;;
+    mips_elf32_ptrad_le_vec)	 tb="$tb elfp32-mips.lo elfxx-mips.lo elf32.lo $elf ecofflink.lo" ;;
     mips_elf32_tradfbsd_be_vec)  tb="$tb elf32-mips.lo elfxx-mips.lo elf-vxworks.lo elf32.lo $elf ecofflink.lo" ;;
     mips_elf32_tradfbsd_le_vec)  tb="$tb elf32-mips.lo elfxx-mips.lo elf-vxworks.lo elf32.lo $elf ecofflink.lo" ;;
     mips_elf32_vxworks_be_vec)	 tb="$tb elf32-mips.lo elfxx-mips.lo elf-vxworks.lo elf32.lo $elf ecofflink.lo" ;;
@@ -867,6 +867,8 @@ do
     mips_elf64_le_vec)		 tb="$tb elf64-mips.lo elf64.lo elfxx-mips.lo elf-vxworks.lo elf32.lo $elf ecofflink.lo"; target_size=64 ;;
     mips_elf64_trad_be_vec)	 tb="$tb elf64-mips.lo elf64.lo elfxx-mips.lo elf-vxworks.lo elf32.lo $elf ecofflink.lo"; target_size=64 ;;
     mips_elf64_trad_le_vec)	 tb="$tb elf64-mips.lo elf64.lo elfxx-mips.lo elf-vxworks.lo elf32.lo $elf ecofflink.lo"; target_size=64 ;;
+    mips_elf64_ptrad_be_vec)	 tb="$tb elfp64-mips.lo elf64.lo elfxx-mips.lo elf32.lo $elf ecofflink.lo"; target_size=64 ;;
+    mips_elf64_ptrad_le_vec)	 tb="$tb elfp64-mips.lo elf64.lo elfxx-mips.lo elf32.lo $elf ecofflink.lo"; target_size=64 ;;
     mips_elf64_tradfbsd_be_vec)  tb="$tb elf64-mips.lo elf64.lo elfxx-mips.lo elf-vxworks.lo elf32.lo $elf ecofflink.lo"; target_size=64 ;;
     mips_elf64_tradfbsd_le_vec)  tb="$tb elf64-mips.lo elf64.lo elfxx-mips.lo elf-vxworks.lo elf32.lo $elf ecofflink.lo"; target_size=64 ;;
     mips_pe_le_vec)		 tb="$tb pe-mips.lo peigen.lo cofflink.lo" ;;

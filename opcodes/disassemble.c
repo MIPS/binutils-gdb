@@ -623,7 +623,8 @@ disassemble_init_for_target (struct disassemble_info * info)
 #endif
 #ifdef ARCH_mips
     case bfd_arch_mips:
-      if (info->mach == bfd_mach_mipsisa32r7)
+      if (info->mach == bfd_mach_mipsisa32r7
+	  || info->mach == bfd_mach_mipsisa64r7)
 	info->disassembler_needs_relocs = TRUE;
       break;
 #endif

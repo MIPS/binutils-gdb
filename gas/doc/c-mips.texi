@@ -409,7 +409,8 @@ identical to @samp{-march=@var{cpu}}.
 
 @item -mabi=@var{abi}
 Record which ABI the source code uses.  The recognized arguments
-are: @samp{32}, @samp{n32}, @samp{o64}, @samp{64} and @samp{eabi}.
+are: @samp{32}, @samp{n32}, @samp{o64}, @samp{64}, @samp{eabi},
+@samp{p32} and @samp{p64}.
 
 @item -msym32
 @itemx -mno-sym32
