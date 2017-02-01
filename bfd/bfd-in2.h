@@ -3067,6 +3067,7 @@ to compensate for the borrow when the low bits are added.  */
   BFD_RELOC_MICROMIPSPP_LO4_S2,
   BFD_RELOC_MICROMIPSPP_GPREL_HI20,
   BFD_RELOC_MICROMIPSPP_GPREL_LO12,
+  BFD_RELOC_MICROMIPSPP_HI32,
 
 
 /* Moxie ELF relocations.  */

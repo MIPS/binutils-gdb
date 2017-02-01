@@ -1227,6 +1227,7 @@ static const char *const bfd_reloc_code_real_names[] = { "@@uninitialized@@",
   "BFD_RELOC_MICROMIPSPP_LO4_S2",
   "BFD_RELOC_MICROMIPSPP_GPREL_HI20",
   "BFD_RELOC_MICROMIPSPP_GPREL_LO12",
+  "BFD_RELOC_MICROMIPSPP_HI32",
 
   "BFD_RELOC_MOXIE_10_PCREL",
 
