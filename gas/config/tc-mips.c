@@ -4486,6 +4486,7 @@ micromipspp_reloc_p (bfd_reloc_code_real_type reloc)
       case BFD_RELOC_MICROMIPSPP_GOT_DISP:
       case BFD_RELOC_MICROMIPSPP_IMM14:
       case BFD_RELOC_MICROMIPSPP_32:
+      case BFD_RELOC_MICROMIPSPP_HI32:
       return TRUE;
 
     default:
@@ -4496,7 +4497,8 @@ micromipspp_reloc_p (bfd_reloc_code_real_type reloc)
 static inline bfd_boolean
 micromipspp_48bit_reloc_p (bfd_reloc_code_real_type reloc)
 {
-  return (reloc == BFD_RELOC_MICROMIPSPP_32);
+  return (reloc == BFD_RELOC_MICROMIPSPP_32
+	  || reloc == BFD_RELOC_MICROMIPSPP_HI32);
 }
 
 static inline bfd_boolean
@@ -5535,7 +5537,8 @@ match_int_operand (struct mips_arg_info *arg,
       if (!match_expression (arg, &offset_expr, offset_reloc))
 	return FALSE;
 
-      if (offset_reloc[0] != BFD_RELOC_UNUSED)
+      if (offset_reloc[0] != BFD_RELOC_UNUSED
+	  && !micromipspp_48bit_reloc_p (offset_reloc[0]))
 	/* Relocation operators were used.  Accept the arguent and
 	   leave the relocation value in offset_expr and offset_relocs
 	   for the caller to process.  */
@@ -5611,18 +5614,26 @@ match_int_operand (struct mips_arg_info *arg,
   return TRUE;
 }
 
+#define MAX_ADDI_OFFSET (ISA_IS_R7 (mips_opts.isa)? 0x2000 : 0x8000)
+
+#define MIN_ADDI_OFFSET (ISA_IS_R7 (mips_opts.isa)? -0x2000 : -0x8000)
+
+
 static bfd_boolean
-match_immediate_word (struct mips_arg_info *arg)
+match_immediate_word (struct mips_arg_info *arg,
+		      const struct mips_operand *operand ATTRIBUTE_UNUSED)
 {
   unsigned int uval;
   
   if (match_expression (arg, &offset_expr, offset_reloc))
     {
-      if (offset_reloc[0] != BFD_RELOC_UNUSED)
-	/* Relocation operators not allowed in this position.  */
+      if (offset_reloc[0] != BFD_RELOC_UNUSED
+	  && !micromipspp_48bit_reloc_p (offset_reloc[0]))
+	/* Any other relocation operators not allowed in this position.  */
 	return FALSE;
 
-      offset_reloc[0] = BFD_RELOC_MICROMIPSPP_32;
+      if (offset_reloc[0] == BFD_RELOC_UNUSED)
+	offset_reloc[0] = BFD_RELOC_MICROMIPSPP_32;
 
       /* We don't match symbol-difference expressions here.  */
       if (offset_expr.X_op != O_constant && offset_expr.X_op_symbol == NULL)
@@ -5630,10 +5641,12 @@ match_immediate_word (struct mips_arg_info *arg)
 	  arg->insn->insn_opcode_ext = 0;
 	  return TRUE;
 	}
-      else if ((offset_expr.X_add_number & 0xfff) != 0
-	       && offset_expr.X_op != O_big)
-	/* We don't match the 48-bit instruction, when we could make
-	   do with 32-bit LUI.  */
+      else
+	if ((offset_expr.X_add_number > MAX_ADDI_OFFSET
+	    || offset_expr.X_add_number < MIN_ADDI_OFFSET)
+	    && offset_expr.X_op != O_big)
+	    /* We don't match the 48-bit instruction, when we could make
+	       do with a 32-bit one.  */
 	{
 	  uval = offset_expr.X_add_number;	  
 	  arg->last_op_int = uval;
@@ -6997,7 +7010,7 @@ match_operand (struct mips_arg_info *arg,
  
     case OP_UIMM_WORD:
     case OP_IMM_WORD:
-      return match_immediate_word (arg);
+      return match_immediate_word (arg, operand);
 
     case OP_DONT_CARE:
       return FALSE;
@@ -7992,8 +8005,6 @@ micromipspp_map_reloc (bfd_reloc_code_real_type reloc)
       { BFD_RELOC_MIPS_GOT_PAGE, BFD_RELOC_MICROMIPSPP_GOT_PAGE },
       { BFD_RELOC_MIPS_GOT_OFST, BFD_RELOC_MICROMIPSPP_GOT_OFST },
       { BFD_RELOC_MIPS_GOT_DISP, BFD_RELOC_MICROMIPSPP_GOT_DISP },
-      { BFD_RELOC_MIPS_HIGHEST, BFD_RELOC_MICROMIPS_HIGHEST },
-      { BFD_RELOC_MIPS_HIGHER, BFD_RELOC_MICROMIPS_HIGHER },
       { BFD_RELOC_MIPS_SCN_DISP, BFD_RELOC_MICROMIPS_SCN_DISP },
       { BFD_RELOC_MIPS_TLS_GD, BFD_RELOC_MICROMIPS_TLS_GD },
       { BFD_RELOC_MIPS_TLS_LDM, BFD_RELOC_MICROMIPS_TLS_LDM },
@@ -8657,9 +8668,16 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	  }
 	  break;
 
+	case BFD_RELOC_MICROMIPSPP_HI32:
+	  ip->insn_opcode_ext = (((address_expr->X_add_number + 0x80000000) >> 32)
+				 & 0xffffffff);
+	  ip->complete_p = 1;
+	  break;
+
 	case BFD_RELOC_MICROMIPSPP_32:
-	  ip->insn_opcode_ext = address_expr->X_add_number;
-	  /* Fall-through */
+	  ip->insn_opcode_ext = (address_expr->X_add_number & 0xffffffff);
+	  ip->complete_p = 1;
+	  break;
 
 	case BFD_RELOC_MICROMIPSPP_CALL:
 	  ip->complete_p = 1;
@@ -10217,10 +10235,6 @@ static const char * const move_fmt[2] = { "mp,mj", "-p,mj" };
 
 #define MIN_PIC_OFFSET (ISA_IS_R7 (mips_opts.isa)? 0 : -0x8000)
 
-#define MAX_ADDI_OFFSET (ISA_IS_R7 (mips_opts.isa)? 0x2000 : 0x8000)
-
-#define MIN_ADDI_OFFSET (ISA_IS_R7 (mips_opts.isa)? -0x2000 : -0x8000)
-
 #define ISA_BFD_RELOC_LOW (ISA_IS_R7 (mips_opts.isa) \
 			      ? BFD_RELOC_MICROMIPSPP_LO12 : BFD_RELOC_LO16 )
 
@@ -10866,7 +10880,7 @@ load_register (int reg, expressionS *ep, int dbl)
       if (ISA_IS_R7 (mips_opts.isa))
 	{
 	  if (ep->X_add_number >= -1 && ep->X_add_number <= 126
-	      && (reg == 16 || reg == 17 || (reg >= 2 && reg <= 7)))
+	      && ((reg >= 16 && reg <= 19) || (reg >= 4 && reg <= 7)))
 	    {
 	      /* 7-bit values loaded using LI[16].  */
 	      macro_build (NULL, "li", "md,mI", reg, ep->X_add_number);
@@ -16355,6 +16369,8 @@ static const struct percent_op_match micromipspp_percent_op[] =
   {"%pcrel_hi", BFD_RELOC_MICROMIPSPP_HI20_PCREL},
   {"%pcrel_lo", BFD_RELOC_MICROMIPSPP_LO12_PCREL},
   {"%pcrel_himask", BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12},
+  {"%lo32", BFD_RELOC_MICROMIPSPP_32},
+  {"%hi32", BFD_RELOC_MICROMIPSPP_HI32},
   /* These are currently not supported for R7.  */
   {"%got_hi", BFD_RELOC_UNUSED},
   {"%got_lo", BFD_RELOC_UNUSED},
@@ -17102,7 +17118,7 @@ mips_after_parse_args (void)
     {
       if (mips_abi == N64_ABI)
 	mips_abi = P64_ABI;
-      else if (mips_abi != P32_ABI)
+      else if (mips_abi != P32_ABI && mips_abi != P64_ABI)
 	mips_abi = P32_ABI;
     }
 	   
@@ -17711,6 +17727,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       break;
 
     case BFD_RELOC_MICROMIPSPP_32:
+    case BFD_RELOC_MICROMIPSPP_HI32:
     case BFD_RELOC_MICROMIPSPP_LO12:
     case BFD_RELOC_MICROMIPSPP_IMM14:
       if (! fixP->fx_done)

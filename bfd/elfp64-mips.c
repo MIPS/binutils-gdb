@@ -1559,19 +1559,19 @@ static reloc_howto_type micromips_elf64_howto_table_rela[] =
 	 0xffffffff,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-  /* Low 4 bits of load/store offset, scaled by 4.  */
-  HOWTO (R_MICROMIPSPP_LO4_S2,	/* type */
+  /* High 32 bits of 64-bit address.  */
+  HOWTO (R_MICROMIPSPP_HI32,	/* type */
 	 2,			/* rightshift */
-	 1,			/* size (0 = byte, 1 = short, 2 = long) */
-	 4,			/* bitsize */
+	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 32,			/* bitsize */
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
 	 complain_overflow_dont, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc, /* special_function */
-	 "R_MICROMIPS_LO4_S2",	/* name */
+	 "R_MICROMIPS_HI32",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
-	 0x0000000f,		/* dst_mask */
+	 0xffffffff,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
   /* High 20 bits of GP relative reference.  */
@@ -2120,11 +2120,11 @@ static const struct elf_reloc_map micromips_reloc_map[] =
     R_MICROMIPSPP_LITERAL - R_MICROMIPSPP_min },
   { BFD_RELOC_MICROMIPSPP_32,
     R_MICROMIPSPP_32 - R_MICROMIPSPP_min },
-  { BFD_RELOC_MICROMIPSPP_LO4_S2, R_MICROMIPSPP_LO4_S2 - R_MICROMIPSPP_min },
   { BFD_RELOC_MICROMIPSPP_GPREL_HI20,
     R_MICROMIPSPP_GPREL_HI20 - R_MICROMIPSPP_min },
   { BFD_RELOC_MICROMIPSPP_GPREL_LO12,
     R_MICROMIPSPP_GPREL_LO12 - R_MICROMIPSPP_min },
+  { BFD_RELOC_MICROMIPSPP_HI32, R_MICROMIPSPP_HI32 - R_MICROMIPSPP_min },
 };
 /* Given a BFD reloc type, return a howto structure.  */
 
@@ -2414,6 +2414,8 @@ static const struct ecoff_debug_swap mips_elf64_ecoff_debug_swap =
 #define elf_backend_can_gc_sections	TRUE
 #define elf_backend_gc_mark_extra_sections \
 					_bfd_mips_elf_gc_mark_extra_sections
+#define elf_info_to_howto		mips_info_to_howto_rela
+#define elf_info_to_howto_rel		mips_info_to_howto_rel
 #define elf_backend_object_p		mips_elf_p64_object_p
 #define elf_backend_symbol_processing	_bfd_mips_elf_symbol_processing
 #define elf_backend_section_processing	_bfd_mips_elf_section_processing

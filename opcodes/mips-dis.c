@@ -2573,7 +2573,7 @@ print_insn_micromips (bfd_vma memaddr_base, struct disassemble_info *info)
       info->insn_type = dis_noninsn;
       return 6;
     }
-  if (is_isa_r7 (mips_isa) && (insn & 0xfc0c) == 0x6000)
+  if (is_isa_r7 (mips_isa) && (insn & 0xfc08) == 0x6000)
     {
       unsigned imm;
       /* This is a 48-bit microMIPS R7 instruction. */

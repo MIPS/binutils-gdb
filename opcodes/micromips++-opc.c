@@ -404,8 +404,8 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"jalr",	"t,s",		0x48000000, 0xfc00ffff,	WR_1|RD_2,  INSN2_ALIAS|CTC,	I38,		0,		0}, /* JALRC */
 {"li",		"md,mI",	0xd000,		0xfc00,	WR_1,		0,	I38,		0,		0}, /* LI[16] */
 {"li",		"-t,j",		0x00000000, 0xfc1f6000,	WR_1,	INSN2_ALIAS,	I38,		0,		0}, /* ADDIU */
-{"li",		"mp,+Q",	0x6000, 	0xfc1f,		WR_1,	0,	0,		XLP,		0}, /* LI[48] */
 {"li",		"t,I",		0,	(int) M_LI,	INSN_MACRO,	0,	I38,		0,		0},
+{"li",		"mp,+Q",	0x6000, 	0xfc1f,		WR_1,	0,	0,		XLP,		0}, /* LI[48] */
 {"ext",		"t,r,+A,+C",	0x8000f000, 0xfc00f820,	WR_1|RD_2,			0,	0,	XLP,		0},
 {"ext",		"t,r,+A,+C",	0,    (int) M_EXT,	INSN_MACRO,			0,	I38,	0,		0},
 
