@@ -197,4 +197,33 @@ extern int tc_mips_regname_to_dw2regnum (char *regname);
 #define CONVERT_SYMBOLIC_ATTRIBUTE(name) mips_convert_symbolic_attribute (name)
 extern int mips_convert_symbolic_attribute (const char *);
 
+/* Definitions needed to parse cons in target-specific manner.  */
+#define TC_PARSE_CONS_RETURN_TYPE bfd_reloc_code_real_type
+#define TC_PARSE_CONS_RETURN_NONE BFD_RELOC_NONE
+
+/* Parse a cons expression to determined what kind of relocations
+   may be needed to represent it.  */
+extern bfd_reloc_code_real_type
+mips_parse_cons_expression (struct expressionS *, unsigned);
+#define TC_PARSE_CONS_EXPRESSION(EXP, NBYTES) \
+  mips_parse_cons_expression (EXP, NBYTES)
+
+/* Walk a cons expression tree and create the relocations needed
+   to represent the operation.  */
+extern void mips_cons_fix_new (struct frag *, int, int, struct expressionS *,
+			       const bfd_reloc_code_real_type);
+#define TC_CONS_FIX_NEW(FRAG, WHERE, NBYTES, EXP, RELOC)	\
+  mips_cons_fix_new (FRAG, WHERE, NBYTES, EXP, RELOC)
+
+/* Determine what kind of difference expressions must be
+   evaluated by assembler.  */
+extern bfd_boolean mips_allow_local_subtract (expressionS *, expressionS *,
+					      segT);
+#define md_allow_local_subtract(lhs,rhs,sect)	\
+  mips_allow_local_subtract (lhs, rhs, sect)
+
+/* We don't need a complicated data structure, a simple struct pointer
+   will do for now.  */
+#define TC_FRAG_TYPE struct fix *
+
 #endif /* TC_MIPS */

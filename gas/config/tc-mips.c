@@ -508,6 +508,8 @@ static int mips_32bitmode = 0;
 
 #define HAVE_NEWABI (mips_abi == N32_ABI || mips_abi == N64_ABI)
 
+#define HAVE_PABI (mips_abi == P32_ABI || mips_abi == P64_ABI)
+
 #define HAVE_64BIT_OBJECTS (mips_abi == N64_ABI || mips_abi == P64_ABI)
 
 /* True if relocations are stored in-place.  */
@@ -9018,6 +9020,9 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 				 address_expr,
 				 howto0 && howto0->pc_relative,
 				 final_type[0]);
+      /* Remember the first fix-up in this frag.  */
+      if (ip->frag->tc_frag_data == NULL)
+	ip->frag->tc_frag_data = ip->fixp[0];
 
       /* Tag symbols that have a R_MIPS16_26 relocation against them.  */
       if (final_type[0] == BFD_RELOC_MIPS16_JMP && ip->fixp[0]->fx_addsy)
@@ -17127,7 +17132,6 @@ mips_after_parse_args (void)
       else if (mips_abi != P32_ABI && mips_abi != P64_ABI)
 	mips_abi = P32_ABI;
     }
-	   
 
   if (ABI_NEEDS_64BIT_REGS (mips_abi) && !ISA_HAS_64BIT_REGS (arch_info->isa))
     as_bad (_("-march=%s is not compatible with the selected ABI"),
@@ -17478,7 +17482,8 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 	return;
     }
 
-  gas_assert (fixP->fx_size == 2
+  gas_assert (HAVE_PABI
+	      || fixP->fx_size == 2
 	      || fixP->fx_size == 4
 	      || fixP->fx_r_type == BFD_RELOC_MICROMIPSPP_32
 	      || fixP->fx_r_type == BFD_RELOC_8
@@ -17655,11 +17660,18 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
     case BFD_RELOC_32_PCREL:
     case BFD_RELOC_16:
     case BFD_RELOC_8:
+    case BFD_RELOC_MIPS_UNSIGNED_8:
+    case BFD_RELOC_MIPS_UNSIGNED_16:
       /* If we are deleting this reloc entry, we must fill in the
 	 value now.  This can happen if we have a .word which is not
 	 resolved when it appears but is later defined.  */
       if (fixP->fx_done)
 	md_number_to_chars (buf, *valP, fixP->fx_size);
+      break;
+
+    case BFD_RELOC_MIPS_ASHIFTR:
+      if (fixP->fx_done)
+	*valP = (*valP >> 1);
       break;
 
     case BFD_RELOC_MIPS_21_PCREL_S2:
@@ -22366,4 +22378,293 @@ md_mips_end (void)
       bfd_elf_add_obj_attr_int (stdoutput, OBJ_ATTR_GNU,
 				Tag_GNU_MIPS_ABI_FP, fpabi);
     }
+}
+
+/* Parse a .byte, .word, etc. expression.
+
+   Values for the status register are specified with %st(label).
+   `label' will be right shifted by 2.  */
+
+bfd_reloc_code_real_type
+mips_parse_cons_expression (expressionS *exp,
+			   unsigned int nbytes)
+{
+  bfd_reloc_code_real_type rel = BFD_RELOC_NONE;
+  expression (exp);
+
+  /* Sometimes subtract expressions containing data labels are deemed
+     not-constant by general parse code because they fall in distinct
+     frags.  These wouldn't be affected by linker relaxation which only
+     touches code, so we skip relocations for those expressions and hope
+     that this will not break any valid case.  */
+  if (HAVE_PABI
+      && exp->X_op != O_constant
+      && (exp->X_op != O_subtract
+	  || ((S_GET_SEGMENT (exp->X_add_symbol))->flags & SEC_CODE) != 0
+	  || ((S_GET_SEGMENT (exp->X_op_symbol))->flags & SEC_CODE) != 0))
+    {
+      expressionS *iter;
+      bfd_boolean signed_op = (exp->X_unsigned == 0);
+      bfd_boolean done = FALSE;
+
+      switch (nbytes)
+	{
+	  case 1:
+	    rel = BFD_RELOC_MIPS_UNSIGNED_8;
+	    break;
+	  case 2:
+	    if (signed_op)
+	      rel = BFD_RELOC_16;
+	    else
+	      rel = BFD_RELOC_MIPS_UNSIGNED_16;
+	    break;
+	  case 4:
+	    rel = BFD_RELOC_32;
+	    break;
+	  case 8:
+	    rel = BFD_RELOC_64;
+	    break;
+	  default:
+	    as_bad (_("unsupported BFD relocation size %u"), nbytes);
+	    rel = BFD_RELOC_NONE;
+	}
+
+      /* Check if we can actually handle this expression.  */
+      iter = exp;
+      while (iter->X_add_symbol != NULL && !done)
+	{
+	  switch (iter->X_op)
+	    {
+	      case O_symbol:
+	      /* exp := symbol [ + offset ] */
+		break;
+
+	      case O_subtract:
+	      /* exp := exp - symbol */
+		if (symbol_constant_p (iter->X_op_symbol)
+		    || symbol_equated_p (iter->X_op_symbol))
+		  break;
+
+	      case O_right_shift:
+	      /* exp := exp >> const */
+		if (!symbol_constant_p (iter->X_op_symbol)
+		    || S_GET_SEGMENT (iter->X_op_symbol) != absolute_section
+		    || iter->X_add_number != 0)
+		  {
+		    as_bad ("Expression too complex to relocate!");
+		    rel = BFD_RELOC_NONE;
+		  }
+		break;
+
+	      default:
+		/* If the expression contains even one operator that we can't
+		   map to relocations, then don't bother.  */
+		rel = BFD_RELOC_NONE;
+		done = TRUE;
+		break;
+	    }
+
+	  iter = symbol_get_value_expression (iter->X_add_symbol);
+	}
+    }
+
+  return rel;
+}
+
+void
+mips_cons_fix_new (fragS *frag,
+		  int where,
+		  int nbytes,
+		  expressionS *exp,
+		  bfd_reloc_code_real_type r)
+{
+  if (ISA_IS_R7 (mips_opts.isa) && r != BFD_RELOC_NONE)
+    {
+      /* Assuming 32 entries will be enough.  */
+      symbolS *relsyms[32];
+      offsetT raddends[32];
+      bfd_reloc_code_real_type relocs[32];
+      int rcount = 0;
+      bfd_boolean comp_p;
+      bfd_reloc_code_real_type sym_reloc = (HAVE_64BIT_SYMBOLS
+					    ? BFD_RELOC_64
+					    : BFD_RELOC_32);
+      expressionS *iter = exp;
+
+      if (iter->X_op == O_symbol)
+	{
+	  /* Use the cons reloc directly for simple symbol reference.  */
+	  sym_reloc = r;
+	  comp_p = FALSE;
+	}
+      else
+	{
+	  /* Record the cons reloc at the outer-most level.  */
+	  relsyms[rcount] = NULL;
+	  raddends[rcount] = 0;
+	  relocs[rcount++] = r;
+	  comp_p = TRUE;
+	}
+
+      while (iter->X_add_symbol != NULL)
+	{
+	  switch (iter->X_op)
+	    {
+	    case O_symbol:
+	      relsyms[rcount] = iter->X_add_symbol;
+	      raddends[rcount] = iter->X_add_number;
+	      relocs[rcount++] = sym_reloc;
+	      break;
+	    case O_subtract:
+	      relsyms[rcount] = iter->X_op_symbol;
+	      raddends[rcount] = 0;
+	      relocs[rcount++] = BFD_RELOC_MIPS_SUB;
+	      break;
+	    case O_right_shift:
+	      relsyms[rcount] = iter->X_op_symbol;
+	      raddends[rcount] = 0;
+	      relocs[rcount++] = BFD_RELOC_MIPS_ASHIFTR;
+	      break;
+	    default:
+	      as_bad ("Expression too complex to relocate!");
+	      break;
+	    }
+
+	  /* Tentatively fill as if this were the last level of nesting.  */
+	  if (iter->X_op != O_symbol)
+	    {
+	      relsyms[rcount] = iter->X_add_symbol;
+	      raddends[rcount] = iter->X_add_number;
+	      relocs[rcount++] = sym_reloc;
+	    }
+
+	  iter = symbol_get_value_expression (iter->X_add_symbol);
+
+	  /* One more level of nesting, scrap the tentative entry.  */
+	  if (iter->X_add_symbol != NULL)
+	    rcount--;
+	  gas_assert (rcount < sizeof (raddends) / sizeof (offsetT));
+	}
+
+      /* Step through the list and re-create relocations.  */
+      while (rcount > 0)
+	{
+	  fixS *fixP;
+	  --rcount;
+	  fixP = fix_new (frag, where, nbytes, relsyms[rcount],
+			  raddends[rcount], 0, relocs[rcount]);
+
+	  if (comp_p)
+	    fixP->fx_tcbit = 1;
+	}
+    }
+    else
+      {
+	reloc_howto_type *reloc_howto;
+	int size = nbytes;
+
+	if (r != TC_PARSE_CONS_RETURN_NONE)
+	  {
+	    reloc_howto = bfd_reloc_type_lookup (stdoutput, r);
+	    size = bfd_get_reloc_size (reloc_howto);
+
+	    if (size > nbytes)
+	      {
+		as_bad (_("%s relocations do not fit in %u bytes\n"),
+			reloc_howto->name, nbytes);
+		return;
+	      }
+	  }
+	else
+	  switch (size)
+	    {
+	      case 1:
+		r = BFD_RELOC_8;
+		break;
+	      case 2:
+		r = BFD_RELOC_16;
+		break;
+	      case 3:
+		r = BFD_RELOC_24;
+		break;
+	      case 4:
+		r = BFD_RELOC_32;
+		break;
+	      case 8:
+		r = BFD_RELOC_64;
+		break;
+	      default:
+		as_bad (_("unsupported BFD relocation size %u"), size);
+		return;
+	    }
+
+	fix_new_exp (frag, where, size, exp, 0, r);
+      }
+}
+
+bfd_boolean
+mips_allow_local_subtract (expressionS * left,
+			   expressionS * right,
+			   segT section)
+{
+  /* If the symbols are not in a code section then they are OK.  */
+  if ((section->flags & SEC_CODE) == 0)
+    return TRUE;
+
+  if ((left->X_add_symbol == right->X_add_symbol))
+    return TRUE;
+
+  /* If we are not in assembling mode, subtraction is OK.  */
+  if (mips_assembling_insn)
+    return TRUE;
+
+  /* Only supported for p32/p64 ABIs.  */
+  if (!HAVE_PABI)
+    return TRUE;
+
+  /* Check for intervening fixups between symbols within the same frag to
+     determine if relaxation could affect the difference.  */
+  if (symbol_get_frag (left->X_add_symbol)
+      == symbol_get_frag (right->X_add_symbol))
+    {
+      fixS *fixP;
+      fragS *fragP;
+      int low, high;
+
+      fragP = symbol_get_frag (left->X_add_symbol);
+
+      high = S_GET_VALUE (left->X_add_symbol);
+      if (ELF_ST_IS_MICROMIPS (S_GET_OTHER (left->X_add_symbol)))
+	high &= ~0x1;
+
+      low = S_GET_VALUE (right->X_add_symbol);
+      if (ELF_ST_IS_MICROMIPS (S_GET_OTHER (right->X_add_symbol)))
+	low &= ~0x1;
+
+      /* Swap if necessary.  */
+      if (high < low)
+	{
+	  high = high + low;
+	  low = high - low;
+	  high = high - low;
+	}
+
+      /* Start with the first fix-up in this frag.  */
+      fixP = fragP->tc_frag_data;
+
+      /* Now look for fixups within the range.  */
+      while (fixP != NULL
+	     && fixP->fx_where < low
+	     && fixP->fx_where < high)
+	fixP = fixP->fx_next;
+
+      /* No fixup within the range.  */
+      if (fixP == NULL || fixP->fx_where >= high)
+	return TRUE;
+    }
+
+  /* We have to assume that there may be instructions between the
+     two symbols and that relaxation may increase the distance between
+     them.  */
+  return FALSE;
 }

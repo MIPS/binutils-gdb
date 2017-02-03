@@ -99,8 +99,20 @@ static reloc_howto_type mips_elf64_howto_table_rela[] =
 	 0,			/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-  EMPTY_HOWTO (1),
-  
+  HOWTO (R_MIPS_16,		/* type */
+	 0,			/* rightshift */
+	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 16,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_signed, /* complain_on_overflow */
+	 _bfd_mips_elf_generic_reloc, /* special_function */
+	 "R_MIPS_16",		/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0xffff,		/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
   /* 32 bit relocation.  */
   HOWTO (R_MIPS_32,		/* type */
 	 0,			/* rightshift */
@@ -116,7 +128,7 @@ static reloc_howto_type mips_elf64_howto_table_rela[] =
 	 0xffffffff,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-    EMPTY_HOWTO (3),
+  EMPTY_HOWTO (3),
   EMPTY_HOWTO (4),
   EMPTY_HOWTO (5),
   EMPTY_HOWTO (6),
@@ -220,7 +232,7 @@ static reloc_howto_type mips_elf64_howto_table_rela[] =
   EMPTY_HOWTO (45),
   EMPTY_HOWTO (46),
   EMPTY_HOWTO (R_MIPS_TLS_TPREL32),
-  
+
     HOWTO (R_MIPS_TLS_TPREL64,	/* type */
 	 0,			/* rightshift */
 	 4,			/* size (0 = byte, 1 = short, 2 = long) */
@@ -246,7 +258,55 @@ static reloc_howto_type mips_elf64_howto_table_rela[] =
   EMPTY_HOWTO (57),
   EMPTY_HOWTO (58),
   EMPTY_HOWTO (59),
+  EMPTY_HOWTO (60),
+  EMPTY_HOWTO (61),
+  EMPTY_HOWTO (62),
+  EMPTY_HOWTO (63),
+  EMPTY_HOWTO (64),
+  EMPTY_HOWTO (65),
 
+    /* A 5 bit shift field.  */
+  HOWTO (R_MIPS_ASHIFTR,	/* type */
+	 0,			/* rightshift */
+	 4,			/* size (0 = byte, 1 = short, 2 = long) */
+	 64,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont, /* complain_on_overflow */
+	 _bfd_mips_elf_generic_reloc, /* special_function */
+	 "R_MIPS_ASHIFTR",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 MINUS_ONE,		/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
+  HOWTO (R_MIPS_UNSIGNED_8,	/* type */
+	 0,			/* rightshift */
+	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 8,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_unsigned, /* complain_on_overflow */
+	 _bfd_mips_elf_generic_reloc, /* special_function */
+	 "R_MIPS_UNSIGNED_8",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0xff,			/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
+  HOWTO (R_MIPS_UNSIGNED_16,	/* type */
+	 0,			/* rightshift */
+	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 16,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_unsigned, /* complain_on_overflow */
+	 _bfd_mips_elf_generic_reloc, /* special_function */
+	 "R_MIPS_UNSIGNED_16",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0xffff,		/* dst_mask */
+	 FALSE),		/* pcrel_offset */
 };
 
 static reloc_howto_type micromips_elf64_howto_table_rela[] =
@@ -1585,6 +1645,7 @@ struct elf_reloc_map {
 static const struct elf_reloc_map mips_reloc_map[] =
 {
   { BFD_RELOC_NONE, R_MIPS_NONE },
+  { BFD_RELOC_16, R_MIPS_16 },
   { BFD_RELOC_32, R_MIPS_32 },
   { BFD_RELOC_64, R_MIPS_64 },
   { BFD_RELOC_MIPS_SUB, R_MIPS_SUB },
@@ -1594,6 +1655,9 @@ static const struct elf_reloc_map mips_reloc_map[] =
   { BFD_RELOC_MIPS_TLS_DTPREL64, R_MIPS_TLS_DTPREL64 },
   { BFD_RELOC_MIPS_TLS_TPREL32, R_MIPS_TLS_TPREL32 },
   { BFD_RELOC_MIPS_TLS_TPREL64, R_MIPS_TLS_TPREL64 },
+  { BFD_RELOC_MIPS_UNSIGNED_8, R_MIPS_UNSIGNED_8 },
+  { BFD_RELOC_MIPS_UNSIGNED_16, R_MIPS_UNSIGNED_16 },
+  { BFD_RELOC_MIPS_ASHIFTR, R_MIPS_ASHIFTR },
 };
 
 static const struct elf_reloc_map micromips_reloc_map[] =
