@@ -22185,6 +22185,8 @@ MIPS options:\n\
 -msoft-float		do not allow floating-point instructions\n\
 -msingle-float		only allow 32-bit floating-point operations\n\
 -mdouble-float		allow 32-bit and 64-bit floating-point operations\n\
+-m[no-]balc-stubs	[dis]able out-of-range call optimization\n\
+			through trampoline stubs\n\
 --[no-]construct-floats	[dis]allow floating point values to be constructed\n\
 --[no-]relax-branch	[dis]allow out-of-range branches to be relaxed\n\
 -mnan=ENCODING		select an IEEE 754 NaN encoding convention, either of:\n"));
