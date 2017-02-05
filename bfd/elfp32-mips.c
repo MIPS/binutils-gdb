@@ -1574,7 +1574,7 @@ static reloc_howto_type elf_micromips_howto_table_rela[] =
 
   /* High 20 bits of symbol value.  */
   HOWTO (R_MICROMIPSPP_HI20,	/* type */
-	 0,			/* rightshift */
+	 12,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 20,			/* bitsize */
 	 FALSE,			/* pc_relative */
@@ -1725,7 +1725,7 @@ static reloc_howto_type elf_micromips_howto_table_rela[] =
 	 "R_MICROMIPS_GOT_DISP", /* name */
 	 FALSE,			/* partial_inplace */
 	 0x0,			/* src_mask */
-	 0x0000ffff,		/* dst_mask */
+	 0x001ffffc,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
   /* Displacement to page pointer in the global offset table.  */
@@ -1747,7 +1747,7 @@ static reloc_howto_type elf_micromips_howto_table_rela[] =
   HOWTO (R_MICROMIPSPP_GOT_OFST, /* type */
 	 0,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
-	 14,			/* bitsize */
+	 12,			/* bitsize */
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
 	 complain_overflow_signed, /* complain_on_overflow */
@@ -1755,7 +1755,7 @@ static reloc_howto_type elf_micromips_howto_table_rela[] =
 	 "R_MICROMIPS_GOT_OFST", /* name */
 	 FALSE,			/* partial_inplace */
 	 0x0,			/* src_mask */
-	 0x00009fff,		/* dst_mask */
+	 0x00000fff,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
   /* High 20 bits of displacement in global offset table.  */
@@ -1792,7 +1792,7 @@ static reloc_howto_type elf_micromips_howto_table_rela[] =
 
   /* High 20 bits of GP relative reference.  */
   HOWTO (R_MICROMIPSPP_GPREL_HI20,	/* type */
-	 0,			/* rightshift */
+	 12,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 20,			/* bitsize */
 	 FALSE,			/* pc_relative */
@@ -2150,7 +2150,7 @@ static reloc_howto_type elf_micromips_howto_table_rela[] =
 	 "R_MICROMIPS_GOT_DISP", /* name */
 	 FALSE,			/* partial_inplace */
 	 0x0,			/* src_mask */
-	 0x0000ffff,		/* dst_mask */
+	 0x001ffffc,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
   /* Displacement to page pointer in the global offset table.  */
@@ -2172,7 +2172,7 @@ static reloc_howto_type elf_micromips_howto_table_rela[] =
   HOWTO (R_MICROMIPSPP_GOT_OFST, /* type */
 	 0,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
-	 14,			/* bitsize */
+	 12,			/* bitsize */
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
 	 complain_overflow_signed, /* complain_on_overflow */
@@ -2180,7 +2180,7 @@ static reloc_howto_type elf_micromips_howto_table_rela[] =
 	 "R_MICROMIPS_GOT_OFST", /* name */
 	 FALSE,			/* partial_inplace */
 	 0x0,			/* src_mask */
-	 0x00009fff,		/* dst_mask */
+	 0x00000fff,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
 
