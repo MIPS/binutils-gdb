@@ -28,7 +28,6 @@ foo:
 	lui	$4,%gp_rel(c2)
 	lui	$4,%got(c1)
 	lui	$4,%got(c2)
-	.ifndef r7_broken
 	lui	$4,%tlsgd(c1)
 	lui	$4,%tlsgd(c2)
 	lui	$4,%tlsldm(c1)
@@ -43,6 +42,5 @@ foo:
 	lui	$4,%tprel_lo(c2)
 	lui	$4,%gottprel(c1)
 	lui	$4,%gottprel(c2)
-	.endif
 	.end	foo
 	.eqv	c2,0x12345678
