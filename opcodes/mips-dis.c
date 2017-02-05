@@ -2506,7 +2506,7 @@ print_insn_micromips (bfd_vma memaddr_base, struct disassemble_info *info)
   const struct mips_opcode *op, *opend;
   void *is = info->stream;
   bfd_byte buffer[2];
-  bfd_uint64_t higher;
+  bfd_uint64_t higher = 0;
   unsigned int length;
   int status;
   bfd_uint64_t insn;

@@ -11813,7 +11813,7 @@ macro (struct mips_cl_insn *ip, char *str)
   expressionS expr1;
   expressionS *ep;
   const char *s;
-  const char *s2;
+  const char *s2 = NULL;
   const char *fmt;
   const char *gpfmt = NULL;
   int likely = 0;
@@ -11826,7 +11826,7 @@ macro (struct mips_cl_insn *ip, char *str)
   int ust = 0;
   int lp = 0;
   bfd_boolean large_offset;
-  int off;
+  int off = 0;
   int hold_mips_optimize;
   unsigned int align;
   unsigned int op[MAX_OPERANDS];
@@ -15592,33 +15592,33 @@ macro (struct mips_cl_insn *ip, char *str)
       else
 	s = "sh";
       goto uld_st;
-      case M_USW_AB:
-	if (ISA_IS_PRER6 (mips_opts.isa))
-	  {
-	    s = "swl";
-	    s2 = "swr";
-	    off = 3;
-	    ust = 1;
-	    offbits = (mips_opts.micromips ? 12 : 16);
-	  }
-	else
-	  s = "sw";
-	goto uld_st;
-      case M_USD_AB:
-	if (ISA_IS_PRER6 (mips_opts.isa))
-	  {
-	    s = "sdl";
-	    s2 = "sdr";
-	    off = 7;
-	    ust = 1;
-	    offbits = (mips_opts.micromips ? 12 : 16);
-	  }
-	else
-	  {
-	    s = "sd";
-	    s2 = "sw";
-	  }
-
+    case M_USW_AB:
+      if (ISA_IS_PRER6 (mips_opts.isa))
+	{
+	  s = "swl";
+	  s2 = "swr";
+	  off = 3;
+	  ust = 1;
+	  offbits = (mips_opts.micromips ? 12 : 16);
+	}
+      else
+	s = "sw";
+      goto uld_st;
+    case M_USD_AB:
+      if (ISA_IS_PRER6 (mips_opts.isa))
+	{
+	  s = "sdl";
+	  s2 = "sdr";
+	  off = 7;
+	  ust = 1;
+	  offbits = (mips_opts.micromips ? 12 : 16);
+	}
+      else
+	{
+	  s = "sd";
+	  s2 = "sw";
+	}
+      
     uld_st:
       if (ISA_IS_R7 (mips_opts.isa))
 	{
