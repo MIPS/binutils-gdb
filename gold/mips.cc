@@ -3220,39 +3220,43 @@ class Micromips_insn
   print_relax(const std::string& obj_name, const std::string& sec_name,
               unsigned int r_offset) const
   {
-    const char* r_type;
-    const char* r_type_relax;
+    const char* msg;
     if (this->r_type_ == elfcpp::R_MICROMIPS_PC25_S1)
       {
-        r_type = "R_MICROMIPS_PC25_S1";
-        r_type_relax = "R_MICROMIPS_PC10_S1";
+        if (this->new_insn_ == micromips_pc25_s1)
+          msg = "bc is relaxed to bc[16]";
+        else
+          msg = "balc is relaxed to balc[16]";
       }
     else if (this->r_type_ == elfcpp::R_MICROMIPS_PC20_S1)
       {
-        r_type = "R_MICROMIPS_PC20_S1";
-        r_type_relax = "R_MICROMIPS_PC7_S1";
+        if (this->new_insn_ == micromips_pc20_s1_relax)
+          msg = "beqzc is relaxed to beqzc[16]";
+        else
+          msg = "bnezc is relaxed to bnezc[16]";
       }
     else if (this->r_type_ == elfcpp::R_MICROMIPS_PC14_S1)
       {
-        r_type = "R_MICROMIPS_PC14_S1";
-        r_type_relax = "R_MICROMIPS_PC4_S1";
+        if (this->new_insn_ == micromips_pc14_s1_relax)
+          msg = "beqc is relaxed to beqc[16]";
+        else
+          msg = "bnec is relaxed to bnec[16]";
       }
     else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL19_S2)
-      {
-        r_type = "R_MICROMIPS_GPREL19_S2";
-        r_type_relax = "R_MICROMIPS_GPREL7_S2";
-      }
+      msg = "lw[gp] is relaxed to lw[gp16]";
     else if (this->r_type_ == elfcpp::R_MICROMIPS_LO12)
       {
-        r_type = "R_MICROMIPS_LO12";
-        r_type_relax = "R_MICROMIPS_LO4_S2";
+        if (this->new_insn_ == micromips_lo12_relax)
+          msg = "lw is relaxed to lw[16]";
+        else
+          msg = "sw is relaxed to sw[16]";
       }
     else
-      gold_unreachable ();
+      gold_unreachable();
 
-    fprintf(stderr, "%s(%s+0x%x): %s is relaxed to %s\n",
+    fprintf(stderr, "%s(%s+0x%x): %s\n",
             obj_name.c_str(), sec_name.c_str(), r_offset,
-            r_type, r_type_relax);
+            msg);
   }
 
   // For debugging purposes.
@@ -3260,33 +3264,103 @@ class Micromips_insn
   print_expand(const std::string& obj_name, const std::string& sec_name,
                unsigned int r_offset) const
   {
-    const char* r_type;
-    if (this->r_type_ == elfcpp::R_MICROMIPS_PC25_S1)
-      r_type = "R_MICROMIPS_PC25_S1";
+    const char* msg;
+    if (this->addiugp_fix_type_ != NO_FIX)
+      {
+        if (this->addiugp_fix_type_ == CONVERT)
+          msg = "addiu[gp] converted into addiu";
+        else
+          msg = "Adjusted addiu[gp] with addiu[rs5]";
+      }
+    else if (this->r_type_ == elfcpp::R_MICROMIPS_PC25_S1)
+      {
+        if (this->new_insn_ == micromips_pc25_s1)
+          msg = "bc is expanded to auipc, addiu, jrc[16]";
+        else
+          msg = "balc is expanded to auipc, addiu, jalrc[16]";
+      }
     else if (this->r_type_ == elfcpp::R_MICROMIPS_PC21_S1)
-      r_type = "R_MICROMIPS_PC21_S1";
+      {
+        if (this->new_insn_ == micromips_move_balc_expand)
+          msg = "move.balc expanded to move[16], balc";
+        else
+          msg = "move.balc expanded to move[16], auipc, addiu, jalrc[16]";
+      }
     else if (this->r_type_ == elfcpp::R_MICROMIPS_PC11_S1)
-        r_type = "R_MICROMIPS_PC11_S1";
+      {
+        if (this->new_insn_ == micromips_pc11_s1_expand)
+          msg = "beqic is expanded to addiu, beqc";
+        else if (this->new_insn_ == &micromips_pc11_s1_expand[1])
+          msg = "bgeic is expanded to addiu, bgec";
+        else if (this->new_insn_ == &micromips_pc11_s1_expand[2])
+          msg = "bgeuic is expanded to addiu, bgeuc";
+        else if (this->new_insn_ == &micromips_pc11_s1_expand[3])
+          msg = "bltic is expanded to addiu, bltc";
+        else if (this->new_insn_ == &micromips_pc11_s1_expand[4])
+          msg = "bltuic is expanded to addiu, bltuc";
+        else
+          msg = "bneic is expanded to addiu, bnec";
+      }
     else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL19_S2)
-        r_type = "R_MICROMIPS_GPREL19_S2";
+      {
+        if (this->new_insn_ == micromips_gprel19_s2_expand)
+          msg = "lw[gp] is expanded to lui, addu, lw";
+        else if (this->new_insn_ == &micromips_gprel19_s2_expand[1])
+          msg = "sw[gp] is expanded to lui, addu, sw";
+        else
+          msg = "addiu[gp] is expanded to lui, addu, addiu";
+      }
     else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL18)
-        r_type = "R_MICROMIPS_GPREL18";
+      {
+        if (this->new_insn_ == micromips_gprel18_expand)
+          msg = "lb[gp] is expanded to lui, addu, lb";
+        else if (this->new_insn_ == &micromips_gprel18_expand[1])
+          msg = "lbu[gp] is expanded to lui, addu, lbu";
+        else if (this->new_insn_ == &micromips_gprel18_expand[2])
+          msg = "lh[gp] is expanded to lui, addu, lh";
+        else if (this->new_insn_ == &micromips_gprel18_expand[3])
+          msg = "lhu[gp] is expanded to lui, addu, lhu";
+        else if (this->new_insn_ == &micromips_gprel18_expand[4])
+          msg = "sb[gp] is expanded to lui, addu, sb";
+        else
+          msg = "sh[gp] is expanded to lui, addu, sh";
+      }
     else if (this->r_type_ == elfcpp::R_MICROMIPS_PC10_S1)
-      r_type = "R_MICROMIPS_PC10_S1";
+      {
+        if (this->new_insn_ == micromips_pc10_s1_expand)
+          msg = "bc[16] is expanded to bc";
+        else
+          msg = "balc[16] is expanded to balc";
+      }
     else if (this->r_type_ == elfcpp::R_MICROMIPS_PC7_S1)
-      r_type = "R_MICROMIPS_PC7_S1";
+      {
+        if (this->new_insn_ == micromips_pc7_s1_expand)
+          msg = "beqzc[16] is expanded to beqzc";
+        else
+          msg = "bnezc[16] is expanded to bnezc";
+      }
     else if (this->r_type_ == elfcpp::R_MICROMIPS_PC4_S1)
-        r_type = "R_MICROMIPS_PC4_S1";
+      {
+        if (this->new_insn_ == micromips_pc4_s1_expand)
+          msg = "beqc[16] is expanded to beqc";
+        else
+          msg = "bnec[16] is expanded to bnec";
+      }
     else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL7_S2)
-        r_type = "R_MICROMIPS_GPREL7_S2";
+      msg = "lw[gp16] is expanded to lw[gp]";
     else if (this->r_type_ == elfcpp::R_MICROMIPS_LO4_S2)
-        r_type = "R_MICROMIPS_LO4_S2";
+      {
+        if (this->new_insn_ == micromips_lo4_s2_expand)
+          msg = "lw[16] is expanded to lw";
+        else
+          msg = "sw[16] is expanded to sw";
+      }
     else
-      gold_unreachable ();
+      gold_unreachable();
 
-    fprintf(stderr, "%s(%s+0x%x): %s expanded\n",
+    fprintf(stderr, "%s(%s+0x%x): %s\n",
             obj_name.c_str(), sec_name.c_str(), r_offset,
-            r_type);
+            msg);
   }
 
  private:
