@@ -15,11 +15,11 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
 			[0-9A-F]+: R_MICROMIPS_GOT_DISP	\.data
 [0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
-			[0-9A-F]+: R_MICROMIPS_GOT_DISP	\.text\+0x[0-9a-f]+
+			[0-9A-F]+: R_MICROMIPS_GOT_DISP	end
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	[0-9a-f]+ <[^>]+>
 			[0-9A-F]+: R_MICROMIPS_PC25_S1	end-0x4
 [0-9a-f]+ <[^>]+> 4320 0002 	lw	t9,0\(gp\)
-			[0-9a-f]+: R_MICROMIPS_GOT_DISP	\.text\+0x[0-9a-f]+
+			[0-9a-f]+: R_MICROMIPS_GOT_DISP	end
 [0-9a-f]+ <[^>]+> db30      	jalrc	t9
 [0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
 			[0-9A-F]+: R_MICROMIPS_GOT_PAGE	\.sdata
@@ -30,9 +30,9 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_MICROMIPS_GOT_OFST	\.data
 [0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
-			[0-9A-F]+: R_MICROMIPS_GOT_PAGE	\.text\+0x[0-9a-f]+
+			[0-9A-F]+: R_MICROMIPS_GOT_PAGE	end
 [0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
-			[0-9A-F]+: R_MICROMIPS_GOT_OFST	\.text\+0x[0-9a-f]+
+			[0-9A-F]+: R_MICROMIPS_GOT_OFST	end
 [0-9a-f]+ <[^>]+> 4020 0002 	lw	at,0\(gp\)
 			[0-9a-f]+: R_MICROMIPS_GOT_PAGE	\.sdata
 [0-9a-f]+ <[^>]+> 8481 8000 	lw	a0,0\(at\)
@@ -46,11 +46,11 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 84a1 8000 	lw	a1,0\(at\)
 			[0-9a-f]+: R_MICROMIPS_GOT_OFST	\.data\+0x4
 [0-9a-f]+ <[^>]+> 4020 0002 	lw	at,0\(gp\)
-			[0-9A-F]+: R_MICROMIPS_GOT_PAGE	\.text\+0x[0-9a-f]+
+			[0-9A-F]+: R_MICROMIPS_GOT_PAGE	end
 [0-9a-f]+ <[^>]+> 8481 8000 	lw	a0,0\(at\)
-			[0-9A-F]+: R_MICROMIPS_GOT_OFST	\.text\+0x[0-9a-f]+
+			[0-9A-F]+: R_MICROMIPS_GOT_OFST	end
 [0-9a-f]+ <[^>]+> 84a1 8000 	lw	a1,0\(at\)
-			[0-9a-f]+: R_MICROMIPS_GOT_OFST	\.text\+0x[0-9a-f]+
+			[0-9a-f]+: R_MICROMIPS_GOT_OFST	end\+0x4
 [0-9a-f]+ <[^>]+> 4020 0002 	lw	at,0\(gp\)
 			[0-9a-f]+: R_MICROMIPS_GOT_PAGE	\.sdata
 [0-9a-f]+ <[^>]+> 8481 9000 	sw	a0,0\(at\)

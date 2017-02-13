@@ -14,9 +14,9 @@ Disassembly of section \.text:
 0+0010 <func\+0x10> 0084 0000 	addiu	a0,a0,0
 			10: R_MICROMIPS_LO12	\.data
 0+0014 <func\+0x14> e080 0000 	lui	a0,0x0
-			14: R_MICROMIPS_HI20	\.text\+0xd4
+			14: R_MICROMIPS_HI20	end
 0+0018 <func\+0x18> 0084 0000 	addiu	a0,a0,0
-			18: R_MICROMIPS_LO12	\.text\+0xd4
+			18: R_MICROMIPS_LO12	end
 0+001c <func\+0x1c> 2800 0000 	bc	000000f4 <end\+0x20>
 			1c: R_MICROMIPS_PC25_S1	end-0x4
 0+0020 <func\+0x20> 2a00 0000 	balc	000000f8 <end\+0x24>
@@ -28,9 +28,9 @@ Disassembly of section \.text:
 0+002c <func\+0x2c> 8484 8000 	lw	a0,0\(a0\)
 			2c: R_MICROMIPS_LO12	\.data
 0+0030 <func\+0x30> e080 0000 	lui	a0,0x0
-			30: R_MICROMIPS_HI20	\.text\+0xd4
+			30: R_MICROMIPS_HI20	end
 0+0034 <func\+0x34> 8484 8000 	lw	a0,0\(a0\)
-			34: R_MICROMIPS_LO12	\.text\+0xd4
+			34: R_MICROMIPS_LO12	end
 0+0038 <func\+0x38> 4080 0002 	lw	a0,0\(gp\)
 			38: R_MICROMIPS_GPREL19_S2	\.sdata
 0+003c <func\+0x3c> 40a0 0002 	lw	a1,0\(gp\)
@@ -42,11 +42,11 @@ Disassembly of section \.text:
 0+0048 <func\+0x48> 84a1 8000 	lw	a1,0\(at\)
 			48: R_MICROMIPS_LO12	\.data\+0x4
 0+004c <func\+0x4c> e020 0000 	lui	at,0x0
-			4c: R_MICROMIPS_HI20	\.text\+0xd4
+			4c: R_MICROMIPS_HI20	end
 0+0050 <func\+0x50> 8481 8000 	lw	a0,0\(at\)
-			50: R_MICROMIPS_LO12	\.text\+0xd4
+			50: R_MICROMIPS_LO12	end
 0+0054 <func\+0x54> 84a1 8000 	lw	a1,0\(at\)
-			54: R_MICROMIPS_LO12	\.text\+0xd8
+			54: R_MICROMIPS_LO12	end\+0x4
 0+0058 <func\+0x58> 4080 0003 	sw	a0,0\(gp\)
 			58: R_MICROMIPS_GPREL19_S2	\.sdata
 0+005c <func\+0x5c> e020 0000 	lui	at,0x0
