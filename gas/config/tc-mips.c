@@ -19944,8 +19944,7 @@ mips_fix_adjustable (fixS *fixp)
     {
       asymbol *sym = symbol_get_bfdsym (fixp->fx_addsy);
       asection *sect = (sym == NULL ? NULL : bfd_get_section (sym));
-      if (sect != NULL && (sect->flags & SEC_CODE) != 0
-	  && ELF_ST_IS_MICROMIPS (S_GET_OTHER (fixp->fx_addsy)))
+      if (sect != NULL && (sect->flags & SEC_CODE) != 0)
 	return 0;
     }
 

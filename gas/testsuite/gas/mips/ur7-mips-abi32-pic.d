@@ -15,11 +15,11 @@ Disassembly of section .text\:
 [0-9a-f]+ <func\+0x[0-9a-f]+> 4080 0002 	lw	a0,0\(gp\)
 			10: R_MICROMIPS_GOT_DISP	\.data
 [0-9a-f]+ <func\+0x[0-9a-f]+> 4080 0002 	lw	a0,0\(gp\)
-			14: R_MICROMIPS_GOT_DISP	\.text\+0x[0-9a-f]+
+			14: R_MICROMIPS_GOT_DISP	end
 [0-9a-f]+ <func\+0x[0-9a-f]+> 2800 0000 	bc	[0-9a-f]+ <end\+0x[0-9a-f]+>
 			18: R_MICROMIPS_PC25_S1	end-0x4
 [0-9a-f]+ <func\+0x[0-9a-f]+> 4320 0002 	lw	t9,0\(gp\)
-			1c: R_MICROMIPS_GOT_DISP	\.text\+0x[0-9a-f]+
+			1c: R_MICROMIPS_GOT_DISP	end
 [0-9a-f]+ <func\+0x[0-9a-f]+> db30      	jalrc	t9
 [0-9a-f]+ <func\+0x[0-9a-f]+> 4080 0002 	lw	a0,0\(gp\)
 			22: R_MICROMIPS_GOT_PAGE	\.sdata
@@ -30,9 +30,9 @@ Disassembly of section .text\:
 [0-9a-f]+ <func\+0x[0-9a-f]+> 8484 8000 	lw	a0,0\(a0\)
 			2e: R_MICROMIPS_GOT_OFST	\.data
 [0-9a-f]+ <func\+0x[0-9a-f]+> 4080 0002 	lw	a0,0\(gp\)
-			32: R_MICROMIPS_GOT_PAGE	\.text\+0x[0-9a-f]+
+			32: R_MICROMIPS_GOT_PAGE	end
 [0-9a-f]+ <func\+0x[0-9a-f]+> 8484 8000 	lw	a0,0\(a0\)
-			36: R_MICROMIPS_GOT_OFST	\.text\+0x[0-9a-f]+
+			36: R_MICROMIPS_GOT_OFST	end
 [0-9a-f]+ <func\+0x[0-9a-f]+> 4020 0002 	lw	at,0\(gp\)
 			3a: R_MICROMIPS_GOT_PAGE	\.sdata
 [0-9a-f]+ <func\+0x[0-9a-f]+> 8481 8000 	lw	a0,0\(at\)
@@ -46,11 +46,11 @@ Disassembly of section .text\:
 [0-9a-f]+ <func\+0x[0-9a-f]+> 84a1 8000 	lw	a1,0\(at\)
 			4e: R_MICROMIPS_GOT_OFST	\.data\+0x[0-9a-f]+
 [0-9a-f]+ <func\+0x[0-9a-f]+> 4020 0002 	lw	at,0\(gp\)
-			52: R_MICROMIPS_GOT_PAGE	\.text\+0x[0-9a-f]+
+			52: R_MICROMIPS_GOT_PAGE	end
 [0-9a-f]+ <func\+0x[0-9a-f]+> 8481 8000 	lw	a0,0\(at\)
-			56: R_MICROMIPS_GOT_OFST	\.text\+0x[0-9a-f]+
+			56: R_MICROMIPS_GOT_OFST	end
 [0-9a-f]+ <func\+0x[0-9a-f]+> 84a1 8000 	lw	a1,0\(at\)
-			5a: R_MICROMIPS_GOT_OFST	\.text\+0x[0-9a-f]+
+			5a: R_MICROMIPS_GOT_OFST	end\+0x4
 [0-9a-f]+ <func\+0x[0-9a-f]+> 4020 0002 	lw	at,0\(gp\)
 			5e: R_MICROMIPS_GOT_PAGE	\.sdata
 [0-9a-f]+ <func\+0x[0-9a-f]+> 8481 9000 	sw	a0,0\(at\)
@@ -64,13 +64,13 @@ Disassembly of section .text\:
 [0-9a-f]+ <func\+0x[0-9a-f]+> 8481 9000 	sw	a0,0\(at\)
 			72: R_MICROMIPS_GOT_OFST	\.sdata
 [0-9a-f]+ <func\+0x[0-9a-f]+> 84a1 9000 	sw	a1,0\(at\)
-			76: R_MICROMIPS_GOT_OFST	\.sdata\+0x[0-9a-f]+
+			76: R_MICROMIPS_GOT_OFST	\.sdata\+0x4
 [0-9a-f]+ <func\+0x[0-9a-f]+> 4020 0002 	lw	at,0\(gp\)
 			7a: R_MICROMIPS_GOT_PAGE	\.data
 [0-9a-f]+ <func\+0x[0-9a-f]+> 8481 9000 	sw	a0,0\(at\)
 			7e: R_MICROMIPS_GOT_OFST	\.data
 [0-9a-f]+ <func\+0x[0-9a-f]+> 84a1 9000 	sw	a1,0\(at\)
-			82: R_MICROMIPS_GOT_OFST	\.data\+0x[0-9a-f]+
+			82: R_MICROMIPS_GOT_OFST	\.data\+0x4
 [0-9a-f]+ <func\+0x[0-9a-f]+> 4020 0002 	lw	at,0\(gp\)
 			86: R_MICROMIPS_GOT_PAGE	\.data
 [0-9a-f]+ <func\+0x[0-9a-f]+> 8481 4000 	lh	a0,0\(at\)
