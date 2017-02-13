@@ -3026,6 +3026,9 @@ to compensate for the borrow when the low bits are added.  */
   BFD_RELOC_MIPS_TLS_TPREL_LO16,
   BFD_RELOC_MICROMIPS_TLS_TPREL_LO16,
   BFD_RELOC_MIPS_EH,
+  BFD_RELOC_MIPS_ASHIFTR,
+  BFD_RELOC_MIPS_UNSIGNED_8,
+  BFD_RELOC_MIPS_UNSIGNED_16,
 
 
 /* MIPS ELF relocations (VxWorks and PLT extensions).  */
