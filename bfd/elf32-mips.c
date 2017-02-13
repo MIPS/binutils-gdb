@@ -833,7 +833,20 @@ static reloc_howto_type elf_mips_howto_table_rela[] =
 	 0,			/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-  EMPTY_HOWTO (1),
+  /* 16 bit relocation.  */
+  HOWTO (R_MIPS_16,		/* type */
+	 0,			/* rightshift */
+	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 16,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_signed, /* complain_on_overflow */
+	 _bfd_mips_elf_generic_reloc, /* special_function */
+	 "R_MIPS_16",		/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0xffff,		/* dst_mask */
+	 FALSE),		/* pcrel_offset */
 
   /* 32 bit relocation.  */
   HOWTO (R_MIPS_32,		/* type */
@@ -865,13 +878,43 @@ static reloc_howto_type elf_mips_howto_table_rela[] =
   EMPTY_HOWTO (15),
   EMPTY_HOWTO (16),
   EMPTY_HOWTO (17),
-  EMPTY_HOWTO (18),
+
+  /* 64 bit relocation.  */
+  HOWTO (R_MIPS_64,		/* type */
+	 0,			/* rightshift */
+	 4,			/* size (0 = byte, 1 = short, 2 = long) */
+	 64,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont, /* complain_on_overflow */
+	 _bfd_mips_elf_generic_reloc,	/* special_function */
+	 "R_MIPS_64",		/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 MINUS_ONE,		/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
   EMPTY_HOWTO (19),
   EMPTY_HOWTO (20),
   EMPTY_HOWTO (21),
   EMPTY_HOWTO (22),
   EMPTY_HOWTO (23),
-  EMPTY_HOWTO (24),
+
+  /* 64 bit subtraction for R7  */
+  HOWTO (R_MIPS_SUB,		/* type */
+	 0,			/* rightshift */
+	 4,			/* size (0 = byte, 1 = short, 2 = long) */
+	 64,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont, /* complain_on_overflow */
+	 _bfd_mips_elf_generic_reloc, /* special_function */
+	 "R_MIPS_SUB",		/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 MINUS_ONE,		/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
   EMPTY_HOWTO (25),
   EMPTY_HOWTO (26),
   EMPTY_HOWTO (27),
@@ -907,8 +950,57 @@ static reloc_howto_type elf_mips_howto_table_rela[] =
   EMPTY_HOWTO (57),
   EMPTY_HOWTO (58),
   EMPTY_HOWTO (59),
-};
+  EMPTY_HOWTO (60),
+  EMPTY_HOWTO (61),
+  EMPTY_HOWTO (62),
+  EMPTY_HOWTO (63),
+  EMPTY_HOWTO (64),
+  EMPTY_HOWTO (65),
 
+  /* A 5 bit shift field.  */
+  HOWTO (R_MIPS_ASHIFTR,	/* type */
+	 0,			/* rightshift */
+	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 32,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont, /* complain_on_overflow */
+	 _bfd_mips_elf_generic_reloc, /* special_function */
+	 "R_MIPS_ASHIFTR",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0xffffffff,		/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
+  HOWTO (R_MIPS_UNSIGNED_8,	/* type */
+	 0,			/* rightshift */
+	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 8,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_unsigned, /* complain_on_overflow */
+	 _bfd_mips_elf_generic_reloc, /* special_function */
+	 "R_MIPS_UNSIGNED_8",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0xff,			/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
+
+  HOWTO (R_MIPS_UNSIGNED_16,	/* type */
+	 0,			/* rightshift */
+	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 16,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_unsigned, /* complain_on_overflow */
+	 _bfd_mips_elf_generic_reloc, /* special_function */
+	 "R_MIPS_UNSIGNED_16",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0xffff,		/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+};
 
 /* The reloc used for BFD_RELOC_CTOR when doing a 64 bit link.  This
    is a hack to make the linker think that we need 64 bit values.  */
@@ -3003,7 +3095,10 @@ static const struct elf_reloc_map mips_reloc_map[] =
   { BFD_RELOC_MIPS_18_PCREL_S3, R_MIPS_PC18_S3 },
   { BFD_RELOC_MIPS_19_PCREL_S2, R_MIPS_PC19_S2 },
   { BFD_RELOC_HI16_S_PCREL, R_MIPS_PCHI16 },
-  { BFD_RELOC_LO16_PCREL, R_MIPS_PCLO16 }
+  { BFD_RELOC_LO16_PCREL, R_MIPS_PCLO16 },
+  { BFD_RELOC_MIPS_UNSIGNED_8, R_MIPS_UNSIGNED_8 },
+  { BFD_RELOC_MIPS_UNSIGNED_16, R_MIPS_UNSIGNED_16 },
+  { BFD_RELOC_MIPS_ASHIFTR, R_MIPS_ASHIFTR }
 };
 
 static const struct elf_reloc_map mips16_reloc_map[] =
