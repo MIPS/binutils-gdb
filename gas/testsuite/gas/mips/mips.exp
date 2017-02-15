@@ -976,7 +976,7 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test "elf-rel25a"
     run_dump_test "elf-rel26"
 
-    run_dump_test_arches "elf-rel27" [mips_arch_list_matching mips1]
+    run_dump_test_arches "elf-rel27" [mips_arch_list_matching mips1 !micromipsr7]
 
     if $has_newabi {
 	run_dump_test "elf-rel28-n32"

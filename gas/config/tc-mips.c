@@ -5490,16 +5490,50 @@ match_relocatable_int_operand (const struct mips_operand *operand_base)
   max_val = operand->max_val;
 
   if (ISA_IS_R7 (mips_opts.isa)
-      && (op_size == 12  || op_size == 14 || op_size == 16
-	  || op_size == 18 || op_size == 19 || op_size == 20))
+      && (op_size == 7
+	  || op_size == 12
+	  || op_size == 14
+	  || op_size == 16
+	  || op_size == 18
+	  || op_size == 19
+	  || op_size == 20))
 	return TRUE;
   else if (operand_base->lsb == 0
-      && op_size == 16
-      && operand->shift == 0
-      && operand->bias == 0
-      && (max_val == 32767 || max_val == 65535))
+	   && op_size == 16
+	   && operand->shift == 0
+	   && operand->bias == 0
+	   && (max_val == 32767 || max_val == 65535))
     return TRUE;
+
   return FALSE;
+}
+
+/* Find the GP-relative relocation that fits this operand.  */
+static bfd_reloc_code_real_type
+micromipspp_gprel_for_int_operand (const struct mips_operand *operand_base)
+{
+  size_t i;
+  bfd_reloc_code_real_type reloc = BFD_RELOC_NONE;
+  int opmask = mips_operand_mask (operand_base);
+  const  bfd_reloc_code_real_type gp_relocs[] =
+    { BFD_RELOC_MICROMIPSPP_GPREL19_S2,
+      BFD_RELOC_MICROMIPSPP_GPREL18_S3,
+      BFD_RELOC_MICROMIPSPP_GPREL18,
+      BFD_RELOC_MICROMIPSPP_GPREL16_S2,
+      BFD_RELOC_MICROMIPSPP_GPREL7_S2
+    };
+
+  for (i = 0; i < ARRAY_SIZE (gp_relocs); i++)
+    {
+      reloc_howto_type *howto;
+      howto = bfd_reloc_type_lookup (stdoutput, gp_relocs[i]);
+
+      if ((howto->dst_mask & opmask) == howto->dst_mask
+	  && howto->bitsize == operand_base->size)
+	reloc = gp_relocs[i];
+    }
+
+  return reloc;
 }
 
 static bfd_boolean
@@ -5523,10 +5557,24 @@ match_int_operand (struct mips_arg_info *arg,
 	return FALSE;
 
       if (offset_reloc[0] != BFD_RELOC_UNUSED)
-	/* Relocation operators were used.  Accept the arguent and
-	   leave the relocation value in offset_expr and offset_relocs
-	   for the caller to process.  */
-	return TRUE;
+	/* Relocation operators were used.  Check if relocation
+	   destination mask matches operand bits.  */
+	{
+	  int opmask = mips_operand_mask (operand_base);
+	  reloc_howto_type *howto;
+	  howto = bfd_reloc_type_lookup (stdoutput, offset_reloc[0]);
+
+	  if (offset_reloc[0] == BFD_RELOC_MICROMIPSPP_GPREL19_S2)
+	    {
+	      bfd_reloc_code_real_type r;
+	      r = micromipspp_gprel_for_int_operand (operand_base);
+	      return (r != BFD_RELOC_NONE);
+	    }
+	  else
+	    /* This is not an direct mask comparison.  In some cases
+	       the relocation targets only a part of the operand bits.  */
+	    return ((howto->dst_mask & opmask) == howto->dst_mask);
+	}
 
       if (offset_expr.X_op != O_constant)
 	{
@@ -9315,9 +9363,13 @@ static const struct gprel_insn_match micromipspp_gprel_map[] =
 };
 
 static bfd_reloc_code_real_type
-gprel_for_micromipspp_insn (const char *insn)
+gprel_for_micromipspp_insn (const char *insn, int insn_length)
 {
   unsigned int i;
+
+  if (insn_length == 2)
+    return BFD_RELOC_MICROMIPSPP_GPREL7_S2;
+
   for (i = 0; i < ARRAY_SIZE (micromipspp_gprel_map); i++)
     if (strncasecmp (insn, micromipspp_gprel_map[i].str,
 		     strlen (micromipspp_gprel_map[i].str)) == 0)
@@ -9333,6 +9385,7 @@ gprel_for_micromipspp_insn (const char *insn)
 
 	return micromipspp_gprel_map[i].reloc;
       }
+
   return BFD_RELOC_UNUSED;
 }
 
@@ -9658,11 +9711,8 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	return FALSE;
 
       if (*offset_reloc == BFD_RELOC_MICROMIPSPP_GPREL19_S2)
-	*offset_reloc = gprel_for_micromipspp_insn (insn->insn_mo->name);
-
-      if (*offset_reloc == BFD_RELOC_MICROMIPSPP_GPREL7_S2
-	  && insn_length (insn) == 4)
-	*offset_reloc = BFD_RELOC_MICROMIPSPP_GPREL19_S2;
+	*offset_reloc = gprel_for_micromipspp_insn (insn->insn_mo->name,
+						    insn_length (insn));
     }
 }
 
@@ -17529,6 +17579,12 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
     case BFD_RELOC_MICROMIPSPP_GOT_DISP:
     case BFD_RELOC_MICROMIPSPP_GOT_PAGE:
     case BFD_RELOC_MICROMIPSPP_GOT_OFST:
+    case BFD_RELOC_MICROMIPSPP_GPREL19_S2:
+    case BFD_RELOC_MICROMIPSPP_GPREL18_S3:
+    case BFD_RELOC_MICROMIPSPP_GPREL18:
+    case BFD_RELOC_MICROMIPSPP_GPREL16_S2:
+    case BFD_RELOC_MICROMIPSPP_GPREL7_S2:
+
       if (fixP->fx_done)
 	{
 	  offsetT value;
@@ -17674,12 +17730,6 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       break;
 
     case BFD_RELOC_MICROMIPSPP_LO12_PCREL:
-    case BFD_RELOC_MICROMIPSPP_GPREL18:
-    case BFD_RELOC_MICROMIPSPP_GPREL19_S2:
-    case BFD_RELOC_MICROMIPSPP_GPREL16_S2:
-    case BFD_RELOC_MICROMIPSPP_GPREL18_S3:
-    case BFD_RELOC_MICROMIPSPP_GPREL7_S2:
-    case BFD_RELOC_MICROMIPSPP_GPREL14:
     case BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12:
     case BFD_RELOC_MICROMIPSPP_HI20_PCREL:
       gas_assert (!fixP->fx_done);
@@ -22389,7 +22439,7 @@ mips_cons_fix_new (fragS *frag,
       symbolS *relsyms[32];
       offsetT raddends[32];
       bfd_reloc_code_real_type relocs[32];
-      int rcount = 0;
+      size_t rcount = 0;
       bfd_boolean comp_p;
       bfd_reloc_code_real_type sym_reloc = (HAVE_64BIT_SYMBOLS
 					    ? BFD_RELOC_64
