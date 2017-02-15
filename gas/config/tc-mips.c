@@ -17463,7 +17463,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 	      || fixP->fx_r_type == BFD_RELOC_VTABLE_ENTRY
 	      || fixP->fx_r_type == BFD_RELOC_MIPS_TLS_DTPREL64
 	      || fixP->fx_r_type == BFD_RELOC_MIPS_UNSIGNED_8
-	      || fixP->fx_r_type == BFD_RELOC_MIPS_ASHIFTR
+	      || fixP->fx_r_type == BFD_RELOC_MIPS_ASHIFTR_1
 	      || (fixP->fx_size == 1
 		  && fixP->fx_r_type == BFD_RELOC_32));
 
@@ -17830,7 +17830,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       fixP->fx_done = 0;
       break;
 
-    case BFD_RELOC_MIPS_ASHIFTR:
+    case BFD_RELOC_MIPS_ASHIFTR_1:
       if (fixP->fx_done)
 	*valP = (*valP >> 1);
       break;
@@ -22435,11 +22435,14 @@ mips_cons_fix_new (fragS *frag,
 {
   if (ISA_IS_R7 (mips_opts.isa) && r != BFD_RELOC_NONE)
     {
-      /* Assuming 32 entries will be enough.  */
-      symbolS *relsyms[32];
-      offsetT raddends[32];
-      bfd_reloc_code_real_type relocs[32];
-      size_t rcount = 0;
+      /* Assuming 64 entries will be enough.  */
+      struct s_rentry
+      {
+	symbolS *sym;
+	offsetT addend;
+	bfd_reloc_code_real_type reloc;
+      } rentry[64];
+      size_t numrelocs = 0;
       bfd_boolean comp_p;
       bfd_reloc_code_real_type sym_reloc = (HAVE_64BIT_SYMBOLS
 					    ? BFD_RELOC_64
@@ -22455,9 +22458,9 @@ mips_cons_fix_new (fragS *frag,
       else
 	{
 	  /* Record the cons reloc at the outer-most level.  */
-	  relsyms[rcount] = NULL;
-	  raddends[rcount] = 0;
-	  relocs[rcount++] = r;
+	  rentry[numrelocs].sym = NULL;
+	  rentry[numrelocs].addend = 0;
+	  rentry[numrelocs++].reloc = r;
 	  comp_p = TRUE;
 	}
 
@@ -22466,20 +22469,45 @@ mips_cons_fix_new (fragS *frag,
 	  switch (iter->X_op)
 	    {
 	    case O_symbol:
-	      relsyms[rcount] = iter->X_add_symbol;
-	      raddends[rcount] = iter->X_add_number;
-	      relocs[rcount++] = sym_reloc;
+	      rentry[numrelocs].sym = iter->X_add_symbol;
+	      rentry[numrelocs].addend = iter->X_add_number;
+	      rentry[numrelocs++].reloc = sym_reloc;
 	      break;
+
 	    case O_subtract:
-	      relsyms[rcount] = iter->X_op_symbol;
-	      raddends[rcount] = 0;
-	      relocs[rcount++] = BFD_RELOC_MIPS_SUB;
+	      rentry[numrelocs].sym = iter->X_op_symbol;
+	      rentry[numrelocs].addend = 0;
+	      rentry[numrelocs++].reloc = BFD_RELOC_MIPS_SUB;
 	      break;
+
 	    case O_right_shift:
-	      relsyms[rcount] = iter->X_op_symbol;
-	      raddends[rcount] = 0;
-	      relocs[rcount++] = BFD_RELOC_MIPS_ASHIFTR;
+	      {
+		int scount;
+		gas_assert (symbol_constant_p (iter->X_op_symbol));
+		scount = S_GET_VALUE (iter->X_op_symbol);
+
+		/* Iterate over the shift count and track the
+		   required number of relocs.  */
+		while (scount-- > 0)
+		  {
+		    rentry[numrelocs].sym = NULL;
+		    rentry[numrelocs].addend = 0;
+		    rentry[numrelocs++].reloc = BFD_RELOC_MIPS_ASHIFTR_1;
+		  }
+
+		/* We can roll the a shift step in to the expression
+		   if it is just a simple symbol reference. This just
+		   sets things up for the last-level block below.  */
+		if (S_GET_VALUE (iter->X_op_symbol) != 0
+		    && (symbol_constant_p (iter->X_add_symbol)
+			|| symbol_equated_p (iter->X_add_symbol)))
+		  {
+		    sym_reloc = BFD_RELOC_MIPS_ASHIFTR_1;
+		    numrelocs--;
+		  }
+	      }
 	      break;
+
 	    default:
 	      as_bad ("Expression too complex to relocate!");
 	      break;
@@ -22488,26 +22516,27 @@ mips_cons_fix_new (fragS *frag,
 	  /* Tentatively fill as if this were the last level of nesting.  */
 	  if (iter->X_op != O_symbol)
 	    {
-	      relsyms[rcount] = iter->X_add_symbol;
-	      raddends[rcount] = iter->X_add_number;
-	      relocs[rcount++] = sym_reloc;
+	      rentry[numrelocs].sym = iter->X_add_symbol;
+	      rentry[numrelocs].addend = iter->X_add_number;
+	      rentry[numrelocs++].reloc = sym_reloc;
 	    }
 
 	  iter = symbol_get_value_expression (iter->X_add_symbol);
 
 	  /* One more level of nesting, scrap the tentative entry.  */
 	  if (iter->X_add_symbol != NULL)
-	    rcount--;
-	  gas_assert (rcount < sizeof (raddends) / sizeof (offsetT));
+	    numrelocs--;
+	  gas_assert (numrelocs < ARRAY_SIZE (rentry));
 	}
 
-      /* Step through the list and re-create relocations.  */
-      while (rcount > 0)
+      /* Step through the list in reverse and create relocations.  */
+      while (numrelocs > 0)
 	{
 	  fixS *fixP;
-	  --rcount;
-	  fixP = fix_new (frag, where, nbytes, relsyms[rcount],
-			  raddends[rcount], 0, relocs[rcount]);
+	  --numrelocs;
+	  fixP = fix_new (frag, where, nbytes, rentry[numrelocs].sym,
+			  rentry[numrelocs].addend, 0,
+			  rentry[numrelocs].reloc);
 
 	  if (comp_p)
 	    fixP->fx_tcbit = 1;
