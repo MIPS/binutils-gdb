@@ -758,6 +758,16 @@ mips_int_operand_min (const struct mips_int_operand *operand)
   return mips_int_operand_max (operand) - (mask << operand->shift);
 }
 
+static inline int
+mips_operand_mask (const struct mips_operand *operand)
+{
+  unsigned int mask;
+
+  mask = ((1 << operand->size_top) - 1) << operand->lsb_top;
+  mask |= ((1 << (operand->size - operand->size_top)) - 1) << operand->lsb;
+  return mask;
+}
+
 /* Return the register that OPERAND encodes as UVAL.  */
 
 static inline int
