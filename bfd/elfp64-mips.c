@@ -266,7 +266,7 @@ static reloc_howto_type mips_elf64_howto_table_rela[] =
   EMPTY_HOWTO (65),
 
     /* A 5 bit shift field.  */
-  HOWTO (R_MIPS_ASHIFTR,	/* type */
+  HOWTO (R_MIPS_ASHIFTR_1,	/* type */
 	 0,			/* rightshift */
 	 4,			/* size (0 = byte, 1 = short, 2 = long) */
 	 64,			/* bitsize */
@@ -274,7 +274,7 @@ static reloc_howto_type mips_elf64_howto_table_rela[] =
 	 0,			/* bitpos */
 	 complain_overflow_dont, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc, /* special_function */
-	 "R_MIPS_ASHIFTR",	/* name */
+	 "R_MIPS_ASHIFTR_1",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 MINUS_ONE,		/* dst_mask */
@@ -1657,7 +1657,7 @@ static const struct elf_reloc_map mips_reloc_map[] =
   { BFD_RELOC_MIPS_TLS_TPREL64, R_MIPS_TLS_TPREL64 },
   { BFD_RELOC_MIPS_UNSIGNED_8, R_MIPS_UNSIGNED_8 },
   { BFD_RELOC_MIPS_UNSIGNED_16, R_MIPS_UNSIGNED_16 },
-  { BFD_RELOC_MIPS_ASHIFTR, R_MIPS_ASHIFTR },
+  { BFD_RELOC_MIPS_ASHIFTR_1, R_MIPS_ASHIFTR_1 },
 };
 
 static const struct elf_reloc_map micromips_reloc_map[] =
