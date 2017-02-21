@@ -8374,7 +8374,7 @@ static void
 balc_add_traverse (const char *key, void *value)
 {
   struct balc_stub *stub = (struct balc_stub *)value;
-  symbolS *sym = stub->fragp ? stub->fragp->fr_symbol : stub->sym;
+  symbolS *sym = stub->fragp->fr_symbol;
 
   gas_assert (strcmp (key, S_GET_NAME (sym)) == 0);
   balc_add_stub (sym, stubg_now);
@@ -8396,6 +8396,7 @@ balc_frag_traverse (const char *key ATTRIBUTE_UNUSED, void *value)
       stub->sym = old_frag->fr_symbol;
     }
 
+  frag_grow (4);
   l = symbol_new (micromips_label_name (), now_seg, frag_now->fr_fix, frag_now);
   micromips_label_inc ();
   S_SET_OTHER (l, ELF_ST_SET_MICROMIPS (S_GET_OTHER (l)));
@@ -8540,7 +8541,8 @@ stubgroup_wane (void)
      this section.  */
   if (stubg_now != NULL
       && stubg_now->prev != NULL
-      && stubg_now->prev->stubtable != NULL)
+      && stubg_now->prev->stubtable != NULL
+      && stubg_now->seg == now_seg)
     stubtable_traverse (stubg_now->prev->stubtable, balc_add_traverse);
 
   /* Create a frag for each stub - this must be done now and for *all*
@@ -8549,7 +8551,7 @@ stubgroup_wane (void)
      previously called functions within the section - to allow for forward
      consolidation of stubs, knowing that many of these stubs will eventually
      not be instantiated, due to either paucity of calls or consolidation.  */
-  if (stubg_now->stubtable)
+  if (stubg_now->stubtable && stubg_now->seg == now_seg)
     stubtable_traverse (stubg_now->stubtable, balc_frag_traverse);
 }
 
@@ -19750,14 +19752,20 @@ relaxed_micromipspp_stub_call_length (fragS *fragp, asection *sec,
   /* Find start of correct stub-group list, if in different section or
      at end of current list.  */
   if ((stubg_now->seg != sec)
-      || (stubg_now->prev
-	  && stubg_now->prev->fragp
+      || (stubg_now->prev != NULL
+	  && stubg_now->prev->fragp != NULL
 	  && callsite < stubg_now->prev->fragp->fr_address))
-    stubg_now = hash_find (balc_stubgroup_table, sec->name);
+    {
+      stubg_now = hash_find (balc_stubgroup_table, sec->name);
+      /* This is for ugly cases of hand-written assembly where the
+	 order of .ent and .section directives is reversed.  */
+      if (stubg_now == NULL || stubg_now->fragp == NULL)
+	return 2;
+    }
 
   while (stubg_now->fragp->fr_address + stubg_now->fragp->fr_fix > 0
 	 && stubg_now->fragp->fr_address + stubg_now->fragp->fr_fix < callsite)
-    if (stubg_now->next && stubg_now->next->fragp)
+    if (stubg_now->next != NULL && stubg_now->next->fragp != NULL)
       stubg_now = stubg_now->next;
     else
       break;
@@ -19767,7 +19775,7 @@ relaxed_micromipspp_stub_call_length (fragS *fragp, asection *sec,
   usestub = balc_find_stub_inrange (S_GET_NAME (fragp->fr_symbol),
 				    callsite, stubg_now, &stub);
 
-  if (usestub && stub->fragp)
+  if (usestub && stub->fragp != NULL)
     keepstub = RELAX_MICROMIPSPP_KEEPSTUB (stub->fragp->fr_subtype);
 
   /* We need this to happen only once per call frag, but as early as
@@ -20189,7 +20197,8 @@ mips_relax_frag (asection *sec, fragS *fragp, long stretch)
       if (!mips_opts.no_balc_stubs
 	  && stubg_now != NULL
 	  && RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) == 'D'
-	  && RELAX_MICROMIPSPP_LINK (fragp->fr_subtype))
+	  && RELAX_MICROMIPSPP_LINK (fragp->fr_subtype)
+	  && RELAX_MICROMIPSPP_TOOFAR16 (fragp->fr_subtype))
 	new_var = relaxed_micromipspp_stub_call_length (fragp, sec,
 							new_var > 2, TRUE);
 
@@ -22285,7 +22294,11 @@ md_mips_end (void)
 
   mips_emit_delays ();
   if (cur_proc_ptr)
-    as_warn (_("missing .end at end of assembly"));
+    {
+      as_warn (_("missing .end at end of assembly"));
+      if (stubg_now)
+	stubgroup_wane ();
+    }
 
   /* Just in case no code was emitted, do the consistency check.  */
   file_mips_check_options ();
