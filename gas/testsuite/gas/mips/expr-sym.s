@@ -3,15 +3,15 @@
 
 	.text
 foo:
-	balc foo
+	bal foo
 .L3:
-	bc foo
+	b foo
 .L4:
 	lui	$2, %hi(foo)
 .L2:
-
+	.align 4
 b:
-	.word	.L2
+	.word	.L2:2
 	.hword	.L3
 	.ifdef r7
 	.byte	.L4
@@ -29,6 +29,13 @@ b:
 	.endif
 	.byte	(.L2 - .L4) >> 1
 
-	.word	(.L2-.L3)
+	.word	(.L2 - .L3)
 	.hword	(.L2 + 4) - .L4
 	.byte	(.L3 - 10) - .L4
+
+	.word	.L4 - (.L2 + 3)
+	.ifdef r7
+	.word	(.L4 - (.L3 + 5)) >> 3
+	.hword	.L3 - ((.L4 + 6) >> 3)
+	.byte	((.L3 - ((.L2 + 7) >> 3)) >> 2):3
+	.endif

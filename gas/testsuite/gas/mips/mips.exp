@@ -1559,7 +1559,7 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test_arches "tls-p32" "" [mips_arch_list_matching mipsr7]
     run_dump_test_arches "tls-relw" "" [mips_arch_list_matching mipsr7]
 
-    run_dump_test_arches "expr-const" "" [mips_arch_list_matching mips32r6]
+    run_dump_test_arches "expr-const" "" [mips_arch_list_matching mips32]
     run_dump_test_arches "expr-sym" "" [mips_arch_list_matching mips32r6]
     run_dump_test_arches "expr-diff" "" [mips_arch_list_matching mips32r6]
     run_list_test_arches "expr-ill" "" [mips_arch_list_matching mipsr7]

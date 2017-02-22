@@ -22453,7 +22453,25 @@ mips_parse_cons_expression (expressionS *exp,
 			   unsigned int nbytes)
 {
   bfd_reloc_code_real_type rel = BFD_RELOC_NONE;
+  int repeat = 1;
   expression (exp);
+
+  if (*input_line_pointer == ':')
+    {
+      expressionS count;
+      ++input_line_pointer;
+      expression (&count);
+      if (count.X_op != O_constant
+	  || count.X_add_number <= 0)
+	{
+	  as_warn (_("unresolvable or nonpositive repeat count; using 1"));
+	  return BFD_RELOC_NONE;
+	}
+
+      /* The cons function is going to output this expression once.  So we
+	 output it count - 1 times.  */
+      repeat = count.X_add_number;
+    }
 
   /* Sometimes subtract expressions containing data labels are deemed
      not-constant by general parse code because they fall in distinct
@@ -22498,15 +22516,15 @@ mips_parse_cons_expression (expressionS *exp,
 	{
 	  switch (iter->X_op)
 	    {
-	      case O_symbol:
-	      /* exp := symbol [ + offset ] */
-		break;
-
 	      case O_subtract:
-	      /* exp := exp - symbol */
-		if (symbol_constant_p (iter->X_op_symbol)
-		    || symbol_equated_p (iter->X_op_symbol))
-		  break;
+	      /* exp := symbol - exp */
+		if (!symbol_constant_p (iter->X_add_symbol))
+		  {
+		    as_bad ("Expression too complex to relocate!");
+		    rel = BFD_RELOC_NONE;
+		  }
+		iter = symbol_get_value_expression (iter->X_op_symbol);
+		break;
 
 	      case O_right_shift:
 	      /* exp := exp >> const */
@@ -22517,6 +22535,10 @@ mips_parse_cons_expression (expressionS *exp,
 		    as_bad ("Expression too complex to relocate!");
 		    rel = BFD_RELOC_NONE;
 		  }
+
+	      case O_symbol:
+	      /* exp := symbol [ + offset ] */
+		iter = symbol_get_value_expression (iter->X_add_symbol);
 		break;
 
 	      default:
@@ -22527,9 +22549,11 @@ mips_parse_cons_expression (expressionS *exp,
 		break;
 	    }
 
-	  iter = symbol_get_value_expression (iter->X_add_symbol);
 	}
     }
+
+  while (repeat-- > 1)
+    emit_expr_with_reloc (exp, nbytes, rel);
 
   return rel;
 }
@@ -22574,18 +22598,21 @@ mips_cons_fix_new (fragS *frag,
 
       while (iter->X_add_symbol != NULL)
 	{
+
+	  if (numrelocs + 1 >= ARRAY_SIZE (rentry))
+	    {
+	      as_bad ("Expression too complex to relocate!");
+	      break;
+	    }
+
 	  switch (iter->X_op)
 	    {
-	    case O_symbol:
-	      rentry[numrelocs].sym = iter->X_add_symbol;
-	      rentry[numrelocs].addend = iter->X_add_number;
-	      rentry[numrelocs++].reloc = sym_reloc;
-	      break;
-
 	    case O_subtract:
-	      rentry[numrelocs].sym = iter->X_op_symbol;
+	      rentry[numrelocs].sym = iter->X_add_symbol;
 	      rentry[numrelocs].addend = 0;
 	      rentry[numrelocs++].reloc = BFD_RELOC_MIPS_SUB;
+	      rentry[numrelocs].sym = iter->X_op_symbol;
+	      rentry[numrelocs].addend = - iter->X_add_number;
 	      break;
 
 	    case O_right_shift:
@@ -22614,6 +22641,11 @@ mips_cons_fix_new (fragS *frag,
 		    numrelocs--;
 		  }
 	      }
+	      /* Fall through */
+
+	    case O_symbol:
+	      rentry[numrelocs].sym = iter->X_add_symbol;
+	      rentry[numrelocs].addend = iter->X_add_number;
 	      break;
 
 	    default:
@@ -22621,20 +22653,11 @@ mips_cons_fix_new (fragS *frag,
 	      break;
 	    }
 
-	  /* Tentatively fill as if this were the last level of nesting.  */
-	  if (iter->X_op != O_symbol)
-	    {
-	      rentry[numrelocs].sym = iter->X_add_symbol;
-	      rentry[numrelocs].addend = iter->X_add_number;
-	      rentry[numrelocs++].reloc = sym_reloc;
-	    }
+	  iter = symbol_get_value_expression (rentry[numrelocs].sym);
 
-	  iter = symbol_get_value_expression (iter->X_add_symbol);
-
-	  /* One more level of nesting, scrap the tentative entry.  */
-	  if (iter->X_add_symbol != NULL)
-	    numrelocs--;
-	  gas_assert (numrelocs < ARRAY_SIZE (rentry));
+	  /* No more levels of nesting?  */
+	  if (iter->X_add_symbol == NULL)
+	    rentry[numrelocs++].reloc = sym_reloc;
 	}
 
       /* Step through the list in reverse and create relocations.  */

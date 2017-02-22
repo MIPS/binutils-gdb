@@ -19,3 +19,6 @@ test:
 	.word ((sym1 + 1) >> 3)
 	.hword ((sym1 >> 4) - 4)
 	.byte (0x1 + (sym1 - sym2))
+
+	.dword (0x123 + 4):2
+	.word ((sym1 + 1) >> 3):4
