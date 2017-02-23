@@ -2085,4 +2085,12 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test "llpscp-32-micromips"
     run_dump_test "llpscp-64"
     run_dump_test "llpscp-64-micromips"
+
+    run_dump_test_arches "ginv" "" [mips_arch_list_matching mips32r6]
+    run_dump_test_arches "ginv-virt" "" [mips_arch_list_matching micromipsr6]
+    run_dump_test_arches "ginv-dis" "" [mips_arch_list_matching mips32r6]
+    run_dump_test_arches "ginv-virt-dis" "" \
+				[mips_arch_list_matching micromipsr6]
+    run_list_test "ginv-error" "-mips32 -mginv"
+    run_list_test "ginv-virt-error" "-mips32r6 -mginv"
 }

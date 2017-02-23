@@ -1004,6 +1004,7 @@ mips_opcode_32bit_p (const struct mips_opcode *mo)
    "-y" 5 bit source register specifier (OP_*_RT) not $0 less than OP_*_RS
    "-A" symbolic offset (-262144 .. 262143) << 2 at bit 0
    "-B" symbolic offset (-131072 .. 131071) << 3 at bit 0
+   "+\" 2 bit Global TLB invalidate type at bit 8
 
    Other:
    "()" parens surrounding optional value
@@ -1320,6 +1321,11 @@ static const unsigned int mips_isa_table[] = {
 #define ASE_CRC64		0x00200000
 /* Crypto ASE */
 #define ASE_CRYPTO		0x00400000
+/* Global INValidate Extension. */
+#define ASE_GINV		0x00800000
+/* The Virtualization ASE has Global INValidate extension instructions
+   which are only valid when both ASEs are enabled. */
+#define ASE_VIRT_GINV		0x01000000
 
 /* MIPS ISA defines, use instead of hardcoding ISA level.  */
 
@@ -2340,6 +2346,7 @@ extern const int bfd_mips16_num_opcodes;
    "-y" 5-bit source register specifier (OP_*_RS) greater than OP_*_RT
    "-A" symbolic offset (-262144 .. 262143) << 2 at bit 0
    "-B" symbolic offset (-131072 .. 131071) << 3 at bit 0
+   "+\" 2 bit Global TLB invalidate type at bit 9
 
    MSA Extension:
    "+d" 5-bit MSA register (FD)

@@ -175,6 +175,7 @@ decode_micromips_operand (const char *p)
 	case ':': SINT (11, 0);
 	case '.': BIT (2, 9, 1);		/* (1 .. 4) */
 	case ';': SPECIAL (10, 16, SAME_RS_RT);
+	case '\\': BIT (2, 9, 0);		/* (00 .. 11) */
 	}
       break;
 
@@ -330,6 +331,10 @@ decode_micromips_operand (const char *p)
 /* eXtended Physical Address (XPA) support.  */
 #define XPA	ASE_XPA
 #define XPAVZ	ASE_XPA_VIRT
+
+/* Global INValidate (GINV) support.  */
+#define GINV	ASE_GINV
+#define GINVVZ	ASE_VIRT_GINV
 
 const struct mips_opcode micromips_opcodes[] =
 {
@@ -1369,6 +1374,10 @@ const struct mips_opcode micromips_opcodes[] =
 
 {"jic",			"s,j",		0x80000000, 0xffe00000,	RD_1,			UBR,		I37,		0,	0 },
 {"jialc",		"s,j",		0xa0000000, 0xffe00000,	RD_1,			UBR,		I37,		0,	0 },
+
+{"ginvi",		"s",		0x0000617c, 0xffe0ffff, RD_1,			0,		0,		GINV,	0 },
+{"ginvt",		"s,+\\",	0x0000717c, 0xffe0f9ff, RD_1,			0,		0,		GINV,	0 },
+{"ginvgt",		"s,+\\",	0x0000797c, 0xffe0f9ff, RD_1,			0,		0,		GINVVZ, 0 },
 
 {"cmp.af.s",		"D,S,T",	0x54000005, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_S,	0,		I37,		0,	0 },
 {"cmp.af.d",		"D,S,T",	0x54000015, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 },
