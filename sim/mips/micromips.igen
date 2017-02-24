@@ -145,6 +145,8 @@
 *micromips64:
 *micromips32r6:
 *micromips64r6:
+*micromips32r7:
+*micromips64r7:
 {
   switch (fmt)
     {
@@ -160,6 +162,8 @@
 *micromips64:
 *micromips32r6:
 *micromips64r6:
+*micromips32r7:
+*micromips64r7:
 {
   switch (fmt)
     {
@@ -176,6 +180,8 @@
 *micromips64:
 *micromips32r6:
 *micromips64r6:
+*micromips32r7:
+*micromips64r7:
 {
   switch (fmt)
     {

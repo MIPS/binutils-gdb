@@ -58,6 +58,54 @@
 :compute:::int:TRS_R7:RS:((RS < 4) ? (16 + RS) \: RS)
 :compute:::int:TRT_R7:RT:((RT < 4) ? (16 + RT) \: RT)
 
+:function:::void:do_lwc1xs:int ft, int rbase, int roffset
+*micromips32r7:
+*micromips64r7:
+{
+  check_fpu (SD_);
+  COP_LW (1, ft, do_load (SD_, AccessLength_WORD, GPR[rbase] << 2,
+        GPR[roffset]));
+}
+
+:function:::void:do_swc1xs:int ft, int rbase, int roffset, address_word instruction_0
+*micromips32r7:
+*micromips64r7:
+{
+  address_word base = GPR[rbase] << 2;
+  address_word offset = GPR[roffset];
+  check_fpu (SD_);
+  {
+    address_word vaddr = loadstore_ea (SD_, base, offset);
+    address_word paddr;
+    int uncached;
+    if ((vaddr & 3) != 0)
+      {
+  SIM_CORE_SIGNAL (SD, CPU, cia, read_map, AccessLength_WORD+1, vaddr,
+       write_transfer, sim_core_unaligned_signal);
+      }
+    else
+      {
+  if (AddressTranslation (vaddr, isDATA, isSTORE, &paddr, &uncached,
+              isTARGET, isREAL))
+    {
+      uword64 memval = 0;
+      uword64 memval1 = 0;
+      uword64 mask = (WITH_TARGET_WORD_BITSIZE == 64 ? 0x7 : 0x3);
+      address_word reverseendian =
+        (ReverseEndian ?(mask ^ AccessLength_WORD): 0);
+      address_word bigendiancpu =
+        (BigEndianCPU ?(mask ^ AccessLength_WORD): 0);
+      unsigned int byte;
+      paddr = ((paddr & ~mask) | ((paddr & mask) ^ reverseendian));
+      byte = ((vaddr & mask) ^ bigendiancpu);
+      memval = (((uword64)COP_SW(1, ft)) << (8 * byte));
+      StoreMemory (uncached, AccessLength_WORD, memval, memval1, paddr,
+       vaddr, isREAL);
+    }
+      }
+  }
+}
+
 :function:::unsigned32:compute_gpr2_dest1_reg:int reg
 *micromips32r7:
 *micromips64r7:
@@ -267,6 +315,18 @@
     /* If we get this far, we're not an instruction reserved by the sim. Raise
        the exception. */
       SignalException (BreakPoint, instruction_0);
+    }
+}
+
+:function:::FP_formats:convert_fmt_micromips_mul:int fmt
+*micromips32r7:
+*micromips64r7:
+{
+  switch (fmt)
+    {
+    case 1: return fmt_single;
+    case 3: return fmt_double;
+    default: return fmt_unknown;
     }
 }
 
@@ -2085,25 +2145,24 @@
 //////////////////////////////////////////////////////////////////////
 
 100001,5.FT,5.RS,1111,12.U:R7PLSU12:32::SDC1
-"sdc1 r<FT>, <U>(r<RS>)"
+"sdc1 f<FT>, <U>(r<RS>)"
 *micromips32r7:
 *micromips64r7:
 {
-  TRACE_ALU_INPUT3(GPR[FT], U, GPR[RS]);
+  check_fpu (SD_);
+  TRACE_ALU_INPUT3(FGR[FT], U, GPR[RS]);
   do_store (SD_, AccessLength_DOUBLEWORD, GPR[RS], EXTEND16 (U), COP_SD (1, FT));
-  unsigned64 temp;
-  COP_LD (1, temp, do_load (SD_, AccessLength_DOUBLEWORD, GPR[RS], EXTEND16 (U)));
-  TRACE_ALU_RESULT(temp);
 }
 
-100001,5.FT,5.RS,1110,12.U:R7PLSU12:32::LDC1
-"ldc1 r<FT>, <U>(r<RS>)"
+100001,5.FT,5.RS,1110,12.OFFSET:R7PLSU12:32::LDC1
+"ldc1 f<FT>, <OFFSET>(r<RS>)"
 *micromips32r7:
 *micromips64r7:
 {
-  TRACE_ALU_INPUT3(GPR[FT], U, GPR[RS]);
-  COP_LD (1, FT, do_load (SD_, AccessLength_DOUBLEWORD, GPR[RS], EXTEND16 (U)));
-  TRACE_ALU_RESULT(GPR[FT]);
+  check_fpu (SD_);
+  TRACE_ALU_INPUT3(FGR[FT], OFFSET, GPR[RS]);
+  COP_LD (1, FT, do_load (SD_, AccessLength_DOUBLEWORD, GPR[RS], EXTEND16 (OFFSET)));
+  TRACE_ALU_RESULT(FGR[FT]);
 }
 
 100001,5.FT,5.BASE,1010,12.OFFSET:R7PLSU12:32::LWC1
@@ -2114,12 +2173,16 @@
   do_lwc1 (SD_, FT, OFFSET, BASE);
 }
 
-111001,5.BASE,5.FT,16.OFFSET:R7PLSU12:32::SWC1
+100001,5.FT,5.BASE,1011,12.OFFSET:R7PLSU12:32::SWC1
+"swc1 f<FT>, <OFFSET>(fp)": BASE == 30
 "swc1 f<FT>, <OFFSET>(r<BASE>)"
 *micromips32r7:
 *micromips64r7:
 {
-  do_swc1 (SD_, FT, OFFSET, BASE, instruction_0);
+  if(BASE == 30)
+    do_swc1 (SD_, FT, OFFSET, 30, instruction_0);
+  else
+    do_swc1 (SD_, FT, OFFSET, BASE, instruction_0);
 }
 
 001000,10.X,00,01001,101,111,111:R7POOL32AXF5GROUP0:32::TLBR
@@ -2129,4 +2192,346 @@
 {
   // nothing to do currently
   sim_io_printf (SD, "Not implemented");
+}
+
+101000,5.RT,5.FS,2.X,101000,00,111,011:R7POOL32FXF0:32,f::MTC1
+"mtc1 r<RT>, f<FS>"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT2(GPR[RT], FGR[FS]);
+  do_mtc1b (SD_, RT, FS);
+  TRACE_ALU_RESULT(FGR[FS]);
+}
+
+101000,5.RT,5.FS,2.X,111000,00,111,011:R7POOL32FXF0:32,f::MTHC1
+"mthc1 r<RT>, f<FS>"
+*micromips32r7:
+*micromips64r7:
+{
+TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
+  do_mthc1 (SD_, RT, FS);
+  TRACE_ALU_RESULT(FGR[FS]);
+}
+
+101000,5.FT,5.FS,5.FD,1.X,0,1.FMT_MICROMIPS,00110,000:R7POOLADDFMT1:32,f::ADD.fmt1
+"add.%s<FMT_MICROMIPS> f<FD>, f<FS>, f<FT>"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT2(FGR[FT], FGR[FS]);
+  do_add_fmt (SD_, convert_fmt_micromips (SD_, FMT_MICROMIPS), FD, FS, FT,
+        instruction_0);
+  TRACE_ALU_RESULT(FGR[FD]);
+}
+
+101000,5.FT,5.FS,5.FD,5.R6COND,0,1.FMT,0101:R7POOL32F5:32,f::CMP.cond.fmt
+"cmp.%s<R6COND>.%s<FMT> f<FD>, f<FS>, f<FT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_cmp (SD_, FD, FS, FT, FMT, R6COND);
+}
+
+101000,5.FT,5.FS,1.X,0,1.FMT_MICROMIPS,00000,01,111,011:R7POOLMOVFMT:32,f::MOV.fmt
+"mov.%s<FMT_MICROMIPS> f<FT>, f<FS>"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT2(FGR[FT], FGR[FS]);
+  do_mov_fmt (SD_, convert_fmt_micromips (SD_, FMT_MICROMIPS), FT, FS,
+        instruction_0);
+  TRACE_ALU_RESULT(FGR[FT]);
+}
+
+010001,5.FT,011,16.U,00:R7PLSGPCP1:32::LWC1GP
+"lwc1 f<FT>, <U_SHIFT_2BIT>(GP)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_lwc1 (SD_, FT, U_SHIFT_2BIT, GPIDX);
+}
+
+010001,5.FT,011,16.U,01:R7PLSGPCP1:32::SWC1GP
+"swc1 f<FT>, <U_SHIFT_2BIT>(GP)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_swc1 (SD_, FT, U_SHIFT_2BIT, GPIDX, instruction_0);
+}
+
+010001,5.FT,011,16.U,10:R7PLSGPCP1:32::LDC1GP
+"ldc1 f<FT>, <U_SHIFT_2BIT>(GP)"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT3(FGR[FT], U_SHIFT_2BIT, GP);
+  COP_LD (1, FT, do_load (SD_, AccessLength_DOUBLEWORD, GP, U_SHIFT_2BIT));
+  TRACE_ALU_RESULT(FGR[FT]);
+}
+
+100010,5.FT,00001,01,13.S2,1.S1:R7POOLPBR3A:32,f::BC1NEZC
+"bc1nezc f<FT>, <S_14_BIT>"
+*micromips32r7:
+*micromips64r7:
+{
+  check_fpu (SD_);
+  TRACE_ALU_INPUT2(NIA, S_14_BIT);
+  if ((FGR[FT] & 0x01) != 0)
+      NIA = NIA + (S_14_BIT << 1);
+  TRACE_ALU_RESULT(NIA);
+}
+
+100010,5.FT,00000,01,13.S2,1.S1:R7POOLPBR3A:32,f::BC1EQZC
+"bc1eqzc f<FT>, <S_14_BIT>"
+*micromips32r7:
+*micromips64r7:
+{
+  check_fpu (SD_);
+  TRACE_ALU_INPUT2(NIA, S_14_BIT);
+  if ((FGR[FT] & 0x01) == 0)
+      NIA = NIA + (S_14_BIT << 1);
+  TRACE_ALU_RESULT(NIA);
+}
+
+101000,5.RT,5.FS,2.X,100000,00,111,011:R7POOL32FXF0:32,f::MFC1
+"mfc1 r<RT>, f<FS>"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT2(GPR[RT], FGR[FS]);
+  do_mfc1b (SD_, RT, FS);
+  TRACE_ALU_RESULT(GPR[RT]);
+}
+
+101000,5.RT,5.FS,2.X,110000,00,111,011:R7POOL32FXF0:32,f::MFHC1
+"mfhc1 r<RT>, f<FS>"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT2(GPR[RT], FGR[FS]);
+  do_mfhc1 (SD_, RT, FS);
+  TRACE_ALU_RESULT(GPR[RT]);
+}
+
+101000,5.FT,5.FS,1.X,2.FMT_MICROMIPS_CVT_D!3,10011,01,111,011:R7CVTDFMT:32,f::CVT.D.fmt
+"cvt.d.%s<FMT_MICROMIPS_CVT_D> f<FT>, f<FS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_cvt_d_fmt (SD_, convert_fmt_micromips_cvt_d (SD_, FMT_MICROMIPS_CVT_D),
+		FT, FS, instruction_0);
+}
+
+:%s::::FMT_MICROMIPS_MUL:int fmt
+{
+  switch (fmt)
+    {
+    case 1: return "s";
+    case 3: return "d";
+    default: return "?";
+    }
+}
+
+101000,5.FT,5.FS,5.FD,1.X,0,2.FMT_MICROMIPS_MUL!2!0,0110,000:R7MULFMT1:32,f::MUL.fmt
+"mul.%s<FMT_MICROMIPS_MUL> f<FD>, f<FS>, f<FT>"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT2(FGR[FS], FGR[FT]);
+  do_mul_fmt (SD_, convert_fmt_micromips_mul (SD_, FMT_MICROMIPS_MUL), FD, FS, FT,
+	      instruction_0);
+  TRACE_ALU_RESULT(FGR[FD]);
+}
+
+
+101000,5.FT,5.FS,5.FD,1.X,0,2.FMT_MICROMIPS_MUL!2!0,1110,000:R7DIVFMT1:32,f::DIV.fmt
+"div.%s<FMT_MICROMIPS_MUL> f<FD>, f<FS>, f<FT>"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT2(FGR[FS], FGR[FT]);
+  if (FMT_MICROMIPS_MUL == 1)
+    do_div_fmt (SD_, 0, FD, FS, FT, instruction_0);
+  else
+    do_div_fmt (SD_, 1, FD, FS, FT, instruction_0);
+  TRACE_ALU_RESULT(FGR[FD]);
+}
+
+101000,5.FT,5.FS,1.X,1.FMT_MICROMIPS,101011,00,111,011:R7POOL32FXF0:32,f::TRUNC.W.fmt
+"trunc.w.%s<FMT_MICROMIPS> f<FT>, f<FS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_trunc_fmt (SD_, fmt_word, FMT_MICROMIPS, FT, FS);
+}
+
+101000,5.FT,5.FS,1.X,2.FMT_MICROMIPS_CVT_S!3,11011,01,111,011:R7CVTSFMT:32,f::CVT.S.dsw
+"cvt.s.%s<FMT_MICROMIPS_CVT_S> f<FT>, f<FS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_cvt_s_fmt (SD_, convert_fmt_micromips_cvt_s (SD_, FMT_MICROMIPS_CVT_S),
+		FT, FS, instruction_0);
+}
+
+010001,5.FT,011,16.U,11:R7PLSU12:32::SDC1GP
+"sdc1 f<FT>, <U_SHIFT_2BIT>(GP)"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT3(FGR[FT], U_SHIFT_2BIT, GP);
+  do_store (SD_, AccessLength_DOUBLEWORD, GP, U_SHIFT_2BIT, COP_SD (1, FT));
+}
+
+101000,5.FT,5.FS,5.FD,1.X,0,1.FMT_MICROMIPS,01110,000:R7SUBFMT1:32,f::SUB.fmt
+"sub.%s<FMT_MICROMIPS> f<FD>, f<FS>, f<FT>"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT2(FGR[FS], FGR[FT]);
+  do_sub_fmt (SD_, convert_fmt_micromips (SD_, FMT_MICROMIPS), FD, FS, FT,
+        instruction_0);
+  TRACE_ALU_RESULT(FGR[FD]);
+}
+
+101000,5.FT,5.FS,1.X,2.FMT_MICROMIPS!3!2,00011,01,111,011:R7POOL32FXF1:32,f::::ABS.fmt
+"abs.%s<FMT_MICROMIPS> f<FT>, f<FS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_abs_fmt (SD_, convert_fmt_micromips (SD_, FMT_MICROMIPS), FT, FS,
+        instruction_0);
+}
+
+101000,5.FT,5.FS,5.FD,1.X,1.FMT_MICROMIPS,110111,000:R7POOL32F0:32,f::MADDF.fmt
+"maddf.%s<FMT_MICROMIPS> f<FD>, f<FS>, f<FT>"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT2(FGR[FS], FGR[FT]);
+  do_maddf (SD_, FD, FS, FT, convert_fmt_micromips (SD_, FMT_MICROMIPS), instruction_0);
+  TRACE_ALU_RESULT(FGR[FD]);
+}
+
+101000,5.FT,5.FS,1.X,2.FMT_MICROMIPS!3!2,01011,01,111,011:R7POOL32FXF1:32,f::NEG.fmt
+"neg.%s<FMT_MICROMIPS> f<FT>, f<FS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_neg_fmt (SD_, convert_fmt_micromips (SD_, FMT_MICROMIPS), FT, FS,
+        instruction_0);
+}
+
+101000,5.FT,5.FS,1.X,1.FMT_MICROMIPS,100011,00,111,011:R7POOL32FXF0:32,f::TRUNC.L.fmt
+"trunc.l.%s<FMT_MICROMIPS> f<FT>, f<FS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_trunc_fmt (SD_, fmt_long, FMT_MICROMIPS, FT, FS);
+}
+
+001000,5.RT,5.RS,5.FT,1011,1,000,111:R7POOLPPLSXS:32,f::SWC1XS
+"swc1xs f<FT>, r<RS>(r<RT>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_swc1xs(SD_, FT, RS, RT, instruction_0);
+}
+
+001000,5.RT,5.RS,5.FT,1111,0,000,111:R7POOLPPLSX:32,f::SDC1X
+"sdc1x f<FT>, r<RS>(r<RT>)"
+*micromips32r7:
+*micromips64r7:
+{
+  check_fpu (SD_);
+  TRACE_ALU_INPUT3(FGR[FT], GPR[RS], GPR[RT]);
+  do_store (SD_, AccessLength_DOUBLEWORD, GPR[RS], GPR[RT], COP_SD (1, FT));
+}
+
+001000,5.RT,5.RS,5.FT,1111,1,000,111:R7POOLPPLSXS:32,f::SDC1XS
+"sdc1xs f<FT>, r<RS>(r<RT>)"
+*micromips32r7:
+*micromips64r7:
+{
+  check_fpu (SD_);
+  TRACE_ALU_INPUT3(FGR[FT], GPR[RS], GPR[RT]);
+  do_store (SD_, AccessLength_DOUBLEWORD, GPR[RS] << 3, GPR[RT], COP_SD (1, FT));
+}
+
+001000,5.RT,5.RS,5.FT,1110,0,000,111:R7POOLPPLSXS:32::LDC1X
+"ldc1x f<FT>, r<RS>(r<RT>)"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT3(FGR[FT], GPR[RS], GPR[RT]);
+  COP_LD (1, FT, do_load (SD_, AccessLength_DOUBLEWORD, GPR[RS], GPR[RT]));
+  TRACE_ALU_RESULT(FGR[FT]);
+}
+
+001000,5.RT,5.RS,5.FT,1110,1,000,111:R7POOLPPLSXS:32::LDC1XS
+"ldc1xs f<FT>, r<RS>(r<RT>)"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT3(FGR[FT], GPR[RS], GPR[RT]);
+  COP_LD (1, FT, do_load (SD_, AccessLength_DOUBLEWORD, GPR[RS] << 3, GPR[RT]));
+  TRACE_ALU_RESULT(FGR[FT]);
+}
+
+001000,5.RT,5.RS,5.FT,1010,1,000,111:R7POOLPPLSXS:32::LWC1XS
+"lwc1xs f<FT>, r<RS>(r<RT>)"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT3(FGR[FT], GPR[RS], GPR[RT]);
+  do_lwc1xs (SD_, FT, RS, RT);
+  TRACE_ALU_RESULT(FGR[FT]);
+}
+
+001000,5.RT,5.RS,5.FT,1010,0,000,111:R7PPLSX:32,f::LWC1X
+"lwc1x f<FT>, r<RT>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT3(FGR[FT], GPR[RS], GPR[RT]);
+  do_lwxc1 (SD_, FT, RT, RS, instruction_0);
+  TRACE_ALU_RESULT(FGR[FT]);
+}
+
+001000,5.RT,5.RS,5.FT,1011,0,000,111:R7PPLSX:32,f::SWC1X
+"swc1x f<FT>, r<RT>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  do_swxc1 (SD_, FT, RT, RS, instruction_0);
+}
+
+101001,5.FT,5.RS,1.S1,1110,0,00,8.S2:R7PLSS0:32,f::LDC1S9
+"ldc1 r<FT>, <S_9_BIT>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT3(GPR[FT], S_9_BIT, GPR[RS]);
+  COP_LD (1, FT, do_load (SD_, AccessLength_DOUBLEWORD, GPR[RS], S_9_BIT));
+  TRACE_ALU_RESULT(GPR[FT]);
+}
+
+101001,5.FT,5.RS,1.S1,1111,0,00,8.S2:R7PLSS0:32,f::SDC1S9
+"sdc1 r<FT>, <S_9_BIT>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT3(GPR[FT], S_9_BIT, GPR[RS]);
+  do_store (SD_, AccessLength_DOUBLEWORD, GPR[RS], S_9_BIT, COP_SD (1, FT));
+}
+
+101001,5.FT,5.RS,1.S1,1010,0,00,8.S2:R7PLSS0:32::LWC1S9
+"lwc1 f<FT>, <S_9_BIT>(r<RS>)"
+*micromips32r7:
+*micromips64r7:
+{
+  TRACE_ALU_INPUT3(GPR[FT], S_9_BIT, GPR[RS]);
+  do_lwc1 (SD_, FT, S_9_BIT, RS);
+  TRACE_ALU_RESULT(GPR[FT]);
 }

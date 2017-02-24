@@ -635,6 +635,8 @@
 *micromips32:
 *micromips32r6:
 *mips64r6:
+*micromips32r7:
+*micromips64r7:
 {
 #if 0 /* XXX FIXME: enable this only after some additional testing.  */
   if (UserMode && (SR & (status_UX|status_PX)) == 0)
@@ -5558,6 +5560,8 @@
 *r3900:
 *micromips32r6:
 *micromips64r6:
+*micromips32r7:
+*micromips64r7:
 {
   /* None of these ISAs support Paired Single, so just fall back to
      the single/double check.  */
