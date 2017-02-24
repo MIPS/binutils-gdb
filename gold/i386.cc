@@ -651,10 +651,10 @@ class Target_i386 : public Sized_target<32, false>
     // any warnings about this relocation.
     inline bool
     relocate(const Relocate_info<32, false>*, unsigned int,
-	     Target_i386*, Output_section*, size_t, const unsigned char*,
-	     const Sized_symbol<32>*, const Symbol_value<32>*,
-	     unsigned char*, elfcpp::Elf_types<32>::Elf_Addr,
-	     section_size_type);
+	     Target_i386*, Output_section*, size_t, size_t,
+	     const unsigned char*, const Sized_symbol<32>*,
+	     const Symbol_value<32>*, unsigned char*,
+	     elfcpp::Elf_types<32>::Elf_Addr, section_size_type);
 
    private:
     // Do a TLS relocation.
@@ -2777,6 +2777,7 @@ Target_i386::Relocate::relocate(const Relocate_info<32, false>* relinfo,
 				Target_i386* target,
 				Output_section* output_section,
 				size_t relnum,
+				size_t,
 				const unsigned char* preloc,
 				const Sized_symbol<32>* gsym,
 				const Symbol_value<32>* psymval,

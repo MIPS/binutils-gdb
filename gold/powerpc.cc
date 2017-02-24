@@ -1092,10 +1092,10 @@ class Target_powerpc : public Sized_target<size, big_endian>
     // any warnings about this relocation.
     inline bool
     relocate(const Relocate_info<size, big_endian>*, unsigned int,
-	     Target_powerpc*, Output_section*, size_t, const unsigned char*,
-	     const Sized_symbol<size>*, const Symbol_value<size>*,
-	     unsigned char*, typename elfcpp::Elf_types<size>::Elf_Addr,
-	     section_size_type);
+	     Target_powerpc*, Output_section*, size_t, size_t,
+	     const unsigned char*, const Sized_symbol<size>*,
+	     const Symbol_value<size>*, unsigned char*,
+	     typename elfcpp::Elf_types<size>::Elf_Addr, section_size_type);
   };
 
   class Relocate_comdat_behavior
@@ -7078,6 +7078,7 @@ Target_powerpc<size, big_endian>::Relocate::relocate(
     Target_powerpc* target,
     Output_section* os,
     size_t relnum,
+    size_t,
     const unsigned char* preloc,
     const Sized_symbol<size>* gsym,
     const Symbol_value<size>* psymval,

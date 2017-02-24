@@ -329,10 +329,10 @@ class Target_sparc : public Sized_target<size, big_endian>
     // any warnings about this relocation.
     inline bool
     relocate(const Relocate_info<size, big_endian>*, unsigned int,
-	     Target_sparc*, Output_section*, size_t, const unsigned char*,
-	     const Sized_symbol<size>*, const Symbol_value<size>*,
-	     unsigned char*, typename elfcpp::Elf_types<size>::Elf_Addr,
-	     section_size_type);
+	     Target_sparc*, Output_section*, size_t, bool,
+	     const unsigned char*, const Sized_symbol<size>*,
+	     const Symbol_value<size>*, unsigned char*,
+	     typename elfcpp::Elf_types<size>::Elf_Addr, section_size_type);
 
    private:
     // Do a TLS relocation.
@@ -3275,6 +3275,7 @@ Target_sparc<size, big_endian>::Relocate::relocate(
 			Target_sparc* target,
 			Output_section*,
 			size_t relnum,
+			bool,
 			const unsigned char* preloc,
 			const Sized_symbol<size>* gsym,
 			const Symbol_value<size>* psymval,

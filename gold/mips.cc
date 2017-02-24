@@ -4589,6 +4589,7 @@ class Target_mips : public Sized_target<size, big_endian>
   {
    public:
     Relocate()
+      : calculated_value_(0), calculate_only_(false)
     { }
 
     ~Relocate()
@@ -4605,9 +4606,16 @@ class Target_mips : public Sized_target<size, big_endian>
     // any warnings about this relocation.
     inline bool
     relocate(const Relocate_info<size, big_endian>*, unsigned int,
-	     Target_mips*, Output_section*, size_t, const unsigned char*,
-	     const Sized_symbol<size>*, const Symbol_value<size>*,
-	     unsigned char*, Mips_address, section_size_type);
+	     Target_mips*, Output_section*, size_t, size_t,
+	     const unsigned char*, const Sized_symbol<size>*,
+	     const Symbol_value<size>*, unsigned char*, Mips_address,
+	     section_size_type);
+
+   private:
+    // Result of the relocation.
+    Valtype calculated_value_;
+    // Whether we have to calculate relocation instead of applying it.
+    bool calculate_only_;
   };
 
   // This POD class holds the dynamic relocations that should be emitted instead
@@ -6915,12 +6923,17 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
   // R_MIPS_32, R_MICROMIPS_32
   static inline typename This::Status
   rel32(unsigned char* view, const Mips_relobj<size, big_endian>* object,
-        const Symbol_value<size>* psymval, Mips_address addend)
+        const Symbol_value<size>* psymval, Mips_address addend,
+        bool calculate_only, Valtype* calculated_value)
   {
     Valtype32* wv = reinterpret_cast<Valtype32*>(view);
     Valtype x = psymval->value(object, addend);
 
-    elfcpp::Swap<32, big_endian>::writeval(wv, x);
+    if (calculate_only)
+      *calculated_value = x;
+    else
+      elfcpp::Swap<32, big_endian>::writeval(wv, x);
+
     return This::STATUS_OKAY;
   }
 };
@@ -14306,6 +14319,7 @@ Target_mips<size, big_endian>::Relocate::relocate(
                         Target_mips* target,
                         Output_section* output_section,
                         size_t relnum,
+                        size_t reloc_count,
                         const unsigned char* preloc,
                         const Sized_symbol<size>* gsym,
                         const Symbol_value<size>* psymval,
@@ -14320,6 +14334,10 @@ Target_mips<size, big_endian>::Relocate::relocate(
   unsigned int r_type3;
   unsigned char r_ssym;
   typename elfcpp::Elf_types<size>::Elf_Swxword r_addend;
+  // r_offset and r_type of the next relocation is needed for resolving multiple
+  // consecutive relocations with the same offset.
+  Mips_address next_r_offset = static_cast<Mips_address>(0) - 1;
+  unsigned int next_r_type = elfcpp::R_MIPS_NONE;
 
   if (rel_type == elfcpp::SHT_RELA)
     {
@@ -14336,6 +14354,17 @@ Target_mips<size, big_endian>::Relocate::relocate(
       r_ssym = Mips_classify_reloc<elfcpp::SHT_RELA, size, big_endian>::
           get_r_ssym(&rela);
       r_addend = rela.get_r_addend();
+      // If this is not the last relocation, get r_offset and r_type of the next
+      // relocation.
+      if (relnum + 1 < reloc_count)
+        {
+          const int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
+          const Relatype next_rela(preloc + reloc_size);
+          next_r_offset = next_rela.get_r_offset();
+          next_r_type =
+            Mips_classify_reloc<elfcpp::SHT_RELA, size, big_endian>::
+              get_r_type(&next_rela);
+        }
     }
   else
     {
@@ -14349,6 +14378,16 @@ Target_mips<size, big_endian>::Relocate::relocate(
       r_type2 = 0;
       r_type3 = 0;
       r_addend = 0;
+      // If this is not the last relocation, get r_offset and r_type of the next
+      // relocation.
+      if (relnum + 1 < reloc_count)
+        {
+          const int reloc_size = elfcpp::Elf_sizes<size>::rel_size;
+          const Reltype next_rel(preloc + reloc_size);
+          next_r_offset = next_rel.get_r_offset();
+          next_r_type = Mips_classify_reloc<elfcpp::SHT_REL, size, big_endian>::
+            get_r_type(&next_rel);
+        }
     }
 
   typedef Mips_relocate_functions<size, big_endian> Reloc_funcs;
@@ -14616,8 +14655,7 @@ Target_mips<size, big_endian>::Relocate::relocate(
                                      : true;
 
   Overflow_info<big_endian> overflow_info;
-  bool calculate_only = false;
-  Valtype calculated_value = 0;
+  // Whether we have to extract addend from the instruction.
   bool extract_addend = rel_type == elfcpp::SHT_REL;
   unsigned int r_types[3] = { r_type, r_type2, r_type3 };
 
@@ -14640,10 +14678,23 @@ Target_mips<size, big_endian>::Relocate::relocate(
       if (r_types[i] == elfcpp::R_MIPS_NONE)
         break;
 
-      // TODO(Vladimir)
-      // Check if the next relocation is for the same instruction.
-      calculate_only = i == 2 ? false
-                              : r_types[i+1] != elfcpp::R_MIPS_NONE;
+      // If we didn't apply the previous relocation, use its result as addend
+      // for current.
+      if (this->calculate_only_)
+        {
+          r_addend = this->calculated_value_;
+          extract_addend = false;
+        }
+
+      // In the N32 and 64-bit ABIs there may be multiple consecutive
+      // relocations for the same offset.  In that case we are
+      // supposed to treat the output of each relocation as the addend
+      // for the next.  For N64 ABI, we are checking offsets only in a
+      // third operation in a record (r_type3).
+      this->calculate_only_ =
+        (object->is_n64() && i < 2
+         ? r_types[i+1] != elfcpp::R_MIPS_NONE
+         : (r_offset == next_r_offset) && (next_r_type != elfcpp::R_MIPS_NONE));
 
       if (object->is_n64())
         {
@@ -14683,14 +14734,17 @@ Target_mips<size, big_endian>::Relocate::relocate(
           break;
         case elfcpp::R_MIPS_16:
           reloc_status = Reloc_funcs::rel16(view, object, psymval, r_addend,
-                                            extract_addend, calculate_only,
-                                            &calculated_value);
+                                            extract_addend,
+                                            this->calculate_only_,
+                                            &this->calculated_value_);
           break;
 
         case elfcpp::R_MIPS_32:
           if (should_apply_static_reloc(mips_sym, r_types[i], output_section,
                                         target))
-            reloc_status = Reloc_funcs::rel32(view, object, psymval, r_addend);
+            reloc_status = Reloc_funcs::rel32(view, object, psymval, r_addend,
+                                              this->calculate_only_,
+                                              &this->calculated_value_);
 
           if (mips_sym != NULL
               && (mips_sym->is_mips16() || mips_sym->is_micromips())
@@ -14716,14 +14770,16 @@ Target_mips<size, big_endian>::Relocate::relocate(
           if (should_apply_static_reloc(mips_sym, r_types[i], output_section,
                                         target))
             reloc_status = Reloc_funcs::rel64(view, object, psymval, r_addend,
-                                              extract_addend, calculate_only,
-                                              &calculated_value, false);
+                                              extract_addend,
+                                              this->calculate_only_,
+                                              &this->calculated_value_, false);
           else if (target->is_output_n64() && r_addend != 0)
             // Only apply the addend.  The static relocation was RELA, but the
             // dynamic relocation is REL, so we need to apply the addend.
             reloc_status = Reloc_funcs::rel64(view, object, psymval, r_addend,
-                                              extract_addend, calculate_only,
-                                              &calculated_value, true);
+                                              extract_addend,
+                                              this->calculate_only_,
+                                              &this->calculated_value_, true);
           break;
         case elfcpp::R_MIPS_REL32:
           gold_unreachable();
@@ -14731,8 +14787,8 @@ Target_mips<size, big_endian>::Relocate::relocate(
         case elfcpp::R_MIPS_PC32:
           reloc_status = Reloc_funcs::relpc32(view, object, psymval, address,
                                               r_addend, extract_addend,
-                                              calculate_only,
-                                              &calculated_value);
+                                              this->calculate_only_,
+                                              &this->calculated_value_);
           break;
 
         case elfcpp::R_MIPS16_26:
@@ -14744,8 +14800,8 @@ Target_mips<size, big_endian>::Relocate::relocate(
         case elfcpp::R_MICROMIPS_26_S1:
           reloc_status = Reloc_funcs::rel26(view, object, psymval, address,
               gsym == NULL, r_addend, extract_addend, gsym, cross_mode_jump,
-              r_types[i], target->jal_to_bal(), calculate_only,
-              &calculated_value);
+              r_types[i], target->jal_to_bal(), this->calculate_only_,
+              &this->calculated_value_);
           break;
 
         case elfcpp::R_MIPS_HI16:
@@ -14756,8 +14812,9 @@ Target_mips<size, big_endian>::Relocate::relocate(
                                                    r_addend, address,
                                                    gp_disp, r_types[i],
                                                    extract_addend, 0,
-                                                   target, calculate_only,
-                                                   &calculated_value);
+                                                   target,
+                                                   this->calculate_only_,
+                                                   &this->calculated_value_);
           else if (rel_type == elfcpp::SHT_REL)
             reloc_status = Reloc_funcs::relhi16(view, object, psymval, r_addend,
                                                 address, gp_disp, r_types[i],
@@ -14773,8 +14830,8 @@ Target_mips<size, big_endian>::Relocate::relocate(
           reloc_status = Reloc_funcs::rello16(target, view, object, psymval,
                                               r_addend, extract_addend, address,
                                               gp_disp, r_types[i], r_sym,
-                                              rel_type, calculate_only,
-                                              &calculated_value);
+                                              rel_type, this->calculate_only_,
+                                              &this->calculated_value_);
           break;
 
         case elfcpp::R_MIPS_LITERAL:
@@ -14790,45 +14847,45 @@ Target_mips<size, big_endian>::Relocate::relocate(
         case elfcpp::R_MIPS16_GPREL:
         case elfcpp::R_MICROMIPS_GPREL16:
           reloc_status = Reloc_funcs::relgprel(view, object, psymval,
-                                             target->adjusted_gp_value(object),
-                                             r_addend, extract_addend,
-                                             gsym == NULL, calculate_only,
-                                             &calculated_value);
+                                            target->adjusted_gp_value(object),
+                                            r_addend, extract_addend,
+                                            gsym == NULL, this->calculate_only_,
+                                            &this->calculated_value_);
           break;
 
         case elfcpp::R_MIPS_PC16:
           reloc_status = Reloc_funcs::relpc16(view, object, psymval, address,
                                               r_addend, extract_addend,
-                                              calculate_only,
-                                              &calculated_value);
+                                              this->calculate_only_,
+                                              &this->calculated_value_);
           break;
 
         case elfcpp::R_MIPS_PC21_S2:
           reloc_status = Reloc_funcs::relpc21(view, object, psymval, address,
                                               r_addend, extract_addend,
-                                              calculate_only,
-                                              &calculated_value);
+                                              this->calculate_only_,
+                                              &this->calculated_value_);
           break;
 
         case elfcpp::R_MIPS_PC26_S2:
           reloc_status = Reloc_funcs::relpc26(view, object, psymval, address,
                                               r_addend, extract_addend,
-                                              calculate_only,
-                                              &calculated_value);
+                                              this->calculate_only_,
+                                              &this->calculated_value_);
           break;
 
         case elfcpp::R_MIPS_PC18_S3:
           reloc_status = Reloc_funcs::relpc18(view, object, psymval, address,
                                               r_addend, extract_addend,
-                                              calculate_only,
-                                              &calculated_value);
+                                              this->calculate_only_,
+                                              &this->calculated_value_);
           break;
 
         case elfcpp::R_MIPS_PC19_S2:
           reloc_status = Reloc_funcs::relpc19(view, object, psymval, address,
                                               r_addend, extract_addend,
-                                              calculate_only,
-                                              &calculated_value);
+                                              this->calculate_only_,
+                                              &this->calculated_value_);
           break;
 
         case elfcpp::R_MIPS_PCHI16:
@@ -14836,8 +14893,8 @@ Target_mips<size, big_endian>::Relocate::relocate(
             reloc_status = Reloc_funcs::do_relpchi16(view, object, psymval,
                                                      r_addend, address,
                                                      extract_addend, 0,
-                                                     calculate_only,
-                                                     &calculated_value);
+                                                     this->calculate_only_,
+                                                     &this->calculated_value_);
           else if (rel_type == elfcpp::SHT_REL)
             reloc_status = Reloc_funcs::relpchi16(view, object, psymval,
                                                   r_addend, address, r_sym,
@@ -14849,8 +14906,8 @@ Target_mips<size, big_endian>::Relocate::relocate(
         case elfcpp::R_MIPS_PCLO16:
           reloc_status = Reloc_funcs::relpclo16(view, object, psymval, r_addend,
                                                 extract_addend, address, r_sym,
-                                                rel_type, calculate_only,
-                                                &calculated_value);
+                                                rel_type, this->calculate_only_,
+                                                &this->calculated_value_);
           break;
         case elfcpp::R_MICROMIPS_PC7_S1:
           reloc_status = Reloc_funcs::relmicromips_pc7_s1(view, object, psymval,
@@ -14866,17 +14923,17 @@ Target_mips<size, big_endian>::Relocate::relocate(
           break;
         case elfcpp::R_MICROMIPS_PC16_S1:
           reloc_status = Reloc_funcs::relmicromips_pc16_s1(view, object,
-                                                       psymval, address,
-                                                       r_addend, extract_addend,
-                                                       calculate_only,
-                                                       &calculated_value);
+                                                      psymval, address,
+                                                      r_addend, extract_addend,
+                                                      this->calculate_only_,
+                                                      &this->calculated_value_);
           break;
         case elfcpp::R_MIPS_GPREL32:
           reloc_status = Reloc_funcs::relgprel32(view, object, psymval,
                                               target->adjusted_gp_value(object),
                                               r_addend, extract_addend,
-                                              calculate_only,
-                                              &calculated_value);
+                                              this->calculate_only_,
+                                              &this->calculated_value_);
           break;
         case elfcpp::R_MIPS_GOT_HI16:
         case elfcpp::R_MIPS_CALL_HI16:
@@ -14892,8 +14949,8 @@ Target_mips<size, big_endian>::Relocate::relocate(
                                                            object, r_addend);
           gp_offset = target->got_section()->gp_offset(got_offset, object);
           reloc_status = Reloc_funcs::relgot_hi16(view, gp_offset,
-                                                  calculate_only,
-                                                  &calculated_value);
+                                                  this->calculate_only_,
+                                                  &this->calculated_value_);
           update_got_entry = changed_symbol_value;
           break;
 
@@ -14911,8 +14968,8 @@ Target_mips<size, big_endian>::Relocate::relocate(
                                                            object, r_addend);
           gp_offset = target->got_section()->gp_offset(got_offset, object);
           reloc_status = Reloc_funcs::relgot_lo16(view, gp_offset,
-                                                  calculate_only,
-                                                  &calculated_value);
+                                                  this->calculate_only_,
+                                                  &this->calculated_value_);
           update_got_entry = changed_symbol_value;
           break;
 
@@ -14930,12 +14987,12 @@ Target_mips<size, big_endian>::Relocate::relocate(
           gp_offset = target->got_section()->gp_offset(got_offset, object);
           if (eh_reloc(r_types[i]))
             reloc_status = Reloc_funcs::releh(view, gp_offset,
-                                              calculate_only,
-                                              &calculated_value);
+                                              this->calculate_only_,
+                                              &this->calculated_value_);
           else
             reloc_status = Reloc_funcs::relgot(view, gp_offset,
-                                               calculate_only,
-                                               &calculated_value);
+                                               this->calculate_only_,
+                                               &this->calculated_value_);
           break;
         case elfcpp::R_MIPS_CALL16:
         case elfcpp::R_MIPS16_CALL16:
@@ -14946,7 +15003,8 @@ Target_mips<size, big_endian>::Relocate::relocate(
                                                          object);
           gp_offset = target->got_section()->gp_offset(got_offset, object);
           reloc_status = Reloc_funcs::relgot(view, gp_offset,
-                                             calculate_only, &calculated_value);
+                                             this->calculate_only_,
+                                             &this->calculated_value_);
           // TODO(sasa): We should also initialize update_got_entry
           // in other place swhere relgot is called.
           update_got_entry = changed_symbol_value;
@@ -14962,18 +15020,18 @@ Target_mips<size, big_endian>::Relocate::relocate(
                                                              object);
               gp_offset = target->got_section()->gp_offset(got_offset, object);
               reloc_status = Reloc_funcs::relgot(view, gp_offset,
-                                                 calculate_only,
-                                                 &calculated_value);
+                                                 this->calculate_only_,
+                                                 &this->calculated_value_);
             }
           else
             {
               if (rel_type == elfcpp::SHT_RELA)
                 reloc_status = Reloc_funcs::do_relgot16_local(view, object,
-                                                         psymval, r_addend,
-                                                         extract_addend, 0,
-                                                         target,
-                                                         calculate_only,
-                                                         &calculated_value);
+                                                      psymval, r_addend,
+                                                      extract_addend, 0,
+                                                      target,
+                                                      this->calculate_only_,
+                                                      &this->calculated_value_);
               else if (rel_type == elfcpp::SHT_REL)
                 reloc_status = Reloc_funcs::relgot16_local(view, object,
                                                            psymval, r_addend,
@@ -14997,8 +15055,9 @@ Target_mips<size, big_endian>::Relocate::relocate(
                                                            GOT_TYPE_TLS_PAIR,
                                                            object, r_addend);
           gp_offset = target->got_section()->gp_offset(got_offset, object);
-          reloc_status = Reloc_funcs::relgot(view, gp_offset, calculate_only,
-                                             &calculated_value);
+          reloc_status = Reloc_funcs::relgot(view, gp_offset,
+                                             this->calculate_only_,
+                                             &this->calculated_value_);
           break;
 
         case elfcpp::R_MIPS_TLS_GOTTPREL:
@@ -15013,8 +15072,9 @@ Target_mips<size, big_endian>::Relocate::relocate(
                                                            GOT_TYPE_TLS_OFFSET,
                                                            object, r_addend);
           gp_offset = target->got_section()->gp_offset(got_offset, object);
-          reloc_status = Reloc_funcs::relgot(view, gp_offset, calculate_only,
-                                             &calculated_value);
+          reloc_status = Reloc_funcs::relgot(view, gp_offset,
+                                             this->calculate_only_,
+                                             &this->calculated_value_);
           break;
 
         case elfcpp::R_MIPS_TLS_LDM:
@@ -15024,24 +15084,25 @@ Target_mips<size, big_endian>::Relocate::relocate(
           // the module index.
           got_offset = target->got_section()->tls_ldm_offset(object);
           gp_offset = target->got_section()->gp_offset(got_offset, object);
-          reloc_status = Reloc_funcs::relgot(view, gp_offset, calculate_only,
-                                             &calculated_value);
+          reloc_status = Reloc_funcs::relgot(view, gp_offset,
+                                             this->calculate_only_,
+                                             &this->calculated_value_);
           break;
 
         case elfcpp::R_MIPS_GOT_PAGE:
         case elfcpp::R_MICROMIPS_GOT_PAGE:
           reloc_status = Reloc_funcs::relgotpage(target, view, object, psymval,
                                                  r_addend, extract_addend,
-                                                 calculate_only,
-                                                 &calculated_value);
+                                                 this->calculate_only_,
+                                                 &this->calculated_value_);
           break;
 
         case elfcpp::R_MIPS_GOT_OFST:
         case elfcpp::R_MICROMIPS_GOT_OFST:
           reloc_status = Reloc_funcs::relgotofst(target, view, object, psymval,
                                                  r_addend, extract_addend,
-                                                 local, calculate_only,
-                                                 &calculated_value);
+                                                 local, this->calculate_only_,
+                                                 &this->calculated_value_);
           break;
 
         case elfcpp::R_MIPS_JALR:
@@ -15056,8 +15117,8 @@ Target_mips<size, big_endian>::Relocate::relocate(
                                                 cross_mode_jump, r_types[i],
                                                 target->jalr_to_bal(),
                                                 target->jr_to_b(),
-                                                calculate_only,
-                                                &calculated_value);
+                                                this->calculate_only_,
+                                                &this->calculated_value_);
           break;
 
         case elfcpp::R_MIPS_TLS_DTPREL_HI16:
@@ -15065,52 +15126,59 @@ Target_mips<size, big_endian>::Relocate::relocate(
         case elfcpp::R_MICROMIPS_TLS_DTPREL_HI16:
           reloc_status = Reloc_funcs::tlsrelhi16(view, object, psymval,
                                                  elfcpp::DTP_OFFSET, r_addend,
-                                                 extract_addend, calculate_only,
-                                                 &calculated_value);
+                                                 extract_addend,
+                                                 this->calculate_only_,
+                                                 &this->calculated_value_);
           break;
         case elfcpp::R_MIPS_TLS_DTPREL_LO16:
         case elfcpp::R_MIPS16_TLS_DTPREL_LO16:
         case elfcpp::R_MICROMIPS_TLS_DTPREL_LO16:
           reloc_status = Reloc_funcs::tlsrello16(view, object, psymval,
                                                  elfcpp::DTP_OFFSET, r_addend,
-                                                 extract_addend, calculate_only,
-                                                 &calculated_value);
+                                                 extract_addend,
+                                                 this->calculate_only_,
+                                                 &this->calculated_value_);
           break;
         case elfcpp::R_MIPS_TLS_DTPREL32:
         case elfcpp::R_MIPS_TLS_DTPREL64:
           reloc_status = Reloc_funcs::tlsrel32(view, object, psymval,
                                                elfcpp::DTP_OFFSET, r_addend,
-                                               extract_addend, calculate_only,
-                                               &calculated_value);
+                                               extract_addend,
+                                               this->calculate_only_,
+                                               &this->calculated_value_);
           break;
         case elfcpp::R_MIPS_TLS_TPREL_HI16:
         case elfcpp::R_MIPS16_TLS_TPREL_HI16:
         case elfcpp::R_MICROMIPS_TLS_TPREL_HI16:
           reloc_status = Reloc_funcs::tlsrelhi16(view, object, psymval,
                                                  elfcpp::TP_OFFSET, r_addend,
-                                                 extract_addend, calculate_only,
-                                                 &calculated_value);
+                                                 extract_addend,
+                                                 this->calculate_only_,
+                                                 &this->calculated_value_);
           break;
         case elfcpp::R_MIPS_TLS_TPREL_LO16:
         case elfcpp::R_MIPS16_TLS_TPREL_LO16:
         case elfcpp::R_MICROMIPS_TLS_TPREL_LO16:
           reloc_status = Reloc_funcs::tlsrello16(view, object, psymval,
                                                  elfcpp::TP_OFFSET, r_addend,
-                                                 extract_addend, calculate_only,
-                                                 &calculated_value);
+                                                 extract_addend,
+                                                 this->calculate_only_,
+                                                 &this->calculated_value_);
           break;
         case elfcpp::R_MIPS_TLS_TPREL32:
         case elfcpp::R_MIPS_TLS_TPREL64:
           reloc_status = Reloc_funcs::tlsrel32(view, object, psymval,
                                                elfcpp::TP_OFFSET, r_addend,
-                                               extract_addend, calculate_only,
-                                               &calculated_value);
+                                               extract_addend,
+                                               this->calculate_only_,
+                                               &this->calculated_value_);
           break;
         case elfcpp::R_MIPS_SUB:
         case elfcpp::R_MICROMIPS_SUB:
           reloc_status = Reloc_funcs::relsub(view, object, psymval, r_addend,
                                              extract_addend,
-                                             calculate_only, &calculated_value);
+                                             this->calculate_only_,
+                                             &this->calculated_value_);
           break;
         case elfcpp::R_MICROMIPS_PC25_S1:
           reloc_status = Reloc_funcs::relmicromips_pc25_s1(view, object,
@@ -15223,7 +15291,9 @@ Target_mips<size, big_endian>::Relocate::relocate(
                                      r_addend, gsym == NULL);
           break;
         case elfcpp::R_MICROMIPS_32:
-          reloc_status = Reloc_funcs::rel32(view, object, psymval, r_addend);
+          reloc_status = Reloc_funcs::rel32(view, object, psymval, r_addend,
+                                            this->calculate_only_,
+                                            &this->calculated_value_);
           break;
         default:
           gold_error_at_location(relinfo, relnum, r_offset,
@@ -15240,8 +15310,6 @@ Target_mips<size, big_endian>::Relocate::relocate(
           else
             got->update_got_entry(got_offset, psymval->value(object, 0));
         }
-
-      r_addend = calculated_value;
     }
 
   bool jal_shuffle = jal_reloc(r_type) ? !parameters->options().relocatable()

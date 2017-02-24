@@ -532,10 +532,10 @@ class Target_tilegx : public Sized_target<size, big_endian>
     // any warnings about this relocation.
     inline bool
     relocate(const Relocate_info<size, big_endian>*, unsigned int,
-	     Target_tilegx*, Output_section*, size_t, const unsigned char*,
-	     const Sized_symbol<size>*, const Symbol_value<size>*,
-	     unsigned char*, typename elfcpp::Elf_types<size>::Elf_Addr,
-	     section_size_type);
+	     Target_tilegx*, Output_section*, size_t, size_t,
+	     const unsigned char*, const Sized_symbol<size>*,
+	     const Symbol_value<size>*, unsigned char*,
+	     typename elfcpp::Elf_types<size>::Elf_Addr, section_size_type);
   };
 
   // Adjust TLS relocation type based on the options and whether this
@@ -4336,6 +4336,7 @@ Target_tilegx<size, big_endian>::Relocate::relocate(
     Target_tilegx<size, big_endian>* target,
     Output_section*,
     size_t relnum,
+    size_t,
     const unsigned char* preloc,
     const Sized_symbol<size>* gsym,
     const Symbol_value<size>* psymval,

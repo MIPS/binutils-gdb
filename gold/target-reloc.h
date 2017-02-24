@@ -401,8 +401,8 @@ relocate_section(
 	v = NULL;
 
       if (!relocate.relocate(relinfo, Classify_reloc::sh_type, target,
-			     output_section, i, prelocs, sym, psymval,
-			     v, view_address + offset, view_size))
+			     output_section, i, reloc_count, prelocs, sym,
+			     psymval, v, view_address + offset, view_size))
 	continue;
 
       if (v == NULL)
@@ -461,7 +461,7 @@ apply_relocation(const Relocate_info<size, big_endian>* relinfo,
 
   Relocate relocate;
   relocate.relocate(relinfo, elfcpp::SHT_RELA, target, NULL,
-		    -1U, relbuf, sym, &symval,
+		    -1U, -1U, relbuf, sym, &symval,
 		    view + r_offset, address + r_offset, view_size);
 }
 
