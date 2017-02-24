@@ -715,7 +715,7 @@ static struct hash_control *mips16_op_hash = NULL;
 /* The opcode hash table we use for the microMIPS ASE.  */
 static struct hash_control *micromips_op_hash = NULL;
 
-/* The opcode hash table we use for the microMIPS++ ASE.  */
+/* The opcode hash table we use for the microMIPSr7 ASE.  */
 static struct hash_control *micromipspp_op_hash = NULL;
 
 /* This array holds the chars that always start a comment.  If the
@@ -1245,13 +1245,13 @@ static int mips_relax_branch;
 #define RELAX_MICROMIPS_MARK_TOOFAR32(i) ((i) | 0x40000)
 #define RELAX_MICROMIPS_CLEAR_TOOFAR32(i) ((i) & ~0x40000)
 
-/* For microMIPS++ code, we use relaxation similar to one we use for
+/* For microMIPSr7 code, we use relaxation similar to one we use for
    microMIPS code.  Some instructions that take immediate values support
    two encodings: a small one which takes some small value, and a
    larger one which takes a 16 bit value.  As some branches also follow
    this pattern, relaxing these values is required.
 
-   There are no delayed branches in microMIPS++ and we do not relax
+   There are no delayed branches in microMIPSr7 and we do not relax
    32-bit branch instructions that do not fit within 32-bit range at
    assembly, so attributes related to those features are removed.
    Instead we relax 32-bit calls that do not fit within 16-bit range
@@ -6404,7 +6404,7 @@ match_mips_save_restore_list_operand (struct mips_arg_info *arg)
   return TRUE;
 }
 
-/* OP_SAVE_RESTORE_LIST matcher for microMIPS++.  */
+/* OP_SAVE_RESTORE_LIST matcher for microMIPSr7.  */
 
 static bfd_boolean
 match_micromipspp_save_restore_list_operand (struct mips_arg_info *arg,
@@ -8030,10 +8030,10 @@ micromips_map_reloc (bfd_reloc_code_real_type reloc)
   return reloc;
 }
 
-/* If assembling microMIPS++ code, then return the microMIPS++
+/* If assembling microMIPSr7 code, then return the microMIPSr7
    reloc corresponding to the requested one if any.  Otherwise
    return the reloc unchanged.  
-   FIXME: We only handle the currently supported set of uMIPS++
+   FIXME: We only handle the currently supported set of uMIPSr7
    relocs correctly.  The rest fall-back to microMIPS relocs.
 */
 
@@ -10326,7 +10326,7 @@ macro_read_relocs (va_list *args, bfd_reloc_code_real_type *r)
     }
 }
 
-/* Map an <format,reloc> pair to microMIPS++ relocs.  */
+/* Map an <format,reloc> pair to microMIPSr7 relocs.  */
 
 static void
 macro_match_micromipspp_reloc (const char *fmt, bfd_reloc_code_real_type *r)
@@ -16406,7 +16406,7 @@ static const struct percent_op_match mips_percent_op[] =
   {"%pcrel_lo", BFD_RELOC_LO16_PCREL}
 };
 
-/* FIXME: replacing relevant entries for umips++ only, for now.  */
+/* FIXME: replacing relevant entries for umipsr7 only, for now.  */
 static const struct percent_op_match micromipspp_percent_op[] =
 {
   {"%lo", BFD_RELOC_MICROMIPSPP_LO12},

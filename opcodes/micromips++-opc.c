@@ -1,4 +1,4 @@
-/* micromips++-opc.c.  microMIPS++ opcode table.
+/* micromips++-opc.c.  microMIPSr7 opcode table.
    Copyright (C) 2016 Free Software Foundation, Inc.
    Contributed by Faraz Shahbazker, MIPS Technologies, Inc.
 

@@ -196,10 +196,10 @@ END_RELOC_NUMBERS (R_MIPS_maxext)
 #define R7_END_RELOC_OVERRIDE(name)     name };
 #endif
 
-/* Define this to re-purpose existing uMIPS reloc numbers for R7.  */
+/* Define this to re-purpose existing uMIPS reloc numbers for r7.  */
 #ifdef RELOC_REUSE_MICROMIPSPP
 
-/* Re-purpose microMIPS relocation for microMIPS++.  */
+/* Re-purpose microMIPS relocation for microMIPSr7.  */
 START_RELOC_NUMBERS (elf_mipsr7_reloc_type)
   FAKE_RELOC (R_MICROMIPSPP_min, 130)
   R7_RELOC_OVERRIDE (HI20, 134)		/* R_MICROMIPS_HI16	*/
@@ -1370,8 +1370,8 @@ extern void bfd_mips_elf_swap_abiflags_v0_out
 #define AFL_ASE_XPA          0x00001000 /* XPA ASE.  */
 #define AFL_ASE_DSPR3        0x00002000 /* DSP R3 ASE.  */
 #define AFL_ASE_MIPS16E2     0x00004000 /* MIPS16 E2 Extension.  */
-#define AFL_ASE_XLP          0x00008000 /* XLP ASE.  */
-#define AFL_ASE_MASK         0x0000ffff /* All ASEs.  */
+#define AFL_ASE_XLP          0x00040000 /* XLP ASE.  */
+#define AFL_ASE_MASK         0x0007ffff /* All ASEs.  */
 
 /* Values for the isa_ext word of an ABI flags structure.  */
 

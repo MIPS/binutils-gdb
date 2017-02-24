@@ -439,10 +439,10 @@ enum mips_operand_type {
   OP_MAPPED_STRING,
   OP_MXU_STRIDE,
 
-  /* Fractured upper immediate PC-offset for umips++ */
+  /* Fractured upper immediate PC-offset for uMIPSr7 */
   OP_HI20_PCREL,
 
-  /* Fractured upper immediate 20-bit signed integer for umips++ */
+  /* Fractured upper immediate 20-bit signed integer for uMIPSr7 */
   OP_HI20_INT,
 
   /* A non-zero PC-relative offset.  */
@@ -1445,8 +1445,8 @@ static const unsigned int mips_isa_table[] = {
 #define ASE_MIPS16E2		0x00040000
 /* MIPS16e2 MT ASE instructions.  */
 #define ASE_MIPS16E2_MT		0x00080000
-/* MICROMIPS++ low power instructions.  */
-#define ASE_XLP			0x00100000
+/* Low Power instructions on MIPS32r7.  */
+#define ASE_XLP			0x02000000
 
 #define       ISA_UNKNOWN     0               /* Gas internal use.  */
 #define       ISA_MIPS1       INSN_ISA1
