@@ -2691,7 +2691,7 @@ class Target_arm : public Sized_target<32, big_endian>
     // any warnings about this relocation.
     inline bool
     relocate(const Relocate_info<32, big_endian>*, unsigned int,
-	     Target_arm*, Output_section*, size_t, const unsigned char*,
+	     Target_arm*, Output_section*, size_t, size_t, const unsigned char*,
 	     const Sized_symbol<32>*, const Symbol_value<32>*,
 	     unsigned char*, Arm_address, section_size_type);
 
@@ -9432,6 +9432,7 @@ Target_arm<big_endian>::Relocate::relocate(
     Target_arm* target,
     Output_section* output_section,
     size_t relnum,
+    size_t,
     const unsigned char* preloc,
     const Sized_symbol<32>* gsym,
     const Symbol_value<32>* psymval,
@@ -12426,7 +12427,7 @@ Target_arm<big_endian>::relocate_stub(
       reloc_write.put_r_info(elfcpp::elf_r_info<32>(0, r_type));
 
       relocate.relocate(relinfo, elfcpp::SHT_REL, this, output_section,
-			this->fake_relnum_for_stubs, reloc_buffer,
+			this->fake_relnum_for_stubs, -1U, reloc_buffer,
 			NULL, &symval, view + reloc_offset,
 			address + reloc_offset, reloc_size);
     }

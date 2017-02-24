@@ -798,10 +798,10 @@ class Target_x86_64 : public Sized_target<size, false>
     // any warnings about this relocation.
     inline bool
     relocate(const Relocate_info<size, false>*, unsigned int,
-	     Target_x86_64*, Output_section*, size_t, const unsigned char*,
-	     const Sized_symbol<size>*, const Symbol_value<size>*,
-	     unsigned char*, typename elfcpp::Elf_types<size>::Elf_Addr,
-	     section_size_type);
+	     Target_x86_64*, Output_section*, size_t, size_t,
+	     const unsigned char*, const Sized_symbol<size>*,
+	     const Symbol_value<size>*, unsigned char*,
+	     typename elfcpp::Elf_types<size>::Elf_Addr, section_size_type);
 
    private:
     // Do a TLS relocation.
@@ -3416,6 +3416,7 @@ Target_x86_64<size>::Relocate::relocate(
     Target_x86_64<size>* target,
     Output_section*,
     size_t relnum,
+    size_t,
     const unsigned char* preloc,
     const Sized_symbol<size>* gsym,
     const Symbol_value<size>* psymval,
