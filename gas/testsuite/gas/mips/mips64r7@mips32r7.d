@@ -2455,7 +2455,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> e850 0000 	bnezc	v0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
-[0-9a-f]+ <[^>]+> c84c 1000 	bgeuic	v0,2,[0-9a-f]+ <[^>]+>
+[0-9a-f]+ <[^>]+> c84c 1000 	bgeiuc	v0,2,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8802 8000 	bgezc	v0,[0-9a-f]+ <[^>]+>
@@ -2505,7 +2505,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> e930 0000 	bnezc	t1,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
-[0-9a-f]+ <[^>]+> c92c 1000 	bgeuic	t1,2,[0-9a-f]+ <[^>]+>
+[0-9a-f]+ <[^>]+> c92c 1000 	bgeiuc	t1,2,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a920 8000 	bgtzc	t1,[0-9a-f]+ <[^>]+>
@@ -2552,7 +2552,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> e920 0000 	beqzc	t1,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
-[0-9a-f]+ <[^>]+> c93c 1000 	bltuic	t1,2,[0-9a-f]+ <[^>]+>
+[0-9a-f]+ <[^>]+> c93c 1000 	bltiuc	t1,2,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8920 8000 	blezc	t1,[0-9a-f]+ <[^>]+>
@@ -2590,7 +2590,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> e920 0000 	beqzc	t1,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
-[0-9a-f]+ <[^>]+> c93c 1000 	bltuic	t1,2,[0-9a-f]+ <[^>]+>
+[0-9a-f]+ <[^>]+> c93c 1000 	bltiuc	t1,2,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a809 8000 	bltzc	t1,[0-9a-f]+ <[^>]+>
@@ -4135,5 +4135,4 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 8048 f540 	ext	v0,t0,0x0,0x16
 [0-9a-f]+ <[^>]+> 8049 f580 	ext	v0,t1,0x0,0x17
 [0-9a-f]+ <[^>]+> 8050 f5c0 	ext	v0,s0,0x0,0x18
-[0-9a-f]+ <[^>]+> 9008      	nop
-[0-9a-f]+ <[^>]+> 9008      	nop
+[0-9a-f]+ <[^>]+> 8000 c000 	nop

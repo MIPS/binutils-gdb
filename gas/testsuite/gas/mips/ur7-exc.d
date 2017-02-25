@@ -86,3 +86,24 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 6061 1234 5678 	addiu	v1,v1,305419896
 [0-9a-f]+ <[^>]+> 6061 fffe dcbb 	addiu	v1,v1,-74565
 [0-9a-f]+ <[^>]+> 6061 edcb a988 	addiu	v1,v1,-305419896
+[0-9a-f]+ <[^>]+> c84c 0800 	bgeiuc	v0,1,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
+[0-9a-f]+ <[^>]+> c84f f800 	bgeiuc	v0,127,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
+[0-9a-f]+ <[^>]+> c85c 0800 	bltiuc	v0,1,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
+[0-9a-f]+ <[^>]+> c85f f800 	bltiuc	v0,127,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
+[0-9a-f]+ <[^>]+> 2062 201f 	extw	a0,v0,v1,0x0
+[0-9a-f]+ <[^>]+> 2062 261f 	extw	a0,v0,v1,0x18
+[0-9a-f]+ <[^>]+> 2062 241f 	extw	a0,v0,v1,0x10
+[0-9a-f]+ <[^>]+> 2062 221f 	extw	a0,v0,v1,0x8
+[0-9a-f]+ <[^>]+> 2062 205f 	extw	a0,v0,v1,0x1
+[0-9a-f]+ <[^>]+> 2062 209f 	extw	a0,v0,v1,0x2
+[0-9a-f]+ <[^>]+> 2062 20df 	extw	a0,v0,v1,0x3
+[0-9a-f]+ <[^>]+> 2062 211f 	extw	a0,v0,v1,0x4
+[0-9a-f]+ <[^>]+> 2002 2290 	move	a0,v0
+[0-9a-f]+ <[^>]+> 2062 261f 	extw	a0,v0,v1,0x18
+[0-9a-f]+ <[^>]+> 2062 241f 	extw	a0,v0,v1,0x10
+[0-9a-f]+ <[^>]+> 2062 221f 	extw	a0,v0,v1,0x8
+	\.\.\.
