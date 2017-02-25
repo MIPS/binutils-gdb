@@ -11784,7 +11784,7 @@ macro_build_branch_rtim (int type, expressionS *ep,
       break;
     case M_BGEU_I:
     case M_BGTU_I:
-      br = "bgeuic";
+      br = "bgeiuc";
       break;
     case M_BLT_I:
     case M_BLE_I:
@@ -11792,7 +11792,7 @@ macro_build_branch_rtim (int type, expressionS *ep,
       break;
     case M_BLTU_I:
     case M_BLEU_I:
-      br = "bltuic";
+      br = "bltiuc";
       break;
     case M_BNE_I:
       br = "bneic";
@@ -12400,8 +12400,8 @@ macro (struct mips_cl_insn *ip, char *str)
       else if (op[0] == op[1])
 	{
 	  used_at = 1;
-	  macro_build (NULL, "align", "d,s,t,+I", AT, op[0], op[0], op[2]);
-	  macro_build (NULL, "align", "d,s,t,+I", op[0], AT, op[0],
+	  macro_build (NULL, "extw", "d,s,t,+I", AT, op[0], op[0], op[2]);
+	  macro_build (NULL, "extw", "d,s,t,+I", op[0], AT, op[0],
 		       1 + op[3] - op[2]);
 	}
       else if (op[2] == 0 && op[3] == 31)
@@ -12412,12 +12412,13 @@ macro (struct mips_cl_insn *ip, char *str)
       else
 	{
 	  if (op[2] != 0)
-	    macro_build (NULL, "align", "d,s,t,+I", op[0], op[0], op[0], op[2]);
-	  macro_build (NULL, "align", "d,s,t,+I", op[0], op[0], op[1],
+	    macro_build (NULL, "extw", "d,s,t,+I", op[0], op[0], op[0], op[2]);
+	  macro_build (NULL, "extw", "d,s,t,+I", op[0], op[0], op[1],
 		       1 + op[3] - op[2]);
 	}
       if (op[3] < 31)
-	macro_build (NULL, "align", "d,s,t,+I", op[0], op[0], op[0], 31 - op[3]);
+	macro_build (NULL, "extw", "d,s,t,+I", op[0], op[0], op[0],
+		     31 - op[3]);
       break;
 
     case M_DDIV_3:

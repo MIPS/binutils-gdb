@@ -101,5 +101,26 @@ test:
 	addiu	$3, 0x12345678
 	addiu	$3, $3, -0x12345
 	addiu	$3, -0x12345678
+
+	bgeiuc	$2, 1, test
+	bgeiuc	$2, 127, test
+	bltiuc	$2, 1, test
+	bltiuc	$2, 127, test
 	
-.end	test
+	extw	$4, $2, $3, 0
+	extw    $4, $2, $3, 24
+	extw    $4, $2, $3, 16
+	extw    $4, $2, $3, 8
+	extw	$4, $2, $3, 1
+	extw    $4, $2, $3, 2
+	extw    $4, $2, $3, 3
+	extw    $4, $2, $3, 4
+
+	align   $4, $2, $3, 0
+	align   $4, $2, $3, 1
+	align   $4, $2, $3, 2
+	align   $4, $2, $3, 3
+
+	.end	test
+	.align	2
+	.space	8

@@ -12,7 +12,7 @@ Disassembly of section \.text:
 			0: R_MICROMIPS_PC14_S1	text_label-0x4
 0+0004 <text_label\+0x4> e880 0000 	beqzc	a0,00000008 <text_label\+0x8>
 			4: R_MICROMIPS_PC20_S1	text_label-0x4
-0+0008 <text_label\+0x8> c89c 1000 	bltuic	a0,2,0000000c <text_label\+0xc>
+0+0008 <text_label\+0x8> c89c 1000 	bltiuc	a0,2,0000000c <text_label\+0xc>
 			8: R_MICROMIPS_PC11_S1	text_label-0x4
 0+000c <text_label\+0xc> e020 8000 	lui	at,0x8
 0+0010 <text_label\+0x10> 2024 0b90 	sltu	at,a0,at
