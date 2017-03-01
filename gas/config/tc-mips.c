@@ -12400,9 +12400,21 @@ macro (struct mips_cl_insn *ip, char *str)
 
     case M_INS:
       gas_assert (IS_MICROMIPS_R7 (mips_opts.isa));
-      macro_build (NULL, "align", "d,s,t,+I", op[0], op[0], op[0], op[2]);
-      if (op[3] + 1 - op[2] < 31)
-	macro_build (NULL, "align", "d,s,t,+I", op[0], op[0], op[1], op[3]+1-op[2]);
+      if (op[0] == op[1])
+	{
+	  used_at = 1;
+	  macro_build (NULL, "align", "d,s,t,+I", AT, op[0], op[0], op[2]);
+	  if (op[3] + 1 - op[2] < 31)
+	    macro_build (NULL, "align", "d,s,t,+I", op[0], AT, op[1],
+			 op[3]+1-op[2]);
+	}
+      else
+	{
+	  macro_build (NULL, "align", "d,s,t,+I", op[0], op[0], op[0], op[2]);
+	  if (op[3] + 1 - op[2] < 31)
+	    macro_build (NULL, "align", "d,s,t,+I", op[0], op[0], op[1],
+			 op[3]+1-op[2]);
+	}
       if (op[3] < 31)
 	macro_build (NULL, "align", "d,s,t,+I", op[0], op[0], op[0], 31 - op[3]);
       break;
