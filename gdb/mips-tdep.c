@@ -1198,6 +1198,10 @@ mips_ax_pseudo_register_push_stack (struct gdbarch *gdbarch,
 /* Table to translate 3-bit register field to actual register number.  */
 static const signed char mips_reg3_to_reg[8] = { 16, 17, 2, 3, 4, 5, 6, 7 };
 
+/* Table to translate micromipsr7 3-bit register field to
+   actual register number.  */
+static const signed char mipsr7_reg3_to_reg[8] = { 16, 17, 18, 19, 4, 5, 6, 7 };
+
 /* Heuristic_proc_start may hunt through the text section for a long
    time across a 2400 baud serial line.  Allows the user to limit this
    search.  */
@@ -2460,6 +2464,7 @@ is_mipsr7_isa (struct gdbarch *gdbarch)
 #define b3s9_imm(x) (((x) >> 3) & 0x1ff)
 #define b2s3_cc(x) (((x) >> 2) & 0x7)
 #define b4s2_regl(x) (((x) >> 4) & 0x3)
+#define b4s3_reg(x) (((x) >> 4) & 0x7)
 #define b4s4_imm(x) (((x) >> 4) & 0xf)
 #define b5s5_op(x) (((x) >> 5) & 0x1f)
 #define b5s5_reg(x) (((x) >> 5) & 0x1f)
@@ -2480,8 +2485,10 @@ is_mipsr7_isa (struct gdbarch *gdbarch)
 #define b6s10_ext(x) (((x) >> 6) & 0x3ff)
 #define b9s3_op(x) (((x) >> 9) & 0x7)
 #define b11s5_reg(x) (((x) >> 11) & 0x1f)
+#define b11s7_imm(x) (((x) >> 11) & 0x7f)
 #define b12s4_op(x) (((x) >> 12) & 0xf)
 #define b12s5_op(x) (((x) >> 12) & 0x1f)
+#define b14s2_op(x) (((x) >> 14) & 0x3)
 
 /* Return the size in bytes of the instruction INSN encoded in the ISA
    instruction set.  */
@@ -3450,6 +3457,183 @@ get_micromipsr6_branch_target (struct frame_info *frame, CORE_ADDR pc)
   return pc;
 }
 
+static CORE_ADDR
+get_micromipsr7_branch_target (struct frame_info *frame, CORE_ADDR pc)
+{
+  struct gdbarch *gdbarch = get_frame_arch (frame);
+  ULONGEST insn;
+  CORE_ADDR offset;
+  int op, sreg, treg, uimm;
+  LONGEST val_rs, val_rt;
+
+  insn = mips_fetch_instruction (gdbarch, ISA_MICROMIPS, pc, NULL);
+  pc += MIPS_INSN16_SIZE;
+  switch (mips_insn_size (gdbarch, ISA_MICROMIPS, insn))
+    {
+    /* 48-bit instructions.  */
+    case 3 * MIPS_INSN16_SIZE:
+      /* No branch or jump instructions in this category.  */
+      pc += 2 * MIPS_INSN16_SIZE;
+      break;
+
+    /* 32-bit instructions.  */
+    case 2 * MIPS_INSN16_SIZE:
+      insn <<= 16;
+      insn |= mips_fetch_instruction (gdbarch, ISA_MICROMIPS, pc, NULL);
+      pc += MIPS_INSN16_SIZE;
+      switch (micromips_op (insn >> 16))
+	{
+	case 0x2: /* MOVE.BALC */
+	  offset = ((insn & 1) << 20 | ((insn >> 1) & 0xfffff)) << 1;
+	  offset = (offset ^ 0x200000) - 0x200000;
+	  pc += offset;
+	  break;
+
+	case 0xa: /* BALC, BC */
+	  offset = ((insn & 1) << 24 | ((insn >> 1) & 0xffffff)) << 1;
+	  offset = (offset ^ 0x2000000) - 0x2000000;
+	  pc += offset;
+	  break;
+
+	case 0x12: /* P.J P.BREG P.BALRC P.BALRSC */
+	  op = b12s4_op (insn);
+	  sreg = b0s5_reg (insn >> 16);
+	  treg = b5s5_reg (insn >> 16);
+	  if (op == 0x8) /* BALRC, BALRSC, BRC, BRSC */
+	    {
+	      int bit9 = (insn >> 9) & 1;
+	      val_rs = get_frame_register_signed (frame, sreg);
+	      pc = val_rs << bit9;
+	    }
+	  else if (op == 0 || op == 1) /* JALRC JALRC.HB */
+	    pc = get_frame_register_signed (frame, sreg);
+	  break;
+
+	case 0x20: /* P.RESTORE */
+	  if (b12s5_op (insn) == 0x13) /* RESTORE.JRC */
+	    pc = get_frame_register_signed (frame, 31);
+	  break;
+
+	case 0x22: /* P.BR1 */
+	  op = b14s2_op (insn);
+	  sreg = b0s5_reg (insn >> 16);
+	  treg = b5s5_reg (insn >> 16);
+	  val_rs = get_frame_register_signed (frame, sreg);
+	  val_rt = get_frame_register_signed (frame, treg);
+	  offset = ((insn & 1) << 13 | ((insn >> 1) & 0x1fff)) << 1;
+	  offset = (offset ^ 0x4000) - 0x4000;
+	  if ((op == 0 && val_rs == val_rt) /* BEQC */
+	      || (op == 2 && val_rs >= val_rt) /* BGEC */
+	      || (op == 3
+		  && (ULONGEST) val_rs >= (ULONGEST) val_rt)) /* BGEUC */
+	    pc += offset;
+	  break;
+
+	case 0x2a: /* P.BR2 */
+	  op = b14s2_op (insn);
+	  sreg = b0s5_reg (insn >> 16);
+	  treg = b5s5_reg (insn >> 16);
+	  val_rs = get_frame_register_signed (frame, sreg);
+	  val_rt = get_frame_register_signed (frame, treg);
+	  offset = ((insn & 1) << 13 | ((insn >> 1) & 0x1fff)) << 1;
+	  offset = (offset ^ 0x4000) - 0x4000;
+	  if ((op == 0 && val_rs != val_rt) /* BNEC */
+	      || (op == 2 && val_rs < val_rt) /* BLTC */
+	      || (op == 3
+		  && (ULONGEST) val_rs < (ULONGEST) val_rt)) /* BLTUC */
+	    pc += offset;
+	  break;
+
+	case 0x32: /* P.BRI */
+	  op = b2s3_cc (insn >> 16);
+	  treg = b5s5_reg (insn >> 16);
+	  val_rt = get_frame_register_signed (frame, treg);
+	  offset = ((insn & 1) << 10 | ((insn >> 1) & 0x3ff)) << 1;
+	  offset = (offset ^ 0x800) - 0x800;
+	  uimm = b11s7_imm (insn);
+	  if ((op == 0 && val_rt == uimm) /* BEQIC */
+	      || (op == 2 && val_rt >= uimm) /* BGEIC */
+	      || (op == 3 && (ULONGEST) val_rt >= uimm) /* BGEIUC */
+	      || (op == 4 && val_rt != uimm) /* BNEIC */
+	      || (op == 6 && val_rt < uimm) /* BLTIC */
+	      || (op == 7 && (ULONGEST) val_rt < uimm)) /* BLTIUC */
+	    pc += offset;
+	  break;
+
+	case 0x3a: /* P.BZ */
+	  op = (insn & 0x80000); /* 20th bit */
+	  treg = b5s5_reg (insn >> 16);
+	  val_rt = get_frame_register_signed (frame, treg);
+	  offset = ((insn & 1) << 19 | ((insn >> 1) & 0x7ffff)) << 1;
+	  offset = (offset ^ 0x100000) - 0x100000;
+	  if ((op == 0 && val_rt == 0) /* BEQZC */
+	      || (op != 0 && val_rt != 0)) /* BNEZC */
+	    pc += offset;
+	  break;
+
+	default:
+	  break;
+	}
+
+    /* 16-bit instructions.  */
+    case MIPS_INSN16_SIZE:
+      switch (micromips_op (insn))
+	{
+	case 0x6: /* BC[16] */
+	case 0xe: /* BALC[16] */
+	  offset = ((insn & 1) << 9 | ((insn >> 1) & 0x1ff)) << 1;
+	  offset = (offset ^ 0x400) - 0x400;
+	  pc += offset;
+	  break;
+
+	case 0x7: /* RESTORE.JRC[16] */
+	  if ((insn & 1) == 0 && (insn & 0x20) == 0x20)
+	    pc = get_frame_register_signed (frame, 31);
+	  break;
+
+	case 0x26: /* BEQZC[16] */
+	  treg = mipsr7_reg3_to_reg[b7s3_reg (insn)];
+	  val_rt = get_frame_register_signed (frame, treg);
+	  offset = ((insn & 1) << 6 | ((insn >> 1) & 0x3f)) << 1;
+	  offset = (offset ^ 0x80) - 0x80;
+	  if (val_rt == 0)
+	    pc += offset;
+	  break;
+
+	case 0x2e: /* BNEZC[16] */
+	  treg = mipsr7_reg3_to_reg[b7s3_reg (insn)];
+	  val_rt = get_frame_register_signed (frame, treg);
+	  offset = ((insn & 1) << 6 | ((insn >> 1) & 0x3f)) << 1;
+	  offset = (offset ^ 0x80) - 0x80;
+	  if (val_rt != 0)
+	    pc += offset;
+	  break;
+
+	case 0x36: /* P16.BR P16.JRC */
+	  sreg = mipsr7_reg3_to_reg[b4s3_reg (insn)];
+	  treg = mipsr7_reg3_to_reg[b7s3_reg (insn)];
+	  val_rs = get_frame_register_signed (frame, sreg);
+	  val_rt = get_frame_register_signed (frame, treg);
+	  offset = insn & 0xf;
+	  /* BEQC[16] BEQC[16] */
+	  if ((sreg < treg && offset != 0 && val_rs == val_rt)
+	      || (sreg >= treg && offset != 0 && val_rs != val_rt))
+	    pc += offset;
+	  else if (offset == 0) /* JALRC[16] JRC */
+	    pc = get_frame_register_signed (frame, 31);
+	  break;
+
+	default:
+	  break;
+	}
+      break;
+
+    default:
+      break;
+    }
+  return pc;
+}
+
 /* Calculate the address of the next microMIPS instruction to execute
    after the INSN coprocessor 1 vector conditional branch instruction
    at the address PC.  */
@@ -3482,6 +3666,9 @@ micromips_next_pc (struct frame_info *frame, CORE_ADDR pc)
 {
   struct gdbarch *gdbarch = get_frame_arch (frame);
   ULONGEST insn;
+
+  if (is_mipsr7_isa (gdbarch))
+    return get_micromipsr7_branch_target (frame, pc);
 
   if (is_mipsr6_isa (gdbarch))
     return get_micromipsr6_branch_target (frame, pc);
@@ -4018,6 +4205,8 @@ micromips_instruction_is_compact_branch (struct frame_info *frame,
       switch (mips_insn_size (gdbarch, ISA_MICROMIPS, insn))
 	{
 	case 2 * MIPS_INSN16_SIZE:
+	  insn <<= 16;
+	  insn |= mips_fetch_instruction (gdbarch, ISA_MICROMIPS, pc, NULL);
 	  switch (micromips_op (insn >> 16))
 	    {
 	    case 0x2: /* MOVE.BALC */
@@ -4028,6 +4217,9 @@ micromips_instruction_is_compact_branch (struct frame_info *frame,
 	    case 0x32: /* BEQIC, BGEIC, BGEIUC, BLTIC, BLTIUC, BNEIC */
 	    case 0x3a: /* BEQZC, BNEZC */
 	      return 1;
+	    case 0x20:
+	      if (b12s5_op (insn) == 0x13) /* RESTORE.JRC */
+	        return 1;
 	    }
 	  break;
 
@@ -9892,6 +10084,9 @@ micromips_insn_at_pc_has_delay_slot (struct gdbarch *gdbarch,
 {
   ULONGEST insn;
   int status;
+
+  if (is_mipsr7_isa (gdbarch))
+    return 0;
 
   if (is_mipsr6_isa (gdbarch))
     return 0;
