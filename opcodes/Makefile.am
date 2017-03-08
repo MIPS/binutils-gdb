@@ -191,6 +191,7 @@ TARGET_LIBOPCODES_CFILES = \
 	metag-dis.c \
 	microblaze-dis.c \
 	micromips-opc.c \
+	micromips++-opc.c \
 	mips-dis.c \
 	mips-opc.c \
 	mips16-opc.c \

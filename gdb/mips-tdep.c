@@ -2415,6 +2415,17 @@ is_mipsr6_isa (struct gdbarch *gdbarch)
 	  || info->mach == bfd_mach_mipsisa64r6);
 }
 
+/* Return one if the gdbarch is based on MIPS Release 7.  */
+
+static int
+is_mipsr7_isa (struct gdbarch *gdbarch)
+{
+  const struct bfd_arch_info *info = gdbarch_bfd_arch_info (gdbarch);
+
+  return (info->mach == bfd_mach_mipsisa32r7
+	  || info->mach == bfd_mach_mipsisa64r7);
+}
+
 /* These are the fields of 32 bit mips instructions.  */
 #define mips32_op(x) (x >> 26)
 #define itype_op(x) (x >> 26)
@@ -2441,9 +2452,12 @@ is_mipsr6_isa (struct gdbarch *gdbarch)
 #define b0s5_imm(x) ((x) & 0x1f)
 #define b0s5_reg(x) ((x) & 0x1f)
 #define b0s7_imm(x) ((x) & 0x7f)
+#define b0s8_imm(x) ((x) & 0xff)
 #define b0s10_imm(x) ((x) & 0x3ff)
+#define b0u13_15s1_imm(x) (((x) & 0x1fff) | (((x) & 0x8000) >> 2))
 #define b1s4_imm(x) (((x) >> 1) & 0xf)
 #define b1s9_imm(x) (((x) >> 1) & 0x1ff)
+#define b3s9_imm(x) (((x) >> 3) & 0x1ff)
 #define b2s3_cc(x) (((x) >> 2) & 0x7)
 #define b4s2_regl(x) (((x) >> 4) & 0x3)
 #define b4s4_imm(x) (((x) >> 4) & 0xf)
@@ -2452,10 +2466,12 @@ is_mipsr6_isa (struct gdbarch *gdbarch)
 #define b6s4_op(x) (((x) >> 6) & 0xf)
 #define b7s3_reg(x) (((x) >> 7) & 0x7)
 #define b8s2_regl(x) (((x) >> 8) & 0x3)
+#define b8s7_op(x) (((x) >> 8) & 0x7f)
 
 /* 32-bit instruction formats, B and S refer to the lowest bit and the size
    respectively of the field extracted.  */
 #define b0s6_op(x) ((x) & 0x3f)
+#define b0s10_op(x) ((x) & 0x3ff)
 #define b0s11_op(x) ((x) & 0x7ff)
 #define b0s12_imm(x) ((x) & 0xfff)
 #define b0s16_imm(x) ((x) & 0xffff)
@@ -2465,6 +2481,7 @@ is_mipsr6_isa (struct gdbarch *gdbarch)
 #define b9s3_op(x) (((x) >> 9) & 0x7)
 #define b11s5_reg(x) (((x) >> 11) & 0x1f)
 #define b12s4_op(x) (((x) >> 12) & 0xf)
+#define b12s5_op(x) (((x) >> 12) & 0x1f)
 
 /* Return the size in bytes of the instruction INSN encoded in the ISA
    instruction set.  */
@@ -2475,6 +2492,15 @@ mips_insn_size (struct gdbarch *gdbarch, enum mips_isa isa, ULONGEST insn)
   switch (isa)
     {
     case ISA_MICROMIPS:
+      if (is_mipsr7_isa (gdbarch))
+	{
+	  if (micromips_op (insn) == 0x18)
+	    return 3 * MIPS_INSN16_SIZE;
+	  else if ((micromips_op (insn) & 0x4) == 0x0)
+	    return 2 * MIPS_INSN16_SIZE;
+	  else
+	    return MIPS_INSN16_SIZE;
+	}
       if (!is_mipsr6_isa (gdbarch) && micromips_op (insn) == 0x1f)
         return 3 * MIPS_INSN16_SIZE;
       else if (((micromips_op (insn) & 0x4) == 0x4)
@@ -3987,6 +4013,45 @@ micromips_instruction_is_compact_branch (struct frame_info *frame,
   insn = mips_fetch_instruction (gdbarch, ISA_MICROMIPS, pc, NULL);
   pc += MIPS_INSN16_SIZE;
 
+  if (is_mipsr7_isa (gdbarch))
+    {
+      switch (mips_insn_size (gdbarch, ISA_MICROMIPS, insn))
+	{
+	case 2 * MIPS_INSN16_SIZE:
+	  switch (micromips_op (insn >> 16))
+	    {
+	    case 0x2: /* MOVE.BALC */
+	    case 0xa: /* BALC, BC */
+	    case 0x2a: /* BLTC, BLTUC, BNEC */
+	    case 0x12: /* BALRC, BALRSC, BRC, BRSC, JALRC, JALRC.HB */
+	    case 0x22: /* BEQC, BGEC, BGEUC */
+	    case 0x32: /* BEQIC, BGEIC, BGEIUC, BLTIC, BLTIUC, BNEIC */
+	    case 0x3a: /* BEQZC, BNEZC */
+	      return 1;
+	    }
+	  break;
+
+	case MIPS_INSN16_SIZE:
+	  switch (micromips_op (insn))
+	    {
+	    case 0x7:	/* RESTORE.JRC[16] */
+	      if ((insn & 1) == 0 && (insn & 0x20) == 0x20)
+		return 1;
+	    case 0x6:	/* BC[16] */
+	    case 0xe:	/* BALC[16] */
+	    case 0x26:	/* BEQZC[16] */
+	    case 0x2e:	/* BNEZC[16] */
+	    case 0x36:	/* BEQC[16], BNEC[16], JALRC[16], JRC */
+	      return 1;
+	    }
+	  break;
+
+	default:
+	  break;
+	}
+      return 0;
+    }
+
   if (! is_mipsr6_isa (gdbarch))
     {
       switch (micromips_op (insn))
@@ -4728,8 +4793,33 @@ micromips_scan_prologue (struct gdbarch *gdbarch,
 	{
 	/* 48-bit instructions.  */
 	case 3 * MIPS_INSN16_SIZE:
-	  /* No prologue instructions in this category.  */
-	  this_non_prologue_insn = 1;
+	  if (is_mipsr7_isa (gdbarch))
+	    {
+	      if (micromips_op (insn) == 0x18)
+		{
+		  op = b0s5_imm (insn);
+		  treg = b5s5_reg (insn);
+		  offset = mips_fetch_instruction (gdbarch, ISA_MICROMIPS,
+						   cur_pc + 2, NULL);
+		  offset <<= 16;
+		  offset |= mips_fetch_instruction (gdbarch, ISA_MICROMIPS,
+						    cur_pc + 4, NULL);
+		  if (op == 0x0 && treg == 3) /* LI48 $v1, imm32 */
+		    v1_off = offset;
+		  else if (op == 0x1 /* ADDIU48 $sp, imm32 */
+			   && treg == MIPS_SP_REGNUM)
+		    sp_adj = offset;
+		  else
+		    this_non_prologue_insn = 1;
+		}
+	      else
+		this_non_prologue_insn = 1;
+	    }
+	  else
+	    {
+	      /* No prologue instructions in this category.  */
+	      this_non_prologue_insn = 1;
+	    }
 	  loc += 2 * MIPS_INSN16_SIZE;
 	  break;
 
@@ -4739,6 +4829,136 @@ micromips_scan_prologue (struct gdbarch *gdbarch,
 	  insn |= mips_fetch_instruction (gdbarch,
 					  ISA_MICROMIPS, cur_pc + loc, NULL);
 	  loc += MIPS_INSN16_SIZE;
+
+	  if (is_mipsr7_isa (gdbarch))
+	    {
+	      switch (micromips_op (insn >> 16))
+		{
+		case 0x0: /* PP.ADDIU bits 000000 */
+		  treg = b5s5_reg (insn >> 16);
+		  sreg = b0s5_reg (insn >> 16);
+		  offset = (b0u13_15s1_imm (insn) ^ 0x2000) - 0x2000;
+		  if (sreg == treg
+		      && treg == MIPS_SP_REGNUM) /* ADDIU $sp, $sp, imm */
+		    sp_adj = offset;
+		  else if (sreg == MIPS_SP_REGNUM && treg == 30)
+		    {
+		      frame_addr = sp + offset;
+		      frame_adjust = offset;
+		      frame_reg = 30;
+		    }
+		  else if (sreg != 28 || treg != 28)
+		    this_non_prologue_insn = 1;
+		  break;
+
+		case 0x8: /* P32A: bits 001000 */
+		  op = b0s10_op (insn);
+		  sreg = b0s5_reg (insn >> 16);
+		  treg = b5s5_reg (insn >> 16);
+		  dreg = b11s5_reg (insn);
+		  if (op == 0x1d0	/* SUBU: bits 001000 0111010000 */
+		      && dreg == MIPS_SP_REGNUM && sreg == MIPS_SP_REGNUM
+		      && treg == 3)	/* SUBU $sp, $v1 */
+		    sp_adj = v1_off;
+		  else
+		    this_non_prologue_insn = 1;
+		  break;
+
+		case 0x20: /* P.U12 bits 100000 */
+		  if (b12s5_op (insn) == 0x3)	/* SAVE: bits 100000 0 0011 */
+		    {
+		      int gp_reg = insn & 1;
+		      int fp_reg = insn & 2;
+		      int count = b1s4_imm (insn >> 16);
+		      int first_gpr = b5s5_reg (insn >> 16);
+		      offset = b3s9_imm (insn) << 3;
+		      sp_adj = -offset;
+		      fp_reg = (fp_reg || (count == 9 && !gp_reg));
+		      count = count - fp_reg - gp_reg;
+		      set_reg_offset (gdbarch, this_cache, first_gpr,
+				      sp - 4);
+		      offset = -8;
+		      if (fp_reg)
+			{
+			  set_reg_offset (gdbarch, this_cache, 30,
+					  sp + offset);
+			  offset -= 4;
+			}
+		      if (gp_reg)
+			{
+			  set_reg_offset (gdbarch, this_cache, 28,
+					  sp + offset);
+			  offset -= 4;
+			}
+		      while (count)
+			{
+			  set_reg_offset (gdbarch, this_cache,
+					  16 | (count - 1), sp + offset);
+			  offset -= 4;
+			  count--;
+			}
+		    }
+		  else if (b12s4_op (insn) == 0) /* ORI: bits 100000 0000 */
+		    {
+		      sreg = b0s5_reg (insn >> 16);
+		      treg = b5s5_reg (insn >> 16);
+		      if (sreg == treg && treg == 3) /* ORI $v1, $v1, imm */
+		        v1_off |= b0s11_op (insn);
+		      else
+			this_non_prologue_insn = 1;
+		    }
+		  else
+		    this_non_prologue_insn = 1;
+		  break;
+
+		case 0x21: /* P.LS.U12 bits 100001 */
+		  if (b12s4_op (insn) == 0x9) /* SW 100001 1001 */
+		    {
+		      breg = b0s5_reg (insn >> 16);
+		      sreg = b5s5_reg (insn >> 16);
+		      offset = b0s12_imm (insn);
+		      if (breg == MIPS_SP_REGNUM) /* SW reg,offset($sp) */
+			set_reg_offset (gdbarch, this_cache, sreg, sp + offset);
+		      else
+			this_non_prologue_insn = 1;
+		    }
+		  break;
+
+		case 0x29: /* P.LS.S9 bits 101001 */
+		  if (b8s7_op (insn) == 0x48) /* SW[S9] 101001 1001 0 00 */
+		    {
+		      breg = b0s5_reg (insn >> 16);
+		      sreg = b5s5_reg (insn >> 16);
+		      offset = (((insn >> 15) & 1) << 8) | b0s8_imm (insn);
+		      offset = (offset ^ 0x100) - 0x100;
+		      if (breg == MIPS_SP_REGNUM) /* SW[S9] reg,offset($sp) */
+			set_reg_offset (gdbarch, this_cache, sreg, sp + offset);
+		      else
+			this_non_prologue_insn = 1;
+		    }
+		  break;
+
+		case 0x38: /* P.LUI bits 111000 */
+		  treg = b5s5_reg (insn >> 16);
+		  if ((insn & 2) == 0 /* LU20I bits 111000 0 */
+		      && treg == 3) /* LU20I $v1, imm */
+		    {
+		      v1_off = ((insn & 1) << 19)
+				| (((insn >> 2) & 0x3ff) << 9)
+				| (((insn >> 12) & 0x1ff));
+		      v1_off = v1_off << 12;
+		    }
+		  else
+		    this_non_prologue_insn = 1;
+		  break;
+
+		default:
+		  this_non_prologue_insn = 1;
+		  break;
+		}
+	      break;	/* 32-bit microMIPSR7 instructions.  */
+	    }
+
 	  switch (micromips_op (insn >> 16))
 	    {
 	    /* Record $sp/$fp adjustment.  */
@@ -4908,6 +5128,55 @@ micromips_scan_prologue (struct gdbarch *gdbarch,
 
 	/* 16-bit instructions.  */
 	case MIPS_INSN16_SIZE:
+	  if (is_mipsr7_isa (gdbarch))
+	    {
+	      switch (micromips_op (insn))
+		{
+		case 0x4: /* MOVE: bits 000100 */
+		  sreg = b0s5_reg (insn);
+		  dreg = b5s5_reg (insn);
+		  if (sreg == MIPS_SP_REGNUM && dreg == 30)
+				/* MOVE  $fp, $sp */
+		    {
+		      frame_addr = sp;
+		      frame_reg = 30;
+		    }
+		  else
+		    this_non_prologue_insn = 1;
+		  break;
+
+		case 0x7: /* SAVE: bits 000111 */
+		  {
+		    int count = b6s4_op (insn);
+		    offset = b1s4_imm (insn) << 3;
+		    sp_adj = -offset;
+		    if (count == 14 || count == 15)
+		      break;
+		    set_reg_offset (gdbarch, this_cache, 31, sp - 4);
+		    offset = -8;
+		    while (count)
+		      {
+			set_reg_offset (gdbarch, this_cache,
+					16 | (count - 1), sp + offset);
+			offset -= 4;
+			count--;
+		      }
+		    break;
+		  }
+
+		case 0x35: /* SW[SP]: bits 110101 */
+		  treg = b5s5_reg (insn);
+		  offset = b0s5_imm (insn);
+		  set_reg_offset (gdbarch, this_cache, treg, sp + offset);
+		  break;
+
+		default:
+		  this_non_prologue_insn = 1;
+		  break;
+		}
+	      break;
+	    }
+
 	  switch (micromips_op (insn))
 	    {
 	    case 0x3: /* MOVE: bits 000011 */
@@ -4985,8 +5254,10 @@ micromips_scan_prologue (struct gdbarch *gdbarch,
       /* A jump or branch, enough non-prologue insns seen or positive
          stack adjustment?  If so, then we must have reached the end
          of the prologue by now.  */
-      if (prev_delay_slot || non_prologue_insns > 1 || sp_adj > 0
-	  || micromips_instruction_is_compact_branch (this_frame, cur_pc))
+      if (prev_delay_slot || non_prologue_insns > 1
+	  || (! is_mipsr7_isa (gdbarch) && sp_adj > 0)
+	  || (this_frame != NULL
+	      && micromips_instruction_is_compact_branch (this_frame, cur_pc)))
 	break;
 
       prev_non_prologue_insn = this_non_prologue_insn;
@@ -9234,6 +9505,8 @@ gdb_print_insn_mips (bfd_vma memaddr, struct disassemble_info *info)
     {
       if (is_mipsr6_isa (gdbarch))
 	info->mach = bfd_mach_mips_micromipsr6;
+      else if (is_mipsr7_isa (gdbarch))
+	info->mach = bfd_mach_mipsisa32r7;
       else
 	info->mach = bfd_mach_mips_micromips;
     }
@@ -9242,6 +9515,7 @@ gdb_print_insn_mips (bfd_vma memaddr, struct disassemble_info *info)
   /* Round down the instruction address to the appropriate boundary.  */
   memaddr &= (info->mach == bfd_mach_mips16
 	      || info->mach == bfd_mach_mips_micromips
+	      || info->mach == bfd_mach_mipsisa32r7
 	      || info->mach == bfd_mach_mips_micromipsr6) ? ~1 : ~3;
 
   /* Set the disassembler options.  */

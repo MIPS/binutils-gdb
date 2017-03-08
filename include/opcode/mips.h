@@ -381,8 +381,12 @@ enum mips_operand_type {
   OP_ENTRY_EXIT_LIST,
 
   /* The register list and frame size for a MIPS16 SAVE or RESTORE
-     instruction.  */
+     instruction. Only register-list for microMIPS R7 SAVE or RESTORE */
   OP_SAVE_RESTORE_LIST,
+
+  /* The floating-point register list for a microMIPS R7 SAVE or RESTORE 
+     instruction. */
+  OP_SAVE_RESTORE_FP_LIST,
 
   /* A 10-bit field VVVVVNNNNN used for octobyte and quadhalf instructions:
 
@@ -433,7 +437,29 @@ enum mips_operand_type {
   OP_NON_ZERO_REG,
 
   OP_MAPPED_STRING,
-  OP_MXU_STRIDE
+  OP_MXU_STRIDE,
+
+  /* Fractured upper immediate PC-offset for uMIPSr7 */
+  OP_HI20_PCREL,
+
+  /* Fractured upper immediate 20-bit signed integer for uMIPSr7 */
+  OP_HI20_INT,
+
+  /* A non-zero PC-relative offset.  */
+  OP_NON_ZERO_PCREL_S1,
+
+  /* To check a mapped register against a previous operand.  */
+  OP_MAPPED_CHECK_PREV,
+
+  /* Immediate unsigned word operand.  */
+  OP_UIMM_WORD,
+
+  /* Immediate signed word operand.  */
+  OP_IMM_WORD,
+
+  /* Don't care bits.  */
+  OP_DONT_CARE,
+
 };
 
 /* Enumerates the types of MIPS register.  */
@@ -631,6 +657,21 @@ struct mips_pcrel_operand
   unsigned int flip_isa_bit : 1;
 };
 
+/* Describes an operand that encapsulates a mapped register with
+   a check against the previous operand.  */
+struct mips_mapped_check_prev_operand
+{
+  struct mips_operand root;
+
+  enum mips_reg_operand_type reg_type;
+  const unsigned char *reg_map;
+
+  bfd_boolean greater_than_ok;
+  bfd_boolean less_than_ok;
+  bfd_boolean equal_ok;
+  bfd_boolean zero_ok;
+};
+
 /* Return true if the assembly syntax allows OPERAND to be omitted.  */
 
 static inline bfd_boolean
@@ -717,6 +758,16 @@ mips_int_operand_min (const struct mips_int_operand *operand)
   return mips_int_operand_max (operand) - (mask << operand->shift);
 }
 
+static inline int
+mips_operand_mask (const struct mips_operand *operand)
+{
+  unsigned int mask;
+
+  mask = ((1 << operand->size_top) - 1) << operand->lsb_top;
+  mask |= ((1 << (operand->size - operand->size_top)) - 1) << operand->lsb;
+  return mask;
+}
+
 /* Return the register that OPERAND encodes as UVAL.  */
 
 static inline int
@@ -725,6 +776,23 @@ mips_decode_reg_operand (const struct mips_reg_operand *operand,
 {
   if (operand->reg_map)
     uval = operand->reg_map[uval];
+  return uval;
+}
+
+/* Return the UVAL encoding of REGNO as OPERAND.  */
+
+static inline unsigned int
+mips_encode_reg_operand (const struct mips_operand *operand,
+			 int regno)
+{
+  unsigned int uval;
+  const unsigned int num_vals = 1 << operand->size;
+  const struct mips_reg_operand *reg_op
+    = (const struct mips_reg_operand *) operand;
+
+  for (uval = 0; uval < num_vals; uval++)
+    if (reg_op->reg_map[uval] == regno)
+      break;
   return uval;
 }
 
@@ -744,6 +812,47 @@ mips_decode_pcrel_operand (const struct mips_pcrel_operand *operand,
   if (operand->flip_isa_bit)
     addr ^= 1;
   return addr;
+}
+
+/* Re-organize HI20 bits of OPERAND encoded as UVAL.  */
+
+#define SIGNEX_VALUE(OP) {OP_INT, OP->size - 1, 0, 0, 0}
+
+static inline int
+mips_decode_hi20_operand (const struct mips_operand *operand,
+			      unsigned int uval)
+{
+  const struct mips_operand op_ext = SIGNEX_VALUE (operand);
+  const struct mips_operand op_shuffle = {OP_INT, 19, 10, 10, 0};
+  unsigned int low19 = mips_extract_operand (&op_shuffle, uval);
+  return mips_insert_operand (&op_ext, uval, low19);
+}
+
+/* Decode HI20 signed integer.  */
+
+#define SIGNED_VALUE(OP) {OP_INT, OP->size, 0, 0, 0}
+
+static inline int
+mips_decode_hi20_int_operand (const struct mips_operand *operand,
+			      unsigned int uval)
+{
+  const struct mips_operand op_enc = SIGNED_VALUE (operand);
+  uval = mips_decode_hi20_operand (operand, uval);
+  return (mips_signed_operand (&op_enc, uval));
+}
+
+/* Decode HI20 PCREL  */
+
+#define PCREL_VALUE(OP) { { { OP_PCREL, OP->size, 0, 0, 0}, \
+	(1 << (OP->size - 1)) - 1, 0, 0, FALSE}, 0, 0, 0}
+
+static inline bfd_vma
+mips_decode_hi20_pcrel_operand (const struct mips_operand *operand,
+			   bfd_vma base_pc, unsigned int uval)
+{
+  const struct mips_pcrel_operand pcrel_op = PCREL_VALUE (operand);
+  uval = mips_decode_hi20_operand (operand, uval);
+  return mips_decode_pcrel_operand (&pcrel_op, base_pc, uval << 12);
 }
 
 /* This structure holds information for a particular instruction.  */
@@ -787,6 +896,15 @@ static inline bfd_boolean
 mips_opcode_32bit_p (const struct mips_opcode *mo)
 {
   return mo->mask >> 16 != 0;
+}
+
+/* Return true if MO is an instruction that requires 48-bit encoding.  */
+
+static inline bfd_boolean
+mips_opcode_48bit_p (const struct mips_opcode *mo)
+{
+  return ((mo->mask >> 16 == 0)
+	  && ((mo->match >> 10) == 0x18));
 }
 
 /* These are the characters which may appear in the args field of an
@@ -1328,7 +1446,8 @@ static const unsigned int mips_isa_table[] = {
 #define ASE_MIPS16E2		0x00040000
 /* MIPS16e2 MT ASE instructions.  */
 #define ASE_MIPS16E2_MT		0x00080000
-/* MIPS ISA defines, use instead of hardcoding ISA level.  */
+/* Low Power instructions on MIPS32r7.  */
+#define ASE_XLP			0x02000000
 
 #define       ISA_UNKNOWN     0               /* Gas internal use.  */
 #define       ISA_MIPS1       INSN_ISA1
@@ -1558,6 +1677,7 @@ enum
   M_BGEUL_I,
   M_BGEZ,
   M_BGEZL,
+  M_BGEZAL,
   M_BGEZALL,
   M_BGT,
   M_BGTL,
@@ -1589,6 +1709,7 @@ enum
   M_BLTUL_I,
   M_BLTZ,
   M_BLTZL,
+  M_BLTZAL,
   M_BLTZALL,
   M_BNE,
   M_BNEL,
@@ -1623,6 +1744,8 @@ enum
   M_DSUB_I,
   M_DSUBU_I,
   M_DSUBU_I_2,
+  M_EXT,
+  M_INS,
   M_J_A,
   M_JAL_1,
   M_JAL_2,
@@ -2420,6 +2543,10 @@ extern const int bfd_mips16_num_opcodes;
 extern const struct mips_operand *decode_micromips_operand (const char *);
 extern const struct mips_opcode micromips_opcodes[];
 extern const int bfd_micromips_num_opcodes;
+
+extern const struct mips_operand *decode_micromipspp_operand (const char *);
+extern const struct mips_opcode micromipspp_opcodes[];
+extern const int bfd_micromipspp_num_opcodes;
 
 /* A NOP insn impemented as "or at,at,zero".
    Used to implement -mfix-loongson2f.  */
