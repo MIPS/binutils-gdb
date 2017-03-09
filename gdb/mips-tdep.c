@@ -9387,6 +9387,7 @@ micromips_in_function_epilogue_p (struct gdbarch *gdbarch, CORE_ADDR pc)
   long offset;
   int dreg;
   int sreg;
+  int treg, op;
   int loc;
 
   if (!find_pc_partial_function (pc, NULL, &func_addr, &func_end))
@@ -9409,7 +9410,19 @@ micromips_in_function_epilogue_p (struct gdbarch *gdbarch, CORE_ADDR pc)
 	{
 	/* 48-bit instructions.  */
 	case 3 * MIPS_INSN16_SIZE:
-	  /* No epilogue instructions in this category.  */
+	  if (is_mipsr7_isa (gdbarch))
+	    {
+	      if (micromips_op (insn) == 0x18)
+		{
+		  op = b0s5_imm (insn);
+		  treg = b5s5_reg (insn);
+		  if (op == 0x0) /* LI48 xx, imm32 */
+		    break; /* continue scan */
+		  else if (op == 0x1 /* ADDIU48 $sp, imm32 */
+			   && treg == MIPS_SP_REGNUM)
+		    return 1;
+		}
+	    }
 	  return 0;
 
 	/* 32-bit instructions.  */
@@ -9418,6 +9431,63 @@ micromips_in_function_epilogue_p (struct gdbarch *gdbarch, CORE_ADDR pc)
 	  insn |= mips_fetch_instruction (gdbarch,
 					  ISA_MICROMIPS, pc + loc, NULL);
 	  loc += MIPS_INSN16_SIZE;
+
+	  if (is_mipsr7_isa (gdbarch))
+	    {
+	      switch (micromips_op (insn >> 16))
+		{
+		case 0x0: /* PP.ADDIU bits 000000 */
+		  treg = b5s5_reg (insn >> 16);
+		  sreg = b0s5_reg (insn >> 16);
+		  if (sreg == treg
+		      && treg == MIPS_SP_REGNUM) /* ADDIU $sp, $sp, imm */
+		    return 1;
+		  else if (sreg == MIPS_SP_REGNUM && treg == 30)
+		    break; /* continue scan */
+		  return 0;
+
+		case 0x8: /* _POOL32A0 */
+		  if ((insn & 0x1ff) == 0x150) /* ADDU */
+		    {
+		      dreg = b11s5_reg (insn);
+		      sreg = b0s5_reg (insn >> 16);
+		      if ((dreg == sreg && sreg == MIPS_SP_REGNUM)
+			      /* ADDU $sp, $sp, xx */
+			  || (dreg == MIPS_SP_REGNUM && sreg == 30))
+			      /* ADDU $sp, $fp, xx */
+			break; /* continue scan */
+		    }
+		  else if (((insn & 0xffff) == 0xE37F) /* DERET */
+			   || ((insn & 0x1ffff) == 0xF37F) /* ERET */
+			   || ((insn & 0x1ffff) == 0x1F37F)) /* ERETNC */
+		    return 1;
+		  return 0;
+
+		case 0x20: /* P.U12 bits 100000 */
+		  if (b12s4_op (insn) == 0) /* ORI: bits 100000 0000 */
+		    {
+		      sreg = b0s5_reg (insn >> 16);
+		      treg = b5s5_reg (insn >> 16);
+		      if (sreg == treg && treg == 3) /* ORI $v1, $v1, imm */
+		        break; /* continue scan */
+		    }
+		  else if (b12s5_op (insn) == 0x13) /* RESTORE, RESTORE.JRC */
+		    return 1;
+		  return 0;
+
+		case 0x38: /* P.LUI bits 111000 */
+		  treg = b5s5_reg (insn >> 16);
+		  if ((insn & 2) == 0 /* LU20I bits 111000 0 */
+		      && treg == 3) /* LU20I $v1, imm */
+		    break; /* continue scan */
+		  return 0;
+
+		default:
+		  return 0;
+		}
+	      break;	/* 32-bit microMIPSR7 instructions.  */
+	    }
+
 	  switch (micromips_op (insn >> 16))
 	    {
 	    case 0xc: /* ADDIU: bits 001100 */
@@ -9438,6 +9508,34 @@ micromips_in_function_epilogue_p (struct gdbarch *gdbarch, CORE_ADDR pc)
 
 	/* 16-bit instructions.  */
 	case MIPS_INSN16_SIZE:
+	  if (is_mipsr7_isa (gdbarch))
+	    {
+	      switch (micromips_op (insn))
+		{
+		case 0x4: /* MOVE: bits 000100 */
+		  sreg = b0s5_reg (insn);
+		  dreg = b5s5_reg (insn);
+		  if (sreg == MIPS_SP_REGNUM && dreg == 30)
+				/* MOVE  $fp, $sp */
+		    return 1;
+		  return 0;
+
+		case 0x7: /* RESTORE[16], RESTORE.JRC[16] */
+		  if ((insn & 0x20) == 0x20)
+		    return 1;
+		  return 0;
+
+		case 0x36: /* JRC[16] $31 */
+		  if ((insn & 0x1f) == 0 && b5s5_reg (insn) == 31)
+		    return 1;
+		  return 0;
+
+		default:
+		  return 0;
+		}
+	      break;
+	    }
+
 	  switch (micromips_op (insn))
 	    {
 	    case 0x3: /* MOVE: bits 000011 */
@@ -9783,16 +9881,24 @@ mips_breakpoint_from_pc (struct gdbarch *gdbarch,
 	}
       else if (mips_pc_is_micromips (gdbarch, pc))
 	{
-	  static gdb_byte *ptr_16bit_bp;
+	  static gdb_byte *ptr_16bit_bp, *ptr_32bit_bp;
 	  static gdb_byte micromips16_big_breakpoint[] = { 0x46, 0x85 };
 	  static gdb_byte micromipsr616_big_breakpoint[] = { 0x45, 0x5b };
 	  static gdb_byte micromips32_big_breakpoint[] = { 0, 0x5, 0, 0x7 };
+	  static gdb_byte micromipsr716_big_breakpoint[] = { 0x10, 0x15 };
+	  static gdb_byte micromipsr732_big_breakpoint[] = { 0, 0x10, 0, 0x5 };
 	  ULONGEST insn;
 	  int status;
 	  int size;
 
+	  ptr_32bit_bp = micromips32_big_breakpoint;
 	  if (is_mipsr6_isa (gdbarch))
 	    ptr_16bit_bp = micromipsr616_big_breakpoint;
+	  else if (is_mipsr7_isa (gdbarch))
+	    {
+	      ptr_16bit_bp = micromipsr716_big_breakpoint;
+	      ptr_32bit_bp = micromipsr732_big_breakpoint;
+	    }
 	  else
 	    ptr_16bit_bp = micromips16_big_breakpoint;
 
@@ -9801,8 +9907,9 @@ mips_breakpoint_from_pc (struct gdbarch *gdbarch,
 			: mips_insn_size (gdbarch, ISA_MICROMIPS, insn) == 2 ? 2 : 4;
 	  *pcptr = unmake_compact_addr (pc);
 	  *lenptr = size;
+
 	  return (size == 2) ? ptr_16bit_bp
-			     : micromips32_big_breakpoint;
+			     : ptr_32bit_bp;
 	}
       else
 	{
@@ -9841,16 +9948,24 @@ mips_breakpoint_from_pc (struct gdbarch *gdbarch,
 	}
       else if (mips_pc_is_micromips (gdbarch, pc))
 	{
-	  static gdb_byte *ptr_16bit_bp;
+	  static gdb_byte *ptr_16bit_bp, *ptr_32bit_bp;
 	  static gdb_byte micromips16_little_breakpoint[] = { 0x85, 0x46 };
 	  static gdb_byte micromipsr616_little_breakpoint[] = { 0x5b, 0x45 };
 	  static gdb_byte micromips32_little_breakpoint[] = { 0x5, 0, 0x7, 0 };
+	  static gdb_byte micromipsr716_little_breakpoint[] = { 0x15, 0x10 };
+	  static gdb_byte micromipsr732_little_breakpoint[] = { 0x10, 0, 0x5, 0 };
 	  ULONGEST insn;
 	  int status;
 	  int size;
 
+	  ptr_32bit_bp = micromips32_little_breakpoint;
 	  if (is_mipsr6_isa (gdbarch))
 	    ptr_16bit_bp = micromipsr616_little_breakpoint;
+	  else if (is_mipsr7_isa (gdbarch))
+	    {
+	      ptr_16bit_bp = micromipsr716_little_breakpoint;
+	      ptr_32bit_bp = micromipsr732_little_breakpoint;
+	    }
 	  else
 	    ptr_16bit_bp = micromips16_little_breakpoint;
 
@@ -9860,7 +9975,7 @@ mips_breakpoint_from_pc (struct gdbarch *gdbarch,
 	  *pcptr = unmake_compact_addr (pc);
 	  *lenptr = size;
 	  return (size == 2) ? ptr_16bit_bp
-			     : micromips32_little_breakpoint;
+			     : ptr_32bit_bp;
 	}
       else
 	{
