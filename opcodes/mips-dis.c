@@ -592,7 +592,7 @@ const struct mips_arch_choice mips_arch_choices[] =
     ISA_MIPS32R6,
     (ASE_CRC | ASE_CRYPTO | ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_VIRT
      | ASE_VIRT_XPA | ASE_XPA | ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2
-     | ASE_DSPR3),
+     | ASE_DSPR3  | ASE_GINV | ASE_VIRT_GINV),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -635,7 +635,8 @@ const struct mips_arch_choice mips_arch_choices[] =
     ISA_MIPS64R6,
     (ASE_CRC | ASE_CRC64 | ASE_CRYPTO | ASE_EVA | ASE_EVA_R6 | ASE_MSA
      | ASE_MSA64 | ASE_XPA | ASE_VIRT | ASE_VIRT_XPA | ASE_VIRT64 | ASE_MCU
-     | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3 | ASE_DSP64),
+     | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3 | ASE_DSP64 | ASE_GINV
+     | ASE_VIRT_GINV),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -932,6 +933,10 @@ parse_mips_dis_option (const char *option, unsigned int len)
 
       if (mips_ase & ASE_XPA)
 	mips_ase |= ASE_VIRT_XPA;
+
+      if (mips_ase & ASE_GINV)
+	mips_ase |= ASE_VIRT_GINV;
+
       return;
     }
 
@@ -946,6 +951,14 @@ parse_mips_dis_option (const char *option, unsigned int len)
   if (CONST_STRNEQ (option, "mxu"))
     {
       mips_ase |= ASE_MXU;
+      return;
+    }
+
+  if (CONST_STRNEQ (option, "ginv"))
+    {
+      mips_ase |= ASE_GINV;
+      if (mips_ase & ASE_VIRT)
+	mips_ase |= ASE_VIRT_GINV;
       return;
     }
   

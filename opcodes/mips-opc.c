@@ -193,6 +193,7 @@ decode_mips_operand (const char *p)
 	case '\'': BRANCH (26, 0, 2);
 	case '"': BRANCH (21, 0, 2);
 	case ';': SPECIAL (10, 16, SAME_RS_RT);
+	case '\\': BIT (2, 8, 0);		/* (00 .. 11) */
 	}
       break;
 
@@ -386,6 +387,9 @@ decode_mips_operand (const char *p)
 #define IVIRT	ASE_VIRT
 #define IVIRT64	ASE_VIRT64
 #define IVIRT_XPA ASE_VIRT_XPA
+#define GINV	ASE_GINV
+#define IVIRT_GINV ASE_VIRT_GINV
+
 
 #define G1      (T3             \
                  |EE            \
@@ -3521,6 +3525,10 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"bnezc",		"-s,+\"",	0xf8000000, 0xfc000000,	RD_1|NODS,		FS,		I37,		0,	0 },
 {"jalrc",		"t",		0xf8000000, 0xffe0ffff, RD_1|NODS,		0,		I37,		0,	0 },
 {"jialc",		"t,j",		0xf8000000, 0xffe00000,	RD_1|NODS,		0,		I37,		0,	0 },
+
+{"ginvi",		"s",		0x7c00003d, 0xfc1fffff, RD_1,			0,		0,		GINV,	0 },
+{"ginvt",		"s,+\\",	0x7c0000bd, 0xfc1ffcff, RD_1,			0,		0,		GINV,	0 },
+{"ginvgt",		"s,+\\",	0x7c0000fd, 0xfc1ffcff, RD_1,			0,		0,		IVIRT_GINV, 0 },
 
 {"cmp.af.s",		"D,S,T",	0x46800000, 0xffe0003f,	WR_1|RD_2|RD_3|FP_S,	0,		I37,		0,	0 },
 {"cmp.af.d",		"D,S,T",	0x46a00000, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 },
