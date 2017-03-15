@@ -19,7 +19,7 @@ test3:
 test3a:
 	nop
 	.end test3a
-	
+
 	.text
 	.ent test4
 test4:
@@ -31,12 +31,16 @@ test4:
 test5:
 	.word 0x0
 
-	.section	.mytext, "ax"
+	.text
 test6:
+	balc $test4
+
+	.section	.mytext, "ax"
+test7:
 	balc test2
 	balc test4
 
-test7:
+test8:
 	balc test3
 	jr $31
 

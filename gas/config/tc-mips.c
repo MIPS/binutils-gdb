@@ -18153,6 +18153,15 @@ s_change_section (int ignore ATTRIBUTE_UNUSED)
   if (c)
     next_c = *(input_line_pointer + 1);
 
+  if ((now_seg->flags & SHF_EXECINSTR) != 0
+      && stub_funcless_mode
+      && !mips_opts.no_balc_stubs
+      && stubg_now != NULL)
+    {
+      stub_funcless_mode = FALSE;
+      stubgroup_wane ();
+    }
+
   /* Do we have .section Name<,"flags">?  */
   if (c != ',' || (c == ',' && next_c == '"'))
     {
