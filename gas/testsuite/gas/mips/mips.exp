@@ -1559,4 +1559,6 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test_arches "expr-diff" "" [mips_arch_list_matching mips32r6]
     run_list_test_arches "expr-ill" "" [mips_arch_list_matching micromipsr7]
     run_dump_test_arches "expr-vol" "" [mips_arch_list_matching micromipsr7]
+
+    run_list_test_arches "balc-stub" "" [mips_arch_list_matching micromipsr7]
 }
