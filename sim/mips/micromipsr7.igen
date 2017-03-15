@@ -67,6 +67,15 @@
         GPR[roffset]));
 }
 
+:function:::void:check_xlp_flag:
+*micromips32r7:
+*micromips64r7:
+{
+  if(xlp_flag == 0)
+    sim_engine_abort (SD, CPU, CIA, "Error: XLP instruction generated\
+  (XLP subset is disabled - option -mno-xlp used)\n");
+}
+
 :function:::void:do_swc1xs:int ft, int rbase, int roffset, address_word instruction_0
 *micromips32r7:
 *micromips64r7:
@@ -475,6 +484,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   TRACE_ALU_INPUT2(GPR[TRS_R7], GPR[TRT_R7]);
   if (RS < RT && GPR[TRS_R7] == GPR[TRT_R7])
     NIA = NIA + U_SHIFT_1BIT; //BEQC
@@ -572,6 +582,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   do_lw (SD_, RT_5_BIT, U_LW4X4, RS_5_BIT);
 }
 
@@ -604,6 +615,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   do_lw (SD_, TRD_R7, GPR[TRS_R7] << 2, TRT_R7);
 }
 
@@ -637,6 +649,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   TRACE_ALU_INPUT4 (GPR[TRD2], GPR[TRE2], GPR[TRS2], GPR[TRT2]);
   GPR[TRD2] = GPR[TRS2];
   GPR[TRE2] = GPR[TRT2];
@@ -651,6 +664,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   TRACE_ALU_INPUT4 (GPR[TRD2_REV], GPR[TRE2_REV], GPR[TRS2_REV], GPR[TRT2_REV]);
   GPR[TRD2_REV] = GPR[TRS2_REV];
   GPR[TRE2_REV] = GPR[TRT2_REV];
@@ -684,6 +698,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   if (GPR_LIST_SAVE==14 || GPR_LIST_SAVE==15)
     do_restore_gprs_from_stack_and_adjust_sp(SD_, -1, 0, 0, 0, U_SHIFT_3BIT);
   else
@@ -701,6 +716,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   if (GPR_LIST_SAVE==14 || GPR_LIST_SAVE==15)
     do_save_gprs_to_stack_and_adjust_sp(SD_, -1, 0, 0, 0, U_SHIFT_3BIT);
   else
@@ -779,6 +795,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   do_add (SD_, RS, RT, RD);
 }
 
@@ -957,6 +974,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   do_bitswap (SD_, RT, RS);
 }
 
@@ -1055,6 +1073,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   do_clo (SD_, RT, RS);
 }
 
@@ -1063,6 +1082,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   do_clz (SD_, RT, RS);
 }
 
@@ -1123,6 +1143,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   if (LSB + MSBD + 1 > 32)
     Unpredictable ();
 
@@ -1134,6 +1155,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   if ((1 + MSBD - LSB) < 1)
     Unpredictable ();
   do_ins (SD_, RT, RS, LSB, MSBD);
@@ -1410,6 +1432,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   TRACE_ALU_INPUT2(GPR[RD1], GPR[RT_5_BIT]);
   GPR[RD1] = GPR[RT_5_BIT];
   RA = NIA | isa_mode;
@@ -1636,6 +1659,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   do_store (SD_, AccessLength_BYTE, GPR[RT], GPR[RS], GPR[RD]);
 }
 
@@ -1652,6 +1676,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   do_seb (SD_, RT, RS);
 }
 
@@ -1660,6 +1685,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   do_seh (SD_, RT, RS);
 }
 
@@ -1702,6 +1728,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   do_store (SD_, AccessLength_HALFWORD, GPR[RT], GPR[RS], GPR[RD]);
 }
 
@@ -1710,6 +1737,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   do_store (SD_, AccessLength_HALFWORD, GPR[RT], GPR[RS] << 1, GPR[RD]);
 }
 
@@ -1807,6 +1835,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   do_sub (SD_, RS, RT, RD);
 }
 
@@ -1847,6 +1876,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   do_store (SD_, AccessLength_WORD, GPR[RT], GPR[RS], GPR[RD]);
 }
 
@@ -1855,6 +1885,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   do_store (SD_, AccessLength_WORD, GPR[RT], GPR[RS] << 2, GPR[RD]);
 }
 
@@ -1863,6 +1894,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   do_sw (SD_, RT_5_BIT, U_LW4X4, RS_5_BIT);
 }
 
@@ -1897,6 +1929,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   do_wsbh (SD_, RT, RS);
 }
 
@@ -1967,6 +2000,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   address_word base = GPR[RS];
 
   TRACE_ALU_INPUT3(GPR[RT], S_9_BIT, GPR[RS]);
@@ -1982,6 +2016,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   do_store_right (SD_, AccessLength_WORD, GPR[RS], EXTEND16 (S_9_BIT), GPR[RT]);
   do_store_left (SD_, AccessLength_WORD, GPR[RS],
                  EXTEND16 (S_9_BIT + AccessLength_WORD), GPR[RT]);
@@ -2002,6 +2037,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   do_rdhwr (SD_, RT, HS);
 }
 
@@ -2067,6 +2103,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   unsigned16 U2 = do_load (SD_, AccessLength_HALFWORD, CIA + 4, 0);
   unsigned32 total = IMM48 << 16 | U2;
   TRACE_ALU_INPUT2(GPR[RT], total);
@@ -2080,6 +2117,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   unsigned16 S2 = do_load(SD_, AccessLength_HALFWORD, CIA + 4, 0);
   unsigned32 total = IMM48 << 16 | S2;
   do_addiu(SD_, RT, RT, total);
@@ -2091,6 +2129,7 @@
 *micromips32r7:
 *micromips64r7:
 {
+  check_xlp_flag (SD_);
   unsigned16 S2 = do_load(SD_, AccessLength_HALFWORD, CIA + 4, 0);
   unsigned32 total = IMM48 << 16 | S2;
   do_addiu (SD_, GPIDX, RT, total);

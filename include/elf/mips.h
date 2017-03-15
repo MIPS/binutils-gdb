@@ -1185,6 +1185,9 @@ extern void bfd_mips_elf_swap_abiflags_v0_in
 extern void bfd_mips_elf_swap_abiflags_v0_out
   (bfd *, const Elf_Internal_ABIFlags_v0 *, Elf_External_ABIFlags_v0 *);
 
+/* MIPS ABI flags data access.  For the disassembler.  */
+extern Elf_Internal_ABIFlags_v0 *bfd_mips_elf_get_abiflags (bfd *);
+
 /* Masks for the info work of an ODK_EXCEPTIONS descriptor.  */
 #define OEX_FPU_MIN	0x1f	/* FPEs which must be enabled.  */
 #define OEX_FPU_MAX	0x1f00	/* FPEs which may be enabled.  */
@@ -1247,7 +1250,8 @@ extern void bfd_mips_elf_swap_abiflags_v0_out
 #define AFL_ASE_XPA          0x00001000 /* XPA ASE.  */
 #define AFL_ASE_DSPR3        0x00002000 /* DSP R3 ASE.  */
 #define AFL_ASE_MIPS16E2     0x00004000 /* MIPS16 E2 Extension.  */
-#define AFL_ASE_MASK         0x00007fff /* All ASEs.  */
+#define AFL_ASE_XLP          0x00040000 /* XLP ASE.  */
+#define AFL_ASE_MASK         0x00047fff /* All ASEs.  */
 
 /* Values for the isa_ext word of an ABI flags structure.  */
 

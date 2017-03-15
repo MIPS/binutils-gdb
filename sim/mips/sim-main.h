@@ -1098,6 +1098,11 @@ extern FILE *tracefh;
 extern int DSPLO_REGNUM[4];
 extern int DSPHI_REGNUM[4];
 
+/* XLP Flag */
+extern int xlp_flag;
+extern int is_xlp_flag_set;
+
+
 INLINE_SIM_MAIN (void) pending_tick (SIM_DESC sd, sim_cpu *cpu, address_word cia);
 extern SIM_CORE_SIGNAL_FN mips_core_signal;
 

@@ -91,6 +91,13 @@ sim_engine_run (SIM_DESC sd, int next_cpu_nr, int nr_cpus,
   sim_cpu *cpu = STATE_CPU (sd, next_cpu_nr);
   micromips32_instruction_address cia = CIA_GET (cpu);
   isa_mode = ISA_MODE_MIPS32;
+  unsigned long bfdmach;
+
+  bfdmach = STATE_ARCHITECTURE(SD)->mach;
+
+  if (is_xlp_flag_set == 0 && (bfdmach == bfd_mach_mipsisa64r7
+      || bfdmach == bfd_mach_mipsisa32r7))
+    set_xlp_flag (sd);
 
   while (1)
     {
