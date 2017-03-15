@@ -4987,7 +4987,9 @@ template<int size, bool big_endian>
 class Mips_relocate_functions : public Relocate_functions<size, big_endian>
 {
   typedef typename elfcpp::Elf_types<size>::Elf_Addr Mips_address;
+  typedef typename elfcpp::Elf_types<size>::Elf_Swxword SignedV;
   typedef typename elfcpp::Swap<size, big_endian>::Valtype Valtype;
+  typedef typename elfcpp::Swap<8, big_endian>::Valtype Valtype8;
   typedef typename elfcpp::Swap<16, big_endian>::Valtype Valtype16;
   typedef typename elfcpp::Swap<32, big_endian>::Valtype Valtype32;
   typedef typename elfcpp::Swap<64, big_endian>::Valtype Valtype64;
@@ -6859,6 +6861,86 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
       *calculated_value = x;
     else
       elfcpp::Swap<32, big_endian>::writeval(wv, x);
+
+    return This::STATUS_OKAY;
+  }
+
+  // R_MIPS_ASHIFTR_1
+  static inline typename This::Status
+  relshift1(unsigned char* view, const Mips_relobj<size, big_endian>* object,
+            const Symbol_value<size>* psymval, Mips_address addend,
+            bool calculate_only, Valtype* calculated_value)
+  {
+    Valtype* wv = reinterpret_cast<Valtype*>(view);
+    Valtype x = psymval->value(object, addend);
+    x = static_cast<SignedV>(x) >> 1;
+
+    if (calculate_only)
+      *calculated_value = x;
+    else
+      elfcpp::Swap<size, big_endian>::writeval(wv, x);
+
+    return This::STATUS_OKAY;
+  }
+
+  // R_MIPS_UNSIGNED_8
+  static inline typename This::Status
+  relu8(unsigned char* view, const Mips_relobj<size, big_endian>* object,
+        const Symbol_value<size>* psymval, Mips_address addend,
+        bool calculate_only, Valtype* calculated_value,
+        Overflow_info<big_endian>* overflow_info)
+  {
+    Valtype8* wv = reinterpret_cast<Valtype8*>(view);
+    Valtype x = psymval->value(object, addend);
+    Valtype8 val = x & 0xff;
+
+    if (calculate_only)
+      {
+        *calculated_value = x;
+        return This::STATUS_OKAY;
+      }
+    else
+      elfcpp::Swap<8, big_endian>::writeval(wv, val);
+
+    if (check_overflow<8>(x, CHECK_UNSIGNED) == This::STATUS_OVERFLOW)
+      {
+        overflow_info->value = x;
+        overflow_info->insn = 0;
+        overflow_info->name = "R_MIPS_UNSIGNED_8";
+        overflow_info->bitsize = 8;
+        return This::STATUS_OVERFLOW;
+      }
+
+    return This::STATUS_OKAY;
+  }
+
+  // R_MIPS_UNSIGNED_16
+  static inline typename This::Status
+  relu16(unsigned char* view, const Mips_relobj<size, big_endian>* object,
+         const Symbol_value<size>* psymval, Mips_address addend,
+         bool calculate_only, Valtype* calculated_value,
+         Overflow_info<big_endian>* overflow_info)
+  {
+    Valtype16* wv = reinterpret_cast<Valtype16*>(view);
+    Valtype x = psymval->value(object, addend);
+    Valtype16 val = x & 0xff;
+
+    if (calculate_only)
+      {
+        *calculated_value = x;
+        return This::STATUS_OKAY;
+      }
+    else
+      elfcpp::Swap<16, big_endian>::writeval(wv, val);
+
+    if (check_overflow<16>(x, CHECK_UNSIGNED) == This::STATUS_OVERFLOW)
+      {
+        overflow_info->value = x;
+        overflow_info->insn = 0;
+        overflow_info->name = "R_MIPS_UNSIGNED_16";
+        overflow_info->bitsize = 16;
+        return This::STATUS_OVERFLOW;
+      }
 
     return This::STATUS_OKAY;
   }
@@ -15109,6 +15191,23 @@ Target_mips<size, big_endian>::Relocate::relocate(
                                              this->calculate_only_,
                                              &this->calculated_value_);
           break;
+        case elfcpp::R_MIPS_ASHIFTR_1:
+          reloc_status = Reloc_funcs::relshift1(view, object, psymval, r_addend,
+                                                this->calculate_only_,
+                                                &this->calculated_value_);
+          break;
+        case elfcpp::R_MIPS_UNSIGNED_8:
+          reloc_status = Reloc_funcs::relu8(view, object, psymval, r_addend,
+                                            this->calculate_only_,
+                                            &this->calculated_value_,
+                                            &overflow_info);
+          break;
+        case elfcpp::R_MIPS_UNSIGNED_16:
+          reloc_status = Reloc_funcs::relu16(view, object, psymval, r_addend,
+                                             this->calculate_only_,
+                                             &this->calculated_value_,
+                                             &overflow_info);
+          break;
         case elfcpp::R_MICROMIPS_PC25_S1:
           reloc_status = Reloc_funcs::relmicromips_pc25_s1(view, object,
                                                            psymval, address,
@@ -15310,6 +15409,9 @@ Target_mips<size, big_endian>::Scan::get_reference_flags(
   switch (r_type)
     {
     case elfcpp::R_MIPS_NONE:
+    case elfcpp::R_MIPS_ASHIFTR_1:
+    case elfcpp::R_MIPS_UNSIGNED_8:
+    case elfcpp::R_MIPS_UNSIGNED_16:
       // No symbol reference.
       return 0;
 
