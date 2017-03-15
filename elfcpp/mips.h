@@ -104,6 +104,9 @@ enum
   R_MIPS_PC19_S2 = 63,
   R_MIPS_PCHI16 = 64,
   R_MIPS_PCLO16 = 65,
+  R_MIPS_ASHIFTR_1 = 66,
+  R_MIPS_UNSIGNED_8 = 67,
+  R_MIPS_UNSIGNED_16 = 68,
   // These relocs are used for the mips16.
   R_MIPS16_26 = 100,
   R_MIPS16_GPREL = 101,
