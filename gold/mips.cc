@@ -6923,7 +6923,7 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
   {
     Valtype16* wv = reinterpret_cast<Valtype16*>(view);
     Valtype x = psymval->value(object, addend);
-    Valtype16 val = x & 0xff;
+    Valtype16 val = x & 0xffff;
 
     if (calculate_only)
       {
