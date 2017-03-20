@@ -9030,7 +9030,7 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	  /* If we've reached the end of this frag, turn it into a variant
 	     frag and record the information for the instructions we've
 	     written so far.  */
-	  if (frag_room () < 4)
+	  if (frag_room () < insn_length (ip))
 	    relax_close_frag ();
 	  mips_relax.sizes[mips_relax.sequence - 1] += insn_length (ip);
 	}
