@@ -22709,3 +22709,24 @@ mips_allow_local_subtract (expressionS * left,
      them.  */
   return FALSE;
 }
+
+/* Force ST_MICROMIPS flag for local volatile labels in code sections.  */
+void
+mips_copy_symbol_attributes (symbolS *dest, symbolS *src)
+{
+  if (!ISA_IS_R7 (mips_opts.isa) || !HAVE_CODE_COMPRESSION)
+    return;
+  else
+    {
+      asymbol *sym = symbol_get_bfdsym (src);
+      asection *sect = (sym == NULL ? NULL : bfd_get_section (sym));
+
+      S_SET_OTHER (dest, S_GET_OTHER (src));
+
+      if (sect != NULL
+	  && (sect->flags & SEC_CODE) != 0
+	  && S_IS_VOLATILE (dest)
+	  && !S_IS_VOLATILE (src))
+	S_SET_OTHER (dest, ELF_ST_SET_MICROMIPS (S_GET_OTHER (dest)));
+    }
+}
