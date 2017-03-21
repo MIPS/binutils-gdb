@@ -1537,7 +1537,7 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test "ur7"
     run_dump_test "ur7-ctc"
 #    run_dump_test "ur7-relax" - TODO
-    run_dump_test_arch "ur7-noxlp" "" micromipsr7
+    run_dump_test_arch "ur7-noxlp" "" mips32r7
     run_dump_test "ur7-save"
     run_dump_test "ur7-mt"
 #    run_dump_test "elf-rel-got-ur7"
@@ -1558,6 +1558,4 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test_arches "expr-sym" "" [mips_arch_list_matching mips32r6]
     run_dump_test_arches "expr-diff" "" [mips_arch_list_matching mips32r6]
     run_list_test_arches "expr-ill" "" [mips_arch_list_matching micromipsr7]
-
-    run_list_test_arches "balc-stub" "" [mips_arch_list_matching micromipsr7]
 }

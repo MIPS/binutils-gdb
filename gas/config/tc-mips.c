@@ -1454,7 +1454,6 @@ static int relaxed_branch_length (fragS *, asection *, int);
 static int relaxed_micromips_16bit_branch_length (fragS *, asection *, int);
 static int relaxed_micromips_32bit_branch_length (fragS *, asection *, int);
 static void file_mips_check_options (void);
-static void stubgroup_new (asection *sec);
 
 /* Table and functions used to map between CPU/ISA names, and
    ISA levels, and CPU numbers.  */
@@ -2007,22 +2006,8 @@ static struct hash_control *balc_stubgroup_table = NULL;
 /* Quick pointer to the stubgroup currently under consideration
    for relaxation.  */
 static stub_group *stubg_now = NULL;
-/* Flag to check when we are in function-less mode.  */
-static bfd_boolean stub_funcless_mode = FALSE;
 /* BC32 to be used as a call-stub.  */
 static struct mips_cl_insn micromipspp_bc32_insn;
-typedef struct proc {
-  symbolS *func_sym;
-  symbolS *func_end_sym;
-  unsigned long reg_mask;
-  unsigned long reg_offset;
-  unsigned long fpreg_mask;
-  unsigned long fpreg_offset;
-  unsigned long frame_offset;
-  unsigned long frame_reg;
-  unsigned long pc_reg;
-} procS;
-static procS *cur_proc_ptr;
 
 /* Export the ABI address size for use by TC_ADDRESS_BYTES for the
    purpose of the `.dc.a' internal pseudo-op.  */
@@ -4396,12 +4381,6 @@ md_assemble (char *str)
   offset_reloc[0] = BFD_RELOC_UNUSED;
   offset_reloc[1] = BFD_RELOC_UNUSED;
   offset_reloc[2] = BFD_RELOC_UNUSED;
-
-  if (cur_proc_ptr == NULL && !stub_funcless_mode)
-    {
-      stubgroup_new (now_seg);
-      stub_funcless_mode = TRUE;
-    }
 
   mips_mark_labels ();
   mips_assembling_insn = TRUE;
@@ -8395,14 +8374,10 @@ static void
 balc_add_traverse (const char *key, void *value)
 {
   struct balc_stub *stub = (struct balc_stub *)value;
+  symbolS *sym = stub->fragp->fr_symbol;
 
-  if (stub->fragp != NULL)
-    {
-      symbolS *sym = stub->fragp->fr_symbol;
-      gas_assert (strcmp (key, S_GET_NAME (sym)) == 0);
-      balc_add_stub (sym, stubg_now);
-    }
-
+  gas_assert (strcmp (key, S_GET_NAME (sym)) == 0);
+  balc_add_stub (sym, stubg_now);
   return;
 }
 
@@ -17986,15 +17961,6 @@ s_change_sec (int sec)
 {
   segT seg;
 
-  if ((now_seg->flags & SHF_EXECINSTR) != 0
-      && stub_funcless_mode
-      && !mips_opts.no_balc_stubs
-      && stubg_now != NULL)
-    {
-      stub_funcless_mode = FALSE;
-      stubgroup_wane ();
-    }
-
   /* The ELF backend needs to know that we are changing sections, so
      that .previous works correctly.  We could do something like check
      for an obj_section_change_hook macro, but that might be confusing
@@ -18114,15 +18080,6 @@ s_change_section (int ignore ATTRIBUTE_UNUSED)
      generic type-checking code.  */
   if (section_type == SHT_MIPS_DWARF)
     section_type = SHT_PROGBITS;
-
-  if ((now_seg->flags & SHF_EXECINSTR) != 0
-      && stub_funcless_mode
-      && !mips_opts.no_balc_stubs
-      && stubg_now != NULL)
-    {
-      stub_funcless_mode = FALSE;
-      stubgroup_wane ();
-    }
 
   obj_elf_change_section (section_name, section_type, section_flag,
 			  section_entry_size, 0, 0, 0);
@@ -21365,8 +21322,20 @@ mips_elf_final_processing (void)
     elf_elfheader (stdoutput)->e_flags |= EF_MIPS_FP64;
 }
 
+typedef struct proc {
+  symbolS *func_sym;
+  symbolS *func_end_sym;
+  unsigned long reg_mask;
+  unsigned long reg_offset;
+  unsigned long fpreg_mask;
+  unsigned long fpreg_offset;
+  unsigned long frame_offset;
+  unsigned long frame_reg;
+  unsigned long pc_reg;
+} procS;
 
 static procS cur_proc;
+static procS *cur_proc_ptr;
 static int numprocs;
 
 /* Implement NOP_OPCODE.  We encode a MIPS16 nop as "1", a microMIPS nop
@@ -21691,12 +21660,6 @@ s_mips_ent (int aent)
     }
 
   symbol_get_bfdsym (symbolP)->flags |= BSF_FUNCTION;
-
-  if (stub_funcless_mode && !mips_opts.no_balc_stubs && stubg_now != NULL)
-    {
-      stub_funcless_mode = FALSE;
-      stubgroup_wane ();
-    }
 
   stubgroup_new (now_seg);
   demand_empty_rest_of_line ();
@@ -22354,16 +22317,9 @@ md_mips_end (void)
   if (cur_proc_ptr)
     {
       as_warn (_("missing .end at end of assembly"));
-      if (stubg_now != NULL)
+      if (stubg_now)
 	stubgroup_wane ();
     }
-  
-  if (stub_funcless_mode && !mips_opts.no_balc_stubs && stubg_now != NULL)
-    {
-      stub_funcless_mode = FALSE;
-      stubgroup_wane ();
-    }
-
 
   /* Just in case no code was emitted, do the consistency check.  */
   file_mips_check_options ();
