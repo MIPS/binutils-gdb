@@ -1368,6 +1368,15 @@ General_options::finalize()
 	}
     }
 
+  if (this->user_set_expand_reg()
+      && (this->expand_reg() < 1
+          || this->expand_reg() > 31))
+    {
+      gold_warning(_("register number must be in range 1-31; "
+                     "using default value ($1)"));
+      this->set_expand_reg(1);
+    }
+
   // --rosegment-gap implies --rosegment.
   if (this->user_set_rosegment_gap())
     this->set_rosegment(true);

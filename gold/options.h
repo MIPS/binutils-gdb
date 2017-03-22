@@ -842,6 +842,11 @@ class General_options
 		 N_("Exclude libraries from automatic export"),
 		 N_(("lib,lib ...")));
 
+  DEFINE_uint(expand_reg, options::TWO_DASHES, '\0', 1,
+	      N_("(Nanomips only) Set the register that will be used "
+	         "in expansions (default $1)"),
+	      N_("NUM"));
+
   DEFINE_bool(export_dynamic, options::TWO_DASHES, 'E', false,
 	      N_("Export all dynamic symbols"),
 	      N_("Do not export all dynamic symbols"));
