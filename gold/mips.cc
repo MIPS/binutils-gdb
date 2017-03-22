@@ -3192,7 +3192,8 @@ class Micromips_insn
   expand(unsigned char* insn_view, unsigned char* preloc_current,
          unsigned int r_sym, unsigned int r_offset,
          typename elfcpp::Elf_types<size>::Elf_Swxword r_addend,
-         Mips_input_section* pmis, bool* is_reloc_added, Valtype value);
+         Mips_input_section* pmis, bool* is_reloc_added, Valtype value,
+         unsigned int expand_reg);
 
   // Return true if we must fix addiu[gp] instruction for cases we can't reach
   // char/short symbols.
@@ -9899,8 +9900,8 @@ template<int size, bool big_endian>
 const opcode_descriptor
 Micromips_insn<size, big_endian>::micromips_pc25_s1[] =
 {
-  { 0x28000000, 0xfe000000, 0x1800, 0xe0200002, 0x00210000, 0xd820, 0 },// bc
-  { 0x2a000000, 0xfe000000, 0x3800, 0xe0200002, 0x00210000, 0xd830, 0 },// balc
+  { 0x28000000, 0xfe000000, 0x1800, 0xe0000002, 0x00000000, 0xd800, 0 },// bc
+  { 0x2a000000, 0xfe000000, 0x3800, 0xe0000002, 0x00000000, 0xd810, 0 },// balc
   { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
 };
 
@@ -9949,7 +9950,7 @@ const opcode_descriptor
 Micromips_insn<size, big_endian>::micromips_move_balc_expand[] =
 {
   { 0x08000000, 0xfc000000, 0, 0x1000, 0x2a000000, 0, 0 },
-  { 0x08000000, 0xfc000000, 0, 0x1000, 0xe0200002, 0x00210000, 0xd830 },
+  { 0x08000000, 0xfc000000, 0, 0x1000, 0xe0000002, 0x00000000, 0xd810 },
   { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
 };
 
@@ -9958,12 +9959,12 @@ template<int size, bool big_endian>
 const opcode_descriptor
 Micromips_insn<size, big_endian>::micromips_pc11_s1_expand[] =
 {
-  { 0xc8000000, 0xfc1c0000, 0, 0x00200000, 0x88200000, 0, 0 },// beqic
-  { 0xc8080000, 0xfc1c0000, 0, 0x00200000, 0x88208000, 0, 0 },// bgeic
-  { 0xc80c0000, 0xfc1c0000, 0, 0x00200000, 0x8820c000, 0, 0 },// bgeuic
-  { 0xc8180000, 0xfc1c0000, 0, 0x00200000, 0xa8208000, 0, 0 },// bltic
-  { 0xc81c0000, 0xfc1c0000, 0, 0x00200000, 0xa820c000, 0, 0 },// bltuic
-  { 0xc8100000, 0xfc1c0000, 0, 0x00200000, 0xa8200000, 0, 0 },// bneic
+  { 0xc8000000, 0xfc1c0000, 0, 0x00000000, 0x88000000, 0, 0 },// beqic
+  { 0xc8080000, 0xfc1c0000, 0, 0x00000000, 0x88008000, 0, 0 },// bgeic
+  { 0xc80c0000, 0xfc1c0000, 0, 0x00000000, 0x8800c000, 0, 0 },// bgeuic
+  { 0xc8180000, 0xfc1c0000, 0, 0x00000000, 0xa8008000, 0, 0 },// bltic
+  { 0xc81c0000, 0xfc1c0000, 0, 0x00000000, 0xa800c000, 0, 0 },// bltuic
+  { 0xc8100000, 0xfc1c0000, 0, 0x00000000, 0xa8000000, 0, 0 },// bneic
   { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
 };
 
@@ -9973,11 +9974,11 @@ const opcode_descriptor
 Micromips_insn<size, big_endian>::micromips_gprel19_s2_expand[] =
 {
   // lw[gp]
-  { 0x40000002, 0xfc000003, 0, 0xe0200000, 0x23810950, 0x84018000, 0 },
+  { 0x40000002, 0xfc000003, 0, 0xe0000000, 0x23800150, 0x84008000, 0 },
   // sw[gp]
-  { 0x40000003, 0xfc000003, 0, 0xe0200000, 0x23810950, 0x84019000, 0 },
+  { 0x40000003, 0xfc000003, 0, 0xe0000000, 0x23800150, 0x84009000, 0 },
   // addiu[gp]
-  { 0x40000000, 0xfc000003, 0, 0xe0200000, 0x23810950, 0x00010000, 0 },
+  { 0x40000000, 0xfc000003, 0, 0xe0000000, 0x23800150, 0x00000000, 0 },
   { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
 };
 
@@ -9998,12 +9999,12 @@ template<int size, bool big_endian>
 const opcode_descriptor
 Micromips_insn<size, big_endian>::micromips_gprel18_expand[] =
 {
-  { 0x44000000, 0xfc1c0000, 0, 0xe0200000, 0x23810950, 0x84010000, 0 },// lb[gp]
-  { 0x44080000, 0xfc1c0000, 0, 0xe0200000, 0x23810950, 0x84012000, 0 },// lbu[gp]
-  { 0x44100000, 0xfc1c0000, 0, 0xe0200000, 0x23810950, 0x84014000, 0 },// lh[gp]
-  { 0x44180000, 0xfc1c0000, 0, 0xe0200000, 0x23810950, 0x84016000, 0 },// lhu[gp]
-  { 0x44040000, 0xfc1c0000, 0, 0xe0200000, 0x23810950, 0x84011000, 0 },// sb[gp]
-  { 0x44140000, 0xfc1c0000, 0, 0xe0200000, 0x23810950, 0x84015000, 0 },// sh[gp]
+  { 0x44000000, 0xfc1c0000, 0, 0xe0000000, 0x23800150, 0x84000000, 0 },// lb[gp]
+  { 0x44080000, 0xfc1c0000, 0, 0xe0000000, 0x23800150, 0x84002000, 0 },// lbu[gp]
+  { 0x44100000, 0xfc1c0000, 0, 0xe0000000, 0x23800150, 0x84004000, 0 },// lh[gp]
+  { 0x44180000, 0xfc1c0000, 0, 0xe0000000, 0x23800150, 0x84006000, 0 },// lhu[gp]
+  { 0x44040000, 0xfc1c0000, 0, 0xe0000000, 0x23800150, 0x84001000, 0 },// sb[gp]
+  { 0x44140000, 0xfc1c0000, 0, 0xe0000000, 0x23800150, 0x84005000, 0 },// sh[gp]
   { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
 };
 
@@ -10360,7 +10361,8 @@ Micromips_insn<size, big_endian>::expand(
     typename elfcpp::Elf_types<size>::Elf_Swxword r_addend,
     Mips_input_section* pmis,
     bool* is_reloc_added,
-    Valtype value)
+    Valtype value,
+    unsigned int expand_reg)
 {
   gold_assert(this->new_insn_ != NULL);
   const int reloc_size =
@@ -10393,10 +10395,16 @@ Micromips_insn<size, big_endian>::expand(
       *is_reloc_added = true;
 
       // Write instructions.
-      this->put_insn_32(insn_view, this->new_insn_->expand_opcode1);
-      this->put_insn_32(insn_view + 4, this->new_insn_->expand_opcode2);
+      Valtype32 auipc_insn = (this->new_insn_->expand_opcode1
+                              | (expand_reg << 21));
+      Valtype32 addiu_insn = (this->new_insn_->expand_opcode2
+                              | (expand_reg << 21)
+                              | (expand_reg << 16));
       Valtype16 jump_insn =
         static_cast<Valtype16>(this->new_insn_->expand_opcode3);
+      jump_insn |= (expand_reg << 5);
+      this->put_insn_32(insn_view, auipc_insn);
+      this->put_insn_32(insn_view + 4, addiu_insn);
       elfcpp::Swap<16, big_endian>::writeval(insn_view + 8, jump_insn);
     }
   else if (this->r_type_ == elfcpp::R_MICROMIPS_PC21_S1)
@@ -10441,18 +10449,25 @@ Micromips_insn<size, big_endian>::expand(
            *is_reloc_added = true;
 
            // Write instructions.
-           this->put_insn_32(insn_view + 2, this->new_insn_->expand_opcode2);
-           this->put_insn_32(insn_view + 6, this->new_insn_->expand_opcode3);
+           Valtype32 auipc_insn = (this->new_insn_->expand_opcode2
+                                   | (expand_reg << 21));
+           Valtype32 addiu_insn = (this->new_insn_->expand_opcode3
+                                   | (expand_reg << 21)
+                                   | (expand_reg << 16));
            Valtype16 jalrc_insn =
              static_cast<Valtype16>(this->new_insn_->expand_opcode4);
+           jalrc_insn |= (expand_reg << 5);
+           this->put_insn_32(insn_view + 2, auipc_insn);
+           this->put_insn_32(insn_view + 6, addiu_insn);
            elfcpp::Swap<16, big_endian>::writeval(insn_view + 10, jalrc_insn);
          }
     }
   else if (this->r_type_ == elfcpp::R_MICROMIPS_PC11_S1)
     {
       // Write addiu $at, $zero, imm insn.
-      Valtype32 addiu_insn =
-        this->new_insn_->expand_opcode1 | ((this->insn_ >> 11) & 0x7f);
+      Valtype32 addiu_insn = (this->new_insn_->expand_opcode1
+                              | (expand_reg << 21)
+                              | ((this->insn_ >> 11) & 0x7f));
       this->put_insn_32(insn_view, addiu_insn);
 
       // Change existing relocation.
@@ -10461,8 +10476,9 @@ Micromips_insn<size, big_endian>::expand(
       reloc_current.put_r_offset(r_offset + 4);
 
       // Write b<cc>c instruction.
-      Valtype32 b_cc_c_insn =
-        this->new_insn_->expand_opcode2 | (this->treg_32() << 16);
+      Valtype32 b_cc_c_insn = (this->new_insn_->expand_opcode2
+                               | (expand_reg << 21)
+                               | (this->treg_32() << 16));
       this->put_insn_32(insn_view + 4, b_cc_c_insn);
     }
   else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL19_S2
@@ -10484,10 +10500,16 @@ Micromips_insn<size, big_endian>::expand(
       *is_reloc_added = true;
 
       // Write instructions.
-      Valtype32 third_insn =
-        this->new_insn_->expand_opcode3 | (this->treg_32() << 21);
-      this->put_insn_32(insn_view, this->new_insn_->expand_opcode1);
-      this->put_insn_32(insn_view + 4, this->new_insn_->expand_opcode2);
+      Valtype32 lui_insn = (this->new_insn_->expand_opcode1
+                            | (expand_reg << 21));
+      Valtype32 addu_insn = (this->new_insn_->expand_opcode2
+                             | (expand_reg << 16)
+                             | (expand_reg << 11));
+      Valtype32 third_insn = (this->new_insn_->expand_opcode3
+                              | (this->treg_32() << 21)
+                              | (expand_reg << 16));
+      this->put_insn_32(insn_view, lui_insn);
+      this->put_insn_32(insn_view + 4, addu_insn);
       this->put_insn_32(insn_view + 8, third_insn);
     }
   else if (micromips_16bit_reloc(this->r_type_))
@@ -10572,8 +10594,8 @@ Micromips_insn<size, big_endian>::fix_addiugp(
         elfcpp::elf_r_info<size>(r_sym, elfcpp::R_MICROMIPS_GPREL14));
 
       // Write addiu instruction.
-      Valtype32 insn =
-        this->new_insn_->expand_opcode1 | (this->treg_32() << 21);
+      Valtype32 insn = (this->new_insn_->expand_opcode1
+                        | (this->treg_32() << 21));
       this->put_insn_32(insn_view, insn);
     }
   else if (this->addiugp_fix_type_ == FIXUP)
@@ -12960,6 +12982,7 @@ Target_mips<size, big_endian>::scan_reloc_section_for_relax_or_expand(
   Mips_relobj<size, big_endian>* mips_relobj =
     Mips_relobj<size, big_endian>::as_mips_relobj(relinfo->object);
   const unsigned int local_count = mips_relobj->local_symbol_count();
+  const unsigned int expand_reg = parameters->options().expand_reg();
 
   gold::Default_comdat_behavior default_comdat_behavior;
   Comdat_behavior comdat_behavior = CB_UNDETERMINED;
@@ -13165,7 +13188,7 @@ Target_mips<size, big_endian>::scan_reloc_section_for_relax_or_expand(
             {
               bool is_reloc_added = false;
               insn.expand(insn_view, preloc_current, r_sym, r_offset,
-                          r_addend, pmis, &is_reloc_added, value);
+                          r_addend, pmis, &is_reloc_added, value, expand_reg);
 
               if (is_debugging_enabled(DEBUG_TARGET))
                 insn.print_expand(mips_relobj->name(),
