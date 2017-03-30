@@ -2160,11 +2160,13 @@
 *micromips32r7:
 *micromips64r7:
 {
+  TRACE_ALU_INPUT2(GPR[RT], GPR[RS]);
   unsigned_word address = NIA + GPR[RS];
 
   GPR[RT] = NIA | isa_mode;
   isa_mode = address & 1;
   NIA = address & ~1;
+  TRACE_ALU_RESULT(GPR[RT]);
 }
 
 
@@ -2573,4 +2575,84 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
   TRACE_ALU_INPUT3(GPR[FT], S_9_BIT, GPR[RS]);
   do_lwc1 (SD_, FT, S_9_BIT, RS);
   TRACE_ALU_RESULT(GPR[FT]);
+}
+
+101000,5.FT,5.FS,5.FD,2.FMT,000000011:R7POOL32F3:32,f::MIN.fmt
+"min.%s<FMT> f<FD>, f<FS>, f<FT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_min (SD_, FD, FS, FT, FMT, instruction_0);
+}
+
+101000,5.FT,5.FS,5.FD,2.FMT,000001,011:R7POOL32F3:32,f::MAX.fmt
+"max.%s<FMT> f<FD>, f<FS>, f<FT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_max (SD_, FD, FS, FT, FMT, instruction_0);
+}
+
+101000,5.FT,5.FS,5.FD,2.FMT,000100,011:R7POOL32F3:32,f::MINA.fmt
+"mina.%s<FMT> f<FD>, f<FS>, f<FT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_mina (SD_, FD, FS, FT, FMT, instruction_0);
+}
+
+101000,5.FT,5.FS,5.FD,2.FMT,000101,011:R7POOL32F3:32,f::MAXA.fmt
+"maxa.%s<FMT> f<FD>, f<FS>, f<FT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_maxa (SD_, FD, FS, FT, FMT, instruction_0);
+}
+
+101000,5.FT,5.FS,5.FD,2.FMT,111111,000:R7POOL32F0:32,f::MSUBF.fmt
+"msubf.%s<FMT> f<FD>, f<FS>, f<FT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_msubf (SD_, FD, FS, FT, FMT, instruction_0);
+}
+
+101000,5.FS,5.FD,00000,2.FMT,000100,000:R7POOL32F0:32,f::RINT.fmt
+"rint.%s<FMT> f<FD>, f<FS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_rint (SD_, FD, FS, FMT, instruction_0);
+}
+
+101000,5.FS,5.FD,00000,2.FMT,001100,000:R7POOL32F0:32,f::CLASS.fmt
+"class.%s<FMT> f<FD>, f<FS>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_class (SD_, FD, FS, FMT, instruction_0);
+}
+
+101000,5.FT,5.FS,5.FD,2.FMT,010111,000:R7POOL32F0:32,f::SEL.fmt
+"sel.%s<FMT> f<FD>, f<FS>, f<FT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_self (SD_, FD, FS, FT, FMT, instruction_0);
+}
+
+101000,5.FT,5.FS,5.FD,2.FMT,000111,000:R7POOL32F0:32,f::SELEQZ.fmt
+"seleqz.%s<FMT> f<FD>, f<FS>, f<FT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_seleqzf (SD_, FD, FS, FT, FMT, instruction_0);
+}
+
+101000,5.FT,5.FS,5.FD,2.FMT,001111,000:R7POOL32F0:32,f::SELNEZ.fmt
+"selnez.%s<FMT> f<FD>, f<FS>, f<FT>"
+*micromips32r7:
+*micromips64r7:
+{
+  do_selnezf (SD_, FD, FS, FT, FMT, instruction_0);
 }
