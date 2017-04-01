@@ -787,7 +787,7 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test "mips16-macro"
     # Check MIPS16e extensions
     run_dump_test_arches "mips16e" [mips_arch_list_matching mips32 !micromips \
-					!mips32r6]
+					!mips32r6 !mipsr7]
     # Check jalx handling
     run_dump_test "mips16-jalx"
     run_dump_test "mips-jalx"
@@ -870,10 +870,10 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test_arches "relax-swap3"	[mips_arch_list_all]
     run_list_test_arches "relax-bc1any" "-mips3d -mabi=o64 -relax-branch" \
 					[mips_arch_list_matching mips64 \
-					    !micromips !mips32r6]
+					    !micromips !mips32r6 !mipsr7]
     run_list_test_arches "relax-bposge" "-mdsp -relax-branch" \
 					[mips_arch_list_matching mips64r2 \
-					    !micromips !mips32r6]
+					    !micromips !mips32r6 !mipsr7]
 
     run_dump_test_arches "eva"		[mips_arch_list_matching mips32r2 !octeon !r7_broken]
 
@@ -1006,14 +1006,14 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test "tls-relw"
     run_dump_test "jalr2"
     run_dump_test_arches "jalr3"	[mips_arch_list_matching mips1 \
-					    !micromips !micromipsr6]
+					    !micromips !micromipsr6 !mipsr7]
     if $has_newabi {
 	run_dump_test_arches "jalr3-n32" \
 					[mips_arch_list_matching mips3 \
-					    !micromips !micromipsr6]
+					    !micromips !micromipsr6 !mipsr7]
 	run_dump_test_arches "jalr3-n64" \
 					[mips_arch_list_matching mips3 \
-					    !micromips !micromipsr6]
+					    !micromips !micromipsr6 !mipsr7]
     }
 
     run_dump_test_arches "aent"	[mips_arch_list_matching mips1]
@@ -1049,8 +1049,8 @@ if { [istarget mips*-*-vxworks*] } {
     }
 
     # tests of objdump's ability to disassemble the move mnemonic
-    run_dump_test_arches "move"	[mips_arch_list_matching mips64 !micromips]
-    run_dump_test_arches "micromips32-move" [mips_arch_list_matching micromips !mips32r7]
+    run_dump_test_arches "move"	[mips_arch_list_matching mips64 !micromips !mipsr7]
+    run_dump_test_arches "micromips32-move" [mips_arch_list_matching micromips !mipsr7]
 
     # tests of objdump's ability to disassemble using different
     # register names.
@@ -1579,4 +1579,17 @@ if { [istarget mips*-*-vxworks*] } {
 
     run_list_test_arches "balc-stub" "" [mips_arch_list_matching mipsr7]
     run_dump_test_arches "expr-vol" "" [mips_arch_list_matching mipsr7]
+
+    run_dump_test_arches "linkrelax" [mips_arch_list_matching micromipsr6]
+    run_dump_test_arches "linkrelax" [mips_arch_list_matching mipsr7]
+    run_dump_test_arches "linkrelax-relocs" [mips_arch_list_matching micromipsr6]
+    run_dump_test_arches "linkrelax-relocs" [mips_arch_list_matching mipsr7]
+    run_dump_test_arches "nolinkrelax" [mips_arch_list_matching micromips]
+    run_dump_test_arches "nolinkrelax-relocs" \
+	[mips_arch_list_matching micromips]
+#    run_dump_test_arches "nolinkrelax" [mips_arch_list_matching mipsr7]
+#    run_dump_test_arches "nolinkrelax-relocs" \
+#	[mips_arch_list_matching mipsr7]
+#    run_dump_test_arch "nolinkrelax" "" micromips
+#    run_dump_test_arch "nolinkrelax-relocs" "" micromips
 }

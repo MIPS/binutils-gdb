@@ -2,6 +2,9 @@
 # case that highlights the need for symbol-differences as relocations
 # when doing linker relaxations.
 	.text
+	.ifdef r7
+	.linkrelax
+	.endif
 	.ent foo
 foo:
 	addiu $5,$28,%gp_rel(.L5)
@@ -56,11 +59,10 @@ foo2:
 	addiu	$4,$4,1
 	sw	$4,0x100($28)
 .L6:
-	jr	$31
-
+	jr	$31	
 .L9:
-	# No intervening relocations, difference is fixed.
-	.word	.L7-(.L8)
 	# No intervening relocations, but align directive creates new frag
+	.word	.L7-(.L8)
+	# No intervening relocations, difference is fixed.
 	.word	.L6-(.L8)
 	.end foo2

@@ -6352,6 +6352,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       value &= howto->dst_mask;
       break;
 
+#if 0
     case R_MICROMIPS_BYTE_LO4:
     case R_MICROMIPS_SHORT_LO4:
     case R_MICROMIPS_WORD_LO4:
@@ -6360,7 +6361,7 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       value >>= howto->rightshift;
       value &= howto->dst_mask;
       break;
-
+#endif
     case R_MIPS_GOT_HI16:
     case R_MIPS_CALL_HI16:
     case R_MICROMIPS_GOT_HI16:
