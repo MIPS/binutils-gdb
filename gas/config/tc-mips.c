@@ -851,13 +851,16 @@ static struct mips_cl_insn mips16_nop_insn;
 static struct mips_cl_insn micromips_nop16_insn;
 static struct mips_cl_insn micromips_nop32_insn;
 static struct mips_cl_insn micromipspp_nop16_insn;
+static struct mips_cl_insn micromipspp_nop32_insn;
 
 /* The appropriate nop for the current mode.  */
 #define NOP_INSN (mips_opts.mips16					\
 		  ? &mips16_nop_insn					\
 		  : (mips_opts.micromips				\
 		     ? (ISA_IS_R7 (mips_opts.isa)			\
-			? &micromipspp_nop16_insn 			\
+			? (mips_opts.insn32				\
+			   ? &micromipspp_nop32_insn			\
+			   : &micromipspp_nop16_insn) 			\
 			: (mips_opts.insn32				\
 			   ? &micromips_nop32_insn			\
 			   : &micromips_nop16_insn))			\
@@ -3794,6 +3797,7 @@ md_begin (void)
   const char *retval = NULL;
   int i = 0;
   int broken = 0;
+  int count_marker = 0;
 
   if (mips_pic != NO_PIC)
     {
@@ -3930,32 +3934,31 @@ md_begin (void)
 					  &micromipspp_operands[i]))
 	    broken = 1;
 
-	  if (micromipspp_opcodes[i].pinfo != INSN_MACRO)
+	  if (count_marker < 3 && micromipspp_opcodes[i].pinfo != INSN_MACRO)
 	    {
-	      insn = &micromipspp_nop16_insn;
-
-	      if (insn->insn_mo == NULL
+	      if (micromipspp_nop16_insn.insn_mo == NULL
+		  && micromips_insn_length (&micromipspp_opcodes[i]) == 2
 		  && strcmp (name, "nop") == 0)
-		{
-		  create_insn (insn, micromipspp_opcodes + i);
-		  insn->fixed_p = 1;
-		}
+		insn = &micromipspp_nop16_insn;
+	      else if (micromipspp_nop32_insn.insn_mo == NULL
+		  && micromips_insn_length (&micromipspp_opcodes[i]) == 4
+		  && strcmp (name, "nop") == 0)
+		insn = &micromipspp_nop32_insn;
+	      else if (micromipspp_bc32_insn.insn_mo == NULL
+		  && micromips_insn_length (&micromipspp_opcodes[i]) == 4
+		  && strcmp (name, "bc") == 0)
+		insn = &micromipspp_bc32_insn;
+	      else
+		continue;
 
-	      insn = &micromipspp_bc32_insn;
-
-	      if (insn->insn_mo == NULL
-		  && strcmp (name, "bc") == 0
-		  && micromipspp_opcodes[i].mask >= 0xffff)
-		{
-		  create_insn (insn, micromipspp_opcodes + i);
-		  insn->fixed_p = 1;
-		}
+	      create_insn (insn, micromipspp_opcodes + i);
+	      insn->fixed_p = 1;
+	      count_marker++;
 	    }
 	}
       while (++i < bfd_micromipspp_num_opcodes
 	     && strcmp (micromipspp_opcodes[i].name, name) == 0);
     }
-
 
   if (broken)
     as_fatal (_("broken assembler, no assembly attempted"));
@@ -21407,15 +21410,10 @@ mips_handle_align (fragS *fragp)
     {
     case NOP_OPCODE_MICROMIPS:
       if (ISA_IS_R7 (mips_opts.isa))
-	{
-	  opcode = micromipspp_nop16_insn.insn_opcode;
-	  size = 2;
-	}
+	opcode = micromipspp_nop32_insn.insn_opcode;
       else
-	{
-	  opcode = micromips_nop32_insn.insn_opcode;
-	  size = 4;
-	}
+	opcode = micromips_nop32_insn.insn_opcode;
+      size = 4;
       break;
     case NOP_OPCODE_MIPS16:
       opcode = mips16_nop_insn.insn_opcode;
@@ -21445,7 +21443,11 @@ mips_handle_align (fragS *fragp)
     case 2:
       if (nop_opcode == NOP_OPCODE_MICROMIPS && !mips_opts.insn32)
 	{
-	  p = write_compressed_insn (p, micromips_nop16_insn.insn_opcode, 2);
+	  p = write_compressed_insn (p, 
+				     (ISA_IS_R7 (mips_opts.isa)
+				      ? micromipspp_nop16_insn.insn_opcode
+				      : micromips_nop16_insn.insn_opcode),
+				     2);
 	  break;
 	}
       *p++ = '\0';
