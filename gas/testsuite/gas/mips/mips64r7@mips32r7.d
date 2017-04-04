@@ -3056,8 +3056,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 23ff c37f 	wait	0x3ff
 [0-9a-f]+ <[^>]+> 0008 03ff 	syscall	0x3ff
 [0-9a-f]+ <[^>]+> 9008      	nop
-[0-9a-f]+ <[^>]+> 9008      	nop
-[0-9a-f]+ <[^>]+> 9008      	nop
+[0-9a-f]+ <[^>]+> 8000 c000 	nop
 [0-9a-f]+ <[^>]+> a001 037b 	abs\.s	\$f0,\$f1
 [0-9a-f]+ <[^>]+> a3df 037b 	abs\.s	\$f30,\$f31
 [0-9a-f]+ <[^>]+> a042 037b 	abs\.s	\$f2,\$f2
