@@ -1579,4 +1579,8 @@ if { [istarget mips*-*-vxworks*] } {
 
     run_list_test_arches "balc-stub" "" [mips_arch_list_matching mipsr7]
     run_dump_test_arches "expr-vol" "" [mips_arch_list_matching mipsr7]
+
+    run_dump_test "elf_arch_i7001"
+    run_dump_test "elf_arch_m7001"
+
 }
