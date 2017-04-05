@@ -4371,12 +4371,7 @@ file_mips_check_options (void)
     as_fatal (_("`%s' does not support legacy NaN"),
 	      mips_cpu_info_from_arch (file_mips_opts.arch)->name);
 
-  if (ISA_IS_R7 (file_mips_opts.isa))
-    {
-      if ((file_ase_explicit & ASE_XLP) == 0)
-	file_mips_opts.ase |= ASE_XLP;
-    }
-  else
+  if (! ISA_IS_R7 (file_mips_opts.isa))
     /* BALC stub optimization is only implemented for R7.  */
     file_mips_opts.no_balc_stubs = TRUE;
 
@@ -21910,13 +21905,13 @@ static const struct mips_cpu_info mips_cpu_info_table[] =
   { "mips32r3",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS32R3, CPU_MIPS32R3 },
   { "mips32r5",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS32R5, CPU_MIPS32R5 },
   { "mips32r6",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS32R6, CPU_MIPS32R6 },
-  { "mips32r7",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS32R7, CPU_MIPS32R7 },
+  { "mips32r7",       MIPS_CPU_IS_ISA, ASE_XLP,	ISA_MIPS32R7, CPU_MIPS32R7 },
   { "mips64",         MIPS_CPU_IS_ISA, 0,	ISA_MIPS64,   CPU_MIPS64 },
   { "mips64r2",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS64R2, CPU_MIPS64R2 },
   { "mips64r3",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS64R3, CPU_MIPS64R3 },
   { "mips64r5",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS64R5, CPU_MIPS64R5 },
   { "mips64r6",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS64R6, CPU_MIPS64R6 },
-  { "mips64r7",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS64R7, CPU_MIPS64R7 },
+  { "mips64r7",       MIPS_CPU_IS_ISA, ASE_XLP,	ISA_MIPS64R7, CPU_MIPS64R7 },
 
   /* MIPS I */
   { "r3000",          0, 0,			ISA_MIPS1,    CPU_R3000 },
@@ -22031,6 +22026,10 @@ static const struct mips_cpu_info mips_cpu_info_table[] =
   { "p5600",          0, ASE_VIRT | ASE_EVA | ASE_XPA, 	ISA_MIPS32R5, CPU_MIPS32R5 },
   /* M6200 family */
   { "m6201",          0, ASE_MCU,		ISA_MIPS32R6, CPU_MIPS32R6 },
+  /* 7001 family */
+  { "i7001",          0, ASE_XLP,		ISA_MIPS32R7, CPU_MIPS32R7 },
+  { "m7001",          0, 0,			ISA_MIPS32R7, CPU_MIPS32R7 },
+
 
   /* MIPS 64 */
   { "5kc",            0, 0,			ISA_MIPS64,   CPU_MIPS64 },
