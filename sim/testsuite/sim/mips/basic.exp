@@ -32,11 +32,11 @@ proc run_hilo_test {testfile models nops} {
 }
 
 # Runs micromips tests by adding -mmicromips to as options
-proc run_micromips_test { name requested_machs } {
+proc run_micromips_test { name requested_machs args } {
     global global_as_options;
     set gas_old $global_as_options;
     append global_as_options " -mmicromips "
-    run_sim_test $name $requested_machs
+    run_sim_test $name $requested_machs $args
     set global_as_options $gas_old
 }
 
@@ -103,6 +103,7 @@ if {[istarget mips*-*-elf]} {
     } elseif {[istarget mips*-img-elf*]} {
 	set models "mips32r2 mips64r2 mips32r6 mips64r6"
 	set submodels ""
+    set micromipsr7 "mips32r7 mips64r7"
 	append dspmodels " mips32r2 mips64r2 mips32r6 mips64r6"
 	append mdmxmodels " mips32r2 mips64r2 mips32r6 mips64r6"
 	append micromipsmodels " mips32r2 mips64r2 mips32r6 mips64r6"
@@ -156,4 +157,14 @@ if {[istarget mips*-*-elf]} {
     run_r6_removed_test r6-removed.s $models
     run_sim_tests r6-64.s $models $micromipsmodels
     run_sim_tests r6-branch.s $models $micromipsmodels
+
+    # R7 TESTS
+    # global LD_FOR_TARGET
+    # set LD_FOR_TARGET "mips-img-elf-ld.gold"
+
+    run_micromips_test sanity-r7.s $micromipsr7 use_gold
+    run_micromips_test r7.s $micromipsr7 use_gold
+    run_micromips_test r7-fpu.s $micromipsr7 use_gold
+    run_micromips_test r7-branch.s $micromipsr7 use_gold
+
 }
