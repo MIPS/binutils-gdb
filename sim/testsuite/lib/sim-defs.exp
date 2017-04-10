@@ -184,7 +184,7 @@ proc sim_run { prog sim_opts prog_opts redir options } {
 # There must be a PRMS (bug report ID) specified for kfail, while it's
 # optional for xfail.
 
-proc run_sim_test { name requested_machs } {
+proc run_sim_test { name requested_machs args } {
     global subdir srcdir
     global SIMFLAGS
     global opts
@@ -350,7 +350,7 @@ proc run_sim_test { name requested_machs } {
 		continue
 	    }
 
-	    set comp_output [target_link ${name}.o ${name}.x "$opts(ld,$mach) $global_ld_options"]
+	    set comp_output [target_link ${name}.o ${name}.x "$opts(ld,$mach) $global_ld_options" $args]
 	    set method "linking"
 	}
 

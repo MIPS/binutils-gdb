@@ -20,16 +20,16 @@
 
 # $1, $4, $5, %6, are used as temps by the macros defined here.
 
-	.macro writemsg msg
+	.macro writemsg msg, r1=6, r2=4
 	la	$5, 901f
-	li	$6, 902f - 901f
+	li	$\r1, 902f - 901f
 	.data
 901:	.ascii	"\msg\n"
 902:
 	.previous
 	.set push
 	.set reorder
-	li	$4, 0
+	li	$\r2, 0
 	jal	_dowrite
 	.set pop
 	.endm
@@ -43,7 +43,7 @@
 	.endm
 
 
-	.macro setup
+	.macro setup r1=6, r2=4
 
 	.global _start
 	.global __start
@@ -59,14 +59,14 @@ __start:
 	.global _fail
 	.ent _fail
 _fail:
-	writemsg "fail"
+	writemsg "fail", \r1, \r2
 	exit 1
 	.end _fail
 
 	.global _pass
 	.ent _pass
 _pass:
-	writemsg "pass"
+	writemsg "pass", \r1, \r2
 	exit 0
 	.end _pass
 
