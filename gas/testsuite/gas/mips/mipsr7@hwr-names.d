@@ -1,5 +1,5 @@
 #objdump: -dr --prefix-addresses --show-raw-insn -M gpr-names=numeric,hwr-names=mips32r6
-#name: MIPS HWR disassembly (mips32r7)
+#name: MIPS HWR disassembly (nanoMIPS)
 #as: -defsym r6= 
 #source: hwr-names.s
 

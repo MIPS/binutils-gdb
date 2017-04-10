@@ -35,7 +35,9 @@ fn:
 
 	# Initial Exec
 	.set	push
+	.ifndef r7
 	.set	mips32r2
+	.endif
 	rdhwr	$2, $5
 	.set	pop
 	lw	$3,%gottprel(tlsvar_ie)($28)
@@ -43,7 +45,9 @@ fn:
 
 	# Local Exec
 	.set	push
+	.ifndef r7
 	.set	mips32r2
+	.endif
 	rdhwr	$2, $5
 	.set	pop
 	lui	$3,%tprel_hi(tlsvar_le)

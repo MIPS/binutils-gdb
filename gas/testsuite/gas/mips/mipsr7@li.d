@@ -1,9 +1,9 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
-#name: MIPS R7 li
+#name: nanoMIPS li
 #source: li.s
 #as: -p32 -mno-xlp
 
-# Test the li macro (microMIPS R7).
+# Test the li macro (nanoMIPS).
 
 .*: +file format .*mips.*
 

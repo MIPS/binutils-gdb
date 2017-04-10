@@ -1,9 +1,9 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
-#name: MIPSR7 MIPS32 cop2 instructions
+#name: MIPS32 cop2 instructions on nanoMIPS
 #source: mips32-cp2.s
 #as: -p32 --defsym r6=1
 
-# Check MIPS32 cop2 instruction assembly (microMIPS R7).
+# Check MIPS32 cop2 instruction assembly (nanoMIPS).
 
 .*: +file format .*mips.*
 

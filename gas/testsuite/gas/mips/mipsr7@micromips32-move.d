@@ -1,8 +1,8 @@
 #objdump: -dr -M reg-names=numeric
-#name: microMIPS insn32 move test
-#source: micromips32-move.s
+#name: nanoMIPS insn32 move test
+#source: micrmips32-move.s
 
-# Check objdump's disassembly of the move menomic for addu, daddu and or.
+# Check objdump's disassembly of the move mnenomic for addu, daddu and or.
 
 .*: +file format .*mips.*
 

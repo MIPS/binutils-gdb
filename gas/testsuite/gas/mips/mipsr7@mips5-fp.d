@@ -1,5 +1,5 @@
 #objdump: -dr --prefix-addresses --show-raw-insn -M reg-names=numeric
-#name: MIPSR7 mips5 instructions
+#name: mips5 instructions on nanoMIPS
 #source: micromipsr6@mips5-fp.s
 #stderr: mipsr6@mips5-fp.l
 

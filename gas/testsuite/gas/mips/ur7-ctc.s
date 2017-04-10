@@ -1,6 +1,4 @@
 	.text
-	.set micromips
-
 	.set reorder
 reorder:
 	b 1f			# bc16

@@ -1,9 +1,9 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
-#name: MIPSR7 save/restore instructions
-#as: -mmicromips -mips32r7
+#name: nanoMIPS save/restore instructions
+#as: -mips32r7
 #source: ur7-save.s
 
-# Check MIPSR7 save/restore instructions
+# Check nanoMIPS save/restore instructions
 
 .*: +file format .*mips.*
 

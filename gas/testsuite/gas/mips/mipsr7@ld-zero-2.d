@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses
 #as: -p32 -mno-xlp
-#name: MIPS R7 II load $zero
+#name: nanoMIPS II load $zero
 #source: ld-zero-2.s
 
 .*: +file format .*mips.*

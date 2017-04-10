@@ -1,9 +1,9 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
-#name: MIPSR7 hardware rol/ror
+#name: hardware rol/ror on nanoMIPS
 #source: rol.s
 #as: -p32
 
-# Test the rol and ror macros (microMIPS R7).
+# Test the rol and ror macros (nanoMIPS).
 
 .*: +file format .*mips.*
 

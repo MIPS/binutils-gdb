@@ -1,4 +1,4 @@
-/* micromips++-opc.c.  microMIPSr7 opcode table.
+/* nanomips-opc.c.  nanoMIPS opcode table.
    Copyright (C) 2016 Free Software Foundation, Inc.
    Contributed by Faraz Shahbazker, MIPS Technologies, Inc.
 
@@ -61,10 +61,10 @@ static int int_6_map[] = {
 
 /* Return the mips_operand structure for the operand at the beginning of P.  */
 
-/* FIXME: Unused pre-R7 cases left commented in-place for quick reminder 
-   of which character strings are unused and what they used to be.  */
+/* FIXME: Unused cases left commented in-place for quick reminder
+   of which character strings are unused.  */
 const struct mips_operand *
-decode_micromipspp_operand (const char *p)
+decode_nanomips_operand (const char *p)
 {
   switch (p[0])
     {
@@ -211,7 +211,7 @@ decode_micromipspp_operand (const char *p)
 /* 	case '&': SPECIAL (0, 0, IMM_INDEX); */
 /* 	case '*': SPECIAL (5, 16, REG_INDEX); */
 /* 	case '|': BIT (8, 16, 0);		/\* (0 .. 255) *\/ */
-	case '\'': BRANCH_UNORD_SPLIT (25, 1);
+	case '\'': BRANCH_UNORD_SPLIT (25, 1); /* unused? */
 /* 	case '"': BRANCH (21, 0, 1); */
 /* 	case ':': SINT (11, 0); */
 	case '.': BIT (2, 9, 0);		/* (0 .. 3) */
@@ -314,14 +314,14 @@ decode_micromipspp_operand (const char *p)
 #define RD_a	RD_HILO	/* Read dsp accumulators (reuse RD_HILO)  */
 
 
-/* For 16-bit/32-bit microMIPS instructions.  They are used in pinfo2.  */
+/* For 16-bit/32-bit nanoMIPS instructions.  They are used in pinfo2.  */
 #define RD_sp	INSN2_READ_SP
 #define WR_sp	INSN2_WRITE_SP
 #define RD_31	INSN2_READ_GPR_31
 #define RD_pc	INSN2_READ_PC
 #define CTC	INSN2_CONVERTED_TO_COMPACT
 
-/* For 32-bit microMIPS instructions.  */
+/* For 32-bit nanoMIPS instructions.  */
 #define WR_31	INSN_WRITE_GPR_31
 
 /* MIPS DSP ASE support.  */
@@ -361,7 +361,7 @@ decode_micromipspp_operand (const char *p)
 #define I38	INSN_ISA32R7
 #define I70	INSN_ISA64R7
 
-const struct mips_opcode micromipspp_opcodes[] =
+const struct mips_opcode nanomips_opcodes[] =
 {
 /* These instructions appear first so that the disassembler will find
    them first.  The assemblers uses a hash table based on the
@@ -1322,5 +1322,5 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"yield",	"t,s",		0x200003f8, 0xfc00ffff,	WR_1|RD_2,		0,	0,		MT32,		0},
 };
 
-const int bfd_micromipspp_num_opcodes =
-  ((sizeof micromipspp_opcodes) / (sizeof (micromipspp_opcodes[0])));
+const int bfd_nanomips_num_opcodes =
+  ((sizeof nanomips_opcodes) / (sizeof (nanomips_opcodes[0])));

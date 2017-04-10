@@ -1,11 +1,11 @@
-#name: Symbolic expression evaluation on r7
+#name: Symbolic expression evaluation on nanoMIPS
 #PROG: readelf
 #readelf: -Wr
 #source: expr-sym.s
 
 Relocation section '\.rela\.text' at offset 0x[0-9a-f]+ contains 66 entries:
  Offset     Info    Type                Sym\. Value  Symbol's Name \+ Addend
-00000004  000007b6 R_MICROMIPS_HI20       00000000   foo \+ 0
+00000004  000007b6 R_NANOMIPS_HI20        00000000   foo \+ 0
 00000010  00000b02 R_MIPS_32              00000010   \.L2 \+ 0
 00000014  00000b02 R_MIPS_32              00000010   \.L2 \+ 0
 00000018  00000844 R_MIPS_UNSIGNED_16     00000002   \.L3 \+ 0

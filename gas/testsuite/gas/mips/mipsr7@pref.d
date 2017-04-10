@@ -1,9 +1,9 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
-#name: MIPSR7 PREF instruction
+#name: PREF instruction on nanoMIPS
 #as: -p32 --defsym micromips=1 --defsym tpref=1 --defsym r6=1
 #source: cache.s
 
-# Check MIPS CACHE instruction assembly (microMIPS R7).
+# Check MIPS CACHE instruction assembly (nanoMIPS).
 
 .*: +file format .*mips.*
 

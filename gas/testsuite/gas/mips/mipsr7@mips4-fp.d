@@ -1,8 +1,8 @@
 #objdump: -dr --prefix-addresses
-#name: MIPS R7 mips4 fp
+#name: nanoMIPS mips4 fp
 #source: micromipsr6@mips4-fp.s
 
-# Test mips4 fp instructions on R7.
+# Test mips4 fp instructions on nanoMIPS
 
 .*: +file format .*mips.*
 

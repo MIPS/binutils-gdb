@@ -494,12 +494,12 @@ mips_arch_create micromipsr6 64	mips64r6 {} \
 			{ -march=mips64r6 -mmicromips --defsym r6= --defsym compact_branches=} {}
 mips_arch_create mips32r7 32	mips32r6 \
 			{ fpisa3 fpisa4 fpisa5 ror micromips mipsr7 r7_broken } \
-			{ -march=mips32r7 -mmicromips --defsym r7= \
+			{ -march=mips32r7 --defsym r7= \
 			      --defsym r7_broken= --defsym compact_branches=} {}
 mips_arch_create mips64r7 64	mips64r6  \
 			{ mips32r7 ror micromips mipsr7 r7_broken   \
 			skip_n32 r7_64_broken } \
-			{ -march=mips64r7 -mmicromips --defsym r7= \
+			{ -march=mips64r7 --defsym r7= \
 			      --defsym r7_broken= --defsym compact_branches=} {}
 mips_arch_create r3000 	32	mips1	{} \
 			{ -march=r3000 -mtune=r3000 } { -mmips:3000 }

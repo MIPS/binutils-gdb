@@ -1,9 +1,9 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
-#name: MIPSR7 instructions
+#name: nanoMIPS instructions
 #as:
 #stderr: mips32r7.l
 
-# Check MIPSR7 instructions
+# Check nanoMIPS instructions
 
 .*: +file format .*mips.*
 
@@ -113,36 +113,36 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2016 1290 	move	v0,s6
 [0-9a-f]+ <[^>]+> 2002 b290 	move	s6,v0
 [0-9a-f]+ <[^>]+> 1800      	bc	[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC10_S1	test-0x2
+			[0-9a-f]+: R_NANOMIPS_PC10_S1	test-0x2
 [0-9a-f]+ <[^>]+> 1800      	bc	[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC10_S1	test-0x2
+			[0-9a-f]+: R_NANOMIPS_PC10_S1	test-0x2
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC25_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	test-0x4
 [0-9a-f]+ <[^>]+> 1800      	bc	[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC10_S1	\.L11-0x2
+			[0-9a-f]+: R_NANOMIPS_PC10_S1	\.L11-0x2
 [0-9a-f]+ <[^>]+> 1800      	bc	[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC10_S1	\.L11-0x2
+			[0-9a-f]+: R_NANOMIPS_PC10_S1	\.L11-0x2
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC25_S1	\.L11-0x4
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	\.L11-0x4
 [0-9a-f]+ <[^>]+> 1800      	bc	[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC10_S1	\.L11-0x2
+			[0-9a-f]+: R_NANOMIPS_PC10_S1	\.L11-0x2
 [0-9a-f]+ <[^>]+> 1800      	bc	[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC10_S1	\.L11-0x2
+			[0-9a-f]+: R_NANOMIPS_PC10_S1	\.L11-0x2
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC25_S1	\.L11-0x4
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	\.L11-0x4
 [0-9a-f]+ <[^>]+> 1043      	move	v0,v1
 [0-9a-f]+ <[^>]+> 8803 8000 	bgezc	v1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	\.L0-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	\.L0-0x4
 [0-9a-f]+ <[^>]+> 2060 11d0 	negu	v0,v1
 [0-9a-f]+ <[^>]+> 1044      	move	v0,a0
 [0-9a-f]+ <[^>]+> 8804 8000 	bgezc	a0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	\.L1-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	\.L1-0x4
 [0-9a-f]+ <[^>]+> 2080 11d0 	negu	v0,a0
 [0-9a-f]+ <[^>]+> 8802 8000 	bgezc	v0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	\.L2-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	\.L2-0x4
 [0-9a-f]+ <[^>]+> 2040 11d0 	negu	v0,v0
 [0-9a-f]+ <[^>]+> 8802 8000 	bgezc	v0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	\.L3-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	\.L3-0x4
 [0-9a-f]+ <[^>]+> 2040 11d0 	negu	v0,v0
 [0-9a-f]+ <[^>]+> 2083 1110 	add	v0,v1,a0
 [0-9a-f]+ <[^>]+> 23fe e910 	add	sp,s8,ra
@@ -338,131 +338,131 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 6020 ffff 0001 	li	at,0xffff0001
 [0-9a-f]+ <[^>]+> 2023 1250 	and	v0,v1,at
 [0-9a-f]+ <[^>]+> 9900      	beqzc	s2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> 9980      	beqzc	s3,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> 9a00      	beqzc	a0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> 9a80      	beqzc	a1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> 9b00      	beqzc	a2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> 9b80      	beqzc	a3,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> 9800      	beqzc	s0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> 9880      	beqzc	s1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> 9900      	beqzc	s2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> 9980      	beqzc	s3,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> 9a00      	beqzc	a0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> 9a80      	beqzc	a1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> 9b00      	beqzc	a2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> 9b80      	beqzc	a3,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> 9800      	beqzc	s0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> 9880      	beqzc	s1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> 9900      	beqzc	s2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> 9980      	beqzc	s3,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> 9a00      	beqzc	a0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> 9a80      	beqzc	a1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> 9b00      	beqzc	a2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> 9b80      	beqzc	a3,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> 9800      	beqzc	s0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> 9880      	beqzc	s1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> 9800      	beqzc	s0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> ea00 0000 	beqzc	s0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test2-0x4
+			[0-9a-f]+: R_NANOMIPS_PC20_S1	test2-0x4
 [0-9a-f]+ <[^>]+> 9880      	beqzc	s1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> ea20 0000 	beqzc	s1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test2-0x4
+			[0-9a-f]+: R_NANOMIPS_PC20_S1	test2-0x4
 [0-9a-f]+ <[^>]+> 9880      	beqzc	s1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> ea00 0000 	beqzc	s0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test2-0x4
+			[0-9a-f]+: R_NANOMIPS_PC20_S1	test2-0x4
 [0-9a-f]+ <[^>]+> ca00 5000 	beqic	s0,10,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC11_S1	test2-0x4
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test2-0x4
 [0-9a-f]+ <[^>]+> 6020 0000 7fff 	li	at,0x7fff
 [0-9a-f]+ <[^>]+> 8830 0000 	beqc	s0,at,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test2-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2-0x4
 [0-9a-f]+ <[^>]+> e021 0000 	lui	at,0x10
 [0-9a-f]+ <[^>]+> 8830 0000 	beqc	s0,at,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test2-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2-0x4
 [0-9a-f]+ <[^>]+> b900      	bnezc	s2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> b980      	bnezc	s3,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> ba00      	bnezc	a0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> ba80      	bnezc	a1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> bb00      	bnezc	a2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> bb80      	bnezc	a3,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> b800      	bnezc	s0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> b880      	bnezc	s1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> b900      	bnezc	s2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> b980      	bnezc	s3,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> ba00      	bnezc	a0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> ba80      	bnezc	a1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> bb00      	bnezc	a2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> bb80      	bnezc	a3,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> b800      	bnezc	s0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> b880      	bnezc	s1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> b900      	bnezc	s2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> b980      	bnezc	s3,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> ba00      	bnezc	a0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> ba80      	bnezc	a1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> bb00      	bnezc	a2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> bb80      	bnezc	a3,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> b800      	bnezc	s0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> b880      	bnezc	s1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> b800      	bnezc	s0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> ea10 0000 	bnezc	s0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test3-0x4
+			[0-9a-f]+: R_NANOMIPS_PC20_S1	test3-0x4
 [0-9a-f]+ <[^>]+> ea30 0000 	bnezc	s1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test2-0x4
+			[0-9a-f]+: R_NANOMIPS_PC20_S1	test2-0x4
 [0-9a-f]+ <[^>]+> ea30 0000 	bnezc	s1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test2-0x4
+			[0-9a-f]+: R_NANOMIPS_PC20_S1	test2-0x4
 [0-9a-f]+ <[^>]+> ea30 0000 	bnezc	s1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test2-0x4
+			[0-9a-f]+: R_NANOMIPS_PC20_S1	test2-0x4
 [0-9a-f]+ <[^>]+> 1010      	break
 [0-9a-f]+ <[^>]+> 1010      	break
 [0-9a-f]+ <[^>]+> 1011      	break	0x1
@@ -732,11 +732,11 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> d870      	jalrc	v1
 [0-9a-f]+ <[^>]+> dbf0      	jalrc	ra
 [0-9a-f]+ <[^>]+> 2a00 0000 	balc	[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC25_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	test-0x4
 [0-9a-f]+ <[^>]+> 2a00 0000 	balc	[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC25_S1	test2-0x4
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	test2-0x4
 [0-9a-f]+ <[^>]+> 6040 0000 0000 	li	v0,0x0
-			[0-9a-f]+: R_MICROMIPS_32	test
+			[0-9a-f]+: R_NANOMIPS_32	test
 [0-9a-f]+ <[^>]+> 8460 0000 	lb	v1,0\(zero\)
 [0-9a-f]+ <[^>]+> 8460 0004 	lb	v1,4\(zero\)
 [0-9a-f]+ <[^>]+> 8460 0000 	lb	v1,0\(zero\)
@@ -2404,96 +2404,96 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 8064 1000 	xori	v1,a0,0
 [0-9a-f]+ <[^>]+> 8063 1fff 	xori	v1,v1,4095
 [0-9a-f]+ <[^>]+> e920 0000 	beqzc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC20_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8949 0000 	beqc	t1,t2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> e920 0000 	beqzc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC20_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c920 0800 	beqic	t1,1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 880a 8000 	bgezc	t2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 880a 8000 	bgezc	t2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8940 8000 	blezc	t2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 896a 8000 	bgec	t2,t3,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 880a 8000 	bgezc	t2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a940 8000 	bgtzc	t2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c948 1000 	bgeic	t2,2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC25_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8802 c000 	bgeuc	v0,zero,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8840 c000 	bgeuc	zero,v0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8862 c000 	bgeuc	v0,v1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC25_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> e850 0000 	bnezc	v0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC20_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c84c 1000 	bgeuic	v0,2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8802 8000 	bgezc	v0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a840 8000 	bgtzc	v0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a802 8000 	bltzc	v0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 212a 0b50 	slt	at,t2,t1
 [0-9a-f]+ <[^>]+> e830 0000 	bnezc	at,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC20_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 9008      	nop
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8809 8000 	bgezc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a920 8000 	bgtzc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c928 1000 	bgeic	t1,2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 6020 8000 0001 	li	at,0x80000001
 [0-9a-f]+ <[^>]+> 2029 0b50 	slt	at,t1,at
 [0-9a-f]+ <[^>]+> e820 0000 	beqzc	at,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC20_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> e930 0000 	bnezc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC20_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 9008      	nop
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 212a 0b90 	sltu	at,t2,t1
 [0-9a-f]+ <[^>]+> e830 0000 	bnezc	at,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC20_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 9008      	nop
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
@@ -2502,110 +2502,110 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 9008      	nop
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> e930 0000 	bnezc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC20_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c92c 1000 	bgeuic	t1,2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a920 8000 	bgtzc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8920 8000 	blezc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 880a 8000 	bgezc	t2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 212a 0b50 	slt	at,t2,t1
 [0-9a-f]+ <[^>]+> e820 0000 	beqzc	at,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC20_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC25_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a809 8000 	bltzc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8920 8000 	blezc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c938 1000 	bltic	t1,2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> e920 0000 	beqzc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC20_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC25_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 212a 0b90 	sltu	at,t2,t1
 [0-9a-f]+ <[^>]+> e820 0000 	beqzc	at,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC20_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC25_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC25_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> e920 0000 	beqzc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC20_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c93c 1000 	bltuic	t1,2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8920 8000 	blezc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a809 8000 	bltzc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a940 8000 	bgtzc	t2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a949 8000 	bltc	t1,t2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a809 8000 	bltzc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8920 8000 	blezc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c938 1000 	bltic	t1,2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a809 c000 	bltuc	t1,zero,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a940 c000 	bltuc	zero,t2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a949 c000 	bltuc	t1,t2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 9008      	nop
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> e920 0000 	beqzc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC20_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c93c 1000 	bltuic	t1,2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a809 8000 	bltzc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> e930 0000 	bnezc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC20_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a949 0000 	bnec	t1,t2,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> e930 0000 	bnezc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC20_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c930 0800 	bneic	t1,1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8460 9004 	sw	v1,4\(zero\)
 [0-9a-f]+ <[^>]+> 8480 9008 	sw	a0,8\(zero\)
@@ -3045,19 +3045,19 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2081 0950 	addu	at,at,a0
 [0-9a-f]+ <[^>]+> a461 5978 	swc2	\$3,120\(at\)
 [0-9a-f]+ <[^>]+> 0023 0000 	addiu	at,v1,0
-			[0-9a-f]+: R_MICROMIPS_LO12	test
+			[0-9a-f]+: R_NANOMIPS_LO12	test
 [0-9a-f]+ <[^>]+> a401 1900 	cache	0x0,0\(at\)
 [0-9a-f]+ <[^>]+> 0043 0000 	addiu	v0,v1,0
-			[0-9a-f]+: R_MICROMIPS_LO12	test
+			[0-9a-f]+: R_NANOMIPS_LO12	test
 [0-9a-f]+ <[^>]+> a442 4100 	ll	v0,0\(v0\)
 [0-9a-f]+ <[^>]+> 0023 0000 	addiu	at,v1,0
-			[0-9a-f]+: R_MICROMIPS_LO12	test
+			[0-9a-f]+: R_NANOMIPS_LO12	test
 [0-9a-f]+ <[^>]+> a441 4900 	sc	v0,0\(at\)
 [0-9a-f]+ <[^>]+> 0023 0000 	addiu	at,v1,0
-			[0-9a-f]+: R_MICROMIPS_LO12	test
+			[0-9a-f]+: R_NANOMIPS_LO12	test
 [0-9a-f]+ <[^>]+> a601 5100 	lwc2	\$16,0\(at\)
 [0-9a-f]+ <[^>]+> 0023 0000 	addiu	at,v1,0
-			[0-9a-f]+: R_MICROMIPS_LO12	test
+			[0-9a-f]+: R_NANOMIPS_LO12	test
 [0-9a-f]+ <[^>]+> a601 5900 	swc2	\$16,0\(at\)
 [0-9a-f]+ <[^>]+> 0018 03ff 	sdbbp	0x3ff
 [0-9a-f]+ <[^>]+> 23ff c37f 	wait	0x3ff
@@ -4073,7 +4073,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> a3df 6b3b 	trunc\.w\.d	\$f30,\$f31
 [0-9a-f]+ <[^>]+> a042 6b3b 	trunc\.w\.d	\$f2,\$f2
 [0-9a-f]+ <[^>]+> 3800      	balc	[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC10_S1	test_delay_slot-0x2
+			[0-9a-f]+: R_NANOMIPS_PC10_S1	test_delay_slot-0x2
 [0-9a-f]+ <[^>]+> d850      	jalrc	v0
 [0-9a-f]+ <[^>]+> 4be2 0000 	jalrc	v0
 [0-9a-f]+ <[^>]+> d840      	jrc	v0

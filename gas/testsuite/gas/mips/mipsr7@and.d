@@ -1,9 +1,9 @@
 #objdump: -dr --prefix-addresses
-#name: MIPS32R7 and
+#name: nanoMIPS and
 #source: and.s
 #as: -p32 -mno-xlp
 
-# Test the and macro for R7
+# Test the and macro for nanoMIPS
 
 .*: +file format .*mips.*
 

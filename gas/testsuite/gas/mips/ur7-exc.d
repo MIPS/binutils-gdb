@@ -1,9 +1,9 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
-#name: New MIPSR7 instructions
-#as: -mmicromips -mips32r7
+#name: New nanoMIPS instructions
+#as: -mips32r7
 #source: ur7-exc.s
 
-# Check exclusive MIPSR7 instructions
+# Check exclusive nanoMIPS instructions
 
 .*: +file format .*mips.*
 

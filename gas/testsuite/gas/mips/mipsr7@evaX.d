@@ -1,5 +1,5 @@
 #objdump: -dr -Mgpr-names=numeric --show-raw-insn
-#name: microMIPS EVA
+#name: nanoMIPS EVA
 #as: -meva -p32
 #source: eva.s
 
@@ -83,9 +83,9 @@ Disassembly of section \.text:
 [ 0-9a-f]+:	62e1 61ff 	lbue	\$23,-1\(\$1\)
 [ 0-9a-f]+:	6319 6000 	lbue	\$24,0\(\$25\)
 [ 0-9a-f]+:	1020 0000 	lui	\$1,0x0
-			[ 0-9a-f]+: R_MICROMIPS_HI16	MYDATA
+			[ 0-9a-f]+: R_NANOMIPS_HI16	MYDATA
 [ 0-9a-f]+:	3021 0000 	addiu	\$1,\$1,0
-			[ 0-9a-f]+: R_MICROMIPS_LO16	MYDATA
+			[ 0-9a-f]+: R_NANOMIPS_LO16	MYDATA
 [ 0-9a-f]+:	6341 6000 	lbue	\$26,0\(\$1\)
 [ 0-9a-f]+:	637c 6300 	lhue	\$27,-256\(\$28\)
 [ 0-9a-f]+:	63a0 6300 	lhue	\$29,-256\(\$0\)
@@ -161,9 +161,9 @@ Disassembly of section \.text:
 [ 0-9a-f]+:	6241 63ff 	lhue	\$18,-1\(\$1\)
 [ 0-9a-f]+:	6274 6200 	lhue	\$19,0\(\$20\)
 [ 0-9a-f]+:	1020 0000 	lui	\$1,0x0
-			[ 0-9a-f]+: R_MICROMIPS_HI16	MYDATA
+			[ 0-9a-f]+: R_NANOMIPS_HI16	MYDATA
 [ 0-9a-f]+:	3021 0000 	addiu	\$1,\$1,0
-			[ 0-9a-f]+: R_MICROMIPS_LO16	MYDATA
+			[ 0-9a-f]+: R_NANOMIPS_LO16	MYDATA
 [ 0-9a-f]+:	62a1 6200 	lhue	\$21,0\(\$1\)
 [ 0-9a-f]+:	62d7 6900 	lbe	\$22,-256\(\$23\)
 [ 0-9a-f]+:	6300 6900 	lbe	\$24,-256\(\$0\)
@@ -239,9 +239,9 @@ Disassembly of section \.text:
 [ 0-9a-f]+:	61a1 69ff 	lbe	\$13,-1\(\$1\)
 [ 0-9a-f]+:	61cf 6800 	lbe	\$14,0\(\$15\)
 [ 0-9a-f]+:	1020 0000 	lui	\$1,0x0
-			[ 0-9a-f]+: R_MICROMIPS_HI16	MYDATA
+			[ 0-9a-f]+: R_NANOMIPS_HI16	MYDATA
 [ 0-9a-f]+:	3021 0000 	addiu	\$1,\$1,0
-			[ 0-9a-f]+: R_MICROMIPS_LO16	MYDATA
+			[ 0-9a-f]+: R_NANOMIPS_LO16	MYDATA
 [ 0-9a-f]+:	6201 6800 	lbe	\$16,0\(\$1\)
 [ 0-9a-f]+:	6232 6b00 	lhe	\$17,-256\(\$18\)
 [ 0-9a-f]+:	6260 6b00 	lhe	\$19,-256\(\$0\)
@@ -316,9 +316,9 @@ Disassembly of section \.text:
 [ 0-9a-f]+:	6101 6bff 	lhe	\$8,-1\(\$1\)
 [ 0-9a-f]+:	612a 6a00 	lhe	\$9,0\(\$10\)
 [ 0-9a-f]+:	1020 0000 	lui	\$1,0x0
-			[ 0-9a-f]+: R_MICROMIPS_HI16	MYDATA
+			[ 0-9a-f]+: R_NANOMIPS_HI16	MYDATA
 [ 0-9a-f]+:	3021 0000 	addiu	\$1,\$1,0
-			[ 0-9a-f]+: R_MICROMIPS_LO16	MYDATA
+			[ 0-9a-f]+: R_NANOMIPS_LO16	MYDATA
 [ 0-9a-f]+:	6161 6a00 	lhe	\$11,0\(\$1\)
 [ 0-9a-f]+:	618d 6d00 	lle	\$12,-256\(\$13\)
 [ 0-9a-f]+:	61c0 6d00 	lle	\$14,-256\(\$0\)
@@ -394,9 +394,9 @@ Disassembly of section \.text:
 [ 0-9a-f]+:	6061 6dff 	lle	\$3,-1\(\$1\)
 [ 0-9a-f]+:	6085 6c00 	lle	\$4,0\(\$5\)
 [ 0-9a-f]+:	1020 0000 	lui	\$1,0x0
-			[ 0-9a-f]+: R_MICROMIPS_HI16	MYDATA
+			[ 0-9a-f]+: R_NANOMIPS_HI16	MYDATA
 [ 0-9a-f]+:	3021 0000 	addiu	\$1,\$1,0
-			[ 0-9a-f]+: R_MICROMIPS_LO16	MYDATA
+			[ 0-9a-f]+: R_NANOMIPS_LO16	MYDATA
 [ 0-9a-f]+:	60c1 6c00 	lle	\$6,0\(\$1\)
 [ 0-9a-f]+:	60e8 6f00 	lwe	\$7,-256\(\$8\)
 [ 0-9a-f]+:	6120 6f00 	lwe	\$9,-256\(\$0\)
@@ -472,9 +472,9 @@ Disassembly of section \.text:
 [ 0-9a-f]+:	63a1 6fff 	lwe	\$29,-1\(\$1\)
 [ 0-9a-f]+:	63df 6e00 	lwe	\$30,0\(\$31\)
 [ 0-9a-f]+:	1020 0000 	lui	\$1,0x0
-			[ 0-9a-f]+: R_MICROMIPS_HI16	MYDATA
+			[ 0-9a-f]+: R_NANOMIPS_HI16	MYDATA
 [ 0-9a-f]+:	3021 0000 	addiu	\$1,\$1,0
-			[ 0-9a-f]+: R_MICROMIPS_LO16	MYDATA
+			[ 0-9a-f]+: R_NANOMIPS_LO16	MYDATA
 [ 0-9a-f]+:	6001 6e00 	lwe	\$0,0\(\$1\)
 [ 0-9a-f]+:	62f8 a900 	sbe	\$23,-256\(\$24\)
 [ 0-9a-f]+:	6320 a900 	sbe	\$25,-256\(\$0\)
@@ -550,9 +550,9 @@ Disassembly of section \.text:
 [ 0-9a-f]+:	61c1 a9ff 	sbe	\$14,-1\(\$1\)
 [ 0-9a-f]+:	61f0 a800 	sbe	\$15,0\(\$16\)
 [ 0-9a-f]+:	1020 0000 	lui	\$1,0x0
-			[ 0-9a-f]+: R_MICROMIPS_HI16	MYDATA
+			[ 0-9a-f]+: R_NANOMIPS_HI16	MYDATA
 [ 0-9a-f]+:	3021 0000 	addiu	\$1,\$1,0
-			[ 0-9a-f]+: R_MICROMIPS_LO16	MYDATA
+			[ 0-9a-f]+: R_NANOMIPS_LO16	MYDATA
 [ 0-9a-f]+:	6221 a800 	sbe	\$17,0\(\$1\)
 [ 0-9a-f]+:	6253 ad00 	sce	\$18,-256\(\$19\)
 [ 0-9a-f]+:	6280 ad00 	sce	\$20,-256\(\$0\)
@@ -628,9 +628,9 @@ Disassembly of section \.text:
 [ 0-9a-f]+:	6121 adff 	sce	\$9,-1\(\$1\)
 [ 0-9a-f]+:	614b ac00 	sce	\$10,0\(\$11\)
 [ 0-9a-f]+:	1020 0000 	lui	\$1,0x0
-			[ 0-9a-f]+: R_MICROMIPS_HI16	MYDATA
+			[ 0-9a-f]+: R_NANOMIPS_HI16	MYDATA
 [ 0-9a-f]+:	3021 0000 	addiu	\$1,\$1,0
-			[ 0-9a-f]+: R_MICROMIPS_LO16	MYDATA
+			[ 0-9a-f]+: R_NANOMIPS_LO16	MYDATA
 [ 0-9a-f]+:	6181 ac00 	sce	\$12,0\(\$1\)
 [ 0-9a-f]+:	61ae ab00 	she	\$13,-256\(\$14\)
 [ 0-9a-f]+:	61e0 ab00 	she	\$15,-256\(\$0\)
@@ -706,9 +706,9 @@ Disassembly of section \.text:
 [ 0-9a-f]+:	6081 abff 	she	\$4,-1\(\$1\)
 [ 0-9a-f]+:	60a6 aa00 	she	\$5,0\(\$6\)
 [ 0-9a-f]+:	1020 0000 	lui	\$1,0x0
-			[ 0-9a-f]+: R_MICROMIPS_HI16	MYDATA
+			[ 0-9a-f]+: R_NANOMIPS_HI16	MYDATA
 [ 0-9a-f]+:	3021 0000 	addiu	\$1,\$1,0
-			[ 0-9a-f]+: R_MICROMIPS_LO16	MYDATA
+			[ 0-9a-f]+: R_NANOMIPS_LO16	MYDATA
 [ 0-9a-f]+:	60e1 aa00 	she	\$7,0\(\$1\)
 [ 0-9a-f]+:	6109 af00 	swe	\$8,-256\(\$9\)
 [ 0-9a-f]+:	6140 af00 	swe	\$10,-256\(\$0\)
@@ -784,9 +784,9 @@ Disassembly of section \.text:
 [ 0-9a-f]+:	63c1 afff 	swe	\$30,-1\(\$1\)
 [ 0-9a-f]+:	63e0 ae00 	swe	\$31,0\(\$0\)
 [ 0-9a-f]+:	1020 0000 	lui	\$1,0x0
-			[ 0-9a-f]+: R_MICROMIPS_HI16	MYDATA
+			[ 0-9a-f]+: R_NANOMIPS_HI16	MYDATA
 [ 0-9a-f]+:	3021 0000 	addiu	\$1,\$1,0
-			[ 0-9a-f]+: R_MICROMIPS_LO16	MYDATA
+			[ 0-9a-f]+: R_NANOMIPS_LO16	MYDATA
 [ 0-9a-f]+:	6041 ae00 	swe	\$2,0\(\$1\)
 [ 0-9a-f]+:	6319 a700 	cachee	0x18,-256\(\$25\)
 [ 0-9a-f]+:	6340 a700 	cachee	0x1a,-256\(\$0\)
@@ -862,9 +862,9 @@ Disassembly of section \.text:
 [ 0-9a-f]+:	61e1 a7ff 	cachee	0xf,-1\(\$1\)
 [ 0-9a-f]+:	6211 a600 	cachee	0x10,0\(\$17\)
 [ 0-9a-f]+:	1020 0000 	lui	\$1,0x0
-			[ 0-9a-f]+: R_MICROMIPS_HI16	MYDATA
+			[ 0-9a-f]+: R_NANOMIPS_HI16	MYDATA
 [ 0-9a-f]+:	3021 0000 	addiu	\$1,\$1,0
-			[ 0-9a-f]+: R_MICROMIPS_LO16	MYDATA
+			[ 0-9a-f]+: R_NANOMIPS_LO16	MYDATA
 [ 0-9a-f]+:	6241 a600 	cachee	0x12,0\(\$1\)
 [ 0-9a-f]+:	6274 a500 	prefe	0x13,-256\(\$20\)
 [ 0-9a-f]+:	62a0 a500 	prefe	0x15,-256\(\$0\)
@@ -940,11 +940,11 @@ Disassembly of section \.text:
 [ 0-9a-f]+:	6141 a5ff 	prefe	0xa,-1\(\$1\)
 [ 0-9a-f]+:	616c a400 	prefe	0xb,0\(\$12\)
 [ 0-9a-f]+:	1020 0000 	lui	\$1,0x0
-			[ 0-9a-f]+: R_MICROMIPS_HI16	MYDATA
+			[ 0-9a-f]+: R_NANOMIPS_HI16	MYDATA
 [ 0-9a-f]+:	3021 0000 	addiu	\$1,\$1,0
-			[ 0-9a-f]+: R_MICROMIPS_LO16	MYDATA
+			[ 0-9a-f]+: R_NANOMIPS_LO16	MYDATA
 [ 0-9a-f]+:	61a1 a400 	prefe	0xd,0\(\$1\)
 [ 0-9a-f]+:	3026 0000 	addiu	\$1,\$6,0
-			[ 0-9a-f]+: R_MICROMIPS_LO16	foo
+			[ 0-9a-f]+: R_NANOMIPS_LO16	foo
 [ 0-9a-f]+:	60a1 a400 	prefe	0x5,0\(\$1\)
 #pass

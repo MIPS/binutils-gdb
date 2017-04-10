@@ -1,5 +1,5 @@
 #objdump: -dr --prefix-addresses
-#name: MIPS R7 .aent directive
+#name: nanoMIPS .aent directive
 #source: aent.s
 #as: -p32
 

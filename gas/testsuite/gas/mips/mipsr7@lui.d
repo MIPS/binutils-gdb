@@ -13,13 +13,13 @@ Disassembly of section \.text:
 0+0010 <bar\+0x4> e040 c000 	lui	v0,0xc
 0+0014 <bar\+0x8> e040 000c 	lui	v0,0x600
 0+0018 <baz> e040 0000 	lui	v0,0x0
-			18: R_MICROMIPS_LO12	bar
+			18: R_NANOMIPS_LO12	bar
 0+001c <baz\+0x4> e040 0000 	lui	v0,0x0
-			1c: R_MICROMIPS_LO12	ext
+			1c: R_NANOMIPS_LO12	ext
 0+0020 <\.L31> e040 0000 	lui	v0,0x0
-			20: R_MICROMIPS_LO12	\.L31
+			20: R_NANOMIPS_LO12	\.L31
 0+0024 <\.L31\+0x4> e040 0000 	lui	v0,0x0
-			24: R_MICROMIPS_LO12	\.L41
+			24: R_NANOMIPS_LO12	\.L41
 0+0028 <\.L41> e040 0000 	lui	v0,0x0
 	\.\.\.
 #pass

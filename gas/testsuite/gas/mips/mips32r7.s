@@ -1,6 +1,5 @@
 	.text
 	.align	3
-	.set	micromips
 	.ent	test
 	.globl	test
 test:
@@ -3043,7 +3042,6 @@ test3:
 	.set	reorder
 
 	.align	3
-	.set	micromips
 	.ent	fp_test
 	.globl	fp_test
 fp_test:

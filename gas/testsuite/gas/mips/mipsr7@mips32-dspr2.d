@@ -1,9 +1,9 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
-#name: MIPS DSP ASE Rev2 for MIPS32R7
+#name: MIPS DSP ASE Rev2 for nanoMIPS
 #as: -mdspr2
 #source: mips32-dspr2.s
 
-# Check MIPS DSP ASE Rev2 for MIPS32R7 Instruction Assembly \(microMIPS\)
+# Check MIPS DSP ASE Rev2 for MIPS32R7 Instruction Assembly (nanoMIPS)
 
 .*: +file format .*mips.*
 

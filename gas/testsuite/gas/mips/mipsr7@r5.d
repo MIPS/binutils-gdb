@@ -1,5 +1,5 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
-#name: Test MIPS32r5 instructions on MIPS R7
+#name: Test MIPS32r5 instructions on nanoMIPS
 #source: r5.s
 
 .*: +file format .*mips.*

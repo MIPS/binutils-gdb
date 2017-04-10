@@ -1,9 +1,9 @@
 #objdump: -dr --prefix-addresses
-#name: MIPSR7 add
+#name: nanoMIPS add
 #source: add.s
 #as: -p32
 
-# Test the add macro for R7
+# Test the add macro for nanoMIPS
 
 .*: +file format .*mips.*
 

@@ -1,5 +1,5 @@
 #objdump: -dr --show-raw-insn --prefix-addresses
-#name: MIPSR7 dot-1
+#name: nanoMIPS dot-1
 #source: dot-1.s
 
 .*: +file format .*mips.*

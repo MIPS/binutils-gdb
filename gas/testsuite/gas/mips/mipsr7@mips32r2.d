@@ -1,9 +1,9 @@
 #objdump: -dr --prefix-addresses --show-raw-insn -M reg-names=numeric
-#name: MIPSR7 MIPS32r2 non-fp instructions
+#name: MIPS32r2 non-fp instructions on nanoMIPS
 #source: mips32r2.s
 #as: -p32 --defsym r6=1
 
-# Check MIPS32 Release 2 \\(mips32r2\\) *non-fp* instruction assembly (microMIPS R7).
+# Check MIPS32 Release 2 \\(mips32r2\\) *non-fp* instruction assembly (nanoMIPS).
 
 .*: +file format .*mips.*
 
