@@ -3,7 +3,7 @@
 #readelf: -Wr
 #source: expr-sym.s
 
-Relocation section '\.rela\.text' at offset 0x[0-9a-f]+ contains 66 entries:
+Relocation section '\.rela\.text' at offset 0x[0-9a-f]+ contains [0-9]+ entries:
  Offset     Info    Type                Sym\. Value  Symbol's Name \+ Addend
 00000004  000007b6 R_MICROMIPS_HI20       00000000   foo \+ 0
 00000010  00000b02 R_MIPS_32              00000010   \.L2 \+ 0
@@ -69,4 +69,12 @@ Relocation section '\.rela\.text' at offset 0x[0-9a-f]+ contains 66 entries:
 00000040  00000042 R_MIPS_ASHIFTR_1                  0
 00000040  00000042 R_MIPS_ASHIFTR_1                  0
 00000040  00000043 R_MIPS_UNSIGNED_8                 0
+00000042  00000942 R_MIPS_ASHIFTR_1       00000004   \.L4 \+ 6
+00000042  00000042 R_MIPS_ASHIFTR_1                  0
+00000042  00000042 R_MIPS_ASHIFTR_1                  0
+00000042  00000046 R_MIPS_SIGNED_16                  0
+00000044  00000b02 R_MIPS_32              00000010   \.L2 \+ 0
+00000044  00000818 R_MIPS_SUB             00000002   \.L3 \+ 0
+00000044  00000042 R_MIPS_ASHIFTR_1                  0
+00000044  00000045 R_MIPS_SIGNED_8                   0
 #pass

@@ -324,6 +324,34 @@ static reloc_howto_type elf_mips_howto_table_rela[] =
 	 0,			/* src_mask */
 	 0xffff,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
+
+  HOWTO (R_MIPS_SIGNED_8,	/* type */
+	 0,			/* rightshift */
+	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 8,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_signed, /* complain_on_overflow */
+	 _bfd_mips_elf_generic_reloc, /* special_function */
+	 "R_MIPS_SIGNED_8",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0xff,			/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
+  HOWTO (R_MIPS_SIGNED_16,	/* type */
+	 0,			/* rightshift */
+	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 16,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_signed, /* complain_on_overflow */
+	 _bfd_mips_elf_generic_reloc, /* special_function */
+	 "R_MIPS_SIGNED_16",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0xffff,		/* dst_mask */
+	 FALSE),		/* pcrel_offset */
 };
 
 static reloc_howto_type elf_micromips_howto_table_rela[] =
@@ -1659,6 +1687,8 @@ static const struct elf_reloc_map mips_reloc_map[] =
   { BFD_RELOC_MIPS_UNSIGNED_8, R_MIPS_UNSIGNED_8 },
   { BFD_RELOC_MIPS_UNSIGNED_16, R_MIPS_UNSIGNED_16 },
   { BFD_RELOC_MIPS_ASHIFTR_1, R_MIPS_ASHIFTR_1 },
+  { BFD_RELOC_MIPS_SIGNED_8, R_MIPS_SIGNED_8 },
+  { BFD_RELOC_MIPS_SIGNED_16, R_MIPS_SIGNED_16 },
 };
 
 static const struct elf_reloc_map micromipspp_reloc_map[] =
