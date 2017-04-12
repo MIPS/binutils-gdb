@@ -1458,6 +1458,7 @@ static int relaxed_micromips_16bit_branch_length (fragS *, asection *, int);
 static int relaxed_micromips_32bit_branch_length (fragS *, asection *, int);
 static void file_mips_check_options (void);
 static void stubgroup_new (asection *sec);
+static void s_sign_cons (int);
 
 /* Table and functions used to map between CPU/ISA names, and
    ISA levels, and CPU numbers.  */
@@ -1955,6 +1956,11 @@ static const pseudo_typeS mips_pseudo_table[] =
 
   { "extern", ecoff_directive_extern, 0},
 
+  /* These psuedo-ops are specific to nanoMIPS relocatable expression
+     for jump offset tables.  */
+  {"sbyte", s_sign_cons, 0},
+  {"shword", s_sign_cons, 1},
+
   { NULL, NULL, 0 },
 };
 
@@ -2026,6 +2032,9 @@ typedef struct proc {
   unsigned long pc_reg;
 } procS;
 static procS *cur_proc_ptr;
+
+/* Tracking state for signed cons expression.  */
+static bfd_boolean sign_cons = FALSE;
 
 /* Export the ABI address size for use by TC_ADDRESS_BYTES for the
    purpose of the `.dc.a' internal pseudo-op.  */
@@ -17514,6 +17523,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 	      || fixP->fx_r_type == BFD_RELOC_VTABLE_ENTRY
 	      || fixP->fx_r_type == BFD_RELOC_MIPS_TLS_DTPREL64
 	      || fixP->fx_r_type == BFD_RELOC_MIPS_UNSIGNED_8
+	      || fixP->fx_r_type == BFD_RELOC_MIPS_SIGNED_8
 	      || fixP->fx_r_type == BFD_RELOC_MIPS_ASHIFTR_1
 	      || (fixP->fx_size == 1
 		  && fixP->fx_r_type == BFD_RELOC_32));
@@ -17683,6 +17693,8 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
     case BFD_RELOC_8:
     case BFD_RELOC_MIPS_UNSIGNED_8:
     case BFD_RELOC_MIPS_UNSIGNED_16:
+    case BFD_RELOC_MIPS_SIGNED_8:
+    case BFD_RELOC_MIPS_SIGNED_16:
       /* If we are deleting this reloc entry, we must fill in the
 	 value now.  This can happen if we have a .word which is not
 	 resolved when it appears but is later defined.  */
@@ -18151,6 +18163,14 @@ s_cons (int log_size)
     mips_align (log_size, 0, l);
   cons (1 << log_size);
   mips_clear_insn_labels ();
+}
+
+static void
+s_sign_cons (int log_size)
+{
+  sign_cons = TRUE;
+  s_cons (log_size);
+  sign_cons = FALSE;
 }
 
 static void
@@ -22458,17 +22478,19 @@ mips_parse_cons_expression (expressionS *exp,
 	  || ((S_GET_SEGMENT (exp->X_op_symbol))->flags & SEC_CODE) != 0))
     {
       expressionS *iter;
-      bfd_boolean signed_op = (exp->X_unsigned == 0);
       bfd_boolean done = FALSE;
 
       switch (nbytes)
 	{
 	  case 1:
-	    rel = BFD_RELOC_MIPS_UNSIGNED_8;
+	    if (sign_cons)
+	      rel = BFD_RELOC_MIPS_SIGNED_8;
+	    else
+	      rel = BFD_RELOC_MIPS_UNSIGNED_8;
 	    break;
 	  case 2:
-	    if (signed_op)
-	      rel = BFD_RELOC_16;
+	    if (sign_cons)
+	      rel = BFD_RELOC_MIPS_SIGNED_16;
 	    else
 	      rel = BFD_RELOC_MIPS_UNSIGNED_16;
 	    break;
