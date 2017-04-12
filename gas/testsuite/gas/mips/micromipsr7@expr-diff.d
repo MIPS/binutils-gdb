@@ -25,7 +25,4 @@ Relocation section '\.rela\.text' at offset 0x[0-9a-f]+ contains 19 entries:
 00000060  00000c18 R_MIPS_SUB             00000046   \.L7 \+ 0
 00000060  00000002 R_MIPS_32                         0
 
-Relocation section '\.rela\.pdr' at offset 0x[0-9a-f]+ contains 2 entries:
- Offset     Info    Type                Sym\. Value  Symbol's Name \+ Addend
-00000000  00000702 R_MIPS_32              00000000   foo \+ 0
-00000020  00000b02 R_MIPS_32              00000034   foo2 \+ 0
+#pass
