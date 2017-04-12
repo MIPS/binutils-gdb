@@ -20173,9 +20173,10 @@ mips_fix_adjustable (fixS *fixp)
      having to adjust addends.  */
   if (ISA_IS_R7 (mips_opts.isa))
     {
-      asymbol *sym = symbol_get_bfdsym (fixp->fx_addsy);
-      asection *sect = (sym == NULL ? NULL : bfd_get_section (sym));
-      if (sect != NULL && (sect->flags & SEC_CODE) != 0)
+      asection *tsect = S_GET_SEGMENT (fixp->fx_addsy);
+      if (tsect != NULL
+	  && (tsect->flags & SEC_CODE) != 0
+	  && symbol_used_p (fixp->fx_addsy))
 	return 0;
     }
 
