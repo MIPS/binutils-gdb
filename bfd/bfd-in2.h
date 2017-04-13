@@ -3029,6 +3029,8 @@ to compensate for the borrow when the low bits are added.  */
   BFD_RELOC_MIPS_ASHIFTR_1,
   BFD_RELOC_MIPS_UNSIGNED_8,
   BFD_RELOC_MIPS_UNSIGNED_16,
+  BFD_RELOC_MIPS_SIGNED_8,
+  BFD_RELOC_MIPS_SIGNED_16,
 
 
 /* MIPS ELF relocations (VxWorks and PLT extensions).  */
@@ -3036,7 +3038,7 @@ to compensate for the borrow when the low bits are added.  */
   BFD_RELOC_MIPS_JUMP_SLOT,
 
 
-/* MicroMIPS++ relocations  */
+/* MicroMIPSr7 relocations  */
   BFD_RELOC_MICROMIPSPP_HI20,
   BFD_RELOC_MICROMIPSPP_LO12,
   BFD_RELOC_MICROMIPSPP_IMM14,
