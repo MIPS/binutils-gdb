@@ -59,8 +59,8 @@
 :compute:::int:TRT_R7:RT:((RT < 4) ? (16 + RT) \: RT)
 
 :function:::void:do_lwc1xs:int ft, int rbase, int roffset
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_fpu (SD_);
   COP_LW (1, ft, do_load (SD_, AccessLength_WORD, GPR[rbase] << 2,
@@ -68,8 +68,8 @@
 }
 
 :function:::void:check_xlp_flag:
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   if(xlp_flag == 0)
     sim_engine_abort (SD, CPU, CIA, "Error: XLP instruction generated\
@@ -77,8 +77,8 @@
 }
 
 :function:::void:do_swc1xs:int ft, int rbase, int roffset, address_word instruction_0
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   address_word base = GPR[rbase] << 2;
   address_word offset = GPR[roffset];
@@ -116,8 +116,8 @@
 }
 
 :function:::unsigned32:compute_gpr2_dest1_reg:int reg
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   switch(reg)
     {
@@ -130,8 +130,8 @@
 }
 
 :function:::unsigned32:compute_gpr2_dest2_reg:int reg
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   switch(reg)
     {
@@ -144,8 +144,8 @@
 }
 
 :function:::unsigned32:compute_gpr1_dest_reg:int reg
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   switch(reg)
     {
@@ -162,8 +162,8 @@
 }
 
 :function:::void:do_save_gprs_to_stack_and_adjust_sp: int first_gpr, int count, int fp, int gp, int offset
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   unsigned_word va;
 
@@ -207,8 +207,8 @@
 }
 
 :function:::void:do_restore_gprs_from_stack_and_adjust_sp: int first_gpr, int count, int fp, int gp, int offset
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   unsigned_word va;
 
@@ -252,8 +252,8 @@
 }
 
 :function:::address_word:do_eret:int nc, address_word nia
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   if (SR & status_ERL)
     {
@@ -278,8 +278,8 @@
 }
 
 :%s::::GPR_LIST_SAVE:int count
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   int i;
   static char gpr_list[100];
@@ -328,8 +328,8 @@
 }
 
 :function:::FP_formats:convert_fmt_micromips_mul:int fmt
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   switch (fmt)
     {
@@ -340,22 +340,22 @@
 }
 
 :%s::::GP_SAVE:int gp
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   return (gp > 0) ? "gp" : "";
 }
 
 :%s::::FP_SAVE:int fp
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   return (fp > 0) ? "fp" : "";
 }
 
 :%s::::RT_SAVE:int rt
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   if (rt >= 16 && rt <= 23)
   {
@@ -380,8 +380,8 @@
 }
 
 :%s::::IMM48:int U
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   unsigned16 U2 = do_load (SD_, AccessLength_HALFWORD, CIA + 4, 0);
   unsigned32 total = U << 16 | U2;
@@ -408,16 +408,16 @@
 
 011100,3.RT,1,6.U:R7P16ADDIU1:16::ADDIUR1SP
 "addiu r<TRT_R7>, SP, <U_SHIFT_2BIT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_addiu (SD_, SPIDX, TRT_R7, U_SHIFT_2BIT);
 }
 
 100100,3.RT,3.RS,0,3.U:R7P16ADDIU2:16::ADDIUR2
 "addiu r<TRT_R7>, r<TRS_R7>, <U_SHIFT_2BIT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_addiu (SD_, TRS_R7, TRT_R7, U_SHIFT_2BIT);
 }
@@ -425,8 +425,8 @@
 100100,5.RT,1.S1,1,3.S2:R7P16ADDIU2:16::ADDIURS5
 "nop":RT==0
 "addiu r<RT>, <S_4_BIT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   if (RT != 0)
     do_addiu (SD_, RT, RT, S_4_BIT);
@@ -434,32 +434,32 @@
 
 101100,3.RT,3.RS,3.RD,0:R7P16ADDU:16::ADDU16
 "addu r<TRD_R7>, r<TRS_R7>, r<TRT_R7>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_addu (SD_, TRS_R7, TRT_R7, TRD_R7);
 }
 
 010100,3.RT,3.RS,10,0,0:R7POOL16C00:16::AND16
 "and r<TRT_R7>, r<TRS_R7>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_and (SD_, TRS_R7, TRT_R7, TRT_R7);
 }
 
 111100,3.RT,3.RS,4.EU:R7ANDI16:16::ANDI16
 "andi r<TRT_R7>, r<TRS_R7>, <EU_12_13>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_andi (SD_, TRS_R7, TRT_R7, EU_12_13);
 }
 
 001110,9.S1,1.S2:R7BALC16:16::BALC16
 "balc <ADDRESS11>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT1(RA);
   RA = NIA | isa_mode;
@@ -472,8 +472,8 @@
 
 000110,9.S1,1.S2:R7BC16:16::BC16
 "bc <ADDRESS11>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   NIA = ADDRESS11;
 }
@@ -481,8 +481,8 @@
 110110,3.RT,3.RS,4.U!0:R7P16BR1:16::BxxC16
 "beqc r<TRS_R7>, r<TRT_R7>, <U_SHIFT_1BIT>":RS<RT
 "bnec r<TRS_R7>, r<TRT_R7>, <U_SHIFT_1BIT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   TRACE_ALU_INPUT2(GPR[TRS_R7], GPR[TRT_R7]);
@@ -494,8 +494,8 @@
 
 100110,3.RT,6.S1,1.S2:R7BEQZC16:16::BEQZC16
 "beqzc r<TRT_R7>, <ADDRESS8>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT1(GPR[TRT_R7]);
   if(GPR[TRT_R7] == 0)
@@ -504,8 +504,8 @@
 
 101110,3.RT,6.S1,1.S2:R7BNEZC16:16::BNEZC16
 "bnezc r<TRT_R7>, <ADDRESS8>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT1(GPR[TRT_R7]);
   if(GPR[TRT_R7] != 0)
@@ -514,8 +514,8 @@
 
 110110,5.RT,1,0000:R7P16JRC:16::JALRC16
 "jalrc r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT2(GPR[RT], RA);
   RA = NIA | isa_mode;
@@ -528,8 +528,8 @@
 
 110110,5.RT,0,0000:R7P16JRC:16::JRC16
 "jrc r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT1(GPR[RT]);
   NIA = process_isa_mode (SD_, GPR[RT]);
@@ -537,40 +537,40 @@
 
 000101,3.RT,3.RS,00,2.U:R7P16LB:16::LB16
 "lb r<TRT_R7>, <U>(r<TRS_R7>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lb (SD_, TRT_R7, U, TRS_R7);
 }
 
 000101,3.RT,3.RS,10,2.U:R7P16LB:16::LBU16
 "lbu r<TRT_R7>, <U>(r<TRS_R7>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lbu (SD_, TRT_R7, U, TRS_R7);
 }
 
 001101,3.RT,3.RS,0,2.U,0:R7P16LH:16::LH16
 "lh r<TRT_R7>, <U_SHIFT_1BIT>(r<TRS_R7>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lh (SD_, TRT_R7, U_SHIFT_1BIT, TRS_R7);
 }
 
 001101,3.RT,3.RS,1,2.U,0:R7P16LH:16::LHU16
 "lhu r<TRT_R7>, <U_SHIFT_1BIT>(r<TRS_R7>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lhu (SD_, TRT_R7, U_SHIFT_1BIT, TRS_R7);
 }
 
 110100,3.RT,7.EU:R7LI16:16::LI16
 "li r<TRT_R7>, <EU_127>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT1(GPR[TRT_R7]);
   GPR[TRT_R7] = EU_127;
@@ -579,8 +579,8 @@
 
 100101,1.RT1,1.U2,3.RT2,1.RS1,1.U3,3.RS2:R7LW4X4:16::LW4X4
 "lw r<RT_5_BIT>, <U_LW4X4>(r<RS_5_BIT>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   do_lw (SD_, RT_5_BIT, U_LW4X4, RS_5_BIT);
@@ -588,32 +588,32 @@
 
 011101,3.RT,3.RS,4.U:R7LW16:16::LW16
 "lw r<TRT_R7>, <U_SHIFT_2BIT>(r<TRS_R7>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lw (SD_, TRT_R7, U_SHIFT_2BIT, TRS_R7);
 }
 
 101101,3.RT,7.U:R7LWGP16:16::LWGP16
 "lw r<TRT_R7>, <U_SHIFT_2BIT>(gp)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lw (SD_, TRT_R7, U_SHIFT_2BIT, GPIDX);
 }
 
 010101,5.RT,5.U:R7LWSP:16::LWSP
 "lw r<RT>, <U_SHIFT_2BIT>(sp)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lw (SD_, RT, U_SHIFT_2BIT, SPIDX);
 }
 
 010100,3.RT,3.RS,3.RD,1:R7POOL16C_0:16::LWXS16
 "lwxs r<TRD_R7>, r<TRS_R7>(r<TRT_R7>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   do_lw (SD_, TRD_R7, GPR[TRS_R7] << 2, TRT_R7);
@@ -626,8 +626,8 @@
 "syscall <RS_CODE_2>": RS1 == 1
 "sdbbp <CODE_BREAK>": RS1 == 3
 "break <CODE_BREAK>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   if (RT == 0) {
     if (RS1 == 1)
@@ -646,8 +646,8 @@
 
 101111,1.RT4,1.RD20,3.RT2_0,1.RS4,1.RD21,3.RS2_0:R7MOVEP:16::MOVEP
 "movep r<TRD2>, r<TRE2>, r<TRS2>, r<TRT2>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   TRACE_ALU_INPUT4 (GPR[TRD2], GPR[TRE2], GPR[TRS2], GPR[TRT2]);
@@ -661,8 +661,8 @@
 
 111111,1.RE4,1.RS20,3.RE2_0,1.RD4,1.RS21,3.RD2_0:R7MOVEP:16::MOVEPREV
 "movep r<TRD2_REV>, r<TRE2_REV>, r<TRS2_REV>, r<TRT2_REV>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   TRACE_ALU_INPUT4 (GPR[TRD2_REV], GPR[TRE2_REV], GPR[TRS2_REV], GPR[TRT2_REV]);
@@ -676,16 +676,16 @@
 
 010100,3.RT,3.RS,00,0,0:R7POOL16C00:16::NOT16
 "not r<TRT_R7>, r<TRS_R7>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_nor (SD_, 0, TRS_R7, TRT_R7);
 }
 
 010100,3.RT,3.RS,11,0,0:R7POOL16C00:16::OR16
 "or r<TRT_R7>, r<TRS_R7>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_or (SD_, TRS_R7, TRT_R7, TRT_R7);
 }
@@ -695,8 +695,8 @@
 "restore.jrc <U_SHIFT_3BIT>":GPR_LIST_SAVE==14
 "restore.jrc <U_SHIFT_3BIT>, ra, fp, s0-s7":GPR_LIST_SAVE==9
 "restore.jrc <U_SHIFT_3BIT>, ra, %s<GPR_LIST_SAVE>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   if (GPR_LIST_SAVE==14 || GPR_LIST_SAVE==15)
@@ -713,8 +713,8 @@
 "save <U_SHIFT_3BIT>, ra": GPR_LIST_SAVE == 0
 "save <U_SHIFT_3BIT>, ra, fp, s0-s7": GPR_LIST_SAVE == 9
 "save <U_SHIFT_3BIT>, ra, %s<GPR_LIST_SAVE>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   if (GPR_LIST_SAVE==14 || GPR_LIST_SAVE==15)
@@ -726,64 +726,64 @@
 
 000101,3.RTZ,3.RS,01,2.U:R7P16LB:16::SB16
 "sb r<TRTZ>, <U>(r<TRS_R7>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_store (SD_, AccessLength_BYTE, GPR[TRS_R7], U, GPR[TRTZ]);
 }
 
 001101,3.RTZ,3.RS,0,2.U,1:R7P16LH:16::SH16
 "sh r<TRTZ>, <U_SHIFT_1BIT>(r<TRS_R7>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_store (SD_, AccessLength_HALFWORD, GPR[TRS_R7], U_SHIFT_1BIT, GPR[TRTZ]);
 }
 
 001100,3.RT,3.RS,0,3.SHIFT:P16SHIFT:16::SLL16
 "sll r<TRT_R7>, r<TRS_R7>, <SHIFT_DEC>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_sll (SD_, TRS_R7, TRT_R7, SHIFT_DEC);
 }
 
 001100,3.RT,3.RS,1,3.SHIFT:P16SHIFT:16::SRL16
 "srl r<TRT_R7>, r<TRS_R7>, <SHIFT_DEC>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_srl (SD_, TRS_R7, TRT_R7, SHIFT_DEC);
 }
 
 101100,3.RT,3.RS,3.RD,1:R7P16ADDU:16::SUBU16
 "subu r<TRD_R7>, r<TRS_R7>, r<TRT_R7>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_subu (SD_, TRS_R7, TRT_R7, TRD_R7);
 }
 
 111101,3.RTZ,3.RS,4.U:R7SW16:16::SW16
 "sw r<TRTZ>, <U_SHIFT_2BIT>(r<TRS_R7>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_store (SD_, AccessLength_WORD, GPR[TRS_R7], U_SHIFT_2BIT, GPR[TRTZ]);
 }
 
 110101,5.RT,5.U:R7SWSP:16::SWSP
 "sw r<RT>, <U_SHIFT_2BIT>(sp)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_store (SD_, AccessLength_WORD, SP, U_SHIFT_2BIT, GPR[RT]);
 }
 
 010100,3.RT,3.RS,01,0,0:R7POOL16C00:16::XOR16
 "xor r<TRT_R7>, r<TRS_R7>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_xor (SD_, TRT_R7, TRS_R7, TRT_R7);
 }
@@ -792,8 +792,8 @@
 
 001000,5.RT,5.RS,5.RD,0,0100010000:R7POOL32A0:32::ADD
 "add r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   do_add (SD_, RS, RT, RD);
@@ -801,16 +801,16 @@
 
 000000,5.RT!0,5.RS,1.S1,00,13.S2:R7PPADDIU:32::ADDIU
 "addiu r<RT>, r<RS>, <S_14_BIT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_addiu (SD_, RS, RT, S_14_BIT);
 }
 
 010000,5.RT,19.U,00:R7PGPREL:32::ADDIUGP
 "addiu r<RT>, GP, <U_SHIFT_2BIT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_addiu (SD_, GPIDX, RT, U_SHIFT_2BIT);
 }
@@ -820,8 +820,8 @@
 "aluipc GP, <AXUIPC_S_HI>":RT == 0 && AXUIPC_S_LO==0
 "auipc r<RT>, <AXUIPC_S_HI>, <AXUIPC_S_LO>":RT != 0
 "aluipc GP, <AXUIPC_S_HI>, <AXUIPC_S_LO>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   address_word address = NIA + AXUIPC_S;
   if (RT == 0)
@@ -839,16 +839,16 @@
 
 001000,5.RT,5.RS,5.RD,0,0101010,000:R7POOL32A0:32::ADDU
 "addu r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_addu (SD_, RS, RT, RD);
 }
 
 001000,5.RT,5.RS,5.RD,5.IMMEDIATE,011,111:R7POOL32A0:32::ALIGN
 "align r<RD>, r<RS>, r<RT>, <IMMEDIATE>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   unsigned64 tmp = (GPR[RT] << 32) | GPR[RS];
   TRACE_ALU_INPUT4 (GPR[RD], GPR[RS], GPR[RT], tmp);
@@ -859,24 +859,24 @@
 
 001000,5.RT,5.RS,5.RD,0,1001010,000:R7POOL32A0:32::AND
 "and r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_and (SD_, RS, RT, RD);
 }
 
 100000,5.RT,5.RS,0010,12.U:R7PU12:32::ANDI
 "andi r<RT>, r<RS>, <U>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_andi (SD_, RS, RT, U);
 }
 
 001010,1,24.S1,1.S2:R7PBAL:32::BALC
 "balc <ADDRESS26>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT1(RA);
   RA = NIA | isa_mode;
@@ -889,16 +889,16 @@
 
 001010,0,24.S1,1.S2:R7PBAL:32::BC
 "bc <ADDRESS26>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   NIA = ADDRESS26;
 }
 
 100010,5.RT,5.RS,00,13.S1,1.S2:R7PBR2:32::BEQC
 "beqc r<RS>, r<RT>, <ADDRESS15>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT2(GPR[RS], GPR[RT]);
   if (GPR[RS] == GPR[RT])
@@ -907,8 +907,8 @@
 
 110010,5.RT,000,7.U,10.S1,1.S2:P7PBRI:32::BEQIC
 "beqic r<RT>, <U>, <ADDRESS12>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT2(GPR[RT], U);
   if (GPR[RT] == U) {
@@ -918,8 +918,8 @@
 
 111010,5.RT,0,19.S1,1.S2:R7PBZ:32::BEQZC
 "beqzc r<RT>, <ADDRESS21>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT1(GPR[RT]);
   if (GPR[RT] == 0)
@@ -928,8 +928,8 @@
 
 100010,5.RT,5.RS,10,13.S1,1.S2:P7PBR1:32::BGEC
 "bgec r<RS>, r<RT>, <ADDRESS15>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT2(GPR[RS], GPR[RT]);
   if ((signed_word) GPR[RS] >= (signed_word) GPR[RT])
@@ -938,8 +938,8 @@
 
 110010,5.RT,010,7.U,10.S1,1.S2:P7PBRI:32::BGEIC
 "bgeic r<RT>, <U>, <ADDRESS12>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT2(GPR[RT], U);
   if ((signed_word) GPR[RT] >= U) {
@@ -949,8 +949,8 @@
 
 100010,5.RT,5.RS,11,13.S1,1.S2:P7PBR2:32::BGEUC
 "bgeuc r<RS>, r<RT>, <ADDRESS15>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT2(GPR[RS], GPR[RT]);
   if ((unsigned_word) (GPR[RS]) >= (unsigned_word)(GPR[RT])) {
@@ -960,8 +960,8 @@
 
 110010,5.RT,011,7.U,10.S1,1.S2:P7PBRI:32::BGEUIC
 "bgeuic r<RT>, <U>, <ADDRESS12>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT2(GPR[RT], U);
   if ((unsigned_word) GPR[RT] >= U) {
@@ -971,8 +971,8 @@
 
 001000,5.RT,5.RS,0000101,100,111,111:R7POOL32A0:32::BITSWAP
 "bitswap r<RT>, r<RS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   do_bitswap (SD_, RT, RS);
@@ -980,8 +980,8 @@
 
 101010,5.RT,5.RS,10,13.S1,1.S2:P7PBR1:32::BLTC
 "bltc r<RS>, r<RT>, <ADDRESS15>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT2(GPR[RS], GPR[RT]);
   if ((signed_word) GPR[RS] < (signed_word) GPR[RT])
@@ -990,8 +990,8 @@
 
 110010,5.RT,110,7.U,10.S1,1.S2:P7PBRI:32::BLTIC
 "bltic r<RT>, <U>, <ADDRESS12>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT2(GPR[RT], U);
   if ((signed_word) GPR[RT] < U) {
@@ -1001,8 +1001,8 @@
 
 101010,5.RT,5.RS,11,13.S1,1.S2:P7PBR2:32::BLTUC
 "bltuc r<RS>, r<RT>, <ADDRESS15>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT2(GPR[RS], GPR[RT]);
   if ((unsigned_word) GPR[RS] < (unsigned_word) GPR[RT]) {
@@ -1012,8 +1012,8 @@
 
 110010,5.RT,111,7.U,10.S1,1.S2:P7PBRI:32::BLTUIC
 "bltuic <RT>, <U>, <ADDRESS12>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT2(GPR[RT], U);
   if ((unsigned_word) GPR[RT] < U) {
@@ -1023,8 +1023,8 @@
 
 101010,5.RT,5.RS,00,13.S1,1.S2:R7PBR2:32::BNEC
 "bnec r<RS>, r<RT>, <ADDRESS15>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT2(GPR[RS], GPR[RT]);
   if (GPR[RS] != GPR[RT])
@@ -1033,8 +1033,8 @@
 
 110010,5.RT,100,7.U,10.S1,1.S2:P7PBRI:32::BNEIC
 "bneic r<RT>, <U>, <ADDRESS12>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT2(GPR[RT], U);
   if (GPR[RT] != U) {
@@ -1044,8 +1044,8 @@
 
 111010,5.RT!0,1,19.S1,1.S2:R7PBZ:32::BNEZC
 "bnezc r<RT>, <ADDRESS21>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT1(GPR[RT]);
   if (GPR[RT] != 0)
@@ -1054,24 +1054,24 @@
 
 000000,00000,10,19.CODE:R7PRI:32::BREAK
 "break %#lx<CODE>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_break_r7 (SD_, instruction_0);
 }
 
 101001,5.OP,5.RS,1.S1,0011001,8.S2:R7PLSS1:32::CACHE
 "cache <OP>, <S_9_BIT>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_cache (SD_, OP, RS, S_9_BIT, instruction_0);
 }
 
 001000,5.RT,5.RS,0100101,100,111,111:R7POOL32A0:32::CLO
 "clo r<RT>, r<RS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   do_clo (SD_, RT, RS);
@@ -1079,8 +1079,8 @@
 
 001000,5.RT,5.RS,0101101,100,111,111:R7POOL32A0:32::CLZ
 "clz r<RT>, r<RS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   do_clz (SD_, RT, RS);
@@ -1089,24 +1089,24 @@
 001000,5.RT,00000,01,00011,101,111,111:R7POOL32A0:32::DI
 "di":RT == 0
 "di r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_di (SD_, RT);
 }
 
 001000,5.RT,5.RS,5.RD,0,0100011,000:R7POOL32A0:32::DIV
 "div r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_div (SD_, RD, RS, RT);
 }
 
 001000,5.RT,5.RS,5.RD,0,0110011,000:R7POOL32A0:32::DIVU
 "divu r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_divu (SD_, RD, RS, RT);
 }
@@ -1114,16 +1114,16 @@
 001000,5.RT,00000,01,01011,101,111,111:R7POOL32A0:32::EI
 "ei":RT == 0
 "ei r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_ei (SD_, RT);
 }
 
 001000,000000000,0,11,11001,101,111,111:R7POOL32A0:32::ERET
 "eret"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   //TODO: signal coprocessor_exception(0) if !IsCoprocessor0Enabled()
   NIA = do_eret(SD_, 0, NIA);
@@ -1131,8 +1131,8 @@
 
 001000,000000000,1,11,11001,101,111,111:R7POOL32A0:32::ERETNC
 "eretnc"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   //TODO: signal coprocessor_exception(0) if !IsCoprocessor0Enabled()
   NIA = do_eret(SD_, 1, NIA);
@@ -1140,8 +1140,8 @@
 
 100000,5.RT,5.RS,11110,5.MSBD,0,5.LSB:R7PEXT:32::EXT
 "ext r<RT>, r<RS>, <LSB>, <MSBD+1>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   if (LSB + MSBD + 1 > 32)
@@ -1152,8 +1152,8 @@
 
 100000,5.RT,5.RS,1110,0,5.MSBD,0,5.LSB:R7PINS:32::INS
 "ins r<RT>, r<RS>, <INS_POS>, <INS_SIZE>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   if ((1 + MSBD - LSB) < 1)
@@ -1163,8 +1163,8 @@
 
 010010,5.RT,5.RS,0000,12.X:R7PJ:32::JALRC
 "jalrc r<RT>, r<RS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   GPR[RT] = NIA | isa_mode;
   unsigned_word address = GPR[RS];
@@ -1177,8 +1177,8 @@
 
 010010,5.RT,5.RS,0001,12.X:R7PJ:32::JALRC.HB
 "jalrc.hb r<RT>, r<RS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   GPR[RT] = NIA | isa_mode;
   unsigned_word address = GPR[RS];
@@ -1192,152 +1192,152 @@
 
 100001,5.RT,5.RS,0000,12.U:R7PLSU12:32::LB
 "lb r<RT>, <U>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lb (SD_, RT, U, RS);
 }
 
 010001,5.RT,000,18.U:R7PLSGP:32::LBGP
 "lb r<RT>, <U>(GP)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lb (SD_, RT, U, GPIDX);
 }
 
 101001,5.RT,5.RS,1.S1,0000000,8.S2:R7PLSS0:32::LBS9
 "lb r<RT>, <S_9_BIT>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lb (SD_, RT, S_9_BIT, RS);
 }
 
 100001,5.RT,5.RS,0010,12.U:R7PLSU12:32::LBU
 "lbu r<RT>, <U>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lbu (SD_, RT, U, RS);
 }
 
 010001,5.RT,010,18.U:R7PLSGP:32::LBUGP
 "lbu r<RT>, <U>(GP)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lbu (SD_, RT, U, GPIDX);
 }
 
 101001,5.RT,5.RS,1.S1,0010,0,00,8.S2:R7PLSS0:32::LBUS9
 "lbu r<RT>, <S_9_BIT>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lbu (SD_, RT, S_9_BIT, RS);
 }
 
 001000,5.RT,5.RS,5.RD,0010,0,000,111:R7PPLSX:32::LBUX
 "lbux r<RD>, r<RS>(r<RT>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lbu (SD_, RD, GPR[RS], RT);
 }
 
 001000,5.RT,5.RS,5.RD,0000,0,000,111:R7PPLSX:32::LBX
 "lbx r<RD>, r<RS>(r<RT>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lb (SD_, RD, GPR[RS], RT);
 }
 
 100001,5.RT,5.RS,0100,12.U:R7PLSU12:32::LH
 "lh r<RT>, <U>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lh (SD_, RT, U, RS);
 }
 
 010001,5.RT,100,18.U:R7PLSGP:32::LHGP
 "lh r<RT>, <U>(GP)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lh (SD_, RT, U, GPIDX);
 }
 
 101001,5.RT,5.RS,1.S1,0100,0,00,8.S2:R7PLSS0:32::LHS9
 "lh r<RT>, <S_9_BIT>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lh (SD_, RT, S_9_BIT, RS);
 }
 
 100001,5.RT,5.RS,0110,12.U:R7PLSU12:32::LHU
 "lhu r<RT>, <U>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lhu (SD_, RT, U, RS);
 }
 
 010001,5.RT,110,18.U:R7PLSGP:32::LHUGP
 "lhu r<RT>, <U>(gp)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lhu (SD_, RT, U, GPIDX);
 }
 
 101001,5.RT,5.RS,1.S1,0110,0,00,8.S2:R7PLSS0:32::LHUS9
 "lhu r<RT>, <S_9_BIT>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lhu (SD_, RT, S_9_BIT, RS);
 }
 
 001000,5.RT,5.RS,5.RD,0110,0,000,111:R7PPLSX:32::LHUX
 "lhux r<RD>, r<RS>(r<RT>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lhu (SD_, RD, GPR[RS], RT);
 }
 
 001000,5.RT,5.RS,5.RD,0110,1,000,111:R7PPLSXS:32::LHUXS
 "lhux r<RD>, r<RS>(r<RT>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lhu (SD_, RD, GPR[RS] << 1, RT);
 }
 
 001000,5.RT,5.RS,5.RD,0100,0,000,111:R7PPLSX:32::LHX
 "lhx r<RD>, r<RS>(r<RT>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lh (SD_, RD, GPR[RS], RT);
 }
 
 001000,5.RT,5.RS,5.RD,0100,1,000,111:R7PPLSXS:32::LHXS
 "lhxs r<RD>, r<RS>(r<RT>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lh (SD_, RD, GPR[RS] << 1, RT);
 }
 
 101001,5.RT,5.RS,1.S1,1000,0,01,6.S2,00:R7PLL:32::LL
 "ll r<RT>, <S_9_BIT_LLSC>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT3(GPR[RT], S_9_BIT_LLSC, GPR[RS]);
   do_ll (SD_, RT, S_9_BIT_LLSC, RS);
@@ -1346,8 +1346,8 @@
 
 001000,5.RT,5.RS,5.RD,2.U,000,001,111:R7POOL32A7:32::LSA
 "lsa r<RD>, r<RS>, r<RT>, <U>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lsa (SD_, RD, RS, RT, U);
 }
@@ -1355,8 +1355,8 @@
 111000,5.RT,9.S1,10.S2,0,1.S3:R7PLUI:32::LUI
 "lui r<RT>, <AXUIPC_S_HI>, <AXUIPC_S_LO>":AXUIPC_S_LO != 0
 "lui r<RT>, <AXUIPC_S_HI>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT2 (GPR[RT], AXUIPC_S);
   GPR[RT] = AXUIPC_S;
@@ -1365,72 +1365,72 @@
 
 100001,5.RT,5.RS,1000,12.U:R7PLSU12:32::LW
 "lw r<RT>, <U>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lw (SD_, RT, U, RS);
 }
 
 101001,5.RT,5.RS,1.S1,1000000,8.S2:R7SWS9:32::LWS9
 "lw r<RT>, <S_9_BIT>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lw (SD_, RT, S_9_BIT, RS);
 }
 
 010000,5.RT,19.U,10:R7LWGP:32::LWGP
 "lw r<RT>, <U_SHIFT_2BIT>(GP)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lw (SD_, RT, U_SHIFT_2BIT, GPIDX);
 }
 
 001000,5.RT,5.RS,5.RD,1000,0,000,111:R7PPLSX:32::LWX
 "lwx r<RD>, r<RS>(r<RT>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lw (SD_, RD, GPR[RS], RT);
 }
 
 001000,5.RT,5.RS,5.RD,1000,1,000,111:R7PPLSXS:32::LWXS
 "lwxs r<RD>, r<RS>(r<RT>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lw (SD_, RD, GPR[RS] << 2, RT);
 }
 
 001000,5.RT,5.C0S,2.X1,3.SEL,1.X2,0000110,000:R7POOL32A0:32::MFC0
 "mfc0 r<RT>, r<C0S>, <SEL>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   DecodeCoproc (instruction_0, 0, cp0_mfc0, RT, C0S, SEL);
 }
 
 001000,5.RT,5.RS,5.RD,00101011000:R7POOL32A0:32::MOD
 "mod r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_mod (SD_, RD, RS, RT);
 }
 
 001000,5.RT,5.RS,5.RD,00111011000:R7POOL32A0:32::MODU
 "modu r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_modu (SD_, RD, RS, RT);
 }
 
 000010,1.RT1,1.RD,3.RT2,20.S1,1.S2:R7MOVEBALC:32::MOVE.BALC
 "move.balc r<RD1>, r<RT_5_BIT>, <ADDRESS22>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   TRACE_ALU_INPUT2(GPR[RD1], GPR[RT_5_BIT]);
@@ -1445,103 +1445,103 @@
 
 001000,5.RT,5.RS,5.RD,11000010000:R7POOL32A0:32::MOVN
 "movn r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_movn (SD_, RD, RS, RT);
 }
 
 001000,5.RT,5.RS,5.RD,0,1000010,000:R7POOL32A0:32::MOVZ
 "movz r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_movz (SD_, RD, RS, RT);
 }
 
 001000,5.RT,5.C0S,2.X1,3.SEL,1.X2,0001110,000:R7POOL32A0:32::MTC0
 "mtc0 r<RT>, r<C0S>, <SEL>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   DecodeCoproc (instruction_0, 0, cp0_mtc0, RT, C0S, SEL);
 }
 
 001000,5.RT,5.RS,5.RD,0,0001011,000:R7POOL32A0:32::MUH
 "muh r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_muh (SD_, RD, RS, RT);
 }
 
 001000,5.RT,5.RS,5.RD,0,0011011,000:R7POOL32A0:32::MUHU
 "muhu r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_muhu (SD_, RD, RS, RT);
 }
 
 001000,5.RT,5.RS,5.RD,0,0000011,000:R7POOL32A0:32::MUL
 "mul r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_mul (SD_, RD, RS, RT);
 }
 
 001000,5.RT,5.RS,5.RD,0,0010011,000:R7POOL32A0:32::MULU
 "mulu r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_mulu (SD_, RD, RS, RT);
 }
 
 10000000000,5.X1,1100,3.X2,000000000:R7PHB:32::NOP
 "nop"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
 }
 
 001000,5.RT,5.RS,5.RD,0,1011010,000:R7POOL32A0:32::NOR
 "nor r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_nor (SD_, RS, RT, RD);
 }
 
 001000,5.RT,5.RS,5.RD,0,1010010,000:R7POOL32A0:32::OR
 "or r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_or (SD_, RS, RT, RD);
 }
 
 100000,5.RT,5.RS,0000,12.U:R7PU12:32::ORI
 "ori r<RT>, r<RS>, <U>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_ori (SD_, RS, RT, U);
 }
 
 100000,00000,5.X1,1100,3.X2,0000,00101:R7PHB:32::PAUSE
 "pause"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   sim_io_printf (SD, "Not implemented");
 }
 
 101001,5.HINT!31,5.RS,1.S1,0011,0,00,8.S2:R7PPREFS:32::PREF
 "pref <HINT>, <S_9_BIT>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_pref (SD_, HINT, S_9_BIT, RS);
 }
@@ -1555,8 +1555,8 @@
 "restore <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GP_SAVE>, %s<GPR_LIST_SAVE>" : !FP_SAVE && GP_SAVE && GPR_LIST_SAVE >=2
 "restore <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<FP_SAVE>, %s<GP_SAVE>": (FP_SAVE && GP_SAVE) && GPR_LIST_SAVE < 3
 "restore <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<FP_SAVE>, %s<GP_SAVE>, %s<GPR_LIST_SAVE>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_restore_gprs_from_stack_and_adjust_sp(SD_, RT_SAVE, GPR_LIST_SAVE, FP_SAVE,
                                            GP_SAVE, U_SHIFT_3BIT);
@@ -1571,8 +1571,8 @@
 "restore.jrc <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GP_SAVE>, %s<GPR_LIST_SAVE>" : !FP_SAVE && GP_SAVE && GPR_LIST_SAVE >=2
 "restore.jrc <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<FP_SAVE>, %s<GP_SAVE>": (FP_SAVE && GP_SAVE) && GPR_LIST_SAVE < 3
 "restore.jrc <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<FP_SAVE>, %s<GP_SAVE>, %s<GPR_LIST_SAVE>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_restore_gprs_from_stack_and_adjust_sp(SD_, RT_SAVE, GPR_LIST_SAVE, FP_SAVE,
                                            GP_SAVE, U_SHIFT_3BIT);
@@ -1583,16 +1583,16 @@
 
 100000,5.RT,5.RS,1100,000,0110,5.SHIFT:R7PSHIFT:32::ROTR
 "rotr r<RT>, r<RS>, <SHIFT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   GPR[RT] = do_ror (SD_, GPR[RS], SHIFT);
 }
 
 001000,5.RT,5.RS,5.RD,0,0011010,000:R7POOL32A0:32::ROTRV
 "rotrv r<RD>, r<RT>, r<RS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   unsigned32 shift = GPR[RT] & 0x1f;
   GPR[RD] = do_ror (SD_, GPR[RS], shift);
@@ -1600,16 +1600,16 @@
 
 001000,5.RT,5.RS,5.RD,0,1100010,000:R7POOL32A0:32::XOR
 "xor r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_xor (SD_, RS, RT, RD);
 }
 
 100000,5.RT,5.RS,0001,12.U:R7PU12:32::XORI
 "xori r<RT>, r<RS>, <U>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_xori (SD_, RS, RT, U);
 }
@@ -1623,8 +1623,8 @@
 "save <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GP_SAVE>, %s<GPR_LIST_SAVE>" : !FP_SAVE && GP_SAVE && GPR_LIST_SAVE >=2
 "save <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<FP_SAVE>, %s<GP_SAVE>": (FP_SAVE && GP_SAVE) && GPR_LIST_SAVE < 3
 "save <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<FP_SAVE>, %s<GP_SAVE>, %s<GPR_LIST_SAVE>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_save_gprs_to_stack_and_adjust_sp(SD_, RT_SAVE, GPR_LIST_SAVE, FP_SAVE,
                                       GP_SAVE, U_SHIFT_3BIT);
@@ -1632,32 +1632,32 @@
 
 100001,5.RT,5.RS,0001,12.U:R7PLSU12:32::SB
 "sb r<RT>, <U>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_store (SD_, AccessLength_BYTE, GPR[RS], U, GPR[RT]);
 }
 
 010001,5.RT,001,18.U:R7PLSGP:32::SBGP
 "sb r<RT>, <U>(gp)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_store (SD_, AccessLength_BYTE, GP, U, GPR[RT]);
 }
 
 101001,5.RT,5.RS,1.S1,0001,0,00,8.S2:R7PLSS0:32::SBS9
 "sb r<RT>, <S_9_BIT>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_store (SD_, AccessLength_BYTE, GPR[RS], S_9_BIT, GPR[RT]);
 }
 
 001000,5.RT,5.RS,5.RD,0001,0,000,111:R7PPLSX:32::SBX
 "sbx r<RD>, r<RS>(r<RT>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   do_store (SD_, AccessLength_BYTE, GPR[RT], GPR[RS], GPR[RD]);
@@ -1665,16 +1665,16 @@
 
 101001,5.RT,5.RS,1.S1,1001,0,01,6.S2,00:R7PSC:32::SC
 "sc r<RT>, <S_9_BIT_LLSC>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_sc (SD_, RT, S_9_BIT_LLSC, RS, instruction_0);
 }
 
 001000,5.RT,5.RS,0010101100111111:R7POOL32A0:32::SEB
 "seb r<RT>, r<RS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   do_seb (SD_, RT, RS);
@@ -1682,8 +1682,8 @@
 
 001000,5.RT,5.RS,0011101,100,111,111:R7POOL32A0:32::SEH
 "seh r<RT>, r<RS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   do_seh (SD_, RT, RS);
@@ -1691,8 +1691,8 @@
 
 100000,5.RT,5.RS,0110,12.IMMEDIATE:R7PU12:32::SEQI
 "seqi r<RT>, r<RS>, <IMMEDIATE>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT3(GPR[RT], GPR[RS], IMMEDIATE);
   GPR[RT] = (GPR[RS] == IMMEDIATE) ? 1 : 0;
@@ -1701,32 +1701,32 @@
 
 100001,5.RT,5.RS,0101,12.U:R7PLSU12:32::SH
 "sh r<RT>, <U>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_store (SD_, AccessLength_HALFWORD, GPR[RS], U, GPR[RT]);
 }
 
 010001,5.RT,101,18.U:R7PLSGP:32::SHGP
 "sh r<RT>, <U>(GP)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_store (SD_, AccessLength_HALFWORD, GP, U, GPR[RT]);
 }
 
 101001,5.RT,5.RS,1.S1,0101,0,00,8.S2:R7PLSS0:32::SHS9
 "sh r<RT>, <S_9_BIT>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_store (SD_, AccessLength_HALFWORD, GPR[RS], S_9_BIT, GPR[RT]);
 }
 
 001000,5.RT,5.RS,5.RD,0101,0,000,111:R7PPLSX:32::SHX
 "shx r<RD>, r<RS>(r<RT>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   do_store (SD_, AccessLength_HALFWORD, GPR[RT], GPR[RS], GPR[RD]);
@@ -1734,8 +1734,8 @@
 
 001000,5.RT,5.RS,5.RD,0101,1,000,111:R7PPLSXS:32::SHXS
 "shxs r<RD>, r<RS>(r<RT>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   do_store (SD_, AccessLength_HALFWORD, GPR[RT], GPR[RS] << 1, GPR[RD]);
@@ -1743,8 +1743,8 @@
 
 000000,00000,00,19.CODE:R7PRI:32::SIGRIE
 "sigrie %#lx<CODE>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   SignalException (ReservedInstruction, instruction_0);
 }
@@ -1752,88 +1752,88 @@
 
 100000,5.RT!0,5.RS,1100,3.X,0000,5.SHIFT:R7PSHIFT:32::SLL
 "sll r<RT>, r<RS>, <SHIFT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_sll (SD_, RS, RT, SHIFT);
 }
 
 001000,5.RT,5.RS,5.RD,0,0000010,000:R7POOL32A0:32::SLLV
 "sllv r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_sllv (SD_, RT, RS, RD);
 }
 
 001000,5.RT,5.RS,5.RD,0,1101010,000:R7POOL32A0:32::SLT
 "slt r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_slt (SD_, RS, RT, RD);
 }
 
 100000,5.RT,5.RS,0100,12.IMMEDIATE:R7PU12:32::SLTI
 "slti r<RT>, r<RS>, <IMMEDIATE>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_slti (SD_, RS, RT, EXTEND12(IMMEDIATE));
 }
 
 100000,5.RT,5.RS,0101,12.U:R7PU12:32::SLTIU
 "sltiu r<RT>, r<RS>, <U>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_sltiu (SD_, RS, RT, EXTEND12(U));
 }
 
 001000,5.RT,5.RS,5.RD!0,0,1110010,000:R7POOL32A0:32::SLTU
 "sltu r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_sltu (SD_, RS, RT, RD);
 }
 
 100000,5.RT,5.RS,1100,3.X,0100,5.SHIFT:R7PSHIFT:32::SRA
 "sra r<RT>, r<RS>, <SHIFT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_sra (SD_, RS, RT, SHIFT);
 }
 
 001000,5.RT,5.RS,5.RD,0,0010010,000:R7POOL32A0:32::SRAV
 "srav r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_srav (SD_, RT, RS, RD);
 }
 
 100000,5.RT,5.RS,11000000010,5.SHIFT:R7PSHIFT:32::SRL
 "srl r<RT>, r<RS>, <SHIFT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_srl (SD_, RS, RT, SHIFT);
 }
 
 001000,5.RT,5.RS,5.RD,0,0001010,000:R7POOL32A0:32::SRLV
 "srlv r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_srlv (SD_, RT, RS, RD);
 }
 
 001000,5.RT,5.RS,5.RD,1.X,0110010,000:R7POOL32A0:32::SUB
 "sub r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   do_sub (SD_, RS, RT, RD);
@@ -1841,40 +1841,40 @@
 
 001000,5.RT,5.RS,5.RD,1.X,0111010,000:R7POOL32A0:32::SUBU
 "subu r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_subu (SD_, RS, RT, RD);
 }
 
 100001,5.RT,5.RS,1001,12.U:R7SW:32::SW
 "sw r<RT>, <U>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_store (SD_, AccessLength_WORD, GPR[RS], U, GPR[RT]);
 }
 
 101001,5.RT,5.RS,1.S1,1001000,8.S2:R7SWS9:32::SWS9
 "sw r<RT>, <S_9_BIT>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_store (SD_, AccessLength_WORD, GPR[RS], S_9_BIT, GPR[RT]);
 }
 
 010000,5.RT,19.U,11:R7SWGP:32::SWGP
 "sw r<RT>, <U_SHIFT_2BIT>(GP)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_store (SD_, AccessLength_WORD, GP, U_SHIFT_2BIT, GPR[RT]);
 }
 
 001000,5.RT,5.RS,5.RD,1001,0,000,111:R7PPLSX:32::SWX
 "swx r<RD>, r<RS>(r<RT>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   do_store (SD_, AccessLength_WORD, GPR[RT], GPR[RS], GPR[RD]);
@@ -1882,8 +1882,8 @@
 
 001000,5.RT,5.RS,5.RD,1001,1,000,111:R7PPLSXS:32::SWXS
 "swxs r<RD>, r<RS>(r<RT>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   do_store (SD_, AccessLength_WORD, GPR[RT], GPR[RS] << 2, GPR[RD]);
@@ -1891,8 +1891,8 @@
 
 100111,1.RT1,1.U2,3.RT2,1.RS1,1.U3,3.RS2:R7SW4X4:16::SW4X4
 "sw r<RT_5_BIT>, <U_LW4X4>(r<RS_5_BIT>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   do_sw (SD_, RT_5_BIT, U_LW4X4, RS_5_BIT);
@@ -1901,16 +1901,16 @@
 100000,00000,5.STYPE,1100,3.X,0000,00110:R7PHB:32::SYNC
 "sync":STYPE==0
 "sync <STYPE>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   SyncOperation (STYPE);
 }
 
 101001,11111,5.RS,1.S1,0011,0,00,8.S2:R7PPREFS:32::SYNCI
 "synci <S_9_BIT>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   // sync i-cache - nothing to do currently
   sim_io_printf (SD, "Not implemented");
@@ -1918,16 +1918,16 @@
 
 000000,00000,11,19.CODE:R7PRI:32::SDBBP
 "sdbbp %#lx<CODE>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   SignalException (DebugBreakPoint, instruction_0);
 }
 
 001000,5.RT,5.RS,0111101,100,111,111:R7POOL32A0:32::WSBH
 "wsbh r<RT>, r<RS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   do_wsbh (SD_, RT, RS);
@@ -1935,8 +1935,8 @@
 
 001000,10.X,00,00001,101,111,111:R7POOL32AXF5GROUP0:32::TLBP
 "tlbp"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   // nothing to do currently
   sim_io_printf (SD, "Not implemented");
@@ -1944,8 +1944,8 @@
 
 001000,10.X,00,10001,101,111,111:R7POOL32AXF5GROUP0:32::TLBWI
 "tlbwi"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   // nothing to do currently
   sim_io_printf (SD, "Not implemented");
@@ -1953,8 +1953,8 @@
 
 001000,10.X,00,11001,101,111,111:R7POOL32AXF5GROUP0:32::TLBWR
 "tlbwr"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   // nothing to do currently
   sim_io_printf (SD, "Not implemented");
@@ -1963,8 +1963,8 @@
 
 001000,0000000000,01,00001,101,111,111:R7POOL32AXF5GROUP1:32::TLBINV
 "tlbinv"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   // invalidate a set of TLB entries based on ASID and Index match - nothing to do currently
   sim_io_printf (SD, "Not implemented");
@@ -1972,8 +1972,8 @@
 
 001000,0000000000,01,01001,101,111,111:R7POOL32AXF5GROUP1:32::TLBINVF
 "tlbinvf"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   // invalidate a set of TLB entries based on Index match - nothing to do currently
   sim_io_printf (SD, "Not implemented");
@@ -1981,40 +1981,40 @@
 
 001000,10.CODE,10,00101,101,111,111:R7PSYSCALL:32::SYSCALL
 "syscall %#lx<CODE>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   SignalException (SystemCall, instruction_0);
 }
 
 100000,00000,5.X1,1100,3.X2,0000,00011:R7PHB:32::EHB
 "ehb"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   sim_io_printf (SD, "Not implemented");
 }
 
 101001,5.RT,5.RS,1.S1,0000001,8.S2:R7PLSS1:32::UALW
 "ualw r<RT>, <S_9_BIT>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   address_word base = GPR[RS];
 
   TRACE_ALU_INPUT3(GPR[RT], S_9_BIT, GPR[RS]);
   GPR[RT] = EXTEND32 (do_load_right (SD_, AccessLength_WORD, base,
-		      EXTEND16 (S_9_BIT), GPR[RT]));
+          EXTEND16 (S_9_BIT), GPR[RT]));
   GPR[RT] = EXTEND32 (do_load_left (SD_, AccessLength_WORD, base,
-		      EXTEND16 (S_9_BIT + AccessLength_WORD), GPR[RT]));
+          EXTEND16 (S_9_BIT + AccessLength_WORD), GPR[RT]));
   TRACE_ALU_RESULT(GPR[RT]);
 }
 
 101001,5.RT,5.RS,1.S1,0001001,8.S2:R7PLSS1:32::UASW
 "uasw r<RT>, <S_9_BIT>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   do_store_right (SD_, AccessLength_WORD, GPR[RS], EXTEND16 (S_9_BIT), GPR[RT]);
@@ -2024,8 +2024,8 @@
 
 001000,5.RT,5.X,00000,0,1110010,000:R7PDVP:32::DVP
 "dvp r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   // nothing to do currently
   sim_io_printf (SD, "Not implemented");
@@ -2034,8 +2034,8 @@
 
 001000,5.RT,5.HS,2.X1,3.SEL,1.X2,0111000,000:R7POOL32A0:32::RDHWR
 "rdhwr r<HS>, r<RT>, <SEL>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   do_rdhwr (SD_, RT, HS);
@@ -2043,8 +2043,8 @@
 
 001000,5.RT,5.RS,11,10000,101,111,111:R7POOL32A0:32::RDPGPR
 "rdpgpr r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   // nothing to do currently
   sim_io_printf (SD, "Not implemented");
@@ -2052,8 +2052,8 @@
 
 001000,5.RT,5.RS,5.RD,1.X,1111010,000:R7POOL32A0:32::SOV
 "SOV r<RD>, r<RS>, r<RT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   if (NotWordValue (GPR[RS]) || NotWordValue (GPR[RT]))
     Unpredictable ();
@@ -2071,8 +2071,8 @@
 
 001000,10.X,11,10001,101,111,111:R7POOL32A0:32::DERET
 "deret"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   // nothing to do currently
   sim_io_printf (SD, "Not implemented");
@@ -2081,8 +2081,8 @@
 001000,5.RT,5.X,00000,1,1110010,000:R7PDVP:32::EVP
 "evp r<RT>" : RT!=0
 "evp"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   // nothing to do currently
   sim_io_printf (SD, "Not implemented");
@@ -2090,8 +2090,8 @@
 
 001000,10.CODE,110000110,1111111:R7POOL32AXF5GROUP2:32::WAIT
 "wait"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   // nothing to do currently
   sim_io_printf (SD, "Not implemented");
@@ -2100,8 +2100,8 @@
 // FIXME: there should be a better way to implement 48-bit instructions
 011000,5.RT,00000,16.IMM48:R7POOL48I:32::LI48
 "li r<RT>, %s<IMM48>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   unsigned16 U2 = do_load (SD_, AccessLength_HALFWORD, CIA + 4, 0);
@@ -2114,8 +2114,8 @@
 
 011000,5.RT,00001,16.IMM48:R7POOL48I:32::ADDIU48
 "addiu r<RT>, %s<IMM48>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   unsigned16 S2 = do_load(SD_, AccessLength_HALFWORD, CIA + 4, 0);
@@ -2126,8 +2126,8 @@
 
 011000,5.RT,00010,16.IMM48:R7POOL48I:32::ADDIUGP48
 "addiu r<RT>, GP, %s<IMM48>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_xlp_flag (SD_);
   unsigned16 S2 = do_load(SD_, AccessLength_HALFWORD, CIA + 4, 0);
@@ -2138,8 +2138,8 @@
 
 01001000000,5.RS,1000,2.X1,0,9.X2:R7BRC:32::BRC
 "brc r<RS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   unsigned_word address = NIA + GPR[RS];
   isa_mode = address & 1;
@@ -2148,8 +2148,8 @@
 
 01001000000,5.RS,1000,2.X1,1,9.X2:R7BRSC:32::BRSC
 "brsc r<RS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   unsigned_word address = NIA + (GPR[RS] << 1);
   NIA = address & ~1;
@@ -2157,8 +2157,8 @@
 
 010010,5.RT!0,5.RS,1000,2.X1,0,9.X2:R7PBALRC:32::BALRC
 "balrc r<RT> r<RS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT2(GPR[RT], GPR[RS]);
   unsigned_word address = NIA + GPR[RS];
@@ -2172,8 +2172,8 @@
 
 010010,5.RT!0,5.RS,1000,2.X1,1,9.X2:R7PBALRSC:32::BALRSC
 "balrsc r<RT>, r<RS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   unsigned_word address = NIA + (GPR[RS] << 1);
 
@@ -2187,8 +2187,8 @@
 
 100001,5.FT,5.RS,1111,12.U:R7PLSU12:32::SDC1
 "sdc1 f<FT>, <U>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_fpu (SD_);
   TRACE_ALU_INPUT3(FGR[FT], U, GPR[RS]);
@@ -2197,8 +2197,8 @@
 
 100001,5.FT,5.RS,1110,12.OFFSET:R7PLSU12:32::LDC1
 "ldc1 f<FT>, <OFFSET>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_fpu (SD_);
   TRACE_ALU_INPUT3(FGR[FT], OFFSET, GPR[RS]);
@@ -2208,8 +2208,8 @@
 
 100001,5.FT,5.BASE,1010,12.OFFSET:R7PLSU12:32::LWC1
 "lwc1 f<FT>, <OFFSET>(r<BASE>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lwc1 (SD_, FT, OFFSET, BASE);
 }
@@ -2217,8 +2217,8 @@
 100001,5.FT,5.BASE,1011,12.OFFSET:R7PLSU12:32::SWC1
 "swc1 f<FT>, <OFFSET>(fp)": BASE == 30
 "swc1 f<FT>, <OFFSET>(r<BASE>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   if(BASE == 30)
     do_swc1 (SD_, FT, OFFSET, 30, instruction_0);
@@ -2228,8 +2228,8 @@
 
 001000,10.X,00,01001,101,111,111:R7POOL32AXF5GROUP0:32::TLBR
 "tlbr"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   // nothing to do currently
   sim_io_printf (SD, "Not implemented");
@@ -2237,8 +2237,8 @@
 
 101000,5.RT,5.FS,2.X,101000,00,111,011:R7POOL32FXF0:32,f::MTC1
 "mtc1 r<RT>, f<FS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT2(GPR[RT], FGR[FS]);
   do_mtc1b (SD_, RT, FS);
@@ -2247,8 +2247,8 @@
 
 101000,5.RT,5.FS,2.X,111000,00,111,011:R7POOL32FXF0:32,f::MTHC1
 "mthc1 r<RT>, f<FS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
 TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
   do_mthc1 (SD_, RT, FS);
@@ -2257,8 +2257,8 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
 
 101000,5.FT,5.FS,5.FD,1.X,0,1.FMT_MICROMIPS,00110,000:R7POOLADDFMT1:32,f::ADD.fmt1
 "add.%s<FMT_MICROMIPS> f<FD>, f<FS>, f<FT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT2(FGR[FT], FGR[FS]);
   do_add_fmt (SD_, convert_fmt_micromips (SD_, FMT_MICROMIPS), FD, FS, FT,
@@ -2268,16 +2268,16 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
 
 101000,5.FT,5.FS,5.FD,5.R6COND,0,1.FMT,0101:R7POOL32F5:32,f::CMP.cond.fmt
 "cmp.%s<R6COND>.%s<FMT> f<FD>, f<FS>, f<FT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_cmp (SD_, FD, FS, FT, FMT, R6COND);
 }
 
 101000,5.FT,5.FS,1.X,0,1.FMT_MICROMIPS,00000,01,111,011:R7POOLMOVFMT:32,f::MOV.fmt
 "mov.%s<FMT_MICROMIPS> f<FT>, f<FS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT2(FGR[FT], FGR[FS]);
   do_mov_fmt (SD_, convert_fmt_micromips (SD_, FMT_MICROMIPS), FT, FS,
@@ -2287,24 +2287,24 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
 
 010001,5.FT,011,16.U,00:R7PLSGPCP1:32::LWC1GP
 "lwc1 f<FT>, <U_SHIFT_2BIT>(GP)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_lwc1 (SD_, FT, U_SHIFT_2BIT, GPIDX);
 }
 
 010001,5.FT,011,16.U,01:R7PLSGPCP1:32::SWC1GP
 "swc1 f<FT>, <U_SHIFT_2BIT>(GP)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_swc1 (SD_, FT, U_SHIFT_2BIT, GPIDX, instruction_0);
 }
 
 010001,5.FT,011,16.U,10:R7PLSGPCP1:32::LDC1GP
 "ldc1 f<FT>, <U_SHIFT_2BIT>(GP)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT3(FGR[FT], U_SHIFT_2BIT, GP);
   COP_LD (1, FT, do_load (SD_, AccessLength_DOUBLEWORD, GP, U_SHIFT_2BIT));
@@ -2313,8 +2313,8 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
 
 100010,5.FT,00001,01,13.S2,1.S1:R7POOLPBR3A:32,f::BC1NEZC
 "bc1nezc f<FT>, <S_14_BIT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_fpu (SD_);
   TRACE_ALU_INPUT2(NIA, S_14_BIT);
@@ -2325,8 +2325,8 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
 
 100010,5.FT,00000,01,13.S2,1.S1:R7POOLPBR3A:32,f::BC1EQZC
 "bc1eqzc f<FT>, <S_14_BIT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_fpu (SD_);
   TRACE_ALU_INPUT2(NIA, S_14_BIT);
@@ -2337,8 +2337,8 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
 
 101000,5.RT,5.FS,2.X,100000,00,111,011:R7POOL32FXF0:32,f::MFC1
 "mfc1 r<RT>, f<FS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT2(GPR[RT], FGR[FS]);
   do_mfc1b (SD_, RT, FS);
@@ -2347,8 +2347,8 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
 
 101000,5.RT,5.FS,2.X,110000,00,111,011:R7POOL32FXF0:32,f::MFHC1
 "mfhc1 r<RT>, f<FS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT2(GPR[RT], FGR[FS]);
   do_mfhc1 (SD_, RT, FS);
@@ -2357,11 +2357,11 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
 
 101000,5.FT,5.FS,1.X,2.FMT_MICROMIPS_CVT_D!3,10011,01,111,011:R7CVTDFMT:32,f::CVT.D.fmt
 "cvt.d.%s<FMT_MICROMIPS_CVT_D> f<FT>, f<FS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_cvt_d_fmt (SD_, convert_fmt_micromips_cvt_d (SD_, FMT_MICROMIPS_CVT_D),
-		FT, FS, instruction_0);
+    FT, FS, instruction_0);
 }
 
 :%s::::FMT_MICROMIPS_MUL:int fmt
@@ -2376,20 +2376,20 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
 
 101000,5.FT,5.FS,5.FD,1.X,0,2.FMT_MICROMIPS_MUL!2!0,0110,000:R7MULFMT1:32,f::MUL.fmt
 "mul.%s<FMT_MICROMIPS_MUL> f<FD>, f<FS>, f<FT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT2(FGR[FS], FGR[FT]);
   do_mul_fmt (SD_, convert_fmt_micromips_mul (SD_, FMT_MICROMIPS_MUL), FD, FS, FT,
-	      instruction_0);
+        instruction_0);
   TRACE_ALU_RESULT(FGR[FD]);
 }
 
 
 101000,5.FT,5.FS,5.FD,1.X,0,2.FMT_MICROMIPS_MUL!2!0,1110,000:R7DIVFMT1:32,f::DIV.fmt
 "div.%s<FMT_MICROMIPS_MUL> f<FD>, f<FS>, f<FT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT2(FGR[FS], FGR[FT]);
   if (FMT_MICROMIPS_MUL == 1)
@@ -2401,25 +2401,25 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
 
 101000,5.FT,5.FS,1.X,1.FMT_MICROMIPS,101011,00,111,011:R7POOL32FXF0:32,f::TRUNC.W.fmt
 "trunc.w.%s<FMT_MICROMIPS> f<FT>, f<FS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_trunc_fmt (SD_, fmt_word, FMT_MICROMIPS, FT, FS);
 }
 
 101000,5.FT,5.FS,1.X,2.FMT_MICROMIPS_CVT_S!3,11011,01,111,011:R7CVTSFMT:32,f::CVT.S.dsw
 "cvt.s.%s<FMT_MICROMIPS_CVT_S> f<FT>, f<FS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_cvt_s_fmt (SD_, convert_fmt_micromips_cvt_s (SD_, FMT_MICROMIPS_CVT_S),
-		FT, FS, instruction_0);
+    FT, FS, instruction_0);
 }
 
 010001,5.FT,011,16.U,11:R7PLSU12:32::SDC1GP
 "sdc1 f<FT>, <U_SHIFT_2BIT>(GP)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT3(FGR[FT], U_SHIFT_2BIT, GP);
   do_store (SD_, AccessLength_DOUBLEWORD, GP, U_SHIFT_2BIT, COP_SD (1, FT));
@@ -2427,8 +2427,8 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
 
 101000,5.FT,5.FS,5.FD,1.X,0,1.FMT_MICROMIPS,01110,000:R7SUBFMT1:32,f::SUB.fmt
 "sub.%s<FMT_MICROMIPS> f<FD>, f<FS>, f<FT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT2(FGR[FS], FGR[FT]);
   do_sub_fmt (SD_, convert_fmt_micromips (SD_, FMT_MICROMIPS), FD, FS, FT,
@@ -2438,8 +2438,8 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
 
 101000,5.FT,5.FS,1.X,2.FMT_MICROMIPS!3!2,00011,01,111,011:R7POOL32FXF1:32,f::::ABS.fmt
 "abs.%s<FMT_MICROMIPS> f<FT>, f<FS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_abs_fmt (SD_, convert_fmt_micromips (SD_, FMT_MICROMIPS), FT, FS,
         instruction_0);
@@ -2447,8 +2447,8 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
 
 101000,5.FT,5.FS,5.FD,1.X,1.FMT_MICROMIPS,110111,000:R7POOL32F0:32,f::MADDF.fmt
 "maddf.%s<FMT_MICROMIPS> f<FD>, f<FS>, f<FT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT2(FGR[FS], FGR[FT]);
   do_maddf (SD_, FD, FS, FT, convert_fmt_micromips (SD_, FMT_MICROMIPS), instruction_0);
@@ -2457,8 +2457,8 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
 
 101000,5.FT,5.FS,1.X,2.FMT_MICROMIPS!3!2,01011,01,111,011:R7POOL32FXF1:32,f::NEG.fmt
 "neg.%s<FMT_MICROMIPS> f<FT>, f<FS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_neg_fmt (SD_, convert_fmt_micromips (SD_, FMT_MICROMIPS), FT, FS,
         instruction_0);
@@ -2466,24 +2466,24 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
 
 101000,5.FT,5.FS,1.X,1.FMT_MICROMIPS,100011,00,111,011:R7POOL32FXF0:32,f::TRUNC.L.fmt
 "trunc.l.%s<FMT_MICROMIPS> f<FT>, f<FS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_trunc_fmt (SD_, fmt_long, FMT_MICROMIPS, FT, FS);
 }
 
 001000,5.RT,5.RS,5.FT,1011,1,000,111:R7POOLPPLSXS:32,f::SWC1XS
 "swc1xs f<FT>, r<RS>(r<RT>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_swc1xs(SD_, FT, RS, RT, instruction_0);
 }
 
 001000,5.RT,5.RS,5.FT,1111,0,000,111:R7POOLPPLSX:32,f::SDC1X
 "sdc1x f<FT>, r<RS>(r<RT>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_fpu (SD_);
   TRACE_ALU_INPUT3(FGR[FT], GPR[RS], GPR[RT]);
@@ -2492,8 +2492,8 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
 
 001000,5.RT,5.RS,5.FT,1111,1,000,111:R7POOLPPLSXS:32,f::SDC1XS
 "sdc1xs f<FT>, r<RS>(r<RT>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   check_fpu (SD_);
   TRACE_ALU_INPUT3(FGR[FT], GPR[RS], GPR[RT]);
@@ -2502,8 +2502,8 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
 
 001000,5.RT,5.RS,5.FT,1110,0,000,111:R7POOLPPLSXS:32::LDC1X
 "ldc1x f<FT>, r<RS>(r<RT>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT3(FGR[FT], GPR[RS], GPR[RT]);
   COP_LD (1, FT, do_load (SD_, AccessLength_DOUBLEWORD, GPR[RS], GPR[RT]));
@@ -2512,8 +2512,8 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
 
 001000,5.RT,5.RS,5.FT,1110,1,000,111:R7POOLPPLSXS:32::LDC1XS
 "ldc1xs f<FT>, r<RS>(r<RT>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT3(FGR[FT], GPR[RS], GPR[RT]);
   COP_LD (1, FT, do_load (SD_, AccessLength_DOUBLEWORD, GPR[RS] << 3, GPR[RT]));
@@ -2522,8 +2522,8 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
 
 001000,5.RT,5.RS,5.FT,1010,1,000,111:R7POOLPPLSXS:32::LWC1XS
 "lwc1xs f<FT>, r<RS>(r<RT>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT3(FGR[FT], GPR[RS], GPR[RT]);
   do_lwc1xs (SD_, FT, RS, RT);
@@ -2532,8 +2532,8 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
 
 001000,5.RT,5.RS,5.FT,1010,0,000,111:R7PPLSX:32,f::LWC1X
 "lwc1x f<FT>, r<RT>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT3(FGR[FT], GPR[RS], GPR[RT]);
   do_lwxc1 (SD_, FT, RT, RS, instruction_0);
@@ -2542,16 +2542,16 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
 
 001000,5.RT,5.RS,5.FT,1011,0,000,111:R7PPLSX:32,f::SWC1X
 "swc1x f<FT>, r<RT>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_swxc1 (SD_, FT, RT, RS, instruction_0);
 }
 
 101001,5.FT,5.RS,1.S1,1110,0,00,8.S2:R7PLSS0:32,f::LDC1S9
 "ldc1 r<FT>, <S_9_BIT>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT3(GPR[FT], S_9_BIT, GPR[RS]);
   COP_LD (1, FT, do_load (SD_, AccessLength_DOUBLEWORD, GPR[RS], S_9_BIT));
@@ -2560,8 +2560,8 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
 
 101001,5.FT,5.RS,1.S1,1111,0,00,8.S2:R7PLSS0:32,f::SDC1S9
 "sdc1 r<FT>, <S_9_BIT>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT3(GPR[FT], S_9_BIT, GPR[RS]);
   do_store (SD_, AccessLength_DOUBLEWORD, GPR[RS], S_9_BIT, COP_SD (1, FT));
@@ -2569,8 +2569,8 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
 
 101001,5.FT,5.RS,1.S1,1010,0,00,8.S2:R7PLSS0:32::LWC1S9
 "lwc1 f<FT>, <S_9_BIT>(r<RS>)"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   TRACE_ALU_INPUT3(GPR[FT], S_9_BIT, GPR[RS]);
   do_lwc1 (SD_, FT, S_9_BIT, RS);
@@ -2579,80 +2579,80 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
 
 101000,5.FT,5.FS,5.FD,2.FMT,000000011:R7POOL32F3:32,f::MIN.fmt
 "min.%s<FMT> f<FD>, f<FS>, f<FT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_min (SD_, FD, FS, FT, FMT, instruction_0);
 }
 
 101000,5.FT,5.FS,5.FD,2.FMT,000001,011:R7POOL32F3:32,f::MAX.fmt
 "max.%s<FMT> f<FD>, f<FS>, f<FT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_max (SD_, FD, FS, FT, FMT, instruction_0);
 }
 
 101000,5.FT,5.FS,5.FD,2.FMT,000100,011:R7POOL32F3:32,f::MINA.fmt
 "mina.%s<FMT> f<FD>, f<FS>, f<FT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_mina (SD_, FD, FS, FT, FMT, instruction_0);
 }
 
 101000,5.FT,5.FS,5.FD,2.FMT,000101,011:R7POOL32F3:32,f::MAXA.fmt
 "maxa.%s<FMT> f<FD>, f<FS>, f<FT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_maxa (SD_, FD, FS, FT, FMT, instruction_0);
 }
 
 101000,5.FT,5.FS,5.FD,2.FMT,111111,000:R7POOL32F0:32,f::MSUBF.fmt
 "msubf.%s<FMT> f<FD>, f<FS>, f<FT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_msubf (SD_, FD, FS, FT, FMT, instruction_0);
 }
 
 101000,5.FS,5.FD,00000,2.FMT,000100,000:R7POOL32F0:32,f::RINT.fmt
 "rint.%s<FMT> f<FD>, f<FS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_rint (SD_, FD, FS, FMT, instruction_0);
 }
 
 101000,5.FS,5.FD,00000,2.FMT,001100,000:R7POOL32F0:32,f::CLASS.fmt
 "class.%s<FMT> f<FD>, f<FS>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_class (SD_, FD, FS, FMT, instruction_0);
 }
 
 101000,5.FT,5.FS,5.FD,2.FMT,010111,000:R7POOL32F0:32,f::SEL.fmt
 "sel.%s<FMT> f<FD>, f<FS>, f<FT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_self (SD_, FD, FS, FT, FMT, instruction_0);
 }
 
 101000,5.FT,5.FS,5.FD,2.FMT,000111,000:R7POOL32F0:32,f::SELEQZ.fmt
 "seleqz.%s<FMT> f<FD>, f<FS>, f<FT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_seleqzf (SD_, FD, FS, FT, FMT, instruction_0);
 }
 
 101000,5.FT,5.FS,5.FD,2.FMT,001111,000:R7POOL32F0:32,f::SELNEZ.fmt
 "selnez.%s<FMT> f<FD>, f<FS>, f<FT>"
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   do_selnezf (SD_, FD, FS, FT, FMT, instruction_0);
 }

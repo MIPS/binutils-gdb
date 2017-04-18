@@ -1083,6 +1083,18 @@ INLINE_SIM_MAIN (unsigned16) ifetch16 (SIM_DESC sd, sim_cpu *cpu, address_word c
 #define MICROMIPS_DELAYSLOT_SIZE_16 2
 #define MICROMIPS_DELAYSLOT_SIZE_32 4
 
+#define IMEM32_NANOMIPS(CIA) \
+  (ifetch16 (SD, CPU, (CIA), (CIA)) << 16 | ifetch16 (SD, CPU, (CIA + 2), \
+                  (CIA + 2)))
+#define IMEM16_NANOMIPS(CIA) ifetch16 (SD, CPU, (CIA), ((CIA)))
+
+
+#define NANOMIPS_MAJOR_OPCODE_3_5(INSN) ((INSN & 0x1c00) >> 10)
+
+#define NANOMIPS_DELAYSLOT_SIZE_ANY 0
+#define ISA_MODE_NANOMIPS 1
+
+
 extern int isa_mode;
 
 #define ISA_MODE_MIPS32 0

@@ -82,9 +82,9 @@
 :model:::micromips64:micromips64:	// micromips.igen
 :model:::micromipsdsp:micromipsdsp:	// micromipsdsp.igen
 :model:::micromips32r6:micromips32r6:	// micromipsr6.igen
-:model:::micromips32r7:micromips32r7:	// micromipsr7.igen
 :model:::micromips64r6:micromips64r6:	// micromipsr6.igen
-:model:::micromips64r7:micromips64r7:	// micromipsr7.igen
+:model:::nanomips32r7:nanomips32r7: // nanomipsr7.igen
+:model:::nanomips64r7:nanomips64r7: // nanomipsr7.igen
 
 //  Vendor Extensions
 //
@@ -209,8 +209,8 @@
 :function:::address_word:forbiddenslot32:address_word nia
 *micromips32r6:
 *micromips64r6:
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   /* microMIPS R6 and microMIPS R7 have no forbidden slots. */
   return nia;
@@ -243,7 +243,7 @@
 *r3900:
 *micromips32:
 *micromips32r6:
-*micromips32r7:
+*nanomips32r7:
 {
   return base + offset;
 }
@@ -253,7 +253,7 @@
 *mips64r2:
 *micromips64:
 *micromips64r6:
-*micromips64r7:
+*nanomips64r7:
 *mips64r6:
 {
   /* If in user mode and UX is not set, use the 32-bit compatibility
@@ -292,8 +292,8 @@
 *micromips32r6:
 *micromips64:
 *micromips64r6:
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 *mips64r6:
 {
 #if WITH_TARGET_WORD_BITSIZE == 64
@@ -333,8 +333,8 @@
 *micromips32r6:
 *micromips64:
 *micromips64r6:
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 *mips64r6:
 {
   unpredictable_action (CPU, CIA);
@@ -635,8 +635,8 @@
 *micromips32:
 *micromips32r6:
 *mips64r6:
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
 #if 0 /* XXX FIXME: enable this only after some additional testing.  */
   if (UserMode && (SR & (status_UX|status_PX)) == 0)
@@ -5560,8 +5560,8 @@
 *r3900:
 *micromips32r6:
 *micromips64r6:
-*micromips32r7:
-*micromips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   /* None of these ISAs support Paired Single, so just fall back to
      the single/double check.  */
@@ -5614,10 +5614,10 @@
 *r3900:
 *micromips32:
 *micromips32r6:
-*micromips32r7:
+*nanomips32r7:
 *micromips64:
 *micromips64r6:
-*micromips64r7:
+*nanomips64r7:
 {
   if (! COP_Usable (1))
     SignalExceptionCoProcessorUnusable (1);
@@ -7209,4 +7209,4 @@
 :include:::micromips.igen
 :include:::micromipsdsp.igen
 :include:::micromipsr6.igen
-:include:::micromipsr7.igen
+:include:::nanomipsr7.igen
