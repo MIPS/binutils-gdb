@@ -107,6 +107,8 @@ enum
   R_MIPS_ASHIFTR_1 = 66,
   R_MIPS_UNSIGNED_8 = 67,
   R_MIPS_UNSIGNED_16 = 68,
+  R_MIPS_SIGNED_8 = 69,
+  R_MIPS_SIGNED_16 = 70,
   // These relocs are used for the mips16.
   R_MIPS16_26 = 100,
   R_MIPS16_GPREL = 101,
