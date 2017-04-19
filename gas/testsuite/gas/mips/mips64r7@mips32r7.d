@@ -388,16 +388,16 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
 [0-9a-f]+ <[^>]+> 9800      	beqzc	s0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
-[0-9a-f]+ <[^>]+> ea00 0000 	beqzc	s0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test2-0x4
+[0-9a-f]+ <[^>]+> 8a00 0000 	beqzc	s0,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC14_S1	test2-0x4
 [0-9a-f]+ <[^>]+> 9880      	beqzc	s1,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
-[0-9a-f]+ <[^>]+> ea20 0000 	beqzc	s1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test2-0x4
+[0-9a-f]+ <[^>]+> 8a20 0000 	beqzc	s1,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC14_S1	test2-0x4
 [0-9a-f]+ <[^>]+> 9880      	beqzc	s1,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
-[0-9a-f]+ <[^>]+> ea00 0000 	beqzc	s0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test2-0x4
+[0-9a-f]+ <[^>]+> 8a00 0000 	beqzc	s0,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC14_S1	test2-0x4
 [0-9a-f]+ <[^>]+> ca00 5000 	beqic	s0,10,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC11_S1	test2-0x4
 [0-9a-f]+ <[^>]+> 6020 0000 7fff 	li	at,0x7fff
@@ -456,14 +456,14 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
 [0-9a-f]+ <[^>]+> b800      	bnezc	s0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC7_S1	test3-0x2
-[0-9a-f]+ <[^>]+> ea10 0000 	bnezc	s0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test3-0x4
-[0-9a-f]+ <[^>]+> ea30 0000 	bnezc	s1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test2-0x4
-[0-9a-f]+ <[^>]+> ea30 0000 	bnezc	s1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test2-0x4
-[0-9a-f]+ <[^>]+> ea30 0000 	bnezc	s1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test2-0x4
+[0-9a-f]+ <[^>]+> aa00 0000 	bnezc	s0,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC14_S1	test3-0x4
+[0-9a-f]+ <[^>]+> aa20 0000 	bnezc	s1,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC14_S1	test2-0x4
+[0-9a-f]+ <[^>]+> aa20 0000 	bnezc	s1,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC14_S1	test2-0x4
+[0-9a-f]+ <[^>]+> aa20 0000 	bnezc	s1,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC14_S1	test2-0x4
 [0-9a-f]+ <[^>]+> 1010      	break
 [0-9a-f]+ <[^>]+> 1010      	break
 [0-9a-f]+ <[^>]+> 1011      	break	0x1
@@ -1143,10 +1143,10 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 87fd 81fc 	lw	ra,508\(sp\)
 [0-9a-f]+ <[^>]+> 8460 8000 	lw	v1,0\(zero\)
 [0-9a-f]+ <[^>]+> 8460 8004 	lw	v1,4\(zero\)
-[0-9a-f]+ <[^>]+> 9460      	lw	v1,0\(zero\)
-[0-9a-f]+ <[^>]+> 9460      	lw	v1,0\(zero\)
-[0-9a-f]+ <[^>]+> 9460      	lw	v1,0\(zero\)
-[0-9a-f]+ <[^>]+> 9560      	lw	v1,4\(zero\)
+[0-9a-f]+ <[^>]+> 8460 8000 	lw	v1,0\(zero\)
+[0-9a-f]+ <[^>]+> 8460 8000 	lw	v1,0\(zero\)
+[0-9a-f]+ <[^>]+> 8460 8000 	lw	v1,0\(zero\)
+[0-9a-f]+ <[^>]+> 8460 8004 	lw	v1,4\(zero\)
 [0-9a-f]+ <[^>]+> e060 7000 	lui	v1,0x7
 [0-9a-f]+ <[^>]+> 8463 8fff 	lw	v1,4095\(v1\)
 [0-9a-f]+ <[^>]+> e07f 8ffd 	lui	v1,0xffff8
@@ -2404,14 +2404,14 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2023 1310 	xor	v0,v1,at
 [0-9a-f]+ <[^>]+> 8064 1000 	xori	v1,a0,0
 [0-9a-f]+ <[^>]+> 8063 1fff 	xori	v1,v1,4095
-[0-9a-f]+ <[^>]+> e920 0000 	beqzc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+[0-9a-f]+ <[^>]+> 8920 0000 	beqzc	t1,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8949 0000 	beqc	t1,t2,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
-[0-9a-f]+ <[^>]+> e920 0000 	beqzc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+[0-9a-f]+ <[^>]+> 8920 0000 	beqzc	t1,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c920 0800 	beqic	t1,1,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
@@ -2452,8 +2452,8 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC25_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
-[0-9a-f]+ <[^>]+> e850 0000 	bnezc	v0,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+[0-9a-f]+ <[^>]+> a840 0000 	bnezc	v0,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c84c 1000 	bgeiuc	v0,2,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
@@ -2468,8 +2468,8 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 212a 0b50 	slt	at,t2,t1
-[0-9a-f]+ <[^>]+> e830 0000 	bnezc	at,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+[0-9a-f]+ <[^>]+> a820 0000 	bnezc	at,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 9008      	nop
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
@@ -2484,17 +2484,17 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 6020 8000 0001 	li	at,0x80000001
 [0-9a-f]+ <[^>]+> 2029 0b50 	slt	at,t1,at
-[0-9a-f]+ <[^>]+> e820 0000 	beqzc	at,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+[0-9a-f]+ <[^>]+> 8820 0000 	beqzc	at,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
-[0-9a-f]+ <[^>]+> e930 0000 	bnezc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+[0-9a-f]+ <[^>]+> a920 0000 	bnezc	t1,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 9008      	nop
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 212a 0b90 	sltu	at,t2,t1
-[0-9a-f]+ <[^>]+> e830 0000 	bnezc	at,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+[0-9a-f]+ <[^>]+> a820 0000 	bnezc	at,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 9008      	nop
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
@@ -2502,8 +2502,8 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 9008      	nop
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
-[0-9a-f]+ <[^>]+> e930 0000 	bnezc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+[0-9a-f]+ <[^>]+> a920 0000 	bnezc	t1,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c92c 1000 	bgeiuc	t1,2,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
@@ -2518,8 +2518,8 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 212a 0b50 	slt	at,t2,t1
-[0-9a-f]+ <[^>]+> e820 0000 	beqzc	at,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+[0-9a-f]+ <[^>]+> 8820 0000 	beqzc	at,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC25_S1	test-0x4
@@ -2533,15 +2533,15 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> c938 1000 	bltic	t1,2,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
-[0-9a-f]+ <[^>]+> e920 0000 	beqzc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+[0-9a-f]+ <[^>]+> 8920 0000 	beqzc	t1,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC25_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 212a 0b90 	sltu	at,t2,t1
-[0-9a-f]+ <[^>]+> e820 0000 	beqzc	at,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+[0-9a-f]+ <[^>]+> 8820 0000 	beqzc	at,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC25_S1	test-0x4
@@ -2549,8 +2549,8 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC25_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
-[0-9a-f]+ <[^>]+> e920 0000 	beqzc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+[0-9a-f]+ <[^>]+> 8920 0000 	beqzc	t1,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c93c 1000 	bltiuc	t1,2,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
@@ -2587,8 +2587,8 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 9008      	nop
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
-[0-9a-f]+ <[^>]+> e920 0000 	beqzc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+[0-9a-f]+ <[^>]+> 8920 0000 	beqzc	t1,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c93c 1000 	bltiuc	t1,2,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
@@ -2596,14 +2596,14 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> a809 8000 	bltzc	t1,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
-[0-9a-f]+ <[^>]+> e930 0000 	bnezc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+[0-9a-f]+ <[^>]+> a920 0000 	bnezc	t1,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a949 0000 	bnec	t1,t2,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
-[0-9a-f]+ <[^>]+> e930 0000 	bnezc	t1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PC20_S1	test-0x4
+[0-9a-f]+ <[^>]+> a920 0000 	bnezc	t1,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c930 0800 	bneic	t1,1,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
@@ -4097,21 +4097,21 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> a63c c0fe 	lw	s1,-2\(gp\)
 [0-9a-f]+ <[^>]+> a63c c0fd 	lw	s1,-3\(gp\)
 [0-9a-f]+ <[^>]+> 863b 8000 	lw	s1,0\(k1\)
-[0-9a-f]+ <[^>]+> bd00      	movep	a1,a2,zero,zero
-[0-9a-f]+ <[^>]+> bc08      	movep	a2,a3,zero,zero
-[0-9a-f]+ <[^>]+> bc00      	movep	a0,a1,zero,zero
-[0-9a-f]+ <[^>]+> bd00      	movep	a1,a2,zero,zero
-[0-9a-f]+ <[^>]+> bc08      	movep	a2,a3,zero,zero
-[0-9a-f]+ <[^>]+> bc19      	movep	a2,a3,s1,zero
-[0-9a-f]+ <[^>]+> bc0a      	movep	a2,a3,v0,zero
-[0-9a-f]+ <[^>]+> bc0b      	movep	a2,a3,v1,zero
-[0-9a-f]+ <[^>]+> bc18      	movep	a2,a3,s0,zero
-[0-9a-f]+ <[^>]+> bc1a      	movep	a2,a3,s2,zero
-[0-9a-f]+ <[^>]+> bc1b      	movep	a2,a3,s3,zero
-[0-9a-f]+ <[^>]+> bc1c      	movep	a2,a3,s4,zero
+[0-9a-f]+ <[^>]+> bd63      	movep	a1,a2,zero,zero
+[0-9a-f]+ <[^>]+> bc6b      	movep	a2,a3,zero,zero
+[0-9a-f]+ <[^>]+> bc63      	movep	a0,a1,zero,zero
+[0-9a-f]+ <[^>]+> bd63      	movep	a1,a2,zero,zero
+[0-9a-f]+ <[^>]+> bc6b      	movep	a2,a3,zero,zero
+[0-9a-f]+ <[^>]+> bc79      	movep	a2,a3,s1,zero
+[0-9a-f]+ <[^>]+> bc69      	movep	a2,a3,t1,zero
+[0-9a-f]+ <[^>]+> bc6a      	movep	a2,a3,t2,zero
+[0-9a-f]+ <[^>]+> bc78      	movep	a2,a3,s0,zero
+[0-9a-f]+ <[^>]+> bc7a      	movep	a2,a3,s2,zero
+[0-9a-f]+ <[^>]+> bc7b      	movep	a2,a3,s3,zero
+[0-9a-f]+ <[^>]+> bc7c      	movep	a2,a3,s4,zero
 [0-9a-f]+ <[^>]+> be3c      	movep	a2,a3,s4,s1
-[0-9a-f]+ <[^>]+> bc5c      	movep	a2,a3,s4,v0
-[0-9a-f]+ <[^>]+> bc7c      	movep	a2,a3,s4,v1
+[0-9a-f]+ <[^>]+> bc3c      	movep	a2,a3,s4,t1
+[0-9a-f]+ <[^>]+> bc5c      	movep	a2,a3,s4,t2
 [0-9a-f]+ <[^>]+> be1c      	movep	a2,a3,s4,s0
 [0-9a-f]+ <[^>]+> be5c      	movep	a2,a3,s4,s2
 [0-9a-f]+ <[^>]+> be7c      	movep	a2,a3,s4,s3

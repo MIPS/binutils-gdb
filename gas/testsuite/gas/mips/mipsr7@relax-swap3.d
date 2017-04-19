@@ -15,7 +15,7 @@ Disassembly of section \.text:
 [	]*[0-9a-f]+: R_MICROMIPS_HI20	bar
 [0-9a-f]+ <[^>]*> 0042 0000 	addiu	v0,v0,0
 [	]*[0-9a-f]+: R_MICROMIPS_LO12	bar
-[0-9a-f]+ <[^>]*> e860 0000 	beqzc	v1,[0-9a-f]+ <[^>]*>
-[	]*[0-9a-f]+: R_MICROMIPS_PC20_S1	.*
+[0-9a-f]+ <[^>]*> 8860 0000 	beqzc	v1,[0-9a-f]+ <[^>]*>
+[	]*[0-9a-f]+: R_MICROMIPS_PC14_S1	.*
 [0-9a-f]+ <[^>]*> 9008      	nop
 	\.\.\.

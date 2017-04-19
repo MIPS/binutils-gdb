@@ -1956,7 +1956,7 @@ print_insn_args (struct disassemble_info *info,
 
 	  if (operand->type == OP_REG
 	      && s[1] == ','
-	      && s[2] == 'H'
+	      && (s[2] == 'H' || s[2] == 'J')
 	      && opcode->name[strlen (opcode->name) - 1] == '0')
 	    {
 	      /* Coprocessor register 0 with sel field (MT ASE).  */
