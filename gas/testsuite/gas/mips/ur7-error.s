@@ -17,7 +17,7 @@ test:
 	movep   $7,$23,$6,$6
 
 	/* Non-zero register check */
-	balrc	$0, $4
+
 	balrsc	$0, $6
 	auipc	$0, 1
 	move16 $0, $1

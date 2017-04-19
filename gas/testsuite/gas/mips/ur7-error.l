@@ -7,7 +7,6 @@
 .*:15: Error: invalid operands `movep \$5,\$21,\$5,\$7'
 .*:16: Error: invalid operands `movep \$6,\$22,\$6,\$8'
 .*:17: Error: invalid operands `movep \$7,\$23,\$6,\$6'
-.*:20: Error: the target register must not be \$0 `balrc \$0,\$4'
 .*:21: Error: the target register must not be \$0 `balrsc \$0,\$6'
 .*:22: Error: the target register must not be \$0 `auipc \$0,1'
 .*:23: Error: the target register must not be \$0 `move16 \$0,\$1'

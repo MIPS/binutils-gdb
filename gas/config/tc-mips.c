@@ -11759,7 +11759,7 @@ macro_build_branch_rsrt (int type, expressionS *ep,
       }
   else
     if (ISA_IS_R7 (mips_opts.isa) && mips_opts.micromips && treg == 0)
-      macro_build (ep, br, "t,z,q", sreg, treg);
+      macro_build (ep, br, "s,t,p", treg, sreg);
     else
       macro_build (ep, br, "s,t,p", sreg, treg);
 }
@@ -13642,13 +13642,13 @@ macro (struct mips_cl_insn *ip, char *str)
       s = "lh";
       fmt = "t,o(b)";
       if (ISA_IS_R7 (mips_opts.isa))
-	gpfmt = "t,+1(ma)";
+	gpfmt = "t,+3(ma)";
       goto ld;
     case M_LHU_AB:
       s = "lhu";
       fmt = "t,o(b)";
       if (ISA_IS_R7 (mips_opts.isa))
-	gpfmt = "t,+1(ma)";
+	gpfmt = "t,+3(ma)";
       goto ld;
     case M_LW_AB:
       s = "lw";
@@ -15704,6 +15704,7 @@ macro (struct mips_cl_insn *ip, char *str)
 	    {
 	      case 'w': gpfmt = "t,.(ma)"; break;
 	      case 'd': gpfmt = "t,mV(ma)"; break;
+	      case 'h': gpfmt = "t,+3(ma)"; break;
 	      default: gpfmt = "t,+1(ma)"; break;
 	    }
 	  if (s[1] == 'd')
@@ -20791,7 +20792,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	    BFD_RELOC_MICROMIPSPP_7_PCREL_S1,
 	    BFD_RELOC_MICROMIPSPP_4_PCREL_S1,
 	    BFD_RELOC_MICROMIPSPP_25_PCREL_S1,
-	    BFD_RELOC_MICROMIPSPP_20_PCREL_S1,
+	    BFD_RELOC_MICROMIPSPP_14_PCREL_S1,
 	    BFD_RELOC_MICROMIPSPP_14_PCREL_S1 };
 
       if (RELAX_MICROMIPSPP_USESTUB (fragp->fr_subtype)
@@ -20886,9 +20887,9 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	{
 	  unsigned long rt = (insn & 0x0380) >> 7;
 	  rt = micromipspp_to_32_reg_d_map [rt];
-	  /* beqzc: 0x9800 -> 0xe8000000
-	     bnezc: 0xb800 -> 0xe8100000  */
-	  insn = 0xe8000000 | (((insn & 0x2000) >> 13) << 20);
+	  /* beqc: 0x9800 -> 0x88000000
+	     bnec: 0xb800 -> 0xa8000000  */
+	  insn = 0x88000000 | (((insn & 0x2000) >> 13) << 29);
 	  insn |= (rt << 21);
 	}
       else if ((insn & 0xdc00) == 0x1800)	/* bc[16]/balc[16]  */
