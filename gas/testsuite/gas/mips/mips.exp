@@ -1547,7 +1547,6 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test_arch "ur7-relax" "" mips32r7
     run_dump_test_arch "ur7-noxlp" "" mips32r7
     run_dump_test "ur7-save"
-    run_dump_test "ur7-dsave"
     run_dump_test "ur7-percent"
     run_dump_test "ur7-exc"
 #    run_dump_test "elf-rel-got-ur7"

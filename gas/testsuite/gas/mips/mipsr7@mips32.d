@@ -11,8 +11,8 @@ Disassembly of section \.text:
 0+0000 <text_label> 2022 4b3f 	clo	at,v0
 0+0004 <text_label\+0x4> 2064 5b3f 	clz	v1,a0
 0+0008 <text_label\+0x8> 21ee 6818 	mul	t5,t6,t7
-0+000c <text_label\+0xc> a490 1800 	pref	0x4,0\(s0\)
-0+0010 <text_label\+0x10> a4a1 1900 	cache	0x5,0\(at\)
+0+000c <text_label\+0xc> 8490 3000 	pref	0x4,0\(s0\)
+0+0010 <text_label\+0x10> a4a1 3900 	cache	0x5,0\(at\)
 0+0014 <text_label\+0x14> 2000 f37f 	eret
 0+0018 <text_label\+0x18> 2000 037f 	tlbp
 0+001c <text_label\+0x1c> 2000 137f 	tlbr

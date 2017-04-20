@@ -16,9 +16,9 @@ Disassembly of section .text:
 0+0014 <text_label\+0x14> 2041 0f38 	emt	v0
 0+0018 <text_label\+0x18> 2000 0f38 	evpe
 0+001c <text_label\+0x1c> 2060 0f38 	evpe	v1
-0+0020 <text_label\+0x20> 20c5 23b8 	fork	a0,a1,a2
-0+0024 <text_label\+0x24> 2005 03f8 	yield	a1
-0+0028 <text_label\+0x28> 20c7 03f8 	yield	a2,a3
+0+0020 <text_label\+0x20> 20c5 2228 	fork	a0,a1,a2
+0+0024 <text_label\+0x24> 2005 0268 	yield	a1
+0+0028 <text_label\+0x28> 20c7 0268 	yield	a2,a3
 0+002c <text_label\+0x2c> 20e8 0378 	mftc0	a3,c0_badvaddr
 0+0030 <text_label\+0x30> 2100 0378 	mftc0	t0,c0_index
 0+0034 <text_label\+0x34> 2100 0b78 	mftc0	t0,\$0,1

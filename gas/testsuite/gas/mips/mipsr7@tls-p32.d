@@ -10,7 +10,7 @@ Disassembly of section .text:
    0:	e000 0002 	aluipc	gp,4 <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PCHI20_M12	_gp
    4:	03bd 9ff0 	addiu	sp,sp,-16
-   8:	d7c2      	sw	s8,8\(sp\)
+   8:	5fc2      	sw	s8,8\(sp\)
    a:	13dd      	move	s8,sp
    c:	4320 0002 	lw	t9,0\(gp\)
 			[0-9a-f]+: R_MICROMIPS_CALL	__tls_get_addr

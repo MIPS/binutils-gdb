@@ -6438,12 +6438,14 @@ static bfd_boolean
 match_micromipspp_save_restore_list_operand (struct mips_arg_info *arg,
 					     const struct mips_operand *operand)
 {
-  unsigned int opval, gp, fp, count;
-  int first_reg;
+  unsigned int opval, count;
+  unsigned first_reg, next_reg;
   bfd_boolean mode16 = (insn_length (arg->insn) == 2);
+  unsigned int reg_mask = 0;
+  int i;
+  bfd_boolean gp = FALSE;
 
-  count = gp = fp = 0;
-  first_reg = -1;
+  count = 0;
   do
     {
       unsigned int regno1, regno2;
@@ -6454,90 +6456,58 @@ match_micromipspp_save_restore_list_operand (struct mips_arg_info *arg,
 	  break;
 	}
 
-      if (regno1 == 30 && fp == 0)
-	fp = 1;
-      else if (regno1 == 28 && gp == 0)
-	gp = 1;
-      else if (regno1 == 16 && regno2 <= 31 && count == 0)
+      /* sequence  */
+      while (regno1 <= regno2)
 	{
-	  /* $s0 .. sequence  */
-	  while (regno1 <= regno2)
-	    {
-	      regno1 += 1;
-	      count += 1;
-	    }
+	  if ((reg_mask & (1 << regno1)) == 0)
+	    count += 1;
+	  reg_mask |= (1 << regno1);
+	  regno1 += 1;
 	}
-      /* first_reg cannot be $sp  */
-      else if (first_reg == -1 && regno1 != 29)
-	first_reg = regno1;
-      else
-	return FALSE;
     }
   while (match_char (arg, ','));
 
-  /* 16-bit format admits only $31 for the first register and no $gp.  */
-  if (mode16 && (first_reg != 31 || gp != 0))
+  if (count == 0 || count >= 16)
+    /* too few or too many registers in list */
     return FALSE;
 
-  /* Must have a valid first_reg!  */
-  if (first_reg == -1)
+  if (mode16 || (reg_mask & 0xffff) == 0)
     {
-      if (fp != 0)
-	{
-	  first_reg = 30;
-	  fp = 0;
-	}
-      else if (gp != 0)
-	{
-	  first_reg = 28;
-	  gp = 0;
-	}
-      else if (count != 0)
-	{
-	  count -= 1;
-	  first_reg = 16 + count;
-	}
+      if (reg_mask & 0x40000000)
+	first_reg = 30;
+      else if (reg_mask & 0x80000000)
+	first_reg = 31;
+      else if (!mode16)
+	first_reg = ffs (reg_mask) - 1;
       else
 	return FALSE;
     }
+  else
+    first_reg = ffs (reg_mask) - 1;
 
-  switch (count)
+  i = count - 1;
+  next_reg = first_reg;
+  while (i-- > 0)
     {
-    case 16:
-      return FALSE;
-    case 15:
-      if (fp != 0 || gp != 0)
-	return FALSE;
-      if (!mode16)
+      next_reg = (first_reg & 0x10) | ((next_reg + 1) % 32);
+      if ((reg_mask & (1 << next_reg)) == 0)
 	{
-	  fp = 1;
-	  count -= 1;
-	}
-      break;
-    case 14:
-      if (fp != 0 && gp != 0)
-	return FALSE;
-      break;
-    case 13:
-      if (!mode16 && gp == 0)
-	{
-	  gp = 1;
-	  count -= 1;
+	  /* a non-contiguous sequence */
+	  if (i == 0
+	      && !mode16
+	      && (reg_mask & (1 << 28)) != 0
+	      && (mips_opts.ase & ASE_XLP) != 0)
+	    /* enable GP special casing if possible */
+	    gp = 1;
+	  else
+	    return FALSE;
 	}
     }
 
-  /* 16-bit format gives exactly one avenue of saving fp.
-     gp is guaranteed to be 0 due to checks above.  */
-  if (mode16 && fp && (count != 8))
-    return FALSE;
-
-  count += fp;
-  count += gp;
-
   if (mode16)
-    opval = count;
+    opval = ((first_reg & 0x1) << 4) | count;
   else
-    opval = ((first_reg << 6) | (count << 2) | (fp << 1) | gp);
+    opval = ((first_reg << 6) | (count << 1) | gp);
 
   /* Finally build the instruction.  */
   insn_insert_operand (arg->insn, operand, opval);
@@ -6561,7 +6531,7 @@ match_save_restore_fp_list_operand (struct mips_arg_info *arg,
   if (regno1 != 0 || regno2 > 31)
     return FALSE;
   
-  opval = regno2;
+  opval = (regno1 << 4 ) | (regno2 - regno1);
 
   insn_insert_operand (arg->insn, operand, opval);
   return TRUE;
