@@ -8,14 +8,14 @@
 .*: +file format .*mips.*
 
 Disassembly of section \.text:
-[0-9a-f]+ <[^>]+> bc01      	movep	a0,a1,t1,t0
-[0-9a-f]+ <[^>]+> bd43      	movep	a1,a2,zero,t2
-[0-9a-f]+ <[^>]+> bc8d      	movep	a2,a3,a1,a0
-[0-9a-f]+ <[^>]+> bdcf      	movep	a3,t0,a3,a2
-[0-9a-f]+ <[^>]+> be30      	movep	a0,a1,s0,s1
-[0-9a-f]+ <[^>]+> bf72      	movep	a1,a2,s2,s3
-[0-9a-f]+ <[^>]+> bebc      	movep	a2,a3,s4,s5
-[0-9a-f]+ <[^>]+> bffe      	movep	a3,t0,s6,s7
+[0-9a-f]+ <[^>]+> dc01      	movep	a0,a1,t1,t0
+[0-9a-f]+ <[^>]+> dd43      	movep	a1,a2,zero,t2
+[0-9a-f]+ <[^>]+> dc8d      	movep	a2,a3,a1,a0
+[0-9a-f]+ <[^>]+> ddcf      	movep	a3,t0,a3,a2
+[0-9a-f]+ <[^>]+> de30      	movep	a0,a1,s0,s1
+[0-9a-f]+ <[^>]+> df72      	movep	a1,a2,s2,s3
+[0-9a-f]+ <[^>]+> debc      	movep	a2,a3,s4,s5
+[0-9a-f]+ <[^>]+> dffe      	movep	a3,t0,s6,s7
 [0-9a-f]+ <[^>]+> fce0      	movep	t0,a3,a0,a1
 [0-9a-f]+ <[^>]+> fdc1      	movep	t1,a2,a1,a2
 [0-9a-f]+ <[^>]+> fcaa      	movep	t2,a1,a2,a3
@@ -76,7 +76,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 4810 8200 	brsc	s0
 [0-9a-f]+ <[^>]+> 4a11 8200 	balrsc	s0,s1
 [0-9a-f]+ <[^>]+> 4bf1 8200 	balrsc	ra,s1
-[0-9a-f]+ <[^>]+> 6062 0001 2345 	addiu	v1,gp,74565
+[0-9a-f]+ <[^>]+> 446d 2345 	addiu	v1,gp,74565
 [0-9a-f]+ <[^>]+> 6062 1234 5678 	addiu	v1,gp,305419896
 [0-9a-f]+ <[^>]+> 6062 fffe dcbb 	addiu	v1,gp,-74565
 [0-9a-f]+ <[^>]+> 6062 edcb a988 	addiu	v1,gp,-305419896
@@ -107,5 +107,4 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 5359      	lwxs	a0,a1\(a2\)
 [0-9a-f]+ <[^>]+> 508f      	lwxs	a3,s0\(s1\)
 [0-9a-f]+ <[^>]+> 5235      	lwxs	s2,s3\(a0\)
-[0-9a-f]+ <[^>]+> 9008      	nop
-	\.\.\.
+#pass

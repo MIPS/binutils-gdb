@@ -29,10 +29,10 @@ Disassembly of section \.text:
 0+0042 <text_label\+0x42> 232a c8d0 	rotr	\$25,\$10,\$25
 0+0046 <text_label\+0x46> 208a c8d0 	rotr	\$25,\$10,\$4
 0+004a <text_label\+0x4a> 208a c8d0 	rotr	\$25,\$10,\$4
-0+004e <text_label\+0x4e> 20e7 2b3f 	seb	\$7,\$7
-0+0052 <text_label\+0x52> 210a 2b3f 	seb	\$8,\$10
-0+0056 <text_label\+0x56> 20e7 3b3f 	seh	\$7,\$7
-0+005a <text_label\+0x5a> 210a 3b3f 	seh	\$8,\$10
+0+004e <text_label\+0x4e> 20e7 0008 	seb	\$7,\$7
+0+0052 <text_label\+0x52> 210a 0008 	seb	\$8,\$10
+0+0056 <text_label\+0x56> 20e7 0048 	seh	\$7,\$7
+0+005a <text_label\+0x5a> 210a 0048 	seh	\$8,\$10
 0+005e <text_label\+0x5e> a7ea 1835 	synci	53\(\$10\)
 0+0062 <text_label\+0x62> 20e7 7b3f 	wsbh	\$7,\$7
 0+0066 <text_label\+0x66> 210a 7b3f 	wsbh	\$8,\$10
