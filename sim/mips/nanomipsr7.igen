@@ -390,20 +390,14 @@
   return str;
 }
 
-00000000000000000000000000000000:R7DUMMY:32,f::DUMMY0.fmt
+11111111111111111111111111111111:R7DUMMY:32,f::DUMMY0.fmt
 "dummy 0"
 *mips32r7:
 *mips64r7:
+*nanomips32r7:
+*nanomips64r7:
 {
   /* Just needed so GNUSIM builds */
-}
-
-00000000000000000000000000000001:R7DUMMY:32,f::DUMMY1.fmt
-"dummy 1"
-*mips32r7:
-*mips64r7:
-{
-  /* Just needed so GNUSIM builds (needs at least 2 instructions) */
 }
 
 011100,3.RT,1,6.U:R7P16ADDIU1:16::ADDIUR1SP
@@ -462,7 +456,7 @@
 *nanomips64r7:
 {
   TRACE_ALU_INPUT1(RA);
-  RA = NIA | isa_mode;
+  RA = NIA;
   NIA = ADDRESS11;
   TRACE_ALU_RESULT(RA);
 
@@ -518,8 +512,8 @@
 *nanomips64r7:
 {
   TRACE_ALU_INPUT2(GPR[RT], RA);
-  RA = NIA | isa_mode;
-  NIA = process_isa_mode (SD_, GPR[RT]);
+  RA = NIA;
+  NIA = GPR[RT];
   TRACE_ALU_RESULT(RA);
 
   // For cycle counting
@@ -532,7 +526,7 @@
 *nanomips64r7:
 {
   TRACE_ALU_INPUT1(GPR[RT]);
-  NIA = process_isa_mode (SD_, GPR[RT]);
+  NIA = GPR[RT];
 }
 
 000101,3.RT,3.RS,00,2.U:R7P16LB:16::LB16
@@ -705,7 +699,7 @@
     do_restore_gprs_from_stack_and_adjust_sp(SD_, 31, GPR_LIST_SAVE, 0, 0,
                                              U_SHIFT_3BIT);
   if (GPR_LIST_SAVE != 15)
-    NIA = process_isa_mode (SD_, RA);
+    NIA = RA;
 }
 
 000111,4.GPR_LIST_SAVE,0,4.U,0:R7P16SRW:16::SAVE16
@@ -879,7 +873,7 @@
 *nanomips64r7:
 {
   TRACE_ALU_INPUT1(RA);
-  RA = NIA | isa_mode;
+  RA = NIA;
   NIA = ADDRESS26;
   TRACE_ALU_RESULT(RA);
 
@@ -1166,13 +1160,15 @@
 *nanomips32r7:
 *nanomips64r7:
 {
-  GPR[RT] = NIA | isa_mode;
+  TRACE_ALU_INPUT3(GPR[RT], GPR[RS], RA);
+  GPR[RT] = NIA;
   unsigned_word address = GPR[RS];
-  isa_mode = address & 1;
   NIA = address & ~1;
 
   // For cycle counting
   COP0_COUNT++;
+  TRACE_ALU_RESULT(NIA);
+
 }
 
 010010,5.RT,5.RS,0001,12.X:R7PJ:32::JALRC.HB
@@ -1180,9 +1176,8 @@
 *nanomips32r7:
 *nanomips64r7:
 {
-  GPR[RT] = NIA | isa_mode;
+  GPR[RT] = NIA;
   unsigned_word address = GPR[RS];
-  isa_mode = address & 1;
   NIA = address & ~1;
   //TODO: ClearHazards()?
 
@@ -1435,7 +1430,7 @@
   check_xlp_flag (SD_);
   TRACE_ALU_INPUT2(GPR[RD1], GPR[RT_5_BIT]);
   GPR[RD1] = GPR[RT_5_BIT];
-  RA = NIA | isa_mode;
+  RA = NIA;
   NIA = ADDRESS22;
   TRACE_ALU_RESULT(GPR[RD1]);
 
@@ -1577,7 +1572,6 @@
   do_restore_gprs_from_stack_and_adjust_sp(SD_, RT_SAVE, GPR_LIST_SAVE, FP_SAVE,
                                            GP_SAVE, U_SHIFT_3BIT);
 
-  isa_mode =  GPR[RAIDX] & 0x1;
   NIA = GPR[RAIDX] & ~1;
 }
 
@@ -1743,12 +1737,13 @@
 
 000000,00000,00,19.CODE:R7PRI:32::SIGRIE
 "sigrie %#lx<CODE>"
+*mips32r7:
+*mips64r7:
 *nanomips32r7:
 *nanomips64r7:
 {
   SignalException (ReservedInstruction, instruction_0);
 }
-
 
 100000,5.RT!0,5.RS,1100,3.X,0000,5.SHIFT:R7PSHIFT:32::SLL
 "sll r<RT>, r<RS>, <SHIFT>"
@@ -2142,7 +2137,6 @@
 *nanomips64r7:
 {
   unsigned_word address = NIA + GPR[RS];
-  isa_mode = address & 1;
   NIA = address & ~1;
 }
 
@@ -2163,8 +2157,7 @@
   TRACE_ALU_INPUT2(GPR[RT], GPR[RS]);
   unsigned_word address = NIA + GPR[RS];
 
-  GPR[RT] = NIA | isa_mode;
-  isa_mode = address & 1;
+  GPR[RT] = NIA;
   NIA = address & ~1;
   TRACE_ALU_RESULT(GPR[RT]);
 }
@@ -2177,7 +2170,7 @@
 {
   unsigned_word address = NIA + (GPR[RS] << 1);
 
-  GPR[RT] = NIA | isa_mode;
+  GPR[RT] = NIA;
   NIA = address & ~1;
 }
 

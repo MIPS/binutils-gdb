@@ -28,6 +28,7 @@
 
 #define SD sd
 #define CPU cpu
+#define SIM_MONITOR_ADDRESS 0xBFC00000
 
 void 
 sim_engine_run (SIM_DESC sd, int next_cpu_nr, int nr_cpus, int signal);
@@ -40,7 +41,10 @@ nanomips_instruction_decode (SIM_DESC sd, sim_cpu * cpu,
 
   nanomips16_instruction_word instruction_0 = IMEM16_NANOMIPS (cia);
 
-  if ((STATE_ARCHITECTURE (sd)->mach == bfd_mach_mipsisa32r7
+  if((cia & 0xFFF00000) == SIM_MONITOR_ADDRESS) {
+    nanomips32_instruction_word instruction_0 = IMEM32 (cia);
+    return nanomips32_idecode_issue (sd, instruction_0, cia);
+  } else if ((STATE_ARCHITECTURE (sd)->mach == bfd_mach_mipsisa32r7
 	  || STATE_ARCHITECTURE (sd)->mach == bfd_mach_mipsisa64r7)
 	     && (NANOMIPS_MAJOR_OPCODE_3_5 (instruction_0) & 0x4) == 4)
 	return nanomips16_idecode_issue (sd, instruction_0, cia);
@@ -71,36 +75,15 @@ sim_engine_run (SIM_DESC sd, int next_cpu_nr, int nr_cpus,
     {
       nanomips32_instruction_address nia;
 
-      /* Allow us to switch back from MIPS32 to nanoMIPS
-	 This covers two cases:
-	 1. Setting the correct isa mode based on the start address
-	 from the elf header.
-	 2. Setting the correct isa mode after a MIPS32 jump or branch
-	 instruction.  */
-      if ((isa_mode == ISA_MODE_MIPS32)
-	  && ((cia & 0x1) == ISA_MODE_NANOMIPS))
-	{
-	  isa_mode = ISA_MODE_NANOMIPS;
-	  cia = cia & ~0x1;
-	}
+	    cia = cia & ~0x1;
 
 #if defined (ENGINE_ISSUE_PREFIX_HOOK)
       ENGINE_ISSUE_PREFIX_HOOK ();
 #endif
-      switch (isa_mode)
-	{
-	case ISA_MODE_NANOMIPS:
-	  nia =
-	    nanomips_instruction_decode (sd, cpu, cia,
-					  NANOMIPS_DELAYSLOT_SIZE_ANY);
-	  break;
-	case ISA_MODE_MIPS32:
-	  instruction_0 = IMEM32 (cia);
-	  nia = nanomips_m32_idecode_issue (sd, instruction_0, cia);
-	  break;
-	default:
-	  nia = NULL_CIA;
-	}
+
+    nia =
+      nanomips_instruction_decode (sd, cpu, cia,
+            MICROMIPS_DELAYSLOT_SIZE_ANY);
 
 #if defined (ENGINE_ISSUE_POSTFIX_HOOK)
       ENGINE_ISSUE_POSTFIX_HOOK ();

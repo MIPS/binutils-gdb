@@ -112,11 +112,9 @@
 *mips32:
 *mips32r2:
 *mips32r6:
-*mips32r7:
 *mips64:
 *mips64r2:
 *mips64r6:
-*mips64r7:
 *vr4100:
 *vr4120:
 *vr5000:
