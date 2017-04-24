@@ -457,6 +457,12 @@ enum mips_operand_type {
   /* Immediate signed word operand.  */
   OP_IMM_WORD,
 
+  /* Immediate PC-relative word operand.  */
+  OP_PC_WORD,
+
+  /* Immediate GP-relative word operand.  */
+  OP_GPREL_WORD,
+
   /* Don't care bits.  */
   OP_DONT_CARE,
 

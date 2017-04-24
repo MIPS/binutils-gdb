@@ -4489,7 +4489,6 @@ micromipspp_reloc_p (bfd_reloc_code_real_type reloc)
 {
   switch (reloc)
     {
-      case BFD_RELOC_MICROMIPSPP_GPREL14:
       case BFD_RELOC_MICROMIPSPP_GPREL19_S2:
       case BFD_RELOC_MICROMIPSPP_GPREL18_S3:
       case BFD_RELOC_MICROMIPSPP_GPREL16_S2:
@@ -4524,6 +4523,9 @@ micromipspp_reloc_p (bfd_reloc_code_real_type reloc)
       case BFD_RELOC_MICROMIPSPP_TLS_GOTTPREL:
       case BFD_RELOC_MICROMIPSPP_TLS_TPREL_HI20:
       case BFD_RELOC_MICROMIPSPP_TLS_TPREL_LO12:
+      case BFD_RELOC_MICROMIPSPP_PC32:
+      case BFD_RELOC_MICROMIPSPP_GPREL32:
+      case BFD_RELOC_MICROMIPSPP_GPREL17_S1:
       return TRUE;
 
     default:
@@ -4535,7 +4537,9 @@ static inline bfd_boolean
 micromipspp_48bit_reloc_p (bfd_reloc_code_real_type reloc)
 {
   return (reloc == BFD_RELOC_MICROMIPSPP_32
-	  || reloc == BFD_RELOC_MICROMIPSPP_HI32);
+	  || reloc == BFD_RELOC_MICROMIPSPP_HI32
+	  || reloc == BFD_RELOC_MICROMIPSPP_PC32
+	  || reloc == BFD_RELOC_MICROMIPSPP_GPREL32);
 }
 
 static inline bfd_boolean
@@ -4621,11 +4625,11 @@ gprel16_reloc_p (bfd_reloc_code_real_type reloc)
   return (reloc == BFD_RELOC_GPREL16 || reloc == BFD_RELOC_MIPS16_GPREL
 	  || reloc == BFD_RELOC_MICROMIPS_GPREL16
 	  || reloc == BFD_RELOC_MICROMIPSPP_GPREL7_S2
-	  || reloc == BFD_RELOC_MICROMIPSPP_GPREL14
 	  || reloc == BFD_RELOC_MICROMIPSPP_GPREL18
 	  || reloc == BFD_RELOC_MICROMIPSPP_GPREL19_S2
 	  || reloc == BFD_RELOC_MICROMIPSPP_GPREL16_S2
-	  || reloc == BFD_RELOC_MICROMIPSPP_GPREL18_S3);
+	  || reloc == BFD_RELOC_MICROMIPSPP_GPREL18_S3
+	  || reloc == BFD_RELOC_MICROMIPSPP_GPREL17_S1);
 }
 
 static inline bfd_boolean
@@ -4657,7 +4661,8 @@ pcrel_reloc_p (bfd_reloc_code_real_type reloc)
 	  || reloc == BFD_RELOC_MICROMIPSPP_21_PCREL_S1
 	  || reloc == BFD_RELOC_MICROMIPSPP_25_PCREL_S1
 	  || reloc == BFD_RELOC_MICROMIPSPP_HI20_PCREL
-	  || reloc == BFD_RELOC_MICROMIPSPP_LO12_PCREL);
+	  || reloc == BFD_RELOC_MICROMIPSPP_LO12_PCREL
+	  || reloc == BFD_RELOC_MICROMIPSPP_PC32);
 }
 
 /* Return true if RELOC is a PC-relative relocation that does not have
@@ -4976,6 +4981,8 @@ operand_reg_mask (const struct mips_cl_insn *insn,
     case OP_HI20_INT:
     case OP_IMM_WORD:
     case OP_UIMM_WORD:
+    case OP_PC_WORD:
+    case OP_GPREL_WORD:
     case OP_DONT_CARE:
       abort ();
 
@@ -5568,10 +5575,11 @@ micromipspp_gprel_for_int_operand (const struct mips_operand *operand_base)
   bfd_reloc_code_real_type reloc = BFD_RELOC_NONE;
   int opmask = mips_operand_mask (operand_base);
   const  bfd_reloc_code_real_type gp_relocs[] =
-    { BFD_RELOC_MICROMIPSPP_GPREL19_S2,
+    { BFD_RELOC_MICROMIPSPP_GPREL18,
+      BFD_RELOC_MICROMIPSPP_GPREL19_S2,
       BFD_RELOC_MICROMIPSPP_GPREL18_S3,
-      BFD_RELOC_MICROMIPSPP_GPREL18,
       BFD_RELOC_MICROMIPSPP_GPREL16_S2,
+      BFD_RELOC_MICROMIPSPP_GPREL17_S1,
       BFD_RELOC_MICROMIPSPP_GPREL7_S2
     };
 
@@ -5617,7 +5625,7 @@ match_int_operand (struct mips_arg_info *arg,
 	  reloc_howto_type *howto;
 	  howto = bfd_reloc_type_lookup (stdoutput, offset_reloc[0]);
 
-	  if (offset_reloc[0] == BFD_RELOC_MICROMIPSPP_GPREL19_S2)
+	  if (offset_reloc[0] == BFD_RELOC_MICROMIPSPP_GPREL18)
 	    {
 	      bfd_reloc_code_real_type r;
 	      r = micromipspp_gprel_for_int_operand (operand_base);
@@ -5743,6 +5751,49 @@ match_immediate_word (struct mips_arg_info *arg,
   return FALSE;
 }
 
+static bfd_boolean
+match_immediate_pcrel_word (struct mips_arg_info *arg,
+			    const struct mips_operand *operand ATTRIBUTE_UNUSED)
+{
+  unsigned int uval;
+
+  if (match_expression (arg, &offset_expr, offset_reloc))
+    {
+      if (offset_reloc[0] != BFD_RELOC_UNUSED
+	  && !micromipspp_48bit_reloc_p (offset_reloc[0]))
+	/* Any other relocation operators not allowed in this position.  */
+	return FALSE;
+
+      if (offset_reloc[0] == BFD_RELOC_UNUSED)
+	offset_reloc[0] = BFD_RELOC_MICROMIPSPP_PC32;
+
+      arg->insn->insn_opcode_ext = 0;
+      return TRUE;
+    }
+  return FALSE;
+}
+
+static bfd_boolean
+match_immediate_gprel_word (struct mips_arg_info *arg,
+			    const struct mips_operand *operand ATTRIBUTE_UNUSED)
+{
+  unsigned int uval;
+
+  if (match_expression (arg, &offset_expr, offset_reloc))
+    {
+      if (offset_reloc[0] != BFD_RELOC_UNUSED
+	  && !gprel16_reloc_p (offset_reloc[0]))
+	/* Any other relocation operators not allowed in this position.  */
+	return FALSE;
+
+      if (offset_reloc[0] == BFD_RELOC_UNUSED)
+	offset_reloc[0] = BFD_RELOC_MICROMIPSPP_GPREL32;
+
+      arg->insn->insn_opcode_ext = 0;
+      return TRUE;
+    }
+  return FALSE;
+}
 
 /* OP_HI20_INT matcher.  */
 
@@ -7067,6 +7118,12 @@ match_operand (struct mips_arg_info *arg,
     case OP_IMM_WORD:
       return match_immediate_word (arg, operand);
 
+    case OP_PC_WORD:
+      return match_immediate_pcrel_word (arg, operand);
+
+    case OP_GPREL_WORD:
+      return match_immediate_gprel_word (arg, operand);
+
     case OP_DONT_CARE:
       return FALSE;
    }
@@ -8042,7 +8099,7 @@ micromipspp_map_reloc (bfd_reloc_code_real_type reloc)
     {
       /* Keep sorted incrementally by the left-hand key.  */
       { BFD_RELOC_16_PCREL_S2, BFD_RELOC_MICROMIPSPP_14_PCREL_S1 },
-      { BFD_RELOC_GPREL16, BFD_RELOC_MICROMIPSPP_GPREL19_S2 },
+      { BFD_RELOC_GPREL16, BFD_RELOC_MICROMIPSPP_GPREL18 },
       { BFD_RELOC_MIPS_JMP, BFD_RELOC_MICROMIPS_JMP },
       { BFD_RELOC_HI16, BFD_RELOC_MICROMIPSPP_HI20 },
       { BFD_RELOC_HI16_S, BFD_RELOC_MICROMIPSPP_HI20 },
@@ -8735,9 +8792,15 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	  break;
 
 	case BFD_RELOC_MICROMIPSPP_32:
+	case BFD_RELOC_MICROMIPSPP_GPREL32:
 	  ip->insn_opcode_ext = (address_expr->X_add_number & 0xffffffff);
 	  ip->complete_p = 1;
 	  break;
+
+	case BFD_RELOC_MICROMIPSPP_PC32:
+	  ip->insn_opcode_ext = (address_expr->X_add_number & 0xffffffff);
+	  break;
+
 
 	case BFD_RELOC_MICROMIPSPP_CALL:
 	  ip->complete_p = 1;
@@ -9064,7 +9127,7 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
       /* For 48-bit uMIPS R7 instructions, we want the relocation
 	 to be on the lower 32-bits of the instruction.  */
       if (ISA_IS_R7 (mips_opts.isa)
-	  && (final_type[0] == BFD_RELOC_MICROMIPSPP_32))
+	  && micromipspp_48bit_reloc_p (final_type[0]))
 	where = ip->where + 2;
 
       ip->fixp[0] = fix_new_exp (ip->frag, where,
@@ -9382,13 +9445,13 @@ static const struct gprel_insn_match micromipspp_gprel_map[] =
 {
   {"lw", 0, BFD_RELOC_MICROMIPSPP_GPREL19_S2},
   {"sw", 0, BFD_RELOC_MICROMIPSPP_GPREL19_S2},
-  {"lh", 0, BFD_RELOC_MICROMIPSPP_GPREL18},
-  {"lhu", 0, BFD_RELOC_MICROMIPSPP_GPREL18},
-  {"sh", 0, BFD_RELOC_MICROMIPSPP_GPREL18},
+  {"lh", 0, BFD_RELOC_MICROMIPSPP_GPREL17_S1},
+  {"lhu", 0, BFD_RELOC_MICROMIPSPP_GPREL17_S1},
+  {"sh", 0, BFD_RELOC_MICROMIPSPP_GPREL17_S1},
   {"lb", 0, BFD_RELOC_MICROMIPSPP_GPREL18},
   {"lbu", 0, BFD_RELOC_MICROMIPSPP_GPREL18},
   {"sb", 0, BFD_RELOC_MICROMIPSPP_GPREL18},
-  {"addiu", 0, BFD_RELOC_MICROMIPSPP_GPREL19_S2},
+  {"addiu", 0, BFD_RELOC_MICROMIPSPP_GPREL18},
   {"ldc1", 0, BFD_RELOC_MICROMIPSPP_GPREL16_S2},
   {"sdc1", 0, BFD_RELOC_MICROMIPSPP_GPREL16_S2},
   {"l.d", 0, BFD_RELOC_MICROMIPSPP_GPREL16_S2},
@@ -9411,6 +9474,8 @@ gprel_for_micromipspp_insn (const char *insn, int insn_length)
 
   if (insn_length == 2)
     return BFD_RELOC_MICROMIPSPP_GPREL7_S2;
+  if (insn_length == 6)
+    return BFD_RELOC_MICROMIPSPP_GPREL32;
 
   for (i = 0; i < ARRAY_SIZE (micromipspp_gprel_map); i++)
     if (strncasecmp (insn, micromipspp_gprel_map[i].str,
@@ -9677,7 +9742,9 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	   || operand->type == OP_NON_ZERO_PCREL_S1
 	   || operand->type == OP_HI20_PCREL
 	   || operand->type == OP_IMM_WORD
-	   || operand->type == OP_UIMM_WORD)
+	   || operand->type == OP_UIMM_WORD
+	   || operand->type == OP_PC_WORD
+	   || operand->type == OP_GPREL_WORD)
 	  && ISA_IS_R7 (mips_opts.isa))
 	switch (*args)
 	  {
@@ -9693,7 +9760,16 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 		break;
 
 	      case 'Q':
+	      case 'R':
 		*offset_reloc = BFD_RELOC_MICROMIPSPP_32;
+		break;
+
+	      case 'S':
+		*offset_reloc = BFD_RELOC_MICROMIPSPP_PC32;
+		break;
+
+	      case 'T':
+		*offset_reloc = BFD_RELOC_MICROMIPSPP_GPREL32;
 		break;
 	      }
 	    break;
@@ -9752,7 +9828,7 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
       if (!match_operand (&arg, operand))
 	return FALSE;
 
-      if (*offset_reloc == BFD_RELOC_MICROMIPSPP_GPREL19_S2)
+      if (*offset_reloc == BFD_RELOC_MICROMIPSPP_GPREL18)
 	*offset_reloc = gprel_for_micromipspp_insn (insn->insn_mo->name,
 						    insn_length (insn));
     }
@@ -10357,6 +10433,8 @@ macro_match_micromipspp_reloc (const char *fmt, bfd_reloc_code_real_type *r)
 	*r = BFD_RELOC_MICROMIPSPP_GPREL16_S2;
       else if (*fmt == '+' && *(fmt + 1) == '1')
 	*r = BFD_RELOC_MICROMIPSPP_GPREL18;
+      else if (*fmt == '+' && *(fmt + 1) == '3')
+	*r = BFD_RELOC_MICROMIPSPP_GPREL17_S1;
       else if (*fmt == 'm' && *(fmt + 1) == 'V')
 	*r = BFD_RELOC_MICROMIPSPP_GPREL18_S3;
       else
@@ -10604,7 +10682,10 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	  || operand->type == OP_SAME_RS_RT)
 	uval |= (uval << 5);
 
-      if (operand->type == OP_IMM_WORD || operand->type == OP_UIMM_WORD)
+      if (operand->type == OP_IMM_WORD
+	  || operand->type == OP_UIMM_WORD
+	  || operand->type == OP_PC_WORD
+	  || operand->type == OP_GPREL_WORD)
 	insn.insn_opcode_ext = 0;
       else
 	insn_insert_operand (&insn, operand, uval);
@@ -16441,7 +16522,7 @@ static const struct percent_op_match micromipspp_percent_op[] =
   {"%got_page", BFD_RELOC_MICROMIPSPP_GOT_PAGE},
   {"%got_ofst", BFD_RELOC_MICROMIPSPP_GOT_OFST},
   {"%got", BFD_RELOC_MICROMIPSPP_GOT_DISP},
-  {"%gp_rel", BFD_RELOC_MICROMIPSPP_GPREL19_S2},
+  {"%gp_rel", BFD_RELOC_MICROMIPSPP_GPREL18},
   {"%half", BFD_RELOC_16},
   {"%highest", BFD_RELOC_MIPS_HIGHEST},
   {"%higher", BFD_RELOC_MIPS_HIGHER},
@@ -16457,6 +16538,7 @@ static const struct percent_op_match micromipspp_percent_op[] =
   {"%pcrel_hi", BFD_RELOC_MICROMIPSPP_HI20_PCREL},
   {"%pcrel_lo", BFD_RELOC_MICROMIPSPP_LO12_PCREL},
   {"%pcrel_himask", BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12},
+  {"%pcrel", BFD_RELOC_MICROMIPSPP_PC32},
   {"%lo32", BFD_RELOC_MICROMIPSPP_32},
   {"%hi32", BFD_RELOC_MICROMIPSPP_HI32},
   /* These are currently not supported for R7.  */
@@ -17467,7 +17549,8 @@ mips_force_relocation (fixS *fixp)
 	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_25_PCREL_S1
 	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_HI20_PCREL
 	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_LO12_PCREL
-	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12))
+	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12
+	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_PC32))
     return 1;
 
   return 0;
@@ -17538,6 +17621,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       case BFD_RELOC_MICROMIPSPP_HI20_PCREL:
       case BFD_RELOC_MICROMIPSPP_LO12_PCREL:
       case BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12:
+      case BFD_RELOC_MICROMIPSPP_PC32:
 	break;
 
       case BFD_RELOC_32:
@@ -17702,6 +17786,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
     case BFD_RELOC_MICROMIPSPP_GPREL18:
     case BFD_RELOC_MICROMIPSPP_GPREL16_S2:
     case BFD_RELOC_MICROMIPSPP_GPREL7_S2:
+    case BFD_RELOC_MICROMIPSPP_GPREL17_S1:
 
       if (fixP->fx_done)
 	{
@@ -17843,6 +17928,13 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 
     case BFD_RELOC_MICROMIPSPP_32:
     case BFD_RELOC_MICROMIPSPP_HI32:
+    case BFD_RELOC_MICROMIPSPP_GPREL32:
+      if (! fixP->fx_done)
+	break;
+
+      write_compressed_insn (buf, *valP & 0xffffffff, 4);
+      break;
+
     case BFD_RELOC_MICROMIPSPP_LO12:
     case BFD_RELOC_MICROMIPSPP_IMM14:
       if (! fixP->fx_done)
@@ -17855,6 +17947,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       write_reloc_insn (buf, fixP->fx_r_type, insn);
       break;
 
+    case BFD_RELOC_MICROMIPSPP_PC32:
     case BFD_RELOC_MICROMIPSPP_LO12_PCREL:
     case BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12:
     case BFD_RELOC_MICROMIPSPP_HI20_PCREL:
@@ -20274,7 +20367,8 @@ tc_gen_reloc (asection *section ATTRIBUTE_UNUSED, fixS *fixp)
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_25_PCREL_S1
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_HI20_PCREL
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_LO12_PCREL
-		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12);
+		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12
+		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_PC32);
 
       /* At this point, fx_addnumber is "symbol offset - pcrel address".
 	 Relocations want only the symbol offset.  */

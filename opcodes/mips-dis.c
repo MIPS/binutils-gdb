@@ -1751,6 +1751,7 @@ print_insn_arg (struct disassemble_info *info,
       break;
 
     case OP_IMM_WORD:
+    case OP_GPREL_WORD:
       {
 	state->last_int = uval;
 	infprintf (is, "%d", uval);
@@ -1761,6 +1762,13 @@ print_insn_arg (struct disassemble_info *info,
       {
 	state->last_int = uval;
 	infprintf (is, "0x%x", uval);
+      }
+      break;
+
+    case OP_PC_WORD:
+      {	
+	info->target = (base_pc & ~0x1) + uval;
+	(*info->print_address_func) (info->target, info);
       }
       break;
 
@@ -1901,6 +1909,8 @@ validate_insn_args (const struct mips_opcode *opcode,
 		case OP_HI20_PCREL:
 		case OP_IMM_WORD:
 		case OP_UIMM_WORD:
+		case OP_PC_WORD:
+		case OP_GPREL_WORD:
 		case OP_DONT_CARE:
 		  break;
 		}
@@ -2015,7 +2025,13 @@ print_insn_args (struct disassemble_info *info,
 		    base_pc += length;
 		}
 
-	      if (operand->type == OP_IMM_WORD || operand->type == OP_UIMM_WORD)
+	      if (operand->type == OP_PC_WORD)
+		base_pc += length;
+
+	      if (operand->type == OP_IMM_WORD
+		  || operand->type == OP_UIMM_WORD
+		  || operand->type == OP_PC_WORD
+		  || operand->type == OP_GPREL_WORD)
 		print_insn_arg (info, &state, opcode, operand, base_pc,
 				insn >> 32);
 	      else if (operand->type != OP_DONT_CARE)
