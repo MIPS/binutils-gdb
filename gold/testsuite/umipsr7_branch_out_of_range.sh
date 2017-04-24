@@ -37,12 +37,12 @@ check()
 
 # Test balc expansion to auipc, addiu and jalrc.
 check umipsr7_b_out_of_range.stdout " 1000:	e020 0042 	auipc	at,.*"
-check umipsr7_b_out_of_range.stdout " 1004:	0021 001d 	addiu	at,at,29"
+check umipsr7_b_out_of_range.stdout " 1004:	0021 001c 	addiu	at,at,28"
 check umipsr7_b_out_of_range.stdout " 1008:	d830      	jalrc	at"
 
 # Test bc expansion to auipc, addiu and jrc.
 check umipsr7_b_out_of_range.stdout " 100a:	e020 0042 	auipc	at,.*"
-check umipsr7_b_out_of_range.stdout " 100e:	0021 0013 	addiu	at,at,19"
+check umipsr7_b_out_of_range.stdout " 100e:	0021 0012 	addiu	at,at,18"
 check umipsr7_b_out_of_range.stdout " 1012:	d820      	jrc	at"
 
 # Test move.balc expansion to move and balc.
@@ -52,7 +52,7 @@ check umipsr7_move_balc_1_out_of_range.stdout " 1002:	2a20 001a 	balc	201020 <fo
 # Test move.balc expansion to move, auipc, addiu and jalrc.
 check umipsr7_move_balc_2_out_of_range.stdout " 1000:	1090      	move	a0,s0"
 check umipsr7_move_balc_2_out_of_range.stdout " 1002:	e020 0042 	auipc	at,.*"
-check umipsr7_move_balc_2_out_of_range.stdout " 1006:	0021 001b 	addiu	at,at,27"
+check umipsr7_move_balc_2_out_of_range.stdout " 1006:	0021 001a 	addiu	at,at,26"
 check umipsr7_move_balc_2_out_of_range.stdout " 100a:	d830      	jalrc	at"
 
 # Test beqic expansion to li, beqc.

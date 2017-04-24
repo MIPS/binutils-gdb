@@ -164,7 +164,6 @@ enum
   // FIXME: This is temporary.
   R_MICROMIPS_HI20 = 182,
   R_MICROMIPS_LO12 = 183,
-  R_MICROMIPS_GPREL14 = 184,
   R_MICROMIPS_PC7_S1 = 185,
   R_MICROMIPS_PC10_S1 = 186,
   R_MICROMIPS_PCHI20 = 188,
@@ -174,7 +173,6 @@ enum
   R_MICROMIPS_PC21_S1 = 192,
   R_MICROMIPS_PC25_S1 = 193,
   R_MICROMIPS_PC14_S1 = 194,
-  R_MICROMIPS_PC20_S1 = 195,
   R_MICROMIPS_GPREL18 = 196,
   R_MICROMIPS_GPREL19_S2 = 197,
   R_MICROMIPS_PC4_S1 = 198,
@@ -184,6 +182,9 @@ enum
   R_MICROMIPS_LO4_S2 = 211,
   R_MICROMIPS_GPREL_HI20 = 212,
   R_MICROMIPS_GPREL_LO12 = 213,
+  R_MICROMIPS_PC32 = 229,
+  R_MICROMIPS_GPREL32 = 230,
+  R_MICROMIPS_GPREL17_S1 = 231,
 
   // This was a GNU extension used by embedded-PIC.  It was co-opted by
   // mips-linux for exception-handling data.  GCC stopped using it in

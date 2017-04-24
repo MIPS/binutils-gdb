@@ -4057,29 +4057,6 @@ umipsr7_script_test.o: umipsr7_script_test.s
 
 MOSTLYCLEANFILES += umipsr7_script_test
 
-# Test cases where we can't reach char/short symbols with addiu[gp] instruction.
-
-check_SCRIPTS += umipsr7_addiugp.sh
-check_DATA += umipsr7_addiugp_conversion.stdout \
-	      umipsr7_addiugp_fixup.stdout
-
-umipsr7_addiugp_conversion.stdout: umipsr7_addiugp_conversion
-	$(TEST_OBJDUMP) -d $< > $@
-
-umipsr7_addiugp_conversion: umipsr7_addiugp.o ../ld-new
-	../ld-new -T $(srcdir)/umipsr7_addiugp.t -o $@ $<
-
-umipsr7_addiugp_fixup.stdout: umipsr7_addiugp_fixup
-	$(TEST_OBJDUMP) -d $< > $@
-
-umipsr7_addiugp_fixup: umipsr7_addiugp.o ../ld-new
-	../ld-new -T $(srcdir)/umipsr7_addiugp.t --section-start .sdata=0x21020 -o $@ $<
-
-umipsr7_addiugp.o: umipsr7_addiugp.s
-	$(TEST_AS) -EL -mips32r7 -mmicromips -mabi=32 -o $@ $<
-
-MOSTLYCLEANFILES += umipsr7_addiugp_conversion umipsr7_addiugp_fixup
-
 endif DEFAULT_TARGET_MIPS
 
 endif NATIVE_OR_CROSS_LINKER

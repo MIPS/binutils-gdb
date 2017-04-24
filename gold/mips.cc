@@ -194,9 +194,9 @@ relocation_needs_la25_stub(Mips_relobj<size, big_endian>* object,
     case elfcpp::R_MICROMIPS_PC10_S1:
     case elfcpp::R_MICROMIPS_PC16_S1:
     case elfcpp::R_MICROMIPS_PC23_S2:
+    case elfcpp::R_MICROMIPS_PC32:
     case elfcpp::R_MICROMIPS_PC25_S1:
     case elfcpp::R_MICROMIPS_PC21_S1:
-    case elfcpp::R_MICROMIPS_PC20_S1:
     case elfcpp::R_MICROMIPS_PC14_S1:
     case elfcpp::R_MICROMIPS_PC11_S1:
       return true;
@@ -255,7 +255,11 @@ is_expand_reloc(unsigned int r_type)
           || r_type == elfcpp::R_MICROMIPS_PC11_S1
           || r_type == elfcpp::R_MICROMIPS_GPREL19_S2
           || r_type == elfcpp::R_MICROMIPS_GPREL18
-          || micromips_16bit_reloc(r_type));
+          || r_type == elfcpp::R_MICROMIPS_GPREL17_S1
+          || r_type == elfcpp::R_MICROMIPS_PC10_S1
+          || r_type == elfcpp::R_MICROMIPS_PC4_S1
+          || r_type == elfcpp::R_MICROMIPS_GPREL7_S2
+          || r_type == elfcpp::R_MICROMIPS_LO4_S2);
 }
 
 // Return TRUE if for this relocation we may do relaxation.
@@ -263,7 +267,6 @@ static inline bool
 is_relax_reloc(unsigned int r_type)
 {
   return (r_type == elfcpp::R_MICROMIPS_PC25_S1
-          || r_type == elfcpp::R_MICROMIPS_PC20_S1
           || r_type == elfcpp::R_MICROMIPS_PC14_S1
           || r_type == elfcpp::R_MICROMIPS_GPREL19_S2
           || r_type == elfcpp::R_MICROMIPS_LO12);
@@ -375,9 +378,9 @@ micromips_branch_reloc(unsigned int r_type)
           || r_type == elfcpp::R_MICROMIPS_PC16_S1
           || r_type == elfcpp::R_MICROMIPS_PC10_S1
           || r_type == elfcpp::R_MICROMIPS_PC7_S1
+          || r_type == elfcpp::R_MICROMIPS_PC32
           || r_type == elfcpp::R_MICROMIPS_PC25_S1
           || r_type == elfcpp::R_MICROMIPS_PC21_S1
-          || r_type == elfcpp::R_MICROMIPS_PC20_S1
           || r_type == elfcpp::R_MICROMIPS_PC14_S1
           || r_type == elfcpp::R_MICROMIPS_PC11_S1
           || r_type == elfcpp::R_MICROMIPS_PC4_S1);
@@ -445,20 +448,21 @@ micromips_reloc(unsigned int r_type)
     case elfcpp::R_MICROMIPS_TLS_TPREL_LO16:
     case elfcpp::R_MICROMIPS_PC23_S2:
     // uMIPS++ relocations
+    case elfcpp::R_MICROMIPS_PC32:
     case elfcpp::R_MICROMIPS_PC25_S1:
     case elfcpp::R_MICROMIPS_PC21_S1:
-    case elfcpp::R_MICROMIPS_PC20_S1:
     case elfcpp::R_MICROMIPS_PC14_S1:
     case elfcpp::R_MICROMIPS_PC11_S1:
     case elfcpp::R_MICROMIPS_PC10_S1:
     case elfcpp::R_MICROMIPS_PC7_S1:
     case elfcpp::R_MICROMIPS_PC4_S1:
+    case elfcpp::R_MICROMIPS_GPREL32:
     case elfcpp::R_MICROMIPS_GPREL19_S2:
     case elfcpp::R_MICROMIPS_GPREL18_S3:
     case elfcpp::R_MICROMIPS_GPREL18:
+    case elfcpp::R_MICROMIPS_GPREL17_S1:
     case elfcpp::R_MICROMIPS_GPREL16_S2:
     case elfcpp::R_MICROMIPS_GPREL7_S2:
-    case elfcpp::R_MICROMIPS_GPREL14:
     case elfcpp::R_MICROMIPS_HI20:
     case elfcpp::R_MICROMIPS_LO12:
     case elfcpp::R_MICROMIPS_PCHI20:
@@ -1121,9 +1125,12 @@ class Mips_symbol : public Sized_symbol<size>
   bool
   is_micromips() const
   {
+#if 0
     // (st_other & STO_MIPS_ISA) == STO_MICROMIPS
     return ((this->nonvis() & (elfcpp::STO_MIPS_ISA >> 2))
             == elfcpp::STO_MICROMIPS >> 2);
+#endif
+    return false;
   }
 
   // Return whether the symbol needs MIPS16 fn_stub.
@@ -1665,59 +1672,6 @@ class Mips16_stub_section : public Mips16_stub_section_base
   bool found_r_mips_none_;
 };
 
-// This class is used to hold information for which relocation we have added
-// fixup.  This is used for addiu[gp] instruction in cases where we can't reach
-// a char/short symbol.
-
-class Micromips_addiugp_fixup
-{
- public:
-  Micromips_addiugp_fixup(unsigned int reloc_shndx, unsigned int reloc_index)
-    : reloc_shndx_(reloc_shndx), reloc_index_(reloc_index)
-  { }
-
-  // Whether this equals to another Micromips_addiugp_fixup.
-  bool
-  eq(const Micromips_addiugp_fixup& fix) const
-  {
-    return (this->reloc_shndx_ == fix.reloc_shndx_
-            && this->reloc_index_ == fix.reloc_index_);
-  }
-
-  // Compute a hash value for this using 64-bit FNV-1a hash.
-  size_t
-  hash_value() const
-  {
-    uint64_t h = 14695981039346656037ULL; // FNV offset basis.
-    uint64_t prime = 1099511628211ULL;
-    h = (h ^ static_cast<uint64_t>(this->reloc_shndx_)) * prime;
-    h = (h ^ static_cast<uint64_t>(this->reloc_index_)) * prime;
-    return h;
-  }
-
-  // Functors for associative containers.
-  struct equal_to
-  {
-    bool
-    operator()(const Micromips_addiugp_fixup& fix1,
-               const Micromips_addiugp_fixup& fix2) const
-    { return fix1.eq(fix2); }
-  };
-
-  struct hash
-  {
-    size_t
-    operator()(const Micromips_addiugp_fixup& fix) const
-    { return fix.hash_value(); }
-  };
-
- private:
-  // Section index of relocation section.
-  unsigned int reloc_shndx_;
-  // Relocation index in the relocation section.
-  unsigned int reloc_index_;
-};
-
 // Mips_relobj class.
 
 template<int size, bool big_endian>
@@ -1730,15 +1684,13 @@ class Mips_relobj : public Sized_relobj_file<size, big_endian>
   typedef typename Sized_relobj_file<size, big_endian>::Size_type Size_type;
   typedef Unordered_map<unsigned int, unsigned int>
     Input_section_read;
-  typedef Unordered_set<Micromips_addiugp_fixup, Micromips_addiugp_fixup::hash,
-                        Micromips_addiugp_fixup::equal_to> Addiugp_fixup;
 
  public:
   Mips_relobj(const std::string& name, Input_file* input_file, off_t offset,
               const typename elfcpp::Ehdr<size, big_endian>& ehdr)
     : Sized_relobj_file<size, big_endian>(name, input_file, offset, ehdr),
       processor_specific_flags_(0), local_symbol_is_mips16_(),
-      local_symbol_is_micromips_(), mips16_stub_sections_(), addiugp_fixup_(),
+      local_symbol_is_micromips_(), mips16_stub_sections_(),
       local_non_16bit_calls_(), local_16bit_calls_(), local_mips16_fn_stubs_(),
       local_mips16_call_stubs_(), gp_(0), has_reginfo_section_(false),
       got_info_(NULL), section_is_mips16_fn_stub_(), input_section_read_(),
@@ -1807,10 +1759,13 @@ class Mips_relobj : public Sized_relobj_file<size, big_endian>
   // Whether a local symbol is microMIPS symbol.  R_SYM is the symbol table
   // index.  This is only valid after do_count_local_symbol is called.
   bool
-  local_symbol_is_micromips(unsigned int r_sym) const
+  local_symbol_is_micromips(unsigned int) const
   {
+#if 0
     gold_assert(r_sym < this->local_symbol_is_micromips_.size());
     return this->local_symbol_is_micromips_[r_sym];
+#endif
+    return false;
   }
 
   bool
@@ -2088,27 +2043,6 @@ class Mips_relobj : public Sized_relobj_file<size, big_endian>
   attributes_section_data() const
   { return this->attributes_section_data_; }
 
-  // Add micromips addiugp fixup.
-  void
-  add_addiugp_fixup(unsigned int reloc_shndx, unsigned int reloc_index)
-  {
-    Micromips_addiugp_fixup fix(reloc_shndx, reloc_index);
-    std::pair<typename Addiugp_fixup::iterator, bool> ins =
-      this->addiugp_fixup_.insert(fix);
-    // We should insert a fixup once only.
-    gold_assert(ins.second);
-  }
-
-  // Return whether we have already added micromips addiugp fixup.
-  bool
-  has_addiugp_fixup(unsigned int reloc_shndx, unsigned int reloc_index) const
-  {
-    Micromips_addiugp_fixup fix(reloc_shndx, reloc_index);
-    typename Addiugp_fixup::const_iterator it =
-      this->addiugp_fixup_.find(fix);
-    return (it != this->addiugp_fixup_.end());
-  }
-
  protected:
   // Count the local symbols.
   void
@@ -2150,9 +2084,6 @@ class Mips_relobj : public Sized_relobj_file<size, big_endian>
   // Map from section index to the MIPS16 stub for that section.  This contains
   // all stubs found in this object.
   Mips16_stubs_int_map mips16_stub_sections_;
-
-  // A hash table holding information for which relocation we have added fixup.
-  Addiugp_fixup addiugp_fixup_;
 
   // Local symbols that have "non 16-bit" call relocation.  This relocation
   // would need to refer to a MIPS16 fn stub, if there is one.
@@ -3132,20 +3063,9 @@ class Micromips_insn
   typedef typename Reloc_types<elfcpp::SHT_RELA, size, big_endian>::Reloc_write
     Reltype_write;
 
-  enum Addiugp_fix_type
-  {
-    // Don't do anything.
-    NO_FIX,
-    // Convert addiu[gp] into addiu.
-    CONVERT,
-    // Add addiu[rs5] instruction as a fixup.
-    FIXUP
-  };
-
  public:
   Micromips_insn()
-    : new_insn_(NULL), insn_(0), r_type_(0), count_(0), offset_(0),
-      addiugp_fix_type_(NO_FIX)
+    : new_insn_(NULL), insn_(0), r_type_(0), count_(0), offset_(0)
   { }
 
   // Initialize the microMIPS instruction.
@@ -3156,21 +3076,27 @@ class Micromips_insn
     this->r_type_ = r_type;
     this->count_ = 0;
     this->offset_ = 0;
-    this->addiugp_fix_type_ = NO_FIX;
     if (micromips_16bit_reloc(r_type))
       this->insn_ = elfcpp::Swap<16, big_endian>::readval(view);
     else
       this->insn_ = this->get_insn_32(view);
   }
 
-  // Return true if we may relax lw[gp] instruction.  This is only used
-  // for sorting small data sections.
+  // Return true if we may relax lw[gp]/sw[gp] instruction.
   bool
-  may_relax_lwgp()
+  may_relax_gpre19_s2()
   {
     gold_assert(this->r_type_ == elfcpp::R_MICROMIPS_GPREL19_S2);
-    return (this->find_match(micromips_lwgp_relax)
-            && this->valid_reg_16(this->treg_32()));
+    if (this->find_match(micromips_gprel19_s2_relax))
+      {
+        unsigned int treg = this->treg_32();
+        if (this->new_insn_ == &micromips_gprel19_s2_relax[1])
+          return this->valid_reg_16_st(treg);
+        else
+          return this->valid_reg_16(treg);
+      }
+
+    return false;
   }
 
   // Return true if we can relax instruction.
@@ -3192,19 +3118,8 @@ class Micromips_insn
   expand(unsigned char* insn_view, unsigned char* preloc_current,
          unsigned int r_sym, unsigned int r_offset,
          typename elfcpp::Elf_types<size>::Elf_Swxword r_addend,
-         Mips_input_section* pmis, bool* is_reloc_added, Valtype value,
+         Mips_input_section* pmis, bool* is_reloc_added,
          unsigned int expand_reg);
-
-  // Return true if we must fix addiu[gp] instruction for cases we can't reach
-  // char/short symbols.
-  bool
-  must_fix_addiugp(Mips_relobj<size, big_endian>* mips_relobj, Valtype value,
-                   unsigned int reloc_shndx, unsigned int reloc_index);
-
-  // Fix addiu[gp] instruction.
-  void
-  fix_addiugp(unsigned char* insn_view, unsigned char* preloc_current,
-              unsigned int r_sym, Valtype value);
 
   // Return the number of bytes to delete or add.
   int
@@ -3229,13 +3144,6 @@ class Micromips_insn
         else
           msg = "balc is relaxed to balc[16]";
       }
-    else if (this->r_type_ == elfcpp::R_MICROMIPS_PC20_S1)
-      {
-        if (this->new_insn_ == micromips_pc20_s1_relax)
-          msg = "beqzc is relaxed to beqzc[16]";
-        else
-          msg = "bnezc is relaxed to bnezc[16]";
-      }
     else if (this->r_type_ == elfcpp::R_MICROMIPS_PC14_S1)
       {
         if (this->new_insn_ == micromips_pc14_s1_relax)
@@ -3244,7 +3152,12 @@ class Micromips_insn
           msg = "bnec is relaxed to bnec[16]";
       }
     else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL19_S2)
-      msg = "lw[gp] is relaxed to lw[gp16]";
+      {
+        if (this->new_insn_ == micromips_gprel19_s2_relax)
+          msg = "lw[gp] is relaxed to lw[gp16]";
+        else
+          msg = "sw[gp] is relaxed to sw[gp16]";
+      }
     else if (this->r_type_ == elfcpp::R_MICROMIPS_LO12)
       {
         if (this->new_insn_ == micromips_lo12_relax)
@@ -3266,14 +3179,7 @@ class Micromips_insn
                unsigned int r_offset) const
   {
     const char* msg;
-    if (this->addiugp_fix_type_ != NO_FIX)
-      {
-        if (this->addiugp_fix_type_ == CONVERT)
-          msg = "addiu[gp] converted into addiu";
-        else
-          msg = "Adjusted addiu[gp] with addiu[rs5]";
-      }
-    else if (this->r_type_ == elfcpp::R_MICROMIPS_PC25_S1)
+    if (this->r_type_ == elfcpp::R_MICROMIPS_PC25_S1)
       {
         if (this->new_insn_ == micromips_pc25_s1)
           msg = "bc is expanded to auipc, addiu, jrc[16]";
@@ -3294,11 +3200,11 @@ class Micromips_insn
         else if (this->new_insn_ == &micromips_pc11_s1_expand[1])
           msg = "bgeic is expanded to addiu, bgec";
         else if (this->new_insn_ == &micromips_pc11_s1_expand[2])
-          msg = "bgeuic is expanded to addiu, bgeuc";
+          msg = "bgeiuc is expanded to addiu, bgeuc";
         else if (this->new_insn_ == &micromips_pc11_s1_expand[3])
           msg = "bltic is expanded to addiu, bltc";
         else if (this->new_insn_ == &micromips_pc11_s1_expand[4])
-          msg = "bltuic is expanded to addiu, bltuc";
+          msg = "bltiuc is expanded to addiu, bltuc";
         else
           msg = "bneic is expanded to addiu, bnec";
       }
@@ -3309,7 +3215,7 @@ class Micromips_insn
         else if (this->new_insn_ == &micromips_gprel19_s2_expand[1])
           msg = "sw[gp] is expanded to lui, addu, sw";
         else
-          msg = "addiu[gp] is expanded to lui, addu, addiu";
+          msg = "addiu[gp.w] is expanded to lui, addu, addiu";
       }
     else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL18)
       {
@@ -3318,11 +3224,16 @@ class Micromips_insn
         else if (this->new_insn_ == &micromips_gprel18_expand[1])
           msg = "lbu[gp] is expanded to lui, addu, lbu";
         else if (this->new_insn_ == &micromips_gprel18_expand[2])
-          msg = "lh[gp] is expanded to lui, addu, lh";
-        else if (this->new_insn_ == &micromips_gprel18_expand[3])
-          msg = "lhu[gp] is expanded to lui, addu, lhu";
-        else if (this->new_insn_ == &micromips_gprel18_expand[4])
           msg = "sb[gp] is expanded to lui, addu, sb";
+        else
+          msg = "addiu[gp.b] is expanded to lui, addu, addiu";
+      }
+    else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL17_S1)
+      {
+        if (this->new_insn_ == micromips_gprel17_s1_expand)
+          msg = "lh[gp] is expanded to lui, addu, lh";
+        else if (this->new_insn_ == &micromips_gprel17_s1_expand[1])
+          msg = "lhu[gp] is expanded to lui, addu, lhu";
         else
           msg = "sh[gp] is expanded to lui, addu, sh";
       }
@@ -3333,13 +3244,6 @@ class Micromips_insn
         else
           msg = "balc[16] is expanded to balc";
       }
-    else if (this->r_type_ == elfcpp::R_MICROMIPS_PC7_S1)
-      {
-        if (this->new_insn_ == micromips_pc7_s1_expand)
-          msg = "beqzc[16] is expanded to beqzc";
-        else
-          msg = "bnezc[16] is expanded to bnezc";
-      }
     else if (this->r_type_ == elfcpp::R_MICROMIPS_PC4_S1)
       {
         if (this->new_insn_ == micromips_pc4_s1_expand)
@@ -3348,7 +3252,12 @@ class Micromips_insn
           msg = "bnec[16] is expanded to bnec";
       }
     else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL7_S2)
-      msg = "lw[gp16] is expanded to lw[gp]";
+      {
+        if (this->new_insn_ == micromips_gprel7_s2_expand)
+          msg = "lw[gp16] is expanded to lw[gp]";
+        else
+          msg = "sw[gp16] is expanded to sw[gp]";
+      }
     else if (this->r_type_ == elfcpp::R_MICROMIPS_LO4_S2)
       {
         if (this->new_insn_ == micromips_lo4_s2_expand)
@@ -3402,6 +3311,12 @@ class Micromips_insn
   reg_16_to_32(unsigned int reg) const
   { return ((reg <= 3) ? reg + 16 : reg); }
 
+  // Convert register in 16bit store instruction to register in 32 bit
+  // store instruction.
+  unsigned int
+  reg_16_to_32_st(unsigned int reg) const
+  { return  ((1 <= reg && reg <= 3) ? reg + 16 : reg); }
+
   // Return target register in microMIPS 32-bit instruction.
   unsigned int
   treg_32() const
@@ -3427,6 +3342,12 @@ class Micromips_insn
   valid_reg_16(unsigned int reg) const
   { return ((4 <= reg && reg <= 7) || (16 <= reg && reg <= 19)); }
 
+  // Check if a 5-bit register index can be abbreviated to 3 bits for
+  // store instruction.
+  bool
+  valid_reg_16_st(unsigned int reg) const
+  { return (reg == 0 || (4 <= reg && reg <= 7) || (17 <= reg && reg <= 19)); }
+
   // New instruction.  In case of relaxation there is only 1 instruction,
   // but for expansions there can be many.
   const opcode_descriptor* new_insn_;
@@ -3438,24 +3359,20 @@ class Micromips_insn
   unsigned int count_;
   // The offset where to delete or add bytes starting at r_offset.
   unsigned int offset_;
-  // Fix type for addiu[gp] instruction for cases we can't reach char/short
-  // symbols.
-  Addiugp_fix_type addiugp_fix_type_;
 
   // Opcodes for expansions and relaxations.
   static const opcode_descriptor micromips_pc25_s1[];
-  static const opcode_descriptor micromips_pc20_s1_relax[];
   static const opcode_descriptor micromips_pc14_s1_relax[];
-  static const opcode_descriptor micromips_lwgp_relax[];
+  static const opcode_descriptor micromips_gprel19_s2_relax[];
   static const opcode_descriptor micromips_lo12_relax[];
   static const opcode_descriptor micromips_move_balc_expand[];
   static const opcode_descriptor micromips_pc11_s1_expand[];
   static const opcode_descriptor micromips_gprel19_s2_expand[];
   static const opcode_descriptor micromips_gprel18_expand[];
+  static const opcode_descriptor micromips_gprel17_s1_expand[];
   static const opcode_descriptor micromips_pc10_s1_expand[];
-  static const opcode_descriptor micromips_pc7_s1_expand[];
   static const opcode_descriptor micromips_pc4_s1_expand[];
-  static const opcode_descriptor micromips_lwgp_expand[];
+  static const opcode_descriptor micromips_gprel7_s2_expand[];
   static const opcode_descriptor micromips_lo4_s2_expand[];
   static const opcode_descriptor micromips_addiugp_fix[];
 };
@@ -6432,35 +6349,6 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     return This::STATUS_OKAY;
   }
 
-  // R_MICROMIPS_PC20_S1
-  static inline typename This::Status
-  relmicromips_pc20_s1(unsigned char* view,
-                       const Mips_relobj<size, big_endian>* object,
-                       const Symbol_value<size>* psymval, Mips_address address,
-                       Mips_address addend, bool should_check_overflow,
-                       Overflow_info<big_endian>* overflow_info)
-  {
-    Valtype32* wv = reinterpret_cast<Valtype32*>(view);
-    Valtype32 val = elfcpp::Swap<32, big_endian>::readval(wv);
-
-    Valtype x = psymval->value(object, addend) - address;
-    if (should_check_overflow
-        && (check_overflow<21>(x, CHECK_SIGNED) == This::STATUS_OVERFLOW))
-    {
-      overflow_info->value = x;
-      overflow_info->insn = val;
-      overflow_info->name = "R_MICROMIPS_PC20_S1";
-      overflow_info->bitsize = 21;
-      return This::STATUS_OVERFLOW;
-    }
-
-    x = ((x & ~0x1) | ((x >> 20) & 0x1));
-    val = Bits<20>::bit_select32(val, x, 0xfffff);
-    elfcpp::Swap<32, big_endian>::writeval(wv, val);
-
-    return This::STATUS_OKAY;
-  }
-
   // R_MICROMIPS_PC14_S1
   static inline typename This::Status
   relmicromips_pc14_s1(unsigned char* view,
@@ -6662,6 +6550,44 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     return This::STATUS_OKAY;
   }
 
+  // R_MICROMIPS_GPREL17_S1
+  static inline typename This::Status
+  relmicromips_gprel17_s1(unsigned char* view,
+                          const Mips_relobj<size, big_endian>* object,
+                          const Symbol_value<size>* psymval, Mips_address gp,
+                          Mips_address addend, bool local,
+                          bool should_check_overflow,
+                          Overflow_info<big_endian>* overflow_info)
+  {
+    Valtype32* wv = reinterpret_cast<Valtype32*>(view);
+    Valtype32 val = elfcpp::Swap<32, big_endian>::readval(wv);
+
+    Valtype x = psymval->value(object, addend) - gp;
+
+    // If the symbol was local, any earlier relocatable links will
+    // have adjusted its addend with the gp offset, so compensate
+    // for that now.  Don't do it for symbols forced local in this
+    // link, though, since they won't have had the gp offset applied
+    // to them before.
+    if (local)
+      x += object->gp_value();
+
+    if (should_check_overflow
+        && (check_overflow<18>(x, CHECK_UNSIGNED) == This::STATUS_OVERFLOW))
+      {
+        overflow_info->value = x;
+        overflow_info->insn = val;
+        overflow_info->name = "R_MICROMIPS_GPREL17_S1";
+        overflow_info->bitsize = 18;
+        return This::STATUS_OVERFLOW;
+      }
+
+    val = Bits<18>::bit_select32(val, x, 0x3fffe);
+    elfcpp::Swap<32, big_endian>::writeval(wv, val);
+
+    return This::STATUS_OKAY;
+  }
+
   // R_MICROMIPS_GPREL16_S2
   static inline typename This::Status
   relmicromips_gprel16_s2(unsigned char* view,
@@ -6734,44 +6660,6 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
 
     val = Bits<7>::bit_select32(val, x >> 2, 0x7f);
     elfcpp::Swap<16, big_endian>::writeval(wv, val);
-
-    return This::STATUS_OKAY;
-  }
-
-  // R_MICROMIPS_GPREL14
-  static inline typename This::Status
-  relmicromips_gprel14(unsigned char* view,
-                       const Mips_relobj<size, big_endian>* object,
-                       const Symbol_value<size>* psymval, Mips_address gp,
-                       Mips_address addend, bool local,
-                       bool should_check_overflow,
-                       Overflow_info<big_endian>* overflow_info)
-  {
-    Valtype32* wv = reinterpret_cast<Valtype32*>(view);
-    Valtype32 val = elfcpp::Swap<32, big_endian>::readval(wv);
-
-    Valtype x = psymval->value(object, addend) - gp;
-
-    // If the symbol was local, any earlier relocatable links will
-    // have adjusted its addend with the gp offset, so compensate
-    // for that now.  Don't do it for symbols forced local in this
-    // link, though, since they won't have had the gp offset applied
-    // to them before.
-    if (local)
-      x += object->gp_value();
-
-    if (should_check_overflow
-        && (check_overflow<14>(x, CHECK_SIGNED) == This::STATUS_OVERFLOW))
-    {
-      overflow_info->value = x;
-      overflow_info->insn = val;
-      overflow_info->name = "R_MICROMIPS_GPREL14";
-      overflow_info->bitsize = 14;
-      return This::STATUS_OVERFLOW;
-    }
-
-    val = ((val & 0xffff6000) | ((x << 2) & 0x8000) | (x & 0x1fff));
-    elfcpp::Swap<32, big_endian>::writeval(wv, val);
 
     return This::STATUS_OKAY;
   }
@@ -7079,6 +6967,40 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
         return This::STATUS_OVERFLOW;
       }
 
+    return This::STATUS_OKAY;
+  }
+
+  // R_MICROMIPS_GPREL32
+  static inline typename This::Status
+  relmicromips_gprel32(unsigned char* view,
+                       const Mips_relobj<size, big_endian>* object,
+                       const Symbol_value<size>* psymval, Mips_address gp,
+                       Mips_address addend, bool local)
+  {
+    Valtype32* wv = reinterpret_cast<Valtype32*>(view);
+    Valtype x = psymval->value(object, addend) - gp;
+    // If the symbol was local, any earlier relocatable links will
+    // have adjusted its addend with the gp offset, so compensate
+    // for that now.  Don't do it for symbols forced local in this
+    // link, though, since they won't have had the gp offset applied
+    // to them before.
+    if (local)
+      x += object->gp_value();
+
+    elfcpp::Swap<32, big_endian>::writeval(wv, x);
+    return This::STATUS_OKAY;
+  }
+
+  // R_MICROMIPS_PC32
+  static inline typename This::Status
+  relmicromips_pc32(unsigned char* view,
+                    const Mips_relobj<size, big_endian>* object,
+                    const Symbol_value<size>* psymval, Mips_address address,
+                    Mips_address addend)
+  {
+    Valtype32* wv = reinterpret_cast<Valtype32*>(view);
+    Valtype x = psymval->value(object, addend) - address;
+    elfcpp::Swap<32, big_endian>::writeval(wv, x);
     return This::STATUS_OKAY;
   }
 };
@@ -9962,18 +9884,10 @@ template<int size, bool big_endian>
 const opcode_descriptor
 Micromips_insn<size, big_endian>::micromips_pc25_s1[] =
 {
-  { 0x28000000, 0xfe000000, 0x1800, 0xe0000002, 0x00000000, 0xd800, 0 },// bc
-  { 0x2a000000, 0xfe000000, 0x3800, 0xe0000002, 0x00000000, 0xd810, 0 },// balc
-  { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
-};
-
-// Opcodes for R_MICROMIPS_PC20_S1 relaxation.
-template<int size, bool big_endian>
-const opcode_descriptor
-Micromips_insn<size, big_endian>::micromips_pc20_s1_relax[] =
-{
-  { 0xe8000000, 0xfc100000, 0x9800, 0, 0, 0, 0 },// beqzc
-  { 0xe8100000, 0xfc100000, 0xb800, 0, 0, 0, 0 },// bnezc
+  // bc
+  { 0x28000000, 0xfe000000, 0x1800, 0xe0000002, 0x00000000, 0xd800, 0 },
+  // balc
+  { 0x2a000000, 0xfe000000, 0x3800, 0xe0000002, 0x00000000, 0xd810, 0 },
   { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
 };
 
@@ -9982,17 +9896,22 @@ template<int size, bool big_endian>
 const opcode_descriptor
 Micromips_insn<size, big_endian>::micromips_pc14_s1_relax[] =
 {
-  { 0x88000000, 0xfc00c000, 0xd800, 0, 0, 0, 0 },// beqc
-  { 0xa8000000, 0xfc00c000, 0xd800, 0, 0, 0, 0 },// bnec
+  // beqc
+  { 0x88000000, 0xfc00c000, 0xd800, 0, 0, 0, 0 },
+  // bnec
+  { 0xa8000000, 0xfc00c000, 0xd800, 0, 0, 0, 0 },
   { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
 };
 
-// Opcode for lw[gp] relaxation.
+// Opcodes for R_MICROMIPS_GPREL19_S2 relaxation.
 template<int size, bool big_endian>
 const opcode_descriptor
-Micromips_insn<size, big_endian>::micromips_lwgp_relax[] =
+Micromips_insn<size, big_endian>::micromips_gprel19_s2_relax[] =
 {
-  { 0x40000002, 0xfc000003, 0xb400, 0, 0, 0, 0 },// lw[gp]
+  // lw[gp]
+  { 0x40000002, 0xfc000003, 0xb400, 0, 0, 0, 0 },
+  // sw[gp]
+  { 0x40000003, 0xfc000003, 0xbc00, 0, 0, 0, 0 },
   { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
 };
 
@@ -10001,8 +9920,10 @@ template<int size, bool big_endian>
 const opcode_descriptor
 Micromips_insn<size, big_endian>::micromips_lo12_relax[] =
 {
-  { 0x84008000, 0xfc00f000, 0x7400, 0, 0, 0, 0 },// lw
-  { 0x84009000, 0xfc00f000, 0xf400, 0, 0, 0, 0 },// sw
+  // lw
+  { 0x84008000, 0xfc00f000, 0x7400, 0, 0, 0, 0 },
+  // sw
+  { 0x84009000, 0xfc00f000, 0x7c00, 0, 0, 0, 0 },
   { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
 };
 
@@ -10021,12 +9942,18 @@ template<int size, bool big_endian>
 const opcode_descriptor
 Micromips_insn<size, big_endian>::micromips_pc11_s1_expand[] =
 {
-  { 0xc8000000, 0xfc1c0000, 0, 0x00000000, 0x88000000, 0, 0 },// beqic
-  { 0xc8080000, 0xfc1c0000, 0, 0x00000000, 0x88008000, 0, 0 },// bgeic
-  { 0xc80c0000, 0xfc1c0000, 0, 0x00000000, 0x8800c000, 0, 0 },// bgeuic
-  { 0xc8180000, 0xfc1c0000, 0, 0x00000000, 0xa8008000, 0, 0 },// bltic
-  { 0xc81c0000, 0xfc1c0000, 0, 0x00000000, 0xa800c000, 0, 0 },// bltuic
-  { 0xc8100000, 0xfc1c0000, 0, 0x00000000, 0xa8000000, 0, 0 },// bneic
+  // beqic
+  { 0xc8000000, 0xfc1c0000, 0, 0x00000000, 0x88000000, 0, 0 },
+  // bgeic
+  { 0xc8080000, 0xfc1c0000, 0, 0x00000000, 0x88008000, 0, 0 },
+  // bgeiuc
+  { 0xc80c0000, 0xfc1c0000, 0, 0x00000000, 0x8800c000, 0, 0 },
+  // bltic
+  { 0xc8180000, 0xfc1c0000, 0, 0x00000000, 0xa8008000, 0, 0 },
+  // bltiuc
+  { 0xc81c0000, 0xfc1c0000, 0, 0x00000000, 0xa800c000, 0, 0 },
+  // bneic
+  { 0xc8100000, 0xfc1c0000, 0, 0x00000000, 0xa8000000, 0, 0 },
   { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
 };
 
@@ -10039,20 +9966,8 @@ Micromips_insn<size, big_endian>::micromips_gprel19_s2_expand[] =
   { 0x40000002, 0xfc000003, 0, 0xe0000000, 0x23800150, 0x84008000, 0 },
   // sw[gp]
   { 0x40000003, 0xfc000003, 0, 0xe0000000, 0x23800150, 0x84009000, 0 },
-  // addiu[gp]
+  // addiu[gp.w]
   { 0x40000000, 0xfc000003, 0, 0xe0000000, 0x23800150, 0x00000000, 0 },
-  { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
-};
-
-// Opcodes for addiu[gp] fix for cases we can't reach char/short symbols.
-template<int size, bool big_endian>
-const opcode_descriptor
-Micromips_insn<size, big_endian>::micromips_addiugp_fix[] =
-{
-  // addiu[gp] conversion into addiu.
-  { 0x40000000, 0xfc000003, 0, 0x001c0000, 0, 0, 0 },
-  // addiu[gp] plus addiu[rs5] fixup.
-  { 0x40000000, 0xfc000003, 0, 0x9008, 0, 0, 0 },
   { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
 };
 
@@ -10061,12 +9976,28 @@ template<int size, bool big_endian>
 const opcode_descriptor
 Micromips_insn<size, big_endian>::micromips_gprel18_expand[] =
 {
-  { 0x44000000, 0xfc1c0000, 0, 0xe0000000, 0x23800150, 0x84000000, 0 },// lb[gp]
-  { 0x44080000, 0xfc1c0000, 0, 0xe0000000, 0x23800150, 0x84002000, 0 },// lbu[gp]
-  { 0x44100000, 0xfc1c0000, 0, 0xe0000000, 0x23800150, 0x84004000, 0 },// lh[gp]
-  { 0x44180000, 0xfc1c0000, 0, 0xe0000000, 0x23800150, 0x84006000, 0 },// lhu[gp]
-  { 0x44040000, 0xfc1c0000, 0, 0xe0000000, 0x23800150, 0x84001000, 0 },// sb[gp]
-  { 0x44140000, 0xfc1c0000, 0, 0xe0000000, 0x23800150, 0x84005000, 0 },// sh[gp]
+  // lb[gp]
+  { 0x44000000, 0xfc1c0000, 0, 0xe0000000, 0x23800150, 0x84000000, 0 },
+  // lbu[gp]
+  { 0x44080000, 0xfc1c0000, 0, 0xe0000000, 0x23800150, 0x84002000, 0 },
+  // sb[gp]
+  { 0x44040000, 0xfc1c0000, 0, 0xe0000000, 0x23800150, 0x84001000, 0 },
+  // addiu[gp.b]
+  { 0x440c0000, 0xfc1c0000, 0, 0xe0000000, 0x23800150, 0x00000000, 0 },
+  { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
+};
+
+// Opcodes for R_MICROMIPS_GPREL17_S1 expansion.
+template<int size, bool big_endian>
+const opcode_descriptor
+Micromips_insn<size, big_endian>::micromips_gprel17_s1_expand[] =
+{
+  // lh[gp]
+  { 0x44100000, 0xfc1c0001, 0, 0xe0000000, 0x23800150, 0x84004000, 0 },
+  // lhu[gp]
+  { 0x44100001, 0xfc1c0001, 0, 0xe0000000, 0x23800150, 0x84006000, 0 },
+  // sh[gp]
+  { 0x44140000, 0xfc1c0001, 0, 0xe0000000, 0x23800150, 0x84005000, 0 },
   { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
 };
 
@@ -10075,18 +10006,10 @@ template<int size, bool big_endian>
 const opcode_descriptor
 Micromips_insn<size, big_endian>::micromips_pc10_s1_expand[] =
 {
-  { 0x1800, 0xfc00, 0, 0x28000000, 0, 0, 0 },// bc[16]
-  { 0x3800, 0xfc00, 0, 0x2a000000, 0, 0, 0 },// balc[16]
-  { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
-};
-
-// Opcodes for R_MICROMIPS_PC7_S1 expansion.
-template<int size, bool big_endian>
-const opcode_descriptor
-Micromips_insn<size, big_endian>::micromips_pc7_s1_expand[] =
-{
-  { 0x9800, 0xfc00, 0, 0xe8000000, 0, 0, 0 },// beqzc[16]
-  { 0xb800, 0xfc00, 0, 0xe8100000, 0, 0, 0 },// bnezc[16]
+  // bc[16]
+  { 0x1800, 0xfc00, 0, 0x28000000, 0, 0, 0 },
+  // balc[16]
+  { 0x3800, 0xfc00, 0, 0x2a000000, 0, 0, 0 },
   { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
 };
 
@@ -10095,17 +10018,22 @@ template<int size, bool big_endian>
 const opcode_descriptor
 Micromips_insn<size, big_endian>::micromips_pc4_s1_expand[] =
 {
-  { 0xd800, 0xfc00, 0, 0x88000000, 0, 0, 0 },// beqc[16]
-  { 0xd800, 0xfc00, 0, 0xa8000000, 0, 0, 0 },// bnec[16]
+  // beqc[16]
+  { 0xd800, 0xfc00, 0, 0x88000000, 0, 0, 0 },
+  // bnec[16]
+  { 0xd800, 0xfc00, 0, 0xa8000000, 0, 0, 0 },
   { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
 };
 
-// Opcode for lw[gp16] expansion.
+// Opcodes for R_MICROMIPS_GPREL7_S2 expansion.
 template<int size, bool big_endian>
 const opcode_descriptor
-Micromips_insn<size, big_endian>::micromips_lwgp_expand[] =
+Micromips_insn<size, big_endian>::micromips_gprel7_s2_expand[] =
 {
-  { 0xb400, 0xfc00, 0, 0x40000002, 0, 0, 0 },// lw[gp16]
+  // lw[gp16]
+  { 0xb400, 0xfc00, 0, 0x40000002, 0, 0, 0 },
+  // sw[gp16]
+  { 0xbc00, 0xfc00, 0, 0x40000003, 0, 0, 0 },
   { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
 };
 
@@ -10114,8 +10042,10 @@ template<int size, bool big_endian>
 const opcode_descriptor
 Micromips_insn<size, big_endian>::micromips_lo4_s2_expand[] =
 {
-  { 0x7400, 0xfc00, 0, 0x84008000, 0, 0, 0 },// lw[16]
-  { 0xf400, 0xfc00, 0, 0x84009000, 0, 0, 0 },// sw[16]
+  // lw[16]
+  { 0x7400, 0xfc00, 0, 0x84008000, 0, 0, 0 },
+  // sw[16]
+  { 0xf400, 0xfc00, 0, 0x84009000, 0, 0, 0 },
   { 0, 0, 0, 0, 0, 0, 0 } // End marker for find_match().
 };
 
@@ -10135,14 +10065,6 @@ Micromips_insn<size, big_endian>::can_relax(Valtype value)
            check_overflow<11>(value, Reloc_funcs::CHECK_SIGNED) ==
              Reloc_funcs::STATUS_OKAY)
     return true;
-  // beqzc/bnezc relaxation to beqzc[16]/bnezc[16]
-  else if (this->r_type_ == elfcpp::R_MICROMIPS_PC20_S1
-           && this->find_match(micromips_pc20_s1_relax)
-           && this->valid_reg_16(this->treg_32())
-           && Reloc_funcs::template
-                check_overflow<8>(value, Reloc_funcs::CHECK_SIGNED) ==
-                  Reloc_funcs::STATUS_OKAY)
-    return true;
   // beqc/bnec relaxation to beqc[16]/bnec[16]
   else if (this->r_type_ == elfcpp::R_MICROMIPS_PC14_S1
            && this->find_match(micromips_pc14_s1_relax)
@@ -10152,10 +10074,9 @@ Micromips_insn<size, big_endian>::can_relax(Valtype value)
                 check_overflow<5>(value, Reloc_funcs::CHECK_UNSIGNED) ==
                   Reloc_funcs::STATUS_OKAY)
     return true;
-  // lw[gp] relaxation to lw[gp16]
+  // lw[gp]/sw[gp] relaxation to lw[gp16]/sw[gp16]
   else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL19_S2
-           && this->find_match(micromips_lwgp_relax)
-           && this->valid_reg_16(this->treg_32())
+           && this->may_relax_gpre19_s2()
            && Reloc_funcs::template
                 check_overflow<9>(value, Reloc_funcs::CHECK_UNSIGNED) ==
                   Reloc_funcs::STATUS_OKAY)
@@ -10170,11 +10091,8 @@ Micromips_insn<size, big_endian>::can_relax(Valtype value)
                   Reloc_funcs::STATUS_OKAY)
     {
       unsigned int treg = this->treg_32();
-      // Check if a 5-bit register index can be abbreviated to 3 bits
-      // for rt register in sw instruction.
-      if ((this->insn_ & 0xfc00f000) == 0x84009000)
-        return ((4 <= treg && treg <= 7) || (17 <= treg && treg <= 19)
-                || treg == 0);
+      if (this->new_insn_ == &micromips_lo12_relax[1])
+        return this->valid_reg_16_st(treg);
       else
         return this->valid_reg_16(treg);
     }
@@ -10232,7 +10150,7 @@ Micromips_insn<size, big_endian>::must_expand(Valtype value)
       this->count_ = 4;
       return true;
     }
-  // lw[gp]/sw[gp]/addiu[gp] expansion to lui, addu, lw/sw/addiu
+  // lw[gp]/sw[gp]/addiu[gp.w] expansion to lui, addu, lw/sw/addiu
   else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL19_S2
            && this->find_match(micromips_gprel19_s2_expand)
            && Reloc_funcs::template
@@ -10243,9 +10161,20 @@ Micromips_insn<size, big_endian>::must_expand(Valtype value)
       this->count_ = 8;
       return true;
     }
-  // load[gp]/store[gp] expansion to lui, addu, load/store
+  // lb[gp]/lbu[gp]/sb[gp]/addiu[gp.b] expansion to lui, addu, lb/lbu/sb/addiu
   else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL18
            && this->find_match(micromips_gprel18_expand)
+           && Reloc_funcs::template
+                check_overflow<18>(value, Reloc_funcs::CHECK_UNSIGNED) ==
+                  Reloc_funcs::STATUS_OVERFLOW)
+    {
+      this->offset_ = 4;
+      this->count_ = 8;
+      return true;
+    }
+  // lh[gp]/lhu[gp]/sh[gp] expansion to lui, addu, lh/lhu/sh
+  else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL17_S1
+           && this->find_match(micromips_gprel17_s1_expand)
            && Reloc_funcs::template
                 check_overflow<18>(value, Reloc_funcs::CHECK_UNSIGNED) ==
                   Reloc_funcs::STATUS_OVERFLOW)
@@ -10259,17 +10188,6 @@ Micromips_insn<size, big_endian>::must_expand(Valtype value)
            && this->find_match(micromips_pc10_s1_expand)
            && Reloc_funcs::template
                 check_overflow<11>(value, Reloc_funcs::CHECK_SIGNED) ==
-                  Reloc_funcs::STATUS_OVERFLOW)
-    {
-      this->offset_ = 2;
-      this->count_ = 2;
-      return true;
-    }
-  // beqzc[16]/bnezc[16] expansion to beqzc/bnezc
-  else if (this->r_type_ == elfcpp::R_MICROMIPS_PC7_S1
-           && this->find_match(micromips_pc7_s1_expand)
-           && Reloc_funcs::template
-                check_overflow<8>(value, Reloc_funcs::CHECK_SIGNED) ==
                   Reloc_funcs::STATUS_OVERFLOW)
     {
       this->offset_ = 2;
@@ -10291,9 +10209,9 @@ Micromips_insn<size, big_endian>::must_expand(Valtype value)
       this->count_ = 2;
       return true;
     }
-  // lw[gp16] expansion to lw[gp]
+  // lw[gp16]/sw[gp16] expansion to lw[gp]/sw[gp]
   else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL7_S2
-           && this->find_match(micromips_lwgp_expand)
+           && this->find_match(micromips_gprel7_s2_expand)
            && Reloc_funcs::template
                 check_overflow<9>(value, Reloc_funcs::CHECK_UNSIGNED) ==
                   Reloc_funcs::STATUS_OVERFLOW)
@@ -10318,46 +10236,6 @@ Micromips_insn<size, big_endian>::must_expand(Valtype value)
   return false;
 }
 
-// Return true if we must fix addiu[gp] instruction for cases we can't reach
-// char/short symbols.
-
-template<int size, bool big_endian>
-bool
-Micromips_insn<size, big_endian>::must_fix_addiugp(
-    Mips_relobj<size, big_endian>* mips_relobj,
-    Valtype value,
-    unsigned int reloc_shndx,
-    unsigned int reloc_index)
-{
-  if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL19_S2
-      && this->find_match(micromips_addiugp_fix)
-      && (value & 3)
-      && !mips_relobj->has_addiugp_fixup(reloc_shndx, reloc_index))
-    {
-      // Try to convert addiu[gp] into addiu $reg, $gp, imm.
-      if (Reloc_funcs::template
-            check_overflow<14>(value, Reloc_funcs::CHECK_SIGNED) ==
-              Reloc_funcs::STATUS_OKAY)
-        {
-          this->addiugp_fix_type_ = CONVERT;
-          this->count_ = 0;
-        }
-      else
-        {
-          // Add addiu[rs5] instruction as a fixup.
-          this->addiugp_fix_type_ = FIXUP;
-          this->new_insn_ = &micromips_addiugp_fix[1];
-          this->count_ = 2;
-          mips_relobj->add_addiugp_fixup(reloc_shndx, reloc_index);
-        }
-
-      this->offset_ = 4;
-      return true;
-    }
-
-  return false;
-}
-
 // Relax instruction.
 
 template<int size, bool big_endian>
@@ -10376,12 +10254,6 @@ Micromips_insn<size, big_endian>::relax(
   if (this->r_type_ == elfcpp::R_MICROMIPS_PC25_S1)
     {
       relax_r_type = elfcpp::R_MICROMIPS_PC10_S1;
-      reloc_current.put_r_addend(r_addend + 2);
-    }
-  else if (this->r_type_ == elfcpp::R_MICROMIPS_PC20_S1)
-    {
-      relax_insn |= ((this->treg_32() & 7) << 7);
-      relax_r_type = elfcpp::R_MICROMIPS_PC7_S1;
       reloc_current.put_r_addend(r_addend + 2);
     }
   else if (this->r_type_ == elfcpp::R_MICROMIPS_PC14_S1)
@@ -10423,20 +10295,12 @@ Micromips_insn<size, big_endian>::expand(
     typename elfcpp::Elf_types<size>::Elf_Swxword r_addend,
     Mips_input_section* pmis,
     bool* is_reloc_added,
-    Valtype value,
     unsigned int expand_reg)
 {
   gold_assert(this->new_insn_ != NULL);
   const int reloc_size =
     Reloc_types<elfcpp::SHT_RELA, size, big_endian>::reloc_size;
   Reltype_write reloc_current(preloc_current);
-
-  // Check if we need to fix addiu[gp] instruction.
-  if (this->addiugp_fix_type_ != NO_FIX)
-    {
-      this->fix_addiugp(insn_view, preloc_current, r_sym, value);
-      return;
-    }
 
   if (this->r_type_ == elfcpp::R_MICROMIPS_PC25_S1)
     {
@@ -10473,7 +10337,14 @@ Micromips_insn<size, big_endian>::expand(
     {
        // Write move16 insn.
        unsigned int rd = ((this->insn_ >> 24) & 0x1) + 4;
-       unsigned int rt = ((this->insn_ >> 21) & 0x17);
+       unsigned int rt = (((this->insn_ >> 21) & 0x7)
+                          | ((this->insn_ >> 23) & 0x8));
+
+       if (rt == 3)
+         rt = 0;
+       else if (rt < 4 || rt > 7)
+         rt += 8;
+
        Valtype16 move_insn =
          static_cast<Valtype16>(this->new_insn_->expand_opcode1);
        move_insn |= ((rd << 5) | rt);
@@ -10544,7 +10415,8 @@ Micromips_insn<size, big_endian>::expand(
       this->put_insn_32(insn_view + 4, b_cc_c_insn);
     }
   else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL19_S2
-           || this->r_type_ == elfcpp::R_MICROMIPS_GPREL18)
+           || this->r_type_ == elfcpp::R_MICROMIPS_GPREL18
+           || this->r_type_ == elfcpp::R_MICROMIPS_GPREL17_S1)
     {
       // Change existing relocation.
       reloc_current.put_r_info(
@@ -10585,28 +10457,24 @@ Micromips_insn<size, big_endian>::expand(
           expand_r_type = elfcpp::R_MICROMIPS_PC25_S1;
           reloc_current.put_r_addend(r_addend - 2);
         }
-      else if (this->r_type_ == elfcpp::R_MICROMIPS_PC7_S1)
-        {
-          unsigned int treg32 = this->reg_16_to_32(this->treg_16());
-          expand_insn |= (treg32 << 21);
-
-          expand_r_type = elfcpp::R_MICROMIPS_PC20_S1;
-          reloc_current.put_r_addend(r_addend - 2);
-        }
       else if (this->r_type_ == elfcpp::R_MICROMIPS_PC4_S1)
         {
           unsigned int treg32 = this->reg_16_to_32(this->treg_16());
           unsigned int sreg32 = this->reg_16_to_32(this->sreg_16());
           expand_insn |= ((treg32 << 21) | (sreg32 << 16));
-
           expand_r_type = elfcpp::R_MICROMIPS_PC14_S1;
           reloc_current.put_r_addend(r_addend - 2);
         }
       else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL7_S2)
         {
-          unsigned int treg32 = this->reg_16_to_32(this->treg_16());
-          expand_insn |= (treg32 << 21);
+          unsigned int treg32 = this->treg_16();
 
+          if (this->new_insn_ == &micromips_gprel7_s2_expand[1])
+            treg32 = this->reg_16_to_32_st(treg32);
+          else
+            treg32 = this->reg_16_to_32(treg32);
+
+          expand_insn |= (treg32 << 21);
           expand_r_type = elfcpp::R_MICROMIPS_GPREL19_S2;
         }
       else if (this->r_type_ == elfcpp::R_MICROMIPS_LO4_S2)
@@ -10614,9 +10482,8 @@ Micromips_insn<size, big_endian>::expand(
           unsigned int sreg32 = this->reg_16_to_32(this->sreg_16());
           unsigned int treg32 = this->treg_16();
 
-          // Convert 16bit to 32bit target register in sw instruction.
-          if ((this->insn_ & 0xfc00) == 0xf400)
-            treg32 = ((1 <= treg32 && treg32 <= 3) ? treg32 + 16 : treg32);
+          if (this->new_insn_ == &micromips_lo4_s2_expand[1])
+            treg32 = this->reg_16_to_32_st(treg32);
           else
             treg32 = this->reg_16_to_32(treg32);
 
@@ -10630,44 +10497,6 @@ Micromips_insn<size, big_endian>::expand(
       reloc_current.put_r_info(elfcpp::elf_r_info<size>(r_sym, expand_r_type));
       // Write expanded instruction.
       this->put_insn_32(insn_view, expand_insn);
-    }
-  else
-    gold_unreachable();
-}
-
-// Fix addiu[gp] instruction.
-
-template<int size, bool big_endian>
-void
-Micromips_insn<size, big_endian>::fix_addiugp(
-    unsigned char* insn_view,
-    unsigned char* preloc_current,
-    unsigned int r_sym,
-    Valtype value)
-{
-  gold_assert(this->new_insn_ != NULL);
-  gold_assert(this->r_type_ == elfcpp::R_MICROMIPS_GPREL19_S2);
-  Reltype_write reloc_current(preloc_current);
-
-  if (this->addiugp_fix_type_ == CONVERT)
-    {
-      // Change existing relocation.
-      reloc_current.put_r_info(
-        elfcpp::elf_r_info<size>(r_sym, elfcpp::R_MICROMIPS_GPREL14));
-
-      // Write addiu instruction.
-      Valtype32 insn = (this->new_insn_->expand_opcode1
-                        | (this->treg_32() << 21));
-      this->put_insn_32(insn_view, insn);
-    }
-  else if (this->addiugp_fix_type_ == FIXUP)
-    {
-      // Write addiurs5 instruction.
-      Valtype16 addiurs5 =
-        static_cast<Valtype16>(this->new_insn_->expand_opcode1);
-
-      addiurs5 |= ((this->treg_32() << 5) | (value & 3));
-      elfcpp::Swap<16, big_endian>::writeval(insn_view + 4, addiurs5);
     }
   else
     gold_unreachable();
@@ -13178,11 +13007,9 @@ Target_mips<size, big_endian>::scan_reloc_section_for_relax_or_expand(
         {
         case elfcpp::R_MICROMIPS_PC25_S1:
         case elfcpp::R_MICROMIPS_PC21_S1:
-        case elfcpp::R_MICROMIPS_PC20_S1:
         case elfcpp::R_MICROMIPS_PC14_S1:
         case elfcpp::R_MICROMIPS_PC11_S1:
         case elfcpp::R_MICROMIPS_PC10_S1:
-        case elfcpp::R_MICROMIPS_PC7_S1:
         case elfcpp::R_MICROMIPS_PC4_S1:
           value =
             psymval->value(mips_relobj, r_addend) - (view_address + offset);
@@ -13193,6 +13020,7 @@ Target_mips<size, big_endian>::scan_reloc_section_for_relax_or_expand(
           break;
         case elfcpp::R_MICROMIPS_GPREL19_S2:
         case elfcpp::R_MICROMIPS_GPREL18:
+        case elfcpp::R_MICROMIPS_GPREL17_S1:
         case elfcpp::R_MICROMIPS_GPREL7_S2:
           {
             if (this->gp_ == NULL)
@@ -13218,10 +13046,7 @@ Target_mips<size, big_endian>::scan_reloc_section_for_relax_or_expand(
       insn.init(view + offset, r_type);
 
       if (((this->state_ == RELAX) && insn.can_relax(value))
-          || ((this->state_ == EXPAND)
-               && (insn.must_expand(value)
-                   || insn.must_fix_addiugp(mips_relobj, value,
-                                            relinfo->reloc_shndx, i))))
+          || ((this->state_ == EXPAND) && insn.must_expand(value)))
         {
           // That will change things, so we should relax or expand again.
           again = true;
@@ -13250,7 +13075,7 @@ Target_mips<size, big_endian>::scan_reloc_section_for_relax_or_expand(
             {
               bool is_reloc_added = false;
               insn.expand(insn_view, preloc_current, r_sym, r_offset,
-                          r_addend, pmis, &is_reloc_added, value, expand_reg);
+                          r_addend, pmis, &is_reloc_added, expand_reg);
 
               if (is_debugging_enabled(DEBUG_TARGET))
                 insn.print_expand(mips_relobj->name(),
@@ -13482,9 +13307,9 @@ Target_mips<size, big_endian>::Scan::local(
                                                            &view_size, false);
       view += r_offset;
       insn.init(view, r_type);
-      // Check if a lw[gp] instruction may be relaxed into lw[gp16]
-      // in a relaxation pass.
-      if (insn.may_relax_lwgp())
+      // Check if a lw[gp]/sw[gp] instruction may be relaxed into
+      // lw[gp16]/sw[gp16] in a relaxation pass.
+      if (insn.may_relax_gpre19_s2())
         {
           unsigned int shndx = lsym.get_st_shndx();
           bool dummy;
@@ -13947,9 +13772,9 @@ Target_mips<size, big_endian>::Scan::global(
                                                            &view_size, false);
       view += r_offset;
       insn.init(view, r_type);
-      // Check if a lw[gp] instruction may be relaxed into lw[gp16]
-      // in a relaxation pass.
-      if (insn.may_relax_lwgp()
+      // Check if a lw[gp]/sw[gp] instruction may be relaxed into
+      // lw[gp16]/sw[gp16] in a relaxation pass.
+      if (insn.may_relax_gpre19_s2()
           && (mips_sym->source() == Symbol::FROM_OBJECT))
         {
           bool dummy;
@@ -14037,11 +13862,12 @@ Target_mips<size, big_endian>::Scan::global(
     case elfcpp::R_MIPS_GPREL32:
     case elfcpp::R_MIPS16_GPREL:
     case elfcpp::R_MICROMIPS_GPREL16:
+    case elfcpp::R_MICROMIPS_GPREL32:
     case elfcpp::R_MICROMIPS_GPREL19_S2:
     case elfcpp::R_MICROMIPS_GPREL18_S3:
     case elfcpp::R_MICROMIPS_GPREL18:
+    case elfcpp::R_MICROMIPS_GPREL17_S1:
     case elfcpp::R_MICROMIPS_GPREL16_S2:
-    case elfcpp::R_MICROMIPS_GPREL14:
     case elfcpp::R_MICROMIPS_GPREL7_S2:
       // TODO(sasa)
       // GP-relative relocations always resolve to a definition in a
@@ -14084,9 +13910,9 @@ Target_mips<size, big_endian>::Scan::global(
     case elfcpp::R_MICROMIPS_PC10_S1:
     case elfcpp::R_MICROMIPS_PC16_S1:
     case elfcpp::R_MICROMIPS_PC23_S2:
+    case elfcpp::R_MICROMIPS_PC32:
     case elfcpp::R_MICROMIPS_PC25_S1:
     case elfcpp::R_MICROMIPS_PC21_S1:
-    case elfcpp::R_MICROMIPS_PC20_S1:
     case elfcpp::R_MICROMIPS_PC14_S1:
     case elfcpp::R_MICROMIPS_PC11_S1:
       static_reloc = true;
@@ -15376,6 +15202,10 @@ Target_mips<size, big_endian>::Relocate::relocate(
                                              &this->calculated_value_,
                                              &overflow_info);
           break;
+        case elfcpp::R_MICROMIPS_PC32:
+          reloc_status = Reloc_funcs::relmicromips_pc32(view, object, psymval,
+                                                        address, r_addend);
+          break;
         case elfcpp::R_MICROMIPS_PC25_S1:
           reloc_status = Reloc_funcs::relmicromips_pc25_s1(view, object,
                                                            psymval, address,
@@ -15385,13 +15215,6 @@ Target_mips<size, big_endian>::Relocate::relocate(
           break;
         case elfcpp::R_MICROMIPS_PC21_S1:
           reloc_status = Reloc_funcs::relmicromips_pc21_s1(view, object,
-                                                           psymval, address,
-                                                           r_addend,
-                                                           check_overflow,
-                                                           &overflow_info);
-          break;
-        case elfcpp::R_MICROMIPS_PC20_S1:
-          reloc_status = Reloc_funcs::relmicromips_pc20_s1(view, object,
                                                            psymval, address,
                                                            r_addend,
                                                            check_overflow,
@@ -15417,6 +15240,11 @@ Target_mips<size, big_endian>::Relocate::relocate(
                                                           r_addend,
                                                           &overflow_info);
           break;
+        case elfcpp::R_MICROMIPS_GPREL32:
+          reloc_status = Reloc_funcs::relmicromips_gprel32(view, object,
+                                     psymval, target->adjusted_gp_value(object),
+                                     r_addend, gsym == NULL);
+          break;
         case elfcpp::R_MICROMIPS_GPREL19_S2:
           reloc_status = Reloc_funcs::relmicromips_gprel19_s2(view, object,
                                      psymval, target->adjusted_gp_value(object),
@@ -15435,6 +15263,12 @@ Target_mips<size, big_endian>::Relocate::relocate(
                                      r_addend, gsym == NULL, check_overflow,
                                      &overflow_info);
           break;
+        case elfcpp::R_MICROMIPS_GPREL17_S1:
+          reloc_status = Reloc_funcs::relmicromips_gprel17_s1(view, object,
+                                     psymval, target->adjusted_gp_value(object),
+                                     r_addend, gsym == NULL, check_overflow,
+                                     &overflow_info);
+          break;
         case elfcpp::R_MICROMIPS_GPREL16_S2:
           reloc_status = Reloc_funcs::relmicromips_gprel16_s2(view, object,
                                      psymval, target->adjusted_gp_value(object),
@@ -15443,12 +15277,6 @@ Target_mips<size, big_endian>::Relocate::relocate(
           break;
         case elfcpp::R_MICROMIPS_GPREL7_S2:
           reloc_status = Reloc_funcs::relmicromips_gprel7_s2(view, object,
-                                     psymval, target->adjusted_gp_value(object),
-                                     r_addend, gsym == NULL, check_overflow,
-                                     &overflow_info);
-          break;
-        case elfcpp::R_MICROMIPS_GPREL14:
-          reloc_status = Reloc_funcs::relmicromips_gprel14(view, object,
                                      psymval, target->adjusted_gp_value(object),
                                      r_addend, gsym == NULL, check_overflow,
                                      &overflow_info);
@@ -15613,11 +15441,12 @@ Target_mips<size, big_endian>::Scan::get_reference_flags(
     case elfcpp::R_MIPS_GPREL16:
     case elfcpp::R_MIPS_REL32:
     case elfcpp::R_MIPS16_GPREL:
+    case elfcpp::R_MICROMIPS_GPREL32:
     case elfcpp::R_MICROMIPS_GPREL19_S2:
     case elfcpp::R_MICROMIPS_GPREL18_S3:
     case elfcpp::R_MICROMIPS_GPREL18:
+    case elfcpp::R_MICROMIPS_GPREL17_S1:
     case elfcpp::R_MICROMIPS_GPREL16_S2:
-    case elfcpp::R_MICROMIPS_GPREL14:
     case elfcpp::R_MICROMIPS_GPREL7_S2:
     case elfcpp::R_MICROMIPS_PCHI20:
     case elfcpp::R_MICROMIPS_PCLO12:
@@ -15631,9 +15460,9 @@ Target_mips<size, big_endian>::Scan::get_reference_flags(
     case elfcpp::R_MIPS_PC26_S2:
     case elfcpp::R_MIPS_JALR:
     case elfcpp::R_MICROMIPS_JALR:
+    case elfcpp::R_MICROMIPS_PC32:
     case elfcpp::R_MICROMIPS_PC25_S1:
     case elfcpp::R_MICROMIPS_PC21_S1:
-    case elfcpp::R_MICROMIPS_PC20_S1:
     case elfcpp::R_MICROMIPS_PC14_S1:
     case elfcpp::R_MICROMIPS_PC11_S1:
     case elfcpp::R_MICROMIPS_PC10_S1:

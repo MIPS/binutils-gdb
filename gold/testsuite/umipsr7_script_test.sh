@@ -37,14 +37,14 @@ check()
     fi
 }
 
-# Symbol c must be at the beginning of the section because it has been
-# read with lw[gp] instruction 3 times (objdump prints symbol c as _gp
-# because they have the same address).
+# Symbol d must be at the beginning of the section because it has been
+# read with lw[gp] instruction 2 times and 2 times with sw[gp] instruction
+# (objdump prints symbol d as _gp because they have the same address).
 check umipsr7_script_test.stdout "00400060 <_gp>"
-# Sumbol d has been read 2 times with lw[gp] instruction.  Note that we
+# Sumbol c has been read 2 times with lw[gp] instruction.  Note that we
 # don't take into account instruction where 5-bit register index can't
 # be abbreviated to 3 bits, and store instructions.
-check umipsr7_script_test.stdout "00400064 <d>"
+check umipsr7_script_test.stdout "00400064 <c>"
 # Symbol b has been read 1 time.
 check umipsr7_script_test.stdout "00400068 <b>"
 # After most commonly read symbols with lw[gp] instruction, we place bytes,
