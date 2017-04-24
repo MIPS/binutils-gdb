@@ -466,6 +466,8 @@ enum mips_operand_type {
   /* Don't care bits.  */
   OP_DONT_CARE,
 
+  /* Immediate unsigned word operand, to be negated.  */
+  OP_NEG_INT,
 };
 
 /* Enumerates the types of MIPS register.  */

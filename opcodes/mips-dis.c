@@ -1774,6 +1774,11 @@ print_insn_arg (struct disassemble_info *info,
 
     case OP_DONT_CARE:
       break;
+
+    case OP_NEG_INT:
+      infprintf (is, "-%d", uval);
+      break;
+
     }
 }
 
