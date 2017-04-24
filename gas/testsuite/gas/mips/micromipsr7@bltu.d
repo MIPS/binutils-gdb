@@ -14,7 +14,7 @@ Disassembly of section \.text:
 			4: R_MICROMIPS_PC14_S1	text_label-0x4
 0+0008 <text_label\+0x8> c89c 1000 	bltiuc	a0,2,0000000c <text_label\+0xc>
 			8: R_MICROMIPS_PC11_S1	text_label-0x4
-0+000c <text_label\+0xc> e020 8000 	lui	at,0x8
+0+000c <text_label\+0xc> 0020 8000 	li	at,32768
 0+0010 <text_label\+0x10> 2024 0b90 	sltu	at,a0,at
 0+0014 <text_label\+0x14> a820 0000 	bnezc	at,00000018 <text_label\+0x18>
 			14: R_MICROMIPS_PC14_S1	text_label-0x4

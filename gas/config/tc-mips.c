@@ -1297,9 +1297,10 @@ static int mips_relax_branch;
    || (((x) &~ (offsetT) 0x7fff) == ~ (offsetT) 0x7fff))
 
 /* Is the given value a sign-extended 14-bit value?  */
-#define IS_SEXT_14BIT_NUM(x)						\
-  (((x) &~ (offsetT) 0x1fff) == 0					\
-   || (((x) &~ (offsetT) 0x1fff) == ~ (offsetT) 0x1fff))
+#define IS_SEXT_16BIT_UINT(x)  (((x) &~ (offsetT) 0xffff) == 0)
+
+#define IS_SEXT_12BIT_NEG(x)						\
+  (((x) &~ (offsetT) 0xfff) == ~ (offsetT) 0xfff)
 
 /* Is the given value a sign-extended 12-bit value?  */
 #define IS_SEXT_12BIT_NUM(x)						\
@@ -4503,7 +4504,8 @@ micromipspp_reloc_p (bfd_reloc_code_real_type reloc)
       case BFD_RELOC_MICROMIPSPP_GOT_PAGE:
       case BFD_RELOC_MICROMIPSPP_GOT_OFST:
       case BFD_RELOC_MICROMIPSPP_GOT_DISP:
-      case BFD_RELOC_MICROMIPSPP_IMM14:
+      case BFD_RELOC_MICROMIPSPP_IMM16:
+      case BFD_RELOC_MICROMIPSPP_NEG12:
       case BFD_RELOC_MICROMIPSPP_32:
       case BFD_RELOC_MICROMIPSPP_PC32:
       case BFD_RELOC_MICROMIPSPP_GPREL32:
@@ -4965,6 +4967,7 @@ operand_reg_mask (const struct mips_cl_insn *insn,
     case OP_PC_WORD:
     case OP_GPREL_WORD:
     case OP_DONT_CARE:
+    case OP_NEG_INT:
       abort ();
 
     case OP_REG28:
@@ -5578,6 +5581,22 @@ micromipspp_gprel_for_int_operand (const struct mips_operand *operand_base)
 }
 
 static bfd_boolean
+match_negative_int_operand (struct mips_arg_info *arg,
+			    const struct mips_operand *operand_base)
+{
+  offsetT sval;
+
+  if (!match_const_int (arg, &sval))
+	return FALSE;
+  if (sval > 0 || sval < -4095)
+    return FALSE;
+  sval = - sval;
+
+  insn_insert_operand (arg->insn, operand_base, sval);
+  return TRUE;
+}
+
+static bfd_boolean
 match_int_operand (struct mips_arg_info *arg,
 		   const struct mips_operand *operand_base)
 {
@@ -5635,7 +5654,7 @@ match_int_operand (struct mips_arg_info *arg,
       /* For compatibility with older assemblers, we accept
 	 0x8000-0xffff as signed 16-bit numbers when only
 	 signed numbers are allowed.  */
-      if (sval > max_val)
+      if (!ISA_IS_R7 (mips_opts.isa) && sval > max_val)
 	{
 	  max_val = ((1 << operand_base->size) - 1) << operand->shift;
 	  if (!arg->lax_match && sval <= max_val)
@@ -5687,6 +5706,11 @@ match_int_operand (struct mips_arg_info *arg,
   return TRUE;
 }
 
+#define MAX_ADDI_OFFSET (ISA_IS_R7 (mips_opts.isa)? 0xffff : 0x8000)
+
+#define MIN_ADDI_OFFSET (ISA_IS_R7 (mips_opts.isa)? -4095 : -0x8000)
+
+
 static bfd_boolean
 match_immediate_word (struct mips_arg_info *arg)
 {
@@ -5725,8 +5749,6 @@ static bfd_boolean
 match_immediate_pcrel_word (struct mips_arg_info *arg,
 			    const struct mips_operand *operand ATTRIBUTE_UNUSED)
 {
-  unsigned int uval;
-
   if (match_expression (arg, &offset_expr, offset_reloc))
     {
       if (offset_reloc[0] != BFD_RELOC_UNUSED
@@ -5747,8 +5769,6 @@ static bfd_boolean
 match_immediate_gprel_word (struct mips_arg_info *arg,
 			    const struct mips_operand *operand ATTRIBUTE_UNUSED)
 {
-  unsigned int uval;
-
   if (match_expression (arg, &offset_expr, offset_reloc))
     {
       if (offset_reloc[0] != BFD_RELOC_UNUSED
@@ -7096,6 +7116,9 @@ match_operand (struct mips_arg_info *arg,
 
     case OP_DONT_CARE:
       return FALSE;
+
+    case OP_NEG_INT:
+      return match_negative_int_operand (arg, operand);
    }
   abort ();
 }
@@ -8718,9 +8741,13 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	  ip->complete_p = 1;
 	  break;
 
-	case BFD_RELOC_MICROMIPSPP_IMM14:
-	  ip->insn_opcode |= (address_expr->X_add_number & 0x2000) << 2;
-	  ip->insn_opcode |= address_expr->X_add_number & 0x1fff;
+	case BFD_RELOC_MICROMIPSPP_IMM16:
+	  ip->insn_opcode |= address_expr->X_add_number & 0xffff;
+	  ip->complete_p = 1;
+	  break;
+
+	case BFD_RELOC_MICROMIPSPP_NEG12:
+	  ip->insn_opcode |= (-address_expr->X_add_number) & 0xfff;
 	  ip->complete_p = 1;
 	  break;
 
@@ -10322,7 +10349,7 @@ static const char * const move_fmt[2] = { "mp,mj", "-p,mj" };
 #define DIV_FMT (div_fmt[ISA_IS_R7 (mips_opts.isa) ? 1 : 0])
 #define MOVE_FMT (move_fmt[ISA_IS_R7 (mips_opts.isa) ? 1 : 0])
 #define ISA_OFFBITS (ISA_IS_R7 (mips_opts.isa)? 12 : 16)
-#define ISA_ADD_OFFBITS (ISA_IS_R7 (mips_opts.isa)? 14 : 16)
+#define ISA_ADD_OFFBITS 16
 #define ISA_COP2_OFFBITS (ISA_IS_R7 (mips_opts.isa) ? 9 	\
 			  : (ISA_IS_R6 (mips_opts.isa) ? 11	\
 			     : (mips_opts.micromips ? 12	\
@@ -10379,7 +10406,9 @@ macro_match_micromipspp_reloc (const char *fmt, bfd_reloc_code_real_type *r)
       if (*fmt == 'o')
 	*r = BFD_RELOC_MICROMIPSPP_LO12;
       else if (*fmt == 'j')
-	*r = BFD_RELOC_MICROMIPSPP_IMM14;
+	*r = BFD_RELOC_MICROMIPSPP_IMM16;
+      else if (*fmt == 'h')
+	*r = BFD_RELOC_MICROMIPSPP_NEG12;
     }
   else if (*r == BFD_RELOC_16_PCREL_S2)
     {
@@ -10445,8 +10474,14 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
   r[2] = BFD_RELOC_UNUSED;
   if (mips_opts.micromips)
     {
-      if (mips_opts.isa == ISA_MIPS32R7)
-	hash = micromipspp_op_hash;
+      if (ISA_IS_R7 (mips_opts.isa))
+	{
+	  hash = micromipspp_op_hash;
+	  if (strcmp (name, "addiu") == 0
+	      && strcmp (fmt, "-t,r,j") == 0
+	      && IS_SEXT_12BIT_NEG (ep->X_add_number))
+	    fmt = "t,r,h";
+	}
       else
 	hash = micromips_op_hash;
     }
@@ -10500,6 +10535,7 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 
 	case 'i':
 	case 'j':
+	case 'h':
 	  macro_read_relocs (&args, r);
 	  if (ISA_IS_R7 (mips_opts.isa))
 	    macro_match_micromipspp_reloc (fmt, r);
@@ -10997,13 +11033,19 @@ load_register (int reg, expressionS *ep, int dbl)
 	      macro_build (NULL, "li", "md,mI", reg, ep->X_add_number);
 	      return;
 	    }
-	  if (IS_SEXT_14BIT_NUM (ep->X_add_number))
+	  if (IS_SEXT_16BIT_UINT (ep->X_add_number))
 	    {
-	      /* We can handle 14 bit signed values with an addiu to
+	      /* We can handle 16 bit unsigned values with an addiu to
 		 $zero.  No need to ever use daddiu here, since $zero and
 		 the result are always correct in 32 bit mode.  */
 	      macro_build (ep, "addiu", ADDIU_FMT, reg, 0,
-			   BFD_RELOC_MICROMIPSPP_IMM14);
+			   BFD_RELOC_MICROMIPSPP_IMM16);
+	      return;
+	    }
+	  else if (IS_SEXT_12BIT_NEG (ep->X_add_number))
+	    {
+	      macro_build (ep, "addiu", "t,r,h", reg, 0,
+			   BFD_RELOC_MICROMIPSPP_NEG12);
 	      return;
 	    }
 	  else if ((IS_SEXT_32BIT_NUM (ep->X_add_number)))
@@ -11887,7 +11929,7 @@ small_offset_p (unsigned int range, unsigned int align, unsigned int offbits)
     return TRUE;
 
   if (ISA_IS_R7 (mips_opts.isa) && offbits >= ISA_OFFBITS
-      && offbits <= ISA_ADD_OFFBITS && (range < align)
+      && offbits < ISA_ADD_OFFBITS && (range < align)
       && lo16_reloc_p (*offset_reloc))
     return TRUE;
 
@@ -14433,7 +14475,7 @@ macro (struct mips_cl_insn *ip, char *str)
       if (ISA_IS_R7 (mips_opts.isa))
 	{
 	  macro_build (&imm_expr, "addiu", ADDIU_FMT, SP, SP,
-		       BFD_RELOC_MICROMIPSPP_IMM14);
+		       BFD_RELOC_MICROMIPSPP_IMM16);
 	  macro_build (NULL, "jrc", "s", RA);
 	}
       else
@@ -17849,8 +17891,9 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       write_compressed_insn (buf, *valP & 0xffffffff, 4);
       break;
 
+
     case BFD_RELOC_MICROMIPSPP_LO12:
-    case BFD_RELOC_MICROMIPSPP_IMM14:
+    case BFD_RELOC_MICROMIPSPP_NEG12:
       if (! fixP->fx_done)
 	break;
 
@@ -17860,6 +17903,16 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 
       write_reloc_insn (buf, fixP->fx_r_type, insn);
       break;
+
+    case BFD_RELOC_MICROMIPSPP_IMM16:
+      if (! fixP->fx_done)
+	break;
+
+      insn = read_reloc_insn (buf, fixP->fx_r_type);
+      insn |= *valP & 0xffff;
+      write_reloc_insn (buf, fixP->fx_r_type, insn);
+      break;
+
 
     case BFD_RELOC_MICROMIPSPP_PC32:
     case BFD_RELOC_MICROMIPSPP_LO12_PCREL:

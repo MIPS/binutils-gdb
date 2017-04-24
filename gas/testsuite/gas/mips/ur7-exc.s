@@ -1,4 +1,5 @@
 	.text
+	.extern test2
 	.ent	test
 	.globl	test
 test:
@@ -122,6 +123,64 @@ test:
 	lwxs	$7, $16($17)
 	lwxs	$18, $19($4)
 
+	sw	$16,%gp_rel(x)($28)
+	sw	$17,16($28)
+	sw16	$17,16($28)
+	sw16	$17,%gp_rel(test)($28)
+	addiupc $5,test
+	addiupc $5,test2
+	.set at
+	pref 	4,4000($3)
+	pref 	4,-30($3)
+	pref 	4,%lo(test)($3)
+	/*
+	lwm 	$4, 16($3), 1
+	lwm 	$4, 16($3), 2
+	lwm 	$4, 16($3), 3
+	lwm 	$4, 16($3), 7
+	lwm 	$4, 16($3), 8
+	*/
+	bbeqzc $4,24,test
+	bbeqzc $4,1,test
+	bbeqzc $4,31,test
+	bbnezc $4,0,test
+	bbnezc $4,36,test
+	teq	$3, $4
+	tne $5,$6
+	addu $8,$8,$10
+	mulu $20,$20,$22
+	addiupc $3, 0xfffffff
+	lwpc $3, 10000
+	swpc $3, 10000
+	ldpc $5, 10000
+	sdpc $8, 10000
+	addiupc48 $3, test
+	lwpc $3, test
+	swpc $3, test
+	ldpc $5, test
+	sdpc $8, test
+
+	ualh	$2, 4($5)
+	uash	$2, 4($5)
+	ualwm	$2, 4($5),4
+	uaswm	$2, 4($5),6
+	ualw	$2, 4($5)
+	uasw	$2, 4($5)
+	ualwm	$2, 4($5),8
+	uaswm	$2, 4($5),7
+	
+	lwm	$2, 4($5),8
+	swm	$2, 4($5),7
+
+	ualdm	$2, 4($5),4
+	uasdm	$2, 4($5),6
+	uald	$2, 4($5)
+	uasd	$2, 4($5)
+	ualdm	$2, 4($5),8
+	uasdm	$2, 4($5),7
+	ldm	$2, 4($5),8
+	sdm	$2, 4($5),7
+	
 	.end	test
 	.align	2
 	.space	8

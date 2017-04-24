@@ -10,7 +10,7 @@
 Disassembly of section \.text:
 0+0000 <foo> andi	a0,a0,0
 0+0004 <foo\+0x4> andi	a0,a0,1
-0+0008 <foo\+0x8> lui	at,0x8
+0+0008 <foo\+0x8> li	at,32768
 0+000c <foo\+0xc> and	a0,a0,at
 0+0010 <foo\+0x10> lui	at,0xffff8
 0+0014 <foo\+0x14> and	a0,a0,at
@@ -23,7 +23,7 @@ Disassembly of section \.text:
 0+0030 <foo\+0x30> nor	a0,a1,at
 0+0034 <foo\+0x34> li	at,1
 0+0038 <foo\+0x38> nor	a0,a1,at
-0+003c <foo\+0x3c> lui	at,0x8
+0+003c <foo\+0x3c> li	at,32768
 0+0040 <foo\+0x40> nor	a0,a1,at
 0+0044 <foo\+0x44> lui	at,0xffff8
 0+0048 <foo\+0x48> nor	a0,a1,at

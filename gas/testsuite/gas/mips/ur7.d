@@ -44,9 +44,8 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 87e2 3800 	pref	0x1f,2048\(v0\)
 [0-9a-f]+ <[^>]+> 0022 97ff 	addiu	at,v0,-2049
 [0-9a-f]+ <[^>]+> a7e1 1800 	synci	0\(at\)
-[0-9a-f]+ <[^>]+> e020 8000 	lui	at,0x8
-[0-9a-f]+ <[^>]+> 2041 0950 	addu	at,at,v0
-[0-9a-f]+ <[^>]+> a461 98ff 	pref	0x3,-1\(at\)
+[0-9a-f]+ <[^>]+> 0022 7fff 	addiu	at,v0,32767
+[0-9a-f]+ <[^>]+> a461 98ff 	pref	0x3,0\(at\)
 [0-9a-f]+ <[^>]+> e03f 8ffd 	lui	at,0xffff8
 [0-9a-f]+ <[^>]+> 2041 0950 	addu	at,at,v0
 [0-9a-f]+ <[^>]+> a461 1800 	pref	0x3,0\(at\)
@@ -222,7 +221,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 73ff      	addiu	a3,sp,252
 [0-9a-f]+ <[^>]+> 707f      	addiu	s0,sp,252
 [0-9a-f]+ <[^>]+> 70ff      	addiu	s1,sp,252
-[0-9a-f]+ <[^>]+> 0064 8000 	addiu	v1,a0,-8192
+[0-9a-f]+ <[^>]+> 8064 8ffc 	addiu	v1,a0,-4092
 [0-9a-f]+ <[^>]+> 91c0      	addiu	s3,a0,0
 [0-9a-f]+ <[^>]+> 0064 1fff 	addiu	v1,a0,8191
 [0-9a-f]+ <[^>]+> 0064 9fff 	addiu	v1,a0,-1

@@ -286,8 +286,10 @@ decode_micromipspp_operand (const char *p)
     case 'd': REG (5, 11, GP);
 /*     case 'h': HINT (5, 11); */
     case 'i': UINT (12, 0);
-    case 'j': SINT_SPLIT (14, 0, 0, 1, 15);
+/*     case 'j': SINT_SPLIT (14, 0, 0, 1, 15); */
+    case 'j': UINT (16, 0);
     case 'k': HINT (5, 21);
+    case 'h': SPECIAL (12, 0, NEG_INT);
     case 'n': SPECIAL_SPLIT (11, 2, 10, 16, SAVE_RESTORE_LIST);
     case 'o': UINT (12, 0);
     case 'p': BRANCH_UNORD_SPLIT (14, 1);
@@ -421,7 +423,9 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"jalr",	"s",		0x4be00000, 0xffe0ffff,	RD_1,	    INSN2_ALIAS|CTC,	I38,		0,		0}, /* JALRC */
 {"jalr",	"t,s",		0x48000000, 0xfc00ffff,	WR_1|RD_2,  INSN2_ALIAS|CTC,	I38,		0,		0}, /* JALRC */
 {"li",		"md,mI",	0xd000,		0xfc00,	WR_1,		0,	I38,		0,		0}, /* LI[16] */
-{"li",		"-t,j",		0x00000000, 0xfc1f6000,	WR_1,	INSN2_ALIAS,	I38,		0,		0}, /* ADDIU */
+{"li",		"-t,j",		0x00000000, 0xfc1f0000,	WR_1,	INSN2_ALIAS,	I38,		0,		0}, /* ADDIU */
+{"li",		"t,h",		0x80008000, 0xfc1ff000,	WR_1,	INSN2_ALIAS,	I38,		0,		0}, /* ADDIU[NEG] */
+{"li",		"t,I",		0,	(int) M_LI,	INSN_MACRO,	0,	I38,		0,		0},
 {"li",		"mp,+Q",	0x6000, 	0xfc1f,		WR_1,	0,	0,		XLP,		0}, /* LI[48] */
 {"li",		"t,I",		0,	(int) M_LI,	INSN_MACRO,	0,	I38,		0,		0},
 {"ext",		"t,r,+A,+C",	0x8000f000, 0xfc00f820,	WR_1|RD_2,			0,	0,	XLP,		0},
@@ -449,7 +453,9 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"addiu",	"mp,+9",		0x9008,	0xfc08,		MOD_1,		0,	I38,		0,		0}, /* ADDIU[RS5], preceded by NOP[16] */
 {"addiu",	"t,ma,+1",		0x440c0000, 0xfc1c0000,	WR_1|RD_2,		0,	I38,		0,		0}, /* ADDIU[GP.B] */
 {"addiu",	"t,ma,.",		0x40000000, 0xfc000003,	WR_1|RD_2,		0,	I38,		0,		0}, /* ADDIU[GP.W] */
-{"addiu",	"-t,r,j",		0x00000000, 0xfc006000,	WR_1|RD_2,		0,	I38,		0,		0}, /* preceded by SIGRIE */
+{"addiu",	"t,r,h",		0x80008000, 0xfc00f000,	WR_1|RD_2,		0,	I38,		0,		0}, /* ADDIU[NEG] */
+{"addiu",	"-t,r,j",		0x00000000, 0xfc000000,	WR_1|RD_2,		0,	I38,		0,		0}, /* preceded by S
+IGRIE */
 {"addiu",	"mp,mt,+R",		0x6001,     0xfc1f,	MOD_1,			0,	0,		XLP,		0}, /* ADDIU[48] */
 {"addiu",	"mp,ma,+T",		0x6002,     0xfc1f,	WR_1|RD_2,		0,	0,		XLP,		0}, /* ADDIU[GP48] */
 {"addiupc",	"t,+r",			0x04000000, 0xfc000000, WR_1,			0,	I38,	0,		0},
@@ -683,7 +689,9 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"dabs",	"d,v",		0,    	  (int) M_DABS,	INSN_MACRO,		0,	I38,	0,		0},
 {"dadd",	"d,v,t",	0xc0000110, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
 {"dadd",	"t,r,I",	0,    (int) M_DADD_I,	INSN_MACRO,		0,	I70,		0,		0},
-{"daddiu",	"t,r,j",	0x00002000, 0xfc006000,	WR_1|RD_2,		0,	I70,		0,		0}, /* preceded by SIGRIE */
+{"daddiu",	"t,r,h",	0x80008000, 0xfc00f000,	WR_1|RD_2,		0,	I38,		0,		0}, /* DADDIU[NEG] */
+{"daddiu",	"t,r,i",	0x8000a000, 0xfc00f000,	WR_1|RD_2,		0,	I70,		0,		0}, /* DADDIU[U12] */
+{"daddiu",	"t,ma,.",	0x40000000, 0xfc000003,	WR_1|RD_2,		0,	I70,		0,		0}, /* ADDIU[GP] */
 {"daddiu",	"mp,mt,+R",	0x6011, 	0xfc1f,	MOD_1,			0,	I70,		0,		0}, /* DADDIU[48] */
 {"daddiu",	"mp,ma,+T",	0x6012,		0xfc1f,	WR_1|RD_2,		0,	I70,		0,		0}, /* DADDIU[GP48] */
 {"daddu",	"d,v,t",	0xc0000150, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
@@ -712,8 +720,9 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"div.s",	"D,V,T",		0xa00000f0, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0,		0},
 {"divu",	"d,v,t",		0x20000198, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,		0,		0},
 {"divu",	"d,v,I",		0,    (int) M_DIVU_3I,	INSN_MACRO,		0,	I38,		0,		0},
-{"dli", 	"-t,j",		0x00002000, 0xfc1f6000,	WR_1|RD_2,			0,	I70,		0,		0}, /* daddiu */
-{"dli", 	"t,I",		0,    (int) M_DLI,	INSN_MACRO,			0,	I70,		0,		0},
+{"dli", 	"t,h",		0x8000a000, 0xfc1ff000,	WR_1,			0,	I70,		0,		0}, /* DADDIU[NEG] */
+{"dli", 	"t,i",		0x8000a000, 0xfc1ff000,	WR_1,			0,	I70,		0,		0}, /* DADDIU[U12] */
+{"dli", 	"t,I",		0,    (int) M_DLI,	INSN_MACRO,		0,	I70,		0,		0},
 {"dlsa",	"d,v,t,+.",		0xc0000008, 0xfc0001ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
 {"dlui",	"mp,+Q",	0x6014, 	0xfc1f,		WR_1,		0,	I70,		0,		0}, /* DLUI[48] */
 {"dmfc0",	"t,G",		0x20000130, 0xfc00ffff,		WR_1,	INSN2_ALIAS,	I70,		0,		0}, /* DMFC0 with sel=0 */
