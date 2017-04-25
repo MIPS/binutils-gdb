@@ -21,6 +21,7 @@
 :compute:::int:U_SHIFT_1BIT:U:(U << 1)
 :compute:::int:U_SHIFT_2BIT:U:(U << 2)
 :compute:::int:U_SHIFT_3BIT:U:(U << 3)
+:compute:::int:U_SHIFT_4BIT:U:(U << 4)
 :compute:::int:EU_127:EU:((EU == 127) ? -1 \: EU)
 :compute:::int:U_LW4X4:U2,U3:((U3 << 3) | (U2 << 2))
 :compute:::int:AXUIPC_S_LO:S1,S2,S3:((EXTEND32((S3 << 31) | (S2 << 21) | (S1 << 12))) & 0x0000ffff)
@@ -444,6 +445,7 @@
 *nanomips32r7:
 *nanomips64r7:
 {
+  check_xlp_flag (SD_);
   do_addu (SD_, RS_5_BIT_R7, RT_5_BIT_R7, RT_5_BIT_R7);
 }
 
@@ -697,30 +699,30 @@
 }
 
 000111,1.RT1,1,4.U,4.GPR_LIST_SAVE:R7P16SR:16::RESTORE.JRC16
-"restore.jrc <U_SHIFT_3BIT>":GPR_LIST_SAVE==15
-"restore.jrc <U_SHIFT_3BIT>, ra, %s<GPR_LIST_SAVE>"
+"restore.jrc <U_SHIFT_4BIT>":GPR_LIST_SAVE==15
+"restore.jrc <U_SHIFT_4BIT>, ra, %s<GPR_LIST_SAVE>"
 *nanomips32r7:
 *nanomips64r7:
 {
   if (RT1 == 0)
     do_restore_gprs_from_stack_and_adjust_sp(SD_, 30, GPR_LIST_SAVE, 0,
-                                             U_SHIFT_3BIT);
+                                             U_SHIFT_4BIT);
   else
     do_restore_gprs_from_stack_and_adjust_sp(SD_, 31, GPR_LIST_SAVE, 0,
-                                             U_SHIFT_3BIT);
+                                             U_SHIFT_4BIT);
   NIA = RA;
 }
 
 000111,1.RT1,0,4.U,4.GPR_LIST_SAVE:R7P16SR:16::SAVE16
-"save <U_SHIFT_3BIT>, ra": GPR_LIST_SAVE == 0
-"save <U_SHIFT_3BIT>, ra, %s<GPR_LIST_SAVE>"
+"save <U_SHIFT_4BIT>, ra": GPR_LIST_SAVE == 0
+"save <U_SHIFT_4BIT>, ra, %s<GPR_LIST_SAVE>"
 *nanomips32r7:
 *nanomips64r7:
 {
   if (RT1 == 0)
-    do_save_gprs_to_stack_and_adjust_sp(SD_, 30, GPR_LIST_SAVE, 0, U_SHIFT_3BIT);
+    do_save_gprs_to_stack_and_adjust_sp(SD_, 30, GPR_LIST_SAVE, 0, U_SHIFT_4BIT);
   else
-    do_save_gprs_to_stack_and_adjust_sp(SD_, 31, GPR_LIST_SAVE, 0, U_SHIFT_3BIT);
+    do_save_gprs_to_stack_and_adjust_sp(SD_, 31, GPR_LIST_SAVE, 0, U_SHIFT_4BIT);
 
 }
 
@@ -2078,22 +2080,6 @@
   TRACE_ALU_RESULT(GPR[RT]);
 }
 
-101001,5.RT,5.RS,1.S1,0000001,8.S2:R7PLSS1:32::UALW
-"ualw r<RT>, <S_9_BIT>(r<RS>)"
-*nanomips32r7:
-*nanomips64r7:
-{
-  check_xlp_flag (SD_);
-  address_word base = GPR[RS];
-
-  TRACE_ALU_INPUT3(GPR[RT], S_9_BIT, GPR[RS]);
-  GPR[RT] = EXTEND32 (do_load_right (SD_, AccessLength_WORD, base,
-          EXTEND16 (S_9_BIT), GPR[RT]));
-  GPR[RT] = EXTEND32 (do_load_left (SD_, AccessLength_WORD, base,
-          EXTEND16 (S_9_BIT + AccessLength_WORD), GPR[RT]));
-  TRACE_ALU_RESULT(GPR[RT]);
-}
-
 101001,5.RT,5.RS,1.S1,3.COUNT3,0,1,01,8.S2:R7PLSUAWM:32::UALWM
 "ualwm r<RT>, <S_9_BIT>(r<RS>), <COUNT_UAWM>":COUNT_UAWM != 1
 "ualw r<RT>, <S_9_BIT>(r<RS>)"
@@ -2120,7 +2106,7 @@
 }
 
 101001,5.RT,5.RS,1.S1,0101,0,01,8.S2:R7PLSS1:32::UASH
-"ualw r<RT>, <S_9_BIT>(r<RS>)"
+"uash r<RT>, <S_9_BIT>(r<RS>)"
 *nanomips32r7:
 *nanomips64r7:
 {
@@ -2149,17 +2135,6 @@
   else
   {
   }
-}
-
-101001,5.RT,5.RS,1.S1,0001001,8.S2:R7PLSS1:32::UASW
-"uasw r<RT>, <S_9_BIT>(r<RS>)"
-*nanomips32r7:
-*nanomips64r7:
-{
-  check_xlp_flag (SD_);
-  do_store_right (SD_, AccessLength_WORD, GPR[RS], EXTEND16 (S_9_BIT), GPR[RT]);
-  do_store_left (SD_, AccessLength_WORD, GPR[RS],
-                 EXTEND16 (S_9_BIT + AccessLength_WORD), GPR[RT]);
 }
 
 001000,5.RT,5.X,00000,0,1110010,000:R7PDVP:32::DVP
@@ -2274,7 +2249,7 @@
 }
 
 100000,5.RT,5.RS,1000,12.U:R7PU12:32::ADDIUNEG
-"addiu r<RT>, <U>"
+"addiu r<RT>, r<RS>, -<U>"
 *nanomips32r7:
 *nanomips64r7:
 {
