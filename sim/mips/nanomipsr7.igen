@@ -366,7 +366,7 @@
 *nanomips64r7:
 {
   unsigned16 U2 = do_load (SD_, AccessLength_HALFWORD, CIA + 4, 0);
-  unsigned32 total = U << 16 | U2;
+  unsigned32 total = U2 << 16 | U;
   char str[32];
   sprintf(str, "%u", total);
   return str;
@@ -408,12 +408,42 @@
     do_addiu (SD_, RT, RT, S_4_BIT);
 }
 
+000001,5.RT,20.S1,1.S2:R7P32:32::ADDIUPC
+"addiu r<RT>, <ADDRESS22>"
+*nanomips32r7:
+*nanomips64r7:
+{
+  GPR[RT] = ADDRESS22;
+}
+
+011000,5.RT,00011,16.IMM48:R7POOL48I:32::ADDIUPC48
+"addiu r<RT>, %s<IMM48>"
+*nanomips32r7:
+*nanomips64r7:
+{
+  check_xlp_flag (SD_);
+  unsigned16 U2 = do_load (SD_, AccessLength_HALFWORD, CIA + 4, 0);
+  unsigned32 total = U2 << 16 | IMM48;
+  TRACE_ALU_INPUT2(GPR[RT], total);
+  GPR[RT] = NIA + EXTEND32(total);
+  TRACE_ALU_RESULT(GPR[RT]);
+  NIA = CIA + 6;
+}
+
 101100,3.RT,3.RS,3.RD,0:R7P16ADDU:16::ADDU16
 "addu r<TRD_R7>, r<TRS_R7>, r<TRT_R7>"
 *nanomips32r7:
 *nanomips64r7:
 {
   do_addu (SD_, TRS_R7, TRT_R7, TRD_R7);
+}
+
+001111,1.RT1,0,3.RT2,1.RS1,0,3.RS2:R7P164X4:16::ADDU4X4
+"addu r<RT_5_BIT_R7>, r<RS_5_BIT_R7>, r<RT_5_BIT_R7>"
+*nanomips32r7:
+*nanomips64r7:
+{
+  do_addu (SD_, RS_5_BIT_R7, RT_5_BIT_R7, RT_5_BIT_R7);
 }
 
 010100,3.RT,3.RS,10,0,0:R7POOL16C00:16::AND16
@@ -1464,7 +1494,7 @@
   do_mul (SD_, RD, RS, RT);
 }
 
-001111,1.RT1,0,3.RT2,1.RS1,1,3.RS2:R7POOLP164X4:16::MUL4X4
+001111,1.RT1,0,3.RT2,1.RS1,1,3.RS2:R7P164X4:16::MUL4X4
 "mul r<RT_5_BIT_R7>, r<RS_5_BIT_R7>, r<RT_5_BIT_R7>"
 *nanomips32r7:
 *nanomips64r7:
@@ -2119,6 +2149,14 @@
   unsigned32 total = S2 << 16 | IMM48;
   do_addiu(SD_, RT, RT, total);
   NIA = CIA + 6;
+}
+
+100000,5.RT,5.RS,1000,12.U:R7PU12:32::ADDIUNEG
+"addiu r<RT>, <U>"
+*nanomips32r7:
+*nanomips64r7:
+{
+  do_addiu (SD_, RS, RT, -U);
 }
 
 011000,5.RT,00010,16.IMM48:R7POOL48I:32::ADDIUGP48
