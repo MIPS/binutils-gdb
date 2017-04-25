@@ -5714,8 +5714,6 @@ match_int_operand (struct mips_arg_info *arg,
 static bfd_boolean
 match_immediate_word (struct mips_arg_info *arg)
 {
-  unsigned int uval;
-  
   if (match_expression (arg, &offset_expr, offset_reloc))
     {
       if (offset_reloc[0] != BFD_RELOC_UNUSED)
@@ -5730,14 +5728,15 @@ match_immediate_word (struct mips_arg_info *arg)
 	  arg->insn->insn_opcode_ext = 0;
 	  return TRUE;
 	}
-      else if ((offset_expr.X_add_number & 0xfff) != 0
+      /* We don't match the 48-bit instruction, when we could make
+	 do with a 32-bit one, unless explicitly required.  */
+      else if ((forced_insn_length == 6
+		|| offset_expr.X_add_number > MAX_ADDI_OFFSET
+		|| offset_expr.X_add_number < MIN_ADDI_OFFSET)
 	       && offset_expr.X_op != O_big)
-	/* We don't match the 48-bit instruction, when we could make
-	   do with 32-bit LUI.  */
 	{
-	  uval = offset_expr.X_add_number;	  
-	  arg->last_op_int = uval;
-	  arg->insn->insn_opcode_ext = uval;
+	  arg->last_op_int = offset_expr.X_add_number;
+	  arg->insn->insn_opcode_ext = 0;
 	  return TRUE;
 	}
     }
@@ -8787,16 +8786,20 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 
 	case BFD_RELOC_MICROMIPSPP_32:
 	  ip->insn_opcode_ext = address_expr->X_add_number;
+	  ip->insn_opcode_ext = (((ip->insn_opcode_ext >> 16) & 0xffff)
+				 | (ip->insn_opcode_ext << 16));
 	  ip->complete_p = 1;
 	  break;
 
 	case BFD_RELOC_MICROMIPSPP_GPREL32:
-	  ip->insn_opcode_ext = (address_expr->X_add_number & 0xffffffff);
+	  ip->insn_opcode_ext = (((address_expr->X_add_number >> 16) & 0xffff)
+				 | (address_expr->X_add_number << 16));
 	  ip->complete_p = 1;
 	  break;
 
 	case BFD_RELOC_MICROMIPSPP_PC32:
-	  ip->insn_opcode_ext = (address_expr->X_add_number & 0xffffffff);
+	  ip->insn_opcode_ext = (((address_expr->X_add_number >> 16) & 0xffff)
+				 | (address_expr->X_add_number << 16));
 	  break;
 
 
