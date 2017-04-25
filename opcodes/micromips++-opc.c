@@ -1099,7 +1099,7 @@ IGRIE */
 {"prefe",	"k,A(b)",		0,    (int) M_PREFE_AB,	INSN_MACRO,		0,	0,	EVA,		0},
 {"prepend",	"t,s,^",		0x20000255, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32,		0},
 {"raddu.w.qb", "t,s",		0x2000f13f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32,		0},
-{"rddsp",	"t",		0x2000067f, 0xfc1fffff,		WR_1,	INSN2_ALIAS,	0,	D32,		0},
+{"rddsp",	"t",		0x201fc67f, 0xfc1fffff,		WR_1,	INSN2_ALIAS,	0,	D32,		0},
 {"rddsp",	"t,8",		0x2000067f, 0xfc003fff,		WR_1,		0,	0,	D32,		0},
 {"rdhwr",	"t,K",		0x200001c0, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	I38,		0,		0}, /* RDHWR with sel=0 */
 {"rdhwr",	"t,K,H",	0x200001c0, 0xfc00c7ff,	WR_1|RD_2,		0,	I38,		0,		0},
@@ -1349,7 +1349,7 @@ IGRIE */
 {"udi",	"m8",		0x20000003, 0xfc000007,		0,		0,	0,	UDI,		0},
 {"wait",	"",		0x2000c37f, 0xffffffff,		0,	INSN2_ALIAS,	I38,		0,		0},
 {"wait",	"+L",		0x2000c37f, 0xfc00ffff,		0,		0,	I38,		0,		0},
-{"wrdsp",	"t",		0x2000167f, 0xfc1fffff,		RD_1,	INSN2_ALIAS,	0,	D32,		0},
+{"wrdsp",	"t",		0x201fd67f, 0xfc1fffff,		RD_1,	INSN2_ALIAS,	0,	D32,		0},
 {"wrdsp",	"t,8",		0x2000167f, 0xfc003fff,		RD_1,		0,	0,	D32,		0},
 {"wrpgpr",	"t,r",		0x2000f17f, 0xfc00ffff,	WR_1|RD_2,		0,	I38,		0,		0},
 {"wsbh",	"t,r",		0x20007b3f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	      XLP,		0},
