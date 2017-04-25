@@ -1543,8 +1543,8 @@ if { [istarget mips*-*-vxworks*] } {
                               [mips_arch_list_matching mips32r6 !mips64r6 !mipsr7]
 
     run_dump_test_arches "mips32r7" [mips_arch_list_matching mips32r7]
-    run_dump_test_arches "ur7-ctc"
-#    run_dump_test "ur7-relax" - TODO
+    run_dump_test_arch "ur7-ctc" "" mips32r7
+    run_dump_test_arch "ur7-relax" "" mips32r7
     run_dump_test_arch "ur7-noxlp" "" mips32r7
     run_dump_test "ur7-save"
     run_dump_test "ur7-dsave"
