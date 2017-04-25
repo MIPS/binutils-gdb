@@ -10338,7 +10338,7 @@ Micromips_insn<size, big_endian>::expand(
        // Write move16 insn.
        unsigned int rd = ((this->insn_ >> 24) & 0x1) + 4;
        unsigned int rt = (((this->insn_ >> 21) & 0x7)
-                          | ((this->insn_ >> 23) & 0x8));
+                          | ((this->insn_ >> 22) & 0x8));
 
        if (rt == 3)
          rt = 0;

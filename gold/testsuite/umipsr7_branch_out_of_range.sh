@@ -63,7 +63,7 @@ check umipsr7_bci_out_of_range.stdout " 1004:	8824 2018 	beqc	a0,at,3020 <foo>"
 check umipsr7_bci_out_of_range.stdout " 1008:	0020 0001 	li	at,1"
 check umipsr7_bci_out_of_range.stdout " 100c:	8831 a010 	bgec	s1,at,3020 <foo>"
 
-# Test bgeuic expansion to li, bgeuc.
+# Test bgeiuc expansion to li, bgeuc.
 check umipsr7_bci_out_of_range.stdout " 1010:	0020 007f 	li	at,127"
 check umipsr7_bci_out_of_range.stdout " 1014:	8823 e008 	bgeuc	v1,at,3020 <foo>"
 
@@ -71,7 +71,7 @@ check umipsr7_bci_out_of_range.stdout " 1014:	8823 e008 	bgeuc	v1,at,3020 <foo>"
 check umipsr7_bci_out_of_range.stdout " 1018:	0020 0004 	li	at,4"
 check umipsr7_bci_out_of_range.stdout " 101c:	a822 a000 	bltc	v0,at,3020 <foo>"
 
-# Test bltuic expansion to li, bltuc.
+# Test bltiuc expansion to li, bltuc.
 check umipsr7_bci_out_of_range.stdout " 1020:	0020 0006 	li	at,6"
 check umipsr7_bci_out_of_range.stdout " 1024:	a838 dff8 	bltuc	t8,at,3020 <foo>"
 
