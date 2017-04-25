@@ -58,6 +58,7 @@
 :compute:::int:TRD_R7:RD:((RD < 4) ? (16 + RD) \: RD)
 :compute:::int:TRS_R7:RS:((RS < 4) ? (16 + RS) \: RS)
 :compute:::int:TRT_R7:RT:((RT < 4) ? (16 + RT) \: RT)
+:compute:::int:COUNT_UAWM:COUNT3:(COUNT3 == 0 ? 8 \: COUNT3)
 
 :function:::void:do_lwc1xs:int ft, int rbase, int roffset
 *nanomips32r7:
@@ -68,7 +69,7 @@
         GPR[roffset]));
 }
 
-:function:::void:do_lwpc_r7:int rt, unsigned32 offset, address_word nia
+:function:::void:do_lwpc_nanomips:int rt, unsigned32 offset, address_word nia
 *nanomips32r7:
 *nanomips64r7:
 {
@@ -1387,7 +1388,7 @@
   unsigned16 S2 = do_load(SD_, AccessLength_HALFWORD, CIA + 4, 0);
   unsigned32 total = S2 << 16 | IMM48;
 
-  do_lwpc_r7 (SD_, RT, total, NIA);
+  do_lwpc_nanomips (SD_, RT, total, NIA);
 }
 
 001000,5.RT,5.RS,5.RD,1000,0,000,111:R7PPLSX:32::LWX
@@ -1890,6 +1891,22 @@
   do_store (SD_, AccessLength_WORD, GP, U_SHIFT_2BIT, GPR[RT]);
 }
 
+011000,5.RT,01111,16.IMM48:R7POOL48I:32::SWPC48
+"swpc r<RT>, %s<IMM48>"
+*nanomips32r7:
+*nanomips64r7:
+{
+  check_xlp_flag (SD_);
+
+  unsigned16 U2 = do_load (SD_, AccessLength_HALFWORD, CIA + 4, 0);
+  unsigned32 total = IMM48 << 16 | U2;
+  TRACE_ALU_INPUT2(GPR[RT], total);
+  do_store(SD_, AccessLength_WORD, CIA + 6, total, GPR[RT]);
+  TRACE_ALU_RESULT(GPR[RT]);
+  NIA = CIA + 6;
+}
+
+
 101111,3.RTZ,7.U:R7P16:16::SWGP16
 "sw r<TRTZ>, <U_SHIFT_2BIT>(GP)"
 *nanomips32r7:
@@ -2022,6 +2039,45 @@
   sim_io_printf (SD, "Not implemented");
 }
 
+001000,5.RT,5.RS,5.X,0,0000000,000:R7PTRAP:32::TEQ
+"teq r<RS>, r<RT>"
+*nanomips32r7:
+*nanomips64r7:
+{
+  check_xlp_flag (SD_);
+
+  if (GPR[RS] == GPR[RT])
+    SignalException(Trap, instruction_0);
+}
+
+001000,5.RT,5.RS,5.X,1,0000000,000:R7PTRAP:32::TNE
+"tne r<RS>, r<RT>"
+*nanomips32r7:
+*nanomips64r7:
+{
+  check_xlp_flag (SD_);
+
+  if (GPR[RS] != GPR[RT])
+    SignalException(Trap, instruction_0);
+}
+
+101001,5.RT,5.RS,1.S1,0100,0,01,8.S2:R7PLSS1:32::UALH
+"ualh r<RT>, <S_9_BIT>(r<RS>)"
+*nanomips32r7:
+*nanomips64r7:
+{
+  check_xlp_flag (SD_);
+
+  address_word base = GPR[RS];
+
+  TRACE_ALU_INPUT3(GPR[RT], S_9_BIT, GPR[RS]);
+  GPR[RT] = EXTEND16 (do_load_right (SD_, AccessLength_HALFWORD, base,
+         EXTEND16 (S_9_BIT), GPR[RT]));
+  GPR[RT] = EXTEND16 (do_load_left (SD_, AccessLength_HALFWORD, base,
+         EXTEND16 (S_9_BIT + AccessLength_HALFWORD), GPR[RT]));
+  TRACE_ALU_RESULT(GPR[RT]);
+}
+
 101001,5.RT,5.RS,1.S1,0000001,8.S2:R7PLSS1:32::UALW
 "ualw r<RT>, <S_9_BIT>(r<RS>)"
 *nanomips32r7:
@@ -2036,6 +2092,63 @@
   GPR[RT] = EXTEND32 (do_load_left (SD_, AccessLength_WORD, base,
           EXTEND16 (S_9_BIT + AccessLength_WORD), GPR[RT]));
   TRACE_ALU_RESULT(GPR[RT]);
+}
+
+101001,5.RT,5.RS,1.S1,3.COUNT3,0,1,01,8.S2:R7PLSUAWM:32::UALWM
+"ualwm r<RT>, <S_9_BIT>(r<RS>), <COUNT_UAWM>":COUNT_UAWM != 1
+"ualw r<RT>, <S_9_BIT>(r<RS>)"
+*nanomips32r7:
+*nanomips64r7:
+{
+  check_xlp_flag (SD_);
+
+  if (COUNT_UAWM == 1)
+  {
+      //implementation of ualw
+      address_word base = GPR[RS];
+
+      TRACE_ALU_INPUT3(GPR[RT], S_9_BIT, GPR[RS]);
+      GPR[RT] = EXTEND32 (do_load_right (SD_, AccessLength_WORD, base,
+       EXTEND16 (S_9_BIT), GPR[RT]));
+      GPR[RT] = EXTEND32 (do_load_left (SD_, AccessLength_WORD, base,
+       EXTEND16 (S_9_BIT + AccessLength_WORD), GPR[RT]));
+      TRACE_ALU_RESULT(GPR[RT]);
+  }
+  else
+  {
+  }
+}
+
+101001,5.RT,5.RS,1.S1,0101,0,01,8.S2:R7PLSS1:32::UASH
+"ualw r<RT>, <S_9_BIT>(r<RS>)"
+*nanomips32r7:
+*nanomips64r7:
+{
+  check_xlp_flag (SD_);
+
+  do_store_right (SD_, AccessLength_HALFWORD, GPR[RS], EXTEND16 (S_9_BIT), GPR[RT]);
+  do_store_left (SD_, AccessLength_HALFWORD, GPR[RS],
+       EXTEND16 (S_9_BIT + AccessLength_HALFWORD), GPR[RT]);
+}
+
+101001,5.RT,5.RS,1.S1,3.COUNT3,1,1,01,8.S2:R7PLSUAWM:32::UASWM
+"uaswm r<RT>, <S_9_BIT>(r<RS>), <COUNT_UAWM>":COUNT_UAWM != 1
+"uasw r<RT>, <S_9_BIT>(r<RS>)"
+*nanomips32r7:
+*nanomips64r7:
+{
+   check_xlp_flag (SD_);
+
+  if (COUNT_UAWM == 1)
+  {
+    //implementation of uasw
+      do_store_right (SD_, AccessLength_WORD, GPR[RS], EXTEND16 (S_9_BIT), GPR[RT]);
+      do_store_left (SD_, AccessLength_WORD, GPR[RS],
+       EXTEND16 (S_9_BIT + AccessLength_WORD), GPR[RT]);
+  }
+  else
+  {
+  }
 }
 
 101001,5.RT,5.RS,1.S1,0001001,8.S2:R7PLSS1:32::UASW
@@ -2074,6 +2187,15 @@
 *nanomips64r7:
 {
   // nothing to do currently
+  sim_io_printf (SD, "Not implemented");
+}
+
+001000,5.RT,5.RS,11,11000,101,111,111:R7POOL32AXF5GROUP3:32::WRPGPR
+"wrpgpr r<RT>, r<RS>"
+*nanomips32r7:
+*nanomips64r7:
+{
+  // TODO: implement as given in the specification
   sim_io_printf (SD, "Not implemented");
 }
 
