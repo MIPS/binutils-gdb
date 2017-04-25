@@ -13,7 +13,7 @@ Disassembly of section \.text:
 0+0008 <text_label\+0x8> e080 8000 	lui	a0,0x8
 0+000c <text_label\+0xc> e09f 8ffd 	lui	a0,0xffff8
 0+0010 <text_label\+0x10> e081 0000 	lui	a0,0x10
-0+0014 <text_label\+0x14> 6080 0001 a5a5 	li	a0,0x1a5a5
+0+0014 <text_label\+0x14> 6080 a5a5 0001 	li	a0,0x1a5a5
 0+001a <text_label\+0x1a> 0085 0000 	addiu	a0,a1,0
 0+001e <text_label\+0x1e> 0085 0001 	addiu	a0,a1,1
 0+0022 <text_label\+0x22> e080 8000 	lui	a0,0x8
@@ -22,7 +22,7 @@ Disassembly of section \.text:
 0+002e <text_label\+0x2e> 20a4 2150 	addu	a0,a0,a1
 0+0032 <text_label\+0x32> e081 0000 	lui	a0,0x10
 0+0036 <text_label\+0x36> 20a4 2150 	addu	a0,a0,a1
-0+003a <text_label\+0x3a> 6080 0001 a5a5 	li	a0,0x1a5a5
+0+003a <text_label\+0x3a> 6080 a5a5 0001 	li	a0,0x1a5a5
 0+0040 <text_label\+0x40> 20a4 2150 	addu	a0,a0,a1
 0+0044 <text_label\+0x44> 6080 0000 0000 	li	a0,0x0
 			46: R_MICROMIPS_32	\.data
@@ -235,8 +235,8 @@ Disassembly of section \.text:
 			2a0: R_MICROMIPS_GPREL19_S2	\.sbss\+0x1a5a5
 0+02a4 <text_label\+0x2a4> 20a4 2150 	addu	a0,a0,a1
 0+02a8 <text_label\+0x2a8> 0085 0000 	addiu	a0,a1,0
-0+02ac <text_label\+0x2ac> 6080 0012 3456 	li	a0,0x123456
-0+02b2 <text_label\+0x2b2> 6080 0012 3456 	li	a0,0x123456
+0+02ac <text_label\+0x2ac> 6080 3456 0012 	li	a0,0x123456
+0+02b2 <text_label\+0x2b2> 6080 3456 0012 	li	a0,0x123456
 0+02b8 <text_label\+0x2b8> 20a4 2150 	addu	a0,a0,a1
 0+02bc <text_label\+0x2bc> 6080 0000 0000 	li	a0,0x0
 			2be: R_MICROMIPS_32	big_external_data_label

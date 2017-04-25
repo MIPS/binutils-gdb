@@ -1753,21 +1753,21 @@ print_insn_arg (struct disassemble_info *info,
     case OP_IMM_WORD:
     case OP_GPREL_WORD:
       {
-	state->last_int = uval;
-	infprintf (is, "%d", uval);
+	state->last_int = ((uval >> 16) & 0xffff) | (uval << 16);
+	infprintf (is, "%d", state->last_int);
       }
       break;
 
     case OP_UIMM_WORD:
       {
-	state->last_int = uval;
-	infprintf (is, "0x%x", uval);
+	state->last_int = ((uval >> 16) & 0xffff) | (uval << 16);
+	infprintf (is, "0x%x", state->last_int);
       }
       break;
 
     case OP_PC_WORD:
       {	
-	info->target = (base_pc & ~0x1) + uval;
+	info->target = base_pc + (((uval >> 16) & 0xffff) | (uval << 16));
 	(*info->print_address_func) (info->target, info);
       }
       break;

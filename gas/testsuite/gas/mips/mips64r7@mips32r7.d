@@ -69,14 +69,14 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 0220 007f 	li	s1,127
 [0-9a-f]+ <[^>]+> 0040 0000 	li	v0,0
 [0-9a-f]+ <[^>]+> 0040 0001 	li	v0,1
-[0-9a-f]+ <[^>]+> 6040 0000 7fff 	li	v0,0x7fff
+[0-9a-f]+ <[^>]+> 6040 7fff 0000 	li	v0,0x7fff
 [0-9a-f]+ <[^>]+> e05f 8ffd 	lui	v0,0xffff8
-[0-9a-f]+ <[^>]+> 6040 0000 ffff 	li	v0,0xffff
+[0-9a-f]+ <[^>]+> 6040 ffff 0000 	li	v0,0xffff
 [0-9a-f]+ <[^>]+> e041 0000 	lui	v0,0x10
 [0-9a-f]+ <[^>]+> e05f 8ffd 	lui	v0,0xffff8
-[0-9a-f]+ <[^>]+> 6040 ffff 8001 	li	v0,0xffff8001
+[0-9a-f]+ <[^>]+> 6040 8001 ffff 	li	v0,0xffff8001
 [0-9a-f]+ <[^>]+> 0040 9fff 	li	v0,-1
-[0-9a-f]+ <[^>]+> 6040 1234 5678 	li	v0,0x12345678
+[0-9a-f]+ <[^>]+> 6040 5678 1234 	li	v0,0x12345678
 [0-9a-f]+ <[^>]+> 2016 0290 	move	zero,s6
 [0-9a-f]+ <[^>]+> 1056      	move	v0,s6
 [0-9a-f]+ <[^>]+> 1076      	move	v1,s6
@@ -144,22 +144,22 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2082 1110 	add	v0,v0,a0
 [0-9a-f]+ <[^>]+> 0042 0000 	addiu	v0,v0,0
 [0-9a-f]+ <[^>]+> 0042 0001 	addiu	v0,v0,1
-[0-9a-f]+ <[^>]+> 6020 0000 7fff 	li	at,0x7fff
+[0-9a-f]+ <[^>]+> 6020 7fff 0000 	li	at,0x7fff
 [0-9a-f]+ <[^>]+> 2022 1110 	add	v0,v0,at
 [0-9a-f]+ <[^>]+> e03f 8ffd 	lui	at,0xffff8
 [0-9a-f]+ <[^>]+> 2022 1110 	add	v0,v0,at
-[0-9a-f]+ <[^>]+> 6020 0000 ffff 	li	at,0xffff
+[0-9a-f]+ <[^>]+> 6020 ffff 0000 	li	at,0xffff
 [0-9a-f]+ <[^>]+> 2022 1110 	add	v0,v0,at
 [0-9a-f]+ <[^>]+> e03f 8ffd 	lui	at,0xffff8
 [0-9a-f]+ <[^>]+> 2024 1910 	add	v1,a0,at
 [0-9a-f]+ <[^>]+> 0064 0000 	addiu	v1,a0,0
-[0-9a-f]+ <[^>]+> 6020 0000 7fff 	li	at,0x7fff
+[0-9a-f]+ <[^>]+> 6020 7fff 0000 	li	at,0x7fff
 [0-9a-f]+ <[^>]+> 2024 1910 	add	v1,a0,at
-[0-9a-f]+ <[^>]+> 6020 0000 ffff 	li	at,0xffff
+[0-9a-f]+ <[^>]+> 6020 ffff 0000 	li	at,0xffff
 [0-9a-f]+ <[^>]+> 2024 1910 	add	v1,a0,at
-[0-9a-f]+ <[^>]+> 6020 0000 ffff 	li	at,0xffff
+[0-9a-f]+ <[^>]+> 6020 ffff 0000 	li	at,0xffff
 [0-9a-f]+ <[^>]+> 2023 1910 	add	v1,v1,at
-[0-9a-f]+ <[^>]+> 6020 0000 ffff 	li	at,0xffff
+[0-9a-f]+ <[^>]+> 6020 ffff 0000 	li	at,0xffff
 [0-9a-f]+ <[^>]+> 2023 1910 	add	v1,v1,at
 [0-9a-f]+ <[^>]+> 9018      	addiu	zero,zero,-8
 [0-9a-f]+ <[^>]+> 9058      	addiu	v0,v0,-8
@@ -226,8 +226,8 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 91c0      	addiu	s3,a0,0
 [0-9a-f]+ <[^>]+> 0064 1fff 	addiu	v1,a0,8191
 [0-9a-f]+ <[^>]+> 0064 9fff 	addiu	v1,a0,-1
-[0-9a-f]+ <[^>]+> 6061 0000 3fff 	addiu	v1,v1,16383
-[0-9a-f]+ <[^>]+> 6061 0000 3fff 	addiu	v1,v1,16383
+[0-9a-f]+ <[^>]+> 6061 3fff 0000 	addiu	v1,v1,16383
+[0-9a-f]+ <[^>]+> 6061 3fff 0000 	addiu	v1,v1,16383
 [0-9a-f]+ <[^>]+> 2016 1150 	move	v0,s6
 [0-9a-f]+ <[^>]+> 2002 b150 	move	s6,v0
 [0-9a-f]+ <[^>]+> 22c0 1150 	addu	v0,zero,s6
@@ -262,11 +262,11 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 23fe e950 	addu	sp,s8,ra
 [0-9a-f]+ <[^>]+> 0042 0000 	addiu	v0,v0,0
 [0-9a-f]+ <[^>]+> 0042 0001 	addiu	v0,v0,1
-[0-9a-f]+ <[^>]+> 6020 0000 7fff 	li	at,0x7fff
+[0-9a-f]+ <[^>]+> 6020 7fff 0000 	li	at,0x7fff
 [0-9a-f]+ <[^>]+> 2022 1150 	addu	v0,v0,at
 [0-9a-f]+ <[^>]+> e03f 8ffd 	lui	at,0xffff8
 [0-9a-f]+ <[^>]+> 2022 1150 	addu	v0,v0,at
-[0-9a-f]+ <[^>]+> 6020 0000 ffff 	li	at,0xffff
+[0-9a-f]+ <[^>]+> 6020 ffff 0000 	li	at,0xffff
 [0-9a-f]+ <[^>]+> 2022 1150 	addu	v0,v0,at
 [0-9a-f]+ <[^>]+> 5128      	and	s2,s2,s2
 [0-9a-f]+ <[^>]+> 5138      	and	s2,s2,s3
@@ -325,11 +325,11 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2082 1250 	and	v0,v0,a0
 [0-9a-f]+ <[^>]+> 2082 1250 	and	v0,v0,a0
 [0-9a-f]+ <[^>]+> 8043 2000 	andi	v0,v1,0
-[0-9a-f]+ <[^>]+> 6020 0000 ffff 	li	at,0xffff
+[0-9a-f]+ <[^>]+> 6020 ffff 0000 	li	at,0xffff
 [0-9a-f]+ <[^>]+> 2023 1250 	and	v0,v1,at
 [0-9a-f]+ <[^>]+> e021 0000 	lui	at,0x10
 [0-9a-f]+ <[^>]+> 2023 1250 	and	v0,v1,at
-[0-9a-f]+ <[^>]+> 6020 ffff 0001 	li	at,0xffff0001
+[0-9a-f]+ <[^>]+> 6020 0001 ffff 	li	at,0xffff0001
 [0-9a-f]+ <[^>]+> 2023 1250 	and	v0,v1,at
 [0-9a-f]+ <[^>]+> 9900      	beqzc	s2,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC7_S1	test2-0x2
@@ -393,7 +393,7 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_MICROMIPS_PC14_S1	test2-0x4
 [0-9a-f]+ <[^>]+> ca00 5000 	beqic	s0,10,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC11_S1	test2-0x4
-[0-9a-f]+ <[^>]+> 6020 0000 7fff 	li	at,0x7fff
+[0-9a-f]+ <[^>]+> 6020 7fff 0000 	li	at,0x7fff
 [0-9a-f]+ <[^>]+> 8830 0000 	beqc	s0,at,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC14_S1	test2-0x4
 [0-9a-f]+ <[^>]+> e021 0000 	lui	at,0x10
@@ -1038,7 +1038,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> e060 0e01 	lui	v1,0xf0000
 [0-9a-f]+ <[^>]+> a463 5100 	ll	v1,0\(v1\)
 [0-9a-f]+ <[^>]+> a460 d1fc 	ll	v1,-4\(zero\)
-[0-9a-f]+ <[^>]+> 6060 1234 5600 	li	v1,0x12345600
+[0-9a-f]+ <[^>]+> 6060 5600 1234 	li	v1,0x12345600
 [0-9a-f]+ <[^>]+> a463 d1e0 	ll	v1,-32\(v1\)
 [0-9a-f]+ <[^>]+> a464 5100 	ll	v1,0\(a0\)
 [0-9a-f]+ <[^>]+> a464 5100 	ll	v1,0\(a0\)
@@ -1068,7 +1068,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2083 1950 	addu	v1,v1,a0
 [0-9a-f]+ <[^>]+> a463 5100 	ll	v1,0\(v1\)
 [0-9a-f]+ <[^>]+> a464 d1fc 	ll	v1,-4\(a0\)
-[0-9a-f]+ <[^>]+> 6060 1234 5600 	li	v1,0x12345600
+[0-9a-f]+ <[^>]+> 6060 5600 1234 	li	v1,0x12345600
 [0-9a-f]+ <[^>]+> 2083 1950 	addu	v1,v1,a0
 [0-9a-f]+ <[^>]+> a463 d1e0 	ll	v1,-32\(v1\)
 [0-9a-f]+ <[^>]+> e060 0000 	lui	v1,0x0
@@ -1319,11 +1319,11 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2022 1018 	mul	v0,v0,at
 [0-9a-f]+ <[^>]+> 0020 0001 	li	at,1
 [0-9a-f]+ <[^>]+> 2022 1018 	mul	v0,v0,at
-[0-9a-f]+ <[^>]+> 6020 0000 7fff 	li	at,0x7fff
+[0-9a-f]+ <[^>]+> 6020 7fff 0000 	li	at,0x7fff
 [0-9a-f]+ <[^>]+> 2022 1018 	mul	v0,v0,at
 [0-9a-f]+ <[^>]+> e03f 8ffd 	lui	at,0xffff8
 [0-9a-f]+ <[^>]+> 2022 1018 	mul	v0,v0,at
-[0-9a-f]+ <[^>]+> 6020 0000 ffff 	li	at,0xffff
+[0-9a-f]+ <[^>]+> 6020 ffff 0000 	li	at,0xffff
 [0-9a-f]+ <[^>]+> 2022 1018 	mul	v0,v0,at
 [0-9a-f]+ <[^>]+> 2060 1190 	neg	v0,v1
 [0-9a-f]+ <[^>]+> 2040 1190 	neg	v0,v0
@@ -1358,13 +1358,13 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2082 12d0 	nor	v0,v0,a0
 [0-9a-f]+ <[^>]+> e020 8000 	lui	at,0x8
 [0-9a-f]+ <[^>]+> 2023 12d0 	nor	v0,v1,at
-[0-9a-f]+ <[^>]+> 6020 0000 ffff 	li	at,0xffff
+[0-9a-f]+ <[^>]+> 6020 ffff 0000 	li	at,0xffff
 [0-9a-f]+ <[^>]+> 2023 12d0 	nor	v0,v1,at
 [0-9a-f]+ <[^>]+> e021 0000 	lui	at,0x10
 [0-9a-f]+ <[^>]+> 2023 12d0 	nor	v0,v1,at
 [0-9a-f]+ <[^>]+> e03f 8ffd 	lui	at,0xffff8
 [0-9a-f]+ <[^>]+> 2023 12d0 	nor	v0,v1,at
-[0-9a-f]+ <[^>]+> 6020 ffff 7fff 	li	at,0xffff7fff
+[0-9a-f]+ <[^>]+> 6020 7fff ffff 	li	at,0xffff7fff
 [0-9a-f]+ <[^>]+> 2023 12d0 	nor	v0,v1,at
 [0-9a-f]+ <[^>]+> 2016 1290 	move	v0,s6
 [0-9a-f]+ <[^>]+> 2002 b290 	move	s6,v0
@@ -1394,13 +1394,13 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2082 1290 	or	v0,v0,a0
 [0-9a-f]+ <[^>]+> e020 8000 	lui	at,0x8
 [0-9a-f]+ <[^>]+> 2023 1290 	or	v0,v1,at
-[0-9a-f]+ <[^>]+> 6020 0000 ffff 	li	at,0xffff
+[0-9a-f]+ <[^>]+> 6020 ffff 0000 	li	at,0xffff
 [0-9a-f]+ <[^>]+> 2023 1290 	or	v0,v1,at
 [0-9a-f]+ <[^>]+> e021 0000 	lui	at,0x10
 [0-9a-f]+ <[^>]+> 2023 1290 	or	v0,v1,at
 [0-9a-f]+ <[^>]+> e03f 8ffd 	lui	at,0xffff8
 [0-9a-f]+ <[^>]+> 2023 1290 	or	v0,v1,at
-[0-9a-f]+ <[^>]+> 6020 ffff 7fff 	li	at,0xffff7fff
+[0-9a-f]+ <[^>]+> 6020 7fff ffff 	li	at,0xffff7fff
 [0-9a-f]+ <[^>]+> 2023 1290 	or	v0,v1,at
 [0-9a-f]+ <[^>]+> 8064 0000 	ori	v1,a0,0
 [0-9a-f]+ <[^>]+> 8064 0fff 	ori	v1,a0,4095
@@ -1553,7 +1553,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> e020 0e01 	lui	at,0xf0000
 [0-9a-f]+ <[^>]+> a461 5900 	sc	v1,0\(at\)
 [0-9a-f]+ <[^>]+> a460 d9fc 	sc	v1,-4\(zero\)
-[0-9a-f]+ <[^>]+> 6020 1234 5600 	li	at,0x12345600
+[0-9a-f]+ <[^>]+> 6020 5600 1234 	li	at,0x12345600
 [0-9a-f]+ <[^>]+> a461 d9e0 	sc	v1,-32\(at\)
 [0-9a-f]+ <[^>]+> a464 5900 	sc	v1,0\(a0\)
 [0-9a-f]+ <[^>]+> a464 5900 	sc	v1,0\(a0\)
@@ -1586,7 +1586,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2081 0950 	addu	at,at,a0
 [0-9a-f]+ <[^>]+> a461 5900 	sc	v1,0\(at\)
 [0-9a-f]+ <[^>]+> a464 d9fc 	sc	v1,-4\(a0\)
-[0-9a-f]+ <[^>]+> 6020 1234 5600 	li	at,0x12345600
+[0-9a-f]+ <[^>]+> 6020 5600 1234 	li	at,0x12345600
 [0-9a-f]+ <[^>]+> 2081 0950 	addu	at,at,a0
 [0-9a-f]+ <[^>]+> a461 d9e0 	sc	v1,-32\(at\)
 [0-9a-f]+ <[^>]+> 1018      	sdbbp	0x0
@@ -1626,7 +1626,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 8042 5001 	sltiu	v0,v0,1
 [0-9a-f]+ <[^>]+> 0043 0001 	addiu	v0,v1,1
 [0-9a-f]+ <[^>]+> 8042 5001 	sltiu	v0,v0,1
-[0-9a-f]+ <[^>]+> 6020 ffff 7fff 	li	at,0xffff7fff
+[0-9a-f]+ <[^>]+> 6020 7fff ffff 	li	at,0xffff7fff
 [0-9a-f]+ <[^>]+> 2023 1310 	xor	v0,v1,at
 [0-9a-f]+ <[^>]+> 8042 5001 	sltiu	v0,v0,1
 [0-9a-f]+ <[^>]+> 2083 1350 	slt	v0,v1,a0
@@ -1642,16 +1642,16 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 8042 1001 	xori	v0,v0,1
 [0-9a-f]+ <[^>]+> 8043 4000 	slti	v0,v1,0
 [0-9a-f]+ <[^>]+> 8042 1001 	xori	v0,v0,1
-[0-9a-f]+ <[^>]+> 6020 0000 7fff 	li	at,0x7fff
+[0-9a-f]+ <[^>]+> 6020 7fff 0000 	li	at,0x7fff
 [0-9a-f]+ <[^>]+> 2023 1350 	slt	v0,v1,at
 [0-9a-f]+ <[^>]+> 8042 1001 	xori	v0,v0,1
-[0-9a-f]+ <[^>]+> 6020 0000 ffff 	li	at,0xffff
+[0-9a-f]+ <[^>]+> 6020 ffff 0000 	li	at,0xffff
 [0-9a-f]+ <[^>]+> 2023 1350 	slt	v0,v1,at
 [0-9a-f]+ <[^>]+> 8042 1001 	xori	v0,v0,1
 [0-9a-f]+ <[^>]+> e021 0000 	lui	at,0x10
 [0-9a-f]+ <[^>]+> 2023 1350 	slt	v0,v1,at
 [0-9a-f]+ <[^>]+> 8042 1001 	xori	v0,v0,1
-[0-9a-f]+ <[^>]+> 6020 ffff 7fff 	li	at,0xffff7fff
+[0-9a-f]+ <[^>]+> 6020 7fff ffff 	li	at,0xffff7fff
 [0-9a-f]+ <[^>]+> 2023 1350 	slt	v0,v1,at
 [0-9a-f]+ <[^>]+> 8042 1001 	xori	v0,v0,1
 [0-9a-f]+ <[^>]+> 2083 1390 	sltu	v0,v1,a0
@@ -1667,16 +1667,16 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 8042 1001 	xori	v0,v0,1
 [0-9a-f]+ <[^>]+> 8043 5000 	sltiu	v0,v1,0
 [0-9a-f]+ <[^>]+> 8042 1001 	xori	v0,v0,1
-[0-9a-f]+ <[^>]+> 6020 0000 7fff 	li	at,0x7fff
+[0-9a-f]+ <[^>]+> 6020 7fff 0000 	li	at,0x7fff
 [0-9a-f]+ <[^>]+> 2023 1390 	sltu	v0,v1,at
 [0-9a-f]+ <[^>]+> 8042 1001 	xori	v0,v0,1
-[0-9a-f]+ <[^>]+> 6020 0000 ffff 	li	at,0xffff
+[0-9a-f]+ <[^>]+> 6020 ffff 0000 	li	at,0xffff
 [0-9a-f]+ <[^>]+> 2023 1390 	sltu	v0,v1,at
 [0-9a-f]+ <[^>]+> 8042 1001 	xori	v0,v0,1
 [0-9a-f]+ <[^>]+> e021 0000 	lui	at,0x10
 [0-9a-f]+ <[^>]+> 2023 1390 	sltu	v0,v1,at
 [0-9a-f]+ <[^>]+> 8042 1001 	xori	v0,v0,1
-[0-9a-f]+ <[^>]+> 6020 ffff 7fff 	li	at,0xffff7fff
+[0-9a-f]+ <[^>]+> 6020 7fff ffff 	li	at,0xffff7fff
 [0-9a-f]+ <[^>]+> 2023 1390 	sltu	v0,v1,at
 [0-9a-f]+ <[^>]+> 8042 1001 	xori	v0,v0,1
 [0-9a-f]+ <[^>]+> 2064 1350 	slt	v0,a0,v1
@@ -1688,13 +1688,13 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2061 1350 	slt	v0,at,v1
 [0-9a-f]+ <[^>]+> 0020 0000 	li	at,0
 [0-9a-f]+ <[^>]+> 2061 1350 	slt	v0,at,v1
-[0-9a-f]+ <[^>]+> 6020 0000 7fff 	li	at,0x7fff
+[0-9a-f]+ <[^>]+> 6020 7fff 0000 	li	at,0x7fff
 [0-9a-f]+ <[^>]+> 2061 1350 	slt	v0,at,v1
-[0-9a-f]+ <[^>]+> 6020 0000 ffff 	li	at,0xffff
+[0-9a-f]+ <[^>]+> 6020 ffff 0000 	li	at,0xffff
 [0-9a-f]+ <[^>]+> 2061 1350 	slt	v0,at,v1
 [0-9a-f]+ <[^>]+> e021 0000 	lui	at,0x10
 [0-9a-f]+ <[^>]+> 2061 1350 	slt	v0,at,v1
-[0-9a-f]+ <[^>]+> 6020 ffff 7fff 	li	at,0xffff7fff
+[0-9a-f]+ <[^>]+> 6020 7fff ffff 	li	at,0xffff7fff
 [0-9a-f]+ <[^>]+> 2061 1350 	slt	v0,at,v1
 [0-9a-f]+ <[^>]+> 2064 1390 	sltu	v0,a0,v1
 [0-9a-f]+ <[^>]+> 2044 1390 	sltu	v0,a0,v0
@@ -1705,13 +1705,13 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2061 1390 	sltu	v0,at,v1
 [0-9a-f]+ <[^>]+> 0020 0000 	li	at,0
 [0-9a-f]+ <[^>]+> 2061 1390 	sltu	v0,at,v1
-[0-9a-f]+ <[^>]+> 6020 0000 7fff 	li	at,0x7fff
+[0-9a-f]+ <[^>]+> 6020 7fff 0000 	li	at,0x7fff
 [0-9a-f]+ <[^>]+> 2061 1390 	sltu	v0,at,v1
-[0-9a-f]+ <[^>]+> 6020 0000 ffff 	li	at,0xffff
+[0-9a-f]+ <[^>]+> 6020 ffff 0000 	li	at,0xffff
 [0-9a-f]+ <[^>]+> 2061 1390 	sltu	v0,at,v1
 [0-9a-f]+ <[^>]+> e021 0000 	lui	at,0x10
 [0-9a-f]+ <[^>]+> 2061 1390 	sltu	v0,at,v1
-[0-9a-f]+ <[^>]+> 6020 ffff 7fff 	li	at,0xffff7fff
+[0-9a-f]+ <[^>]+> 6020 7fff ffff 	li	at,0xffff7fff
 [0-9a-f]+ <[^>]+> 2061 1390 	sltu	v0,at,v1
 [0-9a-f]+ <[^>]+> 3531      	sh	s2,0\(s3\)
 [0-9a-f]+ <[^>]+> 3531      	sh	s2,0\(s3\)
@@ -1804,16 +1804,16 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 0020 0000 	li	at,0
 [0-9a-f]+ <[^>]+> 2061 1350 	slt	v0,at,v1
 [0-9a-f]+ <[^>]+> 8042 1001 	xori	v0,v0,1
-[0-9a-f]+ <[^>]+> 6020 0000 7fff 	li	at,0x7fff
+[0-9a-f]+ <[^>]+> 6020 7fff 0000 	li	at,0x7fff
 [0-9a-f]+ <[^>]+> 2061 1350 	slt	v0,at,v1
 [0-9a-f]+ <[^>]+> 8042 1001 	xori	v0,v0,1
-[0-9a-f]+ <[^>]+> 6020 0000 ffff 	li	at,0xffff
+[0-9a-f]+ <[^>]+> 6020 ffff 0000 	li	at,0xffff
 [0-9a-f]+ <[^>]+> 2061 1350 	slt	v0,at,v1
 [0-9a-f]+ <[^>]+> 8042 1001 	xori	v0,v0,1
 [0-9a-f]+ <[^>]+> e021 0000 	lui	at,0x10
 [0-9a-f]+ <[^>]+> 2061 1350 	slt	v0,at,v1
 [0-9a-f]+ <[^>]+> 8042 1001 	xori	v0,v0,1
-[0-9a-f]+ <[^>]+> 6020 ffff 7fff 	li	at,0xffff7fff
+[0-9a-f]+ <[^>]+> 6020 7fff ffff 	li	at,0xffff7fff
 [0-9a-f]+ <[^>]+> 2061 1350 	slt	v0,at,v1
 [0-9a-f]+ <[^>]+> 8042 1001 	xori	v0,v0,1
 [0-9a-f]+ <[^>]+> 2064 1390 	sltu	v0,a0,v1
@@ -1831,16 +1831,16 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 0020 0000 	li	at,0
 [0-9a-f]+ <[^>]+> 2061 1390 	sltu	v0,at,v1
 [0-9a-f]+ <[^>]+> 8042 1001 	xori	v0,v0,1
-[0-9a-f]+ <[^>]+> 6020 0000 7fff 	li	at,0x7fff
+[0-9a-f]+ <[^>]+> 6020 7fff 0000 	li	at,0x7fff
 [0-9a-f]+ <[^>]+> 2061 1390 	sltu	v0,at,v1
 [0-9a-f]+ <[^>]+> 8042 1001 	xori	v0,v0,1
-[0-9a-f]+ <[^>]+> 6020 0000 ffff 	li	at,0xffff
+[0-9a-f]+ <[^>]+> 6020 ffff 0000 	li	at,0xffff
 [0-9a-f]+ <[^>]+> 2061 1390 	sltu	v0,at,v1
 [0-9a-f]+ <[^>]+> 8042 1001 	xori	v0,v0,1
 [0-9a-f]+ <[^>]+> e021 0000 	lui	at,0x10
 [0-9a-f]+ <[^>]+> 2061 1390 	sltu	v0,at,v1
 [0-9a-f]+ <[^>]+> 8042 1001 	xori	v0,v0,1
-[0-9a-f]+ <[^>]+> 6020 ffff 7fff 	li	at,0xffff7fff
+[0-9a-f]+ <[^>]+> 6020 7fff ffff 	li	at,0xffff7fff
 [0-9a-f]+ <[^>]+> 2061 1390 	sltu	v0,at,v1
 [0-9a-f]+ <[^>]+> 8042 1001 	xori	v0,v0,1
 [0-9a-f]+ <[^>]+> 3121      	sll	s2,s2,1
@@ -1883,13 +1883,13 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> e03f 8ffd 	lui	at,0xffff8
 [0-9a-f]+ <[^>]+> 2023 1350 	slt	v0,v1,at
 [0-9a-f]+ <[^>]+> 8043 4000 	slti	v0,v1,0
-[0-9a-f]+ <[^>]+> 6020 0000 7fff 	li	at,0x7fff
+[0-9a-f]+ <[^>]+> 6020 7fff 0000 	li	at,0x7fff
 [0-9a-f]+ <[^>]+> 2023 1350 	slt	v0,v1,at
-[0-9a-f]+ <[^>]+> 6020 0000 ffff 	li	at,0xffff
+[0-9a-f]+ <[^>]+> 6020 ffff 0000 	li	at,0xffff
 [0-9a-f]+ <[^>]+> 2023 1350 	slt	v0,v1,at
 [0-9a-f]+ <[^>]+> e021 0000 	lui	at,0x10
 [0-9a-f]+ <[^>]+> 2023 1350 	slt	v0,v1,at
-[0-9a-f]+ <[^>]+> 6020 ffff 7fff 	li	at,0xffff7fff
+[0-9a-f]+ <[^>]+> 6020 7fff ffff 	li	at,0xffff7fff
 [0-9a-f]+ <[^>]+> 2023 1350 	slt	v0,v1,at
 [0-9a-f]+ <[^>]+> 8064 4000 	slti	v1,a0,0
 [0-9a-f]+ <[^>]+> 8064 4fff 	slti	v1,a0,4095
@@ -1902,13 +1902,13 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> e03f 8ffd 	lui	at,0xffff8
 [0-9a-f]+ <[^>]+> 2023 1390 	sltu	v0,v1,at
 [0-9a-f]+ <[^>]+> 8043 5000 	sltiu	v0,v1,0
-[0-9a-f]+ <[^>]+> 6020 0000 7fff 	li	at,0x7fff
+[0-9a-f]+ <[^>]+> 6020 7fff 0000 	li	at,0x7fff
 [0-9a-f]+ <[^>]+> 2023 1390 	sltu	v0,v1,at
-[0-9a-f]+ <[^>]+> 6020 0000 ffff 	li	at,0xffff
+[0-9a-f]+ <[^>]+> 6020 ffff 0000 	li	at,0xffff
 [0-9a-f]+ <[^>]+> 2023 1390 	sltu	v0,v1,at
 [0-9a-f]+ <[^>]+> e021 0000 	lui	at,0x10
 [0-9a-f]+ <[^>]+> 2023 1390 	sltu	v0,v1,at
-[0-9a-f]+ <[^>]+> 6020 ffff 7fff 	li	at,0xffff7fff
+[0-9a-f]+ <[^>]+> 6020 7fff ffff 	li	at,0xffff7fff
 [0-9a-f]+ <[^>]+> 2023 1390 	sltu	v0,v1,at
 [0-9a-f]+ <[^>]+> 2083 1310 	xor	v0,v1,a0
 [0-9a-f]+ <[^>]+> 2040 1390 	sltu	v0,zero,v0
@@ -1919,7 +1919,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2040 1390 	sltu	v0,zero,v0
 [0-9a-f]+ <[^>]+> 0043 0001 	addiu	v0,v1,1
 [0-9a-f]+ <[^>]+> 2040 1390 	sltu	v0,zero,v0
-[0-9a-f]+ <[^>]+> 6020 ffff 7fff 	li	at,0xffff7fff
+[0-9a-f]+ <[^>]+> 6020 7fff ffff 	li	at,0xffff7fff
 [0-9a-f]+ <[^>]+> 2023 1310 	xor	v0,v1,at
 [0-9a-f]+ <[^>]+> 2040 1390 	sltu	v0,zero,v0
 [0-9a-f]+ <[^>]+> 2083 1090 	sra	v0,v1,a0
@@ -1971,11 +1971,11 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2082 1190 	sub	v0,v0,a0
 [0-9a-f]+ <[^>]+> 0042 0000 	addiu	v0,v0,0
 [0-9a-f]+ <[^>]+> 0042 9fff 	addiu	v0,v0,-1
-[0-9a-f]+ <[^>]+> 6020 0000 7fff 	li	at,0x7fff
+[0-9a-f]+ <[^>]+> 6020 7fff 0000 	li	at,0x7fff
 [0-9a-f]+ <[^>]+> 2022 1190 	sub	v0,v0,at
 [0-9a-f]+ <[^>]+> e03f 8ffd 	lui	at,0xffff8
 [0-9a-f]+ <[^>]+> 2022 1190 	sub	v0,v0,at
-[0-9a-f]+ <[^>]+> 6020 0000 ffff 	li	at,0xffff
+[0-9a-f]+ <[^>]+> 6020 ffff 0000 	li	at,0xffff
 [0-9a-f]+ <[^>]+> 2022 1190 	sub	v0,v0,at
 [0-9a-f]+ <[^>]+> b135      	subu	s2,s3,s2
 [0-9a-f]+ <[^>]+> b1b5      	subu	s2,s3,s3
@@ -2008,11 +2008,11 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2082 11d0 	subu	v0,v0,a0
 [0-9a-f]+ <[^>]+> 0042 0000 	addiu	v0,v0,0
 [0-9a-f]+ <[^>]+> 0042 9fff 	addiu	v0,v0,-1
-[0-9a-f]+ <[^>]+> 6020 0000 7fff 	li	at,0x7fff
+[0-9a-f]+ <[^>]+> 6020 7fff 0000 	li	at,0x7fff
 [0-9a-f]+ <[^>]+> 2022 11d0 	subu	v0,v0,at
 [0-9a-f]+ <[^>]+> e03f 8ffd 	lui	at,0xffff8
 [0-9a-f]+ <[^>]+> 2022 11d0 	subu	v0,v0,at
-[0-9a-f]+ <[^>]+> 6020 0000 ffff 	li	at,0xffff
+[0-9a-f]+ <[^>]+> 6020 ffff 0000 	li	at,0xffff
 [0-9a-f]+ <[^>]+> 2022 11d0 	subu	v0,v0,at
 [0-9a-f]+ <[^>]+> 7d40      	sw	s2,0\(a0\)
 [0-9a-f]+ <[^>]+> 7d40      	sw	s2,0\(a0\)
@@ -2387,13 +2387,13 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2082 1310 	xor	v0,v0,a0
 [0-9a-f]+ <[^>]+> e020 8000 	lui	at,0x8
 [0-9a-f]+ <[^>]+> 2023 1310 	xor	v0,v1,at
-[0-9a-f]+ <[^>]+> 6020 0000 ffff 	li	at,0xffff
+[0-9a-f]+ <[^>]+> 6020 ffff 0000 	li	at,0xffff
 [0-9a-f]+ <[^>]+> 2023 1310 	xor	v0,v1,at
 [0-9a-f]+ <[^>]+> e021 0000 	lui	at,0x10
 [0-9a-f]+ <[^>]+> 2023 1310 	xor	v0,v1,at
 [0-9a-f]+ <[^>]+> e03f 8ffd 	lui	at,0xffff8
 [0-9a-f]+ <[^>]+> 2023 1310 	xor	v0,v1,at
-[0-9a-f]+ <[^>]+> 6020 ffff 7fff 	li	at,0xffff7fff
+[0-9a-f]+ <[^>]+> 6020 7fff ffff 	li	at,0xffff7fff
 [0-9a-f]+ <[^>]+> 2023 1310 	xor	v0,v1,at
 [0-9a-f]+ <[^>]+> 8064 1000 	xori	v1,a0,0
 [0-9a-f]+ <[^>]+> 8063 1fff 	xori	v1,v1,4095
@@ -2475,7 +2475,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> c928 1000 	bgeic	t1,2,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
-[0-9a-f]+ <[^>]+> 6020 8000 0001 	li	at,0x80000001
+[0-9a-f]+ <[^>]+> 6020 0001 8000 	li	at,0x80000001
 [0-9a-f]+ <[^>]+> 2029 0b50 	slt	at,t1,at
 [0-9a-f]+ <[^>]+> 8820 0000 	beqzc	at,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC14_S1	test-0x4
@@ -2603,13 +2603,13 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> b2c6      	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8460 d004 	sd	v1,4\(zero\)
 [0-9a-f]+ <[^>]+> 8460 d004 	sd	v1,4\(zero\)
-[0-9a-f]+ <[^>]+> 6020 0000 7fff 	li	at,0x7fff
+[0-9a-f]+ <[^>]+> 6020 7fff 0000 	li	at,0x7fff
 [0-9a-f]+ <[^>]+> 8461 9000 	sw	v1,0\(at\)
 [0-9a-f]+ <[^>]+> 8481 9004 	sw	a0,4\(at\)
 [0-9a-f]+ <[^>]+> e03f 8ffd 	lui	at,0xffff8
 [0-9a-f]+ <[^>]+> 8461 9000 	sw	v1,0\(at\)
 [0-9a-f]+ <[^>]+> 8481 9004 	sw	a0,4\(at\)
-[0-9a-f]+ <[^>]+> 6020 0000 ffff 	li	at,0xffff
+[0-9a-f]+ <[^>]+> 6020 ffff 0000 	li	at,0xffff
 [0-9a-f]+ <[^>]+> 8461 9000 	sw	v1,0\(at\)
 [0-9a-f]+ <[^>]+> 8481 9004 	sw	a0,4\(at\)
 [0-9a-f]+ <[^>]+> e03f 0ffd 	lui	at,0xffff0
@@ -2635,7 +2635,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 8481 967c 	sw	a0,1660\(at\)
 [0-9a-f]+ <[^>]+> 8464 d000 	sd	v1,0\(a0\)
 [0-9a-f]+ <[^>]+> 8464 d000 	sd	v1,0\(a0\)
-[0-9a-f]+ <[^>]+> 6020 0000 7fff 	li	at,0x7fff
+[0-9a-f]+ <[^>]+> 6020 7fff 0000 	li	at,0x7fff
 [0-9a-f]+ <[^>]+> 2024 0950 	addu	at,a0,at
 [0-9a-f]+ <[^>]+> 8461 9000 	sw	v1,0\(at\)
 [0-9a-f]+ <[^>]+> 8481 9004 	sw	a0,4\(at\)
@@ -2643,7 +2643,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2024 0950 	addu	at,a0,at
 [0-9a-f]+ <[^>]+> 8461 9000 	sw	v1,0\(at\)
 [0-9a-f]+ <[^>]+> 8481 9004 	sw	a0,4\(at\)
-[0-9a-f]+ <[^>]+> 6020 0000 ffff 	li	at,0xffff
+[0-9a-f]+ <[^>]+> 6020 ffff 0000 	li	at,0xffff
 [0-9a-f]+ <[^>]+> 2024 0950 	addu	at,a0,at
 [0-9a-f]+ <[^>]+> 8461 9000 	sw	v1,0\(at\)
 [0-9a-f]+ <[^>]+> 8481 9004 	sw	a0,4\(at\)
@@ -2676,13 +2676,13 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 8481 967c 	sw	a0,1660\(at\)
 [0-9a-f]+ <[^>]+> 8460 c004 	ld	v1,4\(zero\)
 [0-9a-f]+ <[^>]+> 8460 c004 	ld	v1,4\(zero\)
-[0-9a-f]+ <[^>]+> 6020 0000 7fff 	li	at,0x7fff
+[0-9a-f]+ <[^>]+> 6020 7fff 0000 	li	at,0x7fff
 [0-9a-f]+ <[^>]+> 8461 8000 	lw	v1,0\(at\)
 [0-9a-f]+ <[^>]+> 8481 8004 	lw	a0,4\(at\)
 [0-9a-f]+ <[^>]+> e03f 8ffd 	lui	at,0xffff8
 [0-9a-f]+ <[^>]+> 8461 8000 	lw	v1,0\(at\)
 [0-9a-f]+ <[^>]+> 8481 8004 	lw	a0,4\(at\)
-[0-9a-f]+ <[^>]+> 6020 0000 ffff 	li	at,0xffff
+[0-9a-f]+ <[^>]+> 6020 ffff 0000 	li	at,0xffff
 [0-9a-f]+ <[^>]+> 8461 8000 	lw	v1,0\(at\)
 [0-9a-f]+ <[^>]+> 8481 8004 	lw	a0,4\(at\)
 [0-9a-f]+ <[^>]+> e03f 0ffd 	lui	at,0xffff0
@@ -2708,7 +2708,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 8481 867c 	lw	a0,1660\(at\)
 [0-9a-f]+ <[^>]+> 8464 c000 	ld	v1,0\(a0\)
 [0-9a-f]+ <[^>]+> 8464 c000 	ld	v1,0\(a0\)
-[0-9a-f]+ <[^>]+> 6020 0000 7fff 	li	at,0x7fff
+[0-9a-f]+ <[^>]+> 6020 7fff 0000 	li	at,0x7fff
 [0-9a-f]+ <[^>]+> 2024 0950 	addu	at,a0,at
 [0-9a-f]+ <[^>]+> 8461 8000 	lw	v1,0\(at\)
 [0-9a-f]+ <[^>]+> 8481 8004 	lw	a0,4\(at\)
@@ -2716,7 +2716,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2024 0950 	addu	at,a0,at
 [0-9a-f]+ <[^>]+> 8461 8000 	lw	v1,0\(at\)
 [0-9a-f]+ <[^>]+> 8481 8004 	lw	a0,4\(at\)
-[0-9a-f]+ <[^>]+> 6020 0000 ffff 	li	at,0xffff
+[0-9a-f]+ <[^>]+> 6020 ffff 0000 	li	at,0xffff
 [0-9a-f]+ <[^>]+> 2024 0950 	addu	at,a0,at
 [0-9a-f]+ <[^>]+> 8461 8000 	lw	v1,0\(at\)
 [0-9a-f]+ <[^>]+> 8481 8004 	lw	a0,4\(at\)
@@ -2797,7 +2797,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2081 0950 	addu	at,at,a0
 [0-9a-f]+ <[^>]+> a461 6100 	ldc2	\$3,0\(at\)
 [0-9a-f]+ <[^>]+> a464 e1ff 	ldc2	\$3,-1\(a0\)
-[0-9a-f]+ <[^>]+> 6020 1234 5600 	li	at,0x12345600
+[0-9a-f]+ <[^>]+> 6020 5600 1234 	li	at,0x12345600
 [0-9a-f]+ <[^>]+> 2081 0950 	addu	at,at,a0
 [0-9a-f]+ <[^>]+> a461 6178 	ldc2	\$3,120\(at\)
 [0-9a-f]+ <[^>]+> a460 4100 	lwc2	\$3,0\(zero\)
@@ -2831,7 +2831,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2081 0950 	addu	at,at,a0
 [0-9a-f]+ <[^>]+> a461 4100 	lwc2	\$3,0\(at\)
 [0-9a-f]+ <[^>]+> a464 c1ff 	lwc2	\$3,-1\(a0\)
-[0-9a-f]+ <[^>]+> 6020 1234 5600 	li	at,0x12345600
+[0-9a-f]+ <[^>]+> 6020 5600 1234 	li	at,0x12345600
 [0-9a-f]+ <[^>]+> 2081 0950 	addu	at,at,a0
 [0-9a-f]+ <[^>]+> a461 4178 	lwc2	\$3,120\(at\)
 [0-9a-f]+ <[^>]+> 20a0 4d3f 	mfc2	a1,\$0
@@ -2993,7 +2993,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2081 0950 	addu	at,at,a0
 [0-9a-f]+ <[^>]+> a461 6900 	sdc2	\$3,0\(at\)
 [0-9a-f]+ <[^>]+> a464 e9ff 	sdc2	\$3,-1\(a0\)
-[0-9a-f]+ <[^>]+> 6020 1234 5600 	li	at,0x12345600
+[0-9a-f]+ <[^>]+> 6020 5600 1234 	li	at,0x12345600
 [0-9a-f]+ <[^>]+> 2081 0950 	addu	at,at,a0
 [0-9a-f]+ <[^>]+> a461 6978 	sdc2	\$3,120\(at\)
 [0-9a-f]+ <[^>]+> a460 4900 	swc2	\$3,0\(zero\)
@@ -3027,7 +3027,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2081 0950 	addu	at,at,a0
 [0-9a-f]+ <[^>]+> a461 4900 	swc2	\$3,0\(at\)
 [0-9a-f]+ <[^>]+> a464 c9ff 	swc2	\$3,-1\(a0\)
-[0-9a-f]+ <[^>]+> 6020 1234 5600 	li	at,0x12345600
+[0-9a-f]+ <[^>]+> 6020 5600 1234 	li	at,0x12345600
 [0-9a-f]+ <[^>]+> 2081 0950 	addu	at,at,a0
 [0-9a-f]+ <[^>]+> a461 4978 	swc2	\$3,120\(at\)
 [0-9a-f]+ <[^>]+> 0023 0000 	addiu	at,v1,0

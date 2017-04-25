@@ -77,13 +77,13 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 4a11 8200 	balrsc	s0,s1
 [0-9a-f]+ <[^>]+> 4bf1 8200 	balrsc	ra,s1
 [0-9a-f]+ <[^>]+> 446d 2345 	addiu	v1,gp,74565
-[0-9a-f]+ <[^>]+> 6062 1234 5678 	addiu	v1,gp,305419896
-[0-9a-f]+ <[^>]+> 6062 fffe dcbb 	addiu	v1,gp,-74565
-[0-9a-f]+ <[^>]+> 6062 edcb a988 	addiu	v1,gp,-305419896
-[0-9a-f]+ <[^>]+> 6061 0001 2345 	addiu	v1,v1,74565
-[0-9a-f]+ <[^>]+> 6061 1234 5678 	addiu	v1,v1,305419896
-[0-9a-f]+ <[^>]+> 6061 fffe dcbb 	addiu	v1,v1,-74565
-[0-9a-f]+ <[^>]+> 6061 edcb a988 	addiu	v1,v1,-305419896
+[0-9a-f]+ <[^>]+> 6062 5678 1234 	addiu	v1,gp,305419896
+[0-9a-f]+ <[^>]+> 6062 dcbb fffe 	addiu	v1,gp,-74565
+[0-9a-f]+ <[^>]+> 6062 a988 edcb 	addiu	v1,gp,-305419896
+[0-9a-f]+ <[^>]+> 6061 2345 0001 	addiu	v1,v1,74565
+[0-9a-f]+ <[^>]+> 6061 5678 1234 	addiu	v1,v1,305419896
+[0-9a-f]+ <[^>]+> 6061 dcbb fffe 	addiu	v1,v1,-74565
+[0-9a-f]+ <[^>]+> 6061 a988 edcb 	addiu	v1,v1,-305419896
 [0-9a-f]+ <[^>]+> c84c 0800 	bgeiuc	v0,1,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
 [0-9a-f]+ <[^>]+> c84f f800 	bgeiuc	v0,127,[0-9a-f]+ <[^>]+>
