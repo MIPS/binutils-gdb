@@ -1939,7 +1939,7 @@
 *nanomips64r7:
 {
   check_xlp_flag (SD_);
-  do_store (SD_, AccessLength_WORD, RS_5_BIT_R7, U_LW4X4, GPR[RT_5_BIT_R7_Z]);
+  do_store (SD_, AccessLength_WORD, GPR[RS_5_BIT_R7], U_LW4X4, GPR[RT_5_BIT_R7_Z]);
 }
 
 100000,00000,5.STYPE,1100,3.X,0000,00110:R7PHB:32::SYNC
