@@ -61,6 +61,40 @@
 :compute:::int:TRT_R7:RT:((RT < 4) ? (16 + RT) \: RT)
 :compute:::int:COUNT:COUNT3:(COUNT3 == 0 ? 8 \: COUNT3)
 
+:function:::void:do_llwp:int rt, int ru, int roffset, int rbase
+{
+  address_word base = GPR[rbase];
+  address_word offset = EXTEND16 (roffset);
+  {
+    address_word vaddr = loadstore_ea (SD_, base, offset);
+    address_word paddr;
+    int uncached;
+    if ((vaddr & 7) != 0)
+      {
+  SIM_CORE_SIGNAL (SD, CPU, cia, read_map, 8, vaddr, read_transfer,
+    sim_core_unaligned_signal);
+      }
+    else
+      {
+  if (AddressTranslation (vaddr, isDATA, isLOAD, &paddr, &uncached,
+             isTARGET, isREAL))
+    {
+      unsigned64 memval = 0;
+      unsigned64 memval1 = 0;
+      LoadMemory (&memval, &memval1, uncached, AccessLength_DOUBLEWORD,
+            paddr, vaddr, isDATA, isREAL);
+
+      unsigned64 data = memval;
+
+      GPR[rt] = EXTEND32 (data & 0xFFFFFFFF);
+      GPR[ru] = EXTEND32 (data >> 32);
+
+      LLBIT = 1;
+    }
+      }
+  }
+}
+
 :function:::void:do_lwc1xs:int ft, int rbase, int roffset
 *nanomips32r7:
 *nanomips64r7:
@@ -1338,6 +1372,14 @@
   TRACE_ALU_RESULT(GPR[RT]);
 }
 
+101001,5.RT,5.RS,1.X1,1010,0,01,5.RU,1.X2,01:R7PLL:32::LLWP
+"llwp r<RT>, r<RU>, (r<RS>)"
+*nanomips32r7:
+*nanomips64r7:
+{
+  do_llwp (SD_, RT, RU, 0, RS);
+}
+
 001000,5.RT,5.RS,5.RD,2.U,3.X,001,111:R7POOL32A7:32::LSA
 "lsa r<RD>, r<RS>, r<RT>, <U>"
 *nanomips32r7:
@@ -1717,6 +1759,16 @@
 *nanomips64r7:
 {
   do_sc (SD_, RT, S_9_BIT_LLSC, RS, instruction_0);
+}
+
+101001,5.RT,5.RS,1.X1,1011,0,01,5.RU,1.X,01:R7PSC:32::SCWP
+"scwp r<RT>, r<RU>, (r<RS>)"
+*nanomips32r7:
+*nanomips64r7:
+{
+  unsigned64 data = GPR[RU] << 32 | GPR[RT];
+
+  do_scd (SD_, data, 0, RS);
 }
 
 001000,5.RT,5.RS,6.X,0000001,000:R7POOL32A0:32::SEB
@@ -2337,6 +2389,32 @@
 
   GPR[RT] = NIA;
   NIA = address;
+}
+
+110010,5.RT,001,1.X,6.BIT,10.S1,1.S2:R7PBRI:32::BBEQZC
+"bbeqzc r<RT>, <BIT>, <ADDRESS12>"
+*nanomips32r7:
+*nanomips64r7:
+{
+  check_xlp_flag (SD_);
+
+  int testbit = (GPR[RT] >> BIT) & 1;
+
+  if (testbit == 0)
+      NIA = ADDRESS12;
+}
+
+110010,5.RT,101,1.X,6.BIT,10.S1,1.S2:R7PBRI:32::BBNEZC
+"bbnezc r<RT>, <BIT>, <ADDRESS12>"
+*nanomips32r7:
+*nanomips64r7:
+{
+  check_xlp_flag (SD_);
+
+  int testbit = (GPR[RT] >> BIT) & 1;
+
+  if (testbit == 1)
+      NIA = ADDRESS12;
 }
 
 //////////////////////////////////////////////////////////////////////
