@@ -19968,13 +19968,12 @@ relaxed_micromipspp_stub_call_length (fragS *fragp, asection *sec,
       || (stubg_now->prev != NULL
 	  && stubg_now->prev->fragp != NULL
 	  && callsite < stubg_now->prev->fragp->fr_address))
-    {
-      stubg_now = hash_find (balc_stubgroup_table, sec->name);
-      /* This is for ugly cases of hand-written assembly where the
-	 order of .ent and .section directives is reversed.  */
-      if (stubg_now == NULL || stubg_now->fragp == NULL)
-	return 2;
-    }
+    stubg_now = hash_find (balc_stubgroup_table, sec->name);
+
+  /* This is for ugly cases of hand-written assembly where the
+     order of .ent and .section directives is reversed.  */
+  if (stubg_now == NULL || stubg_now->fragp == NULL)
+    return 2;
 
   while (stubg_now->fragp->fr_address + stubg_now->fragp->fr_fix > 0
 	 && stubg_now->fragp->fr_address + stubg_now->fragp->fr_fix < callsite)
