@@ -9496,7 +9496,7 @@ gprel_for_micromipspp_insn (const char *insn, int insn_length)
 {
   unsigned int i;
 
-  if (insn_length == 2)
+  if (forced_insn_length == 2)
     return BFD_RELOC_MICROMIPSPP_GPREL7_S2;
   if (insn_length == 6)
     return BFD_RELOC_MICROMIPSPP_GPREL32;
