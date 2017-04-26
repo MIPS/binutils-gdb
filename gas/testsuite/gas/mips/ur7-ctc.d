@@ -93,6 +93,6 @@ Disassembly of section .text:
 0+0098 <[^>]*> 4804 1000 	jrc.hb	a0
 0+009c <[^>]*> 4be4 1000 	jalrc.hb	a0
 0+00a0 <[^>]*> 4885 1000 	jalrc.hb	a0,a1
-0+00a4 <[^>]*> 1fa8      	restore.jrc	32
+0+00a4 <[^>]*> 1d20      	restore.jrc	32
 0+00a6 <[^>]*> 9008      	nop
 	...

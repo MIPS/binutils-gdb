@@ -17,9 +17,9 @@ Disassembly of section \.text:
 			14: R_MICROMIPS_HI20	end
 0+0018 <func\+0x18> 0084 0000 	addiu	a0,a0,0
 			18: R_MICROMIPS_LO12	end
-0+001c <func\+0x1c> 2800 0000 	bc	000000f4 <end\+0x20>
+0+001c <func\+0x1c> 2800 0000 	bc	[0-9a-f]+ <end\+0x20>
 			1c: R_MICROMIPS_PC25_S1	end-0x4
-0+0020 <func\+0x20> 2a00 0000 	balc	000000f8 <end\+0x24>
+0+0020 <func\+0x20> 2a00 0000 	balc	[0-9a-f]+ <end\+0x24>
 			20: R_MICROMIPS_PC25_S1	end-0x4
 0+0024 <func\+0x24> 4080 0002 	lw	a0,0\(gp\)
 			24: R_MICROMIPS_GPREL19_S2	\.sdata

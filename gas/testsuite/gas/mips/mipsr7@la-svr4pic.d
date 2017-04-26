@@ -10,14 +10,14 @@
 Disassembly of section \.text:
 0+0000 <text_label> 0080 0000 	li	a0,0
 0+0004 <text_label\+0x4> 0080 0001 	li	a0,1
-0+0008 <text_label\+0x8> e080 8000 	lui	a0,0x8
+0+0008 <text_label\+0x8> 0080 8000 	li	a0,32768
 0+000c <text_label\+0xc> e09f 8ffd 	lui	a0,0xffff8
 0+0010 <text_label\+0x10> e081 0000 	lui	a0,0x10
 0+0014 <text_label\+0x14> e081 a000 	lui	a0,0x1a
 0+0018 <text_label\+0x18> 8084 05a5 	ori	a0,a0,1445
 0+001c <text_label\+0x1c> 0085 0000 	addiu	a0,a1,0
 0+0020 <text_label\+0x20> 0085 0001 	addiu	a0,a1,1
-0+0024 <text_label\+0x24> e080 8000 	lui	a0,0x8
+0+0024 <text_label\+0x24> 0080 8000 	li	a0,32768
 0+0028 <text_label\+0x28> 20a4 2150 	addu	a0,a0,a1
 0+002c <text_label\+0x2c> e09f 8ffd 	lui	a0,0xffff8
 0+0030 <text_label\+0x30> 20a4 2150 	addu	a0,a0,a1
