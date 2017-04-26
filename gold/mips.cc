@@ -412,6 +412,15 @@ mips16_reloc(unsigned int r_type)
     }
 }
 
+// Check if R_TYPE is a microMIPS reloc for 48bit instruction.
+static inline bool
+micromips_48bit_insn_reloc(unsigned int r_type)
+{
+  return (r_type == elfcpp::R_MICROMIPS_32
+          || r_type == elfcpp::R_MICROMIPS_PC32
+          || r_type == elfcpp::R_MICROMIPS_GPREL32);
+}
+
 // Check if R_TYPE is a microMIPS reloc.
 static inline bool
 micromips_reloc(unsigned int r_type)
@@ -5149,8 +5158,10 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     Valtype16 second = elfcpp::Swap<16, big_endian>::readval(view + 2);
     Valtype32 val;
 
-    if (micromips_reloc(r_type)
-        || (r_type == elfcpp::R_MIPS16_26 && !jal_shuffle))
+    if (micromips_48bit_insn_reloc(r_type))
+      val = second << 16 | first;
+    else if (micromips_reloc(r_type)
+             || (r_type == elfcpp::R_MIPS16_26 && !jal_shuffle))
       val = first << 16 | second;
     else if (r_type != elfcpp::R_MIPS16_26)
       val = (((first & 0xf800) << 16) | ((second & 0xffe0) << 11)
@@ -5172,8 +5183,13 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     Valtype32 val = elfcpp::Swap<32, big_endian>::readval(view);
     Valtype16 first, second;
 
-    if (micromips_reloc(r_type)
-        || (r_type == elfcpp::R_MIPS16_26 && !jal_shuffle))
+    if (micromips_48bit_insn_reloc(r_type))
+      {
+        second = (val >> 16) & 0xffff;
+        first = val & 0xffff;
+      }
+    else if (micromips_reloc(r_type)
+             || (r_type == elfcpp::R_MIPS16_26 && !jal_shuffle))
       {
         second = val & 0xffff;
         first = val >> 16;
