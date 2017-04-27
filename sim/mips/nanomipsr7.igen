@@ -2180,28 +2180,30 @@
 }
 
 101001,5.RT,5.RS,1.S1,3.COUNT3,0,1,01,8.S2:R7PLSUAWM:32::UALWM
-"ualwm r<RT>, <S_9_BIT>(r<RS>), <COUNT>"
+"ualwm r<RT>, <S_9_BIT>(r<RS>), <COUNT>":COUNT != 1
+"ualw r<RT>, <S_9_BIT>(r<RS>)"
 *nanomips32r7:
 *nanomips64r7:
 {
-  int counter = 0;
+  int i;
   int dest;
   int this_offset;
+
   address_word base = GPR[RS];
-
-  while (counter != COUNT)
+  for(i = 0; i< COUNT; i++)
   {
-    dest = (RT & 0x10) | ((RT + counter) & 0xF);
+    dest = ((RT >> 4) << 4) | (RT + i);
 
-    if ((dest == RS) && (counter != (COUNT - 1)))
+    if (dest == RS && i != COUNT - 1)
       Unpredictable ();
 
-    this_offset = S_9_BIT + (counter << 2);
+    this_offset = S_9_BIT + (i << 2);
 
-    do_lw (SD_, dest, this_offset, RS);
-
-    counter++;
-   }
+    GPR[dest] = EXTEND32 (do_load_right (SD_, AccessLength_WORD, base,
+       EXTEND16 (this_offset), GPR[dest]));
+    GPR[dest] = EXTEND32 (do_load_left (SD_, AccessLength_WORD, base,
+       EXTEND16 (this_offset + AccessLength_WORD), GPR[dest]));
+  }
 }
 
 101001,5.RT,5.RS,1.S1,0101,0,01,8.S2:R7PLSS1:32::UASH
@@ -2215,28 +2217,28 @@
 }
 
 101001,5.RT,5.RS,1.S1,3.COUNT3,1,1,01,8.S2:R7PLSUAWM:32::UASWM
-"uaswm r<RT>, <S_9_BIT>(r<RS>), <COUNT>"
+"uaswm r<RT>, <S_9_BIT>(r<RS>), <COUNT>":COUNT != 1
+"uasw r<RT>, <S_9_BIT>(r<RS>)"
 *nanomips32r7:
 *nanomips64r7:
 {
-  check_xlp_flag (SD_);
 
-  int counter = 0;
+  int i;
   int source;
   int offsetm;
 
-  while (counter != COUNT)
-  {
+  for(i = 0; i< COUNT; i++)
+   {
     if (RT == 0)
       source = 0;
     else
-      source = (RT & 0x10) | ((RT + counter) & 0xF);
+      source = ((RT >> 4) << 4) | (RT + i);
 
-    offsetm = S_9_BIT + (counter << 2);
+    offsetm = S_9_BIT + (i << 2);
 
-    do_sw (SD_, source, offsetm, RS);
-
-    counter++;
+    do_store_right (SD_, AccessLength_WORD, GPR[RS], EXTEND16 (offsetm), GPR[source]);
+    do_store_left (SD_, AccessLength_WORD, GPR[RS],
+                        EXTEND16 (offsetm + AccessLength_WORD), GPR[source]);
   }
 }
 
