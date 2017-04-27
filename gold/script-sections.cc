@@ -773,9 +773,10 @@ class Sections_element_dot_assignment : public Sections_element
 			uint64_t* dot_value, uint64_t* dot_alignment,
 			uint64_t* load_address)
   {
+    uint64_t old_dot_value = *dot_value;
     *dot_value = this->val_->eval_with_dot(symtab, layout, false, *dot_value,
 					   NULL, NULL, dot_alignment, false);
-    *load_address = *dot_value;
+    *load_address += *dot_value - old_dot_value;
   }
 
   // Print for debugging.
@@ -2543,11 +2544,11 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
 	}
       else
 	{
-	  // Do not set the load address of the output section, if one exists.
-	  // This allows future sections to determine what the load address
-	  // should be.  If none is ever set, it will default to being the
-	  // same as the vma address.
-	  laddr = address;
+	  laddr = address + (old_load_address  - old_dot_value);
+	  if (this->output_section_ != NULL
+	      && (this->output_section_->flags() & elfcpp::SHF_ALLOC) != 0
+	      && old_load_address != old_dot_value)
+	    this->output_section_->set_load_address(laddr);
 	}
     }
   else
@@ -2624,16 +2625,12 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
 				 symtab, layout);
 
   // Compute the load address for the following section.
-  if (this->output_section_ == NULL)
-    *load_address = *dot_value;
-  else if (this->load_address_ == NULL)
-    {
-      if (lma_region == NULL)
-	*load_address = *dot_value;
-      else
-	*load_address =
-	  lma_region->get_current_address()->eval(symtab, layout, false);
-    }
+  if (this->output_section_ == NULL
+      || (this->load_address_ == NULL && lma_region == NULL))
+    *load_address += *dot_value - old_dot_value;
+  else if (lma_region != NULL && !this->output_section_->has_load_address())
+    *load_address =
+      lma_region->get_current_address()->eval(symtab, layout, false);
   else
     *load_address = (this->output_section_->load_address()
                      + (*dot_value - start_address));
@@ -2645,8 +2642,10 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
       else
 	this->output_section_->clear_is_relro();
 
-      // If this is a NOLOAD section, keep dot and load address unchanged.
-      if (this->output_section_->is_noload())
+      // If this is a NOLOAD or non-SHF_ALLOC section, keep dot and
+      // load address unchanged.
+      if (this->output_section_->is_noload()
+          || (this->output_section_->flags() & elfcpp::SHF_ALLOC) == 0)
 	{
 	  *dot_value = old_dot_value;
 	  *load_address = old_load_address;
