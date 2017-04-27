@@ -1,4 +1,4 @@
-# mips r7 test sanity, expected to pass.
+# mips r6 nanoMIPS test sanity, expected to pass.
 # mach:	 mips32r7
 # as:		-mabi=eabi
 # ld:		-N -Ttext=0x80010000

@@ -187,10 +187,10 @@
 :function:::void:do_div:int rd, int rs, int rt
 *mips32r6:
 *micromips32r6:
-*nanomips32r7:
+*nanomips32r6:
 *mips64r6:
 *micromips64r6:
-*nanomips64r7:
+*nanomips64r6:
 {
   signed32 n = GPR[rs];
   signed32 d = GPR[rt];
@@ -221,10 +221,10 @@
 :function:::void:do_divu:int rd, int rs, int rt
 *mips32r6:
 *micromips32r6:
-*nanomips32r7:
+*nanomips32r6:
 *mips64r6:
 *micromips64r6:
-*nanomips64r7:
+*nanomips64r6:
 {
   unsigned32 n = GPR[rs];
   unsigned32 d = GPR[rt];
@@ -477,8 +477,8 @@
 *mips64r6:
 *micromips32r6:
 *micromips64r6:
-*nanomips32r7:
-*nanomips64r7:
+*nanomips32r6:
+*nanomips64r6:
 {
   if (rs >= rt)
     {
@@ -516,8 +516,8 @@
 *mips64r6:
 *micromips32r6:
 *micromips64r6:
-*nanomips32r7:
-*nanomips64r7:
+*nanomips32r6:
+*nanomips64r6:
 {
   if (rs >= rt)
     {
@@ -702,8 +702,8 @@
 *mips64r6:
 *micromips32r6:
 *micromips64r6:
-*nanomips32r7:
-*nanomips64r7:
+*nanomips32r6:
+*nanomips64r6:
 {
   if (GPR[rs] == 0)
     return nia + offset;
@@ -717,8 +717,8 @@
 *mips64r6:
 *micromips32r6:
 *micromips64r6:
-*nanomips32r7:
-*nanomips64r7:
+*nanomips32r6:
+*nanomips64r6:
 {
   if (GPR[rs] != 0)
     return nia + offset;

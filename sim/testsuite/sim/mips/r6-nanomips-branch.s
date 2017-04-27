@@ -1,11 +1,11 @@
-# mips r7 branch tests (non FPU)
+# mips r6 nanoMIPS branch tests (non FPU)
 # mach:  mips32r7
 # as:    -mabi=eabi -mmicromips
 # ld:    -N -Ttext=0x80010000
 # output: *\\npass\\n
 
   .include "testutils.inc"
-  .include "utils-r7.inc"
+  .include "utils-r6-nanomips.inc"
 
   setup 4, 6
 
@@ -118,10 +118,10 @@ L11:
   fail
 
 L12:
-  writemsg "[13] Test BGEUIC", 4, 6
-  bgeuic $12, 0x46, Lfail
+  writemsg "[13] Test BGEIUC", 4, 6
+  bgeiuc $12, 0x46, Lfail
   nop
-  bgeuic $12, 0x44, L13
+  bgeiuc $12, 0x44, L13
   nop
   fail
 
@@ -183,9 +183,10 @@ L191:
 
 L20:
   li $9, Lret - L201 + 1
-  writemsg "[21] Test BRC", 4, 6
+  srl $9, 1
+  writemsg "[21] Test BRSC", 4, 6
   li $ra, L201
-  brc $9
+  brsc $9
 L201:
   li $10, 2
   beqzc $10, L21
@@ -195,9 +196,8 @@ L201:
 L21:
   li $9, Lret - L211 + 1
   srl $9, 1
-  writemsg "[22] Test BRSC", 4, 6
-  li $ra, L211
-  brsc $9
+  writemsg "[22] Test BALRSC", 4, 6
+  balrsc $ra, $9
 L211:
   li $10, 2
   beqzc $10, L22
@@ -205,28 +205,7 @@ L211:
   fail
 
 L22:
-  li $9, Lret - L221 + 1
-  writemsg "[23] Test BALRC", 4, 6
-  balrc $ra, $9
-L221:
-  li $10, 2
-  beqzc $10, L23
-  nop
-  fail
-
-L23:
-  li $9, Lret - L231 + 1
-  srl $9, 1
-  writemsg "[24] Test BALRSC", 4, 6
-  balrsc $ra, $9
-L231:
-  li $10, 2
-  beqzc $10, L24
-  nop
-  fail
-
-L24:
-  writemsg "[25] Test BALC", 4, 6
+  writemsg "[23] Test BALC", 4, 6
   balc Lret
   li $10, 1
   beqzc $10, Lend

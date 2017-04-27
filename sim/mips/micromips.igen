@@ -63,8 +63,8 @@
 *micromips64:
 *micromips32r6:
 *micromips64r6:
-*nanomips32r7:
-*nanomips64r7:
+*nanomips32r6:
+*nanomips64r6:
 {
   isa_mode = target & 0x1;
   return (target & (-1 << 1));
@@ -145,8 +145,8 @@
 *micromips64:
 *micromips32r6:
 *micromips64r6:
-*nanomips32r7:
-*nanomips64r7:
+*nanomips32r6:
+*nanomips64r6:
 {
   switch (fmt)
     {
@@ -162,8 +162,8 @@
 *micromips64:
 *micromips32r6:
 *micromips64r6:
-*nanomips32r7:
-*nanomips64r7:
+*nanomips32r6:
+*nanomips64r6:
 {
   switch (fmt)
     {
@@ -180,8 +180,8 @@
 *micromips64:
 *micromips32r6:
 *micromips64r6:
-*nanomips32r7:
-*nanomips64r7:
+*nanomips32r6:
+*nanomips64r6:
 {
   switch (fmt)
     {
@@ -1604,8 +1604,8 @@
 *micromips64:
 *micromips32r6:
 *micromips64r6:
-*nanomips32r7:
-*nanomips64r7:
+*nanomips32r6:
+*nanomips64r6:
 {
   GPR[rd] = EXTEND32 (do_load (SD_, AccessLength_WORD, GPR[rbase],
 			       GPR[rindex] * 4));
