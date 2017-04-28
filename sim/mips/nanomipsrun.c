@@ -63,6 +63,7 @@ sim_engine_run (SIM_DESC sd, int next_cpu_nr, int nr_cpus,
   sim_cpu *cpu = STATE_CPU (sd, next_cpu_nr);
   nanomips32_instruction_address cia = CIA_GET (cpu);
   isa_mode = ISA_MODE_MIPS32;
+  is_nanomips = 1;
   unsigned long bfdmach;
 
   bfdmach = STATE_ARCHITECTURE(SD)->mach;

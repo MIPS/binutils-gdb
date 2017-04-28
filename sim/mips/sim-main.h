@@ -502,6 +502,16 @@ struct _sim_cpu {
   sim_cpu_base base;
 };
 
+extern int is_nanomips;
+
+#define SET_RV0(VAL)							\
+  do {									\
+    if (is_nanomips)							\
+      A0 = VAL;								\
+    else								\
+      V0 = VAL;								\
+  } while (0)
+
 
 /* MIPS specific simulator watch config */
 

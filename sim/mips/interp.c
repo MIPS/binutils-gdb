@@ -179,7 +179,7 @@ static SIM_RC sim_firmware_command (SIM_DESC sd, char* arg);
 
 /* microMIPS ISA mode */
 int isa_mode;
-
+int is_nanomips = 0;
 #define MEM_SIZE (8 << 20)	/* 8 MBytes */
 
 
@@ -1297,7 +1297,7 @@ sim_monitor (SIM_DESC sd,
     case 6: /* int open(char *path,int flags) */
       {
 	char *path = fetch_str (sd, A0);
-	V0 = sim_io_open (sd, path, (int)A1);
+	SET_RV0 (sim_io_open (sd, path, (int)A1));
 	free (path);
 	break;
       }
@@ -1307,7 +1307,7 @@ sim_monitor (SIM_DESC sd,
 	int fd = A0;
 	int nr = A2;
 	char *buf = zalloc (nr);
-	V0 = sim_io_read (sd, fd, buf, nr);
+	SET_RV0 (sim_io_read (sd, fd, buf, nr));
 	sim_write (sd, A1, buf, nr);
 	free (buf);
       }
@@ -1319,7 +1319,7 @@ sim_monitor (SIM_DESC sd,
 	int nr = A2;
 	char *buf = zalloc (nr);
 	sim_read (sd, A1, buf, nr);
-	V0 = sim_io_write (sd, fd, buf, nr);
+	SET_RV0 (sim_io_write (sd, fd, buf, nr));
 	if (fd == 1)
 	    sim_io_flush_stdout (sd);
 	else if (fd == 2)
@@ -1330,14 +1330,14 @@ sim_monitor (SIM_DESC sd,
 
     case 10: /* int close(int file) */
       {
-	V0 = sim_io_close (sd, (int)A0);
+	SET_RV0 (sim_io_close (sd, (int)A0));
 	break;
       }
 
     case 2:  /* Densan monitor: char inbyte(int waitflag) */
       {
 	if (A0 == 0)	/* waitflag == NOWAIT */
-	  V0 = (unsigned_word)-1;
+	  SET_RV0 ((unsigned_word)-1);
       }
      /* Drop through to case 11 */
 
@@ -1349,10 +1349,10 @@ sim_monitor (SIM_DESC sd,
         if (sim_io_read_stdin (sd, &tmp, sizeof(char)) != sizeof(char))
 	  {
 	    sim_io_error(sd,"Invalid return from character read");
-	    V0 = (unsigned_word)-1;
+	    SET_RV0 ((unsigned_word)-1);
 	  }
         else
-	  V0 = (unsigned_word)tmp;
+	  SET_RV0 ((unsigned_word)tmp);
 	break;
       }
 
@@ -1367,14 +1367,14 @@ sim_monitor (SIM_DESC sd,
     case 13: /* int unlink(const char *path) */
       {
 	char *path = fetch_str (sd, A0);
-	V0 = sim_io_unlink (sd, path);
+	SET_RV0 (sim_io_unlink (sd, path));
 	free (path);
 	break;
       }
 
     case 14: /* int lseek(int fd, int offset, int whence) */
       {
-	V0 = sim_io_lseek (sd, A0, A1, A2);
+	SET_RV0 (sim_io_lseek (sd, A0, A1, A2));
 	break;
       }
 
@@ -1404,7 +1404,7 @@ sim_monitor (SIM_DESC sd,
 	char *buf;
         char *path = fetch_str (sd, A0);
 	buf = (char *) A1;
-	V0 = sim_io_stat (sd, path, &host_stat);
+	SET_RV0 (sim_io_stat (sd, path, &host_stat));
 	free (path);
 	mips_stat.st_dev = copy16((short) host_stat.st_dev);
 	mips_stat.st_ino = copy16((unsigned short) host_stat.st_ino);
