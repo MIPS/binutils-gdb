@@ -49,12 +49,6 @@
 #define ECOFF_SIGNED_32
 #include "ecoffswap.h"
 
-static bfd_reloc_status_type gprel32_with_gp
-  (bfd *, asymbol *, arelent *, asection *, bfd_boolean, void *, bfd_vma);
-static bfd_reloc_status_type mips_elf_gprel32_reloc
-  (bfd *, arelent *, asymbol *, void *, asection *, bfd *, char **);
-static bfd_reloc_status_type mips32_64bit_reloc
-  (bfd *, arelent *, asymbol *, void *, asection *, bfd *, char **);
 static reloc_howto_type *bfd_elf32_bfd_reloc_type_lookup
   (bfd *, bfd_reloc_code_real_type);
 static reloc_howto_type *mips_elf32_rtype_to_howto
@@ -1584,125 +1578,6 @@ _bfd_mips_elf32_gprel16_reloc (bfd *abfd, arelent *reloc_entry,
 			       location);
 
   return ret;
-}
-
-/* Do a R_MIPS_GPREL32 relocation.  This is a 32 bit value which must
-   become the offset from the gp register.  */
-
-static bfd_reloc_status_type
-mips_elf_gprel32_reloc (bfd *abfd, arelent *reloc_entry, asymbol *symbol,
-			void *data, asection *input_section, bfd *output_bfd,
-			char **error_message)
-{
-  bfd_boolean relocatable;
-  bfd_reloc_status_type ret;
-  bfd_vma gp;
-
-  /* R_MIPS_GPREL32 relocations are defined for local symbols only.  */
-  if (output_bfd != NULL
-      && (symbol->flags & BSF_SECTION_SYM) == 0
-      && (symbol->flags & BSF_LOCAL) != 0)
-    {
-      *error_message = (char *)
-	_("32bits gp relative relocation occurs for an external symbol");
-      return bfd_reloc_outofrange;
-    }
-
-  if (output_bfd != NULL)
-    relocatable = TRUE;
-  else
-    {
-      relocatable = FALSE;
-      output_bfd = symbol->section->output_section->owner;
-    }
-
-  ret = mips_elf_final_gp (output_bfd, symbol, relocatable,
-			   error_message, &gp);
-  if (ret != bfd_reloc_ok)
-    return ret;
-
-  return gprel32_with_gp (abfd, symbol, reloc_entry, input_section,
-			  relocatable, data, gp);
-}
-
-static bfd_reloc_status_type
-gprel32_with_gp (bfd *abfd, asymbol *symbol, arelent *reloc_entry,
-		 asection *input_section, bfd_boolean relocatable,
-		 void *data, bfd_vma gp)
-{
-  bfd_vma relocation;
-  bfd_vma val;
-
-  if (bfd_is_com_section (symbol->section))
-    relocation = 0;
-  else
-    relocation = symbol->value;
-
-  relocation += symbol->section->output_section->vma;
-  relocation += symbol->section->output_offset;
-
-  if (reloc_entry->address > bfd_get_section_limit (abfd, input_section))
-    return bfd_reloc_outofrange;
-
-  /* Set val to the offset into the section or symbol.  */
-  val = reloc_entry->addend;
-
-  if (reloc_entry->howto->partial_inplace)
-    val += bfd_get_32 (abfd, (bfd_byte *) data + reloc_entry->address);
-
-  /* Adjust val for the final section location and GP value.  If we
-     are producing relocatable output, we don't want to do this for
-     an external symbol.  */
-  if (! relocatable
-      || (symbol->flags & BSF_SECTION_SYM) != 0)
-    val += relocation - gp;
-
-  if (reloc_entry->howto->partial_inplace)
-    bfd_put_32 (abfd, val, (bfd_byte *) data + reloc_entry->address);
-  else
-    reloc_entry->addend = val;
-
-  if (relocatable)
-    reloc_entry->address += input_section->output_offset;
-
-  return bfd_reloc_ok;
-}
-
-/* Handle a 64 bit reloc in a 32 bit MIPS ELF file.  These are
-   generated when addresses are 64 bits.  The upper 32 bits are a simple
-   sign extension.  */
-
-static bfd_reloc_status_type
-mips32_64bit_reloc (bfd *abfd, arelent *reloc_entry,
-		    asymbol *symbol ATTRIBUTE_UNUSED,
-		    void *data, asection *input_section,
-		    bfd *output_bfd, char **error_message)
-{
-  bfd_reloc_status_type r;
-  arelent reloc32;
-  unsigned long val;
-  bfd_size_type addr;
-
-  /* Do a normal 32 bit relocation on the lower 32 bits.  */
-  reloc32 = *reloc_entry;
-  if (bfd_big_endian (abfd))
-    reloc32.address += 4;
-  reloc32.howto = &elf_mips_howto_table_rela[R_MIPS_32];
-  r = bfd_perform_relocation (abfd, &reloc32, data, input_section,
-			      output_bfd, error_message);
-
-  /* Sign extend into the upper 32 bits.  */
-  val = bfd_get_32 (abfd, (bfd_byte *) data + reloc32.address);
-  if ((val & 0x80000000) != 0)
-    val = 0xffffffff;
-  else
-    val = 0;
-  addr = reloc_entry->address;
-  if (bfd_little_endian (abfd))
-    addr += 4;
-  bfd_put_32 (abfd, val, (bfd_byte *) data + addr);
-
-  return r;
 }
 
 /* A mapping from BFD reloc types to MIPS ELF reloc types.  */

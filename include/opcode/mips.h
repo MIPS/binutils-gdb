@@ -445,6 +445,9 @@ enum mips_operand_type {
   /* Fractured upper immediate 20-bit signed integer for uMIPSr7 */
   OP_HI20_INT,
 
+  /* Fractured upper immediate 20-bit scaled integer for uMIPSr7 */
+  OP_HI20_SCALE,
+
   /* A non-zero PC-relative offset.  */
   OP_NON_ZERO_PCREL_S1,
 
