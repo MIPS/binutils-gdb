@@ -298,7 +298,7 @@ decode_micromipspp_operand (const char *p)
     case 's': REG (5, 16, GP);
     case 't': REG (5, 21, GP);
     case 'u': SPECIAL_SPLIT (20, 2, 1, 0, HI20_INT);  /* tri-part 20-bit */
-
+    case 'x': SPECIAL_SPLIT (20, 2, 1, 0, HI20_SCALE);  /* tri-part 20-bit */
     case 'v': OPTIONAL_REG (5, 16, GP);
     case 'w': OPTIONAL_REG (5, 21, GP);
 /*     case 'y': REG (5, 6, GP); */
@@ -422,16 +422,18 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"jalr",	"mp",		0xd810,		0xfc1f,	WR_31|RD_1, INSN2_ALIAS|CTC,	I38,		0,		0}, /* JALRC[16] */
 {"jalr",	"s",		0x4be00000, 0xffe0ffff,	RD_1,	    INSN2_ALIAS|CTC,	I38,		0,		0}, /* JALRC */
 {"jalr",	"t,s",		0x48000000, 0xfc00ffff,	WR_1|RD_2,  INSN2_ALIAS|CTC,	I38,		0,		0}, /* JALRC */
+{"lui", 	"t,u",		0xe0000000, 0xfc000002,	WR_1,		0,	I38,		0,		0},
 {"li",		"md,mI",	0xd000,		0xfc00,	WR_1,		0,	I38,		0,		0}, /* LI[16] */
 {"li",		"-t,j",		0x00000000, 0xfc1f0000,	WR_1,	INSN2_ALIAS,	I38,		0,		0}, /* ADDIU */
 {"li",		"t,h",		0x80008000, 0xfc1ff000,	WR_1,	INSN2_ALIAS,	I38,		0,		0}, /* ADDIU[NEG] */
-{"li",		"t,I",		0,	(int) M_LI,	INSN_MACRO,	0,	I38,		0,		0},
+{"li",		"t,x",		0xe0000000, 0xfc000002,	WR_1,	INSN2_ALIAS,	I38,		0,		0}, /* LUI */
 {"li",		"mp,+Q",	0x6000, 	0xfc1f,		WR_1,	0,	0,		XLP,		0}, /* LI[48] */
 {"li",		"t,I",		0,	(int) M_LI,	INSN_MACRO,	0,	I38,		0,		0},
 {"ext",		"t,r,+A,+C",	0x8000f000, 0xfc00f820,	WR_1|RD_2,			0,	0,	XLP,		0},
 {"ext",		"t,r,+A,+C",	0,    (int) M_EXT,	INSN_MACRO,			0,	I38,	0,		0},
 {"move",	"-p,mj",	0x1000,		0xfc00,	WR_1|RD_2,		0,	I38,		0,		0}, /* preceded by BREAK, SDBBP */
 {"move",	"d,s",		0x20000290, 0xffe007ff, WR_1|RD_2,	INSN2_ALIAS,	I38,		0,		0}, /* OR */
+{"move",	"d,s",		0x20000150, 0xffe007ff, WR_1|RD_2,	INSN2_ALIAS,	I38,		0,		0}, /* ADDU */
 
 /* Precedence=0 */
 {"abs", 	"d,v",		0,    	   (int) M_ABS,	INSN_MACRO,		0,	I38,	0,		0},
@@ -453,9 +455,9 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"addiu",	"mp,+9",		0x9008,	0xfc08,		MOD_1,		0,	I38,		0,		0}, /* ADDIU[RS5], preceded by NOP[16] */
 {"addiu",	"t,ma,+1",		0x440c0000, 0xfc1c0000,	WR_1|RD_2,		0,	I38,		0,		0}, /* ADDIU[GP.B] */
 {"addiu",	"t,ma,.",		0x40000000, 0xfc000003,	WR_1|RD_2,		0,	I38,		0,		0}, /* ADDIU[GP.W] */
-{"addiu",	"t,r,h",		0x80008000, 0xfc00f000,	WR_1|RD_2,		0,	I38,		0,		0}, /* ADDIU[NEG] */
 {"addiu",	"-t,r,j",		0x00000000, 0xfc000000,	WR_1|RD_2,		0,	I38,		0,		0}, /* preceded by S
 IGRIE */
+{"addiu",	"t,r,h",		0x80008000, 0xfc00f000,	WR_1|RD_2,		0,	I38,		0,		0}, /* ADDIU[NEG] */
 {"addiu",	"mp,mt,+R",		0x6001,     0xfc1f,	MOD_1,			0,	0,		XLP,		0}, /* ADDIU[48] */
 {"addiu",	"mp,ma,+T",		0x6002,     0xfc1f,	WR_1|RD_2,		0,	0,		XLP,		0}, /* ADDIU[GP48] */
 {"addiupc",	"t,+r",			0x04000000, 0xfc000000, WR_1,			0,	I38,	0,		0},
@@ -703,8 +705,10 @@ IGRIE */
 {"dbitswap",	"t,s",		0xc0000b3c, 0xfc00ffff,	WR_1|RD_2,		0,	I70,		0,		0},
 {"dclo",	"t,s",		0xc0004b3c, 0xfc00ffff,	WR_1|RD_2,		0,	I70,		0,		0},
 {"dclz",	"t,s",		0xc0005b3c, 0xfc00ffff,	WR_1|RD_2,		0,	I70,		0,		0},
-{"ddiv",	"d,v,t",		0xc0000118, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
-{"ddivu",	"d,v,t",		0xc0000198, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
+{"ddiv",	"d,v,t",	0xc0000118, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
+{"ddiv", 	"d,v,I",	0,    (int) M_DDIV_3I,	INSN_MACRO,		0,	I70,		0,		0},
+{"ddivu",	"d,v,t",	0xc0000198, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
+{"ddivu",	"d,v,I",	0,    (int) M_DIVU_3I,	INSN_MACRO,		0,	I70,		0,		0},
 {"deret",	"",		0x2000e37f, 0xffffffff,		0,		0,	I38,	0,		0},
 {"dext",	"t,r,+A,+C",	0x8000f820, 0xfc00f820,	WR_1|RD_2,		0,	I70,		0,		0},
 {"dextm",	"t,r,+A,+C",	0x8000f800, 0xfc00f820,	WR_1|RD_2,		0,	I70,		0,		0},
@@ -902,7 +906,6 @@ IGRIE */
 {"llwp",	"t,mu,(b)",		0xa4005101, 0xfc00ff07, WR_1|WR_2|RD_3,		0,	0,	XLP,		0},
 {"llwpe",	"t,mu,(b)",		0xa4005201, 0xfc00ff07, WR_1|WR_2|RD_3,		0,	0,	EVA,		0},
 {"lsa",	"d,v,t,+.",		0x2000000f, 0xfc0001ff, WR_1|RD_2|RD_3,		0,	I38,		0,		0},
-{"lui", 	"t,u",		0xe0000000, 0xfc000002,		WR_1,		0,	I38,		0,		0},
 {"lw",		"md,mJ(ml)",		0x7400,	0xfc00,	WR_1|RD_3,		0,	I38,		0,		0}, /* LW[16] */
 {"lw",		"+4,mN(+5)",		0x9400,	0xfc00,	WR_1|RD_3,		0,	0,	XLP,		0}, /* LW[4X4] */
 {"lw",		"mp,mU(ms)",		0x5400,	0xfc00,	WR_1|RD_3,		0,	I38,		0,		0}, /* LW[SP] */
@@ -1312,7 +1315,9 @@ IGRIE */
 {"syscall",	"",		0x00080000, 0xffffffff,		0,	INSN2_ALIAS,	I38,		0,		0},
 {"syscall",	"+M",		0x00080000, 0xfffc0000,		0,		0,	I38,		0,		0},
 {"teq", 	"s,t",		0x20000000, 0xfc00ffff,	RD_1|RD_2,		0,	0,	XLP,		0}, /* TEQ */
+{"teq", 	"s,I",		0, 	 (int) M_TEQ_I,	INSN_MACRO,		0,	0,	XLP,		0},
 {"tne", 	"s,t",		0x20000400, 0xfc00ffff,	RD_1|RD_2,		0,	0,	XLP,		0}, /* TNE */
+{"tne", 	"s,I",		0, 	 (int) M_TNE_I,	INSN_MACRO,		0,	0,	XLP,		0},
 {"tlbginv",	"",		0x2000057f, 0xffffffff,		0,		0,	0,	TLBINV,		0},
 {"tlbginvf",	"",		0x2000157f, 0xffffffff,		0,		0,	0,	TLBINV,		0},
 {"tlbgp",	"",		0x2000017f, 0xffffffff,		0,		0,	0,		IVIRT,		0},

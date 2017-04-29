@@ -1,4 +1,4 @@
-#objdump: -dr --prefix-addresses
+#objdump: -dr --no-show-raw-insn
 #name: MIPS32R7 add
 #source: add.s
 #as: -32
@@ -8,16 +8,19 @@
 .*: +file format .*mips.*
 
 Disassembly of section \.text:
-0+0000 <foo> addiu	a0,a0,0
-0+0004 <foo\+0x4> addiu	a0,a0,1
-0+0008 <foo\+0x8> li	at,32768
-0+000c <foo\+0xc> add	a0,a0,at
-0+0010 <foo\+0x10> lui	at,0xffff8
-0+0014 <foo\+0x14> add	a0,a0,at
-0+0018 <foo\+0x18> lui	at,0x10
-0+001c <foo\+0x1c> add	a0,a0,at
-0+0020 <foo\+0x20> li	at,0x1a5a5
-0+0026 <foo\+0x26> add	a0,a0,at
-0+002a <foo\+0x2a> addiu	a0,a0,1
-0+002e <foo\+0x2e> nop
+
+00000000 <foo>:
+   0:	addiu	a0,a0,0
+   4:	li	at,1
+   8:	add	a0,a0,at
+   c:	li	at,32768
+  10:	add	a0,a0,at
+  14:	lui	at,0xffff8
+  18:	add	a0,a0,at
+  1c:	lui	at,0x10
+  20:	add	a0,a0,at
+  24:	li	at,0x1a5a5
+  2a:	add	a0,a0,at
+  2e:	addiu	a0,a0,1
+  32:	nop
 	\.\.\.

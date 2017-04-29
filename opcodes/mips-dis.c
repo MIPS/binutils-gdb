@@ -1739,7 +1739,15 @@ print_insn_arg (struct disassemble_info *info,
       }
       break;
 
-      case OP_HI20_INT:
+    case OP_HI20_SCALE:
+      {
+	uval = mips_decode_hi20_int_operand (operand, uval);
+	state->last_int = uval;
+	infprintf (is, "0x%x", uval & 0xfffff);
+      }
+      break;
+
+    case OP_HI20_INT:
       {
 	uval = mips_decode_hi20_int_operand (operand, uval);
 	state->last_int = uval;
@@ -1914,6 +1922,8 @@ validate_insn_args (const struct mips_opcode *opcode,
 		case OP_PC_WORD:
 		case OP_GPREL_WORD:
 		case OP_DONT_CARE:
+		case OP_NEG_INT:
+		case OP_HI20_SCALE:
 		  break;
 		}
 	    }
