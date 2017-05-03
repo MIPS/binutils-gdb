@@ -4067,4 +4067,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 8048 f540 	ext	v0,t0,0x0,0x16
 [0-9a-f]+ <[^>]+> 8049 f580 	ext	v0,t1,0x0,0x17
 [0-9a-f]+ <[^>]+> 8050 f5c0 	ext	v0,s0,0x0,0x18
+[0-9a-f]+ <[^>]+> 6040 0000 0000 	li	v0,0x0
+			[0-9a-f]+: R_MICROMIPS_32	test
+[0-9a-f]+ <[^>]+> 9008      	nop
 [0-9a-f]+ <[^>]+> 8000 c000 	nop

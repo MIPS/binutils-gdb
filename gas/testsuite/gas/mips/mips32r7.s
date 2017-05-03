@@ -4501,25 +4501,5 @@ test_spec107:
 	andi	$2, $8, 0x3fffff
 	andi	$2, $9, 0x7fffff
 	andi	$2, $16, 0xffffff
-
-/*
-	.ifndef	insn32
-	bals	test_spec107
-	nop
-	bgezals	$2, test_spec107
-	nop
-	bltzals	$2, test_spec107
-	nop
-	.endif
-*/
-	/*
-	bal	test_spec107
-	*/
-/*
-	bgezal	$2, test_spec107
-	nop
-	bltzal	$2, test_spec107
-	nop
-*/
-
+	li	$2, test
 	.end	test_spec107
