@@ -5561,6 +5561,7 @@ match_relocatable_int_operand (const struct mips_operand *operand_base)
 	  || op_size == 12
 	  || op_size == 14
 	  || op_size == 16
+	  || op_size == 17
 	  || op_size == 18
 	  || op_size == 19
 	  || op_size == 20))
@@ -9512,6 +9513,8 @@ static const struct gprel_insn_match micromipspp_gprel_map[] =
   {"lbu", 0, BFD_RELOC_MICROMIPSPP_GPREL18},
   {"sb", 0, BFD_RELOC_MICROMIPSPP_GPREL18},
   {"addiu", 0, BFD_RELOC_MICROMIPSPP_GPREL18},
+  {"addiu.b", 0, BFD_RELOC_MICROMIPSPP_GPREL18},
+  {"addiu.w", 0, BFD_RELOC_MICROMIPSPP_GPREL19_S2},
   {"ldc1", 0, BFD_RELOC_MICROMIPSPP_GPREL16_S2},
   {"sdc1", 0, BFD_RELOC_MICROMIPSPP_GPREL16_S2},
   {"l.d", 0, BFD_RELOC_MICROMIPSPP_GPREL16_S2},

@@ -1331,10 +1331,10 @@ static reloc_howto_type elf_micromips_howto_table_rela[] =
 	 1,			/* bitpos */
 	 complain_overflow_unsigned, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc, /* special_function */
-	 "R_MICROMIPS_GPREL18_S3",	/* name */
+	 "R_MICROMIPS_GPREL17_S1",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
-	 0x0003fffe,		/* dst_mask */
+	 0x0001fffe,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 #endif /* !RELOC_REUSE_MICROMIPSPP */
 };
