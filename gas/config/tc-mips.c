@@ -6082,6 +6082,7 @@ match_hi20_scaled_operand (struct mips_arg_info *arg)
 
   if (!match_expression (arg, &offset_expr, offset_reloc)
       || offset_reloc[0] != BFD_RELOC_UNUSED
+      || offset_expr.X_op != O_constant
       || (offset_expr.X_add_number & 0xfff) != 0)
     return FALSE;
 
