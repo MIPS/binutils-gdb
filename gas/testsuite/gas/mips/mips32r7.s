@@ -69,6 +69,8 @@ test:
 	li	$2, 0xffff8001
 	li	$2, 0xffffffff
 	li	$2, 0x12345678
+	li	$3, 0xffffffff
+	li	$4, 0xffffffff
 
 	move	$0, $22
 	move	$2, $22

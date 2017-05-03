@@ -5674,7 +5674,11 @@ match_int_operand (struct mips_arg_info *arg,
 
       /* Clear the global state; we're going to install the operand
 	 ourselves.  */
-      sval = offset_expr.X_add_number;
+      if (ISA_IS_R7 (mips_opts.isa) && min_val < 0)
+        sval = (int)offset_expr.X_add_number;
+      else
+        sval = offset_expr.X_add_number;
+
       offset_expr.X_op = O_absent;
 
       /* For compatibility with older assemblers, we accept
@@ -11115,8 +11119,9 @@ load_register (int reg, expressionS *ep, int dbl)
 
       if (ISA_IS_R7 (mips_opts.isa))
 	{
-	  if (ep->X_add_number >= -1 && ep->X_add_number <= 126
-	      && ((reg >= 16 && reg <= 19) || (reg >= 4 && reg <= 7)))
+	  if ((int)ep->X_add_number >= -1
+              && ep->X_add_number <= 126
+	      && (reg >> 2 == 1 || reg >> 2 == 4))
 	    {
 	      /* 7-bit values loaded using LI[16].  */
 	      macro_build (NULL, "li", "md,mI", reg, ep->X_add_number);
