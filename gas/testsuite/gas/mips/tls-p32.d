@@ -1,6 +1,6 @@
 #objdump: -dr
 #name: MIPS ELF TLS p32
-#source: tls-o32.s
+#as: -p32
 
 dump.o:     file format .*
 
@@ -28,11 +28,11 @@ Disassembly of section .text:
   26:	0063 0000 	addiu	v1,v1,0
 			[0-9a-f]+: R_MICROMIPS_TLS_DTPREL_LO12	tlsvar_ld
   2a:	2043 1950 	addu	v1,v1,v0
-  2e:	0045 6b3c 	addiu	v0,a1,27452
+  2e:	2045 01c0 	rdhwr	v0,\$5
   32:	4060 0002 	lw	v1,0\(gp\)
 			[0-9a-f]+: R_MICROMIPS_TLS_GOTTPREL	tlsvar_ie
   36:	2043 1950 	addu	v1,v1,v0
-  3a:	0045 6b3c 	addiu	v0,a1,27452
+  3a:	2045 01c0 	rdhwr	v0,\$5
   3e:	e060 0000 	lui	v1,0x0
 			[0-9a-f]+: R_MICROMIPS_TLS_TPREL_HI20	tlsvar_le
   42:	8063 0000 	ori	v1,v1,0

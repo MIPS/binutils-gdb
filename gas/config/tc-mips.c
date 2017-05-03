@@ -20349,7 +20349,12 @@ parse_code_option (char * name)
     mips_opts.oddspreg = 1;
   else if (strcmp (name, "mips16") == 0
 	   || strcmp (name, "MIPS-16") == 0)
-    mips_opts.mips16 = 1;
+    {
+      if (ISA_IS_R7 (mips_opts.isa))
+	as_bad (_("nanoMIPS does not support MIPS16 ASE"));
+      else
+	mips_opts.mips16 = 1;
+    }
   else if (strcmp (name, "nomips16") == 0
 	   || strcmp (name, "noMIPS-16") == 0)
     mips_opts.mips16 = 0;
@@ -20376,9 +20381,15 @@ parse_code_option (char * name)
 	    as_bad (_("unknown architecture %s"), name + 5);
 	  else
 	    {
-	      mips_opts.arch = p->cpu;
-	      mips_opts.isa = p->isa;
-	      mips_opts.init_ase = p->ase;
+	      if (ISA_IS_R7 (mips_opts.isa) && !ISA_IS_R7 (p->isa))
+		as_bad (_("cannot change ISA from nanoMIPS to %s"),
+			name+5);
+	      else
+		{
+		  mips_opts.arch = p->cpu;
+		  mips_opts.isa = p->isa;
+		  mips_opts.init_ase = p->ase;
+		}
 	    }
 	}
       else if (strncmp (name, "mips", 4) == 0)
@@ -20390,9 +20401,15 @@ parse_code_option (char * name)
 	    as_bad (_("unknown ISA level %s"), name + 4);
 	  else
 	    {
-	      mips_opts.arch = p->cpu;
-	      mips_opts.isa = p->isa;
-	      mips_opts.ase = p->ase;
+	      if (ISA_IS_R7 (mips_opts.isa) && !ISA_IS_R7 (p->isa))
+		as_bad (_("cannot change ISA from nanoMIPS to %s"),
+			name);
+	      else
+		{
+		  mips_opts.arch = p->cpu;
+		  mips_opts.isa = p->isa;
+		  mips_opts.ase = p->ase;
+		}
 	    }
 	}
       else
