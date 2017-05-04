@@ -6106,15 +6106,13 @@ match_hi20_scaled_operand (struct mips_arg_info *arg)
   const struct mips_int_operand op_shuffle = {{OP_INT, 19, 10, 10, 0},
 					  (1 << 19) - 1,
 					  12, 0, FALSE};
-  unsigned int uval;
+  unsigned int uval = 0;
 
-  if (!match_expression (arg, &offset_expr, offset_reloc)
-      || offset_reloc[0] != BFD_RELOC_UNUSED
-      || offset_expr.X_op != O_constant
-      || (offset_expr.X_add_number & 0xfff) != 0)
+  if (!match_const_int (arg, &uval) || (uval & 0xfff) != 0)
     return FALSE;
 
-  uval = offset_expr.X_add_number >> 12;
+  uval = uval >> 12;
+  offset_expr.X_op = O_absent;
 
   /* Re-shuffle and insert lower 19-bits, exluding sign.  */
   uval = mips_insert_operand (&op_shuffle.root,
@@ -8879,6 +8877,8 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	    if (calculate_reloc (*reloc_type, address_expr->X_add_number,
 				 &value))
 	      {
+		if (ISA_IS_R7 (mips_opts.isa))
+		  gas_assert (FALSE);
 		ip->insn_opcode |= value & 0xffff;
 		ip->complete_p = 1;
 	      }
