@@ -16827,7 +16827,7 @@ micromipspp_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	  macro_build (NULL, "srl", SHFT_FMT, op[0], op[0], 31 - op[3]);
 	}
       else
-	macro_build (NULL, "srl", SHFT_FMT, op[0], op[0], op[2]);
+	macro_build (NULL, "srl", SHFT_FMT, op[0], op[1], op[2]);
       break;
 
     case M_INS:
