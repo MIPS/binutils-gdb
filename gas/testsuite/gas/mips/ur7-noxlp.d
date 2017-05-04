@@ -13,8 +13,8 @@ Disassembly of section .text:
    4:	8042 c056 	srl	v0,v0,0x16
    8:	8043 c001 	sll	v0,v1,0x1
    c:	8042 c041 	srl	v0,v0,0x1
-  10:	8042 c05f 	srl	v0,v0,0x1f
-  14:	83ff c05f 	srl	ra,ra,0x1f
+  10:	8043 c05f 	srl	v0,v1,0x1f
+  14:	83fe c05f 	srl	ra,s8,0x1f
   18:	2042 115f 	extw	v0,v0,v0,0x5
   1c:	2062 13df 	extw	v0,v0,v1,0xf
   20:	2042 131f 	extw	v0,v0,v0,0xc
