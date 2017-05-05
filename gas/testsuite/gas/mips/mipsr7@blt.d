@@ -24,15 +24,15 @@ Disassembly of section \.text:
 0+001c <text_label\+0x1c> 2024 0b50 	slt	at,a0,at
 0+0020 <text_label\+0x20> a820 0000 	bnezc	at,00000024 <text_label\+0x24>
 			20: R_MICROMIPS_PC14_S1	text_label-0x4
-0+0024 <text_label\+0x24> e03f 8ffd 	lui	at,0xffff8
+0+0024 <text_label\+0x24> e03f 8ffd 	lui	at,%hi\(0xffff8000\)
 0+0028 <text_label\+0x28> 2024 0b50 	slt	at,a0,at
 0+002c <text_label\+0x2c> a820 0000 	bnezc	at,00000030 <text_label\+0x30>
 			2c: R_MICROMIPS_PC14_S1	text_label-0x4
-0+0030 <text_label\+0x30> e021 0000 	lui	at,0x10
+0+0030 <text_label\+0x30> e021 0000 	lui	at,%hi\(0x10000\)
 0+0034 <text_label\+0x34> 2024 0b50 	slt	at,a0,at
 0+0038 <text_label\+0x38> a820 0000 	bnezc	at,0000003c <text_label\+0x3c>
 			38: R_MICROMIPS_PC14_S1	text_label-0x4
-0+003c <text_label\+0x3c> e021 a000 	lui	at,0x1a
+0+003c <text_label\+0x3c> e021 a000 	lui	at,%hi\(0x1a000\)
 0+0040 <text_label\+0x40> 8021 05a5 	ori	at,at,1445
 0+0044 <text_label\+0x44> 2024 0b50 	slt	at,a0,at
 0+0048 <text_label\+0x48> a820 0000 	bnezc	at,0000004c <text_label\+0x4c>

@@ -8,7 +8,6 @@
 .*:16: Error: invalid operands `movep \$6,\$22,\$6,\$8'
 .*:17: Error: invalid operands `movep \$7,\$23,\$6,\$6'
 .*:21: Error: the target register must not be \$0 `balrsc \$0,\$6'
-.*:22: Error: the target register must not be \$0 `auipc \$0,1'
 .*:23: Error: the target register must not be \$0 `move16 \$0,\$1'
 .*:26: Error: operand 4 out of range `align \$4,\$2,\$3,4'
 .*:27: Error: operand 4 out of range `align \$4,\$2,\$3,31'

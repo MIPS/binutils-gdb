@@ -7,10 +7,10 @@ dump.o:     file format .*
 Disassembly of section .text:
 
 00000000 \<fn\>:
-   0:	e000 0002 	aluipc	gp,4 <[^>]+>
-			[0-9a-f]+: R_MICROMIPS_PCHI20_M12	_gp
+   0:	e380 0002 	aluipc	gp,4 <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PCHI20	_gp-0x4
    4:	83bd 8010 	addiu	sp,sp,-16
-   8:	5fc2      	sw	s8,8\(sp\)
+   8:	b7c2      	sw	s8,8\(sp\)
    a:	13dd      	move	s8,sp
    c:	4320 0002 	lw	t9,0\(gp\)
 			[0-9a-f]+: R_MICROMIPS_CALL	__tls_get_addr
@@ -39,7 +39,7 @@ Disassembly of section .text:
 			[0-9a-f]+: R_MICROMIPS_TLS_TPREL_LO12	tlsvar_le
   46:	2043 1950 	addu	v1,v1,v0
   4a:	13be      	move	sp,s8
-  4c:	57c2      	lw	s8,8\(sp\)
+  4c:	37c2      	lw	s8,8\(sp\)
   4e:	03bd 0010 	addiu	sp,sp,16
   52:	481f 0000 	jrc	ra
   56:	9008      	nop

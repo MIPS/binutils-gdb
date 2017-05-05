@@ -8,8 +8,8 @@
 .*: +file format .*mips.*
 
 Disassembly of section \.text:
-0+0000 <text_label> e000 0002 	aluipc	gp,00000004 <_gp\+0x4>
-			0: R_MICROMIPS_PCHI20_M12	_gp
+0+0000 <text_label> e380 0002 	aluipc	gp,00000004 <_gp\+0x4>
+			0: R_MICROMIPS_PCHI20	_gp-0x4
 0+0004 <text_label\+0x4> db30      	jalrc	t9
 0+0006 <text_label\+0x6> 4899 0000 	jalrc	a0,t9
 0+000a <text_label\+0xa> 4320 0002 	lw	t9,0\(gp\)

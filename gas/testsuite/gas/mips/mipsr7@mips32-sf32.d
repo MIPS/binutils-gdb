@@ -8,7 +8,7 @@
 .*: +file format .*mips.*
 
 Disassembly of section \.text:
-0+0000 <func> e020 07f0 	lui	\$1,0x3f800
+0+0000 <func> e020 07f0 	lui	\$1,%hi\(0x3f800000\)
 0+0004 <func\+0x4> a021 283b 	mtc1	\$1,\$f1
 0+0008 <func\+0x8> 847c a000 	lwc1	\$f3,0\(\$28\)
 			8: R_MICROMIPS_LITERAL	.lit4

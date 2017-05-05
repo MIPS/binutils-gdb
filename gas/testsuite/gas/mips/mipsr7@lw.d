@@ -8,7 +8,7 @@
 .*: +file format .*mips.*
 
 Disassembly of section \.text:
-0+0000 <text_label> e081 a000 	lui	a0,0x1a
+0+0000 <text_label> e081 a000 	lui	a0,%hi\(0x1a000\)
 0+0004 <text_label\+0x4> 20a4 2150 	addu	a0,a0,a1
 0+0008 <text_label\+0x8> 8484 85a5 	lw	a0,1445\(a0\)
 0+000c <text_label\+0xc> 8480 8000 	lw	a0,0\(zero\)
@@ -18,7 +18,7 @@ Disassembly of section \.text:
 0+001c <text_label\+0x1c> 8484 8000 	lw	a0,0\(a0\)
 0+0020 <text_label\+0x20> 0080 1000 	addiu	a0,zero,4096
 0+0024 <text_label\+0x24> 8484 8000 	lw	a0,0\(a0\)
-0+0028 <text_label\+0x28> e081 a000 	lui	a0,0x1a
+0+0028 <text_label\+0x28> e081 a000 	lui	a0,%hi\(0x1a000\)
 0+002c <text_label\+0x2c> 8484 85a5 	lw	a0,1445\(a0\)
 0+0030 <text_label\+0x30> 7650      	lw	a0,0\(a1\)
 0+0032 <text_label\+0x32> 8485 8001 	lw	a0,1\(a1\)

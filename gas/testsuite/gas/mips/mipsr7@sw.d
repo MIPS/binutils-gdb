@@ -12,13 +12,13 @@ Disassembly of section \.text:
 0+0004 <text_label\+0x4> 84a0 8004 	lw	a1,4\(zero\)
 0+0008 <text_label\+0x8> 8480 8001 	lw	a0,1\(zero\)
 0+000c <text_label\+0xc> 84a0 8005 	lw	a1,5\(zero\)
-0+0010 <text_label\+0x10> e020 0001 	lui	at,0x80000
+0+0010 <text_label\+0x10> e020 0001 	lui	at,%hi\(0x80000000\)
 0+0014 <text_label\+0x14> 8481 8000 	lw	a0,0\(at\)
 0+0018 <text_label\+0x18> 84a1 8004 	lw	a1,4\(at\)
 0+001c <text_label\+0x1c> e020 0000 	lui	at,0x0
 0+0020 <text_label\+0x20> 8481 8000 	lw	a0,0\(at\)
 0+0024 <text_label\+0x24> 84a1 8004 	lw	a1,4\(at\)
-0+0028 <text_label\+0x28> e020 0001 	lui	at,0x80000
+0+0028 <text_label\+0x28> e020 0001 	lui	at,%hi\(0x80000000\)
 0+002c <text_label\+0x2c> 8481 8000 	lw	a0,0\(at\)
 0+0030 <text_label\+0x30> 84a1 8004 	lw	a1,4\(at\)
 0+0034 <text_label\+0x34> e020 0002 	auipc	at,00000034 <text_label\+0x34>
@@ -28,7 +28,7 @@ Disassembly of section \.text:
 0+0044 <text_label\+0x44> 84a5 8004 	lw	a1,4\(a1\)
 0+0048 <text_label\+0x48> 8485 8001 	lw	a0,1\(a1\)
 0+004c <text_label\+0x4c> 84a5 8005 	lw	a1,5\(a1\)
-0+0050 <text_label\+0x50> e020 0001 	lui	at,0x80000
+0+0050 <text_label\+0x50> e020 0001 	lui	at,%hi\(0x80000000\)
 0+0054 <text_label\+0x54> 2025 0950 	addu	at,a1,at
 0+0058 <text_label\+0x58> 8481 8000 	lw	a0,0\(at\)
 0+005c <text_label\+0x5c> 84a1 8004 	lw	a1,4\(at\)
@@ -36,7 +36,7 @@ Disassembly of section \.text:
 0+0064 <text_label\+0x64> 2025 0950 	addu	at,a1,at
 0+0068 <text_label\+0x68> 8481 8000 	lw	a0,0\(at\)
 0+006c <text_label\+0x6c> 84a1 8004 	lw	a1,4\(at\)
-0+0070 <text_label\+0x70> e020 0001 	lui	at,0x80000
+0+0070 <text_label\+0x70> e020 0001 	lui	at,%hi\(0x80000000\)
 0+0074 <text_label\+0x74> 2025 0950 	addu	at,a1,at
 0+0078 <text_label\+0x78> 8481 8000 	lw	a0,0\(at\)
 0+007c <text_label\+0x7c> 84a1 8004 	lw	a1,4\(at\)
