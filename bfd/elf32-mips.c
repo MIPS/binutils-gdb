@@ -2007,19 +2007,7 @@ static reloc_howto_type elf_micromips_howto_table_rela[] =
 	 0x000003ff,		/* dst_mask */
 	 TRUE),			/* pcrel_offset */
 
-  HOWTO (R_MICROMIPSPP_PCHI20_M12, /* type */
-	 12,			/* rightshift */
-	 2,			/* size (0 = byte, 1 = short, 2 = long) */
-	 20,			/* bitsize */
-	 TRUE,			/* pc_relative */
-	 0,			/* bitpos */
-	 complain_overflow_dont, /* complain_on_overflow */
-	 _bfd_mips_elf_generic_reloc, /* special_function */
-	 "R_MICROMIPS_PCHI20_M12", /* name */
-	 FALSE,			/* partial_inplace */
-	 0,			/* src_mask */
-	 0x001ffffd,		/* dst_mask */
-	 TRUE),			/* pcrel_offset */
+  EMPTY_HOWTO (187),
 
 #ifdef RELOC_REUSE_MICROMIPSPP
   /* 19 bit call through global offset table.  */
@@ -3272,8 +3260,6 @@ static const struct elf_reloc_map micromipspp_reloc_map[] =
     R_MICROMIPSPP_GPREL19_S2 - R_MICROMIPSPP_min },
   { BFD_RELOC_MICROMIPSPP_4_PCREL_S1,
     R_MICROMIPSPP_PC4_S1 - R_MICROMIPSPP_min },
-  { BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12,
-    R_MICROMIPSPP_PCHI20_M12 - R_MICROMIPSPP_min },
   { BFD_RELOC_MICROMIPSPP_HI20_PCREL,
     R_MICROMIPSPP_PCHI20 - R_MICROMIPSPP_min },
   { BFD_RELOC_MICROMIPSPP_LO12_PCREL,

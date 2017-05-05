@@ -34,8 +34,8 @@ Disassembly of section \.text:
 0+0056 <text_label\+0x56> 20e7 0048 	seh	\$7,\$7
 0+005a <text_label\+0x5a> 210a 0048 	seh	\$8,\$10
 0+005e <text_label\+0x5e> a7ea 1835 	synci	53\(\$10\)
-0+0062 <text_label\+0x62> 20e7 7b3f 	wsbh	\$7,\$7
-0+0066 <text_label\+0x66> 210a 7b3f 	wsbh	\$8,\$10
+0+0062 <text_label\+0x62> 80e7 d608 	wsbh	\$7,\$7
+0+0066 <text_label\+0x66> 810a d608 	wsbh	\$8,\$10
 0+006a <text_label\+0x6a> 2000 477f 	di
 0+006e <text_label\+0x6e> 2000 477f 	di
 0+0072 <text_label\+0x72> 2140 477f 	di	\$10

@@ -21,7 +21,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> li	at,4096
 [0-9a-f]+ <[^>]+> lw	a0,0\(at\)
 [0-9a-f]+ <[^>]+> lw	a1,4\(at\)
-[0-9a-f]+ <[^>]+> lui	at,0x1a
+[0-9a-f]+ <[^>]+> lui	at,%hi\(0x1a000\)
 [0-9a-f]+ <[^>]+> lw	a0,1445\(at\)
 [0-9a-f]+ <[^>]+> lw	a1,1449\(at\)
 [0-9a-f]+ <[^>]+> lw	a0,0\(a1\)
@@ -37,7 +37,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> addiu	at,a1,4096
 [0-9a-f]+ <[^>]+> lw	a0,0\(at\)
 [0-9a-f]+ <[^>]+> lw	a1,4\(at\)
-[0-9a-f]+ <[^>]+> lui	at,0x1a
+[0-9a-f]+ <[^>]+> lui	at,%hi\(0x1a000\)
 [0-9a-f]+ <[^>]+> addu	at,a1,at
 [0-9a-f]+ <[^>]+> lw	a0,1445\(at\)
 [0-9a-f]+ <[^>]+> lw	a1,1449\(at\)

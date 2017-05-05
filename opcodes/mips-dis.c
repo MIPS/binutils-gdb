@@ -1751,7 +1751,10 @@ print_insn_arg (struct disassemble_info *info,
       {
 	uval = mips_decode_hi20_int_operand (operand, uval);
 	state->last_int = uval;
-	infprintf (is, "0x%x", uval & 0xfffff);
+	if ((info->flags & INSN_HAS_RELOC) != 0 || uval == 0)
+	  infprintf (is, "0x%x", uval & 0xfffff);
+	else
+	  infprintf (is, "%%hi(0x%x)", (uval & 0xfffff) << 12);
       }
       break;
 

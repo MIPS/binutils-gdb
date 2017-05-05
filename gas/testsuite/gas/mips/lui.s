@@ -8,6 +8,7 @@ foo:
 1:
 	lui	$2, 1b - 0b
 bar:
+	.ifndef r7
 	lui	$2, 2f - 1b
 2:
 	lui	$2, bar - foo
@@ -20,7 +21,6 @@ baz:
 	lui	$2, 4f
 4:
 	lui	$2, min + 1
-	.ifndef r7_broken
 	lui	$2, max - 1
 	.endif
 	.eqv	min, -1

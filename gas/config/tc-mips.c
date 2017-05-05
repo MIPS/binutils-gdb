@@ -4489,7 +4489,6 @@ micromipspp_reloc_p (bfd_reloc_code_real_type reloc)
       case BFD_RELOC_MICROMIPSPP_HI20:
       case BFD_RELOC_MICROMIPSPP_LO12:
       case BFD_RELOC_MICROMIPSPP_HI20_PCREL:
-      case BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12:
       case BFD_RELOC_MICROMIPSPP_LO12_PCREL:
       case BFD_RELOC_MICROMIPSPP_LITERAL:
       case BFD_RELOC_MICROMIPSPP_7_PCREL_S1:
@@ -4589,6 +4588,16 @@ hi16_reloc_p (bfd_reloc_code_real_type reloc)
   return (reloc == BFD_RELOC_HI16_S || reloc == BFD_RELOC_MIPS16_HI16_S
 	  || reloc == BFD_RELOC_MICROMIPS_HI16_S
 	  || reloc == BFD_RELOC_MICROMIPSPP_HI20);
+}
+
+static inline bfd_boolean
+micromipspp_hi_reloc_p (bfd_reloc_code_real_type reloc)
+{
+  return (reloc == BFD_RELOC_HI16_S
+	  || reloc == BFD_RELOC_MICROMIPSPP_HI20
+	  || reloc == BFD_RELOC_MICROMIPSPP_GOT_HI20
+	  || reloc == BFD_RELOC_MICROMIPSPP_CALL_HI20
+	  || reloc == BFD_RELOC_MICROMIPSPP_GPREL_HI20);
 }
 
 static inline bfd_boolean
@@ -6021,21 +6030,42 @@ match_non_zero_pcrel_operand (struct mips_arg_info *arg,
 
 static bfd_boolean
 match_hi20_int_operand (struct mips_arg_info *arg,
-			const struct mips_operand *operand_base)
+			const struct mips_operand *operand_base ATTRIBUTE_UNUSED)
 {
-  unsigned int uval;
-  const struct mips_int_operand op_uenc = UNSIGNED_OPVALUE (operand_base);
-  const struct mips_operand op_ext = SIGNEX_OPVALUE (operand_base);
-  const struct mips_operand op_shuffle = {OP_INT, 19, 12, 10, 2};
+  offsetT uval = 0;
+  const struct mips_int_operand op_enc = {{OP_INT, 20, 2, 1, 0},
+					  (1 << 20) - 1,
+					  12, 0, FALSE};
+  const struct mips_int_operand op_shuffle = {{OP_INT, 19, 10, 10, 0},
+					  (1 << 19) - 1,
+					  12, 0, FALSE};
 
-  /* Encode full 20-bit signed value.  */
-  if (!match_int_operand (arg, &op_uenc.root))
+  if (!match_expression (arg, &offset_expr, offset_reloc))
     return FALSE;
 
-  /* Extract lower 19-bits, excluding sign.  */
-  uval = mips_extract_operand (&op_ext, arg->insn->insn_opcode);
-  /* Re-shuffle and insert lower 19-bits, excluding sign.  */
-  insn_insert_operand (arg->insn, &op_shuffle, uval);
+  /* 16-bit immediate without %hi reloc  */
+  if (offset_reloc[0] == BFD_RELOC_UNUSED
+      && (offset_expr.X_add_number & ~0xffff) == 0)
+    uval = offset_expr.X_add_number << 4;
+  /* 20-bit high part using %hi  */
+  else if (micromipspp_hi_reloc_p (offset_reloc[0]))
+    uval = offset_expr.X_add_number >> 12;
+  else
+    return FALSE;
+
+  if (uval < 0)
+    return FALSE;
+
+  if (offset_expr.X_op == O_constant)
+    {
+      offset_expr.X_op = O_absent;
+      /* Re-shuffle and insert lower 19-bits, exluding sign.  */
+      uval = mips_insert_operand (&op_shuffle.root,
+				  uval & 0x80000, uval & 0x7ffff);
+
+      /* Insert 20-bits in to instruction.  */
+      insn_insert_operand (arg->insn, &op_enc.root, uval);
+    }
 
   return TRUE;
 }
@@ -6069,8 +6099,7 @@ match_hi20_pcrel_operand (struct mips_arg_info *arg)
       return TRUE;
     }
   else
-    return (offset_reloc[0] == BFD_RELOC_MICROMIPSPP_HI20_PCREL
-	    || offset_reloc[0] == BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12);
+    return (offset_reloc[0] == BFD_RELOC_MICROMIPSPP_HI20_PCREL);
 }
 
 static bfd_boolean
@@ -6082,7 +6111,7 @@ match_hi20_scaled_operand (struct mips_arg_info *arg)
   const struct mips_int_operand op_shuffle = {{OP_INT, 19, 10, 10, 0},
 					  (1 << 19) - 1,
 					  12, 0, FALSE};
-  unsigned int uval = 0;
+  offsetT uval = 0;
 
   if (!match_const_int (arg, &uval) || (uval & 0xfff) != 0)
     return FALSE;
@@ -18319,7 +18348,6 @@ static const struct percent_op_match micromipspp_percent_op[] =
   {"%hi", BFD_RELOC_MICROMIPSPP_HI20},
   {"%pcrel_hi", BFD_RELOC_MICROMIPSPP_HI20_PCREL},
   {"%pcrel_lo", BFD_RELOC_MICROMIPSPP_LO12_PCREL},
-  {"%pcrel_himask", BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12},
   {"%pcrel", BFD_RELOC_MICROMIPSPP_PC32},
   /* These are currently not supported for R7.  */
   {"%got_hi", BFD_RELOC_UNUSED},
@@ -19294,7 +19322,6 @@ mips_force_relocation (fixS *fixp)
 	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_25_PCREL_S1
 	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_HI20_PCREL
 	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_LO12_PCREL
-	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12
 	  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_PC32))
     return 1;
 
@@ -19365,7 +19392,6 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       case BFD_RELOC_MICROMIPSPP_25_PCREL_S1:
       case BFD_RELOC_MICROMIPSPP_HI20_PCREL:
       case BFD_RELOC_MICROMIPSPP_LO12_PCREL:
-      case BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12:
       case BFD_RELOC_MICROMIPSPP_PC32:
 	break;
 
@@ -19691,7 +19717,6 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 
     case BFD_RELOC_MICROMIPSPP_PC32:
     case BFD_RELOC_MICROMIPSPP_LO12_PCREL:
-    case BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12:
     case BFD_RELOC_MICROMIPSPP_HI20_PCREL:
       gas_assert (!fixP->fx_done);
       break;
@@ -20544,8 +20569,8 @@ s_cpsetup_micromipspp (int ignore ATTRIBUTE_UNUSED)
   macro_start ();
 
   if (mips_in_shared || HAVE_64BIT_SYMBOLS)
-      macro_build (&ex, "aluipc", "ma,mK", mips_gp_register,
-		   BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12);
+      macro_build (&ex, "aluipc", "t,mK", mips_gp_register,
+		   BFD_RELOC_MICROMIPSPP_HI20_PCREL);
   else
       gas_assert (FALSE); /* FIXME - TODO */
 
@@ -22122,7 +22147,6 @@ tc_gen_reloc (asection *section ATTRIBUTE_UNUSED, fixS *fixp)
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_25_PCREL_S1
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_HI20_PCREL
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_LO12_PCREL
-		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_HI20_PCREL_M12
 		  || fixp->fx_r_type == BFD_RELOC_MICROMIPSPP_PC32);
 
       /* At this point, fx_addnumber is "symbol offset - pcrel address".

@@ -19,7 +19,7 @@ test:
 	/* Non-zero register check */
 
 	balrsc	$0, $6
-	auipc	$0, 1
+
 	move16 $0, $1
 
 	/* Valid values for ALIGN macro are 0, 1, 2, 3 */

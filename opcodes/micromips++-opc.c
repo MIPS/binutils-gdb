@@ -224,8 +224,8 @@ decode_micromipspp_operand (const char *p)
 /* 	case '$': UINT (5, 16);			/\* (0 .. 31) *\/ */
 /* 	case '%': SINT (5, 16);			/\* (-16 .. 15) *\/ */
 /* 	case '&': SPECIAL (0, 0, IMM_INDEX); */
-/* 	case '*': SPECIAL (5, 16, REG_INDEX); */
-/* 	case '|': BIT (8, 16, 0);		/\* (0 .. 255) *\/ */
+	case '*': INT_ADJ (4, 7, 15, 1, FALSE); /* (0 .. 15) << 1 */
+	case '|': UINT (1, 6);			/* 0/1 */
 	case '\'': BRANCH_UNORD_SPLIT (25, 1);
 /* 	case '"': BRANCH (21, 0, 1); */
 	case ':': MAPPED_INT (5, 6, word_byte_map, FALSE);
@@ -395,7 +395,7 @@ const struct mips_opcode micromipspp_opcodes[] =
 {"la",		"t,A(b)",	0,    (int) M_LA_AB,	INSN_MACRO,		0,		I38,		0,	0},
 {"dla", 	"t,A(b)",	0,    (int) M_DLA_AB,	INSN_MACRO,		0,		I38,		0,	0},
 /* Precedence=1 */
-{"aluipc",	"ma,mK",		0xe0000002, 0xffe00002,		WR_1,		0,	I38,		0,		0}, /* ALUIPC[GP] */
+{"aluipc",	"t,mK",		0xe0000002, 0xfc000002,	WR_1,		0,	I38,		0,		0}, /* ALUIPC */
 {"break",	"",		0x1010,	0xffff,		0,	INSN2_ALIAS,	I38,		0,		0},
 {"break",	"+K",		0x1010,	0xfff8,		0,		0,	I38,		0,		0},
 {"break",	"",		0x00100000, 0xffffffff,		0,	INSN2_ALIAS,	I38,		0,		0},
@@ -497,7 +497,6 @@ IGRIE */
 {"append",	"t,s,^",		0x20000215, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32,		0},
 {"aset",	"\\,+j(b)",		0xa4001100, 0xff007f00,		RD_3,		0,	0,	MC,		0},
 {"aset",	"\\,A(b)",		0,    (int) M_ASET_AB,		INSN_MACRO,	0,	0,	MC,		0},
-{"auipc",	"-t,mK",		0xe0000002, 0xfc000002,		WR_1,		0,	I38,	0,		0}, /* preceded by ALUIPC[GP] */
 {"balc",	"mD",		0x3800,	0xfc00,		WR_31,		0,	I38,		0,		0}, /* BALC[16] */
 {"balc",	"+'",		0x2a000000, 0xfe000000,		WR_31,		0,	I38,		0,		0},
 {"bal",		"mD",		0x3800,	0xfc00,		WR_31,	INSN2_ALIAS|CTC,	I38,		0,		0}, /* BALC[16] */
@@ -558,8 +557,9 @@ IGRIE */
 {"bgeu",	"s,t,p",	0x8800c000, 0xfc00c000,	RD_1|RD_2, INSN2_ALIAS|CTC,	I38,		0,		0}, /* BGEUC */
 {"bgeu",	"s,I,p",	0,    (int) M_BGEU_I,	INSN_MACRO,		0,	I38,		0,		0},
 {"bgeiuc",	"t,m9,~",	0xc80c0000, 0xfc1c0000,		RD_1,		0,	I38,	0,		0},
-{"bitrev",	"t,s",		0x2000313f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32,		0},
-{"bitswap",	"t,s",		0x20000b3f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	XLP,		0},
+{"bitrev",	"t,r",		0x8000d01f, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	XLP,		0}, /* ROTX */
+{"bitswap",	"t,r",		0x8000d247, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	XLP,		0}, /* ROTX */
+{"bitswaph",	"t,r",		0x8000d40f, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	XLP,		0}, /* ROTX */
 {"bgtzc",	"t,p",		0xa8008000, 0xfc1fc000,	RD_1,	INSN2_ALIAS,	I38,		0,		0}, /* BLTC $0, t */
 {"bgtz",	"t,p",		0xa8008000, 0xfc1fc000,	RD_1, INSN2_ALIAS|CTC,	I38,		0,		0}, /* BLTC $0, t */
 {"bltzc",	"s,p",		0xa8008000, 0xffe0c000,	RD_1,	INSN2_ALIAS,	I38,		0,		0}, /* BLTC s, $0 */
@@ -595,6 +595,7 @@ IGRIE */
 {"bposge32",	"+u",		0x88044000, 0xffffc000,		0,    INSN2_ALIAS|CTC,	0,	D32,		0}, /* BPOSGE32C */
 {"brc",		"s",		0x48008000, 0xffe0ffff,		RD_1,		0,	I38,	0,		0},
 {"brsc",	"s",		0x48008200, 0xffe0ffff,		RD_1,		0,	I38,	0,		0},
+{"byterev",	"t,r",		0x8000d218, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	XLP,		0}, /* ROTX */
 {"cache",	"k,+j(b)",	0xa4003900, 0xfc007f00,		RD_3,		0,	I38,		0,		0},
 {"cache",	"k,A(b)",		0,    (int) M_CACHE_AB,		INSN_MACRO,	0,	I38,		0,		0},
 {"cachee",	"k,+j(b)",		0xa4003a00, 0xfc007f00,		RD_3,		0,	0,	EVA,		0},
@@ -843,13 +844,13 @@ IGRIE */
 {"jal",		"s",		0,    (int) M_JAL_1,	INSN_MACRO,	0,	I38,		0,		0},
 {"jal",		"A",		0,    (int) M_JAL_A,	INSN_MACRO,	0,	I38,		0,		0},
 {"jal",		"+'",		0x2a000000, 0xfe000000,	WR_31,	INSN2_ALIAS|CTC,	I38,		0,	0}, /* BALC */
-{"lb",		"md,mL(ml)",		0x1400,	0xfc0c,	WR_1|RD_3,		0,	I38,		0,		0}, /* LB[16] */
+{"lb",		"md,mL(ml)",	0x5c00,		0xfc0c,	WR_1|RD_3,	0,		I38,		0,	0}, /* LB[16] */
 {"lb",		"t,+1(ma)",		0x44000000, 0xfc1c0000,	WR_1|RD_3,		0,	I38,		0,		0}, /* LB[GP] */
 {"lb",		"t,o(b)",		0x84000000, 0xfc00f000,	WR_1|RD_3,		0,	I38,		0,		0},
 {"lb",		"t,+j(b)",		0xa4000000, 0xfc007f00,	WR_1|RD_3,		0,	I38,		0,		0}, /* LB[S9] */
 {"lb",		"t,A(b)",	0,    (int) M_LB_AB,	INSN_MACRO,		0,		I38,		0,		0},
 {"lbe",	"t,+j(b)",		0xa4000400, 0xfc007f00,	WR_1|RD_3,		0,	0,	EVA,		0},
-{"lbu",	"md,mL(ml)",		0x1408,	0xfc0c,	WR_1|RD_3,		0,	I38,		0,		0}, /* LBU[16] */
+{"lbu",	"md,mL(ml)",		0x5c08,		0xfc0c,	WR_1|RD_3,		0,	I38,		0,		0}, /* LBU[16] */
 {"lbu",	"t,+1(ma)",		0x44080000, 0xfc1c0000,	WR_1|RD_3,		0,	I38,		0,		0}, /* LBU[GP] */
 {"lbu",	"t,o(b)",		0x84002000, 0xfc00f000,	WR_1|RD_3,		0,	I38,		0,		0},
 {"lbu",	"t,+j(b)",		0xa4001000, 0xfc007f00,	WR_1|RD_3,		0,	I38,		0,		0}, /* LBU[S9] */
@@ -877,13 +878,13 @@ IGRIE */
 {"ldx",	"d,s,t",		0x20000607, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
 {"ldxs",	"d,s,t",		0x20000647, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
 {"ldxc1",	"R,s(t)",		0x20000707, 0xfc0007ff, WR_1|RD_2|RD_3,	INSN2_ALIAS,	I38,	0,		0}, /* LDC1X */
-{"lh",		"md,mH(ml)",		0x3400,	0xfc09,	WR_1|RD_3,		0,	I38,		0,		0}, /* LH[16] */
+{"lh",		"md,mH(ml)",		0x7c00,	0xfc09,	WR_1|RD_3,		0,	I38,		0,		0}, /* LH[16] */
 {"lh",		"t,+3(ma)",		0x44100000, 0xfc1c0001,	WR_1|RD_3,		0,	I38,		0,		0}, /* LH[GP] */
 {"lh",		"t,o(b)",		0x84004000, 0xfc00f000,	WR_1|RD_3,		0,	I38,		0,		0},
 {"lh",		"t,+j(b)",		0xa4002000, 0xfc007f00,	WR_1|RD_3,		0,	I38,		0,		0}, /* LH[S9] */
 {"lh",		"t,A(b)",	0,    (int) M_LH_AB,	INSN_MACRO,		0,	I38,		0,		0},
 {"lhe",	"t,+j(b)",		0xa4002400, 0xfc007f00,	WR_1|RD_3,		0,	0,	EVA,		0},
-{"lhu",	"md,mH(ml)",		0x3408,	0xfc09,	WR_1|RD_3,		0,	I38,		0,		0}, /* LHU[16] */
+{"lhu",	"md,mH(ml)",		0x7c08,	0xfc09,	WR_1|RD_3,		0,	I38,		0,		0}, /* LHU[16] */
 {"lhu",	"t,+3(ma)",		0x44100001, 0xfc1c0001,	WR_1|RD_3,		0,	I38,		0,		0}, /* LHU[GP] */
 {"lhu",	"t,o(b)",		0x84006000, 0xfc00f000,	WR_1|RD_3,		0,	I38,		0,		0},
 {"lhu",	"t,+j(b)",		0xa4003000, 0xfc007f00,	WR_1|RD_3,		0,	I38,		0,		0}, /* LHU[S9] */
@@ -906,11 +907,11 @@ IGRIE */
 {"llwp",	"t,mu,(b)",		0xa4005101, 0xfc00ff07, WR_1|WR_2|RD_3,		0,	0,	XLP,		0},
 {"llwpe",	"t,mu,(b)",		0xa4005201, 0xfc00ff07, WR_1|WR_2|RD_3,		0,	0,	EVA,		0},
 {"lsa",	"d,v,t,+.",		0x2000000f, 0xfc0001ff, WR_1|RD_2|RD_3,		0,	I38,		0,		0},
-{"lw",		"md,mJ(ml)",		0x7400,	0xfc00,	WR_1|RD_3,		0,	I38,		0,		0}, /* LW[16] */
-{"lw",		"+4,mN(+5)",		0x9400,	0xfc00,	WR_1|RD_3,		0,	0,	XLP,		0}, /* LW[4X4] */
-{"lw",		"mp,mU(ms)",		0x5400,	0xfc00,	WR_1|RD_3,		0,	I38,		0,		0}, /* LW[SP] */
+{"lw",		"md,mJ(ml)",		0x1400,	0xfc00,	WR_1|RD_3,		0,	I38,		0,		0}, /* LW[16] */
+{"lw",		"+4,mN(+5)",		0x7400,	0xfc00,	WR_1|RD_3,		0,	0,		XLP,		0}, /* LW[4X4] */
+{"lw",		"mp,mU(ms)",		0x3400,	0xfc00,	WR_1|RD_3,		0,	I38,		0,		0}, /* LW[SP] */
 {"lw",		"t,.(ma)",		0x40000002, 0xfc000003,	WR_1|RD_3,		0,	I38,		0,		0}, /* LW[GP] */
-{"lw",		"md,mA(ma)",		0xb400,	0xfc00,	WR_1|RD_3,		0,	I38,		0,		0}, /* LW[GP16] */
+{"lw",		"md,mA(ma)",		0x5400,	0xfc00,	WR_1|RD_3,		0,	I38,		0,		0}, /* LW[GP16] */
 {"lw",		"t,o(b)",		0x84008000, 0xfc00f000,	WR_1|RD_3,		0,	I38,		0,		0},
 {"lw",		"t,+j(b)",		0xa4004000, 0xfc007f00,	WR_1|RD_3,		0,	I38,		0,		0}, /* LW[S9] */
 {"lw",		"t,A(b)",	0,    (int) M_LW_AB,	INSN_MACRO,		0,	I38,		0,		0},
@@ -996,7 +997,7 @@ IGRIE */
 {"mov.s",	"T,S",		0xa000007b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"move.balc",	"m4,+8,+r",	0x08000000, 0xfc000000,	WR_1|RD_2,		0,	0,	XLP,		0},
 {"move.bal",	"m4,+8,+r",	0x08000000, 0xfc000000,	WR_1|RD_2, INSN2_ALIAS|CTC,	0,	XLP,		0}, /* MOVE.BALC */
-{"movep",	"m5,+7,+6",	0xdc00,		0xfc00,	WR_1|RD_2|RD_3,		0,	0,	XLP,		0},
+{"movep",	"m5,+7,+6",	0xbc00,		0xfc00,	WR_1|RD_2|RD_3,		0,	0,	XLP,		0},
 {"movep",	"+5,+4,m5",	0xfc00,		0xfc00,	WR_1|WR_2|RD_3,		0,	0,	XLP,		0}, /* MOVEP[REV] */
 {"movn",	"d,v,t",		0x20000610, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0,		0},
 {"movz",	"d,v,t",		0x20000210, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0,		0},
@@ -1138,6 +1139,9 @@ IGRIE */
 {"rotl",	"d,v,t",		0,    (int) M_ROL,	INSN_MACRO,		0,	I38,		0,		0},
 {"rotl",	"d,v,I",		0,    (int) M_ROL_I,	INSN_MACRO,		0,	I38,		0,		0},
 {"rotrv",	"d,s,t",		0x200000d0, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,		0,		0},
+{"wsbh",	"t,r",		0x8000d608, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	XLP,		0}, /* ROTX */
+{"rotx",	"t,r,<,+*",	0x8000d000, 0xfc00f860, WR_1|RD_2,	INSN2_ALIAS,	0,	XLP,		0},
+{"rotx",	"t,r,<,+*,+|",	0x8000d000, 0xfc00f820, WR_1|RD_2,		0,	0,	XLP,		0},
 {"round.l.d",	"T,S",		0xa000733b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"round.l.s",	"T,S",		0xa000333b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"round.w.d",	"T,S",		0xa0007b3b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
@@ -1148,7 +1152,7 @@ IGRIE */
 {"save",	"mG",		0x1c00,		0xff0f,		0,		0,	0,	XLP,		0}, /* SAVE[16] */
 {"save",	"mG,+N",	0x1c00,		0xfd00,		0,		0,	0,	XLP,		0}, /* SAVE[16] */
 {"save",	"mY,n",		0x80003000, 0xfc00f003,		0,		0,	I38,		0,		0},
-{"sb",		"mq,mL(ml)",		0x1404,	0xfc0c,	RD_1|RD_3,		0,	I38,		0,		0}, /* SB[16] */
+{"sb",		"mq,mL(ml)",	0x5c04,		0xfc0c,	RD_1|RD_3,		0,	I38,	0,		0}, /* SB[16] */
 {"sb",		"t,+1(ma)",		0x44040000, 0xfc1c0000,	RD_1|RD_3,		0,	I38,		0,		0}, /* SB[GP] */
 {"sb",		"t,o(b)",		0x84001000, 0xfc00f000,	RD_1|RD_3,		0,	I38,		0,		0},
 {"sb",		"t,+j(b)",		0xa4000800, 0xfc007f00,	RD_1|RD_3,		0,	I38,		0,		0}, /* SB[S9] */
@@ -1202,7 +1206,7 @@ IGRIE */
 {"sgt", 	"d,v,I",		0,    (int) M_SGT_I,	INSN_MACRO,		0,	I38,	0,		0},
 {"sgtu",	"d,v,t",		0,    (int) M_SGTU,	INSN_MACRO,		0,	I38,	0,		0},
 {"sgtu",	"d,v,I",		0,    (int) M_SGTU_I,	INSN_MACRO,		0,	I38,	0,		0},
-{"sh",		"mq,mH(ml)",		0x3401,	0xfc09,	RD_1|RD_3,		0,	I38,		0,		0}, /* SH[16] */
+{"sh",		"mq,mH(ml)",		0x7c01,	0xfc09,	RD_1|RD_3,		0,	I38,		0,		0}, /* SH[16] */
 {"sh",		"t,+3(ma)",		0x44140000, 0xfc1c0001,	RD_1|RD_3,		0,	I38,		0,		0}, /* SH[GP] */
 {"sh",		"t,o(b)",		0x84005000, 0xfc00f000,	RD_1|RD_3,		0,	I38,		0,		0},
 {"sh",		"t,+j(b)",		0xa4002800, 0xfc007f00,	RD_1|RD_3,		0,	I38,		0,		0}, /* SH[S9] */
@@ -1283,11 +1287,11 @@ IGRIE */
 {"subuh_r.qb", "d,s,t",		0x2000074d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
 {"subu_s.ph",	"d,s,t",		0x2000070d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
 {"subu_s.qb",	"d,s,t",		0x200006cd, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
-{"sw",		"mq,mJ(ml)",		0x7c00,	0xfc00,	RD_1|RD_3,		0,	I38,		0,		0}, /* SW[16] */
-{"sw",		"mp,mU(ms)",		0x5c00,	0xfc00,	RD_1|RD_3,		0,	I38,		0,		0}, /* SW[SP] */
-{"sw",		"+6,mN(+5)",		0x9c00,	0xfc00,	RD_1|RD_3,		0,	0,		XLP,		0}, /* SW[4X4] */
+{"sw",		"mq,mJ(ml)",		0x9400,	0xfc00,	RD_1|RD_3,		0,	I38,		0,		0}, /* SW[16] */
+{"sw",		"mp,mU(ms)",		0xb400,	0xfc00,	RD_1|RD_3,		0,	I38,		0,		0}, /* SW[SP] */
+{"sw",		"+6,mN(+5)",		0xf400,	0xfc00,	RD_1|RD_3,		0,	0,		XLP,		0}, /* SW[4X4] */
 {"sw",		"t,.(ma)",		0x40000003, 0xfc000003,	RD_1|RD_3,	0,	I38,		0,		0}, /* SW[GP] */
-{"sw",		"mq,mA(ma)",		0xbc00,		0xfc00,	RD_1|RD_3,	0,	I38,		0,		0}, /* SW[GP16] */
+{"sw",		"mq,mA(ma)",		0xd400,		0xfc00,	RD_1|RD_3,	0,	I38,		0,		0}, /* SW[GP16] */
 {"sw",		"t,o(b)",		0x84009000, 0xfc00f000,	RD_1|RD_3,		0,	I38,		0,		0},
 {"sw",		"t,+j(b)",		0xa4004800, 0xfc007f00,	RD_1|RD_3,		0,	I38,		0,		0}, /* SW[S9] */
 {"sw",		"t,A(b)",		0,    (int) M_SW_AB,	INSN_MACRO,		0,	I38,		0,		0},
@@ -1357,7 +1361,6 @@ IGRIE */
 {"wrdsp",	"t",		0x201fd67f, 0xfc1fffff,		RD_1,	INSN2_ALIAS,	0,	D32,		0},
 {"wrdsp",	"t,8",		0x2000167f, 0xfc003fff,		RD_1,		0,	0,	D32,		0},
 {"wrpgpr",	"t,r",		0x2000f17f, 0xfc00ffff,	WR_1|RD_2,		0,	I38,		0,		0},
-{"wsbh",	"t,r",		0x20007b3f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	      XLP,		0},
 {"xor",	"md,mx,ml",		0x5004,	0xfc0f,	WR_1|RD_3,	INSN2_ALIAS,	I38,		0,		0}, /* XOR[16] */
 {"xor",	"md,ml,mx",		0x5004,	0xfc0f,	WR_1|RD_2,	INSN2_ALIAS,	I38,		0,		0}, /* XOR[16] */
 {"xor",	"md,ml",		0x5004,	0xfc0f,	WR_1|RD_2,		0,	I38,		0,		0}, /* XOR[16] */

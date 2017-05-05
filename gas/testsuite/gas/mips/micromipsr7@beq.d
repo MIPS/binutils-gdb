@@ -17,13 +17,13 @@ Disassembly of section \.text:
 0+000c <text_label\+0xc> 0020 8000 	li	at,32768
 0+0010 <text_label\+0x10> 8824 0000 	beqc	a0,at,00000014 <text_label\+0x14>
 			10: R_MICROMIPS_PC14_S1	text_label-0x4
-0+0014 <text_label\+0x14> e03f 8ffd 	lui	at,0xffff8
+0+0014 <text_label\+0x14> e03f 8ffd 	lui	at,%hi\(0xffff8000\)
 0+0018 <text_label\+0x18> 8824 0000 	beqc	a0,at,0000001c <text_label\+0x1c>
 			18: R_MICROMIPS_PC14_S1	text_label-0x4
-0+001c <text_label\+0x1c> e021 0000 	lui	at,0x10
+0+001c <text_label\+0x1c> e021 0000 	lui	at,%hi\(0x10000\)
 0+0020 <text_label\+0x20> 8824 0000 	beqc	a0,at,00000024 <text_label\+0x24>
 			20: R_MICROMIPS_PC14_S1	text_label-0x4
-0+0024 <text_label\+0x24> e021 a000 	lui	at,0x1a
+0+0024 <text_label\+0x24> e021 a000 	lui	at,%hi\(0x1a000\)
 0+0028 <text_label\+0x28> 8021 05a5 	ori	at,at,1445
 0+002c <text_label\+0x2c> 8824 0000 	beqc	a0,at,00000030 <text_label\+0x30>
 			2c: R_MICROMIPS_PC14_S1	text_label-0x4

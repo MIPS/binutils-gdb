@@ -15,9 +15,9 @@ Disassembly of section \.text:
    8:	add	a0,a0,at
    c:	li	at,32768
   10:	add	a0,a0,at
-  14:	lui	at,0xffff8
+  14:	lui	at,%hi\(0xffff8000\)
   18:	add	a0,a0,at
-  1c:	lui	at,0x10
+  1c:	lui	at,%hi\(0x10000\)
   20:	add	a0,a0,at
   24:	li	at,0x1a5a5
   2a:	add	a0,a0,at
