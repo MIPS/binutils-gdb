@@ -6053,9 +6053,6 @@ match_hi20_int_operand (struct mips_arg_info *arg,
   else
     return FALSE;
 
-  if (uval < 0)
-    return FALSE;
-
   if (offset_expr.X_op == O_constant)
     {
       offset_expr.X_op = O_absent;
