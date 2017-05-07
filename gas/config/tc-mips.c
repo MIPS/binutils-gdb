@@ -6079,9 +6079,6 @@ match_hi20_int_operand (struct mips_arg_info *arg,
   else
     return FALSE;
 
-  if (uval < 0)
-    return FALSE;
-
   if (offset_expr.X_op == O_constant
       && offset_reloc[0] != BFD_RELOC_MICROMIPSPP_TLS_TPREL_HI20
       && offset_reloc[0] != BFD_RELOC_MICROMIPSPP_TLS_DTPREL_HI20)
