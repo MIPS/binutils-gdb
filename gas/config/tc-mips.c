@@ -6071,13 +6071,27 @@ match_hi20_int_operand (struct mips_arg_info *arg,
 
   /* 16-bit immediate without %hi reloc  */
   if (offset_reloc[0] == BFD_RELOC_UNUSED
-      && (offset_expr.X_add_number & ~0xffff) == 0)
-    uval = offset_expr.X_add_number << 4;
+	   && offset_expr.X_op == O_constant)
+    {
+      if ((offset_expr.X_add_number & ~0xffff) == 0)
+	uval = offset_expr.X_add_number << 4;
+      else
+	{
+	  match_out_of_range (arg);
+	  return FALSE;
+	}
+    }
   /* 20-bit high part using %hi  */
   else if (micromipspp_hi_reloc_p (offset_reloc[0]))
     uval = offset_expr.X_add_number >> 12;
   else
-    return FALSE;
+    {
+      /* Accept non-constant operands if no later alternative matches,
+	 leaving it for the caller to process.  */
+      if (arg->lax_match)
+	offset_reloc[0] = BFD_RELOC_MICROMIPSPP_HI20;
+      return arg->lax_match;
+    }
 
   if (offset_expr.X_op == O_constant
       && offset_reloc[0] != BFD_RELOC_MICROMIPSPP_TLS_TPREL_HI20

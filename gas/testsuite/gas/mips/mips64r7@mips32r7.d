@@ -1060,8 +1060,8 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2083 1950 	addu	v1,v1,a0
 [0-9a-f]+ <[^>]+> a463 d1e0 	ll	v1,-32\(v1\)
 [0-9a-f]+ <[^>]+> e060 0000 	lui	v1,0x0
-[0-9a-f]+ <[^>]+> e07f f0fc 	lui	v1,%hi\(0x7fff0000\)
-[0-9a-f]+ <[^>]+> e07f f1fc 	lui	v1,%hi\(0xffff0000\)
+[0-9a-f]+ <[^>]+> e07f 0ffc 	lui	v1,%hi\(0x7fff0000\)
+[0-9a-f]+ <[^>]+> e07f 0ffd 	lui	v1,%hi\(0xffff0000\)
 [0-9a-f]+ <[^>]+> 1540      	lw	s2,0\(a0\)
 [0-9a-f]+ <[^>]+> 1540      	lw	s2,0\(a0\)
 [0-9a-f]+ <[^>]+> 1541      	lw	s2,4\(a0\)
