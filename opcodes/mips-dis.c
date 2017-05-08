@@ -2769,6 +2769,9 @@ is_compressed_mode_p (struct disassemble_info *info)
   int i;
   int l;
 
+  if (is_isa_r7 (mips_isa))
+    return 1;
+
   for (i = info->symtab_pos, l = i + info->num_symbols; i < l; i++)
     if (((info->symtab[i])->flags & BSF_SYNTHETIC) != 0
 	&& ((!micromips_ase

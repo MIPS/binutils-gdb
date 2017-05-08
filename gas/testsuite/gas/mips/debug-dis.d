@@ -13,5 +13,5 @@ Disassembly of section \.text:
    2:	9008      	nop
 
 00000004 <b>:
-   4:	00000000 	0x0
+   4:	0000 0000 	.*
 			4: R_MIPS_32	\.L4

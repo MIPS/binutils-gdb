@@ -2106,7 +2106,7 @@ mips_clear_insn_labels (void)
 static inline void
 mips_mark_labels (void)
 {
-  if (HAVE_CODE_COMPRESSION)
+  if (HAVE_CODE_COMPRESSION && !ISA_IS_R7 (mips_opts.isa))
     mips_compressed_mark_labels ();
 }
 
@@ -4779,7 +4779,7 @@ mips_move_labels (struct insn_label_list *labels, bfd_boolean text_p)
       symbol_set_frag (l->label, frag_now);
       val = (valueT) frag_now_fix ();
       /* MIPS16/microMIPS text labels are stored as odd.  */
-      if (text_p && HAVE_CODE_COMPRESSION)
+      if (text_p && HAVE_CODE_COMPRESSION && !ISA_IS_R7 (mips_opts.isa))
 	++val;
       S_SET_VALUE (l->label, val);
     }
@@ -9025,7 +9025,9 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
      current position is certainly wrong when swapping a 32-bit branch
      and a 16-bit delay slot, since the current position would then be
      in the middle of a branch.  */
-  dwarf2_move_insn ((HAVE_CODE_COMPRESSION ? 1 : 0) - branch_disp);
+  dwarf2_move_insn ((HAVE_CODE_COMPRESSION && !ISA_IS_R7 (mips_opts.isa)
+		     ? 1 : 0)
+		    - branch_disp);
 
   relax32 = (mips_relax_branch
 	     /* Don't try branch relaxation within .set nomacro, or within
@@ -23214,7 +23216,9 @@ void
 mips_add_dot_label (symbolS *sym)
 {
   mips_record_label (sym);
-  if (mips_assembling_insn && HAVE_CODE_COMPRESSION)
+  if (mips_assembling_insn
+      && HAVE_CODE_COMPRESSION
+      && !ISA_IS_R7 (mips_opts.isa))
     mips_compressed_mark_label (sym);
 }
 
