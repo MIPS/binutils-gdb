@@ -133,13 +133,7 @@ test:
 	pref 	4,4000($3)
 	pref 	4,-30($3)
 	pref 	4,%lo(test)($3)
-	/*
-	lwm 	$4, 16($3), 1
-	lwm 	$4, 16($3), 2
-	lwm 	$4, 16($3), 3
-	lwm 	$4, 16($3), 7
-	lwm 	$4, 16($3), 8
-	*/
+
 	bbeqzc $4,24,test
 	bbeqzc $4,1,test
 	bbeqzc $4,31,test
@@ -180,7 +174,19 @@ test:
 	uasdm	$2, 4($5),7
 	ldm	$2, 4($5),8
 	sdm	$2, 4($5),7
-	
+
+	rotx    $2, $3, 5, 30, 1
+	rotx    $2, $3, 31, 0
+	bitrev 	$2,$3
+	rotx    $2, $3, 7, 8, 1
+	bitswap $2,$3
+	rotx    $2, $3, 15, 16
+	bitswaph $2,$3
+	rotx    $2, $3, 24, 8
+	byterev $2,$3
+	rotx    $2, $3, 8, 24
+	wsbh 	$2,$3
+
 	.end	test
 	.align	2
 	.space	8
