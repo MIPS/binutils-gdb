@@ -332,6 +332,7 @@
     do_store (SD_, AccessLength_WORD, GPR[SPIDX], offset, GPR[gpr]);
 
     counter++;
+    COP0_COUNT++;
   }
 
   GPR[SPIDX] -= u;
@@ -357,6 +358,7 @@
     GPR[gpr] = EXTEND32 (do_load(SD_, AccessLength_WORD, GPR[SPIDX], offset));
 
     counter++;
+    COP0_COUNT++;
   }
 
   GPR[SPIDX] += u;
@@ -1534,6 +1536,8 @@
     do_lw (SD_, dest, this_offset, RS);
 
     counter++;
+    if (counter != 0)
+      COP0_COUNT++;
   }
 }
 
@@ -2143,6 +2147,9 @@
     do_sw (SD_, source, offsetm, RS);
 
     counter++;
+
+    if (counter != 0)
+      COP0_COUNT++;
   }
 }
 
