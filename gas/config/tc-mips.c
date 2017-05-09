@@ -1266,6 +1266,14 @@ static int mips_relax_branch;
    instantiated for reducing code size.
 */
 
+enum {
+  RT_BRANCH_UCND = 'D',
+  RT_BRANCH_CNDZ = 'E',
+  RT_BRANCH_CND = 'F',
+  RT_BALC_STUB = 'G',
+  RT_ADDIU = 'A',
+};
+
 #define RELAX_MICROMIPSPP_ENCODE(type, link)			\
   (0x20000000							\
    | ((type) & 0xff)						\
@@ -1273,6 +1281,17 @@ static int mips_relax_branch;
 #define RELAX_MICROMIPSPP_P(i) (((i) & 0xe0000000) == 0x20000000)
 #define RELAX_MICROMIPSPP_TYPE(i) ((i) & 0xff)
 #define RELAX_MICROMIPSPP_LINK(i) (((i) & 0x2000) != 0)
+
+#define RELAX_MICROMIPSPP_BALC_STUB_P(i) \
+  (RELAX_MICROMIPSPP_P (i) && ((i) & 0xff) == RT_BALC_STUB)
+
+#define RELAX_MICROMIPSPP_BRANCH_P(i)					\
+  (RELAX_MICROMIPSPP_P (i) && (((i) & 0xff) == RT_BRANCH_UCND		\
+			       || ((i) & 0xff) == RT_BRANCH_CNDZ	\
+			       || ((i) & 0xff) == RT_BRANCH_CND))
+
+#define RELAX_MICROMIPSPP_ADDIU_P(i)			\
+  (RELAX_MICROMIPSPP_P (i) && ((i) & 0xff) == RT_ADDIU)
 
 #define RELAX_MICROMIPSPP_KEEPSTUB(i) (((i) & 0x4000) != 0)
 #define RELAX_MICROMIPSPP_MARK_KEEPSTUB(i) ((i) | 0x4000)
@@ -1289,6 +1308,10 @@ static int mips_relax_branch;
 #define RELAX_MICROMIPSPP_TOOFAR16(i) (((i) & 0x20000) != 0)
 #define RELAX_MICROMIPSPP_MARK_TOOFAR16(i) ((i) | 0x20000)
 #define RELAX_MICROMIPSPP_CLEAR_TOOFAR16(i) ((i) & ~0x20000)
+
+#define RELAX_MICROMIPSPP_NEGOFF(i) (((i) & 0x40000) != 0)
+#define RELAX_MICROMIPSPP_MARK_NEGOFF(i) ((i) | 0x40000)
+#define RELAX_MICROMIPSPP_CLEAR_NEGOFF(i) ((i) & ~0x40000)
 
 /* Sign-extend 16-bit value X.  */
 #define SEXT_16BIT(X) ((((X) + 0x8000) & 0xffff) - 0x8000)
@@ -5679,7 +5702,10 @@ match_int_operand (struct mips_arg_info *arg,
 	     leaving it for the caller to process.  */
 	  if (!arg->lax_match)
 	    return FALSE;
-	  offset_reloc[0] = BFD_RELOC_LO16;
+	  if (ISA_IS_R7 (mips_opts.isa) && operand_base->size == 16)
+	    offset_reloc[0] = BFD_RELOC_UNUSED + RT_ADDIU;
+	  else
+	    offset_reloc[0] = BFD_RELOC_LO16;
 	  return TRUE;
 	}
 
@@ -9128,7 +9154,7 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
   else if (mips_opts.micromips
 	   && address_expr
 	   && ISA_IS_R7 (mips_opts.isa)
-	   && *reloc_type > BFD_RELOC_UNUSED)
+	   && *reloc_type >= BFD_RELOC_UNUSED + RT_BRANCH_UCND)
     {
       int type = *reloc_type - BFD_RELOC_UNUSED;
       int al = pinfo & INSN_WRITE_GPR_31;
@@ -9146,8 +9172,22 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	  && stubg_now != NULL
 	  && type == 'D'
 	  && (ip->insn_mo->pinfo & INSN_WRITE_GPR_31) != 0)
-	  balc_add_stub (address_expr->X_add_symbol, stubg_now);
+	balc_add_stub (address_expr->X_add_symbol, stubg_now);
 
+      *reloc_type = BFD_RELOC_UNUSED;
+    }
+  else if (mips_opts.micromips
+	   && address_expr
+	   && ISA_IS_R7 (mips_opts.isa)
+	   && *reloc_type == BFD_RELOC_UNUSED + RT_ADDIU
+	   && address_expr->X_op == O_subtract)
+    {
+      int type = RT_ADDIU;
+      gas_assert (address_expr != NULL);
+      gas_assert (!mips_relax.sequence);
+      add_relaxed_insn (ip, 4, 4,
+			RELAX_MICROMIPSPP_ENCODE (type, 0),
+			make_expr_symbol (address_expr), 0);      
       *reloc_type = BFD_RELOC_UNUSED;
     }
   else if (mips_opts.mips16 && *reloc_type > BFD_RELOC_UNUSED)
@@ -9858,6 +9898,7 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	   || operand->type == OP_IMM_WORD
 	   || operand->type == OP_UIMM_WORD
 	   || operand->type == OP_PC_WORD
+	   || operand->type == OP_INT
 	   || operand->type == OP_GPREL_WORD)
 	  && ISA_IS_R7 (mips_opts.isa))
 	switch (*args)
@@ -22018,6 +22059,59 @@ relaxed_micromipspp_stub_length (fragS *fragp, asection *sec,
     }
 }
 
+static bfd_boolean
+micromipspp_gpr3_reg_p (unsigned long reg)
+{
+  /* Check for membership in set {16, 17, 18, 19, 4, 5, 6, 7}.  */
+  return ((reg >> 2 == 1 || reg >> 2 == 4));
+}
+
+/* Compute the length of an ADDIU instruction.  */
+static int
+relaxed_micromipspp_addiu_length (fragS *fragp, asection *sec,
+				  bfd_boolean update)
+{
+  char *buf;
+  unsigned long insn;
+  offsetT sval;
+  unsigned long rt, rs;
+
+  sval =  S_GET_VALUE (fragp->fr_symbol) + fragp->fr_offset;
+  buf = fragp->fr_literal + fragp->fr_fix;
+  insn = read_compressed_insn (buf, 4);
+
+  rt = (insn >> MICROMIPSOP_SH_RT) & MICROMIPSOP_MASK_RT;
+  rs = (insn >> MICROMIPSOP_SH_RS) & MICROMIPSOP_MASK_RS;
+
+  if (rt == rs && sval >= -8 && sval <= 7)
+    {
+      fragp->fr_subtype = RELAX_MICROMIPSPP_CLEAR_TOOFAR16 (fragp->fr_subtype);
+      fragp->fr_subtype = RELAX_MICROMIPSPP_MARK_NEGOFF (fragp->fr_subtype);
+    }
+  else if (micromipspp_gpr3_reg_p (rs)
+	   && micromipspp_gpr3_reg_p (rt)
+	   && sval >= 0
+	   && sval <= 28
+	   && sval % 4 == 0)
+    {
+      fragp->fr_subtype = RELAX_MICROMIPSPP_CLEAR_TOOFAR16 (fragp->fr_subtype);
+      fragp->fr_subtype = RELAX_MICROMIPSPP_CLEAR_NEGOFF (fragp->fr_subtype);
+    }
+  else
+    {
+      fragp->fr_subtype = RELAX_MICROMIPSPP_MARK_TOOFAR16 (fragp->fr_subtype);
+      if (sval < 0)
+	fragp->fr_subtype = RELAX_MICROMIPSPP_MARK_NEGOFF (fragp->fr_subtype);
+      else
+	fragp->fr_subtype = RELAX_MICROMIPSPP_CLEAR_NEGOFF (fragp->fr_subtype);
+    }
+
+  if (RELAX_MICROMIPSPP_TOOFAR16 (fragp->fr_subtype))
+    return 4;
+  else
+    return 2;
+}
+
 /* Estimate the size of a frag before relaxing.  Unless this is the
    mips16, we are not really relaxing here, and the final size is
    encoded in the subtype information.  For the mips16, we have to
@@ -22059,16 +22153,17 @@ md_estimate_size_before_relax (fragS *fragp, asection *segtype)
 
       if (!mips_opts.no_balc_stubs
 	  && stubg_now != NULL
-	  && RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) == 'G')
+	  && RELAX_MICROMIPSPP_BALC_STUB_P (fragp->fr_subtype))
 	length = relaxed_micromipspp_stub_length (fragp, segtype, FALSE);
-      else
-	if (RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) != 0)
-	  length = relaxed_micromips_16bit_branch_length (fragp, segtype,
-							  FALSE);
+      else if (RELAX_MICROMIPSPP_ADDIU_P (fragp->fr_subtype))
+	length = relaxed_micromipspp_addiu_length (fragp, segtype, FALSE);
+      else if (RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) != 0)
+	length = relaxed_micromips_16bit_branch_length (fragp, segtype,
+							FALSE);
       /* Try to relax 32-bit call through a stub.  */
       if (!mips_opts.no_balc_stubs
 	  && stubg_now != NULL
-	  && RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) == 'D'
+	  && RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) == RT_BRANCH_UCND
 	  && RELAX_MICROMIPSPP_LINK (fragp->fr_subtype))
 	length = relaxed_micromipspp_stub_call_length (fragp, segtype,
 						       length > 2, FALSE);
@@ -22329,16 +22424,17 @@ mips_relax_frag (asection *sec, fragS *fragp, long stretch)
 
       if (!mips_opts.no_balc_stubs
 	  && stubg_now != NULL
-	  && RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) == 'G')
+	  && RELAX_MICROMIPSPP_BALC_STUB_P (fragp->fr_subtype))
 	new_var = relaxed_micromipspp_stub_length (fragp, sec, TRUE);
-      else
-	if (RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) != 0)
-	  new_var = relaxed_micromips_16bit_branch_length (fragp, sec, TRUE);
+      else if (RELAX_MICROMIPSPP_ADDIU_P (fragp->fr_subtype))
+	new_var = relaxed_micromipspp_addiu_length (fragp, sec, TRUE);
+      else if (RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) != 0)
+	new_var = relaxed_micromips_16bit_branch_length (fragp, sec, TRUE);
 
       /* Try to relax 32-bit call through a stub.  */
       if (!mips_opts.no_balc_stubs
 	  && stubg_now != NULL
-	  && RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) == 'D'
+	  && RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) == RT_BRANCH_UCND
 	  && RELAX_MICROMIPSPP_LINK (fragp->fr_subtype)
 	  && RELAX_MICROMIPSPP_TOOFAR16 (fragp->fr_subtype))
 	new_var = relaxed_micromipspp_stub_call_length (fragp, sec,
@@ -22828,6 +22924,43 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	  buf = write_compressed_insn (buf, insn, 2);
 	}
 
+      gas_assert (buf == fragp->fr_literal + fragp->fr_fix);
+      return;
+    }
+  else if (RELAX_MICROMIPSPP_ADDIU_P (fragp->fr_subtype))
+    {
+      char *buf = fragp->fr_literal + fragp->fr_fix;
+      unsigned long insn =  read_compressed_insn (buf, 4);
+      offsetT sval;
+      unsigned long rt, rs;
+
+      rt = (insn >> MICROMIPSOP_SH_RT) & MICROMIPSOP_MASK_RT;
+      rs = (insn >> MICROMIPSOP_SH_RS) & MICROMIPSOP_MASK_RS;
+      sval  = S_GET_VALUE (fragp->fr_symbol) + fragp->fr_offset;
+
+      if (!RELAX_MICROMIPSPP_TOOFAR16 (fragp->fr_subtype))
+	{
+	  if (RELAX_MICROMIPSPP_NEGOFF (fragp->fr_subtype))
+	    /* ADDIU[32] -> ADDIU[RS5] */
+	    insn = (0x9008
+		    | (rt << MICROMIPSOP_SH_MP)
+		    | (sval & 0x8) << 1
+		    | (sval & 0x7));
+	  else
+	    /* ADDIU[32] -> ADDIU[R2] */
+	    insn = (0x9000
+		    | (rt & 0x7) << MICROMIPSOP_SH_MD
+		    | (rs & 0x7) << MICROMIPSOP_SH_MC
+		    | (sval & 0x1f) >> 2);
+	}
+      else if (RELAX_MICROMIPSPP_NEGOFF (fragp->fr_subtype))
+	/* ADDIU[32] -> ADDIU[NEG] */
+	insn = (insn & ~0xfff) | 0x80008000 | (-sval & 0xfff);
+      else
+	insn = (insn & ~0xffff) | (sval & 0xffff);
+
+      buf = write_compressed_insn (buf, insn, fragp->fr_var);
+      fragp->fr_fix += fragp->fr_var;
       gas_assert (buf == fragp->fr_literal + fragp->fr_fix);
       return;
     }
@@ -24780,6 +24913,7 @@ mips_cons_fix_new (fragS *frag,
       }
 }
 
+/* Check if a subtraction expression can be fully evaluated.  */
 bfd_boolean
 mips_allow_local_subtract (expressionS * left,
 			   expressionS * right,
