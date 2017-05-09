@@ -16576,7 +16576,6 @@ micromipspp_macro_la (unsigned int op[], unsigned int breg, int *used_at)
     macro_build (NULL, ADDRESS_ADD_INSN, "d,v,t", op[0], tempreg, breg);
 }
 
-
 static void
 micromipspp_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 {
@@ -17531,50 +17530,32 @@ micromipspp_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 
     case M_SEQ_I:
       if (imm_expr.X_add_number == 0)
-	{
-	  macro_build (&expr1, "sltiu", OP_IMM_FMT, op[0], op[1],
-		       BFD_RELOC_LO16);
-	  break;
-	}
-      if (op[1] == 0)
+	macro_build (&expr1, "sltiu", OP_IMM_FMT, op[0], op[1], BFD_RELOC_LO16);
+      else if (op[1] == 0)
 	{
 	  as_warn (_("instruction %s: result is always false"),
 		   ip->insn_mo->name);
 	  move_register (op[0], 0);
-	  break;
 	}
-      if (CPU_HAS_SEQ (mips_opts.arch)
-	  && -512 <= imm_expr.X_add_number
-	  && imm_expr.X_add_number < 512)
-	{
-	  macro_build (NULL, "seqi", "t,r,+Q", op[0], op[1],
-		       (int) imm_expr.X_add_number);
-	  break;
-	}
-      if (imm_expr.X_add_number >= 0
-	  && imm_expr.X_add_number < (1 << ISA_OFFBITS))
-	macro_build (&imm_expr, "xori", "t,r,i", op[0], op[1], BFD_RELOC_LO16);
-      else if (imm_expr.X_add_number > - ( 1 << (ISA_ADD_OFFBITS - 1))
-	       && imm_expr.X_add_number < 0)
-	{
-	  imm_expr.X_add_number = -imm_expr.X_add_number;
-	  macro_build (&imm_expr, GPR_SIZE == 32 ? "addiu" : "daddiu",
-		       ADDIU_FMT, op[0], op[1], BFD_RELOC_LO16);
-	}
-      else if (CPU_HAS_SEQ (mips_opts.arch))
-	{
-	  used_at = 1;
-	  load_register (AT, &imm_expr, GPR_SIZE == 64);
-	  macro_build (NULL, "seq", "d,v,t", op[0], op[1], AT);
-	  break;
-	}
+      else if (offset_high_unsigned (imm_expr.X_add_number, ISA_OFFBITS) == 0)
+	macro_build (&imm_expr, "seqi", OP_IMM_FMT, op[0], op[1],
+		     BFD_RELOC_LO16);
       else
 	{
-	  load_register (AT, &imm_expr, GPR_SIZE == 64);
-	  macro_build (NULL, "xor", "d,v,t", op[0], op[1], AT);
-	  used_at = 1;
+	  if (offset_high_unsigned (-imm_expr.X_add_number, ISA_ADD_OFFBITS) == 0)
+	    {
+	      imm_expr.X_add_number = -imm_expr.X_add_number;
+	      macro_build (&imm_expr, GPR_SIZE == 32 ? "addiu" : "daddiu",
+			   ADDIU_FMT, op[0], op[1], BFD_RELOC_LO16);
+	    }
+	  else
+	    {
+	      used_at = 1;
+	      load_register (AT, &imm_expr, GPR_SIZE == 64);
+	      macro_build (NULL, "xor", "d,v,t", op[0], op[1], AT);
+	    }
+	  macro_build (&expr1, "sltiu", OP_IMM_FMT, op[0], op[0], BFD_RELOC_LO16);
 	}
-      macro_build (&expr1, "sltiu", OP_IMM_FMT, op[0], op[0], BFD_RELOC_LO16);
       break;
 
     case M_SGE:		/* X >= Y  <==>  not (X < Y) */
@@ -17594,10 +17575,10 @@ micromipspp_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 		     op[0], op[1], BFD_RELOC_LO16);
       else
 	{
+	  used_at = 1;
 	  load_register (AT, &imm_expr, GPR_SIZE == 64);
 	  macro_build (NULL, mask == M_SGE_I ? "slt" : "sltu", "d,v,t",
 		       op[0], op[1], AT);
-	  used_at = 1;
 	}
       macro_build (&expr1, "xori", "t,r,i", op[0], op[0], BFD_RELOC_LO16);
       break;
@@ -17682,53 +17663,32 @@ micromipspp_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 
     case M_SNE_I:
       if (imm_expr.X_add_number == 0)
-	{
-	  macro_build (NULL, "sltu", "d,v,t", op[0], 0, op[1]);
-	  break;
-	}
-      if (op[1] == 0)
+	macro_build (NULL, "sltu", "d,v,t", op[0], 0, op[1]);
+      else if (op[1] == 0)
 	{
 	  as_warn (_("instruction %s: result is always true"),
 		   ip->insn_mo->name);
-	  macro_build (&expr1, GPR_SIZE == 32 ? "addiu" : "daddiu", "t,r,j",
-		       op[0], 0, BFD_RELOC_LO16);
-	  break;
-	}
-      if (CPU_HAS_SEQ (mips_opts.arch)
-	  && -512 <= imm_expr.X_add_number
-	  && imm_expr.X_add_number < 512)
-	{
-	  macro_build (NULL, "snei", "t,r,+Q", op[0], op[1],
-		       (int) imm_expr.X_add_number);
-	  break;
-	}
-      if (imm_expr.X_add_number >= 0
-	  && imm_expr.X_add_number < (1 << ISA_OFFBITS))
-	{
-	  macro_build (&imm_expr, "xori", "t,r,i", op[0], op[1],
-		       BFD_RELOC_LO16);
-	}
-      else if (imm_expr.X_add_number > - ( 1 << (ISA_OFFBITS - 1))
-	       && imm_expr.X_add_number < 0)
-	{
-	  imm_expr.X_add_number = -imm_expr.X_add_number;
-	  macro_build (&imm_expr, GPR_SIZE == 32 ? "addiu" : "daddiu",
-		       ADDIU_FMT, op[0], op[1], BFD_RELOC_LO16);
-	}
-      else if (CPU_HAS_SEQ (mips_opts.arch))
-	{
-	  used_at = 1;
-	  load_register (AT, &imm_expr, GPR_SIZE == 64);
-	  macro_build (NULL, "sne", "d,v,t", op[0], op[1], AT);
-	  break;
+	  load_register (op[0], &expr1, GPR_SIZE == 64);
 	}
       else
 	{
-	  load_register (AT, &imm_expr, GPR_SIZE == 64);
-	  macro_build (NULL, "xor", "d,v,t", op[0], op[1], AT);
-	  used_at = 1;
+	  if (offset_high_unsigned (imm_expr.X_add_number, ISA_ADD_OFFBITS) == 0)
+	  macro_build (&imm_expr, "xori", "t,r,i", op[0], op[1],
+		       BFD_RELOC_LO16);
+	  else if (offset_high_unsigned (-imm_expr.X_add_number, ISA_ADD_OFFBITS) == 0)
+	    {
+	      imm_expr.X_add_number = -imm_expr.X_add_number;
+	      macro_build (&imm_expr, GPR_SIZE == 32 ? "addiu" : "daddiu",
+			   ADDIU_FMT, op[0], op[1], BFD_RELOC_LO16);
+	    }
+	  else
+	    {
+	      used_at = 1;
+	      load_register (AT, &imm_expr, GPR_SIZE == 64);
+	      macro_build (NULL, "xor", "d,v,t", op[0], op[1], op[2]);
+	    }
+	  macro_build (NULL, "sltu", "d,v,t", op[0], 0, op[0]);
 	}
-      macro_build (NULL, "sltu", "d,v,t", op[0], 0, op[0]);
       break;
 
     case M_SUB_I:
