@@ -43,6 +43,19 @@ foo:
 	addiu $4, $5, 2f-5f	# x = y - 8, NEG12 for range
 	addiu $4, $5, 7f-2f	# x = y + 30, U16 for range
 	addiu $4, $5, 5f-3f	# x = y + 30, U16 for range
+
+	addiu32 $31, $31, 5f-3f+1 # x += 7, forced length
+	addiu32 $2, $2, 2f-5f 	# x -= 8, forced length
+	addiu32 $4, $5, 5f-2f	# x = y + 8, forced length
+	addiu32 $4, $5, 6f-2f	# x = y + 28, forced length
+
+	.set insn32
+	addiu $31, $31, 5f-3f+1 # x += 7, forced length
+	addiu $2, $2, 2f-5f 	# x -= 8, forced length
+	addiu $4, $5, 5f-2f	# x = y + 8, forced length
+	addiu $4, $5, 6f-2f	# x = y + 28, forced length
+	.set noinsn32
+
 2:	
 	nop
 3:

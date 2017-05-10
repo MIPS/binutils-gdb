@@ -1267,9 +1267,10 @@ enum {
   RT_ADDIU = 'A',
 };
 
-#define RELAX_MICROMIPSPP_ENCODE(type, link)			\
+#define RELAX_MICROMIPSPP_ENCODE(type, link, ext)	      	\
   (0x20000000							\
    | ((type) & 0xff)						\
+   | ((ext) ? 0x1000 : 0)					\
    | ((link) ? 0x2000 : 0))
 #define RELAX_MICROMIPSPP_P(i) (((i) & 0xe0000000) == 0x20000000)
 #define RELAX_MICROMIPSPP_TYPE(i) ((i) & 0xff)
@@ -1305,6 +1306,8 @@ enum {
 #define RELAX_MICROMIPSPP_NEGOFF(i) (((i) & 0x40000) != 0)
 #define RELAX_MICROMIPSPP_MARK_NEGOFF(i) ((i) | 0x40000)
 #define RELAX_MICROMIPSPP_CLEAR_NEGOFF(i) ((i) & ~0x40000)
+
+#define RELAX_MICROMIPSPP_FIXED(i) (((i) & 0x1000) != 0)
 
 /* Sign-extend 16-bit value X.  */
 #define SEXT_16BIT(X) ((((X) + 0x8000) & 0xffff) - 0x8000)
@@ -8594,7 +8597,7 @@ balc_frag_traverse (const char *key ATTRIBUTE_UNUSED, void *value)
   S_SET_OTHER (l, ELF_ST_SET_MICROMIPS (S_GET_OTHER (l)));
   stub->fragp = frag_now;
   add_relaxed_insn (&micromipspp_bc32_insn, 4, 0,
-		    RELAX_MICROMIPSPP_ENCODE ('G', 0),
+		    RELAX_MICROMIPSPP_ENCODE ('G', 0, 1),
 		    stub->sym, 0);
   stub->sym = l;
   if (stub->numcalls >= 3)
@@ -9137,7 +9140,7 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 
       relaxed_branch = TRUE;
       add_relaxed_insn (ip, 4, 2,
-			RELAX_MICROMIPSPP_ENCODE (type, al),
+			RELAX_MICROMIPSPP_ENCODE (type, al, 0),
 			address_expr->X_add_symbol,
 			address_expr->X_add_number);
       /* Track this call for balcp-to-stub relaxation.  */
@@ -9156,11 +9159,12 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	   && address_expr->X_op == O_subtract)
     {
       int type = RT_ADDIU;
+      bfd_boolean fixed = (mips_opts.insn32 || (forced_insn_length == 4));
       gas_assert (address_expr != NULL);
       gas_assert (!mips_relax.sequence);
       add_relaxed_insn (ip, 4, 4,
-			RELAX_MICROMIPSPP_ENCODE (type, 0),
-			make_expr_symbol (address_expr), 0);      
+			RELAX_MICROMIPSPP_ENCODE (type, 0, fixed),
+			make_expr_symbol (address_expr), 0);
       *reloc_type = BFD_RELOC_UNUSED;
     }
   else if (mips_opts.mips16 && *reloc_type > BFD_RELOC_UNUSED)
@@ -21966,13 +21970,14 @@ micromipspp_gpr3_reg_p (unsigned long reg)
 
 /* Compute the length of an ADDIU instruction.  */
 static int
-relaxed_micromipspp_addiu_length (fragS *fragp, asection *sec,
-				  bfd_boolean update)
+relaxed_micromipspp_addiu_length (fragS *fragp, bfd_boolean update)
 {
   char *buf;
   unsigned long insn;
   offsetT sval;
   unsigned long rt, rs;
+  bfd_boolean toofar16 = TRUE;
+  bfd_boolean negoff = FALSE;
 
   sval =  S_GET_VALUE (fragp->fr_symbol) + fragp->fr_offset;
   buf = fragp->fr_literal + fragp->fr_fix;
@@ -21981,30 +21986,37 @@ relaxed_micromipspp_addiu_length (fragS *fragp, asection *sec,
   rt = (insn >> MICROMIPSOP_SH_RT) & MICROMIPSOP_MASK_RT;
   rs = (insn >> MICROMIPSOP_SH_RS) & MICROMIPSOP_MASK_RS;
 
-  if (rt == rs && sval >= -8 && sval <= 7)
+  if (rt == rs
+      && sval >= -8
+      && sval <= 7
+      && !RELAX_MICROMIPSPP_FIXED (fragp->fr_subtype))
     {
-      fragp->fr_subtype = RELAX_MICROMIPSPP_CLEAR_TOOFAR16 (fragp->fr_subtype);
-      fragp->fr_subtype = RELAX_MICROMIPSPP_MARK_NEGOFF (fragp->fr_subtype);
+      toofar16 = FALSE;
+      negoff = TRUE;
     }
   else if (micromipspp_gpr3_reg_p (rs)
 	   && micromipspp_gpr3_reg_p (rt)
 	   && sval >= 0
 	   && sval <= 28
-	   && sval % 4 == 0)
-    {
-      fragp->fr_subtype = RELAX_MICROMIPSPP_CLEAR_TOOFAR16 (fragp->fr_subtype);
-      fragp->fr_subtype = RELAX_MICROMIPSPP_CLEAR_NEGOFF (fragp->fr_subtype);
-    }
+	   && sval % 4 == 0
+	   && !RELAX_MICROMIPSPP_FIXED (fragp->fr_subtype))
+    toofar16 = FALSE;
   else
-    {
-      fragp->fr_subtype = RELAX_MICROMIPSPP_MARK_TOOFAR16 (fragp->fr_subtype);
-      if (sval < 0)
-	fragp->fr_subtype = RELAX_MICROMIPSPP_MARK_NEGOFF (fragp->fr_subtype);
-      else
-	fragp->fr_subtype = RELAX_MICROMIPSPP_CLEAR_NEGOFF (fragp->fr_subtype);
-    }
+    negoff = (sval < 0);
 
-  if (RELAX_MICROMIPSPP_TOOFAR16 (fragp->fr_subtype))
+  if (fragp && update
+      && toofar16 != RELAX_MICROMIPSPP_TOOFAR16 (fragp->fr_subtype))
+    fragp->fr_subtype
+      = toofar16 ? RELAX_MICROMIPSPP_MARK_TOOFAR16 (fragp->fr_subtype)
+	       : RELAX_MICROMIPSPP_CLEAR_TOOFAR16 (fragp->fr_subtype);
+
+  if (fragp && update
+      && negoff != RELAX_MICROMIPSPP_NEGOFF (fragp->fr_subtype))
+    fragp->fr_subtype
+      = negoff ? RELAX_MICROMIPSPP_MARK_NEGOFF (fragp->fr_subtype)
+      : RELAX_MICROMIPSPP_CLEAR_NEGOFF (fragp->fr_subtype);
+
+  if (toofar16)
     return 4;
   else
     return 2;
@@ -22054,7 +22066,7 @@ md_estimate_size_before_relax (fragS *fragp, asection *segtype)
 	  && RELAX_MICROMIPSPP_BALC_STUB_P (fragp->fr_subtype))
 	length = relaxed_micromipspp_stub_length (fragp, segtype, FALSE);
       else if (RELAX_MICROMIPSPP_ADDIU_P (fragp->fr_subtype))
-	length = relaxed_micromipspp_addiu_length (fragp, segtype, FALSE);
+	length = relaxed_micromipspp_addiu_length (fragp, FALSE);
       else if (RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) != 0)
 	length = relaxed_micromips_16bit_branch_length (fragp, segtype,
 							FALSE);
@@ -22325,7 +22337,7 @@ mips_relax_frag (asection *sec, fragS *fragp, long stretch)
 	  && RELAX_MICROMIPSPP_BALC_STUB_P (fragp->fr_subtype))
 	new_var = relaxed_micromipspp_stub_length (fragp, sec, TRUE);
       else if (RELAX_MICROMIPSPP_ADDIU_P (fragp->fr_subtype))
-	new_var = relaxed_micromipspp_addiu_length (fragp, sec, TRUE);
+	new_var = relaxed_micromipspp_addiu_length (fragp, TRUE);
       else if (RELAX_MICROMIPSPP_TYPE (fragp->fr_subtype) != 0)
 	new_var = relaxed_micromips_16bit_branch_length (fragp, sec, TRUE);
 

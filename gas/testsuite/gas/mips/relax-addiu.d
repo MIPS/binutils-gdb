@@ -39,11 +39,19 @@ Disassembly of section \.text:
   6a:	8085 8008 	addiu	a0,a1,-8
   6e:	0085 001e 	addiu	a0,a1,30
   72:	0085 0006 	addiu	a0,a1,6
-  76:	9008      	nop
-  78:	9008      	nop
-  7a:	8000 c000 	nop
+  76:	03ff 0007 	addiu	ra,ra,7
+  7a:	8042 8008 	addiu	v0,v0,-8
+  7e:	0085 0008 	addiu	a0,a1,8
+  82:	0085 001c 	addiu	a0,a1,28
+  86:	03ff 0007 	addiu	ra,ra,7
+  8a:	8042 8008 	addiu	v0,v0,-8
+  8e:	0085 0008 	addiu	a0,a1,8
+  92:	0085 001c 	addiu	a0,a1,28
+  96:	9008      	nop
+  98:	9008      	nop
+  9a:	8000 c000 	nop
 	\.\.\.
-  92:	9008      	nop
-  94:	9008      	nop
+  b2:	9008      	nop
+  b4:	9008      	nop
 	\.\.\.
-  9e:	9008      	nop
+#pass
