@@ -875,7 +875,7 @@ if { [istarget mips*-*-vxworks*] } {
 					[mips_arch_list_matching mips64r2 \
 					    !micromips !mips32r6]
 
-    run_dump_test_arches "eva"		[mips_arch_list_matching mips32r2 !octeon !r7_broken]
+    run_dump_test_arches "eva"		[mips_arch_list_matching mips32r2 !octeon]
 
     run_list_test "illegal" "-32"
     run_list_test "baddata1" "-32"
