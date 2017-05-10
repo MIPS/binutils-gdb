@@ -19432,7 +19432,9 @@ mips_force_relocation (fixS *fixp)
 static unsigned int
 read_reloc_insn (char *buf, bfd_reloc_code_real_type reloc)
 {
-  if (mips16_reloc_p (reloc) || micromips_reloc_p (reloc))
+  if (mips16_reloc_p (reloc)
+      || micromips_reloc_p (reloc)
+      || micromipspp_reloc_p (reloc))
     return read_compressed_insn (buf, 4);
   else
     return read_insn (buf);
@@ -19445,7 +19447,9 @@ static void
 write_reloc_insn (char *buf, bfd_reloc_code_real_type reloc,
 		  unsigned long insn)
 {
-  if (mips16_reloc_p (reloc) || micromips_reloc_p (reloc))
+  if (mips16_reloc_p (reloc)
+      || micromips_reloc_p (reloc)
+      || micromipspp_reloc_p (reloc))
     write_compressed_insn (buf, insn, 4);
   else
     write_insn (buf, insn);
@@ -19799,34 +19803,36 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
     case BFD_RELOC_MICROMIPSPP_32:
     case BFD_RELOC_MICROMIPSPP_HI32:
     case BFD_RELOC_MICROMIPSPP_GPREL32:
-      if (! fixP->fx_done)
-	break;
-
-      write_compressed_insn (buf, *valP & 0xffffffff, 4);
+      if (fixP->fx_done)
+	write_compressed_insn (buf, *valP & 0xffffffff, 4);
       break;
 
-
     case BFD_RELOC_MICROMIPSPP_LO12:
+      if (fixP->fx_done)
+	{
+	  insn = read_reloc_insn (buf, fixP->fx_r_type);
+	  insn |= *valP & 0xfff;
+	  write_reloc_insn (buf, fixP->fx_r_type, insn);
+	}
+      break;
+
     case BFD_RELOC_MICROMIPSPP_NEG12:
-      if (! fixP->fx_done)
-	break;
-
-      insn = read_reloc_insn (buf, fixP->fx_r_type);
-
-      insn |= *valP & 0xfff;
-
-      write_reloc_insn (buf, fixP->fx_r_type, insn);
+      if (fixP->fx_done)
+	{
+	  insn = read_reloc_insn (buf, fixP->fx_r_type);
+	  insn |= (-*valP) & 0xfff;
+	  write_reloc_insn (buf, fixP->fx_r_type, insn);
+	}
       break;
 
     case BFD_RELOC_MICROMIPSPP_IMM16:
-      if (! fixP->fx_done)
-	break;
-
-      insn = read_reloc_insn (buf, fixP->fx_r_type);
-      insn |= *valP & 0xffff;
-      write_reloc_insn (buf, fixP->fx_r_type, insn);
+      if (fixP->fx_done)
+	{
+	  insn = read_reloc_insn (buf, fixP->fx_r_type);
+	  insn |= *valP & 0xffff;
+	  write_reloc_insn (buf, fixP->fx_r_type, insn);
+	}
       break;
-
 
     case BFD_RELOC_MICROMIPSPP_PC32:
     case BFD_RELOC_MICROMIPSPP_LO12_PCREL:
