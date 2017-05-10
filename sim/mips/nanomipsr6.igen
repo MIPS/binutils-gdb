@@ -90,6 +90,7 @@
       GPR[ru] = EXTEND32 (data >> 32);
 
       LLBIT = 1;
+      COP0_COUNT++;
     }
       }
   }
@@ -2299,6 +2300,9 @@
        EXTEND16 (this_offset), GPR[dest]));
     GPR[dest] = EXTEND32 (do_load_left (SD_, AccessLength_WORD, base,
        EXTEND16 (this_offset + AccessLength_WORD), GPR[dest]));
+
+    if (i != 0)
+      COP0_COUNT++;
   }
 }
 
@@ -2335,6 +2339,9 @@
     do_store_right (SD_, AccessLength_WORD, GPR[RS], EXTEND16 (offsetm), GPR[source]);
     do_store_left (SD_, AccessLength_WORD, GPR[RS],
                         EXTEND16 (offsetm + AccessLength_WORD), GPR[source]);
+
+    if (i != 0)
+      COP0_COUNT++;
   }
 }
 
@@ -2487,6 +2494,9 @@
 
   GPR[RT] = NIA;
   NIA = address;
+
+  // For cycle counting
+  COP0_COUNT++;
 }
 
 110010,5.RT,001,1.X,6.BIT,10.S1,1.S2:R7PBRI:32::BBEQZC

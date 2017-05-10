@@ -1325,6 +1325,7 @@
 	      {
 		StoreMemory (uncached, AccessLength_WORD, memval, memval1,
 			     paddr, vaddr, isREAL);
+          COP0_COUNT++;
 	      }
 	    GPR[rt] = LLBIT;
 	  }
@@ -1357,6 +1358,7 @@
 	      {
 		StoreMemory (uncached, AccessLength_DOUBLEWORD, memval, memval1,
 			     paddr, vaddr, isREAL);
+          COP0_COUNT++;
 	      }
 	    GPR[rt] = LLBIT;
 	  }
