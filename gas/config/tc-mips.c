@@ -1325,9 +1325,6 @@ enum {
 /* Is the given value a sign-extended 14-bit value?  */
 #define IS_SEXT_16BIT_UINT(x)  (((x) &~ (offsetT) 0xffff) == 0)
 
-#define IS_SEXT_12BIT_NEG(x)						\
-  (((x) &~ (offsetT) 0xfff) == ~ (offsetT) 0xfff)
-
 /* Is the given value a sign-extended 12-bit value?  */
 #define IS_SEXT_12BIT_NUM(x)						\
   (((((x) & 0xfff) ^ 0x800LL) - 0x800LL) == (x))
@@ -11190,7 +11187,7 @@ load_register (int reg, expressionS *ep, int dbl)
 			   BFD_RELOC_MICROMIPSPP_IMM16);
 	      return;
 	    }
-	  if (IS_SEXT_12BIT_NEG (ep->X_add_number))
+	  if (offset_high_unsigned (-ep->X_add_number, ISA_OFFBITS) == 0)
 	    {
 	      macro_build (ep, "addiu", "t,r,h", reg, 0,
 			   BFD_RELOC_MICROMIPSPP_NEG12);
@@ -12104,7 +12101,7 @@ small_noffset_p (unsigned int range, unsigned int offbits)
 {
   if (offset_expr.X_op == O_constant
       && offset_expr.X_add_number <= 0
-      && -offset_expr.X_add_number + range <= (1 << offbits))
+      && -offset_expr.X_add_number + range < (1 << offbits))
     return TRUE;
 
   return FALSE;
