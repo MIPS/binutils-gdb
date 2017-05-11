@@ -99,7 +99,7 @@
 :function:::void:do_rotx:int rt, int rs, int shift, int shiftx, int stripe
 {
   int i;
-  unsigned64 tmp0 = GPR[rs] << 32 | GPR[rs];
+  unsigned64 tmp0 = (GPR[rs] << 32) | (GPR[rs] & 0xFFFFFFFF);
 
   unsigned64 tmp1 = tmp0;
   for (i = 0; i <=46; i++) {
@@ -114,10 +114,10 @@
       s = ~s;
 
     if (s & 0x10) {
-      if (tmp0 & (1 << (i + 16)))
-        tmp1 |= 1 << i;
+      if (tmp0 & (1LL << (i + 16)))
+        tmp1 |= 1LL << i;
       else
-        tmp1 &= ~(1 << i);
+        tmp1 &= ~(1LL << i);
     }
   }
 
@@ -131,10 +131,10 @@
       s = shiftx;
 
     if (s & 0x8) {
-      if (tmp1 & (1 << (i + 8)))
-        tmp2 |= 1 << i;
+      if (tmp1 & (1LL << (i + 8)))
+        tmp2 |= 1LL << i;
       else
-        tmp2 &= ~(1 << i);
+        tmp2 &= ~(1LL << i);
     }
   }
 
@@ -148,10 +148,10 @@
       s = shiftx;
 
     if (s & 0x4) {
-      if (tmp2 & (1 << (i + 4)))
-        tmp3 |= 1 << i;
+      if (tmp2 & (1LL << (i + 4)))
+        tmp3 |= 1LL << i;
       else
-        tmp3 &= ~(1 << i);
+        tmp3 &= ~(1LL << i);
     }
   }
 
@@ -165,10 +165,10 @@
       s = shiftx;
 
     if (s & 0x2) {
-      if (tmp3 & (1 << (i + 2)))
-        tmp4 |= 1 << i;
+      if (tmp3 & (1LL << (i + 2)))
+        tmp4 |= 1LL << i;
       else
-        tmp4 &= ~(1 << i);
+        tmp4 &= ~(1LL << i);
     }
   }
 
@@ -179,14 +179,14 @@
     s = shift;
 
     if (s & 0x1) {
-      if (tmp4 & (1 << (i + 1)))
-        tmp5 |= 1 << i;
+      if (tmp4 & (1LL << (i + 1)))
+        tmp5 |= 1LL << i;
       else
-        tmp5 &= ~(1 << i);
+        tmp5 &= ~(1LL << i);
     }
   }
 
-  GPR[rt] = EXTEND32 (tmp5);
+  GPR[rt] = tmp5;
 }
 
 :function:::void:do_lwc1xs:int ft, int rbase, int roffset
@@ -1280,7 +1280,9 @@
 {
   check_xlp_flag (SD_);
 
+  TRACE_ALU_INPUT4 (GPR[RT], GPR[RS], SHIFT, SHIFTX);
   do_rotx (SD_, RT, RS, SHIFT, SHIFTX << 1, STRIPE);
+  TRACE_ALU_RESULT (GPR[RT]);
 }
 
 010010,5.RT,5.RS,0000,12.X:R7PJ:32::JALRC
