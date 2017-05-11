@@ -324,7 +324,7 @@
   int counter = 0;
 
   while (counter != count) {
-    int gpr = (first_gpr & 0x10) | ((first_gpr + counter) & 0xF);
+    int gpr = (first_gpr & 0x10) | ((first_gpr + counter) & 0x1F);
     int offset = - ( (counter + 1) << 2 );
 
     if ( gp && (counter == count - 1))
@@ -346,7 +346,7 @@
   int counter = 0;
 
   while (counter != count) {
-    int gpr = (first_gpr & 0x10) | ((first_gpr + counter) & 0xF);
+    int gpr = (first_gpr & 0x10) | ((first_gpr + counter) & 0x1F);
 
     if (gpr == 29)
       Unpredictable();
@@ -1529,7 +1529,7 @@
 
   while (counter != COUNT)
   {
-    dest = (RT & 0x10) | ((RT + counter) & 0xF);
+    dest = (RT & 0x10) | ((RT + counter) & 0x1F);
 
     if ((dest == RS) && (counter != (COUNT - 1)))
       Unpredictable ();
@@ -2143,7 +2143,7 @@
     if (RT == 0)
       source = 0;
     else
-      source = (RT & 0x10) | ((RT + counter) & 0xF);
+      source = (RT & 0x10) | ((RT + counter) & 0x1F);
 
     offsetm = S_9_BIT + (counter << 2);
 
