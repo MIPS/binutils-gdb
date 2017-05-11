@@ -2291,7 +2291,7 @@
   address_word base = GPR[RS];
   for(i = 0; i< COUNT; i++)
   {
-    dest = ((RT >> 4) << 4) | (RT + i);
+    dest = (RT & 0x10) | ((RT + i) & 0x1F);
 
     if (dest == RS && i != COUNT - 1)
       Unpredictable ();
@@ -2334,7 +2334,7 @@
     if (RT == 0)
       source = 0;
     else
-      source = ((RT >> 4) << 4) | (RT + i);
+      source = (RT & 0x10) | ((RT + i) & 0x1F);
 
     offsetm = S_9_BIT + (i << 2);
 
