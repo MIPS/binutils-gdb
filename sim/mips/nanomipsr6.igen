@@ -186,7 +186,7 @@
     }
   }
 
-  GPR[rt] = tmp5;
+  GPR[rt] = EXTEND32 (tmp5);
 }
 
 :function:::void:do_lwc1xs:int ft, int rbase, int roffset
