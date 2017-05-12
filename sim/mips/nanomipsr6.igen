@@ -60,6 +60,7 @@
 :compute:::int:TRS_NM:RS:((RS < 4) ? (16 + RS) \: RS)
 :compute:::int:TRT_NM:RT:((RT < 4) ? (16 + RT) \: RT)
 :compute:::int:COUNT:COUNT3:(COUNT3 == 0 ? 8 \: COUNT3)
+:compute:::int:SHIFTX_1BIT:SHIFTX:(SHIFTX << 1)
 
 :function:::void:do_llwp:int rt, int ru, int roffset, int rbase
 {
@@ -1268,20 +1269,20 @@
 }
 
 100000,5.RT,5.RS,1101,0,4.SHIFTX,1.STRIPE,0,5.SHIFT:R7PROTX:32::ROTX
-"bitrev r<RT>, r<RS>": SHIFT == 31 && SHIFTX == 0
-"bitswap r<RT>, r<RS>": SHIFT == 7 && SHIFTX == 8 && STRIPE == 1
-"bitswap.h r<RT>, r<RS>": SHIFT == 15 && SHIFTX == 16
-"byteswap r<RT>, r<RS>": SHIFT == 24 && SHIFTX == 8
-"wsbh r<RT>, r<RS>": SHIFT == 8 && SHIFTX == 24
-"rotx r<RT>, r<RS>, <SHIFT>, <SHIFTX>": STRIPE == 0
-"rotx r<RT>, r<RS>, <SHIFT>, <SHIFTX>, <STRIPE>"
+"bitrev r<RT>, r<RS>": SHIFT == 31 && SHIFTX_1BIT == 0
+"bitswap r<RT>, r<RS>": SHIFT == 7 && SHIFTX_1BIT == 8 && STRIPE == 1
+"bitswap.h r<RT>, r<RS>": SHIFT == 15 && SHIFTX_1BIT == 16
+"byteswap r<RT>, r<RS>": SHIFT == 24 && SHIFTX_1BIT == 8
+"wsbh r<RT>, r<RS>": SHIFT == 8 && SHIFTX_1BIT == 24
+"rotx r<RT>, r<RS>, <SHIFT>, <SHIFTX_1BIT>": STRIPE == 0
+"rotx r<RT>, r<RS>, <SHIFT>, <SHIFTX_1BIT>, <STRIPE>"
 *nanomips32r6:
 *nanomips64r6:
 {
   check_xlp_flag (SD_);
 
-  TRACE_ALU_INPUT4 (GPR[RT], GPR[RS], SHIFT, SHIFTX);
-  do_rotx (SD_, RT, RS, SHIFT, SHIFTX << 1, STRIPE);
+  TRACE_ALU_INPUT4 (GPR[RT], GPR[RS], SHIFT, SHIFTX_1BIT);
+  do_rotx (SD_, RT, RS, SHIFT, SHIFTX_1BIT, STRIPE);
   TRACE_ALU_RESULT (GPR[RT]);
 }
 
