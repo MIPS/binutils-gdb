@@ -79,6 +79,8 @@ case ${cpu} in
   mips*el)		cpu_type=mips endian=little ;;
   mips*)		cpu_type=mips endian=big ;;
   mt)			cpu_type=mt endian=big ;;
+  nanomips*el)		cpu_type=mips endian=little ;;
+  nanomips*)		cpu_type=mips endian=big ;;
   nds32be)		cpu_type=nds32 endian=big ;;
   nds32le)		cpu_type=nds32 endian=little ;;
   or1k* | or1knd*)	cpu_type=or1k endian=big ;;
