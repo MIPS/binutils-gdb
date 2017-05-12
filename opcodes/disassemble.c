@@ -319,7 +319,7 @@ disassembler (abfd)
       disassemble = print_insn_metag;
       break;
 #endif
-#ifdef ARCH_mips
+#if defined (ARCH_mips) || defined (ARCH_nanomips)
     case bfd_arch_mips:
       if (bfd_big_endian (abfd))
 	disassemble = print_insn_big_mips;
@@ -621,7 +621,7 @@ disassemble_init_for_target (struct disassemble_info * info)
       disassemble_init_powerpc (info);
       break;
 #endif
-#ifdef ARCH_mips
+#if defined(ARCH_mips) || defined(ARCH_nanomips) /* FIXME: Leave only nanomips eventually */
     case bfd_arch_mips:
       if (info->mach == bfd_mach_mipsisa32r7
 	  || info->mach == bfd_mach_mipsisa64r7)

@@ -202,7 +202,7 @@ changequote([,])dnl
       mips)
 	# Set mips_cpu to the name of the default CPU.
 	case ${target_cpu} in
-	  mips | mipsbe | mipseb | mipsle | mipsel | mips64 | mips64el)
+	  mips | mipsbe | mipseb | mipsle | mipsel | mips64 | mips64el | nanomips | nanomipsel)
 	    mips_cpu=from-abi
 	    ;;
 	  mipsisa32 | mipsisa32el)

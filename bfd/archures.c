@@ -591,6 +591,7 @@ extern const bfd_arch_info_type bfd_mn10300_arch;
 extern const bfd_arch_info_type bfd_moxie_arch;
 extern const bfd_arch_info_type bfd_msp430_arch;
 extern const bfd_arch_info_type bfd_mt_arch;
+extern const bfd_arch_info_type bfd_nanomips_arch;
 extern const bfd_arch_info_type bfd_nds32_arch;
 extern const bfd_arch_info_type bfd_nios2_arch;
 extern const bfd_arch_info_type bfd_ns32k_arch;
@@ -680,6 +681,7 @@ static const bfd_arch_info_type * const bfd_archures_list[] =
     &bfd_moxie_arch,
     &bfd_msp430_arch,
     &bfd_mt_arch,
+    &bfd_nanomips_arch,
     &bfd_nds32_arch,
     &bfd_nios2_arch,
     &bfd_ns32k_arch,

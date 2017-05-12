@@ -1134,6 +1134,9 @@ case "${target}" in
   mips*-*-*)
     noconfigdirs="$noconfigdirs gprof"
     ;;
+  nanomips*-img-elf*)
+      noconfigdirs="$noconfigdirs ld gprof gdb sim"
+    ;;
   nds32*-*-*)
     noconfigdirs="$noconfigdirs gdb"
     ;;
