@@ -1,5 +1,5 @@
 #objdump: -dr --show-raw-insn
-#name: Expressions with volatile labels on MIPSR7
+#name: Expressions with volatile labels on nanoMIPS
 
 .*\.o: +file format .*mips.*
 

@@ -2,7 +2,7 @@
 # Configuration validation subroutine script.
 #   Copyright 1992-2014 Free Software Foundation, Inc.
 
-timestamp='2017-05-12'
+timestamp='2017-05-13'
 
 # This file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by
@@ -390,7 +390,7 @@ case $basic_machine in
 	| m68000-* | m680[012346]0-* | m68360-* | m683?2-* | m68k-* \
 	| m88110-* | m88k-* | maxq-* | mcore-* | metag-* \
 	| microblaze-* | microblazeel-* \
-	| mips-* | mipsbe-* | mipseb-* | mipsel-* | mipsle-* | nanomips-* \
+	| mips-* | mipsbe-* | mipseb-* | mipsel-* | mipsle-* \
 	| mips16-* \
 	| mips64-* | mips64el-* \
 	| mips64octeon-* | mips64octeonel-* \

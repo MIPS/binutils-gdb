@@ -1116,9 +1116,6 @@ case "${target}" in
       noconfigdirs="$noconfigdirs gprof"
     fi
     ;;
-  nanomips*-img-elf*)
-      noconfigdirs="$noconfigdirs ld gprof gdb sim"
-    ;;
   mips*-*-irix5*)
     noconfigdirs="$noconfigdirs gprof target-libgloss"
     ;;
@@ -1138,7 +1135,7 @@ case "${target}" in
     noconfigdirs="$noconfigdirs gprof"
     ;;
   nanomips*-img-elf*)
-      noconfigdirs="$noconfigdirs ld gprof gdb sim"
+    noconfigdirs="$noconfigdirs ld gprof gdb sim"
     ;;
   nds32*-*-*)
     noconfigdirs="$noconfigdirs gdb"

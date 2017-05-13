@@ -1,0 +1,13 @@
+#objdump: -dr --prefix-addresses --show-raw-insn
+#name: PREF instruction on nanoMIPS
+#as: -p32 --defsym micromips=1 --defsym tpref=1 --defsym r6=1
+#source: cache.s
+
+# Check MIPS CACHE instruction assembly (nanoMIPS).
+
+.*: +file format .*mips.*
+
+Disassembly of section \.text:
+0+0000 <text_label> 84a2 30ff 	pref	0x5,255\(v0\)
+0+0004 <text_label\+0x4> a4a3 9800 	pref	0x5,-256\(v1\)
+	\.\.\.

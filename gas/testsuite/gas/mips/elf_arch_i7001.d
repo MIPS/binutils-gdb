@@ -1,7 +1,7 @@
-# name: ELF MIPS32r7 markings
+# name: ELF nanoMIPS markings
 # source: empty.s
 # objdump: -p
-# as: -march=i7001 -mmicromips
+# as: -march=i7001
 
 .*:.*file format.*elf.*mips.*
 private flags = b.......: .*\[mips32r7\].*
