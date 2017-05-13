@@ -12120,7 +12120,7 @@ _ACEOF
       mips)
 	# Set mips_cpu to the name of the default CPU.
 	case ${target_cpu} in
-	  mips | mipsbe | mipseb | mipsle | mipsel | mips64 | mips64el)
+	  mips | mipsbe | mipseb | mipsle | mipsel | mips64 | mips64el | nanomips | nanomipsel)
 	    mips_cpu=from-abi
 	    ;;
 	  mipsisa32 | mipsisa32el)
@@ -12138,6 +12138,9 @@ _ACEOF
 	  mipsisa32r6 | mipsisa32r6el)
 	    mips_cpu=mips32r6
 	    ;;
+	  mipsisa32r7 | mipsisa32r7el | nanomips | nanomipsel)
+	    mips_cpu=mips32r7
+	    ;;
 	  mipsisa64 | mipsisa64el)
 	    mips_cpu=mips64
 	    ;;
@@ -12153,6 +12156,9 @@ _ACEOF
 	  mipsisa64r6 | mipsisa64r6el)
 	    mips_cpu=mips64r6
 	    ;;
+	  mipsisa64r7 | mipsisa64r7el)
+	    mips_cpu=mips64r7
+	    ;;
 	  mipstx39 | mipstx39el)
 	    mips_cpu=r3900
 	    ;;
@@ -12167,6 +12173,9 @@ _ACEOF
 	    ;;
 	  mipsisa32r6* | mipsisa64r6*)
 	    mips_cpu=`echo $target_cpu | sed -e 's/[a-z]*..r6//' -e 's/el$//'`
+	    ;;
+	  mipsisa32r7* | mipsisa64r7*)
+	    mips_cpu=`echo $target_cpu | sed -e 's/[a-z]*..r7//' -e 's/el$//'`
 	    ;;
 	  mips64* | mipsisa64* | mipsisa32*)
 	    mips_cpu=`echo $target_cpu | sed -e 's/[a-z]*..//' -e 's/el$//'`
