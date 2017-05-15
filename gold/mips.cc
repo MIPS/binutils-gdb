@@ -10747,55 +10747,42 @@ template<int size, bool big_endian>
 void
 Target_mips<size, big_endian>::set_gp(Layout* layout, Symbol_table* symtab)
 {
-  if (this->gp_ != NULL)
-    return;
+  gold_assert(this->gp_ == NULL);
 
-  unsigned int gp_offset = !this->is_output_r7() ? MIPS_GP_OFFSET : 0;
-
-  Output_data* section = layout->find_output_section(".got");
-  if (section == NULL)
-    {
-      // If there is no .got section, gp should be based on .sdata.
-      // TODO(sasa): This is probably not needed.  This was needed for older
-      // MIPS architectures which accessed both GOT and .sdata section using
-      // gp-relative addressing.  Modern Mips Linux ELF architectures don't
-      // access .sdata using gp-relative addressing.
-      for (Layout::Section_list::const_iterator
-           p = layout->section_list().begin();
-           p != layout->section_list().end();
-           ++p)
-        {
-          if (strcmp((*p)->name(), ".sdata") == 0)
-            {
-              section = *p;
-              break;
-            }
-        }
-    }
-
+  const bool relocatable = parameters->options().relocatable();
   Sized_symbol<size>* gp =
     static_cast<Sized_symbol<size>*>(symtab->lookup("_gp"));
-  if (gp != NULL)
+
+  // Set _gp symbol if the linker script hasn't created it.
+  if (gp == NULL || gp->source() != Symbol::IS_CONSTANT)
     {
-      if (gp->source() != Symbol::IS_CONSTANT && section != NULL)
-        gp->init_output_data(gp->name(), NULL, section, gp_offset, 0,
-                             elfcpp::STT_OBJECT,
-                             elfcpp::STB_GLOBAL,
-                             elfcpp::STV_DEFAULT, 0,
-                             false, false);
-      this->gp_ = gp;
+      // If there is no .got section, gp should be based on .sdata.
+      Output_data* gp_section = (this->got_ != NULL
+                                 ? this->got_->output_section()
+                                 : layout->find_output_section(".sdata"));
+
+      // In case of a relocatable link we are defining _gp0 symbol whose value
+      // will be stored into .reginfo/.MIPS.options section, because we don't
+      // want to predefine reference to _gp.
+      const char* gp_name = relocatable ? "_gp0" : "_gp";
+
+      if (gp_section != NULL)
+        gp = static_cast<Sized_symbol<size>*>(symtab->define_in_output_data(
+                                              gp_name, NULL,
+                                              Symbol_table::PREDEFINED,
+                                              gp_section, 0, 0,
+                                              elfcpp::STT_NOTYPE,
+                                              elfcpp::STB_LOCAL,
+                                              elfcpp::STV_DEFAULT,
+                                              0, false, false));
+
+      // gp value used to create the relocatable object will be stored into
+      // .reginfo/.MIPS.options section.
+      if (relocatable && gp != NULL)
+        gp->set_symtab_index(-1U);
     }
-  else if (section != NULL)
-    {
-      gp = static_cast<Sized_symbol<size>*>(symtab->define_in_output_data(
-                                      "_gp", NULL, Symbol_table::PREDEFINED,
-                                      section, gp_offset, 0,
-                                      elfcpp::STT_OBJECT,
-                                      elfcpp::STB_GLOBAL,
-                                      elfcpp::STV_DEFAULT,
-                                      0, false, false));
-      this->gp_ = gp;
-    }
+
+  this->gp_ = gp;
 }
 
 // Set the dynamic symbol indexes.  INDEX is the index of the first
@@ -12913,12 +12900,14 @@ Target_mips<size, big_endian>::scan_reloc_section_for_relax_or_expand(
 
       section_offset_type offset = convert_to_section_size_type(r_offset);
 
+      const Sized_symbol<size>* sym;
       Symbol_value<size> symval;
       const Symbol_value<size>* psymval;
       bool is_defined_in_discarded_section;
       unsigned int shndx;
       if (r_sym < local_count)
         {
+          sym = NULL;
           psymval = mips_relobj->local_symbol(r_sym);
 
           // If the local symbol belongs to a section we are discarding,
@@ -12959,6 +12948,7 @@ Target_mips<size, big_endian>::scan_reloc_section_for_relax_or_expand(
           if (gsym->is_weak_undefined())
             continue;
 
+          sym = static_cast<const Sized_symbol<size>*>(gsym);
           // We need to compute the would-be final value of this global
           // symbol.
           const Symbol_table* symtab = relinfo->symtab;
@@ -13052,6 +13042,11 @@ Target_mips<size, big_endian>::scan_reloc_section_for_relax_or_expand(
               continue;
 
             value = psymval->value(mips_relobj, r_addend) - gp;
+            // If the symbol was local, any earlier relocatable links will
+            // have adjusted its addend with the gp offset, so compensate
+            // for that now.
+            if (sym == NULL)
+              value += mips_relobj->gp_value();
             break;
           }
         default:

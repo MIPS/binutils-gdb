@@ -38,9 +38,8 @@ check()
 }
 
 # Symbol d must be at the beginning of the section because it has been
-# read with lw[gp] instruction 2 times and 2 times with sw[gp] instruction
-# (objdump prints symbol d as _gp because they have the same address).
-check umipsr7_script_test.stdout "00400060 <_gp>"
+# read with lw[gp] instruction 2 times and 2 times with sw[gp] instruction.
+check umipsr7_script_test.stdout "00400060 <d>"
 # Sumbol c has been read 2 times with lw[gp] instruction.  Note that we
 # don't take into account instruction where 5-bit register index can't
 # be abbreviated to 3 bits, and store instructions.
