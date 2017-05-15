@@ -445,6 +445,9 @@ enum mips_operand_type {
   /* Fractured upper immediate 20-bit signed integer for uMIPSr7 */
   OP_HI20_INT,
 
+  /* Fractured upper immediate 20-bit scaled integer for uMIPSr7 */
+  OP_HI20_SCALE,
+
   /* A non-zero PC-relative offset.  */
   OP_NON_ZERO_PCREL_S1,
 
@@ -457,9 +460,17 @@ enum mips_operand_type {
   /* Immediate signed word operand.  */
   OP_IMM_WORD,
 
+  /* Immediate PC-relative word operand.  */
+  OP_PC_WORD,
+
+  /* Immediate GP-relative word operand.  */
+  OP_GPREL_WORD,
+
   /* Don't care bits.  */
   OP_DONT_CARE,
 
+  /* Immediate unsigned word operand, to be negated.  */
+  OP_NEG_INT,
 };
 
 /* Enumerates the types of MIPS register.  */
