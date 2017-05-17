@@ -104,8 +104,7 @@ decode_micromipspp_operand (const char *p)
  	case 'x': SPECIAL (0, 0, REPEAT_DEST_REG);
 	case 'y': MAPPED_REG (0, 0, GP, reg_31_map);
 	case 'z': UINT (0, 0); 	/* Literal 0 */
-
-	case 'A': INT_ADJ (7, 0, 63, 2, FALSE);	 /* (-64 .. 63) << 2 */
+	case 'A': INT_ADJ (7, 0, 127, 2, FALSE);	 /* (0 .. 127) << 2 */
 	case 'B': MAPPED_INT (3, 0, int_b_map, FALSE);
 	case 'C': MAPPED_INT (4, 0, int_c_map, TRUE);
 	case 'D': BRANCH_UNORD_SPLIT (10, 1);
