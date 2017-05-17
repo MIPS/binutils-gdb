@@ -1898,6 +1898,18 @@ validate_insn_args (const struct mips_opcode *opcode,
 		  }
 		break;
 
+		case OP_SAVE_RESTORE_LIST:
+		  {
+		    /* The operand for SAVE/RESTORE is split into 3 pieces
+		       rather than just 2 but we only support a 2-way split
+		       decode the last bit of the instruction here.  */
+		    if (is_isa_r7 (mips_isa)
+			&& opcode->mask >> 16 != 0
+			&& ((insn >> 20) & 0x1) != 0)
+		      return FALSE;
+		  }
+		  break;
+
 		case OP_INT:
 		case OP_MAPPED_INT:
 		case OP_MSB:
@@ -1919,7 +1931,6 @@ validate_insn_args (const struct mips_opcode *opcode,
 		case OP_REG_INDEX:
 		case OP_MXU_STRIDE:
 		case OP_MAPPED_STRING:
-		case OP_SAVE_RESTORE_LIST:
 		case OP_SAVE_RESTORE_FP_LIST:
 		case OP_HI20_INT:
 		case OP_HI20_PCREL:
