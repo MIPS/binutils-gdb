@@ -198,7 +198,7 @@ decode_micromipspp_operand (const char *p)
 /* 	case 'd': REG (5, 6, MSA); */
 /* 	case 'e': REG (5, 11, MSA); */
 /* 	case 'h': REG (5, 16, MSA); */
-	case 'i': BIT (6, 11, 0);			 /* (0 .. 63) */
+	case 'i': BIT (5, 11, 0);			 /* (0 .. 31) */
 	case 'j': SINT_SPLIT (9, 0, 0, 1, 15);
 /* 	case 'k': REG (5, 6, GP); */
 /* 	case 'l': REG (5, 6, MSA_CTRL); */
@@ -502,8 +502,8 @@ IGRIE */
 {"balign",	"t,s,2",		0x200008bf, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32,		0},
 {"balrsc",	"-t,s",		0x48008200, 0xfc00ffff,		WR_1|RD_2,		0,	I38,		0,		0},
 {"balrsc",	"s",		0x4be08200, 0xffe0ffff,		RD_1|WR_31,		0,	I38,		0,		0}, /* BALRSC */
-{"bbeqzc",	"t,+i,~",	0xc4040000, 0xfc1e0000,	RD_1,		0,		0,	XLP,		0},
-{"bbnezc",	"t,+i,~",	0xc4040000, 0xfc1e0000,	RD_1,		0,		0,	XLP,		0},
+{"bbeqzc",	"t,+i,~",	0xc8040000, 0xfc1f0000,	RD_1,		0,		0,	XLP,		0},
+{"bbnezc",	"t,+i,~",	0xc8140000, 0xfc1f0000,	RD_1,		0,		0,	XLP,		0},
 {"bc",		"mD",		0x1800,	0xfc00,		0,		0,	I38,		0,		0}, /* BC[16] */
 {"bc",		"+'",		0x28000000, 0xfe000000,		0,		0,	I38,		0,		0},
 {"b",		"mD",		0x1800,		0xfc00,		0, INSN2_ALIAS|CTC,	I38,		0,		0}, /* BC[16] */

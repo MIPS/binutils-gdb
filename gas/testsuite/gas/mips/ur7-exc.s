@@ -138,7 +138,7 @@ test:
 	bbeqzc $4,1,test
 	bbeqzc $4,31,test
 	bbnezc $4,0,test
-	bbnezc $4,36,test
+	bbnezc $4,16,test
 	teq	$3, $4
 	tne $5,$6
 	addu $8,$8,$10

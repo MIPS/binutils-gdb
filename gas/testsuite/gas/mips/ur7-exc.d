@@ -121,15 +121,15 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> a483 98e2 	pref	0x4,-30\(v1\)
 [0-9a-f]+ <[^>]+> 8483 3000 	pref	0x4,0\(v1\)
 			120: R_MICROMIPS_LO12	test
-[0-9a-f]+ <[^>]+> c484 c000 	bbeqzc	a0,0x18,00000128 <[^>]+>
+[0-9a-f]+ <[^>]+> c884 c000 	bbeqzc	a0,0x18,00000128 <[^>]+>
 			124: R_MICROMIPS_PC11_S1	test-0x4
-[0-9a-f]+ <[^>]+> c484 0800 	bbeqzc	a0,0x1,0000012c <[^>]+>
+[0-9a-f]+ <[^>]+> c884 0800 	bbeqzc	a0,0x1,0000012c <[^>]+>
 			128: R_MICROMIPS_PC11_S1	test-0x4
-[0-9a-f]+ <[^>]+> c484 f800 	bbeqzc	a0,0x1f,00000130 <[^>]+>
+[0-9a-f]+ <[^>]+> c884 f800 	bbeqzc	a0,0x1f,00000130 <[^>]+>
 			12c: R_MICROMIPS_PC11_S1	test-0x4
-[0-9a-f]+ <[^>]+> c484 0000 	bbeqzc	a0,0x0,00000134 <[^>]+>
+[0-9a-f]+ <[^>]+> c894 0000 	bbnezc	a0,0x0,00000134 <[^>]+>
 			130: R_MICROMIPS_PC11_S1	test-0x4
-[0-9a-f]+ <[^>]+> c485 2000 	bbeqzc	a0,0x24,00000138 <[^>]+>
+[0-9a-f]+ <[^>]+> c894 8000 	bbnezc	a0,0x10,00000138 <[^>]+>
 			134: R_MICROMIPS_PC11_S1	test-0x4
 [0-9a-f]+ <[^>]+> 2083 0000 	teq	v1,a0
 [0-9a-f]+ <[^>]+> 20c5 0400 	tne	a1,a2
