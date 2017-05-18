@@ -3753,6 +3753,15 @@ subdirs="$subdirs arm"
        sim_testsuite=yes
        sim_igen=yes
        ;;
+   nanomips*-*-*)
+
+  sim_arch=mips
+  subdirs="$subdirs mips"
+
+
+       sim_testsuite=yes
+       sim_igen=yes
+       ;;
    mn10300*-*-*)
 
   sim_arch=mn10300

@@ -419,6 +419,7 @@ case $basic_machine in
 	| mmix-* \
 	| mt-* \
 	| msp430-* \
+	| nanomips-* \
 	| nds32-* | nds32le-* | nds32be-* \
 	| nios-* | nios2-* | nios2eb-* | nios2el-* \
 	| none-* | np1-* | ns16k-* | ns32k-* \
@@ -1609,6 +1610,9 @@ case $basic_machine in
 		os=-elf
 		;;
 	mips*-*)
+		os=-elf
+		;;
+	nanomips*-*)
 		os=-elf
 		;;
 	or32-*)

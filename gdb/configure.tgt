@@ -374,6 +374,11 @@ mips*-*-elf)
 	gdb_target_obs="mips-tdep.o remote-mips.o"
 	gdb_sim=../sim/mips/libsim.a
 	;;
+nanomips*-*-elf)
+	# Target: MIPS ELF
+	gdb_target_obs="mips-tdep.o remote-mips.o"
+	gdb_sim=../sim/mips/libsim.a
+	;;
 mips*-*-*)
 	# Target: MIPS
 	gdb_target_obs="mips-tdep.o"
