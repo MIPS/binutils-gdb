@@ -654,7 +654,7 @@ if { [istarget mips*-*-vxworks*] } {
 
     run_dump_test_arches "jal-svr4pic"	[mips_arch_list_matching mips1]
     run_dump_test_arches "jal-svr4pic-noreorder" \
-					[mips_arch_list_matching mips1]
+					[mips_arch_list_matching mips1 !mipsr7]
     run_dump_test "jal-xgot"
     run_list_test_arches "jal-range" "-32" [mips_arch_list_matching mips1 !mipsr7]
     if $has_newabi { run_dump_test "jal-newabi" }
@@ -1587,4 +1587,5 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test "elf_arch_m7001"
     run_list_test_arches "isa-errors" "" [mips_arch_list_matching mipsr7]
     run_dump_test_arches "relax-addiu" "" [mips_arch_list_matching mipsr7]
+    run_list_test_arches "ur7-ctc-err" "" [mips_arch_list_matching mipsr7]
 }

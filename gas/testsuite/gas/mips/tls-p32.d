@@ -41,5 +41,4 @@ Disassembly of section .text:
   4a:	13be      	move	sp,s8
   4c:	37c2      	lw	s8,8\(sp\)
   4e:	03bd 0010 	addiu	sp,sp,16
-  52:	481f 0000 	jrc	ra
-  56:	9008      	nop
+  52:	dbe0      	jrc	ra

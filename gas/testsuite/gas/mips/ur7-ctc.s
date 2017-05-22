@@ -38,9 +38,6 @@ reorder:
         bgez	$18, ext	# bgezc s2,ext
         bltz	$18, ext	# bgezc s2,ext
 
-        bltzal	$18, ext	# bltzalc s2,ext
-        bgezal	$18, ext	# bgezalc s2,ext
-
 	j16	$4		# jrc16 a0
 	jr	$2		# jrc16 v0
 

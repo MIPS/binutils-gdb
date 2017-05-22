@@ -9089,8 +9089,9 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 			address_expr->X_add_number);
       *reloc_type = BFD_RELOC_UNUSED;
     }
-  else if (mips_opts.micromips
-	   && ISA_IS_R6 (mips_opts.isa)
+  else if (((mips_opts.micromips
+	     && ISA_IS_R6 (mips_opts.isa))
+	    || ISA_IS_R7 (mips_opts.isa))
 	   /* microMIPS pre-R6 to R6 branch/jump instruction mapping in
 	      noreorder block is restricted to have only a nop in the delay
 	      slot.  JRADDIUSP is exempted from the check as it never had
@@ -9106,8 +9107,9 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	      history[0].insn_mo->name, ip->insn_mo->name);
       add_fixed_insn (ip);
     }
-  else if (mips_opts.micromips
-	   && ISA_IS_R6 (mips_opts.isa)
+  else if (((mips_opts.micromips
+	     && ISA_IS_R6 (mips_opts.isa))
+	    || ISA_IS_R7 (mips_opts.isa))
 	   && history[0].noreorder_p
 	   && (strcmp (history[0].insn_mo->name, "bal") == 0
 	       || strcmp (history[0].insn_mo->name, "jal") == 0
@@ -9120,36 +9122,6 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 		"before the branch and disable noreorder."),
 	      history[0].insn_mo->name);
       add_fixed_insn (ip);
-    }
-  else if (mips_opts.micromips
-	   && address_expr
-	   && ((relax32 && (*reloc_type == BFD_RELOC_16_PCREL_S2
-			    || *reloc_type == BFD_RELOC_MIPS_21_PCREL_S2
-			    || *reloc_type == BFD_RELOC_MIPS_26_PCREL_S2))
-	       || *reloc_type > BFD_RELOC_UNUSED)
-	   && (delayed_branch_p (ip) || compact_branch_p (ip))
-	   /* Don't try branch relaxation when users specify
-	      16-bit/32-bit instructions.  */
-	   && !forced_insn_length)
-    {
-      bfd_boolean relax16 = *reloc_type > BFD_RELOC_UNUSED;
-      int type = relax16 ? *reloc_type - BFD_RELOC_UNUSED : 0;
-      int uncond = uncond_branch_p (ip) ? -1 : 0;
-      int compact = compact_branch_p (ip);
-      int al = pinfo & INSN_WRITE_GPR_31;
-      int length32;
-
-      gas_assert (address_expr != NULL);
-      gas_assert (!mips_relax.sequence);
-
-      relaxed_branch = TRUE;
-      length32 = relaxed_micromips_32bit_branch_length (NULL, NULL, uncond);
-      add_relaxed_insn (ip, relax32 ? length32 : 4, relax16 ? 2 : 4,
-			RELAX_MICROMIPS_ENCODE (type, AT, uncond, compact, al,
-						relax32, 0, 0),
-			address_expr->X_add_symbol,
-			address_expr->X_add_number);
-      *reloc_type = BFD_RELOC_UNUSED;
     }
   else if (mips_opts.micromips
 	   && address_expr
@@ -9189,6 +9161,36 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
       add_relaxed_insn (ip, 4, 4,
 			RELAX_MICROMIPSPP_ENCODE (type, 0, fixed),
 			make_expr_symbol (address_expr), 0);
+      *reloc_type = BFD_RELOC_UNUSED;
+    }
+  else if (mips_opts.micromips
+	   && address_expr
+	   && ((relax32 && (*reloc_type == BFD_RELOC_16_PCREL_S2
+			    || *reloc_type == BFD_RELOC_MIPS_21_PCREL_S2
+			    || *reloc_type == BFD_RELOC_MIPS_26_PCREL_S2))
+	       || *reloc_type > BFD_RELOC_UNUSED)
+	   && (delayed_branch_p (ip) || compact_branch_p (ip))
+	   /* Don't try branch relaxation when users specify
+	      16-bit/32-bit instructions.  */
+	   && !forced_insn_length)
+    {
+      bfd_boolean relax16 = *reloc_type > BFD_RELOC_UNUSED;
+      int type = relax16 ? *reloc_type - BFD_RELOC_UNUSED : 0;
+      int uncond = uncond_branch_p (ip) ? -1 : 0;
+      int compact = compact_branch_p (ip);
+      int al = pinfo & INSN_WRITE_GPR_31;
+      int length32;
+
+      gas_assert (address_expr != NULL);
+      gas_assert (!mips_relax.sequence);
+
+      relaxed_branch = TRUE;
+      length32 = relaxed_micromips_32bit_branch_length (NULL, NULL, uncond);
+      add_relaxed_insn (ip, relax32 ? length32 : 4, relax16 ? 2 : 4,
+			RELAX_MICROMIPS_ENCODE (type, AT, uncond, compact, al,
+						relax32, 0, 0),
+			address_expr->X_add_symbol,
+			address_expr->X_add_number);
       *reloc_type = BFD_RELOC_UNUSED;
     }
   else if (mips_opts.mips16 && *reloc_type > BFD_RELOC_UNUSED)
@@ -9907,7 +9909,7 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
 	  case '+':
 	    switch (args[1])
 	      {
-	      case '8':
+	      case '\'':
 		*offset_reloc = BFD_RELOC_MICROMIPSPP_25_PCREL_S1;
 		break;
 
@@ -10227,16 +10229,6 @@ match_insns (struct mips_cl_insn *insn, const struct mips_opcode *first,
 		    {
 		      if (!invalid_delay_slot)
 			invalid_delay_slot = opcode;
-		    }
-		  else if (ISA_IS_R7 (opcode->membership)
-			   && insn->noreorder_p
-			   && ((opcode->pinfo2 & INSN2_CONVERTED_TO_COMPACT)
-			       != 0))
-		    {
-		      set_insn_error (0, _("delayed branch opcode not supported"
-					   " in .noreorder block"));
-		      seen_valid_for_isa = FALSE;
-		      break;
 		    }
 		  else
 		    return TRUE;
@@ -16630,16 +16622,12 @@ micromipspp_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	 1:
        */
 
-      start_noreorder ();
-
       micromips_label_expr (&label_expr);
       if (op[0] != op[1])
 	move_register (op[0], op[1]);
       macro_build (&label_expr, "bgezc", BCONDZ1_FMT, op[1]);
       macro_build (NULL, dbl ? "dsubu" : "subu", "d,v,t", op[0], 0, op[1]);
       micromips_add_label ();
-
-      end_noreorder ();
       break;
 
     case M_ADD_I:
@@ -16798,12 +16786,10 @@ micromipspp_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
     case M_BLTZAL:
       s = "bgezc";
     brcond_al:
-      start_noreorder ();
       micromips_label_expr (&label_expr);
       macro_build (&label_expr, s, BCONDZ1_FMT, op[0]);
-      macro_build (&offset_expr, "balc", B_FMT);
+      macro_build (&offset_expr, "bal", B_FMT);
       micromips_add_label ();
-      end_noreorder ();
       break;
 
     case M_BGT_I:
