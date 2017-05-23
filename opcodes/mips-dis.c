@@ -600,7 +600,7 @@ const struct mips_arch_choice mips_arch_choices[] =
     ISA_MIPS32R7,
     (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_VIRT | ASE_VIRT_XPA | ASE_XPA |
      ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3
-     | ASE_XLP) /* FIXME: should be optional */,
+     | ASE_XLP | ASE_TLB) /* FIXME: should be optional */,
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -652,7 +652,7 @@ const struct mips_arch_choice mips_arch_choices[] =
     ISA_MIPS64R7,
     (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_MSA64 | ASE_VIRT | ASE_VIRT_XPA
      | ASE_XPA | ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3 | ASE_DSP64
-     | ASE_XLP) /* FIXME: should be optional */,
+     | ASE_XLP | ASE_TLB) /* FIXME: should be optional */,
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },

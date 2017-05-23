@@ -377,6 +377,7 @@ decode_micromipspp_operand (const char *p)
 #define EJTAG	0
 #define UDI	0
 #define XLP	ASE_XLP
+#define TLB	ASE_TLB
 
 /* New base ISAs starting at revision 7. */
 #define I38	INSN_ISA32R7
@@ -1350,12 +1351,12 @@ IGRIE */
 {"tlbgr",	"",		0x2000117f, 0xffffffff,		0,		0,	0,		IVIRT,		0},
 {"tlbgwi",	"",		0x2000217f, 0xffffffff,		0,		0,	0,		IVIRT,		0},
 {"tlbgwr",	"",		0x2000317f, 0xffffffff,		0,		0,	0,		IVIRT,		0},
-{"tlbinv",	"",		0x2000077f, 0xffffffff,		0,		0,	I38,	0,		0},
-{"tlbinvf",	"",		0x2000177f, 0xffffffff,		0,		0,	I38,	0,		0},
-{"tlbp",	"",		0x2000037f, 0xffffffff,		0,		0,	I38,		0,		0},
-{"tlbr",	"",		0x2000137f, 0xffffffff,		0,		0,	I38,		0,		0},
-{"tlbwi",	"",		0x2000237f, 0xffffffff,		0,		0,	I38,		0,		0},
-{"tlbwr",	"",		0x2000337f, 0xffffffff,		0,		0,	I38,		0,		0},
+{"tlbinv",	"",		0x2000077f, 0xffffffff,		0,		0,	0,	TLB,		0},
+{"tlbinvf",	"",		0x2000177f, 0xffffffff,		0,		0,	0,	TLB,		0},
+{"tlbp",	"",		0x2000037f, 0xffffffff,		0,		0,	0,	TLB,		0},
+{"tlbr",	"",		0x2000137f, 0xffffffff,		0,		0,	0,	TLB,		0},
+{"tlbwi",	"",		0x2000237f, 0xffffffff,		0,		0,	0,	TLB,		0},
+{"tlbwr",	"",		0x2000337f, 0xffffffff,		0,		0,	0,	TLB,		0},
 {"trunc.l.d",	"T,S",		0xa000633b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"trunc.l.s",	"T,S",		0xa000233b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"trunc.w.d",	"T,S",		0xa0006b3b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},

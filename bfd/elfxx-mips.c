@@ -16257,6 +16257,8 @@ print_mips_ases (FILE *file, unsigned int mask)
     fputs ("\n\tMIPS16 E2 Extension", file);
   if (mask & AFL_ASE_XLP)
     fputs ("\n\tXLP ASE", file);
+  if (mask & AFL_ASE_TLB)
+    fputs ("\n\tTLB ASE", file);
   if (mask == 0)
     fprintf (file, "\n\t%s", _("None"));
   else if ((mask & ~AFL_ASE_MASK) != 0)

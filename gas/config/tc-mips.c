@@ -1568,6 +1568,8 @@ enum options
     OPTION_NO_MIPS16E2,
     OPTION_XLP,
     OPTION_NO_XLP,
+    OPTION_TLB,
+    OPTION_NO_TLB,
     OPTION_COMPAT_ARCH_BASE,
     OPTION_M4650,
     OPTION_NO_M4650,
@@ -1699,6 +1701,8 @@ struct option md_longopts[] =
   {"mno-mips16e2", no_argument, NULL, OPTION_NO_MIPS16E2},
   {"mxlp", no_argument, NULL, OPTION_XLP},
   {"mno-xlp", no_argument, NULL, OPTION_NO_XLP},
+  {"mtlb", no_argument, NULL, OPTION_TLB},
+  {"mno-tlb", no_argument, NULL, OPTION_NO_TLB},
 
   /* Old-style architecture options.  Don't add more of these.  */
   {"m4650", no_argument, NULL, OPTION_M4650},
@@ -1897,6 +1901,11 @@ static const struct mips_ase mips_ases[] = {
 
   { "xlp", ASE_XLP, 0,
     OPTION_XLP, OPTION_NO_XLP,
+     -1,  -1, 7, 7,
+    -1 },
+
+  { "tlb", ASE_TLB, 0,
+    OPTION_TLB, OPTION_NO_TLB,
      -1,  -1, 7, 7,
     -1 },
 };
@@ -4408,6 +4417,9 @@ file_mips_check_options (void)
   if (! ISA_IS_R7 (file_mips_opts.isa))
     /* BALC stub optimization is only implemented for R7.  */
     file_mips_opts.no_balc_stubs = TRUE;
+  else if ((file_ase_explicit & ASE_XLP) != (file_mips_opts.ase & ASE_XLP))
+    /* If XLP is disabled, then disabled TLB too.  */
+    file_mips_opts.init_ase &= ~ASE_TLB;
 
   /* Some ASEs require 64-bit FPRs, so -mfp32 should stop those ASEs from
      being selected implicitly.  */
@@ -23424,6 +23436,8 @@ mips_convert_ase_flags (int ase)
     ext_ases |= file_ase_mips16 ? AFL_ASE_MIPS16E2 : 0;
   if (ase & ASE_XLP)
     ext_ases |= AFL_ASE_XLP;
+  if (ase & ASE_TLB)
+    ext_ases |= AFL_ASE_TLB;
 
   return ext_ases;
 }
@@ -24059,13 +24073,15 @@ static const struct mips_cpu_info mips_cpu_info_table[] =
   { "mips32r3",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS32R3, CPU_MIPS32R3 },
   { "mips32r5",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS32R5, CPU_MIPS32R5 },
   { "mips32r6",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS32R6, CPU_MIPS32R6 },
-  { "mips32r7",       MIPS_CPU_IS_ISA, ASE_XLP,	ISA_MIPS32R7, CPU_MIPS32R7 },
+  { "mips32r7",       MIPS_CPU_IS_ISA, ASE_XLP | ASE_TLB,
+						ISA_MIPS32R7, CPU_MIPS32R7 },
   { "mips64",         MIPS_CPU_IS_ISA, 0,	ISA_MIPS64,   CPU_MIPS64 },
   { "mips64r2",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS64R2, CPU_MIPS64R2 },
   { "mips64r3",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS64R3, CPU_MIPS64R3 },
   { "mips64r5",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS64R5, CPU_MIPS64R5 },
   { "mips64r6",       MIPS_CPU_IS_ISA, 0,	ISA_MIPS64R6, CPU_MIPS64R6 },
-  { "mips64r7",       MIPS_CPU_IS_ISA, ASE_XLP,	ISA_MIPS64R7, CPU_MIPS64R7 },
+  { "mips64r7",       MIPS_CPU_IS_ISA, ASE_XLP | ASE_TLB,
+						ISA_MIPS64R7, CPU_MIPS64R7 },
 
   /* MIPS I */
   { "r3000",          0, 0,			ISA_MIPS1,    CPU_R3000 },
@@ -24181,7 +24197,7 @@ static const struct mips_cpu_info mips_cpu_info_table[] =
   /* M6200 family */
   { "m6201",          0, ASE_MCU,		ISA_MIPS32R6, CPU_MIPS32R6 },
   /* 7001 family */
-  { "i7001",          0, ASE_XLP,		ISA_MIPS32R7, CPU_MIPS32R7 },
+  { "i7001",          0, ASE_XLP | ASE_TLB,	ISA_MIPS32R7, CPU_MIPS32R7 },
   { "m7001",          0, 0,			ISA_MIPS32R7, CPU_MIPS32R7 },
 
 
