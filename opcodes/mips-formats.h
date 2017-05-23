@@ -29,6 +29,17 @@
 #define INT_ADJ(SIZE, LSB, MAX_VAL, SHIFT, PRINT_HEX) \
   INT_BIAS(SIZE, LSB, MAX_VAL, 0, SHIFT, PRINT_HEX)
 
+#define IMM_INT_BIAS(SIZE, LSB, MAX_VAL, BIAS, SHIFT, PRINT_HEX) \
+  { \
+    static const struct mips_int_operand op = { \
+      { OP_IMM_INT, SIZE, LSB, 0, 0 }, MAX_VAL, BIAS, SHIFT, PRINT_HEX \
+    }; \
+    return &op.root; \
+  }
+
+#define IMM_INT_ADJ(SIZE, LSB, MAX_VAL, SHIFT, PRINT_HEX) \
+  IMM_INT_BIAS(SIZE, LSB, MAX_VAL, 0, SHIFT, PRINT_HEX)
+
 #define UINT_SPLIT(SIZE, LSB, SHIFT, SIZE_TOP, LSB_TOP)	\
   { \
     static const struct mips_int_operand op = { \

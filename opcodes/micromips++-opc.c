@@ -129,7 +129,7 @@ decode_micromipspp_operand (const char *p)
 	case 'Y': INT_ADJ (9, 3, 511, 3, FALSE);	 /* 9-bit << 3 */
 /* 	case 'Z': UINT (0, 0);			 /\* 0 only *\/ */
 	case '0': INT_ADJ (4, 2, 15, 4, FALSE);
-/* 	case '1': SPLIT_MAPPED_REG (4, 5, 1, 9, GP, reg_4to5_map); */
+	case '1': IMM_INT_ADJ (7, 0, 127, 2, FALSE);	 /* (0 .. 127) << 2 */
 /* 	case '2': SPLIT_MAPPED_REG (4, 0, 1, 4, GP, reg_4to5_map); */
 /* 	case '3': SPLIT_MAPPED_REG (4, 5, 1, 9, GP, reg_4to5_srcmap); */
 	case '4': MAPPED_REG (1, 24, GP, reg_4or5_map);
@@ -921,7 +921,8 @@ IGRIE */
 {"lw",		"md,mJ(ml)",		0x1400,	0xfc00,	WR_1|RD_3,		0,	I38,		0,		0}, /* LW[16] */
 {"lw",		"+4,mN(+5)",		0x7400,	0xfc00,	WR_1|RD_3,		0,	0,		XLP,		0}, /* LW[4X4] */
 {"lw",		"mp,mU(ms)",		0x3400,	0xfc00,	WR_1|RD_3,		0,	I38,		0,		0}, /* LW[SP] */
-{"lw",		"t,.(ma)",		0x40000002, 0xfc000003,	WR_1|RD_3,		0,	I38,		0,		0}, /* LW[GP] */
+{"lw",		"md,m1(ma)",		0x5400,	0xfc00,	WR_1|RD_3,		0,	I38,		0,		0}, /* LW[GP16] */
+{"lw",		"t,.(ma)",		0x40000002, 0xfc000003,	WR_1|RD_3,	0,	I38,		0,		0}, /* LW[GP] */
 {"lw",		"md,mA(ma)",		0x5400,	0xfc00,	WR_1|RD_3,		0,	I38,		0,		0}, /* LW[GP16] */
 {"lw",		"t,o(b)",		0x84008000, 0xfc00f000,	WR_1|RD_3,		0,	I38,		0,		0},
 {"lw",		"t,+j(b)",		0xa4004000, 0xfc007f00,	WR_1|RD_3,		0,	I38,		0,		0}, /* LW[S9] */
@@ -1305,6 +1306,7 @@ IGRIE */
 {"sw",		"mq,mJ(ml)",		0x9400,	0xfc00,	RD_1|RD_3,		0,	I38,		0,		0}, /* SW[16] */
 {"sw",		"mp,mU(ms)",		0xb400,	0xfc00,	RD_1|RD_3,		0,	I38,		0,		0}, /* SW[SP] */
 {"sw",		"+6,mN(+5)",		0xf400,	0xfc00,	RD_1|RD_3,		0,	0,		XLP,		0}, /* SW[4X4] */
+{"sw",		"mq,m1(ma)",		0xd400,		0xfc00,	RD_1|RD_3,	0,	I38,		0,		0}, /* SW[GP16] */
 {"sw",		"t,.(ma)",		0x40000003, 0xfc000003,	RD_1|RD_3,	0,	I38,		0,		0}, /* SW[GP] */
 {"sw",		"mq,mA(ma)",		0xd400,		0xfc00,	RD_1|RD_3,	0,	I38,		0,		0}, /* SW[GP16] */
 {"sw",		"t,o(b)",		0x84009000, 0xfc00f000,	RD_1|RD_3,		0,	I38,		0,		0},

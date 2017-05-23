@@ -471,6 +471,9 @@ enum mips_operand_type {
 
   /* Immediate unsigned word operand, to be negated.  */
   OP_NEG_INT,
+
+  /* Immediate (non-relocatable) integer operand.  */
+  OP_IMM_INT,
 };
 
 /* Enumerates the types of MIPS register.  */

@@ -18,10 +18,10 @@ Relocation section '\.rela\.text' at offset 0x[0-9a-f]+ contains 19 entries:
 0000002c  [0-9a-f]+02 R_MIPS_32              0000001c   \.L4 \+ 0
 0000002c  [0-9a-f]+18 R_MIPS_SUB             00000026   \.L2 \+ 0
 0000002c  [0-9a-f]+02 R_MIPS_32                         0
-00000030  [0-9a-f]+c4 R_MICROMIPS_GPREL18    00000058   \.L9 \+ 0
-00000036  [0-9a-f]+b6 R_MICROMIPS_HI20       00000056   \.L6 \+ 0
-0000003a  [0-9a-f]+b7 R_MICROMIPS_LO12       00000056   \.L6 \+ 0
-00000058  [0-9a-f]+02 R_MIPS_32              0000004c   \.L8 \+ 0
-00000058  [0-9a-f]+18 R_MIPS_SUB             00000042   \.L7 \+ 0
-00000058  [0-9a-f]+02 R_MIPS_32                         0
+00000030  [0-9a-f]+c4 R_MICROMIPS_GPREL18    00000050   \.L9 \+ 0
+00000036  [0-9a-f]+b6 R_MICROMIPS_HI20       0000004e   \.L6 \+ 0
+0000003a  [0-9a-f]+b7 R_MICROMIPS_LO12       0000004e   \.L6 \+ 0
+00000050  [0-9a-f]+02 R_MIPS_32              00000048   \.L8 \+ 0
+00000050  [0-9a-f]+18 R_MIPS_SUB             00000042   \.L7 \+ 0
+00000050  [0-9a-f]+02 R_MIPS_32                         0
 #pass

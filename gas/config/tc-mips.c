@@ -5026,6 +5026,7 @@ operand_reg_mask (const struct mips_cl_insn *insn,
     case OP_DONT_CARE:
     case OP_NEG_INT:
     case OP_HI20_SCALE:
+    case OP_IMM_INT:
       abort ();
 
     case OP_REG28:
@@ -5771,6 +5772,18 @@ match_int_operand (struct mips_arg_info *arg,
 
   insn_insert_operand (arg->insn, operand_base, uval);
   return TRUE;
+}
+
+/* Match integer operand with no relocation.  */
+static bfd_boolean
+match_const_int_operand (struct mips_arg_info *arg,
+			    const struct mips_operand *operand_base)
+{
+  if (!match_int_operand (arg, operand_base))
+    return FALSE;
+
+  return ((offset_expr.X_op == O_absent || offset_expr.X_op == O_constant)
+	  && *offset_reloc == BFD_RELOC_UNUSED);
 }
 
 #define MAX_ADDI_OFFSET (ISA_IS_R7 (mips_opts.isa)? 0xffff : 0x8000)
@@ -7252,6 +7265,9 @@ match_operand (struct mips_arg_info *arg,
 
     case OP_NEG_INT:
       return match_negative_int_operand (arg, operand);
+
+    case OP_IMM_INT:
+      return match_const_int_operand (arg, operand);
    }
   abort ();
 }

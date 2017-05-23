@@ -1412,6 +1412,7 @@ print_insn_arg (struct disassemble_info *info,
       }
       break;
     case OP_INT:
+    case OP_IMM_INT:
       {
 	const struct mips_int_operand *int_op;
 
@@ -1941,6 +1942,7 @@ validate_insn_args (const struct mips_opcode *opcode,
 		case OP_DONT_CARE:
 		case OP_NEG_INT:
 		case OP_HI20_SCALE:
+		case OP_IMM_INT:
 		  break;
 		}
 	    }

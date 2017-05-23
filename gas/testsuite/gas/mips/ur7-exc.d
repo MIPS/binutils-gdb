@@ -108,53 +108,53 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 508f      	lwxs	a3,s0\(s1\)
 [0-9a-f]+ <[^>]+> 5235      	lwxs	s2,s3\(a0\)
 [0-9a-f]+ <[^>]+> 4200 0003 	sw	s0,0\(gp\)
-			104: R_MICROMIPS_GPREL19_S2	x
-[0-9a-f]+ <[^>]+> 4220 0013 	sw	s1,16\(gp\)
+			[0-9a-f]+: R_MICROMIPS_GPREL19_S2	x
+[0-9a-f]+ <[^>]+> d484      	sw	s1,16\(gp\)
 [0-9a-f]+ <[^>]+> d484      	sw	s1,16\(gp\)
 [0-9a-f]+ <[^>]+> d480      	sw	s1,0\(gp\)
-			10e: R_MICROMIPS_GPREL7_S2	test
-[0-9a-f]+ <[^>]+> 04a0 0000 	addiupc	a1,00000114 <[^>]+>
-			110: R_MICROMIPS_PC21_S1	test-0x4
-[0-9a-f]+ <[^>]+> 04a0 0000 	addiupc	a1,00000118 <[^>]+>
-			114: R_MICROMIPS_PC21_S1	test2-0x4
+			[0-9a-f]+: R_MICROMIPS_GPREL7_S2	test
+[0-9a-f]+ <[^>]+> 04a0 0000 	addiupc	a1,00000112 <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC21_S1	test-0x4
+[0-9a-f]+ <[^>]+> 04a0 0000 	addiupc	a1,00000116 <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC21_S1	test2-0x4
 [0-9a-f]+ <[^>]+> 8483 3fa0 	pref	0x4,4000\(v1\)
 [0-9a-f]+ <[^>]+> a483 98e2 	pref	0x4,-30\(v1\)
 [0-9a-f]+ <[^>]+> 8483 3000 	pref	0x4,0\(v1\)
-			120: R_MICROMIPS_LO12	test
-[0-9a-f]+ <[^>]+> c884 c000 	bbeqzc	a0,0x18,00000128 <[^>]+>
-			124: R_MICROMIPS_PC11_S1	test-0x4
-[0-9a-f]+ <[^>]+> c884 0800 	bbeqzc	a0,0x1,0000012c <[^>]+>
-			128: R_MICROMIPS_PC11_S1	test-0x4
-[0-9a-f]+ <[^>]+> c884 f800 	bbeqzc	a0,0x1f,00000130 <[^>]+>
-			12c: R_MICROMIPS_PC11_S1	test-0x4
-[0-9a-f]+ <[^>]+> c894 0000 	bbnezc	a0,0x0,00000134 <[^>]+>
-			130: R_MICROMIPS_PC11_S1	test-0x4
-[0-9a-f]+ <[^>]+> c894 8000 	bbnezc	a0,0x10,00000138 <[^>]+>
-			134: R_MICROMIPS_PC11_S1	test-0x4
+			[0-9a-f]+: R_MICROMIPS_LO12	test
+[0-9a-f]+ <[^>]+> c884 c000 	bbeqzc	a0,0x18,00000126 <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
+[0-9a-f]+ <[^>]+> c884 0800 	bbeqzc	a0,0x1,0000012a <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
+[0-9a-f]+ <[^>]+> c884 f800 	bbeqzc	a0,0x1f,0000012e <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
+[0-9a-f]+ <[^>]+> c894 0000 	bbnezc	a0,0x0,00000132 <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
+[0-9a-f]+ <[^>]+> c894 8000 	bbnezc	a0,0x10,00000136 <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC11_S1	test-0x4
 [0-9a-f]+ <[^>]+> 2083 0000 	teq	v1,a0
 [0-9a-f]+ <[^>]+> 20c5 0400 	tne	a1,a2
 [0-9a-f]+ <[^>]+> 3c02      	addu	t0,t0,t2
 [0-9a-f]+ <[^>]+> 3e96      	addu	s4,s4,s6
-[0-9a-f]+ <[^>]+> 0460 0000 	addiupc	v1,00000148 <[^>]+>
-			144: R_MICROMIPS_PC21_S1	\*ABS\*\+0xffffffa
-[0-9a-f]+ <[^>]+> 606b 2710 0000 	lwpc	v1,0000285f <[^>]+>
-			14a: R_MICROMIPS_PC32	\*ABS\*\+0x2710
-[0-9a-f]+ <[^>]+> 606f 2710 0000 	swpc	v1,00002865 <[^>]+>
-			150: R_MICROMIPS_PC32	\*ABS\*\+0x2710
-[0-9a-f]+ <[^>]+> 60bb 2710 0000 	ldpc	a1,0000286b <[^>]+>
-			156: R_MICROMIPS_PC32	\*ABS\*\+0x2710
-[0-9a-f]+ <[^>]+> 611f 2710 0000 	sdpc	t0,00002871 <[^>]+>
-			15c: R_MICROMIPS_PC32	\*ABS\*\+0x2710
-[0-9a-f]+ <[^>]+> 6063 0000 0000 	addiupc	v1,00000167 <[^>]+>
-			162: R_MICROMIPS_PC32	test
-[0-9a-f]+ <[^>]+> 606b 0000 0000 	lwpc	v1,0000016d <[^>]+>
-			168: R_MICROMIPS_PC32	test
-[0-9a-f]+ <[^>]+> 606f 0000 0000 	swpc	v1,00000173 <[^>]+>
-			16e: R_MICROMIPS_PC32	test
-[0-9a-f]+ <[^>]+> 60bb 0000 0000 	ldpc	a1,00000179 <[^>]+>
-			174: R_MICROMIPS_PC32	test
-[0-9a-f]+ <[^>]+> 611f 0000 0000 	sdpc	t0,0000017f <[^>]+>
-			17a: R_MICROMIPS_PC32	test
+[0-9a-f]+ <[^>]+> 0460 0000 	addiupc	v1,00000146 <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC21_S1	\*ABS\*\+0xffffffa
+[0-9a-f]+ <[^>]+> 606b 2710 0000 	lwpc	v1,0000285d <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC32	\*ABS\*\+0x2710
+[0-9a-f]+ <[^>]+> 606f 2710 0000 	swpc	v1,00002863 <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC32	\*ABS\*\+0x2710
+[0-9a-f]+ <[^>]+> 60bb 2710 0000 	ldpc	a1,00002869 <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC32	\*ABS\*\+0x2710
+[0-9a-f]+ <[^>]+> 611f 2710 0000 	sdpc	t0,0000286f <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC32	\*ABS\*\+0x2710
+[0-9a-f]+ <[^>]+> 6063 0000 0000 	addiupc	v1,00000165 <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC32	test
+[0-9a-f]+ <[^>]+> 606b 0000 0000 	lwpc	v1,0000016b <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC32	test
+[0-9a-f]+ <[^>]+> 606f 0000 0000 	swpc	v1,00000171 <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC32	test
+[0-9a-f]+ <[^>]+> 60bb 0000 0000 	ldpc	a1,00000177 <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC32	test
+[0-9a-f]+ <[^>]+> 611f 0000 0000 	sdpc	t0,0000017d <[^>]+>
+			[0-9a-f]+: R_MICROMIPS_PC32	test
 [0-9a-f]+ <[^>]+> a445 2104 	ualh	v0,4\(a1\)
 [0-9a-f]+ <[^>]+> a445 2904 	uash	v0,4\(a1\)
 [0-9a-f]+ <[^>]+> a445 4504 	ualwm	v0,4\(a1\),4
@@ -184,5 +184,4 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 8043 d218 	byterev	v0,v1
 [0-9a-f]+ <[^>]+> 8043 d608 	wsbh	v0,v1
 [0-9a-f]+ <[^>]+> 8043 d608 	wsbh	v0,v1
-[0-9a-f]+ <[^>]+> 9008      	nop
 	\.\.\.
