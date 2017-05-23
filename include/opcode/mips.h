@@ -454,11 +454,11 @@ enum mips_operand_type {
   /* To check a mapped register against a previous operand.  */
   OP_MAPPED_CHECK_PREV,
 
-  /* Immediate unsigned word operand.  */
-  OP_UIMM_WORD,
+  /* Unsigned word operand.  */
+  OP_UINT_WORD,
 
-  /* Immediate signed word operand.  */
-  OP_IMM_WORD,
+  /* Signed word operand.  */
+  OP_INT_WORD,
 
   /* Immediate PC-relative word operand.  */
   OP_PC_WORD,
@@ -474,6 +474,9 @@ enum mips_operand_type {
 
   /* Immediate (non-relocatable) integer operand.  */
   OP_IMM_INT,
+
+  /* Immediate (non-relocatable) word operand.  */
+  OP_IMM_WORD,
 };
 
 /* Enumerates the types of MIPS register.  */

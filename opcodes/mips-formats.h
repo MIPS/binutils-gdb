@@ -58,6 +58,15 @@
     return &op.root; \
   }
 
+#define IMM_SINT_SPLIT(SIZE, LSB, SIZE_TOP, LSB_TOP, SHIFT, BIAS) \
+  { \
+    static const struct mips_int_operand op = { \
+      { OP_IMM_INT, SIZE, LSB, SIZE_TOP, LSB_TOP }, \
+      (1 << ((SIZE) -1)) - 1, BIAS, SHIFT, FALSE \
+    }; \
+    return &op.root; \
+  }
+
 #define UINT(SIZE, LSB) \
   INT_ADJ(SIZE, LSB, (1 << (SIZE)) - 1, 0, FALSE)
 
@@ -226,6 +235,13 @@
 #define SPECIAL_SPLIT(SIZE, LSB, SIZE_T, LSB_T, TYPE)	\
   { \
     static const struct mips_operand op = { OP_##TYPE, SIZE, LSB, SIZE_T, LSB_T }; \
+    return &op; \
+  }
+
+#define SPECIAL_WORD(BIAS, TYPE) \
+  { \
+    static const struct mips_int_operand op = { { OP_##TYPE, 0, 0, 0, 0 }, \
+						0x7fffffff, BIAS, 0, FALSE }; \
     return &op; \
   }
 

@@ -5019,14 +5019,15 @@ operand_reg_mask (const struct mips_cl_insn *insn,
     case OP_MXU_STRIDE:
     case OP_HI20_PCREL:
     case OP_HI20_INT:
-    case OP_IMM_WORD:
-    case OP_UIMM_WORD:
+    case OP_INT_WORD:
+    case OP_UINT_WORD:
     case OP_PC_WORD:
     case OP_GPREL_WORD:
     case OP_DONT_CARE:
     case OP_NEG_INT:
     case OP_HI20_SCALE:
     case OP_IMM_INT:
+    case OP_IMM_WORD:
       abort ();
 
     case OP_REG28:
@@ -5776,8 +5777,8 @@ match_int_operand (struct mips_arg_info *arg,
 
 /* Match integer operand with no relocation.  */
 static bfd_boolean
-match_const_int_operand (struct mips_arg_info *arg,
-			    const struct mips_operand *operand_base)
+match_imm_int_operand (struct mips_arg_info *arg,
+		       const struct mips_operand *operand_base)
 {
   if (!match_int_operand (arg, operand_base))
     return FALSE;
@@ -5792,8 +5793,8 @@ match_const_int_operand (struct mips_arg_info *arg,
 
 
 static bfd_boolean
-match_immediate_word (struct mips_arg_info *arg,
-		      const struct mips_operand *operand ATTRIBUTE_UNUSED)
+match_int_word (struct mips_arg_info *arg,
+		const struct mips_operand *operand ATTRIBUTE_UNUSED)
 {
   if (match_expression (arg, &offset_expr, offset_reloc))
     {
@@ -5828,9 +5829,37 @@ match_immediate_word (struct mips_arg_info *arg,
   return FALSE;
 }
 
+/* Match an immediate 32-bit value with possible bias.  */
 static bfd_boolean
-match_immediate_pcrel_word (struct mips_arg_info *arg,
-			    const struct mips_operand *operand ATTRIBUTE_UNUSED)
+match_imm_word (struct mips_arg_info *arg,
+		const struct mips_operand *operand_base)
+{
+  const struct mips_int_operand *operand;
+  operand = (const struct mips_int_operand *) operand_base;
+
+  if (match_expression (arg, &offset_expr, offset_reloc))
+    {
+      if (offset_expr.X_op != O_constant || *offset_reloc != BFD_RELOC_UNUSED)
+	return FALSE;
+
+      if (offset_expr.X_op != O_big)
+	{
+	  int sval = offset_expr.X_add_number - operand->bias;
+	  arg->last_op_int = sval;
+	  arg->insn->insn_opcode_ext = 0;
+	  arg->insn->insn_opcode_ext = (((sval >> 16) & 0xffff)
+					| (sval << 16));
+	  offset_expr.X_op = O_absent;
+	  return TRUE;
+	}
+    }
+
+  return FALSE;
+}
+
+static bfd_boolean
+match_pcrel_word (struct mips_arg_info *arg,
+		  const struct mips_operand *operand ATTRIBUTE_UNUSED)
 {
   if (match_expression (arg, &offset_expr, offset_reloc))
     {
@@ -5849,8 +5878,8 @@ match_immediate_pcrel_word (struct mips_arg_info *arg,
 }
 
 static bfd_boolean
-match_immediate_gprel_word (struct mips_arg_info *arg,
-			    const struct mips_operand *operand ATTRIBUTE_UNUSED)
+match_gprel_word (struct mips_arg_info *arg,
+		  const struct mips_operand *operand ATTRIBUTE_UNUSED)
 {
   if (match_expression (arg, &offset_expr, offset_reloc))
     {
@@ -7250,15 +7279,15 @@ match_operand (struct mips_arg_info *arg,
     case OP_MAPPED_CHECK_PREV:
       return match_mapped_check_prev_operand (arg, operand);
  
-    case OP_UIMM_WORD:
-    case OP_IMM_WORD:
-      return match_immediate_word (arg, operand);
+    case OP_UINT_WORD:
+    case OP_INT_WORD:
+      return match_int_word (arg, operand);
 
     case OP_PC_WORD:
-      return match_immediate_pcrel_word (arg, operand);
+      return match_pcrel_word (arg, operand);
 
     case OP_GPREL_WORD:
-      return match_immediate_gprel_word (arg, operand);
+      return match_gprel_word (arg, operand);
 
     case OP_DONT_CARE:
       return FALSE;
@@ -7267,7 +7296,10 @@ match_operand (struct mips_arg_info *arg,
       return match_negative_int_operand (arg, operand);
 
     case OP_IMM_INT:
-      return match_const_int_operand (arg, operand);
+      return match_imm_int_operand (arg, operand);
+
+    case OP_IMM_WORD:
+      return match_imm_word (arg, operand);
    }
   abort ();
 }
@@ -9914,8 +9946,8 @@ match_insn (struct mips_cl_insn *insn, const struct mips_opcode *opcode,
       if ((operand->type == OP_PCREL
 	   || operand->type == OP_NON_ZERO_PCREL_S1
 	   || operand->type == OP_HI20_PCREL
-	   || operand->type == OP_IMM_WORD
-	   || operand->type == OP_UIMM_WORD
+	   || operand->type == OP_INT_WORD
+	   || operand->type == OP_UINT_WORD
 	   || operand->type == OP_PC_WORD
 	   || operand->type == OP_INT
 	   || operand->type == OP_GPREL_WORD)
@@ -10856,10 +10888,11 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	  || operand->type == OP_SAME_RS_RT)
 	uval |= (uval << 5);
 
-      if (operand->type == OP_IMM_WORD
-	  || operand->type == OP_UIMM_WORD
+      if (operand->type == OP_INT_WORD
+	  || operand->type == OP_UINT_WORD
 	  || operand->type == OP_PC_WORD
-	  || operand->type == OP_GPREL_WORD)
+	  || operand->type == OP_GPREL_WORD
+	  || operand->type == OP_IMM_WORD)
 	insn.insn_opcode_ext = 0;
       else if (operand->type == OP_NEG_INT)
 	insn_insert_operand (&insn, operand, -uval);

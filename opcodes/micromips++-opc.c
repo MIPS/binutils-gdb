@@ -184,13 +184,11 @@ decode_micromipspp_operand (const char *p)
 	case 'N': SPECIAL_SPLIT (5, 0, 1, 9, SAVE_RESTORE_LIST);
 	case 'P': SPECIAL_SPLIT (9, 16, 5, 21, SAVE_RESTORE_FP_LIST);
 	case 'O': UINT (3, 8);
-	case 'Q': SPECIAL (0, 0, UIMM_WORD);
-	case 'R': SPECIAL (0, 0, IMM_WORD);
-	case 'S': SPECIAL (0, 0, PC_WORD);
-	case 'T': SPECIAL (0, 0, GPREL_WORD);
-/* 	case 'P': INT_ADJ (5, 5, 31, 2, FALSE);	 /\* (0 .. 31) << 2 *\/ */
-/* 	case 'T': INT_ADJ (10, 16, 511, 0, FALSE);	/\* (-512 .. 511) << 0 *\/ */
-/* 	case 'U': INT_ADJ (10, 16, 511, 1, FALSE);	/\* (-512 .. 511) << 1 *\/ */
+	case 'Q': SPECIAL_WORD (0, UINT_WORD);
+	case 'R': SPECIAL_WORD (0, INT_WORD);
+	case 'S': SPECIAL_WORD (0, PC_WORD);
+	case 'T': SPECIAL_WORD (0, GPREL_WORD);
+	case 'U': SPECIAL_WORD (6, IMM_WORD);
 /* 	case 'V': INT_ADJ (10, 16, 511, 2, FALSE);	/\* (-512 .. 511) << 2 *\/ */
 /* 	case 'W': INT_ADJ (10, 16, 511, 3, FALSE);	/\* (-512 .. 511) << 3 *\/ */
 
@@ -206,8 +204,8 @@ decode_micromipspp_operand (const char *p)
 /* 	case 'o': SPECIAL (4, 16, IMM_INDEX); */
 	case 'q': SINT_SPLIT (6, 3, 3, 1, 15); /* split 6-bit signed << 3 */
 	case 'r': BRANCH_UNORD_SPLIT (21, 1); /* split 21-bit signed << 1 */
+	case 's': IMM_SINT_SPLIT (21, 1, 1, 0, 1, 2); /* split (21-bit signed + 2) << 1 */
 /*
-	case 's': REG (5, 16, GP);
 	case 't': REG (5, 21, GP);
 */
 	case 'u': INT_ADJ (14, 0, ((1<<14)-1), 1, FALSE);
@@ -460,8 +458,8 @@ IGRIE */
 {"addiu",	"t,r,h",		0x80008000, 0xfc00f000,	WR_1|RD_2,		0,	I38,		0,		0}, /* ADDIU[NEG] */
 {"addiu",	"mp,mt,+R",		0x6001,     0xfc1f,	MOD_1,			0,	0,		XLP,		0}, /* ADDIU[48] */
 {"addiu",	"mp,ma,+T",		0x6002,     0xfc1f,	WR_1|RD_2,		0,	0,		XLP,		0}, /* ADDIU[GP48] */
-{"addiupc",	"t,+r",			0x04000000, 0xfc000000, WR_1,			0,	I38,	0,		0},
-{"addiupc",	"mp,+S",		0x6003,     0xfc1f,	WR_1,			0,	0,	XLP,		0}, /* ADDIUPC[48] */
+{"addiupc",	"t,+s",			0x04000000, 0xfc000000, WR_1,			0,	I38,	0,		0},
+{"addiupc",	"mp,+U",		0x6003,     0xfc1f,	WR_1,			0,	0,	XLP,		0}, /* ADDIUPC[48] */
 {"addiu.b",	"t,ma,+1",		0x440c0000, 0xfc1c0000,	WR_1|RD_2,	INSN2_ALIAS,	I38,		0,		0}, /* ADDIU[GP.B] */
 {"addiu.w",	"t,ma,.",		0x40000000, 0xfc000003,	WR_1|RD_2,	INSN2_ALIAS,	I38,		0,		0}, /* ADDIU[GP.W] */
 {"addq.ph",	"d,s,t",		0x2000000d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
@@ -850,6 +848,8 @@ IGRIE */
 {"jal",		"s",		0,    (int) M_JAL_1,	INSN_MACRO,	0,	I38,		0,		0},
 {"jal",		"A",		0,    (int) M_JAL_A,	INSN_MACRO,	0,	I38,		0,		0},
 {"jal",		"+'",		0x2a000000, 0xfe000000,	WR_31,	INSN2_ALIAS|UBR|CTC,	I38,		0,	0}, /* BALC */
+{"lapc",	"t,+r",		0x04000000, 0xfc000000, WR_1,			INSN2_ALIAS,	I38,	0,		0}, /* ADDIUPC */
+{"lapc",	"mp,+S",	0x6003,     0xfc1f,	WR_1,			INSN2_ALIAS,	0,	XLP,		0}, /* ADDIUPC[48] */
 {"lb",		"md,mL(ml)",	0x5c00,		0xfc0c,	WR_1|RD_3,	0,		I38,		0,	0}, /* LB[16] */
 {"lb",		"t,+1(ma)",		0x44000000, 0xfc1c0000,	WR_1|RD_3,		0,	I38,		0,		0}, /* LB[GP] */
 {"lb",		"t,o(b)",		0x84000000, 0xfc00f000,	WR_1|RD_3,		0,	I38,		0,		0},

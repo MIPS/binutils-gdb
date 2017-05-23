@@ -1763,6 +1763,16 @@ print_insn_arg (struct disassemble_info *info,
       break;
 
     case OP_IMM_WORD:
+      {
+	const struct mips_int_operand *int_op;
+	int_op = (const struct mips_int_operand *) operand;
+	state->last_int = ((uval >> 16) & 0xffff) | (uval << 16);
+	state->last_int += int_op->bias;
+	infprintf (is, "%d", state->last_int);
+      }
+      break;
+
+    case OP_INT_WORD:
     case OP_GPREL_WORD:
       {
 	state->last_int = ((uval >> 16) & 0xffff) | (uval << 16);
@@ -1770,7 +1780,7 @@ print_insn_arg (struct disassemble_info *info,
       }
       break;
 
-    case OP_UIMM_WORD:
+    case OP_UINT_WORD:
       {
 	state->last_int = ((uval >> 16) & 0xffff) | (uval << 16);
 	infprintf (is, "0x%x", state->last_int);
@@ -1886,18 +1896,14 @@ validate_insn_args (const struct mips_opcode *opcode,
 		  }
 
 		case OP_NON_ZERO_REG:
-		  {
-		    if (uval == 0)
-		      return FALSE;
-		  }
-		break;
+		  if (uval == 0)
+		    return FALSE;
+		  break;
 
 		case OP_NON_ZERO_PCREL_S1:
-		  {
-		    if (uval == 0 && (info->flags & INSN_HAS_RELOC) == 0)
-		      return FALSE;
-		  }
-		break;
+		  if (uval == 0 && (info->flags & INSN_HAS_RELOC) == 0)
+		    return FALSE;
+		  break;
 
 		case OP_SAVE_RESTORE_LIST:
 		  {
@@ -1909,6 +1915,13 @@ validate_insn_args (const struct mips_opcode *opcode,
 			&& ((insn >> 20) & 0x1) != 0)
 		      return FALSE;
 		  }
+		  break;
+
+		case OP_IMM_INT:
+		case OP_IMM_WORD:
+		case OP_NEG_INT:
+		  if (info->flags & INSN_HAS_RELOC)
+		    return FALSE;
 		  break;
 
 		case OP_INT:
@@ -1935,14 +1948,12 @@ validate_insn_args (const struct mips_opcode *opcode,
 		case OP_SAVE_RESTORE_FP_LIST:
 		case OP_HI20_INT:
 		case OP_HI20_PCREL:
-		case OP_IMM_WORD:
-		case OP_UIMM_WORD:
+		case OP_INT_WORD:
+		case OP_UINT_WORD:
 		case OP_PC_WORD:
 		case OP_GPREL_WORD:
 		case OP_DONT_CARE:
-		case OP_NEG_INT:
 		case OP_HI20_SCALE:
-		case OP_IMM_INT:
 		  break;
 		}
 	    }
@@ -2059,10 +2070,11 @@ print_insn_args (struct disassemble_info *info,
 	      if (operand->type == OP_PC_WORD)
 		base_pc += length;
 
-	      if (operand->type == OP_IMM_WORD
-		  || operand->type == OP_UIMM_WORD
+	      if (operand->type == OP_INT_WORD
+		  || operand->type == OP_UINT_WORD
 		  || operand->type == OP_PC_WORD
-		  || operand->type == OP_GPREL_WORD)
+		  || operand->type == OP_GPREL_WORD
+		  || operand->type == OP_IMM_WORD)
 		print_insn_arg (info, &state, opcode, operand, base_pc,
 				insn >> 32);
 	      else if (operand->type != OP_DONT_CARE)
@@ -2731,7 +2743,8 @@ print_insn_micromips (bfd_vma memaddr_base, struct disassemble_info *info)
 	    {
 	      infprintf (is, "\t");
 	      print_insn_args (info, op, decode, insn,
-			       memaddr + 1, length);
+			       memaddr + (is_isa_r7 (mips_isa)? 0 : 1),
+			       length);
 	    }
 
 	  /* Figure out instruction type and branch delay information.  */

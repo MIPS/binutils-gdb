@@ -127,8 +127,8 @@ test:
 	sw	$17,16($28)
 	sw16	$17,16($28)
 	sw16	$17,%gp_rel(test)($28)
-	addiupc $5,test
-	addiupc $5,test2
+	lapc $5,test
+	lapc $5,test2
 	.set at
 	pref 	4,4000($3)
 	pref 	4,-30($3)
@@ -143,12 +143,11 @@ test:
 	tne $5,$6
 	addu $8,$8,$10
 	mulu $20,$20,$22
-	addiupc $3, 0xfffffff
 	lwpc $3, 10000
 	swpc $3, 10000
 	ldpc $5, 10000
 	sdpc $8, 10000
-	addiupc48 $3, test
+	lapc48 $3, test
 	lwpc $3, test
 	swpc $3, test
 	ldpc $5, test
@@ -186,6 +185,17 @@ test:
 	byterev $2,$3
 	rotx    $2, $3, 8, 24
 	wsbh 	$2,$3
+
+	addiupc		$5, 0
+	addiupc 	$5, 4
+	addiupc 	$5, 8
+	addiupc48 	$5, 0
+	addiupc48 	$5,6
+	addiupc48 	$5,8
+	addiupc 	$5,2097154
+	addiupc 	$5,2097156
+	addiupc 	$5,-2097148
+	addiupc 	$5,-2097150
 
 	.end	test
 	.align	2
