@@ -19290,6 +19290,7 @@ md_pcrel_from (fixS *fixP)
     case BFD_RELOC_MICROMIPSPP_25_PCREL_S1:
     case BFD_RELOC_MICROMIPSPP_HI20_PCREL:
     case BFD_RELOC_MICROMIPSPP_LO12_PCREL:
+    case BFD_RELOC_MICROMIPSPP_PC32:
       /* Return the address of the delay slot.  */
       return addr + 4;
 
