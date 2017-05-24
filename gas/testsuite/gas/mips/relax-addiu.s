@@ -56,6 +56,24 @@ foo:
 	addiu $4, $5, 6f-2f	# x = y + 28, forced length
 	.set noinsn32
 
+	/* LI relaxation */
+	li    $4, 7f-8f		# [16] x = -1
+	li    $4, 6f-2f		# [16] x = 28
+
+	li    $3, 7f-8f		# [16] x = -8, U16 for reg
+	li    $3, 6f-2f		# [16] x = 28, U16 for reg
+
+	li    $4, 2f-5f		# [16] x = -8, NEG12 for range
+	li    $4, 9f-8f		# [16] x = 128, U16 for range
+
+	li32    $4, 7f-8f	# [16] x = -1, forced length
+	li32    $4, 6f-2f	# [16] x = 28, forced length
+
+	.set insn32
+	li    $4, 7f-8f		# [16] x = -1, forced length
+	li    $4, 6f-2f		# [16] x = 28, forced length
+	.set noinsn32
+	
 2:	
 	nop
 3:
@@ -67,6 +85,10 @@ foo:
 6:
 	nop
 7:
+	.byte 0
+8:
+	.space 127
+9:
 	nop
 	.align
 	.space 8

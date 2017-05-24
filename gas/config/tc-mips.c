@@ -5593,7 +5593,8 @@ match_relocatable_int_operand (const struct mips_operand *operand_base)
   max_val = operand->max_val;
 
   if (ISA_IS_R7 (mips_opts.isa)
-      && (op_size == 7
+      && ((op_size == 7
+	   && operand->shift == 2)
 	  || op_size == 12
 	  || op_size == 14
 	  || op_size == 16
@@ -5734,6 +5735,8 @@ match_int_operand (struct mips_arg_info *arg,
     {
       if (!match_const_int (arg, &sval))
 	return FALSE;
+      if (ISA_IS_R7 (mips_opts.isa) && min_val < 0)
+        sval = (int)sval;
     }
 
   arg->last_op_int = sval;
@@ -12178,7 +12181,7 @@ static bfd_boolean
 small_noffset_p (unsigned int range, unsigned int offbits)
 {
   if (offset_expr.X_op == O_constant
-      && offset_expr.X_add_number <= 0
+      && offset_expr.X_add_number < 0
       && -offset_expr.X_add_number + range < (1 << offbits))
     return TRUE;
 
@@ -16200,7 +16203,7 @@ micromipspp_macro_ldd_std (const char *s, const char *fmt, unsigned int op[],
 	  ep = &expr1;
 	  breg = AT;
 	  *used_at = 1;
-	  offset_reloc[0] = BFD_RELOC_LO16;
+	  offset_reloc[0] = BFD_RELOC_MICROMIPSPP_LO12;
 	  offset_reloc[1] = BFD_RELOC_UNUSED;
 	  offset_reloc[2] = BFD_RELOC_UNUSED;
 	}
@@ -17217,12 +17220,19 @@ micromipspp_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
     case M_LDC1_AB:
     case M_SDC1_AB:
     case M_SWC1_AB:
-      fmt = ISA_UNSIGNED_COP1_FMT;
       gpfmt = "T,+2(ma)";
       /* Itbl support may require additional care here.  */
       coproc = 1;
-      goto ld_st;
-
+      if (small_noffset_p (0, ISA_SIGNED_OFFBITS-1))
+	{
+	  fmt = ISA_SIGNED_COP1_FMT;
+	  goto ld_st_signed_off;
+	}
+      else
+	{
+	  fmt = ISA_UNSIGNED_COP1_FMT;
+	  goto ld_st;
+	}
     case M_SWM_AB:
     case M_SDM_AB:
     case M_LWM_AB:
@@ -17448,7 +17458,13 @@ micromipspp_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       if (GPR_SIZE == 64)
 	{
 	  gpfmt = "t,mV(ma)";
-	  goto ld_st;
+	  if (small_noffset_p (0, ISA_SIGNED_OFFBITS-1))
+	    {
+	      fmt = ISA_SIGNED_LDST_FMT;
+	      goto ld_st_signed_off;
+	    }
+	  else
+	    goto ld_st;
 	}
       s = "sw";
 
@@ -17782,23 +17798,16 @@ micromipspp_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       break;
 
     case M_ULH_AB:
-      s = "lh";
-      goto uld_st;
     case M_ULHU_AB:
-      s = "lhu";
-      goto uld_st;
     case M_ULW_AB:
-      s = "lw";
+    case M_USH_AB:
+    case M_USW_AB:
+      s = s + 1;
       goto uld_st;
+
     case M_ULD_AB:
       s = "ld";
       s2 = "lw";
-      goto uld_st;
-    case M_USH_AB:
-      s = "sh";
-      goto uld_st;
-    case M_USW_AB:
-      s = "sw";
       goto uld_st;
     case M_USD_AB:
       s = "sd";
@@ -17817,6 +17826,11 @@ micromipspp_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	{
 	  s = s2;
 	  goto ldd_std;
+	}
+      else if (small_noffset_p (0, ISA_SIGNED_OFFBITS-1))
+	{
+	  fmt = ISA_SIGNED_LDST_FMT;
+	  goto ld_st_signed_off;
 	}
       else
 	goto ld_st;
@@ -22101,6 +22115,12 @@ relaxed_micromipspp_addiu_length (fragS *fragp, bfd_boolean update)
 	   && sval % 4 == 0
 	   && !RELAX_MICROMIPSPP_FIXED (fragp->fr_subtype))
     toofar16 = FALSE;
+  else if (micromipspp_gpr3_reg_p (rt)
+	   && rs == 0
+	   && (int)sval >= -1
+	   && (int)sval <= 126
+	   && !RELAX_MICROMIPSPP_FIXED (fragp->fr_subtype))
+    toofar16 = FALSE;
   else
     negoff = (sval < 0);
 
@@ -22956,6 +22976,11 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 		    | (rt << MICROMIPSOP_SH_MP)
 		    | (sval & 0x8) << 1
 		    | (sval & 0x7));
+	  else if (rs == 0)
+	    /* LI[32] -> LI[16] */
+	    insn = (0xd000
+		    | (rt << MICROMIPSOP_SH_MP)
+		    | (sval & 0x7f));
 	  else
 	    /* ADDIU[32] -> ADDIU[R2] */
 	    insn = (0x9000
