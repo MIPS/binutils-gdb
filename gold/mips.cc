@@ -10775,10 +10775,19 @@ Target_mips<size, big_endian>::set_gp(Layout* layout, Symbol_table* symtab)
                                               elfcpp::STB_LOCAL,
                                               elfcpp::STV_DEFAULT,
                                               0, false, false));
+      else if (relocatable)
+        gp = static_cast<Sized_symbol<size>*>(symtab->define_as_constant(
+                                              gp_name, NULL,
+                                              Symbol_table::PREDEFINED,
+                                              0, 0,
+                                              elfcpp::STT_NOTYPE,
+                                              elfcpp::STB_LOCAL,
+                                              elfcpp::STV_DEFAULT,
+                                              0, false, false));
 
       // gp value used to create the relocatable object will be stored into
       // .reginfo/.MIPS.options section.
-      if (relocatable && gp != NULL)
+      if (relocatable)
         gp->set_symtab_index(-1U);
     }
 
