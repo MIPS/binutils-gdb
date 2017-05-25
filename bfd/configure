@@ -15456,8 +15456,6 @@ do
     mips_elf32_ntradfbsd_le_vec) tb="$tb elfn32-mips.lo elfxx-mips.lo elf-vxworks.lo elf32.lo $elf ecofflink.lo"; target_size=64 ;;
     mips_elf32_trad_be_vec)	 tb="$tb elf32-mips.lo elfxx-mips.lo elf-vxworks.lo elf32.lo $elf ecofflink.lo" ;;
     mips_elf32_trad_le_vec)	 tb="$tb elf32-mips.lo elfxx-mips.lo elf-vxworks.lo elf32.lo $elf ecofflink.lo" ;;
-    mips_elf32_ptrad_be_vec)	 tb="$tb elfp32-mips.lo elfxx-mips.lo elf32.lo $elf ecofflink.lo" ;;
-    mips_elf32_ptrad_le_vec)	 tb="$tb elfp32-mips.lo elfxx-mips.lo elf32.lo $elf ecofflink.lo" ;;
     mips_elf32_tradfbsd_be_vec)  tb="$tb elf32-mips.lo elfxx-mips.lo elf-vxworks.lo elf32.lo $elf ecofflink.lo" ;;
     mips_elf32_tradfbsd_le_vec)  tb="$tb elf32-mips.lo elfxx-mips.lo elf-vxworks.lo elf32.lo $elf ecofflink.lo" ;;
     mips_elf32_vxworks_be_vec)	 tb="$tb elf32-mips.lo elfxx-mips.lo elf-vxworks.lo elf32.lo $elf ecofflink.lo" ;;
@@ -15466,8 +15464,6 @@ do
     mips_elf64_le_vec)		 tb="$tb elf64-mips.lo elf64.lo elfxx-mips.lo elf-vxworks.lo elf32.lo $elf ecofflink.lo"; target_size=64 ;;
     mips_elf64_trad_be_vec)	 tb="$tb elf64-mips.lo elf64.lo elfxx-mips.lo elf-vxworks.lo elf32.lo $elf ecofflink.lo"; target_size=64 ;;
     mips_elf64_trad_le_vec)	 tb="$tb elf64-mips.lo elf64.lo elfxx-mips.lo elf-vxworks.lo elf32.lo $elf ecofflink.lo"; target_size=64 ;;
-    mips_elf64_ptrad_be_vec)	 tb="$tb elfp64-mips.lo elf64.lo elfxx-mips.lo elf32.lo $elf ecofflink.lo"; target_size=64 ;;
-    mips_elf64_ptrad_le_vec)	 tb="$tb elfp64-mips.lo elf64.lo elfxx-mips.lo elf32.lo $elf ecofflink.lo"; target_size=64 ;;
     mips_elf64_tradfbsd_be_vec)  tb="$tb elf64-mips.lo elf64.lo elfxx-mips.lo elf-vxworks.lo elf32.lo $elf ecofflink.lo"; target_size=64 ;;
     mips_elf64_tradfbsd_le_vec)  tb="$tb elf64-mips.lo elf64.lo elfxx-mips.lo elf-vxworks.lo elf32.lo $elf ecofflink.lo"; target_size=64 ;;
     mips_pe_le_vec)		 tb="$tb pe-mips.lo peigen.lo cofflink.lo" ;;
@@ -15481,6 +15477,10 @@ do
     msp430_elf32_vec)		 tb="$tb elf32-msp430.lo elf32.lo $elf" ;;
     msp430_elf32_ti_vec)	 tb="$tb elf32-msp430.lo elf32.lo $elf" ;;
     mt_elf32_vec)		 tb="$tb elf32-mt.lo elf32.lo $elf" ;;
+    nanomips_elf32_be_vec)	 tb="$tb elfp32-mips.lo elfxx-mips.lo elf32.lo $elf" ;;
+    nanomips_elf32_le_vec)	 tb="$tb elfp32-mips.lo elfxx-mips.lo elf32.lo $elf" ;;
+    nanomips_elf64_be_vec)	 tb="$tb elfp64-mips.lo elf64.lo elfxx-mips.lo elf32.lo $elf"; target_size=64 ;;
+    nanomips_elf64_le_vec)	 tb="$tb elfp64-mips.lo elf64.lo elfxx-mips.lo elf32.lo $elf"; target_size=64 ;;
     nds32_elf32_be_vec)		 tb="$tb elf32-nds32.lo elf32.lo $elf" ;;
     nds32_elf32_le_vec)		 tb="$tb elf32-nds32.lo elf32.lo $elf" ;;
     nds32_elf32_linux_be_vec)	 tb="$tb elf32-nds32.lo elf32.lo $elf" ;;
