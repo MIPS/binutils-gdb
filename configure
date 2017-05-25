@@ -3941,7 +3941,7 @@ case "${target}" in
     if test x$with_newlib = xyes; then
       noconfigdirs="$noconfigdirs gprof"
     fi
-    noconfigdirs="$noconfigdirs gas ld binutils bfd sim gdb"
+    noconfigdirs="$noconfigdirs gas ld binutils sim gdb"
     ;;
   nvptx*-*-*)
     noconfigdirs="$noconfigdirs target-libssp target-libstdc++-v3 target-libobjc"
