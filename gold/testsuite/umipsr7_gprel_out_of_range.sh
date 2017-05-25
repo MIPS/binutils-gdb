@@ -36,52 +36,52 @@ check()
 }
 
 # Test lw[gp] expansion to lui, addu, lw.
-check umipsr7_gprel_out_of_range.stdout " 1000:	e030 003c 	lui	at,0x1f00"
+check umipsr7_gprel_out_of_range.stdout " 1000:	e030 003c 	lui	at,%hi(0x1f00000)"
 check umipsr7_gprel_out_of_range.stdout " 1004:	2381 0950 	addu	at,at,gp"
 check umipsr7_gprel_out_of_range.stdout " 1008:	8441 8000 	lw	v0,0(at)"
 
 # Test sw[gp] expansion to lui, addu, sw.
-check umipsr7_gprel_out_of_range.stdout " 100c:	e030 003c 	lui	at,0x1f00"
+check umipsr7_gprel_out_of_range.stdout " 100c:	e030 003c 	lui	at,%hi(0x1f00000)"
 check umipsr7_gprel_out_of_range.stdout " 1010:	2381 0950 	addu	at,at,gp"
 check umipsr7_gprel_out_of_range.stdout " 1014:	8461 9000 	sw	v1,0(at)"
 
 # Test lb[gp] expansion to lui, addu, lb.
-check umipsr7_gprel_out_of_range.stdout " 1018:	e030 003c 	lui	at,0x1f00"
+check umipsr7_gprel_out_of_range.stdout " 1018:	e030 003c 	lui	at,%hi(0x1f00000)"
 check umipsr7_gprel_out_of_range.stdout " 101c:	2381 0950 	addu	at,at,gp"
 check umipsr7_gprel_out_of_range.stdout " 1020:	84c1 0000 	lb	a2,0(at)"
 
 # Test lbu[gp] expansion to lui, addu, lbu.
-check umipsr7_gprel_out_of_range.stdout " 1024:	e030 003c 	lui	at,0x1f00"
+check umipsr7_gprel_out_of_range.stdout " 1024:	e030 003c 	lui	at,%hi(0x1f00000)"
 check umipsr7_gprel_out_of_range.stdout " 1028:	2381 0950 	addu	at,at,gp"
 check umipsr7_gprel_out_of_range.stdout " 102c:	84e1 2000 	lbu	a3,0(at)"
 
 # Test lh[gp] expansion to lui, addu, lh.
-check umipsr7_gprel_out_of_range.stdout " 1030:	e030 003c 	lui	at,0x1f00"
+check umipsr7_gprel_out_of_range.stdout " 1030:	e030 003c 	lui	at,%hi(0x1f00000)"
 check umipsr7_gprel_out_of_range.stdout " 1034:	2381 0950 	addu	at,at,gp"
 check umipsr7_gprel_out_of_range.stdout " 1038:	8601 4000 	lh	s0,0(at)"
 
 # Test lhu[gp] expansion to lui, addu, lhu.
-check umipsr7_gprel_out_of_range.stdout " 103c:	e030 003c 	lui	at,0x1f00"
+check umipsr7_gprel_out_of_range.stdout " 103c:	e030 003c 	lui	at,%hi(0x1f00000)"
 check umipsr7_gprel_out_of_range.stdout " 1040:	2381 0950 	addu	at,at,gp"
 check umipsr7_gprel_out_of_range.stdout " 1044:	8681 6000 	lhu	s4,0(at)"
 
 # Test sb[gp] expansion to lui, addu, sb.
-check umipsr7_gprel_out_of_range.stdout " 1048:	e030 003c 	lui	at,0x1f00"
+check umipsr7_gprel_out_of_range.stdout " 1048:	e030 003c 	lui	at,%hi(0x1f00000)"
 check umipsr7_gprel_out_of_range.stdout " 104c:	2381 0950 	addu	at,at,gp"
 check umipsr7_gprel_out_of_range.stdout " 1050:	8521 1000 	sb	t1,0(at)"
 
 # Test sh[gp] expansion to lui, addu, sh.
-check umipsr7_gprel_out_of_range.stdout " 1054:	e030 003c 	lui	at,0x1f00"
+check umipsr7_gprel_out_of_range.stdout " 1054:	e030 003c 	lui	at,%hi(0x1f00000)"
 check umipsr7_gprel_out_of_range.stdout " 1058:	2381 0950 	addu	at,at,gp"
 check umipsr7_gprel_out_of_range.stdout " 105c:	85a1 5000 	sh	t5,0(at)"
 
 # Test addiu[gp.w] expansion to lui, addu, addiu.
-check umipsr7_gprel_out_of_range.stdout " 1060:	e030 003c 	lui	at,0x1f00"
+check umipsr7_gprel_out_of_range.stdout " 1060:	e030 003c 	lui	at,%hi(0x1f00000)"
 check umipsr7_gprel_out_of_range.stdout " 1064:	2381 0950 	addu	at,at,gp"
 check umipsr7_gprel_out_of_range.stdout " 1068:	01c1 0000 	addiu	t6,at,0"
 
 # Test addiu[gp.b] expansion to lui, addu, addiu.
-check umipsr7_gprel_out_of_range.stdout " 106c:	e030 003c 	lui	at,0x1f00"
+check umipsr7_gprel_out_of_range.stdout " 106c:	e030 003c 	lui	at,%hi(0x1f00000)"
 check umipsr7_gprel_out_of_range.stdout " 1070:	2381 0950 	addu	at,at,gp"
 check umipsr7_gprel_out_of_range.stdout " 1074:	01e1 0000 	addiu	t7,at,0"
 

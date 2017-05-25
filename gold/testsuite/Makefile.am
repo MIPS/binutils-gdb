@@ -3980,7 +3980,7 @@ MOSTLYCLEANFILES += split_s390_z1 split_s390_z2 split_s390_z3 \
 
 endif DEFAULT_TARGET_S390
 
-if DEFAULT_TARGET_MIPS
+if DEFAULT_TARGET_NANOMIPS
 
 # Check expansions of branch instructions.
 
@@ -4057,7 +4057,7 @@ umipsr7_script_test.o: umipsr7_script_test.s
 
 MOSTLYCLEANFILES += umipsr7_script_test
 
-endif DEFAULT_TARGET_MIPS
+endif DEFAULT_TARGET_NANOMIPS
 
 endif NATIVE_OR_CROSS_LINKER
 
