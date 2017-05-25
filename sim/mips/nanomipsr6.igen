@@ -982,7 +982,7 @@
 *nanomips64r6:
 {
   if (IMMEDIATE != 0) {
-    unsigned64 tmp = (GPR[RT] << 32) | GPR[RS];
+    unsigned64 tmp = (GPR[RT] << 32) | zero_extend (SD_, GPR[RS], 32);
     TRACE_ALU_INPUT4 (GPR[RD], GPR[RS], GPR[RT], tmp);
     GPR[RD] = EXTEND32 (tmp >> IMMEDIATE);
     TRACE_ALU_RESULT (GPR[RD]);
