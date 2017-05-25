@@ -58,7 +58,7 @@ static bfd_reloc_status_type mips32_64bit_reloc
 static reloc_howto_type *bfd_elf32_bfd_reloc_type_lookup
   (bfd *, bfd_reloc_code_real_type);
 static reloc_howto_type *mips_elf32_rtype_to_howto
-(unsigned int, bfd_boolean);
+  (unsigned int, bfd_boolean);
 static void mips_info_to_howto_rel
   (bfd *, arelent *, Elf_Internal_Rela *);
 static void mips_info_to_howto_rela
@@ -814,7 +814,6 @@ static reloc_howto_type elf_mips_howto_table_rel[] =
 	 0x0000ffff,		/* dst_mask */
 	 TRUE),			/* pcrel_offset */
 };
-
 
 /* The reloc used for BFD_RELOC_CTOR when doing a 64 bit link.  This
    is a hack to make the linker think that we need 64 bit values.  */
@@ -1689,7 +1688,6 @@ static reloc_howto_type elf_micromips_howto_table_rel[] =
 	 FALSE),		/* pcrel_offset */
 };
 
-
 /* 16 bit offset for pc-relative branches.  */
 static reloc_howto_type elf_mips_gnu_rel16_s2 =
   HOWTO (R_MIPS_GNU_REL16_S2,	/* type */
@@ -1891,6 +1889,60 @@ mips_elf_final_gp (bfd *output_bfd, asymbol *symbol, bfd_boolean relocatable,
     }
 
   return bfd_reloc_ok;
+}
+
+/* Do a R_MIPS_GPREL16 relocation.  This is a 16 bit value which must
+   become the offset from the gp register.  This function also handles
+   R_MIPS_LITERAL relocations, although those can be handled more
+   cleverly because the entries in the .lit8 and .lit4 sections can be
+   merged.  */
+
+bfd_reloc_status_type
+_bfd_mips_elf32_gprel16_reloc (bfd *abfd, arelent *reloc_entry,
+			       asymbol *symbol, void *data,
+			       asection *input_section, bfd *output_bfd,
+			       char **error_message)
+{
+  bfd_boolean relocatable;
+  bfd_reloc_status_type ret;
+  bfd_byte *location;
+  bfd_vma gp;
+
+  /* R_MIPS_LITERAL/R_MICROMIPS_LITERAL relocations are defined for local
+     symbols only.  */
+  if (literal_reloc_p (reloc_entry->howto->type)
+      && output_bfd != NULL
+      && (symbol->flags & BSF_SECTION_SYM) == 0
+      && (symbol->flags & BSF_LOCAL) != 0)
+    {
+      *error_message = (char *)
+	_("literal relocation occurs for an external symbol");
+      return bfd_reloc_outofrange;
+    }
+
+  if (output_bfd != NULL)
+    relocatable = TRUE;
+  else
+    {
+      relocatable = FALSE;
+      output_bfd = symbol->section->output_section->owner;
+    }
+
+  ret = mips_elf_final_gp (output_bfd, symbol, relocatable, error_message,
+			   &gp);
+  if (ret != bfd_reloc_ok)
+    return ret;
+
+  location = (bfd_byte *) data + reloc_entry->address;
+  _bfd_mips_elf_reloc_unshuffle (abfd, reloc_entry->howto->type, FALSE,
+				 location);
+  ret = _bfd_mips_elf_gprel16_with_gp (abfd, symbol, reloc_entry,
+				       input_section, relocatable,
+				       data, gp);
+  _bfd_mips_elf_reloc_shuffle (abfd, reloc_entry->howto->type, !relocatable,
+			       location);
+
+  return ret;
 }
 
 /* Do a R_MIPS_GPREL32 relocation.  This is a 32 bit value which must
@@ -2293,7 +2345,7 @@ bfd_elf32_bfd_reloc_name_lookup (bfd *abfd ATTRIBUTE_UNUSED,
 
 static reloc_howto_type *
 mips_elf32_rtype_to_howto (unsigned int r_type,
-			   bfd_boolean rela ATTRIBUTE_UNUSED)
+			   bfd_boolean rela_p ATTRIBUTE_UNUSED)
 {
   switch (r_type)
     {

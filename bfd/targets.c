@@ -733,8 +733,6 @@ extern const bfd_target mips_elf32_ntradfbsd_be_vec;
 extern const bfd_target mips_elf32_ntradfbsd_le_vec;
 extern const bfd_target mips_elf32_trad_be_vec;
 extern const bfd_target mips_elf32_trad_le_vec;
-extern const bfd_target mips_elf32_ptrad_be_vec;
-extern const bfd_target mips_elf32_ptrad_le_vec;
 extern const bfd_target mips_elf32_tradfbsd_be_vec;
 extern const bfd_target mips_elf32_tradfbsd_le_vec;
 extern const bfd_target mips_elf32_vxworks_be_vec;
@@ -742,8 +740,6 @@ extern const bfd_target mips_elf32_vxworks_le_vec;
 extern const bfd_target mips_elf64_be_vec;
 extern const bfd_target mips_elf64_le_vec;
 extern const bfd_target mips_elf64_trad_be_vec;
-extern const bfd_target mips_elf64_ptrad_le_vec;
-extern const bfd_target mips_elf64_ptrad_be_vec;
 extern const bfd_target mips_elf64_trad_le_vec;
 extern const bfd_target mips_elf64_tradfbsd_be_vec;
 extern const bfd_target mips_elf64_tradfbsd_le_vec;
@@ -758,6 +754,10 @@ extern const bfd_target moxie_elf32_le_vec;
 extern const bfd_target msp430_elf32_vec;
 extern const bfd_target msp430_elf32_ti_vec;
 extern const bfd_target mt_elf32_vec;
+extern const bfd_target nanomips_elf32_be_vec;
+extern const bfd_target nanomips_elf32_le_vec;
+extern const bfd_target nanomips_elf64_le_vec;
+extern const bfd_target nanomips_elf64_be_vec;
 extern const bfd_target nds32_elf32_be_vec;
 extern const bfd_target nds32_elf32_le_vec;
 extern const bfd_target nds32_elf32_linux_be_vec;
@@ -1196,8 +1196,6 @@ static const bfd_target * const _bfd_target_vector[] =
 	&mips_elf32_ntrad_le_vec,
 	&mips_elf32_ntradfbsd_be_vec,
 	&mips_elf32_ntradfbsd_le_vec,
-	&mips_elf32_ptrad_be_vec,
-	&mips_elf32_ptrad_le_vec,
 	&mips_elf32_trad_be_vec,
 	&mips_elf32_trad_le_vec,
 	&mips_elf32_tradfbsd_be_vec,
@@ -1206,8 +1204,6 @@ static const bfd_target * const _bfd_target_vector[] =
 	&mips_elf32_vxworks_le_vec,
 	&mips_elf64_be_vec,
 	&mips_elf64_le_vec,
-	&mips_elf64_ptrad_be_vec,
-	&mips_elf64_ptrad_le_vec,
 	&mips_elf64_trad_be_vec,
 	&mips_elf64_trad_le_vec,
 	&mips_elf64_tradfbsd_be_vec,
@@ -1231,6 +1227,13 @@ static const bfd_target * const _bfd_target_vector[] =
 	&msp430_elf32_ti_vec,
 
 	&mt_elf32_vec,
+
+	&nanomips_elf32_be_vec,
+	&nanomips_elf32_le_vec,
+#ifdef BFD64
+	&nanomips_elf64_be_vec,
+	&nanomips_elf64_le_vec,
+#endif
 
 	&nds32_elf32_be_vec,
 	&nds32_elf32_le_vec,

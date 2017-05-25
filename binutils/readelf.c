@@ -1251,7 +1251,7 @@ dump_relocations (FILE * file,
 	case EM_MIPS_RS3_LE:
 	  if ((elf_header.e_flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R7
 	      || (elf_header.e_flags & EF_MIPS_ARCH) == E_MIPS_ARCH_64R7)
-	    rtype = elf_mipsr7_reloc_type (type);
+	    rtype = elf_nanomips_reloc_type (type);
 	  else
 	    rtype = elf_mips_reloc_type (type);
 	  break;
@@ -2024,10 +2024,10 @@ get_machine_name (unsigned e_machine)
     case EM_88K:		return "MC88000";
     case EM_486:		return "Intel 80486";
     case EM_860:		return "Intel 80860";
-#if 0 	/* FIXME: Roll-back once new R7 ABI is finalized */
+#if 0 	/* FIXME: Remove once new nanoMIPS ABI is finalized */
     case EM_MIPS:		return "MIPS R3000";
 #else 	/* !0 */
-    case EM_MIPS:		return "MIPS R7 experimental";
+    case EM_MIPS:		return "nanoMIPS experimental";
 #endif  /* 0 */
     case EM_S370:		return "IBM System/370";
     case EM_MIPS_RS3_LE:	return "MIPS R4000 big-endian";

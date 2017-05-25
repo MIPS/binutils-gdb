@@ -2558,9 +2558,9 @@ extern const struct mips_operand *decode_micromips_operand (const char *);
 extern const struct mips_opcode micromips_opcodes[];
 extern const int bfd_micromips_num_opcodes;
 
-extern const struct mips_operand *decode_micromipspp_operand (const char *);
-extern const struct mips_opcode micromipspp_opcodes[];
-extern const int bfd_micromipspp_num_opcodes;
+extern const struct mips_operand *decode_nanomips_operand (const char *);
+extern const struct mips_opcode nanomips_opcodes[];
+extern const int bfd_nanomips_num_opcodes;
 
 /* A NOP insn impemented as "or at,at,zero".
    Used to implement -mfix-loongson2f.  */
