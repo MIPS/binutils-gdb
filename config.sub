@@ -2,7 +2,7 @@
 # Configuration validation subroutine script.
 #   Copyright 1992-2014 Free Software Foundation, Inc.
 
-timestamp='2017-05-13'
+timestamp='2017-05-25'
 
 # This file is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by
@@ -414,7 +414,7 @@ case $basic_machine in
 	| mmix-* \
 	| mt-* \
 	| msp430-* \
-	| nanomips-* \
+	| nanomips-* | nanomipseb-* | nanomipsel-* \
 	| nds32-* | nds32le-* | nds32be-* \
 	| nios-* | nios2-* | nios2eb-* | nios2el-* \
 	| none-* | np1-* | ns16k-* | ns32k-* \
