@@ -3771,7 +3771,8 @@ Layout::set_segment_offsets(const Target* target, Output_segment* load_seg,
 	    {
 	      gold_assert(last_load_segment->paddr() <= (*p)->paddr());
 	      if (last_load_segment->paddr() + last_load_segment->memsz()
-		  > (*p)->paddr())
+		  > (*p)->paddr()
+		  && (*p)->memsz() > 0 )
 		{
 		  unsigned long long lb1 = last_load_segment->paddr();
 		  unsigned long long le1 = lb1 + last_load_segment->memsz();
