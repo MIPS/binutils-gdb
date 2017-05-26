@@ -1980,7 +1980,8 @@ print_insn_args (struct disassemble_info *info,
   struct mips_print_arg_state state;
   const struct mips_operand *operand;
   const char *s;
-  int pending_sep = 0;
+  bfd_boolean pending_sep = FALSE;
+  bfd_boolean pending_space = is_isa_r7 (mips_isa);
 
   init_print_arg_state (&state);
   for (s = opcode->args; *s; ++s)
@@ -1988,13 +1989,13 @@ print_insn_args (struct disassemble_info *info,
       switch (*s)
 	{
 	case ',':
-	  pending_sep = 1;
+	  pending_sep = TRUE;
 	  break;
 	case '(':
 	  if (pending_sep)
 	    {
 	      infprintf (is, ",");
-	      pending_sep = 0;
+	      pending_sep = FALSE;
 	    }
 	case ')':
 	  infprintf (is, "%c", *s);
@@ -2019,8 +2020,12 @@ print_insn_args (struct disassemble_info *info,
 	  if (operand->type != OP_DONT_CARE && pending_sep)
 	    {
 	      infprintf (is, ",");
-	      pending_sep = 0;
+	      pending_sep = FALSE;
 	    }
+
+	  if (operand->type != OP_DONT_CARE && pending_space)
+	    infprintf (is, "\t");
+	  pending_space = FALSE;
 
 	  if (operand->type == OP_REG
 	      && s[1] == ','
@@ -2854,12 +2859,9 @@ print_insn_nanomips (bfd_vma memaddr_base, struct disassemble_info *info)
 	    insn |= (higher << 32);
 
 	  if (op->args[0])
-	    {
-	      infprintf (is, "\t");
-	      print_insn_args (info, op, decode, insn,
-			       memaddr + (is_isa_r7 (mips_isa)? 0 : 1),
-			       length);
-	    }
+	    print_insn_args (info, op, decode, insn,
+			     memaddr + (is_isa_r7 (mips_isa)? 0 : 1),
+			     length);
 
 	  /* Figure out instruction type and branch delay information.  */
 	  if ((op->pinfo

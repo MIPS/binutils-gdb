@@ -4502,4 +4502,8 @@ test_spec107:
 	andi	$2, $9, 0x7fffff
 	andi	$2, $16, 0xffffff
 	li	$2, test
+	dvp
+	dvp	$5
+	evp
+	evp	$6
 	.end	test_spec107

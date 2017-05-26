@@ -398,6 +398,7 @@ const struct mips_opcode nanomips_opcodes[] =
 {"break",	"+K",		0x1010,	0xfff8,		0,		0,	I38,		0,		0},
 {"break",	"",		0x00100000, 0xffffffff,		0,	INSN2_ALIAS,	I38,		0,		0},
 {"break",	"+J",		0x00100000, 0xfff80000,		0,		0,	I38,		0,		0},
+{"dvp", 	"-a",		0x20000390, 0xffe0ffff,		0,	INSN2_ALIAS,	I38,		0,		0}, /* DVP */
 {"dvp", 	"t,-a",		0x20000390, 0xfc00ffff,		WR_1,		0,	I38,		0,		0},
 {"nop",		"",	0x9008,		0xffff,		0,		0,	I38,		0,		0}, /* NOP[16] */
 {"nop", 	"",		0x8000c000, 0xffffffff,		0,	0,	I38,		0,		0}, /* NOP */
@@ -805,8 +806,9 @@ IGRIE */
 {"emt",		"t",		0x20010eb0, 0xfc1fffff, 	WR_1,		0,	0,		MT32,		0},
 {"eret",	"",		0x2000f37f, 0xffffffff,		0,		0,	I38,		0,		0},
 {"eretnc",	"",		0x2001f37f, 0xffffffff,		0,		0,	I38,		0,		0},
-{"evpe",	"",		0x20000eb0, 0xffffffff,		0,	INSN2_ALIAS,	0,		MT32,		0},
+{"evpe",	"",		0x20000eb0, 0xffffffff,		0,	INSN2_ALIAS,	0,		MT32,		0}, /* EVPE */
 {"evpe",	"t",		0x20000eb0, 0xfc1fffff,		WR_1,		0,	0,		MT32,		0},
+{"evp", 	"-a",		0x20000790, 0xffe0ffff,		0,	INSN2_ALIAS,	I38,		0,		0}, /* EVP */
 {"evp", 	"t,-a",		0x20000790, 0xfc00ffff,		WR_1,		0,	I38,		0,		0},
 {"extp",	"t,7,6",		0x2000267f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32,		0},
 {"extpdp",	"t,7,6",		0x2000367f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32,		0},

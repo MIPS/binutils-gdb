@@ -4021,4 +4021,8 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 8050 f5c0 	ext	v0,s0,0x0,0x18
 [0-9a-f]+ <[^>]+> 6040 0000 0000 	li	v0,0x0
 			[0-9a-f]+: R_NANOMIPS_I32	test
+[0-9a-f]+ <[^>]+> 2000 0390 	dvp
+[0-9a-f]+ <[^>]+> 20a0 0390 	dvp	a1
+[0-9a-f]+ <[^>]+> 2000 0790 	evp
+[0-9a-f]+ <[^>]+> 20c0 0790 	evp	a2
 #pass
