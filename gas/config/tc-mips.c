@@ -24078,7 +24078,7 @@ mips_elf_final_processing (void)
      defined at present; this might need to change in future.  */
   if (file_ase_mips16)
     elf_elfheader (stdoutput)->e_flags |= EF_MIPS_ARCH_ASE_M16;
-  if (file_ase_micromips || file_mips_opts.nanomips)
+  if (file_ase_micromips)
     elf_elfheader (stdoutput)->e_flags |= EF_MIPS_ARCH_ASE_MICROMIPS;
   if (file_mips_opts.ase & ASE_MDMX)
     elf_elfheader (stdoutput)->e_flags |= EF_MIPS_ARCH_ASE_MDMX;
