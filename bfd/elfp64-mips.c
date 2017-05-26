@@ -1332,10 +1332,10 @@ elf64_mips_irix_compat (bfd *abfd ATTRIBUTE_UNUSED)
 #define ELF_MAXPAGESIZE			0x10000
 #define ELF_COMMONPAGESIZE		0x1000
 
-/* Support for mips64 ISAR7 target.  */
+/* Support for nanomips64 target.  */
 
 #define TARGET_LITTLE_SYM               nanomips_elf64_le_vec
-#define TARGET_LITTLE_NAME              "elf64-littlnanoemips"
+#define TARGET_LITTLE_NAME              "elf64-littlenanomips"
 #define TARGET_BIG_SYM                  nanomips_elf64_be_vec
 #define TARGET_BIG_NAME                 "elf64-bignanomips"
 

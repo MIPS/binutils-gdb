@@ -2216,7 +2216,7 @@ mips_target_format (void)
 		       : ELF_TARGET ("elf32-", "big"))))
 	      : (HAVE_64BIT_OBJECTS
 		 ? (IS_NANOMIPS (mips_opts.isa)
-		    ? ELF_NTARGET ("elf64-", "big")
+		    ? ELF_NTARGET ("elf64-", "little")
 		    : ELF_TARGET ("elf64-", "little"))
 		 : (HAVE_NEWABI
 		    ? ELF_TARGET ("elf32-n", "little")
@@ -24152,6 +24152,7 @@ mips_handle_align (fragS *fragp)
   char *p;
   int bytes, size, excess;
   valueT opcode;
+  bfd_boolean compressed = FALSE;
 
   if (fragp->fr_type != rs_align_code)
     return;
@@ -24163,10 +24164,12 @@ mips_handle_align (fragS *fragp)
     case NOP_OPCODE_NANOMIPS:
       opcode = nanomips_nop32_insn.insn_opcode;
       size = 4;
+      compressed = TRUE;
       break;
     case NOP_OPCODE_MICROMIPS:
       opcode = micromips_nop32_insn.insn_opcode;
       size = 4;
+      compressed = TRUE;
       break;
     case NOP_OPCODE_MIPS16:
       opcode = mips16_nop_insn.insn_opcode;
@@ -24213,7 +24216,10 @@ mips_handle_align (fragS *fragp)
       break;
     }
 
-  md_number_to_chars (p, opcode, size);
+  if (compressed)
+    write_compressed_insn (p, opcode, size);
+  else
+    md_number_to_chars (p, opcode, size);
   fragp->fr_var = size;
 }
 

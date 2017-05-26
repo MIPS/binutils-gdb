@@ -584,7 +584,7 @@ if { [istarget mips*-*-vxworks*] } {
     } else {
 	set tmips ""
     }
-    if [istarget mips*el-*-*] {
+    if {[istarget mips*el-*-*] || [istarget "nanomips-*-*"] || [istarget "nanomipsel*-*-*"] } {
 	set el "el"
     } {
 	set el ""
@@ -1598,8 +1598,8 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test_arches "tls-p32" [mips_arch_list_matching nanomips]
     run_dump_test_arches "tls-relw" [mips_arch_list_matching nanomips]
 
-    run_dump_test_arches "expr-const" [mips_arch_list_matching mips32]
-    run_dump_test_arches "expr-sym" [mips_arch_list_matching mips32r6]
+    run_dump_test_arches "expr-const" "-EB" [mips_arch_list_matching mips32]
+    run_dump_test_arches "expr-sym" "-EB" [mips_arch_list_matching mips32r6]
     run_dump_test_arches "expr-diff" [mips_arch_list_matching mips32r6]
     run_list_test_arches "expr-ill" [mips_arch_list_matching nanomips]
 

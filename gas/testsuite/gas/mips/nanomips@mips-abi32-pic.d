@@ -1,7 +1,7 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: nanoMIPS -mabi=32 \(SVR4 PIC\)
 #source: mips-abi32-pic.s
-#as: -mno-xlp
+#as: -mno-xlp -EB
 
 .*: +file format.*
 

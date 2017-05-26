@@ -1386,7 +1386,7 @@ elf32_mips_irix_compat (bfd *abfd ATTRIBUTE_UNUSED)
 #define ELF_MAXPAGESIZE			0x1000
 #define ELF_COMMONPAGESIZE		0x1000
 
-/* Support for mips32 ISAR7 target.  */
+/* Support for nanomips32 target.  */
 
 #define TARGET_LITTLE_SYM               nanomips_elf32_le_vec
 #define TARGET_LITTLE_NAME              "elf32-littlenanomips"

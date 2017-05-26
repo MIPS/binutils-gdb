@@ -1,7 +1,7 @@
 #objdump: -dr --show-raw-insn --prefix-addresses
 #name: nanoMIPS -mgp32 -mfp64 \(SVR4 PIC\)
 #source: mips-gp32-fp64-pic.s
-#as: -mno-xlp
+#as: -mno-xlp -EB
 
 .*: +file format.*
 

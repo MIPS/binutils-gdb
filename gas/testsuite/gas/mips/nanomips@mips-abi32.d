@@ -1,6 +1,7 @@
 #objdump: -dr --prefix-addresses  --show-raw-insn
 #name: nanoMIPS 32-bit ABI
 #source: mips-abi32.s
+#as: -EB
 
 .*: +file format.*
 
