@@ -39,6 +39,7 @@
 #include "elfxx-mips.h"
 #include "elf/mips.h"
 #include "elf-vxworks.h"
+#include "elf/nanomips.h"
 
 /* Get the ECOFF swapping routines.  */
 #include "coff/sym.h"
@@ -91,7 +92,7 @@ extern const bfd_target mips_elf32_le_vec;
 
 /* Nonzero if ABFD is using the P32 ABI.  */
 #define ABI_P32_P(abfd) \
-  ((elf_elfheader (abfd)->e_flags & E_MIPS_ABI_P32) ==  E_MIPS_ABI_P32)
+  ((elf_elfheader (abfd)->e_flags & E_NANOMIPS_ABI_P32) ==  E_NANOMIPS_ABI_P32)
 
 /* Whether we are trying to be compatible with IRIX at all.  */
 #define SGI_COMPAT(abfd) \

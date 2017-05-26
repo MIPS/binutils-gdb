@@ -6,7 +6,7 @@
 .*:.*file format.*elf.*mips.*
 private flags = b.......: .*\[mips32r7\].*
 
-MIPS ABI Flags Version: 0
+nanoMIPS ABI Flags Version: 0
 
 ISA: MIPS32r7
 GPR size: 32

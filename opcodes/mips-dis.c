@@ -34,6 +34,7 @@
 #define SYMTAB_AVAILABLE 1
 #include "elf-bfd.h"
 #include "elf/mips.h"
+#include "elf/nanomips.h"
 #endif
 
 /* Mips instructions are at maximum this many bytes long.  */
@@ -789,7 +790,7 @@ is_newabi (Elf_Internal_Ehdr *header)
 {
   /* There are no old-style ABIs which use 64-bit ELF.  */
   if (header->e_ident[EI_CLASS] == ELFCLASS64
-      && ((header->e_flags & E_MIPS_ABI_P64) != E_MIPS_ABI_P64))
+      && ((header->e_flags & EF_NANOMIPS_ABI) != E_NANOMIPS_ABI_P64))
     return 1;
 
   /* If a 32-bit ELF file, n32 is a new-style ABI.  */
@@ -820,10 +821,10 @@ is_isa_r6 (unsigned long isa)
     return 1;
   return 0;
 }
-/* Check if ISA is R7.  */
+/* Check if ISA is nanoMIPS.  */
 
 static inline int
-is_isa_r7 (unsigned long isa)
+is_nanomips (unsigned long isa)
 {
   if ((isa & INSN_ISA_MASK) == ISA_MIPS32R7
       || ((isa & INSN_ISA_MASK) == ISA_MIPS64R7))
@@ -834,7 +835,7 @@ is_isa_r7 (unsigned long isa)
 static inline int
 is_isa_prer6 (unsigned long isa)
 {
-  return !(is_isa_r6 (isa) || is_isa_r7 (isa));
+  return !(is_isa_r6 (isa) || is_nanomips (isa));
 }
 
 static void
@@ -1645,7 +1646,7 @@ print_insn_arg (struct disassemble_info *info,
       break;
 
     case OP_SAVE_RESTORE_LIST:
-      if (is_isa_r7 (mips_isa))
+      if (is_nanomips (mips_isa))
 	nanomips_print_save_restore (info, uval, opcode->mask >> 16 == 0);
       else
 	{
@@ -1663,7 +1664,7 @@ print_insn_arg (struct disassemble_info *info,
       break;
 
     case OP_SAVE_RESTORE_FP_LIST:
-      if (is_isa_r7 (mips_isa))
+      if (is_nanomips (mips_isa))
 	nanomips_print_save_restore_fp (info, uval + 1);
       break;
 
@@ -1910,7 +1911,7 @@ validate_insn_args (const struct mips_opcode *opcode,
 		    /* The operand for SAVE/RESTORE is split into 3 pieces
 		       rather than just 2 but we only support a 2-way split
 		       decode the last bit of the instruction here.  */
-		    if (is_isa_r7 (mips_isa)
+		    if (is_nanomips (mips_isa)
 			&& opcode->mask >> 16 != 0
 			&& ((insn >> 20) & 0x1) != 0)
 		      return FALSE;
@@ -1981,7 +1982,7 @@ print_insn_args (struct disassemble_info *info,
   const struct mips_operand *operand;
   const char *s;
   bfd_boolean pending_sep = FALSE;
-  bfd_boolean pending_space = is_isa_r7 (mips_isa);
+  bfd_boolean pending_space = is_nanomips (mips_isa);
 
   init_print_arg_state (&state);
   for (s = opcode->args; *s; ++s)
@@ -2860,7 +2861,7 @@ print_insn_nanomips (bfd_vma memaddr_base, struct disassemble_info *info)
 
 	  if (op->args[0])
 	    print_insn_args (info, op, decode, insn,
-			     memaddr + (is_isa_r7 (mips_isa)? 0 : 1),
+			     memaddr + (is_nanomips (mips_isa)? 0 : 1),
 			     length);
 
 	  /* Figure out instruction type and branch delay information.  */
@@ -2911,11 +2912,11 @@ is_compressed_mode_p (struct disassemble_info *info)
   int i;
   int l;
 
-  if (is_isa_r7 (mips_isa))
+  if (is_nanomips (mips_isa))
     return 1;
 
   for (i = info->symtab_pos, l = i + info->num_symbols; i < l; i++)
-    if (is_isa_r7 (mips_isa))
+    if (is_nanomips (mips_isa))
       return 1;
     else if (((info->symtab[i])->flags & BSF_SYNTHETIC) != 0
 	     && ((!micromips_ase
@@ -2955,7 +2956,7 @@ _print_insn_mips (bfd_vma memaddr,
   set_default_mips_dis_options (info);
   parse_mips_dis_options (info->disassembler_options);
 
-  if (is_isa_r7 (mips_isa))
+  if (is_nanomips (mips_isa))
     print_insn_compr = print_insn_nanomips;
   else
     print_insn_compr = !micromips_ase ? print_insn_mips16 : print_insn_micromips;

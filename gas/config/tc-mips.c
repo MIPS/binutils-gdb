@@ -69,6 +69,7 @@ static int mips_output_flavor (void) { return OUTPUT_FLAVOR; }
 #define OUTPUT_FLAVOR mips_output_flavor()
 
 #include "elf/mips.h"
+#include "elf/nanomips.h"
 
 #ifndef ECOFF_DEBUGGING
 #define NO_ECOFF_DEBUGGING
@@ -5858,7 +5859,7 @@ match_int_operand (struct mips_arg_info *arg,
     {
       if (!match_const_int (arg, &sval))
 	return FALSE;
-      if (ISA_IS_R7 (mips_opts.isa) && min_val < 0)
+      if (IS_NANOMIPS (mips_opts.isa) && min_val < 0)
         sval = (int)sval;
     }
 
@@ -9273,7 +9274,7 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
     }
   else if (((mips_opts.micromips
 	     && ISA_IS_R6 (mips_opts.isa))
-	    || ISA_IS_R7 (mips_opts.isa))
+	    || IS_NANOMIPS (mips_opts.isa))
 	   /* microMIPS pre-R6 to R6 branch/jump instruction mapping in
 	      noreorder block is restricted to have only a nop in the delay
 	      slot.  JRADDIUSP is exempted from the check as it never had
@@ -9291,7 +9292,7 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
     }
   else if (((mips_opts.micromips
 	     && ISA_IS_R6 (mips_opts.isa))
-	    || ISA_IS_R7 (mips_opts.isa))
+	    || IS_NANOMIPS (mips_opts.isa))
 	   && history[0].noreorder_p
 	   && (strcmp (history[0].insn_mo->name, "bal") == 0
 	       || strcmp (history[0].insn_mo->name, "jal") == 0
@@ -19699,7 +19700,7 @@ mips_after_parse_args (void)
 
   if (mips_abi == NO_ABI)
     {
-      if (file_mips_opts.nanomips)
+      if (IS_NANOMIPS (arch_info->isa))
 	mips_abi = P32_ABI;
       else
 	mips_abi = MIPS_DEFAULT_ABI;
@@ -24106,9 +24107,9 @@ mips_elf_final_processing (void)
   else if (mips_abi == N32_ABI)
     elf_elfheader (stdoutput)->e_flags |= EF_MIPS_ABI2;
   else if (mips_abi == P32_ABI)
-    elf_elfheader (stdoutput)->e_flags |= E_MIPS_ABI_P32;
+    elf_elfheader (stdoutput)->e_flags |= E_NANOMIPS_ABI_P32;
   else if (mips_abi == P64_ABI)
-    elf_elfheader (stdoutput)->e_flags |= E_MIPS_ABI_P64;
+    elf_elfheader (stdoutput)->e_flags |= E_NANOMIPS_ABI_P64;
 
   /* Nothing to do for N64_ABI.  */
 

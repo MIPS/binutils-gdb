@@ -50,6 +50,7 @@
 #include "elf-bfd.h"
 #include "elfxx-mips.h"
 #include "elf/mips.h"
+#include "elf/nanomips.h"
 
 /* Get the ECOFF swapping routines.  The 64-bit ABI is not supposed to
    use ECOFF.  However, we support it anyhow for an easier changeover.  */
@@ -133,7 +134,7 @@ extern const bfd_target mips_elf64_le_vec;
 
 /* Nonzero if ABFD is using the P64 ABI.  */
 #define ABI_P64_P(abfd) \
-  ((elf_elfheader (abfd)->e_flags & E_MIPS_ABI_P64) == E_MIPS_ABI_P64)
+  ((elf_elfheader (abfd)->e_flags & EF_NANOMIPS_ABI) == E_NANOMIPS_ABI_P64)
 
 /* In case we're on a 32-bit machine, construct a 64-bit "-1" value
    from smaller values.  Start with zero, widen, *then* decrement.  */

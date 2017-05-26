@@ -38,6 +38,7 @@
 #include "elf-bfd.h"
 #include "elfxx-mips.h"
 #include "elf/mips.h"
+#include "elf/nanomips.h"
 
 static reloc_howto_type *bfd_elf32_bfd_reloc_type_lookup
   (bfd *, bfd_reloc_code_real_type);
@@ -58,7 +59,7 @@ static bfd_boolean mips_elf_assign_gp
 
 /* Nonzero if ABFD is using the P32 ABI.  */
 #define ABI_P32_P(abfd) \
-  ((elf_elfheader (abfd)->e_flags & E_MIPS_ABI_P32) == E_MIPS_ABI_P32)
+  ((elf_elfheader (abfd)->e_flags & E_NANOMIPS_ABI_P32) == E_NANOMIPS_ABI_P32)
 
 /* The number of local .got entries we reserve.  */
 #define MIPS_RESERVED_GOTNO (2)
@@ -938,7 +939,7 @@ static reloc_howto_type elf_nanomips_howto_table_rela[] =
 
 /* GNU extension to record C++ vtable hierarchy */
 static reloc_howto_type elf_mips_gnu_vtinherit_howto =
-  HOWTO (R_MIPS_GNU_VTINHERIT,	/* type */
+  HOWTO (R_NANOMIPS_GNU_VTINHERIT, /* type */
 	 0,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 0,			/* bitsize */
@@ -946,7 +947,7 @@ static reloc_howto_type elf_mips_gnu_vtinherit_howto =
 	 0,			/* bitpos */
 	 complain_overflow_dont, /* complain_on_overflow */
 	 NULL,			/* special_function */
-	 "R_MIPS_GNU_VTINHERIT", /* name */
+	 "R_NANOMIPS_GNU_VTINHERIT", /* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 0,			/* dst_mask */
@@ -954,7 +955,7 @@ static reloc_howto_type elf_mips_gnu_vtinherit_howto =
 
 /* GNU extension to record C++ vtable member usage */
 static reloc_howto_type elf_mips_gnu_vtentry_howto =
-  HOWTO (R_MIPS_GNU_VTENTRY,	/* type */
+  HOWTO (R_NANOMIPS_GNU_VTENTRY, /* type */
 	 0,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 0,			/* bitsize */
@@ -962,7 +963,7 @@ static reloc_howto_type elf_mips_gnu_vtentry_howto =
 	 0,			/* bitpos */
 	 complain_overflow_dont, /* complain_on_overflow */
 	 _bfd_elf_rel_vtable_reloc_fn, /* special_function */
-	 "R_MIPS_GNU_VTENTRY",	/* name */
+	 "R_NANOMIPS_GNU_VTENTRY", /* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 0,			/* dst_mask */
@@ -970,7 +971,7 @@ static reloc_howto_type elf_mips_gnu_vtentry_howto =
 
 /* Originally a VxWorks extension, but now used for other systems too.  */
 static reloc_howto_type elf_mips_jump_slot_howto =
-  HOWTO (R_MIPS_JUMP_SLOT,	/* type */
+  HOWTO (R_NANOMIPS_JUMP_SLOT,	/* type */
 	 0,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 32,			/* bitsize */
@@ -978,7 +979,7 @@ static reloc_howto_type elf_mips_jump_slot_howto =
 	 0,			/* bitpos */
 	 complain_overflow_bitfield, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc, /* special_function */
-	 "R_MIPS_JUMP_SLOT",	/* name */
+	 "R_NANOMIPS_JUMP_SLOT", /* name */
 	 FALSE,			/* partial_inplace */
 	 0x0,         		/* src_mask */
 	 0x0,		        /* dst_mask */
@@ -986,7 +987,7 @@ static reloc_howto_type elf_mips_jump_slot_howto =
 
 /* Used in EH tables.  */
 static reloc_howto_type elf_mips_eh_howto =
-  HOWTO (R_MIPS_EH,		/* type */
+  HOWTO (R_NANOMIPS_EH, 	/* type */
 	 0,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 32,			/* bitsize */
@@ -994,7 +995,7 @@ static reloc_howto_type elf_mips_eh_howto =
 	 0,			/* bitpos */
 	 complain_overflow_signed, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc, /* special_function */
-	 "R_MIPS_EH",		/* name */
+	 "R_NANOMIPS_EH",	/* name */
 	 TRUE,			/* partial_inplace */
 	 0xffffffff,		/* src_mask */
 	 0xffffffff,	        /* dst_mask */
@@ -1193,13 +1194,13 @@ mips_elf32_rtype_to_howto (unsigned int r_type,
 {
   switch (r_type)
     {
-    case R_MIPS_GNU_VTINHERIT:
+    case R_NANOMIPS_GNU_VTINHERIT:
       return &elf_mips_gnu_vtinherit_howto;
-    case R_MIPS_GNU_VTENTRY:
+    case R_NANOMIPS_GNU_VTENTRY:
       return &elf_mips_gnu_vtentry_howto;
-    case R_MIPS_JUMP_SLOT:
+    case R_NANOMIPS_JUMP_SLOT:
       return &elf_mips_jump_slot_howto;
-    case R_MIPS_EH:
+    case R_NANOMIPS_EH:
       return &elf_mips_eh_howto;
     default:
       if (r_type >= R_NANOMIPS_min && r_type < R_NANOMIPS_max)
@@ -1271,7 +1272,7 @@ mips_elf_p32_object_p (bfd *abfd)
   if (!ABI_P32_P (abfd))
     return FALSE;
 
-  mach = _bfd_elf_mips_mach (elf_elfheader (abfd)->e_flags);
+  mach = _bfd_elf_nanomips_mach (elf_elfheader (abfd)->e_flags);
   bfd_default_set_arch_mach (abfd, bfd_arch_mips, mach);
   return TRUE;
 }
@@ -1299,7 +1300,7 @@ elf32_mips_irix_compat (bfd *abfd ATTRIBUTE_UNUSED)
 
 #define ELF_ARCH			bfd_arch_mips
 #define ELF_TARGET_ID			MIPS_ELF_DATA
-#define ELF_MACHINE_CODE		EM_MIPS
+#define ELF_MACHINE_CODE		EM_NANOMIPS
 
 #define elf_backend_collect		TRUE
 #define elf_backend_type_change_ok	TRUE
@@ -1324,7 +1325,7 @@ elf32_mips_irix_compat (bfd *abfd ATTRIBUTE_UNUSED)
 #define elf_backend_check_relocs	_bfd_mips_elf_check_relocs
 #define elf_backend_merge_symbol_attribute \
 					_bfd_mips_elf_merge_symbol_attribute
-#define elf_backend_get_target_dtag	_bfd_mips_elf_get_target_dtag
+#define elf_backend_get_target_dtag	_bfd_nanomips_elf_get_target_dtag
 #define elf_backend_adjust_dynamic_symbol \
 					_bfd_mips_elf_adjust_dynamic_symbol
 #define elf_backend_always_size_sections \
@@ -1377,7 +1378,7 @@ elf32_mips_irix_compat (bfd *abfd ATTRIBUTE_UNUSED)
 					_bfd_mips_elf_merge_private_bfd_data
 #define bfd_elf32_bfd_set_private_flags	_bfd_mips_elf_set_private_flags
 #define bfd_elf32_bfd_print_private_bfd_data \
-					_bfd_mips_elf_print_private_bfd_data
+					_bfd_nanomips_elf_print_private_bfd_data
 #define bfd_elf32_bfd_relax_section	_bfd_mips_elf_relax_section
 #define bfd_elf32_mkobject		_bfd_mips_elf_mkobject
 

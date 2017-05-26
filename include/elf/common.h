@@ -305,6 +305,7 @@
 #define EM_INTEL207	207	/* Reserved by Intel */
 #define EM_INTEL208	208	/* Reserved by Intel */
 #define EM_INTEL209	209	/* Reserved by Intel */
+#define EM_NANOMIPS	0x5237  /* Experimental nanoMIPS ABI development */
 
 /* If it is necessary to assign new unofficial EM_* values, please pick large
    random numbers (0x8523, 0xa7f2, etc.) to minimize the chances of collision

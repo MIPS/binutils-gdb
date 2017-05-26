@@ -131,6 +131,7 @@
 #include "elf/moxie.h"
 #include "elf/mt.h"
 #include "elf/msp430.h"
+#include "elf/nanomips.h"
 #include "elf/nds32.h"
 #include "elf/nios2.h"
 #include "elf/or1k.h"
@@ -1249,8 +1250,8 @@ dump_relocations (FILE * file,
 
 	case EM_MIPS:
 	case EM_MIPS_RS3_LE:
-	  if ((elf_header.e_flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R7
-	      || (elf_header.e_flags & EF_MIPS_ARCH) == E_MIPS_ARCH_64R7)
+	  if ((elf_header.e_flags & EF_NANOMIPS_ARCH) == E_NANOMIPS_ARCH_32R7
+	      || (elf_header.e_flags & EF_NANOMIPS_ARCH) == E_NANOMIPS_ARCH_64R7)
 	    rtype = elf_nanomips_reloc_type (type);
 	  else
 	    rtype = elf_mips_reloc_type (type);
@@ -1571,7 +1572,7 @@ dump_relocations (FILE * file,
 #ifdef BFD64
       if (! is_32bit_elf
 	  && elf_header.e_machine == EM_MIPS
-	  && (elf_header.e_flags & E_MIPS_ABI_P64) != E_MIPS_ABI_P64)
+	  && (elf_header.e_flags & EF_NANOMIPS_ABI) != E_NANOMIPS_ABI_P64)
 	{
 	  bfd_vma type2 = ELF64_MIPS_R_TYPE2 (inf);
 	  bfd_vma type3 = ELF64_MIPS_R_TYPE3 (inf);
@@ -2026,6 +2027,7 @@ get_machine_name (unsigned e_machine)
     case EM_860:		return "Intel 80860";
 #if 0 	/* FIXME: Remove once new nanoMIPS ABI is finalized */
     case EM_MIPS:		return "MIPS R3000";
+    case EM_NANOMIPS:		return "nanoMIPS experimental";
 #else 	/* !0 */
     case EM_MIPS:		return "nanoMIPS experimental";
 #endif  /* 0 */
@@ -2924,8 +2926,8 @@ get_machine_flags (unsigned e_flags, unsigned e_machine)
 	    case E_MIPS_ABI_O64: strcat (buf, ", o64"); break;
 	    case E_MIPS_ABI_EABI32: strcat (buf, ", eabi32"); break;
 	    case E_MIPS_ABI_EABI64: strcat (buf, ", eabi64"); break;
-	    case E_MIPS_ABI_P32: strcat (buf, ", p32"); break;
-	    case E_MIPS_ABI_P64: strcat (buf, ", p64"); break;
+	    case E_NANOMIPS_ABI_P32: strcat (buf, ", p32"); break;
+	    case E_NANOMIPS_ABI_P64: strcat (buf, ", p64"); break;
 	    case 0:
 	    /* We simply ignore the field in this case to avoid confusion:
 	       MIPS ELF does not specify EF_MIPS_ABI, it is a GNU extension.
@@ -2954,11 +2956,11 @@ get_machine_flags (unsigned e_flags, unsigned e_machine)
 	    case E_MIPS_ARCH_32: strcat (buf, ", mips32"); break;
 	    case E_MIPS_ARCH_32R2: strcat (buf, ", mips32r2"); break;
 	    case E_MIPS_ARCH_32R6: strcat (buf, ", mips32r6"); break;
-	    case E_MIPS_ARCH_32R7: strcat (buf, ", mips32r7"); break;
+	    case E_NANOMIPS_ARCH_32R7: strcat (buf, ", mips32r7"); break;
 	    case E_MIPS_ARCH_64: strcat (buf, ", mips64"); break;
 	    case E_MIPS_ARCH_64R2: strcat (buf, ", mips64r2"); break;
 	    case E_MIPS_ARCH_64R6: strcat (buf, ", mips64r6"); break;
-	    case E_MIPS_ARCH_64R7: strcat (buf, ", mips64r7"); break;
+	    case E_NANOMIPS_ARCH_64R7: strcat (buf, ", mips64r7"); break;
 	    default: strcat (buf, _(", unknown ISA")); break;
 	    }
 	  break;

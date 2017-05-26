@@ -35,6 +35,7 @@
 #include "elf-bfd.h"
 #include "elfxx-mips.h"
 #include "elf/mips.h"
+#include "elf/nanomips.h"
 #include "elf-vxworks.h"
 
 /* Get the ECOFF swapping routines.  */
@@ -6934,13 +6935,23 @@ _bfd_elf_mips_mach (flagword flags)
 
 	case E_MIPS_ARCH_64R6:
 	  return bfd_mach_mipsisa64r6;
-
-	case E_MIPS_ARCH_32R7:
-	  return bfd_mach_mipsisa32r7;
-
-	case E_MIPS_ARCH_64R7:
-	  return bfd_mach_mipsisa64r7;
 	}
+    }
+
+  return 0;
+}
+
+unsigned long
+_bfd_elf_nanomips_mach (flagword flags)
+{
+  switch (flags & EF_MIPS_ARCH)
+    {
+      default:
+      case E_NANOMIPS_ARCH_32R7:
+	return bfd_mach_mipsisa32r7;
+
+      case E_NANOMIPS_ARCH_64R7:
+	return bfd_mach_mipsisa64r7;
     }
 
   return 0;
@@ -6971,9 +6982,9 @@ elf_mips_abi_name (bfd *abfd)
       return "EABI32";
     case E_MIPS_ABI_EABI64:
       return "EABI64";
-    case E_MIPS_ABI_P32:
+    case E_NANOMIPS_ABI_P32:
       return "P32";
-    case E_MIPS_ABI_P64:
+    case E_NANOMIPS_ABI_P64:
       return "P64";
     default:
       return "unknown abi";
@@ -12368,11 +12379,11 @@ mips_set_isa_flags (bfd *abfd)
       break;
 
     case bfd_mach_mipsisa32r7:
-      val = E_MIPS_ARCH_32R7;
+      val = E_NANOMIPS_ARCH_32R7;
       break;
 
     case bfd_mach_mipsisa64r7:
-      val = E_MIPS_ARCH_64R7;
+      val = E_NANOMIPS_ARCH_64R7;
       break;
     }
   elf_elfheader (abfd)->e_flags &= ~(EF_MIPS_ARCH | EF_MIPS_MACH);
@@ -14653,7 +14664,7 @@ update_mips_abiflags_isa (bfd *abfd, Elf_Internal_ABIFlags_v0 *abiflags)
       abiflags->isa_level = 32;
       abiflags->isa_rev = 6;
       break;
-    case E_MIPS_ARCH_32R7:
+    case E_NANOMIPS_ARCH_32R7:
       abiflags->isa_level = 32;
       abiflags->isa_rev = 7;
       break;
@@ -14671,7 +14682,7 @@ update_mips_abiflags_isa (bfd *abfd, Elf_Internal_ABIFlags_v0 *abiflags)
       abiflags->isa_level = 64;
       abiflags->isa_rev = 6;
       break;
-    case E_MIPS_ARCH_64R7:
+    case E_NANOMIPS_ARCH_64R7:
       abiflags->isa_level = 64;
       abiflags->isa_rev = 7;
       break;
@@ -14697,7 +14708,7 @@ mips_32bit_flags_p (flagword flags)
 	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32
 	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R2
 	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R6
-	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R7);
+	  || (flags & EF_NANOMIPS_ARCH) == E_NANOMIPS_ARCH_32R7);
 }
 
 /* Infer the content of the ABI flags based on the elf header.  */
@@ -16186,6 +16197,25 @@ _bfd_mips_elf_get_target_dtag (bfd_vma dtag)
     }
 }
 
+char *
+_bfd_nanomips_elf_get_target_dtag (bfd_vma dtag)
+{
+  switch (dtag)
+    {
+    default: return "";
+    case DT_NANOMIPS_LOCAL_GOTNO:
+      return "NANOMIPS_LOCAL_GOTNO";
+    case DT_NANOMIPS_SYMTABNO:
+      return "NANOMIPS_SYMTABNO";
+    case DT_NANOMIPS_GOTSYM:
+      return "NANOMIPS_GOTSYM";
+    case DT_NANOMIPS_OPTIONS:
+      return "NANOMIPS_OPTIONS";
+    case DT_NANOMIPS_PLTGOT:
+      return "DT_NANOMIPS_PLTGOT";
+    }
+}
+
 /* Return the meaning of Tag_GNU_MIPS_ABI_FP value FP, or null if
    not known.  */
 
@@ -16402,10 +16432,6 @@ _bfd_mips_elf_print_private_bfd_data (bfd *abfd, void *ptr)
     fprintf (file, _(" [abi=EABI32]"));
   else if ((elf_elfheader (abfd)->e_flags & EF_MIPS_ABI) == E_MIPS_ABI_EABI64)
     fprintf (file, _(" [abi=EABI64]"));
-  else if ((elf_elfheader (abfd)->e_flags & EF_MIPS_ABI) == E_MIPS_ABI_P32)
-    fprintf (file, _(" [abi=P32]"));
-  else if ((elf_elfheader (abfd)->e_flags & EF_MIPS_ABI) == E_MIPS_ABI_P64)
-    fprintf (file, _(" [abi=P64]"));
   else if ((elf_elfheader (abfd)->e_flags & EF_MIPS_ABI))
     fprintf (file, _(" [abi unknown]"));
   else if (ABI_N32_P (abfd))
@@ -16437,10 +16463,6 @@ _bfd_mips_elf_print_private_bfd_data (bfd *abfd, void *ptr)
     fprintf (file, " [mips32r6]");
   else if ((elf_elfheader (abfd)->e_flags & EF_MIPS_ARCH) == E_MIPS_ARCH_64R6)
     fprintf (file, " [mips64r6]");
-  else if ((elf_elfheader (abfd)->e_flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R7)
-    fprintf (file, " [mips32r7]");
-  else if ((elf_elfheader (abfd)->e_flags & EF_MIPS_ARCH) == E_MIPS_ARCH_64R7)
-    fprintf (file, " [mips64r7]");
   else
     fprintf (file, _(" [unknown ISA]"));
 
@@ -16485,6 +16507,88 @@ _bfd_mips_elf_print_private_bfd_data (bfd *abfd, void *ptr)
     {
       Elf_Internal_ABIFlags_v0 *abiflags = &mips_elf_tdata (abfd)->abiflags;
       fprintf (file, "\nMIPS ABI Flags Version: %d\n", abiflags->version);
+      fprintf (file, "\nISA: MIPS%d", abiflags->isa_level);
+      if (abiflags->isa_rev > 1)
+	fprintf (file, "r%d", abiflags->isa_rev);
+      fprintf (file, "\nGPR size: %d",
+	       get_mips_reg_size (abiflags->gpr_size));
+      fprintf (file, "\nCPR1 size: %d",
+	       get_mips_reg_size (abiflags->cpr1_size));
+      fprintf (file, "\nCPR2 size: %d",
+	       get_mips_reg_size (abiflags->cpr2_size));
+      fputs ("\nFP ABI: ", file);
+      print_mips_fp_abi_value (file, abiflags->fp_abi);
+      fputs ("ISA Extension: ", file);
+      print_mips_isa_ext (file, abiflags->isa_ext);
+      fputs ("\nASEs:", file);
+      print_mips_ases (file, abiflags->ases);
+      fprintf (file, "\nFLAGS 1: %8.8lx", abiflags->flags1);
+      fprintf (file, "\nFLAGS 2: %8.8lx", abiflags->flags2);
+      fputc ('\n', file);
+    }
+
+  return TRUE;
+}
+
+bfd_boolean
+_bfd_nanomips_elf_print_private_bfd_data (bfd *abfd, void *ptr)
+{
+  FILE *file = ptr;
+
+  BFD_ASSERT (abfd != NULL && ptr != NULL);
+
+  /* Print normal ELF private data.  */
+  _bfd_elf_print_private_bfd_data (abfd, ptr);
+
+  /* xgettext:c-format */
+  fprintf (file, _("private flags = %lx:"), elf_elfheader (abfd)->e_flags);
+
+  if ((elf_elfheader (abfd)->e_flags & EF_NANOMIPS_ABI) == E_NANOMIPS_ABI_P32)
+    fprintf (file, _(" [abi=P32]"));
+  else if ((elf_elfheader (abfd)->e_flags & EF_NANOMIPS_ABI) == E_NANOMIPS_ABI_P64)
+    fprintf (file, _(" [abi=P64]"));
+  else if ((elf_elfheader (abfd)->e_flags & EF_MIPS_ABI))
+    fprintf (file, _(" [abi unknown]"));
+  else if (ABI_N32_P (abfd))
+    fprintf (file, _(" [abi=N32]"));
+  else if (ABI_64_P (abfd))
+    fprintf (file, _(" [abi=64]"));
+  else
+    fprintf (file, _(" [no abi set]"));
+
+  if ((elf_elfheader (abfd)->e_flags & EF_NANOMIPS_ARCH) == E_NANOMIPS_ARCH_32R7)
+    fprintf (file, " [mips32r7]");
+  else if ((elf_elfheader (abfd)->e_flags & EF_NANOMIPS_ARCH) == E_NANOMIPS_ARCH_64R7)
+    fprintf (file, " [mips64r7]");
+  else
+    fprintf (file, _(" [unknown ISA]"));
+
+  if (elf_elfheader (abfd)->e_flags & EF_MIPS_NAN2008)
+    fprintf (file, " [nan2008]");
+
+  if (elf_elfheader (abfd)->e_flags & EF_MIPS_FP64)
+    fprintf (file, " [old fp64]");
+
+  if (elf_elfheader (abfd)->e_flags & EF_MIPS_32BITMODE)
+    fprintf (file, " [32bitmode]");
+  else
+    fprintf (file, _(" [not 32bitmode]"));
+
+  if (elf_elfheader (abfd)->e_flags & EF_MIPS_NOREORDER)
+    fprintf (file, " [noreorder]");
+
+  if (elf_elfheader (abfd)->e_flags & EF_MIPS_PIC)
+    fprintf (file, " [PIC]");
+
+  if (elf_elfheader (abfd)->e_flags & EF_MIPS_CPIC)
+    fprintf (file, " [CPIC]");
+
+  fputc ('\n', file);
+
+  if (mips_elf_tdata (abfd)->abiflags_valid)
+    {
+      Elf_Internal_ABIFlags_v0 *abiflags = &mips_elf_tdata (abfd)->abiflags;
+      fprintf (file, "\nnanoMIPS ABI Flags Version: %d\n", abiflags->version);
       fprintf (file, "\nISA: MIPS%d", abiflags->isa_level);
       if (abiflags->isa_rev > 1)
 	fprintf (file, "r%d", abiflags->isa_rev);
