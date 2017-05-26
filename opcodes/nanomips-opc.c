@@ -1058,7 +1058,8 @@ IGRIE */
 {"mttdsp",	"s",		0x22008a78, 0xffe0ffff,	RD_1,		INSN2_ALIAS,	0,	MT32,		0}, /* MTTR */
 {"mttr",	"s,t,!,H,$",	0x20000278, 0xfc0007ff,	RD_1,			0,	0,	MT32,		0},
 {"muh", 	"d,v,t",	0x20000058, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,		0,		0},
-{"muhu",	"d,v,t",		0x200000d8, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,		0,		0},
+{"muhu",	"d,v,t",	0x200000d8, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,		0,		0},
+{"mul",		"+4,mt,+5",	0x3c08,		0xfd08,	MOD_1|RD_3,		0,	0,		XLP,		0}, /* MUL[4X4] */
 {"mul", 	"d,v,t",	0x20000018, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,		0,		0},
 {"mul",		"d,v,I",	0,    (int) M_MUL_I,	INSN_MACRO,		0,	I38,		0,		0},
 {"mul.d",	"D,V,T",		0xa00001b0, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0,		0},
@@ -1076,7 +1077,6 @@ IGRIE */
 {"mulsaq_s.w.ph", "7,s,t",		0x20003cbf, 0xfc003fff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
 {"mult",	"7,s,t",		0x20000cbf, 0xfc003fff, WR_1|RD_2|RD_3,		0,	0,	D32,		0}, /* MULT[DSP] */
 {"multu",	"7,s,t",		0x20001cbf, 0xfc003fff, WR_1|RD_2|RD_3,		0,	0,	D32,		0}, /* MULTU[DSP] */
-{"mulu",	"+4,mt,+5",		0x3c00,		0xfd08,	MOD_1|RD_3,		0,	0,	XLP,		0}, /* MULU[4X4] */
 {"mulu",	"d,v,t",	0x20000098, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0,		0},
 {"mul_s.ph",	"d,s,t",	0x2000042d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
 {"neg", 	"d,w",		0x20000190, 0xfc1f07ff, WR_1|RD_2,	INSN2_ALIAS,	0,	XLP,		0}, /* SUB */
