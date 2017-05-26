@@ -12120,7 +12120,7 @@ _ACEOF
       mips)
 	# Set mips_cpu to the name of the default CPU.
 	case ${target_cpu} in
-	  mips | mipsbe | mipseb | mipsle | mipsel | mips64 | mips64el | nanomips | nanomipsel)
+	  mips | mipsbe | mipseb | mipsle | mipsel | mips64 | mips64el | nanomips | nanomipsel | nanomipseb)
 	    mips_cpu=from-abi
 	    ;;
 	  mipsisa32 | mipsisa32el)
@@ -12138,7 +12138,7 @@ _ACEOF
 	  mipsisa32r6 | mipsisa32r6el)
 	    mips_cpu=mips32r6
 	    ;;
-	  mipsisa32r7 | mipsisa32r7el | nanomips | nanomipsel)
+	  mipsisa32r7 | mipsisa32r7el)
 	    mips_cpu=mips32r7
 	    ;;
 	  mipsisa64 | mipsisa64el)
