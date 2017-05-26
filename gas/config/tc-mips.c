@@ -8325,6 +8325,15 @@ micromips_add_label (void)
   S_SET_OTHER (s, ELF_ST_SET_MICROMIPS (S_GET_OTHER (s)));
 }
 
+static void
+nanomips_add_label (void)
+{
+  symbolS *s;
+
+  s = colon (micromips_label_name ());
+  micromips_label_inc ();
+}
+
 /* If assembling microMIPS code, then return the microMIPS reloc
    corresponding to the requested one if any.  Otherwise return
    the reloc unchanged.  */
@@ -8790,7 +8799,6 @@ balc_frag_traverse (const char *key ATTRIBUTE_UNUSED, void *value)
   frag_grow (4);
   l = symbol_new (micromips_label_name (), now_seg, frag_now->fr_fix, frag_now);
   micromips_label_inc ();
-  S_SET_OTHER (l, ELF_ST_SET_MICROMIPS (S_GET_OTHER (l)));
   stub->fragp = frag_now;
   add_relaxed_insn (&nanomips_bc32_insn, 4, 0,
 		    RELAX_NANOMIPS_ENCODE ('G', 0, 1),
@@ -17084,7 +17092,7 @@ nanomips_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	move_register (op[0], op[1]);
       macro_build (&label_expr, "bgezc", BCONDZ1_FMT, op[1]);
       macro_build (NULL, dbl ? "dsubu" : "subu", "d,v,t", op[0], 0, op[1]);
-      micromips_add_label ();
+      nanomips_add_label ();
       break;
 
     case M_ADD_I:
@@ -17246,7 +17254,7 @@ nanomips_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       micromips_label_expr (&label_expr);
       macro_build (&label_expr, s, BCONDZ1_FMT, op[0]);
       macro_build (&offset_expr, "bal", B_FMT);
-      micromips_add_label ();
+      nanomips_add_label ();
       break;
 
     case M_BGT_I:
