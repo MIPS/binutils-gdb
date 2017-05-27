@@ -861,7 +861,7 @@ mips_decode_hi20_int_operand (const struct mips_operand *operand,
 /* Decode HI20 PCREL  */
 
 #define PCREL_VALUE(OP) { { { OP_PCREL, OP->size, 0, 0, 0}, \
-	(1 << (OP->size - 1)) - 1, 0, 0, FALSE}, 0, 0, 0}
+	(1 << (OP->size - 1)) - 1, 0, 0, FALSE}, 12, 0, 0}
 
 static inline bfd_vma
 mips_decode_hi20_pcrel_operand (const struct mips_operand *operand,

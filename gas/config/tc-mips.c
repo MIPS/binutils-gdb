@@ -9118,7 +9118,6 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 				 | (address_expr->X_add_number << 16));
 	  break;
 
-
 	case BFD_RELOC_NANOMIPS_CALL:
 	  ip->complete_p = 1;
 	  break;

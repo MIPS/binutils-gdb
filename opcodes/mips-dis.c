@@ -1500,16 +1500,13 @@ print_insn_arg (struct disassemble_info *info,
       {
 	const struct mips_pcrel_operand pcrel_op
 	  = { { { OP_PCREL, operand->size, operand->lsb, 0, 0 },
-		0, 0, 1, TRUE },
+		(1 << operand->size) - 1, 0, 1, TRUE },
 	      0, 0, 0};
 
-	info->target = mips_decode_pcrel_operand (&pcrel_op, base_pc, uval);
-
-	/* Preserve the ISA bit for the GDB disassembler,
-	   otherwise clear it.  */
-	if (info->flavour != bfd_target_unknown_flavour)
-	  info->target &= -2;
-
+	if ((info->flags & INSN_HAS_RELOC) == 0)
+	  info->target = mips_decode_pcrel_operand (&pcrel_op, base_pc, uval);
+	else
+	  info->target = 0;
 	(*info->print_address_func) (info->target, info);
       }
       break;
@@ -1731,9 +1728,6 @@ print_insn_arg (struct disassemble_info *info,
       {
 	info->target = mips_decode_hi20_pcrel_operand (operand, base_pc,
 						       uval);
-
-	/* PC-relative instruction refers to the next PC value.  */
-	info->target += 4;
 
 	/* Preserve the ISA bit for the GDB disassembler,
 	   otherwise clear it.  */
@@ -2057,12 +2051,16 @@ print_insn_args (struct disassemble_info *info,
 	    }
 	  else
 	    {
-	      bfd_vma base_pc = insn_pc;
+	      bfd_vma base_pc = 0;
+	      bfd_boolean have_reloc = ((info->flags & INSN_HAS_RELOC) != 0);
+
+	      if (!have_reloc)
+		base_pc = insn_pc;
 
 	      /* Adjust the PC relative base so that branch/jump insns use
 		 the following PC as the base but genuinely PC relative
 		 operands use the current PC.  */
-	      if (operand->type == OP_PCREL)
+	      if (operand->type == OP_PCREL && !have_reloc)
 		{
 		  const struct mips_pcrel_operand *pcrel_op;
 
@@ -2073,8 +2071,12 @@ print_insn_args (struct disassemble_info *info,
 		    base_pc += length;
 		}
 
-	      if (operand->type == OP_PC_WORD)
+	      if ((operand->type == OP_HI20_PCREL
+		    || operand->type == OP_NON_ZERO_PCREL_S1)
+		   && !have_reloc)
 		base_pc += length;
+	      else if (operand->type == OP_PC_WORD && !have_reloc)
+		base_pc += 4;
 
 	      if (operand->type == OP_INT_WORD
 		  || operand->type == OP_UINT_WORD

@@ -6,7 +6,7 @@
 Disassembly of section \.text:
 
 00000000 <foo>:
-   0:	1800      	bc	2 <\.L4>
+   0:	1800      	bc	0 <foo>
 			0: R_NANOMIPS_PC10_S1	foo-0x2
 
 00000002 <.L4>:

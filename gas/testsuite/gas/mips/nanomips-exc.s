@@ -196,6 +196,10 @@ test:
 	addiupc 	$5,-2097148
 	addiupc 	$5,-2097150
 
+	aluipc	$3,0x25
+	aluipc	$3,%pcrel_hi(test)
+	addiu	$3, $3, %pcrel_lo(test)
+
 	addu	$4, $4, $5
 	addu	$8, $8, $10
 	addu	$16, $16, $18
