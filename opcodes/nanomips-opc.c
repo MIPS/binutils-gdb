@@ -484,7 +484,8 @@ IGRIE */
 {"addu_s.qb",	"d,s,t",		0x200004cd, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
 {"addwc",	"d,s,t",		0x200003c5, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
 {"extw",	"d,s,t,+I",		0x2000001f, 0xfc00003f, WR_1|RD_2|RD_3,		0,	I38,	0,		0},
-{"align",	"d,s,-i,mz",		0x20000290, 0xffe007ff, WR_1|RD_2,	INSN2_ALIAS,	I38,	0,		0}, /* MOVE */
+{"align",	"-p,-i,mj,mz",		0x1000,     0xfc00, 	WR_1|RD_3,	INSN2_ALIAS,	I38,	0,		0}, /* MOVE[16] */
+{"align",	"d,-i,s,mz",		0x20000290, 0xffe007ff, WR_1|RD_3,	INSN2_ALIAS,	I38,	0,		0}, /* MOVE[32] */
 {"align",	"d,s,t,+:",		0x2000001f, 0xfc00003f, WR_1|RD_2|RD_3,	INSN2_ALIAS,	I38,	0,		0}, /* EXTW */
 {"and",	"md,mx,ml",		0x5008,	0xfc0f,	MOD_1|RD_3,	INSN2_ALIAS,	I38,		0,		0}, /* AND[16] */
 {"and",	"md,ml,mx",		0x5008,	0xfc0f,	MOD_1|RD_2,	INSN2_ALIAS,	I38,		0,		0}, /* AND[16] */
