@@ -140,8 +140,10 @@ test:
 	bbeqzc $4,31,test
 	bbnezc $4,0,test
 	bbnezc $4,16,test
-	teq	$3, $4
-	tne $5,$6
+	teq	$3,$4
+	tne 	$5,$6
+	teq	$3,$4,6
+	tne 	$5,$6,7
 	lwpc $3, 10000
 	swpc $3, 10000
 	ldpc $5, 10000

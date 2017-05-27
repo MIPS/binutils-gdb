@@ -1344,9 +1344,11 @@ IGRIE */
 {"syscall",	"mL",		0x1008,     0xfffc,		0,		0,	I38,		0,		0}, /* SYSCALL[16] */
 {"syscall",	"",		0x00080000, 0xffffffff,		0,	INSN2_ALIAS,	I38,		0,		0},
 {"syscall",	"+M",		0x00080000, 0xfffc0000,		0,		0,	I38,		0,		0},
-{"teq", 	"s,t",		0x20000000, 0xfc00ffff,	RD_1|RD_2,		0,	0,	XLP,		0}, /* TEQ */
+{"teq", 	"s,t",		0x20000000, 0xfc00ffff,	RD_1|RD_2,	INSN2_ALIAS,	0,	XLP,		0}, /* TEQ */
+{"teq", 	"s,t,^",	0x20000000, 0xfc0007ff,	RD_1|RD_2,		0,	0,	XLP,		0}, /* TEQ */
 {"teq", 	"s,I",		0, 	 (int) M_TEQ_I,	INSN_MACRO,		0,	0,	XLP,		0},
-{"tne", 	"s,t",		0x20000400, 0xfc00ffff,	RD_1|RD_2,		0,	0,	XLP,		0}, /* TNE */
+{"tne", 	"s,t",		0x20000400, 0xfc00ffff,	RD_1|RD_2,	INSN2_ALIAS,	0,	XLP,		0}, /* TNE */
+{"tne", 	"s,t,^",	0x20000400, 0xfc0007ff,	RD_1|RD_2,		0,	0,	XLP,		0}, /* TNE */
 {"tne", 	"s,I",		0, 	 (int) M_TNE_I,	INSN_MACRO,		0,	0,	XLP,		0},
 {"tlbginv",	"",		0x2000057f, 0xffffffff,		0,		0,	0,	IVIRT|TLB,	0},
 {"tlbginvf",	"",		0x2000157f, 0xffffffff,		0,		0,	0,	IVIRT|TLB,	0},

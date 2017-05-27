@@ -132,6 +132,8 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_NANOMIPS_PC11_S1	test-0x4
 [0-9a-f]+ <[^>]+> 2083 0000 	teq	v1,a0
 [0-9a-f]+ <[^>]+> 20c5 0400 	tne	a1,a2
+[0-9a-f]+ <[^>]+> 2083 3000 	teq	v1,a0,0x6
+[0-9a-f]+ <[^>]+> 20c5 3c00 	tne	a1,a2,0x7
 [0-9a-f]+ <[^>]+> 606b 2710 0000 	lwpc	v1,00002710 <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_PC32	\*ABS\*\+0x270c
 [0-9a-f]+ <[^>]+> 606f 2710 0000 	swpc	v1,00002710 <[^>]+>
@@ -191,9 +193,9 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 60a3 fffc ffdf 	addiupc	a1,-2097150
 [0-9a-f]+ <[^>]+> e062 5002 	aluipc	v1,00025000 <test\+0x25000>
 [0-9a-f]+ <[^>]+> e060 0002 	aluipc	v1,00000000 <test>
-			220: R_NANOMIPS_PCHI20	test-0x4
+			228: R_NANOMIPS_PCHI20	test-0x4
 [0-9a-f]+ <[^>]+> 0063 0000 	addiu	v1,v1,0
-			224: R_NANOMIPS_LO12	test
+			22c: R_NANOMIPS_LO12	test
 [0-9a-f]+ <[^>]+> b2c8      	addu	a0,a0,a1
 [0-9a-f]+ <[^>]+> 3c02      	addu	t0,t0,t2
 [0-9a-f]+ <[^>]+> b100      	addu	s0,s0,s2
