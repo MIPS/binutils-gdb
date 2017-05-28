@@ -21,7 +21,8 @@
 
 #include "sysdep.h"
 #include "opcode/mips.h"
-#include "mips-formats.h"
+#include "opcode/nanomips.h"
+#include "nanomips-formats.h"
 
 static unsigned char reg_0_map[] = { 0 };
 static unsigned char reg_28_map[] = { 28 };

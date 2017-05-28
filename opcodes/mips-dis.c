@@ -23,6 +23,7 @@
 #include "dis-asm.h"
 #include "libiberty.h"
 #include "opcode/mips.h"
+#include "opcode/nanomips.h"
 #include "opintl.h"
 
 /* FIXME: These are needed to figure out if the code is mips16 or
@@ -716,6 +717,7 @@ static int mips_processor;
 static int mips_isa;
 static int mips_ase;
 static int micromips_ase;
+static int nanomips_isa;
 static const char * const *mips_gpr_names;
 static const char * const *mips_fpr_names;
 static const char * const *mips_cp0_names;
@@ -821,21 +823,20 @@ is_isa_r6 (unsigned long isa)
     return 1;
   return 0;
 }
-/* Check if ISA is nanoMIPS.  */
+
+/* Check if the object has nanoMIPS code.  */
 
 static inline int
-is_nanomips (unsigned long isa)
+is_nanomips (Elf_Internal_Ehdr *header)
 {
-  if ((isa & INSN_ISA_MASK) == ISA_MIPS32R7
-      || ((isa & INSN_ISA_MASK) == ISA_MIPS64R7))
+  /*
+  if ((header->e_flags & EF_NANOMIPS_MODE) != 0)
+  */
+  if ((header->e_flags & EF_NANOMIPS_ARCH) == E_NANOMIPS_ARCH_32R7
+      || (header->e_flags & EF_NANOMIPS_ARCH) == E_NANOMIPS_ARCH_64R7)
     return 1;
-  return 0;
-}
 
-static inline int
-is_isa_prer6 (unsigned long isa)
-{
-  return !(is_isa_r6 (isa) || is_nanomips (isa));
+  return 0;
 }
 
 static void
@@ -849,6 +850,7 @@ set_default_mips_dis_options (struct disassemble_info *info)
   mips_isa = ISA_MIPS3;
   mips_processor = CPU_R3000;
   micromips_ase = 0;
+  nanomips_isa = 0;
   mips_ase = 0;
   mips_gpr_names = mips_gpr_names_oldabi;
   mips_fpr_names = mips_fpr_names_numeric;
@@ -870,6 +872,8 @@ set_default_mips_dis_options (struct disassemble_info *info)
 	mips_gpr_names = mips_gpr_names_newabi;
       /* If a microMIPS binary, then don't use MIPS16 bindings.  */
       micromips_ase = is_micromips (header);
+      /* If a nanoMIPS binary, then don't use legacy MIPS bindings.  */
+      nanomips_isa = is_nanomips (header);
     }
 
   /* Set ISA, architecture, and cp0 register names as best we can.  */
@@ -1643,7 +1647,7 @@ print_insn_arg (struct disassemble_info *info,
       break;
 
     case OP_SAVE_RESTORE_LIST:
-      if (is_nanomips (mips_isa))
+      if (nanomips_isa)
 	nanomips_print_save_restore (info, uval, opcode->mask >> 16 == 0);
       else
 	{
@@ -1661,7 +1665,7 @@ print_insn_arg (struct disassemble_info *info,
       break;
 
     case OP_SAVE_RESTORE_FP_LIST:
-      if (is_nanomips (mips_isa))
+      if (nanomips_isa)
 	nanomips_print_save_restore_fp (info, uval + 1);
       break;
 
@@ -1783,7 +1787,7 @@ print_insn_arg (struct disassemble_info *info,
       break;
 
     case OP_PC_WORD:
-      {	
+      {
 	info->target = base_pc + (((uval >> 16) & 0xffff) | (uval << 16));
 	(*info->print_address_func) (info->target, info);
       }
@@ -1905,7 +1909,7 @@ validate_insn_args (const struct mips_opcode *opcode,
 		    /* The operand for SAVE/RESTORE is split into 3 pieces
 		       rather than just 2 but we only support a 2-way split
 		       decode the last bit of the instruction here.  */
-		    if (is_nanomips (mips_isa)
+		    if (nanomips_isa
 			&& opcode->mask >> 16 != 0
 			&& ((insn >> 20) & 0x1) != 0)
 		      return FALSE;
@@ -1976,7 +1980,7 @@ print_insn_args (struct disassemble_info *info,
   const struct mips_operand *operand;
   const char *s;
   bfd_boolean pending_sep = FALSE;
-  bfd_boolean pending_space = is_nanomips (mips_isa);
+  bfd_boolean pending_space = nanomips_isa;
 
   init_print_arg_state (&state);
   for (s = opcode->args; *s; ++s)
@@ -2863,7 +2867,7 @@ print_insn_nanomips (bfd_vma memaddr_base, struct disassemble_info *info)
 
 	  if (op->args[0])
 	    print_insn_args (info, op, decode, insn,
-			     memaddr + (is_nanomips (mips_isa)? 0 : 1),
+			     memaddr + (nanomips_isa? 0 : 1),
 			     length);
 
 	  /* Figure out instruction type and branch delay information.  */
@@ -2914,13 +2918,11 @@ is_compressed_mode_p (struct disassemble_info *info)
   int i;
   int l;
 
-  if (is_nanomips (mips_isa))
+  if (nanomips_isa)
     return 1;
 
   for (i = info->symtab_pos, l = i + info->num_symbols; i < l; i++)
-    if (is_nanomips (mips_isa))
-      return 1;
-    else if (((info->symtab[i])->flags & BSF_SYNTHETIC) != 0
+    if (((info->symtab[i])->flags & BSF_SYNTHETIC) != 0
 	     && ((!micromips_ase
 		  && ELF_ST_IS_MIPS16 ((*info->symbols)->udata.i))
 		 || (micromips_ase
@@ -2958,7 +2960,7 @@ _print_insn_mips (bfd_vma memaddr,
   set_default_mips_dis_options (info);
   parse_mips_dis_options (info->disassembler_options);
 
-  if (is_nanomips (mips_isa))
+  if (nanomips_isa)
     print_insn_compr = print_insn_nanomips;
   else
     print_insn_compr = !micromips_ase ? print_insn_mips16 : print_insn_micromips;

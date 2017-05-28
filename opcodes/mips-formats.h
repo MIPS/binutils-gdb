@@ -29,44 +29,6 @@
 #define INT_ADJ(SIZE, LSB, MAX_VAL, SHIFT, PRINT_HEX) \
   INT_BIAS(SIZE, LSB, MAX_VAL, 0, SHIFT, PRINT_HEX)
 
-#define IMM_INT_BIAS(SIZE, LSB, MAX_VAL, BIAS, SHIFT, PRINT_HEX) \
-  { \
-    static const struct mips_int_operand op = { \
-      { OP_IMM_INT, SIZE, LSB, 0, 0 }, MAX_VAL, BIAS, SHIFT, PRINT_HEX \
-    }; \
-    return &op.root; \
-  }
-
-#define IMM_INT_ADJ(SIZE, LSB, MAX_VAL, SHIFT, PRINT_HEX) \
-  IMM_INT_BIAS(SIZE, LSB, MAX_VAL, 0, SHIFT, PRINT_HEX)
-
-#define UINT_SPLIT(SIZE, LSB, SHIFT, SIZE_TOP, LSB_TOP)	\
-  { \
-    static const struct mips_int_operand op = { \
-      { OP_INT, SIZE, LSB, SIZE_TOP, LSB_TOP }, \
-      (1 << (SIZE)) - 1, 0, SHIFT, 0	\
-    }; \
-    return &op.root; \
-  }
-
-#define SINT_SPLIT(SIZE, LSB, SHIFT, SIZE_TOP, LSB_TOP)	\
-  { \
-    static const struct mips_int_operand op = { \
-      { OP_INT, SIZE, LSB, SIZE_TOP, LSB_TOP }, \
-      (1 << ((SIZE) -1)) - 1, 0, SHIFT, 0	\
-    }; \
-    return &op.root; \
-  }
-
-#define IMM_SINT_SPLIT(SIZE, LSB, SIZE_TOP, LSB_TOP, SHIFT, BIAS) \
-  { \
-    static const struct mips_int_operand op = { \
-      { OP_IMM_INT, SIZE, LSB, SIZE_TOP, LSB_TOP }, \
-      (1 << ((SIZE) -1)) - 1, BIAS, SHIFT, FALSE \
-    }; \
-    return &op.root; \
-  }
-
 #define UINT(SIZE, LSB) \
   INT_ADJ(SIZE, LSB, (1 << (SIZE)) - 1, 0, FALSE)
 
@@ -75,9 +37,6 @@
 
 #define HINT(SIZE, LSB) \
   INT_ADJ(SIZE, LSB, (1 << (SIZE)) - 1, 0, TRUE)
-
-#define HINT_SPLIT(SIZE, LSB, SIZE_T, LSB_T)	\
-  SINT_SPLIT(SIZE, LSB, 0, SIZE_T, LSB_T)
 
 #define BIT(SIZE, LSB, BIAS) \
   { \
@@ -151,19 +110,6 @@
     return &op.root; \
   }
 
-#define SPLIT_MAPPED_REG_PAIR(SIZE, LSB, SIZE_T, LSB_T, BANK, MAP) \
-  { \
-    typedef char ATTRIBUTE_UNUSED \
-      static_assert1[(1 << (SIZE)) == ARRAY_SIZE (MAP##1)]; \
-    typedef char ATTRIBUTE_UNUSED \
-      static_assert2[(1 << (SIZE)) == ARRAY_SIZE (MAP##2)]; \
-    static const struct mips_reg_pair_operand op = { \
-      { OP_REG_PAIR, SIZE, LSB, SIZE_T, LSB_T }, OP_REG_##BANK, \
-      MAP##1, MAP##2 \
-    }; \
-    return &op.root; \
-  }
-
 #define OPTIONAL_MAPPED_REG(SIZE, LSB, BANK, MAP) \
   { \
     typedef char ATTRIBUTE_UNUSED \
@@ -206,42 +152,9 @@
 #define BRANCH(SIZE, LSB, SHIFT) \
   PCREL (SIZE, LSB, TRUE, SHIFT, 0, TRUE, FALSE)
 
-#define BRANCH_UNORD_SPLIT(SIZE, SHIFT) \
-  { \
-    static const struct mips_pcrel_operand op = { \
-      { { OP_PCREL, SIZE, 1, 1, 0 }, \
-	(1 << ((SIZE) - 1)) - 1, 0, SHIFT, TRUE }, \
-      0, TRUE, FALSE \
-    }; \
-    return &op.root.root; \
-  }
-
-#define BRANCH_SPLIT(SIZE, LSB, SHIFT, SIZE_TOP, LSB_TOP)	\
-  { \
-    static const struct mips_pcrel_operand op = { \
-      { { OP_PCREL, SIZE, 1, SIZE_TOP, LSB_TOP }, \
-	(1 << ((SIZE) - 1)) - 1, LSB, SHIFT, TRUE }, \
-      0, TRUE, FALSE \
-    }; \
-    return &op.root.root; \
-  }
-
 #define SPECIAL(SIZE, LSB, TYPE) \
   { \
     static const struct mips_operand op = { OP_##TYPE, SIZE, LSB, 0, 0 }; \
-    return &op; \
-  }
-
-#define SPECIAL_SPLIT(SIZE, LSB, SIZE_T, LSB_T, TYPE)	\
-  { \
-    static const struct mips_operand op = { OP_##TYPE, SIZE, LSB, SIZE_T, LSB_T }; \
-    return &op; \
-  }
-
-#define SPECIAL_WORD(BIAS, TYPE) \
-  { \
-    static const struct mips_int_operand op = { { OP_##TYPE, 0, 0, 0, 0 }, \
-						0x7fffffff, BIAS, 0, FALSE }; \
     return &op; \
   }
 
@@ -249,17 +162,6 @@
   { \
     static const struct mips_check_prev_operand op = { \
       { OP_CHECK_PREV, SIZE, LSB, 0, 0 }, GT_OK, LT_OK, EQ_OK, ZERO_OK \
-    }; \
-    return &op.root; \
-  }
-
-#define MAPPED_PREV_CHECK(SIZE, LSB, BANK, MAP, GT_OK, LT_OK, EQ_OK, ZERO_OK) \
-  { \
-    typedef char ATTRIBUTE_UNUSED \
-      static_assert[(1 << (SIZE)) == ARRAY_SIZE (MAP)]; \
-    static const struct mips_mapped_check_prev_operand op = { \
-      { OP_MAPPED_CHECK_PREV, SIZE, LSB, 0, 0 }, OP_REG_##BANK, MAP, \
-      GT_OK, LT_OK, EQ_OK, ZERO_OK \
     }; \
     return &op.root; \
   }

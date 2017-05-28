@@ -935,13 +935,11 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test "elf_arch_mips32r3"
     run_dump_test "elf_arch_mips32r5"
     run_dump_test "elf_arch_mips32r6"
-    run_dump_test "elf_arch_mips32r7"
     run_dump_test "elf_arch_mips64"
     run_dump_test "elf_arch_mips64r2"
     run_dump_test "elf_arch_mips64r3"
     run_dump_test "elf_arch_mips64r5"
     run_dump_test "elf_arch_mips64r6"
-    run_dump_test "elf_arch_mips64r7"
 
     # Verify that ASE markings are handled properly.
     run_dump_test "elf_ase_mips16"
@@ -1608,8 +1606,10 @@ if { [istarget mips*-*-vxworks*] } {
 
     run_dump_test_arches "debug-dis" [mips_arch_list_matching nanomips]
 
-    run_dump_test "elf_arch_i7001"
-    run_dump_test "elf_arch_m7001"
+    run_dump_test_arch "elf_arch_mips32r7" "" nanomips32
+    run_dump_test_arch "elf_arch_mips64r7" "" nanomips64
+    run_dump_test_arch "elf_arch_i7001" "" i7001
+    run_dump_test_arch "elf_arch_m7001" "" m7001
     run_list_test_arches "isa-errors" "" [mips_arch_list_matching nanomips]
     run_dump_test_arches "relax-addiu" "" [mips_arch_list_matching nanomips]
     run_list_test_arches "nanomips-ctc-err" "" [mips_arch_list_matching nanomips]
