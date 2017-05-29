@@ -4282,13 +4282,6 @@ class Target_mips : public Sized_target<size, big_endian>
     return elfcpp::r6_isa(this->processor_specific_flags());
   }
 
-  // Whether the output uses R7 ISA.
-  bool
-  is_output_r7() const
-  {
-    return elfcpp::r7_isa(this->processor_specific_flags());
-  }
-
   // Whether the output uses N64 ABI.
   bool
   is_output_n64() const
@@ -10974,10 +10967,6 @@ Target_mips<size, big_endian>::do_relax(
     Layout* layout,
     const Task* task)
 {
-  // For now, we only do relaxations and expansions for microMIPSR7.
-  if (!this->is_output_r7() || !this->is_output_micromips())
-    return false;
-
   // Set the state to RELAX if a -relax option is passed.
   if (pass == 1
       && parameters->options().relax())
