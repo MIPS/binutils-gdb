@@ -1646,7 +1646,7 @@ opcode_is_member (const struct mips_opcode *insn, int isa, int ase, int cpu)
 	return TRUE;
 
       /* Test for ASE compatibility.  */
-      if ((ase & insn->ase) != 0)
+      if (insn->ase != 0 && (ase & insn->ase) == insn->ase)
 	return TRUE;
 
       /* Test for processor-specific extensions.  */

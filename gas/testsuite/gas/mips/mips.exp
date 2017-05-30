@@ -1621,4 +1621,13 @@ if { [istarget mips*-*-vxworks*] } {
 	{"-mno-xlp" "-mno-tlb" "-mxlp -mno-tlb"} \
 	[mips_arch_list_matching nanomips]
     run_list_test_arch "nanomips-tlb" "" m7001
+
+    run_dump_test_opts "nanomips-tlbg" \
+	{"-mvirt -mxlp" "-mvirt -mtlb" "-mvirt -mxlp -mtlb"  "-mvirt -mno-xlp -mtlb"} \
+	[mips_arch_list_matching nanomips]
+    run_dump_test_arch "nanomips-tlbg" "-mvirt -mtlb" m7001
+    run_list_test_opts "nanomips-tlbg" \
+	{"-mvirt -mno-xlp" "-mvirt -mno-tlb" "-mvirt -mxlp -mno-tlb" "-mno-virt -mtlb"} \
+	[mips_arch_list_matching nanomips]
+    run_list_test_arch "nanomips-tlbg" "" m7001
 }
