@@ -47,8 +47,8 @@ Disassembly of section \.text:
   8a:	8042 8008 	addiu	v0,v0,-8
   8e:	0085 0008 	addiu	a0,a1,8
   92:	0085 001c 	addiu	a0,a1,28
-  96:	d0ff      	li	s1,-1
-  98:	d09c      	li	s1,28
+  96:	d27f      	li	a0,-1
+  98:	d21c      	li	a0,28
   9a:	8060 8001 	li	v1,-1
   9e:	0060 001c 	li	v1,28
   a2:	8080 8008 	li	a0,-8

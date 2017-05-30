@@ -23485,7 +23485,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	  else if (rs == 0)
 	    /* LI[32] -> LI[16] */
 	    insn = (0xd000
-		    | (rt << MICROMIPSOP_SH_MP)
+		    | (rt << MICROMIPSOP_SH_MQ)
 		    | (sval & 0x7f));
 	  else
 	    /* ADDIU[32] -> ADDIU[R2] */
