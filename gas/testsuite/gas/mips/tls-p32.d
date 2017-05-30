@@ -8,7 +8,7 @@ Disassembly of section .text:
 
 00000000 \<fn\>:
    0:	e380 0002 	aluipc	gp,0 <_gp>
-			[0-9a-f]+: R_NANOMIPS_PCHI20	_gp-0x4
+			[0-9a-f]+: R_NANOMIPS_PCHI20	_gp
    4:	83bd 8010 	addiu	sp,sp,-16
    8:	b7c2      	sw	s8,8\(sp\)
    a:	13dd      	move	s8,sp

@@ -7,7 +7,7 @@
 
 Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> e380 0002 	aluipc	gp,[0-9a-f]+ <[^>]+>
-			[0-9A-F]+: R_NANOMIPS_PCHI20	_gp-0x4
+			[0-9A-F]+: R_NANOMIPS_PCHI20	_gp
 [0-9a-f]+ <[^>]+> e094 5244 	lui	a0,%hi\(0x12345000\)
 [0-9a-f]+ <[^>]+> 8084 0678 	ori	a0,a0,1656
 [0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
@@ -17,7 +17,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
 			[0-9A-F]+: R_NANOMIPS_GOT_DISP	end
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	[0-9a-f]+ <[^>]+>
-			[0-9A-F]+: R_NANOMIPS_PC25_S1	end-0x4
+			[0-9A-F]+: R_NANOMIPS_PC25_S1	end
 [0-9a-f]+ <[^>]+> 4320 0002 	lw	t9,0\(gp\)
 			[0-9a-f]+: R_NANOMIPS_GOT_DISP	end
 [0-9a-f]+ <[^>]+> db30      	jalrc	t9

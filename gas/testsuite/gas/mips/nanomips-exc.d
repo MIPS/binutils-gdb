@@ -83,13 +83,13 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 6061 dcbb fffe 	addiu	v1,v1,-74565
 [0-9a-f]+ <[^>]+> 6061 a988 edcb 	addiu	v1,v1,-305419896
 [0-9a-f]+ <[^>]+> c84c 0800 	bgeiuc	v0,1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_NANOMIPS_PC11_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
 [0-9a-f]+ <[^>]+> c84f f800 	bgeiuc	v0,127,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_NANOMIPS_PC11_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
 [0-9a-f]+ <[^>]+> c85c 0800 	bltiuc	v0,1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_NANOMIPS_PC11_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
 [0-9a-f]+ <[^>]+> c85f f800 	bltiuc	v0,127,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_NANOMIPS_PC11_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
 [0-9a-f]+ <[^>]+> 2062 201f 	extw	a0,v0,v1,0x0
 [0-9a-f]+ <[^>]+> 2062 261f 	extw	a0,v0,v1,0x18
 [0-9a-f]+ <[^>]+> 2062 241f 	extw	a0,v0,v1,0x10
@@ -113,45 +113,45 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> d480      	sw	s1,0\(gp\)
 			[0-9a-f]+: R_NANOMIPS_GPREL7_S2	test
 [0-9a-f]+ <[^>]+> 04a0 0000 	lapc	a1,00000000 <test>
-			[0-9a-f]+: R_NANOMIPS_PC21_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC21_S1	test
 [0-9a-f]+ <[^>]+> 04a0 0000 	lapc	a1,00000000 <test2>
-			[0-9a-f]+: R_NANOMIPS_PC21_S1	test2-0x4
+			[0-9a-f]+: R_NANOMIPS_PC21_S1	test2
 [0-9a-f]+ <[^>]+> 8483 3fa0 	pref	0x4,4000\(v1\)
 [0-9a-f]+ <[^>]+> a483 98e2 	pref	0x4,-30\(v1\)
 [0-9a-f]+ <[^>]+> 8483 3000 	pref	0x4,0\(v1\)
 			[0-9a-f]+: R_NANOMIPS_LO12	test
 [0-9a-f]+ <[^>]+> c884 c000 	bbeqzc	a0,0x18,00000000 <test>
-			[0-9a-f]+: R_NANOMIPS_PC11_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
 [0-9a-f]+ <[^>]+> c884 0800 	bbeqzc	a0,0x1,00000000 <test>
-			[0-9a-f]+: R_NANOMIPS_PC11_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
 [0-9a-f]+ <[^>]+> c884 f800 	bbeqzc	a0,0x1f,00000000 <test>
-			[0-9a-f]+: R_NANOMIPS_PC11_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
 [0-9a-f]+ <[^>]+> c894 0000 	bbnezc	a0,0x0,00000000 <test>
-			[0-9a-f]+: R_NANOMIPS_PC11_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
 [0-9a-f]+ <[^>]+> c894 8000 	bbnezc	a0,0x10,00000000 <test>
-			[0-9a-f]+: R_NANOMIPS_PC11_S1	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
 [0-9a-f]+ <[^>]+> 2083 0000 	teq	v1,a0
 [0-9a-f]+ <[^>]+> 20c5 0400 	tne	a1,a2
 [0-9a-f]+ <[^>]+> 2083 3000 	teq	v1,a0,0x6
 [0-9a-f]+ <[^>]+> 20c5 3c00 	tne	a1,a2,0x7
 [0-9a-f]+ <[^>]+> 606b 2710 0000 	lwpc	v1,00002710 <[^>]+>
-			[0-9a-f]+: R_NANOMIPS_PC32	\*ABS\*\+0x270c
+			[0-9a-f]+: R_NANOMIPS_PC32	\*ABS\*\+0x2710
 [0-9a-f]+ <[^>]+> 606f 2710 0000 	swpc	v1,00002710 <[^>]+>
-			[0-9a-f]+: R_NANOMIPS_PC32	\*ABS\*\+0x270c
+			[0-9a-f]+: R_NANOMIPS_PC32	\*ABS\*\+0x2710
 [0-9a-f]+ <[^>]+> 60bb 2710 0000 	ldpc	a1,00002710 <[^>]+>
-			[0-9a-f]+: R_NANOMIPS_PC32	\*ABS\*\+0x270c
+			[0-9a-f]+: R_NANOMIPS_PC32	\*ABS\*\+0x2710
 [0-9a-f]+ <[^>]+> 611f 2710 0000 	sdpc	t0,00002710 <[^>]+>
-			[0-9a-f]+: R_NANOMIPS_PC32	\*ABS\*\+0x270c
+			[0-9a-f]+: R_NANOMIPS_PC32	\*ABS\*\+0x2710
 [0-9a-f]+ <[^>]+> 6063 0000 0000 	lapc	v1,00000000 <test>
-			[0-9a-f]+: R_NANOMIPS_PC32	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC32	test
 [0-9a-f]+ <[^>]+> 606b 0000 0000 	lwpc	v1,00000000 <test>
-			[0-9a-f]+: R_NANOMIPS_PC32	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC32	test
 [0-9a-f]+ <[^>]+> 606f 0000 0000 	swpc	v1,00000000 <test>
-			[0-9a-f]+: R_NANOMIPS_PC32	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC32	test
 [0-9a-f]+ <[^>]+> 60bb 0000 0000 	ldpc	a1,00000000 <test>
-			[0-9a-f]+: R_NANOMIPS_PC32	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC32	test
 [0-9a-f]+ <[^>]+> 611f 0000 0000 	sdpc	t0,00000000 <test>
-			[0-9a-f]+: R_NANOMIPS_PC32	test-0x4
+			[0-9a-f]+: R_NANOMIPS_PC32	test
 [0-9a-f]+ <[^>]+> a445 2104 	ualh	v0,4\(a1\)
 [0-9a-f]+ <[^>]+> a445 2904 	uash	v0,4\(a1\)
 [0-9a-f]+ <[^>]+> a445 4504 	ualwm	v0,4\(a1\),4
@@ -193,7 +193,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 60a3 fffc ffdf 	addiupc	a1,-2097150
 [0-9a-f]+ <[^>]+> e062 5002 	aluipc	v1,00025000 <test\+0x25000>
 [0-9a-f]+ <[^>]+> e060 0002 	aluipc	v1,00000000 <test>
-			228: R_NANOMIPS_PCHI20	test-0x4
+			228: R_NANOMIPS_PCHI20	test
 [0-9a-f]+ <[^>]+> 0063 0000 	addiu	v1,v1,0
 			22c: R_NANOMIPS_LO12	test
 [0-9a-f]+ <[^>]+> b2c8      	addu	a0,a0,a1

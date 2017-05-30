@@ -19,9 +19,9 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 0084 0000 	addiu	a0,a0,0
 			18: R_NANOMIPS_LO12	end
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	[0-9a-f]+ <[^>]+>
-			1c: R_NANOMIPS_PC25_S1	end-0x4
+			1c: R_NANOMIPS_PC25_S1	end
 [0-9a-f]+ <[^>]+> 2a00 0000 	balc	[0-9a-f]+ <[^>]+>
-			20: R_NANOMIPS_PC25_S1	end-0x4
+			20: R_NANOMIPS_PC25_S1	end
 [0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
 			24: R_NANOMIPS_GPREL19_S2	\.sdata
 [0-9a-f]+ <[^>]+> e080 0000 	lui	a0,0x0

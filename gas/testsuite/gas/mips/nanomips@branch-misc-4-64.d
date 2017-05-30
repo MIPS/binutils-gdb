@@ -10,14 +10,14 @@
 Disassembly of section \.text:
 	\.\.\.
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_NANOMIPS_PC25_S1	bar-0x4
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	bar
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_NANOMIPS_PC25_S1	\.Lbar-0x4
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	\.Lbar
 	\.\.\.
 
 Disassembly of section \.init:
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_NANOMIPS_PC25_S1	foo-0x4
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	foo
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_NANOMIPS_PC25_S1	\.Lfoo-0x4
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	\.Lfoo
 	\.\.\.

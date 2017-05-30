@@ -19757,9 +19757,6 @@ md_pcrel_from (fixS *fixP)
     {
     case BFD_RELOC_MICROMIPS_7_PCREL_S1:
     case BFD_RELOC_MICROMIPS_10_PCREL_S1:
-    case BFD_RELOC_NANOMIPS_7_PCREL_S1:
-    case BFD_RELOC_NANOMIPS_10_PCREL_S1:
-    case BFD_RELOC_NANOMIPS_4_PCREL_S1:
       /* Return the address of the delay slot.  */
       return addr + 2;
 
@@ -19771,14 +19768,6 @@ md_pcrel_from (fixS *fixP)
     case BFD_RELOC_MIPS_21_PCREL_S2:
     case BFD_RELOC_MIPS_26_PCREL_S2:
     case BFD_RELOC_MIPS_JMP:
-    case BFD_RELOC_NANOMIPS_11_PCREL_S1:
-    case BFD_RELOC_NANOMIPS_14_PCREL_S1:
-    case BFD_RELOC_NANOMIPS_20_PCREL_S1:
-    case BFD_RELOC_NANOMIPS_21_PCREL_S1:
-    case BFD_RELOC_NANOMIPS_25_PCREL_S1:
-    case BFD_RELOC_NANOMIPS_HI20_PCREL:
-    case BFD_RELOC_NANOMIPS_LO12_PCREL:
-    case BFD_RELOC_NANOMIPS_PC32:
       /* Return the address of the delay slot.  */
       return addr + 4;
 
