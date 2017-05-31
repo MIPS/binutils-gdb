@@ -166,14 +166,14 @@
 "cmp.lt.ph r<RS>, r<RT>"
 *nanomipsdsp:
 {
-  do_ph_cmpu (SD_, RS, RT, 1);
+  do_ph_cmpu (SD_, RT, RS, 1);
 }
 
 001000,5.RT,5.RS,0000000010,000101:POOL32A:32::CMP.LE.PH
 "cmp.le.ph r<RS>, r<RT>"
 *nanomipsdsp:
 {
-  do_ph_cmpu (SD_, RS, RT, 2);
+  do_ph_cmpu (SD_, RT, RS, 2);
 }
 
 001000,5.RT,5.RS,5.RD,1.X,0110000101:POOL32A:32::CMPGDU.EQ.QB
@@ -229,14 +229,14 @@
 "cmpu.lt.qb r<RS>, r<RT>"
 *nanomipsdsp:
 {
-  do_qb_cmpu (SD_, RS, RT, 1);
+  do_qb_cmpu (SD_, RT, RS, 1);
 }
 
 001000,5.RT,5.RS,5.X1,1.X2,1011000101:POOL32A:32::CMPU.LE.QB
 "cmpu.le.qb r<RS>, r<RT>"
 *nanomipsdsp:
 {
-  do_qb_cmpu (SD_, RS, RT, 2);
+  do_qb_cmpu (SD_, RT, RS, 2);
 }
 
 001000,5.RT,5.RS,2.AC,00000010111111:POOL32A:32::DPA.W.PH
