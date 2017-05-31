@@ -7,6 +7,7 @@
 Relocation section '\.rela\.text' at offset 0x[0-9a-f]+ contains [0-9]+ entries:
  Offset     Info    Type                Sym\. Value  Symbol's Name \+ Addend
 00000004  [0-9a-f]+b6 R_NANOMIPS_HI20        00000000   foo \+ 0
+00000008  [0-9a-f]+dd R_NANOMIPS_ALIGN       00000004   __reloc_align_\^B_1 \+ 0
 00000010  [0-9a-f]+02 R_NANOMIPS_32          00000010   \.L2 \+ 0
 00000014  [0-9a-f]+02 R_NANOMIPS_32          00000010   \.L2 \+ 0
 00000018  [0-9a-f]+44 R_NANOMIPS_UNSIGNED_16 00000002   \.L3 \+ 0

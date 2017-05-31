@@ -855,14 +855,117 @@ static reloc_howto_type nanomips_elf64_howto_table_rela[] =
 	 0x00000fff,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-  EMPTY_HOWTO (221),
-  EMPTY_HOWTO (222),
-  EMPTY_HOWTO (223),
-  EMPTY_HOWTO (224),
-  EMPTY_HOWTO (225),
-  EMPTY_HOWTO (226),
-  EMPTY_HOWTO (227),
-  EMPTY_HOWTO (228),
+  HOWTO (R_NANOMIPS_ALIGN,	/* type */
+	 0,			/* rightshift */
+	 0,			/* size (0 = byte, 1 = short, 2 = long) */
+	 32,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont,/* complain_on_overflow */
+	 NULL, 			/* special handler.  */
+	 "R_NANOMIPS_ALIGN",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0,			/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
+  HOWTO (R_NANOMIPS_FILL,	/* type */
+	 0,			/* rightshift */
+	 0,			/* size (0 = byte, 1 = short, 2 = long) */
+	 32,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont,/* complain_on_overflow */
+	 NULL, 			/* special handler.  */
+	 "R_NANOMIPS_FILL",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0,			/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
+  HOWTO (R_NANOMIPS_MAX,	/* type */
+	 0,			/* rightshift */
+	 0,			/* size (0 = byte, 1 = short, 2 = long) */
+	 32,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont,/* complain_on_overflow */
+	 NULL, 			/* special handler.  */
+	 "R_NANOMIPS_MAX",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0,			/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
+  HOWTO (R_NANOMIPS_INSN32,	/* type */
+	 0,			/* rightshift */
+	 0,			/* size (0 = byte, 1 = short, 2 = long) */
+	 32,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont,/* complain_on_overflow */
+	 NULL, 			/* special handler.  */
+	 "R_NANOMIPS_INSN32",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0,			/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
+  HOWTO (R_NANOMIPS_INSN16,	/* type */
+	 0,			/* rightshift */
+	 0,			/* size (0 = byte, 1 = short, 2 = long) */
+	 32,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont,/* complain_on_overflow */
+	 NULL, 			/* special handler.  */
+	 "R_NANOMIPS_INSN16",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0,			/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
+  HOWTO (R_NANOMIPS_FIXED,	/* type */
+	 0,			/* rightshift */
+	 0,			/* size (0 = byte, 1 = short, 2 = long) */
+	 32,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont,/* complain_on_overflow */
+	 NULL, 			/* special handler.  */
+	 "R_NANOMIPS_FIXED",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0,			/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
+  HOWTO (R_NANOMIPS_RELAX,	/* type */
+	 0,			/* rightshift */
+	 0,			/* size (0 = byte, 1 = short, 2 = long) */
+	 32,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont,/* complain_on_overflow */
+	 NULL, 			/* special handler.  */
+	 "R_NANOMIPS_RELAX",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0,			/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
+  HOWTO (R_NANOMIPS_NORELAX, /* type */
+	 0,			/* rightshift */
+	 0,			/* size (0 = byte, 1 = short, 2 = long) */
+	 32,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont,/* complain_on_overflow */
+	 NULL, 			/* special handler.  */
+	 "R_NANOMIPS_NORELAX",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0,			/* dst_mask */
+	 FALSE),		/* pcrel_offset */
 
   /* High 32 bits of 64-bit address.  */
   HOWTO (R_NANOMIPS_PC32,	/* type */
@@ -1091,6 +1194,14 @@ static const struct elf_reloc_map nanomips_reloc_map[] =
   { BFD_RELOC_NANOMIPS_TLS_TPREL_LO12,
     R_NANOMIPS_TLS_TPREL_LO12 - R_NANOMIPS_min },
   { BFD_RELOC_NANOMIPS_HI32, R_NANOMIPS_HI32 - R_NANOMIPS_min },
+  { BFD_RELOC_NANOMIPS_ALIGN, R_NANOMIPS_ALIGN - R_NANOMIPS_min },
+  { BFD_RELOC_NANOMIPS_FILL, R_NANOMIPS_FILL - R_NANOMIPS_min },
+  { BFD_RELOC_NANOMIPS_MAX, R_NANOMIPS_MAX - R_NANOMIPS_min },
+  { BFD_RELOC_NANOMIPS_INSN32, R_NANOMIPS_INSN32 - R_NANOMIPS_min },
+  { BFD_RELOC_NANOMIPS_INSN16, R_NANOMIPS_INSN16 - R_NANOMIPS_min },
+  { BFD_RELOC_NANOMIPS_FIXED, R_NANOMIPS_FIXED - R_NANOMIPS_min },
+  { BFD_RELOC_NANOMIPS_RELAX, R_NANOMIPS_RELAX - R_NANOMIPS_min },
+  { BFD_RELOC_NANOMIPS_NORELAX, R_NANOMIPS_NORELAX - R_NANOMIPS_min },
   { BFD_RELOC_NANOMIPS_PC32, R_NANOMIPS_PC32 - R_NANOMIPS_min },
   { BFD_RELOC_NANOMIPS_GPREL32, R_NANOMIPS_GPREL32 - R_NANOMIPS_min },
   { BFD_RELOC_NANOMIPS_GPREL17_S1,

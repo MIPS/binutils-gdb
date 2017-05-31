@@ -14,5 +14,4 @@ Relocation section '\.rel\.text' at offset 0x[0-9a-f]+ contains 10 entries:
 [0-9a-f]+  [0-9a-f]+ R_(MICRO|)MIPS_GPREL16 +[0-9a-f]+   \.text
 [0-9a-f]+  [0-9a-f]+ R_(MICRO|)MIPS_HI16    +[0-9a-f]+   \.L6
 [0-9a-f]+  [0-9a-f]+ R_(MICRO|)MIPS_LO16    +[0-9a-f]+   \.L6
-
 #pass

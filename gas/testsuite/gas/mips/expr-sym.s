@@ -2,6 +2,9 @@
 # This only works for PABI currently.
 
 	.text
+	.ifdef r7
+	.linkrelax
+	.endif
 foo:
 	bal foo
 .L3:

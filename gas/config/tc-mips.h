@@ -233,4 +233,12 @@ extern void mips_copy_symbol_attributes (symbolS *dest, symbolS *src);
   mips_copy_symbol_attributes (DEST, SRC)
 #endif
 
+extern void mips_md_do_align (int, const char *, int, int);
+#define md_do_align(n,f,l,m,j)		mips_md_do_align (n,f,l,m)
+
+/* If defined, this macro allows control over whether fixups for a
+   given section will be processed when the linkrelax variable is
+   set. Define it to zero and handle things in md_apply_fix instead.*/
+#define TC_LINKRELAX_FIXUP(SEG) 0
+
 #endif /* TC_MIPS */

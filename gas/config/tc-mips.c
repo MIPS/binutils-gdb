@@ -693,8 +693,8 @@ static int mips_disable_float_construction;
 static int mips_any_noreorder;
 
 /* Non-zero if .set [no]relax directive was used */
-static int mips_set_relax = 0;
-static int mips_set_norelax = 0;
+static bfd_boolean mips_linkrelax_p = FALSE;
+static bfd_boolean toggle_linkrelax_p = FALSE;
 
 /* Non-zero if nops should be inserted when the register referenced in
    an mfhi/mflo instruction is read in the next two instructions.  */
@@ -2030,7 +2030,8 @@ static const pseudo_typeS mips_pseudo_table[] =
   {"sbyte", s_sign_cons, 0},
   {"shword", s_sign_cons, 1},
 
-  { "relax", s_relax, 0},
+  /* Control linker-relaxation for nanoMIPS */
+  { "linkrelax", s_relax, 0},
 
   { NULL, NULL, 0 },
 };
@@ -2684,6 +2685,17 @@ install_insn (const struct mips_cl_insn *insn)
   mips_record_compressed_mode ();
 }
 
+static void
+toggle_linkrelax (fragS *frag, long where)
+{
+  mips_linkrelax_p = !mips_linkrelax_p;
+  toggle_linkrelax_p = FALSE;
+  fix_new (frag, where, 0, &abs_symbol, 0, FALSE,
+	   (mips_linkrelax_p
+	    ? BFD_RELOC_MICROMIPS_RELAX
+	    : BFD_RELOC_MICROMIPS_NORELAX));
+}
+
 /* Move INSN to offset WHERE in FRAG.  Adjust the fixups accordingly
    and install the opcode in the new location.  */
 
@@ -2694,6 +2706,10 @@ move_insn (struct mips_cl_insn *insn, fragS *frag, long where)
 
   insn->frag = frag;
   insn->where = where;
+
+  if (toggle_linkrelax_p)
+    toggle_linkrelax (frag, where);
+
   for (i = 0; i < ARRAY_SIZE (insn->fixp); i++)
     if (insn->fixp[i] != NULL)
       {
@@ -5035,6 +5051,9 @@ mips_move_labels (struct insn_label_list *labels, bfd_boolean text_p)
 {
   struct insn_label_list *l;
   valueT val;
+
+  if (toggle_linkrelax_p)
+    toggle_linkrelax (frag_now, frag_now_fix ());
 
   for (l = labels; l != NULL; l = l->next)
     {
@@ -9693,7 +9712,8 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	    ip->fixp[i]->fx_tcbit = 1;
 	  }
 
-      if (forced_insn_length == 4 || forced_insn_length == 2)
+      if (mips_linkrelax_p
+	  && (forced_insn_length == 4 || forced_insn_length == 2))
 	{
 	  symbolS *sym;
 	  char sname[30];
@@ -9709,24 +9729,10 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	      symbol_table_insert (sym);
 	    }
 
-	  fix_new (ip->frag, ip->where, 0, sym, 0,
-		   FALSE,
+	  fix_new (ip->frag, ip->where, 0, sym, 0, FALSE,
 		   forced_insn_length == 2 ? BFD_RELOC_MICROMIPS_INSN16
 					   : BFD_RELOC_MICROMIPS_INSN32);
 	}
-    }
-
-  if (mips_set_norelax != 0)
-    {
-      mips_set_norelax = 0;
-      fix_new (ip->frag, ip->where, 0, &abs_symbol, 0, FALSE,
-	       BFD_RELOC_MICROMIPS_NORELAX);
-    }
-  else if (mips_set_relax != 0)
-    {
-      mips_set_relax = 0;
-      fix_new (ip->frag, ip->where, 0, &abs_symbol, 0, FALSE,
-	       BFD_RELOC_MICROMIPS_RELAX);
     }
 
   install_insn (ip);
@@ -20681,6 +20687,73 @@ get_symbol (void)
   return p;
 }
 
+/* Create R_MICROMIPS_ALIGN to record the alignment request.  Value of the
+   absolute symbol gives alignment requested.  The relocation is created at
+   the start of padding bytes.  Create R_MICROMIPS_FILL and R_MICROMIPS_MAX
+   to record fill value and maximum alignment respectively.  */
+
+static void
+create_align_relocs (fragS *fragp, int align_to, unsigned int fill_value,
+			  int fill_length, int max_fill)
+{
+  static int symidx = 1;
+  symbolS *sym;
+  char sname[30];
+  fixS *fixp;
+  int where;
+
+  if (fragp == frag_now)
+    where = frag_now_fix ();
+  else
+    where = fragp->fr_fix;
+
+  /* The '\2' ensures that no other symbol will get the
+     same name as this.  */
+  sprintf (sname, "__reloc_align_\2_%d", symidx++);
+  sym = symbol_find (sname);
+  sym = symbol_new (sname, absolute_section, align_to, &zero_address_frag);
+  symbol_table_insert (sym);
+
+  fixp = fix_new (fragp, where, 0, sym, 0, FALSE,
+		  BFD_RELOC_MICROMIPS_ALIGN);
+  if (fragp->tc_frag_data == NULL)
+    fragp->tc_frag_data = fixp;
+
+  /* Generate fill reloc.  Default fill value is micromips nop32.  */
+  if (fill_length)
+    {
+      sprintf (sname, "__reloc_fill_\2_%x", fill_value);
+      sym = symbol_find (sname);
+      if (sym == NULL)
+	{
+	  sym = symbol_new (sname, absolute_section, fill_value,
+			    &zero_address_frag);
+	  symbol_table_insert (sym);
+	  elf_symbol (symbol_get_bfdsym (sym))->internal_elf_sym.st_size
+	    = fill_length;
+	}
+
+      fix_new (fragp, where, 0, sym, 0, FALSE,
+	       BFD_RELOC_MICROMIPS_FILL);
+    }
+
+  /* Generate max reloc.  */
+  if (max_fill != 0)
+    {
+      sprintf (sname, "__reloc_max_\2_%x", max_fill);
+      sym = symbol_find (sname);
+      if (sym == NULL)
+	{
+	  sym = symbol_new (sname, absolute_section, max_fill,
+			    &zero_address_frag);
+	  symbol_table_insert (sym);
+	}
+
+      fix_new (fragp, where, 0, sym, 0, FALSE,
+	       BFD_RELOC_MICROMIPS_MAX);
+    }
+}
+
 /* Align the current frag to a given power of two.  If a particular
    fill byte should be used, FILL points to an integer that contains
    that byte, otherwise FILL is null.
@@ -20745,6 +20818,23 @@ s_align (int x ATTRIBUTE_UNUSED)
     {
       segment_info_type *si = seg_info (now_seg);
       struct insn_label_list *l = si->label_list;
+
+      if (mips_linkrelax_p
+	  && (bfd_get_section_flags (stdoutput, now_seg) & SEC_CODE) != 0)
+	{
+	  int fill_length = 0;
+
+	  if (fill_ptr == NULL && subseg_text_p (now_seg))
+	    frag_grow (MAX_MEM_FOR_RS_ALIGN_CODE);
+	  else
+	    {
+	      fill_length = 1;
+	      frag_grow (1);
+	    }
+
+	  create_align_relocs (frag_now, temp, fill_value, fill_length, 0);
+	}
+
       /* Auto alignment should be switched on by next section change.  */
       auto_align = 1;
       mips_align (temp, fill_ptr, l);
@@ -21303,10 +21393,10 @@ s_mipsset (int x ATTRIBUTE_UNUSED)
 	  free (s);
 	}
     }
-  else if (strcmp (name, "norelax") == 0)
-    mips_set_norelax = 1;
-  else if (strcmp (name, "relax") == 0)
-    mips_set_relax = 1;
+  else if (strcmp (name, "nolinkrelax") == 0)
+    toggle_linkrelax_p = (linkrelax && mips_linkrelax_p);
+  else if (strcmp (name, "linkrelax") == 0)
+    toggle_linkrelax_p = (linkrelax && !mips_linkrelax_p);
   else if (!parse_code_option (name))
     as_warn (_("tried to set unrecognized symbol: %s\n"), name);
 
@@ -24212,8 +24302,8 @@ mips_elf_final_processing (void)
       && file_mips_opts.oddspreg)
     flags.flags1 |= AFL_FLAGS1_ODDSPREG;
   flags.flags2 = 0;
-  if (mips_opts.relax == TRUE)
-    flags.flags2 |= AFL_FLAGS2_RELAX;
+  if (linkrelax == TRUE)
+    flags.flags2 |= AFL_FLAGS2_LINKRELAX;
 
   bfd_mips_elf_swap_abiflags_v0_out (stdoutput, &flags,
 				     ((Elf_External_ABIFlags_v0 *)
@@ -24343,77 +24433,26 @@ mips_handle_align (fragS *fragp)
   int bytes, size, excess;
   valueT opcode;
   bfd_boolean compressed = FALSE;
-  static int symidx = 1;
 
-  /* Create R_MICROMIPS_ALIGN to record the alignment request.  Value of the
-     absolute symbol gives alignment requested.  The relocation is created at
-     the start of padding bytes.  Create R_MICROMIPS_FILL and R_MICROMIPS_MAX
-     to record fill value and maximum alignment respectively.  */
-  if (mips_opts.micromips && ((fragp->fr_address + fragp->fr_fix) > 0)
-      && fragp->fr_offset && (now_seg->flags & SEC_CODE) != 0)
+  bytes = fragp->fr_next->fr_address - fragp->fr_address - fragp->fr_fix;
+
+  /* tc_frag_data points to the ALIGN relocation for this frag.
+     Update the size of the absolute alignment symbol to match
+     the actual padding inserted at this alignment point. */
+  if (fragp->tc_frag_data != NULL)
     {
-      symbolS *sym;
-      char sname[30];
-      bfd_vma pc_val, new_pc_val, mask;
+      fixS *fixp = fragp->tc_frag_data;
+      asymbol *sym;
 
-      /* The '\2' ensures that no other symbol will get the
-	 same name as this.  */
-      sprintf (sname, "__reloc_align_\2_%d", symidx++);
-      sym = symbol_find (sname);
-      sym = symbol_new (sname, absolute_section, fragp->fr_offset,
-			&zero_address_frag);
-      symbol_table_insert (sym);
-
-      mask = ~((bfd_vma) ~0 << fragp->fr_offset);
-      pc_val = fragp->fr_address + fragp->fr_fix;
-      new_pc_val = (pc_val + mask) & (~mask);
-      excess = new_pc_val - pc_val;
-      elf_symbol (symbol_get_bfdsym (sym))->internal_elf_sym.st_size = excess;
-      fix_new (fragp, fragp->fr_fix, 0, sym, 0, FALSE,
-	       BFD_RELOC_MICROMIPS_ALIGN);
-
-      if (fragp->fr_type == rs_align)
+      while (fixp != NULL && fixp->fx_frag == fragp)
 	{
-	  int i;
-	  unsigned int fill = 0;
-
-	  /* Find the fill value.  */
-	  p = fragp->fr_literal + fragp->fr_fix;
-	  for (i = fragp->fr_var - 1; i >= 0; i--)
-	    fill = (fill << 8) | (unsigned char) p[i];
-
-	  /* Generate fill reloc.  Default fill value is micromips nop32.  */
-	  if (fill != NOP_OPCODE_MICROMIPS)
+	  if (fixp->fx_r_type == BFD_RELOC_MICROMIPS_ALIGN)
 	    {
-	      sprintf (sname, "__reloc_fill_\2_%x", fill);
-	      sym = symbol_find (sname);
-	      if (sym == NULL)
-		{
-		  sym = symbol_new (sname, absolute_section, fill,
-				    &zero_address_frag);
-		  elf_symbol (symbol_get_bfdsym (sym))
-			->internal_elf_sym.st_size = fragp->fr_var;
-		  symbol_table_insert (sym);
-		}
-	      fix_new (fragp, fragp->fr_fix, 0, sym, 0, FALSE,
-		       BFD_RELOC_MICROMIPS_FILL);
+	      sym = symbol_get_bfdsym (fixp->fx_addsy);
+	      elf_symbol (sym)->internal_elf_sym.st_size = bytes;
+	      break;
 	    }
-
-	  /* Genetate max reloc.  */
-	  if (fragp->fr_subtype != 0)
-	    {
-	      sprintf (sname, "__reloc_max_\2_%x", fragp->fr_subtype);
-	      sym = symbol_find (sname);
-	      if (sym == NULL)
-		{
-		  sym = symbol_new (sname, absolute_section,
-				    fragp->fr_subtype,
-				    &zero_address_frag);
-		  symbol_table_insert (sym);
-		}
-	      fix_new (fragp, fragp->fr_fix, 0, sym, 0, FALSE,
-		       BFD_RELOC_MICROMIPS_MAX);
-	    }
+	  fixp = fixp->fx_next;
 	}
     }
 
@@ -24445,7 +24484,6 @@ mips_handle_align (fragS *fragp)
       break;
     }
 
-  bytes = fragp->fr_next->fr_address - fragp->fr_address - fragp->fr_fix;
   excess = bytes % size;
 
   /* Handle the leading part if we're not inserting a whole number of
@@ -24584,7 +24622,8 @@ s_mips_loc (int x ATTRIBUTE_UNUSED)
 static void
 s_relax (int x ATTRIBUTE_UNUSED)
 {
-  mips_opts.relax = TRUE;
+  linkrelax = TRUE;
+  mips_linkrelax_p = TRUE;
 }
 
 /* The .end directive.  */
@@ -25409,7 +25448,6 @@ md_mips_end (void)
       stubgroup_wane ();
     }
 
-
   /* Just in case no code was emitted, do the consistency check.  */
   file_mips_check_options ();
 
@@ -25494,6 +25532,7 @@ mips_parse_cons_expression (expressionS *exp,
      touches code, so we skip relocations for those expressions and hope
      that this will not break any valid case.  */
   if (HAVE_PABI
+      && linkrelax
       && exp->X_op != O_constant
       && (exp->X_op != O_subtract
 	  || ((S_GET_SEGMENT (exp->X_add_symbol))->flags & SEC_CODE) != 0
@@ -25752,7 +25791,7 @@ mips_allow_local_subtract (expressionS * left,
     return TRUE;
 
   /* Only supported for p32/p64 ABIs.  */
-  if (!HAVE_PABI)
+  if (!HAVE_PABI || !linkrelax)
     return TRUE;
 
   /* Check for intervening fixups between symbols within the same frag to
@@ -25820,5 +25859,28 @@ mips_copy_symbol_attributes (symbolS *dest, symbolS *src)
 	  && S_IS_VOLATILE (dest)
 	  && !S_IS_VOLATILE (src))
 	S_SET_OTHER (dest, ELF_ST_SET_MICROMIPS (S_GET_OTHER (dest)));
+    }
+}
+
+/* Create relocations for alignment directives.  */
+void
+mips_md_do_align (int n, const char *fill, int fill_length, int max_fill)
+{
+  unsigned int fill_value = 0;
+  int i;
+
+  if (mips_linkrelax_p
+      && (bfd_get_section_flags (stdoutput, now_seg) & SEC_CODE) != 0)
+    {
+      fill_value = bfd_get_bits (fill, fill_length * 8, target_big_endian);
+
+      if (fill == NULL && subseg_text_p (now_seg))
+	frag_grow (MAX_MEM_FOR_RS_ALIGN_CODE);
+      else if (fill_length > 1)
+	frag_grow (fill_length);
+      else
+	frag_grow (1);
+
+      create_align_relocs (frag_now, n, fill_value, fill_length, max_fill);
     }
 }
