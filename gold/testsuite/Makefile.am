@@ -3997,7 +3997,7 @@ umipsr7_b_out_of_range: umipsr7_b_out_of_range.o ../ld-new
 	../ld-new --section-start .text=0x1000 --section-start .foo=0x2001020 -o $@ $<
 
 umipsr7_b_out_of_range.o: umipsr7_b_out_of_range.s
-	$(TEST_AS) -EL -mips32r7 -mmicromips -mabi=32 -o $@ $<
+	$(TEST_AS) -EL -mnanomips -mabi=p32 -o $@ $<
 
 umipsr7_bci_out_of_range.stdout: umipsr7_bci_out_of_range
 	$(TEST_OBJDUMP) -d $< > $@
@@ -4006,7 +4006,7 @@ umipsr7_bci_out_of_range: umipsr7_bci_out_of_range.o ../ld-new
 	../ld-new --section-start .text=0x1000 --section-start .foo=0x3020 -o $@ $<
 
 umipsr7_bci_out_of_range.o: umipsr7_bci_out_of_range.s
-	$(TEST_AS) -EL -mips32r7 -mmicromips -mabi=32 -o $@ $<
+	$(TEST_AS) -EL -mnanomips -mabi=p32 -o $@ $<
 
 umipsr7_move_balc_1_out_of_range.stdout: umipsr7_move_balc_1_out_of_range
 	$(TEST_OBJDUMP) -d $< > $@
@@ -4021,7 +4021,7 @@ umipsr7_move_balc_2_out_of_range: umipsr7_move_balc_out_of_range.o ../ld-new
 	../ld-new --section-start .text=0x1000 --section-start .foo=0x2001020 -o $@ $<
 
 umipsr7_move_balc_out_of_range.o: umipsr7_move_balc_out_of_range.s
-	$(TEST_AS) -EL -mips32r7 -mmicromips -mabi=32 -o $@ $<
+	$(TEST_AS) -EL -mnanomips -mabi=p32 -o $@ $<
 
 MOSTLYCLEANFILES += umipsr7_b_out_of_range  umipsr7_bci_out_of_range \
 		    umipsr7_move_balc_1_out_of_range umipsr7_move_balc_2_out_of_range
@@ -4038,7 +4038,7 @@ umipsr7_gprel_out_of_range: umipsr7_gprel_out_of_range.o ../ld-new
 	../ld-new -T $(srcdir)/umipsr7_gprel_out_of_range.t -o $@ $<
 
 umipsr7_gprel_out_of_range.o: umipsr7_gprel_out_of_range.s
-	$(TEST_AS) -EL -mips32r7 -mmicromips -mabi=32 -o $@ $<
+	$(TEST_AS) -EL -mnanomips -mabi=p32 -o $@ $<
 
 MOSTLYCLEANFILES += umipsr7_gprel_out_of_range
 
@@ -4053,7 +4053,7 @@ umipsr7_script_test: umipsr7_script_test.o ../ld-new
 	../ld-new -T $(srcdir)/umipsr7_script_test.t -o $@ $<
 
 umipsr7_script_test.o: umipsr7_script_test.s
-	$(TEST_AS) -EL -mips32r7 -mmicromips -mabi=32 -o $@ $<
+	$(TEST_AS) -EL -mnanomips -mabi=p32 -o $@ $<
 
 MOSTLYCLEANFILES += umipsr7_script_test
 
