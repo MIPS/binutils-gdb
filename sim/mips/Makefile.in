@@ -117,6 +117,7 @@ MICROMIPS32_DC=$(srcdir)/micromips.dc
 MICROMIPS16_DC=$(srcdir)/micromips16.dc
 IGEN_INCLUDE=\
 	$(srcdir)/micromipsdsp.igen \
+	$(srcdir)/nanomipsdsp.igen \
 	$(srcdir)/micromips.igen \
 	$(srcdir)/micromipsr6.igen \
 	$(srcdir)/nanomipsr6.igen \

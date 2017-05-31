@@ -13798,7 +13798,7 @@ case "${target}" in
   nanomips*-img-elf*)
 			sim_gen=MULTI
 			sim_multi_configs="\
-			  nanor6sim:nanomips64r6:mips64r6:32,64,f:mipsisa64r7,mipsisa32r7:EF_MIPS_ARCH_ASE_MICROMIPS
+			  nanor6sim:nanomips64r6,nanomipsdsp:mips64r6:32,64,f:mipsisa64r7,mipsisa32r7:EF_MIPS_ARCH_ASE_MICROMIPS
 			  r6sim:mips64r6::32,64,f:mipsisa64r6,mipsisa32r6:"
 			sim_multi_default=mipsisa64r7
 			;;

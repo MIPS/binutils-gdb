@@ -44,6 +44,7 @@
 *micromips64:
 *micromips32r6:
 *micromips64r6:
+*nanomipsdsp:
 {
   instruction_word delay_insn;
   sim_events_slip (SD, 1);

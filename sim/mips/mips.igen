@@ -79,6 +79,7 @@
 :model:::micromips32:micromips64:	// micromips.igen
 :model:::micromips64:micromips64:	// micromips.igen
 :model:::micromipsdsp:micromipsdsp:	// micromipsdsp.igen
+:model:::nanomipsdsp:nanomipsdsp:	// nanompsdsp.igen
 :model:::micromips32r6:micromips32r6:	// micromipsr6.igen
 :model:::micromips64r6:micromips64r6:	// micromipsr6.igen
 :model:::nanomips32r6:nanomips32r6: // nanomipsr6.igen
@@ -427,6 +428,7 @@
 *r3900:
 *micromips32:
 *micromips64:
+*nanomipsdsp:
 {
   signed64 time = sim_events_time (SD);
   history->mt.timestamp = time;
@@ -457,6 +459,7 @@
 *r3900:
 *micromips32:
 *micromips64:
+*nanomipsdsp:
 {
   signed64 time = sim_events_time (SD);
   int ok = 1;
@@ -534,6 +537,7 @@
 *r3900:
 *micromips32:
 *micromips64:
+*nanomipsdsp:
 {
   /* FIXME: could record the fact that a stall occured if we want */
   signed64 time = sim_events_time (SD);
@@ -986,6 +990,7 @@
 *mips64r2:
 *dsp2:
 *micromipsdsp:
+*nanomipsdsp:
 {
   signed64 temp;
   if (ac == 0)
@@ -1026,6 +1031,7 @@
 *mips64r2:
 *dsp2:
 *micromipsdsp:
+*nanomipsdsp:
 {
   unsigned64 temp;
   if (ac == 0)
@@ -1048,6 +1054,7 @@
 *mips64r2:
 *dsp:
 *micromipsdsp:
+*nanomipsdsp:
 {
   if (ac == 0)
     do_mfhi (SD_, rd);
@@ -1060,6 +1067,7 @@
 *mips64r2:
 *dsp:
 *micromipsdsp:
+*nanomipsdsp:
 {
   if (ac == 0)
     do_mflo (SD_, rd);
@@ -1108,6 +1116,7 @@
 *mips32r2:
 *mips64r2:
 *micromipsdsp:
+*nanomipsdsp:
 {
   signed64 temp;
   if (ac == 0)
@@ -1147,6 +1156,7 @@
 *mips64r2:
 *dsp2:
 *micromipsdsp:
+*nanomipsdsp:
 {
   unsigned64 temp;
   if (ac == 0)
@@ -1185,6 +1195,7 @@
 *mips64r2:
 *dsp:
 *micromipsdsp:
+*nanomipsdsp:
 {
   if (ac == 0)
     check_mt_hilo (SD_, HIHISTORY);
@@ -1214,6 +1225,7 @@
 *mips64r2:
 *dsp:
 *micromipsdsp:
+*nanomipsdsp:
 {
   if (ac == 0)
     check_mt_hilo (SD_, LOHISTORY);
@@ -1237,6 +1249,7 @@
 *mips64r2:
 *dsp2:
 *micromipsdsp:
+*nanomipsdsp:
 {
   signed64 prod;
   if (ac == 0)
@@ -1260,6 +1273,7 @@
 *mips64r2:
 *dsp2:
 *micromipsdsp:
+*nanomipsdsp:
 {
   unsigned64 prod;
   if (ac == 0)
@@ -3978,6 +3992,7 @@
 *micromips32:
 *micromips64:
 *micromipsdsp:
+*nanomipsdsp:
 {
   check_mf_hilo (SD_, HIHISTORY, LOHISTORY);
   TRACE_ALU_INPUT1 (HI);
@@ -4030,6 +4045,7 @@
 *micromips32:
 *micromips64:
 *micromipsdsp:
+*nanomipsdsp:
 {
   check_mf_hilo (SD_, LOHISTORY, HIHISTORY);
   TRACE_ALU_INPUT1 (LO);
@@ -7204,5 +7220,6 @@
 :include:::smartmips.igen
 :include:::micromips.igen
 :include:::micromipsdsp.igen
+:include:::nanomipsdsp.igen
 :include:::micromipsr6.igen
 :include:::nanomipsr6.igen
