@@ -1660,6 +1660,7 @@ enum options
     OPTION_NO_BALC_STUBS,
     OPTION_LEGACY_REGS,
     OPTION_NO_LEGACY_REGS,
+    OPTION_LINKRELAX,
     OPTION_END_OF_ENUM
   };
 
@@ -1788,6 +1789,7 @@ struct option md_longopts[] =
   {"mno-balc-stubs", no_argument, NULL, OPTION_NO_BALC_STUBS},
   {"mlegacyregs", no_argument, NULL, OPTION_LEGACY_REGS},
   {"mno-legacyregs", no_argument, NULL, OPTION_NO_LEGACY_REGS},
+  {"linkrelax", no_argument, NULL, OPTION_LINKRELAX},
 
   /* Strictly speaking this next option is ELF specific,
      but we allow it for other ports as well in order to
@@ -19699,6 +19701,10 @@ md_parse_option (int c, char *arg)
       file_mips_opts.legacyregs = FALSE;
       break;
 
+    case OPTION_LINKRELAX:
+      s_relax (0);
+      break;
+
     case OPTION_SINGLE_FLOAT:
       file_mips_opts.single_float = 1;
       break;
@@ -19906,6 +19912,9 @@ mips_after_parse_args (void)
 
   if (mips_flag_mdebug < 0)
     mips_flag_mdebug = 0;
+
+  if (linkrelax && !file_mips_opts.nanomips && !file_mips_opts.micromips)
+    as_bad ("linker relaxation is only available on microMIPS/nanoMIPS R6");
 }
 
 void
@@ -25867,7 +25876,6 @@ void
 mips_md_do_align (int n, const char *fill, int fill_length, int max_fill)
 {
   unsigned int fill_value = 0;
-  int i;
 
   if (mips_linkrelax_p
       && (bfd_get_section_flags (stdoutput, now_seg) & SEC_CODE) != 0)
