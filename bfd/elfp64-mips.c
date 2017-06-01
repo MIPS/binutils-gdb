@@ -1,8 +1,6 @@
-/* MIPS-specific support for 64-bit R7 ELF
-   Copyright (C) 1996-2014 Free Software Foundation, Inc.
-   Ian Lance Taylor, Cygnus Support
-   Linker support added by Mark Mitchell, CodeSourcery, LLC.
-   <mark@codesourcery.com>
+  /* nanoMIPS-specific support for 64-bit ELF
+   Copyright (C) 2017 Free Software Foundation, Inc.
+   Contributed by Imagination Technologies Ltd.
 
    This file is part of BFD, the Binary File Descriptor library.
 
@@ -21,25 +19,16 @@
    Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
    MA 02110-1301, USA.  */
 
+/* This file handles nanoMIPS ELF64 targets.  */
+
 #include "sysdep.h"
 #include "bfd.h"
 #include "libbfd.h"
-#include "aout/ar.h"
 #include "bfdlink.h"
-#include "genlink.h"
 #include "elf-bfd.h"
 #include "elfxx-mips.h"
 #include "elf/mips.h"
 #include "elf/nanomips.h"
-
-static reloc_howto_type *bfd_elf64_bfd_reloc_type_lookup
-  (bfd *, bfd_reloc_code_real_type);
-static reloc_howto_type *mips_elf64_rtype_to_howto
-  (unsigned int, bfd_boolean);
-static bfd_boolean mips_elf_p64_object_p
-  (bfd *);
-static irix_compat_t elf64_mips_irix_compat
-  (bfd *);
 
 /* Nonzero if ABFD is using the P64 ABI.  */
 #define ABI_P64_P(abfd) \
@@ -50,7 +39,7 @@ static irix_compat_t elf64_mips_irix_compat
 #define MINUS_ONE	(((bfd_vma)0) - 1)
 
 /* The number of local .got entries we reserve.  */
-#define MIPS_RESERVED_GOTNO (2)
+#define NANOMIPS_RESERVED_GOTNO (2)
 
 
 /* The relocation table used for SHT_RELA sections.  */
@@ -58,15 +47,15 @@ static irix_compat_t elf64_mips_irix_compat
 static reloc_howto_type mips_elf64_howto_table_rela[] =
 {
   /* No relocation.  */
-  HOWTO (R_NANOMIPS_NONE,		/* type */
+  HOWTO (R_NANOMIPS_NONE,	/* type */
 	 0,			/* rightshift */
 	 0,			/* size (0 = byte, 1 = short, 2 = long) */
 	 0,			/* bitsize */
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
 	 complain_overflow_dont, /* complain_on_overflow */
-	 _bfd_mips_elf_generic_reloc,	/* special_function */
-	 "R_NANOMIPS_NONE",		/* name */
+	 _bfd_mips_elf_generic_reloc, /* special_function */
+	 "R_NANOMIPS_NONE",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 0,			/* dst_mask */
@@ -80,7 +69,7 @@ static reloc_howto_type mips_elf64_howto_table_rela[] =
 	 0,			/* bitpos */
 	 complain_overflow_signed, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc, /* special_function */
-	 "R_NANOMIPS_16",		/* name */
+	 "R_NANOMIPS_16",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 0xffff,		/* dst_mask */
@@ -94,7 +83,7 @@ static reloc_howto_type mips_elf64_howto_table_rela[] =
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
 	 complain_overflow_dont, /* complain_on_overflow */
-	 _bfd_mips_elf_generic_reloc,	/* special_function */
+	 _bfd_mips_elf_generic_reloc, /* special_function */
 	 "R_NANOMIPS_32",		/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
@@ -126,7 +115,7 @@ static reloc_howto_type mips_elf64_howto_table_rela[] =
 	 0,			/* bitpos */
 	 complain_overflow_dont, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc,	/* special_function */
-	 "R_NANOMIPS_64",		/* name */
+	 "R_NANOMIPS_64",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 MINUS_ONE,		/* dst_mask */
@@ -139,7 +128,7 @@ static reloc_howto_type mips_elf64_howto_table_rela[] =
   EMPTY_HOWTO (23),
 
   /* 64 bit subtraction.  */
-  HOWTO (R_NANOMIPS_SUB,		/* type */
+  HOWTO (R_NANOMIPS_SUB,	/* type */
 	 0,			/* rightshift */
 	 4,			/* size (0 = byte, 1 = short, 2 = long) */
 	 64,			/* bitsize */
@@ -147,7 +136,7 @@ static reloc_howto_type mips_elf64_howto_table_rela[] =
 	 0,			/* bitpos */
 	 complain_overflow_dont, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc, /* special_function */
-	 "R_NANOMIPS_SUB",		/* name */
+	 "R_NANOMIPS_SUB",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 MINUS_ONE,		/* dst_mask */
@@ -238,7 +227,7 @@ static reloc_howto_type mips_elf64_howto_table_rela[] =
   EMPTY_HOWTO (64),
   EMPTY_HOWTO (65),
 
-    /* A 5 bit shift field.  */
+  /* A 5 bit shift field.  */
   HOWTO (R_NANOMIPS_ASHIFTR_1,	/* type */
 	 0,			/* rightshift */
 	 4,			/* size (0 = byte, 1 = short, 2 = long) */
@@ -247,7 +236,7 @@ static reloc_howto_type mips_elf64_howto_table_rela[] =
 	 0,			/* bitpos */
 	 complain_overflow_dont, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc, /* special_function */
-	 "R_NANOMIPS_ASHIFTR_1",	/* name */
+	 "R_NANOMIPS_ASHIFTR_1", /* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 MINUS_ONE,		/* dst_mask */
@@ -261,13 +250,14 @@ static reloc_howto_type mips_elf64_howto_table_rela[] =
 	 0,			/* bitpos */
 	 complain_overflow_unsigned, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc, /* special_function */
-	 "R_NANOMIPS_UNSIGNED_8",	/* name */
+	 "R_NANOMIPS_UNSIGNED_8", /* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 0xff,			/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-  HOWTO (R_NANOMIPS_UNSIGNED_16,	/* type */
+
+  HOWTO (R_NANOMIPS_UNSIGNED_16, /* type */
 	 0,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 16,			/* bitsize */
@@ -275,7 +265,7 @@ static reloc_howto_type mips_elf64_howto_table_rela[] =
 	 0,			/* bitpos */
 	 complain_overflow_unsigned, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc, /* special_function */
-	 "R_NANOMIPS_UNSIGNED_16",	/* name */
+	 "R_NANOMIPS_UNSIGNED_16", /* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 0xffff,		/* dst_mask */
@@ -303,7 +293,7 @@ static reloc_howto_type mips_elf64_howto_table_rela[] =
 	 0,			/* bitpos */
 	 complain_overflow_signed, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc, /* special_function */
-	 "R_NANOMIPS_SIGNED_16",	/* name */
+	 "R_NANOMIPS_SIGNED_16", /* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 0xffff,		/* dst_mask */
@@ -564,17 +554,17 @@ static reloc_howto_type nanomips_elf64_howto_table_rela[] =
 
   /* Reference to literal section.  */
   HOWTO (R_NANOMIPS_LITERAL,	/* type */
-	 0,			/* rightshift */
+	 2,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
-	 14,			/* bitsize */
+	 19,			/* bitsize */
 	 FALSE,			/* pc_relative */
-	 0,			/* bitpos */
+	 2,			/* bitpos */
 	 complain_overflow_signed, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc, /* special_function */
 	 "R_NANOMIPS_LITERAL",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0x0,			/* src_mask */
-	 0x00003fff,		/* dst_mask */
+	 0x001ffffc,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
   /* 19 bit call through global offset table.  */
@@ -701,7 +691,7 @@ static reloc_howto_type nanomips_elf64_howto_table_rela[] =
   /* Refers to low 32-bits of 48-bit instruction. The 32-bit value
      is encoded as nanoMIPS instruction stream - so it will be
      half-word swapped on little endian targets.  */
-  HOWTO (R_NANOMIPS_I32,		/* type */
+  HOWTO (R_NANOMIPS_I32,	/* type */
 	 0,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 32,			/* bitsize */
@@ -717,7 +707,7 @@ static reloc_howto_type nanomips_elf64_howto_table_rela[] =
 
   /* High 32 bits of 64-bit address.  */
   HOWTO (R_NANOMIPS_HI32,	/* type */
-	 2,			/* rightshift */
+	 0,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 32,			/* bitsize */
 	 FALSE,			/* pc_relative */
@@ -732,7 +722,7 @@ static reloc_howto_type nanomips_elf64_howto_table_rela[] =
 
   /* High 20 bits of GP relative reference.  */
   HOWTO (R_NANOMIPS_GPREL_HI20,	/* type */
-	 12,			/* rightshift */
+	 0,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 20,			/* bitsize */
 	 FALSE,			/* pc_relative */
@@ -760,7 +750,7 @@ static reloc_howto_type nanomips_elf64_howto_table_rela[] =
 	 0x00000fff,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-    /* TLS general dynamic variable reference.  */
+  /* TLS general dynamic variable reference.  */
   HOWTO (R_NANOMIPS_TLS_GD,	/* type */
 	 2,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
@@ -791,7 +781,7 @@ static reloc_howto_type nanomips_elf64_howto_table_rela[] =
 	 FALSE),		/* pcrel_offset */
 
   /* TLS local dynamic offset.  */
-  HOWTO (R_NANOMIPS_TLS_DTPREL_HI20,	/* type */
+  HOWTO (R_NANOMIPS_TLS_DTPREL_HI20, /* type */
 	 12,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 20,			/* bitsize */
@@ -920,7 +910,6 @@ static reloc_howto_type nanomips_elf64_howto_table_rela[] =
 	 FALSE),		/* pcrel_offset */
 };
 
-
 /* GNU extension to record C++ vtable hierarchy */
 static reloc_howto_type elf_mips_gnu_vtinherit_howto =
   HOWTO (R_NANOMIPS_GNU_VTINHERIT, /* type */
@@ -952,9 +941,27 @@ static reloc_howto_type elf_mips_gnu_vtentry_howto =
 	 0,			/* src_mask */
 	 0,			/* dst_mask */
 	 FALSE);		/* pcrel_offset */
-
 
-/* Originally a VxWorks extension, but now used for other systems too.  */
+/* 32 bit pc-relative.  This was a GNU extension used by embedded-PIC.
+   It was co-opted by mips-linux for exception-handling data.  It is no
+   longer used, but should continue to be supported by the linker for
+   backward compatibility.  (GCC stopped using it in May, 2004.)  */
+static reloc_howto_type elf_mips_gnu_pcrel32 =
+  HOWTO (R_MIPS_PC32,		/* type */
+	 0,			/* rightshift */
+	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 32,			/* bitsize */
+	 TRUE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_signed, /* complain_on_overflow */
+	 _bfd_mips_elf_generic_reloc, /* special_function */
+	 "R_MIPS_PC32",		/* name */
+	 TRUE,			/* partial_inplace */
+	 0xffffffff,		/* src_mask */
+	 0xffffffff,		/* dst_mask */
+	 TRUE);			/* pcrel_offset */
+
+/* Lazy resolver jump slot.  */
 static reloc_howto_type elf_mips_jump_slot_howto =
   HOWTO (R_NANOMIPS_JUMP_SLOT,	/* type */
 	 0,			/* rightshift */
@@ -986,7 +993,6 @@ static reloc_howto_type elf_mips_eh_howto =
 	 0xffffffff,	        /* dst_mask */
 	 FALSE);		/* pcrel_offset */
 
-
 /* A mapping from BFD reloc types to MIPS ELF reloc types.  */
 
 struct elf_reloc_map {
@@ -1066,7 +1072,7 @@ static const struct elf_reloc_map nanomips_reloc_map[] =
     R_NANOMIPS_CALL_LO12 - R_NANOMIPS_min },
   { BFD_RELOC_NANOMIPS_LITERAL,
     R_NANOMIPS_LITERAL - R_NANOMIPS_min },
-  { BFD_RELOC_NANOMIPS_32,
+  { BFD_RELOC_NANOMIPS_I32,
     R_NANOMIPS_I32 - R_NANOMIPS_min },
   { BFD_RELOC_NANOMIPS_GPREL_HI20,
     R_NANOMIPS_GPREL_HI20 - R_NANOMIPS_min },
@@ -1090,6 +1096,7 @@ static const struct elf_reloc_map nanomips_reloc_map[] =
   { BFD_RELOC_NANOMIPS_GPREL17_S1,
     R_NANOMIPS_GPREL17_S1 - R_NANOMIPS_min },
 };
+
 /* Given a BFD reloc type, return a howto structure.  */
 
 static reloc_howto_type *
@@ -1097,8 +1104,6 @@ bfd_elf64_bfd_reloc_type_lookup (bfd *abfd ATTRIBUTE_UNUSED,
 				 bfd_reloc_code_real_type code)
 {
   unsigned int i;
-  /* FIXME: We default to RELA here instead of choosing the right
-     relocation variant.  */
   reloc_howto_type *howto_table = mips_elf64_howto_table_rela;
   reloc_howto_type *howto_nanomips_table = nanomips_elf64_howto_table_rela;
 
@@ -1126,6 +1131,8 @@ bfd_elf64_bfd_reloc_type_lookup (bfd *abfd ATTRIBUTE_UNUSED,
       return &elf_mips_eh_howto;
     case BFD_RELOC_MIPS_JUMP_SLOT:
       return &elf_mips_jump_slot_howto;
+    case BFD_RELOC_32_PCREL:
+      return &elf_mips_gnu_pcrel32;
     default:
       bfd_set_error (bfd_error_bad_value);
       return NULL;
@@ -1139,11 +1146,11 @@ bfd_elf64_bfd_reloc_name_lookup (bfd *abfd ATTRIBUTE_UNUSED,
   unsigned int i;
 
   for (i = 0;
-       i < (sizeof (mips_elf64_howto_table_rela)
-	    / sizeof (mips_elf64_howto_table_rela[0])); i++)
-    if (mips_elf64_howto_table_rela[i].name != NULL
-	&& strcasecmp (mips_elf64_howto_table_rela[i].name, r_name) == 0)
-      return &mips_elf64_howto_table_rela[i];
+       i < (sizeof (nanomips_elf64_howto_table_rela)
+	    / sizeof (nanomips_elf64_howto_table_rela[0])); i++)
+    if (nanomips_elf64_howto_table_rela[i].name != NULL
+	&& strcasecmp (nanomips_elf64_howto_table_rela[i].name, r_name) == 0)
+      return &nanomips_elf64_howto_table_rela[i];
 
   for (i = 0;
        i < (sizeof (nanomips_elf64_howto_table_rela)
@@ -1157,10 +1164,10 @@ bfd_elf64_bfd_reloc_name_lookup (bfd *abfd ATTRIBUTE_UNUSED,
     return &elf_mips_gnu_vtinherit_howto;
   if (strcasecmp (elf_mips_gnu_vtentry_howto.name, r_name) == 0)
     return &elf_mips_gnu_vtentry_howto;
-  if (strcasecmp (elf_mips_eh_howto.name, r_name) == 0)
-    return &elf_mips_eh_howto;
   if (strcasecmp (elf_mips_jump_slot_howto.name, r_name) == 0)
     return &elf_mips_jump_slot_howto;
+  if (strcasecmp (elf_mips_eh_howto.name, r_name) == 0)
+    return &elf_mips_eh_howto;
 
   return NULL;
 }
@@ -1168,7 +1175,8 @@ bfd_elf64_bfd_reloc_name_lookup (bfd *abfd ATTRIBUTE_UNUSED,
 /* Given a MIPS Elf_Internal_Rel, fill in an arelent structure.  */
 
 static reloc_howto_type *
-mips_elf64_rtype_to_howto (unsigned int r_type, bfd_boolean rela_p)
+nanomips_elf64_rtype_to_howto (unsigned int r_type,
+			   bfd_boolean rela_p ATTRIBUTE_UNUSED)
 {
   switch (r_type)
     {
@@ -1176,24 +1184,24 @@ mips_elf64_rtype_to_howto (unsigned int r_type, bfd_boolean rela_p)
       return &elf_mips_gnu_vtinherit_howto;
     case R_NANOMIPS_GNU_VTENTRY:
       return &elf_mips_gnu_vtentry_howto;
-    case R_NANOMIPS_EH:
-      return &elf_mips_eh_howto;
     case R_NANOMIPS_JUMP_SLOT:
       return &elf_mips_jump_slot_howto;
+    case R_NANOMIPS_EH:
+      return &elf_mips_eh_howto;
+    case R_MIPS_PC32:
+      return &elf_mips_gnu_pcrel32;
     default:
-      BFD_ASSERT (rela_p);
       if (r_type >= R_NANOMIPS_min && r_type < R_NANOMIPS_max)
 	return &nanomips_elf64_howto_table_rela[r_type - R_NANOMIPS_min];
       else
-	return &mips_elf64_howto_table_rela[r_type];
+	return &nanomips_elf64_howto_table_rela[r_type];
     }
 }
-
 
 /* Given a MIPS Elf_Internal_Rela, fill in an arelent structure.  */
 
 static void
-mips_info_to_howto_rela (bfd *abfd, arelent *cache_ptr, Elf_Internal_Rela *dst)
+nanomips_info_to_howto_rela (bfd *abfd, arelent *cache_ptr, Elf_Internal_Rela *dst)
 {
   const struct elf_backend_data *bed;
   unsigned int r_type;
@@ -1206,19 +1214,11 @@ mips_info_to_howto_rela (bfd *abfd, arelent *cache_ptr, Elf_Internal_Rela *dst)
   /* If we ever need to do any extra processing with dst->r_addend
      (the field omitted in an Elf_Internal_Rel) we can do it here.  */
 }
-
-static void
-mips_info_to_howto_rel (bfd *abfd ATTRIBUTE_UNUSED,
-			arelent *cache_ptr ATTRIBUTE_UNUSED,
-			Elf_Internal_Rela *dst ATTRIBUTE_UNUSED)
-{
-  BFD_ASSERT (0);
-}
 
 /* Set the right machine number for a MIPS ELF file.  */
 
 static bfd_boolean
-mips_elf_p64_object_p (bfd *abfd)
+nanomips_elf_p64_object_p (bfd *abfd)
 {
   unsigned long mach;
 
@@ -1233,7 +1233,7 @@ mips_elf_p64_object_p (bfd *abfd)
 /* Depending on the target vector we generate some version of Irix
    executables or "normal" MIPS ELF ABI executables.  */
 static irix_compat_t
-elf64_mips_irix_compat (bfd *abfd ATTRIBUTE_UNUSED)
+nanomips_irix_compat (bfd *abfd ATTRIBUTE_UNUSED)
 {
   return ict_none;
 }
@@ -1247,9 +1247,8 @@ elf64_mips_irix_compat (bfd *abfd ATTRIBUTE_UNUSED)
 #define elf_backend_can_gc_sections	TRUE
 #define elf_backend_gc_mark_extra_sections \
 					_bfd_mips_elf_gc_mark_extra_sections
-#define elf_info_to_howto		mips_info_to_howto_rela
-#define elf_info_to_howto_rel		mips_info_to_howto_rel
-#define elf_backend_object_p		mips_elf_p64_object_p
+#define elf_info_to_howto		nanomips_info_to_howto_rela
+#define elf_backend_object_p		nanomips_elf_p64_object_p
 #define elf_backend_symbol_processing	_bfd_mips_elf_symbol_processing
 #define elf_backend_section_processing	_bfd_mips_elf_section_processing
 #define elf_backend_section_from_shdr	_bfd_mips_elf_section_from_shdr
@@ -1286,29 +1285,25 @@ elf64_mips_irix_compat (bfd *abfd ATTRIBUTE_UNUSED)
 #define elf_backend_gc_sweep_hook	_bfd_mips_elf_gc_sweep_hook
 #define elf_backend_copy_indirect_symbol \
 					_bfd_mips_elf_copy_indirect_symbol
-#define elf_backend_ignore_discarded_relocs \
-					_bfd_mips_elf_ignore_discarded_relocs
-#define elf_backend_mips_irix_compat	elf64_mips_irix_compat
-#define elf_backend_mips_rtype_to_howto	mips_elf64_rtype_to_howto
 
-#define elf_backend_got_header_size	(8 * MIPS_RESERVED_GOTNO)
+#define elf_backend_got_header_size	(8 * NANOMIPS_RESERVED_GOTNO)
 
 /* MIPS ELF64 can use a mixture of REL and RELA, but some Relocations
    work better/work only in RELA, so we default to this.  */
 #define elf_backend_may_use_rel_p	0
 #define elf_backend_may_use_rela_p	1
 #define elf_backend_default_use_rela_p	1
+#define elf_backend_sign_extend_vma	TRUE
 #define elf_backend_rela_plts_and_copies_p 0
 #define elf_backend_plt_readonly	1
 #define elf_backend_plt_sym_val		_bfd_mips_elf_plt_sym_val
 
-#define elf_backend_sign_extend_vma	TRUE
 
+#define elf_backend_ignore_discarded_relocs \
+					_bfd_mips_elf_ignore_discarded_relocs
 #define elf_backend_write_section	_bfd_mips_elf_write_section
-
-/* We don't set bfd_elf64_bfd_is_local_label_name because the 32-bit
-   MIPS-specific function only applies to IRIX5, which had no 64-bit
-   ABI.  */
+#define elf_backend_mips_irix_compat	nanomips_irix_compat
+#define elf_backend_mips_rtype_to_howto	nanomips_elf64_rtype_to_howto
 #define bfd_elf64_bfd_is_target_special_symbol \
 					_bfd_mips_elf_is_target_special_symbol
 #define bfd_elf64_find_nearest_line	_bfd_mips_elf_find_nearest_line
@@ -1328,7 +1323,6 @@ elf64_mips_irix_compat (bfd *abfd ATTRIBUTE_UNUSED)
 
 #define bfd_elf64_bfd_relax_section     _bfd_mips_relax_section
 #define bfd_elf64_mkobject		_bfd_mips_elf_mkobject
-
 
 #define ELF_MAXPAGESIZE			0x10000
 #define ELF_COMMONPAGESIZE		0x1000

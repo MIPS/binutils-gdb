@@ -4667,7 +4667,7 @@ nanomips_reloc_p (bfd_reloc_code_real_type reloc)
       case BFD_RELOC_NANOMIPS_GOT_DISP:
       case BFD_RELOC_NANOMIPS_IMM16:
       case BFD_RELOC_NANOMIPS_NEG12:
-      case BFD_RELOC_NANOMIPS_32:
+      case BFD_RELOC_NANOMIPS_I32:
       case BFD_RELOC_NANOMIPS_HI32:
       case BFD_RELOC_NANOMIPS_TLS_GD:
       case BFD_RELOC_NANOMIPS_TLS_LDM:
@@ -4690,7 +4690,7 @@ nanomips_reloc_p (bfd_reloc_code_real_type reloc)
 static inline bfd_boolean
 nanomips_48bit_reloc_p (bfd_reloc_code_real_type reloc)
 {
-  return (reloc == BFD_RELOC_NANOMIPS_32
+  return (reloc == BFD_RELOC_NANOMIPS_I32
 	  || reloc == BFD_RELOC_NANOMIPS_HI32
 	  || reloc == BFD_RELOC_NANOMIPS_PC32
 	  || reloc == BFD_RELOC_NANOMIPS_GPREL32);
@@ -5934,7 +5934,7 @@ match_int_word (struct mips_arg_info *arg,
 	return FALSE;
 
       if (offset_reloc[0] == BFD_RELOC_UNUSED)
-	offset_reloc[0] = BFD_RELOC_NANOMIPS_32;
+	offset_reloc[0] = BFD_RELOC_NANOMIPS_I32;
 
       /* We don't match symbol-difference expressions here.  */
       if (offset_expr.X_op != O_constant && offset_expr.X_op_symbol == NULL)
@@ -9107,7 +9107,7 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	  ip->complete_p = 1;
 	  break;
 
-	case BFD_RELOC_NANOMIPS_32:
+	case BFD_RELOC_NANOMIPS_I32:
 	case BFD_RELOC_NANOMIPS_GPREL32:
 	  ip->insn_opcode_ext = (((address_expr->X_add_number >> 16) & 0xffff)
 				 | (address_expr->X_add_number << 16));
@@ -10317,7 +10317,7 @@ match_nanomips_insn (struct mips_cl_insn *insn,
 
 		case 'Q':
 		case 'R':
-		  *offset_reloc = BFD_RELOC_NANOMIPS_32;
+		  *offset_reloc = BFD_RELOC_NANOMIPS_I32;
 		  break;
 
 		case 'S':
@@ -11690,7 +11690,7 @@ load_register (int reg, expressionS *ep, int dbl)
 		  && (ep->X_add_number & 0xfff) != 0
 		  && (*offset_reloc == BFD_RELOC_UNUSED
 		      || pcrel_reloc_p (*offset_reloc)))
-		macro_build (ep, "li", "mp,+Q", reg, BFD_RELOC_NANOMIPS_32);
+		macro_build (ep, "li", "mp,+Q", reg, BFD_RELOC_NANOMIPS_I32);
 	      else
 		{
 		  /* 32 bit values require an lui.  */
@@ -12021,7 +12021,7 @@ load_address (int reg, expressionS *ep, int *used_at)
 	      relax_switch ();
 	    }
 	  if ((mips_opts.ase & ASE_XLP) != 0)
-	      macro_build (ep, "li", "mp,+Q", reg, BFD_RELOC_NANOMIPS_32);
+	      macro_build (ep, "li", "mp,+Q", reg, BFD_RELOC_NANOMIPS_I32);
 	  else
 	    {
 	      macro_build_lui (ep, reg);
@@ -16715,7 +16715,7 @@ nanomips_macro_ldd_std (const char *s, const char *fmt, unsigned int op[],
 	{
 	  if ((mips_opts.ase & ASE_XLP) != 0)
 	    macro_build (&offset_expr, "li", "mp,+Q", AT,
-			 BFD_RELOC_NANOMIPS_32);
+			 BFD_RELOC_NANOMIPS_I32);
 	  else
 	    {
 	      macro_build_lui (&offset_expr, AT);
@@ -16913,7 +16913,7 @@ nanomips_macro_la (unsigned int op[], unsigned int breg, int *used_at)
 	  if ((mips_opts.ase & ASE_XLP) != 0
 	      && *offset_reloc == BFD_RELOC_UNUSED)
 	    macro_build (&offset_expr, "li", "mp,+Q", tempreg,
-			 BFD_RELOC_NANOMIPS_32);
+			 BFD_RELOC_NANOMIPS_I32);
 	  else
 	    {
 	      macro_build_lui (&offset_expr, tempreg);
@@ -17131,7 +17131,7 @@ nanomips_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	       && op[0] == op[1])
 	{
 	  macro_build (&imm_expr, s, "mp,mt,+R", op[0], op[0],
-		       BFD_RELOC_NANOMIPS_32);
+		       BFD_RELOC_NANOMIPS_I32);
 	  break;
 	}
     do_addi_i:
@@ -18192,7 +18192,7 @@ nanomips_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	{
 	  imm_expr.X_add_number = - imm_expr.X_add_number;
 	  macro_build (&imm_expr, s, "mp,mt,+R", op[0], op[0],
-		       BFD_RELOC_NANOMIPS_32);
+		       BFD_RELOC_NANOMIPS_I32);
 	  break;
 	}
 
@@ -18933,7 +18933,7 @@ static const struct percent_op_match nanomips_percent_op[] =
   {"%pcrel_hi", BFD_RELOC_NANOMIPS_HI20_PCREL},
   {"%pcrel_lo", BFD_RELOC_NANOMIPS_LO12_PCREL},
   {"%pcrel", BFD_RELOC_NANOMIPS_PC32},
-  {"%lo32", BFD_RELOC_NANOMIPS_32},
+  {"%lo32", BFD_RELOC_NANOMIPS_I32},
   {"%hi32", BFD_RELOC_NANOMIPS_HI32},
   /* These are currently not supported for nanoMIPS.  */
   {"%got_hi", BFD_RELOC_UNUSED},
@@ -20070,7 +20070,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
   gas_assert (HAVE_PABI
 	      || fixP->fx_size == 2
 	      || fixP->fx_size == 4
-	      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_32
+	      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_I32
 	      || fixP->fx_r_type == BFD_RELOC_8
 	      || fixP->fx_r_type == BFD_RELOC_16
 	      || fixP->fx_r_type == BFD_RELOC_64
@@ -20350,7 +20350,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       write_reloc_insn (buf, fixP->fx_r_type, insn);
       break;
 
-    case BFD_RELOC_NANOMIPS_32:
+    case BFD_RELOC_NANOMIPS_I32:
     case BFD_RELOC_NANOMIPS_HI32:
     case BFD_RELOC_NANOMIPS_GPREL32:
       if (fixP->fx_done)

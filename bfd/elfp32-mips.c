@@ -1,12 +1,7 @@
-/* MIPS-specific support for 32-bit ELF
-   Copyright (C) 1993-2014 Free Software Foundation, Inc.
 
-   Most of the information added by Ian Lance Taylor, Cygnus Support,
-   <ian@cygnus.com>.
-   N32/64 ABI support added by Mark Mitchell, CodeSourcery, LLC.
-   <mark@codesourcery.com>
-   Traditional MIPS targets support added by Koundinya.K, Dansk Data
-   Elektronik & Operations Research Group. <kk@ddeorg.soft.net>
+/* nanoMIPS-specific support for 32-bit ELF
+   Copyright (C) 2017 Free Software Foundation, Inc.
+   Contributed by Imagination Technologies Ltd.
 
    This file is part of BFD, the Binary File Descriptor library.
 
@@ -26,43 +21,23 @@
    MA 02110-1301, USA.  */
 
 
-/* This file handles MIPS ELF targets.  SGI Irix 5 uses a slightly
-   different MIPS ELF from other targets.  This matters when linking.
-   This file supports both, switching at runtime.  */
+/* This file handles nanoMIPS ELF targets.  */
 
 #include "sysdep.h"
 #include "bfd.h"
 #include "libbfd.h"
 #include "bfdlink.h"
-#include "genlink.h"
 #include "elf-bfd.h"
 #include "elfxx-mips.h"
 #include "elf/mips.h"
 #include "elf/nanomips.h"
-
-static reloc_howto_type *bfd_elf32_bfd_reloc_type_lookup
-  (bfd *, bfd_reloc_code_real_type);
-static reloc_howto_type *mips_elf32_rtype_to_howto
-  (unsigned int, bfd_boolean);
-static void mips_info_to_howto_rel
-  (bfd *, arelent *, Elf_Internal_Rela *);
-static void mips_info_to_howto_rela
-  (bfd *, arelent *, Elf_Internal_Rela *);
-static bfd_boolean mips_elf_sym_is_global
-  (bfd *, asymbol *);
-static bfd_boolean mips_elf_p32_object_p
-  (bfd *);
-static bfd_boolean mips_elf_is_local_label_name
-  (bfd *, const char *);
-static bfd_boolean mips_elf_assign_gp
-  (bfd *, bfd_vma *);
 
 /* Nonzero if ABFD is using the P32 ABI.  */
 #define ABI_P32_P(abfd) \
   ((elf_elfheader (abfd)->e_flags & E_NANOMIPS_ABI_P32) == E_NANOMIPS_ABI_P32)
 
 /* The number of local .got entries we reserve.  */
-#define MIPS_RESERVED_GOTNO (2)
+#define NANOMIPS_RESERVED_GOTNO (2)
 
 /* In case we're on a 32-bit machine, construct a 64-bit "-1" value
    from smaller values.  Start with zero, widen, *then* decrement.  */
@@ -230,7 +205,7 @@ static reloc_howto_type elf_mips_howto_table_rela[] =
 	 complain_overflow_dont, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc, /* special_function */
 	 "R_NANOMIPS_TLS_TPREL32", /* name */
-	 TRUE,			/* partial_inplace */
+	 FALSE,			/* partial_inplace */
 	 0xffffffff,		/* src_mask */
 	 0xffffffff,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
@@ -392,7 +367,7 @@ static reloc_howto_type elf_nanomips_howto_table_rela[] =
 
   EMPTY_HOWTO (187), /* was PCHI20_M12 */
 
-  HOWTO (R_NANOMIPS_PCHI20, /* type */
+  HOWTO (R_NANOMIPS_PCHI20,	/* type */
 	 12,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 20,			/* bitsize */
@@ -406,7 +381,7 @@ static reloc_howto_type elf_nanomips_howto_table_rela[] =
 	 0x001ffffd,		/* dst_mask */
 	 TRUE),			/* pcrel_offset */
 
-  HOWTO (R_NANOMIPS_PCLO12, /* type */
+  HOWTO (R_NANOMIPS_PCLO12,	/* type */
 	 0,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 12,			/* bitsize */
@@ -414,7 +389,7 @@ static reloc_howto_type elf_nanomips_howto_table_rela[] =
 	 0,			/* bitpos */
 	 complain_overflow_dont, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc, /* special_function */
-	 "R_NANOMIPS_PCLO12", /* name */
+	 "R_NANOMIPS_PCLO12",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 0x00000fff,		/* dst_mask */
@@ -429,7 +404,7 @@ static reloc_howto_type elf_nanomips_howto_table_rela[] =
 	 0,			/* bitpos */
 	 complain_overflow_unsigned, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc, /* special_function */
-	 "R_NANOMIPS_GPREL7_S2",	/* name */
+	 "R_NANOMIPS_GPREL7_S2", /* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 0x0000007f,		/* dst_mask */
@@ -610,7 +585,7 @@ static reloc_howto_type elf_nanomips_howto_table_rela[] =
 	 FALSE),		/* pcrel_offset */
 
   /* Displacement in the global offset table.  */
-  HOWTO (R_NANOMIPS_GOT_DISP, /* type */
+  HOWTO (R_NANOMIPS_GOT_DISP,	/* type */
 	 2,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 19,			/* bitsize */
@@ -633,7 +608,7 @@ static reloc_howto_type elf_nanomips_howto_table_rela[] =
 	 0,			/* bitpos */
 	 complain_overflow_unsigned, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc, /* special_function */
-	 "R_NANOMIPS_GOT_PAGE"	, /* name */
+	 "R_NANOMIPS_GOT_PAGE", /* name */
 	 FALSE,			/* partial_inplace */
 	 0x0,			/* src_mask */
 	 0x001ffffc,		/* dst_mask */
@@ -686,7 +661,7 @@ static reloc_howto_type elf_nanomips_howto_table_rela[] =
 	 TRUE),			/* pcrel_offset */
 
   /* High 20 bits of displacement in global offset table.  */
-  HOWTO (R_NANOMIPS_CALL_HI20, /* type */
+  HOWTO (R_NANOMIPS_CALL_HI20,	/* type */
 	 12,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 20,			/* bitsize */
@@ -701,7 +676,7 @@ static reloc_howto_type elf_nanomips_howto_table_rela[] =
 	 TRUE),			/* pcrel_offset */
 
   /* Low 12 bits of displacement in global offset table.  */
-  HOWTO (R_NANOMIPS_CALL_LO12, /* type */
+  HOWTO (R_NANOMIPS_CALL_LO12,	/* type */
 	 0,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 12,			/* bitsize */
@@ -969,7 +944,26 @@ static reloc_howto_type elf_mips_gnu_vtentry_howto =
 	 0,			/* dst_mask */
 	 FALSE);		/* pcrel_offset */
 
-/* Originally a VxWorks extension, but now used for other systems too.  */
+/* 32 bit pc-relative.  This was a GNU extension used by embedded-PIC.
+   It was co-opted by mips-linux for exception-handling data.  It is no
+   longer used, but should continue to be supported by the linker for
+   backward compatibility.  (GCC stopped using it in May, 2004.)  */
+static reloc_howto_type elf_mips_gnu_pcrel32 =
+  HOWTO (R_MIPS_PC32,		/* type */
+	 0,			/* rightshift */
+	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 32,			/* bitsize */
+	 TRUE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_signed, /* complain_on_overflow */
+	 _bfd_mips_elf_generic_reloc, /* special_function */
+	 "R_MIPS_PC32",		/* name */
+	 TRUE,			/* partial_inplace */
+	 0xffffffff,		/* src_mask */
+	 0xffffffff,		/* dst_mask */
+	 TRUE);			/* pcrel_offset */
+
+/* Lazy resolver jump slot.  */
 static reloc_howto_type elf_mips_jump_slot_howto =
   HOWTO (R_NANOMIPS_JUMP_SLOT,	/* type */
 	 0,			/* rightshift */
@@ -1080,7 +1074,7 @@ static const struct elf_reloc_map nanomips_reloc_map[] =
     R_NANOMIPS_CALL_LO12 - R_NANOMIPS_min },
   { BFD_RELOC_NANOMIPS_LITERAL,
     R_NANOMIPS_LITERAL - R_NANOMIPS_min },
-  { BFD_RELOC_NANOMIPS_32,
+  { BFD_RELOC_NANOMIPS_I32,
     R_NANOMIPS_I32 - R_NANOMIPS_min },
   { BFD_RELOC_NANOMIPS_GPREL_HI20,
     R_NANOMIPS_GPREL_HI20 - R_NANOMIPS_min },
@@ -1149,6 +1143,8 @@ bfd_elf32_bfd_reloc_type_lookup (bfd *abfd ATTRIBUTE_UNUSED,
       return &elf_mips_jump_slot_howto;
     case BFD_RELOC_MIPS_EH:
       return &elf_mips_eh_howto;
+    case BFD_RELOC_32_PCREL:
+      return &elf_mips_gnu_pcrel32;
     }
 }
 
@@ -1189,7 +1185,7 @@ bfd_elf32_bfd_reloc_name_lookup (bfd *abfd ATTRIBUTE_UNUSED,
 /* Given a MIPS Elf_Internal_Rel, fill in an arelent structure.  */
 
 static reloc_howto_type *
-mips_elf32_rtype_to_howto (unsigned int r_type,
+nanomips_elf32_rtype_to_howto (unsigned int r_type,
 			   bfd_boolean rela_p ATTRIBUTE_UNUSED)
 {
   switch (r_type)
@@ -1202,6 +1198,8 @@ mips_elf32_rtype_to_howto (unsigned int r_type,
       return &elf_mips_jump_slot_howto;
     case R_NANOMIPS_EH:
       return &elf_mips_eh_howto;
+    case R_MIPS_PC32:
+      return &elf_mips_gnu_pcrel32;
     default:
       if (r_type >= R_NANOMIPS_min && r_type < R_NANOMIPS_max)
 	return &elf_nanomips_howto_table_rela[r_type - R_NANOMIPS_min];
@@ -1210,31 +1208,11 @@ mips_elf32_rtype_to_howto (unsigned int r_type,
     }
 }
 
-/* Given a MIPS Elf_Internal_Rel, fill in an arelent structure.  */
-
-static void
-mips_info_to_howto_rel (bfd *abfd, arelent *cache_ptr, Elf_Internal_Rela *dst)
-{
-  const struct elf_backend_data *bed;
-  unsigned int r_type;
-
-  r_type = ELF32_R_TYPE (dst->r_info);
-  bed = get_elf_backend_data (abfd);
-  cache_ptr->howto = bed->elf_backend_mips_rtype_to_howto (r_type, FALSE);
-
-  /* The addend for a GPREL16 or LITERAL relocation comes from the GP
-     value for the object file.  We get the addend now, rather than
-     when we do the relocation, because the symbol manipulations done
-     by the linker may cause us to lose track of the input BFD.  */
-  if (((*cache_ptr->sym_ptr_ptr)->flags & BSF_SECTION_SYM) != 0
-      && (gprel16_reloc_p (r_type) || literal_reloc_p (r_type)))
-    cache_ptr->addend = elf_gp (abfd);
-}
-
 /* Given a MIPS Elf_Internal_Rela, fill in an arelent structure.  */
 
 static void
-mips_info_to_howto_rela (bfd *abfd, arelent *cache_ptr, Elf_Internal_Rela *dst)
+nanomips_info_to_howto_rela (bfd *abfd, arelent *cache_ptr,
+			     Elf_Internal_Rela *dst)
 {
   const struct elf_backend_data *bed;
   unsigned int r_type;
@@ -1248,24 +1226,10 @@ mips_info_to_howto_rela (bfd *abfd, arelent *cache_ptr, Elf_Internal_Rela *dst)
      (the field omitted in an Elf_Internal_Rel) we can do it here.  */
 }
 
-/* Determine whether a symbol is global for the purposes of splitting
-   the symbol table into global symbols and local symbols.  At least
-   on Irix 5, this split must be between section symbols and all other
-   symbols.  On most ELF targets the split is between static symbols
-   and externally visible symbols.  */
-
-static bfd_boolean
-mips_elf_sym_is_global (bfd *abfd ATTRIBUTE_UNUSED, asymbol *sym)
-{
-  return ((sym->flags & (BSF_GLOBAL | BSF_WEAK | BSF_GNU_UNIQUE)) != 0
-	  || bfd_is_und_section (bfd_get_section (sym))
-	  || bfd_is_com_section (bfd_get_section (sym)));
-}
-
 /* Set the right machine number for a MIPS ELF file.  */
 
 static bfd_boolean
-mips_elf_p32_object_p (bfd *abfd)
+nanomips_elf_p32_object_p (bfd *abfd)
 {
   unsigned long mach;
 
@@ -1277,23 +1241,10 @@ mips_elf_p32_object_p (bfd *abfd)
   return TRUE;
 }
 
-/* MIPS ELF local labels start with '$', not 'L'.  */
-
-static bfd_boolean
-mips_elf_is_local_label_name (bfd *abfd, const char *name)
-{
-  if (name[0] == '$')
-    return TRUE;
-
-  /* On Irix 6, the labels go back to starting with '.', so we accept
-     the generic ELF local label syntax as well.  */
-  return _bfd_elf_is_local_label_name (abfd, name);
-}
-
 /* Depending on the target vector we generate some version of Irix
    executables or "normal" MIPS ELF ABI executables.  */
 static irix_compat_t
-elf32_mips_irix_compat (bfd *abfd ATTRIBUTE_UNUSED)
+nanomips_irix_compat (bfd *abfd ATTRIBUTE_UNUSED)
 {
   return ict_none;
 }
@@ -1307,10 +1258,8 @@ elf32_mips_irix_compat (bfd *abfd ATTRIBUTE_UNUSED)
 #define elf_backend_can_gc_sections	TRUE
 #define elf_backend_gc_mark_extra_sections \
 					_bfd_mips_elf_gc_mark_extra_sections
-#define elf_info_to_howto		mips_info_to_howto_rela
-#define elf_info_to_howto_rel		mips_info_to_howto_rel
-#define elf_backend_sym_is_global	mips_elf_sym_is_global
-#define elf_backend_object_p		mips_elf_p32_object_p
+#define elf_info_to_howto		nanomips_info_to_howto_rela
+#define elf_backend_object_p		nanomips_elf_p32_object_p
 #define elf_backend_symbol_processing	_bfd_mips_elf_symbol_processing
 #define elf_backend_section_processing	_bfd_mips_elf_section_processing
 #define elf_backend_section_from_shdr	_bfd_mips_elf_section_from_shdr
@@ -1348,7 +1297,7 @@ elf32_mips_irix_compat (bfd *abfd ATTRIBUTE_UNUSED)
 #define elf_backend_copy_indirect_symbol \
 					_bfd_mips_elf_copy_indirect_symbol
 
-#define elf_backend_got_header_size	(4 * MIPS_RESERVED_GOTNO)
+#define elf_backend_got_header_size	(4 * NANOMIPS_RESERVED_GOTNO)
 #define elf_backend_may_use_rela_p	1
 #define elf_backend_default_use_rela_p	1
 #define elf_backend_sign_extend_vma	TRUE
@@ -1358,10 +1307,8 @@ elf32_mips_irix_compat (bfd *abfd ATTRIBUTE_UNUSED)
 #define elf_backend_ignore_discarded_relocs \
 					_bfd_mips_elf_ignore_discarded_relocs
 #define elf_backend_write_section	_bfd_mips_elf_write_section
-#define elf_backend_mips_irix_compat	elf32_mips_irix_compat
-#define elf_backend_mips_rtype_to_howto	mips_elf32_rtype_to_howto
-#define bfd_elf32_bfd_is_local_label_name \
-					mips_elf_is_local_label_name
+#define elf_backend_mips_irix_compat	nanomips_irix_compat
+#define elf_backend_mips_rtype_to_howto	nanomips_elf32_rtype_to_howto
 #define bfd_elf32_bfd_is_target_special_symbol \
 					_bfd_mips_elf_is_target_special_symbol
 #define bfd_elf32_get_synthetic_symtab	_bfd_mips_elf_get_synthetic_symtab
