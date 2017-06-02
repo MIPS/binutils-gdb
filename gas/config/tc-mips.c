@@ -326,7 +326,7 @@ static struct mips_set_options mips_opts =
   /* gp */ -1, /* fp */ -1, /* arch */ CPU_UNKNOWN, /* sym32 */ FALSE,
   /* soft_float */ FALSE, /* single_float */ FALSE, /* oddspreg */ -1,
   /* init_ase */ 0, /* forbidden_slots */ 0, /* no_balc_stubs */ FALSE,
-  /* nanomips */ FALSE, /* relax */, /* legacyregs */ FALSE
+  /* nanomips */ FALSE, /* relax */ FALSE, /* legacyregs */ FALSE
 };
 
 /* Which bits of file_ase were explicitly set or cleared by ASE options.  */
@@ -20095,6 +20095,12 @@ mips_frob_file (void)
     }
 }
 
+static bfd_boolean
+relaxable_section (asection *sec)
+{
+  return (sec->flags & SEC_DEBUGGING) == 0;
+}
+
 int
 mips_force_relocation (fixS *fixp)
 {
@@ -20149,6 +20155,10 @@ mips_force_relocation (fixS *fixp)
 	  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_HI20_PCREL
 	  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_LO12_PCREL
 	  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_PC32))
+    return 1;
+
+  if (linkrelax && fixp->fx_subsy
+      && relaxable_section (S_GET_SEGMENT (fixp->fx_addsy)))
     return 1;
 
   return 0;
@@ -23201,6 +23211,23 @@ tc_gen_reloc (asection *section ATTRIBUTE_UNUSED, fixS *fixp)
       retval[0] = NULL;
     }
 
+  if (linkrelax && fixp->fx_subsy)
+    {
+      reloc->howto = bfd_reloc_type_lookup (stdoutput, BFD_RELOC_MIPS_SUB);
+      retval[1] = reloc;
+
+      reloc = retval[0] = (arelent *) xcalloc (1, sizeof (arelent));
+      reloc->sym_ptr_ptr = (asymbol **) xmalloc (sizeof (asymbol *));
+      *reloc->sym_ptr_ptr = symbol_get_bfdsym (fixp->fx_subsy);
+      reloc->address = fixp->fx_frag->fr_address + fixp->fx_where;
+      reloc->howto = bfd_reloc_type_lookup (stdoutput, BFD_RELOC_32);
+
+      reloc = retval[2] = (arelent *) xcalloc (1, sizeof (arelent));
+      reloc->sym_ptr_ptr = bfd_abs_section_ptr->symbol_ptr_ptr;
+      reloc->address = fixp->fx_frag->fr_address + fixp->fx_where;
+      reloc->howto = bfd_reloc_type_lookup (stdoutput, fixp->fx_r_type);
+  }
+
   return retval;
 }
 
@@ -25891,4 +25918,30 @@ mips_md_do_align (int n, const char *fill, int fill_length, int max_fill)
 
       create_align_relocs (frag_now, n, fill_value, fill_length, max_fill);
     }
+}
+
+/* TC_VALIDATE_FIX_SUB hook */
+
+int
+mips_validate_fix_sub (fixS *fix)
+{
+  segT add_symbol_segment, sub_symbol_segment;
+
+  /* The difference of two symbols should be resolved by the assembler when
+     linkrelax is not set.  If the linker may relax the section containing
+     the symbols, then composite reloations are generated so that the
+     linker knows how to adjust the difference value.  */
+  if (!linkrelax || fix->fx_addsy == NULL)
+    return 0;
+
+  /* Make sure both symbols are in the same segment, and that segment is
+     "normal" and relaxable.  If the segment is not "normal", then the
+     fix is not valid.  If the segment is not "relaxable", then the fix
+     should have been handled earlier.  */
+  add_symbol_segment = S_GET_SEGMENT (fix->fx_addsy);
+  if (! SEG_NORMAL (add_symbol_segment) ||
+      ! relaxable_section (add_symbol_segment))
+    return 0;
+  sub_symbol_segment = S_GET_SEGMENT (fix->fx_subsy);
+  return (sub_symbol_segment == add_symbol_segment);
 }

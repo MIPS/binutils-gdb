@@ -241,4 +241,10 @@ extern void mips_md_do_align (int, const char *, int, int);
    set. Define it to zero and handle things in md_apply_fix instead.*/
 #define TC_LINKRELAX_FIXUP(SEG) 0
 
+/* This macro is evaluated for any fixup with a fx_subsy that
+   fixup_segment cannot reduce to a number.  If the macro returns
+   false an error will be reported. */
+#define TC_VALIDATE_FIX_SUB(fix, seg)   mips_validate_fix_sub (fix)
+extern int mips_validate_fix_sub (struct fix *);
+
 #endif /* TC_MIPS */
