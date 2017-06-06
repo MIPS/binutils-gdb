@@ -23213,20 +23213,16 @@ tc_gen_reloc (asection *section ATTRIBUTE_UNUSED, fixS *fixp)
 
   if (linkrelax && fixp->fx_subsy)
     {
-      reloc->howto = bfd_reloc_type_lookup (stdoutput, BFD_RELOC_MIPS_SUB);
+      reloc->howto = bfd_reloc_type_lookup (stdoutput, fixp->fx_r_type);
+      reloc->addend = 0;
       retval[1] = reloc;
 
       reloc = retval[0] = (arelent *) xcalloc (1, sizeof (arelent));
       reloc->sym_ptr_ptr = (asymbol **) xmalloc (sizeof (asymbol *));
       *reloc->sym_ptr_ptr = symbol_get_bfdsym (fixp->fx_subsy);
       reloc->address = fixp->fx_frag->fr_address + fixp->fx_where;
-      reloc->howto = bfd_reloc_type_lookup (stdoutput, BFD_RELOC_32);
-
-      reloc = retval[2] = (arelent *) xcalloc (1, sizeof (arelent));
-      reloc->sym_ptr_ptr = bfd_abs_section_ptr->symbol_ptr_ptr;
-      reloc->address = fixp->fx_frag->fr_address + fixp->fx_where;
-      reloc->howto = bfd_reloc_type_lookup (stdoutput, fixp->fx_r_type);
-  }
+      reloc->howto = bfd_reloc_type_lookup (stdoutput, BFD_RELOC_MIPS_SUB);
+    }
 
   return retval;
 }
@@ -25567,7 +25563,7 @@ mips_parse_cons_expression (expressionS *exp,
      frags.  These wouldn't be affected by linker relaxation which only
      touches code, so we skip relocations for those expressions and hope
      that this will not break any valid case.  */
-  if (HAVE_PABI
+  if (mips_opts.nanomips
       && linkrelax
       && exp->X_op != O_constant
       && (exp->X_op != O_subtract
@@ -25673,20 +25669,20 @@ mips_cons_fix_new (fragS *frag,
 					    : BFD_RELOC_32);
       expressionS *iter = exp;
 
-      if (iter->X_op == O_symbol)
-	{
-	  /* Use the cons reloc directly for simple symbol reference.  */
-	  sym_reloc = r;
-	  comp_p = FALSE;
-	}
+      /* Provisionally fill the outer-most entry.  */
+      rentry[numrelocs].sym = NULL;
+      rentry[numrelocs].addend = 0;
+      rentry[numrelocs].reloc = r;
+
+      /* Dealing with composite relocation.  */
+      comp_p = (iter->X_op != O_symbol);
+
+      if (iter->X_op == O_right_shift && r != sym_reloc)
+	/* Finalize the outer entry now.  */
+	numrelocs++;
       else
-	{
-	  /* Record the cons reloc at the outer-most level.  */
-	  rentry[numrelocs].sym = NULL;
-	  rentry[numrelocs].addend = 0;
-	  rentry[numrelocs++].reloc = r;
-	  comp_p = TRUE;
-	}
+	/* Defer the outer entry for further combination.  */
+	sym_reloc = r;
 
       while (iter->X_add_symbol != NULL)
 	{
@@ -25702,9 +25698,10 @@ mips_cons_fix_new (fragS *frag,
 	    case O_subtract:
 	      rentry[numrelocs].sym = iter->X_add_symbol;
 	      rentry[numrelocs].addend = 0;
-	      rentry[numrelocs++].reloc = BFD_RELOC_MIPS_SUB;
+	      rentry[numrelocs++].reloc = sym_reloc;
 	      rentry[numrelocs].sym = iter->X_op_symbol;
-	      rentry[numrelocs].addend = - iter->X_add_number;
+	      rentry[numrelocs].addend = iter->X_add_number;
+	      sym_reloc = BFD_RELOC_MIPS_SUB;
 	      break;
 
 	    case O_right_shift:
@@ -25726,8 +25723,7 @@ mips_cons_fix_new (fragS *frag,
 		   if it is just a simple symbol reference. This just
 		   sets things up for the last-level block below.  */
 		if (S_GET_VALUE (iter->X_op_symbol) != 0
-		    && (symbol_constant_p (iter->X_add_symbol)
-			|| symbol_equated_p (iter->X_add_symbol)))
+		    && sym_reloc != BFD_RELOC_MIPS_SUB)
 		  {
 		    sym_reloc = BFD_RELOC_MIPS_ASHIFTR_1;
 		    numrelocs--;
@@ -25737,7 +25733,11 @@ mips_cons_fix_new (fragS *frag,
 
 	    case O_symbol:
 	      rentry[numrelocs].sym = iter->X_add_symbol;
-	      rentry[numrelocs].addend = iter->X_add_number;
+	      if (sym_reloc == BFD_RELOC_MIPS_SUB)
+		/* S1 - (S2 + A) => S1 + (-S2 + -A) */
+		rentry[numrelocs].addend = -iter->X_add_number;
+	      else
+		rentry[numrelocs].addend = iter->X_add_number;
 	      break;
 
 	    default:
