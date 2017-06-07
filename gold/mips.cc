@@ -3114,8 +3114,7 @@ class Micromips_insn
   // Relax instruction.
   void
   relax(unsigned char* insn_view, unsigned char* preloc_current,
-        unsigned int r_sym,
-        typename elfcpp::Elf_types<size>::Elf_Swxword r_addend);
+        unsigned int r_sym);
 
   // Return true if we must expand instruction.
   bool
@@ -5652,7 +5651,7 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     Valtype16* wv = reinterpret_cast<Valtype16*>(view);
     Valtype16 val = elfcpp::Swap<16, big_endian>::readval(wv);
 
-    Valtype x = psymval->value(object, addend) - address;
+    Valtype x = psymval->value(object, addend) - (address + 2);
     if (should_check_overflow
         && (check_overflow<8>(x, CHECK_SIGNED) == This::STATUS_OVERFLOW))
     {
@@ -5681,7 +5680,7 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     Valtype16* wv = reinterpret_cast<Valtype16*>(view);
     Valtype16 val = elfcpp::Swap<16, big_endian>::readval(wv);
 
-    Valtype x = psymval->value(object, addend) - address;
+    Valtype x = psymval->value(object, addend) - (address + 2);
     if (should_check_overflow
         && (check_overflow<11>(x, CHECK_SIGNED) == This::STATUS_OVERFLOW))
     {
@@ -6310,7 +6309,7 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     Valtype32* wv = reinterpret_cast<Valtype32*>(view);
     Valtype32 val = elfcpp::Swap<32, big_endian>::readval(wv);
 
-    Valtype x = psymval->value(object, addend) - address;
+    Valtype x = psymval->value(object, addend) - (address + 4);
     if (should_check_overflow
         && (check_overflow<26>(x, CHECK_SIGNED) == This::STATUS_OVERFLOW))
       {
@@ -6339,7 +6338,7 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     Valtype32* wv = reinterpret_cast<Valtype32*>(view);
     Valtype32 val = elfcpp::Swap<32, big_endian>::readval(wv);
 
-    Valtype x = psymval->value(object, addend) - address;
+    Valtype x = psymval->value(object, addend) - (address + 4);
     if (should_check_overflow
         && (check_overflow<22>(x, CHECK_SIGNED) == This::STATUS_OVERFLOW))
     {
@@ -6368,7 +6367,7 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     Valtype32* wv = reinterpret_cast<Valtype32*>(view);
     Valtype32 val = elfcpp::Swap<32, big_endian>::readval(wv);
 
-    Valtype x = psymval->value(object, addend) - address;
+    Valtype x = psymval->value(object, addend) - (address + 4);
     if (should_check_overflow
         && (check_overflow<15>(x, CHECK_SIGNED) == This::STATUS_OVERFLOW))
     {
@@ -6397,7 +6396,7 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     Valtype32* wv = reinterpret_cast<Valtype32*>(view);
     Valtype32 val = elfcpp::Swap<32, big_endian>::readval(wv);
 
-    Valtype x = psymval->value(object, addend) - address;
+    Valtype x = psymval->value(object, addend) - (address + 4);
     if (should_check_overflow
         && (check_overflow<12>(x, CHECK_SIGNED) == This::STATUS_OVERFLOW))
     {
@@ -6426,7 +6425,7 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
     Valtype16* wv = reinterpret_cast<Valtype16*>(view);
     Valtype16 val = elfcpp::Swap<16, big_endian>::readval(wv);
 
-    Valtype x = psymval->value(object, addend) - address;
+    Valtype x = psymval->value(object, addend) - (address + 2);
     if (check_overflow<5>(x, CHECK_UNSIGNED) == This::STATUS_OVERFLOW)
     {
       overflow_info->value = x;
@@ -6991,7 +6990,7 @@ class Mips_relocate_functions : public Relocate_functions<size, big_endian>
                     Mips_address addend)
   {
     Valtype32* wv = reinterpret_cast<Valtype32*>(view);
-    Valtype x = psymval->value(object, addend) - address;
+    Valtype x = psymval->value(object, addend) - (address + 4);
     elfcpp::Swap<32, big_endian>::writeval(wv, x);
     return This::STATUS_OKAY;
   }
@@ -10235,8 +10234,7 @@ void
 Micromips_insn<size, big_endian>::relax(
     unsigned char* insn_view,
     unsigned char* preloc_current,
-    unsigned int r_sym,
-    typename elfcpp::Elf_types<size>::Elf_Swxword r_addend)
+    unsigned int r_sym)
 {
   gold_assert(this->new_insn_ != NULL);
   Valtype16 relax_insn = static_cast<Valtype16>(this->new_insn_->relax_opcode);
@@ -10244,16 +10242,12 @@ Micromips_insn<size, big_endian>::relax(
   unsigned int relax_r_type;
 
   if (this->r_type_ == elfcpp::R_MICROMIPS_PC25_S1)
-    {
-      relax_r_type = elfcpp::R_MICROMIPS_PC10_S1;
-      reloc_current.put_r_addend(r_addend + 2);
-    }
+    relax_r_type = elfcpp::R_MICROMIPS_PC10_S1;
   else if (this->r_type_ == elfcpp::R_MICROMIPS_PC14_S1)
     {
       relax_insn |= (((this->treg_32() & 7) << 7)
                      | ((this->sreg_32() & 7) << 4));
       relax_r_type = elfcpp::R_MICROMIPS_PC4_S1;
-      reloc_current.put_r_addend(r_addend + 2);
     }
   else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL19_S2)
     {
@@ -10299,7 +10293,6 @@ Micromips_insn<size, big_endian>::expand(
       // Change existing relocation.
       reloc_current.put_r_info(
         elfcpp::elf_r_info<size>(r_sym, elfcpp::R_MICROMIPS_PCHI20));
-      reloc_current.put_r_addend(0);
 
       // Add new relocation.
       unsigned char new_reloc[reloc_size];
@@ -10307,7 +10300,7 @@ Micromips_insn<size, big_endian>::expand(
 
       reloc_new.put_r_info(
         elfcpp::elf_r_info<size>(r_sym, elfcpp::R_MICROMIPS_LO12));
-      reloc_new.put_r_addend(0);
+      reloc_new.put_r_addend(r_addend);
       reloc_new.put_r_offset(r_offset + 4);
       pmis->add_reloc(new_reloc, reloc_size);
       *is_reloc_added = true;
@@ -10359,7 +10352,6 @@ Micromips_insn<size, big_endian>::expand(
            // Change existing relocation.
            reloc_current.put_r_info(
              elfcpp::elf_r_info<size>(r_sym, elfcpp::R_MICROMIPS_PCHI20));
-           reloc_current.put_r_addend(0);
            reloc_current.put_r_offset(r_offset + 2);
 
            // Add new relocation.
@@ -10368,7 +10360,7 @@ Micromips_insn<size, big_endian>::expand(
 
            reloc_new.put_r_info(
              elfcpp::elf_r_info<size>(r_sym, elfcpp::R_MICROMIPS_LO12));
-           reloc_new.put_r_addend(0);
+           reloc_new.put_r_addend(r_addend);
            reloc_new.put_r_offset(r_offset + 6);
            pmis->add_reloc(new_reloc, reloc_size);
            *is_reloc_added = true;
@@ -10445,17 +10437,13 @@ Micromips_insn<size, big_endian>::expand(
       unsigned int expand_r_type;
 
       if (this->r_type_ == elfcpp::R_MICROMIPS_PC10_S1)
-        {
-          expand_r_type = elfcpp::R_MICROMIPS_PC25_S1;
-          reloc_current.put_r_addend(r_addend - 2);
-        }
+        expand_r_type = elfcpp::R_MICROMIPS_PC25_S1;
       else if (this->r_type_ == elfcpp::R_MICROMIPS_PC4_S1)
         {
           unsigned int treg32 = this->reg_16_to_32(this->treg_16());
           unsigned int sreg32 = this->reg_16_to_32(this->sreg_16());
           expand_insn |= ((treg32 << 21) | (sreg32 << 16));
           expand_r_type = elfcpp::R_MICROMIPS_PC14_S1;
-          reloc_current.put_r_addend(r_addend - 2);
         }
       else if (this->r_type_ == elfcpp::R_MICROMIPS_GPREL7_S2)
         {
@@ -12998,9 +12986,13 @@ Target_mips<size, big_endian>::scan_reloc_section_for_relax_or_expand(
         case elfcpp::R_MICROMIPS_PC11_S1:
         case elfcpp::R_MICROMIPS_PC10_S1:
         case elfcpp::R_MICROMIPS_PC4_S1:
-          value =
-            psymval->value(mips_relobj, r_addend) - (view_address + offset);
-          break;
+          {
+            unsigned int insn_size = micromips_16bit_reloc(r_type) ? 2 : 4;
+            Mips_address address = view_address + offset;
+            value =
+              psymval->value(mips_relobj, r_addend) - (address + insn_size);
+            break;
+          }
         case elfcpp::R_MICROMIPS_LO12:
         case elfcpp::R_MICROMIPS_LO4_S2:
           value = psymval->value(mips_relobj, r_addend) & 0xfff;
@@ -13057,7 +13049,7 @@ Target_mips<size, big_endian>::scan_reloc_section_for_relax_or_expand(
 
           if (this->state_ == RELAX)
             {
-              insn.relax(insn_view, preloc_current, r_sym, r_addend);
+              insn.relax(insn_view, preloc_current, r_sym);
               if (is_debugging_enabled(DEBUG_TARGET))
                 insn.print_relax(mips_relobj->name(),
                                  mips_relobj->section_name(relinfo->data_shndx),

@@ -47,7 +47,7 @@ check umipsr7_b_out_of_range.stdout " 1012:	d820      	jrc	at"
 
 # Test move.balc expansion to move and balc.
 check umipsr7_move_balc_1_out_of_range.stdout " 1000:	1090      	move	a0,s0"
-check umipsr7_move_balc_1_out_of_range.stdout " 1002:	2a20 001a 	balc	201020 <foo>"
+check umipsr7_move_balc_1_out_of_range.stdout " 1002:	2a20 001a 	balc	.*"
 
 # Test move.balc expansion to move, aluipc, addiu and jalrc.
 check umipsr7_move_balc_2_out_of_range.stdout " 1000:	1090      	move	a0,s0"
@@ -57,26 +57,26 @@ check umipsr7_move_balc_2_out_of_range.stdout " 100a:	d830      	jalrc	at"
 
 # Test beqic expansion to li, beqc.
 check umipsr7_bci_out_of_range.stdout " 1000:	0020 005a 	li	at,90"
-check umipsr7_bci_out_of_range.stdout " 1004:	8824 2018 	beqc	a0,at,3020 <foo>"
+check umipsr7_bci_out_of_range.stdout " 1004:	8824 2018 	beqc	a0,at,.*"
 
 # Test bgeic expansion to li, bgec.
 check umipsr7_bci_out_of_range.stdout " 1008:	0020 0001 	li	at,1"
-check umipsr7_bci_out_of_range.stdout " 100c:	8831 a010 	bgec	s1,at,3020 <foo>"
+check umipsr7_bci_out_of_range.stdout " 100c:	8831 a010 	bgec	s1,at,.*"
 
 # Test bgeiuc expansion to li, bgeuc.
 check umipsr7_bci_out_of_range.stdout " 1010:	0020 007f 	li	at,127"
-check umipsr7_bci_out_of_range.stdout " 1014:	8823 e008 	bgeuc	v1,at,3020 <foo>"
+check umipsr7_bci_out_of_range.stdout " 1014:	8823 e008 	bgeuc	v1,at,.*"
 
 # Test bltic expansion to li, bltc.
 check umipsr7_bci_out_of_range.stdout " 1018:	0020 0004 	li	at,4"
-check umipsr7_bci_out_of_range.stdout " 101c:	a822 a000 	bltc	v0,at,3020 <foo>"
+check umipsr7_bci_out_of_range.stdout " 101c:	a822 a000 	bltc	v0,at,.*"
 
 # Test bltiuc expansion to li, bltuc.
 check umipsr7_bci_out_of_range.stdout " 1020:	0020 0006 	li	at,6"
-check umipsr7_bci_out_of_range.stdout " 1024:	a838 dff8 	bltuc	t8,at,3020 <foo>"
+check umipsr7_bci_out_of_range.stdout " 1024:	a838 dff8 	bltuc	t8,at,.*"
 
 # Test bneic expansion to li, bnec.
 check umipsr7_bci_out_of_range.stdout " 1028:	0020 0002 	li	at,2"
-check umipsr7_bci_out_of_range.stdout " 102c:	a837 1ff0 	bnec	s7,at,3020 <foo>"
+check umipsr7_bci_out_of_range.stdout " 102c:	a837 1ff0 	bnec	s7,at,.*"
 
 exit 0
