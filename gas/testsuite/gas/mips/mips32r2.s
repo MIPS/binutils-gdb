@@ -1,6 +1,6 @@
 # source file to test assembly of mips32r2 *non-fp* instructions
 
-	.ifndef r7
+	.ifndef nanomips
         .set noreorder
 	.endif
 	.set noat
@@ -50,7 +50,7 @@ text_label:
 	seh	$7
 	seh	$8, $10
 
-	.ifdef r7
+	.ifdef nanomips
 	synci	0x35($10)
 	.else
 	synci	0x5555($10)

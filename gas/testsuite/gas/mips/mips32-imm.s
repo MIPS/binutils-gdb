@@ -7,7 +7,7 @@
 text_label:
 
 	# 20 bits accepted for MIPS32
-	.ifdef r7
+	.ifdef nanomips
 	# wait operand is 10 bits for nanoMIPS
 	wait	0x367
 	.else

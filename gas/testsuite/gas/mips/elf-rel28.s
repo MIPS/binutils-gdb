@@ -2,7 +2,7 @@
 foo:
 	# Many of these do not make conceptual sense, but they should
 	# at least assemble.
-	.ifndef r7
+	.ifndef nanomips
 	ld	$4,%call_hi(bar)($4)
 	ld	$4,%call_lo(bar)($4)
 	.endif
@@ -10,13 +10,13 @@ foo:
 	ld	$4,%got_disp(bar)($4)
 	ld	$4,%got_page(bar)($4)
 	ld	$4,%got_ofst(bar)($4)
-	.ifndef r7
+	.ifndef nanomips
 	ld	$4,%got_hi(bar)($4)
 	ld	$4,%got_lo(bar)($4)
 	.endif
 	ld	$4,%got(bar)($4)
 	ld	$4,%gp_rel(bar)($4)
-	.ifndef r7_broken
+	.ifndef nanomips_broken
 	# provide replacement cases here 
 	ld	$4,%half(bar)($4)
 	ld	$4,%highest(bar)($4)
@@ -31,7 +31,7 @@ foo:
 	ld	$4,%tprel_lo(bar)($4)
 	ld	$4,%gottprel(bar)($4)
 
-	.ifndef r7
+	.ifndef nanomips
 	sd	$4,%call_hi(bar)($4)
 	sd	$4,%call_lo(bar)($4)
 	.endif
@@ -39,13 +39,13 @@ foo:
 	sd	$4,%got_disp(bar)($4)
 	sd	$4,%got_page(bar)($4)
 	sd	$4,%got_ofst(bar)($4)
-	.ifndef r7
+	.ifndef nanomips
 	sd	$4,%got_hi(bar)($4)
 	sd	$4,%got_lo(bar)($4)
 	.endif
 	sd	$4,%got(bar)($4)
 	sd	$4,%gp_rel(bar)($4)
-	.ifndef r7_broken
+	.ifndef nanomips_broken
 	# provide replacement cases here 
 	sd	$4,%half(bar)($4)
 	sd	$4,%highest(bar)($4)

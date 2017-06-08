@@ -22,7 +22,7 @@ text_label:
       pref    4, 2047($17)
       pref    4, -2048($18)
 	.endif
-	.ifndef r7
+	.ifndef nanomips
       ssnop
 	.endif
 
@@ -55,7 +55,7 @@ text_label:
       break
       break   0                       # disassembles without code
       break   0x345
-	.ifndef r7
+	.ifndef nanomips
       break   0x48,0x345              # this still specifies a 20-bit code
 	.endif
 

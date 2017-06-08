@@ -230,7 +230,7 @@ test_eva:
 	lwe	$29,2147483647
 	lwe	$30,($31)
 	lwe	$0,MYDATA
-	.ifndef r7
+	.ifndef nanomips
 	.ifndef r6
 	lwle	$2,-256($3)
 	lwle	$4,-256
@@ -462,7 +462,7 @@ test_eva:
 	swe	$30,2147483647
 	swe	$31,($0)
 	swe	$2,MYDATA
-	.ifndef r7
+	.ifndef nanomips
 	.ifndef r6
 	swle	$3,-256($4)
 	swle	$5,-256

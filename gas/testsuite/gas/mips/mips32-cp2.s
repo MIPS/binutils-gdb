@@ -20,17 +20,17 @@ text_label:
 	.endif
       # XXX other BCzCond encodings not currently expressable
       cfc2    $1, $2
-	.ifndef r7
+	.ifndef nanomips
       cop2    0x1234567               # disassembles as c2 ...
 	.endif
       ctc2    $2, $3
       mfc2    $3, $4
-	.ifndef r7
+	.ifndef nanomips
       mfc2    $4, $5, 0               # disassembles without sel
       mfc2    $5, $6, 7
 	.endif
       mtc2    $6, $7
-	.ifndef r7
+	.ifndef nanomips
       mtc2    $7, $8, 0               # disassembles without sel
       mtc2    $8, $9, 7
 	.endif

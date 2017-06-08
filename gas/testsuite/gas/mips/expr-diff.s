@@ -5,7 +5,7 @@
 	.ent foo
 foo:
 	addiu $5,$28,%gp_rel(.L5)
-	.ifdef r7
+	.ifdef nanomips
 	lwxs	$5,$4($5)
 	.else
 	sll	$2,$4,2
@@ -35,7 +35,7 @@ foo:
 	.ent foo2
 foo2:
 	addiu $5,$28,%gp_rel(.L9)
-	.ifdef r7
+	.ifdef nanomips
 	lwxs	$5,$4($5)
 	.else
 	sll	$2,$4,2

@@ -112,7 +112,7 @@ func:
 				# 0178 lw	a1,lo(F1.9)+4(at)
 	li.d	$f0, 1.0	# 017c lw	at,got(.rodata)(gp)
 				# 0180 ldc1	$f0,lo(L1.0)(at)
-	.ifndef r7_broken
+	.ifndef nanomips_broken
 	li.d	$f0, 1.9	# 0184 lw	at,got(.rodata)(gp)
 				# 0188 ldc1	$f0,lo(L1.9)(at)
 	.endif

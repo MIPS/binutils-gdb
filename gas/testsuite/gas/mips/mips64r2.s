@@ -49,11 +49,11 @@ text_label:
 	drotl	$25, $10, 4	# dror32
 	drotr	$25, $10, 4	# dror
 	drotl	$25, $10, 36	# dror
-	.ifndef r7_broken
+	.ifndef nanomips_broken
 	drotr	$25, $10, 36	# dror32
 	.endif
 	drotl	$25, $10, $4	# neg / drorv
-	.ifndef r7_broken
+	.ifndef nanomips_broken
 	drotr	$25, $10, $4	# drorv
 	.endif
 	drotr32	$25, $10, 4	# dror32

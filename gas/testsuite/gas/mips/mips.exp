@@ -517,14 +517,14 @@ mips_arch_create micromips 64	mips64r2 {} \
 mips_arch_create micromipsr6 64	mips64r6 {} \
 			{ -march=mips64r6 -mmicromips --defsym r6= --defsym compact_branches=} {}
 mips_arch_create nanomips32 32	mips32r6 \
-			{ fpisa3 fpisa4 fpisa5 ror micromips nanomips r7_broken } \
-			{ -march=mips32r7 -mnanomips --defsym r7= \
-			      --defsym r7_broken= --defsym compact_branches=} {}
+			{ fpisa3 fpisa4 fpisa5 ror micromips nanomips nanomips_broken } \
+			{ -march=mips32r7 -mnanomips --defsym nanomips= \
+			      --defsym nanomips_broken= --defsym compact_branches=} {}
 mips_arch_create nanomips64 64	mips64r6  \
-			{ nanomips32 ror micromips nanomips r7_broken   \
-			skip_n32 r7_64_broken } \
-			{ -march=mips64r7 -mnanomips --defsym r7= \
-			      --defsym r7_broken= --defsym compact_branches=} {}
+			{ nanomips32 ror micromips nanomips nanomips_broken   \
+			skip_n32 nmips64_broken } \
+			{ -march=mips64r7 -mnanomips --defsym nanomips= \
+			      --defsym nanomips_broken= --defsym compact_branches=} {}
 mips_arch_create m7001 32	{} {} { -march=m7001 -mnanomips } {}
 mips_arch_create i7001 32	{} {} { -march=i7001 -mnanomips } {}
 mips_arch_create r3000 	32	mips1	{} \
@@ -631,7 +631,7 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test "div"
 
     if { !$addr32 } {
-	run_dump_test_arches "dli"	[mips_arch_list_matching mips3 !r7_64_broken]
+	run_dump_test_arches "dli"	[mips_arch_list_matching mips3 !nmips64_broken]
     }
     run_dump_test_arches "jal"		[mips_arch_list_matching mips1]
     run_dump_test_arches "jal-mask-11"	[mips_arch_list_matching mips1 !micromipsr6 !nanomips]
@@ -680,7 +680,7 @@ if { [istarget mips*-*-vxworks*] } {
 
     run_dump_test_arches "jal-svr4pic"	[mips_arch_list_matching mips1]
     run_dump_test_arches "jal-svr4pic-noreorder" \
-					[mips_arch_list_matching mips1 !mipsr7]
+					[mips_arch_list_matching mips1]
     run_dump_test "jal-xgot"
     run_list_test_arches "jal-range" "-32" [mips_arch_list_matching mips1 !nanomips]
     if $has_newabi { run_dump_test "jal-newabi" }
@@ -699,10 +699,10 @@ if { [istarget mips*-*-vxworks*] } {
     # the interlocking in the configured default cpu.
     run_dump_test "lb-xgot"
     run_dump_test "lb-xgot-ilocks"
-    run_dump_test_arches "ld"		[mips_arch_list_matching mips1 !r7_64_broken]
-    run_dump_test_arches "ld-forward" 	[mips_arch_list_matching mips1 !r7_64_broken]
-    run_dump_test_arches "sd"		[mips_arch_list_matching mips1 !r7_64_broken]
-    run_dump_test_arches "sd-forward" 	[mips_arch_list_matching mips1 !r7_64_broken]
+    run_dump_test_arches "ld"		[mips_arch_list_matching mips1 !nmips64_broken]
+    run_dump_test_arches "ld-forward" 	[mips_arch_list_matching mips1 !nmips64_broken]
+    run_dump_test_arches "sd"		[mips_arch_list_matching mips1 !nmips64_broken]
+    run_dump_test_arches "sd-forward" 	[mips_arch_list_matching mips1 !nmips64_broken]
     run_dump_test_arches "l_d" 		[mips_arch_list_matching mips1 !singlefloat]
     run_dump_test_arches "l_d-single"	[mips_arch_list_matching mips1 singlefloat]
     run_dump_test_arches "l_d-forward"	[mips_arch_list_matching mips1 !singlefloat]
@@ -732,28 +732,28 @@ if { [istarget mips*-*-vxworks*] } {
 	run_dump_test_arches "sdc1-n32" [mips_arch_list_matching mips3 !singlefloat !skip_n32]
 	run_dump_test_arches "sdc1-forward-n32" \
 					[mips_arch_list_matching mips3 !singlefloat !skip_n32]
-	run_dump_test_arches "ld-n64"	[mips_arch_list_matching mips3 !r7_64_broken]
+	run_dump_test_arches "ld-n64"	[mips_arch_list_matching mips3 !nmips64_broken]
 	run_dump_test_arches "ld-forward-n64" \
-					[mips_arch_list_matching mips3 !r7_64_broken]
-	run_dump_test_arches "sd-n64"	[mips_arch_list_matching mips3 !r7_64_broken]
+					[mips_arch_list_matching mips3 !nmips64_broken]
+	run_dump_test_arches "sd-n64"	[mips_arch_list_matching mips3 !nmips64_broken]
 	run_dump_test_arches "sd-forward-n64" \
-					[mips_arch_list_matching mips3 !r7_64_broken]
-	run_dump_test_arches "l_d-n64"	[mips_arch_list_matching mips3 !singlefloat !r7_64_broken]
+					[mips_arch_list_matching mips3 !nmips64_broken]
+	run_dump_test_arches "l_d-n64"	[mips_arch_list_matching mips3 !singlefloat !nmips64_broken]
 	run_dump_test_arches "l_d-forward-n64" \
-					[mips_arch_list_matching mips3 !singlefloat !r7_64_broken]
-	run_dump_test_arches "s_d-n64"	[mips_arch_list_matching mips3 !singlefloat !r7_64_broken]
+					[mips_arch_list_matching mips3 !singlefloat !nmips64_broken]
+	run_dump_test_arches "s_d-n64"	[mips_arch_list_matching mips3 !singlefloat !nmips64_broken]
 	run_dump_test_arches "s_d-forward-n64" \
-					[mips_arch_list_matching mips3 !singlefloat !r7_64_broken]
-	run_dump_test_arches "ldc1-n64"	[mips_arch_list_matching mips3 !singlefloat !r7_64_broken]
+					[mips_arch_list_matching mips3 !singlefloat !nmips64_broken]
+	run_dump_test_arches "ldc1-n64"	[mips_arch_list_matching mips3 !singlefloat !nmips64_broken]
 	run_dump_test_arches "ldc1-forward-n64" \
-					[mips_arch_list_matching mips3 !singlefloat !r7_64_broken]
-	run_dump_test_arches "sdc1-n64"	[mips_arch_list_matching mips3 !singlefloat !r7_64_broken]
+					[mips_arch_list_matching mips3 !singlefloat !nmips64_broken]
+	run_dump_test_arches "sdc1-n64"	[mips_arch_list_matching mips3 !singlefloat !nmips64_broken]
 	run_dump_test_arches "sdc1-forward-n64" \
-					[mips_arch_list_matching mips3 !singlefloat !r7_64_broken]
+					[mips_arch_list_matching mips3 !singlefloat !nmips64_broken]
     }
     run_dump_test_arches "ld-zero"	[mips_arch_list_matching mips1]
     run_dump_test_arches "ld-zero-2"	[mips_arch_list_matching mips2 !nollsc]
-    run_dump_test_arches "ld-zero-3"	[mips_arch_list_matching mips3 !nollsc !r7_64_broken]
+    run_dump_test_arches "ld-zero-3"	[mips_arch_list_matching mips3 !nollsc !nmips64_broken]
     run_dump_test_arches "ld-zero-u"	[mips_arch_list_matching micromips !nanomips]
     run_dump_test_arches "ld-zero-q"	[mips_arch_list_matching r5900]
     run_dump_test "ld-svr4pic"
@@ -782,8 +782,8 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test_arches "rol"		[mips_arch_list_matching mips1 !ror]
     run_dump_test_arches "rol-hw" 	[mips_arch_list_matching ror]
 
-    run_dump_test_arches "rol64"	[mips_arch_list_matching gpr64 !ror !r7_64_broken]
-    run_dump_test_arches "rol64-hw"	[mips_arch_list_matching gpr64 ror !r7_64_broken]
+    run_dump_test_arches "rol64"	[mips_arch_list_matching gpr64 !ror !nmips64_broken]
+    run_dump_test_arches "rol64-hw"	[mips_arch_list_matching gpr64 ror !nmips64_broken]
 
     run_dump_test "sb"
     run_dump_test "trunc"
@@ -850,7 +850,7 @@ if { [istarget mips*-*-vxworks*] } {
 
     run_dump_test_arches "mips32-sf32"	[mips_arch_list_matching mips32]
     run_list_test_arches "mips32-sf32" "-32 -msoft-float" \
-					[mips_arch_list_matching mips32 !r7_broken]
+					[mips_arch_list_matching mips32 !nanomips_broken]
     run_dump_test_arches "mips32-cp2"	[mips_arch_list_matching mips32 \
 					    !octeon]
 
@@ -958,10 +958,10 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test "mips-abi32-pic2"
 
     run_dump_test "elf${el}-rel"
-    run_dump_test_arches "elf${el}-rel2" [mips_arch_list_matching gpr64 !singlefloat !r7_64_broken]
+    run_dump_test_arches "elf${el}-rel2" [mips_arch_list_matching gpr64 !singlefloat !nmips64_broken]
     run_dump_test "e32${el}-rel2"
     run_dump_test "elf${el}-rel3"
-    run_dump_test_arches "elf-rel4" [mips_arch_list_matching gpr64 !r7_64_broken]
+    run_dump_test_arches "elf-rel4" [mips_arch_list_matching gpr64 !nmips64_broken]
     run_dump_test "e32-rel4"
     run_dump_test "elf-rel5"
     run_dump_test "elf-rel6"
@@ -1016,7 +1016,7 @@ if { [istarget mips*-*-vxworks*] } {
     if $has_newabi {
 	run_dump_test "elf-rel28-n32"
 	run_dump_test "elf-rel28-n64"
-	run_dump_test_arches "elf-rel29" [mips_arch_list_matching mips3 !r7_64_broken]
+	run_dump_test_arches "elf-rel29" [mips_arch_list_matching mips3 !nmips64_broken]
     }
     run_list_test_arches "elf-rel30" "-32" [mips_arch_list_matching mips1]
 
@@ -1048,11 +1048,11 @@ if { [istarget mips*-*-vxworks*] } {
 
     # FIXMEr7 : generate & verify outputs
     run_dump_test_arches "loc-swap"	[mips_arch_list_matching mips1 \
-					    !micromipsr6 !r7_broken]
+					    !micromipsr6 !nanomips_broken]
     run_dump_test_arches "loc-swap-dis"	[mips_arch_list_matching mips1 \
-					    !micromipsr6 !r7_broken]
+					    !micromipsr6 !nanomips_broken]
     run_dump_test_arches "loc-swap-2"	[mips_arch_list_matching mips1 \
-					    !micromipsr6 !r7_broken]
+					    !micromipsr6 !nanomips_broken]
     run_dump_test_arches "loc-swap-3"	[mips_arch_list_all]
 
     run_dump_test "nan-legacy-1"
@@ -1217,13 +1217,13 @@ if { [istarget mips*-*-vxworks*] } {
 
     #FIXME: FP_S, FP_D annotations in pinfo
     run_list_test_arches "mips-macro-ill-sfp" "-32 -msingle-float" \
-					[mips_arch_list_matching mips2 !r7_broken]
+					[mips_arch_list_matching mips2 !nanomips_broken]
     run_list_test_arches "mips-macro-ill-nofp" "-32 -msoft-float" \
-					[mips_arch_list_matching mips !r7_broken]
+					[mips_arch_list_matching mips !nanomips_broken]
 
     run_list_test_arches "mips-hard-float-flag" \
 	"-32 -msoft-float -mhard-float" \
-	[mips_arch_list_matching mips1 !singlefloat !r7_broken]
+	[mips_arch_list_matching mips1 !singlefloat !nanomips_broken]
     run_list_test_arches "mips-double-float-flag" \
 	"-32 -msingle-float -mdouble-float" \
 	[mips_arch_list_matching mips1 !singlefloat]
@@ -1276,13 +1276,13 @@ if { [istarget mips*-*-vxworks*] } {
 
     run_dump_test_arches "mcu"		[mips_arch_list_matching mips32r2 \
 					    !octeon !interaptivmr2]
-    run_dump_test_arches "hilo-diff-eb"	[mips_arch_list_matching mips1 !r7_broken]
-    run_dump_test_arches "hilo-diff-el"	[mips_arch_list_matching mips1 !r7_broken]
+    run_dump_test_arches "hilo-diff-eb"	[mips_arch_list_matching mips1 !nanomips_broken]
+    run_dump_test_arches "hilo-diff-el"	[mips_arch_list_matching mips1 !nanomips_broken]
     if $has_newabi {
 	run_dump_test_arches "hilo-diff-eb-n32" [mips_arch_list_matching mips3 !nanomips]
 	run_dump_test_arches "hilo-diff-el-n32" [mips_arch_list_matching mips3 !nanomips]
-	run_dump_test_arches "hilo-diff-eb-n64" [mips_arch_list_matching mips3 !r7_64_broken]
-	run_dump_test_arches "hilo-diff-el-n64" [mips_arch_list_matching mips3 !r7_64_broken]
+	run_dump_test_arches "hilo-diff-eb-n64" [mips_arch_list_matching mips3 !nmips64_broken]
+	run_dump_test_arches "hilo-diff-el-n64" [mips_arch_list_matching mips3 !nmips64_broken]
     }
     run_dump_test_arches "lui"		[mips_arch_list_matching mips1]
     run_list_test_arches "lui-1" "-32"	[mips_arch_list_matching mips1]
@@ -1296,24 +1296,24 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test "r5900-all-vu0"
     run_list_test "r5900-error-vu0" "-march=r5900"
 
-    run_list_test_arches "ext-ill"	[mips_arch_list_matching mips64r2 !r7_64_broken]
+    run_list_test_arches "ext-ill"	[mips_arch_list_matching mips64r2 !nmips64_broken]
 
     run_list_test "ase-errors-1" "-mabi=32 -march=mips1" "ASE errors (1)"
     run_list_test "ase-errors-2" "-mabi=o64 -march=mips3" "ASE errors (2)"
     run_list_test "ase-errors-3" "-mabi=32 -march=mips1" "ASE errors (3)"
     run_list_test "ase-errors-4" "-mabi=o64 -march=mips3" "ASE errors (4)"
 
-    run_dump_test_arches "la-reloc"	[mips_arch_list_matching mips1 !r7_64_broken]
+    run_dump_test_arches "la-reloc"	[mips_arch_list_matching mips1 !nmips64_broken]
     run_list_test "dla-warn" "-mabi=32 -march=mips3" \
 			     "DLA with 32-bit addresses"
     if { $has_newabi } {
-	run_dump_test_arches "dla-reloc" [mips_arch_list_matching mips3 !r7_64_broken]
+	run_dump_test_arches "dla-reloc" [mips_arch_list_matching mips3 !nmips64_broken]
 	run_list_test "la-warn" "-mabi=64 -march=mips3" \
 				"LA with 64-bit addresses"
     }
 
     # Start with MIPS II to avoid load delay nops.
-    run_dump_test_arches "ld-reloc"	[mips_arch_list_matching mips2 !r7_64_broken]
+    run_dump_test_arches "ld-reloc"	[mips_arch_list_matching mips2 !nmips64_broken]
     run_dump_test_arches "ulw-reloc"	[mips_arch_list_matching mips2 !mips32r6]
     run_dump_test_arches "ulh-reloc"	[mips_arch_list_matching mips2 !mips32r6]
 
@@ -1581,7 +1581,7 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test_arches "la-svr4pic" "-mno-xlp" \
 				[mips_arch_list_matching nanomips]
     run_dump_test_arches "ld-svr4pic" "-mno-xlp" \
-				[mips_arch_list_matching nanomips !r7_64_broken]
+				[mips_arch_list_matching nanomips !nmips64_broken]
     run_dump_test_arches "mips-abi32" "-mno-xlp" \
 				[mips_arch_list_matching nanomips]
     run_dump_test_arches "mips-abi32-pic" "-KPIC" \

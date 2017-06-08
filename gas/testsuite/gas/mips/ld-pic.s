@@ -1,6 +1,6 @@
 # Source file used to test the ld macro with PIC code.
 
-	.ifndef r7
+	.ifndef nanomips
 	.set	mips1
 	.endif
 

@@ -8,7 +8,7 @@ foo:
 1:
 	lui	$2, 1b - 0b
 bar:
-	.ifndef r7
+	.ifndef nanomips
 	lui	$2, 2f - 1b
 2:
 	lui	$2, bar - foo

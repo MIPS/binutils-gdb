@@ -11,7 +11,7 @@ unshared:
 
 	.text
 func:
-	.ifndef r7
+	.ifndef nanomips
 	.set noreorder
 	.endif
 	li	$4, 0x12345678	# 0000 lui	a0,0x1234
