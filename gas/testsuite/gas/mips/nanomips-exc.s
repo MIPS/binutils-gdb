@@ -4,223 +4,223 @@
 	.globl	test
 test:
 	.set noat
-	movep	$4, $5, $9, $8
-	movep	$5, $6, $0, $10
-	movep	$6, $7, $5, $4
-	movep	$7, $8, $7, $6
+	movep	r4, r5, r9, r8
+	movep	r5, r6, r0, r10
+	movep	r6, r7, r5, r4
+	movep	r7, r8, r7, r6
 
-	movep	$4, $5, $16, $17
-	movep	$5, $6, $18, $19
-	movep	$6, $7, $20, $21
-	movep	$7, $8, $22, $23
+	movep	r4, r5, r16, r17
+	movep	r5, r6, r18, r19
+	movep	r6, r7, r20, r21
+	movep	r7, r8, r22, r23
 	/* movep[rev] */
-	movep	$8, $7, $4, $5
-	movep	$9, $6, $5, $6
-	movep	$10, $5, $6, $7
-	movep	$11, $4, $7, $8
+	movep	r8, r7, r4, r5
+	movep	r9, r6, r5, r6
+	movep	r10, r5, r6, r7
+	movep	r11, r4, r7, r8
 
-	movep	$16, $20, $4, $5
-	movep	$21, $17, $5, $6
-	movep	$18, $22, $6, $7
-	movep	$23, $19, $7, $8
+	movep	r16, r20, r4, r5
+	movep	r21, r17, r5, r6
+	movep	r18, r22, r6, r7
+	movep	r23, r19, r7, r8
 
-	lw	$8, 0($8)
-	lw	$9, 4($9)
-	lw	$10, 8($10)
-	lw	$11, 12($11)
+	lw	r8, 0(r8)
+	lw	r9, 4(r9)
+	lw	r10, 8(r10)
+	lw	r11, 12(r11)
 
-	lw	$8, 0($4)
-	lw	$9, 4($5)
-	lw	$10, 8($6)
-	lw	$11, 12($7)
+	lw	r8, 0(r4)
+	lw	r9, 4(r5)
+	lw	r10, 8(r6)
+	lw	r11, 12(r7)
 
-	lw	$8, 0($16)
-	lw	$9, 4($17)
-	lw	$10, 8($18)
-	lw	$11, 12($19)
+	lw	r8, 0(r16)
+	lw	r9, 4(r17)
+	lw	r10, 8(r18)
+	lw	r11, 12(r19)
 
-	lw	$8, 0($20)
-	lw	$9, 4($21)
-	lw	$10, 8($22)
-	lw	$11, 12($23)
+	lw	r8, 0(r20)
+	lw	r9, 4(r21)
+	lw	r10, 8(r22)
+	lw	r11, 12(r23)
 
-	lw	$4, 0($8)
-	lw	$5, 4($9)
-	lw	$6, 8($10)
-	lw	$7, 12($11)
+	lw	r4, 0(r8)
+	lw	r5, 4(r9)
+	lw	r6, 8(r10)
+	lw	r7, 12(r11)
 
-	sw	$16, 0($8)
-	sw	$17, 4($9)
-	sw	$18, 8($10)
-	sw	$19, 12($11)
+	sw	r16, 0(r8)
+	sw	r17, 4(r9)
+	sw	r18, 8(r10)
+	sw	r19, 12(r11)
 
-	sw	$20, 0($8)
-	sw	$21, 4($9)
-	sw	$22, 8($10)
-	sw	$23, 12($11)
+	sw	r20, 0(r8)
+	sw	r21, 4(r9)
+	sw	r22, 8(r10)
+	sw	r23, 12(r11)
 
-	sw	$20, 0($4)
-	sw	$21, 4($5)
-	sw	$22, 8($6)
-	sw	$23, 12($7)
+	sw	r20, 0(r4)
+	sw	r21, 4(r5)
+	sw	r22, 8(r6)
+	sw	r23, 12(r7)
 
-	sw	$20, 0($16)
-	sw	$21, 4($17)
-	sw	$22, 8($18)
-	sw	$23, 12($19)
+	sw	r20, 0(r16)
+	sw	r21, 4(r17)
+	sw	r22, 8(r18)
+	sw	r23, 12(r19)
 
-	sw	$20, 0($20)
-	sw	$21, 4($21)
-	sw	$22, 8($22)
-	sw	$23, 12($23)
+	sw	r20, 0(r20)
+	sw	r21, 4(r21)
+	sw	r22, 8(r22)
+	sw	r23, 12(r23)
 
-	sw	$4, 0($20)
-	sw	$5, 4($21)
-	sw	$6, 8($22)
-	sw	$7, 12($23)
+	sw	r4, 0(r20)
+	sw	r5, 4(r21)
+	sw	r6, 8(r22)
+	sw	r7, 12(r23)
 
-	sw	$16, 0($20)
-	sw	$17, 4($21)
-	sw	$18, 8($22)
-	sw	$19, 12($23)
+	sw	r16, 0(r20)
+	sw	r17, 4(r21)
+	sw	r18, 8(r22)
+	sw	r19, 12(r23)
 
-	brc	$3
-	brsc	$16
+	brc	r3
+	brsc	r16
 
-	balrsc	$16, $17
-	balrsc	$17
+	balrsc	r16, r17
+	balrsc	r17
 
-	addiu	$3, $28, 0x12345
-	addiu	$3, $28, 0x12345678
-	addiu	$3, $28, -0x12345
-	addiu	$3, $28, -0x12345678
+	addiu	r3, r28, 0x12345
+	addiu	r3, r28, 0x12345678
+	addiu	r3, r28, -0x12345
+	addiu	r3, r28, -0x12345678
 
-	addiu	$3, $3, 0x12345
-	addiu	$3, 0x12345678
-	addiu	$3, $3, -0x12345
-	addiu	$3, -0x12345678
+	addiu	r3, r3, 0x12345
+	addiu	r3, 0x12345678
+	addiu	r3, r3, -0x12345
+	addiu	r3, -0x12345678
 
-	bgeiuc	$2, 1, test
-	bgeiuc	$2, 127, test
-	bltiuc	$2, 1, test
-	bltiuc	$2, 127, test
+	bgeiuc	r2, 1, test
+	bgeiuc	r2, 127, test
+	bltiuc	r2, 1, test
+	bltiuc	r2, 127, test
 	
-	extw	$4, $2, $3, 0
-	extw    $4, $2, $3, 24
-	extw    $4, $2, $3, 16
-	extw    $4, $2, $3, 8
-	extw	$4, $2, $3, 1
-	extw    $4, $2, $3, 2
-	extw    $4, $2, $3, 3
-	extw    $4, $2, $3, 4
+	extw	r4, r2, r3, 0
+	extw    r4, r2, r3, 24
+	extw    r4, r2, r3, 16
+	extw    r4, r2, r3, 8
+	extw	r4, r2, r3, 1
+	extw    r4, r2, r3, 2
+	extw    r4, r2, r3, 3
+	extw    r4, r2, r3, 4
 
-	align   $4, $2, $3, 0
-	align32 $4, $2, $3, 0
-	align   $4, $2, $3, 1
-	align   $4, $2, $3, 2
-	align   $4, $2, $3, 3
+	align   r4, r2, r3, 0
+	align32 r4, r2, r3, 0
+	align   r4, r2, r3, 1
+	align   r4, r2, r3, 2
+	align   r4, r2, r3, 3
 
-	lwxs	$4, $5($6)
-	lwxs	$7, $16($17)
-	lwxs	$18, $19($4)
+	lwxs	r4, r5(r6)
+	lwxs	r7, r16(r17)
+	lwxs	r18, r19(r4)
 
-	sw	$16,%gp_rel(x)($28)
-	sw	$17,16($28)
-	sw16	$17,16($28)
-	sw16	$17,%gp_rel(test)($28)
-	lapc $5,test
-	lapc $5,test2
+	sw	r16,%gp_rel(x)(r28)
+	sw	r17,16(r28)
+	sw16	r17,16(r28)
+	sw16	r17,%gp_rel(test)(r28)
+	lapc r5,test
+	lapc r5,test2
 	.set at
-	pref 	4,4000($3)
-	pref 	4,-30($3)
-	pref 	4,%lo(test)($3)
+	pref 	4,4000(r3)
+	pref 	4,-30(r3)
+	pref 	4,%lo(test)(r3)
 
-	bbeqzc $4,24,test
-	bbeqzc $4,1,test
-	bbeqzc $4,31,test
-	bbnezc $4,0,test
-	bbnezc $4,16,test
-	teq	$3,$4
-	tne 	$5,$6
-	teq	$3,$4,6
-	tne 	$5,$6,7
-	lwpc $3, 10000
-	swpc $3, 10000
-	ldpc $5, 10000
-	sdpc $8, 10000
-	lapc48 $3, test
-	lwpc $3, test
-	swpc $3, test
-	ldpc $5, test
-	sdpc $8, test
+	bbeqzc r4,24,test
+	bbeqzc r4,1,test
+	bbeqzc r4,31,test
+	bbnezc r4,0,test
+	bbnezc r4,16,test
+	teq	r3,r4
+	tne 	r5,r6
+	teq	r3,r4,6
+	tne 	r5,r6,7
+	lwpc r3, 10000
+	swpc r3, 10000
+	ldpc r5, 10000
+	sdpc r8, 10000
+	lapc48 r3, test
+	lwpc r3, test
+	swpc r3, test
+	ldpc r5, test
+	sdpc r8, test
 
-	ualh	$2, 4($5)
-	uash	$2, 4($5)
-	ualwm	$2, 4($5),4
-	uaswm	$2, 4($5),6
-	ualw	$2, 4($5)
-	uasw	$2, 4($5)
-	ualwm	$2, 4($5),8
-	uaswm	$2, 4($5),7
+	ualh	r2, 4(r5)
+	uash	r2, 4(r5)
+	ualwm	r2, 4(r5),4
+	uaswm	r2, 4(r5),6
+	ualw	r2, 4(r5)
+	uasw	r2, 4(r5)
+	ualwm	r2, 4(r5),8
+	uaswm	r2, 4(r5),7
 	
-	lwm	$2, 4($5),8
-	swm	$2, 4($5),7
+	lwm	r2, 4(r5),8
+	swm	r2, 4(r5),7
 
-	ualdm	$2, 4($5),4
-	uasdm	$2, 4($5),6
-	uald	$2, 4($5)
-	uasd	$2, 4($5)
-	ualdm	$2, 4($5),8
-	uasdm	$2, 4($5),7
-	ldm	$2, 4($5),8
-	sdm	$2, 4($5),7
+	ualdm	r2, 4(r5),4
+	uasdm	r2, 4(r5),6
+	uald	r2, 4(r5)
+	uasd	r2, 4(r5)
+	ualdm	r2, 4(r5),8
+	uasdm	r2, 4(r5),7
+	ldm	r2, 4(r5),8
+	sdm	r2, 4(r5),7
 
-	rotx    $2, $3, 5, 30, 1
-	rotx    $2, $3, 31, 0
-	bitrev 	$2,$3
-	rotx    $2, $3, 7, 8, 1
-	bitswap $2,$3
-	rotx    $2, $3, 15, 16
-	bitswaph $2,$3
-	rotx    $2, $3, 24, 8
-	byterev $2,$3
-	rotx    $2, $3, 8, 24
-	wsbh 	$2,$3
+	rotx    r2, r3, 5, 30, 1
+	rotx    r2, r3, 31, 0
+	bitrev 	r2,r3
+	rotx    r2, r3, 7, 8, 1
+	bitswap r2,r3
+	rotx    r2, r3, 15, 16
+	bitswaph r2,r3
+	rotx    r2, r3, 24, 8
+	byterev r2,r3
+	rotx    r2, r3, 8, 24
+	wsbh 	r2,r3
 
-	addiupc		$5, 0
-	addiupc 	$5, 4
-	addiupc 	$5, 8
-	addiupc48 	$5, 0
-	addiupc48 	$5,6
-	addiupc48 	$5,8
-	addiupc 	$5,2097154
-	addiupc 	$5,2097156
-	addiupc 	$5,-2097148
-	addiupc 	$5,-2097150
+	addiupc		r5, 0
+	addiupc 	r5, 4
+	addiupc 	r5, 8
+	addiupc48 	r5, 0
+	addiupc48 	r5,6
+	addiupc48 	r5,8
+	addiupc 	r5,2097154
+	addiupc 	r5,2097156
+	addiupc 	r5,-2097148
+	addiupc 	r5,-2097150
 
-	aluipc	$3,0x25
-	aluipc	$3,%pcrel_hi(test)
-	addiu	$3, $3, %pcrel_lo(test)
+	aluipc	r3,0x25
+	aluipc	r3,%pcrel_hi(test)
+	addiu	r3, r3, %pcrel_lo(test)
 
-	addu	$4, $4, $5
-	addu	$8, $8, $10
-	addu	$16, $16, $18
-	addu	$20, $20, $23
+	addu	r4, r4, r5
+	addu	r8, r8, r10
+	addu	r16, r16, r18
+	addu	r20, r20, r23
 
-	addu	$5, $5, $11
-	addu	$10, $10, $17
-	addu	$19, $19, $22
-	addu	$21, $21, $9
+	addu	r5, r5, r11
+	addu	r10, r10, r17
+	addu	r19, r19, r22
+	addu	r21, r21, r9
 
-	mul	$6, $6, $7
-	mul	$9, $9, $11
-	mul	$17, $17, $19
-	mul	$22, $22, $20
+	mul	r6, r6, r7
+	mul	r9, r9, r11
+	mul	r17, r17, r19
+	mul	r22, r22, r20
 
-	mul	$7, $7, $9
-	mul	$11, $11, $16
-	mul	$18, $18, $21
-	mul	$23, $23, $8
+	mul	r7, r7, r9
+	mul	r11, r11, r16
+	mul	r18, r18, r21
+	mul	r23, r23, r8
 
 	.end	test
 	.align	2

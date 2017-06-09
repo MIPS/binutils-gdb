@@ -6,8 +6,8 @@
 .*: +file format .*mips.*
 
 Disassembly of section \.text:
-0+0000 <foo> 207d 00b0 	mfgc0	v1,c0_taghi
-0+0004 <foo\+0x4> 2174 28b0 	mfgc0	t3,\$20,5
+0+0000 <foo> 207d 00b0 	mfgc0	t5,c0_taghi
+0+0004 <foo\+0x4> 2174 28b0 	mfgc0	a7,\$20,5
 0+0008 <foo\+0x8> 22e2 00f0 	mtgc0	s7,c0_entrylo0
 0+000c <foo\+0xc> 20ee 10f0 	mtgc0	a3,\$14,2
 0+0010 <foo\+0x10> 100c      	hypcall

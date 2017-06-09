@@ -7,5 +7,5 @@
 .*: +file format .*mips.*
 
 Disassembly of section \.text:
-[0-9a-f]+ <[^>]+> c022 4b3c 	dclo	at,v0
-[0-9a-f]+ <[^>]+> c064 5b3c 	dclz	v1,a0
+[0-9a-f]+ <[^>]+> c022 4b3c 	dclo	at,t4
+[0-9a-f]+ <[^>]+> c064 5b3c 	dclz	t5,a0

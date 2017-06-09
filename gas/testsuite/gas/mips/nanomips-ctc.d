@@ -63,8 +63,8 @@ Disassembly of section .text:
 [0-9a-f]+ <[^>]*> a812 8000 	bltzc	s2,[0-9a-f]+ <[^>]+>
 			54: R_NANOMIPS_PC14_S1	ext
 [0-9a-f]+ <[^>]*> d880      	jrc	a0
-[0-9a-f]+ <[^>]*> d840      	jrc	v0
-[0-9a-f]+ <[^>]*> 4802 0000 	jrc	v0
+[0-9a-f]+ <[^>]*> d840      	jrc	t4
+[0-9a-f]+ <[^>]*> 4802 0000 	jrc	t4
 [0-9a-f]+ <[^>]*> 2800 0000 	bc	[0-9a-f]+ <[^>]+>
 			60: R_NANOMIPS_PC25_S1	.L11
 [0-9a-f]+ <[^>]*> 2800 0000 	bc	[0-9a-f]+ <[^>]*>
@@ -77,9 +77,9 @@ Disassembly of section .text:
 [0-9a-f]+ <[^>]*> 4be4 0000 	jalrc	a0
 [0-9a-f]+ <[^>]*> 4885 0000 	jalrc	a0,a1
 [0-9a-f]+ <[^>]*> 4885 0000 	jalrc	a0,a1
-[0-9a-f]+ <[^>]*> d850      	jalrc	v0
-[0-9a-f]+ <[^>]*> d850      	jalrc	v0
-[0-9a-f]+ <[^>]*> d850      	jalrc	v0
+[0-9a-f]+ <[^>]*> d850      	jalrc	t4
+[0-9a-f]+ <[^>]*> d850      	jalrc	t4
+[0-9a-f]+ <[^>]*> d850      	jalrc	t4
 [0-9a-f]+ <[^>]*> 4804 1000 	jrc.hb	a0
 [0-9a-f]+ <[^>]*> 4be4 1000 	jalrc.hb	a0
 [0-9a-f]+ <[^>]*> 4885 1000 	jalrc.hb	a0,a1

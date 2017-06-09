@@ -1,7 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: LA with relocation operators for nanoMIPS
 #source: la-reloc.s
-#as: -p32
 
 .*file format.*
 

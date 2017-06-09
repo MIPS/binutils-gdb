@@ -35,15 +35,15 @@ test:
 	save	1024,$s0,$ra
 	save	64,$s0-$s3,$gp
 	save	64,$a0-$s0,$gp
-	save	128,$gp,$t7,$s0,$s1
-	save	128,$t0-$t7,$s0-$s3
+	save	128,$gp,$t3,$s0,$s1
+	save	128,$a4-$t3,$s0-$s3
 
 	/* restore[32] */
 	restore	48,$ra
 	restore	256,$ra,$fp
 	restore	1024,$s0,$ra
 	restore	64,$s0,$s1,$s2,$s3,$gp
-	restore	64,$v0,$v1,$gp
+	restore	64,$t4,$t5,$gp
 	restore	128,$ra,$s0,$s1,$fp,$gp
 	restore	120,$s0-$k1,$fp,$ra,$gp
 
@@ -51,10 +51,10 @@ test:
 	restore.jrc	256,$ra,$fp
 	restore.jrc	1024,$s0,$ra
 	restore.jrc	64,$s0,$s1,$s2,$s3,$gp
-	restore.jrc	64,$v0,$v1,$gp
+	restore.jrc	64,$t4,$t5,$gp
 	restore.jrc	128,$ra,$s0,$s1,$fp,$gp
 	restore.jrc	120,$s0-$k1,$fp,$ra,$gp
-	restore.jrc	64,$31,$s0-$s7,$fp
+	restore.jrc	64,$ra,$s0-$s7,$fp
 
 	savef	64, $f0
 	savef	64, $f0-$f15

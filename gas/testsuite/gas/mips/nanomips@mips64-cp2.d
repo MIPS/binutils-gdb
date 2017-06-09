@@ -8,5 +8,5 @@
 .*: +file format .*mips.*
 
 Disassembly of section \.text:
-[0-9a-f]+ <[^>]+> 2064 6d3f 	dmfc2	v1,\$4
+[0-9a-f]+ <[^>]+> 2064 6d3f 	dmfc2	t5,\$4
 [0-9a-f]+ <[^>]+> 20c7 7d3f 	dmtc2	a2,\$7

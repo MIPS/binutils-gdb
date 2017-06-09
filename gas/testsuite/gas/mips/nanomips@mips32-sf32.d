@@ -3,6 +3,7 @@
 #source: mips32-sf32.s
 #as: -p32
 
+
 # Check MIPS32 instruction assembly (nanoMIPS).
 
 .*: +file format .*mips.*

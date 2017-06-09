@@ -8,30 +8,30 @@ test:
 	pref	0, -2048
 	pref	0, 2048
 	pref	0, -2049
-	pref	0, ($0)
-	pref	0, 0($0)
-	pref	1, 0($0)
-	pref	2, 0($0)
-	pref	3, 0($0)
-	pref	4, 0($0)
-	pref	5, 0($0)
-	pref	6, 0($0)
-	pref	7, 0($0)
-	pref	7, 511($0)
-	pref	7, -512($0)
-	pref	31, 2047($0)
-	pref	31, -2048($0)
-	pref	31, 2048($0)
-	pref	31, -2049($0)
-	pref	3, 32767($0)
-	pref	3, -32768($0)
+	pref	0, ($zero)
+	pref	0, 0($zero)
+	pref	1, 0($zero)
+	pref	2, 0($zero)
+	pref	3, 0($zero)
+	pref	4, 0($zero)
+	pref	5, 0($zero)
+	pref	6, 0($zero)
+	pref	7, 0($zero)
+	pref	7, 511($zero)
+	pref	7, -512($zero)
+	pref	31, 2047($zero)
+	pref	31, -2048($zero)
+	pref	31, 2048($zero)
+	pref	31, -2049($zero)
+	pref	3, 32767($zero)
+	pref	3, -32768($zero)
 
-	pref	31, 2047($2)
-	pref	31, -2048($2)
-	pref	31, 2048($2)
-	pref	31, -2049($2)
-	pref	3, 32767($2)
-	pref	3, -32768($2)
+	pref	31, 2047($t4)
+	pref	31, -2048($t4)
+	pref	31, 2048($t4)
+	pref	31, -2049($t4)
+	pref	3, 32767($t4)
+	pref	3, -32768($t4)
 
 	nop
 	.ifndef	insn32
@@ -44,66 +44,66 @@ test:
 	ehb
 	pause
 
-	li	$18, -1
-	li	$19, -1
-	li	$4, -1
-	li	$5, -1
-	li	$6, -1
-	li	$7, -1
-	li	$16, -1
-	li	$17, -1
-	li	$17, 0
-	li	$17, 125
-	li	$17, 126
-	li	$17, 127
+	li	$s2, -1
+	li	$s3, -1
+	li	$a0, -1
+	li	$a1, -1
+	li	$a2, -1
+	li	$a3, -1
+	li	$s0, -1
+	li	$s1, -1
+	li	$s1, 0
+	li	$s1, 125
+	li	$s1, 126
+	li	$s1, 127
 
-	li32	$2, 0
-	li32	$2, 1
-	li	$2, 32767
-	li	$2, -32768
-	li	$2, 65535
+	li32	$t4, 0
+	li32	$t4, 1
+	li	$t4, 32767
+	li	$t4, -32768
+	li	$t4, 65535
 
-	li	$2, 65536
-	li	$2, 0xffff8000
-	li	$2, 0xffff8001
-	li	$2, 0xffffffff
-	li	$2, 0x12345678
-	li	$3, 0xffffffff
-	li	$4, 0xffffffff
+	li	$t4, 65536
+	li	$t4, 0xffff8000
+	li	$t4, 0xffff8001
+	li	$t4, 0xffffffff
+	li	$t4, 0x12345678
+	li	$t5, 0xffffffff
+	li	$a0, 0xffffffff
 
-	move	$0, $22
-	move	$2, $22
-	move	$3, $22
-	move	$4, $22
-	move	$5, $22
-	move	$6, $22
-	move	$7, $22
-	move	$8, $22
-	move	$9, $22
-	move	$10, $22
-	move	$30, $22
-	move	$31, $22
-	move	$0, $0
-	move	$0, $2
-	move	$0, $3
-	move	$0, $4
-	move	$0, $5
-	move	$0, $6
-	move	$0, $7
-	move	$0, $8
-	move	$0, $9
-	move	$0, $10
-	move	$0, $30
-	move	$0, $31
+	move	$zero, $s6
+	move	$t4, $s6
+	move	$t5, $s6
+	move	$a0, $s6
+	move	$a1, $s6
+	move	$a2, $s6
+	move	$a3, $s6
+	move	$a4, $s6
+	move	$a5, $s6
+	move	$a6, $s6
+	move	$fp, $s6
+	move	$ra, $s6
+	move	$zero, $zero
+	move	$zero, $t4
+	move	$zero, $t5
+	move	$zero, $a0
+	move	$zero, $a1
+	move	$zero, $a2
+	move	$zero, $a3
+	move	$zero, $a4
+	move	$zero, $a5
+	move	$zero, $a6
+	move	$zero, $fp
+	move	$zero, $ra
 
-	move	$22, $2
+	move	$s6, $t4
 	.ifndef	insn32
-	move16	$2, $22
-	move16	$22, $2
+	move16	$t4, $s6
+	move16	$s6, $t4
 	.endif
 
-	move32	$2, $22
-	move32	$22, $2
+	move32	$t4, $s6
+	move32	$s6, $t4
 
 	b	test
 	.ifndef	insn32
@@ -122,287 +122,287 @@ test:
 	.endif
 	b32	1b
 
-	abs	$2, $3
-	abs	$2, $4
-	abs	$2, $2
-	abs	$2
+	abs	$t4, $t5
+	abs	$t4, $a0
+	abs	$t4, $t4
+	abs	$t4
 
-	add	$2, $3, $4
-	add	$29, $30, $31
-	add	$2, $2, $4
-	add	$2, $4
+	add	$t4, $t5, $a0
+	add	$sp, $fp, $ra
+	add	$t4, $t4, $a0
+	add	$t4, $a0
 	
-	add	$2, $2, 0
-	add	$2, $2, 1
-	add	$2, $2, 32767
-	add	$2, $2, -32768
-	add	$2, $2, 65535
+	add	$t4, $t4, 0
+	add	$t4, $t4, 1
+	add	$t4, $t4, 32767
+	add	$t4, $t4, -32768
+	add	$t4, $t4, 65535
 	
-	addi	$3, $4, -32768
-	addi	$3, $4, 0
-	addi	$3, $4, 32767
-	addi	$3, $4, 65535
-	addi	$3, $3, 65535
-	addi	$3, 65535
+	addi	$t5, $a0, -32768
+	addi	$t5, $a0, 0
+	addi	$t5, $a0, 32767
+	addi	$t5, $a0, 65535
+	addi	$t5, $t5, 65535
+	addi	$t5, 65535
 	
-	addiu	$0, -8
-	addiu	$2, -8
-	addiu	$3, -8
-	addiu	$4, -8
-	addiu	$5, -8
-	addiu	$6, -8
-	addiu	$7, -8
-	addiu	$8, -8
-	addiu	$9, -8
-	addiu	$10, -8
-	addiu	$30, -8
-	addiu	$31, -8
-	addiu	$31, -7
-	addiu	$31, 0
-	addiu	$31, 1
-	addiu	$31, 6
-	addiu	$31, 7
-	addiu	$31, 8
-	addiu	$29, -258 << 2
-	addiu	$29, -257 << 2
-	addiu	$29, -256 << 2
-	addiu	$29, 255 << 2
-	addiu	$29, 256 << 2
-	addiu	$29, 257 << 2
-	addiu	$29, $29, 257 << 2
-	addiu	$29, $29, 258 << 2
+	addiu	$zero, -8
+	addiu	$t4, -8
+	addiu	$t5, -8
+	addiu	$a0, -8
+	addiu	$a1, -8
+	addiu	$a2, -8
+	addiu	$a3, -8
+	addiu	$a4, -8
+	addiu	$a5, -8
+	addiu	$a6, -8
+	addiu	$fp, -8
+	addiu	$ra, -8
+	addiu	$ra, -7
+	addiu	$ra, 0
+	addiu	$ra, 1
+	addiu	$ra, 6
+	addiu	$ra, 7
+	addiu	$ra, 8
+	addiu	$sp, -258 << 2
+	addiu	$sp, -257 << 2
+	addiu	$sp, -256 << 2
+	addiu	$sp, 255 << 2
+	addiu	$sp, 256 << 2
+	addiu	$sp, 257 << 2
+	addiu	$sp, $sp, 257 << 2
+	addiu	$sp, $sp, 258 << 2
 
-	addiu	$2, $2, -1
-	addiu	$2, $3, -1
-	addiu	$2, $4, -1
-	addiu	$2, $5, -1
-	addiu	$2, $6, -1
-	addiu	$2, $7, -1
-	addiu	$2, $16, -1
-	addiu	$2, $17, -1
-	addiu	$2, $17, 1
-	addiu	$18, $17, 4
-	addiu	$18, $17, 8
-	addiu	$18, $17, 12
-	addiu	$18, $17, 16
-	addiu	$18, $17, 20
-	addiu	$18, $17, 24
-	addiu	$19, $17, 24
-	addiu	$4, $17, 24
-	addiu	$5, $17, 24
-	addiu	$6, $17, 24
-	addiu	$7, $17, 24
-	addiu	$16, $17, 24
-	addiu	$17, $17, 24
+	addiu	$t4, $t4, -1
+	addiu	$t4, $t5, -1
+	addiu	$t4, $a0, -1
+	addiu	$t4, $a1, -1
+	addiu	$t4, $a2, -1
+	addiu	$t4, $a3, -1
+	addiu	$t4, $s0, -1
+	addiu	$t4, $s1, -1
+	addiu	$t4, $s1, 1
+	addiu	$s2, $s1, 4
+	addiu	$s2, $s1, 8
+	addiu	$s2, $s1, 12
+	addiu	$s2, $s1, 16
+	addiu	$s2, $s1, 20
+	addiu	$s2, $s1, 24
+	addiu	$s3, $s1, 24
+	addiu	$a0, $s1, 24
+	addiu	$a1, $s1, 24
+	addiu	$a2, $s1, 24
+	addiu	$a3, $s1, 24
+	addiu	$s0, $s1, 24
+	addiu	$s1, $s1, 24
 
-	addiu	$18, $29, 0 << 2
-	addiu	$18, $29, 1 << 2
-	addiu	$18, $29, 62 << 2
-	addiu	$18, $29, 63 << 2
-	addiu	$2, $29, 64 << 2
-	addiu	$18, $29, 63 << 2
-	addiu	$19, $29, 63 << 2
-	addiu	$4, $29, 63 << 2
-	addiu	$5, $29, 63 << 2
-	addiu	$6, $29, 63 << 2
-	addiu	$7, $29, 63 << 2
-	addiu	$16, $29, 63 << 2
-	addiu	$17, $29, 63 << 2
+	addiu	$s2, $sp, 0 << 2
+	addiu	$s2, $sp, 1 << 2
+	addiu	$s2, $sp, 62 << 2
+	addiu	$s2, $sp, 63 << 2
+	addiu	$t4, $sp, 64 << 2
+	addiu	$s2, $sp, 63 << 2
+	addiu	$s3, $sp, 63 << 2
+	addiu	$a0, $sp, 63 << 2
+	addiu	$a1, $sp, 63 << 2
+	addiu	$a2, $sp, 63 << 2
+	addiu	$a3, $sp, 63 << 2
+	addiu	$s0, $sp, 63 << 2
+	addiu	$s1, $sp, 63 << 2
 
-	addiu	$3, $4, -4095
-	addiu	$19, $4, 0
-	addiu	$3, $4, 8191
+	addiu	$t5, $a0, -4095
+	addiu	$s3, $a0, 0
+	addiu	$t5, $a0, 8191
 
-	addiu	$3, $4, 16383 
-	addiu	$3, $3, 16383
-	addiu	$3, 16383
+	addiu	$t5, $a0, 16383 
+	addiu	$t5, $t5, 16383
+	addiu	$t5, 16383
 
-	addu	$2, $22, $0
-	addu	$22, $2, $0
-	addu	$2, $0, $22
-	addu	$22, $0, $2
+	addu	$t4, $s6, $zero
+	addu	$s6, $t4, $zero
+	addu	$t4, $zero, $s6
+	addu	$s6, $zero, $t4
 
-	addu	$18, $19, $18
-	addu	$18, $19, $19
-	addu	$18, $19, $4
-	addu	$18, $19, $5
-	addu	$18, $19, $6
-	addu	$18, $19, $7
-	addu	$18, $19, $16
-	addu	$18, $19, $17
+	addu	$s2, $s3, $s2
+	addu	$s2, $s3, $s3
+	addu	$s2, $s3, $a0
+	addu	$s2, $s3, $a1
+	addu	$s2, $s3, $a2
+	addu	$s2, $s3, $a3
+	addu	$s2, $s3, $s0
+	addu	$s2, $s3, $s1
 
-	addu	$18, $18, $17
-	addu	$18, $19, $17
-	addu	$18, $4, $17
-	addu	$18, $5, $17
-	addu	$18, $6, $17
-	addu	$18, $7, $17
-	addu	$18, $16, $17
-	addu	$18, $17, $17
+	addu	$s2, $s2, $s1
+	addu	$s2, $s3, $s1
+	addu	$s2, $a0, $s1
+	addu	$s2, $a1, $s1
+	addu	$s2, $a2, $s1
+	addu	$s2, $a3, $s1
+	addu	$s2, $s0, $s1
+	addu	$s2, $s1, $s1
 
-	addu	$18, $18, $17
-	addu	$19, $18, $17
-	addu	$4, $18, $17
-	addu	$5, $18, $17
-	addu	$6, $18, $17
-	addu	$7, $18, $17
-	addu	$16, $18, $17
-	addu	$17, $18, $17
+	addu	$s2, $s2, $s1
+	addu	$s3, $s2, $s1
+	addu	$a0, $s2, $s1
+	addu	$a1, $s2, $s1
+	addu	$a2, $s2, $s1
+	addu	$a3, $s2, $s1
+	addu	$s0, $s2, $s1
+	addu	$s1, $s2, $s1
 
-	addu	$7, $7, $18
-	addu	$7, $18
-	addu	$7, $18, $7
+	addu	$a3, $a3, $s2
+	addu	$a3, $s2
+	addu	$a3, $s2, $a3
 
-	addu	$29, $30, $31
-	addu	$2, $2, 0
-	addu	$2, $2, 1
-	addu	$2, $2, 32767
-	addu	$2, $2, -32768
-	addu	$2, $2, 65535
+	addu	$sp, $fp, $ra
+	addu	$t4, $t4, 0
+	addu	$t4, $t4, 1
+	addu	$t4, $t4, 32767
+	addu	$t4, $t4, -32768
+	addu	$t4, $t4, 65535
 
-	and	$18, $18
-	and	$18, $19
-	and	$18, $4
-	and	$18, $5
-	and	$18, $6
-	and	$18, $7
-	and	$18, $16
-	and	$18, $17
-	and	$19, $18
-	and	$4, $18
-	and	$5, $18
-	and	$6, $18
-	and	$7, $18
-	and	$16, $18
-	and	$17, $18
+	and	$s2, $s2
+	and	$s2, $s3
+	and	$s2, $a0
+	and	$s2, $a1
+	and	$s2, $a2
+	and	$s2, $a3
+	and	$s2, $s0
+	and	$s2, $s1
+	and	$s3, $s2
+	and	$a0, $s2
+	and	$a1, $s2
+	and	$a2, $s2
+	and	$a3, $s2
+	and	$s0, $s2
+	and	$s1, $s2
 
-	and	$18, $19
-	and	$18, $18, $19
-	and	$18, $19, $18
+	and	$s2, $s3
+	and	$s2, $s2, $s3
+	and	$s2, $s3, $s2
 	.ifndef	insn32
-	and16	$18, $18, $19
+	and16	$s2, $s2, $s3
 	.endif
-	and32	$2, $2, $3
+	and32	$t4, $t4, $t5
 
-	andi	$18,$18,1
-	andi	$18,$18,2
-	andi	$18,$18,3
-	andi	$18,$18,4
-	andi	$18,$18,7
-	andi	$18,$18,8
-	andi	$18,$18,15
-	andi	$2,$2,16
-	andi	$2,$2,31
-	andi	$2,$2,32
-	andi	$2,$2,63
-	andi	$2,$2,64
-	andi	$2,$2,128
-	andi	$18,$18,255
-	andi	$2,$2,4095
-	andi	$18,$18,65535
-	andi	$18,$19,65535
-	andi	$18,$4,65535
-	andi	$18,$5,65535
-	andi	$18,$6,65535
-	andi	$18,$7,65535
-	andi	$18,$16,65535
-	andi	$18,$17,65535
-	andi	$19,$17,65535
-	andi	$4,$17,65535
-	andi	$5,$17,65535
-	andi	$6,$17,65535
-	andi	$7,$17,65535
-	andi	$16,$17,65535
-	andi	$17,$17,65535
+	andi	$s2,$s2,1
+	andi	$s2,$s2,2
+	andi	$s2,$s2,3
+	andi	$s2,$s2,4
+	andi	$s2,$s2,7
+	andi	$s2,$s2,8
+	andi	$s2,$s2,15
+	andi	$t4,$t4,16
+	andi	$t4,$t4,31
+	andi	$t4,$t4,32
+	andi	$t4,$t4,63
+	andi	$t4,$t4,64
+	andi	$t4,$t4,128
+	andi	$s2,$s2,255
+	andi	$t4,$t4,4095
+	andi	$s2,$s2,65535
+	andi	$s2,$s3,65535
+	andi	$s2,$a0,65535
+	andi	$s2,$a1,65535
+	andi	$s2,$a2,65535
+	andi	$s2,$a3,65535
+	andi	$s2,$s0,65535
+	andi	$s2,$s1,65535
+	andi	$s3,$s1,65535
+	andi	$a0,$s1,65535
+	andi	$a1,$s1,65535
+	andi	$a2,$s1,65535
+	andi	$a3,$s1,65535
+	andi	$s0,$s1,65535
+	andi	$s1,$s1,65535
 
-	andi	$7,$7,65535
+	andi	$a3,$a3,65535
 
-	andi	$7,65535
+	andi	$a3,65535
 	.ifndef	insn32
-	andi16	$7,65535
+	andi16	$a3,65535
 	.endif
 
-	and32	$2, $3, $4
-	and32	$2, $2, $4
-	and32	$2, $4
-	and	$2, $3, 0
-	and	$2, $3, 65535
-	and	$2, $3, 65536
-	and	$2, $3, 0xffff0001
+	and32	$t4, $t5, $a0
+	and32	$t4, $t4, $a0
+	and32	$t4, $a0
+	and	$t4, $t5, 0
+	and	$t4, $t5, 65535
+	and	$t4, $t5, 65536
+	and	$t4, $t5, 0xffff0001
 
 test2:
-	beqz	$18, test2
-	beqz	$19, test2
-	beqz	$4, test2
-	beqz	$5, test2
-	beqz	$6, test2
-	beqz	$7, test2
-	beqz	$16, test2
-	beqz	$17, test2
-	beq	$18, $0, test2
-	beq	$19, $0, test2
-	beq	$4, $0, test2
-	beq	$5, $0, test2
-	beq	$6, $0, test2
-	beq	$7, $0, test2
-	beq	$16, $0, test2
-	beq	$17, $0, test2
-	beq	$0, $18, test2
-	beq	$0, $19, test2
-	beq	$0, $4, test2
-	beq	$0, $5, test2
-	beq	$0, $6, test2
-	beq	$0, $7, test2
-	beq	$0, $16, test2
-	beq	$0, $17, test2
+	beqz	$s2, test2
+	beqz	$s3, test2
+	beqz	$a0, test2
+	beqz	$a1, test2
+	beqz	$a2, test2
+	beqz	$a3, test2
+	beqz	$s0, test2
+	beqz	$s1, test2
+	beq	$s2, $zero, test2
+	beq	$s3, $zero, test2
+	beq	$a0, $zero, test2
+	beq	$a1, $zero, test2
+	beq	$a2, $zero, test2
+	beq	$a3, $zero, test2
+	beq	$s0, $zero, test2
+	beq	$s1, $zero, test2
+	beq	$zero, $s2, test2
+	beq	$zero, $s3, test2
+	beq	$zero, $a0, test2
+	beq	$zero, $a1, test2
+	beq	$zero, $a2, test2
+	beq	$zero, $a3, test2
+	beq	$zero, $s0, test2
+	beq	$zero, $s1, test2
 
 	.ifndef	insn32
-	beqz16	$16, test2
+	beqz16	$s0, test2
 	.endif
-	beqz32	$16, test2
-	beqz	$17, test2
-	beqz32	$17, test2
+	beqz32	$s0, test2
+	beqz	$s1, test2
+	beqz32	$s1, test2
 
-	beqzc	$17, test2
+	beqzc	$s1, test2
 
-	beq	$16, 0, test2
-	beq	$16, 10, test2
-	beq	$16, 32767, test2
-	beq	$16, 65536, test2
+	beq	$s0, 0, test2
+	beq	$s0, 10, test2
+	beq	$s0, 32767, test2
+	beq	$s0, 65536, test2
 
-	bnez	$18, test3
-	bnez	$19, test3
-	bnez	$4, test3
-	bnez	$5, test3
-	bnez	$6, test3
-	bnez	$7, test3
-	bnez	$16, test3
-	bnez	$17, test3
-	bne	$18, $0, test3
-	bne	$19, $0, test3
-	bne	$4, $0, test3
-	bne	$5, $0, test3
-	bne	$6, $0, test3
-	bne	$7, $0, test3
-	bne	$16, $0, test3
-	bne	$17, $0, test3
-	bne	$0, $18, test3
-	bne	$0, $19, test3
-	bne	$0, $4, test3
-	bne	$0, $5, test3
-	bne	$0, $6, test3
-	bne	$0, $7, test3
-	bne	$0, $16, test3
-	bne	$0, $17, test3
+	bnez	$s2, test3
+	bnez	$s3, test3
+	bnez	$a0, test3
+	bnez	$a1, test3
+	bnez	$a2, test3
+	bnez	$a3, test3
+	bnez	$s0, test3
+	bnez	$s1, test3
+	bne	$s2, $zero, test3
+	bne	$s3, $zero, test3
+	bne	$a0, $zero, test3
+	bne	$a1, $zero, test3
+	bne	$a2, $zero, test3
+	bne	$a3, $zero, test3
+	bne	$s0, $zero, test3
+	bne	$s1, $zero, test3
+	bne	$zero, $s2, test3
+	bne	$zero, $s3, test3
+	bne	$zero, $a0, test3
+	bne	$zero, $a1, test3
+	bne	$zero, $a2, test3
+	bne	$zero, $a3, test3
+	bne	$zero, $s0, test3
+	bne	$zero, $s1, test3
 
 	.ifndef	insn32
-	bnez16	$16, test3
+	bnez16	$s0, test3
 	.endif
-	bnez32	$16, test3
-	bnez	$17, test2
-	bnez32	$17, test2
+	bnez32	$s0, test3
+	bnez	$s1, test2
+	bnez32	$s1, test2
 test3:
-	bnezc	$17, test2
+	bnezc	$s1, test2
 
 	break
 	break	0
@@ -438,1132 +438,1132 @@ test3:
 	cache	0, 2047
 	cache	0, -2049
 	cache	0, 2048
-	cache	0, 0($2)
-	cache	0, -2048($2)
-	cache	0, 2047($2)
-	cache	0, -2049($2)
-	cache	0, 2048($2)
+	cache	0, 0($t4)
+	cache	0, -2048($t4)
+	cache	0, 2047($t4)
+	cache	0, -2049($t4)
+	cache	0, 2048($t4)
 
-	cache	0, ($0)
-	cache	0, 0($0)
-	cache	1, 0($0)
-	cache	2, 0($0)
-	cache	3, 0($0)
-	cache	4, 0($0)
-	cache	5, 0($0)
-	cache	6, 0($0)
-	cache	31, 0($0)
-	cache	31, 2047($0)
-	cache	31, -2048($0)
-	cache	0, 2047($0)
-	cache	0, -2048($0)
+	cache	0, ($zero)
+	cache	0, 0($zero)
+	cache	1, 0($zero)
+	cache	2, 0($zero)
+	cache	3, 0($zero)
+	cache	4, 0($zero)
+	cache	5, 0($zero)
+	cache	6, 0($zero)
+	cache	31, 0($zero)
+	cache	31, 2047($zero)
+	cache	31, -2048($zero)
+	cache	0, 2047($zero)
+	cache	0, -2048($zero)
 
-	cache	31, 65536($3)
-	cache	31, 2048($3)
-	cache	31, -2049($3)
-	cache	31, 65537($3)
-	cache	31, 0xffffffff($3)
-	cache	31, 0xffff0000($3)
-	cache	31, 0xffff0001($3)
-	cache	31, 0xffff($3)
+	cache	31, 65536($t5)
+	cache	31, 2048($t5)
+	cache	31, -2049($t5)
+	cache	31, 65537($t5)
+	cache	31, 0xffffffff($t5)
+	cache	31, 0xffff0000($t5)
+	cache	31, 0xffff0001($t5)
+	cache	31, 0xffff($t5)
 
-	cache	31, 65536($0)
-	cache	31, 2048($0)
-	cache	31, -2049($0)
-	cache	31, 65537($0)
-	cache	31, 0xffffffff($0)
-	cache	31, 0xffff0000($0)
-	cache	31, 0xffff0001($0)
-	cache	31, 0xffff($0)
+	cache	31, 65536($zero)
+	cache	31, 2048($zero)
+	cache	31, -2049($zero)
+	cache	31, 65537($zero)
+	cache	31, 0xffffffff($zero)
+	cache	31, 0xffff0000($zero)
+	cache	31, 0xffff0001($zero)
+	cache	31, 0xffff($zero)
 
 
-	clo	$2, $3
-	clo	$3, $2
-	clz	$2, $3
-	clz	$3, $2
+	clo	$t4, $t5
+	clo	$t5, $t4
+	clz	$t4, $t5
+	clz	$t5, $t4
 
 	deret
 	di
 
-	di	$0
-	di	$2
-	di	$3
-	di	$30
-	di	$31
+	di	$zero
+	di	$t4
+	di	$t5
+	di	$fp
+	di	$ra
 
-	div	$0, $2, $3
-	div	$0, $30, $31
-	div	$0, $3
-	div	$0, $31
+	div	$zero, $t4, $t5
+	div	$zero, $fp, $ra
+	div	$zero, $t5
+	div	$zero, $ra
 
-	div	$2, $3, $0
-	div	$2, $3, $4
+	div	$t4, $t5, $zero
+	div	$t4, $t5, $a0
 
-	div	$3, $4, 0
-	div	$3, $4, 1
-	div	$3, $4, -1
-	div	$3, $4, 2
+	div	$t5, $a0, 0
+	div	$t5, $a0, 1
+	div	$t5, $a0, -1
+	div	$t5, $a0, 2
 
-	divu	$0, $2, $3
-	divu	$0, $30, $31
-	divu	$0, $3
-	divu	$0, $31
+	divu	$zero, $t4, $t5
+	divu	$zero, $fp, $ra
+	divu	$zero, $t5
+	divu	$zero, $ra
 
-	divu	$2, $3, $0
-	divu	$2, $3, $4
+	divu	$t4, $t5, $zero
+	divu	$t4, $t5, $a0
 
-	divu	$3, $4, 0
-	divu	$3, $4, 1
-	divu	$3, $4, -1
-	divu	$3, $4, 2
+	divu	$t5, $a0, 0
+	divu	$t5, $a0, 1
+	divu	$t5, $a0, -1
+	divu	$t5, $a0, 2
 
 	ei
-	ei	$0
-	ei	$2
-	ei	$3
-	ei	$30
-	ei	$31
+	ei	$zero
+	ei	$t4
+	ei	$t5
+	ei	$fp
+	ei	$ra
 
 	eret
 
-	ext	$2, $3, 5, 15
-	ext	$2, $3, 0, 32
-	ext	$2, $3, 31, 1
-	ext	$31, $30, 31, 1
+	ext	$t4, $t5, 5, 15
+	ext	$t4, $t5, 0, 32
+	ext	$t4, $t5, 31, 1
+	ext	$ra, $fp, 31, 1
 
-	ins	$2, $3, 5, 15
-	ins	$2, $3, 0, 32
-	ins	$2, $3, 31, 1
-	ins	$31, $30, 31, 1
+	ins	$t4, $t5, 5, 15
+	ins	$t4, $t5, 0, 32
+	ins	$t4, $t5, 31, 1
+	ins	$ra, $fp, 31, 1
 
-	jr	$0
-	jr	$2
-	jr	$3
-	jr	$4
-	jr	$5
-	jr	$6
-	jr	$7
-	jr	$8
-	jr	$30
-	jr	$31
+	jr	$zero
+	jr	$t4
+	jr	$t5
+	jr	$a0
+	jr	$a1
+	jr	$a2
+	jr	$a3
+	jr	$a4
+	jr	$fp
+	jr	$ra
 
-	jr32	$0
-	jr32	$2
-	jr32	$3
-	jr32	$4
-	jr32	$5
-	jr32	$6
-	jr32	$7
-	jr32	$8
-	jr32	$30
-	jr32	$31
+	jr32	$zero
+	jr32	$t4
+	jr32	$t5
+	jr32	$a0
+	jr32	$a1
+	jr32	$a2
+	jr32	$a3
+	jr32	$a4
+	jr32	$fp
+	jr32	$ra
 
-	jrc	$0
-	jrc	$2
-	jrc	$3
-	jrc	$4
-	jrc	$5
-	jrc	$6
-	jrc	$7
-	jrc	$8
-	jrc	$30
-	jrc	$31
+	jrc	$zero
+	jrc	$t4
+	jrc	$t5
+	jrc	$a0
+	jrc	$a1
+	jrc	$a2
+	jrc	$a3
+	jrc	$a4
+	jrc	$fp
+	jrc	$ra
 
-	jr.hb	$0
-	jr.hb	$2
-	jr.hb	$3
-	jr.hb	$4
-	jr.hb	$5
-	jr.hb	$6
-	jr.hb	$7
-	jr.hb	$8
-	jr.hb	$30
-	jr.hb	$31
+	jr.hb	$zero
+	jr.hb	$t4
+	jr.hb	$t5
+	jr.hb	$a0
+	jr.hb	$a1
+	jr.hb	$a2
+	jr.hb	$a3
+	jr.hb	$a4
+	jr.hb	$fp
+	jr.hb	$ra
 
-	j	$0
-	j	$2
-	j	$3
-	j	$4
-	j	$5
-	j	$6
-	j	$7
-	j	$8
-	j	$30
-	j	$31
+	j	$zero
+	j	$t4
+	j	$t5
+	j	$a0
+	j	$a1
+	j	$a2
+	j	$a3
+	j	$a4
+	j	$fp
+	j	$ra
 
-	jalr	$31, $0
-	jalr	$2
-	jalr	$3
-	jalr	$4
-	jalr	$5
-	jalr	$6
-	jalr	$7
-	jalr	$8
-	jalr	$30
+	jalr	$ra, $zero
+	jalr	$t4
+	jalr	$t5
+	jalr	$a0
+	jalr	$a1
+	jalr	$a2
+	jalr	$a3
+	jalr	$a4
+	jalr	$fp
 
-	jalr32	$31, $0
+	jalr32	$ra, $zero
 
-	jalr32	$2
-	jalr32	$3
-	jalr32	$4
-	jalr32	$5
-	jalr32	$6
-	jalr32	$7
-	jalr32	$8
-	jalr32	$30
+	jalr32	$t4
+	jalr32	$t5
+	jalr32	$a0
+	jalr32	$a1
+	jalr32	$a2
+	jalr32	$a3
+	jalr32	$a4
+	jalr32	$fp
 
-	jalr	$31, $0
-	jalr	$31, $2
-	jalr	$31, $3
-	jalr	$31, $4
-	jalr	$31, $5
-	jalr	$31, $6
-	jalr	$31, $7
-	jalr	$31, $8
-	jalr	$31, $30
-	jalr	$30, $31
+	jalr	$ra, $zero
+	jalr	$ra, $t4
+	jalr	$ra, $t5
+	jalr	$ra, $a0
+	jalr	$ra, $a1
+	jalr	$ra, $a2
+	jalr	$ra, $a3
+	jalr	$ra, $a4
+	jalr	$ra, $fp
+	jalr	$fp, $ra
 
-	jalr	$2, $0
-	jalr	$3, $2
-	jalr	$2, $3
-	jalr	$2, $4
-	jalr	$2, $5
-	jalr	$2, $6
-	jalr	$2, $7
-	jalr	$2, $8
-	jalr	$2, $30
-	jalr	$2, $31
+	jalr	$t4, $zero
+	jalr	$t5, $t4
+	jalr	$t4, $t5
+	jalr	$t4, $a0
+	jalr	$t4, $a1
+	jalr	$t4, $a2
+	jalr	$t4, $a3
+	jalr	$t4, $a4
+	jalr	$t4, $fp
+	jalr	$t4, $ra
 
-	jalr.hb	$31, $0
-	jalr.hb	$2
-	jalr.hb	$3
-	jalr.hb	$4
-	jalr.hb	$5
-	jalr.hb	$6
-	jalr.hb	$7
-	jalr.hb	$8
-	jalr.hb	$30
+	jalr.hb	$ra, $zero
+	jalr.hb	$t4
+	jalr.hb	$t5
+	jalr.hb	$a0
+	jalr.hb	$a1
+	jalr.hb	$a2
+	jalr.hb	$a3
+	jalr.hb	$a4
+	jalr.hb	$fp
 /*
-	jalr.hb	$31
+	jalr.hb	$ra
 */
-	jalr.hb	$31, $0
-	jalr.hb	$31, $2
-	jalr.hb	$31, $3
-	jalr.hb	$31, $4
-	jalr.hb	$31, $5
-	jalr.hb	$31, $6
-	jalr.hb	$31, $7
-	jalr.hb	$31, $8
-	jalr.hb	$31, $30
-	jalr.hb	$30, $31
+	jalr.hb	$ra, $zero
+	jalr.hb	$ra, $t4
+	jalr.hb	$ra, $t5
+	jalr.hb	$ra, $a0
+	jalr.hb	$ra, $a1
+	jalr.hb	$ra, $a2
+	jalr.hb	$ra, $a3
+	jalr.hb	$ra, $a4
+	jalr.hb	$ra, $fp
+	jalr.hb	$fp, $ra
 
-	jalr.hb	$2, $0
-	jalr.hb	$3, $2
-	jalr.hb	$2, $3
-	jalr.hb	$2, $4
-	jalr.hb	$2, $5
-	jalr.hb	$2, $6
-	jalr.hb	$2, $7
-	jalr.hb	$2, $8
-	jalr.hb	$2, $30
-	jalr.hb	$2, $31
+	jalr.hb	$t4, $zero
+	jalr.hb	$t5, $t4
+	jalr.hb	$t4, $t5
+	jalr.hb	$t4, $a0
+	jalr.hb	$t4, $a1
+	jalr.hb	$t4, $a2
+	jalr.hb	$t4, $a3
+	jalr.hb	$t4, $a4
+	jalr.hb	$t4, $fp
+	jalr.hb	$t4, $ra
 
-	jal	$2, $3
-	jal	$30, $31
+	jal	$t4, $t5
+	jal	$fp, $ra
 
-	jal	$3
-	jal	$31
+	jal	$t5
+	jal	$ra
 
 	jal	test
 	jal	test2
-	la	$2, test
-	lb	$3, 0
-	lb	$3, 4
-	lb	$3, 0($0)
-	lb	$3, 4($0)
-	lb	$3, 32767($0)
-	lb	$3, -32768($0)
-	lb	$3, 65535($0)
-	lb	$3, 0xffff0000($0)
-	lb	$3, 0xffff8000($0)
-	lb	$3, 0xffff0001($0)
-	lb	$3, 0xffff8001($0)
-	lb	$3, 0xf0000000($0)
-	lb	$3, 0xffffffff($0)
-	lb	$3, 0x12345678($0)
-	lb	$19, ($4)
-	lb	$19, 0($4)
-	lb	$3, 4($4)
-	lb	$3, 32767($4)
-	lb	$3, -32768($4)
-	lb	$3, 65535($4)
-	lb	$3, 0xffff0000($4)
-	lb	$3, 0xffff8000($4)
-	lb	$3, 0xffff0001($4)
-	lb	$3, 0xffff8001($4)
-	lb	$3, 0xf0000000($4)
-	lb	$3, 0xffffffff($4)
-	lb	$3, 0x12345678($4)
+	la	$t4, test
+	lb	$t5, 0
+	lb	$t5, 4
+	lb	$t5, 0($zero)
+	lb	$t5, 4($zero)
+	lb	$t5, 32767($zero)
+	lb	$t5, -32768($zero)
+	lb	$t5, 65535($zero)
+	lb	$t5, 0xffff0000($zero)
+	lb	$t5, 0xffff8000($zero)
+	lb	$t5, 0xffff0001($zero)
+	lb	$t5, 0xffff8001($zero)
+	lb	$t5, 0xf0000000($zero)
+	lb	$t5, 0xffffffff($zero)
+	lb	$t5, 0x12345678($zero)
+	lb	$s3, ($a0)
+	lb	$s3, 0($a0)
+	lb	$t5, 4($a0)
+	lb	$t5, 32767($a0)
+	lb	$t5, -32768($a0)
+	lb	$t5, 65535($a0)
+	lb	$t5, 0xffff0000($a0)
+	lb	$t5, 0xffff8000($a0)
+	lb	$t5, 0xffff0001($a0)
+	lb	$t5, 0xffff8001($a0)
+	lb	$t5, 0xf0000000($a0)
+	lb	$t5, 0xffffffff($a0)
+	lb	$t5, 0x12345678($a0)
 
-	lbu	$2, -1($3)
-	lbu	$18, 0($19)
-	lbu	$18, ($19)
-	lbu	$18, 1($19)
-	lbu	$18, 2($19)
-	lbu	$18, 3($19)
-	lbu	$2, 4($3)
-	lbu	$2, 5($3)
-	lbu	$2, 6($3)
-	lbu	$2, 7($3)
-	lbu	$2, 8($3)
-	lbu	$2, 9($3)
-	lbu	$2, 10($3)
-	lbu	$2, 11($3)
-	lbu	$2, 12($3)
-	lbu	$2, 13($3)
-	lbu	$2, 14($3)
-	lbu	$2, 14($2)
-	lbu	$2, 14($4)
-	lbu	$2, 14($5)
-	lbu	$2, 14($6)
-	lbu	$2, 14($7)
-	lbu	$2, 14($16)
-	lbu	$2, 14($17)
-	lbu	$3, 14($17)
-	lbu	$4, 14($17)
-	lbu	$5, 14($17)
-	lbu	$6, 14($17)
-	lbu	$7, 14($17)
-	lbu	$16, 14($17)
-	lbu	$17, 14($17)
+	lbu	$t4, -1($t5)
+	lbu	$s2, 0($s3)
+	lbu	$s2, ($s3)
+	lbu	$s2, 1($s3)
+	lbu	$s2, 2($s3)
+	lbu	$s2, 3($s3)
+	lbu	$t4, 4($t5)
+	lbu	$t4, 5($t5)
+	lbu	$t4, 6($t5)
+	lbu	$t4, 7($t5)
+	lbu	$t4, 8($t5)
+	lbu	$t4, 9($t5)
+	lbu	$t4, 10($t5)
+	lbu	$t4, 11($t5)
+	lbu	$t4, 12($t5)
+	lbu	$t4, 13($t5)
+	lbu	$t4, 14($t5)
+	lbu	$t4, 14($t4)
+	lbu	$t4, 14($a0)
+	lbu	$t4, 14($a1)
+	lbu	$t4, 14($a2)
+	lbu	$t4, 14($a3)
+	lbu	$t4, 14($s0)
+	lbu	$t4, 14($s1)
+	lbu	$t5, 14($s1)
+	lbu	$a0, 14($s1)
+	lbu	$a1, 14($s1)
+	lbu	$a2, 14($s1)
+	lbu	$a3, 14($s1)
+	lbu	$s0, 14($s1)
+	lbu	$s1, 14($s1)
 
-	lbu	$3, 0
-	lbu	$3, 4
-	lbu	$3, 0($0)
-	lbu	$3, 4($0)
-	lbu	$3, 32767($0)
-	lbu	$3, -32768($0)
-	lbu	$3, 65535($0)
-	lbu	$3, 0xffff0000($0)
-	lbu	$3, 0xffff8000($0)
-	lbu	$3, 0xffff0001($0)
-	lbu	$3, 0xffff8001($0)
-	lbu	$3, 0xf0000000($0)
-	lbu	$3, 0xffffffff($0)
-	lbu	$3, 0x12345678($0)
+	lbu	$t5, 0
+	lbu	$t5, 4
+	lbu	$t5, 0($zero)
+	lbu	$t5, 4($zero)
+	lbu	$t5, 32767($zero)
+	lbu	$t5, -32768($zero)
+	lbu	$t5, 65535($zero)
+	lbu	$t5, 0xffff0000($zero)
+	lbu	$t5, 0xffff8000($zero)
+	lbu	$t5, 0xffff0001($zero)
+	lbu	$t5, 0xffff8001($zero)
+	lbu	$t5, 0xf0000000($zero)
+	lbu	$t5, 0xffffffff($zero)
+	lbu	$t5, 0x12345678($zero)
 
-	lbu	$19, ($4)
-	lbu	$19, 0($4)
-	lbu	$3, 4($4)
-	lbu	$3, 32767($4)
-	lbu	$3, -32768($4)
-	lbu	$3, 65535($4)
-	lbu	$3, 0xffff0000($4)
-	lbu	$3, 0xffff8000($4)
-	lbu	$3, 0xffff0001($4)
-	lbu	$3, 0xffff8001($4)
-	lbu	$3, 0xf0000000($4)
-	lbu	$3, 0xffffffff($4)
-	lbu	$3, 0x12345678($4)
+	lbu	$s3, ($a0)
+	lbu	$s3, 0($a0)
+	lbu	$t5, 4($a0)
+	lbu	$t5, 32767($a0)
+	lbu	$t5, -32768($a0)
+	lbu	$t5, 65535($a0)
+	lbu	$t5, 0xffff0000($a0)
+	lbu	$t5, 0xffff8000($a0)
+	lbu	$t5, 0xffff0001($a0)
+	lbu	$t5, 0xffff8001($a0)
+	lbu	$t5, 0xf0000000($a0)
+	lbu	$t5, 0xffffffff($a0)
+	lbu	$t5, 0x12345678($a0)
 
-	lh	$3, 0
-	lh	$3, 4
-	lh	$3, 0($0)
-	lh	$3, 4($0)
-	lh	$3, 32767($0)
-	lh	$3, -32768($0)
-	lh	$3, 65535($0)
-	lh	$3, 0xffff0000($0)
-	lh	$3, 0xffff8000($0)
-	lh	$3, 0xffff0001($0)
-	lh	$3, 0xffff8001($0)
-	lh	$3, 0xf0000000($0)
-	lh	$3, 0xffffffff($0)
-	lh	$3, 0x12345678($0)
-	lh	$19, ($4)
-	lh	$19, 0($4)
-	lh	$19, 4($4)
-	lh	$3, 32767($4)
-	lh	$3, -32768($4)
-	lh	$3, 65535($4)
-	lh	$3, 0xffff0000($4)
-	lh	$3, 0xffff8000($4)
-	lh	$3, 0xffff0001($4)
-	lh	$3, 0xffff8001($4)
-	lh	$3, 0xf0000000($4)
-	lh	$3, 0xffffffff($4)
-	lh	$3, 0x12345678($4)
+	lh	$t5, 0
+	lh	$t5, 4
+	lh	$t5, 0($zero)
+	lh	$t5, 4($zero)
+	lh	$t5, 32767($zero)
+	lh	$t5, -32768($zero)
+	lh	$t5, 65535($zero)
+	lh	$t5, 0xffff0000($zero)
+	lh	$t5, 0xffff8000($zero)
+	lh	$t5, 0xffff0001($zero)
+	lh	$t5, 0xffff8001($zero)
+	lh	$t5, 0xf0000000($zero)
+	lh	$t5, 0xffffffff($zero)
+	lh	$t5, 0x12345678($zero)
+	lh	$s3, ($a0)
+	lh	$s3, 0($a0)
+	lh	$s3, 4($a0)
+	lh	$t5, 32767($a0)
+	lh	$t5, -32768($a0)
+	lh	$t5, 65535($a0)
+	lh	$t5, 0xffff0000($a0)
+	lh	$t5, 0xffff8000($a0)
+	lh	$t5, 0xffff0001($a0)
+	lh	$t5, 0xffff8001($a0)
+	lh	$t5, 0xf0000000($a0)
+	lh	$t5, 0xffffffff($a0)
+	lh	$t5, 0x12345678($a0)
 
-	lhu	$18, ($19)
-	lhu	$18, 0<<1($19)
-	lhu	$18, 1<<1($19)
-	lhu	$18, 2<<1($19)
-	lhu	$18, 3<<1($19)
-	lhu	$2, 4<<1($3)
-	lhu	$2, 5<<1($3)
-	lhu	$2, 6<<1($3)
-	lhu	$2, 7<<1($3)
-	lhu	$2, 8<<1($3)
-	lhu	$2, 9<<1($3)
-	lhu	$2, 10<<1($3)
-	lhu	$2, 11<<1($3)
-	lhu	$2, 12<<1($3)
-	lhu	$2, 13<<1($3)
-	lhu	$2, 14<<1($3)
-	lhu	$2, 15<<1($3)
-	lhu	$2, 15<<1($4)
-	lhu	$2, 15<<1($5)
-	lhu	$2, 15<<1($6)
-	lhu	$2, 15<<1($7)
-	lhu	$2, 15<<1($2)
-	lhu	$2, 15<<1($16)
-	lhu	$2, 15<<1($17)
-	lhu	$3, 15<<1($17)
-	lhu	$4, 15<<1($17)
-	lhu	$5, 15<<1($17)
-	lhu	$6, 15<<1($17)
-	lhu	$7, 15<<1($17)
-	lhu	$16, 15<<1($17)
-	lhu	$17, 15<<1($17)
+	lhu	$s2, ($s3)
+	lhu	$s2, 0<<1($s3)
+	lhu	$s2, 1<<1($s3)
+	lhu	$s2, 2<<1($s3)
+	lhu	$s2, 3<<1($s3)
+	lhu	$t4, 4<<1($t5)
+	lhu	$t4, 5<<1($t5)
+	lhu	$t4, 6<<1($t5)
+	lhu	$t4, 7<<1($t5)
+	lhu	$t4, 8<<1($t5)
+	lhu	$t4, 9<<1($t5)
+	lhu	$t4, 10<<1($t5)
+	lhu	$t4, 11<<1($t5)
+	lhu	$t4, 12<<1($t5)
+	lhu	$t4, 13<<1($t5)
+	lhu	$t4, 14<<1($t5)
+	lhu	$t4, 15<<1($t5)
+	lhu	$t4, 15<<1($a0)
+	lhu	$t4, 15<<1($a1)
+	lhu	$t4, 15<<1($a2)
+	lhu	$t4, 15<<1($a3)
+	lhu	$t4, 15<<1($t4)
+	lhu	$t4, 15<<1($s0)
+	lhu	$t4, 15<<1($s1)
+	lhu	$t5, 15<<1($s1)
+	lhu	$a0, 15<<1($s1)
+	lhu	$a1, 15<<1($s1)
+	lhu	$a2, 15<<1($s1)
+	lhu	$a3, 15<<1($s1)
+	lhu	$s0, 15<<1($s1)
+	lhu	$s1, 15<<1($s1)
 
-	lhu	$3, 0
-	lhu	$3, 4
-	lhu	$3, 0($0)
-	lhu	$3, 4($0)
-	lhu	$3, 32767($0)
-	lhu	$3, -32768($0)
-	lhu	$3, 65535($0)
-	lhu	$3, 0xffff0000($0)
-	lhu	$3, 0xffff8000($0)
-	lhu	$3, 0xffff0001($0)
-	lhu	$3, 0xffff8001($0)
-	lhu	$3, 0xf0000000($0)
-	lhu	$3, 0xffffffff($0)
-	lhu	$3, 0x12345678($0)
-	lhu	$19, ($4)
-	lhu	$19, 0($4)
-	lhu	$19, 4($4)
-	lhu	$3, 32767($4)
-	lhu	$3, -32768($4)
-	lhu	$3, 65535($4)
-	lhu	$3, 0xffff0000($4)
-	lhu	$3, 0xffff8000($4)
-	lhu	$3, 0xffff0001($4)
-	lhu	$3, 0xffff8001($4)
-	lhu	$3, 0xf0000000($4)
-	lhu	$3, 0xffffffff($4)
-	lhu	$3, 0x12345678($4)
+	lhu	$t5, 0
+	lhu	$t5, 4
+	lhu	$t5, 0($zero)
+	lhu	$t5, 4($zero)
+	lhu	$t5, 32767($zero)
+	lhu	$t5, -32768($zero)
+	lhu	$t5, 65535($zero)
+	lhu	$t5, 0xffff0000($zero)
+	lhu	$t5, 0xffff8000($zero)
+	lhu	$t5, 0xffff0001($zero)
+	lhu	$t5, 0xffff8001($zero)
+	lhu	$t5, 0xf0000000($zero)
+	lhu	$t5, 0xffffffff($zero)
+	lhu	$t5, 0x12345678($zero)
+	lhu	$s3, ($a0)
+	lhu	$s3, 0($a0)
+	lhu	$s3, 4($a0)
+	lhu	$t5, 32767($a0)
+	lhu	$t5, -32768($a0)
+	lhu	$t5, 65535($a0)
+	lhu	$t5, 0xffff0000($a0)
+	lhu	$t5, 0xffff8000($a0)
+	lhu	$t5, 0xffff0001($a0)
+	lhu	$t5, 0xffff8001($a0)
+	lhu	$t5, 0xf0000000($a0)
+	lhu	$t5, 0xffffffff($a0)
+	lhu	$t5, 0x12345678($a0)
 
-	ll	$3, 0
-	ll	$3, 0($0)
-	ll	$3, 4
-	ll	$3, 4($0)
-	ll	$3, 32767($0)
-	ll	$3, -32768($0)
-	ll	$3, 65535($0)
-	ll	$3, 0xffff0000($0)
-	ll	$3, 0xffff8000($0)
-	ll	$3, 0xffff0001($0)
-	ll	$3, 0xffff8001($0)
-	ll	$3, 0xf0000000($0)
-	ll	$3, 0xffffffff($0)
-	ll	$3, 0x12345678($0)
-	ll	$3, ($4)
-	ll	$3, 0($4)
-	ll	$3, 4($4)
-	ll	$3, 32767($4)
-	ll	$3, -32768($4)
-	ll	$3, 65535($4)
-	ll	$3, 0xffff0000($4)
-	ll	$3, 0xffff8000($4)
-	ll	$3, 0xffff0001($4)
-	ll	$3, 0xffff8001($4)
-	ll	$3, 0xf0000000($4)
-	ll	$3, 0xffffffff($4)
-	ll	$3, 0x12345678($4)
+	ll	$t5, 0
+	ll	$t5, 0($zero)
+	ll	$t5, 4
+	ll	$t5, 4($zero)
+	ll	$t5, 32767($zero)
+	ll	$t5, -32768($zero)
+	ll	$t5, 65535($zero)
+	ll	$t5, 0xffff0000($zero)
+	ll	$t5, 0xffff8000($zero)
+	ll	$t5, 0xffff0001($zero)
+	ll	$t5, 0xffff8001($zero)
+	ll	$t5, 0xf0000000($zero)
+	ll	$t5, 0xffffffff($zero)
+	ll	$t5, 0x12345678($zero)
+	ll	$t5, ($a0)
+	ll	$t5, 0($a0)
+	ll	$t5, 4($a0)
+	ll	$t5, 32767($a0)
+	ll	$t5, -32768($a0)
+	ll	$t5, 65535($a0)
+	ll	$t5, 0xffff0000($a0)
+	ll	$t5, 0xffff8000($a0)
+	ll	$t5, 0xffff0001($a0)
+	ll	$t5, 0xffff8001($a0)
+	ll	$t5, 0xf0000000($a0)
+	ll	$t5, 0xffffffff($a0)
+	ll	$t5, 0x12345678($a0)
 
-	lui	$3, 0
-	lui	$3, 32767
-	lui	$3, 65535
+	lui	$t5, 0
+	lui	$t5, 32767
+	lui	$t5, 65535
 
-	lw	$18, ($4)
-	lw	$18, 0($4)
-	lw	$18, 1<<2($4)
-	lw	$18, 2<<2($4)
-	lw	$18, 3<<2($4)
-	lw	$18, 4<<2($4)
-	lw	$18, 5<<2($4)
-	lw	$18, 6<<2($4)
-	lw	$18, 7<<2($4)
-	lw	$18, 8<<2($4)
-	lw	$18, 9<<2($4)
-	lw	$18, 10<<2($4)
-	lw	$18, 11<<2($4)
-	lw	$18, 12<<2($4)
-	lw	$18, 13<<2($4)
-	lw	$18, 14<<2($4)
-	lw	$18, 15<<2($4)
-	lw	$18, 15<<2($5)
-	lw	$18, 15<<2($6)
-	lw	$18, 15<<2($7)
-	lw	$18, 15<<2($18)
-	lw	$18, 15<<2($19)
-	lw	$18, 15<<2($16)
-	lw	$18, 15<<2($17)
-	lw	$19, 15<<2($17)
-	lw	$4, 15<<2($17)
-	lw	$5, 15<<2($17)
-	lw	$6, 15<<2($17)
-	lw	$7, 15<<2($17)
-	lw	$16, 15<<2($17)
-	lw	$17, 15<<2($17)
+	lw	$s2, ($a0)
+	lw	$s2, 0($a0)
+	lw	$s2, 1<<2($a0)
+	lw	$s2, 2<<2($a0)
+	lw	$s2, 3<<2($a0)
+	lw	$s2, 4<<2($a0)
+	lw	$s2, 5<<2($a0)
+	lw	$s2, 6<<2($a0)
+	lw	$s2, 7<<2($a0)
+	lw	$s2, 8<<2($a0)
+	lw	$s2, 9<<2($a0)
+	lw	$s2, 10<<2($a0)
+	lw	$s2, 11<<2($a0)
+	lw	$s2, 12<<2($a0)
+	lw	$s2, 13<<2($a0)
+	lw	$s2, 14<<2($a0)
+	lw	$s2, 15<<2($a0)
+	lw	$s2, 15<<2($a1)
+	lw	$s2, 15<<2($a2)
+	lw	$s2, 15<<2($a3)
+	lw	$s2, 15<<2($s2)
+	lw	$s2, 15<<2($s3)
+	lw	$s2, 15<<2($s0)
+	lw	$s2, 15<<2($s1)
+	lw	$s3, 15<<2($s1)
+	lw	$a0, 15<<2($s1)
+	lw	$a1, 15<<2($s1)
+	lw	$a2, 15<<2($s1)
+	lw	$a3, 15<<2($s1)
+	lw	$s0, 15<<2($s1)
+	lw	$s1, 15<<2($s1)
 
-	lw	$4, ($29)
-	lw	$4, 0($29)
-	lw	$4, 1<<2($29)
-	lw	$4, 2<<2($29)
-	lw	$4, 3<<2($29)
-	lw	$4, 4<<2($29)
-	lw	$4, 5<<2($29)
-	lw	$4, 31<<2($29)
-	lw	$2, 31<<2($29)
-	lw	$2, 31<<2($29)
-	lw	$3, 31<<2($29)
-	lw	$4, 31<<2($29)
-	lw	$5, 31<<2($29)
-	lw	$6, 31<<2($29)
-	lw	$7, 31<<2($29)
-	lw	$8, 31<<2($29)
-	lw	$9, 31<<2($29)
-	lw	$10, 31<<2($29)
-	lw	$30, 31<<2($29)
-	lw	$31, 31<<2($29)
+	lw	$a0, ($sp)
+	lw	$a0, 0($sp)
+	lw	$a0, 1<<2($sp)
+	lw	$a0, 2<<2($sp)
+	lw	$a0, 3<<2($sp)
+	lw	$a0, 4<<2($sp)
+	lw	$a0, 5<<2($sp)
+	lw	$a0, 31<<2($sp)
+	lw	$t4, 31<<2($sp)
+	lw	$t4, 31<<2($sp)
+	lw	$t5, 31<<2($sp)
+	lw	$a0, 31<<2($sp)
+	lw	$a1, 31<<2($sp)
+	lw	$a2, 31<<2($sp)
+	lw	$a3, 31<<2($sp)
+	lw	$a4, 31<<2($sp)
+	lw	$a5, 31<<2($sp)
+	lw	$a6, 31<<2($sp)
+	lw	$fp, 31<<2($sp)
+	lw	$ra, 31<<2($sp)
 
-	lw	$4, 126<<2($29)
-	lw	$4, 127<<2($29)
-	lw	$16, 127<<2($29)
-	lw	$17, 127<<2($29)
-	lw	$18, 127<<2($29)
-	lw	$19, 127<<2($29)
-	lw	$20, 127<<2($29)
-	lw	$21, 127<<2($29)
-	lw	$31, 127<<2($29)
+	lw	$a0, 126<<2($sp)
+	lw	$a0, 127<<2($sp)
+	lw	$s0, 127<<2($sp)
+	lw	$s1, 127<<2($sp)
+	lw	$s2, 127<<2($sp)
+	lw	$s3, 127<<2($sp)
+	lw	$s4, 127<<2($sp)
+	lw	$s5, 127<<2($sp)
+	lw	$ra, 127<<2($sp)
 
-	lw	$3, 0
-	lw	$3, 4
-	lw	$3, ($0)
-	lw	$3, 0($0)
-	lw	$3, 0($0)
-	lw	$3, 4($0)
-	lw	$3, 32767($0)
-	lw	$3, -32768($0)
-	lw	$3, 65535($0)
-	lw	$3, 0xffff0000($0)
-	lw	$3, 0xffff8000($0)
-	lw	$3, 0xffff0001($0)
-	lw	$3, 0xffff8001($0)
-	lw	$3, 0xf0000000($0)
-	lw	$3, 0xffffffff($0)
-	lw	$3, 0x12345678($0)
-	lw	$19, ($4)
-	lw	$19, 0($4)
-	lw	$19, 4($4)
-	lw	$3, 32767($4)
-	lw	$3, -32768($4)
-	lw	$3, 65535($4)
-	lw	$3, 0xffff0000($4)
-	lw	$3, 0xffff8000($4)
-	lw	$3, 0xffff0001($4)
-	lw	$3, 0xffff8001($4)
-	lw	$3, 0xf0000000($4)
-	lw	$3, 0xffffffff($4)
-	lw	$3, 0x12345678($4)
+	lw	$t5, 0
+	lw	$t5, 4
+	lw	$t5, ($zero)
+	lw	$t5, 0($zero)
+	lw	$t5, 0($zero)
+	lw	$t5, 4($zero)
+	lw	$t5, 32767($zero)
+	lw	$t5, -32768($zero)
+	lw	$t5, 65535($zero)
+	lw	$t5, 0xffff0000($zero)
+	lw	$t5, 0xffff8000($zero)
+	lw	$t5, 0xffff0001($zero)
+	lw	$t5, 0xffff8001($zero)
+	lw	$t5, 0xf0000000($zero)
+	lw	$t5, 0xffffffff($zero)
+	lw	$t5, 0x12345678($zero)
+	lw	$s3, ($a0)
+	lw	$s3, 0($a0)
+	lw	$s3, 4($a0)
+	lw	$t5, 32767($a0)
+	lw	$t5, -32768($a0)
+	lw	$t5, 65535($a0)
+	lw	$t5, 0xffff0000($a0)
+	lw	$t5, 0xffff8000($a0)
+	lw	$t5, 0xffff0001($a0)
+	lw	$t5, 0xffff8001($a0)
+	lw	$t5, 0xf0000000($a0)
+	lw	$t5, 0xffffffff($a0)
+	lw	$t5, 0x12345678($a0)
 /*
-	lwm	$s0, $ra, 12<<2($29)
-	lwm	$s0, $s1, $ra, 12<<2($29)
-	lwm	$s0-$s1, $ra, 12<<2($29)
-	lwm	$s0, $s1, $s2, $ra, 12<<2($29)
-	lwm	$s0-$s2, $ra, 12<<2($29)
-	lwm	$s0, $s1, $s2, $s3, $ra, 12<<2($29)
-	lwm	$s0-$s3, $ra, 12<<2($29)
-	lwm	$s0, $ra, ($29)
-	lwm	$s0, $ra, 0($29)
-	lwm	$s0, $ra, 1<<2($29)
-	lwm	$s0, $ra, 2<<2($29)
-	lwm	$s0, $ra, 3<<2($29)
-	lwm	$s0, $ra, 4<<2($29)
-	lwm	$s0, $ra, 5<<2($29)
-	lwm	$s0, $ra, 6<<2($29)
-	lwm	$s0, $ra, 7<<2($29)
-	lwm	$s0, $ra, 8<<2($29)
-	lwm	$s0, $ra, 9<<2($29)
-	lwm	$s0, $ra, 10<<2($29)
-	lwm	$s0, $ra, 11<<2($29)
-	lwm	$s0, $ra, 12<<2($29)
-	lwm	$s0, $ra, 13<<2($29)
-	lwm	$s0, $ra, 14<<2($29)
-	lwm	$s0, $ra, 15<<2($29)
+	lwm	$s0, $ra, 12<<2($sp)
+	lwm	$s0, $s1, $ra, 12<<2($sp)
+	lwm	$s0-$s1, $ra, 12<<2($sp)
+	lwm	$s0, $s1, $s2, $ra, 12<<2($sp)
+	lwm	$s0-$s2, $ra, 12<<2($sp)
+	lwm	$s0, $s1, $s2, $s3, $ra, 12<<2($sp)
+	lwm	$s0-$s3, $ra, 12<<2($sp)
+	lwm	$s0, $ra, ($sp)
+	lwm	$s0, $ra, 0($sp)
+	lwm	$s0, $ra, 1<<2($sp)
+	lwm	$s0, $ra, 2<<2($sp)
+	lwm	$s0, $ra, 3<<2($sp)
+	lwm	$s0, $ra, 4<<2($sp)
+	lwm	$s0, $ra, 5<<2($sp)
+	lwm	$s0, $ra, 6<<2($sp)
+	lwm	$s0, $ra, 7<<2($sp)
+	lwm	$s0, $ra, 8<<2($sp)
+	lwm	$s0, $ra, 9<<2($sp)
+	lwm	$s0, $ra, 10<<2($sp)
+	lwm	$s0, $ra, 11<<2($sp)
+	lwm	$s0, $ra, 12<<2($sp)
+	lwm	$s0, $ra, 13<<2($sp)
+	lwm	$s0, $ra, 14<<2($sp)
+	lwm	$s0, $ra, 15<<2($sp)
 
 	lwm	$s0, 0
 	lwm	$s0, 4
-	lwm	$s0, ($5)
-	lwm	$s0, 2047($5)
-	lwm	$s0-$s1, 2047($5)
-	lwm	$s0-$s2, 2047($5)
-	lwm	$s0-$s3, 2047($5)
-	lwm	$s0-$s4, 2047($5)
-	lwm	$s0-$s5, 2047($5)
-	lwm	$s0-$s6, 2047($5)
-	lwm	$s0-$s7, 2047($5)
-	lwm	$s0-$s8, 2047($5)
-	lwm	$ra, 2047($5)
-	lwm	$s0,$ra, ($5)
-	lwm	$s0-$s1,$ra, ($5)
-	lwm	$s0-$s2,$ra, ($5)
-	lwm	$s0-$s3,$ra, ($5)
-	lwm	$s0-$s4,$ra, ($5)
-	lwm	$s0-$s5,$ra, ($5)
-	lwm	$s0-$s6,$ra, ($5)
-	lwm	$s0-$s7,$ra, ($5)
-	lwm	$s0-$s8,$ra, ($5)
-	lwm	$s0, -32768($0)
-	lwm	$s0, 32767($0)
-	lwm	$s0, 0($0)
-	lwm	$s0, 65535($0)
-	lwm	$s0, -32768($29)
-	lwm	$s0, 32767($29)
-	lwm	$s0, 0($29)
-	lwm	$s0, 65535($29)
+	lwm	$s0, ($a1)
+	lwm	$s0, 2047($a1)
+	lwm	$s0-$s1, 2047($a1)
+	lwm	$s0-$s2, 2047($a1)
+	lwm	$s0-$s3, 2047($a1)
+	lwm	$s0-$s4, 2047($a1)
+	lwm	$s0-$s5, 2047($a1)
+	lwm	$s0-$s6, 2047($a1)
+	lwm	$s0-$s7, 2047($a1)
+	lwm	$s0-$s8, 2047($a1)
+	lwm	$ra, 2047($a1)
+	lwm	$s0,$ra, ($a1)
+	lwm	$s0-$s1,$ra, ($a1)
+	lwm	$s0-$s2,$ra, ($a1)
+	lwm	$s0-$s3,$ra, ($a1)
+	lwm	$s0-$s4,$ra, ($a1)
+	lwm	$s0-$s5,$ra, ($a1)
+	lwm	$s0-$s6,$ra, ($a1)
+	lwm	$s0-$s7,$ra, ($a1)
+	lwm	$s0-$s8,$ra, ($a1)
+	lwm	$s0, -32768($zero)
+	lwm	$s0, 32767($zero)
+	lwm	$s0, 0($zero)
+	lwm	$s0, 65535($zero)
+	lwm	$s0, -32768($sp)
+	lwm	$s0, 32767($sp)
+	lwm	$s0, 0($sp)
+	lwm	$s0, 65535($sp)
 
-	lwp	$2, 0
-	lwp	$2, 4
-	lwp	$2, ($29)
-	lwp	$2, 0($29)
-	lwp	$2, -2048($3)
-	lwp	$2, 2047($3)
-	lwp	$2, -32768($3)
-	lwp	$2, 32767($3)
-	lwp	$2, 0($3)
-	lwp	$2, 65535($3)
-	lwp	$2, -32768($0)
-	lwp	$2, 32767($0)
-	lwp	$2, 65535($0)
+	lwp	$t4, 0
+	lwp	$t4, 4
+	lwp	$t4, ($sp)
+	lwp	$t4, 0($sp)
+	lwp	$t4, -2048($t5)
+	lwp	$t4, 2047($t5)
+	lwp	$t4, -32768($t5)
+	lwp	$t4, 32767($t5)
+	lwp	$t4, 0($t5)
+	lwp	$t4, 65535($t5)
+	lwp	$t4, -32768($zero)
+	lwp	$t4, 32767($zero)
+	lwp	$t4, 65535($zero)
 
-	lwl	$3, 4
-	lwl	$3, 4($0)
-	lwl	$3, ($0)
-	lwl	$3, 0($0)
-	lwl	$3, 2047($0)
-	lwl	$3, -2048($0)
-	lwl	$3, 32767($0)
-	lwl	$3, -32768($0)
-	lwl	$3, 65535($0)
-	lwl	$3, 0xffff0000($0)
-	lwl	$3, 0xffff8000($0)
-	lwl	$3, 0xffff0001($0)
-	lwl	$3, 0xffff8001($0)
-	lwl	$3, 0xf0000000($0)
-	lwl	$3, 0xffffffff($0)
-	lwl	$3, 0x12345678($0)
-	lwl	$3, ($4)
-	lwl	$3, 0($4)
-	lwl	$3, 2047($4)
-	lwl	$3, -2048($4)
-	lwl	$3, 32767($4)
-	lwl	$3, -32768($4)
-	lwl	$3, 65535($4)
-	lwl	$3, 0xffff0000($4)
-	lwl	$3, 0xffff8000($4)
-	lwl	$3, 0xffff0001($4)
-	lwl	$3, 0xffff8001($4)
-	lwl	$3, 0xf0000000($4)
-	lwl	$3, 0xffffffff($4)
-	lwl	$3, 0x12345678($4)
+	lwl	$t5, 4
+	lwl	$t5, 4($zero)
+	lwl	$t5, ($zero)
+	lwl	$t5, 0($zero)
+	lwl	$t5, 2047($zero)
+	lwl	$t5, -2048($zero)
+	lwl	$t5, 32767($zero)
+	lwl	$t5, -32768($zero)
+	lwl	$t5, 65535($zero)
+	lwl	$t5, 0xffff0000($zero)
+	lwl	$t5, 0xffff8000($zero)
+	lwl	$t5, 0xffff0001($zero)
+	lwl	$t5, 0xffff8001($zero)
+	lwl	$t5, 0xf0000000($zero)
+	lwl	$t5, 0xffffffff($zero)
+	lwl	$t5, 0x12345678($zero)
+	lwl	$t5, ($a0)
+	lwl	$t5, 0($a0)
+	lwl	$t5, 2047($a0)
+	lwl	$t5, -2048($a0)
+	lwl	$t5, 32767($a0)
+	lwl	$t5, -32768($a0)
+	lwl	$t5, 65535($a0)
+	lwl	$t5, 0xffff0000($a0)
+	lwl	$t5, 0xffff8000($a0)
+	lwl	$t5, 0xffff0001($a0)
+	lwl	$t5, 0xffff8001($a0)
+	lwl	$t5, 0xf0000000($a0)
+	lwl	$t5, 0xffffffff($a0)
+	lwl	$t5, 0x12345678($a0)
 
-	lcache	$3, 4
-	lcache	$3, 4($0)
-	lcache	$3, ($0)
-	lcache	$3, 0($0)
-	lcache	$3, 2047($0)
-	lcache	$3, -2048($0)
-	lcache	$3, 32767($0)
-	lcache	$3, -32768($0)
-	lcache	$3, 65535($0)
-	lcache	$3, 0xffff0000($0)
-	lcache	$3, 0xffff8000($0)
-	lcache	$3, 0xffff0001($0)
-	lcache	$3, 0xffff8001($0)
-	lcache	$3, 0xf0000000($0)
-	lcache	$3, 0xffffffff($0)
-	lcache	$3, 0x12345678($0)
-	lcache	$3, ($4)
-	lcache	$3, 0($4)
-	lcache	$3, 2047($4)
-	lcache	$3, -2048($4)
-	lcache	$3, 32767($4)
-	lcache	$3, -32768($4)
-	lcache	$3, 65535($4)
-	lcache	$3, 0xffff0000($4)
-	lcache	$3, 0xffff8000($4)
-	lcache	$3, 0xffff0001($4)
-	lcache	$3, 0xffff8001($4)
-	lcache	$3, 0xf0000000($4)
-	lcache	$3, 0xffffffff($4)
-	lcache	$3, 0x12345678($4)
+	lcache	$t5, 4
+	lcache	$t5, 4($zero)
+	lcache	$t5, ($zero)
+	lcache	$t5, 0($zero)
+	lcache	$t5, 2047($zero)
+	lcache	$t5, -2048($zero)
+	lcache	$t5, 32767($zero)
+	lcache	$t5, -32768($zero)
+	lcache	$t5, 65535($zero)
+	lcache	$t5, 0xffff0000($zero)
+	lcache	$t5, 0xffff8000($zero)
+	lcache	$t5, 0xffff0001($zero)
+	lcache	$t5, 0xffff8001($zero)
+	lcache	$t5, 0xf0000000($zero)
+	lcache	$t5, 0xffffffff($zero)
+	lcache	$t5, 0x12345678($zero)
+	lcache	$t5, ($a0)
+	lcache	$t5, 0($a0)
+	lcache	$t5, 2047($a0)
+	lcache	$t5, -2048($a0)
+	lcache	$t5, 32767($a0)
+	lcache	$t5, -32768($a0)
+	lcache	$t5, 65535($a0)
+	lcache	$t5, 0xffff0000($a0)
+	lcache	$t5, 0xffff8000($a0)
+	lcache	$t5, 0xffff0001($a0)
+	lcache	$t5, 0xffff8001($a0)
+	lcache	$t5, 0xf0000000($a0)
+	lcache	$t5, 0xffffffff($a0)
+	lcache	$t5, 0x12345678($a0)
 
-	lwr	$3, 4
-	lwr	$3, 4($0)
-	lwr	$3, ($0)
-	lwr	$3, 0($0)
-	lwr	$3, 2047($0)
-	lwr	$3, -2048($0)
-	lwr	$3, 32767($0)
-	lwr	$3, -32768($0)
-	lwr	$3, 65535($0)
-	lwr	$3, 0xffff0000($0)
-	lwr	$3, 0xffff8000($0)
-	lwr	$3, 0xffff0001($0)
-	lwr	$3, 0xffff8001($0)
-	lwr	$3, 0xf0000000($0)
-	lwr	$3, 0xffffffff($0)
-	lwr	$3, 0x12345678($0)
-	lwr	$3, ($4)
-	lwr	$3, 0($4)
-	lwr	$3, 2047($4)
-	lwr	$3, -2048($4)
-	lwr	$3, 32767($4)
-	lwr	$3, -32768($4)
-	lwr	$3, 65535($4)
-	lwr	$3, 0xffff0000($4)
-	lwr	$3, 0xffff8000($4)
-	lwr	$3, 0xffff0001($4)
-	lwr	$3, 0xffff8001($4)
-	lwr	$3, 0xf0000000($4)
-	lwr	$3, 0xffffffff($4)
-	lwr	$3, 0x12345678($4)
+	lwr	$t5, 4
+	lwr	$t5, 4($zero)
+	lwr	$t5, ($zero)
+	lwr	$t5, 0($zero)
+	lwr	$t5, 2047($zero)
+	lwr	$t5, -2048($zero)
+	lwr	$t5, 32767($zero)
+	lwr	$t5, -32768($zero)
+	lwr	$t5, 65535($zero)
+	lwr	$t5, 0xffff0000($zero)
+	lwr	$t5, 0xffff8000($zero)
+	lwr	$t5, 0xffff0001($zero)
+	lwr	$t5, 0xffff8001($zero)
+	lwr	$t5, 0xf0000000($zero)
+	lwr	$t5, 0xffffffff($zero)
+	lwr	$t5, 0x12345678($zero)
+	lwr	$t5, ($a0)
+	lwr	$t5, 0($a0)
+	lwr	$t5, 2047($a0)
+	lwr	$t5, -2048($a0)
+	lwr	$t5, 32767($a0)
+	lwr	$t5, -32768($a0)
+	lwr	$t5, 65535($a0)
+	lwr	$t5, 0xffff0000($a0)
+	lwr	$t5, 0xffff8000($a0)
+	lwr	$t5, 0xffff0001($a0)
+	lwr	$t5, 0xffff8001($a0)
+	lwr	$t5, 0xf0000000($a0)
+	lwr	$t5, 0xffffffff($a0)
+	lwr	$t5, 0x12345678($a0)
 
-	flush	$3, 4
-	flush	$3, 4($0)
-	flush	$3, ($0)
-	flush	$3, 0($0)
-	flush	$3, 2047($0)
-	flush	$3, -2048($0)
-	flush	$3, 32767($0)
-	flush	$3, -32768($0)
-	flush	$3, 65535($0)
-	flush	$3, 0xffff0000($0)
-	flush	$3, 0xffff8000($0)
-	flush	$3, 0xffff0001($0)
-	flush	$3, 0xffff8001($0)
-	flush	$3, 0xf0000000($0)
-	flush	$3, 0xffffffff($0)
-	flush	$3, 0x12345678($0)
-	flush	$3, ($4)
-	flush	$3, 0($4)
-	flush	$3, 2047($4)
-	flush	$3, -2048($4)
-	flush	$3, 32767($4)
-	flush	$3, -32768($4)
-	flush	$3, 65535($4)
-	flush	$3, 0xffff0000($4)
-	flush	$3, 0xffff8000($4)
-	flush	$3, 0xffff0001($4)
-	flush	$3, 0xffff8001($4)
-	flush	$3, 0xf0000000($4)
-	flush	$3, 0xffffffff($4)
-	flush	$3, 0x12345678($4)
+	flush	$t5, 4
+	flush	$t5, 4($zero)
+	flush	$t5, ($zero)
+	flush	$t5, 0($zero)
+	flush	$t5, 2047($zero)
+	flush	$t5, -2048($zero)
+	flush	$t5, 32767($zero)
+	flush	$t5, -32768($zero)
+	flush	$t5, 65535($zero)
+	flush	$t5, 0xffff0000($zero)
+	flush	$t5, 0xffff8000($zero)
+	flush	$t5, 0xffff0001($zero)
+	flush	$t5, 0xffff8001($zero)
+	flush	$t5, 0xf0000000($zero)
+	flush	$t5, 0xffffffff($zero)
+	flush	$t5, 0x12345678($zero)
+	flush	$t5, ($a0)
+	flush	$t5, 0($a0)
+	flush	$t5, 2047($a0)
+	flush	$t5, -2048($a0)
+	flush	$t5, 32767($a0)
+	flush	$t5, -32768($a0)
+	flush	$t5, 65535($a0)
+	flush	$t5, 0xffff0000($a0)
+	flush	$t5, 0xffff8000($a0)
+	flush	$t5, 0xffff0001($a0)
+	flush	$t5, 0xffff8001($a0)
+	flush	$t5, 0xf0000000($a0)
+	flush	$t5, 0xffffffff($a0)
+	flush	$t5, 0x12345678($a0)
 */
 	.set push
-	lwxs	$19, $4($5)
+	lwxs	$s3, $a0($a1)
 	.set pop
 /*
-	madd	$4,$5
-	maddu	$4,$5
+	madd	$a0,$a1
+	maddu	$a0,$a1
 */
-	mfc0	$2, $0
-	mfc0	$2, $1
-	mfc0	$2, $2
-	mfc0	$2, $3
-	mfc0	$2, $4
-	mfc0	$2, $5
-	mfc0	$2, $6
-	mfc0	$2, $7
-	mfc0	$2, $8
-	mfc0	$2, $9
-	mfc0	$2, $10
-	mfc0	$2, $11
-	mfc0	$2, $12
-	mfc0	$2, $13
-	mfc0	$2, $14
-	mfc0	$2, $15
-	mfc0	$2, $16
-	mfc0	$2, $17
-	mfc0	$2, $18
-	mfc0	$2, $19
-	mfc0	$2, $20
-	mfc0	$2, $21
-	mfc0	$2, $22
-	mfc0	$2, $23
-	mfc0	$2, $24
-	mfc0	$2, $25
-	mfc0	$2, $26
-	mfc0	$2, $27
-	mfc0	$2, $28
-	mfc0	$2, $29
-	mfc0	$2, $30
-	mfc0	$2, $31
+	mfc0	$t4, $0
+	mfc0	$t4, $1
+	mfc0	$t4, $2
+	mfc0	$t4, $3
+	mfc0	$t4, $4
+	mfc0	$t4, $5
+	mfc0	$t4, $6
+	mfc0	$t4, $7
+	mfc0	$t4, $8
+	mfc0	$t4, $9
+	mfc0	$t4, $10
+	mfc0	$t4, $11
+	mfc0	$t4, $12
+	mfc0	$t4, $13
+	mfc0	$t4, $14
+	mfc0	$t4, $15
+	mfc0	$t4, $16
+	mfc0	$t4, $17
+	mfc0	$t4, $18
+	mfc0	$t4, $19
+	mfc0	$t4, $20
+	mfc0	$t4, $21
+	mfc0	$t4, $22
+	mfc0	$t4, $23
+	mfc0	$t4, $24
+	mfc0	$t4, $25
+	mfc0	$t4, $26
+	mfc0	$t4, $27
+	mfc0	$t4, $28
+	mfc0	$t4, $29
+	mfc0	$t4, $30
+	mfc0	$t4, $31
 
-	mfc0	$2, $0, 0
-	mfc0	$2, $0, 1
-	mfc0	$2, $0, 2
-	mfc0	$2, $0, 3
-	mfc0	$2, $0, 4
-	mfc0	$2, $0, 5
-	mfc0	$2, $0, 6
-	mfc0	$2, $0, 7
-	mfc0	$2, $1, 0
-	mfc0	$2, $1, 1
-	mfc0	$2, $1, 2
-	mfc0	$2, $1, 3
-	mfc0	$2, $1, 4
-	mfc0	$2, $1, 5
-	mfc0	$2, $1, 6
-	mfc0	$2, $1, 7
-	mfc0	$2, $2, 0
-	mfc0	$2, $2, 1
-	mfc0	$2, $2, 2
-	mfc0	$2, $2, 3
-	mfc0	$2, $2, 4
-	mfc0	$2, $2, 5
-	mfc0	$2, $2, 6
-	mfc0	$2, $2, 7
+	mfc0	$t4, $0, 0
+	mfc0	$t4, $0, 1
+	mfc0	$t4, $0, 2
+	mfc0	$t4, $0, 3
+	mfc0	$t4, $0, 4
+	mfc0	$t4, $0, 5
+	mfc0	$t4, $0, 6
+	mfc0	$t4, $0, 7
+	mfc0	$t4, $1, 0
+	mfc0	$t4, $1, 1
+	mfc0	$t4, $1, 2
+	mfc0	$t4, $1, 3
+	mfc0	$t4, $1, 4
+	mfc0	$t4, $1, 5
+	mfc0	$t4, $1, 6
+	mfc0	$t4, $1, 7
+	mfc0	$t4, $2, 0
+	mfc0	$t4, $2, 1
+	mfc0	$t4, $2, 2
+	mfc0	$t4, $2, 3
+	mfc0	$t4, $2, 4
+	mfc0	$t4, $2, 5
+	mfc0	$t4, $2, 6
+	mfc0	$t4, $2, 7
 
-	movn	$2, $3
-	movn	$2, $2, $3
-	movn	$2, $3, $4
+	movn	$t4, $t5
+	movn	$t4, $t4, $t5
+	movn	$t4, $t5, $a0
 
-	movz	$2, $3
-	movz	$2, $2, $3
-	movz	$2, $3, $4
+	movz	$t4, $t5
+	movz	$t4, $t4, $t5
+	movz	$t4, $t5, $a0
 /*
-	msub	$4,$5
-	msubu	$4,$5
+	msub	$a0,$a1
+	msubu	$a0,$a1
 */
-	mtc0	$2, $0
-	mtc0	$2, $1
-	mtc0	$2, $2
-	mtc0	$2, $3
-	mtc0	$2, $4
-	mtc0	$2, $5
-	mtc0	$2, $6
-	mtc0	$2, $7
-	mtc0	$2, $8
-	mtc0	$2, $9
-	mtc0	$2, $10
-	mtc0	$2, $11
-	mtc0	$2, $12
-	mtc0	$2, $13
-	mtc0	$2, $14
-	mtc0	$2, $15
-	mtc0	$2, $16
-	mtc0	$2, $17
-	mtc0	$2, $18
-	mtc0	$2, $19
-	mtc0	$2, $20
-	mtc0	$2, $21
-	mtc0	$2, $22
-	mtc0	$2, $23
-	mtc0	$2, $24
-	mtc0	$2, $25
-	mtc0	$2, $26
-	mtc0	$2, $27
-	mtc0	$2, $28
-	mtc0	$2, $29
-	mtc0	$2, $30
-	mtc0	$2, $31
+	mtc0	$t4, $0
+	mtc0	$t4, $1
+	mtc0	$t4, $2
+	mtc0	$t4, $3
+	mtc0	$t4, $4
+	mtc0	$t4, $5
+	mtc0	$t4, $6
+	mtc0	$t4, $7
+	mtc0	$t4, $8
+	mtc0	$t4, $9
+	mtc0	$t4, $10
+	mtc0	$t4, $11
+	mtc0	$t4, $12
+	mtc0	$t4, $13
+	mtc0	$t4, $14
+	mtc0	$t4, $15
+	mtc0	$t4, $16
+	mtc0	$t4, $17
+	mtc0	$t4, $18
+	mtc0	$t4, $19
+	mtc0	$t4, $20
+	mtc0	$t4, $21
+	mtc0	$t4, $22
+	mtc0	$t4, $23
+	mtc0	$t4, $24
+	mtc0	$t4, $25
+	mtc0	$t4, $26
+	mtc0	$t4, $27
+	mtc0	$t4, $28
+	mtc0	$t4, $29
+	mtc0	$t4, $30
+	mtc0	$t4, $31
 
-	mtc0	$2, $0, 0
-	mtc0	$2, $0, 1
-	mtc0	$2, $0, 2
-	mtc0	$2, $0, 3
-	mtc0	$2, $0, 4
-	mtc0	$2, $0, 5
-	mtc0	$2, $0, 6
-	mtc0	$2, $0, 7
-	mtc0	$2, $1, 0
-	mtc0	$2, $1, 1
-	mtc0	$2, $1, 2
-	mtc0	$2, $1, 3
-	mtc0	$2, $1, 4
-	mtc0	$2, $1, 5
-	mtc0	$2, $1, 6
-	mtc0	$2, $1, 7
-	mtc0	$2, $2, 0
-	mtc0	$2, $2, 1
-	mtc0	$2, $2, 2
-	mtc0	$2, $2, 3
-	mtc0	$2, $2, 4
-	mtc0	$2, $2, 5
-	mtc0	$2, $2, 6
-	mtc0	$2, $2, 7
-	mul	$2, $3, $4
-	mul	$29, $30, $31
-	mul	$2, $2, $4
-	mul	$2, $4
-	mul	$2, $2, 0
-	mul	$2, $2, 1
-	mul	$2, $2, 32767
-	mul	$2, $2, -32768
-	mul	$2, $2, 65535
+	mtc0	$t4, $0, 0
+	mtc0	$t4, $0, 1
+	mtc0	$t4, $0, 2
+	mtc0	$t4, $0, 3
+	mtc0	$t4, $0, 4
+	mtc0	$t4, $0, 5
+	mtc0	$t4, $0, 6
+	mtc0	$t4, $0, 7
+	mtc0	$t4, $1, 0
+	mtc0	$t4, $1, 1
+	mtc0	$t4, $1, 2
+	mtc0	$t4, $1, 3
+	mtc0	$t4, $1, 4
+	mtc0	$t4, $1, 5
+	mtc0	$t4, $1, 6
+	mtc0	$t4, $1, 7
+	mtc0	$t4, $2, 0
+	mtc0	$t4, $2, 1
+	mtc0	$t4, $2, 2
+	mtc0	$t4, $2, 3
+	mtc0	$t4, $2, 4
+	mtc0	$t4, $2, 5
+	mtc0	$t4, $2, 6
+	mtc0	$t4, $2, 7
+	mul	$t4, $t5, $a0
+	mul	$sp, $fp, $ra
+	mul	$t4, $t4, $a0
+	mul	$t4, $a0
+	mul	$t4, $t4, 0
+	mul	$t4, $t4, 1
+	mul	$t4, $t4, 32767
+	mul	$t4, $t4, -32768
+	mul	$t4, $t4, 65535
 /*
-	mulo	$2, $3, $4
-	mulo	$2, $3, 4
-	mulou	$2, $3, $4
-	mulou	$2, $3, 4
-	mult	$2, $3
-	multu	$2, $3
+	mulo	$t4, $t5, $a0
+	mulo	$t4, $t5, 4
+	mulou	$t4, $t5, $a0
+	mulou	$t4, $t5, 4
+	mult	$t4, $t5
+	multu	$t4, $t5
 */
 
-	neg	$2, $3
-	neg	$2, $2
-	neg	$2
-	negu	$2, $3
-	negu	$2, $2
-	negu	$2
-	negu32	$2, $3
-	negu32	$2, $2
-	negu32	$2
+	neg	$t4, $t5
+	neg	$t4, $t4
+	neg	$t4
+	negu	$t4, $t5
+	negu	$t4, $t4
+	negu	$t4
+	negu32	$t4, $t5
+	negu32	$t4, $t4
+	negu32	$t4
 
-	not	$18, $18
-	not	$18, $18
-	not	$18, $19
-	not	$18, $4
-	not	$18, $5
-	not	$18, $6
-	not	$18, $7
-	not	$18, $16
-	not	$18, $17
-	not	$19, $17
-	not	$4, $17
-	not	$5, $17
-	not	$6, $17
-	not	$7, $17
-	not	$16, $17
-	not	$17, $17
+	not	$s2, $s2
+	not	$s2, $s2
+	not	$s2, $s3
+	not	$s2, $a0
+	not	$s2, $a1
+	not	$s2, $a2
+	not	$s2, $a3
+	not	$s2, $s0
+	not	$s2, $s1
+	not	$s3, $s1
+	not	$a0, $s1
+	not	$a1, $s1
+	not	$a2, $s1
+	not	$a3, $s1
+	not	$s0, $s1
+	not	$s1, $s1
 
-	nor	$2, $7, $0
-	nor	$2, $0, $7
+	nor	$t4, $a3, $zero
+	nor	$t4, $zero, $a3
 
-	nor32	$2, $3, $4
-	nor32	$29, $30, $31
-	nor32	$2, $2, $4
-	nor32	$2, $4
+	nor32	$t4, $t5, $a0
+	nor32	$sp, $fp, $ra
+	nor32	$t4, $t4, $a0
+	nor32	$t4, $a0
 
-	nor	$2, $3, 32768
-	nor	$2, $3, 65535
-	nor	$2, $3, 65536
-	nor	$2, $3, -32768
-	nor	$2, $3, -32769
+	nor	$t4, $t5, 32768
+	nor	$t4, $t5, 65535
+	nor	$t4, $t5, 65536
+	nor	$t4, $t5, -32768
+	nor	$t4, $t5, -32769
 
-	or	$2, $22, $0
-	or	$22, $2, $0
-	or	$2, $0, $22
-	or	$22, $0, $2
+	or	$t4, $s6, $zero
+	or	$s6, $t4, $zero
+	or	$t4, $zero, $s6
+	or	$s6, $zero, $t4
 
-	or	$18, $18
-	or	$18, $19
-	or	$18, $4
-	or	$18, $5
-	or	$18, $6
-	or	$18, $7
-	or	$18, $16
-	or	$18, $17
-	or	$19, $18
-	or	$4, $18
-	or	$5, $18
-	or	$6, $18
-	or	$7, $18
-	or	$16, $18
-	or	$17, $18
-	or	$18, $18
-	or	$18, $18, $19
-	or	$18, $19, $18
+	or	$s2, $s2
+	or	$s2, $s3
+	or	$s2, $a0
+	or	$s2, $a1
+	or	$s2, $a2
+	or	$s2, $a3
+	or	$s2, $s0
+	or	$s2, $s1
+	or	$s3, $s2
+	or	$a0, $s2
+	or	$a1, $s2
+	or	$a2, $s2
+	or	$a3, $s2
+	or	$s0, $s2
+	or	$s1, $s2
+	or	$s2, $s2
+	or	$s2, $s2, $s3
+	or	$s2, $s3, $s2
 
-	or32	$2, $3, $4
-	or32	$29, $30, $31
-	or32	$2, $2, $4
-	or32	$2, $4
+	or32	$t4, $t5, $a0
+	or32	$sp, $fp, $ra
+	or32	$t4, $t4, $a0
+	or32	$t4, $a0
 
-	or	$2, $3, 32768
-	or	$2, $3, 65535
-	or	$2, $3, 65536
-	or	$2, $3, -32768
-	or	$2, $3, -32769
+	or	$t4, $t5, 32768
+	or	$t4, $t5, 65535
+	or	$t4, $t5, 65536
+	or	$t4, $t5, -32768
+	or	$t4, $t5, -32769
 
-	ori	$3, $4, 0
-	ori	$3, $4, 4095
+	ori	$t5, $a0, 0
+	ori	$t5, $a0, 4095
 
-	rdhwr	$2, $0
-	rdhwr	$2, $1
-	rdhwr	$2, $2
-	rdhwr	$2, $3
-	rdhwr	$2, $4
-	rdhwr	$2, $5
-	rdhwr	$2, $6
-	rdhwr	$2, $7
-	rdhwr	$2, $8
-	rdhwr	$2, $9
-	rdhwr	$2, $10
+	rdhwr	$t4, $0
+	rdhwr	$t4, $1
+	rdhwr	$t4, $2
+	rdhwr	$t4, $3
+	rdhwr	$t4, $4
+	rdhwr	$t4, $5
+	rdhwr	$t4, $6
+	rdhwr	$t4, $7
+	rdhwr	$t4, $8
+	rdhwr	$t4, $9
+	rdhwr	$t4, $10
 
-	rdpgpr	$2, $3
-	rdpgpr	$2, $2
+	rdpgpr	$t4, $t5
+	rdpgpr	$t4, $t4
 /*
-	rdpgpr	$2
+	rdpgpr	$t4
 */
-	rem	$0, $2, $3
-	rem	$0, $30, $31
-	rem	$0, $3
-	rem	$0, $31
+	rem	$zero, $t4, $t5
+	rem	$zero, $fp, $ra
+	rem	$zero, $t5
+	rem	$zero, $ra
 
-	rem	$2, $3, $0
-	rem	$2, $3, $4
+	rem	$t4, $t5, $zero
+	rem	$t4, $t5, $a0
 
-	rem	$3, $4, 0
-	rem	$3, $4, 1
-	rem	$3, $4, -1
-	rem	$3, $4, 2
+	rem	$t5, $a0, 0
+	rem	$t5, $a0, 1
+	rem	$t5, $a0, -1
+	rem	$t5, $a0, 2
 /*
 
-	remu	$0, $2, $3
-	remu	$0, $30, $31
-	remu	$0, $3
-	remu	$0, $31
+	remu	$zero, $t4, $t5
+	remu	$zero, $fp, $ra
+	remu	$zero, $t5
+	remu	$zero, $ra
 
-	remu	$2, $3, $0
-	remu	$2, $3, $4
+	remu	$t4, $t5, $zero
+	remu	$t4, $t5, $a0
 
-	remu	$3, $4, 0
-	remu	$3, $4, 1
-	remu	$3, $4, -1
-	remu	$3, $4, 2
+	remu	$t5, $a0, 0
+	remu	$t5, $a0, 1
+	remu	$t5, $a0, -1
+	remu	$t5, $a0, 2
 */
-	rol	$2, $3, $4
-	rol	$2, $2, $4
-	rol	$2, $3, $3
-	rol	$2, $3, $2
+	rol	$t4, $t5, $a0
+	rol	$t4, $t4, $a0
+	rol	$t4, $t5, $t5
+	rol	$t4, $t5, $t4
 
-	rol	$2, $3, 0
-	rol	$2, $3, 1
-	rol	$2, $3, 31
-	rol	$2, $2, 31
-	rol	$2, 31
+	rol	$t4, $t5, 0
+	rol	$t4, $t5, 1
+	rol	$t4, $t5, 31
+	rol	$t4, $t4, 31
+	rol	$t4, 31
 
-	ror	$2, $3, 0
-	ror	$2, $3, 1
-	ror	$2, $3, 31
-	ror	$2, $2, 31
-	ror	$2, 31
+	ror	$t4, $t5, 0
+	ror	$t4, $t5, 1
+	ror	$t4, $t5, 31
+	ror	$t4, $t4, 31
+	ror	$t4, 31
 
-	ror	$2, $3, $4
-	ror	$2, $2, $4
+	ror	$t4, $t5, $a0
+	ror	$t4, $t4, $a0
 
-	rotr	$2, $3, $4
-	rotr	$2, $2, $4
+	rotr	$t4, $t5, $a0
+	rotr	$t4, $t4, $a0
 
-	rorv	$2, $3, $4
-	rorv	$2, $2, $4
+	rorv	$t4, $t5, $a0
+	rorv	$t4, $t4, $a0
 
-	rotrv	$2, $3, $4
-	rotrv	$2, $2, $4
+	rotrv	$t4, $t5, $a0
+	rotrv	$t4, $t4, $a0
 
-	sb	$0, ($19)
-	sb	$0, 0($19)
-	sb	$0, 1($19)
-	sb	$0, 2($19)
-	sb	$0, 3($19)
-	sb	$0, 4($3)
-	sb	$0, 5($3)
-	sb	$0, 6($3)
-	sb	$0, 7($3)
-	sb	$0, 8($3)
-	sb	$0, 9($3)
-	sb	$0, 10($3)
-	sb	$0, 11($3)
-	sb	$0, 12($3)
-	sb	$0, 13($3)
-	sb	$0, 14($3)
-	sb	$0, 15($3)
-	sb	$2, 15($3)
-	sb	$3, 15($3)
-	sb	$4, 15($3)
-	sb	$5, 15($3)
-	sb	$6, 15($3)
-	sb	$7, 15($3)
-	sb	$17, 15($3)
-	sb	$17, 15($4)
-	sb	$17, 15($5)
-	sb	$17, 15($6)
-	sb	$17, 15($7)
-	sb	$17, 15($2)
-	sb	$17, 15($16)
-	sb	$17, 15($17)
+	sb	$zero, ($s3)
+	sb	$zero, 0($s3)
+	sb	$zero, 1($s3)
+	sb	$zero, 2($s3)
+	sb	$zero, 3($s3)
+	sb	$zero, 4($t5)
+	sb	$zero, 5($t5)
+	sb	$zero, 6($t5)
+	sb	$zero, 7($t5)
+	sb	$zero, 8($t5)
+	sb	$zero, 9($t5)
+	sb	$zero, 10($t5)
+	sb	$zero, 11($t5)
+	sb	$zero, 12($t5)
+	sb	$zero, 13($t5)
+	sb	$zero, 14($t5)
+	sb	$zero, 15($t5)
+	sb	$t4, 15($t5)
+	sb	$t5, 15($t5)
+	sb	$a0, 15($t5)
+	sb	$a1, 15($t5)
+	sb	$a2, 15($t5)
+	sb	$a3, 15($t5)
+	sb	$s1, 15($t5)
+	sb	$s1, 15($a0)
+	sb	$s1, 15($a1)
+	sb	$s1, 15($a2)
+	sb	$s1, 15($a3)
+	sb	$s1, 15($t4)
+	sb	$s1, 15($s0)
+	sb	$s1, 15($s1)
 
-	sb32	$3, 4
-	sb32	$3, 4($0)
+	sb32	$t5, 4
+	sb32	$t5, 4($zero)
 
-	sb32	$3, 4095($0)
+	sb32	$t5, 4095($zero)
 
-	sb	$3, 65535($0)
-	sb	$3, 0xffff0000($0)
-	sb	$3, 0xffff8000($0)
-	sb	$3, 0xffff0001($0)
-	sb	$3, 0xffff8001($0)
-	sb	$3, 0xf0000000($0)
-	sb	$3, 0xffffffff($0)
-	sb	$3, 0x12345678($0)
-	sb32	$3, ($4)
-	sb32	$3, 0($4)
-	sb32	$3, 4095($4)
+	sb	$t5, 65535($zero)
+	sb	$t5, 0xffff0000($zero)
+	sb	$t5, 0xffff8000($zero)
+	sb	$t5, 0xffff0001($zero)
+	sb	$t5, 0xffff8001($zero)
+	sb	$t5, 0xf0000000($zero)
+	sb	$t5, 0xffffffff($zero)
+	sb	$t5, 0x12345678($zero)
+	sb32	$t5, ($a0)
+	sb32	$t5, 0($a0)
+	sb32	$t5, 4095($a0)
 /*
-	sb32	$3, -32768($4)
+	sb32	$t5, -32768($a0)
 	*/
-	sb	$3, 65535($4)
-	sb	$3, 0xffff0000($4)
-	sb	$3, 0xffff8000($4)
-	sb	$3, 0xffff0001($4)
-	sb	$3, 0xffff8001($4)
-	sb	$3, 0xf0000000($4)
-	sb	$3, 0xffffffff($4)
-	sb	$3, 0x12345678($4)
+	sb	$t5, 65535($a0)
+	sb	$t5, 0xffff0000($a0)
+	sb	$t5, 0xffff8000($a0)
+	sb	$t5, 0xffff0001($a0)
+	sb	$t5, 0xffff8001($a0)
+	sb	$t5, 0xf0000000($a0)
+	sb	$t5, 0xffffffff($a0)
+	sb	$t5, 0x12345678($a0)
 
-	sc	$3, 4
-	sc	$3, 4($0)
-	sc	$3, 2047($0)
-	sc	$3, -2048($0)
-	sc	$3, 32767($0)
-	sc	$3, -32768($0)
-	sc	$3, 65535($0)
-	sc	$3, 0xffff0000($0)
-	sc	$3, 0xffff8000($0)
-	sc	$3, 0xffff0001($0)
-	sc	$3, 0xffff8001($0)
-	sc	$3, 0xf0000000($0)
-	sc	$3, 0xffffffff($0)
-	sc	$3, 0x12345678($0)
-	sc	$3, ($4)
-	sc	$3, 0($4)
-	sc	$3, 2047($4)
-	sc	$3, -2048($4)
-	sc	$3, 32767($4)
-	sc	$3, -32768($4)
-	sc	$3, 65535($4)
-	sc	$3, 0xffff0000($4)
-	sc	$3, 0xffff8000($4)
-	sc	$3, 0xffff0001($4)
-	sc	$3, 0xffff8001($4)
-	sc	$3, 0xf0000000($4)
-	sc	$3, 0xffffffff($4)
-	sc	$3, 0x12345678($4)
+	sc	$t5, 4
+	sc	$t5, 4($zero)
+	sc	$t5, 2047($zero)
+	sc	$t5, -2048($zero)
+	sc	$t5, 32767($zero)
+	sc	$t5, -32768($zero)
+	sc	$t5, 65535($zero)
+	sc	$t5, 0xffff0000($zero)
+	sc	$t5, 0xffff8000($zero)
+	sc	$t5, 0xffff0001($zero)
+	sc	$t5, 0xffff8001($zero)
+	sc	$t5, 0xf0000000($zero)
+	sc	$t5, 0xffffffff($zero)
+	sc	$t5, 0x12345678($zero)
+	sc	$t5, ($a0)
+	sc	$t5, 0($a0)
+	sc	$t5, 2047($a0)
+	sc	$t5, -2048($a0)
+	sc	$t5, 32767($a0)
+	sc	$t5, -32768($a0)
+	sc	$t5, 65535($a0)
+	sc	$t5, 0xffff0000($a0)
+	sc	$t5, 0xffff8000($a0)
+	sc	$t5, 0xffff0001($a0)
+	sc	$t5, 0xffff8001($a0)
+	sc	$t5, 0xf0000000($a0)
+	sc	$t5, 0xffffffff($a0)
+	sc	$t5, 0x12345678($a0)
 
 	sdbbp
 	sdbbp	0
@@ -1591,544 +1591,544 @@ test3:
 	sdbbp32	2
 	sdbbp32	255
 
-	seb	$2, $3
-	seb	$2, $2
-	seb	$2
-	seh	$2, $3
-	seh	$2, $2
-	seh	$2
+	seb	$t4, $t5
+	seb	$t4, $t4
+	seb	$t4
+	seh	$t4, $t5
+	seh	$t4, $t4
+	seh	$t4
 
-	seq	$2, $3, $4
-	seq	$2, $3, $0
-	seq	$2, $0, $4
+	seq	$t4, $t5, $a0
+	seq	$t4, $t5, $zero
+	seq	$t4, $zero, $a0
 
-	seq	$2, $3, 0
-	seq	$2, $3, 1
-	seq	$2, $3, -1
-	seq	$2, $3, -32769
+	seq	$t4, $t5, 0
+	seq	$t4, $t5, 1
+	seq	$t4, $t5, -1
+	seq	$t4, $t5, -32769
 
-	sge	$2, $3, $4
-	sge	$2, $2, $4
-	sge	$2, $4
-	sge	$2, $3, 0
-	sge	$2, $3, -32768
-	sge	$2, $3, 0
-	sge	$2, $3, 32767
-	sge	$2, $3, 65535
-	sge	$2, $3, 65536
-	sge	$2, $3, -32769
+	sge	$t4, $t5, $a0
+	sge	$t4, $t4, $a0
+	sge	$t4, $a0
+	sge	$t4, $t5, 0
+	sge	$t4, $t5, -32768
+	sge	$t4, $t5, 0
+	sge	$t4, $t5, 32767
+	sge	$t4, $t5, 65535
+	sge	$t4, $t5, 65536
+	sge	$t4, $t5, -32769
 
-	sgeu	$2, $3, $4
-	sgeu	$2, $2, $4
-	sgeu	$2, $4
-	sgeu	$2, $3, 0
-	sgeu	$2, $3, -32768
-	sgeu	$2, $3, 0
-	sgeu	$2, $3, 32767
-	sgeu	$2, $3, 65535
-	sgeu	$2, $3, 65536
-	sgeu	$2, $3, -32769
+	sgeu	$t4, $t5, $a0
+	sgeu	$t4, $t4, $a0
+	sgeu	$t4, $a0
+	sgeu	$t4, $t5, 0
+	sgeu	$t4, $t5, -32768
+	sgeu	$t4, $t5, 0
+	sgeu	$t4, $t5, 32767
+	sgeu	$t4, $t5, 65535
+	sgeu	$t4, $t5, 65536
+	sgeu	$t4, $t5, -32769
 
-	sgt	$2, $3, $4
-	sgt	$2, $2, $4
-	sgt	$2, $4
-	sgt	$2, $3, 0
-	sgt	$2, $3, -32768
-	sgt	$2, $3, 0
-	sgt	$2, $3, 32767
-	sgt	$2, $3, 65535
-	sgt	$2, $3, 65536
-	sgt	$2, $3, -32769
+	sgt	$t4, $t5, $a0
+	sgt	$t4, $t4, $a0
+	sgt	$t4, $a0
+	sgt	$t4, $t5, 0
+	sgt	$t4, $t5, -32768
+	sgt	$t4, $t5, 0
+	sgt	$t4, $t5, 32767
+	sgt	$t4, $t5, 65535
+	sgt	$t4, $t5, 65536
+	sgt	$t4, $t5, -32769
 
-	sgtu	$2, $3, $4
-	sgtu	$2, $2, $4
-	sgtu	$2, $4
-	sgtu	$2, $3, 0
-	sgtu	$2, $3, -32768
-	sgtu	$2, $3, 0
-	sgtu	$2, $3, 32767
-	sgtu	$2, $3, 65535
-	sgtu	$2, $3, 65536
-	sgtu	$2, $3, -32769
+	sgtu	$t4, $t5, $a0
+	sgtu	$t4, $t4, $a0
+	sgtu	$t4, $a0
+	sgtu	$t4, $t5, 0
+	sgtu	$t4, $t5, -32768
+	sgtu	$t4, $t5, 0
+	sgtu	$t4, $t5, 32767
+	sgtu	$t4, $t5, 65535
+	sgtu	$t4, $t5, 65536
+	sgtu	$t4, $t5, -32769
 
-	sh	$18, ($19)
-	sh	$18, 0<<1($19)
-	sh	$18, 1<<1($19)
-	sh	$18, 2<<1($19)
-	sh	$18, 3<<1($19)
-	sh	$2, 4<<1($3)
-	sh	$2, 5<<1($3)
-	sh	$2, 6<<1($3)
-	sh	$2, 7<<1($3)
-	sh	$2, 8<<1($3)
-	sh	$2, 9<<1($3)
-	sh	$2, 10<<1($3)
-	sh	$2, 11<<1($3)
-	sh	$2, 12<<1($3)
-	sh	$2, 13<<1($3)
-	sh	$2, 14<<1($3)
-	sh	$2, 15<<1($3)
-	sh	$2, 15<<1($4)
-	sh	$2, 15<<1($5)
-	sh	$2, 15<<1($6)
-	sh	$2, 15<<1($7)
-	sh	$2, 15<<1($2)
-	sh	$2, 15<<1($16)
-	sh	$2, 15<<1($17)
-	sh	$3, 15<<1($17)
-	sh	$4, 15<<1($17)
-	sh	$5, 15<<1($17)
-	sh	$6, 15<<1($17)
-	sh	$7, 15<<1($17)
-	sh	$17, 15<<1($17)
-	sh	$0, 15<<1($17)
+	sh	$s2, ($s3)
+	sh	$s2, 0<<1($s3)
+	sh	$s2, 1<<1($s3)
+	sh	$s2, 2<<1($s3)
+	sh	$s2, 3<<1($s3)
+	sh	$t4, 4<<1($t5)
+	sh	$t4, 5<<1($t5)
+	sh	$t4, 6<<1($t5)
+	sh	$t4, 7<<1($t5)
+	sh	$t4, 8<<1($t5)
+	sh	$t4, 9<<1($t5)
+	sh	$t4, 10<<1($t5)
+	sh	$t4, 11<<1($t5)
+	sh	$t4, 12<<1($t5)
+	sh	$t4, 13<<1($t5)
+	sh	$t4, 14<<1($t5)
+	sh	$t4, 15<<1($t5)
+	sh	$t4, 15<<1($a0)
+	sh	$t4, 15<<1($a1)
+	sh	$t4, 15<<1($a2)
+	sh	$t4, 15<<1($a3)
+	sh	$t4, 15<<1($t4)
+	sh	$t4, 15<<1($s0)
+	sh	$t4, 15<<1($s1)
+	sh	$t5, 15<<1($s1)
+	sh	$a0, 15<<1($s1)
+	sh	$a1, 15<<1($s1)
+	sh	$a2, 15<<1($s1)
+	sh	$a3, 15<<1($s1)
+	sh	$s1, 15<<1($s1)
+	sh	$zero, 15<<1($s1)
 
-	sh32	$3, 4
-	sh32	$3, 4($0)
-	sh32	$3, 4095($0)
+	sh32	$t5, 4
+	sh32	$t5, 4($zero)
+	sh32	$t5, 4095($zero)
 /*
-	sh32	$3, -32768($0)
+	sh32	$t5, -32768($zero)
 	*/
-	sh	$3, 65535($0)
-	sh	$3, 0xffff0000($0)
-	sh	$3, 0xffff8000($0)
-	sh	$3, 0xffff0001($0)
-	sh	$3, 0xffff8001($0)
-	sh	$3, 0xf0000000($0)
-	sh	$3, 0xffffffff($0)
-	sh	$3, 0x12345678($0)
-	sh32	$3, ($4)
-	sh32	$3, 0($4)
-	sh32	$3, 4095($4)
+	sh	$t5, 65535($zero)
+	sh	$t5, 0xffff0000($zero)
+	sh	$t5, 0xffff8000($zero)
+	sh	$t5, 0xffff0001($zero)
+	sh	$t5, 0xffff8001($zero)
+	sh	$t5, 0xf0000000($zero)
+	sh	$t5, 0xffffffff($zero)
+	sh	$t5, 0x12345678($zero)
+	sh32	$t5, ($a0)
+	sh32	$t5, 0($a0)
+	sh32	$t5, 4095($a0)
 /*
-	sh32	$3, -32768($4)
+	sh32	$t5, -32768($a0)
 	*/
-	sh	$3, 65535($4)
-	sh	$3, 0xffff0000($4)
-	sh	$3, 0xffff8000($4)
-	sh	$3, 0xffff0001($4)
-	sh	$3, 0xffff8001($4)
-	sh	$3, 0xf0000000($4)
-	sh	$3, 0xffffffff($4)
-	sh	$3, 0x12345678($4)
+	sh	$t5, 65535($a0)
+	sh	$t5, 0xffff0000($a0)
+	sh	$t5, 0xffff8000($a0)
+	sh	$t5, 0xffff0001($a0)
+	sh	$t5, 0xffff8001($a0)
+	sh	$t5, 0xf0000000($a0)
+	sh	$t5, 0xffffffff($a0)
+	sh	$t5, 0x12345678($a0)
 
-	sle	$2, $3, $4
-	sle	$2, $2, $4
-	sle	$2, $4
-	sle	$2, $3, 0
-	sle	$2, $3, -32768
-	sle	$2, $3, 0
-	sle	$2, $3, 32767
-	sle	$2, $3, 65535
-	sle	$2, $3, 65536
-	sle	$2, $3, -32769
+	sle	$t4, $t5, $a0
+	sle	$t4, $t4, $a0
+	sle	$t4, $a0
+	sle	$t4, $t5, 0
+	sle	$t4, $t5, -32768
+	sle	$t4, $t5, 0
+	sle	$t4, $t5, 32767
+	sle	$t4, $t5, 65535
+	sle	$t4, $t5, 65536
+	sle	$t4, $t5, -32769
 
-	sleu	$2, $3, $4
-	sleu	$2, $2, $4
-	sleu	$2, $4
-	sleu	$2, $3, 0
-	sleu	$2, $3, -32768
-	sleu	$2, $3, 0
-	sleu	$2, $3, 32767
-	sleu	$2, $3, 65535
-	sleu	$2, $3, 65536
-	sleu	$2, $3, -32769
+	sleu	$t4, $t5, $a0
+	sleu	$t4, $t4, $a0
+	sleu	$t4, $a0
+	sleu	$t4, $t5, 0
+	sleu	$t4, $t5, -32768
+	sleu	$t4, $t5, 0
+	sleu	$t4, $t5, 32767
+	sleu	$t4, $t5, 65535
+	sleu	$t4, $t5, 65536
+	sleu	$t4, $t5, -32769
 
-	sll	$18, $18, 1
-	sll	$18, $18, 2
-	sll	$18, $18, 3
-	sll	$18, $18, 4
-	sll	$18, $18, 5
-	sll	$18, $18, 6
-	sll	$18, $18, 7
-	sll	$18, $18, 8
-	sll	$18, $19, 8
-	sll	$18, $4, 8
-	sll	$18, $5, 8
-	sll	$18, $6, 8
-	sll	$18, $7, 8
-	sll	$18, $16, 8
-	sll	$18, $17, 8
-	sll	$19, $18, 8
-	sll	$4, $18, 8
-	sll	$5, $18, 8
-	sll	$6, $18, 8
-	sll	$7, $18, 8
-	sll	$16, $18, 8
-	sll	$17, $18, 8
-	sll	$18, $18, 1
-	sll	$19, 1
+	sll	$s2, $s2, 1
+	sll	$s2, $s2, 2
+	sll	$s2, $s2, 3
+	sll	$s2, $s2, 4
+	sll	$s2, $s2, 5
+	sll	$s2, $s2, 6
+	sll	$s2, $s2, 7
+	sll	$s2, $s2, 8
+	sll	$s2, $s3, 8
+	sll	$s2, $a0, 8
+	sll	$s2, $a1, 8
+	sll	$s2, $a2, 8
+	sll	$s2, $a3, 8
+	sll	$s2, $s0, 8
+	sll	$s2, $s1, 8
+	sll	$s3, $s2, 8
+	sll	$a0, $s2, 8
+	sll	$a1, $s2, 8
+	sll	$a2, $s2, 8
+	sll	$a3, $s2, 8
+	sll	$s0, $s2, 8
+	sll	$s1, $s2, 8
+	sll	$s2, $s2, 1
+	sll	$s3, 1
 
-	sllv	$2, $3, $4
-	sllv	$2, $2, $4
-	sll	$2, $2, $4
-	sll	$2, $4
+	sllv	$t4, $t5, $a0
+	sllv	$t4, $t4, $a0
+	sll	$t4, $t4, $a0
+	sll	$t4, $a0
 
-	sll32	$2, $4, 0
-	sll32	$2, $4, 1
-	sll32	$2, $4, 31
-	sll32	$2, $2, 31
-	sll32	$2, 31
+	sll32	$t4, $a0, 0
+	sll32	$t4, $a0, 1
+	sll32	$t4, $a0, 31
+	sll32	$t4, $t4, 31
+	sll32	$t4, 31
 
-	slt	$2, $3, $4
-	slt	$2, $2, $4
-	slt	$2, $4
-	slt	$2, $3, 0
-	slt	$2, $3, -32768
-	slt	$2, $3, 0
-	slt	$2, $3, 32767
-	slt	$2, $3, 65535
-	slt	$2, $3, 65536
-	slt	$2, $3, -32769
+	slt	$t4, $t5, $a0
+	slt	$t4, $t4, $a0
+	slt	$t4, $a0
+	slt	$t4, $t5, 0
+	slt	$t4, $t5, -32768
+	slt	$t4, $t5, 0
+	slt	$t4, $t5, 32767
+	slt	$t4, $t5, 65535
+	slt	$t4, $t5, 65536
+	slt	$t4, $t5, -32769
 
 	/*
-	slti	$3, $4, -32768
+	slti	$t5, $a0, -32768
 	*/
-	slti	$3, $4, 0
-	slti	$3, $4, 4095
+	slti	$t5, $a0, 0
+	slti	$t5, $a0, 4095
 	/*
-	slti	$3, $4, 65535
-	slti	$3, $3, 65535
-	slti	$3, 65535
-	sltiu	$3, $4, -32768
+	slti	$t5, $a0, 65535
+	slti	$t5, $t5, 65535
+	slti	$t5, 65535
+	sltiu	$t5, $a0, -32768
 	*/
-	sltiu	$3, $4, 0
-	sltiu	$3, $4, 4095
+	sltiu	$t5, $a0, 0
+	sltiu	$t5, $a0, 4095
 	/*
-	sltiu	$3, $4, 65535
-	sltiu	$3, $3, 65535
-	sltiu	$3, 65535
+	sltiu	$t5, $a0, 65535
+	sltiu	$t5, $t5, 65535
+	sltiu	$t5, 65535
 	*/
-	sltu	$2, $3, $4
-	sltu	$2, $2, $4
-	sltu	$2, $4
-	sltu	$2, $3, 0
-	sltu	$2, $3, -32768
-	sltu	$2, $3, 0
-	sltu	$2, $3, 32767
-	sltu	$2, $3, 65535
-	sltu	$2, $3, 65536
-	sltu	$2, $3, -32769
+	sltu	$t4, $t5, $a0
+	sltu	$t4, $t4, $a0
+	sltu	$t4, $a0
+	sltu	$t4, $t5, 0
+	sltu	$t4, $t5, -32768
+	sltu	$t4, $t5, 0
+	sltu	$t4, $t5, 32767
+	sltu	$t4, $t5, 65535
+	sltu	$t4, $t5, 65536
+	sltu	$t4, $t5, -32769
 
-	sne	$2, $3, $4
-	sne	$2, $0, $4
-	sne	$2, $3, $0
+	sne	$t4, $t5, $a0
+	sne	$t4, $zero, $a0
+	sne	$t4, $t5, $zero
 
-	sne	$2, $3, 0
-	sne	$2, $3, 1
-	sne	$2, $3, -1
-	sne	$2, $3, -32769
+	sne	$t4, $t5, 0
+	sne	$t4, $t5, 1
+	sne	$t4, $t5, -1
+	sne	$t4, $t5, -32769
 
-	srav	$2, $3, $4
-	srav	$2, $2, $4
-	sra	$2, $2, $4
-	sra	$2, $4
-	sra	$2, $4, 0
-	sra	$2, $4, 1
-	sra	$2, $4, 31
-	sra	$2, $2, 31
-	sra	$2, 31
+	srav	$t4, $t5, $a0
+	srav	$t4, $t4, $a0
+	sra	$t4, $t4, $a0
+	sra	$t4, $a0
+	sra	$t4, $a0, 0
+	sra	$t4, $a0, 1
+	sra	$t4, $a0, 31
+	sra	$t4, $t4, 31
+	sra	$t4, 31
 
-	srlv	$2, $3, $4
-	srlv	$2, $2, $4
-	srl	$2, $2, $4
-	srl	$2, $4
-	srl	$2, $4, 0
-	srl	$18, $4, 1
-	srl	$2, $4, 31
-	srl	$2, $2, 31
-	srl	$2, 31
+	srlv	$t4, $t5, $a0
+	srlv	$t4, $t4, $a0
+	srl	$t4, $t4, $a0
+	srl	$t4, $a0
+	srl	$t4, $a0, 0
+	srl	$s2, $a0, 1
+	srl	$t4, $a0, 31
+	srl	$t4, $t4, 31
+	srl	$t4, 31
 
-	srl	$18, $18, 1
-	srl	$18, $18, 2
-	srl	$18, $18, 3
-	srl	$18, $18, 4
-	srl	$18, $18, 5
-	srl	$18, $18, 6
-	srl	$18, $18, 7
-	srl	$18, $18, 8
-	srl	$18, $19, 8
-	srl	$18, $4, 8
-	srl	$18, $5, 8
-	srl	$18, $6, 8
-	srl	$18, $7, 8
-	srl	$18, $16, 8
-	srl	$18, $17, 8
-	srl	$18, $18, 8
-	srl	$19, $18, 8
-	srl	$4, $18, 8
-	srl	$5, $18, 8
-	srl	$6, $18, 8
-	srl	$7, $18, 8
-	srl	$16, $18, 8
-	srl	$17, $18, 8
-	srl	$19, $19, 1
-	srl	$19, 1
+	srl	$s2, $s2, 1
+	srl	$s2, $s2, 2
+	srl	$s2, $s2, 3
+	srl	$s2, $s2, 4
+	srl	$s2, $s2, 5
+	srl	$s2, $s2, 6
+	srl	$s2, $s2, 7
+	srl	$s2, $s2, 8
+	srl	$s2, $s3, 8
+	srl	$s2, $a0, 8
+	srl	$s2, $a1, 8
+	srl	$s2, $a2, 8
+	srl	$s2, $a3, 8
+	srl	$s2, $s0, 8
+	srl	$s2, $s1, 8
+	srl	$s2, $s2, 8
+	srl	$s3, $s2, 8
+	srl	$a0, $s2, 8
+	srl	$a1, $s2, 8
+	srl	$a2, $s2, 8
+	srl	$a3, $s2, 8
+	srl	$s0, $s2, 8
+	srl	$s1, $s2, 8
+	srl	$s3, $s3, 1
+	srl	$s3, 1
 	
-	sub	$2, $3, $4
-	sub	$29, $30, $31
-	sub	$2, $2, $4
-	sub	$2, $4
-	sub	$2, $2, 0
-	sub	$2, $2, 1
-	sub	$2, $2, 32767
-	sub	$2, $2, -32768
-	sub	$2, $2, 65535
-	subu	$18, $19, $18
-	subu	$18, $19, $19
-	subu	$18, $19, $4
-	subu	$18, $19, $5
-	subu	$18, $19, $6
-	subu	$18, $19, $7
-	subu	$18, $19, $16
-	subu	$18, $19, $17
-	subu	$18, $18, $17
-	subu	$18, $4, $17
-	subu	$18, $5, $17
-	subu	$18, $6, $17
-	subu	$18, $7, $17
-	subu	$18, $16, $17
-	subu	$18, $17, $17
-	subu	$18, $18, $17
-	subu	$19, $18, $17
-	subu	$4, $18, $17
-	subu	$5, $18, $17
-	subu	$6, $18, $17
-	subu	$7, $18, $17
-	subu	$16, $18, $17
-	subu	$17, $18, $17
-	subu	$7, $7, $18
-	subu	$7, $18
+	sub	$t4, $t5, $a0
+	sub	$sp, $fp, $ra
+	sub	$t4, $t4, $a0
+	sub	$t4, $a0
+	sub	$t4, $t4, 0
+	sub	$t4, $t4, 1
+	sub	$t4, $t4, 32767
+	sub	$t4, $t4, -32768
+	sub	$t4, $t4, 65535
+	subu	$s2, $s3, $s2
+	subu	$s2, $s3, $s3
+	subu	$s2, $s3, $a0
+	subu	$s2, $s3, $a1
+	subu	$s2, $s3, $a2
+	subu	$s2, $s3, $a3
+	subu	$s2, $s3, $s0
+	subu	$s2, $s3, $s1
+	subu	$s2, $s2, $s1
+	subu	$s2, $a0, $s1
+	subu	$s2, $a1, $s1
+	subu	$s2, $a2, $s1
+	subu	$s2, $a3, $s1
+	subu	$s2, $s0, $s1
+	subu	$s2, $s1, $s1
+	subu	$s2, $s2, $s1
+	subu	$s3, $s2, $s1
+	subu	$a0, $s2, $s1
+	subu	$a1, $s2, $s1
+	subu	$a2, $s2, $s1
+	subu	$a3, $s2, $s1
+	subu	$s0, $s2, $s1
+	subu	$s1, $s2, $s1
+	subu	$a3, $a3, $s2
+	subu	$a3, $s2
 
-	subu32	$2, $3, $4
-	subu32	$29, $30, $31
-	subu32	$2, $2, $4
-	subu32	$2, $4
-	subu	$2, $2, 0
-	subu	$2, $2, 1
-	subu	$2, $2, 32767
-	subu	$2, $2, -32768
-	subu	$2, $2, 65535
+	subu32	$t4, $t5, $a0
+	subu32	$sp, $fp, $ra
+	subu32	$t4, $t4, $a0
+	subu32	$t4, $a0
+	subu	$t4, $t4, 0
+	subu	$t4, $t4, 1
+	subu	$t4, $t4, 32767
+	subu	$t4, $t4, -32768
+	subu	$t4, $t4, 65535
 
-	sw	$18, ($4)
-	sw	$18, 0($4)
-	sw	$18, 1<<2($4)
-	sw	$18, 2<<2($4)
-	sw	$18, 3<<2($4)
-	sw	$18, 4<<2($4)
-	sw	$18, 5<<2($4)
-	sw	$18, 6<<2($4)
-	sw	$18, 7<<2($4)
-	sw	$18, 8<<2($4)
-	sw	$18, 9<<2($4)
-	sw	$18, 10<<2($4)
-	sw	$18, 11<<2($4)
-	sw	$18, 12<<2($4)
-	sw	$18, 13<<2($4)
-	sw	$18, 14<<2($4)
-	sw	$18, 15<<2($4)
-	sw	$18, 15<<2($5)
-	sw	$18, 15<<2($6)
-	sw	$18, 15<<2($7)
-	sw	$18, 15<<2($16)
-	sw	$18, 15<<2($17)
-	sw	$18, 15<<2($18)
-	sw	$18, 15<<2($19)
-	sw	$19, 15<<2($19)
-	sw	$4, 15<<2($19)
-	sw	$5, 15<<2($19)
-	sw	$6, 15<<2($19)
-	sw	$7, 15<<2($19)
-	sw	$17, 15<<2($19)
-	sw	$0, 15<<2($19)
+	sw	$s2, ($a0)
+	sw	$s2, 0($a0)
+	sw	$s2, 1<<2($a0)
+	sw	$s2, 2<<2($a0)
+	sw	$s2, 3<<2($a0)
+	sw	$s2, 4<<2($a0)
+	sw	$s2, 5<<2($a0)
+	sw	$s2, 6<<2($a0)
+	sw	$s2, 7<<2($a0)
+	sw	$s2, 8<<2($a0)
+	sw	$s2, 9<<2($a0)
+	sw	$s2, 10<<2($a0)
+	sw	$s2, 11<<2($a0)
+	sw	$s2, 12<<2($a0)
+	sw	$s2, 13<<2($a0)
+	sw	$s2, 14<<2($a0)
+	sw	$s2, 15<<2($a0)
+	sw	$s2, 15<<2($a1)
+	sw	$s2, 15<<2($a2)
+	sw	$s2, 15<<2($a3)
+	sw	$s2, 15<<2($s0)
+	sw	$s2, 15<<2($s1)
+	sw	$s2, 15<<2($s2)
+	sw	$s2, 15<<2($s3)
+	sw	$s3, 15<<2($s3)
+	sw	$a0, 15<<2($s3)
+	sw	$a1, 15<<2($s3)
+	sw	$a2, 15<<2($s3)
+	sw	$a3, 15<<2($s3)
+	sw	$s1, 15<<2($s3)
+	sw	$zero, 15<<2($s3)
 
-	sw	$0, ($29)
-	sw	$0, 0($29)
-	sw	$0, 1<<2($29)
-	sw	$0, 2<<2($29)
-	sw	$0, 3<<2($29)
-	sw	$0, 4<<2($29)
-	sw	$0, 5<<2($29)
-	sw	$0, 30<<2($29)
-	sw	$0, 31<<2($29)
-	sw	$2, 31<<2($29)
-	sw	$17, 31<<2($29)
-	sw	$3, 31<<2($29)
-	sw	$4, 31<<2($29)
-	sw	$5, 31<<2($29)
-	sw	$6, 31<<2($29)
-	sw	$7, 31<<2($29)
-	sw	$31, 31<<2($29)
+	sw	$zero, ($sp)
+	sw	$zero, 0($sp)
+	sw	$zero, 1<<2($sp)
+	sw	$zero, 2<<2($sp)
+	sw	$zero, 3<<2($sp)
+	sw	$zero, 4<<2($sp)
+	sw	$zero, 5<<2($sp)
+	sw	$zero, 30<<2($sp)
+	sw	$zero, 31<<2($sp)
+	sw	$t4, 31<<2($sp)
+	sw	$s1, 31<<2($sp)
+	sw	$t5, 31<<2($sp)
+	sw	$a0, 31<<2($sp)
+	sw	$a1, 31<<2($sp)
+	sw	$a2, 31<<2($sp)
+	sw	$a3, 31<<2($sp)
+	sw	$ra, 31<<2($sp)
 
-	sw32	$3, 4
-	sw32	$3, 4($0)
-	sw32	$3, 4095($0)
+	sw32	$t5, 4
+	sw32	$t5, 4($zero)
+	sw32	$t5, 4095($zero)
 	/*
-	sw32	$3, -32768($0)
+	sw32	$t5, -32768($zero)
 	*/
-	sw	$3, 65535($0)
-	sw	$3, 0xffff0000($0)
-	sw	$3, 0xffff8000($0)
-	sw	$3, 0xffff0001($0)
-	sw	$3, 0xffff8001($0)
-	sw	$3, 0xf0000000($0)
-	sw	$3, 0xffffffff($0)
-	sw	$3, 0x12345678($0)
-	sw32	$3, ($4)
-	sw32	$3, 0($4)
-	sw32	$3, 4095($4)
+	sw	$t5, 65535($zero)
+	sw	$t5, 0xffff0000($zero)
+	sw	$t5, 0xffff8000($zero)
+	sw	$t5, 0xffff0001($zero)
+	sw	$t5, 0xffff8001($zero)
+	sw	$t5, 0xf0000000($zero)
+	sw	$t5, 0xffffffff($zero)
+	sw	$t5, 0x12345678($zero)
+	sw32	$t5, ($a0)
+	sw32	$t5, 0($a0)
+	sw32	$t5, 4095($a0)
 	/*
-	sw32	$3, -32768($4)
+	sw32	$t5, -32768($a0)
 	*/
-	sw	$3, 65535($4)
-	sw	$3, 0xffff0000($4)
-	sw	$3, 0xffff8000($4)
-	sw	$3, 0xffff0001($4)
-	sw	$3, 0xffff8001($4)
-	sw	$3, 0xf0000000($4)
-	sw	$3, 0xffffffff($4)
-	sw	$3, 0x12345678($4)
+	sw	$t5, 65535($a0)
+	sw	$t5, 0xffff0000($a0)
+	sw	$t5, 0xffff8000($a0)
+	sw	$t5, 0xffff0001($a0)
+	sw	$t5, 0xffff8001($a0)
+	sw	$t5, 0xf0000000($a0)
+	sw	$t5, 0xffffffff($a0)
+	sw	$t5, 0x12345678($a0)
 /*
-	swl	$3, 4
-	swl	$3, 4($0)
-	swl	$3, 2047($0)
-	swl	$3, -2048($0)
-	swl	$3, 32767($0)
-	swl	$3, -32768($0)
-	swl	$3, 65535($0)
-	swl	$3, 0xffff0000($0)
-	swl	$3, 0xffff8000($0)
-	swl	$3, 0xffff0001($0)
-	swl	$3, 0xffff8001($0)
-	swl	$3, 0xf0000000($0)
-	swl	$3, 0xffffffff($0)
-	swl	$3, 0x12345678($0)
-	swl	$3, ($4)
-	swl	$3, 0($4)
-	swl	$3, 2047($4)
-	swl	$3, -2048($4)
-	swl	$3, 32767($4)
-	swl	$3, -32768($4)
-	swl	$3, 65535($4)
-	swl	$3, 0xffff0000($4)
-	swl	$3, 0xffff8000($4)
-	swl	$3, 0xffff0001($4)
-	swl	$3, 0xffff8001($4)
-	swl	$3, 0xf0000000($4)
-	swl	$3, 0xffffffff($4)
-	swl	$3, 0x12345678($4)
+	swl	$t5, 4
+	swl	$t5, 4($zero)
+	swl	$t5, 2047($zero)
+	swl	$t5, -2048($zero)
+	swl	$t5, 32767($zero)
+	swl	$t5, -32768($zero)
+	swl	$t5, 65535($zero)
+	swl	$t5, 0xffff0000($zero)
+	swl	$t5, 0xffff8000($zero)
+	swl	$t5, 0xffff0001($zero)
+	swl	$t5, 0xffff8001($zero)
+	swl	$t5, 0xf0000000($zero)
+	swl	$t5, 0xffffffff($zero)
+	swl	$t5, 0x12345678($zero)
+	swl	$t5, ($a0)
+	swl	$t5, 0($a0)
+	swl	$t5, 2047($a0)
+	swl	$t5, -2048($a0)
+	swl	$t5, 32767($a0)
+	swl	$t5, -32768($a0)
+	swl	$t5, 65535($a0)
+	swl	$t5, 0xffff0000($a0)
+	swl	$t5, 0xffff8000($a0)
+	swl	$t5, 0xffff0001($a0)
+	swl	$t5, 0xffff8001($a0)
+	swl	$t5, 0xf0000000($a0)
+	swl	$t5, 0xffffffff($a0)
+	swl	$t5, 0x12345678($a0)
 
-	swr	$3, 4
-	swr	$3, 4($0)
-	swr	$3, 2047($0)
-	swr	$3, -2048($0)
-	swr	$3, 32767($0)
-	swr	$3, -32768($0)
-	swr	$3, 65535($0)
-	swr	$3, 0xffff0000($0)
-	swr	$3, 0xffff8000($0)
-	swr	$3, 0xffff0001($0)
-	swr	$3, 0xffff8001($0)
-	swr	$3, 0xf0000000($0)
-	swr	$3, 0xffffffff($0)
-	swr	$3, 0x12345678($0)
-	swr	$3, ($4)
-	swr	$3, 0($4)
-	swr	$3, 2047($4)
-	swr	$3, -2048($4)
-	swr	$3, 32767($4)
-	swr	$3, -32768($4)
-	swr	$3, 65535($4)
-	swr	$3, 0xffff0000($4)
-	swr	$3, 0xffff8000($4)
-	swr	$3, 0xffff0001($4)
-	swr	$3, 0xffff8001($4)
-	swr	$3, 0xf0000000($4)
-	swr	$3, 0xffffffff($4)
-	swr	$3, 0x12345678($4)
+	swr	$t5, 4
+	swr	$t5, 4($zero)
+	swr	$t5, 2047($zero)
+	swr	$t5, -2048($zero)
+	swr	$t5, 32767($zero)
+	swr	$t5, -32768($zero)
+	swr	$t5, 65535($zero)
+	swr	$t5, 0xffff0000($zero)
+	swr	$t5, 0xffff8000($zero)
+	swr	$t5, 0xffff0001($zero)
+	swr	$t5, 0xffff8001($zero)
+	swr	$t5, 0xf0000000($zero)
+	swr	$t5, 0xffffffff($zero)
+	swr	$t5, 0x12345678($zero)
+	swr	$t5, ($a0)
+	swr	$t5, 0($a0)
+	swr	$t5, 2047($a0)
+	swr	$t5, -2048($a0)
+	swr	$t5, 32767($a0)
+	swr	$t5, -32768($a0)
+	swr	$t5, 65535($a0)
+	swr	$t5, 0xffff0000($a0)
+	swr	$t5, 0xffff8000($a0)
+	swr	$t5, 0xffff0001($a0)
+	swr	$t5, 0xffff8001($a0)
+	swr	$t5, 0xf0000000($a0)
+	swr	$t5, 0xffffffff($a0)
+	swr	$t5, 0x12345678($a0)
 
-	scache	$3, 4
-	scache	$3, 4($0)
-	scache	$3, 2047($0)
-	scache	$3, -2048($0)
-	scache	$3, 32767($0)
-	scache	$3, -32768($0)
-	scache	$3, 65535($0)
-	scache	$3, 0xffff0000($0)
-	scache	$3, 0xffff8000($0)
-	scache	$3, 0xffff0001($0)
-	scache	$3, 0xffff8001($0)
-	scache	$3, 0xf0000000($0)
-	scache	$3, 0xffffffff($0)
-	scache	$3, 0x12345678($0)
-	scache	$3, ($4)
-	scache	$3, 0($4)
-	scache	$3, 2047($4)
-	scache	$3, -2048($4)
-	scache	$3, 32767($4)
-	scache	$3, -32768($4)
-	scache	$3, 65535($4)
-	scache	$3, 0xffff0000($4)
-	scache	$3, 0xffff8000($4)
-	scache	$3, 0xffff0001($4)
-	scache	$3, 0xffff8001($4)
-	scache	$3, 0xf0000000($4)
-	scache	$3, 0xffffffff($4)
-	scache	$3, 0x12345678($4)
+	scache	$t5, 4
+	scache	$t5, 4($zero)
+	scache	$t5, 2047($zero)
+	scache	$t5, -2048($zero)
+	scache	$t5, 32767($zero)
+	scache	$t5, -32768($zero)
+	scache	$t5, 65535($zero)
+	scache	$t5, 0xffff0000($zero)
+	scache	$t5, 0xffff8000($zero)
+	scache	$t5, 0xffff0001($zero)
+	scache	$t5, 0xffff8001($zero)
+	scache	$t5, 0xf0000000($zero)
+	scache	$t5, 0xffffffff($zero)
+	scache	$t5, 0x12345678($zero)
+	scache	$t5, ($a0)
+	scache	$t5, 0($a0)
+	scache	$t5, 2047($a0)
+	scache	$t5, -2048($a0)
+	scache	$t5, 32767($a0)
+	scache	$t5, -32768($a0)
+	scache	$t5, 65535($a0)
+	scache	$t5, 0xffff0000($a0)
+	scache	$t5, 0xffff8000($a0)
+	scache	$t5, 0xffff0001($a0)
+	scache	$t5, 0xffff8001($a0)
+	scache	$t5, 0xf0000000($a0)
+	scache	$t5, 0xffffffff($a0)
+	scache	$t5, 0x12345678($a0)
 
-	invalidate	$3, 4
-	invalidate	$3, 4($0)
-	invalidate	$3, 2047($0)
-	invalidate	$3, -2048($0)
-	invalidate	$3, 32767($0)
-	invalidate	$3, -32768($0)
-	invalidate	$3, 65535($0)
-	invalidate	$3, 0xffff0000($0)
-	invalidate	$3, 0xffff8000($0)
-	invalidate	$3, 0xffff0001($0)
-	invalidate	$3, 0xffff8001($0)
-	invalidate	$3, 0xf0000000($0)
-	invalidate	$3, 0xffffffff($0)
-	invalidate	$3, 0x12345678($0)
-	invalidate	$3, ($4)
-	invalidate	$3, 0($4)
-	invalidate	$3, 2047($4)
-	invalidate	$3, -2048($4)
-	invalidate	$3, 32767($4)
-	invalidate	$3, -32768($4)
-	invalidate	$3, 65535($4)
-	invalidate	$3, 0xffff0000($4)
-	invalidate	$3, 0xffff8000($4)
-	invalidate	$3, 0xffff0001($4)
-	invalidate	$3, 0xffff8001($4)
-	invalidate	$3, 0xf0000000($4)
-	invalidate	$3, 0xffffffff($4)
-	invalidate	$3, 0x12345678($4)
+	invalidate	$t5, 4
+	invalidate	$t5, 4($zero)
+	invalidate	$t5, 2047($zero)
+	invalidate	$t5, -2048($zero)
+	invalidate	$t5, 32767($zero)
+	invalidate	$t5, -32768($zero)
+	invalidate	$t5, 65535($zero)
+	invalidate	$t5, 0xffff0000($zero)
+	invalidate	$t5, 0xffff8000($zero)
+	invalidate	$t5, 0xffff0001($zero)
+	invalidate	$t5, 0xffff8001($zero)
+	invalidate	$t5, 0xf0000000($zero)
+	invalidate	$t5, 0xffffffff($zero)
+	invalidate	$t5, 0x12345678($zero)
+	invalidate	$t5, ($a0)
+	invalidate	$t5, 0($a0)
+	invalidate	$t5, 2047($a0)
+	invalidate	$t5, -2048($a0)
+	invalidate	$t5, 32767($a0)
+	invalidate	$t5, -32768($a0)
+	invalidate	$t5, 65535($a0)
+	invalidate	$t5, 0xffff0000($a0)
+	invalidate	$t5, 0xffff8000($a0)
+	invalidate	$t5, 0xffff0001($a0)
+	invalidate	$t5, 0xffff8001($a0)
+	invalidate	$t5, 0xf0000000($a0)
+	invalidate	$t5, 0xffffffff($a0)
+	invalidate	$t5, 0x12345678($a0)
 
-	swm	$s0, $ra, 12<<2($29)
-	swm	$s0, $s1, $ra, 12<<2($29)
-	swm	$s0-$s1, $ra, 12<<2($29)
-	swm	$s0, $s1, $s2, $ra, 12<<2($29)
-	swm	$s0-$s2, $ra, 12<<2($29)
-	swm	$s0, $s1, $s2, $s3, $ra, 12<<2($29)
-	swm	$s0-$s3, $ra, 12<<2($29)
-	swm	$s0, $ra, ($29)
-	swm	$s0, $ra, 0($29)
-	swm	$s0, $ra, 1<<2($29)
-	swm	$s0, $ra, 2<<2($29)
-	swm	$s0, $ra, 3<<2($29)
-	swm	$s0, $ra, 4<<2($29)
-	swm	$s0, $ra, 5<<2($29)
-	swm	$s0, $ra, 6<<2($29)
-	swm	$s0, $ra, 7<<2($29)
-	swm	$s0, $ra, 8<<2($29)
-	swm	$s0, $ra, 9<<2($29)
-	swm	$s0, $ra, 10<<2($29)
-	swm	$s0, $ra, 11<<2($29)
-	swm	$s0, $ra, 12<<2($29)
-	swm	$s0, $ra, 13<<2($29)
-	swm	$s0, $ra, 14<<2($29)
-	swm	$s0, $ra, 15<<2($29)
+	swm	$s0, $ra, 12<<2($sp)
+	swm	$s0, $s1, $ra, 12<<2($sp)
+	swm	$s0-$s1, $ra, 12<<2($sp)
+	swm	$s0, $s1, $s2, $ra, 12<<2($sp)
+	swm	$s0-$s2, $ra, 12<<2($sp)
+	swm	$s0, $s1, $s2, $s3, $ra, 12<<2($sp)
+	swm	$s0-$s3, $ra, 12<<2($sp)
+	swm	$s0, $ra, ($sp)
+	swm	$s0, $ra, 0($sp)
+	swm	$s0, $ra, 1<<2($sp)
+	swm	$s0, $ra, 2<<2($sp)
+	swm	$s0, $ra, 3<<2($sp)
+	swm	$s0, $ra, 4<<2($sp)
+	swm	$s0, $ra, 5<<2($sp)
+	swm	$s0, $ra, 6<<2($sp)
+	swm	$s0, $ra, 7<<2($sp)
+	swm	$s0, $ra, 8<<2($sp)
+	swm	$s0, $ra, 9<<2($sp)
+	swm	$s0, $ra, 10<<2($sp)
+	swm	$s0, $ra, 11<<2($sp)
+	swm	$s0, $ra, 12<<2($sp)
+	swm	$s0, $ra, 13<<2($sp)
+	swm	$s0, $ra, 14<<2($sp)
+	swm	$s0, $ra, 15<<2($sp)
 
 	swm	$s0, 0
 	swm	$s0, 4
@@ -2136,50 +2136,50 @@ test3:
 	swm	$s0, -2048
 	swm	$s0, 2048
 	swm	$s0, -2049
-	swm	$s0, ($5)
-	swm	$s0, 2047($5)
-	swm	$s0, -2048($5)
-	swm	$s0, 2048($5)
-	swm	$s0, -2049($5)
-	swm	$s0-$s1, 2047($5)
-	swm	$s0-$s2, 2047($5)
-	swm	$s0-$s3, 2047($5)
-	swm	$s0-$s4, 2047($5)
-	swm	$s0-$s5, 2047($5)
-	swm	$s0-$s6, 2047($5)
-	swm	$s0-$s7, 2047($5)
-	swm	$s0-$s8, 2047($5)
-	swm	$ra, 2047($5)
-	swm	$s0,$ra, ($5)
-	swm	$s0-$s1,$ra, ($5)
-	swm	$s0-$s2,$ra, ($5)
-	swm	$s0-$s3,$ra, ($5)
-	swm	$s0-$s4,$ra, ($5)
-	swm	$s0-$s5,$ra, ($5)
-	swm	$s0-$s6,$ra, ($5)
-	swm	$s0-$s7,$ra, ($5)
-	swm	$s0-$s8,$ra, ($5)
-	swm	$s0, -32768($29)
-	swm	$s0, 32767($29)
-	swm	$s0, 0($29)
-	swm	$s0, 65535($29)
+	swm	$s0, ($a1)
+	swm	$s0, 2047($a1)
+	swm	$s0, -2048($a1)
+	swm	$s0, 2048($a1)
+	swm	$s0, -2049($a1)
+	swm	$s0-$s1, 2047($a1)
+	swm	$s0-$s2, 2047($a1)
+	swm	$s0-$s3, 2047($a1)
+	swm	$s0-$s4, 2047($a1)
+	swm	$s0-$s5, 2047($a1)
+	swm	$s0-$s6, 2047($a1)
+	swm	$s0-$s7, 2047($a1)
+	swm	$s0-$s8, 2047($a1)
+	swm	$ra, 2047($a1)
+	swm	$s0,$ra, ($a1)
+	swm	$s0-$s1,$ra, ($a1)
+	swm	$s0-$s2,$ra, ($a1)
+	swm	$s0-$s3,$ra, ($a1)
+	swm	$s0-$s4,$ra, ($a1)
+	swm	$s0-$s5,$ra, ($a1)
+	swm	$s0-$s6,$ra, ($a1)
+	swm	$s0-$s7,$ra, ($a1)
+	swm	$s0-$s8,$ra, ($a1)
+	swm	$s0, -32768($sp)
+	swm	$s0, 32767($sp)
+	swm	$s0, 0($sp)
+	swm	$s0, 65535($sp)
 
-	swp	$2, 0
-	swp	$2, 4
-	swp	$2, 2047
-	swp	$2, -2048
-	swp	$2, 2048
-	swp	$2, -2049
-	swp	$2, ($29)
-	swp	$2, 0($29)
-	swp	$2, 2047($3)
-	swp	$2, -2048($3)
-	swp	$2, 2048($3)
-	swp	$2, -2049($3)
-	swp	$2, 32767($3)
-	swp	$2, -32768($3)
-	swp	$2, 0($3)
-	swp	$2, 65535($3)
+	swp	$t4, 0
+	swp	$t4, 4
+	swp	$t4, 2047
+	swp	$t4, -2048
+	swp	$t4, 2048
+	swp	$t4, -2049
+	swp	$t4, ($sp)
+	swp	$t4, 0($sp)
+	swp	$t4, 2047($t5)
+	swp	$t4, -2048($t5)
+	swp	$t4, 2048($t5)
+	swp	$t4, -2049($t5)
+	swp	$t4, 32767($t5)
+	swp	$t4, -32768($t5)
+	swp	$t4, 0($t5)
+	swp	$t4, 65535($t5)
 */
 	sync
 	sync	0
@@ -2191,24 +2191,24 @@ test3:
 	sync	31
 
 	synci	0
-	synci	($0)
-	synci	0($0)
+	synci	($zero)
+	synci	0($zero)
 	/*
-	synci	2047($0)
-	synci	-2048($0)
-	synci	2048($0)
-	synci	-2049($0)
-	synci	32767($0)
-	synci	-32768($0)
+	synci	2047($zero)
+	synci	-2048($zero)
+	synci	2048($zero)
+	synci	-2049($zero)
+	synci	32767($zero)
+	synci	-32768($zero)
 	*/
-	synci	0($2)
-	synci	0($3)
-	synci	255($3)
-	synci	-256($3)
-/*	synci	2048($3)
-	synci	-2049($3)
-	synci	32767($3)
-	synci	-32768($3)
+	synci	0($t4)
+	synci	0($t5)
+	synci	255($t5)
+	synci	-256($t5)
+/*	synci	2048($t5)
+	synci	-2049($t5)
+	synci	32767($t5)
+	synci	-32768($t5)
 */
 	syscall
 	syscall	0
@@ -2217,210 +2217,210 @@ test3:
 	syscall	255
 
 	/*
-	teqi	$2, 0
-	teqi	$2, -32768
-	teqi	$2, 32767
-	teqi	$2, 65535
-	teq	$2, $3
-	teq	$3, $2
-	teq	$2, $3, 0
-	teq	$2, $3, 1
-	teq	$2, $3, 15
-	teq	$2, 0
-	teq	$2, -32768
-	teq	$2, 32767
-	teq	$2, 65535
+	teqi	$t4, 0
+	teqi	$t4, -32768
+	teqi	$t4, 32767
+	teqi	$t4, 65535
+	teq	$t4, $t5
+	teq	$t5, $t4
+	teq	$t4, $t5, 0
+	teq	$t4, $t5, 1
+	teq	$t4, $t5, 15
+	teq	$t4, 0
+	teq	$t4, -32768
+	teq	$t4, 32767
+	teq	$t4, 65535
 
-	tgei	$2, 0
-	tgei	$2, -32768
-	tgei	$2, 32767
-	tgei	$2, 65535
-	tge	$2, $3
-	tge	$3, $2
-	tge	$2, $3, 0
-	tge	$2, $3, 1
-	tge	$2, $3, 15
-	tge	$2, 0
-	tge	$2, -32768
-	tge	$2, 32767
-	tge	$2, 65535
+	tgei	$t4, 0
+	tgei	$t4, -32768
+	tgei	$t4, 32767
+	tgei	$t4, 65535
+	tge	$t4, $t5
+	tge	$t5, $t4
+	tge	$t4, $t5, 0
+	tge	$t4, $t5, 1
+	tge	$t4, $t5, 15
+	tge	$t4, 0
+	tge	$t4, -32768
+	tge	$t4, 32767
+	tge	$t4, 65535
 
-	tgeiu	$2, 0
-	tgeiu	$2, -32768
-	tgeiu	$2, 32767
-	tgeiu	$2, 65535
-	tgeu	$2, $3
-	tgeu	$3, $2
-	tgeu	$2, $3, 0
-	tgeu	$2, $3, 1
-	tgeu	$2, $3, 15
-	tgeu	$2, 0
-	tgeu	$2, -32768
-	tgeu	$2, 32767
-	tgeu	$2, 65535
+	tgeiu	$t4, 0
+	tgeiu	$t4, -32768
+	tgeiu	$t4, 32767
+	tgeiu	$t4, 65535
+	tgeu	$t4, $t5
+	tgeu	$t5, $t4
+	tgeu	$t4, $t5, 0
+	tgeu	$t4, $t5, 1
+	tgeu	$t4, $t5, 15
+	tgeu	$t4, 0
+	tgeu	$t4, -32768
+	tgeu	$t4, 32767
+	tgeu	$t4, 65535
 
 	tlbp
 	tlbr
 	tlbwi
 	tlbwr
 
-	tlti	$2, 0
-	tlti	$2, -32768
-	tlti	$2, 32767
-	tlti	$2, 65535
-	tlt	$2, $3
-	tlt	$3, $2
-	tlt	$2, $3, 0
-	tlt	$2, $3, 1
-	tlt	$2, $3, 15
-	tlt	$2, 0
-	tlt	$2, -32768
-	tlt	$2, 32767
-	tlt	$2, 65535
+	tlti	$t4, 0
+	tlti	$t4, -32768
+	tlti	$t4, 32767
+	tlti	$t4, 65535
+	tlt	$t4, $t5
+	tlt	$t5, $t4
+	tlt	$t4, $t5, 0
+	tlt	$t4, $t5, 1
+	tlt	$t4, $t5, 15
+	tlt	$t4, 0
+	tlt	$t4, -32768
+	tlt	$t4, 32767
+	tlt	$t4, 65535
 
-	tltiu	$2, 0
-	tltiu	$2, -32768
-	tltiu	$2, 32767
-	tltiu	$2, 65535
-	tltu	$2, $3
-	tltu	$3, $2
-	tltu	$2, $3, 0
-	tltu	$2, $3, 1
-	tltu	$2, $3, 15
-	tltu	$2, 0
-	tltu	$2, -32768
-	tltu	$2, 32767
-	tltu	$2, 65535
-	tltu	$2, 65536
-	tltu	$2, 0xffffffff
+	tltiu	$t4, 0
+	tltiu	$t4, -32768
+	tltiu	$t4, 32767
+	tltiu	$t4, 65535
+	tltu	$t4, $t5
+	tltu	$t5, $t4
+	tltu	$t4, $t5, 0
+	tltu	$t4, $t5, 1
+	tltu	$t4, $t5, 15
+	tltu	$t4, 0
+	tltu	$t4, -32768
+	tltu	$t4, 32767
+	tltu	$t4, 65535
+	tltu	$t4, 65536
+	tltu	$t4, 0xffffffff
 
-	tnei	$2, 0
-	tnei	$2, -32768
-	tnei	$2, 32767
-	tnei	$2, 65535
-	tne	$2, $3
-	tne	$3, $2
-	tne	$2, $3, 0
-	tne	$2, $3, 1
-	tne	$2, $3, 15
-	tne	$2, 0
-	tne	$2, -32768
-	tne	$2, 32767
-	tne	$2, 65535
-	tne	$2, 65536
-	tne	$2, 0xffffffff
+	tnei	$t4, 0
+	tnei	$t4, -32768
+	tnei	$t4, 32767
+	tnei	$t4, 65535
+	tne	$t4, $t5
+	tne	$t5, $t4
+	tne	$t4, $t5, 0
+	tne	$t4, $t5, 1
+	tne	$t4, $t5, 15
+	tne	$t4, 0
+	tne	$t4, -32768
+	tne	$t4, 32767
+	tne	$t4, 65535
+	tne	$t4, 65536
+	tne	$t4, 0xffffffff
 */
-	ulh	$3, 4
-	ulh	$3, 4($0)
-	ulh	$3, ($4)
-	ulh	$3, 0($4)
-	ulh	$3, 32763($4)
-	ulh	$3, -32768($4)
-	ulh	$3, 65535($4)
-	ulh	$3, 0xffff0000($4)
-	ulh	$3, 0xffff8000($4)
-	ulh	$3, 0xffff0001($4)
-	ulh	$3, 0xffff8001($4)
-	ulh	$3, 0xf0000000($4)
-	ulh	$3, 0xffffffff($4)
+	ulh	$t5, 4
+	ulh	$t5, 4($zero)
+	ulh	$t5, ($a0)
+	ulh	$t5, 0($a0)
+	ulh	$t5, 32763($a0)
+	ulh	$t5, -32768($a0)
+	ulh	$t5, 65535($a0)
+	ulh	$t5, 0xffff0000($a0)
+	ulh	$t5, 0xffff8000($a0)
+	ulh	$t5, 0xffff0001($a0)
+	ulh	$t5, 0xffff8001($a0)
+	ulh	$t5, 0xf0000000($a0)
+	ulh	$t5, 0xffffffff($a0)
 
-	ulhu	$3, 4
-	ulhu	$3, 4($0)
-	ulhu	$3, ($4)
-	ulhu	$3, 0($4)
-	ulhu	$3, 32763($4)
-	ulhu	$3, -32768($4)
-	ulhu	$3, 65535($4)
-	ulhu	$3, 0xffff0000($4)
-	ulhu	$3, 0xffff8000($4)
-	ulhu	$3, 0xffff0001($4)
-	ulhu	$3, 0xffff8001($4)
-	ulhu	$3, 0xf0000000($4)
-	ulhu	$3, 0xffffffff($4)
+	ulhu	$t5, 4
+	ulhu	$t5, 4($zero)
+	ulhu	$t5, ($a0)
+	ulhu	$t5, 0($a0)
+	ulhu	$t5, 32763($a0)
+	ulhu	$t5, -32768($a0)
+	ulhu	$t5, 65535($a0)
+	ulhu	$t5, 0xffff0000($a0)
+	ulhu	$t5, 0xffff8000($a0)
+	ulhu	$t5, 0xffff0001($a0)
+	ulhu	$t5, 0xffff8001($a0)
+	ulhu	$t5, 0xf0000000($a0)
+	ulhu	$t5, 0xffffffff($a0)
 
-	ulw	$3, 0
-	ulw	$3, ($0)
-	ulw	$3, 4
-	ulw	$3, 4($0)
-	ulw	$3, 2047
-	ulw	$3, -2048
-	ulw	$3, 2048
-	ulw	$3, -2049
-	ulw	$3, 32763($0)
-	ulw	$3, -32768($0)
-	ulw	$3, 65535($0)
-	ulw	$3, 0xffff0000($0)
-	ulw	$3, 0xffff8000($0)
-	ulw	$3, 0xffff0001($0)
-	ulw	$3, 0xffff8001($0)
-	ulw	$3, 0xf0000000($0)
-	ulw	$3, 0xffffffff($0)
-	ulw	$3, 0x12345678($0)
-	ulw	$3, 0($4)
-	ulw	$3, 4($4)
-	ulw	$3, 2047($4)
-	ulw	$3, -2048($4)
-	ulw	$3, 2048($4)
-	ulw	$3, -2049($4)
-	ulw	$3, 32763($4)
-	ulw	$3, -32768($4)
-	ulw	$3, 65535($4)
-	ulw	$3, 0xffff0000($4)
-	ulw	$3, 0xffff8000($4)
-	ulw	$3, 0xffff0001($4)
-	ulw	$3, 0xffff8001($4)
-	ulw	$3, 0xf0000000($4)
-	ulw	$3, 0xffffffff($4)
-	ulw	$3, 0x12345678($4)
+	ulw	$t5, 0
+	ulw	$t5, ($zero)
+	ulw	$t5, 4
+	ulw	$t5, 4($zero)
+	ulw	$t5, 2047
+	ulw	$t5, -2048
+	ulw	$t5, 2048
+	ulw	$t5, -2049
+	ulw	$t5, 32763($zero)
+	ulw	$t5, -32768($zero)
+	ulw	$t5, 65535($zero)
+	ulw	$t5, 0xffff0000($zero)
+	ulw	$t5, 0xffff8000($zero)
+	ulw	$t5, 0xffff0001($zero)
+	ulw	$t5, 0xffff8001($zero)
+	ulw	$t5, 0xf0000000($zero)
+	ulw	$t5, 0xffffffff($zero)
+	ulw	$t5, 0x12345678($zero)
+	ulw	$t5, 0($a0)
+	ulw	$t5, 4($a0)
+	ulw	$t5, 2047($a0)
+	ulw	$t5, -2048($a0)
+	ulw	$t5, 2048($a0)
+	ulw	$t5, -2049($a0)
+	ulw	$t5, 32763($a0)
+	ulw	$t5, -32768($a0)
+	ulw	$t5, 65535($a0)
+	ulw	$t5, 0xffff0000($a0)
+	ulw	$t5, 0xffff8000($a0)
+	ulw	$t5, 0xffff0001($a0)
+	ulw	$t5, 0xffff8001($a0)
+	ulw	$t5, 0xf0000000($a0)
+	ulw	$t5, 0xffffffff($a0)
+	ulw	$t5, 0x12345678($a0)
 
-	ush	$3, 4
-	ush	$3, 4($0)
-	ush	$3, ($4)
-	ush	$3, 0($4)
-	ush	$3, 32763($4)
-	ush	$3, -32768($4)
-	ush	$3, 65535($4)
-	ush	$3, 0xffff0000($4)
-	ush	$3, 0xffff8000($4)
-	ush	$3, 0xffff0001($4)
-	ush	$3, 0xffff8001($4)
-	ush	$3, 0xf0000000($4)
-	ush	$3, 0xffffffff($4)
+	ush	$t5, 4
+	ush	$t5, 4($zero)
+	ush	$t5, ($a0)
+	ush	$t5, 0($a0)
+	ush	$t5, 32763($a0)
+	ush	$t5, -32768($a0)
+	ush	$t5, 65535($a0)
+	ush	$t5, 0xffff0000($a0)
+	ush	$t5, 0xffff8000($a0)
+	ush	$t5, 0xffff0001($a0)
+	ush	$t5, 0xffff8001($a0)
+	ush	$t5, 0xf0000000($a0)
+	ush	$t5, 0xffffffff($a0)
 
-	usw	$3, 0
-	usw	$3, ($0)
-	usw	$3, 4
-	usw	$3, 4($0)
-	usw	$3, 2047
-	usw	$3, -2048
-	usw	$3, 2048
-	usw	$3, -2049
-	usw	$3, 32763($0)
-	usw	$3, -32768($0)
-	usw	$3, 65535($0)
-	usw	$3, 0xffff0000($0)
-	usw	$3, 0xffff8000($0)
-	usw	$3, 0xffff0001($0)
-	usw	$3, 0xffff8001($0)
-	usw	$3, 0xf0000000($0)
-	usw	$3, 0xffffffff($0)
-	usw	$3, 0x12345678($0)
-	usw	$3, 0($4)
-	usw	$3, 4($4)
-	usw	$3, 2047($4)
-	usw	$3, -2048($4)
-	usw	$3, 2048($4)
-	usw	$3, -2049($4)
-	usw	$3, 32763($4)
-	usw	$3, -32768($4)
-	usw	$3, 65535($4)
-	usw	$3, 0xffff0000($4)
-	usw	$3, 0xffff8000($4)
-	usw	$3, 0xffff0001($4)
-	usw	$3, 0xffff8001($4)
-	usw	$3, 0xf0000000($4)
-	usw	$3, 0xffffffff($4)
-	usw	$3, 0x12345678($4)
+	usw	$t5, 0
+	usw	$t5, ($zero)
+	usw	$t5, 4
+	usw	$t5, 4($zero)
+	usw	$t5, 2047
+	usw	$t5, -2048
+	usw	$t5, 2048
+	usw	$t5, -2049
+	usw	$t5, 32763($zero)
+	usw	$t5, -32768($zero)
+	usw	$t5, 65535($zero)
+	usw	$t5, 0xffff0000($zero)
+	usw	$t5, 0xffff8000($zero)
+	usw	$t5, 0xffff0001($zero)
+	usw	$t5, 0xffff8001($zero)
+	usw	$t5, 0xf0000000($zero)
+	usw	$t5, 0xffffffff($zero)
+	usw	$t5, 0x12345678($zero)
+	usw	$t5, 0($a0)
+	usw	$t5, 4($a0)
+	usw	$t5, 2047($a0)
+	usw	$t5, -2048($a0)
+	usw	$t5, 2048($a0)
+	usw	$t5, -2049($a0)
+	usw	$t5, 32763($a0)
+	usw	$t5, -32768($a0)
+	usw	$t5, 65535($a0)
+	usw	$t5, 0xffff0000($a0)
+	usw	$t5, 0xffff8000($a0)
+	usw	$t5, 0xffff0001($a0)
+	usw	$t5, 0xffff8001($a0)
+	usw	$t5, 0xf0000000($a0)
+	usw	$t5, 0xffffffff($a0)
+	usw	$t5, 0x12345678($a0)
 
 
 	wait
@@ -2428,300 +2428,300 @@ test3:
 	wait	1
 	wait	255
 
-	wrpgpr	$2, $3
-	wrpgpr	$2, $4
-	wrpgpr	$2, $2
-	wrpgpr	$2
+	wrpgpr	$t4, $t5
+	wrpgpr	$t4, $a0
+	wrpgpr	$t4, $t4
+	wrpgpr	$t4
 
-	wsbh	$2, $3
-	wsbh	$2, $4
-	wsbh	$2, $2
-	wsbh	$2
+	wsbh	$t4, $t5
+	wsbh	$t4, $a0
+	wsbh	$t4, $t4
+	wsbh	$t4
 
-	xor	$18, $18
-	xor	$18, $19
-	xor	$18, $4
-	xor	$18, $5
-	xor	$18, $6
-	xor	$18, $7
-	xor	$18, $16
-	xor	$18, $17
-	xor	$19, $17
-	xor	$4, $17
-	xor	$5, $17
-	xor	$6, $17
-	xor	$7, $17
-	xor	$16, $17
-	xor	$17, $17
-	xor	$18, $19
-	xor	$18, $18, $19
-	xor	$18, $19, $18
+	xor	$s2, $s2
+	xor	$s2, $s3
+	xor	$s2, $a0
+	xor	$s2, $a1
+	xor	$s2, $a2
+	xor	$s2, $a3
+	xor	$s2, $s0
+	xor	$s2, $s1
+	xor	$s3, $s1
+	xor	$a0, $s1
+	xor	$a1, $s1
+	xor	$a2, $s1
+	xor	$a3, $s1
+	xor	$s0, $s1
+	xor	$s1, $s1
+	xor	$s2, $s3
+	xor	$s2, $s2, $s3
+	xor	$s2, $s3, $s2
 
-	xor32	$2, $3, $4
-	xor32	$29, $30, $31
-	xor32	$2, $2, $4
-	xor32	$2, $4
+	xor32	$t4, $t5, $a0
+	xor32	$sp, $fp, $ra
+	xor32	$t4, $t4, $a0
+	xor32	$t4, $a0
 
-	xor	$2, $3, 32768
-	xor	$2, $3, 65535
-	xor	$2, $3, 65536
-	xor	$2, $3, -32768
-	xor	$2, $3, -32769
+	xor	$t4, $t5, 32768
+	xor	$t4, $t5, 65535
+	xor	$t4, $t5, 65536
+	xor	$t4, $t5, -32768
+	xor	$t4, $t5, -32769
 
-	xori	$3, $4, 0
-	xori	$3, $3, 4095
+	xori	$t5, $a0, 0
+	xori	$t5, $t5, 4095
 
 /* 
 	.set	noreorder
 */
-	beqz	$9, test
-	addu	$19, $4, $5
+	beqz	$a5, test
+	addu	$s3, $a0, $a1
 
-	beq	$9, $10, test
-	addu	$19, $4, $5
+	beq	$a5, $a6, test
+	addu	$s3, $a0, $a1
 
-	beq	$9, 0, test
-	addu	$19, $4, $5
+	beq	$a5, 0, test
+	addu	$s3, $a0, $a1
 
-	beq	$9, 1, test
-	addu	$19, $4, $5
+	beq	$a5, 1, test
+	addu	$s3, $a0, $a1
 
-	bge	$10, $0, test
-	addu	$19, $4, $5
+	bge	$a6, $zero, test
+	addu	$s3, $a0, $a1
 
-	bge	$10, $0, test
-	addu	$19, $4, $5
+	bge	$a6, $zero, test
+	addu	$s3, $a0, $a1
 
-	bge	$0, $10, test
-	addu	$19, $4, $5
+	bge	$zero, $a6, test
+	addu	$s3, $a0, $a1
 
-	bge	$10, $11, test
-	addu	$19, $4, $5
+	bge	$a6, $a7, test
+	addu	$s3, $a0, $a1
 
-	bge	$10, 0, test
-	addu	$19, $4, $5
+	bge	$a6, 0, test
+	addu	$s3, $a0, $a1
 
-	bge	$10, 1, test
-	addu	$19, $4, $5
+	bge	$a6, 1, test
+	addu	$s3, $a0, $a1
 
-	bge	$10, 2, test
-	addu	$19, $4, $5
+	bge	$a6, 2, test
+	addu	$s3, $a0, $a1
 
-	bge	$10, 0x80000000, test
-	addu	$19, $4, $5
+	bge	$a6, 0x80000000, test
+	addu	$s3, $a0, $a1
 
-	bgeu	$2, $0, test
-	addu	$19, $4, $5
+	bgeu	$t4, $zero, test
+	addu	$s3, $a0, $a1
 
-	bgeu	$0, $2, test
-	addu	$19, $4, $5
+	bgeu	$zero, $t4, test
+	addu	$s3, $a0, $a1
 
-	bgeu	$2, $3, test
-	addu	$19, $4, $5
+	bgeu	$t4, $t5, test
+	addu	$s3, $a0, $a1
 
-	bgeu	$2, 0, test
-	addu	$19, $4, $5
+	bgeu	$t4, 0, test
+	addu	$s3, $a0, $a1
 
-	bgeu	$2, 1, test
-	addu	$19, $4, $5
+	bgeu	$t4, 1, test
+	addu	$s3, $a0, $a1
 
-	bgeu	$2, 2, test
-	addu	$19, $4, $5
+	bgeu	$t4, 2, test
+	addu	$s3, $a0, $a1
 
-	bgez	$2, test
-	addu	$19, $4, $5
+	bgez	$t4, test
+	addu	$s3, $a0, $a1
 /*
-	bgezal	$2, test
-	addu	$19, $4, $5
+	bgezal	$t4, test
+	addu	$s3, $a0, $a1
 */
-	bgt	$2, $0, test
-	addu	$19, $4, $5
+	bgt	$t4, $zero, test
+	addu	$s3, $a0, $a1
 
-	bgt	$0, $2, test
-	addu	$19, $4, $5
+	bgt	$zero, $t4, test
+	addu	$s3, $a0, $a1
 
-	bgt	$9, $10, test
-	addu	$19, $4, $5
+	bgt	$a5, $a6, test
+	addu	$s3, $a0, $a1
 
-	bgt	$9, 0x7fffffff, test
-	addu	$19, $4, $5
+	bgt	$a5, 0x7fffffff, test
+	addu	$s3, $a0, $a1
 
-	bgt	$9, -1, test
-	addu	$19, $4, $5
+	bgt	$a5, -1, test
+	addu	$s3, $a0, $a1
 
-	bgt	$9, 0, test
-	addu	$19, $4, $5
+	bgt	$a5, 0, test
+	addu	$s3, $a0, $a1
 
-	bgt	$9, 1, test
-	addu	$19, $4, $5
+	bgt	$a5, 1, test
+	addu	$s3, $a0, $a1
 
-	bgt	$9, 0x80000000, test
-	addu	$19, $4, $5
+	bgt	$a5, 0x80000000, test
+	addu	$s3, $a0, $a1
 
-	bgtu	$9, $0, test
-	addu	$19, $4, $5
+	bgtu	$a5, $zero, test
+	addu	$s3, $a0, $a1
 
-	bgtu	$0, $9, test
-	addu	$19, $4, $5
+	bgtu	$zero, $a5, test
+	addu	$s3, $a0, $a1
 
-	bgtu	$9, $10, test
-	addu	$19, $4, $5
+	bgtu	$a5, $a6, test
+	addu	$s3, $a0, $a1
 
-	bgtu	$0, 0, test
-	addu	$19, $4, $5
+	bgtu	$zero, 0, test
+	addu	$s3, $a0, $a1
 
-	bgtu	$9, 0xffffffff, test
-	addu	$19, $4, $5
+	bgtu	$a5, 0xffffffff, test
+	addu	$s3, $a0, $a1
 
-	bgtu	$9, -1, test
-	addu	$19, $4, $5
+	bgtu	$a5, -1, test
+	addu	$s3, $a0, $a1
 
-	bgtu	$9, 0, test
-	addu	$19, $4, $5
+	bgtu	$a5, 0, test
+	addu	$s3, $a0, $a1
 
-	bgtu	$9, 1, test
-	addu	$19, $4, $5
+	bgtu	$a5, 1, test
+	addu	$s3, $a0, $a1
 
-	bgtz	$9, test
-	addu	$19, $4, $5
+	bgtz	$a5, test
+	addu	$s3, $a0, $a1
 
-	ble	$9, $0, test
-	addu	$19, $4, $5
+	ble	$a5, $zero, test
+	addu	$s3, $a0, $a1
 
-	ble	$0, $10, test
-	addu	$19, $4, $5
+	ble	$zero, $a6, test
+	addu	$s3, $a0, $a1
 
-	ble	$9, $10, test
-	addu	$19, $4, $5
+	ble	$a5, $a6, test
+	addu	$s3, $a0, $a1
 
-	ble	$9, 0x7fffffff, test
-	addu	$19, $4, $5
+	ble	$a5, 0x7fffffff, test
+	addu	$s3, $a0, $a1
 
-	ble	$9, -1, test
-	addu	$19, $4, $5
+	ble	$a5, -1, test
+	addu	$s3, $a0, $a1
 
-	ble	$9, 0, test
-	addu	$19, $4, $5
+	ble	$a5, 0, test
+	addu	$s3, $a0, $a1
 
-	ble	$9, 1, test
-	addu	$19, $4, $5
+	ble	$a5, 1, test
+	addu	$s3, $a0, $a1
 
-	bleu	$9, $0, test
-	addu	$19, $4, $5
+	bleu	$a5, $zero, test
+	addu	$s3, $a0, $a1
 
-	bleu	$0, $10, test
-	addu	$19, $4, $5
+	bleu	$zero, $a6, test
+	addu	$s3, $a0, $a1
 
-	bleu	$9, $10, test
-	addu	$19, $4, $5
+	bleu	$a5, $a6, test
+	addu	$s3, $a0, $a1
 
-	bleu	$0, $10, test
-	addu	$19, $4, $5
+	bleu	$zero, $a6, test
+	addu	$s3, $a0, $a1
 
-	bleu	$9, 0xffffffff, test
-	addu	$19, $4, $5
+	bleu	$a5, 0xffffffff, test
+	addu	$s3, $a0, $a1
 
-	bleu	$9, 0, test
-	addu	$19, $4, $5
+	bleu	$a5, 0, test
+	addu	$s3, $a0, $a1
 
-	bleu	$9, 1, test
-	addu	$19, $4, $5
+	bleu	$a5, 1, test
+	addu	$s3, $a0, $a1
 
-	blez	$9, test
-	addu	$19, $4, $5
+	blez	$a5, test
+	addu	$s3, $a0, $a1
 
-	blt	$9, $0, test
-	addu	$19, $4, $5
+	blt	$a5, $zero, test
+	addu	$s3, $a0, $a1
 
-	blt	$0, $10, test
-	addu	$19, $4, $5
+	blt	$zero, $a6, test
+	addu	$s3, $a0, $a1
 
-	blt	$9, $10, test
-	addu	$19, $4, $5
+	blt	$a5, $a6, test
+	addu	$s3, $a0, $a1
 
-	blt	$9, 0, test
-	addu	$19, $4, $5
+	blt	$a5, 0, test
+	addu	$s3, $a0, $a1
 
-	blt	$9, 1, test
-	addu	$19, $4, $5
+	blt	$a5, 1, test
+	addu	$s3, $a0, $a1
 
-	blt	$9, 2, test
-	addu	$19, $4, $5
+	blt	$a5, 2, test
+	addu	$s3, $a0, $a1
 
-	bltu	$9, $0, test
-	addu	$19, $4, $5
+	bltu	$a5, $zero, test
+	addu	$s3, $a0, $a1
 
-	bltu	$0, $10, test
-	addu	$19, $4, $5
+	bltu	$zero, $a6, test
+	addu	$s3, $a0, $a1
 
-	bltu	$9, $10, test
-	addu	$19, $4, $5
+	bltu	$a5, $a6, test
+	addu	$s3, $a0, $a1
 
-	bltu	$9, 0, test
-	addu	$19, $4, $5
+	bltu	$a5, 0, test
+	addu	$s3, $a0, $a1
 
-	bltu	$9, 1, test
-	addu	$19, $4, $5
+	bltu	$a5, 1, test
+	addu	$s3, $a0, $a1
 
-	bltu	$9, 2, test
-	addu	$19, $4, $5
+	bltu	$a5, 2, test
+	addu	$s3, $a0, $a1
 
-	bltz	$9, test
-	addu	$19, $4, $5
+	bltz	$a5, test
+	addu	$s3, $a0, $a1
 /*
-	bltzal	$9, test
-	addu	$19, $4, $5
+	bltzal	$a5, test
+	addu	$s3, $a0, $a1
 */
-	bnez	$9, test
-	addu	$19, $4, $5
+	bnez	$a5, test
+	addu	$s3, $a0, $a1
 
-	bne	$9, $10, test
-	addu	$19, $4, $5
+	bne	$a5, $a6, test
+	addu	$s3, $a0, $a1
 
-	bne	$9, 0, test
-	addu	$19, $4, $5
+	bne	$a5, 0, test
+	addu	$s3, $a0, $a1
 
-	bne	$9, 1, test
-	addu	$19, $4, $5
+	bne	$a5, 1, test
+	addu	$s3, $a0, $a1
 	
 /* 
 	.ifndef	insn32
-	addiur1sp	$2, 0
-	addiur1sp	$2, 1<<2
-	addiur1sp	$2, 2<<2
-	addiur1sp	$2, 3<<2
-	addiur1sp	$2, 4<<2
-	addiur1sp	$2, 63<<2
-	addiur1sp	$3, 63<<2
-	addiur1sp	$4, 63<<2
-	addiur1sp	$5, 63<<2
-	addiur1sp	$6, 63<<2
-	addiur1sp	$7, 63<<2
-	addiur1sp	$16, 63<<2
-	addiur1sp	$17, 63<<2
+	addiur1sp	$t4, 0
+	addiur1sp	$t4, 1<<2
+	addiur1sp	$t4, 2<<2
+	addiur1sp	$t4, 3<<2
+	addiur1sp	$t4, 4<<2
+	addiur1sp	$t4, 63<<2
+	addiur1sp	$t5, 63<<2
+	addiur1sp	$a0, 63<<2
+	addiur1sp	$a1, 63<<2
+	addiur1sp	$a2, 63<<2
+	addiur1sp	$a3, 63<<2
+	addiur1sp	$s0, 63<<2
+	addiur1sp	$s1, 63<<2
 
-	addiur2	$2, $2, -1
-	addiur2	$2, $3, -1
-	addiur2	$2, $4, -1
-	addiur2	$2, $5, -1
-	addiur2	$2, $6, -1
-	addiur2	$2, $7, -1
-	addiur2	$2, $16, -1
-	addiur2	$2, $17, -1
-	addiur2	$3, $17, -1
-	addiur2	$4, $17, -1
-	addiur2	$5, $17, -1
-	addiur2	$6, $17, -1
-	addiur2	$7, $17, -1
-	addiur2	$16, $17, -1
-	addiur2	$17, $17, -1
-	addiur2	$17, $17, 1
-	addiur2	$17, $17, 4
-	addiur2	$17, $17, 8
-	addiur2	$17, $17, 12
-	addiur2	$17, $17, 16
-	addiur2	$17, $17, 20
-	addiur2	$17, $17, 24
+	addiur2	$t4, $t4, -1
+	addiur2	$t4, $t5, -1
+	addiur2	$t4, $a0, -1
+	addiur2	$t4, $a1, -1
+	addiur2	$t4, $a2, -1
+	addiur2	$t4, $a3, -1
+	addiur2	$t4, $s0, -1
+	addiur2	$t4, $s1, -1
+	addiur2	$t5, $s1, -1
+	addiur2	$a0, $s1, -1
+	addiur2	$a1, $s1, -1
+	addiur2	$a2, $s1, -1
+	addiur2	$a3, $s1, -1
+	addiur2	$s0, $s1, -1
+	addiur2	$s1, $s1, -1
+	addiur2	$s1, $s1, 1
+	addiur2	$s1, $s1, 4
+	addiur2	$s1, $s1, 8
+	addiur2	$s1, $s1, 12
+	addiur2	$s1, $s1, 16
+	addiur2	$s1, $s1, 20
+	addiur2	$s1, $s1, 24
 
 	addiusp	2 << 2
 	addiusp	3 << 2
@@ -2736,69 +2736,69 @@ test3:
 	addiusp	-257 << 2
 	addiusp	-258 << 2
 
-	addius5	$0, 0
-	addius5	$2, 0
-	addius5	$3, 0
-	addius5	$30, 0
-	addius5	$31, 0
-	addius5	$31, 1
-	addius5	$31, 2
-	addius5	$31, 3
-	addius5	$31, 7
-	addius5	$31, -6
-	addius5	$31, -7
-	addius5	$31, -8
+	addius5	$zero, 0
+	addius5	$t4, 0
+	addius5	$t5, 0
+	addius5	$fp, 0
+	addius5	$ra, 0
+	addius5	$ra, 1
+	addius5	$ra, 2
+	addius5	$ra, 3
+	addius5	$ra, 7
+	addius5	$ra, -6
+	addius5	$ra, -7
+	addius5	$ra, -8
 	.endif
 */
-	sd	$3, 4
-	sd	$3, 4($0)
-	sd	$3, 32767($0)
-	sd	$3, -32768($0)
-	sd	$3, 65535($0)
-	sd	$3, 0xffff0000($0)
-	sd	$3, 0xffff8000($0)
-	sd	$3, 0xffff0001($0)
-	sd	$3, 0xffff8001($0)
-	sd	$3, 0xf0000000($0)
-	sd	$3, 0xffffffff($0)
-	sd	$3, 0x12345678($0)
-	sd	$3, ($4)
-	sd	$3, 0($4)
-	sd	$3, 32767($4)
-	sd	$3, -32768($4)
-	sd	$3, 65535($4)
-	sd	$3, 0xffff0000($4)
-	sd	$3, 0xffff8000($4)
-	sd	$3, 0xffff0001($4)
-	sd	$3, 0xffff8001($4)
-	sd	$3, 0xf0000000($4)
-	sd	$3, 0xffffffff($4)
-	sd	$3, 0x12345678($4)
+	sd	$t5, 4
+	sd	$t5, 4($zero)
+	sd	$t5, 32767($zero)
+	sd	$t5, -32768($zero)
+	sd	$t5, 65535($zero)
+	sd	$t5, 0xffff0000($zero)
+	sd	$t5, 0xffff8000($zero)
+	sd	$t5, 0xffff0001($zero)
+	sd	$t5, 0xffff8001($zero)
+	sd	$t5, 0xf0000000($zero)
+	sd	$t5, 0xffffffff($zero)
+	sd	$t5, 0x12345678($zero)
+	sd	$t5, ($a0)
+	sd	$t5, 0($a0)
+	sd	$t5, 32767($a0)
+	sd	$t5, -32768($a0)
+	sd	$t5, 65535($a0)
+	sd	$t5, 0xffff0000($a0)
+	sd	$t5, 0xffff8000($a0)
+	sd	$t5, 0xffff0001($a0)
+	sd	$t5, 0xffff8001($a0)
+	sd	$t5, 0xf0000000($a0)
+	sd	$t5, 0xffffffff($a0)
+	sd	$t5, 0x12345678($a0)
 
-	ld	$3, 4
-	ld	$3, 4($0)
-	ld	$3, 32767($0)
-	ld	$3, -32768($0)
-	ld	$3, 65535($0)
-	ld	$3, 0xffff0000($0)
-	ld	$3, 0xffff8000($0)
-	ld	$3, 0xffff0001($0)
-	ld	$3, 0xffff8001($0)
-	ld	$3, 0xf0000000($0)
-	ld	$3, 0xffffffff($0)
-	ld	$3, 0x12345678($0)
-	ld	$3, ($4)
-	ld	$3, 0($4)
-	ld	$3, 32767($4)
-	ld	$3, -32768($4)
-	ld	$3, 65535($4)
-	ld	$3, 0xffff0000($4)
-	ld	$3, 0xffff8000($4)
-	ld	$3, 0xffff0001($4)
-	ld	$3, 0xffff8001($4)
-	ld	$3, 0xf0000000($4)
-	ld	$3, 0xffffffff($4)
-	ld	$3, 0x12345678($4)
+	ld	$t5, 4
+	ld	$t5, 4($zero)
+	ld	$t5, 32767($zero)
+	ld	$t5, -32768($zero)
+	ld	$t5, 65535($zero)
+	ld	$t5, 0xffff0000($zero)
+	ld	$t5, 0xffff8000($zero)
+	ld	$t5, 0xffff0001($zero)
+	ld	$t5, 0xffff8001($zero)
+	ld	$t5, 0xf0000000($zero)
+	ld	$t5, 0xffffffff($zero)
+	ld	$t5, 0x12345678($zero)
+	ld	$t5, ($a0)
+	ld	$t5, 0($a0)
+	ld	$t5, 32767($a0)
+	ld	$t5, -32768($a0)
+	ld	$t5, 65535($a0)
+	ld	$t5, 0xffff0000($a0)
+	ld	$t5, 0xffff8000($a0)
+	ld	$t5, 0xffff0001($a0)
+	ld	$t5, 0xffff8001($a0)
+	ld	$t5, 0xf0000000($a0)
+	ld	$t5, 0xffffffff($a0)
+	ld	$t5, 0x12345678($a0)
 
 	jraddiusp	0 << 2
 	jraddiusp	2 << 2
@@ -2815,224 +2815,224 @@ test3:
 	jraddiusp	31 << 2
 
 	ldc2	$3, 0
-	ldc2	$3, ($0)
+	ldc2	$3, ($zero)
 	ldc2	$3, 4
-	ldc2	$3, 4($0)
-	ldc2	$3, ($4)
-	ldc2	$3, 0($4)
-	ldc2	$3, 32767($4)
-	ldc2	$3, -32768($4)
-	ldc2	$3, 65535($4)
-	ldc2	$3, 0xffff0000($4)
-	ldc2	$3, 0xffff8000($4)
-	ldc2	$3, 0xffff0001($4)
-	ldc2	$3, 0xffff8001($4)
-	ldc2	$3, 0xf0000000($4)
-	ldc2	$3, 0xffffffff($4)
-	ldc2	$3, 0x12345678($4)
+	ldc2	$3, 4($zero)
+	ldc2	$3, ($a0)
+	ldc2	$3, 0($a0)
+	ldc2	$3, 32767($a0)
+	ldc2	$3, -32768($a0)
+	ldc2	$3, 65535($a0)
+	ldc2	$3, 0xffff0000($a0)
+	ldc2	$3, 0xffff8000($a0)
+	ldc2	$3, 0xffff0001($a0)
+	ldc2	$3, 0xffff8001($a0)
+	ldc2	$3, 0xf0000000($a0)
+	ldc2	$3, 0xffffffff($a0)
+	ldc2	$3, 0x12345678($a0)
 
 	lwc2	$3, 0
-	lwc2	$3, ($0)
+	lwc2	$3, ($zero)
 	lwc2	$3, 4
-	lwc2	$3, 4($0)
-	lwc2	$3, ($4)
-	lwc2	$3, 0($4)
-	lwc2	$3, 32767($4)
-	lwc2	$3, -32768($4)
-	lwc2	$3, 65535($4)
-	lwc2	$3, 0xffff0000($4)
-	lwc2	$3, 0xffff8000($4)
-	lwc2	$3, 0xffff0001($4)
-	lwc2	$3, 0xffff8001($4)
-	lwc2	$3, 0xf0000000($4)
-	lwc2	$3, 0xffffffff($4)
-	lwc2	$3, 0x12345678($4)
+	lwc2	$3, 4($zero)
+	lwc2	$3, ($a0)
+	lwc2	$3, 0($a0)
+	lwc2	$3, 32767($a0)
+	lwc2	$3, -32768($a0)
+	lwc2	$3, 65535($a0)
+	lwc2	$3, 0xffff0000($a0)
+	lwc2	$3, 0xffff8000($a0)
+	lwc2	$3, 0xffff0001($a0)
+	lwc2	$3, 0xffff8001($a0)
+	lwc2	$3, 0xf0000000($a0)
+	lwc2	$3, 0xffffffff($a0)
+	lwc2	$3, 0x12345678($a0)
 
-	mfc2	$5, $0
-	mfc2	$5, $1
-	mfc2	$5, $2
-	mfc2	$5, $3
-	mfc2	$5, $4
-	mfc2	$5, $5
-	mfc2	$5, $6
-	mfc2	$5, $7
-	mfc2	$5, $8
-	mfc2	$5, $9
-	mfc2	$5, $10
-	mfc2	$5, $11
-	mfc2	$5, $12
-	mfc2	$5, $13
-	mfc2	$5, $14
-	mfc2	$5, $15
-	mfc2	$5, $16
-	mfc2	$5, $17
-	mfc2	$5, $18
-	mfc2	$5, $19
-	mfc2	$5, $20
-	mfc2	$5, $21
-	mfc2	$5, $22
-	mfc2	$5, $23
-	mfc2	$5, $24
-	mfc2	$5, $25
-	mfc2	$5, $26
-	mfc2	$5, $27
-	mfc2	$5, $28
-	mfc2	$5, $29
-	mfc2	$5, $30
-	mfc2	$5, $31
+	mfc2	$a1, $0
+	mfc2	$a1, $1
+	mfc2	$a1, $2
+	mfc2	$a1, $3
+	mfc2	$a1, $4
+	mfc2	$a1, $5
+	mfc2	$a1, $6
+	mfc2	$a1, $7
+	mfc2	$a1, $8
+	mfc2	$a1, $9
+	mfc2	$a1, $10
+	mfc2	$a1, $11
+	mfc2	$a1, $12
+	mfc2	$a1, $13
+	mfc2	$a1, $14
+	mfc2	$a1, $15
+	mfc2	$a1, $16
+	mfc2	$a1, $17
+	mfc2	$a1, $18
+	mfc2	$a1, $19
+	mfc2	$a1, $20
+	mfc2	$a1, $21
+	mfc2	$a1, $22
+	mfc2	$a1, $23
+	mfc2	$a1, $24
+	mfc2	$a1, $25
+	mfc2	$a1, $26
+	mfc2	$a1, $27
+	mfc2	$a1, $28
+	mfc2	$a1, $29
+	mfc2	$a1, $30
+	mfc2	$a1, $31
 
-	mfhc2	$5, $0
-	mfhc2	$5, $1
-	mfhc2	$5, $2
-	mfhc2	$5, $3
-	mfhc2	$5, $4
-	mfhc2	$5, $5
-	mfhc2	$5, $6
-	mfhc2	$5, $7
-	mfhc2	$5, $8
-	mfhc2	$5, $9
-	mfhc2	$5, $10
-	mfhc2	$5, $11
-	mfhc2	$5, $12
-	mfhc2	$5, $13
-	mfhc2	$5, $14
-	mfhc2	$5, $15
-	mfhc2	$5, $16
-	mfhc2	$5, $17
-	mfhc2	$5, $18
-	mfhc2	$5, $19
-	mfhc2	$5, $20
-	mfhc2	$5, $21
-	mfhc2	$5, $22
-	mfhc2	$5, $23
-	mfhc2	$5, $24
-	mfhc2	$5, $25
-	mfhc2	$5, $26
-	mfhc2	$5, $27
-	mfhc2	$5, $28
-	mfhc2	$5, $29
-	mfhc2	$5, $30
-	mfhc2	$5, $31
+	mfhc2	$a1, $0
+	mfhc2	$a1, $1
+	mfhc2	$a1, $2
+	mfhc2	$a1, $3
+	mfhc2	$a1, $4
+	mfhc2	$a1, $5
+	mfhc2	$a1, $6
+	mfhc2	$a1, $7
+	mfhc2	$a1, $8
+	mfhc2	$a1, $9
+	mfhc2	$a1, $10
+	mfhc2	$a1, $11
+	mfhc2	$a1, $12
+	mfhc2	$a1, $13
+	mfhc2	$a1, $14
+	mfhc2	$a1, $15
+	mfhc2	$a1, $16
+	mfhc2	$a1, $17
+	mfhc2	$a1, $18
+	mfhc2	$a1, $19
+	mfhc2	$a1, $20
+	mfhc2	$a1, $21
+	mfhc2	$a1, $22
+	mfhc2	$a1, $23
+	mfhc2	$a1, $24
+	mfhc2	$a1, $25
+	mfhc2	$a1, $26
+	mfhc2	$a1, $27
+	mfhc2	$a1, $28
+	mfhc2	$a1, $29
+	mfhc2	$a1, $30
+	mfhc2	$a1, $31
 
-	mtc2	$5, $0
-	mtc2	$5, $1
-	mtc2	$5, $2
-	mtc2	$5, $3
-	mtc2	$5, $4
-	mtc2	$5, $5
-	mtc2	$5, $6
-	mtc2	$5, $7
-	mtc2	$5, $8
-	mtc2	$5, $9
-	mtc2	$5, $10
-	mtc2	$5, $11
-	mtc2	$5, $12
-	mtc2	$5, $13
-	mtc2	$5, $14
-	mtc2	$5, $15
-	mtc2	$5, $16
-	mtc2	$5, $17
-	mtc2	$5, $18
-	mtc2	$5, $19
-	mtc2	$5, $20
-	mtc2	$5, $21
-	mtc2	$5, $22
-	mtc2	$5, $23
-	mtc2	$5, $24
-	mtc2	$5, $25
-	mtc2	$5, $26
-	mtc2	$5, $27
-	mtc2	$5, $28
-	mtc2	$5, $29
-	mtc2	$5, $30
-	mtc2	$5, $31
+	mtc2	$a1, $0
+	mtc2	$a1, $1
+	mtc2	$a1, $2
+	mtc2	$a1, $3
+	mtc2	$a1, $4
+	mtc2	$a1, $5
+	mtc2	$a1, $6
+	mtc2	$a1, $7
+	mtc2	$a1, $8
+	mtc2	$a1, $9
+	mtc2	$a1, $10
+	mtc2	$a1, $11
+	mtc2	$a1, $12
+	mtc2	$a1, $13
+	mtc2	$a1, $14
+	mtc2	$a1, $15
+	mtc2	$a1, $16
+	mtc2	$a1, $17
+	mtc2	$a1, $18
+	mtc2	$a1, $19
+	mtc2	$a1, $20
+	mtc2	$a1, $21
+	mtc2	$a1, $22
+	mtc2	$a1, $23
+	mtc2	$a1, $24
+	mtc2	$a1, $25
+	mtc2	$a1, $26
+	mtc2	$a1, $27
+	mtc2	$a1, $28
+	mtc2	$a1, $29
+	mtc2	$a1, $30
+	mtc2	$a1, $31
 
-	mthc2	$5, $0
-	mthc2	$5, $1
-	mthc2	$5, $2
-	mthc2	$5, $3
-	mthc2	$5, $4
-	mthc2	$5, $5
-	mthc2	$5, $6
-	mthc2	$5, $7
-	mthc2	$5, $8
-	mthc2	$5, $9
-	mthc2	$5, $10
-	mthc2	$5, $11
-	mthc2	$5, $12
-	mthc2	$5, $13
-	mthc2	$5, $14
-	mthc2	$5, $15
-	mthc2	$5, $16
-	mthc2	$5, $17
-	mthc2	$5, $18
-	mthc2	$5, $19
-	mthc2	$5, $20
-	mthc2	$5, $21
-	mthc2	$5, $22
-	mthc2	$5, $23
-	mthc2	$5, $24
-	mthc2	$5, $25
-	mthc2	$5, $26
-	mthc2	$5, $27
-	mthc2	$5, $28
-	mthc2	$5, $29
-	mthc2	$5, $30
-	mthc2	$5, $31
+	mthc2	$a1, $0
+	mthc2	$a1, $1
+	mthc2	$a1, $2
+	mthc2	$a1, $3
+	mthc2	$a1, $4
+	mthc2	$a1, $5
+	mthc2	$a1, $6
+	mthc2	$a1, $7
+	mthc2	$a1, $8
+	mthc2	$a1, $9
+	mthc2	$a1, $10
+	mthc2	$a1, $11
+	mthc2	$a1, $12
+	mthc2	$a1, $13
+	mthc2	$a1, $14
+	mthc2	$a1, $15
+	mthc2	$a1, $16
+	mthc2	$a1, $17
+	mthc2	$a1, $18
+	mthc2	$a1, $19
+	mthc2	$a1, $20
+	mthc2	$a1, $21
+	mthc2	$a1, $22
+	mthc2	$a1, $23
+	mthc2	$a1, $24
+	mthc2	$a1, $25
+	mthc2	$a1, $26
+	mthc2	$a1, $27
+	mthc2	$a1, $28
+	mthc2	$a1, $29
+	mthc2	$a1, $30
+	mthc2	$a1, $31
 
 	sdc2	$3, 0
-	sdc2	$3, ($0)
+	sdc2	$3, ($zero)
 	sdc2	$3, 4
-	sdc2	$3, 4($0)
-	sdc2	$3, ($4)
-	sdc2	$3, 0($4)
-	sdc2	$3, 32767($4)
-	sdc2	$3, -32768($4)
-	sdc2	$3, 65535($4)
-	sdc2	$3, 0xffff0000($4)
-	sdc2	$3, 0xffff8000($4)
-	sdc2	$3, 0xffff0001($4)
-	sdc2	$3, 0xffff8001($4)
-	sdc2	$3, 0xf0000000($4)
-	sdc2	$3, 0xffffffff($4)
-	sdc2	$3, 0x12345678($4)
+	sdc2	$3, 4($zero)
+	sdc2	$3, ($a0)
+	sdc2	$3, 0($a0)
+	sdc2	$3, 32767($a0)
+	sdc2	$3, -32768($a0)
+	sdc2	$3, 65535($a0)
+	sdc2	$3, 0xffff0000($a0)
+	sdc2	$3, 0xffff8000($a0)
+	sdc2	$3, 0xffff0001($a0)
+	sdc2	$3, 0xffff8001($a0)
+	sdc2	$3, 0xf0000000($a0)
+	sdc2	$3, 0xffffffff($a0)
+	sdc2	$3, 0x12345678($a0)
 
 	swc2	$3, 0
-	swc2	$3, ($0)
+	swc2	$3, ($zero)
 	swc2	$3, 4
-	swc2	$3, 4($0)
-	swc2	$3, ($4)
-	swc2	$3, 0($4)
-	swc2	$3, 32767($4)
-	swc2	$3, -32768($4)
-	swc2	$3, 65535($4)
-	swc2	$3, 0xffff0000($4)
-	swc2	$3, 0xffff8000($4)
-	swc2	$3, 0xffff0001($4)
-	swc2	$3, 0xffff8001($4)
-	swc2	$3, 0xf0000000($4)
-	swc2	$3, 0xffffffff($4)
-	swc2	$3, 0x12345678($4)
+	swc2	$3, 4($zero)
+	swc2	$3, ($a0)
+	swc2	$3, 0($a0)
+	swc2	$3, 32767($a0)
+	swc2	$3, -32768($a0)
+	swc2	$3, 65535($a0)
+	swc2	$3, 0xffff0000($a0)
+	swc2	$3, 0xffff8000($a0)
+	swc2	$3, 0xffff0001($a0)
+	swc2	$3, 0xffff8001($a0)
+	swc2	$3, 0xf0000000($a0)
+	swc2	$3, 0xffffffff($a0)
+	swc2	$3, 0x12345678($a0)
 
-	cache	0, %lo(test)($3)
+	cache	0, %lo(test)($t5)
 /*
-	lwp	$2, %lo(test)($3)
-	swp	$2, %lo(test)($3)
+	lwp	$t4, %lo(test)($t5)
+	swp	$t4, %lo(test)($t5)
 */
-	ll	$2, %lo(test)($3)
-	sc	$2, %lo(test)($3)
-/*	lwl	$2, %lo(test)($3)
-	lwr	$2, %lo(test)($3)
-	swl	$2, %lo(test)($3)
-	swr	$2, %lo(test)($3)
-	lwm	$16, %lo(test)($3)
-	swm	$16, %lo(test)($3)
-*/	lwc2	$16, %lo(test)($3)
-	swc2	$16, %lo(test)($3)
-/*	lcache	$2, %lo(test)($3)
-	flush	$2, %lo(test)($3)
-	scache	$2, %lo(test)($3)
-	invalidate	$2, %lo(test)($3)
+	ll	$t4, %lo(test)($t5)
+	sc	$t4, %lo(test)($t5)
+/*	lwl	$t4, %lo(test)($t5)
+	lwr	$t4, %lo(test)($t5)
+	swl	$t4, %lo(test)($t5)
+	swr	$t4, %lo(test)($t5)
+	lwm	$s0, %lo(test)($t5)
+	swm	$s0, %lo(test)($t5)
+*/	lwc2	$16, %lo(test)($t5)
+	swc2	$16, %lo(test)($t5)
+/*	lcache	$t4, %lo(test)($t5)
+	flush	$t4, %lo(test)($t5)
+	scache	$t4, %lo(test)($t5)
+	invalidate	$t4, %lo(test)($t5)
 */
 	sdbbp	1023
 	wait	1023
@@ -3048,14 +3048,14 @@ test3:
 	.globl	fp_test
 fp_test:
 	/*
-	prefx	0, $0($0)
-	prefx	0, $0($2)
-	prefx	0, $0($31)
-	prefx	0, $2($31)
-	prefx	0, $31($31)
-	prefx	1, $31($31)
-	prefx	2, $31($31)
-	prefx	31, $31($31)
+	prefx	0, $zero($zero)
+	prefx	0, $zero($t4)
+	prefx	0, $zero($ra)
+	prefx	0, $t4($ra)
+	prefx	0, $ra($ra)
+	prefx	1, $ra($ra)
+	prefx	2, $ra($ra)
+	prefx	31, $ra($ra)
 	*/
 	abs.s	$f0, $f1
 	abs.s	$f30, $f31
@@ -3086,11 +3086,11 @@ fp_test:
 	add.ps	$f29, $f29, $f30
 	add.ps	$f29, $f30
 	
-	alnv.ps	$f0, $f1, $f2, $0
-	alnv.ps	$f0, $f1, $f2, $2
-	alnv.ps	$f0, $f1, $f2, $31
-	alnv.ps	$f29, $f30, $f31, $31
-	alnv.ps	$f29, $f29, $f31, $31
+	alnv.ps	$f0, $f1, $f2, $zero
+	alnv.ps	$f0, $f1, $f2, $t4
+	alnv.ps	$f0, $f1, $f2, $ra
+	alnv.ps	$f29, $f30, $f31, $ra
+	alnv.ps	$f29, $f29, $f31, $ra
 	
 	bc1f	fp_test
 	bc1f	$fcc0, fp_test
@@ -3384,202 +3384,202 @@ fp_test:
 	ceil.w.s	$f30, $f31
 	ceil.w.s	$f2, $f2
 
-	cfc1	$5, $0
-	cfc1	$5, $1
-	cfc1	$5, $2
-	cfc1	$5, $3
-	cfc1	$5, $4
-	cfc1	$5, $5
-	cfc1	$5, $6
-	cfc1	$5, $7
-	cfc1	$5, $8
-	cfc1	$5, $9
-	cfc1	$5, $10
-	cfc1	$5, $11
-	cfc1	$5, $12
-	cfc1	$5, $13
-	cfc1	$5, $14
-	cfc1	$5, $15
-	cfc1	$5, $16
-	cfc1	$5, $17
-	cfc1	$5, $18
-	cfc1	$5, $19
-	cfc1	$5, $20
-	cfc1	$5, $21
-	cfc1	$5, $22
-	cfc1	$5, $23
-	cfc1	$5, $24
-	cfc1	$5, $25
-	cfc1	$5, $26
-	cfc1	$5, $27
-	cfc1	$5, $28
-	cfc1	$5, $29
-	cfc1	$5, $30
-	cfc1	$5, $31
+	cfc1	$a1, $0
+	cfc1	$a1, $1
+	cfc1	$a1, $2
+	cfc1	$a1, $3
+	cfc1	$a1, $4
+	cfc1	$a1, $5
+	cfc1	$a1, $6
+	cfc1	$a1, $7
+	cfc1	$a1, $8
+	cfc1	$a1, $9
+	cfc1	$a1, $10
+	cfc1	$a1, $11
+	cfc1	$a1, $12
+	cfc1	$a1, $13
+	cfc1	$a1, $14
+	cfc1	$a1, $15
+	cfc1	$a1, $16
+	cfc1	$a1, $17
+	cfc1	$a1, $18
+	cfc1	$a1, $19
+	cfc1	$a1, $20
+	cfc1	$a1, $21
+	cfc1	$a1, $22
+	cfc1	$a1, $23
+	cfc1	$a1, $24
+	cfc1	$a1, $25
+	cfc1	$a1, $26
+	cfc1	$a1, $27
+	cfc1	$a1, $28
+	cfc1	$a1, $29
+	cfc1	$a1, $30
+	cfc1	$a1, $31
 
-	cfc1	$5, $f0
-	cfc1	$5, $f1
-	cfc1	$5, $f2
-	cfc1	$5, $f3
-	cfc1	$5, $f4
-	cfc1	$5, $f5
-	cfc1	$5, $f6
-	cfc1	$5, $f7
-	cfc1	$5, $f8
-	cfc1	$5, $f9
-	cfc1	$5, $f10
-	cfc1	$5, $f11
-	cfc1	$5, $f12
-	cfc1	$5, $f13
-	cfc1	$5, $f14
-	cfc1	$5, $f15
-	cfc1	$5, $f16
-	cfc1	$5, $f17
-	cfc1	$5, $f18
-	cfc1	$5, $f19
-	cfc1	$5, $f20
-	cfc1	$5, $f21
-	cfc1	$5, $f22
-	cfc1	$5, $f23
-	cfc1	$5, $f24
-	cfc1	$5, $f25
-	cfc1	$5, $f26
-	cfc1	$5, $f27
-	cfc1	$5, $f28
-	cfc1	$5, $f29
-	cfc1	$5, $f30
-	cfc1	$5, $f31
+	cfc1	$a1, $f0
+	cfc1	$a1, $f1
+	cfc1	$a1, $f2
+	cfc1	$a1, $f3
+	cfc1	$a1, $f4
+	cfc1	$a1, $f5
+	cfc1	$a1, $f6
+	cfc1	$a1, $f7
+	cfc1	$a1, $f8
+	cfc1	$a1, $f9
+	cfc1	$a1, $f10
+	cfc1	$a1, $f11
+	cfc1	$a1, $f12
+	cfc1	$a1, $f13
+	cfc1	$a1, $f14
+	cfc1	$a1, $f15
+	cfc1	$a1, $f16
+	cfc1	$a1, $f17
+	cfc1	$a1, $f18
+	cfc1	$a1, $f19
+	cfc1	$a1, $f20
+	cfc1	$a1, $f21
+	cfc1	$a1, $f22
+	cfc1	$a1, $f23
+	cfc1	$a1, $f24
+	cfc1	$a1, $f25
+	cfc1	$a1, $f26
+	cfc1	$a1, $f27
+	cfc1	$a1, $f28
+	cfc1	$a1, $f29
+	cfc1	$a1, $f30
+	cfc1	$a1, $f31
 
-	cfc2	$5, $0
-	cfc2	$5, $1
-	cfc2	$5, $2
-	cfc2	$5, $3
-	cfc2	$5, $4
-	cfc2	$5, $5
-	cfc2	$5, $6
-	cfc2	$5, $7
-	cfc2	$5, $8
-	cfc2	$5, $9
-	cfc2	$5, $10
-	cfc2	$5, $11
-	cfc2	$5, $12
-	cfc2	$5, $13
-	cfc2	$5, $14
-	cfc2	$5, $15
-	cfc2	$5, $16
-	cfc2	$5, $17
-	cfc2	$5, $18
-	cfc2	$5, $19
-	cfc2	$5, $20
-	cfc2	$5, $21
-	cfc2	$5, $22
-	cfc2	$5, $23
-	cfc2	$5, $24
-	cfc2	$5, $25
-	cfc2	$5, $26
-	cfc2	$5, $27
-	cfc2	$5, $28
-	cfc2	$5, $29
-	cfc2	$5, $30
-	cfc2	$5, $31
- 	ctc1	$5, $0
-	ctc1	$5, $1
-	ctc1	$5, $2
-	ctc1	$5, $3
-	ctc1	$5, $4
-	ctc1	$5, $5
-	ctc1	$5, $6
-	ctc1	$5, $7
-	ctc1	$5, $8
-	ctc1	$5, $9
-	ctc1	$5, $10
-	ctc1	$5, $11
-	ctc1	$5, $12
-	ctc1	$5, $13
-	ctc1	$5, $14
-	ctc1	$5, $15
-	ctc1	$5, $16
-	ctc1	$5, $17
-	ctc1	$5, $18
-	ctc1	$5, $19
-	ctc1	$5, $20
-	ctc1	$5, $21
-	ctc1	$5, $22
-	ctc1	$5, $23
-	ctc1	$5, $24
-	ctc1	$5, $25
-	ctc1	$5, $26
-	ctc1	$5, $27
-	ctc1	$5, $28
-	ctc1	$5, $29
-	ctc1	$5, $30
-	ctc1	$5, $31
+	cfc2	$a1, $0
+	cfc2	$a1, $1
+	cfc2	$a1, $2
+	cfc2	$a1, $3
+	cfc2	$a1, $4
+	cfc2	$a1, $5
+	cfc2	$a1, $6
+	cfc2	$a1, $7
+	cfc2	$a1, $8
+	cfc2	$a1, $9
+	cfc2	$a1, $10
+	cfc2	$a1, $11
+	cfc2	$a1, $12
+	cfc2	$a1, $13
+	cfc2	$a1, $14
+	cfc2	$a1, $15
+	cfc2	$a1, $16
+	cfc2	$a1, $17
+	cfc2	$a1, $18
+	cfc2	$a1, $19
+	cfc2	$a1, $20
+	cfc2	$a1, $21
+	cfc2	$a1, $22
+	cfc2	$a1, $23
+	cfc2	$a1, $24
+	cfc2	$a1, $25
+	cfc2	$a1, $26
+	cfc2	$a1, $27
+	cfc2	$a1, $28
+	cfc2	$a1, $29
+	cfc2	$a1, $30
+	cfc2	$a1, $31
+ 	ctc1	$a1, $0
+	ctc1	$a1, $1
+	ctc1	$a1, $2
+	ctc1	$a1, $3
+	ctc1	$a1, $4
+	ctc1	$a1, $5
+	ctc1	$a1, $6
+	ctc1	$a1, $7
+	ctc1	$a1, $8
+	ctc1	$a1, $9
+	ctc1	$a1, $10
+	ctc1	$a1, $11
+	ctc1	$a1, $12
+	ctc1	$a1, $13
+	ctc1	$a1, $14
+	ctc1	$a1, $15
+	ctc1	$a1, $16
+	ctc1	$a1, $17
+	ctc1	$a1, $18
+	ctc1	$a1, $19
+	ctc1	$a1, $20
+	ctc1	$a1, $21
+	ctc1	$a1, $22
+	ctc1	$a1, $23
+	ctc1	$a1, $24
+	ctc1	$a1, $25
+	ctc1	$a1, $26
+	ctc1	$a1, $27
+	ctc1	$a1, $28
+	ctc1	$a1, $29
+	ctc1	$a1, $30
+	ctc1	$a1, $31
 
-	ctc1	$5, $f0
-	ctc1	$5, $f1
-	ctc1	$5, $f2
-	ctc1	$5, $f3
-	ctc1	$5, $f4
-	ctc1	$5, $f5
-	ctc1	$5, $f6
-	ctc1	$5, $f7
-	ctc1	$5, $f8
-	ctc1	$5, $f9
-	ctc1	$5, $f10
-	ctc1	$5, $f11
-	ctc1	$5, $f12
-	ctc1	$5, $f13
-	ctc1	$5, $f14
-	ctc1	$5, $f15
-	ctc1	$5, $f16
-	ctc1	$5, $f17
-	ctc1	$5, $f18
-	ctc1	$5, $f19
-	ctc1	$5, $f20
-	ctc1	$5, $f21
-	ctc1	$5, $f22
-	ctc1	$5, $f23
-	ctc1	$5, $f24
-	ctc1	$5, $f25
-	ctc1	$5, $f26
-	ctc1	$5, $f27
-	ctc1	$5, $f28
-	ctc1	$5, $f29
-	ctc1	$5, $f30
-	ctc1	$5, $f31
+	ctc1	$a1, $f0
+	ctc1	$a1, $f1
+	ctc1	$a1, $f2
+	ctc1	$a1, $f3
+	ctc1	$a1, $f4
+	ctc1	$a1, $f5
+	ctc1	$a1, $f6
+	ctc1	$a1, $f7
+	ctc1	$a1, $f8
+	ctc1	$a1, $f9
+	ctc1	$a1, $f10
+	ctc1	$a1, $f11
+	ctc1	$a1, $f12
+	ctc1	$a1, $f13
+	ctc1	$a1, $f14
+	ctc1	$a1, $f15
+	ctc1	$a1, $f16
+	ctc1	$a1, $f17
+	ctc1	$a1, $f18
+	ctc1	$a1, $f19
+	ctc1	$a1, $f20
+	ctc1	$a1, $f21
+	ctc1	$a1, $f22
+	ctc1	$a1, $f23
+	ctc1	$a1, $f24
+	ctc1	$a1, $f25
+	ctc1	$a1, $f26
+	ctc1	$a1, $f27
+	ctc1	$a1, $f28
+	ctc1	$a1, $f29
+	ctc1	$a1, $f30
+	ctc1	$a1, $f31
 
-	ctc2	$5, $0
-	ctc2	$5, $1
-	ctc2	$5, $2
-	ctc2	$5, $3
-	ctc2	$5, $4
-	ctc2	$5, $5
-	ctc2	$5, $6
-	ctc2	$5, $7
-	ctc2	$5, $8
-	ctc2	$5, $9
-	ctc2	$5, $10
-	ctc2	$5, $11
-	ctc2	$5, $12
-	ctc2	$5, $13
-	ctc2	$5, $14
-	ctc2	$5, $15
-	ctc2	$5, $16
-	ctc2	$5, $17
-	ctc2	$5, $18
-	ctc2	$5, $19
-	ctc2	$5, $20
-	ctc2	$5, $21
-	ctc2	$5, $22
-	ctc2	$5, $23
-	ctc2	$5, $24
-	ctc2	$5, $25
-	ctc2	$5, $26
-	ctc2	$5, $27
-	ctc2	$5, $28
-	ctc2	$5, $29
-	ctc2	$5, $30
-	ctc2	$5, $31
+	ctc2	$a1, $0
+	ctc2	$a1, $1
+	ctc2	$a1, $2
+	ctc2	$a1, $3
+	ctc2	$a1, $4
+	ctc2	$a1, $5
+	ctc2	$a1, $6
+	ctc2	$a1, $7
+	ctc2	$a1, $8
+	ctc2	$a1, $9
+	ctc2	$a1, $10
+	ctc2	$a1, $11
+	ctc2	$a1, $12
+	ctc2	$a1, $13
+	ctc2	$a1, $14
+	ctc2	$a1, $15
+	ctc2	$a1, $16
+	ctc2	$a1, $17
+	ctc2	$a1, $18
+	ctc2	$a1, $19
+	ctc2	$a1, $20
+	ctc2	$a1, $21
+	ctc2	$a1, $22
+	ctc2	$a1, $23
+	ctc2	$a1, $24
+	ctc2	$a1, $25
+	ctc2	$a1, $26
+	ctc2	$a1, $27
+	ctc2	$a1, $28
+	ctc2	$a1, $29
+	ctc2	$a1, $30
+	ctc2	$a1, $31
 
 	cvt.d.l	$f0, $f1
 	cvt.d.l	$f30, $f31
@@ -3661,125 +3661,125 @@ fp_test:
 	floor.w.s	$f2, $f2
 
 	ldc1	$3, 0
-	ldc1	$3, ($0)
+	ldc1	$3, ($zero)
 	ldc1	$3, 4
-	ldc1	$3, 4($0)
-	ldc1	$3, ($4)
-	ldc1	$3, 0($4)
-	ldc1	$3, 32767($4)
-	ldc1	$3, -32768($4)
-	ldc1	$3, 65535($4)
-	ldc1	$3, 0xffff0000($4)
-	ldc1	$3, 0xffff8000($4)
-	ldc1	$3, 0xffff0001($4)
-	ldc1	$3, 0xffff8001($4)
-	ldc1	$3, 0xf0000000($4)
-	ldc1	$3, 0xffffffff($4)
-	ldc1	$3, 0x12345678($4)
+	ldc1	$3, 4($zero)
+	ldc1	$3, ($a0)
+	ldc1	$3, 0($a0)
+	ldc1	$3, 32767($a0)
+	ldc1	$3, -32768($a0)
+	ldc1	$3, 65535($a0)
+	ldc1	$3, 0xffff0000($a0)
+	ldc1	$3, 0xffff8000($a0)
+	ldc1	$3, 0xffff0001($a0)
+	ldc1	$3, 0xffff8001($a0)
+	ldc1	$3, 0xf0000000($a0)
+	ldc1	$3, 0xffffffff($a0)
+	ldc1	$3, 0x12345678($a0)
 
 	ldc1	$f3, 0
-	ldc1	$f3, ($0)
+	ldc1	$f3, ($zero)
 	ldc1	$f3, 4
-	ldc1	$f3, 4($0)
-	ldc1	$f3, ($4)
-	ldc1	$f3, 0($4)
-	ldc1	$f3, 32767($4)
-	ldc1	$f3, -32768($4)
-	ldc1	$f3, 65535($4)
-	ldc1	$f3, 0xffff0000($4)
-	ldc1	$f3, 0xffff8000($4)
-	ldc1	$f3, 0xffff0001($4)
-	ldc1	$f3, 0xffff8001($4)
-	ldc1	$f3, 0xf0000000($4)
-	ldc1	$f3, 0xffffffff($4)
-	ldc1	$f3, 0x12345678($4)
+	ldc1	$f3, 4($zero)
+	ldc1	$f3, ($a0)
+	ldc1	$f3, 0($a0)
+	ldc1	$f3, 32767($a0)
+	ldc1	$f3, -32768($a0)
+	ldc1	$f3, 65535($a0)
+	ldc1	$f3, 0xffff0000($a0)
+	ldc1	$f3, 0xffff8000($a0)
+	ldc1	$f3, 0xffff0001($a0)
+	ldc1	$f3, 0xffff8001($a0)
+	ldc1	$f3, 0xf0000000($a0)
+	ldc1	$f3, 0xffffffff($a0)
+	ldc1	$f3, 0x12345678($a0)
 
 	l.d	$f3, 0
-	l.d	$f3, ($0)
+	l.d	$f3, ($zero)
 	l.d	$f3, 4
-	l.d	$f3, 4($0)
-	l.d	$f3, ($4)
-	l.d	$f3, 0($4)
-	l.d	$f3, 32767($4)
-	l.d	$f3, -32768($4)
+	l.d	$f3, 4($zero)
+	l.d	$f3, ($a0)
+	l.d	$f3, 0($a0)
+	l.d	$f3, 32767($a0)
+	l.d	$f3, -32768($a0)
 
-	ldxc1	$f0, $0($0)
-	ldxc1	$f0, $0($2)
-	ldxc1	$f0, $0($31)
-	ldxc1	$f0, $2($31)
-	ldxc1	$f0, $31($31)
-	ldxc1	$f1, $31($31)
-	ldxc1	$f2, $31($31)
-	ldxc1	$f31, $31($31)
+	ldxc1	$f0, $zero($zero)
+	ldxc1	$f0, $zero($t4)
+	ldxc1	$f0, $zero($ra)
+	ldxc1	$f0, $t4($ra)
+	ldxc1	$f0, $ra($ra)
+	ldxc1	$f1, $ra($ra)
+	ldxc1	$f2, $ra($ra)
+	ldxc1	$f31, $ra($ra)
 /*
-	luxc1	$f0, $0($0)
-	luxc1	$f0, $0($2)
-	luxc1	$f0, $0($31)
-	luxc1	$f0, $2($31)
-	luxc1	$f0, $31($31)
-	luxc1	$f1, $31($31)
-	luxc1	$f2, $31($31)
-	luxc1	$f31, $31($31)
+	luxc1	$f0, $zero($zero)
+	luxc1	$f0, $zero($t4)
+	luxc1	$f0, $zero($ra)
+	luxc1	$f0, $t4($ra)
+	luxc1	$f0, $ra($ra)
+	luxc1	$f1, $ra($ra)
+	luxc1	$f2, $ra($ra)
+	luxc1	$f31, $ra($ra)
 	*/
 
 	lwc1	$3, 0
-	lwc1	$3, ($0)
+	lwc1	$3, ($zero)
 	lwc1	$3, 4
-	lwc1	$3, 4($0)
-	lwc1	$3, ($4)
-	lwc1	$3, 0($4)
-	lwc1	$3, 32767($4)
-	lwc1	$3, -32768($4)
-	lwc1	$3, 65535($4)
-	lwc1	$3, 0xffff0000($4)
-	lwc1	$3, 0xffff8000($4)
-	lwc1	$3, 0xffff0001($4)
-	lwc1	$3, 0xffff8001($4)
-	lwc1	$3, 0xf0000000($4)
-	lwc1	$3, 0xffffffff($4)
-	lwc1	$3, 0x12345678($4)
+	lwc1	$3, 4($zero)
+	lwc1	$3, ($a0)
+	lwc1	$3, 0($a0)
+	lwc1	$3, 32767($a0)
+	lwc1	$3, -32768($a0)
+	lwc1	$3, 65535($a0)
+	lwc1	$3, 0xffff0000($a0)
+	lwc1	$3, 0xffff8000($a0)
+	lwc1	$3, 0xffff0001($a0)
+	lwc1	$3, 0xffff8001($a0)
+	lwc1	$3, 0xf0000000($a0)
+	lwc1	$3, 0xffffffff($a0)
+	lwc1	$3, 0x12345678($a0)
 	lwc1	$f3, 0
-	lwc1	$f3, ($0)
+	lwc1	$f3, ($zero)
 	lwc1	$f3, 4
-	lwc1	$f3, 4($0)
-	lwc1	$f3, ($4)
-	lwc1	$f3, 0($4)
-	lwc1	$f3, 32767($4)
-	lwc1	$f3, -32768($4)
-	lwc1	$f3, 65535($4)
-	lwc1	$f3, 0xffff0000($4)
-	lwc1	$f3, 0xffff8000($4)
-	lwc1	$f3, 0xffff0001($4)
-	lwc1	$f3, 0xffff8001($4)
-	lwc1	$f3, 0xf0000000($4)
-	lwc1	$f3, 0xffffffff($4)
-	lwc1	$f3, 0x12345678($4)
+	lwc1	$f3, 4($zero)
+	lwc1	$f3, ($a0)
+	lwc1	$f3, 0($a0)
+	lwc1	$f3, 32767($a0)
+	lwc1	$f3, -32768($a0)
+	lwc1	$f3, 65535($a0)
+	lwc1	$f3, 0xffff0000($a0)
+	lwc1	$f3, 0xffff8000($a0)
+	lwc1	$f3, 0xffff0001($a0)
+	lwc1	$f3, 0xffff8001($a0)
+	lwc1	$f3, 0xf0000000($a0)
+	lwc1	$f3, 0xffffffff($a0)
+	lwc1	$f3, 0x12345678($a0)
 
 	l.s	$f3, 0
-	l.s	$f3, ($0)
+	l.s	$f3, ($zero)
 	l.s	$f3, 4
-	l.s	$f3, 4($0)
-	l.s	$f3, ($4)
-	l.s	$f3, 0($4)
-	l.s	$f3, 32767($4)
-	l.s	$f3, -32768($4)
-	l.s	$f3, 65535($4)
-	l.s	$f3, 0xffff0000($4)
-	l.s	$f3, 0xffff8000($4)
-	l.s	$f3, 0xffff0001($4)
-	l.s	$f3, 0xffff8001($4)
-	l.s	$f3, 0xf0000000($4)
-	l.s	$f3, 0xffffffff($4)
-	l.s	$f3, 0x12345678($4)
+	l.s	$f3, 4($zero)
+	l.s	$f3, ($a0)
+	l.s	$f3, 0($a0)
+	l.s	$f3, 32767($a0)
+	l.s	$f3, -32768($a0)
+	l.s	$f3, 65535($a0)
+	l.s	$f3, 0xffff0000($a0)
+	l.s	$f3, 0xffff8000($a0)
+	l.s	$f3, 0xffff0001($a0)
+	l.s	$f3, 0xffff8001($a0)
+	l.s	$f3, 0xf0000000($a0)
+	l.s	$f3, 0xffffffff($a0)
+	l.s	$f3, 0x12345678($a0)
 
-	lwxc1	$f0, $0($0)
-	lwxc1	$f0, $0($2)
-	lwxc1	$f0, $0($31)
-	lwxc1	$f0, $2($31)
-	lwxc1	$f0, $31($31)
-	lwxc1	$f1, $31($31)
-	lwxc1	$f2, $31($31)
-	lwxc1	$f31, $31($31)
+	lwxc1	$f0, $zero($zero)
+	lwxc1	$f0, $zero($t4)
+	lwxc1	$f0, $zero($ra)
+	lwxc1	$f0, $t4($ra)
+	lwxc1	$f0, $ra($ra)
+	lwxc1	$f1, $ra($ra)
+	lwxc1	$f2, $ra($ra)
+	lwxc1	$f31, $ra($ra)
 /*
 
 	madd.d	$f0, $f1, $f2, $f3
@@ -3789,137 +3789,137 @@ fp_test:
 	madd.ps	$f0, $f1, $f2, $f3
 	madd.ps	$f28, $f29, $f30, $f31
 */
-	mfc1	$5, $0
-	mfc1	$5, $1
-	mfc1	$5, $2
-	mfc1	$5, $3
-	mfc1	$5, $4
-	mfc1	$5, $5
-	mfc1	$5, $6
-	mfc1	$5, $7
-	mfc1	$5, $8
-	mfc1	$5, $9
-	mfc1	$5, $10
-	mfc1	$5, $11
-	mfc1	$5, $12
-	mfc1	$5, $13
-	mfc1	$5, $14
-	mfc1	$5, $15
-	mfc1	$5, $16
-	mfc1	$5, $17
-	mfc1	$5, $18
-	mfc1	$5, $19
-	mfc1	$5, $20
-	mfc1	$5, $21
-	mfc1	$5, $22
-	mfc1	$5, $23
-	mfc1	$5, $24
-	mfc1	$5, $25
-	mfc1	$5, $26
-	mfc1	$5, $27
-	mfc1	$5, $28
-	mfc1	$5, $29
-	mfc1	$5, $30
-	mfc1	$5, $31
+	mfc1	$a1, $0
+	mfc1	$a1, $1
+	mfc1	$a1, $2
+	mfc1	$a1, $3
+	mfc1	$a1, $4
+	mfc1	$a1, $5
+	mfc1	$a1, $6
+	mfc1	$a1, $7
+	mfc1	$a1, $8
+	mfc1	$a1, $9
+	mfc1	$a1, $10
+	mfc1	$a1, $11
+	mfc1	$a1, $12
+	mfc1	$a1, $13
+	mfc1	$a1, $14
+	mfc1	$a1, $15
+	mfc1	$a1, $16
+	mfc1	$a1, $17
+	mfc1	$a1, $18
+	mfc1	$a1, $19
+	mfc1	$a1, $20
+	mfc1	$a1, $21
+	mfc1	$a1, $22
+	mfc1	$a1, $23
+	mfc1	$a1, $24
+	mfc1	$a1, $25
+	mfc1	$a1, $26
+	mfc1	$a1, $27
+	mfc1	$a1, $28
+	mfc1	$a1, $29
+	mfc1	$a1, $30
+	mfc1	$a1, $31
 
-	mfc1	$5, $f0
-	mfc1	$5, $f1
-	mfc1	$5, $f2
-	mfc1	$5, $f3
-	mfc1	$5, $f4
-	mfc1	$5, $f5
-	mfc1	$5, $f6
-	mfc1	$5, $f7
-	mfc1	$5, $f8
-	mfc1	$5, $f9
-	mfc1	$5, $f10
-	mfc1	$5, $f11
-	mfc1	$5, $f12
-	mfc1	$5, $f13
-	mfc1	$5, $f14
-	mfc1	$5, $f15
-	mfc1	$5, $f16
-	mfc1	$5, $f17
-	mfc1	$5, $f18
-	mfc1	$5, $f19
-	mfc1	$5, $f20
-	mfc1	$5, $f21
-	mfc1	$5, $f22
-	mfc1	$5, $f23
-	mfc1	$5, $f24
-	mfc1	$5, $f25
-	mfc1	$5, $f26
-	mfc1	$5, $f27
-	mfc1	$5, $f28
-	mfc1	$5, $f29
-	mfc1	$5, $f30
-	mfc1	$5, $f31
+	mfc1	$a1, $f0
+	mfc1	$a1, $f1
+	mfc1	$a1, $f2
+	mfc1	$a1, $f3
+	mfc1	$a1, $f4
+	mfc1	$a1, $f5
+	mfc1	$a1, $f6
+	mfc1	$a1, $f7
+	mfc1	$a1, $f8
+	mfc1	$a1, $f9
+	mfc1	$a1, $f10
+	mfc1	$a1, $f11
+	mfc1	$a1, $f12
+	mfc1	$a1, $f13
+	mfc1	$a1, $f14
+	mfc1	$a1, $f15
+	mfc1	$a1, $f16
+	mfc1	$a1, $f17
+	mfc1	$a1, $f18
+	mfc1	$a1, $f19
+	mfc1	$a1, $f20
+	mfc1	$a1, $f21
+	mfc1	$a1, $f22
+	mfc1	$a1, $f23
+	mfc1	$a1, $f24
+	mfc1	$a1, $f25
+	mfc1	$a1, $f26
+	mfc1	$a1, $f27
+	mfc1	$a1, $f28
+	mfc1	$a1, $f29
+	mfc1	$a1, $f30
+	mfc1	$a1, $f31
 
-	mfhc1	$5, $0
-	mfhc1	$5, $1
-	mfhc1	$5, $2
-	mfhc1	$5, $3
-	mfhc1	$5, $4
-	mfhc1	$5, $5
-	mfhc1	$5, $6
-	mfhc1	$5, $7
-	mfhc1	$5, $8
-	mfhc1	$5, $9
-	mfhc1	$5, $10
-	mfhc1	$5, $11
-	mfhc1	$5, $12
-	mfhc1	$5, $13
-	mfhc1	$5, $14
-	mfhc1	$5, $15
-	mfhc1	$5, $16
-	mfhc1	$5, $17
-	mfhc1	$5, $18
-	mfhc1	$5, $19
-	mfhc1	$5, $20
-	mfhc1	$5, $21
-	mfhc1	$5, $22
-	mfhc1	$5, $23
-	mfhc1	$5, $24
-	mfhc1	$5, $25
-	mfhc1	$5, $26
-	mfhc1	$5, $27
-	mfhc1	$5, $28
-	mfhc1	$5, $29
-	mfhc1	$5, $30
-	mfhc1	$5, $31
+	mfhc1	$a1, $0
+	mfhc1	$a1, $1
+	mfhc1	$a1, $2
+	mfhc1	$a1, $3
+	mfhc1	$a1, $4
+	mfhc1	$a1, $5
+	mfhc1	$a1, $6
+	mfhc1	$a1, $7
+	mfhc1	$a1, $8
+	mfhc1	$a1, $9
+	mfhc1	$a1, $10
+	mfhc1	$a1, $11
+	mfhc1	$a1, $12
+	mfhc1	$a1, $13
+	mfhc1	$a1, $14
+	mfhc1	$a1, $15
+	mfhc1	$a1, $16
+	mfhc1	$a1, $17
+	mfhc1	$a1, $18
+	mfhc1	$a1, $19
+	mfhc1	$a1, $20
+	mfhc1	$a1, $21
+	mfhc1	$a1, $22
+	mfhc1	$a1, $23
+	mfhc1	$a1, $24
+	mfhc1	$a1, $25
+	mfhc1	$a1, $26
+	mfhc1	$a1, $27
+	mfhc1	$a1, $28
+	mfhc1	$a1, $29
+	mfhc1	$a1, $30
+	mfhc1	$a1, $31
 
-	mfhc1	$5, $f0
-	mfhc1	$5, $f1
-	mfhc1	$5, $f2
-	mfhc1	$5, $f3
-	mfhc1	$5, $f4
-	mfhc1	$5, $f5
-	mfhc1	$5, $f6
-	mfhc1	$5, $f7
-	mfhc1	$5, $f8
-	mfhc1	$5, $f9
-	mfhc1	$5, $f10
-	mfhc1	$5, $f11
-	mfhc1	$5, $f12
-	mfhc1	$5, $f13
-	mfhc1	$5, $f14
-	mfhc1	$5, $f15
-	mfhc1	$5, $f16
-	mfhc1	$5, $f17
-	mfhc1	$5, $f18
-	mfhc1	$5, $f19
-	mfhc1	$5, $f20
-	mfhc1	$5, $f21
-	mfhc1	$5, $f22
-	mfhc1	$5, $f23
-	mfhc1	$5, $f24
-	mfhc1	$5, $f25
-	mfhc1	$5, $f26
-	mfhc1	$5, $f27
-	mfhc1	$5, $f28
-	mfhc1	$5, $f29
-	mfhc1	$5, $f30
-	mfhc1	$5, $f31
+	mfhc1	$a1, $f0
+	mfhc1	$a1, $f1
+	mfhc1	$a1, $f2
+	mfhc1	$a1, $f3
+	mfhc1	$a1, $f4
+	mfhc1	$a1, $f5
+	mfhc1	$a1, $f6
+	mfhc1	$a1, $f7
+	mfhc1	$a1, $f8
+	mfhc1	$a1, $f9
+	mfhc1	$a1, $f10
+	mfhc1	$a1, $f11
+	mfhc1	$a1, $f12
+	mfhc1	$a1, $f13
+	mfhc1	$a1, $f14
+	mfhc1	$a1, $f15
+	mfhc1	$a1, $f16
+	mfhc1	$a1, $f17
+	mfhc1	$a1, $f18
+	mfhc1	$a1, $f19
+	mfhc1	$a1, $f20
+	mfhc1	$a1, $f21
+	mfhc1	$a1, $f22
+	mfhc1	$a1, $f23
+	mfhc1	$a1, $f24
+	mfhc1	$a1, $f25
+	mfhc1	$a1, $f26
+	mfhc1	$a1, $f27
+	mfhc1	$a1, $f28
+	mfhc1	$a1, $f29
+	mfhc1	$a1, $f30
+	mfhc1	$a1, $f31
 
 	mov.d	$f0, $f1
 	mov.d	$f30, $f31
@@ -3956,12 +3956,12 @@ fp_test:
 	movf.ps	$f2, $f3, $fcc6
 	movf.ps	$f30, $f31, $fcc6
 
-	movn.d	$f2, $f3, $0
-	movn.d	$f2, $f3, $31
-	movn.s	$f2, $f3, $0
-	movn.s	$f2, $f3, $31
-	movn.ps	$f2, $f3, $0
-	movn.ps	$f2, $f3, $31
+	movn.d	$f2, $f3, $zero
+	movn.d	$f2, $f3, $ra
+	movn.s	$f2, $f3, $zero
+	movn.s	$f2, $f3, $ra
+	movn.ps	$f2, $f3, $zero
+	movn.ps	$f2, $f3, $ra
 
 	movt.ps	$f2, $f3, $fcc0
 	movt.ps	$f2, $f3, $fcc2
@@ -3970,12 +3970,12 @@ fp_test:
 	movt.ps	$f2, $f3, $fcc6
 	movt.ps	$f30, $f31, $fcc6
 
-	movz.d	$f2, $f3, $0
-	movz.d	$f2, $f3, $31
-	movz.s	$f2, $f3, $0
-	movz.s	$f2, $f3, $31
-	movz.ps	$f2, $f3, $0
-	movz.ps	$f2, $f3, $31
+	movz.d	$f2, $f3, $zero
+	movz.d	$f2, $f3, $ra
+	movz.s	$f2, $f3, $zero
+	movz.s	$f2, $f3, $ra
+	movz.ps	$f2, $f3, $zero
+	movz.ps	$f2, $f3, $ra
 
 	msub.d	$f0, $f1, $f2, $f3
 	msub.d	$f28, $f29, $f30, $f31
@@ -3984,137 +3984,137 @@ fp_test:
 	msub.ps	$f0, $f1, $f2, $f3
 	msub.ps	$f28, $f29, $f30, $f31
 */
-	mtc1	$5, $0
-	mtc1	$5, $1
-	mtc1	$5, $2
-	mtc1	$5, $3
-	mtc1	$5, $4
-	mtc1	$5, $5
-	mtc1	$5, $6
-	mtc1	$5, $7
-	mtc1	$5, $8
-	mtc1	$5, $9
-	mtc1	$5, $10
-	mtc1	$5, $11
-	mtc1	$5, $12
-	mtc1	$5, $13
-	mtc1	$5, $14
-	mtc1	$5, $15
-	mtc1	$5, $16
-	mtc1	$5, $17
-	mtc1	$5, $18
-	mtc1	$5, $19
-	mtc1	$5, $20
-	mtc1	$5, $21
-	mtc1	$5, $22
-	mtc1	$5, $23
-	mtc1	$5, $24
-	mtc1	$5, $25
-	mtc1	$5, $26
-	mtc1	$5, $27
-	mtc1	$5, $28
-	mtc1	$5, $29
-	mtc1	$5, $30
-	mtc1	$5, $31
+	mtc1	$a1, $0
+	mtc1	$a1, $1
+	mtc1	$a1, $2
+	mtc1	$a1, $3
+	mtc1	$a1, $4
+	mtc1	$a1, $5
+	mtc1	$a1, $6
+	mtc1	$a1, $7
+	mtc1	$a1, $8
+	mtc1	$a1, $9
+	mtc1	$a1, $10
+	mtc1	$a1, $11
+	mtc1	$a1, $12
+	mtc1	$a1, $13
+	mtc1	$a1, $14
+	mtc1	$a1, $15
+	mtc1	$a1, $16
+	mtc1	$a1, $17
+	mtc1	$a1, $18
+	mtc1	$a1, $19
+	mtc1	$a1, $20
+	mtc1	$a1, $21
+	mtc1	$a1, $22
+	mtc1	$a1, $23
+	mtc1	$a1, $24
+	mtc1	$a1, $25
+	mtc1	$a1, $26
+	mtc1	$a1, $27
+	mtc1	$a1, $28
+	mtc1	$a1, $29
+	mtc1	$a1, $30
+	mtc1	$a1, $31
 
-	mtc1	$5, $f0
-	mtc1	$5, $f1
-	mtc1	$5, $f2
-	mtc1	$5, $f3
-	mtc1	$5, $f4
-	mtc1	$5, $f5
-	mtc1	$5, $f6
-	mtc1	$5, $f7
-	mtc1	$5, $f8
-	mtc1	$5, $f9
-	mtc1	$5, $f10
-	mtc1	$5, $f11
-	mtc1	$5, $f12
-	mtc1	$5, $f13
-	mtc1	$5, $f14
-	mtc1	$5, $f15
-	mtc1	$5, $f16
-	mtc1	$5, $f17
-	mtc1	$5, $f18
-	mtc1	$5, $f19
-	mtc1	$5, $f20
-	mtc1	$5, $f21
-	mtc1	$5, $f22
-	mtc1	$5, $f23
-	mtc1	$5, $f24
-	mtc1	$5, $f25
-	mtc1	$5, $f26
-	mtc1	$5, $f27
-	mtc1	$5, $f28
-	mtc1	$5, $f29
-	mtc1	$5, $f30
-	mtc1	$5, $f31
+	mtc1	$a1, $f0
+	mtc1	$a1, $f1
+	mtc1	$a1, $f2
+	mtc1	$a1, $f3
+	mtc1	$a1, $f4
+	mtc1	$a1, $f5
+	mtc1	$a1, $f6
+	mtc1	$a1, $f7
+	mtc1	$a1, $f8
+	mtc1	$a1, $f9
+	mtc1	$a1, $f10
+	mtc1	$a1, $f11
+	mtc1	$a1, $f12
+	mtc1	$a1, $f13
+	mtc1	$a1, $f14
+	mtc1	$a1, $f15
+	mtc1	$a1, $f16
+	mtc1	$a1, $f17
+	mtc1	$a1, $f18
+	mtc1	$a1, $f19
+	mtc1	$a1, $f20
+	mtc1	$a1, $f21
+	mtc1	$a1, $f22
+	mtc1	$a1, $f23
+	mtc1	$a1, $f24
+	mtc1	$a1, $f25
+	mtc1	$a1, $f26
+	mtc1	$a1, $f27
+	mtc1	$a1, $f28
+	mtc1	$a1, $f29
+	mtc1	$a1, $f30
+	mtc1	$a1, $f31
 
-	mthc1	$5, $0
-	mthc1	$5, $1
-	mthc1	$5, $2
-	mthc1	$5, $3
-	mthc1	$5, $4
-	mthc1	$5, $5
-	mthc1	$5, $6
-	mthc1	$5, $7
-	mthc1	$5, $8
-	mthc1	$5, $9
-	mthc1	$5, $10
-	mthc1	$5, $11
-	mthc1	$5, $12
-	mthc1	$5, $13
-	mthc1	$5, $14
-	mthc1	$5, $15
-	mthc1	$5, $16
-	mthc1	$5, $17
-	mthc1	$5, $18
-	mthc1	$5, $19
-	mthc1	$5, $20
-	mthc1	$5, $21
-	mthc1	$5, $22
-	mthc1	$5, $23
-	mthc1	$5, $24
-	mthc1	$5, $25
-	mthc1	$5, $26
-	mthc1	$5, $27
-	mthc1	$5, $28
-	mthc1	$5, $29
-	mthc1	$5, $30
-	mthc1	$5, $31
+	mthc1	$a1, $0
+	mthc1	$a1, $1
+	mthc1	$a1, $2
+	mthc1	$a1, $3
+	mthc1	$a1, $4
+	mthc1	$a1, $5
+	mthc1	$a1, $6
+	mthc1	$a1, $7
+	mthc1	$a1, $8
+	mthc1	$a1, $9
+	mthc1	$a1, $10
+	mthc1	$a1, $11
+	mthc1	$a1, $12
+	mthc1	$a1, $13
+	mthc1	$a1, $14
+	mthc1	$a1, $15
+	mthc1	$a1, $16
+	mthc1	$a1, $17
+	mthc1	$a1, $18
+	mthc1	$a1, $19
+	mthc1	$a1, $20
+	mthc1	$a1, $21
+	mthc1	$a1, $22
+	mthc1	$a1, $23
+	mthc1	$a1, $24
+	mthc1	$a1, $25
+	mthc1	$a1, $26
+	mthc1	$a1, $27
+	mthc1	$a1, $28
+	mthc1	$a1, $29
+	mthc1	$a1, $30
+	mthc1	$a1, $31
 
-	mthc1	$5, $f0
-	mthc1	$5, $f1
-	mthc1	$5, $f2
-	mthc1	$5, $f3
-	mthc1	$5, $f4
-	mthc1	$5, $f5
-	mthc1	$5, $f6
-	mthc1	$5, $f7
-	mthc1	$5, $f8
-	mthc1	$5, $f9
-	mthc1	$5, $f10
-	mthc1	$5, $f11
-	mthc1	$5, $f12
-	mthc1	$5, $f13
-	mthc1	$5, $f14
-	mthc1	$5, $f15
-	mthc1	$5, $f16
-	mthc1	$5, $f17
-	mthc1	$5, $f18
-	mthc1	$5, $f19
-	mthc1	$5, $f20
-	mthc1	$5, $f21
-	mthc1	$5, $f22
-	mthc1	$5, $f23
-	mthc1	$5, $f24
-	mthc1	$5, $f25
-	mthc1	$5, $f26
-	mthc1	$5, $f27
-	mthc1	$5, $f28
-	mthc1	$5, $f29
-	mthc1	$5, $f30
-	mthc1	$5, $f31
+	mthc1	$a1, $f0
+	mthc1	$a1, $f1
+	mthc1	$a1, $f2
+	mthc1	$a1, $f3
+	mthc1	$a1, $f4
+	mthc1	$a1, $f5
+	mthc1	$a1, $f6
+	mthc1	$a1, $f7
+	mthc1	$a1, $f8
+	mthc1	$a1, $f9
+	mthc1	$a1, $f10
+	mthc1	$a1, $f11
+	mthc1	$a1, $f12
+	mthc1	$a1, $f13
+	mthc1	$a1, $f14
+	mthc1	$a1, $f15
+	mthc1	$a1, $f16
+	mthc1	$a1, $f17
+	mthc1	$a1, $f18
+	mthc1	$a1, $f19
+	mthc1	$a1, $f20
+	mthc1	$a1, $f21
+	mthc1	$a1, $f22
+	mthc1	$a1, $f23
+	mthc1	$a1, $f24
+	mthc1	$a1, $f25
+	mthc1	$a1, $f26
+	mthc1	$a1, $f27
+	mthc1	$a1, $f28
+	mthc1	$a1, $f29
+	mthc1	$a1, $f30
+	mthc1	$a1, $f31
 
 	mul.s	$f0, $f1, $f2
 	mul.s	$f29, $f30, $f31
@@ -4204,56 +4204,56 @@ fp_test:
 	rsqrt.d	$f2, $f2
 
 	sdc1	$3, 0
-	sdc1	$3, ($0)
+	sdc1	$3, ($zero)
 	sdc1	$3, 4
-	sdc1	$3, 4($0)
-	sdc1	$3, ($4)
-	sdc1	$3, 0($4)
-	sdc1	$3, 32767($4)
-	sdc1	$3, -32768($4)
-	sdc1	$3, 65535($4)
-	sdc1	$3, 0xffff0000($4)
-	sdc1	$3, 0xffff8000($4)
-	sdc1	$3, 0xffff0001($4)
-	sdc1	$3, 0xffff8001($4)
-	sdc1	$3, 0xf0000000($4)
-	sdc1	$3, 0xffffffff($4)
-	sdc1	$3, 0x12345678($4)
+	sdc1	$3, 4($zero)
+	sdc1	$3, ($a0)
+	sdc1	$3, 0($a0)
+	sdc1	$3, 32767($a0)
+	sdc1	$3, -32768($a0)
+	sdc1	$3, 65535($a0)
+	sdc1	$3, 0xffff0000($a0)
+	sdc1	$3, 0xffff8000($a0)
+	sdc1	$3, 0xffff0001($a0)
+	sdc1	$3, 0xffff8001($a0)
+	sdc1	$3, 0xf0000000($a0)
+	sdc1	$3, 0xffffffff($a0)
+	sdc1	$3, 0x12345678($a0)
 
 	sdc1	$f3, 0
-	sdc1	$f3, ($0)
+	sdc1	$f3, ($zero)
 	sdc1	$f3, 4
-	sdc1	$f3, 4($0)
-	sdc1	$f3, ($4)
-	sdc1	$f3, 0($4)
-	sdc1	$f3, 32767($4)
-	sdc1	$f3, -32768($4)
-	sdc1	$f3, 65535($4)
-	sdc1	$f3, 0xffff0000($4)
-	sdc1	$f3, 0xffff8000($4)
-	sdc1	$f3, 0xffff0001($4)
-	sdc1	$f3, 0xffff8001($4)
-	sdc1	$f3, 0xf0000000($4)
-	sdc1	$f3, 0xffffffff($4)
-	sdc1	$f3, 0x12345678($4)
+	sdc1	$f3, 4($zero)
+	sdc1	$f3, ($a0)
+	sdc1	$f3, 0($a0)
+	sdc1	$f3, 32767($a0)
+	sdc1	$f3, -32768($a0)
+	sdc1	$f3, 65535($a0)
+	sdc1	$f3, 0xffff0000($a0)
+	sdc1	$f3, 0xffff8000($a0)
+	sdc1	$f3, 0xffff0001($a0)
+	sdc1	$f3, 0xffff8001($a0)
+	sdc1	$f3, 0xf0000000($a0)
+	sdc1	$f3, 0xffffffff($a0)
+	sdc1	$f3, 0x12345678($a0)
 
 	s.d	$f3, 0
-	s.d	$f3, ($0)
+	s.d	$f3, ($zero)
 	s.d	$f3, 4
-	s.d	$f3, 4($0)
-	s.d	$f3, ($4)
-	s.d	$f3, 0($4)
-	s.d	$f3, 32767($4)
-	s.d	$f3, -32768($4)
+	s.d	$f3, 4($zero)
+	s.d	$f3, ($a0)
+	s.d	$f3, 0($a0)
+	s.d	$f3, 32767($a0)
+	s.d	$f3, -32768($a0)
 
-	sdxc1	$f0, $0($0)
-	sdxc1	$f0, $0($2)
-	sdxc1	$f0, $0($31)
-	sdxc1	$f0, $2($31)
-	sdxc1	$f0, $31($31)
-	sdxc1	$f1, $31($31)
-	sdxc1	$f2, $31($31)
-	sdxc1	$f31, $31($31)
+	sdxc1	$f0, $zero($zero)
+	sdxc1	$f0, $zero($t4)
+	sdxc1	$f0, $zero($ra)
+	sdxc1	$f0, $t4($ra)
+	sdxc1	$f0, $ra($ra)
+	sdxc1	$f1, $ra($ra)
+	sdxc1	$f2, $ra($ra)
+	sdxc1	$f31, $ra($ra)
 
 	sqrt.s	$f0, $f1
 	sqrt.s	$f30, $f31
@@ -4277,74 +4277,74 @@ fp_test:
 	sub.ps	$f29, $f29, $f30
 	sub.ps	$f29, $f30
 
-	suxc1	$f0, $0($0)
-	suxc1	$f0, $0($2)
-	suxc1	$f0, $0($31)
-	suxc1	$f0, $2($31)
-	suxc1	$f0, $31($31)
-	suxc1	$f1, $31($31)
-	suxc1	$f2, $31($31)
-	suxc1	$f31, $31($31)
+	suxc1	$f0, $zero($zero)
+	suxc1	$f0, $zero($t4)
+	suxc1	$f0, $zero($ra)
+	suxc1	$f0, $t4($ra)
+	suxc1	$f0, $ra($ra)
+	suxc1	$f1, $ra($ra)
+	suxc1	$f2, $ra($ra)
+	suxc1	$f31, $ra($ra)
 */
 	swc1	$3, 0
-	swc1	$3, ($0)
+	swc1	$3, ($zero)
 	swc1	$3, 4
-	swc1	$3, 4($0)
-	swc1	$3, ($4)
-	swc1	$3, 0($4)
-	swc1	$3, 32767($4)
-	swc1	$3, -32768($4)
-	swc1	$3, 65535($4)
-	swc1	$3, 0xffff0000($4)
-	swc1	$3, 0xffff8000($4)
-	swc1	$3, 0xffff0001($4)
-	swc1	$3, 0xffff8001($4)
-	swc1	$3, 0xf0000000($4)
-	swc1	$3, 0xffffffff($4)
-	swc1	$3, 0x12345678($4)
+	swc1	$3, 4($zero)
+	swc1	$3, ($a0)
+	swc1	$3, 0($a0)
+	swc1	$3, 32767($a0)
+	swc1	$3, -32768($a0)
+	swc1	$3, 65535($a0)
+	swc1	$3, 0xffff0000($a0)
+	swc1	$3, 0xffff8000($a0)
+	swc1	$3, 0xffff0001($a0)
+	swc1	$3, 0xffff8001($a0)
+	swc1	$3, 0xf0000000($a0)
+	swc1	$3, 0xffffffff($a0)
+	swc1	$3, 0x12345678($a0)
 
 	swc1	$f3, 0
-	swc1	$f3, ($0)
+	swc1	$f3, ($zero)
 	swc1	$f3, 4
-	swc1	$f3, 4($0)
-	swc1	$f3, ($4)
-	swc1	$f3, 0($4)
-	swc1	$f3, 32767($4)
-	swc1	$f3, -32768($4)
-	swc1	$f3, 65535($4)
-	swc1	$f3, 0xffff0000($4)
-	swc1	$f3, 0xffff8000($4)
-	swc1	$f3, 0xffff0001($4)
-	swc1	$f3, 0xffff8001($4)
-	swc1	$f3, 0xf0000000($4)
-	swc1	$f3, 0xffffffff($4)
-	swc1	$f3, 0x12345678($4)
+	swc1	$f3, 4($zero)
+	swc1	$f3, ($a0)
+	swc1	$f3, 0($a0)
+	swc1	$f3, 32767($a0)
+	swc1	$f3, -32768($a0)
+	swc1	$f3, 65535($a0)
+	swc1	$f3, 0xffff0000($a0)
+	swc1	$f3, 0xffff8000($a0)
+	swc1	$f3, 0xffff0001($a0)
+	swc1	$f3, 0xffff8001($a0)
+	swc1	$f3, 0xf0000000($a0)
+	swc1	$f3, 0xffffffff($a0)
+	swc1	$f3, 0x12345678($a0)
 
 	s.s	$f3, 0
-	s.s	$f3, ($0)
+	s.s	$f3, ($zero)
 	s.s	$f3, 4
-	s.s	$f3, 4($0)
-	s.s	$f3, ($4)
-	s.s	$f3, 0($4)
-	s.s	$f3, 32767($4)
-	s.s	$f3, -32768($4)
-	s.s	$f3, 65535($4)
-	s.s	$f3, 0xffff0000($4)
-	s.s	$f3, 0xffff8000($4)
-	s.s	$f3, 0xffff0001($4)
-	s.s	$f3, 0xffff8001($4)
-	s.s	$f3, 0xf0000000($4)
-	s.s	$f3, 0xffffffff($4)
-	s.s	$f3, 0x12345678($4)
+	s.s	$f3, 4($zero)
+	s.s	$f3, ($a0)
+	s.s	$f3, 0($a0)
+	s.s	$f3, 32767($a0)
+	s.s	$f3, -32768($a0)
+	s.s	$f3, 65535($a0)
+	s.s	$f3, 0xffff0000($a0)
+	s.s	$f3, 0xffff8000($a0)
+	s.s	$f3, 0xffff0001($a0)
+	s.s	$f3, 0xffff8001($a0)
+	s.s	$f3, 0xf0000000($a0)
+	s.s	$f3, 0xffffffff($a0)
+	s.s	$f3, 0x12345678($a0)
 
-	swxc1	$f0, $0($0)
-	swxc1	$f0, $0($2)
-	swxc1	$f0, $0($31)
-	swxc1	$f0, $2($31)
-	swxc1	$f0, $31($31)
-	swxc1	$f1, $31($31)
-	swxc1	$f2, $31($31)
-	swxc1	$f31, $31($31)
+	swxc1	$f0, $zero($zero)
+	swxc1	$f0, $zero($t4)
+	swxc1	$f0, $zero($ra)
+	swxc1	$f0, $t4($ra)
+	swxc1	$f0, $ra($ra)
+	swxc1	$f1, $ra($ra)
+	swxc1	$f2, $ra($ra)
+	swxc1	$f31, $ra($ra)
 
 	trunc.l.s	$f0, $f1
 	trunc.l.s	$f30, $f31
@@ -4360,37 +4360,37 @@ fp_test:
 	trunc.w.d	$f30, $f31
 	trunc.w.d	$f2, $f2
 	/*
-	movf	$2, $3, $fcc0
-	movf	$30, $31, $fcc0
-	movf	$30, $31, $fcc1
-	movf	$30, $31, $fcc2
-	movf	$30, $31, $fcc3
-	movf	$30, $31, $fcc4
-	movf	$30, $31, $fcc5
-	movf	$30, $31, $fcc6
-	movf	$30, $31, $fcc7
+	movf	$t4, $t5, $fcc0
+	movf	$fp, $ra, $fcc0
+	movf	$fp, $ra, $fcc1
+	movf	$fp, $ra, $fcc2
+	movf	$fp, $ra, $fcc3
+	movf	$fp, $ra, $fcc4
+	movf	$fp, $ra, $fcc5
+	movf	$fp, $ra, $fcc6
+	movf	$fp, $ra, $fcc7
 
-	movt	$2, $3, $fcc0
-	movt	$30, $31, $fcc0
-	movt	$30, $31, $fcc1
-	movt	$30, $31, $fcc2
-	movt	$30, $31, $fcc3
-	movt	$30, $31, $fcc4
-	movt	$30, $31, $fcc5
-	movt	$30, $31, $fcc6
-	movt	$30, $31, $fcc7
+	movt	$t4, $t5, $fcc0
+	movt	$fp, $ra, $fcc0
+	movt	$fp, $ra, $fcc1
+	movt	$fp, $ra, $fcc2
+	movt	$fp, $ra, $fcc3
+	movt	$fp, $ra, $fcc4
+	movt	$fp, $ra, $fcc5
+	movt	$fp, $ra, $fcc6
+	movt	$fp, $ra, $fcc7
 
 	.set	noreorder
 	bc1fl	$fcc1, test
-	addu	$3, $4, $5
+	addu	$t5, $a0, $a1
 	bc1tl	$fcc2, test
-	addu	$6, $7, $8
+	addu	$a2, $a3, $a4
 	.set	reorder
 
 	bc1fl	$fcc3, test
-	addu	$3, $4, $5
+	addu	$t5, $a0, $a1
 	bc1tl	$fcc4, test
-	addu	$6, $7, $8
+	addu	$a2, $a3, $a4
 	*/
 	.end	fp_test
 
@@ -4399,32 +4399,32 @@ fp_test:
 test_delay_slot:
 	bal	test_delay_slot
 /*
-	bgezal	$3, test_delay_slot
-	bltzal	$3, test_delay_slot
-	bgezall	$3, test_delay_slot
-	bltzall	$3, test_delay_slot
+	bgezal	$t5, test_delay_slot
+	bltzal	$t5, test_delay_slot
+	bgezall	$t5, test_delay_slot
+	bltzall	$t5, test_delay_slot
 	jal	test_delay_slot
 	jalx	test_delay_slot
 	*/
 	.ifndef	insn32
-	jalr16	$2
+	jalr16	$t4
 	.endif
-	jalr32	$2
+	jalr32	$t4
 	.ifndef	insn32
-	jr16	$2
+	jr16	$t4
 	.endif
-	jr32	$2
-	jalr.hb	$2
+	jr32	$t4
+	jalr.hb	$t4
 
-	jr.hb	$2
+	jr.hb	$t4
 /*
 	.ifndef	insn32
 	jals	test_delay_slot
-	jalrs16	$2
-	jalrs32	$2
-	jrs	$2
-	jalrs.hb	$2
-	jrs.hb	$2
+	jalrs16	$t4
+	jalrs32	$t4
+	jrs	$t4
+	jalrs.hb	$t4
+	jrs.hb	$t4
 	.endif
 */
 	.end	test_delay_slot
@@ -4432,78 +4432,78 @@ test_delay_slot:
 	.set	noreorder
 	.ent	test_spec102
 test_spec102:
-	lw	$18, 127<<2 ($28)
-	lw	$19, 127<<2 ($28)
-	lw	$4, 127<<2 ($28)
-	lw	$5, 127<<2 ($28)
-	lw	$6, 127<<2 ($28)
-	lw	$7, 127<<2 ($28)
-	lw	$16, 127<<2 ($28)
-	lw	$17, 127<<2 ($28)
-	lw	$17, 126<<2 ($28)
-	lw	$17, 125<<2 ($28)
-	lw	$17, 0<<2 ($28)
-	lw	$17, 1<<2 ($28)
-	lw	$17, 62<<2 ($28)
-	lw	$17, 63<<2 ($28)
-	lw	$17, 64<<2 ($28)
-	lw	$17, -65<<2 ($28)
-	lw	$17, 1 ($28)
-	lw	$17, 2 ($28)
-	lw	$17, 3 ($28)
-	lw	$17, -1 ($28)
-	lw	$17, -2 ($28)
-	lw	$17, -3 ($28)
-	lw	$17, 0 ($27)
+	lw	$s2, 127<<2 ($gp)
+	lw	$s3, 127<<2 ($gp)
+	lw	$a0, 127<<2 ($gp)
+	lw	$a1, 127<<2 ($gp)
+	lw	$a2, 127<<2 ($gp)
+	lw	$a3, 127<<2 ($gp)
+	lw	$s0, 127<<2 ($gp)
+	lw	$s1, 127<<2 ($gp)
+	lw	$s1, 126<<2 ($gp)
+	lw	$s1, 125<<2 ($gp)
+	lw	$s1, 0<<2 ($gp)
+	lw	$s1, 1<<2 ($gp)
+	lw	$s1, 62<<2 ($gp)
+	lw	$s1, 63<<2 ($gp)
+	lw	$s1, 64<<2 ($gp)
+	lw	$s1, -65<<2 ($gp)
+	lw	$s1, 1 ($gp)
+	lw	$s1, 2 ($gp)
+	lw	$s1, 3 ($gp)
+	lw	$s1, -1 ($gp)
+	lw	$s1, -2 ($gp)
+	lw	$s1, -3 ($gp)
+	lw	$s1, 0 ($k1)
 	.end	test_spec102
 
 	.set	noreorder
 	.ent	test_spec107
 test_spec107:
-	movep	$5, $6, $0, $0
-	movep	$6, $7, $0, $0
-	movep	$4, $5, $0, $0
-	movep	$5, $6, $0, $0
-	movep	$6, $7, $0, $0
-	movep	$6, $7, $17, $0
-	movep	$6, $7, $9, $0
-	movep	$6, $7, $10, $0
-	movep	$6, $7, $16, $0
-	movep	$6, $7, $18, $0
-	movep	$6, $7, $19, $0
-	movep	$6, $7, $20, $0
-	movep	$6, $7, $20, $17
-	movep	$6, $7, $20, $9
-	movep	$6, $7, $20, $10
-	movep	$6, $7, $20, $16
-	movep	$6, $7, $20, $18
-	movep	$6, $7, $20, $19
-	movep	$6, $7, $20, $20
+	movep	$a1, $a2, $zero, $zero
+	movep	$a2, $a3, $zero, $zero
+	movep	$a0, $a1, $zero, $zero
+	movep	$a1, $a2, $zero, $zero
+	movep	$a2, $a3, $zero, $zero
+	movep	$a2, $a3, $s1, $zero
+	movep	$a2, $a3, $a5, $zero
+	movep	$a2, $a3, $a6, $zero
+	movep	$a2, $a3, $s0, $zero
+	movep	$a2, $a3, $s2, $zero
+	movep	$a2, $a3, $s3, $zero
+	movep	$a2, $a3, $s4, $zero
+	movep	$a2, $a3, $s4, $s1
+	movep	$a2, $a3, $s4, $a5
+	movep	$a2, $a3, $s4, $a6
+	movep	$a2, $a3, $s4, $s0
+	movep	$a2, $a3, $s4, $s2
+	movep	$a2, $a3, $s4, $s3
+	movep	$a2, $a3, $s4, $s4
 
-	lwc1	$f3, ($28)
-	lwc1	$f3, 0($28)
-	lwc1	$f3, 4($28)
+	lwc1	$f3, ($gp)
+	lwc1	$f3, 0($gp)
+	lwc1	$f3, 4($gp)
 	lwc1	$f3, 16384($gp)
 	lwc1	$f3, 262140($gp)
 
-	swc1	$f3, ($28)
-	swc1	$f3, 0($28)
-	swc1	$f3, 4($28)
-	swc1	$f3, 16384($28)
-	swc1	$f3, 262140($28)
+	swc1	$f3, ($gp)
+	swc1	$f3, 0($gp)
+	swc1	$f3, 4($gp)
+	swc1	$f3, 16384($gp)
+	swc1	$f3, 262140($gp)
 
-	andi	$2, $2, 0xfff
-	andi	$2, $3, 0x1fff
-	andi	$2, $4, 0x3fff
-	andi	$2, $5, 0x7fff
-	andi	$2, $6, 0xffff
-	andi	$2, $7, 0x1fffff
-	andi	$2, $8, 0x3fffff
-	andi	$2, $9, 0x7fffff
-	andi	$2, $16, 0xffffff
-	li	$2, test
+	andi	$t4, $t4, 0xfff
+	andi	$t4, $t5, 0x1fff
+	andi	$t4, $a0, 0x3fff
+	andi	$t4, $a1, 0x7fff
+	andi	$t4, $a2, 0xffff
+	andi	$t4, $a3, 0x1fffff
+	andi	$t4, $a4, 0x3fffff
+	andi	$t4, $a5, 0x7fffff
+	andi	$t4, $s0, 0xffffff
+	li	$t4, test
 	dvp
-	dvp	$5
+	dvp	$a1
 	evp
-	evp	$6
+	evp	$a2
 	.end	test_spec107

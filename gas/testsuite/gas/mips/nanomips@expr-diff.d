@@ -2,6 +2,7 @@
 #PROG: readelf
 #readelf: -Wr
 #source: expr-diff.s
+#as:
 
 Relocation section '\.rela\.text' at offset 0x[0-9a-f]+ contains 19 entries:
  Offset     Info    Type                Sym\. Value  Symbol's Name \+ Addend

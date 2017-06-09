@@ -1,7 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: MIPS -mabi=32 test 2 \(SVR4 PIC\) nanoMIPS
 #source: mips-abi32-pic2.s
-#as:
 
 dump.o:     file format .*mips.*
 

@@ -6,11 +6,11 @@
 	.ent	fn
 	.type	fn,@function
 fn:
-	.frame	$fp,16,$31
+	.frame	$fp,16,$ra
 	.mask	0x40000000,-8
 	.fmask	0x00000000,0
 	.set	noreorder
-	.cpload $25
+	.cpload $t9
 	.set	reorder
 	addiu	$sp,$sp,-16
 	sw	$fp,8($sp)
@@ -18,40 +18,40 @@ fn:
 	.cprestore	0
 
 	# General Dynamic
-	lw	$25,%call16(__tls_get_addr)($28)
-	addiu	$4,$28,%tlsgd(tlsvar_gd)
-	jal	$25
+	lw	$t9,%call16(__tls_get_addr)($gp)
+	addiu	$a0,$gp,%tlsgd(tlsvar_gd)
+	jal	$t9
 
 	# Local Dynamic
-	lw	$25,%call16(__tls_get_addr)($28)
-	addiu	$4,$28,%tlsldm(tlsvar_ld)
-	jal	$25
+	lw	$t9,%call16(__tls_get_addr)($gp)
+	addiu	$a0,$gp,%tlsldm(tlsvar_ld)
+	jal	$t9
 
-	move	$2,$2		# Arbitrary instructions
+	move	$t4,$t4		# Arbitrary instructions
 
-	lui	$3,%dtprel_hi(tlsvar_ld)
-	addiu	$3,$3,%dtprel_lo(tlsvar_ld)
-	addu	$3,$3,$2
+	lui	$t5,%dtprel_hi(tlsvar_ld)
+	addiu	$t5,$t5,%dtprel_lo(tlsvar_ld)
+	addu	$t5,$t5,$t4
 
 	# Initial Exec
 	.set	push
-	rdhwr	$2, $5
+	rdhwr	$t4, $5
 	.set	pop
-	lw	$3,%gottprel(tlsvar_ie)($28)
-	addu	$3,$3,$2
+	lw	$t5,%gottprel(tlsvar_ie)($gp)
+	addu	$t5,$t5,$t4
 
 	# Local Exec
 	.set	push
-	rdhwr	$2, $5
+	rdhwr	$t4, $5
 	.set	pop
-	lui	$3,%tprel_hi(tlsvar_le)
-	ori	$3,$3,%tprel_lo(tlsvar_le)
-	addu	$3,$3,$2
+	lui	$t5,%tprel_hi(tlsvar_le)
+	ori	$t5,$t5,%tprel_lo(tlsvar_le)
+	addu	$t5,$t5,$t4
 
 	move	$sp,$fp
 	lw	$fp,8($sp)
 	addiu	$sp,$sp,16
-	j	$31
+	j	$ra
 	.end	fn
 
 	.section		.tbss,"awT",@nobits

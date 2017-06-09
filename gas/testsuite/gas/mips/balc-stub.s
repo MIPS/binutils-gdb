@@ -2,18 +2,18 @@
 	.ent test1
 test1:
 	nop
-	jr $31
+	jr $ra
 	.end test1
 
 test2:
 	nop
-	jr $31
+	jr $ra
 
 test3:
 	balc test1
 	balc test2
 	balc test9
-	jr $31
+	jr $ra
 
 	.ent test3a
 test3a:
@@ -24,7 +24,7 @@ test3a:
 	.ent test4
 test4:
 	nop
-	jr $31
+	jr $ra
 	.end test4
 
 	.data
@@ -42,5 +42,5 @@ test7:
 
 test8:
 	balc test3
-	jr $31
+	jr $ra
 

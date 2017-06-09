@@ -3,6 +3,7 @@
 #readelf: -Wr
 #source: expr-sym.s
 
+
 Relocation section '\.rela\.text' at offset 0x[0-9a-f]+ contains [0-9]+ entries:
  Offset     Info    Type                Sym\. Value  Symbol's Name \+ Addend
 00000004  [0-9a-f]+b6 R_NANOMIPS_HI20        00000000   foo \+ 0

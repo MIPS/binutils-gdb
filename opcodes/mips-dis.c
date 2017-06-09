@@ -75,6 +75,14 @@ static const char * const mips_gpr_names_newabi[32] =
   "t8",   "t9",   "k0",   "k1",   "gp",   "sp",   "s8",   "ra"
 };
 
+static const char * const nanomips_gpr_names[32] =
+{
+  "zero", "at",   "t4",   "t5",   "a0",   "a1",   "a2",   "a3",
+  "a4",   "a5",   "a6",   "a7",   "t0",   "t1",   "t2",   "t3",
+  "s0",   "s1",   "s2",   "s3",   "s4",   "s5",   "s6",   "s7",
+  "t8",   "t9",   "k0",   "k1",   "gp",   "sp",   "fp",   "ra"
+};
+
 static const char * const mips_gpr_names_xr[17] = {
   "xr0",  "xr1",  "xr2",  "xr3",  "xr4",  "xr5",  "xr6",  "xr7",
   "xr8",  "xr9",  "xr10", "xr11", "xr12", "xr13", "xr14", "xr15",
@@ -449,6 +457,8 @@ struct mips_abi_choice mips_abi_choices[] =
   { "32", mips_gpr_names_oldabi, mips_fpr_names_32 },
   { "n32", mips_gpr_names_newabi, mips_fpr_names_n32 },
   { "64", mips_gpr_names_newabi, mips_fpr_names_64 },
+  { "p32", nanomips_gpr_names, mips_fpr_names_64 },
+  { "p64", nanomips_gpr_names, mips_fpr_names_64 },
 };
 
 struct mips_arch_choice
@@ -874,6 +884,8 @@ set_default_mips_dis_options (struct disassemble_info *info)
       micromips_ase = is_micromips (header);
       /* If a nanoMIPS binary, then don't use legacy MIPS bindings.  */
       nanomips_isa = is_nanomips (header);
+      if (nanomips_isa)
+	mips_gpr_names = nanomips_gpr_names;
     }
 
   /* Set ISA, architecture, and cp0 register names as best we can.  */

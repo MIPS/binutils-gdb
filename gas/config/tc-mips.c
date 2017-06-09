@@ -283,6 +283,9 @@ struct mips_set_options
   /* Whether we are assembling for the nanoMIPS ASE.  Always enabled for
      ISAR7 and above.  */
   int nanomips;
+
+  /* Enable/disable register names, only for nanoMIPS.  */
+  bfd_boolean legacyregs;
 };
 
 /* Specifies whether module level options have been checked yet.  */
@@ -306,7 +309,7 @@ static struct mips_set_options file_mips_opts =
   /* gp */ -1, /* fp */ -1, /* arch */ CPU_UNKNOWN, /* sym32 */ FALSE,
   /* soft_float */ FALSE, /* single_float */ FALSE, /* oddspreg */ -1,
   /* init_ase */ 0, /* forbidden_slots */ 0, /* no_balc_stubs */ FALSE,
-  /* nanomips */ FALSE,
+  /* nanomips */ FALSE, /* legacyregs */ FALSE
 };
 
 /* This is similar to file_mips_opts, but for the current set of options.  */
@@ -319,7 +322,7 @@ static struct mips_set_options mips_opts =
   /* gp */ -1, /* fp */ -1, /* arch */ CPU_UNKNOWN, /* sym32 */ FALSE,
   /* soft_float */ FALSE, /* single_float */ FALSE, /* oddspreg */ -1,
   /* init_ase */ 0, /* forbidden_slots */ 0, /* no_balc_stubs */ FALSE,
-  /* nanomips */ FALSE,
+  /* nanomips */ FALSE, /* legacyregs */ FALSE
 };
 
 /* Which bits of file_ase were explicitly set or cleared by ASE options.  */
@@ -1646,6 +1649,8 @@ enum options
     OPTION_FORBIDDEN_SLOTS,
     OPTION_BALC_STUBS,
     OPTION_NO_BALC_STUBS,
+    OPTION_LEGACY_REGS,
+    OPTION_NO_LEGACY_REGS,
     OPTION_END_OF_ENUM
   };
 
@@ -1772,6 +1777,8 @@ struct option md_longopts[] =
   {"mforbidden-slots", no_argument, NULL, OPTION_FORBIDDEN_SLOTS},
   {"mbalc-stubs", no_argument, NULL, OPTION_BALC_STUBS},
   {"mno-balc-stubs", no_argument, NULL, OPTION_NO_BALC_STUBS},
+  {"mlegacyregs", no_argument, NULL, OPTION_LEGACY_REGS},
+  {"mno-legacyregs", no_argument, NULL, OPTION_NO_LEGACY_REGS},
 
   /* Strictly speaking this next option is ELF specific,
      but we allow it for other ports as well in order to
@@ -3049,6 +3056,76 @@ struct regname {
     {"$fp",	RTYPE_GP | 30}, \
     {"$ra",	RTYPE_GP | 31}
 
+#define NANOMIPS_SYMBOLIC_REG_NAMES \
+    {"$zero",	RTYPE_GP | 0},  \
+    {"$AT",	RTYPE_GP | 1},  \
+    {"$at",	RTYPE_GP | 1},  \
+    {"$t4",	RTYPE_GP | 2},  \
+    {"$t5",	RTYPE_GP | 3},  \
+    {"$a0",	RTYPE_GP | 4},  \
+    {"$a1",	RTYPE_GP | 5},  \
+    {"$a2",	RTYPE_GP | 6},  \
+    {"$a3",	RTYPE_GP | 7},  \
+    {"$a4",	RTYPE_GP | 8},  \
+    {"$a5",	RTYPE_GP | 9},  \
+    {"$a6",	RTYPE_GP | 10}, \
+    {"$a7",	RTYPE_GP | 11}, \
+    {"$t0",	RTYPE_GP | 12}, \
+    {"$t1",	RTYPE_GP | 13}, \
+    {"$t2",	RTYPE_GP | 14}, \
+    {"$t3",	RTYPE_GP | 15}, \
+    {"$s0",	RTYPE_GP | 16}, \
+    {"$s1",	RTYPE_GP | 17}, \
+    {"$s2",	RTYPE_GP | 18}, \
+    {"$s3",	RTYPE_GP | 19}, \
+    {"$s4",	RTYPE_GP | 20}, \
+    {"$s5",	RTYPE_GP | 21}, \
+    {"$s6",	RTYPE_GP | 22}, \
+    {"$s7",	RTYPE_GP | 23}, \
+    {"$t8",	RTYPE_GP | 24}, \
+    {"$t9",	RTYPE_GP | 25}, \
+    {"$k0",	RTYPE_GP | 26}, \
+    {"$k1",	RTYPE_GP | 27}, \
+    {"$gp",	RTYPE_GP | 28}, \
+    {"$sp",	RTYPE_GP | 29}, \
+    {"$fp",	RTYPE_GP | 30}, \
+    {"$ra",	RTYPE_GP | 31}
+
+#define NANOMIPS_NUMERIC_REG_NAMES \
+    {"r0",	RTYPE_GP | 0},  \
+    {"r1",	RTYPE_GP | 1},  \
+    {"r2",	RTYPE_GP | 2},  \
+    {"r3",	RTYPE_GP | 3},  \
+    {"r4",	RTYPE_GP | 4},  \
+    {"r5",	RTYPE_GP | 5},  \
+    {"r6",	RTYPE_GP | 6},  \
+    {"r7",	RTYPE_GP | 7},  \
+    {"r8",	RTYPE_GP | 8},  \
+    {"r9",	RTYPE_GP | 9},  \
+    {"r10",	RTYPE_GP | 10}, \
+    {"r11",	RTYPE_GP | 11}, \
+    {"r12",	RTYPE_GP | 12}, \
+    {"r13",	RTYPE_GP | 13}, \
+    {"r14",	RTYPE_GP | 14}, \
+    {"r15",	RTYPE_GP | 15}, \
+    {"r16",	RTYPE_GP | 16}, \
+    {"r17",	RTYPE_GP | 17}, \
+    {"r18",	RTYPE_GP | 18}, \
+    {"r19",	RTYPE_GP | 19}, \
+    {"r20",	RTYPE_GP | 20}, \
+    {"r21",	RTYPE_GP | 21}, \
+    {"r22",	RTYPE_GP | 22}, \
+    {"r23",	RTYPE_GP | 23}, \
+    {"r24",	RTYPE_GP | 24}, \
+    {"r25",	RTYPE_GP | 25}, \
+    {"r26",	RTYPE_GP | 26}, \
+    {"r27",	RTYPE_GP | 27}, \
+    {"r28",	RTYPE_GP | 28}, \
+    {"r29",	RTYPE_GP | 29}, \
+    {"r30",	RTYPE_GP | 30}, \
+    {"r31",	RTYPE_GP | 30}, \
+    {"r32",	RTYPE_GP | 31}
+
 #define MIPS16_SPECIAL_REGISTER_NAMES \
     {"$pc",	RTYPE_PC | 0}
 
@@ -3142,6 +3219,18 @@ static const struct regname reg_names[] = {
   R5900_Q_NAMES,
   R5900_R_NAMES,
   R5900_ACC_NAMES,
+  MIPS_DSP_ACCUMULATOR_NAMES,
+  MXU_REGISTER_NAMES,
+  {0, 0}
+};
+
+static const struct regname nanomips_reg_names[] = {
+  GENERIC_REGISTER_NUMBERS,
+  NANOMIPS_SYMBOLIC_REG_NAMES,
+  NANOMIPS_NUMERIC_REG_NAMES,
+  FPU_REGISTER_NAMES,
+  FPU_CONDITION_CODE_NAMES,
+  COPROC_CONDITION_CODE_NAMES,
   MIPS_DSP_ACCUMULATOR_NAMES,
   MXU_REGISTER_NAMES,
   {0, 0}
@@ -4126,20 +4215,35 @@ md_begin (void)
 
   /* We add all the general register names to the symbol table.  This
      helps us detect invalid uses of them.  */
-  for (i = 0; reg_names[i].name; i++) 
-    symbol_table_insert (symbol_new (reg_names[i].name, reg_section,
-				     reg_names[i].num, /* & RNUM_MASK, */
-				     &zero_address_frag));
-  if (HAVE_NEWABI)
-    for (i = 0; reg_names_n32n64[i].name; i++) 
-      symbol_table_insert (symbol_new (reg_names_n32n64[i].name, reg_section,
-				       reg_names_n32n64[i].num, /* & RNUM_MASK, */
-				       &zero_address_frag));
+  if (mips_opts.nanomips)
+    for (i = 0; nanomips_reg_names[i].name; i++)
+      {
+	symbolS *regsym = symbol_new (nanomips_reg_names[i].name, reg_section,
+				      nanomips_reg_names[i].num,
+				      &zero_address_frag);
+	symbolS *defsym = symbol_find (nanomips_reg_names[i].name);
+	symbol_table_insert (regsym);
+	if (defsym)
+	  as_warn ("Attempt to define internal register symbol %s ignored",
+		   nanomips_reg_names[i].name);
+      }
   else
-    for (i = 0; reg_names_o32[i].name; i++) 
-      symbol_table_insert (symbol_new (reg_names_o32[i].name, reg_section,
-				       reg_names_o32[i].num, /* & RNUM_MASK, */
-				       &zero_address_frag));
+    {
+      for (i = 0; reg_names[i].name; i++) 
+	symbol_table_insert (symbol_new (reg_names[i].name, reg_section,
+					 reg_names[i].num, /* & RNUM_MASK, */
+					 &zero_address_frag));
+      if (HAVE_NEWABI)
+	for (i = 0; reg_names_n32n64[i].name; i++) 
+	  symbol_table_insert (symbol_new (reg_names_n32n64[i].name, reg_section,
+					   reg_names_n32n64[i].num, /* & RNUM_MASK, */
+					   &zero_address_frag));
+      else
+	for (i = 0; reg_names_o32[i].name; i++) 
+	  symbol_table_insert (symbol_new (reg_names_o32[i].name, reg_section,
+					   reg_names_o32[i].num, /* & RNUM_MASK, */
+					   &zero_address_frag));
+    }
 
   for (i = 0; i < 32; i++)
     {
@@ -4525,7 +4629,6 @@ file_mips_check_options (void)
 
   if (file_mips_opts.nanomips)
     {
-      file_mips_opts.nanomips = TRUE;
       if ((file_ase_explicit & ASE_XLP) != (file_mips_opts.ase & ASE_XLP))
         /* If XLP is disabled, then disabled TLB too.  */
         file_mips_opts.init_ase &= ~ASE_TLB;
@@ -5541,7 +5644,10 @@ convert_reg_type (const struct mips_opcode *opcode,
       return RTYPE_GP | RTYPE_MXU;
 
     case OP_REG_GP:
-      return RTYPE_NUM | RTYPE_GP;
+      if (mips_opts.nanomips && !mips_opts.legacyregs)
+	return RTYPE_GP;
+      else
+	return RTYPE_NUM | RTYPE_GP;
 
     case OP_REG_FP:
       /* Allow vector register names for MDMX if the instruction is a 64-bit
@@ -19532,6 +19638,14 @@ md_parse_option (int c, char *arg)
       file_mips_opts.no_balc_stubs = TRUE;
       break;
 
+    case OPTION_LEGACY_REGS:
+      file_mips_opts.legacyregs = TRUE;
+      break;
+
+    case OPTION_NO_LEGACY_REGS:
+      file_mips_opts.legacyregs = FALSE;
+      break;
+
     case OPTION_SINGLE_FLOAT:
       file_mips_opts.single_float = 1;
       break;
@@ -21025,6 +21139,10 @@ parse_code_option (char * name)
     mips_opts.sym32 = TRUE;
   else if (strcmp (name, "nosym32") == 0)
     mips_opts.sym32 = FALSE;
+  else if (strcmp (name, "legacyregs") == 0)
+    mips_opts.legacyregs = TRUE;
+  else if (strcmp (name, "nolegacyregs") == 0)
+    mips_opts.legacyregs = FALSE;
   else
     return FALSE;
   return TRUE;
@@ -24999,8 +25117,9 @@ MIPS options:\n\
 -msoft-float		do not allow floating-point instructions\n\
 -msingle-float		only allow 32-bit floating-point operations\n\
 -mdouble-float		allow 32-bit and 64-bit floating-point operations\n\
--m[no-]balc-stubs	[dis]able out-of-range call optimization\n\
+-m[no-]balc-stubs	enable/disable out-of-range call optimization\n\
 			through trampoline stubs\n\
+-m[no-]legacyregs	[dis]allow mumerical register formats\n\
 --[no-]construct-floats	[dis]allow floating point values to be constructed\n\
 --[no-]relax-branch	[dis]allow out-of-range branches to be relaxed\n\
 -mnan=ENCODING		select an IEEE 754 NaN encoding convention, either of:\n"));

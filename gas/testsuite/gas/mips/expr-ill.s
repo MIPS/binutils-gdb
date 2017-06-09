@@ -3,13 +3,13 @@
 
 	.text
 foo:
-	jrc $4
+	jrc $a0
 .L3:
 	nop
 .L4:
 	bc .L3
 .L2:
-	jrc $31
+	jrc $ra
 
 b:
 	.word	(.L4 - .L2) - .L3

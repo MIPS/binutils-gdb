@@ -12,66 +12,66 @@ foo:
 	nop
 7:	
 
-	addiu $31, $31, 5b-3b+1 # [RS5] x += 7
-	addiu $2, $2, 2b-5b 	# [RS5] x -= 8
-	addiu $4, $5, 5b-2b	# [R2] x = y + 8
-	addiu $4, $5, 6b-2b	# [R2] x = y + 28
+	addiu $ra, $ra, 5b-3b+1 # [RS5] x += 7
+	addiu $t4, $t4, 2b-5b 	# [RS5] x -= 8
+	addiu $a0, $a1, 5b-2b	# [R2] x = y + 8
+	addiu $a0, $a1, 6b-2b	# [R2] x = y + 28
 
-	addiu $31, $2, 5b-3b+1  # x = y + 3, U16 for reg
-	addiu $2, $3, 2b-5b 	# x = y - 4, NEG12 for reg
-	addiu $4, $8, 5b-2b	# x = y + 8, U16 for reg
-	addiu $4, $2, 6b-2b	# x = y + 28, U16 for reg
+	addiu $ra, $t4, 5b-3b+1  # x = y + 3, U16 for reg
+	addiu $t4, $t5, 2b-5b 	# x = y - 4, NEG12 for reg
+	addiu $a0, $a4, 5b-2b	# x = y + 8, U16 for reg
+	addiu $a0, $t4, 6b-2b	# x = y + 28, U16 for reg
 
-	addiu $31, $31, 5b-2b   # x = y + 8, U16 for range
-	addiu $2, $2, 2b-6b+16 	# x = y - 12, NEG12 for range
-	addiu $4, $5, 2b-5b	# x = y - 8, NEG12 for range
-	addiu $4, $5, 7b-2b	# x = y + 30, U16 for range
-	addiu $4, $5, 5b-3b	# x = y + 30, U16 for range
+	addiu $ra, $ra, 5b-2b   # x = y + 8, U16 for range
+	addiu $t4, $t4, 2b-6b+16 	# x = y - 12, NEG12 for range
+	addiu $a0, $a1, 2b-5b	# x = y - 8, NEG12 for range
+	addiu $a0, $a1, 7b-2b	# x = y + 30, U16 for range
+	addiu $a0, $a1, 5b-3b	# x = y + 30, U16 for range
 
-	addiu $31, $31, 5f-3f+1 # [RS5] x += 7
-	addiu $2, $2, 2f-5f 	# [RS5] x -= 8
-	addiu $4, $5, 5f-2f	# [R2] x = y + 8
-	addiu $4, $5, 6f-2f	# [R2] x = y + 28
+	addiu $ra, $ra, 5f-3f+1 # [RS5] x += 7
+	addiu $t4, $t4, 2f-5f 	# [RS5] x -= 8
+	addiu $a0, $a1, 5f-2f	# [R2] x = y + 8
+	addiu $a0, $a1, 6f-2f	# [R2] x = y + 28
 
-	addiu $31, $2, 5f-3f+1  # x = y + 3, U16 for reg
-	addiu $2, $3, 2f-5f 	# x = y - 4, NEG12 for reg
-	addiu $4, $8, 5f-2f	# x = y + 8, U16 for reg
-	addiu $4, $2, 6f-2f	# x = y + 28, U16 for reg
+	addiu $ra, $t4, 5f-3f+1  # x = y + 3, U16 for reg
+	addiu $t4, $t5, 2f-5f 	# x = y - 4, NEG12 for reg
+	addiu $a0, $a4, 5f-2f	# x = y + 8, U16 for reg
+	addiu $a0, $t4, 6f-2f	# x = y + 28, U16 for reg
 
-	addiu $31, $31, 5f-2f   # x = y + 8, U16 for range
-	addiu $2, $2, 2f-6f+16 	# x = y - 12, NEG12 for range
-	addiu $4, $5, 2f-5f	# x = y - 8, NEG12 for range
-	addiu $4, $5, 7f-2f	# x = y + 30, U16 for range
-	addiu $4, $5, 5f-3f	# x = y + 30, U16 for range
+	addiu $ra, $ra, 5f-2f   # x = y + 8, U16 for range
+	addiu $t4, $t4, 2f-6f+16 	# x = y - 12, NEG12 for range
+	addiu $a0, $a1, 2f-5f	# x = y - 8, NEG12 for range
+	addiu $a0, $a1, 7f-2f	# x = y + 30, U16 for range
+	addiu $a0, $a1, 5f-3f	# x = y + 30, U16 for range
 
-	addiu32 $31, $31, 5f-3f+1 # x += 7, forced length
-	addiu32 $2, $2, 2f-5f 	# x -= 8, forced length
-	addiu32 $4, $5, 5f-2f	# x = y + 8, forced length
-	addiu32 $4, $5, 6f-2f	# x = y + 28, forced length
+	addiu32 $ra, $ra, 5f-3f+1 # x += 7, forced length
+	addiu32 $t4, $t4, 2f-5f 	# x -= 8, forced length
+	addiu32 $a0, $a1, 5f-2f	# x = y + 8, forced length
+	addiu32 $a0, $a1, 6f-2f	# x = y + 28, forced length
 
 	.set insn32
-	addiu $31, $31, 5f-3f+1 # x += 7, forced length
-	addiu $2, $2, 2f-5f 	# x -= 8, forced length
-	addiu $4, $5, 5f-2f	# x = y + 8, forced length
-	addiu $4, $5, 6f-2f	# x = y + 28, forced length
+	addiu $ra, $ra, 5f-3f+1 # x += 7, forced length
+	addiu $t4, $t4, 2f-5f 	# x -= 8, forced length
+	addiu $a0, $a1, 5f-2f	# x = y + 8, forced length
+	addiu $a0, $a1, 6f-2f	# x = y + 28, forced length
 	.set noinsn32
 
 	/* LI relaxation */
-	li    $4, 7f-8f		# [16] x = -1
-	li    $4, 6f-2f		# [16] x = 28
+	li    $a0, 7f-8f		# [16] x = -1
+	li    $a0, 6f-2f		# [16] x = 28
 
-	li    $3, 7f-8f		# [16] x = -8, U16 for reg
-	li    $3, 6f-2f		# [16] x = 28, U16 for reg
+	li    $t5, 7f-8f		# [16] x = -8, U16 for reg
+	li    $t5, 6f-2f		# [16] x = 28, U16 for reg
 
-	li    $4, 2f-5f		# [16] x = -8, NEG12 for range
-	li    $4, 9f-8f		# [16] x = 128, U16 for range
+	li    $a0, 2f-5f		# [16] x = -8, NEG12 for range
+	li    $a0, 9f-8f		# [16] x = 128, U16 for range
 
-	li32    $4, 7f-8f	# [16] x = -1, forced length
-	li32    $4, 6f-2f	# [16] x = 28, forced length
+	li32    $a0, 7f-8f	# [16] x = -1, forced length
+	li32    $a0, 6f-2f	# [16] x = 28, forced length
 
 	.set insn32
-	li    $4, 7f-8f		# [16] x = -1, forced length
-	li    $4, 6f-2f		# [16] x = 28, forced length
+	li    $a0, 7f-8f		# [16] x = -1, forced length
+	li    $a0, 6f-2f		# [16] x = 28, forced length
 	.set noinsn32
 	
 2:	
