@@ -8,15 +8,15 @@
 Relocation section '\.rela\.text' at offset 0x[0-9a-f]+ contains 40 entries:
  Offset     Info    Type                Sym. Value  Symbol's Name \+ Addend
 00000004  [0-9a-f]+ R_NANOMIPS_ALIGN       00000003   __reloc_align_\^B_1 \+ 0
-00000008  [0-9a-f]+ R_NANOMIPS_PC25_S1     00000030   test2 - 4
+00000008  [0-9a-f]+ R_NANOMIPS_PC25_S1     00000030   test2 \+ 0
 00000008  [0-9a-f]+ R_NANOMIPS_INSN32      00000004   __reloc_insn_\^B_4 \+ 0
 0000000c  [0-9a-f]+ R_NANOMIPS_ALIGN       00000003   __reloc_align_\^B_2 \+ 0
-00000010  [0-9a-f]+ R_NANOMIPS_PC10_S1     00000030   test2 - 2
+00000010  [0-9a-f]+ R_NANOMIPS_PC10_S1     00000030   test2 \+ 0
 00000010  [0-9a-f]+ R_NANOMIPS_INSN16      00000002   __reloc_insn_\^B_2 \+ 0
 00000012  [0-9a-f]+ R_NANOMIPS_ALIGN       00000001   __reloc_align_\^B_3 \+ 0
 00000014  [0-9a-f]+ R_NANOMIPS_NORELAX                0
-00000018  [0-9a-f]+ R_NANOMIPS_PC25_S1     00000030   test2 - 4
-00000020  [0-9a-f]+ R_NANOMIPS_PC10_S1     00000030   test2 - 2
+00000018  [0-9a-f]+ R_NANOMIPS_PC25_S1     00000030   test2 \+ 0
+00000020  [0-9a-f]+ R_NANOMIPS_PC10_S1     00000030   test2 \+ 0
 0000002a  [0-9a-f]+ R_NANOMIPS_RELAX                  0
 0000002c  [0-9a-f]+ R_NANOMIPS_ALIGN       00000003   __reloc_align_\^B_4 \+ 0
 00000032  [0-9a-f]+ R_NANOMIPS_ALIGN       00000003   __reloc_align_\^B_5 \+ 0

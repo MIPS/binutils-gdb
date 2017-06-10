@@ -2,7 +2,7 @@
 # case that highlights the need for symbol-differences as relocations
 # when doing linker relaxations.
 	.text
-	.ifdef r7
+	.ifdef nanomips
 	.linkrelax
 	.endif
 	.ent foo

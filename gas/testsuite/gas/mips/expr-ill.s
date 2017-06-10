@@ -2,7 +2,7 @@
 # This only works for PABI currently.
 
 	.text
-	.ifdef r7
+	.ifdef nanomips
 	.linkrelax
 	.endif
 foo:

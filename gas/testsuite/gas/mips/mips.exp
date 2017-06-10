@@ -1642,15 +1642,15 @@ if { [istarget mips*-*-vxworks*] } {
     run_list_test_arch "nanomips-tlbg" "" m7001
 
     run_dump_test_arches "linkrelax" [mips_arch_list_matching micromipsr6]
-    run_dump_test_arches "linkrelax" [mips_arch_list_matching nanomips]
+    run_dump_test_arches "linkrelax" "-mlegacyregs" [mips_arch_list_matching nanomips]
     run_dump_test_arches "linkrelax-el" [mips_arch_list_matching micromipsr6]
-    run_dump_test_arches "linkrelax-el" [mips_arch_list_matching nanomips]
+    run_dump_test_arches "linkrelax-el"  "-mlegacyregs" [mips_arch_list_matching nanomips]
     run_dump_test_arches "linkrelax-relocs" [mips_arch_list_matching micromipsr6]
-    run_dump_test_arches "linkrelax-relocs" [mips_arch_list_matching nanomips]
+    run_dump_test_arches "linkrelax-relocs" "-mlegacyregs" [mips_arch_list_matching nanomips]
     run_dump_test_arches "nolinkrelax" [mips_arch_list_matching micromips]
-    run_dump_test_arches "nolinkrelax" [mips_arch_list_matching nanomips]
+    run_dump_test_arches "nolinkrelax"  "-mlegacyregs" [mips_arch_list_matching nanomips]
     run_dump_test_arches "nolinkrelax-el" [mips_arch_list_matching micromips]
     run_dump_test_arches "nolinkrelax-relocs" [mips_arch_list_matching micromips]
-    run_dump_test_arches "nolinkrelax-relocs" [mips_arch_list_matching nanomips]
+    run_dump_test_arches "nolinkrelax-relocs" "-mlegacyregs" [mips_arch_list_matching nanomips]
 
 }
