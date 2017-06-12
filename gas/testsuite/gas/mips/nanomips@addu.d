@@ -1,7 +1,7 @@
 #objdump: -dr --no-show-raw-insn
 #name: nanoMIPS addu
 #source: addu.s
-#as: -mno-xlp
+#as:
 
 # Test the add macro for nanoMIPS
 

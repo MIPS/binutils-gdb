@@ -608,11 +608,11 @@ const struct mips_arch_choice mips_arch_choices[] =
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
 
-  { "mips32r7",	1, bfd_mach_mipsisa32r7, CPU_MIPS32R7,
-    ISA_MIPS32R7,
+  { "nanomips32r6",	1, bfd_mach_nanomipsisa32r6, CPU_NANOMIPS32R6,
+    ISA_NANOMIPS32R6,
     (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_VIRT | ASE_VIRT_XPA | ASE_XPA |
      ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3
-     | ASE_XLP | ASE_TLB) /* FIXME: should be optional */,
+     | ASE_xNMS | ASE_TLB) /* FIXME: should be optional */,
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -660,11 +660,11 @@ const struct mips_arch_choice mips_arch_choices[] =
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
 
-  { "mips64r7",	1, bfd_mach_mipsisa64r7, CPU_MIPS64R7,
-    ISA_MIPS64R7,
+  { "nanomips64r6",	1, bfd_mach_nanomipsisa64r6, CPU_NANOMIPS64R6,
+    ISA_NANOMIPS64R6,
     (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_MSA64 | ASE_VIRT | ASE_VIRT_XPA
      | ASE_XPA | ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3 | ASE_DSP64
-     | ASE_XLP | ASE_TLB) /* FIXME: should be optional */,
+     | ASE_xNMS | ASE_TLB) /* FIXME: should be optional */,
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -842,8 +842,8 @@ is_nanomips (Elf_Internal_Ehdr *header)
   /*
   if ((header->e_flags & EF_NANOMIPS_MODE) != 0)
   */
-  if ((header->e_flags & EF_NANOMIPS_ARCH) == E_NANOMIPS_ARCH_32R7
-      || (header->e_flags & EF_NANOMIPS_ARCH) == E_NANOMIPS_ARCH_64R7)
+  if ((header->e_flags & EF_NANOMIPS_ARCH) == E_NANOMIPS_ARCH_32R6
+      || (header->e_flags & EF_NANOMIPS_ARCH) == E_NANOMIPS_ARCH_64R6)
     return 1;
 
   return 0;
@@ -2935,10 +2935,10 @@ is_compressed_mode_p (struct disassemble_info *info)
 
   for (i = info->symtab_pos, l = i + info->num_symbols; i < l; i++)
     if (((info->symtab[i])->flags & BSF_SYNTHETIC) != 0
-	     && ((!micromips_ase
-		  && ELF_ST_IS_MIPS16 ((*info->symbols)->udata.i))
-		 || (micromips_ase
-		     && ELF_ST_IS_MICROMIPS ((*info->symbols)->udata.i))))
+	&& ((!micromips_ase
+	     && ELF_ST_IS_MIPS16 ((*info->symbols)->udata.i))
+	    || (micromips_ase
+		&& ELF_ST_IS_MICROMIPS ((*info->symbols)->udata.i))))
       return 1;
     else if (bfd_asymbol_flavour (info->symtab[i]) == bfd_target_elf_flavour
 	      && info->symtab[i]->section == info->section)

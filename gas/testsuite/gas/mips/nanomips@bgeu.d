@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: nanoMIPS bgeu
-#as: -p32 -mno-xlp
+#as: -m32
 #source: bgeu.s
 
 # Test the bgeu macro.

@@ -1,7 +1,7 @@
-#objdump: -dr --prefix-addresses  --show-raw-insn -Mvirt,cp0-names=mips32r7
+#objdump: -dr --prefix-addresses  --show-raw-insn -Mvirt,cp0-names=nanomips32r6
 #name: virt instructions on nanoMIPS
 #source: virt.s
-#as: -p32 -mvirt -meva
+#as: -m32 -mvirt -meva
 
 .*: +file format .*mips.*
 

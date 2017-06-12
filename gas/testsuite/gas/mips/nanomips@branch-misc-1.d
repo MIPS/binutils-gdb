@@ -1,7 +1,7 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: nanoMIPS branch-misc-1
 #source: branch-misc-1.s
-#as: -p32
+#as: -m32
 
 # Test the branches to local symbols in current file (nanoMIPS).
 

@@ -1,7 +1,7 @@
 #objdump: -dr --prefix-addresses --show-raw-insn -M reg-names=numeric
 #name: odd single-precision float registers on nanoMIPS
 #source: mips32-sf32.s
-#as: -p32
+#as: -m32
 
 
 # Check MIPS32 instruction assembly (nanoMIPS).

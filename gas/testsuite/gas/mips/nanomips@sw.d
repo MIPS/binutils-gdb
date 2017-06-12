@@ -1,5 +1,5 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
-#as: -p32 --defsym tsw=1
+#as: -m32 --defsym tsw=1
 #name: nanoMIPS sw
 #source: ld.s
 

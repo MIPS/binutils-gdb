@@ -1,7 +1,7 @@
 #objdump: -dr --prefix-addresses
 #name: nanoMIPS .aent directive
 #source: aent.s
-#as: -p32
+#as: -m32
 
 # Test the .aent directive retains function symbol type annotation.
 

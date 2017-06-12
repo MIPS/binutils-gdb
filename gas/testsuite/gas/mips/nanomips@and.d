@@ -1,7 +1,7 @@
 #objdump: -dr --prefix-addresses
 #name: nanoMIPS and
 #source: and.s
-#as: -p32 -mno-xlp
+#as: -m32
 
 # Test the and macro for nanoMIPS
 

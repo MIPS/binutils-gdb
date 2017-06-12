@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: nanoMIPS branch-misc-4
-#as: -p32
+#as: -m32
 #source: branch-misc-4.s
 
 # Verify PC-relative relocations do not overflow.

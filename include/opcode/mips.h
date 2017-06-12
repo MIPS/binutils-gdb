@@ -1218,13 +1218,13 @@ mips_opcode_32bit_p (const struct mips_opcode *mo)
 #define INSN_ISA32R3              8
 #define INSN_ISA32R5              9
 #define INSN_ISA32R6              10
-#define INSN_ISA32R7              11
+#define INSN_ISAN32R6             11
 #define INSN_ISA64                12
 #define INSN_ISA64R2              13
 #define INSN_ISA64R3              14
 #define INSN_ISA64R5              15
 #define INSN_ISA64R6              16
-#define INSN_ISA64R7              17
+#define INSN_ISAN64R6             17
 /* Below this point the INSN_* values correspond to combinations of ISAs.
    They are only for use in the opcodes table to indicate membership of
    a combination of ISAs that cannot be expressed using the usual inclusion
@@ -1279,13 +1279,13 @@ static const unsigned int mips_isa_table[] = {
   INSN_UPTO32R3,
   INSN_UPTO32R5,
   INSN_UPTO32R6,
-  ISAF(32R7),
+  ISAF(N32R6),
   INSN_UPTO64,
   INSN_UPTO64R2,
   INSN_UPTO64R3,
   INSN_UPTO64R5,
   INSN_UPTO64R6,
-  ISAF(32R7) | ISAF(64R7)
+  ISAF(N32R6) | ISAF(N64R6)
 };
 #undef ISAF
 
@@ -1371,7 +1371,7 @@ static const unsigned int mips_isa_table[] = {
 /* MIPS16e2 MT ASE instructions.  */
 #define ASE_MIPS16E2_MT		0x00080000
 /* Low Power instructions on nanoMIPS.  */
-#define ASE_XLP			0x02000000
+#define ASE_xNMS			0x02000000
 /* TLB control instructions on nanoMIPS.  */
 #define ASE_TLB			0x04000000
 
@@ -1395,8 +1395,8 @@ static const unsigned int mips_isa_table[] = {
 #define       ISA_MIPS32R6    INSN_ISA32R6
 #define       ISA_MIPS64R6    INSN_ISA64R6
 
-#define       ISA_MIPS32R7    INSN_ISA32R7
-#define       ISA_MIPS64R7    INSN_ISA64R7
+#define       ISA_NANOMIPS32R6	INSN_ISAN32R6
+#define       ISA_NANOMIPS64R6	INSN_ISAN64R6
 
 /* CPU defines, use instead of hardcoding processor number. Keep this
    in sync with bfd/archures.c in order for machine selection to work.  */
@@ -1430,14 +1430,14 @@ static const unsigned int mips_isa_table[] = {
 #define CPU_MIPS32R3	34
 #define CPU_MIPS32R5	36
 #define CPU_MIPS32R6	37
-#define CPU_MIPS32R7	38
+#define CPU_NANOMIPS32R6 38
 #define CPU_MIPS5       5
 #define CPU_MIPS64      64
 #define CPU_MIPS64R2	65
 #define CPU_MIPS64R3	66
 #define CPU_MIPS64R5	68
 #define CPU_MIPS64R6	69
-#define CPU_MIPS64R7	70
+#define CPU_NANOMIPS64R6 70
 #define CPU_SB1         12310201        /* octal 'SB', 01.  */
 #define CPU_LOONGSON_2E 3001
 #define CPU_LOONGSON_2F 3002
@@ -1524,12 +1524,12 @@ cpu_is_member (int cpu, unsigned int mask)
       return ((mask & INSN_ISA_MASK) == INSN_ISA32R6)
 	     || ((mask & INSN_ISA_MASK) == INSN_ISA64R6);
 
-    case CPU_MIPS32R7:
-      return (mask & INSN_ISA_MASK) == INSN_ISA32R7;
+    case CPU_NANOMIPS32R6:
+      return (mask & INSN_ISA_MASK) == INSN_ISAN32R6;
 
-    case CPU_MIPS64R7:
-      return ((mask & INSN_ISA_MASK) == INSN_ISA32R7)
-	     || ((mask & INSN_ISA_MASK) == INSN_ISA64R7);
+    case CPU_NANOMIPS64R6:
+      return ((mask & INSN_ISA_MASK) == INSN_ISAN32R6)
+	     || ((mask & INSN_ISA_MASK) == INSN_ISAN64R6);
 
     default:
       return FALSE;

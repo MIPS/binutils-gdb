@@ -1,7 +1,7 @@
 #objdump: -dr --prefix-addresses --show-raw-insn -M reg-names=numeric
 #name: MIPS32r2 fp instructions on nanoMIPS
 #source: mips32r2-fp32.s
-#as: -p32
+#as: -m32
 
 # Check MIPS32 Release 2 (mips32r2) FP instruction assembly (nanoMIPS).
 

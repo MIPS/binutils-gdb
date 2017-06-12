@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: nanoMIPS MIPS32 WAIT and SDBBP instructions
-#as: -p32
+#as: -m32
 #source: mips32-imm.s
 
 # Check MIPS32 WAIT and SDBBP instruction assembly for nanoMIPS

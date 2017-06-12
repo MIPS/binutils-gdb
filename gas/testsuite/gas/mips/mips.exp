@@ -518,24 +518,28 @@ mips_arch_create micromipsr6 64	mips64r6 {} \
 			{ -march=mips64r6 -mmicromips --defsym r6= --defsym compact_branches=} {}
 mips_arch_create nanomips32r6 32	mips32r6 \
 			{ fpisa3 fpisa4 fpisa5 ror micromips nanomipsr6 nanomips_broken } \
-			{ -march=mips32r7 -mnanomips --defsym nanomips= -mlegacyregs \
+			{ -march=32r6 --defsym nanomips= -mlegacyregs \
 			      --defsym nanomips_broken= --defsym compact_branches= } {}
 mips_arch_create nanomips64r6 64	mips64r6  \
 			{ nanomips32r6 ror micromips nanomipsr6 nanomips_broken   \
 			skip_n32 nmips64_broken } \
-			{ -march=mips64r7 -mnanomips --defsym nanomips= -mlegacyregs \
+			{ -march=64r6 --defsym nanomips= -mlegacyregs \
 			      --defsym nanomips_broken= --defsym compact_branches=} {}
 mips_arch_create nanomips32 32	{} \
 			{ nanomips nanomipsr6 nanomips_broken } \
-			{ -march=mips32r7 -mnanomips --defsym nanomips= \
+			{ -march=32r6 --defsym nanomips= \
+			      --defsym nanomips_broken= --defsym compact_branches=} {}
+mips_arch_create nanomips32s 32	{} \
+			{ nanomipsr6 nanomips_broken } \
+			{ -march=32r6s --defsym nanomips= \
 			      --defsym nanomips_broken= --defsym compact_branches=} {}
 mips_arch_create nanomips64 64	{} \
 			{ nanomips nanomipsr6 nanomips_broken   \
 			skip_n32 nmips64_broken } \
-			{ -march=mips64r7 -mnanomips --defsym nanomips= \
+			{ -march=64r6 --defsym nanomips= \
 			      --defsym nanomips_broken= --defsym compact_branches=} {}
-mips_arch_create m7001 32	{} {nanomips_broken} { -march=m7001 -mnanomips } {}
-mips_arch_create i7001 32	{} {nanomips_broken} { -march=i7001 -mnanomips } {}
+mips_arch_create m7001 32	{} {nanomips_broken} { -march=m7001 } {}
+mips_arch_create i7001 32	{} {nanomips_broken} { -march=i7001 } {}
 mips_arch_create r3000 	32	mips1	{} \
 			{ -march=r3000 -mtune=r3000 } { -mmips:3000 }
 mips_arch_create r3900 	32	mips1	{ gpr_ilocks } \
@@ -604,18 +608,18 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test_arches "dot-1"	[mips_arch_list_matching mips1]
     run_dump_test_arches "abs"		[mips_arch_list_matching mips1]
     run_dump_test_arches "add"		[mips_arch_list_matching mips1]
-    run_dump_test_arches "and"		[mips_arch_list_matching mips1]
+    run_dump_test_arches "and"		[mips_arch_list_matching mips1 !nanomipsr6]
     run_dump_test_arches "mips1-fp"	[mips_arch_list_matching mips1]
     run_list_test_arches "mips1-fp" "-32 -msoft-float" \
 					[mips_arch_list_matching mips1 !nanomipsr6]
     run_dump_test "break20"
     run_dump_test "trap20"
 
-    run_dump_test_arches "beq"		[mips_arch_list_matching mips1]
-    run_dump_test_arches "bge"		[mips_arch_list_matching mips1]
-    run_dump_test_arches "bgeu"		[mips_arch_list_matching mips1]
-    run_dump_test_arches "blt"		[mips_arch_list_matching mips1]
-    run_dump_test_arches "bltu"		[mips_arch_list_matching mips1]
+    run_dump_test_arches "beq"		[mips_arch_list_matching mips1 !nanomipsr6]
+    run_dump_test_arches "bge"		[mips_arch_list_matching mips1 !nanomipsr6]
+    run_dump_test_arches "bgeu"		[mips_arch_list_matching mips1 !nanomipsr6]
+    run_dump_test_arches "blt"		[mips_arch_list_matching mips1 !nanomipsr6]
+    run_dump_test_arches "bltu"		[mips_arch_list_matching mips1 !nanomipsr6]
     run_dump_test_arches "branch-likely" [mips_arch_list_matching mips2 \
 					      !mips32r6 !micromipsr6 !nanomipsr6]
     run_dump_test_arches "branch-misc-1" [mips_arch_list_matching mips1]
@@ -761,13 +765,13 @@ if { [istarget mips*-*-vxworks*] } {
 					[mips_arch_list_matching mips3 !singlefloat !nmips64_broken]
     }
     run_dump_test_arches "ld-zero"	[mips_arch_list_matching mips1]
-    run_dump_test_arches "ld-zero-2"	[mips_arch_list_matching mips2 !nollsc]
+    run_dump_test_arches "ld-zero-2"	[mips_arch_list_matching mips2 !nollsc !nanomipsr6]
     run_dump_test_arches "ld-zero-3"	[mips_arch_list_matching mips3 !nollsc !nmips64_broken]
     run_dump_test_arches "ld-zero-u"	[mips_arch_list_matching micromips !nanomipsr6]
     run_dump_test_arches "ld-zero-q"	[mips_arch_list_matching r5900]
     run_dump_test "ld-svr4pic"
     run_dump_test "ld-xgot"
-    run_dump_test_arches "li"		[mips_arch_list_matching mips1]
+    run_dump_test_arches "li"		[mips_arch_list_matching mips1 !nanomipsr6]
     run_dump_test "lifloat"
     run_dump_test "lif-svr4pic"
     run_dump_test "lif-xgot"
@@ -823,7 +827,7 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test "mips16-macro"
     # Check MIPS16e extensions
     run_dump_test_arches "mips16e" [mips_arch_list_matching mips32 !micromips \
-					!mips32r6 !mipsr7]
+					!mips32r6 !nanomipsr6]
     # Check jalx handling
     run_dump_test "mips16-jalx"
     run_dump_test "mips-jalx"
@@ -903,13 +907,13 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test "relax-swap1-mips1"
     run_dump_test "relax-swap1-mips2"
     run_dump_test "relax-swap2"
-    run_dump_test_arches "relax-swap3"	[mips_arch_list_all]
+    run_dump_test_arches "relax-swap3"	[mips_arch_list_matching !nanomipsr6 !i7001]
     run_list_test_arches "relax-bc1any" "-mips3d -mabi=o64 -relax-branch" \
 					[mips_arch_list_matching mips64 \
-					    !micromips !mips32r6 !mipsr7]
+					    !micromips !mips32r6 !nanomipsr6]
     run_list_test_arches "relax-bposge" "-mdsp -relax-branch" \
 					[mips_arch_list_matching mips64r2 \
-					    !micromips !mips32r6 !mipsr7]
+					    !micromips !mips32r6 !nanomipsr6]
 
     run_dump_test_arches "eva"		[mips_arch_list_matching mips32r2 !octeon]
 
@@ -1040,14 +1044,14 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test "tls-relw"
     run_dump_test "jalr2"
     run_dump_test_arches "jalr3"	[mips_arch_list_matching mips1 \
-					    !micromips !micromipsr6 !mipsr7]
+					    !micromips !micromipsr6 !nanomipsr6]
     if $has_newabi {
 	run_dump_test_arches "jalr3-n32" \
 					[mips_arch_list_matching mips3 \
-					    !micromips !micromipsr6 !mipsr7]
+					    !micromips !micromipsr6 !nanomipsr6]
 	run_dump_test_arches "jalr3-n64" \
 					[mips_arch_list_matching mips3 \
-					    !micromips !micromipsr6 !mipsr7]
+					    !micromips !micromipsr6 !nanomipsr6]
     }
 
     run_dump_test_arches "aent"	[mips_arch_list_matching mips1]
@@ -1322,7 +1326,7 @@ if { [istarget mips*-*-vxworks*] } {
     }
 
     # Start with MIPS II to avoid load delay nops.
-    run_dump_test_arches "ld-reloc"	[mips_arch_list_matching mips2 !nmips64_broken]
+    run_dump_test_arches "ld-reloc"	[mips_arch_list_matching mips2 !nanomipsr6]
     run_dump_test_arches "ulw-reloc"	[mips_arch_list_matching mips2 !mips32r6]
     run_dump_test_arches "ulh-reloc"	[mips_arch_list_matching mips2 !mips32r6]
 
@@ -1529,11 +1533,11 @@ if { [istarget mips*-*-vxworks*] } {
 			[mips_arch_list_matching oddspreg]
     run_dump_test_arches "odd-spreg" "-mfp32" [mips_arch_list_matching oddspreg]
     run_dump_test_arches "odd-spreg" "-mfpxx" [mips_arch_list_matching oddspreg]
-    run_dump_test_arches "odd-spreg" "-mfp64" [mips_arch_list_matching mips32r2]
+    run_dump_test_arches "odd-spreg" "-mfp64" [mips_arch_list_matching mips32r2 !nanomipsr6]
     run_dump_test_arches "no-odd-spreg" "-mfp32" [mips_arch_list_matching mips1 \
 							!mips32r6]
-    run_dump_test_arches "no-odd-spreg" "-mfpxx" [mips_arch_list_matching mips2 !r5900]
-    run_dump_test_arches "no-odd-spreg" "-mfp64" [mips_arch_list_matching mips32r2]
+    run_dump_test_arches "no-odd-spreg" "-mfpxx" [mips_arch_list_matching mips2 !r5900 !nanomipsr6]
+    run_dump_test_arches "no-odd-spreg" "-mfp64" [mips_arch_list_matching mips32r2 !nanomipsr6]
     run_dump_test "module-check"
     run_list_test "module-check-warn" "-32"
 
@@ -1579,27 +1583,17 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test_arches "nanomips" [mips_arch_list_matching nanomips]
     run_dump_test_arch "nanomips-ctc" "" nanomips32
     run_dump_test_arch "nanomips-relax" "" nanomips32
-    run_dump_test_arch "nanomips-noxlp" "-mno-xlp" nanomips32
     run_dump_test_arch "nanomips-save" "" nanomips32
     run_dump_test_arches "exp-relocs" [mips_arch_list_matching nanomips]
     run_dump_test_arch "nanomips-exc" "" nanomips32
 
-    run_dump_test_arches "addu" "" [mips_arch_list_matching nanomips]
+    run_dump_test_arches "addu" "" [mips_arch_list_matching nanomips32s]
     run_dump_test_arches "la" "-mlegacyregs" [mips_arch_list_matching nanomips]
-    run_dump_test_arches "la-no-xlp" "-mno-xlp -mlegacyregs" \
-	[mips_arch_list_matching nanomips]
-    run_dump_test_arches "la-svr4pic" "-mno-xlp -mlegacyregs" \
-				[mips_arch_list_matching nanomips]
-    run_dump_test_arches "ld-svr4pic" "-mno-xlp -mlegacyregs" \
-				[mips_arch_list_matching nanomips !nmips64_broken]
-    run_dump_test_arches "mips-abi32" "-mno-xlp -mlegacyregs" \
-				[mips_arch_list_matching nanomips]
-    run_dump_test_arches "mips-abi32-pic" "-KPIC -mlegacyregs" \
-				[mips_arch_list_matching nanomips]
+    run_dump_test_arch "mips-abi32-pic" "-KPIC -mlegacyregs" nanomips32s
     run_dump_test_arches "mips-abi32-pic2" "-KPIC -mlegacyregs" \
 				[mips_arch_list_matching nanomips]
-    run_dump_test_arches "mips-gp32-fp64-pic" "-mgp32 -mfp64 -KPIC -mlegacyregs" \
-				[mips_arch_list_matching nanomips]
+    run_dump_test_arch "mips-gp32-fp64-pic" "-mgp32 -mfp64 -KPIC -mlegacyregs" \
+				nanomips32s
     run_dump_test_arches "mips32-mt" "-mmt -mlegacyregs" [mips_arch_list_matching nanomips]
     run_list_test_arches "nanomips-error" [mips_arch_list_matching nanomips]
 
@@ -1616,30 +1610,14 @@ if { [istarget mips*-*-vxworks*] } {
 
     run_dump_test_arches "debug-dis" [mips_arch_list_matching nanomips]
 
-    run_dump_test_arch "elf_arch_mips32r7" "" nanomips32
-    run_dump_test_arch "elf_arch_mips64r7" "" nanomips64
+    run_dump_test_arch "elf_arch_nanomips32r6" "" nanomips32
+    run_dump_test_arch "elf_arch_nanomips32r6s" "" nanomips32s
+    run_dump_test_arch "elf_arch_nanomips64r6" "" nanomips64
     run_dump_test_arch "elf_arch_i7001" "" i7001
     run_dump_test_arch "elf_arch_m7001" "" m7001
     run_list_test_arches "isa-errors" "" [mips_arch_list_matching nanomips]
     run_dump_test_arches "relax-addiu" "" [mips_arch_list_matching nanomips]
     run_list_test_arches "nanomips-ctc-err" "" [mips_arch_list_matching nanomips]
-    run_dump_test_opts "nanomips-tlb" \
-	{"-mxlp" "-mtlb" "-mxlp -mtlb"  "-mno-xlp -mtlb"} \
-	[mips_arch_list_matching nanomips]
-    run_dump_test_arch "nanomips-tlb" "-mtlb" m7001
-    run_list_test_opts "nanomips-tlb" \
-	{"-mno-xlp" "-mno-tlb" "-mxlp -mno-tlb"} \
-	[mips_arch_list_matching nanomips]
-    run_list_test_arch "nanomips-tlb" "" m7001
-
-    run_dump_test_opts "nanomips-tlbg" \
-	{"-mvirt -mxlp" "-mvirt -mtlb" "-mvirt -mxlp -mtlb"  "-mvirt -mno-xlp -mtlb"} \
-	[mips_arch_list_matching nanomips]
-    run_dump_test_arch "nanomips-tlbg" "-mvirt -mtlb" m7001
-    run_list_test_opts "nanomips-tlbg" \
-	{"-mvirt -mno-xlp" "-mvirt -mno-tlb" "-mvirt -mxlp -mno-tlb" "-mno-virt -mtlb"} \
-	[mips_arch_list_matching nanomips]
-    run_list_test_arch "nanomips-tlbg" "" m7001
 
     run_dump_test_arches "linkrelax" [mips_arch_list_matching micromipsr6]
     run_dump_test_arches "linkrelax" "-mlegacyregs" [mips_arch_list_matching nanomips]
@@ -1652,5 +1630,36 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test_arches "nolinkrelax-el" [mips_arch_list_matching micromips]
     run_dump_test_arches "nolinkrelax-relocs" [mips_arch_list_matching micromips]
     run_dump_test_arches "nolinkrelax-relocs" "-mlegacyregs" [mips_arch_list_matching nanomips]
+
+    run_dump_test_arch "nanomips-noxlp" "" nanomips32s
+    run_dump_test_arch "la-no-xlp"  "-mlegacyregs" nanomips32s
+    run_dump_test_arch "la-svr4pic" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "ld-svr4pic" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "mips-abi32" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "and" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "beq" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "bge" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "bgeu" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "blt" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "bltu" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "ld-reloc" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "ld-zero-2" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "li" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "relax-swap3" "-mlegacyregs" nanomips32s
+
+    run_dump_test_arches "nanomips-tlb" "-mtlb" [mips_arch_list_matching nanomips32]
+    run_dump_test_arch "nanomips-tlb" "-mtlb" m7001
+    run_list_test_arches "nanomips-tlb" "-mno-tlb" \
+	[mips_arch_list_matching nanomips32]
+    run_list_test_arch "nanomips-tlb" "" m7001
+
+    run_dump_test_opts "nanomips-tlbg" \
+	{"-mvirt" "-mvirt -mtlb"} \
+	[mips_arch_list_matching nanomips]
+    run_dump_test_arch "nanomips-tlbg" "-mvirt -mtlb" m7001
+    run_list_test_opts "nanomips-tlbg" \
+	{"-mvirt -mno-tlb" "-mno-virt -mtlb"} \
+	[mips_arch_list_matching nanomips]
+    run_list_test_arch "nanomips-tlbg" "" m7001
 
 }

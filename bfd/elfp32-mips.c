@@ -528,7 +528,7 @@ static reloc_howto_type elf_nanomips_howto_table_rela[] =
 	 0,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 12,			/* bitsize */
-	 TRUE,			/* pc_relative */
+	 FALSE,			/* pc_relative */
 	 2,			/* bitpos */
 	 complain_overflow_dont, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc, /* special_function */
@@ -1055,7 +1055,7 @@ static const struct elf_reloc_map nanomips_reloc_map[] =
   { BFD_RELOC_NANOMIPS_GPREL18, R_NANOMIPS_GPREL18 },
   { BFD_RELOC_NANOMIPS_GPREL19_S2, R_NANOMIPS_GPREL19_S2 },
   { BFD_RELOC_NANOMIPS_4_PCREL_S1,R_NANOMIPS_PC4_S1 },
-  { BFD_RELOC_NANOMIPS_HI20_PCREL, R_NANOMIPS_PCHI20 },
+  { BFD_RELOC_NANOMIPS_PCREL_HI20, R_NANOMIPS_PCHI20 },
   { BFD_RELOC_NANOMIPS_GPREL16_S2, R_NANOMIPS_GPREL16_S2 },
   { BFD_RELOC_NANOMIPS_GPREL18_S3, R_NANOMIPS_GPREL18_S3 },
   { BFD_RELOC_NANOMIPS_CALL, R_NANOMIPS_CALL },
@@ -1064,6 +1064,7 @@ static const struct elf_reloc_map nanomips_reloc_map[] =
   { BFD_RELOC_NANOMIPS_GOT_OFST, R_NANOMIPS_GOT_OFST },
   { BFD_RELOC_NANOMIPS_GOTPC_HI20, R_NANOMIPS_GOTPC_HI20 },
   { BFD_RELOC_NANOMIPS_GOT_LO12, R_NANOMIPS_GOT_LO12 },
+  { BFD_RELOC_NANOMIPS_GOTPC_I32, R_NANOMIPS_GOTPC_I32 },
   { BFD_RELOC_NANOMIPS_I32, R_NANOMIPS_I32 },
   { BFD_RELOC_NANOMIPS_GPREL_HI20, R_NANOMIPS_GPREL_HI20 },
   { BFD_RELOC_NANOMIPS_HI32, R_NANOMIPS_HI32 },

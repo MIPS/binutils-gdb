@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: nanoMIPS beq
-#as: -p32 -mno-xlp
+#as: -m32
 #source: beq.s
 
 # Test the beq macro on nanoMIPS

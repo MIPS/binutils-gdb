@@ -1,7 +1,7 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: nanoMIPS branch-misc-2pic
 #source: branch-misc-2.s
-#as: -p32 -call_shared
+#as: -m32 -call_shared
 
 # Test the backward branches to global symbols in current file (nanoMIPS).
 

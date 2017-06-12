@@ -1,7 +1,7 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: nanoMIPS ELF jal
 #source: jal.s
-#as: -p32
+#as: -m32
 
 # Test the jal macro (nanoMIPS).
 

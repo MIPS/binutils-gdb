@@ -1,6 +1,6 @@
 #objdump: -dr --show-raw-insn --prefix-addresses
 #name: MCU for nanoMIPS
-#as: -p32
+#as: -m32
 #source: mcu.s
 
 .*: +file format .*mips.*

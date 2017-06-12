@@ -135,19 +135,19 @@ END_RELOC_NUMBERS (R_NANOMIPS_maxext)
 /* Four bit MIPS architecture field.  */
 #define EF_NANOMIPS_ARCH		0xf0000000
 
-/* -mips32r7 code.  */
-#define E_NANOMIPS_ARCH_32R7        0xb0000000
+/* -mnanomips32r6 code.  */
+#define E_NANOMIPS_ARCH_32R6        0xb0000000
 
-/* -mips64r7 code.  */
-#define E_NANOMIPS_ARCH_64R7        0xc0000000
+/* -mnanomips64r6 code.  */
+#define E_NANOMIPS_ARCH_64R6        0xc0000000
 
 /* The ABI of the file.  Also see EF_NANOMIPS_ABI2 above. */
 #define EF_NANOMIPS_ABI		0x0000F000
 
-/* R7 ABI in 32 bit mode */
+/* nanoMIPS ABI in 32 bit mode */
 #define E_NANOMIPS_ABI_P32       0x00005000
 
-/* R7 ABI in 64 bit mode */
+/* nanoMIPS ABI in 64 bit mode */
 #define E_NANOMIPS_ABI_P64       0x00006000
 
 /* Machine variant if we know it.  This field was invented at Cygnus,

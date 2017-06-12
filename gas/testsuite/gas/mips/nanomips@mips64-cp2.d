@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: MIPS MIPS64 cop2 instructions
-#as: -p32
+#as: -m32
 #source: mips64-cp2.s
 
 # Check MIPS64 cop2 instruction assembly

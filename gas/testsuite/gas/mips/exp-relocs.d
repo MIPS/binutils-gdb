@@ -43,4 +43,40 @@ Disassembly of section \.text:
   [0-9a-f]+:	6082 0000 	addiu	a0,gp,0
   [0-9a-f]+:	0000 
 			[0-9a-f]+: R_NANOMIPS_GPREL_I32	test
+  [0-9a-f]+:	0084 0000 	addiu	a0,a0,0
+			[0-9a-f]+: R_NANOMIPS_LO12	test
+  [0-9a-f]+:	4080 0002 	lw	a0,0\(gp\)
+			[0-9a-f]+: R_NANOMIPS_CALL	test
+  [0-9a-f]+:	4080 0002 	lw	a0,0\(gp\)
+			[0-9a-f]+: R_NANOMIPS_GOT_DISP	test
+  [0-9a-f]+:	4080 0002 	lw	a0,0\(gp\)
+			[0-9a-f]+: R_NANOMIPS_GOT_PAGE	test
+  [0-9a-f]+:	849c 8000 	lw	a0,0\(gp\)
+			[0-9a-f]+: R_NANOMIPS_GOT_OFST	test
+  [0-9a-f]+:	4080 0002 	lw	a0,0\(gp\)
+			[0-9a-f]+: R_NANOMIPS_GOT_DISP	test
+  [0-9a-f]+:	e080 0000 	lui	a0,0x0
+			[0-9a-f]+: R_NANOMIPS_GPREL_HI20	test
+  [0-9a-f]+:	0084 0000 	addiu	a0,a0,0
+			[0-9a-f]+: R_NANOMIPS_LO12	test
+  [0-9a-f]+:	6082 0000 	addiu	a0,gp,0
+  [0-9a-f]+:	0000 
+			[0-9a-f]+: R_NANOMIPS_GPREL_I32	test
+  [0-9a-f]+:	e080 0000 	lui	a0,0x0
+			[0-9a-f]+: R_NANOMIPS_HI20	test
+  [0-9a-f]+:	0084 0000 	addiu	a0,a0,0
+			[0-9a-f]+: R_NANOMIPS_LO12	test
+  [0-9a-f]+:	e080 0002 	aluipc	a0,0 <test>
+			[0-9a-f]+: R_NANOMIPS_PCHI20	test
+  [0-9a-f]+:	0084 0000 	addiu	a0,a0,0
+			[0-9a-f]+: R_NANOMIPS_LO12	test
+  [0-9a-f]+:	e080 0002 	aluipc	a0,0 <test>
+			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	test
+  [0-9a-f]+:	0084 0000 	addiu	a0,a0,0
+			[0-9a-f]+: R_NANOMIPS_GOT_LO12	test
+  [0-9a-f]+:	0084 0000 	addiu	a0,a0,0
+			[0-9a-f]+: R_NANOMIPS_GOT_LO12	test
+  [0-9a-f]+:	608b 0000 	lwpc	a0,0 <test>
+  [0-9a-f]+:	0000 
+			[0-9a-f]+: R_NANOMIPS_GOTPC_I32	test
   [0-9a-f]+:	9008      	nop

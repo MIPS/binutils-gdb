@@ -1,5 +1,5 @@
 #objdump: -dr --prefix-addresses
-#as: -p32 -mno-xlp
+#as: -m32
 #name: nanoMIPS II load $zero
 #source: ld-zero-2.s
 

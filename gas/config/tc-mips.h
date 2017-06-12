@@ -43,10 +43,6 @@ struct expressionS;
 #define TC_ADDRESS_BYTES mips_address_bytes
 extern int mips_address_bytes (void);
 
-/* Maximum symbol offset that can be encoded in a BFD_RELOC_GPREL16
-   relocation.  */
-#define MAX_GPREL_OFFSET (ISA_IS_R7 (mips_opts.isa) ? 0x1fffc : 0x7FF0)
-
 #define md_relax_frag(segment, fragp, stretch) \
   mips_relax_frag(segment, fragp, stretch)
 extern int mips_relax_frag (asection *, struct frag *, long);
@@ -192,7 +188,7 @@ extern int tc_mips_regname_to_dw2regnum (char *regname);
 #define DIFF_EXPR_OK
 /* We define DIFF_EXPR_OK because of R_MIPS_PC32, but we have no
    64-bit form for n64 CFIs.  */
-#define CFI_DIFF_EXPR_OK 0
+#define CFI_DIFF_EXPR_OK linkrelax
 
 #define CONVERT_SYMBOLIC_ATTRIBUTE(name) mips_convert_symbolic_attribute (name)
 extern int mips_convert_symbolic_attribute (const char *);

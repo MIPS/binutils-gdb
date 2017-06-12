@@ -1,5 +1,5 @@
 #objdump: -dr --prefix-addresses
-#as: -p32
+#as: -m32
 #name: nanoMIPS ld
 #source: ld.s
 

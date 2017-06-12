@@ -37,16 +37,16 @@
     return &op.root; \
   }
 
-#define SINT_SPLIT(SIZE, LSB, SHIFT, SIZE_TOP, LSB_TOP)	\
+#define SINT_SPLIT(SIZE, LSB, SHIFT, SIZE_TOP, LSB_TOP, BIAS)	\
   { \
     static const struct mips_int_operand op = { \
       { OP_INT, SIZE, LSB, SIZE_TOP, LSB_TOP }, \
-      (1 << ((SIZE) -1)) - 1, 0, SHIFT, 0	\
+      (1 << ((SIZE) -1)) - 1, BIAS, SHIFT, 0	\
     }; \
     return &op.root; \
   }
 
-#define IMM_SINT_SPLIT(SIZE, LSB, SIZE_TOP, LSB_TOP, SHIFT, BIAS) \
+#define IMM_SINT_SPLIT(SIZE, LSB, SHIFT, SIZE_TOP, LSB_TOP, BIAS) \
   { \
     static const struct mips_int_operand op = { \
       { OP_IMM_INT, SIZE, LSB, SIZE_TOP, LSB_TOP }, \

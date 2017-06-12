@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: nanoMIPS relaxed macro with branch swapping
-#as: -p32 -mno-xlp -mlegacyregs
+#as: -m32 -mlegacyregs
 #source: relax-swap3.s
 
 .*: +file format .*mips.*

@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: nanoMIPS bltu
-#as: -p32 -mno-xlp
+#as: -m32
 #source: bltu.s
 
 # Test the bltu macro.

@@ -1,6 +1,6 @@
-#as: -p32 -mno-xlp
+#as: -m32
 #objdump: -dr --prefix-addresses --show-raw-insn -Mgpr-names=numeric
-#name: LD with relocation operators for R7
+#name: LD with relocation operators for nanoMIPS
 #source: ld-reloc.s
 
 .*file format.*

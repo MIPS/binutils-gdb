@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: nanoMIPS blt
-#as: -p32 -mno-xlp
+#as: -m32
 #source: blt.s
 
 # Test the blt macro.

@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: nanoMIPS jal-svr4pic noreorder
-#as: -p32 -KPIC
+#as: -m32 -KPIC
 #source: jal-svr4pic-noreorder.s
 
 # Test the jal macro with -KPIC and `.set noreorder' for nanoMIPS.

@@ -1,5 +1,5 @@
 #objdump: -M reg-names=numeric -dr --show-raw-insn --prefix-addresses
-#as: -p32
+#as: -m32
 #name: MIPS1 FP instructions
 #source: mips1-fp.s
 

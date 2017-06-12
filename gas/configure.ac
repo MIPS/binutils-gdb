@@ -220,9 +220,6 @@ changequote([,])dnl
 	  mipsisa32r6 | mipsisa32r6el)
 	    mips_cpu=mips32r6
 	    ;;
-	  mipsisa32r7 | mipsisa32r7el)
-	    mips_cpu=mips32r7
-	    ;;
 	  mipsisa64 | mipsisa64el)
 	    mips_cpu=mips64
 	    ;;
@@ -237,9 +234,6 @@ changequote([,])dnl
 	    ;;
 	  mipsisa64r6 | mipsisa64r6el)
 	    mips_cpu=mips64r6
-	    ;;
-	  mipsisa64r7 | mipsisa64r7el)
-	    mips_cpu=mips64r7
 	    ;;
 	  mipstx39 | mipstx39el)
 	    mips_cpu=r3900
@@ -274,6 +268,12 @@ changequote([,])dnl
 changequote(,)dnl
 	    mips_cpu=`echo $target_cpu | sed -e 's/^mips//' -e 's/el$//'`
 changequote([,])dnl
+	    ;;
+	  nanomipsisa32r6 | nanomipsisa32r6el)
+	    mips_cpu=nanomips32r6
+	    ;;
+	  nanomipsisa64r6 | nanomipsisa64r6el)
+	    mips_cpu=nanomips64r6
 	    ;;
 	  *)
 	    AC_MSG_ERROR($target_cpu isn't a supported MIPS CPU name)

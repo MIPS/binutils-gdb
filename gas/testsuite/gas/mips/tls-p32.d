@@ -1,6 +1,6 @@
 #objdump: -dr
 #name: nanoMIPS ELF TLS p32
-#as: -p32
+#as: -m32
 
 dump.o:     file format .*
 

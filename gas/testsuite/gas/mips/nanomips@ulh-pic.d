@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: nanoMIPS ulh-svr4pic
-#as: -p32 -KPIC
+#as: -m32 -KPIC
 #source: ulh-pic.s
 
 # Test the unaligned load and store macros with -KPIC for nanoMIPS.

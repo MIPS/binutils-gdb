@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: nanoMIPS lui
-#as: -p32
+#as: -m32
 #source: lui.s
 
 .*: +file format .*mips.*

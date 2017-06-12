@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses  --show-raw-insn -Mvirt,cp0-names=mips64r2
 #name: virt64 instructions
-#as: -p64 -mvirt
+#as: -m64 -mvirt
 #source: virt64.s
 
 .*: +file format .*mips.*

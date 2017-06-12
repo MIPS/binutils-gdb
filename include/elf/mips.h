@@ -1244,7 +1244,7 @@ extern void bfd_mips_elf_swap_abiflags_v0_out
 #define AFL_ASE_XPA          0x00001000 /* XPA ASE.  */
 #define AFL_ASE_DSPR3        0x00002000 /* DSP R3 ASE.  */
 #define AFL_ASE_MIPS16E2     0x00004000 /* MIPS16 E2 Extension.  */
-#define AFL_ASE_XLP          0x00040000 /* XLP ASE.  */
+#define AFL_ASE_xNMS         0x00040000 /* not nanoMIPS Subset.  */
 #define AFL_ASE_TLB          0x00080000 /* TLB ASE.  */
 #define AFL_ASE_MASK         0x000fffff /* All ASEs.  */
 

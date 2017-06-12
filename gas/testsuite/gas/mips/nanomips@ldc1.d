@@ -1,5 +1,5 @@
 #objdump: -dr --prefix-addresses
-#as: -p32 --defsym tldc1=1
+#as: -m32 --defsym tldc1=1
 #name: nanoMIPS ldc1
 #source: ld.s
 

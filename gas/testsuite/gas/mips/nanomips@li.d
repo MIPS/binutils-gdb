@@ -1,7 +1,7 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: nanoMIPS li
 #source: li.s
-#as: -p32 -mno-xlp
+#as: -m32
 
 # Test the li macro (nanoMIPS).
 

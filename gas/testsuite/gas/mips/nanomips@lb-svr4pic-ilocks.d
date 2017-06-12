@@ -1,7 +1,7 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: MIPS lb-svr4pic-ilocks
 #source: lb-pic.s
-#as: -p32 -KPIC
+#as: -m32 -KPIC
 
 # Test the lb macro with -KPIC (nanoMIPS).
 

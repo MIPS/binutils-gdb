@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: nanoMIPS jal-svr4pic
-#as: -p32 -KPIC
+#as: -m32 -KPIC
 #source: jal-svr4pic.s
 
 # Test the jal macro with -KPIC for nanoMIPS.

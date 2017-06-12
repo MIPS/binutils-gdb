@@ -128,8 +128,8 @@ test:
 	sw	$r17,16($r28)
 	sw16	$r17,16($r28)
 	sw16	$r17,%gp_rel(test)($r28)
-	lapc $r5,test
-	lapc $r5,test2
+	lapc 	$r5,test
+	lapc 	$r5,test2
 	.set at
 	pref 	4,4000($r3)
 	pref 	4,-30($r3)
