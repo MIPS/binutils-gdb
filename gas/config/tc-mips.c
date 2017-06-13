@@ -3121,39 +3121,39 @@ struct regname {
     {"$ra",	RTYPE_GP | 31}
 
 #define NANOMIPS_NUMERIC_REG_NAMES \
-    {"r0",	RTYPE_GP | 0},  \
-    {"r1",	RTYPE_GP | 1},  \
-    {"r2",	RTYPE_GP | 2},  \
-    {"r3",	RTYPE_GP | 3},  \
-    {"r4",	RTYPE_GP | 4},  \
-    {"r5",	RTYPE_GP | 5},  \
-    {"r6",	RTYPE_GP | 6},  \
-    {"r7",	RTYPE_GP | 7},  \
-    {"r8",	RTYPE_GP | 8},  \
-    {"r9",	RTYPE_GP | 9},  \
-    {"r10",	RTYPE_GP | 10}, \
-    {"r11",	RTYPE_GP | 11}, \
-    {"r12",	RTYPE_GP | 12}, \
-    {"r13",	RTYPE_GP | 13}, \
-    {"r14",	RTYPE_GP | 14}, \
-    {"r15",	RTYPE_GP | 15}, \
-    {"r16",	RTYPE_GP | 16}, \
-    {"r17",	RTYPE_GP | 17}, \
-    {"r18",	RTYPE_GP | 18}, \
-    {"r19",	RTYPE_GP | 19}, \
-    {"r20",	RTYPE_GP | 20}, \
-    {"r21",	RTYPE_GP | 21}, \
-    {"r22",	RTYPE_GP | 22}, \
-    {"r23",	RTYPE_GP | 23}, \
-    {"r24",	RTYPE_GP | 24}, \
-    {"r25",	RTYPE_GP | 25}, \
-    {"r26",	RTYPE_GP | 26}, \
-    {"r27",	RTYPE_GP | 27}, \
-    {"r28",	RTYPE_GP | 28}, \
-    {"r29",	RTYPE_GP | 29}, \
-    {"r30",	RTYPE_GP | 30}, \
-    {"r31",	RTYPE_GP | 30}, \
-    {"r32",	RTYPE_GP | 31}
+    {"$r0",	RTYPE_GP | 0},  \
+    {"$r1",	RTYPE_GP | 1},  \
+    {"$r2",	RTYPE_GP | 2},  \
+    {"$r3",	RTYPE_GP | 3},  \
+    {"$r4",	RTYPE_GP | 4},  \
+    {"$r5",	RTYPE_GP | 5},  \
+    {"$r6",	RTYPE_GP | 6},  \
+    {"$r7",	RTYPE_GP | 7},  \
+    {"$r8",	RTYPE_GP | 8},  \
+    {"$r9",	RTYPE_GP | 9},  \
+    {"$r10",	RTYPE_GP | 10}, \
+    {"$r11",	RTYPE_GP | 11}, \
+    {"$r12",	RTYPE_GP | 12}, \
+    {"$r13",	RTYPE_GP | 13}, \
+    {"$r14",	RTYPE_GP | 14}, \
+    {"$r15",	RTYPE_GP | 15}, \
+    {"$r16",	RTYPE_GP | 16}, \
+    {"$r17",	RTYPE_GP | 17}, \
+    {"$r18",	RTYPE_GP | 18}, \
+    {"$r19",	RTYPE_GP | 19}, \
+    {"$r20",	RTYPE_GP | 20}, \
+    {"$r21",	RTYPE_GP | 21}, \
+    {"$r22",	RTYPE_GP | 22}, \
+    {"$r23",	RTYPE_GP | 23}, \
+    {"$r24",	RTYPE_GP | 24}, \
+    {"$r25",	RTYPE_GP | 25}, \
+    {"$r26",	RTYPE_GP | 26}, \
+    {"$r27",	RTYPE_GP | 27}, \
+    {"$r28",	RTYPE_GP | 28}, \
+    {"$r29",	RTYPE_GP | 29}, \
+    {"$r30",	RTYPE_GP | 30}, \
+    {"$r31",	RTYPE_GP | 30}, \
+    {"$r32",	RTYPE_GP | 31}
 
 #define MIPS16_SPECIAL_REGISTER_NAMES \
     {"$pc",	RTYPE_PC | 0}
