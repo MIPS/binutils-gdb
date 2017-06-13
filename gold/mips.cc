@@ -10059,6 +10059,7 @@ Micromips_insn<size, big_endian>::can_relax(Valtype value)
   // beqc/bnec relaxation to beqc[16]/bnec[16]
   else if (this->r_type_ == elfcpp::R_MICROMIPS_PC14_S1
            && this->find_match(micromips_pc14_s1_relax)
+           && (value != 0)
            && this->valid_reg_16(this->treg_32())
            && this->valid_reg_16(this->sreg_32())
            && Reloc_funcs::template
@@ -10188,9 +10189,10 @@ Micromips_insn<size, big_endian>::must_expand(Valtype value)
   // beqc[16]/bnec[16] expansion to beqc/bnec
   else if (this->r_type_ == elfcpp::R_MICROMIPS_PC4_S1
            && this->find_match(micromips_pc4_s1_expand)
-           && Reloc_funcs::template
-                check_overflow<5>(value, Reloc_funcs::CHECK_UNSIGNED) ==
-                  Reloc_funcs::STATUS_OVERFLOW)
+           && ((value == 0)
+               || Reloc_funcs::template
+                    check_overflow<5>(value, Reloc_funcs::CHECK_UNSIGNED) ==
+                      Reloc_funcs::STATUS_OVERFLOW))
     {
       // If rs3>=rt3 then this is bnec[16] instruction.
       if (this->sreg_16() >= this->treg_16())
