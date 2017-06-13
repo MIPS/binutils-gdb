@@ -334,7 +334,7 @@ proc run_dump_test_arch { name opts arch } {
 	lappend prefixes micromips@
     }
     if { [ string match "nanomips*" $proparch ] \
-	     || [ string match "?7001" $proparch ] } {
+	     || [ string match "?7001" $arch ] } {
 	lappend prefixes nanomips@
     }
 
@@ -534,8 +534,8 @@ mips_arch_create nanomips64 64	{} \
 			skip_n32 nmips64_broken } \
 			{ -march=mips64r7 -mnanomips --defsym nanomips= \
 			      --defsym nanomips_broken= --defsym compact_branches=} {}
-mips_arch_create m7001 32	{} {} { -march=m7001 -mnanomips } {}
-mips_arch_create i7001 32	{} {} { -march=i7001 -mnanomips } {}
+mips_arch_create m7001 32	{} {nanomips_broken} { -march=m7001 -mnanomips } {}
+mips_arch_create i7001 32	{} {nanomips_broken} { -march=i7001 -mnanomips } {}
 mips_arch_create r3000 	32	mips1	{} \
 			{ -march=r3000 -mtune=r3000 } { -mmips:3000 }
 mips_arch_create r3900 	32	mips1	{ gpr_ilocks } \
@@ -859,7 +859,7 @@ if { [istarget mips*-*-vxworks*] } {
 
     run_dump_test_arches "mips32-sf32"	[mips_arch_list_matching mips32]
     run_list_test_arches "mips32-sf32" "-32 -msoft-float" \
-					[mips_arch_list_matching mips32 !nanomips_broken]
+					[mips_arch_list_matching mips32 !nanomipsr6]
     run_dump_test_arches "mips32-cp2"	[mips_arch_list_matching mips32 \
 					    !octeon !nanomipsr6]
 
@@ -1062,7 +1062,7 @@ if { [istarget mips*-*-vxworks*] } {
 					    !micromipsr6 !nanomips_broken]
     run_dump_test_arches "loc-swap-2"	[mips_arch_list_matching mips1 \
 					    !micromipsr6 !nanomips_broken]
-    run_dump_test_arches "loc-swap-3"	[mips_arch_list_all]
+    run_dump_test_arches "loc-swap-3"	[mips_arch_list_matching !nanomips_broken]
 
     run_dump_test "nan-legacy-1"
     run_dump_test "nan-legacy-2"

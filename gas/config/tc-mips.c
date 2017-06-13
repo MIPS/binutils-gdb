@@ -4780,7 +4780,6 @@ nanomips_reloc_p (bfd_reloc_code_real_type reloc)
       case BFD_RELOC_NANOMIPS_HI20:
       case BFD_RELOC_NANOMIPS_LO12:
       case BFD_RELOC_NANOMIPS_HI20_PCREL:
-      case BFD_RELOC_NANOMIPS_LO12_PCREL:
       case BFD_RELOC_NANOMIPS_LITERAL:
       case BFD_RELOC_NANOMIPS_7_PCREL_S1:
       case BFD_RELOC_NANOMIPS_10_PCREL_S1:
@@ -4788,12 +4787,9 @@ nanomips_reloc_p (bfd_reloc_code_real_type reloc)
       case BFD_RELOC_NANOMIPS_21_PCREL_S1:
       case BFD_RELOC_NANOMIPS_25_PCREL_S1:
       case BFD_RELOC_NANOMIPS_14_PCREL_S1:
-      case BFD_RELOC_NANOMIPS_20_PCREL_S1:
       case BFD_RELOC_NANOMIPS_CALL:
-      case BFD_RELOC_NANOMIPS_GOT_HI20:
+      case BFD_RELOC_NANOMIPS_GOTPC_HI20:
       case BFD_RELOC_NANOMIPS_GOT_LO12:
-      case BFD_RELOC_NANOMIPS_CALL_HI20:
-      case BFD_RELOC_NANOMIPS_CALL_LO12:
       case BFD_RELOC_NANOMIPS_GOT_PAGE:
       case BFD_RELOC_NANOMIPS_GOT_OFST:
       case BFD_RELOC_NANOMIPS_GOT_DISP:
@@ -4808,8 +4804,8 @@ nanomips_reloc_p (bfd_reloc_code_real_type reloc)
       case BFD_RELOC_NANOMIPS_TLS_GOTTPREL:
       case BFD_RELOC_NANOMIPS_TLS_TPREL_HI20:
       case BFD_RELOC_NANOMIPS_TLS_TPREL_LO12:
-      case BFD_RELOC_NANOMIPS_PC32:
-      case BFD_RELOC_NANOMIPS_GPREL32:
+      case BFD_RELOC_NANOMIPS_PC_I32:
+      case BFD_RELOC_NANOMIPS_GPREL_I32:
       case BFD_RELOC_NANOMIPS_GPREL18:
       case BFD_RELOC_NANOMIPS_GPREL17_S1:
       return TRUE;
@@ -4824,8 +4820,8 @@ nanomips_48bit_reloc_p (bfd_reloc_code_real_type reloc)
 {
   return (reloc == BFD_RELOC_NANOMIPS_I32
 	  || reloc == BFD_RELOC_NANOMIPS_HI32
-	  || reloc == BFD_RELOC_NANOMIPS_PC32
-	  || reloc == BFD_RELOC_NANOMIPS_GPREL32);
+	  || reloc == BFD_RELOC_NANOMIPS_PC_I32
+	  || reloc == BFD_RELOC_NANOMIPS_GPREL_I32);
 }
 
 static inline bfd_boolean
@@ -4895,8 +4891,7 @@ nanomips_hi_reloc_p (bfd_reloc_code_real_type reloc)
 {
   return (reloc == BFD_RELOC_HI16_S
 	  || reloc == BFD_RELOC_NANOMIPS_HI20
-	  || reloc == BFD_RELOC_NANOMIPS_GOT_HI20
-	  || reloc == BFD_RELOC_NANOMIPS_CALL_HI20
+	  || reloc == BFD_RELOC_NANOMIPS_GOTPC_HI20
 	  || reloc == BFD_RELOC_NANOMIPS_GPREL_HI20
 	  || reloc == BFD_RELOC_NANOMIPS_TLS_DTPREL_HI20
 	  || reloc == BFD_RELOC_NANOMIPS_TLS_TPREL_HI20);
@@ -4955,12 +4950,10 @@ pcrel_reloc_p (bfd_reloc_code_real_type reloc)
 	  || reloc == BFD_RELOC_NANOMIPS_10_PCREL_S1
 	  || reloc == BFD_RELOC_NANOMIPS_11_PCREL_S1
 	  || reloc == BFD_RELOC_NANOMIPS_14_PCREL_S1
-	  || reloc == BFD_RELOC_NANOMIPS_20_PCREL_S1
 	  || reloc == BFD_RELOC_NANOMIPS_21_PCREL_S1
 	  || reloc == BFD_RELOC_NANOMIPS_25_PCREL_S1
 	  || reloc == BFD_RELOC_NANOMIPS_HI20_PCREL
-	  || reloc == BFD_RELOC_NANOMIPS_LO12_PCREL
-	  || reloc == BFD_RELOC_NANOMIPS_PC32);
+	  || reloc == BFD_RELOC_NANOMIPS_PC_I32);
 }
 
 /* Return true if RELOC is a PC-relative relocation that does not have
@@ -4989,7 +4982,6 @@ limited_pcrel_reloc_p (bfd_reloc_code_real_type reloc)
     case BFD_RELOC_NANOMIPS_10_PCREL_S1:
     case BFD_RELOC_NANOMIPS_11_PCREL_S1:
     case BFD_RELOC_NANOMIPS_14_PCREL_S1:
-    case BFD_RELOC_NANOMIPS_20_PCREL_S1:
     case BFD_RELOC_NANOMIPS_21_PCREL_S1:
     case BFD_RELOC_NANOMIPS_25_PCREL_S1:
       return TRUE;
@@ -5000,7 +4992,6 @@ limited_pcrel_reloc_p (bfd_reloc_code_real_type reloc)
     case BFD_RELOC_HI16_S_PCREL:
     case BFD_RELOC_LO16_PCREL:
     case BFD_RELOC_NANOMIPS_HI20_PCREL:
-    case BFD_RELOC_NANOMIPS_LO12_PCREL:
       return HAVE_64BIT_ADDRESSES;
 
     default:
@@ -6137,7 +6128,7 @@ match_pcrel_word (struct mips_arg_info *arg,
 	return FALSE;
 
       if (offset_reloc[0] == BFD_RELOC_UNUSED)
-	offset_reloc[0] = BFD_RELOC_NANOMIPS_PC32;
+	offset_reloc[0] = BFD_RELOC_NANOMIPS_PC_I32;
 
       arg->insn->insn_opcode_ext = 0;
       return TRUE;
@@ -6157,7 +6148,7 @@ match_gprel_word (struct mips_arg_info *arg,
 	return FALSE;
 
       if (offset_reloc[0] == BFD_RELOC_UNUSED)
-	offset_reloc[0] = BFD_RELOC_NANOMIPS_GPREL32;
+	offset_reloc[0] = BFD_RELOC_NANOMIPS_GPREL_I32;
 
       arg->insn->insn_opcode_ext = 0;
       return TRUE;
@@ -8554,12 +8545,10 @@ nanomips_map_reloc (bfd_reloc_code_real_type reloc)
       { BFD_RELOC_HI16_S, BFD_RELOC_NANOMIPS_HI20 },
       { BFD_RELOC_LO16, BFD_RELOC_NANOMIPS_LO12 },
       { BFD_RELOC_HI16_S_PCREL, BFD_RELOC_NANOMIPS_HI20_PCREL },
-      { BFD_RELOC_LO16_PCREL, BFD_RELOC_NANOMIPS_LO12_PCREL },
       { BFD_RELOC_MIPS_LITERAL, BFD_RELOC_NANOMIPS_LITERAL },
       { BFD_RELOC_MIPS_21_PCREL_S2, BFD_RELOC_NANOMIPS_21_PCREL_S1 },
       { BFD_RELOC_MIPS_26_PCREL_S2, BFD_RELOC_NANOMIPS_25_PCREL_S1 },
       { BFD_RELOC_MIPS_18_PCREL_S3, BFD_RELOC_NANOMIPS_14_PCREL_S1 },
-      { BFD_RELOC_MIPS_19_PCREL_S2, BFD_RELOC_NANOMIPS_20_PCREL_S1 },
       { BFD_RELOC_MIPS_GOT16, BFD_RELOC_NANOMIPS_GOT_DISP },
       { BFD_RELOC_MIPS_CALL16, BFD_RELOC_NANOMIPS_CALL },
       { BFD_RELOC_MIPS_GOT_PAGE, BFD_RELOC_NANOMIPS_GOT_PAGE },
@@ -9246,13 +9235,13 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	  break;
 
 	case BFD_RELOC_NANOMIPS_I32:
-	case BFD_RELOC_NANOMIPS_GPREL32:
+	case BFD_RELOC_NANOMIPS_GPREL_I32:
 	  ip->insn_opcode_ext = (((address_expr->X_add_number >> 16) & 0xffff)
 				 | (address_expr->X_add_number << 16));
 	  ip->complete_p = 1;
 	  break;
 
-	case BFD_RELOC_NANOMIPS_PC32:
+	case BFD_RELOC_NANOMIPS_PC_I32:
 	  ip->insn_opcode_ext = (((address_expr->X_add_number >> 16) & 0xffff)
 				 | (address_expr->X_add_number << 16));
 	  break;
@@ -9659,6 +9648,7 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 	      || reloc_type[0] == BFD_RELOC_64
 	      || reloc_type[0] == BFD_RELOC_CTOR
 	      || reloc_type[0] == BFD_RELOC_MIPS_SUB
+	      || reloc_type[0] == BFD_RELOC_NANOMIPS_NEG
 	      || reloc_type[0] == BFD_RELOC_MIPS_HIGHEST
 	      || reloc_type[0] == BFD_RELOC_MIPS_HIGHER
 	      || reloc_type[0] == BFD_RELOC_MIPS_SCN_DISP
@@ -10003,7 +9993,7 @@ gprel_for_nanomips_insn (const char *insn, int insn_length)
   if (forced_insn_length == 2)
     return BFD_RELOC_NANOMIPS_GPREL7_S2;
   if (insn_length == 6)
-    return BFD_RELOC_NANOMIPS_GPREL32;
+    return BFD_RELOC_NANOMIPS_GPREL_I32;
 
   for (i = 0; i < ARRAY_SIZE (nanomips_gprel_map); i++)
     if (strncasecmp (insn, nanomips_gprel_map[i].str,
@@ -10482,21 +10472,17 @@ match_nanomips_insn (struct mips_cl_insn *insn,
 		  break;
 
 		case 'S':
-		  *offset_reloc = BFD_RELOC_NANOMIPS_PC32;
+		  *offset_reloc = BFD_RELOC_NANOMIPS_PC_I32;
 		  break;
 
 		case 'T':
-		  *offset_reloc = BFD_RELOC_NANOMIPS_GPREL32;
+		  *offset_reloc = BFD_RELOC_NANOMIPS_GPREL_I32;
 		  break;
 	      }
 	    break;
 
 	  case 'a':
 	    *offset_reloc = BFD_RELOC_NANOMIPS_25_PCREL_S1;
-	    break;
-
-	  case 'q':
-	    *offset_reloc = BFD_RELOC_NANOMIPS_20_PCREL_S1;
 	    break;
 
 	  case 'p':
@@ -11203,8 +11189,6 @@ macro_match_nanomips_reloc (const char *fmt, bfd_reloc_code_real_type *r)
       if (*fmt == '+' && *(fmt + 1) == '8')
 	*r = BFD_RELOC_NANOMIPS_25_PCREL_S1;
       else if (*fmt == 'q')
-	*r = BFD_RELOC_NANOMIPS_20_PCREL_S1;
-      else
 	*r = BFD_RELOC_NANOMIPS_14_PCREL_S1;
     }
   else if (*r == BFD_RELOC_GPREL16)
@@ -19082,7 +19066,7 @@ static const struct percent_op_match nanomips_percent_op[] =
   {"%half", BFD_RELOC_16},
   {"%highest", BFD_RELOC_MIPS_HIGHEST},
   {"%higher", BFD_RELOC_MIPS_HIGHER},
-  {"%neg", BFD_RELOC_MIPS_SUB},
+  {"%neg", BFD_RELOC_NANOMIPS_NEG},
   {"%tlsgd", BFD_RELOC_NANOMIPS_TLS_GD},
   {"%tlsldm", BFD_RELOC_NANOMIPS_TLS_LDM},
   {"%dtprel_hi", BFD_RELOC_NANOMIPS_TLS_DTPREL_HI20},
@@ -19092,8 +19076,8 @@ static const struct percent_op_match nanomips_percent_op[] =
   {"%gottprel", BFD_RELOC_NANOMIPS_TLS_GOTTPREL},
   {"%hi", BFD_RELOC_NANOMIPS_HI20},
   {"%pcrel_hi", BFD_RELOC_NANOMIPS_HI20_PCREL},
-  {"%pcrel_lo", BFD_RELOC_NANOMIPS_LO12_PCREL},
-  {"%pcrel", BFD_RELOC_NANOMIPS_PC32},
+  {"%pcrel_lo", BFD_RELOC_NANOMIPS_LO12},
+  {"%pcrel", BFD_RELOC_NANOMIPS_PC_I32},
   {"%lo32", BFD_RELOC_NANOMIPS_I32},
   {"%hi32", BFD_RELOC_NANOMIPS_HI32},
   /* These are currently not supported for nanoMIPS.  */
@@ -20149,12 +20133,10 @@ mips_force_relocation (fixS *fixp)
 	  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_10_PCREL_S1
 	  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_11_PCREL_S1
 	  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_14_PCREL_S1
-	  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_20_PCREL_S1
 	  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_21_PCREL_S1
 	  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_25_PCREL_S1
 	  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_HI20_PCREL
-	  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_LO12_PCREL
-	  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_PC32))
+	  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_PC_I32))
     return 1;
 
   if (linkrelax && fixp->fx_subsy
@@ -20227,12 +20209,10 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       case BFD_RELOC_NANOMIPS_10_PCREL_S1:
       case BFD_RELOC_NANOMIPS_11_PCREL_S1:
       case BFD_RELOC_NANOMIPS_14_PCREL_S1:
-      case BFD_RELOC_NANOMIPS_20_PCREL_S1:
       case BFD_RELOC_NANOMIPS_21_PCREL_S1:
       case BFD_RELOC_NANOMIPS_25_PCREL_S1:
       case BFD_RELOC_NANOMIPS_HI20_PCREL:
-      case BFD_RELOC_NANOMIPS_LO12_PCREL:
-      case BFD_RELOC_NANOMIPS_PC32:
+      case BFD_RELOC_NANOMIPS_PC_I32:
 	break;
 
       case BFD_RELOC_32:
@@ -20276,12 +20256,13 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 	      || fixP->fx_r_type == BFD_RELOC_CTOR
 	      || fixP->fx_r_type == BFD_RELOC_MIPS_SUB
 	      || fixP->fx_r_type == BFD_RELOC_MICROMIPS_SUB
+	      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_NEG
 	      || fixP->fx_r_type == BFD_RELOC_VTABLE_INHERIT
 	      || fixP->fx_r_type == BFD_RELOC_VTABLE_ENTRY
 	      || fixP->fx_r_type == BFD_RELOC_MIPS_TLS_DTPREL64
-	      || fixP->fx_r_type == BFD_RELOC_MIPS_UNSIGNED_8
-	      || fixP->fx_r_type == BFD_RELOC_MIPS_SIGNED_8
-	      || fixP->fx_r_type == BFD_RELOC_MIPS_ASHIFTR_1
+	      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_UNSIGNED_8
+	      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_SIGNED_8
+	      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_ASHIFTR_1
 	      || (fixP->fx_size == 1
 		  && fixP->fx_r_type == BFD_RELOC_32));
 
@@ -20399,6 +20380,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
     case BFD_RELOC_MICROMIPS_CALL_HI16:
     case BFD_RELOC_MICROMIPS_CALL_LO16:
     case BFD_RELOC_MIPS_EH:
+    case BFD_RELOC_NANOMIPS_NEG:
     case BFD_RELOC_NANOMIPS_LITERAL:
     case BFD_RELOC_NANOMIPS_CALL:
     case BFD_RELOC_NANOMIPS_GOT_DISP:
@@ -20456,10 +20438,10 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
     case BFD_RELOC_32_PCREL:
     case BFD_RELOC_16:
     case BFD_RELOC_8:
-    case BFD_RELOC_MIPS_UNSIGNED_8:
-    case BFD_RELOC_MIPS_UNSIGNED_16:
-    case BFD_RELOC_MIPS_SIGNED_8:
-    case BFD_RELOC_MIPS_SIGNED_16:
+    case BFD_RELOC_NANOMIPS_UNSIGNED_8:
+    case BFD_RELOC_NANOMIPS_UNSIGNED_16:
+    case BFD_RELOC_NANOMIPS_SIGNED_8:
+    case BFD_RELOC_NANOMIPS_SIGNED_16:
       /* If we are deleting this reloc entry, we must fill in the
 	 value now.  This can happen if we have a .word which is not
 	 resolved when it appears but is later defined.  */
@@ -20467,7 +20449,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 	md_number_to_chars (buf, *valP, fixP->fx_size);
       break;
 
-    case BFD_RELOC_MIPS_ASHIFTR_1:
+    case BFD_RELOC_NANOMIPS_ASHIFTR_1:
       if (fixP->fx_done)
 	*valP = (*valP >> 1);
       break;
@@ -20551,7 +20533,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 
     case BFD_RELOC_NANOMIPS_I32:
     case BFD_RELOC_NANOMIPS_HI32:
-    case BFD_RELOC_NANOMIPS_GPREL32:
+    case BFD_RELOC_NANOMIPS_GPREL_I32:
       if (fixP->fx_done)
 	write_compressed_insn (buf, *valP & 0xffffffff, 4);
       break;
@@ -20583,8 +20565,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 	}
       break;
 
-    case BFD_RELOC_NANOMIPS_PC32:
-    case BFD_RELOC_NANOMIPS_LO12_PCREL:
+    case BFD_RELOC_NANOMIPS_PC_I32:
     case BFD_RELOC_NANOMIPS_HI20_PCREL:
       gas_assert (!fixP->fx_done);
       break;
@@ -20649,7 +20630,6 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
     case BFD_RELOC_NANOMIPS_10_PCREL_S1:
     case BFD_RELOC_NANOMIPS_11_PCREL_S1:
     case BFD_RELOC_NANOMIPS_14_PCREL_S1:
-    case BFD_RELOC_NANOMIPS_20_PCREL_S1:
     case BFD_RELOC_NANOMIPS_21_PCREL_S1:
     case BFD_RELOC_NANOMIPS_25_PCREL_S1:
       /* We adjust the offset back to even.  */
@@ -23177,12 +23157,10 @@ tc_gen_reloc (asection *section ATTRIBUTE_UNUSED, fixS *fixp)
 		  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_10_PCREL_S1
 		  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_11_PCREL_S1
 		  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_14_PCREL_S1
-		  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_20_PCREL_S1
 		  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_21_PCREL_S1
 		  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_25_PCREL_S1
 		  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_HI20_PCREL
-		  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_LO12_PCREL
-		  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_PC32);
+		  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_PC_I32);
 
       /* At this point, fx_addnumber is "symbol offset - pcrel address".
 	 Relocations want only the symbol offset.  */
@@ -23221,7 +23199,7 @@ tc_gen_reloc (asection *section ATTRIBUTE_UNUSED, fixS *fixp)
       reloc->sym_ptr_ptr = (asymbol **) xmalloc (sizeof (asymbol *));
       *reloc->sym_ptr_ptr = symbol_get_bfdsym (fixp->fx_subsy);
       reloc->address = fixp->fx_frag->fr_address + fixp->fx_where;
-      reloc->howto = bfd_reloc_type_lookup (stdoutput, BFD_RELOC_MIPS_SUB);
+      reloc->howto = bfd_reloc_type_lookup (stdoutput, BFD_RELOC_NANOMIPS_NEG);
     }
 
   return retval;
@@ -25577,15 +25555,15 @@ mips_parse_cons_expression (expressionS *exp,
 	{
 	  case 1:
 	    if (sign_cons)
-	      rel = BFD_RELOC_MIPS_SIGNED_8;
+	      rel = BFD_RELOC_NANOMIPS_SIGNED_8;
 	    else
-	      rel = BFD_RELOC_MIPS_UNSIGNED_8;
+	      rel = BFD_RELOC_NANOMIPS_UNSIGNED_8;
 	    break;
 	  case 2:
 	    if (sign_cons)
-	      rel = BFD_RELOC_MIPS_SIGNED_16;
+	      rel = BFD_RELOC_NANOMIPS_SIGNED_16;
 	    else
-	      rel = BFD_RELOC_MIPS_UNSIGNED_16;
+	      rel = BFD_RELOC_NANOMIPS_UNSIGNED_16;
 	    break;
 	  case 4:
 	    rel = BFD_RELOC_32;
@@ -25701,7 +25679,7 @@ mips_cons_fix_new (fragS *frag,
 	      rentry[numrelocs++].reloc = sym_reloc;
 	      rentry[numrelocs].sym = iter->X_op_symbol;
 	      rentry[numrelocs].addend = iter->X_add_number;
-	      sym_reloc = BFD_RELOC_MIPS_SUB;
+	      sym_reloc = BFD_RELOC_NANOMIPS_NEG;
 	      break;
 
 	    case O_right_shift:
@@ -25716,16 +25694,16 @@ mips_cons_fix_new (fragS *frag,
 		  {
 		    rentry[numrelocs].sym = NULL;
 		    rentry[numrelocs].addend = 0;
-		    rentry[numrelocs++].reloc = BFD_RELOC_MIPS_ASHIFTR_1;
+		    rentry[numrelocs++].reloc = BFD_RELOC_NANOMIPS_ASHIFTR_1;
 		  }
 
 		/* We can roll the a shift step in to the expression
 		   if it is just a simple symbol reference. This just
 		   sets things up for the last-level block below.  */
 		if (S_GET_VALUE (iter->X_op_symbol) != 0
-		    && sym_reloc != BFD_RELOC_MIPS_SUB)
+		    && sym_reloc != BFD_RELOC_NANOMIPS_NEG)
 		  {
-		    sym_reloc = BFD_RELOC_MIPS_ASHIFTR_1;
+		    sym_reloc = BFD_RELOC_NANOMIPS_ASHIFTR_1;
 		    numrelocs--;
 		  }
 	      }
@@ -25733,7 +25711,7 @@ mips_cons_fix_new (fragS *frag,
 
 	    case O_symbol:
 	      rentry[numrelocs].sym = iter->X_add_symbol;
-	      if (sym_reloc == BFD_RELOC_MIPS_SUB)
+	      if (sym_reloc == BFD_RELOC_NANOMIPS_NEG)
 		/* S1 - (S2 + A) => S1 + (-S2 + -A) */
 		rentry[numrelocs].addend = -iter->X_add_number;
 	      else

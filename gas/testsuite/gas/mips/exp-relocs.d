@@ -42,5 +42,5 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_NANOMIPS_GPREL19_S2	test
   [0-9a-f]+:	6082 0000 	addiu	a0,gp,0
   [0-9a-f]+:	0000 
-			[0-9a-f]+: R_NANOMIPS_GPREL32	test
+			[0-9a-f]+: R_NANOMIPS_GPREL_I32	test
   [0-9a-f]+:	9008      	nop
