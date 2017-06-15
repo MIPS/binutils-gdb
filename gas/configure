@@ -12138,9 +12138,6 @@ _ACEOF
 	  mipsisa32r6 | mipsisa32r6el)
 	    mips_cpu=mips32r6
 	    ;;
-	  mipsisa32r7 | mipsisa32r7el)
-	    mips_cpu=mips32r7
-	    ;;
 	  mipsisa64 | mipsisa64el)
 	    mips_cpu=mips64
 	    ;;
@@ -12155,9 +12152,6 @@ _ACEOF
 	    ;;
 	  mipsisa64r6 | mipsisa64r6el)
 	    mips_cpu=mips64r6
-	    ;;
-	  mipsisa64r7 | mipsisa64r7el)
-	    mips_cpu=mips64r7
 	    ;;
 	  mipstx39 | mipstx39el)
 	    mips_cpu=r3900
@@ -12182,6 +12176,12 @@ _ACEOF
 	    ;;
 	  mips*)
 	    mips_cpu=`echo $target_cpu | sed -e 's/^mips//' -e 's/el$//'`
+	    ;;
+	  nanomipsisa32r6 | nanomipsisa32r6el)
+	    mips_cpu=nanomips32r6
+	    ;;
+	  nanomipsisa64r6 | nanomipsisa64r6el)
+	    mips_cpu=nanomips64r6
 	    ;;
 	  *)
 	    as_fn_error "$target_cpu isn't a supported MIPS CPU name" "$LINENO" 5

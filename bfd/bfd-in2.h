@@ -1973,13 +1973,13 @@ enum bfd_architecture
 #define bfd_mach_mipsisa32r3           34
 #define bfd_mach_mipsisa32r5           36
 #define bfd_mach_mipsisa32r6           37
-#define bfd_mach_mipsisa32r7           38
+#define bfd_mach_nanomipsisa32r6       38
 #define bfd_mach_mipsisa64             64
 #define bfd_mach_mipsisa64r2           65
 #define bfd_mach_mipsisa64r3           66
 #define bfd_mach_mipsisa64r5           68
 #define bfd_mach_mipsisa64r6           69
-#define bfd_mach_mipsisa64r7           70
+#define bfd_mach_nanomipsisa64r6       70
 #define bfd_mach_mips_micromips        96
   bfd_arch_i386,      /* Intel 386 */
 #define bfd_mach_i386_intel_syntax     (1 << 0)
@@ -3069,9 +3069,10 @@ as it is during any transformation/relaxation.  */
   BFD_RELOC_NANOMIPS_14_PCREL_S1,
   BFD_RELOC_NANOMIPS_21_PCREL_S1,
   BFD_RELOC_NANOMIPS_25_PCREL_S1,
-  BFD_RELOC_NANOMIPS_HI20_PCREL,
+  BFD_RELOC_NANOMIPS_PCREL_HI20,
   BFD_RELOC_NANOMIPS_CALL,
   BFD_RELOC_NANOMIPS_GOTPC_HI20,
+  BFD_RELOC_NANOMIPS_GOTPC_I32,
   BFD_RELOC_NANOMIPS_GOT_LO12,
   BFD_RELOC_NANOMIPS_GOT_DISP,
   BFD_RELOC_NANOMIPS_GOT_PAGE,
