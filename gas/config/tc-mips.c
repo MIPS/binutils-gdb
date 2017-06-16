@@ -19812,8 +19812,8 @@ mips_after_parse_args (void)
       arch_info = mips_parse_cpu ("default CPU", MIPS_CPU_STRING_DEFAULT);
       gas_assert (arch_info);
     }
-  else
-    file_mips_opts.nanomips = ISA_IS_NANOMIPS (arch_info->isa);
+
+  file_mips_opts.nanomips = ISA_IS_NANOMIPS (arch_info->isa);
 
   if (mips_abi == NO_ABI)
     {

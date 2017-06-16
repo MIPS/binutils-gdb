@@ -10920,7 +10920,7 @@ is_32bit_abs_reloc (unsigned int reloc_type)
     case EM_MT:
       return reloc_type == 2; /* R_MT_32.  */
     case EM_NANOMIPS:
-      return reloc_type == 2; /* R_NANOMIPS_32.  */
+      return reloc_type == 1; /* R_NANOMIPS_32.  */
     case EM_NDS32:
       return reloc_type == 20; /* R_NDS32_RELA.  */
     case EM_ALTERA_NIOS2:
@@ -11090,7 +11090,7 @@ is_64bit_abs_reloc (unsigned int reloc_type)
     case EM_MIPS:
       return reloc_type == 18;	/* R_MIPS_64.  */
     case EM_NANOMIPS:
-      return reloc_type == 18;	/* FIXME: R_NANOMIPS_64.  */
+      return reloc_type == 2;	/* R_NANOMIPS_64.  */
     default:
       return FALSE;
     }
@@ -11179,6 +11179,8 @@ is_16bit_abs_reloc (unsigned int reloc_type)
 	return reloc_type == 2; /* R_MSP430_ABS16.  */
     case EM_MSP430_OLD:
       return reloc_type == 5; /* R_MSP430_16_BYTE.  */
+    case EM_NANOMIPS:
+      return reloc_type == 7; /* R_NANOMIPS_UNSIGNED_16 */
     case EM_NDS32:
       return reloc_type == 19; /* R_NDS32_RELA.  */
     case EM_ALTERA_NIOS2:
@@ -11244,7 +11246,7 @@ is_none_reloc (unsigned int reloc_type)
     case EM_ALTERA_NIOS2: /* R_NIOS2_NONE.  */
     case EM_NIOS32:  /* R_NIOS_NONE.  */
     case EM_OR1K:    /* R_OR1K_NONE. */
-    case EM_NANOMIPS:    /* R_NANOMIPS_NONE.  */
+    case EM_NANOMIPS: /* R_NANOMIPS_NONE.  */
       return reloc_type == 0;
     case EM_AARCH64:
       return reloc_type == 0 || reloc_type == 256;

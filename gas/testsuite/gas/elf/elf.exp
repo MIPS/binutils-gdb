@@ -59,7 +59,7 @@ if { [is_elf_format] } then {
 	set target_machine -mips
     }
     if {[istarget "nanomips*-*-*"]} then {
-	set target_machine -mips
+	set target_machine -march=32r6
     }
     if {[istarget m32r*-*-*]} then {
 	set target_machine -m32r

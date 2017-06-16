@@ -974,8 +974,8 @@ static reloc_howto_type elf_mips_gnu_vtentry_howto =
    It was co-opted by mips-linux for exception-handling data.  It is no
    longer used, but should continue to be supported by the linker for
    backward compatibility.  (GCC stopped using it in May, 2004.)  */
-static reloc_howto_type elf_mips_gnu_pcrel32 =
-  HOWTO (R_MIPS_PC32,		/* type */
+static reloc_howto_type elf_nanomips_gnu_pcrel32 =
+  HOWTO (R_NANOMIPS_PC32,	/* type */
 	 0,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 32,			/* bitsize */
@@ -983,7 +983,7 @@ static reloc_howto_type elf_mips_gnu_pcrel32 =
 	 0,			/* bitpos */
 	 complain_overflow_signed, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc, /* special_function */
-	 "R_MIPS_PC32",		/* name */
+	 "R_NANOMIPS_PC32",	/* name */
 	 TRUE,			/* partial_inplace */
 	 0xffffffff,		/* src_mask */
 	 0xffffffff,		/* dst_mask */
@@ -1122,7 +1122,7 @@ bfd_elf64_bfd_reloc_type_lookup (bfd *abfd ATTRIBUTE_UNUSED,
     case BFD_RELOC_MIPS_JUMP_SLOT:
       return &elf_mips_jump_slot_howto;
     case BFD_RELOC_32_PCREL:
-      return &elf_mips_gnu_pcrel32;
+      return &elf_nanomips_gnu_pcrel32;
     default:
       bfd_set_error (bfd_error_bad_value);
       return NULL;
@@ -1170,8 +1170,8 @@ nanomips_elf64_rtype_to_howto (unsigned int r_type,
       return &elf_mips_jump_slot_howto;
     case R_NANOMIPS_EH:
       return &elf_mips_eh_howto;
-    case R_MIPS_PC32:
-      return &elf_mips_gnu_pcrel32;
+    case R_NANOMIPS_PC32:
+      return &elf_nanomips_gnu_pcrel32;
     default:
       return &nanomips_elf64_howto_table_rela[r_type];
     }

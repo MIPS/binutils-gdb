@@ -95,10 +95,12 @@ if  { [istarget "i*86-*-*"] || [istarget "x86_64-*-*"] } then {
     }
     run_dump_test "cfi-arm-1"
 
-} elseif { [istarget "mips*-*"] || [istarget "nanomips*-*"] } then {
+} elseif { [istarget "mips*-*"] } then {
     run_dump_test "cfi-mips-1"
 } elseif { [istarget "hppa*-linux*"] } then {
     run_dump_test "cfi-hppa-1"
+} elseif { [istarget "nanomips*-*"] } then {
+    run_dump_test "cfi-nanomips-1"
 } else {
     return
 }
