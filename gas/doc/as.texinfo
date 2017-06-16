@@ -1587,7 +1587,7 @@ Generate ``little endian'' format output.
 @item -march=@var{cpu}
 Generate code for a particular nanoMIPS CPU or ISA level. The following
 ISA levels are recognized: @code{32r6}, @code{32r6s}, @code{64r6}. The following CPUs are
-recognized: @code{m7001}, @code{i7001}.
+recognized: @code{m6001}, @code{i6001}.
 
 @item -mtune=@var{cpu}
 Schedule and tune for a particular nanoMIPS CPU.

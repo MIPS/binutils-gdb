@@ -175,8 +175,8 @@ Generate code for a particular nanoMIPS @var{arch}, which can be the name of a g
 Valid @var{CPU} value are:
 
 @quotation
-i7001, //FIXME
-m7001, //FIXME
+i6001,
+m6001
 @end quotation
 
 @item -m32

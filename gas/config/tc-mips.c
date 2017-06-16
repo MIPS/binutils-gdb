@@ -24994,9 +24994,9 @@ static const struct mips_cpu_info mips_cpu_info_table[] =
   { "p5600",          0, ASE_VIRT | ASE_EVA | ASE_XPA, 	ISA_MIPS32R5, CPU_MIPS32R5 },
   /* M6200 family */
   { "m6201",          0, ASE_MCU,		ISA_MIPS32R6, CPU_MIPS32R6 },
-  /* 7001 family */
-  { "i7001",          0, ASE_xNMS | ASE_TLB,	ISA_NANOMIPS32R6, CPU_NANOMIPS32R6 },
-  { "m7001",          0, 0,			ISA_NANOMIPS32R6, CPU_NANOMIPS32R6 },
+  /* 6001 family */
+  { "i6001",          0, ASE_xNMS | ASE_TLB,	ISA_NANOMIPS32R6, CPU_NANOMIPS32R6 },
+  { "m6001",          0, 0,			ISA_NANOMIPS32R6, CPU_NANOMIPS32R6 },
 
 
   /* MIPS 64 */

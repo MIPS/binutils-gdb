@@ -14390,7 +14390,7 @@ process_nanomips_specific (FILE * file)
 
       /* Find the section header so that we get the size.  */
       sect = find_section_by_type (SHT_MIPS_OPTIONS);
-      /* PR 17533 file: 012-277276-0.004.  */ 
+      /* PR 17533 file: 012-277276-0.004.  */
       if (sect == NULL)
 	{
 	  error (_("No MIPS_OPTIONS header found\n"));
@@ -14678,7 +14678,7 @@ process_nanomips_specific (FILE * file)
 		 (long) gotsym, (long) symtabno);
 	  return 0;
 	}
- 
+
       global_end = local_end + (symtabno - gotsym) * addr_size;
       assert (global_end >= local_end);
       offset = offset_from_vma (file, pltgot, global_end - pltgot);
@@ -14708,11 +14708,10 @@ process_nanomips_specific (FILE * file)
 	}
       printf ("\n");
 
-      
       /* FIXME: We only want to print the entries that match up
 	 with explicit relocations, eventually.  */
       printf ("\n");
-	  
+
       printf (_(" Global entries:\n"));
       printf ("  %*s %10s %*s %*s %-7s %3s %s\n",
 	      addr_size * 2, _("Address"),
@@ -14730,7 +14729,7 @@ process_nanomips_specific (FILE * file)
 
 	  printf ("\n");
 	}
-  
+
       if (data)
 	free (data);
     }
