@@ -176,6 +176,7 @@ enum EM
   EM_IAMCU = 6,
   EM_860 = 7,
   EM_MIPS = 8,
+  EM_NANOMIPS = 0x5237,
   EM_S370 = 9,
   EM_MIPS_RS3_LE = 10,
   // 11 was the old Sparc V9 ABI.
