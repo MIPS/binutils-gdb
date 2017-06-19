@@ -47,11 +47,11 @@ Disassembly of section .text:
 0+0090 <text_label\+0x90> 237c e1ff 	shra.qb	k1,gp,0x7
 0+0094 <text_label\+0x94> 239d 11ff 	shra_r.qb	gp,sp,0x0
 0+0098 <text_label\+0x98> 239d f1ff 	shra_r.qb	gp,sp,0x7
-0+009c <text_label\+0x9c> 23fe e9cd 	shrav.qb	sp,fp,ra
-0+00a0 <text_label\+0xa0> 201f f5cd 	shrav_r.qb	fp,ra,zero
+0+009c <text_label\+0x9c> 23df e9cd 	shrav.qb	sp,fp,ra
+0+00a0 <text_label\+0xa0> 23e0 f5cd 	shrav_r.qb	fp,ra,zero
 0+00a4 <text_label\+0xa4> 23e0 03ff 	shrl.ph	ra,zero,0x0
 0+00a8 <text_label\+0xa8> 23e0 f3ff 	shrl.ph	ra,zero,0xf
-0+00ac <text_label\+0xac> 2041 0315 	shrlv.ph	zero,at,t4
+0+00ac <text_label\+0xac> 2022 0315 	shrlv.ph	zero,at,t4
 0+00b0 <text_label\+0xb0> 2062 0b0d 	subu.ph	at,t4,t5
 0+00b4 <text_label\+0xb4> 2083 170d 	subu_s.ph	t4,t5,a0
 0+00b8 <text_label\+0xb8> 20a4 1b4d 	subuh.qb	t5,a0,a1
