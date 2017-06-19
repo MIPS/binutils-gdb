@@ -2974,7 +2974,7 @@ case "${ENABLE_GOLD}" in
       # Check for target supported by gold.
       case "${target}" in
         i?86-*-* | x86_64-*-* | sparc*-*-* | powerpc*-*-* | arm*-*-* \
-        | aarch64*-*-* | tilegx*-*-* | mips*-*-* | s390*-*-*)
+        | aarch64*-*-* | tilegx*-*-* | mips*-*-* | nanomips*-*-* | s390*-*-*)
 	  configdirs="$configdirs gold"
 	  if test x${ENABLE_GOLD} = xdefault; then
 	    default_ld=gold
@@ -3504,7 +3504,7 @@ case "${target}" in
   m68*-*-* | fido-*-*)
     libgloss_dir=m68k
     ;;
-  mips*-*-*)
+  mips*-*-* | nanomips*-*-*)
     libgloss_dir=mips
     ;;
   powerpc*-*-*)
@@ -3835,6 +3835,12 @@ case "${target}" in
     ;;
   mips*-*-*)
     noconfigdirs="$noconfigdirs gprof"
+    ;;
+  nanomips*-img-elf)
+    if test x$with_newlib = xyes; then
+      noconfigdirs="$noconfigdirs gprof"
+    fi
+    noconfigdirs="$noconfigdirs gas ld binutils sim gdb"
     ;;
   nvptx*-*-*)
     noconfigdirs="$noconfigdirs target-libssp target-libstdc++-v3 target-libobjc"
@@ -6902,6 +6908,9 @@ case "${target}" in
     ;;
   mips*-sde-elf* | mips*-mti-elf* | mips*-img-elf*)
     target_makefile_frag="config/mt-sde"
+    ;;
+  nanomips*-img-elf*)
+    target_makefile_frag="config/mt-nanomips"
     ;;
   mipsisa*-*-elfoabi*)
     target_makefile_frag="config/mt-mips-elfoabi"

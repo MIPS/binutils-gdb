@@ -297,6 +297,7 @@ case $basic_machine in
 	| moxie \
 	| mt \
 	| msp430 \
+	| nanomips \
 	| nds32 | nds32le | nds32be \
 	| nfp \
 	| nios | nios2 | nios2eb | nios2el \
@@ -428,6 +429,7 @@ case $basic_machine in
 	| mmix-* \
 	| mt-* \
 	| msp430-* \
+	| nanomips-* \
 	| nds32-* | nds32le-* | nds32be-* \
 	| nfp-* \
 	| nios-* | nios2-* | nios2eb-* | nios2el-* \
@@ -1616,7 +1618,7 @@ case $basic_machine in
 	mips*-cisco)
 		os=-elf
 		;;
-	mips*-*)
+	mips*-* | nanomips*-*)
 		os=-elf
 		;;
 	or32-*)

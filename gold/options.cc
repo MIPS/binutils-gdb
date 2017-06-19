@@ -1377,6 +1377,24 @@ General_options::finalize()
       this->set_expand_reg(1);
     }
 
+  if (this->user_set_finalize_pcrel_relocs()
+      && !this->relocatable())
+    {
+      gold_warning(_("--resolve-pcrel-relocs is only compatible with -r"));
+      this->set_finalize_pcrel_relocs(false);
+    }
+
+  if (this->user_set_finalize_relocs()
+      && !this->relocatable())
+    {
+      gold_warning(_("--finalize-relocs is only compatible with -r"));
+      this->set_finalize_relocs(false);
+    }
+
+  // --finalize-relocs implies --finalize-pcrel-relocs.
+  if (this->user_set_finalize_relocs())
+    this->set_finalize_pcrel_relocs(true);
+
   // --rosegment-gap implies --rosegment.
   if (this->user_set_rosegment_gap())
     this->set_rosegment(true);

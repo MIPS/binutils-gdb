@@ -1,0 +1,116 @@
+// nanomips-reloc.def -- Nanomips relocation and instruction definitions.
+
+// Copyright (C) 2017 Free Software Foundation, Inc.
+// Written by Vladimir Radosavljevic <vladimir.radosavljevic@imgtec.com>
+
+// This file is part of gold.
+
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 3 of the License, or
+// (at your option) any later version.
+
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+// MA 02110-1301, USA.
+//
+//
+//
+// Symbol reference type--------------------------------------------------------------+
+// Mask for relaxations or expansions------------------------------+                  |
+// Size of the bits to be relocated--------------------+           |                  |
+// The size of the instruction--------------+          |           |                  |
+// Type-----------------+                   |          |           |                  |
+// Name                 |                   |          |           |                  |
+//  |                   |                   |          |           |                  |
+NRD(NONE,               STATIC,             0,         0,          0,                 0)
+NRD(32,                 STATIC,             0,         32,         0,                 Symbol::ABSOLUTE_REF)
+NRD(UNSIGNED_8,         STATIC,             0,         8,          0,                 0)
+NRD(UNSIGNED_16,        STATIC,             0,         16,         0,                 0)
+NRD(SIGNED_8,           STATIC,             0,         8,          0,                 0)
+NRD(SIGNED_16,          STATIC,             0,         16,         0,                 0)
+NRD(ASHIFTR_1,          STATIC,             0,         0,          0,                 0)
+NRD(NEG,                STATIC,             0,         0,          0,                 0)
+NRD(HI20,               STATIC,             32,        20,         0,                 Symbol::ABSOLUTE_REF)
+NRD(LO12,               STATIC,             32,        12,         0xfc00f000,        Symbol::ABSOLUTE_REF)
+NRD(LO4_S2,             STATIC,             16,        6,          0xfc00,            Symbol::ABSOLUTE_REF)
+NRD(PC25_S1,            STATIC,             32,        26,         0xfe000000,        (Symbol::FUNCTION_CALL|Symbol::RELATIVE_REF))
+NRD(PC21_S1,            STATIC,             32,        22,         0xfc000000,        (Symbol::FUNCTION_CALL|Symbol::RELATIVE_REF))
+NRD(PC14_S1,            STATIC,             32,        15,         0xfc00c000,        (Symbol::FUNCTION_CALL|Symbol::RELATIVE_REF))
+NRD(PC11_S1,            STATIC,             32,        12,         0xfc1c0000,        (Symbol::FUNCTION_CALL|Symbol::RELATIVE_REF))
+NRD(PC10_S1,            STATIC,             16,        11,         0xfc00,            (Symbol::FUNCTION_CALL|Symbol::RELATIVE_REF))
+NRD(PC7_S1,             STATIC,             16,        8,          0,                 (Symbol::FUNCTION_CALL|Symbol::RELATIVE_REF))
+NRD(PC4_S1,             STATIC,             16,        5,          0xfc00,            (Symbol::FUNCTION_CALL|Symbol::RELATIVE_REF))
+NRD(PC_HI20,            STATIC,             32,        20,         0,                 Symbol::RELATIVE_REF)
+NRD(GPREL19_S2,         STATIC,             32,        21,         0xfc000003,        Symbol::RELATIVE_REF)
+NRD(GPREL18_S3,         STATIC,             32,        21,         0,                 Symbol::RELATIVE_REF)
+NRD(GPREL18,            STATIC,             32,        18,         0xfc1c0000,        Symbol::RELATIVE_REF)
+NRD(GPREL17_S1,         STATIC,             32,        18,         0xfc1c0001,        Symbol::RELATIVE_REF)
+NRD(GPREL16_S2,         STATIC,             32,        18,         0,                 Symbol::RELATIVE_REF)
+NRD(GPREL7_S2,          STATIC,             16,        9,          0xfc00,            Symbol::RELATIVE_REF)
+NRD(GPREL_HI20,         STATIC,             32,        20,         0,                 Symbol::RELATIVE_REF)
+NRD(GPREL_LO12,         STATIC,             32,        12,         0,                 Symbol::RELATIVE_REF)
+NRD(I32,                STATIC,             48,        32,         0,                 Symbol::ABSOLUTE_REF)
+NRD(PC_I32,             STATIC,             48,        32,         0,                 Symbol::ABSOLUTE_REF)
+NRD(GPREL_I32,          STATIC,             48,        32,         0,                 Symbol::ABSOLUTE_REF)
+NRD(ALIGN,              PLACEHOLDER,        0,         0,          0,                 0)
+NRD(FILL,               PLACEHOLDER,        0,         0,          0,                 0)
+NRD(MAX,                PLACEHOLDER,        0,         0,          0,                 0)
+NRD(INSN32,             PLACEHOLDER,        0,         0,          0,                 0)
+NRD(INSN16,             PLACEHOLDER,        0,         0,          0,                 0)
+NRD(FIXED,              PLACEHOLDER,        0,         0,          0,                 0)
+NRD(RELAX,              PLACEHOLDER,        0,         0,          0,                 0)
+NRD(NORELAX,            PLACEHOLDER,        0,         0,          0,                 0)
+
+// NIE - Nanomips instruction expansion
+// NIR - Nanomips instruction relaxation
+//
+// Type of the instruction----------------------------------------------------------------+
+// Is store instruction---------------------------------------------------------+         |
+// The offset where to add/delete bytes-------------------------------+         |         |
+// The number of bytes to add/delete------------------------+         |         |         |
+// Opcode--------------------------------+                  |         |         |         |
+// Instruction name----+                 |                  |         |         |         |
+// Reloc Name          |                 |                  |         |         |         |
+//  |                  |                 |                  |         |         |         |
+NIE(PC25_S1,           BC,               0x28000000,        6,        4,        N,        IT_STANDARD)
+NIE(PC25_S1,           BALC,             0x2a000000,        6,        4,        N,        IT_STANDARD)
+NIE(PC21_S1,           MOVE_BALC,        0x08000000,        2,        4,        N,        IT_STANDARD)
+NIE(PC11_S1,           BEQIC,            0xc8000000,        4,        4,        N,        IT_STANDARD)
+NIE(PC11_S1,           BGEIC,            0xc8080000,        4,        4,        N,        IT_STANDARD)
+NIE(PC11_S1,           BGEIUC,           0xc80c0000,        4,        4,        N,        IT_STANDARD)
+NIE(PC11_S1,           BLTIC,            0xc8180000,        4,        4,        N,        IT_STANDARD)
+NIE(PC11_S1,           BLTIUC,           0xc81c0000,        4,        4,        N,        IT_STANDARD)
+NIE(PC11_S1,           BNEIC,            0xc8100000,        4,        4,        N,        IT_STANDARD)
+NIE(GPREL19_S2,        LWGP,             0x40000002,        8,        4,        N,        IT_STANDARD)
+NIE(GPREL19_S2,        SWGP,             0x40000003,        8,        4,        Y,        IT_STANDARD)
+NIE(GPREL19_S2,        ADDIUGP_W,        0x40000000,        8,        4,        N,        IT_STANDARD)
+NIE(GPREL18,           LBGP,             0x44000000,        8,        4,        N,        IT_STANDARD)
+NIE(GPREL18,           LBUGP,            0x44080000,        8,        4,        N,        IT_STANDARD)
+NIE(GPREL18,           SBGP,             0x44040000,        8,        4,        Y,        IT_STANDARD)
+NIE(GPREL18,           ADDIUGP_B,        0x440c0000,        8,        4,        N,        IT_STANDARD)
+NIE(GPREL17_S1,        LHGP,             0x44100000,        8,        4,        N,        IT_STANDARD)
+NIE(GPREL17_S1,        LHUGP,            0x44100001,        8,        4,        N,        IT_STANDARD)
+NIE(GPREL17_S1,        SHGP,             0x44140000,        8,        4,        Y,        IT_STANDARD)
+NIE(PC10_S1,           BC16,             0x1800,            2,        2,        N,        IT_STANDARD)
+NIE(PC10_S1,           BALC16,           0x3800,            2,        2,        N,        IT_STANDARD)
+NIE(PC4_S1,            BEQC16,           0xd800,            2,        2,        N,        IT_BEQC16)
+NIE(PC4_S1,            BNEC16,           0xd800,            2,        2,        N,        IT_BNEC16)
+NIE(GPREL7_S2,         LWGP16,           0x5400,            2,        2,        N,        IT_STANDARD)
+NIE(GPREL7_S2,         SWGP16,           0xd400,            2,        2,        Y,        IT_STANDARD)
+NIE(LO4_S2,            LW16,             0x1400,            2,        2,        N,        IT_STANDARD)
+NIE(LO4_S2,            SW16,             0x9400,            2,        2,        Y,        IT_STANDARD)
+NIR(PC25_S1,           BC,               0x28000000,       -2,        2,        N,        IT_STANDARD)
+NIR(PC25_S1,           BALC,             0x2a000000,       -2,        2,        N,        IT_STANDARD)
+NIR(PC14_S1,           BEQC,             0x88000000,       -2,        2,        N,        IT_STANDARD)
+NIR(PC14_S1,           BNEC,             0xa8000000,       -2,        2,        N,        IT_STANDARD)
+NIR(GPREL19_S2,        LWGP,             0x40000002,       -2,        2,        N,        IT_STANDARD)
+NIR(GPREL19_S2,        SWGP,             0x40000003,       -2,        2,        Y,        IT_STANDARD)
+NIR(LO12,              LW,               0x84008000,       -2,        2,        N,        IT_STANDARD)
+NIR(LO12,              SW,               0x84009000,       -2,        2,        Y,        IT_STANDARD)

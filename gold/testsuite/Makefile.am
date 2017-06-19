@@ -4197,6 +4197,104 @@ MOSTLYCLEANFILES += split_s390_z1 split_s390_z2 split_s390_z3 \
 
 endif DEFAULT_TARGET_S390
 
+if DEFAULT_TARGET_NANOMIPS
+
+# Check expansions of branch instructions.
+
+check_SCRIPTS += nanomips_branch_out_of_range.sh
+check_DATA += nanomips_b_out_of_range.stdout \
+	      nanomips_bci_out_of_range.stdout \
+	      nanomips_move_balc_1_out_of_range.stdout \
+	      nanomips_move_balc_2_out_of_range.stdout
+
+nanomips_b_out_of_range.stdout: nanomips_b_out_of_range
+	$(TEST_OBJDUMP) -d $< > $@
+
+nanomips_b_out_of_range: nanomips_b_out_of_range.o ../ld-new
+	../ld-new --section-start .text=0x1000 --section-start .foo=0x2001020 -o $@ $<
+
+nanomips_b_out_of_range.o: nanomips_b_out_of_range.s
+	$(TEST_AS) -EL -march=32r6 -m32 -o $@ $<
+
+nanomips_bci_out_of_range.stdout: nanomips_bci_out_of_range
+	$(TEST_OBJDUMP) -d $< > $@
+
+nanomips_bci_out_of_range: nanomips_bci_out_of_range.o ../ld-new
+	../ld-new --section-start .text=0x1000 --section-start .foo=0x3020 -o $@ $<
+
+nanomips_bci_out_of_range.o: nanomips_bci_out_of_range.s
+	$(TEST_AS) -EL -march=32r6 -m32 -o $@ $<
+
+nanomips_move_balc_1_out_of_range.stdout: nanomips_move_balc_1_out_of_range
+	$(TEST_OBJDUMP) -d $< > $@
+
+nanomips_move_balc_2_out_of_range.stdout: nanomips_move_balc_2_out_of_range
+	$(TEST_OBJDUMP) -d $< > $@
+
+nanomips_move_balc_1_out_of_range: nanomips_move_balc_out_of_range.o ../ld-new
+	../ld-new --section-start .text=0x1000 --section-start .foo=0x201020 -o $@ $<
+
+nanomips_move_balc_2_out_of_range: nanomips_move_balc_out_of_range.o ../ld-new
+	../ld-new --section-start .text=0x1000 --section-start .foo=0x2001020 -o $@ $<
+
+nanomips_move_balc_out_of_range.o: nanomips_move_balc_out_of_range.s
+	$(TEST_AS) -EL -march=32r6 -m32 -o $@ $<
+
+MOSTLYCLEANFILES += nanomips_b_out_of_range  nanomips_bci_out_of_range \
+		    nanomips_move_balc_1_out_of_range nanomips_move_balc_2_out_of_range
+
+# Check expansions of gp-relative load and store instructions.
+
+check_SCRIPTS += nanomips_gprel_out_of_range.sh
+check_DATA += nanomips_gprel_out_of_range.stdout
+
+nanomips_gprel_out_of_range.stdout: nanomips_gprel_out_of_range
+	$(TEST_OBJDUMP) -d $< > $@
+
+nanomips_gprel_out_of_range: nanomips_gprel_out_of_range.o ../ld-new
+	../ld-new -T $(srcdir)/nanomips_gprel_out_of_range.t -o $@ $<
+
+nanomips_gprel_out_of_range.o: nanomips_gprel_out_of_range.s
+	$(TEST_AS) -EL -march=32r6 -m32 -o $@ $<
+
+MOSTLYCLEANFILES += nanomips_gprel_out_of_range
+
+# Test sorting small data section.
+check_SCRIPTS += nanomips_script_test.sh
+check_DATA += nanomips_script_test.stdout
+
+nanomips_script_test.stdout: nanomips_script_test
+	$(TEST_OBJDUMP) -D -j.sdata $< > $@
+
+nanomips_script_test: nanomips_script_test.o ../ld-new
+	../ld-new -T $(srcdir)/nanomips_script_test.t -o $@ $<
+
+nanomips_script_test.o: nanomips_script_test.s
+	$(TEST_AS) -EL -march=32r6 -m32 -o $@ $<
+
+MOSTLYCLEANFILES += nanomips_script_test
+
+# Test --finalize-pcrel-relocs option
+
+check_SCRIPTS += nanomips_finalize_pcrel.sh
+check_DATA += nanomips_finalize_pcrel.stdout
+
+nanomips_finalize_pcrel.stdout: nanomips_finalize_pcrel
+	$(TEST_OBJDUMP) -dr $< > $@
+
+nanomips_finalize_pcrel: nanomips_finalize_pcrel_1.o nanomips_finalize_pcrel_2.o ../ld-new
+	../ld-new -r --finalize-pcrel-relocs nanomips_finalize_pcrel_1.o nanomips_finalize_pcrel_2.o -o $@
+
+nanomips_finalize_pcrel_1.o: nanomips_finalize_pcrel_1.s
+	$(TEST_AS) -EL -march=32r6 -m32 -o $@ $<
+
+nanomips_finalize_pcrel_2.o: nanomips_finalize_pcrel_2.s
+	$(TEST_AS) -EL -march=32r6 -m32 -o $@ $<
+
+MOSTLYCLEANFILES += nanomips_finalize_pcrel
+
+endif DEFAULT_TARGET_NANOMIPS
+
 endif NATIVE_OR_CROSS_LINKER
 
 # Tests for the dwp tool.

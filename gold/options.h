@@ -865,6 +865,17 @@ class General_options
 	     N_("Auxiliary filter for shared object symbol table"),
 	     N_("SHLIB"));
 
+  DEFINE_bool(finalize_pcrel_relocs, options::TWO_DASHES, '\0', false,
+	      N_("(Nanomips only) Finalize pc-relative relocations in "
+		"relocatable output"),
+	      N_("(Nanomips only) Do not finalize pc-relative relocations in "
+		"relocatable output"));
+
+  DEFINE_bool(finalize_relocs, options::TWO_DASHES, '\0', false,
+	      N_("(Nanomips only) Finalize relocations in relocatable output"),
+	      N_("(Nanomips only) Do not finalize relocations in "
+		"relocatable output"));
+
   DEFINE_string(filter, options::TWO_DASHES, 'F', NULL,
 		N_("Filter for shared object symbol table"),
 		N_("SHLIB"));

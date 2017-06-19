@@ -1068,10 +1068,36 @@ check_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
 @DEFAULT_TARGET_S390_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	split_s390x_z1_ns split_s390x_z2_ns split_s390x_z3_ns \
 @DEFAULT_TARGET_S390_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	split_s390x_z4_ns split_s390x_n1_ns split_s390x_n2_ns split_s390x_r
 
-@DEFAULT_TARGET_X86_64_TRUE@am__append_106 = *.dwo *.dwp
-@DEFAULT_TARGET_X86_64_TRUE@am__append_107 = dwp_test_1.sh \
+
+# Check expansions of branch instructions.
+
+# Check expansions of gp-relative load and store instructions.
+
+# Test sorting small data section.
+
+# Test --finalize-pcrel-relocs option
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@am__append_106 = nanomips_branch_out_of_range.sh \
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_gprel_out_of_range.sh \
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_script_test.sh \
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_finalize_pcrel.sh
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@am__append_107 = nanomips_b_out_of_range.stdout \
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_bci_out_of_range.stdout \
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_move_balc_1_out_of_range.stdout \
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_move_balc_2_out_of_range.stdout \
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_gprel_out_of_range.stdout \
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_script_test.stdout \
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_finalize_pcrel.stdout
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@am__append_108 = nanomips_b_out_of_range \
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_bci_out_of_range \
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_move_balc_1_out_of_range \
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_move_balc_2_out_of_range \
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_gprel_out_of_range \
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_script_test \
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_finalize_pcrel
+@DEFAULT_TARGET_X86_64_TRUE@am__append_109 = *.dwo *.dwp
+@DEFAULT_TARGET_X86_64_TRUE@am__append_110 = dwp_test_1.sh \
 @DEFAULT_TARGET_X86_64_TRUE@	dwp_test_2.sh
-@DEFAULT_TARGET_X86_64_TRUE@am__append_108 = dwp_test_1.stdout \
+@DEFAULT_TARGET_X86_64_TRUE@am__append_111 = dwp_test_1.stdout \
 @DEFAULT_TARGET_X86_64_TRUE@	dwp_test_2.stdout
 subdir = testsuite
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am
@@ -2901,7 +2927,8 @@ MOSTLYCLEANFILES = *.so *.syms *.stdout $(am__append_4) \
 	$(am__append_58) $(am__append_78) $(am__append_81) \
 	$(am__append_83) $(am__append_87) $(am__append_90) \
 	$(am__append_93) $(am__append_96) $(am__append_99) \
-	$(am__append_102) $(am__append_105) $(am__append_106)
+	$(am__append_102) $(am__append_105) $(am__append_108) \
+	$(am__append_109)
 
 # We will add to these later, for each individual test.  Note
 # that we add each test under check_SCRIPTS or check_PROGRAMS;
@@ -2913,7 +2940,7 @@ check_SCRIPTS = $(am__append_2) $(am__append_19) $(am__append_23) \
 	$(am__append_76) $(am__append_79) $(am__append_85) \
 	$(am__append_88) $(am__append_91) $(am__append_94) \
 	$(am__append_97) $(am__append_100) $(am__append_103) \
-	$(am__append_107)
+	$(am__append_106) $(am__append_110)
 check_DATA = $(am__append_3) $(am__append_20) $(am__append_24) \
 	$(am__append_30) $(am__append_36) $(am__append_43) \
 	$(am__append_46) $(am__append_50) $(am__append_54) \
@@ -2921,7 +2948,7 @@ check_DATA = $(am__append_3) $(am__append_20) $(am__append_24) \
 	$(am__append_77) $(am__append_80) $(am__append_86) \
 	$(am__append_89) $(am__append_92) $(am__append_95) \
 	$(am__append_98) $(am__append_101) $(am__append_104) \
-	$(am__append_108)
+	$(am__append_107) $(am__append_111)
 BUILT_SOURCES = $(am__append_40)
 TESTS = $(check_SCRIPTS) $(check_PROGRAMS)
 
@@ -5470,6 +5497,14 @@ aarch64_tlsdesc.sh.log: aarch64_tlsdesc.sh
 	@p='aarch64_tlsdesc.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 split_s390.sh.log: split_s390.sh
 	@p='split_s390.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
+nanomips_branch_out_of_range.sh.log: nanomips_branch_out_of_range.sh
+	@p='nanomips_branch_out_of_range.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
+nanomips_gprel_out_of_range.sh.log: nanomips_gprel_out_of_range.sh
+	@p='nanomips_gprel_out_of_range.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
+nanomips_script_test.sh.log: nanomips_script_test.sh
+	@p='nanomips_script_test.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
+nanomips_finalize_pcrel.sh.log: nanomips_finalize_pcrel.sh
+	@p='nanomips_finalize_pcrel.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 dwp_test_1.sh.log: dwp_test_1.sh
 	@p='dwp_test_1.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 dwp_test_2.sh.log: dwp_test_2.sh
@@ -8319,6 +8354,69 @@ uninstall-am:
 @DEFAULT_TARGET_S390_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_OBJDUMP) -d $< > $@
 @DEFAULT_TARGET_S390_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@split_s390x_r.stdout: split_s390x_1_z1.o split_s390x_2_ns.o ../ld-new
 @DEFAULT_TARGET_S390_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new -r split_s390x_1_z1.o split_s390x_2_ns.o -o split_s390x_r > $@ 2>&1 || exit 0
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_b_out_of_range.stdout: nanomips_b_out_of_range
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_OBJDUMP) -d $< > $@
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_b_out_of_range: nanomips_b_out_of_range.o ../ld-new
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new --section-start .text=0x1000 --section-start .foo=0x2001020 -o $@ $<
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_b_out_of_range.o: nanomips_b_out_of_range.s
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_AS) -EL -march=32r6 -m32 -o $@ $<
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_bci_out_of_range.stdout: nanomips_bci_out_of_range
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_OBJDUMP) -d $< > $@
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_bci_out_of_range: nanomips_bci_out_of_range.o ../ld-new
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new --section-start .text=0x1000 --section-start .foo=0x3020 -o $@ $<
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_bci_out_of_range.o: nanomips_bci_out_of_range.s
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_AS) -EL -march=32r6 -m32 -o $@ $<
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_move_balc_1_out_of_range.stdout: nanomips_move_balc_1_out_of_range
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_OBJDUMP) -d $< > $@
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_move_balc_2_out_of_range.stdout: nanomips_move_balc_2_out_of_range
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_OBJDUMP) -d $< > $@
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_move_balc_1_out_of_range: nanomips_move_balc_out_of_range.o ../ld-new
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new --section-start .text=0x1000 --section-start .foo=0x201020 -o $@ $<
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_move_balc_2_out_of_range: nanomips_move_balc_out_of_range.o ../ld-new
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new --section-start .text=0x1000 --section-start .foo=0x2001020 -o $@ $<
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_move_balc_out_of_range.o: nanomips_move_balc_out_of_range.s
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_AS) -EL -march=32r6 -m32 -o $@ $<
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_gprel_out_of_range.stdout: nanomips_gprel_out_of_range
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_OBJDUMP) -d $< > $@
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_gprel_out_of_range: nanomips_gprel_out_of_range.o ../ld-new
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new -T $(srcdir)/nanomips_gprel_out_of_range.t -o $@ $<
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_gprel_out_of_range.o: nanomips_gprel_out_of_range.s
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_AS) -EL -march=32r6 -m32 -o $@ $<
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_script_test.stdout: nanomips_script_test
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_OBJDUMP) -D -j.sdata $< > $@
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_script_test: nanomips_script_test.o ../ld-new
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new -T $(srcdir)/nanomips_script_test.t -o $@ $<
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_script_test.o: nanomips_script_test.s
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_AS) -EL -march=32r6 -m32 -o $@ $<
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_finalize_pcrel.stdout: nanomips_finalize_pcrel
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_OBJDUMP) -dr $< > $@
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_finalize_pcrel: nanomips_finalize_pcrel_1.o nanomips_finalize_pcrel_2.o ../ld-new
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new -r --finalize-pcrel-relocs nanomips_finalize_pcrel_1.o nanomips_finalize_pcrel_2.o -o $@
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_finalize_pcrel_1.o: nanomips_finalize_pcrel_1.s
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_AS) -EL -march=32r6 -m32 -o $@ $<
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_finalize_pcrel_2.o: nanomips_finalize_pcrel_2.s
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_AS) -EL -march=32r6 -m32 -o $@ $<
 
 # Tests for the dwp tool.
 # We don't want to rely yet on GCC support for -gsplit-dwarf,

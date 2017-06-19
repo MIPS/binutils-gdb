@@ -4056,6 +4056,11 @@ class Output_section : public Output_data
   const Output_relaxed_input_section*
   find_relaxed_input_section(const Relobj* object, unsigned int shndx) const;
 
+  // Find a relaxed input section to an input section in OBJECT
+  // with index SHNDX.  Return NULL if none is found.
+  Output_relaxed_input_section*
+  find_relaxed_input_section(const Relobj* object, unsigned int shndx);
+
   // Whether section offsets need adjustment due to relaxation.
   bool
   section_offsets_need_adjustment() const

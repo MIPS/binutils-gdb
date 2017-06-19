@@ -252,6 +252,8 @@ class Relocatable_relocs
     // Discard the input reloc--process it completely when relocating
     // the data section contents.
     RELOC_DISCARD,
+    // Resolve pc-relative reloc during relocatable link.
+    RELOC_RESOLVE,
     // An input reloc which is not discarded, but which requires
     // target specific processing in order to update it.
     RELOC_SPECIAL
@@ -271,7 +273,7 @@ class Relocatable_relocs
   set_next_reloc_strategy(Reloc_strategy strategy)
   {
     this->reloc_strategies_.push_back(static_cast<unsigned char>(strategy));
-    if (strategy != RELOC_DISCARD)
+    if (strategy != RELOC_DISCARD && strategy != RELOC_RESOLVE)
       ++this->output_reloc_count_;
   }
 
@@ -303,6 +305,11 @@ class Relocatable_relocs
     gold_assert(i < this->reloc_strategies_.size());
     this->reloc_strategies_[i] = strategy;
   }
+
+  // Increase the number of relocations to create in the output file.
+  void
+  increase_output_reloc_count()
+  { ++this->output_reloc_count_; }
 
   // Return the number of relocations to create in the output file.
   size_t

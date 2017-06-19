@@ -181,6 +181,7 @@ m6812*|m68hc12*) targ_archs="bfd_m68hc12_arch bfd_m68hc11_arch bfd_m9s12x_arch b
 m68*)		 targ_archs=bfd_m68k_arch ;;
 microblaze*)	 targ_archs=bfd_microblaze_arch ;;
 mips*)		 targ_archs=bfd_mips_arch ;;
+nanomips*)		 targ_archs=bfd_mips_arch ;;
 nds32*)		 targ_archs=bfd_nds32_arch ;;
 nfp)		 targ_archs=bfd_nfp_arch ;;
 nios2*)          targ_archs=bfd_nios2_arch ;;
@@ -880,7 +881,7 @@ case "${targ}" in
     targ_defvec=mips_elf32_trad_le_vec
     targ_selvecs="mips_elf32_trad_be_vec mips_elf32_ntrad_be_vec mips_elf32_ntrad_le_vec mips_elf64_trad_be_vec mips_elf64_trad_le_vec"
     ;;
-  mips*-sde-elf* | mips*-mti-elf* | mips*-img-elf*)
+  mips*-sde-elf* | mips*-mti-elf* | mips*-img-elf* | nanomips*-img-elf*)
     targ_defvec=mips_elf32_trad_be_vec
     targ_selvecs="mips_elf32_trad_le_vec mips_elf32_ntrad_be_vec mips_elf32_ntrad_le_vec mips_elf64_trad_be_vec mips_elf64_trad_le_vec"
     ;;

@@ -139,6 +139,7 @@ HFILES = \
 	mapfile.h \
 	merge.h \
 	nacl.h \
+	nanomips-reloc-property.h \
 	object.h \
 	options.h \
 	output.h \
@@ -165,7 +166,7 @@ HFILES = \
 YFILES = \
 	yyscript.y
 
-DEFFILES = arm-reloc.def aarch64-reloc.def
+DEFFILES = arm-reloc.def aarch64-reloc.def nanomips-reloc.def
 
 EXTRA_DIST = yyscript.c yyscript.h
 
@@ -173,13 +174,14 @@ diststuff: $(EXTRA_DIST)
 
 TARGETSOURCES = \
 	i386.cc x86_64.cc sparc.cc powerpc.cc arm.cc arm-reloc-property.cc tilegx.cc \
-	mips.cc aarch64.cc aarch64-reloc-property.cc s390.cc
+	mips.cc aarch64.cc aarch64-reloc-property.cc s390.cc nanomips.cc \
+	nanomips-reloc-property.cc
 
 ALL_TARGETOBJS = \
 	i386.$(OBJEXT) x86_64.$(OBJEXT) sparc.$(OBJEXT) powerpc.$(OBJEXT) \
 	arm.$(OBJEXT) arm-reloc-property.$(OBJEXT) tilegx.$(OBJEXT) \
 	mips.$(OBJEXT) aarch64.$(OBJEXT) aarch64-reloc-property.$(OBJEXT) \
-	s390.$(OBJEXT)
+	s390.$(OBJEXT) nanomips.$(OBJEXT) nanomips-reloc-property.$(OBJEXT)
 
 libgold_a_SOURCES = $(CCFILES) $(HFILES) $(YFILES) $(DEFFILES)
 libgold_a_LIBADD = $(LIBOBJS)

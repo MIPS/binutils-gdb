@@ -256,6 +256,7 @@ for targ in $target $canon_targets; do
 		       test "$target_x86_64" = "yes" -o "$target_x32" = "yes")
 	AM_CONDITIONAL(DEFAULT_TARGET_TILEGX, test "$targ_obj" = "tilegx")
         AM_CONDITIONAL(DEFAULT_TARGET_MIPS, test "$targ_obj" = "mips")
+        AM_CONDITIONAL(DEFAULT_TARGET_NANOMIPS, test "$targ_obj" = "nanomips")
 	DEFAULT_TARGET=${targ_obj}
 	AC_SUBST(DEFAULT_TARGET)
       fi

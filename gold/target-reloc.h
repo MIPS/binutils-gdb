@@ -820,6 +820,19 @@ relocate_relocs(
 	  pwrite += reloc_size;
 	  continue;
 	}
+      else if (strategy == Relocatable_relocs::RELOC_RESOLVE)
+	{
+	  // Target wants to handle this relocation.
+	  Sized_target<size, big_endian>* target =
+	    parameters->sized_target<size, big_endian>();
+	  target->resolve_pcrel_relocatable(relinfo, Classify_reloc::sh_type,
+					    prelocs, i, output_section,
+					    offset_in_output_section,
+					    view, view_address,
+					    view_size);
+	  continue;
+	}
+
       Reltype reloc(prelocs);
       Reltype_write reloc_write(pwrite);
 

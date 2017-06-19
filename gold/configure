@@ -667,6 +667,8 @@ CXX
 NM
 TARGETOBJS
 DEFAULT_TARGET
+DEFAULT_TARGET_NANOMIPS_FALSE
+DEFAULT_TARGET_NANOMIPS_TRUE
 DEFAULT_TARGET_MIPS_FALSE
 DEFAULT_TARGET_MIPS_TRUE
 DEFAULT_TARGET_TILEGX_FALSE
@@ -5101,6 +5103,14 @@ else
   DEFAULT_TARGET_MIPS_FALSE=
 fi
 
+         if test "$targ_obj" = "nanomips"; then
+  DEFAULT_TARGET_NANOMIPS_TRUE=
+  DEFAULT_TARGET_NANOMIPS_FALSE='#'
+else
+  DEFAULT_TARGET_NANOMIPS_TRUE='#'
+  DEFAULT_TARGET_NANOMIPS_FALSE=
+fi
+
 	DEFAULT_TARGET=${targ_obj}
 
       fi
@@ -8696,6 +8706,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${DEFAULT_TARGET_MIPS_TRUE}" && test -z "${DEFAULT_TARGET_MIPS_FALSE}"; then
   as_fn_error "conditional \"DEFAULT_TARGET_MIPS\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${DEFAULT_TARGET_NANOMIPS_TRUE}" && test -z "${DEFAULT_TARGET_NANOMIPS_FALSE}"; then
+  as_fn_error "conditional \"DEFAULT_TARGET_NANOMIPS\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${am__fastdepCC_TRUE}" && test -z "${am__fastdepCC_FALSE}"; then

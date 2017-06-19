@@ -1023,6 +1023,35 @@ class Sized_target : public Target
 			       unsigned char* /* preloc_out*/)
   { gold_unreachable(); }
 
+  // Perform target-specific processing in a relocatable link.  This is
+  // only used if we use the relocation strategy RELOC_RESOLVE.
+  // RELINFO points to a Relocation_info structure. SH_TYPE is the relocation
+  // section type. PRELOC_IN points to the original relocation.  RELNUM is
+  // the index number of the relocation in the relocation section.
+  // OUTPUT_SECTION is the output section to which the relocation is applied.
+  // OFFSET_IN_OUTPUT_SECTION is the offset of the relocation input section
+  // within the output section.  VIEW points to the output view of the
+  // output section.  VIEW_ADDRESS is output address of the view.  VIEW_SIZE
+  // is the size of the output view.
+  //
+  // A target only needs to override this if the generic code in
+  // target-reloc.h cannot handle some relocation types.
+
+  virtual void
+  resolve_pcrel_relocatable(const Relocate_info<size, big_endian>*
+			      /*relinfo */,
+			    unsigned int /* sh_type */,
+			    const unsigned char* /* preloc_in */,
+			    size_t /* relnum */,
+			    Output_section* /* output_section */,
+			    typename elfcpp::Elf_types<size>::Elf_Off
+			      /* offset_in_output_section */,
+			    unsigned char* /* view */,
+			    typename elfcpp::Elf_types<size>::Elf_Addr
+			      /* view_address */,
+			    section_size_type /* view_size */)
+  { gold_unreachable(); }
+
   // Return the number of entries in the GOT.  This is only used for
   // laying out the incremental link info sections.  A target needs
   // to implement this to support incremental linking.
