@@ -166,14 +166,14 @@
 "cmp.lt.ph r<RS>, r<RT>"
 *nanomipsdsp:
 {
-  do_ph_cmpu (SD_, RT, RS, 1);
+  do_ph_cmpu (SD_, RS, RT, 1);
 }
 
 001000,5.RT,5.RS,0000000010,000101:POOL32A:32::CMP.LE.PH
 "cmp.le.ph r<RS>, r<RT>"
 *nanomipsdsp:
 {
-  do_ph_cmpu (SD_, RT, RS, 2);
+  do_ph_cmpu (SD_, RS, RT, 2);
 }
 
 001000,5.RT,5.RS,5.RD,1.X,0110000101:POOL32A:32::CMPGDU.EQ.QB
@@ -229,14 +229,14 @@
 "cmpu.lt.qb r<RS>, r<RT>"
 *nanomipsdsp:
 {
-  do_qb_cmpu (SD_, RT, RS, 1);
+  do_qb_cmpu (SD_, RS, RT, 1);
 }
 
 001000,5.RT,5.RS,5.X1,1.X2,1011000101:POOL32A:32::CMPU.LE.QB
 "cmpu.le.qb r<RS>, r<RT>"
 *nanomipsdsp:
 {
-  do_qb_cmpu (SD_, RT, RS, 2);
+  do_qb_cmpu (SD_, RS, RT, 2);
 }
 
 001000,5.RT,5.RS,2.AC,00000010111111:POOL32A:32::DPA.W.PH
@@ -867,28 +867,28 @@
 "shllv.ph r<RD>, r<RT>, r<RS>"
 *nanomipsdsp:
 {
-  do_ph_shl (SD_, RD, RS, RT, 0, 0);
+  do_ph_shl (SD_, RD, RT, RS, 0, 0);
 }
 
 001000,5.RT,5.RS,5.RD,11110001101:POOL32A:32::SHLLV_S.PH
 "shllv_s.ph r<RD>, r<RD>, r<RS>"
 *nanomipsdsp:
 {
-  do_ph_shl (SD_, RD, RS, RT, 0, 1);
+  do_ph_shl (SD_, RD, RT, RS, 0, 1);
 }
 
 001000,5.RT,5.RS,5.RD,1.X,1110010101:POOL32A:32::SHLLV.QB
 "shllv.qb r<RD>, r<RT>, r<RS>"
 *nanomipsdsp:
 {
-  do_qb_shl (SD_, RD, RS, RT, 0);
+  do_qb_shl (SD_, RD, RT, RS, 0);
 }
 
 001000,5.RT,5.RS,5.RD,1.X,1111010101:POOL32A:32::SHLLV_S.W
 "shllv_s.w r<RD>, r<RT>, r<RS>"
 *nanomipsdsp:
 {
-  do_w_s_shllv (SD_, RD, RS, RT);
+  do_w_s_shllv (SD_, RD, RT, RS);
 }
 
 001000,5.RT,5.RS,5.SHIFT,1.X,1111110101:POOL32A:32::SHLL_S.W
@@ -930,14 +930,14 @@
 "shrav.ph r<RD>, r<RT>, r<RS>"
 *nanomipsdsp:
 {
-  do_ph_shl (SD_, RD, RS, RT, 1, 0);
+  do_ph_shl (SD_, RD, RT, RS, 1, 0);
 }
 
 001000,5.RT,5.RS,5.RD,10110001101:POOL32A:32::SHRAV_R.PH
 "shrav_r.ph r<RD>, r<RT>, r<RS>"
 *nanomipsdsp:
 {
-  do_ph_shl (SD_, RD, RS, RT, 1, 1);
+  do_ph_shl (SD_, RD, RT, RS, 1, 1);
 }
 
 001000,5.RT,5.RS,5.RD,00111001101:POOL32A:32::SHRAV.QB
@@ -958,7 +958,7 @@
 "shrav_r.w r<RD>, r<RT>, r<RS>"
 *nanomipsdsp:
 {
-  do_w_r_shrav (SD_, RD, RS, RT);
+  do_w_r_shrav (SD_, RD, RT, RS);
 }
 
 001000,5.RT,5.RS,5.SHIFT,1.X,1011110101:POOL32A:32::SHRA_R.W
@@ -993,7 +993,7 @@
 "shrlv.qb r<RD>, r<RT>, r<RS>"
 *nanomipsdsp:
 {
-  do_qb_shl (SD_, RD, RS, RT, 1);
+  do_qb_shl (SD_, RD, RT, RS, 1);
 }
 
 001000,5.RT,5.RS,5.RD,01000001101:POOL32A:32::SUBQ.PH
