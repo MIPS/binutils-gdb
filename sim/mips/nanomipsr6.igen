@@ -1236,12 +1236,14 @@
   NIA = do_eret(SD_, 0, NIA);
 }
 
-001000,000000000,1,11,11001,101,111,111:R7ERETX:32::ERETNC
+001000,9.X,1,11,11001,101,111,111:R7ERETX:32::ERETNC
 "eretnc"
 *nanomips32r6:
 *nanomips64r6:
 {
   //TODO: signal coprocessor_exception(0) if !IsCoprocessor0Enabled()
+  check_xlp_flag (SD_);
+  SignalException (ReservedInstruction, instruction_0);
   NIA = do_eret(SD_, 1, NIA);
 }
 
@@ -1738,11 +1740,18 @@
 }
 
 100001,5.HINT,5.RS,0011,12.U:R7PLSU12:32::PREFU12
-"pref <HINT>, <U>(r<RS>)"
+"pref <HINT>, <U>(r<RS>)": HINT != 31
+"synci <U>(r<RS>)"
 *nanomips32r6:
 *nanomips64r6:
 {
-  do_pref (SD_, HINT, U, RS);
+  if (HINT != 31)
+   do_pref (SD_, HINT, U, RS);
+  else
+  {
+    // synci - nothing to do currently
+    sim_io_printf (SD, "Not implemented");
+  }
 }
 
 100000,5.RT_SAVE,0,4.GPR_LIST_SAVE,0011,9.U,1.GP_SAVE,10:R7PPSR:32::RESTORE
