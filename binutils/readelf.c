@@ -9858,6 +9858,7 @@ get_symbol_other (unsigned int other)
   switch (elf_header.e_machine)
     {
     case EM_MIPS:
+    case EM_NANOMIPS:
       result = get_mips_symbol_other (other);
       break;
     case EM_IA_64:
@@ -12629,7 +12630,7 @@ display_nanomips_gnu_attribute (unsigned char * p,
 
       val = read_uleb128 (p, &len, end);
       p += len;
-      printf ("  Tag_GNU_nanoMIPS_ABI_FP: ");
+      printf ("  Tag_GNU_NANOMIPS_ABI_FP: ");
 
       print_mips_fp_abi_value (val);
 
@@ -12643,7 +12644,7 @@ display_nanomips_gnu_attribute (unsigned char * p,
 
       val = read_uleb128 (p, &len, end);
       p += len;
-      printf ("  Tag_GNU_nanoMIPS_ABI_MSA: ");
+      printf ("  Tag_GNU_NANOMIPS_ABI_MSA: ");
 
       switch (val)
 	{

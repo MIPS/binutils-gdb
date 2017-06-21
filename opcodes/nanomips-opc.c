@@ -709,9 +709,9 @@ IGRIE */
 {"dclo",	"t,s",		0xc0004b3c, 0xfc00ffff,	WR_1|RD_2,		0,	I70,		0,		0},
 {"dclz",	"t,s",		0xc0005b3c, 0xfc00ffff,	WR_1|RD_2,		0,	I70,		0,		0},
 {"ddiv",	"d,v,t",	0xc0000118, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
-{"ddiv", 	"d,v,I",	0,    (int) M_DDIV_3I,	INSN_MACRO,		0,	I70,		0,		0},
+{"ddiv", 	"d,v,I",	0,    (int) M_DDIV_I,	INSN_MACRO,		0,	I70,		0,		0},
 {"ddivu",	"d,v,t",	0xc0000198, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
-{"ddivu",	"d,v,I",	0,    (int) M_DIVU_3I,	INSN_MACRO,		0,	I70,		0,		0},
+{"ddivu",	"d,v,I",	0,    (int) M_DIVU_I,	INSN_MACRO,		0,	I70,		0,		0},
 {"deret",	"",		0x2000e37f, 0xffffffff,		0,		0,	I38,	0,		0},
 {"dext",	"t,r,+A,+H",	0x8000f820, 0xfc00f820,	WR_1|RD_2,		0,	I70,		0,		0},
 {"dext",	"t,r,+A,+G",	0x8000f800, 0xfc00f820,	WR_1|RD_2,	INSN2_ALIAS,	I70,		0,		0}, /* DEXTM */
@@ -726,11 +726,11 @@ IGRIE */
 {"dinsm",	"t,r,+A,+F",	0x8000e800, 0xfc00f820,	WR_1|RD_2,		0,	I70,		0,		0},
 {"dinsu",	"t,r,+E,+F",	0x8000e020, 0xfc00f820,	WR_1|RD_2,		0,	I70,		0,		0},
 {"div", 	"d,v,t",	0x20000118, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,		0,		0},
-{"div", 	"d,v,I",	0,    (int) M_DIV_3I,	INSN_MACRO,		0,	I38,		0,		0},
+{"div", 	"d,v,I",	0,    (int) M_DIV_I,	INSN_MACRO,		0,	I38,		0,		0},
 {"div.d",	"D,V,T",		0xa00001f0, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0,		0},
 {"div.s",	"D,V,T",		0xa00000f0, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0,		0},
 {"divu",	"d,v,t",		0x20000198, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,		0,		0},
-{"divu",	"d,v,I",		0,    (int) M_DIVU_3I,	INSN_MACRO,		0,	I38,		0,		0},
+{"divu",	"d,v,I",		0,    (int) M_DIVU_I,	INSN_MACRO,		0,	I38,		0,		0},
 {"dli", 	"t,h",		0x8000a000, 0xfc1ff000,	WR_1,			0,	I70,		0,		0}, /* DADDIU[NEG] */
 {"dli", 	"t,i",		0x8000a000, 0xfc1ff000,	WR_1,			0,	I70,		0,		0}, /* DADDIU[U12] */
 {"dli", 	"t,I",		0,    (int) M_DLI,	INSN_MACRO,		0,	I70,		0,		0},
@@ -742,8 +742,10 @@ IGRIE */
 {"dmfc2",	"t,G",		0x20006d3f, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"dmfgc0",	"t,G",		0x200001b0, 0xfc00ffff,	WR_1,	INSN2_ALIAS,	0,	IVIRT64,		0},  /* DMFGC0 with sel=0 */
 {"dmfgc0",	"t,G,J",	0x200001b0, 0xfc0007ff,	WR_1,		0,	0,	IVIRT64,		0},
-{"dmod",	"d,s,t",		0xc0000158, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
-{"dmodu",	"d,s,t",		0xc00001d8, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
+{"dmod",	"d,v,t",	0xc0000158, 0xfc0007ff, WR_1|RD_2|RD_3,	0,	I70,		0,		0},
+{"dmod",	"d,v,I",	0,    (int) M_DMOD_I,	INSN_MACRO,	0,	I70,		0,		0},
+{"dmodu",	"d,v,t",	0xc00001d8, 0xfc0007ff, WR_1|RD_2|RD_3,	0,	I70,		0,		0},
+{"dmodu",	"d,v,I",	0,    (int) M_DMODU_I,	INSN_MACRO,	0,	I70,		0,		0},
 {"dmt",		"",			0x20010ab0, 0xffffffff,	0,		INSN2_ALIAS,	0,		MT32,		0},
 {"dmt",		"t",			0x20010ab0, 0xfc1fffff,	WR_1,			0,	0,		MT32,		0},
 {"dmtc0",	"t,G",		0x20000170, 0xfc00ffff,		RD_1,	INSN2_ALIAS,	I70,		0,		0}, /* DMTC0 with sel=0 */
@@ -1011,8 +1013,10 @@ IGRIE */
 {"mina.d",	"D,S,T",		0xa0000223, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0,		0},
 {"mina.s",	"D,S,T",		0xa0000023, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0,		0},
 {"mod", 	"d,v,t",		0x20000158, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0,		0},
+{"mod",		"d,v,I",		0,    (int) M_MOD_I,	INSN_MACRO,		0,	I38,	0,		0},
 {"modsub",	"d,s,t",		0x20000295, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
 {"modu",	"d,v,t",		0x200001d8, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0,		0},
+{"modu",	"d,v,I",		0,    (int) M_MODU_I,	INSN_MACRO,		0,	I38,	0,		0},
 {"mov.d",	"T,S",		0xa000207b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"mov.s",	"T,S",		0xa000007b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"move.balc",	"m4,+8,+r",	0x08000000, 0xfc000000,	WR_1|RD_2,		0,	0,	xNMS,		0},
@@ -1131,7 +1135,8 @@ IGRIE */
 {"recip.d",	"T,S",		0xa000523b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"recip.s",	"T,S",		0xa000123b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"rem", 	"d,v,t",	0x20000158, 0xfc0007ff, WR_1|RD_2|RD_3,	INSN2_ALIAS,	I38,	0,		0}, /* MOD */
-{"rem",		"d,v,I",	0,    (int) M_REM_3I,	INSN_MACRO,		0,	I38,	0,		0},
+{"rem", 	"d,v,I",	0,    (int) M_REM_3I,	INSN_MACRO,		0,	I38,	0,		0},
+{"remu",	"d,v,t",	0x200001d8, 0xfc0007ff, WR_1|RD_2|RD_3,	INSN2_ALIAS,	I38,	0,		0}, /* MODU */
 {"repl.ph",	"d,@",		0x2000003d, 0xfc0007ff,		WR_1,		0,	0,	D32,		0},
 {"repl.qb",	"t,5",		0x200005ff, 0xfc001fff,		WR_1,		0,	0,	D32,		0},
 {"replv.ph",	"t,s",		0x2000033f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32,		0},

@@ -222,13 +222,6 @@ extern bfd_boolean mips_allow_local_subtract (expressionS *, expressionS *,
    will do for now.  */
 #define TC_FRAG_TYPE struct fix *
 
-extern void mips_copy_symbol_attributes (symbolS *dest, symbolS *src);
-
-#ifndef TC_COPY_SYMBOL_ATTRIBUTES
-#define TC_COPY_SYMBOL_ATTRIBUTES(DEST, SRC) \
-  mips_copy_symbol_attributes (DEST, SRC)
-#endif
-
 extern void mips_md_do_align (int, const char *, int, int);
 #define md_do_align(n,f,l,m,j)		mips_md_do_align (n,f,l,m)
 

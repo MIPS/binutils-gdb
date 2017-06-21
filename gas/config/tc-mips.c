@@ -11338,6 +11338,7 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	  if (mips_opts.nanomips
 	      && (*(fmt + 1) == 'm' || *(fmt + 1) == 'j'
 		  || *(fmt + 1) == '1' || *(fmt + 1) == '2'
+		  || *(fmt + 1) == '3'
 		  || *(fmt + 1) == 'Q' || *(fmt + 1) == 'R')
 	      && ep != NULL)
 	    {
@@ -11884,7 +11885,7 @@ load_register (int reg, expressionS *ep, int dbl)
 
       sprintf_vma (value, ep->X_add_number);
       as_bad (_("number (0x%s) larger than 32 bits"), value);
-      macro_build (ep, "addiu", "t,r,j", reg, 0, BFD_RELOC_LO16);
+      macro_build (ep, "addiu", ADDIU_FMT, reg, 0, BFD_RELOC_LO16);
       return;
     }
 
@@ -11921,7 +11922,7 @@ load_register (int reg, expressionS *ep, int dbl)
 	{
 	  if ((lo32.X_add_number & 0xffff8000) == 0xffff8000)
 	    {
-	      macro_build (&lo32, "addiu", "t,r,j", reg, 0, BFD_RELOC_LO16);
+	      macro_build (&lo32, "addiu", ADDIU_FMT, reg, 0, BFD_RELOC_LO16);
 	      return;
 	    }
 	  if (lo32.X_add_number & 0x80000000)
@@ -12011,7 +12012,7 @@ load_register (int reg, expressionS *ep, int dbl)
                  ones.  */
 	      tmp.X_op = O_constant;
 	      tmp.X_add_number = (offsetT) -1;
-	      macro_build (&tmp, "addiu", "t,r,j", reg, 0, BFD_RELOC_LO16);
+	      macro_build (&tmp, "addiu", ADDIU_FMT, reg, 0, BFD_RELOC_LO16);
 	      if (bit != 0)
 		{
 		  bit += shift;
@@ -16513,6 +16514,8 @@ nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
   if (offset_expr.X_op == O_constant)
     {
       expr1.X_add_number = offset_high_part (offset_expr.X_add_number, offbits);
+      if (offbits != ISA_OFFBITS && (expr1.X_add_number & 0xfff) != 0)
+	expr1 = offset_expr;
       offset_expr.X_add_number -= expr1.X_add_number;
 
       load_register (tempreg, &expr1, HAVE_64BIT_ADDRESSES);
@@ -16520,10 +16523,10 @@ nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
 	macro_build (NULL, ADDRESS_ADD_INSN, "d,v,t",
 		     tempreg, tempreg, breg);
       if (offbits == ISA_OFFBITS)
-	macro_build (&offset_expr, s, fmt, op[0], BFD_RELOC_LO16, tempreg);
+	macro_build (&offset_expr, s, fmt, op[0],
+		     BFD_RELOC_NANOMIPS_LO12, tempreg);
       else
-	macro_build (NULL, s, fmt, op[0],
-		     (int) offset_expr.X_add_number, tempreg);
+	macro_build (NULL, s, fmt, op[0], offset_expr.X_add_number, tempreg);
     }
   else if (offbits != ISA_OFFBITS)
     {
@@ -17574,16 +17577,17 @@ nanomips_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 		     31 - op[3]);
       break;
 
-    case M_DDIV_3I:
-    case M_DDIVU_3I:
+    case M_DDIV_I:
+    case M_DDIVU_I:
       dbl = 1;
       /* fall-through */
 
-    case M_DIV_3I:
-    case M_DIVU_3I:
+    case M_DIV_I:
+    case M_DIVU_I:
       goto do_divi;
 
     case M_REM_3I:
+    case M_MOD_I:
       s = "mod";
     do_divi:
       if (imm_expr.X_add_number == 0)
@@ -17616,6 +17620,20 @@ nanomips_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       load_register (AT, &imm_expr, dbl);
       macro_build (NULL, s, DIV_FMT, op[0], op[1], AT);
       break;
+
+    case M_DMOD_I:
+      dbl = 1;
+      s = "dmod";
+      goto do_divi;
+
+    case M_DMODU_I:
+      dbl = 1;
+      s = "dmodu";
+      goto do_divi;
+
+    case M_MODU_I:
+      s = "modu";
+      goto do_divi;
 
     case M_DLA_AB:
       dbl = 1;
@@ -22690,6 +22708,68 @@ relaxed_micromips_16bit_branch_length (fragS *fragp, asection *sec, int update)
   return 2;
 }
 
+
+/* Compute the length of a branch, and adjust the RELAX_MICROMIPS_TOOFAR16
+   bit accordingly.  */
+
+static int
+relaxed_nanomips_16bit_branch_length (fragS *fragp, asection *sec, int update)
+{
+  bfd_boolean toofar;
+
+  if (fragp
+      && fragp->fr_symbol
+      && S_IS_DEFINED (fragp->fr_symbol)
+      && !S_IS_WEAK (fragp->fr_symbol)
+      && sec == S_GET_SEGMENT (fragp->fr_symbol))
+    {
+      addressT addr;
+      offsetT val;
+      int type;
+
+      val = S_GET_VALUE (fragp->fr_symbol) + fragp->fr_offset;
+      /* Ignore the low bit in the target, since it will be set
+	 for a text label.  */
+      if ((val & 1) != 0)
+	--val;
+
+      /* Assume this is a 2-byte branch.  */
+      addr = fragp->fr_address + fragp->fr_fix + 2;
+
+      /* We try to avoid the infinite loop by not adding 2 more bytes for
+	 long branches.  */
+      val -= addr;
+
+      type = RELAX_NANOMIPS_TYPE (fragp->fr_subtype);
+      if (type == RT_BRANCH_UCND || type == RT_BALC_STUB)
+	toofar = val < - (0x200 << 1) || val >= (0x200 << 1);
+      else if (type == RT_BRANCH_CNDZ)
+	toofar = val < - (0x40 << 1) || val >= (0x40 << 1);
+      else if (type == RT_BRANCH_CND)
+	toofar = (val < 2
+		  || val >= 32
+		  || (val == 2
+		      && symbol_get_frag (fragp->fr_symbol)->fr_offset == 0));
+      else
+	abort ();
+    }
+  else
+    /* If the symbol is not defined or it's in a different segment,
+       we emit a normal 32-bit branch.  */
+    toofar = TRUE;
+
+  if (fragp && update
+      && toofar != RELAX_NANOMIPS_TOOFAR16 (fragp->fr_subtype))
+    fragp->fr_subtype
+      = toofar ? RELAX_NANOMIPS_MARK_TOOFAR16 (fragp->fr_subtype)
+	       : RELAX_NANOMIPS_CLEAR_TOOFAR16 (fragp->fr_subtype);
+
+  if (toofar)
+    return 4;
+
+  return 2;
+}
+
 /* Compute the length of a call potentially going through a BALC stub
    and adjust the RELAX_NANOMIPS_USESTUB bit accordingly.  */
 
@@ -22946,7 +23026,7 @@ md_estimate_size_before_relax (fragS *fragp, asection *segtype)
       else if (RELAX_NANOMIPS_ADDIU_P (fragp->fr_subtype))
 	length = relaxed_nanomips_addiu_length (fragp, FALSE);
       else if (RELAX_NANOMIPS_TYPE (fragp->fr_subtype) != 0)
-	length = relaxed_micromips_16bit_branch_length (fragp, segtype,
+	length = relaxed_nanomips_16bit_branch_length (fragp, segtype,
 							FALSE);
       /* Try to relax 32-bit call through a stub.  */
       if (!mips_opts.no_balc_stubs
@@ -22954,7 +23034,7 @@ md_estimate_size_before_relax (fragS *fragp, asection *segtype)
 	  && RELAX_NANOMIPS_TYPE (fragp->fr_subtype) == RT_BRANCH_UCND
 	  && RELAX_NANOMIPS_LINK (fragp->fr_subtype))
 	length = relaxed_nanomips_stub_call_length (fragp, segtype,
-						       length > 2, FALSE);
+						    length > 2, FALSE);
 
       fragp->fr_var = length;
       return length;
@@ -23230,7 +23310,7 @@ mips_relax_frag (asection *sec, fragS *fragp, long stretch)
       else if (RELAX_NANOMIPS_ADDIU_P (fragp->fr_subtype))
 	new_var = relaxed_nanomips_addiu_length (fragp, TRUE);
       else if (RELAX_NANOMIPS_TYPE (fragp->fr_subtype) != 0)
-	new_var = relaxed_micromips_16bit_branch_length (fragp, sec, TRUE);
+	new_var = relaxed_nanomips_16bit_branch_length (fragp, sec, TRUE);
 
       /* Try to relax 32-bit call through a stub.  */
       if (!mips_opts.no_balc_stubs
@@ -25854,27 +25934,6 @@ mips_allow_local_subtract (expressionS * left,
      two symbols and that relaxation may increase the distance between
      them.  */
   return FALSE;
-}
-
-/* Force ST_MICROMIPS flag for local volatile labels in code sections.  */
-void
-mips_copy_symbol_attributes (symbolS *dest, symbolS *src)
-{
-  if (!mips_opts.nanomips || !HAVE_CODE_COMPRESSION)
-    return;
-  else
-    {
-      asymbol *sym = symbol_get_bfdsym (src);
-      asection *sect = (sym == NULL ? NULL : bfd_get_section (sym));
-
-      S_SET_OTHER (dest, S_GET_OTHER (src));
-
-      if (sect != NULL
-	  && (sect->flags & SEC_CODE) != 0
-	  && S_IS_VOLATILE (dest)
-	  && !S_IS_VOLATILE (src))
-	S_SET_OTHER (dest, ELF_ST_SET_MICROMIPS (S_GET_OTHER (dest)));
-    }
 }
 
 /* Create relocations for alignment directives.  */

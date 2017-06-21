@@ -158,6 +158,14 @@ enum
   M_BLTZAL,
   M_EXT,
   M_INS,
+  M_MOD_I,
+  M_MODU_I,
+  M_DMOD_I,
+  M_DMODU_I,
+  M_DIV_I,
+  M_DIVU_I,
+  M_DDIV_I,
+  M_DDIVU_I,
   M_NANOMIPS_NUM_MACROS
 };
 
