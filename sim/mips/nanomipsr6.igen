@@ -2251,7 +2251,7 @@
 *nanomips32r6:
 *nanomips64r6:
 {
-  sim_io_printf (SD, "Not implemented");
+  // Do nothing, there are no hazards to clear
 }
 
 001000,5.RT,5.RS,5.X,0,0000000,000:R7PTRAP:32::TEQ
