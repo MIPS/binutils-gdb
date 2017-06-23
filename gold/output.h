@@ -4081,6 +4081,16 @@ class Output_section : public Output_data
   void
   adjust_section_offsets();
 
+  // Whether this is a NOALLOC section.
+  bool
+  is_noalloc() const
+  { return this->is_noalloc_; }
+
+  // Set NOALLOC flag.
+  void
+  set_is_noalloc()
+  { this->is_noalloc_ = true; }
+
   // Print merge statistics to stderr.
   void
   print_merge_stats();
@@ -4598,6 +4608,8 @@ class Output_section : public Output_data
   bool is_entsize_zero_ : 1;
   // Whether section offsets need adjustment due to relaxation.
   bool section_offsets_need_adjustment_ : 1;
+  // Whether this is a NOALLOC section.
+  bool is_noalloc_ : 1;
   // Whether this always keeps input section.
   bool always_keeps_input_sections_ : 1;
   // Whether this section has a fixed layout, for incremental update links.

@@ -977,7 +977,7 @@ Layout::choose_output_section(const Relobj* relobj, const char* name,
 	  return NULL;
 	}
 
-      // We can only handle script section types ST_NONE and ST_NOLOAD.
+      // Handle script section types.
       switch (script_section_type)
 	{
 	case Script_sections::ST_NONE:
@@ -985,6 +985,10 @@ Layout::choose_output_section(const Relobj* relobj, const char* name,
 	case Script_sections::ST_NOLOAD:
 	  type = elfcpp::SHT_NOBITS;
 	  flags &= elfcpp::SHF_ALLOC;
+	  break;
+	case Script_sections::ST_NOALLOC:
+	  if (type != elfcpp::SHT_NOBITS)
+	    flags &= ~elfcpp::SHF_ALLOC;
 	  break;
 	default:
 	  gold_unreachable();
@@ -1013,6 +1017,24 @@ Layout::choose_output_section(const Relobj* relobj, const char* name,
 							 order, is_relro);
 
 	  os->set_found_in_sections_clause();
+
+	  // Special handling for NOALLOC sections.
+	  if (script_section_type == Script_sections::ST_NOALLOC)
+	    {
+	      os->set_is_noalloc();
+
+	      // The constructor of Output_section sets addresses of non-ALLOC
+	      // sections to 0 by default.  We don't want that for NOALLOC
+	      // sections even if they have no SHF_ALLOC flag.
+	      if ((os->flags() & elfcpp::SHF_ALLOC) == 0
+		  && os->is_address_valid())
+		{
+		  gold_assert(os->address() == 0
+			      && !os->is_offset_valid()
+			      && !os->is_data_size_valid());
+		  os->reset_address_and_file_offset();
+		}
+	    }
 
 	  *output_section_slot = os;
 	  return os;
@@ -1933,7 +1955,8 @@ Layout::attach_sections_to_segments(const Target* target)
 void
 Layout::attach_section_to_segment(const Target* target, Output_section* os)
 {
-  if ((os->flags() & elfcpp::SHF_ALLOC) == 0)
+  if ((os->flags() & elfcpp::SHF_ALLOC) == 0
+      || os->is_noalloc())
     this->unattached_section_list_.push_back(os);
   else
     this->attach_allocated_section_to_segment(target, os);
@@ -2109,13 +2132,17 @@ Layout::make_output_section_for_script(
     Script_sections::Section_type section_type)
 {
   name = this->namepool_.add(name, false, NULL);
+  elfcpp::Elf_Xword sh_flags = elfcpp::SHF_ALLOC;
   elfcpp::Elf_Word type = elfcpp::SHT_PROGBITS;
   if (section_type == Script_sections::ST_NOLOAD)
     type = elfcpp::SHT_NOBITS;
-  Output_section* os = this->make_output_section(name, type, elfcpp::SHF_ALLOC,
-						  ORDER_INVALID,
-						 false);
+  else if (section_type == Script_sections::ST_NOALLOC)
+    sh_flags = 0;
+  Output_section* os = this->make_output_section(name, type, sh_flags,
+						 ORDER_INVALID, false);
   os->set_found_in_sections_clause();
+  if (section_type == Script_sections::ST_NOALLOC)
+    os->set_is_noalloc();
 
   return os;
 }
@@ -5382,7 +5409,8 @@ Layout::get_allocated_sections(Section_list* section_list) const
   for (Section_list::const_iterator p = this->section_list_.begin();
        p != this->section_list_.end();
        ++p)
-    if (((*p)->flags() & elfcpp::SHF_ALLOC) != 0)
+    if (((*p)->flags() & elfcpp::SHF_ALLOC) != 0
+        && !(*p)->is_noalloc())
       section_list->push_back(*p);
 }
 
