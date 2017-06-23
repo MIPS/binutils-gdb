@@ -12120,7 +12120,7 @@ _ACEOF
       mips)
 	# Set mips_cpu to the name of the default CPU.
 	case ${target_cpu} in
-	  mips | mipsbe | mipseb | mipsle | mipsel | mips64 | mips64el | nanomips | nanomipsel | nanomipseb)
+	  mips | mipsbe | mipseb | mipsle | mipsel | mips64 | mips64el)
 	    mips_cpu=from-abi
 	    ;;
 	  mipsisa32 | mipsisa32el)
@@ -12168,20 +12168,11 @@ _ACEOF
 	  mipsisa32r6* | mipsisa64r6*)
 	    mips_cpu=`echo $target_cpu | sed -e 's/[a-z]*..r6//' -e 's/el$//'`
 	    ;;
-	  mipsisa32r7* | mipsisa64r7*)
-	    mips_cpu=`echo $target_cpu | sed -e 's/[a-z]*..r7//' -e 's/el$//'`
-	    ;;
 	  mips64* | mipsisa64* | mipsisa32*)
 	    mips_cpu=`echo $target_cpu | sed -e 's/[a-z]*..//' -e 's/el$//'`
 	    ;;
 	  mips*)
 	    mips_cpu=`echo $target_cpu | sed -e 's/^mips//' -e 's/el$//'`
-	    ;;
-	  nanomipsisa32r6 | nanomipsisa32r6el)
-	    mips_cpu=nanomips32r6
-	    ;;
-	  nanomipsisa64r6 | nanomipsisa64r6el)
-	    mips_cpu=nanomips64r6
 	    ;;
 	  *)
 	    as_fn_error "$target_cpu isn't a supported MIPS CPU name" "$LINENO" 5
@@ -12240,6 +12231,60 @@ _ACEOF
 
 cat >>confdefs.h <<_ACEOF
 #define MIPS_DEFAULT_ABI $mips_default_abi
+_ACEOF
+
+	;;
+      nanomips)
+	# Set nanomips_cpu to the name of the default CPU.
+	case ${target_cpu} in
+	  nanomips | nanomipsel | nanomipseb)
+	    nanomips_cpu=from-abi
+	    ;;
+	  nanomips32*)
+	    nanomips_cpu=32r6
+	    ;;
+	  nanomips64*)
+	    nanomips_cpu=64r6
+	    ;;
+	  *)
+	    as_fn_error "$target_cpu isn't a supported MIPS CPU name" "$LINENO" 5
+	    ;;
+	esac
+	# Decide whether to generate 32-bit or 64-bit code by default.
+	# Used to resolve -march=from-abi when an embedded ABI is selected.
+	case ${target} in
+	  nanomips64*-*-*)
+	    nanomips_default_64bit=1
+	    ;;
+	  *)
+	    nanomips_default_64bit=0
+	    ;;
+	esac
+	# Decide which ABI to target by default.
+	case ${target} in
+	  nanomips64*-*)
+	    nanomips_default_abi=P64_ABI
+	    ;;
+	  nanomips*-*)
+	    nanomips_default_abi=P32_ABI
+	    ;;
+	  *)
+	    nanomips_default_abi=NO_ABI
+	    ;;
+	esac
+
+cat >>confdefs.h <<_ACEOF
+#define NANOMIPS_CPU_STRING_DEFAULT "$nanomips_cpu"
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define NANOMIPS_DEFAULT_64BIT $nanomips_default_64bit
+_ACEOF
+
+
+cat >>confdefs.h <<_ACEOF
+#define NANOMIPS_DEFAULT_ABI $nanomips_default_abi
 _ACEOF
 
 	;;

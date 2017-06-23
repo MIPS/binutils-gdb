@@ -2286,6 +2286,7 @@ enum bfd_architecture
 #define bfd_mach_aarch64_ilp32 32
   bfd_arch_nios2,
 #define bfd_mach_nios2 0
+  bfd_arch_nanomips,      /* nanoMIPSrX */
   bfd_arch_last
   };
 
@@ -3088,6 +3089,12 @@ as it is during any transformation/relaxation.  */
   BFD_RELOC_NANOMIPS_TLS_GOTTPREL,
   BFD_RELOC_NANOMIPS_TLS_TPREL_HI20,
   BFD_RELOC_NANOMIPS_TLS_TPREL_LO12,
+  BFD_RELOC_NANOMIPS_TLS_DTPREL32,
+  BFD_RELOC_NANOMIPS_TLS_DTPREL64,
+  BFD_RELOC_NANOMIPS_TLS_TPREL32,
+  BFD_RELOC_NANOMIPS_TLS_TPREL64,
+  BFD_RELOC_NANOMIPS_TLS_DTPMOD32,
+  BFD_RELOC_NANOMIPS_TLS_DTPMOD64,
   BFD_RELOC_NANOMIPS_PC_I32,
   BFD_RELOC_NANOMIPS_GPREL_I32,
   BFD_RELOC_NANOMIPS_GPREL17_S1,
@@ -3097,6 +3104,8 @@ as it is during any transformation/relaxation.  */
   BFD_RELOC_NANOMIPS_UNSIGNED_16,
   BFD_RELOC_NANOMIPS_SIGNED_8,
   BFD_RELOC_NANOMIPS_SIGNED_16,
+  BFD_RELOC_NANOMIPS_EH,
+  BFD_RELOC_NANOMIPS_JUMP_SLOT,
 
 
 /* Moxie ELF relocations.  */
