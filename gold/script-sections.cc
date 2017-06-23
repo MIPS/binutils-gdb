@@ -2485,11 +2485,10 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
 
   *dot_value = address;
 
-  // Except for NOLOAD sections, the address of non-SHF_ALLOC sections is
-  // forced to zero, regardless of what the linker script wants.
+  // The address of non-SHF_ALLOC sections is forced to zero, regardless
+  // of what the linker script wants.
   if (this->output_section_ != NULL
-      && ((this->output_section_->flags() & elfcpp::SHF_ALLOC) != 0
-	  || this->output_section_->is_noload()))
+      && ((this->output_section_->flags() & elfcpp::SHF_ALLOC) != 0))
     this->output_section_->set_address(address);
 
   this->evaluated_address_ = address;
@@ -2642,10 +2641,9 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
       else
 	this->output_section_->clear_is_relro();
 
-      // If this is a NOLOAD or non-SHF_ALLOC section, keep dot and
-      // load address unchanged.
-      if (this->output_section_->is_noload()
-          || (this->output_section_->flags() & elfcpp::SHF_ALLOC) == 0)
+      // If this is a non-SHF_ALLOC section, keep dot and load address
+      // unchanged.
+      if ((this->output_section_->flags() & elfcpp::SHF_ALLOC) == 0)
 	{
 	  *dot_value = old_dot_value;
 	  *load_address = old_load_address;
@@ -3810,12 +3808,6 @@ Sort_output_sections::operator()(const Output_section* os1,
   bool tls2 = (os2->flags() & elfcpp::SHF_TLS) != 0;
   if (tls1 != tls2)
     return nobits1 ? tls1 : tls2;
-
-  // Sort non-NOLOAD before NOLOAD.
-  if (os1->is_noload() && !os2->is_noload())
-    return true;
-  if (!os1->is_noload() && os2->is_noload())
-    return true;
 
   // The sections seem practically identical.  Sort by name to get a
   // stable sort.

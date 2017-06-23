@@ -2383,7 +2383,6 @@ Output_section::Output_section(const char* name, elfcpp::Elf_Word type,
     generate_code_fills_at_write_(false),
     is_entsize_zero_(false),
     section_offsets_need_adjustment_(false),
-    is_noload_(false),
     always_keeps_input_sections_(false),
     has_fixed_layout_(false),
     is_patch_space_allowed_(false),
@@ -3232,9 +3231,8 @@ Output_section::do_reset_address_and_file_offset()
 {
   // An unallocated section has no address.  Forcing this means that
   // we don't need special treatment for symbols defined in debug
-  // sections.  We do the same in the constructor.  This does not
-  // apply to NOLOAD sections though.
-  if (((this->flags_ & elfcpp::SHF_ALLOC) == 0) && !this->is_noload_)
+  // sections.  We do the same in the constructor.
+  if ((this->flags_ & elfcpp::SHF_ALLOC) == 0)
      this->set_address(0);
 
   for (Input_section_list::iterator p = this->input_sections_.begin();
