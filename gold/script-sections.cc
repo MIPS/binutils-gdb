@@ -2485,10 +2485,11 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
 
   *dot_value = address;
 
-  // The address of non-SHF_ALLOC sections is forced to zero, regardless
-  // of what the linker script wants.
+  // Except for NOALLOC sections, he address of non-SHF_ALLOC sections is
+  // forced to zero, regardless of what the linker script wants.
   if (this->output_section_ != NULL
-      && ((this->output_section_->flags() & elfcpp::SHF_ALLOC) != 0))
+      && ((this->output_section_->flags() & elfcpp::SHF_ALLOC) != 0
+           || this->output_section_->is_noalloc()))
     this->output_section_->set_address(address);
 
   this->evaluated_address_ = address;
@@ -2546,6 +2547,7 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
 	  laddr = address + (old_load_address  - old_dot_value);
 	  if (this->output_section_ != NULL
 	      && (this->output_section_->flags() & elfcpp::SHF_ALLOC) != 0
+	      && !this->output_section_->is_noalloc()
 	      && old_load_address != old_dot_value)
 	    this->output_section_->set_load_address(laddr);
 	}
@@ -2642,8 +2644,9 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
 	this->output_section_->clear_is_relro();
 
       // If this is a non-SHF_ALLOC section, keep dot and load address
-      // unchanged.
-      if ((this->output_section_->flags() & elfcpp::SHF_ALLOC) == 0)
+      // unchanged.  We don't want this for NOALLOC section.
+      if ((this->output_section_->flags() & elfcpp::SHF_ALLOC) == 0
+	  && !this->output_section_->is_noalloc())
 	{
 	  *dot_value = old_dot_value;
 	  *load_address = old_load_address;
@@ -2874,9 +2877,7 @@ Output_section_definition::section_type() const
     case SCRIPT_SECTION_TYPE_DSECT:
     case SCRIPT_SECTION_TYPE_INFO:
     case SCRIPT_SECTION_TYPE_OVERLAY:
-      // There are not really support so we treat them as ST_NONE.  The
-      // parse should have issued errors for them already.
-      return Script_sections::ST_NONE;
+      return Script_sections::ST_NOALLOC;
     default:
       gold_unreachable();
     }
