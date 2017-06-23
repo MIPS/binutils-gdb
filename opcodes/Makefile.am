@@ -191,7 +191,6 @@ TARGET_LIBOPCODES_CFILES = \
 	metag-dis.c \
 	microblaze-dis.c \
 	micromips-opc.c \
-	nanomips-opc.c \
 	mips-dis.c \
 	mips-opc.c \
 	mips16-opc.c \
@@ -206,6 +205,8 @@ TARGET_LIBOPCODES_CFILES = \
 	mt-dis.c \
 	mt-ibld.c \
 	mt-opc.c \
+	nanomips-dis.c \
+	nanomips-opc.c \
 	nds32-asm.c \
 	nds32-dis.c \
 	nios2-dis.c \

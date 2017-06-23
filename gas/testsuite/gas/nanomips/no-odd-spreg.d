@@ -1,6 +1,6 @@
 #PROG: readelf
 #source: empty.s
-#as: -32 -mno-odd-spreg
+#as: -mno-odd-spreg
 #readelf: -A
 #name: -mno-odd-spreg test
 

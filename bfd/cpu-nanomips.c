@@ -46,7 +46,7 @@ mips_compatible (const bfd_arch_info_type *a, const bfd_arch_info_type *b)
     BITS_WORD, /*  bits in a word */			\
     BITS_ADDR, /* bits in an address */			\
     8,	/* 8 bits in a byte */				\
-    bfd_arch_mips,					\
+    bfd_arch_nanomips,					\
     NUMBER,						\
     "nanomips",						\
     PRINT,						\
