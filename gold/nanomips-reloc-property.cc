@@ -237,6 +237,20 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
   static const char* BALC16_EXPAND_MSG =
     "balc[16] is expanded to balc";
 
+  static const unsigned int BEQZC16_EXPAND[] =
+    {
+      0x88000000,           // beqc $reg, $zero, sym
+    };
+  static const char* BEQZC16_EXPAND_MSG =
+    "beqzc[16] is expanded to beqc";
+
+  static const unsigned int BNEZC16_EXPAND[] =
+    {
+      0xa8000000,           // bnec $reg, $zero, sym
+    };
+  static const char* BNEZC16_EXPAND_MSG =
+    "bnezc[16] is expanded to bnec";
+
   static const unsigned int BEQC16_EXPAND[] =
     {
       0x88000000,           // beqc $reg, $reg, sym
