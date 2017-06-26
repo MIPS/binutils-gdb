@@ -13316,7 +13316,9 @@ relaxed_nanomips_16bit_branch_length (fragS *fragp, asection *sec, int update)
 	--val;
 
       /* Assume this is a 2-byte branch.  */
-      addr = fragp->fr_address + fragp->fr_fix + 2;
+      addr = (fragp->fr_address
+	      + fragp->fr_fix
+	      + (RELAX_NANOMIPS_TOOFAR16 (fragp->fr_subtype)? 4 : 2));
 
       /* We try to avoid the infinite loop by not adding 2 more bytes for
 	 long branches.  */
@@ -13328,7 +13330,9 @@ relaxed_nanomips_16bit_branch_length (fragS *fragp, asection *sec, int update)
       else if (type == RT_BRANCH_CNDZ)
 	toofar = val < - (0x40 << 1) || val >= (0x40 << 1);
       else if (type == RT_BRANCH_CND)
-	toofar = val < -2 || val >= 32;
+	toofar = (val < 2
+		  || val >= 32
+		  || symbol_get_frag (fragp->fr_symbol) == fragp->fr_next);
       else
 	abort ();
     }

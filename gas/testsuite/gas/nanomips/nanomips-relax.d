@@ -40,15 +40,16 @@ Disassembly of section .text:
 	\.\.\.
 
 00000898 <test6>:
-     898:	1800      	bc	c96 <test7>
+     898:	1800      	bc	c98 <test7>
 			898: R_NANOMIPS_PC10_S1	test7
+0000089a <test6a>:
 	\.\.\.
 
-00000c96 <test7>:
-     c96:	1800      	bc	898 <test6>
-			c96: R_NANOMIPS_PC10_S1	test6
-     c98:	a885 0000 	bnec	a1,a0,cba <test8>
-			c98: R_NANOMIPS_PC14_S1	test8
+00000c98 <test7>:
+     c98:	1800      	bc	89a <test6a>
+			c98: R_NANOMIPS_PC10_S1	test6a
+     c9a:	da5f      	bnec	a1,a0,cba <test8>
+			c9a: R_NANOMIPS_PC4_S1	test8
 	\.\.\.
 
 00000cba <test8>:

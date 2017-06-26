@@ -27,9 +27,10 @@ test5:
 	.space	(1<<5)-2
 test6:
 	bc	test7	/* forward, no relax */
-	.space	(1<<10)-4
+test6a:
+	.space	(1<<10)-2
 test7:
-	bc 	test6	/* backward, no relax */
+	bc 	test6a	/* backward, no relax */
 	bnec	$a1, $a0, test8 /* forward, no relax */
 	.space (1<<5)-2
 test8:
@@ -37,7 +38,7 @@ test8:
 test9:
 	balc	test8 /* backward, no relax */
 
-	beqc $s1,$a3,$L1
+	beqc $s1,$a3,$L1 /* Unreachable forward, relax.  */
 $L1:
 	nop
 	.end test5
