@@ -22632,6 +22632,68 @@ relaxed_micromips_32bit_branch_length (fragS *fragp, asection *sec, int update)
   return length;
 }
 
+/* Compute the length of a branch, and adjust the RELAX_NANOMIPS_TOOFAR16
+   bit accordingly.  */
+
+static int
+relaxed_nanomips_16bit_branch_length (fragS *fragp, asection *sec, int update)
+{
+  bfd_boolean toofar;
+
+  if (fragp
+      && fragp->fr_symbol
+      && S_IS_DEFINED (fragp->fr_symbol)
+      && !S_IS_WEAK (fragp->fr_symbol)
+      && sec == S_GET_SEGMENT (fragp->fr_symbol))
+    {
+      addressT addr;
+      offsetT val;
+      int type;
+
+      val = S_GET_VALUE (fragp->fr_symbol) + fragp->fr_offset;
+      /* Ignore the low bit in the target, since it will be set
+	 for a text label.  */
+      if ((val & 1) != 0)
+	--val;
+
+      /* Assume this is a 2-byte branch.  */
+      addr = (fragp->fr_address
+	      + fragp->fr_fix
+	      + (RELAX_NANOMIPS_TOOFAR16 (fragp->fr_subtype) ? 4 : 2));
+
+      /* We try to avoid the infinite loop by not adding 2 more bytes for
+	 long branches.  */
+      val -= addr;
+
+      type = RELAX_NANOMIPS_TYPE (fragp->fr_subtype);
+      if (type == RT_BRANCH_UCND || type == RT_BALC_STUB)
+	toofar = val < - (0x200 << 1) || val >= (0x200 << 1);
+      else if (type == RT_BRANCH_CNDZ)
+	toofar = val < - (0x40 << 1) || val >= (0x40 << 1);
+      else if (type == RT_BRANCH_CND)
+	toofar = (val < 2
+		  || val >= 32
+		  || symbol_get_frag (fragp->fr_symbol) == fragp->fr_next);
+      else
+	abort ();
+    }
+  else
+    /* If the symbol is not defined or it's in a different segment,
+       we emit a normal 32-bit branch.  */
+    toofar = TRUE;
+
+  if (fragp && update
+      && toofar != RELAX_NANOMIPS_TOOFAR16 (fragp->fr_subtype))
+    fragp->fr_subtype
+      = toofar ? RELAX_NANOMIPS_MARK_TOOFAR16 (fragp->fr_subtype)
+	       : RELAX_NANOMIPS_CLEAR_TOOFAR16 (fragp->fr_subtype);
+
+  if (toofar)
+    return 4;
+
+  return 2;
+}
+
 /* Compute the length of a branch, and adjust the RELAX_MICROMIPS_TOOFAR16
    bit accordingly.  */
 
@@ -22946,15 +23008,15 @@ md_estimate_size_before_relax (fragS *fragp, asection *segtype)
       else if (RELAX_NANOMIPS_ADDIU_P (fragp->fr_subtype))
 	length = relaxed_nanomips_addiu_length (fragp, FALSE);
       else if (RELAX_NANOMIPS_TYPE (fragp->fr_subtype) != 0)
-	length = relaxed_micromips_16bit_branch_length (fragp, segtype,
-							FALSE);
+	length = relaxed_nanomips_16bit_branch_length (fragp, segtype, FALSE);
+
       /* Try to relax 32-bit call through a stub.  */
       if (!mips_opts.no_balc_stubs
 	  && stubg_now != NULL
 	  && RELAX_NANOMIPS_TYPE (fragp->fr_subtype) == RT_BRANCH_UCND
 	  && RELAX_NANOMIPS_LINK (fragp->fr_subtype))
 	length = relaxed_nanomips_stub_call_length (fragp, segtype,
-						       length > 2, FALSE);
+						    length > 2, FALSE);
 
       fragp->fr_var = length;
       return length;
@@ -23230,7 +23292,7 @@ mips_relax_frag (asection *sec, fragS *fragp, long stretch)
       else if (RELAX_NANOMIPS_ADDIU_P (fragp->fr_subtype))
 	new_var = relaxed_nanomips_addiu_length (fragp, TRUE);
       else if (RELAX_NANOMIPS_TYPE (fragp->fr_subtype) != 0)
-	new_var = relaxed_micromips_16bit_branch_length (fragp, sec, TRUE);
+	new_var = relaxed_nanomips_16bit_branch_length (fragp, sec, TRUE);
 
       /* Try to relax 32-bit call through a stub.  */
       if (!mips_opts.no_balc_stubs

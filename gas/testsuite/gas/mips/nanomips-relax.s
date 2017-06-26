@@ -27,10 +27,11 @@ test5:
 	.space	(1<<5)-2
 test6:
 	bc	test7	/* forward, no relax */
-	.space	(1<<10)-4
+test6a:
+	.space	(1<<10)-2
 test7:
-	bc 	test6	/* backward, no relax */
-	bnec	$a1, $a0, test8 /* forward, no relax */
+	bc 	test6a	/* backward, no relax */
+	bnec	$a1, $a0, test8 /* forward, no relax */CJH
 	.space (1<<5)-2
 test8:
 	.space (1<<10)-2
