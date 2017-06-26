@@ -19,17 +19,9 @@ test:
 	pref	7, 0($zero)
 	pref	7, 511($zero)
 	pref	7, -512($zero)
-	pref	31, 2047($zero)
-	pref	31, -2048($zero)
-	pref	31, 2048($zero)
-	pref	31, -2049($zero)
 	pref	3, 32767($zero)
 	pref	3, -32768($zero)
 
-	pref	31, 2047($t4)
-	pref	31, -2048($t4)
-	pref	31, 2048($t4)
-	pref	31, -2049($t4)
 	pref	3, 32767($t4)
 	pref	3, -32768($t4)
 
@@ -2193,23 +2185,15 @@ test3:
 	synci	0
 	synci	($zero)
 	synci	0($zero)
-	/*
 	synci	2047($zero)
-	synci	-2048($zero)
 	synci	2048($zero)
-	synci	-2049($zero)
-	synci	32767($zero)
-	synci	-32768($zero)
-	*/
+
 	synci	0($t4)
 	synci	0($t5)
 	synci	255($t5)
 	synci	-256($t5)
-/*	synci	2048($t5)
-	synci	-2049($t5)
-	synci	32767($t5)
-	synci	-32768($t5)
-*/
+	synci	2048($t5)
+
 	syscall
 	syscall	0
 	syscall	1

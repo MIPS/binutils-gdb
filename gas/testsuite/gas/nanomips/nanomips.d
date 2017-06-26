@@ -27,22 +27,10 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 84e0 31ff 	pref	0x7,511\(zero\)
 [0-9a-f]+ <[^>]+> 8020 8200 	li	at,-512
 [0-9a-f]+ <[^>]+> a4e1 1800 	pref	0x7,0\(at\)
-[0-9a-f]+ <[^>]+> 87e0 37ff 	pref	0x1f,2047\(zero\)
-[0-9a-f]+ <[^>]+> 8020 8800 	li	at,-2048
-[0-9a-f]+ <[^>]+> a7e1 1800 	synci	0\(at\)
-[0-9a-f]+ <[^>]+> 87e0 3800 	pref	0x1f,2048\(zero\)
-[0-9a-f]+ <[^>]+> 8020 8801 	li	at,-2049
-[0-9a-f]+ <[^>]+> a7e1 1800 	synci	0\(at\)
 [0-9a-f]+ <[^>]+> 0020 7fff 	li	at,32767
 [0-9a-f]+ <[^>]+> a461 1800 	pref	0x3,0\(at\)
 [0-9a-f]+ <[^>]+> e03f 8ffd 	lui	at,%hi\(0xffff8000\)
 [0-9a-f]+ <[^>]+> a461 1800 	pref	0x3,0\(at\)
-[0-9a-f]+ <[^>]+> 87e2 37ff 	pref	0x1f,2047\(t4\)
-[0-9a-f]+ <[^>]+> 8022 8800 	addiu	at,t4,-2048
-[0-9a-f]+ <[^>]+> a7e1 1800 	synci	0\(at\)
-[0-9a-f]+ <[^>]+> 87e2 3800 	pref	0x1f,2048\(t4\)
-[0-9a-f]+ <[^>]+> 8022 8801 	addiu	at,t4,-2049
-[0-9a-f]+ <[^>]+> a7e1 1800 	synci	0\(at\)
 [0-9a-f]+ <[^>]+> 0022 7fff 	addiu	at,t4,32767
 [0-9a-f]+ <[^>]+> a461 1800 	pref	0x3,0\(at\)
 [0-9a-f]+ <[^>]+> e03f 8ffd 	lui	at,%hi\(0xffff8000\)
@@ -2075,13 +2063,16 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 8004 c006 	sync	0x4
 [0-9a-f]+ <[^>]+> 801e c006 	sync	0x1e
 [0-9a-f]+ <[^>]+> 801f c006 	sync	0x1f
-[0-9a-f]+ <[^>]+> a7e0 1800 	synci	0\(zero\)
-[0-9a-f]+ <[^>]+> a7e0 1800 	synci	0\(zero\)
-[0-9a-f]+ <[^>]+> a7e0 1800 	synci	0\(zero\)
-[0-9a-f]+ <[^>]+> a7e2 1800 	synci	0\(t4\)
-[0-9a-f]+ <[^>]+> a7e3 1800 	synci	0\(t5\)
-[0-9a-f]+ <[^>]+> a7e3 18ff 	synci	255\(t5\)
+[0-9a-f]+ <[^>]+> 87e0 3000 	synci	0\(zero\)
+[0-9a-f]+ <[^>]+> 87e0 3000 	synci	0\(zero\)
+[0-9a-f]+ <[^>]+> 87e0 3000 	synci	0\(zero\)
+[0-9a-f]+ <[^>]+> 87e0 37ff 	synci	2047\(zero\)
+[0-9a-f]+ <[^>]+> 87e0 3800 	synci	2048\(zero\)
+[0-9a-f]+ <[^>]+> 87e2 3000 	synci	0\(t4\)
+[0-9a-f]+ <[^>]+> 87e3 3000 	synci	0\(t5\)
+[0-9a-f]+ <[^>]+> 87e3 30ff 	synci	255\(t5\)
 [0-9a-f]+ <[^>]+> a7e3 9800 	synci	-256\(t5\)
+[0-9a-f]+ <[^>]+> 87e3 3800 	synci	2048\(t5\)
 [0-9a-f]+ <[^>]+> 1008      	syscall
 [0-9a-f]+ <[^>]+> 1008      	syscall
 [0-9a-f]+ <[^>]+> 1009      	syscall	1
@@ -2988,6 +2979,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 23ff c37f 	wait	0x3ff
 [0-9a-f]+ <[^>]+> 0008 03ff 	syscall	0x3ff
 [0-9a-f]+ <[^>]+> 9008      	nop
+[0-9a-f]+ <[^>]+> 8000 c000 	nop
 [0-9a-f]+ <[^>]+> a001 037b 	abs\.s	\$f0,\$f1
 [0-9a-f]+ <[^>]+> a3df 037b 	abs\.s	\$f30,\$f31
 [0-9a-f]+ <[^>]+> a042 037b 	abs\.s	\$f2,\$f2

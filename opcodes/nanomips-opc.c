@@ -281,7 +281,6 @@ decode_nanomips_operand (const char *p)
     case 'd': REG (5, 11, GP);
 /*     case 'h': HINT (5, 11); */
     case 'i': UINT (12, 0);
-/*     case 'j': SINT_SPLIT (14, 0, 0, 1, 15); */
     case 'j': UINT (16, 0);
     case 'k': HINT (5, 21);
     case 'h': SPECIAL (12, 0, NEG_INT);
@@ -412,6 +411,7 @@ const struct mips_opcode nanomips_opcodes[] =
 {"move",	"d,s",		0x20000150, 0xffe007ff, WR_1|RD_2,	INSN2_ALIAS,	I38,		0,		0}, /* ADDU */
 {"move",	"d,s",		0xc0000150, 0xffe007ff, WR_1|RD_2,	INSN2_ALIAS,	I70,		0,		0}, /* DADDU */
 {"sigrie",	"+J",		0x00000000, 0xfff80000,		0,		0,	I38,		0,		0},
+{"synci",	"o(b)",		0x87e03000, 0xffe0f000,		RD_2,		0,	I38,		0,		0},
 {"synci",	"+j(b)",	0xa7e01800, 0xffe07f00,		RD_2,		0,	I38,		0,		0}, /* SYNCI[S9] */
 {"syncie",	"+j(b)",	0xa7e01a00, 0xffe07f00,		RD_2,		0,	0,		EVA,		0},
 {"jrc", 	"mp",		0xd800,		0xfc1f,		RD_1,		0,	I38,		0,		0}, /* JALRC */
@@ -798,7 +798,7 @@ IGRIE */
 {"dsrl32",	"t,r,<",		0x8000c160, 0xfc00ffe0,	WR_1|RD_2,		0,	I70,		0,		0},
 {"dsrlv",	"d,s,t",		0xc0000050, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
 {"dsub",	"d,v,t",		0xc0000190, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
-{"dsub",	"t,r,I",		0,    (int) M_DSUB_I,	INSN_MACRO,		0,	0,		xNMS,		0},
+{"dsub",	"t,r,I",		0,    (int) M_DSUB_I,	INSN_MACRO,		0,	I70,		0,		0},
 {"dsubu",	"d,v,t",		0xc00001d0, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,		0,		0},
 {"dsubu",	"d,v,I",		0,    (int) M_DSUBU_I,	INSN_MACRO,		0,	I70,		0,		0},
 {"dvpe",	"",			0x20000ab0, 0xffffffff,	0,		INSN2_ALIAS,	0,		MT32,		0}, /* DVPE */
@@ -809,7 +809,7 @@ IGRIE */
 {"emt",		"",		0x20010eb0, 0xffffffff,		0,	INSN2_ALIAS,	0,		MT32,		0},
 {"emt",		"t",		0x20010eb0, 0xfc1fffff, 	WR_1,		0,	0,		MT32,		0},
 {"eret",	"",		0x2000f37f, 0xffffffff,		0,		0,	I38,		0,		0},
-{"eretnc",	"",		0x2001f37f, 0xffffffff,		0,		0,	I38,		0,		0},
+{"eretnc",	"",		0x2001f37f, 0xffffffff,		0,		0,	0,		xNMS,		0},
 {"evpe",	"",		0x20000eb0, 0xffffffff,		0,	INSN2_ALIAS,	0,		MT32,		0}, /* EVPE */
 {"evpe",	"t",		0x20000eb0, 0xfc1fffff,		WR_1,		0,	0,		MT32,		0},
 {"evp", 	"-a",		0x20000790, 0xffe0ffff,		0,	INSN2_ALIAS,	I38,		0,		0}, /* EVP */
