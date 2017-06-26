@@ -624,8 +624,7 @@ class Relax_nanomips_insn
          const Nanomips_insn_property* insn_property,
          unsigned char* view,
          unsigned char* preloc,
-         unsigned char*,
-         unsigned int);
+         unsigned char*);
 
  private:
   // Check relocation value for relaxations.
@@ -660,7 +659,7 @@ class Expand_nanomips_insn
 
  public:
   Expand_nanomips_insn()
-  { }
+  { this->expand_reg_ = parameters->options().expand_reg(); }
 
   // Set *PINSN_PROPERTY to the matching instructions for expansion and return
   // true if we have found them.
@@ -707,8 +706,7 @@ class Expand_nanomips_insn
          const Nanomips_insn_property* insn_property,
          unsigned char* view,
          unsigned char* preloc,
-         unsigned char* preloc_new,
-         unsigned int expand_reg);
+         unsigned char* preloc_new);
 
  private:
   // Check relocation value for expansions.
@@ -728,6 +726,8 @@ class Expand_nanomips_insn
         gold_unreachable();
       }
   }
+  // Register that is used in expansions.
+  unsigned int expand_reg_;
 };
 
 // This class handles Nanomips .reginfo output section.
@@ -2465,8 +2465,7 @@ Relax_nanomips_insn<size, big_endian>::change(
     const Nanomips_insn_property* insn_property,
     unsigned char* view,
     unsigned char* preloc,
-    unsigned char*,
-    unsigned int)
+    unsigned char*)
 {
   gold_assert(insn_property != NULL);
   typedef typename elfcpp::Rela<size, big_endian> Reltype;
@@ -2477,7 +2476,6 @@ Relax_nanomips_insn<size, big_endian>::change(
   typename elfcpp::Elf_types<size>::Elf_WXword r_info = reloc.get_r_info();
   unsigned int r_sym = elfcpp::elf_r_sym<size>(r_info);
   unsigned int r_type = elfcpp::elf_r_type<size>(r_info);
-  Address r_offset = reloc.get_r_offset();
 
   unsigned int relax_r_type;
   Valtype16 relax_insn = static_cast<Valtype16>(insn_property->insn(0));
@@ -2675,7 +2673,7 @@ Expand_nanomips_insn<size, big_endian>::relocatable_check_range(
     return false;
 
   Nanomips_relobj<size, big_endian>* relobj =
-  Nanomips_relobj<size, big_endian>::as_nanomips_relobj(relinfo->object);
+    Nanomips_relobj<size, big_endian>::as_nanomips_relobj(relinfo->object);
   Relocatable_relocs::Reloc_strategy strategy;
 
   // We can't resolve this relocation so we need to get default strategy.
@@ -2708,8 +2706,7 @@ Expand_nanomips_insn<size, big_endian>::change(
     const Nanomips_insn_property* insn_property,
     unsigned char* view,
     unsigned char* preloc,
-    unsigned char* preloc_new,
-    unsigned int expand_reg)
+    unsigned char* preloc_new)
 {
   gold_assert(insn_property != NULL);
   typedef typename elfcpp::Rela<size, big_endian> Reltype;
@@ -2742,13 +2739,14 @@ Expand_nanomips_insn<size, big_endian>::change(
       reloc_new.put_r_offset(r_offset + 4);
 
       // Write instructions.
-      Valtype32 aluipc_insn = (insn_property->insn(0) | (expand_reg << 21));
+      Valtype32 aluipc_insn = (insn_property->insn(0)
+                               | (this->expand_reg_ << 21));
       Valtype32 addiu_insn = (insn_property->insn(1)
-                              | (expand_reg << 21)
-                              | (expand_reg << 16));
+                              | (this->expand_reg_ << 21)
+                              | (this->expand_reg_ << 16));
       Valtype16 branch_insn =
         static_cast<Valtype16>(insn_property->insn(2));
-      branch_insn |= (expand_reg << 5);
+      branch_insn |= (this->expand_reg_ << 5);
 
       Insn_utilities::put_insn_32(view, aluipc_insn);
       Insn_utilities::put_insn_32(view + 4, addiu_insn);
@@ -2783,7 +2781,7 @@ Expand_nanomips_insn<size, big_endian>::change(
     {
       // Write addiu $at, $zero, imm insn.
       Valtype32 addiu_insn = (insn_property->insn(0)
-                              | (expand_reg << 21)
+                              | (this->expand_reg_ << 21)
                               | ((insn >> 11) & 0x7f));
       Insn_utilities::put_insn_32(view, addiu_insn);
 
@@ -2795,7 +2793,7 @@ Expand_nanomips_insn<size, big_endian>::change(
       // Write b<cc>c instruction.
       unsigned int treg32 = Insn_utilities::treg_32(insn);
       Valtype32 b_cc_c_insn = (insn_property->insn(1)
-                               | (expand_reg << 21)
+                               | (this->expand_reg_ << 21)
                                | (treg32 << 16));
       Insn_utilities::put_insn_32(view + 4, b_cc_c_insn);
       return false;
@@ -2816,14 +2814,14 @@ Expand_nanomips_insn<size, big_endian>::change(
       reloc_new.put_r_offset(r_offset + 8);
 
       // Write instructions.
-      Valtype32 lui_insn = (insn_property->insn(0) | (expand_reg << 21));
+      Valtype32 lui_insn = (insn_property->insn(0) | (this->expand_reg_ << 21));
       Valtype32 addu_insn = (insn_property->insn(1)
-                             | (expand_reg << 16)
-                             | (expand_reg << 11));
+                             | (this->expand_reg_ << 16)
+                             | (this->expand_reg_ << 11));
       unsigned int treg32 = Insn_utilities::treg_32(insn);
       Valtype32 third_insn = (insn_property->insn(2)
                               | (treg32 << 21)
-                              | (expand_reg << 16));
+                              | (this->expand_reg_ << 16));
 
       Insn_utilities::put_insn_32(view, lui_insn);
       Insn_utilities::put_insn_32(view + 4, addu_insn);
@@ -4641,7 +4639,6 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_relax_or_expand(
   Nanomips_relobj<size, big_endian>* relobj =
     Nanomips_relobj<size, big_endian>::as_nanomips_relobj(relinfo->object);
   const unsigned int local_count = relobj->local_symbol_count();
-  const unsigned int expand_reg = parameters->options().expand_reg();
   const bool finalize_relocs = parameters->options().finalize_relocs();
   const bool relax_state = this->state_ == RELAX;
 
@@ -4965,7 +4962,7 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_relax_or_expand(
 
       // Relax/expand instruction.
       bool reloc_added = insn.change(input_insn, pnip, input_view,
-                                     input_preloc, new_reloc, expand_reg);
+                                     input_preloc, new_reloc);
 
       if (reloc_added)
         {

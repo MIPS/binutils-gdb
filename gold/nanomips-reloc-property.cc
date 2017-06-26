@@ -59,7 +59,7 @@ Nanomips_reloc_property::Nanomips_reloc_property(
 Nanomips_reloc_property_table::Nanomips_reloc_property_table()
 {
   // Expand insn array definitions.
-  static const unsigned int BC_EXPAND[] =
+  static const uint32_t BC_EXPAND[] =
     {
       0xe0000002,           // aluipc  $expandreg, %pcrel_hi(sym)
       0x00000000,           // addiu   $expandreg, $expandreg, %pcrel_lo(sym)
@@ -68,7 +68,7 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
   static const char* BC_EXPAND_MSG =
     "bc is expanded to aluipc, addiu, jrc[16]";
 
-  static const unsigned int BALC_EXPAND[] =
+  static const uint32_t BALC_EXPAND[] =
     {
       0xe0000002,           // aluipc    $expandreg, %pcrel_hi(sym)
       0x00000000,           // addiu     $expandreg, $expandreg, %pcrel_lo(sym)
@@ -77,7 +77,7 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
   static const char* BALC_EXPAND_MSG =
     "balc is expanded to aluipc, addiu, jalrc[16]";
 
-  static const unsigned int MOVE_BALC_EXPAND[] =
+  static const uint32_t MOVE_BALC_EXPAND[] =
     {
       0x1000,               // move $reg, $reg
       0x2a000000,           // balc sym
@@ -85,7 +85,7 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
   static const char* MOVE_BALC_EXPAND_MSG =
     "move.balc is expanded to move16, balc";
 
-  static const unsigned int BEQIC_EXPAND[] =
+  static const uint32_t BEQIC_EXPAND[] =
     {
       0x00000000,           // li   $expandreg, imm
       0x88000000,           // beqc $reg, $expandreg, sym
@@ -93,7 +93,7 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
   static const char* BEQIC_EXPAND_MSG =
     "beqic is expanded to li, beqc";
 
-  static const unsigned int BGEIC_EXPAND[] =
+  static const uint32_t BGEIC_EXPAND[] =
     {
       0x00000000,           // li    $expandreg, imm
       0x88008000,           // bgec  $reg, $expandreg, sym
@@ -101,7 +101,7 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
   static const char* BGEIC_EXPAND_MSG =
     "bgeic is expanded to li, bgec";
 
-  static const unsigned int BGEIUC_EXPAND[] =
+  static const uint32_t BGEIUC_EXPAND[] =
     {
       0x00000000,           // li     $expandreg, imm
       0x8800c000,           // bgeuc  $reg, $expandreg, sym
@@ -109,7 +109,7 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
   static const char* BGEIUC_EXPAND_MSG =
     "bgeiuc is expanded to li, bgeuc";
 
-  static const unsigned int BLTIC_EXPAND[] =
+  static const uint32_t BLTIC_EXPAND[] =
     {
       0x00000000,           // li    $expandreg, imm
       0xa8008000,           // bltc  $reg, $expandreg, sym
@@ -117,7 +117,7 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
   static const char* BLTIC_EXPAND_MSG =
     "bltic is expanded to addiu, bltc";
 
-  static const unsigned int BLTIUC_EXPAND[] =
+  static const uint32_t BLTIUC_EXPAND[] =
     {
       0x00000000,           // li    $expandreg, imm
       0xa800c000,           // bltuc $reg, $expandreg, sym
@@ -125,7 +125,7 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
   static const char* BLTIUC_EXPAND_MSG =
     "bltiuc is expanded to addiu, bltuc";
 
-  static const unsigned int BNEIC_EXPAND[] =
+  static const uint32_t BNEIC_EXPAND[] =
     {
       0x00000000,           // li    $expandreg, imm
       0xa8000000,           // bnec  $reg, $expandreg, sym
@@ -133,7 +133,7 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
   static const char* BNEIC_EXPAND_MSG =
     "bneic is expanded to addiu, bnec";
 
-  static const unsigned int LWGP_EXPAND[] =
+  static const uint32_t LWGP_EXPAND[] =
     {
       0xe0000000,           // lui  $expandreg, %hi(sym)
       0x23800150,           // addu $expandreg, $expandreg, $gp
@@ -142,7 +142,7 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
   static const char* LWGP_EXPAND_MSG =
     "lw[gp] is expanded to lui, addu, lw";
 
-  static const unsigned int SWGP_EXPAND[] =
+  static const uint32_t SWGP_EXPAND[] =
     {
       0xe0000000,           // lui  $expandreg, %hi(sym)
       0x23800150,           // addu $expandreg, $expandreg, $gp
@@ -151,7 +151,7 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
   static const char* SWGP_EXPAND_MSG =
     "sw[gp] is expanded to lui, addu, sw";
 
-  static const unsigned int ADDIUGP_W_EXPAND[] =
+  static const uint32_t ADDIUGP_W_EXPAND[] =
     {
       0xe0000000,           // lui   $expandreg, %hi(sym)
       0x23800150,           // addu  $expandreg, $expandreg, $gp
@@ -160,7 +160,7 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
   static const char* ADDIUGP_W_EXPAND_MSG =
     "addiu[gp.w] is expanded to lui, addu, addiu";
 
-  static const unsigned int LBGP_EXPAND[] =
+  static const uint32_t LBGP_EXPAND[] =
     {
       0xe0000000,           // lui  $expandreg, %hi(sym)
       0x23800150,           // addu $expandreg, $expandreg, $gp
@@ -169,7 +169,7 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
   static const char* LBGP_EXPAND_MSG =
     "lb[gp] is expanded to lui, addu, lb";
 
-  static const unsigned int LBUGP_EXPAND[] =
+  static const uint32_t LBUGP_EXPAND[] =
     {
       0xe0000000,           // lui  $expandreg, %hi(sym)
       0x23800150,           // addu $expandreg, $expandreg, $gp
@@ -178,7 +178,7 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
   static const char* LBUGP_EXPAND_MSG =
     "lbu[gp] is expanded to lui, addu, lbu";
 
-  static const unsigned int SBGP_EXPAND[] =
+  static const uint32_t SBGP_EXPAND[] =
     {
       0xe0000000,           // lui  $expandreg, %hi(sym)
       0x23800150,           // addu $expandreg, $expandreg, $gp
@@ -187,7 +187,7 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
   static const char* SBGP_EXPAND_MSG =
     "sb[gp] is expanded to lui, addu, sb";
 
-  static const unsigned int ADDIUGP_B_EXPAND[] =
+  static const uint32_t ADDIUGP_B_EXPAND[] =
     {
       0xe0000000,           // lui   $expandreg, %hi(sym)
       0x23800150,           // addu  $expandreg, $expandreg, $gp
@@ -196,7 +196,7 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
   static const char* ADDIUGP_B_EXPAND_MSG =
     "addiu[gp.b] is expanded to lui, addu, addiu";
 
-  static const unsigned int LHGP_EXPAND[] =
+  static const uint32_t LHGP_EXPAND[] =
     {
       0xe0000000,           // lui  $expandreg, %hi(sym)
       0x23800150,           // addu $expandreg, $expandreg, $gp
@@ -205,7 +205,7 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
   static const char* LHGP_EXPAND_MSG =
     "lh[gp] is expanded to lui, addu, lh";
 
-  static const unsigned int LHUGP_EXPAND[] =
+  static const uint32_t LHUGP_EXPAND[] =
     {
       0xe0000000,           // lui  $expandreg, %hi(sym)
       0x23800150,           // addu $expandreg, $expandreg, $gp
@@ -214,7 +214,7 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
   static const char* LHUGP_EXPAND_MSG =
     "lhu[gp] is expanded to lui, addu, lhu";
 
-  static const unsigned int SHGP_EXPAND[] =
+  static const uint32_t SHGP_EXPAND[] =
     {
       0xe0000000,           // lui  $expandreg, %hi(sym)
       0x23800150,           // addu $expandreg, $expandreg, $gp
@@ -223,70 +223,70 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
   static const char* SHGP_EXPAND_MSG =
     "sh[gp] is expanded to lui, addu, sh";
 
-  static const unsigned int BC16_EXPAND[] =
+  static const uint32_t BC16_EXPAND[] =
     {
       0x28000000,           // bc sym
     };
   static const char* BC16_EXPAND_MSG =
     "bc[16] is expanded to bc";
 
-  static const unsigned int BALC16_EXPAND[] =
+  static const uint32_t BALC16_EXPAND[] =
     {
       0x2a000000,           // balc sym
     };
   static const char* BALC16_EXPAND_MSG =
     "balc[16] is expanded to balc";
 
-  static const unsigned int BEQZC16_EXPAND[] =
+  static const uint32_t BEQZC16_EXPAND[] =
     {
       0x88000000,           // beqc $reg, $zero, sym
     };
   static const char* BEQZC16_EXPAND_MSG =
     "beqzc[16] is expanded to beqc";
 
-  static const unsigned int BNEZC16_EXPAND[] =
+  static const uint32_t BNEZC16_EXPAND[] =
     {
       0xa8000000,           // bnec $reg, $zero, sym
     };
   static const char* BNEZC16_EXPAND_MSG =
     "bnezc[16] is expanded to bnec";
 
-  static const unsigned int BEQC16_EXPAND[] =
+  static const uint32_t BEQC16_EXPAND[] =
     {
       0x88000000,           // beqc $reg, $reg, sym
     };
   static const char* BEQC16_EXPAND_MSG =
     "beqc[16] is expanded to beqc";
 
-  static const unsigned int BNEC16_EXPAND[] =
+  static const uint32_t BNEC16_EXPAND[] =
     {
       0xa8000000,           // bnec $reg, $reg, sym
     };
   static const char* BNEC16_EXPAND_MSG =
     "bnec[16] is expanded to bnec";
 
-  static const unsigned int LWGP16_EXPAND[] =
+  static const uint32_t LWGP16_EXPAND[] =
     {
       0x40000002,           // lw $reg, %gp_rel(sym)($gp)
     };
   static const char* LWGP16_EXPAND_MSG =
     "lw[gp16] is expanded to lw[gp]";
 
-  static const unsigned int SWGP16_EXPAND[] =
+  static const uint32_t SWGP16_EXPAND[] =
     {
       0x40000003,           // sw $reg, %gp_rel(sym)($gp)
     };
   static const char* SWGP16_EXPAND_MSG =
     "sw[gp16] is expanded to sw[gp]";
 
-  static const unsigned int LW16_EXPAND[] =
+  static const uint32_t LW16_EXPAND[] =
     {
       0x84008000,           // lw $reg, %gp_rel(sym)($reg)
     };
   static const char* LW16_EXPAND_MSG =
     "lw[16] is expanded to lw";
 
-  static const unsigned int SW16_EXPAND[] =
+  static const uint32_t SW16_EXPAND[] =
     {
       0x84009000,           // sw $reg, %gp_rel(sym)($reg)
     };
@@ -294,56 +294,56 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
     "sw[16] is expanded to sw";
 
   // Relax insn array definitions.
-  static const unsigned int BC_RELAX[] =
+  static const uint32_t BC_RELAX[] =
     {
       0x1800,               // bc16 sym
     };
   static const char* BC_RELAX_MSG =
     "bc is relaxed to bc[16]";
 
-  static const unsigned int BALC_RELAX[] =
+  static const uint32_t BALC_RELAX[] =
     {
       0x3800,               // balc16 sym
     };
   static const char* BALC_RELAX_MSG =
     "balc is relaxed to balc[16]";
 
-  static const unsigned int BEQC_RELAX[] =
+  static const uint32_t BEQC_RELAX[] =
     {
       0xd800,               // beqc16 $reg, $reg, sym
     };
   static const char* BEQC_RELAX_MSG =
     "beqc is relaxed to beqc[16]";
 
-  static const unsigned int BNEC_RELAX[] =
+  static const uint32_t BNEC_RELAX[] =
     {
       0xd800,               // bnec16 $reg, $reg, sym
     };
   static const char* BNEC_RELAX_MSG =
     "bnec is relaxed to bnec[16]";
 
-  static const unsigned int LWGP_RELAX[] =
+  static const uint32_t LWGP_RELAX[] =
     {
       0x5400,               // lw16 $reg, %gp_rel(sym)($gp)
     };
   static const char* LWGP_RELAX_MSG =
     "lw[gp] is relaxed to lw[gp16]";
 
-  static const unsigned int SWGP_RELAX[] =
+  static const uint32_t SWGP_RELAX[] =
     {
       0xd400,               // sw16 $reg, %gp_rel(sym)($gp)
     };
   static const char* SWGP_RELAX_MSG =
     "sw[gp] is relaxed to sw[gp16]";
 
-  static const unsigned int LW_RELAX[] =
+  static const uint32_t LW_RELAX[] =
     {
       0x1400,               // lw16 $reg, %gp_rel(sym)($reg)
     };
   static const char* LW_RELAX_MSG =
     "lw is relaxed to lw[16]";
 
-  static const unsigned int SW_RELAX[] =
+  static const uint32_t SW_RELAX[] =
     {
       0x9400,               // sw16 $reg, %gp_rel(sym)($reg)
     };
@@ -379,25 +379,26 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
       unsigned int code = elfcpp::R_NANOMIPS_##rname; \
       gold_assert(code < Property_table_size); \
       gold_assert(this->table_[code] != NULL); \
+      gold_assert(this->table_[code]->mask_ != 0); \
       size_t array_size = \
         sizeof(iname##_EXPAND) / sizeof(iname##_EXPAND[0]); \
-      Nanomips_insn_property* iname_expand_property = \
+      Nanomips_insn_property* iname##_expand_property = \
         new Nanomips_insn_property(iname##_EXPAND, \
                                    array_size, \
                                    iname##_EXPAND_MSG, \
                                    count, \
                                    offset, \
-                                   type, \
+                                   IT_##type, \
                                    store); \
       Nanomips_insn_map::const_iterator p = \
         this->table_[code]->expansions_.find(opcode); \
       if (p != this->table_[code]->expansions_.end()) \
-        p->second->set_insn_property(iname_expand_property, type); \
+        p->second->set_insn_property(iname##_expand_property, IT_##type); \
       else \
         { \
           std::pair<Nanomips_insn_map::iterator, bool> ins = \
             this->table_[code]->expansions_.insert( \
-              std::make_pair(opcode, iname_expand_property)); \
+              std::make_pair(opcode, iname##_expand_property)); \
           gold_assert(ins.second); \
         } \
     } \
@@ -409,19 +410,20 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
       unsigned int code = elfcpp::R_NANOMIPS_##rname; \
       gold_assert(code < Property_table_size); \
       gold_assert(this->table_[code] != NULL); \
+      gold_assert(this->table_[code]->mask_ != 0); \
       size_t array_size = \
         sizeof(iname##_RELAX) / sizeof(iname##_RELAX[0]); \
-      Nanomips_insn_property* iname_relax_property = \
+      Nanomips_insn_property* iname##_relax_property = \
         new Nanomips_insn_property(iname##_RELAX, \
                                    array_size, \
                                    iname##_RELAX_MSG, \
                                    count, \
                                    offset, \
-                                   type, \
+                                   IT_##type, \
                                    store); \
       std::pair<Nanomips_insn_map::iterator, bool> ins = \
       this->table_[code]->relaxations_.insert( \
-        std::make_pair(opcode, iname_relax_property)); \
+        std::make_pair(opcode, iname##_relax_property)); \
       gold_assert(ins.second); \
     } \
   while (0);

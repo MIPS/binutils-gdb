@@ -187,8 +187,7 @@ class Nanomips_reloc_property
       return NULL;
 
     insn &= this->mask_;
-    typename Nanomips_insn_map::const_iterator p =
-      this->relaxations_.find(insn);
+    Nanomips_insn_map::const_iterator p = this->relaxations_.find(insn);
     return (p != this->relaxations_.end() ? p->second : NULL);
   }
 
@@ -200,8 +199,7 @@ class Nanomips_reloc_property
       return NULL;
 
     insn &= this->mask_;
-    typename Nanomips_insn_map::const_iterator p =
-      this->expansions_.find(insn);
+    Nanomips_insn_map::const_iterator p = this->expansions_.find(insn);
     return (p != this->expansions_.end() ? p->second : NULL);
   }
 
