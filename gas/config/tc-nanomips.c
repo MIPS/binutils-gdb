@@ -13328,10 +13328,7 @@ relaxed_nanomips_16bit_branch_length (fragS *fragp, asection *sec, int update)
       else if (type == RT_BRANCH_CNDZ)
 	toofar = val < - (0x40 << 1) || val >= (0x40 << 1);
       else if (type == RT_BRANCH_CND)
-	toofar = (val < 2
-		  || val >= 32
-		  || (val == 2
-		      && symbol_get_frag (fragp->fr_symbol)->fr_offset == 0));
+	toofar = val < -2 || val >= 32;
       else
 	abort ();
     }
