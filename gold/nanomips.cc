@@ -2542,6 +2542,7 @@ Expand_nanomips_insn<size, big_endian>::find_and_check(
     case elfcpp::R_NANOMIPS_PC21_S1:
     case elfcpp::R_NANOMIPS_PC11_S1:
     case elfcpp::R_NANOMIPS_PC10_S1:
+    case elfcpp::R_NANOMIPS_PC7_S1:
     case elfcpp::R_NANOMIPS_PC4_S1:
     case elfcpp::R_NANOMIPS_GPREL19_S2:
     case elfcpp::R_NANOMIPS_GPREL18:
@@ -2634,6 +2635,8 @@ Expand_nanomips_insn<size, big_endian>::check_range(
       return this->check_value<18>(value, CHECK_UNSIGNED);
     case elfcpp::R_NANOMIPS_PC10_S1:
       return this->check_value<11>(value, CHECK_SIGNED);
+    case elfcpp::R_NANOMIPS_PC7_S1:
+      return this->check_value<8>(value, CHECK_SIGNED);
     case elfcpp::R_NANOMIPS_PC4_S1:
       return ((value == 0) || this->check_value<5>(value, CHECK_UNSIGNED));
     case elfcpp::R_NANOMIPS_GPREL7_S2:
@@ -2835,6 +2838,14 @@ Expand_nanomips_insn<size, big_endian>::change(
 
       if (r_type == elfcpp::R_NANOMIPS_PC10_S1)
         expand_r_type = elfcpp::R_NANOMIPS_PC25_S1;
+      else if (r_type == elfcpp::R_NANOMIPS_PC7_S1)
+        {
+          unsigned int treg16 = Insn_utilities::treg_16(insn);
+          unsigned int treg32 = Insn_utilities::reg_16_to_32(treg16);
+
+          expand_insn |= (treg32 << 21);
+          expand_r_type = elfcpp::R_NANOMIPS_PC14_S1;
+        }
       else if (r_type == elfcpp::R_NANOMIPS_PC4_S1)
         {
           unsigned int sreg16 = Insn_utilities::sreg_16(insn);
@@ -4882,6 +4893,7 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_relax_or_expand(
         case elfcpp::R_NANOMIPS_PC14_S1:
         case elfcpp::R_NANOMIPS_PC11_S1:
         case elfcpp::R_NANOMIPS_PC10_S1:
+        case elfcpp::R_NANOMIPS_PC7_S1:
         case elfcpp::R_NANOMIPS_PC4_S1:
           {
             // Instruction size in bytes.
