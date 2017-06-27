@@ -475,6 +475,7 @@ IGRIE */
 {"addsc",	"d,s,t",		0x20000385, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
 {"addu",	"me,mc,md",		0xb000,	0xfc01, WR_1|RD_2|RD_3,		0,	I38,		0,		0}, /* ADDU[16] */
 {"addu",	"+4,mt,+5",		0x3c00,	0xfd08,	MOD_1|RD_3,		0,	0,		xNMS,		0}, /* ADDU[4X4] */
+{"addu",	"+4,+5,mx",		0x3c00,	0xfd08,	MOD_1|RD_2,	INSN2_ALIAS,	0,		xNMS,		0}, /* ADDU[4X4] */
 {"addu",	"d,v,t",		0x20000150, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0,		0},
 {"addu",	"t,r,I",		0,    (int) M_ADDU_I,	INSN_MACRO,		0,	I38,	0,		0},
 {"addu.ph",	"d,s,t",		0x2000010d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32,		0},
@@ -1062,6 +1063,7 @@ IGRIE */
 {"muh", 	"d,v,t",	0x20000058, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,		0,		0},
 {"muhu",	"d,v,t",	0x200000d8, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,		0,		0},
 {"mul",		"+4,mt,+5",	0x3c08,		0xfd08,	MOD_1|RD_3,		0,	0,		xNMS,		0}, /* MUL[4X4] */
+{"mul",		"+4,+5,mx",	0x3c08,		0xfd08,	MOD_1|RD_2,	INSN2_ALIAS,	0,		xNMS,		0}, /* MUL[4X4] */
 {"mul", 	"d,v,t",	0x20000018, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,		0,		0},
 {"mul",		"d,v,I",	0,    (int) M_MUL_I,	INSN_MACRO,		0,	I38,		0,		0},
 {"mul.d",	"D,V,T",		0xa00001b0, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0,		0},
