@@ -4362,6 +4362,8 @@ match_relocatable_int_operand (const struct mips_operand *operand_base)
 
   if ((op_size == 7
 	   && operand->shift == 2)
+	  || (op_size == 4
+	      && operand->shift == 2)
 	  || op_size == 12
 	  || op_size == 14
 	  || op_size == 16
@@ -4445,10 +4447,6 @@ match_int_operand (struct mips_arg_info *arg,
 	/* Relocation operators were used.  Check if relocation
 	   destination mask matches operand bits.  */
 	{
-	  int opmask = mips_operand_mask (operand_base);
-	  reloc_howto_type *howto;
-	  howto = bfd_reloc_type_lookup (stdoutput, offset_reloc[0]);
-
 	  if (offset_reloc[0] == BFD_RELOC_NANOMIPS_GPREL18)
 	    {
 	      bfd_reloc_code_real_type r;
@@ -4456,9 +4454,20 @@ match_int_operand (struct mips_arg_info *arg,
 	      return (r != BFD_RELOC_NONE);
 	    }
 	  else
-	    /* This is not an direct mask comparison.  In some cases
-	       the relocation targets only a part of the operand bits.  */
-	    return ((howto->dst_mask & opmask) == howto->dst_mask);
+	    {
+	      int opmask;
+	      reloc_howto_type *howto;
+
+	      if (offset_reloc[0] == BFD_RELOC_NANOMIPS_LO12
+		  && forced_insn_length == 2)
+		offset_reloc[0] = BFD_RELOC_NANOMIPS_LO4_S2;
+
+	      howto = bfd_reloc_type_lookup (stdoutput, offset_reloc[0]);
+	      opmask = mips_operand_mask (operand_base);
+	      /* This is not an direct mask comparison.  In some cases
+		 the relocation targets only a part of the operand bits.  */
+	      return ((howto->dst_mask & opmask) == howto->dst_mask);
+	    }
 	}
 
       if (offset_expr.X_op != O_constant)
@@ -10839,7 +10848,7 @@ static const struct percent_op_match nanomips_percent_op[] =
   {"%gp_rel", BFD_RELOC_NANOMIPS_GPREL18},
   {"%gprel", BFD_RELOC_NANOMIPS_GPREL18},
   {"%gprel_hi", BFD_RELOC_NANOMIPS_GPREL_HI20},
-  {"%gprel_lo", BFD_RELOC_NANOMIPS_LO12},
+  {"%gprel_lo", BFD_RELOC_NANOMIPS_GPREL_LO12},
   {"%gprel32", BFD_RELOC_NANOMIPS_GPREL_I32},
   {"%tlsgd", BFD_RELOC_NANOMIPS_TLS_GD},
   {"%tlsldm", BFD_RELOC_NANOMIPS_TLS_LDM},
@@ -11711,10 +11720,24 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       break;
 
     case BFD_RELOC_NANOMIPS_LO12:
+    case BFD_RELOC_NANOMIPS_GPREL_LO12:
       if (fixP->fx_done)
 	{
 	  insn = read_reloc_insn (buf, fixP->fx_r_type);
 	  insn |= *valP & 0xfff;
+	  write_reloc_insn (buf, fixP->fx_r_type, insn);
+	}
+      break;
+
+    case BFD_RELOC_NANOMIPS_LO4_S2:
+      if (fixP->fx_done)
+	{
+	  if ((*valP & 0xfc3) != 0)
+	    as_bad_where (fixP->fx_file, fixP->fx_line,
+			  _("offset out of range (0x%lx)"),
+			  (long) fixP->fx_offset);
+	  insn = read_reloc_insn (buf, fixP->fx_r_type);
+	  insn |= (*valP >> 2) & 0xf;
 	  write_reloc_insn (buf, fixP->fx_r_type, insn);
 	}
       break;

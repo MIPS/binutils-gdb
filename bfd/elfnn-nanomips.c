@@ -586,19 +586,19 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 0x00000fff,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-  /* Section displacement.  */
-  HOWTO (R_NANOMIPS_SCN_DISP,   /* type */
-	 0,			/* rightshift */
-	 2,			/* size (0 = byte, 1 = short, 2 = long) */
-	 32,			/* bitsize */
+  /* Low 4 bits of symbol value.  */
+  HOWTO (R_NANOMIPS_LO4_S2,	/* type */
+	 2,			/* rightshift */
+	 1,			/* size (0 = byte, 1 = short, 2 = long) */
+	 4,			/* bitsize */
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
 	 complain_overflow_dont, /* complain_on_overflow */
 	 _bfd_mips_elf_generic_reloc, /* special_function */
-	 "R_NANOMIPS_SCN_DISP", /* name */
+	 "R_NANOMIPS_LO4_S2",	/* name */
 	 FALSE,			/* partial_inplace */
-	 0,			/* src_mask */
-	 0xffffffff,		/* dst_mask */
+	 0x0000000f,		/* src_mask */
+	 0x0000000f,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
   /* High 32 bits of 64-bit address.  */
@@ -616,8 +616,36 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 0xffffffff,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-  EMPTY_HOWTO (42),
-  EMPTY_HOWTO (43),
+  /* Low 12 bits of GP-relative displacement.  */
+  HOWTO (R_NANOMIPS_GPREL_LO12,	/* type */
+	 0,			/* rightshift */
+	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 12,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont, /* complain_on_overflow */
+	 _bfd_mips_elf_generic_reloc, /* special_function */
+	 "R_NANOMIPS_GPREL_LO12", /* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0x00000fff,		/* dst_mask */
+	 FALSE),		/* pcrel_offset
+
+    /* Section displacement.  */
+  HOWTO (R_NANOMIPS_SCN_DISP,   /* type */
+	 0,			/* rightshift */
+	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 32,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont, /* complain_on_overflow */
+	 _bfd_mips_elf_generic_reloc, /* special_function */
+	 "R_NANOMIPS_SCN_DISP",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0xffffffff,		/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
   EMPTY_HOWTO (44),
   EMPTY_HOWTO (45),
   EMPTY_HOWTO (46),
@@ -1074,6 +1102,8 @@ static const struct elf_reloc_map nanomips_reloc_map[] =
   { BFD_RELOC_NANOMIPS_PC_I32, R_NANOMIPS_PC_I32 },
   { BFD_RELOC_NANOMIPS_GPREL_I32, R_NANOMIPS_GPREL_I32 },
   { BFD_RELOC_NANOMIPS_GPREL17_S1, R_NANOMIPS_GPREL17_S1 },
+  { BFD_RELOC_NANOMIPS_GPREL_LO12, R_NANOMIPS_GPREL_LO12 },
+  { BFD_RELOC_NANOMIPS_LO4_S2, R_NANOMIPS_LO4_S2 },
 
   { BFD_RELOC_NANOMIPS_ALIGN, R_NANOMIPS_ALIGN },
   { BFD_RELOC_NANOMIPS_FILL, R_NANOMIPS_FILL },
