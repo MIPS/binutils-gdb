@@ -212,6 +212,13 @@ test:
 	addu	$r19, $r19, $r22
 	addu	$r21, $r21, $r9
 
+	addu	$r8, $r10, $r8
+	addu	$r20, $r23, $r20
+	addu	$r5, $r11, $r5
+	addu	$r10, $r17, $r10
+	addu	$r19, $r22, $r19
+	addu	$r21, $r9, $r21
+
 	mul	$r6, $r6, $r7
 	mul	$r9, $r9, $r11
 	mul	$r17, $r17, $r19
@@ -221,6 +228,16 @@ test:
 	mul	$r11, $r11, $r16
 	mul	$r18, $r18, $r21
 	mul	$r23, $r23, $r8
+
+	mul	$r6, $r7, $r6
+	mul	$r9, $r11, $r9
+	mul	$r17, $r19, $r17
+	mul	$r22, $r20, $r22
+
+	mul	$r7, $r9, $r7
+	mul	$r11, $r16, $r11
+	mul	$r18, $r21, $r18
+	mul	$r23, $r8, $r23
 
 	.end	test
 	.align	2
