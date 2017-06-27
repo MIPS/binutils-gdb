@@ -45,6 +45,8 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_NANOMIPS_GPREL_I32	test
   [0-9a-f]+:	0084 0000 	addiu	a0,a0,0
 			[0-9a-f]+: R_NANOMIPS_LO12	test
+  [0-9a-f]+:	1650      	lw	a0,0\(a1\)
+			4a: R_NANOMIPS_LO4_S2	test
   [0-9a-f]+:	4080 0002 	lw	a0,0\(gp\)
 			[0-9a-f]+: R_NANOMIPS_CALL	test
   [0-9a-f]+:	4080 0002 	lw	a0,0\(gp\)
@@ -58,7 +60,7 @@ Disassembly of section \.text:
   [0-9a-f]+:	e080 0000 	lui	a0,0x0
 			[0-9a-f]+: R_NANOMIPS_GPREL_HI20	test
   [0-9a-f]+:	0084 0000 	addiu	a0,a0,0
-			[0-9a-f]+: R_NANOMIPS_LO12	test
+			[0-9a-f]+: R_NANOMIPS_GPREL_LO12	test
   [0-9a-f]+:	6082 0000 	addiu	a0,gp,0
   [0-9a-f]+:	0000 
 			[0-9a-f]+: R_NANOMIPS_GPREL_I32	test
@@ -79,4 +81,3 @@ Disassembly of section \.text:
   [0-9a-f]+:	608b 0000 	lwpc	a0,0 <test>
   [0-9a-f]+:	0000 
 			[0-9a-f]+: R_NANOMIPS_GOTPC_I32	test
-  [0-9a-f]+:	9008      	nop
