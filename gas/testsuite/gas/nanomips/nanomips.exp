@@ -983,6 +983,10 @@ if { [istarget nanomips*-*-*] } {
 	[arch_list_matching nanomips]
     run_list_test_arch "nanomips-tlbg" "" m6001
 
+    run_list_test_arch "insn-suffix-error" "" nanomips32
+    run_dump_test_arch "insn-suffix" "" nanomips32
+
+    
 #     run_list_test "ase-errors-1" "-mabi=32 -march=mips1" "ASE errors (1)"
 #     run_list_test "ase-errors-2" "-mabi=o64 -march=mips3" "ASE errors (2)"
 #     run_list_test "ase-errors-3" "-mabi=32 -march=mips1" "ASE errors (3)"

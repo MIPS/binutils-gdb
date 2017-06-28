@@ -527,6 +527,7 @@ static const char * const *mips_hwr_names;
 
 /* Other options */
 static int no_aliases;	/* If set disassemble as most general inst.  */
+static bfd_boolean show_arch_insn; /* Mnemonics with suffix.  */
 
 static const struct mips_abi_choice *
 choose_abi_by_name (const char *name, unsigned int namelen)
@@ -607,8 +608,8 @@ set_default_mips_dis_options (struct disassemble_info *info)
   /* Defaults: mipsIII/r3000 (?!), no microMIPS ASE (any compressed code
      is MIPS16 ASE) (o)32-style ("oldabi") GPR names, and numeric FPR,
      CP0 register, and HWR names.  */
-  mips_isa = ISA_MIPS3;
-  mips_processor = CPU_R3000;
+  mips_isa = ISA_NANOMIPS32R6;
+  mips_processor = CPU_NANOMIPS32R6;
   micromips_ase = 0;
   nanomips_isa = 0;
   mips_ase = 0;
@@ -620,6 +621,7 @@ set_default_mips_dis_options (struct disassemble_info *info)
   mips_cp1_names = mips_cp1_names_numeric;
   mips_hwr_names = mips_hwr_names_numeric;
   no_aliases = 0;
+  show_arch_insn = FALSE;
 
   /* Update settings according to the ELF file header flags.  */
   if (info->flavour == bfd_target_elf_flavour && info->section != NULL)
@@ -664,6 +666,12 @@ parse_mips_dis_option (const char *option, unsigned int len)
   const struct mips_arch_choice *chosen_arch;
 
   /* Try to match options that are simple flags */
+  if (CONST_STRNEQ (option, "show-arch-insn"))
+    {
+      show_arch_insn = TRUE;
+      return;
+    }
+
   if (CONST_STRNEQ (option, "no-aliases"))
     {
       no_aliases = 1;
@@ -850,7 +858,7 @@ lookup_mips_cp0sel_name (const struct mips_cp0sel_name *names,
 /* Print register REGNO, of type TYPE, for instruction OPCODE.  */
 
 static void
-print_reg (struct disassemble_info *info, const struct mips_opcode *opcode,
+print_reg (struct disassemble_info *info, const struct nanomips_opcode *opcode,
 	   enum mips_reg_operand_type type, int regno)
 {
   switch (type)
@@ -1136,7 +1144,7 @@ nanomips_print_save_restore_fp (struct disassemble_info *info,
 static void
 print_insn_arg (struct disassemble_info *info,
 		struct mips_print_arg_state *state,
-		const struct mips_opcode *opcode,
+		const struct nanomips_opcode *opcode,
 		const struct mips_operand *operand,
 		bfd_vma base_pc,
 		unsigned int uval)
@@ -1515,7 +1523,7 @@ print_insn_arg (struct disassemble_info *info,
    Use DECODE_OPERAND to get the encoding of each operand.  */
 
 static bfd_boolean
-validate_insn_args (const struct mips_opcode *opcode,
+validate_insn_args (const struct nanomips_opcode *opcode,
 		    const struct mips_operand *(*decode_operand) (const char *),
 		    unsigned int insn, struct disassemble_info *info)
 {
@@ -1678,7 +1686,7 @@ validate_insn_args (const struct mips_opcode *opcode,
 
 static void
 print_insn_args (struct disassemble_info *info,
-		 const struct mips_opcode *opcode,
+		 const struct nanomips_opcode *opcode,
 		 const struct mips_operand *(*decode_operand) (const char *),
 		 bfd_uint64_t insn, bfd_vma insn_pc, unsigned int length)
 {
@@ -1823,7 +1831,7 @@ static int
 _print_insn_nanomips (bfd_vma memaddr_base, struct disassemble_info *info)
 {
   const fprintf_ftype infprintf = info->fprintf_func;
-  const struct mips_opcode *op, *opend;
+  const struct nanomips_opcode *op, *opend;
   void *is = info->stream;
   bfd_byte buffer[2];
   bfd_uint64_t higher = 0;
@@ -1909,7 +1917,7 @@ _print_insn_nanomips (bfd_vma memaddr_base, struct disassemble_info *info)
     }
 
   /* FIXME: Should probably use a hash table on the major opcode here.  */
-  const struct mips_opcode *opcodes;
+  const struct nanomips_opcode *opcodes;
   int num_opcodes;
   struct mips_operand const *(*decode) (const char *);
 
@@ -1928,14 +1936,16 @@ _print_insn_nanomips (bfd_vma memaddr_base, struct disassemble_info *info)
 		  && (op->mask & 0xffff0000) == 0)
 	      || (length == 4 && (op->mask & 0xffff0000) != 0)))
 	{
-	  if (!opcode_is_member (op, mips_isa, mips_ase, mips_processor)
+	  if (!nanomips_opcode_is_member (op, mips_isa, mips_ase, mips_processor)
 	      || (op->pinfo2 & INSN2_CONVERTED_TO_COMPACT))
 	    continue;
 
 	  if (!validate_insn_args (op, decode, insn, info))
 	    continue;
 
-	  infprintf (is, "%s", op->name);
+	  infprintf (is, "%s%s", op->name,
+		     (show_arch_insn ? op->suffix : ""));
+
 	  if (length == 6)
 	    insn |= (higher << 32);
 
@@ -2051,6 +2061,10 @@ with the -M switch (multiple options should be separated by commas):\n"));
     if (*mips_arch_choices[i].name != '\0')
       fprintf (stream, " %s", mips_arch_choices[i].name);
   fprintf (stream, _("\n"));
+
+  fprintf (stream, _("\n\
+  show-arch-insn           Print extend mnemonics in disassembly including\n\
+                           suffix as in the reference manual.\n"));
 
   fprintf (stream, _("\n"));
 }

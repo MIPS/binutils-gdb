@@ -39,6 +39,51 @@ struct mips_mapped_check_prev_operand
   bfd_boolean zero_ok;
 };
 
+/* This structure holds information for a particular instruction.  */
+
+struct nanomips_opcode
+{
+  /* The name of the instruction.  */
+  const char *name;
+  /* An optional suffix.  */
+  const char *suffix;
+  /* A string describing the arguments for this instruction.  */
+  const char *args;
+  /* The basic opcode for the instruction.  When assembling, this
+     opcode is modified by the arguments to produce the actual opcode
+     that is used.  If pinfo is INSN_MACRO, then this is 0.  */
+  unsigned long match;
+  /* If pinfo is not INSN_MACRO, then this is a bit mask for the
+     relevant portions of the opcode when disassembling.  If the
+     actual opcode anded with the match field equals the opcode field,
+     then we have found the correct instruction.  If pinfo is
+     INSN_MACRO, then this field is the macro identifier.  */
+  unsigned long mask;
+  /* For a macro, this is INSN_MACRO.  Otherwise, it is a collection
+     of bits describing the instruction, notably any relevant hazard
+     information.  */
+  unsigned long pinfo;
+  /* A collection of additional bits describing the instruction. */
+  unsigned long pinfo2;
+  /* A collection of bits describing the instruction sets of which this
+     instruction or macro is a member. */
+  unsigned long membership;
+  /* A collection of bits describing the ASE of which this instruction
+     or macro is a member.  */
+  unsigned long ase;
+  /* A collection of bits describing the instruction sets of which this
+     instruction or macro is not a member.  */
+  unsigned long exclusions;
+};
+
+/* Return true if MO is an instruction that requires 32-bit encoding.  */
+
+static inline bfd_boolean
+nanomips_opcode_32bit_p (const struct nanomips_opcode *mo)
+{
+  return mo->mask >> 16 != 0;
+}
+
 static inline int
 mips_operand_mask (const struct mips_operand *operand)
 {
@@ -108,48 +153,43 @@ mips_decode_hi20_pcrel_operand (const struct mips_operand *operand,
   return mips_decode_pcrel_operand (&pcrel_op, base_pc, uval << 12);
 }
 
-/* This structure holds information for a particular instruction.  */
-
-struct nanomips_opcode
-{
-  /* The name of the instruction.  */
-  const char *name;
-  /* A string describing the arguments for this instruction.  */
-  const char *args;
-  /* The basic opcode for the instruction.  When assembling, this
-     opcode is modified by the arguments to produce the actual opcode
-     that is used.  If pinfo is INSN_MACRO, then this is 0.  */
-  unsigned long match;
-  /* If pinfo is not INSN_MACRO, then this is a bit mask for the
-     relevant portions of the opcode when disassembling.  If the
-     actual opcode anded with the match field equals the opcode field,
-     then we have found the correct instruction.  If pinfo is
-     INSN_MACRO, then this field is the macro identifier.  */
-  unsigned long mask;
-  /* For a macro, this is INSN_MACRO.  Otherwise, it is a collection
-     of bits describing the instruction, notably any relevant hazard
-     information.  */
-  unsigned long pinfo;
-  /* A collection of additional bits describing the instruction. */
-  unsigned long pinfo2;
-  /* A collection of bits describing the instruction sets of which this
-     instruction or macro is a member. */
-  unsigned long membership;
-  /* A collection of bits describing the ASE of which this instruction
-     or macro is a member.  */
-  unsigned long ase;
-  /* A collection of bits describing the instruction sets of which this
-     instruction or macro is not a member.  */
-  unsigned long exclusions;
-};
 
 /* Return true if MO is an instruction that requires 48-bit encoding.  */
 
 static inline bfd_boolean
-nanomips_opcode_48bit_p (const struct mips_opcode *mo)
+nanomips_opcode_48bit_p (const struct nanomips_opcode *mo)
 {
   return ((mo->mask >> 16 == 0)
 	  && ((mo->match >> 10) == 0x18));
+}
+
+/* Test for membership in an ISA including chip specific ISAs.  INSN
+   is pointer to an element of the opcode table; ISA is the specified
+   ISA/ASE bitmask to test against; and CPU is the CPU specific ISA to
+   test, or zero if no CPU specific ISA test is desired.  Return true
+   if instruction INSN is available to the given ISA and CPU. */
+static inline bfd_boolean
+nanomips_opcode_is_member (const struct nanomips_opcode *insn,
+			   int isa, int ase, int cpu)
+{
+  if (!cpu_is_member (cpu, insn->exclusions))
+    {
+      /* Test for ISA level compatibility.  */
+      if ((isa & INSN_ISA_MASK) != 0
+	  && (insn->membership & INSN_ISA_MASK) != 0
+	  && ((mips_isa_table[(isa & INSN_ISA_MASK) - 1]
+	       >> ((insn->membership & INSN_ISA_MASK) - 1)) & 1) != 0)
+	return TRUE;
+
+      /* Test for ASE compatibility.  */
+      if (insn->ase != 0 && (ase & insn->ase) == insn->ase)
+	return TRUE;
+
+      /* Test for processor-specific extensions.  */
+      if (cpu_is_member (cpu, insn->membership))
+	return TRUE;
+    }
+  return FALSE;
 }
 
 enum
@@ -170,7 +210,7 @@ enum
 };
 
 extern const struct mips_operand *decode_nanomips_operand (const char *);
-extern const struct mips_opcode nanomips_opcodes[];
+extern const struct nanomips_opcode nanomips_opcodes[];
 extern const int bfd_nanomips_num_opcodes;
 
 #endif /* _NANOMIPS_H_ */

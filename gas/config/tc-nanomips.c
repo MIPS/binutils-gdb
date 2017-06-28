@@ -125,7 +125,7 @@ enum append_method {
 struct mips_cl_insn
 {
   /* The opcode's entry in mips_opcodes or mips16_opcodes.  */
-  const struct mips_opcode *insn_mo;
+  const struct nanomips_opcode *insn_mo;
 
   /* The 16-bit or 32-bit bitstring of the instruction itself.  This is
      a copy of INSN_MO->match with the operands filled in.  If we have
@@ -150,9 +150,6 @@ struct mips_cl_insn
 
   /* True if this instruction occurred in a .set noreorder block.  */
   unsigned int noreorder_p : 1;
-
-  /* True for mips16 instructions that jump to an absolute address.  */
-  unsigned int mips16_absolute_jump_p : 1;
 
   /* True if this instruction is complete.  */
   unsigned int complete_p : 1;
@@ -1621,10 +1618,14 @@ static bfd_reloc_code_real_type offset_reloc[3]
   = {BFD_RELOC_UNUSED, BFD_RELOC_UNUSED, BFD_RELOC_UNUSED};
 
 /* This is set to the resulting size of the instruction to be produced
-   by mips16_ip if an explicit extension is used or by mips_ip if an
-   explicit size is supplied.  */
+   by nanomips_ip if an explicit size is supplied.  */
 
 static unsigned int forced_insn_length;
+
+/* This is set if the mnemonic includes a specific [xx] format
+   notation from the architecture reference manual.  */
+
+static bfd_boolean forced_insn_format;
 
 /* True if we are assembling an instruction.  All dot symbols defined during
    this time should be treated as code labels.  */
@@ -1796,25 +1797,13 @@ mips_lookup_ase (const char *name)
   return NULL;
 }
 
-/* Return the length of a microMIPS instruction in bytes.  If bits of
-   the mask beyond the low 16 are 0, then it is a 16-bit instruction.
-   Otherwise assume a 32-bit instruction; 48-bit instructions (0x1f
-   major opcode) will require further modifications to the opcode
-   table.  */
-
-static inline unsigned int
-micromips_insn_length (const struct mips_opcode *mo)
-{
-  return  (mips_opcode_32bit_p (mo) ? 4 : 2);
-}
-
 /* Return the length of a nanoMIPS instruction in bytes. */
 
 static inline unsigned int
-nanomips_insn_length (const struct mips_opcode *mo)
+nanomips_insn_length (const struct nanomips_opcode *mo)
 {
   return  (nanomips_opcode_48bit_p (mo)
-	   ? 6 : (mips_opcode_32bit_p (mo)
+	   ? 6 : (nanomips_opcode_32bit_p (mo)
 		  ? 4 : 2));
 }
 
@@ -1829,7 +1818,7 @@ insn_length (const struct mips_cl_insn *insn)
 /* Initialise INSN from opcode entry MO.  Leave its position unspecified.  */
 
 static void
-create_insn (struct mips_cl_insn *insn, const struct mips_opcode *mo)
+create_insn (struct mips_cl_insn *insn, const struct nanomips_opcode *mo)
 {
   size_t i;
 
@@ -1841,7 +1830,6 @@ create_insn (struct mips_cl_insn *insn, const struct mips_opcode *mo)
     insn->fixp[i] = NULL;
   insn->fixed_p = (mips_opts.noreorder > 0);
   insn->noreorder_p = (mips_opts.noreorder > 0);
-  insn->mips16_absolute_jump_p = 0;
   insn->complete_p = 0;
   insn->cleared_p = 0;
 }
@@ -2801,7 +2789,7 @@ mips_parse_arguments (char *s, char float_format)
    and architecture. */
 
 static bfd_boolean
-is_opcode_valid (const struct mips_opcode *mo)
+is_opcode_valid (const struct nanomips_opcode *mo)
 {
   int isa = mips_opts.isa;
   int ase = mips_opts.ase;
@@ -2813,7 +2801,7 @@ is_opcode_valid (const struct mips_opcode *mo)
       if ((ase & mips_ases[i].flags) == mips_ases[i].flags)
 	ase |= mips_ases[i].flags64;
 
-  if (!opcode_is_member (mo, isa, ase, mips_opts.arch))
+  if (!nanomips_opcode_is_member (mo, isa, ase, mips_opts.arch))
     return FALSE;
 
   /* Check whether the instruction or macro requires single-precision or
@@ -2843,7 +2831,7 @@ is_opcode_valid (const struct mips_opcode *mo)
    explicitly requested.  Always TRUE in the standard MIPS mode.  */
 
 static bfd_boolean
-is_nanomips_size_valid (const struct mips_opcode *mo)
+is_nanomips_size_valid (const struct nanomips_opcode *mo)
 {
   if (mips_opts.insn32
       && mo->pinfo != INSN_MACRO
@@ -2863,7 +2851,7 @@ is_nanomips_size_valid (const struct mips_opcode *mo)
    explicitly requested.  Always TRUE in the standard MIPS mode.  */
 
 static bfd_boolean
-is_size_valid (const struct mips_opcode *mo)
+is_size_valid (const struct nanomips_opcode *mo)
 {
   return is_nanomips_size_valid (mo);
 }
@@ -2877,7 +2865,7 @@ is_size_valid (const struct mips_opcode *mo)
    provides the mips_operand description of each operand.  */
 
 static int
-validate_mips_insn (const struct mips_opcode *opcode,
+validate_mips_insn (const struct nanomips_opcode *opcode,
 		    unsigned long insn_bits,
 		    const struct mips_operand *(*decode_operand) (const char *),
 		    struct mips_operand_array *operands)
@@ -2920,7 +2908,7 @@ validate_mips_insn (const struct mips_opcode *opcode,
 	operands->operand[opno] = operand;
 	if (!decode_operand && operand
 		 && operand->type == OP_INT && operand->lsb == 0
-		 && mips_opcode_32bit_p (opcode))
+		 && nanomips_opcode_32bit_p (opcode))
 	  ;
 	else if (operand && operand->type != OP_VU0_MATCH_SUFFIX)
 	  {
@@ -2967,7 +2955,7 @@ validate_mips_insn (const struct mips_opcode *opcode,
 }
 
 static int
-validate_nanomips_insn (const struct mips_opcode *opc,
+validate_nanomips_insn (const struct nanomips_opcode *opc,
 			 struct mips_operand_array *operands)
 {
   unsigned long insn_bits;
@@ -2981,7 +2969,7 @@ validate_nanomips_insn (const struct mips_opcode *opc,
   length = nanomips_insn_length (opc);
   if (length != 2 && length != 4 && length != 6)
     {
-      as_bad (_("internal error: bad microMIPS opcode (incorrect length: %u): "
+      as_bad (_("internal error: bad nanoMIPS opcode (incorrect length: %u): "
 		"%s %s"), length, opc->name, opc->args);
       return 0;
     }
@@ -2996,7 +2984,7 @@ validate_nanomips_insn (const struct mips_opcode *opc,
        || (length == 4 && (major & 4))
        || (length == 6 && !(major & 18)))
     {
-      as_bad (_("internal error: bad microMIPS opcode "
+      as_bad (_("internal error: bad nanoMIPS opcode "
 		"(opcode/length mismatch): %s %s"), opc->name, opc->args);
       return 0;
     }
@@ -3058,21 +3046,21 @@ md_begin (void)
 	  struct mips_cl_insn *insn;
 
 	  if (!validate_nanomips_insn (&nanomips_opcodes[i],
-					  &nanomips_operands[i]))
+				       &nanomips_operands[i]))
 	    broken = 1;
 
 	  if (count_marker < 3 && nanomips_opcodes[i].pinfo != INSN_MACRO)
 	    {
 	      if (nanomips_nop16_insn.insn_mo == NULL
-		  && micromips_insn_length (&nanomips_opcodes[i]) == 2
+		  && nanomips_insn_length (&nanomips_opcodes[i]) == 2
 		  && strcmp (name, "nop") == 0)
 		insn = &nanomips_nop16_insn;
 	      else if (nanomips_nop32_insn.insn_mo == NULL
-		  && micromips_insn_length (&nanomips_opcodes[i]) == 4
+		  && nanomips_insn_length (&nanomips_opcodes[i]) == 4
 		  && strcmp (name, "nop") == 0)
 		insn = &nanomips_nop32_insn;
 	      else if (nanomips_bc32_insn.insn_mo == NULL
-		  && micromips_insn_length (&nanomips_opcodes[i]) == 4
+		  && nanomips_insn_length (&nanomips_opcodes[i]) == 4
 		  && strcmp (name, "bc") == 0)
 		insn = &nanomips_bc32_insn;
 	      else
@@ -3085,6 +3073,31 @@ md_begin (void)
 	}
       while (++i < bfd_nanomips_num_opcodes
 	     && strcmp (nanomips_opcodes[i].name, name) == 0);
+    }
+
+  i = 0;
+  while (i < bfd_nanomips_num_opcodes)
+    {
+      const struct nanomips_opcode *opcode = &nanomips_opcodes[i];
+      if (opcode->suffix[0] != '\0')
+	{
+	  char *name;
+	  name = xmalloc (strlen (opcode->name)
+			 + strlen (opcode->suffix)
+			 + 1);
+	  name = strcpy (name, opcode->name);
+	  name = strcat (name, opcode->suffix);
+
+	  if (hash_find (nanomips_op_hash, name) == NULL)
+	    {
+	      retval = hash_insert (nanomips_op_hash, name,
+				    (void *) &nanomips_opcodes[i]);
+	      if (retval != NULL)
+		as_fatal (_("internal: can't hash `%s': %s"),
+			  opcode->name, retval);
+	    }
+	}
+      i++;
     }
 
   if (broken)
@@ -3768,7 +3781,7 @@ uncond_branch_p (const struct mips_cl_insn *ip)
    in operand N.  */
 
 static unsigned int
-insn_read_mask (const struct mips_opcode *opcode)
+insn_read_mask (const struct nanomips_opcode *opcode)
 {
   return (opcode->pinfo & INSN_READ_ALL) >> INSN_READ_SHIFT;
 }
@@ -3777,7 +3790,7 @@ insn_read_mask (const struct mips_opcode *opcode)
    in operand N.  */
 
 static unsigned int
-insn_write_mask (const struct mips_opcode *opcode)
+insn_write_mask (const struct nanomips_opcode *opcode)
 {
   return (opcode->pinfo & INSN_WRITE_ALL) >> INSN_WRITE_SHIFT;
 }
@@ -4008,7 +4021,7 @@ fpr_write_mask (const struct mips_cl_insn *ip)
    Check whether that is allowed.  */
 
 static bfd_boolean
-mips_oddfpreg_ok (const struct mips_opcode *insn, int opnum)
+mips_oddfpreg_ok (const struct nanomips_opcode *insn, int opnum)
 {
   const char *s = insn->name;
   bfd_boolean oddspreg = (FPR_SIZE == 64) && mips_opts.oddspreg;
@@ -4187,7 +4200,7 @@ match_const_int (struct mips_arg_info *arg, offsetT *value)
    appears in instruction OPCODE.  */
 
 static unsigned int
-convert_reg_type (const struct mips_opcode *opcode,
+convert_reg_type (const struct nanomips_opcode *opcode,
 		  enum mips_reg_operand_type type)
 {
   switch (type)
@@ -4459,7 +4472,9 @@ match_int_operand (struct mips_arg_info *arg,
 	      reloc_howto_type *howto;
 
 	      if (offset_reloc[0] == BFD_RELOC_NANOMIPS_LO12
-		  && forced_insn_length == 2)
+		  && (forced_insn_length == 2
+		      || (forced_insn_format &&
+			  nanomips_insn_length (arg->insn->insn_mo) == 2)))
 		offset_reloc[0] = BFD_RELOC_NANOMIPS_LO4_S2;
 
 	      howto = bfd_reloc_type_lookup (stdoutput, offset_reloc[0]);
@@ -4564,6 +4579,7 @@ match_int_word (struct mips_arg_info *arg,
 	}
       else
 	if ((forced_insn_length == 6
+	     || forced_insn_format
 	     || offset_expr.X_add_number > MAX_ADDI_OFFSET
 	     || offset_expr.X_add_number < MIN_ADDI_OFFSET)
 	    && offset_expr.X_op != O_big)
@@ -5371,7 +5387,7 @@ match_mdmx_imm_reg_operand (struct mips_arg_info *arg,
 {
   unsigned int regno, uval;
   bfd_boolean is_qh;
-  const struct mips_opcode *opcode;
+  const struct nanomips_opcode *opcode;
 
   /* The mips_opcode records whether this is an octobyte or quadhalf
      instruction.  Start out with that bit in place.  */
@@ -6840,7 +6856,8 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
       add_fixed_insn (ip);
     }
   else if (address_expr
-	   && *reloc_type >= BFD_RELOC_UNUSED + RT_BRANCH_UCND)
+	   && *reloc_type >= BFD_RELOC_UNUSED + RT_BRANCH_UCND
+	   && !forced_insn_format)
     {
       int type = *reloc_type - BFD_RELOC_UNUSED;
       int al = pinfo & INSN_WRITE_GPR_31;
@@ -6863,7 +6880,8 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
     }
   else if (address_expr
 	   && *reloc_type == BFD_RELOC_UNUSED + RT_ADDIU
-	   && address_expr->X_op == O_subtract)
+	   && address_expr->X_op == O_subtract
+	   && !forced_insn_format)
     {
       int type = RT_ADDIU;
       bfd_boolean fixed = (mips_opts.insn32 || (forced_insn_length == 4));
@@ -7190,22 +7208,23 @@ static const struct gprel_insn_match nanomips_gprel_map[] =
 };
 
 static bfd_reloc_code_real_type
-gprel_for_nanomips_insn (const char *insn, int insn_length)
+gprel_for_nanomips_insn (const struct nanomips_opcode *insn)
 {
   unsigned int i;
 
-  if (forced_insn_length == 2)
+  if (forced_insn_length == 2
+      || (forced_insn_format && nanomips_insn_length (insn) == 2))
     return BFD_RELOC_NANOMIPS_GPREL7_S2;
-  if (insn_length == 6)
+  if (nanomips_insn_length (insn) == 6)
     return BFD_RELOC_NANOMIPS_GPREL_I32;
 
   for (i = 0; i < ARRAY_SIZE (nanomips_gprel_map); i++)
-    if (strncasecmp (insn, nanomips_gprel_map[i].str,
+    if (strncasecmp (insn->name, nanomips_gprel_map[i].str,
 		     strlen (nanomips_gprel_map[i].str)) == 0)
       {
 	int len = strlen (nanomips_gprel_map[i].str);
 
-	if (insn[len] && !ISSPACE (insn[len]))
+	if (insn->name[len] && !ISSPACE (insn->name[len]))
 	  continue;
 
 	if (nanomips_gprel_map[i].gpwidth
@@ -7221,7 +7240,7 @@ gprel_for_nanomips_insn (const char *insn, int insn_length)
 /* Like match_insn, for nanoMIPS.  */
 static bfd_boolean
 match_nanomips_insn (struct mips_cl_insn *insn,
-		     const struct mips_opcode *opcode,
+		     const struct nanomips_opcode *opcode,
 		     struct mips_operand_token *tokens,
 		     unsigned int opcode_extra,
 		     bfd_boolean lax_match)
@@ -7474,8 +7493,7 @@ match_nanomips_insn (struct mips_cl_insn *insn,
 	return FALSE;
 
       if (*offset_reloc == BFD_RELOC_NANOMIPS_GPREL18)
-	*offset_reloc = gprel_for_nanomips_insn (insn->insn_mo->name,
-						    insn_length (insn));
+	*offset_reloc = gprel_for_nanomips_insn (insn->insn_mo);
     }
 }
 
@@ -7492,12 +7510,12 @@ match_invalid_for_isa (void)
 
 static bfd_boolean
 match_nanomips_insns (struct mips_cl_insn *insn,
-		      const struct mips_opcode *first,
-		      const struct mips_opcode *past,
+		      const struct nanomips_opcode *first,
+		      const struct nanomips_opcode *past,
 		      struct mips_operand_token *tokens,
 		      int opcode_extra, bfd_boolean lax_match)
 {
-  const struct mips_opcode *opcode;
+  const struct nanomips_opcode *opcode;
   bfd_boolean seen_valid_for_isa, seen_valid_for_size;
 
   /* Search for a match, ignoring alternatives that don't satisfy the
@@ -7508,7 +7526,9 @@ match_nanomips_insns (struct mips_cl_insn *insn,
   do
     {
       gas_assert (strcmp (opcode->name, first->name) == 0);
-      if (is_opcode_valid (opcode))
+      if ((!forced_insn_format
+	   || strcmp (opcode->suffix, first->suffix) == 0)
+	  && is_opcode_valid (opcode))
 	{
 	  seen_valid_for_isa = TRUE;
 	  if (is_size_valid (opcode))
@@ -7516,7 +7536,7 @@ match_nanomips_insns (struct mips_cl_insn *insn,
 	      seen_valid_for_size = TRUE;
 	      if (match_nanomips_insn (insn, opcode, tokens, opcode_extra,
 				       lax_match))
-		    return TRUE;
+		return TRUE;
 	    }
 	}
       ++opcode;
@@ -7832,9 +7852,9 @@ macro_match_nanomips_reloc (const char *fmt, bfd_reloc_code_real_type *r)
 static void
 macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 {
-  const struct mips_opcode *mo = NULL;
+  const struct nanomips_opcode *mo = NULL;
   bfd_reloc_code_real_type r[3];
-  const struct mips_opcode *amo;
+  const struct nanomips_opcode *amo;
   const struct mips_operand *operand;
   struct hash_control *hash;
   struct mips_cl_insn insn;
@@ -7848,7 +7868,7 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
   r[2] = BFD_RELOC_UNUSED;
   hash = nanomips_op_hash;
 
-  amo = (struct mips_opcode *) hash_find (hash, name);
+  amo = (struct nanomips_opcode *) hash_find (hash, name);
   gas_assert (amo);
   gas_assert (strcmp (name, amo->name) == 0);
 
@@ -10743,25 +10763,31 @@ nanomips_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 /* Look up instruction [START, START + LENGTH) in HASH.  Record any extra
    opcode bits in *OPCODE_EXTRA.  */
 
-static struct mips_opcode *
+static struct nanomips_opcode *
 mips_lookup_insn (struct hash_control *hash, const char *start,
 		  ssize_t length, unsigned int *opcode_extra ATTRIBUTE_UNUSED)
 {
   char *name, *dot;
   unsigned int suffix;
   ssize_t opend;
-  struct mips_opcode *insn;
+  struct nanomips_opcode *insn;
 
   /* Make a copy of the instruction so that we can fiddle with it.  */
   name = alloca (length + 1);
   memcpy (name, start, length);
   name[length] = '\0';
+  forced_insn_format = (strchr (start, '[') != NULL
+			&& strchr (strchr (start, '['), ']') != NULL);
 
   /* Look up the instruction as-is.  */
-  insn = (struct mips_opcode *) hash_find (hash, name);
+  insn = (struct nanomips_opcode *) hash_find (hash, name);
   if (insn)
     return insn;
-  dot = strchr (name, '.');
+
+  if (strchr (name, ']'))
+    dot = strchr (strchr (name, ']'), '.');
+  else
+    dot = strchr (name, '.');
 
   /* See if there's an instruction size override suffix,
      either `16' or `32', at the end of the mnemonic proper,
@@ -10770,21 +10796,26 @@ mips_lookup_insn (struct hash_control *hash, const char *start,
   opend = dot != NULL ? dot - name : length;
   if (opend >= 3 && name[opend - 2] == '1' && name[opend - 1] == '6')
     suffix = 2;
-  else if (name[opend - 2] == '3' && name[opend - 1] == '2')
+  else if (opend >= 3 && name[opend - 2] == '3' && name[opend - 1] == '2')
     suffix = 4;
-  else if (name[opend - 2] == '4' && name[opend - 1] == '8')
+  else if (opend >= 3 && name[opend - 2] == '4' && name[opend - 1] == '8')
     suffix = 6;
   else
     suffix = 0;
   if (suffix)
     {
       memmove (name + opend - 2, name + opend, length - opend + 1);
-      insn = (struct mips_opcode *) hash_find (hash, name);
-      if (insn)
-	{
-	  forced_insn_length = suffix;
-	  return insn;
-	}
+      insn = (struct nanomips_opcode *) hash_find (hash, name);
+      while (insn)
+	if (nanomips_insn_length (insn) == suffix)
+	  {
+	    forced_insn_length = suffix;
+	    return insn;
+	  }
+	else if (forced_insn_format)
+	  break;
+	else
+	  insn++;
     }
 
   return NULL;
@@ -10799,7 +10830,7 @@ mips_lookup_insn (struct hash_control *hash, const char *start,
 static void
 nanomips_ip (char *str, struct mips_cl_insn *insn)
 {
-  const struct mips_opcode *first, *past;
+  const struct nanomips_opcode *first, *past;
   struct hash_control *hash;
   char format;
   size_t end;
@@ -10809,6 +10840,7 @@ nanomips_ip (char *str, struct mips_cl_insn *insn)
   hash = nanomips_op_hash;
   past = &nanomips_opcodes[bfd_nanomips_num_opcodes];
   forced_insn_length = 0;
+  forced_insn_format = FALSE;
   opcode_extra = 0;
 
   /* We first try to match an instruction up to a space or to the end.  */
