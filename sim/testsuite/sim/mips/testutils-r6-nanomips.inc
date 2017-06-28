@@ -1,0 +1,147 @@
+# MIPS simulator testsuite utility functions.
+# Copyright (C) 2004-2015 Free Software Foundation, Inc.
+# Contributed by Chris Demetriou of Broadcom Corporation.
+#
+# This file is part of the GNU simulators.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
+
+
+# $at, $a0, $a1, %6, are used as temps by the macros defined here.
+
+	.macro writemsg msg
+	la	$a1, 901f
+	li	$a2, 902f - 901f
+	.data
+901:	.ascii	"\msg\n"
+902:
+	.previous
+	.set push
+	.set reorder
+	li	$a0, 0
+	jal	_dowrite
+	.set pop
+	.endm
+
+
+	# The MIPS simulator uses "break 0x3ff" as the code to exit,
+	# with the return value in $a0 (a0).
+	.macro exit rc
+	li	$a0, \rc
+	break	0x3ff
+	.endm
+
+
+	.macro setup arg1=16, arg2=22
+
+	.global _start
+	.global __start
+	.ent _start
+_start:
+__start:
+	.set push
+	.set reorder
+	j	DIAG
+	.set pop
+	.end _start
+
+	.global _fail
+	.ent _fail
+_fail:
+	writemsg "fail"
+	exit 1
+	.end _fail
+
+	.global _pass
+	.ent _pass
+_pass:
+	writemsg "pass"
+	exit 0
+	.end _pass
+
+	# The MIPS simulator can use multiple different monitor types,
+	# so we hard-code the simulator "write" reserved instruction opcode,
+	# rather than jumping to a vector that invokes it.  The operation
+	# expects RA to point to the location at which to continue
+	# after writing.
+	.global _dowrite
+	.ent _dowrite
+_dowrite:
+	# Write opcode (reserved instruction).  See sim_monitor and its
+	# callers in sim/mips/interp.c. The nop is required here.
+	nop
+	.word	0x00000039 << \arg1 | ((8 << 1) << \arg2)
+	.end _dowrite
+
+	.endm	# setup
+
+
+	.macro pass
+	.set push
+	.set reorder
+	j	_pass
+	.set pop
+	.endm
+
+
+	.macro fail
+	.set push
+	.set reorder
+	j	_fail
+	.set pop
+	.endm
+
+
+	.macro load32 reg, val
+	li	\reg, \val
+	.endm
+
+
+	.macro load64 reg, val
+	dli	\reg, \val
+	.endm
+
+
+	.macro loadaddr reg, addr
+	la	\reg, \addr
+	.endm
+
+
+	.macro checkreg reg, expreg
+	.set push
+	.set noat
+	.set reorder
+	beq	\expreg, \reg, 901f
+	fail
+901:
+	.set pop
+	.endm
+
+
+	.macro check32 reg, val
+	.set push
+	.set noat
+	load32	$at, \val
+	checkreg \reg, $at
+	.set pop
+	.endm
+
+
+	.macro check64 reg, val
+	.set push
+	.set noat
+	load64	$at, \val
+	checkreg \reg, $at
+	.set pop
+	.endm

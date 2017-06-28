@@ -7,9 +7,9 @@
   .endm
 
   .macro nanomips_ck_move imm
-  li $5, \imm
-  move $4, $5
-  fp_assert $4, $5
+  li $a1, \imm
+  move $a0, $a1
+  fp_assert $a0, $a1
   .endm
 
   .macro nanomips_ck_movep a, b, c, d, imm1, imm2
@@ -21,88 +21,88 @@
   .endm
 
   .macro nanomips_ck_movnz inst, a, b, ret
-  li $7, 0xdeadbeef
-  li $4, \a
-  li $5, \b
-  li $6, \ret
-  mov\inst $7, $4, $5
-  fp_assert $6, $7
+  li $a3, 0xdeadbeef
+  li $a0, \a
+  li $a1, \b
+  li $a2, \ret
+  mov\inst $a3, $a0, $a1
+  fp_assert $a2, $a3
   .endm
 
   .macro nanomips_ck_1r inst, a, ret
-  li $4, \a
-  li $6, \ret
-  \inst $7, $4
-  fp_assert $6, $7
+  li $a0, \a
+  li $a2, \ret
+  \inst $a3, $a0
+  fp_assert $a2, $a3
   .endm
 
   .macro nanomips_ck_2r16 inst, a, b, ret
-  li $4, \a
-  li $5, \b
-  li $6, \ret
-  \inst $7, $4, $5
-  fp_assert $6, $7
+  li $a0, \a
+  li $a1, \b
+  li $a2, \ret
+  \inst $a3, $a0, $a1
+  fp_assert $a2, $a3
   .endm
 
   .macro nanomips_ck_2r32 inst, a, b, ret
-  li $4, \a
-  li $5, \b
-  li $6, \ret
-  \inst $8, $4, $5
-  fp_assert $6, $8
+  li $a0, \a
+  li $a1, \b
+  li $a2, \ret
+  \inst $a4, $a0, $a1
+  fp_assert $a2, $a4
   .endm
 
   .macro nanomips_ck_1r1i16 inst, a, imm, ret
-  li $4, \a
-  li $6, \ret
-  \inst $7, $4, \imm
-  fp_assert $6, $7
+  li $a0, \a
+  li $a2, \ret
+  \inst $a3, $a0, \imm
+  fp_assert $a2, $a3
   .endm
 
   .macro nanomips_ck_1r1i32 inst, a, imm, ret
-  li $4, \a
-  li $6, \ret
-  \inst $8, $4, \imm
-  fp_assert $6, $8
+  li $a0, \a
+  li $a2, \ret
+  \inst $a4, $a0, \imm
+  fp_assert $a2, $a4
   .endm
 
   .macro nanomips_ck_1r1i2 inst, a, imm, ret
-  li $4, \a
-  li $6, \ret
-  \inst $4, \imm
-  fp_assert $4, $6
+  li $a0, \a
+  li $a2, \ret
+  \inst $a0, \imm
+  fp_assert $a0, $a2
   .endm
 
   .macro nanomips_ck_2r1i inst, a, b, imm, ret
-  li $4, \a
-  li $5, \b
-  li $6, \ret
-  \inst $7, $4, $5, \imm
-  fp_assert $6, $7
+  li $a0, \a
+  li $a1, \b
+  li $a2, \ret
+  \inst $a3, $a0, $a1, \imm
+  fp_assert $a2, $a3
   .endm
 
   .macro nanomips_ck_2s inst, a, b, ret
-  li $4, \a
-  li $5, \b
-  li $6, \ret
-  mtc1 $4, $f2
-  mtc1 $5, $f4
+  li $a0, \a
+  li $a1, \b
+  li $a2, \ret
+  mtc1 $a0, $f2
+  mtc1 $a1, $f4
   \inst $f4, $f2
-  mfc1 $7, $f2
-  fp_assert $6, $7
+  mfc1 $a3, $f2
+  fp_assert $a2, $a3
   .endm
 
   .macro nanomips_ck_3s inst, a, b, c, ret
-  li $4, \a
-  li $5, \b
-  li $6, \c
-  li $7, \ret
-  mtc1 $4, $f2
-  mtc1 $5, $f4
-  mtc1 $6, $f6
+  li $a0, \a
+  li $a1, \b
+  li $a2, \c
+  li $a3, \ret
+  mtc1 $a0, $f2
+  mtc1 $a1, $f4
+  mtc1 $a2, $f6
   \inst $f2, $f4, $f6
-  mfc1 $8, $f2
-  fp_assert $7, $8
+  mfc1 $a4, $f2
+  fp_assert $a3, $a4
   .endm
 
   .macro nanomips_ck_2d inst, a, b, ret
@@ -111,20 +111,20 @@
 2: .dword \b
 3: .dword \ret
   .text
-  la $4, 1b
-  la $5, 2b
-  la $6, 3b
-  ldc1 $f2, 0($4)
-  ldc1 $f4, 0($5)
-  lw $7, 0($6)
-  lw $8, 4($6)
+  la $a0, 1b
+  la $a1, 2b
+  la $a2, 3b
+  ldc1 $f2, 0($a0)
+  ldc1 $f4, 0($a1)
+  lw $a3, 0($a2)
+  lw $a4, 4($a2)
   \inst $f4, $f2
 
   #simulate dmfc1
-  mfhc1 $9, $f2
-  mfc1 $10, $f2
-  fp_assert $7, $9
-  fp_assert $8, $10
+  mfhc1 $a6, $f2
+  mfc1 $a5, $f2
+  fp_assert $a3, $a5
+  fp_assert $a4, $a6
   .endm
 
   .macro nanomips_ck_3d inst, a, b, c, ret
@@ -134,20 +134,20 @@
 3: .dword \c
 4: .dword \ret
   .text
-  la $4, 1b
-  la $5, 2b
-  la $6, 3b
-  la $2, 4b
-  ldc1 $f2, 0($4)
-  ldc1 $f4, 0($5)
-  ldc1 $f6, 0($6)
-  lw $7, 0($2)
-  lw $8, 4($2)
+  la $a0, 1b
+  la $a1, 2b
+  la $a2, 3b
+  la $t4, 4b
+  ldc1 $f2, 0($a0)
+  ldc1 $f4, 0($a1)
+  ldc1 $f6, 0($a2)
+  lw $a3, 0($t4)
+  lw $a4, 4($t4)
   \inst $f2, $f4, $f6
 
   #simulate dmfc1
-  mfhc1 $9, $f2
-  mfc1 $10, $f2
-  fp_assert $7, $9
-  fp_assert $8, $10
+  mfhc1 $a6, $f2
+  mfc1 $a5, $f2
+  fp_assert $a3, $a5
+  fp_assert $a4, $a6
   .endm

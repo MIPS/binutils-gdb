@@ -1,0 +1,27 @@
+# MIPS simulator instruction tests
+
+# As gross as it is, we unset the linker script specified by the target
+# board.  The MIPS libgloss linker scripts include libgcc (and possibly
+# other libraries), which the linker (used to link these tests rather
+# than the compiler) can't necessarily find.
+unset_currtarget_info ldscript
+
+proc run_nanomips_test { name requested_machs args } {
+    run_sim_test $name $requested_machs $args
+}
+
+# Only test nanomips*-*-elf (e.g., no nanomips*-*-linux)
+if {[istarget nanomips*-*-elf]} {
+
+    set models "32r6 64r6"
+    set dspmodels "32r6 64r6"
+    set cpu_option -march
+
+    # nanoMIPS TESTS
+    run_nanomips_test sanity-r6-nanomips.s $models use_gold
+    run_nanomips_test r6-nanomips.s $models use_gold
+    run_nanomips_test r6-nanomips-fpu.s $models use_gold
+    run_nanomips_test r6-nanomips-branch.s $models use_gold
+    run_nanomips_test r6-nanomips-dspr3.s $dspmodels use_gold
+
+}

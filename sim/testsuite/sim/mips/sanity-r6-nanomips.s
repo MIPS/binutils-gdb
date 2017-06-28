@@ -1,19 +1,19 @@
 # mips r6 nanoMIPS test sanity, expected to pass.
-# mach:	 mips32r7
-# as:		-mabi=eabi
+# mach:	 32r6
+# as:		-m32
 # ld:		-N -Ttext=0x80010000
 # output:	*\\npass\\n
 
-	.include "testutils.inc"
+	.include "testutils-r6-nanomips.inc"
 
-	setup 4, 6
+	setup
 
 	.set noreorder
 
 	.ent DIAG
 DIAG:
 
-	writemsg "Sanity is good!", 4, 6
+	writemsg "Sanity is good!"
 
 	pass
 
