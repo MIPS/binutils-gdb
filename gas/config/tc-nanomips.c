@@ -5654,15 +5654,18 @@ match_float_constant (struct mips_arg_info *arg, expressionS *imm,
 	 specifically looks for GPR_SIZE == 32 as the FPXX ABI does not
 	 permit 64-bit moves without MXHC1.
 	 Force the constant into memory otherwise.  */
-      && (using_gprs
-	  || GPR_SIZE == 64
+      && (GPR_SIZE == 64
 	  || ISA_HAS_MXHC1 (mips_opts.isa)
 	  || FPR_SIZE == 32)
       && ((data[0] == 0 && data[1] == 0)
-	  || (data[2] == 0 && data[3] == 0))
+	  || (data[2] == 0 && data[3] == 0)
+	  || ((mips_opts.ase & ASE_xNMS) != 0
+	      && using_gprs))
       && ((data[4] == 0 && data[5] == 0)
-	  || (data[6] == 0 && data[7] == 0)))
-    {
+	  || (data[6] == 0 && data[7] == 0)
+	  || ((mips_opts.ase & ASE_xNMS) != 0
+	      && using_gprs)))
+   {
       /* The value is simple enough to load with a couple of instructions.
 	 If using 32-bit registers, set IMM to the high order 32 bits and
 	 OFFSET to the low order 32 bits.  Otherwise, set IMM to the entire
@@ -8278,7 +8281,14 @@ load_register (int reg, expressionS *ep, int dbl)
 	    }
 	}
 
-      /* Check for 16bit shifted constant.  We know that hi32 is
+      if (mips_opts.nanomips)
+	{
+	  macro_build (ep, "dlui", "mp,+Q", reg, BFD_RELOC_NANOMIPS_HI32);
+	  macro_build (ep, "daddiu", "mp,mt,+R", reg, reg, BFD_RELOC_NANOMIPS_I32);
+	  return;
+	}
+
+     /* Check for 16bit shifted constant.  We know that hi32 is
          non-zero, so start the mask on the first bit of the hi32
          value.  */
       shift = 17;
@@ -9013,7 +9023,10 @@ nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
 	 in which we are not using $at).  */
       gas_assert (offset_expr.X_op == O_symbol);
 
-      gpfmt = "t,.(ma)";
+      if (HAVE_64BIT_SYMBOLS)
+	gpfmt = "t,mV(ma)";
+      else
+	gpfmt = "t,.(ma)";
       relax_start (offset_expr.X_add_symbol);
       macro_build (&offset_expr, ADDRESS_LOAD_INSN, gpfmt, tempreg,
 		   BFD_RELOC_NANOMIPS_GOT_DISP, mips_gp_register);
@@ -10294,19 +10307,17 @@ nanomips_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	{
 	  gas_assert (strcmp (s, RDATA_SECTION_NAME) == 0);
 	  used_at = 1;
-	  if (mips_pic != NO_PIC)
-	    macro_build (&offset_expr, ADDRESS_LOAD_INSN, LWGP_FMT, AT,
-			 BFD_RELOC_NANOMIPS_GOT_DISP, mips_gp_register);
-	  else
+	  if (mips_pic == NO_PIC)
 	    {
 	      /* FIXME: This won't work for a 64 bit address.  */
 	      macro_build_lui (&offset_expr, AT);
+	      offset_reloc[0] = BFD_RELOC_LO16;
+	      op[2] = AT;
+	      offset_reloc[1] = BFD_RELOC_UNUSED;
+	      offset_reloc[2] = BFD_RELOC_UNUSED;
 	    }
-
-	  op[2] = AT;
-	  offset_reloc[0] = BFD_RELOC_LO16;
-	  offset_reloc[1] = BFD_RELOC_UNUSED;
-	  offset_reloc[2] = BFD_RELOC_UNUSED;
+	  else
+	    op[2] = 0;
  	}
       align = 8;
 

@@ -561,8 +561,14 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "ld-zero-2"	"-mlegacyregs" nanomips32s
     run_dump_test_arches "ld-zero-3"	[arch_list_matching gpr64 !nmips64_broken]
 
-    run_dump_test_arches "lifloat" "" [arch_list_matching !nanomips_broken]
-    run_dump_test_arches "lif-svr4pic" "" [arch_list_matching !nanomips_broken]
+    run_dump_test_arch "lifloat" "" nanomips32r6
+    run_dump_test_arch "lifloat-64" "-m64" nanomips64r6
+    run_dump_test_arch "lifloat-nms" "-mlegacyregs" nanomips32s
+
+    run_dump_test_arch "lif-svr4pic" "" nanomips32r6
+    run_dump_test_arch "lif-svr4pic-64" "-m64" nanomips64r6
+    run_dump_test_arch "lif-svr4pic-nms" "-mlegacyregs" nanomips32s
+
     run_dump_test_arches "mips4-fp" "" [arch_list_matching nanomipsr6]
 
     run_dump_test_arches "rol-hw" 	[arch_list_matching nanomipsr6]
@@ -752,9 +758,9 @@ if { [istarget nanomips*-*-*] } {
     run_list_test_arches "mips-macro-ill-nofp" "-m32 -msoft-float" \
 					[arch_list_matching !nanomips_broken]
 
-    run_list_test_arches "mips-hard-float-flag" \
+    run_list_test_arches "hard-float-flag" \
 	"-m32 -msoft-float -mhard-float" \
-	[arch_list_matching mips1 !nanomips_broken]
+	[arch_list_matching nanomipsr6]
     run_list_test_arches "double-float-flag" \
 	"-m32 -msingle-float -mdouble-float" \
 	[arch_list_matching nanomipsr6]
