@@ -218,4 +218,6 @@ extern void mips_md_do_align (int, const char *, int, int);
 #define TC_VALIDATE_FIX_SUB(fix, seg)   mips_validate_fix_sub (fix)
 extern int mips_validate_fix_sub (struct fix *);
 
+#define LEX_BR LEX_NAME
+
 #endif /* TC_MIPS */
