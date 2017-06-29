@@ -25628,7 +25628,6 @@ mips_parse_cons_expression (expressionS *exp,
      touches code, so we skip relocations for those expressions and hope
      that this will not break any valid case.  */
   if (mips_opts.nanomips
-      && linkrelax
       && exp->X_op != O_constant
       && (exp->X_op != O_subtract
 	  || ((S_GET_SEGMENT (exp->X_add_symbol))->flags & SEC_CODE) != 0
@@ -25891,7 +25890,7 @@ mips_allow_local_subtract (expressionS * left,
     return TRUE;
 
   /* Only supported for p32/p64 ABIs.  */
-  if (!HAVE_PABI || !linkrelax)
+  if (!HAVE_PABI)
     return TRUE;
 
   /* Check for intervening fixups between symbols within the same frag to
