@@ -1885,6 +1885,11 @@ case "${target}" in
        sim_testsuite=yes
        sim_igen=yes
        ;;
+   nanomips*-*-*)
+       sim_arch=nanomips
+       sim_testsuite=yes
+       sim_igen=yes
+       ;;
    mn10300*-*-*)
        sim_arch=mn10300
        sim_igen=yes
