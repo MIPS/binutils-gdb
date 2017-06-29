@@ -602,7 +602,7 @@ if { [istarget nanomips*-*-*] } {
 
     run_dump_test_arch "eva"	""	nanomips32r6
 
-    run_list_test "baddata1" "-mlegacyregs"
+    run_list_test_arches "baddata1" "-mlegacyregs" [arch_list_matching !nanomips_broken]
     run_list_test_arches "jalr" "" [arch_list_matching nanomipsr6]
 
     run_dump_test_arches "mips-gp32-fp64" "-mlegacyregs" [arch_list_matching !nanomips_broken]
@@ -804,7 +804,7 @@ if { [istarget nanomips*-*-*] } {
 
     run_dump_test_arch "pcrel-1" "" nanomips32r6
     run_dump_test_arch "pcrel-2" "" nanomips32r6
-    run_list_test_arch "pcrel-3" "" nanomips32r6
+    run_list_test_arch "pcrel-3" "--linkrelax" nanomips32r6
     run_dump_test_arch "pcrel-4-32" "" nanomips32r6
 
     run_dump_test_arches "attr-gnu-4-0" "-m32" \

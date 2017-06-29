@@ -15460,8 +15460,7 @@ mips_parse_cons_expression (expressionS *exp,
      frags.  These wouldn't be affected by linker relaxation which only
      touches code, so we skip relocations for those expressions and hope
      that this will not break any valid case.  */
-  if (linkrelax
-      && exp->X_op != O_constant
+  if (exp->X_op != O_constant
       && (exp->X_op != O_subtract
 	  || ((S_GET_SEGMENT (exp->X_add_symbol))->flags & SEC_CODE) != 0
 	  || ((S_GET_SEGMENT (exp->X_op_symbol))->flags & SEC_CODE) != 0))
@@ -15489,6 +15488,8 @@ mips_parse_cons_expression (expressionS *exp,
 	  case 8:
 	    rel = BFD_RELOC_64;
 	    break;
+	  case 16:
+	    break;	    
 	  default:
 	    as_bad (_("unsupported BFD relocation size %u"), nbytes);
 	    rel = BFD_RELOC_NONE;
