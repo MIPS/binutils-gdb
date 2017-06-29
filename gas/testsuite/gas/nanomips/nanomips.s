@@ -48,6 +48,8 @@ test:
 	li	$s1, 125
 	li	$s1, 126
 	li	$s1, 127
+	li	$t0, 0
+	li	$t9, 0
 
 	li32	$t4, 0
 	li32	$t4, 1

@@ -128,7 +128,7 @@ decode_nanomips_operand (const char *p)
 	case 'W': INT_ADJ (6, 0, 63, 2, FALSE);	 /* (0 .. 63) << 2 */
 	case 'X': INT_ADJ (4, 2, 15, 4, FALSE);	 /* 4-bit << 3 */
 	case 'Y': INT_ADJ (9, 3, 511, 3, FALSE);	 /* 9-bit << 3 */
-/* 	case 'Z': UINT (0, 0);			 /\* 0 only *\/ */
+	case 'Z': UINT (0, 0);			 /* 0 only */
 	case '0': INT_ADJ (4, 2, 15, 4, FALSE);
 	case '1': IMM_INT_ADJ (7, 0, 127, 2, FALSE);	 /* (0 .. 127) << 2 */
 /* 	case '2': SPLIT_MAPPED_REG (4, 0, 1, 4, GP, reg_4to5_map); */
@@ -428,6 +428,7 @@ const struct nanomips_opcode nanomips_opcodes[] =
 {"jalr",	"",	"t,s",		0x48000000, 0xfc00ffff,	WR_1|RD_2,  INSN2_ALIAS|UBR|CTC,	I38,		0,		0}, /* JALRC */
 {"lui", 	"", 	"t,u",		0xe0000000, 0xfc000002,	WR_1,		0,	I38,		0,		0},
 {"li",		"[16]",	"md,mI",	0xd000,		0xfc00,	WR_1,		0,	I38,		0,		0}, /* LI[16] */
+{"li",		"",	"-p,mZ",	0x1000,		0xfc1f,	WR_1,	INSN2_ALIAS,	I38,		0,		0}, /* MOVE[16] */
 {"li",		"[32]",	"-t,j",		0x00000000, 0xfc1f0000,	WR_1,	INSN2_ALIAS,	I38,		0,		0}, /* ADDIU[32] */
 {"li",		"[neg]", "t,h",		0x80008000, 0xfc1ff000,	WR_1,	INSN2_ALIAS,	I38,		0,		0}, /* ADDIU[NEG] */
 {"li",		"", 	"t,x",		0xe0000000, 0xfc000002,	WR_1,	INSN2_ALIAS,	I38,		0,		0}, /* LUI */

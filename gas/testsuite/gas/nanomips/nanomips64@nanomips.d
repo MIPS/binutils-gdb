@@ -54,6 +54,8 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> d0fd      	li	s1,125
 [0-9a-f]+ <[^>]+> d0fe      	li	s1,126
 [0-9a-f]+ <[^>]+> 0220 007f 	li	s1,127
+[0-9a-f]+ <[^>]+> 1180      	move	t0,zero
+[0-9a-f]+ <[^>]+> 1320      	move	t9,zero
 [0-9a-f]+ <[^>]+> 0040 0000 	li	t4,0
 [0-9a-f]+ <[^>]+> 0040 0001 	li	t4,1
 [0-9a-f]+ <[^>]+> 0040 7fff 	li	t4,32767
@@ -2964,7 +2966,6 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 23ff c37f 	wait	0x3ff
 [0-9a-f]+ <[^>]+> 0008 03ff 	syscall	0x3ff
 [0-9a-f]+ <[^>]+> 9008      	nop
-[0-9a-f]+ <[^>]+> 8000 c000 	nop
 [0-9a-f]+ <[^>]+> a001 037b 	abs\.s	\$f0,\$f1
 [0-9a-f]+ <[^>]+> a3df 037b 	abs\.s	\$f30,\$f31
 [0-9a-f]+ <[^>]+> a042 037b 	abs\.s	\$f2,\$f2
