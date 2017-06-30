@@ -181,7 +181,7 @@ test:
 	rotx    $r2, $r3, 7, 8, 1
 	bitswap $r2,$r3
 	rotx    $r2, $r3, 15, 16
-	bitswaph $r2,$r3
+	bitswap.h $r2,$r3
 	rotx    $r2, $r3, 24, 8
 	byterev $r2,$r3
 	rotx    $r2, $r3, 8, 24

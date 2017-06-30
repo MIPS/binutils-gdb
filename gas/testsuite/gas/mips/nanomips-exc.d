@@ -175,8 +175,8 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 8043 d01f 	bitrev	t4,t5
 [0-9a-f]+ <[^>]+> 8043 d247 	bitswap	t4,t5
 [0-9a-f]+ <[^>]+> 8043 d247 	bitswap	t4,t5
-[0-9a-f]+ <[^>]+> 8043 d40f 	bitswaph	t4,t5
-[0-9a-f]+ <[^>]+> 8043 d40f 	bitswaph	t4,t5
+[0-9a-f]+ <[^>]+> 8043 d40f 	bitswap.h	t4,t5
+[0-9a-f]+ <[^>]+> 8043 d40f 	bitswap.h	t4,t5
 [0-9a-f]+ <[^>]+> 8043 d218 	byterev	t4,t5
 [0-9a-f]+ <[^>]+> 8043 d218 	byterev	t4,t5
 [0-9a-f]+ <[^>]+> 8043 d608 	wsbh	t4,t5
