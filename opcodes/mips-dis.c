@@ -884,8 +884,6 @@ set_default_mips_dis_options (struct disassemble_info *info)
       micromips_ase = is_micromips (header);
       /* If a nanoMIPS binary, then don't use legacy MIPS bindings.  */
       nanomips_isa = is_nanomips (header);
-      if (nanomips_isa)
-	mips_gpr_names = nanomips_gpr_names;
     }
 
   /* Set ISA, architecture, and cp0 register names as best we can.  */
@@ -909,6 +907,12 @@ set_default_mips_dis_options (struct disassemble_info *info)
       mips_hwr_names = chosen_arch->hwr_names;
     }
 #endif
+
+  nanomips_isa = (nanomips_isa
+		  || mips_isa == ISA_NANOMIPS32R6
+		  || mips_isa == ISA_NANOMIPS64R6);
+  if (nanomips_isa)
+    mips_gpr_names = nanomips_gpr_names;
 }
 
 static void
