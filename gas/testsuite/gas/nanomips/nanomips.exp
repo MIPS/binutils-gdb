@@ -743,7 +743,6 @@ if { [istarget nanomips*-*-*] } {
 
     run_dump_test_arches "mips32-dsp"	[arch_list_matching nanomipsr6]
     run_dump_test_arches "mips32-dspr2"	[arch_list_matching nanomipsr6]
-    run_dump_test_arch "mt-ase" "-mlegacyregs -mmt" nanomips32r6
 
     run_dump_test_arch "align" "" nanomips32r6
     run_dump_test_arch "align2" "" nanomips32r6
@@ -915,7 +914,7 @@ if { [istarget nanomips*-*-*] } {
 				[arch_list_matching nanomips]
     run_dump_test_arch "mips-gp32-fp64-pic" "-mgp32 -mfp64 -KPIC -mlegacyregs" \
 				nanomips32s
-    run_dump_test_arches "mt-ase" "-mmt -mlegacyregs" [arch_list_matching nanomips]
+    run_dump_test_arches "mt-ase" "-mmt" [arch_list_matching nanomipsr6]
     run_list_test_arches "nanomips-error" [arch_list_matching xnms]
 
     run_dump_test_arches "tls-p32"  [arch_list_matching nanomips]
