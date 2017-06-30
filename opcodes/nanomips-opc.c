@@ -563,7 +563,7 @@ IGRIE */
 {"bgeiuc",	"",	"t,m9,~",	0xc80c0000, 0xfc1c0000,		RD_1,		0,	I38,	0,		0},
 {"bitrev",	"",	"t,r",		0x8000d01f, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS,		0}, /* ROTX */
 {"bitswap",	"",	"t,r",		0x8000d247, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS,		0}, /* ROTX */
-{"bitswaph",	"",	"t,r",		0x8000d40f, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS,		0}, /* ROTX */
+{"bitswap.h",	"",	"t,r",		0x8000d40f, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS,		0}, /* ROTX */
 {"bgtzc",	"",	"t,p",		0xa8008000, 0xfc1fc000,	RD_1,	INSN2_ALIAS,	I38,		0,		0}, /* BLTC $0, t */
 {"bgtz",	"",	"t,p",		0xa8008000, 0xfc1fc000,	RD_1, INSN2_ALIAS|CBR|CTC,	I38,		0,		0}, /* BLTC $0, t */
 {"bltzc",	"",	"s,p",		0xa8008000, 0xffe0c000,	RD_1,	INSN2_ALIAS,	I38,		0,		0}, /* BLTC s, $0 */
