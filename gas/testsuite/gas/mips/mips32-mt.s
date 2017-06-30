@@ -279,8 +279,10 @@ text_label:
 	mftlo		$11,$ac0
 	mfthi		$12
 	mfthi		$13,$ac1
+.ifndef nanomips
 	mftacx		$14
 	mftacx		$15,$ac2
+.endif
 	mftdsp		$16
 	mftc1		$17,$f18
 	mftc1		$18,$19
@@ -553,8 +555,10 @@ text_label:
 	mttlo		$30,$ac3
 	mtthi		$31
 	mtthi		$0,$ac0
+.ifndef nanomips
 	mttacx		$1
 	mttacx		$2,$ac1
+.endif
 	mttdsp		$3
 	mttc1		$4,$f5
 	mttc1		$5,$6
