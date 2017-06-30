@@ -183,7 +183,7 @@ decode_nanomips_operand (const char *p)
 	case 'J': HINT (19, 0);
 	case 'M': HINT (18, 0);
 	case 'N': SPECIAL_SPLIT (5, 0, 1, 9, SAVE_RESTORE_LIST);
-	case 'P': SPECIAL_SPLIT (9, 16, 5, 21, SAVE_RESTORE_FP_LIST);
+	case 'P': SPECIAL (4, 16, SAVE_RESTORE_FP_LIST);
 	case 'O': UINT (3, 8);
 	case 'Q': SPECIAL_WORD (0, UINT_WORD);
 	case 'R': SPECIAL_WORD (0, INT_WORD);
@@ -1143,7 +1143,7 @@ IGRIE */
 {"jraddiusp",	"mG",		0x1d00,		0xff0f,	0,	INSN2_ALIAS,	I38,	0,		0}, /* RESTORE.JRC[16] */
 {"jraddiusp",	"mY",		0x80003003, 0xfffff007,	0,	INSN2_ALIAS,	I38,	0,		0}, /* RESTORE.JRC[32] */
 {"jraddiusp",	"I",	0,   (int) M_JRADDIUSP,	INSN_MACRO,		0,	I38,	0,		0},
-{"restoref",	"mY,+P",	0x80103001, 0xfc10f007,	0,			0,	I38,	0,		0},
+{"restoref",	"mY,+P",	0x80103001, 0xfff0f007,	0,			0,	I38,	0,		0},
 {"rint.d",	"T,S",		0xa0000220, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"rint.s",	"T,S",		0xa0000020, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"rol", 	"d,v,t",		0,    (int) M_ROL,	INSN_MACRO,		0,	I38,		0,		0},
@@ -1167,7 +1167,7 @@ IGRIE */
 {"round.w.s",	"T,S",		0xa0003b3b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"rsqrt.d",	"T,S",		0xa000423b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
 {"rsqrt.s",	"T,S",		0xa000023b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0,		0},
-{"savef",	"mY,+P",	0x80103000, 0xfc10f007,	    	0,		0,	I38,		0,		0}, /* precedes SAVE */
+{"savef",	"mY,+P",	0x80103000, 0xfff0f007,	    	0,		0,	I38,		0,		0}, /* precedes SAVE */
 {"save",	"mG",		0x1c00,		0xff0f,		0,		0,	0,	xNMS,		0}, /* SAVE[16] */
 {"save",	"mG,+N",	0x1c00,		0xfd00,		0,		0,	0,	xNMS,		0}, /* SAVE[16] */
 {"save",	"mY,n",		0x80003000, 0xfc00f003,		0,		0,	I38,		0,		0},

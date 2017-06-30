@@ -7009,14 +7009,13 @@ match_save_restore_fp_list_operand (struct mips_arg_info *arg,
   unsigned int regno1, regno2;
 
   gas_assert (mips_opts.nanomips);
-
   if (!match_reg_range (arg, OP_REG_FP, &regno1, &regno2))
     return FALSE;
 
-  if (regno1 != 0 || regno2 > 31)
+  if (regno1 != 0 || regno2 > 15)
     return FALSE;
-  
-  opval = (regno1 << 4 ) | (regno2 - regno1);
+
+  opval = (regno2 - regno1);
 
   insn_insert_operand (arg->insn, operand, opval);
   return TRUE;

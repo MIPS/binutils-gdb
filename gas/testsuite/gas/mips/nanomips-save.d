@@ -50,6 +50,8 @@ Disassembly of section \.text:
 0+007c <test\+0x7c> 1d4a      	restore.jrc	64,s0-s7,fp,ra
 0+007e <test\+0x7e> 8010 3040 	savef	64,\$f0
 0+0082 <test\+0x82> 801f 3040 	savef	64,\$f0-\$f15
-0+0086 <test\+0x86> 8010 3041 	restoref	64,\$f0
-0+008a <test\+0x8a> 801f 3041 	restoref	64,\$f0-\$f15
-0+008e <test\+0x8e> 9008      	nop
+0+0086 <test\+0x86> 8015 3040 	savef	64,\$f0-\$f5
+0+008a <test\+0x8a> 8010 3041 	restoref	64,\$f0
+0+008e <test\+0x8e> 801f 3041 	restoref	64,\$f0-\$f15
+0+0092 <test\+0x92> 8015 3041 	restoref	64,\$f0-\$f5
+0+0096 <test\+0x96> 9008      	nop
