@@ -515,7 +515,6 @@ const struct mips_arch_choice mips_arch_choices[] =
 static int mips_processor;
 static int mips_isa;
 static int mips_ase;
-static int micromips_ase;
 static int nanomips_isa;
 static const char * const *mips_gpr_names;
 static const char * const *mips_fpr_names;
@@ -610,8 +609,7 @@ set_default_mips_dis_options (struct disassemble_info *info)
      CP0 register, and HWR names.  */
   mips_isa = ISA_NANOMIPS32R6;
   mips_processor = CPU_NANOMIPS32R6;
-  micromips_ase = 0;
-  nanomips_isa = 0;
+  nanomips_isa = TRUE;
   mips_ase = 0;
   mips_gpr_names = mips_gpr_names_oldabi;
   mips_fpr_names = mips_fpr_names_numeric;
@@ -629,8 +627,6 @@ set_default_mips_dis_options (struct disassemble_info *info)
       Elf_Internal_Ehdr *header;
 
       header = elf_elfheader (info->section->owner);
-      /* If a nanoMIPS binary, then don't use legacy MIPS bindings.  */
-      nanomips_isa = is_nanomips (header);
       mips_gpr_names = nanomips_gpr_names;
     }
 
