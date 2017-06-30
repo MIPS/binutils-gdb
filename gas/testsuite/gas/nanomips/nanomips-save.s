@@ -58,9 +58,9 @@ test:
 
 	savef	64, $f0
 	savef	64, $f0-$f15
-	# savef	64, $f0-$f31 # disabled for now, clarify spec
+	savef	64, $f0-$f5 # disabled for now, clarify spec
 	restoref	64, $f0
 	restoref	64, $f0-$f15
-	# restoref	64, $f0-$f31 # disabled for now, clarify spec
+	restoref	64, $f0-$f5 # disabled for now, clarify spec
 
 .end	test
