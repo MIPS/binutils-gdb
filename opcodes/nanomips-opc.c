@@ -995,6 +995,8 @@ IGRIE */
 {"mflo",	"[dsp]",	"t,7",	0x2000107f, 0xfc1f3fff,	WR_1|RD_2,		0,	0,	D32,		0}, /* MFLO[DSP] */
 {"mftc0",	"",	"t,G",		0x20000230, 0xfc00ffff,	WR_1,		INSN2_ALIAS,	0,	MT32,		0}, /* MFTR */
 {"mftc0",	"",	"t,G,J",	0x20000230, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	MT32,		0}, /* MFTR */
+{"mfthc0",	"",	"t,G",		0x20000238, 0xfc00ffff,	WR_1,		INSN2_ALIAS,	0,	MT32,		0}, /* MFTR */
+{"mfthc0",	"",	"t,G,J",	0x20000238, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	MT32,		0}, /* MFTR */
 {"mftc1",	"",	"t,S",		0x20001630, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	MT32,		0}, /* MFTR */
 {"mftc1",	"",	"t,G",		0x20001630, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	MT32,		0}, /* MFTR */
 {"mftc2",	"",	"t,G",		0x20002630, 0xfc00ffff,	WR_1,		INSN2_ALIAS,	0,	MT32,		0}, /* MFTR */
@@ -1048,6 +1050,8 @@ IGRIE */
 {"mtlo",	"[dsp]",	"s,7",	0x2000307f, 0xffe03fff,	WR_1|RD_2,		0,	0,	D32,		0}, /* MTLO[DSP] */
 {"mttc0",	"",	"t,G",		0x20000270, 0xfc00ffff,	RD_1,		INSN2_ALIAS,	0,	MT32,		0}, /* MTTR */
 {"mttc0",	"",	"t,G,J",	0x20000270, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	MT32,		0}, /* MTTR */
+{"mtthc0",	"",	"t,G",		0x20000278, 0xfc00ffff,	RD_1,		INSN2_ALIAS,	0,	MT32,		0}, /* MTTR */
+{"mtthc0",	"",	"t,G,J",	0x20000278, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	MT32,		0}, /* MTTR */
 {"mttc1",	"",	"t,S",		0x20001670, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS,	0,	MT32,		0}, /* MTTR */
 {"mttc1",	"",	"t,G",		0x20001670, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS,	0,	MT32,		0}, /* MTTR */
 {"mttc2",	"",	"t,G",		0x20002670, 0xfc00ffff,	RD_1,		INSN2_ALIAS,	0,	MT32,		0}, /* MTTR */

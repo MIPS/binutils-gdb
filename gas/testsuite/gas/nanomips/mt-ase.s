@@ -629,8 +629,28 @@ text_label:
 	mttr		$13,$14,1,5,1
 	mttr		$13,$14,1,6,1
 	mttr		$13,$14,1,7,1
-
 	pause
 
+	mfthc0		$7,$8
+	mfthc0		$8,$0,0
+	mfthc0		$8,$0,1
+	mfthc0		$8,$0,2
+	mfthc0		$8,$0,3
+	mfthc0		$8,$0,4
+	mfthc0		$8,$0,5
+	mfthc0		$8,$0,6
+	mfthc0		$8,$0,7
+
+	mtthc0		$26,$27
+	mtthc0		$27,$0,0
+	mtthc0		$27,$0,1
+	mtthc0		$27,$0,2
+	mtthc0		$27,$0,3
+	mtthc0		$27,$0,4
+	mtthc0		$27,$0,5
+	mtthc0		$27,$0,6
+	mtthc0		$27,$0,7
+
+	
 # Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
 	.space	8
