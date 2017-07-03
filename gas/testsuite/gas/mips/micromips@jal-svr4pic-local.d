@@ -16,9 +16,9 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]*> cbe7      	sw	ra,28\(sp\)
 [0-9a-f]+ <[^>]*> fb9d 0010 	sw	gp,16\(sp\)
 [0-9a-f]+ <[^>]*> ff3c 0000 	lw	t9,0\(gp\)
-[ 	]*[0-9a-f]+: R_MICROMIPS_GOT16	\.text
-[0-9a-f]+ <[^>]*> 3339 0031 	addiu	t9,t9,49
-[ 	]*[0-9a-f]+: R_MICROMIPS_LO16	\.text
+[ 	]*[0-9a-f]+: R_MICROMIPS_GOT16	bar
+[0-9a-f]+ <[^>]*> 3339 0000 	addiu	t9,t9,0
+[ 	]*[0-9a-f]+: R_MICROMIPS_LO16	bar
 [0-9a-f]+ <[^>]*> 03f9 4f3c 	jalrs	t9
 [ 	]*[0-9a-f]+: R_MICROMIPS_JALR	bar
 [0-9a-f]+ <[^>]*> 0c00      	nop
