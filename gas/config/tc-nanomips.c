@@ -2906,17 +2906,13 @@ validate_mips_insn (const struct nanomips_opcode *opcode,
 	  }
 	gas_assert (opno < MAX_OPERANDS);
 	operands->operand[opno] = operand;
-	if (!decode_operand && operand
-		 && operand->type == OP_INT && operand->lsb == 0
-		 && nanomips_opcode_32bit_p (opcode))
-	  ;
-	else if (operand && operand->type != OP_VU0_MATCH_SUFFIX)
+	if (operand != NULL
+	    && (decode_operand
+		|| operand->type != OP_INT
+		|| operand->lsb != 0
+		|| !nanomips_opcode_32bit_p (opcode)))
 	  {
 	    used_bits = mips_insert_operand (operand, used_bits, -1);
-	    if (operand->type == OP_MDMX_IMM_REG)
-	      /* Bit 5 is the format selector (OB vs QH).  The opcode table
-		 has separate entries for each format.  */
-	      used_bits &= ~(1 << (operand->lsb + 5));
 	    if (operand->type == OP_ENTRY_EXIT_LIST)
 	      used_bits &= ~(mask & 0x700);
 	    if (decode_operand && operand->type == OP_SAVE_RESTORE_LIST
@@ -5333,7 +5329,7 @@ match_nanomips_save_restore_list_operand (struct mips_arg_info *arg,
 	      && (reg_mask & (1 << 28)) != 0
 	      && (mips_opts.ase & ASE_xNMS) != 0)
 	    /* enable GP special casing if possible */
-	    gp = 1;
+	    gp = TRUE;
 	  else
 	    return FALSE;
 	}
@@ -5346,6 +5342,15 @@ match_nanomips_save_restore_list_operand (struct mips_arg_info *arg,
 
   /* Finally build the instruction.  */
   insn_insert_operand (arg->insn, operand, opval);
+  if (mips_linkrelax_p && mips_pic != NO_PIC && gp)
+    {
+      symbolS *sym = symbol_new ("none", absolute_section, 4,
+				 &zero_address_frag);
+      symbol_table_insert (sym);
+      offset_expr.X_op = O_symbol;
+      offset_expr.X_add_symbol = sym;
+      offset_reloc[0] = BFD_RELOC_NANOMIPS_SAVERESTORE;
+    }
   return TRUE;
 }
 
@@ -11475,14 +11480,13 @@ mips_force_relocation (fixS *fixp)
 
   if (fixp->fx_r_type == BFD_RELOC_NANOMIPS_ALIGN
       || fixp->fx_r_type == BFD_RELOC_NANOMIPS_FILL
-      || fixp->fx_r_type == BFD_RELOC_NANOMIPS_MAX)
-    return 1;
-
-  if (fixp->fx_r_type == BFD_RELOC_NANOMIPS_INSN32
+      || fixp->fx_r_type == BFD_RELOC_NANOMIPS_MAX
+      || fixp->fx_r_type == BFD_RELOC_NANOMIPS_INSN32
       || fixp->fx_r_type == BFD_RELOC_NANOMIPS_INSN16
       || fixp->fx_r_type == BFD_RELOC_NANOMIPS_FIXED
       || fixp->fx_r_type == BFD_RELOC_NANOMIPS_RELAX
-      || fixp->fx_r_type == BFD_RELOC_NANOMIPS_NORELAX)
+      || fixp->fx_r_type == BFD_RELOC_NANOMIPS_NORELAX
+      || fixp->fx_r_type == BFD_RELOC_NANOMIPS_SAVERESTORE)
     return 1;
 
 
@@ -11568,14 +11572,13 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 
   if (fixP->fx_r_type == BFD_RELOC_NANOMIPS_ALIGN
       || fixP->fx_r_type == BFD_RELOC_NANOMIPS_FILL
-      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_MAX)
-    return;
-
-  if (fixP->fx_r_type == BFD_RELOC_NANOMIPS_INSN32
+      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_MAX
+      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_INSN32
       || fixP->fx_r_type == BFD_RELOC_NANOMIPS_INSN16
       || fixP->fx_r_type == BFD_RELOC_NANOMIPS_FIXED
       || fixP->fx_r_type == BFD_RELOC_NANOMIPS_RELAX
-      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_NORELAX)
+      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_NORELAX
+      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_SAVERESTORE)
     return;
 
   /* Handle BFD_RELOC_8, since it's easy.  Punt on other bfd relocations
