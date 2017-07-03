@@ -1195,7 +1195,7 @@ IGRIE */
 {"scdp",	"",	"t,mu,(b)",	0xa4007901, 0xfc00ff07,MOD_1|WR_2|RD_3,		0,	I70,		0,		0},
 {"sce", 	"", 	"t,+m(b)",	0xa4005a00, 0xfc007f03,	MOD_1|RD_3,		0,	0,		EVA,		0},
 {"sce", 	"", 	"t,A(b)",	0,     (int) M_SCE_AB,	INSN_MACRO,		0,	0,		EVA,		0},
-{"scwp",		"",	"t,mu,(b)",	0xa4005901, 0xfc00ff07,MOD_1|WR_2|RD_3,		0,	0,	xNMS,		0},
+{"scwp",	"",	"t,mu,(b)",	0xa4005901, 0xfc00ff07,MOD_1|WR_2|RD_3,		0,	0,		xNMS,		0},
 {"scwpe",	"",	"t,mu,(b)",	0xa4005a01, 0xfc00ff07,MOD_1|WR_2|RD_3,		0,	0,		EVA,		0},
 {"sd",		"[gp]",		"t,mV(ma)",	0x40000005, 0xfc000007,	RD_1|RD_3,		0,	I70,	0,		0}, /* SD[GP] */
 {"sd",		"[u12]",	"t,o(b)",	0x8400d000, 0xfc00f000,	RD_1|RD_3,		0,	I70,	0,		0}, /* SD[U12] */

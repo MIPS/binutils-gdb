@@ -96,12 +96,7 @@ extern bfd_boolean _bfd_mips_elf_set_section_contents
 extern bfd_byte *_bfd_elf_mips_get_relocated_section_contents
   (bfd *, struct bfd_link_info *, struct bfd_link_order *,
    bfd_byte *, bfd_boolean, asymbol **);
-extern bfd_boolean _bfd_mips_elf_relax_section
-  (bfd *abfd, asection *sec, struct bfd_link_info *link_info,
-   bfd_boolean *again);
 extern struct bfd_link_hash_table *_bfd_mips_elf_link_hash_table_create
-  (bfd *);
-extern struct bfd_link_hash_table *_bfd_mips_vxworks_link_hash_table_create
   (bfd *);
 extern bfd_boolean _bfd_mips_elf_final_link
   (bfd *, struct bfd_link_info *);
@@ -111,8 +106,6 @@ extern bfd_boolean _bfd_mips_elf_set_private_flags
   (bfd *, flagword);
 extern const char * _bfd_mips_fp_abi_string
   (int);
-extern bfd_boolean _bfd_mips_elf_print_private_bfd_data
-  (bfd *, void *);
 extern bfd_boolean _bfd_nanomips_elf_print_private_bfd_data
   (bfd *, void *);
 extern bfd_boolean _bfd_mips_elf_discard_info
@@ -138,8 +131,6 @@ extern bfd_reloc_status_type _bfd_mips_elf_lo16_reloc
   (bfd *, arelent *, asymbol *, void *, asection *, bfd *, char **);
 extern bfd_reloc_status_type _bfd_mips_elf_generic_reloc
   (bfd *, arelent *, asymbol *, void *, asection *, bfd *, char **);
-extern unsigned long _bfd_elf_mips_mach
-  (flagword);
 extern unsigned long _bfd_elf_nanomips_mach
   (flagword);
 extern bfd_boolean _bfd_mips_relax_section
@@ -148,7 +139,6 @@ extern bfd_vma _bfd_mips_elf_sign_extend
   (bfd_vma, int);
 extern void _bfd_mips_elf_merge_symbol_attribute
   (struct elf_link_hash_entry *, const Elf_Internal_Sym *, bfd_boolean, bfd_boolean);
-extern char *_bfd_mips_elf_get_target_dtag (bfd_vma);
 extern char *_bfd_nanomips_elf_get_target_dtag (bfd_vma);
 extern bfd_boolean _bfd_mips_elf_ignore_undef_symbol
   (struct elf_link_hash_entry *);
@@ -165,10 +155,6 @@ extern bfd_boolean _bfd_mips_elf_init_stubs
    asection *(*) (const char *, asection *, asection *));
 extern bfd_vma _bfd_mips_elf_plt_sym_val
   (bfd_vma, const asection *, const arelent *rel);
-extern long _bfd_mips_elf_get_synthetic_symtab
-  (bfd *, long, asymbol **, long, asymbol **, asymbol **);
-extern bfd_boolean _bfd_mips_elf_gc_mark_extra_sections
-  (struct bfd_link_info *, elf_gc_mark_hook_fn);
 extern void _bfd_mips_post_process_headers
   (bfd *abfd, struct bfd_link_info *link_info);
 

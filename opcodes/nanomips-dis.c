@@ -59,14 +59,6 @@ static const char * const mips_gpr_names_numeric[32] =
   "$24",  "$25",  "$26",  "$27",  "$28",  "$29",  "$30",  "$31"
 };
 
-static const char * const mips_gpr_names_oldabi[32] =
-{
-  "zero", "at",   "v0",   "v1",   "a0",   "a1",   "a2",   "a3",
-  "t0",   "t1",   "t2",   "t3",   "t4",   "t5",   "t6",   "t7",
-  "s0",   "s1",   "s2",   "s3",   "s4",   "s5",   "s6",   "s7",
-  "t8",   "t9",   "k0",   "k1",   "gp",   "sp",   "s8",   "ra"
-};
-
 static const char * const mips_gpr_names_newabi[32] =
 {
   "zero", "at",   "v0",   "v1",   "a0",   "a1",   "a2",   "a3",
@@ -105,14 +97,6 @@ static const char * const mips_fpr_names_32[32] =
   "fs2",  "fs2f", "fs3",  "fs3f", "fs4",  "fs4f", "fs5",  "fs5f"
 };
 
-static const char * const mips_fpr_names_n32[32] =
-{
-  "fv0",  "ft14", "fv1",  "ft15", "ft0",  "ft1",  "ft2",  "ft3",
-  "ft4",  "ft5",  "ft6",  "ft7",  "fa0",  "fa1",  "fa2",  "fa3",
-  "fa4",  "fa5",  "fa6",  "fa7",  "fs0",  "ft8",  "fs1",  "ft9",
-  "fs2",  "ft10", "fs3",  "ft11", "fs4",  "ft12", "fs5",  "ft13"
-};
-
 static const char * const mips_fpr_names_64[32] =
 {
   "fv0",  "ft12", "fv1",  "ft13", "ft0",  "ft1",  "ft2",  "ft3",
@@ -137,66 +121,6 @@ static const char * const mips_cp1_names_numeric[32] =
   "$24",  "$25",  "$26",  "$27",  "$28",  "$29",  "$30",  "$31"
 };
 
-static const char * const mips_cp0_names_r3000[32] =
-{
-  "c0_index",     "c0_random",    "c0_entrylo",   "$3",
-  "c0_context",   "$5",           "$6",           "$7",
-  "c0_badvaddr",  "$9",           "c0_entryhi",   "$11",
-  "c0_sr",        "c0_cause",     "c0_epc",       "c0_prid",
-  "$16",          "$17",          "$18",          "$19",
-  "$20",          "$21",          "$22",          "$23",
-  "$24",          "$25",          "$26",          "$27",
-  "$28",          "$29",          "$30",          "$31",
-};
-
-static const char * const mips_cp0_names_r4000[32] =
-{
-  "c0_index",     "c0_random",    "c0_entrylo0",  "c0_entrylo1",
-  "c0_context",   "c0_pagemask",  "c0_wired",     "$7",
-  "c0_badvaddr",  "c0_count",     "c0_entryhi",   "c0_compare",
-  "c0_sr",        "c0_cause",     "c0_epc",       "c0_prid",
-  "c0_config",    "c0_lladdr",    "c0_watchlo",   "c0_watchhi",
-  "c0_xcontext",  "$21",          "$22",          "$23",
-  "$24",          "$25",          "c0_ecc",       "c0_cacheerr",
-  "c0_taglo",     "c0_taghi",     "c0_errorepc",  "$31",
-};
-
-static const char * const mips_cp0_names_r5900[32] =
-{
-  "c0_index",     "c0_random",    "c0_entrylo0",  "c0_entrylo1",
-  "c0_context",   "c0_pagemask",  "c0_wired",     "$7",
-  "c0_badvaddr",  "c0_count",     "c0_entryhi",   "c0_compare",
-  "c0_sr",        "c0_cause",     "c0_epc",       "c0_prid",
-  "c0_config",    "$17",          "$18",          "$19",
-  "$20",          "$21",          "$22",          "c0_badpaddr",
-  "c0_depc",      "c0_perfcnt",   "$26",          "$27",
-  "c0_taglo",     "c0_taghi",     "c0_errorepc",  "$31"
-};
-
-static const struct mips_cp0sel_name mips_cp0sel_names_mipsr5900[] =
-{
-  { 24, 2, "c0_iab"			},
-  { 24, 3, "c0_iabm"		},
-  { 24, 4, "c0_dab"			},
-  { 24, 5, "c0_dabm"		},
-  { 24, 6, "c0_dvb"			},
-  { 24, 7, "c0_dvbm"		},
-  { 25, 1, "c0_perfcnt,1"	},
-  { 25, 2, "c0_perfcnt,2"	}
-};
-
-static const char * const mips_cp0_names_mips3264[32] =
-{
-  "c0_index",     "c0_random",    "c0_entrylo0",  "c0_entrylo1",
-  "c0_context",   "c0_pagemask",  "c0_wired",     "$7",
-  "c0_badvaddr",  "c0_count",     "c0_entryhi",   "c0_compare",
-  "c0_status",    "c0_cause",     "c0_epc",       "c0_prid",
-  "c0_config",    "c0_lladdr",    "c0_watchlo",   "c0_watchhi",
-  "c0_xcontext",  "$21",          "$22",          "c0_debug",
-  "c0_depc",      "c0_perfcnt",   "c0_errctl",    "c0_cacheerr",
-  "c0_taglo",     "c0_taghi",     "c0_errorepc",  "c0_desave",
-};
-
 static const char * const mips_cp1_names_mips3264[32] =
 {
   "c1_fir",       "c1_ufr",       "$2",           "$3",
@@ -207,39 +131,6 @@ static const char * const mips_cp1_names_mips3264[32] =
   "$20",          "$21",          "$22",          "$23",
   "$24",          "c1_fccr",      "c1_fexr",      "$27",
   "c1_fenr",      "$29",          "$30",          "c1_fcsr"
-};
-
-static const struct mips_cp0sel_name mips_cp0sel_names_mips3264[] =
-{
-  { 16, 1, "c0_config1"		},
-  { 16, 2, "c0_config2"		},
-  { 16, 3, "c0_config3"		},
-  { 18, 1, "c0_watchlo,1"	},
-  { 18, 2, "c0_watchlo,2"	},
-  { 18, 3, "c0_watchlo,3"	},
-  { 18, 4, "c0_watchlo,4"	},
-  { 18, 5, "c0_watchlo,5"	},
-  { 18, 6, "c0_watchlo,6"	},
-  { 18, 7, "c0_watchlo,7"	},
-  { 19, 1, "c0_watchhi,1"	},
-  { 19, 2, "c0_watchhi,2"	},
-  { 19, 3, "c0_watchhi,3"	},
-  { 19, 4, "c0_watchhi,4"	},
-  { 19, 5, "c0_watchhi,5"	},
-  { 19, 6, "c0_watchhi,6"	},
-  { 19, 7, "c0_watchhi,7"	},
-  { 25, 1, "c0_perfcnt,1"	},
-  { 25, 2, "c0_perfcnt,2"	},
-  { 25, 3, "c0_perfcnt,3"	},
-  { 25, 4, "c0_perfcnt,4"	},
-  { 25, 5, "c0_perfcnt,5"	},
-  { 25, 6, "c0_perfcnt,6"	},
-  { 25, 7, "c0_perfcnt,7"	},
-  { 27, 1, "c0_cacheerr,1"	},
-  { 27, 2, "c0_cacheerr,2"	},
-  { 27, 3, "c0_cacheerr,3"	},
-  { 28, 1, "c0_datalo"		},
-  { 29, 1, "c0_datahi"		}
 };
 
 static const char * const mips_cp0_names_mips3264r2[32] =
@@ -330,94 +221,6 @@ static const struct mips_cp0sel_name mips_cp0sel_names_mips3264r2[] =
   { 29, 7, "c0_datahi3"		},
 };
 
-/* SB-1: MIPS64 (mips_cp0_names_mips3264) with minor mods.  */
-static const char * const mips_cp0_names_sb1[32] =
-{
-  "c0_index",     "c0_random",    "c0_entrylo0",  "c0_entrylo1",
-  "c0_context",   "c0_pagemask",  "c0_wired",     "$7",
-  "c0_badvaddr",  "c0_count",     "c0_entryhi",   "c0_compare",
-  "c0_status",    "c0_cause",     "c0_epc",       "c0_prid",
-  "c0_config",    "c0_lladdr",    "c0_watchlo",   "c0_watchhi",
-  "c0_xcontext",  "$21",          "$22",          "c0_debug",
-  "c0_depc",      "c0_perfcnt",   "c0_errctl",    "c0_cacheerr_i",
-  "c0_taglo_i",   "c0_taghi_i",   "c0_errorepc",  "c0_desave",
-};
-
-static const struct mips_cp0sel_name mips_cp0sel_names_sb1[] =
-{
-  { 16, 1, "c0_config1"		},
-  { 18, 1, "c0_watchlo,1"	},
-  { 19, 1, "c0_watchhi,1"	},
-  { 22, 0, "c0_perftrace"	},
-  { 23, 3, "c0_edebug"		},
-  { 25, 1, "c0_perfcnt,1"	},
-  { 25, 2, "c0_perfcnt,2"	},
-  { 25, 3, "c0_perfcnt,3"	},
-  { 25, 4, "c0_perfcnt,4"	},
-  { 25, 5, "c0_perfcnt,5"	},
-  { 25, 6, "c0_perfcnt,6"	},
-  { 25, 7, "c0_perfcnt,7"	},
-  { 26, 1, "c0_buserr_pa"	},
-  { 27, 1, "c0_cacheerr_d"	},
-  { 27, 3, "c0_cacheerr_d_pa"	},
-  { 28, 1, "c0_datalo_i"	},
-  { 28, 2, "c0_taglo_d"		},
-  { 28, 3, "c0_datalo_d"	},
-  { 29, 1, "c0_datahi_i"	},
-  { 29, 2, "c0_taghi_d"		},
-  { 29, 3, "c0_datahi_d"	},
-};
-
-/* Xlr cop0 register names.  */
-static const char * const mips_cp0_names_xlr[32] = {
-  "c0_index",     "c0_random",    "c0_entrylo0",  "c0_entrylo1",
-  "c0_context",   "c0_pagemask",  "c0_wired",     "$7",
-  "c0_badvaddr",  "c0_count",     "c0_entryhi",   "c0_compare",
-  "c0_status",    "c0_cause",     "c0_epc",       "c0_prid",
-  "c0_config",    "c0_lladdr",    "c0_watchlo",   "c0_watchhi",
-  "c0_xcontext",  "$21",          "$22",          "c0_debug",
-  "c0_depc",      "c0_perfcnt",   "c0_errctl",    "c0_cacheerr_i",
-  "c0_taglo_i",   "c0_taghi_i",   "c0_errorepc",  "c0_desave",
-};
-
-/* XLR's CP0 Select Registers.  */
-
-static const struct mips_cp0sel_name mips_cp0sel_names_xlr[] = {
-  {  9, 6, "c0_extintreq"       },
-  {  9, 7, "c0_extintmask"      },
-  { 15, 1, "c0_ebase"           },
-  { 16, 1, "c0_config1"         },
-  { 16, 2, "c0_config2"         },
-  { 16, 3, "c0_config3"         },
-  { 16, 7, "c0_procid2"         },
-  { 18, 1, "c0_watchlo,1"       },
-  { 18, 2, "c0_watchlo,2"       },
-  { 18, 3, "c0_watchlo,3"       },
-  { 18, 4, "c0_watchlo,4"       },
-  { 18, 5, "c0_watchlo,5"       },
-  { 18, 6, "c0_watchlo,6"       },
-  { 18, 7, "c0_watchlo,7"       },
-  { 19, 1, "c0_watchhi,1"       },
-  { 19, 2, "c0_watchhi,2"       },
-  { 19, 3, "c0_watchhi,3"       },
-  { 19, 4, "c0_watchhi,4"       },
-  { 19, 5, "c0_watchhi,5"       },
-  { 19, 6, "c0_watchhi,6"       },
-  { 19, 7, "c0_watchhi,7"       },
-  { 25, 1, "c0_perfcnt,1"       },
-  { 25, 2, "c0_perfcnt,2"       },
-  { 25, 3, "c0_perfcnt,3"       },
-  { 25, 4, "c0_perfcnt,4"       },
-  { 25, 5, "c0_perfcnt,5"       },
-  { 25, 6, "c0_perfcnt,6"       },
-  { 25, 7, "c0_perfcnt,7"       },
-  { 27, 1, "c0_cacheerr,1"      },
-  { 27, 2, "c0_cacheerr,2"      },
-  { 27, 3, "c0_cacheerr,3"      },
-  { 28, 1, "c0_datalo"          },
-  { 29, 1, "c0_datahi"          }
-};
-
 static const char * const mips_hwr_names_numeric[32] =
 {
   "$0",   "$1",   "$2",   "$3",   "$4",   "$5",   "$6",   "$7",
@@ -454,9 +257,6 @@ struct mips_abi_choice
 struct mips_abi_choice mips_abi_choices[] =
 {
   { "numeric", mips_gpr_names_numeric, mips_fpr_names_numeric },
-  { "32", mips_gpr_names_oldabi, mips_fpr_names_32 },
-  { "n32", mips_gpr_names_newabi, mips_fpr_names_n32 },
-  { "64", mips_gpr_names_newabi, mips_fpr_names_64 },
   { "p32", nanomips_gpr_names, mips_fpr_names_64 },
   { "p64", nanomips_gpr_names, mips_fpr_names_64 },
 };
@@ -611,7 +411,6 @@ set_default_mips_dis_options (struct disassemble_info *info)
   mips_processor = CPU_NANOMIPS32R6;
   nanomips_isa = TRUE;
   mips_ase = 0;
-  mips_gpr_names = mips_gpr_names_oldabi;
   mips_fpr_names = mips_fpr_names_numeric;
   mips_cp0_names = mips_cp0_names_numeric;
   mips_cp0sel_names = NULL;
@@ -621,14 +420,7 @@ set_default_mips_dis_options (struct disassemble_info *info)
   no_aliases = 0;
   show_arch_insn = FALSE;
 
-  /* Update settings according to the ELF file header flags.  */
-  if (info->flavour == bfd_target_elf_flavour && info->section != NULL)
-    {
-      Elf_Internal_Ehdr *header;
-
-      header = elf_elfheader (info->section->owner);
-      mips_gpr_names = nanomips_gpr_names;
-    }
+  mips_gpr_names = nanomips_gpr_names;
 
   /* Set ISA, architecture, and cp0 register names as best we can.  */
 #if ! SYMTAB_AVAILABLE
@@ -979,75 +771,6 @@ mips_seen_register (struct mips_print_arg_state *state,
 }
 
 static void
-mips_print_save_restore (struct disassemble_info *info, unsigned int amask,
-			 unsigned int nsreg, unsigned int ra,
-			 unsigned int s0, unsigned int s1,
-			 unsigned int frame_size)
-{
-  unsigned int nargs, nstatics, smask, i, j;
-  const char *sep;
-  const fprintf_ftype infprintf = info->fprintf_func;
-  void *is = info->stream;
-
-  if (amask == MIPS16_ALL_ARGS)
-    {
-      nargs = 4;
-      nstatics = 0;
-    }
-  else if (amask == MIPS16_ALL_STATICS)
-    {
-      nargs = 0;
-      nstatics = 4;
-    }
-  else
-    {
-      nargs = amask >> 2;
-      nstatics = amask & 3;
-    }
-
-  sep = "";
-  if (nargs > 0)
-    {
-      infprintf (is, "%s", mips_gpr_names[4]);
-      if (nargs > 1)
-	infprintf (is, "-%s", mips_gpr_names[4 + nargs - 1]);
-      sep = ",";
-    }
-
-  infprintf (is, "%s%d", sep, frame_size);
-
-  if (ra)		/* $ra */
-    infprintf (is, ",%s", mips_gpr_names[31]);
-
-  smask = 0;
-  if (s0)		/* $s0 */
-    smask |= 1 << 0;
-  if (s1)		/* $s1 */
-    smask |= 1 << 1;
-  if (nsreg > 0)		/* $s2-$s8 */
-    smask |= ((1 << nsreg) - 1) << 2;
-
-  for (i = 0; i < 9; i++)
-    if (smask & (1 << i))
-      {
-	infprintf (is, ",%s", mips_gpr_names[i == 8 ? 30 : (16 + i)]);
-	/* Skip over string of set bits.  */
-	for (j = i; smask & (2 << j); j++)
-	  continue;
-	if (j > i)
-	  infprintf (is, "-%s", mips_gpr_names[j == 8 ? 30 : (16 + j)]);
-	i = j + 1;
-      }
-  /* Statics $ax - $a3.  */
-  if (nstatics == 1)
-    infprintf (is, ",%s", mips_gpr_names[7]);
-  else if (nstatics > 0)
-    infprintf (is, ",%s-%s",
-	       mips_gpr_names[7 - nstatics + 1],
-	       mips_gpr_names[7]);
-}
-
-static void
 nanomips_print_save_restore (struct disassemble_info *info,
 				unsigned int uval, bfd_boolean mode16)
 {
@@ -1388,26 +1111,11 @@ print_insn_arg (struct disassemble_info *info,
       break;
 
     case OP_SAVE_RESTORE_LIST:
-      if (nanomips_isa)
-	nanomips_print_save_restore (info, uval, opcode->mask >> 16 == 0);
-      else
-	{
-	  /* uval contains bits 6 to 25 of the SAVE/RESTORE instruction.  */
-	  unsigned int amask = (uval >> 9) & 0xf;
-	  unsigned int nsreg = (uval >> 17) & 0x7;
-	  unsigned int ra = (uval & 0x40);		/* $ra */
-	  unsigned int s0 = (uval & 0x20);		/* $s0 */
-	  unsigned int s1 = (uval & 0x10);		/* $s1 */
-	  unsigned int frame_size = (((uval >> 9) & 0xf0)
-				     | (uval & 0x0f)) * 8;
-	  mips_print_save_restore (info, amask, nsreg, ra, s0, s1,
-				   frame_size);
-	}
+      nanomips_print_save_restore (info, uval, opcode->mask >> 16 == 0);
       break;
 
     case OP_SAVE_RESTORE_FP_LIST:
-      if (nanomips_isa)
-	nanomips_print_save_restore_fp (info, uval + 1);
+      nanomips_print_save_restore_fp (info, uval + 1);
       break;
 
     case OP_REPEAT_PREV_REG:
@@ -1621,8 +1329,7 @@ validate_insn_args (const struct nanomips_opcode *opcode,
 		    /* The operand for SAVE/RESTORE is split into 3 pieces
 		       rather than just 2 but we only support a 2-way split
 		       decode the last bit of the instruction here.  */
-		    if (nanomips_isa
-			&& opcode->mask >> 16 != 0
+		    if (opcode->mask >> 16 != 0
 			&& ((insn >> 20) & 0x1) != 0)
 		      return FALSE;
 		  }
@@ -1692,7 +1399,7 @@ print_insn_args (struct disassemble_info *info,
   const struct mips_operand *operand;
   const char *s;
   bfd_boolean pending_sep = FALSE;
-  bfd_boolean pending_space = nanomips_isa;
+  bfd_boolean pending_space = TRUE;
 
   init_print_arg_state (&state);
   for (s = opcode->args; *s; ++s)
@@ -1947,8 +1654,7 @@ _print_insn_nanomips (bfd_vma memaddr_base, struct disassemble_info *info)
 
 	  if (op->args[0])
 	    print_insn_args (info, op, decode, insn,
-			     memaddr + (nanomips_isa? 0 : 1),
-			     length);
+			     memaddr, length);
 
 	  /* Figure out instruction type and branch delay information.  */
 	  if ((op->pinfo

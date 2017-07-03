@@ -629,7 +629,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 0x00000fff,		/* dst_mask */
-	 FALSE),		/* pcrel_offset
+	 FALSE),		/* pcrel_offset */
 
     /* Section displacement.  */
   HOWTO (R_NANOMIPS_SCN_DISP,   /* type */
@@ -1309,7 +1309,6 @@ nanomips_elfNN_object_p (bfd *abfd)
 #define elf_backend_mips_rtype_to_howto	nanomips_elfNN_rtype_to_howto
 #define bfd_elfNN_bfd_is_target_special_symbol \
 					_bfd_mips_elf_is_target_special_symbol
-#define bfd_elfNN_get_synthetic_symtab	_bfd_mips_elf_get_synthetic_symtab
 #define bfd_elfNN_find_nearest_line	_bfd_mips_elf_find_nearest_line
 #define bfd_elfNN_find_inliner_info	_bfd_mips_elf_find_inliner_info
 #define bfd_elfNN_new_section_hook	_bfd_mips_elf_new_section_hook
@@ -1324,7 +1323,6 @@ nanomips_elfNN_object_p (bfd *abfd)
 #define bfd_elfNN_bfd_set_private_flags	_bfd_mips_elf_set_private_flags
 #define bfd_elfNN_bfd_print_private_bfd_data \
 					_bfd_nanomips_elf_print_private_bfd_data
-#define bfd_elfNN_bfd_relax_section	_bfd_mips_elf_relax_section
 #define bfd_elfNN_mkobject		_bfd_mips_elf_mkobject
 
 #define ELF_MAXPAGESIZE			0x1000
