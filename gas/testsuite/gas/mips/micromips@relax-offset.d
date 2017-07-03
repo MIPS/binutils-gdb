@@ -14,10 +14,10 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]*> 033c e150 	addu	gp,gp,t9
 [0-9a-f]+ <[^>]*> 40a4 fffe 	bnezc	a0,0000000c <foo\+0xc>
 [ 	]*[0-9a-f]+: R_MICROMIPS_PC16_S1	.*
-[0-9a-f]+ <[^>]*> fc3c 0002 	lw	at,2\(gp\)
-[ 	]*[0-9a-f]+: R_MICROMIPS_GOT16	\.text
-[0-9a-f]+ <[^>]*> 3021 0025 	addiu	at,at,37
-[ 	]*[0-9a-f]+: R_MICROMIPS_LO16	\.text
+[0-9a-f]+ <[^>]*> fc3c 0000 	lw	at,0\(gp\)
+[ 	]*[0-9a-f]+: R_MICROMIPS_GOT16	bar
+[0-9a-f]+ <[^>]*> 3021 0004 	addiu	at,at,4
+[ 	]*[0-9a-f]+: R_MICROMIPS_LO16	bar
 [0-9a-f]+ <[^>]*> 45a1      	jrc	at
 [0-9a-f]+ <[^>]*> 45bf      	jrc	ra
 	\.\.\.
