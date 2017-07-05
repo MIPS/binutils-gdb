@@ -71,9 +71,6 @@ struct nanomips_opcode
   /* A collection of bits describing the ASE of which this instruction
      or macro is a member.  */
   unsigned long ase;
-  /* A collection of bits describing the instruction sets of which this
-     instruction or macro is not a member.  */
-  unsigned long exclusions;
 };
 
 /* Return true if MO is an instruction that requires 32-bit encoding.  */
@@ -172,23 +169,21 @@ static inline bfd_boolean
 nanomips_opcode_is_member (const struct nanomips_opcode *insn,
 			   int isa, int ase, int cpu)
 {
-  if (!cpu_is_member (cpu, insn->exclusions))
-    {
-      /* Test for ISA level compatibility.  */
-      if ((isa & INSN_ISA_MASK) != 0
-	  && (insn->membership & INSN_ISA_MASK) != 0
-	  && ((mips_isa_table[(isa & INSN_ISA_MASK) - 1]
-	       >> ((insn->membership & INSN_ISA_MASK) - 1)) & 1) != 0)
-	return TRUE;
+  /* Test for ISA level compatibility.  */
+  if ((isa & INSN_ISA_MASK) != 0
+      && (insn->membership & INSN_ISA_MASK) != 0
+      && ((mips_isa_table[(isa & INSN_ISA_MASK) - 1]
+	   >> ((insn->membership & INSN_ISA_MASK) - 1)) & 1) != 0)
+    return TRUE;
 
-      /* Test for ASE compatibility.  */
-      if (insn->ase != 0 && (ase & insn->ase) == insn->ase)
-	return TRUE;
+  /* Test for ASE compatibility.  */
+  if (insn->ase != 0 && (ase & insn->ase) == insn->ase)
+    return TRUE;
 
-      /* Test for processor-specific extensions.  */
-      if (cpu_is_member (cpu, insn->membership))
-	return TRUE;
-    }
+  /* Test for processor-specific extensions.  */
+  if (cpu_is_member (cpu, insn->membership))
+    return TRUE;
+
   return FALSE;
 }
 

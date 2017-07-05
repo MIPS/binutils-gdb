@@ -55,12 +55,11 @@ test:
 	restore.jrc	128,$ra,$s0,$s1,$fp,$gp
 	restore.jrc	120,$s0-$k1,$fp,$ra,$gp
 	restore.jrc	64,$ra,$s0-$s7,$fp
-
 	savef	64, $f0
 	savef	64, $f0-$f15
-	savef	64, $f0-$f5 # disabled for now, clarify spec
+	savef	64, $f0-$f5
 	restoref	64, $f0
 	restoref	64, $f0-$f15
-	restoref	64, $f0-$f5 # disabled for now, clarify spec
+	restoref	64, $f0-$f5
 
 .end	test
