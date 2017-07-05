@@ -814,33 +814,30 @@ nanomips_print_save_restore (struct disassemble_info *info,
       count --;
     }
 
-  if (count > 0)
-    {
-      if (count > 1)
-	infprintf (is, "%s-%s",
-		   mips_gpr_names[freg],
-		   mips_gpr_names[freg + count - 1]);
-      else
-	infprintf (is, "%s", mips_gpr_names[freg]);
-      pending = 1;
-    }
-
-  if (gp)
-    {
-      infprintf (is, "%s%s", (pending ? comma : ""), mips_gpr_names[28]);
-      pending = 1;
-    }
-
   if (fp)
     {
-      infprintf (is, "%s%s", (pending ? comma : ""), mips_gpr_names[30]);
+      infprintf (is, "%s", mips_gpr_names[30]);
       pending = 1;
     }
 
   if (ra)
     {
       infprintf (is, "%s%s", (pending ? comma : ""), mips_gpr_names[31]);
+      pending = 1;
     }
+
+  if (count > 0)
+    {
+      if (count > 1)
+	infprintf (is, "%s%s-%s", (pending ? comma : ""), mips_gpr_names[freg],
+		   mips_gpr_names[freg + count - 1]);
+      else
+	infprintf (is, "%s%s", (pending ? comma : ""), mips_gpr_names[freg]);
+      pending = 1;
+    }
+
+  if (gp)
+    infprintf (is, "%s%s", (pending ? comma : ""), mips_gpr_names[28]);
 }
 
 static void

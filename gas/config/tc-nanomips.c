@@ -4079,8 +4079,9 @@ struct mips_arg_info
      specified, otherwise it is ILLEGAL_REG.  */
   unsigned int dest_regno;
 
-  /* The value of the last OP_INT operand.  Only used for OP_MSB,
-     where it gives the lsb position.  */
+  /* The value of the last OP_INT operand.  Used for OP_MSB,
+     where it gives the lsb position and to check stack frame size
+     for save/restore register list. */
   unsigned int last_op_int;
 
   /* If true, match routines should assume that no later instruction
@@ -5267,16 +5268,17 @@ match_entry_exit_operand (struct mips_arg_info *arg,
 
 static bfd_boolean
 match_nanomips_save_restore_list_operand (struct mips_arg_info *arg,
-					     const struct mips_operand *operand)
+					  const struct mips_operand *operand)
 {
   unsigned int opval, count;
-  unsigned first_reg, next_reg;
+  unsigned first_reg, last_reg;
   bfd_boolean mode16 = (insn_length (arg->insn) == 2);
   unsigned int reg_mask = 0;
   int i;
   bfd_boolean gp = FALSE;
 
   count = 0;
+  first_reg = last_reg = 0;
   do
     {
       unsigned int regno1, regno2;
@@ -5287,53 +5289,37 @@ match_nanomips_save_restore_list_operand (struct mips_arg_info *arg,
 	  break;
 	}
 
-      /* sequence  */
-      while (regno1 <= regno2)
-	{
-	  if ((reg_mask & (1 << regno1)) == 0)
-	    count += 1;
-	  reg_mask |= (1 << regno1);
-	  regno1 += 1;
-	}
-    }
-  while (match_char (arg, ','));
-
-  if (count == 0 || count >= 16)
-    /* too few or too many registers in list */
-    return FALSE;
-
-  if (mode16 || (reg_mask & 0xffff) == 0)
-    {
-      if (reg_mask & 0x40000000)
-	first_reg = 30;
-      else if (reg_mask & 0x80000000)
-	first_reg = 31;
-      else if (!mode16)
-	first_reg = ffs (reg_mask) - 1;
-      else
-	return FALSE;
-    }
-  else
-    first_reg = ffs (reg_mask) - 1;
-
-  i = count - 1;
-  next_reg = first_reg;
-  while (i-- > 0)
-    {
-      next_reg = (first_reg & 0x10) | ((next_reg + 1) % 32);
-      if ((reg_mask & (1 << next_reg)) == 0)
+      if (first_reg == 0)
+	first_reg = last_reg = regno1;
+      else if (regno1 != ((first_reg & 0x10) | (last_reg + 1) % 32))
 	{
 	  /* a non-contiguous sequence */
-	  if (i == 0
+	  if (regno1 == 28
 	      && !mode16
-	      && (reg_mask & (1 << 28)) != 0
 	      && (mips_opts.ase & ASE_xNMS) != 0)
 	    /* enable GP special casing if possible */
 	    gp = TRUE;
 	  else
 	    return FALSE;
 	}
+
+      if (regno1 <= 29 && regno2 >= 29)
+	return FALSE;
+
+      last_reg = regno2;
+
+      /* sequence  */
+      while (regno1++ <= regno2)
+	count += 1;
     }
+  while (match_char (arg, ','));
+
+  /* too few or too many registers in list */
+  if (count == 0 || count >= 16 || (mode16 && first_reg < 30))
+    return FALSE;
+
+  if (count * (GPR_SIZE / 8) > arg->last_op_int)
+    as_warn ("frame too small for save/restore register list");
 
   if (mode16)
     opval = ((first_reg & 0x1) << 4) | count;

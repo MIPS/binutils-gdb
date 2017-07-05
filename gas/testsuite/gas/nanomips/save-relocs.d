@@ -2,7 +2,7 @@
 #PROG: readelf
 #readelf: -Wr
 #as: --linkrelax -KPIC
-#source: nanomips-save.s
+#source: save.s
 
 #...
 Relocation section '\.rela\.text' at offset 0x[0-9a-f]+ contains 9 entries:
