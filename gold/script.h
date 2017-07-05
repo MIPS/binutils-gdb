@@ -456,7 +456,7 @@ class Script_options
   
   // Add a reference to a symbol.
   void
-  add_symbol_reference(const char* name, size_t length);
+  add_symbol_reference(const char* name, size_t length, bool is_extern);
 
   // Add an assertion.
   void
@@ -483,7 +483,8 @@ class Script_options
 
   // Used to iterate over symbols which are referenced in expressions
   // but not defined.
-  typedef Unordered_set<std::string>::const_iterator referenced_const_iterator;
+  typedef Unordered_map<std::string, bool>::const_iterator
+      referenced_const_iterator;
 
   referenced_const_iterator
   referenced_begin() const
@@ -493,12 +494,15 @@ class Script_options
   referenced_end() const
   { return this->symbol_references_.end(); }
 
-  // Return whether a symbol is referenced but not defined.
+  // Return whether a symbol is referenced via EXTERN keyword but not defined.
   bool
   is_referenced(const std::string& name) const
   {
-    return (this->symbol_references_.find(name)
-	    != this->symbol_references_.end());
+    referenced_const_iterator it = this->symbol_references_.find(name);
+    if (it == this->symbol_references_.end())
+      return false;
+
+    return it->second;
   }
 
   // Return whether there are any symbols which were referenced but
@@ -568,7 +572,7 @@ class Script_options
   // Symbols defined in an expression, for faster lookup.
   Unordered_set<std::string> symbol_definitions_;
   // Symbols referenced in an expression.
-  Unordered_set<std::string> symbol_references_;
+  Unordered_map<std::string, bool> symbol_references_;
   // Assertions to check.
   Assertions assertions_;
   // Version information parsed from a version script.

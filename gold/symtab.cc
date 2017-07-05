@@ -638,7 +638,7 @@ Symbol_table::gc_mark_undef_symbols(Layout* layout)
        p != layout->script_options()->referenced_end();
        ++p)
     {
-      Symbol* sym = this->lookup(p->c_str());
+      Symbol* sym = this->lookup(p->first.c_str());
       gold_assert(sym != NULL);
       if (sym->source() == Symbol::FROM_OBJECT
 	  && !sym->object()->is_dynamic())
@@ -2482,7 +2482,7 @@ Symbol_table::do_add_undefined_symbols_from_command_line(Layout* layout)
 	 layout->script_options()->referenced_begin();
        p != layout->script_options()->referenced_end();
        ++p)
-    this->add_undefined_symbol_from_command_line<size>(p->c_str());
+    this->add_undefined_symbol_from_command_line<size>(p->first.c_str());
 }
 
 template<int size>

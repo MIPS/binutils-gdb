@@ -1179,13 +1179,18 @@ Script_options::add_symbol_assignment(const char* name, size_t length,
 // Add a reference to a symbol.
 
 void
-Script_options::add_symbol_reference(const char* name, size_t length)
+Script_options::add_symbol_reference(const char* name, size_t length,
+                                     bool is_extern)
 {
   if (length != 1 || name[0] != '.')
     {
       std::string n(name, length);
       if (this->symbol_definitions_.find(n) == this->symbol_definitions_.end())
-	this->symbol_references_.insert(n);
+	{
+	  if (this->symbol_references_.find(n) == this->symbol_references_.end()
+	      || is_extern)
+	    this->symbol_references_[n] = is_extern;
+	}
     }
 }
 
@@ -2671,7 +2676,7 @@ extern "C" void
 script_add_extern(void* closurev, const char* name, size_t length)
 {
   Parser_closure* closure = static_cast<Parser_closure*>(closurev);
-  closure->script_options()->add_symbol_reference(name, length);
+  closure->script_options()->add_symbol_reference(name, length, true);
 }
 
 // Called by the bison parser to add a file to the link.
@@ -2831,8 +2836,7 @@ extern "C" Expression*
 script_symbol(void* closurev, const char* name, size_t length)
 {
   Parser_closure* closure = static_cast<Parser_closure*>(closurev);
-  if (length != 1 || name[0] != '.')
-    closure->script_options()->add_symbol_reference(name, length);
+  closure->script_options()->add_symbol_reference(name, length, false);
   return script_exp_string(name, length);
 }
 
