@@ -13365,15 +13365,9 @@ relaxed_nanomips_16bit_branch_length (fragS *fragp, asection *sec, int update)
       int type;
 
       val = S_GET_VALUE (fragp->fr_symbol) + fragp->fr_offset;
-      /* Ignore the low bit in the target, since it will be set
-	 for a text label.  */
-      if ((val & 1) != 0)
-	--val;
 
       /* Assume this is a 2-byte branch.  */
-      addr = (fragp->fr_address
-	      + fragp->fr_fix
-	      + (RELAX_NANOMIPS_TOOFAR16 (fragp->fr_subtype)? 4 : 2));
+      addr = fragp->fr_address + fragp->fr_fix + 2;
 
       /* We try to avoid the infinite loop by not adding 2 more bytes for
 	 long branches.  */

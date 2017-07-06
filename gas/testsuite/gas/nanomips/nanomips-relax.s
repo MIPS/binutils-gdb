@@ -24,15 +24,15 @@ test4:
 	.globl test5
 test5:
 	beqc	$a0,$a1,test6 /* forward, no relax */
-	.space	(1<<5)-2
+	.space	(1<<5)-4
 test6:
 	bc	test7	/* forward, no relax */
 test6a:
-	.space	(1<<10)-2
+	.space	(1<<10)-4
 test7:
 	bc 	test6a	/* backward, no relax */
 	bnec	$a1, $a0, test8 /* forward, no relax */
-	.space (1<<5)-2
+	.space (1<<5)-4
 test8:
 	.space (1<<10)-2
 test9:

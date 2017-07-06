@@ -939,6 +939,7 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "elf_arch_m6001" "" m6001
     run_list_test_arches "isa-errors" "" [arch_list_matching nanomips]
     run_dump_test_arches "relax-addiu" "" [arch_list_matching nanomips]
+    run_list_test_arch "relax-loop" "" nanomips32
     run_list_test_arches "nanomips-ctc-err" "" [arch_list_matching xnms]
 
     run_dump_test_arches "linkrelax" [arch_list_matching micromipsr6]
