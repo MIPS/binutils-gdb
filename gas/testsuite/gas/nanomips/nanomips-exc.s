@@ -85,7 +85,7 @@ test:
 	sw	$r19, 12($r23)
 
 	brc	$r3
-	brsc	$r16
+	brsc	$r31
 
 	balrsc	$r16, $r17
 	balrsc	$r17

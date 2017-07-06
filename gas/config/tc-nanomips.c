@@ -2317,8 +2317,7 @@ struct regname {
     {"$r28",	RTYPE_GP | 28}, \
     {"$r29",	RTYPE_GP | 29}, \
     {"$r30",	RTYPE_GP | 30}, \
-    {"$r31",	RTYPE_GP | 30}, \
-    {"$r32",	RTYPE_GP | 31}
+    {"$r31",	RTYPE_GP | 31}
 
 #define MIPS_DSP_ACCUMULATOR_NAMES \
     {"$ac0",	RTYPE_ACC | 0}, \
