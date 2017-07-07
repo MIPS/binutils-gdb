@@ -21,7 +21,7 @@ test:
 	addiu48	$a0, $gp, %gprel(test)
 	addiu	$a0, %lo (test)
 	lw16	$a0, %lo (test)($a1)
-	lw	$a0, %call(test)($gp)
+	lw	$a0, %got_call(test)($gp)
 	lw	$a0, %got_disp(test)($gp)
 	lw	$a0, %got_page(test)($gp)
 	lw	$a0, %got_ofst(test)($gp)

@@ -12,12 +12,12 @@ Disassembly of section .text:
    8:	b7c2      	sw	fp,8\(sp\)
    a:	13dd      	move	fp,sp
    c:	4320 0002 	lw	t9,0\(gp\)
-			[0-9a-f]+: R_NANOMIPS_CALL	__tls_get_addr
+			[0-9a-f]+: R_NANOMIPS_GOT_CALL	__tls_get_addr
   10:	4080 0000 	addiu	a0,gp,0
 			[0-9a-f]+: R_NANOMIPS_TLS_GD	tlsvar_gd
   14:	db30      	jalrc	t9
   16:	4320 0002 	lw	t9,0\(gp\)
-			[0-9a-f]+: R_NANOMIPS_CALL	__tls_get_addr
+			[0-9a-f]+: R_NANOMIPS_GOT_CALL	__tls_get_addr
   1a:	4080 0000 	addiu	a0,gp,0
 			[0-9a-f]+: R_NANOMIPS_TLS_LDM	tlsvar_ld
   1e:	db30      	jalrc	t9

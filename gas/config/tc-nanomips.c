@@ -292,12 +292,6 @@ struct mips_set_options
 /* Specifies whether module level options have been checked yet.  */
 static bfd_boolean file_mips_opts_checked = FALSE;
 
-/* Do we support nan2008?  0 if we don't, 1 if we do, and -1 if the
-   value has not been initialized.  Changed by `.nan legacy' and
-   `.nan 2008', and the -mnan=legacy and -mnan=2008 command line
-   options, and the default CPU.  */
-static int mips_nan2008 = -1;
-
 /* This is the struct we use to hold the module level set of options.
    Note that we must set the isa field to ISA_UNKNOWN and the ASE, gp and
    fp fields to -1 to indicate that they have not been initialized.  */
@@ -336,14 +330,6 @@ static unsigned int file_ase_explicit;
    place.  */
 unsigned long mips_gprmask;
 unsigned long mips_cprmask[4];
-
-/* True if we want to create R_MIPS_JALR for jalr $25.  */
-/* As a GNU extension, we use R_MIPS_JALR for o32 too.  However,
-   because there's no place for any addend, the only acceptable
-   expression is a bare symbol.  */
-#define MIPS_JALR_HINT_P(EXPR) \
-  (!HAVE_IN_PLACE_ADDENDS \
-   || ((EXPR)->X_op == O_symbol && (EXPR)->X_add_number == 0))
 
 /* The argument of the -march= flag.  The architecture we are assembling.  */
 static const char *mips_arch_string;
@@ -755,89 +741,6 @@ static int mips_relax_branch;
 #define RELAX_DELAY_SLOT_SIZE_FIRST 0x200000
 #define RELAX_DELAY_SLOT_SIZE_SECOND 0x400000
 
-/* Branch without likely bit.  If label is out of range, we turn:
-
- 	beq reg1, reg2, label
-	delay slot
-
-   into
-
-        bne reg1, reg2, 0f
-        nop
-        j label
-     0: delay slot
-
-   with the following opcode replacements:
-
-	beq <-> bne
-	blez <-> bgtz
-	bltz <-> bgez
-	bc1f <-> bc1t
-
-	bltzal <-> bgezal  (with jal label instead of j label)
-
-   Even though keeping the delay slot instruction in the delay slot of
-   the branch would be more efficient, it would be very tricky to do
-   correctly, because we'd have to introduce a variable frag *after*
-   the delay slot instruction, and expand that instead.  Let's do it
-   the easy way for now, even if the branch-not-taken case now costs
-   one additional instruction.  Out-of-range branches are not supposed
-   to be common, anyway.
-
-   Branch likely.  If label is out of range, we turn:
-
-	beql reg1, reg2, label
-	delay slot (annulled if branch not taken)
-
-   into
-
-        beql reg1, reg2, 1f
-        nop
-        beql $0, $0, 2f
-        nop
-     1: j[al] label
-        delay slot (executed only if branch taken)
-     2:
-
-   It would be possible to generate a shorter sequence by losing the
-   likely bit, generating something like:
-
-	bne reg1, reg2, 0f
-	nop
-	j[al] label
-	delay slot (executed only if branch taken)
-     0:
-
-	beql -> bne
-	bnel -> beq
-	blezl -> bgtz
-	bgtzl -> blez
-	bltzl -> bgez
-	bgezl -> bltz
-	bc1fl -> bc1t
-	bc1tl -> bc1f
-
-	bltzall -> bgezal  (with jal label instead of j label)
-	bgezall -> bltzal  (ditto)
-
-
-   but it's not clear that it would actually improve performance.  */
-#define RELAX_BRANCH_ENCODE(at, uncond, likely, link, toofar)	\
-  ((relax_substateT)						\
-   (0xc0000000							\
-    | ((at) & 0x1f)						\
-    | ((toofar) ? 0x20 : 0)					\
-    | ((link) ? 0x40 : 0)					\
-    | ((likely) ? 0x80 : 0)					\
-    | ((uncond) ? 0x100 : 0)))
-#define RELAX_BRANCH_P(i) (((i) & 0xf0000000) == 0xc0000000)
-#define RELAX_BRANCH_UNCOND(i) (((i) & 0x100) != 0)
-#define RELAX_BRANCH_LIKELY(i) (((i) & 0x80) != 0)
-#define RELAX_BRANCH_LINK(i) (((i) & 0x40) != 0)
-#define RELAX_BRANCH_TOOFAR(i) (((i) & 0x20) != 0)
-#define RELAX_BRANCH_AT(i) ((i) & 0x1f)
-
-
 /* For nanoMIPS code, we use relaxation similar to one we use for
    microMIPS code.  Some instructions that take immediate values support
    two encodings: a small one which takes some small value, and a
@@ -1062,7 +965,6 @@ static void s_mips_file (int);
 static void s_mips_loc (int);
 static void s_linkrelax (int);
 static bfd_boolean pic_need_relax (symbolS *, asection *);
-static int relaxed_branch_length (fragS *, asection *, int);
 static void file_mips_check_options (void);
 static void stubgroup_new (asection *sec);
 static void s_sign_cons (int);
@@ -3412,12 +3314,6 @@ file_mips_check_options (void)
   if (file_mips_opts.isa == ISA_MIPS1 && mips_trap)
     as_bad (_("trap exception not supported at ISA 1"));
 
-  if (mips_nan2008 == -1)
-    mips_nan2008 = (ISA_HAS_LEGACY_NAN (file_mips_opts.isa)) ? 0 : 1;
-  else if (!ISA_HAS_LEGACY_NAN (file_mips_opts.isa) && mips_nan2008 == 0)
-    as_fatal (_("`%s' does not support legacy NaN"),
-	      mips_cpu_info_from_arch (file_mips_opts.arch)->name);
-
   /* If the user didn't explicitly select or deselect a particular ASE,
      use the default setting for the CPU.  */
   file_mips_opts.ase |= (file_mips_opts.init_ase & ~file_ase_explicit);
@@ -3496,7 +3392,7 @@ nanomips_reloc_p (bfd_reloc_code_real_type reloc)
     case BFD_RELOC_NANOMIPS_21_PCREL_S1:
     case BFD_RELOC_NANOMIPS_25_PCREL_S1:
     case BFD_RELOC_NANOMIPS_14_PCREL_S1:
-    case BFD_RELOC_NANOMIPS_CALL:
+    case BFD_RELOC_NANOMIPS_GOT_CALL:
     case BFD_RELOC_NANOMIPS_GOTPC_HI20:
     case BFD_RELOC_NANOMIPS_GOT_LO12:
     case BFD_RELOC_NANOMIPS_GOT_PAGE:
@@ -3568,12 +3464,6 @@ lo16_reloc_p (bfd_reloc_code_real_type reloc)
 	  || reloc == BFD_RELOC_NANOMIPS_LO12
 	  || reloc == BFD_RELOC_NANOMIPS_GOT_LO12);
 
-}
-
-static inline bfd_boolean
-jalr_reloc_p (bfd_reloc_code_real_type reloc)
-{
-  return reloc == BFD_RELOC_MIPS_JALR;
 }
 
 static inline bfd_boolean
@@ -5272,8 +5162,6 @@ match_nanomips_save_restore_list_operand (struct mips_arg_info *arg,
   unsigned int opval, count;
   unsigned first_reg, last_reg;
   bfd_boolean mode16 = (insn_length (arg->insn) == 2);
-  unsigned int reg_mask = 0;
-  int i;
   bfd_boolean gp = FALSE;
 
   count = 0;
@@ -5327,10 +5215,12 @@ match_nanomips_save_restore_list_operand (struct mips_arg_info *arg,
 
   /* Finally build the instruction.  */
   insn_insert_operand (arg->insn, operand, opval);
-  if (mips_linkrelax_p && mips_pic != NO_PIC && gp)
+  if (mips_linkrelax_p
+      && mips_pic != NO_PIC
+      && gp
+      && (arg->insn->insn_opcode & 0x3) != 2)
     {
-      symbolS *sym = symbol_new ("none", absolute_section, 4,
-				 &zero_address_frag);
+      symbolS *sym = symbol_find_or_make ("none");
       symbol_table_insert (sym);
       offset_expr.X_op = O_symbol;
       offset_expr.X_add_symbol = sym;
@@ -6724,7 +6614,7 @@ append_insn (struct mips_cl_insn *ip, expressionS *address_expr,
 				 | (address_expr->X_add_number << 16));
 	  break;
 
-	case BFD_RELOC_NANOMIPS_CALL:
+	case BFD_RELOC_NANOMIPS_GOT_CALL:
 	  ip->complete_p = 1;
 	  break;
 
@@ -9475,7 +9365,7 @@ nanomips_macro_la (unsigned int op[], unsigned int breg, int *used_at)
 	{
 	  relax_start (offset_expr.X_add_symbol);
 	  macro_build (&offset_expr, ADDRESS_LOAD_INSN, LWGP_FMT,
-		       tempreg, BFD_RELOC_NANOMIPS_CALL, mips_gp_register);
+		       tempreg, BFD_RELOC_NANOMIPS_GOT_CALL, mips_gp_register);
 	  relax_switch ();
 	  macro_build (&offset_expr, ADDRESS_LOAD_INSN, LWGP_FMT,
 		       tempreg, BFD_RELOC_NANOMIPS_GOT_DISP, mips_gp_register);
@@ -10014,7 +9904,7 @@ nanomips_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	{
 	  relax_start (offset_expr.X_add_symbol);
 	  macro_build (&offset_expr, ADDRESS_LOAD_INSN, LWGP_FMT,
-		       PIC_CALL_REG, BFD_RELOC_NANOMIPS_CALL,
+		       PIC_CALL_REG, BFD_RELOC_NANOMIPS_GOT_CALL,
 		       mips_gp_register);
 	  relax_switch ();
 	  macro_build (&offset_expr, ADDRESS_LOAD_INSN, LWGP_FMT,
@@ -10872,8 +10762,8 @@ struct percent_op_match
 static const struct percent_op_match nanomips_percent_op[] =
 {
   {"%lo", BFD_RELOC_NANOMIPS_LO12},
-  {"%call16", BFD_RELOC_NANOMIPS_CALL},
-  {"%call", BFD_RELOC_NANOMIPS_CALL},
+  {"%call16", BFD_RELOC_NANOMIPS_GOT_CALL},
+  {"%got_call", BFD_RELOC_NANOMIPS_GOT_CALL},
   {"%got_disp", BFD_RELOC_NANOMIPS_GOT_DISP},
   {"%got_page", BFD_RELOC_NANOMIPS_GOT_PAGE},
   {"%got_ofst", BFD_RELOC_NANOMIPS_GOT_OFST},
@@ -11313,18 +11203,6 @@ md_parse_option (int c, char *arg)
       mips_flag_pdr = FALSE;
       break;
 
-    case OPTION_NAN:
-      if (strcmp (arg, "2008") == 0)
-	mips_nan2008 = 1;
-      else if (strcmp (arg, "legacy") == 0)
-	mips_nan2008 = 0;
-      else
-	{
-	  as_fatal (_("invalid NaN setting -mnan=%s"), arg);
-	  return 0;
-	}
-      break;
-
     default:
       return 0;
     }
@@ -11471,7 +11349,8 @@ mips_force_relocation (fixS *fixp)
       || fixp->fx_r_type == BFD_RELOC_NANOMIPS_FIXED
       || fixp->fx_r_type == BFD_RELOC_NANOMIPS_RELAX
       || fixp->fx_r_type == BFD_RELOC_NANOMIPS_NORELAX
-      || fixp->fx_r_type == BFD_RELOC_NANOMIPS_SAVERESTORE)
+      || fixp->fx_r_type == BFD_RELOC_NANOMIPS_SAVERESTORE
+      || fixp->fx_r_type == BFD_RELOC_NANOMIPS_JALR)
     return 1;
 
 
@@ -11563,8 +11442,9 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       || fixP->fx_r_type == BFD_RELOC_NANOMIPS_FIXED
       || fixP->fx_r_type == BFD_RELOC_NANOMIPS_RELAX
       || fixP->fx_r_type == BFD_RELOC_NANOMIPS_NORELAX
-      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_SAVERESTORE)
-    return;
+      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_SAVERESTORE
+      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_JALR)
+   return;
 
   /* Handle BFD_RELOC_8, since it's easy.  Punt on other bfd relocations
      that have no MIPS ELF equivalent.  */
@@ -11648,7 +11528,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
     case BFD_RELOC_NANOMIPS_EH:
     case BFD_RELOC_NANOMIPS_NEG:
     case BFD_RELOC_NANOMIPS_LITERAL:
-    case BFD_RELOC_NANOMIPS_CALL:
+    case BFD_RELOC_NANOMIPS_GOT_CALL:
     case BFD_RELOC_NANOMIPS_GOT_DISP:
     case BFD_RELOC_NANOMIPS_GOT_PAGE:
     case BFD_RELOC_NANOMIPS_GOT_OFST:
@@ -13049,19 +12929,14 @@ s_nan (int ignore ATTRIBUTE_UNUSED)
 
   for (i = 0; !is_end_of_line[(unsigned char) input_line_pointer[i]]; i++);
 
-  if (i == sizeof (str_2008) - 1
-      && memcmp (input_line_pointer, str_2008, i) == 0)
-    mips_nan2008 = 1;
-  else if (i == sizeof (str_legacy) - 1
+  if (i == sizeof (str_legacy) - 1
 	   && memcmp (input_line_pointer, str_legacy, i) == 0)
     {
-      if (ISA_HAS_LEGACY_NAN (file_mips_opts.isa))
-	mips_nan2008 = 0;
-      else
-	as_bad (_("`%s' does not support legacy NaN"),
-	          mips_cpu_info_from_isa (file_mips_opts.isa)->name);
+      as_bad (_("`%s' does not support legacy NaN"),
+	      mips_cpu_info_from_isa (file_mips_opts.isa)->name);
     }
-  else
+  else if (i != sizeof (str_2008) - 1
+      || memcmp (input_line_pointer, str_2008, i) != 0)
     as_bad (_("bad .nan directive"));
 
   input_line_pointer += i;
@@ -13277,72 +13152,6 @@ pic_need_relax (symbolS *sym, asection *segtype)
 	  && !s_is_linkonce (sym, segtype)
 	  /* A global or weak symbol is treated as external.  */
 	  && (!S_IS_WEAK (sym) && !S_IS_EXTERNAL (sym)));
-}
-
-/* Compute the length of a branch sequence, and adjust the
-   RELAX_BRANCH_TOOFAR bit accordingly.  If FRAGP is NULL, the
-   worst-case length is computed, with UPDATE being used to indicate
-   whether an unconditional (-1), branch-likely (+1) or regular (0)
-   branch is to be computed.  */
-static int
-relaxed_branch_length (fragS *fragp, asection *sec, int update)
-{
-  bfd_boolean toofar;
-  int length;
-
-  if (fragp
-      && S_IS_DEFINED (fragp->fr_symbol)
-      && sec == S_GET_SEGMENT (fragp->fr_symbol))
-    {
-      addressT addr;
-      offsetT val;
-
-      val = S_GET_VALUE (fragp->fr_symbol) + fragp->fr_offset;
-
-      addr = fragp->fr_address + fragp->fr_fix + 4;
-
-      val -= addr;
-
-      /* TODO: MIPSR6 branches are wider for beqzc,bnezc,bc */
-      toofar = val < - (0x8000 << 2) || val >= (0x8000 << 2);
-    }
-  else if (fragp)
-    /* If the symbol is not defined or it's in a different segment,
-       assume the user knows what's going on and emit a short
-       branch.  */
-    toofar = FALSE;
-  else
-    toofar = TRUE;
-
-  if (fragp && update && toofar != RELAX_BRANCH_TOOFAR (fragp->fr_subtype))
-    fragp->fr_subtype
-      = RELAX_BRANCH_ENCODE (RELAX_BRANCH_AT (fragp->fr_subtype),
-			     RELAX_BRANCH_UNCOND (fragp->fr_subtype),
-			     RELAX_BRANCH_LIKELY (fragp->fr_subtype),
-			     RELAX_BRANCH_LINK (fragp->fr_subtype),
-			     toofar);
-
-  length = 4;
-  if (toofar)
-    {
-      if (fragp ? RELAX_BRANCH_LIKELY (fragp->fr_subtype) : (update > 0))
-	length += 8;
-
-      if (mips_pic != NO_PIC)
-	{
-	  /* Additional space for PIC loading of target address.  */
-	  length += 8;
-	  if (mips_opts.isa == ISA_MIPS1)
-	    /* Additional space for $at-stabilizing nop.  */
-	    length += 4;
-	}
-
-      /* If branch is conditional.  */
-      if (fragp ? !RELAX_BRANCH_UNCOND (fragp->fr_subtype) : (update >= 0))
-	length += 8;
-    }
-
-  return length;
 }
 
 /* Compute the length of a branch, and adjust the RELAX_NANOMIPS_TOOFAR16
@@ -13621,14 +13430,6 @@ md_estimate_size_before_relax (fragS *fragp, asection *segtype)
 {
   int change;
 
-  if (RELAX_BRANCH_P (fragp->fr_subtype))
-    {
-
-      fragp->fr_var = relaxed_branch_length (fragp, segtype, FALSE);
-
-      return fragp->fr_var;
-    }
-
   if (RELAX_NANOMIPS_P (fragp->fr_subtype))
     {
       int length = 4;
@@ -13789,15 +13590,6 @@ tc_gen_reloc (asection *section ATTRIBUTE_UNUSED, fixS *fixp)
 int
 mips_relax_frag (asection *sec, fragS *fragp, long stretch ATTRIBUTE_UNUSED)
 {
-  if (RELAX_BRANCH_P (fragp->fr_subtype))
-    {
-      offsetT old_var = fragp->fr_var;
-
-      fragp->fr_var = relaxed_branch_length (fragp, sec, TRUE);
-
-      return fragp->fr_var - old_var;
-    }
-
   if (RELAX_NANOMIPS_P (fragp->fr_subtype))
     {
       offsetT old_var = fragp->fr_var;
@@ -13834,208 +13626,6 @@ mips_relax_frag (asection *sec, fragS *fragp, long stretch ATTRIBUTE_UNUSED)
 void
 md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 {
-  if (RELAX_BRANCH_P (fragp->fr_subtype))
-    {
-      char *buf;
-      unsigned long insn;
-      expressionS exp;
-      fixS *fixp;
-
-      buf = fragp->fr_literal + fragp->fr_fix;
-      insn = read_insn (buf);
-
-      if (!RELAX_BRANCH_TOOFAR (fragp->fr_subtype))
-	{
-	  /* We generate a fixup instead of applying it right now
-	     because, if there are linker relaxations, we're going to
-	     need the relocations.  */
-	  exp.X_op = O_symbol;
-	  exp.X_add_symbol = fragp->fr_symbol;
-	  exp.X_add_number = fragp->fr_offset;
-
-	  fixp = fix_new_exp (fragp, buf - fragp->fr_literal, 4, &exp, TRUE,
-			      BFD_RELOC_16_PCREL_S2);
-	  fixp->fx_file = fragp->fr_file;
-	  fixp->fx_line = fragp->fr_line;
-
-	  buf = write_insn (buf, insn);
-	}
-      else
-	{
-	  int i;
-
-	  as_warn_where (fragp->fr_file, fragp->fr_line,
-			 _("relaxed out-of-range branch into a jump"));
-
-	  if (RELAX_BRANCH_UNCOND (fragp->fr_subtype))
-	    goto uncond;
-
-	  if (!RELAX_BRANCH_LIKELY (fragp->fr_subtype))
-	    {
-	      /* Reverse the branch.  */
-	      switch ((insn >> 28) & 0xf)
-		{
-		case 4:
-		  if ((insn & 0xff000000) == 0x47000000
-		      || (insn & 0xff600000) == 0x45600000)
-		    {
-		      /* BZ.df/BNZ.df, BZ.V/BNZ.V can have the condition
-			 reversed by tweaking bit 23.  */
-		      insn ^= 0x00800000;
-		    }
-		  else
-		    {
-		      /* bc[0-3][tf]l? instructions can have the condition
-			 reversed by tweaking a single TF bit, and their
-			 opcodes all have 0x4???????.  */
-		      gas_assert ((insn & 0xf3e00000) == 0x41000000);
-		      insn ^= 0x00010000;
-		    }
-		  break;
-
-		case 0:
-		  /* bltz	0x04000000	bgez	0x04010000
-		     bltzal	0x04100000	bgezal	0x04110000  */
-		  gas_assert ((insn & 0xfc0e0000) == 0x04000000);
-		  insn ^= 0x00010000;
-		  break;
-
-		case 1:
-		  /* beq	0x10000000	bne	0x14000000
-		     blez	0x18000000	bgtz	0x1c000000  */
-		  insn ^= 0x04000000;
-		  break;
-
-		default:
-		  abort ();
-		}
-	    }
-
-	  if (RELAX_BRANCH_LINK (fragp->fr_subtype))
-	    {
-	      /* Clear the and-link bit.  */
-	      gas_assert ((insn & 0xfc1c0000) == 0x04100000);
-
-	      /* bltzal		0x04100000	bgezal	0x04110000
-		 bltzall	0x04120000	bgezall	0x04130000  */
-	      insn &= ~0x00100000;
-	    }
-
-	  /* Branch over the branch (if the branch was likely) or the
-	     full jump (not likely case).  Compute the offset from the
-	     current instruction to branch to.  */
-	  if (RELAX_BRANCH_LIKELY (fragp->fr_subtype))
-	    i = 16;
-	  else
-	    {
-	      /* How many bytes in instructions we've already emitted?  */
-	      i = buf - fragp->fr_literal - fragp->fr_fix;
-	      /* How many bytes in instructions from here to the end?  */
-	      i = fragp->fr_var - i;
-	    }
-	  /* Convert to instruction count.  */
-	  i >>= 2;
-	  /* Branch counts from the next instruction.  */
-	  i--;
-	  insn |= i;
-	  /* Branch over the jump.  */
-	  buf = write_insn (buf, insn);
-
-	  /* nop */
-	  buf = write_insn (buf, 0);
-
-	  if (RELAX_BRANCH_LIKELY (fragp->fr_subtype))
-	    {
-	      /* beql $0, $0, 2f */
-	      insn = 0x50000000;
-	      /* Compute the PC offset from the current instruction to
-		 the end of the variable frag.  */
-	      /* How many bytes in instructions we've already emitted?  */
-	      i = buf - fragp->fr_literal - fragp->fr_fix;
-	      /* How many bytes in instructions from here to the end?  */
-	      i = fragp->fr_var - i;
-	      /* Convert to instruction count.  */
-	      i >>= 2;
-	      /* Don't decrement i, because we want to branch over the
-		 delay slot.  */
-	      insn |= i;
-
-	      buf = write_insn (buf, insn);
-	      buf = write_insn (buf, 0);
-	    }
-
-	uncond:
-	  if (mips_pic == NO_PIC)
-	    {
-	      /* j or jal.  */
-	      insn = (RELAX_BRANCH_LINK (fragp->fr_subtype)
-		      ? 0x0c000000 : 0x08000000);
-	      exp.X_op = O_symbol;
-	      exp.X_add_symbol = fragp->fr_symbol;
-	      exp.X_add_number = fragp->fr_offset;
-
-	      fixp = fix_new_exp (fragp, buf - fragp->fr_literal, 4, &exp,
-				  FALSE, BFD_RELOC_MIPS_JMP);
-	      fixp->fx_file = fragp->fr_file;
-	      fixp->fx_line = fragp->fr_line;
-
-	      buf = write_insn (buf, insn);
-	    }
-	  else
-	    {
-	      unsigned long at = RELAX_BRANCH_AT (fragp->fr_subtype);
-
-	      /* lw/ld $at, <sym>($gp)  R_MIPS_GOT16 */
-	      insn = HAVE_64BIT_ADDRESSES ? 0xdf800000 : 0x8f800000;
-	      insn |= at << OP_SH_RT;
-	      exp.X_op = O_symbol;
-	      exp.X_add_symbol = fragp->fr_symbol;
-	      exp.X_add_number = fragp->fr_offset;
-
-	      if (fragp->fr_offset)
-		{
-		  exp.X_add_symbol = make_expr_symbol (&exp);
-		  exp.X_add_number = 0;
-		}
-
-	      fixp = fix_new_exp (fragp, buf - fragp->fr_literal, 4, &exp,
-				  FALSE, BFD_RELOC_NANOMIPS_GOT_DISP);
-	      fixp->fx_file = fragp->fr_file;
-	      fixp->fx_line = fragp->fr_line;
-
-	      buf = write_insn (buf, insn);
-
-	      if (mips_opts.isa == ISA_MIPS1)
-		/* nop */
-		buf = write_insn (buf, 0);
-
-	      /* d/addiu $at, $at, <sym>  R_MIPS_LO16 */
-	      insn = HAVE_64BIT_ADDRESSES ? 0x64000000 : 0x24000000;
-	      insn |= at << OP_SH_RS | at << OP_SH_RT;
-
-	      fixp = fix_new_exp (fragp, buf - fragp->fr_literal, 4, &exp,
-				  FALSE, BFD_RELOC_LO16);
-	      fixp->fx_file = fragp->fr_file;
-	      fixp->fx_line = fragp->fr_line;
-
-	      buf = write_insn (buf, insn);
-
-	      /* j(al)r $at.  */
-	      if (RELAX_BRANCH_LINK (fragp->fr_subtype))
-		insn = 0x0000f809;
-	      else
-		insn = 0x00000008;
-	      insn |= at << OP_SH_RS;
-
-	      buf = write_insn (buf, insn);
-	    }
-	}
-
-      fragp->fr_fix += fragp->fr_var;
-      gas_assert (buf == fragp->fr_literal + fragp->fr_fix);
-      return;
-    }
-
   if (RELAX_NANOMIPS_ADDIU_P (fragp->fr_subtype))
     {
       char *buf = fragp->fr_literal + fragp->fr_fix;
@@ -14532,8 +14122,7 @@ mips_elf_final_processing (void)
   if (mips_32bitmode)
     elf_elfheader (stdoutput)->e_flags |= EF_MIPS_32BITMODE;
 
-  if (mips_nan2008 == 1)
-    elf_elfheader (stdoutput)->e_flags |= EF_MIPS_NAN2008;
+  elf_elfheader (stdoutput)->e_flags |= EF_MIPS_NAN2008;
 
   /* 32 bit code with 64 bit FP registers.  */
   fpabi = bfd_elf_get_obj_attr_int (stdoutput, OBJ_ATTR_GNU,

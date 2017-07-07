@@ -48,7 +48,7 @@ Disassembly of section \.text:
   [0-9a-f]+:	1650      	lw	a0,0\(a1\)
 			4a: R_NANOMIPS_LO4_S2	test
   [0-9a-f]+:	4080 0002 	lw	a0,0\(gp\)
-			[0-9a-f]+: R_NANOMIPS_CALL	test
+			[0-9a-f]+: R_NANOMIPS_GOT_CALL	test
   [0-9a-f]+:	4080 0002 	lw	a0,0\(gp\)
 			[0-9a-f]+: R_NANOMIPS_GOT_DISP	test
   [0-9a-f]+:	4080 0002 	lw	a0,0\(gp\)

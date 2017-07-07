@@ -13,10 +13,10 @@ Disassembly of section \.text:
 			6: R_NANOMIPS_GOT_DISP	local\+0xc
    a:	db30      	jalrc	t9
    c:	4320 0002 	lw	t9,0\(gp\)
-			c: R_NANOMIPS_CALL	global
+			c: R_NANOMIPS_GOT_CALL	global
   10:	db30      	jalrc	t9
   12:	4320 0002 	lw	t9,0\(gp\)
-			12: R_NANOMIPS_CALL	global\+0xc
+			12: R_NANOMIPS_GOT_CALL	global\+0xc
   16:	db30      	jalrc	t9
 
 0+0018 <local>:
