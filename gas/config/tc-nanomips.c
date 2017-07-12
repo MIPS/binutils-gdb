@@ -13501,7 +13501,7 @@ mips_fix_adjustable (fixS *fixp)
   tsect = S_GET_SEGMENT (fixp->fx_addsy);
   if (tsect != NULL
       && (tsect->flags & SEC_CODE) != 0
-      && symbol_used_p (fixp->fx_addsy))
+      && (linkrelax || symbol_used_p (fixp->fx_addsy)))
     return 0;
 
   return 1;
