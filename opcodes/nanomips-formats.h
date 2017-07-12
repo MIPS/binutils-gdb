@@ -76,7 +76,7 @@
     static const struct mips_pcrel_operand op = { \
       { { OP_PCREL, SIZE, 1, 1, 0 }, \
 	(1 << ((SIZE) - 1)) - 1, 0, SHIFT, TRUE }, \
-      0, FALSE, FALSE \
+      0, TRUE, FALSE \
     }; \
     return &op.root.root; \
   }
@@ -86,7 +86,7 @@
     static const struct mips_pcrel_operand op = { \
       { { OP_PCREL, SIZE, 1, SIZE_TOP, LSB_TOP }, \
 	(1 << ((SIZE) - 1)) - 1, LSB, SHIFT, TRUE }, \
-      0, FALSE, FALSE \
+      0, TRUE, FALSE \
     }; \
     return &op.root.root; \
   }
