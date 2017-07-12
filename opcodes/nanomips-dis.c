@@ -1485,10 +1485,7 @@ print_insn_args (struct disassemble_info *info,
 		  const struct mips_pcrel_operand *pcrel_op;
 
 		  pcrel_op = (const struct mips_pcrel_operand *) operand;
-		  /* The include_isa_bit flag is sufficient to distinguish
-		     branch/jump from other PC relative operands.  */
-		  if (pcrel_op->include_isa_bit)
-		    base_pc += length;
+		  base_pc += length;
 		}
 
 	      if ((operand->type == OP_HI20_PCREL
