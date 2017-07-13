@@ -9885,21 +9885,9 @@ nanomips_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       /* The jal instructions must be handled as macros because when
 	 generating PIC code they expand to multi-instruction
 	 sequences.  Normally they are simple instructions.  */
-    case M_JAL_1:
-      op[1] = op[0];
-      op[0] = RA;
-      /* Fall through.  */
-    case M_JAL_2:
-      s = "jalrc";
-      if (!mips_opts.insn32 && op[0] == RA)
-	macro_build (NULL, s, "mp", op[1]);
-      else
-	macro_build (NULL, s, JALR_FMT, op[0], op[1]);
-      break;
-
     case M_JAL_A:
       if (mips_pic == NO_PIC)
-	macro_build (&offset_expr, "jal", JAL_FMT);
+	macro_build (&offset_expr, "jal", B_FMT);
       else
 	{
 	  relax_start (offset_expr.X_add_symbol);
@@ -9912,7 +9900,7 @@ nanomips_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 		       mips_gp_register);
 	  relax_end ();
 
-	  macro_build (NULL, "jalrc", "mp", PIC_CALL_REG);
+	  macro_build (NULL, "jalr", "mp", PIC_CALL_REG);
 	}
 
       break;
@@ -10045,9 +10033,20 @@ nanomips_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       break;
 
     case M_JRADDIUSP:
-      macro_build (&imm_expr, "addiu", ADDIU_FMT, SP, SP,
+      offset_expr = imm_expr;
+      if (small_poffset_p (0, ISA_ADD_OFFBITS))
+	macro_build (&imm_expr, "addiu", ADDIU_FMT, SP, SP,
 		   BFD_RELOC_NANOMIPS_IMM16);
-      macro_build (NULL, "jrc", "s", RA);
+      else if (small_noffset_p (0, ISA_OFFBITS))
+	macro_build (&imm_expr, "addiu", ADDIU_FMT, SP, SP,
+		   BFD_RELOC_NANOMIPS_NEG12);
+      else
+	{
+	  used_at = 1;
+	  load_register (AT, &imm_expr, GPR_SIZE == 64);
+	  macro_build (NULL, "addu", "d,v,t", SP, SP, AT);
+	}
+      macro_build (NULL, "jrc", "mp", RA);
       break;
 
     case M_LI:

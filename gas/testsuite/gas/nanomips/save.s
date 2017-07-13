@@ -62,4 +62,11 @@ test:
 	restoref	64, $f0-$f15
 	restoref	64, $f0-$f5
 
+	jraddiusp 96		# restore.jrc[16]
+	jraddiusp 4080		# restore.jrc[32]
+
+	jraddiusp 65520
+	jraddiusp -2048
+	jraddiusp 1048560
+
 .end	test

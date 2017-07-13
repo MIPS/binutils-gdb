@@ -62,8 +62,6 @@ reorder:
 	jalr.hb $a0		# jalrc.hb a0
 	jalr.hb $a0,$a1		# jalrc.hb a0,a1
 
-	jraddiusp 32		# jrcaddiusp
-
 1:
 	nop
 	.align	2	

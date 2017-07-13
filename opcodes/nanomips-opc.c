@@ -844,7 +844,6 @@ IGRIE */
 {"j",		"", 		"mp",		0xd800,		0xfc1f,	RD_1,	INSN2_ALIAS|UBR|CTC,	I38,	0},
 {"j",		"",		"+'",		0x28000000, 0xfe000000,	0, 	INSN2_ALIAS|UBR|CTC,	I38,	0}, /* BC */
 {"j",		"",		"s",		0x48000000, 0xffe0ffff,	RD_1,	INSN2_ALIAS|UBR|CTC,	I38,	0}, /* JALRC */
-{"j",		"",		"a",		0,    (int) M_J_A,	INSN_MACRO,	0,		I38,	0},
 {"jrc.hb",	"",		"s",		0x48001000, 0xffe0ffff,	RD_1,	INSN2_ALIAS,	I38,	0}, /* JALRC.HB */
 {"jr.hb",	"",		"s",		0x48001000, 0xffe0ffff,	RD_1, INSN2_ALIAS|UBR|CTC,	I38,	0}, /* JALRC.HB */
 {"jalrc.hb",	"",		"s",		0x4be01000, 0xffe0ffff,	RD_1,		INSN2_ALIAS,	I38,	0}, /* JALRC.HB */
@@ -852,8 +851,10 @@ IGRIE */
 {"jalr.hb",	"",		"s",		0x4be01000, 0xffe0ffff,	RD_1,	INSN2_ALIAS|UBR|CTC,	I38,	0}, /* JALRC.HB */
 {"jalr.hb",	"",		"t,s",		0x48001000, 0xfc00ffff,	WR_1|RD_2, INSN2_ALIAS|UBR|CTC,	I38,	0}, /* JALRC.HB */
 /* SVR4 PIC code requires special handling for jal, so it must be a macro.  */
-{"jal", 	"",		"d,s",		0,    (int) M_JAL_2,	INSN_MACRO,		0,	I38,	0},
-{"jal", 	"",		"s",		0,    (int) M_JAL_1,	INSN_MACRO,		0,	I38,	0},
+{"jal",		"",		"my,mp",	0xd810,		0xfc1f,	WR_31|RD_1, INSN2_ALIAS|UBR|CTC, I38,	0}, /* JALRC[16] */
+{"jal",		"",	        "mp",		0xd810,		0xfc1f,	WR_31|RD_1, INSN2_ALIAS|UBR|CTC, I38,	0}, /* JALRC[16] */
+{"jal",		"",		"s",		0x4be00000, 0xffe0ffff,	RD_1,	    INSN2_ALIAS|UBR|CTC, I38,	0}, /* JALRC */
+{"jal",		"",		"t,s",		0x48000000, 0xfc00ffff,	WR_1|RD_2,  INSN2_ALIAS|UBR|CTC, I38,	0}, /* JALRC */
 {"jal", 	"",		"A",		0,    (int) M_JAL_A,	INSN_MACRO,		0,	I38,	0},
 {"jal", 	"",		"+'",		0x2a000000, 0xfe000000,	WR_31,	INSN2_ALIAS|UBR|CTC,	I38,	0}, /* BALC */
 {"lapc",	"[32]",		"t,+r",		0x04000000, 0xfc000000, WR_1,		INSN2_ALIAS,	I38,	0}, /* ADDIUPC */

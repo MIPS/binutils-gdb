@@ -2694,18 +2694,18 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 1d20      	restore\.jrc	32
 [0-9a-f]+ <[^>]+> 8000 302b 	restore\.jrc	40
 [0-9a-f]+ <[^>]+> 03bd 0004 	addiu	sp,sp,4
-[0-9a-f]+ <[^>]+> 481f 0000 	jrc	ra
+[0-9a-f]+ <[^>]+> dbe0      	jrc	ra
 [0-9a-f]+ <[^>]+> 03bd 000c 	addiu	sp,sp,12
-[0-9a-f]+ <[^>]+> 481f 0000 	jrc	ra
+[0-9a-f]+ <[^>]+> dbe0      	jrc	ra
 [0-9a-f]+ <[^>]+> 03bd 0014 	addiu	sp,sp,20
-[0-9a-f]+ <[^>]+> 481f 0000 	jrc	ra
+[0-9a-f]+ <[^>]+> dbe0      	jrc	ra
 [0-9a-f]+ <[^>]+> 03bd 001c 	addiu	sp,sp,28
-[0-9a-f]+ <[^>]+> 481f 0000 	jrc	ra
+[0-9a-f]+ <[^>]+> dbe0      	jrc	ra
 [0-9a-f]+ <[^>]+> 03bd 0024 	addiu	sp,sp,36
-[0-9a-f]+ <[^>]+> 481f 0000 	jrc	ra
+[0-9a-f]+ <[^>]+> dbe0      	jrc	ra
 [0-9a-f]+ <[^>]+> 8000 307b 	restore\.jrc	120
 [0-9a-f]+ <[^>]+> 03bd 007c 	addiu	sp,sp,124
-[0-9a-f]+ <[^>]+> 481f 0000 	jrc	ra
+[0-9a-f]+ <[^>]+> dbe0      	jrc	ra
 [0-9a-f]+ <[^>]+> a460 6100 	ldc2	\$3,0\(zero\)
 [0-9a-f]+ <[^>]+> a460 6100 	ldc2	\$3,0\(zero\)
 [0-9a-f]+ <[^>]+> a460 6104 	ldc2	\$3,4\(zero\)
@@ -2981,6 +2981,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 23ff c37f 	wait	0x3ff
 [0-9a-f]+ <[^>]+> 0008 03ff 	syscall	0x3ff
 [0-9a-f]+ <[^>]+> 9008      	nop
+[0-9a-f]+ <[^>]+> 8000 c000 	nop
 [0-9a-f]+ <[^>]+> a001 037b 	abs\.s	\$f0,\$f1
 [0-9a-f]+ <[^>]+> a3df 037b 	abs\.s	\$f30,\$f31
 [0-9a-f]+ <[^>]+> a042 037b 	abs\.s	\$f2,\$f2

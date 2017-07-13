@@ -83,6 +83,5 @@ Disassembly of section .text:
 [0-9a-f]+ <[^>]*> 4804 1000 	jrc.hb	a0
 [0-9a-f]+ <[^>]*> 4be4 1000 	jalrc.hb	a0
 [0-9a-f]+ <[^>]*> 4885 1000 	jalrc.hb	a0,a1
-[0-9a-f]+ <[^>]*> 1d20      	restore.jrc	32
 [0-9a-f]+ <[^>]*> 9008      	nop
 #pass
