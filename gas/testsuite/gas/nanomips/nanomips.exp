@@ -901,13 +901,16 @@ if { [istarget nanomips*-*-*] } {
 
     # FIXME: repeat with traps, insn32, noinsn32
     run_dump_test_arches "nanomips" [arch_list_matching xnms]
+    run_dump_test_arches "nanomips32" [arch_list_matching xnms]
     run_dump_test_arch "nanomips-ctc" "" nanomips32
     run_dump_test_arch "nanomips-relax" "" nanomips32
+    run_dump_test_arch "nanomips-relax32" "" nanomips32
     run_dump_test_arch "save" "" nanomips32
     run_list_test_arch "save-error" "" nanomips32s
     run_dump_test_arch "save-relocs" "" nanomips32
     run_dump_test_arches "exp-relocs" [arch_list_matching xnms]
     run_dump_test_arch "nanomips-exc" "" nanomips32
+    run_dump_test_arch "nanomips-exc32" "--defsym insn32_broken=" nanomips32
 
     run_dump_test_arches "addu" "-mlegacyregs" [arch_list_matching nanomips32s]
     run_dump_test_arches "la" "-mlegacyregs" [arch_list_matching xnms]
@@ -939,6 +942,7 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "elf_arch_m6001" "" m6001
     run_list_test_arches "isa-errors" "" [arch_list_matching nanomips]
     run_dump_test_arches "relax-addiu" "" [arch_list_matching nanomips]
+    run_dump_test_arches "relax-addiu32" "" [arch_list_matching nanomips]
     run_list_test_arch "relax-loop" "" nanomips32
     run_list_test_arches "nanomips-ctc-err" "" [arch_list_matching xnms]
 

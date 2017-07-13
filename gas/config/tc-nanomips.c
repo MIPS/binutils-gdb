@@ -8108,7 +8108,8 @@ load_register (int reg, expressionS *ep, int dbl)
 	  if ((mips_opts.ase & ASE_xNMS) != 0
 	      && (ep->X_add_number & 0xfff) != 0
 	      && (*offset_reloc == BFD_RELOC_UNUSED
-		  || pcrel_reloc_p (*offset_reloc)))
+		  || pcrel_reloc_p (*offset_reloc))
+	      && !mips_opts.insn32)
 	    macro_build (ep, "li", "mp,+Q", reg, BFD_RELOC_NANOMIPS_I32);
 	  else
 	    {
@@ -8181,7 +8182,7 @@ load_register (int reg, expressionS *ep, int dbl)
 	    }
 	}
 
-      if (mips_opts.nanomips)
+      if (mips_opts.nanomips && !mips_opts.insn32)
 	{
 	  macro_build (ep, "dlui", "mp,+Q", reg, BFD_RELOC_NANOMIPS_HI32);
 	  macro_build (ep, "daddiu", "mp,mt,+R", reg, reg, BFD_RELOC_NANOMIPS_I32);
@@ -8412,7 +8413,7 @@ load_address (int reg, expressionS *ep, int *used_at)
 			   mips_gp_register, BFD_RELOC_GPREL16);
 	      relax_switch ();
 	    }
-	  if ((mips_opts.ase & ASE_xNMS) != 0)
+	  if ((mips_opts.ase & ASE_xNMS) != 0 && !mips_opts.insn32)
 	      macro_build (ep, "li", "mp,+Q", reg, BFD_RELOC_NANOMIPS_I32);
 	  else
 	    {
@@ -9085,7 +9086,7 @@ nanomips_macro_ldd_std (const char *s, const char *fmt, unsigned int op[],
       if (offset_high_part (offset_expr.X_add_number, ISA_OFFBITS)
 	  != offset_high_part (offset_expr.X_add_number + 4, ISA_OFFBITS))
 	{
-	  if ((mips_opts.ase & ASE_xNMS) != 0)
+	  if ((mips_opts.ase & ASE_xNMS) != 0 && !mips_opts.insn32)
 	    macro_build (&offset_expr, "li", "mp,+Q", AT,
 			 BFD_RELOC_NANOMIPS_I32);
 	  else
@@ -9260,7 +9261,8 @@ nanomips_macro_la (unsigned int op[], unsigned int breg, int *used_at)
 	  if (!IS_SEXT_32BIT_NUM (offset_expr.X_add_number))
 	    as_bad (_("offset too large"));
 	  if ((mips_opts.ase & ASE_xNMS) != 0
-	      && *offset_reloc == BFD_RELOC_UNUSED)
+	      && *offset_reloc == BFD_RELOC_UNUSED
+	      && !mips_opts.insn32)
 	    macro_build (&offset_expr, "li", "mp,+Q", tempreg,
 			 BFD_RELOC_NANOMIPS_I32);
 	  else
@@ -9496,7 +9498,7 @@ nanomips_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	  break;
 	}
       else if ((mips_opts.ase & ASE_xNMS) != 0
-	       && op[0] == op[1])
+	       && op[0] == op[1] && !mips_opts.insn32)
 	{
 	  macro_build (&imm_expr, s, "mp,mt,+R", op[0], op[0],
 		       BFD_RELOC_NANOMIPS_I32);
@@ -10046,7 +10048,7 @@ nanomips_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	  load_register (AT, &imm_expr, GPR_SIZE == 64);
 	  macro_build (NULL, "addu", "d,v,t", SP, SP, AT);
 	}
-      macro_build (NULL, "jrc", "mp", RA);
+      macro_build (NULL, "jrc", (mips_opts.insn32? "s" : "mp"), RA);
       break;
 
     case M_LI:
@@ -10569,7 +10571,7 @@ nanomips_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	  break;
 	}
       else if ((mips_opts.ase & ASE_xNMS) != 0
-	       && op[0] == op[1])
+	       && op[0] == op[1] && !mips_opts.insn32)
 	{
 	  imm_expr.X_add_number = - imm_expr.X_add_number;
 	  macro_build (&imm_expr, s, "mp,mt,+R", op[0], op[0],

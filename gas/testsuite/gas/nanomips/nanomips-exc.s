@@ -3,6 +3,7 @@
 	.ent	test
 	.globl	test
 test:
+	.ifndef insn32_broken
 	.set noat
 	movep	$r4, $r5, $r9, $r8
 	movep	$r5, $r6, $r0, $r10
@@ -23,6 +24,7 @@ test:
 	movep	$r21, $r17, $r5, $r6
 	movep	$r18, $r22, $r6, $r7
 	movep	$r23, $r19, $r7, $r8
+	.endif
 
 	lw	$r8, 0($r8)
 	lw	$r9, 4($r9)
@@ -91,6 +93,7 @@ test:
 	balrsc	$r17
 
 	addiu	$r3, $r28, 0x12345
+	.ifndef insn32_broken
 	addiu	$r3, $r28, 0x12345678
 	addiu	$r3, $r28, -0x12345
 	addiu	$r3, $r28, -0x12345678
@@ -99,6 +102,7 @@ test:
 	addiu	$r3, 0x12345678
 	addiu	$r3, $r3, -0x12345
 	addiu	$r3, -0x12345678
+	.endif
 
 	bgeiuc	$r2, 1, test
 	bgeiuc	$r2, 127, test
@@ -126,8 +130,10 @@ test:
 
 	sw	$r16,%gp_rel(x)($r28)
 	sw	$r17,16($r28)
+	.ifndef insn32
 	sw16	$r17,16($r28)
 	sw16	$r17,%gp_rel(test)($r28)
+	.endif
 	lapc 	$r5,test
 	lapc 	$r5,test2
 	.set at
@@ -144,6 +150,7 @@ test:
 	tne 	$r5,$r6
 	teq	$r3,$r4,6
 	tne 	$r5,$r6,7
+	.ifndef insn32
 	lwpc $r3, 10000
 	swpc $r3, 10000
 	ldpc $r5, 10000
@@ -153,6 +160,7 @@ test:
 	swpc $r3, test
 	ldpc $r5, test
 	sdpc $r8, test
+	.endif
 
 	ualh	$r2, 4($r5)
 	uash	$r2, 4($r5)
@@ -190,13 +198,19 @@ test:
 	addiupc		$r5, 0
 	addiupc 	$r5, 4
 	addiupc 	$r5, 8
+	.ifndef insn32
 	addiupc48 	$r5, 0
 	addiupc48 	$r5,6
 	addiupc48 	$r5,8
+	.endif
 	addiupc 	$r5,2097154
+	.ifndef insn32_broken
 	addiupc 	$r5,2097156
+	.endif
 	addiupc 	$r5,-2097148
+	.ifndef insn32_broken
 	addiupc 	$r5,-2097150
+	.endif
 
 	aluipc	$r3,0x25
 	aluipc	$r3,%pcrel_hi(test)

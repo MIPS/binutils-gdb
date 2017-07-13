@@ -54,7 +54,9 @@ foo:
 	addiu $t4, $t4, 2f-5f 	# x -= 8, forced length
 	addiu $a0, $a1, 5f-2f	# x = y + 8, forced length
 	addiu $a0, $a1, 6f-2f	# x = y + 28, forced length
+	.ifndef insn32
 	.set noinsn32
+	.endif
 
 	/* LI relaxation */
 	li    $a0, 7f-8f		# [16] x = -1
@@ -72,8 +74,9 @@ foo:
 	.set insn32
 	li    $a0, 7f-8f		# [16] x = -1, forced length
 	li    $a0, 6f-2f		# [16] x = 28, forced length
+	.ifndef insn32
 	.set noinsn32
-	
+	.endif
 2:	
 	nop
 3:

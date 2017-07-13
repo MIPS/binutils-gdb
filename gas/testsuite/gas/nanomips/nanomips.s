@@ -4446,6 +4446,7 @@ test_spec102:
 	.set	noreorder
 	.ent	test_spec107
 test_spec107:
+	.ifndef insn32
 	movep	$a1, $a2, $zero, $zero
 	movep	$a2, $a3, $zero, $zero
 	movep	$a0, $a1, $zero, $zero
@@ -4465,6 +4466,7 @@ test_spec107:
 	movep	$a2, $a3, $s4, $s2
 	movep	$a2, $a3, $s4, $s3
 	movep	$a2, $a3, $s4, $s4
+	.endif
 
 	lwc1	$f3, ($gp)
 	lwc1	$f3, 0($gp)
