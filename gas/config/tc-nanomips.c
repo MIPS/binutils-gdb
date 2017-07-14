@@ -176,7 +176,7 @@ enum mips_abi_level
 enum mc_model_type
 {
   MC_AUTO = 0,
-  MC_SMALL,
+  MC_MEDIUM,
   MC_LARGE,
 };
 
@@ -12390,8 +12390,8 @@ parse_code_option (char * name)
     {
       if (strcmp (name+8, "auto") == 0)
 	mips_opts.mc_model = MC_AUTO;
-      else if (strcmp (name+8, "small") == 0)
-	mips_opts.mc_model = MC_SMALL;
+      else if (strcmp (name+8, "medium") == 0)
+	mips_opts.mc_model = MC_MEDIUM;
       else if (strcmp (name+8, "large") == 0)
 	mips_opts.mc_model = MC_LARGE;
       else
