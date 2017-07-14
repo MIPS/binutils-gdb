@@ -1,5 +1,13 @@
 # Source file used to test the la macro.
+
+	.ifdef mc_large
+	.set mcmodel=large
+	.endif
 	
+	.ifdef mc_medium
+	.set mcmodel=medium
+	.endif
+
 	.data
 data_label:
 	.extern big_external_data_label,1000
@@ -65,53 +73,10 @@ text_label:
 	la	$4,small_external_common+0x1a5a5
 	la	$4,big_local_common+0x1a5a5
 	la	$4,small_local_common+0x1a5a5
-	la	$4,data_label($5)
-	la	$4,big_external_data_label($5)
-	la	$4,small_external_data_label($5)
-	la	$4,big_external_common($5)
-	la	$4,small_external_common($5)
-	la	$4,big_local_common($5)
-	la	$4,small_local_common($5)
-	la	$4,data_label+1($5)
-	la	$4,big_external_data_label+1($5)
-	la	$4,small_external_data_label+1($5)
-	la	$4,big_external_common+1($5)
-	la	$4,small_external_common+1($5)
-	la	$4,big_local_common+1($5)
-	la	$4,small_local_common+1($5)
-	la	$4,data_label+0x8000($5)
-	la	$4,big_external_data_label+0x8000($5)
-	la	$4,small_external_data_label+0x8000($5)
-	la	$4,big_external_common+0x8000($5)
-	la	$4,small_external_common+0x8000($5)
-	la	$4,big_local_common+0x8000($5)
-	la	$4,small_local_common+0x8000($5)
-	la	$4,data_label-0x8000($5)
-	la	$4,big_external_data_label-0x8000($5)
-	la	$4,small_external_data_label-0x8000($5)
-	la	$4,big_external_common-0x8000($5)
-	la	$4,small_external_common-0x8000($5)
-	la	$4,big_local_common-0x8000($5)
-	la	$4,small_local_common-0x8000($5)
-	la	$4,data_label+0x10000($5)
-	la	$4,big_external_data_label+0x10000($5)
-	la	$4,small_external_data_label+0x10000($5)
-	la	$4,big_external_common+0x10000($5)
-	la	$4,small_external_common+0x10000($5)
-	la	$4,big_local_common+0x10000($5)
-	la	$4,small_local_common+0x10000($5)
-	la	$4,data_label+0x1a5a5($5)
-	la	$4,big_external_data_label+0x1a5a5($5)
-	la	$4,small_external_data_label+0x1a5a5($5)
-	la	$4,big_external_common+0x1a5a5($5)
-	la	$4,small_external_common+0x1a5a5($5)
-	la	$4,big_local_common+0x1a5a5($5)
-	la	$4,small_local_common+0x1a5a5($5)
 	la	$4,($5)
 	la	$4,(0x123456)
 	la	$4,(0x123456)($5)
 	la	$4,(big_external_data_label)
-	la	$4,(big_external_data_label)($5)
 
 # Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
 	.space  8

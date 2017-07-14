@@ -96,11 +96,11 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 12c2      	move	s6,t4
 [0-9a-f]+ <[^>]+> 2016 1290 	move	t4,s6
 [0-9a-f]+ <[^>]+> 2002 b290 	move	s6,t4
-[0-9a-f]+ <[^>]+> 1800      	bc	[0-9a-f]+ <[^>]+>
+[0-9a-f]+ <[^>]+> 1800      	bc	[0-9a-f]+ <test>
 			[0-9a-f]+: R_NANOMIPS_PC10_S1	test
-[0-9a-f]+ <[^>]+> 1800      	bc	[0-9a-f]+ <[^>]+>
+[0-9a-f]+ <[^>]+> 1800      	bc	[0-9a-f]+ <test>
 			[0-9a-f]+: R_NANOMIPS_PC10_S1	test
-[0-9a-f]+ <[^>]+> 2800 0000 	bc	[0-9a-f]+ <[^>]+>
+[0-9a-f]+ <[^>]+> 2800 0000 	bc	[0-9a-f]+ <test>
 			[0-9a-f]+: R_NANOMIPS_PC25_S1	test
 [0-9a-f]+ <[^>]+> 1800      	bc	[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_PC10_S1	\.L11
@@ -712,12 +712,12 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 4bdf 0000 	jalrc	fp,ra
 [0-9a-f]+ <[^>]+> d870      	jalrc	t5
 [0-9a-f]+ <[^>]+> dbf0      	jalrc	ra
-[0-9a-f]+ <[^>]+> 2a00 0000 	balc	[0-9a-f]+ <[^>]+>
+[0-9a-f]+ <[^>]+> 2a00 0000 	balc	[0-9a-f]+ <test>
 			[0-9a-f]+: R_NANOMIPS_PC25_S1	test
-[0-9a-f]+ <[^>]+> 2a00 0000 	balc	[0-9a-f]+ <[^>]+>
+[0-9a-f]+ <[^>]+> 2a00 0000 	balc	[0-9a-f]+ <test2>
 			[0-9a-f]+: R_NANOMIPS_PC25_S1	test2
-[0-9a-f]+ <[^>]+> 6040 0000 0000 	li	t4,0x0
-			[0-9a-f]+: R_NANOMIPS_I32	test
+[0-9a-f]+ <[^>]+> 6043 0000 0000 	lapc	t4,00000000 <test>
+			[0-9a-f]+: R_NANOMIPS_PC_I32	test
 [0-9a-f]+ <[^>]+> 8460 0000 	lb	t5,0\(zero\)
 [0-9a-f]+ <[^>]+> 8460 0004 	lb	t5,4\(zero\)
 [0-9a-f]+ <[^>]+> 8460 0000 	lb	t5,0\(zero\)

@@ -477,6 +477,9 @@ enum mips_operand_type {
 
   /* Immediate (non-relocatable) word operand.  */
   OP_IMM_WORD,
+
+  /* Base register for limited types of offsets.  */
+  OP_BASE_CHECK_OFFSET,
 };
 
 /* Enumerates the types of MIPS register.  */

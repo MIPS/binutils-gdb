@@ -3764,6 +3764,7 @@ operand_reg_mask (const struct mips_cl_insn *insn,
     case OP_CHECK_PREV:
     case OP_NON_ZERO_REG:
     case OP_MAPPED_CHECK_PREV:
+    case OP_BASE_CHECK_OFFSET:
       if (!(type_mask & (1 << OP_REG_GP)))
 	return 0;
       uval = insn_extract_operand (insn, operand);
@@ -5474,6 +5475,36 @@ match_tied_reg_operand (struct mips_arg_info *arg, unsigned int other_regno)
   return match_reg (arg, OP_REG_GP, &regno) && regno == other_regno;
 }
 
+/* OP_BASE_CHECK_OFFSET matcher.  */
+
+static bfd_boolean
+match_base_checked_offset_operand (struct mips_arg_info *arg,
+				   const struct mips_operand *operand_base)
+{
+  unsigned int regno;
+  const struct mips_base_check_offset_operand *operand
+    = (const struct mips_base_check_offset_operand *) operand_base;
+
+  if (!match_reg (arg, OP_REG_GP, &regno))
+    return FALSE;
+
+  if ((operand->const_ok
+       && (offset_expr.X_op == O_constant
+	   || offset_expr.X_op == O_absent))
+      || (operand->expr_ok
+	  && (offset_expr.X_op == O_symbol
+	      || offset_expr.X_op == O_absent))
+      || (regno == 0))
+    {
+      arg->last_regno = regno;
+      insn_insert_operand (arg->insn, operand_base, regno);
+      return TRUE;
+    }
+
+  return FALSE;
+}
+
+
 /* Read a floating-point constant from S for LI.S or LI.D.  LENGTH is
    the length of the value in bytes (4 for float, 8 for double) and
    USING_GPRS says whether the destination is a GPR rather than an FPR.
@@ -5800,6 +5831,9 @@ match_operand (struct mips_arg_info *arg,
 
     case OP_IMM_WORD:
       return match_imm_word (arg, operand);
+
+    case OP_BASE_CHECK_OFFSET:
+      return match_base_checked_offset_operand (arg, operand);
    }
   abort ();
 }
@@ -7167,7 +7201,7 @@ match_nanomips_insn (struct mips_cl_insn *insn,
 	    }
 
 	  /* Treat elided base registers as $0.  */
-	  if (strcmp (args, "(b)") == 0)
+	  if (strcmp (args, "(b)") == 0 || strcmp (args, "(c)") == 0)
 	    args += 3;
 
 	  if (args[0] == '+')
@@ -7816,15 +7850,19 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	  continue;
 
 	case '+':
-	  if ((*(fmt + 1) == 'm' || *(fmt + 1) == 'j'
-		  || *(fmt + 1) == '1' || *(fmt + 1) == '2'
-		  || *(fmt + 1) == '3'
-		  || *(fmt + 1) == 'Q' || *(fmt + 1) == 'R')
+	  if ((*(fmt + 1) == 'm'
+	       || *(fmt + 1) == 'j'
+	       || *(fmt + 1) == '1'
+	       || *(fmt + 1) == '2'
+	       || *(fmt + 1) == '3'
+	       || *(fmt + 1) == 'Q'
+	       || *(fmt + 1) == 'R'
+	       || *(fmt + 1) == 'S')
 	      && ep != NULL)
 	    {
 	      macro_read_relocs (&args, r);
 	      macro_match_nanomips_reloc (fmt, r);
-	      if (*(fmt +1) == 'Q' || *(fmt +1) == 'R')
+	      if (*(fmt +1) == 'Q' || *(fmt +1) == 'R' || *(fmt +1) == 'S')
 		break;
 	      fmt++;
 	      continue;
@@ -9161,14 +9199,29 @@ nanomips_macro_ldd_std (const char *s, const char *fmt, unsigned int op[],
 }
 
 static void
+nanomips_macro_pcrel_la (unsigned int op[])
+{
+  if (!IS_SEXT_32BIT_NUM (offset_expr.X_add_number))
+    as_bad (_("offset too large"));
+  if ((mips_opts.ase & ASE_xNMS) != 0
+      && *offset_reloc == BFD_RELOC_UNUSED
+      && !mips_opts.insn32)
+    macro_build (&offset_expr, "lapc", "mp,+S", op[0],
+		 BFD_RELOC_NANOMIPS_PC_I32);
+  else
+    {
+      macro_build (&offset_expr, "aluipc", "t,mK", op[0],
+		   BFD_RELOC_NANOMIPS_PCREL_HI20);
+      macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDIU_FMT,
+		   op[0], op[0], BFD_RELOC_NANOMIPS_LO12);
+    }
+}
+/* Expand the LA macro */
+
+static void
 nanomips_macro_la (unsigned int op[], unsigned int breg, int *used_at)
 {
   unsigned int tempreg;
-  expressionS expr1;
-  expr1.X_op = O_constant;
-  expr1.X_op_symbol = NULL;
-  expr1.X_add_symbol = NULL;
-  expr1.X_add_number = 1;
 
   if (small_poffset_p (0, ISA_ADD_OFFBITS))
     {
@@ -9251,35 +9304,22 @@ nanomips_macro_la (unsigned int op[], unsigned int breg, int *used_at)
       else
 	{
 	  if ((valueT) offset_expr.X_add_number <= MAX_GPREL_OFFSET
-	      && !nopic_need_relax (offset_expr.X_add_symbol, 1))
+	      && !nopic_need_relax (offset_expr.X_add_symbol, 1)
+	      && (mips_opts.mc_model == MC_MEDIUM || mips_opts.mc_model == MC_AUTO))
 	    {
 	      relax_start (offset_expr.X_add_symbol);
 	      macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDIUGP_FMT,
-			   tempreg, mips_gp_register, BFD_RELOC_GPREL16);
+			   op[0], mips_gp_register, BFD_RELOC_GPREL16);
 	      relax_switch ();
 	    }
-	  if (!IS_SEXT_32BIT_NUM (offset_expr.X_add_number))
-	    as_bad (_("offset too large"));
-	  if ((mips_opts.ase & ASE_xNMS) != 0
-	      && *offset_reloc == BFD_RELOC_UNUSED
-	      && !mips_opts.insn32)
-	    macro_build (&offset_expr, "li", "mp,+Q", tempreg,
-			 BFD_RELOC_NANOMIPS_I32);
-	  else
-	    {
-	      macro_build_lui (&offset_expr, tempreg);
-	      if (!hi16_reloc_p (*offset_reloc))
-		macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDIU_FMT,
-			     tempreg, tempreg, ISA_BFD_RELOC_LOW);
-	    }
+
+	  nanomips_macro_pcrel_la (op);
 	  if (mips_relax.sequence)
 	    relax_end ();
 	}
     }
   else
     {
-      int add_breg_early = 0;
-
       /* If this is a reference to an external, and there is no
 	 constant, or local symbol (*), with or without a
 	 constant, we want
@@ -9303,81 +9343,24 @@ nanomips_macro_la (unsigned int op[], unsigned int breg, int *used_at)
 	 local symbols, even though it introduces an additional
 	 instruction.  */
 
-      if (offset_expr.X_add_number)
-	{
-	  expr1.X_add_number = offset_expr.X_add_number;
-	  offset_expr.X_add_number = 0;
+      relax_start (offset_expr.X_add_symbol);
 
-	  relax_start (offset_expr.X_add_symbol);
-	  macro_build (&offset_expr, ADDRESS_LOAD_INSN, LWGP_FMT,
-		       tempreg, BFD_RELOC_NANOMIPS_GOT_DISP, mips_gp_register);
-
-	  if (offset_high_unsigned (expr1.X_add_number, ISA_ADD_OFFBITS) == 0)
-	    macro_build (&expr1, ADDRESS_ADDI_INSN, ADDIU_FMT,
-			 tempreg, tempreg, BFD_RELOC_LO16);
-	  else if (offset_high_unsigned (-expr1.X_add_number, ISA_OFFBITS) == 0)
-	    macro_build (&expr1, ADDRESS_ADDI_INSN, "t,r,h",
-		     tempreg, tempreg, BFD_RELOC_NANOMIPS_NEG12);
-	  else if (IS_SEXT_32BIT_NUM (expr1.X_add_number + 0x8000))
-	    {
-	      unsigned int dreg;
-
-	      /* If we are going to add in a base register, and the
-		 target register and the base register are the same,
-		 then we are using AT as a temporary register.  Since
-		 we want to load the constant into AT, we add our
-		 current AT (from the global offset table) and the
-		 register into the register now, and pretend we were
-		 not using a base register.  */
-	      if (breg != op[0])
-		dreg = tempreg;
-	      else
-		{
-		  gas_assert (tempreg == AT);
-		  macro_build (NULL, ADDRESS_ADD_INSN, "d,v,t",
-			       op[0], AT, breg);
-		  dreg = op[0];
-		  add_breg_early = 1;
-		}
-
-	      load_register (AT, &expr1, HAVE_64BIT_ADDRESSES);
-	      macro_build (NULL, ADDRESS_ADD_INSN, "d,v,t",
-			   dreg, dreg, AT);
-
-	      *used_at = 1;
-	    }
-	  else
-	    as_bad (_("PIC code offset overflow (max 32 signed bits)"));
-
-	  relax_switch ();
-	  offset_expr.X_add_number = expr1.X_add_number;
-
-	  macro_build (&offset_expr, ADDRESS_LOAD_INSN, LWGP_FMT,
-		       tempreg, BFD_RELOC_NANOMIPS_GOT_DISP, mips_gp_register);
-	  if (add_breg_early)
-	    {
-	      macro_build (NULL, ADDRESS_ADD_INSN, "d,v,t",
-			   op[0], tempreg, breg);
-	      breg = 0;
-	      tempreg = op[0];
-	    }
-	  relax_end ();
-	}
-      else if (breg == 0 && (tempreg == PIC_CALL_REG))
-	{
-	  relax_start (offset_expr.X_add_symbol);
-	  macro_build (&offset_expr, ADDRESS_LOAD_INSN, LWGP_FMT,
-		       tempreg, BFD_RELOC_NANOMIPS_GOT_CALL, mips_gp_register);
-	  relax_switch ();
-	  macro_build (&offset_expr, ADDRESS_LOAD_INSN, LWGP_FMT,
-		       tempreg, BFD_RELOC_NANOMIPS_GOT_DISP, mips_gp_register);
-	  relax_end ();
-	}
+      if (mips_opts.mc_model == MC_MEDIUM || mips_opts.mc_model == MC_AUTO
+	  || linkrelax)
+	macro_build (&offset_expr, ADDRESS_LOAD_INSN, LWGP_FMT,
+		     tempreg, BFD_RELOC_NANOMIPS_GOT_DISP, mips_gp_register);
       else
 	{
+	  macro_build (&offset_expr, "aluipc", "t,mK", op[0],
+		       BFD_RELOC_NANOMIPS_GOTPC_HI20);
 	  macro_build (&offset_expr, ADDRESS_LOAD_INSN, LWGP_FMT,
-		       tempreg, BFD_RELOC_NANOMIPS_GOT_DISP, mips_gp_register);
+		       tempreg, BFD_RELOC_NANOMIPS_GOT_LO12, op[0]);
 	}
+
+      relax_switch ();
+      /* Local symbols can be PC-relative.  */
+      nanomips_macro_pcrel_la (op);
+      relax_end ();
     }
 
   if (breg != 0)

@@ -1472,6 +1472,7 @@ print_insn_arg (struct disassemble_info *info,
     case OP_REG:
     case OP_OPTIONAL_REG:
     case OP_MAPPED_CHECK_PREV:
+    case OP_BASE_CHECK_OFFSET:
       {
 	const struct mips_reg_operand *reg_op;
 

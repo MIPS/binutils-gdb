@@ -1,109 +1,111 @@
 #objdump: -dr --show-raw-insn --prefix-addresses
-#name: nanoMIPS -mgp32 -mfp64 \(SVR4 PIC\)
+#name: nanoMIPS -mgp32 -mfp64 \\(SVR4 PIC\\)
 #as: -EB
 
 .*: +file format.*
 
 Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> e380 0002 	aluipc	gp,[0-9a-f]+ <[^>]+>
-			[0-9A-F]+: R_NANOMIPS_PCHI20	_gp
+			0: R_NANOMIPS_PCHI20	_gp
 [0-9a-f]+ <[^>]+> e094 5244 	lui	a0,%hi\(0x12345000\)
 [0-9a-f]+ <[^>]+> 8084 0678 	ori	a0,a0,1656
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
-			[0-9a-f]+: R_NANOMIPS_GOT_DISP	\.sdata
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
-			[0-9A-F]+: R_NANOMIPS_GOT_DISP	\.data
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
-			[0-9A-F]+: R_NANOMIPS_GOT_DISP	end
-[0-9a-f]+ <[^>]+> 2800 0000 	bc	[0-9a-f]+ <[^>]+>
-			[0-9A-F]+: R_NANOMIPS_PC25_S1	end
+[0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
+			c: R_NANOMIPS_PCHI20	shared
+[0-9a-f]+ <[^>]+> 0084 0000 	addiu	a0,a0,0
+			10: R_NANOMIPS_LO12	.sdata
+[0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
+			14: R_NANOMIPS_PCHI20	unshared
+[0-9a-f]+ <[^>]+> 0084 0000 	addiu	a0,a0,0
+			18: R_NANOMIPS_LO12	.data
+[0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
+			1c: R_NANOMIPS_PCHI20	end
+[0-9a-f]+ <[^>]+> 0084 0000 	addiu	a0,a0,0
+			20: R_NANOMIPS_LO12	end
+[0-9a-f]+ <[^>]+> 2800 0000 	bc	000000e6 <[^>]+>
+			24: R_NANOMIPS_PC25_S1	end
 [0-9a-f]+ <[^>]+> 4320 0002 	lw	t9,0\(gp\)
-			[0-9a-f]+: R_NANOMIPS_GOT_DISP	end
+			28: R_NANOMIPS_GOT_DISP	end
 [0-9a-f]+ <[^>]+> db30      	jalrc	t9
 [0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
-			[0-9A-F]+: R_NANOMIPS_GOT_PAGE	\.sdata
+			2e: R_NANOMIPS_GOT_PAGE	.sdata
 [0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
-			[0-9A-F]+: R_NANOMIPS_GOT_OFST	\.sdata
+			32: R_NANOMIPS_GOT_OFST	.sdata
 [0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
-			[0-9a-f]+: R_NANOMIPS_GOT_PAGE	\.data
+			36: R_NANOMIPS_GOT_PAGE	.data
 [0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
-			[0-9a-f]+: R_NANOMIPS_GOT_OFST	\.data
+			3a: R_NANOMIPS_GOT_OFST	.data
 [0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
-			[0-9A-F]+: R_NANOMIPS_GOT_PAGE	end
+			3e: R_NANOMIPS_GOT_PAGE	end
 [0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
-			[0-9A-F]+: R_NANOMIPS_GOT_OFST	end
+			42: R_NANOMIPS_GOT_OFST	end
 [0-9a-f]+ <[^>]+> 4020 0002 	lw	at,0\(gp\)
-			[0-9a-f]+: R_NANOMIPS_GOT_PAGE	\.sdata
+			46: R_NANOMIPS_GOT_PAGE	.sdata
 [0-9a-f]+ <[^>]+> 8481 8000 	lw	a0,0\(at\)
-			[0-9a-f]+: R_NANOMIPS_GOT_OFST	\.sdata
+			4a: R_NANOMIPS_GOT_OFST	.sdata
 [0-9a-f]+ <[^>]+> 84a1 8000 	lw	a1,0\(at\)
-			[0-9A-F]+: R_NANOMIPS_GOT_OFST	\.sdata\+0x4
+			4e: R_NANOMIPS_GOT_OFST	.sdata\+0x4
 [0-9a-f]+ <[^>]+> 4020 0002 	lw	at,0\(gp\)
-			[0-9A-F]+: R_NANOMIPS_GOT_PAGE	\.data
+			52: R_NANOMIPS_GOT_PAGE	.data
 [0-9a-f]+ <[^>]+> 8481 8000 	lw	a0,0\(at\)
-			[0-9a-f]+: R_NANOMIPS_GOT_OFST	\.data
+			56: R_NANOMIPS_GOT_OFST	.data
 [0-9a-f]+ <[^>]+> 84a1 8000 	lw	a1,0\(at\)
-			[0-9a-f]+: R_NANOMIPS_GOT_OFST	\.data\+0x4
+			5a: R_NANOMIPS_GOT_OFST	.data\+0x4
 [0-9a-f]+ <[^>]+> 4020 0002 	lw	at,0\(gp\)
-			[0-9A-F]+: R_NANOMIPS_GOT_PAGE	end
+			5e: R_NANOMIPS_GOT_PAGE	end
 [0-9a-f]+ <[^>]+> 8481 8000 	lw	a0,0\(at\)
-			[0-9A-F]+: R_NANOMIPS_GOT_OFST	end
+			62: R_NANOMIPS_GOT_OFST	end
 [0-9a-f]+ <[^>]+> 84a1 8000 	lw	a1,0\(at\)
-			[0-9a-f]+: R_NANOMIPS_GOT_OFST	end\+0x4
+			66: R_NANOMIPS_GOT_OFST	end\+0x4
 [0-9a-f]+ <[^>]+> 4020 0002 	lw	at,0\(gp\)
-			[0-9a-f]+: R_NANOMIPS_GOT_PAGE	\.sdata
+			6a: R_NANOMIPS_GOT_PAGE	.sdata
 [0-9a-f]+ <[^>]+> 8481 9000 	sw	a0,0\(at\)
-			[0-9A-F]+: R_NANOMIPS_GOT_OFST	\.sdata
+			6e: R_NANOMIPS_GOT_OFST	.sdata
 [0-9a-f]+ <[^>]+> 4020 0002 	lw	at,0\(gp\)
-			[0-9A-F]+: R_NANOMIPS_GOT_PAGE	\.data
+			72: R_NANOMIPS_GOT_PAGE	.data
 [0-9a-f]+ <[^>]+> 8481 9000 	sw	a0,0\(at\)
-			[0-9a-f]+: R_NANOMIPS_GOT_OFST	\.data
+			76: R_NANOMIPS_GOT_OFST	.data
 [0-9a-f]+ <[^>]+> 4020 0002 	lw	at,0\(gp\)
-			[0-9a-f]+: R_NANOMIPS_GOT_PAGE	\.sdata
+			7a: R_NANOMIPS_GOT_PAGE	.sdata
 [0-9a-f]+ <[^>]+> 8481 9000 	sw	a0,0\(at\)
-			[0-9A-F]+: R_NANOMIPS_GOT_OFST	\.sdata
+			7e: R_NANOMIPS_GOT_OFST	.sdata
 [0-9a-f]+ <[^>]+> 84a1 9000 	sw	a1,0\(at\)
-			[0-9A-F]+: R_NANOMIPS_GOT_OFST	\.sdata\+0x4
+			82: R_NANOMIPS_GOT_OFST	.sdata\+0x4
 [0-9a-f]+ <[^>]+> 4020 0002 	lw	at,0\(gp\)
-			[0-9a-f]+: R_NANOMIPS_GOT_PAGE	\.data
+			86: R_NANOMIPS_GOT_PAGE	.data
 [0-9a-f]+ <[^>]+> 8481 9000 	sw	a0,0\(at\)
-			[0-9a-f]+: R_NANOMIPS_GOT_OFST	\.data
+			8a: R_NANOMIPS_GOT_OFST	.data
 [0-9a-f]+ <[^>]+> 84a1 9000 	sw	a1,0\(at\)
-			[0-9A-F]+: R_NANOMIPS_GOT_OFST	\.data\+0x4
+			8e: R_NANOMIPS_GOT_OFST	.data\+0x4
 [0-9a-f]+ <[^>]+> 4020 0002 	lw	at,0\(gp\)
-			[0-9A-F]+: R_NANOMIPS_GOT_PAGE	\.data
+			92: R_NANOMIPS_GOT_PAGE	.data
 [0-9a-f]+ <[^>]+> 8481 4000 	lh	a0,0\(at\)
-			[0-9a-f]+: R_NANOMIPS_GOT_OFST	\.data
+			96: R_NANOMIPS_GOT_OFST	.data
 [0-9a-f]+ <[^>]+> 4020 0002 	lw	at,0\(gp\)
-			[0-9a-f]+: R_NANOMIPS_GOT_PAGE	\.data
+			9a: R_NANOMIPS_GOT_PAGE	.data
 [0-9a-f]+ <[^>]+> 8481 5000 	sh	a0,0\(at\)
-			[0-9A-F]+: R_NANOMIPS_GOT_OFST	\.data
+			9e: R_NANOMIPS_GOT_OFST	.data
 [0-9a-f]+ <[^>]+> 4020 0002 	lw	at,0\(gp\)
-			[0-9A-F]+: R_NANOMIPS_GOT_PAGE	\.data
+			a2: R_NANOMIPS_GOT_PAGE	.data
 [0-9a-f]+ <[^>]+> 8481 8000 	lw	a0,0\(at\)
-			[0-9a-f]+: R_NANOMIPS_GOT_OFST	\.data
+			a6: R_NANOMIPS_GOT_OFST	.data
 [0-9a-f]+ <[^>]+> 4020 0002 	lw	at,0\(gp\)
-			[0-9a-f]+: R_NANOMIPS_GOT_PAGE	\.data
+			aa: R_NANOMIPS_GOT_PAGE	.data
 [0-9a-f]+ <[^>]+> 8481 9000 	sw	a0,0\(at\)
-			[0-9a-f]+: R_NANOMIPS_GOT_OFST	\.data
+			ae: R_NANOMIPS_GOT_OFST	.data
 [0-9a-f]+ <[^>]+> e090 07fc 	lui	a0,%hi\(0x3ff00000\)
 [0-9a-f]+ <[^>]+> 10a0      	move	a1,zero
 [0-9a-f]+ <[^>]+> 4020 0002 	lw	at,0\(gp\)
-			[0-9a-f]+: R_NANOMIPS_GOT_DISP	\.rodata
+			b8: R_NANOMIPS_GOT_DISP	.rodata
 [0-9a-f]+ <[^>]+> 8481 8000 	lw	a0,0\(at\)
 [0-9a-f]+ <[^>]+> 84a1 8004 	lw	a1,4\(at\)
 [0-9a-f]+ <[^>]+> e030 07fc 	lui	at,%hi\(0x3ff00000\)
 [0-9a-f]+ <[^>]+> a020 383b 	mthc1	at,\$f0
 [0-9a-f]+ <[^>]+> a000 283b 	mtc1	zero,\$f0
-#[0-9a-f]+ <[^>]+> 4020 0002 	lw	at,0\(gp\)
-#			[0-9a-f]+: R_NANOMIPS_GOT_DISP	\.rodata\+0x8
-#[0-9a-f]+ <[^>]+> 8401 e000 	ldc1	\$f0,0\(at\)
-#			[0-9a-f]+: R_NANOMIPS_GOT_OFST	\.rodata\+0x8
 [0-9a-f]+ <[^>]+> 0085 0064 	addiu	a0,a1,100
 [0-9a-f]+ <[^>]+> 8084 5001 	sltiu	a0,a0,1
 [0-9a-f]+ <[^>]+> 0085 0064 	addiu	a0,a1,100
 [0-9a-f]+ <[^>]+> 2080 2390 	sltu	a0,zero,a0
 [0-9a-f]+ <[^>]+> 1085      	move	a0,a1
-[0-9a-f]+ <[^>]+> a062 0930 	add\.d	\$f1,\$f2,\$f3
-	\.\.\.
-#pass
+[0-9a-f]+ <[^>]+> a062 0930 	add.d	\$f1,\$f2,\$f3
+	...
+[0-9a-f]+ <[^>]+> 9008      	nop

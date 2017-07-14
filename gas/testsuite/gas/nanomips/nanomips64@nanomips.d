@@ -717,8 +717,8 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_NANOMIPS_PC25_S1	test
 [0-9a-f]+ <[^>]+> 2a00 0000 	balc	[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_PC25_S1	test2
-[0-9a-f]+ <[^>]+> 6040 0000 0000 	li	t4,0x0
-			[0-9a-f]+: R_NANOMIPS_I32	test
+[0-9a-f]+ <[^>]+> 6043 0000 0000 	lapc	t4,00000000 <test>
+			[0-9a-f]+: R_NANOMIPS_PC_I32	test
 [0-9a-f]+ <[^>]+> 8460 0000 	lb	t5,0\(zero\)
 [0-9a-f]+ <[^>]+> 8460 0004 	lb	t5,4\(zero\)
 [0-9a-f]+ <[^>]+> 8460 0000 	lb	t5,0\(zero\)

@@ -921,6 +921,7 @@ print_insn_arg (struct disassemble_info *info,
     case OP_REG:
     case OP_OPTIONAL_REG:
     case OP_MAPPED_CHECK_PREV:
+    case OP_BASE_CHECK_OFFSET:
       {
 	const struct mips_reg_operand *reg_op;
 
@@ -1257,6 +1258,7 @@ validate_insn_args (const struct nanomips_opcode *opcode,
 		{
 		case OP_REG:
 		case OP_OPTIONAL_REG:
+		case OP_BASE_CHECK_OFFSET:
 		  {
 		    const struct mips_reg_operand *reg_op;
 
@@ -1481,12 +1483,7 @@ print_insn_args (struct disassemble_info *info,
 		 the following PC as the base but genuinely PC relative
 		 operands use the current PC.  */
 	      if (operand->type == OP_PCREL && !have_reloc)
-		{
-		  const struct mips_pcrel_operand *pcrel_op;
-
-		  pcrel_op = (const struct mips_pcrel_operand *) operand;
-		  base_pc += length;
-		}
+		base_pc += length;
 
 	      if ((operand->type == OP_HI20_PCREL
 		    || operand->type == OP_NON_ZERO_PCREL_S1)

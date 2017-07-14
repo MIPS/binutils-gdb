@@ -5289,6 +5289,7 @@ operand_reg_mask (const struct mips_cl_insn *insn,
 
     case OP_REG:
     case OP_OPTIONAL_REG:
+    case OP_BASE_CHECK_OFFSET:
       {
 	const struct mips_reg_operand *reg_op;
 
@@ -7459,6 +7460,7 @@ match_operand (struct mips_arg_info *arg,
 
     case OP_REG:
     case OP_OPTIONAL_REG:
+    case OP_BASE_CHECK_OFFSET:     
       return match_reg_operand (arg, operand);
 
     case OP_REG_PAIR:

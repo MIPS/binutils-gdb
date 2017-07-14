@@ -114,3 +114,12 @@
     }; \
     return &op.root; \
   }
+
+#define BASE_OFFSET_CHECK(SIZE, LSB, CONST_OK, EXPR_OK) \
+  { \
+    static const struct mips_base_check_offset_operand op = { \
+      { OP_BASE_CHECK_OFFSET, SIZE, LSB, 0, 0 }, OP_REG_GP, \
+      CONST_OK, EXPR_OK					    \
+    }; \
+    return &op.root; \
+  }

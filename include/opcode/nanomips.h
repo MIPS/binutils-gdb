@@ -39,6 +39,18 @@ struct mips_mapped_check_prev_operand
   bfd_boolean zero_ok;
 };
 
+/* Describes an operand that encapsulates a base register with
+   a check against the type of offset.  */
+struct mips_base_check_offset_operand
+{
+  struct mips_operand root;
+
+  enum mips_reg_operand_type reg_type;
+
+  bfd_boolean const_ok;
+  bfd_boolean expr_ok;
+};
+
 /* This structure holds information for a particular instruction.  */
 
 struct nanomips_opcode

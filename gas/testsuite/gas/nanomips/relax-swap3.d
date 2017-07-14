@@ -5,13 +5,13 @@
 .*: +file format .*nanomips.*
 
 Disassembly of section \.text:
-[0-9a-f]+ <[^>]*> e040 0000 	lui	t4,0x0
-[	]*[0-9a-f]+: R_NANOMIPS_HI20	bar
+[0-9a-f]+ <[^>]*> e040 0002 	aluipc	t4,00000000 <bar>
+[	]*[0-9a-f]+: R_NANOMIPS_PCHI20	bar
 [0-9a-f]+ <[^>]*> 0042 0000 	addiu	t4,t4,0
 [	]*[0-9a-f]+: R_NANOMIPS_LO12	bar
 [0-9a-f]+ <[^>]*> d860      	jrc	t5
-[0-9a-f]+ <[^>]*> e040 0000 	lui	t4,0x0
-[	]*[0-9a-f]+: R_NANOMIPS_HI20	bar
+[0-9a-f]+ <[^>]*> e040 0002 	aluipc	t4,00000000 <bar>
+[	]*[0-9a-f]+: R_NANOMIPS_PCHI20	bar
 [0-9a-f]+ <[^>]*> 0042 0000 	addiu	t4,t4,0
 [	]*[0-9a-f]+: R_NANOMIPS_LO12	bar
 [0-9a-f]+ <[^>]*> 8860 0000 	beqzc	t5,[0-9a-f]+ <[^>]*>

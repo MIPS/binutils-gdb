@@ -319,9 +319,9 @@ proc run_dump_test_arch { name opts arch } {
 
     set proparch [lindex [nanomips_arch_properties $arch 0] 0]
     set prefixes [list ${proparch}@ ]
-    if { [ string match "nanomips*" $proparch ] \
-	     || [ string match "?7001" $proparch ] } {
-	lappend prefixes nanomips@
+
+    if { [ string match "nanomips32s" $arch ]} {
+	lappend prefixes nms@
     }
 
     foreach prefix ${prefixes} {
@@ -368,8 +368,8 @@ proc run_list_test_arch { name opts arch } {
     set testname "nanoMIPS $name ([concat $opts [nanomips_arch_displayname $arch]])"
     set proparch [lindex [nanomips_arch_properties $arch 0] 0]
     set prefixes [list ${proparch}@ ]
-    if { [ string match "nanomips*" $proparch ]} {
-	lappend prefixes nanomips@
+    if { [ string match "nanomips32s" $arch ]} {
+	lappend prefixes nms@
     }
 
     verbose "run_list_test_arch $prefixes"
@@ -913,7 +913,12 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "nanomips-exc32" "--defsym insn32_broken=" nanomips32
 
     run_dump_test_arches "addu" "-mlegacyregs" [arch_list_matching nanomips32s]
-    run_dump_test_arches "la" "-mlegacyregs" [arch_list_matching xnms]
+    run_dump_test_opts "la" \
+	{"-mlegacyregs" "-mlegacyregs --defsym mc_medium="} \
+	[arch_list_matching nanomips]
+    run_dump_test_arches "la-mclarge" "-mlegacyregs --defsym mc_large=" \
+	[arch_list_matching nanomips]
+
     run_dump_test_arch "mips-abi32-pic" "-KPIC -mlegacyregs" nanomips32s
     run_dump_test_arches "mips-abi32-pic2" "-KPIC -mlegacyregs" \
 				[arch_list_matching nanomips]
@@ -959,7 +964,6 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "nolinkrelax-relocs" "-mlegacyregs" [arch_list_matching nanomips]
 
     run_dump_test_arch "nanomips-noxlp" "" nanomips32s
-    run_dump_test_arch "la-nms"  "-mlegacyregs" nanomips32s
     run_dump_test_arch "la-svr4pic" "-mlegacyregs" nanomips32s
     run_dump_test_arch "ld-svr4pic" "-mlegacyregs" nanomips32s
     run_dump_test_arch "mips-abi32" "-mlegacyregs" nanomips32s

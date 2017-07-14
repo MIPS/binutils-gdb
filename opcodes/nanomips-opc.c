@@ -277,7 +277,7 @@ decode_nanomips_operand (const char *p)
 
     case 'a': JUMP (26, 0, 1);
     case 'b': REG (5, 16, GP);
-/*     case 'c': HINT (10, 16); */
+    case 'c': BASE_OFFSET_CHECK (5, 16, TRUE, FALSE);
     case 'd': REG (5, 11, GP);
 /*     case 'h': HINT (5, 11); */
     case 'i': UINT (12, 0);
@@ -390,7 +390,7 @@ const struct nanomips_opcode nanomips_opcodes[] =
    instruction name anyhow.  */
 /* name,	suffix,		args,		match,	mask,	pinfo		pinfo2, 	membership, ase */
 /* Pure macros */
-{"la",		"",		"t,A(b)",	0,    (int) M_LA_AB,	INSN_MACRO,		0,	I38,	0},
+{"la",		"",		"t,A(c)",	0,    (int) M_LA_AB,	INSN_MACRO,		0,	I38,	0},
 {"dla", 	"", 		"t,A(b)",	0,    (int) M_DLA_AB,	INSN_MACRO,		0,	I38,	0},
 /* Precedence=1 */
 {"aluipc",	"",		"t,mK",		0xe0000002, 0xfc000002, WR_1,			0,	I38,	0}, /* ALUIPC */
