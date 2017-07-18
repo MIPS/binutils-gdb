@@ -8673,18 +8673,22 @@ small_offset_p (unsigned int range, unsigned int align, unsigned int offbits)
 
   if (offset_expr.X_op == O_constant
       && offset_high_part (offset_expr.X_add_number, offbits) == 0
-      && offset_high_part (offset_expr.X_add_number + range, offbits) == 0)
+      && offset_high_part (offset_expr.X_add_number + range, offbits) == 0
+      && offset_expr.X_add_number % align == 0
+      && range % align == 0)
     return TRUE;
 
   return FALSE;
 }
 
 static bfd_boolean
-small_poffset_p (unsigned int range, unsigned int offbits)
+small_poffset_p (unsigned int range, unsigned align, unsigned int offbits)
 {
   if (offset_expr.X_op == O_constant
       && offset_expr.X_add_number >= 0
-      && offset_expr.X_add_number + range < (1 << offbits))
+      && offset_expr.X_add_number + range < (1 << offbits)
+      && offset_expr.X_add_number % align == 0
+      && range % align == 0)
     return TRUE;
 
   if (lo16_reloc_p (*offset_reloc)
@@ -8708,7 +8712,7 @@ small_noffset_p (unsigned int range, unsigned int offbits)
 static bfd_boolean
 small_add_offset_p (unsigned int range)
 {
-  return (small_poffset_p (range, ISA_ADD_OFFBITS)
+  return (small_poffset_p (range, 1, ISA_ADD_OFFBITS)
 	  || (small_noffset_p (range, ISA_OFFBITS)));
 }
 
@@ -8728,7 +8732,7 @@ nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
       /* The first case exists for M_LD_AB and M_SD_AB, which are
 	 macros for o32 but which should act like normal instructions
 	 otherwise.  */
-      if (offbits == ISA_OFFBITS && small_poffset_p (0, offbits))
+      if (offbits == ISA_OFFBITS && small_poffset_p (0, align, offbits))
 	macro_build (&offset_expr, s, fmt, op[0], -1, offset_reloc[0],
 		     offset_reloc[1], offset_reloc[2], breg);
       else if (small_offset_p (0, align, offbits))
@@ -8738,7 +8742,7 @@ nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
 	{
 	  if (tempreg == AT)
 	    *used_at = 1;
-	  if (small_poffset_p (0, ISA_ADD_OFFBITS))
+	  if (small_poffset_p (0, 1, ISA_ADD_OFFBITS))
 	    macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDIU_FMT,
 			 tempreg, breg, -1, offset_reloc[0],
 			 offset_reloc[1], offset_reloc[2]);
@@ -9010,10 +9014,10 @@ nanomips_macro_ldd_std (const char *s, const char *fmt, unsigned int op[],
   if (small_add_offset_p (0))
     {
       ep = &offset_expr;
-      if ((offbits != ISA_OFFBITS || !small_poffset_p (4, offbits))
+      if ((offbits != ISA_OFFBITS || !small_poffset_p (4, align, offbits))
 	  && !small_offset_p (4, align, offbits))
 	{
-	  if (small_poffset_p (0, ISA_ADD_OFFBITS))
+	  if (small_poffset_p (0, align, ISA_ADD_OFFBITS))
 	    macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDIU_FMT, AT,
 			 breg, -1, offset_reloc[0], offset_reloc[1],
 			 offset_reloc[2]);
@@ -9223,7 +9227,7 @@ nanomips_macro_la (unsigned int op[], unsigned int breg, int *used_at)
 {
   unsigned int tempreg;
 
-  if (small_poffset_p (0, ISA_ADD_OFFBITS))
+  if (small_poffset_p (0, 1, ISA_ADD_OFFBITS))
     {
       macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDIU_FMT, op[0], breg,
 		   -1, offset_reloc[0], offset_reloc[1], offset_reloc[2]);
@@ -10019,7 +10023,7 @@ nanomips_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 
     case M_JRADDIUSP:
       offset_expr = imm_expr;
-      if (small_poffset_p (0, ISA_ADD_OFFBITS))
+      if (small_poffset_p (0, 1, ISA_ADD_OFFBITS))
 	macro_build (&imm_expr, "addiu", ADDIU_FMT, SP, SP,
 		   BFD_RELOC_NANOMIPS_IMM16);
       else if (small_noffset_p (0, ISA_OFFBITS))

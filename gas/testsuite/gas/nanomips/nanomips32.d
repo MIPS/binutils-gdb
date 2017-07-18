@@ -97,30 +97,30 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2016 1290 	move	t4,s6
 [0-9a-f]+ <[^>]+> 2002 b290 	move	s6,t4
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	00000000 <[^>]+>
-			15c: R_NANOMIPS_PC25_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	test
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	00000000 <[^>]+>
-			160: R_NANOMIPS_PC25_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	test
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	0000016c <[^>]+>
-			164: R_NANOMIPS_PC25_S1	.L11
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	.L11
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	0000016c <[^>]+>
-			168: R_NANOMIPS_PC25_S1	.L11
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	.L11
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	0000016c <[^>]+>
-			16c: R_NANOMIPS_PC25_S1	.L11
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	.L11
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	0000016c <[^>]+>
-			170: R_NANOMIPS_PC25_S1	.L11
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	.L11
 [0-9a-f]+ <[^>]+> 2003 1290 	move	t4,t5
 [0-9a-f]+ <[^>]+> 8803 8000 	bgezc	t5,[0-9a-f]+ <[^>]+>
-			178: R_NANOMIPS_PC14_S1	.L0
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	.L0
 [0-9a-f]+ <[^>]+> 2060 11d0 	negu	t4,t5
 [0-9a-f]+ <[^>]+> 2004 1290 	move	t4,a0
 [0-9a-f]+ <[^>]+> 8804 8000 	bgezc	a0,[0-9a-f]+ <[^>]+>
-			184: R_NANOMIPS_PC14_S1	.L1
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	.L1
 [0-9a-f]+ <[^>]+> 2080 11d0 	negu	t4,a0
 [0-9a-f]+ <[^>]+> 8802 8000 	bgezc	t4,[0-9a-f]+ <[^>]+>
-			18c: R_NANOMIPS_PC14_S1	.L2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	.L2
 [0-9a-f]+ <[^>]+> 2040 11d0 	negu	t4,t4
 [0-9a-f]+ <[^>]+> 8802 8000 	bgezc	t4,[0-9a-f]+ <[^>]+>
-			194: R_NANOMIPS_PC14_S1	.L3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	.L3
 [0-9a-f]+ <[^>]+> 2040 11d0 	negu	t4,t4
 [0-9a-f]+ <[^>]+> 2083 1110 	add	t4,t5,a0
 [0-9a-f]+ <[^>]+> 23fe e910 	add	sp,fp,ra
@@ -314,127 +314,127 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 8021 0001 	ori	at,at,1
 [0-9a-f]+ <[^>]+> 2023 1250 	and	t4,t5,at
 [0-9a-f]+ <[^>]+> 8a40 0000 	beqzc	s2,[0-9a-f]+ <[^>]+>
-			498: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 8a60 0000 	beqzc	s3,[0-9a-f]+ <[^>]+>
-			49c: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 8880 0000 	beqzc	a0,[0-9a-f]+ <[^>]+>
-			4a0: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 88a0 0000 	beqzc	a1,[0-9a-f]+ <[^>]+>
-			4a4: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 88c0 0000 	beqzc	a2,[0-9a-f]+ <[^>]+>
-			4a8: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 88e0 0000 	beqzc	a3,[0-9a-f]+ <[^>]+>
-			4ac: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 8a00 0000 	beqzc	s0,[0-9a-f]+ <[^>]+>
-			4b0: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 8a20 0000 	beqzc	s1,[0-9a-f]+ <[^>]+>
-			4b4: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 8812 0000 	beqzc	s2,[0-9a-f]+ <[^>]+>
-			4b8: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 8813 0000 	beqzc	s3,[0-9a-f]+ <[^>]+>
-			4bc: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 8804 0000 	beqzc	a0,[0-9a-f]+ <[^>]+>
-			4c0: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 8805 0000 	beqzc	a1,[0-9a-f]+ <[^>]+>
-			4c4: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 8806 0000 	beqzc	a2,[0-9a-f]+ <[^>]+>
-			4c8: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 8807 0000 	beqzc	a3,[0-9a-f]+ <[^>]+>
-			4cc: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 8810 0000 	beqzc	s0,[0-9a-f]+ <[^>]+>
-			4d0: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 8811 0000 	beqzc	s1,[0-9a-f]+ <[^>]+>
-			4d4: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 8a40 0000 	beqzc	s2,[0-9a-f]+ <[^>]+>
-			4d8: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 8a60 0000 	beqzc	s3,[0-9a-f]+ <[^>]+>
-			4dc: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 8880 0000 	beqzc	a0,[0-9a-f]+ <[^>]+>
-			4e0: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 88a0 0000 	beqzc	a1,[0-9a-f]+ <[^>]+>
-			4e4: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 88c0 0000 	beqzc	a2,[0-9a-f]+ <[^>]+>
-			4e8: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 88e0 0000 	beqzc	a3,[0-9a-f]+ <[^>]+>
-			4ec: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 8a00 0000 	beqzc	s0,[0-9a-f]+ <[^>]+>
-			4f0: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 8a20 0000 	beqzc	s1,[0-9a-f]+ <[^>]+>
-			4f4: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 8a00 0000 	beqzc	s0,[0-9a-f]+ <[^>]+>
-			4f8: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 8a20 0000 	beqzc	s1,[0-9a-f]+ <[^>]+>
-			4fc: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 8a20 0000 	beqzc	s1,[0-9a-f]+ <[^>]+>
-			500: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 8a20 0000 	beqzc	s1,[0-9a-f]+ <[^>]+>
-			504: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 8a00 0000 	beqzc	s0,[0-9a-f]+ <[^>]+>
-			508: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> ca00 5000 	beqic	s0,10,[0-9a-f]+ <[^>]+>
-			50c: R_NANOMIPS_PC11_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test2
 [0-9a-f]+ <[^>]+> 0020 7fff 	li	at,32767
 [0-9a-f]+ <[^>]+> 8830 0000 	beqc	s0,at,[0-9a-f]+ <[^>]+>
-			514: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> e021 0000 	lui	at,%hi\(0x10000\)
 [0-9a-f]+ <[^>]+> 8830 0000 	beqc	s0,at,[0-9a-f]+ <[^>]+>
-			51c: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> aa40 0000 	bnezc	s2,[0-9a-f]+ <[^>]+>
-			520: R_NANOMIPS_PC14_S1	test3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test3
 [0-9a-f]+ <[^>]+> aa60 0000 	bnezc	s3,[0-9a-f]+ <[^>]+>
-			524: R_NANOMIPS_PC14_S1	test3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test3
 [0-9a-f]+ <[^>]+> a880 0000 	bnezc	a0,[0-9a-f]+ <[^>]+>
-			528: R_NANOMIPS_PC14_S1	test3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test3
 [0-9a-f]+ <[^>]+> a8a0 0000 	bnezc	a1,[0-9a-f]+ <[^>]+>
-			52c: R_NANOMIPS_PC14_S1	test3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test3
 [0-9a-f]+ <[^>]+> a8c0 0000 	bnezc	a2,[0-9a-f]+ <[^>]+>
-			530: R_NANOMIPS_PC14_S1	test3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test3
 [0-9a-f]+ <[^>]+> a8e0 0000 	bnezc	a3,[0-9a-f]+ <[^>]+>
-			534: R_NANOMIPS_PC14_S1	test3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test3
 [0-9a-f]+ <[^>]+> aa00 0000 	bnezc	s0,[0-9a-f]+ <[^>]+>
-			538: R_NANOMIPS_PC14_S1	test3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test3
 [0-9a-f]+ <[^>]+> aa20 0000 	bnezc	s1,[0-9a-f]+ <[^>]+>
-			53c: R_NANOMIPS_PC14_S1	test3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test3
 [0-9a-f]+ <[^>]+> a812 0000 	bnezc	s2,[0-9a-f]+ <[^>]+>
-			540: R_NANOMIPS_PC14_S1	test3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test3
 [0-9a-f]+ <[^>]+> a813 0000 	bnezc	s3,[0-9a-f]+ <[^>]+>
-			544: R_NANOMIPS_PC14_S1	test3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test3
 [0-9a-f]+ <[^>]+> a804 0000 	bnezc	a0,[0-9a-f]+ <[^>]+>
-			548: R_NANOMIPS_PC14_S1	test3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test3
 [0-9a-f]+ <[^>]+> a805 0000 	bnezc	a1,[0-9a-f]+ <[^>]+>
-			54c: R_NANOMIPS_PC14_S1	test3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test3
 [0-9a-f]+ <[^>]+> a806 0000 	bnezc	a2,[0-9a-f]+ <[^>]+>
-			550: R_NANOMIPS_PC14_S1	test3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test3
 [0-9a-f]+ <[^>]+> a807 0000 	bnezc	a3,[0-9a-f]+ <[^>]+>
-			554: R_NANOMIPS_PC14_S1	test3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test3
 [0-9a-f]+ <[^>]+> a810 0000 	bnezc	s0,[0-9a-f]+ <[^>]+>
-			558: R_NANOMIPS_PC14_S1	test3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test3
 [0-9a-f]+ <[^>]+> a811 0000 	bnezc	s1,[0-9a-f]+ <[^>]+>
-			55c: R_NANOMIPS_PC14_S1	test3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test3
 [0-9a-f]+ <[^>]+> aa40 0000 	bnezc	s2,[0-9a-f]+ <[^>]+>
-			560: R_NANOMIPS_PC14_S1	test3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test3
 [0-9a-f]+ <[^>]+> aa60 0000 	bnezc	s3,[0-9a-f]+ <[^>]+>
-			564: R_NANOMIPS_PC14_S1	test3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test3
 [0-9a-f]+ <[^>]+> a880 0000 	bnezc	a0,[0-9a-f]+ <[^>]+>
-			568: R_NANOMIPS_PC14_S1	test3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test3
 [0-9a-f]+ <[^>]+> a8a0 0000 	bnezc	a1,[0-9a-f]+ <[^>]+>
-			56c: R_NANOMIPS_PC14_S1	test3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test3
 [0-9a-f]+ <[^>]+> a8c0 0000 	bnezc	a2,[0-9a-f]+ <[^>]+>
-			570: R_NANOMIPS_PC14_S1	test3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test3
 [0-9a-f]+ <[^>]+> a8e0 0000 	bnezc	a3,[0-9a-f]+ <[^>]+>
-			574: R_NANOMIPS_PC14_S1	test3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test3
 [0-9a-f]+ <[^>]+> aa00 0000 	bnezc	s0,[0-9a-f]+ <[^>]+>
-			578: R_NANOMIPS_PC14_S1	test3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test3
 [0-9a-f]+ <[^>]+> aa20 0000 	bnezc	s1,[0-9a-f]+ <[^>]+>
-			57c: R_NANOMIPS_PC14_S1	test3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test3
 [0-9a-f]+ <[^>]+> aa00 0000 	bnezc	s0,[0-9a-f]+ <[^>]+>
-			580: R_NANOMIPS_PC14_S1	test3
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test3
 [0-9a-f]+ <[^>]+> aa20 0000 	bnezc	s1,[0-9a-f]+ <[^>]+>
-			584: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> aa20 0000 	bnezc	s1,[0-9a-f]+ <[^>]+>
-			588: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> aa20 0000 	bnezc	s1,[0-9a-f]+ <[^>]+>
-			58c: R_NANOMIPS_PC14_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test2
 [0-9a-f]+ <[^>]+> 0010 0000 	break
 [0-9a-f]+ <[^>]+> 0010 0000 	break
 [0-9a-f]+ <[^>]+> 0010 0001 	break	0x1
@@ -703,13 +703,13 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 4be3 0000 	jalrc	t5
 [0-9a-f]+ <[^>]+> 4bff 0000 	jalrc	ra
 [0-9a-f]+ <[^>]+> 2a00 0000 	balc	00000000 <[^>]+>
-			9bc: R_NANOMIPS_PC25_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	test
 [0-9a-f]+ <[^>]+> 2a00 0000 	balc	00000498 <[^>]+>
-			9c0: R_NANOMIPS_PC25_S1	test2
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	test2
 [0-9a-f]+ <[^>]+> e040 0002 	aluipc	t4,00000000 <test>
-			9c4: R_NANOMIPS_PCHI20	test
+			[0-9a-f]+: R_NANOMIPS_PCHI20	test
 [0-9a-f]+ <[^>]+> 0042 0000 	addiu	t4,t4,0
-			9c8: R_NANOMIPS_LO12	test
+			[0-9a-f]+: R_NANOMIPS_LO12	test
 [0-9a-f]+ <[^>]+> 8460 0000 	lb	t5,0\(zero\)
 [0-9a-f]+ <[^>]+> 8460 0004 	lb	t5,4\(zero\)
 [0-9a-f]+ <[^>]+> 8460 0000 	lb	t5,0\(zero\)
@@ -1000,7 +1000,8 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> a463 5104 	ll	t5,4\(t5\)
 [0-9a-f]+ <[^>]+> e060 0e01 	lui	t5,%hi\(0xf0000000\)
 [0-9a-f]+ <[^>]+> a463 5100 	ll	t5,0\(t5\)
-[0-9a-f]+ <[^>]+> a460 d1fc 	ll	t5,-4\(zero\)
+[0-9a-f]+ <[^>]+> 8060 8001 	li	t5,-1
+[0-9a-f]+ <[^>]+> a463 5100 	ll	t5,0\(t5\)
 [0-9a-f]+ <[^>]+> e074 5244 	lui	t5,%hi\(0x12345000\)
 [0-9a-f]+ <[^>]+> 8063 0678 	ori	t5,t5,1656
 [0-9a-f]+ <[^>]+> a463 5100 	ll	t5,0\(t5\)
@@ -1029,7 +1030,8 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> e060 0e01 	lui	t5,%hi\(0xf0000000\)
 [0-9a-f]+ <[^>]+> 2083 1950 	addu	t5,t5,a0
 [0-9a-f]+ <[^>]+> a463 5100 	ll	t5,0\(t5\)
-[0-9a-f]+ <[^>]+> a464 d1fc 	ll	t5,-4\(a0\)
+[0-9a-f]+ <[^>]+> 8064 8001 	addiu	t5,a0,-1
+[0-9a-f]+ <[^>]+> a463 5100 	ll	t5,0\(t5\)
 [0-9a-f]+ <[^>]+> e074 5244 	lui	t5,%hi\(0x12345000\)
 [0-9a-f]+ <[^>]+> 8063 0678 	ori	t5,t5,1656
 [0-9a-f]+ <[^>]+> 2083 1950 	addu	t5,t5,a0
@@ -1510,7 +1512,8 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> a461 5904 	sc	t5,4\(at\)
 [0-9a-f]+ <[^>]+> e020 0e01 	lui	at,%hi\(0xf0000000\)
 [0-9a-f]+ <[^>]+> a461 5900 	sc	t5,0\(at\)
-[0-9a-f]+ <[^>]+> a460 d9fc 	sc	t5,-4\(zero\)
+[0-9a-f]+ <[^>]+> 8020 8001 	li	at,-1
+[0-9a-f]+ <[^>]+> a461 5900 	sc	t5,0\(at\)
 [0-9a-f]+ <[^>]+> e034 5244 	lui	at,%hi\(0x12345000\)
 [0-9a-f]+ <[^>]+> 8021 0678 	ori	at,at,1656
 [0-9a-f]+ <[^>]+> a461 5900 	sc	t5,0\(at\)
@@ -1542,7 +1545,8 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> e020 0e01 	lui	at,%hi\(0xf0000000\)
 [0-9a-f]+ <[^>]+> 2081 0950 	addu	at,at,a0
 [0-9a-f]+ <[^>]+> a461 5900 	sc	t5,0\(at\)
-[0-9a-f]+ <[^>]+> a464 d9fc 	sc	t5,-4\(a0\)
+[0-9a-f]+ <[^>]+> 8024 8001 	addiu	at,a0,-1
+[0-9a-f]+ <[^>]+> a461 5900 	sc	t5,0\(at\)
 [0-9a-f]+ <[^>]+> e034 5244 	lui	at,%hi\(0x12345000\)
 [0-9a-f]+ <[^>]+> 8021 0678 	ori	at,at,1656
 [0-9a-f]+ <[^>]+> 2081 0950 	addu	at,at,a0
@@ -2343,97 +2347,97 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 8064 1000 	xori	t5,a0,0
 [0-9a-f]+ <[^>]+> 8063 1fff 	xori	t5,t5,4095
 [0-9a-f]+ <[^>]+> 8920 0000 	beqzc	a5,[0-9a-f]+ <[^>]+>
-			234c: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8949 0000 	beqc	a5,a6,[0-9a-f]+ <[^>]+>
-			2354: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8920 0000 	beqzc	a5,[0-9a-f]+ <[^>]+>
-			235c: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c920 0800 	beqic	a5,1,[0-9a-f]+ <[^>]+>
-			2364: R_NANOMIPS_PC11_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 880a 8000 	bgezc	a6,[0-9a-f]+ <[^>]+>
-			236c: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 880a 8000 	bgezc	a6,[0-9a-f]+ <[^>]+>
-			2374: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8940 8000 	blezc	a6,[0-9a-f]+ <[^>]+>
-			237c: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 896a 8000 	bgec	a6,a7,[0-9a-f]+ <[^>]+>
-			2384: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 880a 8000 	bgezc	a6,[0-9a-f]+ <[^>]+>
-			238c: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a940 8000 	bgtzc	a6,[0-9a-f]+ <[^>]+>
-			2394: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c948 1000 	bgeic	a6,2,[0-9a-f]+ <[^>]+>
-			239c: R_NANOMIPS_PC11_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	00000000 <[^>]+>
-			23a4: R_NANOMIPS_PC25_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8802 c000 	bgeuc	t4,zero,[0-9a-f]+ <[^>]+>
-			23ac: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8840 c000 	bgeuc	zero,t4,[0-9a-f]+ <[^>]+>
-			23b4: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8862 c000 	bgeuc	t4,t5,[0-9a-f]+ <[^>]+>
-			23bc: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	00000000 <[^>]+>
-			23c4: R_NANOMIPS_PC25_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a840 0000 	bnezc	t4,[0-9a-f]+ <[^>]+>
-			23cc: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c84c 1000 	bgeiuc	t4,2,[0-9a-f]+ <[^>]+>
-			23d4: R_NANOMIPS_PC11_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8802 8000 	bgezc	t4,[0-9a-f]+ <[^>]+>
-			23dc: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a840 8000 	bgtzc	t4,[0-9a-f]+ <[^>]+>
-			23e4: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a802 8000 	bltzc	t4,[0-9a-f]+ <[^>]+>
-			23ec: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 212a 0b50 	slt	at,a6,a5
 [0-9a-f]+ <[^>]+> a820 0000 	bnezc	at,[0-9a-f]+ <[^>]+>
-			23f8: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8000 c000 	nop
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8809 8000 	bgezc	a5,[0-9a-f]+ <[^>]+>
-			2408: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a920 8000 	bgtzc	a5,[0-9a-f]+ <[^>]+>
-			2410: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c928 1000 	bgeic	a5,2,[0-9a-f]+ <[^>]+>
-			2418: R_NANOMIPS_PC11_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> e020 0001 	lui	at,%hi\(0x80000000\)
 [0-9a-f]+ <[^>]+> 8021 0001 	ori	at,at,1
 [0-9a-f]+ <[^>]+> 2029 0b50 	slt	at,a5,at
 [0-9a-f]+ <[^>]+> 8820 0000 	beqzc	at,[0-9a-f]+ <[^>]+>
-			242c: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a920 0000 	bnezc	a5,[0-9a-f]+ <[^>]+>
-			2434: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8000 c000 	nop
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 212a 0b90 	sltu	at,a6,a5
 [0-9a-f]+ <[^>]+> a820 0000 	bnezc	at,[0-9a-f]+ <[^>]+>
-			2448: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8000 c000 	nop
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
@@ -2442,110 +2446,110 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 8000 c000 	nop
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a920 0000 	bnezc	a5,[0-9a-f]+ <[^>]+>
-			2468: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c92c 1000 	bgeiuc	a5,2,[0-9a-f]+ <[^>]+>
-			2470: R_NANOMIPS_PC11_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a920 8000 	bgtzc	a5,[0-9a-f]+ <[^>]+>
-			2478: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8920 8000 	blezc	a5,[0-9a-f]+ <[^>]+>
-			2480: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 880a 8000 	bgezc	a6,[0-9a-f]+ <[^>]+>
-			2488: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 212a 0b50 	slt	at,a6,a5
 [0-9a-f]+ <[^>]+> 8820 0000 	beqzc	at,[0-9a-f]+ <[^>]+>
-			2494: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	00000000 <[^>]+>
-			249c: R_NANOMIPS_PC25_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a809 8000 	bltzc	a5,[0-9a-f]+ <[^>]+>
-			24a4: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8920 8000 	blezc	a5,[0-9a-f]+ <[^>]+>
-			24ac: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c938 1000 	bltic	a5,2,[0-9a-f]+ <[^>]+>
-			24b4: R_NANOMIPS_PC11_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8920 0000 	beqzc	a5,[0-9a-f]+ <[^>]+>
-			24bc: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	00000000 <[^>]+>
-			24c4: R_NANOMIPS_PC25_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 212a 0b90 	sltu	at,a6,a5
 [0-9a-f]+ <[^>]+> 8820 0000 	beqzc	at,[0-9a-f]+ <[^>]+>
-			24d0: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	00000000 <[^>]+>
-			24d8: R_NANOMIPS_PC25_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	00000000 <[^>]+>
-			24e0: R_NANOMIPS_PC25_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8920 0000 	beqzc	a5,[0-9a-f]+ <[^>]+>
-			24e8: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c93c 1000 	bltiuc	a5,2,[0-9a-f]+ <[^>]+>
-			24f0: R_NANOMIPS_PC11_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8920 8000 	blezc	a5,[0-9a-f]+ <[^>]+>
-			24f8: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a809 8000 	bltzc	a5,[0-9a-f]+ <[^>]+>
-			2500: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a940 8000 	bgtzc	a6,[0-9a-f]+ <[^>]+>
-			2508: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a949 8000 	bltc	a5,a6,[0-9a-f]+ <[^>]+>
-			2510: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a809 8000 	bltzc	a5,[0-9a-f]+ <[^>]+>
-			2518: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8920 8000 	blezc	a5,[0-9a-f]+ <[^>]+>
-			2520: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c938 1000 	bltic	a5,2,[0-9a-f]+ <[^>]+>
-			2528: R_NANOMIPS_PC11_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a809 c000 	bltuc	a5,zero,[0-9a-f]+ <[^>]+>
-			2530: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a940 c000 	bltuc	zero,a6,[0-9a-f]+ <[^>]+>
-			2538: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a949 c000 	bltuc	a5,a6,[0-9a-f]+ <[^>]+>
-			2540: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8000 c000 	nop
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8920 0000 	beqzc	a5,[0-9a-f]+ <[^>]+>
-			2550: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c93c 1000 	bltiuc	a5,2,[0-9a-f]+ <[^>]+>
-			2558: R_NANOMIPS_PC11_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a809 8000 	bltzc	a5,[0-9a-f]+ <[^>]+>
-			2560: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a920 0000 	bnezc	a5,[0-9a-f]+ <[^>]+>
-			2568: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a949 0000 	bnec	a5,a6,[0-9a-f]+ <[^>]+>
-			2570: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> a920 0000 	bnezc	a5,[0-9a-f]+ <[^>]+>
-			2578: R_NANOMIPS_PC14_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> c930 0800 	bneic	a5,1,[0-9a-f]+ <[^>]+>
-			2580: R_NANOMIPS_PC11_S1	test
+			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
 [0-9a-f]+ <[^>]+> 20a4 9950 	addu	s3,a0,a1
 [0-9a-f]+ <[^>]+> 8460 9004 	sw	t5,4\(zero\)
 [0-9a-f]+ <[^>]+> 8480 9008 	sw	a0,8\(zero\)
@@ -2977,19 +2981,19 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2081 0950 	addu	at,at,a0
 [0-9a-f]+ <[^>]+> a461 4900 	swc2	\$3,0\(at\)
 [0-9a-f]+ <[^>]+> 0023 0000 	addiu	at,t5,0
-			2c3c: R_NANOMIPS_LO12	test
+			[0-9a-f]+: R_NANOMIPS_LO12	test
 [0-9a-f]+ <[^>]+> a401 3900 	cache	0x0,0\(at\)
 [0-9a-f]+ <[^>]+> 0043 0000 	addiu	t4,t5,0
-			2c44: R_NANOMIPS_LO12	test
+			[0-9a-f]+: R_NANOMIPS_LO12	test
 [0-9a-f]+ <[^>]+> a442 5100 	ll	t4,0\(t4\)
 [0-9a-f]+ <[^>]+> 0023 0000 	addiu	at,t5,0
-			2c4c: R_NANOMIPS_LO12	test
+			[0-9a-f]+: R_NANOMIPS_LO12	test
 [0-9a-f]+ <[^>]+> a441 5900 	sc	t4,0\(at\)
 [0-9a-f]+ <[^>]+> 0023 0000 	addiu	at,t5,0
-			2c54: R_NANOMIPS_LO12	test
+			[0-9a-f]+: R_NANOMIPS_LO12	test
 [0-9a-f]+ <[^>]+> a601 4100 	lwc2	\$16,0\(at\)
 [0-9a-f]+ <[^>]+> 0023 0000 	addiu	at,t5,0
-			2c5c: R_NANOMIPS_LO12	test
+			[0-9a-f]+: R_NANOMIPS_LO12	test
 [0-9a-f]+ <[^>]+> a601 4900 	swc2	\$16,0\(at\)
 [0-9a-f]+ <[^>]+> 0018 03ff 	sdbbp	0x3ff
 [0-9a-f]+ <[^>]+> 23ff c37f 	wait	0x3ff
@@ -3970,8 +3974,8 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> a001 6b3b 	trunc.w.d	\$f0,\$f1
 [0-9a-f]+ <[^>]+> a3df 6b3b 	trunc.w.d	\$f30,\$f31
 [0-9a-f]+ <[^>]+> a042 6b3b 	trunc.w.d	\$f2,\$f2
-[0-9a-f]+ <[^>]+> 2a00 0000 	balc	00003bb0 <[^>]+>
-			3bb0: R_NANOMIPS_PC25_S1	test_delay_slot
+[0-9a-f]+ <[^>]+> 2a00 0000 	balc	00003bc0 <[^>]+>
+			[0-9a-f]+: R_NANOMIPS_PC25_S1	test_delay_slot
 [0-9a-f]+ <[^>]+> 4be2 0000 	jalrc	t4
 [0-9a-f]+ <[^>]+> 4802 0000 	jrc	t4
 [0-9a-f]+ <[^>]+> 4be2 1000 	jalrc.hb	t4
