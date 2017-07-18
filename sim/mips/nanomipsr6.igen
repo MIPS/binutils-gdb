@@ -556,7 +556,7 @@
   unsigned16 U2 = do_load (SD_, AccessLength_HALFWORD, CIA + 4, 0);
   unsigned32 total = U2 << 16 | IMM48;
   TRACE_ALU_INPUT2(GPR[RT], total);
-  GPR[RT] = NIA + EXTEND32(total);
+  GPR[RT] = CIA + 6 + EXTEND32(total);
   TRACE_ALU_RESULT(GPR[RT]);
   NIA = CIA + 6;
 }
