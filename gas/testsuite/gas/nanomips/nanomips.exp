@@ -725,10 +725,7 @@ if { [istarget nanomips*-*-*] } {
 # 	run_dump_test "ldstla-n64-sym32"
 #     }
 
-    run_dump_test_arch "macro-warn-1" "" nanomips32r6
-    run_dump_test_arch "macro-warn-2" "" nanomips32r6
-    run_dump_test_arch "macro-warn-3" "" nanomips32r6
-    run_dump_test_arch "macro-warn-4" "" nanomips32r6
+    run_list_test_arch "macro-err" "-mlegacyregs" nanomips32s
 
     run_dump_test_arch "noat-1" "" nanomips32r6
     run_list_test_arch "noat-2" "" nanomips32r6

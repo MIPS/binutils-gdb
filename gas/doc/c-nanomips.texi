@@ -347,9 +347,9 @@ of small data accesses}).
 
 @kindex @code{.set macro}
 @kindex @code{.set nomacro}
-Sometimes it is undesirable to have one assembly instruction expand
+It is undesirable to have one assembly instruction expand
 to several machine instructions.  The directive @code{.set nomacro}
-tells the assembler to warn when this happens.  @code{.set macro}
+tells the assembler to prohibit such expansions.  @code{.set macro}
 restores the default behavior.
 
 @cindex @code{at} register, nanoMIPS

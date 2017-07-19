@@ -220,4 +220,6 @@ extern const struct mips_operand *decode_nanomips_operand (const char *);
 extern const struct nanomips_opcode nanomips_opcodes[];
 extern const int bfd_nanomips_num_opcodes;
 
+#define INSN2_MACRO	    0x00080000
+
 #endif /* _NANOMIPS_H_ */

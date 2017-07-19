@@ -225,7 +225,7 @@ struct mips_set_options
   /* Non-zero if we should warn when a macro instruction expands into
      more than one machine instruction.  Changed by `.set nomacro' and
      `.set macro'.  */
-  int warn_about_macros;
+  int nomacro;
   /* Non-zero if we should not move instructions.  Changed by `.set
      move', `.set volatile', `.set nomove', and `.set novolatile'.  */
   int nomove;
@@ -299,7 +299,7 @@ static bfd_boolean file_mips_opts_checked = FALSE;
 static struct mips_set_options file_mips_opts =
 {
   /* isa */ ISA_UNKNOWN, /* ase */ 0, /* mips16 */ 0, /* micromips */ 0,
-  /* noreorder */ 0,  /* at */ ATREG, /* warn_about_macros */ 0,
+  /* noreorder */ 0,  /* at */ ATREG, /* nomacro */ 0,
   /* nomove */ 0, /* nobopt */ 0, /* noautoextend */ 0, /* insn32 */ FALSE,
   /* gp */ -1, /* fp */ -1, /* arch */ CPU_UNKNOWN, /* sym32 */ FALSE,
   /* soft_float */ FALSE, /* single_float */ FALSE, /* oddspreg */ -1,
@@ -313,7 +313,7 @@ static struct mips_set_options file_mips_opts =
 static struct mips_set_options mips_opts =
 {
   /* isa */ ISA_UNKNOWN, /* ase */ 0, /* mips16 */ 0, /* micromips */ 0,
-  /* noreorder */ 0,  /* at */ ATREG, /* warn_about_macros */ 0,
+  /* noreorder */ 0,  /* at */ ATREG, /* nomacro */ 0,
   /* nomove */ 0, /* nobopt */ 0, /* noautoextend */ 0, /* insn32 */ FALSE,
   /* gp */ -1, /* fp */ -1, /* arch */ CPU_UNKNOWN, /* sym32 */ FALSE,
   /* soft_float */ FALSE, /* single_float */ FALSE, /* oddspreg */ -1,
@@ -701,22 +701,6 @@ static int mips_relax_branch;
 	Set in the first variant frag if the macro appeared in a .set nomacro
 	block and if one alternative requires a warning but the other does not.
 
-   RELAX_DELAY_SLOT
-	Like RELAX_NOMACRO, but indicates that the macro appears in a branch
-	delay slot.
-
-   RELAX_DELAY_SLOT_16BIT
-	Like RELAX_DELAY_SLOT, but indicates that the delay slot requires a
-	16-bit instruction.
-
-   RELAX_DELAY_SLOT_SIZE_FIRST
-	Like RELAX_DELAY_SLOT, but indicates that the first implementation of
-	the macro is of the wrong size for the branch delay slot.
-
-   RELAX_DELAY_SLOT_SIZE_SECOND
-	Like RELAX_DELAY_SLOT, but indicates that the second implementation of
-	the macro is of the wrong size for the branch delay slot.
-
    The frag's "opcode" points to the first fixup for relaxable code.
 
    Relaxable macros are generated using a sequence such as:
@@ -736,10 +720,6 @@ static int mips_relax_branch;
 #define RELAX_USE_SECOND 0x10000
 #define RELAX_SECOND_LONGER 0x20000
 #define RELAX_NOMACRO 0x40000
-#define RELAX_DELAY_SLOT 0x80000
-#define RELAX_DELAY_SLOT_16BIT 0x100000
-#define RELAX_DELAY_SLOT_SIZE_FIRST 0x200000
-#define RELAX_DELAY_SLOT_SIZE_SECOND 0x400000
 
 /* For nanoMIPS code, we use relaxation similar to one we use for
    microMIPS code.  Some instructions that take immediate values support
@@ -881,13 +861,6 @@ static struct {
 
 /* Global variables used to decide whether a macro needs a warning.  */
 static struct {
-  /* True if the macro is in a branch delay slot.  */
-  bfd_boolean delay_slot_p;
-
-  /* Set to the length in bytes required if the macro is in a delay slot
-     that requires a specific length of instruction, otherwise zero.  */
-  unsigned int delay_slot_length;
-
   /* For relaxable macros, sizes[0] is the length of the first alternative
      in bytes and sizes[1] is the length of the second alternative.
      For non-relaxable macros, both elements give the length of the
@@ -926,7 +899,7 @@ static void mips_no_prev_insn (void);
 static void macro_build (expressionS *, const char *, const char *, ...);
 static void load_register (int, expressionS *, int);
 static void macro_start (void);
-static void macro_end (void);
+static void macro_end (bfd_boolean);
 static void nanomips_macro (struct mips_cl_insn *ip, char *str);
 static void nanomips_ip (char *str, struct mips_cl_insn * ip);
 static size_t my_getSmallExpression
@@ -3361,7 +3334,7 @@ md_assemble (char *str)
     {
       macro_start ();
       nanomips_macro (&insn, str);
-      macro_end ();
+      macro_end ((insn.insn_mo->pinfo2 & INSN2_MACRO) != 0);
     }
   else
     {
@@ -7490,110 +7463,40 @@ macro_start (void)
   memset (&mips_macro_warning.first_insn_sizes, 0,
 	  sizeof (mips_macro_warning.first_insn_sizes));
   memset (&mips_macro_warning.insns, 0, sizeof (mips_macro_warning.insns));
-  mips_macro_warning.delay_slot_p = (mips_opts.noreorder
-				     && delayed_branch_p (&history[0]));
-  switch (history[0].insn_mo->pinfo2
-	  & (INSN2_BRANCH_DELAY_32BIT | INSN2_BRANCH_DELAY_16BIT))
-    {
-    case INSN2_BRANCH_DELAY_32BIT:
-      mips_macro_warning.delay_slot_length = 4;
-      break;
-    case INSN2_BRANCH_DELAY_16BIT:
-      mips_macro_warning.delay_slot_length = 2;
-      break;
-    default:
-      mips_macro_warning.delay_slot_length = 0;
-      break;
-    }
   mips_macro_warning.first_frag = NULL;
-}
-
-/* Given that a macro is longer than one instruction or of the wrong size,
-   return the appropriate warning for it.  Return null if no warning is
-   needed.  SUBTYPE is a bitmask of RELAX_DELAY_SLOT, RELAX_DELAY_SLOT_16BIT,
-   RELAX_DELAY_SLOT_SIZE_FIRST, RELAX_DELAY_SLOT_SIZE_SECOND,
-   and RELAX_NOMACRO.  */
-
-static const char *
-macro_warning (relax_substateT subtype)
-{
-  if (subtype & RELAX_DELAY_SLOT)
-    return _("macro instruction expanded into multiple instructions"
-	     " in a branch delay slot");
-  else if (subtype & RELAX_NOMACRO)
-    return _("macro instruction expanded into multiple instructions");
-  else if (subtype & (RELAX_DELAY_SLOT_SIZE_FIRST
-		      | RELAX_DELAY_SLOT_SIZE_SECOND))
-    return ((subtype & RELAX_DELAY_SLOT_16BIT)
-	    ? _("macro instruction expanded into a wrong size instruction"
-		" in a 16-bit branch delay slot")
-	    : _("macro instruction expanded into a wrong size instruction"
-		" in a 32-bit branch delay slot"));
-  else
-    return 0;
 }
 
 /* Finish up a macro.  Emit warnings as appropriate.  */
 
 static void
-macro_end (void)
+macro_end (bfd_boolean allow_expansion)
 {
   /* Relaxation warning flags.  */
   relax_substateT subtype = 0;
-
-  /* Check delay slot size requirements.  */
-  if (mips_macro_warning.delay_slot_length == 2)
-    subtype |= RELAX_DELAY_SLOT_16BIT;
-  if (mips_macro_warning.delay_slot_length != 0)
-    {
-      if (mips_macro_warning.delay_slot_length
-	  != mips_macro_warning.first_insn_sizes[0])
-	subtype |= RELAX_DELAY_SLOT_SIZE_FIRST;
-      if (mips_macro_warning.delay_slot_length
-	  != mips_macro_warning.first_insn_sizes[1])
-	subtype |= RELAX_DELAY_SLOT_SIZE_SECOND;
-    }
 
   /* Check instruction count requirements.  */
   if (mips_macro_warning.insns[0] > 1 || mips_macro_warning.insns[1] > 1)
     {
       if (mips_macro_warning.insns[1] > mips_macro_warning.insns[0])
 	subtype |= RELAX_SECOND_LONGER;
-      if (mips_opts.warn_about_macros)
+      if (mips_opts.nomacro)
 	subtype |= RELAX_NOMACRO;
-      if (mips_macro_warning.delay_slot_p)
-	subtype |= RELAX_DELAY_SLOT;
     }
 
-  /* If both alternatives fail to fill a delay slot correctly,
-     emit the warning now.  */
-  if ((subtype & RELAX_DELAY_SLOT_SIZE_FIRST) != 0
-      && (subtype & RELAX_DELAY_SLOT_SIZE_SECOND) != 0)
-    {
-      relax_substateT s;
-      const char *msg;
-
-      s = subtype & (RELAX_DELAY_SLOT_16BIT
-		     | RELAX_DELAY_SLOT_SIZE_FIRST
-		     | RELAX_DELAY_SLOT_SIZE_SECOND);
-      msg = macro_warning (s);
-      if (msg != NULL)
-	as_warn ("%s", msg);
-      subtype &= ~s;
-    }
 
   /* If both implementations are longer than 1 instruction, then emit the
      warning now.  */
   if (mips_macro_warning.insns[0] > 1 && mips_macro_warning.insns[1] > 1)
     {
-      relax_substateT s;
-      const char *msg;
+      if (mips_opts.nomacro)
+	{
+	  if (allow_expansion)
+	    as_warn (_("macro instruction expanded into multiple instructions"));
+	  else
+	    as_bad (_("macro instruction expanded into multiple instructions"));
+	}
 
-      s = subtype & (RELAX_SECOND_LONGER | RELAX_NOMACRO | RELAX_DELAY_SLOT);
-      msg = macro_warning (s);
-      if (msg != NULL)
-	as_warn ("%s", msg);
-      subtype &= ~s;
+      subtype &= ~RELAX_NOMACRO;
     }
 
   /* If any flags still set, then one implementation might need a warning
@@ -12424,13 +12327,9 @@ s_mipsset (int x ATTRIBUTE_UNUSED)
 	start_noreorder ();
     }
   else if (strcmp (name, "macro") == 0)
-    mips_opts.warn_about_macros = 0;
+    mips_opts.nomacro = 0;
   else if (strcmp (name, "nomacro") == 0)
-    {
-      if (mips_opts.noreorder == 0)
-	as_bad (_("`noreorder' must be set before `nomacro'"));
-      mips_opts.warn_about_macros = 1;
-    }
+      mips_opts.nomacro = 1;
   else if (strcmp (name, "gp=default") == 0)
     mips_opts.gp = file_mips_opts.gp;
   else if (strcmp (name, "fp=default") == 0)
@@ -12606,7 +12505,7 @@ s_cpsetup_nanomips (int ignore ATTRIBUTE_UNUSED)
   else
       gas_assert (FALSE); /* FIXME - TODO */
 
-  macro_end ();
+  macro_end (TRUE);
   mips_assembling_insn = FALSE;
   ignore_rest_of_line ();
 }
@@ -13793,35 +13692,14 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
       second = RELAX_SECOND (subtype);
       fixp = (fixS *) fragp->fr_opcode;
 
-      /* If the delay slot chosen does not match the size of the instruction,
-         then emit a warning.  */
-      if ((!use_second && (subtype & RELAX_DELAY_SLOT_SIZE_FIRST) != 0)
-	   || (use_second && (subtype & RELAX_DELAY_SLOT_SIZE_SECOND) != 0))
-	{
-	  relax_substateT s;
-	  const char *msg;
-
-	  s = subtype & (RELAX_DELAY_SLOT_16BIT
-			 | RELAX_DELAY_SLOT_SIZE_FIRST
-			 | RELAX_DELAY_SLOT_SIZE_SECOND);
-	  msg = macro_warning (s);
-	  if (msg != NULL)
-	    as_warn_where (fragp->fr_file, fragp->fr_line, "%s", msg);
-	  subtype &= ~s;
-	}
-
       /* Possibly emit a warning if we've chosen the longer option.  */
       if (use_second == second_longer)
 	{
-	  relax_substateT s;
-	  const char *msg;
+	  if ((subtype & RELAX_NOMACRO) != 0)
+	    as_bad_where (fixp->fx_file, fixp->fx_line,
+			  _("macro instruction expanded into multiple instructions"));
 
-	  s = (subtype
-	       & (RELAX_SECOND_LONGER | RELAX_NOMACRO | RELAX_DELAY_SLOT));
-	  msg = macro_warning (s);
-	  if (msg != NULL)
-	    as_warn_where (fragp->fr_file, fragp->fr_line, "%s", msg);
-	  subtype &= ~s;
+	  subtype &= ~RELAX_NOMACRO;
 	}
 
       /* Go through all the fixups for the first sequence.  Disable them

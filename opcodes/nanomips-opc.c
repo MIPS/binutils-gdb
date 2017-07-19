@@ -433,7 +433,7 @@ const struct nanomips_opcode nanomips_opcodes[] =
 {"li",		"[neg]",	 "t,h",		0x80008000, 0xfc1ff000,	WR_1,		INSN2_ALIAS,	I38,	0}, /* ADDIU[NEG] */
 {"li",		"", 		"t,x",		0xe0000000, 0xfc000002,	WR_1,		INSN2_ALIAS,	I38,	0}, /* LUI */
 {"li",		"[48]",		"mp,+Q",	0x6000, 	0xfc1f,	WR_1,			0,	0,	xNMS}, /* LI[48] */
-{"li",		"",		"t,I",		0,	(int) M_LI,	INSN_MACRO,		0,	I38,	0},
+{"li",		"",		"t,I",		0,	(int) M_LI,	INSN_MACRO,	INSN2_MACRO,	I38,	0},
 {"ext", 	"",		"t,r,+A,+C",	0x8000f000, 0xfc00f820,	WR_1|RD_2,		0,	0,	xNMS},
 {"ext", 	"",		"t,r,+A,+C",	0,    (int) M_EXT,	INSN_MACRO,		0,	I38,	0},
 				

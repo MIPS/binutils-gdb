@@ -6,6 +6,7 @@ local:
 	.cpsetup $25,16,local
 	.cprestore 16
 	.cpreturn
+	li $5, 0x10101010
 	la	$4,early_global
 	la	$4,early_global+10
 	la	$4,local+10
