@@ -7068,30 +7068,31 @@ struct gprel_insn_match
 
 static const struct gprel_insn_match nanomips_gprel_map[] =
 {
-  {"lw", 0, BFD_RELOC_NANOMIPS_GPREL19_S2},
-  {"sw", 0, BFD_RELOC_NANOMIPS_GPREL19_S2},
-  {"lh", 0, BFD_RELOC_NANOMIPS_GPREL17_S1},
-  {"lhu", 0, BFD_RELOC_NANOMIPS_GPREL17_S1},
-  {"sh", 0, BFD_RELOC_NANOMIPS_GPREL17_S1},
-  {"lb", 0, BFD_RELOC_NANOMIPS_GPREL18},
-  {"lbu", 0, BFD_RELOC_NANOMIPS_GPREL18},
-  {"sb", 0, BFD_RELOC_NANOMIPS_GPREL18},
-  {"addiu", 0, BFD_RELOC_NANOMIPS_GPREL18},
+  {"lw[gp]", 0, BFD_RELOC_NANOMIPS_GPREL19_S2},
+  {"sw[gp]", 0, BFD_RELOC_NANOMIPS_GPREL19_S2},
+  {"lh[gp]", 0, BFD_RELOC_NANOMIPS_GPREL17_S1},
+  {"lhu[gp]", 0, BFD_RELOC_NANOMIPS_GPREL17_S1},
+  {"sh[gp]", 0, BFD_RELOC_NANOMIPS_GPREL17_S1},
+  {"lb[gp]", 0, BFD_RELOC_NANOMIPS_GPREL18},
+  {"lbu[gp]", 0, BFD_RELOC_NANOMIPS_GPREL18},
+  {"sb[gp]", 0, BFD_RELOC_NANOMIPS_GPREL18},
   {"addiu.b", 0, BFD_RELOC_NANOMIPS_GPREL18},
+  {"addiu[gp.b]", 0, BFD_RELOC_NANOMIPS_GPREL18},
   {"addiu.w", 0, BFD_RELOC_NANOMIPS_GPREL19_S2},
-  {"ldc1", 0, BFD_RELOC_NANOMIPS_GPREL16_S2},
-  {"sdc1", 0, BFD_RELOC_NANOMIPS_GPREL16_S2},
-  {"l.d", 0, BFD_RELOC_NANOMIPS_GPREL16_S2},
-  {"s.d", 0, BFD_RELOC_NANOMIPS_GPREL16_S2},
-  {"swc1", 0, BFD_RELOC_NANOMIPS_GPREL16_S2},
-  {"lwc1", 0, BFD_RELOC_NANOMIPS_GPREL16_S2},
-  {"s.s", 0, BFD_RELOC_NANOMIPS_GPREL16_S2},
-  {"l.s", 0, BFD_RELOC_NANOMIPS_GPREL16_S2},
-  {"lwu", 0, BFD_RELOC_NANOMIPS_GPREL16_S2},
-  {"ld", 32, BFD_RELOC_NANOMIPS_GPREL19_S2},
-  {"sd", 32, BFD_RELOC_NANOMIPS_GPREL19_S2},
-  {"ld", 64, BFD_RELOC_NANOMIPS_GPREL18_S3},
-  {"sd", 64, BFD_RELOC_NANOMIPS_GPREL18_S3},
+  {"addiu[gp.w]", 0, BFD_RELOC_NANOMIPS_GPREL19_S2},
+  {"ldc1[gp]", 0, BFD_RELOC_NANOMIPS_GPREL16_S2},
+  {"sdc1[gp]", 0, BFD_RELOC_NANOMIPS_GPREL16_S2},
+  {"l.d[gp]", 0, BFD_RELOC_NANOMIPS_GPREL16_S2},
+  {"s.d[gp]", 0, BFD_RELOC_NANOMIPS_GPREL16_S2},
+  {"swc1[gp]", 0, BFD_RELOC_NANOMIPS_GPREL16_S2},
+  {"lwc1[gp]", 0, BFD_RELOC_NANOMIPS_GPREL16_S2},
+  {"s.s[gp]", 0, BFD_RELOC_NANOMIPS_GPREL16_S2},
+  {"l.s[gp]", 0, BFD_RELOC_NANOMIPS_GPREL16_S2},
+  {"lwu[gp]", 0, BFD_RELOC_NANOMIPS_GPREL16_S2},
+  {"ld[gp]", 32, BFD_RELOC_NANOMIPS_GPREL19_S2},
+  {"sd[gp]", 32, BFD_RELOC_NANOMIPS_GPREL19_S2},
+  {"ld[gp]", 64, BFD_RELOC_NANOMIPS_GPREL18_S3},
+  {"sd[gp]", 64, BFD_RELOC_NANOMIPS_GPREL18_S3},
 };
 
 static bfd_reloc_code_real_type
@@ -7107,13 +7108,10 @@ gprel_for_nanomips_insn (const struct nanomips_opcode *insn)
 
   for (i = 0; i < ARRAY_SIZE (nanomips_gprel_map); i++)
     if (strncasecmp (insn->name, nanomips_gprel_map[i].str,
-		     strlen (nanomips_gprel_map[i].str)) == 0)
+		     strlen (insn->name)) == 0
+	&& strcmp (insn->suffix,
+		   nanomips_gprel_map[i].str + strlen (insn->name)) == 0)
       {
-	int len = strlen (nanomips_gprel_map[i].str);
-
-	if (insn->name[len] && !ISSPACE (insn->name[len]))
-	  continue;
-
 	if (nanomips_gprel_map[i].gpwidth
 	    && nanomips_gprel_map[i].gpwidth != GPR_SIZE)
 	  continue;

@@ -12,7 +12,7 @@ Disassembly of section \.text:
    6:	addiu\[gp.b\]	a0,gp,0
 			6: R_NANOMIPS_GPREL18	test
    a:	addiu\[gp.w\]	a0,gp,0
-			a: R_NANOMIPS_GPREL18	test
+			a: R_NANOMIPS_GPREL19_S2	test
    e:	addiu\[neg\]	a0,a1,-4
   12:	addiu\[32\]	a0,a1,64
   16:	addiu\[48\]	a0,a0,12
@@ -24,7 +24,7 @@ Disassembly of section \.text:
   28:	addiu\[gp.b\]	a0,gp,0
 			28: R_NANOMIPS_GPREL18	test
   2c:	addiu\[gp.w\]	a0,gp,0
-			2c: R_NANOMIPS_GPREL18	test
+			2c: R_NANOMIPS_GPREL19_S2	test
   30:	addiu\[neg\]	a0,a1,-4
   34:	addiu\[32\]	a0,a1,64
   38:	addiu\[48\]	a0,a0,12
