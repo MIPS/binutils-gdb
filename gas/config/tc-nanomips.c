@@ -14895,7 +14895,8 @@ mips_parse_cons_expression (expressionS *exp,
      frags.  These wouldn't be affected by linker relaxation which only
      touches code, so we skip relocations for those expressions and hope
      that this will not break any valid case.  */
-  if (exp->X_op != O_constant
+  if (linkrelax
+      && exp->X_op != O_constant
       && (exp->X_op != O_subtract
 	  || ((S_GET_SEGMENT (exp->X_add_symbol))->flags & SEC_CODE) != 0
 	  || ((S_GET_SEGMENT (exp->X_op_symbol))->flags & SEC_CODE) != 0))
