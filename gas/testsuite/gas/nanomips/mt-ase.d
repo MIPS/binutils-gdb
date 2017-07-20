@@ -274,7 +274,7 @@
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 211f 2a30 	mftc0	a4,\$31,5
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 211f 3230 	mftc0	a4,\$31,6
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 211f 3a30 	mftc0	a4,\$31,7
-[0-9a-f]+ <text_label\+0x[0-9a-f]+> 212a 0630 	mftgpr	a5,a6
+[0-9a-f]+ <text_label\+0x[0-9a-f]+> 2149 0630 	mftgpr	a5,a6
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 2140 0e30 	mftlo	a6
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 2160 0e30 	mftlo	a7
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 2181 0e30 	mfthi	t0
@@ -548,7 +548,7 @@
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 237f 2a70 	mttc0	k1,\$31,5
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 237f 3270 	mttc0	k1,\$31,6
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 237f 3a70 	mttc0	k1,\$31,7
-[0-9a-f]+ <text_label\+0x[0-9a-f]+> 239d 0670 	mttgpr	gp,sp
+[0-9a-f]+ <text_label\+0x[0-9a-f]+> 23bc 0670 	mttgpr	gp,sp
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 23a0 0e70 	mttlo	sp
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 23cc 0e70 	mttlo	fp,\$ac3
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 23e1 0e70 	mtthi	ra
@@ -581,7 +581,7 @@
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 21ae 2a38 	mfthc0	t1,\$14,5
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 21ae 3238 	mfthc0	t1,\$14,6
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 21ae 3a38 	mfthc0	t1,\$14,7
-[0-9a-f]+ <text_label\+0x[0-9a-f]+> 21ae 0630 	mftgpr	t1,t2
+[0-9a-f]+ <text_label\+0x[0-9a-f]+> 21ae 0630 	mftgpr	t2,t1
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 21ae 0e30 	mftr	t1,t2,1,1,0
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 21ae 1630 	mftc1	t1,\$f14
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 21ae 1e30 	cftc1	t1,\$14
@@ -613,7 +613,7 @@
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 21ae 2a78 	mtthc0	t1,\$14,5
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 21ae 3278 	mtthc0	t1,\$14,6
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 21ae 3a78 	mtthc0	t1,\$14,7
-[0-9a-f]+ <text_label\+0x[0-9a-f]+> 21ae 0670 	mttgpr	t1,t2
+[0-9a-f]+ <text_label\+0x[0-9a-f]+> 21ae 0670 	mttgpr	t2,t1
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 21ae 0e70 	mttr	t1,t2,1,1,0
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 21ae 1670 	mttc1	t1,\$f14
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 21ae 1e70 	cttc1	t1,\$14
