@@ -868,7 +868,7 @@ IGRIE */
 {"lbe", 	"", 		"t,A(b)",	0,	(int) M_LBE_AB,	INSN_MACRO,		0,	0,	EVA},
 {"lbu", 	"[16]",		"md,mL(ml)",	0x5c08,		0xfc0c,	WR_1|RD_3,		0,	I38,	0}, /* LBU[16] */
 {"lbu", 	"[gp]",		"t,+1(ma)",	0x44080000, 0xfc1c0000,	WR_1|RD_3,		0,	I38,	0}, /* LBU[GP] */
-{"lbu", 	"[12]",		"t,o(b)",	0x84002000, 0xfc00f000,	WR_1|RD_3,		0,	I38,	0}, /* LBU[U12] */
+{"lbu", 	"[u12]",	"t,o(b)",	0x84002000, 0xfc00f000,	WR_1|RD_3,		0,	I38,	0}, /* LBU[U12] */
 {"lbu", 	"[s9]",		"t,+j(b)",	0xa4001000, 0xfc007f00,	WR_1|RD_3,		0,	I38,	0}, /* LBU[S9] */
 {"lbu", 	"",		"t,A(b)",	0,    (int) M_LBU_AB,	INSN_MACRO,		0,	I38,	0},
 {"lbue",	"",		"t,+j(b)",	0xa4001200, 0xfc007f00,	WR_1|RD_3,		0,	0,	EVA},
