@@ -1172,6 +1172,9 @@ case "${target}" in
   mips*-*-*)
     noconfigdirs="$noconfigdirs gprof"
     ;;
+  nanomips*-img-elf*)
+    noconfigdirs="$noconfigdirs ld gprof sim"
+    ;;
   nvptx*-*-*)
     noconfigdirs="$noconfigdirs target-libssp target-libstdc++-v3 target-libobjc"
     ;;

@@ -422,6 +422,7 @@ case $basic_machine in
 	| mmix-* \
 	| mt-* \
 	| msp430-* \
+	| nanomips-* | nanomipseb-* | nanomipsel-* \
 	| nds32-* | nds32le-* | nds32be-* \
 	| nios-* | nios2-* | nios2eb-* | nios2el-* \
 	| none-* | np1-* | ns16k-* | ns32k-* \
