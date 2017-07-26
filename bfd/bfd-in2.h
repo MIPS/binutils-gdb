@@ -2047,11 +2047,13 @@ enum bfd_architecture
 #define bfd_mach_mipsisa32r3           34
 #define bfd_mach_mipsisa32r5           36
 #define bfd_mach_mipsisa32r6           37
+#define bfd_mach_nanomipsisa32r6       38
 #define bfd_mach_mipsisa64             64
 #define bfd_mach_mipsisa64r2           65
 #define bfd_mach_mipsisa64r3           66
 #define bfd_mach_mipsisa64r5           68
 #define bfd_mach_mipsisa64r6           69
+#define bfd_mach_nanomipsisa64r6       70
 #define bfd_mach_mips_micromips        96
   bfd_arch_i386,      /* Intel 386 */
 #define bfd_mach_i386_intel_syntax     (1 << 0)
@@ -3045,6 +3047,25 @@ to compensate for the borrow when the low bits are added.  */
 /* MIPS16 PC-relative relocation.  */
   BFD_RELOC_MIPS16_16_PCREL_S1,
 
+/* Relocation against a microMIPS ALIGN directive.  */
+  BFD_RELOC_MICROMIPS_ALIGN,
+  BFD_RELOC_MICROMIPS_FILL,
+  BFD_RELOC_MICROMIPS_MAX,
+
+/* These relocation types are just place holders and inform
+linker to honour the instruction length during
+relaxation/transformation.  */
+  BFD_RELOC_MICROMIPS_INSN32,
+  BFD_RELOC_MICROMIPS_INSN16,
+
+/* This relocation type informs linker to keep the instruction
+as it is during any transformation/relaxation.  */
+  BFD_RELOC_MICROMIPS_FIXED,
+
+/* Code regions marked with these relocations are not relaxed.  */
+  BFD_RELOC_MICROMIPS_RELAX,
+  BFD_RELOC_MICROMIPS_NORELAX,
+
 /* MIPS PC-relative relocations.  */
   BFD_RELOC_MIPS_21_PCREL_S2,
   BFD_RELOC_MIPS_26_PCREL_S2,
@@ -3119,6 +3140,53 @@ to compensate for the borrow when the low bits are added.  */
 /* MIPS ELF relocations (VxWorks and PLT extensions).  */
   BFD_RELOC_MIPS_COPY,
   BFD_RELOC_MIPS_JUMP_SLOT,
+
+
+/* nanoMIPS relocations  */
+  BFD_RELOC_NANOMIPS_HI20,
+  BFD_RELOC_NANOMIPS_LO12,
+  BFD_RELOC_NANOMIPS_IMM16,
+  BFD_RELOC_NANOMIPS_NEG12,
+  BFD_RELOC_NANOMIPS_GPREL7_S2,
+  BFD_RELOC_NANOMIPS_GPREL18,
+  BFD_RELOC_NANOMIPS_GPREL19_S2,
+  BFD_RELOC_NANOMIPS_GPREL16_S2,
+  BFD_RELOC_NANOMIPS_GPREL18_S3,
+  BFD_RELOC_NANOMIPS_4_PCREL_S1,
+  BFD_RELOC_NANOMIPS_7_PCREL_S1,
+  BFD_RELOC_NANOMIPS_10_PCREL_S1,
+  BFD_RELOC_NANOMIPS_11_PCREL_S1,
+  BFD_RELOC_NANOMIPS_14_PCREL_S1,
+  BFD_RELOC_NANOMIPS_21_PCREL_S1,
+  BFD_RELOC_NANOMIPS_25_PCREL_S1,
+  BFD_RELOC_NANOMIPS_PCREL_HI20,
+  BFD_RELOC_NANOMIPS_CALL,
+  BFD_RELOC_NANOMIPS_GOTPC_HI20,
+  BFD_RELOC_NANOMIPS_GOTPC_I32,
+  BFD_RELOC_NANOMIPS_GOT_LO12,
+  BFD_RELOC_NANOMIPS_GOT_DISP,
+  BFD_RELOC_NANOMIPS_GOT_PAGE,
+  BFD_RELOC_NANOMIPS_GOT_OFST,
+  BFD_RELOC_NANOMIPS_LITERAL,
+  BFD_RELOC_NANOMIPS_I32,
+  BFD_RELOC_NANOMIPS_GPREL_HI20,
+  BFD_RELOC_NANOMIPS_HI32,
+  BFD_RELOC_NANOMIPS_TLS_GD,
+  BFD_RELOC_NANOMIPS_TLS_LDM,
+  BFD_RELOC_NANOMIPS_TLS_DTPREL_HI20,
+  BFD_RELOC_NANOMIPS_TLS_DTPREL_LO12,
+  BFD_RELOC_NANOMIPS_TLS_GOTTPREL,
+  BFD_RELOC_NANOMIPS_TLS_TPREL_HI20,
+  BFD_RELOC_NANOMIPS_TLS_TPREL_LO12,
+  BFD_RELOC_NANOMIPS_PC_I32,
+  BFD_RELOC_NANOMIPS_GPREL_I32,
+  BFD_RELOC_NANOMIPS_GPREL17_S1,
+  BFD_RELOC_NANOMIPS_NEG,
+  BFD_RELOC_NANOMIPS_ASHIFTR_1,
+  BFD_RELOC_NANOMIPS_UNSIGNED_8,
+  BFD_RELOC_NANOMIPS_UNSIGNED_16,
+  BFD_RELOC_NANOMIPS_SIGNED_8,
+  BFD_RELOC_NANOMIPS_SIGNED_16,
 
 
 /* Moxie ELF relocations.  */

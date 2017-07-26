@@ -159,7 +159,15 @@ START_RELOC_NUMBERS (elf_mips_reloc_type)
   /* microMIPS GP- and PC-relative relocations. */
   RELOC_NUMBER (R_MICROMIPS_GPREL7_S2, 172)
   RELOC_NUMBER (R_MICROMIPS_PC23_S2, 173)
-  FAKE_RELOC (R_MICROMIPS_max, 174)
+  RELOC_NUMBER (R_MICROMIPS_ALIGN, 174)
+  RELOC_NUMBER (R_MICROMIPS_FILL, 175)
+  RELOC_NUMBER (R_MICROMIPS_MAX, 176)
+  RELOC_NUMBER (R_MICROMIPS_INSN32, 177)
+  RELOC_NUMBER (R_MICROMIPS_INSN16, 178)
+  RELOC_NUMBER (R_MICROMIPS_FIXED, 179)
+  RELOC_NUMBER (R_MICROMIPS_RELAX, 180)
+  RELOC_NUMBER (R_MICROMIPS_NORELAX, 181)
+  FAKE_RELOC (R_MICROMIPS_max, 182)
 
   /* This was a GNU extension used by embedded-PIC.  It was co-opted by
      mips-linux for exception-handling data.  GCC stopped using it in
@@ -1233,7 +1241,9 @@ extern void bfd_mips_elf_swap_abiflags_v0_out
 #define AFL_ASE_MICROMIPS    0x00000800 /* MICROMIPS ASE.  */
 #define AFL_ASE_XPA          0x00001000 /* XPA ASE.  */
 #define AFL_ASE_DSPR3        0x00002000 /* DSP R3 ASE.  */
-#define AFL_ASE_MASK         0x00003fff /* All ASEs.  */
+#define AFL_ASE_xNMS         0x00040000 /* not nanoMIPS Subset.  */
+#define AFL_ASE_TLB          0x00080000 /* TLB ASE.  */
+#define AFL_ASE_MASK         0x000fffff /* All ASEs.  */
 
 /* Values for the isa_ext word of an ABI flags structure.  */
 
@@ -1259,6 +1269,9 @@ extern void bfd_mips_elf_swap_abiflags_v0_out
 
 /* Masks for the flags1 word of an ABI flags structure.  */
 #define AFL_FLAGS1_ODDSPREG   1	 /* Uses odd single-precision registers.  */
+
+/* Masks for the flags2 word of an ABI flags structure.  */
+#define AFL_FLAGS2_LINKRELAX      2	 /* Module is safe to relax.  */
 
 extern unsigned int bfd_mips_isa_ext (bfd *);
 
