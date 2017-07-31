@@ -1303,6 +1303,7 @@ case "${targ}" in
     targ_defvec=nanomips_elf32_le_vec
     targ_selvecs="nanomips_elf32_be_vec nanomips_elf64_be_vec nanomips_elf64_le_vec"
     ;;
+
   nanomips*-img-linux*)
     targ_defvec=nanomips_elf32_le_vec
     targ_selvecs="nanomips_elf32_be_vec nanomips_elf64_be_vec nanomips_elf64_le_vec"

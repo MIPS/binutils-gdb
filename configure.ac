@@ -1172,8 +1172,6 @@ case "${target}" in
   mips*-*-*)
     noconfigdirs="$noconfigdirs gprof"
     ;;
-  nanomips*-*-linux*)
-    ;;
   nanomips*-img-elf*)
     noconfigdirs="$noconfigdirs ld gprof gdb sim"
     ;;
