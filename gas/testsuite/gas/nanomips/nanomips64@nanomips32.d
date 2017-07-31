@@ -306,9 +306,8 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2082 1250 	and	t4,t4,a0
 [0-9a-f]+ <[^>]+> 2082 1250 	and	t4,t4,a0
 [0-9a-f]+ <[^>]+> 8043 2000 	andi	t4,t5,0
-[0-9a-f]+ <[^>]+> 0020 ffff 	li	at,65535
-[0-9a-f]+ <[^>]+> 2023 1250 	and	t4,t5,at
-[0-9a-f]+ <[^>]+> e021 0000 	lui	at,%hi\(0x10000\)
+[0-9a-f]+ <[^>]+> 8043 2fff 	andi	t4,t5,4095
+[0-9a-f]+ <[^>]+> 0020 1000 	li	at,4096
 [0-9a-f]+ <[^>]+> 2023 1250 	and	t4,t5,at
 [0-9a-f]+ <[^>]+> e03f 0ffd 	lui	at,%hi\(0xffff0000\)
 [0-9a-f]+ <[^>]+> 8021 0001 	ori	at,at,1
@@ -702,9 +701,9 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 4bdf 0000 	jalrc	fp,ra
 [0-9a-f]+ <[^>]+> 4be3 0000 	jalrc	t5
 [0-9a-f]+ <[^>]+> 4bff 0000 	jalrc	ra
-[0-9a-f]+ <[^>]+> 2a00 0000 	balc	00000000 <[^>]+>
+[0-9a-f]+ <[^>]+> 2a00 0000 	balc	00000000 <test>
 			[0-9a-f]+: R_NANOMIPS_PC25_S1	test
-[0-9a-f]+ <[^>]+> 2a00 0000 	balc	00000498 <[^>]+>
+[0-9a-f]+ <[^>]+> 2a00 0000 	balc	[0-9a-f]+ <test2>
 			[0-9a-f]+: R_NANOMIPS_PC25_S1	test2
 [0-9a-f]+ <[^>]+> e040 0002 	aluipc	t4,00000000 <test>
 			[0-9a-f]+: R_NANOMIPS_PCHI20	test
@@ -1356,9 +1355,8 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2082 1290 	or	t4,t4,a0
 [0-9a-f]+ <[^>]+> 0020 8000 	li	at,32768
 [0-9a-f]+ <[^>]+> 2023 1290 	or	t4,t5,at
-[0-9a-f]+ <[^>]+> 0020 ffff 	li	at,65535
-[0-9a-f]+ <[^>]+> 2023 1290 	or	t4,t5,at
-[0-9a-f]+ <[^>]+> e021 0000 	lui	at,%hi\(0x10000\)
+[0-9a-f]+ <[^>]+> 8043 0fff 	ori	t4,t5,4095
+[0-9a-f]+ <[^>]+> 0020 1000 	li	at,4096
 [0-9a-f]+ <[^>]+> 2023 1290 	or	t4,t5,at
 [0-9a-f]+ <[^>]+> e03f 8ffd 	lui	at,%hi\(0xffff8000\)
 [0-9a-f]+ <[^>]+> 2023 1290 	or	t4,t5,at
@@ -2335,9 +2333,8 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2082 1310 	xor	t4,t4,a0
 [0-9a-f]+ <[^>]+> 0020 8000 	li	at,32768
 [0-9a-f]+ <[^>]+> 2023 1310 	xor	t4,t5,at
-[0-9a-f]+ <[^>]+> 0020 ffff 	li	at,65535
-[0-9a-f]+ <[^>]+> 2023 1310 	xor	t4,t5,at
-[0-9a-f]+ <[^>]+> e021 0000 	lui	at,%hi\(0x10000\)
+[0-9a-f]+ <[^>]+> 8043 1fff 	xori	t4,t5,4095
+[0-9a-f]+ <[^>]+> 0020 1000 	li	at,4096
 [0-9a-f]+ <[^>]+> 2023 1310 	xor	t4,t5,at
 [0-9a-f]+ <[^>]+> e03f 8ffd 	lui	at,%hi\(0xffff8000\)
 [0-9a-f]+ <[^>]+> 2023 1310 	xor	t4,t5,at
@@ -2982,6 +2979,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 0018 03ff 	sdbbp	0x3ff
 [0-9a-f]+ <[^>]+> 23ff c37f 	wait	0x3ff
 [0-9a-f]+ <[^>]+> 0008 03ff 	syscall	0x3ff
+[0-9a-f]+ <[^>]+> 8000 c000 	nop
 [0-9a-f]+ <[^>]+> a001 037b 	abs.s	\$f0,\$f1
 [0-9a-f]+ <[^>]+> a3df 037b 	abs.s	\$f30,\$f31
 [0-9a-f]+ <[^>]+> a042 037b 	abs.s	\$f2,\$f2
@@ -3958,7 +3956,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> a001 6b3b 	trunc.w.d	\$f0,\$f1
 [0-9a-f]+ <[^>]+> a3df 6b3b 	trunc.w.d	\$f30,\$f31
 [0-9a-f]+ <[^>]+> a042 6b3b 	trunc.w.d	\$f2,\$f2
-[0-9a-f]+ <[^>]+> 2a00 0000 	balc	00003b80 <[^>]+>
+[0-9a-f]+ <[^>]+> 2a00 0000 	balc	00003b78 <test_delay_slot>
 			[0-9a-f]+: R_NANOMIPS_PC25_S1	test_delay_slot
 [0-9a-f]+ <[^>]+> 4be2 0000 	jalrc	t4
 [0-9a-f]+ <[^>]+> 4802 0000 	jrc	t4

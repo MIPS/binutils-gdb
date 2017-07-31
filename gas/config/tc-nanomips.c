@@ -9414,7 +9414,7 @@ nanomips_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       s = "xori";
       s2 = "xor";
     do_bit:
-      if (offset_high_unsigned (imm_expr.X_add_number, 7) == 0)
+      if (offset_high_unsigned (imm_expr.X_add_number, 12) == 0)
 	{
 	  if (mask != M_NOR_I)
 	    macro_build (&imm_expr, s, "t,r,i", op[0], op[1], BFD_RELOC_LO16);
