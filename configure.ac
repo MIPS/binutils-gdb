@@ -655,6 +655,8 @@ case "${target}" in
     ;;
   mips*-*-linux*)
     ;;
+  nanomips*-*-linux*)
+    ;;
   powerpc*-*-linux*)
     ;;
   powerpc-*-darwin*)
@@ -1135,6 +1137,9 @@ case "${target}" in
     noconfigdirs="$noconfigdirs gprof"
     ;;
   nanomips*-img-elf*)
+    noconfigdirs="$noconfigdirs ld gprof gdb sim"
+    ;;
+  nanomips*-img-linux*)
     noconfigdirs="$noconfigdirs ld gprof gdb sim"
     ;;
   nds32*-*-*)
@@ -2383,6 +2388,9 @@ case "${target}" in
     ;;
   mips*-*-*linux* | mips*-*-gnu*)
     target_makefile_frag="config/mt-mips-gnu"
+    ;;
+  nanomips*-*-*linux*)
+    target_makefile_frag="config/mt-nanomips"
     ;;
   nios2-*-elf*)
     target_makefile_frag="config/mt-nios2-elf"
