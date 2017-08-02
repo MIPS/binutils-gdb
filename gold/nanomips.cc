@@ -938,9 +938,10 @@ class Target_nanomips : public Sized_target<size, big_endian>
 
  public:
   Target_nanomips(const Target::Target_info* info = &nanomips_info)
-    : Sized_target<size, big_endian>(info), state_(EXPAND), gp_(NULL),
-      mips_mach_extensions_(), attributes_section_data_(NULL), abiflags_(NULL),
-      reginfo_(NULL), mach_(0), layout_(NULL), has_abiflags_section_(false)
+    : Sized_target<size, big_endian>(info), state_(EXPAND), got_(NULL),
+      gp_(NULL), mips_mach_extensions_(), attributes_section_data_(NULL),
+      abiflags_(NULL), reginfo_(NULL), mach_(0), layout_(NULL),
+      has_abiflags_section_(false)
   {
     this->add_machine_extensions();
   }
@@ -1370,6 +1371,18 @@ class Target_nanomips : public Sized_target<size, big_endian>
   level_rev(unsigned char isa_level, unsigned char isa_rev) const
   { return (isa_level << 3) | isa_rev; }
 
+  // Get the GOT section, creating it if necessary.
+  Output_data_got<size, big_endian>*
+  got_section(Symbol_table*, Layout*);
+
+  // Get the GOT section.
+  Output_data_got<size, big_endian>*
+  got_section() const
+  {
+    gold_assert(this->got_ != NULL);
+    return this->got_;
+  }
+
   // Calculate value of _gp symbol.
   void
   set_gp(Layout*, Symbol_table*);
@@ -1470,6 +1483,9 @@ class Target_nanomips : public Sized_target<size, big_endian>
 
   // States used in relaxation passes.
   State state_;
+
+  // The GOT section.
+  Output_data_got<size, big_endian>* got_;
 
   // gp symbol.
   Sized_symbol<size>* gp_;
@@ -1617,6 +1633,13 @@ class Nanomips_relocate_functions
     elfcpp::Swap<16, big_endian>::writeval(view + 2, second);
   }
 
+  // R_NANOMIPS_GOT_DISP, R_NANOMIPS_GOT_PAGE, R_NANOMIPS_GOT_CALL
+  static inline Status
+  relgot(unsigned char* view, Address value)
+  {
+    return This::template relgp<21>(view, value, 0x1ffffc, CHECK_UNSIGNED);
+  }
+
   // R_NANOMIPS_GPREL19_S2
   static inline Status
   relgprel19_s2(unsigned char* view, Address value,
@@ -1742,7 +1765,8 @@ class Nanomips_relocate_functions
   relsize(unsigned char* view, Address value)
   { return This::template rel<size>(view, value, CHECK_NONE); }
 
-  // R_NANOMIPS_32, R_NANOMIPS_I32, R_NANOMIPS_PC_I32, R_NANOMIPS_GPREL_I32
+  // R_NANOMIPS_32, R_NANOMIPS_I32, R_NANOMIPS_PC_I32, R_NANOMIPS_GPREL_I32,
+  // R_NANOMIPS_GOTPC_I32
   static inline Status
   rel32(unsigned char* view, Address value)
   { return This::template rel<32>(view, value, CHECK_NONE); }
@@ -1779,7 +1803,8 @@ class Nanomips_relocate_functions
     return This::template rel<8>(view, value, check);
   }
 
-   // R_NANOMIPS_HI20, R_NANOMIPS_PC_HI20, R_NANOMIPS_GPREL_HI20
+  // R_NANOMIPS_HI20, R_NANOMIPS_PC_HI20, R_NANOMIPS_GPREL_HI20,
+  // R_NANOMIPS_GOTPC_HI20
   static inline Status
   relhi20(unsigned char* view, Address value)
   {
@@ -1791,7 +1816,7 @@ class Nanomips_relocate_functions
     return STATUS_OKAY;
   }
 
-  // R_NANOMIPS_LO12, R_NANOMIPS_GPREL_LO12
+  // R_NANOMIPS_LO12, R_NANOMIPS_GPREL_LO12, R_NANOMIPS_GOT_LO12
   static inline Status
   rello12(unsigned char* view, Address value)
   {
@@ -3054,6 +3079,40 @@ Expand_nanomips_insn<size, big_endian>::change(
 
 // Target_nanomips methods.
 
+// Get the GOT section, creating it if necessary.
+
+template<int size, bool big_endian>
+Output_data_got<size, big_endian>*
+Target_nanomips<size, big_endian>::got_section(Symbol_table* symtab,
+                                               Layout* layout)
+{
+  if (this->got_ == NULL)
+    {
+      gold_assert(symtab != NULL && layout != NULL);
+
+      this->got_ = new Output_data_got<size, big_endian>();
+
+      layout->add_output_section_data(".got", elfcpp::SHT_PROGBITS,
+                                      (elfcpp::SHF_ALLOC | elfcpp::SHF_WRITE |
+                                      elfcpp::SHF_MIPS_GPREL),
+                                      this->got_, ORDER_DATA, false);
+
+      // First two GOT entries are reserved.
+      this->got_->add_constant(0);
+      this->got_->add_constant(0);
+
+      // Define _GLOBAL_OFFSET_TABLE_ at the start of the .got section.
+      symtab->define_in_output_data("_GLOBAL_OFFSET_TABLE_", NULL,
+                                    Symbol_table::PREDEFINED,
+                                    this->got_,
+                                    0, 0, elfcpp::STT_OBJECT,
+                                    elfcpp::STB_GLOBAL,
+                                    elfcpp::STV_HIDDEN, 0,
+                                    false, false);
+    }
+
+  return this->got_;
+}
 // Calculate value of _gp symbol.
 
 template<int size, bool big_endian>
@@ -3068,8 +3127,10 @@ Target_nanomips<size, big_endian>::set_gp(Layout* layout, Symbol_table* symtab)
   // Set _gp symbol if the linker script hasn't created it.
   if (gp == NULL || gp->source() != Symbol::IS_CONSTANT)
     {
-      // gp should be based on .sdata.
-      Output_data* gp_section = layout->find_output_section(".sdata");
+      // If there is no .got section, gp should be based on .sdata.
+      Output_data* gp_section = (this->got_ != NULL
+                                 ? this->got_->output_section()
+                                 : layout->find_output_section(".sdata"));
 
       if (gp_section != NULL)
         gp = static_cast<Sized_symbol<size>*>(symtab->define_in_output_data(
@@ -5205,9 +5266,9 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_relax_or_expand(
 template<int size, bool big_endian>
 inline void
 Target_nanomips<size, big_endian>::Scan::local(
-    Symbol_table*, /*symtab ,*/
-    Layout*, /*layout,*/
-    Target_nanomips<size, big_endian>*, /* target,*/
+    Symbol_table* symtab ,
+    Layout* layout,
+    Target_nanomips<size, big_endian>* target,
     Sized_relobj_file<size, big_endian>* object,
     unsigned int data_shndx,
     Output_section*, /* output_section,*/
@@ -5282,6 +5343,24 @@ Target_nanomips<size, big_endian>::Scan::local(
     case elfcpp::R_NANOMIPS_RELAX:
       this->seen_norelax_ = false;
       break;
+    case elfcpp::R_NANOMIPS_GOTPC_I32:
+    case elfcpp::R_NANOMIPS_GOT_LO12:
+      {
+        // The symbol requires a GOT entry.
+        Output_data_got<size, big_endian>* got =
+          target->got_section(symtab, layout);
+        unsigned int r_sym = elfcpp::elf_r_sym<32>(reloc.get_r_info());
+
+        // Create GOT entry for this symbol.
+        got->add_local(relobj, r_sym, GOT_TYPE_STANDARD, reloc.get_r_addend());
+      }
+      break;
+    case elfcpp::R_NANOMIPS_GOT_DISP:
+    case elfcpp::R_NANOMIPS_GOT_CALL:
+      // TODO: If building a shared library, create GOT entry if refcount>=2.
+      break;
+    case elfcpp::R_NANOMIPS_GOTPC_HI20:
+    case elfcpp::R_NANOMIPS_GOT_PAGE:
     case elfcpp::R_NANOMIPS_INSN32:
     case elfcpp::R_NANOMIPS_FIXED:
       break;
@@ -5295,9 +5374,9 @@ Target_nanomips<size, big_endian>::Scan::local(
 template<int size, bool big_endian>
 inline void
 Target_nanomips<size, big_endian>::Scan::global(
-    Symbol_table*, /*symtab,*/
-    Layout*, /* layout,*/
-    Target_nanomips<size, big_endian>*, /* target,*/
+    Symbol_table* symtab,
+    Layout* layout,
+    Target_nanomips<size, big_endian>* target,
     Sized_relobj_file<size, big_endian>* object,
     unsigned int data_shndx,
     Output_section*, /* output_section,*/
@@ -5358,6 +5437,30 @@ Target_nanomips<size, big_endian>::Scan::global(
                 }
             }
         }
+      break;
+    case elfcpp::R_NANOMIPS_GOT_DISP:
+    case elfcpp::R_NANOMIPS_GOT_CALL:
+    case elfcpp::R_NANOMIPS_GOT_PAGE:
+      // TODO: If building a shared library, create GOT entry if refcount>=2.
+      // Don't add a GOT entry if the symbol is fully resolved.
+      if (gsym->final_value_is_known())
+        break;
+
+      // If building a shared library, we can also skip the GOT entry
+      // if the symbol is defined in the output file and is protected
+      // or hidden.
+      if (gsym->is_defined()
+          && !gsym->is_from_dynobj()
+          && !gsym->is_preemptible())
+        break;
+      // Fall through.
+
+    case elfcpp::R_NANOMIPS_GOTPC_I32:
+    case elfcpp::R_NANOMIPS_GOT_LO12:
+      // Create GOT entry for this symbol.
+      target->got_section(symtab, layout)->add_global(gsym, GOT_TYPE_STANDARD);
+      break;
+    case elfcpp::R_NANOMIPS_GOTPC_HI20:
       break;
     case elfcpp::R_NANOMIPS_ALIGN:
     case elfcpp::R_NANOMIPS_FILL:
@@ -5461,9 +5564,47 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
                                && !next_reloc_property->placeholder()));
 
   Valtype value = 0;
+
+  switch (r_type)
+    {
+    case elfcpp::R_NANOMIPS_GOT_DISP:
+    case elfcpp::R_NANOMIPS_GOT_PAGE:
+    case elfcpp::R_NANOMIPS_GOT_CALL:
+    case elfcpp::R_NANOMIPS_GOTPC_I32:
+    case elfcpp::R_NANOMIPS_GOTPC_HI20:
+    case elfcpp::R_NANOMIPS_GOT_LO12:
+      if (gsym != NULL)
+        {
+          gold_assert(gsym->has_got_offset(GOT_TYPE_STANDARD));
+          value = gsym->got_offset(GOT_TYPE_STANDARD);
+        }
+      else
+        {
+          gold_assert(object->local_has_got_offset(r_sym, GOT_TYPE_STANDARD,
+                                                   r_addend));
+          value = object->local_got_offset(r_sym, GOT_TYPE_STANDARD, r_addend);
+        }
+      break;
+    default:
+      break;
+    }
+
   switch (r_type)
     {
     case elfcpp::R_NANOMIPS_NONE:
+    case elfcpp::R_NANOMIPS_GOT_DISP:
+    case elfcpp::R_NANOMIPS_GOT_PAGE:
+    case elfcpp::R_NANOMIPS_GOT_CALL:
+    case elfcpp::R_NANOMIPS_GOT_OFST:
+      break;
+    case elfcpp::R_NANOMIPS_GOTPC_I32:
+      value += target->got_section()->address() - (address + 4);
+      break;
+    case elfcpp::R_NANOMIPS_GOTPC_HI20:
+      value += target->got_section()->address() - ((address + 4) & ~0xfff);
+      break;
+    case elfcpp::R_NANOMIPS_GOT_LO12:
+      value += target->got_section()->address();
       break;
     case elfcpp::R_NANOMIPS_32:
     case elfcpp::R_NANOMIPS_UNSIGNED_8:
@@ -5536,11 +5677,13 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
   switch (r_type)
     {
     case elfcpp::R_NANOMIPS_NONE:
+    case elfcpp::R_NANOMIPS_GOT_OFST:
       break;
     case elfcpp::R_NANOMIPS_32:
     case elfcpp::R_NANOMIPS_I32:
     case elfcpp::R_NANOMIPS_PC_I32:
     case elfcpp::R_NANOMIPS_GPREL_I32:
+    case elfcpp::R_NANOMIPS_GOTPC_I32:
       reloc_status = Reloc_funcs::rel32(view, value);
       break;
     case elfcpp::R_NANOMIPS_UNSIGNED_8:
@@ -5558,10 +5701,12 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
     case elfcpp::R_NANOMIPS_HI20:
     case elfcpp::R_NANOMIPS_PC_HI20:
     case elfcpp::R_NANOMIPS_GPREL_HI20:
+    case elfcpp::R_NANOMIPS_GOTPC_HI20:
       reloc_status = Reloc_funcs::relhi20(view, value);
       break;
     case elfcpp::R_NANOMIPS_LO12:
     case elfcpp::R_NANOMIPS_GPREL_LO12:
+    case elfcpp::R_NANOMIPS_GOT_LO12:
       reloc_status = Reloc_funcs::rello12(view, value);
       break;
     case elfcpp::R_NANOMIPS_LO4_S2:
@@ -5609,6 +5754,11 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
       break;
     case elfcpp::R_NANOMIPS_GPREL7_S2:
       reloc_status = Reloc_funcs::relgprel7_s2(view, value, check_overflow);
+      break;
+    case elfcpp::R_NANOMIPS_GOT_DISP:
+    case elfcpp::R_NANOMIPS_GOT_PAGE:
+    case elfcpp::R_NANOMIPS_GOT_CALL:
+      reloc_status = Reloc_funcs::relgot(view, value);
       break;
     default:
       gold_error_at_location(relinfo, relnum, r_offset,
