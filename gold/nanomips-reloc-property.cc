@@ -320,6 +320,56 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
       { 0x9400, elfcpp::R_NANOMIPS_LO4_S2, "sw[16]" }
     };
 
+  static const Insn_info ADDIUGPB32[] =
+    {
+      // addiu.b $reg, $gp, %gprel(sym)
+      { 0x440c0000, elfcpp::R_NANOMIPS_GPREL18, "addiu[gp.b]" }
+    };
+
+  static const Insn_info ADDIUGPW32[] =
+    {
+      // addiu.w $reg, $gp, %gprel(sym)
+      { 0x40000000, elfcpp::R_NANOMIPS_GPREL19_S2, "addiu[gp.w]" }
+    };
+
+  static const Insn_info LAPC32[] =
+    {
+      // lapc $reg, sym
+      { 0x04000000, elfcpp::R_NANOMIPS_PC21_S1, "lapc" }
+    };
+
+  static const Insn_info LAPC48[] =
+    {
+      // lapc[48] $reg, sym
+      { 0x6003, elfcpp::R_NANOMIPS_PC_I32, "lapc[48]" }
+    };
+
+  static const Insn_info ADDIUGP48[] =
+    {
+      // addiugp[48] $reg, %gprel32(sym)
+      { 0x6002, elfcpp::R_NANOMIPS_GPREL_I32, "addiugp[48]" }
+    };
+
+  static const Insn_info LWPC48_GOT[] =
+    {
+      // lwpc[48] $reg, %got_pcrel32(sym)
+      { 0x600b, elfcpp::R_NANOMIPS_GOTPC_I32, "lwpc[48]" }
+    };
+
+  static const Insn_info PCREL_GOT[] =
+    {
+      // aluipc $reg, %got_pcrel_hi(sym)
+      { 0xe0000002, elfcpp::R_NANOMIPS_GOTPC_HI20, "aluipc" },
+      // lw $reg, %got_lo(sym)($reg)
+      { 0x84008000, elfcpp::R_NANOMIPS_GOT_LO12, "lw" }
+    };
+
+  static const Insn_info ALUIPC32[] =
+    {
+      // aluipc $reg, %pcrel_hi(sym)
+      { 0xe0000002, elfcpp::R_NANOMIPS_PC_HI20, "aluipc" },
+    };
+
   const bool Y(true), N(false);
   for (unsigned int i = 0; i < Property_table_size; ++i)
     table_[i] = NULL;
@@ -390,8 +440,8 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
                                    IT_##type, \
                                    store); \
       std::pair<Nanomips_insn_map::iterator, bool> ins = \
-      this->table_[code]->relaxations_.insert( \
-        std::make_pair(opcode, aname##_relax_property)); \
+        this->table_[code]->relaxations_.insert( \
+          std::make_pair(opcode, aname##_relax_property)); \
       gold_assert(ins.second); \
     } \
   while (0);

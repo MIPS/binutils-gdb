@@ -36,6 +36,16 @@ enum Insn_type {
   IT_STANDARD = 0,            // Regular instruction.
   IT_BEQC16 = 1,              // Special type for beqc16 instruction.
   IT_BNEC16 = 2,              // Special type for bnec16 instruction.
+  IT_BYTE_ADDRESS = 3,        // Special type for address calculation.
+  IT_WORD_ADDRESS = 4,        // Special type for address calculation.
+  IT_PCREL_ADDRESS = 5,       // Special type for address calculation.
+  IT_PCREL_ADDRESS_NMS = 6,   // Special type for address calculation.
+  IT_GPREL_NMS = 7,           // Special type for gprel expansion.
+  IT_GOTPCREL_NMS = 8,        // Special type for pcrel GOT expansion.
+  IT_GPREL = 9,               // Special type for gprel expansion.
+  IT_PCREL = 10,              // Special type for pcrel expansion.
+  IT_GOTPCREL = 11,           // Special type for pcrel GOT expansion.
+  IT_MAX = 12
 };
 
 // Instruction information structure.
@@ -104,6 +114,11 @@ class Nanomips_insn_property
   bool
   is_store() const
   { return this->is_store_; }
+
+  // Return type of the instruction.
+  unsigned int
+  type() const
+  { return this->insn_type_; }
 
   // Return the instruction property of type INSN_TYPE, if there is one.
   const Nanomips_insn_property*
