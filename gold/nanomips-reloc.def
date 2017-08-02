@@ -71,48 +71,49 @@ NRD(NORELAX,            PLACEHOLDER,        0,         0,          0,           
 // NIE - Nanomips instruction expansion
 // NIR - Nanomips instruction relaxation
 //
-// Type of the instruction----------------------------------------------------------------+
-// Is store instruction---------------------------------------------------------+         |
-// The offset where to add/delete bytes-------------------------------+         |         |
-// The number of bytes to add/delete------------------------+         |         |         |
-// Opcode--------------------------------+                  |         |         |         |
-// Instruction name----+                 |                  |         |         |         |
-// Reloc Name          |                 |                  |         |         |         |
-//  |                  |                 |                  |         |         |         |
-NIE(PC25_S1,           BC,               0x28000000,        6,        4,        N,        STANDARD)
-NIE(PC25_S1,           BALC,             0x2a000000,        6,        4,        N,        STANDARD)
-NIE(PC21_S1,           MOVE_BALC,        0x08000000,        2,        4,        N,        STANDARD)
-NIE(PC11_S1,           BEQIC,            0xc8000000,        4,        4,        N,        STANDARD)
-NIE(PC11_S1,           BGEIC,            0xc8080000,        4,        4,        N,        STANDARD)
-NIE(PC11_S1,           BGEIUC,           0xc80c0000,        4,        4,        N,        STANDARD)
-NIE(PC11_S1,           BLTIC,            0xc8180000,        4,        4,        N,        STANDARD)
-NIE(PC11_S1,           BLTIUC,           0xc81c0000,        4,        4,        N,        STANDARD)
-NIE(PC11_S1,           BNEIC,            0xc8100000,        4,        4,        N,        STANDARD)
-NIE(GPREL19_S2,        LWGP,             0x40000002,        8,        4,        N,        STANDARD)
-NIE(GPREL19_S2,        SWGP,             0x40000003,        8,        4,        Y,        STANDARD)
-NIE(GPREL19_S2,        ADDIUGP_W,        0x40000000,        8,        4,        N,        STANDARD)
-NIE(GPREL18,           LBGP,             0x44000000,        8,        4,        N,        STANDARD)
-NIE(GPREL18,           LBUGP,            0x44080000,        8,        4,        N,        STANDARD)
-NIE(GPREL18,           SBGP,             0x44040000,        8,        4,        Y,        STANDARD)
-NIE(GPREL18,           ADDIUGP_B,        0x440c0000,        8,        4,        N,        STANDARD)
-NIE(GPREL17_S1,        LHGP,             0x44100000,        8,        4,        N,        STANDARD)
-NIE(GPREL17_S1,        LHUGP,            0x44100001,        8,        4,        N,        STANDARD)
-NIE(GPREL17_S1,        SHGP,             0x44140000,        8,        4,        Y,        STANDARD)
-NIE(PC10_S1,           BC16,             0x1800,            2,        2,        N,        STANDARD)
-NIE(PC10_S1,           BALC16,           0x3800,            2,        2,        N,        STANDARD)
-NIE(PC7_S1,            BEQZC16,          0x9800,            2,        2,        N,        STANDARD)
-NIE(PC7_S1,            BNEZC16,          0xb800,            2,        2,        N,        STANDARD)
-NIE(PC4_S1,            BEQC16,           0xd800,            2,        2,        N,        BEQC16)
-NIE(PC4_S1,            BNEC16,           0xd800,            2,        2,        N,        BNEC16)
-NIE(GPREL7_S2,         LWGP16,           0x5400,            2,        2,        N,        STANDARD)
-NIE(GPREL7_S2,         SWGP16,           0xd400,            2,        2,        Y,        STANDARD)
-NIE(LO4_S2,            LW16,             0x1400,            2,        2,        N,        STANDARD)
-NIE(LO4_S2,            SW16,             0x9400,            2,        2,        Y,        STANDARD)
-NIR(PC25_S1,           BC,               0x28000000,       -2,        2,        N,        STANDARD)
-NIR(PC25_S1,           BALC,             0x2a000000,       -2,        2,        N,        STANDARD)
-NIR(PC14_S1,           BEQC,             0x88000000,       -2,        2,        N,        STANDARD)
-NIR(PC14_S1,           BNEC,             0xa8000000,       -2,        2,        N,        STANDARD)
-NIR(GPREL19_S2,        LWGP,             0x40000002,       -2,        2,        N,        STANDARD)
-NIR(GPREL19_S2,        SWGP,             0x40000003,       -2,        2,        Y,        STANDARD)
-NIR(LO12,              LW,               0x84008000,       -2,        2,        N,        STANDARD)
-NIR(LO12,              SW,               0x84009000,       -2,        2,        Y,        STANDARD)
+// Type of the instruction--------------------------------------------------------------------------------------+
+// Is store instruction-------------------------------------------------------------------------------+         |
+// The offset where to add/delete bytes-----------------------------------------------------+         |         |
+// The number of bytes to add/delete----------------------------------------------+         |         |         |
+// Instruction name-----------------------------------------+                     |         |         |         |
+// Opcode--------------------------------+                  |                     |         |         |         |
+// Array name----------+                 |                  |                     |         |         |         |
+// Reloc Name          |                 |                  |                     |         |         |         |
+//  |                  |                 |                  |                     |         |         |         |
+NIE(PC25_S1,           BC_LONG,          0x28000000,        "bc",                 6,        4,        N,        STANDARD)
+NIE(PC25_S1,           BALC_LONG,        0x2a000000,        "balc",               6,        4,        N,        STANDARD)
+NIE(PC21_S1,           MOVE_BALC,        0x08000000,        "move.balc",          2,        4,        N,        STANDARD)
+NIE(PC11_S1,           BEQIC,            0xc8000000,        "beqic",              4,        4,        N,        STANDARD)
+NIE(PC11_S1,           BGEIC,            0xc8080000,        "bgeic",              4,        4,        N,        STANDARD)
+NIE(PC11_S1,           BGEIUC,           0xc80c0000,        "bgeiuc",             4,        4,        N,        STANDARD)
+NIE(PC11_S1,           BLTIC,            0xc8180000,        "bltic",              4,        4,        N,        STANDARD)
+NIE(PC11_S1,           BLTIUC,           0xc81c0000,        "bltiuc",             4,        4,        N,        STANDARD)
+NIE(PC11_S1,           BNEIC,            0xc8100000,        "bneic",              4,        4,        N,        STANDARD)
+NIE(GPREL19_S2,        LWGP_LONG,        0x40000002,        "lw[gp]",             8,        4,        N,        STANDARD)
+NIE(GPREL19_S2,        SWGP_LONG,        0x40000003,        "sw[gp]",             8,        4,        Y,        STANDARD)
+NIE(GPREL19_S2,        ADDIUGP_LONG,     0x40000000,        "addiu[gp.w]",        8,        4,        N,        STANDARD)
+NIE(GPREL18,           LBGP_LONG,        0x44000000,        "lb[gp]",             8,        4,        N,        STANDARD)
+NIE(GPREL18,           LBUGP_LONG,       0x44080000,        "lbu[gp]",            8,        4,        N,        STANDARD)
+NIE(GPREL18,           SBGP_LONG,        0x44040000,        "sb[gp]",             8,        4,        Y,        STANDARD)
+NIE(GPREL18,           ADDIUGP_LONG,     0x440c0000,        "addiu[gp.b]",        8,        4,        N,        STANDARD)
+NIE(GPREL17_S1,        LHGP_LONG,        0x44100000,        "lh[gp]",             8,        4,        N,        STANDARD)
+NIE(GPREL17_S1,        LHUGP_LONG,       0x44100001,        "lhu[gp]",            8,        4,        N,        STANDARD)
+NIE(GPREL17_S1,        SHGP_LONG,        0x44140000,        "sh[gp]",             8,        4,        Y,        STANDARD)
+NIE(PC10_S1,           BC32,             0x1800,            "bc[16]",             2,        2,        N,        STANDARD)
+NIE(PC10_S1,           BALC32,           0x3800,            "balc[16]",           2,        2,        N,        STANDARD)
+NIE(PC7_S1,            BEQC32,           0x9800,            "beqzc[16]",          2,        2,        N,        STANDARD)
+NIE(PC7_S1,            BNEC32,           0xb800,            "bnezc[16]",          2,        2,        N,        STANDARD)
+NIE(PC4_S1,            BEQC32,           0xd800,            "beqc[16]",           2,        2,        N,        BEQC16)
+NIE(PC4_S1,            BNEC32,           0xd800,            "bnec[16]",           2,        2,        N,        BNEC16)
+NIE(GPREL7_S2,         LWGP32,           0x5400,            "lw[gp16]",           2,        2,        N,        STANDARD)
+NIE(GPREL7_S2,         SWGP32,           0xd400,            "sw[gp16]",           2,        2,        Y,        STANDARD)
+NIE(LO4_S2,            LW32,             0x1400,            "lw[16]",             2,        2,        N,        STANDARD)
+NIE(LO4_S2,            SW32,             0x9400,            "sw[16]",             2,        2,        Y,        STANDARD)
+NIR(PC25_S1,           BC16,             0x28000000,        "bc",                -2,        2,        N,        STANDARD)
+NIR(PC25_S1,           BALC16,           0x2a000000,        "balc",              -2,        2,        N,        STANDARD)
+NIR(PC14_S1,           BEQC16,           0x88000000,        "beqc",              -2,        2,        N,        STANDARD)
+NIR(PC14_S1,           BNEC16,           0xa8000000,        "bnec",              -2,        2,        N,        STANDARD)
+NIR(GPREL19_S2,        LWGP16,           0x40000002,        "lw[gp]",            -2,        2,        N,        STANDARD)
+NIR(GPREL19_S2,        SWGP16,           0x40000003,        "sw[gp]",            -2,        2,        Y,        STANDARD)
+NIR(LO12,              LW16,             0x84008000,        "lw",                -2,        2,        N,        STANDARD)
+NIR(LO12,              SW16,             0x84009000,        "sw",                -2,        2,        Y,        STANDARD)
