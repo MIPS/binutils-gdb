@@ -4393,7 +4393,7 @@ Target_nanomips<size, big_endian>::resolve_pcrel_relocatable(
     default:
       gold_unreachable();
     }
-  Reloc_funcs::nanomips_reloc_unshuffle(view, reloc_property);
+  Reloc_funcs::nanomips_reloc_shuffle(view, reloc_property);
 
   // Report any errors.
   switch (reloc_status)
