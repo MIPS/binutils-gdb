@@ -1105,6 +1105,10 @@ class General_options
   DEFINE_bool(p, options::ONE_DASH, 'p', false,
 	      N_("Ignored for ARM compatibility"), NULL);
 
+  DEFINE_bool(pid, options::ONE_DASH, '\0', false,
+	      N_("(Nanomips only) Use position independent data mode"),
+	      N_("(Nanomips only) Do not use position independent data mode"));
+
   DEFINE_bool(pie, options::ONE_DASH, '\0', false,
 	      N_("Create a position independent executable"),
 	      N_("Do not create a position independent executable"));
