@@ -1021,17 +1021,7 @@ sim_create_inferior (SIM_DESC sd, struct bfd *abfd,
       for (cpu_nr = 0; cpu_nr < sim_engine_nr_cpus (sd); cpu_nr++)
 	{
 	  sim_cpu *cpu = STATE_CPU (sd, cpu_nr);
-	  sim_cia pc = bfd_get_start_address (abfd);
-
-	  /* We need to undo brain-dead bfd behavior where it sign-extends
-	     addresses that are supposed to be unsigned.  See the mips bfd
-	     sign_extend_vma setting.  We have to check the ELF data itself
-	     in order to handle o32 & n32 ABIs.  */
-	  if (abfd->tdata.elf_obj_data->elf_header->e_ident[EI_CLASS] ==
-	      ELFCLASS32)
-	    pc = (unsigned32) pc;
-
-	  CPU_PC_SET (cpu, pc);
+    CPU_PC_SET (cpu, (unsigned64) bfd_get_start_address (abfd));
 	}
     }
 
@@ -1440,21 +1430,26 @@ store_word (SIM_DESC sd,
 	    uword64 vaddr,
 	    signed_word val)
 {
-  address_word paddr = vaddr;
+  address_word paddr;
+  int uncached;
 
   if ((vaddr & 3) != 0)
     SignalExceptionAddressStore ();
   else
     {
-      const uword64 mask = 7;
-      uword64 memval;
-      unsigned int byte;
+      if (AddressTranslation (vaddr, isDATA, isSTORE, &paddr, &uncached,
+			      isTARGET, isREAL))
+	{
+	  const uword64 mask = 7;
+	  uword64 memval;
+	  unsigned int byte;
 
-      paddr = (paddr & ~mask) | ((paddr & mask) ^ (ReverseEndian << 2));
-      byte = (vaddr & mask) ^ (BigEndianCPU << 2);
-      memval = ((uword64) val) << (8 * byte);
-      StoreMemory (AccessLength_WORD, memval, 0, paddr, vaddr,
-		   isREAL);
+	  paddr = (paddr & ~mask) | ((paddr & mask) ^ (ReverseEndian << 2));
+	  byte = (vaddr & mask) ^ (BigEndianCPU << 2);
+	  memval = ((uword64) val) << (8 * byte);
+	  StoreMemory (uncached, AccessLength_WORD, memval, 0, paddr, vaddr,
+		       isREAL);
+	}
     }
 }
 
@@ -1472,18 +1467,24 @@ load_word (SIM_DESC sd,
     }
   else
     {
-      address_word paddr = vaddr;
-      const uword64 mask = 0x7;
-      const unsigned int reverse = ReverseEndian ? 1 : 0;
-      const unsigned int bigend = BigEndianCPU ? 1 : 0;
-      uword64 memval;
-      unsigned int byte;
+      address_word paddr;
+      int uncached;
 
-      paddr = (paddr & ~mask) | ((paddr & mask) ^ (reverse << 2));
-      LoadMemory (&memval, NULL, AccessLength_WORD, paddr, vaddr, isDATA,
-		  isREAL);
-      byte = (vaddr & mask) ^ (bigend << 2);
-      return EXTEND32 (memval >> (8 * byte));
+      if (AddressTranslation (vaddr, isDATA, isLOAD, &paddr, &uncached,
+			      isTARGET, isREAL))
+	{
+	  const uword64 mask = 0x7;
+	  const unsigned int reverse = ReverseEndian ? 1 : 0;
+	  const unsigned int bigend = BigEndianCPU ? 1 : 0;
+	  uword64 memval;
+	  unsigned int byte;
+
+	  paddr = (paddr & ~mask) | ((paddr & mask) ^ (reverse << 2));
+	  LoadMemory (&memval,NULL,uncached, AccessLength_WORD, paddr, vaddr,
+			       isDATA, isREAL);
+	  byte = (vaddr & mask) ^ (bigend << 2);
+	  return EXTEND32 (memval >> (8 * byte));
+	}
     }
 
   return 0;
