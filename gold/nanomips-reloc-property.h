@@ -23,6 +23,8 @@
 #ifndef GOLD_NANOMIPS_RELOC_PROPERTY_H
 #define GOLD_NANOMIPS_RELOC_PROPERTY_H
 
+#include "nanomips.h"
+
 #include <string>
 
 namespace gold
@@ -36,6 +38,18 @@ enum Insn_type {
   IT_BNEC16 = 2,              // Special type for bnec16 instruction.
 };
 
+// Instruction information structure.
+
+struct Insn_info
+{
+  // The instruction.
+  uint32_t insn;
+  // Relocation for instruction.
+  unsigned int reloc;
+  // Instruction name for debugging.
+  const char* name;
+};
+
 // The Nanomips_insn_property class is to store information about a particular
 // relaxation or expansion.
 
@@ -47,13 +61,34 @@ class Nanomips_insn_property
   insn(size_t i) const
   {
     gold_assert(i < this->insn_num_);
-    return this->insns_[i];
+    return this->insns_[i].insn;
   }
 
-  // Return the debug message.
+  // Return the I-th relocation from the array.
+  unsigned int
+  reloc(size_t i) const
+  {
+    gold_assert(i < this->insn_num_);
+    return this->insns_[i].reloc;
+  }
+
+  // Return the I-th instruction name from the array.
   const char*
-  msg() const
-  { return this->msg_; }
+  insn_name(size_t i) const
+  {
+    gold_assert(i < this->insn_num_);
+    return this->insns_[i].name;
+  }
+
+  // Return the name of the instruction.
+  const char*
+  name() const
+  { return this->name_; }
+
+  // Return the number of the instructions.
+  size_t
+  insn_num() const
+  { return this->insn_num_; }
 
   // Return the number of bytes to add/delete.
   int
@@ -85,9 +120,9 @@ class Nanomips_insn_property
  protected:
   // These are protected.  We only allow Nanomips_reloc_property_table to
   // manage Nanomips_insn_property.
-  Nanomips_insn_property(const uint32_t* insns,
+  Nanomips_insn_property(const Insn_info* insns,
                          size_t insn_num,
-                         const char* msg,
+                         const char* name,
                          int count,
                          unsigned int offset,
                          unsigned int insn_type,
@@ -112,11 +147,11 @@ class Nanomips_insn_property
   Nanomips_insn_property& operator=(const Nanomips_insn_property&);
 
   // Relax/expand instruction/instructions.
-  const uint32_t* insns_;
+  const Insn_info* insns_;
   // Number of instructions.
   size_t insn_num_;
-  // Debug message;
-  const char* msg_;
+  // Instruction name.
+  const char* name_;
   // Pointer to the next instruction.
   Nanomips_insn_property* next_insn_;
   // The number of bytes to add/delete.
