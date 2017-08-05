@@ -85,8 +85,8 @@ Disassembly of section \.text:
 0+0128 <text_label\+0x128> 2040 05ff 	repl.qb	t4,0x0
 0+012c <text_label\+0x12c> 205f e5ff 	repl.qb	t4,0xff
 0+0130 <text_label\+0x130> 2064 133f 	replv.qb	t5,a0
-0+0134 <text_label\+0x134> 2200 203d 	repl.ph	a0,-512
-0+0138 <text_label\+0x138> 21ff 203d 	repl.ph	a0,511
+0+0134 <text_label\+0x134> 2090 003d 	repl.ph	a0,-512
+0+0138 <text_label\+0x138> 208f f83d 	repl.ph	a0,511
 0+013c <text_label\+0x13c> 20a6 033f 	replv.ph	a1,a2
 0+0140 <text_label\+0x140> 20e6 0245 	cmpu.eq.qb	a2,a3
 0+0144 <text_label\+0x144> 2107 0285 	cmpu.lt.qb	a3,a4
@@ -135,8 +135,8 @@ Disassembly of section \.text:
 0+01f0 <text_label\+0x1f0> 2149 4107 	lbux	a4,a5\(a6\)
 0+01f4 <text_label\+0x1f4> 216a 4a07 	lhx	a5,a6\(a7\)
 0+01f8 <text_label\+0x1f8> 218b 5407 	lwx	a6,a7\(t0\)
-0+01fc <text_label\+0x1fc> 8804 4000 	bposge32c	0
-			1fc: R_NANOMIPS_LO12	text_label
+0+01fc <text_label\+0x1fc> 8804 4000 	bposge32c	00000000 <text_label>
+			1fc: R_NANOMIPS_PC14_S1	text_label
 0+0200 <text_label\+0x200> 9008      	nop
 0+0202 <text_label\+0x202> 218b 8abf 	madd	\$ac2,a7,t0
 0+0206 <text_label\+0x206> 21ac dabf 	maddu	\$ac3,t0,t1

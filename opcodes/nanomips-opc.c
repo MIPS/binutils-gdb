@@ -209,7 +209,7 @@ decode_nanomips_operand (const char *p)
 /*
 	case 't': REG (5, 21, GP);
 */
-	case 'u': INT_ADJ (14, 0, ((1<<14)-1), 1, FALSE);
+/* 	case 'u': BRANCH_UNORD_SPLIT (14, 1); */
 /* 	case 'v': SPECIAL (2, 16, IMM_INDEX); */
 /* 	case 'w': SPECIAL (1, 16, IMM_INDEX); */
 /* 	case 'x': BIT (5, 16, 0);		/\* (0 .. 31) *\/ */
@@ -244,7 +244,7 @@ decode_nanomips_operand (const char *p)
     case '\\': BIT (3, 21, 0);			 /* (0 .. 7) */
     case '|': INT_ADJ (3, 12, 8, 0, FALSE);	/* 1 .. 8 */
     case '~': BRANCH_UNORD_SPLIT (11, 1); 	/* split 11-bit signed << 1 */
-    case '@': SINT (10, 16);
+    case '@': SINT (10, 11);
     case '^': HINT (5, 11);
     case '!': UINT (1, 10);
     case '$': UINT (1, 3);
@@ -595,8 +595,8 @@ IGRIE */
 {"bne", 	"",		"s,t,p",	0xa8000000, 0xfc00c000,	RD_1|RD_2, INSN2_ALIAS|CBR|CTC,	I38,	0}, /* BNEC */
 {"bne", 	"",		"s,I,p",	0,    (int) M_BNE_I,	INSN_MACRO,		0,	I38,	0},
 {"bneic",	"",		"t,m9,~",	0xc8100000, 0xfc1c0000,		RD_1,		0,	I38,	0},
-{"bposge32c",	"",		"+u",		0x88044000, 0xffffc000,		0,		0,	0,	D32},
-{"bposge32",	"",		"+u",		0x88044000, 0xffffc000,	0,	INSN2_ALIAS|CBR|CTC,	0,	D32}, /* BPOSGE32C */
+{"bposge32c",	"",		"p",		0x88044000, 0xffffc000,		0,		0,	0,	D32},
+{"bposge32",	"",		"p",		0x88044000, 0xffffc000,	0,	INSN2_ALIAS|CBR|CTC,	0,	D32}, /* BPOSGE32C */
 {"brc", 	"",		"s",		0x48008000, 0xffe0ffff,	RD_1,			0,	I38,	0},
 {"brsc",	"",		"s",		0x48008200, 0xffe0ffff,	RD_1,			0,	I38,	0},
 {"byterev",	"",		"t,r",		0x8000d218, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX */
@@ -1140,7 +1140,7 @@ IGRIE */
 {"rem", 	"", 		"d,v,t",	0x20000158, 0xfc0007ff, WR_1|RD_2|RD_3,	INSN2_ALIAS,	I38,	0}, /* MOD */
 {"rem", 	"", 		"d,v,I",	0,    (int) M_REM_3I,	INSN_MACRO,		0,	I38,	0},
 {"remu",	"",		"d,v,t",	0x200001d8, 0xfc0007ff, WR_1|RD_2|RD_3,	INSN2_ALIAS,	I38,	0}, /* MODU */
-{"repl.ph",	"",		"d,@",		0x2000003d, 0xfc0007ff,	WR_1,			0,	0,	D32},
+{"repl.ph",	"",		"t,@",		0x2000003d, 0xfc0007ff,	WR_1,			0,	0,	D32},
 {"repl.qb",	"",		"t,5",		0x200005ff, 0xfc001fff,	WR_1,			0,	0,	D32},
 {"replv.ph",	"",		"t,s",		0x2000033f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32},
 {"replv.qb",	"",		"t,s",		0x2000133f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32},
