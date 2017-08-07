@@ -365,6 +365,7 @@ decode_nanomips_operand (const char *p)
 #define IVIRT	ASE_VIRT
 #define IVIRT64	ASE_VIRT64
 #define IVIRT_XPA ASE_VIRT_XPA
+#define IVIRT_GINV ASE_VIRT_GINV
 
 /* MSA support.  */
 #define MSA     ASE_MSA
@@ -841,7 +842,7 @@ IGRIE */
 {"floor.w.s",	"",		"T,S",		0xa0000b3b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
 {"ginvi",	"", 		"s",		0x20001f7f, 0xffe0ffff, RD_1,			0,	0,	GINV},
 {"ginvt",	"",		"s,+;",		0x20000f7f, 0xff80ffff, RD_1,			0,	0,	GINV},
-/* {"ginvgt",	"",		"s,+\\",	0x7c0000fd, 0xfc1ffcff, RD_1,			0,	0,	IVIRT_GINV}, */
+{"ginvgt",	"",		"s,+;",		0x20000d7f, 0xff80ffff, RD_1,			0,	0,	IVIRT_GINV},
 {"hypcall",	"[16]",		"",		0x100c,		0xffff,		0,	INSN2_ALIAS,	0,	IVIRT}, /* HYPCALL[16] */
 {"hypcall",	"[16]",		"mL",		0x100c,		0xfffc,		0,		0,	0,	IVIRT}, /* HYPCALL[16] */
 {"hypcall",	"[32]",		"",		0x000c0000, 0xffffffff,		0,	INSN2_ALIAS,	0,	IVIRT},
