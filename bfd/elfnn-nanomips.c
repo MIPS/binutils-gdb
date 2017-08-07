@@ -1252,6 +1252,19 @@ nanomips_info_to_howto_rela (bfd *abfd, arelent *cache_ptr,
      (the field omitted in an Elf_Internal_Rel) we can do it here.  */
 }
 
+/* nanoMIPS ELF local labels start with '$', not 'L'.  */
+
+static bfd_boolean
+nanomips_elf_is_local_label_name (bfd *abfd, const char *name)
+{
+  if (name[0] == '$')
+    return TRUE;
+
+  /* On Irix 6, the labels go back to starting with '.', so we accept
+     the generic ELF local label syntax as well.  */
+  return _bfd_elf_is_local_label_name (abfd, name);
+}
+
 /* Set the right machine number for a MIPS ELF file.  */
 
 static bfd_boolean
@@ -1339,6 +1352,8 @@ nanomips_elfNN_object_p (bfd *abfd)
 #define bfd_elfNN_bfd_print_private_bfd_data \
 					_bfd_nanomips_elf_print_private_bfd_data
 #define bfd_elfNN_mkobject		_bfd_mips_elf_mkobject
+#define bfd_elfNN_bfd_is_local_label_name \
+					nanomips_elf_is_local_label_name
 
 #define ELF_MAXPAGESIZE			0x1000
 #define ELF_COMMONPAGESIZE		0x1000
