@@ -4349,13 +4349,16 @@ match_int_operand (struct mips_arg_info *arg,
 	{
 	  /* Accept non-constant operands if no later alternative matches,
 	     leaving it for the caller to process.  */
-	  if (!arg->lax_match)
-	    return FALSE;
-	  if (operand_base->size == 16)
-	    offset_reloc[0] = BFD_RELOC_UNUSED + RT_ADDIU;
+	  if (operand_base->size == 16 && offset_expr.X_op == O_subtract)
+	    {
+	      offset_reloc[0] = BFD_RELOC_UNUSED + RT_ADDIU;
+	      return TRUE;
+	    }
 	  else
-	    offset_reloc[0] = BFD_RELOC_LO16;
-	  return TRUE;
+	    {
+	      offset_reloc[0] = BFD_RELOC_LO16;
+	      return arg->lax_match;
+	    }
 	}
 
       /* Clear the global state; we're going to install the operand
@@ -8357,8 +8360,7 @@ load_address (int reg, expressionS *ep, int *used_at)
 	  else
 	    {
 	      macro_build_lui (ep, reg);
-	      macro_build (ep, ADDRESS_ADDI_INSN, ADDIU_FMT,
-			   reg, reg, ISA_BFD_RELOC_LOW);
+	      macro_build (ep, "ori", "t,r,i", reg, reg, ISA_BFD_RELOC_LOW);
 	    }
 	  if (mips_relax.sequence)
 	    relax_end ();
@@ -9941,7 +9943,10 @@ nanomips_macro (struct mips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 
     case M_LI:
     case M_LI_S:
-      load_register (op[0], &imm_expr, 0);
+      if (imm_expr.X_op != O_absent)
+	load_register (op[0], &imm_expr, 0);
+      else
+	load_address (op[0], &offset_expr, 0);
       break;
 
     case M_DLI:
