@@ -130,16 +130,18 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> a445 0604 	ldm	t4,4\(a1\),8
 [0-9a-f]+ <[^>]+> a445 7e04 	sdm	t4,4\(a1\),7
 [0-9a-f]+ <[^>]+> 8043 d7c5 	rotx	t4,t5,0x5,30,1
-[0-9a-f]+ <[^>]+> 8043 d01f 	bitrev	t4,t5
-[0-9a-f]+ <[^>]+> 8043 d01f 	bitrev	t4,t5
-[0-9a-f]+ <[^>]+> 8043 d247 	bitswap	t4,t5
-[0-9a-f]+ <[^>]+> 8043 d247 	bitswap	t4,t5
-[0-9a-f]+ <[^>]+> 8043 d40f 	bitswap.h	t4,t5
-[0-9a-f]+ <[^>]+> 8043 d40f 	bitswap.h	t4,t5
-[0-9a-f]+ <[^>]+> 8043 d218 	byterev	t4,t5
-[0-9a-f]+ <[^>]+> 8043 d218 	byterev	t4,t5
-[0-9a-f]+ <[^>]+> 8043 d608 	wsbh	t4,t5
-[0-9a-f]+ <[^>]+> 8043 d608 	wsbh	t4,t5
+[0-9a-f]+ <[^>]+> 8043 d01f 	bitrevw	t4,t5
+[0-9a-f]+ <[^>]+> 8043 d01f 	bitrevw	t4,t5
+[0-9a-f]+ <[^>]+> 8043 d247 	bitrevb	t4,t5
+[0-9a-f]+ <[^>]+> 8043 d247 	bitrevb	t4,t5
+[0-9a-f]+ <[^>]+> 8043 d247 	bitrevb	t4,t5
+[0-9a-f]+ <[^>]+> 8043 d40f 	bitrevh	t4,t5
+[0-9a-f]+ <[^>]+> 8043 d40f 	bitrevh	t4,t5
+[0-9a-f]+ <[^>]+> 8043 d218 	byterevw	t4,t5
+[0-9a-f]+ <[^>]+> 8043 d218 	byterevw	t4,t5
+[0-9a-f]+ <[^>]+> 8043 d608 	byterevh	t4,t5
+[0-9a-f]+ <[^>]+> 8043 d608 	byterevh	t4,t5
+[0-9a-f]+ <[^>]+> 8043 d608 	byterevh	t4,t5
 [0-9a-f]+ <[^>]+> 04bf fffd 	addiupc	a1,0
 [0-9a-f]+ <[^>]+> 04a0 0000 	addiupc	a1,4
 [0-9a-f]+ <[^>]+> 04a0 0004 	addiupc	a1,8
@@ -147,9 +149,9 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 04a0 0001 	addiupc	a1,-2097148
 [0-9a-f]+ <[^>]+> e062 5002 	aluipc	t5,00025000 <[^>]+>
 [0-9a-f]+ <[^>]+> e060 0002 	aluipc	t5,00000000 <[^>]+>
-			1f0: R_NANOMIPS_PCHI20	test
+			[0-9a-f]+: R_NANOMIPS_PCHI20	test
 [0-9a-f]+ <[^>]+> 0063 0000 	addiu	t5,t5,0
-			1f4: R_NANOMIPS_LO12	test
+			[0-9a-f]+: R_NANOMIPS_LO12	test
 [0-9a-f]+ <[^>]+> 20a4 2150 	addu	a0,a0,a1
 [0-9a-f]+ <[^>]+> 2148 4150 	addu	a4,a4,a6
 [0-9a-f]+ <[^>]+> 2250 8150 	addu	s0,s0,s2

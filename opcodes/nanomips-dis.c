@@ -286,7 +286,7 @@ const struct mips_arch_choice mips_arch_choices[] =
     ISA_NANOMIPS32R6,
     (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_VIRT | ASE_VIRT_XPA | ASE_XPA |
      ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3
-     | ASE_xNMS | ASE_TLB),
+     | ASE_xNMS | ASE_TLB | ASE_GINV),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -294,7 +294,7 @@ const struct mips_arch_choice mips_arch_choices[] =
   { "32r6s",	1, bfd_mach_nanomipsisa32r6, CPU_NANOMIPS32R6,
     ISA_NANOMIPS32R6,
     (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_VIRT | ASE_VIRT_XPA | ASE_XPA |
-     ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3 | ASE_TLB),
+     ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3 | ASE_TLB | ASE_GINV),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -303,7 +303,7 @@ const struct mips_arch_choice mips_arch_choices[] =
     ISA_NANOMIPS64R6,
     (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_MSA64 | ASE_VIRT | ASE_VIRT_XPA
      | ASE_XPA | ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3 | ASE_DSP64
-     | ASE_xNMS | ASE_TLB),
+     | ASE_xNMS | ASE_TLB | ASE_GINV),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -490,7 +490,11 @@ parse_mips_dis_option (const char *option, unsigned int len)
       if (mips_ase & ASE_XPA)
 	mips_ase |= ASE_VIRT_XPA;
       return;
-    }
+
+      if (mips_ase & ASE_GINV)
+	mips_ase |= ASE_VIRT_GINV;
+
+   }
 
   if (CONST_STRNEQ (option, "xpa"))
     {
@@ -503,6 +507,14 @@ parse_mips_dis_option (const char *option, unsigned int len)
   if (CONST_STRNEQ (option, "mxu"))
     {
       mips_ase |= ASE_MXU;
+      return;
+    }
+
+  if (CONST_STRNEQ (option, "ginv"))
+    {
+      mips_ase |= ASE_GINV;
+      if (mips_ase & ASE_VIRT)
+	mips_ase |= ASE_VIRT_GINV;
       return;
     }
 

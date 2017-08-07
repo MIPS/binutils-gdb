@@ -185,15 +185,17 @@ test:
 
 	rotx    $r2, $r3, 5, 30, 1
 	rotx    $r2, $r3, 31, 0
-	bitrev 	$r2,$r3
+	bitrevw $r2,$r3
 	rotx    $r2, $r3, 7, 8, 1
 	bitswap $r2,$r3
+	bitrevb $r2,$r3
 	rotx    $r2, $r3, 15, 16
-	bitswap.h $r2,$r3
+	bitrevh $r2,$r3
 	rotx    $r2, $r3, 24, 8
-	byterev $r2,$r3
+	byterevw $r2,$r3
 	rotx    $r2, $r3, 8, 24
 	wsbh 	$r2,$r3
+	byterevh 	$r2,$r3
 
 	addiupc		$r5, 0
 	addiupc 	$r5, 4

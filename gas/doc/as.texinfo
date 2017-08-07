@@ -455,6 +455,9 @@ gcc(1), ld(1), and the Info entries for @file{binutils} and @file{ld}.
    [@b{-mmxu}] [@b{-mno-mxu}]
    [@b{-mmt}] [@b{-mno-mt}]
    [@b{-mmcu}] [@b{-mno-mcu}]
+   [@b{-mvirt}] [@b{-mno-virt}]
+   [@b{-mginv}] [@b{-mno-ginv}]
+   [@b{-mtlb}] [@b{-mno-tlb}]
    [@b{-minsn32}] [@b{-mno-insn32}]
    [@b{-mdebug}] [@b{-no-mdebug}]
    [@b{-mpdr}] [@b{-mno-pdr}]
@@ -1657,6 +1660,24 @@ This tells the assembler to accept MT instructions.
 Generate code for the MCU Application Specific Extension.
 This tells the assembler to accept MCU instructions.
 @samp{-mno-mcu} turns off this option.
+
+@item -mvirt
+@itemx -mno-virt
+Generate code for the Virtualization Application Specific Extension.
+This tells the assembler to accept virtualization instructions.
+@samp{-mno-virt} turns off this option.
+
+@item -mginv
+@itemx -mno-ginv
+Generate code for the Global cache INValidate Application Specific Extension.
+This tells the assembler to accept GINV instructions.
+@samp{-mno-ginv} turns off this option.
+
+@item -mtlb
+@itemx -mno-tlb
+Generate code for the Translation Lookaside Buffer control extension.
+This tells the assembler to accept TLB control instructions.
+@samp{-mno-tlb} turns off this option.
 
 @item -minsn32
 @itemx -mno-insn32

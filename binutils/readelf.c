@@ -14143,7 +14143,9 @@ print_nanomips_ases (unsigned int mask)
     fputs ("\n\tXPA ASE", stdout);
   if (mask & AFL_ASE_TLB)
     fputs ("\n\tTLB ASE", stdout);
-  if ((mask & AFL_ASE_xNMS) == 0)
+  if (mask & AFL_ASE_GINV)
+    fputs ("\n\tGINV ASE", stdout);
+ if ((mask & AFL_ASE_xNMS) == 0)
     fputs ("\n\tnanoMIPS subset", stdout);
   else if (mask == 0)
     fprintf (stdout, "\n\t%s", _("None"));

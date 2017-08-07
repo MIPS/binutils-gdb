@@ -225,7 +225,7 @@ decode_nanomips_operand (const char *p)
 /* 	case '"': BRANCH (21, 0, 1); */
 	case ':': MAPPED_INT (5, 6, word_byte_map, FALSE);
 	case '.': BIT (2, 9, 0);		/* (0 .. 3) */
-/*	case ';': SPECIAL (10, 16, SAME_RS_RT); */
+	case ';': UINT (2, 21);			/* (0 .. 3) */
 	case '1': UINT (18, 0);
 	case '2': INT_ADJ (16, 2, (1<<16)-1, 2, FALSE);
 	case '3': INT_ADJ (17, 1, (1<<17)-1, 1, FALSE);
@@ -372,6 +372,9 @@ decode_nanomips_operand (const char *p)
 
 /* eXtended Physical Address (XPA) support.  */
 #define XPA     ASE_XPA
+
+/* Global INValidate extension.  */
+#define GINV	ASE_GINV
 
 #define FPU	0
 #define EJTAG	0
@@ -561,9 +564,10 @@ IGRIE */
 {"bgeu",	"",		"s,t,p",	0x8800c000, 0xfc00c000,	RD_1|RD_2, INSN2_ALIAS|CBR|CTC,	I38,	0}, /* BGEUC */
 {"bgeu",	"",		"s,I,p",	0,    (int) M_BGEU_I,	INSN_MACRO,		0,	I38,	0},
 {"bgeiuc",	"",		"t,m9,~",	0xc80c0000, 0xfc1c0000,		RD_1,		0,	I38,	0},
-{"bitrev",	"",		"t,r",		0x8000d01f, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX */
-{"bitswap",	"",		"t,r",		0x8000d247, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX */
-{"bitswap.h",	"",		"t,r",		0x8000d40f, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX */
+{"bitrevb",	"",		"t,r",		0x8000d247, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX t,s,7,8,1 */
+{"bitrevh",	"",		"t,r",		0x8000d40f, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX t,s,15,16 */
+{"bitrevw",	"",		"t,r",		0x8000d01f, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX t,s,31,0*/
+{"bitswap",	"",		"t,r",		0x8000d247, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX t,s,7,8,1*/
 {"bgtzc",	"",		"t,p",		0xa8008000, 0xfc1fc000,	RD_1,		INSN2_ALIAS,	I38,	0}, /* BLTC $0, t */
 {"bgtz",	"",		"t,p",		0xa8008000, 0xfc1fc000,	RD_1, 	INSN2_ALIAS|CBR|CTC,	I38,	0}, /* BLTC $0, t */
 {"bltzc",	"",		"s,p",		0xa8008000, 0xffe0c000,	RD_1,		INSN2_ALIAS,	I38,	0}, /* BLTC s, $0 */
@@ -599,7 +603,8 @@ IGRIE */
 {"bposge32",	"",		"p",		0x88044000, 0xffffc000,	0,	INSN2_ALIAS|CBR|CTC,	0,	D32}, /* BPOSGE32C */
 {"brc", 	"",		"s",		0x48008000, 0xffe0ffff,	RD_1,			0,	I38,	0},
 {"brsc",	"",		"s",		0x48008200, 0xffe0ffff,	RD_1,			0,	I38,	0},
-{"byterev",	"",		"t,r",		0x8000d218, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX */
+{"byterevh",	"",		"t,r",		0x8000d608, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX t,s,8,24 */
+{"byterevw",	"",		"t,r",		0x8000d218, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX t,s,24,8 */
 {"cache",	"",		"k,+j(b)",	0xa4003900, 0xfc007f00,		RD_3,		0,	I38,	0},
 {"cache",	"",		"k,A(b)",	0,    (int) M_CACHE_AB,		INSN_MACRO,	0,	I38,	0},
 {"cachee",	"",		"k,+j(b)",	0xa4003a00, 0xfc007f00,		RD_3,		0,	0,	EVA},
@@ -833,6 +838,9 @@ IGRIE */
 {"floor.l.s",	"",		"T,S",		0xa000033b, 0xfc00ffff,	WR_1|RD_2|FP_S|FP_D,	0,	I38,	0},
 {"floor.w.d",	"",		"T,S",		0xa0004b3b, 0xfc00ffff,	WR_1|RD_2|FP_S|FP_D,	0,	I38,	0},
 {"floor.w.s",	"",		"T,S",		0xa0000b3b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
+{"ginvi",	"", 		"s",		0x20001f7f, 0xffe0ffff, RD_1,			0,	0,	GINV},
+{"ginvt",	"",		"s,+;",		0x20000f7f, 0xff80ffff, RD_1,			0,	0,	GINV},
+/* {"ginvgt",	"",		"s,+\\",	0x7c0000fd, 0xfc1ffcff, RD_1,			0,	0,	IVIRT_GINV}, */
 {"hypcall",	"[16]",		"",		0x100c,		0xffff,		0,	INSN2_ALIAS,	0,	IVIRT}, /* HYPCALL[16] */
 {"hypcall",	"[16]",		"mL",		0x100c,		0xfffc,		0,		0,	0,	IVIRT}, /* HYPCALL[16] */
 {"hypcall",	"[32]",		"",		0x000c0000, 0xffffffff,		0,	INSN2_ALIAS,	0,	IVIRT},
@@ -1167,7 +1175,7 @@ IGRIE */
 {"rorv",	"",		"d,v,t",	0x200000d0, 0xfc0007ff, WR_1|RD_2|RD_3,	INSN2_ALIAS,	I38,	0}, /* ROTRV */
 {"rotl",	"",		"d,v,t",	0,    (int) M_ROL,	INSN_MACRO,		0,	I38,	0},
 {"rotl",	"",		"d,v,I",	0,    (int) M_ROL_I,	INSN_MACRO,		0,	I38,	0},
-{"wsbh",	"",		"t,r",		0x8000d608, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX */
+{"wsbh",	"",		"t,r",		0x8000d608, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX t,s,8,24*/
 {"rotx",	"",		"t,r,<,+*",	0x8000d000, 0xfc00f860, WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS},
 {"rotx",	"",		"t,r,<,+*,+|",	0x8000d000, 0xfc00f820, WR_1|RD_2,		0,	0,	xNMS},
 {"round.l.d",	"",		"T,S",		0xa000733b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},

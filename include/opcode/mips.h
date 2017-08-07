@@ -1373,10 +1373,15 @@ static const unsigned int mips_isa_table[] = {
 #define ASE_MIPS16E2		0x00040000
 /* MIPS16e2 MT ASE instructions.  */
 #define ASE_MIPS16E2_MT		0x00080000
+/* Global INValidate Extension. */
+#define ASE_GINV		0x00800000
 /* Low Power instructions on nanoMIPS.  */
 #define ASE_xNMS			0x02000000
 /* TLB control instructions on nanoMIPS.  */
 #define ASE_TLB			0x04000000
+/* The Virtualization ASE has Global INValidate extension instructions
+   which are only valid when both ASEs are enabled. */
+#define ASE_VIRT_GINV		0x01000000
 
 #define       ISA_UNKNOWN     0               /* Gas internal use.  */
 #define       ISA_MIPS1       INSN_ISA1

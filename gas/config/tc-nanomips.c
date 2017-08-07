@@ -1001,6 +1001,8 @@ enum options
     OPTION_NO_MIPS16E2,
     OPTION_TLB,
     OPTION_NO_TLB,
+    OPTION_GINV,
+    OPTION_NO_GINV,
     OPTION_COMPAT_ARCH_BASE,
     OPTION_TRAP,
     OPTION_BREAK,
@@ -1080,6 +1082,8 @@ struct option md_longopts[] =
   {"mno-mxu", no_argument, NULL, OPTION_NO_MXU},
   {"mtlb", no_argument, NULL, OPTION_TLB},
   {"mno-tlb", no_argument, NULL, OPTION_NO_TLB},
+  {"mginv", no_argument, NULL, OPTION_GINV},
+  {"mno-ginv", no_argument, NULL, OPTION_NO_GINV},
 
   /* Miscellaneous options.  */
   {"trap", no_argument, NULL, OPTION_TRAP},
@@ -1248,6 +1252,11 @@ static const struct mips_ase mips_ases[] = {
   { "tlb", ASE_TLB, 0,
     OPTION_TLB, OPTION_NO_TLB,
     6, 6,
+    -1 },
+
+  { "ginv", ASE_GINV, 0,
+    OPTION_GINV, OPTION_NO_GINV,
+     6, 6,
     -1 },
 };
 
@@ -1643,6 +1652,7 @@ mips_set_ase (const struct mips_ase *ase, struct mips_set_options *opts,
   opts->ase &= ~mask;
   opts->ase &= ~ASE_VIRT_XPA;
   opts->ase &= ~ASE_EVA_R6;
+  opts->ase &= ~ASE_VIRT_GINV;
 
   if (enabled_p)
     opts->ase |= ase->flags;
@@ -1654,6 +1664,15 @@ mips_set_ase (const struct mips_ase *ase, struct mips_set_options *opts,
     {
       opts->ase |= ASE_VIRT_XPA;
       mask |= ASE_VIRT_XPA;
+    }
+
+  /* The Virtualization ASE has Global INValidate (GINV) Extension
+     instructions which are only valid when both ASEs are enabled.
+     This sets the ASE_VIRT_GINV flag when both ASEs are present.  */  
+  if (((opts->ase & ASE_GINV) != 0) && ((opts->ase & ASE_VIRT) != 0))
+    {
+      opts->ase |= ASE_VIRT_GINV;
+      mask |= ASE_VIRT_GINV;
     }
 
   return mask;
@@ -13839,6 +13858,8 @@ mips_convert_ase_flags (int ase)
     ext_ases |= AFL_ASE_xNMS;
   if (ase & ASE_TLB)
     ext_ases |= AFL_ASE_TLB;
+  if (ase & ASE_GINV)
+    ext_ases |= AFL_ASE_GINV;
 
   return ext_ases;
 }
@@ -14692,6 +14713,12 @@ MIPS options:\n\
   fprintf (stream, _("\
 -mvirt			generate Virtualization instructions\n\
 -mno-virt		do not generate Virtualization instructions\n"));
+  fprintf (stream, _("\
+-mginv			generate Global INValidate (GINV) instructions\n\
+-mno-ginv		do not generate Global INValidate instructions\n"));
+  fprintf (stream, _("\
+-mtlb			generate Translation Lookaside Buffer (TLB) control instructions\n\
+-mno-tlb		do not generate Translation Lookaside Buffer control instructions\n"));
   fprintf (stream, _("\
 -minsn32		only generate 32-bit microMIPS instructions\n\
 -mno-insn32		generate all microMIPS instructions\n"));

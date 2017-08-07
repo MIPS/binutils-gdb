@@ -2297,10 +2297,10 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2044 f17f 	wrpgpr	t4,a0
 [0-9a-f]+ <[^>]+> 2042 f17f 	wrpgpr	t4,t4
 [0-9a-f]+ <[^>]+> 2042 f17f 	wrpgpr	t4,t4
-[0-9a-f]+ <[^>]+> 8043 d608 	wsbh	t4,t5
-[0-9a-f]+ <[^>]+> 8044 d608 	wsbh	t4,a0
-[0-9a-f]+ <[^>]+> 8042 d608 	wsbh	t4,t4
-[0-9a-f]+ <[^>]+> 8042 d608 	wsbh	t4,t4
+[0-9a-f]+ <[^>]+> 8043 d608 	byterevh	t4,t5
+[0-9a-f]+ <[^>]+> 8044 d608 	byterevh	t4,a0
+[0-9a-f]+ <[^>]+> 8042 d608 	byterevh	t4,t4
+[0-9a-f]+ <[^>]+> 8042 d608 	byterevh	t4,t4
 [0-9a-f]+ <[^>]+> 5124      	xor	s2,s2,s2
 [0-9a-f]+ <[^>]+> 5134      	xor	s2,s2,s3
 [0-9a-f]+ <[^>]+> 5144      	xor	s2,s2,a0
