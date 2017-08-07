@@ -913,7 +913,12 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_opts "la" \
 	{"-mlegacyregs" "-mlegacyregs --defsym mc_medium="} \
 	[arch_list_matching nanomips]
+    run_dump_test_opts "la-pcrel" \
+	{"" "--defsym mc_medium="} \
+	[arch_list_matching nanomips]
     run_dump_test_arches "la-mclarge" "-mlegacyregs --defsym mc_large=" \
+	[arch_list_matching nanomips]
+    run_dump_test_arches "la-mclarge-pcrel" "--defsym mc_large=" \
 	[arch_list_matching nanomips]
 
     run_dump_test_arch "mips-abi32-pic" "-KPIC -mlegacyregs" nanomips32s

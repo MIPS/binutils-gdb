@@ -78,6 +78,9 @@ int mips_flag_mdebug = -1;
 /* Control generation of .pdr sections.  */
 int mips_flag_pdr = TRUE;
 
+/* Control PC-relative address calculation in non-PIC mode.  */
+int nanomips_flag_pcrel = FALSE;
+
 #include "ecoff.h"
 
 static char *mips_regmask_frag;
@@ -1050,6 +1053,8 @@ enum options
     OPTION_LEGACY_REGS,
     OPTION_NO_LEGACY_REGS,
     OPTION_LINKRELAX,
+    OPTION_PCREL,
+    OPTION_NO_PCREL,
     OPTION_END_OF_ENUM
   };
 
@@ -1119,6 +1124,8 @@ struct option md_longopts[] =
   {"mlegacyregs", no_argument, NULL, OPTION_LEGACY_REGS},
   {"mno-legacyregs", no_argument, NULL, OPTION_NO_LEGACY_REGS},
   {"linkrelax", no_argument, NULL, OPTION_LINKRELAX},
+  {"mpcrel", no_argument, NULL, OPTION_PCREL},
+  {"mno-pcrel", no_argument, NULL, OPTION_NO_PCREL},
 
   /* Strictly speaking this next option is ELF specific,
      but we allow it for other ports as well in order to
@@ -9124,6 +9131,8 @@ nanomips_macro_ldd_std (const char *s, const char *fmt, unsigned int op[],
     }
 }
 
+/* Expand the LA macro for PC-relative addressing.  */
+
 static void
 nanomips_macro_pcrel_la (unsigned int op[])
 {
@@ -9142,7 +9151,29 @@ nanomips_macro_pcrel_la (unsigned int op[])
 		   op[0], op[0], BFD_RELOC_NANOMIPS_LO12);
     }
 }
-/* Expand the LA macro */
+
+/* Expand the LA macro for absolute addressing.  */
+
+static void
+nanomips_macro_absolute_la (unsigned int op[])
+{
+  if (!IS_SEXT_32BIT_NUM (offset_expr.X_add_number))
+    as_bad (_("offset too large"));
+  if ((mips_opts.ase & ASE_xNMS) != 0
+      && *offset_reloc == BFD_RELOC_UNUSED
+      && !mips_opts.insn32)
+    macro_build (&offset_expr, "li", "mp,+Q", op[0],
+		 BFD_RELOC_NANOMIPS_I32);
+  else
+    {
+      macro_build_lui (&offset_expr, op[0]);
+      if (!hi16_reloc_p (*offset_reloc))
+	macro_build (&offset_expr, "ori", "t,r,i",
+		     op[0], op[0], ISA_BFD_RELOC_LOW);
+    }
+}
+
+/* Expand the LA macro.  */
 
 static void
 nanomips_macro_la (unsigned int op[], unsigned int breg, int *used_at)
@@ -9211,7 +9242,8 @@ nanomips_macro_la (unsigned int op[], unsigned int breg, int *used_at)
       if (HAVE_64BIT_SYMBOLS)
 	{
 	  if ((valueT) offset_expr.X_add_number <= MAX_GPREL_OFFSET
-	      && !nopic_need_relax (offset_expr.X_add_symbol, 1))
+	      && !nopic_need_relax (offset_expr.X_add_symbol, 1)
+	      && (mips_opts.mc_model == MC_MEDIUM || mips_opts.mc_model == MC_AUTO))
 	    {
 	      relax_start (offset_expr.X_add_symbol);
 	      macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDIUGP_FMT,
@@ -9239,7 +9271,11 @@ nanomips_macro_la (unsigned int op[], unsigned int breg, int *used_at)
 	      relax_switch ();
 	    }
 
-	  nanomips_macro_pcrel_la (op);
+	  if (nanomips_flag_pcrel)
+	    nanomips_macro_pcrel_la (op);
+	  else
+	    nanomips_macro_absolute_la (op);
+
 	  if (mips_relax.sequence)
 	    relax_end ();
 	}
@@ -11116,6 +11152,14 @@ md_parse_option (int c, char *arg)
       mips_flag_pdr = FALSE;
       break;
 
+    case OPTION_PCREL:
+      nanomips_flag_pcrel = TRUE;
+      break;
+
+    case OPTION_NO_PCREL:
+      nanomips_flag_pcrel = FALSE;
+      break;
+      
     default:
       return 0;
     }
@@ -14740,6 +14784,7 @@ MIPS options:\n\
 -m[no-]legacyregs	[dis]allow mumerical register formats\n\
 --[no-]construct-floats	[dis]allow floating point values to be constructed\n\
 --[no-]relax-branch	[dis]allow out-of-range branches to be relaxed\n\
+-m[no-]pcrel		[dis]allow PC-relative address calculations for non-PIC code[Provisional]\n\
 -mnan=ENCODING		select an IEEE 754 NaN encoding convention, either of:\n"));
 
   first = 1;
