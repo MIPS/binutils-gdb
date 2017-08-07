@@ -79,9 +79,7 @@ text_label:
 	maq_s.w.phr	$ac2,$29,$30
 	maq_sa.w.phl	$ac3,$30,$31
 	maq_sa.w.phr	$ac0,$31,$0
-.ifndef nanomips_broken
 	bitrev		$0,$1
-.endif
 	insv		$1,$2
 	repl.qb		$2,0
 	repl.qb		$2,255

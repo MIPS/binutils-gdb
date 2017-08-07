@@ -80,7 +80,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 23dd 8a7f 	maq_s.w.phr	\$ac2,sp,fp
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 23fe fa7f 	maq_sa.w.phl	\$ac3,fp,ra
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 201f 2a7f 	maq_sa.w.phr	\$ac0,ra,zero
-#[0-9a-f]+ <text_label\+0x[0-9a-f]+> 8001 d01f 	bitrev	zero,at
+[0-9a-f]+ <text_label\+0x[0-9a-f]+> 2001 313f 	bitrev	zero,at
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 2022 413f 	insv	at,t4
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 2040 05ff 	repl.qb	t4,0x0
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 205f e5ff 	repl.qb	t4,0xff

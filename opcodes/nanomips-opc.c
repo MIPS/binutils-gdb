@@ -564,6 +564,7 @@ IGRIE */
 {"bgeu",	"",		"s,t,p",	0x8800c000, 0xfc00c000,	RD_1|RD_2, INSN2_ALIAS|CBR|CTC,	I38,	0}, /* BGEUC */
 {"bgeu",	"",		"s,I,p",	0,    (int) M_BGEU_I,	INSN_MACRO,		0,	I38,	0},
 {"bgeiuc",	"",		"t,m9,~",	0xc80c0000, 0xfc1c0000,		RD_1,		0,	I38,	0},
+{"bitrev",	"",		"t,r",		0x2000313f, 0xfc00ffff,	WR_1|RD_2,     		0,	0,	D32}, /* ROTX t,s,7,8,1 */
 {"bitrevb",	"",		"t,r",		0x8000d247, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX t,s,7,8,1 */
 {"bitrevh",	"",		"t,r",		0x8000d40f, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX t,s,15,16 */
 {"bitrevw",	"",		"t,r",		0x8000d01f, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX t,s,31,0*/
