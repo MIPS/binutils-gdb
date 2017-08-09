@@ -15,7 +15,7 @@ test:
 	movep	$r6, $r7, $r20, $r21
 	movep	$r7, $r8, $r22, $r23
 	/* movep[rev] */
-	movep	$r8, $r7, $r4, $r5
+	movep[rev]	$r8, $r7, $r4, $r5
 	movep	$r9, $r6, $r5, $r6
 	movep	$r10, $r5, $r6, $r7
 	movep	$r11, $r4, $r7, $r8
@@ -24,6 +24,27 @@ test:
 	movep	$r21, $r17, $r5, $r6
 	movep	$r18, $r22, $r6, $r7
 	movep	$r23, $r19, $r7, $r8
+
+	/* movep - arg pair reversed */
+	movep	$r5, $r4, $r8, $r9
+	movep	$r6, $r5, $r10, $r0
+	movep	$r7, $r6, $r4, $r5
+	movep	$r8, $r7, $r6, $r7
+
+	movep	$r5, $r4, $r17, $r16
+	movep	$r6, $r5, $r19, $r18
+	movep	$r7, $r6, $r21, $r20
+	movep	$r8, $r7, $r23, $r22
+	/* movep[rev] - arg pair reversed */
+	movep[rev]	$r7, $r8,  $r5, $r4
+	movep	$r6, $r9,  $r6, $r5
+	movep	$r5, $r10, $r7, $r6
+	movep	$r4, $r11, $r8, $r7
+
+	movep	$r20, $r16, $r5, $r4
+	movep	$r17, $r21, $r6, $r5
+	movep	$r22, $r18, $r7, $r6
+	movep	$r19, $r23, $r8, $r7
 	.endif
 
 	lw	$r8, 0($r8)

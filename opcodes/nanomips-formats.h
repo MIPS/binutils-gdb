@@ -58,15 +58,15 @@
 #define HINT_SPLIT(SIZE, LSB, SIZE_T, LSB_T)	\
   SINT_SPLIT(SIZE, LSB, 0, SIZE_T, LSB_T)
 
-#define SPLIT_MAPPED_REG_PAIR(SIZE, LSB, SIZE_T, LSB_T, BANK, MAP) \
+#define SPLIT_MAPPED_REG_PAIR(SIZE, LSB, SIZE_T, LSB_T, BANK, MAP1, MAP2)	\
   { \
     typedef char ATTRIBUTE_UNUSED \
-      static_assert1[(1 << (SIZE)) == ARRAY_SIZE (MAP##1)]; \
+      static_assert1[(1 << (SIZE)) == ARRAY_SIZE (MAP1)]; \
     typedef char ATTRIBUTE_UNUSED \
-      static_assert2[(1 << (SIZE)) == ARRAY_SIZE (MAP##2)]; \
+      static_assert2[(1 << (SIZE)) == ARRAY_SIZE (MAP2)]; \
     static const struct mips_reg_pair_operand op = { \
       { OP_REG_PAIR, SIZE, LSB, SIZE_T, LSB_T }, OP_REG_##BANK, \
-      MAP##1, MAP##2 \
+      MAP1, MAP2 \
     }; \
     return &op.root; \
   }

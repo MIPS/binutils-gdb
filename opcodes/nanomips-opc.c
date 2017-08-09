@@ -134,9 +134,11 @@ decode_nanomips_operand (const char *p)
 /* 	case '2': SPLIT_MAPPED_REG (4, 0, 1, 4, GP, reg_4to5_map); */
 /* 	case '3': SPLIT_MAPPED_REG (4, 5, 1, 9, GP, reg_4to5_srcmap); */
 	case '4': MAPPED_REG (1, 24, GP, reg_4or5_map);
-	case '5': SPLIT_MAPPED_REG_PAIR (2, 8, 1, 3, GP, reg_gpr2d_map);
- 	case '6': MAPPED_INT (5, 6, int_6_map, TRUE);
-/* 	case '7': SPLIT_MAPPED_REG (4, 21, 1, 25, GP, reg_4to5_map); */
+	case '5': SPLIT_MAPPED_REG_PAIR (2, 8, 1, 3, GP, reg_gpr2d_map1,
+					 reg_gpr2d_map2);
+	case '6': MAPPED_INT (5, 6, int_6_map, TRUE);
+	case '7': SPLIT_MAPPED_REG_PAIR (2, 8, 1, 3, GP, reg_gpr2d_map2,
+					 reg_gpr2d_map1);
 	case '8': HINT (23, 3);
 	case '9': UINT (7, 11);
 	}
@@ -1034,7 +1036,9 @@ IGRIE */
 {"move.balc",	"",		"m4,+8,+r",	0x08000000, 0xfc000000,	WR_1|RD_2,		0,	0,	xNMS},
 {"move.bal",	"",		"m4,+8,+r",	0x08000000, 0xfc000000,	WR_1|RD_2, 	INSN2_ALIAS|UBR|CTC, 0,	xNMS}, /* MOVE.BALC */
 {"movep",	"",		"m5,+7,+6",	0xbc00,		0xfc00,	WR_1|RD_2|RD_3,		0,	0,	xNMS}, /* MOVEP */
+{"movep",	"",		"m7,+6,+7",	0xbc00,		0xfc00,	WR_1|RD_2|RD_3,	INSN2_ALIAS,	0,	xNMS}, /* MOVEP */
 {"movep",	"[rev]",	"+5,+4,m5",	0xfc00,		0xfc00,	WR_1|WR_2|RD_3,		0,	0,	xNMS}, /* MOVEP[REV] */
+{"movep",	"[rev]",	"+4,+5,m7",	0xfc00,		0xfc00,	WR_1|WR_2|RD_3,	INSN2_ALIAS,	0,	xNMS}, /* MOVEP[REV] */
 {"movn",	"",		"d,v,t",	0x20000610, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"movz",	"",		"d,v,t",	0x20000210, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"msub",	"[dsp]",	"7,s,t",	0x20002abf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32}, /* MSUB[DSP] */
