@@ -1,0 +1,3298 @@
+// Simulator definition for the micromips ASE.
+// Copyright (C) 2005-2014 Free Software Foundation, Inc.
+// Contributed by Imagination Technologies, Ltd.
+// Written by Ali Lown <ali.lown@imgtec.com>
+//
+// This file is part of GDB, the GNU debugger.
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+:compute:::int:U_SHIFT_1BIT:U:(U << 1)
+:compute:::int:U_SHIFT_2BIT:U:(U << 2)
+:compute:::int:U_SHIFT_3BIT:U:(U << 3)
+:compute:::int:U_SHIFT_4BIT:U:(U << 4)
+:compute:::int:EU_127:EU:((EU == 127) ? -1 \: EU)
+:compute:::int:U_LW4X4:U2,U3:((U3 << 3) | (U2 << 2))
+:compute:::int:AXUIPC_S_LO:S1,S2,S3:((EXTEND32((S3 << 31) | (S2 << 21) | (S1 << 12))) & 0x0000ffff)
+:compute:::int:AXUIPC_S_HI:S1,S2,S3:((EXTEND32((S3 << 31) | (S2 << 21) | (S1 << 12))) & 0xffff0000)
+:compute:::int:AXUIPC_S:S1,S2,S3:(EXTEND32((S3 << 31) | (S2 << 21) | (S1 << 12)))
+:compute:::int:TRD2:RD20,RD21:(compute_gpr2_dest1_reg (SD_, (RD21 << 1 | RD20)))
+:compute:::int:TRE2:RD20,RD21:(compute_gpr2_dest2_reg (SD_, (RD21 << 1 | RD20)))
+:compute:::int:TRS2:RS4,RS2_0:(compute_gpr4_zero (SD_, (RS4 << 3 | RS2_0)))
+:compute:::int:TRT2:RT4,RT2_0:(compute_gpr4_zero (SD_, (RT4 << 3 | RT2_0)))
+:compute:::int:TRD2_REV:RD4,RD2_0:(compute_gpr4 (SD_, (RD4 << 3) | RD2_0))
+:compute:::int:TRE2_REV:RE4,RE2_0:(compute_gpr4 (SD_, (RE4 << 3) | RE2_0))
+:compute:::int:TRS2_REV:RS20,RS21:(compute_gpr2_dest1_reg (SD_, (RS21 << 1 | RS20)))
+:compute:::int:TRT2_REV:RS20,RS21:(compute_gpr2_dest2_reg (SD_, (RS21 << 1 | RS20)))
+:compute:::address_word:ADDRESS8:S1,S2:(nia + EXTEND8((S2 << 7) | (S1 << 1)))
+:compute:::address_word:ADDRESS11:S1,S2:(nia + EXTEND11((S2 << 10) | (S1 << 1)))
+:compute:::address_word:ADDRESS15:S1,S2:(nia + EXTEND15((S2 << 14) | (S1 << 1)))
+:compute:::address_word:ADDRESS21:S1,S2:(nia + EXTEND21((S2 << 20) | (S1 << 1)))
+:compute:::address_word:ADDRESS22:S1,S2:(nia + EXTEND22((S2 << 21) | (S1 << 1)))
+:compute:::address_word:ADDRESS26:S1,S2:(nia + EXTEND26((S2 << 25) | (S1 << 1)))
+:compute:::int:INS_POS:LSB:(LSB)
+:compute:::int:INS_SIZE:LSB,MSBD:(1 + MSBD - LSB)
+:compute:::address_word:ADDRESS12:S1,S2:(nia + EXTEND12(S2 << 11 | S1 << 1))
+:compute:::int:S_14_BIT:S1,S2:(EXTEND14 ((S1 << 13) | S2))
+:compute:::int:S_4_BIT:S1,S2:(EXTEND4((S1 << 3) | S2))
+:compute:::int:S_9_BIT:S1,S2:(EXTEND9((S1 << 8) | S2))
+:compute:::int:S_9_BIT_LLSC:S1,S2:(EXTEND9((S1 << 8) | (S2 << 2)))
+:compute:::int:RD1:RD:(compute_gpr1_dest_reg (SD_, RD))
+:compute:::int:RT_5_BIT_NM_Z:RT1,RT2:(compute_gpr4_zero (SD_, (RT1 << 3) | RT2))
+:compute:::int:RT_5_BIT_NM:RT1,RT2:(compute_gpr4 (SD_, (RT1 << 3) | RT2))
+:compute:::int:RS_5_BIT_NM:RS1,RS2:(compute_gpr4 (SD_, (RS1 << 3) | RS2))
+:compute:::int:TRTZ:RTZ:((RTZ >= 1 && RTZ <= 3) ? (16 + RTZ) \: RTZ)
+:compute:::int:EU_12_13:EU:((EU == 12) ? 255 \: ((EU == 13) ? 65535 \: EU))
+:compute:::int:RS_MOVE:RS1,RS_CODE_1,RS_CODE_2:((RS1 << 3) | (RS_CODE_1 << 2) | RS_CODE_2)
+:compute:::int:CODE_BREAK:RS_CODE_1,RS_CODE_2:((RS_CODE_1 << 2) | RS_CODE_2)
+:compute:::int:TRD_NM:RD:((RD < 4) ? (16 + RD) \: RD)
+:compute:::int:TRS_NM:RS:((RS < 4) ? (16 + RS) \: RS)
+:compute:::int:TRT_NM:RT:((RT < 4) ? (16 + RT) \: RT)
+:compute:::int:COUNT:COUNT3:(COUNT3 == 0 ? 8 \: COUNT3)
+:compute:::int:SHIFTX_1BIT:SHIFTX:(SHIFTX << 1)
+
+:function:::void:do_msubf:int fd, int fs, int ft, int fmt, instruction_word instruction_0
+{
+  check_fpu (SD_);
+  check_u64 (SD_, instruction_0);
+  check_fmt_p (SD_, fmt, instruction_0);
+  TRACE_ALU_INPUT3 (FGR[fd], FGR[fs], FGR[ft]);
+  StoreFPR (fd, fmt, FusedMultiplySub (ValueFPR (fs, fmt),
+               ValueFPR (ft, fmt),
+               ValueFPR (fd, fmt), fmt));
+  TRACE_ALU_RESULT (FGR[fd]);
+}
+
+:function:::void:do_maddf:int fd, int fs, int ft, int fmt, instruction_word instruction_0
+{
+  check_fpu (SD_);
+  check_u64 (SD_, instruction_0);
+  check_fmt_p (SD_, fmt, instruction_0);
+  TRACE_ALU_INPUT3 (FGR[fd], FGR[fs], FGR[ft]);
+  StoreFPR (fd, fmt, FusedMultiplyAdd (ValueFPR (fs, fmt),
+               ValueFPR (ft, fmt),
+               ValueFPR (fd, fmt), fmt));
+  TRACE_ALU_RESULT (FGR[fd]);
+}
+
+:function:::void:do_rint:int fd, int fs, int fmt, instruction_word instruction_0
+{
+  unsigned64 result = 0;
+  check_fpu (SD_);
+  check_u64 (SD_, instruction_0);
+  check_fmt_p (SD_, fmt, instruction_0);
+  TRACE_ALU_INPUT1 (FGR[fs]);
+  RoundToIntegralExact (ValueFPR (fs, fmt), &result, fmt);
+  StoreFPR (fd, fmt, result);
+  TRACE_ALU_RESULT (FGR[fd]);
+}
+
+:function:::void:do_class:int fd, int fs, int fmt, instruction_word instruction_0
+{
+  check_fpu (SD_);
+  check_u64 (SD_, instruction_0);
+  check_fmt_p (SD_, fmt, instruction_0);
+  StoreFPR (fd, fmt, Classify (ValueFPR (fs, fmt), fmt));
+}
+
+:function:::void:do_seleqzf:int fd, int fs, int ft, int fmt, instruction_word instruction_0
+{
+  check_fpu (SD_);
+  check_fmt_p (SD_, fmt, instruction_0);
+  TRACE_ALU_INPUT2 (ValueFPR(fs, fmt), FGR[ft]);
+  if ((FGR[ft] & 0x01) == 0)
+    StoreFPR (fd, fmt, ValueFPR (fs, fmt));
+  else
+    StoreFPR (fd, fmt, 0);
+  TRACE_ALU_RESULT (ValueFPR(fd, fmt));
+}
+
+:function:::void:do_selnezf:int fd, int fs, int ft, int fmt, instruction_word instruction_0
+{
+  check_fpu (SD_);
+  check_fmt_p (SD_, fmt, instruction_0);
+  TRACE_ALU_INPUT2 (ValueFPR(fs, fmt), FGR[ft]);
+  if ((FGR[ft] & 0x01) == 0x1)
+    StoreFPR (fd, fmt, ValueFPR (fs, fmt));
+  else
+    StoreFPR (fd, fmt, 0);
+  TRACE_ALU_RESULT (ValueFPR(fd, fmt));
+}
+
+:function:::void:do_self:int fd, int fs, int ft, int fmt, instruction_word instruction_0
+{
+  check_fpu (SD_);
+  check_fmt_p (SD_, fmt, instruction_0);
+  TRACE_ALU_INPUT3 (FGR[fd], ValueFPR(fs, fmt), ValueFPR(ft, fmt));
+  if ((FGR[fd] & 0x01) != 0)
+    StoreFPR (fd, fmt, ValueFPR (ft, fmt));
+  else
+    StoreFPR (fd, fmt, ValueFPR (fs, fmt));
+  TRACE_ALU_RESULT (ValueFPR(fd, fmt));
+}
+
+:function:::void:do_mina:int fd, int fs, int ft, int fmt, instruction_word instruction_0
+{
+  check_fpu (SD_);
+  check_u64 (SD_, instruction_0);
+  check_fmt_p (SD_, fmt, instruction_0);
+  TRACE_ALU_INPUT2 (FGR[fs], FGR[ft]);
+  StoreFPR (fd, fmt, MinA (ValueFPR (fs, fmt), ValueFPR (ft, fmt), fmt));
+  TRACE_ALU_RESULT (FGR[fd]);
+}
+
+:function:::void:do_maxa:int fd, int fs, int ft, int fmt, instruction_word instruction_0
+{
+  check_fpu (SD_);
+  check_u64 (SD_, instruction_0);
+  check_fmt_p (SD_, fmt, instruction_0);
+  TRACE_ALU_INPUT2 (FGR[fs], FGR[ft]);
+  StoreFPR (fd, fmt, MaxA (ValueFPR (fs, fmt), ValueFPR (ft, fmt), fmt));
+  TRACE_ALU_RESULT (FGR[fd]);
+}
+
+:function:::void:do_max:int fd, int fs, int ft, int fmt, instruction_word instruction_0
+{
+  check_fpu (SD_);
+  check_u64 (SD_, instruction_0);
+  check_fmt_p (SD_, fmt, instruction_0);
+  TRACE_ALU_INPUT2 (FGR[fs], FGR[ft]);
+  StoreFPR (fd, fmt, Max (ValueFPR (fs, fmt), ValueFPR (ft, fmt), fmt));
+  TRACE_ALU_RESULT (FGR[fd]);
+}
+
+:function:::void:do_min:int fd, int fs, int ft, int fmt, instruction_word instruction_0
+{
+  check_fpu (SD_);
+  check_u64 (SD_, instruction_0);
+  check_fmt_p (SD_, fmt, instruction_0);
+  TRACE_ALU_INPUT2 (FGR[fs], FGR[ft]);
+  StoreFPR (fd, fmt, Min (ValueFPR (fs, fmt), ValueFPR (ft, fmt), fmt));
+  TRACE_ALU_RESULT (FGR[fd]);
+}
+
+:function:::void:do_cmp:int fd, int fs, int ft, int fmt, int condition
+{
+  unsigned64 result;
+  check_fpu (SD_);
+  TRACE_ALU_INPUT2 (ValueFPR (fs, fmt), ValueFPR (ft, fmt));
+  result = R6Compare (ValueFPR (fs, fmt), ValueFPR (ft, fmt), fmt, condition);
+  StoreFPR (fd, fmt, result);
+  TRACE_ALU_RESULT (result);
+}
+
+:function:::void:do_modu:int rd, int rs, int rt
+{
+  unsigned32 n = GPR[rs];
+  unsigned32 d = GPR[rt];
+  TRACE_ALU_INPUT2 (n,d);
+  if (d == 0)
+    GPR[rd] = EXTEND32 (0);
+  else
+    GPR[rd] = EXTEND32 (n % d);
+
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_mod:int rd, int rs, int rt
+{
+  signed32 n = GPR[rs];
+  signed32 d = GPR[rt];
+  TRACE_ALU_INPUT2 (n,d);
+  if (d == 0 || (n == SIGNED32 (0x80000000) && d == -1))
+    GPR[rd] = EXTEND32 (0);
+  else
+    GPR[rd] = EXTEND32 (n % d);
+
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_muhu:int rd, int rs, int rt
+{
+  unsigned64 prod;
+  if (NotWordValue (GPR[rs]) || NotWordValue (GPR[rt]))
+    Unpredictable ();
+  TRACE_ALU_INPUT2 (GPR[rs], GPR[rt]);
+  prod = ((unsigned64)(unsigned32) GPR[rs])
+    * ((unsigned64)(unsigned32) GPR[rt]);
+  GPR[rd] = EXTEND32 (VH4_8 (prod));
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_mulu:int rd, int rs, int rt
+{
+  unsigned64 prod;
+  if (NotWordValue (GPR[rs]) || NotWordValue (GPR[rt]))
+    Unpredictable ();
+  TRACE_ALU_INPUT2 (GPR[rs], GPR[rt]);
+  prod = ((unsigned64)(unsigned32) GPR[rs])
+    * ((unsigned64)(unsigned32) GPR[rt]);
+  GPR[rd] = EXTEND32 (VL4_8 (prod));
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_muh:int rd, int rs, int rt
+{
+  signed64 prod;
+  if (NotWordValue (GPR[rs]) || NotWordValue (GPR[rt]))
+    Unpredictable ();
+  TRACE_ALU_INPUT2 (GPR[rs], GPR[rt]);
+  prod = ((signed64)(signed32) GPR[rs])
+    * ((signed64)(signed32) GPR[rt]);
+  GPR[rd] = EXTEND32 (VH4_8 (prod));
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_lsa:int rd, int rs, int rt, unsigned immediate
+{
+  unsigned32 t = GPR[rs] << immediate;
+  GPR[rd] = EXTEND32(GPR[rt] + t);
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_divu:int rd, int rs, int rt
+*nanomips32r6:
+*nanomips64r6:
+{
+  unsigned32 n = GPR[rs];
+  unsigned32 d = GPR[rt];
+  TRACE_ALU_INPUT2 (n,d);
+  if (d == 0)
+    GPR[rd] = EXTEND32 (0x80000000);
+  else
+    GPR[rd] = EXTEND32 (n / d);
+
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_div:int rd, int rs, int rt
+*nanomips32r6:
+*nanomips64r6:
+{
+  signed32 n = GPR[rs];
+  signed32 d = GPR[rt];
+  TRACE_ALU_INPUT2 (n,d);
+  if (d == 0)
+    GPR[rd] = EXTEND32 (0x80000000);
+  else if (n == SIGNED32 (0x80000000) && d == -1)
+    GPR[rd] = EXTEND32 (0x80000000);
+  else
+    GPR[rd] = EXTEND32 (n / d);
+
+  TRACE_ALU_RESULT (GPR[rd]);
+}
+
+:function:::void:do_llwp:int rt, int ru, int roffset, int rbase
+{
+  address_word base = GPR[rbase];
+  address_word offset = EXTEND16 (roffset);
+  {
+    address_word vaddr = loadstore_ea (SD_, base, offset);
+    address_word paddr;
+    int uncached;
+    if ((vaddr & 7) != 0)
+      {
+  SIM_CORE_SIGNAL (SD, CPU, cia, read_map, 8, vaddr, read_transfer,
+    sim_core_unaligned_signal);
+      }
+    else
+      {
+  if (AddressTranslation (vaddr, isDATA, isLOAD, &paddr, &uncached,
+             isTARGET, isREAL))
+    {
+      unsigned64 memval = 0;
+      unsigned64 memval1 = 0;
+      LoadMemory (&memval, &memval1, uncached, AccessLength_DOUBLEWORD,
+            paddr, vaddr, isDATA, isREAL);
+
+      unsigned64 data = memval;
+
+      GPR[rt] = EXTEND32 (data & 0xFFFFFFFF);
+      GPR[ru] = EXTEND32 (data >> 32);
+
+      LLBIT = 1;
+      COP0_COUNT++;
+    }
+      }
+  }
+}
+
+:function:::void:do_rotx:int rt, int rs, int shift, int shiftx, int stripe
+{
+  int i;
+  unsigned64 tmp0 = (GPR[rs] << 32) | (GPR[rs] & 0xFFFFFFFF);
+
+  unsigned64 tmp1 = tmp0;
+  for (i = 0; i <=46; i++) {
+    int s;
+
+    if (i & 0x8)
+      s = shift;
+    else
+      s = shiftx;
+
+    if (stripe != 0 && !(i & 0x4))
+      s = ~s;
+
+    if (s & 0x10) {
+      if (tmp0 & (1LL << (i + 16)))
+        tmp1 |= 1LL << i;
+      else
+        tmp1 &= ~(1LL << i);
+    }
+  }
+
+  unsigned64 tmp2 = tmp1;
+  for (i = 0; i <=38; i++) {
+    int s;
+
+    if (i & 0x4)
+      s = shift;
+    else
+      s = shiftx;
+
+    if (s & 0x8) {
+      if (tmp1 & (1LL << (i + 8)))
+        tmp2 |= 1LL << i;
+      else
+        tmp2 &= ~(1LL << i);
+    }
+  }
+
+  unsigned64 tmp3 = tmp2;
+  for (i = 0; i <=34; i++) {
+    int s;
+
+    if (i & 0x2)
+      s = shift;
+    else
+      s = shiftx;
+
+    if (s & 0x4) {
+      if (tmp2 & (1LL << (i + 4)))
+        tmp3 |= 1LL << i;
+      else
+        tmp3 &= ~(1LL << i);
+    }
+  }
+
+  unsigned64 tmp4 = tmp3;
+  for (i = 0; i <=32; i++) {
+    int s;
+
+    if (i & 0x1)
+      s = shift;
+    else
+      s = shiftx;
+
+    if (s & 0x2) {
+      if (tmp3 & (1LL << (i + 2)))
+        tmp4 |= 1LL << i;
+      else
+        tmp4 &= ~(1LL << i);
+    }
+  }
+
+  unsigned64 tmp5 = tmp4;
+  for (i = 0; i <=31; i++) {
+    int s;
+
+    s = shift;
+
+    if (s & 0x1) {
+      if (tmp4 & (1LL << (i + 1)))
+        tmp5 |= 1LL << i;
+      else
+        tmp5 &= ~(1LL << i);
+    }
+  }
+
+  GPR[rt] = EXTEND32 (tmp5);
+}
+
+:function:::void:do_lwc1xs:int ft, int rbase, int roffset
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_fpu (SD_);
+  COP_LW (1, ft, do_load (SD_, AccessLength_WORD, GPR[rbase] << 2,
+        GPR[roffset]));
+}
+
+:function:::void:do_lwpc_nanomips:int rt, unsigned32 offset, address_word nia
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_fpu (SD_);
+  GPR[rt] = EXTEND32 (do_load (SD_, AccessLength_WORD, nia, offset));
+}
+
+:function:::void:check_nms_flag:
+*nanomips32r6:
+*nanomips64r6:
+{
+  if(nms_flag == 0)
+    sim_engine_abort (SD, CPU, CIA, "Error: NMS instruction generated\
+  (nanoMIPS Subset is disabled - use -march=32r6s option)\n");
+}
+
+:function:::void:do_swc1xs:int ft, int rbase, int roffset, address_word instruction_0
+*nanomips32r6:
+*nanomips64r6:
+{
+  address_word base = GPR[rbase] << 2;
+  address_word offset = GPR[roffset];
+  check_fpu (SD_);
+  {
+    address_word vaddr = loadstore_ea (SD_, base, offset);
+    address_word paddr;
+    int uncached;
+    if ((vaddr & 3) != 0)
+      {
+  SIM_CORE_SIGNAL (SD, CPU, cia, read_map, AccessLength_WORD+1, vaddr,
+       write_transfer, sim_core_unaligned_signal);
+      }
+    else
+      {
+  if (AddressTranslation (vaddr, isDATA, isSTORE, &paddr, &uncached,
+              isTARGET, isREAL))
+    {
+      uword64 memval = 0;
+      uword64 memval1 = 0;
+      uword64 mask = (WITH_TARGET_WORD_BITSIZE == 64 ? 0x7 : 0x3);
+      address_word reverseendian =
+        (ReverseEndian ?(mask ^ AccessLength_WORD): 0);
+      address_word bigendiancpu =
+        (BigEndianCPU ?(mask ^ AccessLength_WORD): 0);
+      unsigned int byte;
+      paddr = ((paddr & ~mask) | ((paddr & mask) ^ reverseendian));
+      byte = ((vaddr & mask) ^ bigendiancpu);
+      memval = (((uword64)COP_SW(1, ft)) << (8 * byte));
+      StoreMemory (uncached, AccessLength_WORD, memval, memval1, paddr,
+       vaddr, isREAL);
+    }
+      }
+  }
+}
+
+:function:::unsigned32:compute_gpr2_dest1_reg:int reg
+*nanomips32r6:
+*nanomips64r6:
+{
+  switch(reg)
+    {
+    case 0: return 4;
+    case 1: return 5;
+    case 2: return 6;
+    case 3: return 7;
+    default: return 4;
+    }
+}
+
+:function:::unsigned32:compute_gpr4_zero:int reg
+*nanomips32r6:
+*nanomips64r6:
+{
+  if (reg == 3) return 0;
+  else if (reg >=4 && reg <= 7) return reg;
+  else return reg + 8;
+}
+
+:function:::unsigned32:compute_gpr4:int reg
+*nanomips32r6:
+*nanomips64r6:
+{
+  if (reg >=4 && reg <= 7) return reg;
+  else return reg + 8;
+}
+
+:function:::unsigned32:compute_gpr2_dest2_reg:int reg
+*nanomips32r6:
+*nanomips64r6:
+{
+  switch(reg)
+    {
+    case 0: return 5;
+    case 1: return 6;
+    case 2: return 7;
+    case 3: return 8;
+    default: return 5;
+    }
+}
+
+:function:::unsigned32:compute_gpr1_dest_reg:int reg
+*nanomips32r6:
+*nanomips64r6:
+{
+  switch(reg)
+    {
+    case 0: return 4;
+    case 1: return 5;
+    default: return 4;
+    }
+}
+
+:function:::unsigned:zero_extend:signed_word value, unsigned32 from_nbits
+{
+  unsigned32 low_bits_mask = (1 << from_nbits) - 1;
+  return value & low_bits_mask;
+}
+
+:function:::void:do_save_gprs_to_stack_and_adjust_sp: int first_gpr, int count, int gp, int u
+*nanomips32r6:
+*nanomips64r6:
+{
+  int counter = 0;
+
+  while (counter != count) {
+    int gpr = (first_gpr & 0x10) | ((first_gpr + counter) & 0x1F);
+    int offset = - ( (counter + 1) << 2 );
+
+    if ( gp && (counter == count - 1))
+      gpr = 28;
+
+    do_store (SD_, AccessLength_WORD, GPR[SPIDX], offset, GPR[gpr]);
+
+    counter++;
+    COP0_COUNT++;
+  }
+
+  GPR[SPIDX] -= u;
+}
+
+:function:::void:do_restore_gprs_from_stack_and_adjust_sp: int first_gpr, int count, int gp, int u
+*nanomips32r6:
+*nanomips64r6:
+{
+  int counter = 0;
+
+  while (counter != count) {
+    int gpr = (first_gpr & 0x10) | ((first_gpr + counter) & 0x1F);
+
+    if (gpr == 29)
+      Unpredictable();
+
+    int offset = u - ((counter + 1) << 2);
+
+    if ( gp && (counter == count - 1))
+      gpr = 28;
+
+    GPR[gpr] = EXTEND32 (do_load(SD_, AccessLength_WORD, GPR[SPIDX], offset));
+
+    counter++;
+    COP0_COUNT++;
+  }
+
+  GPR[SPIDX] += u;
+}
+
+:function:::address_word:do_eret:int nc, address_word nia
+*nanomips32r6:
+*nanomips64r6:
+{
+  if (SR & status_ERL)
+    {
+      /* Oops, not yet available */
+      sim_io_printf (SD, "Warning: ERET when SR[ERL] set not supported");
+      nia = EPC;
+      SR &= ~status_ERL;
+    }
+  else
+    {
+      nia = EPC;
+      SR &= ~status_EXL;
+      //if ( SRSCtl.HSS > 0 && Status.BEV == 0)
+      //  SRSCtl.CSS = SRSCtl.PSS
+  }
+
+  if (!nc)
+    LLBIT = 0;
+
+  //TODO: ClearHazards()
+  return nia;
+}
+
+:%s::::GPR_LIST_SAVE:int count
+*nanomips32r6:
+*nanomips64r6:
+{
+  int i;
+  static char gpr_list[100];
+
+  gpr_list[0] = '\0';
+
+  i = 0;
+
+  while (i<count)
+    {
+      char str1[3];
+      if (i == 0 || i==count-1) {
+        sprintf(str1, "%d", i);
+        strcat (gpr_list,"s");
+        strcat (gpr_list,str1);
+        if(i==0 && count > 1)
+          strcat (gpr_list,"-");
+      }
+      i++;
+    }
+  return (gpr_list);
+}
+
+:function:::void:do_break_nanomips:address_word instruction_0
+{
+  /* Check for some break instruction which are reserved for use by the
+     simulator.  */
+  unsigned int break_code = instruction_0 & HALT_INSTRUCTION_MASK_NANOMIPS;
+  if (break_code == (HALT_INSTRUCTION_NANOMIPS & HALT_INSTRUCTION_MASK_NANOMIPS))
+    {
+      sim_engine_halt (SD, CPU, NULL, cia,
+           sim_exited, (unsigned int)(A0 & 0xFFFFFFFF));
+    }
+  else if (break_code == (BREAKPOINT_INSTRUCTION_NANOMIPS & HALT_INSTRUCTION_MASK_NANOMIPS))
+    {
+      PC = cia;
+      SignalException (BreakPoint, instruction_0);
+    }
+
+  else
+    {
+    /* If we get this far, we're not an instruction reserved by the sim. Raise
+       the exception. */
+      SignalException (BreakPoint, instruction_0);
+    }
+}
+
+:function:::FP_formats:convert_fmt_micromips_mul:int fmt
+*nanomips32r6:
+*nanomips64r6:
+{
+  switch (fmt)
+    {
+    case 1: return fmt_single;
+    case 3: return fmt_double;
+    default: return fmt_unknown;
+    }
+}
+
+:%s::::GP_SAVE:int gp
+*nanomips32r6:
+*nanomips64r6:
+{
+  return (gp > 0) ? "gp" : "";
+}
+
+:%s::::FP_SAVE:int fp
+*nanomips32r6:
+*nanomips64r6:
+{
+  return (fp > 0) ? "fp" : "";
+}
+
+:%s::::RT_SAVE:int rt
+*nanomips32r6:
+*nanomips64r6:
+{
+  if (rt >= 16 && rt <= 23)
+  {
+    char str[4];
+    sprintf(str, "s%d", rt-16);
+    return str;
+  }
+  else if (rt == 28)
+    return "gp";
+  else if (rt == 30)
+    return "fp";
+  else if (rt == 31)
+    return "ra";
+  else if (rt >= 0 && rt < 28)
+  {
+    char str[4];
+    sprintf(str, "r%d", rt);
+    return str;
+  }
+
+  return "";
+}
+
+:%s::::IMM48:int U
+*nanomips32r6:
+*nanomips64r6:
+{
+  unsigned16 U2 = do_load (SD_, AccessLength_HALFWORD, CIA + 4, 0);
+  unsigned32 total = U2 << 16 | U;
+  char str[32];
+  sprintf(str, "%u", total);
+  return str;
+}
+
+:%s::::R6COND:int r6cond
+{
+  switch (r6cond)
+    {
+    case FP_R6CMP_SAF:
+      return "SAF";
+    case FP_R6CMP_SUN:
+      return "SUN";
+    case FP_R6CMP_SOR:
+      return "SOR";
+    case FP_R6CMP_SEQ:
+      return "SEQ";
+    case FP_R6CMP_SUNE:
+      return "SUNE";
+    case FP_R6CMP_SUEQ:
+      return "SUEQ";
+    case FP_R6CMP_SNE:
+      return "SNE";
+    case FP_R6CMP_SLT:
+      return "SLT";
+    case FP_R6CMP_SULT:
+      return "SULT";
+    case FP_R6CMP_SLE:
+      return "SLE";
+    case FP_R6CMP_SULE:
+      return "SULE";
+    case FP_R6CMP_AF:
+      return "AF";
+    case FP_R6CMP_UN:
+      return "UN";
+    case FP_R6CMP_OR:
+      return "OR";
+    case FP_R6CMP_EQ:
+      return "EQ";
+    case FP_R6CMP_UNE:
+      return "UNE";
+    case FP_R6CMP_UEQ:
+      return "UEQ";
+    case FP_R6CMP_NE:
+      return "NE";
+    case FP_R6CMP_LT:
+      return "LT";
+    case FP_R6CMP_ULT:
+      return "ULT";
+    case FP_R6CMP_LE:
+      return "LE";
+    case FP_R6CMP_ULE:
+      return "ULE";
+    default:
+      abort ();
+    }
+}
+
+11111111111111111111111111111111:R7DUMMY:32,f::DUMMY0.fmt
+"dummy 0"
+*nanomips32r6:
+*nanomips64r6:
+{
+  /* Just needed so GNUSIM builds */
+}
+
+011100,3.RT,1,6.U:R7P16A1:16::ADDIUR1SP
+"addiu r<TRT_NM>, SP, <U_SHIFT_2BIT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_addiu (SD_, SPIDX, TRT_NM, U_SHIFT_2BIT);
+}
+
+100100,3.RT,3.RS,0,3.U:R7P16A2:16::ADDIUR2
+"addiu r<TRT_NM>, r<TRS_NM>, <U_SHIFT_2BIT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_addiu (SD_, TRS_NM, TRT_NM, U_SHIFT_2BIT);
+}
+
+100100,5.RT,1.S1,1,3.S2:R7P16ADDIURS5:16::ADDIURS5
+"nop":RT==0
+"addiu r<RT>, <S_4_BIT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  if (RT != 0)
+    do_addiu (SD_, RT, RT, S_4_BIT);
+}
+
+000001,5.RT,20.S1,1.S2:R7P32:32::ADDIUPC
+"addiu r<RT>, <ADDRESS22>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  GPR[RT] = ADDRESS22;
+}
+
+011000,5.RT,00011,16.IMM48:R7POOL48I:32::ADDIUPC48
+"addiu r<RT>, %s<IMM48>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  unsigned16 U2 = do_load (SD_, AccessLength_HALFWORD, CIA + 4, 0);
+  unsigned32 total = U2 << 16 | IMM48;
+  TRACE_ALU_INPUT2(GPR[RT], total);
+  GPR[RT] = CIA + 6 + EXTEND32(total);
+  TRACE_ALU_RESULT(GPR[RT]);
+  NIA = CIA + 6;
+}
+
+101100,3.RT,3.RS,3.RD,0:R7P16ADDU:16::ADDU16
+"addu r<TRD_NM>, r<TRS_NM>, r<TRT_NM>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_addu (SD_, TRS_NM, TRT_NM, TRD_NM);
+}
+
+001111,1.RT1,0,3.RT2,1.RS1,0,3.RS2:R7P164X4:16::ADDU4X4
+"addu r<RT_5_BIT_NM>, r<RS_5_BIT_NM>, r<RT_5_BIT_NM>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  do_addu (SD_, RS_5_BIT_NM, RT_5_BIT_NM, RT_5_BIT_NM);
+}
+
+010100,3.RT,3.RS,10,0,0:R7POOL16C00:16::AND16
+"and r<TRT_NM>, r<TRS_NM>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_and (SD_, TRS_NM, TRT_NM, TRT_NM);
+}
+
+111100,3.RT,3.RS,4.EU:R7P16:16::ANDI16
+"andi r<TRT_NM>, r<TRS_NM>, <EU_12_13>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_andi (SD_, TRS_NM, TRT_NM, EU_12_13);
+}
+
+001110,9.S1,1.S2:R7P16:16::BALC16
+"balc <ADDRESS11>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT1(RA);
+  RA = NIA;
+  NIA = ADDRESS11;
+  TRACE_ALU_RESULT(RA);
+
+  // For cycle counting
+  COP0_COUNT++;
+}
+
+000110,9.S1,1.S2:R7P16:16::BC16
+"bc <ADDRESS11>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  NIA = ADDRESS11;
+}
+
+110110,3.RT,3.RS,4.U!0:R7P16BR1:16::BxxC16
+"beqc r<TRS_NM>, r<TRT_NM>, <U_SHIFT_1BIT>":RS<RT
+"bnec r<TRS_NM>, r<TRT_NM>, <U_SHIFT_1BIT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  TRACE_ALU_INPUT2(GPR[TRS_NM], GPR[TRT_NM]);
+  if (RS < RT && GPR[TRS_NM] == GPR[TRT_NM])
+    NIA = NIA + U_SHIFT_1BIT; //BEQC
+  else if (RS >= RT && GPR[TRS_NM] != GPR[TRT_NM])
+    NIA = NIA + U_SHIFT_1BIT; //BNEC
+}
+
+100110,3.RT,6.S1,1.S2:R7P16:16::BEQZC16
+"beqzc r<TRT_NM>, <ADDRESS8>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT1(GPR[TRT_NM]);
+  if(GPR[TRT_NM] == 0)
+    NIA = ADDRESS8;
+}
+
+101110,3.RT,6.S1,1.S2:R7P16:16::BNEZC16
+"bnezc r<TRT_NM>, <ADDRESS8>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT1(GPR[TRT_NM]);
+  if(GPR[TRT_NM] != 0)
+    NIA = ADDRESS8;
+}
+
+110110,5.RT,1,0000:R7P16JRC:16::JALRC16
+"jalrc r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2(GPR[RT], RA);
+  RA = NIA;
+  NIA = GPR[RT];
+  TRACE_ALU_RESULT(RA);
+
+  // For cycle counting
+  COP0_COUNT++;
+}
+
+110110,5.RT,0,0000:R7P16JRC:16::JRC16
+"jrc r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT1(GPR[RT]);
+  NIA = GPR[RT];
+}
+
+010111,3.RT,3.RS,00,2.U:R7P16LB:16::LB16
+"lb r<TRT_NM>, <U>(r<TRS_NM>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lb (SD_, TRT_NM, U, TRS_NM);
+}
+
+010111,3.RT,3.RS,10,2.U:R7P16LB:16::LBU16
+"lbu r<TRT_NM>, <U>(r<TRS_NM>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2 (U, GPR[TRS_NM]);
+  do_lbu (SD_, TRT_NM, U, TRS_NM);
+  TRACE_ALU_RESULT (GPR[TRT_NM]);
+}
+
+011111,3.RT,3.RS,0,2.U,0:R7P16LH:16::LH16
+"lh r<TRT_NM>, <U_SHIFT_1BIT>(r<TRS_NM>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lh (SD_, TRT_NM, U_SHIFT_1BIT, TRS_NM);
+}
+
+011111,3.RT,3.RS,1,2.U,0:R7P16LH:16::LHU16
+"lhu r<TRT_NM>, <U_SHIFT_1BIT>(r<TRS_NM>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lhu (SD_, TRT_NM, U_SHIFT_1BIT, TRS_NM);
+}
+
+110100,3.RT,7.EU:R7P16:16::LI16
+"li r<TRT_NM>, <EU_127>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT1(GPR[TRT_NM]);
+  GPR[TRT_NM] = EU_127;
+  TRACE_ALU_RESULT(GPR[TRT_NM]);
+}
+
+011101,1.RT1,1.U2,3.RT2,1.RS1,1.U3,3.RS2:R7P16:16::LW4X4
+"lw r<RT_5_BIT_NM>, <U_LW4X4>(r<RS_5_BIT_NM>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  do_lw (SD_, RT_5_BIT_NM, U_LW4X4, RS_5_BIT_NM);
+}
+
+000101,3.RT,3.RS,4.U:R7P16:16::LW16
+"lw r<TRT_NM>, <U_SHIFT_2BIT>(r<TRS_NM>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lw (SD_, TRT_NM, U_SHIFT_2BIT, TRS_NM);
+}
+
+010101,3.RT,7.U:R7P16:16::LWGP16
+"lw r<TRT_NM>, <U_SHIFT_2BIT>(gp)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lw (SD_, TRT_NM, U_SHIFT_2BIT, GPIDX);
+}
+
+001101,5.RT,5.U:R7P16:16::LWSP
+"lw r<RT>, <U_SHIFT_2BIT>(sp)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lw (SD_, RT, U_SHIFT_2BIT, SPIDX);
+}
+
+010100,3.RT,3.RS,3.RD,1:R7P16C:16::LWXS16
+"lwxs r<TRD_NM>, r<TRS_NM>(r<TRT_NM>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lw (SD_, TRD_NM, GPR[TRS_NM] << 2, TRT_NM);
+}
+
+// These four instructions are grouped together because of a bug in GNUSIM
+// pattern recognition
+000100,5.RT,2.RS1,1.RS_CODE_1,2.RS_CODE_2:R7P16MOVE:16::P16MOVE_P16RI
+"move r<RT>, r<RS_MOVE>": RT != 0
+"syscall <RS_CODE_2>": RS1 == 1
+"sdbbp <CODE_BREAK>": RS1 == 3
+"break <CODE_BREAK>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  if (RT == 0) {
+    if (RS1 == 1)
+      SignalException (SystemCall, instruction_0);
+    else if (RS1 == 3)
+      SignalException (DebugBreakPoint, instruction_0);
+    else
+      do_break_nanomips (SD_, instruction_0);
+  }
+  else {
+    TRACE_ALU_INPUT2 (GPR[RT], GPR[RS_MOVE]);
+    GPR[RT] = GPR[RS_MOVE];
+    TRACE_ALU_RESULT2 (GPR[RT], GPR[RS_MOVE]);
+  }
+}
+
+101111,1.RT4,1.RD20,3.RT2_0,1.RS4,1.RD21,3.RS2_0:R7P16:16::MOVEP
+"movep r<TRD2>, r<TRE2>, r<TRS2>, r<TRT2>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  TRACE_ALU_INPUT4 (GPR[TRD2], GPR[TRE2], GPR[TRS2], GPR[TRT2]);
+  GPR[TRD2] = GPR[TRS2];
+  GPR[TRE2] = GPR[TRT2];
+  TRACE_ALU_RESULT2 (GPR[TRD2], GPR[TRE2]);
+
+  // For cycle counting
+  COP0_COUNT++;
+}
+
+111111,1.RE4,1.RS20,3.RE2_0,1.RD4,1.RS21,3.RD2_0:R7P16:16::MOVEPREV
+"movep r<TRD2_REV>, r<TRE2_REV>, r<TRS2_REV>, r<TRT2_REV>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  TRACE_ALU_INPUT4 (GPR[TRD2_REV], GPR[TRE2_REV], GPR[TRS2_REV], GPR[TRT2_REV]);
+  GPR[TRD2_REV] = GPR[TRS2_REV];
+  GPR[TRE2_REV] = GPR[TRT2_REV];
+  TRACE_ALU_RESULT2 (GPR[TRD2_REV], GPR[TRE2_REV]);
+
+  // For cycle counting
+  COP0_COUNT++;
+}
+
+010100,3.RT,3.RS,00,0,0:R7POOL16C00:16::NOT16
+"not r<TRT_NM>, r<TRS_NM>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_nor (SD_, 0, TRS_NM, TRT_NM);
+}
+
+010100,3.RT,3.RS,11,0,0:R7POOL16C00:16::OR16
+"or r<TRT_NM>, r<TRS_NM>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_or (SD_, TRS_NM, TRT_NM, TRT_NM);
+}
+
+000111,1.RT1,1,4.U,4.GPR_LIST_SAVE:R7P16SR:16::RESTORE.JRC16
+"restore.jrc <U_SHIFT_4BIT>":GPR_LIST_SAVE==15
+"restore.jrc <U_SHIFT_4BIT>, ra, %s<GPR_LIST_SAVE>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  if (RT1 == 0)
+    do_restore_gprs_from_stack_and_adjust_sp(SD_, 30, GPR_LIST_SAVE, 0,
+                                             U_SHIFT_4BIT);
+  else
+    do_restore_gprs_from_stack_and_adjust_sp(SD_, 31, GPR_LIST_SAVE, 0,
+                                             U_SHIFT_4BIT);
+  NIA = RA;
+}
+
+000111,1.RT1,0,4.U,4.GPR_LIST_SAVE:R7P16SR:16::SAVE16
+"save <U_SHIFT_4BIT>, ra": GPR_LIST_SAVE == 0
+"save <U_SHIFT_4BIT>, ra, %s<GPR_LIST_SAVE>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  if (RT1 == 0)
+    do_save_gprs_to_stack_and_adjust_sp(SD_, 30, GPR_LIST_SAVE, 0, U_SHIFT_4BIT);
+  else
+    do_save_gprs_to_stack_and_adjust_sp(SD_, 31, GPR_LIST_SAVE, 0, U_SHIFT_4BIT);
+
+}
+
+010111,3.RTZ,3.RS,01,2.U:R7P16LB:16::SB16
+"sb r<TRTZ>, <U>(r<TRS_NM>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_store (SD_, AccessLength_BYTE, GPR[TRS_NM], U, GPR[TRTZ]);
+}
+
+011111,3.RTZ,3.RS,0,2.U,1:R7P16LH:16::SH16
+"sh r<TRTZ>, <U_SHIFT_1BIT>(r<TRS_NM>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_store (SD_, AccessLength_HALFWORD, GPR[TRS_NM], U_SHIFT_1BIT, GPR[TRTZ]);
+}
+
+001100,3.RT,3.RS,0,3.SHIFT:R7P16SHIFT:16::SLL16
+"sll r<TRT_NM>, r<TRS_NM>, <SHIFT_DEC>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_sll (SD_, TRS_NM, TRT_NM, SHIFT_DEC);
+}
+
+001100,3.RT,3.RS,1,3.SHIFT:R7P16SHIFT:16::SRL16
+"srl r<TRT_NM>, r<TRS_NM>, <SHIFT_DEC>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_srl (SD_, TRS_NM, TRT_NM, SHIFT_DEC);
+}
+
+101100,3.RT,3.RS,3.RD,1:R7P16ADDU:16::SUBU16
+"subu r<TRD_NM>, r<TRS_NM>, r<TRT_NM>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_subu (SD_, TRS_NM, TRT_NM, TRD_NM);
+}
+
+100101,3.RTZ,3.RS,4.U:R7P16:16::SW16
+"sw r<TRTZ>, <U_SHIFT_2BIT>(r<TRS_NM>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_store (SD_, AccessLength_WORD, GPR[TRS_NM], U_SHIFT_2BIT, GPR[TRTZ]);
+}
+
+101101,5.RT,5.U:R7P16:16::SWSP
+"sw r<RT>, <U_SHIFT_2BIT>(sp)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_store (SD_, AccessLength_WORD, SP, U_SHIFT_2BIT, GPR[RT]);
+}
+
+010100,3.RT,3.RS,01,0,0:R7POOL16C00:16::XOR16
+"xor r<TRT_NM>, r<TRS_NM>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_xor (SD_, TRT_NM, TRS_NM, TRT_NM);
+}
+
+// 32-bit instructions
+
+001000,5.RT,5.RS,5.RD,1.X,0100010,000:R7POOL32A0:32::ADD
+"add r<RD>, r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  do_add (SD_, RS, RT, RD);
+}
+
+000000,5.RT!0,5.RS,16.U:R7PPADDIU:32::ADDIU
+"addiu r<RT>, r<RS>, <U>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_addiu (SD_, RS, RT, U);
+}
+
+010001,5.RT,011,18.U:R7PGPBH:32::ADDIUGPB
+"addiu r<RT>, GP, <U>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_addiu (SD_, GPIDX, RT, U);
+}
+
+010000,5.RT,19.U,00:R7PGPW:32::ADDIUGPW
+"addiu r<RT>, GP, <U_SHIFT_2BIT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_addiu (SD_, GPIDX, RT, U_SHIFT_2BIT);
+}
+
+111000,5.RT,9.S1,10.S2,1,1.S3:R7PLUI:32::ALUIPC
+"aluipc r<RT>, <AXUIPC_S_HI>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  address_word address = NIA + AXUIPC_S;
+
+  TRACE_ALU_INPUT2(GPR[RT], address);
+  GPR[RT] = address & ~0xfff;
+  TRACE_ALU_RESULT(GPR[RT]);
+}
+
+001000,5.RT,5.RS,5.RD,1.X,0101010,000:R7POOL32A0:32::ADDU
+"addu r<RD>, r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_addu (SD_, RS, RT, RD);
+}
+
+001000,5.RT,5.RS,5.RD,5.IMMEDIATE,011,111:R7POOL32A0:32::ALIGN
+"align r<RD>, r<RS>, r<RT>, <IMMEDIATE>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  if (IMMEDIATE != 0) {
+    unsigned64 tmp = (GPR[RT] << 32) | zero_extend (SD_, GPR[RS], 32);
+    TRACE_ALU_INPUT4 (GPR[RD], GPR[RS], GPR[RT], tmp);
+    GPR[RD] = EXTEND32 (tmp >> IMMEDIATE);
+    TRACE_ALU_RESULT (GPR[RD]);
+  } else {
+    TRACE_ALU_INPUT2 (GPR[RD], GPR[RT]);
+    GPR[RD] = GPR[RT];
+    TRACE_ALU_RESULT (GPR[RD]);
+  }
+}
+
+001000,5.RT,5.RS,5.RD,1.X,1001010,000:R7POOL32A0:32::AND
+"and r<RD>, r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_and (SD_, RS, RT, RD);
+}
+
+100000,5.RT,5.RS,0010,12.U:R7PU12:32::ANDI
+"andi r<RT>, r<RS>, <U>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_andi (SD_, RS, RT, U);
+}
+
+001010,1,24.S1,1.S2:R7PBAL:32::BALC
+"balc <ADDRESS26>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT1(RA);
+  RA = NIA;
+  NIA = ADDRESS26;
+  TRACE_ALU_RESULT(RA);
+
+  // For cycle counting
+  COP0_COUNT++;
+}
+
+001010,0,24.S1,1.S2:R7PBAL:32::BC
+"bc <ADDRESS26>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  NIA = ADDRESS26;
+}
+
+100010,5.RT,5.RS,00,13.S1,1.S2:R7PBR1:32::BEQC
+"beqc r<RS>, r<RT>, <ADDRESS15>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2(GPR[RS], GPR[RT]);
+  if (GPR[RS] == GPR[RT])
+    NIA = ADDRESS15;
+}
+
+110010,5.RT,000,7.U,10.S1,1.S2:P7PBRI:32::BEQIC
+"beqic r<RT>, <U>, <ADDRESS12>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2(GPR[RT], U);
+  if (GPR[RT] == U) {
+    NIA = ADDRESS12;
+  }
+}
+
+100010,5.RT,5.RS,10,13.S1,1.S2:P7PBR1:32::BGEC
+"bgec r<RS>, r<RT>, <ADDRESS15>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2(GPR[RS], GPR[RT]);
+  if ((signed_word) GPR[RS] >= (signed_word) GPR[RT])
+    NIA = ADDRESS15;
+}
+
+110010,5.RT,010,7.U,10.S1,1.S2:P7PBRI:32::BGEIC
+"bgeic r<RT>, <U>, <ADDRESS12>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2(GPR[RT], U);
+  if ((signed_word) GPR[RT] >= U) {
+    NIA = ADDRESS12;
+  }
+}
+
+100010,5.RT,5.RS,11,13.S1,1.S2:P7PBR2:32::BGEUC
+"bgeuc r<RS>, r<RT>, <ADDRESS15>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2(GPR[RS], GPR[RT]);
+  if ((unsigned_word) (GPR[RS]) >= (unsigned_word)(GPR[RT])) {
+    NIA = ADDRESS15;
+  }
+}
+
+110010,5.RT,011,7.U,10.S1,1.S2:P7PBRI:32::BGEUIC
+"bgeuic r<RT>, <U>, <ADDRESS12>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2(GPR[RT], U);
+  if ((unsigned_word) GPR[RT] >= U) {
+    NIA = ADDRESS12;
+  }
+}
+
+101010,5.RT,5.RS,10,13.S1,1.S2:P7PBR2:32::BLTC
+"bltc r<RS>, r<RT>, <ADDRESS15>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2(GPR[RS], GPR[RT]);
+  if ((signed_word) GPR[RS] < (signed_word) GPR[RT])
+    NIA = ADDRESS15;
+}
+
+110010,5.RT,110,7.U,10.S1,1.S2:P7PBRI:32::BLTIC
+"bltic r<RT>, <U>, <ADDRESS12>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2(GPR[RT], U);
+  if ((signed_word) GPR[RT] < U) {
+    NIA = ADDRESS12;
+  }
+}
+
+101010,5.RT,5.RS,11,13.S1,1.S2:P7PBR2:32::BLTUC
+"bltuc r<RS>, r<RT>, <ADDRESS15>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2(GPR[RS], GPR[RT]);
+  if ((unsigned_word) GPR[RS] < (unsigned_word) GPR[RT]) {
+    NIA = ADDRESS15;
+  }
+}
+
+110010,5.RT,111,7.U,10.S1,1.S2:P7PBRI:32::BLTIUC
+"bltiuc <RT>, <U>, <ADDRESS12>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2(GPR[RT], U);
+  if ((unsigned_word) GPR[RT] < U) {
+    NIA = ADDRESS12;
+  }
+}
+
+101010,5.RT,5.RS,00,13.S1,1.S2:R7PBR2:32::BNEC
+"bnec r<RS>, r<RT>, <ADDRESS15>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2(GPR[RS], GPR[RT]);
+  if (GPR[RS] != GPR[RT])
+    NIA = ADDRESS15;
+}
+
+110010,5.RT,100,7.U,10.S1,1.S2:R7PBRI:32::BNEIC
+"bneic r<RT>, <U>, <ADDRESS12>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2(GPR[RT], U);
+  if (GPR[RT] != U) {
+    NIA = ADDRESS12;
+  }
+}
+
+000000,00000,10,19.CODE:R7PRI:32::BREAK
+"break %#lx<CODE>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_break_nanomips (SD_, instruction_0);
+}
+
+101001,5.OP,5.RS,1.S1,0111,0,01,8.S2:R7PLSS1:32::CACHE
+"cache <OP>, <S_9_BIT>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_cache (SD_, OP, RS, S_9_BIT, instruction_0);
+}
+
+001000,5.RT,5.RS,0100101,100,111,111:R7POOL32AXF4:32::CLO
+"clo r<RT>, r<RS>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  do_clo (SD_, RT, RS);
+}
+
+001000,5.RT,5.RS,0101101,100,111,111:R7POOL32AXF4:32::CLZ
+"clz r<RT>, r<RS>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  do_clz (SD_, RT, RS);
+}
+
+001000,5.RT,5.X,01,00011,101,111,111:R7POOL32AXF5GROUP1:32::DI
+"di":RT == 0
+"di r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_di (SD_, RT);
+}
+
+001000,5.RT,5.RS,5.RD,1.X,0100011,000:R7POOL32A0:32::DIV
+"div r<RD>, r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_div (SD_, RD, RS, RT);
+}
+
+001000,5.RT,5.RS,5.RD,1.X,0110011,000:R7POOL32A0:32::DIVU
+"divu r<RD>, r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_divu (SD_, RD, RS, RT);
+}
+
+001000,5.RT,5.X,01,01011,101,111,111:R7POOL32AXF5GROUP1:32::EI
+"ei":RT == 0
+"ei r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_ei (SD_, RT);
+}
+
+001000,9.X,0,11,11001,101,111,111:R7ERETX:32::ERET
+"eret"
+*nanomips32r6:
+*nanomips64r6:
+{
+  //TODO: signal coprocessor_exception(0) if !IsCoprocessor0Enabled()
+  NIA = do_eret(SD_, 0, NIA);
+}
+
+001000,9.X,1,11,11001,101,111,111:R7ERETX:32::ERETNC
+"eretnc"
+*nanomips32r6:
+*nanomips64r6:
+{
+  //TODO: signal coprocessor_exception(0) if !IsCoprocessor0Enabled()
+  check_nms_flag (SD_);
+  SignalException (ReservedInstruction, instruction_0);
+  NIA = do_eret(SD_, 1, NIA);
+}
+
+100000,5.RT,5.RS,1111,0,5.MSBD,0,5.LSB:R7PEXT:32::EXT
+"ext r<RT>, r<RS>, <LSB>, <MSBD+1>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  if (LSB + MSBD + 1 > 32)
+    Unpredictable ();
+
+  do_ext (SD_, RT, RS, LSB, MSBD);
+}
+
+100000,5.RT,5.RS,1110,0,5.MSBD,0,5.LSB:R7PINS:32::INS
+"ins r<RT>, r<RS>, <INS_POS>, <INS_SIZE>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  if ((1 + MSBD - LSB) < 1)
+    Unpredictable ();
+  do_ins (SD_, RT, RS, LSB, MSBD);
+}
+
+100000,5.RT,5.RS,1101,0,4.SHIFTX,1.STRIPE,0,5.SHIFT:R7PROTX:32::ROTX
+"bitrev r<RT>, r<RS>": SHIFT == 31 && SHIFTX_1BIT == 0
+"bitswap r<RT>, r<RS>": SHIFT == 7 && SHIFTX_1BIT == 8 && STRIPE == 1
+"bitswap.h r<RT>, r<RS>": SHIFT == 15 && SHIFTX_1BIT == 16
+"byteswap r<RT>, r<RS>": SHIFT == 24 && SHIFTX_1BIT == 8
+"wsbh r<RT>, r<RS>": SHIFT == 8 && SHIFTX_1BIT == 24
+"rotx r<RT>, r<RS>, <SHIFT>, <SHIFTX_1BIT>": STRIPE == 0
+"rotx r<RT>, r<RS>, <SHIFT>, <SHIFTX_1BIT>, <STRIPE>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+
+  TRACE_ALU_INPUT4 (GPR[RT], GPR[RS], SHIFT, SHIFTX_1BIT);
+  do_rotx (SD_, RT, RS, SHIFT, SHIFTX_1BIT, STRIPE);
+  TRACE_ALU_RESULT (GPR[RT]);
+}
+
+010010,5.RT,5.RS,0000,12.X:R7PJ:32::JALRC
+"jalrc r<RT>, r<RS>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT3(GPR[RT], GPR[RS], RA);
+  GPR[RT] = NIA;
+  unsigned_word address = GPR[RS];
+  NIA = address;
+
+  // For cycle counting
+  COP0_COUNT++;
+  TRACE_ALU_RESULT(NIA);
+
+}
+
+010010,5.RT,5.RS,0001,12.X:R7PJ:32::JALRC.HB
+"jalrc.hb r<RT>, r<RS>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  GPR[RT] = NIA;
+  unsigned_word address = GPR[RS];
+  NIA = address;
+  //TODO: ClearHazards()?
+
+  // For cycle counting
+  COP0_COUNT++;
+}
+
+100001,5.RT,5.RS,0000,12.U:R7PLSU12:32::LB
+"lb r<RT>, <U>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lb (SD_, RT, U, RS);
+}
+
+010001,5.RT,000,18.U:R7PLSGP:32::LBGP
+"lb r<RT>, <U>(GP)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lb (SD_, RT, U, GPIDX);
+}
+
+101001,5.RT,5.RS,1.S1,0000,0,00,8.S2:R7PLSS0:32::LBS9
+"lb r<RT>, <S_9_BIT>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lb (SD_, RT, S_9_BIT, RS);
+}
+
+100001,5.RT,5.RS,0010,12.U:R7PLSU12:32::LBU
+"lbu r<RT>, <U>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lbu (SD_, RT, U, RS);
+}
+
+010001,5.RT,010,18.U:R7GPBH:32::LBUGP
+"lbu r<RT>, <U>(GP)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2 (U, GP);
+  do_lbu (SD_, RT, U, GPIDX);
+  TRACE_ALU_RESULT (GPR[RT]);
+}
+
+101001,5.RT,5.RS,1.S1,0010,0,00,8.S2:R7PLSS0:32::LBUS9
+"lbu r<RT>, <S_9_BIT>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lbu (SD_, RT, S_9_BIT, RS);
+}
+
+001000,5.RT,5.RS,5.RD,0010,0,000,111:R7PPLSX:32::LBUX
+"lbux r<RD>, r<RS>(r<RT>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lbu (SD_, RD, GPR[RS], RT);
+}
+
+001000,5.RT,5.RS,5.RD,0000,0,000,111:R7PPLSX:32::LBX
+"lbx r<RD>, r<RS>(r<RT>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lb (SD_, RD, GPR[RS], RT);
+}
+
+100001,5.RT,5.RS,0100,12.U:R7PLSU12:32::LH
+"lh r<RT>, <U>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lh (SD_, RT, U, RS);
+}
+
+010001,5.RT,100,17.U,0:R7PGPLH:32::LHGP
+"lh r<RT>, <U_SHIFT_1BIT>(GP)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lh (SD_, RT, U_SHIFT_1BIT, GPIDX);
+}
+
+101001,5.RT,5.RS,1.S1,0100,0,00,8.S2:R7PLSS0:32::LHS9
+"lh r<RT>, <S_9_BIT>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lh (SD_, RT, S_9_BIT, RS);
+}
+
+100001,5.RT,5.RS,0110,12.U:R7PLSU12:32::LHU
+"lhu r<RT>, <U>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lhu (SD_, RT, U, RS);
+}
+
+010001,5.RT,100,17.U,1:R7PLSGP:32::LHUGP
+"lhu r<RT>, <U_SHIFT_1BIT>(gp)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lhu (SD_, RT, U_SHIFT_1BIT, GPIDX);
+}
+
+101001,5.RT,5.RS,1.S1,0110,0,00,8.S2:R7PLSS0:32::LHUS9
+"lhu r<RT>, <S_9_BIT>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lhu (SD_, RT, S_9_BIT, RS);
+}
+
+001000,5.RT,5.RS,5.RD,0110,0,000,111:R7PPLSX:32::LHUX
+"lhux r<RD>, r<RS>(r<RT>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lhu (SD_, RD, GPR[RS], RT);
+}
+
+001000,5.RT,5.RS,5.RD,0110,1,000,111:R7PPLSXS:32::LHUXS
+"lhux r<RD>, r<RS>(r<RT>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lhu (SD_, RD, GPR[RS] << 1, RT);
+}
+
+001000,5.RT,5.RS,5.RD,0100,0,000,111:R7PPLSX:32::LHX
+"lhx r<RD>, r<RS>(r<RT>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lh (SD_, RD, GPR[RS], RT);
+}
+
+001000,5.RT,5.RS,5.RD,0100,1,000,111:R7PPLSXS:32::LHXS
+"lhxs r<RD>, r<RS>(r<RT>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lh (SD_, RD, GPR[RS] << 1, RT);
+}
+
+101001,5.RT,5.RS,1.S1,1010,0,01,6.S2,00:R7PLL:32::LL
+"ll r<RT>, <S_9_BIT_LLSC>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT3(GPR[RT], S_9_BIT_LLSC, GPR[RS]);
+  do_ll (SD_, RT, S_9_BIT_LLSC, RS);
+  TRACE_ALU_RESULT(GPR[RT]);
+}
+
+101001,5.RT,5.RS,1.X1,1010,0,01,5.RU,1.X2,01:R7PLL:32::LLWP
+"llwp r<RT>, r<RU>, (r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_llwp (SD_, RT, RU, 0, RS);
+}
+
+001000,5.RT,5.RS,5.RD,2.U,3.X,001,111:R7POOL32A7:32::LSA
+"lsa r<RD>, r<RS>, r<RT>, <U>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lsa (SD_, RD, RS, RT, U);
+}
+
+111000,5.RT,9.S1,10.S2,0,1.S3:R7PLUI:32::LUI
+"lui r<RT>, <AXUIPC_S_HI>, <AXUIPC_S_LO>":AXUIPC_S_LO != 0
+"lui r<RT>, <AXUIPC_S_HI>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2 (GPR[RT], AXUIPC_S);
+  GPR[RT] = AXUIPC_S;
+  TRACE_ALU_RESULT (GPR[RT]);
+}
+
+100001,5.RT,5.RS,1000,12.U:R7PLSU12:32::LW
+"lw r<RT>, <U>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT3 (GPR[RT], U, GPR[RS]);
+  do_lw (SD_, RT, U, RS);
+  TRACE_ALU_RESULT (GPR[RT]);
+}
+
+101001,5.RT,5.RS,1.S1,1000000,8.S2:R7PLSS0:32::LWS9
+"lw r<RT>, <S_9_BIT>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lw (SD_, RT, S_9_BIT, RS);
+}
+
+101001,5.RT,5.RS,1.S1,3.COUNT3,0,1,00,8.S2:R7PLSWM:32::LWM
+"lwm r<RT>, <S_9_BIT>(r<RS>), <COUNT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+
+  int counter = 0;
+  int dest;
+  int this_offset;
+
+  while (counter != COUNT)
+  {
+    dest = (RT & 0x10) | ((RT + counter) & 0x1F);
+
+    if ((dest == RS) && (counter != (COUNT - 1)))
+      Unpredictable ();
+
+    this_offset = S_9_BIT + (counter << 2);
+
+    do_lw (SD_, dest, this_offset, RS);
+
+    counter++;
+    if (counter != 0)
+      COP0_COUNT++;
+  }
+}
+
+010000,5.RT,19.U,10:R7PGPW:32::LWGP
+"lw r<RT>, <U_SHIFT_2BIT>(GP)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2(GPR[RT], GPR[RT]);
+  do_lw (SD_, RT, U_SHIFT_2BIT, GPIDX);
+  TRACE_ALU_RESULT(GPR[RT]);
+}
+
+011000,5.RT,01011,16.IMM48:R7POOL48I:32::LWPC48
+"lwpc r<RT>, %s<IMM48>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  unsigned16 S2 = do_load(SD_, AccessLength_HALFWORD, CIA + 4, 0);
+  unsigned32 total = S2 << 16 | IMM48;
+
+  do_lwpc_nanomips (SD_, RT, total, NIA);
+}
+
+001000,5.RT,5.RS,5.RD,1000,0,000,111:R7PPLSX:32::LWX
+"lwx r<RD>, r<RS>(r<RT>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lw (SD_, RD, GPR[RS], RT);
+}
+
+001000,5.RT,5.RS,5.RD,1000,1,000,111:R7PPLSXS:32::LWXS
+"lwxs r<RD>, r<RS>(r<RT>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lw (SD_, RD, GPR[RS] << 2, RT);
+}
+
+001000,5.RT,5.C0S,5.SEL,1.X,0000110,000:R7POOL32A0:32::MFC0
+"mfc0 r<RT>, r<C0S>, <SEL>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  DecodeCoproc (instruction_0, 0, cp0_mfc0, RT, C0S, SEL);
+}
+
+001000,5.RT,5.RS,5.RD,1.X,0101011,000:R7POOL32A0:32::MOD
+"mod r<RD>, r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_mod (SD_, RD, RS, RT);
+}
+
+001000,5.RT,5.RS,5.RD,1.X,0111011,000:R7POOL32A0:32::MODU
+"modu r<RD>, r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_modu (SD_, RD, RS, RT);
+}
+
+000010,1.RT1,1.RD,3.RT2,20.S1,1.S2:R7MOVEBALC:32::MOVE.BALC
+"move.balc r<RD1>, r<RT_5_BIT_NM_Z>, <ADDRESS22>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  TRACE_ALU_INPUT2(GPR[RD1], GPR[RT_5_BIT_NM_Z]);
+  GPR[RD1] = GPR[RT_5_BIT_NM_Z];
+  RA = NIA;
+  NIA = ADDRESS22;
+  TRACE_ALU_RESULT(GPR[RD1]);
+
+  // For cycle counting
+  COP0_COUNT += 2;
+}
+
+001000,5.RT,5.RS,5.RD,1,1000010,000:R7PCMOVE:32::MOVN
+"movn r<RD>, r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2(GPR[RS], GPR[RT]);
+  do_movn (SD_, RD, RS, RT);
+  TRACE_ALU_RESULT(GPR[RD]);
+}
+
+001000,5.RT,5.RS,5.RD,0,1000010,000:R7PCMOVE:32::MOVZ
+"movz r<RD>, r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_movz (SD_, RD, RS, RT);
+}
+
+001000,5.RT,5.C0S,5.SEL,1.X,0001110,000:R7POOL32A0:32::MTC0
+"mtc0 r<RT>, r<C0S>, <SEL>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  DecodeCoproc (instruction_0, 0, cp0_mtc0, RT, C0S, SEL);
+}
+
+001000,5.RT,5.RS,5.RD,1.X,0001011,000:R7POOL32A0:32::MUH
+"muh r<RD>, r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_muh (SD_, RD, RS, RT);
+}
+
+001000,5.RT,5.RS,5.RD,1.X,0011011,000:R7POOL32A0:32::MUHU
+"muhu r<RD>, r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_muhu (SD_, RD, RS, RT);
+}
+
+001000,5.RT,5.RS,5.RD,1.X,0000011,000:R7POOL32A0:32::MUL32
+"mul r<RD>, r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_mul (SD_, RD, RS, RT);
+}
+
+001111,1.RT1,0,3.RT2,1.RS1,1,3.RS2:R7P164X4:16::MUL4X4
+"mul r<RT_5_BIT_NM>, r<RS_5_BIT_NM>, r<RT_5_BIT_NM>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  do_mul (SD_, RT_5_BIT_NM, RS_5_BIT_NM, RT_5_BIT_NM);
+}
+
+001000,5.RT,5.RS,5.RD,1.X,0010011,000:R7POOL32A0:32::MULU
+"mulu r<RD>, r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_mulu (SD_, RD, RS, RT);
+}
+
+100000,00000,5.X1,1100,3.X2,0000,00000:R7PSLL:32::NOP32
+"nop"
+*nanomips32r6:
+*nanomips64r6:
+{
+}
+
+001000,5.RT,5.RS,5.RD,1.X,1011010,000:R7POOL32A0:32::NOR
+"nor r<RD>, r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_nor (SD_, RS, RT, RD);
+}
+
+001000,5.RT,5.RS,5.RD,1.X,1010010,000:R7POOL32A0:32::OR32
+"or r<RD>, r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_or (SD_, RS, RT, RD);
+}
+
+100000,5.RT,5.RS,0000,12.U:R7PU12:32::ORI
+"ori r<RT>, r<RS>, <U>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_ori (SD_, RS, RT, U);
+}
+
+100000,00000,5.X1,1100,3.X2,0000,00101:R7PSLL:32::PAUSE
+"pause"
+*nanomips32r6:
+*nanomips64r6:
+{
+  sim_io_printf (SD, "Not implemented");
+}
+
+101001,5.HINT!31,5.RS,1.S1,0011,0,00,8.S2:R7PPREFS9:32::PREFS9
+"pref <HINT>, <S_9_BIT>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_pref (SD_, HINT, S_9_BIT, RS);
+}
+
+100001,5.HINT,5.RS,0011,12.U:R7PLSU12:32::PREFU12
+"pref <HINT>, <U>(r<RS>)": HINT != 31
+"synci <U>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  if (HINT != 31)
+   do_pref (SD_, HINT, U, RS);
+  else
+  {
+    // synci - nothing to do currently
+    sim_io_printf (SD, "Not implemented");
+  }
+}
+
+100000,5.RT_SAVE,0,4.GPR_LIST_SAVE,0011,9.U,1.GP_SAVE,10:R7PPSR:32::RESTORE
+"restore <U_SHIFT_3BIT>, %s<RT_SAVE>": GPR_LIST_SAVE == 0
+"restore <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GPR_LIST_SAVE>": !GP_SAVE && GPR_LIST_SAVE != 0
+"restore <U_SHIFT_3BIT>, %s<RT_SAVE>": !GP_SAVE && GPR_LIST_SAVE < 2
+"restore <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GPR_LIST_SAVE>" : !GP_SAVE && GPR_LIST_SAVE >=2
+"restore <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GP_SAVE>": GP_SAVE && GPR_LIST_SAVE < 2
+"restore <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GP_SAVE>, %s<GPR_LIST_SAVE>" : GP_SAVE && GPR_LIST_SAVE >=2
+"restore <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GP_SAVE>": GP_SAVE && GPR_LIST_SAVE < 3
+"restore <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GP_SAVE>, %s<GPR_LIST_SAVE>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_restore_gprs_from_stack_and_adjust_sp(SD_, RT_SAVE, GPR_LIST_SAVE,
+                                           GP_SAVE, U_SHIFT_3BIT);
+}
+
+100000,5.RT_SAVE,0,4.GPR_LIST_SAVE,0011,9.U,1.GP_SAVE,11:R7PPSR:32::RESTORE.JRC
+"restore.jrc <U_SHIFT_3BIT>, %s<RT_SAVE>": GPR_LIST_SAVE == 0
+"restore.jrc <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GPR_LIST_SAVE>": !GP_SAVE && GPR_LIST_SAVE != 0
+"restore.jrc <U_SHIFT_3BIT>, %s<RT_SAVE>": !GP_SAVE && GPR_LIST_SAVE < 2
+"restore.jrc <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GPR_LIST_SAVE>" : !GP_SAVE && GPR_LIST_SAVE >=2
+"restore.jrc <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GP_SAVE>": GP_SAVE && GPR_LIST_SAVE < 2
+"restore.jrc <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GP_SAVE>, %s<GPR_LIST_SAVE>" : GP_SAVE && GPR_LIST_SAVE >=2
+"restore.jrc <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GP_SAVE>": GP_SAVE && GPR_LIST_SAVE < 3
+"restore.jrc <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GP_SAVE>, %s<GPR_LIST_SAVE>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_restore_gprs_from_stack_and_adjust_sp(SD_, RT_SAVE, GPR_LIST_SAVE,
+                                           GP_SAVE, U_SHIFT_3BIT);
+
+  NIA = GPR[RAIDX];
+}
+
+100000,5.RT,5.RS,1100,3.X,0110,5.SHIFT:R7PSHIFT:32::ROTR
+"rotr r<RT>, r<RS>, <SHIFT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  GPR[RT] = do_ror (SD_, GPR[RS], SHIFT);
+}
+
+001000,5.RT,5.RS,5.RD,1.X,0011010,000:R7POOL32A0:32::ROTRV
+"rotrv r<RD>, r<RT>, r<RS>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  unsigned32 shift = GPR[RT] & 0x1f;
+  GPR[RD] = do_ror (SD_, GPR[RS], shift);
+}
+
+001000,5.RT,5.RS,5.RD,0,1100010,000:R7POOL32A0:32::XOR
+"xor r<RD>, r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_xor (SD_, RS, RT, RD);
+}
+
+100000,5.RT,5.RS,0001,12.U:R7PU12:32::XORI
+"xori r<RT>, r<RS>, <U>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_xori (SD_, RS, RT, U);
+}
+
+100000,5.RT_SAVE,0,4.GPR_LIST_SAVE,0011,9.U,1.GP_SAVE,00:R7PPSR:32::SAVE
+"save <U_SHIFT_3BIT>, %s<RT_SAVE>": GPR_LIST_SAVE == 0
+"save <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GPR_LIST_SAVE>":  !GP_SAVE && GPR_LIST_SAVE != 0
+"save <U_SHIFT_3BIT>, %s<RT_SAVE>": !GP_SAVE && GPR_LIST_SAVE < 2
+"save <U_SHIFT_3BIT>, %s<RT_SAVE> %s<GPR_LIST_SAVE>" : !GP_SAVE && GPR_LIST_SAVE >=2
+"save <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GP_SAVE>": GP_SAVE && GPR_LIST_SAVE < 2
+"save <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GP_SAVE>, %s<GPR_LIST_SAVE>" : GP_SAVE && GPR_LIST_SAVE >=2
+"save <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GP_SAVE>": GP_SAVE && GPR_LIST_SAVE < 3
+"save <U_SHIFT_3BIT>, %s<RT_SAVE>, %s<GP_SAVE>, %s<GPR_LIST_SAVE>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_save_gprs_to_stack_and_adjust_sp(SD_, RT_SAVE, GPR_LIST_SAVE,
+                                      GP_SAVE, U_SHIFT_3BIT);
+}
+
+100001,5.RT,5.RS,0001,12.U:R7PLSU12:32::SBU12
+"sb r<RT>, <U>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_store (SD_, AccessLength_BYTE, GPR[RS], U, GPR[RT]);
+}
+
+010001,5.RT,001,18.U:R7PGPBH:32::SBGP
+"sb r<RT>, <U>(gp)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_store (SD_, AccessLength_BYTE, GP, U, GPR[RT]);
+}
+
+101001,5.RT,5.RS,1.S1,0001,0,00,8.S2:R7PLSS0:32::SBS9
+"sb r<RT>, <S_9_BIT>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_store (SD_, AccessLength_BYTE, GPR[RS], S_9_BIT, GPR[RT]);
+}
+
+001000,5.RT,5.RS,5.RD,0001,0,000,111:R7PPLSX:32::SBX
+"sbx r<RD>, r<RS>(r<RT>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  do_store (SD_, AccessLength_BYTE, GPR[RT], GPR[RS], GPR[RD]);
+}
+
+101001,5.RT,5.RS,1.S1,1011,0,01,6.S2,00:R7PSC:32::SC
+"sc r<RT>, <S_9_BIT_LLSC>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_sc (SD_, RT, S_9_BIT_LLSC, RS, instruction_0);
+}
+
+101001,5.RT,5.RS,1.X1,1011,0,01,5.RU,1.X,01:R7PSC:32::SCWP
+"scwp r<RT>, r<RU>, (r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  unsigned64 data = GPR[RU] << 32 | GPR[RT];
+
+  do_scd (SD_, data, 0, RS);
+}
+
+001000,5.RT,5.RS,6.X,0000001,000:R7POOL32A0:32::SEB
+"seb r<RT>, r<RS>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  do_seb (SD_, RT, RS);
+}
+
+001000,5.RT,5.RS,6.X,0001001,000:R7POOL32A0:32::SEH
+"seh r<RT>, r<RS>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_seh (SD_, RT, RS);
+}
+
+100000,5.RT,5.RS,0110,12.IMMEDIATE:R7PU12:32::SEQI
+"seqi r<RT>, r<RS>, <IMMEDIATE>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT3(GPR[RT], GPR[RS], IMMEDIATE);
+  GPR[RT] = (GPR[RS] == IMMEDIATE) ? 1 : 0;
+  TRACE_ALU_RESULT(GPR[RT]);
+}
+
+100001,5.RT,5.RS,0101,12.U:R7PLSU12:32::SHU12
+"sh r<RT>, <U>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_store (SD_, AccessLength_HALFWORD, GPR[RS], U, GPR[RT]);
+}
+
+010001,5.RT,101,17.U,0:R7PGPSH:32::SHGP
+"sh r<RT>, <U_SHIFT_1BIT>(GP)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_store (SD_, AccessLength_HALFWORD, GP, U_SHIFT_1BIT, GPR[RT]);
+}
+
+101001,5.RT,5.RS,1.S1,0101,0,00,8.S2:R7PLSS0:32::SHS9
+"sh r<RT>, <S_9_BIT>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_store (SD_, AccessLength_HALFWORD, GPR[RS], S_9_BIT, GPR[RT]);
+}
+
+001000,5.RT,5.RS,5.RD,0101,0,000,111:R7PPLSX:32::SHX
+"shx r<RD>, r<RS>(r<RT>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  do_store (SD_, AccessLength_HALFWORD, GPR[RT], GPR[RS], GPR[RD]);
+}
+
+001000,5.RT,5.RS,5.RD,0101,1,000,111:R7PPLSXS:32::SHXS
+"shxs r<RD>, r<RS>(r<RT>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  do_store (SD_, AccessLength_HALFWORD, GPR[RT], GPR[RS] << 1, GPR[RD]);
+}
+
+000000,00000,00,19.CODE:R7PRI:32::SIGRIE
+"sigrie %#lx<CODE>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  SignalException (ReservedInstruction, instruction_0);
+}
+
+100000,5.RT!0,5.RS,1100,3.X,0000,5.SHIFT:R7PSLL:32::SLL32
+"sll r<RT>, r<RS>, <SHIFT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_sll (SD_, RS, RT, SHIFT);
+}
+
+001000,5.RT,5.RS,5.RD,1.X,0000010,000:R7POOL32A0:32::SLLV
+"sllv r<RD>, r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_sllv (SD_, RT, RS, RD);
+}
+
+001000,5.RT,5.RS,5.RD,1.X,1101010,000:R7POOL32A0:32::SLT
+"slt r<RD>, r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_slt (SD_, RS, RT, RD);
+}
+
+100000,5.RT,5.RS,0100,12.IMMEDIATE:R7PU12:32::SLTI
+"slti r<RT>, r<RS>, <IMMEDIATE>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_slti (SD_, RS, RT, EXTEND12(IMMEDIATE));
+}
+
+100000,5.RT,5.RS,0101,12.U:R7PU12:32::SLTIU
+"sltiu r<RT>, r<RS>, <U>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_sltiu (SD_, RS, RT, EXTEND12(U));
+}
+
+001000,5.RT,5.RS,5.RD!0,1.X,1110010,000:R7PSLTU:32::SLTU
+"sltu r<RD>, r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_sltu (SD_, RS, RT, RD);
+}
+
+100000,5.RT,5.RS,1100,3.X,0100,5.SHIFT:R7PSHIFT:32::SRA
+"sra r<RT>, r<RS>, <SHIFT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_sra (SD_, RS, RT, SHIFT);
+}
+
+001000,5.RT,5.RS,5.RD,1.X,0010010,000:R7POOL32A0:32::SRAV
+"srav r<RD>, r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_srav (SD_, RT, RS, RD);
+}
+
+100000,5.RT,5.RS,1100,3.X,0010,5.SHIFT:R7PSHIFT:32::SRL32
+"srl r<RT>, r<RS>, <SHIFT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_srl (SD_, RS, RT, SHIFT);
+}
+
+001000,5.RT,5.RS,5.RD,1.X,0001010,000:R7POOL32A0:32::SRLV
+"srlv r<RD>, r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_srlv (SD_, RT, RS, RD);
+}
+
+001000,5.RT,5.RS,5.RD,1.X,0110010,000:R7POOL32A0:32::SUB
+"sub r<RD>, r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  do_sub (SD_, RS, RT, RD);
+}
+
+001000,5.RT,5.RS,5.RD,1.X,0111010,000:R7POOL32A0:32::SUBU32
+"subu r<RD>, r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_subu (SD_, RS, RT, RD);
+}
+
+100001,5.RT,5.RS,1001,12.U:R7PLSU12:32::SWU12
+"sw r<RT>, <U>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_store (SD_, AccessLength_WORD, GPR[RS], U, GPR[RT]);
+}
+
+101001,5.RT,5.RS,1.S1,1001,0,00,8.S2:R7PLS0:32::SWS9
+"sw r<RT>, <S_9_BIT>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_store (SD_, AccessLength_WORD, GPR[RS], S_9_BIT, GPR[RT]);
+}
+
+010000,5.RT,19.U,11:R7PGPW:32::SWGP
+"sw r<RT>, <U_SHIFT_2BIT>(GP)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_store (SD_, AccessLength_WORD, GP, U_SHIFT_2BIT, GPR[RT]);
+}
+
+011000,5.RT,01111,16.IMM48:R7POOL48I:32::SWPC48
+"swpc r<RT>, %s<IMM48>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+
+  unsigned16 U2 = do_load (SD_, AccessLength_HALFWORD, CIA + 4, 0);
+  unsigned32 total = U2 << 16 | IMM48;
+  TRACE_ALU_INPUT2(GPR[RT], total);
+  do_store(SD_, AccessLength_WORD, CIA + 6, total, GPR[RT]);
+  TRACE_ALU_RESULT(GPR[RT]);
+  NIA = CIA + 6;
+}
+
+
+110101,3.RTZ,7.U:R7P16:16::SWGP16
+"sw r<TRTZ>, <U_SHIFT_2BIT>(GP)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_store (SD_, AccessLength_WORD, GP, U_SHIFT_2BIT, GPR[TRTZ]);
+}
+
+001000,5.RT,5.RS,5.RD,1001,0,000,111:R7PPLSX:32::SWX
+"swx r<RD>, r<RS>(r<RT>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  do_store (SD_, AccessLength_WORD, GPR[RT], GPR[RS], GPR[RD]);
+}
+
+001000,5.RT,5.RS,5.RD,1001,1,000,111:R7PPLSXS:32::SWXS
+"swxs r<RD>, r<RS>(r<RT>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  do_store (SD_, AccessLength_WORD, GPR[RT], GPR[RS] << 2, GPR[RD]);
+}
+
+111101,1.RT1,1.U2,3.RT2,1.RS1,1.U3,3.RS2:R7P16:16::SW4X4
+"sw r<RT_5_BIT_NM_Z>, <U_LW4X4>(r<RS_5_BIT_NM>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  do_store (SD_, AccessLength_WORD, GPR[RS_5_BIT_NM], U_LW4X4, GPR[RT_5_BIT_NM_Z]);
+}
+
+101001,5.RT,5.RS,1.S1,3.COUNT3,1,1,00,8.S2:R7PLSWM:32::SWM
+"swm r<RT>, <S_9_BIT>(r<RS>), <COUNT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+
+  int counter = 0;
+  int source;
+  int offsetm;
+
+  while (counter != COUNT)
+  {
+    if (RT == 0)
+      source = 0;
+    else
+      source = (RT & 0x10) | ((RT + counter) & 0x1F);
+
+    offsetm = S_9_BIT + (counter << 2);
+
+    do_sw (SD_, source, offsetm, RS);
+
+    counter++;
+
+    if (counter != 0)
+      COP0_COUNT++;
+  }
+}
+
+100000,00000,5.STYPE,1100,3.X,0000,00110:R7PHB:32::SYNC
+"sync":STYPE==0
+"sync <STYPE>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  SyncOperation (STYPE);
+}
+
+101001,11111,5.RS,1.S1,0011,0,00,8.S2:R7PPREFS:32::SYNCI
+"synci <S_9_BIT>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  // sync i-cache - nothing to do currently
+  sim_io_printf (SD, "Not implemented");
+}
+
+000000,00000,11,19.CODE:R7PRI:32::SDBBP32
+"sdbbp %#lx<CODE>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  SignalException (DebugBreakPoint, instruction_0);
+}
+
+001000,10.X,00,00001,101,111,111:R7POOL32AXF5GROUP0:32::TLBP
+"tlbp"
+*nanomips32r6:
+*nanomips64r6:
+{
+  // nothing to do currently
+  sim_io_printf (SD, "Not implemented");
+}
+
+001000,10.X,00,10001,101,111,111:R7POOL32AXF5GROUP0:32::TLBWI
+"tlbwi"
+*nanomips32r6:
+*nanomips64r6:
+{
+  // nothing to do currently
+  sim_io_printf (SD, "Not implemented");
+}
+
+001000,10.X,00,11001,101,111,111:R7POOL32AXF5GROUP0:32::TLBWR
+"tlbwr"
+*nanomips32r6:
+*nanomips64r6:
+{
+  // nothing to do currently
+  sim_io_printf (SD, "Not implemented");
+}
+
+
+001000,0000000000,01,00001,101,111,111:R7POOL32AXF5GROUP1:32::TLBINV
+"tlbinv"
+*nanomips32r6:
+*nanomips64r6:
+{
+  // invalidate a set of TLB entries based on ASID and Index match - nothing to do currently
+  sim_io_printf (SD, "Not implemented");
+}
+
+001000,0000000000,01,01001,101,111,111:R7POOL32AXF5GROUP1:32::TLBINVF
+"tlbinvf"
+*nanomips32r6:
+*nanomips64r6:
+{
+  // invalidate a set of TLB entries based on Index match - nothing to do currently
+  sim_io_printf (SD, "Not implemented");
+}
+
+001000,10.CODE,10,00101,101,111,111:R7PSYSCALL:32::SYSCALL
+"syscall %#lx<CODE>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  SignalException (SystemCall, instruction_0);
+}
+
+100000,00000,5.X1,1100,3.X2,0000,00011:R7PHB:32::EHB
+"ehb"
+*nanomips32r6:
+*nanomips64r6:
+{
+  // Do nothing, there are no hazards to clear
+}
+
+001000,5.RT,5.RS,5.X,0,0000000,000:R7PTRAP:32::TEQ
+"teq r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+
+  if (GPR[RS] == GPR[RT])
+    SignalException(Trap, instruction_0);
+}
+
+001000,5.RT,5.RS,5.X,1,0000000,000:R7PTRAP:32::TNE
+"tne r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+
+  if (GPR[RS] != GPR[RT])
+    SignalException(Trap, instruction_0);
+}
+
+101001,5.RT,5.RS,1.S1,0100,0,01,8.S2:R7PLSS1:32::UALH
+"ualh r<RT>, <S_9_BIT>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+
+  TRACE_ALU_INPUT3(GPR[RT], S_9_BIT, GPR[RS]);
+  do_lh (SD_, RT, S_9_BIT, RS);
+  TRACE_ALU_RESULT(GPR[RT]);
+}
+
+101001,5.RT,5.RS,1.S1,3.COUNT3,0,1,01,8.S2:R7PLSUAWM:32::UALWM
+"ualwm r<RT>, <S_9_BIT>(r<RS>), <COUNT>":COUNT != 1
+"ualw r<RT>, <S_9_BIT>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  int i;
+  int dest;
+  int this_offset;
+
+  address_word base = GPR[RS];
+  for(i = 0; i< COUNT; i++)
+  {
+    dest = (RT & 0x10) | ((RT + i) & 0x1F);
+
+    if (dest == RS && i != COUNT - 1)
+      Unpredictable ();
+
+    this_offset = S_9_BIT + (i << 2);
+
+    GPR[dest] = EXTEND32 (do_load_right (SD_, AccessLength_WORD, base,
+       EXTEND16 (this_offset), GPR[dest]));
+    GPR[dest] = EXTEND32 (do_load_left (SD_, AccessLength_WORD, base,
+       EXTEND16 (this_offset + AccessLength_WORD), GPR[dest]));
+
+    if (i != 0)
+      COP0_COUNT++;
+  }
+}
+
+101001,5.RT,5.RS,1.S1,0101,0,01,8.S2:R7PLSS1:32::UASH
+"uash r<RT>, <S_9_BIT>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+
+  do_store (SD_, AccessLength_HALFWORD, GPR[RS], S_9_BIT, GPR[RT]);
+}
+
+101001,5.RT,5.RS,1.S1,3.COUNT3,1,1,01,8.S2:R7PLSUAWM:32::UASWM
+"uaswm r<RT>, <S_9_BIT>(r<RS>), <COUNT>":COUNT != 1
+"uasw r<RT>, <S_9_BIT>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+
+  int i;
+  int source;
+  int offsetm;
+
+  for(i = 0; i< COUNT; i++)
+   {
+    if (RT == 0)
+      source = 0;
+    else
+      source = (RT & 0x10) | ((RT + i) & 0x1F);
+
+    offsetm = S_9_BIT + (i << 2);
+
+    do_store_right (SD_, AccessLength_WORD, GPR[RS], EXTEND16 (offsetm), GPR[source]);
+    do_store_left (SD_, AccessLength_WORD, GPR[RS],
+                        EXTEND16 (offsetm + AccessLength_WORD), GPR[source]);
+
+    if (i != 0)
+      COP0_COUNT++;
+  }
+}
+
+001000,5.RT,5.X,00000,0,1110010,000:R7PDVP:32::DVP
+"dvp r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  // nothing to do currently
+  sim_io_printf (SD, "Not implemented");
+}
+
+
+001000,5.RT,5.HS,2.X1,3.SEL,1.X2,0111000,000:R7POOL32A0:32::RDHWR
+"rdhwr r<HS>, r<RT>, <SEL>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  do_rdhwr (SD_, RT, HS);
+}
+
+001000,5.RT,5.RS,11,10000,101,111,111:R7POOL32AXF5GROUP3:32::RDPGPR
+"rdpgpr r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  // nothing to do currently
+  sim_io_printf (SD, "Not implemented");
+}
+
+001000,5.RT,5.RS,11,11000,101,111,111:R7POOL32AXF5GROUP3:32::WRPGPR
+"wrpgpr r<RT>, r<RS>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  // TODO: implement as given in the specification
+  sim_io_printf (SD, "Not implemented");
+}
+
+001000,5.RT,5.RS,5.RD,1.X,1111010,000:R7POOL32A0:32::SOV
+"SOV r<RD>, r<RS>, r<RT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  if (NotWordValue (GPR[RS]) || NotWordValue (GPR[RT]))
+    Unpredictable ();
+  TRACE_ALU_INPUT2 (GPR[RS], GPR[RT]);
+  {
+    ALU32_BEGIN (GPR[RS]);
+    ALU32_ADD (GPR[RT]);
+    if (ALU32_HAD_OVERFLOW)
+      GPR[RD] = 1;
+    else
+      GPR[RD] = 0;
+  }
+  TRACE_ALU_RESULT (GPR[RD]);
+}
+
+001000,10.X,11,10001,101,111,111:R7POOL32A0:32::DERET
+"deret"
+*nanomips32r6:
+*nanomips64r6:
+{
+  // nothing to do currently
+  sim_io_printf (SD, "Not implemented");
+}
+
+001000,5.RT,5.X,00000,1,1110010,000:R7PDVP:32::EVP
+"evp r<RT>" : RT!=0
+"evp"
+*nanomips32r6:
+*nanomips64r6:
+{
+  // nothing to do currently
+  sim_io_printf (SD, "Not implemented");
+}
+
+001000,10.CODE,110000110,1111111:R7POOL32AXF5GROUP2:32::WAIT
+"wait"
+*nanomips32r6:
+*nanomips64r6:
+{
+  // nothing to do currently
+  sim_io_printf (SD, "Not implemented");
+}
+
+// FIXME: there should be a better way to implement 48-bit instructions
+011000,5.RT,00000,16.IMM48:R7POOL48I:32::LI48
+"li r<RT>, %s<IMM48>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  unsigned16 U2 = do_load (SD_, AccessLength_HALFWORD, CIA + 4, 0);
+  unsigned32 total = U2 << 16 | IMM48;
+  TRACE_ALU_INPUT2(GPR[RT], total);
+  GPR[RT] = EXTEND32(total);
+  TRACE_ALU_RESULT(GPR[RT]);
+  NIA = CIA + 6;
+}
+
+011000,5.RT,00001,16.IMM48:R7POOL48I:32::ADDIU48
+"addiu r<RT>, %s<IMM48>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  unsigned16 S2 = do_load(SD_, AccessLength_HALFWORD, CIA + 4, 0);
+  unsigned32 total = S2 << 16 | IMM48;
+  do_addiu(SD_, RT, RT, total);
+  NIA = CIA + 6;
+}
+
+100000,5.RT,5.RS,1000,12.U:R7PU12:32::ADDIUNEG
+"addiu r<RT>, r<RS>, -<U>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_addiu (SD_, RS, RT, -U);
+}
+
+011000,5.RT,00010,16.IMM48:R7POOL48I:32::ADDIUGP48
+"addiu r<RT>, GP, %s<IMM48>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+  unsigned16 S2 = do_load(SD_, AccessLength_HALFWORD, CIA + 4, 0);
+  unsigned32 total = S2 << 16 | IMM48;
+  do_addiu (SD_, GPIDX, RT, total);
+  NIA = CIA + 6;
+}
+
+010010,00000,5.RS,1000,12.X:R7BALRSC:32::BRSC
+"brsc r<RS>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  unsigned_word address = NIA + (GPR[RS] << 1);
+  NIA = address;
+}
+
+010010,5.RT!0,5.RS,1000,12.X:R7PBALRSC:32::BALRSC
+"balrsc r<RT>, r<RS>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  unsigned_word address = NIA + (GPR[RS] << 1);
+
+  GPR[RT] = NIA;
+  NIA = address;
+
+  // For cycle counting
+  COP0_COUNT++;
+}
+
+110010,5.RT,001,1.X,6.BIT,10.S1,1.S2:R7PBRI:32::BBEQZC
+"bbeqzc r<RT>, <BIT>, <ADDRESS12>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+
+  int testbit = (GPR[RT] >> BIT) & 1;
+
+  if (testbit == 0)
+      NIA = ADDRESS12;
+}
+
+110010,5.RT,101,1.X,6.BIT,10.S1,1.S2:R7PBRI:32::BBNEZC
+"bbnezc r<RT>, <BIT>, <ADDRESS12>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_nms_flag (SD_);
+
+  int testbit = (GPR[RT] >> BIT) & 1;
+
+  if (testbit == 1)
+      NIA = ADDRESS12;
+}
+
+//////////////////////////////////////////////////////////////////////
+// Not yet in the specification.
+//////////////////////////////////////////////////////////////////////
+
+100001,5.FT,5.RS,1111,12.U:R7PLSU12:32::SDC1
+"sdc1 f<FT>, <U>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_fpu (SD_);
+  TRACE_ALU_INPUT3(FGR[FT], U, GPR[RS]);
+  do_store (SD_, AccessLength_DOUBLEWORD, GPR[RS], EXTEND16 (U), COP_SD (1, FT));
+}
+
+100001,5.FT,5.RS,1110,12.OFFSET:R7PLSU12:32::LDC1
+"ldc1 f<FT>, <OFFSET>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_fpu (SD_);
+  TRACE_ALU_INPUT3(FGR[FT], OFFSET, GPR[RS]);
+  COP_LD (1, FT, do_load (SD_, AccessLength_DOUBLEWORD, GPR[RS], EXTEND16 (OFFSET)));
+  TRACE_ALU_RESULT(FGR[FT]);
+}
+
+100001,5.FT,5.BASE,1010,12.OFFSET:R7PLSU12:32::LWC1
+"lwc1 f<FT>, <OFFSET>(r<BASE>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lwc1 (SD_, FT, OFFSET, BASE);
+}
+
+100001,5.FT,5.BASE,1011,12.OFFSET:R7PLSU12:32::SWC1
+"swc1 f<FT>, <OFFSET>(fp)": BASE == 30
+"swc1 f<FT>, <OFFSET>(r<BASE>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  if(BASE == 30)
+    do_swc1 (SD_, FT, OFFSET, 30, instruction_0);
+  else
+    do_swc1 (SD_, FT, OFFSET, BASE, instruction_0);
+}
+
+001000,10.X,00,01001,101,111,111:R7POOL32AXF5GROUP0:32::TLBR
+"tlbr"
+*nanomips32r6:
+*nanomips64r6:
+{
+  // nothing to do currently
+  sim_io_printf (SD, "Not implemented");
+}
+
+101000,5.RT,5.FS,2.X,101000,00,111,011:R7POOL32FXF0:32,f::MTC1
+"mtc1 r<RT>, f<FS>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2(GPR[RT], FGR[FS]);
+  do_mtc1b (SD_, RT, FS);
+  TRACE_ALU_RESULT(FGR[FS]);
+}
+
+101000,5.RT,5.FS,2.X,111000,00,111,011:R7POOL32FXF0:32,f::MTHC1
+"mthc1 r<RT>, f<FS>"
+*nanomips32r6:
+*nanomips64r6:
+{
+TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
+  do_mthc1 (SD_, RT, FS);
+  TRACE_ALU_RESULT(FGR[FS]);
+}
+
+101000,5.FT,5.FS,5.FD,1.X,0,1.FMT_MICROMIPS,00110,000:R7POOLADDFMT1:32,f::ADD.fmt1
+"add.%s<FMT_MICROMIPS> f<FD>, f<FS>, f<FT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2(FGR[FT], FGR[FS]);
+  do_add_fmt (SD_, convert_fmt_micromips (SD_, FMT_MICROMIPS), FD, FS, FT,
+        instruction_0);
+  TRACE_ALU_RESULT(FGR[FD]);
+}
+
+101000,5.FT,5.FS,5.FD,5.R6COND,0,1.FMT,0101:R7POOL32F5:32,f::CMP.cond.fmt
+"cmp.%s<R6COND>.%s<FMT> f<FD>, f<FS>, f<FT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_cmp (SD_, FD, FS, FT, FMT, R6COND);
+}
+
+101000,5.FT,5.FS,1.X,0,1.FMT_MICROMIPS,00000,01,111,011:R7POOLMOVFMT:32,f::MOV.fmt
+"mov.%s<FMT_MICROMIPS> f<FT>, f<FS>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2(FGR[FT], FGR[FS]);
+  do_mov_fmt (SD_, convert_fmt_micromips (SD_, FMT_MICROMIPS), FT, FS,
+        instruction_0);
+  TRACE_ALU_RESULT(FGR[FT]);
+}
+
+010001,5.FT,110,16.U,00:R7PLSGPCP1:32::LWC1GP
+"lwc1 f<FT>, <U_SHIFT_2BIT>(GP)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_lwc1 (SD_, FT, U_SHIFT_2BIT, GPIDX);
+}
+
+010001,5.FT,110,16.U,01:R7PLSGPCP1:32::SWC1GP
+"swc1 f<FT>, <U_SHIFT_2BIT>(GP)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_swc1 (SD_, FT, U_SHIFT_2BIT, GPIDX, instruction_0);
+}
+
+010001,5.FT,110,16.U,10:R7PLSGPCP1:32::LDC1GP
+"ldc1 f<FT>, <U_SHIFT_2BIT>(GP)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT3(FGR[FT], U_SHIFT_2BIT, GP);
+  COP_LD (1, FT, do_load (SD_, AccessLength_DOUBLEWORD, GP, U_SHIFT_2BIT));
+  TRACE_ALU_RESULT(FGR[FT]);
+}
+
+100010,5.FT,00001,01,13.S2,1.S1:R7POOLPBR3A:32,f::BC1NEZC
+"bc1nezc f<FT>, <S_14_BIT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_fpu (SD_);
+  TRACE_ALU_INPUT2(NIA, S_14_BIT);
+  if ((FGR[FT] & 0x01) != 0)
+      NIA = NIA + (S_14_BIT << 1);
+  TRACE_ALU_RESULT(NIA);
+}
+
+100010,5.FT,00000,01,13.S2,1.S1:R7POOLPBR3A:32,f::BC1EQZC
+"bc1eqzc f<FT>, <S_14_BIT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_fpu (SD_);
+  TRACE_ALU_INPUT2(NIA, S_14_BIT);
+  if ((FGR[FT] & 0x01) == 0)
+      NIA = NIA + (S_14_BIT << 1);
+  TRACE_ALU_RESULT(NIA);
+}
+
+101000,5.RT,5.FS,2.X,100000,00,111,011:R7POOL32FXF0:32,f::MFC1
+"mfc1 r<RT>, f<FS>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2(GPR[RT], FGR[FS]);
+  do_mfc1b (SD_, RT, FS);
+  TRACE_ALU_RESULT(GPR[RT]);
+}
+
+101000,5.RT,5.FS,2.X,110000,00,111,011:R7POOL32FXF0:32,f::MFHC1
+"mfhc1 r<RT>, f<FS>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2(GPR[RT], FGR[FS]);
+  do_mfhc1 (SD_, RT, FS);
+  TRACE_ALU_RESULT(GPR[RT]);
+}
+
+101000,5.FT,5.FS,1.X,2.FMT_MICROMIPS_CVT_D!3,10011,01,111,011:R7CVTDFMT:32,f::CVT.D.fmt
+"cvt.d.%s<FMT_MICROMIPS_CVT_D> f<FT>, f<FS>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_cvt_d_fmt (SD_, convert_fmt_micromips_cvt_d (SD_, FMT_MICROMIPS_CVT_D),
+    FT, FS, instruction_0);
+}
+
+:%s::::FMT_MICROMIPS_MUL:int fmt
+{
+  switch (fmt)
+    {
+    case 1: return "s";
+    case 3: return "d";
+    default: return "?";
+    }
+}
+
+101000,5.FT,5.FS,5.FD,1.X,0,2.FMT_MICROMIPS_MUL!2!0,0110,000:R7MULFMT1:32,f::MUL.fmt
+"mul.%s<FMT_MICROMIPS_MUL> f<FD>, f<FS>, f<FT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2(FGR[FS], FGR[FT]);
+  do_mul_fmt (SD_, convert_fmt_micromips_mul (SD_, FMT_MICROMIPS_MUL), FD, FS, FT,
+        instruction_0);
+  TRACE_ALU_RESULT(FGR[FD]);
+}
+
+
+101000,5.FT,5.FS,5.FD,1.X,0,2.FMT_MICROMIPS_MUL!2!0,1110,000:R7DIVFMT1:32,f::DIV.fmt
+"div.%s<FMT_MICROMIPS_MUL> f<FD>, f<FS>, f<FT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2(FGR[FS], FGR[FT]);
+  if (FMT_MICROMIPS_MUL == 1)
+    do_div_fmt (SD_, 0, FD, FS, FT, instruction_0);
+  else
+    do_div_fmt (SD_, 1, FD, FS, FT, instruction_0);
+  TRACE_ALU_RESULT(FGR[FD]);
+}
+
+101000,5.FT,5.FS,1.X,1.FMT_MICROMIPS,101011,00,111,011:R7POOL32FXF0:32,f::TRUNC.W.fmt
+"trunc.w.%s<FMT_MICROMIPS> f<FT>, f<FS>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_trunc_fmt (SD_, fmt_word, FMT_MICROMIPS, FT, FS);
+}
+
+101000,5.FT,5.FS,1.X,2.FMT_MICROMIPS_CVT_S!3,11011,01,111,011:R7CVTSFMT:32,f::CVT.S.dsw
+"cvt.s.%s<FMT_MICROMIPS_CVT_S> f<FT>, f<FS>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_cvt_s_fmt (SD_, convert_fmt_micromips_cvt_s (SD_, FMT_MICROMIPS_CVT_S),
+    FT, FS, instruction_0);
+}
+
+010001,5.FT,110,16.U,11:R7PLSU12:32::SDC1GP
+"sdc1 f<FT>, <U_SHIFT_2BIT>(GP)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT3(FGR[FT], U_SHIFT_2BIT, GP);
+  do_store (SD_, AccessLength_DOUBLEWORD, GP, U_SHIFT_2BIT, COP_SD (1, FT));
+}
+
+101000,5.FT,5.FS,5.FD,1.X,0,1.FMT_MICROMIPS,01110,000:R7SUBFMT1:32,f::SUB.fmt
+"sub.%s<FMT_MICROMIPS> f<FD>, f<FS>, f<FT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2(FGR[FS], FGR[FT]);
+  do_sub_fmt (SD_, convert_fmt_micromips (SD_, FMT_MICROMIPS), FD, FS, FT,
+        instruction_0);
+  TRACE_ALU_RESULT(FGR[FD]);
+}
+
+101000,5.FT,5.FS,1.X,2.FMT_MICROMIPS!3!2,00011,01,111,011:R7POOL32FXF1:32,f::::ABS.fmt
+"abs.%s<FMT_MICROMIPS> f<FT>, f<FS>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_abs_fmt (SD_, convert_fmt_micromips (SD_, FMT_MICROMIPS), FT, FS,
+        instruction_0);
+}
+
+101000,5.FT,5.FS,5.FD,1.X,1.FMT_MICROMIPS,110111,000:R7POOL32F0:32,f::MADDF.fmt
+"maddf.%s<FMT_MICROMIPS> f<FD>, f<FS>, f<FT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT2(FGR[FS], FGR[FT]);
+  do_maddf (SD_, FD, FS, FT, convert_fmt_micromips (SD_, FMT_MICROMIPS), instruction_0);
+  TRACE_ALU_RESULT(FGR[FD]);
+}
+
+101000,5.FT,5.FS,1.X,2.FMT_MICROMIPS!3!2,01011,01,111,011:R7POOL32FXF1:32,f::NEG.fmt
+"neg.%s<FMT_MICROMIPS> f<FT>, f<FS>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_neg_fmt (SD_, convert_fmt_micromips (SD_, FMT_MICROMIPS), FT, FS,
+        instruction_0);
+}
+
+101000,5.FT,5.FS,1.X,1.FMT_MICROMIPS,100011,00,111,011:R7POOL32FXF0:32,f::TRUNC.L.fmt
+"trunc.l.%s<FMT_MICROMIPS> f<FT>, f<FS>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_trunc_fmt (SD_, fmt_long, FMT_MICROMIPS, FT, FS);
+}
+
+001000,5.RT,5.RS,5.FT,1011,1,000,111:R7POOLPPLSXS:32,f::SWC1XS
+"swc1xs f<FT>, r<RS>(r<RT>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_swc1xs(SD_, FT, RS, RT, instruction_0);
+}
+
+001000,5.RT,5.RS,5.FT,1111,0,000,111:R7POOLPPLSX:32,f::SDC1X
+"sdc1x f<FT>, r<RS>(r<RT>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_fpu (SD_);
+  TRACE_ALU_INPUT3(FGR[FT], GPR[RS], GPR[RT]);
+  do_store (SD_, AccessLength_DOUBLEWORD, GPR[RS], GPR[RT], COP_SD (1, FT));
+}
+
+001000,5.RT,5.RS,5.FT,1111,1,000,111:R7POOLPPLSXS:32,f::SDC1XS
+"sdc1xs f<FT>, r<RS>(r<RT>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  check_fpu (SD_);
+  TRACE_ALU_INPUT3(FGR[FT], GPR[RS], GPR[RT]);
+  do_store (SD_, AccessLength_DOUBLEWORD, GPR[RS] << 3, GPR[RT], COP_SD (1, FT));
+}
+
+001000,5.RT,5.RS,5.FT,1110,0,000,111:R7POOLPPLSXS:32::LDC1X
+"ldc1x f<FT>, r<RS>(r<RT>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT3(FGR[FT], GPR[RS], GPR[RT]);
+  COP_LD (1, FT, do_load (SD_, AccessLength_DOUBLEWORD, GPR[RS], GPR[RT]));
+  TRACE_ALU_RESULT(FGR[FT]);
+}
+
+001000,5.RT,5.RS,5.FT,1110,1,000,111:R7POOLPPLSXS:32::LDC1XS
+"ldc1xs f<FT>, r<RS>(r<RT>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT3(FGR[FT], GPR[RS], GPR[RT]);
+  COP_LD (1, FT, do_load (SD_, AccessLength_DOUBLEWORD, GPR[RS] << 3, GPR[RT]));
+  TRACE_ALU_RESULT(FGR[FT]);
+}
+
+001000,5.RT,5.RS,5.FT,1010,1,000,111:R7POOLPPLSXS:32::LWC1XS
+"lwc1xs f<FT>, r<RS>(r<RT>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT3(FGR[FT], GPR[RS], GPR[RT]);
+  do_lwc1xs (SD_, FT, RS, RT);
+  TRACE_ALU_RESULT(FGR[FT]);
+}
+
+001000,5.RT,5.RS,5.FT,1010,0,000,111:R7PPLSX:32,f::LWC1X
+"lwc1x f<FT>, r<RT>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT3(FGR[FT], GPR[RS], GPR[RT]);
+  do_lwxc1 (SD_, FT, RT, RS, instruction_0);
+  TRACE_ALU_RESULT(FGR[FT]);
+}
+
+001000,5.RT,5.RS,5.FT,1011,0,000,111:R7PPLSX:32,f::SWC1X
+"swc1x f<FT>, r<RT>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_swxc1 (SD_, FT, RT, RS, instruction_0);
+}
+
+101001,5.FT,5.RS,1.S1,1110,0,00,8.S2:R7PLSS0:32,f::LDC1S9
+"ldc1 r<FT>, <S_9_BIT>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT3(GPR[FT], S_9_BIT, GPR[RS]);
+  COP_LD (1, FT, do_load (SD_, AccessLength_DOUBLEWORD, GPR[RS], S_9_BIT));
+  TRACE_ALU_RESULT(GPR[FT]);
+}
+
+101001,5.FT,5.RS,1.S1,1111,0,00,8.S2:R7PLSS0:32,f::SDC1S9
+"sdc1 r<FT>, <S_9_BIT>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT3(GPR[FT], S_9_BIT, GPR[RS]);
+  do_store (SD_, AccessLength_DOUBLEWORD, GPR[RS], S_9_BIT, COP_SD (1, FT));
+}
+
+101001,5.FT,5.RS,1.S1,1010,0,00,8.S2:R7PLSS0:32::LWC1S9
+"lwc1 f<FT>, <S_9_BIT>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  TRACE_ALU_INPUT3(GPR[FT], S_9_BIT, GPR[RS]);
+  do_lwc1 (SD_, FT, S_9_BIT, RS);
+  TRACE_ALU_RESULT(GPR[FT]);
+}
+
+101000,5.FT,5.FS,5.FD,2.FMT,000000011:R7POOL32F3:32,f::MIN.fmt
+"min.%s<FMT> f<FD>, f<FS>, f<FT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_min (SD_, FD, FS, FT, FMT, instruction_0);
+}
+
+101000,5.FT,5.FS,5.FD,2.FMT,000001,011:R7POOL32F3:32,f::MAX.fmt
+"max.%s<FMT> f<FD>, f<FS>, f<FT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_max (SD_, FD, FS, FT, FMT, instruction_0);
+}
+
+101000,5.FT,5.FS,5.FD,2.FMT,000100,011:R7POOL32F3:32,f::MINA.fmt
+"mina.%s<FMT> f<FD>, f<FS>, f<FT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_mina (SD_, FD, FS, FT, FMT, instruction_0);
+}
+
+101000,5.FT,5.FS,5.FD,2.FMT,000101,011:R7POOL32F3:32,f::MAXA.fmt
+"maxa.%s<FMT> f<FD>, f<FS>, f<FT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_maxa (SD_, FD, FS, FT, FMT, instruction_0);
+}
+
+101000,5.FT,5.FS,5.FD,2.FMT,111111,000:R7POOL32F0:32,f::MSUBF.fmt
+"msubf.%s<FMT> f<FD>, f<FS>, f<FT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_msubf (SD_, FD, FS, FT, FMT, instruction_0);
+}
+
+101000,5.FS,5.FD,00000,2.FMT,000100,000:R7POOL32F0:32,f::RINT.fmt
+"rint.%s<FMT> f<FD>, f<FS>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_rint (SD_, FD, FS, FMT, instruction_0);
+}
+
+101000,5.FS,5.FD,00000,2.FMT,001100,000:R7POOL32F0:32,f::CLASS.fmt
+"class.%s<FMT> f<FD>, f<FS>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_class (SD_, FD, FS, FMT, instruction_0);
+}
+
+101000,5.FT,5.FS,5.FD,2.FMT,010111,000:R7POOL32F0:32,f::SEL.fmt
+"sel.%s<FMT> f<FD>, f<FS>, f<FT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_self (SD_, FD, FS, FT, FMT, instruction_0);
+}
+
+101000,5.FT,5.FS,5.FD,2.FMT,000111,000:R7POOL32F0:32,f::SELEQZ.fmt
+"seleqz.%s<FMT> f<FD>, f<FS>, f<FT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_seleqzf (SD_, FD, FS, FT, FMT, instruction_0);
+}
+
+101000,5.FT,5.FS,5.FD,2.FMT,001111,000:R7POOL32F0:32,f::SELNEZ.fmt
+"selnez.%s<FMT> f<FD>, f<FS>, f<FT>"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_selnezf (SD_, FD, FS, FT, FMT, instruction_0);
+}
