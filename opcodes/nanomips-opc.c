@@ -1191,8 +1191,8 @@ IGRIE */
 {"rsqrt.d",	"",		"T,S",		0xa000423b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
 {"rsqrt.s",	"",		"T,S",		0xa000023b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
 {"savef",	"",		"mY,+P",	0x80103000, 0xfff0f007,	    	FP_S,		0,	I38,	0}, /* precedes SAVE */
-{"save",	"[16]",		"mG",		0x1c00,		0xff0f,		0,		0,	0,	xNMS}, /* SAVE[16] */
-{"save",	"[16]",		"mG,+N",	0x1c00,		0xfd00,		0,		0,	0,	xNMS}, /* SAVE[16] */
+{"save",	"[16]",		"mG",		0x1c00,		0xff0f,		0,		0,	I38,	0}, /* SAVE[16] */
+{"save",	"[16]",		"mG,+N",	0x1c00,		0xfd00,		0,		0,	I38,	0}, /* SAVE[16] */
 {"save",	"[32]",		"mY,n",		0x80003000, 0xfc00f003,		0,		0,	I38,	0},
 {"sb",		"[16]",		"mq,mL(ml)",	0x5c04,		0xfc0c,	RD_1|RD_3,		0,	I38,	0}, /* SB[16] */
 {"sb",		"[gp]",		"t,+1(ma)",	0x44040000, 0xfc1c0000,	RD_1|RD_3,		0,	I38,	0}, /* SB[GP] */

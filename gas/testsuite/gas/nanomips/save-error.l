@@ -1,7 +1,4 @@
 .*\.s: Assembler messages:
-.*\.s:6: Error: invalid operands `save 16'
-.*\.s:7: Error: invalid operands `save 128'
-.*\.s:8: Error: invalid operands `save 240'
 .*\.s:10: Warning: frame too small for save/restore register list
 .*\.s:14: Error: invalid operands `save 64,\$s0-\$s3,\$gp'
 .*\.s:15: Error: invalid operands `save 64,\$a0-\$s0,\$gp'
