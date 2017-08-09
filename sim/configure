@@ -3746,6 +3746,14 @@ subdirs="$subdirs aarch64"
 
        sim_igen=yes
        ;;
+   nanomips*-*-*)
+
+  sim_arch=mips
+  subdirs="$subdirs mips"
+
+
+       sim_igen=yes
+       ;;
    mn10300*-*-*)
 
   sim_arch=mn10300
