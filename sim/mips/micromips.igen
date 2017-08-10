@@ -42,6 +42,7 @@
 *micromips32:
 *micromips64:
 *micromipsdsp:
+*nanomipsdsp:
 {
   instruction_word delay_insn;
   sim_events_slip (SD, 1);
@@ -49,7 +50,7 @@
   CIA = nia;
   STATE |= simDELAYSLOT;
   ENGINE_ISSUE_PREFIX_HOOK();
-  micromips_instruction_decode (SD, CPU, CIA, delayslot_instruction_size);
+  MICROMIPS_INSTRUCTION_DECODE (SD, CPU, CIA, delayslot_instruction_size);
   STATE &= ~simDELAYSLOT;
   return target;
 }
@@ -127,6 +128,8 @@
 :function:::FP_formats:convert_fmt_micromips:int fmt
 *micromips32:
 *micromips64:
+*nanomips32r6:
+*nanomips64r6:
 {
   switch (fmt)
     {
@@ -140,6 +143,8 @@
 :function:::FP_formats:convert_fmt_micromips_cvt_d:int fmt
 *micromips32:
 *micromips64:
+*nanomips32r6:
+*nanomips64r6:
 {
   switch (fmt)
     {
@@ -154,6 +159,8 @@
 :function:::FP_formats:convert_fmt_micromips_cvt_s:int fmt
 *micromips32:
 *micromips64:
+*nanomips32r6:
+*nanomips64r6:
 {
   switch (fmt)
     {
@@ -2274,8 +2281,6 @@
 
 
 :%s::::FMT_MICROMIPS:int fmt
-*micromips32:
-*micromips64:
 {
   switch (fmt)
     {
@@ -2288,8 +2293,6 @@
 
 
 :%s::::FMT_MICROMIPS_CVT_D:int fmt
-*micromips32:
-*micromips64:
 {
   switch (fmt)
     {
@@ -2302,8 +2305,6 @@
 
 
 :%s::::FMT_MICROMIPS_CVT_S:int fmt
-*micromips32:
-*micromips64:
 {
   switch (fmt)
     {

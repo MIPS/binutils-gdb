@@ -77,6 +77,9 @@
 :model:::micromips32:micromips64:	// micromips.igen
 :model:::micromips64:micromips64:	// micromips.igen
 :model:::micromipsdsp:micromipsdsp:	// micromipsdsp.igen
+:model:::nanomips32r6:nanomips32r6: // nanomipsr6.igen
+:model:::nanomips64r6:nanomips64r6: // nanomipsr6.igen
+:model:::nanomipsdsp:nanomipsdsp: // nanompsdsp.igen
 
 //  Vendor Extensions
 //
@@ -96,6 +99,31 @@
 // For grep - RSVD_INSTRUCTION, RSVD_INSTRUCTION_MASK
 000000,5.*,5.*,5.*,5.OP,111001:SPECIAL:32::RSVD
 "rsvd <OP>"
+*mipsI:
+*mipsII:
+*mipsIII:
+*mipsIV:
+*mipsV:
+*mips32:
+*mips32r2:
+*mips64:
+*mips64r2:
+*vr4100:
+*vr4120:
+*vr5000:
+*vr5400:
+*vr5500:
+*r3900:
+*mips16:
+*mips16e:
+*mips3d:
+*mdmx:
+*dsp:
+*dsp2:
+*smartmips:
+*micromips32:
+*micromips64:
+*micromipsdsp:
 {
   SignalException (ReservedInstruction, instruction_0);
 }
@@ -146,6 +174,7 @@
 *vr5000:
 *r3900:
 *micromips32:
+*nanomips32r6:
 {
   return base + offset;
 }
@@ -154,6 +183,7 @@
 *mips64:
 *mips64r2:
 *micromips64:
+*nanomips64r6:
 {
 #if 0 /* XXX FIXME: enable this only after some additional testing.  */
   /* If in user mode and UX is not set, use 32-bit compatibility effective
@@ -188,6 +218,8 @@
 *mips64r2:
 *micromips32:
 *micromips64:
+*nanomips32r6:
+*nanomips64r6:
 {
 #if WITH_TARGET_WORD_BITSIZE == 64
   return value != (((value & 0xffffffff) ^ 0x80000000) - 0x80000000);
@@ -223,6 +255,8 @@
 *mips64r2:
 *micromips32:
 *micromips64:
+*nanomips32r6:
+*nanomips64r6:
 {
   unpredictable_action (CPU, CIA);
 }
@@ -316,6 +350,7 @@
 *r3900:
 *micromips32:
 *micromips64:
+*nanomipsdsp:
 {
   signed64 time = sim_events_time (SD);
   history->mt.timestamp = time;
@@ -344,6 +379,7 @@
 *r3900:
 *micromips32:
 *micromips64:
+*nanomipsdsp:
 {
   signed64 time = sim_events_time (SD);
   int ok = 1;
@@ -416,6 +452,7 @@
 *r3900:
 *micromips32:
 *micromips64:
+*nanomipsdsp:
 {
   /* FIXME: could record the fact that a stall occured if we want */
   signed64 time = sim_events_time (SD);
@@ -509,6 +546,8 @@
 *mips32r2:
 *micromips64:
 *micromips32:
+*nanomips32r6:
+*nanomips64r6:
 {
 #if 0 /* XXX FIXME: enable this only after some additional testing.  */
   if (UserMode && (SR & (status_UX|status_PX)) == 0)
@@ -727,8 +766,7 @@
 
 :function:::void:do_lh:int rt, int offset, int base
 {
-  GPR[rt] = EXTEND16 (do_load (SD_, AccessLength_HALFWORD, GPR[base],
-			       EXTEND16 (offset)));
+  GPR[rt] = EXTEND16 (do_load (SD_, AccessLength_HALFWORD, GPR[base], offset));
 }
 
 :function:::void:do_lwr:int rt, int offset, int base
@@ -751,8 +789,7 @@
 
 :function:::void:do_lw:int rt, int offset, int base
 {
-  GPR[rt] = EXTEND32 (do_load (SD_, AccessLength_WORD, GPR[base],
-			       EXTEND16 (offset)));
+  GPR[rt] = EXTEND32 (do_load (SD_, AccessLength_WORD, GPR[base], offset));
 }
 
 :function:::void:do_lwu:int rt, int offset, int base, address_word instruction_0
@@ -763,7 +800,7 @@
 
 :function:::void:do_lhu:int rt, int offset, int base
 {
-  GPR[rt] = do_load (SD_, AccessLength_HALFWORD, GPR[base], EXTEND16 (offset));
+  GPR[rt] = do_load (SD_, AccessLength_HALFWORD, GPR[base], offset);
 }
 
 :function:::void:do_ldc:int num, int rt, int offset, int base
@@ -774,7 +811,7 @@
 
 :function:::void:do_lbu:int rt, int offset, int base
 {
-  GPR[rt] = do_load (SD_, AccessLength_BYTE, GPR[base], EXTEND16 (offset));
+  GPR[rt] = do_load (SD_, AccessLength_BYTE, GPR[base], offset);
 }
 
 :function:::void:do_ll:int rt, int insn_offset, int basereg
@@ -1832,12 +1869,12 @@
 
 
 
-:function:::void:do_addiu:int rs, int rt, unsigned16 immediate
+:function:::void:do_addiu:int rs, int rt, int immediate
 {
   if (NotWordValue (GPR[rs]))
     Unpredictable ();
-  TRACE_ALU_INPUT2 (GPR[rs], EXTEND16 (immediate));
-  GPR[rt] = EXTEND32 (GPR[rs] + EXTEND16 (immediate));
+  TRACE_ALU_INPUT2 (GPR[rs], immediate);
+  GPR[rt] = EXTEND32 (GPR[rs] + immediate);
   TRACE_ALU_RESULT (GPR[rt]);
 }
 
@@ -2508,6 +2545,14 @@
 
 
 :function:::void:do_ddiv:int rs, int rt
+*mipsIII:
+*mipsIV:
+*mipsV:
+*mips64:
+*mips64r2:
+*micromips64:
+*vr4100:
+*vr5000:
 {
   check_div_hilo (SD_, HIHISTORY, LOHISTORY);
   TRACE_ALU_INPUT2 (GPR[rs], GPR[rt]);
@@ -2554,6 +2599,14 @@
 
 
 :function:::void:do_ddivu:int rs, int rt
+*mipsIII:
+*mipsIV:
+*mipsV:
+*mips64:
+*mips64r2:
+*micromips64:
+*vr4100:
+*vr5000:
 {
   check_div_hilo (SD_, HIHISTORY, LOHISTORY);
   TRACE_ALU_INPUT2 (GPR[rs], GPR[rt]);
@@ -2593,6 +2646,20 @@
 }
 
 :function:::void:do_div:int rs, int rt
+*mipsI:
+*mipsII:
+*mipsIII:
+*mipsIV:
+*mipsV:
+*mips32:
+*mips32r2:
+*micromips32:
+*mips64:
+*mips64r2:
+*micromips64:
+*vr4100:
+*vr5000:
+*r3900:
 {
   check_div_hilo (SD_, HIHISTORY, LOHISTORY);
   TRACE_ALU_INPUT2 (GPR[rs], GPR[rt]);
@@ -2639,6 +2706,20 @@
 
 
 :function:::void:do_divu:int rs, int rt
+*mipsI:
+*mipsII:
+*mipsIII:
+*mipsIV:
+*mipsV:
+*mips32:
+*mips32r2:
+*micromips32:
+*mips64:
+*mips64r2:
+*micromips64:
+*vr4100:
+*vr5000:
+*r3900:
 {
   check_div_hilo (SD_, HIHISTORY, LOHISTORY);
   TRACE_ALU_INPUT2 (GPR[rs], GPR[rt]);
@@ -3593,6 +3674,23 @@
 
 
 :function:::void:do_mfhi:int rd
+*mipsI:
+*mipsII:
+*mipsIII:
+*mipsIV:
+*mipsV:
+*vr4100:
+*vr5000:
+*r3900:
+*mips32:
+*mips64:
+*mips32r2:
+*mips64r2:
+*dsp:
+*micromips32:
+*micromips64:
+*micromipsdsp:
+*nanomipsdsp:
 {
   check_mf_hilo (SD_, HIHISTORY, LOHISTORY);
   TRACE_ALU_INPUT1 (HI);
@@ -5049,6 +5147,8 @@
 *vr4100:
 *vr5000:
 *r3900:
+*nanomips32r6:
+*nanomips64r6:
 {
   /* None of these ISAs support Paired Single, so just fall back to
      the single/double check.  */
@@ -5097,6 +5197,8 @@
 *r3900:
 *micromips32:
 *micromips64:
+*nanomips32r6:
+*nanomips64r6:
 {
   if (! COP_Usable (1))
     SignalExceptionCoProcessorUnusable (1);
@@ -6362,6 +6464,17 @@
 *vr4100:
 *vr5000:
 
+:function:::void:do_cache:int op, int rbase, address_word offset, address_word instruction_0
+{
+  address_word base = GPR[rbase];
+  {
+    address_word vaddr = loadstore_ea (SD_, base, offset);
+    address_word paddr;
+    int uncached;
+    if (AddressTranslation(vaddr,isDATA,isLOAD,&paddr,&uncached,isTARGET,isREAL))
+      CacheOp(op,vaddr,paddr,instruction_0);
+  }
+}
 
 101111,5.BASE,5.OP,16.OFFSET:NORMAL:32::CACHE
 "cache <OP>, <OFFSET>(r<BASE>)"
@@ -6376,15 +6489,7 @@
 *vr5000:
 *r3900:
 {
-  address_word base = GPR[BASE];
-  address_word offset = EXTEND16 (OFFSET);
-  {
-    address_word vaddr = loadstore_ea (SD_, base, offset);
-    address_word paddr;
-    int uncached;
-    if (AddressTranslation(vaddr,isDATA,isLOAD,&paddr,&uncached,isTARGET,isREAL))
-      CacheOp(OP,vaddr,paddr,instruction_0);
-  }
+  do_cache (SD_, OP, BASE, EXTEND16(OFFSET), instruction_0);
 }
 
 
@@ -6587,4 +6692,5 @@
 :include:::smartmips.igen
 :include:::micromips.igen
 :include:::micromipsdsp.igen
-
+:include:::nanomipsr6.igen
+:include:::nanomipsdsp.igen
