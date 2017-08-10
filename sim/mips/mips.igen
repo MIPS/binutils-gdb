@@ -760,8 +760,7 @@
 
 :function:::void:do_lb:int rt, int offset, int base
 {
-  GPR[rt] = EXTEND8 (do_load (SD_, AccessLength_BYTE, GPR[base],
-			      EXTEND16 (offset)));
+  GPR[rt] = EXTEND8 (do_load (SD_, AccessLength_BYTE, GPR[base], offset));
 }
 
 :function:::void:do_lh:int rt, int offset, int base
