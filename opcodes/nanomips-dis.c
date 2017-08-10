@@ -1348,11 +1348,11 @@ validate_insn_args (const struct nanomips_opcode *opcode,
 
 		case OP_IMM_INT:
 		case OP_IMM_WORD:
-		case OP_NEG_INT:
 		  if (info->flags & INSN_HAS_RELOC)
 		    return FALSE;
 		  break;
 
+		case OP_NEG_INT:
 		case OP_INT:
 		case OP_MAPPED_INT:
 		case OP_MSB:
