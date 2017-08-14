@@ -142,11 +142,11 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 8043 d608 	byterevh	t4,t5
 [0-9a-f]+ <[^>]+> 8043 d608 	byterevh	t4,t5
 [0-9a-f]+ <[^>]+> 8043 d608 	byterevh	t4,t5
-[0-9a-f]+ <[^>]+> 04bf fffd 	addiupc	a1,0
-[0-9a-f]+ <[^>]+> 04a0 0000 	addiupc	a1,4
-[0-9a-f]+ <[^>]+> 04a0 0004 	addiupc	a1,8
-[0-9a-f]+ <[^>]+> 04bf fffe 	addiupc	a1,2097154
-[0-9a-f]+ <[^>]+> 04a0 0001 	addiupc	a1,-2097148
+[0-9a-f]+ <[^>]+> 04bf fffd 	lapc	a1,[0-9a-f]+ <test\+0x1e0>
+[0-9a-f]+ <[^>]+> 04a0 0000 	lapc	a1,[0-9a-f]+ <test\+0x1e8>
+[0-9a-f]+ <[^>]+> 04a0 0004 	lapc	a1,[0-9a-f]+ <test\+0x1f0>
+[0-9a-f]+ <[^>]+> 04bf fffe 	lapc	a1,[0-9a-f]+ <test\+0x2001ee>
+[0-9a-f]+ <[^>]+> 04a0 0001 	lapc	a1,[0-9a-f]+ <test\+0xffe001f4>
 [0-9a-f]+ <[^>]+> e060 0002 	aluipc	t5,00000000 <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_PCHI20	test
 [0-9a-f]+ <[^>]+> e062 5002 	aluipc	t5,00025000 <[^>]+>

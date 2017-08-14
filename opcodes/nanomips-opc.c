@@ -468,6 +468,8 @@ IGRIE */
 {"addiu",	"[neg]",	"t,r,h",	0x80008000, 0xfc00f000,	WR_1|RD_2,		0,	I38,	0}, /* ADDIU[NEG] */
 {"addiu",	"[48]",		"mp,mt,+R",	0x6001,     0xfc1f,	MOD_1,			0,	0,	xNMS}, /* ADDIU[48] */
 {"addiu",	"[gp48]",	"mp,ma,+T",	0x6002,     0xfc1f,	WR_1|RD_2,		0,	0,	xNMS}, /* ADDIU[GP48] */
+{"lapc",	"[32]",		"t,+r",		0x04000000, 0xfc000000, WR_1,		INSN2_ALIAS,	I38,	0}, /* ADDIUPC */
+{"lapc",	"[48]",		"mp,+S",	0x6003,     0xfc1f,	WR_1,		INSN2_ALIAS,	0,	xNMS}, /* ADDIUPC[48] */
 {"addiupc",	"[32]",		"t,+s",		0x04000000, 0xfc000000, WR_1,			0,	I38,	0},
 {"addiupc",	"[48]",		"mp,+U",	0x6003,     0xfc1f,	WR_1,			0,	0,	xNMS}, /* ADDIUPC[48] */
 {"addiu.b",	"",	        "t,ma,+1",	0x440c0000, 0xfc1c0000,	WR_1|RD_2,	INSN2_ALIAS,	I38,	0}, /* ADDIU[GP.B] */
@@ -869,8 +871,6 @@ IGRIE */
 {"jal",		"",		"t,s",		0x48000000, 0xfc00ffff,	WR_1|RD_2,  INSN2_ALIAS|UBR|CTC, I38,	0}, /* JALRC */
 {"jal", 	"",		"A",		0,    (int) M_JAL_A,	INSN_MACRO,		0,	I38,	0},
 {"jal", 	"",		"+'",		0x2a000000, 0xfe000000,	WR_31,	INSN2_ALIAS|UBR|CTC,	I38,	0}, /* BALC */
-{"lapc",	"[32]",		"t,+r",		0x04000000, 0xfc000000, WR_1,		INSN2_ALIAS,	I38,	0}, /* ADDIUPC */
-{"lapc",	"[48]",		"mp,+S",	0x6003,     0xfc1f,	WR_1,		INSN2_ALIAS,	0,	xNMS}, /* ADDIUPC[48] */
 {"lb",		"[16]",		"md,mL(ml)",	0x5c00,		0xfc0c,	WR_1|RD_3,		0,	I38,	0}, /* LB[16] */
 {"lb",		"[gp]",		"t,+1(ma)",	0x44000000, 0xfc1c0000,	WR_1|RD_3,		0,	I38,	0}, /* LB[GP] */
 {"lb",		"[u12]",	"t,o(b)",	0x84000000, 0xfc00f000,	WR_1|RD_3,		0,	I38,	0}, /* LB[U12] */
