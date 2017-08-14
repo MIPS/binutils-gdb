@@ -9,8 +9,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$2
 	lw	$27, 0x7fff($27)
@@ -21,8 +19,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$3
 	lw	$27, 0x7fff($27)
@@ -33,8 +29,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$a0
 	lw	$27, 0x7fff($27)
@@ -45,8 +39,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$a1
 	lw	$27, 0x7fff($27)
@@ -57,8 +49,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$a2
 	lw	$27, 0x7fff($27)
@@ -69,8 +59,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$a3
 	lw	$27, 0x7fff($27)
@@ -81,8 +69,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$8
 	lw	$27, 0x7fff($27)
@@ -93,8 +79,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$9
 	lw	$27, 0x7fff($27)
@@ -105,8 +89,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$10
 	lw	$27, 0x7fff($27)
@@ -117,8 +99,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$11
 	lw	$27, 0x7fff($27)
@@ -129,8 +109,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$12
 	lw	$27, 0x7fff($27)
@@ -141,8 +119,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$13
 	lw	$27, 0x7fff($27)
@@ -153,8 +129,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$14
 	lw	$27, 0x7fff($27)
@@ -165,8 +139,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$15
 	lw	$27, 0x7fff($27)
@@ -177,8 +149,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$s0
 	lw	$27, 0x7fff($27)
@@ -189,8 +159,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$s1
 	lw	$27, 0x7fff($27)
@@ -201,8 +169,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$s2
 	lw	$27, 0x7fff($27)
@@ -213,8 +179,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$s3
 	lw	$27, 0x7fff($27)
@@ -225,8 +189,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$s4
 	lw	$27, 0x7fff($27)
@@ -237,8 +199,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$s5
 	lw	$27, 0x7fff($27)
@@ -249,8 +209,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$s6
 	lw	$27, 0x7fff($27)
@@ -261,8 +219,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$s7
 	lw	$27, 0x7fff($27)
@@ -273,8 +229,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$24
 	lw	$27, 0x7fff($27)
@@ -285,8 +239,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$25
 	lw	$27, 0x7fff($27)
@@ -297,8 +249,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$26
 	lw	$27, 0x7fff($27)
@@ -309,8 +259,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$27
 	lw	$26, 0x7fff($26)
@@ -321,8 +269,6 @@ foo:
 	sw	$26, 0x8000($26)
 	lw	$26, -0x8001($26)
 	sw	$26, -0x8001($26)
-	lw	$26, symbol($26)
-	sw	$26, symbol($26)
 
 	.set	at=$gp
 	lw	$27, 0x7fff($27)
@@ -333,8 +279,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$fp
 	lw	$27, 0x7fff($27)
@@ -345,8 +289,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$sp
 	lw	$27, 0x7fff($27)
@@ -357,8 +299,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at=$ra
 	lw	$27, 0x7fff($27)
@@ -369,8 +309,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 	.set	at
 	lw	$27, 0x7fff($27)
@@ -381,8 +319,6 @@ foo:
 	sw	$27, 0x8000($27)
 	lw	$27, -0x8001($27)
 	sw	$27, -0x8001($27)
-	lw	$27, symbol($27)
-	sw	$27, symbol($27)
 
 # Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
 	.space	8

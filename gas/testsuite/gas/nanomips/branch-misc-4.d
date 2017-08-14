@@ -7,9 +7,9 @@
 
 Disassembly of section \.text:
 	\.\.\.
-[0-9a-f]+ <foo> 2800 0000 	bc	00000000 <foo-0x40000>
+[0-9a-f]+ <foo> 2800 0000 	bc	00000000 <bar>
 			40000: R_NANOMIPS_PC25_S1	bar
-[0-9a-f]+ <\.Lfoo> 2800 0000 	bc	00000004 <foo-0x3fffc>
+[0-9a-f]+ <\.Lfoo> 2800 0000 	bc	00000004 <\.Lbar>
 			40004: R_NANOMIPS_PC25_S1	\.Lbar
 	\.\.\.
 

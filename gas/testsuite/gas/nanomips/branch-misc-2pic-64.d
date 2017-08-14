@@ -30,6 +30,6 @@ Disassembly of section \.text:
 			84: R_NANOMIPS_PC25_S1	x1
 0+0088 <g6\+0x4> 2800 0000 	bc	0+ <x2>
 			88: R_NANOMIPS_PC25_S1	x2
-0+008c <g6\+0x8> 2800 0000 	bc	0+ <g1>
+0+008c <g6\+0x8> 2800 0000 	bc	0+ <\.Ldata>
 			8c: R_NANOMIPS_PC25_S1	.Ldata
 	\.\.\.

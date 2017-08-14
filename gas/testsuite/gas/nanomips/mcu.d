@@ -54,12 +54,6 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 6020 5678 1234 	li	at,0x12345678
 [0-9a-f]+ <[^>]+> 2081 0950 	addu	at,at,a0
 [0-9a-f]+ <[^>]+> a6e1 1100 	aclr	0x7,0\(at\)
-[0-9a-f]+ <[^>]+> 0023 0000 	addiu	at,t5,0
-			[0-9a-f]+: R_NANOMIPS_LO12	foo
-[0-9a-f]+ <[^>]+> a621 1100 	aclr	0x1,0\(at\)
-[0-9a-f]+ <[^>]+> 0023 0000 	addiu	at,t5,0
-			[0-9a-f]+: R_NANOMIPS_LO12	foo
-[0-9a-f]+ <[^>]+> a421 1100 	aset	0x1,0\(at\)
 [0-9a-f]+ <[^>]+> a400 1100 	aset	0x0,0\(zero\)
 [0-9a-f]+ <[^>]+> a400 1100 	aset	0x0,0\(zero\)
 [0-9a-f]+ <[^>]+> a400 1100 	aset	0x0,0\(zero\)

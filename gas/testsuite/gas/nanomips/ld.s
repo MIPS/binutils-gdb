@@ -1,9 +1,17 @@
 # Source file used to test the doubleword memory access macros
 # (ld and friends).
 
+	.ifdef mc_large
+	.set mcmodel=large
+	.endif
+	
+	.ifdef mc_medium
+	.set mcmodel=medium
+	.endif
+	
 # By default test ld.
 	.set	d4, $4
-
+	
 # If defined, test sd instead.
 	.ifdef	tsd
 	.macro	ld ops:vararg
@@ -136,48 +144,6 @@ text_label:
 	ld	d4,small_external_common+0x1a5a5
 	ld	d4,big_local_common+0x1a5a5
 	ld	d4,small_local_common+0x1a5a5
-	ld	d4,data_label($5)
-	ld	d4,big_external_data_label($5)
-	ld	d4,small_external_data_label($5)
-	ld	d4,big_external_common($5)
-	ld	d4,small_external_common($5)
-	ld	d4,big_local_common($5)
-	ld	d4,small_local_common($5)
-	ld	d4,data_label+1($5)
-	ld	d4,big_external_data_label+1($5)
-	ld	d4,small_external_data_label+1($5)
-	ld	d4,big_external_common+1($5)
-	ld	d4,small_external_common+1($5)
-	ld	d4,big_local_common+1($5)
-	ld	d4,small_local_common+1($5)
-	ld	d4,data_label+lo_max($5)
-	ld	d4,big_external_data_label+lo_max($5)
-	ld	d4,small_external_data_label+lo_max($5)
-	ld	d4,big_external_common+lo_max($5)
-	ld	d4,small_external_common+lo_max($5)
-	ld	d4,big_local_common+lo_max($5)
-	ld	d4,small_local_common+lo_max($5)
-	ld	d4,data_label-lo_max($5)
-	ld	d4,big_external_data_label-lo_max($5)
-	ld	d4,small_external_data_label-lo_max($5)
-	ld	d4,big_external_common-lo_max($5)
-	ld	d4,small_external_common-lo_max($5)
-	ld	d4,big_local_common-lo_max($5)
-	ld	d4,small_local_common-lo_max($5)
-	ld	d4,data_label+hi_min($5)
-	ld	d4,big_external_data_label+hi_min($5)
-	ld	d4,small_external_data_label+hi_min($5)
-	ld	d4,big_external_common+hi_min($5)
-	ld	d4,small_external_common+hi_min($5)
-	ld	d4,big_local_common+hi_min($5)
-	ld	d4,small_local_common+hi_min($5)
-	ld	d4,data_label+0x1a5a5($5)
-	ld	d4,big_external_data_label+0x1a5a5($5)
-	ld	d4,small_external_data_label+0x1a5a5($5)
-	ld	d4,big_external_common+0x1a5a5($5)
-	ld	d4,small_external_common+0x1a5a5($5)
-	ld	d4,big_local_common+0x1a5a5($5)
-	ld	d4,small_local_common+0x1a5a5($5)
 
 # Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
 	.align	2

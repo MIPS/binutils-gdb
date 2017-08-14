@@ -33,9 +33,6 @@ foo:
 	aclr	7, 0xffffffff($4)
 	aclr	7, 0x12345678($4)
 
-	aclr	1, %lo(foo)($3)
-	aset	1, %lo(foo)($3)
-
 	aset	0, 0
 	aset	0, ($0)
 	aset	0, 0($0)

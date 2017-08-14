@@ -235,8 +235,8 @@ test:
 	addiupc 	$r5,-2097150
 	.endif
 
-	aluipc	$r3,0x25
 	aluipc	$r3,%pcrel_hi(test)
+	aluipc	$r3,0x25
 	addiu	$r3, $r3, %pcrel_lo(test)
 
 	addu	$r4, $r4, $r5

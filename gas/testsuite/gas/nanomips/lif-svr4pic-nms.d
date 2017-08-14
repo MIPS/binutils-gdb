@@ -9,15 +9,15 @@
 
 Disassembly of section \.text:
 
-00000000 <foo>:
+[0-9a-f]+ <foo>:
    0:	lw	at,0\(gp\)
-			0: R_NANOMIPS_GOT_DISP	\.rodata
+			[0-9a-f]+: R_NANOMIPS_GOT_DISP	\.rodata
    4:	lw	a0,0\(at\)
    8:	lw	a1,4\(at\)
-   c:	lw	at,0\(gp\)
-			c: R_NANOMIPS_GOT_PAGE	\.rodata\+0x8
+   c:	aluipc	at,8 <L0>
+			[0-9a-f]+: R_NANOMIPS_PCHI20	L0
   10:	ldc1	\$f4,0\(at\)
-			10: R_NANOMIPS_GOT_OFST	\.rodata\+0x8
+			[0-9a-f]+: R_NANOMIPS_LO12	\.rodata\+0x8
   14:	lui	a0,%hi\(0x3f8fc000\)
   18:	ori	a0,a0,3382
   1c:	lui	at,%hi\(0x3f8fc000\)

@@ -150,13 +150,13 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 20c5 0400 	tne	a1,a2
 [0-9a-f]+ <[^>]+> 2083 3000 	teq	t5,a0,0x6
 [0-9a-f]+ <[^>]+> 20c5 3c00 	tne	a1,a2,0x7
-[0-9a-f]+ <[^>]+> 606b 2710 0000 	lwpc	t5,00002710 <[^>]+>
+[0-9a-f]+ <[^>]+> 606b 0000 0000 	lwpc	t5,00002710 <\*ABS\*\+0x2710>
 			[0-9a-f]+: R_NANOMIPS_PC_I32	\*ABS\*\+0x2710
-[0-9a-f]+ <[^>]+> 606f 2710 0000 	swpc	t5,00002710 <[^>]+>
+[0-9a-f]+ <[^>]+> 606f 0000 0000 	swpc	t5,00002710 <\*ABS\*\+0x2710>
 			[0-9a-f]+: R_NANOMIPS_PC_I32	\*ABS\*\+0x2710
-[0-9a-f]+ <[^>]+> 60bb 2710 0000 	ldpc	a1,00002710 <[^>]+>
+[0-9a-f]+ <[^>]+> 60bb 0000 0000 	ldpc	a1,00002710 <\*ABS\*\+0x2710>
 			[0-9a-f]+: R_NANOMIPS_PC_I32	\*ABS\*\+0x2710
-[0-9a-f]+ <[^>]+> 611f 2710 0000 	sdpc	a4,00002710 <[^>]+>
+[0-9a-f]+ <[^>]+> 611f 0000 0000 	sdpc	a4,00002710 <\*ABS\*\+0x2710>
 			[0-9a-f]+: R_NANOMIPS_PC_I32	\*ABS\*\+0x2710
 [0-9a-f]+ <[^>]+> 6063 0000 0000 	lapc	t5,00000000 <test>
 			[0-9a-f]+: R_NANOMIPS_PC_I32	test
@@ -209,9 +209,9 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 60a3 fffe 001f 	addiupc	a1,2097156
 [0-9a-f]+ <[^>]+> 04a0 0001 	addiupc	a1,-2097148
 [0-9a-f]+ <[^>]+> 60a3 fffc ffdf 	addiupc	a1,-2097150
-[0-9a-f]+ <[^>]+> e062 5002 	aluipc	t5,00025000 <test\+0x25000>
 [0-9a-f]+ <[^>]+> e060 0002 	aluipc	t5,00000000 <test>
 			[0-9a-f]+: R_NANOMIPS_PCHI20	test
+[0-9a-f]+ <[^>]+> e062 5002 	aluipc	t5,00025000 <test\+0x25000>
 [0-9a-f]+ <[^>]+> 0063 0000 	addiu	t5,t5,0
 			[0-9a-f]+: R_NANOMIPS_LO12	test
 [0-9a-f]+ <[^>]+> b2c8      	addu	a0,a0,a1

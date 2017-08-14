@@ -147,9 +147,9 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 04a0 0004 	addiupc	a1,8
 [0-9a-f]+ <[^>]+> 04bf fffe 	addiupc	a1,2097154
 [0-9a-f]+ <[^>]+> 04a0 0001 	addiupc	a1,-2097148
-[0-9a-f]+ <[^>]+> e062 5002 	aluipc	t5,00025000 <[^>]+>
 [0-9a-f]+ <[^>]+> e060 0002 	aluipc	t5,00000000 <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_PCHI20	test
+[0-9a-f]+ <[^>]+> e062 5002 	aluipc	t5,00025000 <[^>]+>
 [0-9a-f]+ <[^>]+> 0063 0000 	addiu	t5,t5,0
 			[0-9a-f]+: R_NANOMIPS_LO12	test
 [0-9a-f]+ <[^>]+> 20a4 2150 	addu	a0,a0,a1

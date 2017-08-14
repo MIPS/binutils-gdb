@@ -3000,22 +3000,22 @@ test3:
 	swc2	$3, 0xffffffff($a0)
 	swc2	$3, 0x12345678($a0)
 
-	cache	0, %lo(test)($t5)
 /*
+	cache	0, %lo(test)($t5)
 	lwp	$t4, %lo(test)($t5)
 	swp	$t4, %lo(test)($t5)
-*/
+
 	ll	$t4, %lo(test)($t5)
 	sc	$t4, %lo(test)($t5)
-/*	lwl	$t4, %lo(test)($t5)
+	lwl	$t4, %lo(test)($t5)
 	lwr	$t4, %lo(test)($t5)
 	swl	$t4, %lo(test)($t5)
 	swr	$t4, %lo(test)($t5)
 	lwm	$s0, %lo(test)($t5)
 	swm	$s0, %lo(test)($t5)
-*/	lwc2	$16, %lo(test)($t5)
+	lwc2	$16, %lo(test)($t5)
 	swc2	$16, %lo(test)($t5)
-/*	lcache	$t4, %lo(test)($t5)
+	lcache	$t4, %lo(test)($t5)
 	flush	$t4, %lo(test)($t5)
 	scache	$t4, %lo(test)($t5)
 	invalidate	$t4, %lo(test)($t5)

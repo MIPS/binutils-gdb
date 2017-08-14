@@ -2961,21 +2961,6 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 8021 0678 	ori	at,at,1656
 [0-9a-f]+ <[^>]+> 2081 0950 	addu	at,at,a0
 [0-9a-f]+ <[^>]+> a461 4900 	swc2	\$3,0\(at\)
-[0-9a-f]+ <[^>]+> 0023 0000 	addiu	at,t5,0
-			[0-9a-f]+: R_NANOMIPS_LO12	test
-[0-9a-f]+ <[^>]+> a401 3900 	cache	0x0,0\(at\)
-[0-9a-f]+ <[^>]+> 0043 0000 	addiu	t4,t5,0
-			[0-9a-f]+: R_NANOMIPS_LO12	test
-[0-9a-f]+ <[^>]+> a442 5100 	ll	t4,0\(t4\)
-[0-9a-f]+ <[^>]+> 0023 0000 	addiu	at,t5,0
-			[0-9a-f]+: R_NANOMIPS_LO12	test
-[0-9a-f]+ <[^>]+> a441 5900 	sc	t4,0\(at\)
-[0-9a-f]+ <[^>]+> 0023 0000 	addiu	at,t5,0
-			[0-9a-f]+: R_NANOMIPS_LO12	test
-[0-9a-f]+ <[^>]+> a601 4100 	lwc2	\$16,0\(at\)
-[0-9a-f]+ <[^>]+> 0023 0000 	addiu	at,t5,0
-			[0-9a-f]+: R_NANOMIPS_LO12	test
-[0-9a-f]+ <[^>]+> a601 4900 	swc2	\$16,0\(at\)
 [0-9a-f]+ <[^>]+> 0018 03ff 	sdbbp	0x3ff
 [0-9a-f]+ <[^>]+> 23ff c37f 	wait	0x3ff
 [0-9a-f]+ <[^>]+> 0008 03ff 	syscall	0x3ff
@@ -3956,7 +3941,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> a001 6b3b 	trunc.w.d	\$f0,\$f1
 [0-9a-f]+ <[^>]+> a3df 6b3b 	trunc.w.d	\$f30,\$f31
 [0-9a-f]+ <[^>]+> a042 6b3b 	trunc.w.d	\$f2,\$f2
-[0-9a-f]+ <[^>]+> 2a00 0000 	balc	00003b78 <test_delay_slot>
+[0-9a-f]+ <[^>]+> 2a00 0000 	balc	[0-9a-f]+ <test_delay_slot>
 			[0-9a-f]+: R_NANOMIPS_PC25_S1	test_delay_slot
 [0-9a-f]+ <[^>]+> 4be2 0000 	jalrc	t4
 [0-9a-f]+ <[^>]+> 4802 0000 	jrc	t4

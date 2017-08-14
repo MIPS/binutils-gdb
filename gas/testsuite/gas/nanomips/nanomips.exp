@@ -730,10 +730,8 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "noat-1" "" nanomips32r6
     run_list_test_arch "noat-2" "" nanomips32r6
     run_list_test_arch "noat-3" "" nanomips32r6
-    run_list_test_arch "noat-4" "" nanomips32r6
     run_list_test_arch "noat-5" "" nanomips32r6
     run_list_test_arch "noat-6" "" nanomips32r6
-    run_list_test_arch "noat-7" "" nanomips32r6
 
     run_dump_test_arch "at-1" "" nanomips32r6
     run_list_test "at-2" "-march=32r6 -mlegacyregs" "nanoMIPS at-2"

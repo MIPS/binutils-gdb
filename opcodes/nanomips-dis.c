@@ -1491,18 +1491,12 @@ print_insn_args (struct disassemble_info *info,
 	      if (!have_reloc)
 		base_pc = insn_pc;
 
-	      /* Adjust the PC relative base so that branch/jump insns use
-		 the following PC as the base but genuinely PC relative
-		 operands use the current PC.  */
-	      if (operand->type == OP_PCREL && !have_reloc)
-		base_pc += length;
-
-	      if ((operand->type == OP_HI20_PCREL
-		    || operand->type == OP_NON_ZERO_PCREL_S1)
+	      if ((operand->type == OP_PCREL
+		  || operand->type == OP_HI20_PCREL
+		  || operand->type == OP_NON_ZERO_PCREL_S1
+		  || operand->type == OP_PC_WORD)
 		   && !have_reloc)
 		base_pc += length;
-	      else if (operand->type == OP_PC_WORD && !have_reloc)
-		base_pc += 4;
 
 	      if (operand->type == OP_INT_WORD
 		  || operand->type == OP_UINT_WORD
