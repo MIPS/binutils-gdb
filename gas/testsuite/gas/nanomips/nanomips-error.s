@@ -19,8 +19,8 @@ test:
 	/* Non-zero register check */
 
 	balrsc	$zero, $a2
-
 	move16 $zero, $at
+	li $zero, 1
 
 	/* Valid values for ALIGN macro are 0, 1, 2, 3 */
 	align   $a0, $t4, $t5, 4
