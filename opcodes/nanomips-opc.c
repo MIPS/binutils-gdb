@@ -39,7 +39,6 @@ static unsigned char reg_4to5_map[] = { 8, 9, 10, 11, 4, 5, 6, 7,
 static unsigned char reg_4to5_srcmap[] = { 8, 9, 10, 0, 4, 5, 6, 7,
 					   16, 17, 18, 19, 20, 21, 22, 23 };
 
-
 static unsigned char reg_4or5_map[] = { 4, 5 };
 
 static unsigned char reg_gpr2d_map1[] = { 4, 5, 6, 7 };
@@ -156,6 +155,8 @@ decode_nanomips_operand (const char *p)
 	case 'a': SPECIAL (5, 16, DONT_CARE);
 	case 'b': SPECIAL_SPLIT (8, 9, 5, 16, DONT_CARE);
 	case 'i': REG (0, 0, GP); /* Ignored register operand.  */
+	case 'm': SPECIAL_SPLIT (5, 11, 5, 21, COPY_BITS);
+	case 'n': SPECIAL_SPLIT (5, 11, 5, 16, COPY_BITS);
 
 	case 'p': SPECIAL (5, 5, NON_ZERO_REG);
 	case 's': SPECIAL (5, 16, NON_ZERO_REG);
@@ -513,7 +514,7 @@ IGRIE */
 {"balc",	"[32]",		"+'",		0x2a000000, 0xfe000000,		WR_31,		0,	I38,	0},
 {"bal", 	"",		"mD",		0x3800,		0xfc00,	WR_31,	INSN2_ALIAS|UBR|CTC,	I38,	0}, /* BALC[16] */
 {"bal", 	"",		"+'",		0x2a000000, 0xfe000000,	WR_31,	INSN2_ALIAS|UBR|CTC,	I38,	0}, /* BALC */
-{"balign",	"",		"t,s,2",	0x200008bf, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
+{"balign",	"",		"d,-m,s,+:",	0x2000001f, 0xfc00003f, WR_1|RD_3,	INSN2_ALIAS,	0,	D32}, /* EXTW */
 {"balrsc",	"",		"-t,s",		0x48008200, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
 {"balrsc",	"",		"s",		0x4be08200, 0xffe0ffff,	RD_1|WR_31,		0,	I38,	0}, /* BALRSC */
 {"bbeqzc",	"",		"t,+i,~",	0xc8040000, 0xfc1f0000,	RD_1,			0,	0,	xNMS},
@@ -1142,7 +1143,7 @@ IGRIE */
 {"pref",	"",		"k,A(c)",	0,    (int) M_PREF_AB,	INSN_MACRO,		0,	I38,	0},
 {"prefe",	"",		"k,+j(b)",	0xa4001a00, 0xfc007f00,	RD_3,			0,	0,	EVA}, /* preceded by SYNCIE */
 {"prefe",	"",		"k,A(c)",	0,    (int) M_PREFE_AB,	INSN_MACRO,		0,	0,	EVA},
-{"prepend",	"",		"t,s,^",	0x20000255, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
+{"prepend",	"",		"d,-n,t,+I",	0x2000001f, 0xfc00003f, WR_1|RD_3,	INSN2_ALIAS,	0,	D32}, /* EXTW */
 {"raddu.w.qb",	"", 		"t,s",		0x2000f13f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32},
 {"rddsp",	"",		"t",		0x201fc67f, 0xfc1fffff,	WR_1,		INSN2_ALIAS,	0,	D32},
 {"rddsp",	"",		"t,8",		0x2000067f, 0xfc003fff,	WR_1,			0,	0,	D32},

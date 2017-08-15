@@ -480,6 +480,9 @@ enum mips_operand_type {
 
   /* Base register for limited types of offsets.  */
   OP_BASE_CHECK_OFFSET,
+
+  /* Copy over bits from another part of instruction.  */
+  OP_COPY_BITS,
 };
 
 /* Enumerates the types of MIPS register.  */

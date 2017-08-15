@@ -1228,6 +1228,7 @@ print_insn_arg (struct disassemble_info *info,
       break;
 
     case OP_DONT_CARE:
+    case OP_COPY_BITS:
     default:
       break;
     }

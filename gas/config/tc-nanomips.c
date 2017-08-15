@@ -5706,6 +5706,24 @@ match_vu0_suffix_operand (struct mips_arg_info *arg,
   return TRUE;
 }
 
+/* Copy bits from one part of an instruction to another part.
+   Source bits are specified by size & lsb.  Destination bits
+   are specified by size_top and lsb_top.  */
+static bfd_boolean
+match_copy_bits (struct mips_arg_info *arg,
+		 const struct mips_operand *operand)
+{
+  const struct mips_operand op_src = {OP_INT, operand->size,
+				      operand->lsb, 0, 0};
+  const struct mips_operand op_dest = {OP_INT, operand->size_top,
+				       operand->lsb_top, 0, 0};
+  unsigned int uval;
+
+  uval = mips_extract_operand (&op_src, arg->insn->insn_opcode);
+  insn_insert_operand (arg->insn, &op_dest, uval);
+  return TRUE;
+}
+
 /* S is the text seen for ARG.  Match it against OPERAND.  Return the end
    of the argument text if the match is successful, otherwise return null.  */
 
@@ -5836,6 +5854,9 @@ match_operand (struct mips_arg_info *arg,
 
     case OP_BASE_CHECK_OFFSET:
       return match_base_checked_offset_operand (arg, operand);
+
+    case OP_COPY_BITS:
+      return match_copy_bits (arg, operand);
    }
   abort ();
 }
@@ -7398,6 +7419,9 @@ match_nanomips_insn (struct mips_cl_insn *insn,
 	  arg.token = tokens;
 	  arg.argnum = 1;
 	}
+
+      if (operand->type == OP_COPY_BITS)
+	args++;
 
       if (!match_operand (&arg, operand))
 	return FALSE;
