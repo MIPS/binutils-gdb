@@ -13212,6 +13212,28 @@ pic_need_relax (symbolS *sym, asection *segtype)
 	  && (!S_IS_WEAK (sym) && !S_IS_EXTERNAL (sym)));
 }
 
+
+static bfd_boolean
+nanomips_frag_match (fragS *head, fragS *matchP)
+{
+  if (listing)
+    {
+      while (head && head != matchP)
+	{
+	  if (head->fr_line > matchP->fr_line)
+	    break;
+	  else
+	    head = head->fr_next;
+	}
+
+      return (head != NULL && head->fr_line == matchP->fr_line);
+    }
+  else
+    return (matchP == head->fr_next);
+
+  return FALSE;
+}
+
 /* Compute the length of a branch, and adjust the RELAX_NANOMIPS_TOOFAR16
    bit accordingly.  */
 
@@ -13247,7 +13269,7 @@ relaxed_nanomips_16bit_branch_length (fragS *fragp, asection *sec, int update)
       else if (type == RT_BRANCH_CND)
 	toofar = (val < 2
 		  || val >= 32
-		  || symbol_get_frag (fragp->fr_symbol) == fragp->fr_next);
+		  || nanomips_frag_match (fragp, symbol_get_frag (fragp->fr_symbol)));
       else
 	abort ();
     }
