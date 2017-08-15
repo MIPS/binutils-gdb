@@ -1380,6 +1380,7 @@ validate_insn_args (const struct nanomips_opcode *opcode,
 		case OP_GPREL_WORD:
 		case OP_DONT_CARE:
 		case OP_HI20_SCALE:
+		case OP_COPY_BITS:
 		  break;
 		}
 	    }

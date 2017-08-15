@@ -3719,6 +3719,7 @@ operand_reg_mask (const struct mips_cl_insn *insn,
     case OP_HI20_SCALE:
     case OP_IMM_INT:
     case OP_IMM_WORD:
+    case OP_COPY_BITS:
       abort ();
 
     case OP_REG28:
@@ -9280,7 +9281,7 @@ nanomips_macro_absolute_la (unsigned int op[])
 
 static void
 nanomips_macro_la (unsigned int op[], unsigned int breg, int *used_at,
-		   bfd_boolean dbl)
+		   bfd_boolean dbl ATTRIBUTE_UNUSED)
 {
   unsigned int tempreg;
 
