@@ -536,6 +536,7 @@ enum mips_insn_error_format {
   ERR_FMT_PLAIN,
   ERR_FMT_I,
   ERR_FMT_SS,
+  ERR_FMT_SI,
 };
 
 /* Information about an error that was found while assembling the current
@@ -562,6 +563,10 @@ struct mips_insn_error {
   union {
     int i;
     const char *ss[2];
+    struct {
+      const char *s1;
+      int u1;
+    } si;
   } u;
 };
 
@@ -2019,6 +2024,16 @@ set_insn_error_ss (int argnum, const char *msg, const char *s1, const char *s2)
     }
 }
 
+static void
+set_insn_error_si (int argnum, const char *msg, const char *s1, const int i)
+{
+  if (set_insn_error_format (argnum, ERR_FMT_SI, msg))
+    {
+      insn_error.u.si.s1 = s1;
+      insn_error.u.si.u1 = i;
+    }
+}
+
 /* Report the error in insn_error, which is against assembly code STR.  */
 
 static void
@@ -2039,6 +2054,10 @@ report_insn_error (const char *str)
 
     case ERR_FMT_SS:
       as_bad (msg, insn_error.u.ss[0], insn_error.u.ss[1], str);
+      break;
+
+    case ERR_FMT_SI:
+      as_bad (msg, insn_error.u.si.s1, insn_error.u.si.u1, str);
       break;
     }
 }
@@ -2153,7 +2172,6 @@ struct regname {
 
 #define NANOMIPS_SYMBOLIC_REG_NAMES \
     {"$zero",	RTYPE_GP | 0},  \
-    {"$AT",	RTYPE_GP | 1},  \
     {"$at",	RTYPE_GP | 1},  \
     {"$t4",	RTYPE_GP | 2},  \
     {"$t5",	RTYPE_GP | 3},  \
@@ -2184,7 +2202,8 @@ struct regname {
     {"$gp",	RTYPE_GP | 28}, \
     {"$sp",	RTYPE_GP | 29}, \
     {"$fp",	RTYPE_GP | 30}, \
-    {"$ra",	RTYPE_GP | 31}
+    {"$ra",	RTYPE_GP | 31}, \
+    {"$AT",	RTYPE_GP | 1}
 
 #define NANOMIPS_NUMERIC_REG_NAMES \
     {"$r0",	RTYPE_GP | 0},  \
@@ -5167,17 +5186,23 @@ match_nanomips_save_restore_list_operand (struct mips_arg_info *arg,
   unsigned first_reg, last_reg;
   bfd_boolean mode16 = (insn_length (arg->insn) == 2);
   bfd_boolean gp = FALSE;
+  bfd_boolean retval;
 
   count = 0;
   first_reg = last_reg = 0;
   do
     {
-      unsigned int regno1, regno2;
+      unsigned int regno1 = 0, regno2 = 0;
 
       if (!match_reg_range (arg, OP_REG_GP, &regno1, &regno2))
 	{
 	  arg->token--;
-	  break;
+	  if (regno2 != 0 && regno2 < regno1)
+	    set_insn_error_ss (count,
+			       "register range (%s-%s) is not in increasing order",
+			       nanomips_reg_names[32+regno1].name,
+			       nanomips_reg_names[32+regno2].name);
+	  return FALSE;
 	}
 
       if (first_reg == 0)
@@ -5190,12 +5215,46 @@ match_nanomips_save_restore_list_operand (struct mips_arg_info *arg,
 	      && (mips_opts.ase & ASE_xNMS) != 0)
 	    /* enable GP special casing if possible */
 	    gp = TRUE;
+	  else if (regno1 == 28 && (mips_opts.ase & ASE_xNMS) == 0)
+	    {
+	      set_insn_error_ss (count,
+				 "non-contiguous %s of $gp is not available for "
+				 "nanoMIPS subset%s",
+				 arg->insn->insn_mo->name, "");
+	      return FALSE;
+	    }
+	  else if (regno1 == 28 && mode16)
+	    {
+	      set_insn_error_ss (count,
+				 "non-contiguous %s of $gp is not available for "
+				 "16-bit instructions%s",
+				 arg->insn->insn_mo->name, "");
+	      return FALSE;
+	    }
 	  else
-	    return FALSE;
+	    {
+	      if (regno1 == 30 && first_reg != 30)
+		set_insn_error (count, "$fp must be the first register in the list");
+	      else if (regno1 == 31 && first_reg != 30 && first_reg != 31)
+		set_insn_error (count, "$ra must be the first register in the list");
+	      else if (last_reg == 31 && regno1 != 16)
+		set_insn_error_ss (count+1, "%s must be followed by %s",
+				   nanomips_reg_names[32+last_reg].name,
+				   nanomips_reg_names[32+16].name);
+	      else
+		set_insn_error_ss (regno1, "register list not contiguous between %s and %s",
+				   nanomips_reg_names[32+last_reg].name,
+				   nanomips_reg_names[32+regno1].name);
+	      return FALSE;
+	    }
 	}
 
       if (regno1 <= 29 && regno2 >= 29)
-	return FALSE;
+	{
+	  set_insn_error_ss (regno1,"%s register list should not contain $sp%s",
+	    arg->insn->insn_mo->name, "");
+	  return FALSE;
+	}
 
       last_reg = regno2;
 
@@ -5206,8 +5265,19 @@ match_nanomips_save_restore_list_operand (struct mips_arg_info *arg,
   while (match_char (arg, ','));
 
   /* too few or too many registers in list */
-  if (count == 0 || count >= 16 || (mode16 && first_reg < 30))
-    return FALSE;
+  if (count >= 16)
+    {
+      set_insn_error_si (count, "%s can handle a maximum of 16 register, %d requested",
+			 arg->insn->insn_mo->name, count);
+      return FALSE;
+    }
+
+  if (mode16 && first_reg < 30)
+    {
+      set_insn_error_ss (count+1, "first register for 16-bit %s must be $fp or $ra%s",
+			 arg->insn->insn_mo->name, "");
+      return FALSE;
+    }
 
   if (count * (GPR_SIZE / 8) > arg->last_op_int)
     as_warn ("frame too small for save/restore register list");
@@ -5230,6 +5300,7 @@ match_nanomips_save_restore_list_operand (struct mips_arg_info *arg,
       offset_expr.X_add_symbol = sym;
       offset_reloc[0] = BFD_RELOC_NANOMIPS_SAVERESTORE;
     }
+
   return TRUE;
 }
 

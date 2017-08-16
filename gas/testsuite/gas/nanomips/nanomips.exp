@@ -902,6 +902,7 @@ if { [istarget nanomips*-*-*] } {
     run_list_test_arch "nanomips-relax" "-al" nanomips32
     run_dump_test_arch "nanomips-relax32" "" nanomips32
     run_dump_test_arch "save" "" nanomips32
+    run_list_test_arch "save-error" "" nanomips32
     run_list_test_arch "save-error" "" nanomips32s
     run_dump_test_arch "save-relocs" "" nanomips32
     run_dump_test_arches "exp-relocs" [arch_list_matching xnms]
