@@ -24,9 +24,29 @@
 
 #include "bfd.h"
 
+#define INSN_ISAN32R6             1
+#define INSN_ISAN64R6             2
+
+#define       ISA_NANOMIPS32R6	INSN_ISAN32R6
+#define       ISA_NANOMIPS64R6	INSN_ISAN64R6
+
+#define CPU_NANOMIPS32R6 38
+#define CPU_NANOMIPS64R6 70
+
+#define ISAF(X) (1 << (INSN_ISA##X - 1))
+
+/* The same information in table form: bit INSN_ISA<X> - 1 of index
+   INSN_UPTO<Y> - 1 is set if ISA Y includes ISA X.  */
+static const unsigned int nanomips_isa_table[] = {
+  ISAF(N32R6),
+  ISAF(N32R6) | ISAF(N64R6)
+};
+#undef ISAF
+
+
 /* Describes an operand that encapsulates a mapped register with
    a check against the previous operand.  */
-struct mips_mapped_check_prev_operand
+struct nanomips_mapped_check_prev_operand
 {
   struct mips_operand root;
 
@@ -41,7 +61,7 @@ struct mips_mapped_check_prev_operand
 
 /* Describes an operand that encapsulates a base register with
    a check against the type of offset.  */
-struct mips_base_check_offset_operand
+struct nanomips_base_check_offset_operand
 {
   struct mips_operand root;
 
@@ -94,7 +114,7 @@ nanomips_opcode_32bit_p (const struct nanomips_opcode *mo)
 }
 
 static inline int
-mips_operand_mask (const struct mips_operand *operand)
+nanomips_operand_mask (const struct mips_operand *operand)
 {
   unsigned int mask;
 
@@ -166,10 +186,27 @@ mips_decode_hi20_pcrel_operand (const struct mips_operand *operand,
 /* Return true if MO is an instruction that requires 48-bit encoding.  */
 
 static inline bfd_boolean
-nanomips_opcode_48bit_p (const struct nanomips_opcode *mo)
+opcode_48bit_p (const struct nanomips_opcode *mo)
 {
   return ((mo->mask >> 16 == 0)
 	  && ((mo->match >> 10) == 0x18));
+}
+
+static inline bfd_boolean
+nanomips_cpu_is_member (int cpu, unsigned int mask)
+{
+  switch (cpu)
+    {
+    case CPU_NANOMIPS32R6:
+      return (mask & INSN_ISA_MASK) == INSN_ISAN32R6;
+
+    case CPU_NANOMIPS64R6:
+      return ((mask & INSN_ISA_MASK) == INSN_ISAN32R6)
+	     || ((mask & INSN_ISA_MASK) == INSN_ISAN64R6);
+
+    default:
+      return FALSE;
+    }
 }
 
 /* Test for membership in an ISA including chip specific ISAs.  INSN
@@ -184,7 +221,7 @@ nanomips_opcode_is_member (const struct nanomips_opcode *insn,
   /* Test for ISA level compatibility.  */
   if ((isa & INSN_ISA_MASK) != 0
       && (insn->membership & INSN_ISA_MASK) != 0
-      && ((mips_isa_table[(isa & INSN_ISA_MASK) - 1]
+      && ((nanomips_isa_table[(isa & INSN_ISA_MASK) - 1]
 	   >> ((insn->membership & INSN_ISA_MASK) - 1)) & 1) != 0)
     return TRUE;
 
@@ -193,7 +230,7 @@ nanomips_opcode_is_member (const struct nanomips_opcode *insn,
     return TRUE;
 
   /* Test for processor-specific extensions.  */
-  if (cpu_is_member (cpu, insn->membership))
+  if (nanomips_cpu_is_member (cpu, insn->membership))
     return TRUE;
 
   return FALSE;

@@ -45,14 +45,14 @@ extern int alpha_flag_mdebug;
 
 /* For now, always set ECOFF_DEBUGGING for a MIPS target.  */
 #ifdef TC_MIPS
-#define ECOFF_DEBUGGING mips_flag_mdebug
-extern int mips_flag_mdebug;
-#endif /* TC_MIPS */
-
 #ifdef TC_NANOMIPS
+#define ECOFF_DEBUGGING nanomips_flag_mdebug
+extern int nanomips_flag_mdebug;
+#else
 #define ECOFF_DEBUGGING mips_flag_mdebug
 extern int mips_flag_mdebug;
-#endif /* TC_NANOMIPS */
+#endif
+#endif /* TC_MIPS */
 
 #ifdef OBJ_MAYBE_ECOFF
 #ifndef ECOFF_DEBUGGING

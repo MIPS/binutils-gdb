@@ -4,7 +4,7 @@
 # as: -mgp64
 
 .*:.*file format.*elf.*mips.*
-private flags = b.......: .*\[nanomips32r6\].*
+private flags = 0.......: .*\[nanomips32r6\].*
 
 nanoMIPS ABI Flags Version: 0
 
@@ -12,7 +12,7 @@ ISA: nanoMIPS32.*
 GPR size: 32
 CPR1 size: 64
 CPR2 size: 0
-FP ABI: Hard float \(32-bit CPU, 64-bit FPU\)
+FP ABI: Hard float \(double precision\)
 ISA Extension: None
 ASEs:
 #...

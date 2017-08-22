@@ -1,8 +1,6 @@
 # Source file used to test the ld macro with PIC code.
-
-	.ifndef nanomips
+	
 	.set	mips1
-	.endif
 
 	.data
 data_label:
@@ -14,7 +12,6 @@ data_label:
 	.lcomm small_local_common,1
 	
 	.text
-text_label:
 	ld	$4,0
 	ld	$4,1
 	ld	$4,0x8000

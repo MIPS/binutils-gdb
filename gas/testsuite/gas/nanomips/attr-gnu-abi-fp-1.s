@@ -1,1 +1,1 @@
-.gnu_attribute Tag_GNU_MIPS_ABI_FP,1
+.gnu_attribute Tag_GNU_NANOMIPS_ABI_FP,1

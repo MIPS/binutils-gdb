@@ -1254,10 +1254,6 @@ dump_relocations (FILE * file,
 	  rtype = elf_mips_reloc_type (type);
 	  break;
 
-	case EM_NANOMIPS:
-	  rtype = elf_nanomips_reloc_type (type);
-	  break;
-
 	case EM_ALPHA:
 	  rtype = elf_alpha_reloc_type (type);
 	  break;
@@ -1415,6 +1411,10 @@ dump_relocations (FILE * file,
 	case EM_ALTERA_NIOS2:
 	  rtype = elf_nios2_reloc_type (type);
 	  break;
+
+	case EM_NANOMIPS:
+	  rtype = elf_nanomips_reloc_type (type);
+	  break;
 	}
 
       if (rtype == NULL)
@@ -1571,8 +1571,7 @@ dump_relocations (FILE * file,
       putchar ('\n');
 
 #ifdef BFD64
-      if (! is_32bit_elf
-	  && elf_header.e_machine == EM_MIPS)
+      if (! is_32bit_elf && elf_header.e_machine == EM_MIPS)
 	{
 	  bfd_vma type2 = ELF64_MIPS_R_TYPE2 (inf);
 	  bfd_vma type3 = ELF64_MIPS_R_TYPE3 (inf);
@@ -1664,12 +1663,7 @@ get_nanomips_dynamic_type (unsigned long type)
 {
   switch (type)
     {
-    case DT_NANOMIPS_TIME_STAMP: return "NANOMIPS_TIME_STAMP";
-    case DT_NANOMIPS_LOCAL_GOTNO: return "NANOMIPS_LOCAL_GOTNO";
-    case DT_NANOMIPS_SYMTABNO: return "NANOMIPS_SYMTABNO";
-    case DT_NANOMIPS_GOTSYM: return "NANOMIPS_GOTSYM";
-    case DT_NANOMIPS_OPTIONS: return "NANOMIPS_OPTIONS";
-    case DT_NANOMIPS_PLTGOT: return "NANOMIPS_PLTGOT";
+    case DT_NANOMIPS_GOTNO: return "NANOMIPS_GOTNO";
     default:
       return NULL;
     }
@@ -1934,9 +1928,6 @@ get_dynamic_type (unsigned long type)
 	    case EM_MIPS_RS3_LE:
 	      result = get_mips_dynamic_type (type);
 	      break;
-	    case EM_NANOMIPS:
-	      result = get_nanomips_dynamic_type (type);
-	      break;
 	    case EM_SPARCV9:
 	      result = get_sparc64_dynamic_type (type);
 	      break;
@@ -1960,6 +1951,9 @@ get_dynamic_type (unsigned long type)
 	      break;
 	    case EM_ALTERA_NIOS2:
 	      result = get_nios2_dynamic_type (type);
+	      break;
+	    case EM_NANOMIPS:
+	      result = get_nanomips_dynamic_type (type);
 	      break;
 	    default:
 	      result = NULL;
@@ -2045,7 +2039,6 @@ get_machine_name (unsigned e_machine)
     case EM_486:		return "Intel 80486";
     case EM_860:		return "Intel 80860";
     case EM_MIPS:		return "MIPS R3000";
-    case EM_NANOMIPS:		return "nanoMIPS experimental";
     case EM_S370:		return "IBM System/370";
     case EM_MIPS_RS3_LE:	return "MIPS R4000 big-endian";
     case EM_OLD_SPARCV9:	return "Sparc v9 (old)";
@@ -2206,6 +2199,7 @@ get_machine_name (unsigned e_machine)
     case EM_TILEGX:		return "Tilera TILE-Gx multicore architecture family";
     case EM_CUDA:		return "NVIDIA CUDA architecture";
     case EM_XGATE:		return "Motorola XGATE embedded processor";
+    case EM_NANOMIPS:		return "nanoMIPS experimental";
     default:
       snprintf (buff, sizeof (buff), _("<unknown>: 0x%x"), e_machine);
       return buff;
@@ -2941,8 +2935,6 @@ get_machine_flags (unsigned e_flags, unsigned e_machine)
 	    case E_MIPS_ABI_O64: strcat (buf, ", o64"); break;
 	    case E_MIPS_ABI_EABI32: strcat (buf, ", eabi32"); break;
 	    case E_MIPS_ABI_EABI64: strcat (buf, ", eabi64"); break;
-	    case E_NANOMIPS_ABI_P32: strcat (buf, ", p32"); break;
-	    case E_NANOMIPS_ABI_P64: strcat (buf, ", p64"); break;
 	    case 0:
 	    /* We simply ignore the field in this case to avoid confusion:
 	       MIPS ELF does not specify EF_MIPS_ABI, it is a GNU extension.
@@ -3186,30 +3178,18 @@ get_machine_flags (unsigned e_flags, unsigned e_machine)
 	  break;
 
 	case EM_NANOMIPS:
-	  if (e_flags & EF_MIPS_NOREORDER)
-	    strcat (buf, ", noreorder");
-
-	  if (e_flags & EF_MIPS_PIC)
+	  if (e_flags & EF_NANOMIPS_PIC)
 	    strcat (buf, ", pic");
 
-	  if (e_flags & EF_MIPS_CPIC)
-	    strcat (buf, ", cpic");
-
-	  if (e_flags & EF_MIPS_32BITMODE)
+	  if (e_flags & EF_NANOMIPS_32BITMODE)
 	    strcat (buf, ", 32bitmode");
 
-	  if (e_flags & EF_MIPS_NAN2008)
-	    strcat (buf, ", nan2008");
-
-	  if (e_flags & EF_MIPS_FP64)
-	    strcat (buf, ", fp64");
-
-	  switch ((e_flags & EF_MIPS_MACH))
+	  switch ((e_flags & EF_NANOMIPS_MACH))
 	    {
 	    default: strcat (buf, _(", unknown CPU")); break;
 	    }
 
-	  switch ((e_flags & EF_MIPS_ABI))
+	  switch ((e_flags & EF_NANOMIPS_ABI))
 	    {
 	    case E_NANOMIPS_ABI_P32: strcat (buf, ", p32"); break;
 	    case E_NANOMIPS_ABI_P64: strcat (buf, ", p64"); break;
@@ -3222,7 +3202,7 @@ get_machine_flags (unsigned e_flags, unsigned e_machine)
 	    default: strcat (buf, _(", unknown ABI")); break;
 	    }
 
-	  switch ((e_flags & EF_MIPS_ARCH))
+	  switch ((e_flags & EF_NANOMIPS_ARCH))
 	    {
 	    case E_NANOMIPS_ARCH_32R6: strcat (buf, ", nanomips32r6"); break;
 	    case E_NANOMIPS_ARCH_64R6: strcat (buf, ", nanomips64r6"); break;
@@ -3351,9 +3331,7 @@ get_nanomips_segment_type (unsigned long type)
 {
   switch (type)
     {
-    case PT_MIPS_OPTIONS:
-      return "OPTIONS";
-    case PT_MIPS_ABIFLAGS:
+    case PT_NANOMIPS_ABIFLAGS:
       return "ABIFLAGS";
     default:
       break;
@@ -3565,22 +3543,6 @@ get_mips_section_type_name (unsigned int sh_type)
 }
 
 static const char *
-get_nanomips_section_type_name (unsigned int sh_type)
-{
-  switch (sh_type)
-    {
-    case SHT_MIPS_GPTAB:	 return "NANOMIPS_GPTAB";
-    case SHT_MIPS_REGINFO:	 return "NANOMIPS_REGINFO";
-    case SHT_MIPS_OPTIONS:	 return "NANOMIPS_OPTIONS";
-    case SHT_MIPS_DWARF:	 return "NANOMIPS_DWARF";
-    case SHT_MIPS_ABIFLAGS:	 return "NANOMIPS_ABIFLAGS";
-    default:
-      break;
-    }
-  return NULL;
-}
-
-static const char *
 get_parisc_section_type_name (unsigned int sh_type)
 {
   switch (sh_type)
@@ -3747,9 +3709,6 @@ get_section_type_name (unsigned int sh_type)
 	    case EM_MIPS:
 	    case EM_MIPS_RS3_LE:
 	      result = get_mips_section_type_name (sh_type);
-	      break;
-	    case EM_NANOMIPS:
-	      result = get_nanomips_section_type_name (sh_type);
 	      break;
 	    case EM_PARISC:
 	      result = get_parisc_section_type_name (sh_type);
@@ -8170,22 +8129,7 @@ dynamic_section_nanomips_val (Elf_Internal_Dyn * entry)
 {
   switch (entry->d_tag)
     {
-    case DT_MIPS_TIME_STAMP:
-      {
-	char timebuf[20];
-	struct tm * tmp;
-
-	time_t atime = entry->d_un.d_val;
-	tmp = gmtime (&atime);
-	snprintf (timebuf, sizeof (timebuf), "%04u-%02u-%02uT%02u:%02u:%02u",
-		  tmp->tm_year + 1900, tmp->tm_mon + 1, tmp->tm_mday,
-		  tmp->tm_hour, tmp->tm_min, tmp->tm_sec);
-	printf (_("Time Stamp: %s"), timebuf);
-      }
-      break;
-
-    case DT_MIPS_LOCAL_GOTNO:
-    case DT_MIPS_SYMTABNO:
+    case DT_NANOMIPS_GOTNO:
       print_vma (entry->d_un.d_ptr, DEC);
       break;
 
@@ -9088,14 +9032,14 @@ process_dynamic_section (FILE * file)
 		case EM_MIPS_RS3_LE:
 		  dynamic_section_mips_val (entry);
 		  break;
-		case EM_NANOMIPS:
-		  dynamic_section_nanomips_val (entry);
-		  break;
 		case EM_PARISC:
 		  dynamic_section_parisc_val (entry);
 		  break;
 		case EM_IA_64:
 		  dynamic_section_ia64_val (entry);
+		  break;
+		case EM_NANOMIPS:
+		  dynamic_section_nanomips_val (entry);
 		  break;
 		default:
 		  print_vma (entry->d_un.d_val, PREFIX_HEX);
@@ -9858,7 +9802,6 @@ get_symbol_other (unsigned int other)
   switch (elf_header.e_machine)
     {
     case EM_MIPS:
-    case EM_NANOMIPS:
       result = get_mips_symbol_other (other);
       break;
     case EM_IA_64:
@@ -12618,12 +12561,35 @@ display_mips_gnu_attribute (unsigned char * p,
   return display_tag_value (tag & 1, p, end);
 }
 
+static void
+print_nanomips_fp_abi_value (int val)
+{
+  switch (val)
+    {
+    case Val_GNU_NANOMIPS_ABI_FP_ANY:
+      printf (_("Hard or soft float\n"));
+      break;
+    case Val_GNU_NANOMIPS_ABI_FP_DOUBLE:
+      printf (_("Hard float (double precision)\n"));
+      break;
+    case Val_GNU_NANOMIPS_ABI_FP_SINGLE:
+      printf (_("Hard float (single precision)\n"));
+      break;
+    case Val_GNU_NANOMIPS_ABI_FP_SOFT:
+      printf (_("Soft float\n"));
+      break;
+    default:
+      printf ("??? (%d)\n", val);
+      break;
+    }
+}
+
 static unsigned char *
 display_nanomips_gnu_attribute (unsigned char * p,
 			    int tag,
 			    const unsigned char * const end)
 {
-  if (tag == Tag_GNU_MIPS_ABI_FP)
+  if (tag == Tag_GNU_NANOMIPS_ABI_FP)
     {
       unsigned int len;
       int val;
@@ -12632,12 +12598,12 @@ display_nanomips_gnu_attribute (unsigned char * p,
       p += len;
       printf ("  Tag_GNU_NANOMIPS_ABI_FP: ");
 
-      print_mips_fp_abi_value (val);
+      print_nanomips_fp_abi_value (val);
 
       return p;
    }
 
-  if (tag == Tag_GNU_MIPS_ABI_MSA)
+  if (tag == Tag_GNU_NANOMIPS_ABI_MSA)
     {
       unsigned int len;
       int val;
@@ -12648,10 +12614,10 @@ display_nanomips_gnu_attribute (unsigned char * p,
 
       switch (val)
 	{
-	case Val_GNU_MIPS_ABI_MSA_ANY:
+	case Val_GNU_NANOMIPS_ABI_MSA_ANY:
 	  printf (_("Any MSA or not\n"));
 	  break;
-	case Val_GNU_MIPS_ABI_MSA_128:
+	case Val_GNU_NANOMIPS_ABI_MSA_128:
 	  printf (_("128-bit MSA\n"));
 	  break;
 	default:
@@ -14123,34 +14089,30 @@ process_mips_specific (FILE * file)
 static void
 print_nanomips_ases (unsigned int mask)
 {
-  if (mask & AFL_ASE_DSP)
-    fputs ("\n\tDSP ASE", stdout);
-  if (mask & AFL_ASE_DSPR2)
-    fputs ("\n\tDSP R2 ASE", stdout);
-  if (mask & AFL_ASE_DSPR3)
+  if (mask & NANOMIPS_ASE_DSPR3)
     fputs ("\n\tDSP R3 ASE", stdout);
-  if (mask & AFL_ASE_EVA)
+  if (mask & NANOMIPS_ASE_EVA)
     fputs ("\n\tEnhanced VA Scheme", stdout);
-  if (mask & AFL_ASE_MCU)
+  if (mask & NANOMIPS_ASE_MCU)
     fputs ("\n\tMCU (MicroController) ASE", stdout);
-  if (mask & AFL_ASE_MT)
+  if (mask & NANOMIPS_ASE_MT)
     fputs ("\n\tMT ASE", stdout);
-  if (mask & AFL_ASE_VIRT)
+  if (mask & NANOMIPS_ASE_VIRT)
     fputs ("\n\tVZ ASE", stdout);
-  if (mask & AFL_ASE_MSA)
+  if (mask & NANOMIPS_ASE_MSA)
     fputs ("\n\tMSA ASE", stdout);
-  if (mask & AFL_ASE_XPA)
+  if (mask & NANOMIPS_ASE_XPA)
     fputs ("\n\tXPA ASE", stdout);
-  if (mask & AFL_ASE_TLB)
+  if (mask & NANOMIPS_ASE_TLB)
     fputs ("\n\tTLB ASE", stdout);
-  if (mask & AFL_ASE_GINV)
+  if (mask & NANOMIPS_ASE_GINV)
     fputs ("\n\tGINV ASE", stdout);
- if ((mask & AFL_ASE_xNMS) == 0)
+ if ((mask & NANOMIPS_ASE_xNMS) == 0)
     fputs ("\n\tnanoMIPS subset", stdout);
   else if (mask == 0)
     fprintf (stdout, "\n\t%s", _("None"));
-  else if ((mask & ~AFL_ASE_MASK) != 0)
-    fprintf (stdout, "\n\t%s (%x)", _("Unknown"), mask & ~AFL_ASE_MASK);
+  else if ((mask & ~NANOMIPS_ASE_MASK) != 0)
+    fprintf (stdout, "\n\t%s (%x)", _("Unknown"), mask & ~NANOMIPS_ASE_MASK);
 }
 
 static void
@@ -14161,7 +14123,7 @@ print_nanomips_isa_ext (unsigned int isa_ext)
     case 0:
       fputs (_("None"), stdout);
       break;
-   default:
+    default:
       fprintf (stdout, "%s (%d)", _("Unknown"), isa_ext);
     }
 }
@@ -14177,17 +14139,8 @@ process_nanomips_specific (FILE * file)
 {
   Elf_Internal_Dyn * entry;
   Elf_Internal_Shdr *sect = NULL;
-  size_t liblist_offset = 0;
-  size_t liblistno = 0;
-  size_t conflictsno = 0;
   size_t options_offset = 0;
-  size_t conflicts_offset = 0;
-  size_t pltrelsz = 0;
-  size_t pltrel = 0;
   bfd_vma pltgot = 0;
-  bfd_vma mips_pltgot = 0;
-  bfd_vma jmprel = 0;
-  bfd_vma local_gotno = 0;
   bfd_vma gotsym = 0;
   bfd_vma symtabno = 0;
 
@@ -14232,7 +14185,7 @@ process_nanomips_specific (FILE * file)
 	      printf ("\nCPR2 size: %d",
 		      get_nanomips_reg_size (abiflags_in.cpr2_size));
 	      fputs ("\nFP ABI: ", stdout);
-	      print_mips_fp_abi_value (abiflags_in.fp_abi);
+	      print_nanomips_fp_abi_value (abiflags_in.fp_abi);
 	      fputs ("ISA Extension: ", stdout);
 	      print_nanomips_isa_ext (abiflags_in.isa_ext);
 	      fputs ("\nASEs:", stdout);
@@ -14245,144 +14198,24 @@ process_nanomips_specific (FILE * file)
 	}
     }
 
-  /* We have a lot of special sections.  Thanks SGI!  */
   if (dynamic_section == NULL)
     /* No information available.  */
     return 0;
 
   for (entry = dynamic_section;
-       /* PR 17531 file: 012-50589-0.004.  */
        entry < dynamic_section + dynamic_nent && entry->d_tag != DT_NULL;
        ++entry)
     switch (entry->d_tag)
       {
-      case DT_MIPS_LIBLIST:
-	liblist_offset
-	  = offset_from_vma (file, entry->d_un.d_val,
-			     liblistno * sizeof (Elf32_External_Lib));
-	break;
-      case DT_MIPS_LIBLISTNO:
-	liblistno = entry->d_un.d_val;
-	break;
-      case DT_MIPS_OPTIONS:
-	options_offset = offset_from_vma (file, entry->d_un.d_val, 0);
-	break;
-      case DT_MIPS_CONFLICT:
-	conflicts_offset
-	  = offset_from_vma (file, entry->d_un.d_val,
-			     conflictsno * sizeof (Elf32_External_Conflict));
-	break;
-      case DT_MIPS_CONFLICTNO:
-	conflictsno = entry->d_un.d_val;
-	break;
       case DT_PLTGOT:
 	pltgot = entry->d_un.d_ptr;
 	break;
-      case DT_MIPS_LOCAL_GOTNO:
-	local_gotno = entry->d_un.d_val;
-	break;
-      case DT_MIPS_GOTSYM:
-	gotsym = entry->d_un.d_val;
-	break;
-      case DT_MIPS_SYMTABNO:
+      case DT_NANOMIPS_GOTNO:
 	symtabno = entry->d_un.d_val;
-	break;
-      case DT_MIPS_PLTGOT:
-	mips_pltgot = entry->d_un.d_ptr;
-	break;
-      case DT_PLTREL:
-	pltrel = entry->d_un.d_val;
-	break;
-      case DT_PLTRELSZ:
-	pltrelsz = entry->d_un.d_val;
-	break;
-      case DT_JMPREL:
-	jmprel = entry->d_un.d_ptr;
 	break;
       default:
 	break;
       }
-
-  if (liblist_offset != 0 && liblistno != 0 && do_dynamic)
-    {
-      Elf32_External_Lib * elib;
-      size_t cnt;
-
-      elib = (Elf32_External_Lib *) get_data (NULL, file, liblist_offset,
-                                              liblistno,
-                                              sizeof (Elf32_External_Lib),
-                                              _("liblist section data"));
-      if (elib)
-	{
-	  printf (_("\nSection '.liblist' contains %lu entries:\n"),
-		  (unsigned long) liblistno);
-	  fputs (_("     Library              Time Stamp          Checksum   Version Flags\n"),
-		 stdout);
-
-	  for (cnt = 0; cnt < liblistno; ++cnt)
-	    {
-	      Elf32_Lib liblist;
-	      time_t atime;
-	      char timebuf[20];
-	      struct tm * tmp;
-
-	      liblist.l_name = BYTE_GET (elib[cnt].l_name);
-	      atime = BYTE_GET (elib[cnt].l_time_stamp);
-	      liblist.l_checksum = BYTE_GET (elib[cnt].l_checksum);
-	      liblist.l_version = BYTE_GET (elib[cnt].l_version);
-	      liblist.l_flags = BYTE_GET (elib[cnt].l_flags);
-
-	      tmp = gmtime (&atime);
-	      snprintf (timebuf, sizeof (timebuf),
-			"%04u-%02u-%02uT%02u:%02u:%02u",
-			tmp->tm_year + 1900, tmp->tm_mon + 1, tmp->tm_mday,
-			tmp->tm_hour, tmp->tm_min, tmp->tm_sec);
-
-	      printf ("%3lu: ", (unsigned long) cnt);
-	      if (VALID_DYNAMIC_NAME (liblist.l_name))
-		print_symbol (20, GET_DYNAMIC_NAME (liblist.l_name));
-	      else
-		printf (_("<corrupt: %9ld>"), liblist.l_name);
-	      printf (" %s %#10lx %-7ld", timebuf, liblist.l_checksum,
-		      liblist.l_version);
-
-	      if (liblist.l_flags == 0)
-		puts (_(" NONE"));
-	      else
-		{
-		  static const struct
-		  {
-		    const char * name;
-		    int bit;
-		  }
-		  l_flags_vals[] =
-		  {
-		    { " EXACT_MATCH", LL_EXACT_MATCH },
-		    { " IGNORE_INT_VER", LL_IGNORE_INT_VER },
-		    { " REQUIRE_MINOR", LL_REQUIRE_MINOR },
-		    { " EXPORTS", LL_EXPORTS },
-		    { " DELAY_LOAD", LL_DELAY_LOAD },
-		    { " DELTA", LL_DELTA }
-		  };
-		  int flags = liblist.l_flags;
-		  size_t fcnt;
-
-		  for (fcnt = 0; fcnt < ARRAY_SIZE (l_flags_vals); ++fcnt)
-		    if ((flags & l_flags_vals[fcnt].bit) != 0)
-		      {
-			fputs (l_flags_vals[fcnt].name, stdout);
-			flags ^= l_flags_vals[fcnt].bit;
-		      }
-		  if (flags != 0)
-		    printf (" %#x", (unsigned int) flags);
-
-		  puts ("");
-		}
-	    }
-
-	  free (elib);
-	}
-    }
 
   if (options_offset != 0)
     {
@@ -14449,54 +14282,6 @@ process_nanomips_specific (FILE * file)
 		  /* This shouldn't happen.  */
 		  printf (" NULL       %d %lx", option->section, option->info);
 		  break;
-		case ODK_REGINFO:
-		  printf (" REGINFO    ");
-		  if (elf_header.e_machine == EM_MIPS)
-		    {
-		      /* 32bit form.  */
-		      Elf32_External_RegInfo * ereg;
-		      Elf32_RegInfo reginfo;
-
-		      ereg = (Elf32_External_RegInfo *) (option + 1);
-		      reginfo.ri_gprmask = BYTE_GET (ereg->ri_gprmask);
-		      reginfo.ri_cprmask[0] = BYTE_GET (ereg->ri_cprmask[0]);
-		      reginfo.ri_cprmask[1] = BYTE_GET (ereg->ri_cprmask[1]);
-		      reginfo.ri_cprmask[2] = BYTE_GET (ereg->ri_cprmask[2]);
-		      reginfo.ri_cprmask[3] = BYTE_GET (ereg->ri_cprmask[3]);
-		      reginfo.ri_gp_value = BYTE_GET (ereg->ri_gp_value);
-
-		      printf ("GPR %08lx  GP 0x%lx\n",
-			      reginfo.ri_gprmask,
-			      (unsigned long) reginfo.ri_gp_value);
-		      printf ("            CPR0 %08lx  CPR1 %08lx  CPR2 %08lx  CPR3 %08lx\n",
-			      reginfo.ri_cprmask[0], reginfo.ri_cprmask[1],
-			      reginfo.ri_cprmask[2], reginfo.ri_cprmask[3]);
-		    }
-		  else
-		    {
-		      /* 64 bit form.  */
-		      Elf64_External_RegInfo * ereg;
-		      Elf64_Internal_RegInfo reginfo;
-
-		      ereg = (Elf64_External_RegInfo *) (option + 1);
-		      reginfo.ri_gprmask    = BYTE_GET (ereg->ri_gprmask);
-		      reginfo.ri_cprmask[0] = BYTE_GET (ereg->ri_cprmask[0]);
-		      reginfo.ri_cprmask[1] = BYTE_GET (ereg->ri_cprmask[1]);
-		      reginfo.ri_cprmask[2] = BYTE_GET (ereg->ri_cprmask[2]);
-		      reginfo.ri_cprmask[3] = BYTE_GET (ereg->ri_cprmask[3]);
-		      reginfo.ri_gp_value   = BYTE_GET (ereg->ri_gp_value);
-
-		      printf ("GPR %08lx  GP 0x",
-			      reginfo.ri_gprmask);
-		      printf_vma (reginfo.ri_gp_value);
-		      printf ("\n");
-
-		      printf ("            CPR0 %08lx  CPR1 %08lx  CPR2 %08lx  CPR3 %08lx\n",
-			      reginfo.ri_cprmask[0], reginfo.ri_cprmask[1],
-			      reginfo.ri_cprmask[2], reginfo.ri_cprmask[3]);
-		    }
-		  ++option;
-		  continue;
 		case ODK_EXCEPTIONS:
 		  fputs (" EXCEPTIONS fpe_min(", stdout);
 		  process_mips_fpe_exception (option->info & OEX_FPU_MIN);
@@ -14588,95 +14373,16 @@ process_nanomips_specific (FILE * file)
 	}
     }
 
-  if (conflicts_offset != 0 && conflictsno != 0)
+  if (pltgot != 0)
     {
-      Elf32_Conflict * iconf;
-      size_t cnt;
-
-      if (dynamic_symbols == NULL)
-	{
-	  error (_("conflict list found without a dynamic symbol table\n"));
-	  return 0;
-	}
-
-      iconf = (Elf32_Conflict *) cmalloc (conflictsno, sizeof (* iconf));
-      if (iconf == NULL)
-	{
-	  error (_("Out of memory allocating space for dynamic conflicts\n"));
-	  return 0;
-	}
-
-      if (is_32bit_elf)
-	{
-	  Elf32_External_Conflict * econf32;
-
-	  econf32 = (Elf32_External_Conflict *)
-              get_data (NULL, file, conflicts_offset, conflictsno,
-                        sizeof (* econf32), _("conflict"));
-	  if (!econf32)
-	    return 0;
-
-	  for (cnt = 0; cnt < conflictsno; ++cnt)
-	    iconf[cnt] = BYTE_GET (econf32[cnt]);
-
-	  free (econf32);
-	}
-      else
-	{
-	  Elf64_External_Conflict * econf64;
-
-	  econf64 = (Elf64_External_Conflict *)
-              get_data (NULL, file, conflicts_offset, conflictsno,
-                        sizeof (* econf64), _("conflict"));
-	  if (!econf64)
-	    return 0;
-
-	  for (cnt = 0; cnt < conflictsno; ++cnt)
-	    iconf[cnt] = BYTE_GET (econf64[cnt]);
-
-	  free (econf64);
-	}
-
-      printf (_("\nSection '.conflict' contains %lu entries:\n"),
-	      (unsigned long) conflictsno);
-      puts (_("  Num:    Index       Value  Name"));
-
-      for (cnt = 0; cnt < conflictsno; ++cnt)
-	{
-	  printf ("%5lu: %8lu  ", (unsigned long) cnt, iconf[cnt]);
-
-	  if (iconf[cnt] >= num_dynamic_syms)
-	    printf (_("<corrupt symbol index>"));
-	  else
-	    {
-	      Elf_Internal_Sym * psym;
-
-	      psym = & dynamic_symbols[iconf[cnt]];
-	      print_vma (psym->st_value, FULL_HEX);
-	      putchar (' ');
-	      if (VALID_DYNAMIC_NAME (psym->st_name))
-		print_symbol (25, GET_DYNAMIC_NAME (psym->st_name));
-	      else
-		printf (_("<corrupt: %14ld>"), psym->st_name);
-	    }
-	  putchar ('\n');
-	}
-
-      free (iconf);
-    }
-
-  if (pltgot != 0 && local_gotno != 0)
-    {
-      bfd_vma ent, local_end, global_end;
+      bfd_vma ent, end;
       size_t i, offset;
       unsigned char * data;
       int addr_size;
 
       ent = pltgot;
       addr_size = (is_32bit_elf ? 4 : 8);
-      local_end = pltgot + local_gotno * addr_size;
 
-      /* PR binutils/17533 file: 012-111227-0.004  */
       if (symtabno < gotsym)
 	{
 	  error (_("The GOT symbol offset (%lu) is greater than the symbol table size (%lu)\n"),
@@ -14684,16 +14390,14 @@ process_nanomips_specific (FILE * file)
 	  return 0;
 	}
 
-      global_end = local_end + (symtabno - gotsym) * addr_size;
-      assert (global_end >= local_end);
-      offset = offset_from_vma (file, pltgot, global_end - pltgot);
+      end = pltgot + (symtabno - gotsym) * addr_size;
+      offset = offset_from_vma (file, pltgot, end - pltgot);
       data = (unsigned char *) get_data (NULL, file, offset,
-                                         global_end - pltgot, 1,
+                                         end - pltgot, 1,
 					 _("Global Offset Table data"));
       if (data == NULL)
 	return 0;
 
-      printf (_("\nPrimary GOT:\n"));
       printf (_(" Canonical gp value: "));
       print_vma (pltgot + 0x7ff0, LONG_HEX);
       printf ("\n\n");
@@ -14713,11 +14417,9 @@ process_nanomips_specific (FILE * file)
 	}
       printf ("\n");
 
-      /* FIXME: We only want to print the entries that match up
-	 with explicit relocations, eventually.  */
       printf ("\n");
 
-      printf (_(" Global entries:\n"));
+      printf (_(" Entries:\n"));
       printf ("  %*s %10s %*s %*s %-7s %3s %s\n",
 	      addr_size * 2, _("Address"),
 	      _("Access"),
@@ -14737,84 +14439,6 @@ process_nanomips_specific (FILE * file)
 
       if (data)
 	free (data);
-    }
-
-  if (mips_pltgot != 0 && jmprel != 0 && pltrel != 0 && pltrelsz != 0)
-    {
-      bfd_vma ent, end;
-      size_t offset, rel_offset;
-      unsigned long count, i;
-      unsigned char * data;
-      int addr_size, sym_width;
-      Elf_Internal_Rela * rels;
-
-      rel_offset = offset_from_vma (file, jmprel, pltrelsz);
-      if (pltrel == DT_RELA)
-	{
-	  if (!slurp_rela_relocs (file, rel_offset, pltrelsz, &rels, &count))
-	    return 0;
-	}
-      else
-	{
-	  if (!slurp_rel_relocs (file, rel_offset, pltrelsz, &rels, &count))
-	    return 0;
-	}
-
-      ent = mips_pltgot;
-      addr_size = (is_32bit_elf ? 4 : 8);
-      end = mips_pltgot + (2 + count) * addr_size;
-
-      offset = offset_from_vma (file, mips_pltgot, end - mips_pltgot);
-      data = (unsigned char *) get_data (NULL, file, offset, end - mips_pltgot,
-                                         1, _("Procedure Linkage Table data"));
-      if (data == NULL)
-	return 0;
-
-      printf ("\nPLT GOT:\n\n");
-      printf (_(" Reserved entries:\n"));
-      printf (_("  %*s %*s Purpose\n"),
-	      addr_size * 2, _("Address"), addr_size * 2, _("Initial"));
-      ent = print_mips_pltgot_entry (data, mips_pltgot, ent);
-      printf (_(" PLT lazy resolver\n"));
-      ent = print_mips_pltgot_entry (data, mips_pltgot, ent);
-      printf (_(" Module pointer\n"));
-      printf ("\n");
-
-      printf (_(" Entries:\n"));
-      printf ("  %*s %*s %*s %-7s %3s %s\n",
-	      addr_size * 2, _("Address"),
-	      addr_size * 2, _("Initial"),
-	      addr_size * 2, _("Sym.Val."), _("Type"), _("Ndx"), _("Name"));
-      sym_width = (is_32bit_elf ? 80 : 160) - 17 - addr_size * 6 - 1;
-      for (i = 0; i < count; i++)
-	{
-	  unsigned long idx = get_reloc_symindex (rels[i].r_info);
-
-	  ent = print_mips_pltgot_entry (data, mips_pltgot, ent);
-	  printf (" ");
-
-	  if (idx >= num_dynamic_syms)
-	    printf (_("<corrupt symbol index: %lu>"), idx);
-	  else
-	    {
-	      Elf_Internal_Sym * psym = dynamic_symbols + idx;
-
-	      print_vma (psym->st_value, LONG_HEX);
-	      printf (" %-7s %3s ",
-		      get_symbol_type (ELF_ST_TYPE (psym->st_info)),
-		      get_symbol_index_type (psym->st_shndx));
-	      if (VALID_DYNAMIC_NAME (psym->st_name))
-		print_symbol (sym_width, GET_DYNAMIC_NAME (psym->st_name));
-	      else
-		printf (_("<corrupt: %14ld>"), psym->st_name);
-	    }
-	  printf ("\n");
-	}
-      printf ("\n");
-
-      if (data)
-	free (data);
-      free (rels);
     }
 
   return 1;

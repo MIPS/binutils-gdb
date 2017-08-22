@@ -36,12 +36,17 @@ struct expressionS;
 
 #define WORKING_DOT_WORD	1
 #define OLD_FLOAT_READS
+#define REPEAT_CONS_EXPRESSIONS
 #define RELOC_EXPANSION_POSSIBLE
 #define MAX_RELOC_EXPANSION 3
 #define LOCAL_LABELS_FB 1
 
 #define TC_ADDRESS_BYTES mips_address_bytes
 extern int mips_address_bytes (void);
+
+/* Maximum symbol offset that can be encoded in a BFD_RELOC_GPREL16
+   relocation.  */
+#define MAX_GPREL_OFFSET (0x7FF0)
 
 #define md_relax_frag(segment, fragp, stretch) \
   mips_relax_frag(segment, fragp, stretch)
@@ -63,7 +68,6 @@ struct mips_segment_info {
   struct insn_label_list *labels;
   unsigned int mips16 : 1;
   unsigned int micromips : 1;
-  unsigned int nanomips : 1;
 };
 #define TC_SEGMENT_INFO_TYPE struct mips_segment_info
 
@@ -188,52 +192,9 @@ extern int tc_mips_regname_to_dw2regnum (char *regname);
 #define DIFF_EXPR_OK
 /* We define DIFF_EXPR_OK because of R_MIPS_PC32, but we have no
    64-bit form for n64 CFIs.  */
-#define CFI_DIFF_EXPR_OK linkrelax
+#define CFI_DIFF_EXPR_OK 0
 
 #define CONVERT_SYMBOLIC_ATTRIBUTE(name) mips_convert_symbolic_attribute (name)
 extern int mips_convert_symbolic_attribute (const char *);
-
-/* Definitions needed to parse cons in target-specific manner.  */
-#define TC_PARSE_CONS_RETURN_TYPE bfd_reloc_code_real_type
-#define TC_PARSE_CONS_RETURN_NONE BFD_RELOC_NONE
-
-/* Parse a cons expression to determined what kind of relocations
-   may be needed to represent it.  */
-extern bfd_reloc_code_real_type
-mips_parse_cons_expression (struct expressionS *, unsigned);
-#define TC_PARSE_CONS_EXPRESSION(EXP, NBYTES) \
-  mips_parse_cons_expression (EXP, NBYTES)
-
-/* Walk a cons expression tree and create the relocations needed
-   to represent the operation.  */
-extern void mips_cons_fix_new (struct frag *, int, int, struct expressionS *,
-			       const bfd_reloc_code_real_type);
-#define TC_CONS_FIX_NEW(FRAG, WHERE, NBYTES, EXP, RELOC)	\
-  mips_cons_fix_new (FRAG, WHERE, NBYTES, EXP, RELOC)
-
-/* Determine what kind of difference expressions must be
-   evaluated by assembler.  */
-extern bfd_boolean mips_allow_local_subtract (expressionS *, expressionS *,
-					      segT);
-#define md_allow_local_subtract(lhs,rhs,sect)	\
-  mips_allow_local_subtract (lhs, rhs, sect)
-
-/* We don't need a complicated data structure, a simple struct pointer
-   will do for now.  */
-#define TC_FRAG_TYPE struct fix *
-
-extern void mips_md_do_align (int, const char *, int, int);
-#define md_do_align(n,f,l,m,j)		mips_md_do_align (n,f,l,m)
-
-/* If defined, this macro allows control over whether fixups for a
-   given section will be processed when the linkrelax variable is
-   set. Define it to zero and handle things in md_apply_fix instead.*/
-#define TC_LINKRELAX_FIXUP(SEG) 0
-
-/* This macro is evaluated for any fixup with a fx_subsy that
-   fixup_segment cannot reduce to a number.  If the macro returns
-   false an error will be reported. */
-#define TC_VALIDATE_FIX_SUB(fix, seg)   mips_validate_fix_sub (fix)
-extern int mips_validate_fix_sub (struct fix *);
 
 #endif /* TC_MIPS */

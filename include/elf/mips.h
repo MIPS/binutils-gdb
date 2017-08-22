@@ -161,15 +161,11 @@ START_RELOC_NUMBERS (elf_mips_reloc_type)
   RELOC_NUMBER (R_MICROMIPS_PC26_S1, 175)
   RELOC_NUMBER (R_MICROMIPS_PC18_S3, 176)
   RELOC_NUMBER (R_MICROMIPS_PC19_S2, 177)
-  RELOC_NUMBER (R_MICROMIPS_ALIGN, 178)
-  RELOC_NUMBER (R_MICROMIPS_FILL, 179)
-  RELOC_NUMBER (R_MICROMIPS_MAX, 180)
-  RELOC_NUMBER (R_MICROMIPS_INSN32, 181)
-  RELOC_NUMBER (R_MICROMIPS_INSN16, 182)
-  RELOC_NUMBER (R_MICROMIPS_FIXED, 183)
-  RELOC_NUMBER (R_MICROMIPS_RELAX, 184)
-  RELOC_NUMBER (R_MICROMIPS_NORELAX, 185)
-  FAKE_RELOC (R_MICROMIPS_max, 186)
+  RELOC_NUMBER (R_MICROMIPS_BYTE_LO4, 178)
+  RELOC_NUMBER (R_MICROMIPS_SHORT_LO4, 179)
+  RELOC_NUMBER (R_MICROMIPS_WORD_LO4, 180)
+  RELOC_NUMBER (R_MICROMIPS_BYTE_LO7, 181)
+  FAKE_RELOC (R_MICROMIPS_max, 182)
 
   /* This was a GNU extension used by embedded-PIC.  It was co-opted by
      mips-linux for exception-handling data.  GCC stopped using it in
@@ -279,6 +275,7 @@ END_RELOC_NUMBERS (R_MIPS_maxext)
 
 /* EABI in 64 bit mode */
 #define E_MIPS_ABI_EABI64       0x00004000
+
 
 /* Machine variant if we know it.  This field was invented at Cygnus,
    but it is hoped that other vendors will adopt it.  If some standard
@@ -1244,10 +1241,7 @@ extern void bfd_mips_elf_swap_abiflags_v0_out
 #define AFL_ASE_XPA          0x00001000 /* XPA ASE.  */
 #define AFL_ASE_DSPR3        0x00002000 /* DSP R3 ASE.  */
 #define AFL_ASE_MIPS16E2     0x00004000 /* MIPS16 E2 Extension.  */
-#define AFL_ASE_GINV         0x00020000 /* GINV ASE.  */
-#define AFL_ASE_xNMS         0x00040000 /* not nanoMIPS Subset.  */
-#define AFL_ASE_TLB          0x00080000 /* TLB ASE.  */
-#define AFL_ASE_MASK         0x000fffff /* All ASEs.  */
+#define AFL_ASE_MASK         0x00007fff /* All ASEs.  */
 
 /* Values for the isa_ext word of an ABI flags structure.  */
 
@@ -1273,9 +1267,6 @@ extern void bfd_mips_elf_swap_abiflags_v0_out
 
 /* Masks for the flags1 word of an ABI flags structure.  */
 #define AFL_FLAGS1_ODDSPREG   1	 /* Uses odd single-precision registers.  */
-
-/* Masks for the flags2 word of an ABI flags structure.  */
-#define AFL_FLAGS2_LINKRELAX      2	 /* Module is safe to relax.  */
 
 extern unsigned int bfd_mips_isa_ext (bfd *);
 

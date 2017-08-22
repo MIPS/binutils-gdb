@@ -1,4 +1,4 @@
-/* Print mips instructions for GDB, the GNU debugger, or for objdump.
+/* Print nanoMIPS instructions for GDB, the GNU debugger, or for objdump.
    Copyright (C) 2017 Free Software Foundation, Inc.
    Contributed by Imagination Technologies Ltd.
 
@@ -26,11 +26,6 @@
 #include "opcode/nanomips.h"
 #include "opintl.h"
 
-/* FIXME: These are needed to figure out if the code is mips16 or
-   not. The low bit of the address is often a good indicator.  No
-   symbol table is available when this code runs out in an embedded
-   system as when it is used for disassembler support in a monitor.  */
-
 #if !defined(EMBEDDED_ENV)
 #define SYMTAB_AVAILABLE 1
 #include "elf-bfd.h"
@@ -38,20 +33,17 @@
 #include "elf/nanomips.h"
 #endif
 
-/* Mips instructions are at maximum this many bytes long.  */
-#define INSNLEN 4
-
 
 /* FIXME: These should be shared with gdb somehow.  */
 
-struct mips_cp0sel_name
+struct nanomips_cp0sel_name
 {
   unsigned int cp0reg;
   unsigned int sel;
   const char * const name;
 };
 
-static const char * const mips_gpr_names_numeric[32] =
+static const char * const nanomips_gpr_names_numeric[32] =
 {
   "$0",   "$1",   "$2",   "$3",   "$4",   "$5",   "$6",   "$7",
   "$8",   "$9",   "$10",  "$11",  "$12",  "$13",  "$14",  "$15",
@@ -59,15 +51,7 @@ static const char * const mips_gpr_names_numeric[32] =
   "$24",  "$25",  "$26",  "$27",  "$28",  "$29",  "$30",  "$31"
 };
 
-static const char * const mips_gpr_names_newabi[32] =
-{
-  "zero", "at",   "v0",   "v1",   "a0",   "a1",   "a2",   "a3",
-  "a4",   "a5",   "a6",   "a7",   "t0",   "t1",   "t2",   "t3",
-  "s0",   "s1",   "s2",   "s3",   "s4",   "s5",   "s6",   "s7",
-  "t8",   "t9",   "k0",   "k1",   "gp",   "sp",   "s8",   "ra"
-};
-
-static const char * const nanomips_gpr_names[32] =
+static const char * const nanomips_gpr_names_symbolic[32] =
 {
   "zero", "at",   "t4",   "t5",   "a0",   "a1",   "a2",   "a3",
   "a4",   "a5",   "a6",   "a7",   "t0",   "t1",   "t2",   "t3",
@@ -75,13 +59,13 @@ static const char * const nanomips_gpr_names[32] =
   "t8",   "t9",   "k0",   "k1",   "gp",   "sp",   "fp",   "ra"
 };
 
-static const char * const mips_gpr_names_xr[17] = {
+static const char * const nanomips_gpr_names_xr[17] = {
   "xr0",  "xr1",  "xr2",  "xr3",  "xr4",  "xr5",  "xr6",  "xr7",
   "xr8",  "xr9",  "xr10", "xr11", "xr12", "xr13", "xr14", "xr15",
   "xr16"
 };
 
-static const char * const mips_fpr_names_numeric[32] =
+static const char * const nanomips_fpr_names_numeric[32] =
 {
   "$f0",  "$f1",  "$f2",  "$f3",  "$f4",  "$f5",  "$f6",  "$f7",
   "$f8",  "$f9",  "$f10", "$f11", "$f12", "$f13", "$f14", "$f15",
@@ -89,7 +73,7 @@ static const char * const mips_fpr_names_numeric[32] =
   "$f24", "$f25", "$f26", "$f27", "$f28", "$f29", "$f30", "$f31"
 };
 
-static const char * const mips_fpr_names_32[32] =
+static const char * const nanomips_fpr_names_32[32] =
 {
   "fv0",  "fv0f", "fv1",  "fv1f", "ft0",  "ft0f", "ft1",  "ft1f",
   "ft2",  "ft2f", "ft3",  "ft3f", "fa0",  "fa0f", "fa1",  "fa1f",
@@ -97,7 +81,7 @@ static const char * const mips_fpr_names_32[32] =
   "fs2",  "fs2f", "fs3",  "fs3f", "fs4",  "fs4f", "fs5",  "fs5f"
 };
 
-static const char * const mips_fpr_names_64[32] =
+static const char * const nanomips_fpr_names_64[32] =
 {
   "fv0",  "ft12", "fv1",  "ft13", "ft0",  "ft1",  "ft2",  "ft3",
   "ft4",  "ft5",  "ft6",  "ft7",  "fa0",  "fa1",  "fa2",  "fa3",
@@ -105,7 +89,7 @@ static const char * const mips_fpr_names_64[32] =
   "fs0",  "fs1",  "fs2",  "fs3",  "fs4",  "fs5",  "fs6",  "fs7"
 };
 
-static const char * const mips_cp0_names_numeric[32] =
+static const char * const nanomips_cp0_names_numeric[32] =
 {
   "$0",   "$1",   "$2",   "$3",   "$4",   "$5",   "$6",   "$7",
   "$8",   "$9",   "$10",  "$11",  "$12",  "$13",  "$14",  "$15",
@@ -113,7 +97,7 @@ static const char * const mips_cp0_names_numeric[32] =
   "$24",  "$25",  "$26",  "$27",  "$28",  "$29",  "$30",  "$31"
 };
 
-static const char * const mips_cp1_names_numeric[32] =
+static const char * const nanomips_cp1_names_numeric[32] =
 {
   "$0",   "$1",   "$2",   "$3",   "$4",   "$5",   "$6",   "$7",
   "$8",   "$9",   "$10",  "$11",  "$12",  "$13",  "$14",  "$15",
@@ -121,7 +105,7 @@ static const char * const mips_cp1_names_numeric[32] =
   "$24",  "$25",  "$26",  "$27",  "$28",  "$29",  "$30",  "$31"
 };
 
-static const char * const mips_cp1_names_mips3264[32] =
+static const char * const nanomips_cp1_names_mips3264[32] =
 {
   "c1_fir",       "c1_ufr",       "$2",           "$3",
   "c1_unfr",      "$5",           "$6",           "$7",
@@ -133,7 +117,7 @@ static const char * const mips_cp1_names_mips3264[32] =
   "c1_fenr",      "$29",          "$30",          "c1_fcsr"
 };
 
-static const char * const mips_cp0_names_mips3264r2[32] =
+static const char * const nanomips_cp0_names_mips3264r2[32] =
 {
   "c0_index",     "c0_random",    "c0_entrylo0",  "c0_entrylo1",
   "c0_context",   "c0_pagemask",  "c0_wired",     "c0_hwrena",
@@ -145,7 +129,7 @@ static const char * const mips_cp0_names_mips3264r2[32] =
   "c0_taglo",     "c0_taghi",     "c0_errorepc",  "c0_desave",
 };
 
-static const struct mips_cp0sel_name mips_cp0sel_names_mips3264r2[] =
+static const struct nanomips_cp0sel_name nanomips_cp0sel_names_mips3264r2[] =
 {
   {  4, 1, "c0_contextconfig"	},
   {  0, 1, "c0_mvpcontrol"	},
@@ -221,7 +205,7 @@ static const struct mips_cp0sel_name mips_cp0sel_names_mips3264r2[] =
   { 29, 7, "c0_datahi3"		},
 };
 
-static const char * const mips_hwr_names_numeric[32] =
+static const char * const nanomips_hwr_names_numeric[32] =
 {
   "$0",   "$1",   "$2",   "$3",   "$4",   "$5",   "$6",   "$7",
   "$8",   "$9",   "$10",  "$11",  "$12",  "$13",  "$14",  "$15",
@@ -229,7 +213,7 @@ static const char * const mips_hwr_names_numeric[32] =
   "$24",  "$25",  "$26",  "$27",  "$28",  "$29",  "$30",  "$31"
 };
 
-static const char * const mips_hwr_names_mips3264r2[32] =
+static const char * const nanomips_hwr_names_mips3264r2[32] =
 {
   "hwr_cpunum",   "hwr_synci_step", "hwr_cc",     "hwr_ccres",
   "$4",          "$5",            "$6",           "$7",
@@ -247,21 +231,21 @@ static const char * const msa_control_names[32] =
   "$24",  "$25",  "$26",  "$27",  "$28",  "$29",  "$30",  "$31"
 };
 
-struct mips_abi_choice
+struct nanomips_abi_choice
 {
   const char * name;
   const char * const *gpr_names;
   const char * const *fpr_names;
 };
 
-struct mips_abi_choice mips_abi_choices[] =
+struct nanomips_abi_choice nanomips_abi_choices[] =
 {
-  { "numeric", mips_gpr_names_numeric, mips_fpr_names_numeric },
-  { "p32", nanomips_gpr_names, mips_fpr_names_64 },
-  { "p64", nanomips_gpr_names, mips_fpr_names_64 },
+  { "numeric", nanomips_gpr_names_numeric, nanomips_fpr_names_numeric },
+  { "p32", nanomips_gpr_names_symbolic, nanomips_fpr_names_64 },
+  { "p64", nanomips_gpr_names_symbolic, nanomips_fpr_names_64 },
 };
 
-struct mips_arch_choice
+struct nanomips_arch_choice
 {
   const char *name;
   int bfd_mach_valid;
@@ -270,98 +254,97 @@ struct mips_arch_choice
   int isa;
   int ase;
   const char * const *cp0_names;
-  const struct mips_cp0sel_name *cp0sel_names;
+  const struct nanomips_cp0sel_name *cp0sel_names;
   unsigned int cp0sel_names_len;
   const char * const *cp1_names;
   const char * const *hwr_names;
 };
 
-const struct mips_arch_choice mips_arch_choices[] =
+const struct nanomips_arch_choice nanomips_arch_choices[] =
 {
   { "numeric",	0, 0, 0, 0, 0,
-    mips_cp0_names_numeric, NULL, 0, mips_cp1_names_numeric,
-    mips_hwr_names_numeric },
+    nanomips_cp0_names_numeric, NULL, 0, nanomips_cp1_names_numeric,
+    nanomips_hwr_names_numeric },
 
   { "32r6",	1, bfd_mach_nanomipsisa32r6, CPU_NANOMIPS32R6,
     ISA_NANOMIPS32R6,
     (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_VIRT | ASE_VIRT_XPA | ASE_XPA |
      ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3
      | ASE_xNMS | ASE_TLB | ASE_GINV),
-    mips_cp0_names_mips3264r2,
-    mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
-    mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
+    nanomips_cp0_names_mips3264r2,
+    nanomips_cp0sel_names_mips3264r2, ARRAY_SIZE (nanomips_cp0sel_names_mips3264r2),
+    nanomips_cp1_names_mips3264, nanomips_hwr_names_mips3264r2 },
 
   { "32r6s",	1, bfd_mach_nanomipsisa32r6, CPU_NANOMIPS32R6,
     ISA_NANOMIPS32R6,
     (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_VIRT | ASE_VIRT_XPA | ASE_XPA |
      ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3 | ASE_TLB | ASE_GINV),
-    mips_cp0_names_mips3264r2,
-    mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
-    mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
+    nanomips_cp0_names_mips3264r2,
+    nanomips_cp0sel_names_mips3264r2, ARRAY_SIZE (nanomips_cp0sel_names_mips3264r2),
+    nanomips_cp1_names_mips3264, nanomips_hwr_names_mips3264r2 },
 
   { "64r6",	1, bfd_mach_nanomipsisa64r6, CPU_NANOMIPS64R6,
     ISA_NANOMIPS64R6,
     (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_MSA64 | ASE_VIRT | ASE_VIRT_XPA
      | ASE_XPA | ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3 | ASE_DSP64
      | ASE_xNMS | ASE_TLB | ASE_GINV),
-    mips_cp0_names_mips3264r2,
-    mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
-    mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
+    nanomips_cp0_names_mips3264r2,
+    nanomips_cp0sel_names_mips3264r2, ARRAY_SIZE (nanomips_cp0sel_names_mips3264r2),
+    nanomips_cp1_names_mips3264, nanomips_hwr_names_mips3264r2 },
 };
 
 /* ISA and processor type to disassemble for, and register names to use.
    set_default_mips_dis_options and parse_mips_dis_options fill in these
    values.  */
-static int mips_processor;
-static int mips_isa;
-static int mips_ase;
+static int nanomips_processor;
+static int nanomips_ase;
 static int nanomips_isa;
-static const char * const *mips_gpr_names;
-static const char * const *mips_fpr_names;
-static const char * const *mips_cp0_names;
-static const struct mips_cp0sel_name *mips_cp0sel_names;
-static int mips_cp0sel_names_len;
-static const char * const *mips_cp1_names;
-static const char * const *mips_hwr_names;
+static const char * const *nanomips_gpr_names;
+static const char * const *nanomips_fpr_names;
+static const char * const *nanomips_cp0_names;
+static const struct nanomips_cp0sel_name *nanomips_cp0sel_names;
+static int nanomips_cp0sel_names_len;
+static const char * const *nanomips_cp1_names;
+static const char * const *nanomips_hwr_names;
 
 /* Other options */
 static int no_aliases;	/* If set disassemble as most general inst.  */
 static bfd_boolean show_arch_insn; /* Mnemonics with suffix.  */
 
-static const struct mips_abi_choice *
+static const struct nanomips_abi_choice *
 choose_abi_by_name (const char *name, unsigned int namelen)
 {
-  const struct mips_abi_choice *c;
+  const struct nanomips_abi_choice *c;
   unsigned int i;
 
-  for (i = 0, c = NULL; i < ARRAY_SIZE (mips_abi_choices) && c == NULL; i++)
-    if (strncmp (mips_abi_choices[i].name, name, namelen) == 0
-	&& strlen (mips_abi_choices[i].name) == namelen)
-      c = &mips_abi_choices[i];
+  for (i = 0, c = NULL; i < ARRAY_SIZE (nanomips_abi_choices) && c == NULL; i++)
+    if (strncmp (nanomips_abi_choices[i].name, name, namelen) == 0
+	&& strlen (nanomips_abi_choices[i].name) == namelen)
+      c = &nanomips_abi_choices[i];
 
   return c;
 }
 
-static const struct mips_arch_choice *
+static const struct nanomips_arch_choice *
 choose_arch_by_name (const char *name, unsigned int namelen)
 {
-  const struct mips_arch_choice *c = NULL;
+  const struct nanomips_arch_choice *c = NULL;
   unsigned int i;
 
-  for (i = 0, c = NULL; i < ARRAY_SIZE (mips_arch_choices) && c == NULL; i++)
-    if (strncmp (mips_arch_choices[i].name, name, namelen) == 0
-	&& strlen (mips_arch_choices[i].name) == namelen)
-      c = &mips_arch_choices[i];
+  for (i = 0, c = NULL; i < ARRAY_SIZE (nanomips_arch_choices) && c == NULL; i++)
+    if (strncmp (nanomips_arch_choices[i].name, name, namelen) == 0
+	&& strlen (nanomips_arch_choices[i].name) == namelen)
+      c = &nanomips_arch_choices[i];
 
   return c;
 }
 
-static const struct mips_arch_choice *
+static const struct nanomips_arch_choice *
 choose_arch_by_number (unsigned long mach)
 {
   static unsigned long hint_bfd_mach;
-  static const struct mips_arch_choice *hint_arch_choice;
-  const struct mips_arch_choice *c;
+  static const struct nanomips_arch_choice *hint_arch_choice;
+  const struct nanomips_arch_choice *c;
   unsigned int i;
 
   /* We optimize this because even if the user specifies no
@@ -371,12 +354,12 @@ choose_arch_by_number (unsigned long mach)
       && hint_arch_choice->bfd_mach == hint_bfd_mach)
     return hint_arch_choice;
 
-  for (i = 0, c = NULL; i < ARRAY_SIZE (mips_arch_choices) && c == NULL; i++)
+  for (i = 0, c = NULL; i < ARRAY_SIZE (nanomips_arch_choices) && c == NULL; i++)
     {
-      if (mips_arch_choices[i].bfd_mach_valid
-	  && mips_arch_choices[i].bfd_mach == mach)
+      if (nanomips_arch_choices[i].bfd_mach_valid
+	  && nanomips_arch_choices[i].bfd_mach == mach)
 	{
-	  c = &mips_arch_choices[i];
+	  c = &nanomips_arch_choices[i];
 	  hint_bfd_mach = mach;
 	  hint_arch_choice = c;
 	}
@@ -389,9 +372,6 @@ choose_arch_by_number (unsigned long mach)
 static inline int
 is_nanomips (Elf_Internal_Ehdr *header)
 {
-  /*
-  if ((header->e_flags & EF_NANOMIPS_MODE) != 0)
-  */
   if ((header->e_flags & EF_NANOMIPS_ARCH) == E_NANOMIPS_ARCH_32R6
       || (header->e_flags & EF_NANOMIPS_ARCH) == E_NANOMIPS_ARCH_64R6)
     return 1;
@@ -400,58 +380,55 @@ is_nanomips (Elf_Internal_Ehdr *header)
 }
 
 static void
-set_default_mips_dis_options (struct disassemble_info *info)
+set_default_nanomips_dis_options (struct disassemble_info *info)
 {
-  const struct mips_arch_choice *chosen_arch;
+  const struct nanomips_arch_choice *chosen_arch;
 
-  /* Defaults: mipsIII/r3000 (?!), no microMIPS ASE (any compressed code
-     is MIPS16 ASE) (o)32-style ("oldabi") GPR names, and numeric FPR,
-     CP0 register, and HWR names.  */
-  mips_isa = ISA_NANOMIPS32R6;
-  mips_processor = CPU_NANOMIPS32R6;
+  nanomips_isa = ISA_NANOMIPS32R6;
+  nanomips_processor = CPU_NANOMIPS32R6;
   nanomips_isa = TRUE;
-  mips_ase = 0;
-  mips_fpr_names = mips_fpr_names_numeric;
-  mips_cp0_names = mips_cp0_names_numeric;
-  mips_cp0sel_names = NULL;
-  mips_cp0sel_names_len = 0;
-  mips_cp1_names = mips_cp1_names_numeric;
-  mips_hwr_names = mips_hwr_names_numeric;
+  nanomips_ase = 0;
+  nanomips_fpr_names = nanomips_fpr_names_numeric;
+  nanomips_cp0_names = nanomips_cp0_names_numeric;
+  nanomips_cp0sel_names = NULL;
+  nanomips_cp0sel_names_len = 0;
+  nanomips_cp1_names = nanomips_cp1_names_numeric;
+  nanomips_hwr_names = nanomips_hwr_names_numeric;
   no_aliases = 0;
   show_arch_insn = FALSE;
 
-  mips_gpr_names = nanomips_gpr_names;
+  nanomips_gpr_names = nanomips_gpr_names_symbolic;
 
   /* Set ISA, architecture, and cp0 register names as best we can.  */
 #if ! SYMTAB_AVAILABLE
   /* This is running out on a target machine, not in a host tool.
      FIXME: Where does mips_target_info come from?  */
   target_processor = mips_target_info.processor;
-  mips_isa = mips_target_info.isa;
-  mips_ase = mips_target_info.ase;
+  nanomips_isa = mips_target_info.isa;
+  nanomips_ase = mips_target_info.ase;
 #else
   chosen_arch = choose_arch_by_number (info->mach);
   if (chosen_arch != NULL)
     {
-      mips_processor = chosen_arch->processor;
-      mips_isa = chosen_arch->isa;
-      mips_ase = chosen_arch->ase;
-      mips_cp0_names = chosen_arch->cp0_names;
-      mips_cp0sel_names = chosen_arch->cp0sel_names;
-      mips_cp0sel_names_len = chosen_arch->cp0sel_names_len;
-      mips_cp1_names = chosen_arch->cp1_names;
-      mips_hwr_names = chosen_arch->hwr_names;
+      nanomips_processor = chosen_arch->processor;
+      nanomips_isa = chosen_arch->isa;
+      nanomips_ase = chosen_arch->ase;
+      nanomips_cp0_names = chosen_arch->cp0_names;
+      nanomips_cp0sel_names = chosen_arch->cp0sel_names;
+      nanomips_cp0sel_names_len = chosen_arch->cp0sel_names_len;
+      nanomips_cp1_names = chosen_arch->cp1_names;
+      nanomips_hwr_names = chosen_arch->hwr_names;
     }
 #endif
 }
 
 static void
-parse_mips_dis_option (const char *option, unsigned int len)
+parse_nanomips_dis_option (const char *option, unsigned int len)
 {
   unsigned int i, optionlen, vallen;
   const char *val;
-  const struct mips_abi_choice *chosen_abi;
-  const struct mips_arch_choice *chosen_arch;
+  const struct nanomips_abi_choice *chosen_abi;
+  const struct nanomips_arch_choice *chosen_arch;
 
   /* Try to match options that are simple flags */
   if (CONST_STRNEQ (option, "show-arch-insn"))
@@ -468,53 +445,53 @@ parse_mips_dis_option (const char *option, unsigned int len)
 
   if (CONST_STRNEQ (option, "msa"))
     {
-      mips_ase |= ASE_MSA;
-      if ((mips_isa & INSN_ISA_MASK) == ISA_MIPS64R2
-	   || (mips_isa & INSN_ISA_MASK) == ISA_MIPS64R3
-	   || (mips_isa & INSN_ISA_MASK) == ISA_MIPS64R5
-	   || (mips_isa & INSN_ISA_MASK) == ISA_MIPS64R6)
-	  mips_ase |= ASE_MSA64;
+      nanomips_ase |= ASE_MSA;
+      if ((nanomips_isa & INSN_ISA_MASK) == ISA_MIPS64R2
+	   || (nanomips_isa & INSN_ISA_MASK) == ISA_MIPS64R3
+	   || (nanomips_isa & INSN_ISA_MASK) == ISA_MIPS64R5
+	   || (nanomips_isa & INSN_ISA_MASK) == ISA_MIPS64R6)
+	  nanomips_ase |= ASE_MSA64;
       return;
     }
 
   if (CONST_STRNEQ (option, "virt"))
     {
-      mips_ase |= ASE_VIRT;
+      nanomips_ase |= ASE_VIRT;
 
-      if (mips_isa & ISA_MIPS64R2
-	  || mips_isa & ISA_MIPS64R3
-	  || mips_isa & ISA_MIPS64R5
-	  || mips_isa & ISA_MIPS64R6)
-	mips_ase |= ASE_VIRT64;
+      if (nanomips_isa & ISA_MIPS64R2
+	  || nanomips_isa & ISA_MIPS64R3
+	  || nanomips_isa & ISA_MIPS64R5
+	  || nanomips_isa & ISA_MIPS64R6)
+	nanomips_ase |= ASE_VIRT64;
 
-      if (mips_ase & ASE_XPA)
-	mips_ase |= ASE_VIRT_XPA;
+      if (nanomips_ase & ASE_XPA)
+	nanomips_ase |= ASE_VIRT_XPA;
       return;
 
-      if (mips_ase & ASE_GINV)
-	mips_ase |= ASE_VIRT_GINV;
+      if (nanomips_ase & ASE_GINV)
+	nanomips_ase |= ASE_VIRT_GINV;
 
    }
 
   if (CONST_STRNEQ (option, "xpa"))
     {
-      mips_ase |= ASE_XPA;
-      if (mips_ase & ASE_VIRT)
-	mips_ase |= ASE_VIRT_XPA;
+      nanomips_ase |= ASE_XPA;
+      if (nanomips_ase & ASE_VIRT)
+	nanomips_ase |= ASE_VIRT_XPA;
       return;
     }
 
   if (CONST_STRNEQ (option, "mxu"))
     {
-      mips_ase |= ASE_MXU;
+      nanomips_ase |= ASE_MXU;
       return;
     }
 
   if (CONST_STRNEQ (option, "ginv"))
     {
-      mips_ase |= ASE_GINV;
-      if (mips_ase & ASE_VIRT)
-	mips_ase |= ASE_VIRT_GINV;
+      nanomips_ase |= ASE_GINV;
+      if (nanomips_ase & ASE_VIRT)
+	nanomips_ase |= ASE_VIRT_GINV;
       return;
     }
 
@@ -539,7 +516,7 @@ parse_mips_dis_option (const char *option, unsigned int len)
     {
       chosen_abi = choose_abi_by_name (val, vallen);
       if (chosen_abi != NULL)
-	mips_gpr_names = chosen_abi->gpr_names;
+	nanomips_gpr_names = chosen_abi->gpr_names;
       return;
     }
 
@@ -548,7 +525,7 @@ parse_mips_dis_option (const char *option, unsigned int len)
     {
       chosen_abi = choose_abi_by_name (val, vallen);
       if (chosen_abi != NULL)
-	mips_fpr_names = chosen_abi->fpr_names;
+	nanomips_fpr_names = chosen_abi->fpr_names;
       return;
     }
 
@@ -558,9 +535,9 @@ parse_mips_dis_option (const char *option, unsigned int len)
       chosen_arch = choose_arch_by_name (val, vallen);
       if (chosen_arch != NULL)
 	{
-	  mips_cp0_names = chosen_arch->cp0_names;
-	  mips_cp0sel_names = chosen_arch->cp0sel_names;
-	  mips_cp0sel_names_len = chosen_arch->cp0sel_names_len;
+	  nanomips_cp0_names = chosen_arch->cp0_names;
+	  nanomips_cp0sel_names = chosen_arch->cp0sel_names;
+	  nanomips_cp0sel_names_len = chosen_arch->cp0sel_names_len;
 	}
       return;
     }
@@ -570,7 +547,7 @@ parse_mips_dis_option (const char *option, unsigned int len)
     {
       chosen_arch = choose_arch_by_name (val, vallen);
       if (chosen_arch != NULL)
-	mips_cp1_names = chosen_arch->cp1_names;
+	nanomips_cp1_names = chosen_arch->cp1_names;
       return;
     }
 
@@ -579,7 +556,7 @@ parse_mips_dis_option (const char *option, unsigned int len)
     {
       chosen_arch = choose_arch_by_name (val, vallen);
       if (chosen_arch != NULL)
-	mips_hwr_names = chosen_arch->hwr_names;
+	nanomips_hwr_names = chosen_arch->hwr_names;
       return;
     }
 
@@ -593,17 +570,17 @@ parse_mips_dis_option (const char *option, unsigned int len)
       chosen_abi = choose_abi_by_name (val, vallen);
       if (chosen_abi != NULL)
 	{
-	  mips_gpr_names = chosen_abi->gpr_names;
-	  mips_fpr_names = chosen_abi->fpr_names;
+	  nanomips_gpr_names = chosen_abi->gpr_names;
+	  nanomips_fpr_names = chosen_abi->fpr_names;
 	}
       chosen_arch = choose_arch_by_name (val, vallen);
       if (chosen_arch != NULL)
 	{
-	  mips_cp0_names = chosen_arch->cp0_names;
-	  mips_cp0sel_names = chosen_arch->cp0sel_names;
-	  mips_cp0sel_names_len = chosen_arch->cp0sel_names_len;
-	  mips_cp1_names = chosen_arch->cp1_names;
-	  mips_hwr_names = chosen_arch->hwr_names;
+	  nanomips_cp0_names = chosen_arch->cp0_names;
+	  nanomips_cp0sel_names = chosen_arch->cp0sel_names;
+	  nanomips_cp0sel_names_len = chosen_arch->cp0sel_names_len;
+	  nanomips_cp1_names = chosen_arch->cp1_names;
+	  nanomips_hwr_names = chosen_arch->hwr_names;
 	}
       return;
     }
@@ -612,7 +589,7 @@ parse_mips_dis_option (const char *option, unsigned int len)
 }
 
 static void
-parse_mips_dis_options (const char *options)
+parse_nanomips_dis_options (const char *options)
 {
   const char *option_end;
 
@@ -633,7 +610,7 @@ parse_mips_dis_options (const char *options)
       while (*option_end != ',' && *option_end != '\0')
 	option_end++;
 
-      parse_mips_dis_option (options, option_end - options);
+      parse_nanomips_dis_option (options, option_end - options);
 
       /* Go on to the next one.  If option_end points to a comma, it
 	 will be skipped above.  */
@@ -641,8 +618,8 @@ parse_mips_dis_options (const char *options)
     }
 }
 
-static const struct mips_cp0sel_name *
-lookup_mips_cp0sel_name (const struct mips_cp0sel_name *names,
+static const struct nanomips_cp0sel_name *
+lookup_nanomips_cp0sel_name (const struct nanomips_cp0sel_name *names,
 			 unsigned int len,
 			 unsigned int cp0reg,
 			 unsigned int sel)
@@ -665,15 +642,15 @@ print_reg (struct disassemble_info *info, const struct nanomips_opcode *opcode,
     {
     case OP_REG_MXU:
     case OP_REG_MXU_GP:
-      info->fprintf_func (info->stream, "%s", mips_gpr_names_xr[regno]);
+      info->fprintf_func (info->stream, "%s", nanomips_gpr_names_xr[regno]);
       break;
 
     case OP_REG_GP:
-      info->fprintf_func (info->stream, "%s", mips_gpr_names[regno]);
+      info->fprintf_func (info->stream, "%s", nanomips_gpr_names[regno]);
       break;
 
     case OP_REG_FP:
-      info->fprintf_func (info->stream, "%s", mips_fpr_names[regno]);
+      info->fprintf_func (info->stream, "%s", nanomips_fpr_names[regno]);
       break;
 
     case OP_REG_CCC:
@@ -696,15 +673,15 @@ print_reg (struct disassemble_info *info, const struct nanomips_opcode *opcode,
 
     case OP_REG_COPRO:
       if (opcode->name[strlen (opcode->name) - 1] == '0')
-	info->fprintf_func (info->stream, "%s", mips_cp0_names[regno]);
+	info->fprintf_func (info->stream, "%s", nanomips_cp0_names[regno]);
       else if (opcode->name[strlen (opcode->name) - 1] == '1')
-	info->fprintf_func (info->stream, "%s", mips_cp1_names[regno]);
+	info->fprintf_func (info->stream, "%s", nanomips_cp1_names[regno]);
       else
 	info->fprintf_func (info->stream, "$%d", regno);
       break;
 
     case OP_REG_HW:
-      info->fprintf_func (info->stream, "%s", mips_hwr_names[regno]);
+      info->fprintf_func (info->stream, "%s", nanomips_hwr_names[regno]);
       break;
 
     case OP_REG_VF:
@@ -744,7 +721,7 @@ print_reg (struct disassemble_info *info, const struct nanomips_opcode *opcode,
 
 /* Used to track the state carried over from previous operands in
    an instruction.  */
-struct mips_print_arg_state {
+struct nanomips_print_arg_state {
   /* The value of the last OP_INT seen.  We only use this for OP_MSB,
      where the value is known to be unsigned and small.  */
   unsigned int last_int;
@@ -760,7 +737,7 @@ struct mips_print_arg_state {
 /* Initialize STATE for the start of an instruction.  */
 
 static inline void
-init_print_arg_state (struct mips_print_arg_state *state)
+init_print_arg_state (struct nanomips_print_arg_state *state)
 {
   memset (state, 0, sizeof (*state));
 }
@@ -768,9 +745,9 @@ init_print_arg_state (struct mips_print_arg_state *state)
 /* Record information about a register operand.  */
 
 static void
-mips_seen_register (struct mips_print_arg_state *state,
-		    unsigned int regno,
-		    enum mips_reg_operand_type reg_type)
+nanomips_seen_register (struct nanomips_print_arg_state *state,
+			unsigned int regno,
+			enum mips_reg_operand_type reg_type)
 {
   state->last_reg_type = reg_type;
   state->last_regno = regno;
@@ -828,28 +805,28 @@ nanomips_print_save_restore (struct disassemble_info *info,
 
   if (fp)
     {
-      infprintf (is, "%s", mips_gpr_names[30]);
+      infprintf (is, "%s", nanomips_gpr_names[30]);
       pending = 1;
     }
 
   if (ra)
     {
-      infprintf (is, "%s%s", (pending ? comma : ""), mips_gpr_names[31]);
+      infprintf (is, "%s%s", (pending ? comma : ""), nanomips_gpr_names[31]);
       pending = 1;
     }
 
   if (count > 0)
     {
       if (count > 1)
-	infprintf (is, "%s%s-%s", (pending ? comma : ""), mips_gpr_names[freg],
-		   mips_gpr_names[freg + count - 1]);
+	infprintf (is, "%s%s-%s", (pending ? comma : ""), nanomips_gpr_names[freg],
+		   nanomips_gpr_names[freg + count - 1]);
       else
-	infprintf (is, "%s%s", (pending ? comma : ""), mips_gpr_names[freg]);
+	infprintf (is, "%s%s", (pending ? comma : ""), nanomips_gpr_names[freg]);
       pending = 1;
     }
 
   if (gp)
-    infprintf (is, "%s%s", (pending ? comma : ""), mips_gpr_names[28]);
+    infprintf (is, "%s%s", (pending ? comma : ""), nanomips_gpr_names[28]);
 }
 
 static void
@@ -860,9 +837,9 @@ nanomips_print_save_restore_fp (struct disassemble_info *info,
   void *is = info->stream;
 
   if (count == 1)
-    infprintf (is, "%s", mips_fpr_names[0]);
+    infprintf (is, "%s", nanomips_fpr_names[0]);
   else
-    infprintf (is, "%s-%s", mips_fpr_names[0], mips_fpr_names[count - 1]);
+    infprintf (is, "%s-%s", nanomips_fpr_names[0], nanomips_fpr_names[count - 1]);
 }
 
 /* Print operand OPERAND of OPCODE, using STATE to track inter-operand state.
@@ -871,7 +848,7 @@ nanomips_print_save_restore_fp (struct disassemble_info *info,
 
 static void
 print_insn_arg (struct disassemble_info *info,
-		struct mips_print_arg_state *state,
+		struct nanomips_print_arg_state *state,
 		const struct nanomips_opcode *opcode,
 		const struct mips_operand *operand,
 		bfd_vma base_pc,
@@ -941,7 +918,7 @@ print_insn_arg (struct disassemble_info *info,
 	uval = mips_decode_reg_operand (reg_op, uval);
 	print_reg (info, opcode, reg_op->reg_type, uval);
 
-	mips_seen_register (state, uval, reg_op->reg_type);
+	nanomips_seen_register (state, uval, reg_op->reg_type);
       }
       break;
 
@@ -1012,13 +989,13 @@ print_insn_arg (struct disassemble_info *info,
 	reg2 = uval >> 5;
 	/* If one is zero use the other.  */
 	if (reg1 == reg2 || reg2 == 0)
-	  infprintf (is, "%s", mips_gpr_names[reg1]);
+	  infprintf (is, "%s", nanomips_gpr_names[reg1]);
 	else if (reg1 == 0)
-	  infprintf (is, "%s", mips_gpr_names[reg2]);
+	  infprintf (is, "%s", nanomips_gpr_names[reg2]);
 	else
 	  /* Bogus, result depends on processor.  */
-	  infprintf (is, "%s or %s", mips_gpr_names[reg1],
-		     mips_gpr_names[reg2]);
+	  infprintf (is, "%s or %s", nanomips_gpr_names[reg1],
+		     nanomips_gpr_names[reg2]);
       }
       break;
 
@@ -1027,7 +1004,7 @@ print_insn_arg (struct disassemble_info *info,
     case OP_NON_ZERO_REG:
       {
 	print_reg (info, opcode, OP_REG_GP, uval & 31);
-	mips_seen_register (state, uval, OP_REG_GP);
+	nanomips_seen_register (state, uval, OP_REG_GP);
       }
       break;
 
@@ -1036,13 +1013,13 @@ print_insn_arg (struct disassemble_info *info,
 	{
 	  if (uval == 0)
 	    infprintf (is, "%s,%s",
-		       mips_gpr_names[16],
-		       mips_gpr_names[31]);
+		       nanomips_gpr_names[16],
+		       nanomips_gpr_names[31]);
 	  else
 	    infprintf (is, "%s-%s,%s",
-		       mips_gpr_names[16],
-		       mips_gpr_names[16 + uval],
-		       mips_gpr_names[31]);
+		       nanomips_gpr_names[16],
+		       nanomips_gpr_names[16 + uval],
+		       nanomips_gpr_names[31]);
 	}
       else
 	{
@@ -1052,16 +1029,16 @@ print_insn_arg (struct disassemble_info *info,
 	  if (s_reg_encode != 0)
 	    {
 	      if (s_reg_encode == 1)
-		infprintf (is, "%s", mips_gpr_names[16]);
+		infprintf (is, "%s", nanomips_gpr_names[16]);
 	      else if (s_reg_encode < 9)
 		infprintf (is, "%s-%s",
-			   mips_gpr_names[16],
-			   mips_gpr_names[15 + s_reg_encode]);
+			   nanomips_gpr_names[16],
+			   nanomips_gpr_names[15 + s_reg_encode]);
 	      else if (s_reg_encode == 9)
 		infprintf (is, "%s-%s,%s",
-			   mips_gpr_names[16],
-			   mips_gpr_names[23],
-			   mips_gpr_names[30]);
+			   nanomips_gpr_names[16],
+			   nanomips_gpr_names[23],
+			   nanomips_gpr_names[30]);
 	      else
 		infprintf (is, "UNKNOWN");
 	    }
@@ -1069,9 +1046,9 @@ print_insn_arg (struct disassemble_info *info,
 	  if (uval & 0x10) /* For ra.  */
 	    {
 	      if (s_reg_encode == 0)
-		infprintf (is, "%s", mips_gpr_names[31]);
+		infprintf (is, "%s", nanomips_gpr_names[31]);
 	      else
-		infprintf (is, ",%s", mips_gpr_names[31]);
+		infprintf (is, ",%s", nanomips_gpr_names[31]);
 	    }
 	}
       break;
@@ -1085,9 +1062,9 @@ print_insn_arg (struct disassemble_info *info,
 	amask = (uval >> 3) & 7;
 	if (amask > 0 && amask < 5)
 	  {
-	    infprintf (is, "%s", mips_gpr_names[4]);
+	    infprintf (is, "%s", nanomips_gpr_names[4]);
 	    if (amask > 1)
-	      infprintf (is, "-%s", mips_gpr_names[amask + 3]);
+	      infprintf (is, "-%s", nanomips_gpr_names[amask + 3]);
 	    sep = ",";
 	  }
 
@@ -1099,23 +1076,23 @@ print_insn_arg (struct disassemble_info *info,
 	  }
 	else if (smask > 0)
 	  {
-	    infprintf (is, "%s%s", sep, mips_gpr_names[16]);
+	    infprintf (is, "%s%s", sep, nanomips_gpr_names[16]);
 	    if (smask > 1)
-	      infprintf (is, "-%s", mips_gpr_names[smask + 15]);
+	      infprintf (is, "-%s", nanomips_gpr_names[smask + 15]);
 	    sep = ",";
 	  }
 
 	if (uval & 1)
 	  {
-	    infprintf (is, "%s%s", sep, mips_gpr_names[31]);
+	    infprintf (is, "%s%s", sep, nanomips_gpr_names[31]);
 	    sep = ",";
 	  }
 
 	if (amask == 5 || amask == 6)
 	  {
-	    infprintf (is, "%s%s", sep, mips_fpr_names[0]);
+	    infprintf (is, "%s%s", sep, nanomips_fpr_names[0]);
 	    if (amask == 6)
-	      infprintf (is, "-%s", mips_fpr_names[1]);
+	      infprintf (is, "-%s", nanomips_fpr_names[1]);
 	  }
       }
       break;
@@ -1242,7 +1219,7 @@ validate_insn_args (const struct nanomips_opcode *opcode,
 		    const struct mips_operand *(*decode_operand) (const char *),
 		    unsigned int insn, struct disassemble_info *info)
 {
-  struct mips_print_arg_state state;
+  struct nanomips_print_arg_state state;
   const struct mips_operand *operand;
   const char *s;
   unsigned int uval;
@@ -1277,7 +1254,7 @@ validate_insn_args (const struct nanomips_opcode *opcode,
 
 		    reg_op = (const struct mips_reg_operand *) operand;
 		    uval = mips_decode_reg_operand (reg_op, uval);
-		    mips_seen_register (&state, uval, reg_op->reg_type);
+		    nanomips_seen_register (&state, uval, reg_op->reg_type);
 		  }
 		break;
 
@@ -1312,8 +1289,8 @@ validate_insn_args (const struct nanomips_opcode *opcode,
 
 		case OP_MAPPED_CHECK_PREV:
 		  {
-		    const struct mips_mapped_check_prev_operand *prev_op
-		      = (const struct mips_mapped_check_prev_operand *) operand;
+		    const struct nanomips_mapped_check_prev_operand *prev_op
+		      = (const struct nanomips_mapped_check_prev_operand *) operand;
 		    unsigned int last_uval;
 
 		    last_uval = mips_encode_reg_operand (operand, state.last_regno);
@@ -1404,7 +1381,7 @@ print_insn_args (struct disassemble_info *info,
 {
   const fprintf_ftype infprintf = info->fprintf_func;
   void *is = info->stream;
-  struct mips_print_arg_state state;
+  struct nanomips_print_arg_state state;
   const struct mips_operand *operand;
   const char *s;
   bfd_boolean pending_sep = FALSE;
@@ -1460,7 +1437,7 @@ print_insn_args (struct disassemble_info *info,
 	      && opcode->name[strlen (opcode->name) - 1] == '0')
 	    {
 	      /* Coprocessor register 0 with sel field (MT ASE).  */
-	      const struct mips_cp0sel_name *n;
+	      const struct nanomips_cp0sel_name *n;
 	      unsigned int reg, sel;
 
 	      reg = mips_extract_operand (operand, insn);
@@ -1473,8 +1450,8 @@ print_insn_args (struct disassemble_info *info,
 		 CP0 register name and sel numerically since CP0 register
 		 with sel 0 may have a name unrelated to register being
 		 printed.  */
-	      n = lookup_mips_cp0sel_name (mips_cp0sel_names,
-					   mips_cp0sel_names_len,
+	      n = lookup_nanomips_cp0sel_name (nanomips_cp0sel_names,
+					   nanomips_cp0sel_names_len,
 					   reg, sel);
 	      if (n != NULL)
 		infprintf (is, "%s", n->name);
@@ -1523,7 +1500,7 @@ enum match_kind
   MATCH_SHORT
 };
 
-/* Disassemble microMIPS instructions.  */
+/* Disassemble nanoMIPS instructions.  */
 
 static int
 _print_insn_nanomips (bfd_vma memaddr_base, struct disassemble_info *info)
@@ -1537,9 +1514,7 @@ _print_insn_nanomips (bfd_vma memaddr_base, struct disassemble_info *info)
   int status;
   bfd_uint64_t insn;
 
-  /* Some users of bfd may supply an address with the micromips flag set,
-     e.g. objdump.  nanoMIPS instructions must be at least 2 byte aligned.  */
-  bfd_vma memaddr = memaddr_base & ~1;
+  bfd_vma memaddr = memaddr_base;
 
   info->bytes_per_chunk = 2;
   info->display_endian = info->endian;
@@ -1593,7 +1568,7 @@ _print_insn_nanomips (bfd_vma memaddr_base, struct disassemble_info *info)
     }
   else if ((insn & 0x1000) == 0x0)
     {
-      /* This is a 32-bit microMIPS instruction.  */
+      /* This is a 32-bit nanoMIPS instruction.  */
       higher = insn;
 
       status = (*info->read_memory_func) (memaddr + 2, buffer, 2, info);
@@ -1634,7 +1609,8 @@ _print_insn_nanomips (bfd_vma memaddr_base, struct disassemble_info *info)
 		  && (op->mask & 0xffff0000) == 0)
 	      || (length == 4 && (op->mask & 0xffff0000) != 0)))
 	{
-	  if (!nanomips_opcode_is_member (op, mips_isa, mips_ase, mips_processor)
+	  if (!nanomips_opcode_is_member (op, nanomips_isa, nanomips_ase,
+					  nanomips_processor)
 	      || (op->pinfo2 & INSN2_CONVERTED_TO_COMPACT))
 	    continue;
 
@@ -1688,8 +1664,8 @@ _print_insn_nanomips (bfd_vma memaddr_base, struct disassemble_info *info)
 int
 print_insn_nanomips (bfd_vma memaddr, struct disassemble_info *info)
 {
-  set_default_mips_dis_options (info);
-  parse_mips_dis_options (info->disassembler_options);
+  set_default_nanomips_dis_options (info);
+  parse_nanomips_dis_options (info->disassembler_options);
 
 #if SYMTAB_AVAILABLE
   return _print_insn_nanomips (memaddr, info);
@@ -1747,16 +1723,16 @@ with the -M switch (multiple options should be separated by commas):\n"));
   fprintf (stream, _("\n\
   For the options above, the following values are supported for \"ABI\":\n\
    "));
-  for (i = 0; i < ARRAY_SIZE (mips_abi_choices); i++)
-    fprintf (stream, " %s", mips_abi_choices[i].name);
+  for (i = 0; i < ARRAY_SIZE (nanomips_abi_choices); i++)
+    fprintf (stream, " %s", nanomips_abi_choices[i].name);
   fprintf (stream, _("\n"));
 
   fprintf (stream, _("\n\
   For the options above, The following values are supported for \"ARCH\":\n\
    "));
-  for (i = 0; i < ARRAY_SIZE (mips_arch_choices); i++)
-    if (*mips_arch_choices[i].name != '\0')
-      fprintf (stream, " %s", mips_arch_choices[i].name);
+  for (i = 0; i < ARRAY_SIZE (nanomips_arch_choices); i++)
+    if (*nanomips_arch_choices[i].name != '\0')
+      fprintf (stream, " %s", nanomips_arch_choices[i].name);
   fprintf (stream, _("\n"));
 
   fprintf (stream, _("\n\

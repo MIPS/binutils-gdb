@@ -834,12 +834,9 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "attr-gnu-4-2" "-m64" \
 				    [arch_list_matching nanomips64r6]
 
-    run_list_test_arches "attr-gnu-4-3-mhard-float" "-m32 -mfpxx" \
+    run_list_test_arches "attr-gnu-4-3-mhard-float" "-m32" \
 				    [arch_list_matching nanomipsr6]
     run_list_test_arches "attr-gnu-4-3-mhard-float" "-m32 -mfp64" \
-				    [arch_list_matching nanomipsr6]
-    run_list_test_arches "attr-gnu-4-3-mhard-float" \
-				    "-m32 -mfp64 -mno-odd-spreg" \
 				    [arch_list_matching nanomipsr6]
     run_list_test_arches "attr-gnu-4-3-mhard-float" "-m64 -mfp64" \
 				    [arch_list_matching nanomips64r6]
@@ -850,15 +847,7 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "attr-gnu-4-3" "-m64" \
 				    [arch_list_matching nanomips64r6]
  
-    run_list_test_arches "attr-gnu-4-4" "-m32 -mfpxx" \
-				    [arch_list_matching nanomipsr6]
-    run_list_test_arches "attr-gnu-4-4" "-m32 -mfp64" \
-				    [arch_list_matching nanomipsr6]
-    run_list_test_arches "attr-gnu-4-4" "-m32 -mfp64 -mno-odd-spreg" \
-				    [arch_list_matching nanomipsr6]
-    run_list_test_arches "attr-gnu-4-4" "-m64 -mfp64" \
-				    [arch_list_matching nanomips64r6]
-    run_list_test_arches "attr-gnu-4-4" "-m32 -msingle-float" \
+    run_list_test_arches "attr-gnu-4-4" "" \
 				    [arch_list_matching nanomipsr6]
 
     run_list_test_arches "attr-gnu-4-5-64" "-m64 -mfp64" \
@@ -879,20 +868,6 @@ if { [istarget nanomips*-*-*] } {
 
     run_list_test "module-mfp32"
 
-#     foreach testopt [list -mfpxx -mfp64 "-mfp64-noodd" \
-# 			  -msingle-float -msoft-float] {
-#       foreach cmdopt [list -mfpxx -mfp64 "-mfp64 -mno-odd-spreg" \
-# 			   -msingle-float -msoft-float] {
-#         run_dump_test "module${testopt}" \
-# 			    [list [list as $cmdopt] [list name ($cmdopt)]]
-#       }
-#     }
-
-#     run_dump_test "module-set-mfpxx"
-#     run_list_test_arches "fpxx-oddfpreg" "-m32 -mfpxx" \
-# 			[arch_list_matching nanomipsr6]
-#     run_list_test_arches "fpxx-oddfpreg" "-m32 -mfpxx -mno-odd-spreg" \
-# 			[arch_list_matching nanomipsr6]
     run_dump_test_arches "no-odd-spreg" "-mfpxx" [arch_list_matching nanomipsr6]
     run_dump_test_arches "no-odd-spreg" "-mfp64" [arch_list_matching nanomipsr6]
 

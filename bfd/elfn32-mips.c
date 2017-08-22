@@ -2497,16 +2497,7 @@ static reloc_howto_type elf_micromips_howto_table_rel[] =
 	 TRUE,			/* partial_inplace */
 	 0x0007ffff,		/* src_mask */
 	 0x0007ffff,		/* dst_mask */
-	 TRUE),			/* pcrel_offset */
-
-  EMPTY_HOWTO (R_MICROMIPS_ALIGN),
-  EMPTY_HOWTO (R_MICROMIPS_FILL),
-  EMPTY_HOWTO (R_MICROMIPS_MAX),
-  EMPTY_HOWTO (R_MICROMIPS_INSN32),
-  EMPTY_HOWTO (R_MICROMIPS_INSN16),
-  EMPTY_HOWTO (R_MICROMIPS_FIXED),
-  EMPTY_HOWTO (R_MICROMIPS_RELAX),
-  EMPTY_HOWTO (R_MICROMIPS_NORELAX),
+	 TRUE)			/* pcrel_offset */
 };
 
 static reloc_howto_type elf_micromips_howto_table_rela[] =
@@ -2950,118 +2941,6 @@ static reloc_howto_type elf_micromips_howto_table_rela[] =
 	 0,			/* src_mask */
 	 0x0007ffff,		/* dst_mask */
 	 TRUE),			/* pcrel_offset */
-
-  HOWTO (R_MICROMIPS_ALIGN,	/* type */
-	 0,			/* rightshift */
-	 0,			/* size (0 = byte, 1 = short, 2 = long) */
-	 32,			/* bitsize */
-	 FALSE,			/* pc_relative */
-	 0,			/* bitpos */
-	 complain_overflow_dont,/* complain_on_overflow */
-	 NULL, 			/* special handler.  */
-	 "R_MICROMIPS_ALIGN",	/* name */
-	 FALSE,			/* partial_inplace */
-	 0,			/* src_mask */
-	 0,			/* dst_mask */
-	 FALSE),		/* pcrel_offset */
-
-  HOWTO (R_MICROMIPS_FILL,	/* type */
-	 0,			/* rightshift */
-	 0,			/* size (0 = byte, 1 = short, 2 = long) */
-	 32,			/* bitsize */
-	 FALSE,			/* pc_relative */
-	 0,			/* bitpos */
-	 complain_overflow_dont,/* complain_on_overflow */
-	 NULL, 			/* special handler.  */
-	 "R_MICROMIPS_FILL",	/* name */
-	 FALSE,			/* partial_inplace */
-	 0,			/* src_mask */
-	 0,			/* dst_mask */
-	 FALSE),		/* pcrel_offset */
-
-  HOWTO (R_MICROMIPS_MAX,	/* type */
-	 0,			/* rightshift */
-	 0,			/* size (0 = byte, 1 = short, 2 = long) */
-	 32,			/* bitsize */
-	 FALSE,			/* pc_relative */
-	 0,			/* bitpos */
-	 complain_overflow_dont,/* complain_on_overflow */
-	 NULL, 			/* special handler.  */
-	 "R_MICROMIPS_MAX",	/* name */
-	 FALSE,			/* partial_inplace */
-	 0,			/* src_mask */
-	 0,			/* dst_mask */
-	 FALSE),		/* pcrel_offset */
-
-  HOWTO (R_MICROMIPS_INSN32,	/* type */
-	 0,			/* rightshift */
-	 0,			/* size (0 = byte, 1 = short, 2 = long) */
-	 32,			/* bitsize */
-	 FALSE,			/* pc_relative */
-	 0,			/* bitpos */
-	 complain_overflow_dont,/* complain_on_overflow */
-	 NULL, 			/* special handler.  */
-	 "R_MICROMIPS_INSN32",	/* name */
-	 FALSE,			/* partial_inplace */
-	 0,			/* src_mask */
-	 0,			/* dst_mask */
-	 FALSE),		/* pcrel_offset */
-
-  HOWTO (R_MICROMIPS_INSN16,	/* type */
-	 0,			/* rightshift */
-	 0,			/* size (0 = byte, 1 = short, 2 = long) */
-	 32,			/* bitsize */
-	 FALSE,			/* pc_relative */
-	 0,			/* bitpos */
-	 complain_overflow_dont,/* complain_on_overflow */
-	 NULL, 			/* special handler.  */
-	 "R_MICROMIPS_INSN16",	/* name */
-	 FALSE,			/* partial_inplace */
-	 0,			/* src_mask */
-	 0,			/* dst_mask */
-	 FALSE),		/* pcrel_offset */
-
-  HOWTO (R_MICROMIPS_FIXED,	/* type */
-	 0,			/* rightshift */
-	 0,			/* size (0 = byte, 1 = short, 2 = long) */
-	 32,			/* bitsize */
-	 FALSE,			/* pc_relative */
-	 0,			/* bitpos */
-	 complain_overflow_dont,/* complain_on_overflow */
-	 NULL, 			/* special handler.  */
-	 "R_MICROMIPS_FIXED",	/* name */
-	 FALSE,			/* partial_inplace */
-	 0,			/* src_mask */
-	 0,			/* dst_mask */
-	 FALSE),		/* pcrel_offset */
-
-  HOWTO (R_MICROMIPS_RELAX,	/* type */
-	 0,			/* rightshift */
-	 0,			/* size (0 = byte, 1 = short, 2 = long) */
-	 32,			/* bitsize */
-	 FALSE,			/* pc_relative */
-	 0,			/* bitpos */
-	 complain_overflow_dont,/* complain_on_overflow */
-	 NULL, 			/* special handler.  */
-	 "R_MICROMIPS_RELAX",	/* name */
-	 FALSE,			/* partial_inplace */
-	 0,			/* src_mask */
-	 0,			/* dst_mask */
-	 FALSE),		/* pcrel_offset */
-
-  HOWTO (R_MICROMIPS_NORELAX,	/* type */
-	 0,			/* rightshift */
-	 0,			/* size (0 = byte, 1 = short, 2 = long) */
-	 32,			/* bitsize */
-	 FALSE,			/* pc_relative */
-	 0,			/* bitpos */
-	 complain_overflow_dont,/* complain_on_overflow */
-	 NULL, 			/* special handler.  */
-	 "R_MICROMIPS_NORELAX",	/* name */
-	 FALSE,			/* partial_inplace */
-	 0,			/* src_mask */
-	 0,			/* dst_mask */
-	 FALSE)			/* pcrel_offset */
 };
 
 /* GNU extension to record C++ vtable hierarchy */
@@ -3618,14 +3497,6 @@ static const struct elf_reloc_map micromips_reloc_map[] =
   { BFD_RELOC_MICROMIPS_CALL_LO16, R_MICROMIPS_CALL_LO16 - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_SCN_DISP, R_MICROMIPS_SCN_DISP - R_MICROMIPS_min },
   { BFD_RELOC_MICROMIPS_JALR, R_MICROMIPS_JALR - R_MICROMIPS_min },
-  { BFD_RELOC_MICROMIPS_ALIGN, R_MICROMIPS_ALIGN - R_MICROMIPS_min },
-  { BFD_RELOC_MICROMIPS_FILL, R_MICROMIPS_FILL - R_MICROMIPS_min },
-  { BFD_RELOC_MICROMIPS_MAX, R_MICROMIPS_MAX - R_MICROMIPS_min },
-  { BFD_RELOC_MICROMIPS_INSN32, R_MICROMIPS_INSN32 - R_MICROMIPS_min },
-  { BFD_RELOC_MICROMIPS_INSN16, R_MICROMIPS_INSN16 - R_MICROMIPS_min },
-  { BFD_RELOC_MICROMIPS_FIXED, R_MICROMIPS_FIXED - R_MICROMIPS_min },
-  { BFD_RELOC_MICROMIPS_RELAX, R_MICROMIPS_RELAX - R_MICROMIPS_min },
-  { BFD_RELOC_MICROMIPS_NORELAX, R_MICROMIPS_NORELAX - R_MICROMIPS_min },
 };
 
 /* Given a BFD reloc type, return a howto structure.  */

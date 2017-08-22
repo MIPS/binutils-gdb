@@ -119,45 +119,42 @@ END_RELOC_NUMBERS (R_NANOMIPS_maxext)
 
 /* Processor specific flags for the ELF header e_flags field.  */
 
+/* File may be relaxed by the linker.  */
+#define EF_NANOMIPS_LINKRELAX	0x00000001
+
 /* File contains position independent code.  */
 #define EF_NANOMIPS_PIC		0x00000002
 
 /* Indicates code compiled for a 64-bit machine in 32-bit mode
    (regs are 32-bits wide).  */
-#define EF_NANOMIPS_32BITMODE	0x00000100
-
-/* 32-bit machine but FP registers are 64 bit (-mfp64).  */
-#define EF_NANOMIPS_FP64		0x00000200
-
-/* Code in file uses the IEEE 754-2008 NaN encoding convention.  */
-#define EF_NANOMIPS_NAN2008		0x00000400
+#define EF_NANOMIPS_32BITMODE	0x00000004
 
 /* Architectural Extensions used by this file */
 #define EF_NANOMIPS_ARCH_ASE	0x0f000000
 
 /* Four bit MIPS architecture field.  */
-#define EF_NANOMIPS_ARCH		0xf0000000
+#define EF_NANOMIPS_ARCH	0xf0000000
 
 /* -mnanomips32r6 code.  */
-#define E_NANOMIPS_ARCH_32R6        0xb0000000
+#define E_NANOMIPS_ARCH_32R6    0x00000000
 
 /* -mnanomips64r6 code.  */
-#define E_NANOMIPS_ARCH_64R6        0xc0000000
+#define E_NANOMIPS_ARCH_64R6    0x10000000
 
 /* The ABI of the file.  Also see EF_NANOMIPS_ABI2 above. */
 #define EF_NANOMIPS_ABI		0x0000F000
 
 /* nanoMIPS ABI in 32 bit mode */
-#define E_NANOMIPS_ABI_P32       0x00005000
+#define E_NANOMIPS_ABI_P32      0x00001000
 
 /* nanoMIPS ABI in 64 bit mode */
-#define E_NANOMIPS_ABI_P64       0x00006000
+#define E_NANOMIPS_ABI_P64      0x00002000
 
 /* Machine variant if we know it.  This field was invented at Cygnus,
    but it is hoped that other vendors will adopt it.  If some standard
    is developed, this code should be changed to follow it. */
 
-#define EF_NANOMIPS_MACH		0x00FF0000
+#define EF_NANOMIPS_MACH	0x00FF0000
 
 /* Cygnus is choosing values between 80 and 9F;
    00 - 7F should be left for a future standard;
@@ -166,60 +163,19 @@ END_RELOC_NUMBERS (R_NANOMIPS_maxext)
 
 /* Processor specific section types.  */
 
-/* Section contains the global pointer table.  */
-#define SHT_NANOMIPS_GPTAB		0x70000003
-
-/* Section contains register usage information.  */
-#define SHT_NANOMIPS_REGINFO	0x70000006
-/* Section contains miscellaneous options.  */
-#define SHT_NANOMIPS_OPTIONS	0x7000000d
-
-/* DWARF debugging section.  */
-#define SHT_NANOMIPS_DWARF		0x7000001e
-
 /* ABI related flags section.  */
-#define SHT_NANOMIPS_ABIFLAGS	0x7000002a
-
-/* Processor specific section flags.  */
-
-/* This section must be in the global data area.  */
-#define SHF_NANOMIPS_GPREL		0x10000000
-
-/* This section contains address data of size implied by section
-   element size.  */
-#define SHF_NANOMIPS_ADDR		0x40000000
-
-/* This section may not be stripped.  */
-#define SHF_NANOMIPS_NOSTRIP	0x08000000
+#define SHT_NANOMIPS_ABIFLAGS	0x70000000
 
 
 /* Processor specific program header types.  */
 
-/* .MIPS.options section.  */
-#define PT_NANOMIPS_OPTIONS		0x70000002
-
 /* Records ABI related flags.  */
-#define PT_NANOMIPS_ABIFLAGS	0x70000003
+#define PT_NANOMIPS_ABIFLAGS	0x70000000
 
 /* Processor specific dynamic array tags.  */
 
-/* Time stamp.  */
-#define DT_NANOMIPS_TIME_STAMP	0x70000002
-
-/* Number of local global offset table entries.  */
-#define DT_NANOMIPS_LOCAL_GOTNO	0x7000000a
-
-/* Number of entries in the .dynsym section.  */
-#define DT_NANOMIPS_SYMTABNO	0x70000011
-
-/* Index of first dynamic symbol in global offset table.  */
-#define DT_NANOMIPS_GOTSYM		0x70000013
-
-/* Address of `.MIPS.options'.  */
-#define DT_NANOMIPS_OPTIONS		0x70000029
-
-/* Address of the base of the PLTGOT.  */
-#define DT_NANOMIPS_PLTGOT         0x70000032
+/* Number of entries in global offset table.  */
+#define DT_NANOMIPS_GOTNO		0x70000001
 
 
 /* The 64-bit MIPS ELF ABI uses an unusual reloc format.  Each
@@ -265,25 +221,34 @@ enum
   /* Using soft-float.  */
   Val_GNU_NANOMIPS_ABI_FP_SOFT = 3,
 
-  /* Using -mips32r2 -mfp64.  */
-  Val_GNU_NANOMIPS_ABI_FP_OLD_64 = 4,
-
-  /* Using -mfpxx */
-  Val_GNU_NANOMIPS_ABI_FP_XX = 5,
-
-  /* Using -mips32r2 -mfp64.  */
-  Val_GNU_NANOMIPS_ABI_FP_64 = 6,
-
-  /* Using -mips32r2 -mfp64 -mno-odd-spreg.  */
-  Val_GNU_NANOMIPS_ABI_FP_64A = 7,
-
-  /* Values defined for Tag_GNU_NANOMIPS_ABI_MSA.  */
-
   /* Not tagged or not using any ABIs affected by the differences.  */
   Val_GNU_NANOMIPS_ABI_MSA_ANY = 0,
 
   /* Using 128-bit MSA.  */
   Val_GNU_NANOMIPS_ABI_MSA_128 = 1,
 };
+
+/* Masks for the ases word of an ABI flags structure.  */
+
+#define NANOMIPS_ASE_TLB          0x00000001 /* TLB control ASE.  */
+#define NANOMIPS_ASE_UNUSED1      0x00000002 /* was DSP R2 ASE.  */
+#define NANOMIPS_ASE_EVA          0x00000004 /* Enhanced VA Scheme.  */
+#define NANOMIPS_ASE_MCU          0x00000008 /* MCU (MicroController) ASE.  */
+#define NANOMIPS_ASE_UNUSED2      0x00000010 /* was MDMX ASE.  */
+#define NANOMIPS_ASE_UNUSED3      0x00000020 /* was MIPS-3D ASE.  */
+#define NANOMIPS_ASE_MT           0x00000040 /* MT ASE.  */
+#define NANOMIPS_ASE_UNUSED4      0x00000080 /* was SmartMIPS ASE.  */
+#define NANOMIPS_ASE_VIRT         0x00000100 /* VZ ASE.  */
+#define NANOMIPS_ASE_MSA          0x00000200 /* MSA ASE.  */
+#define NANOMIPS_ASE_RESERVED1    0x00000400 /* was MIPS16 ASE.  */
+#define NANOMIPS_ASE_RESERVED2    0x00000800 /* was MICROMIPS ASE.  */
+#define NANOMIPS_ASE_XPA          0x00001000 /* XPA ASE.  */
+#define NANOMIPS_ASE_DSPR3        0x00002000 /* DSP R3 ASE.  */
+#define NANOMIPS_ASE_UNUSED5      0x00004000 /* was MIPS16 E2 Extension.  */
+#define NANOMIPS_ASE_CRC	  0x00008000 /* CRC extension.  */
+#define NANOMIPS_ASE_CRYPTO	  0x00010000 /* CRYPTO extension.  */
+#define NANOMIPS_ASE_GINV         0x00020000 /* GINV ASE.  */
+#define NANOMIPS_ASE_xNMS         0x00040000 /* not nanoMIPS Subset.  */
+#define NANOMIPS_ASE_MASK         0x0007ffff /* All ASEs.  */
 
 #endif /* _ELF_NANOMIPS_H */

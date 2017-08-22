@@ -230,7 +230,6 @@ test_eva:
 	lwe	$29,2147483647
 	lwe	$30,($31)
 	lwe	$0,MYDATA
-	.ifndef nanomips
 	.ifndef r6
 	lwle	$2,-256($3)
 	lwle	$4,-256
@@ -308,7 +307,6 @@ test_eva:
 	lwre	$19,2147483647
 	lwre	$20,($21)
 	lwre	$22,MYDATA
-	.endif
 	.endif
 	sbe	$23,-256($24)
 	sbe	$25,-256
@@ -462,7 +460,6 @@ test_eva:
 	swe	$30,2147483647
 	swe	$31,($0)
 	swe	$2,MYDATA
-	.ifndef nanomips
 	.ifndef r6
 	swle	$3,-256($4)
 	swle	$5,-256
@@ -540,7 +537,6 @@ test_eva:
 	swre	$20,2147483647
 	swre	$21,($22)
 	swre	$23,MYDATA
-	.endif
 	.endif
 	cachee	24,-256($25)
 	cachee	26,-256

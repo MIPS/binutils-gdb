@@ -108,7 +108,7 @@
   { \
     typedef char ATTRIBUTE_UNUSED \
       static_assert[(1 << (SIZE)) == ARRAY_SIZE (MAP)]; \
-    static const struct mips_mapped_check_prev_operand op = { \
+    static const struct nanomips_mapped_check_prev_operand op = { \
       { OP_MAPPED_CHECK_PREV, SIZE, LSB, 0, 0 }, OP_REG_##BANK, MAP, \
       GT_OK, LT_OK, EQ_OK, ZERO_OK \
     }; \
@@ -117,7 +117,7 @@
 
 #define BASE_OFFSET_CHECK(SIZE, LSB, CONST_OK, EXPR_OK) \
   { \
-    static const struct mips_base_check_offset_operand op = { \
+    static const struct nanomips_base_check_offset_operand op = { \
       { OP_BASE_CHECK_OFFSET, SIZE, LSB, 0, 0 }, OP_REG_GP, \
       CONST_OK, EXPR_OK					    \
     }; \

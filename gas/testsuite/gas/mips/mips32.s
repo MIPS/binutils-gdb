@@ -22,9 +22,8 @@ text_label:
       pref    4, 2047($17)
       pref    4, -2048($18)
 	.endif
-	.ifndef nanomips
       ssnop
-	.endif
+
 
       # privileged instructions
 
@@ -55,9 +54,7 @@ text_label:
       break
       break   0                       # disassembles without code
       break   0x345
-	.ifndef nanomips
       break   0x48,0x345              # this still specifies a 20-bit code
-	.endif
 
       # Instructions in previous ISAs or CPUs which are now slightly
       # different.

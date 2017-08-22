@@ -4,7 +4,7 @@
 
 Attribute Section: gnu
 File Attributes
-  Tag_GNU_NANOMIPS_ABI_FP: Hard float \(32-bit CPU, 64-bit FPU\)
+  Tag_GNU_NANOMIPS_ABI_FP: Hard float \(double precision\)
   Tag_GNU_NANOMIPS_ABI_MSA: 128-bit MSA
 
 #...

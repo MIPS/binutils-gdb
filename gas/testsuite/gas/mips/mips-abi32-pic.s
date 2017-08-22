@@ -113,10 +113,8 @@ func:
 	li.d	$f0, 1.0	# 017c lui	at,0x3ff0
 				# 0180 mtc1	at,$f1
 				# 0184 mtc1	zero,$f0
-	.ifndef nanomips_broken 	# need to generate NewABI GOT relocs
 	li.d	$f0, 1.9	# 0188 lw	at,got(.rodata)(gp)
 				# 018c ldc1	$f0,lo(L1.9)(at)
-	.endif
 	seq	$4, $5, -100	# 0190 addiu	a0,a1,100
 				# 0194 sltiu	a0,a0,1
 	sne	$4, $5, -100	# 0198 addiu	a0,a1,100

@@ -1,6 +1,6 @@
 #name: Relaxation relocations on nanoMIPS
 #PROG: readelf
-#readelf: -Wr -Ws -A
+#readelf: -Wr -Ws
 #as: --defsym relaxmode=1
 #source: linkrelax.s
 
@@ -81,4 +81,3 @@ Symbol table '.symtab' contains [0-9]+ entries:
     [0-9]+: 00000004    12 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_14
     [0-9]+: 4321dcba     4 NOTYPE  LOCAL  DEFAULT  ABS __reloc_fill_\^B_4321dcba
 #...
-FLAGS 2: 00000002

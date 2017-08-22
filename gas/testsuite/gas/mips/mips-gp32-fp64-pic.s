@@ -112,10 +112,8 @@ func:
 				# 0178 lw	a1,lo(F1.9)+4(at)
 	li.d	$f0, 1.0	# 017c lw	at,got(.rodata)(gp)
 				# 0180 ldc1	$f0,lo(L1.0)(at)
-	.ifndef nanomips_broken
 	li.d	$f0, 1.9	# 0184 lw	at,got(.rodata)(gp)
 				# 0188 ldc1	$f0,lo(L1.9)(at)
-	.endif
 	seq	$4, $5, -100	# 018c addiu	a0,a1,100
 				# 0190 sltiu	a0,a0,1
 	sne	$4, $5, -100	# 0194 addiu	a0,a1,100

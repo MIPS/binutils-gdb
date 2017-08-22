@@ -19,8 +19,9 @@
    Software Foundation, 51 Franklin Street - Fifth Floor, Boston, MA
    02110-1301, USA.  */
 
-#ifndef TC_MIPS
+#ifndef TC_NANOMIPS
 #define TC_MIPS
+#define TC_NANOMIPS
 
 struct frag;
 struct expressionS;
@@ -38,12 +39,12 @@ struct expressionS;
 #define MAX_RELOC_EXPANSION 3
 #define LOCAL_LABELS_FB 1
 
-#define TC_ADDRESS_BYTES mips_address_bytes
-extern int mips_address_bytes (void);
+#define TC_ADDRESS_BYTES nanomips_address_bytes
+extern int nanomips_address_bytes (void);
 
 #define md_relax_frag(segment, fragp, stretch) \
-  mips_relax_frag(segment, fragp, stretch)
-extern int mips_relax_frag (asection *, struct frag *, long);
+  nanomips_relax_frag(segment, fragp, stretch)
+extern int nanomips_relax_frag (asection *, struct frag *, long);
 
 #define md_undefined_symbol(name)	(0)
 #define md_operand(x)
@@ -51,8 +52,8 @@ extern int mips_relax_frag (asection *, struct frag *, long);
 extern char nanomips_nop_opcode (void);
 #define NOP_OPCODE (nanomips_nop_opcode ())
 
-extern void mips_handle_align (struct frag *);
-#define HANDLE_ALIGN(fragp)  mips_handle_align (fragp)
+extern void nanomips_handle_align (struct frag *);
+#define HANDLE_ALIGN(fragp)  nanomips_handle_align (fragp)
 
 #define MAX_MEM_FOR_RS_ALIGN_CODE  (3 + 4)
 
@@ -68,52 +69,38 @@ struct nanomips_segment_info {
 
 /* The endianness of the target format may change based on command
    line arguments.  */
-#define TARGET_FORMAT mips_target_format()
-extern const char *mips_target_format (void);
+#define TARGET_FORMAT nanomips_target_format()
+extern const char *nanomips_target_format (void);
 
-/* MIPS PIC level.  */
+/* nanoMIPS PIC level.  */
 
-enum mips_pic_level
+enum nanomips_pic_level
 {
   /* Do not generate PIC code.  */
   NO_PIC,
 
-  /* Generate PIC code as in the SVR4 MIPS ABI.  */
+  /* Generate PIC code as in the nanoMIPS ABI.  */
   SVR4_PIC,
-
-  /* VxWorks's PIC model.  */
-  VXWORKS_PIC
 };
 
-extern enum mips_pic_level mips_pic;
+extern enum nanomips_pic_level nanomips_pic;
 
 extern int tc_get_register (int frame);
 
-#define md_after_parse_args() mips_after_parse_args()
-extern void mips_after_parse_args (void);
+#define md_after_parse_args() nanomips_after_parse_args()
+extern void nanomips_after_parse_args (void);
 
-#define tc_init_after_args() mips_init_after_args()
-extern void mips_init_after_args (void);
+#define tc_frob_label(sym) nanomips_define_label (sym)
+extern void nanomips_define_label (symbolS *);
 
-#define md_parse_long_option(arg) mips_parse_long_option (arg)
-extern int mips_parse_long_option (const char *);
+#define tc_new_dot_label(sym) nanomips_add_dot_label (sym)
+extern void nanomips_add_dot_label (symbolS *);
 
-#define tc_frob_label(sym) mips_define_label (sym)
-extern void mips_define_label (symbolS *);
+#define tc_frob_file_before_adjust() nanomips_frob_file_before_adjust ()
+extern void nanomips_frob_file_before_adjust (void);
 
-#define tc_new_dot_label(sym) mips_add_dot_label (sym)
-extern void mips_add_dot_label (symbolS *);
-
-#define tc_frob_file_before_adjust() mips_frob_file_before_adjust ()
-extern void mips_frob_file_before_adjust (void);
-
-#if defined (OBJ_ELF) || defined (OBJ_MAYBE_ELF)
-#define tc_frob_file_after_relocs mips_frob_file_after_relocs
-extern void mips_frob_file_after_relocs (void);
-#endif
-
-#define tc_fix_adjustable(fixp) mips_fix_adjustable (fixp)
-extern int mips_fix_adjustable (struct fix *);
+#define tc_fix_adjustable(fixp) nanomips_fix_adjustable (fixp)
+extern int nanomips_fix_adjustable (struct fix *);
 
 /* Values passed to md_apply_fix don't include symbol values.  */
 #define MD_APPLY_SYM_VALUE(FIX) 0
@@ -122,47 +109,43 @@ extern int mips_fix_adjustable (struct fix *);
 #define EXTERN_FORCE_RELOC			\
   (OUTPUT_FLAVOR == bfd_target_elf_flavour)
 
-#define TC_FORCE_RELOCATION(FIX) mips_force_relocation (FIX)
-extern int mips_force_relocation (struct fix *);
+#define TC_FORCE_RELOCATION(FIX) nanomips_force_relocation (FIX)
+extern int nanomips_force_relocation (struct fix *);
 
 #define TC_FORCE_RELOCATION_SUB_SAME(FIX, SEG) \
-  (! SEG_NORMAL (SEG) || mips_force_relocation (FIX))
+  (! SEG_NORMAL (SEG) || nanomips_force_relocation (FIX))
 
-/* Register mask variables.  These are set by the MIPS assembly code
-   and used by ECOFF and possibly other object file formats.  */
-extern unsigned long mips_gprmask;
-extern unsigned long mips_cprmask[4];
 
 #if defined (OBJ_ELF) || defined (OBJ_MAYBE_ELF)
 
-#define elf_tc_final_processing mips_elf_final_processing
-extern void mips_elf_final_processing (void);
+#define elf_tc_final_processing nanomips_elf_final_processing
+extern void nanomips_elf_final_processing (void);
 
 #endif
 
-extern void md_mips_end (void);
-#define md_end()	md_mips_end()
+extern void md_nanomips_end (void);
+#define md_end()	md_nanomips_end()
 
-extern void mips_pop_insert (void);
-#define md_pop_insert()		mips_pop_insert()
+extern void nanomips_pop_insert (void);
+#define md_pop_insert()		nanomips_pop_insert()
 
-extern void mips_emit_delays (void);
-#define md_flush_pending_output mips_emit_delays
+extern void nanomips_flush_pending_output (void);
+#define md_flush_pending_output nanomips_flush_pending_output
 
-extern void mips_enable_auto_align (void);
-#define md_elf_section_change_hook()	mips_enable_auto_align()
+extern void nanomips_enable_auto_align (void);
+#define md_elf_section_change_hook()	nanomips_enable_auto_align()
 
-extern int mips_dwarf2_addr_size (void);
-#define DWARF2_ADDR_SIZE(bfd) mips_dwarf2_addr_size ()
-#define DWARF2_FDE_RELOC_SIZE mips_dwarf2_addr_size ()
+extern int nanomips_dwarf2_addr_size (void);
+#define DWARF2_ADDR_SIZE(bfd) nanomips_dwarf2_addr_size ()
+#define DWARF2_FDE_RELOC_SIZE nanomips_dwarf2_addr_size ()
 
 #define TARGET_USE_CFIPOP 1
 
-#define tc_cfi_frame_initial_instructions mips_cfi_frame_initial_instructions
-extern void mips_cfi_frame_initial_instructions (void);
+#define tc_cfi_frame_initial_instructions nanomips_cfi_frame_initial_instructions
+extern void nanomips_cfi_frame_initial_instructions (void);
 
-#define tc_regname_to_dw2regnum tc_mips_regname_to_dw2regnum
-extern int tc_mips_regname_to_dw2regnum (char *regname);
+#define tc_regname_to_dw2regnum tc_nanomips_regname_to_dw2regnum
+extern int tc_nanomips_regname_to_dw2regnum (char *regname);
 
 #define DWARF2_DEFAULT_RETURN_COLUMN 31
 #define DWARF2_CIE_DATA_ALIGNMENT (-4)
@@ -172,8 +155,8 @@ extern int tc_mips_regname_to_dw2regnum (char *regname);
    64-bit form for n64 CFIs.  */
 #define CFI_DIFF_EXPR_OK linkrelax
 
-#define CONVERT_SYMBOLIC_ATTRIBUTE(name) mips_convert_symbolic_attribute (name)
-extern int mips_convert_symbolic_attribute (const char *);
+#define CONVERT_SYMBOLIC_ATTRIBUTE(name) nanomips_convert_symbolic_attribute (name)
+extern int nanomips_convert_symbolic_attribute (const char *);
 
 /* Definitions needed to parse cons in target-specific manner.  */
 #define TC_PARSE_CONS_RETURN_TYPE bfd_reloc_code_real_type
@@ -182,30 +165,30 @@ extern int mips_convert_symbolic_attribute (const char *);
 /* Parse a cons expression to determined what kind of relocations
    may be needed to represent it.  */
 extern bfd_reloc_code_real_type
-mips_parse_cons_expression (struct expressionS *, unsigned);
+nanomips_parse_cons_expression (struct expressionS *, unsigned);
 #define TC_PARSE_CONS_EXPRESSION(EXP, NBYTES) \
-  mips_parse_cons_expression (EXP, NBYTES)
+  nanomips_parse_cons_expression (EXP, NBYTES)
 
 /* Walk a cons expression tree and create the relocations needed
    to represent the operation.  */
-extern void mips_cons_fix_new (struct frag *, int, int, struct expressionS *,
+extern void nanomips_cons_fix_new (struct frag *, int, int, struct expressionS *,
 			       const bfd_reloc_code_real_type);
 #define TC_CONS_FIX_NEW(FRAG, WHERE, NBYTES, EXP, RELOC)	\
-  mips_cons_fix_new (FRAG, WHERE, NBYTES, EXP, RELOC)
+  nanomips_cons_fix_new (FRAG, WHERE, NBYTES, EXP, RELOC)
 
 /* Determine what kind of difference expressions must be
    evaluated by assembler.  */
-extern bfd_boolean mips_allow_local_subtract (expressionS *, expressionS *,
+extern bfd_boolean nanomips_allow_local_subtract (expressionS *, expressionS *,
 					      segT);
 #define md_allow_local_subtract(lhs,rhs,sect)	\
-  mips_allow_local_subtract (lhs, rhs, sect)
+  nanomips_allow_local_subtract (lhs, rhs, sect)
 
 /* We don't need a complicated data structure, a simple struct pointer
    will do for now.  */
 #define TC_FRAG_TYPE struct fix *
 
-extern void mips_md_do_align (int, const char *, int, int);
-#define md_do_align(n,f,l,m,j)		mips_md_do_align (n,f,l,m)
+extern void nanomips_md_do_align (int, const char *, int, int);
+#define md_do_align(n,f,l,m,j)		nanomips_md_do_align (n,f,l,m)
 
 /* If defined, this macro allows control over whether fixups for a
    given section will be processed when the linkrelax variable is
@@ -215,9 +198,9 @@ extern void mips_md_do_align (int, const char *, int, int);
 /* This macro is evaluated for any fixup with a fx_subsy that
    fixup_segment cannot reduce to a number.  If the macro returns
    false an error will be reported. */
-#define TC_VALIDATE_FIX_SUB(fix, seg)   mips_validate_fix_sub (fix)
-extern int mips_validate_fix_sub (struct fix *);
+#define TC_VALIDATE_FIX_SUB(fix, seg)   nanomips_validate_fix_sub (fix)
+extern int nanomips_validate_fix_sub (struct fix *);
 
 #define LEX_BR LEX_NAME
 
-#endif /* TC_MIPS */
+#endif /* TC_NANOMIPS */
