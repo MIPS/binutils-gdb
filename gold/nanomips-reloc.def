@@ -74,6 +74,7 @@ NRD(FIXED,              PLACEHOLDER,        0,         0,          0,           
 NRD(NORELAX,            PLACEHOLDER,        0,         0,          0,                 0)
 NRD(RELAX,              PLACEHOLDER,        0,         0,          0,                 0)
 NRD(INSN16,             PLACEHOLDER,        0,         0,          0,                 0)
+NRD(JALR,               PLACEHOLDER,        0,         0,          0,                 0)
 
 // NIE - Nanomips instruction expansion
 // NIR - Nanomips instruction relaxation
