@@ -54,7 +54,7 @@
 	.endif
 # If defined, test sw instead.
 	.ifdef	tsw
-	.macro	sd ops:vararg
+	.macro	ld ops:vararg
 	sw	\ops
 	.endm
 	.endif

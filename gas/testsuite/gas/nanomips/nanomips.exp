@@ -536,6 +536,14 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "ldc1-forward" [arch_list_matching nanomipsr6]
     run_dump_test_arches "sdc1"		[arch_list_matching nanomipsr6]
     run_dump_test_arches "sdc1-forward" [arch_list_matching nanomipsr6]
+    run_dump_test_arches "lw"		[arch_list_matching nanomipsr6 !nmips64_broken]
+    run_dump_test_arches "sw"		[arch_list_matching nanomipsr6 !nmips64_broken]
+    run_dump_test_arch "lw-pcrel"	"" nanomips32r6
+    run_dump_test_arch "sw-pcrel"	"" nanomips32r6
+    run_dump_test_arch "lw-pcrel"	"" nanomips32s
+    run_dump_test_arch "sw-pcrel"	"" nanomips32s
+    run_dump_test_arch "ld-pcrel"	"" nanomips32r6
+    run_dump_test_arch "sd-pcrel"	"" nanomips32r6
 
     if $has_newabi {
 	run_dump_test_arches "ld-n64"	[arch_list_matching gpr64 !nmips64_broken]
