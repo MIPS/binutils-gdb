@@ -990,4 +990,6 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "ginv-virt-dis" "" [arch_list_matching nanomipsr6]
     run_list_test "ginv-error" ""
     run_list_test "ginv-virt-error" "-mginv -mlegacyregs"
+
+    run_dump_test_arch "linkrelax-dis" "" nanomips32
 }

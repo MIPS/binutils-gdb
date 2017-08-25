@@ -3256,6 +3256,26 @@ limited_pcrel_reloc_p (bfd_reloc_code_real_type reloc)
     }
 }
 
+/* Return true if RELOC is a place-holder for linker relaxation and
+   not associated with a particular instruction.  */
+
+static inline bfd_boolean
+linkrelax_reloc_p (bfd_reloc_code_real_type reloc)
+{
+  switch (reloc)
+    {
+    case BFD_RELOC_NANOMIPS_ALIGN:
+    case BFD_RELOC_NANOMIPS_FILL:
+    case BFD_RELOC_NANOMIPS_MAX:
+    case BFD_RELOC_NANOMIPS_FIXED:
+    case BFD_RELOC_NANOMIPS_RELAX:
+    case BFD_RELOC_NANOMIPS_NORELAX:
+      return TRUE;
+    default:
+      return FALSE;
+    }
+}
+
 /* Return the type of %lo() reloc needed by RELOC, given that
    reloc_needs_lo_p.  */
 
@@ -12617,7 +12637,7 @@ nanomips_fix_adjustable (fixS *fixp)
 arelent **
 tc_gen_reloc (asection *section ATTRIBUTE_UNUSED, fixS *fixp)
 {
-  static arelent *retval[4];
+  static arelent *retval[MAX_RELOC_EXPANSION+1];
   arelent *reloc;
   bfd_reloc_code_real_type code;
 
@@ -12652,14 +12672,6 @@ tc_gen_reloc (asection *section ATTRIBUTE_UNUSED, fixS *fixp)
   else
     reloc->addend = fixp->fx_addnumber;
 
-  /* Since the old MIPS ELF ABI uses Rel instead of Rela, encode the vtable
-     entry to be used in the relocation's section offset.  */
-  if (fixp->fx_r_type == BFD_RELOC_VTABLE_ENTRY)
-    {
-      reloc->address = reloc->addend;
-      reloc->addend = 0;
-    }
-
   code = fixp->fx_r_type;
 
   reloc->howto = bfd_reloc_type_lookup (stdoutput, code);
@@ -12683,6 +12695,39 @@ tc_gen_reloc (asection *section ATTRIBUTE_UNUSED, fixS *fixp)
       *reloc->sym_ptr_ptr = symbol_get_bfdsym (fixp->fx_subsy);
       reloc->address = fixp->fx_frag->fr_address + fixp->fx_where;
       reloc->howto = bfd_reloc_type_lookup (stdoutput, BFD_RELOC_NANOMIPS_NEG);
+    }
+  else if (linkrelax_reloc_p (fixp->fx_r_type))
+    {
+      /* For a place-holder relocation, we want any succeeding PC-relative
+	 relocation at the same offset to be generated first, so that its
+	 PC-relative address calculation is disassembled correctly.  */
+      fixS *fixp_iter = fixp;
+
+      while (fixp_iter->fx_next != NULL)
+	{
+	  /* Search ahead for PC-relative relocations at same offset.  */
+	  fixp_iter = fixp_iter->fx_next;
+	  if (!linkrelax_reloc_p (fixp_iter->fx_r_type)
+	      && (fixp_iter->fx_frag->fr_address + fixp_iter->fx_where >
+		  fixp->fx_frag->fr_address + fixp->fx_where))
+	    break;
+
+	  if (fixp_iter->fx_pcrel && !fixp_iter->fx_done)
+	    {
+	      /* Relocation found, generate it before the place-holder
+		 reloc and mark it as done.  */
+	      retval[1] = reloc;
+	      reloc = retval[0] = (arelent *) xcalloc (1, sizeof (arelent));
+	      reloc->sym_ptr_ptr = (asymbol **) xmalloc (sizeof (asymbol *));
+	      *reloc->sym_ptr_ptr = symbol_get_bfdsym (fixp_iter->fx_addsy);
+	      reloc->address = fixp_iter->fx_frag->fr_address + fixp_iter->fx_where;
+	      reloc->addend = fixp_iter->fx_addnumber + reloc->address;
+	      reloc->howto = bfd_reloc_type_lookup (stdoutput, fixp_iter->fx_r_type);
+
+	      fixp_iter->fx_done = TRUE;
+	      break;
+	    }
+	}
     }
 
   return retval;

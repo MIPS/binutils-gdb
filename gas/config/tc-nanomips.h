@@ -36,7 +36,7 @@ struct expressionS;
 #define WORKING_DOT_WORD	1
 #define OLD_FLOAT_READS
 #define RELOC_EXPANSION_POSSIBLE
-#define MAX_RELOC_EXPANSION 3
+#define MAX_RELOC_EXPANSION 2
 #define LOCAL_LABELS_FB 1
 
 #define TC_ADDRESS_BYTES nanomips_address_bytes
