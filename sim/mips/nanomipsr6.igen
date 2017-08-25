@@ -1260,13 +1260,20 @@
   do_addu (SD_, RS, RT, RD);
 }
 
-001000,5.RT,5.RS,5.RD,5.IMMEDIATE,011,111:R7POOL32A0:32::ALIGN
-"align r<RD>, r<RS>, r<RT>, <IMMEDIATE>"
+001000,5.RT,5.RS,5.RD,5.IMMEDIATE,011,111:R7POOL32A0:32::EXTW
+"prepend r<RT>, r<RS>, <IMMEDIATE>": RD == RS
+"align r<RD>, r<RS>, r<RT>, <IMMEDIATE>": IMMEDIATE != 0
+"extw r<RD>, r<RS>, r<RT>, <IMMEDIATE>"
 *nanomips32r6:
 *nanomips64r6:
 {
-  if (IMMEDIATE != 0) {
-    unsigned64 tmp = (GPR[RT] << 32) | zero_extend (SD_, GPR[RS], 32);
+  if (RD == RS) {
+    unsigned64 tmp = (((unsigned64)GPR[RT] << 32) | GPR[RS]);
+    TRACE_ALU_INPUT4 (GPR[RD], GPR[RS], GPR[RT], tmp);
+    GPR[RD] = EXTEND32 (tmp >> IMMEDIATE);
+    TRACE_ALU_RESULT (GPR[RD]);
+  } else if (IMMEDIATE != 0) {
+    unsigned64 tmp = ((unsigned64)GPR[RT] << 32) | (0xffffffff & GPR[RS]);
     TRACE_ALU_INPUT4 (GPR[RD], GPR[RS], GPR[RT], tmp);
     GPR[RD] = EXTEND32 (tmp >> IMMEDIATE);
     TRACE_ALU_RESULT (GPR[RD]);
