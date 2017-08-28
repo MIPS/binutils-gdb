@@ -30,22 +30,17 @@
 #include "elf/mips-common.h"
 #include "elf/nanomips.h"
 
-#define is_mips_elf(bfd)				\
-  (bfd_get_flavour (bfd) == bfd_target_elf_flavour	\
-   && elf_tdata (bfd) != NULL				\
-   && elf_object_id (bfd) == MIPS_ELF_DATA)
-
 /* MIPS ELF private object data.  */
 
-struct mips_elf_obj_tdata
+struct nanomips_elf_obj_tdata
 {
   /* Generic ELF private object data.  */
   struct elf_obj_tdata root;
 
-  /* Input BFD providing Tag_GNU_MIPS_ABI_FP attribute for output.  */
+  /* Input BFD providing Tag_GNU_NANOMIPS_ABI_FP attribute for output.  */
   bfd *abi_fp_bfd;
 
-  /* Input BFD providing Tag_GNU_MIPS_ABI_MSA attribute for output.  */
+  /* Input BFD providing Tag_GNU_NANOMIPS_ABI_MSA attribute for output.  */
   bfd *abi_msa_bfd;
 
   /* The abiflags for this object.  */
@@ -57,23 +52,24 @@ struct mips_elf_obj_tdata
 
 /* Get MIPS ELF private object data from BFD's tdata.  */
 
-#define mips_elf_tdata(bfd) \
-  ((struct mips_elf_obj_tdata *) (bfd)->tdata.any)
+#define nanomips_elf_tdata(bfd) \
+  ((struct nanomips_elf_obj_tdata *) (bfd)->tdata.any)
 
 
 
-/* True if NAME is the recognized name of any SHT_MIPS_ABIFLAGS section.  */
-#define MIPS_ELF_ABIFLAGS_SECTION_NAME_P(NAME) \
-  (strcmp (NAME, ".MIPS.abiflags") == 0)
+/* True if NAME is the recognized name of any SHT_NANOMIPS_ABIFLAGS section.  */
+#define NANOMIPS_ELF_ABIFLAGS_SECTION_NAME_P(NAME) \
+  (strcmp (NAME, ".nanoMIPS.abiflags") == 0)
 
 
 /* Allocate MIPS ELF private object data.  */
 
 bfd_boolean
-_bfd_mips_elf_mkobject (bfd *abfd)
+_bfd_nanomips_elf_mkobject (bfd *abfd)
 {
-  return bfd_elf_allocate_object (abfd, sizeof (struct mips_elf_obj_tdata),
-				  MIPS_ELF_DATA);
+  return bfd_elf_allocate_object (abfd,
+				  sizeof (struct nanomips_elf_obj_tdata),
+				  NANOMIPS_ELF_DATA);
 }
 
 
@@ -83,7 +79,7 @@ _bfd_mips_elf_mkobject (bfd *abfd)
    bfd_perform_relocation and bfd_install_relocation.  */
 
 bfd_reloc_status_type
-_bfd_mips_elf_generic_reloc (bfd *abfd ATTRIBUTE_UNUSED, arelent *reloc_entry,
+_bfd_nanomips_elf_generic_reloc (bfd *abfd ATTRIBUTE_UNUSED, arelent *reloc_entry,
 			     asymbol *symbol, void *data ATTRIBUTE_UNUSED,
 			     asection *input_section, bfd *output_bfd,
 			     char **error_message ATTRIBUTE_UNUSED)
@@ -225,7 +221,7 @@ _bfd_elf_nanomips_mach (flagword flags)
 /* Return printable name for ABI.  */
 
 static INLINE char *
-elf_mips_abi_name (bfd *abfd)
+elf_nanomips_abi_name (bfd *abfd)
 {
   flagword flags;
 
@@ -250,7 +246,7 @@ elf_mips_abi_name (bfd *abfd)
    a better way.  */
 
 bfd_boolean
-_bfd_mips_elf_section_processing (bfd *abfd, Elf_Internal_Shdr *hdr)
+_bfd_nanomips_elf_section_processing (bfd *abfd, Elf_Internal_Shdr *hdr)
 {
   if (hdr->bfd_section != NULL)
     {
@@ -259,7 +255,7 @@ _bfd_mips_elf_section_processing (bfd *abfd, Elf_Internal_Shdr *hdr)
       /* .sbss is not handled specially here because the GNU/Linux
 	 prelinker can convert .sbss from NOBITS to PROGBITS and
 	 changing it back to NOBITS breaks the binary.  The entry in
-	 _bfd_mips_elf_special_sections will ensure the correct flags
+	 _bfd_nanomips_elf_special_sections will ensure the correct flags
 	 are set on .sbss if BFD creates it without reading it from an
 	 input file, and without special handling here the flags set
 	 on it in an input file will be followed.  */
@@ -305,7 +301,7 @@ _bfd_mips_elf_section_processing (bfd *abfd, Elf_Internal_Shdr *hdr)
    how to.  */
 
 bfd_boolean
-_bfd_mips_elf_section_from_shdr (bfd *abfd,
+_bfd_nanomips_elf_section_from_shdr (bfd *abfd,
 				 Elf_Internal_Shdr *hdr,
 				 const char *name,
 				 int shindex)
@@ -319,8 +315,8 @@ _bfd_mips_elf_section_from_shdr (bfd *abfd,
      probably get away with this.  */
   switch (hdr->sh_type)
     {
-    case SHT_MIPS_ABIFLAGS:
-      if (!MIPS_ELF_ABIFLAGS_SECTION_NAME_P (name))
+    case SHT_NANOMIPS_ABIFLAGS:
+      if (!NANOMIPS_ELF_ABIFLAGS_SECTION_NAME_P (name))
 	return FALSE;
       flags = (SEC_LINK_ONCE | SEC_LINK_DUPLICATES_SAME_SIZE);
       break;
@@ -340,7 +336,7 @@ _bfd_mips_elf_section_from_shdr (bfd *abfd,
 	return FALSE;
     }
 
-  if (hdr->sh_type == SHT_MIPS_ABIFLAGS)
+  if (hdr->sh_type == SHT_NANOMIPS_ABIFLAGS)
     {
       Elf_External_ABIFlags_v0 ext;
 
@@ -348,10 +344,10 @@ _bfd_mips_elf_section_from_shdr (bfd *abfd,
 				      &ext, 0, sizeof ext))
 	return FALSE;
       bfd_mips_elf_swap_abiflags_v0_in (abfd, &ext,
-					&mips_elf_tdata (abfd)->abiflags);
-      if (mips_elf_tdata (abfd)->abiflags.version != 0)
+					&nanomips_elf_tdata (abfd)->abiflags);
+      if (nanomips_elf_tdata (abfd)->abiflags.version != 0)
 	return FALSE;
-      mips_elf_tdata (abfd)->abiflags_valid = TRUE;
+      nanomips_elf_tdata (abfd)->abiflags_valid = TRUE;
     }
 
   return TRUE;
@@ -362,13 +358,14 @@ _bfd_mips_elf_section_from_shdr (bfd *abfd,
    used by both the 32-bit and the 64-bit ABI.  */
 
 bfd_boolean
-_bfd_mips_elf_fake_sections (bfd *abfd, Elf_Internal_Shdr *hdr, asection *sec)
+_bfd_nanomips_elf_fake_sections (bfd *abfd, Elf_Internal_Shdr *hdr,
+				 asection *sec)
 {
   const char *name = bfd_get_section_name (abfd, sec);
 
-  if (CONST_STRNEQ (name, ".MIPS.abiflags"))
+  if (CONST_STRNEQ (name, ".nanoMIPS.abiflags"))
     {
-      hdr->sh_type = SHT_MIPS_ABIFLAGS;
+      hdr->sh_type = SHT_NANOMIPS_ABIFLAGS;
       hdr->sh_entsize = sizeof (Elf_External_ABIFlags_v0);
     }
 
@@ -381,18 +378,6 @@ _bfd_mips_elf_fake_sections (bfd *abfd, Elf_Internal_Shdr *hdr, asection *sec)
   return TRUE;
 }
 
-/* Given a BFD section, try to locate the corresponding ELF section
-   index.  This is used by both the 32-bit and the 64-bit ABI.
-   Actually, it's not clear to me that the 64-bit ABI supports these,
-   but for non-PIC objects we will certainly want support for at least
-   the .scommon section.  */
-
-bfd_boolean
-_bfd_mips_elf_section_from_bfd_section (bfd *abfd ATTRIBUTE_UNUSED,
-					asection *sec, int *retval)
-{
-  return FALSE;
-}
 
 
 /* Functions for the dynamic linker.  */
@@ -427,8 +412,8 @@ nanomips_set_isa_flags (bfd *abfd)
    number.  This is used by both the 32-bit and the 64-bit ABI.  */
 
 void
-_bfd_mips_elf_final_write_processing (bfd *abfd,
-				      bfd_boolean linker ATTRIBUTE_UNUSED)
+_bfd_nanomips_elf_final_write_processing (bfd *abfd,
+					  bfd_boolean linker ATTRIBUTE_UNUSED)
 {
   nanomips_set_isa_flags (abfd);
 }
@@ -436,7 +421,7 @@ _bfd_mips_elf_final_write_processing (bfd *abfd,
 /* Update the isa_level, isa_rev, isa_ext fields of abiflags.  */
 
 static void
-update_mips_abiflags_isa (bfd *abfd, Elf_Internal_ABIFlags_v0 *abiflags)
+update_nanomips_abiflags_isa (bfd *abfd, Elf_Internal_ABIFlags_v0 *abiflags)
 {
   switch (elf_elfheader (abfd)->e_flags & EF_NANOMIPS_ARCH)
     {
@@ -467,12 +452,12 @@ mips_32bit_flags_p (flagword flags)
 /* Infer the content of the ABI flags based on the elf header.  */
 
 static void
-infer_mips_abiflags (bfd *abfd, Elf_Internal_ABIFlags_v0* abiflags)
+infer_nanomips_abiflags (bfd *abfd, Elf_Internal_ABIFlags_v0* abiflags)
 {
   obj_attribute *in_attr;
 
   memset (abiflags, 0, sizeof (Elf_Internal_ABIFlags_v0));
-  update_mips_abiflags_isa (abfd, abiflags);
+  update_nanomips_abiflags_isa (abfd, abiflags);
 
   if (mips_32bit_flags_p (elf_elfheader (abfd)->e_flags))
     abiflags->gpr_size = AFL_REG_32;
@@ -500,7 +485,7 @@ infer_mips_abiflags (bfd *abfd, Elf_Internal_ABIFlags_v0* abiflags)
    not known.  */
 
 const char *
-_bfd_mips_fp_abi_string (int fp)
+_bfd_nanomips_fp_abi_string (int fp)
 {
   switch (fp)
     {
@@ -561,7 +546,7 @@ print_nanomips_isa_ext (FILE *file, unsigned int isa_ext)
     }
 }
 static void
-print_mips_fp_abi_value (FILE *file, int val)
+print_nanomips_fp_abi_value (FILE *file, int val)
 {
   switch (val)
     {
@@ -584,7 +569,7 @@ print_mips_fp_abi_value (FILE *file, int val)
 }
 
 static int
-get_mips_reg_size (int reg_size)
+get_nanomips_reg_size (int reg_size)
 {
   return (reg_size == AFL_REG_NONE) ? 0
 	 : (reg_size == AFL_REG_32) ? 32
@@ -632,21 +617,21 @@ _bfd_nanomips_elf_print_private_bfd_data (bfd *abfd, void *ptr)
 
   fputc ('\n', file);
 
-  if (mips_elf_tdata (abfd)->abiflags_valid)
+  if (nanomips_elf_tdata (abfd)->abiflags_valid)
     {
-      Elf_Internal_ABIFlags_v0 *abiflags = &mips_elf_tdata (abfd)->abiflags;
+      Elf_Internal_ABIFlags_v0 *abiflags = &nanomips_elf_tdata (abfd)->abiflags;
       fprintf (file, "\nnanoMIPS ABI Flags Version: %d\n", abiflags->version);
       fprintf (file, "\nISA: nanoMIPS%d", abiflags->isa_level);
       if (abiflags->isa_rev > 1)
 	fprintf (file, "r%d", abiflags->isa_rev);
       fprintf (file, "\nGPR size: %d",
-	       get_mips_reg_size (abiflags->gpr_size));
+	       get_nanomips_reg_size (abiflags->gpr_size));
       fprintf (file, "\nCPR1 size: %d",
-	       get_mips_reg_size (abiflags->cpr1_size));
+	       get_nanomips_reg_size (abiflags->cpr1_size));
       fprintf (file, "\nCPR2 size: %d",
-	       get_mips_reg_size (abiflags->cpr2_size));
+	       get_nanomips_reg_size (abiflags->cpr2_size));
       fputs ("\nFP ABI: ", file);
-      print_mips_fp_abi_value (file, abiflags->fp_abi);
+      print_nanomips_fp_abi_value (file, abiflags->fp_abi);
       fputs ("ISA Extension: ", file);
       print_nanomips_isa_ext (file, abiflags->isa_ext);
       fputs ("\nASEs:", file);
@@ -659,7 +644,7 @@ _bfd_nanomips_elf_print_private_bfd_data (bfd *abfd, void *ptr)
   return TRUE;
 }
 
-const struct bfd_elf_special_section _bfd_mips_elf_special_sections[] =
+const struct bfd_elf_special_section _bfd_nanomips_elf_special_sections[] =
 {
   { STRING_COMMA_LEN (".lit4"),   0, SHT_PROGBITS,   SHF_ALLOC + SHF_WRITE},
   { STRING_COMMA_LEN (".lit8"),   0, SHT_PROGBITS,   SHF_ALLOC + SHF_WRITE},
@@ -672,7 +657,7 @@ const struct bfd_elf_special_section _bfd_mips_elf_special_sections[] =
    STO_OPTIONAL flag is copied into h->other, even if this is not a
    definiton of the symbol.  */
 void
-_bfd_mips_elf_merge_symbol_attribute (struct elf_link_hash_entry *h,
+_bfd_nanomips_elf_merge_symbol_attribute (struct elf_link_hash_entry *h,
 				      const Elf_Internal_Sym *isym,
 				      bfd_boolean definition,
 				      bfd_boolean dynamic ATTRIBUTE_UNUSED)
@@ -688,7 +673,7 @@ _bfd_mips_elf_merge_symbol_attribute (struct elf_link_hash_entry *h,
 }
 
 bfd_boolean
-_bfd_mips_elf_common_definition (Elf_Internal_Sym *sym)
+_bfd_nanomips_elf_common_definition (Elf_Internal_Sym *sym)
 {
   return (sym->st_shndx == SHN_COMMON);
 }

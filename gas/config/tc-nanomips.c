@@ -2896,20 +2896,11 @@ md_begin (void)
     seg = now_seg;
     subseg = now_subseg;
 
-    sec = subseg_new (".MIPS.abiflags", (subsegT) 0);
+    sec = subseg_new (".nanoMIPS.abiflags", (subsegT) 0);
     bfd_set_section_flags (stdoutput, sec,
 			   SEC_READONLY | SEC_DATA | SEC_ALLOC | SEC_LOAD);
     bfd_set_section_alignment (stdoutput, sec, 3);
     nanomips_flags_frag = frag_more (sizeof (Elf_External_ABIFlags_v0));
-
-    if (nanomips_flag_pdr)
-      {
-	pdr_seg = subseg_new (".pdr", (subsegT) 0);
-	(void) bfd_set_section_flags (stdoutput, pdr_seg,
-				      SEC_READONLY | SEC_RELOC
-				      | SEC_DEBUGGING);
-	(void) bfd_set_section_alignment (stdoutput, pdr_seg, 2);
-      }
 
     subseg_set (seg, subseg);
   }
@@ -13046,7 +13037,7 @@ nanomips_add_dot_label (symbolS *sym)
   nanomips_record_label (sym);
 }
 
-/* Converting ASE flags from internal to .MIPS.abiflags values.  */
+/* Converting ASE flags from internal to .nanoMIPS.abiflags values.  */
 static unsigned int
 nanomips_convert_ase_flags (int ase)
 {
@@ -13377,40 +13368,6 @@ s_nanomips_end (int x ATTRIBUTE_UNUSED)
       cur_proc_ptr->func_end_sym = exp->X_add_symbol;
     }
 
-  /* Generate a .pdr section.  */
-  if (!ECOFF_DEBUGGING && nanomips_flag_pdr)
-    {
-      segT saved_seg = now_seg;
-      subsegT saved_subseg = now_subseg;
-      expressionS exp;
-      char *fragp;
-
-#ifdef md_flush_pending_output
-      md_flush_pending_output ();
-#endif
-
-      gas_assert (pdr_seg);
-      subseg_set (pdr_seg, 0);
-
-      /* Write the symbol.  */
-      exp.X_op = O_symbol;
-      exp.X_add_symbol = p;
-      exp.X_add_number = 0;
-      emit_expr (&exp, 4);
-
-      fragp = frag_more (7 * 4);
-
-      md_number_to_chars (fragp, cur_proc_ptr->reg_mask, 4);
-      md_number_to_chars (fragp + 4, cur_proc_ptr->reg_offset, 4);
-      md_number_to_chars (fragp + 8, cur_proc_ptr->fpreg_mask, 4);
-      md_number_to_chars (fragp + 12, cur_proc_ptr->fpreg_offset, 4);
-      md_number_to_chars (fragp + 16, cur_proc_ptr->frame_offset, 4);
-      md_number_to_chars (fragp + 20, cur_proc_ptr->frame_reg, 4);
-      md_number_to_chars (fragp + 24, cur_proc_ptr->pc_reg, 4);
-
-      subseg_set (saved_seg, saved_subseg);
-    }
-
   cur_proc_ptr = NULL;
 }
 
@@ -13465,9 +13422,7 @@ s_nanomips_ent (int aent)
   demand_empty_rest_of_line ();
 }
 
-/* The .frame directive. If the mdebug section is present (IRIX 5 native)
-   then ecoff.c (ecoff_directive_frame) is used. For embedded targets,
-   s_nanomips_frame is used so that we can set the PDR information correctly.
+/* s_nanomips_frame is used so we can set the PDR information correctly
    We can't use the ecoff routines because they make reference to the ecoff
    symbol table (in the mdebug section).  */
 
@@ -13601,27 +13556,6 @@ nanomips_strict_matching_cpu_name_p (const char *canonical, const char *given)
 static bfd_boolean
 nanomips_matching_cpu_name_p (const char *canonical, const char *given)
 {
-  /* First see if the name matches exactly, or with a final "000"
-     turned into "k".  */
-  if (nanomips_strict_matching_cpu_name_p (canonical, given))
-    return TRUE;
-
-  /* If not, try comparing based on numerical designation alone.
-     See if GIVEN is an unadorned number, or 'r' followed by a number.  */
-  if (TOLOWER (*given) == 'r')
-    given++;
-  if (!ISDIGIT (*given))
-    return FALSE;
-
-  /* Skip over some well-known prefixes in the canonical name,
-     hoping to find a number there too.  */
-  if (TOLOWER (canonical[0]) == 'v' && TOLOWER (canonical[1]) == 'r')
-    canonical += 2;
-  else if (TOLOWER (canonical[0]) == 'r' && TOLOWER (canonical[1]) == 'm')
-    canonical += 2;
-  else if (TOLOWER (canonical[0]) == 'r')
-    canonical += 1;
-
   return nanomips_strict_matching_cpu_name_p (canonical, given);
 }
 

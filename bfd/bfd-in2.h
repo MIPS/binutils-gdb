@@ -1973,13 +1973,11 @@ enum bfd_architecture
 #define bfd_mach_mipsisa32r3           34
 #define bfd_mach_mipsisa32r5           36
 #define bfd_mach_mipsisa32r6           37
-#define bfd_mach_nanomipsisa32r6       38
 #define bfd_mach_mipsisa64             64
 #define bfd_mach_mipsisa64r2           65
 #define bfd_mach_mipsisa64r3           66
 #define bfd_mach_mipsisa64r5           68
 #define bfd_mach_mipsisa64r6           69
-#define bfd_mach_nanomipsisa64r6       70
 #define bfd_mach_mips_micromips        96
   bfd_arch_i386,      /* Intel 386 */
 #define bfd_mach_i386_intel_syntax     (1 << 0)
@@ -2287,6 +2285,8 @@ enum bfd_architecture
   bfd_arch_nios2,
 #define bfd_mach_nios2 0
   bfd_arch_nanomips,      /* nanoMIPSrX */
+#define bfd_mach_nanomipsisa32r6       32
+#define bfd_mach_nanomipsisa64r6       64
   bfd_arch_last
   };
 

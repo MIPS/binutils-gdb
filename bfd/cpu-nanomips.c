@@ -1,6 +1,6 @@
-/* bfd back-end for mips support
-   Copyright (C) 1990-2014 Free Software Foundation, Inc.
-   Written by Steve Chamberlain of Cygnus Support.
+/* bfd back-end for nanomips support
+   Copyright (C) 2017 Free Software Foundation, Inc.
+   Contributed by Imagination Technologies Ltd.
 
    This file is part of BFD, the Binary File Descriptor library.
 
@@ -52,7 +52,7 @@ nanomips_compatible (const bfd_arch_info_type *a, const bfd_arch_info_type *b)
     PRINT,						\
     3,							\
     DEFAULT,						\
-    nanomips_compatible,					\
+    nanomips_compatible,				\
     bfd_default_scan,					\
     bfd_arch_default_fill,				\
     NEXT,						\
@@ -71,12 +71,8 @@ static const bfd_arch_info_type arch_info_struct[] =
   N (32, 32, bfd_mach_nanomipsisa32r6,"nanomips:isa32r6", FALSE,
      NN(I_nanomipsisa32r6)),
   N (64, 64, bfd_mach_nanomipsisa64r6,"nanomips:isa64r6", FALSE,
-     NN(I_nanomipsisa64r6)),
+     0),
 };
-
-/* The default architecture is mips:3000, but with a machine number of
-   zero.  This lets the linker distinguish between a default setting
-   of mips, and an explicit setting of mips:3000.  */
 
 const bfd_arch_info_type bfd_nanomips_arch =
 N (32, 32, 0, "nanomips", TRUE, &arch_info_struct[0]);

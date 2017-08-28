@@ -14147,7 +14147,7 @@ process_nanomips_specific (FILE * file)
   process_attributes (file, NULL, SHT_GNU_ATTRIBUTES, NULL,
 		      display_nanomips_gnu_attribute);
 
-  sect = find_section (".MIPS.abiflags");
+  sect = find_section (".nanoMIPS.abiflags");
 
   if (sect != NULL)
     {
