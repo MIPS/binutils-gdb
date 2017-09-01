@@ -32,19 +32,22 @@ namespace gold
 
 enum Transform_type
 {
-  TT_STANDARD = 0,            // Regular transformation.
-  TT_BEQC16 = 1,              // Special type for beqc16 instruction.
-  TT_BNEC16 = 2,              // Special type for bnec16 instruction.
-  TT_BYTE_ADDRESS = 3,        // Special type for address calculation.
-  TT_WORD_ADDRESS = 4,        // Special type for address calculation.
-  TT_PCREL_ADDRESS = 5,       // Special type for address calculation.
-  TT_PCREL_ADDRESS_NMS = 6,   // Special type for address calculation.
-  TT_GPREL_NMS = 7,           // Special type for gprel expansion.
-  TT_GOTPCREL_NMS = 8,        // Special type for pcrel GOT expansion.
-  TT_GPREL = 9,               // Special type for gprel expansion.
-  TT_PCREL = 10,              // Special type for pcrel expansion.
-  TT_GOTPCREL = 11,           // Special type for pcrel GOT expansion.
-  TT_MAX = 12
+  TT_STANDARD = 0,             // Regular transformation.
+  TT_DELETE = 1,               // Delete instruction.
+  TT_BEQC16 = 2,               // Special type for beqc16 instruction.
+  TT_BNEC16 = 3,               // Special type for bnec16 instruction.
+  TT_GPREL16_NMS = 4,          // Special type for gprel transformation.
+  TT_GPREL16_WORD = 5,         // Special type for gprel transformation.
+  TT_GPREL32 = 6,              // Special type for gprel transformation.
+  TT_GPREL32_WORD = 7,         // Special type for gprel transformation.
+  TT_GPREL_NMS = 8,            // Special type for gprel transformation.
+  TT_PCREL16 = 9,              // Special type for pcrel transformation.
+  TT_PCREL32 = 10,             // Special type for pcrel transformation.
+  TT_PCREL_NMS = 11,           // Special type for pcrel transformation.
+  TT_GOTPCREL_NMS = 12,        // Special type for pcrel GOT transformation.
+  TT_GPREL_LONG = 13,          // Special type for gprel transformation.
+  TT_PCREL_LONG = 14,          // Special type for pcrel transformation.
+  TT_GOTPCREL_LONG = 15        // Special type for pcrel GOT transformation.
 };
 
 // Instruction information structure.
@@ -104,11 +107,6 @@ class Nanomips_transform_property
   count() const
   { return this->count_; }
 
-  // Return the offset where to add/delete bytes starting at r_offset.
-  unsigned int
-  offset() const
-  { return this->offset_; }
-
   // Return whether this is a store instruction.
   bool
   is_store() const
@@ -133,6 +131,20 @@ class Nanomips_transform_property
     gold_unreachable();
   }
 
+  // Return whether there is the transform property of type TYPE.
+  bool
+  has_transform_property(unsigned int type) const
+  {
+    for (const Nanomips_transform_property* i = this;
+         i != NULL;
+         i = i->next_transform_)
+      {
+        if (i->type_ == type)
+          return true;
+      }
+    return false;
+  }
+
  protected:
   // These are protected.  We only allow Nanomips_reloc_property_table to
   // manage Nanomips_transform_property.
@@ -140,7 +152,6 @@ class Nanomips_transform_property
                               size_t insn_num,
                               const char* name,
                               int count,
-                              unsigned int offset,
                               unsigned int type,
                               bool is_store);
 
@@ -175,8 +186,6 @@ class Nanomips_transform_property
   Nanomips_transform_property* next_transform_;
   // The number of bytes to add/delete.
   int count_;
-  // The offset where to add/delete bytes starting at r_offset.
-  unsigned int offset_;
   // The type of the transformation.
   unsigned int type_;
   // Whether this is a store instruction for which we are doing transformation.
@@ -196,6 +205,7 @@ class Nanomips_reloc_property
     RT_STATIC,          // Relocations processed by static linkers.
     RT_DYNAMIC,         // Relocations processed by dynamic linkers.
     RT_PLACEHOLDER,     // Place-holder relocations for relaxation pass.
+    RT_GOT,             // GOT relocation.
   };
 
   // Relocation code represented by this.
@@ -207,6 +217,11 @@ class Nanomips_reloc_property
   const std::string&
   name() const
   { return this->name_; }
+
+  // Return whether this is a GOT relocation.
+  bool
+  got() const
+  { return this->reloc_type_ == RT_GOT; }
 
   // Return whether this is a placeholder relocation.
   bool
@@ -251,6 +266,15 @@ class Nanomips_reloc_property
     return (p != this->expansions_.end() ? p->second : NULL);
   }
 
+  // Find matching instructions for GOT reloc transformations.
+  const Nanomips_transform_property*
+  find_got_transform_match(uint32_t insn) const
+  {
+    Nanomips_transform_map::const_iterator p =
+      this->got_transform_.find(insn & this->mask_);
+    return (p != this->got_transform_.end() ? p->second : NULL);
+  }
+
  protected:
   // These are protected.  We only allow Nanomips_reloc_property_table to
   // manage Nanomips_reloc_property.
@@ -290,6 +314,8 @@ class Nanomips_reloc_property
   Nanomips_transform_map relaxations_;
   // Instruction expansions.
   Nanomips_transform_map expansions_;
+  // GOT reloc transformations.
+  Nanomips_transform_map got_transform_;
 };
 
 class Nanomips_reloc_property_table
