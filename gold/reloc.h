@@ -306,6 +306,15 @@ class Relocatable_relocs
     this->reloc_strategies_[i] = strategy;
   }
 
+  // Discard reloc.
+  void
+  discard_reloc(unsigned int i)
+  {
+    gold_assert(i < this->reloc_strategies_.size());
+    this->reloc_strategies_[i] = RELOC_DISCARD;
+    --this->output_reloc_count_;
+  }
+
   // Increase the number of relocations to create in the output file.
   void
   increase_output_reloc_count()
