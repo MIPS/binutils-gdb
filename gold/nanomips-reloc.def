@@ -23,7 +23,7 @@
 //
 //
 // Symbol reference type--------------------------------------------------------------+
-// Mask for relaxations or expansions------------------------------+                  |
+// Mask to match instructions--------------------------------------+                  |
 // Size of the bits to be relocated--------------------+           |                  |
 // The size of the instruction--------------+          |           |                  |
 // Type-----------------+                   |          |           |                  |
@@ -76,70 +76,165 @@ NRD(RELAX,              PLACEHOLDER,        0,         0,          0,           
 NRD(INSN16,             PLACEHOLDER,        0,         0,          0,                 0)
 NRD(JALR,               PLACEHOLDER,        0,         0,          0,                 0)
 
+//
+// Instruction definition
+//
+
+// addiugp[48] $reg, %gprel32(sym)
+#define ADDIUGP48 { 0x6002, elfcpp::R_NANOMIPS_GPREL_I32, "addiugp[48]" }
+// lapc[48] $reg, sym
+#define LAPC48 { 0x6003, elfcpp::R_NANOMIPS_PC_I32, "lapc[48]" }
+// lwpc[48] $reg, %got_pcrel32(sym)
+#define LWPC48_GOT { 0x600b, elfcpp::R_NANOMIPS_GOTPC_I32, "lwpc[48]" }
+// addiu.b $reg, $gp, %gprel(sym)
+#define ADDIUGPB32 { 0x440c0000, elfcpp::R_NANOMIPS_GPREL18, "addiu[gp.b]" }
+// addiu.w $reg, $gp, %gprel(sym)
+#define ADDIUGPW32 { 0x40000000, elfcpp::R_NANOMIPS_GPREL19_S2, "addiu[gp.w]" }
+// addu $reg, $reg, $gp
+#define ADDU32 { 0x23800150, elfcpp::R_NANOMIPS_NONE, "addu" }
+// aluipc $reg, %pcrel_hi(sym)
+#define ALUIPC32_HI20 { 0xe0000002, elfcpp::R_NANOMIPS_PC_HI20, "aluipc" }
+// aluipc $reg, %got_pcrel_hi(sym)
+#define ALUIPC32_GOTHI20 { 0xe0000002, elfcpp::R_NANOMIPS_GOTPC_HI20, "aluipc" }
+// balc sym
+#define BALC32 { 0x2a000000, elfcpp::R_NANOMIPS_PC25_S1, "balc" }
+// bc sym
+#define BC32 { 0x28000000, elfcpp::R_NANOMIPS_PC25_S1, "bc" }
+// beqc $reg, $reg, sym
+#define BEQC32 { 0x88000000, elfcpp::R_NANOMIPS_PC14_S1, "beqc" }
+// bgec $reg, $reg, sym
+#define BGEC32 { 0x88008000, elfcpp::R_NANOMIPS_PC14_S1, "bgec" }
+// bgeuc $reg, $reg, sym
+#define BGEUC32 { 0x8800c000, elfcpp::R_NANOMIPS_PC14_S1, "bgeuc" }
+// bltc $reg, $reg, sym
+#define BLTC32 { 0xa8008000, elfcpp::R_NANOMIPS_PC14_S1, "bltc" }
+// bltuc $reg, $reg, sym
+#define BLTUC32 { 0xa800c000, elfcpp::R_NANOMIPS_PC14_S1, "bltuc" }
+// bnec $reg, $reg, sym
+#define BNEC32 { 0xa8000000, elfcpp::R_NANOMIPS_PC14_S1, "bnec" }
+// lapc $reg, sym
+#define LAPC32 { 0x04000000, elfcpp::R_NANOMIPS_PC21_S1, "lapc" }
+// lui $reg, %gprel_hi(sym)
+#define LUI32 { 0xe0000000, elfcpp::R_NANOMIPS_GPREL_HI20, "lui" }
+// lb $reg, %gprel_lo(sym)($reg)
+#define LB32 { 0x84000000, elfcpp::R_NANOMIPS_GPREL_LO12, "lb" }
+// lbu $reg, %gprel_lo(sym)($reg)
+#define LBU32 { 0x84002000, elfcpp::R_NANOMIPS_GPREL_LO12, "lbu" }
+// lh $reg, %gprel_lo(sym)($reg)
+#define LH32 { 0x84004000, elfcpp::R_NANOMIPS_GPREL_LO12, "lh" }
+// lhu $reg, %gprel_lo(sym)($reg)
+#define LHU32 { 0x84006000, elfcpp::R_NANOMIPS_GPREL_LO12, "lhu" }
+// lw $reg, %gp_rel(sym)($gp)
+#define LWGP32 { 0x40000002, elfcpp::R_NANOMIPS_GPREL19_S2, "lw[gp]" }
+// lw $reg, %gprel_lo(sym)($reg)
+#define LW32_GPRELLO12 { 0x84008000, elfcpp::R_NANOMIPS_GPREL_LO12, "lw" }
+// lw $reg, %lo(sym)($reg)
+#define LW32_LO12 { 0x84008000, elfcpp::R_NANOMIPS_LO12, "lw" }
+// lw $reg, %got_lo(sym)($reg)
+#define LW32_GOTLO12 { 0x84008000, elfcpp::R_NANOMIPS_GOT_LO12, "lw" }
+// ori $reg, $zero, imm
+#define ORI32_NONE { 0x80000000, elfcpp::R_NANOMIPS_NONE, "ori" }
+// ori $reg, $reg, %lo(sym)
+#define ORI32_LO12 { 0x80000000, elfcpp::R_NANOMIPS_LO12, "ori" }
+// ori $reg, $reg, %gprel_lo(sym)($reg)
+#define ORI32_GPRELLO12 { 0x80000000, elfcpp::R_NANOMIPS_GPREL_LO12, "ori" }
+// sb $reg, %gprel_lo(sym)($reg)
+#define SB32 { 0x84001000, elfcpp::R_NANOMIPS_GPREL_LO12, "sb" }
+// sh $reg, %gprel_lo(sym)($reg)
+#define SH32 { 0x84005000, elfcpp::R_NANOMIPS_GPREL_LO12, "sh" }
+// sw $reg, %gp_rel(sym)($gp)
+#define SWGP32 { 0x40000003, elfcpp::R_NANOMIPS_GPREL19_S2, "sw[gp]" }
+// sw $reg, %gprel_lo(sym)($reg)
+#define SW32_GPRELLO12 { 0x84009000, elfcpp::R_NANOMIPS_GPREL_LO12, "sw" }
+// sw $reg, %lo(sym)($reg)
+#define SW32_LO12 { 0x84009000, elfcpp::R_NANOMIPS_LO12, "sw" }
+// balc16 sym
+#define BALC16 { 0x3800, elfcpp::R_NANOMIPS_PC10_S1, "balc[16]" }
+// bc16 sym
+#define BC16 { 0x1800, elfcpp::R_NANOMIPS_PC10_S1, "bc[16]" }
+// beqc16 $reg, $reg, sym
+#define BEQC16 { 0xd800, elfcpp::R_NANOMIPS_PC4_S1, "beqc[16]" }
+// bnec16 $reg, $reg, sym
+#define BNEC16 { 0xd800, elfcpp::R_NANOMIPS_PC4_S1, "bnec[16]" }
+// lw16 $reg, %gp_rel(sym)($gp)
+#define LWGP16 { 0x5400, elfcpp::R_NANOMIPS_GPREL7_S2, "lw[gp16]" }
+// lw16 $reg, %lo(sym)($reg)
+#define LW16 { 0x1400, elfcpp::R_NANOMIPS_LO4_S2, "lw[16]" }
+// jalrc16 $reg
+#define JALRC16 { 0xd810, elfcpp::R_NANOMIPS_NONE, "jalrc[16]" }
+// jrc16 $reg
+#define JRC16 { 0xd800, elfcpp::R_NANOMIPS_NONE, "jrc[16]" }
+// move16 $reg
+#define MOVE16 { 0x1000, elfcpp::R_NANOMIPS_NONE, "move[16]" }
+// sw16 $reg, %gp_rel(sym)($gp)
+#define SWGP16 { 0xd400, elfcpp::R_NANOMIPS_GPREL7_S2, "sw[gp16]" }
+// sw16 $reg, %lo(sym)($reg)
+#define SW16 { 0x9400, elfcpp::R_NANOMIPS_LO4_S2, "sw[16]" }
+
 // NIE - Nanomips instruction expansion
 // NIR - Nanomips instruction relaxation
 //
-// Type of the instruction------------------------------------------------------------------------------------------+
-// Is store instruction-----------------------------------------------------------------------------------+         |
-// The offset where to add/delete bytes---------------------------------------------------------+         |         |
-// The number of bytes to add/delete--------------------------------------------------+         |         |         |
-// Instruction name-------------------------------------------+                       |         |         |         |
-// Opcode----------------------------------+                  |                       |         |         |         |
-// Array name----------+                   |                  |                       |         |         |         |
-// Reloc Name          |                   |                  |                       |         |         |         |
-//  |                  |                   |                  |                       |         |         |         |
-NIE(GOT_DISP,          ADDIUGPB32,         0x40000002,        "lw[gp]",               0,        0,        N,        BYTE_ADDRESS)
-NIE(GOT_DISP,          ADDIUGPW32,         0x40000002,        "lw[gp]",               0,        0,        N,        WORD_ADDRESS)
-NIE(GOT_DISP,          LAPC32,             0x40000002,        "lw[gp]",               0,        0,        N,        PCREL_ADDRESS)
-NIE(GOT_DISP,          LAPC48,             0x40000002,        "lw[gp]",               2,        4,        N,        PCREL_ADDRESS_NMS)
-NIE(GOT_DISP,          ADDIUGP48,          0x40000002,        "lw[gp]",               2,        4,        N,        GPREL_NMS)
-NIE(GOT_DISP,          LWPC48_GOT,         0x40000002,        "lw[gp]",               2,        4,        N,        GOTPCREL_NMS)
-NIE(GOT_DISP,          BALC_LONG,          0x40000002,        "lw[gp]",               4,        4,        N,        PCREL)
-NIE(GOT_DISP,          PCREL_GOT,          0x40000002,        "lw[gp]",               4,        4,        N,        GOTPCREL)
-NIE(GOT_DISP,          ADDIUGP_LONG,       0x40000002,        "lw[gp]",               8,        4,        N,        GPREL)
-NIE(GOT_CALL,          LAPC48,             0x40000002,        "lw[gp]",               2,        4,        N,        PCREL_ADDRESS_NMS)
-NIE(GOT_CALL,          BALC_LONG,          0x40000002,        "lw[gp]",               4,        4,        N,        PCREL)
-NIE(GOT_CALL,          LWPC48_GOT,         0x40000002,        "lw[gp]",               2,        4,        N,        GOTPCREL_NMS)
-NIE(GOT_CALL,          PCREL_GOT,          0x40000002,        "lw[gp]",               4,        4,        N,        GOTPCREL)
-NIE(GOT_PAGE,          ALUIPC32,           0x40000002,        "lw[gp]",               0,        0,        N,        PCREL_ADDRESS)
-NIE(GOT_PAGE,          ADDIUGP48,          0x40000002,        "lw[gp]",               2,        4,        N,        GPREL_NMS)
-NIE(GOT_PAGE,          ADDIUGP_LONG,       0x40000002,        "lw[gp]",               4,        4,        N,        GPREL)
-NIE(GOT_PAGE,          LWPC48_GOT,         0x40000002,        "lw[gp]",               2,        4,        N,        GOTPCREL_NMS)
-NIE(GOT_PAGE,          PCREL_GOT,          0x40000002,        "lw[gp]",               4,        4,        N,        GOTPCREL)
-NIE(PC25_S1,           BC_LONG,            0x28000000,        "bc",                   6,        4,        N,        PCREL)
-NIE(PC25_S1,           BALC_LONG,          0x2a000000,        "balc",                 6,        4,        N,        PCREL)
-NIE(PC21_S1,           MOVE_BALC,          0x08000000,        "move.balc",            2,        4,        N,        STANDARD)
-NIE(PC11_S1,           BEQIC,              0xc8000000,        "beqic",                4,        4,        N,        STANDARD)
-NIE(PC11_S1,           BGEIC,              0xc8080000,        "bgeic",                4,        4,        N,        STANDARD)
-NIE(PC11_S1,           BGEIUC,             0xc80c0000,        "bgeiuc",               4,        4,        N,        STANDARD)
-NIE(PC11_S1,           BLTIC,              0xc8180000,        "bltic",                4,        4,        N,        STANDARD)
-NIE(PC11_S1,           BLTIUC,             0xc81c0000,        "bltiuc",               4,        4,        N,        STANDARD)
-NIE(PC11_S1,           BNEIC,              0xc8100000,        "bneic",                4,        4,        N,        STANDARD)
-NIE(GPREL19_S2,        LWGP_LONG,          0x40000002,        "lw[gp]",               8,        4,        N,        GPREL)
-NIE(GPREL19_S2,        SWGP_LONG,          0x40000003,        "sw[gp]",               8,        4,        Y,        GPREL)
-NIE(GPREL19_S2,        ADDIUGP_LONG,       0x40000000,        "addiu[gp.w]",          8,        4,        N,        GPREL)
-NIE(GPREL18,           LBGP_LONG,          0x44000000,        "lb[gp]",               8,        4,        N,        GPREL)
-NIE(GPREL18,           LBUGP_LONG,         0x44080000,        "lbu[gp]",              8,        4,        N,        GPREL)
-NIE(GPREL18,           SBGP_LONG,          0x44040000,        "sb[gp]",               8,        4,        Y,        GPREL)
-NIE(GPREL18,           ADDIUGP_LONG,       0x440c0000,        "addiu[gp.b]",          8,        4,        N,        GPREL)
-NIE(GPREL17_S1,        LHGP_LONG,          0x44100000,        "lh[gp]",               8,        4,        N,        GPREL)
-NIE(GPREL17_S1,        LHUGP_LONG,         0x44100001,        "lhu[gp]",              8,        4,        N,        GPREL)
-NIE(GPREL17_S1,        SHGP_LONG,          0x44140000,        "sh[gp]",               8,        4,        Y,        GPREL)
-NIE(PC10_S1,           BC32,               0x1800,            "bc[16]",               2,        2,        N,        STANDARD)
-NIE(PC10_S1,           BALC32,             0x3800,            "balc[16]",             2,        2,        N,        STANDARD)
-NIE(PC7_S1,            BEQC32,             0x9800,            "beqzc[16]",            2,        2,        N,        STANDARD)
-NIE(PC7_S1,            BNEC32,             0xb800,            "bnezc[16]",            2,        2,        N,        STANDARD)
-NIE(PC4_S1,            BEQC32,             0xd800,            "beqc[16]",             2,        2,        N,        BEQC16)
-NIE(PC4_S1,            BNEC32,             0xd800,            "bnec[16]",             2,        2,        N,        BNEC16)
-NIE(GPREL7_S2,         LWGP32,             0x5400,            "lw[gp16]",             2,        2,        N,        STANDARD)
-NIE(GPREL7_S2,         SWGP32,             0xd400,            "sw[gp16]",             2,        2,        Y,        STANDARD)
-NIE(LO4_S2,            LW32,               0x1400,            "lw[16]",               2,        2,        N,        STANDARD)
-NIE(LO4_S2,            SW32,               0x9400,            "sw[16]",               2,        2,        Y,        STANDARD)
-NIR(PC25_S1,           BC16,               0x28000000,        "bc",                  -2,        2,        N,        STANDARD)
-NIR(PC25_S1,           BALC16,             0x2a000000,        "balc",                -2,        2,        N,        STANDARD)
-NIR(PC14_S1,           BEQC16,             0x88000000,        "beqc",                -2,        2,        N,        STANDARD)
-NIR(PC14_S1,           BNEC16,             0xa8000000,        "bnec",                -2,        2,        N,        STANDARD)
-NIR(GPREL19_S2,        LWGP16,             0x40000002,        "lw[gp]",              -2,        2,        N,        STANDARD)
-NIR(GPREL19_S2,        SWGP16,             0x40000003,        "sw[gp]",              -2,        2,        Y,        STANDARD)
-NIR(LO12,              LW16,               0x84008000,        "lw",                  -2,        2,        N,        STANDARD)
-NIR(LO12,              SW16,               0x84009000,        "sw",                  -2,        2,        Y,        STANDARD)
+// Instruction array------------------------------------------------------------------------------------------------------+
+// Type of the instruction----------------------------------------------------------------------+                         |
+// Is store instruction---------------------------------------------------------------+         |                         |
+// The offset where to add/delete bytes-------------------------------------+         |         |                         |
+// The number of bytes to add/delete------------------------------+         |         |         |                         |
+// Instruction name-----------------------+                       |         |         |         |                         |
+// Opcode--------------+                  |                       |         |         |         |                         |
+// Reloc Name          |                  |                       |         |         |         |                         |
+//  |                  |                  |                       |         |         |         |                         |
+NIE(GOT_DISP,          0x40000002,        "lw[gp]",               0,        0,        N,        BYTE_ADDRESS,             { ADDIUGPB32 })
+NIE(GOT_DISP,          0x40000002,        "lw[gp]",               0,        0,        N,        WORD_ADDRESS,             { ADDIUGPW32 })
+NIE(GOT_DISP,          0x40000002,        "lw[gp]",               0,        0,        N,        PCREL_ADDRESS,            { LAPC32 })
+NIE(GOT_DISP,          0x40000002,        "lw[gp]",               2,        4,        N,        PCREL_ADDRESS_NMS,        { LAPC48 })
+NIE(GOT_DISP,          0x40000002,        "lw[gp]",               2,        4,        N,        GPREL_NMS,                { ADDIUGP48 })
+NIE(GOT_DISP,          0x40000002,        "lw[gp]",               2,        4,        N,        GOTPCREL_NMS,             { LWPC48_GOT })
+NIE(GOT_DISP,          0x40000002,        "lw[gp]",               4,        4,        N,        PCREL,                    { ALUIPC32_HI20, ORI32_LO12, JALRC16 })
+NIE(GOT_DISP,          0x40000002,        "lw[gp]",               4,        4,        N,        GOTPCREL,                 { ALUIPC32_GOTHI20, LW32_GOTLO12 })
+NIE(GOT_DISP,          0x40000002,        "lw[gp]",               8,        4,        N,        GPREL,                    { LUI32, ADDU32, ORI32_LO12 })
+NIE(GOT_CALL,          0x40000002,        "lw[gp]",               2,        4,        N,        PCREL_ADDRESS_NMS,        { LAPC48 })
+NIE(GOT_CALL,          0x40000002,        "lw[gp]",               4,        4,        N,        PCREL,                    { ALUIPC32_HI20, ORI32_LO12, JALRC16 })
+NIE(GOT_CALL,          0x40000002,        "lw[gp]",               2,        4,        N,        GOTPCREL_NMS,             { LWPC48_GOT })
+NIE(GOT_CALL,          0x40000002,        "lw[gp]",               4,        4,        N,        GOTPCREL,                 { ALUIPC32_GOTHI20, LW32_GOTLO12 })
+NIE(GOT_PAGE,          0x40000002,        "lw[gp]",               0,        0,        N,        PCREL_ADDRESS,            { ALUIPC32_HI20 })
+NIE(GOT_PAGE,          0x40000002,        "lw[gp]",               2,        4,        N,        GPREL_NMS,                { ADDIUGP48 })
+NIE(GOT_PAGE,          0x40000002,        "lw[gp]",               4,        4,        N,        GPREL,                    { LUI32, ADDU32 })
+NIE(GOT_PAGE,          0x40000002,        "lw[gp]",               2,        4,        N,        GOTPCREL_NMS,             { LWPC48_GOT })
+NIE(GOT_PAGE,          0x40000002,        "lw[gp]",               4,        4,        N,        GOTPCREL,                 { ALUIPC32_GOTHI20, LW32_GOTLO12 })
+NIE(PC25_S1,           0x28000000,        "bc",                   6,        4,        N,        PCREL,                    { ALUIPC32_HI20, ORI32_LO12, JRC16 })
+NIE(PC25_S1,           0x2a000000,        "balc",                 6,        4,        N,        PCREL,                    { ALUIPC32_HI20, ORI32_LO12, JALRC16 })
+NIE(PC21_S1,           0x08000000,        "move.balc",            2,        4,        N,        STANDARD,                 { MOVE16, BALC32 })
+NIE(PC11_S1,           0xc8000000,        "beqic",                4,        4,        N,        STANDARD,                 { ORI32_NONE, BEQC32 })
+NIE(PC11_S1,           0xc8080000,        "bgeic",                4,        4,        N,        STANDARD,                 { ORI32_NONE, BGEC32 })
+NIE(PC11_S1,           0xc80c0000,        "bgeiuc",               4,        4,        N,        STANDARD,                 { ORI32_NONE, BGEUC32 })
+NIE(PC11_S1,           0xc8180000,        "bltic",                4,        4,        N,        STANDARD,                 { ORI32_NONE, BLTC32 })
+NIE(PC11_S1,           0xc81c0000,        "bltiuc",               4,        4,        N,        STANDARD,                 { ORI32_NONE, BLTUC32})
+NIE(PC11_S1,           0xc8100000,        "bneic",                4,        4,        N,        STANDARD,                 { ORI32_NONE, BNEC32 })
+NIE(GPREL19_S2,        0x40000002,        "lw[gp]",               8,        4,        N,        GPREL,                    { LUI32, ADDU32, LW32_GPRELLO12 })
+NIE(GPREL19_S2,        0x40000003,        "sw[gp]",               8,        4,        Y,        GPREL,                    { LUI32, ADDU32, SW32_GPRELLO12 })
+NIE(GPREL19_S2,        0x40000000,        "addiu[gp.w]",          8,        4,        N,        GPREL,                    { LUI32, ADDU32, ORI32_GPRELLO12 })
+NIE(GPREL18,           0x44000000,        "lb[gp]",               8,        4,        N,        GPREL,                    { LUI32, ADDU32, LB32 })
+NIE(GPREL18,           0x44080000,        "lbu[gp]",              8,        4,        N,        GPREL,                    { LUI32, ADDU32, LBU32 })
+NIE(GPREL18,           0x44040000,        "sb[gp]",               8,        4,        Y,        GPREL,                    { LUI32, ADDU32, SB32 })
+NIE(GPREL18,           0x440c0000,        "addiu[gp.b]",          8,        4,        N,        GPREL,                    { LUI32, ADDU32, ORI32_GPRELLO12 })
+NIE(GPREL17_S1,        0x44100000,        "lh[gp]",               8,        4,        N,        GPREL,                    { LUI32, ADDU32, LH32 })
+NIE(GPREL17_S1,        0x44100001,        "lhu[gp]",              8,        4,        N,        GPREL,                    { LUI32, ADDU32, LHU32 })
+NIE(GPREL17_S1,        0x44140000,        "sh[gp]",               8,        4,        Y,        GPREL,                    { LUI32, ADDU32, SH32 })
+NIE(PC10_S1,           0x1800,            "bc[16]",               2,        2,        N,        STANDARD,                 { BC32 })
+NIE(PC10_S1,           0x3800,            "balc[16]",             2,        2,        N,        STANDARD,                 { BALC32 })
+NIE(PC7_S1,            0x9800,            "beqzc[16]",            2,        2,        N,        STANDARD,                 { BEQC32 })
+NIE(PC7_S1,            0xb800,            "bnezc[16]",            2,        2,        N,        STANDARD,                 { BNEC32 })
+NIE(PC4_S1,            0xd800,            "beqc[16]",             2,        2,        N,        BEQC16,                   { BEQC32 })
+NIE(PC4_S1,            0xd800,            "bnec[16]",             2,        2,        N,        BNEC16,                   { BNEC32 })
+NIE(GPREL7_S2,         0x5400,            "lw[gp16]",             2,        2,        N,        STANDARD,                 { LWGP32 })
+NIE(GPREL7_S2,         0xd400,            "sw[gp16]",             2,        2,        Y,        STANDARD,                 { SWGP32 })
+NIE(LO4_S2,            0x1400,            "lw[16]",               2,        2,        N,        STANDARD,                 { LW32_LO12 })
+NIE(LO4_S2,            0x9400,            "sw[16]",               2,        2,        Y,        STANDARD,                 { SW32_LO12 })
+NIR(PC25_S1,           0x28000000,        "bc",                  -2,        2,        N,        STANDARD,                 { BC16 })
+NIR(PC25_S1,           0x2a000000,        "balc",                -2,        2,        N,        STANDARD,                 { BALC16 })
+NIR(PC14_S1,           0x88000000,        "beqc",                -2,        2,        N,        STANDARD,                 { BEQC16 })
+NIR(PC14_S1,           0xa8000000,        "bnec",                -2,        2,        N,        STANDARD,                 { BNEC16 })
+NIR(GPREL19_S2,        0x40000002,        "lw[gp]",              -2,        2,        N,        STANDARD,                 { LWGP16 })
+NIR(GPREL19_S2,        0x40000003,        "sw[gp]",              -2,        2,        Y,        STANDARD,                 { SWGP16 })
+NIR(LO12,              0x84008000,        "lw",                  -2,        2,        N,        STANDARD,                 { LW16 })
+NIR(LO12,              0x84009000,        "sw",                  -2,        2,        Y,        STANDARD,                 { SW16 })

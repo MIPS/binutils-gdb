@@ -78,11 +78,11 @@ check nanomips_gprel_out_of_range.stdout " 105c:	85a1 5000 	sh	t1,0(at)"
 # Test addiu[gp.w] expansion to lui, addu, addiu.
 check nanomips_gprel_out_of_range.stdout " 1060:	e030 003c 	lui	at,%hi(0x1f00000)"
 check nanomips_gprel_out_of_range.stdout " 1064:	2381 0950 	addu	at,at,gp"
-check nanomips_gprel_out_of_range.stdout " 1068:	01c1 0000 	addiu	t2,at,0"
+check nanomips_gprel_out_of_range.stdout " 1068:	81c1 0000 	ori	t2,at,0"
 
 # Test addiu[gp.b] expansion to lui, addu, addiu.
 check nanomips_gprel_out_of_range.stdout " 106c:	e030 003c 	lui	at,%hi(0x1f00000)"
 check nanomips_gprel_out_of_range.stdout " 1070:	2381 0950 	addu	at,at,gp"
-check nanomips_gprel_out_of_range.stdout " 1074:	01e1 0000 	addiu	t3,at,0"
+check nanomips_gprel_out_of_range.stdout " 1074:	81e1 0000 	ori	t3,at,0"
 
 exit 0

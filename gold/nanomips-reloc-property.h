@@ -23,29 +23,28 @@
 #ifndef GOLD_NANOMIPS_RELOC_PROPERTY_H
 #define GOLD_NANOMIPS_RELOC_PROPERTY_H
 
-#include "nanomips.h"
-
 #include <string>
 
 namespace gold
 {
 
-// Types of instructions.
+// Types of transformations.
 
-enum Insn_type {
-  IT_STANDARD = 0,            // Regular instruction.
-  IT_BEQC16 = 1,              // Special type for beqc16 instruction.
-  IT_BNEC16 = 2,              // Special type for bnec16 instruction.
-  IT_BYTE_ADDRESS = 3,        // Special type for address calculation.
-  IT_WORD_ADDRESS = 4,        // Special type for address calculation.
-  IT_PCREL_ADDRESS = 5,       // Special type for address calculation.
-  IT_PCREL_ADDRESS_NMS = 6,   // Special type for address calculation.
-  IT_GPREL_NMS = 7,           // Special type for gprel expansion.
-  IT_GOTPCREL_NMS = 8,        // Special type for pcrel GOT expansion.
-  IT_GPREL = 9,               // Special type for gprel expansion.
-  IT_PCREL = 10,              // Special type for pcrel expansion.
-  IT_GOTPCREL = 11,           // Special type for pcrel GOT expansion.
-  IT_MAX = 12
+enum Transform_type
+{
+  TT_STANDARD = 0,            // Regular transformation.
+  TT_BEQC16 = 1,              // Special type for beqc16 instruction.
+  TT_BNEC16 = 2,              // Special type for bnec16 instruction.
+  TT_BYTE_ADDRESS = 3,        // Special type for address calculation.
+  TT_WORD_ADDRESS = 4,        // Special type for address calculation.
+  TT_PCREL_ADDRESS = 5,       // Special type for address calculation.
+  TT_PCREL_ADDRESS_NMS = 6,   // Special type for address calculation.
+  TT_GPREL_NMS = 7,           // Special type for gprel expansion.
+  TT_GOTPCREL_NMS = 8,        // Special type for pcrel GOT expansion.
+  TT_GPREL = 9,               // Special type for gprel expansion.
+  TT_PCREL = 10,              // Special type for pcrel expansion.
+  TT_GOTPCREL = 11,           // Special type for pcrel GOT expansion.
+  TT_MAX = 12
 };
 
 // Instruction information structure.
@@ -60,10 +59,10 @@ struct Insn_info
   const char* name;
 };
 
-// The Nanomips_insn_property class is to store information about a particular
-// relaxation or expansion.
+// The Nanomips_transform_property class is to store information about a
+// particular instruction transformation.
 
-class Nanomips_insn_property
+class Nanomips_transform_property
 {
  public:
   // Return the I-th instruction from the array.
@@ -90,7 +89,7 @@ class Nanomips_insn_property
     return this->insns_[i].name;
   }
 
-  // Return the name of the instruction.
+  // Return the name of the instruction for which we are doing transformation.
   const char*
   name() const
   { return this->name_; }
@@ -115,67 +114,72 @@ class Nanomips_insn_property
   is_store() const
   { return this->is_store_; }
 
-  // Return type of the instruction.
+  // Return type of the transformation.
   unsigned int
   type() const
-  { return this->insn_type_; }
+  { return this->type_; }
 
-  // Return the instruction property of type INSN_TYPE, if there is one.
-  const Nanomips_insn_property*
-  get_insn_property(unsigned int insn_type) const
+  // Return the transformation property of type TYPE, if there is one.
+  const Nanomips_transform_property*
+  get_transform_property(unsigned int type) const
   {
-    for (const Nanomips_insn_property* i = this; i != NULL; i = i->next_insn_)
+    for (const Nanomips_transform_property* i = this;
+         i != NULL;
+         i = i->next_transform_)
       {
-        if (i->insn_type_ == insn_type)
+        if (i->type_ == type)
           return i;
       }
-    return NULL;
+    gold_unreachable();
   }
 
  protected:
   // These are protected.  We only allow Nanomips_reloc_property_table to
-  // manage Nanomips_insn_property.
-  Nanomips_insn_property(const Insn_info* insns,
-                         size_t insn_num,
-                         const char* name,
-                         int count,
-                         unsigned int offset,
-                         unsigned int insn_type,
-                         bool is_store);
+  // manage Nanomips_transform_property.
+  Nanomips_transform_property(const Insn_info* insns,
+                              size_t insn_num,
+                              const char* name,
+                              int count,
+                              unsigned int offset,
+                              unsigned int type,
+                              bool is_store);
 
-  // Set the instruction property of type INSN_TYPE.
-  void set_insn_property(Nanomips_insn_property* pnip, unsigned int insn_type)
+  // Set the transform property of type TYPE.
+  void set_transform_property(Nanomips_transform_property* pntp,
+                              unsigned int type)
   {
-    // Instructions with the same type are not allowed.
-    for (Nanomips_insn_property* i = this; i != NULL; i = i->next_insn_)
-      gold_assert(i->insn_type_ != insn_type);
+    // Transformations with the same type are not allowed.
+    for (Nanomips_transform_property* i = this;
+         i != NULL;
+         i = i->next_transform_)
+      gold_assert(i->type_ != type);
 
-    pnip->next_insn_ = this->next_insn_;
-    this->next_insn_ = pnip;
+    pntp->next_transform_ = this->next_transform_;
+    this->next_transform_ = pntp;
   }
 
   friend class Nanomips_reloc_property_table;
 
  private:
   // Copying is not allowed.
-  Nanomips_insn_property(const Nanomips_insn_property&);
-  Nanomips_insn_property& operator=(const Nanomips_insn_property&);
+  Nanomips_transform_property(const Nanomips_transform_property&);
+  Nanomips_transform_property& operator=(const Nanomips_transform_property&);
 
-  // Relax/expand instruction/instructions.
+  // Transform instructions.
   const Insn_info* insns_;
   // Number of instructions.
   size_t insn_num_;
   // Instruction name.
   const char* name_;
-  // Pointer to the next instruction.
-  Nanomips_insn_property* next_insn_;
+  // Pointer to the next transformation.
+  Nanomips_transform_property* next_transform_;
   // The number of bytes to add/delete.
   int count_;
   // The offset where to add/delete bytes starting at r_offset.
   unsigned int offset_;
-  // The type of the instruction.
-  unsigned int insn_type_;
-  // Whether this is a store instruction.
+  // The type of the transformation.
+  unsigned int type_;
+  // Whether this is a store instruction for which we are doing transformation.
   bool is_store_;
 };
 
@@ -230,26 +234,20 @@ class Nanomips_reloc_property
   { return this->size_ == 32 || this->size_ == 48;}
 
   // Find matching instruction for relaxation.
-  const Nanomips_insn_property*
+  const Nanomips_transform_property*
   find_relax_match(uint32_t insn) const
   {
-    if (this->relaxations_.empty())
-      return NULL;
-
-    insn &= this->mask_;
-    Nanomips_insn_map::const_iterator p = this->relaxations_.find(insn);
+    Nanomips_transform_map::const_iterator p =
+      this->relaxations_.find(insn & this->mask_);
     return (p != this->relaxations_.end() ? p->second : NULL);
   }
 
   // Find matching instructions for expansion.
-  const Nanomips_insn_property*
+  const Nanomips_transform_property*
   find_expand_match(uint32_t insn) const
   {
-    if (this->expansions_.empty())
-      return NULL;
-
-    insn &= this->mask_;
-    Nanomips_insn_map::const_iterator p = this->expansions_.find(insn);
+    Nanomips_transform_map::const_iterator p =
+      this->expansions_.find(insn & this->mask_);
     return (p != this->expansions_.end() ? p->second : NULL);
   }
 
@@ -271,7 +269,8 @@ class Nanomips_reloc_property
   Nanomips_reloc_property(const Nanomips_reloc_property&);
   Nanomips_reloc_property& operator=(const Nanomips_reloc_property&);
 
-  typedef Unordered_map<uint32_t, Nanomips_insn_property*> Nanomips_insn_map;
+  typedef Unordered_map<uint32_t, Nanomips_transform_property*>
+        Nanomips_transform_map;
 
   // Relocation code.
   unsigned int code_;
@@ -283,14 +282,14 @@ class Nanomips_reloc_property
   unsigned int size_;
   // The number of bits in the instruction to be relocated.
   unsigned int bitsize_;
-  // Mask to match instructions for relaxations and expansions.
+  // Mask to match instructions.
   unsigned int mask_;
   // Reference flags for this relocation.
   int reference_flags_;
   // Instruction relaxations.
-  Nanomips_insn_map relaxations_;
+  Nanomips_transform_map relaxations_;
   // Instruction expansions.
-  Nanomips_insn_map expansions_;
+  Nanomips_transform_map expansions_;
 };
 
 class Nanomips_reloc_property_table
@@ -306,7 +305,8 @@ class Nanomips_reloc_property_table
   }
 
  private:
-  typedef Unordered_map<uint32_t, Nanomips_insn_property*> Nanomips_insn_map;
+  typedef Unordered_map<uint32_t, Nanomips_transform_property*>
+      Nanomips_transform_map;
 
   // Copying is not allowed.
   Nanomips_reloc_property_table(const Nanomips_reloc_property_table&);
