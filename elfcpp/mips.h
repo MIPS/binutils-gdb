@@ -146,6 +146,8 @@ enum
   R_MICROMIPS_SCN_DISP = 155,
   R_MICROMIPS_JALR = 156,
   R_MICROMIPS_HI0_LO16 = 157,
+  R_MICROMIPS_PCHI16 = 158,
+  R_MICROMIPS_PCLO16 = 159,
   // TLS relocations.
   R_MICROMIPS_TLS_GD = 162,
   R_MICROMIPS_TLS_LDM = 163,
@@ -157,6 +159,10 @@ enum
   // microMIPS GP- and PC-relative relocations.
   R_MICROMIPS_GPREL7_S2 = 172,
   R_MICROMIPS_PC23_S2 = 173,
+  R_MICROMIPS_PC21_S1 = 174,
+  R_MICROMIPS_PC26_S1 = 175,
+  R_MICROMIPS_PC18_S3 = 176,
+  R_MICROMIPS_PC19_S2 = 177,
 
   // This was a GNU extension used by embedded-PIC.  It was co-opted by
   // mips-linux for exception-handling data.  GCC stopped using it in
