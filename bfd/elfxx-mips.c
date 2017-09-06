@@ -6386,6 +6386,15 @@ mips_elf_calculate_relocation (bfd *abfd, bfd *input_bfd,
       value &= howto->dst_mask;
       break;
 
+    case R_MICROMIPS_BYTE_LO4:
+    case R_MICROMIPS_SHORT_LO4:
+    case R_MICROMIPS_WORD_LO4:
+    case R_MICROMIPS_BYTE_LO7:
+      value = symbol + addend;
+      value >>= howto->rightshift;
+      value &= howto->dst_mask;
+      break;
+
     case R_MIPS_GOT_HI16:
     case R_MIPS_CALL_HI16:
     case R_MICROMIPS_GOT_HI16:
@@ -13403,6 +13412,7 @@ mips_elf_relax_delete_bytes (bfd *abfd,
 struct opcode_descriptor {
   unsigned long match;
   unsigned long mask;
+  unsigned long dst_opcode;	/* target opcode.  */
 };
 
 /* The $ra register aka $31.  */
@@ -13422,29 +13432,59 @@ struct opcode_descriptor {
 
 /* 32-bit and 16-bit branches.  */
 
+static const struct opcode_descriptor micromips_bc_PC26[] = {
+  { 0x94000000, 0xfc000000, 0xcc00 }, /* bc */
+  { 0, 0, 0 }  /* End marker for find_match().  */
+};
+
+static const struct opcode_descriptor micromips_bc_PC21[] = {
+  { 0x80000000, 0xfc000000, 0x8c00 }, /* beqzc */
+  { 0xa0000000, 0xfc000000, 0xac00 }, /* bnezc */
+  { 0, 0, 0 }  /* End marker for find_match().  */
+};
+
+/* rt/base field of lbu16, lw16, sb16, sh16 and sw16 */
+#define L16_RT_REG_FIELD(r) \
+  (((2 <= (r) && (r) <= 7) ? (r) : ((r) - 16)) << 7)
+#define S16_RT_REG_FIELD(r) \
+  (((r) == 17 ? 1 : (r)) << 7)
+#define LS16_BASE_REG_FIELD(r) \
+  (((2 <= (r) && (r) <= 7) ? (r) : ((r) - 16)) << 4)
+
+static const struct opcode_descriptor micromips_ldst_LO16[] = {
+  { 0x14000000, 0xfc000000, 0x0800 }, /* lbu -> lbu16 */
+  { 0x34000000, 0xfc000000, 0x2800 }, /* lhu -> lhu16 */
+  { 0xfc000000, 0xfc000000, 0x6800 }, /* lw -> lw16 */
+  { 0x18000000, 0xfc000000, 0x8800 }, /* sb -> sb16 */
+  { 0x38000000, 0xfc000000, 0xa800 }, /* sh -> sh16 */
+  { 0xf8000000, 0xfc000000, 0xe800 }, /* sw -> sw16 */
+  { 0x30000000, 0xfc1f0000, 0xec00 }, /* li -> li16 */
+  { 0, 0, 0 }  /* End marker for find_match().  */
+};
+
 static const struct opcode_descriptor b_insns_32[] = {
-  { /* "b",	"p",		*/ 0x40400000, 0xffff0000 }, /* bgez 0 */
-  { /* "b",	"p",		*/ 0x94000000, 0xffff0000 }, /* beq 0, 0 */
-  { 0, 0 }  /* End marker for find_match().  */
+  { /* "b",	"p",		*/ 0x40400000, 0xffff0000, 0 }, /* bgez 0 */
+  { /* "b",	"p",		*/ 0x94000000, 0xffff0000, 0 }, /* beq 0, 0 */
+  { 0, 0, 0 }  /* End marker for find_match().  */
 };
 
 static const struct opcode_descriptor bc_insn_32 =
-  { /* "bc(1|2)(ft)", "N,p",	*/ 0x42800000, 0xfec30000 };
+  { /* "bc(1|2)(ft)", "N,p",	*/ 0x42800000, 0xfec30000, 0 };
 
 static const struct opcode_descriptor bz_insn_32 =
-  { /* "b(g|l)(e|t)z", "s,p",	*/ 0x40000000, 0xff200000 };
+  { /* "b(g|l)(e|t)z", "s,p",	*/ 0x40000000, 0xff200000, 0 };
 
 static const struct opcode_descriptor bzal_insn_32 =
-  { /* "b(ge|lt)zal", "s,p",	*/ 0x40200000, 0xffa00000 };
+  { /* "b(ge|lt)zal", "s,p",	*/ 0x40200000, 0xffa00000, 0 };
 
 static const struct opcode_descriptor beq_insn_32 =
-  { /* "b(eq|ne)", "s,t,p",	*/ 0x94000000, 0xdc000000 };
+  { /* "b(eq|ne)", "s,t,p",	*/ 0x94000000, 0xdc000000, 0 };
 
 static const struct opcode_descriptor b_insn_16 =
-  { /* "b",	"mD",		*/ 0xcc00,     0xfc00 };
+  { /* "b",	"mD",		*/ 0xcc00,     0xfc00, 0 };
 
 static const struct opcode_descriptor bz_insn_16 =
-  { /* "b(eq|ne)z", "md,mE",	*/ 0x8c00,     0xdc00 };
+  { /* "b(eq|ne)z", "md,mE",	*/ 0x8c00,     0xdc00, 0 };
 
 
 /* 32-bit and 16-bit branch EQ and NE zero.  */
@@ -13456,27 +13496,27 @@ static const struct opcode_descriptor bz_insn_16 =
 #define BZC32_REG_FIELD(r) (((r) & 0x1f) << 16)
 
 static const struct opcode_descriptor bz_rs_insns_32[] = {
-  { /* "beqz",	"s,p",		*/ 0x94000000, 0xffe00000 },
-  { /* "bnez",	"s,p",		*/ 0xb4000000, 0xffe00000 },
-  { 0, 0 }  /* End marker for find_match().  */
+  { /* "beqz",	"s,p",		*/ 0x94000000, 0xffe00000, 0 },
+  { /* "bnez",	"s,p",		*/ 0xb4000000, 0xffe00000, 0 },
+  { 0, 0, 0 }  /* End marker for find_match().  */
 };
 
 static const struct opcode_descriptor bz_rt_insns_32[] = {
-  { /* "beqz",	"t,p",		*/ 0x94000000, 0xfc01f000 },
-  { /* "bnez",	"t,p",		*/ 0xb4000000, 0xfc01f000 },
-  { 0, 0 }  /* End marker for find_match().  */
+  { /* "beqz",	"t,p",		*/ 0x94000000, 0xfc01f000, 0 },
+  { /* "bnez",	"t,p",		*/ 0xb4000000, 0xfc01f000, 0 },
+  { 0, 0, 0 }  /* End marker for find_match().  */
 };
 
 static const struct opcode_descriptor bzc_insns_32[] = {
-  { /* "beqzc",	"s,p",		*/ 0x40e00000, 0xffe00000 },
-  { /* "bnezc",	"s,p",		*/ 0x40a00000, 0xffe00000 },
-  { 0, 0 }  /* End marker for find_match().  */
+  { /* "beqzc",	"s,p",		*/ 0x40e00000, 0xffe00000, 0 },
+  { /* "bnezc",	"s,p",		*/ 0x40a00000, 0xffe00000, 0 },
+  { 0, 0, 0 }  /* End marker for find_match().  */
 };
 
 static const struct opcode_descriptor bz_insns_16[] = {
-  { /* "beqz",	"md,mE",	*/ 0x8c00,     0xfc00 },
-  { /* "bnez",	"md,mE",	*/ 0xac00,     0xfc00 },
-  { 0, 0 }  /* End marker for find_match().  */
+  { /* "beqz",	"md,mE",	*/ 0x8c00,     0xfc00, 0 },
+  { /* "bnez",	"md,mE",	*/ 0xac00,     0xfc00, 0 },
+  { 0, 0, 0 }  /* End marker for find_match().  */
 };
 
 /* Switch between a 5-bit register index and its 3-bit shorthand.  */
@@ -13488,83 +13528,83 @@ static const struct opcode_descriptor bz_insns_16[] = {
 /* 32-bit instructions with a delay slot.  */
 
 static const struct opcode_descriptor jal_insn_32_bd16 =
-  { /* "jals",	"a",		*/ 0x74000000, 0xfc000000 };
+  { /* "jals",	"a",		*/ 0x74000000, 0xfc000000, 0 };
 
 static const struct opcode_descriptor jal_insn_32_bd32 =
-  { /* "jal",	"a",		*/ 0xf4000000, 0xfc000000 };
+  { /* "jal",	"a",		*/ 0xf4000000, 0xfc000000, 0 };
 
 static const struct opcode_descriptor jal_x_insn_32_bd32 =
-  { /* "jal[x]", "a",		*/ 0xf0000000, 0xf8000000 };
+  { /* "jal[x]", "a",		*/ 0xf0000000, 0xf8000000, 0 };
 
 static const struct opcode_descriptor j_insn_32 =
-  { /* "j",	"a",		*/ 0xd4000000, 0xfc000000 };
+  { /* "j",	"a",		*/ 0xd4000000, 0xfc000000, 0 };
 
 static const struct opcode_descriptor jalr_insn_32 =
-  { /* "jalr[.hb]", "t,s",	*/ 0x00000f3c, 0xfc00efff };
+  { /* "jalr[.hb]", "t,s",	*/ 0x00000f3c, 0xfc00efff, 0 };
 
 /* This table can be compacted, because no opcode replacement is made.  */
 
 static const struct opcode_descriptor ds_insns_32_bd16[] = {
-  { /* "jals",	"a",		*/ 0x74000000, 0xfc000000 },
+  { /* "jals",	"a",		*/ 0x74000000, 0xfc000000, 0 },
 
-  { /* "jalrs[.hb]", "t,s",	*/ 0x00004f3c, 0xfc00efff },
-  { /* "b(ge|lt)zals", "s,p",	*/ 0x42200000, 0xffa00000 },
+  { /* "jalrs[.hb]", "t,s",	*/ 0x00004f3c, 0xfc00efff, 0 },
+  { /* "b(ge|lt)zals", "s,p",	*/ 0x42200000, 0xffa00000, 0 },
 
-  { /* "b(g|l)(e|t)z", "s,p",	*/ 0x40000000, 0xff200000 },
-  { /* "b(eq|ne)", "s,t,p",	*/ 0x94000000, 0xdc000000 },
-  { /* "j",	"a",		*/ 0xd4000000, 0xfc000000 },
-  { 0, 0 }  /* End marker for find_match().  */
+  { /* "b(g|l)(e|t)z", "s,p",	*/ 0x40000000, 0xff200000, 0 },
+  { /* "b(eq|ne)", "s,t,p",	*/ 0x94000000, 0xdc000000, 0 },
+  { /* "j",	"a",		*/ 0xd4000000, 0xfc000000, 0 },
+  { 0, 0, 0 }  /* End marker for find_match().  */
 };
 
 /* This table can be compacted, because no opcode replacement is made.  */
 
 static const struct opcode_descriptor ds_insns_32_bd32[] = {
-  { /* "jal[x]", "a",		*/ 0xf0000000, 0xf8000000 },
+  { /* "jal[x]", "a",		*/ 0xf0000000, 0xf8000000, 0 },
 
-  { /* "jalr[.hb]", "t,s",	*/ 0x00000f3c, 0xfc00efff },
-  { /* "b(ge|lt)zal", "s,p",	*/ 0x40200000, 0xffa00000 },
-  { 0, 0 }  /* End marker for find_match().  */
+  { /* "jalr[.hb]", "t,s",	*/ 0x00000f3c, 0xfc00efff, 0 },
+  { /* "b(ge|lt)zal", "s,p",	*/ 0x40200000, 0xffa00000, 0 },
+  { 0, 0, 0 }  /* End marker for find_match().  */
 };
 
 
 /* 16-bit instructions with a delay slot.  */
 
 static const struct opcode_descriptor jalr_insn_16_bd16 =
-  { /* "jalrs",	"my,mj",	*/ 0x45e0,     0xffe0 };
+  { /* "jalrs",	"my,mj",	*/ 0x45e0,     0xffe0, 0 };
 
 static const struct opcode_descriptor jalr_insn_16_bd32 =
-  { /* "jalr",	"my,mj",	*/ 0x45c0,     0xffe0 };
+  { /* "jalr",	"my,mj",	*/ 0x45c0,     0xffe0, 0 };
 
 static const struct opcode_descriptor jr_insn_16 =
-  { /* "jr",	"mj",		*/ 0x4580,     0xffe0 };
+  { /* "jr",	"mj",		*/ 0x4580,     0xffe0, 0 };
 
 #define JR16_REG(opcode) ((opcode) & 0x1f)
 
 /* This table can be compacted, because no opcode replacement is made.  */
 
 static const struct opcode_descriptor ds_insns_16_bd16[] = {
-  { /* "jalrs",	"my,mj",	*/ 0x45e0,     0xffe0 },
+  { /* "jalrs",	"my,mj",	*/ 0x45e0,     0xffe0, 0 },
 
-  { /* "b",	"mD",		*/ 0xcc00,     0xfc00 },
-  { /* "b(eq|ne)z", "md,mE",	*/ 0x8c00,     0xdc00 },
-  { /* "jr",	"mj",		*/ 0x4580,     0xffe0 },
-  { 0, 0 }  /* End marker for find_match().  */
+  { /* "b",	"mD",		*/ 0xcc00,     0xfc00, 0 },
+  { /* "b(eq|ne)z", "md,mE",	*/ 0x8c00,     0xdc00, 0 },
+  { /* "jr",	"mj",		*/ 0x4580,     0xffe0, 0 },
+  { 0, 0, 0 }  /* End marker for find_match().  */
 };
 
 
 /* LUI instruction.  */
 
 static const struct opcode_descriptor lui_insn =
- { /* "lui",	"s,u",		*/ 0x41a00000, 0xffe00000 };
+ { /* "lui",	"s,u",		*/ 0x41a00000, 0xffe00000, 0 };
 
 
 /* ADDIU instruction.  */
 
 static const struct opcode_descriptor addiu_insn =
-  { /* "addiu",	"t,r,j",	*/ 0x30000000, 0xfc000000 };
+  { /* "addiu",	"t,r,j",	*/ 0x30000000, 0xfc000000, 0 };
 
 static const struct opcode_descriptor addiupc_insn =
-  { /* "addiu",	"mb,$pc,mQ",	*/ 0x78000000, 0xfc000000 };
+  { /* "addiu",	"mb,$pc,mQ",	*/ 0x78000000, 0xfc000000, 0 };
 
 #define ADDIUPC_REG_FIELD(r) \
   (((2 <= (r) && (r) <= 7) ? (r) : ((r) - 16)) << 23)
@@ -13581,22 +13621,22 @@ static const struct opcode_descriptor addiupc_insn =
 #define MOVE16_RS_FIELD(r) (((r) & 0x1f)     )
 
 static const struct opcode_descriptor move_insns_32[] = {
-  { /* "move",	"d,s",		*/ 0x00000290, 0xffe007ff }, /* or   d,s,$0 */
-  { /* "move",	"d,s",		*/ 0x00000150, 0xffe007ff }, /* addu d,s,$0 */
-  { 0, 0 }  /* End marker for find_match().  */
+  { /* "move",	"d,s",		*/ 0x00000290, 0xffe007ff, 0 }, /* or   d,s,$0 */
+  { /* "move",	"d,s",		*/ 0x00000150, 0xffe007ff, 0 }, /* addu d,s,$0 */
+  { 0, 0, 0 }  /* End marker for find_match().  */
 };
 
 static const struct opcode_descriptor move_insn_16 =
-  { /* "move",	"mp,mj",	*/ 0x0c00,     0xfc00 };
+  { /* "move",	"mp,mj",	*/ 0x0c00,     0xfc00, 0 };
 
 
 /* NOP instructions.  */
 
 static const struct opcode_descriptor nop_insn_32 =
-  { /* "nop",	"",		*/ 0x00000000, 0xffffffff };
+  { /* "nop",	"",		*/ 0x00000000, 0xffffffff, 0 };
 
 static const struct opcode_descriptor nop_insn_16 =
-  { /* "nop",	"",		*/ 0x0c00,     0xffff };
+  { /* "nop",	"",		*/ 0x0c00,     0xffff, 0 };
 
 
 /* Instruction match support.  */
@@ -13802,12 +13842,16 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
          to delete these bytes starting at irel->r_offset.  */
       int delcnt = 0;
       int deloff = 0;
+      int opcidx = 0;
 
       /* If this isn't something that can be relaxed, then ignore
          this reloc.  */
       if (r_type != R_MICROMIPS_HI16
 	  && r_type != R_MICROMIPS_PC16_S1
-	  && r_type != R_MICROMIPS_26_S1)
+	  && r_type != R_MICROMIPS_26_S1
+	  && r_type != R_MICROMIPS_PC26_S1
+	  && r_type != R_MICROMIPS_PC21_S1
+	  && r_type != R_MICROMIPS_LO16)
 	continue;
 
       /* Get the section contents if we haven't done so already.  */
@@ -13899,6 +13943,172 @@ _bfd_mips_elf_relax_section (bfd *abfd, asection *sec,
       pcrval = (symval
 		- (sec->output_section->vma + sec->output_offset)
 		- irel->r_offset);
+
+      /* R_MICROMIPS_PC26_S1 relaxation to R_MICROMIPS_PC10_S1.  */
+      if (!insn32
+	  && r_type == R_MICROMIPS_PC26_S1
+	  && (opcidx = find_match (opcode, micromips_bc_PC26)) >= 0)
+	{
+	  bfd_vma addend = opcode & 0x03ffffff;
+	  unsigned int new_opcode;
+
+	  addend = _bfd_mips_elf_sign_extend (addend << 1, 27);
+	  new_opcode = micromips_bc_PC26[opcidx].dst_opcode;
+
+	  if (! mips_elf_overflow_p ((pcrval + addend), 11))
+	    {
+	      /* Calculate new addend.  */
+	      addend = (addend + 4 - 2) >> 1;
+
+	      /* Fix the relocation's type.  */
+	      irel->r_info = ELF32_R_INFO (r_symndx, R_MICROMIPS_PC10_S1);
+
+	      /* Replace the 32-bit bc with a 16-bit bc16.  */
+	      bfd_put_16 (abfd, new_opcode | (addend & 0x3ff), ptr);
+
+	      /* Delete 2 bytes from irel->r_offset + 2.  */
+	      delcnt = 2;
+	      deloff = 2;
+	    }
+	}
+
+      /* R_MICROMIPS_PC21_S1 relaxation to R_MICROMIPS_PC7_S1.  */
+      if (!insn32
+	  && r_type == R_MICROMIPS_PC21_S1
+	  && (opcidx = find_match (opcode, micromips_bc_PC21)) >= 0)
+	{
+	  unsigned int reg, new_opcode;
+	  bfd_vma addend = opcode & 0x001fffff;
+
+	  reg = OP32_TREG (opcode);
+	  addend = _bfd_mips_elf_sign_extend (addend << 1, 22);
+	  new_opcode = micromips_bc_PC21[opcidx].dst_opcode;
+
+	  if (! mips_elf_overflow_p ((pcrval + addend), 8)
+	      && ((reg >= 2 && reg <= 7) || reg == 16 || reg == 17))
+	    {
+	      /* Calculate new addend.  */
+	      addend = (addend + 4 - 2) >> 1;
+
+	      /* Fix the relocation's type.  */
+	      irel->r_info = ELF32_R_INFO (r_symndx, R_MICROMIPS_PC7_S1);
+
+	      /* Replace the 32-bit bc with a 16-bit bc16.  */
+	      bfd_put_16 (abfd,
+			  (new_opcode
+			   | BZ16_REG_FIELD (reg)
+			   | (addend & 0x7f)), ptr);
+
+	      /* Delete 2 bytes from irel->r_offset + 2.  */
+	      delcnt = 2;
+	      deloff = 2;
+	    }
+	}
+
+#if 0
+This code needs retesting before enabling.  The store memory instructions
+had the wrong set of source registers.
+      /* R_MICROMIPS_LO16 relaxation to R_MICROMIPS_XXXX_LO4.  */
+      if (!insn32
+	  && r_type == R_MICROMIPS_LO16
+	  && (opcidx = find_match (opcode, micromips_ldst_LO16)) >= 0)
+	{
+	  bfd_boolean target_within_range = FALSE;
+	  int shift = 0, target_reloc = R_MICROMIPS_BYTE_LO4;
+	  unsigned int rt, base, new_opcode;
+	  bfd_signed_vma target_addr, addend;
+
+	  base = OP32_SREG (opcode);
+	  rt = OP32_TREG (opcode);
+	  addend = _bfd_mips_elf_sign_extend (opcode, 16);
+	  new_opcode = micromips_ldst_LO16[opcidx].dst_opcode;
+
+	  /* Calulate target relocation and shift amount.  */
+	  if (new_opcode == 0x2800 || new_opcode == 0xa800)
+	    {
+	      shift = 1;
+	      target_reloc = R_MICROMIPS_SHORT_LO4;
+	    }
+	  else if (new_opcode == 0x6800 || new_opcode == 0xe800)
+	    {
+	      shift = 2;
+	      target_reloc = R_MICROMIPS_WORD_LO4;
+	    }
+	  else if (new_opcode == 0xec00)
+	    target_reloc = R_MICROMIPS_BYTE_LO7;
+
+	  /* Calculate target address.  */
+	  target_addr = _bfd_mips_elf_sign_extend (symval + addend, 16);
+
+	  /* Check if the target address is in range.  lbu16 and
+	     li16 have 4bit encoded offset.  */
+	  switch (new_opcode)
+	    {
+	    case 0x0800:	/* lbu16 */
+	      if (target_addr < -1 || target_addr > 14)
+		continue;
+	      break;
+	    case 0xec00:	/* li16 */
+	      if (target_addr < -1 || target_addr > 126)
+		continue;
+	      break;
+	    default:
+	      if (target_addr < 0 || target_addr > 63)
+		continue;
+	      break;
+	    }
+
+	  /* Check registers */
+	  switch (new_opcode)
+	    {
+	    case 0x8800:	/* sb16 */
+	    case 0xa800:	/* sh16 */
+	    case 0xe800:	/* sw16 */
+	      if (rt != 0 && rt != 17 && (rt < 2 || rt > 7))
+		continue;
+	      if (base != 16 && base != 17 && (base < 2 || base > 7))
+		continue;
+	      break;
+	    case 0x0800:	/* lbu16 */
+	    case 0x2800:	/* lhu16 */
+	    case 0x6800:	/* lw16 */
+	      if (rt != 16 && rt != 17 && (rt < 2 || rt > 7))
+		continue;
+	      if (base != 16 && base != 17 && (base < 2 || base > 7))
+		continue;
+	      break;
+	    default:
+	      break;
+	    }
+
+	  irel->r_info = ELF32_R_INFO (r_symndx, target_reloc);
+
+	  /* Replace the 32-bit load/store with a 16-bit.  */
+	  if (new_opcode == 0xec00)
+	    bfd_put_16 (abfd,
+			(new_opcode
+			 | L16_RT_REG_FIELD (rt)
+			 | (addend & 0x7f)), ptr);
+	  else if ((new_opcode & 0x8000) == 0)
+	    bfd_put_16 (abfd,
+			(new_opcode
+			 | L16_RT_REG_FIELD (rt)
+			 | LS16_BASE_REG_FIELD (base)
+			 | ((addend >> shift) & 0xf)), ptr);
+	  else
+	    bfd_put_16 (abfd,
+			(new_opcode
+			 | S16_RT_REG_FIELD (rt)
+			 | LS16_BASE_REG_FIELD (base)
+			 | ((addend >> shift) & 0xf)), ptr);
+
+
+
+	  /* Delete 2 bytes from irel->r_offset + 2.  */
+	  delcnt = 2;
+	  deloff = 2;
+	}
+#endif
 
       /* R_MICROMIPS_HI16 / LUI relaxation to nil, performing relaxation
          of corresponding R_MICROMIPS_LO16 to R_MICROMIPS_HI0_LO16 or
