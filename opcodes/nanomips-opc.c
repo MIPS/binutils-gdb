@@ -1159,6 +1159,7 @@ IGRIE */
 {"repl.qb",	"",		"t,5",		0x200005ff, 0xfc001fff,	WR_1,			0,	0,	D32},
 {"replv.ph",	"",		"t,s",		0x2000033f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32},
 {"replv.qb",	"",		"t,s",		0x2000133f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32},
+{"restore",	"[32]",		"mY",		0x80003002, 0xfffff007,	0,			0,	I38,	0},
 {"restore",	"[32]",		"mY,n",		0x80003002, 0xfc00f003,	0,			0,	I38,	0},
 {"restore.jrc",	"[16]", 	"mG",		0x1d00,		0xff0f,	0,			0,	I38,	0}, /* RESTORE.JRC[16] */
 {"restore.jrc",	"[16]", 	"mG,+N",	0x1d00,		0xfd00,	0,			0,	I38,	0}, /* RESTORE.JRC[16], preceded by RESTORE[16] */
@@ -1194,6 +1195,7 @@ IGRIE */
 {"savef",	"",		"mY,+P",	0x80103000, 0xfff0f007,	    	FP_S,		0,	I38,	0}, /* precedes SAVE */
 {"save",	"[16]",		"mG",		0x1c00,		0xff0f,		0,		0,	I38,	0}, /* SAVE[16] */
 {"save",	"[16]",		"mG,+N",	0x1c00,		0xfd00,		0,		0,	I38,	0}, /* SAVE[16] */
+{"save",	"[32]",		"mY",		0x80003000, 0xfffff007,		0,		0,	I38,	0},
 {"save",	"[32]",		"mY,n",		0x80003000, 0xfc00f003,		0,		0,	I38,	0},
 {"sb",		"[16]",		"mq,mL(ml)",	0x5c04,		0xfc0c,	RD_1|RD_3,		0,	I38,	0}, /* SB[16] */
 {"sb",		"[gp]",		"t,+1(ma)",	0x44040000, 0xfc1c0000,	RD_1|RD_3,		0,	I38,	0}, /* SB[GP] */
