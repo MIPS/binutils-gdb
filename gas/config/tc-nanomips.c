@@ -10919,15 +10919,6 @@ s_cpsetup (int ignore ATTRIBUTE_UNUSED)
   return;
 }
 
-static void
-s_cplocal (int ignore ATTRIBUTE_UNUSED)
-{
-  file_check_options ();
-
-  s_ignore (0);
-  return;
-}
-
 /* Handle a .dtprelword, .dtpreldword, .tprelword, or .tpreldword
    pseudo-op; DIRSTR says which. The pseudo-op generates a BYTES-size
    DTP- or TP-relative relocation of type RTYPE, for use in DWARF
@@ -12077,6 +12068,7 @@ nanomips_elf_final_processing (void)
   flags.ases = nanomips_convert_ase_flags (file_nanomips_opts.ase);
   flags.flags1 = 0;
   flags.flags2 = 0;
+  flags.isa_ext = 0;
 
   bfd_mips_elf_swap_abiflags_v0_out (stdoutput, &flags,
 				     ((Elf_External_ABIFlags_v0 *)
