@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# nanomips_branch_out_of_range.sh -- test nanoMIPS branch instructions whose
-# targets are out of the branch range limits.
+# nanomips_pcrel_out_of_range.sh -- test nanoMIPS pc-relative instructions whose
+# targets are out of the range limits.
 
 # Copyright (C) 2017 Free Software Foundation, Inc.
 # Written by Vladimir Radosavljevic <vladimir.radosavljevic@imgtec.com>.
@@ -35,12 +35,12 @@ check()
     fi
 }
 
-# Test balc expansion to aluipc, addiu and jalrc.
+# Test balc expansion to aluipc, ori and jalrc.
 check nanomips_b_out_of_range.stdout " 1000:	e020 0042 	aluipc	at,.*"
 check nanomips_b_out_of_range.stdout " 1004:	8021 0020 	ori	at,at,32"
 check nanomips_b_out_of_range.stdout " 1008:	d830      	jalrc	at"
 
-# Test bc expansion to aluipc, addiu and jrc.
+# Test bc expansion to aluipc, ori and jrc.
 check nanomips_b_out_of_range.stdout " 100a:	e020 0042 	aluipc	at,.*"
 check nanomips_b_out_of_range.stdout " 100e:	8021 0020 	ori	at,at,32"
 check nanomips_b_out_of_range.stdout " 1012:	d820      	jrc	at"
@@ -49,11 +49,15 @@ check nanomips_b_out_of_range.stdout " 1012:	d820      	jrc	at"
 check nanomips_move_balc_1_out_of_range.stdout " 1000:	1090      	move	a0,s0"
 check nanomips_move_balc_1_out_of_range.stdout " 1002:	2a20 001a 	balc	.*"
 
-# Test move.balc expansion to move, aluipc, addiu and jalrc.
+# Test move.balc expansion to move, aluipc, ori and jalrc.
 check nanomips_move_balc_2_out_of_range.stdout " 1000:	1090      	move	a0,s0"
 check nanomips_move_balc_2_out_of_range.stdout " 1002:	e020 0042 	aluipc	at,.*"
 check nanomips_move_balc_2_out_of_range.stdout " 1006:	8021 0020 	ori	at,at,32"
 check nanomips_move_balc_2_out_of_range.stdout " 100a:	d830      	jalrc	at"
+
+# Test lapc expansion to aluipc and ori.
+check nanomips_lapc_out_of_range.stdout " 1000:	e080 0042 	aluipc	a0,.*"
+check nanomips_lapc_out_of_range.stdout " 1004:	8084 0020 	ori	a0,a0,32"
 
 # Test beqic expansion to li, beqc.
 check nanomips_bci_out_of_range.stdout " 1000:	8020 005a 	ori	at,zero,90"

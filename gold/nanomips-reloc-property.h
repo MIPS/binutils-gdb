@@ -36,18 +36,20 @@ enum Transform_type
   TT_DELETE = 1,               // Delete instruction.
   TT_BEQC16 = 2,               // Special type for beqc16 instruction.
   TT_BNEC16 = 3,               // Special type for bnec16 instruction.
-  TT_GPREL16_NMS = 4,          // Special type for gprel transformation.
-  TT_GPREL16_WORD = 5,         // Special type for gprel transformation.
-  TT_GPREL32 = 6,              // Special type for gprel transformation.
-  TT_GPREL32_WORD = 7,         // Special type for gprel transformation.
-  TT_GPREL_NMS = 8,            // Special type for gprel transformation.
-  TT_PCREL16 = 9,              // Special type for pcrel transformation.
-  TT_PCREL32 = 10,             // Special type for pcrel transformation.
-  TT_PCREL_NMS = 11,           // Special type for pcrel transformation.
-  TT_GOTPCREL_NMS = 12,        // Special type for pcrel GOT transformation.
-  TT_GPREL_LONG = 13,          // Special type for gprel transformation.
-  TT_PCREL_LONG = 14,          // Special type for pcrel transformation.
-  TT_GOTPCREL_LONG = 15        // Special type for pcrel GOT transformation.
+  TT_MOVE_BALC = 4,            // Special type for move.balc instruction.
+  TT_LAPC = 5,                 // Special type for lapc instruction.
+  TT_GPREL16_NMS = 6,          // Special type for gprel transformation.
+  TT_GPREL16_WORD = 7,         // Special type for gprel transformation.
+  TT_GPREL32 = 8,              // Special type for gprel transformation.
+  TT_GPREL32_WORD = 9,         // Special type for gprel transformation.
+  TT_GPREL_NMS = 10,           // Special type for gprel transformation.
+  TT_PCREL16 = 11,             // Special type for pcrel transformation.
+  TT_PCREL32 = 12,             // Special type for pcrel transformation.
+  TT_PCREL_NMS = 13,           // Special type for pcrel transformation.
+  TT_GOTPCREL_NMS = 14,        // Special type for pcrel GOT transformation.
+  TT_GPREL_LONG = 15,          // Special type for gprel transformation.
+  TT_PCREL_LONG = 16,          // Special type for pcrel transformation.
+  TT_GOTPCREL_LONG = 17        // Special type for pcrel GOT transformation.
 };
 
 // Instruction information structure.

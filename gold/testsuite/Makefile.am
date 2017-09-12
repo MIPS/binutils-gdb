@@ -4199,13 +4199,14 @@ endif DEFAULT_TARGET_S390
 
 if DEFAULT_TARGET_NANOMIPS
 
-# Check expansions of branch instructions.
+# Check expansions of pc-relative instructions.
 
-check_SCRIPTS += nanomips_branch_out_of_range.sh
+check_SCRIPTS += nanomips_pcrel_out_of_range.sh
 check_DATA += nanomips_b_out_of_range.stdout \
 	      nanomips_bci_out_of_range.stdout \
 	      nanomips_move_balc_1_out_of_range.stdout \
-	      nanomips_move_balc_2_out_of_range.stdout
+	      nanomips_move_balc_2_out_of_range.stdout \
+	      nanomips_lapc_out_of_range.stdout
 
 nanomips_b_out_of_range.stdout: nanomips_b_out_of_range
 	$(TEST_OBJDUMP) -d $< > $@
@@ -4240,8 +4241,18 @@ nanomips_move_balc_2_out_of_range: nanomips_move_balc_out_of_range.o ../ld-new
 nanomips_move_balc_out_of_range.o: nanomips_move_balc_out_of_range.s
 	$(TEST_AS) -EL -march=32r6 -m32 -o $@ $<
 
+nanomips_lapc_out_of_range.stdout: nanomips_lapc_out_of_range
+	$(TEST_OBJDUMP) -d $< > $@
+
+nanomips_lapc_out_of_range: nanomips_lapc_out_of_range.o ../ld-new
+	../ld-new --section-start .text=0x1000 --section-start .foo=0x2001020 -o $@ $<
+
+nanomips_lapc_out_of_range.o: nanomips_lapc_out_of_range.s
+	$(TEST_AS) -EL -march=32r6 -m32 -o $@ $<
+
 MOSTLYCLEANFILES += nanomips_b_out_of_range  nanomips_bci_out_of_range \
-		    nanomips_move_balc_1_out_of_range nanomips_move_balc_2_out_of_range
+		    nanomips_move_balc_1_out_of_range nanomips_move_balc_2_out_of_range \
+		    nanomips_lapc_out_of_range
 
 # Check expansions of gp-relative load and store instructions.
 
