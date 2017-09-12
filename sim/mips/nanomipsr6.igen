@@ -1857,7 +1857,8 @@
   unsigned16 S2 = do_load(SD_, AccessLength_HALFWORD, CIA + 4, 0);
   unsigned32 total = S2 << 16 | IMM48;
 
-  do_lwpc_nanomips (SD_, RT, total, NIA);
+  do_lwpc_nanomips (SD_, RT, total, CIA + 6);
+  NIA = CIA + 6;
 }
 
 001000,5.RT,5.RS,5.RD,1000,0,000,111:R7PPLSX:32::LWX
