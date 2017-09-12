@@ -1,7 +1,7 @@
 #name: SAVE/RESTORE relocations on nanoMIPS
 #PROG: readelf
 #readelf: -Wr
-#as: --linkrelax -KPIC
+#as: --linkrelax -mpic
 #source: save.s
 
 #...

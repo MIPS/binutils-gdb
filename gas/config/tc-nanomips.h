@@ -20,7 +20,6 @@
    02110-1301, USA.  */
 
 #ifndef TC_NANOMIPS
-#define TC_MIPS
 #define TC_NANOMIPS
 
 struct frag;

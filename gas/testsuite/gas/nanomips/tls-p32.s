@@ -1,6 +1,6 @@
 	.file	1 "tls.s"
-	.abicalls
 	.text
+	.set 	pic
 	.align	2
 	.globl	fn
 	.ent	fn
@@ -10,7 +10,7 @@ fn:
 	.mask	0x40000000,-8
 	.fmask	0x00000000,0
 	.set	noreorder
-	.cpload $t9
+	.cpsetup $t9
 	.set	reorder
 	addiu	$sp,$sp,-16
 	sw	$fp,8($sp)

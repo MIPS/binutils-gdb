@@ -16,3 +16,11 @@
 .*:31: Error: operand 2 out of range `bgeiuc \$t5,128,test'
 .*:32: Error: operand 2 out of range `bltiuc \$a0,-3,test'
 .*:33: Error: operand 2 out of range `bltiuc \$a1,256,test'
+.*:36: Error: invalid register range `lwm \$16-17,0\(\$4\)'
+.*:37: Error: invalid operands `lwm \$17-\$16,0\(\$4\)'
+.*:38: Error: invalid operands `lwm \$16-\$f17,0\(\$4\)'
+.*:39: Error: invalid operands `lwm \$f16-\$17,0\(\$4\)'
+.*:42: Error: floating-point expression required `li\.s \$4,foo'
+.*:43: Error: cannot create floating-point number
+.*:44: Error: floating-point expression required `li\.s \$4,\$4'
+.*:45: Error: invalid operands `li\.s 1.0'

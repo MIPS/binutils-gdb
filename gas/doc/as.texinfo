@@ -440,27 +440,22 @@ gcc(1), ld(1), and the Info entries for @file{binutils} and @file{ld}.
 
 @emph{Target nanoMIPS options:}
    [@b{-nocpp}] [@b{-EL}] [@b{-EB}] [@b{-O}[@var{optimization level}]]
-   [@b{-g}[@var{debug level}]] [@b{-G} @var{num}] [@b{-KPIC}]
-   [@b{-non_shared}]
-   [@b{-m32}] [@b{-m64}] [@b{-mfp32}] [@b{-mgp32}]
-   [@b{-mfp64}] [@b{-mgp64}] [@b{-mfpxx}]
-   [@b{-modd-spreg}] [@b{-mno-odd-spreg}]
+   [@b{-g}[@var{debug level}]] [@b{-G} @var{num}]
+   [@b{-mpic}] [@b{-mno-pic}]
+   [@b{-m32}] [@b{-m64}]
    [@b{-march}=@var{CPU}] [@b{-mtune}=@var{CPU}]
    [@b{-construct-floats}] [@b{-no-construct-floats}]
    [@b{-trap}] [@b{-no-break}] [@b{-break}] [@b{-no-trap}]
    [@b{-mdsp}] [@b{-mno-dsp}]
-   [@b{-mdspr2}] [@b{-mno-dspr2}]
+   [@b{-mdspr3}] [@b{-mno-dspr3}]
    [@b{-mmsa}] [@b{-mno-msa}]
    [@b{-mxpa}] [@b{-mno-xpa}]
-   [@b{-mmxu}] [@b{-mno-mxu}]
    [@b{-mmt}] [@b{-mno-mt}]
    [@b{-mmcu}] [@b{-mno-mcu}]
    [@b{-mvirt}] [@b{-mno-virt}]
    [@b{-mginv}] [@b{-mno-ginv}]
    [@b{-mtlb}] [@b{-mno-tlb}]
    [@b{-minsn32}] [@b{-mno-insn32}]
-   [@b{-mdebug}] [@b{-no-mdebug}]
-   [@b{-mpdr}] [@b{-mno-pdr}]
    [@b{-mbalc-stubs}] [@b{-mno-balc-stubs}]
    [@b{-mlegacyregs}] [@b{-mno-legacyregs}]
    [@b{--linkrelax}]
@@ -1595,41 +1590,24 @@ recognized: @code{m6001}, @code{i6001}.
 @item -mtune=@var{cpu}
 Schedule and tune for a particular nanoMIPS CPU.
 
-@item -mdebug
-@itemx -no-mdebug
-Cause stabs-style debugging output to go into an ECOFF-style .mdebug
-section instead of the standard ELF .stabs sections.
-
 @item -mpdr
 @itemx -mno-pdr
 Control generation of @code{.pdr} sections.
 
-@item -mgp32
-@itemx -mfp32
-The register sizes are normally inferred from the ISA and ABI, but these
-flags force a certain group of registers to be treated as 32 bits wide at
-all times.  @samp{-mgp32} controls the size of general-purpose registers
-and @samp{-mfp32} controls the size of floating-point registers.
-
-@item -mgp64
-@itemx -mfp64
-The register sizes are normally inferred from the ISA and ABI, but these
-flags force a certain group of registers to be treated as 64 bits wide at
-all times.  @samp{-mgp64} controls the size of general-purpose registers
-and @samp{-mfp64} controls the size of floating-point registers.
-
 @item -mdsp
 @itemx -mno-dsp
-Generate code for the DSP Release 1 Application Specific Extension.
-This tells the assembler to accept DSP Release 1 instructions.
-@samp{-mno-dsp} turns off this option.
+Generate code for the DSP Application Specific Extension.
+This tells the assembler to accept DSP instructions. The lowest Release
+version of DSP ASE supported by nanoMIPS is Release 3 and this option is
+equivalent to @samp{-mdspr3}.
+@samp{-mno-dsp} turns off this option. This option is equivalent to
+@samp{-mno-dspr3}
 
-@item -mdspr2
-@itemx -mno-dspr2
-Generate code for the DSP Release 2 Application Specific Extension.
-This option implies -mdsp.
-This tells the assembler to accept DSP Release 2 instructions.
-@samp{-mno-dspr2} turns off this option.
+@item -mdspr3
+@itemx -mno-dspr3
+Generate code for the DSP Release 3 Application Specific Extension.
+This tells the assembler to accept DSP Release 3 instructions.
+@samp{-mno-dspr3} turns off this option.
 
 @item -mmsa
 @itemx -mno-msa
@@ -1642,12 +1620,6 @@ This tells the assembler to accept MSA instructions.
 Generate code for the nanoMIPS eXtended Physical Address (XPA) Extension.
 This tells the assembler to accept XPA instructions.
 @samp{-mno-xpa} turns off this option.
-
-@item -mmxu
-@itemx -mno-mxu
-Generate code for the XBurst MXU Extension.
-This tells the assembler to accept MXU instructions.
-@samp{-mno-mxu} turns off this option.
 
 @item -mmt
 @itemx -mno-mt
@@ -1720,8 +1692,8 @@ time it generates a nop instruction from a macro.
 Control the BALC stub optimization. The @samp{-mbalc-stubs} option aggregates
 multiple out-of-range 16-bit branch-and-link instructions to use a
 non-conditional branch-stub with 32-bit range. This gives better code
-compression, but can have a negative effect on performance. The
-@samp{-mno-balc-stubs} option disables this optimization.
+compression, but can have a negative effect on performance. By default, 
+@samp{-mno-balc-stubs} is selected, disabling this optimization.
 
 @item -mlegacyregs
 Allow the use of legacy MIPS style numeric register formats in assembly.
@@ -7258,6 +7230,25 @@ registers and 32-bit general-purpose registers.
 7 for files using the hardware floating-point ABI with 64-bit floating-point
 registers, 32-bit general-purpose registers and a rule that forbids the
 direct use of odd-numbered single-precision floating-point registers.
+@end itemize
+@end table
+
+@subsection nanoMIPS Attributes
+
+@table @r
+@item Tag_nanoGNU_MIPS_ABI_FP (4)
+The floating-point ABI used by this object file.  The value will be:
+
+@itemize @bullet
+@item
+0 for files not affected by the floating-point ABI.
+@item
+1 for files using the hardware floating-point ABI with a standard
+double-precision FPU.
+@item
+2 for files using the hardware floating-point ABI with a single-precision FPU.
+@item
+3 for files using the software floating-point ABI.
 @end itemize
 @end table
 

@@ -1,11 +1,11 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
-#name: nanoMIPS la-svr4pic
+#name: nanoMIPS la-svr4pic large memory model
 #as: -mpic
 #source: la.s
 
-# Test the la macro with -mpic.
+# Test the la macro with mpic
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 0080 0000 	li	a0,0

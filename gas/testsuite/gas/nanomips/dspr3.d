@@ -1,11 +1,11 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
-#name: MIPS DSP ASE Rev2 for nanoMIPS
-#as: -mdspr2
-#source: mips32-dspr2.s
+#name: DSP ASE Rev3 for nanoMIPS
+#as: -mdspr3
+#source: dspr3.s
 
-# Check MIPS DSP ASE Rev2 for nanoMIPS Instruction Assembly
+# Check DSP ASE Rev2 for nanoMIPS Instruction Assembly
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section .text:
 [0-9a-f]+ <text_label> 2001 013f 	absq_s.qb	zero,at

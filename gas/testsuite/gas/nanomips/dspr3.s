@@ -1,4 +1,4 @@
-# source file to test assembly of MIPS DSP ASE Rev2 for MIPS32 instructions
+# source file to test assembly of DSP ASE Rev2
 
 	.set noreorder
 	.set noat

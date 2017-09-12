@@ -1,4 +1,4 @@
-#as: -KPIC
+#as: -mpic
 #objdump: -dr
 
 .*

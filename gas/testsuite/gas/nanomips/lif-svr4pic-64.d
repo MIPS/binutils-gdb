@@ -1,6 +1,6 @@
 #objdump: -dr --no-show-raw-insn
 #name: nanoMIPS LI float 64-bit sysVr4 PIC mode
-#as: -KPIC
+#as: -mpic
 #source: lifloat.s
 
 # Test loading immediate floating point values in PIC (nanoMIPS64)

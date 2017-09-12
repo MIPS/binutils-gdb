@@ -1,9 +1,9 @@
 #objdump: -dr --no-show-raw-insn
 #name: nanoMIPS lb-svr4pic
-#as: -KPIC
+#as: -mpic
 #source: lb-pic.s
 
-# Test the lb macro with -KPIC.
+# Test the lb macro with -mpic.
 
 .*: +file format .*nanomips.*
 

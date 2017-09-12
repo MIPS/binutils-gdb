@@ -1,8 +1,8 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: nanoMIPS jal-svr4pic
-#as: -KPIC -mlegacyregs
+#as: -mlegacyregs
 
-# Test the jal macro with -KPIC for nanoMIPS.
+# Test the jal macro with -mpic for nanoMIPS.
 
 .*: +file format .*mips.*
 

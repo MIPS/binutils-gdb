@@ -1,7 +1,7 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
-#name: MIPS DSP ASE for nanoMIPS
+#name: DSP ASE for nanoMIPS
 #as: -mdsp
-#source: mips32-dsp.s
+#source: dsp.s
 
 # Check MIPS DSP ASE for nanoMIPS Instruction Assembly
 

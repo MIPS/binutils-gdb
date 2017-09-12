@@ -1,11 +1,10 @@
 #objdump: -dr --prefix-addresses
 #name: nanoMIPS ld-svr4pic
-#as: -KPIC --defsym KPIC=1
 #source: ld-pic.s
 
-# Test the ld macro with -KPIC.
+# Test the ld macro with PIC.
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> lw	a0,0\(zero\)

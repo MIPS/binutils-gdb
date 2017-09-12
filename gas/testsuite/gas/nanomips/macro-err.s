@@ -2,8 +2,7 @@
 	.set	nomacro
 	.globl	early_global
 local:
-	.cpload	$25
-	.cpsetup $25,16,local
+	.cpsetup $25
 	.cprestore 16
 	.cpreturn
 	li $5, 0x10101010

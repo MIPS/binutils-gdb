@@ -1,12 +1,12 @@
-# Source file used to test the jal macro with -KPIC code.
+# Source file used to test the jal macro with PIC code.
 
 	.weak	weak_text_label
-
+	.set pic
 	.ent	text_label
 text_label:
 	.frame	$sp,0,$31
 	.set	noreorder
-	.cpload	$25
+	.cpsetup $25
 	.set	reorder
 	.cprestore	0
 	jal	$25

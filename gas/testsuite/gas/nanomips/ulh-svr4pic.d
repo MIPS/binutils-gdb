@@ -1,9 +1,9 @@
 #objdump: -dr --no-show-raw-insn
 #name: nanoMIPS ulh-svr4pic
-#as: -KPIC
+#as: -mpic
 #source: ulh-pic.s
 
-# Test the unaligned load and store macros with -KPIC for nanoMIPS.
+# Test the unaligned load and store macros with -mpic for nanoMIPS.
 
 .*: +file format .*nanomips.*
 

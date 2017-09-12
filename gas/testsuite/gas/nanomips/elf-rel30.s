@@ -2,12 +2,6 @@
 	.eqv	c1,0x12345678
 	.ent	foo
 foo:
-	.ifndef nanomips
-	lui	$4,%call_hi(c1)
-	lui	$4,%call_hi(c2)
-	lui	$4,%call_lo(c1)
-	lui	$4,%call_lo(c2)
-	.endif
 	addiu	$4,$28,%call16(c1)
 	addiu	$4,$28,%call16(c2)
 	addiu	$4,$28,%got_page(c1)
@@ -16,12 +10,6 @@ foo:
 	addiu	$4,$28,%got_disp(c2)
 	addiu	$4,$28,%got_ofst(c1)
 	addiu	$4,$28,%got_ofst(c2)
-	.ifndef nanomips
-	lui	$4,%got_hi(c1)
-	lui	$4,%got_hi(c2)
-	lui	$4,%got_lo(c1)
-	lui	$4,%got_lo(c2)
-	.endif
 	addiu	$4,$28,%got(c1)
 	addiu	$4,$28,%got(c2)
 	addiu	$4,$28,%gp_rel(c1)

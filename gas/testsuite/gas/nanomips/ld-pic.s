@@ -1,8 +1,6 @@
 # Source file used to test the ld macro with PIC code.
 
-	.ifndef nanomips
-	.set	mips1
-	.endif
+	.set pic
 
 	.data
 data_label:

@@ -37,13 +37,13 @@ The nanoMIPS configurations of @sc{gnu} @code{@value{AS}} support these
 special options:
 
 @table @code
-@cindex @code{-G} option (MIPS)
+@cindex @code{-G} option (nanoMIPS)
 @item -G @var{num}
 Set the ``small data'' limit to @var{n} bytes.  The default limit is 8 bytes.
-@xref{MIPS Small Data,, Controlling the use of small data accesses}.
+@xref{nanoMIPS Small Data,, Controlling the use of small data accesses}.
 
-@cindex @code{-EB} option (MIPS)
-@cindex @code{-EL} option (MIPS)
+@cindex @code{-EB} option (nanoMIPS)
+@cindex @code{-EL} option (nanoMIPS)
 @cindex nanoMIPS big-endian output
 @cindex nanoMIPS little-endian output
 @cindex big-endian output, nanoMIPS
@@ -55,67 +55,27 @@ little-endian output at run time (unlike the other @sc{gnu} development
 tools, which must be configured for one or the other).  Use @samp{-EB}
 to select big-endian output, and @samp{-EL} for little-endian.
 
-@item -KPIC
-@cindex PIC selection, nanoMIPS
-@cindex @option{-KPIC} option, nanoMIPS
-Generate SVR4-style PIC.  This option tells the assembler to generate
-SVR4-style position-independent macro expansions.  It also tells the
-assembler to mark the output file as PIC.
-
-@item -mgp32
-@itemx -mfp32
-Some macros have different expansions for 32-bit and 64-bit registers.
-The register sizes are normally inferred from the ISA and ABI, but these
-flags force a certain group of registers to be treated as 32 bits wide at
-all times.  @samp{-mgp32} controls the size of general-purpose registers
-and @samp{-mfp32} controls the size of floating-point registers.
-
-The @code{.set gp=32} and @code{.set fp=32} directives allow the size
-of registers to be changed for parts of an object. The default value is
-restored by @code{.set gp=default} and @code{.set fp=default}.
-
-On some nanoMIPS variants there is a 32-bit mode flag; when this flag is
-set, 64-bit instructions generate a trap.  Also, some 32-bit OSes only
-save the 32-bit registers on a context switch, so it is essential never
-to use the 64-bit registers.
-
-@item -mgp64
-@itemx -mfp64
-Assume that 64-bit registers are available.  This is provided in the
-interests of symmetry with @samp{-mgp32} and @samp{-mfp32}.
-
-The @code{.set gp=64} and @code{.set fp=64} directives allow the size
-of registers to be changed for parts of an object. The default value is
-restored by @code{.set gp=default} and @code{.set fp=default}.
-
-@item -mfpxx
-Make no assumptions about whether 32-bit or 64-bit floating-point
-registers are available. This is provided to support having modules
-compatible with either @samp{-mfp32} or @samp{-mfp64}. This option can
-only be used with nanoMIPS II and above.
-
-The @code{.set fp=xx} directive allows a part of an object to be marked
-as not making assumptions about 32-bit or 64-bit FP registers.  The
-default value is restored by @code{.set fp=default}.
-
-@item -modd-spreg
-@itemx -mno-odd-spreg
-Enable use of floating-point operations on odd-numbered single-precision
-registers when supported by the ISA.  @samp{-mfpxx} implies
-@samp{-mno-odd-spreg}, otherwise the default is @samp{-modd-spreg}
+@item -mpic
+@itemx -mno-pic
+Generate medium-model SVR4-style PIC.  This option tells the assembler
+to generate SVR4-style position-independent macro expansions.  It also
+tells the assembler to mark the output file as PIC.
+@samp{-mno-pic} turns off this option.
 
 @item -mdsp
 @itemx -mno-dsp
-Generate code for the DSP Release 1 Application Specific Extension.
-This tells the assembler to accept DSP Release 1 instructions.
-@samp{-mno-dsp} turns off this option.
+Generate code for the DSP Application Specific Extension. This tells
+the assembler to accept DSP instructions. Since the lowest Release
+version of DSP ASE supported by nanoMIPS is Release 3, this option is
+equivalent to @samp{-mdspr3}.
+@samp{-mno-dsp} turns off this option. This option is equivalent to
+@samp{-mno-dspr3}.
 
-@item -mdspr2
-@itemx -mno-dspr2
-Generate code for the DSP Release 2 Application Specific Extension.
-This option implies -mdsp.
-This tells the assembler to accept DSP Release 2 instructions.
-@samp{-mno-dspr2} turns off this option.
+@item -mdspr3
+@itemx -mno-dspr3
+Generate code for the DSP Release 3 Application Specific Extension.
+This tells the assembler to accept DSP Release 3 instructions.
+@samp{-mno-dspr3} turns off this option.
 
 @item -mmt
 @itemx -mno-mt
@@ -140,12 +100,6 @@ This tells the assembler to accept MSA instructions.
 Generate code for the nanoMIPS eXtended Physical Address (XPA) Extension.
 This tells the assembler to accept XPA instructions.
 @samp{-mno-xpa} turns off this option.
-
-@item -mmxu
-@itemx -mno-mxu
-Generate code for the XBurst MXU Extension.
-This tells the assembler to accept MXU instructions.
-@samp{-mno-mxu} turns off this option.
 
 @item -mvirt
 @itemx -mno-virt
@@ -206,9 +160,9 @@ identical to @samp{-march=@var{cpu}}.
 @cindex -msym32
 @cindex -mno-sym32
 Equivalent to adding @code{.set sym32} or @code{.set nosym32} to
-the beginning of the assembler input.  @xref{MIPS Symbol Sizes}.
+the beginning of the assembler input.  @xref{nanoMIPS Symbol Sizes}.
 
-@cindex @code{-nocpp} ignored (MIPS)
+@cindex @code{-nocpp} ignored (nanoMIPS)
 @item -nocpp
 This option is ignored.  It is accepted for command-line compatibility with
 other assemblers, which use it to turn off C style preprocessing.  With
@@ -277,21 +231,6 @@ are only supported at Instruction Set Architecture level 2 and higher.
 Generate code to take a break exception rather than a trap exception when an
 error is detected.  This is the default.
 
-@item -mpdr
-@itemx -mno-pdr
-Control generation of @code{.pdr} sections.  Off by default on IRIX, on
-elsewhere.
-
-@item -mshared
-@itemx -mno-shared
-When generating code using the Unix calling conventions (selected by
-@samp{-KPIC} or @samp{-mcall_shared}), gas will normally generate code
-which can go into a shared library.  The @samp{-mno-shared} option
-tells gas to generate code which uses the calling convention, but can
-not go into a shared library.  The resulting code is slightly more
-efficient.  This option only affects the handling of the
-@samp{.cpload} and @samp{.cpsetup} pseudo-ops.
-
 @item -mbalc-stubs
 @itemx -mno-balc-stubs
 Consolidate multiple out-of-range call instructions to a function to
@@ -300,25 +239,11 @@ Consolidate multiple out-of-range call instructions to a function to
 of performance, since each transformed call requires two control
 transfers.
 
-This optimization is enabled by default. The @samp{-mno-balc-stubs}
-option is used to disable the size optimization for performance 
-critical modules.
-
-@item -mbalc-stubs
-@itemx -mno-balc-stubs
-@c FIXME!  not a 'machine' option, so lose the 'm' prefix perhaps?
-Consolidate multiple out-of-range call instructions to a function to
-16-bit calls to a stub with transfers control to the function. The
-@samp{-mbalc-stubs} option improves code compression at the cost
-of performance, since each transformed call requires two control
-transfers.
-
-This optimization is enabled by default for Release 7 ISA. The
-@samp{-mno-balc-stubs} option is used to disable the size optimization
-for performance critical modules.
+This optimization is disabled by default.
 
 @item -mlegacyregs
-Allow the use of legacy MIPS style numeric register formats in assembly.
+Allow the use of legacy MIPS style numeric register formats in 
+nanoMIPS assembly.
 
 @item --linkrelax
 Enable link-time relaxation features. The assembler will generate
@@ -330,31 +255,31 @@ code and fix-up for correctness. FIXME: Ref to .set options.
 @section High-level assembly macros
 
 MIPS assemblers have traditionally provided a wider range of
-instructions than the nanoMIPS architecture itself.  These extra
+instructions than the MIPS architecture itself.  These extra
 instructions are usually referred to as ``macro'' instructions
 @footnote{The term ``macro'' is somewhat overloaded here, since
 these macros have no relation to those defined by @code{.macro},
-@pxref{Macro,, @code{.macro}}.}.
+@pxref{Macro,, @code{.macro}}.}. nanoMIPS assembler continues
+support for many traditionally supported instructions.
 
 Some nanoMIPS macro instructions extend an underlying architectural instruction
 while others are entirely new.  An example of the former type is @code{and},
 which allows the third operand to be either a register or an arbitrary
 immediate value.  Examples of the latter type include @code{bgt}, which
 branches to the third operand when the first operand is greater than
-the second operand, and @code{ulh}, which implements an unaligned
-2-byte load.
+the second operand.
 
 One of the most common extensions provided by macros is to expand
 memory offsets to the full address range (32 or 64 bits) and to allow
 symbolic offsets such as @samp{my_data + 4} to be used in place of
 integer constants.  For example, the architectural instruction
-@code{lbu} allows only a signed 16-bit offset, whereas the macro
+@code{lbu} allows only an unsigned 12-bit offset, whereas the macro
 @code{lbu} allows code such as @samp{lbu $4,array+32769($5)}.
 The implementation of these symbolic offsets depends on several factors,
 such as whether the assembler is generating SVR4-style PIC (selected by
-@option{-KPIC}, @pxref{MIPS Options,, Assembler options}), the size of symbols
-(@pxref{MIPS Symbol Sizes,, Directives to override the size of symbols}),
-and the small data limit (@pxref{MIPS Small Data,, Controlling the use
+@option{-mpic}, @pxref{nanoMIPS Options,, Assembler options}), the size of symbols
+(@pxref{nanoMIPS Symbol Sizes,, Directives to override the size of symbols}),
+and the small data limit (@pxref{nanoMIPS Small Data,, Controlling the use
 of small data accesses}).
 
 @kindex @code{.set macro}
@@ -444,8 +369,6 @@ they have no effect for anything other than p64.
 @node nanoMIPS Small Data
 @section Controlling the use of small data accesses
 
-@c This section deliberately glosses over the possibility of using -G
-@c in SVR4-style PIC, as could be done on IRIX.  We don't support that.
 @cindex small data, nanoMIPS
 @cindex @code{gp} register, nanoMIPS
 It often takes several instructions to load the address of a symbol.
@@ -458,13 +381,13 @@ daddiu  $4,$4,%lo(addr)
 @end smallexample
 
 The sequence is much longer when @samp{addr} is a 64-bit symbol.
-@xref{MIPS Symbol Sizes,, Directives to override the size of symbols}.
+@xref{nanoMIPS Symbol Sizes,, Directives to override the size of symbols}.
 
 In order to cut down on this overhead, most embedded nanoMIPS systems
 set aside a 64-kilobyte ``small data'' area and guarantee that all
 data of size @var{n} and smaller will be placed in that area.
 The limit @var{n} is passed to both the assembler and the linker
-using the command-line option @option{-G @var{n}}, @pxref{MIPS Options,,
+using the command-line option @option{-G @var{n}}, @pxref{nanoMIPS Options,,
 Assembler options}.  Note that the same value of @var{n} must be used
 when linking and when assembling all input files to the link; any
 inconsistency could cause a relocation overflow error.
@@ -585,26 +508,9 @@ baz:
 @node nanoMIPS FP ABIs
 @section Directives to control the FP ABI
 @menu
-* nanoMIPS FP ABI History::                History of FP ABIs
 * nanoMIPS FP ABI Variants::               Supported FP ABIs
-* nanoMIPS FP ABI Selection::              Automatic selection of FP ABI
 * nanoMIPS FP ABI Compatibility::          Linking different FP ABI variants
 @end menu
-
-@node nanoMIPS FP ABI History
-@subsection History of FP ABIs
-@cindex @code{.gnu_attribute 4, @var{n}} directive, nanoMIPS
-@cindex @code{.gnu_attribute Tag_GNU_MIPS_ABI_FP, @var{n}} directive, nanoMIPS
-The nanoMIPS ABIs support a variety of different floating-point extensions
-where calling-convention and register sizes vary for floating-point data.
-The extensions exist to support a wide variety of optional architecture
-features.  The resulting ABI variants are generally incompatible with each
-other and must be tracked carefully.
-
-Traditionally the use of an explicit @code{.gnu_attribute 4, @var{n}}
-directive is used to indicate which ABI is in use by a specific module.
-It was then left to the user to ensure that command line options and the
-selected ABI were compatible with some potential for inconsistencies.
 
 @node nanoMIPS FP ABI Variants
 @subsection Supported FP ABIs
@@ -631,65 +537,11 @@ This variant indicates that although floating-point support is used all
 operations are emulated in software.  This means the ABI is modified to
 pass all floating-point data in general-purpose registers.
 
-@item 4 - Deprecated
-This variant existed as an initial attempt at supporting 64-bit wide
-floating-point registers for O32 ABI on a nanoMIPS32r2 CPU.  This has been
-superseded by 5, 6 and 7.
-
-@item 5 - Double-precision 32-bit CPU, 32-bit or 64-bit FPU
-This variant is used by 32-bit ABIs to indicate that the floating-point
-code in the module has been designed to operate correctly with either
-32-bit wide or 64-bit wide floating-point registers.  Double-precision
-support is used.  Only O32 currently supports this variant and requires
-a minimum architecture of nanoMIPS II.
-
-@item 6 - Double-precision 32-bit FPU, 64-bit FPU
-This variant is used by 32-bit ABIs to indicate that the floating-point
-code in the module requires 64-bit wide floating-point registers.
-Double-precision support is used.  Only O32 currently supports this
-variant and requires a minimum architecture of nanoMIPS32r2.
-
-@item 7 - Double-precision compat 32-bit FPU, 64-bit FPU
-This variant is used by 32-bit ABIs to indicate that the floating-point
-code in the module requires 64-bit wide floating-point registers.
-Double-precision support is used.  This differs from the previous ABI
-as it restricts use of odd-numbered single-precision registers.  Only
-O32 currently supports this variant and requires a minimum architecture
-of nanoMIPS32r2.
 @end table
-
-@node nanoMIPS FP ABI Selection
-@subsection Automatic selection of FP ABI
-@cindex @code{.module fp=@var{nn}} directive, nanoMIPS
-In order to simplify and add safety to the process of selecting the
-correct floating-point ABI, the assembler will automatically infer the
-correct @code{.gnu_attribute 4, @var{n}} directive based on command line
-options and @code{.module} overrides.  Where an explicit
-@code{.gnu_attribute 4, @var{n}} directive has been seen then a warning
-will be raised if it does not match an inferred setting.
-
-The floating-point ABI is inferred as follows.  If @samp{-msoft-float}
-has been used the module will be marked as soft-float.  If
-@samp{-msingle-float} has been used then the module will be marked as
-single-precision.  The remaining ABIs are then selected based
-on the FP register width.  Double-precision is selected if the width
-of GP and FP registers match and the special double-precision variants
-for 32-bit ABIs are then selected depending on @samp{-mfpxx},
-@samp{-mfp64} and @samp{-mno-odd-spreg}.
 
 @node nanoMIPS FP ABI Compatibility
 @subsection Linking different FP ABI variants
-Modules using the default FP ABI (no floating-point) can be linked with
-any other (singular) FP ABI variant.
-
-Special compatibility support exists for O32 with the four
-double-precision FP ABI variants.  The @samp{-mfpxx} FP ABI is specifically
-designed to be compatible with the standard double-precision ABI and the
-@samp{-mfp64} FP ABIs.  This makes it desirable for O32 modules to be
-built as @samp{-mfpxx} to ensure the maximum compatibility with other
-modules produced for more specific needs.  The only FP ABIs which cannot
-be linked together are the standard double-precision ABI and the full
-@samp{-mfp64} ABI with @samp{-modd-spreg}.
+<FIXME>
 
 @node nanoMIPS Option Stack
 @section Directives to save and restore options
