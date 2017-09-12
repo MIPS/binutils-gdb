@@ -3344,8 +3344,10 @@ Nanomips_expand_insn<size, big_endian>::transform(
   typename elfcpp::Elf_types<size>::Elf_Swxword r_addend =
     reloc.get_r_addend();
   unsigned char* view = pnis->section_contents() + r_offset;
+  unsigned int type = transform_property->type();
 
-  if (r_type == elfcpp::R_NANOMIPS_PC25_S1)
+  if (r_type == elfcpp::R_NANOMIPS_PC25_S1
+      || (r_type == elfcpp::R_NANOMIPS_PC21_S1 && type == TT_LAPC))
     {
       // Change existing relocation.
       reloc_write.put_r_info(
@@ -3356,20 +3358,25 @@ Nanomips_expand_insn<size, big_endian>::transform(
       this->add_reloc(r_sym, new_r_type, r_offset + 4, r_addend, relnum);
 
       // Write instructions.
-      Valtype32 aluipc_insn = (transform_property->insn(0)
-                               | (this->expand_reg_ << 21));
+      unsigned int treg32 = (r_type == elfcpp::R_NANOMIPS_PC21_S1
+                             ? Insn_utilities::treg_32(insn)
+                             : this->expand_reg_);
+      Valtype32 aluipc_insn = (transform_property->insn(0) | (treg32 << 21));
       Valtype32 ori_insn = (transform_property->insn(1)
-                            | (this->expand_reg_ << 21)
-                            | (this->expand_reg_ << 16));
-      Valtype16 branch_insn =
-        static_cast<Valtype16>(transform_property->insn(2));
-      branch_insn |= (this->expand_reg_ << 5);
-
+                            | (treg32 << 21)
+                            | (treg32 << 16));
       Insn_utilities::put_insn_32(view, aluipc_insn);
       Insn_utilities::put_insn_32(view + 4, ori_insn);
-      elfcpp::Swap<16, big_endian>::writeval(view + 8, branch_insn);
+
+      if (r_type != elfcpp::R_NANOMIPS_PC21_S1)
+        {
+          Valtype16 branch_insn =
+            static_cast<Valtype16>(transform_property->insn(2));
+          branch_insn |= (this->expand_reg_ << 5);
+          elfcpp::Swap<16, big_endian>::writeval(view + 8, branch_insn);
+        }
     }
-  else if (r_type == elfcpp::R_NANOMIPS_PC21_S1)
+  else if (r_type == elfcpp::R_NANOMIPS_PC21_S1 && type == TT_MOVE_BALC)
     {
       // Write move16 insn.
       Valtype16 move_insn =

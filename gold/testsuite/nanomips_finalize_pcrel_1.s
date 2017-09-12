@@ -3,6 +3,7 @@
 	.globl	__start
 	.ent	__start
 __start:
+	lapc	$r4, foo
 	balc	foo
 	bc	foo
 	move.balc	$r4,$r16,foo
