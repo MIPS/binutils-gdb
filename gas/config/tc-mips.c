@@ -4053,8 +4053,6 @@ mips_check_options (struct mips_set_options *opts, bfd_boolean abi_checks)
 static void
 file_mips_check_options (void)
 {
-  const struct mips_cpu_info *arch_info;
-
   if (file_mips_opts_checked)
     return;
 
@@ -4096,8 +4094,6 @@ file_mips_check_options (void)
 	/* 32-bit float registers.  */
 	file_mips_opts.fp = 32;
     }
-
-  arch_info = mips_cpu_info_from_arch (file_mips_opts.arch);
 
   /* Disable operations on odd-numbered floating-point registers by default
      when using the FPXX ABI.  */
