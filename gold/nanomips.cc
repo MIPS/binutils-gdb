@@ -5131,7 +5131,7 @@ Target_nanomips<size, big_endian>::update_content(
     Nanomips_relobj<size, big_endian>* relobj,
     Address address,
     int count,
-    bool padding)
+    bool no_old_padding)
 {
   gold_assert(pnis != NULL);
   typedef typename elfcpp::Rela<size, big_endian> Reltype;
@@ -5146,24 +5146,21 @@ Target_nanomips<size, big_endian>::update_content(
     pnis->delete_bytes(address, abs(count));
 
   size_t reloc_count = pnis->reloc_count();
-  const unsigned char* prelocs_read = pnis->relocs();
-  unsigned char* prelocs_write = pnis->relocs();
+  unsigned char* prelocs = pnis->relocs();
 
   // Adjust all the relocs.
-  for (size_t i = 0;
-       i < reloc_count;
-       ++i,
-       prelocs_read += reloc_size,
-       prelocs_write += reloc_size)
+  for (size_t i = 0; i < reloc_count; ++i, prelocs += reloc_size)
     {
-      Reltype reloc(prelocs_read);
-      Reltype_write reloc_write(prelocs_write);
+      Reltype reloc(prelocs);
+      Reltype_write reloc_write(prelocs);
+
       Address r_offset = reloc.get_r_offset();
       unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
 
       // Don't move ALIGN, FILL and MAX relocations if we are updating content
-      // due to the alignment requirement.
-      if (padding
+      // due to the alignment requirement and there is no existing padding
+      // bytes.  These relocs must be at the start of the padding bytes.
+      if (no_old_padding
           && (r_offset == address)
           && (r_type == elfcpp::R_NANOMIPS_ALIGN
               || r_type == elfcpp::R_NANOMIPS_FILL
@@ -5340,7 +5337,7 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
           // Calculate the padding required due to instruction transformation.
           Address new_padding = new_address - address;
           // Get the existing padding bytes.
-          Address padding = relobj->do_local_symbol_size(r_sym);
+          Address old_padding = relobj->do_local_symbol_size(r_sym);
 
           // nanoMIPS nop16 instruction.
           Valtype fill = 0x9008;
@@ -5358,13 +5355,14 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
             new_padding = 0;
 
           // If the paddings are the same, don't do anything.
-          if (new_padding == padding)
+          if (new_padding == old_padding)
             continue;
 
           // If the padding required now is more/less than the existing padding,
           // then add/delete those extra bytes.
-          int count = static_cast<int>(new_padding - padding);
-          this->update_content(pnis, relobj, r_offset, count, true);
+          int count = static_cast<int>(new_padding - old_padding);
+          this->update_content(pnis, relobj, r_offset + old_padding,
+                               count, old_padding == 0);
           relobj->set_local_symbol_size(r_sym, new_padding);
 
           gold_debug(DEBUG_TARGET,
@@ -5385,7 +5383,8 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
                   fill_size = 2;
                 }
 
-              unsigned char* padding_view = pnis->section_contents() + offset;
+              unsigned char* padding_view =
+                pnis->section_contents() + offset + old_padding;
               for (int j = 0;
                    j < count;
                    padding_view += fill_size,
