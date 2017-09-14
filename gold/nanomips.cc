@@ -52,9 +52,6 @@ template<int size, bool big_endian>
 class Target_nanomips;
 
 template<int size, bool big_endian>
-class Nanomips_output_section_reginfo;
-
-template<int size, bool big_endian>
 class Nanomips_relobj;
 
 template<int size, bool big_endian>
@@ -169,25 +166,25 @@ class Nanomips_insn_utilities
   { return (reg == 0 || (4 <= reg && reg <= 7) || (17 <= reg && reg <= 19)); }
 };
 
-// .MIPS.abiflags section content
+// .nanoMIPS.abiflags section content
 
 template<bool big_endian>
-struct Mips_abiflags
+struct Nanomips_abiflags
 {
   typedef typename elfcpp::Swap<8, big_endian>::Valtype Valtype8;
   typedef typename elfcpp::Swap<16, big_endian>::Valtype Valtype16;
   typedef typename elfcpp::Swap<32, big_endian>::Valtype Valtype32;
 
-  Mips_abiflags()
+  Nanomips_abiflags()
     : version(0), isa_level(0), isa_rev(0), gpr_size(0), cpr1_size(0),
       cpr2_size(0), fp_abi(0), isa_ext(0), ases(0), flags1(0), flags2(0)
   { }
 
   // Version of flags structure.
   Valtype16 version;
-  // The level of the ISA: 1-5, 32, 64.
+  // The level of the ISA.
   Valtype8 isa_level;
-  // The revision of ISA: 0 for MIPS V and below, 1-n otherwise.
+  // The revision of the ISA.
   Valtype8 isa_rev;
   // The size of general purpose registers.
   Valtype8 gpr_size;
@@ -206,31 +203,6 @@ struct Mips_abiflags
   Valtype32 flags2;
 };
 
-// .reginfo section content
-
-template<int size, bool big_endian>
-struct Mips_reginfo
-{
-  typedef typename elfcpp::Swap<size, big_endian>::Valtype Valtype;
-
-  Mips_reginfo()
-    : gprmask(0), cprmask1(0), cprmask2(0), cprmask3(0), cprmask4(0), gp(0)
-  { }
-
-  // gprmask from the .reginfo section of this object.
-  Valtype gprmask;
-  // cprmask1 from the .reginfo section of this object.
-  Valtype cprmask1;
-  // cprmask2 from the .reginfo section of this object.
-  Valtype cprmask2;
-  // cprmask3 from the .reginfo section of this object.
-  Valtype cprmask3;
-  // cprmask4 from the .reginfo section of this object.
-  Valtype cprmask4;
-  // gp value that was used to create this object.
-  Valtype gp;
-};
-
 // Nanomips_relobj class.
 
 template<int size, bool big_endian>
@@ -247,7 +219,7 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
     : Sized_relobj_file<size, big_endian>(name, input_file, offset, ehdr),
       input_section_ref_(), local_symbol_size_(), processor_specific_flags_(0),
       merge_processor_specific_data_(true), attributes_section_data_(NULL),
-      abiflags_(NULL), reginfo_(NULL)
+      abiflags_(NULL)
   { }
 
   ~Nanomips_relobj()
@@ -344,8 +316,8 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   merge_processor_specific_data() const
   { return this->merge_processor_specific_data_; }
 
-  // This is the contents of the .MIPS.abiflags section if there is one.
-  Mips_abiflags<big_endian>*
+  // This is the contents of the .nanoMIPS.abiflags section if there is one.
+  Nanomips_abiflags<big_endian>*
   abiflags()
   { return this->abiflags_; }
 
@@ -354,10 +326,10 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   attributes_section_data() const
   { return this->attributes_section_data_; }
 
-  // This is the contents of the .reginfo section if there is one.
-  Mips_reginfo<size, big_endian>*
-  reginfo()
-  { return this->reginfo_;}
+  // Return whether all data access in this object is GP-relative.
+  bool
+  pid() const
+  { return (this->processor_specific_flags_ & elfcpp::EF_NANOMIPS_PID) != 0; }
 
  protected:
   // Count the local symbols.
@@ -398,11 +370,8 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   // Object attributes if there is a .gnu.attributes section or NULL.
   Attributes_section_data* attributes_section_data_;
 
-  // Object abiflags if there is a .MIPS.abiflags section or NULL.
-  Mips_abiflags<big_endian>* abiflags_;
-
-  // Contents of .reginfo section or NULL.
-  Mips_reginfo<size, big_endian>* reginfo_;
+  // Object abiflags if there is a .nanoMIPS.abiflags section or NULL.
+  Nanomips_abiflags<big_endian>* abiflags_;
 };
 
 // A class to wrap an ordinary input section.
@@ -860,53 +829,27 @@ class Nanomips_expand_insn : public Nanomips_transformations<size, big_endian>
   unsigned int expand_reg_;
 };
 
-// This class handles Nanomips .reginfo output section.
-
-template<int size, bool big_endian>
-class Nanomips_output_section_reginfo : public Output_section_data
-{
- public:
-  Nanomips_output_section_reginfo(Target_nanomips<size, big_endian>* target,
-                                  const Mips_reginfo<size, big_endian>& reginfo)
-    : Output_section_data(24, 4, true), target_(target), reginfo_(reginfo)
-  { }
-
- protected:
-  // Write to a map file.
-  void
-  do_print_to_mapfile(Mapfile* mapfile) const
-  { mapfile->print_output_data(this, _(".reginfo")); }
-
-  // Write out reginfo section.
-  void
-  do_write(Output_file* of);
-
- private:
-  Target_nanomips<size, big_endian>* target_;
-  const Mips_reginfo<size, big_endian>& reginfo_;
-};
-
-// This class handles .MIPS.abiflags output section.
+// This class handles .nanoMIPS.abiflags output section.
 
 template<int size, bool big_endian>
 class Nanomips_output_section_abiflags : public Output_section_data
 {
  public:
-  Nanomips_output_section_abiflags(const Mips_abiflags<big_endian>& abiflags)
-    : Output_section_data(24, 8, true), abiflags_(abiflags)
+  Nanomips_output_section_abiflags(const Nanomips_abiflags<big_endian>& flags)
+    : Output_section_data(24, 8, true), abiflags_(flags)
   { }
 
  protected:
   // Write to a map file.
   void
   do_print_to_mapfile(Mapfile* mapfile) const
-  { mapfile->print_output_data(this, _(".MIPS.abiflags")); }
+  { mapfile->print_output_data(this, _(".nanoMIPS.abiflags")); }
 
   void
   do_write(Output_file* of);
 
  private:
-  const Mips_abiflags<big_endian>& abiflags_;
+  const Nanomips_abiflags<big_endian>& abiflags_;
 };
 
 // The Nanomips target has relocation types which default handling of
@@ -1022,12 +965,9 @@ class Target_nanomips : public Sized_target<size, big_endian>
  public:
   Target_nanomips(const Target::Target_info* info = &nanomips_info)
     : Sized_target<size, big_endian>(info), state_(EXPAND), got_(NULL),
-      gp_(NULL), mips_mach_extensions_(), attributes_section_data_(NULL),
-      abiflags_(NULL), reginfo_(NULL), mach_(0), layout_(NULL),
+      gp_(NULL), attributes_section_data_(NULL), abiflags_(NULL), layout_(NULL),
       has_abiflags_section_(false)
-  {
-    this->add_machine_extensions();
-  }
+  { }
 
   // Process the relocations to determine unreferenced sections for
   // garbage collection.
@@ -1184,14 +1124,11 @@ class Target_nanomips : public Sized_target<size, big_endian>
     return (this->abiflags_->ases & elfcpp::AFL_ASE_xNMS) != 0;
   }
 
-  // Don't emit input .reginfo/.MIPS.abiflags sections to
-  // output .reginfo/.MIPS.abiflags.
+  // Don't emit input .nanoMIPS.abiflags sections to
+  // output .nanoMIPS.abiflags.
   bool
   do_should_include_section(elfcpp::Elf_Word sh_type) const
-  {
-    return ((sh_type != elfcpp::SHT_MIPS_REGINFO)
-             && (sh_type != elfcpp::SHT_MIPS_ABIFLAGS));
-  }
+  { return (sh_type != elfcpp::SHT_NANOMIPS_ABIFLAGS); }
 
  protected:
   void
@@ -1306,58 +1243,9 @@ class Target_nanomips : public Sized_target<size, big_endian>
     bool calculate_only_;
   };
 
-  // Check whether the given ELF header flags describe a 32-bit binary.
-  bool
-  mips_32bit_flags(elfcpp::Elf_Word);
-
-  enum Mips_mach {
-    mach_mips3000             = 3000,
-    mach_mips3900             = 3900,
-    mach_mips4000             = 4000,
-    mach_mips4010             = 4010,
-    mach_mips4100             = 4100,
-    mach_mips4111             = 4111,
-    mach_mips4120             = 4120,
-    mach_mips4300             = 4300,
-    mach_mips4400             = 4400,
-    mach_mips4600             = 4600,
-    mach_mips4650             = 4650,
-    mach_mips5000             = 5000,
-    mach_mips5400             = 5400,
-    mach_mips5500             = 5500,
-    mach_mips5900             = 5900,
-    mach_mips6000             = 6000,
-    mach_mips7000             = 7000,
-    mach_mips8000             = 8000,
-    mach_mips9000             = 9000,
-    mach_mips10000            = 10000,
-    mach_mips12000            = 12000,
-    mach_mips14000            = 14000,
-    mach_mips16000            = 16000,
-    mach_mips16               = 16,
-    mach_mips5                = 5,
-    mach_mips_loongson_2e     = 3001,
-    mach_mips_loongson_2f     = 3002,
-    mach_mips_loongson_3a     = 3003,
-    mach_mips_sb1             = 12310201, // octal 'SB', 01
-    mach_mips_octeon          = 6501,
-    mach_mips_octeonp         = 6601,
-    mach_mips_octeon2         = 6502,
-    mach_mips_octeon3         = 6503,
-    mach_mips_xlr             = 887682,   // decimal 'XLR'
-    mach_mipsisa32            = 32,
-    mach_mipsisa32r2          = 33,
-    mach_mipsisa32r3          = 34,
-    mach_mipsisa32r5          = 36,
-    mach_mipsisa32r6          = 37,
-    mach_nanomipsisa32r6      = 38,
-    mach_mipsisa64            = 64,
-    mach_mipsisa64r2          = 65,
-    mach_mipsisa64r3          = 66,
-    mach_mipsisa64r5          = 68,
-    mach_mipsisa64r6          = 69,
-    mach_nanomipsisa64r6      = 70,
-    mach_mips_micromips       = 96
+  enum Nanomips_mach {
+    mach_nanomipsisa32r6 = 32,
+    mach_nanomipsisa64r6 = 64
   };
 
   // Find R_NANOMIPS_FILL and R_NANOMIPS_MAX relocations (if any) and get
@@ -1388,32 +1276,32 @@ class Target_nanomips : public Sized_target<size, big_endian>
   update_content(Nanomips_input_section*, Nanomips_relobj<size, big_endian>*,
                  Address, int, bool);
 
-  // Return the MACH for a MIPS e_flags value.
-  unsigned int
-  elf_mips_mach(elfcpp::Elf_Word);
+  // Check whether the given ELF header flags describe a 32-bit binary.
+  bool
+  nanomips_32bit_flags(elfcpp::Elf_Word);
 
-  // Return the MACH for each .MIPS.abiflags ISA Extension.
-  unsigned int
-  mips_isa_ext_mach(unsigned int);
-
-  // Return the .MIPS.abiflags value representing each ISA Extension.
-  unsigned int
-  mips_isa_ext(unsigned int);
-
-  // Update the isa_level, isa_rev, isa_ext fields of abiflags.
+  // Update the isa_level and isa_rev fields of abiflags.
   void
-  update_abiflags_isa(const std::string&, elfcpp::Elf_Word,
-                      Mips_abiflags<big_endian>*);
+  update_abiflags_isa(const Nanomips_relobj<size, big_endian>*,
+                      Nanomips_abiflags<big_endian>*);
 
   // Infer the content of the ABI flags based on the elf header.
   void
-  infer_abiflags(Nanomips_relobj<size, big_endian>*,
-                 Mips_abiflags<big_endian>*);
+  infer_abiflags(const Nanomips_relobj<size, big_endian>*,
+                 Nanomips_abiflags<big_endian>*);
 
-  // Create abiflags from elf header or from .MIPS.abiflags section.
+  // Create abiflags from elf header or from .nanoMIPS.abiflags section.
   void
   create_abiflags(Nanomips_relobj<size, big_endian>*,
-                  Mips_abiflags<big_endian>*);
+                  Nanomips_abiflags<big_endian>*);
+
+  // Return printable name for ABI.
+  const char*
+  nanomips_abi_name(elfcpp::Elf_Word e_flags);
+
+  // Return printable name for MACH.
+  const char*
+  nanomips_mach_name(elfcpp::Elf_Word e_flags);
 
   // Return the meaning of fp_abi, or "unknown" if not known.
   const char*
@@ -1423,30 +1311,29 @@ class Target_nanomips : public Sized_target<size, big_endian>
   int
   select_fp_abi(const std::string&, int, int);
 
-  // Merge attributes from input object.
-  void
-  merge_obj_attributes(const std::string&, const Attributes_section_data*);
-
-  // Merge abiflags from input object.
-  void
-  merge_obj_abiflags(const std::string&, Mips_abiflags<big_endian>*);
-
-  // Check whether machine EXTENSION is an extension of machine BASE.
-  bool
-  mips_mach_extends(unsigned int, unsigned int);
+  // Select isa_ext.
+  int
+  select_isa_ext(const std::string&, int, int);
 
   // Merge file header flags from input object.
   void
   merge_obj_e_flags(const std::string&, elfcpp::Elf_Word);
 
-  // Merge reginfo from input object.
+  // Merge abiflags from input object.
   void
-  merge_obj_reginfo(Mips_reginfo<size, big_endian>*);
+  merge_obj_abiflags(const std::string&, Nanomips_abiflags<big_endian>*);
 
-  // Encode ISA level and revision as a single value.
-  int
-  level_rev(unsigned char isa_level, unsigned char isa_rev) const
-  { return (isa_level << 3) | isa_rev; }
+  // Merge attributes from input object.
+  void
+  merge_obj_attributes(const std::string&, const Attributes_section_data*);
+
+  // Check whether machine EXTENSION is an extension of machine BASE.
+  bool
+  nanomips_mach_extends(unsigned int, unsigned int);
+
+  // Return the MACH for a nanoMIPS e_flags value.
+  unsigned int
+  nanomips_mach(elfcpp::Elf_Word);
 
   // Get the GOT section, creating it if necessary.
   Output_data_got<size, big_endian>*
@@ -1464,88 +1351,6 @@ class Target_nanomips : public Sized_target<size, big_endian>
   void
   set_gp(Layout*, Symbol_table*);
 
-  const char*
-  elf_mips_abi_name(elfcpp::Elf_Word e_flags);
-  const char*
-  elf_mips_mach_name(elfcpp::Elf_Word e_flags);
-
-  // Adds entries that describe how machines relate to one another.  The entries
-  // are ordered topologically with MIPS I extensions listed last.  First
-  // element is extension, second element is base.
-  void
-  add_machine_extensions()
-  {
-    // MIPS64r2 extensions.
-    this->add_extension(mach_mips_octeon3, mach_mips_octeon2);
-    this->add_extension(mach_mips_octeon2, mach_mips_octeonp);
-    this->add_extension(mach_mips_octeonp, mach_mips_octeon);
-    this->add_extension(mach_mips_octeon, mach_mipsisa64r2);
-    this->add_extension(mach_mips_loongson_3a, mach_mipsisa64r2);
-
-    // MIPS64 extensions.
-    this->add_extension(mach_mipsisa64r2, mach_mipsisa64);
-    this->add_extension(mach_mips_sb1, mach_mipsisa64);
-    this->add_extension(mach_mips_xlr, mach_mipsisa64);
-
-    // MIPS V extensions.
-    this->add_extension(mach_mipsisa64, mach_mips5);
-
-    // R10000 extensions.
-    this->add_extension(mach_mips12000, mach_mips10000);
-    this->add_extension(mach_mips14000, mach_mips10000);
-    this->add_extension(mach_mips16000, mach_mips10000);
-
-    // R5000 extensions.  Note: the vr5500 ISA is an extension of the core
-    // vr5400 ISA, but doesn't include the multimedia stuff.  It seems
-    // better to allow vr5400 and vr5500 code to be merged anyway, since
-    // many libraries will just use the core ISA.  Perhaps we could add
-    // some sort of ASE flag if this ever proves a problem.
-    this->add_extension(mach_mips5500, mach_mips5400);
-    this->add_extension(mach_mips5400, mach_mips5000);
-
-    // MIPS IV extensions.
-    this->add_extension(mach_mips5, mach_mips8000);
-    this->add_extension(mach_mips10000, mach_mips8000);
-    this->add_extension(mach_mips5000, mach_mips8000);
-    this->add_extension(mach_mips7000, mach_mips8000);
-    this->add_extension(mach_mips9000, mach_mips8000);
-
-    // VR4100 extensions.
-    this->add_extension(mach_mips4120, mach_mips4100);
-    this->add_extension(mach_mips4111, mach_mips4100);
-
-    // MIPS III extensions.
-    this->add_extension(mach_mips_loongson_2e, mach_mips4000);
-    this->add_extension(mach_mips_loongson_2f, mach_mips4000);
-    this->add_extension(mach_mips8000, mach_mips4000);
-    this->add_extension(mach_mips4650, mach_mips4000);
-    this->add_extension(mach_mips4600, mach_mips4000);
-    this->add_extension(mach_mips4400, mach_mips4000);
-    this->add_extension(mach_mips4300, mach_mips4000);
-    this->add_extension(mach_mips4100, mach_mips4000);
-    this->add_extension(mach_mips4010, mach_mips4000);
-    this->add_extension(mach_mips5900, mach_mips4000);
-
-    // MIPS32 extensions.
-    this->add_extension(mach_mipsisa32r2, mach_mipsisa32);
-
-    // MIPS II extensions.
-    this->add_extension(mach_mips4000, mach_mips6000);
-    this->add_extension(mach_mipsisa32, mach_mips6000);
-
-    // MIPS I extensions.
-    this->add_extension(mach_mips6000, mach_mips3000);
-    this->add_extension(mach_mips3900, mach_mips3000);
-  }
-
-  // Add value to MIPS extenstions.
-  void
-  add_extension(unsigned int base, unsigned int extension)
-  {
-    std::pair<unsigned int, unsigned int> ext(base, extension);
-    this->mips_mach_extensions_.push_back(ext);
-  }
-
   // Information about this specific target which we pass to the
   // general Target structure.
   static const Target::Target_info nanomips_info;
@@ -1560,30 +1365,17 @@ class Target_nanomips : public Sized_target<size, big_endian>
 
   // States used in relaxation passes.
   State state_;
-
   // The GOT section.
   Output_data_got<size, big_endian>* got_;
-
   // gp symbol.
   Sized_symbol<size>* gp_;
-
-  // Architecture extensions.
-  std::vector<std::pair<unsigned int, unsigned int> > mips_mach_extensions_;
-
   // Attributes section data in output.
   Attributes_section_data* attributes_section_data_;
-
-  // .MIPS.abiflags section data in output.
-  Mips_abiflags<big_endian>* abiflags_;
-
-  // .reginfo section data in output.
-  Mips_reginfo<size, big_endian>* reginfo_;
-
-  unsigned int mach_;
-
+  // .nanoMIPS.abiflags section data in output.
+  Nanomips_abiflags<big_endian>* abiflags_;
+  // The layout.
   Layout* layout_;
-
-  // Whether there is an input .MIPS.abiflags section.
+  // Whether there is an input .nanoMIPS.abiflags section.
   bool has_abiflags_section_;
 };
 
@@ -2108,6 +1900,10 @@ Nanomips_relobj<size, big_endian>::scan_sections_for_transform(
     const Symbol_table* symtab,
     const Layout* layout)
 {
+  // Don't do anything if this object file is not safe to relax.
+  if ((this->processor_specific_flags_ & elfcpp::EF_NANOMIPS_LINKRELAX) == 0)
+    return false;
+
   unsigned int shnum = this->shnum();
   const unsigned int shdr_size = elfcpp::Elf_sizes<size>::shdr_size;
   const Address invalid_address = static_cast<Address>(0) - 1;
@@ -2286,32 +2082,6 @@ Nanomips_relobj<size, big_endian>::do_read_symbols(Read_symbols_data* sd)
         // be conservative.
         must_merge_processor_specific_data = true;
 
-      if (shdr.get_sh_type() == elfcpp::SHT_MIPS_REGINFO)
-        {
-          // Read the gp value that was used to create this object.  We need the
-          // gp value while processing relocs.  The .reginfo section is not used
-          // in the 64-bit MIPS ELF ABI.
-          section_offset_type section_offset = shdr.get_sh_offset();
-          section_size_type section_size =
-            convert_to_section_size_type(shdr.get_sh_size());
-          const unsigned char* view =
-             this->get_view(section_offset, section_size, true, false);
-          this->reginfo_ = new Mips_reginfo<size, big_endian>();
-
-          this->reginfo_->gprmask =
-            elfcpp::Swap<size, big_endian>::readval(view);
-          this->reginfo_->cprmask1 =
-            elfcpp::Swap<size, big_endian>::readval(view + 4);
-          this->reginfo_->cprmask2 =
-            elfcpp::Swap<size, big_endian>::readval(view + 8);
-          this->reginfo_->cprmask3 =
-            elfcpp::Swap<size, big_endian>::readval(view + 12);
-          this->reginfo_->cprmask4 =
-            elfcpp::Swap<size, big_endian>::readval(view + 16);
-          this->reginfo_->gp =
-            elfcpp::Swap<size, big_endian>::readval(view + 20);
-        }
-
       if (shdr.get_sh_type() == elfcpp::SHT_GNU_ATTRIBUTES)
         {
           gold_assert(this->attributes_section_data_ == NULL);
@@ -2324,7 +2094,7 @@ Nanomips_relobj<size, big_endian>::do_read_symbols(Read_symbols_data* sd)
             new Attributes_section_data(view, section_size);
         }
 
-      if (shdr.get_sh_type() == elfcpp::SHT_MIPS_ABIFLAGS)
+      if (shdr.get_sh_type() == elfcpp::SHT_NANOMIPS_ABIFLAGS)
         {
           gold_assert(this->abiflags_ == NULL);
           section_offset_type section_offset = shdr.get_sh_offset();
@@ -2332,13 +2102,13 @@ Nanomips_relobj<size, big_endian>::do_read_symbols(Read_symbols_data* sd)
             convert_to_section_size_type(shdr.get_sh_size());
           const unsigned char* view =
             this->get_view(section_offset, section_size, true, false);
-          this->abiflags_ = new Mips_abiflags<big_endian>();
+          this->abiflags_ = new Nanomips_abiflags<big_endian>();
 
           this->abiflags_->version =
             elfcpp::Swap<16, big_endian>::readval(view);
           if (this->abiflags_->version != 0)
             {
-              gold_error(_("%s: .MIPS.abiflags section has "
+              gold_error(_("%s: .nanoMIPS.abiflags section has "
                            "unsupported version %u"),
                          this->name().c_str(),
                          this->abiflags_->version);
@@ -2370,28 +2140,6 @@ Nanomips_relobj<size, big_endian>::do_read_symbols(Read_symbols_data* sd)
   // This is rare.
   if (!must_merge_processor_specific_data)
     this->merge_processor_specific_data_ = false;
-}
-
-// Nanomips_output_section_reginfo methods.
-
-template<int size, bool big_endian>
-void
-Nanomips_output_section_reginfo<size, big_endian>::do_write(Output_file* of)
-{
-  off_t offset = this->offset();
-  off_t data_size = this->data_size();
-
-  unsigned char* view = of->get_output_view(offset, data_size);
-  elfcpp::Swap<size, big_endian>::writeval(view, this->reginfo_.gprmask);
-  elfcpp::Swap<size, big_endian>::writeval(view + 4, this->reginfo_.cprmask1);
-  elfcpp::Swap<size, big_endian>::writeval(view + 8, this->reginfo_.cprmask2);
-  elfcpp::Swap<size, big_endian>::writeval(view + 12, this->reginfo_.cprmask3);
-  elfcpp::Swap<size, big_endian>::writeval(view + 16, this->reginfo_.cprmask4);
-  // Write the gp value.
-  elfcpp::Swap<size, big_endian>::writeval(view + 20,
-                                           this->target_->gp_value());
-
-  of->write_output_view(offset, data_size, view);
 }
 
 // Nanomips_output_section_abiflags methods.
@@ -2527,7 +2275,6 @@ Nanomips_transformations<size, big_endian>::find_property(
 {
   typename elfcpp::Elf_types<size>::Elf_WXword r_info = reloc.get_r_info();
   unsigned int r_type = elfcpp::elf_r_type<size>(r_info);
-  const bool pid = parameters->options().pid();
   const Nanomips_transform_property* transform_property = *ptransform_property;
   unsigned int type = TT_STANDARD;
   bool got_entry = false;
@@ -2535,6 +2282,7 @@ Nanomips_transformations<size, big_endian>::find_property(
   Nanomips_input_section* pnis = this->get_input_section();
   Nanomips_relobj<size, big_endian>* relobj =
     Nanomips_relobj<size, big_endian>::as_nanomips_relobj(pnis->relobj());
+  const bool pid = relobj->pid();
 
   if (gsym != NULL)
     got_entry = gsym->has_got_offset(GOT_TYPE_STANDARD);
@@ -3496,7 +3244,7 @@ Target_nanomips<size, big_endian>::got_section(Symbol_table* symtab,
 
       layout->add_output_section_data(".got", elfcpp::SHT_PROGBITS,
                                       (elfcpp::SHF_ALLOC | elfcpp::SHF_WRITE |
-                                      elfcpp::SHF_MIPS_GPREL),
+                                      elfcpp::SHF_NANOMIPS_GPREL),
                                       this->got_, ORDER_DATA, false);
 
       // First two GOT entries are reserved.
@@ -3728,332 +3476,39 @@ Target_nanomips<size, big_endian>::scan_relocs(
     plocal_symbols);
 }
 
+// Check whether the given ELF header flags describe a 32-bit binary.
+
 template<int size, bool big_endian>
 bool
-Target_nanomips<size, big_endian>::mips_32bit_flags(elfcpp::Elf_Word flags)
+Target_nanomips<size, big_endian>::nanomips_32bit_flags(elfcpp::Elf_Word flags)
 {
-  return ((flags & elfcpp::EF_MIPS_32BITMODE) != 0
-          || (flags & elfcpp::EF_MIPS_ABI) == elfcpp::E_MIPS_ABI_O32
-          || (flags & elfcpp::EF_MIPS_ABI) == elfcpp::E_MIPS_ABI_EABI32
-          || (flags & elfcpp::EF_MIPS_ARCH) == elfcpp::E_MIPS_ARCH_1
-          || (flags & elfcpp::EF_MIPS_ARCH) == elfcpp::E_MIPS_ARCH_2
-          || (flags & elfcpp::EF_MIPS_ARCH) == elfcpp::E_MIPS_ARCH_32
-          || (flags & elfcpp::EF_MIPS_ARCH) == elfcpp::E_MIPS_ARCH_32R2
-          || (flags & elfcpp::EF_MIPS_ARCH) == elfcpp::E_MIPS_ARCH_32R6
-          || (flags & elfcpp::EF_MIPS_ARCH) == elfcpp::E_NANOMIPS_ARCH_32R6);
+  return ((flags & elfcpp::EF_NANOMIPS_32BITMODE) != 0
+          || ((flags & elfcpp::EF_NANOMIPS_ARCH)
+              == elfcpp::E_NANOMIPS_ARCH_32R6));
 }
 
-// Return the MACH for a MIPS e_flags value.
-template<int size, bool big_endian>
-unsigned int
-Target_nanomips<size, big_endian>::elf_mips_mach(elfcpp::Elf_Word flags)
-{
-  switch (flags & elfcpp::EF_MIPS_MACH)
-    {
-    case elfcpp::E_MIPS_MACH_3900:
-      return mach_mips3900;
-
-    case elfcpp::E_MIPS_MACH_4010:
-      return mach_mips4010;
-
-    case elfcpp::E_MIPS_MACH_4100:
-      return mach_mips4100;
-
-    case elfcpp::E_MIPS_MACH_4111:
-      return mach_mips4111;
-
-    case elfcpp::E_MIPS_MACH_4120:
-      return mach_mips4120;
-
-    case elfcpp::E_MIPS_MACH_4650:
-      return mach_mips4650;
-
-    case elfcpp::E_MIPS_MACH_5400:
-      return mach_mips5400;
-
-    case elfcpp::E_MIPS_MACH_5500:
-      return mach_mips5500;
-
-    case elfcpp::E_MIPS_MACH_5900:
-      return mach_mips5900;
-
-    case elfcpp::E_MIPS_MACH_9000:
-      return mach_mips9000;
-
-    case elfcpp::E_MIPS_MACH_SB1:
-      return mach_mips_sb1;
-
-    case elfcpp::E_MIPS_MACH_LS2E:
-      return mach_mips_loongson_2e;
-
-    case elfcpp::E_MIPS_MACH_LS2F:
-      return mach_mips_loongson_2f;
-
-    case elfcpp::E_MIPS_MACH_LS3A:
-      return mach_mips_loongson_3a;
-
-    case elfcpp::E_MIPS_MACH_OCTEON3:
-      return mach_mips_octeon3;
-
-    case elfcpp::E_MIPS_MACH_OCTEON2:
-      return mach_mips_octeon2;
-
-    case elfcpp::E_MIPS_MACH_OCTEON:
-      return mach_mips_octeon;
-
-    case elfcpp::E_MIPS_MACH_XLR:
-      return mach_mips_xlr;
-
-    default:
-      switch (flags & elfcpp::EF_MIPS_ARCH)
-        {
-        default:
-        case elfcpp::E_MIPS_ARCH_1:
-          return mach_mips3000;
-
-        case elfcpp::E_MIPS_ARCH_2:
-          return mach_mips6000;
-
-        case elfcpp::E_MIPS_ARCH_3:
-          return mach_mips4000;
-
-        case elfcpp::E_MIPS_ARCH_4:
-          return mach_mips8000;
-
-        case elfcpp::E_MIPS_ARCH_5:
-          return mach_mips5;
-
-        case elfcpp::E_MIPS_ARCH_32:
-          return mach_mipsisa32;
-
-        case elfcpp::E_MIPS_ARCH_64:
-          return mach_mipsisa64;
-
-        case elfcpp::E_MIPS_ARCH_32R2:
-          return mach_mipsisa32r2;
-
-        case elfcpp::E_MIPS_ARCH_32R6:
-          return mach_mipsisa32r6;
-
-        case elfcpp::E_MIPS_ARCH_64R2:
-          return mach_mipsisa64r2;
-
-        case elfcpp::E_MIPS_ARCH_64R6:
-          return mach_mipsisa64r6;
-
-        case elfcpp::E_NANOMIPS_ARCH_32R6:
-          return mach_nanomipsisa32r6;
-
-        case elfcpp::E_NANOMIPS_ARCH_64R6:
-          return mach_nanomipsisa64r6;
-        }
-    }
-
-  return 0;
-}
-
-// Return the MACH for each .MIPS.abiflags ISA Extension.
-
-template<int size, bool big_endian>
-unsigned int
-Target_nanomips<size, big_endian>::mips_isa_ext_mach(unsigned int isa_ext)
-{
-  switch (isa_ext)
-    {
-    case elfcpp::AFL_EXT_3900:
-      return mach_mips3900;
-
-    case elfcpp::AFL_EXT_4010:
-      return mach_mips4010;
-
-    case elfcpp::AFL_EXT_4100:
-      return mach_mips4100;
-
-    case elfcpp::AFL_EXT_4111:
-      return mach_mips4111;
-
-    case elfcpp::AFL_EXT_4120:
-      return mach_mips4120;
-
-    case elfcpp::AFL_EXT_4650:
-      return mach_mips4650;
-
-    case elfcpp::AFL_EXT_5400:
-      return mach_mips5400;
-
-    case elfcpp::AFL_EXT_5500:
-      return mach_mips5500;
-
-    case elfcpp::AFL_EXT_5900:
-      return mach_mips5900;
-
-    case elfcpp::AFL_EXT_10000:
-      return mach_mips10000;
-
-    case elfcpp::AFL_EXT_LOONGSON_2E:
-      return mach_mips_loongson_2e;
-
-    case elfcpp::AFL_EXT_LOONGSON_2F:
-      return mach_mips_loongson_2f;
-
-    case elfcpp::AFL_EXT_LOONGSON_3A:
-      return mach_mips_loongson_3a;
-
-    case elfcpp::AFL_EXT_SB1:
-      return mach_mips_sb1;
-
-    case elfcpp::AFL_EXT_OCTEON:
-      return mach_mips_octeon;
-
-    case elfcpp::AFL_EXT_OCTEONP:
-      return mach_mips_octeonp;
-
-    case elfcpp::AFL_EXT_OCTEON2:
-      return mach_mips_octeon2;
-
-    case elfcpp::AFL_EXT_XLR:
-      return mach_mips_xlr;
-
-    default:
-      return mach_mips3000;
-    }
-}
-
-// Return the .MIPS.abiflags value representing each ISA Extension.
-
-template<int size, bool big_endian>
-unsigned int
-Target_nanomips<size, big_endian>::mips_isa_ext(unsigned int mips_mach)
-{
-  switch (mips_mach)
-    {
-    case mach_mips3900:
-      return elfcpp::AFL_EXT_3900;
-
-    case mach_mips4010:
-      return elfcpp::AFL_EXT_4010;
-
-    case mach_mips4100:
-      return elfcpp::AFL_EXT_4100;
-
-    case mach_mips4111:
-      return elfcpp::AFL_EXT_4111;
-
-    case mach_mips4120:
-      return elfcpp::AFL_EXT_4120;
-
-    case mach_mips4650:
-      return elfcpp::AFL_EXT_4650;
-
-    case mach_mips5400:
-      return elfcpp::AFL_EXT_5400;
-
-    case mach_mips5500:
-      return elfcpp::AFL_EXT_5500;
-
-    case mach_mips5900:
-      return elfcpp::AFL_EXT_5900;
-
-    case mach_mips10000:
-      return elfcpp::AFL_EXT_10000;
-
-    case mach_mips_loongson_2e:
-      return elfcpp::AFL_EXT_LOONGSON_2E;
-
-    case mach_mips_loongson_2f:
-      return elfcpp::AFL_EXT_LOONGSON_2F;
-
-    case mach_mips_loongson_3a:
-      return elfcpp::AFL_EXT_LOONGSON_3A;
-
-    case mach_mips_sb1:
-      return elfcpp::AFL_EXT_SB1;
-
-    case mach_mips_octeon:
-      return elfcpp::AFL_EXT_OCTEON;
-
-    case mach_mips_octeonp:
-      return elfcpp::AFL_EXT_OCTEONP;
-
-    case mach_mips_octeon3:
-      return elfcpp::AFL_EXT_OCTEON3;
-
-    case mach_mips_octeon2:
-      return elfcpp::AFL_EXT_OCTEON2;
-
-    case mach_mips_xlr:
-      return elfcpp::AFL_EXT_XLR;
-
-    default:
-      return 0;
-    }
-}
-
-// Update the isa_level, isa_rev, isa_ext fields of abiflags.
+// Update the isa_level and isa_rev fields of abiflags.
 
 template<int size, bool big_endian>
 void
-Target_nanomips<size, big_endian>::update_abiflags_isa(const std::string& name,
-    elfcpp::Elf_Word e_flags, Mips_abiflags<big_endian>* abiflags)
+Target_nanomips<size, big_endian>::update_abiflags_isa(
+    const Nanomips_relobj<size, big_endian>* relobj,
+    Nanomips_abiflags<big_endian>* abiflags)
 {
-  int new_isa = 0;
-  switch (e_flags & elfcpp::EF_MIPS_ARCH)
+  elfcpp::Elf_Word e_flags = relobj->processor_specific_flags();
+  switch (e_flags & elfcpp::EF_NANOMIPS_ARCH)
     {
-    case elfcpp::E_MIPS_ARCH_1:
-      new_isa = this->level_rev(1, 0);
-      break;
-    case elfcpp::E_MIPS_ARCH_2:
-      new_isa = this->level_rev(2, 0);
-      break;
-    case elfcpp::E_MIPS_ARCH_3:
-      new_isa = this->level_rev(3, 0);
-      break;
-    case elfcpp::E_MIPS_ARCH_4:
-      new_isa = this->level_rev(4, 0);
-      break;
-    case elfcpp::E_MIPS_ARCH_5:
-      new_isa = this->level_rev(5, 0);
-      break;
-    case elfcpp::E_MIPS_ARCH_32:
-      new_isa = this->level_rev(32, 1);
-      break;
-    case elfcpp::E_MIPS_ARCH_32R2:
-      new_isa = this->level_rev(32, 2);
-      break;
-    case elfcpp::E_MIPS_ARCH_32R6:
-      new_isa = this->level_rev(32, 6);
-      break;
     case elfcpp::E_NANOMIPS_ARCH_32R6:
-      new_isa = this->level_rev(32, 6);
-      break;
-    case elfcpp::E_MIPS_ARCH_64:
-      new_isa = this->level_rev(64, 1);
-      break;
-    case elfcpp::E_MIPS_ARCH_64R2:
-      new_isa = this->level_rev(64, 2);
-      break;
-    case elfcpp::E_MIPS_ARCH_64R6:
-      new_isa = this->level_rev(64, 6);
+      abiflags->isa_level = 32;
+      abiflags->isa_rev = 6;
       break;
     case elfcpp::E_NANOMIPS_ARCH_64R6:
-      new_isa = this->level_rev(64, 6);
+      abiflags->isa_level = 64;
+      abiflags->isa_rev = 6;
       break;
     default:
-      gold_error(_("%s: Unknown architecture %s"), name.c_str(),
-                 this->elf_mips_mach_name(e_flags));
+      gold_error(_("%s: Unknown architecture"), relobj->name().c_str());
     }
-
-  if (new_isa > this->level_rev(abiflags->isa_level, abiflags->isa_rev))
-    {
-      // Decode a single value into level and revision.
-      abiflags->isa_level = new_isa >> 3;
-      abiflags->isa_rev = new_isa & 0x7;
-    }
-
-  // Update the isa_ext if needed.
-  if (this->mips_mach_extends(this->mips_isa_ext_mach(abiflags->isa_ext),
-      this->elf_mips_mach(e_flags)))
-    abiflags->isa_ext = this->mips_isa_ext(this->elf_mips_mach(e_flags));
 }
 
 // Infer the content of the ABI flags based on the elf header.
@@ -4061,69 +3516,54 @@ Target_nanomips<size, big_endian>::update_abiflags_isa(const std::string& name,
 template<int size, bool big_endian>
 void
 Target_nanomips<size, big_endian>::infer_abiflags(
-    Nanomips_relobj<size, big_endian>* relobj,
-    Mips_abiflags<big_endian>* abiflags)
+    const Nanomips_relobj<size, big_endian>* relobj,
+    Nanomips_abiflags<big_endian>* abiflags)
 {
   const Attributes_section_data* pasd = relobj->attributes_section_data();
-  int attr_fp_abi = elfcpp::Val_GNU_MIPS_ABI_FP_ANY;
+  int attr_fp_abi = elfcpp::Val_GNU_NANOMIPS_ABI_FP_ANY;
   elfcpp::Elf_Word e_flags = relobj->processor_specific_flags();
 
-  this->update_abiflags_isa(relobj->name(), e_flags, abiflags);
+  this->update_abiflags_isa(relobj, abiflags);
+
   if (pasd != NULL)
     {
       // Read fp_abi from the .gnu.attribute section.
       const Object_attribute* attr =
         pasd->known_attributes(Object_attribute::OBJ_ATTR_GNU);
-      attr_fp_abi = attr[elfcpp::Tag_GNU_MIPS_ABI_FP].int_value();
+      attr_fp_abi = attr[elfcpp::Tag_GNU_NANOMIPS_ABI_FP].int_value();
     }
 
   abiflags->fp_abi = attr_fp_abi;
   abiflags->cpr1_size = elfcpp::AFL_REG_NONE;
   abiflags->cpr2_size = elfcpp::AFL_REG_NONE;
-  abiflags->gpr_size = this->mips_32bit_flags(e_flags) ? elfcpp::AFL_REG_32
-                                                       : elfcpp::AFL_REG_64;
+  abiflags->gpr_size = (this->nanomips_32bit_flags(e_flags)
+                        ? elfcpp::AFL_REG_32
+                        : elfcpp::AFL_REG_64);
 
-  if (abiflags->fp_abi == elfcpp::Val_GNU_MIPS_ABI_FP_SINGLE
-      || abiflags->fp_abi == elfcpp::Val_GNU_MIPS_ABI_FP_XX
-      || (abiflags->fp_abi == elfcpp::Val_GNU_MIPS_ABI_FP_DOUBLE
-      && abiflags->gpr_size == elfcpp::AFL_REG_32))
+  if (abiflags->fp_abi == elfcpp::Val_GNU_NANOMIPS_ABI_FP_SINGLE
+      || (abiflags->fp_abi == elfcpp::Val_GNU_NANOMIPS_ABI_FP_DOUBLE
+          && abiflags->gpr_size == elfcpp::AFL_REG_32))
     abiflags->cpr1_size = elfcpp::AFL_REG_32;
-  else if (abiflags->fp_abi == elfcpp::Val_GNU_MIPS_ABI_FP_DOUBLE
-           || abiflags->fp_abi == elfcpp::Val_GNU_MIPS_ABI_FP_64
-           || abiflags->fp_abi == elfcpp::Val_GNU_MIPS_ABI_FP_64A)
+  else if (abiflags->fp_abi == elfcpp::Val_GNU_NANOMIPS_ABI_FP_DOUBLE)
     abiflags->cpr1_size = elfcpp::AFL_REG_64;
-
-  if (e_flags & elfcpp::EF_MIPS_ARCH_ASE_MDMX)
-    abiflags->ases |= elfcpp::AFL_ASE_MDMX;
-  if (e_flags & elfcpp::EF_MIPS_ARCH_ASE_M16)
-    abiflags->ases |= elfcpp::AFL_ASE_MIPS16;
-  if (e_flags & elfcpp::EF_MIPS_ARCH_ASE_MICROMIPS)
-    abiflags->ases |= elfcpp::AFL_ASE_MICROMIPS;
-
-  if (abiflags->fp_abi != elfcpp::Val_GNU_MIPS_ABI_FP_ANY
-      && abiflags->fp_abi != elfcpp::Val_GNU_MIPS_ABI_FP_SOFT
-      && abiflags->fp_abi != elfcpp::Val_GNU_MIPS_ABI_FP_64A
-      && abiflags->isa_level >= 32
-      && abiflags->isa_ext != elfcpp::AFL_EXT_LOONGSON_3A)
-    abiflags->flags1 |= elfcpp::AFL_FLAGS1_ODDSPREG;
 }
 
-// Create abiflags from elf header or from .MIPS.abiflags section.
+// Create abiflags from elf header or from .nanoMIPS.abiflags section.
 
 template<int size, bool big_endian>
 void
 Target_nanomips<size, big_endian>::create_abiflags(
     Nanomips_relobj<size, big_endian>* relobj,
-    Mips_abiflags<big_endian>* abiflags)
+    Nanomips_abiflags<big_endian>* abiflags)
 {
-  Mips_abiflags<big_endian>* sec_abiflags = relobj->abiflags();
-  Mips_abiflags<big_endian> header_abiflags;
+  Nanomips_abiflags<big_endian>* sec_abiflags = relobj->abiflags();
+  Nanomips_abiflags<big_endian> header_abiflags;
 
   this->infer_abiflags(relobj, &header_abiflags);
 
   if (sec_abiflags == NULL)
     {
-      // If there is no input .MIPS.abiflags section, use abiflags created
+      // If there is no input .nanoMIPS.abiflags section, use abiflags created
       // from elf header.
       *abiflags = header_abiflags;
       return;
@@ -4131,32 +3571,20 @@ Target_nanomips<size, big_endian>::create_abiflags(
 
   this->has_abiflags_section_ = true;
 
-  // It is not possible to infer the correct ISA revision for R3 or R5
-  // so drop down to R2 for the checks.
-  unsigned char isa_rev = sec_abiflags->isa_rev;
-  if (isa_rev == 3 || isa_rev == 5)
-    isa_rev = 2;
-
   // Check compatibility between abiflags created from elf header
-  // and abiflags from .MIPS.abiflags section in this object file.
-  if (this->level_rev(sec_abiflags->isa_level, isa_rev)
-      < this->level_rev(header_abiflags.isa_level, header_abiflags.isa_rev))
-    gold_warning(_("%s: Inconsistent ISA between e_flags and .MIPS.abiflags"),
-                 relobj->name().c_str());
-  if (header_abiflags.fp_abi != elfcpp::Val_GNU_MIPS_ABI_FP_ANY
+  // and abiflags from .nanoMIPS.abiflags section in this object file.
+  if (sec_abiflags->isa_level != header_abiflags.isa_level
+      || sec_abiflags->isa_rev != header_abiflags.isa_rev)
+    gold_warning(_("%s: Inconsistent ISA between e_flags and "
+                   ".nanoMIPS.abiflags"), relobj->name().c_str());
+  if (header_abiflags.fp_abi != elfcpp::Val_GNU_NANOMIPS_ABI_FP_ANY
       && sec_abiflags->fp_abi != header_abiflags.fp_abi)
     gold_warning(_("%s: Inconsistent FP ABI between .gnu.attributes and "
-                   ".MIPS.abiflags"), relobj->name().c_str());
+                   ".nanoMIPS.abiflags"), relobj->name().c_str());
   if ((sec_abiflags->ases & header_abiflags.ases) != header_abiflags.ases)
-    gold_warning(_("%s: Inconsistent ASEs between e_flags and .MIPS.abiflags"),
-                 relobj->name().c_str());
-  // The isa_ext is allowed to be an extension of what can be inferred
-  // from e_flags.
-  if (!this->mips_mach_extends(this->mips_isa_ext_mach(header_abiflags.isa_ext),
-                               this->mips_isa_ext_mach(sec_abiflags->isa_ext)))
-    gold_warning(_("%s: Inconsistent ISA extensions between e_flags and "
-                   ".MIPS.abiflags"), relobj->name().c_str());
-  // Use abiflags from .MIPS.abiflags section.
+    gold_warning(_("%s: Inconsistent ASEs between e_flags and "
+                   ".nanoMIPS.abiflags"), relobj->name().c_str());
+  // Use abiflags from .nanoMIPS.abiflags section.
   *abiflags = *sec_abiflags;
 }
 
@@ -4168,59 +3596,124 @@ Target_nanomips<size, big_endian>::fp_abi_string(int fp)
 {
   switch (fp)
     {
-    case elfcpp::Val_GNU_MIPS_ABI_FP_DOUBLE:
+    case elfcpp::Val_GNU_NANOMIPS_ABI_FP_DOUBLE:
       return "-mdouble-float";
-    case elfcpp::Val_GNU_MIPS_ABI_FP_SINGLE:
+    case elfcpp::Val_GNU_NANOMIPS_ABI_FP_SINGLE:
       return "-msingle-float";
-    case elfcpp::Val_GNU_MIPS_ABI_FP_SOFT:
+    case elfcpp::Val_GNU_NANOMIPS_ABI_FP_SOFT:
       return "-msoft-float";
-    case elfcpp::Val_GNU_MIPS_ABI_FP_OLD_64:
-      return _("-mips32r2 -mfp64 (12 callee-saved)");
-    case elfcpp::Val_GNU_MIPS_ABI_FP_XX:
-      return "-mfpxx";
-    case elfcpp::Val_GNU_MIPS_ABI_FP_64:
-      return "-mgp32 -mfp64";
-    case elfcpp::Val_GNU_MIPS_ABI_FP_64A:
-      return "-mgp32 -mfp64 -mno-odd-spreg";
     default:
       return "unknown";
     }
 }
 
-// Select fp_abi.
+// Select fp_abi field of abiflags.
 
 template<int size, bool big_endian>
 int
-Target_nanomips<size, big_endian>::select_fp_abi(
-    const std::string& name,
-    int in_fp,
-    int out_fp)
+Target_nanomips<size, big_endian>::select_fp_abi(const std::string& name,
+                                                 int in_fp, int out_fp)
 {
-  if (in_fp == out_fp)
-    return out_fp;
+  if (out_fp == elfcpp::Val_GNU_NANOMIPS_ABI_FP_ANY
+      || in_fp == out_fp)
+    return in_fp;
 
-  if (out_fp == elfcpp::Val_GNU_MIPS_ABI_FP_ANY)
-    return in_fp;
-  else if (out_fp == elfcpp::Val_GNU_MIPS_ABI_FP_XX
-           && (in_fp == elfcpp::Val_GNU_MIPS_ABI_FP_DOUBLE
-               || in_fp == elfcpp::Val_GNU_MIPS_ABI_FP_64
-               || in_fp == elfcpp::Val_GNU_MIPS_ABI_FP_64A))
-    return in_fp;
-  else if (in_fp == elfcpp::Val_GNU_MIPS_ABI_FP_XX
-           && (out_fp == elfcpp::Val_GNU_MIPS_ABI_FP_DOUBLE
-               || out_fp == elfcpp::Val_GNU_MIPS_ABI_FP_64
-               || out_fp == elfcpp::Val_GNU_MIPS_ABI_FP_64A))
-    return out_fp; // Keep the current setting.
-  else if (out_fp == elfcpp::Val_GNU_MIPS_ABI_FP_64A
-           && in_fp == elfcpp::Val_GNU_MIPS_ABI_FP_64)
-    return in_fp;
-  else if (in_fp == elfcpp::Val_GNU_MIPS_ABI_FP_64A
-           && out_fp == elfcpp::Val_GNU_MIPS_ABI_FP_64)
-    return out_fp; // Keep the current setting.
-  else if (in_fp != elfcpp::Val_GNU_MIPS_ABI_FP_ANY)
-    gold_warning(_("%s: FP ABI %s is incompatible with %s"), name.c_str(),
-                 fp_abi_string(in_fp), fp_abi_string(out_fp));
+  if (in_fp != elfcpp::Val_GNU_NANOMIPS_ABI_FP_ANY)
+    gold_warning(_("%s: FP ABI %s is incompatible with %s"),
+                 name.c_str(), fp_abi_string(in_fp), fp_abi_string(out_fp));
+
   return out_fp;
+}
+
+// Select isa_ext field of abiflags.
+
+template<int size, bool big_endian>
+int
+Target_nanomips<size, big_endian>::select_isa_ext(const std::string& name,
+                                                  int in_isa_ext,
+                                                  int out_isa_ext)
+{
+  if (out_isa_ext == elfcpp::AFL_EXT_NONE
+      || in_isa_ext == out_isa_ext)
+    return in_isa_ext;
+
+  if (in_isa_ext != elfcpp::AFL_EXT_NONE)
+    gold_warning(_("%s: processor specific extension (%#x) is "
+                   "incompatible with (%#x)"),
+                 name.c_str(), in_isa_ext, out_isa_ext);
+
+  return out_isa_ext;
+}
+
+// Check whether machine EXTENSION is an extension of machine BASE.
+// This method is implemented like Target_mips::mips_mach_extends
+// for the future reference.
+
+template<int size, bool big_endian>
+bool
+Target_nanomips<size, big_endian>::nanomips_mach_extends(unsigned int base,
+                                                         unsigned int extension)
+{
+  if (extension == base)
+    return true;
+
+  if ((base == mach_nanomipsisa32r6)
+      && this->nanomips_mach_extends(mach_nanomipsisa64r6, extension))
+    return true;
+
+  return false;
+}
+
+// Return the MACH for a nanoMIPS e_flags value.
+
+template<int size, bool big_endian>
+unsigned int
+Target_nanomips<size, big_endian>::nanomips_mach(elfcpp::Elf_Word flags)
+{
+  switch (flags & elfcpp::EF_NANOMIPS_ARCH)
+    {
+    default:
+    case elfcpp::E_NANOMIPS_ARCH_32R6:
+      return mach_nanomipsisa32r6;
+    case elfcpp::E_NANOMIPS_ARCH_64R6:
+      return mach_nanomipsisa64r6;
+    }
+}
+
+// Return printable name for ABI.
+
+template<int size, bool big_endian>
+const char*
+Target_nanomips<size, big_endian>::nanomips_abi_name(elfcpp::Elf_Word e_flags)
+{
+  switch (e_flags & elfcpp::EF_NANOMIPS_ABI)
+    {
+    case 0:
+      return "none";
+    case elfcpp::E_NANOMIPS_ABI_P32:
+      return "P32";
+    case elfcpp::E_NANOMIPS_ABI_P64:
+      return "P64";
+    default:
+      return "unknown abi";
+    }
+}
+
+// Return printable name for MACH.
+
+template<int size, bool big_endian>
+const char*
+Target_nanomips<size, big_endian>::nanomips_mach_name(elfcpp::Elf_Word e_flags)
+{
+  switch (e_flags & elfcpp::EF_NANOMIPS_ARCH)
+    {
+    case elfcpp::E_NANOMIPS_ARCH_32R6:
+      return "nanomips:isa32r6";
+    case elfcpp::E_NANOMIPS_ARCH_64R6:
+      return "nanomips:isa64r6";
+    default:
+      return "unknown CPU";
+    }
 }
 
 // Merge attributes from input object.
@@ -4245,8 +3738,9 @@ Target_nanomips<size, big_endian>::merge_obj_attributes(
   Object_attribute* out_attr = this->attributes_section_data_->known_attributes(
       Object_attribute::OBJ_ATTR_GNU);
 
-  out_attr[elfcpp::Tag_GNU_MIPS_ABI_FP].set_type(1);
-  out_attr[elfcpp::Tag_GNU_MIPS_ABI_FP].set_int_value(this->abiflags_->fp_abi);
+  out_attr[elfcpp::Tag_GNU_NANOMIPS_ABI_FP].set_type(1);
+  out_attr[elfcpp::Tag_GNU_NANOMIPS_ABI_FP].set_int_value(
+      this->abiflags_->fp_abi);
 
   // Merge Tag_compatibility attributes and any common GNU ones.
   this->attributes_section_data_->merge(name.c_str(), pasd);
@@ -4256,18 +3750,16 @@ Target_nanomips<size, big_endian>::merge_obj_attributes(
 
 template<int size, bool big_endian>
 void
-Target_nanomips<size, big_endian>::merge_obj_abiflags(const std::string& name,
-    Mips_abiflags<big_endian>* in_abiflags)
+Target_nanomips<size, big_endian>::merge_obj_abiflags(
+    const std::string& name,
+    Nanomips_abiflags<big_endian>* in_abiflags)
 {
   // If output has no abiflags, just copy.
   if (this->abiflags_ == NULL)
-  {
-    this->abiflags_ = new Mips_abiflags<big_endian>(*in_abiflags);
-    return;
-  }
-
-  this->abiflags_->fp_abi = this->select_fp_abi(name, in_abiflags->fp_abi,
-                                                this->abiflags_->fp_abi);
+    {
+      this->abiflags_ = new Nanomips_abiflags<big_endian>(*in_abiflags);
+      return;
+    }
 
   // Merge abiflags.
   this->abiflags_->isa_level = std::max(this->abiflags_->isa_level,
@@ -4280,66 +3772,13 @@ Target_nanomips<size, big_endian>::merge_obj_abiflags(const std::string& name,
                                         in_abiflags->cpr1_size);
   this->abiflags_->cpr2_size = std::max(this->abiflags_->cpr2_size,
                                         in_abiflags->cpr2_size);
+  this->abiflags_->fp_abi = this->select_fp_abi(name, in_abiflags->fp_abi,
+                                                this->abiflags_->fp_abi);
+  this->abiflags_->isa_ext = this->select_isa_ext(name, in_abiflags->isa_ext,
+                                                  this->abiflags_->isa_ext);
   this->abiflags_->ases |= in_abiflags->ases;
   this->abiflags_->flags1 |= in_abiflags->flags1;
   this->abiflags_->flags2 |= in_abiflags->flags2;
-}
-
-// Merge reginfo from input object.
-
-template<int size, bool big_endian>
-void
-Target_nanomips<size, big_endian>::merge_obj_reginfo(
-    Mips_reginfo<size, big_endian>* in_reginfo)
-{
-  // Don't do anything if there is no input .reginfo section.
-  if (in_reginfo == NULL)
-    return;
-
-  // If output has no reginfo, just copy.
-  if (this->reginfo_ == NULL)
-  {
-    this->reginfo_ = new Mips_reginfo<size, big_endian>(*in_reginfo);
-    return;
-  }
-
-  this->reginfo_->gprmask |= in_reginfo->gprmask;
-  this->reginfo_->cprmask1 |= in_reginfo->cprmask1;
-  this->reginfo_->cprmask2 |= in_reginfo->cprmask2;
-  this->reginfo_->cprmask3 |= in_reginfo->cprmask3;
-  this->reginfo_->cprmask4 |= in_reginfo->cprmask4;
-}
-
-// Check whether machine EXTENSION is an extension of machine BASE.
-template<int size, bool big_endian>
-bool
-Target_nanomips<size, big_endian>::mips_mach_extends(unsigned int base,
-                                                     unsigned int extension)
-{
-  if (extension == base)
-    return true;
-
-  if ((base == mach_mipsisa32)
-      && this->mips_mach_extends(mach_mipsisa64, extension))
-    return true;
-
-  if ((base == mach_mipsisa32r2)
-      && this->mips_mach_extends(mach_mipsisa64r2, extension))
-    return true;
-
-  if ((base == mach_nanomipsisa32r6)
-      && this->mips_mach_extends(mach_nanomipsisa32r6, extension))
-    return true;
-
-  for (unsigned int i = 0; i < this->mips_mach_extensions_.size(); ++i)
-    if (extension == this->mips_mach_extensions_[i].first)
-      {
-        extension = this->mips_mach_extensions_[i].second;
-        if (extension == base)
-          return true;
-      }
-
-  return false;
 }
 
 // Merge file header flags from input object.
@@ -4347,34 +3786,23 @@ Target_nanomips<size, big_endian>::mips_mach_extends(unsigned int base,
 template<int size, bool big_endian>
 void
 Target_nanomips<size, big_endian>::merge_obj_e_flags(const std::string& name,
-                                                     elfcpp::Elf_Word in_flags)
+                                                     elfcpp::Elf_Word new_flags)
 {
   // If flags are not set yet, just copy them.
   if (!this->are_processor_specific_flags_set())
     {
-      this->set_processor_specific_flags(in_flags);
-      this->mach_ = this->elf_mips_mach(in_flags);
+      this->set_processor_specific_flags(new_flags);
       return;
     }
 
-  elfcpp::Elf_Word new_flags = in_flags;
   elfcpp::Elf_Word old_flags = this->processor_specific_flags();
   elfcpp::Elf_Word merged_flags = this->processor_specific_flags();
-  merged_flags |= new_flags & elfcpp::EF_MIPS_NOREORDER;
+  merged_flags |= new_flags & elfcpp::EF_NANOMIPS_LINKRELAX;
 
-  // Check flag compatibility.
-  new_flags &= ~elfcpp::EF_MIPS_NOREORDER;
-  old_flags &= ~elfcpp::EF_MIPS_NOREORDER;
-
-  // Some IRIX 6 BSD-compatibility objects have this bit set.  It
-  // doesn't seem to matter.
-  new_flags &= ~elfcpp::EF_MIPS_XGOT;
-  old_flags &= ~elfcpp::EF_MIPS_XGOT;
-
-  // MIPSpro generates ucode info in n64 objects.  Again, we should
-  // just be able to ignore this.
-  new_flags &= ~elfcpp::EF_MIPS_UCODE;
-  old_flags &= ~elfcpp::EF_MIPS_UCODE;
+  new_flags &= ~(elfcpp::EF_NANOMIPS_PID | elfcpp::EF_NANOMIPS_PCREL
+                 | elfcpp::EF_NANOMIPS_LINKRELAX);
+  old_flags &= ~(elfcpp::EF_NANOMIPS_PID | elfcpp::EF_NANOMIPS_PCREL
+                 | elfcpp::EF_NANOMIPS_LINKRELAX);
 
   if (new_flags == old_flags)
     {
@@ -4382,129 +3810,69 @@ Target_nanomips<size, big_endian>::merge_obj_e_flags(const std::string& name,
       return;
     }
 
-  if (((new_flags & (elfcpp::EF_MIPS_PIC | elfcpp::EF_MIPS_CPIC)) != 0)
-      != ((old_flags & (elfcpp::EF_MIPS_PIC | elfcpp::EF_MIPS_CPIC)) != 0))
+  if ((new_flags & elfcpp::EF_NANOMIPS_PIC)
+      != (old_flags & elfcpp::EF_NANOMIPS_PIC))
     gold_warning(_("%s: linking abicalls files with non-abicalls files"),
                  name.c_str());
 
-  if (new_flags & (elfcpp::EF_MIPS_PIC | elfcpp::EF_MIPS_CPIC))
-    merged_flags |= elfcpp::EF_MIPS_CPIC;
-  if (!(new_flags & elfcpp::EF_MIPS_PIC))
-    merged_flags &= ~elfcpp::EF_MIPS_PIC;
+  if ((new_flags & elfcpp::EF_NANOMIPS_PIC) == 0)
+    merged_flags &= ~elfcpp::EF_NANOMIPS_PIC;
 
-  new_flags &= ~(elfcpp::EF_MIPS_PIC | elfcpp::EF_MIPS_CPIC);
-  old_flags &= ~(elfcpp::EF_MIPS_PIC | elfcpp::EF_MIPS_CPIC);
+  new_flags &= ~elfcpp::EF_NANOMIPS_PIC;
+  old_flags &= ~elfcpp::EF_NANOMIPS_PIC;
 
   // Compare the ISAs.
-  if (mips_32bit_flags(old_flags) != mips_32bit_flags(new_flags))
+  if (this->nanomips_32bit_flags(old_flags)
+      != this->nanomips_32bit_flags(new_flags))
     gold_error(_("%s: linking 32-bit code with 64-bit code"), name.c_str());
-  else if (!this->mips_mach_extends(this->elf_mips_mach(in_flags), this->mach_))
+  else if (!this->nanomips_mach_extends(this->nanomips_mach(new_flags),
+                                        this->nanomips_mach(old_flags)))
     {
-      // Output ISA isn't the same as, or an extension of, input ISA.
-      if (this->mips_mach_extends(this->mach_, this->elf_mips_mach(in_flags)))
+      // Output ISA isn't the same as input ISA.
+      if (this->nanomips_mach_extends(this->nanomips_mach(old_flags),
+                                      this->nanomips_mach(new_flags)))
         {
           // Copy the architecture info from input object to output.  Also copy
           // the 32-bit flag (if set) so that we continue to recognise
           // output as a 32-bit binary.
-          this->mach_ = this->elf_mips_mach(in_flags);
-          merged_flags &= ~(elfcpp::EF_MIPS_ARCH | elfcpp::EF_MIPS_MACH);
-          merged_flags |= (new_flags & (elfcpp::EF_MIPS_ARCH
-                           | elfcpp::EF_MIPS_MACH | elfcpp::EF_MIPS_32BITMODE));
-
-          // Update the ABI flags isa_level, isa_rev, isa_ext fields.
-          this->update_abiflags_isa(name, merged_flags, this->abiflags_);
-
-          // Copy across the ABI flags if output doesn't use them
-          // and if that was what caused us to treat input object as 32-bit.
-          if ((old_flags & elfcpp::EF_MIPS_ABI) == 0
-              && this->mips_32bit_flags(new_flags)
-              && !this->mips_32bit_flags(new_flags & ~elfcpp::EF_MIPS_ABI))
-            merged_flags |= new_flags & elfcpp::EF_MIPS_ABI;
+          merged_flags &= ~(elfcpp::EF_NANOMIPS_ARCH
+                            | elfcpp::EF_NANOMIPS_MACH);
+          merged_flags |= (new_flags & (elfcpp::EF_NANOMIPS_ARCH
+                                        | elfcpp::EF_NANOMIPS_MACH
+                                        | elfcpp::EF_NANOMIPS_32BITMODE));
         }
       else
         // The ISAs aren't compatible.
         gold_error(_("%s: linking %s module with previous %s modules"),
-                   name.c_str(), this->elf_mips_mach_name(in_flags),
-                   this->elf_mips_mach_name(merged_flags));
+                   name.c_str(), this->nanomips_mach_name(new_flags),
+                   this->nanomips_mach_name(old_flags));
     }
 
-  new_flags &= (~(elfcpp::EF_MIPS_ARCH | elfcpp::EF_MIPS_MACH
-                | elfcpp::EF_MIPS_32BITMODE));
-  old_flags &= (~(elfcpp::EF_MIPS_ARCH | elfcpp::EF_MIPS_MACH
-                | elfcpp::EF_MIPS_32BITMODE));
+  new_flags &= ~(elfcpp::EF_NANOMIPS_ARCH | elfcpp::EF_NANOMIPS_MACH
+                 | elfcpp::EF_NANOMIPS_32BITMODE);
+  old_flags &= ~(elfcpp::EF_NANOMIPS_ARCH | elfcpp::EF_NANOMIPS_MACH
+                 | elfcpp::EF_NANOMIPS_32BITMODE);
 
   // Compare ABIs.
-  if ((new_flags & elfcpp::EF_MIPS_ABI) != (old_flags & elfcpp::EF_MIPS_ABI))
+  if ((new_flags & elfcpp::EF_NANOMIPS_ABI)
+      != (old_flags & elfcpp::EF_NANOMIPS_ABI))
     {
       // Only error if both are set (to different values).
-      if ((new_flags & elfcpp::EF_MIPS_ABI)
-           && (old_flags & elfcpp::EF_MIPS_ABI))
+      if ((new_flags & elfcpp::EF_NANOMIPS_ABI) != 0
+           && (old_flags & elfcpp::EF_NANOMIPS_ABI) != 0)
         gold_error(_("%s: ABI mismatch: linking %s module with "
-                     "previous %s modules"), name.c_str(),
-                   this->elf_mips_abi_name(in_flags),
-                   this->elf_mips_abi_name(merged_flags));
+                     "previous %s modules"),
+                   name.c_str(), this->nanomips_abi_name(new_flags),
+                   this->nanomips_abi_name(old_flags));
 
-      new_flags &= ~elfcpp::EF_MIPS_ABI;
-      old_flags &= ~elfcpp::EF_MIPS_ABI;
-    }
-
-  // Compare ASEs.  Forbid linking MIPS16 and microMIPS ASE modules together
-  // and allow arbitrary mixing of the remaining ASEs (retain the union).
-  if ((new_flags & elfcpp::EF_MIPS_ARCH_ASE)
-      != (old_flags & elfcpp::EF_MIPS_ARCH_ASE))
-    {
-      int old_micro = old_flags & elfcpp::EF_MIPS_ARCH_ASE_MICROMIPS;
-      int new_micro = new_flags & elfcpp::EF_MIPS_ARCH_ASE_MICROMIPS;
-      int old_m16 = old_flags & elfcpp::EF_MIPS_ARCH_ASE_M16;
-      int new_m16 = new_flags & elfcpp::EF_MIPS_ARCH_ASE_M16;
-      int micro_mis = old_m16 && new_micro;
-      int m16_mis = old_micro && new_m16;
-
-      if (m16_mis || micro_mis)
-        gold_error(_("%s: ASE mismatch: linking %s module with "
-                     "previous %s modules"), name.c_str(),
-                   m16_mis ? "MIPS16" : "microMIPS",
-                   m16_mis ? "microMIPS" : "MIPS16");
-
-      merged_flags |= new_flags & elfcpp::EF_MIPS_ARCH_ASE;
-
-      new_flags &= ~ elfcpp::EF_MIPS_ARCH_ASE;
-      old_flags &= ~ elfcpp::EF_MIPS_ARCH_ASE;
-    }
-
-  // Compare NaN encodings.
-  if ((new_flags & elfcpp::EF_MIPS_NAN2008)
-      != (old_flags & elfcpp::EF_MIPS_NAN2008))
-    {
-      gold_error(_("%s: linking %s module with previous %s modules"),
-                 name.c_str(),
-                 (new_flags & elfcpp::EF_MIPS_NAN2008
-                  ? "-mnan=2008" : "-mnan=legacy"),
-                 (old_flags & elfcpp::EF_MIPS_NAN2008
-                  ? "-mnan=2008" : "-mnan=legacy"));
-
-      new_flags &= ~elfcpp::EF_MIPS_NAN2008;
-      old_flags &= ~elfcpp::EF_MIPS_NAN2008;
-    }
-
-  // Compare FP64 state.
-  if ((new_flags & elfcpp::EF_MIPS_FP64) != (old_flags & elfcpp::EF_MIPS_FP64))
-    {
-      gold_error(_("%s: linking %s module with previous %s modules"),
-                 name.c_str(),
-                 (new_flags & elfcpp::EF_MIPS_FP64
-                  ? "-mfp64" : "-mfp32"),
-                 (old_flags & elfcpp::EF_MIPS_FP64
-                  ? "-mfp64" : "-mfp32"));
-
-      new_flags &= ~elfcpp::EF_MIPS_FP64;
-      old_flags &= ~elfcpp::EF_MIPS_FP64;
+      new_flags &= ~elfcpp::EF_NANOMIPS_ABI;
+      old_flags &= ~elfcpp::EF_NANOMIPS_ABI;
     }
 
   // Warn about any other mismatches.
   if (new_flags != old_flags)
-    gold_error(_("%s: uses different e_flags (0x%x) fields than previous "
-                 "modules (0x%x)"), name.c_str(), new_flags, old_flags);
+    gold_error(_("%s: uses different e_flags (%#x) fields than previous "
+                 "modules (%#x)"), name.c_str(), new_flags, old_flags);
 
   this->set_processor_specific_flags(merged_flags);
 }
@@ -4551,8 +3919,7 @@ Target_nanomips<size, big_endian>::do_finalize_sections(
     const Input_objects* input_objects,
     Symbol_table* symtab)
 {
-  const bool relocatable = parameters->options().relocatable();
-
+  // Merge processor specific flags.
   for (Input_objects::Relobj_iterator p = input_objects->relobj_begin();
        p != input_objects->relobj_end();
        ++p)
@@ -4563,11 +3930,7 @@ Target_nanomips<size, big_endian>::do_finalize_sections(
       if (!relobj->merge_processor_specific_data())
         continue;
 
-      // Merge .reginfo contents of input objects.
-      this->merge_obj_reginfo(relobj->reginfo());
-
-      // Merge processor specific flags.
-      Mips_abiflags<big_endian> in_abiflags;
+      Nanomips_abiflags<big_endian> in_abiflags;
 
       this->create_abiflags(relobj, &in_abiflags);
       this->merge_obj_e_flags(relobj->name(),
@@ -4575,6 +3938,16 @@ Target_nanomips<size, big_endian>::do_finalize_sections(
       this->merge_obj_abiflags(relobj->name(), &in_abiflags);
       this->merge_obj_attributes(relobj->name(),
                                  relobj->attributes_section_data());
+    }
+
+  // Mark this output file as not safe to relax if we are finalizing relocs
+  // during relocatable linking.
+  if (parameters->options().finalize_relocs()
+      && this->are_processor_specific_flags_set())
+    {
+      elfcpp::Elf_Word flags = this->processor_specific_flags();
+      flags &= ~elfcpp::EF_NANOMIPS_LINKRELAX;
+      this->set_processor_specific_flags(flags);
     }
 
   // Create a .gnu.attributes section if we have merged any attributes
@@ -4588,45 +3961,25 @@ Target_nanomips<size, big_endian>::do_finalize_sections(
                                       attributes_section, ORDER_INVALID, false);
     }
 
-  // Create .MIPS.abiflags output section if there is an input section.
+  // Create .nanoMIPS.abiflags output section if there is an input section.
   if (this->has_abiflags_section_)
     {
       Nanomips_output_section_abiflags<size, big_endian>* abiflags_section =
-        new Nanomips_output_section_abiflags<size, big_endian>(*this->abiflags_);
+        new Nanomips_output_section_abiflags<size, big_endian>(
+          *this->abiflags_);
 
       Output_section* os =
-        layout->add_output_section_data(".MIPS.abiflags",
-                                        elfcpp::SHT_MIPS_ABIFLAGS,
+        layout->add_output_section_data(".nanoMIPS.abiflags",
+                                        elfcpp::SHT_NANOMIPS_ABIFLAGS,
                                         elfcpp::SHF_ALLOC,
                                         abiflags_section, ORDER_INVALID, false);
 
-      if (os != NULL && !relocatable)
+      if (os != NULL && !parameters->options().relocatable())
         {
           Output_segment* abiflags_segment =
-            layout->make_output_segment(elfcpp::PT_MIPS_ABIFLAGS, elfcpp::PF_R);
-          abiflags_segment->add_output_section_to_nonload(os, elfcpp::PF_R);
-        }
-    }
-
-  // Create a .reginfo section if we have merged any content from inputs.
-  if (this->reginfo_ != NULL && !parameters->options().gc_sections())
-    {
-      // Create .reginfo output section.
-      Nanomips_output_section_reginfo<size, big_endian>* reginfo_section =
-        new Nanomips_output_section_reginfo<size, big_endian>(
-            this, *this->reginfo_);
-
-      Output_section* os =
-        layout->add_output_section_data(".reginfo", elfcpp::SHT_MIPS_REGINFO,
-                                        elfcpp::SHF_ALLOC, reginfo_section,
-                                        ORDER_INVALID, false);
-
-      if (os != NULL && !relocatable)
-        {
-          Output_segment* reginfo_segment =
-            layout->make_output_segment(elfcpp::PT_MIPS_REGINFO,
+            layout->make_output_segment(elfcpp::PT_NANOMIPS_ABIFLAGS,
                                         elfcpp::PF_R);
-          reginfo_segment->add_output_section_to_nonload(os, elfcpp::PF_R);
+          abiflags_segment->add_output_section_to_nonload(os, elfcpp::PF_R);
         }
     }
 
@@ -6219,122 +5572,6 @@ Target_nanomips<size, big_endian>::Scan::unsupported_reloc_global(
 {
   gold_error(_("%s: unsupported reloc %u against global symbol %s"),
              object->name().c_str(), r_type, gsym->demangled_name().c_str());
-}
-
-// Return printable name for ABI.
-template<int size, bool big_endian>
-const char*
-Target_nanomips<size, big_endian>::elf_mips_abi_name(elfcpp::Elf_Word e_flags)
-{
-  switch (e_flags & elfcpp::EF_MIPS_ABI)
-    {
-    case 0:
-      if ((e_flags & elfcpp::EF_MIPS_ABI2) != 0)
-        return "N32";
-      else if (size == 64)
-        return "64";
-      else
-        return "none";
-    case elfcpp::E_MIPS_ABI_O32:
-      return "O32";
-    case elfcpp::E_MIPS_ABI_O64:
-      return "O64";
-    case elfcpp::E_MIPS_ABI_EABI32:
-      return "EABI32";
-    case elfcpp::E_MIPS_ABI_EABI64:
-      return "EABI64";
-    default:
-      return "unknown abi";
-    }
-}
-
-template<int size, bool big_endian>
-const char*
-Target_nanomips<size, big_endian>::elf_mips_mach_name(elfcpp::Elf_Word e_flags)
-{
-  switch (e_flags & elfcpp::EF_MIPS_MACH)
-    {
-    case elfcpp::E_MIPS_MACH_3900:
-      return "mips:3900";
-    case elfcpp::E_MIPS_MACH_4010:
-      return "mips:4010";
-    case elfcpp::E_MIPS_MACH_4100:
-      return "mips:4100";
-    case elfcpp::E_MIPS_MACH_4111:
-      return "mips:4111";
-    case elfcpp::E_MIPS_MACH_4120:
-      return "mips:4120";
-    case elfcpp::E_MIPS_MACH_4650:
-      return "mips:4650";
-    case elfcpp::E_MIPS_MACH_5400:
-      return "mips:5400";
-    case elfcpp::E_MIPS_MACH_5500:
-      return "mips:5500";
-    case elfcpp::E_MIPS_MACH_5900:
-      return "mips:5900";
-    case elfcpp::E_MIPS_MACH_SB1:
-      return "mips:sb1";
-    case elfcpp::E_MIPS_MACH_9000:
-      return "mips:9000";
-    case elfcpp::E_MIPS_MACH_LS2E:
-      return "mips:loongson_2e";
-    case elfcpp::E_MIPS_MACH_LS2F:
-      return "mips:loongson_2f";
-    case elfcpp::E_MIPS_MACH_LS3A:
-      return "mips:loongson_3a";
-    case elfcpp::E_MIPS_MACH_OCTEON:
-      return "mips:octeon";
-    case elfcpp::E_MIPS_MACH_OCTEON2:
-      return "mips:octeon2";
-    case elfcpp::E_MIPS_MACH_OCTEON3:
-      return "mips:octeon3";
-    case elfcpp::E_MIPS_MACH_XLR:
-      return "mips:xlr";
-    default:
-      switch (e_flags & elfcpp::EF_MIPS_ARCH)
-        {
-        default:
-        case elfcpp::E_MIPS_ARCH_1:
-          return "mips:3000";
-
-        case elfcpp::E_MIPS_ARCH_2:
-          return "mips:6000";
-
-        case elfcpp::E_MIPS_ARCH_3:
-          return "mips:4000";
-
-        case elfcpp::E_MIPS_ARCH_4:
-          return "mips:8000";
-
-        case elfcpp::E_MIPS_ARCH_5:
-          return "mips:mips5";
-
-        case elfcpp::E_MIPS_ARCH_32:
-          return "mips:isa32";
-
-        case elfcpp::E_MIPS_ARCH_64:
-          return "mips:isa64";
-
-        case elfcpp::E_MIPS_ARCH_32R2:
-          return "mips:isa32r2";
-
-        case elfcpp::E_MIPS_ARCH_32R6:
-          return "mips:isa32r6";
-
-        case elfcpp::E_MIPS_ARCH_64R2:
-          return "mips:isa64r2";
-
-        case elfcpp::E_MIPS_ARCH_64R6:
-          return "mips:isa64r6";
-
-        case elfcpp::E_NANOMIPS_ARCH_32R6:
-          return "nanomips:isa32r6";
-
-        case elfcpp::E_NANOMIPS_ARCH_64R6:
-          return "nanomips:isa64r6";
-        }
-    }
-    return "unknown CPU";
 }
 
 template<int size, bool big_endian>

@@ -411,6 +411,9 @@ enum SHT
   // ABI related flags section.
   SHT_MIPS_ABIFLAGS = 0x7000002a,
 
+  // nanoMIPS ABI related flags section.
+  SHT_NANOMIPS_ABIFLAGS = 0x70000000,
+
   // AARCH64-specific section type.
   SHT_AARCH64_ATTRIBUTES = 0x70000003,
 
@@ -451,6 +454,9 @@ enum SHF
 
   // Section with data that is GP relative addressable.
   SHF_MIPS_GPREL = 0x10000000,
+
+  // Section with data that is GP relative addressable.
+  SHF_NANOMIPS_GPREL = 0x10000000,
 
   // x86_64 specific large section.
   SHF_X86_64_LARGE = 0x10000000
@@ -513,6 +519,8 @@ enum PT
   PT_MIPS_OPTIONS = 0x70000002,
   // .MIPS.abiflags section.
   PT_MIPS_ABIFLAGS = 0x70000003,
+  // .nanoMIPS.abiflags section.
+  PT_NANOMIPS_ABIFLAGS = 0x70000000,
   // Platform architecture compatibility information
   PT_AARCH64_ARCHEXT = 0x70000000,
   // Exception unwind tables
@@ -872,6 +880,9 @@ enum DT
   DT_MIPS_RWPLT = 0x70000034,
   // Relative offset of run time loader map, used for debugging.
   DT_MIPS_RLD_MAP_REL = 0x70000035,
+
+  // Number of entries in global offset table.
+  DT_NANOMIPS_GOTNO = 0x70000001,
 
   DT_AUXILIARY = 0x7ffffffd,
   DT_USED = 0x7ffffffe,

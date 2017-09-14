@@ -35,7 +35,7 @@ check()
 }
 
 # Test that all relocations are resolved.
-check nanomips_finalize_pcrel.stdout "  0:	0480 0034 	addiupc	a0,56"
+check nanomips_finalize_pcrel.stdout "  0:	0480 0034 	lapc	a0,.*"
 check nanomips_finalize_pcrel.stdout "  4:	2a00 0030 	balc	.*"
 check nanomips_finalize_pcrel.stdout "  8:	2800 002c 	bc	.*"
 check nanomips_finalize_pcrel.stdout "  c:	0a00 0028 	move.balc	a0,s0,.*"

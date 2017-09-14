@@ -39,14 +39,14 @@ check()
 
 # Symbol d must be at the beginning of the section because it has been
 # read with lw[gp] instruction 2 times and 2 times with sw[gp] instruction.
-check nanomips_script_test.stdout "00400060 <d>"
+check nanomips_script_test.stdout "00400048 <d>"
 # Sumbol c has been read 2 times with lw[gp] instruction.  Note that we
 # don't take into account instruction where 5-bit register index can't
 # be abbreviated to 3 bits, and store instructions.
-check nanomips_script_test.stdout "00400064 <c>"
+check nanomips_script_test.stdout "0040004c <c>"
 # Symbol b has been read 1 time.
-check nanomips_script_test.stdout "00400068 <b>"
+check nanomips_script_test.stdout "00400050 <b>"
 # After most commonly read symbols with lw[gp] instruction, we place bytes,
 # halfwords and words.
-check nanomips_script_test.stdout "0040006c <a>"
-check nanomips_script_test.stdout "0040006e <e>"
+check nanomips_script_test.stdout "00400054 <a>"
+check nanomips_script_test.stdout "00400056 <e>"
