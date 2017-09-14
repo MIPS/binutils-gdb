@@ -700,7 +700,7 @@ class Nanomips_transformations
         return;
       }
 
-    fprintf(stderr, "%s: %s(%s+%#lx): %s is transformed to ",
+    fprintf(stderr, "%s: %s(%s+%#lx): %s is transformed into ",
             program_name, obj_name.c_str(), sec_name.c_str(), r_offset,
             pntp->name());
 
@@ -2546,7 +2546,7 @@ Nanomips_transformations<size, big_endian>::find_property(
     }
 
   if (got_entry)
-    // Transform to lwpc[48] or to aluipc, lw.
+    // Transform into lwpc[48] or aluipc, lw.
     type = is_nms ? TT_GOTPCREL_NMS : TT_GOTPCREL_LONG;
   else if (r_type == elfcpp::R_NANOMIPS_GOT_DISP)
     {
@@ -2556,15 +2556,16 @@ Nanomips_transformations<size, big_endian>::find_property(
         {
           Valtype value = psymval->value(relobj, reloc.get_r_addend()) - gp;
 
-          if (!this->check_overflow<18>(value, CHECK_UNSIGNED))
-            // Transform to addiu[gp.b].
+          if ((value & 0x1) != 0
+              && !this->check_overflow<18>(value, CHECK_UNSIGNED))
+            // Transform into addiu[gp.b].
             type = TT_GPREL32;
           else if ((value & 0x3) == 0
                    && !this->check_overflow<21>(value, CHECK_UNSIGNED))
-            // Transform to addiu[gp.w].
+            // Transform into addiu[gp.w].
             type = TT_GPREL32_WORD;
           else
-            // Transform to addiugp[48] or to lui, addu, ori.
+            // Transform into addiugp[48] or lui, addu, ori.
             type = is_nms ? TT_GPREL_NMS : TT_GPREL_LONG;
         }
       else
@@ -2574,11 +2575,12 @@ Nanomips_transformations<size, big_endian>::find_property(
             psymval->value(relobj, reloc.get_r_addend()) - address - 4;
 
           // TODO: Always do this transformation if this->is_relax_ is true.
-          if (!this->check_overflow<21>(value, CHECK_SIGNED))
-            // Transform to lapc.
+          if ((value & 0x1) == 0
+              && !this->check_overflow<21>(value, CHECK_SIGNED))
+            // Transform into lapc.
             type = TT_PCREL32;
           else
-            // Transform to lapc[48] or to aluipc, ori.
+            // Transform into lapc[48] or aluipc, ori.
             type = is_nms ? TT_PCREL_NMS : TT_PCREL_LONG;
         }
     }
@@ -2592,7 +2594,7 @@ Nanomips_transformations<size, big_endian>::find_property(
 
           if (transform_property->has_transform_property(TT_GPREL32)
               && !this->check_overflow<18>(value, CHECK_UNSIGNED))
-            // Transform to [ls][bh][gp].
+            // Transform into [ls][bh][gp].
             type = TT_GPREL32;
           else if (transform_property->has_transform_property(TT_GPREL32_WORD)
                    && !this->check_overflow<21>(value, CHECK_UNSIGNED))
@@ -2602,11 +2604,11 @@ Nanomips_transformations<size, big_endian>::find_property(
                             ? Insn_utilities::valid_reg_16_st(treg32)
                             : Insn_utilities::valid_reg_16(treg32));
               bool overflow = this->check_overflow<9>(value, CHECK_UNSIGNED);
-              // Transform to [ls]w[gp][16]/[ls]w[gp].
+              // Transform into [ls]w[gp][16]/[ls]w[gp].
               type = valid && !overflow ? TT_GPREL16_WORD : TT_GPREL32_WORD;
             }
           else if (!is_nms)
-            // Transform to lui, addu, [ls]x.
+            // Transform into lui, addu, [ls]x.
             type = TT_GPREL_LONG;
           else
             {
@@ -2617,7 +2619,7 @@ Nanomips_transformations<size, big_endian>::find_property(
                                    ? Insn_utilities::valid_reg_16_st(treg32)
                                    : Insn_utilities::valid_reg_16(treg32));
 
-              // Transform to addiu[gp48], [ls]X[16]/[ls]X.
+              // Transform into addiu[gp48], [ls]X[16]/[ls]X.
               type = (valid_treg32 && valid_sreg32
                       ? TT_GPREL16_NMS
                       : TT_GPREL_NMS);
@@ -2625,10 +2627,10 @@ Nanomips_transformations<size, big_endian>::find_property(
         }
       else if (transform_property->has_transform_property(TT_PCREL_NMS)
                && is_nms)
-        // Transform to [ls]wpc.
+        // Transform into [ls]wpc.
         type = TT_PCREL_NMS;
       else
-        // Transform to aluipc, [ls]x.
+        // Transform into aluipc, [ls]x.
         type =  TT_PCREL_LONG;
     }
   else if (r_type == elfcpp::R_NANOMIPS_JALR)
@@ -2638,14 +2640,14 @@ Nanomips_transformations<size, big_endian>::find_property(
         psymval->value(relobj, reloc.get_r_addend()) - address - 4;
 
       if (!this->check_overflow<11>(value, CHECK_SIGNED))
-        // Transform to balc[16].
+        // Transform into balc[16].
         type = TT_PCREL16;
       else if (!this->check_overflow<26>(value, CHECK_SIGNED))
         // TODO: Always do this transformation if this->is_relax_ is true.
-        // Transform to balc.
+        // Transform into balc.
         type = TT_PCREL32;
       else
-        // Transform to lapc[48], jalrc or to aluipc, ori, jalrc
+        // Transform into lapc[48], jalrc or aluipc, ori, jalrc
         type = is_nms ? TT_PCREL_NMS : TT_PCREL_LONG;
     }
   else if (r_type == elfcpp::R_NANOMIPS_GOT_CALL
