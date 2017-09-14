@@ -24,8 +24,7 @@ SECTIONS
 {
   . = 0x400000;
   .text : { *(.text) }
-  .MIPS.abiflags : { *(.MIPS.abiflags) }
-  .reginfo : { *(.reginfo) }
+  .nanoMIPS.abiflags : { *(.nanoMIPS.abiflags) }
   .data : { *(.data) }
   .sdata : {
     *(.sdata)

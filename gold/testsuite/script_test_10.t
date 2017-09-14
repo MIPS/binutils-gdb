@@ -32,6 +32,8 @@ SECTIONS
   /* Required by the MIPS target. */
   .reginfo : { *(.reginfo) }
   .MIPS.abiflags : { *(.MIPS.abiflags) }
+  /* Required by the nanoMIPS target. */
+  .nanoMIPS.abiflags : { *(.nanoMIPS.abiflags) }
   .bss : { *(.bss) }
 }
 
