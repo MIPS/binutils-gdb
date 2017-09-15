@@ -928,6 +928,12 @@ if { [istarget nanomips*-*-*] } {
 
     run_dump_test_arch "nanomips-noxlp" "" nanomips32s
     run_dump_test_arch "la-svr4pic" "-mlegacyregs" nanomips32s
+    run_dump_test_arches "la-pic-mclarge" "-mlegacyregs" \
+	[arch_list_matching nanomips]
+    run_dump_test_arches "la-lpic-mclarge" "-mlegacyregs" \
+	[arch_list_matching nanomips]
+    run_dump_test_arches "la-lpic-mcmedium" "-mlegacyregs" \
+	[arch_list_matching nanomips]
     run_dump_test_arch "ld-svr4pic" "-mlegacyregs" nanomips32s
     run_dump_test_arch "mips-abi32" "-mlegacyregs" nanomips32s
     run_dump_test_arch "and" "-mlegacyregs" nanomips32s

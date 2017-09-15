@@ -1,7 +1,7 @@
 # Source file used to test the jal macro with PIC code.
 
 	.weak	weak_text_label
-	.set pic
+	.set pic1
 	.ent	text_label
 text_label:
 	.frame	$sp,0,$31

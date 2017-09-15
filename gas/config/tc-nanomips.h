@@ -71,19 +71,6 @@ struct nanomips_segment_info {
 #define TARGET_FORMAT nanomips_target_format()
 extern const char *nanomips_target_format (void);
 
-/* nanoMIPS PIC level.  */
-
-enum nanomips_pic_level
-{
-  /* Do not generate PIC code.  */
-  NO_PIC,
-
-  /* Generate PIC code as in the nanoMIPS ABI.  */
-  SVR4_PIC,
-};
-
-extern enum nanomips_pic_level nanomips_pic;
-
 extern int tc_get_register (int frame);
 
 #define md_after_parse_args() nanomips_after_parse_args()

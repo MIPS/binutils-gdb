@@ -1,6 +1,6 @@
 	.file	1 "tls.s"
 	.text
-	.set 	pic
+	.set 	pic1
 	.align	2
 	.globl	fn
 	.ent	fn

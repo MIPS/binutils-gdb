@@ -71,11 +71,11 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> lw	a1,0\(at\)
 			[0-9a-f]+: R_NANOMIPS_GOT_OFST	.bss\+0x4
 [0-9a-f]+ <[^>]+> lw	at,0\(gp\)
-			[0-9a-f]+: R_NANOMIPS_GOT_PAGE	.bss\+0x3e8
+			[0-9a-f]+: R_NANOMIPS_GOT_PAGE	.sbss
 [0-9a-f]+ <[^>]+> lw	a0,0\(at\)
-			[0-9a-f]+: R_NANOMIPS_GOT_OFST	.bss\+0x3e8
+			[0-9a-f]+: R_NANOMIPS_GOT_OFST	.sbss
 [0-9a-f]+ <[^>]+> lw	a1,0\(at\)
-			[0-9a-f]+: R_NANOMIPS_GOT_OFST	.bss\+0x3ec
+			[0-9a-f]+: R_NANOMIPS_GOT_OFST	.sbss\+0x4
 [0-9a-f]+ <[^>]+> lw	at,0\(gp\)
 			[0-9a-f]+: R_NANOMIPS_GOT_PAGE	.data\+0x1
 [0-9a-f]+ <[^>]+> lw	a0,0\(at\)
@@ -105,11 +105,11 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> lw	a1,0\(at\)
 			[0-9a-f]+: R_NANOMIPS_GOT_OFST	.bss\+0x5
 [0-9a-f]+ <[^>]+> lw	at,0\(gp\)
-			[0-9a-f]+: R_NANOMIPS_GOT_PAGE	.bss\+0x3e9
+			[0-9a-f]+: R_NANOMIPS_GOT_PAGE	.sbss\+0x1
 [0-9a-f]+ <[^>]+> lw	a0,0\(at\)
-			[0-9a-f]+: R_NANOMIPS_GOT_OFST	.bss\+0x3e9
+			[0-9a-f]+: R_NANOMIPS_GOT_OFST	.sbss\+0x1
 [0-9a-f]+ <[^>]+> lw	a1,0\(at\)
-			[0-9a-f]+: R_NANOMIPS_GOT_OFST	.bss\+0x3ed
+			[0-9a-f]+: R_NANOMIPS_GOT_OFST	.sbss\+0x5
 [0-9a-f]+ <[^>]+> lw	at,0\(gp\)
 			[0-9a-f]+: R_NANOMIPS_GOT_PAGE	.data
 [0-9a-f]+ <[^>]+> addu	at,a1,at
@@ -145,12 +145,12 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> lw	a1,0\(at\)
 			[0-9a-f]+: R_NANOMIPS_GOT_OFST	.bss\+0x4
 [0-9a-f]+ <[^>]+> lw	at,0\(gp\)
-			[0-9a-f]+: R_NANOMIPS_GOT_PAGE	.bss\+0x3e8
+			[0-9a-f]+: R_NANOMIPS_GOT_PAGE	.sbss
 [0-9a-f]+ <[^>]+> addu	at,a1,at
 [0-9a-f]+ <[^>]+> lw	a0,0\(at\)
-			[0-9a-f]+: R_NANOMIPS_GOT_OFST	.bss\+0x3e8
+			[0-9a-f]+: R_NANOMIPS_GOT_OFST	.sbss
 [0-9a-f]+ <[^>]+> lw	a1,0\(at\)
-			[0-9a-f]+: R_NANOMIPS_GOT_OFST	.bss\+0x3ec
+			[0-9a-f]+: R_NANOMIPS_GOT_OFST	.sbss\+0x4
 [0-9a-f]+ <[^>]+> lw	at,0\(gp\)
 			[0-9a-f]+: R_NANOMIPS_GOT_PAGE	.data\+0x1
 [0-9a-f]+ <[^>]+> addu	at,a1,at
@@ -186,11 +186,11 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> lw	a1,0\(at\)
 			[0-9a-f]+: R_NANOMIPS_GOT_OFST	.bss\+0x5
 [0-9a-f]+ <[^>]+> lw	at,0\(gp\)
-			[0-9a-f]+: R_NANOMIPS_GOT_PAGE	.bss\+0x3e9
+			[0-9a-f]+: R_NANOMIPS_GOT_PAGE	.sbss\+0x1
 [0-9a-f]+ <[^>]+> addu	at,a1,at
 [0-9a-f]+ <[^>]+> lw	a0,0\(at\)
-			[0-9a-f]+: R_NANOMIPS_GOT_OFST	.bss\+0x3e9
+			[0-9a-f]+: R_NANOMIPS_GOT_OFST	.sbss\+0x1
 [0-9a-f]+ <[^>]+> lw	a1,0\(at\)
-			[0-9a-f]+: R_NANOMIPS_GOT_OFST	.bss\+0x3ed
+			[0-9a-f]+: R_NANOMIPS_GOT_OFST	.sbss\+0x5
 [0-9a-f]+ <[^>]+> nop
 [0-9a-f]+ <[^>]+> nop

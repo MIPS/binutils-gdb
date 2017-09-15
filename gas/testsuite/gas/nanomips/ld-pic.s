@@ -1,6 +1,6 @@
 # Source file used to test the ld macro with PIC code.
 
-	.set pic
+	.set pic1
 
 	.data
 data_label:

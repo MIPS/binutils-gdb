@@ -76,9 +76,6 @@ static int nanomips_output_flavor (void) { return OUTPUT_FLAVOR; }
 /* Control generation of .pdr sections.  */
 int nanomips_flag_pdr = TRUE;
 
-/* Control PC-relative address calculation in non-PIC mode.  */
-int nanomips_flag_pcrel = FALSE;
-
 #include "ecoff.h"
 
 static char *nanomips_flags_frag;
@@ -161,6 +158,20 @@ static enum nanomips_abi_level nanomips_abi = NO_ABI;
    library.  */
 static bfd_boolean nanomips_in_shared = TRUE;
 
+/* nanoMIPS PIC level.  */
+
+enum nanomips_pic_level
+{
+  /* Do not generate PIC code.  */
+  NO_PIC,
+
+  /* Generate medium model PIC code as in the nanoMIPS ABI.  */
+  SVR4_PIC,
+
+  /* Generate large model PIC code as in the nanoMIPS ABI.  */
+  SVR4_LARGE_PIC,
+};
+
 /* This is the set of options which may be modified by the .set
    pseudo-op.  We use a struct so that .set push and .set pop are more
    reliable.  */
@@ -219,11 +230,17 @@ struct nanomips_set_options
   /* Enable/disable balc stub optimization.  */
   bfd_boolean no_balc_stubs;
 
-  /* True if module is safe to relax.  Set by .relax directive.  */
-  bfd_boolean relax;
-
   /* Enable/disable register names, only for nanoMIPS.  */
   bfd_boolean legacyregs;
+
+  /* Enable/disable PC-relative expansion.  */
+  bfd_boolean pcrel;
+
+  /* Enable/disable Position Independent data.  */
+  bfd_boolean pid;
+
+  /* Select PIC code.  */
+  enum nanomips_pic_level pic;
 
   /* Code/data memory model */
   enum mc_model_type mc_model;
@@ -244,7 +261,8 @@ static struct nanomips_set_options file_nanomips_opts =
   /* gp */ -1, /* fp */ -1, /* arch */ CPU_UNKNOWN, /* sym32 */ FALSE,
   /* soft_float */ FALSE, /* single_float */ FALSE,
   /* init_ase */ 0, /* no_balc_stubs */ TRUE,
-  /* relax */ FALSE, /* legacyregs */ FALSE,
+  /* legacyregs */ FALSE,
+  /* pcrel */ FALSE, /* pid */ FALSE, /* pic */ NO_PIC,
   /* mc_model */ MC_AUTO,
 };
 
@@ -258,7 +276,8 @@ static struct nanomips_set_options nanomips_opts =
   /* gp */ -1, /* fp */ -1, /* arch */ CPU_UNKNOWN, /* sym32 */ FALSE,
   /* soft_float */ FALSE, /* single_float */ FALSE,
   /* init_ase */ 0, /* no_balc_stubs */ TRUE,
-  /* relax */ FALSE, /* legacyregs */ FALSE,
+  /* legacyregs */ FALSE,
+  /* pcrel */ FALSE, /* pid */ FALSE, /* pic */ NO_PIC,
   /* mc_model */ MC_AUTO
 };
 
@@ -329,10 +348,6 @@ static int nanomips_32bitmode = 0;
 /* The minimum and maximum signed values that can be stored in a GPR.  */
 #define GPR_SMAX ((offsetT) (((valueT) 1 << (GPR_SIZE - 1)) - 1))
 #define GPR_SMIN (-GPR_SMAX - 1)
-
-/* nanoMIPS PIC level.  */
-
-enum nanomips_pic_level nanomips_pic;
 
 /* 1 if trap instructions should used for overflow rather than break
    instructions.  */
@@ -866,8 +881,6 @@ enum options
     OPTION_SINGLE_FLOAT,
     OPTION_DOUBLE_FLOAT,
     OPTION_32,
-    OPTION_PIC,
-    OPTION_NOPIC,
     OPTION_64,
     OPTION_M32,
     OPTION_M64,
@@ -881,6 +894,12 @@ enum options
     OPTION_LINKRELAX,
     OPTION_PCREL,
     OPTION_NO_PCREL,
+    OPTION_PID,
+    OPTION_NO_PID,
+    OPTION_PIC,
+    OPTION_NOPIC,
+    OPTION_LARGE_PIC,
+    OPTION_MCMODEL,
     OPTION_END_OF_ENUM
   };
 
@@ -942,20 +961,18 @@ struct option md_longopts[] =
   {"linkrelax", no_argument, NULL, OPTION_LINKRELAX},
   {"mpcrel", no_argument, NULL, OPTION_PCREL},
   {"mno-pcrel", no_argument, NULL, OPTION_NO_PCREL},
-
-  /* Strictly speaking this next option is ELF specific,
-     but we allow it for other ports as well in order to
-     make testing easier.  */
-  {"32", no_argument, NULL, OPTION_32},
-
-  /* ELF-specific options.  */
+  {"mpid", no_argument, NULL, OPTION_PID},
+  {"mno-pid", no_argument, NULL, OPTION_NO_PID},
   {"mpic", no_argument, NULL, OPTION_PIC},
   {"mno-pic", no_argument, NULL, OPTION_NOPIC},
+  {"mPIC", no_argument, NULL, OPTION_LARGE_PIC},
+  {"mno-PIC", no_argument, NULL, OPTION_NOPIC},
   {"64", no_argument, NULL, OPTION_64},
   {"m32", no_argument, NULL, OPTION_M32},
   {"m64", no_argument, NULL, OPTION_M64},
   {"mpdr", no_argument, NULL, OPTION_PDR},
   {"mno-pdr", no_argument, NULL, OPTION_NO_PDR},
+  {"mcmodel", required_argument, NULL, OPTION_MCMODEL},
 
   {NULL, no_argument, NULL, 0}
 };
@@ -2571,7 +2588,7 @@ md_begin (void)
   int broken = 0;
   int count_marker = 0;
 
-  if (nanomips_pic != NO_PIC)
+  if (nanomips_opts.pic != NO_PIC)
     {
       if (g_switch_seen && g_switch_value != 0)
 	as_bad (_("-G may not be used in position-independent code"));
@@ -4470,7 +4487,7 @@ match_nanomips_save_restore_list_operand (struct nanomips_arg_info *arg,
   /* Finally build the instruction.  */
   insn_insert_operand (arg->insn, operand, opval);
   if (nanomips_linkrelax_p
-      && nanomips_pic != NO_PIC
+      && nanomips_opts.pic != NO_PIC
       && gp
       && (arg->insn->insn_opcode & 0x3) != 2)
     {
@@ -5079,6 +5096,8 @@ match_operand (struct nanomips_arg_info *arg,
 
     case OP_COPY_BITS:
       return match_copy_bits (arg, operand);
+
+    default:
    }
   abort ();
 }
@@ -5925,11 +5944,7 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
   /* If we have just completed an unconditional branch, clear the history.  */
   if ((compact_branch_p (&history[0]) && uncond_branch_p (&history[0]))
       && !(history[0].insn_mo->pinfo2 & INSN2_CONVERTED_TO_COMPACT))
-    {
-      unsigned int i;
-
-      nanomips_flush_pending_output ();
-    }
+    nanomips_flush_pending_output ();
 
   /* We just output an insn, so the next one doesn't have a label.  */
   nanomips_clear_insn_labels ();
@@ -7137,7 +7152,7 @@ load_address (int reg, expressionS *ep, int *used_at)
       return;
     }
 
-  if (nanomips_pic == NO_PIC)
+  if (nanomips_opts.pic == NO_PIC)
     {
       /* If this is a reference to a GP relative symbol, we want
 	   addiu	$reg,$gp,<sym>		(BFD_RELOC_GPREL16)
@@ -7215,8 +7230,10 @@ load_address (int reg, expressionS *ep, int *used_at)
 	  ep->X_add_number = ex.X_add_number;
 	  relax_switch ();
 	}
+
       macro_build (ep, ADDRESS_LOAD_INSN, "t,o(b)", reg,
 		   BFD_RELOC_NANOMIPS_GOT_DISP, nanomips_gp_register);
+
       if (nanomips_relax.sequence)
 	relax_end ();
     }
@@ -7549,7 +7566,7 @@ nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
 		     tempreg, tempreg, breg);
       macro_build (NULL, s, fmt, op[0], 0, tempreg);
     }
-  else if (nanomips_pic == NO_PIC)
+  else if (nanomips_opts.pic == NO_PIC)
     {
       if (HAVE_64BIT_SYMBOLS)
 	/* Unsupported */
@@ -7567,7 +7584,7 @@ nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
 	  relax_switch ();
 	}
 
-      if (nanomips_flag_pcrel)
+      if (nanomips_opts.pcrel)
 	nanomips_macro_pcrel_ld_st (s, fmt, op, tempreg);
       else
 	nanomips_macro_absolute_ld_st (s, fmt, op, tempreg, breg);
@@ -7585,22 +7602,20 @@ nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
 	gpfmt = "t,.(ma)";
       relax_start (offset_expr.X_add_symbol);
 
-      if (nanomips_opts.mc_model == MC_MEDIUM || nanomips_opts.mc_model == MC_AUTO
-	  || linkrelax)
-	  macro_build (&offset_expr, ADDRESS_LOAD_INSN, gpfmt, tempreg,
-		       BFD_RELOC_NANOMIPS_GOT_DISP, nanomips_gp_register);
+      if (nanomips_opts.pic == SVR4_PIC || linkrelax)
+	macro_build (&offset_expr, ADDRESS_LOAD_INSN, gpfmt, tempreg,
+		     BFD_RELOC_NANOMIPS_GOT_DISP, nanomips_gp_register);
       else if ((nanomips_opts.ase & ASE_xNMS) != 0 && !nanomips_opts.insn32)
 	  macro_build (&offset_expr, "lwpc", "mp,+S", tempreg,
 		       BFD_RELOC_NANOMIPS_GOTPC_I32);
       else
 	{
-	  macro_build (&offset_expr, "aluipc", "t,mK", tempreg,
-		       BFD_RELOC_NANOMIPS_GOTPC_HI20);
-	  macro_build (&offset_expr, ADDRESS_LOAD_INSN, "t,o(b)", tempreg,
-		       BFD_RELOC_NANOMIPS_GOT_LO12, tempreg);
+	macro_build (&offset_expr, "aluipc", "t,mK", tempreg,
+		     BFD_RELOC_NANOMIPS_GOTPC_HI20);
+	macro_build (&offset_expr, ADDRESS_LOAD_INSN, "t,o(b)", tempreg,
+		     BFD_RELOC_NANOMIPS_GOT_LO12, tempreg);
 	}
-
-      macro_build (NULL, s, fmt, op[0], 0, tempreg);	
+      macro_build (NULL, s, fmt, op[0], 0, tempreg);
 
       relax_switch ();
       nanomips_macro_pcrel_ld_st (s, fmt, op, tempreg);
@@ -7752,7 +7767,7 @@ nanomips_macro_ldd_std (const char *s, const char *fmt, unsigned int op[],
       as_bad (_("number (0x%s) larger than 32 bits"), value);
     }
 
-  if (nanomips_pic == NO_PIC || offset_expr.X_op == O_constant)
+  if (nanomips_opts.pic == NO_PIC || offset_expr.X_op == O_constant)
     {
       /* If this is a reference to a GP relative symbol, we want
 	 <op>	op[0],<sym>($gp)	(BFD_RELOC_GPREL16)
@@ -7805,7 +7820,7 @@ nanomips_macro_ldd_std (const char *s, const char *fmt, unsigned int op[],
 	}
 
       *used_at = 1;
-      if (nanomips_flag_pcrel)
+      if (nanomips_opts.pcrel)
 	nanomips_macro_pcrel_ldd_std (s, fmt, op, coproc);
       else
 	nanomips_macro_absolute_ldd_std (s, fmt, op, breg, coproc);
@@ -7832,6 +7847,7 @@ nanomips_macro_ldd_std (const char *s, const char *fmt, unsigned int op[],
       expr1.X_add_number += 4;
       macro_build (&expr1, s, fmt, coproc ? op[0] : op[0] + 1,
 		   BFD_RELOC_NANOMIPS_LO12, AT);
+
       relax_switch ();
       macro_build (&offset_expr, ADDRESS_LOAD_INSN, "t,.(ma)", AT,
 		   BFD_RELOC_NANOMIPS_GOT_PAGE, nanomips_gp_register);
@@ -7927,7 +7943,7 @@ nanomips_macro_la (unsigned int op[], unsigned int breg, int *used_at,
 
   if (offset_expr.X_op == O_constant)
     load_register (tempreg, &offset_expr, HAVE_64BIT_ADDRESSES);
-  else if (nanomips_pic == NO_PIC)
+  else if (nanomips_opts.pic == NO_PIC)
     {
       if (HAVE_64BIT_SYMBOLS)
 	{
@@ -7961,7 +7977,7 @@ nanomips_macro_la (unsigned int op[], unsigned int breg, int *used_at,
 	      relax_switch ();
 	    }
 
-	  if (nanomips_flag_pcrel)
+	  if (nanomips_opts.pcrel)
 	    nanomips_macro_pcrel_la (op);
 	  else
 	    nanomips_macro_absolute_la (op);
@@ -7974,10 +7990,12 @@ nanomips_macro_la (unsigned int op[], unsigned int breg, int *used_at,
     {
       relax_start (offset_expr.X_add_symbol);
 
-      if (nanomips_opts.mc_model == MC_MEDIUM || nanomips_opts.mc_model == MC_AUTO
-	  || linkrelax)
+      if (nanomips_opts.pic == SVR4_PIC || linkrelax)
 	macro_build (&offset_expr, ADDRESS_LOAD_INSN, LWGP_FMT,
 		     tempreg, BFD_RELOC_NANOMIPS_GOT_DISP, nanomips_gp_register);
+      else if ((nanomips_opts.ase & ASE_xNMS) != 0 && !nanomips_opts.insn32)
+	macro_build (&offset_expr, "lwpc", "mp,+S", tempreg,
+		     BFD_RELOC_NANOMIPS_GOTPC_I32);
       else
 	{
 	  macro_build (&offset_expr, "aluipc", "t,mK", op[0],
@@ -8475,7 +8493,6 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
     case M_LA_AB:
       /* Load the address of a symbol into a register.  If breg is not
 	 zero, we then add a base register to it.  */
-
       breg = op[2];
       if (dbl && GPR_SIZE == 32)
 	as_warn (_("dla used to load 32-bit register; recommend using la "
@@ -8500,7 +8517,7 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	 generating PIC code they expand to multi-instruction
 	 sequences.  Normally they are simple instructions.  */
     case M_JAL_A:
-      if (nanomips_pic == NO_PIC)
+      if (nanomips_opts.pic == NO_PIC)
 	macro_build (&offset_expr, "jal", B_FMT);
       else
 	{
@@ -8739,7 +8756,7 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 
       /* We know that sym is in the .rdata section.  First we get the
 	 upper 16 bits of the address.  */
-      if (nanomips_pic == NO_PIC)
+      if (nanomips_opts.pic == NO_PIC)
 	{
 	  macro_build_lui (&offset_expr, AT);
 	  used_at = 1;
@@ -8816,7 +8833,7 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	{
 	  gas_assert (strcmp (s, RDATA_SECTION_NAME) == 0);
 	  used_at = 1;
-	  if (nanomips_pic == NO_PIC)
+	  if (nanomips_opts.pic == NO_PIC)
 	    {
 	      /* FIXME: This won't work for a 64 bit address.  */
 	      macro_build_lui (&offset_expr, AT);
@@ -9553,6 +9570,19 @@ nanomips_set_option_string (const char **string_ptr, const char *new_value)
   *string_ptr = new_value;
 }
 
+static void
+nanomips_set_mcmodel (enum mc_model_type *model, const char *arg)
+{
+  if (strcmp (arg, "large"))
+    *model = MC_LARGE;
+  else if (strcmp (arg, "medium"))
+    *model = MC_LARGE;
+  else if (strcmp (arg, "auto"))
+    *model = MC_AUTO;
+  else
+    as_fatal (_("Request for unsupported memory model %s"), arg);
+}
+
 int
 md_parse_option (int c, char *arg)
 {
@@ -9655,11 +9685,15 @@ md_parse_option (int c, char *arg)
       break;
 
     case OPTION_PIC:
-      nanomips_pic = SVR4_PIC;
+      file_nanomips_opts.pic = SVR4_PIC;
       break;
 
     case OPTION_NOPIC:
-      nanomips_pic = NO_PIC;
+      file_nanomips_opts.pic = NO_PIC;
+      break;
+
+    case OPTION_LARGE_PIC:
+      file_nanomips_opts.pic = SVR4_LARGE_PIC;
       break;
 
     case 'G':
@@ -9729,11 +9763,23 @@ md_parse_option (int c, char *arg)
       break;
 
     case OPTION_PCREL:
-      nanomips_flag_pcrel = TRUE;
+      file_nanomips_opts.pcrel = TRUE;
       break;
 
     case OPTION_NO_PCREL:
-      nanomips_flag_pcrel = FALSE;
+      file_nanomips_opts.pcrel = FALSE;
+      break;
+
+    case OPTION_PID:
+      file_nanomips_opts.pid = TRUE;
+      break;
+
+    case OPTION_NO_PID:
+      file_nanomips_opts.pid = FALSE;
+      break;
+
+    case OPTION_MCMODEL:
+      nanomips_set_mcmodel (&file_nanomips_opts.mc_model, arg);
       break;
       
     default:
@@ -10695,6 +10741,28 @@ parse_code_option (char * name)
       else
 	as_bad (_("invalid memory model setting %s"), name);
     }
+  else if (strncmp (name, "pic", 3) == 0)
+    {
+      int i = atoi (name + 3);
+      if (i == 0)
+	nanomips_opts.pic = NO_PIC;
+      else if (i == 1)
+	nanomips_opts.pic = SVR4_PIC;
+      else if (i == 2)
+	nanomips_opts.pic = SVR4_LARGE_PIC;
+      else
+	as_bad (_(".set pic%d not supported"), i);
+    }
+  else if (strcmp (name, "nopic") == 0)
+    nanomips_opts.pic = NO_PIC;
+  else if (strcmp (name, "pid") == 0)
+    nanomips_opts.pid = TRUE;
+  else if (strcmp (name, "nopic") == 0)
+    nanomips_opts.pid = FALSE;
+  else if (strcmp (name, "pcrel") == 0)
+    nanomips_opts.pcrel = TRUE;
+  else if (strcmp (name, "nopcrel") == 0)
+    nanomips_opts.pcrel = FALSE;
   else
     return  (strcmp (name, "oddspreg") == 0
 	     || strcmp (name, "nomips16") == 0
@@ -10794,18 +10862,6 @@ s_nanomipsset (int x ATTRIBUTE_UNUSED)
     nanomips_opts.legacyregs = TRUE;
   else if (strcmp (name, "nolegacyregs") == 0)
     nanomips_opts.legacyregs = FALSE;
-  else if (strcmp (name, "pic") == 0)
-    {
-      nanomips_pic = SVR4_PIC;
-
-      if (g_switch_seen && g_switch_value != 0)
-	as_warn (_("-G may not be used with SVR4 PIC code"));
-      g_switch_value = 0;
-      bfd_set_gp_size (stdoutput, 0);
-    }
-  else if (strcmp (name, "nopic") == 0)
-    nanomips_pic = NO_PIC;
-
   else if (!parse_code_option (name))
     as_warn (_("tried to set unrecognized symbol: %s\n"), name);
 
@@ -10889,9 +10945,8 @@ s_cpsetup (int ignore ATTRIBUTE_UNUSED)
   expressionS ex;
   file_check_options ();
 
-  /* If we are not generating SVR4 PIC code, .cpsetup is ignored.
-     We also need NewABI support.  */
-  if (nanomips_pic != SVR4_PIC)
+  /* If we are not generating SVR4 PIC code, .cpsetup is ignored.  */
+  if (nanomips_opts.pic == NO_PIC)
     {
       s_ignore (0);
       return;
@@ -11546,9 +11601,9 @@ md_estimate_size_before_relax (fragS *fragp, asection *segtype)
       return length;
     }
 
-  if (nanomips_pic == NO_PIC)
+  if (nanomips_opts.pic == NO_PIC)
     change = nopic_need_relax (fragp->fr_symbol, 0);
-  else if (nanomips_pic == SVR4_PIC)
+  else if ((nanomips_opts.pic == SVR4_PIC) || (nanomips_opts.pic == SVR4_LARGE_PIC))
     change = pic_need_relax (fragp->fr_symbol, segtype);
   else
     abort ();
@@ -12076,7 +12131,7 @@ nanomips_elf_final_processing (void)
 
   /* Set the nanoMIPS ELF flag bits.  FIXME: There should probably be some
      sort of BFD interface for this.  */
-  if (nanomips_pic != NO_PIC)
+  if (nanomips_opts.pic != NO_PIC)
     elf_elfheader (stdoutput)->e_flags |= EF_NANOMIPS_PIC;
 
   if (linkrelax == TRUE)
@@ -12269,7 +12324,7 @@ s_nanomips_loc (int x ATTRIBUTE_UNUSED)
     dwarf2_directive_loc (0);
 }
 
-/* The .relax directive.  */
+/* The .linkrelax directive.  */
 
 static void
 s_linkrelax (int x ATTRIBUTE_UNUSED)
@@ -12670,11 +12725,8 @@ MIPS options:\n\
   fputc ('\n', stream);
 
   fprintf (stream, _("\
--mdsp			generate DSP instructions\n\
--mno-dsp		do not generate DSP instructions\n"));
-  fprintf (stream, _("\
--mdspr2			generate DSP R2 instructions\n\
--mno-dspr2		do not generate DSP R2 instructions\n"));
+-mdsp			generate DSP R3 instructions\n\
+-mno-dsp		do not generate R3 DSP instructions\n"));
   fprintf (stream, _("\
 -mdspr3			generate DSP R3 instructions\n\
 -mno-dspr3		do not generate DSP R3 instructions\n"));
@@ -12703,7 +12755,6 @@ MIPS options:\n\
 -minsn32		only generate 32-bit microMIPS instructions\n\
 -mno-insn32		generate all microMIPS instructions\n"));
   fprintf (stream, _("\
--mgp32			use 32-bit GPRs, regardless of the chosen ISA\n\
 -msym32			assume all symbols have 32-bit values\n\
 -O0			remove unneeded NOPs, do not swap branches\n\
 -O			remove unneeded NOPs and swap branches\n\
@@ -12719,11 +12770,11 @@ MIPS options:\n\
 -m[no-]legacyregs	[dis]allow mumerical register formats\n\
 --[no-]construct-floats	[dis]allow floating point values to be constructed\n\
 --[no-]relax-branch	[dis]allow out-of-range branches to be relaxed\n\
--m[no-]pcrel		[dis]allow PC-relative address calculations for non-PIC code\n\
+-m[no-]pcrel		[dis]allow PC-relative address calculations\n\
+-m[no-]pic		[dis]allow Position Independent Code generation\n\
+-m[no-]pid		[dis]allow Position Independent Data access\n\
 -mpdr, -mno-pdr		enable/disable creation of .pdr sections\n"));
   fprintf (stream, _("\
--32			create o32 ABI object file (default)\n\
--64			create 64 ABI object file\n\
 -m32			create p32 ABI object file (default)\n\
 -m64			create p64 ABI object file\n"));
 
