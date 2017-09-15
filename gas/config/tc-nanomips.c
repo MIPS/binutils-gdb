@@ -5098,8 +5098,8 @@ match_operand (struct nanomips_arg_info *arg,
       return match_copy_bits (arg, operand);
 
     default:
+      abort ();
    }
-  abort ();
 }
 
 /* ARG is the state after successfully matching an instruction.
