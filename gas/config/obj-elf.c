@@ -68,6 +68,10 @@
 #include "elf/pru.h"
 #endif
 
+#ifdef TC_NANOMIPS
+#include "elf/nanomips.h"
+#endif
+
 static void obj_elf_line (int);
 static void obj_elf_size (int);
 static void obj_elf_type (int);

@@ -2609,11 +2609,7 @@ gdb_print_insn_nanomips_p32 (bfd_vma memaddr, struct disassemble_info *info)
   info->flavour = bfd_target_elf_flavour;
   info->disassembler_options = "gpr-names=p32";
 
-  /* Call the appropriate disassembler based on the target endian-ness.  */
-  if (info->endian == BFD_ENDIAN_BIG)
-    return print_insn_big_mips (memaddr, info);
-  else
-    return print_insn_little_mips (memaddr, info);
+  return print_insn_nanomips (memaddr, info);
 }
 
 static int
@@ -2623,11 +2619,7 @@ gdb_print_insn_nanomips_p64 (bfd_vma memaddr, struct disassemble_info *info)
   info->flavour = bfd_target_elf_flavour;
   info->disassembler_options = "gpr-names=p64";
 
-  /* Call the appropriate disassembler based on the target endian-ness.  */
-  if (info->endian == BFD_ENDIAN_BIG)
-    return print_insn_big_mips (memaddr, info);
-  else
-    return print_insn_little_mips (memaddr, info);
+  return print_insn_nanomips (memaddr, info);
 }
 
 /* Implement the breakpoint_kind_from_pc gdbarch method.  */

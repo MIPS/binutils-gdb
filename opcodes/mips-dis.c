@@ -23,7 +23,6 @@
 #include "dis-asm.h"
 #include "libiberty.h"
 #include "opcode/mips.h"
-#include "opcode/nanomips.h"
 #include "opintl.h"
 
 /* FIXME: These are needed to figure out if the code is mips16 or
@@ -35,7 +34,6 @@
 #define SYMTAB_AVAILABLE 1
 #include "elf-bfd.h"
 #include "elf/mips.h"
-#include "elf/nanomips.h"
 #endif
 
 /* Mips instructions are at maximum this many bytes long.  */
@@ -73,14 +71,6 @@ static const char * const mips_gpr_names_newabi[32] =
   "a4",   "a5",   "a6",   "a7",   "t0",   "t1",   "t2",   "t3",
   "s0",   "s1",   "s2",   "s3",   "s4",   "s5",   "s6",   "s7",
   "t8",   "t9",   "k0",   "k1",   "gp",   "sp",   "s8",   "ra"
-};
-
-static const char * const nanomips_gpr_names[32] =
-{
-  "zero", "at",   "t4",   "t5",   "a0",   "a1",   "a2",   "a3",
-  "a4",   "a5",   "a6",   "a7",   "t0",   "t1",   "t2",   "t3",
-  "s0",   "s1",   "s2",   "s3",   "s4",   "s5",   "s6",   "s7",
-  "t8",   "t9",   "k0",   "k1",   "gp",   "sp",   "fp",   "ra"
 };
 
 static const char * const mips_gpr_names_xr[17] = {
@@ -457,8 +447,6 @@ struct mips_abi_choice mips_abi_choices[] =
   { "32", mips_gpr_names_oldabi, mips_fpr_names_32 },
   { "n32", mips_gpr_names_newabi, mips_fpr_names_n32 },
   { "64", mips_gpr_names_newabi, mips_fpr_names_64 },
-  { "p32", nanomips_gpr_names, mips_fpr_names_64 },
-  { "p64", nanomips_gpr_names, mips_fpr_names_64 },
 };
 
 struct mips_arch_choice
@@ -601,15 +589,6 @@ const struct mips_arch_choice mips_arch_choices[] =
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
 
-  { "nanomips32r6",	1, bfd_mach_nanomipsisa32r6, CPU_NANOMIPS32R6,
-    ISA_NANOMIPS32R6,
-    (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_VIRT | ASE_VIRT_XPA | ASE_XPA |
-     ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3
-     | ASE_xNMS | ASE_TLB) /* FIXME: should be optional */,
-    mips_cp0_names_mips3264r2,
-    mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
-    mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
-
   /* For stock MIPS64, disassemble all applicable MIPS-specified ASEs.  */
   { "mips64",	1, bfd_mach_mipsisa64, CPU_MIPS64,
     ISA_MIPS64,  ASE_MIPS3D | ASE_MDMX | ASE_MXU,
@@ -649,15 +628,6 @@ const struct mips_arch_choice mips_arch_choices[] =
     (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_MSA64 | ASE_XPA | ASE_VIRT
      | ASE_VIRT_XPA | ASE_VIRT64 | ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2
      | ASE_DSPR3 | ASE_DSP64),
-    mips_cp0_names_mips3264r2,
-    mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
-    mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
-
-  { "nanomips64r6",	1, bfd_mach_nanomipsisa64r6, CPU_NANOMIPS64R6,
-    ISA_NANOMIPS64R6,
-    (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_MSA64 | ASE_VIRT | ASE_VIRT_XPA
-     | ASE_XPA | ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3 | ASE_DSP64
-     | ASE_xNMS | ASE_TLB) /* FIXME: should be optional */,
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -726,7 +696,6 @@ static int mips_isa;
 static int alt_isa = -1;
 static int mips_ase;
 static int micromips_ase;
-static int nanomips_isa;
 static const char * const *mips_gpr_names;
 static const char * const *mips_fpr_names;
 static const char * const *mips_cp0_names;
@@ -800,8 +769,7 @@ static int
 is_newabi (Elf_Internal_Ehdr *header)
 {
   /* There are no old-style ABIs which use 64-bit ELF.  */
-  if (header->e_ident[EI_CLASS] == ELFCLASS64
-      && ((header->e_flags & EF_NANOMIPS_ABI) != E_NANOMIPS_ABI_P64))
+  if (header->e_ident[EI_CLASS] == ELFCLASS64)
     return 1;
 
   /* If a 32-bit ELF file, n32 is a new-style ABI.  */
@@ -833,32 +801,6 @@ is_isa_r6 (unsigned long isa)
   return 0;
 }
 
-/* Check if the object has nanoMIPS code.  */
-
-static inline int
-is_nanomips (Elf_Internal_Ehdr *header)
-{
-  /*
-  if ((header->e_flags & EF_NANOMIPS_MODE) != 0)
-  */
-  if ((header->e_flags & EF_NANOMIPS_ARCH) == E_NANOMIPS_ARCH_32R6
-      || (header->e_flags & EF_NANOMIPS_ARCH) == E_NANOMIPS_ARCH_64R6)
-    return 1;
-
-  return 0;
-}
-
-/* Check if the arch is nanoMIPS.  */
-
-static inline int
-is_nanomips_arch (const struct mips_arch_choice *mach)
-{
-  if (mach->bfd_mach == bfd_mach_nanomipsisa32r6
-      || mach->bfd_mach == bfd_mach_nanomipsisa64r6)
-    return 1;
-  return 0;
-}
-
 static void
 set_default_mips_dis_options (struct disassemble_info *info)
 {
@@ -870,7 +812,6 @@ set_default_mips_dis_options (struct disassemble_info *info)
   mips_isa = ISA_MIPS3;
   mips_processor = CPU_R3000;
   micromips_ase = 0;
-  nanomips_isa = 0;
   mips_ase = 0;
   mips_gpr_names = mips_gpr_names_oldabi;
   mips_fpr_names = mips_fpr_names_numeric;
@@ -892,10 +833,6 @@ set_default_mips_dis_options (struct disassemble_info *info)
 	mips_gpr_names = mips_gpr_names_newabi;
       /* If a microMIPS binary, then don't use MIPS16 bindings.  */
       micromips_ase = is_micromips (header);
-      /* If a nanoMIPS binary, then don't use legacy MIPS bindings.  */
-      nanomips_isa = is_nanomips (header);
-      if (nanomips_isa)
-	mips_gpr_names = nanomips_gpr_names;
     }
 
   /* Set ISA, architecture, and cp0 register names as best we can.  */
@@ -917,9 +854,6 @@ set_default_mips_dis_options (struct disassemble_info *info)
       mips_cp0sel_names_len = chosen_arch->cp0sel_names_len;
       mips_cp1_names = chosen_arch->cp1_names;
       mips_hwr_names = chosen_arch->hwr_names;
-      nanomips_isa = is_nanomips_arch (chosen_arch);
-      if (nanomips_isa)
-	mips_gpr_names = nanomips_gpr_names;
     }
 #endif
 }
@@ -1342,92 +1276,6 @@ mips_print_save_restore (struct disassemble_info *info, unsigned int amask,
 	       mips_gpr_names[7]);
 }
 
-static void
-nanomips_print_save_restore (struct disassemble_info *info,
-				unsigned int uval, bfd_boolean mode16)
-{
-  const fprintf_ftype infprintf = info->fprintf_func;
-  void *is = info->stream;
-  char *comma=",";
-  unsigned int pending = 0;
-  unsigned int freg, count, fp, gp, ra;
-  fp = gp = ra = 0;
-
-  if (mode16)
-    {
-      freg = 30 | (uval >> 4);
-      count = uval & 0xf;
-    }
-  else
-    {
-      freg = (uval >> 6) & 0x1f;
-      count = (uval >> 1) & 0xf;
-      gp = uval & 1;
-    }
-
-  if (freg == 30)
-    fp = 1;
-  if ((freg == 31) || (freg == 30 && count > 1))
-    ra = 1;
-
-  if (freg + count == 45)
-    gp = 1;
-
-  count = count - gp;
-  if (fp && count > 0)
-    {
-      freg = (freg & 0x10) | ((freg + 1) % 32);
-      count --;
-    }
-
-  if (ra && count > 0)
-    {
-      freg = (freg & 0x10) | ((freg + 1) % 32);
-      count --;
-    }
-
-  if (count > 0)
-    {
-      if (count > 1)
-	infprintf (is, "%s-%s",
-		   mips_gpr_names[freg],
-		   mips_gpr_names[freg + count - 1]);
-      else
-	infprintf (is, "%s", mips_gpr_names[freg]);
-      pending = 1;
-    }
-
-  if (gp)
-    {
-      infprintf (is, "%s%s", (pending ? comma : ""), mips_gpr_names[28]);
-      pending = 1;
-    }
-
-  if (fp)
-    {
-      infprintf (is, "%s%s", (pending ? comma : ""), mips_gpr_names[30]);
-      pending = 1;
-    }
-
-  if (ra)
-    {
-      infprintf (is, "%s%s", (pending ? comma : ""), mips_gpr_names[31]);
-    }
-}
-
-static void
-nanomips_print_save_restore_fp (struct disassemble_info *info,
-				   unsigned int count)
-{
-  const fprintf_ftype infprintf = info->fprintf_func;
-  void *is = info->stream;
-
-  if (count == 1)
-    infprintf (is, "%s", mips_fpr_names[0]);
-  else
-    infprintf (is, "%s-%s", mips_fpr_names[0], mips_fpr_names[count - 1]);
-}
-
 /* Print operand OPERAND of OPCODE, using STATE to track inter-operand state.
    UVAL is the encoding of the operand (shifted into bit 0) and BASE_PC is
    the base address for OP_PCREL operands.  */
@@ -1453,7 +1301,6 @@ print_insn_arg (struct disassemble_info *info,
       }
       break;
     case OP_INT:
-    case OP_IMM_INT:
       {
 	const struct mips_int_operand *int_op;
 
@@ -1495,7 +1342,6 @@ print_insn_arg (struct disassemble_info *info,
 
     case OP_REG:
     case OP_OPTIONAL_REG:
-    case OP_MAPPED_CHECK_PREV:
       {
 	const struct mips_reg_operand *reg_op;
 
@@ -1530,25 +1376,6 @@ print_insn_arg (struct disassemble_info *info,
 	/* Preserve the ISA bit for the GDB disassembler,
 	   otherwise clear it.  */
 	if (info->flavour != bfd_target_unknown_flavour)
-	  info->target &= -2;
-
-	(*info->print_address_func) (info->target, info);
-      }
-      break;
-
-    case OP_NON_ZERO_PCREL_S1:
-      {
-	const struct mips_pcrel_operand pcrel_op
-	  = { { { OP_PCREL, operand->size, operand->lsb, 0, 0 },
-		(1 << operand->size) - 1, 0, 1, TRUE },
-	      0, 0, 0};
-
-	if ((info->flags & INSN_HAS_RELOC) == 0)
-	  info->target = mips_decode_pcrel_operand (&pcrel_op, base_pc, uval);
-
-	/* Preserve the ISA bit for the GDB disassembler,
-	   otherwise clear it.  */
-	else if (info->flavour != bfd_target_unknown_flavour)
 	  info->target &= -2;
 
 	(*info->print_address_func) (info->target, info);
@@ -1687,26 +1514,18 @@ print_insn_arg (struct disassemble_info *info,
       break;
 
     case OP_SAVE_RESTORE_LIST:
-      if (nanomips_isa)
-	nanomips_print_save_restore (info, uval, opcode->mask >> 16 == 0);
-      else
-	{
-	  /* uval contains bits 6 to 25 of the SAVE/RESTORE instruction.  */
-	  unsigned int amask = (uval >> 9) & 0xf;
-	  unsigned int nsreg = (uval >> 17) & 0x7;
-	  unsigned int ra = (uval & 0x40);		/* $ra */
-	  unsigned int s0 = (uval & 0x20);		/* $s0 */
-	  unsigned int s1 = (uval & 0x10);		/* $s1 */
-	  unsigned int frame_size = (((uval >> 9) & 0xf0)
-				     | (uval & 0x0f)) * 8;
-	  mips_print_save_restore (info, amask, nsreg, ra, s0, s1,
-				   frame_size);
-	}
-      break;
-
-    case OP_SAVE_RESTORE_FP_LIST:
-      if (nanomips_isa)
-	nanomips_print_save_restore_fp (info, uval + 1);
+      {
+  /* uval contains bits 6 to 25 of the SAVE/RESTORE instruction.  */
+	unsigned int amask = (uval >> 9) & 0xf;
+	unsigned int nsreg = (uval >> 17) & 0x7;
+	unsigned int ra = (uval & 0x40);    /* $ra */
+	unsigned int s0 = (uval & 0x20);    /* $s0 */
+	unsigned int s1 = (uval & 0x10);    /* $s1 */
+	unsigned int frame_size = (((uval >> 9) & 0xf0)
+				   | (uval & 0x0f)) * 8;
+	mips_print_save_restore (info, amask, nsreg, ra, s0, s1,
+				 frame_size);
+      }
       break;
 
     case OP_MDMX_IMM_REG:
@@ -1767,79 +1586,6 @@ print_insn_arg (struct disassemble_info *info,
       print_reg (info, opcode, OP_REG_GP, uval);
       infprintf (is, "]");
       break;
-
-    case OP_HI20_PCREL:
-      {
-	info->target = mips_decode_hi20_pcrel_operand (operand, base_pc,
-						       uval);
-
-	/* Preserve the ISA bit for the GDB disassembler,
-	   otherwise clear it.  */
-	if (info->flavour != bfd_target_unknown_flavour)
-	  info->target &= -2;
-
-	(*info->print_address_func) (info->target, info);
-      }
-      break;
-
-    case OP_HI20_SCALE:
-      {
-	uval = mips_decode_hi20_int_operand (operand, uval);
-	state->last_int = uval;
-	infprintf (is, "0x%x", uval & 0xfffff);
-      }
-      break;
-
-    case OP_HI20_INT:
-      {
-	uval = mips_decode_hi20_int_operand (operand, uval);
-	state->last_int = uval;
-	if ((info->flags & INSN_HAS_RELOC) != 0 || uval == 0)
-	  infprintf (is, "0x%x", uval & 0xfffff);
-	else
-	  infprintf (is, "%%hi(0x%x)", (uval & 0xfffff) << 12);
-      }
-      break;
-
-    case OP_IMM_WORD:
-      {
-	const struct mips_int_operand *int_op;
-	int_op = (const struct mips_int_operand *) operand;
-	state->last_int = ((uval >> 16) & 0xffff) | (uval << 16);
-	state->last_int += int_op->bias;
-	infprintf (is, "%d", state->last_int);
-      }
-      break;
-
-    case OP_INT_WORD:
-    case OP_GPREL_WORD:
-      {
-	state->last_int = ((uval >> 16) & 0xffff) | (uval << 16);
-	infprintf (is, "%d", state->last_int);
-      }
-      break;
-
-    case OP_UINT_WORD:
-      {
-	state->last_int = ((uval >> 16) & 0xffff) | (uval << 16);
-	infprintf (is, "0x%x", state->last_int);
-      }
-      break;
-
-    case OP_PC_WORD:
-      {
-	info->target = base_pc + (((uval >> 16) & 0xffff) | (uval << 16));
-	(*info->print_address_func) (info->target, info);
-      }
-      break;
-
-    case OP_DONT_CARE:
-      break;
-
-    case OP_NEG_INT:
-      infprintf (is, "-%d", uval);
-      break;
-
     }
 }
 
@@ -1849,7 +1595,7 @@ print_insn_arg (struct disassemble_info *info,
 static bfd_boolean
 validate_insn_args (const struct mips_opcode *opcode,
 		    const struct mips_operand *(*decode_operand) (const char *),
-		    unsigned int insn, struct disassemble_info *info)
+		    unsigned int insn)
 {
   struct mips_print_arg_state state;
   const struct mips_operand *operand;
@@ -1918,50 +1664,12 @@ validate_insn_args (const struct mips_opcode *opcode,
 		    return FALSE;
 		  }
 
-		case OP_MAPPED_CHECK_PREV:
-		  {
-		    const struct mips_mapped_check_prev_operand *prev_op
-		      = (const struct mips_mapped_check_prev_operand *) operand;
-		    unsigned int last_uval;
-
-		    last_uval = mips_encode_reg_operand (operand, state.last_regno);
-
-		    if (((prev_op->less_than_ok && uval < last_uval)
-			|| (prev_op->greater_than_ok && uval > last_uval)
-			|| (prev_op->equal_ok && uval == last_uval)))
-			break;
-
-		    return FALSE;
-		  }
-
 		case OP_NON_ZERO_REG:
-		  if (uval == 0)
-		    return FALSE;
-		  break;
-
-		case OP_NON_ZERO_PCREL_S1:
-		  if (uval == 0 && (info->flags & INSN_HAS_RELOC) == 0)
-		    return FALSE;
-		  break;
-
-		case OP_SAVE_RESTORE_LIST:
 		  {
-		    /* The operand for SAVE/RESTORE is split into 3 pieces
-		       rather than just 2 but we only support a 2-way split
-		       decode the last bit of the instruction here.  */
-		    if (nanomips_isa
-			&& opcode->mask >> 16 != 0
-			&& ((insn >> 20) & 0x1) != 0)
+		    if (uval == 0)
 		      return FALSE;
 		  }
-		  break;
-
-		case OP_IMM_INT:
-		case OP_IMM_WORD:
-		case OP_NEG_INT:
-		  if (info->flags & INSN_HAS_RELOC)
-		    return FALSE;
-		  break;
+		break;
 
 		case OP_INT:
 		case OP_MAPPED_INT:
@@ -1984,15 +1692,7 @@ validate_insn_args (const struct mips_opcode *opcode,
 		case OP_REG_INDEX:
 		case OP_MXU_STRIDE:
 		case OP_MAPPED_STRING:
-		case OP_SAVE_RESTORE_FP_LIST:
-		case OP_HI20_INT:
-		case OP_HI20_PCREL:
-		case OP_INT_WORD:
-		case OP_UINT_WORD:
-		case OP_PC_WORD:
-		case OP_GPREL_WORD:
-		case OP_DONT_CARE:
-		case OP_HI20_SCALE:
+		case OP_SAVE_RESTORE_LIST:
 		  break;
 		}
 	    }
@@ -2012,15 +1712,13 @@ static void
 print_insn_args (struct disassemble_info *info,
 		 const struct mips_opcode *opcode,
 		 const struct mips_operand *(*decode_operand) (const char *),
-		 bfd_uint64_t insn, bfd_vma insn_pc, unsigned int length)
+		 unsigned int insn, bfd_vma insn_pc, unsigned int length)
 {
   const fprintf_ftype infprintf = info->fprintf_func;
   void *is = info->stream;
   struct mips_print_arg_state state;
   const struct mips_operand *operand;
   const char *s;
-  bfd_boolean pending_sep = FALSE;
-  bfd_boolean pending_space = nanomips_isa;
 
   init_print_arg_state (&state);
   for (s = opcode->args; *s; ++s)
@@ -2028,14 +1726,7 @@ print_insn_args (struct disassemble_info *info,
       switch (*s)
 	{
 	case ',':
-	  pending_sep = TRUE;
-	  break;
 	case '(':
-	  if (pending_sep)
-	    {
-	      infprintf (is, ",");
-	      pending_sep = FALSE;
-	    }
 	case ')':
 	  infprintf (is, "%c", *s);
 	  break;
@@ -2055,20 +1746,9 @@ print_insn_args (struct disassemble_info *info,
 			 opcode->name, opcode->args);
 	      return;
 	    }
-
-	  if (operand->type != OP_DONT_CARE && pending_sep)
-	    {
-	      infprintf (is, ",");
-	      pending_sep = FALSE;
-	    }
-
-	  if (operand->type != OP_DONT_CARE && pending_space)
-	    infprintf (is, "\t");
-	  pending_space = FALSE;
-
 	  if (operand->type == OP_REG
 	      && s[1] == ','
-	      && (s[2] == 'H' || s[2] == 'J')
+	      && s[2] == 'H'
 	      && opcode->name[strlen (opcode->name) - 1] == '0')
 	    {
 	      /* Coprocessor register 0 with sel field (MT ASE).  */
@@ -2095,16 +1775,12 @@ print_insn_args (struct disassemble_info *info,
 	    }
 	  else
 	    {
-	      bfd_vma base_pc = 0;
-	      bfd_boolean have_reloc = ((info->flags & INSN_HAS_RELOC) != 0);
-
-	      if (!have_reloc)
-		base_pc = insn_pc;
+	      bfd_vma base_pc = insn_pc;
 
 	      /* Adjust the PC relative base so that branch/jump insns use
 		 the following PC as the base but genuinely PC relative
 		 operands use the current PC.  */
-	      if (operand->type == OP_PCREL && !have_reloc)
+	      if (operand->type == OP_PCREL)
 		{
 		  const struct mips_pcrel_operand *pcrel_op;
 
@@ -2115,23 +1791,8 @@ print_insn_args (struct disassemble_info *info,
 		    base_pc += length;
 		}
 
-	      if ((operand->type == OP_HI20_PCREL
-		    || operand->type == OP_NON_ZERO_PCREL_S1)
-		   && !have_reloc)
-		base_pc += length;
-	      else if (operand->type == OP_PC_WORD && !have_reloc)
-		base_pc += 4;
-
-	      if (operand->type == OP_INT_WORD
-		  || operand->type == OP_UINT_WORD
-		  || operand->type == OP_PC_WORD
-		  || operand->type == OP_GPREL_WORD
-		  || operand->type == OP_IMM_WORD)
-		print_insn_arg (info, &state, opcode, operand, base_pc,
-				insn >> 32);
-	      else if (operand->type != OP_DONT_CARE)
-		print_insn_arg (info, &state, opcode, operand, base_pc,
-				mips_extract_operand (operand, insn));
+	      print_insn_arg (info, &state, opcode, operand, base_pc,
+			      mips_extract_operand (operand, insn));
 	    }
 	  if (*s == 'm' || *s == '+' || *s == '-' || *s == '`')
 	    ++s;
@@ -2230,7 +1891,7 @@ print_insn_mips (bfd_vma memaddr,
 				     | INSN_LOAD_MEMORY)) != 0)
 		info->insn_type = dis_dref;
 
-	      if (!validate_insn_args (op, decode_mips_operand, word, info))
+	      if (!validate_insn_args (op, decode_mips_operand, word))
 		continue;
 
 	      infprintf (is, "%s", op->name);
@@ -2739,7 +2400,7 @@ print_insn_micromips (bfd_vma memaddr_base, struct disassemble_info *info)
 	      || (op->pinfo2 & INSN2_CONVERTED_TO_COMPACT))
 	    continue;
 
-	  if (!validate_insn_args (op, decode_micromips_operand, insn, info))
+	  if (!validate_insn_args (op, decode_micromips_operand, insn))
 	    continue;
 
 	  infprintf (is, "%s", op->name);
@@ -2785,167 +2446,6 @@ print_insn_micromips (bfd_vma memaddr_base, struct disassemble_info *info)
   return length;
 }
 
-/* Disassemble microMIPS instructions.  */
-
-static int
-print_insn_nanomips (bfd_vma memaddr_base, struct disassemble_info *info)
-{
-  const fprintf_ftype infprintf = info->fprintf_func;
-  const struct mips_opcode *op, *opend;
-  void *is = info->stream;
-  bfd_byte buffer[2];
-  bfd_uint64_t higher = 0;
-  unsigned int length;
-  int status;
-  bfd_uint64_t insn;
-
-  /* Some users of bfd may supply an address with the micromips flag set,
-     e.g. objdump.  nanoMIPS instructions must be at least 2 byte aligned.  */
-  bfd_vma memaddr = memaddr_base & ~1;
-
-  info->bytes_per_chunk = 2;
-  info->display_endian = info->endian;
-  info->insn_info_valid = 1;
-  info->branch_delay_insns = 0;
-  info->data_size = 0;
-  info->insn_type = dis_nonbranch;
-  info->target = 0;
-  info->target2 = 0;
-
-  status = (*info->read_memory_func) (memaddr, buffer, 2, info);
-  if (status != 0)
-    {
-      (*info->memory_error_func) (status, memaddr, info);
-      return -1;
-    }
-
-  length = 2;
-
-  if (info->endian == BFD_ENDIAN_BIG)
-    insn = bfd_getb16 (buffer);
-  else
-    insn = bfd_getl16 (buffer);
-
-  if ((insn & 0xfc00) == 0x6000)
-    {
-      unsigned imm;
-      /* This is a 48-bit nanoMIPS instruction. */
-      status = (*info->read_memory_func) (memaddr + 2, buffer, 2, info);
-      if (status != 0)
-	{
-	  infprintf (is, "nanomips 0x%x", (unsigned) insn);
-	  (*info->memory_error_func) (status, memaddr + 2, info);
-	  return -1;
-	}
-      if (info->endian == BFD_ENDIAN_BIG)
-	imm = bfd_getb16 (buffer);
-      else
-	imm = bfd_getl16 (buffer);
-      higher = (imm << 16);
-
-      status = (*info->read_memory_func) (memaddr + 4, buffer, 2, info);
-
-      if (info->endian == BFD_ENDIAN_BIG)
-	imm = bfd_getb16 (buffer);
-      else
-	imm = bfd_getl16 (buffer);
-      higher = higher | imm;
-
-      length += 4;
-    }
-  else if ((insn & 0x1000) == 0x0)
-    {
-      /* This is a 32-bit microMIPS instruction.  */
-      higher = insn;
-
-      status = (*info->read_memory_func) (memaddr + 2, buffer, 2, info);
-      if (status != 0)
-	{
-	  infprintf (is, "nanomips 0x%x", (unsigned) higher);
-	  (*info->memory_error_func) (status, memaddr + 2, info);
-	  return -1;
-	}
-
-      if (info->endian == BFD_ENDIAN_BIG)
-	insn = bfd_getb16 (buffer);
-      else
-	insn = bfd_getl16 (buffer);
-
-      insn = insn | (higher << 16);
-
-      length += 2;
-    }
-
-  /* FIXME: Should probably use a hash table on the major opcode here.  */
-  const struct mips_opcode *opcodes;
-  int num_opcodes;
-  struct mips_operand const *(*decode) (const char *);
-
-  opcodes = nanomips_opcodes;
-  num_opcodes = bfd_nanomips_num_opcodes;
-  decode = decode_nanomips_operand;
-
-  opend = opcodes + num_opcodes;
-  for (op = opcodes; op < opend; op++)
-    {
-      if (op->pinfo != INSN_MACRO
-	  && !(no_aliases && (op->pinfo2 & INSN2_ALIAS))
-	  && (insn & op->mask) == op->match
-	  && ((length == 2 && (op->mask & 0xffff0000) == 0)
-	      || (length == 6
-		  && (op->mask & 0xffff0000) == 0)
-	      || (length == 4 && (op->mask & 0xffff0000) != 0)))
-	{
-	  if (!opcode_is_member (op, mips_isa, mips_ase, mips_processor)
-	      || (op->pinfo2 & INSN2_CONVERTED_TO_COMPACT))
-	    continue;
-
-	  if (!validate_insn_args (op, decode, insn, info))
-	    continue;
-
-	  infprintf (is, "%s", op->name);
-	  if (length == 6)
-	    insn |= (higher << 32);
-
-	  if (op->args[0])
-	    print_insn_args (info, op, decode, insn,
-			     memaddr + (nanomips_isa? 0 : 1),
-			     length);
-
-	  /* Figure out instruction type and branch delay information.  */
-	  if ((op->pinfo
-	       & (INSN_UNCOND_BRANCH_DELAY | INSN_COND_BRANCH_DELAY)) != 0)
-	    info->branch_delay_insns = 1;
-	  if (((op->pinfo & INSN_UNCOND_BRANCH_DELAY)
-	       | (op->pinfo2 & INSN2_UNCOND_BRANCH)) != 0)
-	    {
-	      if ((op->pinfo & (INSN_WRITE_GPR_31 | INSN_WRITE_1)) != 0)
-		info->insn_type = dis_jsr;
-	      else
-		info->insn_type = dis_branch;
-	    }
-	  else if (((op->pinfo & INSN_COND_BRANCH_DELAY)
-		    | (op->pinfo2 & INSN2_COND_BRANCH)) != 0)
-	    {
-	      if ((op->pinfo & INSN_WRITE_GPR_31) != 0)
-		info->insn_type = dis_condjsr;
-	      else
-		info->insn_type = dis_condbranch;
-	    }
-	  else if ((op->pinfo
-		    & (INSN_STORE_MEMORY | INSN_LOAD_MEMORY)) != 0)
-	    info->insn_type = dis_dref;
-
-	  return length;
-	}
-    }
-
-  infprintf (is, "0x%x", (unsigned) insn);
-  info->insn_type = dis_noninsn;
-
-  return length;
-}
-
 /* Return 1 if a symbol associated with the location being disassembled
    indicates a compressed (MIPS16 or microMIPS) mode.  We iterate over
    all the symbols at the address being considered assuming if at least
@@ -2959,9 +2459,6 @@ is_compressed_mode_p (struct disassemble_info *info)
 {
   int i;
   int l;
-
-  if (nanomips_isa)
-    return 1;
 
   for (i = info->symtab_pos, l = i + info->num_symbols; i < l; i++)
     if (((info->symtab[i])->flags & BSF_SYNTHETIC) != 0
@@ -3002,15 +2499,12 @@ _print_insn_mips (bfd_vma memaddr,
   set_default_mips_dis_options (info);
   parse_mips_dis_options (info->disassembler_options);
 
-  if (nanomips_isa)
-    print_insn_compr = print_insn_nanomips;
-  else
-    print_insn_compr = !micromips_ase ? print_insn_mips16 : print_insn_micromips;
-
   if (info->mach == bfd_mach_mips16)
     return print_insn_mips16 (memaddr, info);
   if (info->mach == bfd_mach_mips_micromips)
-    return print_insn_compr (memaddr, info);
+    return print_insn_micromips (memaddr, info);
+
+  print_insn_compr = !micromips_ase ? print_insn_mips16 : print_insn_micromips;
 
 #if 1
   /* FIXME: If odd address, this is CLEARLY a compressed instruction.  */

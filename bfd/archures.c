@@ -202,13 +202,11 @@ DESCRIPTION
 .#define bfd_mach_mipsisa32r3           34
 .#define bfd_mach_mipsisa32r5           36
 .#define bfd_mach_mipsisa32r6           37
-.#define bfd_mach_nanomipsisa32r6       38
 .#define bfd_mach_mipsisa64             64
 .#define bfd_mach_mipsisa64r2           65
 .#define bfd_mach_mipsisa64r3           66
 .#define bfd_mach_mipsisa64r5           68
 .#define bfd_mach_mipsisa64r6           69
-.#define bfd_mach_nanomipsisa64r6       70
 .#define bfd_mach_mips_micromips        96
 .  bfd_arch_i386,      {* Intel 386 *}
 .#define bfd_mach_i386_intel_syntax	(1 << 0)
@@ -528,6 +526,9 @@ DESCRIPTION
 .#define bfd_mach_nios2		0
 .#define bfd_mach_nios2r1	1
 .#define bfd_mach_nios2r2	2
+.  bfd_arch_nanomips,      {* nanoMIPSrX *}
+.#define bfd_mach_nanomipsisa32r6       32
+.#define bfd_mach_nanomipsisa64r6       64
 .  bfd_arch_visium,	{* Visium *}
 .#define bfd_mach_visium	1
 .  bfd_arch_wasm32,     {* WebAssembly *}

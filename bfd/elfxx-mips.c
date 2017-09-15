@@ -35,7 +35,6 @@
 #include "elf-bfd.h"
 #include "elfxx-mips.h"
 #include "elf/mips.h"
-#include "elf/nanomips.h"
 #include "elf-vxworks.h"
 #include "dwarf2.h"
 
@@ -6877,10 +6876,6 @@ elf_mips_abi_name (bfd *abfd)
       return "EABI32";
     case E_MIPS_ABI_EABI64:
       return "EABI64";
-    case E_NANOMIPS_ABI_P32:
-      return "P32";
-    case E_NANOMIPS_ABI_P64:
-      return "P64";
     default:
       return "unknown abi";
     }
@@ -12014,14 +12009,6 @@ mips_set_isa_flags (bfd *abfd)
     case bfd_mach_mipsisa64r6:
       val = E_MIPS_ARCH_64R6;
       break;
-
-    case bfd_mach_nanomipsisa32r6:
-      val = E_NANOMIPS_ARCH_32R6;
-       break;
-
-    case bfd_mach_nanomipsisa64r6:
-      val = E_NANOMIPS_ARCH_64R6;
-       break;
     }
   elf_elfheader (abfd)->e_flags &= ~(EF_MIPS_ARCH | EF_MIPS_MACH);
   elf_elfheader (abfd)->e_flags |= val;
@@ -14099,10 +14086,6 @@ mips_mach_extends_p (unsigned long base, unsigned long extension)
       && mips_mach_extends_p (bfd_mach_mipsisa64r2, extension))
     return TRUE;
 
-  if (base == bfd_mach_nanomipsisa32r6
-      && mips_mach_extends_p (bfd_mach_nanomipsisa64r6, extension))
-     return TRUE;
-
   for (i = 0; i < ARRAY_SIZE (mips_mach_extensions); i++)
     if (extension == mips_mach_extensions[i].extension)
       {
@@ -14195,11 +14178,9 @@ update_mips_abiflags_isa (bfd *abfd, Elf_Internal_ABIFlags_v0 *abiflags)
     case E_MIPS_ARCH_5:    new_isa = LEVEL_REV (5, 0); break;
     case E_MIPS_ARCH_32:   new_isa = LEVEL_REV (32, 1); break;
     case E_MIPS_ARCH_32R2: new_isa = LEVEL_REV (32, 2); break;
-    case E_NANOMIPS_ARCH_32R6:
     case E_MIPS_ARCH_32R6: new_isa = LEVEL_REV (32, 6); break;
     case E_MIPS_ARCH_64:   new_isa = LEVEL_REV (64, 1); break;
     case E_MIPS_ARCH_64R2: new_isa = LEVEL_REV (64, 2); break;
-    case E_NANOMIPS_ARCH_64R6:
     case E_MIPS_ARCH_64R6: new_isa = LEVEL_REV (64, 6); break;
     default:
       _bfd_error_handler
@@ -14232,8 +14213,7 @@ mips_32bit_flags_p (flagword flags)
 	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_2
 	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32
 	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R2
-	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R6
-	  || (flags & EF_NANOMIPS_ARCH) == E_NANOMIPS_ARCH_32R6);
+	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R6;
 }
 
 /* Infer the content of the ABI flags based on the elf header.  */
@@ -15628,25 +15608,6 @@ _bfd_mips_elf_get_target_dtag (bfd_vma dtag)
     }
 }
 
-char *
-_bfd_nanomips_elf_get_target_dtag (bfd_vma dtag)
-{
-  switch (dtag)
-    {
-    default: return "";
-    case DT_NANOMIPS_LOCAL_GOTNO:
-      return "NANOMIPS_LOCAL_GOTNO";
-    case DT_NANOMIPS_SYMTABNO:
-      return "NANOMIPS_SYMTABNO";
-    case DT_NANOMIPS_GOTSYM:
-      return "NANOMIPS_GOTSYM";
-    case DT_NANOMIPS_OPTIONS:
-      return "NANOMIPS_OPTIONS";
-    case DT_NANOMIPS_PLTGOT:
-      return "DT_NANOMIPS_PLTGOT";
-    }
-}
-
 /* Return the meaning of Tag_GNU_MIPS_ABI_FP value FP, or null if
    not known.  */
 
@@ -15721,37 +15682,6 @@ print_mips_ases (FILE *file, unsigned int mask)
 }
 
 static void
-print_nanomips_ases (FILE *file, unsigned int mask)
-{
-  if (mask & AFL_ASE_DSP)
-    fputs ("\n\tDSP ASE", file);
-  if (mask & AFL_ASE_DSPR2)
-    fputs ("\n\tDSP R2 ASE", file);
-  if (mask & AFL_ASE_DSPR3)
-    fputs ("\n\tDSP R3 ASE", file);
-  if (mask & AFL_ASE_EVA)
-    fputs ("\n\tEnhanced VA Scheme", file);
-  if (mask & AFL_ASE_MCU)
-    fputs ("\n\tMCU (MicroController) ASE", file);
-  if (mask & AFL_ASE_MT)
-    fputs ("\n\tMT ASE", file);
-  if (mask & AFL_ASE_VIRT)
-    fputs ("\n\tVZ ASE", file);
-  if (mask & AFL_ASE_MSA)
-    fputs ("\n\tMSA ASE", file);
-  if (mask & AFL_ASE_XPA)
-    fputs ("\n\tXPA ASE", file);
-  if (mask & AFL_ASE_TLB)
-    fputs ("\n\tTLB ASE", file);
-  if ((mask & AFL_ASE_xNMS) == 0)
-    fputs ("\n\tnanoMIPS subset", file);
-  else if (mask == 0)
-    fprintf (file, "\n\t%s", _("None"));
-  else if ((mask & ~AFL_ASE_MASK) != 0)
-    fprintf (stdout, "\n\t%s (%x)", _("Unknown"), mask & ~AFL_ASE_MASK);
-}
-
-static void
 print_mips_isa_ext (FILE *file, unsigned int isa_ext)
 {
   switch (isa_ext)
@@ -15815,20 +15745,6 @@ print_mips_isa_ext (FILE *file, unsigned int isa_ext)
       break;
     case AFL_EXT_LOONGSON_2F:
       fputs ("ST Microelectronics Loongson 2F", file);
-      break;
-    default:
-      fprintf (file, "%s (%d)", _("Unknown"), isa_ext);
-      break;
-    }
-}
-
-static void
-print_nanomips_isa_ext (FILE *file, unsigned int isa_ext)
-{
-  switch (isa_ext)
-    {
-    case 0:
-      fputs (_("None"), file);
       break;
     default:
       fprintf (file, "%s (%d)", _("Unknown"), isa_ext);
@@ -15992,84 +15908,6 @@ _bfd_mips_elf_print_private_bfd_data (bfd *abfd, void *ptr)
       print_mips_isa_ext (file, abiflags->isa_ext);
       fputs ("\nASEs:", file);
       print_mips_ases (file, abiflags->ases);
-      fprintf (file, "\nFLAGS 1: %8.8lx", abiflags->flags1);
-      fprintf (file, "\nFLAGS 2: %8.8lx", abiflags->flags2);
-      fputc ('\n', file);
-    }
-
-  return TRUE;
-}
-
-bfd_boolean
-_bfd_nanomips_elf_print_private_bfd_data (bfd *abfd, void *ptr)
-{
-  FILE *file = ptr;
-
-  BFD_ASSERT (abfd != NULL && ptr != NULL);
-
-  /* Print normal ELF private data.  */
-  _bfd_elf_print_private_bfd_data (abfd, ptr);
-
-  /* xgettext:c-format */
-  fprintf (file, _("private flags = %lx:"), elf_elfheader (abfd)->e_flags);
-
-  if ((elf_elfheader (abfd)->e_flags & EF_NANOMIPS_ABI) == E_NANOMIPS_ABI_P32)
-    fprintf (file, _(" [abi=P32]"));
-  else if ((elf_elfheader (abfd)->e_flags & EF_NANOMIPS_ABI) == E_NANOMIPS_ABI_P64)
-    fprintf (file, _(" [abi=P64]"));
-  else
-    fprintf (file, _(" [no abi set]"));
-
-  if ((elf_elfheader (abfd)->e_flags & EF_NANOMIPS_ARCH)
-      == E_NANOMIPS_ARCH_32R6)
-    fprintf (file, " [nanomips32r6]");
-  else if ((elf_elfheader (abfd)->e_flags & EF_NANOMIPS_ARCH)
-	   == E_NANOMIPS_ARCH_64R6)
-    fprintf (file, " [nanomips64r6]");
-  else
-    fprintf (file, _(" [unknown ISA]"));
-
-  if (elf_elfheader (abfd)->e_flags & EF_MIPS_NAN2008)
-    fprintf (file, " [nan2008]");
-
-  if (elf_elfheader (abfd)->e_flags & EF_MIPS_FP64)
-    fprintf (file, " [old fp64]");
-
-  if (elf_elfheader (abfd)->e_flags & EF_MIPS_32BITMODE)
-    fprintf (file, " [32bitmode]");
-  else
-    fprintf (file, _(" [not 32bitmode]"));
-
-  if (elf_elfheader (abfd)->e_flags & EF_MIPS_NOREORDER)
-    fprintf (file, " [noreorder]");
-
-  if (elf_elfheader (abfd)->e_flags & EF_MIPS_PIC)
-    fprintf (file, " [PIC]");
-
-  if (elf_elfheader (abfd)->e_flags & EF_MIPS_CPIC)
-    fprintf (file, " [CPIC]");
-
-  fputc ('\n', file);
-
-  if (mips_elf_tdata (abfd)->abiflags_valid)
-    {
-      Elf_Internal_ABIFlags_v0 *abiflags = &mips_elf_tdata (abfd)->abiflags;
-      fprintf (file, "\nnanoMIPS ABI Flags Version: %d\n", abiflags->version);
-      fprintf (file, "\nISA: nanoMIPS%d", abiflags->isa_level);
-      if (abiflags->isa_rev > 1)
-	fprintf (file, "r%d", abiflags->isa_rev);
-      fprintf (file, "\nGPR size: %d",
-	       get_mips_reg_size (abiflags->gpr_size));
-      fprintf (file, "\nCPR1 size: %d",
-	       get_mips_reg_size (abiflags->cpr1_size));
-      fprintf (file, "\nCPR2 size: %d",
-	       get_mips_reg_size (abiflags->cpr2_size));
-      fputs ("\nFP ABI: ", file);
-      print_mips_fp_abi_value (file, abiflags->fp_abi);
-      fputs ("ISA Extension: ", file);
-      print_nanomips_isa_ext (file, abiflags->isa_ext);
-      fputs ("\nASEs:", file);
-      print_nanomips_ases (file, abiflags->ases);
       fprintf (file, "\nFLAGS 1: %8.8lx", abiflags->flags1);
       fprintf (file, "\nFLAGS 2: %8.8lx", abiflags->flags2);
       fputc ('\n', file);

@@ -131,6 +131,7 @@
 #include "elf/moxie.h"
 #include "elf/mt.h"
 #include "elf/msp430.h"
+#include "elf/nanomips.h"
 #include "elf/nds32.h"
 #include "elf/nios2.h"
 #include "elf/or1k.h"
@@ -778,6 +779,7 @@ guess_is_rela (unsigned int e_machine)
     case EM_MSP430:
     case EM_MSP430_OLD:
     case EM_MT:
+    case EM_NANOMIPS:
     case EM_NDS32:
     case EM_NIOS32:
     case EM_OR1K:
@@ -1512,6 +1514,10 @@ dump_relocations (FILE * file,
 	  rtype = elf_nios2_reloc_type (type);
 	  break;
 
+	case EM_NANOMIPS:
+	  rtype = elf_nanomips_reloc_type (type);
+	  break;
+
 	case EM_TI_PRU:
 	  rtype = elf_pru_reloc_type (type);
 	  break;
@@ -1782,6 +1788,17 @@ get_mips_dynamic_type (unsigned long type)
     case DT_MIPS_AUX_DYNAMIC: return "MIPS_AUX_DYNAMIC";
     case DT_MIPS_PLTGOT: return "MIPS_PLTGOT";
     case DT_MIPS_RWPLT: return "MIPS_RWPLT";
+    default:
+      return NULL;
+    }
+}
+
+static const char *
+get_nanomips_dynamic_type (unsigned long type)
+{
+  switch (type)
+    {
+    case DT_NANOMIPS_GOTNO: return "NANOMIPS_GOTNO";
     default:
       return NULL;
     }
@@ -2132,6 +2149,9 @@ get_dynamic_type (unsigned long type)
 	    case EM_ALTERA_NIOS2:
 	      result = get_nios2_dynamic_type (type);
 	      break;
+	    case EM_NANOMIPS:
+	      result = get_nanomips_dynamic_type (type);
+	      break;
 	    default:
 	      if (elf_header.e_ident[EI_OSABI] == ELFOSABI_SOLARIS)
 		result = get_solaris_dynamic_type (type);
@@ -2335,6 +2355,7 @@ get_machine_name (unsigned e_machine)
     case EM_ALTERA_NIOS2:	return "Altera Nios II";
     case EM_CRX:		return "National Semiconductor CRX microprocessor";
     case EM_XGATE:		return "Motorola XGATE embedded processor";
+    case EM_NANOMIPS:		return "nanoMIPS experimental";
     case EM_C166:
     case EM_XC16X:		return "Infineon Technologies xc16x";
     case EM_M16C:		return "Renesas M16C series microprocessors";
@@ -3630,6 +3651,38 @@ get_machine_flags (unsigned e_flags, unsigned e_machine)
 
 	  if (e_flags & ~ EF_MSP430_MACH)
 	    strcat (buf, _(": unknown extra flag bits also present"));
+	    case EM_NANOMIPS:
+    if (e_flags & EF_NANOMIPS_PIC)
+      strcat (buf, ", pic");
+
+    if (e_flags & EF_NANOMIPS_32BITMODE)
+      strcat (buf, ", 32bitmode");
+
+    switch ((e_flags & EF_NANOMIPS_MACH))
+      {
+      default: strcat (buf, _(", unknown CPU")); break;
+      }
+
+    switch ((e_flags & EF_NANOMIPS_ABI))
+      {
+      case E_NANOMIPS_ABI_P32: strcat (buf, ", p32"); break;
+      case E_NANOMIPS_ABI_P64: strcat (buf, ", p64"); break;
+      case 0:
+        /* We simply ignore the field in this case to avoid confusion:
+     MIPS ELF does not specify EF_MIPS_ABI, it is a GNU extension.
+     This means it is likely to be an o32 file, but not for
+     sure.  */
+        break;
+      default: strcat (buf, _(", unknown ABI")); break;
+      }
+
+    switch ((e_flags & EF_NANOMIPS_ARCH))
+      {
+      case E_NANOMIPS_ARCH_32R6: strcat (buf, ", nanomips32r6"); break;
+      case E_NANOMIPS_ARCH_64R6: strcat (buf, ", nanomips64r6"); break;
+      default: strcat (buf, _(", unknown ISA")); break;
+      }
+    break;
 	}
     }
 
@@ -3733,6 +3786,20 @@ get_mips_segment_type (unsigned long type)
     case PT_MIPS_ABIFLAGS:  return "ABIFLAGS";
     default:                return NULL;
     }
+}
+
+static const char *
+get_nanomips_segment_type (unsigned long type)
+{
+  switch (type)
+    {
+    case PT_NANOMIPS_ABIFLAGS:
+      return "ABIFLAGS";
+    default:
+      break;
+    }
+
+  return NULL;
 }
 
 static const char *
@@ -3854,6 +3921,9 @@ get_segment_type (unsigned long p_type)
 	      break;
 	    case EM_TI_C6000:
 	      result = get_tic6x_segment_type (p_type);
+	      break;
+	    case EM_NANOMIPS:
+	      result = get_nanomips_segment_type (p_type);
 	      break;
 	    default:
 	      result = NULL;
@@ -9121,6 +9191,21 @@ dynamic_section_mips_val (Elf_Internal_Dyn * entry)
 }
 
 static void
+dynamic_section_nanomips_val (Elf_Internal_Dyn * entry)
+{
+  switch (entry->d_tag)
+    {
+    case DT_NANOMIPS_GOTNO:
+      print_vma (entry->d_un.d_ptr, DEC);
+      break;
+
+    default:
+      print_vma (entry->d_un.d_ptr, PREFIX_HEX);
+    }
+    putchar ('\n');
+}
+
+static void
 dynamic_section_parisc_val (Elf_Internal_Dyn * entry)
 {
   switch (entry->d_tag)
@@ -10036,6 +10121,9 @@ process_dynamic_section (FILE * file)
 		  break;
 		case EM_IA_64:
 		  dynamic_section_ia64_val (entry);
+		  break;
+		case EM_NANOMIPS:
+		  dynamic_section_nanomips_val (entry);
 		  break;
 		default:
 		  print_vma (entry->d_un.d_val, PREFIX_HEX);
@@ -12067,6 +12155,8 @@ is_32bit_abs_reloc (unsigned int reloc_type)
       return reloc_type == 1; /* R_MSP430_32 or R_MSP320_ABS32.  */
     case EM_MT:
       return reloc_type == 2; /* R_MT_32.  */
+    case EM_NANOMIPS:
+      return reloc_type == 1; /* R_NANOMIPS_32.  */
     case EM_NDS32:
       return reloc_type == 20; /* R_NDS32_RELA.  */
     case EM_ALTERA_NIOS2:
@@ -12261,6 +12351,8 @@ is_64bit_abs_reloc (unsigned int reloc_type)
       return reloc_type == 1; /* R_TILEGX_64.  */
     case EM_MIPS:
       return reloc_type == 18;	/* R_MIPS_64.  */
+    case EM_NANOMIPS:
+      return reloc_type == 2; /* R_NANOMIPS_64.  */
     default:
       return FALSE;
     }
@@ -12363,6 +12455,8 @@ is_16bit_abs_reloc (unsigned int reloc_type)
       /* Fall through.  */
     case EM_MSP430_OLD:
       return reloc_type == 5; /* R_MSP430_16_BYTE.  */
+    case EM_NANOMIPS:
+      return reloc_type == 7; /* R_NANOMIPS_UNSIGNED_16 */
     case EM_NDS32:
       return reloc_type == 19; /* R_NDS32_RELA.  */
     case EM_ALTERA_NIOS2:
@@ -12416,6 +12510,8 @@ is_none_reloc (unsigned int reloc_type)
     case EM_MOXIE:   /* R_MOXIE_NONE.  */
     case EM_NIOS32:  /* R_NIOS_NONE.  */
     case EM_OR1K:    /* R_OR1K_NONE. */
+    case EM_NANOMIPS: /* R_NANOMIPS_NONE.  */
+      return reloc_type == 0;
     case EM_PARISC:  /* R_PARISC_NONE.  */
     case EM_PPC64:   /* R_PPC64_NONE.  */
     case EM_PPC:     /* R_PPC_NONE.  */
@@ -14164,6 +14260,75 @@ display_mips_gnu_attribute (unsigned char * p,
   return display_tag_value (tag & 1, p, end);
 }
 
+static void
+print_nanomips_fp_abi_value (int val)
+{
+  switch (val)
+    {
+    case Val_GNU_NANOMIPS_ABI_FP_ANY:
+      printf (_("Hard or soft float\n"));
+      break;
+    case Val_GNU_NANOMIPS_ABI_FP_DOUBLE:
+      printf (_("Hard float (double precision)\n"));
+      break;
+    case Val_GNU_NANOMIPS_ABI_FP_SINGLE:
+      printf (_("Hard float (single precision)\n"));
+      break;
+    case Val_GNU_NANOMIPS_ABI_FP_SOFT:
+      printf (_("Soft float\n"));
+      break;
+    default:
+      printf ("??? (%d)\n", val);
+      break;
+    }
+}
+
+static unsigned char *
+display_nanomips_gnu_attribute (unsigned char * p,
+          int tag,
+          const unsigned char * const end)
+{
+  if (tag == Tag_GNU_NANOMIPS_ABI_FP)
+    {
+      unsigned int len;
+      int val;
+
+      val = read_uleb128 (p, &len, end);
+      p += len;
+      printf ("  Tag_GNU_NANOMIPS_ABI_FP: ");
+
+      print_nanomips_fp_abi_value (val);
+
+      return p;
+   }
+
+  if (tag == Tag_GNU_NANOMIPS_ABI_MSA)
+    {
+      unsigned int len;
+      int val;
+
+      val = read_uleb128 (p, &len, end);
+      p += len;
+      printf ("  Tag_GNU_NANOMIPS_ABI_MSA: ");
+
+      switch (val)
+  {
+  case Val_GNU_NANOMIPS_ABI_MSA_ANY:
+    printf (_("Any MSA or not\n"));
+    break;
+  case Val_GNU_NANOMIPS_ABI_MSA_128:
+    printf (_("128-bit MSA\n"));
+    break;
+  default:
+    printf ("??? (%d)\n", val);
+    break;
+  }
+      return p;
+    }
+
+  return display_tag_value (tag & 1, p, end);
+}
+
 static unsigned char *
 display_tic6x_attribute (unsigned char * p,
 			 const unsigned char * const end)
@@ -15670,6 +15835,364 @@ process_mips_specific (FILE * file)
     }
 
   return res;
+}
+
+static void
+print_nanomips_ases (unsigned int mask)
+{
+  if (mask & NANOMIPS_ASE_DSPR3)
+    fputs ("\n\tDSP R3 ASE", stdout);
+  if (mask & NANOMIPS_ASE_EVA)
+    fputs ("\n\tEnhanced VA Scheme", stdout);
+  if (mask & NANOMIPS_ASE_MCU)
+    fputs ("\n\tMCU (MicroController) ASE", stdout);
+  if (mask & NANOMIPS_ASE_MT)
+    fputs ("\n\tMT ASE", stdout);
+  if (mask & NANOMIPS_ASE_VIRT)
+    fputs ("\n\tVZ ASE", stdout);
+  if (mask & NANOMIPS_ASE_MSA)
+    fputs ("\n\tMSA ASE", stdout);
+  if (mask & NANOMIPS_ASE_XPA)
+    fputs ("\n\tXPA ASE", stdout);
+  if (mask & NANOMIPS_ASE_TLB)
+    fputs ("\n\tTLB ASE", stdout);
+  if (mask & NANOMIPS_ASE_GINV)
+    fputs ("\n\tGINV ASE", stdout);
+ if ((mask & NANOMIPS_ASE_xNMS) == 0)
+    fputs ("\n\tnanoMIPS subset", stdout);
+  else if (mask == 0)
+    fprintf (stdout, "\n\t%s", _("None"));
+  else if ((mask & ~NANOMIPS_ASE_MASK) != 0)
+    fprintf (stdout, "\n\t%s (%x)", _("Unknown"), mask & ~NANOMIPS_ASE_MASK);
+}
+
+static void
+print_nanomips_isa_ext (unsigned int isa_ext)
+{
+  switch (isa_ext)
+    {
+    case 0:
+      fputs (_("None"), stdout);
+      break;
+    default:
+      fprintf (stdout, "%s (%d)", _("Unknown"), isa_ext);
+    }
+}
+
+static int
+get_nanomips_reg_size (int reg_size)
+{
+  return (get_mips_reg_size (reg_size));
+}
+
+static int
+process_nanomips_specific (FILE * file)
+{
+  Elf_Internal_Dyn * entry;
+  Elf_Internal_Shdr *sect = NULL;
+  size_t options_offset = 0;
+  bfd_vma pltgot = 0;
+  bfd_vma gotsym = 0;
+  bfd_vma symtabno = 0;
+
+  process_attributes (file, NULL, SHT_GNU_ATTRIBUTES, NULL,
+          display_nanomips_gnu_attribute);
+
+  sect = find_section (".nanoMIPS.abiflags");
+
+  if (sect != NULL)
+    {
+      Elf_External_ABIFlags_v0 *abiflags_ext;
+      Elf_Internal_ABIFlags_v0 abiflags_in;
+
+      if (sizeof (Elf_External_ABIFlags_v0) != sect->sh_size)
+  fputs ("\nCorrupt ABI Flags section.\n", stdout);
+      else
+  {
+    abiflags_ext = get_data (NULL, file, sect->sh_offset, 1,
+           sect->sh_size, _("nanoMIPS ABI Flags section"));
+    if (abiflags_ext)
+      {
+        abiflags_in.version = BYTE_GET (abiflags_ext->version);
+        abiflags_in.isa_level = BYTE_GET (abiflags_ext->isa_level);
+        abiflags_in.isa_rev = BYTE_GET (abiflags_ext->isa_rev);
+        abiflags_in.gpr_size = BYTE_GET (abiflags_ext->gpr_size);
+        abiflags_in.cpr1_size = BYTE_GET (abiflags_ext->cpr1_size);
+        abiflags_in.cpr2_size = BYTE_GET (abiflags_ext->cpr2_size);
+        abiflags_in.fp_abi = BYTE_GET (abiflags_ext->fp_abi);
+        abiflags_in.isa_ext = BYTE_GET (abiflags_ext->isa_ext);
+        abiflags_in.ases = BYTE_GET (abiflags_ext->ases);
+        abiflags_in.flags1 = BYTE_GET (abiflags_ext->flags1);
+        abiflags_in.flags2 = BYTE_GET (abiflags_ext->flags2);
+
+        printf ("\nnanoMIPS ABI Flags Version: %d\n", abiflags_in.version);
+        printf ("\nISA: nanoMIPS%d", abiflags_in.isa_level);
+        if (abiflags_in.isa_rev > 1)
+    printf ("r%d", abiflags_in.isa_rev);
+        printf ("\nGPR size: %d",
+          get_nanomips_reg_size (abiflags_in.gpr_size));
+        printf ("\nCPR1 size: %d",
+          get_nanomips_reg_size (abiflags_in.cpr1_size));
+        printf ("\nCPR2 size: %d",
+          get_nanomips_reg_size (abiflags_in.cpr2_size));
+        fputs ("\nFP ABI: ", stdout);
+        print_nanomips_fp_abi_value (abiflags_in.fp_abi);
+        fputs ("ISA Extension: ", stdout);
+        print_nanomips_isa_ext (abiflags_in.isa_ext);
+        fputs ("\nASEs:", stdout);
+        print_nanomips_ases (abiflags_in.ases);
+        printf ("\nFLAGS 1: %8.8lx", abiflags_in.flags1);
+        printf ("\nFLAGS 2: %8.8lx", abiflags_in.flags2);
+        fputc ('\n', stdout);
+        free (abiflags_ext);
+      }
+  }
+    }
+
+  if (dynamic_section == NULL)
+    /* No information available.  */
+    return 0;
+
+  for (entry = dynamic_section;
+       entry < dynamic_section + dynamic_nent && entry->d_tag != DT_NULL;
+       ++entry)
+    switch (entry->d_tag)
+      {
+      case DT_PLTGOT:
+  pltgot = entry->d_un.d_ptr;
+  break;
+      case DT_NANOMIPS_GOTNO:
+  symtabno = entry->d_un.d_val;
+  break;
+      default:
+  break;
+      }
+
+  if (options_offset != 0)
+    {
+      Elf_External_Options * eopt;
+      Elf_Internal_Options * iopt;
+      Elf_Internal_Options * option;
+      size_t offset;
+      int cnt;
+      sect = section_headers;
+
+      /* Find the section header so that we get the size.  */
+      sect = find_section_by_type (SHT_MIPS_OPTIONS);
+      /* PR 17533 file: 012-277276-0.004.  */
+      if (sect == NULL)
+  {
+    error (_("No MIPS_OPTIONS header found\n"));
+    return 0;
+  }
+
+      eopt = (Elf_External_Options *) get_data (NULL, file, options_offset, 1,
+                                                sect->sh_size, _("options"));
+      if (eopt)
+  {
+    iopt = (Elf_Internal_Options *)
+              cmalloc ((sect->sh_size / sizeof (eopt)), sizeof (* iopt));
+    if (iopt == NULL)
+      {
+        error (_("Out of memory allocatinf space for MIPS options\n"));
+        return 0;
+      }
+
+    offset = cnt = 0;
+    option = iopt;
+
+    while (offset < sect->sh_size)
+      {
+        Elf_External_Options * eoption;
+
+        eoption = (Elf_External_Options *) ((char *) eopt + offset);
+
+        option->kind = BYTE_GET (eoption->kind);
+        option->size = BYTE_GET (eoption->size);
+        option->section = BYTE_GET (eoption->section);
+        option->info = BYTE_GET (eoption->info);
+
+        offset += option->size;
+
+        ++option;
+        ++cnt;
+      }
+
+    printf (_("\nSection '%s' contains %d entries:\n"),
+      printable_section_name (sect), cnt);
+
+    option = iopt;
+
+    while (cnt-- > 0)
+      {
+        size_t len;
+
+        switch (option->kind)
+    {
+    case ODK_NULL:
+      /* This shouldn't happen.  */
+      printf (" NULL       %d %lx", option->section, option->info);
+      break;
+    case ODK_EXCEPTIONS:
+      fputs (" EXCEPTIONS fpe_min(", stdout);
+      process_mips_fpe_exception (option->info & OEX_FPU_MIN);
+      fputs (") fpe_max(", stdout);
+      process_mips_fpe_exception ((option->info & OEX_FPU_MAX) >> 8);
+      fputs (")", stdout);
+
+      if (option->info & OEX_PAGE0)
+        fputs (" PAGE0", stdout);
+      if (option->info & OEX_SMM)
+        fputs (" SMM", stdout);
+      if (option->info & OEX_FPDBUG)
+        fputs (" FPDBUG", stdout);
+      if (option->info & OEX_DISMISS)
+        fputs (" DISMISS", stdout);
+      break;
+    case ODK_PAD:
+      fputs (" PAD       ", stdout);
+      if (option->info & OPAD_PREFIX)
+        fputs (" PREFIX", stdout);
+      if (option->info & OPAD_POSTFIX)
+        fputs (" POSTFIX", stdout);
+      if (option->info & OPAD_SYMBOL)
+        fputs (" SYMBOL", stdout);
+      break;
+    case ODK_HWPATCH:
+      fputs (" HWPATCH   ", stdout);
+      if (option->info & OHW_R4KEOP)
+        fputs (" R4KEOP", stdout);
+      if (option->info & OHW_R8KPFETCH)
+        fputs (" R8KPFETCH", stdout);
+      if (option->info & OHW_R5KEOP)
+        fputs (" R5KEOP", stdout);
+      if (option->info & OHW_R5KCVTL)
+        fputs (" R5KCVTL", stdout);
+      break;
+    case ODK_FILL:
+      fputs (" FILL       ", stdout);
+      /* XXX Print content of info word?  */
+      break;
+    case ODK_TAGS:
+      fputs (" TAGS       ", stdout);
+      /* XXX Print content of info word?  */
+      break;
+    case ODK_HWAND:
+      fputs (" HWAND     ", stdout);
+      if (option->info & OHWA0_R4KEOP_CHECKED)
+        fputs (" R4KEOP_CHECKED", stdout);
+      if (option->info & OHWA0_R4KEOP_CLEAN)
+        fputs (" R4KEOP_CLEAN", stdout);
+      break;
+    case ODK_HWOR:
+      fputs (" HWOR      ", stdout);
+      if (option->info & OHWA0_R4KEOP_CHECKED)
+        fputs (" R4KEOP_CHECKED", stdout);
+      if (option->info & OHWA0_R4KEOP_CLEAN)
+        fputs (" R4KEOP_CLEAN", stdout);
+      break;
+    case ODK_GP_GROUP:
+      printf (" GP_GROUP  %#06lx  self-contained %#06lx",
+        option->info & OGP_GROUP,
+        (option->info & OGP_SELF) >> 16);
+      break;
+    case ODK_IDENT:
+      printf (" IDENT     %#06lx  self-contained %#06lx",
+        option->info & OGP_GROUP,
+        (option->info & OGP_SELF) >> 16);
+      break;
+    default:
+      /* This shouldn't happen.  */
+      printf (" %3d ???     %d %lx",
+        option->kind, option->section, option->info);
+      break;
+    }
+
+        len = sizeof (* eopt);
+        while (len < option->size)
+    if (((char *) option)[len] >= ' '
+        && ((char *) option)[len] < 0x7f)
+      printf ("%c", ((char *) option)[len++]);
+    else
+      printf ("\\%03o", ((char *) option)[len++]);
+
+        fputs ("\n", stdout);
+        ++option;
+      }
+
+    free (eopt);
+  }
+    }
+
+  if (pltgot != 0)
+    {
+      bfd_vma ent, end;
+      size_t i, offset;
+      unsigned char * data;
+      int addr_size;
+
+      ent = pltgot;
+      addr_size = (is_32bit_elf ? 4 : 8);
+
+      if (symtabno < gotsym)
+  {
+    error (_("The GOT symbol offset (%lu) is greater than the symbol table size (%lu)\n"),
+     (long) gotsym, (long) symtabno);
+    return 0;
+  }
+
+      end = pltgot + (symtabno - gotsym) * addr_size;
+      offset = offset_from_vma (file, pltgot, end - pltgot);
+      data = (unsigned char *) get_data (NULL, file, offset,
+                                         end - pltgot, 1,
+           _("Global Offset Table data"));
+      if (data == NULL)
+  return 0;
+
+      printf (_(" Canonical gp value: "));
+      print_vma (pltgot + 0x7ff0, LONG_HEX);
+      printf ("\n\n");
+
+      printf (_(" Reserved entries:\n"));
+      printf (_("  %*s %10s %*s Purpose\n"),
+        addr_size * 2, _("Address"), _("Access"),
+        addr_size * 2, _("Initial"));
+      ent = print_mips_got_entry (data, pltgot, ent);
+      printf (_(" Lazy resolver\n"));
+      if (data
+    && (byte_get (data + ent - pltgot, addr_size)
+        >> (addr_size * 8 - 1)) != 0)
+  {
+    ent = print_mips_got_entry (data, pltgot, ent);
+    printf (_(" Module pointer (GNU extension)\n"));
+  }
+      printf ("\n");
+
+      printf ("\n");
+
+      printf (_(" Entries:\n"));
+      printf ("  %*s %10s %*s %*s %-7s %3s %s\n",
+        addr_size * 2, _("Address"),
+        _("Access"),
+        addr_size * 2, _("Initial"),
+        addr_size * 2, _("Sym.Val."),
+        _("Type"),
+        /* Note for translators: "Ndx" = abbreviated form of "Index".  */
+        _("Ndx"), _("Name"));
+
+      for (i = gotsym; i < symtabno; i++)
+  {
+    ent = print_mips_got_entry (data, pltgot, ent);
+    printf (" ");
+
+    printf ("\n");
+  }
+
+      if (data)
+  free (data);
+    }
+
+  return 1;
 }
 
 static bfd_boolean
@@ -17495,6 +18018,8 @@ process_arch_specific (FILE * file)
       return process_attributes (file, "c6xabi", SHT_C6000_ATTRIBUTES,
 				 display_tic6x_attribute,
 				 display_generic_attribute);
+    case EM_NANOMIPS:
+      return process_nanomips_specific (file);
 
     default:
       return process_attributes (file, "gnu", SHT_GNU_ATTRIBUTES,

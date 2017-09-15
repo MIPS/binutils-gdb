@@ -58,15 +58,15 @@
 #define HINT_SPLIT(SIZE, LSB, SIZE_T, LSB_T)	\
   SINT_SPLIT(SIZE, LSB, 0, SIZE_T, LSB_T)
 
-#define SPLIT_MAPPED_REG_PAIR(SIZE, LSB, SIZE_T, LSB_T, BANK, MAP) \
+#define SPLIT_MAPPED_REG_PAIR(SIZE, LSB, SIZE_T, LSB_T, BANK, MAP1, MAP2)	\
   { \
     typedef char ATTRIBUTE_UNUSED \
-      static_assert1[(1 << (SIZE)) == ARRAY_SIZE (MAP##1)]; \
+      static_assert1[(1 << (SIZE)) == ARRAY_SIZE (MAP1)]; \
     typedef char ATTRIBUTE_UNUSED \
-      static_assert2[(1 << (SIZE)) == ARRAY_SIZE (MAP##2)]; \
+      static_assert2[(1 << (SIZE)) == ARRAY_SIZE (MAP2)]; \
     static const struct mips_reg_pair_operand op = { \
       { OP_REG_PAIR, SIZE, LSB, SIZE_T, LSB_T }, OP_REG_##BANK, \
-      MAP##1, MAP##2 \
+      MAP1, MAP2 \
     }; \
     return &op.root; \
   }
@@ -108,9 +108,18 @@
   { \
     typedef char ATTRIBUTE_UNUSED \
       static_assert[(1 << (SIZE)) == ARRAY_SIZE (MAP)]; \
-    static const struct mips_mapped_check_prev_operand op = { \
+    static const struct nanomips_mapped_check_prev_operand op = { \
       { OP_MAPPED_CHECK_PREV, SIZE, LSB, 0, 0 }, OP_REG_##BANK, MAP, \
       GT_OK, LT_OK, EQ_OK, ZERO_OK \
+    }; \
+    return &op.root; \
+  }
+
+#define BASE_OFFSET_CHECK(SIZE, LSB, CONST_OK, EXPR_OK) \
+  { \
+    static const struct nanomips_base_check_offset_operand op = { \
+      { OP_BASE_CHECK_OFFSET, SIZE, LSB, 0, 0 }, OP_REG_GP, \
+      CONST_OK, EXPR_OK					    \
     }; \
     return &op.root; \
   }

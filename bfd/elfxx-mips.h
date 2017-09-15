@@ -116,8 +116,6 @@ extern const char * _bfd_mips_fp_abi_string
   (int);
 extern bfd_boolean _bfd_mips_elf_print_private_bfd_data
   (bfd *, void *);
-extern bfd_boolean _bfd_nanomips_elf_print_private_bfd_data
-  (bfd *, void *);
 extern bfd_boolean _bfd_mips_elf_discard_info
   (bfd *, struct elf_reloc_cookie *, struct bfd_link_info *);
 extern bfd_boolean _bfd_mips_elf_write_section
@@ -143,14 +141,11 @@ extern bfd_reloc_status_type _bfd_mips_elf_generic_reloc
   (bfd *, arelent *, asymbol *, void *, asection *, bfd *, char **);
 extern unsigned long _bfd_elf_mips_mach
   (flagword);
-extern unsigned long _bfd_elf_nanomips_mach
-  (flagword);
 extern bfd_vma _bfd_mips_elf_sign_extend
   (bfd_vma, int);
 extern void _bfd_mips_elf_merge_symbol_attribute
   (struct elf_link_hash_entry *, const Elf_Internal_Sym *, bfd_boolean, bfd_boolean);
 extern char *_bfd_mips_elf_get_target_dtag (bfd_vma);
-extern char *_bfd_nanomips_elf_get_target_dtag (bfd_vma);
 extern bfd_boolean _bfd_mips_elf_ignore_undef_symbol
   (struct elf_link_hash_entry *);
 extern void _bfd_mips_elf_use_plts_and_copy_relocs

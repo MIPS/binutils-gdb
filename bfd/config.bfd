@@ -1158,11 +1158,15 @@ case "${targ}" in
     ;;
   mips*-sde-elf* | mips*-mti-elf* | mips*-img-elf*)
     targ_defvec=mips_elf32_trad_be_vec
-    targ_selvecs="mips_elf32_trad_le_vec mips_elf32_ntrad_be_vec mips_elf32_ntrad_le_vec mips_elf64_trad_be_vec mips_elf64_trad_le_vec nanomips_elf32_be_vec nanomips_elf32_le_vec nanomips_elf64_be_vec nanomips_elf64_le_vec"
+    targ_selvecs="mips_elf32_trad_le_vec mips_elf32_ntrad_be_vec mips_elf32_ntrad_le_vec mips_elf64_trad_be_vec mips_elf64_trad_le_vec"
     ;;
-  nanomips*-img-elf* | nanomips*-img-linux*)
+  nanomips*-img-elf*)
     targ_defvec=nanomips_elf32_le_vec
-    targ_selvecs="mips_elf32_trad_be_vec mips_elf32_trad_le_vec mips_elf32_ntrad_be_vec mips_elf32_ntrad_le_vec mips_elf64_trad_be_vec mips_elf64_trad_le_vec nanomips_elf32_be_vec nanomips_elf64_be_vec nanomips_elf64_le_vec"
+    targ_selvecs="nanomips_elf32_be_vec nanomips_elf64_be_vec nanomips_elf64_le_vec"
+    ;;
+  nanomips*-img-linux*)
+    targ_defvec=nanomips_elf32_le_vec
+    targ_selvecs="nanomips_elf32_be_vec nanomips_elf64_be_vec nanomips_elf64_le_vec"
     ;;
   mips*el-*-elf* | mips*-*-chorus*)
     targ_defvec=mips_elf32_le_vec
@@ -1194,11 +1198,11 @@ case "${targ}" in
     ;;
   mips*el-*-linux*)
     targ_defvec=mips_elf32_trad_le_vec
-    targ_selvecs="mips_elf32_trad_be_vec mips_ecoff_le_vec mips_ecoff_be_vec mips_elf32_ntrad_le_vec mips_elf64_trad_le_vec mips_elf32_ntrad_be_vec mips_elf64_trad_be_vec nanomips_elf32_le_vec nanomips_elf64_le_vec"
+    targ_selvecs="mips_elf32_trad_be_vec mips_ecoff_le_vec mips_ecoff_be_vec mips_elf32_ntrad_le_vec mips_elf64_trad_le_vec mips_elf32_ntrad_be_vec mips_elf64_trad_be_vec"
     ;;
   mips*-*-linux*)
     targ_defvec=mips_elf32_trad_be_vec
-    targ_selvecs="mips_elf32_trad_le_vec mips_ecoff_be_vec mips_ecoff_le_vec mips_elf32_ntrad_be_vec mips_elf64_trad_be_vec mips_elf32_ntrad_le_vec mips_elf64_trad_le_vec nanomips_elf32_be_vec nanomips_elf64_be_vec"
+    targ_selvecs="mips_elf32_trad_le_vec mips_ecoff_be_vec mips_ecoff_le_vec mips_elf32_ntrad_be_vec mips_elf64_trad_be_vec mips_elf32_ntrad_le_vec mips_elf64_trad_le_vec"
     ;;
   mips64*el-*-freebsd* | mips64*el-*-kfreebsd*-gnu)
     # FreeBSD vectors

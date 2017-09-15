@@ -1180,6 +1180,9 @@ extern void bfd_mips_elf_swap_abiflags_v0_in
 extern void bfd_mips_elf_swap_abiflags_v0_out
   (bfd *, const Elf_Internal_ABIFlags_v0 *, Elf_External_ABIFlags_v0 *);
 
+/* MIPS ABI flags data access.  For the disassembler.  */
+extern Elf_Internal_ABIFlags_v0 *bfd_mips_elf_get_abiflags (bfd *);
+
 /* Masks for the info work of an ODK_EXCEPTIONS descriptor.  */
 #define OEX_FPU_MIN	0x1f	/* FPEs which must be enabled.  */
 #define OEX_FPU_MAX	0x1f00	/* FPEs which may be enabled.  */
@@ -1241,9 +1244,7 @@ extern void bfd_mips_elf_swap_abiflags_v0_out
 #define AFL_ASE_MICROMIPS    0x00000800 /* MICROMIPS ASE.  */
 #define AFL_ASE_XPA          0x00001000 /* XPA ASE.  */
 #define AFL_ASE_DSPR3        0x00002000 /* DSP R3 ASE.  */
-#define AFL_ASE_xNMS         0x00040000 /* not nanoMIPS Subset.  */
-#define AFL_ASE_TLB          0x00080000 /* TLB ASE.  */
-#define AFL_ASE_MASK         0x000fffff /* All ASEs.  */
+#define AFL_ASE_MASK         0x00007fff /* All ASEs.  */
 
 /* Values for the isa_ext word of an ABI flags structure.  */
 
@@ -1271,7 +1272,7 @@ extern void bfd_mips_elf_swap_abiflags_v0_out
 #define AFL_FLAGS1_ODDSPREG   1	 /* Uses odd single-precision registers.  */
 
 /* Masks for the flags2 word of an ABI flags structure.  */
-#define AFL_FLAGS2_LINKRELAX      2	 /* Module is safe to relax.  */
+#define AFL_FLAGS2_LINKRELAX      2     /* Module is safe to relax.  */
 
 extern unsigned int bfd_mips_isa_ext (bfd *);
 

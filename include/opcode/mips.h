@@ -381,12 +381,8 @@ enum mips_operand_type {
   OP_ENTRY_EXIT_LIST,
 
   /* The register list and frame size for a MIPS16 SAVE or RESTORE
-     instruction. Only register-list for microMIPS R7 SAVE or RESTORE */
+     instruction.  */
   OP_SAVE_RESTORE_LIST,
-
-  /* The floating-point register list for a microMIPS R7 SAVE or RESTORE
-     instruction. */
-  OP_SAVE_RESTORE_FP_LIST,
 
   /* A 10-bit field VVVVVNNNNN used for octobyte and quadhalf instructions:
 
@@ -439,13 +435,17 @@ enum mips_operand_type {
   OP_MAPPED_STRING,
   OP_MXU_STRIDE,
 
-  /* Fractured upper immediate PC-offset for uMIPSr7 */
+  /* The floating-point register list for a nanoMIPS SAVE or RESTORE
+     instruction. */
+  OP_SAVE_RESTORE_FP_LIST,
+
+  /* Fractured upper immediate PC-offset for nanoMIPS */
   OP_HI20_PCREL,
 
-  /* Fractured upper immediate 20-bit signed integer for uMIPSr7 */
+  /* Fractured upper immediate 20-bit signed integer for nanoMIPS */
   OP_HI20_INT,
 
-  /* Fractured upper immediate 20-bit scaled integer for uMIPSr7 */
+  /* Fractured upper immediate 20-bit scaled integer for nanoMIPS */
   OP_HI20_SCALE,
 
   /* A non-zero PC-relative offset.  */
@@ -477,6 +477,12 @@ enum mips_operand_type {
 
   /* Immediate (non-relocatable) word operand.  */
   OP_IMM_WORD,
+
+  /* Base register for limited types of offsets.  */
+  OP_BASE_CHECK_OFFSET,
+
+  /* Copy over bits from another part of instruction.  */
+  OP_COPY_BITS,
 };
 
 /* Enumerates the types of MIPS register.  */
@@ -1042,7 +1048,7 @@ mips_opcode_32bit_p (const struct mips_opcode *mo)
    "+R" must be program counter
    "-a" (-262144 .. 262143) << 2 at bit 0
    "-b" (-131072 .. 131071) << 3 at bit 0
-   "-d" Same as destination register (GP or MSA)
+   "-d" Same as destination register GP
    "-s" 5 bit source register specifier (OP_*_RS) not $0
    "-t" 5 bit source register specifier (OP_*_RT) not $0
    "-u" 5 bit source register specifier (OP_*_RT) greater than OP_*_RS
@@ -1218,22 +1224,20 @@ mips_opcode_32bit_p (const struct mips_opcode *mo)
 #define INSN_ISA32R3              8
 #define INSN_ISA32R5              9
 #define INSN_ISA32R6              10
-#define INSN_ISAN32R6             11
-#define INSN_ISA64                12
-#define INSN_ISA64R2              13
-#define INSN_ISA64R3              14
-#define INSN_ISA64R5              15
-#define INSN_ISA64R6              16
-#define INSN_ISAN64R6             17
+#define INSN_ISA64                11
+#define INSN_ISA64R2              12
+#define INSN_ISA64R3              13
+#define INSN_ISA64R5              14
+#define INSN_ISA64R6              15
 /* Below this point the INSN_* values correspond to combinations of ISAs.
    They are only for use in the opcodes table to indicate membership of
    a combination of ISAs that cannot be expressed using the usual inclusion
    ordering on the above INSN_* values.  */
-#define INSN_ISA3_32              18
-#define INSN_ISA3_32R2            19
-#define INSN_ISA4_32              20
-#define INSN_ISA4_32R2            21
-#define INSN_ISA5_32R2            22
+#define INSN_ISA3_32              16
+#define INSN_ISA3_32R2            17
+#define INSN_ISA4_32              18
+#define INSN_ISA4_32R2            19
+#define INSN_ISA5_32R2            20
 
 /* The R6 definitions shown below state that they support all previous ISAs.
    This is not actually true as some instructions are removed in R6.
@@ -1279,13 +1283,11 @@ static const unsigned int mips_isa_table[] = {
   INSN_UPTO32R3,
   INSN_UPTO32R5,
   INSN_UPTO32R6,
-  ISAF(N32R6),
   INSN_UPTO64,
   INSN_UPTO64R2,
   INSN_UPTO64R3,
   INSN_UPTO64R5,
-  INSN_UPTO64R6,
-  ISAF(N32R6) | ISAF(N64R6)
+  INSN_UPTO64R6
 };
 #undef ISAF
 
@@ -1370,11 +1372,16 @@ static const unsigned int mips_isa_table[] = {
 /* MIPS16e2 Extension.  */
 #define ASE_MIPS16E2		0x00040000
 /* MIPS16e2 MT ASE instructions.  */
-#define ASE_MIPS16E2_MT		0x00080000
+#define ASE_MIPS16E2_MT   0x00080000
+/* Global INValidate Extension. */
+#define ASE_GINV    0x00800000
 /* Low Power instructions on nanoMIPS.  */
-#define ASE_xNMS			0x02000000
+#define ASE_xNMS    0x02000000
 /* TLB control instructions on nanoMIPS.  */
-#define ASE_TLB			0x04000000
+#define ASE_TLB     0x04000000
+/* The Virtualization ASE has Global INValidate extension instructions
+   which are only valid when both ASEs are enabled. */
+#define ASE_VIRT_GINV   0x01000000
 
 #define       ISA_UNKNOWN     0               /* Gas internal use.  */
 #define       ISA_MIPS1       INSN_ISA1
@@ -1395,9 +1402,6 @@ static const unsigned int mips_isa_table[] = {
 
 #define       ISA_MIPS32R6    INSN_ISA32R6
 #define       ISA_MIPS64R6    INSN_ISA64R6
-
-#define       ISA_NANOMIPS32R6	INSN_ISAN32R6
-#define       ISA_NANOMIPS64R6	INSN_ISAN64R6
 
 /* CPU defines, use instead of hardcoding processor number. Keep this
    in sync with bfd/archures.c in order for machine selection to work.  */
@@ -1431,14 +1435,12 @@ static const unsigned int mips_isa_table[] = {
 #define CPU_MIPS32R3	34
 #define CPU_MIPS32R5	36
 #define CPU_MIPS32R6	37
-#define CPU_NANOMIPS32R6 38
 #define CPU_MIPS5       5
 #define CPU_MIPS64      64
 #define CPU_MIPS64R2	65
 #define CPU_MIPS64R3	66
 #define CPU_MIPS64R5	68
 #define CPU_MIPS64R6	69
-#define CPU_NANOMIPS64R6 70
 #define CPU_SB1         12310201        /* octal 'SB', 01.  */
 #define CPU_LOONGSON_2E 3001
 #define CPU_LOONGSON_2F 3002
@@ -1528,13 +1530,6 @@ cpu_is_member (int cpu, unsigned int mask)
     case CPU_MIPS64R6:
       return ((mask & INSN_ISA_MASK) == INSN_ISA32R6)
 	     || ((mask & INSN_ISA_MASK) == INSN_ISA64R6);
-
-    case CPU_NANOMIPS32R6:
-      return (mask & INSN_ISA_MASK) == INSN_ISAN32R6;
-
-    case CPU_NANOMIPS64R6:
-      return ((mask & INSN_ISA_MASK) == INSN_ISAN32R6)
-	     || ((mask & INSN_ISA_MASK) == INSN_ISAN64R6);
 
     default:
       return FALSE;

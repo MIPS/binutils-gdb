@@ -1,5 +1,6 @@
 #include "sim-main.h"
 #include "elf/mips.h"
+#include "elf/nanomips.h"
 
 /* NMS Flag */
 int nms_flag = -1;
@@ -10,12 +11,12 @@ void
 set_nms_flag (SIM_DESC sd)
 {
   Elf_Internal_ABIFlags_v0 *abiflags;
-  abiflags = bfd_mips_elf_get_abiflags (STATE_PROG_BFD(sd));
+  abiflags = _bfd_nanomips_elf_get_abiflags (STATE_PROG_BFD(sd));
 
   nms_flag = 0;
 
   if (abiflags != NULL
-      && ((abiflags->ases & AFL_ASE_xNMS) != 0))
+      && ((abiflags->ases & NANOMIPS_ASE_xNMS) != 0))
     nms_flag = 1;
 
   is_nms_flag_set = 1;

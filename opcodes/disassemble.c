@@ -324,7 +324,7 @@ disassembler (bfd *abfd)
       disassemble = print_insn_metag;
       break;
 #endif
-#if defined (ARCH_mips) || defined (ARCH_nanomips)
+#if defined (ARCH_mips)
     case bfd_arch_mips:
       if (bfd_big_endian (abfd))
 	disassemble = print_insn_big_mips;
@@ -345,6 +345,11 @@ disassembler (bfd *abfd)
 #ifdef ARCH_mn10300
     case bfd_arch_mn10300:
       disassemble = print_insn_mn10300;
+      break;
+#endif
+#ifdef ARCH_nanomips
+    case bfd_arch_nanomips:
+      disassemble = print_insn_nanomips;
       break;
 #endif
 #ifdef ARCH_nios2
@@ -574,6 +579,9 @@ disassembler_usage (FILE *stream ATTRIBUTE_UNUSED)
 #ifdef ARCH_mips
   print_mips_disassembler_options (stream);
 #endif
+#ifdef ARCH_nanomips
+  print_nanomips_disassembler_options (stream);
+#endif
 #ifdef ARCH_powerpc
   print_ppc_disassembler_options (stream);
 #endif
@@ -669,11 +677,9 @@ disassemble_init_for_target (struct disassemble_info * info)
       disassemble_init_s390 (info);
       break;
 #endif
-#if defined(ARCH_mips) || defined(ARCH_nanomips) /* FIXME: Leave only nanomips eventually */
-    case bfd_arch_mips:
-      if (info->mach == bfd_mach_nanomipsisa32r6
-	  || info->mach == bfd_mach_nanomipsisa64r6)
-	info->disassembler_needs_relocs = TRUE;
+#ifdef ARCH_nanomips
+    case bfd_arch_nanomips:
+      info->disassembler_needs_relocs = TRUE;
       break;
 #endif
     default:
