@@ -788,7 +788,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 0,			/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-  HOWTO (R_NANOMIPS_JALR,	/* type */
+  HOWTO (R_NANOMIPS_JALR32,	/* type */
 	 0,			/* rightshift */
 	 0,			/* size (0 = byte, 1 = short, 2 = long) */
 	 0,			/* bitsize */
@@ -796,13 +796,26 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 0,			/* bitpos */
 	 complain_overflow_dont,/* complain_on_overflow */
 	 NULL, 			/* special handler.  */
-	 "R_NANOMIPS_JALR",	/* name */
+	 "R_NANOMIPS_JALR32",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 0,			/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-  EMPTY_HOWTO (74),
+  HOWTO (R_NANOMIPS_JALR16,	/* type */
+	 0,			/* rightshift */
+	 0,			/* size (0 = byte, 1 = short, 2 = long) */
+	 0,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont,/* complain_on_overflow */
+	 NULL, 			/* special handler.  */
+	 "R_NANOMIPS_JALR16",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0,			/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
   EMPTY_HOWTO (75),
   EMPTY_HOWTO (76),
   EMPTY_HOWTO (77),
@@ -1122,7 +1135,6 @@ static const struct elf_reloc_map nanomips_reloc_map[] =
   { BFD_RELOC_NANOMIPS_RELAX, R_NANOMIPS_RELAX },
   { BFD_RELOC_NANOMIPS_NORELAX, R_NANOMIPS_NORELAX },
   { BFD_RELOC_NANOMIPS_SAVERESTORE, R_NANOMIPS_SAVERESTORE },
-  { BFD_RELOC_NANOMIPS_JALR, R_NANOMIPS_JALR },
 
   { BFD_RELOC_NANOMIPS_TLS_GD, R_NANOMIPS_TLS_GD },
   { BFD_RELOC_NANOMIPS_TLS_LDM, R_NANOMIPS_TLS_LDM },

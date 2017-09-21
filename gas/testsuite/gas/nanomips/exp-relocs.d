@@ -81,3 +81,8 @@ Disassembly of section \.text:
   [0-9a-f]+:	608b 0000 	lwpc	a0,0 <test>
   [0-9a-f]+:	0000 
 			[0-9a-f]+: R_NANOMIPS_GOTPC_I32	test
+  [0-9a-f]+:	db30      	jalrc	t9
+			[0-9a-f]+: R_NANOMIPS_JALR32	test
+  [0-9a-f]+:	db30      	jalrc	t9
+			[0-9a-f]+: R_NANOMIPS_JALR16	test
+#pass
