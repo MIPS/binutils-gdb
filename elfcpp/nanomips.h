@@ -94,7 +94,8 @@ enum
   R_NANOMIPS_RELAX = 70,
   R_NANOMIPS_SAVERESTORE = 71,
   R_NANOMIPS_INSN16 = 72,
-  R_NANOMIPS_JALR = 73,
+  R_NANOMIPS_JALR32 = 73,
+  R_NANOMIPS_JALR16 = 74
 };
 
 // Processor specific flags for the ELF header e_flags field.

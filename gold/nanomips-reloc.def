@@ -74,7 +74,8 @@ NRD(FIXED,              PLACEHOLDER,        0,         0,          0,           
 NRD(NORELAX,            PLACEHOLDER,        0,         0,          0,                 0)
 NRD(RELAX,              PLACEHOLDER,        0,         0,          0,                 0)
 NRD(INSN16,             PLACEHOLDER,        0,         0,          0,                 0)
-NRD(JALR,               GOT,                32,        0,          0xfc00f000,        0)
+NRD(JALR32,             GOT,                32,        0,          0xfc00f000,        0)
+NRD(JALR16,             GOT,                16,        0,          0xfc1f,            0)
 
 //
 // Instruction definition
@@ -116,6 +117,8 @@ NRD(JALR,               GOT,                32,        0,          0xfc00f000,  
 #define BLTUC32 { 0xa800c000, elfcpp::R_NANOMIPS_PC14_S1, "bltuc" }
 // bnec $reg, $reg, sym
 #define BNEC32 { 0xa8000000, elfcpp::R_NANOMIPS_PC14_S1, "bnec" }
+// jalrc $reg
+#define JALRC32 { 0x48000000, elfcpp::R_NANOMIPS_NONE, "jalrc" }
 // lapc $reg, sym
 #define LAPC32 { 0x04000000, elfcpp::R_NANOMIPS_PC21_S1, "lapc" }
 // lui $reg, %gprel_hi(sym)
@@ -255,10 +258,12 @@ NGT(GOT_DISP,          0x40000002,        "lw[gp]",               8,        N,  
 NGT(GOT_CALL,          0x40000002,        "lw[gp]",              -4,        N,        DELETE,               { })
 NGT(GOT_CALL,          0x40000002,        "lw[gp]",               2,        N,        GOTPCREL_NMS,         { LWPC48_GOT })
 NGT(GOT_CALL,          0x40000002,        "lw[gp]",               4,        N,        GOTPCREL_LONG,        { ALUIPC32_GOTHI20, LW32_GOTLO12 })
-NGT(JALR,              0x48000000,        "jalrc",               -2,        N,        PCREL16,              { BALC16 })
-NGT(JALR,              0x48000000,        "jalrc",                0,        N,        PCREL32,              { BALC32 })
-NGT(JALR,              0x48000000,        "jalrc",                4,        N,        PCREL_NMS,            { LAPC48, JALRC16 })
-NGT(JALR,              0x48000000,        "jalrc",                6,        N,        PCREL_LONG,           { ALUIPC32_HI20, ORI32_LO12, JALRC16 })
+NGT(JALR32,            0x48000000,        "jalrc",                0,        N,        PCREL32,              { BALC32 })
+NGT(JALR32,            0x48000000,        "jalrc",                8,        N,        PCREL_LONG,           { ALUIPC32_HI20, ORI32_LO12, JALRC32 })
+NGT(JALR16,            0xd810,            "jalrc[16]",            0,        N,        PCREL16,              { BALC16 })
+NGT(JALR16,            0xd810,            "jalrc[16]",            2,        N,        PCREL32,              { BALC32 })
+NGT(JALR16,            0xd810,            "jalrc[16]",            6,        N,        PCREL_NMS,            { LAPC48, JALRC16 })
+NGT(JALR16,            0xd810,            "jalrc[16]",            8,        N,        PCREL_LONG,           { ALUIPC32_HI20, ORI32_LO12, JALRC16 })
 NGT(GOT_PAGE,          0x40000002,        "lw[gp]",              -4,        N,        DELETE,               { })
 NGT(GOT_PAGE,          0x40000002,        "lw[gp]",               2,        N,        GOTPCREL_NMS,         { LWPC48_GOT })
 NGT(GOT_PAGE,          0x40000002,        "lw[gp]",               4,        N,        GOTPCREL_LONG,        { ALUIPC32_GOTHI20, LW32_GOTLO12 })

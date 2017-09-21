@@ -2381,11 +2381,24 @@ Nanomips_transformations<size, big_endian>::find_property(
         // Transform into aluipc, [ls]x.
         type =  TT_PCREL_LONG;
     }
-  else if (r_type == elfcpp::R_NANOMIPS_JALR)
+  else if (r_type == elfcpp::R_NANOMIPS_JALR32)
     {
       Address address = view_address + reloc.get_r_offset();
       Valtype value =
         psymval->value(relobj, reloc.get_r_addend()) - address - 4;
+
+      if (!this->check_overflow<26>(value, CHECK_SIGNED))
+        // Transform into balc.
+        type = TT_PCREL32;
+      else
+        // Transform into aluipc, ori, jalrc.
+        type = TT_PCREL_LONG;
+    }
+  else if (r_type == elfcpp::R_NANOMIPS_JALR16)
+    {
+      Address address = view_address + reloc.get_r_offset();
+      Valtype value =
+        psymval->value(relobj, reloc.get_r_addend()) - address - 2;
 
       if (!this->check_overflow<11>(value, CHECK_SIGNED))
         // Transform into balc[16].
@@ -2421,7 +2434,8 @@ Nanomips_transformations<size, big_endian>::check_range(
   switch (r_type)
     {
     case elfcpp::R_NANOMIPS_GOT_OFST:
-    case elfcpp::R_NANOMIPS_JALR:
+    case elfcpp::R_NANOMIPS_JALR32:
+    case elfcpp::R_NANOMIPS_JALR16:
       return !got_entry;
     case elfcpp::R_NANOMIPS_GOT_DISP:
     case elfcpp::R_NANOMIPS_GOT_PAGE:
@@ -2521,7 +2535,34 @@ Nanomips_transformations<size, big_endian>::transform(
           elfcpp::Swap<16, big_endian>::writeval(view + 6, second_insn);
         }
     }
-  else if (r_type == elfcpp::R_NANOMIPS_JALR && type == TT_PCREL_NMS)
+  else if ((r_type == elfcpp::R_NANOMIPS_JALR32
+            || r_type == elfcpp::R_NANOMIPS_JALR16)
+           && type == TT_PCREL_LONG)
+    {
+      // Change existing relocation.
+      reloc_write.put_r_info(
+        elfcpp::elf_r_info<size>(r_sym, transform_property->reloc(0)));
+
+      // Add new relocation.
+      unsigned int new_r_type = transform_property->reloc(1);
+      this->add_reloc(r_sym, new_r_type, r_offset + 4, r_addend, relnum);
+
+      // Write instructions.
+      unsigned int reg32 = (r_type == elfcpp::R_NANOMIPS_JALR32
+                            ? Insn_utilities::sreg_32(insn)
+                            : (insn >> 5) & 0x1f);
+      Valtype32 first_insn = (transform_property->insn(0) | (reg32 << 21));
+      Valtype32 second_insn = (transform_property->insn(1)
+                               | (reg32 << 21)
+                               | (reg32 << 16));
+      Insn_utilities::put_insn_32(view, first_insn);
+      Insn_utilities::put_insn_32(view + 4, second_insn);
+      if (r_type == elfcpp::R_NANOMIPS_JALR32)
+        Insn_utilities::put_insn_32(view + 8, insn);
+      else
+        elfcpp::Swap<16, big_endian>::writeval(view + 8, insn);
+    }
+  else if (r_type == elfcpp::R_NANOMIPS_JALR16 && type == TT_PCREL_NMS)
     {
       // Change existing relocation.
       reloc_write.put_r_info(
@@ -2530,13 +2571,11 @@ Nanomips_transformations<size, big_endian>::transform(
       reloc_write.put_r_offset(r_offset + 2);
 
       // Write instructions.
-      unsigned int sreg32 = Insn_utilities::sreg_32(insn);
+      unsigned int reg32 = (insn >> 5) & 0x1f;
       Valtype16 lapc_insn =
-        static_cast<Valtype16>(transform_property->insn(0)) | (sreg32 << 5);
-      Valtype16 jalrc_insn =
-        static_cast<Valtype16>(transform_property->insn(1)) | (sreg32 << 5);
+        static_cast<Valtype16>(transform_property->insn(0)) | (reg32 << 5);
       Insn_utilities::put_insn_48(view, lapc_insn);
-      elfcpp::Swap<16, big_endian>::writeval(view + 6, jalrc_insn);
+      elfcpp::Swap<16, big_endian>::writeval(view + 6, insn);
     }
   else if (type >= TT_GPREL16_WORD && type < TT_GPREL_LONG)
     {
@@ -2552,7 +2591,7 @@ Nanomips_transformations<size, big_endian>::transform(
         {
           Valtype16 expand_insn =
             static_cast<Valtype16>(transform_property->insn(0));
-          if (r_type != elfcpp::R_NANOMIPS_JALR)
+          if (r_type != elfcpp::R_NANOMIPS_JALR16)
             expand_insn |= ((Insn_utilities::treg_32(insn) & 7) << 7);
           elfcpp::Swap<16, big_endian>::writeval(view, expand_insn);
         }
@@ -2560,7 +2599,8 @@ Nanomips_transformations<size, big_endian>::transform(
         {
           // Write 32bit instruction.
           Valtype32 expand_insn = transform_property->insn(0);
-          if (r_type != elfcpp::R_NANOMIPS_JALR)
+          if (r_type != elfcpp::R_NANOMIPS_JALR32
+              && r_type != elfcpp::R_NANOMIPS_JALR16)
             expand_insn |= (Insn_utilities::treg_32(insn) << 21);
           Insn_utilities::put_insn_32(view, expand_insn);
         }
@@ -2615,24 +2655,13 @@ Nanomips_transformations<size, big_endian>::transform(
       this->add_reloc(r_sym, new_r_type, r_offset + 4, r_addend, relnum);
 
       // Write instructions.
-      bool jalr_reloc = r_type == elfcpp::R_NANOMIPS_JALR;
-      unsigned int reg32 = (jalr_reloc
-                            ? Insn_utilities::sreg_32(insn)
-                            : Insn_utilities::treg_32(insn));
-      Valtype32 first_insn = (transform_property->insn(0) | (reg32 << 21));
+      unsigned int treg32 = Insn_utilities::treg_32(insn);
+      Valtype32 first_insn = (transform_property->insn(0) | (treg32 << 21));
       Valtype32 second_insn = (transform_property->insn(1)
-                               | (reg32 << 21)
-                               | (reg32 << 16));
+                               | (treg32 << 21)
+                               | (treg32 << 16));
       Insn_utilities::put_insn_32(view, first_insn);
       Insn_utilities::put_insn_32(view + 4, second_insn);
-      if (jalr_reloc)
-        {
-          // This can be only true if type is TT_PCREL_LONG.
-          gold_assert(type == TT_PCREL_LONG);
-          Valtype16 jalrc_insn =
-            static_cast<Valtype16>(transform_property->insn(2)) | (reg32 << 5);
-          elfcpp::Swap<16, big_endian>::writeval(view + 8, jalrc_insn);
-        }
     }
   else
     gold_unreachable();
@@ -2743,7 +2772,8 @@ Nanomips_relax_insn<size, big_endian>::find_property(
     case elfcpp::R_NANOMIPS_GOT_PAGE:
     case elfcpp::R_NANOMIPS_GOT_OFST:
     case elfcpp::R_NANOMIPS_GOT_CALL:
-    case elfcpp::R_NANOMIPS_JALR:
+    case elfcpp::R_NANOMIPS_JALR32:
+    case elfcpp::R_NANOMIPS_JALR16:
       Base::find_property(gsym, psymval, ptransform_property, reloc, insn,
                           view_address, gp, is_nms);
       break;
@@ -2777,7 +2807,8 @@ Nanomips_relax_insn<size, big_endian>::check_range(
     case elfcpp::R_NANOMIPS_GOT_PAGE:
     case elfcpp::R_NANOMIPS_GOT_OFST:
     case elfcpp::R_NANOMIPS_GOT_CALL:
-    case elfcpp::R_NANOMIPS_JALR:
+    case elfcpp::R_NANOMIPS_JALR32:
+    case elfcpp::R_NANOMIPS_JALR16:
       return Base::check_range(value, r_type, got_entry);
     default:
       gold_unreachable();
@@ -2948,7 +2979,8 @@ Nanomips_expand_insn<size, big_endian>::find_property(
     case elfcpp::R_NANOMIPS_GOT_PAGE:
     case elfcpp::R_NANOMIPS_GOT_OFST:
     case elfcpp::R_NANOMIPS_GOT_CALL:
-    case elfcpp::R_NANOMIPS_JALR:
+    case elfcpp::R_NANOMIPS_JALR32:
+    case elfcpp::R_NANOMIPS_JALR16:
       Base::find_property(gsym, psymval, ptransform_property, reloc, insn,
                           view_address, gp, is_nms);
       break;
@@ -2995,7 +3027,8 @@ Nanomips_expand_insn<size, big_endian>::check_range(
     case elfcpp::R_NANOMIPS_GOT_PAGE:
     case elfcpp::R_NANOMIPS_GOT_OFST:
     case elfcpp::R_NANOMIPS_GOT_CALL:
-    case elfcpp::R_NANOMIPS_JALR:
+    case elfcpp::R_NANOMIPS_JALR32:
+    case elfcpp::R_NANOMIPS_JALR16:
       return Base::check_range(value, r_type, got_entry);
     default:
       gold_unreachable();
@@ -3025,7 +3058,8 @@ Nanomips_expand_insn<size, big_endian>::relocatable_check_range(
       || r_type == elfcpp::R_NANOMIPS_GOT_PAGE
       || r_type == elfcpp::R_NANOMIPS_GOT_OFST
       || r_type == elfcpp::R_NANOMIPS_GOT_CALL
-      || r_type == elfcpp::R_NANOMIPS_JALR)
+      || r_type == elfcpp::R_NANOMIPS_JALR32
+      || r_type == elfcpp::R_NANOMIPS_JALR16)
     return false;
 
   if (rr->strategy(relnum) != Relocatable_relocs::RELOC_RESOLVE)
@@ -4915,7 +4949,8 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
         case elfcpp::R_NANOMIPS_GOT_CALL:
         case elfcpp::R_NANOMIPS_GOT_PAGE:
         case elfcpp::R_NANOMIPS_GOT_OFST:
-        case elfcpp::R_NANOMIPS_JALR:
+        case elfcpp::R_NANOMIPS_JALR32:
+        case elfcpp::R_NANOMIPS_JALR16:
           if (gsym != NULL && gsym->has_got_offset(GOT_TYPE_STANDARD))
             {
               value = gsym->got_offset(GOT_TYPE_STANDARD);
@@ -5326,7 +5361,8 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
   switch (r_type)
     {
     case elfcpp::R_NANOMIPS_NONE:
-    case elfcpp::R_NANOMIPS_JALR:
+    case elfcpp::R_NANOMIPS_JALR32:
+    case elfcpp::R_NANOMIPS_JALR16:
     case elfcpp::R_NANOMIPS_GOT_DISP:
     case elfcpp::R_NANOMIPS_GOT_PAGE:
     case elfcpp::R_NANOMIPS_GOT_CALL:
@@ -5413,7 +5449,8 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
   switch (r_type)
     {
     case elfcpp::R_NANOMIPS_NONE:
-    case elfcpp::R_NANOMIPS_JALR:
+    case elfcpp::R_NANOMIPS_JALR32:
+    case elfcpp::R_NANOMIPS_JALR16:
     case elfcpp::R_NANOMIPS_GOT_OFST:
       break;
     case elfcpp::R_NANOMIPS_32:
