@@ -459,8 +459,8 @@ arch_create nanomips64 64	{} \
 			{ nanomips nanomips_broken nmips64_broken xnms } \
 			{ -march=64r6 --defsym nanomips= \
 			      --defsym nanomips_broken= } {}
-arch_create m6001 32	{} {nanomips_broken} { -march=m6001 } {}
-arch_create i6001 32	{} {nanomips_broken} { -march=i6001 } {}
+arch_create m7000 32	{} {nanomips_broken} { -march=m7000 } {}
+arch_create i7200 32	{} {nanomips_broken} { -march=i7200 } {}
 
 #
 # And now begin the actual tests!  VxWorks uses RELA rather than REL
@@ -912,8 +912,8 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "elf_arch_nanomips32r6" "" nanomips32
     run_dump_test_arch "elf_arch_nanomips32r6s" "" nanomips32s
     run_dump_test_arch "elf_arch_nanomips64r6" "" nanomips64
-    run_dump_test_arch "elf_arch_i6001" "" i6001
-    run_dump_test_arch "elf_arch_m6001" "" m6001
+    run_dump_test_arch "elf_arch_i7200" "" i7200
+    run_dump_test_arch "elf_arch_m7000" "" m7000
     run_list_test_arches "isa-errors" "" [arch_list_matching nanomips]
     run_dump_test_arches "relax-addiu" "" [arch_list_matching nanomips]
     run_dump_test_arches "relax-addiu32" "" [arch_list_matching nanomips]
@@ -948,19 +948,19 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "relax-swap3" "-mlegacyregs" nanomips32s
 
     run_dump_test_arches "nanomips-tlb" "-mtlb" [arch_list_matching nanomips32]
-    run_dump_test_arch "nanomips-tlb" "-mtlb" m6001
+    run_dump_test_arch "nanomips-tlb" "-mtlb" m7000
     run_list_test_arches "nanomips-tlb" "-mno-tlb" \
 	[arch_list_matching nanomips32]
-    run_list_test_arch "nanomips-tlb" "" m6001
+    run_list_test_arch "nanomips-tlb" "" m7000
 
     run_dump_test_opts "nanomips-tlbg" \
 	{"-mvirt" "-mvirt -mtlb"} \
 	[arch_list_matching xnms]
-    run_dump_test_arch "nanomips-tlbg" "-mvirt -mtlb" m6001
+    run_dump_test_arch "nanomips-tlbg" "-mvirt -mtlb" m7000
     run_list_test_opts "nanomips-tlbg" \
 	{"-mvirt -mno-tlb" "-mno-virt -mtlb"} \
 	[arch_list_matching nanomips]
-    run_list_test_arch "nanomips-tlbg" "" m6001
+    run_list_test_arch "nanomips-tlbg" "" m7000
 
     run_list_test_arch "insn-suffix-error" "" nanomips32
     run_dump_test_arch "insn-suffix" "" nanomips32
