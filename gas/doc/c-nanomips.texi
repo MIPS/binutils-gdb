@@ -141,8 +141,8 @@ Generate code for a particular nanoMIPS @var{arch}, which can be the name of a g
 Valid @var{CPU} value are:
 
 @quotation
-i6001,
-m6001
+i7200,
+m7000
 @end quotation
 
 @item -m32
