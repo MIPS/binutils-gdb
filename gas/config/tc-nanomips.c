@@ -11375,7 +11375,7 @@ relaxed_nanomips_stub_call_length (fragS *fragp, asection *sec,
   /* This is for ugly cases of hand-written assembly where the
      order of .ent and .section directives is reversed.  */
   if (stubg_now == NULL || stubg_now->fragp == NULL)
-    return 2;
+    return (toofar16? 4 : 2);
 
   while (stubg_now->fragp->fr_address + stubg_now->fragp->fr_fix > 0
 	 && stubg_now->fragp->fr_address + stubg_now->fragp->fr_fix < callsite)

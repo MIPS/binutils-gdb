@@ -904,7 +904,8 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "expr-diff" "-mlegacyregs" nanomips32r6
     run_list_test_arches "expr-ill" [arch_list_matching nanomips]
 
-    run_list_test_arches "balc-stub" [arch_list_matching nanomips]
+    run_list_test_arches "balc-stub" "-mbalc-stubs" [arch_list_matching nanomips]
+    run_list_test_arches "balc-stub-2" "-mbalc-stubs" [arch_list_matching nanomips]
     run_dump_test_arches "expr-vol" [arch_list_matching nanomips]
 
     run_dump_test_arches "debug-dis" [arch_list_matching nanomips]
