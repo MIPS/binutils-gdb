@@ -669,7 +669,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
 	 complain_overflow_dont,/* complain_on_overflow */
-	 NULL, 			/* special handler.  */
+	 bfd_elf_generic_reloc,	/* special handler.  */
 	 "R_NANOMIPS_ALIGN",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
@@ -683,7 +683,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
 	 complain_overflow_dont,/* complain_on_overflow */
-	 NULL, 			/* special handler.  */
+	 bfd_elf_generic_reloc,	/* special handler.  */
 	 "R_NANOMIPS_FILL",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
@@ -697,7 +697,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
 	 complain_overflow_dont,/* complain_on_overflow */
-	 NULL, 			/* special handler.  */
+	 bfd_elf_generic_reloc,	/* special handler.  */
 	 "R_NANOMIPS_MAX",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
@@ -711,7 +711,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
 	 complain_overflow_dont,/* complain_on_overflow */
-	 NULL, 			/* special handler.  */
+	 bfd_elf_generic_reloc,	/* special handler.  */
 	 "R_NANOMIPS_INSN32",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
@@ -725,7 +725,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
 	 complain_overflow_dont,/* complain_on_overflow */
-	 NULL, 			/* special handler.  */
+	 bfd_elf_generic_reloc,	/* special handler.  */
 	 "R_NANOMIPS_FIXED",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
@@ -739,7 +739,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
 	 complain_overflow_dont,/* complain_on_overflow */
-	 NULL, 			/* special handler.  */
+	 bfd_elf_generic_reloc,	/* special handler.  */
 	 "R_NANOMIPS_NORELAX",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
@@ -753,7 +753,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
 	 complain_overflow_dont,/* complain_on_overflow */
-	 NULL, 			/* special handler.  */
+	 bfd_elf_generic_reloc,	/* special handler.  */
 	 "R_NANOMIPS_RELAX",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
@@ -767,7 +767,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
 	 complain_overflow_dont,/* complain_on_overflow */
-	 NULL, 			/* special handler.  */
+	 bfd_elf_generic_reloc,	/* special handler.  */
 	 "R_NANOMIPS_SAVERESTORE", /* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
@@ -781,7 +781,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
 	 complain_overflow_dont,/* complain_on_overflow */
-	 NULL, 			/* special handler.  */
+	 bfd_elf_generic_reloc,	/* special handler.  */
 	 "R_NANOMIPS_INSN16",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
@@ -795,7 +795,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
 	 complain_overflow_dont,/* complain_on_overflow */
-	 NULL, 			/* special handler.  */
+	 bfd_elf_generic_reloc, /* special handler.  */
 	 "R_NANOMIPS_JALR32",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
@@ -809,7 +809,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
 	 complain_overflow_dont,/* complain_on_overflow */
-	 NULL, 			/* special handler.  */
+	 bfd_elf_generic_reloc, /* special handler.  */
 	 "R_NANOMIPS_JALR16",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */

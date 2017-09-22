@@ -37,8 +37,9 @@ test:
 	addiu	$a0, %got_pcrel_lo(test)
 	addiu	$a0, %got_lo(test)
 	lwpc	$a0, %got_pcrel32(test)
-	.reloc	1f, R_NANOMIPS_JALR32, test
+	.reloc	1f, R_NANOMIPS_JALR32, end
 1:	jalr	$t9
-	.reloc	1f, R_NANOMIPS_JALR16, test
+	.reloc	1f, R_NANOMIPS_JALR16, end
 1:	jalr	$t9
+end:
 	.end	test
