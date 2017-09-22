@@ -9875,12 +9875,6 @@ nanomips_after_parse_args (void)
 }
 
 
-long
-md_pcrel_from (fixS *fixP)
-{
-  return (fixP->fx_where + fixP->fx_frag->fr_address);
-}
-
 /* This is called before the symbol table is processed.  In order to
    work with gcc when using mips-tfile, we must keep all local labels.
    However, in other cases, we want to discard them.  If we were
@@ -10209,10 +10203,8 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
     case BFD_RELOC_NANOMIPS_14_PCREL_S1:
     case BFD_RELOC_NANOMIPS_21_PCREL_S1:
     case BFD_RELOC_NANOMIPS_25_PCREL_S1:
-      /* We adjust the offset back to even.  */
       if (! fixP->fx_done)
 	break;
-
       /* Should never visit here, because we keep the relocation.  */
       abort ();
       break;
@@ -11666,25 +11658,10 @@ tc_gen_reloc (asection *section ATTRIBUTE_UNUSED, fixS *fixp)
   *reloc->sym_ptr_ptr = symbol_get_bfdsym (fixp->fx_addsy);
   reloc->address = fixp->fx_frag->fr_address + fixp->fx_where;
 
-  if (fixp->fx_pcrel)
-    {
-      gas_assert (fixp->fx_r_type == BFD_RELOC_32_PCREL
-		  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_4_PCREL_S1
-		  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_7_PCREL_S1
-		  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_10_PCREL_S1
-		  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_11_PCREL_S1
-		  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_14_PCREL_S1
-		  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_21_PCREL_S1
-		  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_25_PCREL_S1
-		  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_PCREL_HI20
-		  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_PC_I32
-		  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_GOTPC_HI20
-		  || fixp->fx_r_type == BFD_RELOC_NANOMIPS_GOTPC_I32);
-
-      /* At this point, fx_addnumber is "symbol offset - pcrel address".
-	 Relocations want only the symbol offset.  */
-      reloc->addend = fixp->fx_addnumber + reloc->address;
-    }
+  if (fixp->fx_pcrel && fixp->fx_r_type == BFD_RELOC_32_PCREL)
+    /* At this point, fx_addnumber is "symbol offset - pcrel address".
+       Relocations want only the symbol offset.  */
+    reloc->addend = fixp->fx_addnumber + reloc->address;
   else
     reloc->addend = fixp->fx_addnumber;
 
@@ -11737,7 +11714,7 @@ tc_gen_reloc (asection *section ATTRIBUTE_UNUSED, fixS *fixp)
 	      reloc->sym_ptr_ptr = (asymbol **) xmalloc (sizeof (asymbol *));
 	      *reloc->sym_ptr_ptr = symbol_get_bfdsym (fixp_iter->fx_addsy);
 	      reloc->address = fixp_iter->fx_frag->fr_address + fixp_iter->fx_where;
-	      reloc->addend = fixp_iter->fx_addnumber + reloc->address;
+	      reloc->addend = fixp_iter->fx_addnumber;
 	      reloc->howto = bfd_reloc_type_lookup (stdoutput, fixp_iter->fx_r_type);
 
 	      fixp_iter->fx_done = TRUE;

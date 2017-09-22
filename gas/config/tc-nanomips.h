@@ -189,4 +189,6 @@ extern int nanomips_validate_fix_sub (struct fix *);
 
 #define LEX_BR LEX_NAME
 
+#define MD_PCREL_FROM_SECTION(FIX,SEG) 0
+
 #endif /* TC_NANOMIPS */
