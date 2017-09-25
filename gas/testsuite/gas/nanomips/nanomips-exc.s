@@ -276,6 +276,18 @@ test:
 	mul	$r18, $r21, $r18
 	mul	$r23, $r8, $r23
 
+	beqc	$r6, $r7, 1f
+	beqc	$r6, $r6, 1f
+	beqc 	$r7, $r6, 1f
+	beqc 	$r6, $r0, 1f
+	nop32
+1:
+	bnec	$r6, $r7, 2f
+	bnec	$r6, $r6, 2f
+	bnec 	$r7, $r6, 2f
+	bnec 	$r6, $r0, 2f
+	nop32
+2:
 	.end	test
 	.align	2
 	.space	8

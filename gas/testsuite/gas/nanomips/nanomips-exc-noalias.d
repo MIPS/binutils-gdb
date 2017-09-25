@@ -245,4 +245,23 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 3c78      	mul	a7,a7,s0
 [0-9a-f]+ <[^>]+> 3e5d      	mul	s2,s2,s5
 [0-9a-f]+ <[^>]+> 3ee8      	mul	s7,s7,a4
-	\.\.\.
+
+[0-9a-f]+ <[^>]+> dbef      	beqc	a2,a3,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_NANOMIPS_PC4_S1	.L11
+[0-9a-f]+ <[^>]+> 88c6 0000 	beqc	a2,a2,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	.L11
+[0-9a-f]+ <[^>]+> dbef      	beqc	a2,a3,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_NANOMIPS_PC4_S1	.L11
+[0-9a-f]+ <[^>]+> 9b00      	beqzc	a2,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	.L11
+[0-9a-f]+ <[^>]+> 8000 c000 	nop
+[0-9a-f]+ <[^>]+> db7f      	bnec	a3,a2,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_NANOMIPS_PC4_S1	.L21
+[0-9a-f]+ <[^>]+> db6f      	bnec	a2,a2,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_NANOMIPS_PC4_S1	.L21
+[0-9a-f]+ <[^>]+> db7f      	bnec	a3,a2,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_NANOMIPS_PC4_S1	.L21
+[0-9a-f]+ <[^>]+> bb00      	bnezc	a2,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	.L21
+[0-9a-f]+ <[^>]+> 8000 c000 	nop
+#pass

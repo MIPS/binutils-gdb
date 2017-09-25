@@ -200,19 +200,19 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 8043 d608 	byterevh	t4,t5
 [0-9a-f]+ <[^>]+> 8043 d608 	byterevh	t4,t5
 [0-9a-f]+ <[^>]+> 8043 d608 	byterevh	t4,t5
-[0-9a-f]+ <[^>]+> 04bf fffd 	lapc	a1,[0-9a-f]+ <test\+0x21a>
+[0-9a-f]+ <[^>]+> 04bf fffd 	lapc	a1,0000021a <[^>]+>
 [0-9a-f]+ <[^>]+> 04a0 0000 	lapc	a1,[0-9a-f]+ <test\+0x222>
 [0-9a-f]+ <[^>]+> 04a0 0004 	lapc	a1,[0-9a-f]+ <test\+0x22a>
-[0-9a-f]+ <[^>]+> 60a3 fffa ffff 	lapc	a1,[0-9a-f]+ <test\+0x226>
+[0-9a-f]+ <[^>]+> 60a3 fffa ffff 	lapc	a1,00000226 <[^>]+>
 [0-9a-f]+ <[^>]+> 60a3 0000 0000 	lapc	a1,[0-9a-f]+ <test\+0x232>
 [0-9a-f]+ <[^>]+> 60a3 0002 0000 	lapc	a1,[0-9a-f]+ <test\+0x23a>
-[0-9a-f]+ <[^>]+> 04bf fffe 	lapc	a1,[0-9a-f]+ <test\+0x20023a>
-[0-9a-f]+ <[^>]+> 60a3 fffe 001f 	lapc	a1,[0-9a-f]+ <test\+0x200240>
-[0-9a-f]+ <[^>]+> 04a0 0001 	lapc	a1,[0-9a-f]+ <test\+0xffe00246>
-[0-9a-f]+ <[^>]+> 60a3 fffc ffdf 	lapc	a1,[0-9a-f]+ <test\+0xffe00248>
+[0-9a-f]+ <[^>]+> 04bf fffe 	lapc	a1,0020023a <[^>]+>
+[0-9a-f]+ <[^>]+> 60a3 fffe 001f 	lapc	a1,00200240 <[^>]+>
+[0-9a-f]+ <[^>]+> 04a0 0001 	lapc	a1,[0-9a-f]+ <.*>
+[0-9a-f]+ <[^>]+> 60a3 fffc ffdf 	lapc	a1,[0-9a-f]+ <[^>]+>
 [0-9a-f]+ <[^>]+> e060 0002 	aluipc	t5,00000000 <test>
 			[0-9a-f]+: R_NANOMIPS_PCHI20	test
-[0-9a-f]+ <[^>]+> e062 5002 	aluipc	t5,00025000 <test\+0x25000>
+[0-9a-f]+ <[^>]+> e062 5002 	aluipc	t5,00025000 <[^>]+>
 [0-9a-f]+ <[^>]+> 0063 0000 	addiu	t5,t5,0
 			[0-9a-f]+: R_NANOMIPS_LO12	test
 [0-9a-f]+ <[^>]+> b2c8      	addu	a0,a0,a1
@@ -245,4 +245,22 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 3c78      	mul	a7,a7,s0
 [0-9a-f]+ <[^>]+> 3e5d      	mul	s2,s2,s5
 [0-9a-f]+ <[^>]+> 3ee8      	mul	s7,s7,a4
+[0-9a-f]+ <[^>]+> dbef      	beqc	a2,a3,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_NANOMIPS_PC4_S1	.L11
+[0-9a-f]+ <[^>]+> 88c6 0000 	beqc	a2,a2,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	.L11
+[0-9a-f]+ <[^>]+> dbef      	beqc	a2,a3,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_NANOMIPS_PC4_S1	.L11
+[0-9a-f]+ <[^>]+> 9b00      	beqzc	a2,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	.L11
+[0-9a-f]+ <[^>]+> 8000 c000 	nop
+[0-9a-f]+ <[^>]+> db7f      	bnec	a3,a2,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_NANOMIPS_PC4_S1	.L21
+[0-9a-f]+ <[^>]+> db6f      	bnec	a2,a2,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_NANOMIPS_PC4_S1	.L21
+[0-9a-f]+ <[^>]+> db7f      	bnec	a3,a2,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_NANOMIPS_PC4_S1	.L21
+[0-9a-f]+ <[^>]+> bb00      	bnezc	a2,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_NANOMIPS_PC7_S1	.L21
+[0-9a-f]+ <[^>]+> 8000 c000 	nop
 #pass

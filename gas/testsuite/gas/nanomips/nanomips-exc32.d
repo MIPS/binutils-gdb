@@ -145,8 +145,8 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 04bf fffd 	lapc	a1,[0-9a-f]+ <test\+0x1e0>
 [0-9a-f]+ <[^>]+> 04a0 0000 	lapc	a1,[0-9a-f]+ <test\+0x1e8>
 [0-9a-f]+ <[^>]+> 04a0 0004 	lapc	a1,[0-9a-f]+ <test\+0x1f0>
-[0-9a-f]+ <[^>]+> 04bf fffe 	lapc	a1,[0-9a-f]+ <test\+0x2001ee>
-[0-9a-f]+ <[^>]+> 04a0 0001 	lapc	a1,[0-9a-f]+ <test\+0xffe001f4>
+[0-9a-f]+ <[^>]+> 04bf fffe 	lapc	a1,[0-9a-f]+ <[^>]+>
+[0-9a-f]+ <[^>]+> 04a0 0001 	lapc	a1,[0-9a-f]+ <[^>]+>
 [0-9a-f]+ <[^>]+> e060 0002 	aluipc	t5,00000000 <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_PCHI20	test
 [0-9a-f]+ <[^>]+> e062 5002 	aluipc	t5,00025000 <[^>]+>
@@ -182,4 +182,21 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2170 5818 	mul	a7,s0,a7
 [0-9a-f]+ <[^>]+> 2255 9018 	mul	s2,s5,s2
 [0-9a-f]+ <[^>]+> 22e8 b818 	mul	s7,a4,s7
-	\.\.\.
+[0-9a-f]+ <[^>]+> 88e6 0000 	beqc	a2,a3,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	.L11
+[0-9a-f]+ <[^>]+> 88c6 0000 	beqc	a2,a2,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	.L11
+[0-9a-f]+ <[^>]+> 88c7 0000 	beqc	a3,a2,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	.L11
+[0-9a-f]+ <[^>]+> 8806 0000 	beqzc	a2,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	.L11
+[0-9a-f]+ <[^>]+> 8000 c000 	nop
+[0-9a-f]+ <[^>]+> a8e6 0000 	bnec	a2,a3,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	.L21
+[0-9a-f]+ <[^>]+> a8c6 0000 	bnec	a2,a2,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	.L21
+[0-9a-f]+ <[^>]+> a8c7 0000 	bnec	a3,a2,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	.L21
+[0-9a-f]+ <[^>]+> a806 0000 	bnezc	a2,[0-9a-f]+ <[^>]+>
+			[0-9a-f]+: R_NANOMIPS_PC14_S1	.L21
+#pass

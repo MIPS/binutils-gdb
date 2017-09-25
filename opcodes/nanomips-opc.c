@@ -162,9 +162,9 @@ decode_nanomips_operand (const char *p)
 	case 's': SPECIAL (5, 16, NON_ZERO_REG);
 	case 't': SPECIAL (5, 21, NON_ZERO_REG);
 	case 'u': MAPPED_PREV_CHECK (3, 7, GP, reg_m16_map, TRUE, FALSE, FALSE, FALSE);
-	case 'v': MAPPED_PREV_CHECK (3, 4, GP, reg_m16_map, FALSE, TRUE, TRUE, TRUE);
-	case 'w': MAPPED_PREV_CHECK (3, 7, GP, reg_m16_map, FALSE, TRUE, TRUE, TRUE);
-	case 'x': MAPPED_PREV_CHECK (3, 4, GP, reg_m16_map, TRUE, FALSE, FALSE, FALSE);
+	case 'v': MAPPED_PREV_CHECK (3, 4, GP, reg_m16_map, FALSE, TRUE, FALSE, FALSE);
+	case 'w': MAPPED_PREV_CHECK (3, 7, GP, reg_m16_map, FALSE, TRUE, TRUE, FALSE);
+	case 'x': MAPPED_PREV_CHECK (3, 4, GP, reg_m16_map, TRUE, FALSE, TRUE, FALSE);
 /* 	case 'y': PREV_CHECK (5, 16, FALSE, TRUE, FALSE, FALSE); */
 	}
       break;
