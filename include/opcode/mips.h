@@ -1536,6 +1536,7 @@ cpu_is_member (int cpu, unsigned int mask)
    ISA/ASE bitmask to test against; and CPU is the CPU specific ISA to
    test, or zero if no CPU specific ISA test is desired.  Return true
    if instruction INSN is available to the given ISA and CPU. */
+
 static inline bfd_boolean
 opcode_is_member (const struct mips_opcode *insn, int isa, int ase, int cpu)
 {
@@ -1549,7 +1550,7 @@ opcode_is_member (const struct mips_opcode *insn, int isa, int ase, int cpu)
 	return TRUE;
 
       /* Test for ASE compatibility.  */
-      if (insn->ase != 0 && (ase & insn->ase) == insn->ase)
+      if ((ase & insn->ase) != 0)
 	return TRUE;
 
       /* Test for processor-specific extensions.  */
