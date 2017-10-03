@@ -196,6 +196,15 @@
 /* Choose a default ABI for MIPS targets. */
 #undef MIPS_DEFAULT_ABI
 
+/* Default CPU for nanoMIPS targets. */
+#undef NANOMIPS_CPU_STRING_DEFAULT
+
+/* Generate 64-bit code by default on nanoMIPS targets. */
+#undef NANOMIPS_DEFAULT_64BIT
+
+/* Choose a default ABI for nanoMIPS targets. */
+#undef NANOMIPS_DEFAULT_ABI
+
 /* Define value for nds32_arch_name */
 #undef NDS32_DEFAULT_ARCH_NAME
 

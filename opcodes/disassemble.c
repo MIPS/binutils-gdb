@@ -358,6 +358,11 @@ disassembler (enum bfd_architecture a, bfd_boolean big, unsigned long mach,
       disassemble = print_insn_mn10300;
       break;
 #endif
+#ifdef ARCH_nanomips
+    case bfd_arch_nanomips:
+      disassemble = print_insn_nanomips;
+      break;
+#endif
 #ifdef ARCH_nios2
     case bfd_arch_nios2:
       if (big)
@@ -585,6 +590,9 @@ disassembler_usage (FILE *stream ATTRIBUTE_UNUSED)
 #ifdef ARCH_mips
   print_mips_disassembler_options (stream);
 #endif
+#ifdef ARCH_nanomips
+  print_nanomips_disassembler_options (stream);
+#endif
 #ifdef ARCH_powerpc
   print_ppc_disassembler_options (stream);
 #endif
@@ -678,6 +686,11 @@ disassemble_init_for_target (struct disassemble_info * info)
 #ifdef ARCH_s390
     case bfd_arch_s390:
       disassemble_init_s390 (info);
+      break;
+#endif
+#ifdef ARCH_nanomips
+    case bfd_arch_nanomips:
+      info->disassembler_needs_relocs = TRUE;
       break;
 #endif
     default:

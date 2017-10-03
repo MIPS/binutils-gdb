@@ -147,6 +147,7 @@ case $target_triplet in {
     { mn10300-*-* } { }
     { msp430*-*-* } { }
     { nds32*-*-* } { }
+    { nanomips*-*-* } { }
     { pdp11-*-* } { }
     { tic30*-*-* } { }
     { tic4x*-*-* } { }
@@ -427,6 +428,7 @@ case $target_triplet in {
 case $target_triplet in {
     { alpha*-*-* } { }
     { mips*-*-* } { }
+    { nanomips*-*-* } { }
     { *c54x*-*-* } { }
     { z80-*-* } { }
     default {

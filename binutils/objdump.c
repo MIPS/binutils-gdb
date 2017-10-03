@@ -1198,10 +1198,9 @@ objdump_print_addr (bfd_vma vma,
       sym = * aux->reloc->sym_ptr_ptr;
 
       /* Adjust the vma to the reloc.  */
-      vma += bfd_asymbol_value (sym);
+      vma += bfd_asymbol_value (sym) + aux->reloc->addend;
 
-      if (bfd_is_und_section (bfd_get_section (sym)))
-	skip_find = TRUE;
+      skip_find = TRUE;
     }
 
   if (!skip_find)

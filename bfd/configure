@@ -14496,6 +14496,10 @@ do
     msp430_elf32_vec)		 tb="$tb elf32-msp430.lo elf32.lo $elf" ;;
     msp430_elf32_ti_vec)	 tb="$tb elf32-msp430.lo elf32.lo $elf" ;;
     mt_elf32_vec)		 tb="$tb elf32-mt.lo elf32.lo $elf" ;;
+    nanomips_elf32_be_vec)	 tb="$tb elf32-nanomips.lo elfxx-nanomips.lo elf32.lo $elf ecofflink.lo" ;;
+    nanomips_elf32_le_vec)	 tb="$tb elf32-nanomips.lo elfxx-nanomips.lo elf32.lo $elf ecofflink.lo" ;;
+    nanomips_elf64_be_vec)	 tb="$tb elf64-nanomips.lo elf64.lo elfxx-nanomips.lo elf32.lo $elf ecofflink.lo"; target_size=64 ;;
+    nanomips_elf64_le_vec)	 tb="$tb elf64-nanomips.lo elf64.lo elfxx-nanomips.lo elf32.lo $elf ecofflink.lo"; target_size=64 ;;
     nds32_elf32_be_vec)		 tb="$tb elf32-nds32.lo elf32.lo $elf" ;;
     nds32_elf32_le_vec)		 tb="$tb elf32-nds32.lo elf32.lo $elf" ;;
     nds32_elf32_linux_be_vec)	 tb="$tb elf32-nds32.lo elf32.lo $elf" ;;

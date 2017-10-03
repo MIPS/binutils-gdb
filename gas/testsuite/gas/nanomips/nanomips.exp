@@ -1,0 +1,986 @@
+# Copyright (C) 2017 Free Software Foundation, Inc.
+# Contributed by Imagination Technologies Ltd.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.  
+
+#
+# Some generic nanoMIPS tests
+#
+
+# When adding a new test to this file, try to do the following things:
+#
+# * If testing assembly and disassembly of code, don't forget to test
+# the actual bit encodings of the instructions (using the
+# --show-raw-insn flag to objdump). 
+#
+# * Try to run the test for as many architectures as appropriate,
+# using the "run_dump_test_arches" or "run_list_test_arches" functions,
+# along with the output from a call to "mips_arch_list_matching."
+#
+# * Be sure to compare the test output before and after your testsuite
+# changes, to verify that existing and new tests were run as expected.
+# Look for expect ERROR messages in the testsuite .log file to make sure
+# the new expect code did not contain errors.
+
+# To add support for a new CPU to this file, add an appropriate entry
+# to the sequence of "arch_create" function calls below, and test
+# the result.  The new CPU should automatically be used when running
+# various tests.  If the new CPU is the default CPU for any tool
+# targets, make sure the call to "arch_create" reflects that fact.
+
+
+# The functions below create and manipulate an "architecture data
+# array" which contains entries for each MIPS architecture (or CPU)
+# known to these tests.  The array contains the following information
+# for each architecture, indexed by the name of the architecture
+# described by the entry:
+#
+# displayname: The name of the entry to be used for pretty-printing.
+#
+# gprsize: The size in bits of General Purpose Registers provided by
+# the architecture (must be 32 or 64).
+#
+# props: A list of text strings which are associated with the
+# architecture.  These include the architecture name as well as
+# information about what instructions the CPU supports.  When matching
+# based on properties, an additional property is added to the normal
+# property list, "gpr<gprsize>" so that tests can match CPUs which
+# have GPRs of a specific size.  The following properties are most
+# useful when matching properties for generic (i.e., not CPU-specific)
+# tests:
+#
+#	mips1, mips2, mips3, mips4, mips5, mips32, mips64
+#		The architecture includes the instructions defined
+#		by that MIPS ISA.
+#
+#	fpisa3, fpisa4, fpisa5
+#		The architecture includes the floating-point
+#		instructions defined by that MIPS ISA.
+#
+#	gpr_ilocks
+#		The architecture interlocks GPRs accesses.  (That is,
+#		there are no load delay slots.)
+#
+#	mips3d	The architecture includes the MIPS-3D ASE.
+#
+#	ror	The architecture includes hardware rotate instructions.
+#
+#	gpr32, gpr64
+#		The architecture provides 32- or 64-bit General Purpose
+#		Registers.
+#
+#	singlefloat
+#		The CPU is 64 bit, but only supports 32 bit FPU.
+#
+#
+# as_flags: The assembler flags used when assembling tests for this
+# architecture.
+#
+# objdump_flags: The objdump flags used when disassembling tests for
+# this architecture.
+#
+# Most entries in the architecture array will have values in all of
+# the fields above.  One entry, "default" represents the default CPU
+# based on the target of the assembler being built.  If always has
+# empty "as_flags" and "objdump_flags."
+
+# arch_init
+#
+# This function initializes the architecture data array ("mips_arches")
+# to be empty.
+proc arch_init {} {
+    global nanomips_arches
+
+    # Catch because the variable won't be set the first time through.
+    catch {unset nanomips_arches}
+}
+
+# arch_create ARCH GPRSIZE EXTENDS PROPS AS_FLAGS OBJDUMP_FLAGS \
+#		   (optional:) DEFAULT_FOR_TARGETS
+#
+# This function creates a new entry in the architecture data array,
+# for the architecture or CPU named ARCH, and fills in the entry
+# according to the rest of the arguments.
+#
+# The new entry's property list is initialized to contain ARCH, any
+# properties specified by PROPS, and the properties associated with
+# the entry specified by EXTENDS.  (The new architecture is considered
+# to extend the capabilities provided by that architecture.)
+#
+# If DEFAULT_FOR_TARGETS is specified, it is a list of targets for which
+# this architecture is the default architecture.  If "istarget" returns
+# true for any of the targets in the list, a "default" entry will be
+# added to the architecture array which indicates that ARCH is the default
+# architecture.
+proc arch_create {arch gprsize extends props as_flags objdump_flags
+		       {default_for_targets {}}} {
+    global nanomips_arches
+
+    if { [info exists nanomips_arches($arch)] } {
+             error "arch_create: arch \"$arch\" already exists"
+    }
+    if { $gprsize != 32 && $gprsize != 64 } {
+	error "arch_create: invalid GPR size $gprsize"
+    }
+
+    set archdata(displayname) $arch
+    set archdata(gprsize) $gprsize
+    set archdata(as_flags) $as_flags
+    set archdata(objdump_flags) $objdump_flags
+    set archdata(props) $arch
+    eval lappend archdata(props) $props
+    if { [string length $extends] != 0 } {
+	eval lappend archdata(props) [nanomips_arch_properties $extends 0]
+    }
+
+    set nanomips_arches($arch) [array get archdata]
+
+    # Set as default if appropriate.
+    foreach target $default_for_targets {
+	if { [istarget $target] } {
+	    if { [info exists nanomips_arches(default)] } {
+		error "arch_create: default arch already exists"
+	    }
+
+	    set archdata(displayname) "default = $arch"
+    	    set archdata(as_flags) ""
+	    set archdata(objdump_flags) ""
+
+	    set nanomips_arches(default) [array get archdata]
+	    break
+	}
+    }
+}
+
+# nanomips_arch_destroy ARCH
+#
+# The opposite of the above.  This function removes an entry from
+# the architecture data array, for the architecture or CPU named ARCH.
+
+proc nanomips_arch_destroy {arch} {
+    global nanomips_arches
+
+    if { [info exists nanomips_arches($arch)] } {
+	unset nanomips_arches($arch)
+    }
+}
+
+# nanomips_arch_list_all
+#
+# This function returns the list of all names of entries in the
+# architecture data array (including the default entry, if a default
+# is known).
+proc nanomips_arch_list_all {} {
+    global nanomips_arches
+    return [lsort -dictionary [array names nanomips_arches]]
+}
+
+# nanomips_arch_data ARCH
+#
+# This function returns the information associated with ARCH
+# in the architecture data array, in "array get" form.
+proc nanomips_arch_data {arch} {
+    global nanomips_arches
+
+    if { ! [info exists nanomips_arches($arch)] } {
+	error "nanomips_arch_data: unknown arch \"$arch\""
+    }
+    return $nanomips_arches($arch)
+}
+
+# nanomips_arch_displayname ARCH
+#
+# This function returns the printable name associated with ARCH in
+# the architecture data array.
+proc nanomips_arch_displayname {arch} {
+    array set archdata [nanomips_arch_data $arch]
+    return $archdata(displayname)
+}
+
+# nanomips_arch_properties ARCH (optional:) INCLUDE_GPRSIZE
+#
+# This function returns the property list associated with ARCH in the
+# architecture data array, including the "canonical" target name as the
+# first element.
+#
+# If INCLUDE_GPRSIZE is non-zero, an additional "gpr32" or "gpr64"
+# property will be returned as part of the list based on the
+# architecture's GPR size.
+proc nanomips_arch_properties {arch {include_gprsize 1}} {
+    array set archdata [nanomips_arch_data $arch]
+    set props $archdata(props)
+    if { $include_gprsize } {
+	lappend props gpr$archdata(gprsize)
+    }
+    return $props
+}
+
+# nanomips_arch_as_flags ARCH
+#
+# This function returns the assembler flags associated with ARCH in
+# the architecture data array. 
+proc nanomips_arch_as_flags {arch} {
+    array set archdata [nanomips_arch_data $arch]
+    return $archdata(as_flags)
+}
+
+# nanomips_arch_objdump_flags ARCH
+#
+# This function returns the objdump disassembly flags associated with
+# ARCH in the architecture data array. 
+proc nanomips_arch_objdump_flags {arch} {
+    array set archdata [nanomips_arch_data $arch]
+    return $archdata(objdump_flags)
+}
+
+# nanomips_arch_matches ARCH PROPMATCHLIST
+#
+# This function returns non-zero if ARCH matches the set of properties
+# described by PROPMATCHLIST.  Each entry in PROPMATCHLIST can either
+# be the name of a property which must be matched, or "!" followed by
+# the name of a property which must not be matched.  ARCH matches
+# PROPMATCHLIST if and only if all of the conditions specified by
+# PROPMATCHLIST are satisfied.
+proc nanomips_arch_matches {arch propmatchlist} {
+    foreach pm $propmatchlist {
+	if { [string match {!*} $pm] } {
+	    # fail if present.
+	    set inverted 1
+	    set p [string range $pm 1 end]
+	} {
+	    # fail if not present.
+	    set inverted 0
+	    set p $pm
+	}
+
+	set loc [lsearch -exact [nanomips_arch_properties $arch] $p]
+
+	# required-absent and found, or required-present and not found: fail.
+	if { ($inverted && $loc != -1) || (! $inverted && $loc == -1) } {
+	    return 0
+	}
+    }
+    return 1
+}
+
+# arch_list_matching ARGS
+#
+# This function returns a list of all architectures which match
+# the conditions described by its arguments.  Its arguments are
+# taken as a list and used as the PROPMATCHLIST in a call to
+# "mips_arch_matches" for each known architecture.
+proc arch_list_matching {args} {
+    set l ""
+    foreach arch [nanomips_arch_list_all] {
+	# For now, don't match default arch until we know what its
+	# properties actually are.
+	if { [string compare $arch default] == 0
+	     && [string length [nanomips_arch_properties default]] == 0} {
+	    continue
+	}
+	if { [nanomips_arch_matches $arch $args] } {
+	    lappend l $arch
+	}
+    }
+    return $l
+}
+
+
+# The functions below facilitate running various types of tests.
+
+# run_dump_test_arch NAME OPTS ARCH
+#
+# Invoke "run_dump_test" for test NAME with additional assembler options OPTS.
+# Add the assembler and disassembler flags that are associated with
+# architecture ARCH.
+#
+# You can override the expected output for particular architectures.
+# The possible test names are, in order of preference:
+#
+# 1. CARCH@NAME.d
+# 2. NAME.d
+#
+# where CARCH is the "canonical" name of architecture ARCH as recorded
+# in its associated property list.
+proc run_dump_test_arch { name opts arch } {
+    global subdir srcdir
+
+    set proparch [lindex [nanomips_arch_properties $arch 0] 0]
+    set prefixes [list ${proparch}@ ]
+
+    if { [ string match "nanomips32s" $arch ]} {
+	lappend prefixes nms@
+    }
+
+    foreach prefix ${prefixes} {
+	set archname ${prefix}${name}
+	if { [file exists "$srcdir/$subdir/${archname}.d"] } {
+	    set name $archname
+	    break
+	}
+    }
+
+    if [catch {run_dump_test $name \
+		   "{name    {([concat $opts [nanomips_arch_displayname $arch]])}}
+		    {objdump {[nanomips_arch_objdump_flags $arch]}}
+		    {as      {[concat $opts [nanomips_arch_as_flags $arch]]}}"} rv] {
+        perror "$rv"
+        untested "$subdir/$name ($arch)"
+    }
+}
+
+# run_dump_test_arches NAME [OPTS] ARCH_LIST
+#
+# Invoke "run_dump_test_arch" for test NAME, for each architecture
+# listed in ARCH_LIST.  OPTS, if specified, is a list of additional
+# assembler options that should be used for all architectures.
+proc run_dump_test_arches { name args } {
+    set opts ""
+    if { [llength $args] > 1 } {
+	set opts [lindex $args 0]
+	set args [lrange $args 1 end]
+    }
+    set arch_list [lindex $args 0]
+    foreach arch $arch_list {
+	run_dump_test_arch $name $opts $arch
+    }
+}
+
+# run_list_test_arch NAME OPTS ARCH
+#
+# Invoke "run_list_test" for test NAME with additional assembler options OPTS.
+# Add the assembler flags that are associated with architecture ARCH.
+proc run_list_test_arch { name opts arch } {
+    global subdir srcdir
+
+    set testname "nanoMIPS $name ([concat $opts [nanomips_arch_displayname $arch]])"
+    set proparch [lindex [nanomips_arch_properties $arch 0] 0]
+    set prefixes [list ${proparch}@ ]
+    if { [ string match "nanomips32s" $arch ]} {
+	lappend prefixes nms@
+    }
+
+    verbose "run_list_test_arch $prefixes"
+    foreach prefix ${prefixes} {
+	set archname ${prefix}${name}
+	verbose "Checking $archname"
+	if { [file exists "$srcdir/$subdir/${archname}.l"] } {
+	    set name $archname
+	    break
+	}
+    }
+
+    if [catch {run_list_test \
+		   $name \
+		   [concat $opts [nanomips_arch_as_flags $arch]] \
+		   $testname} rv] {
+        perror "$rv"
+        untested "$testname"
+    }
+}
+
+# run_list_test_arches NAME [OPTS] ARCH_LIST
+#
+# Invoke "run_list_test_arch" for test NAME, for each architecture listed
+# in ARCH_LIST.  OPTS, if specified, is a list of additional assembler
+# options that should be used for all architectures.
+proc run_list_test_arches { name args } {
+    set opts ""
+    if { [llength $args] > 1 } {
+	set opts [lindex $args 0]
+	set args [lrange $args 1 end]
+    }
+    set arch_list [lindex $args 0]
+    foreach arch $arch_list {
+	run_list_test_arch "$name" "$opts" "$arch"
+    }
+}
+
+# run_dump_test_opts NAME OPTS_LIST ARCH_LIST
+#
+# Invoke "run_dump_test_arch" for test NAME, for each architecture
+# listed in ARCH_LIST and each option listed in OPTS_LIST.
+proc run_dump_test_opts { name opts_list arch_list } {
+    foreach opts $opts_list {
+	foreach arch $arch_list {
+	    run_dump_test_arch $name $opts $arch
+	}
+    }
+}
+
+# run_list_test_opts NAME OPTS_LIST ARCH_LIST
+#
+# Invoke "run_list_test_arch" for test NAME, for each architecture
+# listed in ARCH_LIST and each option listed in OPTS_LIST.
+proc run_list_test_opts { name opts_list arch_list } {
+    foreach opts $opts_list {
+	foreach arch $arch_list {
+	    run_list_test_arch "$name" "$opts" "$arch"
+	}
+    }
+}
+
+# Create the architecture data array by providing data for all
+# known architectures.
+#
+# Note that several targets pick default CPU based on ABI.  We
+# can't easily handle that; do NOT list those targets as defaulting
+# to any architecture.
+arch_init
+arch_create nanomips32r6 32	{} \
+			{ nanomipsr6 nanomips_broken } \
+			{ -march=32r6 --defsym nanomips= -mlegacyregs \
+			      --defsym nanomips_broken= } {}
+arch_create nanomips64r6 64	{}  \
+			{ nanomips32r6 nanomipsr6 nanomips_broken nmips64_broken } \
+			{ -march=64r6 --defsym nanomips= -mlegacyregs \
+			      --defsym nanomips_broken= } {}
+arch_create nanomips32 32	{} \
+			{ nanomips nanomips_broken xnms } \
+			{ -march=32r6 --defsym nanomips= \
+			      --defsym nanomips_broken= } {}
+arch_create nanomips32s 32	{} \
+			{ nanomips nanomips_broken } \
+			{ -march=32r6s --defsym nanomips= \
+			      --defsym nanomips_broken= } {}
+arch_create nanomips64 64	{} \
+			{ nanomips nanomips_broken nmips64_broken xnms } \
+			{ -march=64r6 --defsym nanomips= \
+			      --defsym nanomips_broken= } {}
+arch_create m7000 32	{} {nanomips_broken} { -march=m7000 } {}
+arch_create i7200 32	{} {nanomips_broken} { -march=i7200 } {}
+
+#
+# And now begin the actual tests!  VxWorks uses RELA rather than REL
+# relocations, so most of the generic dump tests will not work there.
+#
+if { [istarget nanomips*-*-*] } {
+    set addr32 0
+    set has_newabi [expr [istarget nanomips*-*-linux*] \
+			|| [istarget nanomips*-img-elf*]]
+
+    if { [istarget "nanomips*-*-*linux*"]
+	 || [istarget "nanomips*-img-elf*"]
+	 || [istarget "nanomips*-*-*bsd*"] } then {
+	set tmips "t"
+    } else {
+	set tmips ""
+    }
+    if {[istarget "nanomips-*-*"] || [istarget "nanomipsel*-*-*"] } {
+	set el "el"
+    } {
+	set el ""
+    }
+
+    run_dump_test_arches "dot-1"	[arch_list_matching nanomipsr6]
+    run_dump_test_arches "abs"		[arch_list_matching nanomipsr6]
+    run_dump_test_arches "add"		[arch_list_matching nanomipsr6]
+    run_dump_test_arch	 "and"	"-mlegacyregs"	nanomips32s
+
+    run_dump_test_arch "beq"		"-mlegacyregs" nanomips32s
+    run_dump_test_arch "bge"		"-mlegacyregs" nanomips32s
+    run_dump_test_arch "bgeu"		"-mlegacyregs" nanomips32s
+    run_dump_test_arch "blt"		"-mlegacyregs" nanomips32s
+    run_dump_test_arch "bltu"		"-mlegacyregs" nanomips32s
+    run_dump_test_arches "branch-misc-1" [arch_list_matching nanomipsr6]
+    run_dump_test_arches "branch-misc-2" [arch_list_matching nanomipsr6]
+    run_dump_test_arches "branch-misc-2pic" [arch_list_matching nanomipsr6]
+    run_dump_test_arch "branch-misc-2-64"    "" nanomips64r6
+    run_dump_test_arch "branch-misc-2pic-64" "" nanomips64r6
+
+    # Sweep a range of branch offsets so that it hits a position where
+    # it is at the beginning of a frag and then swapped with a 16-bit
+    # instruction from the preceding frag.  The offset will be somewhere
+    # close below 4096 as this is the default obstack size limit that
+    # we use and some space will have been already consumed.  The exact
+    # amount depends on the host's programming model.
+    for { set count 960 } { $count <= 1024 } { incr count } {
+	run_list_test "branch-swap-2" "--defsym count=$count -mlegacyregs" \
+	    "nanoMIPS branch swapping ($count)"
+    }
+
+    run_dump_test_arch "div" "" nanomips32r6
+
+    if { !$addr32 } {
+	run_dump_test_arches "dli"	[arch_list_matching gpr64 !nmips64_broken]
+    }
+    run_dump_test_arches "jal"		[arch_list_matching nanomipsr6]
+
+    run_dump_test_arches "jal-svr4pic"	[arch_list_matching nanomipsr6]
+
+    run_dump_test_arches "lb"	[arch_list_matching nanomipsr6]
+    run_dump_test_arches "lb-svr4pic" \
+				[arch_list_matching nanomipsr6]
+
+    run_dump_test_arches "ld"		[arch_list_matching nanomipsr6 !nmips64_broken]
+    run_dump_test_arches "ld-forward" 	[arch_list_matching nanomipsr6 !nmips64_broken]
+    run_dump_test_arches "sd"		[arch_list_matching nanomipsr6 !nmips64_broken]
+    run_dump_test_arches "sd-forward" 	[arch_list_matching nanomipsr6 !nmips64_broken]
+    run_dump_test_arches "l_d" 		[arch_list_matching nanomipsr6]
+    run_dump_test_arches "l_d-forward"	[arch_list_matching nanomipsr6]
+    run_dump_test_arches "s_d"		[arch_list_matching nanomipsr6]
+    run_dump_test_arches "s_d-forward" 	[arch_list_matching nanomipsr6]
+    run_dump_test_arches "ldc1"		[arch_list_matching nanomipsr6]
+    run_dump_test_arches "ldc1-forward" [arch_list_matching nanomipsr6]
+    run_dump_test_arches "sdc1"		[arch_list_matching nanomipsr6]
+    run_dump_test_arches "sdc1-forward" [arch_list_matching nanomipsr6]
+    run_dump_test_arches "lw"		[arch_list_matching nanomipsr6 !nmips64_broken]
+    run_dump_test_arches "sw"		[arch_list_matching nanomipsr6 !nmips64_broken]
+    run_dump_test_arch "lw-pcrel"	"" nanomips32r6
+    run_dump_test_arch "sw-pcrel"	"" nanomips32r6
+    run_dump_test_arch "lw-pcrel"	"" nanomips32s
+    run_dump_test_arch "sw-pcrel"	"" nanomips32s
+    run_dump_test_arch "ld-pcrel"	"" nanomips32r6
+    run_dump_test_arch "sd-pcrel"	"" nanomips32r6
+
+    if $has_newabi {
+	run_dump_test_arches "ld-n64"	[arch_list_matching gpr64 !nmips64_broken]
+	run_dump_test_arches "ld-forward-n64" \
+					[arch_list_matching gpr64 !nmips64_broken]
+	run_dump_test_arches "sd-n64"	[arch_list_matching gpr64 !nmips64_broken]
+	run_dump_test_arches "sd-forward-n64" \
+					[arch_list_matching gpr64 !nmips64_broken]
+	run_dump_test_arches "l_d-n64"	[arch_list_matching gpr64 !nmips64_broken]
+	run_dump_test_arches "l_d-forward-n64" \
+					[arch_list_matching gpr64 !nmips64_broken]
+	run_dump_test_arches "s_d-n64"	[arch_list_matching gpr64 !nmips64_broken]
+	run_dump_test_arches "s_d-forward-n64" \
+					[arch_list_matching gpr64 !nmips64_broken]
+	run_dump_test_arches "ldc1-n64"	[arch_list_matching gpr64 !nmips64_broken]
+	run_dump_test_arches "ldc1-forward-n64" \
+					[arch_list_matching gpr64 !nmips64_broken]
+	run_dump_test_arches "sdc1-n64"	[arch_list_matching gpr64 !nmips64_broken]
+	run_dump_test_arches "sdc1-forward-n64" \
+					[arch_list_matching gpr64 !nmips64_broken]
+    }
+    run_dump_test_arches "ld-zero"	[arch_list_matching nanomipsr6]
+    run_dump_test_arch "ld-zero-2"	"-mlegacyregs" nanomips32s
+    run_dump_test_arches "ld-zero-3"	[arch_list_matching gpr64 !nmips64_broken]
+
+    run_dump_test_arch "lifloat" "" nanomips32r6
+    run_dump_test_arch "lifloat-64" "-m64" nanomips64r6
+    run_dump_test_arch "lifloat-nms" "-mlegacyregs" nanomips32s
+
+    run_dump_test_arch "lif-svr4pic" "" nanomips32r6
+    run_dump_test_arch "lif-svr4pic-64" "-m64" nanomips64r6
+    run_dump_test_arch "lif-svr4pic-nms" "-mlegacyregs" nanomips32s
+
+    run_dump_test_arches "mips4-fp" "" [arch_list_matching nanomipsr6]
+
+    run_dump_test_arches "rol-hw" 	[arch_list_matching nanomipsr6]
+    run_dump_test_arches "rol64-hw"	[arch_list_matching gpr64 !nmips64_broken]
+
+    run_dump_test_arch "sb" "" nanomips32r6
+    run_dump_test_arches "ulh" [arch_list_matching nanomipsr6]
+    run_dump_test_arches "ulh-svr4pic" [arch_list_matching nanomipsr6]
+    run_dump_test_arches "ulw" [arch_list_matching nanomipsr6]
+    run_dump_test_arches "uld" [arch_list_matching nanomipsr6]
+    run_dump_test_arches "ush" [arch_list_matching nanomipsr6]
+    run_dump_test_arches "usw" [arch_list_matching nanomipsr6]
+    run_dump_test_arches "usd" [arch_list_matching nanomipsr6]
+    
+    run_dump_test_arch "virt" "" nanomips32r6
+    run_dump_test_arch "virt64"	"" nanomips64r6
+
+    run_dump_test_arches "mips32-sf32"	[arch_list_matching nanomipsr6]
+    run_list_test_arches "mips32-sf32" "-m32 -msoft-float" \
+					[arch_list_matching !nanomips_broken]
+
+    run_dump_test_arch "mips64"	"" nanomips64r6
+    run_dump_test_arch "mips64-cp2" "" nanomips64r6
+
+    run_dump_test_arches "mips64r2"	[arch_list_matching nanomips64r6]
+    run_list_test_arch "mips64r2-ill" "" nanomips64r6
+
+#   run_dump_test "set-arch" # FIXME: arch=32r6|64r6|32r6s
+
+    run_dump_test_arch "relax-swap3" "" nanomips32s
+
+    run_dump_test_arch "eva"	""	nanomips32r6
+
+    run_list_test_arches "baddata1" "-mlegacyregs" [arch_list_matching !nanomips_broken]
+    run_list_test_arches "jalr" "" [arch_list_matching nanomipsr6]
+
+    run_dump_test_arches "mips-gp32-fp64" "-mlegacyregs" [arch_list_matching !nanomips_broken]
+    run_dump_test_arches "mips-gp64-fp64" "-mlegacyregs" [arch_list_matching !nanomips_broken]
+
+    # Verify that ASE markings are handled properly.
+    run_dump_test_arches "mips-gp64-fp64-pic" "" [arch_list_matching !nanomips_broken]
+
+    # FIXME: elf* block
+#     run_dump_test "elf${el}-rel"
+#     run_dump_test_arches "elf${el}-rel2" [arch_list_matching gpr64 !nmips64_broken]
+#     run_dump_test "e32${el}-rel2"
+#     run_dump_test "elf${el}-rel3"
+#     run_dump_test_arches "elf-rel4" [arch_list_matching gpr64 !nmips64_broken]
+#     run_dump_test "e32-rel4"
+#     run_dump_test "elf-rel5"
+#     run_dump_test "elf-rel6"
+#     if $has_newabi {
+# 	run_dump_test "elf-rel6-n64"
+#     }
+#     run_dump_test "elf-rel7"
+#     run_dump_test "elf-rel8"
+#     run_dump_test "elf-rel9"
+#     if $has_newabi {
+# 	run_dump_test "elf-rel10"
+# 	run_dump_test "elf-rel11"
+#     }
+#     run_dump_test "elf-rel12"
+#     run_dump_test "elf-rel13"
+#     run_dump_test "elf-rel14"
+
+#     if $has_newabi {
+# 	run_dump_test "elf-rel15"
+# 	run_dump_test "elf-rel16"
+
+# 	run_dump_test "elf-rel-got-n64"
+#     }
+#     run_dump_test "elf-rel17"
+#     if $has_newabi {
+# 	run_dump_test "elf-rel18"
+#     }
+#     run_dump_test "elf-rel19"
+#     run_dump_test "elf-rel20"
+#     if $has_newabi {
+# 	run_dump_test "elf-rel21"
+# 	run_dump_test "elf-rel22"
+# 	run_dump_test "elf-rel23"
+# 	run_dump_test "elf-rel23a"
+# 	run_dump_test "elf-rel23b"
+# 	run_dump_test "elf-rel24"
+#     }
+
+#     run_dump_test "elf-rel25"
+#     run_dump_test "elf-rel25a"
+#     run_dump_test "elf-rel26"
+
+#     if $has_newabi {
+# 	run_dump_test "elf-rel28-n64"
+# 	run_dump_test_arches "elf-rel29" [arch_list_matching mips3 !nmips64_broken]
+#     }
+#     run_list_test_arches "elf-rel30" "-m32" [arch_list_matching nanomipsr6]
+
+
+    run_dump_test_arch "elf-consthilo" "" nanomips32r6
+    run_dump_test_arch "expr1" "" nanomips32r6
+
+    run_list_test "tls-ill" "-m32"
+    run_dump_test "tls-relw"
+    run_dump_test "jalr2"
+
+    run_dump_test_arches "aent"	[arch_list_matching nanomipsr6]
+
+    run_dump_test_arches "branch-misc-4"	[arch_list_matching nanomipsr6]
+    run_dump_test_arches "branch-misc-4-64"	[arch_list_matching nanomips64r6]
+
+    # FIXMEr7 : generate & verify outputs
+    run_dump_test_arches "loc-swap"	[arch_list_matching !nanomips_broken]
+    run_dump_test_arches "loc-swap-dis"	[arch_list_matching !nanomips_broken]
+    run_dump_test_arches "loc-swap-2"	[arch_list_matching !nanomips_broken]
+    run_dump_test_arches "loc-swap-3"	[arch_list_matching !nanomips_broken]
+
+    # tests of objdump's ability to disassemble the move mnemonic
+    run_dump_test_arches "move"	[arch_list_matching nanomipsr6]
+
+    # tests of objdump's ability to disassemble using different
+    # register names.
+    run_dump_test_arch "gpr-names-numeric" "" nanomips32r6
+    run_dump_test_arch "gpr-names" "" nanomips32r6
+
+    run_dump_test_arch "fpr-names-numeric" "" nanomips32r6
+    run_dump_test_arch "fpr-names" "" nanomips32r6
+
+    run_dump_test_arch "cp0-names-numeric" "" nanomips32r6
+    run_dump_test_arch "cp0-names" "" nanomips32r6
+
+    run_dump_test_arch "cp0sel-names-numeric" "" nanomips32r6
+    run_dump_test_arch "cp0sel-names" "" nanomips32r6
+
+    run_dump_test_arch "cp1-names-numeric" "" nanomips32r6
+#    run_dump_test_arch "cp1-names" "" nanomips32r6
+
+    run_dump_test_arch "hwr-names-numeric" "" nanomips32r6
+    run_dump_test_arch "hwr-names" "" nanomips32r6
+
+#    run_dump_test "ldstla-32"
+#    run_dump_test "ldstla-32-mips3"
+#    run_dump_test "ldstla-32-shared"
+#    run_dump_test "ldstla-32-mips3-shared"
+#     run_list_test "ldstla-32-1" "-march=32r6 -mlegacyregs"  \
+# 			"nanoMIPS ld-st-la bad constants (ABI p32)"
+#     run_list_test "lddstdla-32-1" "-march=64r6 -mlegacyregs" \
+# 			"nanoMIPS ld-st-la bad constants (ABI p32)"
+#     run_list_test "ldstla-32-1" "-mpic -march=32r6 -mlegacyregs " \
+# 	"MIPS ld-st-la bad constants (ABI p32, shared)"
+#     run_list_test "lddstdla-32-1" "-mpic -march=64r6 -mlegacyregs" \
+# 	"MIPS ld-st-la bad constants (ABI o32, 64r6, shared)"
+#     if $has_newabi {
+# 	run_dump_test "ldstla-n64"
+# 	run_dump_test "ldstla-n64-shared"
+# 	run_dump_test "ldstla-n64-sym32"
+#     }
+
+    run_list_test_arch "macro-err" "-mlegacyregs" nanomips32s
+
+    run_dump_test_arch "noat-1" "" nanomips32r6
+    run_list_test_arch "noat-2" "" nanomips32r6
+    run_list_test_arch "noat-3" "" nanomips32r6
+    run_list_test_arch "noat-5" "" nanomips32r6
+    run_list_test_arch "noat-6" "" nanomips32r6
+
+    run_dump_test_arch "at-1" "" nanomips32r6
+    run_list_test "at-2" "-march=32r6 -mlegacyregs" "nanoMIPS at-2"
+
+    run_dump_test_arches "dsp"	[arch_list_matching nanomipsr6]
+    run_dump_test_arches "dspr3"	[arch_list_matching nanomipsr6]
+
+    run_dump_test_arch "align" "" nanomips32r6
+    run_dump_test_arch "align2" "" nanomips32r6
+    run_dump_test_arch "align2-el" "" nanomips32r6
+    run_dump_test "align3"
+    run_dump_test "ehword"
+    run_dump_test "insn-opts"
+
+    #FIXME: FP_S, FP_D annotations in pinfo
+    run_list_test_arches "mips-macro-ill-sfp" "-m32 -msingle-float" \
+					[arch_list_matching !nanomips_broken]
+    run_list_test_arches "mips-macro-ill-nofp" "-m32 -msoft-float" \
+					[arch_list_matching !nanomips_broken]
+
+    run_list_test_arches "hard-float-flag" \
+	"-m32 -msoft-float -mhard-float" \
+	[arch_list_matching nanomipsr6]
+    run_list_test_arches "double-float-flag" \
+	"-m32 -msingle-float -mdouble-float" \
+	[arch_list_matching nanomipsr6]
+
+    if $has_newabi { run_dump_test "cfi-m64-1" }
+
+    run_dump_test_arches "mcu"		[arch_list_matching nanomipsr6]
+    run_dump_test_arches "hilo-diff-eb"	[arch_list_matching !nanomips_broken]
+    run_dump_test_arches "hilo-diff-el"	[arch_list_matching !nanomips_broken]
+    if $has_newabi {
+	run_dump_test_arches "hilo-diff-eb-n64" [arch_list_matching mips3 !nmips64_broken]
+	run_dump_test_arches "hilo-diff-el-n64" [arch_list_matching mips3 !nmips64_broken]
+    }
+    run_dump_test_arches "lui"		[arch_list_matching nanomipsr6]
+    run_list_test_arches "lui-1" "-m32"	[arch_list_matching nanomipsr6]
+    run_list_test_arches "lui-2" "-m32"	[arch_list_matching nanomipsr6]
+
+    run_list_test_arches "ext-ill"	[arch_list_matching mips64r2 !nmips64_broken]
+
+    run_dump_test_arches "la-reloc"	[arch_list_matching nanomipsr6]
+    run_list_test "dla-warn" "-m32 -march=64r6 -mlegacyregs" \
+			     "DLA with 32-bit addresses"
+    if { $has_newabi } {
+	run_dump_test_arch "dla-reloc" "-m64" nanomips64r6
+	run_list_test "la-warn" "-m64 -march=64r6 -mlegacyregs" \
+				"LA with 64-bit addresses"
+    }
+
+    # Start with MIPS II to avoid load delay nops.
+    run_dump_test_arch "ld-reloc"	"-mlegacyregs" nanomips32s
+
+    run_dump_test_arch "l_d-reloc" "" nanomips32r6
+    run_list_test "bltzal" "-mlegacyregs"
+
+    run_dump_test_arches "xpa"	[arch_list_matching nanomipsr6]
+
+    run_dump_test_arch "pcrel-1" "" nanomips32r6
+    run_dump_test_arch "pcrel-2" "" nanomips32r6
+    run_list_test_arch "pcrel-3" "--linkrelax" nanomips32r6
+    run_dump_test_arch "pcrel-4-32" "" nanomips32r6
+
+    run_dump_test_arches "attr-gnu-4-0" "-m32" \
+				    [arch_list_matching nanomipsr6]
+    run_dump_test_arches "attr-gnu-4-0" "-m64" \
+				    [arch_list_matching nanomips64r6]
+    run_dump_test_arches "attr-gnu-4-0" "-msingle-float -m32" \
+				    [arch_list_matching nanomipsr6]
+    run_dump_test_arches "attr-gnu-4-0" "-msingle-float -m64" \
+				    [arch_list_matching nanomips64r6]
+    run_dump_test_arches "attr-none-single-float" "-m32" \
+				    [arch_list_matching nanomipsr6]
+    run_dump_test_arches "attr-none-single-float" "-m64" \
+				    [arch_list_matching nanomips64r6]
+
+    run_dump_test_arch "attr-gnu-4-1" "-m64 -mdouble-float" nanomips64r6
+
+    run_list_test_arches "attr-gnu-4-2-mdouble-float" "-m32 -mdouble-float" \
+				    [arch_list_matching nanomipsr6]
+    run_list_test_arches "attr-gnu-4-2-mdouble-float" "-m64 -mdouble-float" \
+				    [arch_list_matching nanomips64r6]
+    run_dump_test_arches "attr-gnu-4-2" "-m32" \
+				    [arch_list_matching nanomipsr6]
+    run_dump_test_arches "attr-gnu-4-2" "-m64" \
+				    [arch_list_matching nanomips64r6]
+
+    run_list_test_arches "attr-gnu-4-3-mhard-float" "-m32" \
+				    [arch_list_matching nanomipsr6]
+    run_list_test_arches "attr-gnu-4-3-mhard-float" "-m32 -mdouble-float" \
+				    [arch_list_matching nanomipsr6]
+    run_list_test_arches "attr-gnu-4-3-mhard-float" "-m64 -mdouble-float" \
+				    [arch_list_matching nanomips64r6]
+    run_list_test_arches "attr-gnu-4-3-mhard-float" "-m32 -msingle-float" \
+				    [arch_list_matching nanomipsr6]
+    run_dump_test_arches "attr-gnu-4-3" "-m32" \
+				    [arch_list_matching nanomipsr6]
+    run_dump_test_arches "attr-gnu-4-3" "-m64" \
+				    [arch_list_matching nanomips64r6]
+ 
+    run_list_test_arches "attr-gnu-4-4" "" \
+				    [arch_list_matching nanomipsr6]
+
+    run_list_test_arches "attr-gnu-4-5-64" "-m64 -mdouble-float" \
+				    [arch_list_matching nanomips64r6]
+
+    run_list_test_arches "attr-gnu-4-6-64" "-m64 -mdouble-float" \
+				    [arch_list_matching nanomips64r6]
+
+    run_list_test_arches "attr-gnu-4-7-64" "-m64 -mdouble-float" \
+				    [arch_list_matching nanomips64r6]
+
+    run_dump_test_arch "attr-gnu-abi-msa-1" "" nanomips32r6
+    run_dump_test_arch "attr-gnu-abi-msa64-1" "-m64" nanomips64r6
+
+    run_dump_test_arch "org-1" "" nanomips32r6
+    run_dump_test_arch "org-7" "" nanomips32r6
+    run_dump_test_arch "org-9" "" nanomips32r6
+    run_dump_test_arch "org-10" "" nanomips32r6
+    run_dump_test_arch "org-12" "" nanomips32r6
+
+    # FIXME: repeat with traps, insn32, noinsn32
+    run_dump_test_arches "nanomips" [arch_list_matching xnms]
+    run_dump_test_arches "nanomips32" [arch_list_matching xnms]
+    run_dump_test_arch "nanomips-ctc" "" nanomips32
+    run_dump_test_arch "nanomips-relax" "" nanomips32
+    run_list_test_arch "nanomips-relax" "-al" nanomips32
+    run_dump_test_arch "nanomips-relax32" "" nanomips32
+    run_dump_test_arch "save" "" nanomips32
+    run_list_test_arch "save-error" "" nanomips32
+    run_list_test_arch "save-error" "" nanomips32s
+    run_dump_test_arch "save-relocs" "" nanomips32
+    run_dump_test_arches "exp-relocs" [arch_list_matching xnms]
+    run_dump_test_arch "nanomips-exc" "" nanomips32
+    run_dump_test_arch "nanomips-exc32" "--defsym insn32_broken=" nanomips32
+    run_dump_test_arch "nanomips-exc-noalias" "" nanomips32
+
+    run_dump_test_arches "addu" "-mlegacyregs" [arch_list_matching nanomips32s]
+    run_dump_test_opts "la" \
+	{"-mlegacyregs" "-mlegacyregs --defsym mc_medium="} \
+	[arch_list_matching nanomips]
+    run_dump_test_opts "la-pcrel" \
+	{"" "--defsym mc_medium="} \
+	[arch_list_matching nanomips]
+    run_dump_test_arches "la-mclarge" "-mlegacyregs --defsym mc_large=" \
+	[arch_list_matching nanomips]
+    run_dump_test_arches "la-mclarge-pcrel" "--defsym mc_large=" \
+	[arch_list_matching nanomips]
+
+    run_dump_test_arch "mips-abi32-pic" "-mpic -mlegacyregs" nanomips32s
+    run_dump_test_arch "mips-gp32-fp64-pic" "-m32 -mdouble-float -mpic -mlegacyregs" \
+				nanomips32s
+    run_dump_test_arches "mt-ase" "-mmt" [arch_list_matching nanomipsr6]
+    run_list_test_arches "nanomips-error" "-mlegacyregs" [arch_list_matching xnms]
+
+    run_dump_test_arches "tls-p32"  [arch_list_matching nanomips]
+    run_dump_test_arches "tls-relw" [arch_list_matching nanomips]
+
+    run_dump_test_arch "expr-const" "-EB" nanomips32r6
+    run_dump_test_arch "expr-sym" "-EB" nanomips32r6
+    run_dump_test_arch "expr-diff" "-mlegacyregs" nanomips32r6
+    run_list_test_arches "expr-ill" [arch_list_matching nanomips]
+
+    run_list_test_arches "balc-stub" "-mbalc-stubs" [arch_list_matching nanomips]
+    run_list_test_arches "balc-stub-2" "-mbalc-stubs" [arch_list_matching nanomips]
+    run_dump_test_arches "expr-vol" [arch_list_matching nanomips]
+
+    run_dump_test_arches "debug-dis" [arch_list_matching nanomips]
+
+    run_dump_test_arch "elf_arch_nanomips32r6" "" nanomips32
+    run_dump_test_arch "elf_arch_nanomips32r6s" "" nanomips32s
+    run_dump_test_arch "elf_arch_nanomips64r6" "" nanomips64
+    run_dump_test_arch "elf_arch_i7200" "" i7200
+    run_dump_test_arch "elf_arch_m7000" "" m7000
+    run_list_test_arches "isa-errors" "" [arch_list_matching nanomips]
+    run_dump_test_arches "relax-addiu" "" [arch_list_matching nanomips]
+    run_dump_test_arches "relax-addiu32" "" [arch_list_matching nanomips]
+    run_list_test_arch "relax-loop" "" nanomips32
+    run_list_test_arches "nanomips-ctc-err" "" [arch_list_matching xnms]
+
+    run_dump_test_arches "linkrelax" "-mlegacyregs" [arch_list_matching nanomips]
+    run_dump_test_arches "linkrelax-el"  "-mlegacyregs" [arch_list_matching nanomips]
+    run_dump_test_arches "linkrelax-relocs" "-mlegacyregs" [arch_list_matching nanomips]
+    run_dump_test_arches "nolinkrelax"  "-mlegacyregs" [arch_list_matching nanomips]
+    run_dump_test_arches "nolinkrelax-relocs" "-mlegacyregs" [arch_list_matching nanomips]
+
+    run_dump_test_arch "nanomips-noxlp" "" nanomips32s
+    run_dump_test_arch "la-svr4pic" "-mlegacyregs" nanomips32s
+    run_dump_test_arches "la-pic-mclarge" "-mlegacyregs" \
+	[arch_list_matching nanomips]
+    run_dump_test_arches "la-lpic-mclarge" "-mlegacyregs" \
+	[arch_list_matching nanomips]
+    run_dump_test_arches "la-lpic-mcmedium" "-mlegacyregs" \
+	[arch_list_matching nanomips]
+    run_dump_test_arch "ld-svr4pic" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "mips-abi32" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "and" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "beq" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "bge" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "bgeu" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "blt" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "bltu" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "ld-reloc" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "ld-zero-2" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "li" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "relax-swap3" "-mlegacyregs" nanomips32s
+
+    run_dump_test_arches "nanomips-tlb" "-mtlb" [arch_list_matching nanomips32]
+    run_dump_test_arch "nanomips-tlb" "-mtlb" m7000
+    run_list_test_arches "nanomips-tlb" "-mno-tlb" \
+	[arch_list_matching nanomips32]
+    run_list_test_arch "nanomips-tlb" "" m7000
+
+    run_dump_test_opts "nanomips-tlbg" \
+	{"-mvirt" "-mvirt -mtlb"} \
+	[arch_list_matching xnms]
+    run_dump_test_arch "nanomips-tlbg" "-mvirt -mtlb" m7000
+    run_list_test_opts "nanomips-tlbg" \
+	{"-mvirt -mno-tlb" "-mno-virt -mtlb"} \
+	[arch_list_matching nanomips]
+    run_list_test_arch "nanomips-tlbg" "" m7000
+
+    run_list_test_arch "insn-suffix-error" "" nanomips32
+    run_dump_test_arch "insn-suffix" "" nanomips32
+
+    run_list_test_arch "mcmodel" "" nanomips32
+    run_list_test_arch "mcmodel-err" "" nanomips32
+    
+#     run_list_test "ase-errors-1" "-mabi=32 -march=mips1" "ASE errors (1)"
+#     run_list_test "ase-errors-2" "-mabi=o64 -march=mips3" "ASE errors (2)"
+#     run_list_test "ase-errors-3" "-mabi=32 -march=mips1" "ASE errors (3)"
+#     run_list_test "ase-errors-4" "-mabi=o64 -march=mips3" "ASE errors (4)"
+
+
+    run_dump_test_arches "ginv" "" [arch_list_matching nanomipsr6]
+    run_dump_test_arches "ginv-dis" "" [arch_list_matching nanomipsr6]
+    run_dump_test_arches "ginv-virt-dis" "" [arch_list_matching nanomipsr6]
+    run_list_test "ginv-error" ""
+    run_list_test "ginv-virt-error" "-mginv -mlegacyregs"
+
+    run_dump_test_arch "linkrelax-dis" "" nanomips32
+    run_list_test "relax-64koff" ""
+}

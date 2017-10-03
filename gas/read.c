@@ -2453,7 +2453,7 @@ bss_alloc (symbolS *symbolP, addressT size, unsigned int align)
   subsegT current_subseg = now_subseg;
   segT bss_seg = bss_section;
 
-#if defined (TC_MIPS) || defined (TC_ALPHA)
+#if defined (TC_MIPS) || defined (TC_ALPHA) || defined (TC_NANOMIPS)
   if (OUTPUT_FLAVOR == bfd_target_ecoff_flavour
       || OUTPUT_FLAVOR == bfd_target_elf_flavour)
     {

@@ -1,0 +1,1 @@
+.gnu_attribute Tag_GNU_NANOMIPS_ABI_MSA,1

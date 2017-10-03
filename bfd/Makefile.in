@@ -472,6 +472,7 @@ ALL_MACHINES = \
 	cpu-moxie.lo \
 	cpu-msp430.lo \
 	cpu-mt.lo \
+	cpu-nanomips.lo \
 	cpu-nds32.lo \
 	cpu-nios2.lo \
 	cpu-ns32k.lo \
@@ -1013,6 +1014,7 @@ BFD64_BACKENDS = \
 	demo64.lo \
 	elf32-ia64.lo \
 	elf32-mips.lo \
+	elf32-nanomips.lo \
 	elf32-score.lo \
 	elf32-score7.lo \
 	elf64-alpha.lo \
@@ -1025,6 +1027,8 @@ BFD64_BACKENDS = \
 	elf64-mips.lo \
 	elfxx-mips.lo \
 	elf64-mmix.lo \
+	elf64-nanomips.lo \
+	elfxx-nanomips.lo \
 	elf64-ppc.lo \
 	elf32-riscv.lo \
 	elf64-riscv.lo \
@@ -1074,6 +1078,7 @@ BFD64_BACKENDS_CFILES = \
 	elfxx-aarch64.c \
 	elfxx-ia64.c \
 	elfxx-mips.c \
+	elfxx-nanomips.c \
 	elfxx-riscv.c \
 	mach-o-aarch64.c \
 	mach-o-x86-64.c \
@@ -1142,6 +1147,7 @@ BUILD_CFILES = \
 	elf32-aarch64.c elf64-aarch64.c \
 	elf32-ia64.c elf64-ia64.c \
 	elf32-riscv.c elf64-riscv.c \
+	elf32-nanomips.c elf64-nanomips.c \
 	peigen.c pepigen.c pex64igen.c
 
 CFILES = $(SOURCE_CFILES) $(BUILD_CFILES)
@@ -1520,6 +1526,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elf32-moxie.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elf32-msp430.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elf32-mt.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elf32-nanomips.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elf32-nds32.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elf32-nios2.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elf32-or1k.Plo@am__quote@
@@ -1558,6 +1565,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elf64-ia64.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elf64-mips.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elf64-mmix.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elf64-nanomips.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elf64-ppc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elf64-riscv.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elf64-s390.Plo@am__quote@
@@ -1571,6 +1579,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elfxx-aarch64.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elfxx-ia64.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elfxx-mips.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elfxx-nanomips.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elfxx-riscv.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elfxx-sparc.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/elfxx-tilegx.Plo@am__quote@
@@ -2136,6 +2145,18 @@ pex64igen.c: peXXigen.c
 	rm -f pex64igen.c
 	$(SED) -e s/XX/pex64/g < $(srcdir)/peXXigen.c > pex64igen.new
 	mv -f pex64igen.new pex64igen.c
+
+elf32-nanomips.c : elfnn-nanomips.c
+	rm -f elf32-nanomips.c
+	echo "#line 1 \"$(srcdir)/elfnn-nanomips.c\"" > elf32-nanomips.new
+	sed -e s/NN/32/g < $(srcdir)/elfnn-nanomips.c >> elf32-nanomips.new
+	mv -f elf32-nanomips.new elf32-nanomips.c
+
+elf64-nanomips.c : elfnn-nanomips.c
+	rm -f elf64-nanomips.c
+	echo "#line 1 \"$(srcdir)/elfnn-nanomips.c\"" > elf64-nanomips.new
+	sed -e s/NN/64/g < $(srcdir)/elfnn-nanomips.c >> elf64-nanomips.new
+	mv -f elf64-nanomips.new elf64-nanomips.c
 $(BFD32_LIBS) \
  $(BFD64_LIBS) \
  $(ALL_MACHINES) \

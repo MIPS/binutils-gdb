@@ -81,6 +81,8 @@ case ${cpu} in
   mips*el)		cpu_type=mips endian=little ;;
   mips*)		cpu_type=mips endian=big ;;
   mt)			cpu_type=mt endian=big ;;
+  nanomips*eb)		cpu_type=nanomips endian=big ;;
+  nanomips*)		cpu_type=nanomips endian=little ;;
   nds32be)		cpu_type=nds32 endian=big ;;
   nds32le)		cpu_type=nds32 endian=little ;;
   or1k* | or1knd*)	cpu_type=or1k endian=big ;;
@@ -367,6 +369,10 @@ case ${generic_target} in
   mt-*-elf)				fmt=elf bfd_gas=yes ;;
 
   msp430-*-*)				fmt=elf ;;
+
+  nanomips*-*-elf*)
+					fmt=elf ;;
+  nanomips*-*-linux*)			fmt=elf em=linux;;
 
   nds32-*-elf*)				fmt=elf ;;
   nds32-*-linux*)			fmt=elf em=linux ;;

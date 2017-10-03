@@ -1,0 +1,16 @@
+.*\.s: Assembler messages:
+.*\.s:10: Warning: frame too small for save/restore register list
+.*\.s:14: Error: non-contiguous save of \$gp is not available for 16-bit instructions `save16 64,\$s0-\$s3,\$gp'
+.*\.s:26: Error: register list not contiguous between \$fp and \$s0 `save 48,\$fp,\$s0-\$s7'
+.*\.s:27: Error: register list not contiguous between \$s7 and \$t9 `restore.jrc 48,\$fp,\$ra,\$s0-\$s7,\$t9'
+.*\.s:28: Error: register list not contiguous between \$t3 and \$t4 `restore 48,\$t0,\$t1,\$t2,\$t3,\$t4,\$t5'
+.*\.s:29: Error: register range \(\$t0-\$t5\) is not in increasing order `restore 48,\$t0-\$t5'
+.*\.s:31: Error: \$fp must be the first register in the list `save 48,\$ra,\$fp,\$s0-\$s7'
+.*\.s:32: Error: restore\.jrc can handle a maximum of 16 register, 27 requested `restore.jrc 256,\$t4-\$gp'
+.*\.s:33: Error: first register for 16-bit restore.jrc must be \$fp or \$ra `restore16 48,\$s0'
+.*\.s:35: Error: save register list should not contain \$sp `save 128,\$k0-\$sp'
+.*\.s:36: Error: \$fp must be the first register in the list `restore 128,\$s0-\$s7,\$fp,\$ra'
+.*\.s:37: Error: \$ra must be the first register in the list `save 128,\$s0-\$s7,\$ra'
+.*\.s:38: Error: \$ra must be the first register in the list `restore 128,\$s0-\$s7,\$ra,\$fp'
+.*\.s:39: Error: \$fp must be the first register in the list `save 128,\$ra,\$s0-\$s7,\$fp'
+.*\.s:40: Error: \$ra must be followed by \$s0 `restore 128,\$fp,\$ra,\$s1'

@@ -299,6 +299,7 @@ if test x${all_targets} = xfalse ; then
 	bfd_mn10300_arch)	ta="$ta m10300-dis.lo m10300-opc.lo" ;;
 	bfd_mt_arch)		ta="$ta mt-asm.lo mt-desc.lo mt-dis.lo mt-ibld.lo mt-opc.lo" using_cgen=yes ;;
 	bfd_msp430_arch)	ta="$ta msp430-dis.lo msp430-decode.lo" ;;
+	bfd_nanomips_arch)	ta="$ta nanomips-dis.lo nanomips-opc.lo" ;;
 	bfd_nds32_arch)		ta="$ta nds32-asm.lo nds32-dis.lo" ;;
 	bfd_nios2_arch)		ta="$ta nios2-dis.lo nios2-opc.lo" ;;
 	bfd_ns32k_arch)		ta="$ta ns32k-dis.lo" ;;

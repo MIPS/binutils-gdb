@@ -49,6 +49,11 @@ extern int alpha_flag_mdebug;
 extern int mips_flag_mdebug;
 #endif /* TC_MIPS */
 
+/* Always disable ECOFF_DEBUGGING for nanoMIPS target.  */
+#ifdef TC_NANOMIPS
+#define ECOFF_DEBUGGING 0
+#endif /* TC_NANOMIPS */
+
 #ifdef OBJ_MAYBE_ECOFF
 #ifndef ECOFF_DEBUGGING
 #define ECOFF_DEBUGGING 1

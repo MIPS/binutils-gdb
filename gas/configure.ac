@@ -367,6 +367,51 @@ changequote([,])dnl
 	AC_DEFINE_UNQUOTED(MIPS_DEFAULT_ABI, $mips_default_abi,
 			   [Choose a default ABI for MIPS targets. ])
 	;;
+      nanomips)
+	# Set nanomips_cpu to the name of the default CPU.
+	case ${target_cpu} in
+	  nanomips | nanomipsel | nanomipseb)
+	    nanomips_cpu=from-abi
+	    ;;
+	  nanomips32*)
+	    nanomips_cpu=32r6
+	    ;;
+	  nanomips64*)
+	    nanomips_cpu=64r6
+	    ;;
+	  *)
+	    AC_MSG_ERROR($target_cpu isn't a supported MIPS CPU name)
+	    ;;
+	esac
+	# Decide whether to generate 32-bit or 64-bit code by default.
+	# Used to resolve -march=from-abi when an embedded ABI is selected.
+	case ${target} in
+	  nanomips64*-*-*)
+	    nanomips_default_64bit=1
+	    ;;
+	  *)
+	    nanomips_default_64bit=0
+	    ;;
+	esac
+	# Decide which ABI to target by default.
+	case ${target} in
+	  nanomips64*-*)
+	    nanomips_default_abi=P64_ABI
+	    ;;
+	  nanomips*-*)
+	    nanomips_default_abi=P32_ABI
+	    ;;
+	  *)
+	    nanomips_default_abi=NO_ABI
+	    ;;
+	esac
+	AC_DEFINE_UNQUOTED(NANOMIPS_CPU_STRING_DEFAULT, "$nanomips_cpu",
+			   [Default CPU for nanoMIPS targets. ])
+	AC_DEFINE_UNQUOTED(NANOMIPS_DEFAULT_64BIT, $nanomips_default_64bit,
+			   [Generate 64-bit code by default on nanoMIPS targets. ])
+	AC_DEFINE_UNQUOTED(NANOMIPS_DEFAULT_ABI, $nanomips_default_abi,
+			   [Choose a default ABI for nanoMIPS targets. ])
+	;;
     esac
 
     # Do we need the opcodes library?

@@ -430,6 +430,9 @@
 /* Old constant that might be in use by some software. */
 #define EM_OPENRISC		EM_OR1K
 
+/* Experimental nanoMIPS ABI development */
+#define EM_NANOMIPS	0x5237
+
 /* See the above comment before you add a new EM_* value here.  */
 
 /* Values for e_version.  */
