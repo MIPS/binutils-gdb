@@ -4713,6 +4713,19 @@
   /* Do nothing */
 }
 
+000000,00000,00000,00000,00011,000000:SPECIAL:32::EHB
+"ehb"
+*mips32:
+*mips32r2:
+*mips32r6:
+*mips64:
+*mips64r2:
+*mips64r6:
+{
+  /* Do nothing */
+}
+
+
 000000,00000,00000,00000,00001,000000:SPECIAL:32::SSNOP
 "ssnop"
 *mips32:
