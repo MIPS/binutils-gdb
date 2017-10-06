@@ -126,8 +126,12 @@ dump_insns (struct gdbarch *gdbarch, struct ui_out *uiout,
 	ui_out_text (uiout, pc_prefix (pc));
       ui_out_field_core_addr (uiout, "address", gdbarch, pc);
 
-      if (!build_address_symbolic (gdbarch, pc, 0, &name, &offset, &filename,
-				   &line, &unmapped))
+      /* Build symbolic address using the adjusted dwarf2 address.  We might
+	 need to set the ISA bit if pc enters a MIPS compressed function.  */
+      if (!build_address_symbolic (gdbarch,
+				   gdbarch_adjust_dwarf2_addr (gdbarch, pc),
+				   0, &name, &offset, &filename, &line,
+				   &unmapped))
 	{
 	  /* We don't care now about line, filename and
 	     unmapped. But we might in the future.  */
