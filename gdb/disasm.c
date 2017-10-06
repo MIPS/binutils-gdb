@@ -237,8 +237,8 @@ gdb_pretty_print_disassembler::pretty_print_insn (struct ui_out *uiout,
     uiout->field_core_addr ("address", gdbarch, pc);
 
     std::string name, filename;
-    if (!build_address_symbolic (gdbarch, pc, 0, &name, &offset, &filename,
-				 &line, &unmapped))
+    if (!build_address_symbolic (gdbarch, gdbarch_adjust_dwarf2_addr (gdbarch, pc),
+				 0, &name, &offset, &filename, &line, &unmapped))
       {
 	/* We don't care now about line, filename and unmapped.  But we might in
 	   the future.  */
