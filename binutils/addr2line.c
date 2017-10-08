@@ -187,6 +187,18 @@ find_address_in_section (bfd *abfd, asection *section,
   found = bfd_find_nearest_line_discriminator (abfd, section, syms, pc - vma,
                                                &filename, &functionname,
                                                &line, &discriminator);
+
+  /* The bfd_find_nearest_line_discriminator may not be able to find filename
+     and line if pc points to start of a MIPS compressed function.  This is
+     because ISA bit is set in the line number entries.  For example, if start
+     of a function is 0x80200750 then line number entries start from 0x80200751
+     (31st bit is set).  Set ISA bit of the pc and search again.  */
+  if (found && filename == NULL && line == 0 && (pc & 1) == 0
+      && elf_elfheader (abfd)->e_machine == EM_MIPS)
+    found = bfd_find_nearest_line_discriminator (abfd, section, syms,
+						 (pc | 1) - vma,
+						 &filename, &functionname,
+						 &line, &discriminator);
 }
 
 /* Look for an offset in a section.  This is directly called.  */
@@ -209,6 +221,17 @@ find_offset_in_section (bfd *abfd, asection *section)
   found = bfd_find_nearest_line_discriminator (abfd, section, syms, pc,
                                                &filename, &functionname,
                                                &line, &discriminator);
+  /* The bfd_find_nearest_line_discriminator may not be able to find filename
+     and line if pc points to start of a MIPS compressed function.  This is
+     because ISA bit is set in the line number entries.  For example, if start
+     of a function is 0x80200750 then line number entries start from 0x80200751
+     (31st bit is set).  Set ISA bit of the pc and search again.  */
+  if (found && filename == NULL && line == 0 && (pc & 1) == 0
+      && elf_elfheader (abfd)->e_machine == EM_MIPS)
+    found = bfd_find_nearest_line_discriminator (abfd, section, syms,
+						 pc | 1,
+						 &filename, &functionname,
+						 &line, &discriminator);
 }
 
 /* Read hexadecimal addresses from stdin, translate into
