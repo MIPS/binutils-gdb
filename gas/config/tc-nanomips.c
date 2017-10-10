@@ -6155,6 +6155,9 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	    }
 	  if (*(fmt + 1) != '\"' && *(fmt + 1) != '\'')
 	    break;
+	  else
+	    continue;
+
 	  /* Fall through for +", +' */
 	case 'p':
 	  gas_assert (ep != NULL);
@@ -7571,6 +7574,7 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
     {
     case M_DABS:
       dbl = TRUE;
+      /* Fall through.  */
     case M_ABS:
       /*    bgez    $a0,1f
 	    move    v0,$a0
@@ -7982,6 +7986,7 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 
     case M_DLA_AB:
       dbl = TRUE;
+      /* Fall through.  */
     case M_LA_AB:
       /* Load the address of a symbol into a register.  If breg is not
 	 zero, we then add a base register to it.  */
@@ -8382,6 +8387,7 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 
     case M_DMUL:
       dbl = TRUE;
+      /* Fall through.  */
     case M_MUL:
       macro_build (NULL, dbl ? "dmultu" : "multu", "s,t", op[1], op[2]);
       macro_build (NULL, "mflo", MFHL_FMT, op[0]);
@@ -8389,6 +8395,7 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 
     case M_DMUL_I:
       dbl = TRUE;
+      /* Fall through.  */
     case M_MUL_I:
       used_at = 1;
       load_register (AT, &imm_expr, dbl);
@@ -10904,7 +10911,7 @@ relaxed_nanomips_stub_length (fragS *fragp, asection *sec,
 {
   bfd_boolean keepstub = FALSE;
   addressT stubsite;
-  struct balc_stub *stub;
+  struct balc_stub *stub = NULL;
 
   /* Assume this is a 2-byte branch.  */
   stubsite = fragp->fr_address + fragp->fr_fix;
@@ -12419,7 +12426,7 @@ nanomips_parse_cons_expression (expressionS *exp,
 		break;
 
 	      case O_right_shift:
-	      /* exp := exp >> const */
+		/* exp := exp >> const */
 		if (!symbol_constant_p (iter->X_op_symbol)
 		    || S_GET_SEGMENT (iter->X_op_symbol) != absolute_section
 		    || iter->X_add_number != 0)
@@ -12427,9 +12434,10 @@ nanomips_parse_cons_expression (expressionS *exp,
 		    as_bad ("Expression too complex to relocate!");
 		    rel = BFD_RELOC_NONE;
 		  }
+		/* Fall through.  */
 
 	      case O_symbol:
-	      /* exp := symbol [ + offset ] */
+		/* exp := symbol [ + offset ] */
 		iter = symbol_get_value_expression (iter->X_add_symbol);
 		break;
 

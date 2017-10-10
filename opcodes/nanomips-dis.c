@@ -1180,6 +1180,7 @@ print_insn_args (struct disassemble_info *info,
 	      infprintf (is, ",");
 	      pending_sep = FALSE;
 	    }
+	  /* fall-through */
 	case ')':
 	  infprintf (is, "%c", *s);
 	  break;
