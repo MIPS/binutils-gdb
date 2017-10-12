@@ -1400,7 +1400,7 @@ nanomips_set_ase (const struct nanomips_ase *ase, struct nanomips_set_options *o
 
   /* The Virtualization ASE has Global INValidate (GINV) Extension
      instructions which are only valid when both ASEs are enabled.
-     This sets the ASE_GINV_VIRT flag when both ASEs are present.  */  
+     This sets the ASE_GINV_VIRT flag when both ASEs are present.  */
   if (((opts->ase & ASE_GINV) != 0) && ((opts->ase & ASE_VIRT) != 0))
     {
       opts->ase |= ASE_GINV_VIRT;
@@ -5304,7 +5304,7 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
       int i;
       unsigned where;
 
-      /* Perform any necessary conversion to microMIPS relocations
+      /* Perform any necessary conversion to nanoMIPS relocations
 	 and find out how many relocations there actually are.  */
       for (i = 0; i < 3 && reloc_type[i] != BFD_RELOC_UNUSED; i++)
 	final_type[i] = nanomips_map_reloc (reloc_type[i]);
@@ -6163,6 +6163,11 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	  macro_match_nanomips_reloc (fmt, r);
 	  continue;
 
+	case '-':
+	  if (*(fmt + 1) == 'i')
+	    macro_read_relocs (&args, r);
+	  /* Fall through.  */
+
 	default:
 	  break;
 	}
@@ -6187,6 +6192,7 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
       if ((*fmt == '+') || *fmt == 'm' || *fmt == '-' || *fmt == '`')
 	++fmt;
     }
+
   va_end (args);
   gas_assert (*r == BFD_RELOC_UNUSED ? ep == NULL : ep != NULL);
 
@@ -7986,15 +7992,25 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	{
 	  relax_start (offset_expr.X_add_symbol);
 	  macro_build (&offset_expr, ADDRESS_LOAD_INSN, LWGP_FMT,
-		       PIC_CALL_REG, BFD_RELOC_NANOMIPS_GOT_CALL,
+		       AT, BFD_RELOC_NANOMIPS_GOT_CALL,
 		       nanomips_gp_register);
 	  relax_switch ();
 	  macro_build (&offset_expr, ADDRESS_LOAD_INSN, LWGP_FMT,
-		       PIC_CALL_REG, BFD_RELOC_NANOMIPS_GOT_DISP,
+		       AT, BFD_RELOC_NANOMIPS_GOT_DISP,
 		       nanomips_gp_register);
 	  relax_end ();
 
-	  macro_build (NULL, "jalr", "mp", PIC_CALL_REG);
+	  if (nanomips_linkrelax_p)
+	    {
+	      if (nanomips_opts.insn32)
+		macro_build (&offset_expr, "jalrc", "s,-i", AT,
+			     BFD_RELOC_NANOMIPS_JALR32);
+	      else
+		macro_build (&offset_expr, "jalrc", "mp,-i", AT,
+			     BFD_RELOC_NANOMIPS_JALR16);
+	    }
+	  else
+	    macro_build (NULL, "jalrc", (nanomips_opts.insn32? "s" :  "mp"), AT);
 	}
 
       break;
@@ -8708,7 +8724,7 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 
 static struct nanomips_opcode *
 nanomips_lookup_insn (struct hash_control *hash, const char *start,
-		      ssize_t length, 
+		      ssize_t length,
 		      unsigned int *opcode_extra ATTRIBUTE_UNUSED)
 {
   char *name, *dot;
@@ -9355,7 +9371,8 @@ nanomips_force_relocation (fixS *fixp)
       || fixp->fx_r_type == BFD_RELOC_NANOMIPS_INSN32
       || fixp->fx_r_type == BFD_RELOC_NANOMIPS_INSN16
       || fixp->fx_r_type == BFD_RELOC_NANOMIPS_SAVERESTORE
-      || fixp->fx_r_type == BFD_RELOC_NANOMIPS_JALR)
+      || fixp->fx_r_type == BFD_RELOC_NANOMIPS_JALR32
+      || fixp->fx_r_type == BFD_RELOC_NANOMIPS_JALR16)
     return 1;
 
 
@@ -9440,8 +9457,12 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       || fixP->fx_r_type == BFD_RELOC_NANOMIPS_INSN32
       || fixP->fx_r_type == BFD_RELOC_NANOMIPS_INSN16
       || fixP->fx_r_type == BFD_RELOC_NANOMIPS_SAVERESTORE
-      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_JALR)
-   return;
+      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_JALR32
+      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_JALR16)
+    {
+      fixP->fx_addnumber = *valP;
+      return;
+    }
 
   /* Handle BFD_RELOC_8, since it's easy.  Punt on other bfd relocations
      that have no nanoMIPS ELF equivalent.  */
@@ -9910,7 +9931,7 @@ s_change_sec (int sec)
 
 void
 s_change_section (int ignore ATTRIBUTE_UNUSED)
-{ 
+{
   char *saved_ilp;
   char *section_name;
   char c, endc;

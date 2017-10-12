@@ -24,9 +24,9 @@ Disassembly of section .text\:
 			20: R_NANOMIPS_LO12	end
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	000000e2 <end>
 			24: R_NANOMIPS_PC25_S1	end
-[0-9a-f]+ <[^>]+> 4320 0002 	lw	t9,0\(gp\)
+[0-9a-f]+ <[^>]+> 4020 0002 	lw	at,0\(gp\)
 			28: R_NANOMIPS_GOT_DISP	end
-[0-9a-f]+ <[^>]+> db30      	jalrc	t9
+[0-9a-f]+ <[^>]+> d830      	jalrc	at
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,00000000 <shared>
 			2e: R_NANOMIPS_PCHI20	shared
 [0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)

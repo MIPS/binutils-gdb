@@ -3212,7 +3212,8 @@ to compensate for the borrow when the low bits are added.  */
   BFD_RELOC_NANOMIPS_RELAX,
   BFD_RELOC_NANOMIPS_NORELAX,
   BFD_RELOC_NANOMIPS_SAVERESTORE,
-  BFD_RELOC_NANOMIPS_JALR,
+  BFD_RELOC_NANOMIPS_JALR16,
+  BFD_RELOC_NANOMIPS_JALR32,
 
 
 /* Moxie ELF relocations.  */

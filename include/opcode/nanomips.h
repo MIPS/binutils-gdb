@@ -337,7 +337,10 @@ static inline bfd_boolean
 mips_optional_operand_p (const struct nanomips_operand *operand)
 {
   return (operand->type == OP_OPTIONAL_REG
-	  || operand->type == OP_REPEAT_PREV_REG);
+	  || operand->type == OP_REPEAT_PREV_REG
+	  || (operand->type != OP_INT
+	      && operand->size == 0
+	      && operand->lsb == 0));
 }
 
 /* Return a version of INSN in which the field specified by OPERAND

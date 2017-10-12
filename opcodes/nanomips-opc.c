@@ -423,8 +423,10 @@ const struct nanomips_opcode nanomips_opcodes[] =
 {"jrc", 	"[32]",		"s",		0x48000000, 0xffe0ffff,	RD_1,		INSN2_ALIAS,	I38,	0}, /* JALRC */
 {"jalrc",	"[16]",		"mp",		0xd810,		0xfc1f,	WR_31|RD_1,		0,	I38,	0}, /* JALRC[16] */
 {"jalrc",	"[16]",		"my,mp",	0xd810,		0xfc1f,	WR_31|RD_1,	INSN2_ALIAS,	I38,	0}, /* JALRC[16] */
+{"jalrc",	"",	        "mp,-i",	0xd810,		0xfc1f,	WR_31|RD_1, 	INSN2_ALIAS, I38,	0}, /* JALRC[16] */
 {"jalrc",	"[32]",		"s",		0x4be00000, 0xffe0ffff,	RD_1,		INSN2_ALIAS,	I38,	0}, /* JALRC[32] */
 {"jalrc",	"[32]",		"t,s",		0x48000000, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
+{"jalrc",	"",		"s,-i",		0x4be00000, 0xffe0ffff,	RD_1,		INSN2_ALIAS,	I38,	0}, /* JALRC[32] */
 {"jr",		"",		"mp",		0xd800,		0xfc1f,	RD_1, 	    INSN2_ALIAS|UBR|CTC, I38,	0}, /* JRC */
 {"jr",		"",		"s",		0x48000000, 0xffe0ffff,	RD_1, 	    INSN2_ALIAS|UBR|CTC, I38,	0}, /* JALRC */
 {"jalr",	"",		"my,mp",	0xd810,		0xfc1f,	WR_31|RD_1, INSN2_ALIAS|UBR|CTC, I38,	0}, /* JALRC[16] */

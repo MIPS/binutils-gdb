@@ -519,6 +519,7 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "jal"		[arch_list_matching nanomipsr6]
 
     run_dump_test_arches "jal-svr4pic"	[arch_list_matching nanomipsr6]
+    run_dump_test_arches "jal-svr4pic-linkrelax" [arch_list_matching nanomipsr6]
 
     run_dump_test_arches "lb"	[arch_list_matching nanomipsr6]
     run_dump_test_arches "lb-svr4pic" \
