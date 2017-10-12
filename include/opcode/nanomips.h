@@ -62,9 +62,6 @@ enum nanomips_operand_type {
   /* A register operand that must match the previous register.  */
   OP_REPEAT_PREV_REG,
 
-  /* An index selected by a register, e.g. [$2].  */
-  OP_REG_INDEX,
-
   /* Described by nanomips_prev_operand.  */
   OP_CHECK_PREV,
 
@@ -73,7 +70,7 @@ enum nanomips_operand_type {
 
  /* The floating-point register list for a nanoMIPS SAVE or RESTORE
      instruction. */
-  OP_SAVE_RESTORE_FP_LIST = OP_NON_ZERO_REG + 1,
+  OP_SAVE_RESTORE_FP_LIST,
 
   /* Fractured upper immediate PC-offset for nanoMIPS */
   OP_HI20_PCREL,

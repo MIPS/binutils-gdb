@@ -933,12 +933,6 @@ print_insn_arg (struct disassemble_info *info,
       print_reg (info, opcode, state->last_reg_type, state->dest_regno);
       break;
 
-    case OP_REG_INDEX:
-      infprintf (is, "[");
-      print_reg (info, opcode, OP_REG_GP, uval);
-      infprintf (is, "]");
-      break;
-
     case OP_HI20_PCREL:
       {
 	info->target = mips_decode_hi20_pcrel_operand (operand, base_pc,
@@ -1126,7 +1120,6 @@ validate_insn_args (const struct nanomips_opcode *opcode,
 		case OP_PCREL:
 		case OP_REPEAT_PREV_REG:
 		case OP_REPEAT_DEST_REG:
-		case OP_REG_INDEX:
 		case OP_SAVE_RESTORE_FP_LIST:
 		case OP_HI20_INT:
 		case OP_HI20_PCREL:

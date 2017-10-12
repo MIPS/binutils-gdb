@@ -494,7 +494,7 @@ static int nanomips_optimize = 2;
 static int nanomips_debug = 0;
 
 /* The maximum number of NOPs needed for any purpose.  */
-#define MAX_NOPS 4
+#define MAX_NOPS 0
 
 /* A list of previous instructions, with index 0 being the most recent.
    We need to look back MAX_NOPS instructions when filling delay slots
@@ -1611,19 +1611,10 @@ add_relaxed_insn (struct nanomips_cl_insn *insn, int max_chars, int var,
    position FIRST.  Neither FIRST nor N need to be clipped.  */
 
 static void
-insert_into_history (unsigned int first, unsigned int n,
-		     const struct nanomips_cl_insn *insn)
+insert_into_history (const struct nanomips_cl_insn *insn)
 {
   if (nanomips_relax.sequence != 2)
-    {
-      unsigned int i;
-
-      for (i = ARRAY_SIZE (history); i-- > first;)
-	if (i >= first + n)
-	  history[i] = history[i - n];
-	else
-	  history[i] = *insn;
-    }
+    history[0] = *insn;
 }
 
 /* Clear the error in insn_error.  */
@@ -4227,25 +4218,6 @@ match_save_restore_list_operand (struct nanomips_arg_info *arg,
   return TRUE;
 }
 
-/* OP_REG_INDEX matcher.  */
-
-static bfd_boolean
-match_reg_index_operand (struct nanomips_arg_info *arg,
-			 const struct nanomips_operand *operand)
-{
-  unsigned int regno;
-
-  if (arg->token->type != OT_REG_INDEX)
-    return FALSE;
-
-  if (!match_regno (arg, OP_REG_GP, arg->token->u.regno, &regno))
-    return FALSE;
-
-  insn_insert_operand (arg->insn, operand, regno);
-  ++arg->token;
-  return TRUE;
-}
-
 /* OP_NON_ZERO_REG matcher.  */
 
 static bfd_boolean
@@ -4531,9 +4503,6 @@ match_operand (struct nanomips_arg_info *arg,
 
     case OP_REPEAT_PREV_REG:
       return match_tied_reg_operand (arg, arg->last_regno);
-
-    case OP_REG_INDEX:
-      return match_reg_index_operand (arg, operand);
 
     case OP_CHECK_PREV:
       return match_check_prev_operand (arg, operand);
@@ -5427,7 +5396,7 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
 
   install_insn (ip);
 
-  insert_into_history (0, 1, ip);
+  insert_into_history (ip);
 
   /* If we have just completed an unconditional branch, clear the history.  */
   if ((compact_branch_p (&history[0]) && uncond_branch_p (&history[0]))
@@ -5445,7 +5414,7 @@ void
 nanomips_flush_pending_output (void)
 {
   prev_nop_frag = NULL;
-  insert_into_history (0, ARRAY_SIZE (history), NOP_INSN);
+  insert_into_history (NOP_INSN);
   nanomips_clear_insn_labels ();
 }
 
@@ -6153,12 +6122,18 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	      fmt++;
 	      continue;
 	    }
-	  if (*(fmt + 1) != '\"' && *(fmt + 1) != '\'')
-	    break;
-	  else
-	    continue;
 
-	  /* Fall through for +", +' */
+	  if (*(fmt + 1) == '\"' || *(fmt + 1) == '\'')
+	    {
+	      if (*(fmt + 1) == '\'')
+		r[0] = BFD_RELOC_NANOMIPS_25_PCREL_S1;
+	      else if (*(fmt + 1) == '\"')
+		r[0] = BFD_RELOC_NANOMIPS_21_PCREL_S1;
+	      fmt++;
+	      continue;
+	    }
+	  break;
+
 	case 'p':
 	  gas_assert (ep != NULL);
 
@@ -6169,17 +6144,8 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	   * We don't allow branch relaxation for these branches, as
 	   * they should only appear in ".set nomacro" anyway.
 	   */
-	  if (*fmt == '+' && *(fmt + 1) == '\'')
-	    *r = BFD_RELOC_NANOMIPS_25_PCREL_S1;
-	  else if (*fmt == '+' && *(fmt + 1) == '\"')
-	    *r = BFD_RELOC_NANOMIPS_21_PCREL_S1;
-	  else
-	    *r = BFD_RELOC_NANOMIPS_14_PCREL_S1;
-
+	  *r = BFD_RELOC_NANOMIPS_14_PCREL_S1;
 	  macro_match_nanomips_reloc (fmt, r);
-
-	  if (*fmt == '+')
-	    fmt++;
 	  continue;
 
 	case 'm':
