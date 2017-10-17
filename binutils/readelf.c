@@ -3664,6 +3664,12 @@ get_machine_flags (unsigned e_flags, unsigned e_machine)
 	  if (e_flags & EF_NANOMIPS_32BITMODE)
 	    strcat (buf, ", 32bitmode");
 
+	  if (e_flags & EF_NANOMIPS_PID)
+	    strcat (buf, ", pid");
+
+	  if (e_flags & EF_NANOMIPS_PCREL)
+	    strcat (buf, ", PC-relative");
+
 	  switch ((e_flags & EF_NANOMIPS_MACH))
 	    {
 	    default: strcat (buf, _(", unknown CPU")); break;

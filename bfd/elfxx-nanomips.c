@@ -553,6 +553,12 @@ _bfd_nanomips_elf_print_private_bfd_data (bfd *abfd, void *ptr)
   if (elf_elfheader (abfd)->e_flags & EF_NANOMIPS_PIC)
     fprintf (file, " [PIC]");
 
+  if (elf_elfheader (abfd)->e_flags & EF_NANOMIPS_PID)
+    fprintf (file, " [PID]");
+
+  if (elf_elfheader (abfd)->e_flags & EF_NANOMIPS_PCREL)
+    fprintf (file, " [PCREL]");
+
   fputc ('\n', file);
 
   if (nanomips_elf_tdata (abfd)->abiflags_valid)

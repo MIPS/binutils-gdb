@@ -11568,10 +11568,15 @@ nanomips_elf_final_processing (void)
 				     ((Elf_External_ABIFlags_v0 *)
 				     nanomips_flags_frag));
 
-  /* Set the nanoMIPS ELF flag bits.  FIXME: There should probably be some
-     sort of BFD interface for this.  */
+  /* Set the nanoMIPS ELF flag bits.  */
   if (nanomips_opts.pic != NO_PIC)
     elf_elfheader (stdoutput)->e_flags |= EF_NANOMIPS_PIC;
+
+  if (nanomips_opts.pid)
+    elf_elfheader (stdoutput)->e_flags |= EF_NANOMIPS_PID;
+
+  if (nanomips_opts.pcrel)
+    elf_elfheader (stdoutput)->e_flags |= EF_NANOMIPS_PCREL;
 
   if (linkrelax == TRUE)
     elf_elfheader (stdoutput)->e_flags |= EF_NANOMIPS_LINKRELAX;
@@ -12144,7 +12149,7 @@ md_show_usage (FILE *stream)
   size_t i;
 
   fprintf (stream, _("\
-MIPS options:\n\
+nanoMIPS options:\n\
 -EB			generate big endian output\n\
 -EL			generate little endian output\n\
 -g, -g2			do not remove unneeded NOPs or swap branches\n\

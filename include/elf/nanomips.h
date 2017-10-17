@@ -130,6 +130,12 @@ END_RELOC_NUMBERS (R_NANOMIPS_maxext)
    (regs are 32-bits wide).  */
 #define EF_NANOMIPS_32BITMODE	0x00000004
 
+/* File contains position independent code.  */
+#define EF_NANOMIPS_PID		0x00000008
+
+/* File contains pure PC-relative code.  */
+#define EF_NANOMIPS_PCREL	0x00000010
+
 /* Architectural Extensions used by this file */
 #define EF_NANOMIPS_ARCH_ASE	0x0f000000
 

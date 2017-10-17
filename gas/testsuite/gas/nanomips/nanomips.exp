@@ -484,6 +484,8 @@ if { [istarget nanomips*-*-*] } {
 	set el ""
     }
 
+    run_list_test "print-help" "--help"
+
     run_dump_test_arches "dot-1"	[arch_list_matching nanomipsr6]
     run_dump_test_arches "abs"		[arch_list_matching nanomipsr6]
     run_dump_test_arches "add"		[arch_list_matching nanomipsr6]
@@ -916,6 +918,11 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "elf_arch_nanomips64r6" "" nanomips64
     run_dump_test_arch "elf_arch_i7200" "" i7200
     run_dump_test_arch "elf_arch_m7000" "" m7000
+
+    run_dump_test_arch "elf_flag_pic" "-mpic" nanomips32
+    run_dump_test_arch "elf_flag_pid" "-mpid" nanomips32
+    run_dump_test_arch "elf_flag_pcrel" "-mpcrel" nanomips32
+
     run_list_test_arches "isa-errors" "" [arch_list_matching nanomips]
     run_dump_test_arches "relax-addiu" "" [arch_list_matching nanomips]
     run_dump_test_arches "relax-addiu32" "" [arch_list_matching nanomips]
