@@ -1,9 +1,9 @@
-#objdump: -mmips:isa32 -Mginv -d --show-raw-insn
+#objdump: -mmips -Mginv -d --show-raw-insn
 #name: MIPS Global INValidate instructions disassembly
 #as: -mginv
 #source: ginv.s
 
-# Check MIPS Global INValidate instructions
+# Check MIPS Global INValidate disassembly
 
 .*: +file format .*mips.*
 

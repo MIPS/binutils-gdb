@@ -1006,6 +1006,9 @@ mips_opcode_32bit_p (const struct mips_opcode *mo)
    "-B" symbolic offset (-131072 .. 131071) << 3 at bit 0
    "+\" 2 bit Global TLB invalidate type at bit 8
 
+   GINV ASE usage:
+   "+\" 2 bit Global TLB invalidate type at bit 8
+
    Other:
    "()" parens surrounding optional value
    ","  separates operands
@@ -1325,7 +1328,7 @@ static const unsigned int mips_isa_table[] = {
 #define ASE_GINV		0x00800000
 /* The Virtualization ASE has Global INValidate extension instructions
    which are only valid when both ASEs are enabled. */
-#define ASE_VIRT_GINV		0x01000000
+#define ASE_GINV_VIRT		0x01000000
 
 /* MIPS ISA defines, use instead of hardcoding ISA level.  */
 

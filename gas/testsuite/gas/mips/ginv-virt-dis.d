@@ -1,9 +1,9 @@
-#objdump: -mmips:isa32 -Mginv -Mvirt -d --show-raw-insn
+#objdump: -mmips -Mginv -Mvirt -d --show-raw-insn
 #name: MIPS GINV+VIRT disassembly
-#as: --defsym VX= -mginv -mvirt
+#as: --defsym VX=1 -mginv -mvirt
 #source: ginv.s
 
-# Check MIPS Global INValidate Virtualization disassembly
+# Check MIPS Global INValidate Virtualization forced disassembly
 
 .*: +file format .*mips.*
 

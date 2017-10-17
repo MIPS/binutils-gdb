@@ -827,10 +827,10 @@ mips_calculate_combination_ases (int opcode_isa, unsigned long opcode_ases)
 {
   unsigned long combination_ases = 0;
 
-  if ((opcode_ases & (ASE_GINV | ASE_VIRT)) == (ASE_GINV | ASE_VIRT))
-    combination_ases |= ASE_VIRT_GINV;
   if ((opcode_ases & (ASE_XPA | ASE_VIRT)) == (ASE_XPA | ASE_VIRT))
     combination_ases |= ASE_XPA_VIRT;
+  if ((opcode_ases & (ASE_GINV | ASE_VIRT)) == (ASE_GINV | ASE_VIRT))
+    combination_ases |= ASE_GINV_VIRT;
   if ((opcode_ases & (ASE_MIPS16E2 | ASE_MT)) == (ASE_MIPS16E2 | ASE_MT))
     combination_ases |= ASE_MIPS16E2_MT;
   if ((opcode_ases & ASE_EVA)

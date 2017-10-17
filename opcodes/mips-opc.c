@@ -415,7 +415,7 @@ decode_mips_operand (const char *p)
 
 /* Global INValidate (GINV) support. */
 #define GINV	ASE_GINV
-#define GINVVZ	ASE_VIRT_GINV
+#define GINVVZ	ASE_GINV_VIRT
 
 /* The order of overloaded instructions matters.  Label arguments and
    register arguments look the same. Instructions that can have either
@@ -3231,6 +3231,11 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"sha512.hash.r.1",	"+d,+e,+h",	0x7a800017, 0xffe0003f,	MOD_1|RD_2|RD_3,	0,		0,		CRYPTO,	0 },
 {"sha512.hash.r.2",	"+d,+e,+h",	0x7aa00017, 0xffe0003f,	MOD_1|RD_2|RD_3,	0,		0,		CRYPTO,	0 },
 
+/* MIPS GINV ASE.  */
+{"ginvi",		"s",		0x7c00003d, 0xfc1fffff, RD_1,			0,		0,		GINV,	0 },
+{"ginvt",		"s,+\\",	0x7c0000bd, 0xfc1ffcff, RD_1,			0,		0,		GINV,	0 },
+{"ginvgt",		"s,+\\",	0x7c0000fd, 0xfc1ffcff, RD_1,			0,		0,		GINVVZ, 0 },
+
 /* User Defined Instruction.  */
 {"udi0",		"s,t,d,+1",	0x70000010, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
 {"udi0",		"s,t,+2",	0x70000010, 0xfc00003f,	UDI,			0,		I33,		0,	0 },
@@ -3340,10 +3345,6 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"bnezc",		"-s,+\"",	0xf8000000, 0xfc000000,	RD_1|NODS,		FS,		I37,		0,	0 },
 {"jalrc",		"t",		0xf8000000, 0xffe0ffff, RD_1|NODS,		0,		I37,		0,	0 },
 {"jialc",		"t,j",		0xf8000000, 0xffe00000,	RD_1|NODS,		0,		I37,		0,	0 },
-
-{"ginvi",		"s",		0x7c00003d, 0xfc1fffff, RD_1,			0,		0,		GINV,	0 },
-{"ginvt",		"s,+\\",	0x7c0000bd, 0xfc1ffcff, RD_1,			0,		0,		GINV,	0 },
-{"ginvgt",		"s,+\\",	0x7c0000fd, 0xfc1ffcff, RD_1,			0,		0,		GINVVZ, 0 },
 
 {"cmp.af.s",		"D,S,T",	0x46800000, 0xffe0003f,	WR_1|RD_2|RD_3|FP_S,	0,		I37,		0,	0 },
 {"cmp.af.d",		"D,S,T",	0x46a00000, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		I37,		0,	0 },

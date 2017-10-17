@@ -1472,8 +1472,6 @@ enum options
     OPTION_NO_MCU,
     OPTION_MIPS16E2,
     OPTION_NO_MIPS16E2,
-    OPTION_GINV,
-    OPTION_NO_GINV,
     OPTION_COMPAT_ARCH_BASE,
     OPTION_M4650,
     OPTION_NO_M4650,
@@ -1540,6 +1538,8 @@ enum options
     OPTION_NAN,
     OPTION_ODD_SPREG,
     OPTION_NO_ODD_SPREG,
+    OPTION_GINV,
+    OPTION_NO_GINV,
     OPTION_END_OF_ENUM
   };
 
@@ -1802,7 +1802,7 @@ static const struct mips_ase mips_ases[] = {
 
   { "ginv", ASE_GINV, 0,
     OPTION_GINV, OPTION_NO_GINV,
-     6,  6, 6, 6,
+    6,  6, -1, -1,
     -1 },
 };
 
@@ -2168,7 +2168,7 @@ mips_set_ase (const struct mips_ase *ase, struct mips_set_options *opts,
 
   /* Clear combination ASE flags, which need to be recalculated based on
      updated regular ASE settings.  */
-  opts->ase &= ~(ASE_MIPS16E2_MT | ASE_XPA_VIRT | ASE_VIRT_GINV | ASE_EVA_R6);
+  opts->ase &= ~(ASE_MIPS16E2_MT | ASE_XPA_VIRT | ASE_GINV_VIRT | ASE_EVA_R6);
 
   if (enabled_p)
     opts->ase |= ase->flags;
@@ -2187,12 +2187,6 @@ mips_set_ase (const struct mips_ase *ase, struct mips_set_options *opts,
       mask |= ASE_MIPS16E2_MT;
     }
 
-  if (((opts->ase & ASE_GINV) != 0) && ((opts->ase & ASE_VIRT) != 0))
-    {
-      opts->ase |= ASE_VIRT_GINV;
-      mask |= ASE_VIRT_GINV;
-    }
-
   /* The EVA Extension has instructions which are only valid when the R6 ISA
      is enabled.  This sets the ASE_EVA_R6 flag when both EVA and R6 ISA are
      present.  */
@@ -2200,6 +2194,15 @@ mips_set_ase (const struct mips_ase *ase, struct mips_set_options *opts,
     {
       opts->ase |= ASE_EVA_R6;
       mask |= ASE_EVA_R6;
+    }
+
+  /* The Virtualization ASE has Global INValidate (GINV)
+     instructions which are only valid when both ASEs are enabled.
+     This sets the ASE_GINV_VIRT flag when both ASEs are present.  */
+  if ((opts->ase & (ASE_GINV | ASE_VIRT)) == (ASE_GINV | ASE_VIRT))
+    {
+      opts->ase |= ASE_GINV_VIRT;
+      mask |= ASE_GINV_VIRT;
     }
 
   return mask;
