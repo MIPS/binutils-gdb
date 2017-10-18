@@ -43,6 +43,7 @@
 #include "attributes.h"
 #include "script-c.h"
 #include "nanomips-reloc-property.h"
+#include "nanomips-insn-property.h"
 
 namespace
 {
@@ -76,95 +77,7 @@ enum Overflow_check
 };
 
 Nanomips_reloc_property_table* nanomips_reloc_property_table = NULL;
-
-// Utility class dealing with instructions, and it is used during
-// relaxation pass.
-
-template<bool big_endian>
-class Nanomips_insn_utilities
-{
- public:
-  // Read nanoMIPS instruction.
-  static inline uint32_t
-  read_insn(const unsigned char* view, unsigned int size)
-  {
-    if (size == 16)
-      return elfcpp::Swap<16, big_endian>::readval(view);
-    else if (size == 32)
-      {
-        typedef typename elfcpp::Swap<16, big_endian>::Valtype Valtype16;
-        Valtype16 first = elfcpp::Swap<16, big_endian>::readval(view);
-        Valtype16 second = elfcpp::Swap<16, big_endian>::readval(view + 2);
-        return (first << 16 | second);
-      }
-    else if (size == 48 || size == 0)
-     return 0;
-    else
-      gold_unreachable();
-
-    return 0;
-  }
-
-  // Write nanoMIPS 32-bit instruction.
-  static inline void
-  put_insn_32(unsigned char* view, uint32_t insn)
-  {
-    elfcpp::Swap<16, big_endian>::writeval(view, (insn >> 16) & 0xffff);
-    elfcpp::Swap<16, big_endian>::writeval(view + 2, insn & 0xffff);
-  }
-
-  // Write nanoMIPS 48-bit instruction.
-  static inline void
-  put_insn_48(unsigned char* view, uint16_t insn)
-  {
-    // Write instruction.
-    elfcpp::Swap<16, big_endian>::writeval(view, insn);
-    // Clear immediate.
-    memset(view + 2, 0, 4);
-  }
-
-  // Return target register in nanoMIPS 32-bit instruction.
-  static inline unsigned int
-  treg_32(uint32_t insn)
-  { return ((insn >> 21) & 0x1f); }
-
-  // Return source register in nanoMIPS 32-bit instruction.
-  static inline unsigned int
-  sreg_32(uint32_t insn)
-  { return ((insn >> 16) & 0x1f); }
-
-  // Return target register in nanoMIPS 16-bit instruction.
-  static inline unsigned int
-  treg_16(uint32_t insn)
-  { return ((insn >> 7) & 0x7); }
-
-  // Return source register in nanoMIPS 16-bit instruction.
-  static inline unsigned int
-  sreg_16(uint32_t insn)
-  { return ((insn >> 4) & 0x7); }
-
-  // Convert register in 16bit instruction to register in 32 bit instruction.
-  static inline unsigned int
-  reg_16_to_32(unsigned int reg)
-  { return ((reg <= 3) ? reg + 16 : reg); }
-
-  // Convert register in 16bit store instruction to register in 32 bit
-  // store instruction.
-  static inline unsigned int
-  reg_16_to_32_st(unsigned int reg)
-  { return  ((1 <= reg && reg <= 3) ? reg + 16 : reg); }
-
-  // Check if a 5-bit register index can be abbreviated to 3 bits.
-  static inline bool
-  valid_reg_16(unsigned int reg)
-  { return ((4 <= reg && reg <= 7) || (16 <= reg && reg <= 19)); }
-
-  // Check if a 5-bit register index can be abbreviated to 3 bits for
-  // store instruction.
-  static inline bool
-  valid_reg_16_st(unsigned int reg)
-  { return (reg == 0 || (4 <= reg && reg <= 7) || (17 <= reg && reg <= 19)); }
-};
+Nanomips_insn_property_table* nanomips_insn_property_table = NULL;
 
 // .nanoMIPS.abiflags section content
 
@@ -217,9 +130,9 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   Nanomips_relobj(const std::string& name, Input_file* input_file, off_t offset,
                   const typename elfcpp::Ehdr<size, big_endian>& ehdr)
     : Sized_relobj_file<size, big_endian>(name, input_file, offset, ehdr),
-      input_section_ref_(), local_symbol_size_(), processor_specific_flags_(0),
-      merge_processor_specific_data_(true), attributes_section_data_(NULL),
-      abiflags_(NULL)
+      input_section_ref_(), local_symbol_size_(), local_symbol_is_function_(),
+      processor_specific_flags_(0), merge_processor_specific_data_(true),
+      attributes_section_data_(NULL), abiflags_(NULL)
   { }
 
   ~Nanomips_relobj()
@@ -265,6 +178,15 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   elfcpp::Elf_Word
   processor_specific_flags() const
   { return this->processor_specific_flags_; }
+
+  // Whether a local symbol is a function.  This is only valid after
+  // do_count_local_symbol is called.
+  bool
+  local_symbol_is_function(unsigned int symndx) const
+  {
+    gold_assert(symndx < this->local_symbol_is_function_.size());
+    return this->local_symbol_is_function_[symndx];
+  }
 
   bool
   do_local_symbol_size_changed() const
@@ -326,6 +248,16 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   attributes_section_data() const
   { return this->attributes_section_data_; }
 
+  // Return whether this object is not using nanoMIPS Subset.
+  bool
+  xlp() const
+  {
+    if (this->abiflags_ == NULL)
+      return false;
+
+    return (this->abiflags_->ases & elfcpp::AFL_ASE_xNMS) != 0;
+  }
+
   // Return whether all data access in this object is GP-relative.
   bool
   pid() const
@@ -336,6 +268,12 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   void
   do_count_local_symbols(Stringpool_template<char>*,
                          Stringpool_template<char>*);
+
+  virtual void
+  do_relocate_sections(
+      const Symbol_table* symtab, const Layout* layout,
+      const unsigned char* pshdrs, Output_file* of,
+      typename Sized_relobj_file<size, big_endian>::Views* pviews);
 
   // Read the symbol information.
   void
@@ -361,6 +299,9 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   // Size of the local symbols.
   std::vector<Size_type> local_symbol_size_;
 
+  // Bit vector to tell if a local symbol is a function or not.
+  std::vector<bool> local_symbol_is_function_;
+
   // processor-specific flags in ELF file header.
   elfcpp::Elf_Word processor_specific_flags_;
 
@@ -382,7 +323,8 @@ class Nanomips_input_section : public Output_relaxed_input_section
   Nanomips_input_section(Relobj* relobj, unsigned int shndx,
                          Output_section* os, unsigned int reloc_size)
     : Output_relaxed_input_section(relobj, shndx, 1),
-      addralign_(1), contents_(), relocs_(), reloc_size_(reloc_size)
+      addralign_(1), cond_branches_(), contents_(), relocs_(),
+      reloc_size_(reloc_size)
   {
     this->set_output_section(os);
 
@@ -396,6 +338,22 @@ class Nanomips_input_section : public Output_relaxed_input_section
     delete[] this->contents_.data;
     delete[] this->relocs_.data;
   }
+
+  struct Cond_branch
+  {
+    Cond_branch(unsigned int reloc_, uint64_t offset_, uint64_t destination_)
+      : reloc(reloc_), offset(offset_), destination(destination_)
+    { }
+
+    // Relocation (this can only be PC14_S1 or PC11_S1).
+    unsigned int reloc;
+    // Offset to the conditional branch within the section.
+    uint64_t offset;
+    // Destination address.
+    uint64_t destination;
+  };
+
+  typedef std::vector<Cond_branch> Conditional_branches;
 
   // Initialize.
   void
@@ -457,7 +415,6 @@ class Nanomips_input_section : public Output_relaxed_input_section
         if (this->relocs_.data == NULL)
           gold_nomem();
       }
-
     memcpy(this->relocs_.data + this->relocs_.len, new_reloc, reloc_size);
     this->relocs_.len += reloc_size;
   }
@@ -467,17 +424,22 @@ class Nanomips_input_section : public Output_relaxed_input_section
   reloc_count() const
   { return this->relocs_.len / this->reloc_size_; }
 
+  // Add relocation for conditional branch.  Set the destination address to
+  // point to location after bc instruction.
+  void
+  add_branch_reloc(unsigned int reloc, uint64_t address)
+  { this->cond_branches_.push_back(Cond_branch(reloc, address, address + 8)); }
+
+  // Return the conditional branch relocations.
+  Conditional_branches*
+  branches()
+  { return &this->cond_branches_; }
+
   // Downcast a base pointer to a Mips_input_section pointer.  This is
   // not type-safe but we only use Mips_input_section not the base class.
   static const Nanomips_input_section*
   as_nanomips_input_section(const Output_relaxed_input_section* poris)
   { return static_cast<const Nanomips_input_section*>(poris); }
-
-  // Downcast a base pointer to a Mips_input_section pointer.  This is
-  // not type-safe but we only use Mips_input_section not the base class.
-  static Nanomips_input_section*
-  as_nanomips_input_section(Output_relaxed_input_section* poris)
-  { return static_cast<Nanomips_input_section*>(poris); }
 
  protected:
   // Write out this input section.
@@ -537,6 +499,8 @@ class Nanomips_input_section : public Output_relaxed_input_section
 
   // Address alignment.
   uint64_t addralign_;
+  // Conditional branches whose targets are out of the range limits.
+  Conditional_branches cond_branches_;
   // Contents of the text section.
   Section_contents contents_;
   // The relocations for this section.
@@ -545,51 +509,98 @@ class Nanomips_input_section : public Output_relaxed_input_section
   unsigned int reloc_size_;
 };
 
-// The class which implements GOT reloc transformations.
+// The class which implements transformations.
 
 template<int size, bool big_endian>
 class Nanomips_transformations
 {
-  typedef Nanomips_insn_utilities<big_endian> Insn_utilities;
   typedef typename elfcpp::Swap<size, big_endian>::Valtype Valtype;
-  typedef typename elfcpp::Swap<16, big_endian>::Valtype Valtype16;
-  typedef typename elfcpp::Swap<32, big_endian>::Valtype Valtype32;
   typedef typename elfcpp::Elf_types<size>::Elf_Addr Address;
 
- protected:
-  Nanomips_transformations(Relocatable_relocs* rr, bool is_relax)
-    : rr_(rr), pnis_(NULL), is_relax_(is_relax)
+ public:
+  Nanomips_transformations(Nanomips_relobj<size, big_endian>* relobj,
+                           Relocatable_relocs* rr, bool is_relax,
+                           unsigned int insn_reloc)
+    : relobj_(relobj), rr_(rr), insn_reloc_(insn_reloc), is_relax_(is_relax)
   { }
 
-  // Return true if instruction is not marked with R_NANOMIPS_FIXED relocation.
+  // Return true if the length of this instruction is forced to an explicit
+  // size.  These instructions are marked with R_NANOMIPS_FIXED or
+  // R_NANOMIPS_INSN[32/16] relocations.
   inline bool
-  can_be_changed(Address offset,
-                 size_t relnum,
-                 size_t reloc_count,
-                 const unsigned char* prelocs);
-
-  // Set *PTRANSFORM_PROPERTY to the correct GOT transform property.
-  inline void
-  find_property(const Symbol* gsym,
-                const Symbol_value<size>* psymval,
-                const Nanomips_transform_property** ptransform_property,
-                const elfcpp::Rela<size, big_endian>& reloc,
-                uint32_t insn,
-                Address view_address,
-                Address gp,
-                bool is_nms);
-
-  // Check the range of the GOT relocation.
-  inline bool
-  check_range(Valtype value,
-              unsigned int r_type,
-              bool got_entry);
+  fixed_insn(Address offset, size_t relnum, size_t reloc_count,
+             const unsigned char* prelocs);
 
   // Transform instruction.
   inline void
-  transform(const Nanomips_transform_property* transform_property,
+  transform(const Nanomips_transform_template* transform_template,
+            const Nanomips_insn_property* insn_property,
+            Nanomips_input_section* input_section,
+            unsigned int type,
             size_t relnum,
             uint32_t insn);
+
+  // Read nanoMIPS instruction.
+  uint32_t
+  read_insn(const unsigned char* view, unsigned int insn_size)
+  {
+    switch (insn_size)
+      {
+      case 32:
+        {
+          typedef typename elfcpp::Swap<16, big_endian>::Valtype Valtype16;
+          Valtype16 first = elfcpp::Swap<16, big_endian>::readval(view);
+          Valtype16 second = elfcpp::Swap<16, big_endian>::readval(view + 2);
+          return (first << 16 | second);
+        }
+      case 16:
+        return elfcpp::Swap<16, big_endian>::readval(view);
+      case 48:
+      case 0:
+        return 0;
+      default:
+        gold_unreachable();
+      }
+  }
+
+  // For debugging purposes.
+  void
+  print(const Nanomips_transform_template* trasnform_template,
+        const std::string& insn_name, unsigned long r_offset,
+        unsigned int shndx)
+  {
+    const std::string& obj_name = this->relobj_->name();
+    const std::string& sec_name = this->relobj_->section_name(shndx);
+    const Nanomips_insn_template* insns = trasnform_template->insns();
+    size_t insn_count = trasnform_template->insn_count();
+
+    fprintf(stderr, "%s: %s(%s+%#lx): %s is %s",
+            program_name, obj_name.c_str(), sec_name.c_str(), r_offset,
+            insn_name.c_str(),
+            insn_count == 0 ? "removed" : "transformed into");
+
+    bool need_comma = false;
+    for (size_t i = 0; i < insn_count; ++i)
+      {
+        if (need_comma)
+          fprintf(stderr, ",");
+        fprintf(stderr, " %s", insns[i].name().c_str());
+        need_comma = true;
+      }
+    fprintf(stderr, "\n");
+  }
+
+ protected:
+  // Return the type of the transformation for code and data models.
+  inline unsigned int
+  get_type(const Symbol* gsym,
+           const Symbol_value<size>* psymval,
+           const Nanomips_insn_property* insn_property,
+           const elfcpp::Rela<size, big_endian>& reloc,
+           size_t,
+           uint32_t insn,
+           Address address,
+           Address gp);
 
   // Check for the relocation overflow.
   template<int valsize>
@@ -609,86 +620,24 @@ class Nanomips_transformations
       }
   }
 
-  // Add new relocation.
-  void
-  add_reloc(unsigned int r_sym, unsigned int r_type, Address r_offset,
-            typename elfcpp::Elf_types<size>::Elf_Swxword r_addend,
-            size_t relnum)
-  {
-    const unsigned int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
-    unsigned char relbuf[reloc_size];
-    elfcpp::Rela_write<size, big_endian> orel(relbuf);
-    orel.put_r_offset(r_offset);
-    orel.put_r_info(elfcpp::elf_r_info<size>(r_sym, r_type));
-    orel.put_r_addend(r_addend);
-
-    Nanomips_input_section* pnis = this->get_input_section();
-    pnis->add_reloc(relbuf, reloc_size);
-    // For new relocation, we just use strategy from the current
-    // relocation.
-    if (this->rr_ != NULL)
-      this->rr_->set_next_reloc_strategy(this->rr_->strategy(relnum));
-  }
-
   // Return relocatable relocs.
   Relocatable_relocs*
   rr()
   { return this->rr_; }
 
-  // Return the input section in which we are transforming instructions.
-  Nanomips_input_section*
-  get_input_section()
-  {
-    gold_assert(this->pnis_ != NULL);
-    return this->pnis_;
-  }
- public:
-  // Set input section in which we are transforming instructions.
-  void
-  set_input_section(Nanomips_input_section* pnis)
-  {
-    gold_assert(pnis != NULL);
-    gold_assert(this->pnis_ == NULL);
-    this->pnis_ = pnis;
-  }
+  // Return the object file.
+  Nanomips_relobj<size, big_endian>*
+  relobj()
+  { return this->relobj_; }
 
-  // For debugging purposes.
-  void
-  print(unsigned long r_offset, const Nanomips_transform_property* pntp)
-  {
-    Nanomips_input_section* pnis = this->get_input_section();
-    Relobj* relobj = pnis->relobj();
-    const std::string& obj_name = relobj->name();
-    const std::string& sec_name = relobj->section_name(pnis->shndx());
-
-    if (pntp->type() == TT_DELETE)
-      {
-        fprintf(stderr, "%s: %s(%s+%#lx): %s is removed\n",
-                program_name, obj_name.c_str(), sec_name.c_str(), r_offset,
-                pntp->name());
-        return;
-      }
-
-    fprintf(stderr, "%s: %s(%s+%#lx): %s is transformed into ",
-            program_name, obj_name.c_str(), sec_name.c_str(), r_offset,
-            pntp->name());
-
-    bool need_comma = false;
-    for (size_t i = 0; i < pntp->insn_num(); ++i)
-      {
-        if (need_comma)
-          fprintf(stderr, ", ");
-        fprintf(stderr, "%s", pntp->insn_name(i));
-        need_comma = true;
-      }
-    fprintf(stderr, "\n");
-  }
  private:
+  // Object file of the input section in which we are transforming instructions.
+  Nanomips_relobj<size, big_endian>* relobj_;
   // Info about how relocs should be handled.  This is only used for
   // --emit-relocs and --finalize-relocs options.
   Relocatable_relocs* rr_;
-  // Input section in which we are transforming instructions.
-  Nanomips_input_section* pnis_;
+  // R_NANOMIPS_INSN32 or R_NANOMIPS_INSN16 relocation.
+  unsigned int insn_reloc_;
   // Is instruction relaxation state.
   bool is_relax_;
 };
@@ -699,64 +648,63 @@ template<int size, bool big_endian>
 class Nanomips_relax_insn : public Nanomips_transformations<size, big_endian>
 {
   typedef Nanomips_transformations<size, big_endian> Base;
-  typedef Nanomips_insn_utilities<big_endian> Insn_utilities;
   typedef typename elfcpp::Swap<size, big_endian>::Valtype Valtype;
-  typedef typename elfcpp::Swap<16, big_endian>::Valtype Valtype16;
   typedef typename elfcpp::Elf_types<size>::Elf_Addr Address;
 
  public:
-  Nanomips_relax_insn(Relocatable_relocs* rr)
-    : Nanomips_transformations<size, big_endian>(rr, true)
+  Nanomips_relax_insn(Nanomips_relobj<size, big_endian>* relobj)
+    : Nanomips_transformations<size, big_endian>(relobj, NULL, true,
+                                                 elfcpp::R_NANOMIPS_INSN32)
+  { }
+
+  Nanomips_relax_insn(Nanomips_relobj<size, big_endian>* relobj,
+                      Relocatable_relocs* rr)
+    : Nanomips_transformations<size, big_endian>(relobj, rr, true,
+                                                 elfcpp::R_NANOMIPS_INSN32)
   { }
 
   // Return matching instruction for relaxation if there is one and INSN can
   // be relaxed, otherwise return NULL.
-  inline const Nanomips_transform_property*
-  find(uint32_t insn,
-       unsigned int r_type);
+  inline const Nanomips_insn_property*
+  find_insn(uint32_t insn, unsigned int mask, unsigned int r_type);
 
-  // Return true if instruction is not marked with R_NANOMIPS_INSN32 or
-  // R_NANOMIPS_FIXED relocations.
-  inline bool
-  can_be_changed(Address offset,
-                 size_t relnum,
-                 size_t reloc_count,
-                 const unsigned char* prelocs,
-                 bool got_reloc);
+  // Return the TT_RELAX transformation type if this instruction can be relaxed.
+  inline unsigned int
+  get_type(const Symbol* gsym,
+           const Symbol_value<size>* psymval,
+           const Nanomips_insn_property* insn_property,
+           const elfcpp::Rela<size, big_endian>& reloc,
+           size_t relnum,
+           uint32_t insn,
+           Address address,
+           Address gp);
+};
 
-  // Set *PTRANSFORM_PROPERTY to the correct GOT transform property.
-  inline void
-  find_property(const Symbol* gsym,
-                const Symbol_value<size>* psymval,
-                const Nanomips_transform_property** ptransform_property,
-                const elfcpp::Rela<size, big_endian>& reloc,
-                uint32_t insn,
-                Address view_address,
-                Address gp,
-                bool is_nms);
+// The class which implements relaxations during --finalize-relocs.
 
-  // Check the range of the relocation.
-  inline bool
-  check_range(Valtype value,
-              unsigned int r_type,
-              bool got_entry);
+template<int size, bool big_endian>
+class Nanomips_relax_insn_finalize
+  : public Nanomips_relax_insn<size, big_endian>
+{
+  typedef typename elfcpp::Elf_types<size>::Elf_Addr Address;
 
-  // Check the range of the relocation and return whether we can relax
-  // instruction during relocatable link and --finalize-relocs is passed.
-  inline bool
-  relocatable_check_range(Valtype value,
-                          unsigned int r_type,
-                          size_t relnum,
-                          Nanomips_relobj<size, big_endian>* relobj,
-                          const Symbol_value<size>*,
-                          unsigned int,
-                          bool);
+ public:
+  Nanomips_relax_insn_finalize(Nanomips_relobj<size, big_endian>* relobj,
+                               Relocatable_relocs* rr)
+    : Nanomips_relax_insn<size, big_endian>(relobj, rr)
+  { }
 
-  // Transform instruction.
-  inline void
-  transform(const Nanomips_transform_property* transform_property,
-            size_t relnum,
-            uint32_t insn);
+  // Return the TT_RELAX transformation type if this instruction can be relaxed
+  // during --finalize-relocs.
+  inline unsigned int
+  get_type(const Symbol* gsym,
+           const Symbol_value<size>* psymval,
+           const Nanomips_insn_property* insn_property,
+           const elfcpp::Rela<size, big_endian>& reloc,
+           size_t relnum,
+           uint32_t insn,
+           Address address,
+           Address gp);
 };
 
 // The class which implements expansions.
@@ -765,68 +713,64 @@ template<int size, bool big_endian>
 class Nanomips_expand_insn : public Nanomips_transformations<size, big_endian>
 {
   typedef Nanomips_transformations<size, big_endian> Base;
-  typedef Nanomips_insn_utilities<big_endian> Insn_utilities;
   typedef typename elfcpp::Swap<size, big_endian>::Valtype Valtype;
-  typedef typename elfcpp::Swap<16, big_endian>::Valtype Valtype16;
-  typedef typename elfcpp::Swap<32, big_endian>::Valtype Valtype32;
   typedef typename elfcpp::Elf_types<size>::Elf_Addr Address;
 
  public:
-  Nanomips_expand_insn(Relocatable_relocs* rr)
-    : Nanomips_transformations<size, big_endian>(rr, false)
-  { this->expand_reg_ = parameters->options().expand_reg(); }
+  Nanomips_expand_insn(Nanomips_relobj<size, big_endian>* relobj,
+                       Relocatable_relocs* rr)
+    : Nanomips_transformations<size, big_endian>(relobj, rr, false,
+                                                 elfcpp::R_NANOMIPS_INSN16)
+  { }
 
-  // Return matching instructions for expansion if we have found them.
-  inline const Nanomips_transform_property*
-  find(uint32_t insn,
-       unsigned int r_type);
+  // Return matching instruction for expansion if there is one.
+  inline const Nanomips_insn_property*
+  find_insn(uint32_t insn, unsigned int mask, unsigned int r_type);
 
-  // Return true if instruction is not marked with R_NANOMIPS_FIXED relocation.
-  inline bool
-  can_be_changed(Address offset,
-                 size_t relnum,
-                 size_t reloc_count,
-                 const unsigned char* prelocs,
-                 bool got_reloc);
+  // Return the transformation type if instruction needs to be expanded.
+  inline unsigned int
+  get_type(const Symbol* gsym,
+           const Symbol_value<size>* psymval,
+           const Nanomips_insn_property* insn_property,
+           const elfcpp::Rela<size, big_endian>& reloc,
+           size_t relnum,
+           uint32_t insn,
+           Address address,
+           Address gp);
 
-  // Set *PTRANSFORM_PROPERTY to the correct transform property.  This is used
-  // for cases where we can't distinguish them through the opcode.
-  inline void
-  find_property(const Symbol* gsym,
-                const Symbol_value<size>* psymval,
-                const Nanomips_transform_property** ptransform_property,
-                const elfcpp::Rela<size, big_endian>& reloc,
-                uint32_t insn,
-                Address view_address,
-                Address gp,
-                bool is_nms);
+ protected:
+  // Return the type of the expansion.
+  inline unsigned int
+  get_expand_type(const Nanomips_insn_property* insn_property,
+                  uint32_t insn,
+                  unsigned int r_type);
+};
 
-  // Check the range of the relocation.
-  inline bool
-  check_range(Valtype value,
-              unsigned int r_type,
-              bool got_entry);
+// The class which implements expansions during --finalize-relocs.
 
-  // Check the range of the relocation and return true if we must expand
-  // instruction during relocatable link and --finalize-relocs is passed.
-  inline bool
-  relocatable_check_range(Valtype value,
-                          unsigned int r_type,
-                          size_t relnum,
-                          Nanomips_relobj<size, big_endian>* relobj,
-                          const Symbol_value<size>* psymval,
-                          unsigned int r_sym,
-                          bool global);
+template<int size, bool big_endian>
+class Nanomips_expand_insn_finalize
+  : public Nanomips_expand_insn<size, big_endian>
+{
+  typedef typename elfcpp::Elf_types<size>::Elf_Addr Address;
 
-  // Transform instruction.
-  inline void
-  transform(const Nanomips_transform_property* transform_property,
-            size_t relnum,
-            uint32_t insn);
+ public:
+  Nanomips_expand_insn_finalize(Nanomips_relobj<size, big_endian>* relobj,
+                               Relocatable_relocs* rr)
+    : Nanomips_expand_insn<size, big_endian>(relobj, rr)
+  { }
 
- private:
-  // Register that is used in expansions.
-  unsigned int expand_reg_;
+  // Return the transformation type if instruction needs to be expanded
+  // during --finalize-relocs.
+  inline unsigned int
+  get_type(const Symbol* gsym,
+           const Symbol_value<size>* psymval,
+           const Nanomips_insn_property* insn_property,
+           const elfcpp::Rela<size, big_endian>& reloc,
+           size_t relnum,
+           uint32_t insn,
+           Address address,
+           Address gp);
 };
 
 // This class handles .nanoMIPS.abiflags output section.
@@ -956,7 +900,7 @@ class Nanomips_scan_relocatable_relocs :
 template<int size, bool big_endian>
 class Target_nanomips : public Sized_target<size, big_endian>
 {
-  typedef Nanomips_insn_utilities<big_endian> Insn_utilities;
+  typedef Target_nanomips<size, big_endian> This;
   typedef typename elfcpp::Elf_types<size>::Elf_Addr Address;
   typedef typename elfcpp::Swap<32, big_endian>::Valtype Valtype32;
   typedef typename elfcpp::Swap<size, big_endian>::Valtype Valtype;
@@ -965,8 +909,8 @@ class Target_nanomips : public Sized_target<size, big_endian>
  public:
   Target_nanomips(const Target::Target_info* info = &nanomips_info)
     : Sized_target<size, big_endian>(info), state_(EXPAND), got_(NULL),
-      gp_(NULL), attributes_section_data_(NULL), abiflags_(NULL), layout_(NULL),
-      has_abiflags_section_(false)
+      nanomips_input_section_map_(), gp_(NULL), attributes_section_data_(NULL),
+      abiflags_(NULL), layout_(NULL), has_abiflags_section_(false)
   { }
 
   // Process the relocations to determine unreferenced sections for
@@ -998,6 +942,11 @@ class Target_nanomips : public Sized_target<size, big_endian>
               size_t local_symbol_count,
               const unsigned char* plocal_symbols);
 
+  // Find the Nanomips_input_section object corresponding to the SHNDX-th input
+  // section of RELOBJ.
+  Nanomips_input_section*
+  find_nanomips_input_section(Relobj* relobj, unsigned int shndx) const;
+
   // We don't want to do instruction transformations if we are doing
   // relocatable linking and --finalize-relocs is not passed.
   bool
@@ -1011,6 +960,12 @@ class Target_nanomips : public Sized_target<size, big_endian>
   // instructions.
   bool
   do_relax(int, const Input_objects*, Symbol_table*, Layout*, const Task*);
+
+  // Relocate conditional branches.  This is only used if we have transformed
+  // conditional branch into opposite branch and bc instruction in a relaxation
+  // pass.
+  void
+  relocate_branch(unsigned int, Address, Address, unsigned char*);
 
   // This is called when keyword SORT_BY_READ is found in the linker script.
   void
@@ -1114,21 +1069,21 @@ class Target_nanomips : public Sized_target<size, big_endian>
   gp_value() const
   { return this->gp_ != NULL ? this->gp_->value() : 0; }
 
-  // Whether the output is not using nanoMIPS Subset.
-  bool
-  is_output_nms() const
-  {
-    if (this->abiflags_ == NULL)
-      return false;
-
-    return (this->abiflags_->ases & elfcpp::AFL_ASE_xNMS) != 0;
-  }
-
   // Don't emit input .nanoMIPS.abiflags sections to
   // output .nanoMIPS.abiflags.
   bool
   do_should_include_section(elfcpp::Elf_Word sh_type) const
   { return (sh_type != elfcpp::SHT_NANOMIPS_ABIFLAGS); }
+
+  // Get the default Nanomips target.
+  static This*
+  current_target()
+  {
+    gold_assert(parameters->target().machine_code() == elfcpp::EM_NANOMIPS
+                && parameters->target().get_size() == size
+                && parameters->target().is_big_endian() == big_endian);
+    return static_cast<This*>(parameters->sized_target<size, big_endian>());
+  }
 
  protected:
   void
@@ -1139,7 +1094,10 @@ class Target_nanomips : public Sized_target<size, big_endian>
       this->state_ = RELAX;
 
     gold_assert(nanomips_reloc_property_table == NULL);
+    gold_assert(nanomips_insn_property_table == NULL);
     nanomips_reloc_property_table = new Nanomips_reloc_property_table();
+    if (this->may_relax())
+      nanomips_insn_property_table = new Nanomips_insn_property_table();
   }
 
   // do_make_elf_object to override the same function in the base class.
@@ -1268,7 +1226,8 @@ class Target_nanomips : public Sized_target<size, big_endian>
   // Make a new Nanomips_input_section object.
   Nanomips_input_section*
   new_nanomips_input_section(Nanomips_relobj<size, big_endian>*,
-                             const Relocate_info<size, big_endian>*,
+                             unsigned int,
+                             unsigned int,
                              Output_section*);
 
   // Update content for instruction transformation.
@@ -1355,6 +1314,10 @@ class Target_nanomips : public Sized_target<size, big_endian>
   // general Target structure.
   static const Target::Target_info nanomips_info;
 
+  // Map input section to Nanomips_input_section.
+  typedef Unordered_map<Section_id, Nanomips_input_section*, Section_id_hash>
+      Nanomips_input_section_map;
+
   typedef enum
   {
     // Instruction expansion state.
@@ -1367,6 +1330,8 @@ class Target_nanomips : public Sized_target<size, big_endian>
   State state_;
   // The GOT section.
   Output_data_got<size, big_endian>* got_;
+  // Map for locating Nanomips_input_sections.
+  Nanomips_input_section_map nanomips_input_section_map_;
   // gp symbol.
   Sized_symbol<size>* gp_;
   // Attributes section data in output.
@@ -1727,29 +1692,13 @@ Nanomips_relobj<size, big_endian>::adjust_local_symbols(
   if (loccount == 0)
     return;
 
-  // Read the symbol table section header.
-  const unsigned int symtab_shndx = this->symtab_shndx();
-  elfcpp::Shdr<size, big_endian>
-    symtabshdr(this, this->elf_file()->section_header(symtab_shndx));
-  gold_assert(symtabshdr.get_sh_type() == elfcpp::SHT_SYMTAB);
-
-  // Read the local symbols.
-  const int sym_size = elfcpp::Elf_sizes<size>::sym_size;
-  gold_assert(loccount == symtabshdr.get_sh_info());
-  off_t locsize = loccount * sym_size;
-  const unsigned char* psyms = this->get_view(symtabshdr.get_sh_offset(),
-                                              locsize, true, true);
-
   // Adjust the local symbols.
 
-  // Skip the first dummy symbol.
-  psyms += sym_size;
   typename Sized_relobj_file<size, big_endian>::Local_values* plocal_values =
     this->local_values();
-  for (unsigned int i = 1; i < loccount; ++i, psyms += sym_size)
+  for (unsigned int i = 1; i < loccount; ++i)
     {
       Symbol_value<size>& lv((*plocal_values)[i]);
-      elfcpp::Sym<size, big_endian> sym(psyms);
       Address value = lv.input_value();
       bool is_ordinary;
       unsigned int sym_shndx = lv.input_shndx(&is_ordinary);
@@ -1761,9 +1710,8 @@ Nanomips_relobj<size, big_endian>::adjust_local_symbols(
             lv.set_input_value(value + count);
 
           // Adjust the function symbol's size, if needed.
-          bool is_func = sym.get_st_type() == elfcpp::STT_FUNC;
           Size_type symsize = this->do_local_symbol_size(i);
-          if (is_func
+          if (this->local_symbol_is_function_[i]
               && value < address
               && value + symsize >= address)
             this->set_local_symbol_size(i, symsize + count);
@@ -1962,10 +1910,8 @@ Nanomips_relobj<size, big_endian>::scan_sections_for_transform(
           else
             {
               // Currently this only happens for a relaxed section.
-              Output_relaxed_input_section* poris =
-                osections[index]->find_relaxed_input_section(this, index);
-              gold_assert(poris != NULL);
-              pnis = Nanomips_input_section::as_nanomips_input_section(poris);
+              pnis = target->find_nanomips_input_section(this, index);
+              gold_assert(pnis != NULL);
               output_address = pnis->address();
               prelocs = pnis->relocs();
               reloc_count = pnis->reloc_count();
@@ -2004,7 +1950,8 @@ Nanomips_relobj<size, big_endian>::do_count_local_symbols(
   if (loccount == 0)
     return;
 
-  // Initialize the local symbol size vector.
+  // Initialize vectors.
+  this->local_symbol_is_function_.resize(loccount, false);
   this->local_symbol_size_.resize(loccount);
 
   // Read the symbol table section header.
@@ -2020,7 +1967,7 @@ Nanomips_relobj<size, big_endian>::do_count_local_symbols(
   const unsigned char* psyms = this->get_view(symtabshdr.get_sh_offset(),
                                               locsize, true, true);
 
-  // Loop over the local symbols and cache size of the symbols.
+  // Loop over the local symbols and cache informations.
 
   // Skip the first dummy symbol.
   psyms += sym_size;
@@ -2028,6 +1975,69 @@ Nanomips_relobj<size, big_endian>::do_count_local_symbols(
     {
       elfcpp::Sym<size, big_endian> sym(psyms);
       this->local_symbol_size_[i] = sym.get_st_size();
+      this->local_symbol_is_function_[i] =
+        sym.get_st_type() == elfcpp::STT_FUNC;
+    }
+}
+
+// Relocate sections.
+
+template<int size, bool big_endian>
+void
+Nanomips_relobj<size, big_endian>::do_relocate_sections(
+    const Symbol_table* symtab,
+    const Layout* layout,
+    const unsigned char* pshdrs,
+    Output_file* of,
+    typename Sized_relobj_file<size, big_endian>::Views* pviews)
+{
+  // Relocate the section data.
+  this->relocate_section_range(symtab, layout, pshdrs, of, pviews,
+                               1, this->shnum() - 1);
+
+  Target_nanomips<size, big_endian>* target =
+    Target_nanomips<size, big_endian>::current_target();
+
+  // If we are not performing relaxations, don't do anything.
+  if (!target->may_relax())
+    return;
+
+  // Relocate conditional branches.
+  unsigned int shnum = this->shnum();
+
+  for (unsigned int i = 1; i < shnum; ++i)
+    {
+      Nanomips_input_section* nanomips_input_section =
+        target->find_nanomips_input_section(this, i);
+
+      if (nanomips_input_section == NULL
+          || nanomips_input_section->branches()->empty())
+        continue;
+
+      typename Sized_relobj_file<size, big_endian>::View_size& view_struct =
+        (*pviews)[i];
+      gold_assert(view_struct.view != NULL);
+
+      Address section_address = nanomips_input_section->address();
+      unsigned char* view =
+        view_struct.view + (section_address - view_struct.address);
+      section_size_type view_size = nanomips_input_section->data_size();
+
+      // Get conditional branches.
+      typedef typename Nanomips_input_section::Conditional_branches
+        Conditional_branches;
+      const Conditional_branches* branches = nanomips_input_section->branches();
+
+      for (size_t j = 0; j < branches->size(); ++j)
+        {
+          Address offset = (*branches)[j].offset;
+          Address destination = (*branches)[j].destination;
+          unsigned int r_type = (*branches)[j].reloc;
+          gold_assert(destination > offset);
+          gold_assert(destination <= view_size);
+          target->relocate_branch(r_type, section_address + destination,
+                                  section_address + offset, view + offset);
+        }
     }
 }
 
@@ -2230,11 +2240,13 @@ Nanomips_input_section::do_write(Output_file* of)
 
 // Nanomips_transformations methods.
 
-// Return true if instruction is not marked with R_NANOMIPS_FIXED relocation.
+// Return true if the length of this instruction is forced to an explicit size.
+// These instructions are marked with R_NANOMIPS_FIXED or R_NANOMIPS_INSN[32/16]
+// relocations.
 
 template<int size, bool big_endian>
 inline bool
-Nanomips_transformations<size, big_endian>::can_be_changed(
+Nanomips_transformations<size, big_endian>::fixed_insn(
     Address offset,
     size_t relnum,
     size_t reloc_count,
@@ -2243,7 +2255,7 @@ Nanomips_transformations<size, big_endian>::can_be_changed(
   typedef typename elfcpp::Rela<size, big_endian> Reltype;
   const int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
 
-  // Start finding FIXED from the next relocation.
+  // Start finding FIXED and INSN[32/16] from the next relocation.
   prelocs += reloc_size;
   for (size_t i = relnum + 1; i < reloc_count; ++i, prelocs += reloc_size)
     {
@@ -2252,201 +2264,193 @@ Nanomips_transformations<size, big_endian>::can_be_changed(
         break;
 
       unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
-      if (r_type == elfcpp::R_NANOMIPS_FIXED)
+      if (r_type == elfcpp::R_NANOMIPS_FIXED
+          || r_type == this->insn_reloc_)
         return false;
     }
-
   return true;
 }
 
-// Set *PTRANSFORM_PROPERTY to the correct GOT transform property.
+// Return the type of the transformation for code and data models.
 
 template<int size, bool big_endian>
-inline void
-Nanomips_transformations<size, big_endian>::find_property(
+inline unsigned int
+Nanomips_transformations<size, big_endian>::get_type(
     const Symbol* gsym,
     const Symbol_value<size>* psymval,
-    const Nanomips_transform_property** ptransform_property,
+    const Nanomips_insn_property* insn_property,
     const elfcpp::Rela<size, big_endian>& reloc,
+    size_t,
     uint32_t insn,
-    Address view_address,
-    Address gp,
-    bool is_nms)
+    Address address,
+    Address gp)
 {
+  const Address invalid_address = static_cast<Address>(0) - 1;
   typename elfcpp::Elf_types<size>::Elf_WXword r_info = reloc.get_r_info();
+  unsigned int r_sym = elfcpp::elf_r_sym<size>(r_info);
   unsigned int r_type = elfcpp::elf_r_type<size>(r_info);
-  const Nanomips_transform_property* transform_property = *ptransform_property;
-  unsigned int type = TT_STANDARD;
-  bool got_entry = false;
+  typename elfcpp::Elf_types<size>::Elf_Swxword r_addend = reloc.get_r_addend();
 
-  Nanomips_input_section* pnis = this->get_input_section();
-  Nanomips_relobj<size, big_endian>* relobj =
-    Nanomips_relobj<size, big_endian>::as_nanomips_relobj(pnis->relobj());
-  const bool pid = relobj->pid();
+  const bool pid = this->relobj_->pid();
+  const bool xlp = this->relobj_->xlp();
+  const bool insn32 = parameters->options().insn32();
+  bool got_entry =
+    (gsym != NULL
+     ? gsym->has_got_offset(GOT_TYPE_STANDARD)
+     : this->relobj_->local_has_got_offset(r_sym, GOT_TYPE_STANDARD, r_addend));
 
-  if (gsym != NULL)
-    got_entry = gsym->has_got_offset(GOT_TYPE_STANDARD);
-  else
-    {
-      unsigned int r_sym = elfcpp::elf_r_sym<size>(r_info);
-      got_entry = relobj->local_has_got_offset(r_sym, GOT_TYPE_STANDARD,
-                                               reloc.get_r_addend());
-    }
-
-  if (got_entry)
-    // Transform into lwpc[48] or aluipc, lw.
-    type = is_nms ? TT_GOTPCREL_NMS : TT_GOTPCREL_LONG;
-  else if (r_type == elfcpp::R_NANOMIPS_GOT_DISP)
-    {
-      const Address invalid_address = static_cast<Address>(0) - 1;
-
-      if (pid && gp != invalid_address)
-        {
-          Valtype value = psymval->value(relobj, reloc.get_r_addend()) - gp;
-
-          if ((value & 0x1) != 0
-              && !this->check_overflow<18>(value, CHECK_UNSIGNED))
-            // Transform into addiu[gp.b].
-            type = TT_GPREL32;
-          else if ((value & 0x3) == 0
-                   && !this->check_overflow<21>(value, CHECK_UNSIGNED))
-            // Transform into addiu[gp.w].
-            type = TT_GPREL32_WORD;
-          else
-            // Transform into addiugp[48] or lui, addu, ori.
-            type = is_nms ? TT_GPREL_NMS : TT_GPREL_LONG;
-        }
-      else
-        {
-          Address address = view_address + reloc.get_r_offset();
-          Valtype value =
-            psymval->value(relobj, reloc.get_r_addend()) - address - 4;
-
-          // TODO: Always do this transformation if this->is_relax_ is true.
-          if ((value & 0x1) == 0
-              && !this->check_overflow<21>(value, CHECK_SIGNED))
-            // Transform into lapc.
-            type = TT_PCREL32;
-          else
-            // Transform into lapc[48] or aluipc, ori.
-            type = is_nms ? TT_PCREL_NMS : TT_PCREL_LONG;
-        }
-    }
-  else if (r_type == elfcpp::R_NANOMIPS_GOT_OFST)
-    {
-      const Address invalid_address = static_cast<Address>(0) - 1;
-
-      if (pid && gp != invalid_address)
-        {
-          Valtype value = psymval->value(relobj, reloc.get_r_addend()) - gp;
-
-          if (transform_property->has_transform_property(TT_GPREL32)
-              && !this->check_overflow<18>(value, CHECK_UNSIGNED))
-            // Transform into [ls][bh][gp].
-            type = TT_GPREL32;
-          else if (transform_property->has_transform_property(TT_GPREL32_WORD)
-                   && !this->check_overflow<21>(value, CHECK_UNSIGNED))
-            {
-              unsigned int treg32 = Insn_utilities::treg_32(insn);
-              bool valid = (transform_property->is_store()
-                            ? Insn_utilities::valid_reg_16_st(treg32)
-                            : Insn_utilities::valid_reg_16(treg32));
-              bool overflow = this->check_overflow<9>(value, CHECK_UNSIGNED);
-              // Transform into [ls]w[gp][16]/[ls]w[gp].
-              type = valid && !overflow ? TT_GPREL16_WORD : TT_GPREL32_WORD;
-            }
-          else if (!is_nms)
-            // Transform into lui, addu, [ls]x.
-            type = TT_GPREL_LONG;
-          else
-            {
-              unsigned int treg32 = Insn_utilities::treg_32(insn);
-              unsigned int sreg32 = Insn_utilities::sreg_32(insn);
-              bool valid_sreg32 = Insn_utilities::valid_reg_16(sreg32);
-              bool valid_treg32 = (transform_property->is_store()
-                                   ? Insn_utilities::valid_reg_16_st(treg32)
-                                   : Insn_utilities::valid_reg_16(treg32));
-
-              // Transform into addiu[gp48], [ls]X[16]/[ls]X.
-              type = (valid_treg32 && valid_sreg32
-                      ? TT_GPREL16_NMS
-                      : TT_GPREL_NMS);
-            }
-        }
-      else if (transform_property->has_transform_property(TT_PCREL_NMS)
-               && is_nms)
-        // Transform into [ls]wpc.
-        type = TT_PCREL_NMS;
-      else
-        // Transform into aluipc, [ls]x.
-        type =  TT_PCREL_LONG;
-    }
-  else if (r_type == elfcpp::R_NANOMIPS_JALR32)
-    {
-      Address address = view_address + reloc.get_r_offset();
-      Valtype value =
-        psymval->value(relobj, reloc.get_r_addend()) - address - 4;
-
-      if (!this->check_overflow<26>(value, CHECK_SIGNED))
-        // Transform into balc.
-        type = TT_PCREL32;
-      else
-        // Transform into aluipc, ori, jalrc.
-        type = TT_PCREL_LONG;
-    }
-  else if (r_type == elfcpp::R_NANOMIPS_JALR16)
-    {
-      Address address = view_address + reloc.get_r_offset();
-      Valtype value =
-        psymval->value(relobj, reloc.get_r_addend()) - address - 2;
-
-      if (!this->check_overflow<11>(value, CHECK_SIGNED))
-        // Transform into balc[16].
-        type = TT_PCREL16;
-      else if (!this->check_overflow<26>(value, CHECK_SIGNED))
-        // TODO: Always do this transformation if this->is_relax_ is true.
-        // Transform into balc.
-        type = TT_PCREL32;
-      else
-        // Transform into lapc[48], jalrc or aluipc, ori, jalrc
-        type = is_nms ? TT_PCREL_NMS : TT_PCREL_LONG;
-    }
-  else if (r_type == elfcpp::R_NANOMIPS_GOT_CALL
-           || r_type == elfcpp::R_NANOMIPS_GOT_PAGE)
-    // Remove this instruction.
-    type = TT_DELETE;
-  else
-    gold_unreachable();
-
-  gold_assert(type != TT_STANDARD);
-  *ptransform_property = transform_property->get_transform_property(type);
-}
-
-// Check the range of the GOT relocation.
-
-template<int size, bool big_endian>
-inline bool
-Nanomips_transformations<size, big_endian>::check_range(
-    Valtype value,
-    unsigned int r_type,
-    bool got_entry)
-{
+  // Transformations for externally defined or preemptible symbols.
   switch (r_type)
     {
+    case elfcpp::R_NANOMIPS_GOT_CALL:
+    case elfcpp::R_NANOMIPS_GOT_PAGE:
+    case elfcpp::R_NANOMIPS_GOT_DISP:
+      if (got_entry)
+        {
+          unsigned int got_offset =
+            (gsym != NULL
+             ? gsym->got_offset(GOT_TYPE_STANDARD)
+             : this->relobj_->local_got_offset(r_sym, GOT_TYPE_STANDARD,
+                                               r_addend));
+          if (this->check_overflow<21>(got_offset, CHECK_UNSIGNED))
+            // Transform into lwpc[48] or aluipc, lw.
+            return xlp ? TT_GOTPCREL_XLP : TT_GOTPCREL_LONG;
+          else
+            // Don't do anything.
+            return TT_NONE;
+        }
+      break;
     case elfcpp::R_NANOMIPS_GOT_OFST:
+      if (got_entry)
+        // Transform into [ls]x[16] and discard relocation or don't do anything.
+        return (!insn32 && insn_property->valid_regs(insn)
+                ? TT_DISCARD
+                : TT_NONE);
+      break;
     case elfcpp::R_NANOMIPS_JALR32:
     case elfcpp::R_NANOMIPS_JALR16:
-      return !got_entry;
-    case elfcpp::R_NANOMIPS_GOT_DISP:
-    case elfcpp::R_NANOMIPS_GOT_PAGE:
-    case elfcpp::R_NANOMIPS_GOT_CALL:
-      if (!got_entry)
-        return true;
-      return this->check_overflow<21>(value, CHECK_UNSIGNED);
+      if (got_entry)
+        // Don't do anything.
+        return TT_NONE;
+      break;
     default:
       gold_unreachable();
     }
-  return false;
+
+  // Transformations for locally resolved symbols.
+  switch (r_type)
+    {
+    case elfcpp::R_NANOMIPS_GOT_CALL:
+    case elfcpp::R_NANOMIPS_GOT_PAGE:
+      // Remove this instruction and discard relocation.
+      return TT_DISCARD;
+    case elfcpp::R_NANOMIPS_GOT_DISP:
+      {
+        // Don't use gp-relative transformations for function address
+        // calculations.
+        bool is_func = (gsym != NULL
+                        ? gsym->is_func()
+                        : this->relobj_->local_symbol_is_function(r_sym));
+
+        if (!is_func && pid && (gp != invalid_address))
+          {
+            Valtype value = psymval->value(this->relobj_, r_addend) - gp;
+            if ((value & 0x3) != 0
+                && !this->check_overflow<18>(value, CHECK_UNSIGNED))
+              // Transform into addiu[gp.b].
+              return TT_GPREL32;
+            else if ((value & 0x3) == 0
+                     && !this->check_overflow<21>(value, CHECK_UNSIGNED))
+              // Transform into addiu[gp.w].
+              return TT_GPREL32_WORD;
+            else
+              // Transform into addiugp[48] or lui, ori, addu.
+              return xlp ? TT_GPREL_XLP : TT_GPREL_LONG_ADDRESS;
+          }
+        else
+          {
+            Valtype value =
+              psymval->value(this->relobj_, r_addend) - address - 4;
+            if ((value & 0x1) == 0
+                && (!this->check_overflow<21>(value, CHECK_SIGNED)
+                    || this->is_relax_))
+              // Transform into lapc.
+              return TT_PCREL32;
+            else
+              // Transform into lapc[48] or aluipc, ori.
+              return xlp ? TT_PCREL_XLP : TT_PCREL32_LONG;
+          }
+      }
+    case elfcpp::R_NANOMIPS_GOT_OFST:
+      {
+        if (pid && (gp != invalid_address))
+          {
+            Valtype value = psymval->value(this->relobj_, r_addend) - gp;
+            if (insn_property->has_transform(TT_GPREL32)
+                && !this->check_overflow<18>(value, CHECK_UNSIGNED))
+              // Transform into [ls][bh][gp].
+              return TT_GPREL32;
+            else if (insn_property->has_transform(TT_GPREL32_WORD)
+                     && !this->check_overflow<21>(value, CHECK_UNSIGNED))
+              {
+                bool valid = insn_property->valid_treg(insn);
+                bool overflow = this->check_overflow<9>(value, CHECK_UNSIGNED);
+                // Transform into [ls]w[gp][16] or [ls]w[gp].
+                return (valid && !overflow && !insn32
+                        ? TT_GPREL16_WORD
+                        : TT_GPREL32_WORD);
+              }
+            else if (!xlp)
+              // Transform into lui, addu, [ls]x.
+              return TT_GPREL_LONG;
+            else
+              // Transform into addiu[gp48], [ls]x[16] or addiu[gp48], [ls]x.
+              return (insn_property->valid_regs(insn)
+                      ? TT_GPREL_XLP
+                      : TT_GPREL32_XLP);
+          }
+        else if (xlp && insn_property->has_transform(TT_PCREL_XLP))
+          // Transform into [ls]wpc.
+          return TT_PCREL_XLP;
+        else
+          {
+            Valtype value =
+              psymval->value(this->relobj_, r_addend) - address - 4;
+            bool valid = insn_property->valid_regs(insn);
+            bool overflow = this->check_overflow<21>(value, CHECK_SIGNED);
+            // Transform into lapc, [ls]x[16] or aluipc, [ls]x.
+            return (valid && (value & 0x1) == 0 && !overflow && !insn32
+                    ? TT_PCREL16_LONG
+                    : TT_PCREL32_LONG);
+          }
+      }
+    case elfcpp::R_NANOMIPS_JALR32:
+      {
+        Valtype value = psymval->value(this->relobj_, r_addend) - address - 4;
+        if (!this->check_overflow<26>(value, CHECK_SIGNED))
+          // Transform into balc.
+          return TT_PCREL32;
+        else
+          // Transform into aluipc, ori, jalrc.
+          return TT_PCREL32_LONG;
+      }
+    case elfcpp::R_NANOMIPS_JALR16:
+      {
+        Valtype value = psymval->value(this->relobj_, r_addend) - address - 2;
+        if (!this->check_overflow<11>(value, CHECK_SIGNED))
+          // Transform into balc[16].
+          return TT_PCREL16;
+        else if (!this->check_overflow<26>(value, CHECK_SIGNED)
+                 || this->is_relax_)
+          // Transform into balc.
+          return TT_PCREL32;
+        else
+          // Transform into lapc[48], jalrc[16] or aluipc, ori, jalrc[16].
+          return xlp ? TT_PCREL_XLP : TT_PCREL16_LONG;
+      }
+    default:
+      gold_unreachable();
+    }
 }
 
 // Transform instruction.
@@ -2454,16 +2458,21 @@ Nanomips_transformations<size, big_endian>::check_range(
 template<int size, bool big_endian>
 inline void
 Nanomips_transformations<size, big_endian>::transform(
-    const Nanomips_transform_property* transform_property,
+    const Nanomips_transform_template* transform_template,
+    const Nanomips_insn_property* insn_property,
+    Nanomips_input_section* input_section,
+    unsigned int type,
     size_t relnum,
     uint32_t insn)
 {
-  gold_assert(transform_property != NULL);
+  gold_assert(transform_template != NULL);
+  gold_assert(insn_property != NULL);
+  gold_assert(input_section != NULL);
+
   typedef typename elfcpp::Rela<size, big_endian> Reltype;
   typedef typename elfcpp::Rela_write<size, big_endian> Reltype_write;
   const unsigned int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
-  Nanomips_input_section* pnis = this->get_input_section();
-  unsigned char* preloc = pnis->relocs() + relnum * reloc_size;
+  unsigned char* preloc = input_section->relocs() + relnum * reloc_size;
 
   Reltype reloc(preloc);
   Reltype_write reloc_write(preloc);
@@ -2471,14 +2480,105 @@ Nanomips_transformations<size, big_endian>::transform(
   unsigned int r_sym = elfcpp::elf_r_sym<size>(r_info);
   unsigned int r_type = elfcpp::elf_r_type<size>(r_info);
   Address r_offset = reloc.get_r_offset();
-  typename elfcpp::Elf_types<size>::Elf_Swxword r_addend =
-    reloc.get_r_addend();
-  unsigned char* view = pnis->section_contents() + r_offset;
-  unsigned int type = transform_property->type();
+  typename elfcpp::Elf_types<size>::Elf_Swxword r_addend = reloc.get_r_addend();
+  unsigned char* view = input_section->section_contents() + r_offset;
 
-  if (type == TT_DELETE)
+  // Extract register from input instruction.
+  unsigned int treg;
+  unsigned int sreg;
+  switch (r_type)
     {
-      // Remove relocation.
+    case elfcpp::R_NANOMIPS_PC25_S1:
+      treg = parameters->options().expand_reg();
+      sreg = parameters->options().expand_reg();
+      break;
+    case elfcpp::R_NANOMIPS_PC21_S1:
+      treg = insn_property->treg(insn);
+      sreg = (type == TT_MOVE_BALC ? insn_property->sreg(insn) : treg);
+      break;
+    case elfcpp::R_NANOMIPS_PC14_S1:
+      treg = insn_property->treg(insn);
+      sreg = insn_property->sreg(insn);
+      // Check if we need to swap registers.
+      if (type == TT_RELAX)
+        {
+          unsigned int treg16 = treg & 0x7;
+          unsigned int sreg16 = sreg & 0x7;
+          const char* name = insn_property->name().c_str();
+          if (strncmp(name, "beqc", 4) == 0)
+            {
+              gold_assert(treg != sreg);
+              // If rs3 > rt3 then we need to swap registers.
+              if (sreg16 > treg16)
+                {
+                  unsigned int tmp = treg;
+                  treg = sreg;
+                  sreg = tmp;
+                }
+            }
+          else if (strncmp(name, "bnec", 4) == 0)
+            {
+              // If rs3 < rt3 then we need to swap registers.
+              if (sreg16 < treg16)
+                {
+                  unsigned int tmp = treg;
+                  treg = sreg;
+                  sreg = tmp;
+                }
+            }
+          else
+            gold_unreachable();
+        }
+      break;
+    case elfcpp::R_NANOMIPS_PC11_S1:
+    case elfcpp::R_NANOMIPS_GOT_OFST:
+    case elfcpp::R_NANOMIPS_LO12:
+      treg = insn_property->treg(insn);
+      sreg = insn_property->sreg(insn);
+      break;
+    case elfcpp::R_NANOMIPS_GPREL19_S2:
+    case elfcpp::R_NANOMIPS_GPREL18:
+    case elfcpp::R_NANOMIPS_GPREL17_S1:
+      treg = insn_property->treg(insn);
+      sreg = parameters->options().expand_reg();
+      break;
+    case elfcpp::R_NANOMIPS_PC10_S1:
+    case elfcpp::R_NANOMIPS_PC7_S1:
+    case elfcpp::R_NANOMIPS_PC4_S1:
+    case elfcpp::R_NANOMIPS_GPREL7_S2:
+    case elfcpp::R_NANOMIPS_LO4_S2:
+      treg = insn_property->convert_treg(insn);
+      sreg = insn_property->convert_sreg(insn);
+      break;
+    case elfcpp::R_NANOMIPS_GOT_DISP:
+    case elfcpp::R_NANOMIPS_GOT_PAGE:
+    case elfcpp::R_NANOMIPS_GOT_CALL:
+      treg = insn_property->treg(insn);
+      sreg = insn_property->treg(insn);
+      break;
+    case elfcpp::R_NANOMIPS_JALR32:
+      treg = 0;
+      sreg = insn_property->sreg(insn);
+      break;
+    case elfcpp::R_NANOMIPS_JALR16:
+      treg = insn_property->treg(insn);
+      sreg = 0;
+      break;
+    default:
+      gold_unreachable();
+    }
+
+  // Add conditional branch relocation.  In this case, we are transforming
+  // conditional branch into the opposite conditional branch and bc instruction.
+  // This cover cases where for bc instruction we need to do expansion.
+  if ((r_type == elfcpp::R_NANOMIPS_PC14_S1
+       || r_type == elfcpp::R_NANOMIPS_PC11_S1)
+      && (type != TT_RELAX))
+    input_section->add_branch_reloc(r_type, r_offset);
+
+  // Discard relocation for TT_DISCARD type.
+  if (type == TT_DISCARD)
+    {
       reloc_write.put_r_offset(0);
       reloc_write.put_r_info(
         elfcpp::elf_r_info<size>(0, elfcpp::R_NANOMIPS_NONE));
@@ -2486,593 +2586,502 @@ Nanomips_transformations<size, big_endian>::transform(
       if (this->rr_ != NULL)
         this->rr_->discard_reloc(relnum);
     }
-  else if (r_type == elfcpp::R_NANOMIPS_GOT_OFST && type == TT_PCREL_LONG)
+
+  // Transform instructions.
+  const Nanomips_insn_template* insns = transform_template->insns();
+  // True if we need to add new reloc.
+  bool new_reloc = false;
+  // r_offset to the current instruction in array.
+  Address offset = r_offset;
+
+  unsigned char* pov = view;
+  for (size_t i = 0; i < transform_template->insn_count(); ++i)
     {
-      // Change existing relocation.
-      reloc_write.put_r_info(
-        elfcpp::elf_r_info<size>(r_sym, transform_property->reloc(0)));
+      size_t new_insn_size = insns[i].size();
+      uint32_t new_insn = insns[i].data(treg, sreg);
+      unsigned int new_r_type = insns[i].r_type();
 
-      // Add new relocation.
-      unsigned int new_r_type = transform_property->reloc(1);
-      this->add_reloc(r_sym, new_r_type, r_offset + 4, r_addend, relnum);
-
-      // Write instructions.
-      unsigned int treg32 = Insn_utilities::treg_32(insn);
-      unsigned int sreg32 = Insn_utilities::sreg_32(insn);
-      Valtype32 first_insn = (transform_property->insn(0) | (sreg32 << 21));
-      Valtype32 second_insn = (transform_property->insn(1)
-                               | (treg32 << 21)
-                               | (sreg32 << 16));
-      Insn_utilities::put_insn_32(view, first_insn);
-      Insn_utilities::put_insn_32(view + 4, second_insn);
-    }
-  else if (r_type == elfcpp::R_NANOMIPS_GOT_OFST
-           && (type == TT_GPREL_NMS || type == TT_GPREL16_NMS))
-    {
-      // Change existing relocation.
-      reloc_write.put_r_info(
-        elfcpp::elf_r_info<size>(r_sym, transform_property->reloc(0)));
-      reloc_write.put_r_offset(r_offset + 2);
-
-      // Add new relocation.
-      unsigned int new_r_type = transform_property->reloc(1);
-      this->add_reloc(r_sym, new_r_type, r_offset + 6, r_addend, relnum);
-
-      // Write instructions.
-      unsigned int sreg32 = Insn_utilities::sreg_32(insn);
-      Valtype16 first_insn =
-        static_cast<Valtype16>(transform_property->insn(0)) | (sreg32 << 5);
-      Insn_utilities::put_insn_48(view, first_insn);
-
-      if (type == TT_GPREL_NMS)
-        Insn_utilities::put_insn_32(view + 6, insn);
-      else
+      if (new_r_type != elfcpp::R_NANOMIPS_NONE)
         {
-          Valtype16 second_insn =
-            static_cast<Valtype16>(transform_property->insn(1));
-          unsigned int treg32 = Insn_utilities::treg_32(insn);
-          second_insn |= ((treg32 & 7) << 7) | ((sreg32 & 7) << 4);
-          elfcpp::Swap<16, big_endian>::writeval(view + 6, second_insn);
-        }
-    }
-  else if ((r_type == elfcpp::R_NANOMIPS_JALR32
-            || r_type == elfcpp::R_NANOMIPS_JALR16)
-           && type == TT_PCREL_LONG)
-    {
-      // Change existing relocation.
-      reloc_write.put_r_info(
-        elfcpp::elf_r_info<size>(r_sym, transform_property->reloc(0)));
-
-      // Add new relocation.
-      unsigned int new_r_type = transform_property->reloc(1);
-      this->add_reloc(r_sym, new_r_type, r_offset + 4, r_addend, relnum);
-
-      // Write instructions.
-      unsigned int reg32 = (r_type == elfcpp::R_NANOMIPS_JALR32
-                            ? Insn_utilities::sreg_32(insn)
-                            : (insn >> 5) & 0x1f);
-      Valtype32 first_insn = (transform_property->insn(0) | (reg32 << 21));
-      Valtype32 second_insn = (transform_property->insn(1)
-                               | (reg32 << 21)
-                               | (reg32 << 16));
-      Insn_utilities::put_insn_32(view, first_insn);
-      Insn_utilities::put_insn_32(view + 4, second_insn);
-      if (r_type == elfcpp::R_NANOMIPS_JALR32)
-        Insn_utilities::put_insn_32(view + 8, insn);
-      else
-        elfcpp::Swap<16, big_endian>::writeval(view + 8, insn);
-    }
-  else if (r_type == elfcpp::R_NANOMIPS_JALR16 && type == TT_PCREL_NMS)
-    {
-      // Change existing relocation.
-      reloc_write.put_r_info(
-        elfcpp::elf_r_info<size>(r_sym, transform_property->reloc(0)));
-      // For 48bit instructions, r_offset is pointing to the immediate.
-      reloc_write.put_r_offset(r_offset + 2);
-
-      // Write instructions.
-      unsigned int reg32 = (insn >> 5) & 0x1f;
-      Valtype16 lapc_insn =
-        static_cast<Valtype16>(transform_property->insn(0)) | (reg32 << 5);
-      Insn_utilities::put_insn_48(view, lapc_insn);
-      elfcpp::Swap<16, big_endian>::writeval(view + 6, insn);
-    }
-  else if (type >= TT_GPREL16_WORD && type < TT_GPREL_LONG)
-    {
-      // Change existing relocation.
-      unsigned int new_r_type = transform_property->reloc(0);
-      reloc_write.put_r_info(elfcpp::elf_r_info<size>(r_sym, new_r_type));
-
-      const Nanomips_reloc_property* reloc_property =
-        nanomips_reloc_property_table->get_reloc_property(new_r_type);
-      gold_assert(reloc_property != NULL);
-
-      if (reloc_property->size() == 16)
-        {
-          Valtype16 expand_insn =
-            static_cast<Valtype16>(transform_property->insn(0));
-          if (r_type != elfcpp::R_NANOMIPS_JALR16)
-            expand_insn |= ((Insn_utilities::treg_32(insn) & 7) << 7);
-          elfcpp::Swap<16, big_endian>::writeval(view, expand_insn);
-        }
-      else if (reloc_property->size() == 32)
-        {
-          // Write 32bit instruction.
-          Valtype32 expand_insn = transform_property->insn(0);
-          if (r_type != elfcpp::R_NANOMIPS_JALR32
-              && r_type != elfcpp::R_NANOMIPS_JALR16)
-            expand_insn |= (Insn_utilities::treg_32(insn) << 21);
-          Insn_utilities::put_insn_32(view, expand_insn);
-        }
-      else if (reloc_property->size() == 48)
-        {
+          gold_assert(type != TT_DISCARD);
           // For 48bit instructions, r_offset is pointing to the immediate.
-          reloc_write.put_r_offset(r_offset + 2);
+          Address new_r_offset = (new_insn_size == 6 ? offset + 2 : offset);
+          if (!new_reloc)
+            {
+              // Change existing relocation.
+              reloc_write.put_r_info(
+                elfcpp::elf_r_info<size>(r_sym, new_r_type));
+              reloc_write.put_r_offset(new_r_offset);
+              // Set that we need to add new relocations.
+              new_reloc = true;
+            }
+          else
+            {
+              // Add new relocation
+              unsigned char relbuf[reloc_size];
+              Reltype_write orel(relbuf);
+              orel.put_r_offset(new_r_offset);
+              orel.put_r_info(elfcpp::elf_r_info<size>(r_sym, new_r_type));
+              orel.put_r_addend(r_addend);
+              input_section->add_reloc(relbuf, reloc_size);
+              // For new relocation, we just use strategy from the current
+              // relocation.
+              if (this->rr_ != NULL)
+                this->rr_->set_next_reloc_strategy(this->rr_->strategy(relnum));
+            }
+        }
 
-          // Write 48bit instruction.
-          unsigned int treg32 = Insn_utilities::treg_32(insn);
-          Valtype16 expand_insn =
-            static_cast<Valtype16>(transform_property->insn(0)) | (treg32 << 5);
-          Insn_utilities::put_insn_48(view, expand_insn);
+      // Write instruction.
+      if (new_insn_size == 2)
+        elfcpp::Swap<16, big_endian>::writeval(pov, new_insn & 0xffff);
+      else if (new_insn_size == 4)
+        {
+          uint32_t hi = (new_insn >> 16) & 0xffff;
+          uint32_t lo = new_insn & 0xffff;
+          elfcpp::Swap<16, big_endian>::writeval(pov, hi);
+          elfcpp::Swap<16, big_endian>::writeval(pov + 2, lo);
+        }
+      else if (new_insn_size == 6)
+        {
+          elfcpp::Swap<16, big_endian>::writeval(view, new_insn & 0xffff);
+          // Clear immediate.
+          memset(pov + 2, 0, 4);
         }
       else
         gold_unreachable();
+
+      pov += new_insn_size;
+      offset += new_insn_size;
     }
-  else if (type == TT_GPREL_LONG)
-    {
-      // Change existing relocation.
-      reloc_write.put_r_info(
-        elfcpp::elf_r_info<size>(r_sym, transform_property->reloc(0)));
 
-      // Add new relocation.
-      unsigned int new_r_type = transform_property->reloc(2);
-      this->add_reloc(r_sym, new_r_type, r_offset + 8, r_addend, relnum);
-
-      // Write instructions.
-      unsigned int treg32 = Insn_utilities::treg_32(insn);
-      unsigned int sreg32 = (r_type == elfcpp::R_NANOMIPS_GOT_OFST
-                             ? Insn_utilities::sreg_32(insn)
-                             : treg32);
-      Valtype32 lui_insn = (transform_property->insn(0) | (sreg32 << 21));
-      Valtype32 addu_insn = (transform_property->insn(1)
-                             | (sreg32 << 16)
-                             | (sreg32 << 11));
-      Valtype32 third_insn = (transform_property->insn(2)
-                              | (treg32 << 21)
-                              | (sreg32 << 16));
-      Insn_utilities::put_insn_32(view, lui_insn);
-      Insn_utilities::put_insn_32(view + 4, addu_insn);
-      Insn_utilities::put_insn_32(view + 8, third_insn);
-    }
-  else if (type == TT_PCREL_LONG || type == TT_GOTPCREL_LONG)
-    {
-      // Change existing relocation.
-      reloc_write.put_r_info(
-        elfcpp::elf_r_info<size>(r_sym, transform_property->reloc(0)));
-
-      // Add new relocation.
-      unsigned int new_r_type = transform_property->reloc(1);
-      this->add_reloc(r_sym, new_r_type, r_offset + 4, r_addend, relnum);
-
-      // Write instructions.
-      unsigned int treg32 = Insn_utilities::treg_32(insn);
-      Valtype32 first_insn = (transform_property->insn(0) | (treg32 << 21));
-      Valtype32 second_insn = (transform_property->insn(1)
-                               | (treg32 << 21)
-                               | (treg32 << 16));
-      Insn_utilities::put_insn_32(view, first_insn);
-      Insn_utilities::put_insn_32(view + 4, second_insn);
-    }
-  else
-    gold_unreachable();
+  section_size_type view_size =
+    static_cast<section_size_type>(transform_template->size());
+  gold_assert(static_cast<section_size_type>(pov - view) == view_size);
 }
+
 // Nanomips_relax_insn methods.
 
 // Return matching instruction for relaxation if there is one and INSN can
 // be relaxed, otherwise return NULL.
 
 template<int size, bool big_endian>
-inline const Nanomips_transform_property*
-Nanomips_relax_insn<size, big_endian>::find(
-    uint32_t insn,
-    unsigned int r_type)
+inline const Nanomips_insn_property*
+Nanomips_relax_insn<size, big_endian>::find_insn(uint32_t insn,
+                                                 unsigned int mask,
+                                                 unsigned int r_type)
 {
-  const Nanomips_reloc_property* reloc_property =
-    nanomips_reloc_property_table->get_reloc_property(r_type);
-  gold_assert(reloc_property != NULL);
-
-  if (reloc_property->got())
-    return reloc_property->find_got_transform_match(insn);
-
-  const Nanomips_transform_property *transform_property =
-    reloc_property->find_relax_match(insn);
-  if (transform_property == NULL)
+  const Nanomips_insn_property* insn_property =
+    nanomips_insn_property_table->get_insn_property(insn, mask, r_type);
+  if (insn_property == NULL)
     return NULL;
 
   switch (r_type)
     {
-    case elfcpp::R_NANOMIPS_PC25_S1:
-      return transform_property;
     case elfcpp::R_NANOMIPS_PC14_S1:
-    case elfcpp::R_NANOMIPS_LO12:
       {
-        unsigned int sreg32 = Insn_utilities::sreg_32(insn);
-        if (!Insn_utilities::valid_reg_16(sreg32))
+        if (!insn_property->has_transform(TT_RELAX)
+            || !this->relobj()->xlp()
+            || !insn_property->valid_regs(insn))
           return NULL;
-      }
-      // Fall through.
-    case elfcpp::R_NANOMIPS_GPREL19_S2:
-      {
-        unsigned int treg32 = Insn_utilities::treg_32(insn);
-        bool valid = (transform_property->is_store()
-                      ? Insn_utilities::valid_reg_16_st(treg32)
-                      : Insn_utilities::valid_reg_16(treg32));
-        return valid ? transform_property : NULL;
-      }
-    default:
-      gold_unreachable();
-    }
 
+        unsigned int treg = insn_property->treg(insn);
+        unsigned int sreg = insn_property->sreg(insn);
+        const char* name = insn_property->name().c_str();
+        // We can't relax beqc to beqc[16] instruction if
+        // registers are the same.
+        if ((strncmp(name, "beqc", 4) == 0) && (treg == sreg))
+          return NULL;
+        return insn_property;
+      }
+    case elfcpp::R_NANOMIPS_PC25_S1:
+    case elfcpp::R_NANOMIPS_GPREL19_S2:
+    case elfcpp::R_NANOMIPS_LO12:
+      if (!insn_property->has_transform(TT_RELAX)
+          || !insn_property->valid_regs(insn))
+        return NULL;
+      return insn_property;
+    case elfcpp::R_NANOMIPS_GOT_DISP:
+    case elfcpp::R_NANOMIPS_GOT_PAGE:
+    case elfcpp::R_NANOMIPS_GOT_OFST:
+    case elfcpp::R_NANOMIPS_GOT_CALL:
+    case elfcpp::R_NANOMIPS_JALR32:
+    case elfcpp::R_NANOMIPS_JALR16:
+      return insn_property;
+    default:
+      break;
+    }
   return NULL;
 }
 
-// Return true if instruction is not marked with R_NANOMIPS_INSN32 or
-// R_NANOMIPS_FIXED relocations.
+// Return the TT_RELAX transformation type if this instruction can be relaxed.
 
 template<int size, bool big_endian>
-inline bool
-Nanomips_relax_insn<size, big_endian>::can_be_changed(
-    Address offset,
-    size_t relnum,
-    size_t reloc_count,
-    const unsigned char* prelocs,
-    bool got_reloc)
-{
-  if (got_reloc)
-    return Base::can_be_changed(offset, relnum, reloc_count, prelocs);
-
-  typedef typename elfcpp::Rela<size, big_endian> Reltype;
-  const int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
-
-  // Start finding INSN32 and FIXED from the next relocation.
-  prelocs += reloc_size;
-  for (size_t i = relnum + 1; i < reloc_count; ++i, prelocs += reloc_size)
-    {
-      Reltype reloc(prelocs);
-      if (offset != reloc.get_r_offset())
-        break;
-
-      unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
-      if (r_type == elfcpp::R_NANOMIPS_INSN32
-          || r_type == elfcpp::R_NANOMIPS_FIXED)
-        return false;
-    }
-
-  return true;
-}
-
-// Set *PTRANSFORM_PROPERTY to the correct GOT transform property.
-
-template<int size, bool big_endian>
-inline void
-Nanomips_relax_insn<size, big_endian>::find_property(
+inline unsigned int
+Nanomips_relax_insn<size, big_endian>::get_type(
     const Symbol* gsym,
     const Symbol_value<size>* psymval,
-    const Nanomips_transform_property** ptransform_property,
+    const Nanomips_insn_property* insn_property,
     const elfcpp::Rela<size, big_endian>& reloc,
+    size_t relnum,
     uint32_t insn,
-    Address view_address,
-    Address gp,
-    bool is_nms)
+    Address address,
+    Address gp)
 {
-  unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
-  switch (r_type)
-    {
-    case elfcpp::R_NANOMIPS_GOT_DISP:
-    case elfcpp::R_NANOMIPS_GOT_PAGE:
-    case elfcpp::R_NANOMIPS_GOT_OFST:
-    case elfcpp::R_NANOMIPS_GOT_CALL:
-    case elfcpp::R_NANOMIPS_JALR32:
-    case elfcpp::R_NANOMIPS_JALR16:
-      Base::find_property(gsym, psymval, ptransform_property, reloc, insn,
-                          view_address, gp, is_nms);
-      break;
-    default:
-      break;
-    }
-}
+  const Address invalid_address = static_cast<Address>(0) - 1;
+  const Nanomips_relobj<size, big_endian>* relobj = this->relobj();
 
-// Check the range of the relocation.
-
-template<int size, bool big_endian>
-inline bool
-Nanomips_relax_insn<size, big_endian>::check_range(
-    Valtype value,
-    unsigned int r_type,
-    bool got_entry)
-{
+  typename elfcpp::Elf_types<size>::Elf_WXword r_info = reloc.get_r_info();
+  typename elfcpp::Elf_types<size>::Elf_Swxword r_addend = reloc.get_r_addend();
+  unsigned int r_type = elfcpp::elf_r_type<size>(r_info);
   switch (r_type)
     {
     case elfcpp::R_NANOMIPS_PC25_S1:
-      return !this->template check_overflow<11>(value, CHECK_SIGNED);
+      {
+        typedef typename elfcpp::Elf_types<size>::Elf_Swxword Signed_valtype;
+        Valtype value = psymval->value(relobj, r_addend) - address - 4;
+
+        // Correct value if this is a backward branch.
+        if (static_cast<Signed_valtype>(value) < 0)
+          value += 2;
+
+        if (this->template check_overflow<11>(value, CHECK_SIGNED))
+          return TT_NONE;
+        break;
+      }
     case elfcpp::R_NANOMIPS_PC14_S1:
-      return ((value != 0)
-              && !this->template check_overflow<5>(value, CHECK_UNSIGNED));
+      {
+        Valtype value = psymval->value(relobj, r_addend) - address - 4;
+        if (value == 0
+            || this->template check_overflow<5>(value, CHECK_UNSIGNED))
+          return TT_NONE;
+        break;
+      }
     case elfcpp::R_NANOMIPS_GPREL19_S2:
-      return !this->template check_overflow<9>(value, CHECK_UNSIGNED);
+      {
+        Valtype value = psymval->value(relobj, r_addend) - gp;
+        if (gp == invalid_address
+            || this->template check_overflow<9>(value, CHECK_UNSIGNED))
+          return TT_NONE;
+        break;
+      }
     case elfcpp::R_NANOMIPS_LO12:
-      return (((value & 3) == 0)
-              && !this->template check_overflow<6>(value, CHECK_UNSIGNED));
+      {
+        Valtype value = psymval->value(relobj, r_addend) & 0xfff;
+        if (((value & 3) != 0)
+            || this->template check_overflow<6>(value, CHECK_UNSIGNED))
+          return TT_NONE;
+        break;
+      }
     case elfcpp::R_NANOMIPS_GOT_DISP:
     case elfcpp::R_NANOMIPS_GOT_PAGE:
     case elfcpp::R_NANOMIPS_GOT_OFST:
     case elfcpp::R_NANOMIPS_GOT_CALL:
     case elfcpp::R_NANOMIPS_JALR32:
     case elfcpp::R_NANOMIPS_JALR16:
-      return Base::check_range(value, r_type, got_entry);
+      return Base::get_type(gsym, psymval, insn_property,
+                            reloc, relnum, insn, address, gp);
     default:
       gold_unreachable();
     }
-  return false;
+  return TT_RELAX;
 }
 
-// Check the range of the relocation and return whether we can relax
-// instruction during relocatable link and --finalize-relocs is passed.
+// Nanomips_relax_insn_finalize methods.
+
+// Return the TT_RELAX transformation type if this instruction can be relaxed
+// during --finalize-relocs.
 
 template<int size, bool big_endian>
-inline bool
-Nanomips_relax_insn<size, big_endian>::relocatable_check_range(
-    Valtype value,
-    unsigned int r_type,
+inline unsigned int
+Nanomips_relax_insn_finalize<size, big_endian>::get_type(
+    const Symbol* gsym,
+    const Symbol_value<size>* psymval,
+    const Nanomips_insn_property* insn_property,
+    const elfcpp::Rela<size, big_endian>& reloc,
     size_t relnum,
-    Nanomips_relobj<size, big_endian>*,
-    const Symbol_value<size>*,
-    unsigned int,
-    bool)
+    uint32_t insn,
+    Address address,
+    Address gp)
 {
   Relocatable_relocs* rr = this->rr();
   gold_assert(rr != NULL);
 
   if (rr->strategy(relnum) != Relocatable_relocs::RELOC_RESOLVE)
-    return false;
+    return TT_NONE;
 
-  return this->check_range(value, r_type, false);
-}
-
-// Transform instruction.
-
-template<int size, bool big_endian>
-inline void
-Nanomips_relax_insn<size, big_endian>::transform(
-    const Nanomips_transform_property* transform_property,
-    size_t relnum,
-    uint32_t insn)
-{
-  gold_assert(transform_property != NULL);
-  typedef typename elfcpp::Rela<size, big_endian> Reltype;
-  typedef typename elfcpp::Rela_write<size, big_endian> Reltype_write;
-  const unsigned int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
-  Nanomips_input_section* pnis = this->get_input_section();
-  unsigned char* preloc = pnis->relocs() + relnum * reloc_size;
-
-  Reltype reloc(preloc);
-  typename elfcpp::Elf_types<size>::Elf_WXword r_info = reloc.get_r_info();
-  unsigned int r_type = elfcpp::elf_r_type<size>(r_info);
-
-  const Nanomips_reloc_property* reloc_property =
-    nanomips_reloc_property_table->get_reloc_property(r_type);
-  gold_assert(reloc_property != NULL);
-
-  if (reloc_property->got())
-    {
-      Base::transform(transform_property, relnum, insn);
-      return;
-    }
-
-  Valtype16 relax_insn = static_cast<Valtype16>(transform_property->insn(0));
-  if (r_type != elfcpp::R_NANOMIPS_PC25_S1)
-    {
-      unsigned int treg32 = Insn_utilities::treg_32(insn);
-      relax_insn |= ((treg32 & 7) << 7);
-      if (r_type == elfcpp::R_NANOMIPS_PC14_S1
-          || r_type == elfcpp::R_NANOMIPS_LO12)
-        {
-          unsigned int sreg32 = Insn_utilities::sreg_32(insn);
-          relax_insn |= ((sreg32 & 7) << 4);
-        }
-    }
-
-  Reltype_write reloc_write(preloc);
-  unsigned int r_sym = elfcpp::elf_r_sym<size>(r_info);
-  Address r_offset = reloc.get_r_offset();
-  unsigned char* view = pnis->section_contents() + r_offset;
-
-  // Update current relocation.
-  reloc_write.put_r_info(
-    elfcpp::elf_r_info<size>(r_sym, transform_property->reloc(0)));
-  // Write relaxed instruction.
-  elfcpp::Swap<16, big_endian>::writeval(view, relax_insn);
+  return Nanomips_relax_insn<size, big_endian>::get_type(gsym, psymval,
+                                                         insn_property, reloc,
+                                                         relnum, insn,
+                                                         address, gp);
 }
 
 // Nanomips_expand_insn methods.
 
-// Return matching instructions for expansion if we have found them.
+// Return matching instruction for expansion if there is one.
 
 template<int size, bool big_endian>
-inline const Nanomips_transform_property*
-Nanomips_expand_insn<size, big_endian>::find(
-    uint32_t insn,
-    unsigned int r_type)
-{
-  const Nanomips_reloc_property* reloc_property =
-    nanomips_reloc_property_table->get_reloc_property(r_type);
-  gold_assert(reloc_property != NULL);
-
-  return (reloc_property->got()
-          ? reloc_property->find_got_transform_match(insn)
-          : reloc_property->find_expand_match(insn));
-}
-
-// Return true if instruction is not marked with R_NANOMIPS_FIXED relocation.
-
-template<int size, bool big_endian>
-inline bool
-Nanomips_expand_insn<size, big_endian>::can_be_changed(
-    Address offset,
-    size_t relnum,
-    size_t reloc_count,
-    const unsigned char* prelocs,
-    bool got_reloc)
-{
-  if (got_reloc)
-    return Base::can_be_changed(offset, relnum, reloc_count, prelocs);
-
-  typedef typename elfcpp::Rela<size, big_endian> Reltype;
-  const int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
-
-  // Start finding FIXED from the next relocation.
-  prelocs += reloc_size;
-  for (size_t i = relnum + 1; i < reloc_count; ++i, prelocs += reloc_size)
-    {
-      Reltype reloc(prelocs);
-      if (offset != reloc.get_r_offset())
-        break;
-
-      unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
-      if (r_type == elfcpp::R_NANOMIPS_FIXED)
-        return false;
-    }
-
-  return true;
-}
-
-// Set *PTRANSFORM_PROPERTY to the correct transform property.  This is used
-// for cases where we can't distinguish them through the opcode.
-
-template<int size, bool big_endian>
-inline void
-Nanomips_expand_insn<size, big_endian>::find_property(
-    const Symbol* gsym,
-    const Symbol_value<size>* psymval,
-    const Nanomips_transform_property** ptransform_property,
-    const elfcpp::Rela<size, big_endian>& reloc,
-    uint32_t insn,
-    Address view_address,
-    Address gp,
-    bool is_nms)
-{
-  unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
-  switch (r_type)
-    {
-    case elfcpp::R_NANOMIPS_PC4_S1:
-      {
-        unsigned int sreg16 = Insn_utilities::sreg_16(insn);
-        unsigned int treg16 = Insn_utilities::treg_16(insn);
-        // If rs3>=rt3 then this is bnec[16] instruction, otherwise
-        // it's beqc[16].
-        unsigned int insn_type = sreg16 >= treg16 ? TT_BNEC16 : TT_BEQC16;
-        *ptransform_property =
-          (*ptransform_property)->get_transform_property(insn_type);
-      }
-      break;
-    case elfcpp::R_NANOMIPS_GOT_DISP:
-    case elfcpp::R_NANOMIPS_GOT_PAGE:
-    case elfcpp::R_NANOMIPS_GOT_OFST:
-    case elfcpp::R_NANOMIPS_GOT_CALL:
-    case elfcpp::R_NANOMIPS_JALR32:
-    case elfcpp::R_NANOMIPS_JALR16:
-      Base::find_property(gsym, psymval, ptransform_property, reloc, insn,
-                          view_address, gp, is_nms);
-      break;
-    default:
-      break;
-    }
-}
-
-// Check the range of the relocation.
-
-template<int size, bool big_endian>
-inline bool
-Nanomips_expand_insn<size, big_endian>::check_range(
-    Valtype value,
-    unsigned int r_type,
-    bool got_entry)
+inline const Nanomips_insn_property*
+Nanomips_expand_insn<size, big_endian>::find_insn(uint32_t insn,
+                                                  unsigned int mask,
+                                                  unsigned int r_type)
 {
   switch (r_type)
     {
     case elfcpp::R_NANOMIPS_PC25_S1:
-      return this->template check_overflow<26>(value, CHECK_SIGNED);
     case elfcpp::R_NANOMIPS_PC21_S1:
-      return this->template check_overflow<22>(value, CHECK_SIGNED);
+    case elfcpp::R_NANOMIPS_PC14_S1:
     case elfcpp::R_NANOMIPS_PC11_S1:
-      return this->template check_overflow<12>(value, CHECK_SIGNED);
     case elfcpp::R_NANOMIPS_GPREL19_S2:
-      return this->template check_overflow<21>(value, CHECK_UNSIGNED);
     case elfcpp::R_NANOMIPS_GPREL18:
     case elfcpp::R_NANOMIPS_GPREL17_S1:
-      return this->template check_overflow<18>(value, CHECK_UNSIGNED);
     case elfcpp::R_NANOMIPS_PC10_S1:
-      return this->template check_overflow<11>(value, CHECK_SIGNED);
     case elfcpp::R_NANOMIPS_PC7_S1:
-      return this->template check_overflow<8>(value, CHECK_SIGNED);
     case elfcpp::R_NANOMIPS_PC4_S1:
-      return ((value == 0)
-              || this->template check_overflow<5>(value, CHECK_UNSIGNED));
     case elfcpp::R_NANOMIPS_GPREL7_S2:
-      return this->template check_overflow<9>(value, CHECK_UNSIGNED);
     case elfcpp::R_NANOMIPS_LO4_S2:
-      return (((value & 3) != 0)
-              || this->template check_overflow<6>(value, CHECK_UNSIGNED));
     case elfcpp::R_NANOMIPS_GOT_DISP:
     case elfcpp::R_NANOMIPS_GOT_PAGE:
     case elfcpp::R_NANOMIPS_GOT_OFST:
     case elfcpp::R_NANOMIPS_GOT_CALL:
     case elfcpp::R_NANOMIPS_JALR32:
     case elfcpp::R_NANOMIPS_JALR16:
-      return Base::check_range(value, r_type, got_entry);
+      return nanomips_insn_property_table->get_insn_property(insn, mask,
+                                                             r_type);
+    default:
+      break;
+    }
+  return NULL;
+}
+
+// Return the type of the expansion.
+
+template<int size, bool big_endian>
+inline unsigned int
+Nanomips_expand_insn<size, big_endian>::get_expand_type(
+    const Nanomips_insn_property* insn_property,
+    uint32_t insn,
+    unsigned int r_type)
+{
+  const bool xlp = this->relobj()->xlp();
+  const bool insn32 = parameters->options().insn32();
+  switch (r_type)
+    {
+    case elfcpp::R_NANOMIPS_PC25_S1:
+      if (xlp)
+        // Transform balc/bc into lapc[48], jalrc[16]/jrc[16].
+        return TT_PCREL_XLP;
+      else
+        // Transform balc/bc into aluipc, ori, jalrc/jrc.
+        return insn32 ? TT_PCREL32_LONG : TT_PCREL16_LONG;
+    case elfcpp::R_NANOMIPS_PC21_S1:
+      if (insn_property->has_transform(TT_MOVE_BALC))
+        // Transform move.balc into move[16], balc.
+        return TT_MOVE_BALC;
+      else
+        // Transform lapc into lapc[48] or aluipc, ori.
+        return xlp ? TT_PCREL_XLP : TT_PCREL32_LONG;
+    case elfcpp::R_NANOMIPS_PC14_S1:
+    case elfcpp::R_NANOMIPS_PC11_S1:
+      // Transform into opposite branch and bc instruction.
+      return TT_PCREL32_LONG;
+    case elfcpp::R_NANOMIPS_GPREL19_S2:
+    case elfcpp::R_NANOMIPS_GPREL18:
+    case elfcpp::R_NANOMIPS_GPREL17_S1:
+      // Transform addiu[gp.[wb]] to lui, ori, addu or into addiu[gp48],
+      // or transform [ls]x[gp] into lui, addu, [ls]x or addiu[gp48], [ls]x.
+      return xlp ? TT_GPREL32_XLP : TT_GPREL_LONG;
+    case elfcpp::R_NANOMIPS_PC10_S1:
+    case elfcpp::R_NANOMIPS_PC7_S1:
+      // Transform bc16/balc16 to bc/balc for PC10_S1 reloc,
+      // or transform beqzc16/bnezc16 to beqc/bnec for PC7_S1 reloc.
+      return TT_PCREL32;
+    case elfcpp::R_NANOMIPS_PC4_S1:
+      // If rs3>=rt3 then this is bnec[16] instruction, otherwise
+      // it's beqc[16].
+      return (insn_property->sreg(insn) >= insn_property->treg(insn)
+              ? TT_BNEC32
+              : TT_BEQC32);
+    case elfcpp::R_NANOMIPS_GPREL7_S2:
+      // Transform [ls]w[gp16] into [ls]w[gp].
+      return TT_GPREL32_WORD;
+    case elfcpp::R_NANOMIPS_LO4_S2:
+      // Transform [ls]w[16] into [ls]w.
+      return TT_REL32;
     default:
       gold_unreachable();
     }
-  return false;
 }
 
-// Check the range of the relocation and return true if we must expand
-// instruction during relocatable link and --finalize-relocs is passed.
+// Return the transformation type if instruction needs to be expanded.
 
 template<int size, bool big_endian>
-inline bool
-Nanomips_expand_insn<size, big_endian>::relocatable_check_range(
-    Valtype value,
-    unsigned int r_type,
-    size_t relnum,
-    Nanomips_relobj<size, big_endian>* relobj,
+inline unsigned int
+Nanomips_expand_insn<size, big_endian>::get_type(
+    const Symbol* gsym,
     const Symbol_value<size>* psymval,
-    unsigned int r_sym,
-    bool global)
+    const Nanomips_insn_property* insn_property,
+    const elfcpp::Rela<size, big_endian>& reloc,
+    size_t relnum,
+    uint32_t insn,
+    Address address,
+    Address gp)
+{
+  const Address invalid_address = static_cast<Address>(0) - 1;
+  const Nanomips_relobj<size, big_endian>* relobj = this->relobj();
+  typename elfcpp::Elf_types<size>::Elf_WXword r_info = reloc.get_r_info();
+  typename elfcpp::Elf_types<size>::Elf_Swxword r_addend = reloc.get_r_addend();
+  unsigned int r_type = elfcpp::elf_r_type<size>(r_info);
+
+  switch (r_type)
+    {
+    case elfcpp::R_NANOMIPS_PC25_S1:
+      {
+        Valtype value = psymval->value(relobj, r_addend) - address - 4;
+        if (!this->template check_overflow<26>(value, CHECK_SIGNED))
+          return TT_NONE;
+        break;
+      }
+    case elfcpp::R_NANOMIPS_PC21_S1:
+      {
+        Valtype value = psymval->value(relobj, r_addend) - address - 4;
+        if (!this->template check_overflow<22>(value, CHECK_SIGNED))
+          return TT_NONE;
+        break;
+      }
+    case elfcpp::R_NANOMIPS_PC14_S1:
+      {
+        Valtype value = psymval->value(relobj, r_addend) - address - 4;
+        if (!this->template check_overflow<15>(value, CHECK_SIGNED))
+          return TT_NONE;
+        break;
+      }
+    case elfcpp::R_NANOMIPS_PC11_S1:
+      {
+        Valtype value = psymval->value(relobj, r_addend) - address - 4;
+        if (!this->template check_overflow<12>(value, CHECK_SIGNED))
+          return TT_NONE;
+        break;
+      }
+    case elfcpp::R_NANOMIPS_GPREL19_S2:
+      {
+        Valtype value = psymval->value(relobj, r_addend) - gp;
+        if (gp == invalid_address ||
+            !this->template check_overflow<21>(value, CHECK_UNSIGNED))
+          return TT_NONE;
+        break;
+      }
+    case elfcpp::R_NANOMIPS_GPREL18:
+    case elfcpp::R_NANOMIPS_GPREL17_S1:
+      {
+        Valtype value = psymval->value(relobj, r_addend) - gp;
+        if (gp == invalid_address
+            || !this->template check_overflow<18>(value, CHECK_UNSIGNED))
+          return TT_NONE;
+        break;
+      }
+    case elfcpp::R_NANOMIPS_PC10_S1:
+      {
+        Valtype value = psymval->value(relobj, r_addend) - address - 2;
+        if (!this->template check_overflow<11>(value, CHECK_SIGNED))
+          return TT_NONE;
+        break;
+      }
+    case elfcpp::R_NANOMIPS_PC7_S1:
+      {
+        Valtype value = psymval->value(relobj, r_addend) - address - 2;
+        if (!this->template check_overflow<8>(value, CHECK_SIGNED))
+          return TT_NONE;
+        break;
+      }
+    case elfcpp::R_NANOMIPS_PC4_S1:
+      {
+        Valtype value = psymval->value(relobj, r_addend) - address - 2;
+        if ((value != 0)
+            && !this->template check_overflow<5>(value, CHECK_UNSIGNED))
+          return TT_NONE;
+        break;
+      }
+    case elfcpp::R_NANOMIPS_GPREL7_S2:
+      {
+        Valtype value = psymval->value(relobj, r_addend) - gp;
+        if (gp == invalid_address
+            || !this->template check_overflow<9>(value, CHECK_UNSIGNED))
+          return TT_NONE;
+        break;
+      }
+    case elfcpp::R_NANOMIPS_LO4_S2:
+      {
+        Valtype value = psymval->value(relobj, r_addend) & 0xfff;
+        if (((value & 3) == 0)
+            && !this->template check_overflow<6>(value, CHECK_UNSIGNED))
+          return TT_NONE;
+        break;
+      }
+    case elfcpp::R_NANOMIPS_GOT_DISP:
+    case elfcpp::R_NANOMIPS_GOT_PAGE:
+    case elfcpp::R_NANOMIPS_GOT_OFST:
+    case elfcpp::R_NANOMIPS_GOT_CALL:
+    case elfcpp::R_NANOMIPS_JALR32:
+    case elfcpp::R_NANOMIPS_JALR16:
+      return Base::get_type(gsym, psymval, insn_property,
+                            reloc, relnum, insn, address, gp);
+    default:
+      gold_unreachable();
+    }
+  return this->get_expand_type(insn_property, insn, r_type);
+}
+
+// Nanomips_expand_insn_finalize methods.
+
+// Return the transformation type if instruction needs to be expanded
+// during --finalize-relocs.
+
+template<int size, bool big_endian>
+inline unsigned int
+Nanomips_expand_insn_finalize<size, big_endian>::get_type(
+    const Symbol* gsym,
+    const Symbol_value<size>* psymval,
+    const Nanomips_insn_property* insn_property,
+    const elfcpp::Rela<size, big_endian>& reloc,
+    size_t relnum,
+    uint32_t insn,
+    Address address,
+    Address gp)
 {
   Relocatable_relocs* rr = this->rr();
   gold_assert(rr != NULL);
 
-  // TODO: Allow code and data model expansions.
+  typename elfcpp::Elf_types<size>::Elf_WXword r_info = reloc.get_r_info();
+  unsigned int r_sym = elfcpp::elf_r_sym<size>(r_info);
+  unsigned int r_type = elfcpp::elf_r_type<size>(r_info);
+
+  // TODO: Allow code and data model transformations.
   if (r_type == elfcpp::R_NANOMIPS_GOT_DISP
       || r_type == elfcpp::R_NANOMIPS_GOT_PAGE
       || r_type == elfcpp::R_NANOMIPS_GOT_OFST
       || r_type == elfcpp::R_NANOMIPS_GOT_CALL
       || r_type == elfcpp::R_NANOMIPS_JALR32
       || r_type == elfcpp::R_NANOMIPS_JALR16)
-    return false;
+    return TT_NONE;
 
+  // Expand all non-RELOC_RESOLVE relocations.
   if (rr->strategy(relnum) != Relocatable_relocs::RELOC_RESOLVE)
-    return true;
+    return this->get_expand_type(insn_property, insn, r_type);
 
   // For RELOC_RESOLVE we need to check if we need to expand instruction.
-  if (!this->check_range(value, r_type, false))
-    return false;
+  unsigned int type =
+    Nanomips_expand_insn<size, big_endian>::get_type(gsym, psymval,
+                                                     insn_property, reloc,
+                                                     relnum, insn, address,
+                                                     gp);
+  if (type == TT_NONE)
+    return TT_NONE;
 
   Relocatable_relocs::Reloc_strategy strategy;
+  Nanomips_relobj<size, big_endian>* relobj = this->relobj();
 
   // We can't resolve this relocation so we need to get default strategy.
-  if (global)
+  if (gsym != NULL)
     strategy = Relocatable_relocs::RELOC_COPY;
   else if (!psymval->is_section_symbol())
     {
@@ -3089,176 +3098,7 @@ Nanomips_expand_insn<size, big_endian>::relocatable_check_range(
 
   rr->set_strategy(relnum, strategy);
   rr->increase_output_reloc_count();
-  return true;
-}
-
-// Transform instruction.
-
-template<int size, bool big_endian>
-inline void
-Nanomips_expand_insn<size, big_endian>::transform(
-    const Nanomips_transform_property* transform_property,
-    size_t relnum,
-    uint32_t insn)
-{
-  gold_assert(transform_property != NULL);
-  typedef typename elfcpp::Rela<size, big_endian> Reltype;
-  typedef typename elfcpp::Rela_write<size, big_endian> Reltype_write;
-  const unsigned int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
-  Nanomips_input_section* pnis = this->get_input_section();
-  unsigned char* preloc = pnis->relocs() + relnum * reloc_size;
-
-  Reltype reloc(preloc);
-  typename elfcpp::Elf_types<size>::Elf_WXword r_info = reloc.get_r_info();
-  unsigned int r_type = elfcpp::elf_r_type<size>(r_info);
-
-  const Nanomips_reloc_property* reloc_property =
-    nanomips_reloc_property_table->get_reloc_property(r_type);
-  gold_assert(reloc_property != NULL);
-
-  if (reloc_property->got())
-    {
-      Base::transform(transform_property, relnum, insn);
-      return;
-    }
-
-  Reltype_write reloc_write(preloc);
-  unsigned int r_sym = elfcpp::elf_r_sym<size>(r_info);
-  Address r_offset = reloc.get_r_offset();
-  typename elfcpp::Elf_types<size>::Elf_Swxword r_addend =
-    reloc.get_r_addend();
-  unsigned char* view = pnis->section_contents() + r_offset;
-  unsigned int type = transform_property->type();
-
-  if (r_type == elfcpp::R_NANOMIPS_PC25_S1
-      || (r_type == elfcpp::R_NANOMIPS_PC21_S1 && type == TT_LAPC))
-    {
-      // Change existing relocation.
-      reloc_write.put_r_info(
-        elfcpp::elf_r_info<size>(r_sym, transform_property->reloc(0)));
-
-      // Add new relocation.
-      unsigned int new_r_type = transform_property->reloc(1);
-      this->add_reloc(r_sym, new_r_type, r_offset + 4, r_addend, relnum);
-
-      // Write instructions.
-      unsigned int treg32 = (r_type == elfcpp::R_NANOMIPS_PC21_S1
-                             ? Insn_utilities::treg_32(insn)
-                             : this->expand_reg_);
-      Valtype32 aluipc_insn = (transform_property->insn(0) | (treg32 << 21));
-      Valtype32 ori_insn = (transform_property->insn(1)
-                            | (treg32 << 21)
-                            | (treg32 << 16));
-      Insn_utilities::put_insn_32(view, aluipc_insn);
-      Insn_utilities::put_insn_32(view + 4, ori_insn);
-
-      if (r_type != elfcpp::R_NANOMIPS_PC21_S1)
-        {
-          Valtype16 branch_insn =
-            static_cast<Valtype16>(transform_property->insn(2));
-          branch_insn |= (this->expand_reg_ << 5);
-          elfcpp::Swap<16, big_endian>::writeval(view + 8, branch_insn);
-        }
-    }
-  else if (r_type == elfcpp::R_NANOMIPS_PC21_S1 && type == TT_MOVE_BALC)
-    {
-      // Write move16 insn.
-      Valtype16 move_insn =
-        static_cast<Valtype16>(transform_property->insn(0));
-      unsigned int rd = ((insn >> 24) & 0x1) + 4;
-      unsigned int rt = (((insn >> 21) & 0x7) | ((insn >> 22) & 0x8));
-      if (rt == 3)
-        rt = 0;
-      else if (rt < 4 || rt > 7)
-        rt += 8;
-
-      move_insn |= ((rd << 5) | rt);
-      elfcpp::Swap<16, big_endian>::writeval(view, move_insn);
-
-       // Change existing relocation.
-      reloc_write.put_r_info(
-        elfcpp::elf_r_info<size>(r_sym, transform_property->reloc(1)));
-      reloc_write.put_r_offset(r_offset + 2);
-
-      // Write instruction.
-      Insn_utilities::put_insn_32(view + 2, transform_property->insn(1));
-    }
-  else if (r_type == elfcpp::R_NANOMIPS_PC11_S1)
-    {
-      // Write ori $at, $zero, imm insn.
-      Valtype32 ori_insn = (transform_property->insn(0)
-                            | (this->expand_reg_ << 21)
-                            | ((insn >> 11) & 0x7f));
-      Insn_utilities::put_insn_32(view, ori_insn);
-
-      // Change existing relocation.
-      reloc_write.put_r_info(
-        elfcpp::elf_r_info<size>(r_sym, transform_property->reloc(1)));
-      reloc_write.put_r_offset(r_offset + 4);
-
-      // Write b<cc>c instruction.
-      unsigned int treg32 = Insn_utilities::treg_32(insn);
-      Valtype32 b_cc_c_insn = (transform_property->insn(1)
-                               | (this->expand_reg_ << 21)
-                               | (treg32 << 16));
-      Insn_utilities::put_insn_32(view + 4, b_cc_c_insn);
-    }
-  else if (r_type == elfcpp::R_NANOMIPS_GPREL19_S2
-           || r_type == elfcpp::R_NANOMIPS_GPREL18
-           || r_type == elfcpp::R_NANOMIPS_GPREL17_S1)
-    {
-      // Change existing relocation.
-      reloc_write.put_r_info(
-        elfcpp::elf_r_info<size>(r_sym, transform_property->reloc(0)));
-
-      // Add new relocation.
-      unsigned int new_r_type = transform_property->reloc(2);
-      this->add_reloc(r_sym, new_r_type, r_offset + 8, r_addend, relnum);
-
-      // Write instructions.
-      Valtype32 lui_insn = (transform_property->insn(0)
-                            | (this->expand_reg_ << 21));
-      Valtype32 addu_insn = (transform_property->insn(1)
-                             | (this->expand_reg_ << 16)
-                             | (this->expand_reg_ << 11));
-      unsigned int treg32 = Insn_utilities::treg_32(insn);
-      Valtype32 third_insn = (transform_property->insn(2)
-                              | (treg32 << 21)
-                              | (this->expand_reg_ << 16));
-
-      Insn_utilities::put_insn_32(view, lui_insn);
-      Insn_utilities::put_insn_32(view + 4, addu_insn);
-      Insn_utilities::put_insn_32(view + 8, third_insn);
-    }
-  else if (reloc_property->size() == 16)
-    {
-      // Expansion from 16 bit to 32 bit instructions.
-      Valtype32 expand_insn = transform_property->insn(0);
-      unsigned int expand_r_type = transform_property->reloc(0);
-
-      if (r_type != elfcpp::R_NANOMIPS_PC10_S1)
-        {
-          unsigned int treg16 = Insn_utilities::treg_16(insn);
-          unsigned int treg32 = (transform_property->is_store()
-                                 ? Insn_utilities::reg_16_to_32_st(treg16)
-                                 : Insn_utilities::reg_16_to_32(treg16));
-          expand_insn |= (treg32 << 21);
-          if (r_type == elfcpp::R_NANOMIPS_PC4_S1
-              || r_type == elfcpp::R_NANOMIPS_LO4_S2)
-            {
-              unsigned int sreg16 = Insn_utilities::sreg_16(insn);
-              unsigned int sreg32 = Insn_utilities::reg_16_to_32(sreg16);
-              expand_insn |= (sreg32 << 16);
-            }
-        }
-
-      // Update current relocation.
-      reloc_write.put_r_info(elfcpp::elf_r_info<size>(r_sym, expand_r_type));
-      // Write expanded instruction.
-      Insn_utilities::put_insn_32(view, expand_insn);
-    }
-  else
-    gold_unreachable();
+  return type;
 }
 
 // Target_nanomips methods.
@@ -3382,6 +3222,43 @@ Target_nanomips<size, big_endian>::do_relax(
   return again;
 }
 
+// Relocate conditional branches.  This is only used if we have transformed
+// conditional branch into opposite branch and bc instruction in a relaxation
+// pass.
+
+template<int size, bool big_endian>
+void
+Target_nanomips<size, big_endian>::relocate_branch(
+    unsigned int r_type,
+    Address destination,
+    Address address,
+    unsigned char* view)
+{
+  const Nanomips_reloc_property* reloc_property =
+    nanomips_reloc_property_table->get_reloc_property(r_type);
+  gold_assert(reloc_property != NULL);
+
+  Valtype value = destination - (address + 4);
+
+  typedef Nanomips_relocate_functions<size, big_endian> Reloc_funcs;
+  typename Reloc_funcs::Status reloc_status = Reloc_funcs::STATUS_OKAY;
+  Reloc_funcs::nanomips_reloc_unshuffle(view, reloc_property);
+  switch (r_type)
+    {
+    case elfcpp::R_NANOMIPS_PC14_S1:
+      reloc_status = Reloc_funcs::relpc14_s1(view, value, true);
+      break;
+    case elfcpp::R_NANOMIPS_PC11_S1:
+      reloc_status = Reloc_funcs::relpc11_s1(view, value, true);
+      break;
+    default:
+      gold_unreachable();
+      break;
+    }
+  gold_assert(reloc_status == Reloc_funcs::STATUS_OKAY);
+  Reloc_funcs::nanomips_reloc_shuffle(view, reloc_property);
+}
+
 // A class to sort the input sections.
 
 template<int size, bool big_endian>
@@ -3441,17 +3318,17 @@ Target_nanomips<size, big_endian>::do_sort_input_sections(
 template<int size, bool big_endian>
 void
 Target_nanomips<size, big_endian>::gc_process_relocs(
-                        Symbol_table* symtab,
-                        Layout* layout,
-                        Sized_relobj_file<size, big_endian>* object,
-                        unsigned int data_shndx,
-                        unsigned int sh_type,
-                        const unsigned char* prelocs,
-                        size_t reloc_count,
-                        Output_section* output_section,
-                        bool needs_special_offset_handling,
-                        size_t local_symbol_count,
-                        const unsigned char* plocal_symbols)
+    Symbol_table* symtab,
+    Layout* layout,
+    Sized_relobj_file<size, big_endian>* object,
+    unsigned int data_shndx,
+    unsigned int sh_type,
+    const unsigned char* prelocs,
+    size_t reloc_count,
+    Output_section* output_section,
+    bool needs_special_offset_handling,
+    size_t local_symbol_count,
+    const unsigned char* plocal_symbols)
 {
   typedef Target_nanomips<size, big_endian> Nanomips;
   typedef gold::Default_classify_reloc<elfcpp::SHT_RELA, size, big_endian>
@@ -3654,7 +3531,8 @@ Target_nanomips<size, big_endian>::select_fp_abi(const std::string& name,
 
   if (in_fp != elfcpp::Val_GNU_NANOMIPS_ABI_FP_ANY)
     gold_warning(_("%s: FP ABI %s is incompatible with %s"),
-                 name.c_str(), fp_abi_string(in_fp), fp_abi_string(out_fp));
+                 name.c_str(), this->fp_abi_string(in_fp),
+                 this->fp_abi_string(out_fp));
 
   return out_fp;
 }
@@ -4466,27 +4344,57 @@ Target_nanomips<size, big_endian>::scan_section_for_transform(
 
   if (this->state_ == RELAX)
     {
-      typedef Nanomips_relax_insn<size, big_endian> Relax;
-      return this->scan_reloc_section_for_transform<Relax>(
-        relinfo,
-        prelocs,
-        reloc_count,
-        os,
-        pnis,
-        view,
-        view_address);
+      if (parameters->options().finalize_relocs())
+        {
+          typedef Nanomips_relax_insn_finalize<size, big_endian> Relax;
+          return this->scan_reloc_section_for_transform<Relax>(
+            relinfo,
+            prelocs,
+            reloc_count,
+            os,
+            pnis,
+            view,
+            view_address);
+        }
+      else
+        {
+          typedef Nanomips_relax_insn<size, big_endian> Relax;
+          return this->scan_reloc_section_for_transform<Relax>(
+            relinfo,
+            prelocs,
+            reloc_count,
+            os,
+            pnis,
+            view,
+            view_address);
+        }
     }
   else if (this->state_ == EXPAND)
     {
-      typedef Nanomips_expand_insn<size, big_endian> Expand;
-      return this->scan_reloc_section_for_transform<Expand>(
-        relinfo,
-        prelocs,
-        reloc_count,
-        os,
-        pnis,
-        view,
-        view_address);
+      if (parameters->options().finalize_relocs())
+        {
+          typedef Nanomips_expand_insn_finalize<size, big_endian> Expand;
+          return this->scan_reloc_section_for_transform<Expand>(
+            relinfo,
+            prelocs,
+            reloc_count,
+            os,
+            pnis,
+            view,
+            view_address);
+        }
+      else
+        {
+          typedef Nanomips_expand_insn<size, big_endian> Expand;
+          return this->scan_reloc_section_for_transform<Expand>(
+            relinfo,
+            prelocs,
+            reloc_count,
+            os,
+            pnis,
+            view,
+            view_address);
+        }
     }
   else
     gold_unreachable();
@@ -4500,15 +4408,42 @@ template<int size, bool big_endian>
 Nanomips_input_section*
 Target_nanomips<size, big_endian>::new_nanomips_input_section(
     Nanomips_relobj<size, big_endian>* relobj,
-    const Relocate_info<size, big_endian>* relinfo,
+    unsigned int data_shndx,
+    unsigned int reloc_shndx,
     Output_section* os)
 {
+  Section_id sid(relobj, data_shndx);
   const unsigned int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
+
   Nanomips_input_section* pnis =
-    new Nanomips_input_section(relobj, relinfo->data_shndx, os, reloc_size);
-  pnis->init(relinfo->reloc_shndx);
-  relobj->convert_input_section_to_relaxed_section(relinfo->data_shndx);
+    new Nanomips_input_section(relobj, data_shndx, os, reloc_size);
+  pnis->init(reloc_shndx);
+
+  // Register new Nanomips_input_section in map for look-up.
+  std::pair<typename Nanomips_input_section_map::iterator, bool> ins =
+    this->nanomips_input_section_map_.insert(std::make_pair(sid, pnis));
+
+  // Make sure that it we have not created another Nanomips_input_section
+  // for this input section already.
+  gold_assert(ins.second);
+
+  relobj->convert_input_section_to_relaxed_section(data_shndx);
   return pnis;
+}
+
+// Find the Nanomips_input_section object corresponding to the SHNDX-th input
+// section of RELOBJ.
+
+template<int size, bool big_endian>
+Nanomips_input_section*
+Target_nanomips<size, big_endian>::find_nanomips_input_section(
+    Relobj* relobj,
+    unsigned int shndx) const
+{
+  Section_id sid(relobj, shndx);
+  typename Nanomips_input_section_map::const_iterator p =
+    this->nanomips_input_section_map_.find(sid);
+  return (p != this->nanomips_input_section_map_.end() ? p->second : NULL);
 }
 
 // Update content for instruction transformation.
@@ -4558,6 +4493,19 @@ Target_nanomips<size, big_endian>::update_content(
 
       if (r_offset >= address)
         reloc_write.put_r_offset(r_offset + count);
+    }
+
+  // Adjust conditional branch relocs.
+  typedef typename Nanomips_input_section::Conditional_branches
+    Conditional_branches;
+  Conditional_branches* cond_branches = pnis->branches();
+  for (size_t i = 0; i < cond_branches->size(); ++i)
+    {
+      if ((*cond_branches)[i].offset >= address)
+        (*cond_branches)[i].offset += count;
+
+      if ((*cond_branches)[i].destination >= address)
+        (*cond_branches)[i].destination += count;
     }
 
   // Adjust the local and global symbols defined in this section.
@@ -4631,9 +4579,6 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
   typedef typename elfcpp::Rela<size, big_endian> Reltype;
   const int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
   gold::Default_comdat_behavior default_comdat_behavior;
-  Nanomips_transform transform(relinfo->rr);
-  if (pnis != NULL)
-    transform.set_input_section(pnis);
 
   // Whether we should run relaxation pass again.
   bool again = false;
@@ -4644,12 +4589,11 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
   bool seen_norelax = false;
 
   Comdat_behavior comdat_behavior = CB_UNDETERMINED;
+  Address gp = static_cast<Address>(0) - 1;
   Nanomips_relobj<size, big_endian>* relobj =
     Nanomips_relobj<size, big_endian>::as_nanomips_relobj(relinfo->object);
-  const Address invalid_address = static_cast<Address>(0) - 1;
   const unsigned int local_count = relobj->local_symbol_count();
-  const bool finalize_relocs = parameters->options().finalize_relocs();
-  Address gp = !finalize_relocs ? invalid_address : 0;
+  Nanomips_transform transform(relobj, relinfo->rr);
 
   if (this->gp_ != NULL)
     {
@@ -4657,7 +4601,6 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
       const Symbol_table* symtab = relinfo->symtab;
       Symbol_table::Compute_final_value_status status;
       Address value = symtab->compute_final_value<size>(this->gp_, &status);
-
       if (status == Symbol_table::CFVS_OK)
         gp = value;
     }
@@ -4672,22 +4615,22 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
       Address r_offset = reloc.get_r_offset();
       section_offset_type offset = convert_to_section_size_type(r_offset);
 
-      // If this is a R_NANOMIPS_NORELAX relocation, set that we can't do
-      // anything until we see R_NANOMIPS_RELAX.
       if (r_type == elfcpp::R_NANOMIPS_NORELAX)
         {
+          // If this is a R_NANOMIPS_NORELAX relocation, set that we can't do
+          // anything until we see R_NANOMIPS_RELAX.
           seen_norelax = true;
           continue;
         }
-      // If this is a R_NANOMIPS_RELAX relocation, set that we can change
-      // following relocations.
       else if (r_type == elfcpp::R_NANOMIPS_RELAX)
         {
+          // If this is a R_NANOMIPS_RELAX relocation, set that we can transform
+          // following instructions.
           seen_norelax = false;
           continue;
         }
 
-      // Don't change relocations until we see R_NANOMIPS_RELAX.
+      // Don't transform instructions until we see R_NANOMIPS_RELAX.
       if (seen_norelax)
         continue;
 
@@ -4695,15 +4638,23 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
         nanomips_reloc_property_table->get_reloc_property(r_type);
       gold_assert(reloc_property != NULL);
 
-      uint32_t insn =
-        Insn_utilities::read_insn(view + offset, reloc_property->size());
+      // Instruction size in bits.
+      unsigned int insn_size = reloc_property->size();
 
-      const Nanomips_transform_property* pntp = transform.find(insn, r_type);
+      // Don't do anything for 48bit instructions and for some of the
+      // placeholder relocations (almost all of them have size 0).
+      if ((insn_size == 0 && r_type != elfcpp::R_NANOMIPS_ALIGN)
+          || insn_size == 48)
+        continue;
+
+      uint32_t insn = transform.read_insn(view + offset, insn_size);
+      const Nanomips_insn_property* insn_property =
+        transform.find_insn(insn, reloc_property->mask(), r_type);
+
       // If this isn't something that can be transformed, then ignore this
       // relocation.
-      if ((pntp == NULL
-           || !transform.can_be_changed(offset, i, reloc_count, prelocs,
-                                        reloc_property->got()))
+      if ((insn_property == NULL
+           || !transform.fixed_insn(offset, i, reloc_count, prelocs))
           && (r_type != elfcpp::R_NANOMIPS_ALIGN || !do_align))
         continue;
 
@@ -4772,25 +4723,30 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
                   fill_size = 2;
                 }
 
-              unsigned char* padding_view =
+              unsigned char* pview =
                 pnis->section_contents() + offset + old_padding;
               for (int j = 0;
                    j < count;
-                   padding_view += fill_size,
+                   pview += fill_size,
                    j += fill_size)
                 {
                   switch (fill_size)
                     {
                     case 1:
-                      elfcpp::Swap<8, big_endian>::writeval(padding_view,
+                      elfcpp::Swap<8, big_endian>::writeval(pview,
                                                             fill & 0xff);
                       break;
                     case 2:
-                      elfcpp::Swap<16, big_endian>::writeval(padding_view,
+                      elfcpp::Swap<16, big_endian>::writeval(pview,
                                                              fill & 0xffff);
                       break;
                     case 4:
-                      Insn_utilities::put_insn_32(padding_view, fill);
+                      {
+                        uint32_t hi = (fill >> 16) & 0xffff;
+                        uint32_t lo = fill & 0xffff;
+                        elfcpp::Swap<16, big_endian>::writeval(pview, hi);
+                        elfcpp::Swap<16, big_endian>::writeval(pview + 2, lo);
+                      }
                       break;
                     default:
                       gold_unreachable();
@@ -4906,91 +4862,26 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
           psymval = &symval2;
         }
 
-      // Relocation value.
-      bool got_entry = false;
-      Valtype value = 0;
-      typename elfcpp::Elf_types<size>::Elf_Swxword r_addend =
-        reloc.get_r_addend();
+      // Get the type of the transformation.
+      unsigned int type =
+        transform.get_type(gsym, psymval, insn_property, reloc, i, insn,
+                           view_address + offset, gp);
 
-      // Calculate relocation value.
-      switch (r_type)
-        {
-        case elfcpp::R_NANOMIPS_PC25_S1:
-        case elfcpp::R_NANOMIPS_PC21_S1:
-        case elfcpp::R_NANOMIPS_PC14_S1:
-        case elfcpp::R_NANOMIPS_PC11_S1:
-        case elfcpp::R_NANOMIPS_PC10_S1:
-        case elfcpp::R_NANOMIPS_PC7_S1:
-        case elfcpp::R_NANOMIPS_PC4_S1:
-          {
-            // Instruction size in bytes.  The PC adjustment for 48bit
-            // instructions is 4 because the reloc applies to an offset
-            // of 2 from the opcode.
-            unsigned int insn_size = reloc_property->size() == 16 ? 2 : 4;
-            // Address of the next pc.
-            Address address = view_address + offset + insn_size;
-            value = psymval->value(relobj, r_addend) - address;
-            break;
-          }
-        case elfcpp::R_NANOMIPS_LO12:
-        case elfcpp::R_NANOMIPS_LO4_S2:
-          value = psymval->value(relobj, r_addend) & 0xfff;
-          break;
-        case elfcpp::R_NANOMIPS_GPREL19_S2:
-        case elfcpp::R_NANOMIPS_GPREL18:
-        case elfcpp::R_NANOMIPS_GPREL17_S1:
-        case elfcpp::R_NANOMIPS_GPREL7_S2:
-          if (gp == invalid_address)
-            continue;
-
-          value = psymval->value(relobj, r_addend) - gp;
-          break;
-        case elfcpp::R_NANOMIPS_GOT_DISP:
-        case elfcpp::R_NANOMIPS_GOT_CALL:
-        case elfcpp::R_NANOMIPS_GOT_PAGE:
-        case elfcpp::R_NANOMIPS_GOT_OFST:
-        case elfcpp::R_NANOMIPS_JALR32:
-        case elfcpp::R_NANOMIPS_JALR16:
-          if (gsym != NULL && gsym->has_got_offset(GOT_TYPE_STANDARD))
-            {
-              value = gsym->got_offset(GOT_TYPE_STANDARD);
-              got_entry = true;
-            }
-          else if (gsym == NULL
-                   && relobj->local_has_got_offset(r_sym, GOT_TYPE_STANDARD,
-                                                   r_addend))
-            {
-              value = relobj->local_got_offset(r_sym, GOT_TYPE_STANDARD,
-                                               r_addend);
-              got_entry = true;
-            }
-          break;
-        default:
-          gold_unreachable();
-        }
-
-      // Check the range of the relocation.
-      if (finalize_relocs)
-        {
-          if (!transform.relocatable_check_range(value, r_type, i, relobj,
-                                                 psymval, r_sym, gsym != NULL))
-            continue;
-        }
-      else if (!transform.check_range(value, r_type, got_entry))
+      if (type == TT_NONE)
         continue;
+
+      const Nanomips_transform_template* transform_template =
+        insn_property->get_transform(type);
 
       // Create a new relaxed input section if needed.
       if (pnis == NULL)
-        {
-          pnis = this->new_nanomips_input_section(relobj, relinfo, os);
-          transform.set_input_section(pnis);
-        }
+        pnis = this->new_nanomips_input_section(relobj, relinfo->data_shndx,
+                                                relinfo->reloc_shndx, os);
 
-      // Find correct transform property.
-      transform.find_property(gsym, psymval, &pntp, reloc, insn,  view_address,
-                              gp, this->is_output_nms());
+      // Number of bytes to add/delete for this transformation.
+      int count = static_cast<int>(transform_template->size() - insn_size / 8);
 
-      if (pntp->count() != 0)
+      if (count != 0)
         {
           // That will change things so we should run relaxation pass again.
           again = true;
@@ -4999,20 +4890,19 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
           // R_NANOMIPS_ALIGN relocation.
           do_align = true;
 
-          // Instruction size in bytes.  This is used to calculate the offset
-          // where to add/delete bytes starting at r_offset.
-          unsigned int insn_size = reloc_property->size() / 8;
-
-          // Update content for instruction transformation.
-          this->update_content(pnis, relobj, r_offset + insn_size,
-                               pntp->count(), false);
+          // Update content for the instruction transformation.
+          this->update_content(pnis, relobj, r_offset + insn_size / 8,
+                               count, false);
         }
 
       // Transform instruction.
-      transform.transform(pntp, i, insn);
+      transform.transform(transform_template, insn_property, pnis,
+                          type, i, insn);
 
       if (is_debugging_enabled(DEBUG_TARGET))
-        transform.print((unsigned long) r_offset, pntp);
+        transform.print(transform_template, insn_property->name(),
+                        (unsigned long) r_offset,
+                        relinfo->data_shndx);
 
       // Update pointers in case they are changed.
       prelocs = pnis->relocs() + i * reloc_size;
@@ -5025,7 +4915,7 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
       // Update size of the section.
       pnis->reset_data_size();
       pnis->finalize_data_size();
-
+      // Set that section offsets need to be adjusted.
       os->set_section_offsets_need_adjustment();
     }
 
@@ -5082,14 +4972,14 @@ Target_nanomips<size, big_endian>::Scan::local(
                                                                &view_size,
                                                                false);
           view += r_offset;
-          Nanomips_relax_insn<size, big_endian> relax_insn(NULL);
-          uint32_t insn = Insn_utilities::read_insn(view, nrp->size());
-          const Nanomips_transform_property* transform_property =
-            relax_insn.find(insn, r_type);
+          Nanomips_relax_insn<size, big_endian> relax_insn(relobj);
+          uint32_t insn = relax_insn.read_insn(view, nrp->size());
+          const Nanomips_insn_property* insn_property =
+            relax_insn.find_insn(insn, nrp->mask(), r_type);
 
           // Check if a lw[gp]/sw[gp] instruction can be relaxed into
           // lw[gp16]/sw[gp16] in a relaxation pass.
-          if (transform_property != NULL)
+          if (insn_property != NULL)
             {
               unsigned int shndx = lsym.get_st_shndx();
               bool is_ordinary;
@@ -5158,6 +5048,8 @@ Target_nanomips<size, big_endian>::Scan::global(
   gold_assert(nrp != NULL);
 
   Address r_offset = reloc.get_r_offset();
+  Nanomips_relobj<size, big_endian>* relobj =
+    Nanomips_relobj<size, big_endian>::as_nanomips_relobj(object);
 
   // Check if section reference should be added.
   if (this->ref_relobj_ != NULL)
@@ -5182,14 +5074,14 @@ Target_nanomips<size, big_endian>::Scan::global(
                                                                &view_size,
                                                                false);
           view += r_offset;
-          Nanomips_relax_insn<size, big_endian> relax_insn(NULL);
-          uint32_t insn = Insn_utilities::read_insn(view, nrp->size());
-          const Nanomips_transform_property* transform_property =
-            relax_insn.find(insn, r_type);
+          Nanomips_relax_insn<size, big_endian> relax_insn(relobj);
+          uint32_t insn = relax_insn.read_insn(view, nrp->size());
+          const Nanomips_insn_property* insn_property =
+            relax_insn.find_insn(insn, nrp->mask(), r_type);
 
           // Check if a lw[gp]/sw[gp] instruction can be relaxed into
           // lw[gp16]/sw[gp16] in a relaxation pass.
-          if (transform_property != NULL)
+          if (insn_property != NULL)
             {
               bool is_ordinary;
               unsigned int shndx = gsym->shndx(&is_ordinary);
@@ -5288,7 +5180,7 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
   Nanomips_relobj<size, big_endian>* object =
     Nanomips_relobj<size, big_endian>::as_nanomips_relobj(relinfo->object);
   const int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
-  Output_relaxed_input_section* poris =
+  const Output_relaxed_input_section* poris =
     output_section->find_relaxed_input_section(object, relinfo->data_shndx);
 
   // TODO: Put reloc_count into Relocate_info.

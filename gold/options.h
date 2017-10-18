@@ -1005,6 +1005,10 @@ class General_options
   DEFINE_string(init, options::ONE_DASH, '\0', "_init",
 		N_("Call SYMBOL at load-time"), N_("SYMBOL"));
 
+  DEFINE_bool(insn32, options::TWO_DASHES, '\0', false,
+	      N_("(Nanomips only) Only generate 32-bit nanoMIPS instructions"),
+	      N_("(Nanomips only) Generate all nanoMIPS instructions"));
+
   DEFINE_string(dynamic_linker, options::TWO_DASHES, 'I', NULL,
 		N_("Set dynamic linker path"), N_("PROGRAM"));
 

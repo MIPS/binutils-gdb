@@ -2979,18 +2979,6 @@ Output_section::find_relaxed_input_section(const Relobj* object,
   return this->lookup_maps_->find_relaxed_input_section(object, shndx);
 }
 
-// Find an relaxed input section corresponding to an input section
-// in OBJECT with index SHNDX.
-
-Output_relaxed_input_section*
-Output_section::find_relaxed_input_section(const Relobj* object,
-                                           unsigned int shndx)
-{
-  if (!this->lookup_maps_->is_valid())
-    this->build_lookup_maps();
-  return this->lookup_maps_->find_relaxed_input_section(object, shndx);
-}
-
 // Given an address OFFSET relative to the start of input section
 // SHNDX in OBJECT, return whether this address is being included in
 // the final link.  This should only be called if SHNDX in OBJECT has
