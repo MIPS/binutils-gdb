@@ -1,17 +1,17 @@
-#name: Relaxation code dump for nanoMIPS big-endian
+#name: Relaxation code dump for nanoMIPS little-endian
 #objdump: -sj.text
-#as: --defsym relaxmode=1 -EB
+#as: --defsym relaxmode=1 -EL
 #source: linkrelax.s
 
 #...
-Contents of section .text:
- 0000 00480004 8000c000 28000000 8000c000  .*
- 0010 18009008 00430004 28000000 8000c000  .*
- 0020 18009008 8000c000 90089008 8000c000  .*
- 0030 904c0a0a 0a0a0a0a 90088000 c0008000  .*
- 0040 c000cdcd cdcdcdcd 8000c000 abcdabcd  .*
- 0050 8000c000 abcd1234 00430004 0b0b0b0b  .*
- 0060 90089008 babababa babababa babababa  .*
- 0070 8000c000 dcbadcba dcbadcba dcbadcba  .*
- 0080 8000c000 4321dcba 4321dcba 4321dcba  .*
- 0090 90089008 8000c000 8000c000 8000c000  .*
+Contents of section \.text:
+ 0000 48000400 008000c0 00280000 008000c0  .*
+ 0010 00180890 43000400 00280000 008000c0  .*
+ 0020 00180890 008000c0 08900890 008000c0  .*
+ 0030 4c900a0a 0a0a0a0a 08900080 00c00080  .*
+ 0040 00c0cdcd cdcdcdcd 008000c0 cdabcdab  .*
+ 0050 008000c0 3412cdab 43000400 0b0b0b0b  .*
+ 0060 08900890 babababa babababa babababa  .*
+ 0070 008000c0 badcbadc badcbadc badcbadc  .*
+ 0080 008000c0 badc2143 badc2143 badc2143  .*
+ 0090 08900890 00c00080 00c00080 00c00080  .*

@@ -1,6 +1,6 @@
-# source: align2.s
-# as: -EL
+# as: -EB
 # objdump: -dr
+# source: align2.s
 
 .* file format .*
 
@@ -25,7 +25,7 @@ Disassembly of section \.text:
   1a:	9008      	nop
   1c:	8000 c000 	nop
 
-Disassembly of section \.text\.a:
+Disassembly of section .text.a:
 
 00000000 <f4>:
    0:	90a9      	addiu	a1,a1,1

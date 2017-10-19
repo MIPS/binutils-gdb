@@ -573,6 +573,7 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "ld-zero-3"	[arch_list_matching gpr64 !nmips64_broken]
 
     run_dump_test_arch "lifloat" "" nanomips32r6
+    run_dump_test_arch "lifloat-eb" "" nanomips32r6
     run_dump_test_arch "lifloat-64" "-m64" nanomips64r6
     run_dump_test_arch "lifloat-nms" "-mlegacyregs" nanomips32s
 
@@ -752,10 +753,9 @@ if { [istarget nanomips*-*-*] } {
 
     run_dump_test_arch "align" "" nanomips32r6
     run_dump_test_arch "align2" "" nanomips32r6
-    run_dump_test_arch "align2-el" "" nanomips32r6
+    run_dump_test_arch "align2-eb" "" nanomips32r6
     run_dump_test "align3"
     run_dump_test "ehword"
-    run_dump_test "insn-opts"
 
     #FIXME: FP_S, FP_D annotations in pinfo
     run_list_test_arches "mips-macro-ill-sfp" "-m32 -msingle-float" \
@@ -870,7 +870,7 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "nanomips32" [arch_list_matching xnms]
     run_dump_test_arch "nanomips-ctc" "" nanomips32
     run_dump_test_arch "nanomips-relax" "" nanomips32
-    run_list_test_arch "nanomips-relax" "-al" nanomips32
+    run_list_test "nanomips-relax" "-EL -al" "Test nanoMIPS assembly listing in little endian mode"
     run_dump_test_arch "nanomips-relax32" "" nanomips32
     run_dump_test_arch "save" "" nanomips32
     run_list_test_arch "save-error" "" nanomips32
@@ -930,7 +930,7 @@ if { [istarget nanomips*-*-*] } {
     run_list_test_arches "nanomips-ctc-err" "" [arch_list_matching xnms]
 
     run_dump_test_arches "linkrelax" "-mlegacyregs" [arch_list_matching nanomips]
-    run_dump_test_arches "linkrelax-el"  "-mlegacyregs" [arch_list_matching nanomips]
+    run_dump_test_arches "linkrelax-eb"  "-mlegacyregs" [arch_list_matching nanomips]
     run_dump_test_arches "linkrelax-relocs" "-mlegacyregs" [arch_list_matching nanomips]
     run_dump_test_arches "nolinkrelax"  "-mlegacyregs" [arch_list_matching nanomips]
     run_dump_test_arches "nolinkrelax-relocs" "-mlegacyregs" [arch_list_matching nanomips]

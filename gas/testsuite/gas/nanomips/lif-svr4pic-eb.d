@@ -1,6 +1,6 @@
 #objdump: -dr --no-show-raw-insn
-#name: nanoMIPS LI float sysVr4 PIC little endian mode
-#as: -mpic -EL
+#name: nanoMIPS LI float sysVr4 PIC big endian mode
+#as: -mpic -EB
 #source: lifloat.s
 
 # Test loading immediate floating point values in PIC (nanoMIPS)
@@ -10,8 +10,8 @@
 Disassembly of section \.text:
 
 [0-9a-f]+ <foo>:
-   0:	li	a1,0x3ff1f9a6
-   6:	li	a0,0xb50b0f28
+   0:	li	a0,0x3ff1f9a6
+   6:	li	a1,0xb50b0f28
    c:	lwpc	a0,0 <L0>
 			[0-9a-f]+: R_NANOMIPS_PC_I32	L0
   12:	li	a0,0x3f8fcd36
