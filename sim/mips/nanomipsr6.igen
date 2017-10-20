@@ -2600,10 +2600,17 @@
 
     this_offset = S_9_BIT + (i << 2);
 
-    GPR[dest] = EXTEND32 (do_load_right (SD_, AccessLength_WORD, base,
-       EXTEND16 (this_offset), GPR[dest]));
-    GPR[dest] = EXTEND32 (do_load_left (SD_, AccessLength_WORD, base,
-       EXTEND16 (this_offset + AccessLength_WORD), GPR[dest]));
+    if(BigEndianCPU) {
+      GPR[dest] = EXTEND32 (do_load_left (SD_, AccessLength_WORD, base,
+         EXTEND16 (this_offset), GPR[dest]));
+      GPR[dest] = EXTEND32 (do_load_right (SD_, AccessLength_WORD, base,
+         EXTEND16 (this_offset + AccessLength_WORD), GPR[dest]));
+    } else {
+      GPR[dest] = EXTEND32 (do_load_right (SD_, AccessLength_WORD, base,
+         EXTEND16 (this_offset), GPR[dest]));
+      GPR[dest] = EXTEND32 (do_load_left (SD_, AccessLength_WORD, base,
+         EXTEND16 (this_offset + AccessLength_WORD), GPR[dest]));
+    }
 
     if (i != 0)
       COP0_COUNT++;
@@ -2640,9 +2647,15 @@
 
     offsetm = S_9_BIT + (i << 2);
 
-    do_store_right (SD_, AccessLength_WORD, GPR[RS], EXTEND16 (offsetm), GPR[source]);
-    do_store_left (SD_, AccessLength_WORD, GPR[RS],
-                        EXTEND16 (offsetm + AccessLength_WORD), GPR[source]);
+    if(BigEndianCPU) {
+      do_store_left (SD_, AccessLength_WORD, GPR[RS], EXTEND16 (offsetm), GPR[source]);
+      do_store_right (SD_, AccessLength_WORD, GPR[RS],
+                          EXTEND16 (offsetm + AccessLength_WORD), GPR[source]);
+    } else {
+      do_store_right (SD_, AccessLength_WORD, GPR[RS], EXTEND16 (offsetm), GPR[source]);
+      do_store_left (SD_, AccessLength_WORD, GPR[RS],
+                          EXTEND16 (offsetm + AccessLength_WORD), GPR[source]);
+    }
 
     if (i != 0)
       COP0_COUNT++;
@@ -2947,6 +2960,14 @@ TRACE_ALU_INPUT2(GPR[RT],FGR[FS]);
 *nanomips64r6:
 {
   do_swc1 (SD_, FT, U_SHIFT_2BIT, GPIDX, instruction_0);
+}
+
+101001,5.FT,5.RS,1.S1,1011000,8.S2:R7PLSGPCP1:32::SWC1S9
+"swc1 f<FT>, <S_9_BIT>(r<RS>)"
+*nanomips32r6:
+*nanomips64r6:
+{
+  do_swc1 (SD_, FT, S_9_BIT, RS, instruction_0);
 }
 
 010001,5.FT,110,16.U,10:R7PLSGPCP1:32::LDC1GP
