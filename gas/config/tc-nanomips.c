@@ -6361,7 +6361,7 @@ load_register (int reg, expressionS *ep, int dbl)
 	  && (reg >> 2 == 1 || reg >> 2 == 4))
 	{
 	  /* 7-bit values loaded using LI[16].  */
-	  macro_build (NULL, "li", "md,mI", reg, ep->X_add_number);
+	  macro_build (NULL, "li", "md,mI", reg, (int)ep->X_add_number);
 	  return;
 	}
       if (IS_SEXT_16BIT_UINT (ep->X_add_number))
@@ -7019,7 +7019,7 @@ nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
 	macro_build (&offset_expr, s, fmt, op[0],
 		     BFD_RELOC_NANOMIPS_LO12, tempreg);
       else
-	macro_build (NULL, s, fmt, op[0], offset_expr.X_add_number, tempreg);
+	macro_build (NULL, s, fmt, op[0], (int)offset_expr.X_add_number, tempreg);
     }
   else if (offbits != ISA_OFFBITS)
     {
