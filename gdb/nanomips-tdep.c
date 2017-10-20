@@ -3379,7 +3379,8 @@ extern initialize_file_ftype _initialize_nanomips_tdep; /* -Wmissing-prototypes 
 void
 _initialize_nanomips_tdep (void)
 {
-  gdbarch_register (bfd_arch_mips, nanomips_gdbarch_init, nanomips_dump_tdep);
+  gdbarch_register (bfd_arch_nanomips, nanomips_gdbarch_init,
+		    nanomips_dump_tdep);
 
   nanomips_pdr_data = register_objfile_data ();
 
