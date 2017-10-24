@@ -563,7 +563,7 @@ const struct mips_arch_choice mips_arch_choices[] =
   { "mips32r6",	1, bfd_mach_mipsisa32r6, CPU_MIPS32R6,
     ISA_MIPS32R6,
     (ASE_EVA | ASE_MSA | ASE_VIRT | ASE_XPA | ASE_MCU | ASE_MT | ASE_DSP
-     | ASE_DSPR2 | ASE_DSPR3 | ASE_CRC | ASE_CRYPTO),
+     | ASE_DSPR2 | ASE_DSPR3 | ASE_CRC | ASE_CRYPTO | ASE_GINV),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -603,7 +603,7 @@ const struct mips_arch_choice mips_arch_choices[] =
     ISA_MIPS64R6,
     (ASE_EVA | ASE_MSA | ASE_MSA64 | ASE_XPA | ASE_VIRT | ASE_VIRT64
      | ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3 | ASE_CRC
-     | ASE_CRC64 | ASE_CRYPTO),
+     | ASE_CRC64 | ASE_CRYPTO | ASE_GINV),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -818,6 +818,8 @@ mips_calculate_combination_ases (unsigned long opcode_ases)
 
   if ((opcode_ases & (ASE_XPA | ASE_VIRT)) == (ASE_XPA | ASE_VIRT))
     combination_ases |= ASE_XPA_VIRT;
+  if ((opcode_ases & (ASE_GINV | ASE_VIRT)) == (ASE_GINV | ASE_VIRT))
+    combination_ases |= ASE_GINV_VIRT;
   if ((opcode_ases & (ASE_MIPS16E2 | ASE_MT)) == (ASE_MIPS16E2 | ASE_MT))
     combination_ases |= ASE_MIPS16E2_MT;
   return combination_ases;
@@ -901,6 +903,12 @@ set_default_mips_dis_options (struct disassemble_info *info)
 static bfd_boolean
 parse_mips_ase_option (const char *option)
 {
+  if (CONST_STRNEQ (option, "ginv"))
+    {
+      mips_ase |= ASE_GINV;
+      return TRUE;
+    }
+
   if (CONST_STRNEQ (option, "msa"))
     {
       mips_ase |= ASE_MSA;

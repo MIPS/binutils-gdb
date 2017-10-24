@@ -121,6 +121,19 @@
 	.set nocrypto
 	sha1.ms.1	$w4,$w7,$w6	# ERROR: crypto not enabled
 
+	.set mips32r6
+	.set ginv		# OK
+	ginvi		$a0	# OK
+	ginvt 		$f0,$f1	# ERROR: Invalid operands
+	.set mips32r5		# ERROR: too low
+	ginvt		$a0,1	# OK
+	.set virt
+	ginvgt		$a0, 2	# OK
+	.set novirt
+	ginvgt		$a1, 3	# ERROR: virt not enabled
+	.set noginv
+	ginvi		$a0	# ERROR: crypto not enabled
+
 	# There should be no errors after this.
 	.set fp=32
 	.set mips1

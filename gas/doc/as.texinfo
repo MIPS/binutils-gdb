@@ -434,6 +434,7 @@ gcc(1), ld(1), and the Info entries for @file{binutils} and @file{ld}.
    [@b{-mmcu}] [@b{-mno-mcu}]
    [@b{-mcrc}] [@b{-mno-crc}]
    [@b{-mcrypto}] [@b{-mno-crypto}]
+   [@b{-mginv}] [@b{-mno-ginv}]
    [@b{-minsn32}] [@b{-mno-insn32}]
    [@b{-mfix7000}] [@b{-mno-fix7000}]
    [@b{-mfix-rm7000}] [@b{-mno-fix-rm7000}]
@@ -1544,6 +1545,12 @@ Specific Extension. This tells the assembler to accept CRC instructions.
 Generate code for the MIPS Crypto Application Specific Extension.
 This tells the assembler to accept crypto instructions.
 @samp{-mno-crypto} turns off this option.
+
+@item -mginv
+@itemx -mno-ginv
+Generate code for the Global INValidate (GINV) Application Specific
+Extension.  This tells the assembler to accept GINV instructions.
+@samp{-mno-ginv} turns off this option.
 
 @item -minsn32
 @itemx -mno-insn32

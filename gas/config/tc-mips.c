@@ -1530,6 +1530,8 @@ enum options
     OPTION_NO_CRC,
     OPTION_CRYPTO,
     OPTION_NO_CRYPTO,
+    OPTION_GINV,
+    OPTION_NO_GINV,
     OPTION_END_OF_ENUM
   };
 
@@ -1590,6 +1592,8 @@ struct option md_longopts[] =
   {"mno-crc", no_argument, NULL, OPTION_NO_CRC},
   {"mcrypto", no_argument, NULL, OPTION_CRYPTO},
   {"mno-crypto", no_argument, NULL, OPTION_NO_CRYPTO},
+  {"mginv", no_argument, NULL, OPTION_GINV},
+  {"mno-ginv", no_argument, NULL, OPTION_NO_GINV},
 
   /* Old-style architecture options.  Don't add more of these.  */
   {"m4650", no_argument, NULL, OPTION_M4650},
@@ -1785,6 +1789,11 @@ static const struct mips_ase mips_ases[] = {
 
   { "crypto", ASE_CRYPTO, 0,
     OPTION_CRYPTO, OPTION_NO_CRYPTO,
+    6,  6, -1, -1,
+    -1 },
+
+  { "ginv", ASE_GINV, 0,
+    OPTION_GINV, OPTION_NO_GINV,
     6,  6, -1, -1,
     -1 },
 };
@@ -2151,7 +2160,7 @@ mips_set_ase (const struct mips_ase *ase, struct mips_set_options *opts,
 
   /* Clear combination ASE flags, which need to be recalculated based on
      updated regular ASE settings.  */
-  opts->ase &= ~(ASE_MIPS16E2_MT | ASE_XPA_VIRT);
+  opts->ase &= ~(ASE_MIPS16E2_MT | ASE_XPA_VIRT | ASE_GINV_VIRT);
 
   if (enabled_p)
     opts->ase |= ase->flags;
@@ -2168,6 +2177,15 @@ mips_set_ase (const struct mips_ase *ase, struct mips_set_options *opts,
     {
       opts->ase |= ASE_MIPS16E2_MT;
       mask |= ASE_MIPS16E2_MT;
+    }
+
+  /* The Virtualization ASE has Global INValidate (GINV)
+     instructions which are only valid when both ASEs are enabled.
+     This sets the ASE_GINV_VIRT flag when both ASEs are present.  */
+  if ((opts->ase & (ASE_GINV | ASE_VIRT)) == (ASE_GINV | ASE_VIRT))
+    {
+      opts->ase |= ASE_GINV_VIRT;
+      mask |= ASE_GINV_VIRT;
     }
 
   return mask;
@@ -19002,6 +19020,8 @@ mips_convert_ase_flags (int ase)
     ext_ases |= AFL_ASE_CRC;
   if (ase & ASE_CRYPTO)
     ext_ases |= AFL_ASE_CRYPTO;
+  if (ase & ASE_GINV)
+    ext_ases |= AFL_ASE_GINV;
 
   return ext_ases;
 }
@@ -20018,6 +20038,9 @@ MIPS options:\n\
   fprintf (stream, _("\
 -mcrypto		generate crypto instructions\n\
 -mno-crypto		do not generate crypto instructions\n"));
+  fprintf (stream, _("\
+-mginv			generate Global INValidate (GINV) instructions\n\
+-mno-ginv		do not generate Global INValidate instructions\n"));
   fprintf (stream, _("\
 -minsn32		only generate 32-bit microMIPS instructions\n\
 -mno-insn32		generate all microMIPS instructions\n"));

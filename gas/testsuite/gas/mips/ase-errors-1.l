@@ -50,3 +50,8 @@
 .*:119: Warning: the `crypto' extension requires MIPS32 revision 6 or greater
 .*:122: Error: opcode not supported.* `sha1.ms.1 \$w4,\$w7,\$w6'
 # ----------------------------------------------------------------------------
+.*:127: Error: invalid operands `ginvt \$f0,\$f1'
+.*:128: Warning: the `ginv' extension requires MIPS32 revision 6 or greater
+.*:133: Error: opcode not supported.* `ginvgt \$a1,3'
+.*:135: Error: opcode not supported.* `ginvi \$a0'
+# ----------------------------------------------------------------------------
