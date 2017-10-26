@@ -12722,3 +12722,13 @@ nanomips_validate_fix_sub (fixS *fix)
   sub_symbol_segment = S_GET_SEGMENT (fix->fx_subsy);
   return (sub_symbol_segment == add_symbol_segment);
 }
+
+/*  Returns the relocation type required for a particular CFI encoding.  */
+
+bfd_reloc_code_real_type
+nanomips_cfi_reloc_for_encoding (int encoding)
+{
+  if (encoding == (DW_EH_PE_sdata4 | DW_EH_PE_pcrel))
+    return BFD_RELOC_32_PCREL;
+  else return BFD_RELOC_NONE;
+}
