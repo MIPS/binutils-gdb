@@ -1802,7 +1802,7 @@ static const struct mips_ase mips_ases[] = {
 
   { "ginv", ASE_GINV, 0,
     OPTION_GINV, OPTION_NO_GINV,
-    6,  6, -1, -1,
+    6,  6, 6, 6,
     -1 },
 };
 

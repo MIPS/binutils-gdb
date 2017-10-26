@@ -2379,6 +2379,9 @@ extern const int bfd_mips16_num_opcodes;
    "+|" 8-bit mask at bit 16
    "+." microMIPS R6: 2-bit LSA/DLSA shift amount from 1 to 4 at bit 9
 
+   GINV ASE usage:
+   "+\" 2 bit Global TLB invalidate type at bit 8
+
    Other:
    "()" parens surrounding optional value
    ","  separates operands
