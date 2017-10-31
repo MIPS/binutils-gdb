@@ -680,7 +680,6 @@ BFD64_BACKENDS = \
 	elf32-ia64.lo \
 	elf32-mips.lo \
 	elf32-nanomips.lo \
-	elfp32-mips.lo \
 	elf32-score.lo \
 	elf32-score7.lo \
 	elf64-alpha.lo \
@@ -692,7 +691,6 @@ BFD64_BACKENDS = \
 	elfn32-mips.lo \
 	elf64-mips.lo \
 	elf64-nanomips.lo \
-	elfp64-mips.lo \
 	elfxx-mips.lo \
 	elfxx-nanomips.lo \
 	elf64-mmix.lo \
@@ -726,7 +724,6 @@ BFD64_BACKENDS_CFILES = \
 	coff64-rs6000.c \
 	demo64.c \
 	elf32-mips.c \
-	elfp32-mips.c \
 	elf32-score.c \
 	elf32-score7.c \
 	elf64-alpha.c \
@@ -734,8 +731,8 @@ BFD64_BACKENDS_CFILES = \
 	elf64-hppa.c \
 	elf64-ia64-vms.c \
 	elf64-mips.c \
-	elfp64-mips.c \
 	elf64-mmix.c \
+	elf64-nanomips.c \
 	elf64-ppc.c \
 	elf64-s390.c \
 	elf64-sh64.c \

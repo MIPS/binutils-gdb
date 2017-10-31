@@ -1,10 +1,8 @@
 /* Target-dependent code for the nanoMIPS architecture, for GDB,
    the GNU Debugger.
 
-   Copyright (C) 1988-2017 Free Software Foundation, Inc.
-
-   Contributed by Alessandro Forin(af@cs.cmu.edu) at CMU
-   and by Per Bothner(bothner@cs.wisc.edu) at U.Wisconsin.
+   Copyright (C) 2017 Free Software Foundation, Inc.
+   Contributed by <FIXME-MIPS>
 
    This file is part of GDB.
 
@@ -39,8 +37,6 @@
 #include "nanomips-tdep.h"
 #include "block.h"
 #include "reggroups.h"
-#include "opcode/mips.h"
-#include "elf/mips.h"
 #include "opcode/nanomips.h"
 #include "elf/nanomips.h"
 #include "elf-bfd.h"

@@ -86,7 +86,8 @@ START_RELOC_NUMBERS (elf_nanomips_reloc_type)
   RELOC_NUMBER (R_NANOMIPS_RELAX, 70)
   RELOC_NUMBER (R_NANOMIPS_SAVERESTORE, 71)
   RELOC_NUMBER (R_NANOMIPS_INSN16, 72)
-  RELOC_NUMBER (R_NANOMIPS_JALR, 73)
+  RELOC_NUMBER (R_NANOMIPS_JALR32, 73)
+  RELOC_NUMBER (R_NANOMIPS_JALR16, 74)
 
   /* TLS relocations.  */
   RELOC_NUMBER (R_NANOMIPS_TLS_DTPMOD32, 80)
@@ -129,6 +130,12 @@ END_RELOC_NUMBERS (R_NANOMIPS_maxext)
    (regs are 32-bits wide).  */
 #define EF_NANOMIPS_32BITMODE	0x00000004
 
+/* File contains position independent code.  */
+#define EF_NANOMIPS_PID		0x00000008
+
+/* File contains pure PC-relative code.  */
+#define EF_NANOMIPS_PCREL	0x00000010
+
 /* Architectural Extensions used by this file */
 #define EF_NANOMIPS_ARCH_ASE	0x0f000000
 
@@ -145,10 +152,10 @@ END_RELOC_NUMBERS (R_NANOMIPS_maxext)
 #define EF_NANOMIPS_ABI		0x0000F000
 
 /* nanoMIPS ABI in 32 bit mode */
-#define E_NANOMIPS_ABI_P32       0x00001000
+#define E_NANOMIPS_ABI_P32      0x00001000
 
 /* nanoMIPS ABI in 64 bit mode */
-#define E_NANOMIPS_ABI_P64       0x00002000
+#define E_NANOMIPS_ABI_P64      0x00002000
 
 /* Machine variant if we know it.  This field was invented at Cygnus,
    but it is hoped that other vendors will adopt it.  If some standard
@@ -170,7 +177,7 @@ END_RELOC_NUMBERS (R_NANOMIPS_maxext)
 /* Processor specific program header types.  */
 
 /* Records ABI related flags.  */
-#define PT_NANOMIPS_ABIFLAGS 	0x70000000
+#define PT_NANOMIPS_ABIFLAGS	0x70000000
 
 /* Processor specific dynamic array tags.  */
 
@@ -245,8 +252,8 @@ enum
 #define NANOMIPS_ASE_XPA          0x00001000 /* XPA ASE.  */
 #define NANOMIPS_ASE_DSPR3        0x00002000 /* DSP R3 ASE.  */
 #define NANOMIPS_ASE_UNUSED5      0x00004000 /* was MIPS16 E2 Extension.  */
-#define NANOMIPS_ASE_CRC    0x00008000 /* CRC extension.  */
-#define NANOMIPS_ASE_CRYPTO   0x00010000 /* CRYPTO extension.  */
+#define NANOMIPS_ASE_CRC	  0x00008000 /* CRC extension.  */
+#define NANOMIPS_ASE_CRYPTO	  0x00010000 /* CRYPTO extension.  */
 #define NANOMIPS_ASE_GINV         0x00020000 /* GINV ASE.  */
 #define NANOMIPS_ASE_xNMS         0x00040000 /* not nanoMIPS Subset.  */
 #define NANOMIPS_ASE_MASK         0x0007ffff /* All ASEs.  */

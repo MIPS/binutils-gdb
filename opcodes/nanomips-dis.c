@@ -22,14 +22,12 @@
 #include "sysdep.h"
 #include "dis-asm.h"
 #include "libiberty.h"
-#include "opcode/mips.h"
 #include "opcode/nanomips.h"
 #include "opintl.h"
 
 #if !defined(EMBEDDED_ENV)
 #define SYMTAB_AVAILABLE 1
 #include "elf-bfd.h"
-#include "elf/mips.h"
 #include "elf/nanomips.h"
 #endif
 
@@ -59,26 +57,12 @@ static const char * const nanomips_gpr_names_symbolic[32] =
   "t8",   "t9",   "k0",   "k1",   "gp",   "sp",   "fp",   "ra"
 };
 
-static const char * const nanomips_gpr_names_xr[17] = {
-  "xr0",  "xr1",  "xr2",  "xr3",  "xr4",  "xr5",  "xr6",  "xr7",
-  "xr8",  "xr9",  "xr10", "xr11", "xr12", "xr13", "xr14", "xr15",
-  "xr16"
-};
-
 static const char * const nanomips_fpr_names_numeric[32] =
 {
   "$f0",  "$f1",  "$f2",  "$f3",  "$f4",  "$f5",  "$f6",  "$f7",
   "$f8",  "$f9",  "$f10", "$f11", "$f12", "$f13", "$f14", "$f15",
   "$f16", "$f17", "$f18", "$f19", "$f20", "$f21", "$f22", "$f23",
   "$f24", "$f25", "$f26", "$f27", "$f28", "$f29", "$f30", "$f31"
-};
-
-static const char * const nanomips_fpr_names_32[32] =
-{
-  "fv0",  "fv0f", "fv1",  "fv1f", "ft0",  "ft0f", "ft1",  "ft1f",
-  "ft2",  "ft2f", "ft3",  "ft3f", "fa0",  "fa0f", "fa1",  "fa1f",
-  "ft4",  "ft4f", "ft5",  "ft5f", "fs0",  "fs0f", "fs1",  "fs1f",
-  "fs2",  "fs2f", "fs3",  "fs3f", "fs4",  "fs4f", "fs5",  "fs5f"
 };
 
 static const char * const nanomips_fpr_names_64[32] =
@@ -268,7 +252,7 @@ const struct nanomips_arch_choice nanomips_arch_choices[] =
 
   { "32r6",	1, bfd_mach_nanomipsisa32r6, CPU_NANOMIPS32R6,
     ISA_NANOMIPS32R6,
-    (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_VIRT | ASE_VIRT_XPA | ASE_XPA |
+    (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_VIRT | ASE_XPA_VIRT | ASE_XPA |
      ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3
      | ASE_xNMS | ASE_TLB | ASE_GINV),
     nanomips_cp0_names_mips3264r2,
@@ -277,7 +261,7 @@ const struct nanomips_arch_choice nanomips_arch_choices[] =
 
   { "32r6s",	1, bfd_mach_nanomipsisa32r6, CPU_NANOMIPS32R6,
     ISA_NANOMIPS32R6,
-    (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_VIRT | ASE_VIRT_XPA | ASE_XPA |
+    (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_VIRT | ASE_XPA_VIRT | ASE_XPA |
      ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3 | ASE_TLB | ASE_GINV),
     nanomips_cp0_names_mips3264r2,
     nanomips_cp0sel_names_mips3264r2, ARRAY_SIZE (nanomips_cp0sel_names_mips3264r2),
@@ -285,7 +269,7 @@ const struct nanomips_arch_choice nanomips_arch_choices[] =
 
   { "64r6",	1, bfd_mach_nanomipsisa64r6, CPU_NANOMIPS64R6,
     ISA_NANOMIPS64R6,
-    (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_MSA64 | ASE_VIRT | ASE_VIRT_XPA
+    (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_MSA64 | ASE_VIRT | ASE_XPA_VIRT
      | ASE_XPA | ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3 | ASE_DSP64
      | ASE_xNMS | ASE_TLB | ASE_GINV),
     nanomips_cp0_names_mips3264r2,
@@ -446,11 +430,8 @@ parse_nanomips_dis_option (const char *option, unsigned int len)
   if (CONST_STRNEQ (option, "msa"))
     {
       nanomips_ase |= ASE_MSA;
-      if ((nanomips_isa & INSN_ISA_MASK) == ISA_MIPS64R2
-	   || (nanomips_isa & INSN_ISA_MASK) == ISA_MIPS64R3
-	   || (nanomips_isa & INSN_ISA_MASK) == ISA_MIPS64R5
-	   || (nanomips_isa & INSN_ISA_MASK) == ISA_MIPS64R6)
-	  nanomips_ase |= ASE_MSA64;
+      if ((nanomips_isa & INSN_ISA_MASK) == ISA_NANOMIPS64R6)
+	nanomips_ase |= ASE_MSA64;
       return;
     }
 
@@ -458,18 +439,15 @@ parse_nanomips_dis_option (const char *option, unsigned int len)
     {
       nanomips_ase |= ASE_VIRT;
 
-      if (nanomips_isa & ISA_MIPS64R2
-	  || nanomips_isa & ISA_MIPS64R3
-	  || nanomips_isa & ISA_MIPS64R5
-	  || nanomips_isa & ISA_MIPS64R6)
+      if (nanomips_isa & ISA_NANOMIPS64R6)
 	nanomips_ase |= ASE_VIRT64;
 
       if (nanomips_ase & ASE_XPA)
-	nanomips_ase |= ASE_VIRT_XPA;
+	nanomips_ase |= ASE_XPA_VIRT;
       return;
 
       if (nanomips_ase & ASE_GINV)
-	nanomips_ase |= ASE_VIRT_GINV;
+	nanomips_ase |= ASE_GINV_VIRT;
 
    }
 
@@ -477,13 +455,7 @@ parse_nanomips_dis_option (const char *option, unsigned int len)
     {
       nanomips_ase |= ASE_XPA;
       if (nanomips_ase & ASE_VIRT)
-	nanomips_ase |= ASE_VIRT_XPA;
-      return;
-    }
-
-  if (CONST_STRNEQ (option, "mxu"))
-    {
-      nanomips_ase |= ASE_MXU;
+	nanomips_ase |= ASE_XPA_VIRT;
       return;
     }
 
@@ -491,7 +463,7 @@ parse_nanomips_dis_option (const char *option, unsigned int len)
     {
       nanomips_ase |= ASE_GINV;
       if (nanomips_ase & ASE_VIRT)
-	nanomips_ase |= ASE_VIRT_GINV;
+	nanomips_ase |= ASE_GINV_VIRT;
       return;
     }
 
@@ -636,15 +608,10 @@ lookup_nanomips_cp0sel_name (const struct nanomips_cp0sel_name *names,
 
 static void
 print_reg (struct disassemble_info *info, const struct nanomips_opcode *opcode,
-	   enum mips_reg_operand_type type, int regno)
+	   enum nanomips_reg_operand_type type, int regno)
 {
   switch (type)
     {
-    case OP_REG_MXU:
-    case OP_REG_MXU_GP:
-      info->fprintf_func (info->stream, "%s", nanomips_gpr_names_xr[regno]);
-      break;
-
     case OP_REG_GP:
       info->fprintf_func (info->stream, "%s", nanomips_gpr_names[regno]);
       break;
@@ -661,10 +628,7 @@ print_reg (struct disassemble_info *info, const struct nanomips_opcode *opcode,
       break;
 
     case OP_REG_VEC:
-      if (opcode->membership & INSN_5400)
-	info->fprintf_func (info->stream, "$f%d", regno);
-      else
-	info->fprintf_func (info->stream, "$v%d", regno);
+      info->fprintf_func (info->stream, "$v%d", regno);
       break;
 
     case OP_REG_ACC:
@@ -692,22 +656,6 @@ print_reg (struct disassemble_info *info, const struct nanomips_opcode *opcode,
       info->fprintf_func (info->stream, "$vi%d", regno);
       break;
 
-    case OP_REG_R5900_I:
-      info->fprintf_func (info->stream, "$I");
-      break;
-
-    case OP_REG_R5900_Q:
-      info->fprintf_func (info->stream, "$Q");
-      break;
-
-    case OP_REG_R5900_R:
-      info->fprintf_func (info->stream, "$R");
-      break;
-
-    case OP_REG_R5900_ACC:
-      info->fprintf_func (info->stream, "$ACC");
-      break;
-
     case OP_REG_MSA:
       info->fprintf_func (info->stream, "$w%d", regno);
       break;
@@ -728,7 +676,7 @@ struct nanomips_print_arg_state {
 
   /* The type and number of the last OP_REG seen.  We only use this for
      OP_REPEAT_DEST_REG and OP_REPEAT_PREV_REG.  */
-  enum mips_reg_operand_type last_reg_type;
+  enum nanomips_reg_operand_type last_reg_type;
   unsigned int last_regno;
   unsigned int dest_regno;
   unsigned int seen_dest;
@@ -747,7 +695,7 @@ init_print_arg_state (struct nanomips_print_arg_state *state)
 static void
 nanomips_seen_register (struct nanomips_print_arg_state *state,
 			unsigned int regno,
-			enum mips_reg_operand_type reg_type)
+			enum nanomips_reg_operand_type reg_type)
 {
   state->last_reg_type = reg_type;
   state->last_regno = regno;
@@ -850,7 +798,7 @@ static void
 print_insn_arg (struct disassemble_info *info,
 		struct nanomips_print_arg_state *state,
 		const struct nanomips_opcode *opcode,
-		const struct mips_operand *operand,
+		const struct nanomips_operand *operand,
 		bfd_vma base_pc,
 		unsigned int uval)
 {
@@ -859,19 +807,12 @@ print_insn_arg (struct disassemble_info *info,
 
   switch (operand->type)
     {
-    case OP_MAPPED_STRING:
-      {
-	const struct mips_mapped_string_operand *string_op;
-	string_op = (const struct mips_mapped_string_operand *) operand;
-	infprintf (is, "%s", string_op->strings[uval]);
-      }
-      break;
     case OP_INT:
     case OP_IMM_INT:
       {
-	const struct mips_int_operand *int_op;
+	const struct nanomips_int_operand *int_op;
 
-	int_op = (const struct mips_int_operand *) operand;
+	int_op = (const struct nanomips_int_operand *) operand;
 	uval = mips_decode_int_operand (int_op, uval);
 	state->last_int = uval;
 	if (int_op->print_hex)
@@ -883,9 +824,9 @@ print_insn_arg (struct disassemble_info *info,
 
     case OP_MAPPED_INT:
       {
-	const struct mips_mapped_int_operand *mint_op;
+	const struct nanomips_mapped_int_operand *mint_op;
 
-	mint_op = (const struct mips_mapped_int_operand *) operand;
+	mint_op = (const struct nanomips_mapped_int_operand *) operand;
 	uval = mint_op->int_map[uval];
 	state->last_int = uval;
 	if (mint_op->print_hex)
@@ -897,9 +838,9 @@ print_insn_arg (struct disassemble_info *info,
 
     case OP_MSB:
       {
-	const struct mips_msb_operand *msb_op;
+	const struct nanomips_msb_operand *msb_op;
 
-	msb_op = (const struct mips_msb_operand *) operand;
+	msb_op = (const struct nanomips_msb_operand *) operand;
 	uval += msb_op->bias;
 	if (msb_op->add_lsb)
 	  uval -= state->last_int;
@@ -912,9 +853,9 @@ print_insn_arg (struct disassemble_info *info,
     case OP_MAPPED_CHECK_PREV:
     case OP_BASE_CHECK_OFFSET:
       {
-	const struct mips_reg_operand *reg_op;
+	const struct nanomips_reg_operand *reg_op;
 
-	reg_op = (const struct mips_reg_operand *) operand;
+	reg_op = (const struct nanomips_reg_operand *) operand;
 	uval = mips_decode_reg_operand (reg_op, uval);
 	print_reg (info, opcode, reg_op->reg_type, uval);
 
@@ -924,9 +865,9 @@ print_insn_arg (struct disassemble_info *info,
 
     case OP_REG_PAIR:
       {
-	const struct mips_reg_pair_operand *pair_op;
+	const struct nanomips_reg_pair_operand *pair_op;
 
-	pair_op = (const struct mips_reg_pair_operand *) operand;
+	pair_op = (const struct nanomips_reg_pair_operand *) operand;
 	print_reg (info, opcode, pair_op->reg_type,
 		   pair_op->reg1_map[uval]);
 	infprintf (is, ",");
@@ -937,9 +878,9 @@ print_insn_arg (struct disassemble_info *info,
 
     case OP_PCREL:
       {
-	const struct mips_pcrel_operand *pcrel_op;
+	const struct nanomips_pcrel_operand *pcrel_op;
 
-	pcrel_op = (const struct mips_pcrel_operand *) operand;
+	pcrel_op = (const struct nanomips_pcrel_operand *) operand;
 	info->target = mips_decode_pcrel_operand (pcrel_op, base_pc, uval);
 
 	/* Preserve the ISA bit for the GDB disassembler,
@@ -953,7 +894,7 @@ print_insn_arg (struct disassemble_info *info,
 
     case OP_NON_ZERO_PCREL_S1:
       {
-	const struct mips_pcrel_operand pcrel_op
+	const struct nanomips_pcrel_operand pcrel_op
 	  = { { { OP_PCREL, operand->size, operand->lsb, 0, 0 },
 		(1 << operand->size) - 1, 0, 1, TRUE },
 	      0, 0, 0};
@@ -966,134 +907,11 @@ print_insn_arg (struct disassemble_info *info,
       }
       break;
 
-    case OP_PERF_REG:
-      infprintf (is, "%d", uval);
-      break;
-
-    case OP_ADDIUSP_INT:
-      {
-	int sval;
-
-	sval = mips_signed_operand (operand, uval) * 4;
-	if (sval >= -8 && sval < 8)
-	  sval ^= 0x400;
-	infprintf (is, "%d", sval);
-	break;
-      }
-
-    case OP_CLO_CLZ_DEST:
-      {
-	unsigned int reg1, reg2;
-
-	reg1 = uval & 31;
-	reg2 = uval >> 5;
-	/* If one is zero use the other.  */
-	if (reg1 == reg2 || reg2 == 0)
-	  infprintf (is, "%s", nanomips_gpr_names[reg1]);
-	else if (reg1 == 0)
-	  infprintf (is, "%s", nanomips_gpr_names[reg2]);
-	else
-	  /* Bogus, result depends on processor.  */
-	  infprintf (is, "%s or %s", nanomips_gpr_names[reg1],
-		     nanomips_gpr_names[reg2]);
-      }
-      break;
-
-    case OP_SAME_RS_RT:
     case OP_CHECK_PREV:
     case OP_NON_ZERO_REG:
       {
 	print_reg (info, opcode, OP_REG_GP, uval & 31);
 	nanomips_seen_register (state, uval, OP_REG_GP);
-      }
-      break;
-
-    case OP_LWM_SWM_LIST:
-      if (operand->size == 2)
-	{
-	  if (uval == 0)
-	    infprintf (is, "%s,%s",
-		       nanomips_gpr_names[16],
-		       nanomips_gpr_names[31]);
-	  else
-	    infprintf (is, "%s-%s,%s",
-		       nanomips_gpr_names[16],
-		       nanomips_gpr_names[16 + uval],
-		       nanomips_gpr_names[31]);
-	}
-      else
-	{
-	  int s_reg_encode;
-
-	  s_reg_encode = uval & 0xf;
-	  if (s_reg_encode != 0)
-	    {
-	      if (s_reg_encode == 1)
-		infprintf (is, "%s", nanomips_gpr_names[16]);
-	      else if (s_reg_encode < 9)
-		infprintf (is, "%s-%s",
-			   nanomips_gpr_names[16],
-			   nanomips_gpr_names[15 + s_reg_encode]);
-	      else if (s_reg_encode == 9)
-		infprintf (is, "%s-%s,%s",
-			   nanomips_gpr_names[16],
-			   nanomips_gpr_names[23],
-			   nanomips_gpr_names[30]);
-	      else
-		infprintf (is, "UNKNOWN");
-	    }
-
-	  if (uval & 0x10) /* For ra.  */
-	    {
-	      if (s_reg_encode == 0)
-		infprintf (is, "%s", nanomips_gpr_names[31]);
-	      else
-		infprintf (is, ",%s", nanomips_gpr_names[31]);
-	    }
-	}
-      break;
-
-    case OP_ENTRY_EXIT_LIST:
-      {
-	const char *sep;
-	unsigned int amask, smask;
-
-	sep = "";
-	amask = (uval >> 3) & 7;
-	if (amask > 0 && amask < 5)
-	  {
-	    infprintf (is, "%s", nanomips_gpr_names[4]);
-	    if (amask > 1)
-	      infprintf (is, "-%s", nanomips_gpr_names[amask + 3]);
-	    sep = ",";
-	  }
-
-	smask = (uval >> 1) & 3;
-	if (smask == 3)
-	  {
-	    infprintf (is, "%s??", sep);
-	    sep = ",";
-	  }
-	else if (smask > 0)
-	  {
-	    infprintf (is, "%s%s", sep, nanomips_gpr_names[16]);
-	    if (smask > 1)
-	      infprintf (is, "-%s", nanomips_gpr_names[smask + 15]);
-	    sep = ",";
-	  }
-
-	if (uval & 1)
-	  {
-	    infprintf (is, "%s%s", sep, nanomips_gpr_names[31]);
-	    sep = ",";
-	  }
-
-	if (amask == 5 || amask == 6)
-	  {
-	    infprintf (is, "%s%s", sep, nanomips_fpr_names[0]);
-	    if (amask == 6)
-	      infprintf (is, "-%s", nanomips_fpr_names[1]);
-	  }
       }
       break;
 
@@ -1111,28 +929,6 @@ print_insn_arg (struct disassemble_info *info,
 
     case OP_REPEAT_DEST_REG:
       print_reg (info, opcode, state->last_reg_type, state->dest_regno);
-      break;
-
-    case OP_PC:
-      infprintf (is, "$pc");
-      break;
-
-    case OP_REG28:
-      print_reg (info, opcode, OP_REG_GP, 28);
-      break;
-
-    case OP_IMM_INDEX:
-      infprintf (is, "[%d]", uval);
-      break;
-
-    case OP_MXU_STRIDE:
-      infprintf (is, "%d", uval);
-      break;
-
-    case OP_REG_INDEX:
-      infprintf (is, "[");
-      print_reg (info, opcode, OP_REG_GP, uval);
-      infprintf (is, "]");
       break;
 
     case OP_HI20_PCREL:
@@ -1170,8 +966,8 @@ print_insn_arg (struct disassemble_info *info,
 
     case OP_IMM_WORD:
       {
-	const struct mips_int_operand *int_op;
-	int_op = (const struct mips_int_operand *) operand;
+	const struct nanomips_int_operand *int_op;
+	int_op = (const struct nanomips_int_operand *) operand;
 	state->last_int = ((uval >> 16) & 0xffff) | (uval << 16);
 	state->last_int += int_op->bias;
 	infprintf (is, "%d", state->last_int);
@@ -1216,11 +1012,11 @@ print_insn_arg (struct disassemble_info *info,
 
 static bfd_boolean
 validate_insn_args (const struct nanomips_opcode *opcode,
-		    const struct mips_operand *(*decode_operand) (const char *),
+		    const struct nanomips_operand *(*decode_operand) (const char *),
 		    unsigned int insn, struct disassemble_info *info)
 {
   struct nanomips_print_arg_state state;
-  const struct mips_operand *operand;
+  const struct nanomips_operand *operand;
   const char *s;
   unsigned int uval;
 
@@ -1250,31 +1046,19 @@ validate_insn_args (const struct nanomips_opcode *opcode,
 		case OP_OPTIONAL_REG:
 		case OP_BASE_CHECK_OFFSET:
 		  {
-		    const struct mips_reg_operand *reg_op;
+		    const struct nanomips_reg_operand *reg_op;
 
-		    reg_op = (const struct mips_reg_operand *) operand;
+		    reg_op = (const struct nanomips_reg_operand *) operand;
 		    uval = mips_decode_reg_operand (reg_op, uval);
 		    nanomips_seen_register (&state, uval, reg_op->reg_type);
 		  }
 		break;
 
-		case OP_SAME_RS_RT:
-		  {
-		    unsigned int reg1, reg2;
-
-		    reg1 = uval & 31;
-		    reg2 = uval >> 5;
-
-		    if (reg1 != reg2 || reg1 == 0)
-		      return FALSE;
-		  }
-		break;
-
 		case OP_CHECK_PREV:
 		  {
-		    const struct mips_check_prev_operand *prev_op;
+		    const struct nanomips_check_prev_operand *prev_op;
 
-		    prev_op = (const struct mips_check_prev_operand *) operand;
+		    prev_op = (const struct nanomips_check_prev_operand *) operand;
 
 		    if (!prev_op->zero_ok && uval == 0)
 		      return FALSE;
@@ -1332,22 +1116,8 @@ validate_insn_args (const struct nanomips_opcode *opcode,
 		case OP_MSB:
 		case OP_REG_PAIR:
 		case OP_PCREL:
-		case OP_PERF_REG:
-		case OP_ADDIUSP_INT:
-		case OP_CLO_CLZ_DEST:
-		case OP_LWM_SWM_LIST:
-		case OP_ENTRY_EXIT_LIST:
-		case OP_MDMX_IMM_REG:
 		case OP_REPEAT_PREV_REG:
 		case OP_REPEAT_DEST_REG:
-		case OP_PC:
-		case OP_REG28:
-		case OP_VU0_SUFFIX:
-		case OP_VU0_MATCH_SUFFIX:
-		case OP_IMM_INDEX:
-		case OP_REG_INDEX:
-		case OP_MXU_STRIDE:
-		case OP_MAPPED_STRING:
 		case OP_SAVE_RESTORE_FP_LIST:
 		case OP_HI20_INT:
 		case OP_HI20_PCREL:
@@ -1376,13 +1146,13 @@ validate_insn_args (const struct nanomips_opcode *opcode,
 static void
 print_insn_args (struct disassemble_info *info,
 		 const struct nanomips_opcode *opcode,
-		 const struct mips_operand *(*decode_operand) (const char *),
+		 const struct nanomips_operand *(*decode_operand) (const char *),
 		 bfd_uint64_t insn, bfd_vma insn_pc, unsigned int length)
 {
   const fprintf_ftype infprintf = info->fprintf_func;
   void *is = info->stream;
   struct nanomips_print_arg_state state;
-  const struct mips_operand *operand;
+  const struct nanomips_operand *operand;
   const char *s;
   bfd_boolean pending_sep = FALSE;
   bfd_boolean pending_space = TRUE;
@@ -1401,6 +1171,7 @@ print_insn_args (struct disassemble_info *info,
 	      infprintf (is, ",");
 	      pending_sep = FALSE;
 	    }
+	  /* fall-through */
 	case ')':
 	  infprintf (is, "%c", *s);
 	  break;
@@ -1592,7 +1363,7 @@ _print_insn_nanomips (bfd_vma memaddr_base, struct disassemble_info *info)
   /* FIXME: Should probably use a hash table on the major opcode here.  */
   const struct nanomips_opcode *opcodes;
   int num_opcodes;
-  struct mips_operand const *(*decode) (const char *);
+  struct nanomips_operand const *(*decode) (const char *);
 
   opcodes = nanomips_opcodes;
   num_opcodes = bfd_nanomips_num_opcodes;

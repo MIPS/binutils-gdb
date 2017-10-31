@@ -1,5 +1,5 @@
 #include "sim-main.h"
-#include "elf/mips.h"
+#include "elf/mips-common.h"
 #include "elf/nanomips.h"
 
 /* NMS Flag */

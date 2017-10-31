@@ -387,7 +387,7 @@ _bfd_nanomips_elf_fake_sections (bfd *abfd, Elf_Internal_Shdr *hdr,
 static void
 nanomips_set_isa_flags (bfd *abfd)
 {
-  flagword val;
+  flagword val = 0;
 
   switch (bfd_get_mach (abfd))
     {
@@ -401,9 +401,9 @@ nanomips_set_isa_flags (bfd *abfd)
    default:
       break;
     }
+
   elf_elfheader (abfd)->e_flags &= ~(EF_NANOMIPS_ARCH | EF_NANOMIPS_MACH);
   elf_elfheader (abfd)->e_flags |= val;
-
 }
 
 
@@ -417,68 +417,6 @@ _bfd_nanomips_elf_final_write_processing (bfd *abfd,
 {
   nanomips_set_isa_flags (abfd);
 }
-
-/* Update the isa_level, isa_rev, isa_ext fields of abiflags.  */
-
-static void
-update_nanomips_abiflags_isa (bfd *abfd, Elf_Internal_ABIFlags_v0 *abiflags)
-{
-  switch (elf_elfheader (abfd)->e_flags & EF_NANOMIPS_ARCH)
-    {
-    case E_NANOMIPS_ARCH_32R6:
-      abiflags->isa_level = 32;
-      abiflags->isa_rev = 6;
-      break;
-    case E_NANOMIPS_ARCH_64R6:
-      abiflags->isa_level = 64;
-      abiflags->isa_rev = 6;
-      break;
-    default:
-      (*_bfd_error_handler)
-	(_("%B: Unknown architecture %s"),
-	 abfd, bfd_printable_name (abfd));
-    }
-}
-
-/* Return true if the given ELF header flags describe a 32-bit binary.  */
-
-static bfd_boolean
-mips_32bit_flags_p (flagword flags)
-{
-  return ((flags & EF_NANOMIPS_32BITMODE) != 0
-	  || (flags & EF_NANOMIPS_ARCH) == E_NANOMIPS_ARCH_32R6);
-}
-
-/* Infer the content of the ABI flags based on the elf header.  */
-
-static void
-infer_nanomips_abiflags (bfd *abfd, Elf_Internal_ABIFlags_v0* abiflags)
-{
-  obj_attribute *in_attr;
-
-  memset (abiflags, 0, sizeof (Elf_Internal_ABIFlags_v0));
-  update_nanomips_abiflags_isa (abfd, abiflags);
-
-  if (mips_32bit_flags_p (elf_elfheader (abfd)->e_flags))
-    abiflags->gpr_size = AFL_REG_32;
-  else
-    abiflags->gpr_size = AFL_REG_64;
-
-  abiflags->cpr1_size = AFL_REG_NONE;
-
-  in_attr = elf_known_obj_attributes (abfd)[OBJ_ATTR_GNU];
-  abiflags->fp_abi = in_attr[Tag_GNU_NANOMIPS_ABI_FP].i;
-
-  if (abiflags->fp_abi == Val_GNU_NANOMIPS_ABI_FP_SINGLE
-      || (abiflags->fp_abi == Val_GNU_NANOMIPS_ABI_FP_DOUBLE
-	  && abiflags->gpr_size == AFL_REG_32))
-    abiflags->cpr1_size = AFL_REG_32;
-  else if (abiflags->fp_abi == Val_GNU_NANOMIPS_ABI_FP_DOUBLE)
-    abiflags->cpr1_size = AFL_REG_64;
-
-  abiflags->cpr2_size = AFL_REG_NONE;
-}
-
 
 
 /* Return the meaning of Tag_GNU_NANOMIPS_ABI_FP value FP, or null if
@@ -614,6 +552,12 @@ _bfd_nanomips_elf_print_private_bfd_data (bfd *abfd, void *ptr)
 
   if (elf_elfheader (abfd)->e_flags & EF_NANOMIPS_PIC)
     fprintf (file, " [PIC]");
+
+  if (elf_elfheader (abfd)->e_flags & EF_NANOMIPS_PID)
+    fprintf (file, " [PID]");
+
+  if (elf_elfheader (abfd)->e_flags & EF_NANOMIPS_PCREL)
+    fprintf (file, " [PCREL]");
 
   fputc ('\n', file);
 

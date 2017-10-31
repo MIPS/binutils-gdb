@@ -6835,22 +6835,6 @@ _bfd_elf_mips_mach (flagword flags)
   return 0;
 }
 
-unsigned long
-_bfd_elf_nanomips_mach (flagword flags)
-{
-  switch (flags & EF_MIPS_ARCH)
-    {
-      default:
-      case E_NANOMIPS_ARCH_32R6:
-	return bfd_mach_nanomipsisa32r6;
-
-      case E_NANOMIPS_ARCH_64R6:
-	return bfd_mach_nanomipsisa64r6;
-    }
-
-  return 0;
-}
-
 /* Return printable name for ABI.  */
 
 static INLINE char *
@@ -8908,17 +8892,6 @@ _bfd_mips_elf_check_relocs (bfd *abfd, struct bfd_link_info *info,
   return TRUE;
 }
 
-
-/* FIXME: This is dummy implementation of relax section */
-bfd_boolean
-_bfd_mips_relax_section (bfd *abfd, asection *sec,
-			 struct bfd_link_info *link_info,
-			 bfd_boolean *again)
-{
-  *again = FALSE;
-  return TRUE;
-}
-
 /* Allocate space for global sym dynamic relocs.  */
 
 static bfd_boolean
@@ -14213,7 +14186,7 @@ mips_32bit_flags_p (flagword flags)
 	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_2
 	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32
 	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R2
-	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R6;
+	  || (flags & EF_MIPS_ARCH) == E_MIPS_ARCH_32R6);
 }
 
 /* Infer the content of the ABI flags based on the elf header.  */

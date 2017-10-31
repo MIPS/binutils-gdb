@@ -20,7 +20,6 @@
    MA 02110-1301, USA.  */
 
 #include "sysdep.h"
-#include "opcode/mips.h"
 #include "opcode/nanomips.h"
 #include "nanomips-formats.h"
 
@@ -74,7 +73,7 @@ static int int_6_map[] = {
 
 /* FIXME: Unused cases left commented in-place for quick reminder
    of which character strings are unused.  */
-const struct mips_operand *
+const struct nanomips_operand *
 decode_nanomips_operand (const char *p)
 {
   switch (p[0])
@@ -96,7 +95,6 @@ decode_nanomips_operand (const char *p)
 /* 	case 'n': MAPPED_REG (3, 4, GP, reg_mn_map); */
 	case 'p': REG (5, 5, GP);
 	case 'q': MAPPED_REG (3, 7, GP, reg_q_map);
-	case 'r': SPECIAL (0, 0, PC);
 	case 's': MAPPED_REG (0, 0, GP, reg_29_map);
  	case 't': SPECIAL (0, 0, REPEAT_PREV_REG);
 	case 'u': REG (5, 3, GP); // New
@@ -162,9 +160,9 @@ decode_nanomips_operand (const char *p)
 	case 's': SPECIAL (5, 16, NON_ZERO_REG);
 	case 't': SPECIAL (5, 21, NON_ZERO_REG);
 	case 'u': MAPPED_PREV_CHECK (3, 7, GP, reg_m16_map, TRUE, FALSE, FALSE, FALSE);
-	case 'v': MAPPED_PREV_CHECK (3, 4, GP, reg_m16_map, FALSE, TRUE, TRUE, TRUE);
-	case 'w': MAPPED_PREV_CHECK (3, 7, GP, reg_m16_map, FALSE, TRUE, TRUE, TRUE);
-	case 'x': MAPPED_PREV_CHECK (3, 4, GP, reg_m16_map, TRUE, FALSE, FALSE, FALSE);
+	case 'v': MAPPED_PREV_CHECK (3, 4, GP, reg_m16_map, FALSE, TRUE, FALSE, FALSE);
+	case 'w': MAPPED_PREV_CHECK (3, 7, GP, reg_m16_map, FALSE, TRUE, TRUE, FALSE);
+	case 'x': MAPPED_PREV_CHECK (3, 4, GP, reg_m16_map, TRUE, FALSE, TRUE, FALSE);
 /* 	case 'y': PREV_CHECK (5, 16, FALSE, TRUE, FALSE, FALSE); */
 	}
       break;
@@ -348,27 +346,27 @@ decode_nanomips_operand (const char *p)
 /* For 32-bit nanoMIPS instructions.  */
 #define WR_31	INSN_WRITE_GPR_31
 
-/* MIPS DSP ASE support.  */
+/* nanoMIPS DSP ASE support.  */
 #define D32	ASE_DSP
 
-/* MIPS MT ASE support.  */
+/* nanoMIPS MT ASE support.  */
 #define MT32	ASE_MT
 
-/* MIPS MCU (MicroController) ASE support.  */
+/* nanoMIPS MCU (MicroController) ASE support.  */
 #define MC	ASE_MCU
 
-/* MIPS Enhanced VA Scheme.  */
+/* nanoMIPS Enhanced VA Scheme.  */
 #define EVA	ASE_EVA
 #define EVA_R6	ASE_EVA_R6
 
 /* TLB invalidate instruction support.  */
 #define TLBINV	ASE_EVA
 
-/* MIPS Virtualization ASE.  */
+/* nanoMIPS Virtualization ASE.  */
 #define IVIRT	ASE_VIRT
 #define IVIRT64	ASE_VIRT64
-#define IVIRT_XPA ASE_VIRT_XPA
-#define IVIRT_GINV ASE_VIRT_GINV
+#define IVIRT_XPA ASE_XPA_VIRT
+#define IVIRT_GINV ASE_GINV_VIRT
 
 /* MSA support.  */
 #define MSA     ASE_MSA
@@ -425,8 +423,10 @@ const struct nanomips_opcode nanomips_opcodes[] =
 {"jrc", 	"[32]",		"s",		0x48000000, 0xffe0ffff,	RD_1,		INSN2_ALIAS,	I38,	0}, /* JALRC */
 {"jalrc",	"[16]",		"mp",		0xd810,		0xfc1f,	WR_31|RD_1,		0,	I38,	0}, /* JALRC[16] */
 {"jalrc",	"[16]",		"my,mp",	0xd810,		0xfc1f,	WR_31|RD_1,	INSN2_ALIAS,	I38,	0}, /* JALRC[16] */
-{"jalrc",	"[32]",		"s",		0x4be00000, 0xffe0ffff,	RD_1,		INSN2_ALIAS,	I38,	0},
+{"jalrc",	"",	        "mp,-i",	0xd810,		0xfc1f,	WR_31|RD_1, 	INSN2_ALIAS, I38,	0}, /* JALRC[16] */
+{"jalrc",	"[32]",		"s",		0x4be00000, 0xffe0ffff,	RD_1,		INSN2_ALIAS,	I38,	0}, /* JALRC[32] */
 {"jalrc",	"[32]",		"t,s",		0x48000000, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
+{"jalrc",	"",		"s,-i",		0x4be00000, 0xffe0ffff,	RD_1,		INSN2_ALIAS,	I38,	0}, /* JALRC[32] */
 {"jr",		"",		"mp",		0xd800,		0xfc1f,	RD_1, 	    INSN2_ALIAS|UBR|CTC, I38,	0}, /* JRC */
 {"jr",		"",		"s",		0x48000000, 0xffe0ffff,	RD_1, 	    INSN2_ALIAS|UBR|CTC, I38,	0}, /* JALRC */
 {"jalr",	"",		"my,mp",	0xd810,		0xfc1f,	WR_31|RD_1, INSN2_ALIAS|UBR|CTC, I38,	0}, /* JALRC[16] */

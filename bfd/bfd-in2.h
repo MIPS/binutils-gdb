@@ -2371,15 +2371,15 @@ enum bfd_architecture
 #define bfd_mach_nios2         0
 #define bfd_mach_nios2r1       1
 #define bfd_mach_nios2r2       2
+  bfd_arch_nanomips,      /* nanoMIPSrX */
+#define bfd_mach_nanomipsisa32r6       32
+#define bfd_mach_nanomipsisa64r6       64
   bfd_arch_visium,     /* Visium */
 #define bfd_mach_visium        1
   bfd_arch_wasm32,     /* WebAssembly */
 #define bfd_mach_wasm32        1
   bfd_arch_pru,        /* PRU */
 #define bfd_mach_pru   0
-  bfd_arch_nanomips,      /* nanoMIPSrX */
-#define bfd_mach_nanomipsisa32r6       32
-#define bfd_mach_nanomipsisa64r6       64
   bfd_arch_last
   };
 
@@ -3048,25 +3048,6 @@ to compensate for the borrow when the low bits are added.  */
 /* MIPS16 PC-relative relocation.  */
   BFD_RELOC_MIPS16_16_PCREL_S1,
 
-/* Relocation against a microMIPS ALIGN directive.  */
-  BFD_RELOC_MICROMIPS_ALIGN,
-  BFD_RELOC_MICROMIPS_FILL,
-  BFD_RELOC_MICROMIPS_MAX,
-
-/* These relocation types are just place holders and inform
-linker to honour the instruction length during
-relaxation/transformation.  */
-  BFD_RELOC_MICROMIPS_INSN32,
-  BFD_RELOC_MICROMIPS_INSN16,
-
-/* This relocation type informs linker to keep the instruction
-as it is during any transformation/relaxation.  */
-  BFD_RELOC_MICROMIPS_FIXED,
-
-/* Code regions marked with these relocations are not relaxed.  */
-  BFD_RELOC_MICROMIPS_RELAX,
-  BFD_RELOC_MICROMIPS_NORELAX,
-
 /* MIPS PC-relative relocations.  */
   BFD_RELOC_MIPS_21_PCREL_S2,
   BFD_RELOC_MIPS_26_PCREL_S2,
@@ -3207,7 +3188,8 @@ as it is during any transformation/relaxation.  */
   BFD_RELOC_NANOMIPS_RELAX,
   BFD_RELOC_NANOMIPS_NORELAX,
   BFD_RELOC_NANOMIPS_SAVERESTORE,
-  BFD_RELOC_NANOMIPS_JALR,
+  BFD_RELOC_NANOMIPS_JALR16,
+  BFD_RELOC_NANOMIPS_JALR32,
 
 
 /* Moxie ELF relocations.  */

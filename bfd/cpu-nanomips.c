@@ -1,6 +1,6 @@
-/* bfd back-end for mips support
-   Copyright (C) 1990-2014 Free Software Foundation, Inc.
-   Written by Steve Chamberlain of Cygnus Support.
+/* bfd back-end for nanomips support
+   Copyright (C) 2017 Free Software Foundation, Inc.
+   Contributed by <FIXME-MIPS>.
 
    This file is part of BFD, the Binary File Descriptor library.
 

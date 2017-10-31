@@ -50,8 +50,6 @@ extern bfd_boolean _bfd_mips_elf_create_dynamic_sections
   (bfd *, struct bfd_link_info *);
 extern bfd_boolean _bfd_mips_elf_check_relocs
   (bfd *, struct bfd_link_info *, asection *, const Elf_Internal_Rela *);
-extern bfd_boolean _bfd_mips_relax_section
-  (bfd *, asection *, struct bfd_link_info *, bfd_boolean *again);
 extern bfd_boolean _bfd_mips_elf_adjust_dynamic_symbol
   (struct bfd_link_info *, struct elf_link_hash_entry *);
 extern bfd_boolean _bfd_mips_elf_always_size_sections

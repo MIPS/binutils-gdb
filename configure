@@ -3839,7 +3839,7 @@ case "${target}" in
     noconfigdirs="$noconfigdirs gprof"
     ;;
   nanomips*-img-elf* | nanomips*-img-linux*)
-    noconfigdirs="$noconfigdirs as binutils ld gprof"
+    noconfigdirs="$noconfigdirs gas binutils ld gprof"
     ;;
   nvptx*-*-*)
     noconfigdirs="$noconfigdirs target-libssp target-libstdc++-v3 target-libobjc"

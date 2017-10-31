@@ -324,7 +324,7 @@ disassembler (bfd *abfd)
       disassemble = print_insn_metag;
       break;
 #endif
-#if defined (ARCH_mips)
+#ifdef ARCH_mips
     case bfd_arch_mips:
       if (bfd_big_endian (abfd))
 	disassemble = print_insn_big_mips;
