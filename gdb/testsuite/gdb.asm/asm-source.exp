@@ -100,6 +100,9 @@ switch -glob -- [istarget] {
     "mips*-*" {
         set asm-arch mips
     }
+    "nanomips*-*" {
+        set asm-arch nanomips
+    }
     "powerpc64le-*" {
         set asm-arch powerpc64le
         set asm-flags "-a64 -I${srcdir}/${subdir} $obj_include"
@@ -162,6 +165,9 @@ switch -glob -- [istarget] {
     "h83*-*" {
 	set asm-arch h8300
         set debug-flags "-gdwarf-2"
+    }
+    "nanomips*-*" {
+        set asm-arch nanomips
     }
 }
 

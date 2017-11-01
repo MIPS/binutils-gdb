@@ -3035,7 +3035,7 @@ nanomips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   /* Try the architecture for any hint of the correct ABI.  */
   if (found_abi == NANOMIPS_ABI_UNKNOWN
       && info.bfd_arch_info != NULL
-      && info.bfd_arch_info->arch == bfd_arch_mips)
+      && info.bfd_arch_info->arch == bfd_arch_nanomips)
     {
       switch (info.bfd_arch_info->mach)
 	{

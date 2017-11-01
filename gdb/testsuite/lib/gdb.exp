@@ -2237,6 +2237,7 @@ proc supports_get_siginfo_type {} {
 proc can_hardware_single_step {} {
 
     if { [istarget "arm*-*-*"] || [istarget "mips*-*-*"]
+	 || [istarget "nanomips*-*-*"]
 	 || [istarget "tic6x-*-*"] || [istarget "sparc*-*-linux*"]
 	 || [istarget "nios2-*-*"] } {
 	return 0
