@@ -48,6 +48,8 @@ extern const struct bfd_elf_special_section _bfd_nanomips_elf_special_sections [
 
 extern bfd_boolean _bfd_nanomips_elf_common_definition (Elf_Internal_Sym *);
 
+extern Elf_Internal_ABIFlags_v0 *_bfd_nanomips_elf_get_abiflags (bfd *abfd);
+
 static inline bfd_boolean
 gprel16_reloc_p (unsigned int r_type)
 {
