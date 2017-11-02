@@ -9392,7 +9392,8 @@ nanomips_force_relocation (fixS *fixp)
    return 1;
 
   if (linkrelax && fixp->fx_subsy
-      && relaxable_section (S_GET_SEGMENT (fixp->fx_addsy)))
+      && relaxable_section (S_GET_SEGMENT (fixp->fx_addsy))
+      && nanomips_validate_fix_sub (fixp))
     return 1;
 
   return 0;
@@ -12337,7 +12338,7 @@ md_nanomips_end (void)
 
 bfd_reloc_code_real_type
 nanomips_parse_cons_expression (expressionS *exp,
-			   unsigned int nbytes)
+				unsigned int nbytes)
 {
   bfd_reloc_code_real_type rel = BFD_RELOC_NONE;
   int repeat = 1;
@@ -12452,10 +12453,10 @@ nanomips_parse_cons_expression (expressionS *exp,
 
 void
 nanomips_cons_fix_new (fragS *frag,
-		  int where,
-		  int nbytes,
-		  expressionS *exp,
-		  bfd_reloc_code_real_type r)
+		       int where,
+		       int nbytes,
+		       expressionS *exp,
+		       bfd_reloc_code_real_type r)
 {
   if (r != BFD_RELOC_NONE)
     {
@@ -12616,8 +12617,8 @@ nanomips_cons_fix_new (fragS *frag,
 /* Check if a subtraction expression can be fully evaluated.  */
 bfd_boolean
 nanomips_allow_local_subtract (expressionS * left,
-			   expressionS * right,
-			   segT section)
+			       expressionS * right,
+			       segT section)
 {
   /* If the symbols are not in a code section then they are OK.  */
   if ((section->flags & SEC_CODE) == 0)
@@ -12706,7 +12707,7 @@ nanomips_validate_fix_sub (fixS *fix)
 
   /* The difference of two symbols should be resolved by the assembler when
      linkrelax is not set.  If the linker may relax the section containing
-     the symbols, then composite reloations are generated so that the
+     the symbols, then composite relocations are generated so that the
      linker knows how to adjust the difference value.  */
   if (!linkrelax || fix->fx_addsy == NULL)
     return 0;
@@ -12720,7 +12721,43 @@ nanomips_validate_fix_sub (fixS *fix)
       ! relaxable_section (add_symbol_segment))
     return 0;
   sub_symbol_segment = S_GET_SEGMENT (fix->fx_subsy);
-  return (sub_symbol_segment == add_symbol_segment);
+
+  if (sub_symbol_segment != add_symbol_segment)
+    return 0;
+  else
+  {
+      fixS *fixP;
+      fragS *frag_hi, *frag_lo;
+      int low, high;
+
+      frag_hi = symbol_get_frag (fix->fx_addsy);
+      high = S_GET_VALUE (fix->fx_addsy);
+      frag_lo = symbol_get_frag (fix->fx_subsy);
+      low = S_GET_VALUE (fix->fx_subsy);
+
+      /* Swap if necessary.  */
+      if (high < low)
+	{
+	  fragS *temp = frag_hi;
+	  frag_hi = frag_lo;
+	  frag_lo = temp;
+	  high = high + low;
+	  low = high - low;
+	  high = high - low;
+	}
+
+      /* Start with the first fix-up in this frag.  */
+      fixP = frag_lo->tc_frag_data;
+
+      /* Now look for fixups within the range.  */
+      while (fixP != NULL
+	     && fixP->fx_where < low
+	     && fixP->fx_where < high)
+	fixP = fixP->fx_next;
+
+      /* No fixup within the range.  */
+      return (fixP != NULL && fixP->fx_where < high);
+    }
 }
 
 /*  Returns the relocation type required for a particular CFI encoding.  */
