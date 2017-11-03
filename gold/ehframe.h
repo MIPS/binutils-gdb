@@ -50,18 +50,9 @@ class Eh_frame_hdr : public Output_section_data
  public:
   Eh_frame_hdr(Output_section* eh_frame_section, const Eh_frame*);
 
-  // Record that we found an unrecognized .eh_frame section.
-  void
-  found_unrecognized_eh_frame_section()
-  { this->any_unrecognized_eh_frame_sections_ = true; }
-
   // Record an FDE.
   void
-  record_fde(section_offset_type fde_offset, unsigned char fde_encoding)
-  {
-    if (!this->any_unrecognized_eh_frame_sections_)
-      this->fde_offsets_.push_back(std::make_pair(fde_offset, fde_encoding));
-  }
+  record_fde(section_offset_type fde_offset, unsigned char fde_encoding);
 
  protected:
   // Set the final data size.
@@ -154,9 +145,6 @@ class Eh_frame_hdr : public Output_section_data
   const Eh_frame* eh_frame_data_;
   // Data from the FDEs in the .eh_frame sections.
   Fde_offsets fde_offsets_;
-  // Whether we found any .eh_frame sections which we could not
-  // process.
-  bool any_unrecognized_eh_frame_sections_;
 };
 
 // This class holds an FDE.
@@ -379,6 +367,11 @@ class Eh_frame : public Output_section_data
   set_eh_frame_hdr(Eh_frame_hdr* hdr)
   { this->eh_frame_hdr_ = hdr; }
 
+  // Return whether we found an unrecognized .eh_frame section.
+  bool
+  found_unrecognized_eh_frame_section() const
+  { return this->any_unrecognized_eh_frame_sections_; }
+
   // Add the input section SHNDX in OBJECT.  SYMBOLS is the contents
   // of the symbol table section (size SYMBOLS_SIZE), SYMBOL_NAMES is
   // the symbol names section (size SYMBOL_NAMES_SIZE).  RELOC_SHNDX
@@ -516,6 +509,9 @@ class Eh_frame : public Output_section_data
   Unmergeable_cie_offsets unmergeable_cie_offsets_;
   // Whether we have created the mappings to the output section.
   bool mappings_are_done_;
+  // Whether we found any .eh_frame sections which we could not
+  // process.
+  bool any_unrecognized_eh_frame_sections_;
   // The final data size.  This is only set if mappings_are_done_ is
   // true.
   section_size_type final_data_size_;

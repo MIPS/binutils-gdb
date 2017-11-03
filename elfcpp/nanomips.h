@@ -95,7 +95,8 @@ enum
   R_NANOMIPS_SAVERESTORE = 71,
   R_NANOMIPS_INSN16 = 72,
   R_NANOMIPS_JALR32 = 73,
-  R_NANOMIPS_JALR16 = 74
+  R_NANOMIPS_JALR16 = 74,
+  R_NANOMIPS_PC32 = 248
 };
 
 // Processor specific flags for the ELF header e_flags field.
@@ -248,6 +249,12 @@ enum
   AFL_ASE_xNMS = 0x00040000,
   // All ASEs.
   AFL_ASE_MASK = 0x0007ffff
+};
+
+enum
+{
+  // Endian-neutral code indicating that a function cannot be unwound.
+  COMPACT_EH_CANT_UNWIND = 0x015d5d01
 };
 
 } // End namespace elfcpp.

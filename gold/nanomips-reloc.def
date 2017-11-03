@@ -76,3 +76,4 @@ NRD(RELAX,              PLACEHOLDER,        0,         0,          0,           
 NRD(INSN16,             PLACEHOLDER,        0,         0,          0,                 0)
 NRD(JALR32,             PLACEHOLDER,       32,         0,          0xffe0f000,        0)
 NRD(JALR16,             PLACEHOLDER,       16,         0,          0xfc1f,            0)
+NRD(PC32,               STATIC,             0,        32,          0,                 0)

@@ -446,7 +446,6 @@ Layout::Layout(int number_of_input_files, Script_options* script_options)
     eh_frame_section_(NULL),
     eh_frame_data_(NULL),
     added_eh_frame_data_(false),
-    eh_frame_hdr_section_(NULL),
     gdb_index_data_(NULL),
     build_id_note_(NULL),
     debug_abbrev_(NULL),
@@ -1504,8 +1503,46 @@ Layout::finalize_eh_frame_section()
     }
 }
 
-// Create and return the magic .eh_frame section.  Create
-// .eh_frame_hdr also if appropriate.  OBJECT is the object with the
+// Make the .eh_frame_hdr section if needed.
+
+void
+Layout::make_eh_frame_hdr_section()
+{
+  // For incremental linking, we do not create a .eh_frame_hdr section.
+  if (parameters->options().eh_frame_hdr()
+      && !parameters->incremental()
+      && this->eh_frame_section_ != NULL
+      && this->eh_frame_data_ != NULL)
+    {
+      Output_section* hdr_os =
+	this->choose_output_section(NULL, ".eh_frame_hdr",
+				    elfcpp::SHT_PROGBITS,
+				    elfcpp::SHF_ALLOC, false,
+				    ORDER_EHFRAME, false, false,
+				    false);
+
+      if (hdr_os != NULL)
+	{
+	  Eh_frame_hdr* hdr_posd = new Eh_frame_hdr(this->eh_frame_section_,
+						    this->eh_frame_data_);
+	  hdr_os->add_output_section_data(hdr_posd);
+
+	  hdr_os->set_after_input_sections();
+
+	  if (!this->script_options_->saw_phdrs_clause())
+	    {
+	      Output_segment* hdr_oseg;
+	      hdr_oseg = this->make_output_segment(elfcpp::PT_GNU_EH_FRAME,
+						   elfcpp::PF_R);
+	      hdr_oseg->add_output_section_to_nonload(hdr_os, elfcpp::PF_R);
+	    }
+
+	  this->eh_frame_data_->set_eh_frame_hdr(hdr_posd);
+	}
+    }
+}
+
+// Create and return the magic .eh_frame section.  OBJECT is the object with the
 // input .eh_frame section; it may be NULL.
 
 Output_section*
@@ -1525,38 +1562,6 @@ Layout::make_eh_frame_section(const Relobj* object)
     {
       this->eh_frame_section_ = os;
       this->eh_frame_data_ = new Eh_frame();
-
-      // For incremental linking, we do not optimize .eh_frame sections
-      // or create a .eh_frame_hdr section.
-      if (parameters->options().eh_frame_hdr() && !parameters->incremental())
-	{
-	  Output_section* hdr_os =
-	    this->choose_output_section(NULL, ".eh_frame_hdr",
-					elfcpp::SHT_PROGBITS,
-					elfcpp::SHF_ALLOC, false,
-					ORDER_EHFRAME, false, false,
-					false);
-
-	  if (hdr_os != NULL)
-	    {
-	      Eh_frame_hdr* hdr_posd = new Eh_frame_hdr(os,
-							this->eh_frame_data_);
-	      hdr_os->add_output_section_data(hdr_posd);
-
-	      hdr_os->set_after_input_sections();
-
-	      if (!this->script_options_->saw_phdrs_clause())
-		{
-		  Output_segment* hdr_oseg;
-		  hdr_oseg = this->make_output_segment(elfcpp::PT_GNU_EH_FRAME,
-						       elfcpp::PF_R);
-		  hdr_oseg->add_output_section_to_nonload(hdr_os,
-							  elfcpp::PF_R);
-		}
-
-	      this->eh_frame_data_->set_eh_frame_hdr(hdr_posd);
-	    }
-	}
     }
 
   return os;
@@ -2709,6 +2714,8 @@ Layout::finalize(const Input_objects* input_objects, Symbol_table* symtab,
   unsigned int forced_local_dynamic_count = 0;
 
   target->finalize_sections(this, input_objects, symtab);
+
+  target->make_eh_frame_header(this, symtab);
 
   this->count_local_symbols(task, input_objects);
 
@@ -5101,6 +5108,8 @@ const Layout::Section_name_mapping Layout::section_name_mapping[] =
   MAPPING_INIT(".gnu.linkonce.armextab.", ".ARM.extab"),
   MAPPING_INIT(".ARM.exidx", ".ARM.exidx"),
   MAPPING_INIT(".gnu.linkonce.armexidx.", ".ARM.exidx"),
+  MAPPING_INIT(".gnu_extab.", ".gnu_extab"),
+  MAPPING_INIT(".eh_frame_entry.", ".eh_frame_hdr")
 };
 #undef MAPPING_INIT
 #undef MAPPING_INIT_EXACT

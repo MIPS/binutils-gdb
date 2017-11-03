@@ -645,6 +645,10 @@ class Layout
   void
   finalize_eh_frame_section();
 
+  // Make the .eh_frame_hdr section.
+  void
+  make_eh_frame_hdr_section();
+
   // Add .eh_frame information for a PLT.  The FDE must start with a
   // 4-byte PC-relative reference to the start of the PLT, followed by
   // a 4-byte size of PLT.
@@ -1377,8 +1381,6 @@ class Layout
   Eh_frame* eh_frame_data_;
   // Whether we have added eh_frame_data_ to the .eh_frame section.
   bool added_eh_frame_data_;
-  // The exception frame header output section if there is one.
-  Output_section* eh_frame_hdr_section_;
   // The data for the .gdb_index section.
   Gdb_index* gdb_index_data_;
   // The space for the build ID checksum if there is one.
