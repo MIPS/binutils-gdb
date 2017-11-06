@@ -32,3 +32,8 @@
 # ----------------------------------------------------------------------------
 .*:84: Warning: the `eva' extension requires MIPS64 revision 2 or greater
 .*:87: Error: opcode not supported.* `lbue \$4,16\(\$5\)'
+# ----------------------------------------------------------------------------
+.*:93: Error: invalid operands `crc32h \$4,\$7,\$5'
+.*:94: Warning: the `crc' extension requires MIPS64 revision 6 or greater
+.*:98: Error: opcode not supported.* `crc32b \$4,\$7,\$4'
+.*:99: Error: opcode not supported.* `crc32d \$4,\$7,\$4'

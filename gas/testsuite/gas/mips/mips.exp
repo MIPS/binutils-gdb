@@ -2050,4 +2050,7 @@ if { [istarget mips*-*-vxworks*] } {
 
     run_list_test_arches "r6-branch-constraints"  "-32" \
 			[mips_arch_list_matching mips32r6]
+
+    run_dump_test_arches "crc"	[mips_arch_list_matching mips32r6]
+    run_dump_test_arches "crc64" [mips_arch_list_matching mips64r6]
 }
