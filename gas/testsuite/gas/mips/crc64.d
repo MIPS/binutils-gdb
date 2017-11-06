@@ -1,8 +1,8 @@
 #objdump: -pdr --prefix-addresses --show-raw-insn
-#name: MIPS CRC
+#name: MIPS CRC64
 #as: -mcrc
 
-# Test the CRC instructions
+# Test the CRC64 instructions
 
 .*: +file format .*mips.*
 #...

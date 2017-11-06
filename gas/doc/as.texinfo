@@ -424,7 +424,6 @@ gcc(1), ld(1), and the Info entries for @file{binutils} and @file{ld}.
    [@b{-mmicromips}] [@b{-mno-micromips}]
    [@b{-msmartmips}] [@b{-mno-smartmips}]
    [@b{-mips3d}] [@b{-no-mips3d}]
-   [@b{-mcrypto}] [@b{-mno-crypto}]
    [@b{-mdmx}] [@b{-no-mdmx}]
    [@b{-mdsp}] [@b{-mno-dsp}]
    [@b{-mdspr2}] [@b{-mno-dspr2}]
@@ -434,6 +433,7 @@ gcc(1), ld(1), and the Info entries for @file{binutils} and @file{ld}.
    [@b{-mmt}] [@b{-mno-mt}]
    [@b{-mmcu}] [@b{-mno-mcu}]
    [@b{-mcrc}] [@b{-mno-crc}]
+   [@b{-mcrypto}] [@b{-mno-crypto}]
    [@b{-mginv}] [@b{-mno-ginv}]
    [@b{-minsn32}] [@b{-mno-insn32}]
    [@b{-mfix7000}] [@b{-mno-fix7000}]
@@ -1484,12 +1484,6 @@ Generate code for the MIPS-3D Application Specific Extension.
 This tells the assembler to accept MIPS-3D instructions.
 @samp{-no-mips3d} turns off this option.
 
-@item -mcrypto
-@itemx -mno-crypto
-Generate code for the MIPS Crypto Application Specific Extension.
-This tells the assembler to accept crypto instructions.
-@samp{-mno-crypto} turns off this option.
-
 @item -mdmx
 @itemx -no-mdmx
 Generate code for the MDMX Application Specific Extension.
@@ -1545,6 +1539,12 @@ This tells the assembler to accept MCU instructions.
 Generate code for the MIPS cyclic redundancy check (CRC) Application 
 Specific Extension. This tells the assembler to accept CRC instructions.
 @samp{-mno-crc} turns off this option.
+
+@item -mcrypto
+@itemx -mno-crypto
+Generate code for the MIPS Crypto Application Specific Extension.
+This tells the assembler to accept crypto instructions.
+@samp{-mno-crypto} turns off this option.
 
 @item -mginv
 @itemx -mno-ginv

@@ -1454,8 +1454,6 @@ enum options
     OPTION_NO_MSA,
     OPTION_SMARTMIPS,
     OPTION_NO_SMARTMIPS,
-    OPTION_CRYPTO,
-    OPTION_NO_CRYPTO,
     OPTION_DSPR2,
     OPTION_NO_DSPR2,
     OPTION_DSPR3,
@@ -1538,6 +1536,8 @@ enum options
     OPTION_NO_ODD_SPREG,
     OPTION_CRC,
     OPTION_NO_CRC,
+    OPTION_CRYPTO,
+    OPTION_NO_CRYPTO,
     OPTION_GINV,
     OPTION_NO_GINV,
     OPTION_END_OF_ENUM
@@ -1723,11 +1723,6 @@ struct mips_ase
 
 /* A table of all supported ASEs.  */
 static const struct mips_ase mips_ases[] = {
-  { "crypto", ASE_CRYPTO, 0,
-    OPTION_CRYPTO, OPTION_NO_CRYPTO,
-    6,  6, -1, -1,
-    -1 },
-
   { "dsp", ASE_DSP, ASE_DSP64,
     OPTION_DSP, OPTION_NO_DSP,
     2, 2, 2, 2,
@@ -1797,6 +1792,11 @@ static const struct mips_ase mips_ases[] = {
 
   { "crc", ASE_CRC, ASE_CRC64,
     OPTION_CRC, OPTION_NO_CRC,
+    6,  6, -1, -1,
+    -1 },
+
+  { "crypto", ASE_CRYPTO, 0,
+    OPTION_CRYPTO, OPTION_NO_CRYPTO,
     6,  6, -1, -1,
     -1 },
 
@@ -6023,13 +6023,10 @@ match_tied_reg_operand (struct mips_arg_info *arg, unsigned int other_regno)
 {
   unsigned int regno;
 
-  if (match_reg (arg, OP_REG_GP, &regno) && regno == other_regno)
-    return TRUE;
-
   if (match_reg (arg, OP_REG_MSA, &regno) && regno == other_regno)
     return TRUE;
 
-  return FALSE;
+  return match_reg (arg, OP_REG_GP, &regno) && regno == other_regno;
 }
 
 /* Try to match a floating-point constant from ARG for LI.S or LI.D.
@@ -19342,8 +19339,6 @@ mips_convert_ase_flags (int ase)
 {
   unsigned int ext_ases = 0;
 
-  if (ase & ASE_CRYPTO)
-    ext_ases |= AFL_ASE_CRYPTO;
   if (ase & ASE_DSP)
     ext_ases |= AFL_ASE_DSP;
   if (ase & ASE_DSPR2)
@@ -19372,6 +19367,8 @@ mips_convert_ase_flags (int ase)
     ext_ases |= file_ase_mips16 ? AFL_ASE_MIPS16E2 : 0;
   if (ase & ASE_CRC)
     ext_ases |= AFL_ASE_CRC;
+  if (ase & ASE_CRYPTO)
+    ext_ases |= AFL_ASE_CRYPTO;
   if (ase & ASE_GINV)
     ext_ases |= AFL_ASE_GINV;
 
@@ -20367,9 +20364,6 @@ MIPS options:\n\
 -msmartmips		generate smartmips instructions\n\
 -mno-smartmips		do not generate smartmips instructions\n"));
   fprintf (stream, _("\
--mcrypto			generate crypto instructions\n\
--mno-crypto		do not generate crypto instructions\n"));
-  fprintf (stream, _("\
 -mdsp			generate DSP instructions\n\
 -mno-dsp		do not generate DSP instructions\n"));
   fprintf (stream, _("\
@@ -20396,6 +20390,9 @@ MIPS options:\n\
   fprintf (stream, _("\
 -mcrc			generate CRC instructions\n\
 -mno-crc		do not generate CRC instructions\n"));
+  fprintf (stream, _("\
+-mcrypto		generate crypto instructions\n\
+-mno-crypto		do not generate crypto instructions\n"));
   fprintf (stream, _("\
 -mginv			generate Global INValidate (GINV) instructions\n\
 -mno-ginv		do not generate Global INValidate instructions\n"));
