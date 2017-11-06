@@ -433,6 +433,7 @@ gcc(1), ld(1), and the Info entries for @file{binutils} and @file{ld}.
    [@b{-mmt}] [@b{-mno-mt}]
    [@b{-mmcu}] [@b{-mno-mcu}]
    [@b{-mcrc}] [@b{-mno-crc}]
+   [@b{-mcrypto}] [@b{-mno-crypto}]
    [@b{-minsn32}] [@b{-mno-insn32}]
    [@b{-mfix7000}] [@b{-mno-fix7000}]
    [@b{-mfix-rm7000}] [@b{-mno-fix-rm7000}]
@@ -1537,6 +1538,12 @@ This tells the assembler to accept MCU instructions.
 Generate code for the MIPS cyclic redundancy check (CRC) Application 
 Specific Extension. This tells the assembler to accept CRC instructions.
 @samp{-mno-crc} turns off this option.
+
+@item -mcrypto
+@itemx -mno-crypto
+Generate code for the MIPS Crypto Application Specific Extension.
+This tells the assembler to accept crypto instructions.
+@samp{-mno-crypto} turns off this option.
 
 @item -minsn32
 @itemx -mno-insn32

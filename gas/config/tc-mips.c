@@ -1528,6 +1528,8 @@ enum options
     OPTION_NO_ODD_SPREG,
     OPTION_CRC,
     OPTION_NO_CRC,
+    OPTION_CRYPTO,
+    OPTION_NO_CRYPTO,
     OPTION_END_OF_ENUM
   };
 
@@ -1586,6 +1588,8 @@ struct option md_longopts[] =
   {"mno-mips16e2", no_argument, NULL, OPTION_NO_MIPS16E2},
   {"mcrc", no_argument, NULL, OPTION_CRC},
   {"mno-crc", no_argument, NULL, OPTION_NO_CRC},
+  {"mcrypto", no_argument, NULL, OPTION_CRYPTO},
+  {"mno-crypto", no_argument, NULL, OPTION_NO_CRYPTO},
 
   /* Old-style architecture options.  Don't add more of these.  */
   {"m4650", no_argument, NULL, OPTION_M4650},
@@ -1776,6 +1780,11 @@ static const struct mips_ase mips_ases[] = {
 
   { "crc", ASE_CRC, ASE_CRC64,
     OPTION_CRC, OPTION_NO_CRC,
+    6,  6, -1, -1,
+    -1 },
+
+  { "crypto", ASE_CRYPTO, 0,
+    OPTION_CRYPTO, OPTION_NO_CRYPTO,
     6,  6, -1, -1,
     -1 },
 };
@@ -5942,6 +5951,9 @@ static bfd_boolean
 match_tied_reg_operand (struct mips_arg_info *arg, unsigned int other_regno)
 {
   unsigned int regno;
+
+  if (match_reg (arg, OP_REG_MSA, &regno) && regno == other_regno)
+    return TRUE;
 
   return match_reg (arg, OP_REG_GP, &regno) && regno == other_regno;
 }
@@ -18988,6 +19000,8 @@ mips_convert_ase_flags (int ase)
     ext_ases |= file_ase_mips16 ? AFL_ASE_MIPS16E2 : 0;
   if (ase & ASE_CRC)
     ext_ases |= AFL_ASE_CRC;
+  if (ase & ASE_CRYPTO)
+    ext_ases |= AFL_ASE_CRYPTO;
 
   return ext_ases;
 }
@@ -20001,6 +20015,9 @@ MIPS options:\n\
   fprintf (stream, _("\
 -mcrc			generate CRC instructions\n\
 -mno-crc		do not generate CRC instructions\n"));
+  fprintf (stream, _("\
+-mcrypto		generate crypto instructions\n\
+-mno-crypto		do not generate crypto instructions\n"));
   fprintf (stream, _("\
 -minsn32		only generate 32-bit microMIPS instructions\n\
 -mno-insn32		generate all microMIPS instructions\n"));
