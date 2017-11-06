@@ -1454,8 +1454,6 @@ enum options
     OPTION_NO_MSA,
     OPTION_SMARTMIPS,
     OPTION_NO_SMARTMIPS,
-    OPTION_CRC,
-    OPTION_NO_CRC,
     OPTION_CRYPTO,
     OPTION_NO_CRYPTO,
     OPTION_DSPR2,
@@ -1538,6 +1536,8 @@ enum options
     OPTION_NAN,
     OPTION_ODD_SPREG,
     OPTION_NO_ODD_SPREG,
+    OPTION_CRC,
+    OPTION_NO_CRC,
     OPTION_GINV,
     OPTION_NO_GINV,
     OPTION_END_OF_ENUM
@@ -1723,11 +1723,6 @@ struct mips_ase
 
 /* A table of all supported ASEs.  */
 static const struct mips_ase mips_ases[] = {
-  { "crc", ASE_CRC, ASE_CRC64,
-    OPTION_CRC, OPTION_NO_CRC,
-    6,  6, -1, -1,
-    -1 },
-
   { "crypto", ASE_CRYPTO, 0,
     OPTION_CRYPTO, OPTION_NO_CRYPTO,
     6,  6, -1, -1,
@@ -1799,6 +1794,11 @@ static const struct mips_ase mips_ases[] = {
     OPTION_MIPS16E2, OPTION_NO_MIPS16E2,
     2,  2, -1, -1,
     6 },
+
+  { "crc", ASE_CRC, ASE_CRC64,
+    OPTION_CRC, OPTION_NO_CRC,
+    6,  6, -1, -1,
+    -1 },
 
   { "ginv", ASE_GINV, 0,
     OPTION_GINV, OPTION_NO_GINV,
@@ -19342,8 +19342,6 @@ mips_convert_ase_flags (int ase)
 {
   unsigned int ext_ases = 0;
 
-  if (ase & ASE_CRC)
-    ext_ases |= AFL_ASE_CRC;
   if (ase & ASE_CRYPTO)
     ext_ases |= AFL_ASE_CRYPTO;
   if (ase & ASE_DSP)
@@ -19372,6 +19370,8 @@ mips_convert_ase_flags (int ase)
     ext_ases |= AFL_ASE_XPA;
   if (ase & ASE_MIPS16E2)
     ext_ases |= file_ase_mips16 ? AFL_ASE_MIPS16E2 : 0;
+  if (ase & ASE_CRC)
+    ext_ases |= AFL_ASE_CRC;
   if (ase & ASE_GINV)
     ext_ases |= AFL_ASE_GINV;
 
@@ -20367,9 +20367,6 @@ MIPS options:\n\
 -msmartmips		generate smartmips instructions\n\
 -mno-smartmips		do not generate smartmips instructions\n"));
   fprintf (stream, _("\
--mcrc			generate CRC instructions\n\
--mno-crc		do not generate CRC instructions\n"));
-  fprintf (stream, _("\
 -mcrypto			generate crypto instructions\n\
 -mno-crypto		do not generate crypto instructions\n"));
   fprintf (stream, _("\
@@ -20396,6 +20393,9 @@ MIPS options:\n\
   fprintf (stream, _("\
 -mvirt			generate Virtualization instructions\n\
 -mno-virt		do not generate Virtualization instructions\n"));
+  fprintf (stream, _("\
+-mcrc			generate CRC instructions\n\
+-mno-crc		do not generate CRC instructions\n"));
   fprintf (stream, _("\
 -mginv			generate Global INValidate (GINV) instructions\n\
 -mno-ginv		do not generate Global INValidate instructions\n"));

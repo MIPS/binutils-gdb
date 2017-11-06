@@ -1595,9 +1595,6 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test_arches "xpa-virt-err"	[mips_arch_list_matching mips32r2]
     run_dump_test_arches "r5" "-32"	[mips_arch_list_matching mips32r5]
 
-    run_dump_test_arches "crc-mips32"	[mips_arch_list_matching mips32r6 !micromipsr6]
-    run_dump_test_arches "crc-mips64"	[mips_arch_list_matching mips64r6 !micromipsr6]
-
     run_dump_test_arches "crypto" [mips_arch_list_matching mips32r6 !micromipsr6]
 
     run_dump_test "pcrel-1"
@@ -2085,6 +2082,9 @@ if { [istarget mips*-*-vxworks*] } {
     run_dump_test "llpscp-32-micromips"
     run_dump_test "llpscp-64"
     run_dump_test "llpscp-64-micromips"
+
+    run_dump_test_arches "crc"	[mips_arch_list_matching mips32r6 !micromips]
+    run_dump_test_arches "crc64" [mips_arch_list_matching mips64r6 !micromips]
 
     run_dump_test_arches "ginv" [mips_arch_list_matching mips32r6]
     run_dump_test_arches "ginv-virt" [mips_arch_list_matching mips32r6]
