@@ -717,7 +717,8 @@ nanomips_print_save_restore (struct disassemble_info *info,
   void *is = info->stream;
   char *comma=",";
   unsigned int pending = 0;
-  unsigned int freg, count, fp, gp, ra;
+  unsigned int freg, fp, gp, ra;
+  int count;
   fp = gp = ra = 0;
 
   if (mode16)

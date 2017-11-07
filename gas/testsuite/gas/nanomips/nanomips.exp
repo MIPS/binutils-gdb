@@ -991,4 +991,6 @@ if { [istarget nanomips*-*-*] } {
 
     run_dump_test_arch "linkrelax-dis" "" nanomips32
     run_list_test "relax-64koff" ""
+
+    run_dump_test "data-dis" ""
 }
