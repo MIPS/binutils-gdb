@@ -30,7 +30,8 @@ static const bfd_arch_info_type *nanomips_compatible
    mips word size doesn't correlate with reloc size.  */
 
 static const bfd_arch_info_type *
-nanomips_compatible (const bfd_arch_info_type *a, const bfd_arch_info_type *b)
+nanomips_compatible (const bfd_arch_info_type * a,
+		     const bfd_arch_info_type * b)
 {
   if (a->arch != b->arch)
     return NULL;
@@ -66,14 +67,12 @@ enum
 
 #define NN(index) (&arch_info_struct[(index) + 1])
 
-static const bfd_arch_info_type arch_info_struct[] =
-{
-  N (32, 32, bfd_mach_nanomipsisa32r6,"nanomips:isa32r6", FALSE,
-     NN(I_nanomipsisa32r6)),
-  N (64, 64, bfd_mach_nanomipsisa64r6,"nanomips:isa64r6", FALSE,
+static const bfd_arch_info_type arch_info_struct[] = {
+  N (32, 32, bfd_mach_nanomipsisa32r6, "nanomips:isa32r6", FALSE,
+     NN (I_nanomipsisa32r6)),
+  N (64, 64, bfd_mach_nanomipsisa64r6, "nanomips:isa64r6", FALSE,
      0),
 };
 
 const bfd_arch_info_type bfd_nanomips_arch =
 N (32, 32, 0, "nanomips", TRUE, &arch_info_struct[0]);
-

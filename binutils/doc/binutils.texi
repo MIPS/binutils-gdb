@@ -2464,6 +2464,13 @@ rather than names, for the selected types of registers.
 You can list the available values of @var{ABI} and @var{ARCH} using
 the @option{--help} option.
 
+For nanoMIPS, all of the options specified above for the MIPS
+architecture are supported. The available values of @var{ABI}
+and @var{ARCH} are different from MIPS and can be listed with
+the @option{--help} option. In addition, the @option{-Mshow-arch-insn}
+option prints extended mnemonics in disassembly, including format
+suffixes, as used in the architecture reference manual.
+
 For VAX, you can specify function entry addresses with @option{-M
 entry:0xf00ba}.  You can use this multiple times to properly
 disassemble VAX binary files that don't contain symbol tables (like

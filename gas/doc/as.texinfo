@@ -430,7 +430,6 @@ gcc(1), ld(1), and the Info entries for @file{binutils} and @file{ld}.
    [@b{-mdsp}] [@b{-mno-dsp}]
    [@b{-mdspr2}] [@b{-mno-dspr2}]
    [@b{-mdspr3}] [@b{-mno-dspr3}]
-   [@b{-mmsa}] [@b{-mno-msa}]
    [@b{-mxpa}] [@b{-mno-xpa}]
    [@b{-mmt}] [@b{-mno-mt}]
    [@b{-mmcu}] [@b{-mno-mcu}]
@@ -455,11 +454,15 @@ gcc(1), ld(1), and the Info entries for @file{binutils} and @file{ld}.
 @emph{Target nanoMIPS options:}
    [@b{-nocpp}] [@b{-EL}] [@b{-EB}] [@b{-O}[@var{optimization level}]]
    [@b{-g}[@var{debug level}]] [@b{-G} @var{num}]
-   [@b{-mpic}] [@b{-mno-pic}]
    [@b{-m32}] [@b{-m64}]
    [@b{-march}=@var{CPU}] [@b{-mtune}=@var{CPU}]
+   [@b{-mpic}] [@b{-mno-pic}]
+   [@b{-mPIC}] [@b{-mno-PIC}]
+   [@b{-mpcrel}] [@b{-mcmodel=@var{MODEL}}]
    [@b{-construct-floats}] [@b{-no-construct-floats}]
    [@b{-trap}] [@b{-no-break}] [@b{-break}] [@b{-no-trap}]
+   [@b{-mhard-float}] [@b{-msoft-float}]
+   [@b{-msingle-float}] [@b{-mdouble-float}]
    [@b{-mdsp}] [@b{-mno-dsp}]
    [@b{-mdspr3}] [@b{-mno-dspr3}]
    [@b{-mmsa}] [@b{-mno-msa}]
@@ -467,8 +470,8 @@ gcc(1), ld(1), and the Info entries for @file{binutils} and @file{ld}.
    [@b{-mmt}] [@b{-mno-mt}]
    [@b{-mmcu}] [@b{-mno-mcu}]
    [@b{-mvirt}] [@b{-mno-virt}]
-   [@b{-mginv}] [@b{-mno-ginv}]
    [@b{-mtlb}] [@b{-mno-tlb}]
+   [@b{-mginv}] [@b{-mno-ginv}]
    [@b{-minsn32}] [@b{-mno-insn32}]
    [@b{-mbalc-stubs}] [@b{-mno-balc-stubs}]
    [@b{-mlegacyregs}] [@b{-mno-legacyregs}]
@@ -1745,12 +1748,6 @@ equivalent to @samp{-mdspr3}.
 Generate code for the DSP Release 3 Application Specific Extension.
 This tells the assembler to accept DSP Release 3 instructions.
 @samp{-mno-dspr3} turns off this option.
-
-@item -mmsa
-@itemx -mno-msa
-Generate code for the nanoMIPS SIMD Architecture Extension.
-This tells the assembler to accept MSA instructions.
-@samp{-mno-msa} turns off this option.
 
 @item -mxpa
 @itemx -mno-xpa

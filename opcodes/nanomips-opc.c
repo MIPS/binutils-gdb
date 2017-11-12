@@ -96,10 +96,10 @@ decode_nanomips_operand (const char *p)
 	case 'p': REG (5, 5, GP);
 	case 'q': MAPPED_REG (3, 7, GP, reg_q_map);
 	case 's': MAPPED_REG (0, 0, GP, reg_29_map);
- 	case 't': SPECIAL (0, 0, REPEAT_PREV_REG);
+	case 't': SPECIAL (0, 0, REPEAT_PREV_REG);
 	case 'u': REG (5, 3, GP); // New
 	case 'w': MAPPED_REG (1, 0, GP, reg_30_opt_map);
- 	case 'x': SPECIAL (0, 0, REPEAT_DEST_REG);
+	case 'x': SPECIAL (0, 0, REPEAT_DEST_REG);
 	case 'y': MAPPED_REG (0, 0, GP, reg_31_map);
 	case 'z': UINT (0, 0); 	/* Literal 0 */
 	case 'A': INT_ADJ (7, 0, 127, 2, FALSE);	 /* (0 .. 127) << 2 */
@@ -175,9 +175,9 @@ decode_nanomips_operand (const char *p)
 	case 'C': MSB (5, 6, 1, FALSE, 32);	 /* (1 .. 32), 32-bit op */
 /* 	case 'D': REG (5, 16, FP); */
 	case 'E': BIT (5, 0, 32);		 /* (32 .. 63) */
- 	case 'F': MSB (5, 6, 33, TRUE, 64);	 /* (33 .. 64), 64-bit op */
- 	case 'G': MSB (5, 6, 33, FALSE, 64);	 /* (33 .. 64), 64-bit op */
- 	case 'H': MSB (5, 6, 1, FALSE, 64);	 /* (1 .. 32), 64-bit op */
+	case 'F': MSB (5, 6, 33, TRUE, 64);	 /* (33 .. 64), 64-bit op */
+	case 'G': MSB (5, 6, 33, FALSE, 64);	 /* (33 .. 64), 64-bit op */
+	case 'H': MSB (5, 6, 1, FALSE, 64);	 /* (1 .. 32), 64-bit op */
 	case 'I': BIT (5, 6, 0); /* (0 .. 31) */
 	case 'K': HINT (3, 0);
 	case 'L': HINT (10, 16);
@@ -228,8 +228,8 @@ decode_nanomips_operand (const char *p)
 	case '.': BIT (2, 9, 0);		/* (0 .. 3) */
 	case ';': UINT (2, 21);			/* (0 .. 3) */
 	case '1': UINT (18, 0);
-	case '2': INT_ADJ (16, 2, (1<<16)-1, 2, FALSE);
-	case '3': INT_ADJ (17, 1, (1<<17)-1, 1, FALSE);
+	case '2': INT_ADJ (16, 2, (1<<16) - 1, 2, FALSE);
+	case '3': INT_ADJ (17, 1, (1<<17) - 1, 1, FALSE);
 	case '4': SPLIT_MAPPED_REG (4, 5, 1, 9, GP, reg_4to5_map);
 	case '5': SPLIT_MAPPED_REG (4, 0, 1, 4, GP, reg_4to5_map);
 	case '6': SPLIT_MAPPED_REG (4, 5, 1, 9, GP, reg_4to5_srcmap);
@@ -239,7 +239,7 @@ decode_nanomips_operand (const char *p)
 	}
       break;
 
-    case '.': INT_ADJ (19, 2, (1<<19)-1, 2, FALSE);
+    case '.': INT_ADJ (19, 2, (1<<19) - 1, 2, FALSE);
     case '<': BIT (5, 0, 0);			 /* (0 .. 31) */
 /*     case '>': BIT (5, 11, 32);			 /\* (32 .. 63) *\/ */
     case '\\': BIT (3, 21, 0);			 /* (0 .. 7) */
@@ -388,8 +388,7 @@ decode_nanomips_operand (const char *p)
 #define I38	INSN_ISAN32R6
 #define I70	INSN_ISAN64R6
 
-const struct nanomips_opcode nanomips_opcodes[] =
-{
+const struct nanomips_opcode nanomips_opcodes[] = {
 /* These instructions appear first so that the disassembler will find
    them first.  The assemblers uses a hash table based on the
    instruction name anyhow.  */
@@ -443,8 +442,8 @@ const struct nanomips_opcode nanomips_opcodes[] =
 {"li",		"",		"-t,A",		0,	(int) M_LI,	INSN_MACRO,	INSN2_MACRO,	I38,	0},
 {"ext", 	"",		"t,r,+A,+C",	0x8000f000, 0xfc00f820,	WR_1|RD_2,		0,	0,	xNMS},
 {"ext", 	"",		"t,r,+A,+C",	0,    (int) M_EXT,	INSN_MACRO,		0,	I38,	0},
-				
-/* Precedence=0 */		
+
+/* Precedence=0 */
 {"abs", 	"", 		"d,v",		0,	   (int) M_ABS,	INSN_MACRO,		0,	I38,	0},
 {"abs.d",	"",		"T,V",		0xa000237b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
 {"abs.s",	"",		"T,V",		0xa000037b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},

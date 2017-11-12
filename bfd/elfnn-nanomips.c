@@ -44,8 +44,7 @@ static reloc_howto_type *bfd_elfNN_bfd_reloc_type_lookup
   (bfd *, bfd_reloc_code_real_type);
 /* The relocation table used for SHT_RELA sections.  */
 
-static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
-{
+static reloc_howto_type elfNN_nanomips_howto_table_rela[] = {
   /* No relocation.  */
   HOWTO (R_NANOMIPS_NONE,	/* type */
 	 0,			/* rightshift */
@@ -70,7 +69,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 0,			/* bitpos */
 	 complain_overflow_dont, /* complain_on_overflow */
 	 _bfd_nanomips_elf_generic_reloc, /* special_function */
-	 "R_NANOMIPS_32",		/* name */
+	 "R_NANOMIPS_32",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 0xffffffff,		/* dst_mask */
@@ -84,7 +83,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
 	 complain_overflow_dont, /* complain_on_overflow */
-	 _bfd_nanomips_elf_generic_reloc,	/* special_function */
+	 _bfd_nanomips_elf_generic_reloc, /* special_function */
 	 "R_NANOMIPS_64",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
@@ -252,7 +251,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 0x000003ff,		/* dst_mask */
 	 TRUE),			/* pcrel_offset */
 
-    /* This is for nanoMIPS branches.  */
+  /* This is for nanoMIPS branches.  */
   HOWTO (R_NANOMIPS_PC7_S1,	/* type */
 	 1,			/* rightshift */
 	 1,			/* size (0 = byte, 1 = short, 2 = long) */
@@ -296,7 +295,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 0x001ffffc,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-    /* GP relative reference.  */
+  /* GP relative reference.  */
   HOWTO (R_NANOMIPS_GPREL18_S3,	/* type */
 	 3,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
@@ -357,7 +356,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 FALSE),		/* pcrel_offset */
 
 
-      /* GP- and PC-relative relocations.  */
+  /* GP- and PC-relative relocations.  */
   HOWTO (R_NANOMIPS_GPREL7_S2,	/* type */
 	 2,			/* rightshift */
 	 1,			/* size (0 = byte, 1 = short, 2 = long) */
@@ -372,7 +371,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 0x0000007f,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-    /* High 20 bits of GP relative reference.  */
+  /* High 20 bits of GP relative reference.  */
   HOWTO (R_NANOMIPS_GPREL_HI20,	/* type */
 	 0,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
@@ -507,7 +506,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 0xffffffff,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-    HOWTO (R_NANOMIPS_GOTPC_HI20, /* type */
+  HOWTO (R_NANOMIPS_GOTPC_HI20,	/* type */
 	 12,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 20,			/* bitsize */
@@ -626,8 +625,8 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 0x00000fff,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-    /* Section displacement.  */
-  HOWTO (R_NANOMIPS_SCN_DISP,   /* type */
+  /* Section displacement.  */
+  HOWTO (R_NANOMIPS_SCN_DISP,	/* type */
 	 0,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 32,			/* bitsize */
@@ -668,7 +667,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 0,			/* bitsize */
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
-	 complain_overflow_dont,/* complain_on_overflow */
+	 complain_overflow_dont, /* complain_on_overflow */
 	 bfd_elf_generic_reloc,	/* special handler.  */
 	 "R_NANOMIPS_ALIGN",	/* name */
 	 FALSE,			/* partial_inplace */
@@ -682,7 +681,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 0,			/* bitsize */
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
-	 complain_overflow_dont,/* complain_on_overflow */
+	 complain_overflow_dont, /* complain_on_overflow */
 	 bfd_elf_generic_reloc,	/* special handler.  */
 	 "R_NANOMIPS_FILL",	/* name */
 	 FALSE,			/* partial_inplace */
@@ -696,7 +695,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 0,			/* bitsize */
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
-	 complain_overflow_dont,/* complain_on_overflow */
+	 complain_overflow_dont, /* complain_on_overflow */
 	 bfd_elf_generic_reloc,	/* special handler.  */
 	 "R_NANOMIPS_MAX",	/* name */
 	 FALSE,			/* partial_inplace */
@@ -710,7 +709,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 0,			/* bitsize */
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
-	 complain_overflow_dont,/* complain_on_overflow */
+	 complain_overflow_dont, /* complain_on_overflow */
 	 bfd_elf_generic_reloc,	/* special handler.  */
 	 "R_NANOMIPS_INSN32",	/* name */
 	 FALSE,			/* partial_inplace */
@@ -724,7 +723,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 0,			/* bitsize */
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
-	 complain_overflow_dont,/* complain_on_overflow */
+	 complain_overflow_dont, /* complain_on_overflow */
 	 bfd_elf_generic_reloc,	/* special handler.  */
 	 "R_NANOMIPS_FIXED",	/* name */
 	 FALSE,			/* partial_inplace */
@@ -738,7 +737,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 0,			/* bitsize */
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
-	 complain_overflow_dont,/* complain_on_overflow */
+	 complain_overflow_dont, /* complain_on_overflow */
 	 bfd_elf_generic_reloc,	/* special handler.  */
 	 "R_NANOMIPS_NORELAX",	/* name */
 	 FALSE,			/* partial_inplace */
@@ -752,7 +751,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 0,			/* bitsize */
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
-	 complain_overflow_dont,/* complain_on_overflow */
+	 complain_overflow_dont, /* complain_on_overflow */
 	 bfd_elf_generic_reloc,	/* special handler.  */
 	 "R_NANOMIPS_RELAX",	/* name */
 	 FALSE,			/* partial_inplace */
@@ -766,7 +765,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 0,			/* bitsize */
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
-	 complain_overflow_dont,/* complain_on_overflow */
+	 complain_overflow_dont, /* complain_on_overflow */
 	 bfd_elf_generic_reloc,	/* special handler.  */
 	 "R_NANOMIPS_SAVERESTORE", /* name */
 	 FALSE,			/* partial_inplace */
@@ -780,7 +779,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 0,			/* bitsize */
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
-	 complain_overflow_dont,/* complain_on_overflow */
+	 complain_overflow_dont, /* complain_on_overflow */
 	 bfd_elf_generic_reloc,	/* special handler.  */
 	 "R_NANOMIPS_INSN16",	/* name */
 	 FALSE,			/* partial_inplace */
@@ -794,7 +793,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 0,			/* bitsize */
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
-	 complain_overflow_dont,/* complain_on_overflow */
+	 complain_overflow_dont, /* complain_on_overflow */
 	 bfd_elf_generic_reloc, /* special handler.  */
 	 "R_NANOMIPS_JALR32",	/* name */
 	 FALSE,			/* partial_inplace */
@@ -808,7 +807,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
 	 0,			/* bitsize */
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
-	 complain_overflow_dont,/* complain_on_overflow */
+	 complain_overflow_dont, /* complain_on_overflow */
 	 bfd_elf_generic_reloc, /* special handler.  */
 	 "R_NANOMIPS_JALR16",	/* name */
 	 FALSE,			/* partial_inplace */
@@ -854,7 +853,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] =
   EMPTY_HOWTO (R_NANOMIPS_TLS_DTPMOD64),
   EMPTY_HOWTO (R_NANOMIPS_TLS_DTPREL64),
 
-    /* TLS IE dynamic relocations.  */
+  /* TLS IE dynamic relocations.  */
   HOWTO (R_NANOMIPS_TLS_TPREL32, /* type */
 	 0,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
@@ -1077,13 +1076,13 @@ static reloc_howto_type elf_nanomips_eh_howto =
 
 /* A mapping from BFD reloc types to MIPS ELF reloc types.  */
 
-struct elf_reloc_map {
+struct elf_reloc_map
+{
   bfd_reloc_code_real_type bfd_val;
   enum elf_nanomips_reloc_type elf_val;
 };
 
-static const struct elf_reloc_map nanomips_reloc_map[] =
-{
+static const struct elf_reloc_map nanomips_reloc_map[] = {
   { BFD_RELOC_NONE, R_NANOMIPS_NONE },
   { BFD_RELOC_32, R_NANOMIPS_32 },
   { BFD_RELOC_64, R_NANOMIPS_64 },
@@ -1157,7 +1156,7 @@ static const struct elf_reloc_map nanomips_reloc_map[] =
 /* Given a BFD reloc type, return a howto structure.  */
 
 static reloc_howto_type *
-bfd_elfNN_bfd_reloc_type_lookup (bfd *abfd ATTRIBUTE_UNUSED,
+bfd_elfNN_bfd_reloc_type_lookup (bfd * abfd ATTRIBUTE_UNUSED,
 				 bfd_reloc_code_real_type code)
 {
   unsigned int i;
@@ -1195,15 +1194,14 @@ bfd_elfNN_bfd_reloc_type_lookup (bfd *abfd ATTRIBUTE_UNUSED,
 }
 
 static reloc_howto_type *
-bfd_elfNN_bfd_reloc_name_lookup (bfd *abfd ATTRIBUTE_UNUSED,
+bfd_elfNN_bfd_reloc_name_lookup (bfd * abfd ATTRIBUTE_UNUSED,
 				 const char *r_name)
 {
   unsigned int i;
 
   for (i = 0;
        i < (sizeof (elfNN_nanomips_howto_table_rela)
-	    / sizeof (elfNN_nanomips_howto_table_rela[0]));
-       i++)
+	    / sizeof (elfNN_nanomips_howto_table_rela[0])); i++)
     if (elfNN_nanomips_howto_table_rela[i].name != NULL
 	&& strcasecmp (elfNN_nanomips_howto_table_rela[i].name, r_name) == 0)
       return &elfNN_nanomips_howto_table_rela[i];
@@ -1224,7 +1222,7 @@ bfd_elfNN_bfd_reloc_name_lookup (bfd *abfd ATTRIBUTE_UNUSED,
 
 static reloc_howto_type *
 nanomips_elfNN_rtype_to_howto (unsigned int r_type,
-			   bfd_boolean rela_p ATTRIBUTE_UNUSED)
+			       bfd_boolean rela_p ATTRIBUTE_UNUSED)
 {
   switch (r_type)
     {
@@ -1246,8 +1244,8 @@ nanomips_elfNN_rtype_to_howto (unsigned int r_type,
 /* Given a MIPS Elf_Internal_Rela, fill in an arelent structure.  */
 
 static void
-nanomips_info_to_howto_rela (bfd *abfd, arelent *cache_ptr,
-			     Elf_Internal_Rela *dst)
+nanomips_info_to_howto_rela (bfd * abfd, arelent * cache_ptr,
+			     Elf_Internal_Rela * dst)
 {
   const struct elf_backend_data *bed;
   unsigned int r_type;
@@ -1264,7 +1262,7 @@ nanomips_info_to_howto_rela (bfd *abfd, arelent *cache_ptr,
 /* nanoMIPS ELF local labels start with '$', not 'L'.  */
 
 static bfd_boolean
-nanomips_elf_is_local_label_name (bfd *abfd, const char *name)
+nanomips_elf_is_local_label_name (bfd * abfd, const char *name)
 {
   if (name[0] == '$')
     return TRUE;
@@ -1277,7 +1275,7 @@ nanomips_elf_is_local_label_name (bfd *abfd, const char *name)
 /* Set the right machine number for a MIPS ELF file.  */
 
 static bfd_boolean
-nanomips_elfNN_object_p (bfd *abfd)
+nanomips_elfNN_object_p (bfd * abfd)
 {
   unsigned long mach;
 
@@ -1288,8 +1286,8 @@ nanomips_elfNN_object_p (bfd *abfd)
   bfd_default_set_arch_mach (abfd, bfd_arch_nanomips, mach);
   return TRUE;
 }
-
 
+
 #define ELF_ARCH			bfd_arch_nanomips
 #define ELF_TARGET_ID			NANOMIPS_ELF_DATA
 #define ELF_MACHINE_CODE		EM_NANOMIPS

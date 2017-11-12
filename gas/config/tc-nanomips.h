@@ -57,21 +57,19 @@ extern void nanomips_handle_align (struct frag *);
 #define MAX_MEM_FOR_RS_ALIGN_CODE  (3 + 4)
 
 struct insn_label_list;
-struct nanomips_segment_info {
+struct nanomips_segment_info
+{
   struct insn_label_list *labels;
-  unsigned int nanomips : 1;
+  unsigned int nanomips:1;
 };
 #define TC_SEGMENT_INFO_TYPE struct nanomips_segment_info
-
-/* This field is nonzero if the symbol is the target of a MIPS16 jump.  */
-#define TC_SYMFIELD_TYPE int
 
 /* The endianness of the target format may change based on command
    line arguments.  */
 #define TARGET_FORMAT nanomips_target_format()
 extern const char *nanomips_target_format (void);
 
-extern int tc_get_register (int frame);
+extern int tc_get_register (int);
 
 #define md_after_parse_args() nanomips_after_parse_args()
 extern void nanomips_after_parse_args (void);
@@ -167,15 +165,16 @@ nanomips_parse_cons_expression (struct expressionS *, unsigned);
 
 /* Walk a cons expression tree and create the relocations needed
    to represent the operation.  */
-extern void nanomips_cons_fix_new (struct frag *, int, int, struct expressionS *,
-			       const bfd_reloc_code_real_type);
+extern void nanomips_cons_fix_new (struct frag *, int, int,
+				   struct expressionS *,
+				   const bfd_reloc_code_real_type);
 #define TC_CONS_FIX_NEW(FRAG, WHERE, NBYTES, EXP, RELOC)	\
   nanomips_cons_fix_new (FRAG, WHERE, NBYTES, EXP, RELOC)
 
 /* Determine what kind of difference expressions must be
    evaluated by assembler.  */
-extern bfd_boolean nanomips_allow_local_subtract (expressionS *, expressionS *,
-					      segT);
+extern bfd_boolean nanomips_allow_local_subtract (expressionS *,
+						  expressionS *, segT);
 #define md_allow_local_subtract(lhs,rhs,sect)	\
   nanomips_allow_local_subtract (lhs, rhs, sect)
 
