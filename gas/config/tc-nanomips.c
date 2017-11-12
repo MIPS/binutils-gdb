@@ -5371,26 +5371,15 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
 	    ip->fixp[i]->fx_tcbit = 1;
 	  }
 
-      if (nanomips_linkrelax_p
-	  && (forced_insn_length == 4 || forced_insn_length == 2))
+      if (nanomips_linkrelax_p && (insn_length (ip) != 6))
 	{
-	  symbolS *sym;
-	  char sname[30];
-
-	  /* The '\2' ensures that no other symbol will get the
-	     same name as this.  */
-	  sprintf (sname, "__reloc_insn_\2_%d", forced_insn_length);
-	  sym = symbol_find (sname);
-	  if (sym == NULL)
-	    {
-	      sym = symbol_new (sname, absolute_section, forced_insn_length,
-				&zero_address_frag);
-	      symbol_table_insert (sym);
-	    }
-
-	  fix_new (ip->frag, ip->where, 0, sym, 0, FALSE,
-		   forced_insn_length == 2 ? BFD_RELOC_NANOMIPS_INSN16
-					   : BFD_RELOC_NANOMIPS_INSN32);
+	  if (forced_insn_format)
+	    fix_new (ip->frag, ip->where, 0, &abs_symbol, 0, FALSE,
+		     BFD_RELOC_NANOMIPS_FIXED);
+	  else if (forced_insn_length > 0)
+	    fix_new (ip->frag, ip->where, 0, &abs_symbol, 0, FALSE,
+		     (forced_insn_length == 2 ? BFD_RELOC_NANOMIPS_INSN16
+		      : BFD_RELOC_NANOMIPS_INSN32));
 	}
     }
 

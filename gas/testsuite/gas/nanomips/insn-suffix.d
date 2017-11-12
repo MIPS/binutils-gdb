@@ -1,3 +1,4 @@
+#as: --linkrelax
 #objdump: -dr --no-show-raw-insn -Mshow-arch-insn
 #name: nanoMIPS instructions with suffixes
 
@@ -11,8 +12,10 @@ Disassembly of section \.text:
    4:	addiu\[rs5\]	t0,t0,3
    6:	addiu\[gp.b\]	a0,gp,0
 			6: R_NANOMIPS_GPREL18	test
+			6: R_NANOMIPS_FIXED	\*ABS\*
    a:	addiu\[gp.w\]	a0,gp,0
 			a: R_NANOMIPS_GPREL19_S2	test
+			a: R_NANOMIPS_FIXED	\*ABS\*
    e:	addiu\[neg\]	a0,a1,-4
   12:	addiu\[32\]	a0,a1,64
   16:	addiu\[48\]	a0,a0,12
@@ -23,8 +26,10 @@ Disassembly of section \.text:
   26:	addiu\[rs5\]	t0,t0,3
   28:	addiu\[gp.b\]	a0,gp,0
 			28: R_NANOMIPS_GPREL18	test
+			28: R_NANOMIPS_FIXED	\*ABS\*
   2c:	addiu\[gp.w\]	a0,gp,0
 			2c: R_NANOMIPS_GPREL19_S2	test
+			2c: R_NANOMIPS_FIXED	\*ABS\*
   30:	addiu\[neg\]	a0,a1,-4
   34:	addiu\[32\]	a0,a1,64
   38:	addiu\[48\]	a0,a0,12
@@ -35,10 +40,12 @@ Disassembly of section \.text:
   48:	lw\[gp16\]	a3,24\(gp\)
   4a:	lw\[gp16\]	a3,0\(gp\)
 			4a: R_NANOMIPS_GPREL7_S2	test
+			4a: R_NANOMIPS_FIXED	\*ABS\*
   4c:	lw\[sp\]	a3,20\(sp\)
   4e:	lw\[gp\]	a3,224\(gp\)
   52:	lw\[gp\]	a3,0\(gp\)
 			52: R_NANOMIPS_GPREL19_S2	test
+			52: R_NANOMIPS_FIXED	\*ABS\*
   56:	lw\[s9\]	a3,20\(s0\)
   5a:	lw\[u12\]	a3,20\(s1\)
   5e:	lwpc\[48\]	a3,0 <test>
@@ -48,10 +55,12 @@ Disassembly of section \.text:
   68:	lw\[gp16\]	a3,24\(gp\)
   6a:	lw\[gp16\]	a3,0\(gp\)
 			6a: R_NANOMIPS_GPREL7_S2	test
+			6a: R_NANOMIPS_FIXED	\*ABS\*
   6c:	lw\[sp\]	a3,20\(sp\)
   6e:	lw\[gp\]	a3,224\(gp\)
   72:	lw\[gp\]	a3,0\(gp\)
 			72: R_NANOMIPS_GPREL19_S2	test
+			72: R_NANOMIPS_FIXED	\*ABS\*
   76:	lw\[s9\]	a3,20\(s0\)
   7a:	lw\[u12\]	a3,20\(s1\)
   7e:	lwpc\[48\]	a3,0 <test>

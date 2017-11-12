@@ -9,10 +9,10 @@ Relocation section '\.rela\.text' at offset 0x[0-9a-f]+ contains 40 entries:
  Offset     Info    Type                Sym. Value  Symbol's Name \+ Addend
 00000004  [0-9a-f]+ R_NANOMIPS_ALIGN       00000003   __reloc_align_\^B_1 \+ 0
 00000008  [0-9a-f]+ R_NANOMIPS_PC25_S1     00000030   test2 \+ 0
-00000008  [0-9a-f]+ R_NANOMIPS_INSN32      00000004   __reloc_insn_\^B_4 \+ 0
+00000008  [0-9a-f]+ R_NANOMIPS_INSN32                 0
 0000000c  [0-9a-f]+ R_NANOMIPS_ALIGN       00000003   __reloc_align_\^B_2 \+ 0
 00000010  [0-9a-f]+ R_NANOMIPS_PC10_S1     00000030   test2 \+ 0
-00000010  [0-9a-f]+ R_NANOMIPS_INSN16      00000002   __reloc_insn_\^B_2 \+ 0
+00000010  [0-9a-f]+ R_NANOMIPS_INSN16                 0
 00000012  [0-9a-f]+ R_NANOMIPS_ALIGN       00000001   __reloc_align_\^B_3 \+ 0
 00000014  [0-9a-f]+ R_NANOMIPS_NORELAX                0
 00000018  [0-9a-f]+ R_NANOMIPS_PC25_S1     00000030   test2 \+ 0
@@ -52,9 +52,7 @@ Symbol table '.symtab' contains [0-9]+ entries:
 #...
      [0-9]+: 00000003     4 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_1
 .*
-    [0-9]+: 00000004     0 NOTYPE  LOCAL  DEFAULT  ABS __reloc_insn_\^B_4
     [0-9]+: 00000003     4 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_2
-    [0-9]+: 00000002     0 NOTYPE  LOCAL  DEFAULT  ABS __reloc_insn_\^B_2
     [0-9]+: 00000001     0 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_3
     [0-9]+: 00000003     4 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_4
     [0-9]+: 00000003     6 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_5
