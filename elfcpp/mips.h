@@ -163,11 +163,6 @@ enum
   R_MICROMIPS_PC26_S1 = 175,
   R_MICROMIPS_PC18_S3 = 176,
   R_MICROMIPS_PC19_S2 = 177,
-  // microMIPS 4bit relocations for LW16/SW16.
-  R_MICROMIPS_BYTE_LO4 = 178,
-  R_MICROMIPS_SHORT_LO4 = 179,
-  R_MICROMIPS_WORD_LO4 = 180,
-  R_MICROMIPS_BYTE_LO7 = 181,
 
   // This was a GNU extension used by embedded-PIC.  It was co-opted by
   // mips-linux for exception-handling data.  GCC stopped using it in
