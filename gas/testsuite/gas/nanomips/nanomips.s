@@ -585,82 +585,82 @@ test3:
 	j	$fp
 	j	$ra
 
-	jalr	$ra, $zero
-	jalr	$t4
-	jalr	$t5
-	jalr	$a0
-	jalr	$a1
-	jalr	$a2
-	jalr	$a3
-	jalr	$a4
-	jalr	$fp
+	jalrc	$ra, $zero
+	jalrc	$t4
+	jalrc	$t5
+	jalrc	$a0
+	jalrc	$a1
+	jalrc	$a2
+	jalrc	$a3
+	jalrc	$a4
+	jalrc	$fp
 
-	jalr32	$ra, $zero
+	jalrc32	$ra, $zero
 
-	jalr32	$t4
-	jalr32	$t5
-	jalr32	$a0
-	jalr32	$a1
-	jalr32	$a2
-	jalr32	$a3
-	jalr32	$a4
-	jalr32	$fp
+	jalrc32	$t4
+	jalrc32	$t5
+	jalrc32	$a0
+	jalrc32	$a1
+	jalrc32	$a2
+	jalrc32	$a3
+	jalrc32	$a4
+	jalrc32	$fp
 
-	jalr	$ra, $zero
-	jalr	$ra, $t4
-	jalr	$ra, $t5
-	jalr	$ra, $a0
-	jalr	$ra, $a1
-	jalr	$ra, $a2
-	jalr	$ra, $a3
-	jalr	$ra, $a4
-	jalr	$ra, $fp
-	jalr	$fp, $ra
+	jalrc	$ra, $zero
+	jalrc	$ra, $t4
+	jalrc	$ra, $t5
+	jalrc	$ra, $a0
+	jalrc	$ra, $a1
+	jalrc	$ra, $a2
+	jalrc	$ra, $a3
+	jalrc	$ra, $a4
+	jalrc	$ra, $fp
+	jalrc	$fp, $ra
 
-	jalr	$t4, $zero
-	jalr	$t5, $t4
-	jalr	$t4, $t5
-	jalr	$t4, $a0
-	jalr	$t4, $a1
-	jalr	$t4, $a2
-	jalr	$t4, $a3
-	jalr	$t4, $a4
-	jalr	$t4, $fp
-	jalr	$t4, $ra
+	jalrc	$t4, $zero
+	jalrc	$t5, $t4
+	jalrc	$t4, $t5
+	jalrc	$t4, $a0
+	jalrc	$t4, $a1
+	jalrc	$t4, $a2
+	jalrc	$t4, $a3
+	jalrc	$t4, $a4
+	jalrc	$t4, $fp
+	jalrc	$t4, $ra
 
-	jalr.hb	$ra, $zero
-	jalr.hb	$t4
-	jalr.hb	$t5
-	jalr.hb	$a0
-	jalr.hb	$a1
-	jalr.hb	$a2
-	jalr.hb	$a3
-	jalr.hb	$a4
-	jalr.hb	$fp
+	jalrc.hb	$ra, $zero
+	jalrc.hb	$t4
+	jalrc.hb	$t5
+	jalrc.hb	$a0
+	jalrc.hb	$a1
+	jalrc.hb	$a2
+	jalrc.hb	$a3
+	jalrc.hb	$a4
+	jalrc.hb	$fp
 /*
-	jalr.hb	$ra
+	jalrc.hb	$ra
 */
-	jalr.hb	$ra, $zero
-	jalr.hb	$ra, $t4
-	jalr.hb	$ra, $t5
-	jalr.hb	$ra, $a0
-	jalr.hb	$ra, $a1
-	jalr.hb	$ra, $a2
-	jalr.hb	$ra, $a3
-	jalr.hb	$ra, $a4
-	jalr.hb	$ra, $fp
-	jalr.hb	$fp, $ra
+	jalrc.hb	$ra, $zero
+	jalrc.hb	$ra, $t4
+	jalrc.hb	$ra, $t5
+	jalrc.hb	$ra, $a0
+	jalrc.hb	$ra, $a1
+	jalrc.hb	$ra, $a2
+	jalrc.hb	$ra, $a3
+	jalrc.hb	$ra, $a4
+	jalrc.hb	$ra, $fp
+	jalrc.hb	$fp, $ra
 
-	jalr.hb	$t4, $zero
-	jalr.hb	$t5, $t4
-	jalr.hb	$t4, $t5
-	jalr.hb	$t4, $a0
-	jalr.hb	$t4, $a1
-	jalr.hb	$t4, $a2
-	jalr.hb	$t4, $a3
-	jalr.hb	$t4, $a4
-	jalr.hb	$t4, $fp
-	jalr.hb	$t4, $ra
+	jalrc.hb	$t4, $zero
+	jalrc.hb	$t5, $t4
+	jalrc.hb	$t4, $t5
+	jalrc.hb	$t4, $a0
+	jalrc.hb	$t4, $a1
+	jalrc.hb	$t4, $a2
+	jalrc.hb	$t4, $a3
+	jalrc.hb	$t4, $a4
+	jalrc.hb	$t4, $fp
+	jalrc.hb	$t4, $ra
 
 	jal	$t4, $t5
 	jal	$fp, $ra
