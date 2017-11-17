@@ -9383,6 +9383,7 @@ md_apply_fix (fixS * fixP, valueT * valP, segT seg ATTRIBUTE_UNUSED)
 
       case BFD_RELOC_32:
 	fixP->fx_r_type = BFD_RELOC_32_PCREL;
+	*valP += fixP->fx_frag->fr_address + fixP->fx_where;
 	break;
 
       default:
@@ -10418,7 +10419,7 @@ s_tpreldword (int ignore ATTRIBUTE_UNUSED)
 }
 
 /* Handle the .ehword pseudo-op.  This is used when generating unwinding
-   tables.  It generates a R_NANOMIPS_EH reloc.  */
+   tables.  It generates a PC32 reloc.  */
 
 static void
 s_ehword (int ignore ATTRIBUTE_UNUSED)
@@ -10440,7 +10441,7 @@ s_ehword (int ignore ATTRIBUTE_UNUSED)
   p = frag_more (4);
   md_number_to_chars (p, 0, 4);
   fix_new_exp (frag_now, p - frag_now->fr_literal, 4, &ex, FALSE,
-	       BFD_RELOC_NANOMIPS_EH);
+	       BFD_RELOC_32_PCREL);
 
   demand_empty_rest_of_line ();
 }
@@ -11044,13 +11045,7 @@ tc_gen_reloc (asection * section ATTRIBUTE_UNUSED, fixS * fixp)
   reloc->sym_ptr_ptr = (asymbol **) xmalloc (sizeof (asymbol *));
   *reloc->sym_ptr_ptr = symbol_get_bfdsym (fixp->fx_addsy);
   reloc->address = fixp->fx_frag->fr_address + fixp->fx_where;
-
-  if (fixp->fx_pcrel && fixp->fx_r_type == BFD_RELOC_32_PCREL)
-    /* At this point, fx_addnumber is "symbol offset - pcrel address".
-       Relocations want only the symbol offset.  */
-    reloc->addend = fixp->fx_addnumber + reloc->address;
-  else
-    reloc->addend = fixp->fx_addnumber;
+  reloc->addend = fixp->fx_addnumber;
 
   code = fixp->fx_r_type;
 
