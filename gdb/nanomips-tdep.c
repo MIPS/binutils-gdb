@@ -192,6 +192,59 @@ nanomips_abi_regsize (struct gdbarch *gdbarch)
     }
 }
 
+static void
+nanomips_xfer_register (struct gdbarch *gdbarch, struct regcache *regcache,
+        int reg_num, int length,
+        enum bfd_endian endian, gdb_byte *in,
+        const gdb_byte *out, int buf_offset)
+{
+  int reg_offset = 0;
+
+  gdb_assert (reg_num >= gdbarch_num_regs (gdbarch));
+  /* Need to transfer the left or right part of the register, based on
+     the targets byte order.  */
+  switch (endian)
+    {
+    case BFD_ENDIAN_BIG:
+      reg_offset = register_size (gdbarch, reg_num) - length;
+      break;
+    case BFD_ENDIAN_LITTLE:
+      reg_offset = 0;
+      break;
+    case BFD_ENDIAN_UNKNOWN:  /* Indicates no alignment.  */
+      reg_offset = 0;
+      break;
+    default:
+      internal_error (__FILE__, __LINE__, _("bad switch"));
+    }
+  if (nanomips_debug)
+    fprintf_unfiltered (gdb_stderr,
+      "xfer $%d, reg offset %d, buf offset %d, length %d, ",
+      reg_num, reg_offset, buf_offset, length);
+  if (nanomips_debug && out != NULL)
+    {
+      int i;
+      fprintf_unfiltered (gdb_stdlog, "out ");
+      for (i = 0; i < length; i++)
+  fprintf_unfiltered (gdb_stdlog, "%02x", out[buf_offset + i]);
+    }
+  if (in != NULL)
+    regcache_cooked_read_part (regcache, reg_num, reg_offset, length,
+             in + buf_offset);
+  if (out != NULL)
+    regcache_cooked_write_part (regcache, reg_num, reg_offset, length,
+        out + buf_offset);
+  if (nanomips_debug && in != NULL)
+    {
+      int i;
+      fprintf_unfiltered (gdb_stdlog, "in ");
+      for (i = 0; i < length; i++)
+  fprintf_unfiltered (gdb_stdlog, "%02x", in[buf_offset + i]);
+    }
+  if (nanomips_debug)
+    fprintf_unfiltered (gdb_stdlog, "\n");
+}
+
 #define VM_MIN_ADDRESS (CORE_ADDR)0x400000
 
 static CORE_ADDR heuristic_proc_start (struct gdbarch *, CORE_ADDR);
@@ -1836,7 +1889,7 @@ type_needs_double_align (struct type *type)
     return 1;
   else if (typecode == TYPE_CODE_STRUCT)
     {
-      if (TYPE_NFIELDS (type) < 1)
+      if (TYPE_NFIELDS (type) > 1)
 	return 0;
       return type_needs_double_align (TYPE_FIELD_TYPE (type, 0));
     }
@@ -1891,12 +1944,13 @@ nanomips_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
 			  int nargs, struct value **args, CORE_ADDR sp,
 			  int struct_return, CORE_ADDR struct_addr)
 {
-  int argreg = 0;
+  int arg_gpr = 0, arg_fpr = 0;
   int argnum;
   int stack_offset = 0, stack_size = 0;
   int seen_on_stack = 0;
   enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
   CORE_ADDR func_addr = find_function_addr (function, NULL);
+  int regsize = nanomips_abi_regsize (gdbarch);
 
   /* Set the return address register to point to the entry point of
      the program, where a breakpoint lies in wait.  */
@@ -1933,14 +1987,14 @@ nanomips_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
       if (nanomips_debug)
 	fprintf_unfiltered (gdb_stdlog,
 			    "  struct_return reg=%d %s\n",
-			    argreg + A0_REGNUM,
+			    arg_gpr + A0_REGNUM,
 			    paddress (gdbarch, struct_addr));
 
-      regcache_cooked_write_unsigned (regcache, argreg + A0_REGNUM,
+      regcache_cooked_write_unsigned (regcache, arg_gpr + A0_REGNUM,
 				      struct_addr);
 
       /* occupy first argument reg */
-      argreg++;
+      arg_gpr++;
     }
 
   /* Now load as many as possible of the first arguments into
@@ -1949,58 +2003,101 @@ nanomips_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
   for (argnum = 0; argnum < nargs; argnum++)
     {
       const gdb_byte *val;
+      gdb_byte valbuf[MAX_REGISTER_SIZE];
       struct value *arg = args[argnum];
       struct type *arg_type = check_typedef (value_type (arg));
       int len = TYPE_LENGTH (arg_type);
       enum type_code typecode = TYPE_CODE (arg_type);
 
-      val = value_contents (arg);
+      /* The P32 ABI passes structures larger than 8 bytes by reference. */
+      if ((typecode == TYPE_CODE_STRUCT || typecode == TYPE_CODE_UNION
+          || typecode == TYPE_CODE_COMPLEX) && len > regsize * 2)
+        {
+          store_unsigned_integer (valbuf, regsize, byte_order,
+                value_address (arg));
+          typecode = TYPE_CODE_PTR;
+          len = 4;
+          val = valbuf;
+
+          if (nanomips_debug)
+            fprintf_unfiltered (gdb_stdlog, " push");
+        }
+          else
+        val = value_contents (arg);
+
 
       while (len > 0)
 	{
 	  int partial_len = (len < NANOMIPS32_REGSIZE ? len : NANOMIPS32_REGSIZE);
 	  int base_arg_reg;
 	  LONGEST regval;
+	  int use_stack = 0;
 
 	  /* Align the argument register for double and long long types.  */
-	  if ((argreg < MAX_REG_ARGS) && (argreg & 1) && (len == 8)
-	      && (typecode == TYPE_CODE_FLT || typecode == TYPE_CODE_INT))
+	  if ((arg_gpr < MAX_REG_ARGS) && (arg_gpr & 1) && (len == 8)
+        && ((typecode == TYPE_CODE_FLT
+        && FPU_TYPE(gdbarch) == NANOMIPS_FPU_SOFT)
+        || typecode == TYPE_CODE_INT))
 	    {
-	      argreg++;
+	      arg_gpr++;
 	      stack_offset += 4;
 	    }
 
 	  /* double type occupies only one register.  */
 	  if (typecode == TYPE_CODE_FLT && len == 8)
-	    partial_len = 8;
+	    partial_len = (FPU_TYPE(gdbarch) == NANOMIPS_FPU_HARD ? 8 : 4);
 
 	  regval = extract_unsigned_integer (val, partial_len, byte_order);
 
 	  /* Check if any argument register is available.  */
-	  if (argreg < MAX_REG_ARGS)
+	  if (typecode == TYPE_CODE_FLT && FPU_TYPE(gdbarch) == NANOMIPS_FPU_HARD)
 	    {
-	      if (typecode == TYPE_CODE_FLT
-		  && FPU_TYPE(gdbarch) == NANOMIPS_FPU_HARD)
-		base_arg_reg = nanomips_fp_arg_regnum (gdbarch);
-	      else
-		base_arg_reg = A0_REGNUM;
+        if(arg_fpr < MAX_REG_ARGS)
+          {
+            if (nanomips_debug)
+              {
+                int r_num = arg_fpr + nanomips_fp_arg_regnum (gdbarch)
+                  + gdbarch_num_regs (gdbarch);
+                const char *r = nanomips_register_name (gdbarch, r_num);
+                fprintf_unfiltered (gdb_stdlog,
+                        "  argnum=%d,reg=%s,len=%d,val=%ld\n",
+                        argnum + 1, r, partial_len, regval);
+              }
 
-	      if (nanomips_debug)
-		{
-		  int r_num = argreg + base_arg_reg
-				+ gdbarch_num_regs (gdbarch);
-		  const char *r = nanomips_register_name (gdbarch, r_num);
-		  fprintf_unfiltered (gdb_stdlog,
-				      "  argnum=%d,reg=%s,len=%d,val=%ld\n",
-				      argnum + 1, r, partial_len, regval);
-		}
-
-	      /* Update the register with specified value.  */
-	      regcache_cooked_write_unsigned (regcache, argreg + base_arg_reg,
-					      regval);
-	      argreg++;
+           /* Update the register with specified value.  */
+           regcache_cooked_write_unsigned (regcache,
+                    arg_fpr + nanomips_fp_arg_regnum (gdbarch),
+                    regval);
+            arg_fpr++;
+          }
+        else
+          use_stack = 1;
 	    }
 	  else
+	    {
+		    if (arg_gpr < MAX_REG_ARGS)
+          {
+            if (nanomips_debug)
+              {
+                int r_num = arg_gpr + A0_REGNUM
+                  + gdbarch_num_regs (gdbarch);
+                const char *r = nanomips_register_name (gdbarch, r_num);
+                fprintf_unfiltered (gdb_stdlog,
+                        "  argnum=%d,reg=%s,len=%d,val=%ld\n",
+                        argnum + 1, r, partial_len, regval);
+              }
+
+            /* Update the register with specified value.  */
+            regcache_cooked_write_unsigned (regcache,
+                     arg_gpr + A0_REGNUM, regval);
+            arg_gpr++;
+	        }
+	      else
+	        use_stack = 1;
+
+	    }
+
+	  if (use_stack)
 	    {
 	      CORE_ADDR addr;
 
@@ -2017,11 +2114,14 @@ nanomips_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
 
 	      addr = (sp - stack_size) + stack_offset;
 	      write_memory (addr, val, partial_len);
+
 	      seen_on_stack = 1;
+	      stack_offset += partial_len;
+	      use_stack = 0;
 	    } /* argument on stack */
 
+	  val += partial_len;
 	  len -= partial_len;
-	  stack_offset += partial_len;
 	}
     }
 
@@ -2036,10 +2136,63 @@ nanomips_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
 
 static enum return_value_convention
 nanomips_return_value (struct gdbarch *gdbarch, struct value *function,
-		       struct type *type, struct regcache *regcache,
-		       gdb_byte *readbuf, const gdb_byte *writebuf)
+           struct type *type, struct regcache *regcache,
+           gdb_byte *readbuf, const gdb_byte *writebuf)
 {
-  return RETURN_VALUE_REGISTER_CONVENTION;
+  if ((TYPE_CODE (type) == TYPE_CODE_STRUCT
+      || TYPE_CODE (type) == TYPE_CODE_COMPLEX)
+      && TYPE_LENGTH (type) > 2 * NANOMIPS32_REGSIZE)
+    return RETURN_VALUE_STRUCT_CONVENTION;
+
+  else if (TYPE_CODE (type) == TYPE_CODE_COMPLEX
+     && FPU_TYPE(gdbarch) == NANOMIPS_FPU_HARD)
+    {
+      nanomips_xfer_register (gdbarch, regcache,
+        gdbarch_num_regs (gdbarch)
+        + nanomips_regnum (gdbarch)->fp0,
+        4,
+        gdbarch_byte_order (gdbarch),
+        readbuf, writebuf, 0);
+      nanomips_xfer_register (gdbarch, regcache,
+        gdbarch_num_regs (gdbarch)
+        + nanomips_regnum (gdbarch)->fp0 + 1,
+        4,
+        gdbarch_byte_order (gdbarch),
+        readbuf, writebuf, 4);
+      return RETURN_VALUE_REGISTER_CONVENTION;
+    }
+  else if (TYPE_CODE (type) == TYPE_CODE_FLT
+     && FPU_TYPE(gdbarch) == NANOMIPS_FPU_HARD)
+    {
+        nanomips_xfer_register (gdbarch, regcache,
+          gdbarch_num_regs (gdbarch)
+          + nanomips_regnum (gdbarch)->fp0,
+          TYPE_LENGTH (type),
+          gdbarch_byte_order (gdbarch),
+          readbuf, writebuf, 0);
+      return RETURN_VALUE_REGISTER_CONVENTION;
+    }
+  else
+    {
+      int offset;
+      int regnum;
+      for (offset = 0, regnum = A0_REGNUM;
+     offset < TYPE_LENGTH (type);
+     offset += NANOMIPS32_REGSIZE, regnum++)
+  {
+    int xfer = NANOMIPS32_REGSIZE;
+    if (offset + xfer > TYPE_LENGTH (type))
+      xfer = TYPE_LENGTH (type) - offset;
+    if (nanomips_debug)
+      fprintf_unfiltered (gdb_stderr, "Return scalar+%d:%d in $%d\n",
+        offset, xfer, regnum);
+    nanomips_xfer_register (gdbarch, regcache,
+            gdbarch_num_regs (gdbarch) + regnum, xfer,
+            gdbarch_byte_order (gdbarch),
+            readbuf, writebuf, offset);
+  }
+      return RETURN_VALUE_REGISTER_CONVENTION;
+    }
 }
 
 /* Copy a 32-bit single-precision value from the current frame
