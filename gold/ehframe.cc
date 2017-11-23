@@ -594,13 +594,13 @@ template<int size, bool big_endian>
 Eh_frame::Eh_frame_section_disposition
 Eh_frame::add_ehframe_input_section(
     Sized_relobj_file<size, big_endian>* object,
-    const unsigned char*,
-    section_size_type,
-    const unsigned char*,
-    section_size_type,
+    const unsigned char* symbols,
+    section_size_type symbols_size,
+    const unsigned char* symbol_names,
+    section_size_type symbol_names_size,
     unsigned int shndx,
-    unsigned int,
-    unsigned int)
+    unsigned int reloc_shndx,
+    unsigned int reloc_type)
 {
   // Get the section contents.
   section_size_type contents_len;
@@ -618,9 +618,6 @@ Eh_frame::add_ehframe_input_section(
       && elfcpp::Swap<32, big_endian>::readval(pcontents) == 0)
     return EH_END_MARKER_SECTION;
 
-  // TODO: Enable optimizations.
-  return EH_UNRECOGNIZED_SECTION;
-#if 0
   New_cies new_cies;
   if (!this->do_add_ehframe_input_section(object, symbols, symbols_size,
 					  symbol_names, symbol_names_size,
@@ -660,7 +657,6 @@ Eh_frame::add_ehframe_input_section(
     }
 
   return EH_OPTIMIZABLE_SECTION;
-#endif
 }
 
 // The bulk of the implementation of add_ehframe_input_section.
