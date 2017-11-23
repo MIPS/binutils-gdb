@@ -4511,7 +4511,7 @@ class Output_section : public Output_data
   // info field.
   unsigned int info_;
   // The section type.
-  const elfcpp::Elf_Word type_;
+  elfcpp::Elf_Word type_;
   // The section flags.
   elfcpp::Elf_Xword flags_;
   // The order of this section in the output segment.
