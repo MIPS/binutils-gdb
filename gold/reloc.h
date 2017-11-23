@@ -1191,6 +1191,10 @@ class Track_relocs
   int
   advance(off_t offset);
 
+  // Check if there is a reloc whose r_offset is equal to OFFSET.
+  bool
+  equal_offset(off_t offset);
+
   // Checkpoint the current position in the reloc section.
   section_size_type
   checkpoint() const
