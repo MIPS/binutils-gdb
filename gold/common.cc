@@ -337,6 +337,14 @@ Symbol_table::do_allocate_commons_list(
       if (mapfile != NULL)
 	mapfile->report_allocate_common(sym, ssym->symsize());
 
+      // Record the name of the input section and the name of the
+      // first object file.  This is used for script processing.
+      if (poc != NULL && !poc->has_object_name())
+	{
+	  poc->set_section_name(name);
+	  poc->set_object_name(ssym->object()->name());
+	}
+
       // Check if output section is discarded by a linker script.
       if (os == NULL)
 	{

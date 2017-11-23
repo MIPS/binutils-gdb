@@ -673,6 +673,24 @@ Output_section_data::set_output_section(Output_section* os)
   this->do_adjust_output_section(os);
 }
 
+// Set the name of the input section for matching in a linker script.
+
+void
+Output_section_data::set_section_name(const std::string& name)
+{
+  gold_assert(this->section_name_.empty());
+  this->section_name_ = name;
+}
+
+// Set the name of the first object file for matching in a linker script.
+
+void
+Output_section_data::set_object_name(const std::string& name)
+{
+  gold_assert(this->object_name_.empty());
+  this->object_name_ = name;
+}
+
 // Return the section index of the output section.
 
 unsigned int
@@ -2180,11 +2198,11 @@ off_t
 Output_section::Input_section::current_data_size() const
 {
   if (this->is_input_section())
-    return this->u1_.data_size;
+    return this->data_size_;
   else
     {
-      this->u2_.posd->pre_finalize_data_size();
-      return this->u2_.posd->current_data_size();
+      this->u1_.posd->pre_finalize_data_size();
+      return this->u1_.posd->current_data_size();
     }
 }
 
@@ -2195,9 +2213,9 @@ off_t
 Output_section::Input_section::data_size() const
 {
   if (this->is_input_section())
-    return this->u1_.data_size;
+    return this->data_size_;
   else
-    return this->u2_.posd->data_size();
+    return this->u1_.posd->data_size();
 }
 
 // Return the object for an input section.
@@ -2206,14 +2224,9 @@ Relobj*
 Output_section::Input_section::relobj() const
 {
   if (this->is_input_section())
-    return this->u2_.object;
-  else if (this->is_merge_section())
-    {
-      gold_assert(this->u2_.pomb->first_relobj() != NULL);
-      return this->u2_.pomb->first_relobj();
-    }
+    return this->u1_.object;
   else if (this->is_relaxed_input_section())
-    return this->u2_.poris->relobj();
+    return this->u1_.poris->relobj();
   else
     gold_unreachable();
 }
@@ -2225,13 +2238,8 @@ Output_section::Input_section::shndx() const
 {
   if (this->is_input_section())
     return this->shndx_;
-  else if (this->is_merge_section())
-    {
-      gold_assert(this->u2_.pomb->first_relobj() != NULL);
-      return this->u2_.pomb->first_shndx();
-    }
   else if (this->is_relaxed_input_section())
-    return this->u2_.poris->shndx();
+    return this->u1_.poris->shndx();
   else
     gold_unreachable();
 }
@@ -2245,10 +2253,10 @@ Output_section::Input_section::set_address_and_file_offset(
     off_t section_file_offset)
 {
   if (this->is_input_section())
-    this->u2_.object->set_section_offset(this->shndx_,
+    this->u1_.object->set_section_offset(this->shndx_,
 					 file_offset - section_file_offset);
   else
-    this->u2_.posd->set_address_and_file_offset(address, file_offset);
+    this->u1_.posd->set_address_and_file_offset(address, file_offset);
 }
 
 // Reset the address and file offset.
@@ -2257,7 +2265,7 @@ void
 Output_section::Input_section::reset_address_and_file_offset()
 {
   if (!this->is_input_section())
-    this->u2_.posd->reset_address_and_file_offset();
+    this->u1_.posd->reset_address_and_file_offset();
 }
 
 // Finalize the data size.
@@ -2266,7 +2274,7 @@ void
 Output_section::Input_section::finalize_data_size()
 {
   if (!this->is_input_section())
-    this->u2_.posd->finalize_data_size();
+    this->u1_.posd->finalize_data_size();
 }
 
 // Try to turn an input offset into an output offset.  We want to
@@ -2281,10 +2289,10 @@ Output_section::Input_section::output_offset(
     section_offset_type* poutput) const
 {
   if (!this->is_input_section())
-    return this->u2_.posd->output_offset(object, shndx, offset, poutput);
+    return this->u1_.posd->output_offset(object, shndx, offset, poutput);
   else
     {
-      if (this->shndx_ != shndx || this->u2_.object != object)
+      if (this->shndx_ != shndx || this->u1_.object != object)
 	return false;
       *poutput = offset;
       return true;
@@ -2299,7 +2307,7 @@ void
 Output_section::Input_section::write(Output_file* of)
 {
   if (!this->is_input_section())
-    this->u2_.posd->write(of);
+    this->u1_.posd->write(of);
 }
 
 // Write the data to a buffer.  As for write(), we don't have to do
@@ -2309,7 +2317,7 @@ void
 Output_section::Input_section::write_to_buffer(unsigned char* buffer)
 {
   if (!this->is_input_section())
-    this->u2_.posd->write_to_buffer(buffer);
+    this->u1_.posd->write_to_buffer(buffer);
 }
 
 // Print to a map file.
@@ -2320,9 +2328,7 @@ Output_section::Input_section::print_to_mapfile(Mapfile* mapfile) const
   switch (this->shndx_)
     {
     case OUTPUT_SECTION_CODE:
-    case MERGE_DATA_SECTION_CODE:
-    case MERGE_STRING_SECTION_CODE:
-      this->u2_.posd->print_to_mapfile(mapfile);
+      this->u1_.posd->print_to_mapfile(mapfile);
       break;
 
     case RELAXED_INPUT_SECTION_CODE:
@@ -2334,7 +2340,7 @@ Output_section::Input_section::print_to_mapfile(Mapfile* mapfile) const
       }
       break;
     default:
-      mapfile->print_input_section(this->u2_.object, this->shndx_);
+      mapfile->print_input_section(this->u1_.object, this->shndx_);
       break;
     }
 }
@@ -2714,10 +2720,9 @@ Output_section::add_output_section_data(Input_section* inp)
 // Add a merge section to an output section.
 
 void
-Output_section::add_output_merge_section(Output_section_data* posd,
-					 bool is_string, uint64_t entsize)
+Output_section::add_output_merge_section(Output_section_data* posd)
 {
-  Input_section inp(posd, is_string, entsize);
+  Input_section inp(posd);
   this->add_output_section_data(&inp);
 }
 
@@ -2787,7 +2792,7 @@ Output_section::add_merge_input_section(Relobj* object, unsigned int shndx,
       // section properties to new merge section in map.
       if (is_new)
 	{
-	  this->add_output_merge_section(pomb, is_string, entsize);
+	  this->add_output_merge_section(pomb);
 	  this->lookup_maps_->add_merge_section(msp, pomb);
 	}
 
@@ -3902,7 +3907,7 @@ Output_section::get_input_sections(
     {
       if (p->is_input_section()
 	  || p->is_relaxed_input_section()
-	  || p->is_merge_section())
+	  || p->output_section_data()->has_object_name())
 	input_sections->push_back(*p);
       else
 	{

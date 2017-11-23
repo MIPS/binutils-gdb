@@ -1564,8 +1564,8 @@ Input_section_sorter::operator()(const Input_section_info& isi1,
     }
   if (this->filename_sort_ == SORT_WILDCARD_BY_NAME)
     {
-      if (isi1.relobj()->name() != isi2.relobj()->name())
-	return (isi1.relobj()->name() < isi2.relobj()->name());
+      if (isi1.file_name() != isi2.file_name())
+	return (isi1.file_name() < isi2.file_name());
     }
 
   // Otherwise we leave them in the same order.
@@ -1629,36 +1629,49 @@ Output_section_element_input::set_section_addresses(
   Input_section_list::iterator p = input_sections->begin();
   while (p != input_sections->end())
     {
-      Relobj* relobj = p->relobj();
-      unsigned int shndx = p->shndx();
       Input_section_info isi(*p);
 
-      // Calling section_name and section_addralign is not very
-      // efficient.
+      if (p->is_input_section() || p->is_relaxed_input_section())
+	{
+	  Relobj* relobj = p->relobj();
+	  unsigned int shndx = p->shndx();
 
-      // Lock the object so that we can get information about the
-      // section.  This is OK since we know we are single-threaded
-      // here.
-      {
-	const Task* task = reinterpret_cast<const Task*>(-1);
-	Task_lock_obj<Object> tl(task, relobj);
+	  // Lock the object so that we can get information about the
+	  // section.  This is OK since we know we are single-threaded
+	  // here.
 
-	isi.set_section_name(relobj->section_name(shndx));
-	if (p->is_relaxed_input_section())
-	  {
-	    // We use current data size because relaxed section sizes may not
-	    // have finalized yet.
-	    isi.set_size(p->relaxed_input_section()->current_data_size());
-	    isi.set_addralign(p->relaxed_input_section()->addralign());
-	  }
-	else
-	  {
-	    isi.set_size(relobj->section_size(shndx));
-	    isi.set_addralign(relobj->section_addralign(shndx));
-	  }
-      }
+	  const Task* task = reinterpret_cast<const Task*>(-1);
+	  Task_lock_obj<Object> tl(task, relobj);
 
-      if (!this->match_file_name(relobj->name().c_str()))
+	  // Calling section_name and section_addralign is not very
+	  // efficient.
+
+	  if (p->is_relaxed_input_section())
+	    {
+	      // We use current data size because relaxed section sizes may not
+	      // have finalized yet.
+	      isi.set_size(p->relaxed_input_section()->current_data_size());
+	      isi.set_addralign(p->relaxed_input_section()->addralign());
+	    }
+	  else
+	    {
+	      isi.set_size(relobj->section_size(shndx));
+	      isi.set_addralign(relobj->section_addralign(shndx));
+	    }
+
+	  isi.set_section_name(relobj->section_name(shndx));
+	  isi.set_file_name(relobj->name());
+	}
+      else
+	{
+	  Output_section_data* posd = p->output_section_data();
+	  isi.set_size(posd->current_data_size());
+	  isi.set_addralign(posd->addralign());
+	  isi.set_section_name(posd->section_name());
+	  isi.set_file_name(posd->object_name());
+	}
+
+      if (!this->match_file_name(isi.file_name().c_str()))
 	++p;
       else if (this->input_section_patterns_.empty())
 	{
@@ -1705,17 +1718,17 @@ Output_section_element_input::set_section_addresses(
       const Input_section_pattern& isp(this->input_section_patterns_[i]);
       if (isp.sort != SORT_WILDCARD_NONE
 	  || this->filename_sort_ != SORT_WILDCARD_NONE)
-      {
-        if (isp.sort != SORT_WILDCARD_BY_READ)
-          std::stable_sort(matching_sections[i].begin(),
-                           matching_sections[i].end(),
-                           Input_section_sorter(this->filename_sort_,
-                                                isp.sort));
-        else
-          // Allow a target to sort input sections.
-          parameters->target().sort_input_sections(static_cast<int>(isp.sort),
-                                                   &matching_sections[i]);
-      }
+	{
+	  if (isp.sort != SORT_WILDCARD_BY_READ)
+	    std::stable_sort(matching_sections[i].begin(),
+			     matching_sections[i].end(),
+			     Input_section_sorter(this->filename_sort_,
+						  isp.sort));
+	  else
+	    // Allow a target to sort input sections.
+	    parameters->target().sort_input_sections(static_cast<int>(isp.sort),
+						     &matching_sections[i]);
+	}
 
       for (std::vector<Input_section_info>::const_iterator p =
 	     matching_sections[i].begin();
