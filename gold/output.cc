@@ -2479,6 +2479,14 @@ Output_section::add_input_section(Layout* layout,
   this->update_flags_for_input_section(sh_flags);
   this->set_entsize(entsize);
 
+  // Check if we need to change a NOBITS section to PROGBITS.
+  // This can happen when users link bss with non-bss input
+  // sections via a linker script.
+  // FIXME: Should we issue a warning?
+  if (this->type_ == elfcpp::SHT_NOBITS
+      && shdr.get_sh_type() == elfcpp::SHT_PROGBITS)
+    this->type_ = shdr.get_sh_type();
+
   // If this is a SHF_MERGE section, we pass all the input sections to
   // a Output_data_merge.  We don't try to handle relocations for such
   // a section.  We don't try to handle empty merge sections--they
