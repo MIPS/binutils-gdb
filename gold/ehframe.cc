@@ -1095,6 +1095,9 @@ Eh_frame::read_fde(Sized_relobj_file<size, big_endian>* object,
   if (symndx == -1U)
     return false;
 
+  // Check if there is a reloc for the address range field in the FDE.
+  bool has_reloc = relocs->equal_offset(pfde - pcontents + pc_size);
+
   // There can be another reloc in the FDE, if the CIE specifies an
   // LSDA (language specific data area).  We currently don't care.  We
   // will care later if we want to optimize the LSDA from an absolute
@@ -1118,9 +1121,10 @@ Eh_frame::read_fde(Sized_relobj_file<size, big_endian>* object,
 
   // Fetch the address range field from the FDE. The offset and size
   // of the field depends on the PC encoding given in the CIE, but
-  // it is always an absolute value. If the address range is 0, this
-  // FDE corresponds to a function that was discarded during optimization
-  // (too late to discard the corresponding FDE).
+  // it is always an absolute value. If the address range is 0 and there
+  // is no relocation for the address range, this FDE corresponds to a
+  // function that was discarded during optimization (too late to discard
+  // the corresponding FDE).
   uint64_t address_range = 0;
   switch (pc_size)
     {
@@ -1137,7 +1141,7 @@ Eh_frame::read_fde(Sized_relobj_file<size, big_endian>* object,
       gold_unreachable();
     }
 
-  if (is_discarded || address_range == 0)
+  if (is_discarded || (!has_reloc && address_range == 0))
     {
       // This FDE applies to a discarded function.  We
       // can discard this FDE.

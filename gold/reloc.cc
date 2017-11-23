@@ -1608,6 +1608,28 @@ Track_relocs<size, big_endian>::advance(off_t offset)
   return ret;
 }
 
+// Check if there is a reloc whose r_offset is equal to OFFSET.
+
+template<int size, bool big_endian>
+bool
+Track_relocs<size, big_endian>::equal_offset(off_t offset)
+{
+  section_size_type pos = this->pos_;
+  while (pos < this->len_)
+    {
+      // Rel and Rela start out the same, so we can always use Rel to
+      // find the r_offset value.
+      elfcpp::Rel<size, big_endian> rel(this->prelocs_ + pos);
+      off_t r_offset = static_cast<off_t>(rel.get_r_offset());
+      if (r_offset > offset)
+        return false;
+      else if (r_offset == offset)
+        return true;
+      pos += this->reloc_size_;
+    }
+  return false;
+}
+
 // Instantiate the templates we need.
 
 #ifdef HAVE_TARGET_32_LITTLE
