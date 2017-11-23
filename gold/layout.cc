@@ -1630,11 +1630,12 @@ Output_section*
 Layout::add_output_section_data(const char* name, elfcpp::Elf_Word type,
 				elfcpp::Elf_Xword flags,
 				Output_section_data* posd,
-				Output_section_order order, bool is_relro)
+				Output_section_order order, bool is_relro,
+				bool match_input_spec)
 {
   Output_section* os = this->choose_output_section(NULL, name, type, flags,
 						   false, order, is_relro,
-						   false, false);
+						   false, match_input_spec);
   if (os != NULL)
     os->add_output_section_data(posd);
   return os;
