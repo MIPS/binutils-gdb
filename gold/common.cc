@@ -290,7 +290,7 @@ Symbol_table::do_allocate_commons_list(
     {
       poc = new Output_data_space(addralign, ds_name);
       os = layout->add_output_section_data(name, elfcpp::SHT_NOBITS, flags,
-					   poc, ORDER_INVALID, false);
+					   poc, ORDER_INVALID, false, true);
     }
   else
     {
@@ -337,7 +337,13 @@ Symbol_table::do_allocate_commons_list(
       if (mapfile != NULL)
 	mapfile->report_allocate_common(sym, ssym->symsize());
 
-      if (poc != NULL)
+      // Check if output section is discarded by a linker script.
+      if (os == NULL)
+	{
+	  ssym->set_undefined();
+	  ssym->set_is_defined_in_discarded_section();
+	}
+      else if (poc != NULL)
 	{
 	  off = align_address(off, ssym->value());
 	  ssym->allocate_common(poc, off);
@@ -355,7 +361,7 @@ Symbol_table::do_allocate_commons_list(
 	}
     }
 
-  if (poc != NULL)
+  if (poc != NULL && os != NULL)
     poc->set_current_data_size(off);
 
   commons->clear();

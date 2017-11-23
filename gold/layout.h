@@ -701,7 +701,7 @@ class Layout
   add_output_section_data(const char* name, elfcpp::Elf_Word type,
 			  elfcpp::Elf_Xword flags,
 			  Output_section_data*, Output_section_order order,
-			  bool is_relro);
+			  bool is_relro, bool match_input_spec = false);
 
   // Increase the size of the relro segment by this much.
   void
