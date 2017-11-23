@@ -4154,6 +4154,18 @@ class Input_section_sorter
   operator()(const Input_section_info& isi1,
              const Input_section_info& isi2) const
   {
+    // Move Output_data_section to the last position.
+    bool isi1_ods = isi1.input_section().is_output_section_data();
+    bool isi2_ods = isi2.input_section().is_output_section_data();
+    if (isi1_ods || isi2_ods)
+      {
+        if (!isi1_ods)
+          return true;
+        if (!isi2_ods)
+          return false;
+        return isi1.section_name() < isi2.section_name();
+      }
+
     const Nanomips_relobj<size, big_endian>* isi1_relobj =
       Nanomips_relobj<size, big_endian>::as_nanomips_relobj(isi1.relobj());
     const Nanomips_relobj<size, big_endian>* isi2_relobj =

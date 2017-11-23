@@ -758,7 +758,8 @@ class Output_section_data : public Output_data
  public:
   Output_section_data(off_t data_size, uint64_t addralign,
 		      bool is_data_size_fixed)
-    : Output_data(), output_section_(NULL), addralign_(addralign)
+    : Output_data(), output_section_(NULL), section_name_(), object_name_(),
+      addralign_(addralign)
   {
     this->set_data_size(data_size);
     if (is_data_size_fixed)
@@ -766,7 +767,8 @@ class Output_section_data : public Output_data
   }
 
   Output_section_data(uint64_t addralign)
-    : Output_data(), output_section_(NULL), addralign_(addralign)
+    : Output_data(), output_section_(NULL), section_name_(), object_name_(),
+      addralign_(addralign)
   { }
 
   // Return the output section.
@@ -781,6 +783,29 @@ class Output_section_data : public Output_data
   // Record the output section.
   void
   set_output_section(Output_section* os);
+
+  // Set the name of the input section.
+  void
+  set_section_name(const std::string& name);
+
+  // Set the name of the first object file.
+  void
+  set_object_name(const std::string& name);
+
+  // Return the section name.
+  const std::string&
+  section_name() const
+  { return this->section_name_; }
+
+  // Return the object file name.
+  const std::string&
+  object_name() const
+  { return this->object_name_; }
+
+  // Return whether the name of the first object file is set.
+  bool
+  has_object_name() const
+  { return !this->object_name_.empty(); }
 
   // Add an input section, for SHF_MERGE sections.  This returns true
   // if the section was handled.
@@ -843,7 +868,7 @@ class Output_section_data : public Output_data
   // Print merge statistics.
   virtual void
   do_print_merge_stats(const char*)
-  { gold_unreachable(); }
+  { }
 
   // Return the required alignment.
   uint64_t
@@ -870,6 +895,11 @@ class Output_section_data : public Output_data
  private:
   // The output section for this section.
   Output_section* output_section_;
+  // Input section name.  This is used for script processing.
+  std::string section_name_;
+  // The object name of the first input section.  This is used for
+  // script processing.
+  std::string object_name_;
   // The required alignment.
   uint64_t addralign_;
 };
@@ -3719,10 +3749,9 @@ class Output_section : public Output_data
   {
    public:
     Input_section()
-      : shndx_(0), p2align_(0)
+      : shndx_(0), p2align_(0), data_size_(0), section_order_index_(0)
     {
-      this->u1_.data_size = 0;
-      this->u2_.object = NULL;
+      this->u1_.object = NULL;
     }
 
     // For an ordinary input section.
@@ -3730,57 +3759,37 @@ class Output_section : public Output_data
 		  uint64_t addralign)
       : shndx_(shndx),
 	p2align_(ffsll(static_cast<long long>(addralign))),
+	data_size_(data_size),
 	section_order_index_(0)
     {
       gold_assert(shndx != OUTPUT_SECTION_CODE
-		  && shndx != MERGE_DATA_SECTION_CODE
-		  && shndx != MERGE_STRING_SECTION_CODE
 		  && shndx != RELAXED_INPUT_SECTION_CODE);
-      this->u1_.data_size = data_size;
-      this->u2_.object = object;
+      this->u1_.object = object;
     }
 
-    // For a non-merge output section.
+    // For an output section data.
     Input_section(Output_section_data* posd)
-      : shndx_(OUTPUT_SECTION_CODE), p2align_(0),
+      : shndx_(OUTPUT_SECTION_CODE), p2align_(0), data_size_(0),
 	section_order_index_(0)
     {
-      this->u1_.data_size = 0;
-      this->u2_.posd = posd;
-    }
-
-    // For a merge section.
-    Input_section(Output_section_data* posd, bool is_string, uint64_t entsize)
-      : shndx_(is_string
-	       ? MERGE_STRING_SECTION_CODE
-	       : MERGE_DATA_SECTION_CODE),
-	p2align_(0),
-	section_order_index_(0)
-    {
-      this->u1_.entsize = entsize;
-      this->u2_.posd = posd;
+      this->u1_.posd = posd;
     }
 
     // For a relaxed input section.
     Input_section(Output_relaxed_input_section* psection)
-      : shndx_(RELAXED_INPUT_SECTION_CODE), p2align_(0),
+      : shndx_(RELAXED_INPUT_SECTION_CODE), p2align_(0), data_size_(0),
 	section_order_index_(0)
     {
-      this->u1_.data_size = 0;
-      this->u2_.poris = psection;
+      this->u1_.poris = psection;
     }
 
     unsigned int
     section_order_index() const
-    {
-      return this->section_order_index_;
-    }
+    { return this->section_order_index_; }
 
     void
     set_section_order_index(unsigned int number)
-    {
-      this->section_order_index_ = number;
-    }
+    { this->section_order_index_ = number; }
 
     // The required alignment.
     uint64_t
@@ -3789,7 +3798,7 @@ class Output_section : public Output_data
       if (this->p2align_ != 0)
 	return static_cast<uint64_t>(1) << (this->p2align_ - 1);
       else if (!this->is_input_section())
-	return this->u2_.posd->addralign();
+	return this->u1_.posd->addralign();
       else
 	return 0;
     }
@@ -3822,30 +3831,7 @@ class Output_section : public Output_data
     is_input_section() const
     {
       return (this->shndx_ != OUTPUT_SECTION_CODE
-	      && this->shndx_ != MERGE_DATA_SECTION_CODE
-	      && this->shndx_ != MERGE_STRING_SECTION_CODE
 	      && this->shndx_ != RELAXED_INPUT_SECTION_CODE);
-    }
-
-    // Return whether this is a merge section which matches the
-    // parameters.
-    bool
-    is_merge_section(bool is_string, uint64_t entsize,
-		     uint64_t addralign) const
-    {
-      return (this->shndx_ == (is_string
-			       ? MERGE_STRING_SECTION_CODE
-			       : MERGE_DATA_SECTION_CODE)
-	      && this->u1_.entsize == entsize
-	      && this->addralign() == addralign);
-    }
-
-    // Return whether this is a merge section for some input section.
-    bool
-    is_merge_section() const
-    {
-      return (this->shndx_ == MERGE_DATA_SECTION_CODE
-	      || this->shndx_ == MERGE_STRING_SECTION_CODE);
     }
 
     // Return whether this is a relaxed input section.
@@ -3856,9 +3842,7 @@ class Output_section : public Output_data
     // Return whether this is a generic Output_section_data.
     bool
     is_output_section_data() const
-    {
-      return this->shndx_ == OUTPUT_SECTION_CODE;
-    }
+    { return this->shndx_ == OUTPUT_SECTION_CODE; }
 
     // Return the object for an input section.
     Relobj*
@@ -3874,15 +3858,7 @@ class Output_section : public Output_data
     output_section_data() const
     {
       gold_assert(!this->is_input_section());
-      return this->u2_.posd;
-    }
-
-    // For a merge section, return the Output_merge_base pointer.
-    Output_merge_base*
-    output_merge_base() const
-    {
-      gold_assert(this->is_merge_section());
-      return this->u2_.pomb;
+      return this->u1_.posd;
     }
 
     // Return the Output_relaxed_input_section object.
@@ -3890,7 +3866,7 @@ class Output_section : public Output_data
     relaxed_input_section() const
     {
       gold_assert(this->is_relaxed_input_section());
-      return this->u2_.poris;
+      return this->u1_.poris;
     }
 
     // Set the output section.
@@ -3899,7 +3875,7 @@ class Output_section : public Output_data
     {
       gold_assert(!this->is_input_section());
       Output_section_data* posd =
-	this->is_relaxed_input_section() ? this->u2_.poris : this->u2_.posd;
+	this->is_relaxed_input_section() ? this->u1_.poris : this->u1_.posd;
       posd->set_output_section(os);
     }
 
@@ -3917,15 +3893,6 @@ class Output_section : public Output_data
     // Finalize the data size.
     void
     finalize_data_size();
-
-    // Add an input section, for SHF_MERGE sections.
-    bool
-    add_input_section(Relobj* object, unsigned int shndx)
-    {
-      gold_assert(this->shndx_ == MERGE_DATA_SECTION_CODE
-		  || this->shndx_ == MERGE_STRING_SECTION_CODE);
-      return this->u2_.posd->add_input_section(object, shndx);
-    }
 
     // Given an input OBJECT, an input section index SHNDX within that
     // object, and an OFFSET relative to the start of that input
@@ -3956,9 +3923,8 @@ class Output_section : public Output_data
     void
     print_merge_stats(const char* section_name)
     {
-      if (this->shndx_ == MERGE_DATA_SECTION_CODE
-	  || this->shndx_ == MERGE_STRING_SECTION_CODE)
-	this->u2_.posd->print_merge_stats(section_name);
+      if (this->shndx_ == OUTPUT_SECTION_CODE)
+	this->u1_.posd->print_merge_stats(section_name);
     }
 
    private:
@@ -3968,44 +3934,27 @@ class Output_section : public Output_data
     {
       // An Output_section_data.
       OUTPUT_SECTION_CODE = -1U,
-      // An Output_section_data for an SHF_MERGE section with
-      // SHF_STRINGS not set.
-      MERGE_DATA_SECTION_CODE = -2U,
-      // An Output_section_data for an SHF_MERGE section with
-      // SHF_STRINGS set.
-      MERGE_STRING_SECTION_CODE = -3U,
       // An Output_section_data for a relaxed input section.
-      RELAXED_INPUT_SECTION_CODE = -4U
+      RELAXED_INPUT_SECTION_CODE = -2U
     };
 
     // For an ordinary input section, this is the section index in the
-    // input file.  For an Output_section_data, this is
-    // OUTPUT_SECTION_CODE or MERGE_DATA_SECTION_CODE or
-    // MERGE_STRING_SECTION_CODE.
+    // input file.  For an Output_section_data, this is OUTPUT_SECTION_CODE.
     unsigned int shndx_;
     // The required alignment, stored as a power of 2.
     unsigned int p2align_;
-    union
-    {
-      // For an ordinary input section, the section size.
-      off_t data_size;
-      // For OUTPUT_SECTION_CODE or RELAXED_INPUT_SECTION_CODE, this is not
-      // used.  For MERGE_DATA_SECTION_CODE or MERGE_STRING_SECTION_CODE, the
-      // entity size.
-      uint64_t entsize;
-    } u1_;
+    // For an ordinary input section, the section size.
+    off_t data_size_;
     union
     {
       // For an ordinary input section, the object which holds the
       // input section.
       Relobj* object;
-      // For OUTPUT_SECTION_CODE or MERGE_DATA_SECTION_CODE or
-      // MERGE_STRING_SECTION_CODE, the data.
+      // For OUTPUT_SECTION_CODE, the data.
       Output_section_data* posd;
-      Output_merge_base* pomb;
       // For RELAXED_INPUT_SECTION_CODE, the data.
       Output_relaxed_input_section* poris;
-    } u2_;
+    } u1_;
     // The line number of the pattern it matches in the --section-ordering-file
     // file.  It is 0 if does not match any pattern.
     unsigned int section_order_index_;
@@ -4454,12 +4403,8 @@ class Output_section : public Output_data
 			  bool keeps_input_sections);
 
   // Add an output SHF_MERGE section POSD to this output section.
-  // IS_STRING indicates whether it is a SHF_STRINGS section, and
-  // ENTSIZE is the entity size.  This returns the entry added to
-  // input_sections_.
   void
-  add_output_merge_section(Output_section_data* posd, bool is_string,
-			   uint64_t entsize);
+  add_output_merge_section(Output_section_data* posd);
 
   // Find the merge section into which an input section with index SHNDX in
   // OBJECT has been added.  Return NULL if none found.
@@ -4631,7 +4576,7 @@ class Input_section_info
 {
  public:
   Input_section_info(const Output_section::Input_section& input_section)
-    : input_section_(input_section), section_name_(),
+    : input_section_(input_section), section_name_(), file_name_(),
       size_(0), addralign_(1)
   { }
 
@@ -4657,13 +4602,23 @@ class Input_section_info
 
   // Set the section name.
   void
-  set_section_name(const std::string name)
+  set_section_name(const std::string& name)
   {
     if (is_compressed_debug_section(name.c_str()))
       this->section_name_ = corresponding_uncompressed_section_name(name);
     else
       this->section_name_ = name;
   }
+
+  // Return the object file name.
+  const std::string&
+  file_name() const
+  { return this->file_name_; }
+
+  // Set the object file name.
+  void
+  set_file_name(const std::string& name)
+  { this->file_name_ = name; }
 
   // Return the section size.
   uint64_t
@@ -4690,6 +4645,8 @@ class Input_section_info
   Output_section::Input_section input_section_;
   // Name of the section.
   std::string section_name_;
+  // Name of the object file.
+  std::string file_name_;
   // Section size.
   uint64_t size_;
   // Address alignment.

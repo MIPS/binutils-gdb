@@ -175,8 +175,7 @@ class Output_merge_base : public Output_section_data
  public:
   Output_merge_base(uint64_t entsize, uint64_t addralign)
     : Output_section_data(addralign), entsize_(entsize),
-      keeps_input_sections_(false), first_relobj_(NULL), first_shndx_(-1),
-      input_sections_()
+      keeps_input_sections_(false), input_sections_()
   { }
 
   // Return the entry size.
@@ -201,22 +200,6 @@ class Output_merge_base : public Output_section_data
   set_keeps_input_sections()
   { this->do_set_keeps_input_sections(); }
 
-  // Return the object of the first merged input section.  This used
-  // for script processing.  This is NULL if merge section is empty.
-  Relobj*
-  first_relobj() const
-  { return this->first_relobj_; }
-
-  // Return the section index of the first merged input section.  This
-  // is used for script processing.  This is valid only if merge section
-  // is not valid.
-  unsigned int
-  first_shndx() const
-  { 
-    gold_assert(this->first_relobj_ != NULL);
-    return this->first_shndx_;
-  }
- 
   // Set of merged input sections.
   typedef Unordered_set<Section_id, Section_id_hash> Input_sections;
 
@@ -263,11 +246,6 @@ class Output_merge_base : public Output_section_data
   uint64_t entsize_;
   // Whether we keep input sections.
   bool keeps_input_sections_;
-  // Object of the first merged input section.  We use this for script
-  // processing.
-  Relobj* first_relobj_;
-  // Section index of the first merged input section. 
-  unsigned int first_shndx_;
   // Input sections.  We only keep them is keeps_input_sections_ is true.
   Input_sections input_sections_;
 };
