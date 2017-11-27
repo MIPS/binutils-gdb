@@ -452,30 +452,32 @@ gcc(1), ld(1), and the Info entries for @file{binutils} and @file{ld}.
 @ifset NANOMIPS
 
 @emph{Target nanoMIPS options:}
-   [@b{-nocpp}] [@b{-EL}] [@b{-EB}] [@b{-O}[@var{optimization level}]]
+   [@b{-EL}] [@b{-EB}]
    [@b{-g}[@var{debug level}]] [@b{-G} @var{num}]
-   [@b{-m32}] [@b{-m64}]
    [@b{-march}=@var{CPU}] [@b{-mtune}=@var{CPU}]
+   [@b{-m32}] [@b{-m64}]
+   [@b{-mcmodel=@var{MODEL}}]
    [@b{-mpic}] [@b{-mno-pic}]
    [@b{-mPIC}] [@b{-mno-PIC}]
-   [@b{-mpcrel}] [@b{-mcmodel=@var{MODEL}}]
-   [@b{-construct-floats}] [@b{-no-construct-floats}]
-   [@b{-trap}] [@b{-no-break}] [@b{-break}] [@b{-no-trap}]
-   [@b{-mhard-float}] [@b{-msoft-float}]
-   [@b{-msingle-float}] [@b{-mdouble-float}]
+   [@b{-mpid}] [@b{-mno-pid}]
+   [@b{-mpcrel}] [@b{-mno-pcrel}]
+   [@b{-minsn32}] [@b{-mno-insn32}]
    [@b{-mdsp}] [@b{-mno-dsp}]
    [@b{-mdspr3}] [@b{-mno-dspr3}]
-   [@b{-mmsa}] [@b{-mno-msa}]
-   [@b{-mxpa}] [@b{-mno-xpa}]
-   [@b{-mmt}] [@b{-mno-mt}]
-   [@b{-mmcu}] [@b{-mno-mcu}]
-   [@b{-mvirt}] [@b{-mno-virt}]
-   [@b{-mtlb}] [@b{-mno-tlb}]
+   [@b{-meva}] [@b{-mno-eva}]
    [@b{-mginv}] [@b{-mno-ginv}]
-   [@b{-minsn32}] [@b{-mno-insn32}]
+   [@b{-mmcu}] [@b{-mno-mcu}]
+   [@b{-mmt}] [@b{-mno-mt}]
+   [@b{-mtlb}] [@b{-mno-tlb}]
+   [@b{-mvirt}] [@b{-mno-virt}]
+   [@b{-mxpa}] [@b{-mno-xpa}]
+   [@b{-mhard-float}] [@b{-msoft-float}]
+   [@b{-msingle-float}] [@b{-mdouble-float}]
+   [@b{-construct-floats}] [@b{-no-construct-floats}]
    [@b{-mbalc-stubs}] [@b{-mno-balc-stubs}]
    [@b{-mlegacyregs}] [@b{-mno-legacyregs}]
    [@b{--linkrelax}]
+   [@b{-trap}] [@b{-no-break}] [@b{-break}] [@b{-no-trap}]
 @end ifset
 @ifset NIOSII
 
@@ -1708,8 +1710,7 @@ a nanoMIPS processor.
 @table @gcctabopt
 @item -G @var{num}
 This option sets the largest size of an object that can be referenced
-implicitly with the @code{gp} register.  It is only accepted for targets that
-use ECOFF format, such as a DECstation running Ultrix.  The default value is 8.
+implicitly with the @code{gp} register.  The default value is 8.
 
 @cindex nanoMIPS endianness
 @cindex endianness, nanoMIPS
@@ -1730,9 +1731,56 @@ recognized: @code{m7000}, @code{i7200}.
 @item -mtune=@var{cpu}
 Schedule and tune for a particular nanoMIPS CPU.
 
-@item -mpdr
-@itemx -mno-pdr
-Control generation of @code{.pdr} sections.
+@item -m32
+@itemx -32
+Generate code for the P32 ABI.
+
+@item -m64
+@itemx -64
+Generate code for the P64 ABI.
+
+@item -mcmodel=@var{mmodel}
+Generate code for a particular C Memory Model. The following memory models
+are supported: @code{auto}, @code{medium}, @code{large}
+
+@item -mpic
+@itemx -mno-pic
+Generate medium model SVR4-style PIC.  This option tells the assembler
+to generate SVR4-style position-independent macro expansions.  It also
+tells the assembler to mark the output file as PIC.
+@samp{-mno-pic} turns off this option.
+
+@item -mPIC
+@itemx -mno-PIC
+Generate large model SVR4-style PIC.  This option tells the assembler
+to generate SVR4-style position-independent macro expansions.  It also
+tells the assembler to mark the output file as PIC.
+@samp{-mno-PIC} turns off this option.
+
+@item -mpid
+@itemx -mno-pid
+Generate position independent data.  This option tells the assembler to
+generate data sections that can be repositioned independent of code placement.
+It also tells the assembler to mark the output file as PID.
+@samp{-mno-pid} turns off this option.
+
+@item -mpcrel
+@itemx -mno-pcrel
+Generate PC-relative expansions.  This option tells the assembler to
+avoid the use of absolute addresses for symbols even when those
+addresses may be known at link time.  It also tells the assembler to
+mark the output file as purely PC-relative.
+@samp{-mno-pcrel} turns off this option.
+
+@item -minsn32
+@itemx -mno-insn32
+Only use 32-bit instruction encodings when generating code for the
+nanoMIPS processor.  This option inhibits the use of any 16-bit
+instructions.  This is equivalent to putting @code{.set insn32} at
+the start of the assembly file.  @samp{-mno-insn32} turns off this
+option.  This is equivalent to putting @code{.set noinsn32} at the
+start of the assembly file.  By default @samp{-mno-insn32} is
+selected, allowing all instructions to be used.
 
 @item -mdsp
 @itemx -mno-dsp
@@ -1749,29 +1797,11 @@ Generate code for the DSP Release 3 Application Specific Extension.
 This tells the assembler to accept DSP Release 3 instructions.
 @samp{-mno-dspr3} turns off this option.
 
-@item -mxpa
-@itemx -mno-xpa
-Generate code for the nanoMIPS eXtended Physical Address (XPA) Extension.
-This tells the assembler to accept XPA instructions.
-@samp{-mno-xpa} turns off this option.
-
-@item -mmt
-@itemx -mno-mt
-Generate code for the MT Application Specific Extension.
-This tells the assembler to accept MT instructions.
-@samp{-mno-mt} turns off this option.
-
-@item -mmcu
-@itemx -mno-mcu
-Generate code for the MCU Application Specific Extension.
-This tells the assembler to accept MCU instructions.
-@samp{-mno-mcu} turns off this option.
-
-@item -mvirt
-@itemx -mno-virt
-Generate code for the Virtualization Application Specific Extension.
-This tells the assembler to accept virtualization instructions.
-@samp{-mno-virt} turns off this option.
+@item -meva
+@itemx -mno-eva
+Generate code for the Enhanced Virtual Addressing Application Specific
+Extension. This tells the assembler to accept EVA instructions.
+@samp{-mno-eva} turns off this option.
 
 @item -mginv
 @itemx -mno-ginv
@@ -1779,21 +1809,48 @@ Generate code for the Global cache INValidate Application Specific Extension.
 This tells the assembler to accept GINV instructions.
 @samp{-mno-ginv} turns off this option.
 
+@item -mmcu
+@itemx -mno-mcu
+Generate code for the MCU Application Specific Extension.
+This tells the assembler to accept MCU instructions.
+@samp{-mno-mcu} turns off this option.
+
+@item -mmt
+@itemx -mno-mt
+Generate code for the MT Application Specific Extension.
+This tells the assembler to accept MT instructions.
+@samp{-mno-mt} turns off this option.
+
 @item -mtlb
 @itemx -mno-tlb
 Generate code for the Translation Lookaside Buffer control extension.
 This tells the assembler to accept TLB control instructions.
 @samp{-mno-tlb} turns off this option.
 
-@item -minsn32
-@itemx -mno-insn32
-Only use 32-bit instruction encodings when generating code for the
-nanoMIPS processor.  This option inhibits the use of any 16-bit
-instructions.  This is equivalent to putting @code{.set insn32} at
-the start of the assembly file.  @samp{-mno-insn32} turns off this
-option.  This is equivalent to putting @code{.set noinsn32} at the
-start of the assembly file.  By default @samp{-mno-insn32} is
-selected, allowing all instructions to be used.
+@item -mvirt
+@itemx -mno-virt
+Generate code for the Virtualization Application Specific Extension.
+This tells the assembler to accept virtualization instructions.
+@samp{-mno-virt} turns off this option.
+
+@item -mxpa
+@itemx -mno-xpa
+Generate code for the nanoMIPS eXtended Physical Address (XPA) Extension.
+This tells the assembler to accept XPA instructions.
+@samp{-mno-xpa} turns off this option.
+
+@item -msoft-float
+@itemx -mhard-float
+Disable or enable floating-point instructions.  Note that by default
+floating-point instructions are always allowed even with CPU targets
+that don't have support for these instructions.
+
+@item -msingle-float
+@itemx -mdouble-float
+Disable or enable double-precision floating-point operations.  Note
+that by default double-precision floating-point operations are always
+allowed even with CPU targets that don't have support for these
+operations.
 
 @item --construct-floats
 @itemx --no-construct-floats
@@ -1803,9 +1860,21 @@ value into the two single width floating point registers that make up
 the double width register.  By default @samp{--construct-floats} is
 selected, allowing construction of these floating point constants.
 
-@item -nocpp
-@command{@value{AS}} ignores this option.  It is accepted for compatibility with
-the native tools.
+@item -mbalc-stubs
+@itemx -mno-balc-stubs
+Control the BALC stub optimization. The @samp{-mbalc-stubs} option aggregates
+multiple out-of-range 16-bit branch-and-link instructions to use a
+non-conditional branch-stub with 32-bit range. This gives better code
+compression, but can have a negative effect on performance. By default, 
+@samp{-mno-balc-stubs} is selected, disabling this optimization.
+
+@item -mlegacyregs
+@itemx -mno-legacyregs
+Allow the use of legacy MIPS style numeric register formats in assembly. This
+option is disabled by default.
+
+@item --linkrelax
+Enable support for link-time relaxations.
 
 @item --trap
 @itemx --no-trap
@@ -1820,25 +1889,6 @@ break exception.
 @item -n
 When this option is used, @command{@value{AS}} will issue a warning every
 time it generates a nop instruction from a macro.
-
-@item -mbalc-stubs
-@itemx -mno-balc-stubs
-Control the BALC stub optimization. The @samp{-mbalc-stubs} option aggregates
-multiple out-of-range 16-bit branch-and-link instructions to use a
-non-conditional branch-stub with 32-bit range. This gives better code
-compression, but can have a negative effect on performance. By default, 
-@samp{-mno-balc-stubs} is selected, disabling this optimization.
-
-@item -mlegacyregs
-Allow the use of legacy MIPS style numeric register formats in assembly.
-
-@item --relax-branch
-The @samp{--relax-branch} option enables the relaxation of out-of-range
-branches.  By default @samp{--no-relax-branch} is selected, causing any
-out-of-range branches to produce an error.
-
-@item --linkrelax
-Enable support for link-time relaxations.
 
 @end table
 @end ifset

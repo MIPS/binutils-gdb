@@ -859,10 +859,7 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "attr-gnu-abi-msa-1" "" nanomips32r6
     run_dump_test_arch "attr-gnu-abi-msa64-1" "-m64" nanomips64r6
 
-    run_dump_test_arch "org-1" "" nanomips32r6
-    run_dump_test_arch "org-7" "" nanomips32r6
     run_dump_test_arch "org-9" "" nanomips32r6
-    run_dump_test_arch "org-10" "" nanomips32r6
     run_dump_test_arch "org-12" "" nanomips32r6
 
     # FIXME: repeat with traps, insn32, noinsn32

@@ -206,8 +206,6 @@ struct nanomips_set_options
   /* nanoMIPS architecture (CPU) type.  Changed by .set arch=FOO, the -march
      command line option, and the default CPU.  */
   int arch;
-  /* True if ".set sym32" is in effect.  */
-  bfd_boolean sym32;
   /* True if floating-point operations are not allowed.  Changed by .set
      softfloat or .set hardfloat, by command line options -msoft-float or
      -mhard-float.  The default is false.  */
@@ -253,10 +251,10 @@ static bfd_boolean file_nanomips_opts_checked = FALSE;
 static struct nanomips_set_options file_nanomips_opts = {
   /* isa */ ISA_UNKNOWN, /* ase */ 0, /* noreorder */ 0, /* at */ ATREG,
   /* nomacro */ 0, /* insn32 */ FALSE, /* gp */ -1, /* fp */ -1,
-  /* arch */ CPU_UNKNOWN, /* sym32 */ FALSE, /* soft_float */ FALSE,
-  /* single_float */ FALSE, /* init_ase */ 0, /* no_balc_stubs */ TRUE,
-  /* legacyregs */ FALSE,/* pcrel */ FALSE, /* pid */ FALSE,
-  /* pic */ NO_PIC, /* mc_model */ MC_AUTO,
+  /* arch */ CPU_UNKNOWN,  /* soft_float */ FALSE, /* single_float */ FALSE,
+  /* init_ase */ 0, /* no_balc_stubs */ TRUE, /* legacyregs */ FALSE,
+  /* pcrel */ FALSE, /* pid */ FALSE, /* pic */ NO_PIC,
+  /* mc_model */ MC_AUTO,
 };
 
 /* This is similar to file_nanomips_opts, but for the current set of options.  */
@@ -264,10 +262,10 @@ static struct nanomips_set_options file_nanomips_opts = {
 static struct nanomips_set_options nanomips_opts = {
   /* isa */ ISA_UNKNOWN, /* ase */ 0, /* noreorder */ 0, /* at */ ATREG,
   /* nomacro */ 0, /* insn32 */ FALSE, /* gp */ -1, /* fp */ -1,
-  /* arch */ CPU_UNKNOWN, /* sym32 */ FALSE, /* soft_float */ FALSE,
-  /* single_float */ FALSE, /* init_ase */ 0, /* no_balc_stubs */ TRUE,
-  /* legacyregs */ FALSE, /* pcrel */ FALSE, /* pid */ FALSE,
-  /* pic */ NO_PIC, /* mc_model */ MC_AUTO
+  /* arch */ CPU_UNKNOWN, /* soft_float */ FALSE, /* single_float */ FALSE,
+  /* init_ase */ 0, /* no_balc_stubs */ TRUE, /* legacyregs */ FALSE,
+  /* pcrel */ FALSE, /* pid */ FALSE, /* pic */ NO_PIC,
+  /* mc_model */ MC_AUTO
 };
 
 /* Which bits of file_ase were explicitly set or cleared by ASE options.  */
@@ -308,7 +306,7 @@ static int nanomips_32bitmode = 0;
 /* The size of symbolic constants (i.e., expressions of the form
    "SYMBOL" or "SYMBOL + OFFSET").  */
 #define HAVE_32BIT_SYMBOLS \
-  (HAVE_32BIT_ADDRESSES || !HAVE_64BIT_OBJECTS || nanomips_opts.sym32)
+  (HAVE_32BIT_ADDRESSES || !HAVE_64BIT_OBJECTS)
 #define HAVE_64BIT_SYMBOLS (!HAVE_32BIT_SYMBOLS)
 
 /* Maximum symbol offset that can be encoded in a BFD_RELOC_GPREL16
@@ -451,15 +449,6 @@ static int auto_align = 1;
 
 static int nanomips_gp_register = GP;
 
-/* To output NOP instructions correctly, we need to keep information
-   about the previous two instructions.  */
-
-/* Whether we are optimizing.  The default value of 2 means to remove
-   unneeded NOPs and swap branch instructions when possible.  A value
-   of 1 means to not swap branches.  A value of 0 means to always
-   insert NOPs.  */
-static int nanomips_optimize = 2;
-
 /* Debugging level.  -g sets this to 2.  -gN sets this to N.  -g0 is
    equivalent to seeing no -g option at all.  */
 static int nanomips_debug = 0;
@@ -511,12 +500,6 @@ static const unsigned int nanomips_to_32_reg_d_map[] = {
   16, 17, 18, 19, 4, 5, 6, 7
 };
 
-/* We don't relax branches by default, since this causes us to expand
-   `la .l2 - .l1' if there's a branch between .l1 and .l2, because we
-   fail to compute the offset before expanding the macro to the most
-   efficient expansion.  */
-
-static int nanomips_relax_branch;
 
 /* The expansion of many macros depends on the type of symbol that
    they refer to.  For example, when generating position-dependent code,
@@ -825,12 +808,8 @@ enum options
   OPTION_EL,
   OPTION_CONSTRUCT_FLOATS,
   OPTION_NO_CONSTRUCT_FLOATS,
-  OPTION_RELAX_BRANCH,
-  OPTION_NO_RELAX_BRANCH,
   OPTION_INSN32,
   OPTION_NO_INSN32,
-  OPTION_MSYM32,
-  OPTION_MNO_SYM32,
   OPTION_SOFT_FLOAT,
   OPTION_HARD_FLOAT,
   OPTION_SINGLE_FLOAT,
@@ -873,8 +852,6 @@ struct option md_longopts[] = {
   {"mno-mcu", no_argument, NULL, OPTION_NO_MCU},
   {"mmt", no_argument, NULL, OPTION_MT},
   {"mno-mt", no_argument, NULL, OPTION_NO_MT},
-  {"mmsa", no_argument, NULL, OPTION_MSA},
-  {"mno-msa", no_argument, NULL, OPTION_NO_MSA},
   {"mtlb", no_argument, NULL, OPTION_TLB},
   {"mno-tlb", no_argument, NULL, OPTION_NO_TLB},
   {"mvirt", no_argument, NULL, OPTION_VIRT},
@@ -885,40 +862,36 @@ struct option md_longopts[] = {
   /* Miscellaneous options.  */
   {"32", no_argument, NULL, OPTION_32},
   {"64", no_argument, NULL, OPTION_64},
-  {"break", no_argument, NULL, OPTION_BREAK},
-  {"no-break", no_argument, NULL, OPTION_TRAP},
-  {"construct-floats", no_argument, NULL, OPTION_CONSTRUCT_FLOATS},
-  {"no-construct-floats", no_argument, NULL, OPTION_NO_CONSTRUCT_FLOATS},
-  {"EB", no_argument, NULL, OPTION_EB},
-  {"EL", no_argument, NULL, OPTION_EL},
-  {"linkrelax", no_argument, NULL, OPTION_LINKRELAX},
-  {"trap", no_argument, NULL, OPTION_TRAP},
-  {"no-trap", no_argument, NULL, OPTION_BREAK},
-  {"relax-branch", no_argument, NULL, OPTION_RELAX_BRANCH},
-  {"no-relax-branch", no_argument, NULL, OPTION_NO_RELAX_BRANCH},
   {"m32", no_argument, NULL, OPTION_M32},
   {"m64", no_argument, NULL, OPTION_M64},
-  {"mbalc-stubs", no_argument, NULL, OPTION_BALC_STUBS},
-  {"mno-balc-stubs", no_argument, NULL, OPTION_NO_BALC_STUBS},
+  {"EB", no_argument, NULL, OPTION_EB},
+  {"EL", no_argument, NULL, OPTION_EL},
   {"mcmodel", required_argument, NULL, OPTION_MCMODEL},
-  {"mdouble-float", no_argument, NULL, OPTION_DOUBLE_FLOAT},
-  {"mhard-float", no_argument, NULL, OPTION_HARD_FLOAT},
-  {"minsn32", no_argument, NULL, OPTION_INSN32},
-  {"mno-insn32", no_argument, NULL, OPTION_NO_INSN32},
-  {"mlegacyregs", no_argument, NULL, OPTION_LEGACY_REGS},
-  {"mno-legacyregs", no_argument, NULL, OPTION_NO_LEGACY_REGS},
-  {"mpcrel", no_argument, NULL, OPTION_PCREL},
-  {"mno-pcrel", no_argument, NULL, OPTION_NO_PCREL},
-  {"mpid", no_argument, NULL, OPTION_PID},
-  {"mno-pid", no_argument, NULL, OPTION_NO_PID},
   {"mpic", no_argument, NULL, OPTION_PIC},
   {"mno-pic", no_argument, NULL, OPTION_NOPIC},
   {"mPIC", no_argument, NULL, OPTION_LARGE_PIC},
   {"mno-PIC", no_argument, NULL, OPTION_NOPIC},
+  {"mpid", no_argument, NULL, OPTION_PID},
+  {"mno-pid", no_argument, NULL, OPTION_NO_PID},
+  {"mpcrel", no_argument, NULL, OPTION_PCREL},
+  {"mno-pcrel", no_argument, NULL, OPTION_NO_PCREL},
+  {"minsn32", no_argument, NULL, OPTION_INSN32},
+  {"mno-insn32", no_argument, NULL, OPTION_NO_INSN32},
+  {"mdouble-float", no_argument, NULL, OPTION_DOUBLE_FLOAT},
+  {"mhard-float", no_argument, NULL, OPTION_HARD_FLOAT},
   {"msingle-float", no_argument, NULL, OPTION_SINGLE_FLOAT},
   {"msoft-float", no_argument, NULL, OPTION_SOFT_FLOAT},
-  {"msym32", no_argument, NULL, OPTION_MSYM32},
-  {"mno-sym32", no_argument, NULL, OPTION_MNO_SYM32},
+  {"construct-floats", no_argument, NULL, OPTION_CONSTRUCT_FLOATS},
+  {"no-construct-floats", no_argument, NULL, OPTION_NO_CONSTRUCT_FLOATS},
+  {"mbalc-stubs", no_argument, NULL, OPTION_BALC_STUBS},
+  {"mno-balc-stubs", no_argument, NULL, OPTION_NO_BALC_STUBS},
+  {"mlegacyregs", no_argument, NULL, OPTION_LEGACY_REGS},
+  {"mno-legacyregs", no_argument, NULL, OPTION_NO_LEGACY_REGS},
+  {"linkrelax", no_argument, NULL, OPTION_LINKRELAX},
+  {"break", no_argument, NULL, OPTION_BREAK},
+  {"no-break", no_argument, NULL, OPTION_TRAP},
+  {"trap", no_argument, NULL, OPTION_TRAP},
+  {"no-trap", no_argument, NULL, OPTION_BREAK},
 
   {NULL, no_argument, NULL, 0}
 };
@@ -9037,17 +9010,6 @@ md_parse_option (int c, const char *arg)
       target_big_endian = 0;
       break;
 
-    case 'O':
-      if (arg == NULL)
-	nanomips_optimize = 1;
-      else if (arg[0] == '0')
-	nanomips_optimize = 0;
-      else if (arg[0] == '1')
-	nanomips_optimize = 1;
-      else
-	nanomips_optimize = 2;
-      break;
-
     case 'g':
       if (arg == NULL)
 	nanomips_debug = 2;
@@ -9067,28 +9029,12 @@ md_parse_option (int c, const char *arg)
     case OPTION_NO_MIPS16:
       break;
 
-    case OPTION_RELAX_BRANCH:
-      nanomips_relax_branch = 1;
-      break;
-
-    case OPTION_NO_RELAX_BRANCH:
-      nanomips_relax_branch = 0;
-      break;
-
     case OPTION_INSN32:
       file_nanomips_opts.insn32 = TRUE;
       break;
 
     case OPTION_NO_INSN32:
       file_nanomips_opts.insn32 = FALSE;
-      break;
-
-    case OPTION_MSYM32:
-      file_nanomips_opts.sym32 = TRUE;
-      break;
-
-    case OPTION_MNO_SYM32:
-      file_nanomips_opts.sym32 = FALSE;
       break;
 
     case OPTION_PIC:
@@ -10114,10 +10060,6 @@ parse_code_option (char *name)
     nanomips_opts.insn32 = TRUE;
   else if (strcmp (name, "noinsn32") == 0)
     nanomips_opts.insn32 = FALSE;
-  else if (strcmp (name, "sym32") == 0)
-    nanomips_opts.sym32 = TRUE;
-  else if (strcmp (name, "nosym32") == 0)
-    nanomips_opts.sym32 = FALSE;
   else if (strncmp (name, "mcmodel=", 8) == 0)
     {
       if (strcmp (name + 8, "auto") == 0)
@@ -11798,10 +11740,6 @@ s_nanomips_ent (int aent)
   demand_empty_rest_of_line ();
 }
 
-/* s_nanomips_frame is used so we can set the PDR information correctly
-   We can't use the ecoff routines because they make reference to the ecoff
-   symbol table (in the mdebug section).  */
-
 static void
 s_nanomips_frame (int ignore ATTRIBUTE_UNUSED)
 {
@@ -11837,11 +11775,7 @@ s_nanomips_frame (int ignore ATTRIBUTE_UNUSED)
     }
 }
 
-/* The .fmask and .mask directives. If the mdebug section is present
-   (IRIX 5 native) then ecoff.c (ecoff_directive_mask) is used. For
-   embedded targets, s_nanomips_mask is used so that we can set the PDR
-   information correctly. We can't use the ecoff routines because they
-   make reference to the ecoff symbol table (in the mdebug section).  */
+/* The .fmask and .mask directives.   */
 
 static void
 s_nanomips_mask (int reg_type)
@@ -11895,7 +11829,7 @@ static const struct nanomips_cpu_info nanomips_cpu_info_table[] = {
   { "32r6s",	TRUE, 0,		ISA_NANOMIPS32R6, CPU_NANOMIPS32R6 },
   { "64r6",	TRUE, ASE_xNMS | ASE_TLB, ISA_NANOMIPS64R6, CPU_NANOMIPS64R6 },
 
-  /* 6001 family */
+  /* 7000 family */
   { "i7200",	FALSE, ASE_xNMS | ASE_TLB, ISA_NANOMIPS32R6, CPU_NANOMIPS32R6 },
   { "m7000",	FALSE, 0,		ISA_NANOMIPS32R6, CPU_NANOMIPS32R6 },
 
@@ -12071,6 +12005,25 @@ nanoMIPS options:\n\
     show (stream, nanomips_cpu_info_table[i].name, &column, &first);
   show (stream, "from-abi", &column, &first);
   fputc ('\n', stream);
+  fprintf (stream, _("\
+-m32			create p32 ABI object file (default)\n\
+-m64			create p64 ABI object file\n"));
+  fprintf (stream, _("\
+-mcmodel=MMODEL		Generate code for a specific memory model,\n\
+			where MMODEL is one of: auto, medium, large\n\
+-m[no-]pic		[dis]allow Position Independent Code generation\n\
+-m[no-]PIC		[dis]allow large model Position Independent Code generation\n\
+-m[no-]pid		[dis]allow Position Independent Data access\n\
+-m[no-]pcrel		[dis]allow PC-relative address calculations\n"));
+
+  fprintf (stream, _("\
+-minsn32		only generate 32-bit microMIPS instructions\n\
+-mno-insn32		generate all microMIPS instructions\n\
+-mhard-float		allow floating-point instructions\n\
+-msoft-float		do not allow floating-point instructions\n\
+-msingle-float		only allow 32-bit floating-point operations\n\
+-mdouble-float		allow 32-bit and 64-bit floating-point operations\n\
+--[no-]construct-floats	[dis]allow floating point values to be constructed\n"));
 
   fprintf (stream, _("\
 -mdsp			generate DSP R3 instructions\n\
@@ -12079,53 +12032,34 @@ nanoMIPS options:\n\
 -mdspr3			generate DSP R3 instructions\n\
 -mno-dspr3		do not generate DSP R3 instructions\n"));
   fprintf (stream, _("\
--mmt			generate MT instructions\n\
--mno-mt			do not generate MT instructions\n"));
-  fprintf (stream, _("\
--mmcu			generate MCU instructions\n\
--mno-mcu		do not generate MCU instructions\n"));
-  fprintf (stream, _("\
--mmsa			generate MSA instructions\n\
--mno-msa		do not generate MSA instructions\n"));
-  fprintf (stream, _("\
--mxpa			generate eXtended Physical Address (XPA) instructions\n\
--mno-xpa		do not generate eXtended Physical Address (XPA) instructions\n"));
-  fprintf (stream, _("\
--mvirt			generate Virtualization instructions\n\
--mno-virt		do not generate Virtualization instructions\n"));
+-meva			generate Enhanced Virtual Addressing (EVA) instructions\n\
+-mno-eva		do not generate EVA instructions\n"));
   fprintf (stream, _("\
 -mginv			generate Global INValidate (GINV) instructions\n\
 -mno-ginv		do not generate Global INValidate instructions\n"));
   fprintf (stream, _("\
+-mmcu			generate MCU instructions\n\
+-mno-mcu		do not generate MCU instructions\n"));
+  fprintf (stream, _("\
+-mmt			generate MT instructions\n\
+-mno-mt			do not generate MT instructions\n"));
+  fprintf (stream, _("\
 -mtlb			generate Translation Lookaside Buffer (TLB) control instructions\n\
 -mno-tlb		do not generate Translation Lookaside Buffer control instructions\n"));
   fprintf (stream, _("\
--minsn32		only generate 32-bit microMIPS instructions\n\
--mno-insn32		generate all microMIPS instructions\n"));
+-mvirt			generate Virtualization instructions\n\
+-mno-virt		do not generate Virtualization instructions\n"));
   fprintf (stream, _("\
--msym32			assume all symbols have 32-bit values\n\
--O0			remove unneeded NOPs, do not swap branches\n\
--O			remove unneeded NOPs and swap branches\n\
---trap, --no-break	trap exception on div by 0 and mult overflow\n\
---break, --no-trap	break exception on div by 0 and mult overflow\n"));
+-mxpa			generate eXtended Physical Address (XPA) instructions\n\
+-mno-xpa		do not generate eXtended Physical Address (XPA) instructions\n"));
   fprintf (stream, _("\
--mhard-float		allow floating-point instructions\n\
--msoft-float		do not allow floating-point instructions\n\
--msingle-float		only allow 32-bit floating-point operations\n\
--mdouble-float		allow 32-bit and 64-bit floating-point operations\n\
 -m[no-]balc-stubs	enable/disable out-of-range call optimization\n\
 			through trampoline stubs\n\
--m[no-]legacyregs	[dis]allow mumerical register formats\n\
---[no-]construct-floats	[dis]allow floating point values to be constructed\n\
---[no-]relax-branch	[dis]allow out-of-range branches to be relaxed\n\
--m[no-]pcrel		[dis]allow PC-relative address calculations\n\
--m[no-]pic		[dis]allow Position Independent Code generation\n\
--m[no-]pid		[dis]allow Position Independent Data access\n\
--mpdr, -mno-pdr		enable/disable creation of .pdr sections\n"));
+-m[no-]legacyregs	[dis]allow mumerical register formats\n"));
   fprintf (stream, _("\
--m32			create p32 ABI object file (default)\n\
--m64			create p64 ABI object file\n"));
-
+--linkrelax		allow linker relaxations\n\
+--trap, --no-break	trap exception on div by 0 and mult overflow\n\
+--break, --no-trap	break exception on div by 0 and mult overflow\n"));
   fputc ('\n', stream);
 
 }

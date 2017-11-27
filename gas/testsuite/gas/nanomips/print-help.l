@@ -9,46 +9,44 @@ nanoMIPS options:
 			implicitly with the gp register \[default 8\]
 -march=CPU/-mtune=CPU	generate code/schedule for CPU, where CPU is one of:
                         32r6, 32r6s, 64r6, i7200, m7000, from-abi
--mdsp			generate DSP R3 instructions
--mno-dsp		do not generate R3 DSP instructions
--mdspr3			generate DSP R3 instructions
--mno-dspr3		do not generate DSP R3 instructions
--mmt			generate MT instructions
--mno-mt			do not generate MT instructions
--mmcu			generate MCU instructions
--mno-mcu		do not generate MCU instructions
--mmsa			generate MSA instructions
--mno-msa		do not generate MSA instructions
--mxpa			generate eXtended Physical Address \(XPA\) instructions
--mno-xpa		do not generate eXtended Physical Address \(XPA\) instructions
--mvirt			generate Virtualization instructions
--mno-virt		do not generate Virtualization instructions
--mginv			generate Global INValidate \(GINV\) instructions
--mno-ginv		do not generate Global INValidate instructions
--mtlb			generate Translation Lookaside Buffer \(TLB\) control instructions
--mno-tlb		do not generate Translation Lookaside Buffer control instructions
+-m32			create p32 ABI object file \(default\)
+-m64			create p64 ABI object file
+-mcmodel=MMODEL		Generate code for a specific memory model,
+			where MMODEL is one of: auto, medium, large
+-m\[no-\]pic		\[dis\]allow Position Independent Code generation
+-m\[no-\]PIC		\[dis\]allow large model Position Independent Code generation
+-m\[no-\]pid		\[dis\]allow Position Independent Data access
+-m\[no-\]pcrel		\[dis\]allow PC-relative address calculations
 -minsn32		only generate 32-bit microMIPS instructions
 -mno-insn32		generate all microMIPS instructions
--msym32			assume all symbols have 32-bit values
--O0			remove unneeded NOPs, do not swap branches
--O			remove unneeded NOPs and swap branches
---trap, --no-break	trap exception on div by 0 and mult overflow
---break, --no-trap	break exception on div by 0 and mult overflow
 -mhard-float		allow floating-point instructions
 -msoft-float		do not allow floating-point instructions
 -msingle-float		only allow 32-bit floating-point operations
 -mdouble-float		allow 32-bit and 64-bit floating-point operations
+--\[no-\]construct-floats	\[dis\]allow floating point values to be constructed
+-mdsp			generate DSP R3 instructions
+-mno-dsp		do not generate R3 DSP instructions
+-mdspr3			generate DSP R3 instructions
+-mno-dspr3		do not generate DSP R3 instructions
+-meva			generate Enhanced Virtual Addressing \(EVA\) instructions
+-mno-eva		do not generate EVA instructions
+-mginv			generate Global INValidate \(GINV\) instructions
+-mno-ginv		do not generate Global INValidate instructions
+-mmcu			generate MCU instructions
+-mno-mcu		do not generate MCU instructions
+-mmt			generate MT instructions
+-mno-mt			do not generate MT instructions
+-mtlb			generate Translation Lookaside Buffer \(TLB\) control instructions
+-mno-tlb		do not generate Translation Lookaside Buffer control instructions
+-mvirt			generate Virtualization instructions
+-mno-virt		do not generate Virtualization instructions
+-mxpa			generate eXtended Physical Address \(XPA\) instructions
+-mno-xpa		do not generate eXtended Physical Address \(XPA\) instructions
 -m\[no-\]balc-stubs	enable/disable out-of-range call optimization
 			through trampoline stubs
 -m\[no-\]legacyregs	\[dis\]allow mumerical register formats
---\[no-\]construct-floats	\[dis\]allow floating point values to be constructed
---\[no-\]relax-branch	\[dis\]allow out-of-range branches to be relaxed
--m\[no-\]pcrel		\[dis\]allow PC-relative address calculations
--m\[no-\]pic		\[dis\]allow Position Independent Code generation
--m\[no-\]pid		\[dis\]allow Position Independent Data access
--mpdr, -mno-pdr		enable/disable creation of .pdr sections
--m32			create p32 ABI object file \(default\)
--m64			create p64 ABI object file
+--linkrelax		allow linker relaxations
+--trap, --no-break	trap exception on div by 0 and mult overflow
+--break, --no-trap	break exception on div by 0 and mult overflow
 
-
-Report bugs to <http://www.sourceware.org/bugzilla/>
+Report bugs to .*

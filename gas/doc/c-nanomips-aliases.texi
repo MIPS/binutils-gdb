@@ -1,0 +1,1825 @@
+@c Copyright(C) 2017 Free Software Foundation, Inc.
+@c Contributed by <FIXME-MIPS>
+@c This is part of the GAS manual.
+@c For copying conditions, see the file as.texinfo.
+@node nanoMIPS Aliases
+@section 1:1 Instruction Aliases
+
+The nanoMIPS assembler allows multiple mnemonics to select the same
+target instruction. These aliases are provided as a convenience to the
+user, so that assembly programs can be written without paying too much
+attention to type and order of operands, specially where the ISA has
+eccentric restrictions. Following is a complete list of the various 1:1
+aliases supported:
+
+@itemize
+@item Disassembly = N indicates that disassembly will show the target instruction instead of the alias form.
+@item Size = 16/32 indicates that both 16 and 32-bit aliases are available.
+@end itemize
+
+@multitable  @columnfractions 0.25 0.25 0.3 0.05 0.1
+@headitem Alias@tab Condition @tab Target@tab Dis@tab Size
+@item
+@verbatim
+break
+@end verbatim
+
+@tab @tab @verbatim
+break 0
+@end verbatim
+
+@tab Y @tab 16/32
+@item
+@verbatim
+sdbbp
+@end verbatim
+
+@tab @tab @verbatim
+sdbbp 0
+@end verbatim
+
+@tab Y @tab 16/32
+@item
+@verbatim
+dmfc0 rt,crs
+@end verbatim
+
+@tab @tab @verbatim
+dmfc0 rt,crs,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+dmfgc0 rt,crs
+@end verbatim
+
+@tab @tab @verbatim
+dmfgc0 rt,crs,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+dmtc0 rt,crs
+@end verbatim
+
+@tab @tab @verbatim
+dmtc0 rt,crs,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+dmtgc0 rt,crs
+@end verbatim
+
+@tab @tab @verbatim
+dmtgc0 rt,crs,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+dror rt,rs,shift
+@end verbatim
+
+@tab @tab @verbatim
+drotr rt,rs,shift
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+hypcall
+@end verbatim
+
+@tab @tab @verbatim
+hypcall 0
+@end verbatim
+
+@tab Y @tab 16/32
+@item
+@verbatim
+mfc0 rt,crs
+@end verbatim
+
+@tab @tab @verbatim
+mfc0 rt,crs,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mfgc0 rt,crs
+@end verbatim
+
+@tab @tab @verbatim
+mfgc0 rt,crs,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mfhc0 rt,crs
+@end verbatim
+
+@tab @tab @verbatim
+mfhc0 rt,crs,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mfhgc0 rt,crs
+@end verbatim
+
+@tab @tab @verbatim
+mfhgc0 rt,crs,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mtc0 rt,crs
+@end verbatim
+
+@tab @tab @verbatim
+mtc0 rt,crs,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mtgc0 rt,crs
+@end verbatim
+
+@tab @tab @verbatim
+mtgc0 rt,crs,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mthc0 rt,crs
+@end verbatim
+
+@tab @tab @verbatim
+mthc0 rt,crs,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mthgc0 rt,crs
+@end verbatim
+
+@tab @tab @verbatim
+mthgc0 rt,crs,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+rddsp rt
+@end verbatim
+
+@tab @tab @verbatim
+rddsp rt,31
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+rdhwr rt,hrs
+@end verbatim
+
+@tab @tab @verbatim
+rdhwr rt,hrs,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+tne rt,rs
+@end verbatim
+
+@tab  @tab @verbatim
+tne rt,rs,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+teq rt,rs
+@end verbatim
+
+@tab  @tab @verbatim
+teq rt,rs,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+syscall
+@end verbatim
+
+@tab @tab @verbatim
+syscall 0
+@end verbatim
+
+@tab Y @tab 16/32
+@item
+@verbatim
+wait
+@end verbatim
+
+@tab @tab @verbatim
+wait 0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+wrdsp rt
+@end verbatim
+
+@tab @tab @verbatim
+wrdsp rt,31
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+yield
+@end verbatim
+
+@tab @tab @verbatim
+yield 0
+@end verbatim
+
+@tab Y @tab 32
+@item @tab @tab @tab @tab 
+@item
+@verbatim
+General aliases
+@end verbatim
+
+@tab  @tab @tab  @tab 
+@item
+@verbatim
+jrc rs
+@end verbatim
+
+@tab @tab @verbatim
+jalrc $zero,rs
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+jalrc $ra,rs
+@end verbatim
+
+@tab @tab @verbatim
+jalrc rs
+@end verbatim
+
+@tab N @tab 16
+@item
+@verbatim
+jalrc rs
+@end verbatim
+
+@tab @tab @verbatim
+jalrc $ra,rs
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+li rt,imm
+@end verbatim
+
+@tab 0 <= imm < 65535 @tab @verbatim
+addiu rt,rt,imm
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+li rt,imm
+@end verbatim
+
+@tab -4095 <= imm <= 0 @tab @verbatim
+addiu[neg] rt,rt,imm
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+li rt,imm
+@end verbatim
+
+@tab imm % 4096 == 0 @tab @verbatim
+lui rt,(imm >> 12)
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+li rt,0
+@end verbatim
+
+@tab  @tab @verbatim
+move rt,$zero
+@end verbatim
+
+@tab Y @tab 16
+@item
+@verbatim
+addiu rt,pc,label
+@end verbatim
+
+@tab  @tab @verbatim
+addiupc rt,label
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+addiu rt,rt,imm
+@end verbatim
+
+@tab @tab @verbatim
+addiu rt,imm
+@end verbatim
+
+@tab Y @tab 16
+@item
+@verbatim
+addiu.b rt,gp,ofst
+@end verbatim
+
+@tab 0 <= offset < 2^18 @tab @verbatim
+addiu[gp.b] rt,gp,ofst
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+addiu.w rt,gp,ofst
+@end verbatim
+
+@tab 0 <= offset < 2^21
+&& offset % 4 == 0 @tab @verbatim
+addiu[gp.w] rt,gp,ofst
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+align rd,rs,rt,bp
+@end verbatim
+
+@tab bp == 0 @tab @verbatim
+move rd,rs
+@end verbatim
+
+@tab N @tab 16/32
+@item
+@verbatim
+align rd,rs,rt,bp
+@end verbatim
+
+@tab bp <> 0 @tab @verbatim
+extw rd,rs,rt,(4-bp)<<3
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+and rt,rt,rs
+@end verbatim
+
+@tab @tab @verbatim
+and rt,rs
+@end verbatim
+
+@tab Y @tab 16
+@item
+@verbatim
+and rt,rs,rt
+@end verbatim
+
+@tab @tab @verbatim
+and rt,rs
+@end verbatim
+
+@tab Y @tab 16
+@item
+@verbatim
+beqzc rt,label
+@end verbatim
+
+@tab @tab @verbatim
+beqc $zero,rt,label
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+beqc rt,$zero,label
+@end verbatim
+
+@tab @tab @verbatim
+beqzc rt,label
+@end verbatim
+
+@tab Y @tab 16
+@item
+@verbatim
+beqc $zero,rt,label
+@end verbatim
+
+@tab @tab @verbatim
+beqzc rt,label
+@end verbatim
+
+@tab Y @tab 16
+@item
+@verbatim
+beqc rs,rt,label
+@end verbatim
+
+@tab rs > rt
+&& non-NMS @tab @verbatim
+beqc rt,rs,label
+@end verbatim
+
+@tab N @tab 16
+@item
+@verbatim
+blezc rt,label
+@end verbatim
+
+@tab @tab @verbatim
+bgec $zero,rt,label
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+bgezc rt,label
+@end verbatim
+
+@tab @tab @verbatim
+bgec rt,$zero,label
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+bgtzc rt,label
+@end verbatim
+
+@tab @tab @verbatim
+bltc $zero,rt,label
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+bltzc rt,label
+@end verbatim
+
+@tab @tab @verbatim
+bltc rt,$zero,label
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+bnezc rt,label
+@end verbatim
+
+@tab @tab @verbatim
+bnec $zero,rt,label
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+bnec rt,$zero,label
+@end verbatim
+
+@tab @tab @verbatim
+bnezc rt,label
+@end verbatim
+
+@tab Y @tab 16
+@item
+@verbatim
+bnec $zero,rt,label
+@end verbatim
+
+@tab @tab @verbatim
+bnezc rt,label
+@end verbatim
+
+@tab Y @tab 16
+@item
+@verbatim
+bnec rs,rt,label
+@end verbatim
+
+@tab rs <= rt
+&& non-NMS @tab @verbatim
+bnec rt,rs,label
+@end verbatim
+
+@tab N @tab 16
+@item
+@verbatim
+cfc1 rt,crsname
+@end verbatim
+
+@tab @tab @verbatim
+cfc1 rt,crs
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+cftc1 rt,crs
+@end verbatim
+
+@tab @tab @verbatim
+mftr rt,crs,1,3,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+cftc1 rt,crsname
+@end verbatim
+
+@tab @tab @verbatim
+mftr rt,crs,1,3,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+cftc2 rt,crsname
+@end verbatim
+
+@tab @tab @verbatim
+mftr rt,crs,1,5 0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+ctc1 rt,crsname
+@end verbatim
+
+@tab @tab @verbatim
+ctc1 rt,crs
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+cttc1 rs,crt
+@end verbatim
+
+@tab @tab @verbatim
+mttr rs,crt,1,3,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+cttc1 rs,crtname
+@end verbatim
+
+@tab @tab @verbatim
+mttr rs,crt,1,3,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+cttc2 rs,crtname
+@end verbatim
+
+@tab @tab @verbatim
+mttr rs,crt,1,5,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+di
+@end verbatim
+
+@tab @tab @verbatim
+di $zero
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+dmt
+@end verbatim
+
+@tab @tab @verbatim
+dmt $zero
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+dvpe
+@end verbatim
+
+@tab @tab @verbatim
+dvpe $zero
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+dvp
+@end verbatim
+
+@tab @tab @verbatim
+dvp $zero
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+ei
+@end verbatim
+
+@tab @tab @verbatim
+ei $zero
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+emt
+@end verbatim
+
+@tab @tab @verbatim
+emt $zero
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+evpe
+@end verbatim
+
+@tab @tab @verbatim
+evpe $zero
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+evp
+@end verbatim
+
+@tab @tab @verbatim
+evp $zero
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+jrc.hb rs
+@end verbatim
+
+@tab @tab @verbatim
+jalrc.hb $zero,rs
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+jalrc.hb rs
+@end verbatim
+
+@tab @tab @verbatim
+jalrc.hb $zero,rs
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+l.d ft,ofst($gp)
+@end verbatim
+
+@tab @tab @verbatim
+ldc1 ft,ofst($gp)
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+l.d ft,ofst(rs)
+@end verbatim
+
+@tab @tab @verbatim
+ldc1 ft,ofst(rs)
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+ldxc1 rd,rs(rt)
+@end verbatim
+
+@tab @tab @verbatim
+ldxc1 rd,rs(rt)
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+l.s ft,ofst($gp)
+@end verbatim
+
+@tab @tab @verbatim
+lwc1 ft,ofst($gp)
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+l.s ft,ofst(rs)
+@end verbatim
+
+@tab @tab @verbatim
+lwc1 ft,ofst(rs)
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+lwxc1 fd,rs(rt)
+@end verbatim
+
+@tab @tab @verbatim
+lwc1x fd,rs(rt)
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+mfc1 rt,crsname
+@end verbatim
+
+@tab @tab @verbatim
+mfc1 rt,crs
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+mfhc1 rt,crsname
+@end verbatim
+
+@tab @tab @verbatim
+mfhc1 rt,crs
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+mftacx rt
+@end verbatim
+
+@tab @tab @verbatim
+mftr rt,2,1,1,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mftacx rt,acc
+@end verbatim
+
+@tab @tab @verbatim
+rs =( acc * 4 ) + 2
+mftr rt,rs,1,1,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mftc0 rt,crsname
+@end verbatim
+
+@tab @tab @verbatim
+mftr rt,crs,0,0,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mftc0 rt,crsname,imm
+@end verbatim
+
+@tab @tab @verbatim
+mftr rt,crs,0,imm,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mftc1 rt,crs
+@end verbatim
+
+@tab @tab @verbatim
+mftr rt,crs,1,2,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mftc1 rt,crsname
+@end verbatim
+
+@tab @tab @verbatim
+mftr rt,crs,1,2,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mftc2 rt,crsname
+@end verbatim
+
+@tab @tab @verbatim
+mftr rt,crs,1,4,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mftdsp rt
+@end verbatim
+
+@tab @tab @verbatim
+mftr rt,$s0,1,1,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mftgpr rt,rs
+@end verbatim
+
+@tab @tab @verbatim
+mftr rt,rs,1,0,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mfthc1 rt,crs
+@end verbatim
+
+@tab @tab @verbatim
+mftr rt,crs,1,2,1
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mfthc1 rt,crsname
+@end verbatim
+
+@tab @tab @verbatim
+mftr rt,crs,1,2,1
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mfthc2 rt,crsname
+@end verbatim
+
+@tab @tab @verbatim
+mftr rt,crs,1,4,1
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mfthi rt
+@end verbatim
+
+@tab @tab @verbatim
+mftr rt,$at,1,1,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mfthi rt,acc
+@end verbatim
+
+@tab @tab @verbatim
+rs =(acc * 4) + 1
+mftr rt,rs,1,1,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mftlo rt
+@end verbatim
+
+@tab @tab @verbatim
+mftr rt,$zero,1,1,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mftlo rt,acc
+@end verbatim
+
+@tab @tab @verbatim
+rs =(acc *4)
+mftr rt,rs,1,1,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+move rd,rs
+@end verbatim
+
+@tab @tab @verbatim
+or rd,rs,$zero
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+move rd,rs
+@end verbatim
+
+@tab  @tab @verbatim
+addu rd,rs,$zero
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mtc1 rt,crsname
+@end verbatim
+
+@tab @tab @verbatim
+mtc1 rt,crs
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+mthc1 rt,crsname
+@end verbatim
+
+@tab @tab @verbatim
+mthc1 rt,crs
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+mttacx rs
+@end verbatim
+
+@tab @tab @verbatim
+mttr rs,2,1,1,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mttacx rs,acc
+@end verbatim
+
+@tab @tab @verbatim
+rt =(acc * 4) + 2
+mttr rs,rt,1,1,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mttc0 rs,crtname
+@end verbatim
+
+@tab @tab @verbatim
+mttr rs,crt,0,0,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mttc0 rs,crtname,sel
+@end verbatim
+
+@tab @tab @verbatim
+mttr rs,crt,0,sel,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mttc1 rs,crt
+@end verbatim
+
+@tab @tab @verbatim
+mttr rs,crt,1,2,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mttc1 rs,crtname
+@end verbatim
+
+@tab @tab @verbatim
+mttr rs,crt,1,2,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mttc2 rs,crtname
+@end verbatim
+
+@tab @tab @verbatim
+mttr rs,crt,1,4,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mttdsp rs
+@end verbatim
+
+@tab @tab @verbatim
+mttr rs,$s0,1,1,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mttgpr rs,rt
+@end verbatim
+
+@tab @tab @verbatim
+mttr rs,rt,1,0,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mtthc1 rs,crt
+@end verbatim
+
+@tab @tab @verbatim
+mttr rs,crt,1,2,1
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mtthc1 rs,crtname
+@end verbatim
+
+@tab @tab @verbatim
+mttr rs,crt,1,2,1
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mtthc2 rs,crtname
+@end verbatim
+
+@tab @tab @verbatim
+mttr rs,crt,1,4,1
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mtthi rs
+@end verbatim
+
+@tab @tab @verbatim
+mttr rs,$at,1,1,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mtthi rs,acc
+@end verbatim
+
+@tab @tab @verbatim
+rt =(acc * 4) + 1
+mttr rs,rt,1,1,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mttlo rs
+@end verbatim
+
+@tab @tab @verbatim
+mttr rs,$zero,1,1,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mttlo rs,acc
+@end verbatim
+
+@tab @tab @verbatim
+rt =(acc * 4)
+mttr rs,rt,1,1,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+neg rd,rs
+@end verbatim
+
+@tab non-NMS @tab @verbatim
+sub rd,$zero,rs
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+negu rd,rs
+@end verbatim
+
+@tab @tab @verbatim
+subu rd,$zero,rs
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+not rd,rs
+@end verbatim
+
+@tab @tab @verbatim
+nor rd,rs,$zero
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+or rt,rt,rs
+@end verbatim
+
+@tab @tab @verbatim
+or rt,rs
+@end verbatim
+
+@tab Y @tab 16
+@item
+@verbatim
+or rt,rs,rt
+@end verbatim
+
+@tab @tab @verbatim
+or rt,rs
+@end verbatim
+
+@tab Y @tab 16
+@item
+@verbatim
+rem rd,rs,rt
+@end verbatim
+
+@tab @tab @verbatim
+mod rd,rs,rt
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+jraddiusp imm
+@end verbatim
+
+@tab 0 <= imm < 4096
+&& (imm%16 == 0) @tab @verbatim
+restore.jrc imm
+@end verbatim
+
+@tab N @tab 16/32
+@item
+@verbatim
+rotr rd,rs,rt
+@end verbatim
+
+@tab @tab @verbatim
+rotrv rd,rs,rt
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+ror rd,rs,shift
+@end verbatim
+
+@tab @tab @verbatim
+rotr rd,rs,shift
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+ror rd,rs,rt
+@end verbatim
+
+@tab @tab @verbatim
+rotrv rd,rs,rt
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+rorv rd,rs,shift
+@end verbatim
+
+@tab @tab @verbatim
+rotr rd,rs,shift
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+rorv rd,rs,rt
+@end verbatim
+
+@tab @tab @verbatim
+rotrv rd,rs,rt
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+s.d ft,ofst($gp)
+@end verbatim
+
+@tab @tab @verbatim
+sdc1 ft,ofst($gp)
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+s.d ft,ofst(rs)
+@end verbatim
+
+@tab @tab @verbatim
+sdc1 ft,ofst(rs)
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+sdxc1 fs,rs(rt)
+@end verbatim
+
+@tab @tab @verbatim
+sdc1x fs,rs(rt)
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+sll rd,rs,rt
+@end verbatim
+
+@tab @tab @verbatim
+sllv rd,rs,rt
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+sra rd,rs,rt
+@end verbatim
+
+@tab @tab @verbatim
+srav rd,rs,rt
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+srl rd,rs,rt
+@end verbatim
+
+@tab @tab @verbatim
+srlv rd,rs,rt
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+s.s ft,ofst($gp)
+@end verbatim
+
+@tab @tab @verbatim
+swc1 ft,ofst($gp)
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+s.s ft,ofst(rs)
+@end verbatim
+
+@tab @tab @verbatim
+swc1 ft,ofst(rs)
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+swxc1 fs,rs(rt)
+@end verbatim
+
+@tab @tab @verbatim
+swc1x fs,rs(rt)
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+xor rt,rt,rs
+@end verbatim
+
+@tab @tab @verbatim
+xor rt,rs
+@end verbatim
+
+@tab Y @tab 16
+@item
+@verbatim
+xor rt,rs,rt
+@end verbatim
+
+@tab @tab @verbatim
+xor rt,rs
+@end verbatim
+
+@tab Y @tab 16
+@item
+@verbatim
+andi rt,rs,imm
+@end verbatim
+
+@tab imm = 2x -1,where 12 < x <= 32 @tab @verbatim
+ext rt,rs,0,x
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+nop
+@end verbatim
+
+@tab @tab @verbatim
+sll $zero,rs,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+ualw rt,ofst(rs)
+@end verbatim
+
+@tab non-NMS @tab @verbatim
+ualwm rt,ofst(rs),1
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+uald rt,ofst(rs)
+@end verbatim
+
+@tab non-NMS @tab @verbatim
+ualdm rt,ofst(rs),1
+@end verbatim
+
+@tab Y @tab 32
+@item @tab @tab @tab @tab 
+@item
+@verbatim
+Convert-to-compact branch aliases
+@end verbatim
+
+@tab  @tab @tab  @tab 
+@item
+@verbatim
+jr rs
+@end verbatim
+
+@tab @tab @verbatim
+jrc rs
+@end verbatim
+
+@tab N @tab 16
+@item
+@verbatim
+jr rs
+@end verbatim
+
+@tab @tab @verbatim
+jalrc $zero,rs
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+jalr rd,rs
+@end verbatim
+
+@tab @tab @verbatim
+jalrc rd,rs
+@end verbatim
+
+@tab N @tab 16/32
+@item
+@verbatim
+jalr rs
+@end verbatim
+
+@tab @tab @verbatim
+jalrc $ra,rs
+@end verbatim
+
+@tab N @tab 16/32
+@item
+@verbatim
+bal label
+@end verbatim
+
+@tab @tab @verbatim
+balc label
+@end verbatim
+
+@tab N @tab 16/32
+@item
+@verbatim
+b label
+@end verbatim
+
+@tab @tab @verbatim
+bc label
+@end verbatim
+
+@tab N @tab 16/32
+@item
+@verbatim
+bc1eqz ft,label
+@end verbatim
+
+@tab @tab @verbatim
+bc1eqzc ft,label
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+bc1nez ft,label
+@end verbatim
+
+@tab @tab @verbatim
+bc1nezc ft,label
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+bc2eqz ft,label
+@end verbatim
+
+@tab @tab @verbatim
+bc2eqzc ft,label
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+bc2nez rt,label
+@end verbatim
+
+@tab @tab @verbatim
+bc2nezc rt,label
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+beqz rt,label
+@end verbatim
+
+@tab @tab @verbatim
+beqc $zero,rt,label
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+beqz $zero,rt,label
+@end verbatim
+
+@tab @tab @verbatim
+beqzc rt,label
+@end verbatim
+
+@tab N @tab 16
+@item
+@verbatim
+beqz rt,$zero,label
+@end verbatim
+
+@tab @tab @verbatim
+beqzc rt,label
+@end verbatim
+
+@tab N @tab 16
+@item
+@verbatim
+beq rs,rt,label
+@end verbatim
+
+@tab rs < rt
+&& non-NMS @tab @verbatim
+beqc rs,rt,label
+@end verbatim
+
+@tab N @tab 16
+@item
+@verbatim
+beq rs,rt,label
+@end verbatim
+
+@tab rs > rt
+&& non-NMS @tab @verbatim
+beqc rt,rs,label
+@end verbatim
+
+@tab N @tab 16
+@item
+@verbatim
+beq rs,rt,label
+@end verbatim
+
+@tab @tab @verbatim
+beqc rt,rs,label
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+blez rt,label
+@end verbatim
+
+@tab @tab @verbatim
+bgec $zero,rt,label
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+bgez rt,label
+@end verbatim
+
+@tab @tab @verbatim
+bgec rt,$zero,label
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+bge rs,rt,label
+@end verbatim
+
+@tab @tab @verbatim
+bgec rs,rt,label
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+bgeu rs,rt,label
+@end verbatim
+
+@tab @tab @verbatim
+bgeuc rs,rt,label
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+bgtz rt,label
+@end verbatim
+
+@tab @tab @verbatim
+bltc $zero,rt,label
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+bltz rt,label
+@end verbatim
+
+@tab @tab @verbatim
+bltc rt,$zero,label
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+blt rs,rt,label
+@end verbatim
+
+@tab @tab @verbatim
+bltc rs,rt,label
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+bltu rs,rt,label
+@end verbatim
+
+@tab @tab @verbatim
+bltuc rs,rt,label
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+bnez rt,label
+@end verbatim
+
+@tab @tab @verbatim
+bnec $zero,rt,label
+@end verbatim
+
+@tab N @tab 16/32
+@item
+@verbatim
+bne rs,rt,label
+@end verbatim
+
+@tab rs >= rt
+&& non-NMS @tab @verbatim
+bnec rs,rt,label
+@end verbatim
+
+@tab N @tab 16
+@item
+@verbatim
+bne rs,rt,label
+@end verbatim
+
+@tab rs <= rt
+&& non-NMS @tab @verbatim
+bnec rt,rs,label
+@end verbatim
+
+@tab N @tab 16
+@item
+@verbatim
+bne rs,rt,label
+@end verbatim
+
+@tab @tab @verbatim
+bnec rs,rt,label
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+bposge32 imm
+@end verbatim
+
+@tab @tab @verbatim
+bposge32c imm
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+j label
+@end verbatim
+
+@tab @tab @verbatim
+bc label
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+jr.hb rs
+@end verbatim
+
+@tab @tab @verbatim
+jalrc.hb $zero,rs
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+jalr.hb rs
+@end verbatim
+
+@tab @tab @verbatim
+jalrc.hb $zero,rs
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+jalr.hb rd,rs
+@end verbatim
+
+@tab @tab @verbatim
+jalrc.hb rd,rs
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+jal rd,rs
+@end verbatim
+
+@tab @tab @verbatim
+jalrc rd,rs
+@end verbatim
+
+@tab N @tab 16/32
+@item
+@verbatim
+jal rs
+@end verbatim
+
+@tab @tab @verbatim
+jalrc $ra,rs
+@end verbatim
+
+@tab N @tab 16/32
+@item
+@verbatim
+jal label
+@end verbatim
+
+@tab @tab @verbatim
+balc label
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+move.bal rt,rt,label
+@end verbatim
+
+@tab @tab @verbatim
+move.balc rd,rt,label
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+li rt,imm
+@end verbatim
+
+@end multitable

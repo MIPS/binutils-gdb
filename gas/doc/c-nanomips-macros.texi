@@ -1,0 +1,3974 @@
+@c Copyright (C) 2017 Free Software Foundation, Inc.
+@c Contributed by <FIXME-MIPS>
+@c This is part of the GAS manual.
+@c For copying conditions, see the file as.texinfo.
+@page
+
+@node nanoMIPS Macros
+@section High-level Assembly Macros
+
+MIPS assemblers have traditionally provided a wider range of
+instructions than the MIPS architecture itself.  These extra
+instructions are usually referred to as ``macro'' instructions
+@footnote{The term ``macro'' is somewhat overloaded here, since
+these macros have no relation to those defined by @code{.macro},
+@pxref{Macro,, @code{.macro}}.}. nanoMIPS assembler continues
+support for many traditionally supported instructions.
+
+Some nanoMIPS macro instructions extend an underlying architectural
+instruction while others are entirely new.  An example of the former
+type is @code{and}, which allows the third operand to be either a
+register or an arbitrary immediate value.  Examples of the latter type
+include @code{bgt}, which branches to the third operand when the
+first operand is greater than the second operand.
+
+One of the most common extensions provided by macros is to expand memory
+offsets to the full address range (32 or 64 bits) and to allow symbolic
+offsets such as @samp{my_data + 4} to be used in place of integer
+constants.  For example, the architectural instruction @code{lbu} allows
+only an unsigned 12-bit offset, whereas the macro @code{lbu} allows code
+such as @samp{lbu $4,array+32769}.  The implementation of these symbolic
+offsets depends on several factors, such as whether the assembler is
+generating SVR4-style PIC (selected by @option{-mpic}, @pxref{nanoMIPS
+Options,, Assembler options}), the size of symbols,
+and the small data limit (@pxref{nanoMIPS Small Data,, Controlling the
+use of small data accesses}).
+
+@macro cblock{}
+@end macro
+
+@table @code
+@item @r{Instructions}
+@multitable @columnfractions 0.3 0.4 0.3
+@item Condition
+@tab Expansion
+@tab Remarks
+@end multitable
+
+@item abs rd,rt
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+rd <> rt
+@end verbatim
+
+@tab
+@verbatim
+move rd,rt
+bgezc rt,0f
+subu rd,0,rt
+0:
+@end verbatim
+@tab
+
+@item 
+@verbatim
+rd == rt
+@end verbatim
+
+@tab
+@verbatim
+bgezc rd,0f
+subu rd,0,rd
+0:
+@end verbatim
+
+@tab
+@end multitable
+@item la rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+-4095 <= ofst <= 65535
+@end verbatim
+
+@tab
+@verbatim
+addiu rd,rs,ofst
+@end verbatim
+
+@tab
+@item 
+@verbatim
+rs == 0
+@end verbatim
+
+@tab
+@verbatim
+li rd,ofst
+@end verbatim
+
+@tab
+@item 
+@verbatim
+rs <> 0
+&& rs <> rd
+@end verbatim
+
+@tab
+@verbatim
+li rd,ofst
+addu rd,rd,rs
+@end verbatim
+
+@tab
+move rd, rs
+addiu48 rd, ofst8 bytes irrespective of rd/rs are gpr3 or gpr4 
+@item 
+@verbatim
+rs <> 0
+&& rs == rd
+&& NMS
+@end verbatim
+
+@tab
+@verbatim
+li $at,ofst
+addu rd,$at,rs
+@end verbatim
+
+@tab
+@item 
+@verbatim
+rs <> 0
+&& rs == rd
+@end verbatim
+
+@tab
+@verbatim
+addiu[48] rd,rd,ofst
+@end verbatim
+
+@tab
+@end multitable
+@item la rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+@item 
+@verbatim
+(no-PIC
+|| local_p(label))
+&& gprel_p(label)
+&& (mcmodel=[medium|auto])
+@end verbatim
+
+@tab
+@verbatim
+addiu rd,gp,%gp_rel(label)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+(no-PIC
+|| local_p(label))
+&& NMS
+@end verbatim
+
+@tab
+@verbatim
+aluipc rd,%pcrel_hi(label)
+addiu rd,%pcrel_lo(label)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+no-PIC
+|| local_p(label)
+@end verbatim
+
+@tab
+@verbatim
+addiupc[48] rd,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+PIC
+&& !local_p(label)
+&& (mcmodel=[medium|auto]
+|| linkrelax)
+@end verbatim
+
+@tab
+@verbatim
+lw rd,%got_disp(label)($gp)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+PIC
+&& !local_p(label)
+&& mcmodel=large
+@end verbatim
+
+@tab
+@verbatim
+aluipc rd,%got_pcrel_hi(label)
+lw rd,%got_lo(label)(rd)
+@end verbatim
+
+@tab
+@item   
+@tab 
+@tab
+@end multitable
+@item jal label
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+no-PIC
+@end verbatim
+
+@tab
+@verbatim
+balc label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+PIC
+@end verbatim
+
+@tab
+@verbatim
+lw $at,%got_disp(label)($gp)
+jalrc $at
+@end verbatim
+
+@tab
+FIXME: Re-evaluate use of t9 vs. at?
+@end multitable
+@item jraddiusp imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+-4095 <= imm <= 65535
+&& (imm%16 != 0)
+@end verbatim
+
+@tab
+@verbatim
+addiu $sp,$sp,imm
+jrc $ra
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li at,imm
+addu sp,sp,at
+jrc ra
+@end verbatim
+
+@tab
+@end multitable
+@item li rd,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+-1 <= imm <= 126
+@end verbatim
+
+@tab
+@verbatim
+li rd,imm
+@end verbatim
+
+@tab
+@item 
+@verbatim
+-4095 <= imm <= 65535
+@end verbatim
+
+@tab
+@verbatim
+addiu rd,$0,imm
+@end verbatim
+
+@tab
+@item 
+@verbatim
+NMS
+&& (imm & 0xfff) == 0
+@end verbatim
+
+@tab
+@verbatim
+lui rd,%hi(imm)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+NMS
+@end verbatim
+
+@tab
+@verbatim
+lui rd,%hi(imm)
+addiu rd,%lo(imm)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li[48] rd,imm
+@end verbatim
+
+@tab
+@end multitable
+@item li.s rd,immfloat
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+See li
+@end verbatim
+
+@tab
+@end multitable
+@item li.s fd,immfloat
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+-G < 4
+@end verbatim
+
+@tab
+@verbatim
+li $at,immfloat
+mtc1 $at,fd
+@end verbatim
+
+@tab
+@item 
+@verbatim
+-G4
+@end verbatim
+
+@tab
+@verbatim
+lwc1 fd,%lit(label)($gp)
+@end verbatim
+
+@tab
+@end multitable
+@item li.d rd,immdouble
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+no-PIC
+&& no-construct-floats
+@end verbatim
+
+@tab
+@verbatim
+lui $at,%hi(label)
+lw rd,%lo(label)($at)
+lw rd+1,%lo(label+4)($at)
+...
+.rodata:
+label : immdouble
+@end verbatim
+
+@tab
+Double construction disabled, must load from memory. 
+@item 
+@verbatim
+PIC
+&& no-construct-floats
+@end verbatim
+
+@tab
+@verbatim
+lw $at,%got_disp(label)($gp)
+lw rd,0 ($at)
+lw rd+1,4 ($at)
+...
+.rodata:
+label : immdouble
+@end verbatim
+
+@tab
+@item   
+@tab
+@verbatim
+li48 rd+1,%hi32(immdouble)
+li48 rd,%lo32(immdouble)
+@end verbatim
+
+@tab
+@end multitable
+@item li.d fd,immdouble
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+no-PIC
+&& -G8
+@end verbatim
+
+@tab
+@verbatim
+lui $at,%hi(label)
+addu $at,$at,$gp
+ldc1 fd,%lo(label)($at)
+...
+.lit8:
+label : immdouble
+@end verbatim
+
+@tab
+@item 
+@verbatim
+no-PIC
+&& -G < 8
+@end verbatim
+
+@tab
+@verbatim
+lui $at,%hi(label)
+ldc1 fd,%lo(label)($at)
+...
+.rodata:
+label : immdouble
+@end verbatim
+
+@tab
+@item 
+@verbatim
+PIC
+@end verbatim
+
+@tab
+@verbatim
+lw $at,%got_page(label)($gp)
+ldc1 fd,%got_ofst(label)($at)
+...
+.rodata:
+label : immdouble
+@end verbatim
+
+@tab
+@end multitable
+@item nor rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+li $at,imm
+nor rt,rs,$1
+@end verbatim
+
+@tab
+@end multitable
+@item rol rd,rs,rt
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+rs == rt
+@end verbatim
+
+@tab
+@verbatim
+negu $at,rt
+rorv rd,rs,$1
+@end verbatim
+
+@tab
+@item 
+@verbatim
+rs <> rt
+@end verbatim
+
+@tab
+@verbatim
+negu rd,rt
+rorv rd,rs,rd
+@end verbatim
+
+@tab
+@end multitable
+@item rol rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+ror rd,rs,rot5
+@end verbatim
+
+@tab
+imm5 = imm & 0x1f
+rot5 = (32 - imm5) & 0x1f
+@end multitable
+@item ror rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+ror rd,rs,imm5
+@end verbatim
+
+@tab
+imm5 = imm & 0x1f
+@end multitable
+@item rotl rd,rs,rt
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+rs == rt
+@end verbatim
+
+@tab
+@verbatim
+negu $at,rt
+rorv rd,rs,$1
+@end verbatim
+
+@tab
+@item 
+@verbatim
+rs <> rt
+@end verbatim
+
+@tab
+@verbatim
+negu rd,rt
+rorv rd,rs,rd
+@end verbatim
+
+@tab
+@end multitable
+@item rotl rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+ror rd,rs,rot5
+@end verbatim
+
+@tab
+imm5 = imm & 0x1f
+rot5 = (32 - imm5) & 0x1f
+@end multitable
+@item sge rd,rs,rt
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+slt rd,rs,rt
+xori rd,rd,1
+@end verbatim
+
+@tab
+@end multitable
+@item sge rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+0 <= imm <= 4095
+@end verbatim
+
+@tab
+@verbatim
+slti rd,rs,imm
+xori rd,rd,1
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+slt rd,rs,rt
+xori rd,rd,1
+@end verbatim
+
+@tab
+@end multitable
+@item sgeu rd,rs,rt
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+sltu rd,rs,rt
+xori rd,rd,1
+@end verbatim
+
+@tab
+@end multitable
+@item sgeu rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+0 <= imm <= 4095
+@end verbatim
+
+@tab
+@verbatim
+sltiu rd,rs,imm
+xori rd,rd,1
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+sltu rd,rs,rt
+xori rd,rd,1
+@end verbatim
+
+@tab
+@end multitable
+@item sgt rd,rs,rt
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+slt rd,rt,rs
+@end verbatim
+
+@tab
+@end multitable
+@item sgt rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+li $at,imm
+slt rd,$at,rs
+@end verbatim
+
+@tab
+@end multitable
+@item sgtu rd,rs,rt
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+sltu rd,rt,rs
+@end verbatim
+
+@tab
+@end multitable
+@item sgtu rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+li $at,imm
+sltu rd,$at,rs
+@end verbatim
+
+@tab
+@end multitable
+@item sle rd,rs,rt
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+slt rd,rt,rs
+xori rd,rd,1
+@end verbatim
+
+@tab
+@end multitable
+@item sle rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+li $at,imm
+slt rd,$at,rs
+xori rd,rd,1
+@end verbatim
+
+@tab
+@end multitable
+@item sleu rd,rs,rt
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+sltu rd,rt,rs
+xori rd,rd,1
+@end verbatim
+
+@tab
+@end multitable
+@item sleu rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+li $at,imm
+sltu rd,$at,rs
+xori rd,rd,1
+@end verbatim
+
+@tab
+@end multitable
+@item seq rd,rs,rt
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+rs == 0
+@end verbatim
+
+@tab
+@verbatim
+sltiu rd,rt,1
+@end verbatim
+
+@tab
+@item 
+@verbatim
+rt == 0
+@end verbatim
+
+@tab
+@verbatim
+sltiu rd,rs,1
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+xor rd,rs,rt
+sltiu rd,rd,1
+@end verbatim
+
+@tab
+@end multitable
+@item seq rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+imm == 0
+@end verbatim
+
+@tab
+@verbatim
+sltiu rd,rs,1
+@end verbatim
+
+@tab
+@item 
+@verbatim
+rs == 0
+@end verbatim
+
+@tab
+@verbatim
+move rd,$0
+@end verbatim
+
+@tab
+Always CLEAR 
+@item 
+@verbatim
+imm < 4096
+@end verbatim
+
+@tab
+@verbatim
+xori rd,rs,imm
+sltiu rd,rd,1
+@end verbatim
+
+@tab
+@item 
+@verbatim
+-8192 < imm < 0
+@end verbatim
+
+@tab
+@verbatim
+addiu rd,rs,-imm
+sltiu rd,rd,1
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+xor rd,rs,$1
+sltiu rd,rd,1
+@end verbatim
+
+@tab
+@end multitable
+@item sne rd,rs,rt
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+rs == 0
+@end verbatim
+
+@tab
+@verbatim
+sltu,rd,$0,rt
+@end verbatim
+
+@tab
+@item 
+@verbatim
+rt == 0
+@end verbatim
+
+@tab
+@verbatim
+sltu rd,$0,rs
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+xor rd,rs,rt
+sltu rd,$0,rd
+@end verbatim
+
+@tab
+@end multitable
+@item sne rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+imm == 0
+@end verbatim
+
+@tab
+@verbatim
+sltu rd,$0,rs
+@end verbatim
+
+@tab
+@item 
+@verbatim
+rs == 0
+@end verbatim
+
+@tab
+@verbatim
+addiu rd,$0,1
+@end verbatim
+
+@tab
+Always SET 
+@item 
+@verbatim
+imm < 4096
+@end verbatim
+
+@tab
+@verbatim
+xori rd,rs,imm
+sltu rd,$0,rd
+@end verbatim
+
+@tab
+@item 
+@verbatim
+-8192 < imm < 0
+@end verbatim
+
+@tab
+@verbatim
+addiu rd,rs,-imm
+sltu rd,$0,rd
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+xor rd,rs,$1
+sltu rd,$0,rd
+@end verbatim
+
+@tab
+@end multitable
+@item slt rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+0 < imm < 4096
+@end verbatim
+
+@tab
+@verbatim
+slti rd,rs,imm
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+slt rd,rs,$1
+@end verbatim
+
+@tab
+@end multitable
+@item sltu rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+imm < 4096
+@end verbatim
+
+@tab
+@verbatim
+sltiu rd,rs,imm
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+slt rd,rs,$1
+@end verbatim
+
+@tab
+@end multitable
+@item bgt rs,rt,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+rt == 0
+@end verbatim
+
+@tab
+@verbatim
+bgtzc rs,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+rs == 0
+@end verbatim
+
+@tab
+@verbatim
+bltzc rt,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+slt $i,rs,rt
+bnezc $at,label
+@end verbatim
+
+@tab
+@end multitable
+@item bgt rs,imm,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+imm == -1
+@end verbatim
+
+@tab
+@verbatim
+beqzc rs,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+imm == 0
+@end verbatim
+
+@tab
+@verbatim
+bgtzc rs,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+imm > GPR_SMAX
+@end verbatim
+
+@tab
+@verbatim
+nop
+@end verbatim
+
+@tab
+Always FALSE 
+@item 
+@verbatim
+imm == GPR_SMIN
+@end verbatim
+
+@tab
+@verbatim
+bc label
+@end verbatim
+
+@tab
+Always TRUE 
+@item 
+@verbatim
+0 < imm < 127
+@end verbatim
+
+@tab
+@verbatim
+bgeic rs,imm+1,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+imm < 4095
+@end verbatim
+
+@tab
+@verbatim
+slti $at,rs,imm+1
+beqzc $at,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm+1
+slt $at,rs,$1
+beqzc $at,label
+@end verbatim
+
+@tab
+@end multitable
+@item bgtu rs,rt,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+rt == 0
+@end verbatim
+
+@tab
+@verbatim
+bnezc $rs,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+rs == 0
+@end verbatim
+
+@tab
+@verbatim
+nop
+@end verbatim
+
+@tab
+Always FALSE 
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+sltu $at,rs,rs
+bnezc $at,label
+@end verbatim
+
+@tab
+@end multitable
+@item bgtu rs,imm,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+rs == 0
+@end verbatim
+
+@tab
+@verbatim
+nop
+@end verbatim
+
+@tab
+Always FALSE 
+@item 
+@verbatim
+imm == -1
+&& 32-bit
+@end verbatim
+
+@tab
+@verbatim
+nop
+@end verbatim
+
+@tab
+Always FALSE 
+@item 
+@verbatim
+imm == 0
+@end verbatim
+
+@tab
+@verbatim
+bnezc $rs,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+0 < imm < 127
+@end verbatim
+
+@tab
+@verbatim
+bgeiuc rs,imm+1,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+imm < 4095
+@end verbatim
+
+@tab
+@verbatim
+sltiu $at,rs,imm+1
+beqzc $at,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm+1
+sltu $at,rs,$at
+beqzc $at,label
+@end verbatim
+
+@tab
+@end multitable
+@item ble rs,rt,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+rt == 0
+@end verbatim
+
+@tab
+@verbatim
+blezc rs,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+rs == 0
+@end verbatim
+
+@tab
+@verbatim
+bgezc rt,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+slt $at,rs,rs
+beqzc $at,label
+@end verbatim
+
+@tab
+@end multitable
+@item ble rs,imm,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+imm > GPR_SMAX
+@end verbatim
+
+@tab
+@verbatim
+bc label
+@end verbatim
+
+@tab
+Always TRUE 
+@item 
+@verbatim
+imm == -1
+@end verbatim
+
+@tab
+@verbatim
+bltzc rs,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+imm == 0
+@end verbatim
+
+@tab
+@verbatim
+blezc rs,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+0 < imm < 127
+@end verbatim
+
+@tab
+@verbatim
+bltic rs,imm+1,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+imm < 4095
+@end verbatim
+
+@tab
+@verbatim
+slti $at,rs,imm+1
+bnezc $at,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm+1
+slt $at,rs,$1
+bnezc $at,label
+@end verbatim
+
+@tab
+@end multitable
+@item bleu rs,rt,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+rt == 0
+@end verbatim
+
+@tab
+@verbatim
+beqzc rs,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+rs == 0
+@end verbatim
+
+@tab
+@verbatim
+bc label
+@end verbatim
+
+@tab
+Always TRUE 
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+sltu $at,rs,rt
+beqzc $at,label
+@end verbatim
+
+@tab
+@end multitable
+@item bleu rs,imm,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+imm == -1
+&& 32-bit
+@end verbatim
+
+@tab
+@verbatim
+bc label
+@end verbatim
+
+@tab
+Always TRUE 
+@item 
+@verbatim
+rs == 0
+@end verbatim
+
+@tab
+@verbatim
+bc label
+@end verbatim
+
+@tab
+Always TRUE 
+@item 
+@verbatim
+imm == 0
+@end verbatim
+
+@tab
+@verbatim
+beqzc rs,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+0 < imm < 127
+@end verbatim
+
+@tab
+@verbatim
+bltiuc rs,imm+1,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+imm < 4095
+@end verbatim
+
+@tab
+@verbatim
+slti $at,rs,imm+1
+bnezc $at,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm+1
+slt $at,rs,$1
+bnezc $at,label
+@end verbatim
+
+@tab
+@end multitable
+@item bgezal rs,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+ bltzc rs,0fbalc label
+0:
+@end verbatim
+
+@tab
+@end multitable
+@item bltzal rs,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+bgezc rs,0fbalc label
+0:
+@end verbatim
+
+@tab
+@end multitable
+@item Immediate supported - if immediate doesn't fit,load to register
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+@end multitable
+@item add rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+non-NMS
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+add rd,rs,$1
+@end verbatim
+
+@tab
+@end multitable
+@item addu rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+-4095 <= imm <= 65535
+@end verbatim
+
+@tab
+@verbatim
+addiu rd,rs,imm
+@end verbatim
+
+@tab
+@item 
+@verbatim
+non-NMS
+&& rd == rs
+@end verbatim
+
+@tab
+@verbatim
+addiu[48] rd,rd,imm
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+addu rd,rs,$1
+@end verbatim
+
+@tab
+@end multitable
+@item and rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+0 <= imm < 4096
+@end verbatim
+
+@tab
+@verbatim
+andi rd,rs,imm
+@end verbatim
+
+@tab
+@item 
+@verbatim
+imm < 0
+|| imm >= 4096
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+and rd,rs,$1
+@end verbatim
+
+@tab
+@end multitable
+@item sub rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+non-NMS
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+sub rt,rs,$1
+@end verbatim
+
+@tab
+@end multitable
+@item subu rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+-4095 <= imm <= 65535
+@end verbatim
+
+@tab
+@verbatim
+addiu rt,rs,-imm
+@end verbatim
+
+@tab
+@item 
+@verbatim
+non-NMS
+&& rd == rs
+@end verbatim
+
+@tab
+@verbatim
+addiu[48] rt,rs,-imm
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+subu rt,rs,$1
+@end verbatim
+
+@tab
+@end multitable
+@item beq rs,imm,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+0 < imm <= 127
+@end verbatim
+
+@tab
+@verbatim
+beqic rs,imm,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+beq rs,$at,label
+@end verbatim
+
+@tab
+@end multitable
+@item bge rs,imm,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+0 < imm <= 127
+@end verbatim
+
+@tab
+@verbatim
+bgeic rs,imm,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+imm < 4096
+@end verbatim
+
+@tab
+@verbatim
+slti $at,rs,imm
+beqzc $at,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+imm < 0
+|| imm >= 4096
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+slt $at,rs,$1
+beqzc $at,label
+@end verbatim
+
+@tab
+@end multitable
+@item bgeu rs,imm,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+imm <= 127
+@end verbatim
+
+@tab
+@verbatim
+bgeiuc rs,imm,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+imm < 4096
+@end verbatim
+
+@tab
+@verbatim
+sltiu $at,rs,imm
+beqzc $at,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+sltu $at,rs,$1
+beqzc $at,label
+@end verbatim
+
+@tab
+@end multitable
+@item blt rs,imm,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+imm == 0
+@end verbatim
+
+@tab
+@verbatim
+bltzc rs,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+imm == 1
+@end verbatim
+
+@tab
+@verbatim
+blezc rs,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+0 < imm <= 127
+@end verbatim
+
+@tab
+@verbatim
+bltic rs,imm,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+imm < 4096
+@end verbatim
+
+@tab
+@verbatim
+slti $at,rs,imm
+bnezc $at,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+[imm < 0
+|| imm >= 4096]
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+slt $at,rs,$1
+bnezc $at,label
+@end verbatim
+
+@tab
+@end multitable
+@item bltu rs,imm,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+imm <= 127
+@end verbatim
+
+@tab
+@verbatim
+bltiuc rs,imm,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+imm < 4096
+@end verbatim
+
+@tab
+@verbatim
+sltiu $at,rs,imm
+bnezc $at,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+sltu $at,rs,$1
+bnezc $at,label
+@end verbatim
+
+@tab
+@end multitable
+@item bne rs,imm,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+0 < imm <= 127
+@end verbatim
+
+@tab
+@verbatim
+bneic rs,imm,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+bnec rs,$at,label
+@end verbatim
+
+@tab
+@end multitable
+@item or rt,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+0 <= imm < 4096
+@end verbatim
+
+@tab
+@verbatim
+ori rt,rs,imm
+@end verbatim
+
+@tab
+@item 
+@verbatim
+imm < 0
+|| imm >= 4096
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+or rt,rs,$1
+@end verbatim
+
+@tab
+@end multitable
+@item slt rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+0 <= imm < 4096
+@end verbatim
+
+@tab
+@verbatim
+slti rd,rs,imm
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+slt rd,rs,$1
+@end verbatim
+
+@tab
+@end multitable
+@item sltu rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+imm < 4096
+@end verbatim
+
+@tab
+@verbatim
+sltiu rd,rs,imm
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+slt rd,rs,$1
+@end verbatim
+
+@tab
+@end multitable
+@item xor rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+0 <= imm < 4096
+@end verbatim
+
+@tab
+@verbatim
+xori rt,rs,imm
+@end verbatim
+
+@tab
+@item 
+@verbatim
+imm < 0
+|| imm >= 4096
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+xor rt,rs,$1
+@end verbatim
+
+@tab
+@end multitable
+@item teq rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+non-NMS
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+teq rs,$1
+@end verbatim
+
+@tab
+@end multitable
+@item tne rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+non-NMS
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+tne rs,$1
+@end verbatim
+
+@tab
+@item   
+@tab 
+@tab
+@end multitable
+@item aclr bit,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+-256 <= ofst <= 256
+@end verbatim
+
+@tab
+@verbatim
+aclr bit,ofst (rs)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+-4095 <= ofst <= 65535
+@end verbatim
+
+@tab
+@verbatim
+addiu $at,rs,ofst
+aclr bit,0 ($at)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,ofst_hi
+addu $at,$at,rs
+aclr bit,ofst_lo (rs)
+@end verbatim
+
+@tab
+ofst_hi = (ofst + 0x100) & 0xfffffe00
+ofst_lo = ofst - ofst_hi
+@end multitable
+@item aset bit,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+See aclr expansion
+@end verbatim
+
+@tab
+@end multitable
+@item cache hint,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+-256 <= ofst <= 255
+@end verbatim
+
+@tab
+@verbatim
+cache op,ofst (rs)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+-4095 <= ofst <= 65535
+@end verbatim
+
+@tab
+@verbatim
+addiu $at,rs,ofst
+cache op,0 ($at)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,ofst_hi
+addu $at,$at,rs
+cache op,ofst_lo (rs)
+@end verbatim
+
+@tab
+ofst_hi = (ofst + 0x100) & 0xfffffe00
+ofst_lo = ofst - ofst_hi
+@end multitable
+@item cachee hint,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+See cache expansion
+@end verbatim
+
+@tab
+@end multitable
+@item prefe hint,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+See cache expansion
+@end verbatim
+
+@tab
+@end multitable
+@item pref hint,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+-256 <= ofst <= 4095
+@end verbatim
+
+@tab
+@verbatim
+pref op,ofst (rs)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+-4095 <= ofst <= 65535
+@end verbatim
+
+@tab
+@verbatim
+addiu $at,rs,ofst
+pref op,0 ($at)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,ofst_hi
+addu $at,$at,rs
+pref op,ofst_lo (rs)
+@end verbatim
+
+@tab
+ofst_hi = (ofst + 0x100) & 0xfffffe00
+ofst_lo = ofst - ofst_hi 
+@item   
+@tab 
+@tab
+@end multitable
+@item lw rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+-255 <= ofst <= 4095
+@end verbatim
+
+@tab
+@verbatim
+lw rd,ofst (rs)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+-4095 <= ofst <= 65535
+&& rd <> rs
+@end verbatim
+
+@tab
+@verbatim
+addiu rd,rs,ofst
+lw rd,0 (rd)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+-4095 <= ofst <= 65535
+&& rd == rs
+@end verbatim
+
+@tab
+@verbatim
+addiu $at,rs,ofst
+lw rd,0 ($at)
+@end verbatim
+
+@tab
+FIXME: Don't really need $1 here, fix conditional under label ld: 
+@item 
+@verbatim
+rd <> rs
+&& NMS
+@end verbatim
+
+@tab
+@verbatim
+li rd,ofst_hi
+addu rd,rd,rs
+lw rd,ofst_lo (rd)
+@end verbatim
+
+@tab
+ofst_hi = ofst & 0xfffff000
+ofst_lo = ofst & 0xfff 
+@item 
+@verbatim
+rd == rs
+&& NMS
+@end verbatim
+
+@tab
+@verbatim
+li $at,ofst_hi
+addu $at,$at,rs
+lw rd,ofst_lo ($at)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+rd == rs
+@end verbatim
+
+@tab
+@verbatim
+addiu[48] rd,rd,ofst
+lw rd,0(rd)
+@end verbatim
+
+@tab
+FIXME: TODO
+@end multitable
+@item lw rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+(no-PIC
+|| local_p(label))
+&& gprel_p(label)
+&& (mcmodel=[medium|auto])
+@end verbatim
+
+@tab
+@verbatim
+lw rd,%gprel(label)($gp)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+(no-PIC
+|| local_p(label))
+&& rd == 0
+&& NMS
+@end verbatim
+
+@tab
+@verbatim
+aluipc $at,%pcrel_hi(label)
+lw rd,%lo(label)($at)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+(no-PIC
+|| local_p(label))
+&& rd <> 0
+&& NMS
+@end verbatim
+
+@tab
+@verbatim
+aluipc rd,%pcrel_hi(label)
+lw rd,%lo(label)(rd)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+no-PIC
+|| local_p(label)
+@end verbatim
+
+@tab
+@verbatim
+lwpc rd,label
+@end verbatim
+
+@tab
+LW only, not applicable for sub-word loads 
+@item 
+@verbatim
+PIC
+&& !local_p(label)
+&& rd == 0
+&& (mcmodel=[auto|medium]
+|| linkrelax)
+@end verbatim
+
+@tab
+@verbatim
+lw $at,%got_disp(label)($gp)
+lw rd,0 ($at)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+PIC
+&& rd == 0
+&& !local_p(label)
+&& mcmodel=large
+&& NMS
+@end verbatim
+
+@tab
+@verbatim
+aluipc $at,%got_pcrel_hi(label)
+lw at,%got_lo(label)($at)
+lw rd,0($at)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+PIC
+&& !local_p(label)
+&& rd == 0
+&& mcmodel=large
+@end verbatim
+
+@tab
+@verbatim
+lwpc $at,%got_pcrel32(label)
+lw rd,0($at)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+PIC
+&& !local_p(label)
+&& rd <> 0
+&& (mcmodel=[auto|medium]
+|| linkrelax)
+@end verbatim
+
+@tab
+@verbatim
+lw rd,%got_disp(label)($gp)
+lw rd,0 (rd)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+PIC
+&& !local_p(label)
+&& rd <> 0
+&& mcmodel=large
+&& NMS
+@end verbatim
+
+@tab
+@verbatim
+aluipc rd,%got_pcrel_hi(label)
+lw rd,%got_lo(label)(rd)
+lw rd,0(rd)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+PIC
+&& !local_p(label)
+&& rd <> 0
+&& mcmodel=large
+@end verbatim
+
+@tab
+@verbatim
+lwpc rd,%got_pcrel32(label)
+lw rd,0(rd)
+@end verbatim
+
+@tab
+@end multitable
+@item lwu rd,ofst (rs)
+@itemx lb rd,ofst (rs)
+@itemx lbu rd,ofst (rs)
+@itemx lh rd,ofst (rs)
+@itemx lhu rd,ofst (rs)
+@itemx ulh rd,ofst (rs)
+@itemx ulhu rd,ofst (rs)
+@itemx ulw rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+See lw from ofst
+@end verbatim
+
+@tab
+@end multitable
+@item lwu rd,label
+@itemx lb rd,label
+@itemx lbu rd,label
+@itemx lh rd,label
+@itemx lhu rd,label
+@itemx ulh rd,label
+@itemx ulhu rd,label
+@itemx ulw rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+See lw from symbol
+@end verbatim
+
+@tab
+@end multitable
+@item ld rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+-252 <= ofst < 4092
+&& rd == rs
+@end verbatim
+
+@tab
+@verbatim
+lw rd+1,ofst+4 (rs)
+lw rd,ofst (rs)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+-252 <= ofst < 4092
+&& rd <> rs
+@end verbatim
+
+@tab
+@verbatim
+lw rd,ofst (rs)
+lw rd+1,ofst+4 (rs)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+-4095 <= ofst <= 65535
+@end verbatim
+
+@tab
+@verbatim
+addiu $at,rs,ofst
+lw rd,0 ($at)
+lw rd+1,4 ($at)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+ofst_hi == (ofst+4)hi
+&& rs == 0
+@end verbatim
+
+@tab
+@verbatim
+lui $at,ofst_hi
+lw rd,ofst_lo ($at)
+lw rd+1,ofst_lo+4 ($at)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+ofst_hi == (ofst+4)hi
+&& rs <> 0
+@end verbatim
+
+@tab
+@verbatim
+lui $at,ofst_hi
+addu $at,$at,rs
+lw rd,ofst_lo($at)
+lw rd+1,ofst_lo+4($at)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+rs == 0
+@end verbatim
+
+@tab
+@verbatim
+li $at,ofst
+lw rd,0($at)
+lw rd+1,4($at)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+rs <> 0
+@end verbatim
+
+@tab
+@verbatim
+li $at,ofst
+addu $at,$at,rs
+lw rd,0($at)
+lw rd+1,4($at)
+@end verbatim
+
+@tab
+@end multitable
+@item ld rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+(non-PIC
+|| local_p(label))
+&& gprel_p(label)
+&& mcmodel=[medium|auto]
+@end verbatim
+
+@tab
+@verbatim
+lw rd,%gprel(label)($gp)
+lw rd+1,%gprel(label+4)($gp)
+@end verbatim
+
+@tab
+gprel_p(label) - check if label can be referenced relative to $gp 
+@item 
+@verbatim
+(non-PIC
+|| local_p(label))
+&& NMS
+@end verbatim
+
+@tab
+@verbatim
+aluipc $at,%pcrel_hi(label)
+lw rd,%lo(label)($at)
+lw rd+1,%lo(label+4)($at)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+(non-PIC
+|| local_p(label))
+@end verbatim
+
+@tab
+@verbatim
+lwpc rd,%pcrel32(label)
+lwpc rd+1,%pcrel32(label+4)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+PIC
+&& !local_p(label)
+&& (mcmodel=[auto|medium]
+|| linkrelax)
+@end verbatim
+
+@tab
+@verbatim
+lw $at,%got_disp(label)($gp)
+lw rd,0 ($at)
+lw rd+1,4 ($at)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+PIC
+&& !local_p(label)
+&& mcmodel=large
+&& NMS
+@end verbatim
+
+@tab
+@verbatim
+lui $at,%got_pcrel_hi(label)
+lw rd,%got_lo(label)($at)
+lw rd+1,%got_lo(label+4)($at)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+PIC
+&& !local_p(label)
+&& mcmodel=large
+@end verbatim
+
+@tab
+@verbatim
+lwpc rd,%got_pcrel32(label)($at)
+lwpc rd+1,%got_pcrel32(label+4)($at)
+@end verbatim
+
+@tab
+@item   
+@tab 
+@tab
+@end multitable
+@item ll rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+-256 <= ofst < 255
+@end verbatim
+
+@tab
+@verbatim
+ll rd,ofst (rs)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+-4095 <= ofst <= 65535
+&& rd <> rs
+@end verbatim
+
+@tab
+@verbatim
+addiu rd,rs,ofst
+ll rd,0 (rd)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+-4095 <= ofst <= 65535
+&& rd == rs
+@end verbatim
+
+@tab
+@verbatim
+addiu $at,rs,ofst
+ll rd,0 ($at)
+@end verbatim
+
+@tab
+FIXME: Don't really need $1 here, fix conditional under label ld: 
+@item 
+@verbatim
+rd <> rs
+@end verbatim
+
+@tab
+@verbatim
+li rd,ofst_hi
+addu rd,rd,rs
+ll rd,ofst_lo (rd)
+@end verbatim
+
+@tab
+ofst_hi = ofst & 0xfffffe00
+ofst_lo = ofst & 0x1fc (FIXME: bug, scaled operand in macro) 
+@item 
+@verbatim
+rd == rs
+@end verbatim
+
+@tab
+@verbatim
+li $at,ofst_hi
+addu $at,$at,rs
+ll rd,ofst_lo ($at)
+@end verbatim
+
+@tab
+ofst_hi = ofst & 0xfffffe00
+ofst_lo = ofst & 0x1fc (FIXME: bug, scaled operand in macro)
+@end multitable
+@item ll rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+rd == 0
+@end verbatim
+
+@tab
+@verbatim
+la $at,label
+ll rd,0 ($at)
+@end verbatim
+
+@tab
+See la of symbol
+@item 
+@verbatim
+rd <> 0
+@end verbatim
+
+@tab
+@verbatim
+la rd,label
+ll rd,0 (rd)
+@end verbatim
+
+@tab
+See la of symbol
+@end multitable
+@item lle rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+TODO
+@end multitable
+@item lle rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+TODO
+@end multitable
+@item llp rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+TODO
+@end multitable
+@item llp rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+TODO
+@end multitable
+@item llpe rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+TODO
+@end multitable
+@item llpe rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+TODO
+@end multitable
+@item sw rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+-256 <= ofst < 4095
+@end verbatim
+
+@tab
+@verbatim
+sw rd,ofst (rs)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+-4095 <= ofst <= 65535
+&& rd <> rs
+@end verbatim
+
+@tab
+@verbatim
+addiu $at,rs,ofst
+sw rd,0 ($at)
+@end verbatim
+
+@tab
+@item   
+@tab
+@verbatim
+li $at,ofst_hi
+addu $at,$at,rs
+sw rd,ofst_lo ($at)
+@end verbatim
+
+@tab
+ofst_hi = ofst & 0xfffff000
+ofst_lo = ofst & 0xfff 
+@item   
+@tab
+@verbatim
+li $at,ofst_hi
+addu $at,$at,rs
+sw rd,ofst_lo ($at)
+@end verbatim
+
+@tab
+ofst_hi = ofst & 0xfffff000
+ofst_lo = ofst & 0xfff
+@end multitable
+@item sw rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+(no-PIC
+|| local_p(label))
+&& gprel_p(label)
+&& mcmodel=[medium|auto]
+@end verbatim
+
+@tab
+@verbatim
+sw rd,%gprel(label)($gp)
+@end verbatim
+
+@tab
+gprel_p(label) - check if label can be referenced relative to $gp 
+@item 
+@verbatim
+(no-PIC
+|| local_p(label))
+&& NMS
+@end verbatim
+
+@tab
+@verbatim
+aluipc $at,%pcrel_hi(label)($gp)
+sw rd,%lo(label)($at)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+(no-PIC
+|| local_p(label))
+@end verbatim
+
+@tab
+@verbatim
+swpc rd,label
+@end verbatim
+
+@tab
+SW only, not applicable for sub-word stores
+@item 
+@verbatim
+PIC
+&& !local_p(label)
+&& (mcmodel=[auto|medium]
+|| linkrelax)
+@end verbatim
+
+@tab
+@verbatim
+lw $at,%got_disp(label)($gp)
+sw rd,0 ($at)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+PIC
+&& !local_p(label)
+&& mcmodel=large
+&& NMS
+@end verbatim
+
+@tab
+@verbatim
+aluipc $at,%got_pcrel_hi(label)
+lw $at,%got_lo(label)($at)
+lw rd,0($at)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+PIC
+&& !local_p(label)
+&& mcmodel=large
+@end verbatim
+
+@tab
+@verbatim
+lwpc $at,%pcrel32(label)
+lw rd,0($at)
+@end verbatim
+
+@tab
+@end multitable
+@item sb rd,ofst (rs)
+sh rd,ofst (rs)
+ush rd,ofst (rs)
+usw rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+See sw to ofst
+@end verbatim
+
+@tab
+@item   
+@tab 
+@tab
+@end multitable
+@item sd rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+See ld to ofst
+@end verbatim
+
+@tab
+@end multitable
+@item sc rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+See ll to ofst
+@end verbatim
+
+@tab
+@end multitable
+@item sb rd,label
+sh rd,label
+ush rd,label
+usw rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+See sw to label
+@end verbatim
+
+@tab
+@item   
+@tab 
+@tab
+@end multitable
+@item sd rd,label
+uld rd,label
+usd rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+See ld to symbol
+@end verbatim
+
+@tab
+@end multitable
+@item sc rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+See ll to symbol
+@end verbatim
+
+@tab
+@end multitable
+@item sce rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+TODO
+@end multitable
+@item sce rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+TODO
+@end multitable
+@item scp rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+TODO
+@end multitable
+@item scp rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+TODO
+@end multitable
+@item scpe rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+TODO
+@end multitable
+@item scpe rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+TODO
+@end multitable
+@item lwc1 rd,ofst (rs)
+@itemx ldc1 rd,ofst (rs)
+@itemx swc1 rd,ofst rs)
+@itemx sdc1 rd,ofst (rs)
+@itemx l.s rd,ofst (rs)
+@itemx l.d rd,ofst (rs)
+@itemx s.s rd,ofst rs)
+@itemx s.d rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+See sw to ofst
+@end verbatim
+
+@tab
+@end multitable
+@item lwc1 rd,label
+@itemx ldc1 rd,label
+@itemx swc1 rd,label
+@itemx sdc1 rd,label
+@itemx l.s rd,label
+@itemx l.d rd,label
+@itemx s.s rd,label rs)
+@itemx s.d rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+See sw to symbol
+@end verbatim
+
+@tab
+@end multitable
+@item lwc2 rd,ofst (rs)
+@itemx ldc2 rd,ofst (rs)
+@itemx swc2 rd,ofst (rs)
+@itemx sdc2 rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+See ll to ofst
+@end verbatim
+
+@tab
+@end multitable
+@item lwc2 rd,label
+@itemx ldc2 rd,label
+@itemx swc2 rd,label
+@itemx sdc2 rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+See ll to symbol
+@end verbatim
+
+@tab
+@item   
+@tab 
+@tab
+@end multitable
+@item Division & Multiplication
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+@end multitable
+@item div rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+imm == 0
+@end verbatim
+
+@tab
+@verbatim
+break
+@end verbatim
+
+@tab
+@item 
+@verbatim
+imm == 1
+@end verbatim
+
+@tab
+@verbatim
+move rd,rs
+@end verbatim
+
+@tab
+@item 
+@verbatim
+imm == -1
+@end verbatim
+
+@tab
+@verbatim
+negu rd,rs
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+div rd,rs,$1
+@end verbatim
+
+@tab
+@end multitable
+@item divu rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+imm == 0
+@end verbatim
+
+@tab
+@verbatim
+break
+@end verbatim
+
+@tab
+@item 
+@verbatim
+imm == 1
+@end verbatim
+
+@tab
+@verbatim
+move rd,rs
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+divu rd,rs,$1
+@end verbatim
+
+@tab
+@end multitable
+@item rem rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+imm == 0
+@end verbatim
+
+@tab
+@verbatim
+break
+@end verbatim
+
+@tab
+@item 
+@verbatim
+imm == 1
+@end verbatim
+
+@tab
+@verbatim
+move rd,$0
+@end verbatim
+
+@tab
+@item 
+@verbatim
+imm == -1
+@end verbatim
+
+@tab
+@verbatim
+move rd,$0
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+mod rd,rs,$1
+@end verbatim
+
+@tab
+@end multitable
+@item mul rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+li $at,imm
+mul rd,rs,$1
+@end verbatim
+
+@tab
+@end multitable
+@item dabs rd,rt
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+move rd,rt
+bgezc rt,0f
+dsubu rd,0,rt
+0:
+@end verbatim
+
+@tab
+@end multitable
+@item dla rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+-4095 <= ofst < 65536
+@end verbatim
+
+@tab
+@verbatim
+addiu rd,rs,ofst
+@end verbatim
+
+@tab
+@item 
+@verbatim
+rs == 0
+@end verbatim
+
+@tab
+@verbatim
+li rd,ofst
+@end verbatim
+
+@tab
+@item 
+@verbatim
+rs <> 0
+&& rs <> rd
+@end verbatim
+
+@tab
+@verbatim
+li rd,ofst
+addu rd,rd,rs
+@end verbatim
+
+@tab
+@item 
+@verbatim
+rs <> 0
+&& rs == rd
+@end verbatim
+
+@tab
+@verbatim
+li $at,ofst
+addu rd,$at,rs
+@end verbatim
+
+@tab
+@end multitable
+@item dla rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+(no-PIC
+|| local_p(label))
+&& gprel_p(label)
+@end verbatim
+
+@tab
+@verbatim
+addiu rd,gp,%gp_rel(label)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+no-PIC
+|| local_p(label)
+@end verbatim
+
+@tab
+@verbatim
+lapc rd,label
+@end verbatim
+
+@tab
+@item 
+@verbatim
+PIC
+&& local_p(label)
+&& mcmodel=[auto|medium]
+@end verbatim
+
+@tab
+@verbatim
+lw rd,%got_disp(label)($gp)
+@end verbatim
+
+@tab
+@end multitable
+@item dli rd,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+-1 <= imm <= 126
+@end verbatim
+
+@tab
+@verbatim
+li rd,imm
+@end verbatim
+
+@tab
+@item 
+@verbatim
+-4095 <= ofst < 65536
+@end verbatim
+
+@tab
+@verbatim
+addiu rd,$0,imm
+@end verbatim
+
+@tab
+@item 
+@verbatim
+(imm % 4096) == 0
+@end verbatim
+
+@tab
+@verbatim
+lui rd,%hi(imm)
+@end verbatim
+
+@tab
+high (X) = (X & 0xfffff000) >> 12 
+@item 
+@verbatim
+imm < 2^32
+@end verbatim
+
+@tab
+@verbatim
+li[48] rd,imm
+@end verbatim
+
+@tab
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+dlui rd,%hi32(imm)
+addiu rd,rd,%lo32(imm)
+@end verbatim
+
+@tab
+hi32 (X) = (X >> 32) & 0xffffffff
+lo32 (X) = (X & 0xffffffff)
+@end multitable
+@item li.d rd,immdouble
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+no-PIC
+@end verbatim
+
+@tab
+@verbatim
+lui $at,%hi(label)
+lw rd,%lo(label)($at)
+lw rd+1,%low(label+4)($at)
+...
+.rodata:
+label : immdouble
+@end verbatim
+
+@tab
+Double construction disabled, must load from memory. 
+@item 
+@verbatim
+PIC
+@end verbatim
+
+@tab
+@verbatim
+lw $at,%got_page(label)($gp)
+lw rd,%got_ofst(label)($at)
+lw rd+1,%got_ofst(label+4)($at)
+...
+.rodata:
+label : immdouble
+@end verbatim
+
+@tab
+FIXME: generate NewABI GOT relocs
+@end multitable
+@item li.d fd,immdouble
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+no-PIC
+&& -G8
+@end verbatim
+
+@tab
+@verbatim
+lui $at,%hi(label)
+addu $at,$at,$gp
+ldc1 fd,%lo(label)($at)
+...
+.lit8:
+label : immdouble
+@end verbatim
+
+@tab
+@item 
+@verbatim
+no-PIC
+&& -G < 8
+@end verbatim
+
+@tab
+@verbatim
+lui $at,%hi(label)
+ldc1 fd,%lo(label)($at)
+...
+.rodata:
+label : immdouble
+@end verbatim
+
+@tab
+@item 
+@verbatim
+PIC
+@end verbatim
+
+@tab
+@verbatim
+lw $at,%got_page(label)($gp)
+ldc1 fd,%got_ofst(label)($at)
+...
+.rodata:
+label : immdouble
+@end verbatim
+
+@tab
+* FIXME: generate NewABI GOT relocs
+@end multitable
+@item dadd rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+@end multitable
+@item daddu rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+-4095 <= ofst < 65536
+@end verbatim
+
+@tab
+@verbatim
+daddiu rt,rs,imm
+@end verbatim
+
+@tab
+TEST
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+daddu rt,rs,$1
+@end verbatim
+
+@tab
+TEST
+@end multitable
+@item dsub rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+@end multitable
+@item dsubu rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+-4095 <= ofst < 65536
+@end verbatim
+
+@tab
+@verbatim
+daddiu rt,rs,-imm
+@end verbatim
+
+@tab
+TEST 
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+li $at,imm
+dsubu rt,rs,$1
+@end verbatim
+
+@tab
+TEST
+@end multitable
+@item drol rd,rs,rt
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+rs == rt
+@end verbatim
+
+@tab
+@verbatim
+dnegu $at,rt
+drorv rd,rs,$1
+@end verbatim
+
+@tab
+@item 
+@verbatim
+rs <> rt
+@end verbatim
+
+@tab
+@verbatim
+dnegu rd,rt
+drorv rd,rs,rd
+@end verbatim
+
+@tab
+@end multitable
+@item drol rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+((64 - (imm & 0x1f)) & 0x3f) >= 32
+@end verbatim
+
+@tab
+@verbatim
+dror32 rd,rs,(32 - rot6)
+@end verbatim
+
+@tab
+imm5 = imm & 0x1f
+rot6 = (64 - imm5) & 0x3f 
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+dror rd,rs,rot
+@end verbatim
+
+@tab
+@end multitable
+@item drotl rd,rs,rt
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+rs == rt
+@end verbatim
+
+@tab
+@verbatim
+dnegu $at,rt
+drorv rd,rs,$1
+@end verbatim
+
+@tab
+@item 
+@verbatim
+rs <> rt
+@end verbatim
+
+@tab
+@verbatim
+dnegu rd,rt
+drorv rd,rs,rd
+@end verbatim
+
+@tab
+@end multitable
+@item drotl rd,rs,imm
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+((64 - (imm & 0x1f)) & 0x3f) >= 32
+@end verbatim
+
+@tab
+@verbatim
+dror32 rd,rs,(32 - rot6)
+@end verbatim
+
+@tab
+imm5 = imm & 0x1f
+rot6 = (64 - imm5) & 0x3f 
+@item 
+@verbatim
+else
+@end verbatim
+
+@tab
+@verbatim
+dror rd,rs,rot6
+@end verbatim
+
+@tab
+imm5 = imm & 0x1f
+rot6 = (64 - imm5) & 0x3f 
+@item   
+@tab 
+@tab
+@end multitable
+@item ofst operations
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+@end multitable
+@item ld rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+0 <= ofst < 4092
+&& rd == rs
+@end verbatim
+
+@tab
+@verbatim
+lw rd+1,ofst+4 (rs)
+lw rd,ofst (rs)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+0 <= ofst < 4092
+&& rd <> rs
+@end verbatim
+
+@tab
+@verbatim
+lw rd,ofst (rs)
+lw rd+1,ofst+4 (rs)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+-4095 <= ofst < 65536
+@end verbatim
+
+@tab
+@verbatim
+addiu $at,rs,ofst
+lw rd,0 ($at)
+lw rd+1,4 ($at)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+ofst_hi == (ofst+4)hi
+&& rs == 0
+@end verbatim
+
+@tab
+@verbatim
+lui $at,ofst_hi
+lw rd,ofst_lo ($at)
+lw rd+1,ofst_lo+4 ($at)
+@end verbatim
+
+@tab
+ofst_hi = ofst & 0xfffff000
+ofst_lo = ofst & 0xfff 
+@item 
+@verbatim
+ofst_hi == (ofst+4)hi
+&& rs <> 0
+@end verbatim
+
+@tab
+@verbatim
+lui $at,ofst_hi
+addu $at,$at,rs
+lw rd,ofst_lo ($at)
+lw rd+1,ofst_lo+4 ($at)
+@end verbatim
+
+@tab
+ofst_hi = ofst & 0xfffff000
+ofst_lo = ofst & 0xfff 
+@item 
+@verbatim
+rs == 0
+@end verbatim
+
+@tab
+@verbatim
+li $at,ofst
+lw rd,0 ($at)
+lw rd+1,4 ($at)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+rs == 0
+@end verbatim
+
+@tab
+@verbatim
+li $at,ofst
+addu $at,$at,rs
+lw rd,0 ($at)
+lw rd+1,4 ($at)
+@end verbatim
+
+@tab
+@end multitable
+@item ld rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+no-PIC
+&& gprel_p(label)
+@end verbatim
+
+@tab
+@verbatim
+lw rd,%gprel(label)($gp)
+lw rd+1,%gprel(label+4)($gp)
+@end verbatim
+
+@tab
+gprel_p(label) - check if label can be referenced relative to $gp 
+@item 
+@verbatim
+no-PIC
+@end verbatim
+
+@tab
+@verbatim
+lui $at,%hi(label)
+lw rd,%lo(label)($at)
+lw rd+1,%lo(labe+4)($at)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+PIC
+&& local_p(label)
+@end verbatim
+
+@tab
+@verbatim
+lw $at,%got_page(label)($gp)
+lw rd,%got_ofst(label)($at)
+lw rd+1,%got_ofst(label+4)($at)
+@end verbatim
+
+@tab
+@item 
+@verbatim
+PIC
+&& !local_p(label)
+@end verbatim
+
+@tab
+@verbatim
+lw $at,%got_disp(label)($gp)
+lw rd,0 ($at)
+lw rd+1,4 ($at)
+@end verbatim
+
+@tab
+@end multitable
+@item lld rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+TODO[64]
+@end multitable
+@item lld rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+TODO[64]
+@end multitable
+@item lldp rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+TODO[64]
+@end multitable
+@item lldp rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+TODO[64]
+@end multitable
+@item ld rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+TODO[64]
+@end multitable
+@item ld rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+TODO[64]
+@end multitable
+@item sd rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+See ld to ofst
+@end verbatim
+
+@tab
+@end multitable
+@item sd rd,label
+uld rd,label
+usd rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab
+@verbatim
+See ld to symbol
+@end verbatim
+
+@tab
+@end multitable
+@item scd rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+TODO[64]
+@end multitable
+@item scd rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+TODO[64]
+@end multitable
+@item scdp rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+TODO[64]
+@end multitable
+@item scdp rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+TODO[64]
+@end multitable
+@item sc rd,ofst (rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+TODO[64]
+@end multitable
+@item sc rd,label
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+TODO[64] 
+@item   
+@tab 
+@tab
+@end multitable
+@item Division & Multiplication
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+@item   
+@tab 
+@tab
+@item   
+@tab 
+@tab
+@end multitable
+@item NMS expansions [TODO]
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+@end multitable
+@item Instruction
+@multitable @columnfractions 0.3 0.4 0.3
+@item 
+@verbatim
+Conditions
+@end verbatim
+
+@tab
+@verbatim
+Expansion
+@end verbatim
+
+@tab
+Remarks and supplementary calculations
+@end multitable
+@item ext
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+@end multitable
+@item ins
+@multitable @columnfractions 0.3 0.4 0.3
+@item   
+@tab 
+@tab
+@end multitable
+@end table
+
+Note that while the assembler provides these macros for
+compatibility, it does not make any attempt to optimize them with the
+surrounding code.

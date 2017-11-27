@@ -1,6 +1,13 @@
 @c Copyright (C) 2017 Free Software Foundation, Inc.
+@c Contributed by <FIXME-MIPS>
 @c This is part of the GAS manual.
 @c For copying conditions, see the file as.texinfo.
+
+@macro doleft{TEXT}
+@flushleft \TEXT\ 
+@end flushleft
+@end macro
+
 @ifset GENERIC
 @page
 @node nanoMIPS-Dependent
@@ -14,35 +21,30 @@
 @cindex nanoMIPS processor
 
 @menu
-* nanoMIPS Options::            Assembler options
-* nanoMIPS Macros:: 	        High-level assembly macros
-* nanoMIPS Symbol Sizes::	Directives to override the size of symbols
-* nanoMIPS Small Data:: 	Controlling the use of small data accesses
-* nanoMIPS ISA::    	        Directives to override the ISA level
-* nanoMIPS assembly options::   Directives to control code generation
-* nanoMIPS insn::		Directive to mark data as an instruction
-* nanoMIPS FP ABIs::	        Marking which FP ABI is in use
-* nanoMIPS Option Stack::	Directives to save and restore options
-* nanoMIPS ASE Instruction Generation Overrides:: Directives to control
-			        generation of nanoMIPS ASE instructions
-* nanoMIPS Floating-Point::     Directives to override floating-point options
-* nanoMIPS Linker Relaxation::  Directives to control linker relaxations
-* nanoMIPS Syntax::             nanoMIPS specific syntactical considerations
+* nanoMIPS Options::            Assembler Options
+* nanoMIPS Directives::         Assembler Directives
+* nanoMIPS Reloc Operators::    Explicit Relocation Operators
+* nanoMIPS Macros:: 	        High-level Assembly Macros
+* nanoMIPS Aliases::            1:1 Instruction Aliases
+* nanoMIPS Small Data:: 	Small Data Access
 * nanoMIPS Relocations::        Using relocation operators for different
                                 addressing modes
+* nanoMIPS Instruction Selection:: Controlling Instruction Selection
+* nanoMIPS Transformations:: Controlling Linker Relaxation
+* nanoMIPS Syntax::             Syntactical Considerations
 @end menu
 
 @node nanoMIPS Options
-@section Assembler options
+@section Assembler Options
 
 The nanoMIPS configurations of @sc{gnu} @code{@value{AS}} support these
 special options:
 
 @table @code
-@cindex @code{-G} option (nanoMIPS)
+@cindex -G option (nanoMIPS)
 @item -G @var{num}
 Set the ``small data'' limit to @var{n} bytes.  The default limit is 8 bytes.
-@xref{nanoMIPS Small Data,, Controlling the use of small data accesses}.
+@xref{nanoMIPS Small Data, , Controlling the use of small data accesses}.
 
 @cindex @code{-EB} option (nanoMIPS)
 @cindex @code{-EL} option (nanoMIPS)
@@ -57,12 +59,81 @@ little-endian output at run time (unlike the other @sc{gnu} development
 tools, which must be configured for one or the other).  Use @samp{-EB}
 to select big-endian output, and @samp{-EL} for little-endian.
 
+@item -march=@var{arch}
+Generate code for a particular nanoMIPS @var{arch}, which can be the
+name of a generic nanoMIPS @var{ISA} or the name of a particular
+@var{CPU}. Valid @var{ISA} value are:
+
+@quotation
+32r6,
+32r6s,
+64r6
+@end quotation
+
+Valid @var{CPU} value are:
+
+@quotation
+i7200,
+m7000
+@end quotation
+
+@item -mtune=@var{cpu}
+Schedule and tune for a particular nanoMIPS CPU.  Valid @var{cpu} values are
+identical to @samp{-march=@var{cpu}}.
+
+@item -m32
+Generate code for the p32 ABI.
+
+@item -m64
+Generate code for the p64 ABI.
+
+@item -mcmodel=@var{mmodel}
+Generate code for a particular C Memory Model. The following memory models
+are supported: @code{auto}, @code{medium}, @code{large}
+
 @item -mpic
 @itemx -mno-pic
-Generate medium-model SVR4-style PIC.  This option tells the assembler
+Generate medium model SVR4-style PIC.  This option tells the assembler
 to generate SVR4-style position-independent macro expansions.  It also
 tells the assembler to mark the output file as PIC.
 @samp{-mno-pic} turns off this option.
+
+@item -mPIC
+@itemx -mno-PIC
+Generate large model SVR4-style PIC.  This option tells the assembler
+to generate SVR4-style position-independent macro expansions.  It also
+tells the assembler to mark the output file as PIC.
+@samp{-mno-PIC} turns off this option.
+
+@item -mpid
+@itemx -mno-pid
+Generate position independent data.  This option tells the assembler to
+generate data sections that can be repositioned independent of code placement.
+It also tells the assembler to mark the output file as PID.
+@samp{-mno-pid} turns off this option.
+
+@item -mpcrel
+@itemx -mno-pcrel
+Generate PC-relative expansions.  This option tells the assembler to
+avoid the use of absolute addresses for symbols even when those
+addresses may be known at link time.  It also tells the assembler to
+mark the output file as purely PC-relative.
+@samp{-mno-pcrel} turns off this option.
+
+@item --linkrelax
+Enable link-time relaxation features. The assembler will generate
+additional reloctions to allow the linker to expand/relax object
+code and fix-up for correctness. FIXME: Ref to .set options.
+
+@item -minsn32
+@itemx -mno-insn32
+Only use 32-bit instruction encodings when generating code for the
+microMIPS processor.  This option inhibits the use of any 16-bit
+instructions.  This is equivalent to putting @code{.module insn32} at
+the start of the assembly file.  @samp{-mno-insn32} turns off this
+option.  This is equivalent to putting @code{.module noinsn32} at the
+start of the assembly file.  By default @samp{-mno-insn32} is
+selected, allowing all instructions to be used.
 
 @item -mdsp
 @itemx -mno-dsp
@@ -79,35 +150,11 @@ Generate code for the DSP Release 3 Application Specific Extension.
 This tells the assembler to accept DSP Release 3 instructions.
 @samp{-mno-dspr3} turns off this option.
 
-@item -mmt
-@itemx -mno-mt
-Generate code for the MT Application Specific Extension.
-This tells the assembler to accept MT instructions.
-@samp{-mno-mt} turns off this option.
-
-@item -mmcu
-@itemx -mno-mcu
-Generate code for the MCU Application Specific Extension.
-This tells the assembler to accept MCU instructions.
-@samp{-mno-mcu} turns off this option.
-
-@item -mmsa
-@itemx -mno-msa
-Generate code for the nanoMIPS SIMD Architecture Extension.
-This tells the assembler to accept MSA instructions.
-@samp{-mno-msa} turns off this option.
-
-@item -mxpa
-@itemx -mno-xpa
-Generate code for the nanoMIPS eXtended Physical Address (XPA) Extension.
-This tells the assembler to accept XPA instructions.
-@samp{-mno-xpa} turns off this option.
-
-@item -mvirt
-@itemx -mno-virt
-Generate code for the Virtualization Application Specific Extension.
-This tells the assembler to accept Virtualization instructions.
-@samp{-mno-virt} turns off this option.
+@item -meva
+@itemx -mno-eva
+Generate code for the Enhanced Virtual Addressing Application Specific
+Extension.  This tells the assembler to accept EVA instructions.
+@samp{-mno-eva} turns off this option.
 
 @item -mginv
 @itemx -mno-ginv
@@ -115,61 +162,35 @@ Generate code for the Global cache INValidate Application Specific Extension.
 This tells the assembler to accept GINV instructions.
 @samp{-mno-ginv} turns off this option.
 
+@item -mmcu
+@itemx -mno-mcu
+Generate code for the MCU Application Specific Extension.
+This tells the assembler to accept MCU instructions.
+@samp{-mno-mcu} turns off this option.
+
+@item -mmt
+@itemx -mno-mt
+Generate code for the MT Application Specific Extension.
+This tells the assembler to accept MT instructions.
+@samp{-mno-mt} turns off this option.
+
 @item -mtlb
 @itemx -mno-tlb
 Generate code for the Translation Lookaside Buffer control extension.
 This tells the assembler to accept TLB control instructions.
 @samp{-mno-tlb} turns off this option.
 
-@item -minsn32
-@itemx -mno-insn32
-Only use 32-bit instruction encodings when generating code for the
-microMIPS processor.  This option inhibits the use of any 16-bit
-instructions.  This is equivalent to putting @code{.module insn32} at
-the start of the assembly file.  @samp{-mno-insn32} turns off this
-option.  This is equivalent to putting @code{.module noinsn32} at the
-start of the assembly file.  By default @samp{-mno-insn32} is
-selected, allowing all instructions to be used.
+@item -mvirt
+@itemx -mno-virt
+Generate code for the Virtualization Application Specific Extension.
+This tells the assembler to accept Virtualization instructions.
+@samp{-mno-virt} turns off this option.
 
-@item -march=@var{arch}
-Generate code for a particular nanoMIPS @var{arch}, which can be the name of a generic nanoMIPS @var{ISA} or the name of a particular @var{CPU}. Valid @var{ISA} value are: 
-
-@quotation
-32r6,
-32r6s,
-64r6
-@end quotation
-
-Valid @var{CPU} value are:
-
-@quotation
-i7200,
-m7000
-@end quotation
-
-@item -m32
-Generate code for the p32 ABI.
-
-@item -m64
-Generate code for the p64 ABI.
-
-@item -mtune=@var{cpu}
-Schedule and tune for a particular nanoMIPS CPU.  Valid @var{cpu} values are
-identical to @samp{-march=@var{cpu}}.
-
-@item -msym32
-@itemx -mno-sym32
-@cindex -msym32
-@cindex -mno-sym32
-Equivalent to adding @code{.set sym32} or @code{.set nosym32} to
-the beginning of the assembler input.  @xref{nanoMIPS Symbol Sizes}.
-
-@cindex @code{-nocpp} ignored (nanoMIPS)
-@item -nocpp
-This option is ignored.  It is accepted for command-line compatibility with
-other assemblers, which use it to turn off C style preprocessing.  With
-@sc{gnu} @code{@value{AS}}, there is no need for @samp{-nocpp}, because the
-@sc{gnu} assembler itself never runs the C preprocessor.
+@item -mxpa
+@itemx -mno-xpa
+Generate code for the nanoMIPS eXtended Physical Address (XPA) Extension.
+This tells the assembler to accept XPA instructions.
+@samp{-mno-xpa} turns off this option.
 
 @item -msoft-float
 @itemx -mhard-float
@@ -197,26 +218,19 @@ width register by the single width registers.
 By default @code{--construct-floats} is selected, allowing construction
 of these floating point constants.
 
-@item --relax-branch
-@itemx --no-relax-branch
-The @samp{--relax-branch} option enables the relaxation of out-of-range
-branches.  Any branches whose target cannot be reached directly are
-converted to a small instruction sequence including an inverse-condition
-branch to the physically next instruction, and a jump to the original
-target is inserted between the two instructions.  In PIC code the jump
-will involve further instructions for address calculation.
+@item -mbalc-stubs
+@itemx -mno-balc-stubs
+Consolidate multiple out-of-range call instructions to a function to
+16-bit calls to a stub with transfers control to the function. The
+@samp{-mbalc-stubs} option improves code compression at the cost
+of performance, since each transformed call requires two control
+transfers.
 
-The @code{BC1ANY2F}, @code{BC1ANY2T}, @code{BC1ANY4F}, @code{BC1ANY4T},
-@code{BPOSGE32} and @code{BPOSGE64} instructions are excluded from
-relaxation, because they have no complementing counterparts.  They could
-be relaxed with the use of a longer sequence involving another branch,
-however this has not been implemented and if their target turns out of
-reach, they produce an error even if branch relaxation is enabled.
+This optimization is disabled by default.
 
-Also no nanoMIPS16 branches are ever relaxed.
-
-By default @samp{--no-relax-branch} is selected, causing any out-of-range
-branches to produce an error.
+@item -mlegacyregs
+Allow the use of legacy MIPS style numeric register formats in
+nanoMIPS assembly.
 
 @item --trap
 @itemx --no-break
@@ -232,67 +246,429 @@ are only supported at Instruction Set Architecture level 2 and higher.
 @itemx --no-trap
 Generate code to take a break exception rather than a trap exception when an
 error is detected.  This is the default.
-
-@item -mbalc-stubs
-@itemx -mno-balc-stubs
-Consolidate multiple out-of-range call instructions to a function to
-16-bit calls to a stub with transfers control to the function. The
-@samp{-mbalc-stubs} option improves code compression at the cost
-of performance, since each transformed call requires two control
-transfers.
-
-This optimization is disabled by default.
-
-@item -mlegacyregs
-Allow the use of legacy MIPS style numeric register formats in
-nanoMIPS assembly.
-
-@item --linkrelax
-Enable link-time relaxation features. The assembler will generate
-additional reloctions to allow the linker to expand/relax object
-code and fix-up for correctness. FIXME: Ref to .set options.
 @end table
 
-@node nanoMIPS Macros
-@section High-level assembly macros
+@node nanoMIPS Directives
+@section Assembler Directives
 
-MIPS assemblers have traditionally provided a wider range of
-instructions than the MIPS architecture itself.  These extra
-instructions are usually referred to as ``macro'' instructions
-@footnote{The term ``macro'' is somewhat overloaded here, since
-these macros have no relation to those defined by @code{.macro},
-@pxref{Macro,, @code{.macro}}.}. nanoMIPS assembler continues
-support for many traditionally supported instructions.
+@menu
+* nanoMIPS Controls:: Directives to control assembler behaviour & state
+* nanoMIPS ISA:: Directives to override the ISA
+* nanoMIPS CodeGen Concepts:: Directives to control memory model and addressing
+* nanoMIPS CodeGen Specifics:: Directives to control code generation
+* nanoMIPS DataGen:: Directives for data sections
+* nanoMIPS Floating-Point:: Directives to override floating-point options
+* nanoMIPS ASE Overrides:: Directives for generation of ASE instructions
+* nanoMIPS Compatibility:: Directives for compatibility with MIPS assembly
+@end menu
 
-Some nanoMIPS macro instructions extend an underlying architectural
-instruction while others are entirely new.  An example of the former
-type is @code{and}, which allows the third operand to be either a
-register or an arbitrary immediate value.  Examples of the latter type
-include @code{bgt}, which branches to the third operand when the
-first operand is greater than the second operand.
 
-One of the most common extensions provided by macros is to expand
-memory offsets to the full address range (32 or 64 bits) and to allow
-symbolic offsets such as @samp{my_data + 4} to be used in place of
-integer constants.  For example, the architectural instruction
-@code{lbu} allows only an unsigned 12-bit offset, whereas the macro
-@code{lbu} allows code such as @samp{lbu $4,array+32769}.
-The implementation of these symbolic offsets depends on several factors,
-such as whether the assembler is generating SVR4-style PIC (selected by
-@option{-mpic}, @pxref{nanoMIPS Options,, Assembler options}), the size of symbols
-(@pxref{nanoMIPS Symbol Sizes,, Directives to override the size of symbols}),
-and the small data limit (@pxref{nanoMIPS Small Data,, Controlling the use
-of small data accesses}).
+@node nanoMIPS Controls
+@subsection Directives to control assembler behaviour & state
+@table @code
+@item @code{.set}
+@cindex nanoMIPS option control
+The @code{.set} directive allows changing and control various options
+that control behaviour at any point within an assembly file. The syntax
+is identical to the @code{.set} directive used to assign values to
+symbols. The nanoMIPS assembler supports a number of built-in special
+symbols, which when set to certain values change the behaviour of the
+assembler from that point onwards. The change in the behaviour
+remains in effect till the next @code{.set} directive which affects
+that particular behaviour.
 
+@item @code{.module}
+@cindex nanoMIPS module control
+@kindex @code{.module}
+The @code{.module} directive allows command line options to be set directly
+from assembly.  The format of the directive matches the @code{.set}
+directive but only those options which are relevant to a whole module are
+supported.  The effect of a @code{.module} directive is the same as the
+corresponding command line option.  Where @code{.set} directives support
+returning to a default then the @code{.module} directives do not as they
+define the defaults.
+
+Module-level directives must appear first in assembly, before any
+instructions.
+
+@item @code{.set push}
+@itemx @code{.set pop}
+@cindex nanoMIPS option stack
+@kindex @code{.set push}
+@kindex @code{.set pop}
+The directives @code{.set push} and @code{.set pop} may be used to save
+and restore the current settings for all the options which are
+controlled by @code{.set}.  The @code{.set push} directive saves the
+current settings on a stack.  The @code{.set pop} directive pops the
+stack and restores the settings.
+
+These directives can be useful inside an macro which must change an
+option such as the ISA level or instruction reordering but does not want
+to change the state of the code which invoked the macro.
+@end table
+
+@node nanoMIPS ISA
+@subsection Directives to override the ISA
+@table @code
+@cindex nanoMIPS CPU override
+@item .set arch=@var{isa}
+@kindex .set arch=@var{isa}
+@itemx .set arch=@var{cpu}
+@item .module arch=@var{isa}
+@kindex .module arch=@var{isa}
+@itemx .module arch=@var{cpu}
+The @code{.set arch=@var{isa}} directive changes the effective CPU
+target and allows the assembler to use instructions specific to a
+particular ISA or CPU.  All ISA and CPUs supported by the
+@samp{-march} command line option are also selectable by this
+directive.  The original value is restored by @code{.set
+arch=default}.
+
+Valid @var{isa} value are: 
+@quotation
+32r6,
+32r6s,
+64r6
+@end quotation
+
+Valid @var{cpu} value are:
+@quotation
+i7200,
+m7000
+@end quotation
+@end table
+
+@node nanoMIPS CodeGen Concepts
+@subsection Directives to control memory model and addressing
+These directives indirectly control how built-in macros are expanded. They also
+set or clear corresponding flags in the ELF header.
+
+@table @code
+@item .set mcmodel=auto
+@itemx .set mcmodel=medium
+@itemx .set mcmodel=large
+@itemx .module mcmodel=auto
+@itemx .module mcmodel=medium
+@itemx .module mcmodel=large
+@cindex Control code/data memory models
+@kindex .set mcmodel=auto
+@kindex .set mcmodel=medium
+@kindex .set mcmodel=large
+These directives specify the memory model that the assembler uses for
+generating macro expansions. The directive @code{.set mcmodel=auto}
+defers most decisions about the range of the code/data layout to
+link-time relaxation. It requires linker relaxation to be enabled and
+a capable linker. The directive @code{.set mcmodel=medium} assumes
+that the GP-relative region (which includes the GOT in PIC) must not
+exceed 2MiB and the total code size for a final link must not exceed
+32MiB. The directive @code{.set mcmodel=large} implies no limits<FIXME
+not true for 64-bits, perhaps specify a 2GB limit>.
+
+
+@item .set pic[012]
+@itemx .module pic[012]
+@kindex .set pic0
+@kindex .set pic1
+@kindex .set pic2
+@kindex .module pic0
+@kindex .module pic1
+@kindex .module pic2
+The @code{.set pic1} directive enables the position independent
+code(PIC) generation for built-in macros, using the medium memory
+model.  The @code{.set pic2} directive enables PIC generation, using
+the large memory model. The @code{.set pic0} directive disabled PIC
+generation. If PIC is enabled, the corresponding flag in the ELF header
+is also set. Position independent code generation is disabled by default.
+
+@item .set pid
+@itemx .set nopid
+@itemx .module pid
+@itemx .module nopid
+@kindex .set pid
+@kindex .set nopid
+@kindex .module pid
+@kindex .module nopid
+The @code{.set pid} directive enables the position independent
+expansion of data addresses for built-in macros. It also sets the PID
+flag in the ELF header. The @code{.set nopid} directive disables such
+expansions.
+
+An object with the PID flag is guaranteed to not contain any absolute
+or PC-relative references to data. All data references are through the
+$gp register. Data sections can be re-positioned independent of code
+sections by changing the value of @var{_gp}. This is disabled by
+default.
+
+@item .set pcrel
+@itemx .set nopcrel
+@itemx .module pcrel
+@itemx .module nopcrel
+@kindex .set pcrel
+@kindex .set nopcrel
+@kindex .module pcrel
+@kindex .module nopcrel
+The @code{.set pcrel} directive enables the PC-relative expansion of
+address calculation for built-in macros. It also sets the PC-relative
+flag in the ELF header. The @code{.set pcrel} directive disables
+PC-relative expansions. An object with the PC-relative flag is
+guaranteed to not contain any absolute address calculation. This
+is disabled by default.
+
+@item .linkrelax
+@kindex .linkrelax
+The @code{.linkrelax} directive enable linker relaxations for an
+assembly unit. Linker relaxation is disabled by default.
+@end table
+
+
+@node nanoMIPS CodeGen Specifics
+@subsection Directives to control code generation
+@table @code
+
+@item .set insn32
+@itemx .set noinsn32
+@cindex nanoMIPS 32-bit instruction generation override
+@kindex @code{.set insn32}
+@kindex @code{.set noinsn32}
+The directive @code{.set insn32} makes the assembler only use 32-bit
+instruction encodings when generating code for the nanoMIPS processor.
+This directive inhibits the use of any 16-bit or 48-bit instructions
+from that point on in the assembly.  The @code{.set noinsn32} directive
+allows 16-bit & 48-bit instructions to be accepted.
+
+@item .set reorder
+@itemx .set noreorder
+@cindex Compatibility with MIPS instruction re-ordering
+@kindex @code{.set reorder}
+@kindex @code{.set noreorder}
+The traditional MIPS assembler uses re-ordering of instructions to fill
+delay slots in delayed branch instructions. If reordering is enabled,
+the assembler can move an instruction above a delayed branch
+instructions in to the delay slot of the instruction. If it is disabled,
+the assembler must insert a nop instruction in the delay slot, to
+satisfy pipeline constraints. Where the assembler is not free to adjust
+the user-specified order of instructions, and NOP is inserted in the
+delay slot instead.
+
+The nanoMIPS architecture does not have delayed instructions. The branch
+instructions are called compact (as opposed to delayed) branch
+instructions. The assembler does provide aliases from delayed to compact
+branch mnemonics to portability, however it cannot simply gloss over
+semantic differences between the two. The nanoMIPS assembler will
+attempt to convert a delayed branch to a compact branch. With
+re-ordering enabled, this is simply interpreting one instruction
+mnemonic (bal) as another (balc). With reordering disabled, the
+conversion is only possible if the instruction in the delay slot is a
+NOP instruction, since the NOP can be trivially dropped without changing
+the effect of an assembly fragment.
+
+
+The following table compares the behaviour of MIPS and nanoMIPS for
+commonly encountered input patterns:
+
+@multitable @columnfractions 0.2 0.2 0.2 0.2 0.2
+@headitem
+Input assembly
+@tab
+Generated MIPS object
+@tab
+Remarks
+@tab
+Generated nanoMIPS object
+@tab
+Remarks
+@item
+@item
+@smallformat
+@verbatim
+.set reorder
+move $a0,$s0
+bal $ra,foo
+@end verbatim
+@end smallformat
+@tab
+@smallformat
+@verbatim
+bal $ra,foo
+move $a0,$s0
+@end verbatim
+@end smallformat
+@tab
+Instructions re-ordered to fill delay slot.  Move happens before control
+transfer due to delayed branch semantics.
+@tab
+@smallformat
+@verbatim
+move $a0,$s0
+balc $ra,foo
+@end verbatim
+@end smallformat
+@tab
+Delayed branch converted to compact branch.
+@item
+@smallformat
+@verbatim
+.set reorder
+move $a0,$s0
+beq $a0,$a1,foo
+@end verbatim
+@end smallformat
+@tab
+@smallformat
+@verbatim
+move $a0,$s0
+beq $a0,$a1,foo
+nop
+@end verbatim
+@end smallformat
+@tab
+Re-ordering inhibited by dependency.  NOP inserted automatically to fill
+delay slot.
+@tab
+@smallformat
+@verbatim
+move $a0,$s0
+beqc $a0,$a1,foo
+@end verbatim
+@end smallformat
+@tab
+Delayed branch converted to compact branch.
+@item
+@smallformat
+@verbatim
+.set noreorder
+move $a0,$s0
+bal $ra, foo
+nop
+@end verbatim
+@end smallformat
+@tab
+@smallformat
+@verbatim
+move $a0,$s0
+bal $ra, foo
+nop
+@end verbatim
+@end smallformat
+@tab
+Explicit NOP in delay slot
+@tab
+@smallformat
+@verbatim
+move $a0,$s0
+balc $ra,foo
+@end verbatim
+@end smallformat
+@tab
+Delayed branch converted to compact branch,  NOP removed.
+@item
+@smallformat
+@verbatim
+.set noreorder
+bal $ra, foo
+move $a0,$s0
+@end verbatim
+@end smallformat
+@tab
+@smallformat
+@verbatim
+bal $ra, foo
+move $a0,$s0
+@end verbatim
+@end smallformat
+@tab
+Explicit instruction in delay slot.
+@tab
+-
+@tab
+Signal error.   Cannot convert to compact branch.
+@item
+@smallformat
+@verbatim
+.set noreorder
+move $a0,$s0
+bal $ra, foo
+@end verbatim
+@end smallformat
+@tab
+@smallformat
+@verbatim
+move $a0,$s0
+bal $ra, foo
+<xx>
+@end verbatim
+@end smallformat
+@tab
+Unpredictable or illegal instruction in delay slot
+@tab
+@smallformat
+@verbatim
+move $a0,$s0
+balc $ra,foo
+@end verbatim
+@end smallformat
+@tab
+Delayed branch converted to compact branch,  NOP removed.
+@end multitable
+
+Finding a useful operations to perform in delay slots is important to
+get the best performance from the execution pipeline on MIPS
+architecture. Traditionally, MIPS assembly programmers have preferred to
+control the utilization of delay slots directly, rather than rely on the
+assembler. A lot of handwritten MIPS assembly follows the pattern in row
+4 above. Here reordering is disabled and the instruction in the delay
+slot is not a NOP. The nanoMIPS assembler will fail to convert the
+delayed branch to a compact branch and will signal an error.
+
+Reversing the order of the branch and the subsequent instruction is
+sufficient for the nanoMIPS assembler, as in row 5 above. However the
+output will behave unpredictably when assembled for MIPS, because
+whatever instruction or data happens to be in the delay slot position in
+the output will get executed before the branch. The safest and most
+reliable alternative is row 1. It delegates maximum control to the
+assembler and generates the most efficient code for both MIPS and
+nanoMIPS. Note that re-ordering is enabled by default on both MIPS and
+nanoMIPS. If it is not disabled any where preceding a branch fragment,
+it need not be explicitly re-enabled for each branch.
+
+
+@item @code{.set linkrelax}
+@itemx @code{.set nolinkrelax}
+@cindex Directives to control linker relaxation over a region
+@kindex @code{.set linkrelax}
+@kindex @code{.set nolinkrelax}
+The directive @code{.set linkrelax} emits a place-holder to indicate
+that linker relaxations are enabled in the following region.  When
+relaxation is enabled, the assembler will emit additional relocations
+to direct the linker.  The @code{.set nolinkrelax} directive emits
+a place-holder to indicate that linker relaxations are disabled in the
+following region.
+
+@item @code{.set legacyregs}
+@itemx @code{.set nolegacyregs}
+@cindex nanoMIPS legacy register names
+@kindex @code{.set legacyregs}
+@kindex @code{.set nolegacyregs}
+The directive @code{.set legacyregs} allows the use of MIPS-compatible
+numeric register formats. The names and usage conventions of general
+purpose registers for the nanoMIPS ABI is different from the MIPS
+ABI. The nanoMIPS assembler rejects numeric formats by default, to
+force the user to re-think register usage when porting MIPS code. The
+@code{.set nolegacyregs} directive disables these register
+identifiers.
+
+@item @code{.set macro}
+@itemx @code{.set nomacro}
 @kindex @code{.set macro}
 @kindex @code{.set nomacro}
-It is undesirable to have one assembly instruction expand
+Some times it is undesirable to have one assembly instruction expand
 to several machine instructions.  The directive @code{.set nomacro}
 tells the assembler to prohibit such expansions.  @code{.set macro}
 restores the default behavior. Note that this behaviour is a departure
 from the MIPS assembler which only warns about generation of macros
 after @code{.set nomacro}.
 
+@item @code{.set at=@var{reg}}
 @cindex @code{at} register, nanoMIPS
 @kindex @code{.set at=@var{reg}}
 Some macro instructions need a temporary register to store intermediate
@@ -302,6 +678,8 @@ but it can be changed to any core register @var{reg} using
 to @code{$1} regardless of which register is being used as the
 temporary register.
 
+@item @code{.set at}
+@itemx @code{.set noat}
 @kindex @code{.set at}
 @kindex @code{.set noat}
 Implicit uses of the temporary register in macros could interfere with
@@ -312,62 +690,389 @@ the default behavior.  It is safe to use @code{.set noat} while
 @code{.set nomacro} is in effect since single-instruction macros
 never need a temporary register.
 
-Note that while the @sc{gnu} assembler provides these macros for
-compatibility, it does not make any attempt to optimize them with the
-surrounding code.
+@item .cpsetup
+@cindex nanoMIPS GP-setup
+@kindex @code{cpsetup}
 
-@node nanoMIPS Symbol Sizes
-@section Directives to override the size of symbols
+This directive maps to a single GP-setup instruction for position
+independent code. The nanoMIPS PIC ABI guarantees that the GP will be
+4k-aligned.
+@example
+aluipc $gp, %pcrel_hi(_gp)
+@end example
 
-@kindex @code{.set sym32}
-@kindex @code{.set nosym32}
-The P64 ABI allows symbols to have any 64-bit value.  Although this
-provides a great deal of flexibility, it means that some macros have
-longer expansions than their 32-bit counterparts.  For example,
-the non-PIC expansion of @samp{dla $4,sym} is usually:
+@end table
 
-@smallexample
-dlui    $4,%hi32(sym)
-daddiu  $4,$4,%lo32(sym)
-@end smallexample
+@node nanoMIPS DataGen
+@subsection Directives for data sections
+@table @code
 
-whereas the 32-bit expansion is simply:
+@item @code{.bss}
+@cindex Zero-initialized data
+@kindex @code{.bss}
+The @code{.bss} directive starts the declaration of a zero-initialized
+data section. This can also be achieved using the @code{.section}
+directive. It is provided for compatibility with MIPS.
 
-@smallexample
-li  $4,$4,sym
-@end smallexample
+@item @code{.sbss}
+@cindex Zero-initialized data
+@kindex @code{.sbss}
+The @code{.sbss} directive starts the declaration of a zero-initialized
+small data section. This can also be achieved using the @code{.section}
+directive. It is provided for compatibility with MIPS.
 
-P64 code is sometimes constructed in such a way that all symbolic
-constants are known to have 32-bit values, and in such cases, it's
-preferable to use the 32-bit expansion instead of the 64-bit
-expansion.
+@item @code{.rdata}
+@cindex Read-only data
+@kindex @code{.rdata}
+The @code{.rdata} directive starts the declaration of a read-only data
+section. This can also be achieved using the @code{.section}
+directive. It is provided for compatibility with MIPS.
 
-You can use the @code{.set sym32} directive to tell the assembler
-that, from this point on, all expressions of the form
-@samp{@var{symbol}} or @samp{@var{symbol} + @var{offset}}
-have 32-bit values.  For example:
+@item @code{.sdata}
+@cindex Small data
+@kindex @code{.sdata}
+The @code{.sdata} directive starts the declaration of an initialized
+small data section. This can also be achieved using the @code{.section}
+directive. It is provided for compatibility with MIPS.
 
-@smallexample
-.set sym32
-dla     $4,sym
-lw      $4,sym+16
-sw      $4,sym+0x8000
-@end smallexample
+@item @code{.global}
+@kindex @code{.global}
+The @code{.global} and @code{.globl} directives supported by
+@code{@value{AS}} will by default mark the symbol as pointing to a
+region of data not code.  This means that, for example, any
+instructions following such a symbol will not be disassembled by
+@code{objdump} as it will regard them as data.  To change this
+behavior an optional section name can be placed after the symbol name
+in the @code{.global} directive.  If this section exists and is known
+to be a code section, then the symbol will be marked as pointing at
+code not data. The syntax for the directive is:
+@example
+  @code{.global @var{symbol}[ @var{section}][, @var{symbol}[ @var{section}]] ...},
+@end example
+Here is a short example:
 
-will cause the assembler to treat @samp{sym}, @code{sym+16} and
-@code{sym+0x8000} as 32-bit values.  The handling of non-symbolic
-addresses is not affected.
+@example
+        .global foo .text, bar, baz .data
+foo:
+        nop
+bar:
+        .word 0x0
+baz:
+        .word 0x1
+@end example
 
-The directive @code{.set nosym32} ends a @code{.set sym32} block and
-reverts to the normal behavior.  It is also possible to change the
-symbol size using the command-line options @option{-msym32} and
-@option{-mno-sym32}.
 
-These options and directives are always accepted, but at present,
-they have no effect for anything other than P64.
+@item @code{.sbyte}
+@cindex Signed byte expressions
+@kindex @code{.sbyte}
+@code{.sbyte} expects zero or more expressions, separated by commas.
+Each expression is assembled into the next byte, similar to @code{.byte}
+psuedo-op. The GNU assembler interprets all expressions are unsigned by
+default. If the expression for @code{.sbyte} consists of a
+label-difference, the assembler will emit necessary relocation to
+interpreted the result as a signed 8-bit value.
+
+@item @code{.shword}
+@cindex Signed half-word expressions
+@kindex @code{.shword}
+@code{.shword} expects zero or more expressions, separated by commas.
+Each expression is assembled into the next half-word, similar to
+@code{.hword} psuedo-op. If the expression consists of a
+label-difference, the assembler will emit necessary relocation to
+interpreted the result as a signed 16-bit value.
+
+@item @code{.ehword}
+@cindex Exception handler address
+@kindex @code{.ehword}
+FIXME
+@end table
+
+@node nanoMIPS Floating-Point, nanoMIPS ASE Overrides, nanoMIPS DataGen
+@subsection Directives to override floating-point options
+
+@table @code
+@item .gnu_attribute 4,[0123]
+The directives @code{.gnu_attribute 4,} selects one of the supported
+FP ABIs.  @xref{Supported FP ABIs}
+
+@item .set softfloat
+@itemx .set hardfloat
+@itemx .module softfloat
+@itemx .module hardfloat
+@kindex @code{.set softfloat}
+@kindex @code{.set hardfloat}
+@kindex @code{.module softfloat}
+@kindex @code{.module hardfloat}
+The directives @code{.set softfloat} and @code{.set hardfloat} provide
+finer control of disabling and enabling float-point instructions.
+These directives always override the default (that hard-float
+instructions are accepted) or the command-line options
+(@samp{-msoft-float} and @samp{-mhard-float}).
+
+@item .set singlefloat
+@itemx .set doublefloat
+@itemx .module singlefloat
+@itemx .module doublefloat
+@kindex @code{.set singlefloat}
+@kindex @code{.set doublefloat}
+@kindex @code{.module singlefloat}
+@kindex @code{.module doublefloat}
+The directives @code{.set singlefloat} and @code{.set doublefloat}
+provide finer control of disabling and enabling double-precision
+float-point operations.  These directives always override the default
+(that double-precision operations are accepted) or the command-line
+options (@samp{-msingle-float} and @samp{-mdouble-float}).
+
+@end table
+
+@anchor{Supported FP ABIs} @subsubsection Supported FP ABIs
+The supported floating-point ABI variants are:
+
+@table @code
+@item 0 - No floating-point
+This variant is used to indicate that floating-point is not used within
+the module at all and therefore has no impact on the ABI.  This is the
+default.
+
+@item 1 - Double-precision
+This variant indicates that double-precision support is used.  For 64-bit
+ABIs this means that 64-bit wide floating-point registers are required.
+For 32-bit ABIs this means that 32-bit wide floating-point registers are
+required and double-precision operations use pairs of registers.
+
+@item 2 - Single-precision
+This variant indicates that single-precision support is used.  Double
+precision operations will be supported via soft-float routines.
+
+@item 3 - Soft-float
+This variant indicates that although floating-point support is used all
+operations are emulated in software.  This means the ABI is modified to
+pass all floating-point data in general-purpose registers.
+
+@end table
+
+@node nanoMIPS ASE Overrides, nanoMIPS Compatibility, nanoMIPS Floating-Point
+@subsection Directives for generation of ASE instructions
+
+@table @code
+
+@item .set dspr3
+@itemx .set nodspr3
+@itemx .module dspr3
+@itemx .module nodspr3
+@cindex nanoMIPS DSP Release 3 instruction generation override
+@kindex @code{.set dspr3}
+@kindex @code{.set nodspr3}
+@kindex @code{.module dspr3}
+@kindex @code{.module nodspr3}
+The directive @code{.set dspr3} makes the assembler accept instructions
+from the DSP Release 3 Application Specific Extension from that point
+on in the assembly.  This directive implies @code{.set dsp}.  The
+@code{.set nodspr3} directive prevents DSP Release 3 instructions from
+being accepted.
+
+@item .set dsp
+@itemx .set nodsp
+@itemx .module dsp
+@itemx .module nodsp
+@kindex @code{.set dsp}
+@kindex @code{.set nodsp}
+@kindex @code{.module dsp}
+@kindex @code{.module nodsp}
+The only DSP ASE supported by nanoMIPS is Release 3. The directive
+@code{.set dsp} is equivalent to @code{.set dspr3}.
+
+@item .set eva
+@itemx .set noeva
+@itemx .module eva
+@itemx .module noeva
+@cindex nanoMIPS Enhanced Virtual Address (EVA) instruction generation override
+@kindex @code{.set eva}
+@kindex @code{.set noeva}
+@kindex @code{.module eva}
+@kindex @code{.module noeva}
+The directive @code{.set eva} makes the assembler accept instructions
+from the Enhanded Virtual Addressing extension from that point on in the
+assembly.  The @code{.set noeva} directive prevents EVA instructions
+from being accepted.
+
+@item .set ginv
+@itemx .set noginv
+@itemx .module ginv
+@itemx .module noginv
+@cindex nanoMIPS GINV instruction generation override
+@kindex @code{.set ginv}
+@kindex @code{.set noginv}
+@kindex @code{.module ginv}
+@kindex @code{.module noginv}
+The directive @code{.set ginv} makes the assembler accept instructions
+from the Global INValidate Application Specific Extension from that
+point on in the assembly.  The @code{.set noginv} directive prevents
+GINV instructions from being accepted.
+
+@item .set mcu
+@itemx .set nomcu
+@itemx .module mcu
+@itemx .module nomcu
+@cindex nanoMIPS MCU instruction generation override
+@kindex @code{.set mcu}
+@kindex @code{.set nomcu}
+@kindex @code{.module mcu}
+@kindex @code{.module nomcu}
+The directive @code{.set mcu} makes the assembler accept instructions
+from the MCU Application Specific Extension from that point on
+in the assembly.  The @code{.set nomcu} directive prevents MCU
+instructions from being accepted.
+
+@item .set mt
+@itemx .set nomt
+@itemx .module mt
+@itemx .module nomt
+@cindex nanoMIPS MT instruction generation override
+@kindex @code{.set mt}
+@kindex @code{.set nomt}
+@kindex @code{.module mt}
+@kindex @code{.module nomt}
+The directive @code{.set mt} makes the assembler accept instructions
+from the Multi Threading Application Specific Extension from that point
+on in the assembly.  The @code{.set nomt} directive prevents MT
+instructions from being accepted.
+
+@item .set tlb
+@itemx .set notlb
+@itemx .module tlb
+@itemx .module notlb
+@cindex TLB control instruction generation override
+@kindex @code{.set tlb}
+@kindex @code{.set notlb}
+@kindex @code{.module tlb}
+@kindex @code{.module notlb}
+The directive @code{.set tlb} makes the assembler accept instructions
+from the Translation Lookaside Buffer control Extension from that point
+on in the assembly.  The @code{.set notlb} directive prevents TLB
+control instructions from being accepted.
+
+@item .set virt
+@itemx .set novirt
+@itemx .module virt
+@itemx .module novirt
+@cindex Virtualization instruction generation override
+@kindex @code{.set virt}
+@kindex @code{.set novirt}
+@kindex @code{.module virt}
+@kindex @code{.module novirt}
+The directive @code{.set virt} makes the assembler accept instructions
+from the Virtualization Application Specific Extension from that point
+on in the assembly.  The @code{.set novirt} directive prevents Virtualization
+instructions from being accepted.
+
+@item .set xpa
+@itemx .set noxpa
+@itemx .module xpa
+@itemx .module noxpa
+@cindex nanoMIPS eXtended Physical Address (XPA) instruction generation override
+@kindex @code{.set xpa}
+@kindex @code{.set noxpa}
+@kindex @code{.module xpa}
+@kindex @code{.module noxpa}
+The directive @code{.set xpa} makes the assembler accept instructions
+from the eXtended Physical Address Extension from that point on in the
+assembly.  The @code{.set noxpa} directive prevents XPA instructions
+from being accepted.
+@end table
+
+@node nanoMIPS Compatibility
+@subsection Directives for compatibility with MIPS assembly
+
+These assembler directives are accepted without any verification or
+effect, for compatibility with MIPS.
+@table @code
+@item .cpadd
+@item .cpload
+@item .cplocal
+@item .crestore
+@item .cpreturn
+@item .set nomips16
+@item .set noMIPS-16
+@item .set nomicromips
+@item .set move
+@item @code{.set nomove}
+@item .set volatile
+@item .set novolatile
+@item .set nobopt
+@item .set noforbidden-slots
+@item .set oddspreg
+@end table
+
+
+@node nanoMIPS Reloc Operators
+@section Explicit Relocation Operators
+@table @code
+@item %lo
+Unsigned 12-bit low-part of 32-bit value.
+@example
+%lo(@var{X}) = @var{X} & 0xfff
+@end example
+@item %hi
+Signed 20-bit high-part of 32-bit value.
+@example
+%hi(@var{X}) = @var{X} & 0xfffff000
+@end example
+@item %gprel
+GP-relative displacement, size depends on type of operation and data layout.
+@item %gprel_hi
+Signed 20-bit high part of a GP-relative displacement.
+@item %gprel_lo
+Unsigned 12-bit low part of a GP-relative displacement.
+@item %gprel32
+Full 32-bit signed GP-relative displacement.
+@item %got_disp
+21-bit (scaled) GOT displacement for address calculation or data access.
+@item %got_call
+21-bit (scaled) GOT displacement to load address for a function call.
+@item %got_pcrel_hi
+Signed 20-bit high part of GOT displacement from next PC.
+@item %got_pcrel_lo
+Unsigned 12-bit low part of GOT displacement.
+@item %got_pcrel32
+Full 32-bit signed GOT displacement from next PC.
+@item %got_page
+Marks the first level of indirection for GOT-relative data access
+(either a load or a store).  This is relaxed out by the linker.
+@item %got_ofst
+Marks the second level of indirection for GOT-relative data access
+(either a load or a store).
+@item %pcrel_hi
+Signed 20-bit high part of PC-relative displacement.
+@item %pcrel_lo
+Unsigned 12-bit low part of PC-relative displacement.  Map to @code{%lo}.
+@item %pcrel32
+Signed 32-bit PC-relative displacement.
+@item %gp_rel
+Provided for compatibility with MIPS.  Map to @code{%gprel}.
+@item %call16
+Provided for compatibility with MIPS.  Map to @code{%got_call}.
+@item %got
+Provided for compatibility with MIPS.  Map to @code{%got_disp}.
+@item %lo32
+Low 32-bits of a 64-bit value.
+@item %hi32
+High 32-bits of a 64-bit value.
+@c @item %tlsgd	
+@c @item %tlsldm	
+@c @item %dtprel_hi	
+@c @item %dtprel_lo	
+@c @item %tprel_hi	
+@c @item %tprel_lo	
+@c @item %gottprel	
+@end table
+
+@include c-nanomips-macros.texi
+
+@include c-nanomips-aliases.texi
 
 @node nanoMIPS Small Data
-@section Controlling the use of small data accesses
+@section Small Data Access
 
 @cindex small data, nanoMIPS
 @cindex @code{gp} register, nanoMIPS
@@ -375,13 +1080,12 @@ It often takes several instructions to load the address of a symbol.
 For example, when @samp{addr} is a 32-bit symbol, the non-PIC expansion
 of @samp{dla $4,addr} is usually:
 
-@smallexample
+@example
 lui     $4,%hi(addr)
 daddiu  $4,$4,%lo(addr)
-@end smallexample
+@end example
 
-The sequence is much longer when @samp{addr} is a 64-bit symbol.
-@xref{nanoMIPS Symbol Sizes,, Directives to override the size of symbols}.
+The sequence is longer when @samp{addr} is a 64-bit symbol.
 
 In order to cut down on this overhead, most embedded nanoMIPS systems
 set aside a 64-kilobyte ``small data'' area and guarantee that all
@@ -414,263 +1118,545 @@ way that small data can be accessed using a 16-bit offset from that
 register.  For example, when @samp{addr} is small data,
 the @samp{dla $4,addr} instruction above is equivalent to:
 
-@smallexample
+@example
 daddiu  $4,$28,%gp_rel(addr)
-@end smallexample
+@end example
 
 Small data is not supported for SVR4-style PIC.
 
-@node nanoMIPS ISA
-@section Directives to override the ISA level
+@node nanoMIPS Relocations
+@section Using relocation operators for different addressing modes
 
-@cindex nanoMIPS CPU override
-@kindex @code{.set arch=@var{cpu}}
-The @code{.set arch=@var{cpu}} directive provides even finer control.
-It changes the effective CPU target and allows the assembler to use
-instructions specific to a particular CPU.  All CPUs supported by the
-@samp{-march} command line option are also selectable by this directive.
-The original value is restored by @code{.set arch=default}.
-
-@node nanoMIPS assembly options
-@section Directives to control code generation
-
-@cindex nanoMIPS directives to override command line options
-@kindex @code{.module}
-The @code{.module} directive allows command line options to be set directly
-from assembly.  The format of the directive matches the @code{.set}
-directive but only those options which are relevant to a whole module are
-supported.  The effect of a @code{.module} directive is the same as the
-corresponding command line option.  Where @code{.set} directives support
-returning to a default then the @code{.module} directives do not as they
-define the defaults.
-
-Module-level directives must appear first in assembly, before any
-instructions.
-
-@cindex nanoMIPS 32-bit microMIPS instruction generation override
-@kindex @code{.set insn32}
-@kindex @code{.set noinsn32}
-The directive @code{.set insn32} makes the assembler only use 32-bit
-instruction encodings when generating code for the microMIPS processor.
-This directive inhibits the use of any 16-bit instructions from that
-point on in the assembly.  The @code{.set noinsn32} directive allows
-16-bit instructions to be accepted.
-
-@cindex Control code/data memory models
-@kindex @code{.set mcmodel=auto}
-@kindex @code{.set mcmodel=small}
-@kindex @code{.set mcmodel=large}
-These directives specify the memory model that the assembler may
-assume for generating macros. The directive @code{.set mcmodel=auto}
-defers most decisions about the range of the code/data layout to
-link-time relaxation. It requires linker relaxation to be enabled and
-a capable linker. The directive @code{.set mcmodel=small} assumes that
-the GP-relative region (which includes the GOT) must not exceed 2MiB
-and the total code size for a final link must not exceed 32MiB. The
-directive @code{.set mcmodel=large} implies no limits<FIXME not true for
-64-bits, perhaps specify a 2GB limit>.
-
-@node nanoMIPS insn
-@section Directive to mark data as an instruction
-
-@kindex @code{.insn}
-The @code{.insn} directive tells @code{@value{AS}} that the following
-data is actually instructions.  This makes a difference in nanoMIPS 16 and
-microMIPS modes: when loading the address of a label which precedes
-instructions, @code{@value{AS}} automatically adds 1 to the value, so
-that jumping to the loaded address will do the right thing.
-
-@kindex @code{.global}
-The @code{.global} and @code{.globl} directives supported by
-@code{@value{AS}} will by default mark the symbol as pointing to a
-region of data not code.  This means that, for example, any
-instructions following such a symbol will not be disassembled by
-@code{objdump} as it will regard them as data.  To change this
-behavior an optional section name can be placed after the symbol name
-in the @code{.global} directive.  If this section exists and is known
-to be a code section, then the symbol will be marked as pointing at
-code not data.  Ie the syntax for the directive is:
-
-  @code{.global @var{symbol}[ @var{section}][, @var{symbol}[ @var{section}]] ...},
-
-Here is a short example:
-
-@example
-        .global foo .text, bar, baz .data
-foo:
-        nop
-bar:
-        .word 0x0
-baz:
-        .word 0x1
-
-@end example
-
-@node nanoMIPS FP ABIs
-@section Directives to control the FP ABI
 @menu
-* nanoMIPS FP ABI Variants::               Supported FP ABIs
-* nanoMIPS FP ABI Compatibility::          Linking different FP ABI variants
+* Optimized GP-relative access::
+* General GP-relative access::
+* 32-bit absolute addressing and immediate construction::
+* 64-bit absolute addressing and immediate construction::
+* PC-relative addressing::
+* Indirect addressing for small PIC model::
+* Indirect addressing for large PIC model::
 @end menu
 
-@node nanoMIPS FP ABI Variants
-@subsection Supported FP ABIs
-The supported floating-point ABI variants are:
+@node Optimized GP-relative access, General GP-relative access, 
+@subsection Optimized GP-relative access
+
+The nanoMIPS architecture allows various fundamental data types, up to
+16 bytes in size, to be accessed directly relative to the designated
+Global Pointer ($gp) register. GP-relative access allows for data
+load/store and address calculations to be performed in a single 16 or
+32-bit instruction, using an offset from the $gp register. The range
+of the offset and hence the size of the reachable GP-relative region,
+also called the small data region, varies with the type, size and
+alignment of the data object being accessed. These limits form the
+basis of the medium memory model.
+
+
+@multitable @columnfractions .4 .6
+@headitem Data type @tab GP-relative offset range
+@item aligned word	@tab 19-bit scaled ( 2MiB)
+@item aligned dword	@tab 18-bit scaled (2MiB)
+@item aligned half-word	@tab 17-bit scaled (512KiB)
+@item aligned float	@tab 16-bit scaled (512KiB)
+@item [word] aligned double	@tab 16-bit scaled (512KiB)
+@item unaligned word	@tab 18-bit (512KiB)
+@item unaligned dword	@tab 18-bit (512KiB)
+@item unaligned half-word	@tab 18-bit (512KiB)
+@item byte	@tab 18-bit (512KiB)
+@end multitable
+
+The object file contains relocations which the linker attempts to
+resolve when doing the data layout. Even with the medium memory model,
+there is no guarantee that all GP-relative accesses will be
+optimized. If the linker can not find a data layout that allows all
+GP-relative accesses to be optimized, it will either
+
+@itemize
+@item
+Expand some accesses to use multiple instructions: this indicates that
+although the total amount of small data is less than 2MB, the offset
+range requirements for all types/alignment cannot be satisfied. The
+linker can rewrite some accesses to use multiple
+instructions. However, if expansion is inhibited or not implemented,
+the link will fail.
+@item
+Fail to link: this indicates that the total amount of small data is
+greater than 2MB. The solution is to recompile with using either the
+large or the automatic memory model.
+@end itemize
+
+Thus, the linker has final control of whether optimized GP-relative
+access is viable. Assembler directives can be used to disallow
+expansions at either module-level or per-access. See section <FIXME:
+link to Controlling link-time transformations> for details. Assembly
+language syntax for requesting GP-relative access consists of 2
+elements:
+@subsubsection Explicitly requested GP-relative access
+
+The user can explicitly request GP-relative access with the %gprel
+relocation operator. This operator can only be used for load/store
+instructions with $gp as the base register or address calculation with
+$gp as a source operand. The assembler will match the operation and
+select the an appropriate relocation for each access. Examples:
+@example
+    lw $a0, %gprel(foo)($gp)
+    l.s $f0, %gprel(bar)($gp)
+    addiu $a0, %gprel(foo)($gp)
+@end example
+
+By itself, this does not guarantee that foo will end up within the
+small data region. If the layout is such that it happens to be within
+range, the link will succeed. Otherwise the linker may fail or expand
+the operation to multiple instructions, as explained above.
+@subsubsection Implicit GP-relative access through canonical named sections
+
+Small data sections are typically named `.sbss' (zero-initialized) or
+`.sdata'. The linker places these sections close to $gp and complains
+if they are outside the GP-relative range. If access to an object
+within a small data sections is made by assembler macros, where the
+addressing mode is unspecified, the assembler will choose a
+GP-relative expansion.
+
+@example
+    lw $a0, foo
+    @expansion{} lw $a0, %gprel(foo) ($gp)
+
+    la $a0, bar
+    @expansion{} addiu $a0, %gprel(foo) ($gp)
+@end example
+Declaration of data in small data sections can be by naming sections
+using the .section directive or by comm/lcomm/extern declarations,
+provided the declared size of the object is less than the small data
+limit specified by -Gnum.
+
+The compiler uses a combination of data declaration in named small
+data sections and explicitly requested GP-relative access in
+instructions in order to guarantee GP-relative access.
+
+@node General GP-relative access, 32-bit absolute addressing and immediate construction, Optimized GP-relative access
+@subsection General GP-relative access
+
+If optimized access is not an objective, the full 32-bit address space
+is reachable by GP-relative addressing. This corresponds to the large
+memory model. For address calculation with full nanoMIPS ISA, use the
+48-bit instruction
+
+@example
+    addiu $a0, %gprel32(foo), $gp
+@end example
+
+With only 32-bit instructions or when restricted to the nanoMIPS
+subset, use the following sequence:
+
+@example
+    lui $a0, %gprel_hi (foo)
+    ori $a0, $a0, %gprel_lo(foo)
+    addu $a0, $a0, $gp
+@end example
+
+For loads/stores use the following sequence:
+
+@example
+    lui $a0, %gprel_hi (foo)
+    addu $a0, $a0, $gp
+    lw $a0, %gprel_lo(foo) ($a0)
+@end example
+
+With a linker capable of doing expansions, the preferred approach is
+to use the automatic memory model with optimized GP-relative
+sequences. The linker will convert select accesses to non-optimized
+sequences where necessary.
+
+
+@node 32-bit absolute addressing and immediate construction
+@subsection 32-bit absolute addressing and immediate construction
+
+The nanoMIPS assembler provides macros which automatically find the
+best way to materialize an address of immediate value in a
+register. The macros are called li and la for constants and addresses
+respectively. This section demonstrates explicit coding methods for
+predictable code size and addressing modes.
+
+Address calculation for full nanoMIPS ISA with 48-bit instructions can
+trivially be done with
+
+@example
+    li $a0, foo
+@end example
+
+With only 32-bit instructions or when restricted to the nanoMIPS
+subset, use the following combination:
+
+@example
+    lui $a0, %hi(foo)
+    ori $a0, %lo(foo)
+@end example
+
+Immediate construction for full nanoMIPS ISA can be trivially done with:
+
+@example
+    li $a0, @var{imm}
+@end example
+
+Here, depending on the immediate value, the assembler will pick a
+16-bit, 32-bit or 48-bit instruction.
+
+For immediate construction using only 32-bit instructions, or when
+restricted to the nanoMIPS subset, the preferred option is:
+
+@example
+    lui $a0, %hi(@var{imm})
+    ori $a0, %lo(@var{imm})
+@end example
+
+This sequence breaks the immediate value in to a 20-bit high part and
+a 12-bit unsigned low part. However, the traditional (16-bit high +
+16-bit signed-low) form, typical to MIPS, is also supported:
+
+@example
+    lui $a0, @code{imm_hi16}
+    addiu $a0,  @code{imm_lo16}
+@end example
+
+Here, 
+@display
+@code{imm_lo16} = (short) @code{imm} and @code{imm_hi16} = ((@code{imm} - @code{imm_lo16}) >> 16)
+@end display
+These interpretations borrow from the definition of %hi & %lo on
+MIPS, so that MIPS code can continue to work correctly on
+nanoMIPS. Note the use of ADDIU instruction for the signed low-part.
+
+@node 64-bit absolute addressing and immediate construction
+@subsection 64-bit absolute addressing and immediate construction
+
+64-bit address calculation requires two 48-bit instructions as follows:
+
+@example
+    dlui $a0, %hi32 (foo)
+    daddiu $a0, $a0, %lo(foo)
+@end example
+
+To load 64-bit immediate value, just replace the symbol with a literal
+in the above sequence:
+
+@example
+    dlui $a0, %hi32 (@var{imm})
+    daddiu $a0, $a0, %lo32(@var{imm})
+@end example
+
+Note that hi32 and lo32 do not directly correspond to the higher and
+lower 32-bits of the immediate value. The addition step requires a
+signed 32-bit value. The break up is defined as:
+
+@display
+    %lo32(x) = (int) x
+    %hi32(x) = (x - %lo32(x)) >> 32
+@end display
+
+@node PC-relative addressing
+@subsection PC-relative addressing
+
+Address calculation within a +-1MB region of current PC can be done
+with a single 32-bit instruction:
+
+@example
+    lapc $a0, foo
+@end example
+
+For full nanoMIPS ISA, the above selects a 48-bit instruction which
+can reach any address within 32-bits (+-2GB) of the PC.
+
+For address calculation using only 32-bit instructions, or when
+restricted to the nanoMIPS subset, use:
+
+@example
+    aluipc $a0, %pcrel_hi (foo)
+    ori $a0, $a0, %lo(foo)
+@end example
+
+The ALUIPC instruction generates a 4k-aligned address, unlike
+MIPS. This can be considered as the address of the 4k page that
+contains the address foo. The subsequent ORI introduces the offset
+within that 4k page and is not really PC-relative. The user can insert
+any number of instructions between the high & low part calculations
+above, without having to adjust the addend for the low part. Owing to
+these differences, the typical MIPS PC-relative address calculation
+fragment below will NOT work correctly on nanoMIPS:
+
+@example
+    aluipc $a0, %pcrel_hi (foo) ; not 4k-aligned
+    ori $a0, $a0, %pcrel_lo(foo+4) ; addend reflects difference in PC of high and low steps
+@end example
+
+PC-relative address calculation typically needs more power than the
+corresponding absolute address calculation. The latter should be
+preferred for low-power applications, whenever possible.
+
+@node Indirect addressing for small PIC model
+@subsection Indirect addressing for small PIC model (-fpic)
+
+The linker places the GOT section in the small data area. GOT entries
+can be directly accessed as:
+
+@example
+    lw $a0, %got_disp (foo) ($gp)
+@end example
+
+This mechanism is agnostic to symbol visibility or preemption. A
+capable linker will relax or expand the sequence to optimized the
+access. The linker may also place small data directly in the
+GP-relative region, so even when the GOT section is less than 2MiB, it
+may be too big to satisfy medium memory model constraints.
+
+@node Indirect addressing for large PIC model
+@subsection Indirect addressing for large PIC model (-fPIC)
+
+When the GOT spills out of the GP-relative range, 32-bit displacements
+are required. Calculating displacements relative to the PC instead of
+GP is preferred, since it gives shorter load sequences. For the full
+nanoMIPS ISA, this can be done with a single 48-bit instruction:
+
+@example
+    lwpc $a0, %got_pcrel32 (foo)
+@end example
+
+For address calculation using only 32-bit instructions, or when
+restricted to the nanoMIPS subset, use:
+
+@example
+    aluipc $a0, %got_pcrel_hi (foo)
+    lw $a0, %got_lo (foo) ($a0)
+@end example
+
+As with GP-relative access, the preferred approach is to use small PIC
+sequences and let the linker convert select accesses to large PIC
+sequences where necessary.
+
+
+@node nanoMIPS Instruction Selection
+@section Controlling Instruction Selection
+
+@subsection Syntax for instruction selection
+
+The nanoMIPS ISA can use the same primary mnemonic to denote multiple
+target instructions. This happens when the ISA has encodings of an
+instruction with different instruction sizes, or of same instruction
+size but with different operand types. The assembler syntax allows 2
+ways for the user to specify the target instruction for such a
+mnemonic:
+
+@enumerate
+@item
+Size-suffixes (16/32/48) can be used to force the instruction size. If
+there is no instruction of the specified size of if the operands do
+not match for that size, the instruction will be rejected. It is
+guaranteed that neither the assembler nor the linker will expand an
+explicitly sized instruction in to multiple instructions. The linker
+may still translate this instruction to another, more efficient
+instruction of the same size.
+
+@example
+    balc16 foo        # 16-bit call, fails if foo is outside 11-bit signed range
+    li32 $a0, 100    # force 32-bit instruction even though 16-bit encoding is possible
+    addiu48 $a0, $a1, 1000    # force 48-bit instruction even though 32-bit encoding is possible
+@end example
+
+By default, the assembler will always select the smallest sized
+instruction for the given operands. Size suffixes are useful when
+constructing branch tables, to ensure that all blocks within the table
+have the same size.
+
+@item
+Format suffixes from the architecture reference manual can also be
+used to select a specific encoding. Suffixes are enclosed in square
+brackets, matching the convention used in the architecture
+reference. If the operands do not match the format suffix, the
+instruction will be rejected.  It is guaranteed that neither the
+assembler nor the linker will expand an explicitly selected
+instruction in to multiple instructions or translate it in to any
+other instruction.
+
+@example
+    addiu[gp.w] $a0, $gp, %gprel(foo)    # force word-aligned GP-relative  address calculation
+    lw[s9] $a0, 128($a1)     # load word with  signed 9-bit offset when unsigned 12-bit is possible
+    addu[4x4] $s2, $s3, $s2     # select  4-bit register encoding
+@end example
+
+The ability to specify format suffixes serves little practical
+purpose, since the tools will try to find the most efficient encoding
+for an operation. It is provided as an aid for development and
+testing. For example, the @code{[4x4]} suffix in the case above forces the
+assembler to check whether the operands satisfy the requested
+encoding.
+@end enumerate
+
+@subsection Options to control instruction disassembly
+
+The assembler provides multiple instruction formats and mnemonics to
+target the same instruction encoding by means of 1:1 aliases. There
+are 2 disassembler options that control how instructions may be
+disassembled:
 
 @table @code
-@item 0 - No floating-point
-This variant is used to indicate that floating-point is not used within
-the module at all and therefore has no impact on the ABI.  This is the
-default.
+@item -Mno-aliases
+Disassembles all variants of an instruction to its most generic
+representation
 
-@item 1 - Double-precision
-This variant indicates that double-precision support is used.  For 64-bit
-ABIs this means that 64-bit wide floating-point registers are required.
-For 32-bit ABIs this means that 32-bit wide floating-point registers are
-required and double-precision operations use pairs of registers.
-
-@item 2 - Single-precision
-This variant indicates that single-precision support is used.  Double
-precision operations will be supported via soft-float routines.
-
-@item 3 - Soft-float
-This variant indicates that although floating-point support is used all
-operations are emulated in software.  This means the ABI is modified to
-pass all floating-point data in general-purpose registers.
-
+@item -Mshow-arch-insn
+Prints the format suffix for each instruction in square brackets
+according to the architecture reference manual. This only affects the
+disassembly of those instructions that have format suffixes.
 @end table
 
-@node nanoMIPS FP ABI Compatibility
-@subsection Linking different FP ABI variants
-<FIXME>
+@node nanoMIPS Transformations
+@section Controlling Linker Relaxation
 
-@node nanoMIPS Option Stack
-@section Directives to save and restore options
+nanoMIPS ABI provides support for linker relaxations and
+expansions. Relaxation means that the linker can remove a group of
+instructions (typically, 1 or 2) or translate them in to more
+efficient sequences. Expansion is the translation of an instruction
+which would be out-of-range due to code and data layout, in to an
+sequence capable of expressing the necessary extended range. The
+assembler provides directives and command-line options to control the
+transformations.
 
-@cindex nanoMIPS option stack
-@kindex @code{.set push}
-@kindex @code{.set pop}
-The directives @code{.set push} and @code{.set pop} may be used to save
-and restore the current settings for all the options which are
-controlled by @code{.set}.  The @code{.set push} directive saves the
-current settings on a stack.  The @code{.set pop} directive pops the
-stack and restores the settings.
+@menu
+* nanoMIPS relax modules:: Module level control
+* nanoMIPS relax fragments:: Controlling relaxation of code fragments
+* nanoMIPS relax special:: Special handling of assembly constructs
+@end menu
 
-These directives can be useful inside an macro which must change an
-option such as the ISA level or instruction reordering but does not want
-to change the state of the code which invoked the macro.
+@node nanoMIPS relax modules, nanoMIPS relax fragments, 
+@subsection Module level control
 
-Traditional nanoMIPS assemblers do not support these directives.
+Linker relaxations is disabled by default in the assembler. It can be
+enabled for an assembly unit using the command-line option
+@option{--linkrelax} The assembly directive @code{.linkrelax'} also
+has the same effect. It must be specified before any instruction in
+the assembly file.
 
-@node nanoMIPS ASE Instruction Generation Overrides
-@section Directives to control generation of nanoMIPS ASE instructions
+@node nanoMIPS relax fragments, nanoMIPS relax special, nanoMIPS relax modules
+@subsection Controlling relaxation of code fragments
 
-@cindex nanoMIPS DSP Release 1 instruction generation override
-@kindex @code{.set dsp}
-@kindex @code{.set nodsp}
-The directive @code{.set dsp} makes the assembler accept instructions
-from the DSP Release 1 Application Specific Extension from that point
-on in the assembly.  The @code{.set nodsp} directive prevents DSP
-Release 1 instructions from being accepted.
+@subsubsection Control by blocks
 
-@cindex nanoMIPS DSP Release 2 instruction generation override
-@kindex @code{.set dspr2}
-@kindex @code{.set nodspr2}
-The directive @code{.set dspr2} makes the assembler accept instructions
-from the DSP Release 2 Application Specific Extension from that point
-on in the assembly.  This directive implies @code{.set dsp}.  The
-@code{.set nodspr2} directive prevents DSP Release 2 instructions from
-being accepted.
+The directive @code{.set nolinkrelax} can be used to inhibit relaxation
+within an assembly file, until a corresponding @code{.set linkrelax}
+directive is encountered. This is only effective when linker
+relaxation is enabled for the assembly unit. This can be used for
+low-level code which employs fixed PC-relative offsets or for vectored
+tables where each code element must be of the same fixed size. These
+directives cause the assembler to emit relocations to mark the point
+where relaxation is to be enabled or disabled.
 
-@cindex nanoMIPS MT instruction generation override
-@kindex @code{.set mt}
-@kindex @code{.set nomt}
-The directive @code{.set mt} makes the assembler accept instructions
-from the MT Application Specific Extension from that point on
-in the assembly.  The @code{.set nomt} directive prevents MT
-instructions from being accepted.
 
-@cindex nanoMIPS MCU instruction generation override
-@kindex @code{.set mcu}
-@kindex @code{.set nomcu}
-The directive @code{.set mcu} makes the assembler accept instructions
-from the MCU Application Specific Extension from that point on
-in the assembly.  The @code{.set nomcu} directive prevents MCU
-instructions from being accepted.
+For example, the following fragment disables linker relaxation only
+for the setup and call to foo:
 
-@cindex nanoMIPS SIMD Architecture instruction generation override
-@kindex @code{.set msa}
-@kindex @code{.set nomsa}
-The directive @code{.set msa} makes the assembler accept instructions
-from the nanoMIPS SIMD Architecture Extension from that point on
-in the assembly.  The @code{.set nomsa} directive prevents MSA
-instructions from being accepted.
+@example
+    .set nolinkrelax
+    beq $a0, $a1, 8
+    move $a0, $t8
+    sw $a4, 0($t8)
+    balc foo
+    .set linkrelax
+@end example
 
-@cindex Virtualization instruction generation override
-@kindex @code{.set virt}
-@kindex @code{.set novirt}
-The directive @code{.set virt} makes the assembler accept instructions
-from the Virtualization Application Specific Extension from that point
-on in the assembly.  The @code{.set novirt} directive prevents Virtualization
-instructions from being accepted.
+The following fragment disables linker relaxation for the function foo:
+@example
+        .text
+        .set nolinkrelax
+        .type    foo,@@function
+    foo:
+        ...
+        jr $ra
+        .set linkrelax
+@end example
 
-@cindex nanoMIPS eXtended Physical Address (XPA) instruction generation override
-@kindex @code{.set xpa}
-@kindex @code{.set noxpa}
-The directive @code{.set xpa} makes the assembler accept instructions
-from the XPA Extension from that point on in the assembly.  The 
-@code{.set noxpa} directive prevents XPA instructions from being accepted.
+@subsubsection One instruction at a time
 
-@cindex XBurst MXU instruction generation override
-@kindex @code{.set mxu}
-@kindex @code{.set nomxu}
-The directive @code{.set mxu} makes the assembler accept instructions
-from the MXU Extension from that point on in the assembly.  The
-@code{.set nomxu} directive prevents MXU instructions from being accepted.
+Each instruction can be marked to say that no relaxation or
+transformation is to be performed on this instruction. This is done
+the creating an explicit R_NANOMIPS_FIXED relocation for it. This is
+automatically extended to cases where the user requests an instruction
+with a specific encoding. For example, both fragments below have the
+same effect, which is to disallow any kind of transformation by the
+linker, even as the PC-relative relocation gets fixed up correctly.
 
-@cindex TLB control instruction generation override
-@kindex @code{.set tlb}
-@kindex @code{.set notlb}
-The directive @code{.set tlb} makes the assembler accept instructions
-from the TLB control Extension from that point on in the assembly.
-The @code{.set notlb} directive prevents TLB control instructions from
-being accepted.
+@example
+        .reloc    1f, R_NANOMIPS_FIXED
+    1:    lapc $a0, foo
+@end example
 
-@node nanoMIPS Floating-Point
-@section Directives to override floating-point options
+@example
+    lapc[32] $a0, foo
+@end example
+@subsubsection By instruction size
 
-@cindex Disable floating-point instructions
-@kindex @code{.set softfloat}
-@kindex @code{.set hardfloat}
-The directives @code{.set softfloat} and @code{.set hardfloat} provide
-finer control of disabling and enabling float-point instructions.
-These directives always override the default (that hard-float
-instructions are accepted) or the command-line options
-(@samp{-msoft-float} and @samp{-mhard-float}).
+It is possible to let the linker perform translations while keeping
+the instruction size fixed. The assembler does this automatically when
+an instruction has a size-suffix. This is useful for creating branch
+tables or vector tables, where each element is required to have the
+same size, specified at assembly time. For example,
+@example
+    vtable:
+        bc32 foo
+        bc32 bar
+        bc32 baz
+@end example
+@node nanoMIPS relax special, , nanoMIPS relax fragments
+@subsection Special handling of assembly constructs
 
-@cindex Disable single-precision floating-point operations
-@kindex @code{.set singlefloat}
-@kindex @code{.set doublefloat}
-The directives @code{.set singlefloat} and @code{.set doublefloat}
-provide finer control of disabling and enabling double-precision
-float-point operations.  These directives always override the default
-(that double-precision operations are accepted) or the command-line
-options (@samp{-msingle-float} and @samp{-mdouble-float}).
+Certain assembly constructs need special handling by way of marker
+relocations to allow linker translations to happen correctly. The
+objective is to capture all the information necessary to preserve
+correctness, that is available at assembly time but not available at
+link time.
 
-@node nanoMIPS Linker Relaxation
-@section Directives to control linker relaxation over a region
+@subsubsection Alignment Directives
 
-@kindex @code{.set linkrelax}
-@kindex @code{.set nolinkrelax}
-The directive @code{.set linkrelax} emits a place-holder to indicate
-that linker relaxations are enabled in the following region.  When
-relaxation is enabled, the assembler will emit additional relocations
-to direct the linker. The @code{.set nolinkrelax} directive emits 
-a place-holder to indicate that linker relaxations are disabled in the
-following region.
+Alignment directives have the effect of padding the location counter
+to a specific boundary. The GNU assembler also accepts a fill pattern
+to be used for the padding and the maximum amount of padding to be
+inserted. When the linker expands or relaxes instructions, any
+alignment point following those instructions is liable to move. If the
+alignment point moves backwards, some of the padding inserted by the
+assembler can be removed. If it move forward, more padding, possible
+of a user-specified pattern needs to be inserted. In this case, the
+total amount of padding, including what is inserted by the assembler
+and the linker, must not exceed the user-specified maximum
+padding. The assembler will emit an R_NANOMIPS_ALIGN relocation for
+each alignment point and an R_NANOMIPS_FILL relocation where
+user-specified padding is required. The exact details of the alignment
+and padding relocations are covered in the nanoMIPS P32 ABI reference
+(FIXME: official name here?).
+
+@subsubsection Save/restore markers
+
+The nanoMIPS ABI allows SAVE & RESTORE instructions to be relaxed from
+32-bit to 16-bit encodings as a consequence of GP-setup
+optimization. These instructions are not relocated, so the linker
+needs additional markers to be emitted in order to find these
+instructions. These markers are needed only when generated position
+independent code, if the assembler selects a 32-bit encoding for a
+SAVE or RESTORE operation and saves $gp. These markers are emitted
+automatically by the assembler when relaxations are enabled.
+
+@subsubsection Label-difference expressions
+
+Label difference expressions are used to create jump tables and
+calculate code offsets. If any code between 2 labels undergoes
+relaxation or expansion, the difference between the labels can
+change. On the other hand, if there is no relocation or relaxable code
+between 2 labels, then their difference can be considered as constant,
+or fixed at assembly. A label difference that can change due to
+relaxation must be represented by relocations so that it may be
+re-calculated after relaxation. The assembler takes care of deciding
+if label difference relocations are needed and emitting them, so the
+user can use label differences in assembly code even in the presence
+of linker relaxation.
 
 @node nanoMIPS Syntax
-@section Syntactical considerations for the nanoMIPS assembler
+@section Syntactical Considerations
 @menu
 * nanoMIPS-Chars::                Special Characters
 @end menu
@@ -693,197 +1679,3 @@ preprocessor control command (@pxref{Preprocessing}).
 @cindex nanoMIPS line separator
 The @samp{;} character can be used to separate statements on the same
 line.
-
-@node nanoMIPS Relocations
-@section Using relocation operators for different addressing modes
-
-@menu
-* Optimized GP-relative access::
-* General GP-relative access::
-* 32-bit absolute addressing and immediate construction::
-* 64-bit absolute addressing and immediate construction::
-* PC-relative addressing::
-* Indirect addressing for small PIC model::
-* Indirect addressing for large PIC model::
-@end menu
-
-@node Optimized GP-relative access
-@subsection Optimized GP-relative access
-
-The nanoMIPS architecture allows various fundamental data types, up to 16 bytes in size, to be accessed directly relative to the designated Global Pointer ($gp) register. GP-relative access allows for data load/store and address calculations to be performed in a single 16 or 32-bit instruction, using an offset from the $gp register. The range of the offset and hence the size of the reachable GP-relative region, also called the small data region, varies with the type, size and alignment of the data object being accessed. These limits form the basis of the medium memory model.
-
-
-@multitable @columnfractions .4 .6
-@headitem Data type @tab GP-relative offset range
-@item aligned word	@tab 19-bit scaled ( 2MiB)
-@item aligned dword	@tab 18-bit scaled (2MiB)
-@item aligned half-word	@tab 17-bit scaled (512KiB)
-@item aligned float	@tab 16-bit scaled (512KiB)
-@item [word] aligned double	@tab 16-bit scaled (512KiB)
-@item unaligned word	@tab 18-bit (512KiB)
-@item unaligned dword	@tab 18-bit (512KiB)
-@item unaligned half-word	@tab 18-bit (512KiB)
-@item byte	@tab 18-bit (512KiB)
-@end multitable
-
-The object file contains relocations which the linker attempts to resolve when doing the data layout. Even with the medium memory model, there is no guarantee that all GP-relative accesses will be optimized. If the linker can not find a data layout that allows all GP-relative accesses to be optimized, it will either
-
-    Expand some accesses to use multiple instructions: this indicates that although the total amount of small data is less than 2MB, the offset range requirements for all types/alignment cannot be satisfied. The linker can rewrite some accesses to use multiple instructions. However, if expansion is inhibited or not implemented, the link will fail.
-    Fail to link: this indicates that the total amount of small data is greater than 2MB. The solution is to recompile with using either the large or the automatic memory model.
-
-Thus, the linker has final control of whether optimized GP-relative access is viable. Assembler directives can be used to disallow expansions at either module-level or per-access. See section <FIXME: link to Controlling link-time transformations> for details. Assembly language syntax for requesting GP-relative access consists of 2 elements:
-Explicitly requested GP-relative access
-
-The user can explicitly request GP-relative access with the %gprel relocation operator. This operator can only be used for load/store instructions with $gp as the base register or address calculation with $gp as a source operand. The assembler will match the operation and select the an appropriate relocation for each access. Examples:
-
-    lw $a0, %gprel(foo)($gp)
-
-    l.s $f0, %gprel(bar)($gp)
-
-    addiu $a0, %gprel(foo)($gp)
-
-By itself, this does not guarantee that foo will end up within the small data region. If the layout is such that it happens to be within range, the link will succeed. Otherwise the linker may fail or expand the operation to multiple instructions, as explained above.
-Implicit GP-relative access through canonical named sections
-
-Small data sections are typically named `.sbss' (zero-initialized) or `.sdata'. The linker places these sections close to $gp and complains if they are outside the GP-relative range. If access to an object within a small data sections is made by assembler macros, where the addressing mode is unspecified, the assembler will choose a GP-relative expansion.
-
-    lw $a0, foo
-
-    => lw $a0, %gprel(foo) ($gp)
-
-    la $a0, bar
-
-    => addiu $a0, %gprel(foo) ($gp)
-
-Declaration of data in small data sections can be by naming sections using the .section directive or by comm/lcomm/extern declarations, provided the declared size of the object is less than the small data limit specified by -Gnum.
-
-The compiler uses a combination of data declaration in named small data sections and explicitly requested GP-relative access in instructions in order to guarantee GP-relative access.
-
-@node General GP-relative access
-@subsection General GP-relative access
-
-If optimized access is not an objective, the full 32-bit address space is reachable by GP-relative addressing. This corresponds to the large memory model. For address calculation with full nanoMIPS ISA, use the 48-bit instruction
-
-    addiu $a0, %gprel32(foo), $gp
-
-With only 32-bit instructions or when restricted to the nanoMIPS subset, use the following sequence:
-
-    lui $a0, %gprel_hi (foo)
-
-    ori $a0, $a0, %gprel_lo(foo)
-
-    addu $a0, $a0, $gp
-
-For loads/stores use the following sequence:
-
-    lui $a0, %gprel_hi (foo)
-
-    addu $a0, $a0, $gp
-
-    lw $a0, %gprel_lo(foo) ($a0)
-
-With a linker capable of doing expansions, the preferred approach is to use the automatic memory model with optimized GP-relative sequences. The linker will convert select accesses to non-optimized sequences where necessary.
-
-
-@node 32-bit absolute addressing and immediate construction
-@subsection 32-bit absolute addressing and immediate construction
-
-The nanoMIPS assembler provides macros which automatically find the best way to materialize an address of immediate value in a register. The macros are called li and la for constants and addresses respectively. This section demonstrates explicit coding methods for predictable code size and addressing modes.
-
-Address calculation for full nanoMIPS ISA with 48-bit instructions can trivially be done with
-
-    li $a0, foo
-
-With only 32-bit instructions or when restricted to the nanoMIPS subset, use the following combination:
-
-    lui $a0, %hi(foo)
-
-    ori $a0, %lo(foo)
-
-Immediate construction for full nanoMIPS ISA can be trivially done with:
-
-    li $a0, <imm>
-
-Here, depending on the immediate value, the assembler will pick a 16-bit, 32-bit or 48-bit instruction.
-
-For immediate construction using only 32-bit instructions, or when restricted to the nanoMIPS subset, the preferred option is:
-
-    lui $a0, %hi(imm)
-
-    ori $a0, %lo(imm)
-
-This sequence breaks the immediate value in to a 20-bit high part and a 12-bit unsigned low part. However, the traditional (16-bit high + 16-bit signed-low) form, typical to MIPS, is also supported:
-
-    lui $a0, imm_hi16
-
-    addiu $a0,  imm_lo16
-
-Here, imm_lo16 = (short) imm and imm_hi16 = ((imm - imm_lo16) >> 16). These interpretations borrow from the definition of %hi & %lo on MIPS, so that MIPS code can continue to work correctly on nanoMIPS. Note the use of ADDIU instruction for the signed low-part.
-
-@node 64-bit absolute addressing and immediate construction
-@subsection 64-bit absolute addressing and immediate construction
-
-64-bit address calculation requires two 48-bit instructions as follows:
-
-    dlui $a0, %hi32 (foo)
-
-    daddiu $a0, $a0, %lo(foo)
-
-To load 64-bit immediate value, just replace the symbol with a literal in the above sequence:
-
-    dlui $a0, %hi32 (imm)
-
-    daddiu $a0, $a0, %lo32(imm)
-
-Note that hi32 and lo32 do not directly correspond to the higher and lower 32-bits of the immediate value. The addition step requires a signed 32-bit value. The break up is defined as:
-
-    %lo32(x) = (int) x
-
-    %hi32(x) = (x - %lo32(x)) >> 32
-
-@node PC-relative addressing
-@subsection PC-relative addressing
-
-Address calculation within a + 1MB region of current PC can be done with a single 32-bit instruction:
-
-    lapc $a0, foo
-
-For full nanoMIPS ISA, the above selects a 48-bit instruction which can reach any address within 32-bits (+ 2GB) of the PC.
-
-For address calculation using only 32-bit instructions, or when restricted to the nanoMIPS subset, use:
-
-    aluipc $a0, %pcrel_hi (foo)
-
-    ori $a0, $a0, %lo(foo)
-
-The ALUIPC instruction generates a 4k-aligned address, unlike MIPS. This can be considered as the address of the 4k page that contains the address foo. The subsequent ORI introduces the offset within that 4k page and is not really PC-relative. The user can insert any number of instructions between the high & low part calculations above, without having to adjust the addend for the low part. Owing to these differences, the typical MIPS PC-relative address calculation fragment below will NOT work correctly on nanoMIPS:
-
-    aluipc $a0, %pcrel_hi (foo) ; not 4k-aligned
-
-    ori $a0, $a0, %pcrel_lo(foo+4) ; addend reflects difference in PC of the high and low calculation
-
-PC-relative address calculation typically needs more power than the corresponding absolute address calculation. The latter should be preferred for low-power applications, whenever possible.
-
-@node Indirect addressing for small PIC model
-@subsection Indirect addressing for small PIC model (-fpic)
-
-The linker places the GOT section in the small data area. GOT entries can be directly accessed as:
-
-    lw $a0, %got_disp (foo) ($gp)
-
-This mechanism is agnostic to symbol visibility or preemption. A capable linker will relax or expand the sequence to optimized the access. The linker may also place small data directly in the GP-relative region, so even when the GOT section is less than 2MiB, it may be too big to satisfy medium memory model constraints.
-
-@node Indirect addressing for large PIC model
-@subsection Indirect addressing for large PIC model (-fPIC)
-
-When the GOT spills out of the GP-relative range, 32-bit displacements are required. Calculating displacements relative to the PC instead of GP is preferred, since it gives shorter load sequences. For the full nanoMIPS ISA, this can be done with a single 48-bit instruction:
-
-    lwpc $a0, %got_pcrel32 (foo)
-
-For address calculation using only 32-bit instructions, or when restricted to the nanoMIPS subset, use:
-
-    aluipc $a0, %got_pcrel_hi (foo)
-
-    lw $a0, %got_lo (foo) ($a0)
-
-As with GP-relative access,  the preferred approach is to use small PIC sequences and let the linker convert select accesses to large PIC sequences where necessary.
