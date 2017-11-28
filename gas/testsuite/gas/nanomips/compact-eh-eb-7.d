@@ -1,7 +1,7 @@
 #objdump: -sr
 #name: Compact EH EB #7 with personality id and fallback FDE
 #source: compact-eh-7.s
-#as: -EB --linkrelax
+#as: -EB --linkrelax -minsn32
 
 .*:     file format.*
 #...
@@ -20,6 +20,6 @@ Contents of section .eh_frame:
  0010 1b0d1d00 00000014 00000018 00000000  .*
  0020 00000008 00441308 440e0000           .*
 Contents of section .eh_frame_entry:
- 0000 00000001 00000015                    .*
+ 0000 00000001 00000001                    .*
 Contents of section .gnu.attributes:
  0000 41000000 0f676e75 00010000 00070401  .*

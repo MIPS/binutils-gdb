@@ -100,12 +100,8 @@ extern int nanomips_force_relocation (struct fix *);
   (! SEG_NORMAL (SEG) || nanomips_force_relocation (FIX))
 
 
-#if defined (OBJ_ELF) || defined (OBJ_MAYBE_ELF)
-
 #define elf_tc_final_processing nanomips_elf_final_processing
 extern void nanomips_elf_final_processing (void);
-
-#endif
 
 extern void md_nanomips_end (void);
 #define md_end()	md_nanomips_end()
@@ -134,19 +130,13 @@ extern int tc_nanomips_regname_to_dw2regnum (char *regname);
 #define DWARF2_DEFAULT_RETURN_COLUMN 31
 #define DWARF2_CIE_DATA_ALIGNMENT (-4)
 
-#if defined(OBJ_ELF)
-
 #define tc_cfi_reloc_for_encoding nanomips_cfi_reloc_for_encoding
 extern bfd_reloc_code_real_type nanomips_cfi_reloc_for_encoding (int encoding);
 
 #define tc_compact_eh_opcode_stop 0x5c
 #define tc_compact_eh_opcode_pad 0x5f
 
-#endif
-
 #define DIFF_EXPR_OK
-/* We define DIFF_EXPR_OK because of R_MIPS_PC32, but we have no
-   64-bit form for n64 CFIs.  */
 #define CFI_DIFF_EXPR_OK linkrelax
 
 #define CONVERT_SYMBOLIC_ATTRIBUTE(name) nanomips_convert_symbolic_attribute (name)

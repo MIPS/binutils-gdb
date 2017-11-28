@@ -1,7 +1,7 @@
 #objdump: -sr
 #name: Compact EH EL #5 with personality routine, FDE data and LSDA
 #source: compact-eh-5.s
-#as: -EL --linkrelax
+#as: -EL --linkrelax -minsn32
 
 .*:     file format.*
 #...
