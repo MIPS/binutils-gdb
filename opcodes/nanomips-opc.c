@@ -255,8 +255,8 @@ decode_nanomips_operand (const char *p)
     case '0': SINT (6, 16);
     case '1': HINT (5, 16);
     case '2': HINT (2, 14);
-    case '3': HINT (3, 13);
-    case '4': HINT (4, 12);
+    case '3': BIT (3, 13, 0);
+    case '4': BIT (4, 12, 0);
     case '5': HINT (8, 13);
     case '6': HINT (5, 16);
     case '7': REG (2, 14, ACC);
@@ -506,7 +506,7 @@ IGRIE */
 {"andi",	"[16]",	        "md,mc,mC",	0xf000,		0xfc00,	WR_1|RD_2,		0,	I38,	0}, /* ANDI[16] */
 {"andi",	"[32]",		"t,r,i",	0x80002000, 0xfc00f000,	WR_1|RD_2,		0,	I38,	0},
 {"andi",	"",		"t,r,m6",	0x8000f000, 0xfc00f83f,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* EXT */
-{"append",	"",		"t,s,^",	0x20000215, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
+{"append",	"",		"t,s,+i",	0x20000215, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
 {"aset",	"",		"\\,+j(b)",	0xa4001100, 0xff007f00,		RD_3,		0,	0,	MC},
 {"aset",	"",		"\\,A(c)",	0,    (int) M_ASET_AB,		INSN_MACRO,	0,	0,	MC},
 {"balc",	"[16]",		"mD",		0x3800,		0xfc00,		WR_31,		0,	I38,	0}, /* BALC[16] */
@@ -1135,8 +1135,8 @@ IGRIE */
 {"precrq.qb.ph", "", 		"d,s,t",	0x200000ad, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"precrqu_s.qb.ph", "", 	"d,s,t",	0x2000016d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"precrq_rs.ph.w", "", 		"d,s,t",	0x2000012d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
-{"precr_sra.ph.w", "", 		"t,s,^",	0x200003cd, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
-{"precr_sra_r.ph.w", "", 	"t,s,^",	0x200007cd, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
+{"precr_sra.ph.w", "",		"t,s,+i",	0x200003cd, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
+{"precr_sra_r.ph.w", "", 	"t,s,+i",	0x200007cd, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
 {"pref",	"[u12]",	"k,o(b)",	0x84003000, 0xfc00f000,	RD_3,			0,	I38,	0}, /* PREF[U12] */
 {"pref",	"[s9]",		"k,+j(b)",	0xa4001800, 0xfc007f00,	RD_3,			0,	I38,	0}, /* PREF[S9], preceded by SYNCI[S9] */
 {"pref",	"",		"k,A(c)",	0,    (int) M_PREF_AB,	INSN_MACRO,		0,	I38,	0},
@@ -1267,7 +1267,7 @@ IGRIE */
 {"shllv_s.ph",	"",		"d,t,s",	0x2000078d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"shllv_s.w",	"",		"d,t,s",	0x200003d5, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"shll_s.ph",	"",		"t,s,4",	0x20000bb5, 0xfc000fff,	WR_1|RD_2,		0,	0,	D32},
-{"shll_s.w",	"",		"t,s,^",	0x200003f5, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
+{"shll_s.w",	"",		"t,s,+i",	0x200003f5, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
 {"shra.ph",	"",		"t,s,4",	0x20000335, 0xfc000fff,	WR_1|RD_2,		0,	0,	D32},
 {"shra.qb",	"",		"t,s,3",	0x200001ff, 0xfc001fff,	WR_1|RD_2,		0,	0,	D32},
 {"shrav.ph",	"",		"d,t,s",	0x2000018d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
@@ -1277,7 +1277,7 @@ IGRIE */
 {"shrav_r.w",	"",		"d,t,s",	0x200002d5, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"shra_r.ph",	"",		"t,s,4",	0x20000735, 0xfc000fff,	WR_1|RD_2,		0,	0,	D32},
 {"shra_r.qb",	"",		"t,s,3",	0x200011ff, 0xfc001fff,	WR_1|RD_2,		0,	0,	D32},
-{"shra_r.w",	"",		"t,s,^",	0x200002f5, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
+{"shra_r.w",	"",		"t,s,+i",	0x200002f5, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
 {"shrl.ph",	"",		"t,s,4",	0x200003ff, 0xfc000fff,	WR_1|RD_2,		0,	0,	D32},
 {"shrl.qb",	"",		"t,s,3",	0x2000187f, 0xfc001fff,	WR_1|RD_2,		0,	0,	D32},
 {"shrlv.ph",	"",		"d,t,s",	0x20000315, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},

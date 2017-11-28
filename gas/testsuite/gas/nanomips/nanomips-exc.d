@@ -107,19 +107,19 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
 [0-9a-f]+ <[^>]+> c85f f800 	bltiuc	t4,127,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
-[0-9a-f]+ <[^>]+> 2062 201f 	extw	a0,t4,t5,0x0
-[0-9a-f]+ <[^>]+> 2062 261f 	extw	a0,t4,t5,0x18
-[0-9a-f]+ <[^>]+> 2062 241f 	extw	a0,t4,t5,0x10
-[0-9a-f]+ <[^>]+> 2062 221f 	extw	a0,t4,t5,0x8
-[0-9a-f]+ <[^>]+> 2062 205f 	extw	a0,t4,t5,0x1
-[0-9a-f]+ <[^>]+> 2062 209f 	extw	a0,t4,t5,0x2
-[0-9a-f]+ <[^>]+> 2062 20df 	extw	a0,t4,t5,0x3
-[0-9a-f]+ <[^>]+> 2062 211f 	extw	a0,t4,t5,0x4
+[0-9a-f]+ <[^>]+> 2062 201f 	extw	a0,t4,t5,0
+[0-9a-f]+ <[^>]+> 2062 261f 	extw	a0,t4,t5,24
+[0-9a-f]+ <[^>]+> 2062 241f 	extw	a0,t4,t5,16
+[0-9a-f]+ <[^>]+> 2062 221f 	extw	a0,t4,t5,8
+[0-9a-f]+ <[^>]+> 2062 205f 	extw	a0,t4,t5,1
+[0-9a-f]+ <[^>]+> 2062 209f 	extw	a0,t4,t5,2
+[0-9a-f]+ <[^>]+> 2062 20df 	extw	a0,t4,t5,3
+[0-9a-f]+ <[^>]+> 2062 211f 	extw	a0,t4,t5,4
 [0-9a-f]+ <[^>]+> 1083      	move	a0,t5
 [0-9a-f]+ <[^>]+> 2003 2290 	move	a0,t5
-[0-9a-f]+ <[^>]+> 2062 261f 	extw	a0,t4,t5,0x18
-[0-9a-f]+ <[^>]+> 2062 241f 	extw	a0,t4,t5,0x10
-[0-9a-f]+ <[^>]+> 2062 221f 	extw	a0,t4,t5,0x8
+[0-9a-f]+ <[^>]+> 2062 261f 	extw	a0,t4,t5,24
+[0-9a-f]+ <[^>]+> 2062 241f 	extw	a0,t4,t5,16
+[0-9a-f]+ <[^>]+> 2062 221f 	extw	a0,t4,t5,8
 [0-9a-f]+ <[^>]+> 5359      	lwxs	a0,a1\(a2\)
 [0-9a-f]+ <[^>]+> 508f      	lwxs	a3,s0\(s1\)
 [0-9a-f]+ <[^>]+> 5235      	lwxs	s2,s3\(a0\)
@@ -137,15 +137,15 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> a483 98e2 	pref	0x4,-30\(t5\)
 [0-9a-f]+ <[^>]+> 8483 3000 	pref	0x4,0\(t5\)
 			[0-9a-f]+: R_NANOMIPS_LO12	test
-[0-9a-f]+ <[^>]+> c884 c000 	bbeqzc	a0,0x18,00000000 <test>
+[0-9a-f]+ <[^>]+> c884 c000 	bbeqzc	a0,24,00000000 <test>
 			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
-[0-9a-f]+ <[^>]+> c884 0800 	bbeqzc	a0,0x1,00000000 <test>
+[0-9a-f]+ <[^>]+> c884 0800 	bbeqzc	a0,1,00000000 <test>
 			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
-[0-9a-f]+ <[^>]+> c884 f800 	bbeqzc	a0,0x1f,00000000 <test>
+[0-9a-f]+ <[^>]+> c884 f800 	bbeqzc	a0,31,00000000 <test>
 			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
-[0-9a-f]+ <[^>]+> c894 0000 	bbnezc	a0,0x0,00000000 <test>
+[0-9a-f]+ <[^>]+> c894 0000 	bbnezc	a0,0,00000000 <test>
 			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
-[0-9a-f]+ <[^>]+> c894 8000 	bbnezc	a0,0x10,00000000 <test>
+[0-9a-f]+ <[^>]+> c894 8000 	bbnezc	a0,16,00000000 <test>
 			[0-9a-f]+: R_NANOMIPS_PC11_S1	test
 [0-9a-f]+ <[^>]+> 2083 0000 	teq	t5,a0
 [0-9a-f]+ <[^>]+> 20c5 0400 	tne	a1,a2
@@ -187,7 +187,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> a445 7f04 	uasdm	t4,4\(a1\),7
 [0-9a-f]+ <[^>]+> a445 0604 	ldm	t4,4\(a1\),8
 [0-9a-f]+ <[^>]+> a445 7e04 	sdm	t4,4\(a1\),7
-[0-9a-f]+ <[^>]+> 8043 d7c5 	rotx	t4,t5,0x5,30,1
+[0-9a-f]+ <[^>]+> 8043 d7c5 	rotx	t4,t5,5,30,1
 [0-9a-f]+ <[^>]+> 8043 d01f 	bitrevw	t4,t5
 [0-9a-f]+ <[^>]+> 8043 d01f 	bitrevw	t4,t5
 [0-9a-f]+ <[^>]+> 8043 d247 	bitrevb	t4,t5

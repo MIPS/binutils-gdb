@@ -932,7 +932,7 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "nolinkrelax"  "-mlegacyregs" [arch_list_matching nanomips]
     run_dump_test_arches "nolinkrelax-relocs" "-mlegacyregs" [arch_list_matching nanomips]
 
-    run_dump_test_arch "nanomips-noxlp" "" nanomips32s
+    run_dump_test_arch "nanomips-subset" "" nanomips32s
     run_dump_test_arch "la-svr4pic" "-mlegacyregs" nanomips32s
     run_dump_test_arches "la-pic-mclarge" "-mlegacyregs" \
 	[arch_list_matching nanomips]

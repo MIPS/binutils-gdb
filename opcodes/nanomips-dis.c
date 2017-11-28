@@ -837,7 +837,7 @@ print_insn_arg (struct disassemble_info *info,
 	uval += msb_op->bias;
 	if (msb_op->add_lsb)
 	  uval -= state->last_int;
-	infprintf (is, "0x%x", uval);
+	infprintf (is, "%d", uval);
       }
       break;
 
