@@ -860,17 +860,20 @@ class Nanomips_transformations
   // For debugging purposes.
   void
   print(const Nanomips_transform_template* trasnform_template,
-        const std::string& insn_name, unsigned long r_offset,
+        const std::string& insn_name,
+        const elfcpp::Rela<size, big_endian>& reloc,
+        const Symbol* gsym,
         unsigned int shndx)
   {
     const std::string& obj_name = this->relobj_->name();
     const std::string& sec_name = this->relobj_->section_name(shndx);
     const Nanomips_insn_template* insns = trasnform_template->insns();
     size_t insn_count = trasnform_template->insn_count();
+    unsigned int r_sym = elfcpp::elf_r_sym<size>(reloc.get_r_info());
 
     fprintf(stderr, "%s: %s(%s+%#lx): %s is %s",
-            program_name, obj_name.c_str(), sec_name.c_str(), r_offset,
-            insn_name.c_str(),
+            program_name, obj_name.c_str(), sec_name.c_str(),
+            (unsigned long) reloc.get_r_offset(), insn_name.c_str(),
             insn_count == 0 ? "removed" : "transformed into");
 
     bool need_comma = false;
@@ -881,7 +884,11 @@ class Nanomips_transformations
         fprintf(stderr, " %s", insns[i].name().c_str());
         need_comma = true;
       }
-    fprintf(stderr, "\n");
+
+    if (gsym == NULL)
+      fprintf(stderr, " for local symbol %u\n", r_sym);
+    else
+      fprintf(stderr, " for global symbol '%s'\n", gsym->name());
   }
 
  protected:
@@ -5860,8 +5867,7 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
 
       if (is_debugging_enabled(DEBUG_TARGET))
         transform.print(transform_template, insn_property->name(),
-                        (unsigned long) r_offset,
-                        relinfo->data_shndx);
+                        reloc, gsym, relinfo->data_shndx);
 
       // Update pointers in case they are changed.
       prelocs = pnis->relocs() + i * reloc_size;
