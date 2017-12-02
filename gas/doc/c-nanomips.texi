@@ -787,7 +787,7 @@ interpreted the result as a signed 16-bit value.
 FIXME
 @end table
 
-@node nanoMIPS Floating-Point, nanoMIPS ASE Overrides, nanoMIPS DataGen
+@node nanoMIPS Floating-Point
 @subsection Directives to override floating-point options
 
 @table @code
@@ -851,7 +851,7 @@ pass all floating-point data in general-purpose registers.
 
 @end table
 
-@node nanoMIPS ASE Overrides, nanoMIPS Compatibility, nanoMIPS Floating-Point
+@node nanoMIPS ASE Overrides
 @subsection Directives for generation of ASE instructions
 
 @table @code
@@ -1137,7 +1137,7 @@ Small data is not supported for SVR4-style PIC.
 * Indirect addressing for large PIC model::
 @end menu
 
-@node Optimized GP-relative access, General GP-relative access, 
+@node Optimized GP-relative access
 @subsection Optimized GP-relative access
 
 The nanoMIPS architecture allows various fundamental data types, up to
@@ -1232,7 +1232,7 @@ The compiler uses a combination of data declaration in named small
 data sections and explicitly requested GP-relative access in
 instructions in order to guarantee GP-relative access.
 
-@node General GP-relative access, 32-bit absolute addressing and immediate construction, Optimized GP-relative access
+@node General GP-relative access
 @subsection General GP-relative access
 
 If optimized access is not an objective, the full 32-bit address space
@@ -1525,7 +1525,7 @@ transformations.
 * nanoMIPS relax special:: Special handling of assembly constructs
 @end menu
 
-@node nanoMIPS relax modules, nanoMIPS relax fragments, 
+@node nanoMIPS relax modules
 @subsection Module level control
 
 Linker relaxations is disabled by default in the assembler. It can be
@@ -1534,7 +1534,7 @@ enabled for an assembly unit using the command-line option
 has the same effect. It must be specified before any instruction in
 the assembly file.
 
-@node nanoMIPS relax fragments, nanoMIPS relax special, nanoMIPS relax modules
+@node nanoMIPS relax fragments
 @subsection Controlling relaxation of code fragments
 
 @subsubsection Control by blocks
@@ -1603,7 +1603,7 @@ same size, specified at assembly time. For example,
         bc32 bar
         bc32 baz
 @end example
-@node nanoMIPS relax special, , nanoMIPS relax fragments
+@node nanoMIPS relax special
 @subsection Special handling of assembly constructs
 
 Certain assembly constructs need special handling by way of marker
