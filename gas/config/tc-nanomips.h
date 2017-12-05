@@ -118,6 +118,8 @@ extern void nanomips_enable_auto_align (void);
 extern int nanomips_dwarf2_addr_size (void);
 #define DWARF2_ADDR_SIZE(bfd) nanomips_dwarf2_addr_size ()
 #define DWARF2_FDE_RELOC_SIZE nanomips_dwarf2_addr_size ()
+#define DWARF2_FDE_RELOC_ENCODING(enc) \
+  (enc | (compact_eh ? DW_EH_PE_pcrel : 0))
 
 #define TARGET_USE_CFIPOP 1
 

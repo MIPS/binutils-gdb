@@ -7,7 +7,7 @@
 #...
 RELOCATION RECORDS FOR \[.eh_frame\]:
 OFFSET   TYPE              VALUE 
-0000001c R_NANOMIPS_32     L0
+0000001c R_NANOMIPS_PC32   L0
 
 
 RELOCATION RECORDS FOR \[.eh_frame_entry\]:
