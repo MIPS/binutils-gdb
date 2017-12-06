@@ -152,9 +152,9 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> e062 5002 	aluipc	t5,00025000 <[^>]+>
 [0-9a-f]+ <[^>]+> 0063 0000 	addiu	t5,t5,0
 			[0-9a-f]+: R_NANOMIPS_LO12	test
-[0-9a-f]+ <[^>]+> 20a4 2150 	addu	a0,a0,a1
+[0-9a-f]+ <[^>]+> 2104 2150 	addu	a0,a0,a4
 [0-9a-f]+ <[^>]+> 2148 4150 	addu	a4,a4,a6
-[0-9a-f]+ <[^>]+> 2250 8150 	addu	s0,s0,s2
+[0-9a-f]+ <[^>]+> 22b0 8150 	addu	s0,s0,s5
 [0-9a-f]+ <[^>]+> 22f4 a150 	addu	s4,s4,s7
 [0-9a-f]+ <[^>]+> 2165 2950 	addu	a1,a1,a7
 [0-9a-f]+ <[^>]+> 222a 5150 	addu	a6,a6,s1
