@@ -27,6 +27,9 @@ main (void)
 {
   int i = 0;
 
+  /* Ensure printf function is available.  */
+  printf ("printf available %d\n", i);
+
   gdb_unbuffer_output ();
 
   i++; /* set dprintf here */

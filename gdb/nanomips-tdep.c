@@ -1415,6 +1415,10 @@ nanomips_scan_prologue (struct gdbarch *gdbarch,
 	frame_offset -= sp_adj;
 
       non_prologue_insns += this_non_prologue_insn;
+
+      if (non_prologue_insns > 1 || sp_adj > 0)
+  break;
+
       prev_non_prologue_insn = this_non_prologue_insn;
       prev_pc = cur_pc;
     }
@@ -2009,9 +2013,24 @@ nanomips_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
       int len = TYPE_LENGTH (arg_type);
       enum type_code typecode = TYPE_CODE (arg_type);
 
+      if (typecode == TYPE_CODE_STRUCT && TYPE_NFIELDS (arg_type) == 1)
+      {
+          if (TYPE_CODE (TYPE_FIELD_TYPE (arg_type, 0)) == TYPE_CODE_TYPEDEF)
+            {
+              struct type *type = check_typedef (TYPE_FIELD_TYPE (arg_type, 0));
+              typecode = TYPE_CODE (type);
+              len = TYPE_LENGTH (arg_type);
+            }
+          else if (TYPE_CODE (TYPE_FIELD_TYPE (arg_type, 0)) == TYPE_CODE_FLT)
+            {
+              typecode = TYPE_CODE_FLT;
+            }
+      }
+
       /* The P32 ABI passes structures larger than 8 bytes by reference. */
-      if ((typecode == TYPE_CODE_STRUCT || typecode == TYPE_CODE_UNION
-          || typecode == TYPE_CODE_COMPLEX) && len > regsize * 2)
+      if ((typecode == TYPE_CODE_ARRAY || typecode == TYPE_CODE_STRUCT
+          || typecode == TYPE_CODE_UNION || typecode == TYPE_CODE_COMPLEX)
+          && len > regsize * 2)
         {
           store_unsigned_integer (valbuf, regsize, byte_order,
                 value_address (arg));
@@ -2042,6 +2061,9 @@ nanomips_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
 	      arg_gpr++;
 	      stack_offset += 4;
 	    }
+
+    if (typecode == TYPE_CODE_STRUCT && (len <= 8 && len > 4) && arg_gpr == 7)
+      arg_gpr ++;
 
 	  /* double type occupies only one register.  */
 	  if (typecode == TYPE_CODE_FLT && len == 8)
@@ -2091,6 +2113,7 @@ nanomips_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
             regcache_cooked_write_unsigned (regcache,
                      arg_gpr + A0_REGNUM, regval);
             arg_gpr++;
+
 	        }
 	      else
 	        use_stack = 1;
@@ -2116,7 +2139,8 @@ nanomips_push_dummy_call (struct gdbarch *gdbarch, struct value *function,
 	      write_memory (addr, val, partial_len);
 
 	      seen_on_stack = 1;
-	      stack_offset += partial_len;
+	      stack_offset += (partial_len <= NANOMIPS32_REGSIZE)
+                            ? NANOMIPS32_REGSIZE : partial_len;
 	      use_stack = 0;
 	    } /* argument on stack */
 
@@ -2139,7 +2163,8 @@ nanomips_return_value (struct gdbarch *gdbarch, struct value *function,
            struct type *type, struct regcache *regcache,
            gdb_byte *readbuf, const gdb_byte *writebuf)
 {
-  if ((TYPE_CODE (type) == TYPE_CODE_STRUCT
+  if ((TYPE_CODE (type) == TYPE_CODE_ARRAY
+      ||TYPE_CODE (type) == TYPE_CODE_STRUCT
       || TYPE_CODE (type) == TYPE_CODE_COMPLEX)
       && TYPE_LENGTH (type) > 2 * NANOMIPS32_REGSIZE)
     return RETURN_VALUE_STRUCT_CONVENTION;
@@ -3424,7 +3449,7 @@ nanomips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   set_gdbarch_have_nonsteppable_watchpoint (gdbarch, 1);
 
   /* Virtual tables.  */
-  set_gdbarch_vbit_in_delta (gdbarch, 1);
+  set_gdbarch_vbit_in_delta (gdbarch, 0);
 
   nanomips_register_g_packet_guesses (gdbarch);
 

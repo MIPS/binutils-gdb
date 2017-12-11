@@ -67,7 +67,7 @@ if { [is_aarch64_target] } then {
             pass "info float (without FPU)"
 	}
     }
-} elseif [istarget "mips*-*-*"] then {
+} elseif { [istarget "mips*-*-*"] || [istarget "nanomips*-*-*"] } then {
     gdb_test_multiple "info float" "info float" {
 	-re "fpu type: none / unused\r\n$gdb_prompt $" {
 	      pass "info float (without FPU)"
