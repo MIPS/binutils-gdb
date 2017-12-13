@@ -11207,6 +11207,10 @@ md_convert_frag (bfd * abfd ATTRIBUTE_UNUSED, segT asec, fragS * fragp)
       fixp->fx_file = fragp->fr_file;
       fixp->fx_line = fragp->fr_line;
 
+      /* Remember the first fix-up in this frag.  */
+      if (fragp->tc_frag_data == NULL)
+	fragp->tc_frag_data = fixp;
+
       /* These relocations can have an addend that won't fit in
          2 octets.  */
       fixp->fx_no_overflow = 1;
@@ -12473,7 +12477,7 @@ nanomips_allow_local_subtract (expressionS * left, expressionS * right,
     {
       fixS *fixP;
       fragS *fragP;
-      int low, high;
+      bfd_vma low, high;
 
       fragP = symbol_get_frag (left->X_add_symbol);
 
@@ -12492,11 +12496,14 @@ nanomips_allow_local_subtract (expressionS * left, expressionS * right,
       fixP = fragP->tc_frag_data;
 
       /* Now look for fixups within the range.  */
-      while (fixP != NULL && fixP->fx_where < low && fixP->fx_where < high)
+      while (fixP != NULL
+	     && fixP->fx_frag->fr_address + fixP->fx_where < low
+	     && fixP->fx_frag->fr_address + fixP->fx_where < high)
 	fixP = fixP->fx_next;
 
       /* No fixup within the range.  */
-      if (fixP == NULL || fixP->fx_where >= high)
+      if (fixP == NULL
+	  || fixP->fx_frag->fr_address + fixP->fx_where >= high)
 	return TRUE;
     }
 
@@ -12558,7 +12565,7 @@ nanomips_validate_fix_sub (fixS * fix)
     {
       fixS *fixP;
       fragS *frag_hi, *frag_lo;
-      int low, high;
+      bfd_vma low, high;
 
       frag_hi = symbol_get_frag (fix->fx_addsy);
       high = S_GET_VALUE (fix->fx_addsy);
@@ -12580,11 +12587,14 @@ nanomips_validate_fix_sub (fixS * fix)
       fixP = frag_lo->tc_frag_data;
 
       /* Now look for fixups within the range.  */
-      while (fixP != NULL && fixP->fx_where < low && fixP->fx_where < high)
+      while (fixP != NULL
+	     && fixP->fx_frag->fr_address + fixP->fx_where < low
+	     && fixP->fx_frag->fr_address + fixP->fx_where < high)
 	fixP = fixP->fx_next;
 
       /* No fixup within the range.  */
-      return (fixP != NULL && fixP->fx_where < high);
+      return (fixP != NULL
+	      && fixP->fx_frag->fr_address + fixP->fx_where < high);
     }
 }
 

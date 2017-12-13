@@ -1007,4 +1007,6 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test "compact-eh-el-7"
     run_list_test "compact-eh-err1"
     run_list_test "compact-eh-err2"
+
+    run_dump_test "debugline-relocs"
 }
