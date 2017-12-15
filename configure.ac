@@ -1172,10 +1172,10 @@ case "${target}" in
   mips*-*-*)
     noconfigdirs="$noconfigdirs gprof"
     ;;
-  nanomips*-img-elf*)
+  nanomips*-*-elf*)
     noconfigdirs="$noconfigdirs ld gprof gdb sim"
     ;;
-  nanomips*-img-linux*)
+  nanomips*-*-linux*)
     noconfigdirs="$noconfigdirs ld gprof gdb sim"
     ;;
   nvptx*-*-*)

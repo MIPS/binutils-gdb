@@ -469,10 +469,10 @@ arch_create i7200 32	{} {nanomips_broken} { -march=i7200 } {}
 if { [istarget nanomips*-*-*] } {
     set addr32 0
     set has_newabi [expr [istarget nanomips*-*-linux*] \
-			|| [istarget nanomips*-img-elf*]]
+			|| [istarget nanomips*-*-elf*]]
 
     if { [istarget "nanomips*-*-*linux*"]
-	 || [istarget "nanomips*-img-elf*"]
+	 || [istarget "nanomips*-*-elf*"]
 	 || [istarget "nanomips*-*-*bsd*"] } then {
 	set tmips "t"
     } else {
