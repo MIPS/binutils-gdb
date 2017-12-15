@@ -295,6 +295,7 @@ case $basic_machine in
 	| moxie \
 	| mt \
 	| msp430 \
+	| nanomips \
 	| nds32 | nds32le | nds32be \
 	| nios | nios2 | nios2eb | nios2el \
 	| ns16k | ns32k \

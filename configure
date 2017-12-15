@@ -3838,7 +3838,7 @@ case "${target}" in
   mips*-*-*)
     noconfigdirs="$noconfigdirs gprof"
     ;;
-  nanomips*-img-elf* | nanomips*-img-linux*)
+  nanomips*-*-elf* | nanomips*-*-linux*)
     noconfigdirs="$noconfigdirs gas binutils ld gprof"
     ;;
   nvptx*-*-*)

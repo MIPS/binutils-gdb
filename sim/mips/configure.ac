@@ -133,7 +133,7 @@ case "${target}" in
 			  mips64r2:mips64r2,mips3d,mips16,mips16e,mdmx,dsp,dsp2,smartmips:32,64,f:mipsisa64r2"
 			sim_multi_default=mipsisa64r2
 			;;
-  nanomips*-img-elf*)
+  nanomips*-*-elf*)
 			sim_gen=MULTI
 			sim_multi_configs="\
 			  nanor6sim:nanomips64r6,nanomipsdsp:32,64,f:nanomipsisa64r6,nanomipsisa32r6"
@@ -322,7 +322,7 @@ __EOF__
 	sim_multi_obj="${sim_multi_obj} micromips${name}_run.o"
 	sim_multi_flags="${sim_multi_flags} -F 16,32"
 	;;
-      *nanomips32*)
+      *:*nanomips32*)
 	# Run igen twice, once for nanomips32 and once for nanomips16.
 	ws="nanomips16 nanomips32"
 
@@ -345,7 +345,7 @@ __EOF__
 	sim_multi_obj="${sim_multi_obj} micromips${name}_run.o"
 	sim_multi_flags="${sim_multi_flags} -F 16,32,64"
 	;;
-      *nanomips64*)
+      *:*nanomips64*)
 	# Run igen twice, once for nanomips64 and once for nanomips16.
 	ws="nanomips16 nanomips64"
 
