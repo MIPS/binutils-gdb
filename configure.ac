@@ -1172,10 +1172,10 @@ case "${target}" in
   mips*-*-*)
     noconfigdirs="$noconfigdirs gprof"
     ;;
-  nanomips*-img-linux*)
+  nanomips*-*-linux*)
     noconfigdirs="$noconfigdirs gas ld binutils sim gdb gprof"
     ;;
-  nanomips*-img-elf)
+  nanomips*-*-elf)
     if test x$with_newlib = xyes; then
       noconfigdirs="$noconfigdirs gprof"
     fi
@@ -2456,10 +2456,10 @@ case "${target}" in
   mips*-sde-elf* | mips*-mti-elf* | mips*-img-elf*)
     target_makefile_frag="config/mt-sde"
     ;;
-  nanomips*-img-linux*)
+  nanomips*-*-linux*)
     target_makefile_frag="config/mt-nanomips"
     ;;
-  nanomips*-img-elf*)
+  nanomips*-*-elf*)
     target_makefile_frag="config/mt-nanomips"
     ;;
   mipsisa*-*-elfoabi*)
