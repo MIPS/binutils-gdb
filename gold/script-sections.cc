@@ -4056,6 +4056,10 @@ Script_sections::create_segments(Layout* layout, uint64_t dot_alignment)
       return first_seg;
     }
 
+  // Don't create a new segment for program headers if we are doing static link.
+  if (parameters->doing_static_link())
+    return NULL;
+
   // If there is no room to squeeze in the headers, then punt.  The
   // resulting executable probably won't run on GNU/Linux, but we
   // trust that the user knows what they are doing.
