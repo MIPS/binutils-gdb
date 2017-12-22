@@ -678,8 +678,9 @@ queue_middle_tasks(const General_options& options,
   // TODO(csilvers): figure out a more principled way to get the target
   Target* target = const_cast<Target*>(&parameters->target());
 
-  // Attach sections to segments.
-  layout->attach_sections_to_segments(target);
+  // Attach sections to segments.  Postpone this if we have a SECTIONS clause.
+  if (!layout->script_options()->saw_sections_clause())
+    layout->attach_sections_to_segments(target);
 
   if (!parameters->options().relocatable())
     {

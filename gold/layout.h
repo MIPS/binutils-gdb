@@ -950,7 +950,8 @@ class Layout
   // Make a section for a linker script to hold data.
   Output_section*
   make_output_section_for_script(const char* name,
-				 Script_sections::Section_type section_type);
+				 Script_sections::Section_type section_type,
+				 elfcpp::Elf_Xword flags);
 
   // Make a segment.  This is used by the linker script code.
   Output_segment*
