@@ -40,5 +40,9 @@ test9:
 
 	beqc $s1,$a3,$L1 /* Unreachable forward, relax.  */
 $L1:
+	beqc $s1,$a3,$L2 /* Reachable forward, no relax.  */
+	addiu   $fp,$sp,-4080
+$L2:
 	nop
+
 	.end test5

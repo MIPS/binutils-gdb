@@ -65,5 +65,10 @@ Disassembly of section \.text:
 			10be: R_NANOMIPS_PC14_S1	\$L1
 
 [0-9a-f]+ <[^>]+>:
-    10c2:	8000 c000 	nop
-	...
+    10c2:	88f1 0000 	beqc	s1,a3,10ca <\$L2>
+			10c2: R_NANOMIPS_PC14_S1	\$L2
+    10c6:	83dd 8ff0 	addiu	fp,sp,-4080
+
+000010ca <\$L2>:
+    10ca:	8000 c000 	nop
+	\.\.\.

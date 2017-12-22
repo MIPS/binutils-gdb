@@ -46,16 +46,16 @@ GAS LISTING .*/nanomips-relax.s 			page 1
   23              		.ent test5
   24              		.globl test5
   25              	test5:
-  26 0878 A4880000 		beqc	\$a0,\$a1,test6 /\* forward, no relax \*/
-  27 087c 00000000 		.space	\(1<<5\)-4
+  26 0878 CFDA     		beqc	\$a0,\$a1,test6 /\* forward, no relax \*/
+  27 087a 00000000 		.space	\(1<<5\)-4
   27      00000000 
   27      00000000 
   27      00000000 
   27      00000000 
   28              	test6:
-  29 0898 0018     		bc	test7	/\* forward, no relax \*/
+  29 0896 0018     		bc	test7	/\* forward, no relax \*/
   30              	test6a:
-  31 089a 00000000 		.space	\(1<<10\)-4
+  31 0898 00000000 		.space	\(1<<10\)-4
   31      00000000 
   31      00000000 
 GAS LISTING .*/nanomips-relax.s 			page 2
@@ -64,23 +64,27 @@ GAS LISTING .*/nanomips-relax.s 			page 1
   31      00000000 
   31      00000000 
   32              	test7:
-  33 0c96 0018     		bc 	test6a	/\* backward, no relax \*/
-  34 0c98 85A80000 		bnec	\$a1, \$a0, test8 /\* forward, no relax \*/
-  35 0c9c 00000000 		.space \(1<<5\)-4
+  33 0c94 0018     		bc 	test6a	/\* backward, no relax \*/
+  34 0c96 5FDA     		bnec	\$a1, \$a0, test8 /\* forward, no relax \*/
+  35 0c98 00000000 		.space \(1<<5\)-4
   35      00000000 
   35      00000000 
   35      00000000 
   35      00000000 
   36              	test8:
-  37 0cb8 00000000 		.space \(1<<10\)-2
+  37 0cb4 00000000 		.space \(1<<10\)-2
   37      00000000 
   37      00000000 
   37      00000000 
   37      00000000 
   38              	test9:
-  39 10b6 0038     		balc	test8 /\* backward, no relax \*/
+  39 10b2 0038     		balc	test8 /\* backward, no relax \*/
   40              	
-  41 10b8 F1880000 		beqc \$s1,\$a3,\$L1 /\* Unreachable forward, relax.  \*/
+  41 10b4 F1880000 		beqc \$s1,\$a3,\$L1 /\* Unreachable forward, relax.  \*/
   42              	\$L1:
-  43 10bc 0890     		nop
-  44 10be 0890     		.end test5
+  43 10b8 9FDB     		beqc \$s1,\$a3,\$L2 /\* Reachable forward, no relax.  \*/
+  44 10ba DD83F08F 		addiu   \$fp,\$sp,-4080
+  45              	\$L2:
+  46 10be 0890     		nop
+  47              	
+  48              		.end test5
