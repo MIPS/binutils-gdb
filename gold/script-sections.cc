@@ -95,22 +95,6 @@ class Memory_region
   }
 
   void
-  set_address(uint64_t addr, const Symbol_table* symtab, const Layout* layout)
-  {
-    uint64_t start = this->start_->eval(symtab, layout, false);
-    uint64_t len = this->length_->eval(symtab, layout, false);
-    if (addr < start || addr >= start + len)
-      gold_error(_("address 0x%llx is not within region %s"),
-		 static_cast<unsigned long long>(addr),
-		 this->name_.c_str());
-    else if (addr < start + this->current_offset_)
-      gold_error(_("address 0x%llx moves dot backwards in region %s"),
-		 static_cast<unsigned long long>(addr),
-		 this->name_.c_str());
-    this->current_offset_ = addr - start;
-  }
-
-  void
   increment_offset(std::string section_name, uint64_t amount,
 		   const Symbol_table* symtab, const Layout* layout)
   {
@@ -2473,8 +2457,6 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
       address = this->address_->eval_with_dot(symtab, layout, true,
 					      *dot_value, NULL, NULL,
 					      dot_alignment, false);
-      if (vma_region != NULL)
-	vma_region->set_address(address, symtab, layout);
     }
 
   uint64_t align;
@@ -2652,26 +2634,32 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
 
   gold_assert(input_sections.empty());
 
-  if (vma_region != NULL)
+  if (this->output_section_ != NULL
+      && (this->output_section_->flags() & elfcpp::SHF_ALLOC) != 0)
     {
-      // Update the VMA region being used by the section now that we know how
-      // big it is.  Use the current address in the region, rather than
-      // start_address because that might have been aligned upwards and we
-      // need to allow for the padding.
-      Expression* addr = vma_region->get_current_address();
-      uint64_t size = *dot_value - addr->eval(symtab, layout, false);
+      if (vma_region != NULL)
+	{
+	  // Update the VMA region being used by the section now that we know
+	  // how big it is.  Use the current address in the region, rather than
+	  // start_address because that might have been aligned upwards and we
+	  // need to allow for the padding.
+	  Expression* addr = vma_region->get_current_address();
+	  uint64_t size = *dot_value - addr->eval(symtab, layout, false);
 
-      vma_region->increment_offset(this->get_section_name(), size,
-				   symtab, layout);
+	  vma_region->increment_offset(this->get_section_name(), size,
+				       symtab, layout);
+	}
+
+      // If the LMA region is different from the VMA region, then increment the
+      // offset there as well.  Note that we use the same "dot_value -
+      // start_address" formula that is used in the load_address assignment
+      // below.
+      if (lma_region != NULL && lma_region != vma_region
+	  && this->output_section_->type() != elfcpp::SHT_NOBITS)
+	lma_region->increment_offset(this->get_section_name(),
+				     *dot_value - start_address,
+				     symtab, layout);
     }
-
-  // If the LMA region is different from the VMA region, then increment the
-  // offset there as well.  Note that we use the same "dot_value -
-  // start_address" formula that is used in the load_address assignment below.
-  if (lma_region != NULL && lma_region != vma_region)
-    lma_region->increment_offset(this->get_section_name(),
-				 *dot_value - start_address,
-				 symtab, layout);
 
   // Compute the load address for the following section.
   if (this->output_section_ == NULL
