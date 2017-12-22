@@ -2390,6 +2390,7 @@ Output_section::Output_section(const char* name, elfcpp::Elf_Word type,
     is_entsize_zero_(false),
     section_offsets_need_adjustment_(false),
     is_noalloc_(false),
+    is_created_from_script_(false),
     always_keeps_input_sections_(false),
     has_fixed_layout_(false),
     is_patch_space_allowed_(false),
@@ -3241,7 +3242,8 @@ Output_section::do_reset_address_and_file_offset()
   // we don't need special treatment for symbols defined in debug
   // sections.  We do the same in the constructor.  This does not
   // apply to NOALLOC sections though.
-  if ((this->flags_ & elfcpp::SHF_ALLOC) == 0 && !this->is_noalloc_)
+  if ((this->flags_ & elfcpp::SHF_ALLOC) == 0 && !this->is_noalloc_
+      && !this->is_created_from_script_)
      this->set_address(0);
 
   for (Input_section_list::iterator p = this->input_sections_.begin();

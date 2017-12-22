@@ -4035,6 +4035,16 @@ class Output_section : public Output_data
   set_is_noalloc()
   { this->is_noalloc_ = true; }
 
+  // Whether this section is created from the linker script.
+  bool
+  is_created_from_script() const
+  { return this->is_created_from_script_; }
+
+  // Set that this section is created from the linker script.
+  void
+  set_is_created_from_script()
+  { this->is_created_from_script_ = true; }
+
   // Print merge statistics to stderr.
   void
   print_merge_stats();
@@ -4550,6 +4560,8 @@ class Output_section : public Output_data
   bool section_offsets_need_adjustment_ : 1;
   // Whether this is a NOALLOC section.
   bool is_noalloc_ : 1;
+  // True if this section is created from the linker script.
+  bool is_created_from_script_ : 1;
   // Whether this always keeps input section.
   bool always_keeps_input_sections_ : 1;
   // Whether this section has a fixed layout, for incremental update links.

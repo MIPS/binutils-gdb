@@ -838,6 +838,11 @@ class Output_section_element
   needs_output_section() const
   { return false; }
 
+  // Return the flags for the output section.
+  virtual elfcpp::Elf_Xword
+  output_section_flags() const
+  { gold_unreachable(); }
+
   // Add any symbol being defined to the symbol table.
   virtual void
   add_symbols_to_table(Symbol_table*)
@@ -951,6 +956,11 @@ class Output_section_element_dot_assignment : public Output_section_element
   needs_output_section() const
   { return true; }
 
+  // Return the flags for the output section.
+  virtual elfcpp::Elf_Xword
+  output_section_flags() const
+  { return elfcpp::SHF_WRITE; }
+
   // Finalize the symbol.
   void
   finalize_symbols(Symbol_table* symtab, const Layout* layout,
@@ -1013,6 +1023,16 @@ Output_section_element_dot_assignment::set_section_addresses(
 	  std::string this_fill = this->get_fill_string(fill, length);
 	  posd = new Output_data_const(this_fill, 0);
 	}
+      // If dot is advanced, this implies that the section
+      // should have space allocated to it, unless the
+      // user has explicitly stated that the section
+      // should not be allocated.
+      elfcpp::Elf_Xword flags = output_section->flags();
+      if (output_section->is_created_from_script()
+	  && !output_section->is_noalloc()
+	  && (flags & elfcpp::SHF_ALLOC) == 0)
+	output_section->set_flags(flags | elfcpp::SHF_ALLOC);
+
       output_section->add_output_section_data(posd);
       layout->new_output_section_data_from_script(posd);
     }
@@ -1151,6 +1171,11 @@ class Output_section_element_data : public Output_section_element
   bool
   needs_output_section() const
   { return true; }
+
+  // Return the flags for the output section.
+  virtual elfcpp::Elf_Xword
+  output_section_flags() const
+  { return elfcpp::SHF_ALLOC | elfcpp::SHF_WRITE; }
 
   // Finalize symbols--we just need to update dot.
   void
@@ -2175,17 +2200,26 @@ Output_section_definition::create_sections(Layout* layout)
 {
   if (this->output_section_ != NULL)
     return;
+
+  bool needs_output_section = false;
+  elfcpp::Elf_Xword flags = 0;
   for (Output_section_elements::const_iterator p = this->elements_.begin();
        p != this->elements_.end();
        ++p)
     {
       if ((*p)->needs_output_section())
 	{
-	  const char* name = this->name_.c_str();
-	  this->output_section_ =
-	    layout->make_output_section_for_script(name, this->section_type());
-	  return;
+	  needs_output_section = true;
+	  flags |= (*p)->output_section_flags();
 	}
+    }
+
+  if (needs_output_section)
+    {
+      const char* name = this->name_.c_str();
+      Script_sections::Section_type section_type = this->section_type();
+      this->output_section_ =
+	layout->make_output_section_for_script(name, section_type, flags);
     }
 }
 
@@ -2498,11 +2532,13 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
 
   *dot_value = address;
 
-  // Except for NOALLOC sections, he address of non-SHF_ALLOC sections is
-  // forced to zero, regardless of what the linker script wants.
+  // Except for NOALLOC and linker created sections, the address of
+  // non-SHF_ALLOC sections is forced to zero, regardless of what the
+  // linker script wants.
   if (this->output_section_ != NULL
       && ((this->output_section_->flags() & elfcpp::SHF_ALLOC) != 0
-           || this->output_section_->is_noalloc()))
+           || this->output_section_->is_noalloc()
+           || this->output_section_->is_created_from_script()))
     this->output_section_->set_address(address);
 
   this->evaluated_address_ = address;
@@ -2559,7 +2595,6 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
 	{
 	  laddr = address + (old_load_address  - old_dot_value);
 	  if (this->output_section_ != NULL
-	      && (this->output_section_->flags() & elfcpp::SHF_ALLOC) != 0
 	      && !this->output_section_->is_noalloc()
 	      && old_load_address != old_dot_value)
 	    this->output_section_->set_load_address(laddr);

@@ -2130,20 +2130,29 @@ Layout::attach_allocated_section_to_segment(const Target* target,
 Output_section*
 Layout::make_output_section_for_script(
     const char* name,
-    Script_sections::Section_type section_type)
+    Script_sections::Section_type section_type,
+    elfcpp::Elf_Xword flags)
 {
   name = this->namepool_.add(name, false, NULL);
-  elfcpp::Elf_Xword sh_flags = elfcpp::SHF_ALLOC;
   elfcpp::Elf_Word type = elfcpp::SHT_PROGBITS;
   if (section_type == Script_sections::ST_NOLOAD)
     type = elfcpp::SHT_NOBITS;
   else if (section_type == Script_sections::ST_NOALLOC)
-    sh_flags = 0;
-  Output_section* os = this->make_output_section(name, type, sh_flags,
+    flags &= ~elfcpp::SHF_ALLOC;
+  Output_section* os = this->make_output_section(name, type, flags,
 						 ORDER_INVALID, false);
   os->set_found_in_sections_clause();
+  os->set_is_created_from_script();
   if (section_type == Script_sections::ST_NOALLOC)
     os->set_is_noalloc();
+
+  // The constructor of Output_section sets addresses of non-ALLOC sections
+  // to 0 by default.  We don't want to do that for sections that are
+  // created from script, as they can get allocated during script
+  // processing.
+  if ((os->flags() & elfcpp::SHF_ALLOC) == 0
+      && os->is_address_valid())
+    os->reset_address_and_file_offset();
 
   return os;
 }
@@ -2867,6 +2876,12 @@ Layout::finalize(const Input_objects* input_objects, Symbol_table* symtab,
       else
 	ehdr_start->set_undefined();
     }
+
+  // Update the list of output sections which are not attached to any output
+  // segment.  We are doing that here because there is a chance that
+  // output section is marked as SHF_ALLOC during script processing.
+  if (this->script_options_->saw_sections_clause())
+    this->attach_sections_to_segments(target);
 
   // Set the file offsets of all the non-data sections we've seen so
   // far which don't have to wait for the input sections.  We need
