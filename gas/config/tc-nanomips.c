@@ -237,8 +237,11 @@ struct nanomips_set_options
   /* Select PIC code.  */
   enum nanomips_pic_level pic;
 
-  /* Code/data memory model */
+  /* Code/data memory model.  */
   enum mc_model_type mc_model;
+
+  /* Enable/disable linker relaxation.  */
+  bfd_boolean linkrelax;
 };
 
 /* Specifies whether module level options have been checked yet.  */
@@ -254,7 +257,7 @@ static struct nanomips_set_options file_nanomips_opts = {
   /* arch */ CPU_UNKNOWN,  /* soft_float */ FALSE, /* single_float */ FALSE,
   /* init_ase */ 0, /* no_balc_stubs */ TRUE, /* legacyregs */ FALSE,
   /* pcrel */ FALSE, /* pid */ FALSE, /* pic */ NO_PIC,
-  /* mc_model */ MC_AUTO,
+  /* mc_model */ MC_AUTO, /* linkrelax */ FALSE
 };
 
 /* This is similar to file_nanomips_opts, but for the current set of options.  */
@@ -265,7 +268,7 @@ static struct nanomips_set_options nanomips_opts = {
   /* arch */ CPU_UNKNOWN, /* soft_float */ FALSE, /* single_float */ FALSE,
   /* init_ase */ 0, /* no_balc_stubs */ TRUE, /* legacyregs */ FALSE,
   /* pcrel */ FALSE, /* pid */ FALSE, /* pic */ NO_PIC,
-  /* mc_model */ MC_AUTO
+  /* mc_model */ MC_AUTO, /* linkrelax */ FALSE
 };
 
 /* Which bits of file_ase were explicitly set or cleared by ASE options.  */
@@ -345,7 +348,6 @@ static int nanomips_trap = 0;
 static int nanomips_disable_float_construction;
 
 /* Non-zero if .set [no]relax directive was used */
-static bfd_boolean nanomips_linkrelax_p = FALSE;
 static bfd_boolean toggle_linkrelax_p = FALSE;
 
 /* The size of objects in the small data section.  */
@@ -1472,10 +1474,10 @@ install_insn (const struct nanomips_cl_insn *insn)
 static void
 toggle_linkrelax (fragS * frag, long where)
 {
-  nanomips_linkrelax_p = !nanomips_linkrelax_p;
+  nanomips_opts.linkrelax = !nanomips_opts.linkrelax;
   toggle_linkrelax_p = FALSE;
   fix_new (frag, where, 0, &abs_symbol, 0, FALSE,
-	   (nanomips_linkrelax_p
+	   (nanomips_opts.linkrelax
 	    ? BFD_RELOC_NANOMIPS_RELAX : BFD_RELOC_NANOMIPS_NORELAX));
 }
 
@@ -4133,7 +4135,7 @@ match_save_restore_list_operand (struct nanomips_arg_info *arg,
 
   /* Finally build the instruction.  */
   insn_insert_operand (arg->insn, operand, opval);
-  if (nanomips_linkrelax_p
+  if (nanomips_opts.linkrelax
       && nanomips_opts.pic != NO_PIC
       && gp
       && (arg->insn->insn_opcode & 0x3) != 2)
@@ -5297,7 +5299,7 @@ append_insn (struct nanomips_cl_insn *ip, expressionS * address_expr,
 	    ip->fixp[i]->fx_tcbit = 1;
 	  }
 
-      if (nanomips_linkrelax_p && (insn_length (ip->insn_mo) != 6))
+      if (nanomips_opts.linkrelax && (insn_length (ip->insn_mo) != 6))
 	{
 	  if (forced_insn_format)
 	    fix_new (ip->frag, ip->where, 0, &abs_symbol, 0, FALSE,
@@ -7901,7 +7903,7 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 		       AT, BFD_RELOC_NANOMIPS_GOT_DISP, nanomips_gp_register);
 	  relax_end ();
 
-	  if (nanomips_linkrelax_p)
+	  if (nanomips_opts.linkrelax)
 	    {
 	      if (nanomips_opts.insn32)
 		macro_build (&offset_expr, "jalrc", "s,-i", AT,
@@ -9714,7 +9716,7 @@ s_align (int x ATTRIBUTE_UNUSED)
       segment_info_type *si = seg_info (now_seg);
       struct insn_label_list *l = si->label_list;
 
-      if (nanomips_linkrelax_p
+      if (nanomips_opts.linkrelax
 	  && (bfd_get_section_flags (stdoutput, now_seg) & SEC_CODE) != 0)
 	{
 	  int fill_length = 0;
@@ -10179,15 +10181,21 @@ s_nanomipsset (int x ATTRIBUTE_UNUSED)
 	  else if (!s->options.noreorder && nanomips_opts.noreorder)
 	    end_noreorder ();
 
+	  if (s->options.linkrelax != nanomips_opts.linkrelax)
+	    {
+	      toggle_linkrelax_p = TRUE;
+	      s->options.linkrelax = nanomips_opts.linkrelax;
+	    }
+
 	  nanomips_opts = s->options;
 	  nanomips_opts_stack = s->next;
 	  free (s);
 	}
     }
   else if (strcmp (name, "nolinkrelax") == 0)
-    toggle_linkrelax_p = (linkrelax && nanomips_linkrelax_p);
+    toggle_linkrelax_p = (linkrelax && nanomips_opts.linkrelax);
   else if (strcmp (name, "linkrelax") == 0)
-    toggle_linkrelax_p = (linkrelax && !nanomips_linkrelax_p);
+    toggle_linkrelax_p = (linkrelax && !nanomips_opts.linkrelax);
   else if (strcmp (name, "legacyregs") == 0)
     nanomips_opts.legacyregs = TRUE;
   else if (strcmp (name, "nolegacyregs") == 0)
@@ -11637,8 +11645,14 @@ s_nanomips_loc (int x ATTRIBUTE_UNUSED)
 static void
 s_linkrelax (int x ATTRIBUTE_UNUSED)
 {
-  linkrelax = TRUE;
-  nanomips_linkrelax_p = TRUE;
+  if (!file_nanomips_opts_checked)
+    {
+      linkrelax = TRUE;
+      nanomips_opts.linkrelax = TRUE;
+      file_nanomips_opts.linkrelax = TRUE;
+    }
+  else
+    as_bad (_(".linkrelax is not permitted after generating code"));
 }
 
 /* The .end directive.  */
@@ -12519,7 +12533,7 @@ nanomips_md_do_align (int n, const char *fill, int fill_length, int max_fill)
 {
   unsigned int fill_value = 0;
 
-  if (nanomips_linkrelax_p
+  if (nanomips_opts.linkrelax
       && (bfd_get_section_flags (stdoutput, now_seg) & SEC_CODE) != 0)
     {
       fill_value = bfd_get_bits (fill, fill_length * 8, target_big_endian);
