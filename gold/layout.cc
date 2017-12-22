@@ -3749,14 +3749,21 @@ Layout::set_segment_offsets(const Target* target, Output_segment* load_seg,
 	  if (check_sections && last_load_segment != NULL)
 	    {
 	      gold_assert(last_load_segment->paddr() <= (*p)->paddr());
-	      if (last_load_segment->paddr() + last_load_segment->memsz()
+	      // FIXME: Try to find a better way to allow overlapping .bss
+	      // sections.
+	      if ((*p)->paddr() != (*p)->vaddr()
+		  && (*p)->filesz() == 0
+		  && (*p)->memsz() > 0)
+		continue;
+
+	      if (last_load_segment->paddr() + last_load_segment->filesz()
 		  > (*p)->paddr()
 		  && (*p)->memsz() > 0 )
 		{
 		  unsigned long long lb1 = last_load_segment->paddr();
-		  unsigned long long le1 = lb1 + last_load_segment->memsz();
+		  unsigned long long le1 = lb1 + last_load_segment->filesz();
 		  unsigned long long lb2 = (*p)->paddr();
-		  unsigned long long le2 = lb2 + (*p)->memsz();
+		  unsigned long long le2 = lb2 + (*p)->filesz();
 		  gold_error(_("load segment overlap [0x%llx -> 0x%llx] and "
 			       "[0x%llx -> 0x%llx]"),
 			     lb1, le1, lb2, le2);
