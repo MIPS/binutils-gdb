@@ -2460,6 +2460,8 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
     }
 
   uint64_t align;
+  // Value of the ALIGN expression if there is one.
+  uint64_t align_exp = 0;
   if (this->align_ == NULL)
     {
       if (this->output_section_ == NULL)
@@ -2472,11 +2474,18 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
       Output_section* align_section;
       align = this->align_->eval_with_dot(symtab, layout, true, *dot_value,
 					  NULL, &align_section, NULL, false);
+      align_exp = align;
       if (align_section != NULL)
 	gold_warning(_("alignment of section %s is not absolute"),
 		     this->name_.c_str());
       if (this->output_section_ != NULL)
-	this->output_section_->set_addralign(align);
+	{
+	  uint64_t addralign = this->output_section_->addralign();
+	  if (align > addralign)
+	    this->output_section_->set_addralign(align);
+	  else
+	    align = addralign;
+	}
     }
 
   uint64_t subalign;
@@ -2519,8 +2528,8 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
   // linker script wants.
   if (this->output_section_ != NULL
       && ((this->output_section_->flags() & elfcpp::SHF_ALLOC) != 0
-           || this->output_section_->is_noalloc()
-           || this->output_section_->is_created_from_script()))
+	   || this->output_section_->is_noalloc()
+	   || this->output_section_->is_created_from_script()))
     this->output_section_->set_address(address);
 
   this->evaluated_address_ = address;
@@ -2539,9 +2548,17 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
       if (lma_region != NULL)
 	{
 	  if (previous_section == NULL)
-	    // The LMA address was explicitly set to the given region.
-	    laddr = lma_region->get_current_address()->eval(symtab, layout,
-							    false);
+	    {
+	      // The LMA address was explicitly set to the given region.
+	      laddr = lma_region->get_current_address()->eval(symtab, layout,
+							      false);
+	      // When LMA_REGION is the same as VMA_REGION, align the LADDR
+	      // as we did for the ADDRESS.  If a different region, then
+	      // only align according to the value in the ALIGN_EXP.
+	      if (lma_region != vma_region)
+		align = align_exp;
+	      laddr = align_address(laddr, align);
+	    }
 	  else
 	    {
 	      // We are not going to use the discovered lma_region, so
@@ -2576,6 +2593,7 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
       else
 	{
 	  laddr = address + (old_load_address  - old_dot_value);
+	  laddr = align_address(laddr, align);
 	  if (this->output_section_ != NULL
 	      && !this->output_section_->is_noalloc()
 	      && old_load_address != old_dot_value)
