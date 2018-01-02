@@ -10632,9 +10632,13 @@ pic_need_relax (symbolS * sym, asection * segtype)
 static bfd_boolean
 nanomips_frag_match (fragS * head, fragS * matchP)
 {
+  if (matchP == head->fr_next && matchP->fr_fix == 0)
+    return TRUE;
+
   if (listing)
     {
-      while (head && head != matchP)
+      head = head->fr_next;
+      while (head && head != matchP && head->fr_fix == 0)
 	{
 	  if (head->fr_line > matchP->fr_line)
 	    break;
@@ -10642,10 +10646,8 @@ nanomips_frag_match (fragS * head, fragS * matchP)
 	    head = head->fr_next;
 	}
 
-      return (head != NULL && head->fr_line == matchP->fr_line);
+      return (head == matchP);
     }
-  else
-    return (matchP == head->fr_next);
 
   return FALSE;
 }
@@ -10684,10 +10686,11 @@ relaxed_nanomips_16bit_branch_length (fragS * fragp, asection * sec,
       else if (type == RT_BRANCH_CNDZ)
 	toofar = val < -(0x40 << 1) || val >= (0x40 << 1);
       else if (type == RT_BRANCH_CND)
-	toofar = (val < 2
-		  || val >= 32
-		  || nanomips_frag_match (fragp,
-					  symbol_get_frag (fragp->fr_symbol)));
+	toofar = (val <= 0
+		  || val > 30
+		  || (val == 2
+		      && nanomips_frag_match (fragp, symbol_get_frag
+					      (fragp->fr_symbol))));
       else
 	abort ();
     }

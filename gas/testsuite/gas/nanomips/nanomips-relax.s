@@ -40,5 +40,10 @@ test9:
 
 	beqc $s1,$a3,$L1 /* Unreachable forward, relax.  */
 $L1:
+	beqc $s1,$a3,$L2 /* Reachable forward, no relax.  */
+	restore.jrc	16,$ra
+$L2:
 	nop
+
 	.end test5
+	.space 8
