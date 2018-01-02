@@ -755,6 +755,7 @@ static bfd_boolean pic_need_relax (symbolS *, asection *);
 static void file_check_options (void);
 static void stubgroup_new (asection *);
 static void s_sign_cons (int);
+static void s_nanomips_leb128 (int);
 
 /* Table and functions used to map between CPU/ISA names, and
    ISA levels, and CPU numbers.  */
@@ -1038,6 +1039,8 @@ static const pseudo_typeS nanomips_pseudo_table[] = {
   {"stabs", s_nanomips_stab, 's'},
   {"text", s_change_sec, 't'},
   {"word", s_cons, 2},
+  {"uleb128", s_nanomips_leb128, 0},
+  {"sleb128", s_nanomips_leb128, 1},
 
   {"extern", ecoff_directive_extern, 0},
 
@@ -9991,6 +9994,24 @@ s_nanomips_globl (int x ATTRIBUTE_UNUSED)
   while (c == ',');
 
   demand_empty_rest_of_line ();
+}
+
+/* Parse the .sleb128 and .uleb128 pseudos.  Only allow constant expressions,
+   since these directives break relaxation when used with symbol deltas.  */
+
+static void
+s_nanomips_leb128 (int sign)
+{
+  expressionS exp;
+  char *save_in = input_line_pointer;
+
+  expression (&exp);
+  if (exp.X_op != O_constant)
+    as_bad (_("non-constant .%cleb128 is not supported"), sign ? 's' : 'u');
+  demand_empty_rest_of_line ();
+
+  input_line_pointer = save_in;
+  return s_leb128 (sign);
 }
 
 /* This structure is used to hold a stack of .set values.  */
