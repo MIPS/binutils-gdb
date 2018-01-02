@@ -3481,6 +3481,7 @@ match_int_operand (struct nanomips_arg_info *arg,
 	      opmask = nanomips_operand_mask (operand_base);
 	      /* This is not an direct mask comparison.  In some cases
 		 the relocation targets only a part of the operand bits.  */
+	      match_out_of_range (arg);	      
 	      return ((howto->dst_mask & opmask) == howto->dst_mask);
 	    }
 	}
@@ -3493,6 +3494,11 @@ match_int_operand (struct nanomips_arg_info *arg,
 	    {
 	      offset_reloc[0] = BFD_RELOC_UNUSED + RT_ADDIU;
 	      return TRUE;
+	    }
+	  else if (offset_expr.X_op == O_symbol)
+	    {
+	      match_out_of_range (arg);
+	      return FALSE;
 	    }
 	  else
 	    {

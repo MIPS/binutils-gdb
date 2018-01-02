@@ -874,6 +874,8 @@ if { [istarget nanomips*-*-*] } {
     run_list_test_arch "save-error" "" nanomips32s
     run_dump_test_arch "save-relocs" "" nanomips32
     run_dump_test_arches "exp-relocs" [arch_list_matching xnms]
+    run_list_test "exp-reloc-err" "" "Test errors for incorrect relocations or labels used as load offset"
+
     run_dump_test_arch "nanomips-exc" "" nanomips32
     run_dump_test_arch "nanomips-exc32" "--defsym insn32_broken=" nanomips32
     run_dump_test_arch "nanomips-exc-noalias" "" nanomips32
