@@ -10006,7 +10006,7 @@ s_nanomips_leb128 (int sign)
   char *save_in = input_line_pointer;
 
   expression (&exp);
-  if (exp.X_op != O_constant)
+  if (exp.X_op != O_constant && nanomips_opts.linkrelax)
     as_bad (_("non-constant .%cleb128 is not supported"), sign ? 's' : 'u');
   demand_empty_rest_of_line ();
 
