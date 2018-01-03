@@ -215,36 +215,36 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> e062 5002 	aluipc	t5,[0-9a-f]+ <[^>]+>
 [0-9a-f]+ <[^>]+> 0063 0000 	addiu	t5,t5,0
 			[0-9a-f]+: R_NANOMIPS_LO12	test
-[0-9a-f]+ <[^>]+> 3c80      	addu	a0,a4,a0
-[0-9a-f]+ <[^>]+> 3c02      	addu	a4,a6,a4
-[0-9a-f]+ <[^>]+> 3e15      	addu	s0,s5,s0
-[0-9a-f]+ <[^>]+> 3e97      	addu	s4,s7,s4
-[0-9a-f]+ <[^>]+> 3ca3      	addu	a1,a7,a1
-[0-9a-f]+ <[^>]+> 3c51      	addu	a6,s1,a6
-[0-9a-f]+ <[^>]+> 3e76      	addu	s3,s6,s3
-[0-9a-f]+ <[^>]+> 3ea1      	addu	s5,a5,s5
-[0-9a-f]+ <[^>]+> 3c02      	addu	a4,a6,a4
-[0-9a-f]+ <[^>]+> 3e97      	addu	s4,s7,s4
-[0-9a-f]+ <[^>]+> 3ca3      	addu	a1,a7,a1
-[0-9a-f]+ <[^>]+> 3c51      	addu	a6,s1,a6
-[0-9a-f]+ <[^>]+> 3e76      	addu	s3,s6,s3
-[0-9a-f]+ <[^>]+> 3ea1      	addu	s5,a5,s5
-[0-9a-f]+ <[^>]+> 3ccf      	mul	a2,a3,a2
-[0-9a-f]+ <[^>]+> 3c2b      	mul	a5,a7,a5
-[0-9a-f]+ <[^>]+> 3e3b      	mul	s1,s3,s1
-[0-9a-f]+ <[^>]+> 3edc      	mul	s6,s4,s6
-[0-9a-f]+ <[^>]+> 3ce9      	mul	a3,a5,a3
-[0-9a-f]+ <[^>]+> 3c78      	mul	a7,s0,a7
-[0-9a-f]+ <[^>]+> 3e5d      	mul	s2,s5,s2
-[0-9a-f]+ <[^>]+> 3ee8      	mul	s7,a4,s7
-[0-9a-f]+ <[^>]+> 3ccf      	mul	a2,a3,a2
-[0-9a-f]+ <[^>]+> 3c2b      	mul	a5,a7,a5
-[0-9a-f]+ <[^>]+> 3e3b      	mul	s1,s3,s1
-[0-9a-f]+ <[^>]+> 3edc      	mul	s6,s4,s6
-[0-9a-f]+ <[^>]+> 3ce9      	mul	a3,a5,a3
-[0-9a-f]+ <[^>]+> 3c78      	mul	a7,s0,a7
-[0-9a-f]+ <[^>]+> 3e5d      	mul	s2,s5,s2
-[0-9a-f]+ <[^>]+> 3ee8      	mul	s7,a4,s7
+[0-9a-f]+ <[^>]+> b2c8      	addu	a0,a0,a1
+[0-9a-f]+ <[^>]+> 3c02      	addu	a4,a4,a6
+[0-9a-f]+ <[^>]+> b100      	addu	s0,s0,s2
+[0-9a-f]+ <[^>]+> 3e97      	addu	s4,s4,s7
+[0-9a-f]+ <[^>]+> 3ca3      	addu	a1,a1,a7
+[0-9a-f]+ <[^>]+> 3c51      	addu	a6,a6,s1
+[0-9a-f]+ <[^>]+> 3e76      	addu	s3,s3,s6
+[0-9a-f]+ <[^>]+> 3ea1      	addu	s5,s5,a5
+[0-9a-f]+ <[^>]+> 3c02      	addu	a4,a4,a6
+[0-9a-f]+ <[^>]+> 3e97      	addu	s4,s4,s7
+[0-9a-f]+ <[^>]+> 3ca3      	addu	a1,a1,a7
+[0-9a-f]+ <[^>]+> 3c51      	addu	a6,a6,s1
+[0-9a-f]+ <[^>]+> 3e76      	addu	s3,s3,s6
+[0-9a-f]+ <[^>]+> 3ea1      	addu	s5,s5,a5
+[0-9a-f]+ <[^>]+> 3ccf      	mul	a2,a2,a3
+[0-9a-f]+ <[^>]+> 3c2b      	mul	a5,a5,a7
+[0-9a-f]+ <[^>]+> 3e3b      	mul	s1,s1,s3
+[0-9a-f]+ <[^>]+> 3edc      	mul	s6,s6,s4
+[0-9a-f]+ <[^>]+> 3ce9      	mul	a3,a3,a5
+[0-9a-f]+ <[^>]+> 3c78      	mul	a7,a7,s0
+[0-9a-f]+ <[^>]+> 3e5d      	mul	s2,s2,s5
+[0-9a-f]+ <[^>]+> 3ee8      	mul	s7,s7,a4
+[0-9a-f]+ <[^>]+> 3ccf      	mul	a2,a2,a3
+[0-9a-f]+ <[^>]+> 3c2b      	mul	a5,a5,a7
+[0-9a-f]+ <[^>]+> 3e3b      	mul	s1,s1,s3
+[0-9a-f]+ <[^>]+> 3edc      	mul	s6,s6,s4
+[0-9a-f]+ <[^>]+> 3ce9      	mul	a3,a3,a5
+[0-9a-f]+ <[^>]+> 3c78      	mul	a7,a7,s0
+[0-9a-f]+ <[^>]+> 3e5d      	mul	s2,s2,s5
+[0-9a-f]+ <[^>]+> 3ee8      	mul	s7,s7,a4
 
 [0-9a-f]+ <[^>]+> dbef      	beqc	a2,a3,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_PC4_S1	.L11

@@ -239,9 +239,9 @@ test:
 	aluipc	$r3,0x25
 	addiu	$r3, $r3, %pcrel_lo(test)
 
-	addu	$r4, $r4, $r8
+	addu	$r4, $r4, $r5
 	addu	$r8, $r8, $r10
-	addu	$r16, $r16, $r21
+	addu	$r16, $r16, $r18
 	addu	$r20, $r20, $r23
 
 	addu	$r5, $r5, $r11
