@@ -3491,8 +3491,7 @@ Layout::segment_precedes(const Output_segment* seg1,
   // the unlikely case of a non-readable segment comes before the
   // normal case of a readable segment.  If there are multiple
   // segments with the same type and flags, we require that the
-  // address be set, and we sort by virtual address and then physical
-  // address.
+  // address be set, and we sort by virtual address.
   if ((flags1 & elfcpp::PF_W) != (flags2 & elfcpp::PF_W))
     return (flags1 & elfcpp::PF_W) == 0;
   if ((flags1 & elfcpp::PF_W) != 0
@@ -3502,6 +3501,13 @@ Layout::segment_precedes(const Output_segment* seg1,
     return (flags1 & elfcpp::PF_X) != 0;
   if ((flags1 & elfcpp::PF_R) != (flags2 & elfcpp::PF_R))
     return (flags1 & elfcpp::PF_R) == 0;
+
+  // Sort by virtual address if the addresses are set.
+  if (seg1->are_addresses_set() && seg2->are_addresses_set())
+    {
+      if (seg1->vaddr() != seg2->vaddr())
+	return seg1->vaddr() < seg2->vaddr();
+    }
 
   // We shouldn't get here--we shouldn't create segments which we
   // can't distinguish.  Unless of course we are using a weird linker
