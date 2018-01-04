@@ -74,7 +74,7 @@ Valid @var{CPU} value are:
 
 @quotation
 i7200,
-m7000
+nms1
 @end quotation
 
 @item -mtune=@var{cpu}
@@ -334,7 +334,7 @@ Valid @var{isa} value are:
 Valid @var{cpu} value are:
 @quotation
 i7200,
-m7000
+nms1
 @end quotation
 @end table
 

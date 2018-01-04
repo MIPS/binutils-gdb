@@ -11879,7 +11879,7 @@ static const struct nanomips_cpu_info nanomips_cpu_info_table[] = {
 
   /* 7000 family */
   { "i7200",	FALSE, ASE_xNMS | ASE_TLB, ISA_NANOMIPS32R6, CPU_NANOMIPS32R6 },
-  { "m7000",	FALSE, 0,		ISA_NANOMIPS32R6, CPU_NANOMIPS32R6 },
+  { "nms1",	FALSE, 0,		ISA_NANOMIPS32R6, CPU_NANOMIPS32R6 },
 
   /* End marker */
   { NULL, 0, 0, 0, 0 }

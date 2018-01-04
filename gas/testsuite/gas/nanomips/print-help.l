@@ -8,7 +8,7 @@ nanoMIPS options:
 -G NUM			allow referencing objects up to NUM bytes
 			implicitly with the gp register \[default 8\]
 -march=CPU/-mtune=CPU	generate code/schedule for CPU, where CPU is one of:
-                        32r6, 32r6s, 64r6, i7200, m7000, from-abi
+                        32r6, 32r6s, 64r6, i7200, nms1, from-abi
 -m32			create p32 ABI object file \(default\)
 -m64			create p64 ABI object file
 -mcmodel=MMODEL		Generate code for a specific memory model,
