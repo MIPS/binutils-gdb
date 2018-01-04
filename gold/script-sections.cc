@@ -2696,15 +2696,6 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
 	this->output_section_->set_is_relro();
       else
 	this->output_section_->clear_is_relro();
-
-      // If this is a non-SHF_ALLOC section, keep dot and load address
-      // unchanged.  We don't want this for NOALLOC section.
-      if ((this->output_section_->flags() & elfcpp::SHF_ALLOC) == 0
-	  && !this->output_section_->is_noalloc())
-	{
-	  *dot_value = old_dot_value;
-	  *load_address = old_load_address;
-	}
     }
 }
 
