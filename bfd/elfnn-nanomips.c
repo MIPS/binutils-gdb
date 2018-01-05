@@ -98,7 +98,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] = {
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
 	 complain_overflow_dont, /* complain_on_overflow */
-	 _bfd_nanomips_elf_generic_reloc, /* special_function */
+	 _bfd_nanomips_elf_negative_reloc, /* special_function */
 	 "R_NANOMIPS_NEG",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */

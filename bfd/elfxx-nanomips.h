@@ -35,6 +35,9 @@ extern bfd_boolean _bfd_nanomips_elf_print_private_bfd_data (bfd *, void *);
 
 extern bfd_reloc_status_type _bfd_nanomips_elf_generic_reloc
   (bfd *, arelent *, asymbol *, void *, asection *, bfd *, char **);
+extern bfd_reloc_status_type _bfd_nanomips_elf_negative_reloc
+  (bfd *, arelent *, asymbol *, void *, asection *, bfd *, char **);
+
 extern unsigned long _bfd_elf_nanomips_mach (flagword);
 extern void _bfd_nanomips_elf_merge_symbol_attribute
   (struct elf_link_hash_entry *, const Elf_Internal_Sym *, bfd_boolean,

@@ -145,6 +145,41 @@ _bfd_nanomips_elf_generic_reloc (bfd * abfd ATTRIBUTE_UNUSED,
 }
 
 
+/* A generic howto special_function.  This calculates and installs the
+   relocation itself, thus avoiding the oft-discussed problems in
+   bfd_perform_relocation and bfd_install_relocation.  */
+
+bfd_reloc_status_type
+_bfd_nanomips_elf_negative_reloc (bfd * abfd ATTRIBUTE_UNUSED,
+				  arelent * reloc_entry, asymbol * symbol,
+				  void *data ATTRIBUTE_UNUSED,
+				  asection * input_section, bfd * output_bfd,
+				  char **error_message ATTRIBUTE_UNUSED)
+{
+  bfd_signed_vma val;
+  bfd_boolean relocatable;
+
+  relocatable = (output_bfd != NULL);
+
+  if (reloc_entry->address > bfd_get_section_limit (abfd, input_section))
+    return bfd_reloc_outofrange;
+
+  /* Calculate the value of the symbol S.  */
+  val = 0;
+  val += symbol->section->output_section->vma;
+  val += symbol->section->output_offset;
+  val += symbol->value;
+
+  /* Transmit the negated value (-S + A) for composition.  */
+  if (!relocatable && reloc_entry[1].address == reloc_entry->address)
+    reloc_entry[1].addend = - val + reloc_entry->addend;
+
+  if (relocatable)
+    reloc_entry->address += input_section->output_offset;
+
+  return bfd_reloc_ok;
+}
+
 /* Swap in an abiflags structure.  */
 
 void

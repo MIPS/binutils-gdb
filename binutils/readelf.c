@@ -12089,6 +12089,35 @@ target_specific_reloc_handling (Elf_Internal_Rela * reloc,
 	  }
 	break;
       }
+      case EM_NANOMIPS:
+	{
+	  static Elf_Internal_Sym * saved_sym = NULL;
+
+	  if (reloc == NULL)
+	    {
+	      saved_sym = NULL;
+	      return TRUE;
+	    }
+
+	  if (reloc_type == 3)
+	    {
+	      saved_sym = symtab + sym_index;
+	      bfd_vma value;
+
+	      if (sym_index >= num_syms)
+		error (_("nanomips reloc contains invalid symbol index %lu\n"),
+		       sym_index);
+	      else
+		{
+		  value = reloc->r_addend - saved_sym->st_value;
+		  reloc++;
+		  reloc->r_addend += value;
+		  return TRUE;
+		}
+	      break;
+	    }
+	  break;
+	}
     }
 
   return FALSE;
