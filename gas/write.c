@@ -101,6 +101,19 @@
 #define TC_FAKE_LABEL(NAME) (strcmp ((NAME), FAKE_LABEL_NAME) == 0)
 #endif
 
+#ifndef TC_EH_FRAME_ESTIMATE_SIZE_BEFORE_RELAX
+#define TC_EH_FRAME_ESTIMATE_SIZE_BEFORE_RELAX(FRAG) \
+  eh_frame_estimate_size_before_relax (FRAG)
+#endif
+
+#ifndef TC_EH_FRAME_RELAX_FRAG
+#define TC_EH_FRAME_RELAX_FRAG(FRAG) eh_frame_relax_frag (FRAG)
+#endif
+
+#ifndef TC_EH_FRAME_CONVERT_FRAG
+#define TC_EH_FRAME_CONVERT_FRAG(FRAG) eh_frame_convert_frag (FRAG)
+#endif
+
 /* Positive values of TC_FX_SIZE_SLACK allow a target to define
    fixups that far past the end of a frag.  Having such fixups
    is of course most most likely a bug in setting fx_size correctly.
@@ -477,7 +490,7 @@ cvt_frag_to_fill (segT sec ATTRIBUTE_UNUSED, fragS *fragP)
       break;
 
     case rs_cfa:
-      eh_frame_convert_frag (fragP);
+      TC_EH_FRAME_CONVERT_FRAG (fragP);
       break;
 
     case rs_dwarf2dbg:
@@ -2455,7 +2468,7 @@ relax_segment (struct frag *segment_frag_root, segT segment, int pass)
 	  break;
 
 	case rs_cfa:
-	  address += eh_frame_estimate_size_before_relax (fragP);
+	  address += TC_EH_FRAME_ESTIMATE_SIZE_BEFORE_RELAX (fragP);
 	  break;
 
 	case rs_dwarf2dbg:
@@ -2794,7 +2807,7 @@ relax_segment (struct frag *segment_frag_root, segT segment, int pass)
 		break;
 
 	      case rs_cfa:
-		growth = eh_frame_relax_frag (fragP);
+		growth = TC_EH_FRAME_RELAX_FRAG (fragP);
 		break;
 
 	      case rs_dwarf2dbg:
