@@ -12218,6 +12218,40 @@ md_nanomips_end (void)
     }
 }
 
+/* Map a data slot size to its nanoMIPS relocation.  */
+static bfd_reloc_code_real_type
+nanomips_bytes_to_reloc (int nbytes, bfd_boolean signed_val)
+{
+  bfd_reloc_code_real_type rel;
+  switch (nbytes)
+    {
+    case 1:
+      if (signed_val)
+	rel = BFD_RELOC_NANOMIPS_SIGNED_8;
+      else
+	rel = BFD_RELOC_NANOMIPS_UNSIGNED_8;
+      break;
+    case 2:
+      if (signed_val)
+	rel = BFD_RELOC_NANOMIPS_SIGNED_16;
+      else
+	rel = BFD_RELOC_NANOMIPS_UNSIGNED_16;
+      break;
+    case 4:
+      rel = BFD_RELOC_32;
+      break;
+    case 8:
+      rel = BFD_RELOC_64;
+      break;
+    case 16:
+      break;
+    default:
+      as_bad (_("unsupported BFD relocation size %u"), nbytes);
+      rel = BFD_RELOC_NONE;
+    }
+  return rel;
+}
+
 /* Parse a .byte, .word, etc. expression.
 
    Values for the status register are specified with %st(label).
@@ -12260,32 +12294,7 @@ nanomips_parse_cons_expression (expressionS * exp, unsigned int nbytes)
       expressionS *iter;
       bfd_boolean done = FALSE;
 
-      switch (nbytes)
-	{
-	case 1:
-	  if (sign_cons)
-	    rel = BFD_RELOC_NANOMIPS_SIGNED_8;
-	  else
-	    rel = BFD_RELOC_NANOMIPS_UNSIGNED_8;
-	  break;
-	case 2:
-	  if (sign_cons)
-	    rel = BFD_RELOC_NANOMIPS_SIGNED_16;
-	  else
-	    rel = BFD_RELOC_NANOMIPS_UNSIGNED_16;
-	  break;
-	case 4:
-	  rel = BFD_RELOC_32;
-	  break;
-	case 8:
-	  rel = BFD_RELOC_64;
-	  break;
-	case 16:
-	  break;
-	default:
-	  as_bad (_("unsupported BFD relocation size %u"), nbytes);
-	  rel = BFD_RELOC_NONE;
-	}
+      rel = nanomips_bytes_to_reloc (nbytes, sign_cons);
 
       /* Check if we can actually handle this expression.  */
       iter = exp;
@@ -12495,38 +12504,22 @@ nanomips_cons_fix_new (fragS * frag, int where, int nbytes, expressionS *exp,
     }
 }
 
-/* Check if a subtraction expression can be fully evaluated.  */
-bfd_boolean
-nanomips_allow_local_subtract (expressionS * left, expressionS * right,
-			       segT section)
+/* Check if subtraction of 2 symbols can be fully evaluated at assembly.  */
+static bfd_boolean
+nanomips_allow_local_subtract_symbols (symbolS * left, symbolS * right)
 {
-  /* If the symbols are not in a code section then they are OK.  */
-  if ((section->flags & SEC_CODE) == 0)
-    return TRUE;
-
-  if ((left->X_add_symbol == right->X_add_symbol))
-    return TRUE;
-
-  /* If we are not in assembling mode, subtraction is OK.  */
-  if (nanomips_assembling_insn)
-    return TRUE;
-
-  if (!linkrelax)
-    return TRUE;
-
   /* Check for intervening fixups between symbols within the same frag to
      determine if relaxation could affect the difference.  */
-  if (symbol_get_frag (left->X_add_symbol)
-      == symbol_get_frag (right->X_add_symbol))
+  if (symbol_get_frag (left) == symbol_get_frag (right))
     {
       fixS *fixP;
       fragS *fragP;
       bfd_vma low, high;
 
-      fragP = symbol_get_frag (left->X_add_symbol);
+      fragP = symbol_get_frag (left);
 
-      high = S_GET_VALUE (left->X_add_symbol);
-      low = S_GET_VALUE (right->X_add_symbol);
+      high = S_GET_VALUE (left);
+      low = S_GET_VALUE (right);
 
       /* Swap if necessary.  */
       if (high < low)
@@ -12555,6 +12548,30 @@ nanomips_allow_local_subtract (expressionS * left, expressionS * right,
      two symbols and that relaxation may increase the distance between
      them.  */
   return FALSE;
+}
+
+/* md_allow_local_subtract interface
+   Check if a subtraction expression can be fully evaluated.  */
+bfd_boolean
+nanomips_allow_local_subtract (expressionS * left, expressionS * right,
+			       segT section)
+{
+  /* If the symbols are not in a code section then they are OK.  */
+  if ((section->flags & SEC_CODE) == 0)
+    return TRUE;
+
+  if ((left->X_add_symbol == right->X_add_symbol))
+    return TRUE;
+
+  /* If we are not in assembling mode, subtraction is OK.  */
+  if (nanomips_assembling_insn)
+    return TRUE;
+
+  if (!linkrelax)
+    return TRUE;
+
+  return nanomips_allow_local_subtract_symbols (left->X_add_symbol,
+						right->X_add_symbol);
 }
 
 /* Create relocations for alignment directives.  */
@@ -12651,4 +12668,64 @@ nanomips_cfi_reloc_for_encoding (int encoding)
     return BFD_RELOC_32_PCREL;
   else
     return BFD_RELOC_NONE;
+}
+
+/* TC_EH_FRAME_ESTIMATE_SIZE_BEFORE_RELAX hook.
+   Check if the rs_cfa frag could be affected by linker relaxation and
+   choose a suitable size estimation heuristic. If not, fall back to
+   the generic estimation logic.
+
+   The heuristic is currently hard-coded to 4 bytes.
+*/
+int
+nanomips_eh_frame_estimate_size_before_relax (fragS * frag)
+{
+  expressionS *exp = symbol_get_value_expression (frag->fr_symbol);
+
+  if (linkrelax
+      && !nanomips_allow_local_subtract_symbols (exp->X_add_symbol,
+						 exp->X_op_symbol))
+    {
+      int ret;
+      gas_assert ((frag->fr_subtype >> 3) > 0);
+      ret = 4;
+      frag->fr_subtype = (frag->fr_subtype & ~7) | ret;
+
+      return ret;
+    }
+  else
+    return eh_frame_estimate_size_before_relax (frag);
+}
+
+/* TC_EH_FRAME_RELAX_FRAG hook  */
+int
+nanomips_eh_frame_relax_frag (fragS * frag)
+{
+  int oldsize, newsize;
+
+  oldsize = frag->fr_subtype & 7;
+  newsize = nanomips_eh_frame_estimate_size_before_relax (frag);
+  return newsize - oldsize;
+}
+
+/* TC_EH_FRAME_CONVERT_FRAG hook
+   Check if the rs_cfa frag could be affected by linker relaxation and
+   generate relocations to fix-up the value after relaxation.
+   Then fall-back to the generic convert_frag.  */
+void
+nanomips_eh_frame_convert_frag (fragS * frag)
+{
+  expressionS *exp = symbol_get_value_expression (frag->fr_symbol);
+
+  if (linkrelax && !nanomips_allow_local_subtract_symbols (exp->X_add_symbol,
+							   exp->X_op_symbol))
+    {
+      /* Generate label-difference relocations for this frag.  */
+      int size = nanomips_eh_frame_estimate_size_before_relax (frag);
+      bfd_reloc_code_real_type r = nanomips_bytes_to_reloc (size, FALSE);
+
+      nanomips_cons_fix_new (frag, frag->fr_fix, size, exp, r);
+    }
+
+  eh_frame_convert_frag (frag);
 }

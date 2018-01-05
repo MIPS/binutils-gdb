@@ -190,4 +190,16 @@ extern int nanomips_validate_fix_sub (struct fix *);
 
 #define MD_PCREL_FROM_SECTION(FIX,SEG) 0
 
+int nanomips_eh_frame_estimate_size_before_relax (fragS *);
+#define TC_EH_FRAME_ESTIMATE_SIZE_BEFORE_RELAX(frag) \
+  nanomips_eh_frame_estimate_size_before_relax (frag)
+
+int nanomips_eh_frame_relax_frag (fragS *);
+#define TC_EH_FRAME_RELAX_FRAG(frag) \
+  nanomips_eh_frame_relax_frag (frag)
+
+void nanomips_eh_frame_convert_frag (fragS *);
+#define TC_EH_FRAME_CONVERT_FRAG(frag) \
+  nanomips_eh_frame_convert_frag (frag)
+
 #endif /* TC_NANOMIPS */
