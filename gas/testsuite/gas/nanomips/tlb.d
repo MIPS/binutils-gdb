@@ -3,7 +3,7 @@
 
 # Check nanoMIPS TLB instructions
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section \.text:
 

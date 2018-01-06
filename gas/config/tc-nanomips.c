@@ -773,7 +773,8 @@ struct nanomips_cpu_info
 
 static const struct nanomips_cpu_info *nanomips_parse_cpu (const char *,
 							   const char *);
-static const struct nanomips_cpu_info *nanomips_cpu_info_from_isa (int);
+static const struct nanomips_cpu_info *nanomips_cpu_info_from_isa
+	(int, bfd_boolean);
 static const struct nanomips_cpu_info *nanomips_cpu_info_from_arch (int);
 
 /* Command-line options.  */
@@ -2283,24 +2284,13 @@ nanomips_parse_arguments (char *s, char float_format)
     obstack_finish (&nanomips_operand_tokens);
 }
 
-/* Return TRUE if opcode MO is valid on the currently selected ISA, ASE
-   and architecture. */
+/* Return TRUE if opcode MO is valid for the currently selected
+   floating point configuration.  */
 
 static bfd_boolean
-is_opcode_valid (const struct nanomips_opcode *mo)
+is_opcode_valid_for_fp (const struct nanomips_opcode *mo)
 {
-  int isa = nanomips_opts.isa;
-  int ase = nanomips_opts.ase;
   int fp_s, fp_d;
-  unsigned int i;
-
-  if (ISA_HAS_64BIT_REGS (isa))
-    for (i = 0; i < ARRAY_SIZE (nanomips_ases); i++)
-      if ((ase & nanomips_ases[i].flags) == nanomips_ases[i].flags)
-	ase |= nanomips_ases[i].flags64;
-
-  if (!nanomips_opcode_is_member (mo, isa, ase, nanomips_opts.arch))
-    return FALSE;
 
   /* Check whether the instruction or macro requires single-precision or
      double-precision floating-point support.  Note that this information is
@@ -2323,6 +2313,49 @@ is_opcode_valid (const struct nanomips_opcode *mo)
     return FALSE;
 
   return TRUE;
+}
+
+/* Return TRUE if opcode MO is valid for the currently selected ISA
+   with the specified ASE.  */
+
+static bfd_boolean
+is_opcode_valid_for_ase (const struct nanomips_opcode *mo, int ase)
+{
+  int isa = nanomips_opts.isa;
+  unsigned int i;
+
+  if (ISA_HAS_64BIT_REGS (isa))
+    for (i = 0; i < ARRAY_SIZE (nanomips_ases); i++)
+      if ((ase & nanomips_ases[i].flags) == nanomips_ases[i].flags)
+	ase |= nanomips_ases[i].flags64;
+
+  return nanomips_opcode_is_member (mo, isa, ase, nanomips_opts.arch);
+}
+
+/* Return TRUE if opcode MO is valid for the currently selected ISA,
+   ASE and floating point configuration.  */
+
+static bfd_boolean
+is_opcode_valid (const struct nanomips_opcode *mo)
+{
+  return (is_opcode_valid_for_ase (mo, nanomips_opts.ase)
+	  && is_opcode_valid_for_fp (mo));
+}
+
+/* Return TRUE if opcode MO is valid for the currently selected ISA
+   and architecture with a default ASE selection.  */
+
+static bfd_boolean
+is_opcode_valid_def_ase (const struct nanomips_opcode *mo)
+{
+  const struct nanomips_cpu_info *info;
+  int ase;
+
+  info = nanomips_cpu_info_from_isa (nanomips_opts.isa,
+				     (nanomips_opts.ase & ASE_xNMS) == 0);
+  ase = info->ase | nanomips_opts.ase;
+
+  return is_opcode_valid_for_ase (mo, ase);
 }
 
 /* Return TRUE if the size of the nanoMIPS opcode MO matches one
@@ -5706,10 +5739,31 @@ match_nanomips_insn (struct nanomips_cl_insn *insn,
 static void
 match_invalid_for_isa (void)
 {
-  set_insn_error_ss
-    (0, _("opcode not supported on this processor: %s (%s)"),
-     nanomips_cpu_info_from_arch (nanomips_opts.arch)->name,
-     nanomips_cpu_info_from_isa (nanomips_opts.isa)->name);
+  const struct nanomips_cpu_info *isa_info;
+  const struct nanomips_cpu_info *arch_info;
+
+  isa_info = nanomips_cpu_info_from_isa (nanomips_opts.isa,
+				     (nanomips_opts.ase & ASE_xNMS) == 0);
+  arch_info = nanomips_cpu_info_from_arch (nanomips_opts.arch);
+
+  if ((arch_info->flags & NANOMIPS_CPU_IS_ISA) != 0)
+    {
+      if (nanomips_arch_string)
+	arch_info = nanomips_parse_cpu (NULL, nanomips_arch_string);
+      else
+	arch_info = nanomips_parse_cpu (NULL, NANOMIPS_CPU_STRING_DEFAULT);
+
+      if (strcmp (isa_info->name, arch_info->name) == 0)
+	set_insn_error_ss (0, _("opcode not supported on this ISA: %s%s"),
+			   isa_info->name, "");
+      else
+	set_insn_error_ss
+	  (0, _("opcode not supported on this processor: %s (%s)"),
+	   arch_info->name, isa_info->name);
+    }
+  else
+    set_insn_error_ss (0, _("opcode not supported on this processor: %s (%s)"),
+		       arch_info->name, isa_info->name);
 }
 
 static bfd_boolean
@@ -5721,26 +5775,40 @@ match_nanomips_insns (struct nanomips_cl_insn *insn,
 {
   const struct nanomips_opcode *opcode;
   bfd_boolean seen_valid_for_isa, seen_valid_for_size;
+  bfd_boolean seen_valid_for_ase, seen_valid_for_fp;
+
+  seen_valid_for_isa = FALSE;
+  seen_valid_for_size = FALSE;
+  seen_valid_for_ase = FALSE;
+  seen_valid_for_fp = FALSE;
+  opcode = first;
 
   /* Search for a match, ignoring alternatives that don't satisfy the
      current ISA or forced_length.  */
-  seen_valid_for_isa = FALSE;
-  seen_valid_for_size = FALSE;
-  opcode = first;
   do
     {
       gas_assert (strcmp (opcode->name, first->name) == 0);
-      if ((!forced_insn_format
-	   || strcmp (opcode->suffix, first->suffix) == 0)
-	  && is_opcode_valid (opcode))
+      if (!forced_insn_format || strcmp (opcode->suffix, first->suffix) == 0)
 	{
-	  seen_valid_for_isa = TRUE;
-	  if (is_size_valid (opcode))
+	  if (is_opcode_valid (opcode))
 	    {
-	      seen_valid_for_size = TRUE;
-	      if (match_nanomips_insn (insn, opcode, tokens, opcode_extra,
-				       lax_match))
-		return TRUE;
+	      seen_valid_for_isa = TRUE;
+	      if (is_size_valid (opcode))
+		{
+		  seen_valid_for_size = TRUE;
+		  if (match_nanomips_insn (insn, opcode, tokens, opcode_extra,
+					   lax_match))
+		    return TRUE;
+		}
+	    }
+	  else
+	    {
+	      /* If instruction is not valid for current ISA,  try to guess
+		 why for better error reporting.  */
+	      if (is_opcode_valid_def_ase (opcode))
+		seen_valid_for_ase = TRUE;
+	      if (is_opcode_valid_for_fp (opcode))
+		seen_valid_for_fp = TRUE;
 	    }
 	}
       ++opcode;
@@ -5751,7 +5819,12 @@ match_nanomips_insns (struct nanomips_cl_insn *insn,
      all the alternatives were incompatible with the current ISA.  */
   if (!seen_valid_for_isa)
     {
-      match_invalid_for_isa ();
+      if (!seen_valid_for_fp)
+	set_insn_error (0, _("opcode belongs to disabled FP mode:"));
+      else if (seen_valid_for_ase)
+	set_insn_error (0, _("opcode belongs to a disabled ASE:"));
+      else
+	match_invalid_for_isa ();
       return TRUE;
     }
 
@@ -9176,26 +9249,6 @@ nanomips_after_parse_args (void)
   if (nanomips_arch_string != 0)
     arch_info = nanomips_parse_cpu ("-march", nanomips_arch_string);
 
-  if (file_nanomips_opts.isa != ISA_UNKNOWN)
-    {
-      /* Handle -mipsN.  At this point, file_nanomips_opts.isa contains the
-         ISA level specified by -mipsN, while arch_info->isa contains
-         the -march selection (if any).  */
-      if (arch_info != 0)
-	{
-	  /* -march takes precedence over -mipsN, since it is more descriptive.
-	     There's no harm in specifying both as long as the ISA levels
-	     are the same.  */
-	  if (file_nanomips_opts.isa != arch_info->isa)
-	    as_bad (_("-%s conflicts with the other architecture options,"
-		      " which imply -%s"),
-		    nanomips_cpu_info_from_isa (file_nanomips_opts.isa)->name,
-		    nanomips_cpu_info_from_isa (arch_info->isa)->name);
-	}
-      else
-	arch_info = nanomips_cpu_info_from_isa (file_nanomips_opts.isa);
-    }
-
   if (arch_info == 0)
     {
       arch_info = nanomips_parse_cpu ("default CPU",
@@ -11873,45 +11926,31 @@ s_nanomips_mask (int reg_type)
    gcc's nanomips_cpu_info_table[].  */
 static const struct nanomips_cpu_info nanomips_cpu_info_table[] = {
   /* Entries for generic ISAs */
-  { "32r6",	TRUE, ASE_xNMS | ASE_TLB, ISA_NANOMIPS32R6, CPU_NANOMIPS32R6 },
-  { "32r6s",	TRUE, 0,		ISA_NANOMIPS32R6, CPU_NANOMIPS32R6 },
-  { "64r6",	TRUE, ASE_xNMS | ASE_TLB, ISA_NANOMIPS64R6, CPU_NANOMIPS64R6 },
+  { "32r6",	NANOMIPS_CPU_IS_ISA,
+    ASE_xNMS | ASE_TLB, ISA_NANOMIPS32R6, CPU_NANOMIPS32R6 },
+  { "32r6s",	NANOMIPS_CPU_IS_ISA,
+    0,		ISA_NANOMIPS32R6, CPU_NANOMIPS32R6 },
+  { "64r6",    	NANOMIPS_CPU_IS_ISA,
+    ASE_xNMS | ASE_TLB, ISA_NANOMIPS64R6, CPU_NANOMIPS64R6 },
 
   /* 7000 family */
-  { "i7200",	FALSE, ASE_xNMS | ASE_TLB, ISA_NANOMIPS32R6, CPU_NANOMIPS32R6 },
-  { "nms1",	FALSE, 0,		ISA_NANOMIPS32R6, CPU_NANOMIPS32R6 },
+  { "i7200",	0, ASE_xNMS | ASE_TLB, ISA_NANOMIPS32R6, CPU_NANOMIPS32R6 },
+  { "nms1",	0, 0,		ISA_NANOMIPS32R6, CPU_NANOMIPS32R6 },
 
   /* End marker */
   { NULL, 0, 0, 0, 0 }
 };
 
-
-/* Return true if GIVEN is the same as CANONICAL, or if it is CANONICAL
-   with a final "000" replaced by "k".  Ignore case.
-
-   Note: this function is shared between GCC and GAS.  */
-
-static bfd_boolean
-nanomips_strict_matching_cpu_name_p (const char *canonical, const char *given)
-{
-  while (*given != 0 && TOLOWER (*given) == TOLOWER (*canonical))
-    given++, canonical++;
-
-  return ((*given == 0 && *canonical == 0)
-	  || (strcmp (canonical, "000") == 0
-	      && strcasecmp (given, "k") == 0));
-}
-
-
 /* Return true if GIVEN matches CANONICAL, where GIVEN is a user-supplied
-   CPU name.  We've traditionally allowed a lot of variation here.
-
-   Note: this function is shared between GCC and GAS.  */
+   CPU name.  */
 
 static bfd_boolean
 nanomips_matching_cpu_name_p (const char *canonical, const char *given)
 {
-  return nanomips_strict_matching_cpu_name_p (canonical, given);
+  while (*given != 0 && TOLOWER (*given) == TOLOWER (*canonical))
+    given++, canonical++;
+
+  return (*given == 0 && *canonical == 0);
 }
 
 /* Parse an option that takes the name of a processor as its argument.
@@ -11929,14 +11968,15 @@ nanomips_parse_cpu (const char *option, const char *cpu_string)
   if (strcasecmp (cpu_string, "from-abi") == 0)
     {
       if (ABI_NEEDS_32BIT_REGS (nanomips_abi))
-	return nanomips_cpu_info_from_isa (ISA_NANOMIPS32R6);
+	return nanomips_cpu_info_from_isa (ISA_NANOMIPS32R6, FALSE);
 
       if (ABI_NEEDS_64BIT_REGS (nanomips_abi))
-	return nanomips_cpu_info_from_isa (ISA_NANOMIPS64R6);
+	return nanomips_cpu_info_from_isa (ISA_NANOMIPS64R6, FALSE);
 
       return nanomips_cpu_info_from_isa (NANOMIPS_DEFAULT_64BIT
 					 ? ISA_NANOMIPS64R6
-					 : ISA_NANOMIPS32R6);
+					 : ISA_NANOMIPS32R6,
+					 FALSE);
     }
 
   /* 'default' has traditionally been a no-op.  Probably not very useful.  */
@@ -11947,34 +11987,27 @@ nanomips_parse_cpu (const char *option, const char *cpu_string)
     if (nanomips_matching_cpu_name_p (p->name, cpu_string))
       return p;
 
-  as_bad (_("bad value (%s) for %s"), cpu_string, option);
+  if (option != NULL)
+    as_bad (_("bad value (%s) for %s"), cpu_string, option);
   return 0;
 }
 
 /* Return the canonical processor information for ISA (a member of the
-   ISA_MIPS* enumeration).  */
+   ISA_NANOMIPS* enumeration).  */
 
 static const struct nanomips_cpu_info *
-nanomips_cpu_info_from_isa (int isa)
+nanomips_cpu_info_from_isa (int isa, bfd_boolean subset)
 {
   int i;
-  static struct nanomips_cpu_info retval;
 
   for (i = 0; nanomips_cpu_info_table[i].name != NULL; i++)
     if ((nanomips_cpu_info_table[i].flags & NANOMIPS_CPU_IS_ISA)
 	&& isa == nanomips_cpu_info_table[i].isa)
       {
-	if (ISA_IS_NANOMIPS (isa))
-	  {
-	    retval = nanomips_cpu_info_table[i];
-	    if (retval.isa == ISA_NANOMIPS32R6)
-	      retval.name = "nanomips32r6";
-	    else
-	      retval.name = "nanomips64r6";
-	    return &retval;
-	  }
-	else
-	  return (&nanomips_cpu_info_table[i]);
+	if (subset && (nanomips_cpu_info_table[i].ase & ASE_xNMS) != 0)
+	  i++;
+
+	return (&nanomips_cpu_info_table[i]);
       }
 
   return NULL;
@@ -11984,23 +12017,9 @@ static const struct nanomips_cpu_info *
 nanomips_cpu_info_from_arch (int arch)
 {
   int i;
-  static struct nanomips_cpu_info retval;
-
   for (i = 0; nanomips_cpu_info_table[i].name != NULL; i++)
     if (arch == nanomips_cpu_info_table[i].cpu)
-      {
-	if (ISA_IS_NANOMIPS (nanomips_cpu_info_table[i].isa))
-	  {
-	    retval = nanomips_cpu_info_table[i];
-	    if (retval.isa == ISA_NANOMIPS32R6)
-	      retval.name = "nanomips32r6";
-	    else
-	      retval.name = "nanomips64r6";
-	    return &retval;
-	  }
-	else
-	  return (&nanomips_cpu_info_table[i]);
-      }
+      return (&nanomips_cpu_info_table[i]);
 
   return NULL;
 }

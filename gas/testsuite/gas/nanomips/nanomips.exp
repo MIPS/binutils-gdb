@@ -955,20 +955,17 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "li" "-mlegacyregs" nanomips32s
     run_dump_test_arch "relax-swap3" "-mlegacyregs" nanomips32s
 
-    run_dump_test_arches "nanomips-tlb" "-mtlb" [arch_list_matching nanomips32]
-    run_dump_test_arch "nanomips-tlb" "-mtlb" nms1
-    run_list_test_arches "nanomips-tlb" "-mno-tlb" \
-	[arch_list_matching nanomips32]
-    run_list_test_arch "nanomips-tlb" "" nms1
+    run_dump_test_arches "tlb" "-mtlb" [arch_list_matching nanomips32]
+    run_dump_test_arch "tlb" "-mtlb" nms1
+    run_dump_test_arches "tlb-error" "-mno-tlb" [arch_list_matching nanomips32]
+    run_dump_test_arch "tlb-error" "" nms1
 
-    run_dump_test_opts "nanomips-tlbg" \
-	{"-mvirt" "-mvirt -mtlb"} \
+    run_dump_test_opts "tlbg" {"-mvirt" "-mvirt -mtlb"} \
 	[arch_list_matching xnms]
-    run_dump_test_arch "nanomips-tlbg" "-mvirt -mtlb" nms1
-    run_list_test_opts "nanomips-tlbg" \
-	{"-mvirt -mno-tlb" "-mno-virt -mtlb"} \
-	[arch_list_matching nanomips]
-    run_list_test_arch "nanomips-tlbg" "" nms1
+    run_dump_test_arch "tlbg" "-mvirt -mtlb" nms1
+    run_dump_test_arches "tlbg-error-ase" "" [arch_list_matching nanomips]
+    run_dump_test_arches "tlbg-error-isa" "" [arch_list_matching nanomips]	
+    run_dump_test_arch "tlbg-error" "" nms1
 
     run_list_test_arch "insn-suffix-error" "" nanomips32
     run_dump_test_arch "insn-suffix" "" nanomips32
