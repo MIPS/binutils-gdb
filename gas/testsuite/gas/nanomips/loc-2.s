@@ -1,4 +1,4 @@
-	.file	1 "loc-swap-2.s"
+	.file	1 "loc-2.s"
 	.cfi_startproc
 	.ent	foo
 	.type	foo,@function

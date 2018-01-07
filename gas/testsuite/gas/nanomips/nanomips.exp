@@ -690,11 +690,13 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "branch-misc-4"	[arch_list_matching nanomipsr6]
     run_dump_test_arches "branch-misc-4-64"	[arch_list_matching nanomips64r6]
 
-    # FIXMEr7 : generate & verify outputs
-    run_dump_test_arches "loc-swap"	[arch_list_matching !nanomips_broken]
-    run_dump_test_arches "loc-swap-dis"	[arch_list_matching !nanomips_broken]
-    run_dump_test_arches "loc-swap-2"	[arch_list_matching !nanomips_broken]
-    run_dump_test_arches "loc-swap-3"	[arch_list_matching !nanomips_broken]
+    # source location tracking
+    run_dump_test_arch "loc" "" nanomips32r6
+    run_dump_test_arch "loc-2" "" nanomips32r6
+    run_dump_test_arch "loc-3" "" nanomips32r6
+    run_dump_test_arch "loc-relax" "" nanomips32r6
+    run_dump_test_arch "loc-2-relax" "" nanomips32r6
+    run_dump_test_arch "loc-3-relax" "" nanomips32r6
 
     # tests of objdump's ability to disassemble the move mnemonic
     run_dump_test_arches "move"	[arch_list_matching nanomipsr6]
