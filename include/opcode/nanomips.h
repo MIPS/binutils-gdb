@@ -707,16 +707,12 @@ static const unsigned int nanomips_isa_table[] = {
 /* DSP ASE */
 #define ASE_DSP			0x00000001
 #define ASE_DSP64		0x00000002
-/* DSP R2 ASE  */
-#define ASE_DSPR2		0x00000004
 /* Enhanced VA Scheme */
 #define ASE_EVA			0x00000008
 /* MCU (MicroController) ASE */
 #define ASE_MCU			0x00000010
 /* MT ASE */
 #define ASE_MT			0x00000080
-/* SmartMIPS ASE  */
-#define ASE_SMARTMIPS		0x00000100
 /* Virtualization ASE */
 #define ASE_VIRT		0x00000200
 #define ASE_VIRT64		0x00000400
@@ -725,12 +721,6 @@ static const unsigned int nanomips_isa_table[] = {
 #define ASE_MSA64		0x00001000
 /* eXtended Physical Address (XPA) Extension.  */
 #define ASE_XPA			0x00002000
-/* DSP R3 Module.  */
-#define ASE_DSPR3		0x00004000
-/* MIPS16e2 ASE.  */
-#define ASE_MIPS16E2		0x00008000
-/* MIPS16e2 MT ASE instructions.  */
-#define ASE_MIPS16E2_MT		0x00010000
 /* The Virtualization ASE has eXtended Physical Addressing (XPA)
    instructions which are only valid when both ASEs are enabled.  */
 #define ASE_XPA_VIRT		0x00020000
@@ -740,8 +730,8 @@ static const unsigned int nanomips_isa_table[] = {
 /* Cyclic redundancy check (CRC) ASE */
 #define ASE_CRC			0x00100000
 #define ASE_CRC64		0x00200000
-/* Crypto ASE */
-#define ASE_CRYPTO		0x00400000
+/* Reserved for in-progress ASE */
+#define ASE_RESERVED1		0x00400000
 /* Global INValidate Extension. */
 #define ASE_GINV		0x00800000
 /* The Virtualization ASE has Global INValidate extension instructions

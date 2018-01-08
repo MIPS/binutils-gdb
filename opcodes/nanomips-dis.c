@@ -85,7 +85,7 @@ static const char * const nanomips_cp1_names_numeric[32] = {
   "$24",  "$25",  "$26",  "$27",  "$28",  "$29",  "$30",  "$31"
 };
 
-static const char * const nanomips_cp1_names_mips3264[32] = {
+static const char * const nanomips_cp1_names_3264r6[32] = {
   "c1_fir",       "c1_ufr",       "$2",           "$3",
   "c1_unfr",      "$5",           "$6",           "$7",
   "$8",           "$9",           "$10",          "$11",
@@ -96,7 +96,7 @@ static const char * const nanomips_cp1_names_mips3264[32] = {
   "c1_fenr",      "$29",          "$30",          "c1_fcsr"
 };
 
-static const char * const nanomips_cp0_names_mips3264r2[32] = {
+static const char * const nanomips_cp0_names_3264r6[32] = {
   "c0_index",     "c0_random",    "c0_entrylo0",  "c0_entrylo1",
   "c0_context",   "c0_pagemask",  "c0_wired",     "c0_hwrena",
   "c0_badvaddr",  "c0_count",     "c0_entryhi",   "c0_compare",
@@ -107,7 +107,7 @@ static const char * const nanomips_cp0_names_mips3264r2[32] = {
   "c0_taglo",     "c0_taghi",     "c0_errorepc",  "c0_desave",
 };
 
-static const struct nanomips_cp0sel_name nanomips_cp0sel_names_mips3264r2[] = {
+static const struct nanomips_cp0sel_name nanomips_cp0sel_names_3264r6[] = {
   {  4, 1, "c0_contextconfig"	},
   {  0, 1, "c0_mvpcontrol"	},
   {  0, 2, "c0_mvpconf0"	},
@@ -189,7 +189,7 @@ static const char * const nanomips_hwr_names_numeric[32] = {
   "$24",  "$25",  "$26",  "$27",  "$28",  "$29",  "$30",  "$31"
 };
 
-static const char * const nanomips_hwr_names_mips3264r2[32] = {
+static const char * const nanomips_hwr_names_3264r6[32] = {
   "hwr_cpunum",   "hwr_synci_step", "hwr_cc",     "hwr_ccres",
   "$4",          "$5",            "$6",           "$7",
   "$8",   "$9",   "$10",  "$11",  "$12",  "$13",  "$14",  "$15",
@@ -239,28 +239,25 @@ const struct nanomips_arch_choice nanomips_arch_choices[] = {
    nanomips_hwr_names_numeric},
 
   {"32r6", 1, bfd_mach_nanomipsisa32r6, CPU_NANOMIPS32R6, ISA_NANOMIPS32R6,
-   (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_VIRT | ASE_XPA_VIRT | ASE_XPA
-    | ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3 | ASE_xNMS
-    | ASE_TLB | ASE_GINV),
-   nanomips_cp0_names_mips3264r2, nanomips_cp0sel_names_mips3264r2,
-   ARRAY_SIZE (nanomips_cp0sel_names_mips3264r2), nanomips_cp1_names_mips3264,
-   nanomips_hwr_names_mips3264r2},
+   (ASE_EVA | ASE_MSA | ASE_VIRT | ASE_XPA_VIRT | ASE_XPA | ASE_MCU | ASE_MT
+    | ASE_DSP | ASE_xNMS | ASE_TLB | ASE_GINV),
+   nanomips_cp0_names_3264r6, nanomips_cp0sel_names_3264r6,
+   ARRAY_SIZE (nanomips_cp0sel_names_3264r6), nanomips_cp1_names_3264r6,
+   nanomips_hwr_names_3264r6},
 
   {"32r6s", 1, bfd_mach_nanomipsisa32r6, CPU_NANOMIPS32R6, ISA_NANOMIPS32R6,
-   (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_VIRT | ASE_XPA_VIRT | ASE_XPA
-    | ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3 | ASE_TLB
-    | ASE_GINV),
-   nanomips_cp0_names_mips3264r2, nanomips_cp0sel_names_mips3264r2,
-   ARRAY_SIZE (nanomips_cp0sel_names_mips3264r2),
-   nanomips_cp1_names_mips3264, nanomips_hwr_names_mips3264r2},
+   (ASE_EVA | ASE_MSA | ASE_VIRT | ASE_XPA_VIRT | ASE_XPA | ASE_MCU | ASE_MT
+    | ASE_DSP | ASE_TLB | ASE_GINV),
+   nanomips_cp0_names_3264r6, nanomips_cp0sel_names_3264r6,
+   ARRAY_SIZE (nanomips_cp0sel_names_3264r6), nanomips_cp1_names_3264r6,
+   nanomips_hwr_names_3264r6},
 
   {"64r6", 1, bfd_mach_nanomipsisa64r6, CPU_NANOMIPS64R6, ISA_NANOMIPS64R6,
-   (ASE_EVA | ASE_EVA_R6 | ASE_MSA | ASE_MSA64 | ASE_VIRT | ASE_XPA_VIRT
-    | ASE_XPA | ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3 | ASE_DSP64
-    | ASE_xNMS | ASE_TLB | ASE_GINV),
-   nanomips_cp0_names_mips3264r2, nanomips_cp0sel_names_mips3264r2,
-   ARRAY_SIZE (nanomips_cp0sel_names_mips3264r2),
-   nanomips_cp1_names_mips3264, nanomips_hwr_names_mips3264r2},
+   (ASE_EVA | ASE_MSA | ASE_MSA64 | ASE_VIRT | ASE_XPA_VIRT | ASE_XPA
+    | ASE_MCU | ASE_MT | ASE_DSP | ASE_DSP64 | ASE_xNMS | ASE_TLB | ASE_GINV),
+   nanomips_cp0_names_3264r6, nanomips_cp0sel_names_3264r6,
+   ARRAY_SIZE (nanomips_cp0sel_names_3264r6), nanomips_cp1_names_3264r6,
+   nanomips_hwr_names_3264r6},
 };
 
 /* ISA and processor type to disassemble for, and register names to use.

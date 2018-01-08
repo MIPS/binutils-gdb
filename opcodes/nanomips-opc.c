@@ -357,10 +357,6 @@ decode_nanomips_operand (const char *p)
 
 /* nanoMIPS Enhanced VA Scheme.  */
 #define EVA	ASE_EVA
-#define EVA_R6	ASE_EVA_R6
-
-/* TLB invalidate instruction support.  */
-#define TLBINV	ASE_EVA
 
 /* nanoMIPS Virtualization ASE.  */
 #define IVIRT	ASE_VIRT
