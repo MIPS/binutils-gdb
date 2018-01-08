@@ -4072,7 +4072,7 @@ match_save_restore_list_operand (struct nanomips_arg_info *arg,
   bfd_boolean gp = FALSE;
 
   count = 0;
-  first_reg = last_reg = 0;
+  first_reg = last_reg = RNUM_MASK + 1;
   do
     {
       unsigned int regno1 = 0, regno2 = 0;
@@ -4088,7 +4088,7 @@ match_save_restore_list_operand (struct nanomips_arg_info *arg,
 	  return FALSE;
 	}
 
-      if (first_reg == 0)
+      if (first_reg == RNUM_MASK + 1)
 	first_reg = last_reg = regno1;
       else if (regno1 != ((first_reg & 0x10) | (last_reg + 1) % 32))
 	{

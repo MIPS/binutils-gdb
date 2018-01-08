@@ -29,6 +29,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <test\+0x[a-f0-9]+> 83e1 3028 	save	40,ra
 [0-9a-f]+ <test\+0x[a-f0-9]+> 83c2 3100 	save	256,fp,ra
 [0-9a-f]+ <test\+0x[a-f0-9]+> 83e2 3400 	save	1024,ra,s0
+[0-9a-f]+ <test\+0x[a-f0-9]+> 8002 30a4 	save	160,zero,gp
 [0-9a-f]+ <test\+0x[a-f0-9]+> 8205 3044 	save	64,s0-s3,gp
 [0-9a-f]+ <test\+0x[a-f0-9]+> 808e 3044 	save	64,a0-s0,gp
 [0-9a-f]+ <test\+0x[a-f0-9]+> 81e4 3084 	save	128,t3-s1,gp
@@ -36,6 +37,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <test\+0x[a-f0-9]+> 83e1 3032 	restore	48,ra
 [0-9a-f]+ <test\+0x[a-f0-9]+> 83c2 3102 	restore	256,fp,ra
 [0-9a-f]+ <test\+0x[a-f0-9]+> 83e2 3402 	restore	1024,ra,s0
+[0-9a-f]+ <test\+0x[a-f0-9]+> 8002 30a6 	restore	160,zero,gp
 [0-9a-f]+ <test\+0x[a-f0-9]+> 8205 3046 	restore	64,s0-s3,gp
 [0-9a-f]+ <test\+0x[a-f0-9]+> 8043 3046 	restore	64,t4-t5,gp
 [0-9a-f]+ <test\+0x[a-f0-9]+> 83c5 3086 	restore	128,fp,ra,s0-s1,gp
@@ -43,6 +45,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <test\+0x[a-f0-9]+> 83e1 303b 	restore.jrc	56,ra
 [0-9a-f]+ <test\+0x[a-f0-9]+> 83c2 3103 	restore.jrc	256,fp,ra
 [0-9a-f]+ <test\+0x[a-f0-9]+> 83e2 3403 	restore.jrc	1024,ra,s0
+[0-9a-f]+ <test\+0x[a-f0-9]+> 8002 30a7 	restore.jrc	160,zero,gp
 [0-9a-f]+ <test\+0x[a-f0-9]+> 8205 3047 	restore.jrc	64,s0-s3,gp
 [0-9a-f]+ <test\+0x[a-f0-9]+> 8043 3047 	restore.jrc	64,t4-t5,gp
 [0-9a-f]+ <test\+0x[a-f0-9]+> 83c5 3087 	restore.jrc	128,fp,ra,s0-s1,gp

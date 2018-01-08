@@ -33,6 +33,7 @@ test:
 	save	40,$ra
 	save	256,$fp,$ra
 	save	1024,$ra,$s0
+	save	160,$zero,$gp
 	save	64,$s0-$s3,$gp
 	save	64,$a0-$s0,$gp
 	save	128,$t3,$s0,$s1,$gp
@@ -42,6 +43,7 @@ test:
 	restore	48,$ra
 	restore	256,$fp,$ra
 	restore	1024,$ra,$s0
+	restore	160,$zero,$gp
 	restore	64,$s0,$s1,$s2,$s3,$gp
 	restore	64,$t4,$t5,$gp
 	restore	128,$fp,$ra,$s0,$s1,$gp
@@ -50,6 +52,7 @@ test:
 	restore.jrc	56,$ra
 	restore.jrc	256,$fp,$ra
 	restore.jrc	1024,$ra,$s0
+	restore.jrc	160,$zero,$gp
 	restore.jrc	64,$s0,$s1,$s2,$s3,$gp
 	restore.jrc	64,$t4,$t5,$gp
 	restore.jrc	128,$fp,$ra,$s0,$s1,$gp
