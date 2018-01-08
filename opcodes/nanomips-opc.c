@@ -607,8 +607,7 @@ IGRIE */
 {"bneic",	"",		"t,m9,~",	0xc8100000, 0xfc1c0000,		RD_1,		0,	I38,	0},
 {"bposge32c",	"",		"p",		0x88044000, 0xffffc000,		0,		0,	0,	D32},
 {"bposge32",	"",		"p",		0x88044000, 0xffffc000,	0,	INSN2_ALIAS|CBR|CTC,	0,	D32}, /* BPOSGE32C */
-{"brc", 	"",		"s",		0x48008000, 0xffe0ffff,	RD_1,			0,	I38,	0},
-{"brsc",	"",		"s",		0x48008200, 0xffe0ffff,	RD_1,			0,	I38,	0},
+{"brsc",	"",		"s",		0x48008000, 0xffe0ffff,	RD_1,			0,	I38,	0},
 {"byterevh",	"",		"t,r",		0x8000d608, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX t,s,8,24 */
 {"byterevw",	"",		"t,r",		0x8000d218, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX t,s,24,8 */
 {"cache",	"",		"k,+j(b)",	0xa4003900, 0xfc007f00,		RD_3,		0,	I38,	0},
