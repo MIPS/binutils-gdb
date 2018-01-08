@@ -720,7 +720,7 @@ nanomips_print_save_restore (struct disassemble_info *info,
 
   if (freg == 30)
     fp = 1;
-  if ((freg == 31) || (freg == 30 && count > 1))
+  if ((freg == 31 && count > 0) || (freg == 30 && count > 1))
     ra = 1;
 
   if (freg + count == 45)
