@@ -2079,8 +2079,8 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 87e3 3800 	synci	2048\(t5\)
 [0-9a-f]+ <[^>]+> 1008      	syscall
 [0-9a-f]+ <[^>]+> 1008      	syscall
-[0-9a-f]+ <[^>]+> 1009      	syscall	1
-[0-9a-f]+ <[^>]+> 100a      	syscall	2
+[0-9a-f]+ <[^>]+> 1009      	syscall	0x1
+[0-9a-f]+ <[^>]+> 100a      	syscall	0x2
 [0-9a-f]+ <[^>]+> 0008 00ff 	syscall	0xff
 [0-9a-f]+ <[^>]+> 8460 4004 	lh	t5,4\(zero\)
 [0-9a-f]+ <[^>]+> 8460 4004 	lh	t5,4\(zero\)

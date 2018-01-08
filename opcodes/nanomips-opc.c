@@ -203,7 +203,7 @@ decode_nanomips_operand (const char *p)
 /* 	case 'l': REG (5, 6, MSA_CTRL); */
 	case 'm': SINT_SPLIT (7, 2, 2, 1, 15, 0); /* split 7-bit signed << 2 */
 /* 	case 'n': REG (5, 11, MSA_CTRL); */
-/* 	case 'o': SPECIAL (4, 16, IMM_INDEX); */
+	case 'o': HINT (2, 0);
 	case 'q': SINT_SPLIT (6, 3, 3, 1, 15, 0); /* split 6-bit signed << 3 */
 	case 'r': BRANCH_UNORD_SPLIT (21, 1); /* split 21-bit signed << 1 */
 	case 's': IMM_SINT_SPLIT (21, 1, 1, 1, 0, 2); /* split (21-bit signed + 2) << 1 */
@@ -847,7 +847,7 @@ IGRIE */
 {"ginvt",	"",		"s,+;",		0x20000f7f, 0xff80ffff, RD_1,			0,	0,	GINV},
 {"ginvgt",	"",		"s,+;",		0x20000d7f, 0xff80ffff, RD_1,			0,	0,	IVIRT_GINV},
 {"hypcall",	"[16]",		"",		0x100c,		0xffff,		0,	INSN2_ALIAS,	0,	IVIRT}, /* HYPCALL[16] */
-{"hypcall",	"[16]",		"mL",		0x100c,		0xfffc,		0,		0,	0,	IVIRT}, /* HYPCALL[16] */
+{"hypcall",	"[16]",		"+o",		0x100c,		0xfffc,		0,		0,	0,	IVIRT}, /* HYPCALL[16] */
 {"hypcall",	"[32]",		"",		0x000c0000, 0xffffffff,		0,	INSN2_ALIAS,	0,	IVIRT},
 {"hypcall",	"[32]",		"+M",		0x000c0000, 0xfffc0000,		0,		0,	0,	IVIRT},
 {"ins", 	"",		"t,r,+A,+B",	0x8000e000, 0xfc00f820,	WR_1|RD_2,		0,	0,	xNMS},
@@ -1363,7 +1363,7 @@ IGRIE */
 {"swxs",	"",		"d,s(t)",	0x200004c7, 0xfc0007ff, RD_1|RD_2|RD_3,		0,	0,	xNMS},
 {"swxc1",	"",		"R,s(t)",	0x20000587, 0xfc0007ff, RD_1|RD_2|RD_3,	INSN2_ALIAS,	I38,	0}, /* SWC1X */
 {"syscall",	"[16]",		"",		0x1008,     0xffff,		0,	INSN2_ALIAS,	I38,	0}, /* SYSCALL[16] */
-{"syscall",	"[16]",		"mL",		0x1008,     0xfffc,		0,		0,	I38,	0}, /* SYSCALL[16] */
+{"syscall",	"[16]",		"+o",		0x1008,     0xfffc,		0,		0,	I38,	0}, /* SYSCALL[16] */
 {"syscall",	"[32]",		"",		0x00080000, 0xffffffff,		0,	INSN2_ALIAS,	I38,	0},
 {"syscall",	"[32]",		"+M",		0x00080000, 0xfffc0000,		0,		0,	I38,	0},
 {"teq", 	"", 		"s,t",		0x20000000, 0xfc00ffff,	RD_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* TEQ */
