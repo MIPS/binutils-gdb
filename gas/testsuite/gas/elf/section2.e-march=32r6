@@ -1,5 +1,5 @@
 
-Symbol table '.symtab' contains 7 entries:
+Symbol table '.symtab' contains 6 entries:
  +Num: +Value +Size +Type +Bind +Vis +Ndx +Name
  +0: 0+0 +0 +NOTYPE +LOCAL +DEFAULT +UND 
  +1: 0+0 +0 +SECTION +LOCAL +DEFAULT +1 (|\.text)
@@ -7,4 +7,3 @@ Symbol table '.symtab' contains 7 entries:
  +3: 0+0 +0 +SECTION +LOCAL +DEFAULT +3 (|\.bss)
  +4: 0+0 +0 +SECTION +LOCAL +DEFAULT +5 
  +5: 0+0 +0 +SECTION +LOCAL +DEFAULT +4 
- +6: 0+0 +0 +SECTION +LOCAL +DEFAULT +6 

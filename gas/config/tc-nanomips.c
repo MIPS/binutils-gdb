@@ -11524,8 +11524,21 @@ nanomips_elf_final_processing (void)
 		     : ((file_nanomips_opts.ase & ASE_MSA) ? AFL_REG_128
 			: AFL_REG_64));
   flags.cpr2_size = AFL_REG_NONE;
-  flags.fp_abi = bfd_elf_get_obj_attr_int (stdoutput, OBJ_ATTR_GNU,
-					   Tag_GNU_NANOMIPS_ABI_FP);
+
+  /* If a GNU attribute was explicitly specified, use it.  */
+  if (obj_elf_seen_attribute (OBJ_ATTR_GNU, Tag_GNU_NANOMIPS_ABI_FP))
+    flags.fp_abi = bfd_elf_get_obj_attr_int (stdoutput, OBJ_ATTR_GNU,
+					     Tag_GNU_NANOMIPS_ABI_FP);
+  /* Soft-float gets precedence over single-float, the two options should
+     not be used together so this should not matter.  */
+  else if (file_nanomips_opts.soft_float == 1)
+    flags.fp_abi = Val_GNU_NANOMIPS_ABI_FP_SOFT;
+  /* Single-float gets precedence over all double_float cases.  */
+  else if (file_nanomips_opts.single_float == 1)
+    flags.fp_abi = Val_GNU_NANOMIPS_ABI_FP_SINGLE;
+  else
+    flags.fp_abi = Val_GNU_NANOMIPS_ABI_FP_DOUBLE;
+
   flags.ases = nanomips_convert_ase_flags (file_nanomips_opts.ase);
   flags.flags1 = 0;
   flags.flags2 = 0;
@@ -12234,21 +12247,6 @@ md_nanomips_end (void)
 					Tag_GNU_NANOMIPS_ABI_FP);
       if (fpabi != Val_GNU_NANOMIPS_ABI_FP_ANY)
 	check_fpabi (fpabi);
-    }
-  else
-    {
-      /* Soft-float gets precedence over single-float, the two options should
-         not be used together so this should not matter.  */
-      if (file_nanomips_opts.soft_float == 1)
-	fpabi = Val_GNU_NANOMIPS_ABI_FP_SOFT;
-      /* Single-float gets precedence over all double_float cases.  */
-      else if (file_nanomips_opts.single_float == 1)
-	fpabi = Val_GNU_NANOMIPS_ABI_FP_SINGLE;
-      else
-	fpabi = Val_GNU_NANOMIPS_ABI_FP_DOUBLE;
-
-      bfd_elf_add_obj_attr_int (stdoutput, OBJ_ATTR_GNU,
-				Tag_GNU_NANOMIPS_ABI_FP, fpabi);
     }
 }
 

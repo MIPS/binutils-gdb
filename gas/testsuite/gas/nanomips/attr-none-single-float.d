@@ -4,10 +4,6 @@
 #readelf: -A
 #name: MIPS infer fpabi (single-precision)
 
-Attribute Section: gnu
-File Attributes
-  Tag_GNU_NANOMIPS_ABI_FP: Hard float \(single precision\)
-
 nanoMIPS ABI Flags Version: 0
 
 ISA: nanoMIPS.*

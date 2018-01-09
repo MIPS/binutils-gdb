@@ -858,9 +858,6 @@ if { [istarget nanomips*-*-*] } {
     run_list_test_arches "attr-gnu-4-7-64" "-m64 -mdouble-float" \
 				    [arch_list_matching nanomips64r6]
 
-    run_dump_test_arch "attr-gnu-abi-msa-1" "" nanomips32r6
-    run_dump_test_arch "attr-gnu-abi-msa64-1" "-m64" nanomips64r6
-
     run_dump_test_arch "org-9" "" nanomips32r6
     run_dump_test_arch "org-12" "" nanomips32r6
 
