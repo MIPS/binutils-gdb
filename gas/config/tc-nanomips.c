@@ -5762,7 +5762,8 @@ match_invalid_for_isa (void)
       else
 	arch_info = nanomips_parse_cpu (NULL, NANOMIPS_CPU_STRING_DEFAULT);
 
-      if (strcmp (isa_info->name, arch_info->name) == 0)
+      if (strcmp (isa_info->name, arch_info->name) == 0
+	  || file_nanomips_opts.arch != nanomips_opts.arch)
 	set_insn_error_ss (0, _("opcode not supported on this ISA: %s%s"),
 			   isa_info->name, "");
       else
