@@ -462,6 +462,7 @@ gcc(1), ld(1), and the Info entries for @file{binutils} and @file{ld}.
    [@b{-mpid}] [@b{-mno-pid}]
    [@b{-mpcrel}] [@b{-mno-pcrel}]
    [@b{-minsn32}] [@b{-mno-insn32}]
+   [@b{-mcrc}] [@b{-mno-crc}]
    [@b{-mdsp}] [@b{-mno-dsp}]
    [@b{-mdspr3}] [@b{-mno-dspr3}]
    [@b{-meva}] [@b{-mno-eva}]

@@ -806,6 +806,8 @@ enum options
   OPTION_NO_TLB,
   OPTION_GINV,
   OPTION_NO_GINV,
+  OPTION_CRC,
+  OPTION_NO_CRC,
   OPTION_TRAP,
   OPTION_BREAK,
   OPTION_EB,
@@ -852,6 +854,8 @@ struct option md_longopts[] = {
   {"mno-eva", no_argument, NULL, OPTION_NO_EVA},
   {"mginv", no_argument, NULL, OPTION_GINV},
   {"mno-ginv", no_argument, NULL, OPTION_NO_GINV},
+  {"mcrc", no_argument, NULL, OPTION_CRC},
+  {"mno-crc", no_argument, NULL, OPTION_NO_CRC},
   {"mmcu", no_argument, NULL, OPTION_MCU},
   {"mno-mcu", no_argument, NULL, OPTION_NO_MCU},
   {"mmt", no_argument, NULL, OPTION_MT},
@@ -950,6 +954,11 @@ static const struct nanomips_ase nanomips_ases[] = {
 
   {"ginv", ASE_GINV, 0,
    OPTION_GINV, OPTION_NO_GINV,
+   6, 6,
+   -1},
+
+  {"crc", ASE_CRC, ASE_CRC64,
+   OPTION_CRC, OPTION_NO_CRC,
    6, 6,
    -1},
 
@@ -11462,6 +11471,8 @@ nanomips_convert_ase_flags (int ase)
 {
   unsigned int ext_ases = 0;
 
+  if (ase & ASE_CRC)
+    ext_ases |= NANOMIPS_ASE_CRC;
   if (ase & ASE_DSP)
     ext_ases |= NANOMIPS_ASE_DSPR3;
   if (ase & ASE_EVA)
@@ -12092,6 +12103,9 @@ nanoMIPS options:\n\
 -mdouble-float		allow 32-bit and 64-bit floating-point operations\n\
 --[no-]construct-floats	[dis]allow floating point values to be constructed\n"));
 
+  fprintf (stream, _("\
+-mcrc			generate Cyclic Redundancy Check (CRC) instructions\n\
+-mno-crc		do not generate CRC instructions\n"));
   fprintf (stream, _("\
 -mdsp			generate DSP R3 instructions\n\
 -mno-dsp		do not generate R3 DSP instructions\n"));

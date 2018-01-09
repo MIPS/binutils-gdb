@@ -374,6 +374,10 @@ decode_nanomips_operand (const char *p)
 /* Global INValidate extension.  */
 #define GINV	ASE_GINV
 
+/* Cyclic redundancy check instruction (CRC) support.  */
+#define CRC	ASE_CRC
+#define CRC64	ASE_CRC64
+
 #define FPU	0
 #define EJTAG	0
 #define UDI	0
@@ -681,6 +685,14 @@ IGRIE */
 {"cmpu.le.qb",	"", 		"s,t",		0x200002c5, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32},
 {"cmpu.lt.qb",	"", 		"s,t",		0x20000285, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32},
 {"cop2_1",	"",		"C",		0x20000002, 0xfc000007,		0,		0,	I38,	0},
+{"crc32b",	"",		"t,r",		0x200003e8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC},
+{"crc32h",	"",		"t,r",		0x200007e8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC},
+{"crc32w",	"",		"t,r",		0x20000be8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC},
+{"crc32d",	"",		"t,r",		0x20000fe8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC64},
+{"crc32cb",	"",		"t,r",		0x200013e8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC},
+{"crc32ch",	"",		"t,r",		0x200017e8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC},
+{"crc32cw",	"",		"t,r",		0x20001be8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC},
+{"crc32cd",	"",		"t,r",		0x20001fe8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC64},
 {"ctc1",	"",		"t,S",		0xa000183b, 0xfc00ffff,	RD_1|WR_2,		0,	I38,	0},
 {"ctc1",	"",		"t,G",		0xa000183b, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS,	I38,	0},
 {"ctc2",	"",		"t,G",		0x2000dd3f, 0xfc00ffff,	RD_1|WR_2,		0,	I38,	0},

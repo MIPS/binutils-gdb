@@ -24,6 +24,8 @@ nanoMIPS options:
 -msingle-float		only allow 32-bit floating-point operations
 -mdouble-float		allow 32-bit and 64-bit floating-point operations
 --\[no-\]construct-floats	\[dis\]allow floating point values to be constructed
+-mcrc			generate Cyclic Redundancy Check \(CRC\) instructions
+-mno-crc		do not generate CRC instructions
 -mdsp			generate DSP R3 instructions
 -mno-dsp		do not generate R3 DSP instructions
 -mdspr3			generate DSP R3 instructions

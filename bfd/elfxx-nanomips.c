@@ -496,6 +496,8 @@ print_nanomips_ases (FILE * file, unsigned int mask)
     fputs ("\n\tXPA ASE", file);
   if (mask & NANOMIPS_ASE_TLB)
     fputs ("\n\tTLB ASE", file);
+  if (mask & NANOMIPS_ASE_CRC)
+    fputs ("\n\tCRC ASE", file);
   if ((mask & NANOMIPS_ASE_xNMS) == 0)
     fputs ("\n\tnanoMIPS subset", file);
   else if (mask == 0)

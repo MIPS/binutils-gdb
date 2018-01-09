@@ -135,6 +135,12 @@ option.  This is equivalent to putting @code{.module noinsn32} at the
 start of the assembly file.  By default @samp{-mno-insn32} is
 selected, allowing all instructions to be used.
 
+@item -mcrc
+@itemx -mno-crc
+Generate code for the Cyclic Redundancy Check Application Specific
+Extension.  This tells the assembler to accept CRC instructions.
+@samp{-mno-crc} turns off this option.
+
 @item -mdsp
 @itemx -mno-dsp
 Generate code for the DSP Application Specific Extension. This tells
@@ -855,6 +861,20 @@ pass all floating-point data in general-purpose registers.
 @subsection Directives for generation of ASE instructions
 
 @table @code
+
+@item .set crc
+@itemx .set nocrc
+@itemx .module crc
+@itemx .module nocrc
+@cindex nanoMIPS CRC instruction generation override
+@kindex @code{.set crc}
+@kindex @code{.set nocrc}
+@kindex @code{.module crc}
+@kindex @code{.module nocrc}
+The directive @code{.set crc} makes the assembler accept instructions
+from the Cyclic Redundancy Check Application Specific Extension from that
+point on in the assembly.  The @code{.set nocrc} directive prevents
+CRC instructions from being accepted.
 
 @item .set dspr3
 @itemx .set nodspr3

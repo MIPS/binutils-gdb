@@ -1015,4 +1015,8 @@ if { [istarget nanomips*-*-*] } {
     run_list_test "compact-eh-err2"
 
     run_dump_test "debugline-relocs"
+
+    run_dump_test_arches "crc" ""	[mips_arch_list_matching nanomips32]
+    run_dump_test_arch "crc64" "" nanomips64r6
+    run_list_test "crc-error"
 }

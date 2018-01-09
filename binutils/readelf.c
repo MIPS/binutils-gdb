@@ -16241,6 +16241,8 @@ print_nanomips_ases (unsigned int mask)
     fputs ("\n\tTLB ASE", stdout);
   if (mask & NANOMIPS_ASE_GINV)
     fputs ("\n\tGINV ASE", stdout);
+  if (mask & NANOMIPS_ASE_CRC)
+    fputs ("\n\tCRC ASE", stdout);
  if ((mask & NANOMIPS_ASE_xNMS) == 0)
     fputs ("\n\tnanoMIPS subset", stdout);
   else if (mask == 0)
