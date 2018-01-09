@@ -12256,7 +12256,7 @@ md_nanomips_end (void)
 static bfd_reloc_code_real_type
 nanomips_bytes_to_reloc (int nbytes, bfd_boolean signed_val)
 {
-  bfd_reloc_code_real_type rel;
+  bfd_reloc_code_real_type rel = BFD_RELOC_NONE;
   switch (nbytes)
     {
     case 1:
