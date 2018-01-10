@@ -2389,6 +2389,7 @@ Output_section::Output_section(const char* name, elfcpp::Elf_Word type,
     generate_code_fills_at_write_(false),
     is_entsize_zero_(false),
     section_offsets_need_adjustment_(false),
+    is_noload_(false),
     is_noalloc_(false),
     is_created_from_script_(false),
     always_keeps_input_sections_(false),
@@ -2491,6 +2492,7 @@ Output_section::add_input_section(Layout* layout,
   // sections via a linker script.
   // FIXME: Should we issue a warning?
   if (this->type_ == elfcpp::SHT_NOBITS
+      && !this->is_noload_
       && shdr.get_sh_type() == elfcpp::SHT_PROGBITS)
     this->type_ = shdr.get_sh_type();
 

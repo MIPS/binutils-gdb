@@ -1035,6 +1035,8 @@ Layout::choose_output_section(const Relobj* relobj, const char* name,
 		  os->reset_address_and_file_offset();
 		}
 	    }
+	  else if (script_section_type == Script_sections::ST_NOLOAD)
+	    os->set_is_noload();
 
 	  *output_section_slot = os;
 	  return os;
@@ -2145,6 +2147,8 @@ Layout::make_output_section_for_script(
   os->set_is_created_from_script();
   if (section_type == Script_sections::ST_NOALLOC)
     os->set_is_noalloc();
+  else if (section_type == Script_sections::ST_NOLOAD)
+    os->set_is_noload();
 
   // The constructor of Output_section sets addresses of non-ALLOC sections
   // to 0 by default.  We don't want to do that for sections that are

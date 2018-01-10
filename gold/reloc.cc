@@ -701,7 +701,8 @@ Sized_relobj_file<size, big_endian>::write_sections(const Layout* layout,
 
       typename This::Shdr shdr(p);
 
-      if (shdr.get_sh_type() == elfcpp::SHT_NOBITS)
+      if (shdr.get_sh_type() == elfcpp::SHT_NOBITS
+	  || os->type() == elfcpp::SHT_NOBITS)
 	continue;
 
       if ((parameters->options().relocatable()

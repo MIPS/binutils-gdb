@@ -4035,6 +4035,11 @@ class Output_section : public Output_data
   set_is_noalloc()
   { this->is_noalloc_ = true; }
 
+  // Set NOLOAD flag.
+  void
+  set_is_noload()
+  { this->is_noload_ = true; }
+
   // Whether this section is created from the linker script.
   bool
   is_created_from_script() const
@@ -4558,6 +4563,8 @@ class Output_section : public Output_data
   bool is_entsize_zero_ : 1;
   // Whether section offsets need adjustment due to relaxation.
   bool section_offsets_need_adjustment_ : 1;
+  // Whether this is a NOLOAD section.
+  bool is_noload_ : 1;
   // Whether this is a NOALLOC section.
   bool is_noalloc_ : 1;
   // True if this section is created from the linker script.
