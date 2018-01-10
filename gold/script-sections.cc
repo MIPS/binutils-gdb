@@ -95,25 +95,23 @@ class Memory_region
   }
 
   void
-  increment_offset(std::string section_name, uint64_t amount,
-		   const Symbol_table* symtab, const Layout* layout)
+  set_address(const std::string& section_name, uint64_t addr,
+	      const Symbol_table* symtab, const Layout* layout)
   {
-    this->current_offset_ += amount;
-
-    if (this->current_offset_
-	> this->length_->eval(symtab, layout, false))
-      gold_error(_("section %s overflows end of region %s"),
-		 section_name.c_str(), this->name_.c_str());
-  }
-
-  // Returns true iff there is room left in this region
-  // for AMOUNT more bytes of data.
-  bool
-  has_room_for(const Symbol_table* symtab, const Layout* layout,
-	       uint64_t amount) const
-  {
-    return (this->current_offset_ + amount
-	    < this->length_->eval(symtab, layout, false));
+    uint64_t start = this->start_->eval(symtab, layout, false);
+    uint64_t len = this->length_->eval(symtab, layout, false);
+    if (addr < start || addr > start + len)
+      gold_error(_("address 0x%llx of section %s is not within region %s"),
+		 static_cast<unsigned long long>(addr),
+		 section_name.c_str(),
+		 this->name_.c_str());
+    else if (addr < start + this->current_offset_)
+      gold_error(_("address 0x%llx of section %s moves dot backwards "
+		   "in region %s"),
+		 static_cast<unsigned long long>(addr),
+		 section_name.c_str(),
+		 this->name_.c_str());
+    this->current_offset_ = addr - start;
   }
 
   // Return true if the provided section flags
@@ -2592,12 +2590,22 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
 	}
       else
 	{
-	  laddr = address + (old_load_address  - old_dot_value);
-	  laddr = align_address(laddr, align);
-	  if (this->output_section_ != NULL
-	      && !this->output_section_->is_noalloc()
-	      && old_load_address != old_dot_value)
-	    this->output_section_->set_load_address(laddr);
+	  // LMA should be set so that the difference between the VMA and LMA
+	  // is the same as the difference between the VMA and LMA of the last
+	  // section.
+	  if (old_load_address != old_dot_value)
+	    {
+	      laddr = address + (old_load_address - old_dot_value);
+	      laddr = align_address(laddr, align);
+	      if (this->output_section_ != NULL)
+		this->output_section_->set_load_address(laddr);
+	    }
+	  else
+	    // Do not set the load address of the output section, if one exists.
+	    // This allows future sections to determine what the load address
+	    // should be.  If none is ever set, it will default to being the
+	    // same as the vma address.
+	    laddr = address;
 	}
     }
   else
@@ -2652,43 +2660,29 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
 
   gold_assert(input_sections.empty());
 
-  if (this->output_section_ != NULL
-      && (this->output_section_->flags() & elfcpp::SHF_ALLOC) != 0)
-    {
-      if (vma_region != NULL)
-	{
-	  // Update the VMA region being used by the section now that we know
-	  // how big it is.  Use the current address in the region, rather than
-	  // start_address because that might have been aligned upwards and we
-	  // need to allow for the padding.
-	  Expression* addr = vma_region->get_current_address();
-	  uint64_t size = *dot_value - addr->eval(symtab, layout, false);
-
-	  vma_region->increment_offset(this->get_section_name(), size,
-				       symtab, layout);
-	}
-
-      // If the LMA region is different from the VMA region, then increment the
-      // offset there as well.  Note that we use the same "dot_value -
-      // start_address" formula that is used in the load_address assignment
-      // below.
-      if (lma_region != NULL && lma_region != vma_region
-	  && this->output_section_->type() != elfcpp::SHT_NOBITS)
-	lma_region->increment_offset(this->get_section_name(),
-				     *dot_value - start_address,
-				     symtab, layout);
-    }
-
   // Compute the load address for the following section.
   if (this->output_section_ == NULL
       || (this->load_address_ == NULL && lma_region == NULL))
     *load_address += *dot_value - old_dot_value;
-  else if (lma_region != NULL && !this->output_section_->has_load_address())
-    *load_address =
-      lma_region->get_current_address()->eval(symtab, layout, false);
   else
-    *load_address = (this->output_section_->load_address()
-                     + (*dot_value - start_address));
+    *load_address = laddr + (*dot_value - start_address);
+
+  if (this->output_section_ != NULL
+      && (this->output_section_->flags() & elfcpp::SHF_ALLOC) != 0)
+    {
+      // Update the VMA region being used by the section now that we know
+      // how big it is.
+      if (vma_region != NULL)
+	vma_region->set_address(this->get_section_name(), *dot_value,
+				symtab, layout);
+
+      // If the LMA region is different from the VMA region, then update the
+      // LMA region there as well.
+      if (lma_region != NULL && lma_region != vma_region
+	  && this->output_section_->type() != elfcpp::SHT_NOBITS)
+	lma_region->set_address(this->get_section_name(), *load_address,
+				symtab, layout);
+    }
 
   if (this->output_section_ != NULL)
     {
