@@ -3702,7 +3702,7 @@ match_gprel_word (struct nanomips_arg_info *arg,
     {
       if (offset_reloc[0] != BFD_RELOC_UNUSED
 	  && offset_reloc[0] != BFD_RELOC_NANOMIPS_GPREL_I32
-	  && (forced_insn_length != 6 || !gprel16_reloc_p (offset_reloc[0])))
+	  && !gprel16_reloc_p (offset_reloc[0]))
 	/* Any other relocation operators not allowed in this position.  */
 	return FALSE;
 

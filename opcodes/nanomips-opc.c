@@ -476,6 +476,7 @@ IGRIE */
 {"addiupc",	"[48]",		"mp,+U",	0x6003,     0xfc1f,	WR_1,			0,	0,	xNMS}, /* ADDIUPC[48] */
 {"addiu.b",	"",	        "t,ma,+1",	0x440c0000, 0xfc1c0000,	WR_1|RD_2,	INSN2_ALIAS,	I38,	0}, /* ADDIU[GP.B] */
 {"addiu.w",	"",		"t,ma,.",	0x40000000, 0xfc000003,	WR_1|RD_2,	INSN2_ALIAS,	I38,	0}, /* ADDIU[GP.W] */
+{"addiu.b32",	"",		"mp,ma,+T",	0x6002,     0xfc1f,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ADDIU[GP48] */
 {"addq.ph",	"",		"d,s,t",	0x2000000d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"addqh.ph",	"",		"d,s,t",	0x2000004d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"addqh.w",	"",		"d,s,t",	0x2000008d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},

@@ -1525,13 +1525,14 @@ restrictions.
 @example
     addiu.w $a0, $gp, %gprel(foo)  # alias to addiu[gp.w]
     addiu.b $a0, $gp, %gprel(foo)  # alias to addiu[gp.b]
+    addiu.b32 $a0, $gp, %gprel(foo)  # alias to addiu[gp48]
     lapc.h $a0, foo  # alias to lapc[32]
     lapc.b $a0, foo  # alias to lapc[48]
 @end example
 
-All of the above forms can be relaxed by the linker, either by
-replacing one instruction with another of a different size or by a
-sequence of instructions, as necessary.
+All of the above forms can be relaxed by the linker, either by replacing
+one instruction with another of a different size, or by replacing one
+instruction with a sequence of instructions, as necessary.
 
 @subsection Options to control instruction disassembly
 

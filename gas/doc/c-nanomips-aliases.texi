@@ -369,6 +369,16 @@ addiu[gp.w] rt,gp,ofst
 @tab N @tab 32
 @item
 @verbatim
+addiu.b32 rt,$gp,ofst
+@end verbatim
+
+@tab @tab @verbatim
+addiu[gp48] rt,$gp,ofst
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
 align rd,rs,rt,bp
 @end verbatim
 
