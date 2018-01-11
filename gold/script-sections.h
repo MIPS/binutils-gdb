@@ -209,9 +209,10 @@ class Script_sections
                           uint64_t* load_address, uint64_t* addralign,
                           uint64_t* size) const;
 
-  // Release all Output_segments.  This is used in relaxation.
+  // Release all Output_segments and reset MEMORY regions.
+  // This is used in relaxation.
   void
-  release_segments();
+  clean_up_after_relaxation();
 
   // Whether we ever saw a SEGMENT_START expression, the presence of which
   // changes the behaviour of -Ttext, -Tdata and -Tbss options.

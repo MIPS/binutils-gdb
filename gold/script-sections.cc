@@ -78,6 +78,15 @@ class Memory_region
   void
   print(FILE*) const;
 
+  // Reset values of current offset and last section.
+  // This is used in relaxation.
+  void
+  reset_offset_and_last_section()
+  {
+    this->current_offset_ = 0;
+    this->last_section_ = NULL;
+  }
+
   // Return true if <name,namelen> matches this region.
   bool
   name_match(const char* name, size_t namelen)
@@ -4523,11 +4532,10 @@ Script_sections::get_output_section_info(const char* name, uint64_t* address,
   return false;
 }
 
-// Release all Output_segments.  This remove all pointers to all
-// Output_segments.
+// Release all Output_segments and reset MEMORY regions.
 
 void
-Script_sections::release_segments()
+Script_sections::clean_up_after_relaxation()
 {
   if (this->saw_phdrs_clause())
     {
@@ -4536,6 +4544,15 @@ Script_sections::release_segments()
 	   ++p)
 	(*p)->release_segment();
     }
+
+  if (this->memory_regions_ != NULL)
+    {
+      for (Memory_regions::const_iterator mr = this->memory_regions_->begin();
+	   mr != this->memory_regions_->end();
+	   ++mr)
+	(*mr)->reset_offset_and_last_section();
+    }
+
   this->segments_created_ = false;
 }
 
