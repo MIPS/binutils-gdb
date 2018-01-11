@@ -18,6 +18,6 @@ Disassembly of section \.text:
   14:	lui	at,%hi\(0x10000\)
   18:	addu	a0,a0,at
   1c:	lui	at,%hi\(0x1a000\)
-  20:	ori	at,at,1445
+  20:	ori	at,at,0x5a5
   24:	addu	a0,a0,at
 	\.\.\.

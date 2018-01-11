@@ -1,10 +1,10 @@
 .*.s: Assembler messages:
-.*.s:496: Warning: divide by zero
-.*.s:509: Warning: divide by zero
-.*.s:1425: Warning: divide by zero
-.*.s:2496: Warning: branch bge is always true
-.*.s:2508: Warning: branch bgeu is always true
-.*.s:2583: Warning: branch ble is always true
-.*.s:2598: Warning: branch bleu is always true
-.*.s:2604: Warning: branch bleu is always true
-.*.s:2607: Warning: branch bleu is always true
+.*.s:493: Warning: divide by zero
+.*.s:506: Warning: divide by zero
+.*.s:1209: Warning: divide by zero
+.*.s:1982: Warning: branch bge is always true
+.*.s:1994: Warning: branch bgeu is always true
+.*.s:2066: Warning: branch ble is always true
+.*.s:2081: Warning: branch bleu is always true
+.*.s:2087: Warning: branch bleu is always true
+.*.s:2090: Warning: branch bleu is always true

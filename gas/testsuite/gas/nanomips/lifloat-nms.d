@@ -18,6 +18,6 @@ Disassembly of section \.text:
    c:	ldc1	\$f4,0\(gp\)
 			c: R_NANOMIPS_LITERAL	\.lit8
   10:	lui	a0,%hi\(0x3f8fc000\)
-  14:	ori	a0,a0,3382
+  14:	ori	a0,a0,0xd36
   18:	lwc1	\$f4,0\(gp\)
 			18: R_NANOMIPS_LITERAL	\.lit4

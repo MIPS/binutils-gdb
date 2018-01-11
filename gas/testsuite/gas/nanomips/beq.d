@@ -22,7 +22,7 @@ Disassembly of section \.text:
 0+0020 <text_label\+0x20> 8824 0000 	beqc	a0,at,00000000 <text_label>
 			20: R_NANOMIPS_PC14_S1	text_label
 0+0024 <text_label\+0x24> e021 a000 	lui	at,%hi\(0x1a000\)
-0+0028 <text_label\+0x28> 8021 05a5 	ori	at,at,1445
+0+0028 <text_label\+0x28> 8021 05a5 	ori	at,at,0x5a5
 0+002c <text_label\+0x2c> 8824 0000 	beqc	a0,at,00000000 <text_label>
 			2c: R_NANOMIPS_PC14_S1	text_label
 0+0030 <text_label\+0x30> a880 0000 	bnezc	a0,00000000 <text_label>

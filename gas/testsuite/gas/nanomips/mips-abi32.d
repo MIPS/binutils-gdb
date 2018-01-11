@@ -7,16 +7,16 @@
 
 Disassembly of section \.text:
 [0-9a-f]+ <func> e094 5244 	lui	a0,%hi\(0x12345000\)
-[0-9a-f]+ <[^>]+> 8084 0678 	ori	a0,a0,1656
+[0-9a-f]+ <[^>]+> 8084 0678 	ori	a0,a0,0x678
 [0-9a-f]+ <[^>]+> 4080 0000 	addiu	a0,gp,0
 			8: R_NANOMIPS_GPREL19_S2	\.sdata
 [0-9a-f]+ <[^>]+> e080 0000 	lui	a0,0x0
 			c: R_NANOMIPS_HI20	\.data
-[0-9a-f]+ <[^>]+> 8084 0000 	ori	a0,a0,0
+[0-9a-f]+ <[^>]+> 8084 0000 	ori	a0,a0,0x0
 			10: R_NANOMIPS_LO12	\.data
 [0-9a-f]+ <[^>]+> e080 0000 	lui	a0,0x0
 			14: R_NANOMIPS_HI20	end
-[0-9a-f]+ <[^>]+> 8084 0000 	ori	a0,a0,0
+[0-9a-f]+ <[^>]+> 8084 0000 	ori	a0,a0,0x0
 			18: R_NANOMIPS_LO12	end
 [0-9a-f]+ <[^>]+> 2800 0000 	bc	[0-9a-f]+ <[^>]+>
 			1c: R_NANOMIPS_PC25_S1	end

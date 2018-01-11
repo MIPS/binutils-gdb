@@ -25,7 +25,7 @@ Disassembly of section \.text:
 0+002c <text_label\+0x2c> a820 0000 	bnezc	at,00000000 <text_label>
 			2c: R_NANOMIPS_PC14_S1	text_label
 0+0030 <text_label\+0x30> e021 a000 	lui	at,%hi\(0x1a000\)
-0+0034 <text_label\+0x34> 8021 05a5 	ori	at,at,1445
+0+0034 <text_label\+0x34> 8021 05a5 	ori	at,at,0x5a5
 0+0038 <text_label\+0x38> 2024 0b90 	sltu	at,a0,at
 0+003c <text_label\+0x3c> a820 0000 	bnezc	at,00000000 <text_label>
 			3c: R_NANOMIPS_PC14_S1	text_label

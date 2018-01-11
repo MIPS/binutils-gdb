@@ -19,6 +19,13 @@ aliases supported:
 
 @multitable  @columnfractions 0.25 0.25 0.3 0.05 0.1
 @headitem Alias@tab Condition @tab Target@tab Dis@tab Size
+@item @tab @tab @tab @tab 
+@item
+@verbatim
+Implicit operand forms
+@end verbatim
+@tab  @tab @tab  @tab
+
 @item
 @verbatim
 break
@@ -251,11 +258,11 @@ wrdsp rt,31
 @tab Y @tab 32
 @item
 @verbatim
-yield
+yield rs
 @end verbatim
 
 @tab @tab @verbatim
-yield 0
+yield $zero, rs
 @end verbatim
 
 @tab Y @tab 32

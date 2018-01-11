@@ -30,9 +30,6 @@ test:
 	nop16
 	.endif
 	nop32
-	/*
-	ssnop
-	*/
 	ehb
 	pause
 
@@ -637,9 +634,7 @@ test3:
 	jalrc.hb	$a3
 	jalrc.hb	$a4
 	jalrc.hb	$fp
-/*
-	jalrc.hb	$ra
-*/
+
 	jalrc.hb	$ra, $zero
 	jalrc.hb	$ra, $t4
 	jalrc.hb	$ra, $t5
@@ -972,208 +967,10 @@ test3:
 	lw	$t5, 0xf0000000($a0)
 	lw	$t5, 0xffffffff($a0)
 	lw	$t5, 0x12345678($a0)
-/*
-	lwm	$s0, $ra, 12<<2($sp)
-	lwm	$s0, $s1, $ra, 12<<2($sp)
-	lwm	$s0-$s1, $ra, 12<<2($sp)
-	lwm	$s0, $s1, $s2, $ra, 12<<2($sp)
-	lwm	$s0-$s2, $ra, 12<<2($sp)
-	lwm	$s0, $s1, $s2, $s3, $ra, 12<<2($sp)
-	lwm	$s0-$s3, $ra, 12<<2($sp)
-	lwm	$s0, $ra, ($sp)
-	lwm	$s0, $ra, 0($sp)
-	lwm	$s0, $ra, 1<<2($sp)
-	lwm	$s0, $ra, 2<<2($sp)
-	lwm	$s0, $ra, 3<<2($sp)
-	lwm	$s0, $ra, 4<<2($sp)
-	lwm	$s0, $ra, 5<<2($sp)
-	lwm	$s0, $ra, 6<<2($sp)
-	lwm	$s0, $ra, 7<<2($sp)
-	lwm	$s0, $ra, 8<<2($sp)
-	lwm	$s0, $ra, 9<<2($sp)
-	lwm	$s0, $ra, 10<<2($sp)
-	lwm	$s0, $ra, 11<<2($sp)
-	lwm	$s0, $ra, 12<<2($sp)
-	lwm	$s0, $ra, 13<<2($sp)
-	lwm	$s0, $ra, 14<<2($sp)
-	lwm	$s0, $ra, 15<<2($sp)
-
-	lwm	$s0, 0
-	lwm	$s0, 4
-	lwm	$s0, ($a1)
-	lwm	$s0, 2047($a1)
-	lwm	$s0-$s1, 2047($a1)
-	lwm	$s0-$s2, 2047($a1)
-	lwm	$s0-$s3, 2047($a1)
-	lwm	$s0-$s4, 2047($a1)
-	lwm	$s0-$s5, 2047($a1)
-	lwm	$s0-$s6, 2047($a1)
-	lwm	$s0-$s7, 2047($a1)
-	lwm	$s0-$s8, 2047($a1)
-	lwm	$ra, 2047($a1)
-	lwm	$s0,$ra, ($a1)
-	lwm	$s0-$s1,$ra, ($a1)
-	lwm	$s0-$s2,$ra, ($a1)
-	lwm	$s0-$s3,$ra, ($a1)
-	lwm	$s0-$s4,$ra, ($a1)
-	lwm	$s0-$s5,$ra, ($a1)
-	lwm	$s0-$s6,$ra, ($a1)
-	lwm	$s0-$s7,$ra, ($a1)
-	lwm	$s0-$s8,$ra, ($a1)
-	lwm	$s0, -32768($zero)
-	lwm	$s0, 32767($zero)
-	lwm	$s0, 0($zero)
-	lwm	$s0, 65535($zero)
-	lwm	$s0, -32768($sp)
-	lwm	$s0, 32767($sp)
-	lwm	$s0, 0($sp)
-	lwm	$s0, 65535($sp)
-
-	lwp	$t4, 0
-	lwp	$t4, 4
-	lwp	$t4, ($sp)
-	lwp	$t4, 0($sp)
-	lwp	$t4, -2048($t5)
-	lwp	$t4, 2047($t5)
-	lwp	$t4, -32768($t5)
-	lwp	$t4, 32767($t5)
-	lwp	$t4, 0($t5)
-	lwp	$t4, 65535($t5)
-	lwp	$t4, -32768($zero)
-	lwp	$t4, 32767($zero)
-	lwp	$t4, 65535($zero)
-
-	lwl	$t5, 4
-	lwl	$t5, 4($zero)
-	lwl	$t5, ($zero)
-	lwl	$t5, 0($zero)
-	lwl	$t5, 2047($zero)
-	lwl	$t5, -2048($zero)
-	lwl	$t5, 32767($zero)
-	lwl	$t5, -32768($zero)
-	lwl	$t5, 65535($zero)
-	lwl	$t5, 0xffff0000($zero)
-	lwl	$t5, 0xffff8000($zero)
-	lwl	$t5, 0xffff0001($zero)
-	lwl	$t5, 0xffff8001($zero)
-	lwl	$t5, 0xf0000000($zero)
-	lwl	$t5, 0xffffffff($zero)
-	lwl	$t5, 0x12345678($zero)
-	lwl	$t5, ($a0)
-	lwl	$t5, 0($a0)
-	lwl	$t5, 2047($a0)
-	lwl	$t5, -2048($a0)
-	lwl	$t5, 32767($a0)
-	lwl	$t5, -32768($a0)
-	lwl	$t5, 65535($a0)
-	lwl	$t5, 0xffff0000($a0)
-	lwl	$t5, 0xffff8000($a0)
-	lwl	$t5, 0xffff0001($a0)
-	lwl	$t5, 0xffff8001($a0)
-	lwl	$t5, 0xf0000000($a0)
-	lwl	$t5, 0xffffffff($a0)
-	lwl	$t5, 0x12345678($a0)
-
-	lcache	$t5, 4
-	lcache	$t5, 4($zero)
-	lcache	$t5, ($zero)
-	lcache	$t5, 0($zero)
-	lcache	$t5, 2047($zero)
-	lcache	$t5, -2048($zero)
-	lcache	$t5, 32767($zero)
-	lcache	$t5, -32768($zero)
-	lcache	$t5, 65535($zero)
-	lcache	$t5, 0xffff0000($zero)
-	lcache	$t5, 0xffff8000($zero)
-	lcache	$t5, 0xffff0001($zero)
-	lcache	$t5, 0xffff8001($zero)
-	lcache	$t5, 0xf0000000($zero)
-	lcache	$t5, 0xffffffff($zero)
-	lcache	$t5, 0x12345678($zero)
-	lcache	$t5, ($a0)
-	lcache	$t5, 0($a0)
-	lcache	$t5, 2047($a0)
-	lcache	$t5, -2048($a0)
-	lcache	$t5, 32767($a0)
-	lcache	$t5, -32768($a0)
-	lcache	$t5, 65535($a0)
-	lcache	$t5, 0xffff0000($a0)
-	lcache	$t5, 0xffff8000($a0)
-	lcache	$t5, 0xffff0001($a0)
-	lcache	$t5, 0xffff8001($a0)
-	lcache	$t5, 0xf0000000($a0)
-	lcache	$t5, 0xffffffff($a0)
-	lcache	$t5, 0x12345678($a0)
-
-	lwr	$t5, 4
-	lwr	$t5, 4($zero)
-	lwr	$t5, ($zero)
-	lwr	$t5, 0($zero)
-	lwr	$t5, 2047($zero)
-	lwr	$t5, -2048($zero)
-	lwr	$t5, 32767($zero)
-	lwr	$t5, -32768($zero)
-	lwr	$t5, 65535($zero)
-	lwr	$t5, 0xffff0000($zero)
-	lwr	$t5, 0xffff8000($zero)
-	lwr	$t5, 0xffff0001($zero)
-	lwr	$t5, 0xffff8001($zero)
-	lwr	$t5, 0xf0000000($zero)
-	lwr	$t5, 0xffffffff($zero)
-	lwr	$t5, 0x12345678($zero)
-	lwr	$t5, ($a0)
-	lwr	$t5, 0($a0)
-	lwr	$t5, 2047($a0)
-	lwr	$t5, -2048($a0)
-	lwr	$t5, 32767($a0)
-	lwr	$t5, -32768($a0)
-	lwr	$t5, 65535($a0)
-	lwr	$t5, 0xffff0000($a0)
-	lwr	$t5, 0xffff8000($a0)
-	lwr	$t5, 0xffff0001($a0)
-	lwr	$t5, 0xffff8001($a0)
-	lwr	$t5, 0xf0000000($a0)
-	lwr	$t5, 0xffffffff($a0)
-	lwr	$t5, 0x12345678($a0)
-
-	flush	$t5, 4
-	flush	$t5, 4($zero)
-	flush	$t5, ($zero)
-	flush	$t5, 0($zero)
-	flush	$t5, 2047($zero)
-	flush	$t5, -2048($zero)
-	flush	$t5, 32767($zero)
-	flush	$t5, -32768($zero)
-	flush	$t5, 65535($zero)
-	flush	$t5, 0xffff0000($zero)
-	flush	$t5, 0xffff8000($zero)
-	flush	$t5, 0xffff0001($zero)
-	flush	$t5, 0xffff8001($zero)
-	flush	$t5, 0xf0000000($zero)
-	flush	$t5, 0xffffffff($zero)
-	flush	$t5, 0x12345678($zero)
-	flush	$t5, ($a0)
-	flush	$t5, 0($a0)
-	flush	$t5, 2047($a0)
-	flush	$t5, -2048($a0)
-	flush	$t5, 32767($a0)
-	flush	$t5, -32768($a0)
-	flush	$t5, 65535($a0)
-	flush	$t5, 0xffff0000($a0)
-	flush	$t5, 0xffff8000($a0)
-	flush	$t5, 0xffff0001($a0)
-	flush	$t5, 0xffff8001($a0)
-	flush	$t5, 0xf0000000($a0)
-	flush	$t5, 0xffffffff($a0)
-	flush	$t5, 0x12345678($a0)
-*/
 	.set push
 	lwxs	$s3, $a0($a1)
 	.set pop
-/*
-	madd	$a0,$a1
-	maddu	$a0,$a1
-*/
+
 	mfc0	$t4, $0
 	mfc0	$t4, $1
 	mfc0	$t4, $2
@@ -1239,10 +1036,7 @@ test3:
 	movz	$t4, $t5
 	movz	$t4, $t4, $t5
 	movz	$t4, $t5, $a0
-/*
-	msub	$a0,$a1
-	msubu	$a0,$a1
-*/
+
 	mtc0	$t4, $0
 	mtc0	$t4, $1
 	mtc0	$t4, $2
@@ -1309,14 +1103,6 @@ test3:
 	mul	$t4, $t4, 32767
 	mul	$t4, $t4, -32768
 	mul	$t4, $t4, 65535
-/*
-	mulo	$t4, $t5, $a0
-	mulo	$t4, $t5, 4
-	mulou	$t4, $t5, $a0
-	mulou	$t4, $t5, 4
-	mult	$t4, $t5
-	multu	$t4, $t5
-*/
 
 	neg	$t4, $t5
 	neg	$t4, $t4
@@ -1411,9 +1197,7 @@ test3:
 
 	rdpgpr	$t4, $t5
 	rdpgpr	$t4, $t4
-/*
-	rdpgpr	$t4
-*/
+
 	rem	$zero, $t4, $t5
 	rem	$zero, $fp, $ra
 	rem	$zero, $t5
@@ -1426,21 +1210,7 @@ test3:
 	rem	$t5, $a0, 1
 	rem	$t5, $a0, -1
 	rem	$t5, $a0, 2
-/*
 
-	remu	$zero, $t4, $t5
-	remu	$zero, $fp, $ra
-	remu	$zero, $t5
-	remu	$zero, $ra
-
-	remu	$t4, $t5, $zero
-	remu	$t4, $t5, $a0
-
-	remu	$t5, $a0, 0
-	remu	$t5, $a0, 1
-	remu	$t5, $a0, -1
-	remu	$t5, $a0, 2
-*/
 	rol	$t4, $t5, $a0
 	rol	$t4, $t4, $a0
 	rol	$t4, $t5, $t5
@@ -1518,9 +1288,7 @@ test3:
 	sb32	$t5, ($a0)
 	sb32	$t5, 0($a0)
 	sb32	$t5, 4095($a0)
-/*
-	sb32	$t5, -32768($a0)
-	*/
+
 	sb	$t5, 65535($a0)
 	sb	$t5, 0xffff0000($a0)
 	sb	$t5, 0xffff8000($a0)
@@ -1680,9 +1448,7 @@ test3:
 	sh32	$t5, 4
 	sh32	$t5, 4($zero)
 	sh32	$t5, 4095($zero)
-/*
-	sh32	$t5, -32768($zero)
-	*/
+
 	sh	$t5, 65535($zero)
 	sh	$t5, 0xffff0000($zero)
 	sh	$t5, 0xffff8000($zero)
@@ -1694,9 +1460,7 @@ test3:
 	sh32	$t5, ($a0)
 	sh32	$t5, 0($a0)
 	sh32	$t5, 4095($a0)
-/*
-	sh32	$t5, -32768($a0)
-	*/
+
 	sh	$t5, 65535($a0)
 	sh	$t5, 0xffff0000($a0)
 	sh	$t5, 0xffff8000($a0)
@@ -1775,24 +1539,12 @@ test3:
 	slt	$t4, $t5, 65536
 	slt	$t4, $t5, -32769
 
-	/*
-	slti	$t5, $a0, -32768
-	*/
 	slti	$t5, $a0, 0
 	slti	$t5, $a0, 4095
-	/*
-	slti	$t5, $a0, 65535
-	slti	$t5, $t5, 65535
-	slti	$t5, 65535
-	sltiu	$t5, $a0, -32768
-	*/
+
 	sltiu	$t5, $a0, 0
 	sltiu	$t5, $a0, 4095
-	/*
-	sltiu	$t5, $a0, 65535
-	sltiu	$t5, $t5, 65535
-	sltiu	$t5, 65535
-	*/
+
 	sltu	$t4, $t5, $a0
 	sltu	$t4, $t4, $a0
 	sltu	$t4, $a0
@@ -1957,9 +1709,7 @@ test3:
 	sw32	$t5, 4
 	sw32	$t5, 4($zero)
 	sw32	$t5, 4095($zero)
-	/*
-	sw32	$t5, -32768($zero)
-	*/
+
 	sw	$t5, 65535($zero)
 	sw	$t5, 0xffff0000($zero)
 	sw	$t5, 0xffff8000($zero)
@@ -1971,9 +1721,7 @@ test3:
 	sw32	$t5, ($a0)
 	sw32	$t5, 0($a0)
 	sw32	$t5, 4095($a0)
-	/*
-	sw32	$t5, -32768($a0)
-	*/
+
 	sw	$t5, 65535($a0)
 	sw	$t5, 0xffff0000($a0)
 	sw	$t5, 0xffff8000($a0)
@@ -1982,199 +1730,7 @@ test3:
 	sw	$t5, 0xf0000000($a0)
 	sw	$t5, 0xffffffff($a0)
 	sw	$t5, 0x12345678($a0)
-/*
-	swl	$t5, 4
-	swl	$t5, 4($zero)
-	swl	$t5, 2047($zero)
-	swl	$t5, -2048($zero)
-	swl	$t5, 32767($zero)
-	swl	$t5, -32768($zero)
-	swl	$t5, 65535($zero)
-	swl	$t5, 0xffff0000($zero)
-	swl	$t5, 0xffff8000($zero)
-	swl	$t5, 0xffff0001($zero)
-	swl	$t5, 0xffff8001($zero)
-	swl	$t5, 0xf0000000($zero)
-	swl	$t5, 0xffffffff($zero)
-	swl	$t5, 0x12345678($zero)
-	swl	$t5, ($a0)
-	swl	$t5, 0($a0)
-	swl	$t5, 2047($a0)
-	swl	$t5, -2048($a0)
-	swl	$t5, 32767($a0)
-	swl	$t5, -32768($a0)
-	swl	$t5, 65535($a0)
-	swl	$t5, 0xffff0000($a0)
-	swl	$t5, 0xffff8000($a0)
-	swl	$t5, 0xffff0001($a0)
-	swl	$t5, 0xffff8001($a0)
-	swl	$t5, 0xf0000000($a0)
-	swl	$t5, 0xffffffff($a0)
-	swl	$t5, 0x12345678($a0)
 
-	swr	$t5, 4
-	swr	$t5, 4($zero)
-	swr	$t5, 2047($zero)
-	swr	$t5, -2048($zero)
-	swr	$t5, 32767($zero)
-	swr	$t5, -32768($zero)
-	swr	$t5, 65535($zero)
-	swr	$t5, 0xffff0000($zero)
-	swr	$t5, 0xffff8000($zero)
-	swr	$t5, 0xffff0001($zero)
-	swr	$t5, 0xffff8001($zero)
-	swr	$t5, 0xf0000000($zero)
-	swr	$t5, 0xffffffff($zero)
-	swr	$t5, 0x12345678($zero)
-	swr	$t5, ($a0)
-	swr	$t5, 0($a0)
-	swr	$t5, 2047($a0)
-	swr	$t5, -2048($a0)
-	swr	$t5, 32767($a0)
-	swr	$t5, -32768($a0)
-	swr	$t5, 65535($a0)
-	swr	$t5, 0xffff0000($a0)
-	swr	$t5, 0xffff8000($a0)
-	swr	$t5, 0xffff0001($a0)
-	swr	$t5, 0xffff8001($a0)
-	swr	$t5, 0xf0000000($a0)
-	swr	$t5, 0xffffffff($a0)
-	swr	$t5, 0x12345678($a0)
-
-	scache	$t5, 4
-	scache	$t5, 4($zero)
-	scache	$t5, 2047($zero)
-	scache	$t5, -2048($zero)
-	scache	$t5, 32767($zero)
-	scache	$t5, -32768($zero)
-	scache	$t5, 65535($zero)
-	scache	$t5, 0xffff0000($zero)
-	scache	$t5, 0xffff8000($zero)
-	scache	$t5, 0xffff0001($zero)
-	scache	$t5, 0xffff8001($zero)
-	scache	$t5, 0xf0000000($zero)
-	scache	$t5, 0xffffffff($zero)
-	scache	$t5, 0x12345678($zero)
-	scache	$t5, ($a0)
-	scache	$t5, 0($a0)
-	scache	$t5, 2047($a0)
-	scache	$t5, -2048($a0)
-	scache	$t5, 32767($a0)
-	scache	$t5, -32768($a0)
-	scache	$t5, 65535($a0)
-	scache	$t5, 0xffff0000($a0)
-	scache	$t5, 0xffff8000($a0)
-	scache	$t5, 0xffff0001($a0)
-	scache	$t5, 0xffff8001($a0)
-	scache	$t5, 0xf0000000($a0)
-	scache	$t5, 0xffffffff($a0)
-	scache	$t5, 0x12345678($a0)
-
-	invalidate	$t5, 4
-	invalidate	$t5, 4($zero)
-	invalidate	$t5, 2047($zero)
-	invalidate	$t5, -2048($zero)
-	invalidate	$t5, 32767($zero)
-	invalidate	$t5, -32768($zero)
-	invalidate	$t5, 65535($zero)
-	invalidate	$t5, 0xffff0000($zero)
-	invalidate	$t5, 0xffff8000($zero)
-	invalidate	$t5, 0xffff0001($zero)
-	invalidate	$t5, 0xffff8001($zero)
-	invalidate	$t5, 0xf0000000($zero)
-	invalidate	$t5, 0xffffffff($zero)
-	invalidate	$t5, 0x12345678($zero)
-	invalidate	$t5, ($a0)
-	invalidate	$t5, 0($a0)
-	invalidate	$t5, 2047($a0)
-	invalidate	$t5, -2048($a0)
-	invalidate	$t5, 32767($a0)
-	invalidate	$t5, -32768($a0)
-	invalidate	$t5, 65535($a0)
-	invalidate	$t5, 0xffff0000($a0)
-	invalidate	$t5, 0xffff8000($a0)
-	invalidate	$t5, 0xffff0001($a0)
-	invalidate	$t5, 0xffff8001($a0)
-	invalidate	$t5, 0xf0000000($a0)
-	invalidate	$t5, 0xffffffff($a0)
-	invalidate	$t5, 0x12345678($a0)
-
-	swm	$s0, $ra, 12<<2($sp)
-	swm	$s0, $s1, $ra, 12<<2($sp)
-	swm	$s0-$s1, $ra, 12<<2($sp)
-	swm	$s0, $s1, $s2, $ra, 12<<2($sp)
-	swm	$s0-$s2, $ra, 12<<2($sp)
-	swm	$s0, $s1, $s2, $s3, $ra, 12<<2($sp)
-	swm	$s0-$s3, $ra, 12<<2($sp)
-	swm	$s0, $ra, ($sp)
-	swm	$s0, $ra, 0($sp)
-	swm	$s0, $ra, 1<<2($sp)
-	swm	$s0, $ra, 2<<2($sp)
-	swm	$s0, $ra, 3<<2($sp)
-	swm	$s0, $ra, 4<<2($sp)
-	swm	$s0, $ra, 5<<2($sp)
-	swm	$s0, $ra, 6<<2($sp)
-	swm	$s0, $ra, 7<<2($sp)
-	swm	$s0, $ra, 8<<2($sp)
-	swm	$s0, $ra, 9<<2($sp)
-	swm	$s0, $ra, 10<<2($sp)
-	swm	$s0, $ra, 11<<2($sp)
-	swm	$s0, $ra, 12<<2($sp)
-	swm	$s0, $ra, 13<<2($sp)
-	swm	$s0, $ra, 14<<2($sp)
-	swm	$s0, $ra, 15<<2($sp)
-
-	swm	$s0, 0
-	swm	$s0, 4
-	swm	$s0, 2047
-	swm	$s0, -2048
-	swm	$s0, 2048
-	swm	$s0, -2049
-	swm	$s0, ($a1)
-	swm	$s0, 2047($a1)
-	swm	$s0, -2048($a1)
-	swm	$s0, 2048($a1)
-	swm	$s0, -2049($a1)
-	swm	$s0-$s1, 2047($a1)
-	swm	$s0-$s2, 2047($a1)
-	swm	$s0-$s3, 2047($a1)
-	swm	$s0-$s4, 2047($a1)
-	swm	$s0-$s5, 2047($a1)
-	swm	$s0-$s6, 2047($a1)
-	swm	$s0-$s7, 2047($a1)
-	swm	$s0-$s8, 2047($a1)
-	swm	$ra, 2047($a1)
-	swm	$s0,$ra, ($a1)
-	swm	$s0-$s1,$ra, ($a1)
-	swm	$s0-$s2,$ra, ($a1)
-	swm	$s0-$s3,$ra, ($a1)
-	swm	$s0-$s4,$ra, ($a1)
-	swm	$s0-$s5,$ra, ($a1)
-	swm	$s0-$s6,$ra, ($a1)
-	swm	$s0-$s7,$ra, ($a1)
-	swm	$s0-$s8,$ra, ($a1)
-	swm	$s0, -32768($sp)
-	swm	$s0, 32767($sp)
-	swm	$s0, 0($sp)
-	swm	$s0, 65535($sp)
-
-	swp	$t4, 0
-	swp	$t4, 4
-	swp	$t4, 2047
-	swp	$t4, -2048
-	swp	$t4, 2048
-	swp	$t4, -2049
-	swp	$t4, ($sp)
-	swp	$t4, 0($sp)
-	swp	$t4, 2047($t5)
-	swp	$t4, -2048($t5)
-	swp	$t4, 2048($t5)
-	swp	$t4, -2049($t5)
-	swp	$t4, 32767($t5)
-	swp	$t4, -32768($t5)
-	swp	$t4, 0($t5)
-	swp	$t4, 65535($t5)
-*/
 	sync
 	sync	0
 	sync	1
@@ -2201,12 +1757,7 @@ test3:
 	syscall	1
 	syscall	2
 	syscall	255
-
-	/*
-	teqi	$t4, 0
-	teqi	$t4, -32768
-	teqi	$t4, 32767
-	teqi	$t4, 65535
+/*
 	teq	$t4, $t5
 	teq	$t5, $t4
 	teq	$t4, $t5, 0
@@ -2217,73 +1768,11 @@ test3:
 	teq	$t4, 32767
 	teq	$t4, 65535
 
-	tgei	$t4, 0
-	tgei	$t4, -32768
-	tgei	$t4, 32767
-	tgei	$t4, 65535
-	tge	$t4, $t5
-	tge	$t5, $t4
-	tge	$t4, $t5, 0
-	tge	$t4, $t5, 1
-	tge	$t4, $t5, 15
-	tge	$t4, 0
-	tge	$t4, -32768
-	tge	$t4, 32767
-	tge	$t4, 65535
-
-	tgeiu	$t4, 0
-	tgeiu	$t4, -32768
-	tgeiu	$t4, 32767
-	tgeiu	$t4, 65535
-	tgeu	$t4, $t5
-	tgeu	$t5, $t4
-	tgeu	$t4, $t5, 0
-	tgeu	$t4, $t5, 1
-	tgeu	$t4, $t5, 15
-	tgeu	$t4, 0
-	tgeu	$t4, -32768
-	tgeu	$t4, 32767
-	tgeu	$t4, 65535
-
 	tlbp
 	tlbr
 	tlbwi
 	tlbwr
 
-	tlti	$t4, 0
-	tlti	$t4, -32768
-	tlti	$t4, 32767
-	tlti	$t4, 65535
-	tlt	$t4, $t5
-	tlt	$t5, $t4
-	tlt	$t4, $t5, 0
-	tlt	$t4, $t5, 1
-	tlt	$t4, $t5, 15
-	tlt	$t4, 0
-	tlt	$t4, -32768
-	tlt	$t4, 32767
-	tlt	$t4, 65535
-
-	tltiu	$t4, 0
-	tltiu	$t4, -32768
-	tltiu	$t4, 32767
-	tltiu	$t4, 65535
-	tltu	$t4, $t5
-	tltu	$t5, $t4
-	tltu	$t4, $t5, 0
-	tltu	$t4, $t5, 1
-	tltu	$t4, $t5, 15
-	tltu	$t4, 0
-	tltu	$t4, -32768
-	tltu	$t4, 32767
-	tltu	$t4, 65535
-	tltu	$t4, 65536
-	tltu	$t4, 0xffffffff
-
-	tnei	$t4, 0
-	tnei	$t4, -32768
-	tnei	$t4, 32767
-	tnei	$t4, 65535
 	tne	$t4, $t5
 	tne	$t5, $t4
 	tne	$t4, $t5, 0
@@ -2457,9 +1946,6 @@ test3:
 	xori	$t5, $a0, 0
 	xori	$t5, $t5, 4095
 
-/* 
-	.set	noreorder
-*/
 	beqz	$a5, test
 	addu	$s3, $a0, $a1
 
@@ -2516,10 +2002,7 @@ test3:
 
 	bgez	$t4, test
 	addu	$s3, $a0, $a1
-/*
-	bgezal	$t4, test
-	addu	$s3, $a0, $a1
-*/
+
 	bgt	$t4, $zero, test
 	addu	$s3, $a0, $a1
 
@@ -2654,10 +2137,7 @@ test3:
 
 	bltz	$a5, test
 	addu	$s3, $a0, $a1
-/*
-	bltzal	$a5, test
-	addu	$s3, $a0, $a1
-*/
+
 	bnez	$a5, test
 	addu	$s3, $a0, $a1
 
@@ -2670,72 +2150,6 @@ test3:
 	bne	$a5, 1, test
 	addu	$s3, $a0, $a1
 	
-/* 
-	.ifndef	insn32
-	addiur1sp	$t4, 0
-	addiur1sp	$t4, 1<<2
-	addiur1sp	$t4, 2<<2
-	addiur1sp	$t4, 3<<2
-	addiur1sp	$t4, 4<<2
-	addiur1sp	$t4, 63<<2
-	addiur1sp	$t5, 63<<2
-	addiur1sp	$a0, 63<<2
-	addiur1sp	$a1, 63<<2
-	addiur1sp	$a2, 63<<2
-	addiur1sp	$a3, 63<<2
-	addiur1sp	$s0, 63<<2
-	addiur1sp	$s1, 63<<2
-
-	addiur2	$t4, $t4, -1
-	addiur2	$t4, $t5, -1
-	addiur2	$t4, $a0, -1
-	addiur2	$t4, $a1, -1
-	addiur2	$t4, $a2, -1
-	addiur2	$t4, $a3, -1
-	addiur2	$t4, $s0, -1
-	addiur2	$t4, $s1, -1
-	addiur2	$t5, $s1, -1
-	addiur2	$a0, $s1, -1
-	addiur2	$a1, $s1, -1
-	addiur2	$a2, $s1, -1
-	addiur2	$a3, $s1, -1
-	addiur2	$s0, $s1, -1
-	addiur2	$s1, $s1, -1
-	addiur2	$s1, $s1, 1
-	addiur2	$s1, $s1, 4
-	addiur2	$s1, $s1, 8
-	addiur2	$s1, $s1, 12
-	addiur2	$s1, $s1, 16
-	addiur2	$s1, $s1, 20
-	addiur2	$s1, $s1, 24
-
-	addiusp	2 << 2
-	addiusp	3 << 2
-	addiusp	254 << 2
-	addiusp	255 << 2
-	addiusp	256 << 2
-	addiusp	257 << 2
-	addiusp	-3 << 2
-	addiusp	-4 << 2
-	addiusp	-255 << 2
-	addiusp	-256 << 2
-	addiusp	-257 << 2
-	addiusp	-258 << 2
-
-	addius5	$zero, 0
-	addius5	$t4, 0
-	addius5	$t5, 0
-	addius5	$fp, 0
-	addius5	$ra, 0
-	addius5	$ra, 1
-	addius5	$ra, 2
-	addius5	$ra, 3
-	addius5	$ra, 7
-	addius5	$ra, -6
-	addius5	$ra, -7
-	addius5	$ra, -8
-	.endif
-*/
 	sd	$t5, 4
 	sd	$t5, 4($zero)
 	sd	$t5, 32767($zero)
@@ -3000,32 +2414,9 @@ test3:
 	swc2	$3, 0xffffffff($a0)
 	swc2	$3, 0x12345678($a0)
 
-/*
-	cache	0, %lo(test)($t5)
-	lwp	$t4, %lo(test)($t5)
-	swp	$t4, %lo(test)($t5)
-
-	ll	$t4, %lo(test)($t5)
-	sc	$t4, %lo(test)($t5)
-	lwl	$t4, %lo(test)($t5)
-	lwr	$t4, %lo(test)($t5)
-	swl	$t4, %lo(test)($t5)
-	swr	$t4, %lo(test)($t5)
-	lwm	$s0, %lo(test)($t5)
-	swm	$s0, %lo(test)($t5)
-	lwc2	$16, %lo(test)($t5)
-	swc2	$16, %lo(test)($t5)
-	lcache	$t4, %lo(test)($t5)
-	flush	$t4, %lo(test)($t5)
-	scache	$t4, %lo(test)($t5)
-	invalidate	$t4, %lo(test)($t5)
-*/
 	sdbbp	1023
 	wait	1023
 	syscall	1023
-	/*
-	cop2	0x7fffff
-	*/
 	.end	test
 	.set	reorder
 
@@ -3033,16 +2424,6 @@ test3:
 	.ent	fp_test
 	.globl	fp_test
 fp_test:
-	/*
-	prefx	0, $zero($zero)
-	prefx	0, $zero($t4)
-	prefx	0, $zero($ra)
-	prefx	0, $t4($ra)
-	prefx	0, $ra($ra)
-	prefx	1, $ra($ra)
-	prefx	2, $ra($ra)
-	prefx	31, $ra($ra)
-	*/
 	abs.s	$f0, $f1
 	abs.s	$f30, $f31
 	abs.s	$f2, $f2
@@ -3051,12 +2432,7 @@ fp_test:
 	abs.d	$f30, $f31
 	abs.d	$f2, $f2
 	abs.d	$f2
-	/*
-	abs.ps	$f0, $f1
-	abs.ps	$f30, $f31
-	abs.ps	$f2, $f2
-	abs.ps	$f2
-	*/
+
 	add.s	$f0, $f1, $f2
 	add.s	$f29, $f30, $f31
 	add.s	$f29, $f29, $f30
@@ -3066,294 +2442,6 @@ fp_test:
 	add.d	$f29, $f29, $f30
 	add.d	$f29, $f30
 
-	/*
-	add.ps	$f0, $f1, $f2
-	add.ps	$f29, $f30, $f31
-	add.ps	$f29, $f29, $f30
-	add.ps	$f29, $f30
-	
-	alnv.ps	$f0, $f1, $f2, $zero
-	alnv.ps	$f0, $f1, $f2, $t4
-	alnv.ps	$f0, $f1, $f2, $ra
-	alnv.ps	$f29, $f30, $f31, $ra
-	alnv.ps	$f29, $f29, $f31, $ra
-	
-	bc1f	fp_test
-	bc1f	$fcc0, fp_test
-	bc1f	$fcc1, fp_test
-	bc1f	$fcc2, fp_test
-	bc1f	$fcc3, fp_test
-	bc1f	$fcc4, fp_test
-	bc1f	$fcc5, fp_test
-	bc1f	$fcc6, fp_test
-	bc1f	$fcc7, fp_test
-
-	bc1t	fp_test
-	bc1t	$fcc0, fp_test
-	bc1t	$fcc1, fp_test
-	bc1t	$fcc2, fp_test
-	bc1t	$fcc3, fp_test
-	bc1t	$fcc4, fp_test
-	bc1t	$fcc5, fp_test
-	bc1t	$fcc6, fp_test
-	bc1t	$fcc7, fp_test
-
-	c.f.d	$f0, $f1
-	c.f.d	$f30, $f31
-	c.f.d	$fcc0, $f30, $f31
-	c.f.d	$fcc1, $f30, $f31
-	c.f.d	$fcc7, $f30, $f31
-	c.f.s	$f0, $f1
-	c.f.s	$f30, $f31
-	c.f.s	$fcc0, $f30, $f31
-	c.f.s	$fcc1, $f30, $f31
-	c.f.s	$fcc7, $f30, $f31
-	c.f.ps	$f0, $f1
-	c.f.ps	$f30, $f31
-	c.f.ps	$fcc0, $f30, $f31
-	c.f.ps	$fcc2, $f30, $f31
-	c.f.ps	$fcc6, $f30, $f31
-
-	c.un.d	$f0, $f1
-	c.un.d	$f30, $f31
-	c.un.d	$fcc0, $f30, $f31
-	c.un.d	$fcc1, $f30, $f31
-	c.un.d	$fcc7, $f30, $f31
-	c.un.s	$f0, $f1
-	c.un.s	$f30, $f31
-	c.un.s	$fcc0, $f30, $f31
-	c.un.s	$fcc1, $f30, $f31
-	c.un.s	$fcc7, $f30, $f31
-	c.un.ps	$f0, $f1
-	c.un.ps	$f30, $f31
-	c.un.ps	$fcc0, $f30, $f31
-	c.un.ps	$fcc2, $f30, $f31
-	c.un.ps	$fcc6, $f30, $f31
-
-	c.eq.d	$f0, $f1
-	c.eq.d	$f30, $f31
-	c.eq.d	$fcc0, $f30, $f31
-	c.eq.d	$fcc1, $f30, $f31
-	c.eq.d	$fcc7, $f30, $f31
-	c.eq.s	$f0, $f1
-	c.eq.s	$f30, $f31
-	c.eq.s	$fcc0, $f30, $f31
-	c.eq.s	$fcc1, $f30, $f31
-	c.eq.s	$fcc7, $f30, $f31
-	c.eq.ps	$f0, $f1
-	c.eq.ps	$f30, $f31
-	c.eq.ps	$fcc0, $f30, $f31
-	c.eq.ps	$fcc2, $f30, $f31
-	c.eq.ps	$fcc6, $f30, $f31
-
-	c.ueq.d	$f0, $f1
-	c.ueq.d	$f30, $f31
-	c.ueq.d	$fcc0, $f30, $f31
-	c.ueq.d	$fcc1, $f30, $f31
-	c.ueq.d	$fcc7, $f30, $f31
-	c.ueq.s	$f0, $f1
-	c.ueq.s	$f30, $f31
-	c.ueq.s	$fcc0, $f30, $f31
-	c.ueq.s	$fcc1, $f30, $f31
-	c.ueq.s	$fcc7, $f30, $f31
-	c.ueq.ps	$f0, $f1
-	c.ueq.ps	$f30, $f31
-	c.ueq.ps	$fcc0, $f30, $f31
-	c.ueq.ps	$fcc2, $f30, $f31
-	c.ueq.ps	$fcc6, $f30, $f31
-
-	c.olt.d	$f0, $f1
-	c.olt.d	$f30, $f31
-	c.olt.d	$fcc0, $f30, $f31
-	c.olt.d	$fcc1, $f30, $f31
-	c.olt.d	$fcc7, $f30, $f31
-	c.olt.s	$f0, $f1
-	c.olt.s	$f30, $f31
-	c.olt.s	$fcc0, $f30, $f31
-	c.olt.s	$fcc1, $f30, $f31
-	c.olt.s	$fcc7, $f30, $f31
-	c.olt.ps	$f0, $f1
-	c.olt.ps	$f30, $f31
-	c.olt.ps	$fcc0, $f30, $f31
-	c.olt.ps	$fcc2, $f30, $f31
-	c.olt.ps	$fcc6, $f30, $f31
-
-	c.ult.d	$f0, $f1
-	c.ult.d	$f30, $f31
-	c.ult.d	$fcc0, $f30, $f31
-	c.ult.d	$fcc1, $f30, $f31
-	c.ult.d	$fcc7, $f30, $f31
-	c.ult.s	$f0, $f1
-	c.ult.s	$f30, $f31
-	c.ult.s	$fcc0, $f30, $f31
-	c.ult.s	$fcc1, $f30, $f31
-	c.ult.s	$fcc7, $f30, $f31
-	c.ult.ps	$f0, $f1
-	c.ult.ps	$f30, $f31
-	c.ult.ps	$fcc0, $f30, $f31
-	c.ult.ps	$fcc2, $f30, $f31
-	c.ult.ps	$fcc6, $f30, $f31
-
-	c.ole.d	$f0, $f1
-	c.ole.d	$f30, $f31
-	c.ole.d	$fcc0, $f30, $f31
-	c.ole.d	$fcc1, $f30, $f31
-	c.ole.d	$fcc7, $f30, $f31
-	c.ole.s	$f0, $f1
-	c.ole.s	$f30, $f31
-	c.ole.s	$fcc0, $f30, $f31
-	c.ole.s	$fcc1, $f30, $f31
-	c.ole.s	$fcc7, $f30, $f31
-	c.ole.ps	$f0, $f1
-	c.ole.ps	$f30, $f31
-	c.ole.ps	$fcc0, $f30, $f31
-	c.ole.ps	$fcc2, $f30, $f31
-	c.ole.ps	$fcc6, $f30, $f31
-
-	c.ule.d	$f0, $f1
-	c.ule.d	$f30, $f31
-	c.ule.d	$fcc0, $f30, $f31
-	c.ule.d	$fcc1, $f30, $f31
-	c.ule.d	$fcc7, $f30, $f31
-	c.ule.s	$f0, $f1
-	c.ule.s	$f30, $f31
-	c.ule.s	$fcc0, $f30, $f31
-	c.ule.s	$fcc1, $f30, $f31
-	c.ule.s	$fcc7, $f30, $f31
-	c.ule.ps	$f0, $f1
-	c.ule.ps	$f30, $f31
-	c.ule.ps	$fcc0, $f30, $f31
-	c.ule.ps	$fcc2, $f30, $f31
-	c.ule.ps	$fcc6, $f30, $f31
-
-	c.sf.d	$f0, $f1
-	c.sf.d	$f30, $f31
-	c.sf.d	$fcc0, $f30, $f31
-	c.sf.d	$fcc1, $f30, $f31
-	c.sf.d	$fcc7, $f30, $f31
-	c.sf.s	$f0, $f1
-	c.sf.s	$f30, $f31
-	c.sf.s	$fcc0, $f30, $f31
-	c.sf.s	$fcc1, $f30, $f31
-	c.sf.s	$fcc7, $f30, $f31
-	c.sf.ps	$f0, $f1
-	c.sf.ps	$f30, $f31
-	c.sf.ps	$fcc0, $f30, $f31
-	c.sf.ps	$fcc2, $f30, $f31
-	c.sf.ps	$fcc6, $f30, $f31
-
-	c.ngle.d	$f0, $f1
-	c.ngle.d	$f30, $f31
-	c.ngle.d	$fcc0, $f30, $f31
-	c.ngle.d	$fcc1, $f30, $f31
-	c.ngle.d	$fcc7, $f30, $f31
-	c.ngle.s	$f0, $f1
-	c.ngle.s	$f30, $f31
-	c.ngle.s	$fcc0, $f30, $f31
-	c.ngle.s	$fcc1, $f30, $f31
-	c.ngle.s	$fcc7, $f30, $f31
-	c.ngle.ps	$f0, $f1
-	c.ngle.ps	$f30, $f31
-	c.ngle.ps	$fcc0, $f30, $f31
-	c.ngle.ps	$fcc2, $f30, $f31
-	c.ngle.ps	$fcc6, $f30, $f31
-
-	c.seq.d	$f0, $f1
-	c.seq.d	$f30, $f31
-	c.seq.d	$fcc0, $f30, $f31
-	c.seq.d	$fcc1, $f30, $f31
-	c.seq.d	$fcc7, $f30, $f31
-	c.seq.s	$f0, $f1
-	c.seq.s	$f30, $f31
-	c.seq.s	$fcc0, $f30, $f31
-	c.seq.s	$fcc1, $f30, $f31
-	c.seq.s	$fcc7, $f30, $f31
-	c.seq.ps	$f0, $f1
-	c.seq.ps	$f30, $f31
-	c.seq.ps	$fcc0, $f30, $f31
-	c.seq.ps	$fcc2, $f30, $f31
-	c.seq.ps	$fcc6, $f30, $f31
-
-	c.ngl.d	$f0, $f1
-	c.ngl.d	$f30, $f31
-	c.ngl.d	$fcc0, $f30, $f31
-	c.ngl.d	$fcc1, $f30, $f31
-	c.ngl.d	$fcc7, $f30, $f31
-	c.ngl.s	$f0, $f1
-	c.ngl.s	$f30, $f31
-	c.ngl.s	$fcc0, $f30, $f31
-	c.ngl.s	$fcc1, $f30, $f31
-	c.ngl.s	$fcc7, $f30, $f31
-	c.ngl.ps	$f0, $f1
-	c.ngl.ps	$f30, $f31
-	c.ngl.ps	$fcc0, $f30, $f31
-	c.ngl.ps	$fcc2, $f30, $f31
-	c.ngl.ps	$fcc6, $f30, $f31
-
-	c.lt.d	$f0, $f1
-	c.lt.d	$f30, $f31
-	c.lt.d	$fcc0, $f30, $f31
-	c.lt.d	$fcc1, $f30, $f31
-	c.lt.d	$fcc7, $f30, $f31
-	c.lt.s	$f0, $f1
-	c.lt.s	$f30, $f31
-	c.lt.s	$fcc0, $f30, $f31
-	c.lt.s	$fcc1, $f30, $f31
-	c.lt.s	$fcc7, $f30, $f31
-	c.lt.ps	$f0, $f1
-	c.lt.ps	$f30, $f31
-	c.lt.ps	$fcc0, $f30, $f31
-	c.lt.ps	$fcc2, $f30, $f31
-	c.lt.ps	$fcc6, $f30, $f31
-
-	c.nge.d	$f0, $f1
-	c.nge.d	$f30, $f31
-	c.nge.d	$fcc0, $f30, $f31
-	c.nge.d	$fcc1, $f30, $f31
-	c.nge.d	$fcc7, $f30, $f31
-	c.nge.s	$f0, $f1
-	c.nge.s	$f30, $f31
-	c.nge.s	$fcc0, $f30, $f31
-	c.nge.s	$fcc1, $f30, $f31
-	c.nge.s	$fcc7, $f30, $f31
-	c.nge.ps	$f0, $f1
-	c.nge.ps	$f30, $f31
-	c.nge.ps	$fcc0, $f30, $f31
-	c.nge.ps	$fcc2, $f30, $f31
-	c.nge.ps	$fcc6, $f30, $f31
-
-	c.le.d	$f0, $f1
-	c.le.d	$f30, $f31
-	c.le.d	$fcc0, $f30, $f31
-	c.le.d	$fcc1, $f30, $f31
-	c.le.d	$fcc7, $f30, $f31
-	c.le.s	$f0, $f1
-	c.le.s	$f30, $f31
-	c.le.s	$fcc0, $f30, $f31
-	c.le.s	$fcc1, $f30, $f31
-	c.le.s	$fcc7, $f30, $f31
-	c.le.ps	$f0, $f1
-	c.le.ps	$f30, $f31
-	c.le.ps	$fcc0, $f30, $f31
-	c.le.ps	$fcc2, $f30, $f31
-	c.le.ps	$fcc6, $f30, $f31
-
-	c.ngt.d	$f0, $f1
-	c.ngt.d	$f30, $f31
-	c.ngt.d	$fcc0, $f30, $f31
-	c.ngt.d	$fcc1, $f30, $f31
-	c.ngt.d	$fcc7, $f30, $f31
-	c.ngt.s	$f0, $f1
-	c.ngt.s	$f30, $f31
-	c.ngt.s	$fcc0, $f30, $f31
-	c.ngt.s	$fcc1, $f30, $f31
-	c.ngt.s	$fcc7, $f30, $f31
-	c.ngt.ps	$f0, $f1
-	c.ngt.ps	$f30, $f31
-	c.ngt.ps	$fcc0, $f30, $f31
-	c.ngt.ps	$fcc2, $f30, $f31
-	c.ngt.ps	$fcc6, $f30, $f31
-	*/
 	ceil.l.d	$f0, $f1
 	ceil.l.d	$f30, $f31
 	ceil.l.d	$f2, $f2
@@ -3599,14 +2687,6 @@ fp_test:
 	cvt.s.w	$f30, $f31
 	cvt.s.w	$f2, $f2
 
-	cvt.s.pl	$f0, $f1
-	cvt.s.pl	$f30, $f31
-	cvt.s.pl	$f2, $f2
-
-	cvt.s.pu	$f0, $f1
-	cvt.s.pu	$f30, $f31
-	cvt.s.pu	$f2, $f2
-
 	cvt.w.s	$f0, $f1
 	cvt.w.s	$f30, $f31
 	cvt.w.s	$f2, $f2
@@ -3614,12 +2694,7 @@ fp_test:
 	cvt.w.d	$f0, $f1
 	cvt.w.d	$f30, $f31
 	cvt.w.d	$f2, $f2
-/*
-	cvt.ps.s	$f0, $f1, $f2
-	cvt.ps.s	$f29, $f30, $f31
-	cvt.ps.s	$f29, $f29, $f31
-	cvt.ps.s	$f29, $f31
-*/
+
 	div.d	$f0, $f1, $f2
 	div.d	$f29, $f30, $f31
 	div.d	$f29, $f29, $f30
@@ -3697,16 +2772,6 @@ fp_test:
 	ldxc1	$f1, $ra($ra)
 	ldxc1	$f2, $ra($ra)
 	ldxc1	$f31, $ra($ra)
-/*
-	luxc1	$f0, $zero($zero)
-	luxc1	$f0, $zero($t4)
-	luxc1	$f0, $zero($ra)
-	luxc1	$f0, $t4($ra)
-	luxc1	$f0, $ra($ra)
-	luxc1	$f1, $ra($ra)
-	luxc1	$f2, $ra($ra)
-	luxc1	$f31, $ra($ra)
-	*/
 
 	lwc1	$3, 0
 	lwc1	$3, ($zero)
@@ -3766,15 +2831,7 @@ fp_test:
 	lwxc1	$f1, $ra($ra)
 	lwxc1	$f2, $ra($ra)
 	lwxc1	$f31, $ra($ra)
-/*
 
-	madd.d	$f0, $f1, $f2, $f3
-	madd.d	$f28, $f29, $f30, $f31
-	madd.s	$f0, $f1, $f2, $f3
-	madd.s	$f28, $f29, $f30, $f31
-	madd.ps	$f0, $f1, $f2, $f3
-	madd.ps	$f28, $f29, $f30, $f31
-*/
 	mfc1	$a1, $0
 	mfc1	$a1, $1
 	mfc1	$a1, $2
@@ -3911,65 +2968,7 @@ fp_test:
 	mov.d	$f30, $f31
 	mov.s	$f0, $f1
 	mov.s	$f30, $f31
-/*
-	mov.ps	$f0, $f1
-	mov.ps	$f30, $f31
 
-	movf.d	$f2, $f3, $fcc0
-	movf.d	$f2, $f3, $fcc1
-	movf.d	$f2, $f3, $fcc2
-	movf.d	$f2, $f3, $fcc3
-	movf.d	$f2, $f3, $fcc4
-	movf.d	$f2, $f3, $fcc5
-	movf.d	$f2, $f3, $fcc6
-	movf.d	$f2, $f3, $fcc7
-	movf.d	$f30, $f31, $fcc7
-
-	movf.s	$f2, $f3, $fcc0
-	movf.s	$f2, $f3, $fcc1
-	movf.s	$f2, $f3, $fcc2
-	movf.s	$f2, $f3, $fcc3
-	movf.s	$f2, $f3, $fcc4
-	movf.s	$f2, $f3, $fcc5
-	movf.s	$f2, $f3, $fcc6
-	movf.s	$f2, $f3, $fcc7
-	movf.s	$f30, $f31, $fcc7
-
-	movf.ps	$f2, $f3, $fcc0
-	movf.ps	$f2, $f3, $fcc2
-	movf.ps	$f2, $f3, $fcc4
-	movf.ps	$f2, $f3, $fcc6
-	movf.ps	$f2, $f3, $fcc6
-	movf.ps	$f30, $f31, $fcc6
-
-	movn.d	$f2, $f3, $zero
-	movn.d	$f2, $f3, $ra
-	movn.s	$f2, $f3, $zero
-	movn.s	$f2, $f3, $ra
-	movn.ps	$f2, $f3, $zero
-	movn.ps	$f2, $f3, $ra
-
-	movt.ps	$f2, $f3, $fcc0
-	movt.ps	$f2, $f3, $fcc2
-	movt.ps	$f2, $f3, $fcc4
-	movt.ps	$f2, $f3, $fcc6
-	movt.ps	$f2, $f3, $fcc6
-	movt.ps	$f30, $f31, $fcc6
-
-	movz.d	$f2, $f3, $zero
-	movz.d	$f2, $f3, $ra
-	movz.s	$f2, $f3, $zero
-	movz.s	$f2, $f3, $ra
-	movz.ps	$f2, $f3, $zero
-	movz.ps	$f2, $f3, $ra
-
-	msub.d	$f0, $f1, $f2, $f3
-	msub.d	$f28, $f29, $f30, $f31
-	msub.s	$f0, $f1, $f2, $f3
-	msub.s	$f28, $f29, $f30, $f31
-	msub.ps	$f0, $f1, $f2, $f3
-	msub.ps	$f28, $f29, $f30, $f31
-*/
 	mtc1	$a1, $0
 	mtc1	$a1, $1
 	mtc1	$a1, $2
@@ -4110,12 +3109,7 @@ fp_test:
 	mul.d	$f29, $f30, $f31
 	mul.d	$f29, $f29, $f30
 	mul.d	$f29, $f30
-/*
-	mul.ps	$f0, $f1, $f2
-	mul.ps	$f29, $f30, $f31
-	mul.ps	$f29, $f29, $f30
-	mul.ps	$f29, $f30
-*/
+
 	neg.s	$f0, $f1
 	neg.s	$f30, $f31
 	neg.s	$f2, $f2
@@ -4124,43 +3118,7 @@ fp_test:
 	neg.d	$f30, $f31
 	neg.d	$f2, $f2
 	neg.d	$f2
-/*
-	neg.ps	$f0, $f1
-	neg.ps	$f30, $f31
-	neg.ps	$f2, $f2
-	neg.ps	$f2
 
-	nmadd.d	$f0, $f1, $f2, $f3
-	nmadd.d	$f28, $f29, $f30, $f31
-	nmadd.s	$f0, $f1, $f2, $f3
-	nmadd.s	$f28, $f29, $f30, $f31
-	nmadd.ps	$f0, $f1, $f2, $f3
-	nmadd.ps	$f28, $f29, $f30, $f31
-
-	nmsub.d	$f0, $f1, $f2, $f3
-	nmsub.d	$f28, $f29, $f30, $f31
-	nmsub.s	$f0, $f1, $f2, $f3
-	nmsub.s	$f28, $f29, $f30, $f31
-	nmsub.ps	$f0, $f1, $f2, $f3
-	nmsub.ps	$f28, $f29, $f30, $f31
-
-	pll.ps	$f0, $f1, $f2
-	pll.ps	$f29, $f30, $f31
-	pll.ps	$f29, $f29, $f30
-	pll.ps	$f29, $f30
-	plu.ps	$f0, $f1, $f2
-	plu.ps	$f29, $f30, $f31
-	plu.ps	$f29, $f29, $f30
-	plu.ps	$f29, $f30
-	pul.ps	$f0, $f1, $f2
-	pul.ps	$f29, $f30, $f31
-	pul.ps	$f29, $f29, $f30
-	pul.ps	$f29, $f30
-	puu.ps	$f0, $f1, $f2
-	puu.ps	$f29, $f30, $f31
-	puu.ps	$f29, $f29, $f30
-	puu.ps	$f29, $f30
-*/
 	recip.s	$f0, $f1
 	recip.s	$f30, $f31
 	recip.s	$f2, $f2
@@ -4257,21 +3215,6 @@ fp_test:
 	sub.d	$f29, $f29, $f30
 	sub.d	$f29, $f30
 
-/*
-	sub.ps	$f0, $f1, $f2
-	sub.ps	$f29, $f30, $f31
-	sub.ps	$f29, $f29, $f30
-	sub.ps	$f29, $f30
-
-	suxc1	$f0, $zero($zero)
-	suxc1	$f0, $zero($t4)
-	suxc1	$f0, $zero($ra)
-	suxc1	$f0, $t4($ra)
-	suxc1	$f0, $ra($ra)
-	suxc1	$f1, $ra($ra)
-	suxc1	$f2, $ra($ra)
-	suxc1	$f31, $ra($ra)
-*/
 	swc1	$3, 0
 	swc1	$3, ($zero)
 	swc1	$3, 4
@@ -4345,53 +3288,12 @@ fp_test:
 	trunc.w.d	$f0, $f1
 	trunc.w.d	$f30, $f31
 	trunc.w.d	$f2, $f2
-	/*
-	movf	$t4, $t5, $fcc0
-	movf	$fp, $ra, $fcc0
-	movf	$fp, $ra, $fcc1
-	movf	$fp, $ra, $fcc2
-	movf	$fp, $ra, $fcc3
-	movf	$fp, $ra, $fcc4
-	movf	$fp, $ra, $fcc5
-	movf	$fp, $ra, $fcc6
-	movf	$fp, $ra, $fcc7
-
-	movt	$t4, $t5, $fcc0
-	movt	$fp, $ra, $fcc0
-	movt	$fp, $ra, $fcc1
-	movt	$fp, $ra, $fcc2
-	movt	$fp, $ra, $fcc3
-	movt	$fp, $ra, $fcc4
-	movt	$fp, $ra, $fcc5
-	movt	$fp, $ra, $fcc6
-	movt	$fp, $ra, $fcc7
-
-	.set	noreorder
-	bc1fl	$fcc1, test
-	addu	$t5, $a0, $a1
-	bc1tl	$fcc2, test
-	addu	$a2, $a3, $a4
-	.set	reorder
-
-	bc1fl	$fcc3, test
-	addu	$t5, $a0, $a1
-	bc1tl	$fcc4, test
-	addu	$a2, $a3, $a4
-	*/
 	.end	fp_test
 
 	.set	reorder
 	.ent	test_delay_slot
 test_delay_slot:
 	bal	test_delay_slot
-/*
-	bgezal	$t5, test_delay_slot
-	bltzal	$t5, test_delay_slot
-	bgezall	$t5, test_delay_slot
-	bltzall	$t5, test_delay_slot
-	jal	test_delay_slot
-	jalx	test_delay_slot
-	*/
 	.ifndef	insn32
 	jalr16	$t4
 	.endif
@@ -4403,16 +3305,6 @@ test_delay_slot:
 	jalr.hb	$t4
 
 	jr.hb	$t4
-/*
-	.ifndef	insn32
-	jals	test_delay_slot
-	jalrs16	$t4
-	jalrs32	$t4
-	jrs	$t4
-	jalrs.hb	$t4
-	jrs.hb	$t4
-	.endif
-*/
 	.end	test_delay_slot
 
 	.set	noreorder

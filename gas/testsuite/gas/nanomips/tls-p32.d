@@ -34,7 +34,7 @@ Disassembly of section .text:
   3a:	2045 01c0 	rdhwr	t4,\$5
   3e:	e060 0000 	lui	t5,0x0
 			[0-9a-f]+: R_NANOMIPS_TLS_TPREL_HI20	tlsvar_le
-  42:	8063 0000 	ori	t5,t5,0
+  42:	8063 0000 	ori	t5,t5,0x0
 			[0-9a-f]+: R_NANOMIPS_TLS_TPREL_LO12	tlsvar_le
   46:	2043 1950 	addu	t5,t5,t4
   4a:	13be      	move	sp,fp

@@ -608,20 +608,12 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "mips64r2"	[arch_list_matching nanomips64r6]
     run_list_test_arch "mips64r2-ill" "" nanomips64r6
 
-#   run_dump_test "set-arch" # FIXME: arch=32r6|64r6|32r6s
-
     run_dump_test_arch "relax-swap3" "" nanomips32s
 
     run_dump_test_arch "eva"	""	nanomips32r6
 
     run_list_test_arches "baddata1" "-mlegacyregs" [arch_list_matching !nanomips_broken]
     run_list_test_arches "jalr" "" [arch_list_matching nanomipsr6]
-
-    run_dump_test_arches "mips-gp32-fp64" "-mlegacyregs" [arch_list_matching !nanomips_broken]
-    run_dump_test_arches "mips-gp64-fp64" "-mlegacyregs" [arch_list_matching !nanomips_broken]
-
-    # Verify that ASE markings are handled properly.
-    run_dump_test_arches "mips-gp64-fp64-pic" "" [arch_list_matching !nanomips_broken]
 
     # FIXME: elf* block
 #     run_dump_test "elf${el}-rel"
@@ -892,8 +884,6 @@ if { [istarget nanomips*-*-*] } {
 	[arch_list_matching nanomips]
 
     run_dump_test_arch "mips-abi32-pic" "-mpic -mlegacyregs" nanomips32s
-    run_dump_test_arch "mips-gp32-fp64-pic" "-m32 -mdouble-float -mpic -mlegacyregs" \
-				nanomips32s
     run_dump_test_arches "mt-ase" "-mmt" [arch_list_matching nanomipsr6]
     run_list_test_arches "nanomips-error" "-mlegacyregs" [arch_list_matching xnms]
 

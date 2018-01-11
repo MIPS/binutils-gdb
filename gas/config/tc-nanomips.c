@@ -5944,6 +5944,7 @@ static const char *const mfhl_fmt[2] = { "mj", "s" };
 #define B_FMT "+'"
 #define JAL_FMT "+'"
 #define OP_IMM_FMT "t,r,i"
+#define BITOP_IMM_FMT "t,r,g"
 #define PREF_FMT "k,+j(b)"
 #define BITW_FMT "d,v,t"
 #define DIV_FMT "d,v,t"
@@ -6002,7 +6003,7 @@ macro_match_nanomips_reloc (const char *fmt, bfd_reloc_code_real_type * r)
 {
   if (*r == BFD_RELOC_LO16)
     {
-      if (*fmt == 'o' || *fmt == 'i')
+      if (*fmt == 'o' || *fmt == 'g')
 	*r = BFD_RELOC_NANOMIPS_LO12;
       else if (*fmt == 'j')
 	*r = BFD_RELOC_NANOMIPS_IMM16;
@@ -6091,6 +6092,7 @@ macro_build (expressionS * ep, const char *name, const char *fmt, ...)
 	  continue;
 
 	case 'i':
+	case 'g':
 	case 'j':
 	case 'h':
 	  macro_read_relocs (&args, r);
@@ -6403,7 +6405,7 @@ load_register (int reg, expressionS * ep, int dbl)
 	      macro_build (ep, "lui", "t,u", reg, BFD_RELOC_NANOMIPS_HI20);
 	      if ((ep->X_add_number & 0xfff) != 0
 		  && !hi16_reloc_p (*offset_reloc))
-		macro_build (ep, "ori", OP_IMM_FMT, reg, reg,
+		macro_build (ep, "ori", BITOP_IMM_FMT, reg, reg,
 			     BFD_RELOC_NANOMIPS_LO12);
 	    }
 	  return;
@@ -6462,7 +6464,8 @@ load_register (int reg, expressionS * ep, int dbl)
 	    {
 	      macro_build (&lo32, "lui", LUI_FMT, reg, BFD_RELOC_HI16);
 	      if (lo32.X_add_number & 0xffff)
-		macro_build (&lo32, "ori", "t,r,i", reg, reg, BFD_RELOC_LO16);
+		macro_build (&lo32, "ori", BITOP_IMM_FMT, reg, reg, 
+			     BFD_RELOC_LO16);
 	      return;
 	    }
 	}
@@ -6504,7 +6507,7 @@ load_register (int reg, expressionS * ep, int dbl)
 				    | (lo32.X_add_number >> shift));
 	      else
 		tmp.X_add_number = hi32.X_add_number >> (shift - 32);
-	      macro_build (&tmp, "ori", "t,r,i", reg, 0, BFD_RELOC_LO16);
+	      macro_build (&tmp, "ori", BITOP_IMM_FMT, reg, 0, BFD_RELOC_LO16);
 	      macro_build (NULL, (shift >= 32) ? "dsll32" : "dsll", SHFT_FMT,
 			   reg, reg, (shift >= 32) ? shift - 32 : shift);
 	      return;
@@ -6599,12 +6602,12 @@ load_register (int reg, expressionS * ep, int dbl)
 	}
       mid16 = lo32;
       mid16.X_add_number >>= 16;
-      macro_build (&mid16, "ori", "t,r,i", reg, freg, BFD_RELOC_LO16);
+      macro_build (&mid16, "ori", BITOP_IMM_FMT, reg, freg, BFD_RELOC_LO16);
       macro_build (NULL, "dsll", SHFT_FMT, reg, reg, 16);
       freg = reg;
     }
   if ((lo32.X_add_number & 0xffff) != 0)
-    macro_build (&lo32, "ori", "t,r,i", reg, freg, BFD_RELOC_LO16);
+    macro_build (&lo32, "ori", BITOP_IMM_FMT, reg, freg, BFD_RELOC_LO16);
 }
 
 /* Load an address into a register.  */
@@ -6672,7 +6675,7 @@ load_address (int reg, expressionS * ep, int *used_at)
 	  else
 	    {
 	      macro_build_lui (ep, reg);
-	      macro_build (ep, "ori", "t,r,i", reg, reg, ISA_BFD_RELOC_LOW);
+	      macro_build (ep, "ori", BITOP_IMM_FMT, reg, reg, ISA_BFD_RELOC_LOW);
 	    }
 	  if (nanomips_relax.sequence)
 	    relax_end ();
@@ -7109,7 +7112,7 @@ nanomips_macro_absolute_ldd_std (const char *s, const char *fmt, unsigned int
       else
 	{
 	  macro_build_lui (&offset_expr, AT);
-	  macro_build (&offset_expr, "ori", "t,r,i", AT, AT,
+	  macro_build (&offset_expr, "ori", BITOP_IMM_FMT, AT, AT,
 		       BFD_RELOC_NANOMIPS_LO12);
 	}
 
@@ -7367,7 +7370,7 @@ nanomips_macro_absolute_la (unsigned int op[])
     {
       macro_build_lui (&offset_expr, op[0]);
       if (!hi16_reloc_p (*offset_reloc))
-	macro_build (&offset_expr, "ori", "t,r,i",
+	macro_build (&offset_expr, "ori", BITOP_IMM_FMT,
 		     op[0], op[0], ISA_BFD_RELOC_LOW);
     }
 }
@@ -7629,10 +7632,10 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       if (offset_high_unsigned (imm_expr.X_add_number, 12) == 0)
 	{
 	  if (mask != M_NOR_I)
-	    macro_build (&imm_expr, s, "t,r,i", op[0], op[1], BFD_RELOC_LO16);
+	    macro_build (&imm_expr, s, BITOP_IMM_FMT, op[0], op[1], BFD_RELOC_LO16);
 	  else
 	    {
-	      macro_build (&imm_expr, "ori", "t,r,i",
+	      macro_build (&imm_expr, "ori", BITOP_IMM_FMT,
 			   op[0], op[1], BFD_RELOC_LO16);
 	      macro_build (NULL, "nor", "d,v,t", op[0], op[0], 0);
 	    }
@@ -8503,7 +8506,8 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       s = "sltu";
     sge:
       macro_build (NULL, s, "d,v,t", op[0], op[1], op[2]);
-      macro_build (&expr1, "xori", "t,r,i", op[0], op[0], BFD_RELOC_LO16);
+      macro_build (&expr1, "xori", BITOP_IMM_FMT, op[0], op[0],
+		   BFD_RELOC_LO16);
       break;
 
     case M_SGE_I:		/* X >= I  <==>  not (X < I) */
@@ -8518,7 +8522,8 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	  macro_build (NULL, mask == M_SGE_I ? "slt" : "sltu", "d,v,t",
 		       op[0], op[1], AT);
 	}
-      macro_build (&expr1, "xori", "t,r,i", op[0], op[0], BFD_RELOC_LO16);
+      macro_build (&expr1, "xori", BITOP_IMM_FMT, op[0], op[0],
+		   BFD_RELOC_LO16);
       break;
 
     case M_SGT:		/* X > Y  <==>  Y < X */
@@ -8548,7 +8553,8 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       s = "sltu";
     sle:
       macro_build (NULL, s, "d,v,t", op[0], op[2], op[1]);
-      macro_build (&expr1, "xori", "t,r,i", op[0], op[0], BFD_RELOC_LO16);
+      macro_build (&expr1, "xori", BITOP_IMM_FMT, op[0], op[0],
+		   BFD_RELOC_LO16);
       break;
 
     case M_SLE_I:	/* X <= I  <==>  I >= X  <==>  not (I < X) */
@@ -8560,7 +8566,8 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       used_at = 1;
       load_register (AT, &imm_expr, GPR_SIZE == 64);
       macro_build (NULL, s, "d,v,t", op[0], AT, op[1]);
-      macro_build (&expr1, "xori", "t,r,i", op[0], op[0], BFD_RELOC_LO16);
+      macro_build (&expr1, "xori", BITOP_IMM_FMT, op[0], op[0],
+		   BFD_RELOC_LO16);
       break;
 
     case M_SLT_I:
@@ -8612,7 +8619,7 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	{
 	  if (offset_high_unsigned (imm_expr.X_add_number,
 				    ISA_ADD_OFFBITS) == 0)
-	  macro_build (&imm_expr, "xori", "t,r,i", op[0], op[1],
+	  macro_build (&imm_expr, "xori", BITOP_IMM_FMT, op[0], op[1],
 		       BFD_RELOC_LO16);
 	  else if (offset_high_unsigned (-imm_expr.X_add_number,
 					 ISA_ADD_OFFBITS) == 0)
