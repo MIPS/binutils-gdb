@@ -3230,7 +3230,8 @@ Output_section::do_reset_address_and_file_offset()
   // An unallocated section has no address.  Forcing this means that
   // we don't need special treatment for symbols defined in debug
   // sections.  We do the same in the constructor.  This does not
-  // apply to NOALLOC sections though.
+  // apply to NOALLOC sections and sections created from the
+  // linker script.
   if ((this->flags_ & elfcpp::SHF_ALLOC) == 0 && !this->is_noalloc_
       && !this->is_created_from_script_)
      this->set_address(0);
@@ -3258,7 +3259,10 @@ Output_section::do_address_and_file_offset_have_reset_values() const
     return false;
 
   // An unallocated section has address 0 after its construction or a reset.
-  if ((this->flags_ & elfcpp::SHF_ALLOC) == 0)
+  // This doesn't not apply to NOALLOC and sections created from the
+  // linker script.
+  if ((this->flags_ & elfcpp::SHF_ALLOC) == 0 && !this->is_noalloc_
+      && !this->is_created_from_script_)
     return this->is_address_valid() && this->address() == 0;
   else
     return !this->is_address_valid();
