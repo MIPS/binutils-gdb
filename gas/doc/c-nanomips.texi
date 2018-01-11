@@ -1220,7 +1220,7 @@ select the an appropriate relocation for each access. Examples:
 @example
     lw $a0, %gprel(foo)($gp)
     l.s $f0, %gprel(bar)($gp)
-    addiu $a0, %gprel(foo)($gp)
+    addiu $a0, $gp, %gprel(foo)
 @end example
 
 By itself, this does not guarantee that foo will end up within the
@@ -1241,7 +1241,7 @@ GP-relative expansion.
     @expansion{} lw $a0, %gprel(foo) ($gp)
 
     la $a0, bar
-    @expansion{} addiu $a0, %gprel(foo) ($gp)
+    @expansion{} addiu $a0, $gp, %gprel(foo)
 @end example
 Declaration of data in small data sections can be by naming sections
 using the .section directive or by comm/lcomm/extern declarations,
@@ -1475,9 +1475,12 @@ may still translate this instruction to another, more efficient
 instruction of the same size.
 
 @example
-    balc16 foo        # 16-bit call, fails if foo is outside 11-bit signed range
-    li32 $a0, 100    # force 32-bit instruction even though 16-bit encoding is possible
-    addiu48 $a0, $a1, 1000    # force 48-bit instruction even though 32-bit encoding is possible
+    balc16 foo     # 16-bit call, fails if foo is outside
+                   # 11-bit signed range
+    li32 $a0, 100  # force 32-bit instruction even though
+                   # 16-bit encoding is possible
+    addiu48 $a0, $a1, 1000  # force 48-bit instruction even
+                      # though 32-bit encoding is possible
 @end example
 
 By default, the assembler will always select the smallest sized
@@ -1487,27 +1490,48 @@ have the same size.
 
 @item
 Format suffixes from the architecture reference manual can also be
-used to select a specific encoding. Suffixes are enclosed in square
+used to select a specific encoding.  Suffixes are enclosed in square
 brackets, matching the convention used in the architecture
-reference. If the operands do not match the format suffix, the
+reference.  If the operands do not match the format suffix, the
 instruction will be rejected.  It is guaranteed that neither the
 assembler nor the linker will expand an explicitly selected
 instruction in to multiple instructions or translate it in to any
 other instruction.
 
 @example
-    addiu[gp.w] $a0, $gp, %gprel(foo)    # force word-aligned GP-relative  address calculation
-    lw[s9] $a0, 128($a1)     # load word with  signed 9-bit offset when unsigned 12-bit is possible
-    addu[4x4] $s2, $s3, $s2     # select  4-bit register encoding
+    addiu[gp.w] $a0, $gp, %gprel(foo) # word-aligned GP-relative
+                                      # address calculation
+    lw[s9] $a0, 128($a1)  # load word with signed 9-bit offset even
+                          # when unsigned 12-bit is possible
+    addu[4x4] $s2, $s3, $s2  # select  4-bit register encoding
 @end example
 
 The ability to specify format suffixes serves little practical
 purpose, since the tools will try to find the most efficient encoding
-for an operation. It is provided as an aid for development and
+for an operation.  It is provided as an aid for development and
 testing. For example, the @code{[4x4]} suffix in the case above forces the
 assembler to check whether the operands satisfy the requested
 encoding.
 @end enumerate
+
+@subsection Syntax for relaxable instruction selection
+
+Both of the above methods for instruction selection have the side-effect
+of restricting linker relaxation in some way.  For variants of addiu[gp]
+and lapc, the assembler provides additional 1:1 aliases which select a
+variant, while still allowing the linker to relax it without any
+restrictions.
+
+@example
+    addiu.w $a0, $gp, %gprel(foo)  # alias to addiu[gp.w]
+    addiu.b $a0, $gp, %gprel(foo)  # alias to addiu[gp.b]
+    lapc.h $a0, foo  # alias to lapc[32]
+    lapc.b $a0, foo  # alias to lapc[48]
+@end example
+
+All of the above forms can be relaxed by the linker, either by
+replacing one instruction with another of a different size or by a
+sequence of instructions, as necessary.
 
 @subsection Options to control instruction disassembly
 

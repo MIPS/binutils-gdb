@@ -5350,12 +5350,18 @@ append_insn (struct nanomips_cl_insn *ip, expressionS * address_expr,
 	    ip->fixp[i]->fx_tcbit = 1;
 	  }
 
-      if (nanomips_opts.linkrelax && (insn_length (ip->insn_mo) != 6))
+      if (nanomips_opts.linkrelax)
 	{
 	  if (forced_insn_format)
-	    fix_new (ip->frag, ip->where, 0, &abs_symbol, 0, FALSE,
-		     BFD_RELOC_NANOMIPS_FIXED);
-	  else if (forced_insn_length > 0)
+	    {
+	      if (insn_length (ip->insn_mo) == 6)
+		fix_new (ip->frag, ip->where+2, 0, &abs_symbol, 0, FALSE,
+			 BFD_RELOC_NANOMIPS_FIXED);
+	      else
+		fix_new (ip->frag, ip->where, 0, &abs_symbol, 0, FALSE,
+			 BFD_RELOC_NANOMIPS_FIXED);
+	    }
+	  else if (forced_insn_length > 0 && forced_insn_length < 6)
 	    fix_new (ip->frag, ip->where, 0, &abs_symbol, 0, FALSE,
 		     (forced_insn_length == 2 ? BFD_RELOC_NANOMIPS_INSN16
 		      : BFD_RELOC_NANOMIPS_INSN32));

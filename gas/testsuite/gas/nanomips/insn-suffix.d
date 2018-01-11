@@ -21,6 +21,7 @@ Disassembly of section \.text:
   16:	addiu\[48\]	a0,a0,12
   1c:	addiu\[gp48\]	a0,gp,0
 			1e: R_NANOMIPS_GPREL_I32	test
+			1e: R_NANOMIPS_FIXED	\*ABS\*
   22:	addiu\[r1.sp\]	a0,sp,8
   24:	addiu\[r2\]	a0,a1,4
   26:	addiu\[rs5\]	t0,t0,3
@@ -35,6 +36,7 @@ Disassembly of section \.text:
   38:	addiu\[48\]	a0,a0,12
   3e:	addiu\[gp48\]	a0,gp,0
 			40: R_NANOMIPS_GPREL_I32	test
+			40: R_NANOMIPS_FIXED	\*ABS\*
   44:	lw\[16\]	a0,8\(a1\)
   46:	lw\[4x4\]	a1,12\(a2\)
   48:	lw\[gp16\]	a3,24\(gp\)
@@ -50,6 +52,7 @@ Disassembly of section \.text:
   5a:	lw\[u12\]	a3,20\(s1\)
   5e:	lwpc\[48\]	a3,0 <test>
 			60: R_NANOMIPS_PC_I32	test
+			60: R_NANOMIPS_FIXED	\*ABS\*
   64:	lw\[16\]	a0,8\(a1\)
   66:	lw\[4x4\]	a1,12\(a2\)
   68:	lw\[gp16\]	a3,24\(gp\)
@@ -65,3 +68,4 @@ Disassembly of section \.text:
   7a:	lw\[u12\]	a3,20\(s1\)
   7e:	lwpc\[48\]	a3,0 <test>
 			80: R_NANOMIPS_PC_I32	test
+			80: R_NANOMIPS_FIXED	\*ABS\*

@@ -338,16 +338,6 @@ move rt,$zero
 @tab Y @tab 16
 @item
 @verbatim
-addiu rt,pc,label
-@end verbatim
-
-@tab  @tab @verbatim
-addiupc rt,label
-@end verbatim
-
-@tab Y @tab 32
-@item
-@verbatim
 addiu rt,rt,imm
 @end verbatim
 
@@ -739,6 +729,26 @@ ldc1 ft,ofst(rs)
 @end verbatim
 
 @tab N @tab 32
+@item
+@verbatim
+lapc.h rt,label
+@end verbatim
+
+@tab  @tab @verbatim
+lapc[32] rt,label
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
+lapc.b rt,label
+@end verbatim
+
+@tab  @tab @verbatim
+lapc[48] rt,label
+@end verbatim
+
+@tab N @tab 48
 @item
 @verbatim
 ldxc1 rd,rs(rt)
