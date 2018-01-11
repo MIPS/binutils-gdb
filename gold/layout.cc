@@ -2432,9 +2432,10 @@ Layout::restore_segments(const Segment_states* segment_states)
 void
 Layout::clean_up_after_relaxation()
 {
-  // Restore the segments to point state just prior to the relaxation loop.
+  // Restore the segments and MEMORY regions to point state just prior
+  // to the relaxation loop.
   Script_sections* script_section = this->script_options_->script_sections();
-  script_section->release_segments();
+  script_section->clean_up_after_relaxation();
   this->restore_segments(this->segment_states_);
 
   // Reset section addresses and file offsets
