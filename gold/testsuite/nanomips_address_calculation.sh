@@ -46,6 +46,14 @@ check nanomips_address_calculation_pcrel_2.stdout " 1004:	0200"
 check nanomips_address_calculation_pcrel_3.stdout " 1000:	e0e0 0042 	aluipc	a3,.*"
 check nanomips_address_calculation_pcrel_3.stdout " 1004:	80e7 0024 	ori	a3,a3,36"
 
+# Test lw %got_disp transformation into li[48].
+check nanomips_address_calculation_abs_1.stdout " 1000:	60e0 1024 	li	a3,.*"
+check nanomips_address_calculation_abs_1.stdout " 1004:	0200"
+
+# Test lw %got_disp transformation into lui, ori.
+check nanomips_address_calculation_abs_2.stdout " 1000:	e0e0 1040 	lui	a3,.*"
+check nanomips_address_calculation_abs_2.stdout " 1004:	80e7 0024 	ori	a3,a3,36"
+
 # Test lw %got_disp transformation into addiu[gp.w]/addiu[gp.b].
 check nanomips_address_calculation_pid_1.stdout " 400094:	40e0 0004 	addiu	a3,gp,4"
 check nanomips_address_calculation_pid_1.stdout " 400098:	44ec 0002 	addiu	a3,gp,2"

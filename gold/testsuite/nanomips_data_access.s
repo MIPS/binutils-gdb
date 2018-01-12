@@ -7,7 +7,7 @@ __start:
 	lw	$a0,%got_page(w)($gp)
 	lw	$a1,%got_ofst(w)($a0)
 	sw	$a2,%got_ofst(w)($a0)
-	.ifndef pcrel
+	.ifndef word
 	lw	$a1,%got_page(h)($gp)
 	lh	$t0,%got_ofst(h)($a1)
 	lhu	$t1,%got_ofst(h)($a1)
