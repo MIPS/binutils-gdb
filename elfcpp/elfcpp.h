@@ -176,7 +176,6 @@ enum EM
   EM_IAMCU = 6,
   EM_860 = 7,
   EM_MIPS = 8,
-  EM_NANOMIPS = 0x5237,
   EM_S370 = 9,
   EM_MIPS_RS3_LE = 10,
   // 11 was the old Sparc V9 ABI.
@@ -272,6 +271,7 @@ enum EM
   EM_TI_PRU = 144,
   EM_AARCH64 = 183,
   EM_TILEGX = 191,
+  EM_NANOMIPS = 249,
   // The Morph MT.
   EM_MT = 0x2530,
   // DLX.
