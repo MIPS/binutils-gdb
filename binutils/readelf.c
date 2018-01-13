@@ -12355,6 +12355,8 @@ is_32bit_pcrel_reloc (unsigned int reloc_type)
       return reloc_type == 36; /* R_AVR_32_PCREL.  */
     case EM_MICROBLAZE:
       return reloc_type == 2;  /* R_MICROBLAZE_32_PCREL.  */
+    case EM_NANOMIPS:
+      return reloc_type == 248;  /* R_NANOMIPS_PC32.  */
     case EM_OR1K:
       return reloc_type == 9; /* R_OR1K_32_PCREL.  */
     case EM_PARISC:

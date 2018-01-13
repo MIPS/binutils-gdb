@@ -1307,6 +1307,8 @@ nanomips_elfNN_object_p (bfd * abfd)
 #define elf_backend_sign_extend_vma	TRUE
 #define elf_backend_plt_readonly	1
 
+#define bfd_elfNN_bfd_get_relocated_section_contents \
+			_bfd_elf_nanomips_get_relocated_section_contents
 #define elf_backend_mips_rtype_to_howto	nanomips_elfNN_rtype_to_howto
 #define bfd_elfNN_bfd_print_private_bfd_data \
 					_bfd_nanomips_elf_print_private_bfd_data

@@ -1011,4 +1011,5 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test "lapc-linkrelax"
     run_dump_test "addiugp"
     run_dump_test "addiugp-linkrelax"
+    run_dump_test "cfi-frames"
 }

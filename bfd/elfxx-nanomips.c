@@ -145,9 +145,7 @@ _bfd_nanomips_elf_generic_reloc (bfd * abfd ATTRIBUTE_UNUSED,
 }
 
 
-/* A generic howto special_function.  This calculates and installs the
-   relocation itself, thus avoiding the oft-discussed problems in
-   bfd_perform_relocation and bfd_install_relocation.  */
+/* A negation howto special_function.  */
 
 bfd_reloc_status_type
 _bfd_nanomips_elf_negative_reloc (bfd * abfd ATTRIBUTE_UNUSED,
@@ -165,14 +163,13 @@ _bfd_nanomips_elf_negative_reloc (bfd * abfd ATTRIBUTE_UNUSED,
     return bfd_reloc_outofrange;
 
   /* Calculate the value of the symbol S.  */
-  val = 0;
-  val += symbol->section->output_section->vma;
+  val = symbol->section->output_section->vma;
   val += symbol->section->output_offset;
   val += symbol->value;
 
-  /* Transmit the negated value (-S + A) for composition.  */
-  if (!relocatable && reloc_entry[1].address == reloc_entry->address)
-    reloc_entry[1].addend = - val + reloc_entry->addend;
+  /* Add negated value to addend: (-S + A).  */
+  if (! relocatable )
+    reloc_entry->addend = -val + reloc_entry->addend;
 
   if (relocatable)
     reloc_entry->address += input_section->output_offset;
@@ -667,4 +664,175 @@ _bfd_nanomips_elf_get_abiflags (bfd * abfd)
   struct nanomips_elf_obj_tdata *tdata = nanomips_elf_tdata (abfd);
 
   return tdata->abiflags_valid ? &tdata->abiflags : NULL;
+}
+
+bfd_byte *
+_bfd_elf_nanomips_get_relocated_section_contents (bfd *abfd,
+						  struct bfd_link_info *link_info,
+						  struct bfd_link_order *link_order,
+						  bfd_byte *data,
+						  bfd_boolean relocatable,
+						  asymbol **symbols)
+{
+  bfd *input_bfd = link_order->u.indirect.section->owner;
+  asection *input_section = link_order->u.indirect.section;
+  long reloc_size;
+  arelent **reloc_vector;
+  long reloc_count;
+
+  reloc_size = bfd_get_reloc_upper_bound (input_bfd, input_section);
+  if (reloc_size < 0)
+    return NULL;
+
+  /* Read in the section.  */
+  if (!bfd_get_full_section_contents (input_bfd, input_section, &data))
+    return NULL;
+
+  if (data == NULL)
+    return NULL;
+
+  if (reloc_size == 0)
+    return data;
+
+  reloc_vector = (arelent **) bfd_malloc (reloc_size);
+  if (reloc_vector == NULL)
+    return NULL;
+
+  reloc_count = bfd_canonicalize_reloc (input_bfd,
+					input_section,
+					reloc_vector,
+					symbols);
+  if (reloc_count < 0)
+    goto error_return;
+
+  if (reloc_count > 0)
+    {
+      arelent **parent;
+      /* offset in section of previous relocation  */
+      bfd_size_type last_address = 0;
+      /* saved result of previous relocation.  */
+      bfd_vma saved_addend = 0;
+
+      for (parent = reloc_vector; *parent != NULL; parent++)
+	{
+	  char *error_message = NULL;
+	  asymbol *symbol;
+	  bfd_reloc_status_type r;
+
+	  symbol = *(*parent)->sym_ptr_ptr;
+	  /* PR ld/19628: A specially crafted input file
+	     can result in a NULL symbol pointer here.  */
+	  if (symbol == NULL)
+	    {
+	      link_info->callbacks->einfo
+		/* xgettext:c-format */
+		(_("%X%P: %B(%A): error: relocation for offset %V has no value\n"),
+		 abfd, input_section, (* parent)->address);
+	      goto error_return;
+	    }
+
+	  if (symbol->section && discarded_section (symbol->section))
+	    {
+	      bfd_byte *p;
+	      static reloc_howto_type none_howto
+		= HOWTO (0, 0, 0, 0, FALSE, 0, complain_overflow_dont, NULL,
+			 "unused", FALSE, 0, 0, FALSE);
+
+	      p = data + (*parent)->address * bfd_octets_per_byte (input_bfd);
+	      _bfd_clear_contents ((*parent)->howto, input_bfd, input_section,
+				   p);
+	      (*parent)->sym_ptr_ptr = bfd_abs_section_ptr->symbol_ptr_ptr;
+	      (*parent)->addend = 0;
+	      (*parent)->howto = &none_howto;
+	      r = bfd_reloc_ok;
+	    }
+	  else
+	    {
+	      if (last_address != 0 && (*parent)->address == last_address)
+		(*parent)->addend = saved_addend;
+	      else
+		saved_addend = 0;
+
+	      r = bfd_perform_relocation (input_bfd,
+					  *parent,
+					  data,
+					  input_section,
+					  relocatable ? abfd : NULL,
+					  &error_message);
+	      saved_addend = (*parent)->addend;
+	    }
+
+	  if (relocatable)
+	    {
+	      asection *os = input_section->output_section;
+
+	      /* A partial link, so keep the relocs.  */
+	      os->orelocation[os->reloc_count] = *parent;
+	      os->reloc_count++;
+	    }
+
+	  if (r != bfd_reloc_ok)
+	    {
+	      switch (r)
+		{
+		case bfd_reloc_undefined:
+		  (*link_info->callbacks->undefined_symbol)
+		    (link_info, bfd_asymbol_name (*(*parent)->sym_ptr_ptr),
+		     input_bfd, input_section, (*parent)->address, TRUE);
+		  break;
+		case bfd_reloc_dangerous:
+		  BFD_ASSERT (error_message != NULL);
+		  (*link_info->callbacks->reloc_dangerous)
+		    (link_info, error_message,
+		     input_bfd, input_section, (*parent)->address);
+		  break;
+		case bfd_reloc_overflow:
+		  (*link_info->callbacks->reloc_overflow)
+		    (link_info, NULL,
+		     bfd_asymbol_name (*(*parent)->sym_ptr_ptr),
+		     (*parent)->howto->name, (*parent)->addend,
+		     input_bfd, input_section, (*parent)->address);
+		  break;
+		case bfd_reloc_outofrange:
+		  /* PR ld/13730:
+		     This error can result when processing some partially
+		     complete binaries.  Do not abort, but issue an error
+		     message instead.  */
+		  link_info->callbacks->einfo
+		    /* xgettext:c-format */
+		    (_("%X%P: %B(%A): relocation \"%R\" goes out of range\n"),
+		     abfd, input_section, * parent);
+		  goto error_return;
+
+		case bfd_reloc_notsupported:
+		  /* PR ld/17512
+		     This error can result when processing a corrupt binary.
+		     Do not abort.  Issue an error message instead.  */
+		  link_info->callbacks->einfo
+		    /* xgettext:c-format */
+		    (_("%X%P: %B(%A): relocation \"%R\" is not supported\n"),
+		     abfd, input_section, * parent);
+		  goto error_return;
+
+		default:
+		  /* PR 17512; file: 90c2a92e.
+		     Report unexpected results, without aborting.  */
+		  link_info->callbacks->einfo
+		    /* xgettext:c-format */
+		    (_("%X%P: %B(%A): relocation \"%R\" returns an unrecognized value %x\n"),
+		     abfd, input_section, * parent, r);
+		  break;
+		}
+
+	    }
+	  last_address = (*parent)->address;
+	}
+    }
+
+  free (reloc_vector);
+  return data;
+
+error_return:
+  free (reloc_vector);
+  return NULL;
 }

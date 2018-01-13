@@ -50,6 +50,10 @@ extern bfd_boolean _bfd_nanomips_elf_common_definition (Elf_Internal_Sym *);
 
 extern Elf_Internal_ABIFlags_v0 *_bfd_nanomips_elf_get_abiflags (bfd * abfd);
 
+extern bfd_byte *_bfd_elf_nanomips_get_relocated_section_contents
+  (bfd *, struct bfd_link_info *, struct bfd_link_order *,
+   bfd_byte *, bfd_boolean, asymbol **);
+
 static inline bfd_boolean
 gprel16_reloc_p (unsigned int r_type)
 {
