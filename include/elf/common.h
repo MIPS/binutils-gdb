@@ -338,6 +338,7 @@
 #define EM_RISCV 	243 	/* RISC-V */
 #define EM_LANAI	244	/* Lanai 32-bit processor.  */
 #define EM_BPF		247	/* Linux BPF – in-kernel virtual machine.  */
+#define EM_NANOMIPS	249	/* MIPS Tech nanoMIPS architecture.  */
 
 /* If it is necessary to assign new unofficial EM_* values, please pick large
    random numbers (0x8523, 0xa7f2, etc.) to minimize the chances of collision
@@ -429,9 +430,6 @@
 
 /* Old constant that might be in use by some software. */
 #define EM_OPENRISC		EM_OR1K
-
-/* Experimental nanoMIPS ABI development */
-#define EM_NANOMIPS	0x5237
 
 /* See the above comment before you add a new EM_* value here.  */
 

@@ -2447,6 +2447,7 @@ get_machine_name (unsigned e_machine)
     case EM_RISCV: 	 	return "RISC-V";
     case EM_LANAI:		return "Lanai 32-bit processor";
     case EM_BPF:		return "Linux BPF";
+    case EM_NANOMIPS:		return "nanoMIPS";
 
       /* Large numbers...  */
     case EM_MT:                 return "Morpho Techologies MT processor";
@@ -2460,7 +2461,6 @@ get_machine_name (unsigned e_machine)
     case EM_CYGNUS_MEP:         return "Toshiba MeP Media Engine";
     case EM_ADAPTEVA_EPIPHANY:	return "Adapteva EPIPHANY";
     case EM_CYGNUS_FRV:		return "Fujitsu FR-V";
-    case EM_NANOMIPS:		return "nanoMIPS experimental";
 
     default:
       snprintf (buff, sizeof (buff), _("<unknown>: 0x%x"), e_machine);
