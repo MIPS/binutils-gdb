@@ -1,6 +1,6 @@
 /* tc-nanomips.c -- assemble code for a nanoMIPS chip.
    Copyright (C) 2017 Free Software Foundation, Inc.
-   Contributed by Imagination Technologies Ltd.
+   Contributed by MIPS Tech LLC.
 
    This file is part of GAS.
 
@@ -3935,7 +3935,6 @@ match_hi20_int_operand (struct nanomips_arg_info *arg,
 }
 
 /* OP_HI20_PCREL matcher.  Relocation must be specified.  */
-/* FIXME check for correct type of relocation, PCHI not yet added  */
 static bfd_boolean
 match_hi20_pcrel_operand (struct nanomips_arg_info *arg)
 {
@@ -8272,8 +8271,6 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	  macro_build (&expr1, "lw", "t,o(b)", op[0], BFD_RELOC_LO16, AT);
 	  if (op[0] != RA)
 	    {
-	      /* FIXME: How in the world do we deal with the possible
-	         overflow here?  */
 	      expr1.X_add_number += 4;
 	      macro_build (&expr1, "lw", "t,o(b)",
 			   op[0] + 1, BFD_RELOC_LO16, AT);
@@ -8325,7 +8322,6 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	  used_at = 1;
 	  if (nanomips_opts.pic == NO_PIC)
 	    {
-	      /* FIXME: This won't work for a 64 bit address.  */
 	      macro_build_lui (&offset_expr, AT);
 	      offset_reloc[0] = BFD_RELOC_LO16;
 	      op[2] = AT;
@@ -8740,8 +8736,6 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       break;
 
     default:
-      /* FIXME: Check if this is one of the itbl macros, since they
-         are added dynamically.  */
       as_bad (_("macro %s not implemented yet"), ip->insn_mo->name);
       break;
     }
@@ -8868,7 +8862,6 @@ struct percent_op_match
   bfd_reloc_code_real_type reloc;
 };
 
-/* FIXME: replacing relevant entries for nanoMIPS only, for now.  */
 static const struct percent_op_match nanomips_percent_op[] = {
   {"%lo", BFD_RELOC_NANOMIPS_LO12},
   {"%call16", BFD_RELOC_NANOMIPS_GOT_CALL},

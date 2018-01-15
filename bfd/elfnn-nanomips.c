@@ -1,6 +1,6 @@
 /* nanoMIPS-specific support for 32-bit ELF
    Copyright (C) 2017 Free Software Foundation, Inc.
-   Contributed by Imagination Technologies Ltd.
+   Contributed by MIPS Tech LLC.
 
    This file is part of BFD, the Binary File Descriptor library.
 
@@ -1074,7 +1074,7 @@ static reloc_howto_type elf_nanomips_eh_howto =
 	 0xffffffff,	        /* dst_mask */
 	 FALSE);		/* pcrel_offset */
 
-/* A mapping from BFD reloc types to MIPS ELF reloc types.  */
+/* A mapping from BFD reloc types to nanoMIPS ELF reloc types.  */
 
 struct elf_reloc_map
 {
@@ -1218,7 +1218,7 @@ bfd_elfNN_bfd_reloc_name_lookup (bfd *abfd ATTRIBUTE_UNUSED,
   return NULL;
 }
 
-/* Given a MIPS Elf_Internal_Rel, fill in an arelent structure.  */
+/* Given a nanoMIPS Elf_Internal_Rel, fill in an arelent structure.  */
 
 static reloc_howto_type *
 nanomips_elfNN_rtype_to_howto (unsigned int r_type,
@@ -1241,7 +1241,7 @@ nanomips_elfNN_rtype_to_howto (unsigned int r_type,
     }
 }
 
-/* Given a MIPS Elf_Internal_Rela, fill in an arelent structure.  */
+/* Given a nanoMIPS Elf_Internal_Rela, fill in an arelent structure.  */
 
 static void
 nanomips_info_to_howto_rela (bfd *abfd, arelent *cache_ptr,
@@ -1272,7 +1272,7 @@ nanomips_elf_is_local_label_name (bfd *abfd, const char *name)
   return _bfd_elf_is_local_label_name (abfd, name);
 }
 
-/* Set the right machine number for a MIPS ELF file.  */
+/* Set the right machine number for a nanoMIPS ELF file.  */
 
 static bfd_boolean
 nanomips_elfNN_object_p (bfd *abfd)

@@ -1,6 +1,6 @@
 /* nanoMIPS ELF specific backend routines.
    Copyright (C) 2017 Free Software Foundation, Inc.
-   Contributed by Imagination Technologies Ltd.
+   Contributed by MIPS Tech LLC.
 
    This file is part of BFD, the Binary File Descriptor library.
 

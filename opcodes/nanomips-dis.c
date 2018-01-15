@@ -1,6 +1,6 @@
 /* Print nanoMIPS instructions for GDB, the GNU debugger, or for objdump.
    Copyright (C) 2017 Free Software Foundation, Inc.
-   Contributed by Imagination Technologies Ltd.
+   Contributed by MIPS Tech LLC.
 
    This file is part of the GNU opcodes library.
 
@@ -27,7 +27,6 @@
 #include "disassemble.h"
 
 #if !defined(EMBEDDED_ENV)
-#define SYMTAB_AVAILABLE 1
 #include "elf-bfd.h"
 #include "elf/mips.h"
 #include "elf/nanomips.h"
@@ -371,13 +370,6 @@ set_default_nanomips_dis_options (struct disassemble_info *info)
   nanomips_gpr_names = nanomips_gpr_names_symbolic;
 
   /* Set ISA, architecture, and cp0 register names as best we can.  */
-#if ! SYMTAB_AVAILABLE
-  /* This is running out on a target machine, not in a host tool.
-     FIXME: Where does mips_target_info come from?  */
-  target_processor = mips_target_info.processor;
-  nanomips_isa = mips_target_info.isa;
-  nanomips_ase = mips_target_info.ase;
-#else
   chosen_arch = choose_arch_by_number (info->mach);
   if (chosen_arch != NULL)
     {
@@ -390,7 +382,6 @@ set_default_nanomips_dis_options (struct disassemble_info *info)
       nanomips_cp1_names = chosen_arch->cp1_names;
       nanomips_hwr_names = chosen_arch->hwr_names;
     }
-#endif
 }
 
 static void
@@ -1422,10 +1413,7 @@ print_insn_nanomips (bfd_vma memaddr, struct disassemble_info *info)
   set_default_nanomips_dis_options (info);
   parse_nanomips_dis_options (info->disassembler_options);
 
-#if SYMTAB_AVAILABLE
   return _print_insn_nanomips (memaddr, info);
-#endif
-  return -1;
 }
 
 void

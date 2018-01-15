@@ -1,6 +1,6 @@
 /* nanoMIPS-specific support for ELF
    Copyright (C) 2017 Free Software Foundation, Inc.
-   Contributed by Imagination Technologies Ltd.
+   Contributed by MIPS Tech LLC.
 
    This file is part of BFD, the Binary File Descriptor library.
 
@@ -30,7 +30,7 @@
 #include "elf/mips-common.h"
 #include "elf/nanomips.h"
 
-/* MIPS ELF private object data.  */
+/* nanoMIPS ELF private object data.  */
 
 struct nanomips_elf_obj_tdata
 {
@@ -50,7 +50,7 @@ struct nanomips_elf_obj_tdata
   bfd_signed_vma sdata_section[1000];
 };
 
-/* Get MIPS ELF private object data from BFD's tdata.  */
+/* Get nanoMIPS ELF private object data from BFD's tdata.  */
 
 #define nanomips_elf_tdata(bfd) \
   ((struct nanomips_elf_obj_tdata *) (bfd)->tdata.any)
@@ -62,7 +62,7 @@ struct nanomips_elf_obj_tdata
   (strcmp (NAME, ".nanoMIPS.abiflags") == 0)
 
 
-/* Allocate MIPS ELF private object data.  */
+/* Allocate nanoMIPS ELF private object data.  */
 
 bfd_boolean
 _bfd_nanomips_elf_mkobject (bfd *abfd)
@@ -274,9 +274,7 @@ elf_nanomips_abi_name (bfd *abfd)
 
 
 /* Work over a section just before writing it out.  This routine is
-   used by both the 32-bit and the 64-bit ABI.  FIXME: We recognize
-   sections that need the SHF_MIPS_GPREL flag by name; there has to be
-   a better way.  */
+   used by both the 32-bit and the 64-bit ABI.  */
 
 bfd_boolean
 _bfd_nanomips_elf_section_processing (bfd *abfd, Elf_Internal_Shdr *hdr)
@@ -326,12 +324,9 @@ _bfd_nanomips_elf_section_processing (bfd *abfd, Elf_Internal_Shdr *hdr)
   return TRUE;
 }
 
-/* Handle a MIPS specific section when reading an object file.  This
-   is called when elfcode.h finds a section with an unknown type.
-   This routine supports both the 32-bit and 64-bit ELF ABI.
-
-   FIXME: We need to handle the SHF_MIPS_GPREL flag, but I'm not sure
-   how to.  */
+/* Handle a nanoMIPS specific section when reading an object file.
+   This is called when elfcode.h finds a section with an unknown type.
+   This routine supports both the 32-bit and 64-bit ELF ABI.  */
 
 bfd_boolean
 _bfd_nanomips_elf_section_from_shdr (bfd *abfd, Elf_Internal_Shdr *hdr,
@@ -341,9 +336,7 @@ _bfd_nanomips_elf_section_from_shdr (bfd *abfd, Elf_Internal_Shdr *hdr,
 
   /* There ought to be a place to keep ELF backend specific flags, but
      at the moment there isn't one.  We just keep track of the
-     sections by their name, instead.  Fortunately, the ABI gives
-     suggested names for all the MIPS specific sections, so we will
-     probably get away with this.  */
+     sections by their name, instead.   */
   switch (hdr->sh_type)
     {
     case SHT_NANOMIPS_ABIFLAGS:
@@ -384,7 +377,7 @@ _bfd_nanomips_elf_section_from_shdr (bfd *abfd, Elf_Internal_Shdr *hdr,
   return TRUE;
 }
 
-/* Set the correct type for a MIPS ELF section.  We do this by the
+/* Set the correct type for a nanoMIPS ELF section.  We do this by the
    section name, which is a hack, but ought to work.  This routine is
    used by both the 32-bit and the 64-bit ABI.  */
 
@@ -434,9 +427,9 @@ nanomips_set_isa_flags (bfd *abfd)
 }
 
 
-/* The final processing done just before writing out a MIPS ELF object
-   file.  This gets the MIPS architecture right based on the machine
-   number.  This is used by both the 32-bit and the 64-bit ABI.  */
+/* The final processing done just before writing out a nanoMIPS ELF
+   object file.  This gets the nanoMIPS architecture right based on the
+   machine number.  This is used by both the 32-bit and the 64-bit ABI.  */
 
 void
 _bfd_nanomips_elf_final_write_processing (bfd *abfd,

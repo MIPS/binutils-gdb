@@ -1,6 +1,6 @@
 /* tc-nanomips.h -- header file for tc-nanomips.c.
    Copyright (C) 2017 Free Software Foundation, Inc.
-   Contributed by Imagination Technologies Ltd.
+   Contributed by MIPS Tech LLC.
 
    This file is part of GAS.
 

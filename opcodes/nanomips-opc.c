@@ -1,6 +1,6 @@
 /* nanomips-opc.c.  nanoMIPS opcode table.
    Copyright (C) 2017 Free Software Foundation, Inc.
-   Contributed by Imagination Technologies Ltd.
+   Contributed by MIPS Tech LLC.
 
    This file is part of the GNU opcodes library.
 

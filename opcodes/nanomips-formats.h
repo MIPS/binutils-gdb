@@ -1,6 +1,6 @@
 /* nanomips-formats.h
    Copyright (C) 2017 Free Software Foundation, Inc.
-   Contributed by Imagination Technologies Ltd.
+   Contributed by MIPS Tech LLC.
 
    This library is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
