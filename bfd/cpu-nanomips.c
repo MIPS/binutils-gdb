@@ -30,8 +30,8 @@ static const bfd_arch_info_type *nanomips_compatible
    mips word size doesn't correlate with reloc size.  */
 
 static const bfd_arch_info_type *
-nanomips_compatible (const bfd_arch_info_type * a,
-		     const bfd_arch_info_type * b)
+nanomips_compatible (const bfd_arch_info_type *a,
+		     const bfd_arch_info_type *b)
 {
   if (a->arch != b->arch)
     return NULL;

@@ -1156,7 +1156,7 @@ static const struct elf_reloc_map nanomips_reloc_map[] = {
 /* Given a BFD reloc type, return a howto structure.  */
 
 static reloc_howto_type *
-bfd_elfNN_bfd_reloc_type_lookup (bfd * abfd ATTRIBUTE_UNUSED,
+bfd_elfNN_bfd_reloc_type_lookup (bfd *abfd ATTRIBUTE_UNUSED,
 				 bfd_reloc_code_real_type code)
 {
   unsigned int i;
@@ -1194,7 +1194,7 @@ bfd_elfNN_bfd_reloc_type_lookup (bfd * abfd ATTRIBUTE_UNUSED,
 }
 
 static reloc_howto_type *
-bfd_elfNN_bfd_reloc_name_lookup (bfd * abfd ATTRIBUTE_UNUSED,
+bfd_elfNN_bfd_reloc_name_lookup (bfd *abfd ATTRIBUTE_UNUSED,
 				 const char *r_name)
 {
   unsigned int i;
@@ -1244,8 +1244,8 @@ nanomips_elfNN_rtype_to_howto (unsigned int r_type,
 /* Given a MIPS Elf_Internal_Rela, fill in an arelent structure.  */
 
 static void
-nanomips_info_to_howto_rela (bfd * abfd, arelent * cache_ptr,
-			     Elf_Internal_Rela * dst)
+nanomips_info_to_howto_rela (bfd *abfd, arelent *cache_ptr,
+			     Elf_Internal_Rela *dst)
 {
   const struct elf_backend_data *bed;
   unsigned int r_type;
@@ -1262,7 +1262,7 @@ nanomips_info_to_howto_rela (bfd * abfd, arelent * cache_ptr,
 /* nanoMIPS ELF local labels start with '$', not 'L'.  */
 
 static bfd_boolean
-nanomips_elf_is_local_label_name (bfd * abfd, const char *name)
+nanomips_elf_is_local_label_name (bfd *abfd, const char *name)
 {
   if (name[0] == '$')
     return TRUE;
@@ -1275,7 +1275,7 @@ nanomips_elf_is_local_label_name (bfd * abfd, const char *name)
 /* Set the right machine number for a MIPS ELF file.  */
 
 static bfd_boolean
-nanomips_elfNN_object_p (bfd * abfd)
+nanomips_elfNN_object_p (bfd *abfd)
 {
   unsigned long mach;
 

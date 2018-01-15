@@ -280,7 +280,7 @@ decode_nanomips_operand (const char *p)
     case 'b': REG (5, 16, GP);
     case 'c': BASE_OFFSET_CHECK (5, 16, TRUE, FALSE);
     case 'd': REG (5, 11, GP);
-    case 'g': HINT (12, 0); 
+    case 'g': HINT (12, 0);
     case 'h': SPECIAL (12, 0, NEG_INT);
     case 'i': UINT (12, 0);
     case 'j': UINT (16, 0);

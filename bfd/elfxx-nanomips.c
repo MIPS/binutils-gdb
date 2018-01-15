@@ -65,7 +65,7 @@ struct nanomips_elf_obj_tdata
 /* Allocate MIPS ELF private object data.  */
 
 bfd_boolean
-_bfd_nanomips_elf_mkobject (bfd * abfd)
+_bfd_nanomips_elf_mkobject (bfd *abfd)
 {
   return bfd_elf_allocate_object (abfd,
 				  sizeof (struct nanomips_elf_obj_tdata),
@@ -79,10 +79,10 @@ _bfd_nanomips_elf_mkobject (bfd * abfd)
    bfd_perform_relocation and bfd_install_relocation.  */
 
 bfd_reloc_status_type
-_bfd_nanomips_elf_generic_reloc (bfd * abfd ATTRIBUTE_UNUSED,
-				 arelent * reloc_entry, asymbol * symbol,
+_bfd_nanomips_elf_generic_reloc (bfd *abfd ATTRIBUTE_UNUSED,
+				 arelent *reloc_entry, asymbol *symbol,
 				 void *data ATTRIBUTE_UNUSED,
-				 asection * input_section, bfd * output_bfd,
+				 asection *input_section, bfd *output_bfd,
 				 char **error_message ATTRIBUTE_UNUSED)
 {
   bfd_signed_vma val;
@@ -148,10 +148,10 @@ _bfd_nanomips_elf_generic_reloc (bfd * abfd ATTRIBUTE_UNUSED,
 /* A negation howto special_function.  */
 
 bfd_reloc_status_type
-_bfd_nanomips_elf_negative_reloc (bfd * abfd ATTRIBUTE_UNUSED,
-				  arelent * reloc_entry, asymbol * symbol,
+_bfd_nanomips_elf_negative_reloc (bfd *abfd ATTRIBUTE_UNUSED,
+				  arelent *reloc_entry, asymbol *symbol,
 				  void *data ATTRIBUTE_UNUSED,
-				  asection * input_section, bfd * output_bfd,
+				  asection *input_section, bfd *output_bfd,
 				  char **error_message ATTRIBUTE_UNUSED)
 {
   bfd_signed_vma val;
@@ -180,9 +180,9 @@ _bfd_nanomips_elf_negative_reloc (bfd * abfd ATTRIBUTE_UNUSED,
 /* Swap in an abiflags structure.  */
 
 void
-bfd_mips_elf_swap_abiflags_v0_in (bfd * abfd,
-				  const Elf_External_ABIFlags_v0 * ex,
-				  Elf_Internal_ABIFlags_v0 * in)
+bfd_mips_elf_swap_abiflags_v0_in (bfd *abfd,
+				  const Elf_External_ABIFlags_v0 *ex,
+				  Elf_Internal_ABIFlags_v0 *in)
 {
   in->version = H_GET_16 (abfd, ex->version);
   in->isa_level = H_GET_8 (abfd, ex->isa_level);
@@ -200,9 +200,9 @@ bfd_mips_elf_swap_abiflags_v0_in (bfd * abfd,
 /* Swap out an abiflags structure.  */
 
 void
-bfd_mips_elf_swap_abiflags_v0_out (bfd * abfd,
-				   const Elf_Internal_ABIFlags_v0 * in,
-				   Elf_External_ABIFlags_v0 * ex)
+bfd_mips_elf_swap_abiflags_v0_out (bfd *abfd,
+				   const Elf_Internal_ABIFlags_v0 *in,
+				   Elf_External_ABIFlags_v0 *ex)
 {
   H_PUT_16 (abfd, in->version, ex->version);
   H_PUT_8 (abfd, in->isa_level, ex->isa_level);
@@ -254,7 +254,7 @@ _bfd_elf_nanomips_mach (flagword flags)
 /* Return printable name for ABI.  */
 
 static INLINE char *
-elf_nanomips_abi_name (bfd * abfd)
+elf_nanomips_abi_name (bfd *abfd)
 {
   flagword flags;
 
@@ -279,7 +279,7 @@ elf_nanomips_abi_name (bfd * abfd)
    a better way.  */
 
 bfd_boolean
-_bfd_nanomips_elf_section_processing (bfd * abfd, Elf_Internal_Shdr * hdr)
+_bfd_nanomips_elf_section_processing (bfd *abfd, Elf_Internal_Shdr *hdr)
 {
   if (hdr->bfd_section != NULL)
     {
@@ -389,8 +389,8 @@ _bfd_nanomips_elf_section_from_shdr (bfd *abfd, Elf_Internal_Shdr *hdr,
    used by both the 32-bit and the 64-bit ABI.  */
 
 bfd_boolean
-_bfd_nanomips_elf_fake_sections (bfd * abfd, Elf_Internal_Shdr * hdr,
-				 asection * sec)
+_bfd_nanomips_elf_fake_sections (bfd *abfd, Elf_Internal_Shdr *hdr,
+				 asection *sec)
 {
   const char *name = bfd_get_section_name (abfd, sec);
 
@@ -401,11 +401,7 @@ _bfd_nanomips_elf_fake_sections (bfd * abfd, Elf_Internal_Shdr * hdr,
     }
 
   /* The generic elf_fake_sections will set up REL_HDR using the default
-     kind of relocations.  We used to set up a second header for the
-     non-default kind of relocations here, but only NewABI would use
-     these, and the IRIX ld doesn't like resulting empty RELA sections.
-     Thus we create those header only on demand now.  */
-
+     kind of relocations.  */
   return TRUE;
 }
 
@@ -416,7 +412,7 @@ _bfd_nanomips_elf_fake_sections (bfd * abfd, Elf_Internal_Shdr * hdr,
 /* Set ABFD's EF_NANOMIPS_ARCH and EF_NANOMIPS_MACH flags.  */
 
 static void
-nanomips_set_isa_flags (bfd * abfd)
+nanomips_set_isa_flags (bfd *abfd)
 {
   flagword val = 0;
 
@@ -443,7 +439,7 @@ nanomips_set_isa_flags (bfd * abfd)
    number.  This is used by both the 32-bit and the 64-bit ABI.  */
 
 void
-_bfd_nanomips_elf_final_write_processing (bfd * abfd,
+_bfd_nanomips_elf_final_write_processing (bfd *abfd,
 					  bfd_boolean linker ATTRIBUTE_UNUSED)
 {
   nanomips_set_isa_flags (abfd);
@@ -475,7 +471,7 @@ _bfd_nanomips_fp_abi_string (int fp)
 }
 
 static void
-print_nanomips_ases (FILE * file, unsigned int mask)
+print_nanomips_ases (FILE *file, unsigned int mask)
 {
   if (mask & NANOMIPS_ASE_DSPR3)
     fputs ("\n\tDSP R3 ASE", file);
@@ -504,7 +500,7 @@ print_nanomips_ases (FILE * file, unsigned int mask)
 }
 
 static void
-print_nanomips_isa_ext (FILE * file, unsigned int isa_ext)
+print_nanomips_isa_ext (FILE *file, unsigned int isa_ext)
 {
   switch (isa_ext)
     {
@@ -518,7 +514,7 @@ print_nanomips_isa_ext (FILE * file, unsigned int isa_ext)
 }
 
 static void
-print_nanomips_fp_abi_value (FILE * file, int val)
+print_nanomips_fp_abi_value (FILE *file, int val)
 {
   switch (val)
     {
@@ -551,7 +547,7 @@ get_nanomips_reg_size (int reg_size)
 }
 
 bfd_boolean
-_bfd_nanomips_elf_print_private_bfd_data (bfd * abfd, void *ptr)
+_bfd_nanomips_elf_print_private_bfd_data (bfd *abfd, void *ptr)
 {
   FILE *file = ptr;
 
@@ -637,7 +633,7 @@ const struct bfd_elf_special_section _bfd_nanomips_elf_special_sections[] = {
    definiton of the symbol.  */
 void
 _bfd_nanomips_elf_merge_symbol_attribute (struct elf_link_hash_entry *h,
-					  const Elf_Internal_Sym * isym,
+					  const Elf_Internal_Sym *isym,
 					  bfd_boolean definition,
 					  bfd_boolean dynamic
 					  ATTRIBUTE_UNUSED)
@@ -653,13 +649,13 @@ _bfd_nanomips_elf_merge_symbol_attribute (struct elf_link_hash_entry *h,
 }
 
 bfd_boolean
-_bfd_nanomips_elf_common_definition (Elf_Internal_Sym * sym)
+_bfd_nanomips_elf_common_definition (Elf_Internal_Sym *sym)
 {
   return (sym->st_shndx == SHN_COMMON);
 }
 
 Elf_Internal_ABIFlags_v0 *
-_bfd_nanomips_elf_get_abiflags (bfd * abfd)
+_bfd_nanomips_elf_get_abiflags (bfd *abfd)
 {
   struct nanomips_elf_obj_tdata *tdata = nanomips_elf_tdata (abfd);
 
@@ -801,7 +797,7 @@ _bfd_elf_nanomips_get_relocated_section_contents (bfd *abfd,
 		  link_info->callbacks->einfo
 		    /* xgettext:c-format */
 		    (_("%X%P: %B(%A): relocation \"%R\" goes out of range\n"),
-		     abfd, input_section, * parent);
+		     abfd, input_section, *parent);
 		  goto error_return;
 
 		case bfd_reloc_notsupported:
@@ -811,7 +807,7 @@ _bfd_elf_nanomips_get_relocated_section_contents (bfd *abfd,
 		  link_info->callbacks->einfo
 		    /* xgettext:c-format */
 		    (_("%X%P: %B(%A): relocation \"%R\" is not supported\n"),
-		     abfd, input_section, * parent);
+		     abfd, input_section, *parent);
 		  goto error_return;
 
 		default:
@@ -820,7 +816,7 @@ _bfd_elf_nanomips_get_relocated_section_contents (bfd *abfd,
 		  link_info->callbacks->einfo
 		    /* xgettext:c-format */
 		    (_("%X%P: %B(%A): relocation \"%R\" returns an unrecognized value %x\n"),
-		     abfd, input_section, * parent, r);
+		     abfd, input_section, *parent, r);
 		  break;
 		}
 

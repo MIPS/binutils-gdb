@@ -1485,7 +1485,7 @@ install_insn (const struct nanomips_cl_insn *insn)
 }
 
 static void
-toggle_linkrelax (fragS * frag, long where)
+toggle_linkrelax (fragS *frag, long where)
 {
   nanomips_opts.linkrelax = !nanomips_opts.linkrelax;
   toggle_linkrelax_p = FALSE;
@@ -1498,7 +1498,7 @@ toggle_linkrelax (fragS * frag, long where)
    and install the opcode in the new location.  */
 
 static void
-move_insn (struct nanomips_cl_insn *insn, fragS * frag, long where)
+move_insn (struct nanomips_cl_insn *insn, fragS *frag, long where)
 {
   size_t i;
 
@@ -1532,7 +1532,7 @@ add_fixed_insn (struct nanomips_cl_insn *insn)
 
 static void
 add_relaxed_insn (struct nanomips_cl_insn *insn, int max_chars, int var,
-		  relax_substateT subtype, symbolS * symbol, offsetT offset)
+		  relax_substateT subtype, symbolS *symbol, offsetT offset)
 {
   frag_grow (max_chars);
   move_insn (insn, frag_now, frag_more (0) - frag_now->fr_literal);
@@ -3009,7 +3009,7 @@ matching_lo_reloc (bfd_reloc_code_real_type reloc ATTRIBUTE_UNUSED)
    relocation.  */
 
 static inline bfd_boolean
-fixup_has_matching_lo_p (fixS * fixp)
+fixup_has_matching_lo_p (fixS *fixp)
 {
   return (fixp->fx_next != NULL
 	  && fixp->fx_next->fx_r_type == matching_lo_reloc (fixp->fx_r_type)
@@ -3038,7 +3038,7 @@ nanomips_move_labels (struct insn_label_list *labels)
 }
 
 static bfd_boolean
-s_is_linkonce (symbolS * sym, segT from_seg)
+s_is_linkonce (symbolS *sym, segT from_seg)
 {
   bfd_boolean linkonce = FALSE;
   segT symseg = S_GET_SEGMENT (sym);
@@ -3076,7 +3076,7 @@ relax_close_frag (void)
    See the comment above RELAX_ENCODE for more details.  */
 
 static void
-relax_start (symbolS * symbol)
+relax_start (symbolS *symbol)
 {
   gas_assert (nanomips_relax.sequence == 0);
   nanomips_relax.sequence = 1;
@@ -3207,8 +3207,8 @@ match_char (struct nanomips_arg_info *arg, char ch)
    VALUE and relocation types in R.  */
 
 static bfd_boolean
-match_expression (struct nanomips_arg_info *arg, expressionS * value,
-		  bfd_reloc_code_real_type * r)
+match_expression (struct nanomips_arg_info *arg, expressionS *value,
+		  bfd_reloc_code_real_type *r)
 {
   /* If the next token is a '(' that was parsed as being part of a base
      expression, assume we have an elided offset.  The later match will fail
@@ -3250,7 +3250,7 @@ match_expression (struct nanomips_arg_info *arg, expressionS * value,
    error.  */
 
 static bfd_boolean
-match_const_int (struct nanomips_arg_info *arg, offsetT * value)
+match_const_int (struct nanomips_arg_info *arg, offsetT *value)
 {
   expressionS ex;
   bfd_reloc_code_real_type r[3];
@@ -4296,8 +4296,8 @@ match_base_checked_offset_operand (struct nanomips_arg_info *arg,
    unconditionally and report an error if the constant is invalid.  */
 
 static bfd_boolean
-match_float_constant (struct nanomips_arg_info *arg, expressionS * imm,
-		      expressionS * offset, int length,
+match_float_constant (struct nanomips_arg_info *arg, expressionS *imm,
+		      expressionS *offset, int length,
 		      bfd_boolean using_gprs)
 {
   char *p;
@@ -4601,7 +4601,7 @@ nanomips_label_name (void)
 }
 
 static void
-nanomips_label_expr (expressionS * label_expr)
+nanomips_label_expr (expressionS *label_expr)
 {
   label_expr->X_op = O_symbol;
   label_expr->X_add_symbol = symbol_find_or_make (nanomips_label_name ());
@@ -4772,7 +4772,7 @@ stublist_merge_backward_calls (struct balc_stub *dest, struct balc_stub *src)
 #define stubtable_traverse hash_traverse
 
 static bfd_boolean
-balc_in_stub_range (const bfd_vma callsite, const stub_group * stubg)
+balc_in_stub_range (const bfd_vma callsite, const stub_group *stubg)
 {
   fragS *fragp;
   bfd_vma minaddr;
@@ -4806,7 +4806,7 @@ balc_in_stub_range (const bfd_vma callsite, const stub_group * stubg)
 
 static bfd_boolean
 balc_in_stub_group (const char *func, const bfd_vma callsite,
-		    const stub_group * stubg, struct balc_stub **stub)
+		    const stub_group *stubg, struct balc_stub **stub)
 {
   gas_assert (func != NULL && stubg != NULL);
 
@@ -4818,7 +4818,7 @@ balc_in_stub_group (const char *func, const bfd_vma callsite,
 }
 
 static bfd_boolean
-balc_add_stub (symbolS * sym, stub_group * stubg)
+balc_add_stub (symbolS *sym, stub_group *stubg)
 {
   struct balc_stub *stub = NULL;
   const char *func = S_GET_NAME (sym);
@@ -4850,7 +4850,7 @@ balc_add_stub (symbolS * sym, stub_group * stubg)
 /* Consolidate this stub with a preceding or succeeding stub if all
    calls to this stub can reach the alternative just as well.  */
 static bfd_boolean
-balc_merge_stub (const char *func, stub_group * stubg, struct balc_stub *stub)
+balc_merge_stub (const char *func, stub_group *stubg, struct balc_stub *stub)
 {
   stub_group *next = stubg->next;
   stub_group *prev = stubg->prev;
@@ -4967,7 +4967,7 @@ balc_frag_traverse (const char *key ATTRIBUTE_UNUSED, void *value)
 /* Find an elligible stub for a function call.  */
 static bfd_boolean
 balc_find_stub_inrange (const char *func, const bfd_vma callsite,
-			stub_group * stubg, struct balc_stub **stub)
+			stub_group *stubg, struct balc_stub **stub)
 {
   stub_group *plink;
   stub_group *nlink;
@@ -5011,7 +5011,7 @@ balc_find_stub_inrange (const char *func, const bfd_vma callsite,
 /* Find closest elligible stub for this function call.  */
 static bfd_boolean
 balc_get_stub_for_symbol (const char *func, const bfd_vma callsite,
-			  stub_group * stubg, symbolS ** symbol)
+			  stub_group *stubg, symbolS **symbol)
 {
   stub_group *plink = stubg->prev;
   stub_group *nlink = stubg;
@@ -5038,7 +5038,7 @@ balc_get_stub_for_symbol (const char *func, const bfd_vma callsite,
 
 /* Initialize new stub-group at entry to a function.  */
 static void
-stubgroup_new (asection * sec)
+stubgroup_new (asection *sec)
 {
   stub_group *stubg = NULL;
 
@@ -5111,8 +5111,8 @@ stubgroup_wane (void)
    a macro expansion.  */
 
 static void
-append_insn (struct nanomips_cl_insn *ip, expressionS * address_expr,
-	     bfd_reloc_code_real_type * reloc_type,
+append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
+	     bfd_reloc_code_real_type *reloc_type,
 	     bfd_boolean expansionp ATTRIBUTE_UNUSED)
 {
   unsigned long pinfo;
@@ -5412,7 +5412,7 @@ end_noreorder (void)
    higher bits unset.  */
 
 static void
-normalize_constant_expr (expressionS * ex)
+normalize_constant_expr (expressionS *ex)
 {
   if (ex->X_op == O_constant && IS_ZEXT_32BIT_NUM (ex->X_add_number))
     ex->X_add_number = (((ex->X_add_number & 0xffffffff) ^ 0x80000000)
@@ -5423,7 +5423,7 @@ normalize_constant_expr (expressionS * ex)
    all higher bits unset.  */
 
 static void
-normalize_address_expr (expressionS * ex)
+normalize_address_expr (expressionS *ex)
 {
   if (((ex->X_op == O_constant && HAVE_32BIT_ADDRESSES)
        || (ex->X_op == O_symbol && HAVE_32BIT_SYMBOLS))
@@ -5977,7 +5977,7 @@ static const char *const mfhl_fmt[2] = { "mj", "s" };
    composite relocation.  */
 
 static void
-macro_read_relocs (va_list * args, bfd_reloc_code_real_type * r)
+macro_read_relocs (va_list *args, bfd_reloc_code_real_type *r)
 {
   int i, next;
 
@@ -5999,7 +5999,7 @@ macro_read_relocs (va_list * args, bfd_reloc_code_real_type * r)
 /* Map an <format,reloc> pair to nanoMIPS relocs.  */
 
 static void
-macro_match_nanomips_reloc (const char *fmt, bfd_reloc_code_real_type * r)
+macro_match_nanomips_reloc (const char *fmt, bfd_reloc_code_real_type *r)
 {
   if (*r == BFD_RELOC_LO16)
     {
@@ -6040,7 +6040,7 @@ macro_match_nanomips_reloc (const char *fmt, bfd_reloc_code_real_type * r)
    string, and corresponding arguments.  */
 
 static void
-macro_build (expressionS * ep, const char *name, const char *fmt, ...)
+macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 {
   const struct nanomips_opcode *mo = NULL;
   bfd_reloc_code_real_type r[3];
@@ -6215,7 +6215,7 @@ macro_build (expressionS * ep, const char *name, const char *fmt, ...)
  * Generate a "lui" instruction.
  */
 static void
-macro_build_lui (expressionS * ep, int regnum)
+macro_build_lui (expressionS *ep, int regnum)
 {
   if (ep->X_op != O_constant)
     gas_assert (ep->X_op == O_symbol);
@@ -6355,7 +6355,7 @@ set_at (int reg, int unsignedp)
  *  an absolute expression value into a register.
  */
 static void
-load_register (int reg, expressionS * ep, int dbl)
+load_register (int reg, expressionS *ep, int dbl)
 {
   int freg;
   expressionS hi32, lo32;
@@ -6613,7 +6613,7 @@ load_register (int reg, expressionS * ep, int dbl)
 /* Load an address into a register.  */
 
 static void
-load_address (int reg, expressionS * ep, int *used_at)
+load_address (int reg, expressionS *ep, int *used_at)
 {
   if (ep->X_op != O_constant && ep->X_op != O_symbol)
     {
@@ -6750,7 +6750,7 @@ move_register (int dest, int source)
    the register tested.  EP specifies the branch target.  */
 
 static void
-macro_build_branch_rs (int type, expressionS * ep, unsigned int sreg)
+macro_build_branch_rs (int type, expressionS *ep, unsigned int sreg)
 {
   const char *br;
 
@@ -6782,7 +6782,7 @@ macro_build_branch_rs (int type, expressionS * ep, unsigned int sreg)
    TREG as the registers tested.  EP specifies the branch target.  */
 
 static void
-macro_build_branch_rsrt (int type, expressionS * ep,
+macro_build_branch_rsrt (int type, expressionS *ep,
 			 unsigned int sreg, unsigned int treg)
 {
   const char *br;
@@ -6811,8 +6811,8 @@ macro_build_branch_rsrt (int type, expressionS * ep,
    TREG as the registers tested.  EP specifies the branch target.  */
 
 static void
-macro_build_branch_rtim (int type, expressionS * ep,
-			 unsigned int sreg, expressionS * imex)
+macro_build_branch_rtim (int type, expressionS *ep,
+			 unsigned int sreg, expressionS *imex)
 {
   const char *br;
   int imm = imex->X_add_number;
@@ -8909,7 +8909,7 @@ static const struct percent_op_match nanomips_percent_op[] = {
    Leave both *STR and *RELOC alone when returning false.  */
 
 static bfd_boolean
-parse_relocation (char **str, bfd_reloc_code_real_type * reloc)
+parse_relocation (char **str, bfd_reloc_code_real_type *reloc)
 {
   const struct percent_op_match *percent_op;
   size_t limit, i;
@@ -8950,7 +8950,7 @@ parse_relocation (char **str, bfd_reloc_code_real_type * reloc)
    On exit, EXPR_END points to the first character after the expression.  */
 
 static size_t
-my_getSmallExpression (expressionS * ep, bfd_reloc_code_real_type * reloc,
+my_getSmallExpression (expressionS *ep, bfd_reloc_code_real_type *reloc,
 		       char *str)
 {
   bfd_reloc_code_real_type reversed_reloc[3];
@@ -9005,7 +9005,7 @@ my_getSmallExpression (expressionS * ep, bfd_reloc_code_real_type * reloc,
 }
 
 static void
-my_getExpression (expressionS * ep, char *str)
+my_getExpression (expressionS *ep, char *str)
 {
   char *save_in;
 
@@ -9326,13 +9326,13 @@ nanomips_frob_file_before_adjust (void)
 }
 
 static bfd_boolean
-relaxable_section (asection * sec)
+relaxable_section (asection *sec)
 {
   return (sec->flags & SEC_DEBUGGING) == 0;
 }
 
 int
-nanomips_force_relocation (fixS * fixp)
+nanomips_force_relocation (fixS *fixp)
 {
   if (generic_force_reloc (fixp))
     return 1;
@@ -9390,7 +9390,7 @@ write_reloc_insn (char *buf, bfd_reloc_code_real_type reloc ATTRIBUTE_UNUSED,
 /* Apply a fixup to the object file.  */
 
 void
-md_apply_fix (fixS * fixP, valueT * valP, segT seg ATTRIBUTE_UNUSED)
+md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 {
   char *buf;
   unsigned long insn;
@@ -9688,7 +9688,7 @@ get_symbol (void)
    to record fill value and maximum alignment respectively.  */
 
 static void
-create_align_relocs (fragS * fragp, int align_to, unsigned int fill_value,
+create_align_relocs (fragS *fragp, int align_to, unsigned int fill_value,
 		     int fill_length, int max_fill)
 {
   static int symidx = 1;
@@ -10590,7 +10590,7 @@ tc_get_register (int frame ATTRIBUTE_UNUSED)
 }
 
 valueT
-md_section_align (asection * seg, valueT addr)
+md_section_align (asection *seg, valueT addr)
 {
   unsigned int align = bfd_get_section_alignment (stdoutput, seg);
 
@@ -10612,7 +10612,7 @@ md_section_align (asection * seg, valueT addr)
    undefined earlier.)  */
 
 static int
-nopic_need_relax (symbolS * sym, int before_relaxing)
+nopic_need_relax (symbolS *sym, int before_relaxing)
 {
   if (sym == 0)
     return 0;
@@ -10681,7 +10681,7 @@ nopic_need_relax (symbolS * sym, int before_relaxing)
 /* Return true if the given symbol should be considered local for SVR4 PIC.  */
 
 static bfd_boolean
-pic_need_relax (symbolS * sym, asection * segtype)
+pic_need_relax (symbolS *sym, asection *segtype)
 {
   asection *symsec;
 
@@ -10712,7 +10712,7 @@ pic_need_relax (symbolS * sym, asection * segtype)
 }
 
 static bfd_boolean
-nanomips_frag_match (fragS * head, fragS * matchP)
+nanomips_frag_match (fragS *head, fragS *matchP)
 {
   if (matchP == head->fr_next && matchP->fr_fix == 0)
     return TRUE;
@@ -10738,7 +10738,7 @@ nanomips_frag_match (fragS * head, fragS * matchP)
    bit accordingly.  */
 
 static int
-relaxed_nanomips_16bit_branch_length (fragS * fragp, asection * sec,
+relaxed_nanomips_16bit_branch_length (fragS *fragp, asection *sec,
 				      int update)
 {
   bfd_boolean toofar;
@@ -10798,7 +10798,7 @@ relaxed_nanomips_16bit_branch_length (fragS * fragp, asection * sec,
    and adjust the RELAX_NANOMIPS_USESTUB bit accordingly.  */
 
 static int
-relaxed_nanomips_stub_call_length (fragS * fragp, asection * sec,
+relaxed_nanomips_stub_call_length (fragS *fragp, asection *sec,
 				   bfd_boolean toofar16, bfd_boolean update)
 {
   bfd_boolean usestub = FALSE;
@@ -10876,7 +10876,7 @@ relaxed_nanomips_stub_call_length (fragS * fragp, asection * sec,
 /* Compute the length of a BALC stub and adjust the RELAX_NANOMIPS_KEEPSTUB
    bit accordingly. If a stub is not to be instantiated, its length is 0.  */
 static int
-relaxed_nanomips_stub_length (fragS * fragp, asection * sec,
+relaxed_nanomips_stub_length (fragS *fragp, asection *sec,
 			      bfd_boolean update)
 {
   bfd_boolean keepstub = FALSE;
@@ -10944,7 +10944,7 @@ nanomips_gpr3_reg_p (unsigned long reg)
 
 /* Compute the length of an ADDIU instruction.  */
 static int
-relaxed_nanomips_addiu_length (fragS * fragp, bfd_boolean update)
+relaxed_nanomips_addiu_length (fragS *fragp, bfd_boolean update)
 {
   char *buf;
   unsigned long insn;
@@ -11008,7 +11008,7 @@ relaxed_nanomips_addiu_length (fragS * fragp, bfd_boolean update)
    decide whether we are using an extended opcode or not.  */
 
 int
-md_estimate_size_before_relax (fragS * fragp, asection * segtype)
+md_estimate_size_before_relax (fragS *fragp, asection *segtype)
 {
   int change;
 
@@ -11057,7 +11057,7 @@ md_estimate_size_before_relax (fragS * fragp, asection * segtype)
    should be converted into a reloc against a section.  */
 
 int
-nanomips_fix_adjustable (fixS * fixp)
+nanomips_fix_adjustable (fixS *fixp)
 {
   asection *tsect;
 
@@ -11090,7 +11090,7 @@ nanomips_fix_adjustable (fixS * fixp)
    format.  */
 
 arelent **
-tc_gen_reloc (asection * section ATTRIBUTE_UNUSED, fixS * fixp)
+tc_gen_reloc (asection *section ATTRIBUTE_UNUSED, fixS *fixp)
 {
   static arelent *retval[MAX_RELOC_EXPANSION + 1];
   arelent *reloc;
@@ -11170,7 +11170,7 @@ tc_gen_reloc (asection * section ATTRIBUTE_UNUSED, fixS * fixp)
    the current size of the frag should change.  */
 
 int
-nanomips_relax_frag (asection * sec, fragS * fragp,
+nanomips_relax_frag (asection *sec, fragS *fragp,
 		     long stretch ATTRIBUTE_UNUSED)
 {
   if (RELAX_NANOMIPS_P (fragp->fr_subtype))
@@ -11207,7 +11207,7 @@ nanomips_relax_frag (asection * sec, fragS * fragp,
 /* Convert a machine dependent frag.  */
 
 void
-md_convert_frag (bfd * abfd ATTRIBUTE_UNUSED, segT asec, fragS * fragp)
+md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 {
   if (RELAX_NANOMIPS_ADDIU_P (fragp->fr_subtype))
     {
@@ -11385,7 +11385,7 @@ md_convert_frag (bfd * abfd ATTRIBUTE_UNUSED, segT asec, fragS * fragp)
     bfd_boolean use_second = (subtype & RELAX_USE_SECOND) != 0;
     int first = RELAX_FIRST (subtype);
     int second = RELAX_SECOND (subtype);
-    fixS * fixp = (fixS *) fragp->fr_opcode;
+    fixS *fixp = (fixS *) fragp->fr_opcode;
 
     /* Possibly emit a warning if we've chosen the longer option.  */
     if (use_second == second_longer)
@@ -11442,7 +11442,7 @@ md_convert_frag (bfd * abfd ATTRIBUTE_UNUSED, segT asec, fragS * fragp)
    code.  */
 
 static void
-nanomips_record_label (symbolS * sym)
+nanomips_record_label (symbolS *sym)
 {
   segment_info_type *si = seg_info (now_seg);
   struct insn_label_list *l;
@@ -11464,7 +11464,7 @@ nanomips_record_label (symbolS * sym)
    and adds a DWARF-2 record we only want for true labels.  */
 
 void
-nanomips_define_label (symbolS * sym)
+nanomips_define_label (symbolS *sym)
 {
   nanomips_record_label (sym);
   dwarf2_emit_label (sym);
@@ -11474,7 +11474,7 @@ nanomips_define_label (symbolS * sym)
    is defined.  */
 
 void
-nanomips_add_dot_label (symbolS * sym)
+nanomips_add_dot_label (symbolS *sym)
 {
   nanomips_record_label (sym);
 }
@@ -11602,7 +11602,7 @@ nanomips_nop_opcode (void)
    32-bit microMIPS NOPs here (if applicable).  */
 
 void
-nanomips_handle_align (fragS * fragp)
+nanomips_handle_align (fragS *fragp)
 {
   char *p;
   int bytes, size, excess;
@@ -12063,7 +12063,7 @@ nanomips_cpu_info_from_arch (int arch)
 }
 
 static void
-show (FILE * stream, const char *string, int *col_p, int *first_p)
+show (FILE *stream, const char *string, int *col_p, int *first_p)
 {
   if (*first_p)
     {
@@ -12089,7 +12089,7 @@ show (FILE * stream, const char *string, int *col_p, int *first_p)
 }
 
 void
-md_show_usage (FILE * stream)
+md_show_usage (FILE *stream)
 {
   int column, first;
   size_t i;
@@ -12303,7 +12303,7 @@ nanomips_bytes_to_reloc (int nbytes, bfd_boolean signed_val)
    `label' will be right shifted by 2.  */
 
 bfd_reloc_code_real_type
-nanomips_parse_cons_expression (expressionS * exp, unsigned int nbytes)
+nanomips_parse_cons_expression (expressionS *exp, unsigned int nbytes)
 {
   bfd_reloc_code_real_type rel = BFD_RELOC_NONE;
   int repeat = 1;
@@ -12391,7 +12391,7 @@ nanomips_parse_cons_expression (expressionS * exp, unsigned int nbytes)
 }
 
 void
-nanomips_cons_fix_new (fragS * frag, int where, int nbytes, expressionS *exp,
+nanomips_cons_fix_new (fragS *frag, int where, int nbytes, expressionS *exp,
 		       bfd_reloc_code_real_type r)
 {
   if (r != BFD_RELOC_NONE)
@@ -12551,7 +12551,7 @@ nanomips_cons_fix_new (fragS * frag, int where, int nbytes, expressionS *exp,
 
 /* Check if subtraction of 2 symbols can be fully evaluated at assembly.  */
 static bfd_boolean
-nanomips_allow_local_subtract_symbols (symbolS * left, symbolS * right)
+nanomips_allow_local_subtract_symbols (symbolS *left, symbolS *right)
 {
   /* Check for intervening fixups between symbols within the same frag to
      determine if relaxation could affect the difference.  */
@@ -12598,7 +12598,7 @@ nanomips_allow_local_subtract_symbols (symbolS * left, symbolS * right)
 /* md_allow_local_subtract interface
    Check if a subtraction expression can be fully evaluated.  */
 bfd_boolean
-nanomips_allow_local_subtract (expressionS * left, expressionS * right,
+nanomips_allow_local_subtract (expressionS *left, expressionS *right,
 			       segT section)
 {
   /* If the symbols are not in a code section then they are OK.  */
@@ -12644,7 +12644,7 @@ nanomips_md_do_align (int n, const char *fill, int fill_length, int max_fill)
 /* TC_VALIDATE_FIX_SUB hook */
 
 int
-nanomips_validate_fix_sub (fixS * fix)
+nanomips_validate_fix_sub (fixS *fix)
 {
   segT add_symbol_segment, sub_symbol_segment;
 
@@ -12723,7 +12723,7 @@ nanomips_cfi_reloc_for_encoding (int encoding)
    The heuristic is currently hard-coded to 4 bytes.
 */
 int
-nanomips_eh_frame_estimate_size_before_relax (fragS * frag)
+nanomips_eh_frame_estimate_size_before_relax (fragS *frag)
 {
   expressionS *exp = symbol_get_value_expression (frag->fr_symbol);
 
@@ -12744,7 +12744,7 @@ nanomips_eh_frame_estimate_size_before_relax (fragS * frag)
 
 /* TC_EH_FRAME_RELAX_FRAG hook  */
 int
-nanomips_eh_frame_relax_frag (fragS * frag)
+nanomips_eh_frame_relax_frag (fragS *frag)
 {
   int oldsize, newsize;
 
@@ -12758,7 +12758,7 @@ nanomips_eh_frame_relax_frag (fragS * frag)
    generate relocations to fix-up the value after relaxation.
    Then fall-back to the generic convert_frag.  */
 void
-nanomips_eh_frame_convert_frag (fragS * frag)
+nanomips_eh_frame_convert_frag (fragS *frag)
 {
   expressionS *exp = symbol_get_value_expression (frag->fr_symbol);
 

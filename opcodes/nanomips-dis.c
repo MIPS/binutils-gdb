@@ -341,7 +341,7 @@ choose_arch_by_number (unsigned long mach)
 /* Check if the object has nanoMIPS code.  */
 
 static inline int
-is_nanomips (Elf_Internal_Ehdr * header)
+is_nanomips (Elf_Internal_Ehdr *header)
 {
   if ((header->e_flags & EF_NANOMIPS_ARCH) == E_NANOMIPS_ARCH_32R6
       || (header->e_flags & EF_NANOMIPS_ARCH) == E_NANOMIPS_ARCH_64R6)
@@ -922,7 +922,7 @@ print_insn_arg (struct disassemble_info *info,
     case OP_HI20_PCREL:
       {
 	info->target = nanomips_decode_hi20_pcrel_operand (operand, base_pc,
-						       uval);
+							   uval);
 
 	/* Preserve the ISA bit for the GDB disassembler,
 	   otherwise clear it.  */
@@ -1429,7 +1429,7 @@ print_insn_nanomips (bfd_vma memaddr, struct disassemble_info *info)
 }
 
 void
-print_nanomips_disassembler_options (FILE * stream)
+print_nanomips_disassembler_options (FILE *stream)
 {
   unsigned int i;
 
