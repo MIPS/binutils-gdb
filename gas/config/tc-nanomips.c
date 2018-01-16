@@ -12697,17 +12697,6 @@ nanomips_validate_fix_sub (fixS *fix)
     }
 }
 
-/*  Returns the relocation type required for a particular CFI encoding.  */
-
-bfd_reloc_code_real_type
-nanomips_cfi_reloc_for_encoding (int encoding)
-{
-  if ((encoding & 0x7f) == (DW_EH_PE_sdata4 | DW_EH_PE_pcrel))
-    return BFD_RELOC_32_PCREL;
-  else
-    return BFD_RELOC_NONE;
-}
-
 /* TC_EH_FRAME_ESTIMATE_SIZE_BEFORE_RELAX hook.
    Check if the rs_cfa frag could be affected by linker relaxation and
    choose a suitable size estimation heuristic. If not, fall back to

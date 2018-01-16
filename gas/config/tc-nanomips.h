@@ -130,12 +130,6 @@ extern int tc_nanomips_regname_to_dw2regnum (char *regname);
 #define DWARF2_DEFAULT_RETURN_COLUMN 31
 #define DWARF2_CIE_DATA_ALIGNMENT (-4)
 
-#define tc_cfi_reloc_for_encoding nanomips_cfi_reloc_for_encoding
-extern bfd_reloc_code_real_type nanomips_cfi_reloc_for_encoding (int encoding);
-
-#define tc_compact_eh_opcode_stop 0x5c
-#define tc_compact_eh_opcode_pad 0x5f
-
 #define DIFF_EXPR_OK
 #define CFI_DIFF_EXPR_OK linkrelax
 
