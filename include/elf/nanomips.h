@@ -1,6 +1,6 @@
 /* nanoMIPS ELF support for BFD.
    Copyright (C) 2017 Free Software Foundation, Inc.
-   Contributed by Imagination Technologies Ltd.
+   Contributed by MIPS Tech LLC.
 
    This file is part of BFD, the Binary File Descriptor library.
 
@@ -76,7 +76,7 @@ START_RELOC_NUMBERS (elf_nanomips_reloc_type)
   RELOC_NUMBER (R_NANOMIPS_HI32, 41)
   RELOC_NUMBER (R_NANOMIPS_GPREL_LO12, 42)
   RELOC_NUMBER (R_NANOMIPS_SCN_DISP, 43)
- 
+
   RELOC_NUMBER (R_NANOMIPS_ALIGN, 64)
   RELOC_NUMBER (R_NANOMIPS_FILL, 65)
   RELOC_NUMBER (R_NANOMIPS_MAX, 66)
@@ -253,9 +253,9 @@ enum
 #define NANOMIPS_ASE_DSPR3        0x00002000 /* DSP R3 ASE.  */
 #define NANOMIPS_ASE_UNUSED5      0x00004000 /* was MIPS16 E2 Extension.  */
 #define NANOMIPS_ASE_CRC	  0x00008000 /* CRC extension.  */
-#define NANOMIPS_ASE_CRYPTO	  0x00010000 /* CRYPTO extension.  */
+#define NANOMIPS_ASE_CRYPTO	  0x00010000 /* Reserved for in-progress ASE.  */
 #define NANOMIPS_ASE_GINV         0x00020000 /* GINV ASE.  */
 #define NANOMIPS_ASE_xNMS         0x00040000 /* not nanoMIPS Subset.  */
-#define NANOMIPS_ASE_MASK         0x0007ffff /* All ASEs.  */
+#define NANOMIPS_ASE_MASK         0x0007bf4d /* All ASEs.  */
 
 #endif /* _ELF_NANOMIPS_H */

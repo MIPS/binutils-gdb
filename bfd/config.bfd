@@ -1160,14 +1160,6 @@ case "${targ}" in
     targ_defvec=mips_elf32_trad_be_vec
     targ_selvecs="mips_elf32_trad_le_vec mips_elf32_ntrad_be_vec mips_elf32_ntrad_le_vec mips_elf64_trad_be_vec mips_elf64_trad_le_vec"
     ;;
-  nanomips*-*-elf*)
-    targ_defvec=nanomips_elf32_le_vec
-    targ_selvecs="nanomips_elf32_be_vec nanomips_elf64_be_vec nanomips_elf64_le_vec"
-    ;;
-  nanomips*-*-linux*)
-    targ_defvec=nanomips_elf32_le_vec
-    targ_selvecs="nanomips_elf32_be_vec nanomips_elf64_be_vec nanomips_elf64_le_vec"
-    ;;
   mips*el-*-elf* | mips*-*-chorus*)
     targ_defvec=mips_elf32_le_vec
     targ_selvecs="mips_elf32_be_vec mips_elf64_be_vec mips_elf64_le_vec"
@@ -1254,6 +1246,16 @@ case "${targ}" in
   msp430-*-*)
     targ_defvec=msp430_elf32_vec
     targ_selvecs=msp430_elf32_ti_vec
+    ;;
+
+  nanomips*-*-elf*)
+    targ_defvec=nanomips_elf32_le_vec
+    targ_selvecs="nanomips_elf32_be_vec nanomips_elf64_be_vec nanomips_elf64_le_vec"
+    ;;
+
+  nanomips*-*-linux*)
+    targ_defvec=nanomips_elf32_le_vec
+    targ_selvecs="nanomips_elf32_be_vec nanomips_elf64_be_vec nanomips_elf64_le_vec"
     ;;
 
   nds32*le-*-linux*)

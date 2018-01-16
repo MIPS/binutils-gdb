@@ -1,6 +1,6 @@
 /* nanomips.h.  nanoMIPS opcode list for GDB, the GNU debugger.
    Copyright (C) 2017 Free Software Foundation, Inc.
-   Contributed by Imagination Technologies Ltd.
+   Contributed by MIPS Tech LLC.
 
    This file is part of GDB, GAS, and the GNU binutils.
 
@@ -334,7 +334,7 @@ struct nanomips_opcode
 /* Return true if the assembly syntax allows OPERAND to be omitted.  */
 
 static inline bfd_boolean
-mips_optional_operand_p (const struct nanomips_operand *operand)
+nanomips_optional_operand_p (const struct nanomips_operand *operand)
 {
   return (operand->type == OP_OPTIONAL_REG
 	  || operand->type == OP_REPEAT_PREV_REG
@@ -347,8 +347,8 @@ mips_optional_operand_p (const struct nanomips_operand *operand)
    has value UVAL.  */
 
 static inline unsigned int
-mips_insert_operand (const struct nanomips_operand *operand, unsigned int insn,
-		     unsigned int uval)
+nanomips_insert_operand (const struct nanomips_operand *operand,
+			 unsigned int insn, unsigned int uval)
 {
   unsigned int mask;
   unsigned int size_bottom = operand->size - operand->size_top;
@@ -366,7 +366,8 @@ mips_insert_operand (const struct nanomips_operand *operand, unsigned int insn,
 /* Extract OPERAND from instruction INSN.  */
 
 static inline unsigned int
-mips_extract_operand (const struct nanomips_operand *operand, unsigned int insn)
+nanomips_extract_operand (const struct nanomips_operand *operand,
+			  unsigned int insn)
 {
   unsigned int uval;
   unsigned int size_bottom = operand->size - operand->size_top;
@@ -380,7 +381,8 @@ mips_extract_operand (const struct nanomips_operand *operand, unsigned int insn)
 /* UVAL is the value encoded by OPERAND.  Return it in signed form.  */
 
 static inline int
-mips_signed_operand (const struct nanomips_operand *operand, unsigned int uval)
+nanomips_signed_operand (const struct nanomips_operand *operand,
+			 unsigned int uval)
 {
   unsigned int sign_bit, mask;
 
@@ -392,8 +394,8 @@ mips_signed_operand (const struct nanomips_operand *operand, unsigned int uval)
 /* Return the integer that OPERAND encodes as UVAL.  */
 
 static inline int
-mips_decode_int_operand (const struct nanomips_int_operand *operand,
-			 unsigned int uval)
+nanomips_decode_int_operand (const struct nanomips_int_operand *operand,
+			     unsigned int uval)
 {
   uval |= (operand->max_val - uval) & -(1 << operand->root.size);
   uval += operand->bias;
@@ -404,7 +406,7 @@ mips_decode_int_operand (const struct nanomips_int_operand *operand,
 /* Return the maximum value that can be encoded by OPERAND.  */
 
 static inline int
-mips_int_operand_max (const struct nanomips_int_operand *operand)
+nanomips_int_operand_max (const struct nanomips_int_operand *operand)
 {
   return (operand->max_val + operand->bias) << operand->shift;
 }
@@ -412,19 +414,19 @@ mips_int_operand_max (const struct nanomips_int_operand *operand)
 /* Return the minimum value that can be encoded by OPERAND.  */
 
 static inline int
-mips_int_operand_min (const struct nanomips_int_operand *operand)
+nanomips_int_operand_min (const struct nanomips_int_operand *operand)
 {
   unsigned int mask;
 
   mask = (1 << operand->root.size) - 1;
-  return mips_int_operand_max (operand) - (mask << operand->shift);
+  return nanomips_int_operand_max (operand) - (mask << operand->shift);
 }
 
 /* Return the register that OPERAND encodes as UVAL.  */
 
 static inline int
-mips_decode_reg_operand (const struct nanomips_reg_operand *operand,
-			 unsigned int uval)
+nanomips_decode_reg_operand (const struct nanomips_reg_operand *operand,
+			     unsigned int uval)
 {
   if (operand->reg_map)
     uval = operand->reg_map[uval];
@@ -435,26 +437,18 @@ mips_decode_reg_operand (const struct nanomips_reg_operand *operand,
    Return the address that it encodes.  */
 
 static inline bfd_vma
-mips_decode_pcrel_operand (const struct nanomips_pcrel_operand *operand,
-			   bfd_vma base_pc, unsigned int uval)
+nanomips_decode_pcrel_operand (const struct nanomips_pcrel_operand *operand,
+			       bfd_vma base_pc, unsigned int uval)
 {
   bfd_vma addr;
 
   addr = base_pc & -(1 << operand->align_log2);
-  addr += mips_decode_int_operand (&operand->root, uval);
+  addr += nanomips_decode_int_operand (&operand->root, uval);
   if (operand->include_isa_bit)
     addr |= base_pc & 1;
   if (operand->flip_isa_bit)
     addr ^= 1;
   return addr;
-}
-
-/* Return true if MO is an instruction that requires 32-bit encoding.  */
-
-static inline bfd_boolean
-mips_opcode_32bit_p (const struct nanomips_opcode *mo)
-{
-  return mo->mask >> 16 != 0;
 }
 
 /* Describes an operand that encapsulates a mapped register with
@@ -505,8 +499,8 @@ nanomips_operand_mask (const struct nanomips_operand *operand)
 /* Return the UVAL encoding of REGNO as OPERAND.  */
 
 static inline unsigned int
-mips_encode_reg_operand (const struct nanomips_operand *operand,
-			 int regno)
+nanomips_encode_reg_operand (const struct nanomips_operand *operand,
+			     int regno)
 {
   unsigned int uval;
   const unsigned int num_vals = 1 << operand->size;
@@ -525,13 +519,13 @@ mips_encode_reg_operand (const struct nanomips_operand *operand,
 #define SIGNEX_VALUE(OP) {OP_INT, OP->size - 1, 0, 0, 0}
 
 static inline int
-mips_decode_hi20_operand (const struct nanomips_operand *operand,
+nanomips_decode_hi20_operand (const struct nanomips_operand *operand,
 			      unsigned int uval)
 {
   const struct nanomips_operand op_ext = SIGNEX_VALUE (operand);
   const struct nanomips_operand op_shuffle = {OP_INT, 19, 10, 10, 0};
-  unsigned int low19 = mips_extract_operand (&op_shuffle, uval);
-  return mips_insert_operand (&op_ext, uval, low19);
+  unsigned int low19 = nanomips_extract_operand (&op_shuffle, uval);
+  return nanomips_insert_operand (&op_ext, uval, low19);
 }
 
 /* Decode HI20 signed integer.  */
@@ -539,12 +533,12 @@ mips_decode_hi20_operand (const struct nanomips_operand *operand,
 #define SIGNED_VALUE(OP) {OP_INT, OP->size, 0, 0, 0}
 
 static inline int
-mips_decode_hi20_int_operand (const struct nanomips_operand *operand,
-			      unsigned int uval)
+nanomips_decode_hi20_int_operand (const struct nanomips_operand *operand,
+				  unsigned int uval)
 {
   const struct nanomips_operand op_enc = SIGNED_VALUE (operand);
-  uval = mips_decode_hi20_operand (operand, uval);
-  return (mips_signed_operand (&op_enc, uval));
+  uval = nanomips_decode_hi20_operand (operand, uval);
+  return (nanomips_signed_operand (&op_enc, uval));
 }
 
 /* Decode HI20 PCREL  */
@@ -553,12 +547,12 @@ mips_decode_hi20_int_operand (const struct nanomips_operand *operand,
 	(1 << (OP->size - 1)) - 1, 0, 0, FALSE}, 12, 0, 0}
 
 static inline bfd_vma
-mips_decode_hi20_pcrel_operand (const struct nanomips_operand *operand,
-				bfd_vma base_pc, unsigned int uval)
+nanomips_decode_hi20_pcrel_operand (const struct nanomips_operand *operand,
+				    bfd_vma base_pc, unsigned int uval)
 {
   const struct nanomips_pcrel_operand pcrel_op = PCREL_VALUE (operand);
-  uval = mips_decode_hi20_operand (operand, uval);
-  return mips_decode_pcrel_operand (&pcrel_op, base_pc, uval << 12);
+  uval = nanomips_decode_hi20_operand (operand, uval);
+  return nanomips_decode_pcrel_operand (&pcrel_op, base_pc, uval << 12);
 }
 
 
@@ -627,12 +621,6 @@ opcode_48bit_p (const struct nanomips_opcode *mo)
 #define FP_S			    0x01000000
 /* Instruction uses double precision floating point.  */
 #define FP_D			    0x02000000
-/* Instruction is part of the tx39's integer multiply family.    */
-#define INSN_MULT                   0x04000000
-/* Reads general purpose register 24.  */
-#define INSN_READ_GPR_24            0x08000000
-/* Writes to general purpose register 24.  */
-#define INSN_WRITE_GPR_24           0x10000000
 /* A user-defined instruction.  */
 #define INSN_UDI                    0x20000000
 /* Instruction is actually a macro.  It should be ignored by the
@@ -644,10 +632,6 @@ opcode_48bit_p (const struct nanomips_opcode *mo)
 
 /* Instruction is a simple alias (I.E. "move" for daddu/addu/or) */
 #define	INSN2_ALIAS		    0x00000001
-/* Instruction reads MDMX accumulator. */
-#define INSN2_READ_MDMX_ACC	    0x00000002
-/* Instruction writes MDMX accumulator. */
-#define INSN2_WRITE_MDMX_ACC	    0x00000004
 /* Macro uses single-precision floating-point instructions.  This should
    only be set for macros.  For instructions, FP_S in pinfo carries the
    same information.  */
@@ -656,10 +640,6 @@ opcode_48bit_p (const struct nanomips_opcode *mo)
    only be set for macros.  For instructions, FP_D in pinfo carries the
    same information.  */
 #define INSN2_M_FP_D		    0x00000010
-/* Instruction has a branch delay slot that requires a 16-bit instruction.  */
-#define INSN2_BRANCH_DELAY_16BIT    0x00000020
-/* Instruction has a branch delay slot that requires a 32-bit instruction.  */
-#define INSN2_BRANCH_DELAY_32BIT    0x00000040
 /* Writes to the stack pointer ($29).  */
 #define INSN2_WRITE_SP		    0x00000080
 /* Reads from the stack pointer ($29).  */
@@ -672,10 +652,6 @@ opcode_48bit_p (const struct nanomips_opcode *mo)
 #define INSN2_UNCOND_BRANCH	    0x00000800
 /* Is a conditional branch insn. */
 #define INSN2_COND_BRANCH	    0x00001000
-/* Reads from $16.  This is true of the MIPS16 0x6500 nop.  */
-#define INSN2_READ_GPR_16           0x00002000
-/* Has an "\.x?y?z?w?" suffix based on mips_vu0_channel_mask.  */
-#define INSN2_VU0_CHANNEL_SUFFIX    0x00004000
 /* Instruction has a forbidden slot.  */
 #define INSN2_FORBIDDEN_SLOT        0x00008000
 /* Opcode table entry is for a short MIPS16 form only.  An extended
@@ -687,8 +663,11 @@ opcode_48bit_p (const struct nanomips_opcode *mo)
    encoding is needed or otherwise the final EXTEND entry will apply,
    for the disassembly of the prefix only.  */
 #define INSN2_SHORT_ONLY	    0x00010000
-/* This indicates pre-R6 instructions mapped to R6 ones.  */
+/* This indicates delayed branch converted to compact branch.  */
 #define INSN2_CONVERTED_TO_COMPACT  0x00020000
+/* Marks the LI macro expansion as special, temporary.  */
+#define INSN2_MACRO	    0x00080000
+
 
 /* Masks used to mark instructions to indicate which MIPS ISA level
    they were introduced in.  INSN_ISA_MASK masks an enumeration that
@@ -725,24 +704,15 @@ static const unsigned int nanomips_isa_table[] = {
 };
 #undef ISAF
 
-
 /* DSP ASE */
 #define ASE_DSP			0x00000001
 #define ASE_DSP64		0x00000002
-/* DSP R2 ASE  */
-#define ASE_DSPR2		0x00000004
 /* Enhanced VA Scheme */
 #define ASE_EVA			0x00000008
 /* MCU (MicroController) ASE */
 #define ASE_MCU			0x00000010
-/* MDMX ASE */
-#define ASE_MDMX		0x00000020
-/* MIPS-3D ASE */
-#define ASE_MIPS3D		0x00000040
 /* MT ASE */
 #define ASE_MT			0x00000080
-/* SmartMIPS ASE  */
-#define ASE_SMARTMIPS		0x00000100
 /* Virtualization ASE */
 #define ASE_VIRT		0x00000200
 #define ASE_VIRT64		0x00000400
@@ -751,12 +721,6 @@ static const unsigned int nanomips_isa_table[] = {
 #define ASE_MSA64		0x00001000
 /* eXtended Physical Address (XPA) Extension.  */
 #define ASE_XPA			0x00002000
-/* DSP R3 Module.  */
-#define ASE_DSPR3		0x00004000
-/* MIPS16e2 ASE.  */
-#define ASE_MIPS16E2		0x00008000
-/* MIPS16e2 MT ASE instructions.  */
-#define ASE_MIPS16E2_MT		0x00010000
 /* The Virtualization ASE has eXtended Physical Addressing (XPA)
    instructions which are only valid when both ASEs are enabled.  */
 #define ASE_XPA_VIRT		0x00020000
@@ -766,8 +730,8 @@ static const unsigned int nanomips_isa_table[] = {
 /* Cyclic redundancy check (CRC) ASE */
 #define ASE_CRC			0x00100000
 #define ASE_CRC64		0x00200000
-/* Crypto ASE */
-#define ASE_CRYPTO		0x00400000
+/* Reserved for in-progress ASE */
+#define ASE_RESERVED1		0x00400000
 /* Global INValidate Extension. */
 #define ASE_GINV		0x00800000
 /* The Virtualization ASE has Global INValidate extension instructions
@@ -980,8 +944,6 @@ enum
 extern const struct nanomips_operand *decode_nanomips_operand (const char *);
 extern const struct nanomips_opcode nanomips_opcodes[];
 extern const int bfd_nanomips_num_opcodes;
-
-#define INSN2_MACRO	    0x00080000
 
 /* These are the bit masks and shift counts used for the different fields
    in the microMIPS instruction formats.  No masks are provided for the

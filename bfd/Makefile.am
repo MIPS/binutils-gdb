@@ -690,10 +690,10 @@ BFD64_BACKENDS = \
 	elfxx-ia64.lo \
 	elfn32-mips.lo \
 	elf64-mips.lo \
-	elf64-nanomips.lo \
 	elfxx-mips.lo \
-	elfxx-nanomips.lo \
 	elf64-mmix.lo \
+	elf64-nanomips.lo \
+	elfxx-nanomips.lo \
 	elf64-ppc.lo \
 	elf32-riscv.lo \
 	elf64-riscv.lo \
@@ -732,7 +732,6 @@ BFD64_BACKENDS_CFILES = \
 	elf64-ia64-vms.c \
 	elf64-mips.c \
 	elf64-mmix.c \
-	elf64-nanomips.c \
 	elf64-ppc.c \
 	elf64-s390.c \
 	elf64-sh64.c \
@@ -811,8 +810,8 @@ BUILD_CFILES = \
 	elf32-aarch64.c elf64-aarch64.c \
 	elf32-ia64.c elf64-ia64.c \
 	elf32-riscv.c elf64-riscv.c \
-	peigen.c pepigen.c pex64igen.c \
-	elf32-nanomips.c elf64-nanomips.c
+	elf32-nanomips.c elf64-nanomips.c \
+	peigen.c pepigen.c pex64igen.c
 
 CFILES = $(SOURCE_CFILES) $(BUILD_CFILES)
 
@@ -1020,6 +1019,7 @@ elf64-nanomips.c : elfnn-nanomips.c
 	echo "#line 1 \"$(srcdir)/elfnn-nanomips.c\"" > elf64-nanomips.new
 	sed -e s/NN/64/g < $(srcdir)/elfnn-nanomips.c >> elf64-nanomips.new
 	mv -f elf64-nanomips.new elf64-nanomips.c
+
 BFD_H_DEPS= $(INCDIR)/ansidecl.h $(INCDIR)/symcat.h
 LOCAL_H_DEPS= libbfd.h sysdep.h config.h
 $(BFD32_LIBS) \

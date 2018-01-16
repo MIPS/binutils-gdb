@@ -1,6 +1,6 @@
 /* bfd back-end for nanomips support
    Copyright (C) 2017 Free Software Foundation, Inc.
-   Contributed by <FIXME-MIPS>.
+   Contributed by MIPS Tech LLC.
 
    This file is part of BFD, the Binary File Descriptor library.
 
@@ -30,7 +30,8 @@ static const bfd_arch_info_type *nanomips_compatible
    mips word size doesn't correlate with reloc size.  */
 
 static const bfd_arch_info_type *
-nanomips_compatible (const bfd_arch_info_type *a, const bfd_arch_info_type *b)
+nanomips_compatible (const bfd_arch_info_type *a,
+		     const bfd_arch_info_type *b)
 {
   if (a->arch != b->arch)
     return NULL;
@@ -52,7 +53,7 @@ nanomips_compatible (const bfd_arch_info_type *a, const bfd_arch_info_type *b)
     PRINT,						\
     3,							\
     DEFAULT,						\
-    nanomips_compatible,					\
+    nanomips_compatible,				\
     bfd_default_scan,					\
     bfd_arch_default_fill,				\
     NEXT,						\
@@ -61,23 +62,17 @@ nanomips_compatible (const bfd_arch_info_type *a, const bfd_arch_info_type *b)
 enum
 {
   I_nanomipsisa32r6,
-  I_nanomipsisa64r6
+  I_nanomipsisa64r6,
 };
 
 #define NN(index) (&arch_info_struct[(index) + 1])
 
-static const bfd_arch_info_type arch_info_struct[] =
-{
-  N (32, 32, bfd_mach_nanomipsisa32r6,"nanomips:isa32r6", FALSE,
-     NN(I_nanomipsisa32r6)),
-  N (64, 64, bfd_mach_nanomipsisa64r6,"nanomips:isa64r6", FALSE,
+static const bfd_arch_info_type arch_info_struct[] = {
+  N (32, 32, bfd_mach_nanomipsisa32r6, "nanomips:isa32r6", FALSE,
+     NN (I_nanomipsisa32r6)),
+  N (64, 64, bfd_mach_nanomipsisa64r6, "nanomips:isa64r6", FALSE,
      0),
 };
 
-/* The default architecture is mips:3000, but with a machine number of
-   zero.  This lets the linker distinguish between a default setting
-   of mips, and an explicit setting of mips:3000.  */
-
 const bfd_arch_info_type bfd_nanomips_arch =
 N (32, 32, 0, "nanomips", TRUE, &arch_info_struct[0]);
-

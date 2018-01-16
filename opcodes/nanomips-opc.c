@@ -1,6 +1,6 @@
 /* nanomips-opc.c.  nanoMIPS opcode table.
    Copyright (C) 2017 Free Software Foundation, Inc.
-   Contributed by Imagination Technologies Ltd.
+   Contributed by MIPS Tech LLC.
 
    This file is part of the GNU opcodes library.
 
@@ -96,10 +96,10 @@ decode_nanomips_operand (const char *p)
 	case 'p': REG (5, 5, GP);
 	case 'q': MAPPED_REG (3, 7, GP, reg_q_map);
 	case 's': MAPPED_REG (0, 0, GP, reg_29_map);
- 	case 't': SPECIAL (0, 0, REPEAT_PREV_REG);
+	case 't': SPECIAL (0, 0, REPEAT_PREV_REG);
 	case 'u': REG (5, 3, GP); // New
 	case 'w': MAPPED_REG (1, 0, GP, reg_30_opt_map);
- 	case 'x': SPECIAL (0, 0, REPEAT_DEST_REG);
+	case 'x': SPECIAL (0, 0, REPEAT_DEST_REG);
 	case 'y': MAPPED_REG (0, 0, GP, reg_31_map);
 	case 'z': UINT (0, 0); 	/* Literal 0 */
 	case 'A': INT_ADJ (7, 0, 127, 2, FALSE);	 /* (0 .. 127) << 2 */
@@ -175,9 +175,9 @@ decode_nanomips_operand (const char *p)
 	case 'C': MSB (5, 6, 1, FALSE, 32);	 /* (1 .. 32), 32-bit op */
 /* 	case 'D': REG (5, 16, FP); */
 	case 'E': BIT (5, 0, 32);		 /* (32 .. 63) */
- 	case 'F': MSB (5, 6, 33, TRUE, 64);	 /* (33 .. 64), 64-bit op */
- 	case 'G': MSB (5, 6, 33, FALSE, 64);	 /* (33 .. 64), 64-bit op */
- 	case 'H': MSB (5, 6, 1, FALSE, 64);	 /* (1 .. 32), 64-bit op */
+	case 'F': MSB (5, 6, 33, TRUE, 64);	 /* (33 .. 64), 64-bit op */
+	case 'G': MSB (5, 6, 33, FALSE, 64);	 /* (33 .. 64), 64-bit op */
+	case 'H': MSB (5, 6, 1, FALSE, 64);	 /* (1 .. 32), 64-bit op */
 	case 'I': BIT (5, 6, 0); /* (0 .. 31) */
 	case 'K': HINT (3, 0);
 	case 'L': HINT (10, 16);
@@ -203,7 +203,7 @@ decode_nanomips_operand (const char *p)
 /* 	case 'l': REG (5, 6, MSA_CTRL); */
 	case 'm': SINT_SPLIT (7, 2, 2, 1, 15, 0); /* split 7-bit signed << 2 */
 /* 	case 'n': REG (5, 11, MSA_CTRL); */
-/* 	case 'o': SPECIAL (4, 16, IMM_INDEX); */
+	case 'o': HINT (2, 0);
 	case 'q': SINT_SPLIT (6, 3, 3, 1, 15, 0); /* split 6-bit signed << 3 */
 	case 'r': BRANCH_UNORD_SPLIT (21, 1); /* split 21-bit signed << 1 */
 	case 's': IMM_SINT_SPLIT (21, 1, 1, 1, 0, 2); /* split (21-bit signed + 2) << 1 */
@@ -213,7 +213,7 @@ decode_nanomips_operand (const char *p)
 /* 	case 'u': BRANCH_UNORD_SPLIT (14, 1); */
 /* 	case 'v': SPECIAL (2, 16, IMM_INDEX); */
 /* 	case 'w': SPECIAL (1, 16, IMM_INDEX); */
-/* 	case 'x': BIT (5, 16, 0);		/\* (0 .. 31) *\/ */
+	case 'x': BIT (5, 16, 0);		/* (0 .. 31) */
 
 /* 	case '!': BIT (3, 16, 0);		/\* (0 .. 7) *\/ */
 /* 	case '#': BIT (6, 16, 0);		/\* (0 .. 63) *\/ */
@@ -228,8 +228,8 @@ decode_nanomips_operand (const char *p)
 	case '.': BIT (2, 9, 0);		/* (0 .. 3) */
 	case ';': UINT (2, 21);			/* (0 .. 3) */
 	case '1': UINT (18, 0);
-	case '2': INT_ADJ (16, 2, (1<<16)-1, 2, FALSE);
-	case '3': INT_ADJ (17, 1, (1<<17)-1, 1, FALSE);
+	case '2': INT_ADJ (16, 2, (1<<16) - 1, 2, FALSE);
+	case '3': INT_ADJ (17, 1, (1<<17) - 1, 1, FALSE);
 	case '4': SPLIT_MAPPED_REG (4, 5, 1, 9, GP, reg_4to5_map);
 	case '5': SPLIT_MAPPED_REG (4, 0, 1, 4, GP, reg_4to5_map);
 	case '6': SPLIT_MAPPED_REG (4, 5, 1, 9, GP, reg_4to5_srcmap);
@@ -239,7 +239,7 @@ decode_nanomips_operand (const char *p)
 	}
       break;
 
-    case '.': INT_ADJ (19, 2, (1<<19)-1, 2, FALSE);
+    case '.': INT_ADJ (19, 2, (1<<19) - 1, 2, FALSE);
     case '<': BIT (5, 0, 0);			 /* (0 .. 31) */
 /*     case '>': BIT (5, 11, 32);			 /\* (32 .. 63) *\/ */
     case '\\': BIT (3, 21, 0);			 /* (0 .. 7) */
@@ -255,10 +255,10 @@ decode_nanomips_operand (const char *p)
     case '0': SINT (6, 16);
     case '1': HINT (5, 16);
     case '2': HINT (2, 14);
-    case '3': HINT (3, 13);
-    case '4': HINT (4, 12);
+    case '3': BIT (3, 13, 0);
+    case '4': BIT (4, 12, 0);
     case '5': HINT (8, 13);
-    case '6': HINT (5, 16);
+/*       case '6': HINT (5, 16); /\* unused / available *\/ */
     case '7': REG (2, 14, ACC);
     case '8': HINT (7, 14);
 
@@ -280,11 +280,11 @@ decode_nanomips_operand (const char *p)
     case 'b': REG (5, 16, GP);
     case 'c': BASE_OFFSET_CHECK (5, 16, TRUE, FALSE);
     case 'd': REG (5, 11, GP);
-/*     case 'h': HINT (5, 11); */
+    case 'g': HINT (12, 0);
+    case 'h': SPECIAL (12, 0, NEG_INT);
     case 'i': UINT (12, 0);
     case 'j': UINT (16, 0);
     case 'k': HINT (5, 21);
-    case 'h': SPECIAL (12, 0, NEG_INT);
     case 'n': SPECIAL_SPLIT (11, 2, 10, 16, SAVE_RESTORE_LIST);
     case 'o': UINT (12, 0);
     case 'p': BRANCH_UNORD_SPLIT (14, 1);
@@ -357,10 +357,6 @@ decode_nanomips_operand (const char *p)
 
 /* nanoMIPS Enhanced VA Scheme.  */
 #define EVA	ASE_EVA
-#define EVA_R6	ASE_EVA_R6
-
-/* TLB invalidate instruction support.  */
-#define TLBINV	ASE_EVA
 
 /* nanoMIPS Virtualization ASE.  */
 #define IVIRT	ASE_VIRT
@@ -378,6 +374,10 @@ decode_nanomips_operand (const char *p)
 /* Global INValidate extension.  */
 #define GINV	ASE_GINV
 
+/* Cyclic redundancy check instruction (CRC) support.  */
+#define CRC	ASE_CRC
+#define CRC64	ASE_CRC64
+
 #define FPU	0
 #define EJTAG	0
 #define UDI	0
@@ -388,8 +388,7 @@ decode_nanomips_operand (const char *p)
 #define I38	INSN_ISAN32R6
 #define I70	INSN_ISAN64R6
 
-const struct nanomips_opcode nanomips_opcodes[] =
-{
+const struct nanomips_opcode nanomips_opcodes[] = {
 /* These instructions appear first so that the disassembler will find
    them first.  The assemblers uses a hash table based on the
    instruction name anyhow.  */
@@ -423,9 +422,9 @@ const struct nanomips_opcode nanomips_opcodes[] =
 {"jrc", 	"[32]",		"s",		0x48000000, 0xffe0ffff,	RD_1,		INSN2_ALIAS,	I38,	0}, /* JALRC */
 {"jalrc",	"[16]",		"mp",		0xd810,		0xfc1f,	WR_31|RD_1,		0,	I38,	0}, /* JALRC[16] */
 {"jalrc",	"[16]",		"my,mp",	0xd810,		0xfc1f,	WR_31|RD_1,	INSN2_ALIAS,	I38,	0}, /* JALRC[16] */
-{"jalrc",	"",	        "mp,-i",	0xd810,		0xfc1f,	WR_31|RD_1, 	INSN2_ALIAS, I38,	0}, /* JALRC[16] */
 {"jalrc",	"[32]",		"s",		0x4be00000, 0xffe0ffff,	RD_1,		INSN2_ALIAS,	I38,	0}, /* JALRC[32] */
 {"jalrc",	"[32]",		"t,s",		0x48000000, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
+{"jalrc",	"",	        "mp,-i",	0xd810,		0xfc1f,	WR_31|RD_1, 	INSN2_ALIAS, 	I38,	0}, /* JALRC[16] */
 {"jalrc",	"",		"s,-i",		0x4be00000, 0xffe0ffff,	RD_1,		INSN2_ALIAS,	I38,	0}, /* JALRC[32] */
 {"jr",		"",		"mp",		0xd800,		0xfc1f,	RD_1, 	    INSN2_ALIAS|UBR|CTC, I38,	0}, /* JRC */
 {"jr",		"",		"s",		0x48000000, 0xffe0ffff,	RD_1, 	    INSN2_ALIAS|UBR|CTC, I38,	0}, /* JALRC */
@@ -443,8 +442,8 @@ const struct nanomips_opcode nanomips_opcodes[] =
 {"li",		"",		"-t,A",		0,	(int) M_LI,	INSN_MACRO,	INSN2_MACRO,	I38,	0},
 {"ext", 	"",		"t,r,+A,+C",	0x8000f000, 0xfc00f820,	WR_1|RD_2,		0,	0,	xNMS},
 {"ext", 	"",		"t,r,+A,+C",	0,    (int) M_EXT,	INSN_MACRO,		0,	I38,	0},
-				
-/* Precedence=0 */		
+
+/* Precedence=0 */
 {"abs", 	"", 		"d,v",		0,	   (int) M_ABS,	INSN_MACRO,		0,	I38,	0},
 {"abs.d",	"",		"T,V",		0xa000237b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
 {"abs.s",	"",		"T,V",		0xa000037b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
@@ -471,10 +470,13 @@ IGRIE */
 {"addiu",	"[gp48]",	"mp,ma,+T",	0x6002,     0xfc1f,	WR_1|RD_2,		0,	0,	xNMS}, /* ADDIU[GP48] */
 {"lapc",	"[32]",		"t,+r",		0x04000000, 0xfc000000, WR_1,		INSN2_ALIAS,	I38,	0}, /* ADDIUPC */
 {"lapc",	"[48]",		"mp,+S",	0x6003,     0xfc1f,	WR_1,		INSN2_ALIAS,	0,	xNMS}, /* ADDIUPC[48] */
+{"lapc.h",	"",		"t,+r",		0x04000000, 0xfc000000, WR_1,		INSN2_ALIAS,	I38,	0}, /* ADDIUPC */
+{"lapc.b",	"",		"mp,+S",	0x6003,     0xfc1f,	WR_1,		INSN2_ALIAS,	0,	xNMS}, /* ADDIUPC[48] */
 {"addiupc",	"[32]",		"t,+s",		0x04000000, 0xfc000000, WR_1,			0,	I38,	0},
 {"addiupc",	"[48]",		"mp,+U",	0x6003,     0xfc1f,	WR_1,			0,	0,	xNMS}, /* ADDIUPC[48] */
 {"addiu.b",	"",	        "t,ma,+1",	0x440c0000, 0xfc1c0000,	WR_1|RD_2,	INSN2_ALIAS,	I38,	0}, /* ADDIU[GP.B] */
 {"addiu.w",	"",		"t,ma,.",	0x40000000, 0xfc000003,	WR_1|RD_2,	INSN2_ALIAS,	I38,	0}, /* ADDIU[GP.W] */
+{"addiu.b32",	"",		"mp,ma,+T",	0x6002,     0xfc1f,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ADDIU[GP48] */
 {"addq.ph",	"",		"d,s,t",	0x2000000d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"addqh.ph",	"",		"d,s,t",	0x2000004d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"addqh.w",	"",		"d,s,t",	0x2000008d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
@@ -505,9 +507,9 @@ IGRIE */
 {"and", 	"[32]",		"d,v,t",	0x20000250, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"and", 	"[32]",		"t,r,I",	0,    (int) M_AND_I,	INSN_MACRO,		0,	I38,	0},
 {"andi",	"[16]",	        "md,mc,mC",	0xf000,		0xfc00,	WR_1|RD_2,		0,	I38,	0}, /* ANDI[16] */
-{"andi",	"[32]",		"t,r,i",	0x80002000, 0xfc00f000,	WR_1|RD_2,		0,	I38,	0},
+{"andi",	"[32]",		"t,r,g",	0x80002000, 0xfc00f000,	WR_1|RD_2,		0,	I38,	0},
 {"andi",	"",		"t,r,m6",	0x8000f000, 0xfc00f83f,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* EXT */
-{"append",	"",		"t,s,^",	0x20000215, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
+{"append",	"",		"t,s,+i",	0x20000215, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
 {"aset",	"",		"\\,+j(b)",	0xa4001100, 0xff007f00,		RD_3,		0,	0,	MC},
 {"aset",	"",		"\\,A(c)",	0,    (int) M_ASET_AB,		INSN_MACRO,	0,	0,	MC},
 {"balc",	"[16]",		"mD",		0x3800,		0xfc00,		WR_31,		0,	I38,	0}, /* BALC[16] */
@@ -608,8 +610,7 @@ IGRIE */
 {"bneic",	"",		"t,m9,~",	0xc8100000, 0xfc1c0000,		RD_1,		0,	I38,	0},
 {"bposge32c",	"",		"p",		0x88044000, 0xffffc000,		0,		0,	0,	D32},
 {"bposge32",	"",		"p",		0x88044000, 0xffffc000,	0,	INSN2_ALIAS|CBR|CTC,	0,	D32}, /* BPOSGE32C */
-{"brc", 	"",		"s",		0x48008000, 0xffe0ffff,	RD_1,			0,	I38,	0},
-{"brsc",	"",		"s",		0x48008200, 0xffe0ffff,	RD_1,			0,	I38,	0},
+{"brsc",	"",		"s",		0x48008000, 0xffe0ffff,	RD_1,			0,	I38,	0},
 {"byterevh",	"",		"t,r",		0x8000d608, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX t,s,8,24 */
 {"byterevw",	"",		"t,r",		0x8000d218, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX t,s,24,8 */
 {"cache",	"",		"k,+j(b)",	0xa4003900, 0xfc007f00,		RD_3,		0,	I38,	0},
@@ -687,6 +688,14 @@ IGRIE */
 {"cmpu.le.qb",	"", 		"s,t",		0x200002c5, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32},
 {"cmpu.lt.qb",	"", 		"s,t",		0x20000285, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32},
 {"cop2_1",	"",		"C",		0x20000002, 0xfc000007,		0,		0,	I38,	0},
+{"crc32b",	"",		"t,r",		0x200003e8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC},
+{"crc32h",	"",		"t,r",		0x200007e8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC},
+{"crc32w",	"",		"t,r",		0x20000be8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC},
+{"crc32d",	"",		"t,r",		0x20000fe8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC64},
+{"crc32cb",	"",		"t,r",		0x200013e8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC},
+{"crc32ch",	"",		"t,r",		0x200017e8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC},
+{"crc32cw",	"",		"t,r",		0x20001be8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC},
+{"crc32cd",	"",		"t,r",		0x20001fe8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC64},
 {"ctc1",	"",		"t,S",		0xa000183b, 0xfc00ffff,	RD_1|WR_2,		0,	I38,	0},
 {"ctc1",	"",		"t,G",		0xa000183b, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS,	I38,	0},
 {"ctc2",	"",		"t,G",		0x2000dd3f, 0xfc00ffff,	RD_1|WR_2,		0,	I38,	0},
@@ -700,8 +709,6 @@ IGRIE */
 {"cvt.l.s",	"",		"T,S",		0xa000013b, 0xfc00ffff,	WR_1|RD_2|FP_S|FP_D,	0,	I38,	0},
 {"cvt.s.d",	"",		"T,S",		0xa0001b7b, 0xfc00ffff,	WR_1|RD_2|FP_S|FP_D,	0,	I38,	0},
 {"cvt.s.l",	"",		"T,S",		0xa0005b7b, 0xfc00ffff,	WR_1|RD_2|FP_S|FP_D,	0,	I38,	0},
-{"cvt.s.pl",	"",		"T,S",		0xa000213b, 0xfc00ffff,	WR_1|RD_2|FP_S|FP_D,	0,	I38,	0},
-{"cvt.s.pu",	"",		"T,S",		0xa000293b, 0xfc00ffff,	WR_1|RD_2|FP_S|FP_D,	0,	I38,	0},
 {"cvt.s.w",	"",		"T,S",		0xa0003b7b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
 {"cvt.w.d",	"",		"T,S",		0xa000493b, 0xfc00ffff,	WR_1|RD_2|FP_S|FP_D,	0,	I38,	0},
 {"cvt.w.s",	"",		"T,S",		0xa000093b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
@@ -828,18 +835,18 @@ IGRIE */
 {"evpe",	"",		"t",		0x20000eb0, 0xfc1fffff,	WR_1,			0,	0,	MT32},
 {"evp", 	"", 	 	"-a",		0x20000790, 0xffe0ffff,	0,		INSN2_ALIAS,	I38,	0}, /* EVP */
 {"evp", 	"", 	 	"t,-a",		0x20000790, 0xfc00ffff,	WR_1,			0,	I38,	0},
-{"extp",	"",		"t,7,6",	0x2000267f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
-{"extpdp",	"",		"t,7,6",	0x2000367f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
+{"extp",	"",		"t,7,+x",	0x2000267f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
+{"extpdp",	"",		"t,7,+x",	0x2000367f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
 {"extpdpv",	"",		"t,7,s",	0x200038bf, 0xfc003fff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"extpv",	"",		"t,7,s",	0x200028bf, 0xfc003fff, WR_1|RD_2|RD_3,		0,	0,	D32},
-{"extr.w",	"",		"t,7,6",	0x20000e7f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
+{"extr.w",	"",		"t,7,+x",	0x20000e7f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
 {"extrv.w",	"",		"t,7,s",	0x20000ebf, 0xfc003fff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"extrv_r.w",	"",		"t,7,s",	0x20001ebf, 0xfc003fff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"extrv_rs.w",	"", 	 	"t,7,s",	0x20002ebf, 0xfc003fff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"extrv_s.h",	"",		"t,7,s",	0x20003ebf, 0xfc003fff, WR_1|RD_2|RD_3,		0,	0,	D32},
-{"extr_r.w",	"",		"t,7,6",	0x20001e7f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
-{"extr_rs.w",	"",		"t,7,6",	0x20002e7f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
-{"extr_s.h",	"",		"t,7,6",	0x20003e7f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
+{"extr_r.w",	"",		"t,7,+x",	0x20001e7f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
+{"extr_rs.w",	"",		"t,7,+x",	0x20002e7f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
+{"extr_s.h",	"",		"t,7,+x",	0x20003e7f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
 {"fork",	"",		"d,s,t",	0x20000228, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,	0,	MT32},
 {"floor.l.d",	"",		"T,S",		0xa000433b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
 {"floor.l.s",	"",		"T,S",		0xa000033b, 0xfc00ffff,	WR_1|RD_2|FP_S|FP_D,	0,	I38,	0},
@@ -849,7 +856,7 @@ IGRIE */
 {"ginvt",	"",		"s,+;",		0x20000f7f, 0xff80ffff, RD_1,			0,	0,	GINV},
 {"ginvgt",	"",		"s,+;",		0x20000d7f, 0xff80ffff, RD_1,			0,	0,	IVIRT_GINV},
 {"hypcall",	"[16]",		"",		0x100c,		0xffff,		0,	INSN2_ALIAS,	0,	IVIRT}, /* HYPCALL[16] */
-{"hypcall",	"[16]",		"mL",		0x100c,		0xfffc,		0,		0,	0,	IVIRT}, /* HYPCALL[16] */
+{"hypcall",	"[16]",		"+o",		0x100c,		0xfffc,		0,		0,	0,	IVIRT}, /* HYPCALL[16] */
 {"hypcall",	"[32]",		"",		0x000c0000, 0xffffffff,		0,	INSN2_ALIAS,	0,	IVIRT},
 {"hypcall",	"[32]",		"+M",		0x000c0000, 0xfffc0000,		0,		0,	0,	IVIRT},
 {"ins", 	"",		"t,r,+A,+B",	0x8000e000, 0xfc00f820,	WR_1|RD_2,		0,	0,	xNMS},
@@ -1116,7 +1123,7 @@ IGRIE */
 {"or",		"[16]",		"md,ml",	0x500c,		0xfc0f,	WR_1|RD_2,		0,	I38,	0}, /* OR[16] */
 {"or",		"[32]",		"d,v,t",	0x20000290, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"or",		"",		"t,r,I",	0,    (int) M_OR_I,	INSN_MACRO,		0,	I38,	0},
-{"ori", 	"", 		"t,r,i",	0x80000000, 0xfc00f000,	WR_1|RD_2,		0,	I38,	0},
+{"ori", 	"", 		"t,r,g",	0x80000000, 0xfc00f000,	WR_1|RD_2,		0,	I38,	0},
 {"pause",	"",		"",		0x8000c005, 0xffffffff,	0,			0,	I38,	0},
 {"packrl.ph",	"",		"d,s,t",	0x200001ad, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"pick.ph",	"",		"d,s,t",	0x2000022d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
@@ -1136,8 +1143,8 @@ IGRIE */
 {"precrq.qb.ph", "", 		"d,s,t",	0x200000ad, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"precrqu_s.qb.ph", "", 	"d,s,t",	0x2000016d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"precrq_rs.ph.w", "", 		"d,s,t",	0x2000012d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
-{"precr_sra.ph.w", "", 		"t,s,^",	0x200003cd, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
-{"precr_sra_r.ph.w", "", 	"t,s,^",	0x200007cd, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
+{"precr_sra.ph.w", "",		"t,s,+i",	0x200003cd, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
+{"precr_sra_r.ph.w", "", 	"t,s,+i",	0x200007cd, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
 {"pref",	"[u12]",	"k,o(b)",	0x84003000, 0xfc00f000,	RD_3,			0,	I38,	0}, /* PREF[U12] */
 {"pref",	"[s9]",		"k,+j(b)",	0xa4001800, 0xfc007f00,	RD_3,			0,	I38,	0}, /* PREF[S9], preceded by SYNCI[S9] */
 {"pref",	"",		"k,A(c)",	0,    (int) M_PREF_AB,	INSN_MACRO,		0,	I38,	0},
@@ -1268,7 +1275,7 @@ IGRIE */
 {"shllv_s.ph",	"",		"d,t,s",	0x2000078d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"shllv_s.w",	"",		"d,t,s",	0x200003d5, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"shll_s.ph",	"",		"t,s,4",	0x20000bb5, 0xfc000fff,	WR_1|RD_2,		0,	0,	D32},
-{"shll_s.w",	"",		"t,s,^",	0x200003f5, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
+{"shll_s.w",	"",		"t,s,+i",	0x200003f5, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
 {"shra.ph",	"",		"t,s,4",	0x20000335, 0xfc000fff,	WR_1|RD_2,		0,	0,	D32},
 {"shra.qb",	"",		"t,s,3",	0x200001ff, 0xfc001fff,	WR_1|RD_2,		0,	0,	D32},
 {"shrav.ph",	"",		"d,t,s",	0x2000018d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
@@ -1278,7 +1285,7 @@ IGRIE */
 {"shrav_r.w",	"",		"d,t,s",	0x200002d5, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"shra_r.ph",	"",		"t,s,4",	0x20000735, 0xfc000fff,	WR_1|RD_2,		0,	0,	D32},
 {"shra_r.qb",	"",		"t,s,3",	0x200011ff, 0xfc001fff,	WR_1|RD_2,		0,	0,	D32},
-{"shra_r.w",	"",		"t,s,^",	0x200002f5, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
+{"shra_r.w",	"",		"t,s,+i",	0x200002f5, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
 {"shrl.ph",	"",		"t,s,4",	0x200003ff, 0xfc000fff,	WR_1|RD_2,		0,	0,	D32},
 {"shrl.qb",	"",		"t,s,3",	0x2000187f, 0xfc001fff,	WR_1|RD_2,		0,	0,	D32},
 {"shrlv.ph",	"",		"d,t,s",	0x20000315, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
@@ -1365,7 +1372,7 @@ IGRIE */
 {"swxs",	"",		"d,s(t)",	0x200004c7, 0xfc0007ff, RD_1|RD_2|RD_3,		0,	0,	xNMS},
 {"swxc1",	"",		"R,s(t)",	0x20000587, 0xfc0007ff, RD_1|RD_2|RD_3,	INSN2_ALIAS,	I38,	0}, /* SWC1X */
 {"syscall",	"[16]",		"",		0x1008,     0xffff,		0,	INSN2_ALIAS,	I38,	0}, /* SYSCALL[16] */
-{"syscall",	"[16]",		"mL",		0x1008,     0xfffc,		0,		0,	I38,	0}, /* SYSCALL[16] */
+{"syscall",	"[16]",		"+o",		0x1008,     0xfffc,		0,		0,	I38,	0}, /* SYSCALL[16] */
 {"syscall",	"[32]",		"",		0x00080000, 0xffffffff,		0,	INSN2_ALIAS,	I38,	0},
 {"syscall",	"[32]",		"+M",		0x00080000, 0xfffc0000,		0,		0,	I38,	0},
 {"teq", 	"", 		"s,t",		0x20000000, 0xfc00ffff,	RD_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* TEQ */
@@ -1418,7 +1425,7 @@ IGRIE */
 {"xor", 	"[16]",		"md,ml",	0x5004,		0xfc0f,	WR_1|RD_2,		0,	I38,	0}, /* XOR[16] */
 {"xor", 	"[32]",		"d,v,t",	0x20000310, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"xor", 	"",		"t,r,I",	0,    (int) M_XOR_I,	INSN_MACRO,		0,	I38,	0},
-{"xori",	"",		"t,r,i",	0x80001000, 0xfc00f000,	WR_1|RD_2,		0,	I38,	0},
+{"xori",	"",		"t,r,g",	0x80001000, 0xfc00f000,	WR_1|RD_2,		0,	I38,	0},
 {"yield",	"",		"s",		0x20000268, 0xffe0ffff,	RD_1,		INSN2_ALIAS,	0,	MT32},
 {"yield",	"",		"t,s",		0x20000268, 0xfc00ffff,	WR_1|RD_2,		0,	0,	MT32},
 };

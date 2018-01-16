@@ -1,6 +1,6 @@
 /* nanoMIPS-specific support for ELF
    Copyright (C) 2017 Free Software Foundation, Inc.
-   Contributed by Imagination Technologies Ltd.
+   Contributed by MIPS Tech LLC.
 
    This file is part of BFD, the Binary File Descriptor library.
 
@@ -30,7 +30,7 @@
 #include "elf/mips-common.h"
 #include "elf/nanomips.h"
 
-/* MIPS ELF private object data.  */
+/* nanoMIPS ELF private object data.  */
 
 struct nanomips_elf_obj_tdata
 {
@@ -50,19 +50,19 @@ struct nanomips_elf_obj_tdata
   bfd_signed_vma sdata_section[1000];
 };
 
-/* Get MIPS ELF private object data from BFD's tdata.  */
+/* Get nanoMIPS ELF private object data from BFD's tdata.  */
 
 #define nanomips_elf_tdata(bfd) \
   ((struct nanomips_elf_obj_tdata *) (bfd)->tdata.any)
-
 
+
 
 /* True if NAME is the recognized name of any SHT_NANOMIPS_ABIFLAGS section.  */
 #define NANOMIPS_ELF_ABIFLAGS_SECTION_NAME_P(NAME) \
   (strcmp (NAME, ".nanoMIPS.abiflags") == 0)
 
 
-/* Allocate MIPS ELF private object data.  */
+/* Allocate nanoMIPS ELF private object data.  */
 
 bfd_boolean
 _bfd_nanomips_elf_mkobject (bfd *abfd)
@@ -71,18 +71,19 @@ _bfd_nanomips_elf_mkobject (bfd *abfd)
 				  sizeof (struct nanomips_elf_obj_tdata),
 				  NANOMIPS_ELF_DATA);
 }
-
 
+
 
 /* A generic howto special_function.  This calculates and installs the
    relocation itself, thus avoiding the oft-discussed problems in
    bfd_perform_relocation and bfd_install_relocation.  */
 
 bfd_reloc_status_type
-_bfd_nanomips_elf_generic_reloc (bfd *abfd ATTRIBUTE_UNUSED, arelent *reloc_entry,
-			     asymbol *symbol, void *data ATTRIBUTE_UNUSED,
-			     asection *input_section, bfd *output_bfd,
-			     char **error_message ATTRIBUTE_UNUSED)
+_bfd_nanomips_elf_generic_reloc (bfd *abfd ATTRIBUTE_UNUSED,
+				 arelent *reloc_entry, asymbol *symbol,
+				 void *data ATTRIBUTE_UNUSED,
+				 asection *input_section, bfd *output_bfd,
+				 char **error_message ATTRIBUTE_UNUSED)
 {
   bfd_signed_vma val;
   bfd_reloc_status_type status;
@@ -98,8 +99,8 @@ _bfd_nanomips_elf_generic_reloc (bfd *abfd ATTRIBUTE_UNUSED, arelent *reloc_entr
   if (!relocatable || (symbol->flags & BSF_SECTION_SYM) != 0)
     {
       /* Either we're calculating the final field value or we have a
-	 relocation against a section symbol.  Add in the section's
-	 offset or address.  */
+         relocation against a section symbol.  Add in the section's
+         offset or address.  */
       val += symbol->section->output_section->vma;
       val += symbol->section->output_offset;
     }
@@ -107,7 +108,7 @@ _bfd_nanomips_elf_generic_reloc (bfd *abfd ATTRIBUTE_UNUSED, arelent *reloc_entr
   if (!relocatable)
     {
       /* We're calculating the final field value.  Add in the symbol's value
-	 and, if pc-relative, subtract the address of the field itself.  */
+         and, if pc-relative, subtract the address of the field itself.  */
       val += symbol->value;
       if (reloc_entry->howto->pc_relative)
 	{
@@ -143,6 +144,38 @@ _bfd_nanomips_elf_generic_reloc (bfd *abfd ATTRIBUTE_UNUSED, arelent *reloc_entr
   return bfd_reloc_ok;
 }
 
+
+/* A negation howto special_function.  */
+
+bfd_reloc_status_type
+_bfd_nanomips_elf_negative_reloc (bfd *abfd ATTRIBUTE_UNUSED,
+				  arelent *reloc_entry, asymbol *symbol,
+				  void *data ATTRIBUTE_UNUSED,
+				  asection *input_section, bfd *output_bfd,
+				  char **error_message ATTRIBUTE_UNUSED)
+{
+  bfd_signed_vma val;
+  bfd_boolean relocatable;
+
+  relocatable = (output_bfd != NULL);
+
+  if (reloc_entry->address > bfd_get_section_limit (abfd, input_section))
+    return bfd_reloc_outofrange;
+
+  /* Calculate the value of the symbol S.  */
+  val = symbol->section->output_section->vma;
+  val += symbol->section->output_offset;
+  val += symbol->value;
+
+  /* Add negated value to addend: (-S + A).  */
+  if (! relocatable )
+    reloc_entry->addend = -val + reloc_entry->addend;
+
+  if (relocatable)
+    reloc_entry->address += input_section->output_offset;
+
+  return bfd_reloc_ok;
+}
 
 /* Swap in an abiflags structure.  */
 
@@ -183,8 +216,8 @@ bfd_mips_elf_swap_abiflags_v0_out (bfd *abfd,
   H_PUT_32 (abfd, in->flags1, ex->flags1);
   H_PUT_32 (abfd, in->flags2, ex->flags2);
 }
-
 
+
 /* Functions to manage the got entry hash table.  */
 
 /* Use all 64 bits of a bfd_vma for the computation of a 32-bit
@@ -199,20 +232,20 @@ mips_elf_hash_bfd_vma (bfd_vma addr)
   return addr;
 #endif
 }
-
 
+
 
 unsigned long
 _bfd_elf_nanomips_mach (flagword flags)
 {
   switch (flags & EF_NANOMIPS_ARCH)
     {
-      default:
-      case E_NANOMIPS_ARCH_32R6:
-	return bfd_mach_nanomipsisa32r6;
+    default:
+    case E_NANOMIPS_ARCH_32R6:
+      return bfd_mach_nanomipsisa32r6;
 
-      case E_NANOMIPS_ARCH_64R6:
-	return bfd_mach_nanomipsisa64r6;
+    case E_NANOMIPS_ARCH_64R6:
+      return bfd_mach_nanomipsisa64r6;
     }
 
   return 0;
@@ -238,12 +271,10 @@ elf_nanomips_abi_name (bfd *abfd)
       return "unknown abi";
     }
 }
-
 
+
 /* Work over a section just before writing it out.  This routine is
-   used by both the 32-bit and the 64-bit ABI.  FIXME: We recognize
-   sections that need the SHF_MIPS_GPREL flag by name; there has to be
-   a better way.  */
+   used by both the 32-bit and the 64-bit ABI.  */
 
 bfd_boolean
 _bfd_nanomips_elf_section_processing (bfd *abfd, Elf_Internal_Shdr *hdr)
@@ -253,12 +284,12 @@ _bfd_nanomips_elf_section_processing (bfd *abfd, Elf_Internal_Shdr *hdr)
       const char *name = bfd_get_section_name (abfd, hdr->bfd_section);
 
       /* .sbss is not handled specially here because the GNU/Linux
-	 prelinker can convert .sbss from NOBITS to PROGBITS and
-	 changing it back to NOBITS breaks the binary.  The entry in
-	 _bfd_nanomips_elf_special_sections will ensure the correct flags
-	 are set on .sbss if BFD creates it without reading it from an
-	 input file, and without special handling here the flags set
-	 on it in an input file will be followed.  */
+         prelinker can convert .sbss from NOBITS to PROGBITS and
+         changing it back to NOBITS breaks the binary.  The entry in
+         _bfd_nanomips_elf_special_sections will ensure the correct flags
+         are set on .sbss if BFD creates it without reading it from an
+         input file, and without special handling here the flags set
+         on it in an input file will be followed.  */
       if (strcmp (name, ".sdata") == 0
 	  || strcmp (name, ".lit8") == 0
 	  || strcmp (name, ".lit4") == 0
@@ -293,26 +324,19 @@ _bfd_nanomips_elf_section_processing (bfd *abfd, Elf_Internal_Shdr *hdr)
   return TRUE;
 }
 
-/* Handle a MIPS specific section when reading an object file.  This
-   is called when elfcode.h finds a section with an unknown type.
-   This routine supports both the 32-bit and 64-bit ELF ABI.
-
-   FIXME: We need to handle the SHF_MIPS_GPREL flag, but I'm not sure
-   how to.  */
+/* Handle a nanoMIPS specific section when reading an object file.
+   This is called when elfcode.h finds a section with an unknown type.
+   This routine supports both the 32-bit and 64-bit ELF ABI.  */
 
 bfd_boolean
-_bfd_nanomips_elf_section_from_shdr (bfd *abfd,
-				 Elf_Internal_Shdr *hdr,
-				 const char *name,
-				 int shindex)
+_bfd_nanomips_elf_section_from_shdr (bfd *abfd, Elf_Internal_Shdr *hdr,
+				     const char *name, int shindex)
 {
   flagword flags = 0;
 
   /* There ought to be a place to keep ELF backend specific flags, but
      at the moment there isn't one.  We just keep track of the
-     sections by their name, instead.  Fortunately, the ABI gives
-     suggested names for all the MIPS specific sections, so we will
-     probably get away with this.  */
+     sections by their name, instead.   */
   switch (hdr->sh_type)
     {
     case SHT_NANOMIPS_ABIFLAGS:
@@ -324,15 +348,15 @@ _bfd_nanomips_elf_section_from_shdr (bfd *abfd,
       break;
     }
 
-  if (! _bfd_elf_make_section_from_shdr (abfd, hdr, name, shindex))
+  if (!_bfd_elf_make_section_from_shdr (abfd, hdr, name, shindex))
     return FALSE;
 
   if (flags)
     {
-      if (! bfd_set_section_flags (abfd, hdr->bfd_section,
-				   (bfd_get_section_flags (abfd,
-							   hdr->bfd_section)
-				    | flags)))
+      if (!bfd_set_section_flags (abfd, hdr->bfd_section,
+				  (bfd_get_section_flags (abfd,
+							  hdr->bfd_section)
+				   | flags)))
 	return FALSE;
     }
 
@@ -340,8 +364,8 @@ _bfd_nanomips_elf_section_from_shdr (bfd *abfd,
     {
       Elf_External_ABIFlags_v0 ext;
 
-      if (! bfd_get_section_contents (abfd, hdr->bfd_section,
-				      &ext, 0, sizeof ext))
+      if (! bfd_get_section_contents (abfd, hdr->bfd_section, &ext,
+				      0, sizeof ext))
 	return FALSE;
       bfd_mips_elf_swap_abiflags_v0_in (abfd, &ext,
 					&nanomips_elf_tdata (abfd)->abiflags);
@@ -353,7 +377,7 @@ _bfd_nanomips_elf_section_from_shdr (bfd *abfd,
   return TRUE;
 }
 
-/* Set the correct type for a MIPS ELF section.  We do this by the
+/* Set the correct type for a nanoMIPS ELF section.  We do this by the
    section name, which is a hack, but ought to work.  This routine is
    used by both the 32-bit and the 64-bit ABI.  */
 
@@ -370,15 +394,11 @@ _bfd_nanomips_elf_fake_sections (bfd *abfd, Elf_Internal_Shdr *hdr,
     }
 
   /* The generic elf_fake_sections will set up REL_HDR using the default
-   kind of relocations.  We used to set up a second header for the
-   non-default kind of relocations here, but only NewABI would use
-   these, and the IRIX ld doesn't like resulting empty RELA sections.
-   Thus we create those header only on demand now.  */
-
+     kind of relocations.  */
   return TRUE;
 }
-
 
+
 
 /* Functions for the dynamic linker.  */
 
@@ -398,7 +418,7 @@ nanomips_set_isa_flags (bfd *abfd)
     case bfd_mach_nanomipsisa64r6:
       val = E_NANOMIPS_ARCH_64R6;
       break;
-   default:
+    default:
       break;
     }
 
@@ -407,9 +427,9 @@ nanomips_set_isa_flags (bfd *abfd)
 }
 
 
-/* The final processing done just before writing out a MIPS ELF object
-   file.  This gets the MIPS architecture right based on the machine
-   number.  This is used by both the 32-bit and the 64-bit ABI.  */
+/* The final processing done just before writing out a nanoMIPS ELF
+   object file.  This gets the nanoMIPS architecture right based on the
+   machine number.  This is used by both the 32-bit and the 64-bit ABI.  */
 
 void
 _bfd_nanomips_elf_final_write_processing (bfd *abfd,
@@ -428,7 +448,7 @@ _bfd_nanomips_fp_abi_string (int fp)
   switch (fp)
     {
       /* These strings aren't translated because they're simply
-	 option lists.  */
+         option lists.  */
     case Val_GNU_NANOMIPS_ABI_FP_DOUBLE:
       return "-mdouble-float";
 
@@ -462,6 +482,8 @@ print_nanomips_ases (FILE *file, unsigned int mask)
     fputs ("\n\tXPA ASE", file);
   if (mask & NANOMIPS_ASE_TLB)
     fputs ("\n\tTLB ASE", file);
+  if (mask & NANOMIPS_ASE_CRC)
+    fputs ("\n\tCRC ASE", file);
   if ((mask & NANOMIPS_ASE_xNMS) == 0)
     fputs ("\n\tnanoMIPS subset", file);
   else if (mask == 0)
@@ -483,6 +505,7 @@ print_nanomips_isa_ext (FILE *file, unsigned int isa_ext)
       break;
     }
 }
+
 static void
 print_nanomips_fp_abi_value (FILE *file, int val)
 {
@@ -509,11 +532,11 @@ print_nanomips_fp_abi_value (FILE *file, int val)
 static int
 get_nanomips_reg_size (int reg_size)
 {
-  return (reg_size == AFL_REG_NONE) ? 0
-	 : (reg_size == AFL_REG_32) ? 32
-	 : (reg_size == AFL_REG_64) ? 64
-	 : (reg_size == AFL_REG_128) ? 128
-	 : -1;
+  return ((reg_size == AFL_REG_NONE) ? 0
+	  : (reg_size == AFL_REG_32) ? 32
+	  : (reg_size == AFL_REG_64) ? 64
+	  : (reg_size == AFL_REG_128) ? 128
+	  : -1);
 }
 
 bfd_boolean
@@ -531,7 +554,8 @@ _bfd_nanomips_elf_print_private_bfd_data (bfd *abfd, void *ptr)
 
   if ((elf_elfheader (abfd)->e_flags & EF_NANOMIPS_ABI) == E_NANOMIPS_ABI_P32)
     fprintf (file, _(" [abi=P32]"));
-  else if ((elf_elfheader (abfd)->e_flags & EF_NANOMIPS_ABI) == E_NANOMIPS_ABI_P64)
+  else if ((elf_elfheader (abfd)->e_flags & EF_NANOMIPS_ABI) ==
+	   E_NANOMIPS_ABI_P64)
     fprintf (file, _(" [abi=P64]"));
   else
     fprintf (file, _(" [no abi set]"));
@@ -563,7 +587,8 @@ _bfd_nanomips_elf_print_private_bfd_data (bfd *abfd, void *ptr)
 
   if (nanomips_elf_tdata (abfd)->abiflags_valid)
     {
-      Elf_Internal_ABIFlags_v0 *abiflags = &nanomips_elf_tdata (abfd)->abiflags;
+      Elf_Internal_ABIFlags_v0 *abiflags =
+	&nanomips_elf_tdata (abfd)->abiflags;
       fprintf (file, "\nnanoMIPS ABI Flags Version: %d\n", abiflags->version);
       fprintf (file, "\nISA: nanoMIPS%d", abiflags->isa_level);
       if (abiflags->isa_rev > 1)
@@ -588,8 +613,7 @@ _bfd_nanomips_elf_print_private_bfd_data (bfd *abfd, void *ptr)
   return TRUE;
 }
 
-const struct bfd_elf_special_section _bfd_nanomips_elf_special_sections[] =
-{
+const struct bfd_elf_special_section _bfd_nanomips_elf_special_sections[] = {
   { STRING_COMMA_LEN (".lit4"),   0, SHT_PROGBITS,   SHF_ALLOC + SHF_WRITE},
   { STRING_COMMA_LEN (".lit8"),   0, SHT_PROGBITS,   SHF_ALLOC + SHF_WRITE},
   { STRING_COMMA_LEN (".sbss"),  -2, SHT_NOBITS,     SHF_ALLOC + SHF_WRITE},
@@ -602,9 +626,10 @@ const struct bfd_elf_special_section _bfd_nanomips_elf_special_sections[] =
    definiton of the symbol.  */
 void
 _bfd_nanomips_elf_merge_symbol_attribute (struct elf_link_hash_entry *h,
-				      const Elf_Internal_Sym *isym,
-				      bfd_boolean definition,
-				      bfd_boolean dynamic ATTRIBUTE_UNUSED)
+					  const Elf_Internal_Sym *isym,
+					  bfd_boolean definition,
+					  bfd_boolean dynamic
+					  ATTRIBUTE_UNUSED)
 {
   if ((isym->st_other & ~ELF_ST_VISIBILITY (-1)) != 0)
     {
@@ -628,4 +653,175 @@ _bfd_nanomips_elf_get_abiflags (bfd *abfd)
   struct nanomips_elf_obj_tdata *tdata = nanomips_elf_tdata (abfd);
 
   return tdata->abiflags_valid ? &tdata->abiflags : NULL;
+}
+
+bfd_byte *
+_bfd_elf_nanomips_get_relocated_section_contents (bfd *abfd,
+						  struct bfd_link_info *link_info,
+						  struct bfd_link_order *link_order,
+						  bfd_byte *data,
+						  bfd_boolean relocatable,
+						  asymbol **symbols)
+{
+  bfd *input_bfd = link_order->u.indirect.section->owner;
+  asection *input_section = link_order->u.indirect.section;
+  long reloc_size;
+  arelent **reloc_vector;
+  long reloc_count;
+
+  reloc_size = bfd_get_reloc_upper_bound (input_bfd, input_section);
+  if (reloc_size < 0)
+    return NULL;
+
+  /* Read in the section.  */
+  if (!bfd_get_full_section_contents (input_bfd, input_section, &data))
+    return NULL;
+
+  if (data == NULL)
+    return NULL;
+
+  if (reloc_size == 0)
+    return data;
+
+  reloc_vector = (arelent **) bfd_malloc (reloc_size);
+  if (reloc_vector == NULL)
+    return NULL;
+
+  reloc_count = bfd_canonicalize_reloc (input_bfd,
+					input_section,
+					reloc_vector,
+					symbols);
+  if (reloc_count < 0)
+    goto error_return;
+
+  if (reloc_count > 0)
+    {
+      arelent **parent;
+      /* offset in section of previous relocation  */
+      bfd_size_type last_address = 0;
+      /* saved result of previous relocation.  */
+      bfd_vma saved_addend = 0;
+
+      for (parent = reloc_vector; *parent != NULL; parent++)
+	{
+	  char *error_message = NULL;
+	  asymbol *symbol;
+	  bfd_reloc_status_type r;
+
+	  symbol = *(*parent)->sym_ptr_ptr;
+	  /* PR ld/19628: A specially crafted input file
+	     can result in a NULL symbol pointer here.  */
+	  if (symbol == NULL)
+	    {
+	      link_info->callbacks->einfo
+		/* xgettext:c-format */
+		(_("%X%P: %B(%A): error: relocation for offset %V has no value\n"),
+		 abfd, input_section, (* parent)->address);
+	      goto error_return;
+	    }
+
+	  if (symbol->section && discarded_section (symbol->section))
+	    {
+	      bfd_byte *p;
+	      static reloc_howto_type none_howto
+		= HOWTO (0, 0, 0, 0, FALSE, 0, complain_overflow_dont, NULL,
+			 "unused", FALSE, 0, 0, FALSE);
+
+	      p = data + (*parent)->address * bfd_octets_per_byte (input_bfd);
+	      _bfd_clear_contents ((*parent)->howto, input_bfd, input_section,
+				   p);
+	      (*parent)->sym_ptr_ptr = bfd_abs_section_ptr->symbol_ptr_ptr;
+	      (*parent)->addend = 0;
+	      (*parent)->howto = &none_howto;
+	      r = bfd_reloc_ok;
+	    }
+	  else
+	    {
+	      if (last_address != 0 && (*parent)->address == last_address)
+		(*parent)->addend = saved_addend;
+	      else
+		saved_addend = 0;
+
+	      r = bfd_perform_relocation (input_bfd,
+					  *parent,
+					  data,
+					  input_section,
+					  relocatable ? abfd : NULL,
+					  &error_message);
+	      saved_addend = (*parent)->addend;
+	    }
+
+	  if (relocatable)
+	    {
+	      asection *os = input_section->output_section;
+
+	      /* A partial link, so keep the relocs.  */
+	      os->orelocation[os->reloc_count] = *parent;
+	      os->reloc_count++;
+	    }
+
+	  if (r != bfd_reloc_ok)
+	    {
+	      switch (r)
+		{
+		case bfd_reloc_undefined:
+		  (*link_info->callbacks->undefined_symbol)
+		    (link_info, bfd_asymbol_name (*(*parent)->sym_ptr_ptr),
+		     input_bfd, input_section, (*parent)->address, TRUE);
+		  break;
+		case bfd_reloc_dangerous:
+		  BFD_ASSERT (error_message != NULL);
+		  (*link_info->callbacks->reloc_dangerous)
+		    (link_info, error_message,
+		     input_bfd, input_section, (*parent)->address);
+		  break;
+		case bfd_reloc_overflow:
+		  (*link_info->callbacks->reloc_overflow)
+		    (link_info, NULL,
+		     bfd_asymbol_name (*(*parent)->sym_ptr_ptr),
+		     (*parent)->howto->name, (*parent)->addend,
+		     input_bfd, input_section, (*parent)->address);
+		  break;
+		case bfd_reloc_outofrange:
+		  /* PR ld/13730:
+		     This error can result when processing some partially
+		     complete binaries.  Do not abort, but issue an error
+		     message instead.  */
+		  link_info->callbacks->einfo
+		    /* xgettext:c-format */
+		    (_("%X%P: %B(%A): relocation \"%R\" goes out of range\n"),
+		     abfd, input_section, *parent);
+		  goto error_return;
+
+		case bfd_reloc_notsupported:
+		  /* PR ld/17512
+		     This error can result when processing a corrupt binary.
+		     Do not abort.  Issue an error message instead.  */
+		  link_info->callbacks->einfo
+		    /* xgettext:c-format */
+		    (_("%X%P: %B(%A): relocation \"%R\" is not supported\n"),
+		     abfd, input_section, *parent);
+		  goto error_return;
+
+		default:
+		  /* PR 17512; file: 90c2a92e.
+		     Report unexpected results, without aborting.  */
+		  link_info->callbacks->einfo
+		    /* xgettext:c-format */
+		    (_("%X%P: %B(%A): relocation \"%R\" returns an unrecognized value %x\n"),
+		     abfd, input_section, *parent, r);
+		  break;
+		}
+
+	    }
+	  last_address = (*parent)->address;
+	}
+    }
+
+  free (reloc_vector);
+  return data;
+
+error_return:
+  free (reloc_vector);
+  return NULL;
 }

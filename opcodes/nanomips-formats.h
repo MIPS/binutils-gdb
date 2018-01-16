@@ -1,6 +1,6 @@
 /* nanomips-formats.h
    Copyright (C) 2017 Free Software Foundation, Inc.
-   Contributed by Imagination Technologies Ltd.
+   Contributed by MIPS Tech LLC.
 
    This library is free software; you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@
 #define BIT(SIZE, LSB, BIAS)						\
   {									\
     static const struct nanomips_int_operand op = {			\
-      { OP_INT, SIZE, LSB, 0, 0 }, (1 << (SIZE)) - 1, BIAS, 0, TRUE	\
+      { OP_INT, SIZE, LSB, 0, 0 }, (1 << (SIZE)) - 1, BIAS, 0, FALSE	\
     };									\
     return &op.root;							\
   }
