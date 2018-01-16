@@ -62,11 +62,23 @@ Disassembly of section .text:
 			10b4: R_NANOMIPS_PC14_S1	\$L1
 
 000010b8 <\$L1>:
-    10b8:	db9f      	beqc	s1,a3,10bc <\$L2>
-			10b8: R_NANOMIPS_PC4_S1	\$L2
-    10ba:	1f11      	restore.jrc	16,ra
+    10b8:	88f1 0000 	beqc	s1,a3,10bc <\$L2>
+			10b8: R_NANOMIPS_PC14_S1	\$L2
 
 000010bc <\$L2>:
     10bc:	9008      	nop
+    10be:	db9f      	beqc	s1,a3,10c2 <\$L3>
+			10be: R_NANOMIPS_PC4_S1	\$L3
+    10c0:	1f11      	restore.jrc	16,ra
+
+000010c2 <\$L3>:
+    10c2:	db9f      	beqc	s1,a3,10c6 <\$L4>
+			10c2: R_NANOMIPS_PC4_S1	\$L4
+    10c4:	9880      	beqzc	s1,10c2 <\$L3>
+			10c4: R_NANOMIPS_PC7_S1	\$L3
+
+000010c6 <\$L4>:
+    10c6:	9880      	beqzc	s1,10c2 <\$L3>
+			10c6: R_NANOMIPS_PC7_S1	\$L3
 	\.\.\.
 #pass

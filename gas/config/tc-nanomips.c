@@ -10704,17 +10704,29 @@ pic_need_relax (symbolS *sym, asection *segtype)
 	  && (!S_IS_WEAK (sym) && !S_IS_EXTERNAL (sym)));
 }
 
+/* Check if relocation in HEAD refers to an address immediately following
+   instruction in an adjacent frag.  16-bit conditional branches cannot
+   reach the immediate next instruction and must be relaxed.  */
 static bfd_boolean
 nanomips_frag_match (fragS *head, fragS *matchP)
 {
-  if (matchP == head->fr_next && matchP->fr_fix == 0)
+  bfd_vma val = S_GET_VALUE (head->fr_symbol);
+
+  /* Typically, a match is as easy as checking that the frags are adjacent
+     and the symbol refered to is at the very beginning of the target frag.  */
+  if (matchP == head->fr_next && val == matchP->fr_address)
     return TRUE;
 
+  /* The tricky part: when doing assembly listings all sorts of fillers are
+     generated between what would be adjacent frags.  So we need to look
+     through the frag list, until we come to a non-empty frag that either
+     matches or exceeds our target.  */
   if (listing)
     {
       head = head->fr_next;
-      while (head && head != matchP && head->fr_fix == 0)
+      while (head && head != matchP && head->fr_fix + head->fr_var == 0)
 	{
+	  /* Unlikely, but just in case we came too far, bail out!  */
 	  if (head->fr_line > matchP->fr_line)
 	    break;
 	  else

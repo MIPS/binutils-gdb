@@ -2,7 +2,7 @@
 	.align	3
 	.ent	test
 	.globl	test
-	/* Relax to 16-bit */ 
+	/* Relax to 16-bit */
 test:
 	beqc	$a0,$a1,test1 /* forward, relax to 32-bit */
 	.space	(1<<5)
@@ -13,7 +13,7 @@ test2:
 	bc 	test1	/* backward, relax to 32-bit */
 	bnec	$a1, $a0, test3
 	.space (1<<5)
-test3:	
+test3:
 	beqc	$a0, $a1, test2 /* backward, relax to 32-bit */
 	.space (1<<5)
 test4:
@@ -38,12 +38,18 @@ test8:
 test9:
 	balc	test8 /* backward, no relax */
 
-	beqc $s1,$a3,$L1 /* Unreachable forward, relax.  */
+	beqc $s1,$a3,$L1 /* unreachable forward to relaxable, relax.  */
 $L1:
-	beqc $s1,$a3,$L2 /* Reachable forward, no relax.  */
-	restore.jrc	16,$ra
+	beqc $s1,$a3,$L2 /* unreachable forward to non-relaxable, relax.  */
 $L2:
 	nop
+	beqc $s1,$a3,$L3 /* reachable forward over non-relaxable, no relax.  */
+	restore.jrc	16,$ra
+$L3:
+	beqc $s1,$a3,$L4 /* reachable forward over relaxable, no relax.  */
+	beqzc $s1, $L3
+$L4:
+	beqzc $s1, $L3
 
 	.end test5
 	.space 8
