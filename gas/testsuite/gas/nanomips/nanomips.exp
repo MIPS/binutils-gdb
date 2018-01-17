@@ -792,7 +792,6 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "ld-reloc"	"-mlegacyregs" nanomips32s
 
     run_dump_test_arch "l_d-reloc" "" nanomips32r6
-    run_list_test "bltzal" "-mlegacyregs"
 
     run_dump_test_arches "xpa"	[arch_list_matching nanomipsr6]
 

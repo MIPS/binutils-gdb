@@ -5563,20 +5563,6 @@ match_nanomips_insn (struct nanomips_cl_insn *insn,
 	    return FALSE;
 
 	  clear_insn_error ();
-	  if (arg.dest_regno == arg.last_regno
-	      && strncmp (insn->insn_mo->name, "jalr", 4) == 0)
-	    {
-	      if (arg.opnum == 2)
-		set_insn_error
-		  (0, _("source and destination must be different"));
-	      else if (arg.last_regno == 31)
-		set_insn_error
-		  (0, _("a destination register must be supplied"));
-	    }
-	  else if (arg.last_regno == 31
-		   && (strncmp (insn->insn_mo->name, "bltzal", 6) == 0
-		       || strncmp (insn->insn_mo->name, "bgezal", 6) == 0))
-	    set_insn_error (0, _("the source register must not be $31"));
 	  check_completed_insn (&arg);
 	  return TRUE;
 	}
