@@ -131,7 +131,7 @@ extern int tc_nanomips_regname_to_dw2regnum (char *regname);
 #define DWARF2_CIE_DATA_ALIGNMENT (-4)
 
 #define DIFF_EXPR_OK
-#define CFI_DIFF_EXPR_OK linkrelax
+#define CFI_DIFF_EXPR_OK 1
 
 #define CONVERT_SYMBOLIC_ATTRIBUTE(name) nanomips_convert_symbolic_attribute (name)
 extern int nanomips_convert_symbolic_attribute (const char *);
