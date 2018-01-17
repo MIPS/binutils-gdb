@@ -11,7 +11,7 @@ Contents of the .eh_frame section:
   Code alignment factor: 1
   Data alignment factor: -4
   Return address column: 31
-  Augmentation data:     0b
+  Augmentation data:     1b
 
   DW_CFA_def_cfa_register: r29
   DW_CFA_nop

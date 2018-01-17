@@ -764,8 +764,6 @@ if { [istarget nanomips*-*-*] } {
 	"-m32 -msingle-float -mdouble-float" \
 	[arch_list_matching nanomipsr6]
 
-    if $has_newabi { run_dump_test "cfi-m64-1" }
-
     run_dump_test_arches "mcu"		[arch_list_matching nanomipsr6]
     run_dump_test_arches "hilo-diff-eb"	[arch_list_matching !nanomips_broken]
     run_dump_test_arches "hilo-diff-el"	[arch_list_matching !nanomips_broken]
