@@ -41,3 +41,6 @@ test:
 	lw[s9]32 $a3,20($s0)
 	lw[u12]32 $a3,20($s1)
 	lwpc[48]48 $a3,test
+
+	bc[16] test
+	bc[32] test

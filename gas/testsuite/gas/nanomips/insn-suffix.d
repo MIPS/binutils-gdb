@@ -69,3 +69,8 @@ Disassembly of section \.text:
   7e:	lwpc\[48\]	a3,0 <test>
 			80: R_NANOMIPS_PC_I32	test
 			80: R_NANOMIPS_FIXED	\*ABS\*
+  84:	bc\[16\]	0 <test>
+  86:	bc\[32\]	0 <test>
+			86: R_NANOMIPS_PC25_S1	test
+			86: R_NANOMIPS_FIXED	\*ABS\*
+#pass
