@@ -4037,7 +4037,9 @@ Script_sections::create_segments(Layout* layout, uint64_t dot_alignment)
 	  current_seg = layout->make_output_segment(elfcpp::PT_LOAD,
 						    seg_flags);
 	  current_seg->set_addresses(vma, lma);
-	  current_seg->set_minimum_p_align(dot_alignment);
+	  if (!parameters->options().nmagic()
+	      && !parameters->options().omagic())
+	    current_seg->set_minimum_p_align(dot_alignment);
 	  if (first_seg == NULL)
 	    first_seg = current_seg;
 	  is_current_seg_readonly = true;
