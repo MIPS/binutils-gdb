@@ -349,7 +349,7 @@ Symbol_table::do_allocate_commons_list(
       if (match_input_spec && poc != NULL && !poc->has_object_name())
 	{
 	  poc->set_section_name(name);
-	  poc->set_object_name(ssym->object()->name());
+	  poc->set_object_name(ssym->object()->orig_name());
 	}
 
       // Check if output section is discarded by a linker script.

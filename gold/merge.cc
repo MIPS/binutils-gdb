@@ -246,7 +246,7 @@ Output_merge_base::record_input_section(Relobj* relobj, unsigned int shndx)
   if (!this->has_object_name())
     {
       this->set_section_name(relobj->section_name(shndx));
-      this->set_object_name(relobj->name());
+      this->set_object_name(relobj->orig_name());
     }
 
   std::pair<Input_sections::iterator, bool> result =

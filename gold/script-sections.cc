@@ -1676,7 +1676,7 @@ Output_section_element_input::set_section_addresses(
 	    }
 
 	  isi.set_section_name(relobj->section_name(shndx));
-	  isi.set_file_name(relobj->name());
+	  isi.set_file_name(relobj->orig_name());
 	}
       else
 	{

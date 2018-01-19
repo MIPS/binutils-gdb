@@ -978,7 +978,7 @@ Layout::choose_output_section_from_script(const Relobj* relobj,
   // chosen based only on the name.
 
   Script_sections* ss = this->script_options_->script_sections();
-  const char* file_name = relobj == NULL ? NULL : relobj->name().c_str();
+  const char* file_name = relobj == NULL ? NULL : relobj->orig_name().c_str();
   Output_section** output_section_slot;
   Script_sections::Section_type script_section_type;
   const char* orig_name = *name;
