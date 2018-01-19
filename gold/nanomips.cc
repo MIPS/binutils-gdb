@@ -2650,7 +2650,7 @@ Nanomips_transformations<size, big_endian>::transform(
         }
       else if (new_insn_size == 6)
         {
-          elfcpp::Swap<16, big_endian>::writeval(view, new_insn & 0xffff);
+          elfcpp::Swap<16, big_endian>::writeval(pov, new_insn & 0xffff);
           // Clear immediate.
           memset(pov + 2, 0, 4);
         }
