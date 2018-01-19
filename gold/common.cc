@@ -256,27 +256,31 @@ Symbol_table::do_allocate_commons_list(
 
   // Place them in a newly allocated BSS section.
   elfcpp::Elf_Xword flags = elfcpp::SHF_WRITE | elfcpp::SHF_ALLOC;
+  bool should_match_input_spec =
+      (layout->script_options()->saw_sections_clause()
+       && !parameters->incremental());
   const char* name;
   const char* ds_name;
   switch (commons_section_type)
     {
     case COMMONS_NORMAL:
-      name = ".bss";
+      name = should_match_input_spec ? "COMMON" : ".bss";
       ds_name = "** common";
       break;
     case COMMONS_TLS:
       flags |= elfcpp::SHF_TLS;
-      name = ".tbss";
+      name = should_match_input_spec ? ".tcommon" : ".tbss";
       ds_name = "** tls common";
       break;
     case COMMONS_SMALL:
       flags |= parameters->target().small_common_section_flags();
-      name = ".sbss";
+      name = should_match_input_spec ? ".scommon" : ".sbss";
       ds_name = "** small common";
       break;
     case COMMONS_LARGE:
       flags |= parameters->target().large_common_section_flags();
-      name = ".lbss";
+      // TODO: Maybe add name to Target_info structure?
+      name = should_match_input_spec ? "LARGE_COMMON" : ".lbss";
       ds_name = "** large common";
       break;
     default:
@@ -285,12 +289,15 @@ Symbol_table::do_allocate_commons_list(
 
   Output_data_space* poc;
   Output_section* os;
+  bool match_input_spec = should_match_input_spec;
 
   if (!parameters->incremental_update())
     {
       poc = new Output_data_space(addralign, ds_name);
-      os = layout->add_output_section_data(name, elfcpp::SHT_NOBITS, flags,
-					   poc, ORDER_INVALID, false, true);
+      os = layout->find_output_section_for_commons(name, elfcpp::SHT_NOBITS,
+						   flags, &match_input_spec);
+      if (os != NULL)
+	os->add_output_section_data(poc);
     }
   else
     {
@@ -339,7 +346,7 @@ Symbol_table::do_allocate_commons_list(
 
       // Record the name of the input section and the name of the
       // first object file.  This is used for script processing.
-      if (poc != NULL && !poc->has_object_name())
+      if (match_input_spec && poc != NULL && !poc->has_object_name())
 	{
 	  poc->set_section_name(name);
 	  poc->set_object_name(ssym->object()->name());

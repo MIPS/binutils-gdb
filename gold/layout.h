@@ -685,7 +685,8 @@ class Layout
   add_output_section_data(const char* name, elfcpp::Elf_Word type,
 			  elfcpp::Elf_Xword flags,
 			  Output_section_data*, Output_section_order order,
-			  bool is_relro, bool match_input_spec = false);
+			  bool is_relro);
+
 
   // Increase the size of the relro segment by this much.
   void
@@ -858,6 +859,12 @@ class Layout
   // input sections are complete.
   void
   write_sections_after_input_sections(Output_file* of);
+
+  // Return an output section for common symbols.
+  Output_section*
+  find_output_section_for_commons(const char* name, elfcpp::Elf_Word type,
+				  elfcpp::Elf_Xword flags,
+				  bool* match_input_spec);
 
   // Return an output section named NAME, or NULL if there is none.
   Output_section*
@@ -1156,6 +1163,14 @@ class Layout
 			elfcpp::Elf_Word type, elfcpp::Elf_Xword flags,
 			bool is_input_section, Output_section_order order,
 			bool is_relro, bool is_reloc, bool match_input_spec);
+
+  // Choose the output section from the linker script for NAME in RELOBJ.
+  Output_section*
+  choose_output_section_from_script(const Relobj* relobj, const char** name,
+				    elfcpp::Elf_Word type, elfcpp::Elf_Xword flags,
+				    Output_section_order order, bool is_relro,
+				    bool match_input_spec);
+
 
   // Create a new Output_section.
   Output_section*

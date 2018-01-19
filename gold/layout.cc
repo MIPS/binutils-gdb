@@ -752,6 +752,38 @@ Layout::include_section(Sized_relobj_file<size, big_endian>*, const char* name,
     }
 }
 
+// Return an output section for common symbols.
+
+Output_section*
+Layout::find_output_section_for_commons(const char* name,
+					elfcpp::Elf_Word type,
+					elfcpp::Elf_Xword flags,
+					bool* match_input_spec)
+{
+  if (strcmp("COMMON", name) == 0)
+    {
+      // Try to find COMMON input specification in the linker script.
+      Output_section* os =
+	  this->choose_output_section_from_script(NULL, &name, type, flags,
+						  ORDER_INVALID, false, true);
+
+      // Check if this section is discarded.
+      if (name == NULL)
+	return NULL;
+      else if (os != NULL)
+	return os;
+
+      // There is no COMMON input specification.  Try to find .bss output
+      // section to place common symbols.
+      *match_input_spec = false;
+      name = ".bss";
+    }
+
+  return this->choose_output_section(NULL, name, type, flags,
+				     false, ORDER_INVALID, false,
+				     false, *match_input_spec);
+}
+
 // Return an output section named NAME, or NULL if there is none.
 
 Output_section*
@@ -928,6 +960,110 @@ Layout::get_output_section_flags(elfcpp::Elf_Xword input_section_flags)
   return input_section_flags;
 }
 
+// Choose the output section from the linker script for NAME in RELOBJ.
+
+Output_section*
+Layout::choose_output_section_from_script(const Relobj* relobj,
+					  const char** name,
+					  elfcpp::Elf_Word type,
+					  elfcpp::Elf_Xword flags,
+					  Output_section_order order,
+					  bool is_relro,
+					  bool match_input_spec)
+{
+  gold_assert(this->script_options_->saw_sections_clause());
+
+  // We are using a SECTIONS clause, so the output section is
+  // chosen based only on the name.
+
+  Script_sections* ss = this->script_options_->script_sections();
+  const char* file_name = relobj == NULL ? NULL : relobj->name().c_str();
+  Output_section** output_section_slot;
+  Script_sections::Section_type script_section_type;
+  const char* orig_name = *name;
+  bool keep;
+  *name = ss->output_section_name(file_name, *name, &output_section_slot,
+				  &script_section_type, &keep,
+				  match_input_spec);
+
+  if (*name == NULL)
+    {
+      gold_debug(DEBUG_SCRIPT, _("Unable to create output section '%s' "
+				 "because it is not allowed by the "
+				 "SECTIONS clause of the linker script"),
+		 orig_name);
+      // The SECTIONS clause says to discard this input section.
+      return NULL;
+    }
+
+  // Handle script section types.
+  switch (script_section_type)
+    {
+    case Script_sections::ST_NONE:
+      break;
+    case Script_sections::ST_NOLOAD:
+      type = elfcpp::SHT_NOBITS;
+      flags &= elfcpp::SHF_ALLOC;
+      break;
+    case Script_sections::ST_NOALLOC:
+      if (type != elfcpp::SHT_NOBITS)
+        flags &= ~elfcpp::SHF_ALLOC;
+      break;
+    default:
+      gold_unreachable();
+    }
+
+  // If this is an orphan section--one not mentioned in the linker
+  // script--then OUTPUT_SECTION_SLOT will be NULL, and we need to
+  // do the default processing.
+
+  if (output_section_slot != NULL)
+    {
+      if (*output_section_slot != NULL)
+	{
+	  (*output_section_slot)->update_flags_for_input_section(flags);
+	  return *output_section_slot;
+	}
+
+      // We don't put sections found in the linker script into
+      // SECTION_NAME_MAP_.  That keeps us from getting confused
+      // if an orphan section is mapped to a section with the same
+      // name as one in the linker script.
+
+      *name = this->namepool_.add(*name, false, NULL);
+
+      Output_section* os = this->make_output_section(*name, type, flags,
+						     order, is_relro);
+
+      os->set_found_in_sections_clause();
+
+      // Special handling for NOALLOC sections.
+      if (script_section_type == Script_sections::ST_NOALLOC)
+	{
+	  os->set_is_noalloc();
+
+	  // The constructor of Output_section sets addresses of non-ALLOC
+	  // sections to 0 by default.  We don't want that for NOALLOC
+	  // sections even if they have no SHF_ALLOC flag.
+	  if ((os->flags() & elfcpp::SHF_ALLOC) == 0
+	      && os->is_address_valid())
+	    {
+	      gold_assert(os->address() == 0
+			  && !os->is_offset_valid()
+			  && !os->is_data_size_valid());
+	      os->reset_address_and_file_offset();
+	    }
+	}
+      else if (script_section_type == Script_sections::ST_NOLOAD)
+	os->set_is_noload();
+
+      *output_section_slot = os;
+      return os;
+    }
+
+  return NULL;
+}
+
 // Pick the output section to use for section NAME, in input file
 // RELOBJ, with type TYPE and flags FLAGS.  RELOBJ may be NULL for a
 // linker created section.  IS_INPUT_SECTION is true if we are
@@ -953,93 +1089,15 @@ Layout::choose_output_section(const Relobj* relobj, const char* name,
 
   if (this->script_options_->saw_sections_clause() && !is_reloc)
     {
-      // We are using a SECTIONS clause, so the output section is
-      // chosen based only on the name.
-
-      Script_sections* ss = this->script_options_->script_sections();
-      const char* file_name = relobj == NULL ? NULL : relobj->name().c_str();
-      Output_section** output_section_slot;
-      Script_sections::Section_type script_section_type;
-      const char* orig_name = name;
-      bool keep;
-      name = ss->output_section_name(file_name, name, &output_section_slot,
-				     &script_section_type, &keep,
-				     match_input_spec);
-
+      Output_section* os =
+        this->choose_output_section_from_script(relobj, &name, type, flags,
+                                                order, is_relro,
+                                                match_input_spec);
+      // Check if this section is discarded.
       if (name == NULL)
-	{
-	  gold_debug(DEBUG_SCRIPT, _("Unable to create output section '%s' "
-				     "because it is not allowed by the "
-				     "SECTIONS clause of the linker script"),
-		     orig_name);
-	  // The SECTIONS clause says to discard this input section.
-	  return NULL;
-	}
-
-      // Handle script section types.
-      switch (script_section_type)
-	{
-	case Script_sections::ST_NONE:
-	  break;
-	case Script_sections::ST_NOLOAD:
-	  type = elfcpp::SHT_NOBITS;
-	  flags &= elfcpp::SHF_ALLOC;
-	  break;
-	case Script_sections::ST_NOALLOC:
-	  if (type != elfcpp::SHT_NOBITS)
-	    flags &= ~elfcpp::SHF_ALLOC;
-	  break;
-	default:
-	  gold_unreachable();
-	}
-
-      // If this is an orphan section--one not mentioned in the linker
-      // script--then OUTPUT_SECTION_SLOT will be NULL, and we do the
-      // default processing below.
-
-      if (output_section_slot != NULL)
-	{
-	  if (*output_section_slot != NULL)
-	    {
-	      (*output_section_slot)->update_flags_for_input_section(flags);
-	      return *output_section_slot;
-	    }
-
-	  // We don't put sections found in the linker script into
-	  // SECTION_NAME_MAP_.  That keeps us from getting confused
-	  // if an orphan section is mapped to a section with the same
-	  // name as one in the linker script.
-
-	  name = this->namepool_.add(name, false, NULL);
-
-	  Output_section* os = this->make_output_section(name, type, flags,
-							 order, is_relro);
-
-	  os->set_found_in_sections_clause();
-
-	  // Special handling for NOALLOC sections.
-	  if (script_section_type == Script_sections::ST_NOALLOC)
-	    {
-	      os->set_is_noalloc();
-
-	      // The constructor of Output_section sets addresses of non-ALLOC
-	      // sections to 0 by default.  We don't want that for NOALLOC
-	      // sections even if they have no SHF_ALLOC flag.
-	      if ((os->flags() & elfcpp::SHF_ALLOC) == 0
-		  && os->is_address_valid())
-		{
-		  gold_assert(os->address() == 0
-			      && !os->is_offset_valid()
-			      && !os->is_data_size_valid());
-		  os->reset_address_and_file_offset();
-		}
-	    }
-	  else if (script_section_type == Script_sections::ST_NOLOAD)
-	    os->set_is_noload();
-
-	  *output_section_slot = os;
-	  return os;
-	}
+        return NULL;
+      else if (os != NULL)
+        return os;
     }
 
   // FIXME: Handle SHF_OS_NONCONFORMING somewhere.
@@ -1632,12 +1690,11 @@ Output_section*
 Layout::add_output_section_data(const char* name, elfcpp::Elf_Word type,
 				elfcpp::Elf_Xword flags,
 				Output_section_data* posd,
-				Output_section_order order, bool is_relro,
-				bool match_input_spec)
+				Output_section_order order, bool is_relro)
 {
   Output_section* os = this->choose_output_section(NULL, name, type, flags,
 						   false, order, is_relro,
-						   false, match_input_spec);
+						   false, false);
   if (os != NULL)
     os->add_output_section_data(posd);
   return os;
