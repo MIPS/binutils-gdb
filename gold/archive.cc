@@ -697,6 +697,7 @@ Archive::get_elf_object_for_member(off_t off, bool* punconfigured)
 			     + "(" + member_name + ")"),
 			    input_file, memoff, ehdr, read_size,
 			    punconfigured);
+      obj->set_orig_name(member_name);
       is_elf_obj = true;
     }
 

@@ -397,9 +397,9 @@ class Object
   // file--0 for a .o or .so file, something else for a .a file.
   Object(const std::string& name, Input_file* input_file, bool is_dynamic,
 	 off_t offset = 0)
-    : name_(name), input_file_(input_file), offset_(offset), shnum_(-1U),
-      is_dynamic_(is_dynamic), is_needed_(false), uses_split_stack_(false),
-      has_no_split_stack_(false), no_export_(false),
+    : name_(name), orig_name_(), input_file_(input_file), offset_(offset),
+      shnum_(-1U), is_dynamic_(is_dynamic), is_needed_(false),
+      uses_split_stack_(false), has_no_split_stack_(false), no_export_(false),
       is_in_system_directory_(false), as_needed_(false), xindex_(NULL),
       compressed_sections_(NULL)
   {
@@ -421,6 +421,23 @@ class Object
   const std::string&
   name() const
   { return this->name_; }
+
+  // Return the original name if it is set, otherwise return the name
+  // of the object as we would report it to the user.  This is used only
+  // for script processing.
+  const std::string&
+  orig_name() const
+  {
+    if (!this->orig_name_.empty())
+      return this->orig_name_;
+    return this->name_;
+  }
+
+  // Set the original name of this object.  This is called only when
+  // this object is in an archive.
+  void
+  set_orig_name(const std::string& name)
+  { this->orig_name_ = name; }
 
   // Get the offset into the file.
   off_t
@@ -1054,6 +1071,9 @@ class Object
 
   // Name of object as printed to user.
   std::string name_;
+  // Original name of this object.  This is set only if this object
+  // is in an archive.
+  std::string orig_name_;
   // For reading the file.
   Input_file* input_file_;
   // Offset within the file--0 for an object file, non-0 for an

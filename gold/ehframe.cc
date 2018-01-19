@@ -625,7 +625,7 @@ Eh_frame::add_ehframe_input_section(
   if (!this->has_object_name())
     {
       this->set_section_name(object->section_name(shndx));
-      this->set_object_name(object->name());
+      this->set_object_name(object->orig_name());
     }
 
   // Now that we know we are using this section, record any new CIEs
