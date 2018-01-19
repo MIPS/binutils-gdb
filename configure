@@ -3839,10 +3839,10 @@ case "${target}" in
     noconfigdirs="$noconfigdirs gprof"
     ;;
   nanomips*-*-elf*)
-    noconfigdirs="$noconfigdirs ld gprof gdb sim"
+    noconfigdirs="$noconfigdirs gprof gdb sim"
     ;;
   nanomips*-*-linux*)
-    noconfigdirs="$noconfigdirs ld gprof gdb sim"
+    noconfigdirs="$noconfigdirs gprof gdb sim"
     ;;
   nvptx*-*-*)
     noconfigdirs="$noconfigdirs target-libssp target-libstdc++-v3 target-libobjc"
