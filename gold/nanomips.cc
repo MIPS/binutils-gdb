@@ -959,6 +959,9 @@ class Target_nanomips : public Sized_target<size, big_endian>
   bool
   do_may_relax() const
   {
+    if (parameters->options().user_set_relax()
+        && !parameters->options().relax())
+      return false;
     return (!parameters->options().relocatable()
             || parameters->options().finalize_relocs());
   }
