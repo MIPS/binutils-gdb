@@ -37,22 +37,22 @@ check()
 
 # Test balc expansion to aluipc, ori and jalrc[16].
 check nanomips_b_out_of_range.stdout " 1000:	e020 0042 	aluipc	at,.*"
-check nanomips_b_out_of_range.stdout " 1004:	8021 0020 	ori	at,at,32"
+check nanomips_b_out_of_range.stdout " 1004:	8021 0020 	ori	at,at,0x20"
 check nanomips_b_out_of_range.stdout " 1008:	d830      	jalrc	at"
 
 # Test bc expansion to aluipc, ori and jrc[16].
 check nanomips_b_out_of_range.stdout " 100a:	e020 0042 	aluipc	at,.*"
-check nanomips_b_out_of_range.stdout " 100e:	8021 0020 	ori	at,at,32"
+check nanomips_b_out_of_range.stdout " 100e:	8021 0020 	ori	at,at,0x20"
 check nanomips_b_out_of_range.stdout " 1012:	d820      	jrc	at"
 
 # Test balc expansion to aluipc, ori and jalrc.
 check nanomips_b_insn32_out_of_range.stdout " 1000:	e020 0042 	aluipc	at,.*"
-check nanomips_b_insn32_out_of_range.stdout " 1004:	8021 0020 	ori	at,at,32"
+check nanomips_b_insn32_out_of_range.stdout " 1004:	8021 0020 	ori	at,at,0x20"
 check nanomips_b_insn32_out_of_range.stdout " 1008:	4be1 0000 	jalrc	at"
 
 # Test bc expansion to aluipc, ori and jrc.
 check nanomips_b_insn32_out_of_range.stdout " 100c:	e020 0042 	aluipc	at,.*"
-check nanomips_b_insn32_out_of_range.stdout " 1010:	8021 0020 	ori	at,at,32"
+check nanomips_b_insn32_out_of_range.stdout " 1010:	8021 0020 	ori	at,at,0x20"
 check nanomips_b_insn32_out_of_range.stdout " 1014:	4801 0000 	jrc	at"
 
 # Test balc expansion to lapc[48] and jalrc.
@@ -77,7 +77,7 @@ check nanomips_move_balc_2_out_of_range.stdout " 1008:	d830      	jalrc	at"
 
 # Test lapc expansion to aluipc and ori.
 check nanomips_lapc_out_of_range.stdout " 1000:	e080 0042 	aluipc	a0,.*"
-check nanomips_lapc_out_of_range.stdout " 1004:	8084 0020 	ori	a0,a0,32"
+check nanomips_lapc_out_of_range.stdout " 1004:	8084 0020 	ori	a0,a0,0x20"
 
 # Test lapc expansion to lapc[48].
 check nanomips_lapc_nms_out_of_range.stdout " 1000:	6083 001a 	lapc	a0,.*"

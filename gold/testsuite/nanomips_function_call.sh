@@ -47,7 +47,7 @@ check nanomips_function_call_16_3.stdout " 1006:	d8f0      	jalrc	a3"
 
 # Test jalrc[16] transformation into aluipc, ori, jalrc[16].
 check nanomips_function_call_16_4.stdout " 1000:	e0e0 0042 	aluipc	a3,.*"
-check nanomips_function_call_16_4.stdout " 1004:	80e7 0020 	ori	a3,a3,32"
+check nanomips_function_call_16_4.stdout " 1004:	80e7 0020 	ori	a3,a3,0x20"
 check nanomips_function_call_16_4.stdout " 1008:	d8f0      	jalrc	a3"
 
 # Test jalrc transformation into balc.
@@ -55,7 +55,7 @@ check nanomips_function_call_32_1.stdout " 1000:	2a20 001c 	balc	.*"
 
 # Test jalrc transformation into aluipc, ori, jalrc.
 check nanomips_function_call_32_2.stdout " 1000:	e0e0 0042 	aluipc	a3,.*"
-check nanomips_function_call_32_2.stdout " 1004:	80e7 0020 	ori	a3,a3,32"
+check nanomips_function_call_32_2.stdout " 1004:	80e7 0020 	ori	a3,a3,0x20"
 check nanomips_function_call_32_2.stdout " 1008:	4be7 0000 	jalrc	a3"
 
 exit 0
