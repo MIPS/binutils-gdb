@@ -38,7 +38,7 @@ SECTIONS
   .got : { *(.got .toc) }
   .got.plt : { *(.got.plt) } 
   .tdata : { *(.tdata*) } :data :tls
-  .tbss : { *(.tbss*) } :data :tls
+  .tbss : { *(.tbss*) *(.tcommon) } :data :tls
   . += 0x100000;
   . = ALIGN(0x100000);
   .bss : { *(.bss) } :bss
