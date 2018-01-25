@@ -539,6 +539,15 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   pid() const
   { return (this->processor_specific_flags_ & elfcpp::EF_NANOMIPS_PID) != 0; }
 
+  // Return whether this object is safe to relax instructions.
+  bool
+  safe_to_relax() const
+  {
+    bool safe_to_relax =
+      (this->processor_specific_flags_ & elfcpp::EF_NANOMIPS_LINKRELAX) != 0;
+    return safe_to_relax;
+  }
+
  protected:
   // Count the local symbols.
   void
@@ -1257,6 +1266,11 @@ class Target_nanomips : public Sized_target<size, big_endian>
   // section of RELOBJ.
   Nanomips_input_section*
   find_nanomips_input_section(Relobj* relobj, unsigned int shndx) const;
+
+  // Return whether we may relax instructions.
+  bool
+  may_relax_instructions() const
+  { return this->may_relax() && this->state_ == RELAX; }
 
   // We don't want to do instruction transformations if we are doing
   // relocatable linking and --finalize-relocs is not passed.
@@ -2420,7 +2434,7 @@ Nanomips_relobj<size, big_endian>::scan_sections_for_transform(
     const Layout* layout)
 {
   // Don't do anything if this object file is not safe to relax.
-  if ((this->processor_specific_flags_ & elfcpp::EF_NANOMIPS_LINKRELAX) == 0)
+  if (!this->safe_to_relax())
     return false;
 
   unsigned int shnum = this->shnum();
@@ -5998,7 +6012,9 @@ Target_nanomips<size, big_endian>::Scan::local(
   switch (r_type)
     {
     case elfcpp::R_NANOMIPS_GPREL19_S2:
-      if (!this->seen_norelax_)
+      if (target->may_relax_instructions()
+          && relobj->safe_to_relax()
+          && !this->seen_norelax_)
         {
           section_size_type view_size = 0;
           const unsigned char* view = relobj->section_contents(data_shndx,
@@ -6099,7 +6115,9 @@ Target_nanomips<size, big_endian>::Scan::global(
   switch (r_type)
     {
     case elfcpp::R_NANOMIPS_GPREL19_S2:
-      if (gsym->source() == Symbol::FROM_OBJECT
+      if (target->may_relax_instructions()
+          && relobj->safe_to_relax()
+          && gsym->source() == Symbol::FROM_OBJECT
           && !this->seen_norelax_)
         {
           section_size_type view_size = 0;
