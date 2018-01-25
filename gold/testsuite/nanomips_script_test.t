@@ -26,6 +26,7 @@ SECTIONS
   .text : { *(.text) }
   .nanoMIPS.abiflags : { *(.nanoMIPS.abiflags) }
   .data : { *(.data) }
+  . = 0x410000;
   .sdata : {
     *(.sdata)
     *(SORT_BY_READ(.sdata.*))

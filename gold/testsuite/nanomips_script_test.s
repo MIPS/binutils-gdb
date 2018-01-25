@@ -1,3 +1,4 @@
+	.linkrelax
 	.globl	a
 	.section	.sdata.a,"aw",@progbits
 	.type	a, @object

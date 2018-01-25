@@ -4320,7 +4320,7 @@ nanomips_script_test.stdout: nanomips_script_test
 	$(TEST_OBJDUMP) -D -j.sdata $< > $@
 
 nanomips_script_test: nanomips_script_test.o ../ld-new
-	../ld-new -T $(srcdir)/nanomips_script_test.t -o $@ $<
+	../ld-new -T $(srcdir)/nanomips_script_test.t -relax -o $@ $<
 
 nanomips_script_test.o: nanomips_script_test.s
 	$(TEST_AS) -EL -march=32r6s -m32 -o $@ $<
