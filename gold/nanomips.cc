@@ -455,6 +455,12 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
     this->local_symbol_size_[symndx] = symsize;
   }
 
+  // Return the name of the local symbol.  For section symbols, return the
+  // section name with addend.
+  std::string
+  local_symbol_name(unsigned symndx,
+                    typename elfcpp::Elf_types<size>::Elf_Swxword r_addend);
+
   // Increase the input section reference.
   void
   add_input_section_ref(unsigned int shndx)
@@ -864,6 +870,7 @@ class Nanomips_transformations
         const Symbol* gsym,
         unsigned int r_sym,
         Address r_offset,
+        typename elfcpp::Elf_types<size>::Elf_Swxword r_addend,
         unsigned int shndx)
   {
     const std::string& obj_name = this->relobj_->name();
@@ -886,7 +893,9 @@ class Nanomips_transformations
       }
 
     if (gsym == NULL)
-      fprintf(stderr, " for local symbol %u\n", r_sym);
+      fprintf(stderr, " for local symbol '%s' with index %u\n",
+              this->relobj_->local_symbol_name(r_sym, r_addend).c_str(),
+              r_sym);
     else
       fprintf(stderr, " for global symbol '%s'\n", gsym->name());
   }
@@ -2121,6 +2130,57 @@ Nanomips_relobj<size, big_endian>::adjust_global_symbols(
             gsym->set_symsize(symsize + count);
         }
     }
+}
+
+// Return the name of the local symbol.  For section symbols, return the
+// section name with addend.
+
+template<int size, bool big_endian>
+std::string
+Nanomips_relobj<size, big_endian>::local_symbol_name(
+    unsigned symndx,
+    typename elfcpp::Elf_types<size>::Elf_Swxword r_addend)
+{
+  const unsigned int loccount = this->local_symbol_count();
+  gold_assert(symndx < loccount);
+
+  // Read the symbol table section header.
+  const unsigned int symtab_shndx = this->symtab_shndx();
+  elfcpp::Shdr<size, big_endian>
+    symtabshdr(this, this->elf_file()->section_header(symtab_shndx));
+  gold_assert(symtabshdr.get_sh_type() == elfcpp::SHT_SYMTAB);
+
+  // Read the local symbols.
+  const int sym_size = elfcpp::Elf_sizes<size>::sym_size;
+  gold_assert(loccount == symtabshdr.get_sh_info());
+  off_t locsize = loccount * sym_size;
+  const unsigned char* psyms = this->get_view(symtabshdr.get_sh_offset(),
+                                              locsize, true, true);
+
+  // Read the symbol names.
+  const unsigned int strtab_shndx =
+    this->adjust_shndx(symtabshdr.get_sh_link());
+  section_size_type strtab_size;
+  const unsigned char* pnamesu = this->section_contents(strtab_shndx,
+                                                        &strtab_size,
+                                                        true);
+  const char* pnames = reinterpret_cast<const char*>(pnamesu);
+
+  elfcpp::Sym<size, big_endian> sym(psyms + symndx * sym_size);
+  if (sym.get_st_type() == elfcpp::STT_SECTION)
+    {
+      bool is_ordinary;
+      unsigned int sym_shndx = this->adjust_sym_shndx(symndx,
+                                                      sym.get_st_shndx(),
+                                                      &is_ordinary);
+      std::string name = this->section_name(sym_shndx);
+      char buf[100];
+      snprintf(buf, sizeof buf, "+0x%llx",
+               static_cast<unsigned long long>(r_addend));
+      name += buf;
+      return name;
+    }
+  return std::string(pnames + sym.get_st_name());
 }
 
 // Update output local symbol count.  We can only change the static output
@@ -5261,11 +5321,13 @@ Target_nanomips<size, big_endian>::resolve_pcrel_relocatable(
       if (sym == NULL)
         gold_error_at_location(relinfo, relnum, reloc.get_r_offset(),
                                _("relocation overflow: "
-                                 "%s against local symbol %u: "
+                                 "%s against local symbol '%s' with index %u: "
                                  "cannot encode a value of %#llx "
                                  "in a field of %u bits"),
-                               reloc_property->name().c_str(), r_sym,
-                               (unsigned long long) value,
+                               reloc_property->name().c_str(),
+                               relobj->
+                                 local_symbol_name(r_sym, r_addend).c_str(),
+                               r_sym, (unsigned long long) value,
                                reloc_property->bitsize());
       else if (sym->is_defined() && sym->source() == Symbol::FROM_OBJECT)
         gold_error_at_location(relinfo, relnum, reloc.get_r_offset(),
@@ -5582,6 +5644,8 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
       unsigned int r_sym = elfcpp::elf_r_sym<size>(r_info);
       unsigned int r_type = elfcpp::elf_r_type<size>(r_info);
       Address r_offset = reloc.get_r_offset();
+      typename elfcpp::Elf_types<size>::Elf_Swxword r_addend =
+        reloc.get_r_addend();
       section_offset_type offset = convert_to_section_size_type(r_offset);
 
       if (r_type == elfcpp::R_NANOMIPS_NORELAX)
@@ -5870,7 +5934,8 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
 
       if (is_debugging_enabled(DEBUG_TARGET))
         transform.print(transform_template, insn_property->name(),
-                        gsym, r_sym, r_offset, relinfo->data_shndx);
+                        gsym, r_sym, r_offset, r_addend,
+                        relinfo->data_shndx);
 
       // Update pointers in case they are changed.
       prelocs = pnis->relocs() + i * reloc_size;
@@ -6414,11 +6479,13 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
       if (gsym == NULL)
         gold_error_at_location(relinfo, relnum, r_offset,
                                _("relocation overflow: "
-                                 "%s against local symbol %u: "
+                                 "%s against local symbol '%s' with index %u: "
                                  "cannot encode a value of %#llx "
                                  "in a field of %u bits"),
-                               reloc_property->name().c_str(), r_sym,
-                               (unsigned long long) value,
+                               reloc_property->name().c_str(),
+                               object->
+                                 local_symbol_name(r_sym, r_addend).c_str(),
+                               r_sym, (unsigned long long) value,
                                reloc_property->bitsize());
       else if (gsym->is_defined() && gsym->source() == Symbol::FROM_OBJECT)
         gold_error_at_location(relinfo, relnum, r_offset,
