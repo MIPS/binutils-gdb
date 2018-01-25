@@ -86,6 +86,13 @@ Parameters::set_timer(Timer* timer)
 }
 
 void
+Parameters::set_entry(const char* name)
+{
+  gold_assert(this->entry_ == NULL);
+  this->entry_ = name;
+}
+
+void
 Parameters::set_options(const General_options* options)
 {
   gold_assert(!this->options_valid());
@@ -236,7 +243,7 @@ Parameters::check_rodata_segment()
 const char*
 Parameters::entry() const
 {
-  const char* ret = this->options().entry();
+  const char* ret = this->entry_;
   if (ret == NULL && parameters->target_valid())
     ret = parameters->target().entry_symbol_name();
   return ret;
@@ -303,6 +310,10 @@ set_parameters_target(Target* target)
 void
 set_parameters_doing_static_link(bool doing_static_link)
 { static_parameters.set_doing_static_link(doing_static_link); }
+
+void
+set_parameters_entry(const char* name)
+{ static_parameters.set_entry(name); }
 
 // Set the incremental linking mode to INCREMENTAL_FULL.  Used when
 // the linker determines that an incremental update is not possible.

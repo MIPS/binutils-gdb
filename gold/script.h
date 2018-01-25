@@ -533,6 +533,16 @@ class Script_options
   Output_segment*
   set_section_addresses(Symbol_table*, Layout*);
 
+  // Set the name of the entry symbol.
+  void
+  set_entry(const std::string& name)
+  { this->entry_ = name; }
+
+  // Return the name of the entry symbol.
+  const char*
+  entry() const
+  { return this->entry_.empty() ? NULL : this->entry_.c_str(); }
+
   // Print the script to the FILE.  This is for debugging.
   void
   print(FILE*) const;

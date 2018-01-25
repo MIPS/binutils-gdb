@@ -2850,7 +2850,7 @@ Layout::finalize(const Input_objects* input_objects, Symbol_table* symtab,
      : new Output_segment_headers(this->segment_list_));
 
   // Lay out the file header.
-  Output_file_header* file_header = new Output_file_header(target, symtab,
+  Output_file_header* file_header = new Output_file_header(target, this, symtab,
 							   segment_headers);
 
   this->special_output_list_.push_back(file_header);

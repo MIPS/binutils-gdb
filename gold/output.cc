@@ -435,9 +435,11 @@ Output_segment_headers::do_size() const
 // Output_file_header methods.
 
 Output_file_header::Output_file_header(Target* target,
+				       const Layout* layout,
 				       const Symbol_table* symtab,
 				       const Output_segment_headers* osh)
   : target_(target),
+    layout_(layout),
     symtab_(symtab),
     segment_header_(osh),
     section_header_(NULL),
@@ -587,7 +589,10 @@ template<int size>
 typename elfcpp::Elf_types<size>::Elf_Addr
 Output_file_header::entry()
 {
-  const bool should_issue_warning = (parameters->options().entry() != NULL
+  const bool has_script_entry =
+      this->layout_->script_options()->entry() != NULL;
+  const bool should_issue_warning = ((parameters->options().entry() != NULL
+				      || has_script_entry)
 				     && !parameters->options().relocatable()
 				     && !parameters->options().shared());
   const char* entry = parameters->entry();

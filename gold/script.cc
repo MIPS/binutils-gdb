@@ -2791,11 +2791,9 @@ script_end_as_needed(void* closurev)
 extern "C" void
 script_set_entry(void* closurev, const char* entry, size_t length)
 {
-  // We'll parse this exactly the same as --entry=ENTRY on the commandline
-  // TODO(csilvers): FIXME -- call set_entry directly.
-  std::string arg("--entry=");
-  arg.append(entry, length);
-  script_parse_option(closurev, arg.c_str(), arg.size());
+  Parser_closure* closure = static_cast<Parser_closure*>(closurev);
+  std::string arg(entry, length);
+  closure->script_options()->set_entry(arg);
 }
 
 // Called by the bison parser to set whether to define common symbols.
