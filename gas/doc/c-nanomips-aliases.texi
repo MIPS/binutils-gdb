@@ -6,10 +6,10 @@
 @section 1:1 Instruction Aliases
 
 The nanoMIPS assembler allows multiple mnemonics to select the same
-target instruction. These aliases are provided as a convenience to the
+target instruction.  These aliases are provided as a convenience to the
 user, so that assembly programs can be written without paying too much
 attention to type and order of operands, specially where the ISA has
-eccentric restrictions. Following is a complete list of the various 1:1
+eccentric restrictions.  Following is a complete list of the various 1:1
 aliases supported:
 
 @itemize
