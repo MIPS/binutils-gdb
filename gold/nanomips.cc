@@ -1424,7 +1424,8 @@ class Target_nanomips : public Sized_target<size, big_endian>
   do_select_as_default_target()
   {
     // Set the state to RELAX if a -relax option is passed.
-    if (parameters->options().relax())
+    // For --insn32 we can't do relaxations from 32bit to 16bit instructions.
+    if (parameters->options().relax() && !parameters->options().insn32())
       this->state_ = RELAX;
 
     gold_assert(nanomips_reloc_property_table == NULL);
