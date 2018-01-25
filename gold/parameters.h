@@ -69,6 +69,9 @@ class Parameters
   void
   set_doing_static_link(bool doing_static_link);
 
+  void
+  set_entry(const char* name);
+
   // Return the error object.
   Errors*
   errors() const
@@ -192,6 +195,7 @@ class Parameters
   Timer* timer_;
   const General_options* options_;
   Target* target_;
+  const char* entry_;
   bool doing_static_link_valid_;
   bool doing_static_link_;
   int debug_;
@@ -219,6 +223,9 @@ set_parameters_target(Target* target);
 
 extern void
 set_parameters_doing_static_link(bool doing_static_link);
+
+extern void
+set_parameters_entry(const char* name);
 
 extern bool
 set_parameters_incremental_full();

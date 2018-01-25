@@ -174,6 +174,12 @@ main(int argc, char** argv)
   // Store some options in the globally accessible parameters.
   set_parameters_options(&command_line.options());
 
+  // Store entry name from the command line or from the linker script.
+  const char* entry = command_line.options().entry();
+  if (entry == NULL)
+    entry = command_line.script_options().entry();
+  set_parameters_entry(entry);
+
   // Do this as early as possible (since it prints a welcome message).
   write_debug_script(command_line.options().output_file_name(),
                      program_name, args.c_str());
