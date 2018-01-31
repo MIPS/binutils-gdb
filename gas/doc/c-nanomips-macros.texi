@@ -27,18 +27,22 @@ offsets to the full address range (32 or 64 bits) and to allow symbolic
 offsets such as @samp{my_data + 4} to be used in place of integer
 constants.  For example, the architectural instruction @code{lbu} allows
 only an unsigned 12-bit offset, whereas the macro @code{lbu} allows code
-such as @samp{lbu $4,array+32769}.  The implementation of these symbolic
+such as @samp{lbu $a0,array+32769}.  The implementation of these symbolic
 offsets depends on several factors, such as whether the assembler is
 generating SVR4-style PIC (selected by @option{-mpic}, @pxref{nanoMIPS
 Options,, Assembler options}), the size of symbols,
 and the small data limit (@pxref{nanoMIPS Small Data,, Controlling the
 use of small data accesses}).
 
-@macro cblock{}
-@end macro
+@table @code
+@item gprel_p(label)
+TRUE if label can be referenced relative to $gp
+@item local_p(label)
+TRUE if label is locally scoped
+@end table
 
 @table @code
-@item @r{Instructions}
+@item @r{Instruction}
 @multitable @columnfractions 0.3 0.4 0.3
 @item Condition
 @tab Expansion
@@ -151,9 +155,9 @@ addiu[48] rd,rd,ofst
 @item
 @verbatim
 (no-PIC
-|| local_p(label))
+ || local_p(label))
 && gprel_p(label)
-&& (mcmodel=[medium|auto])
+&& (cmodel=[medium|auto])
 @end verbatim
 
 @tab
@@ -165,7 +169,7 @@ addiu rd,gp,%gp_rel(label)
 @item
 @verbatim
 (no-PIC
-|| local_p(label))
+ || local_p(label))
 && NMS
 @end verbatim
 
@@ -192,8 +196,8 @@ addiupc[48] rd,label
 @verbatim
 PIC
 && !local_p(label)
-&& (mcmodel=[medium|auto]
-|| linkrelax)
+&& (cmodel=[medium|auto]
+   || linkrelax)
 @end verbatim
 
 @tab
@@ -206,7 +210,7 @@ lw rd,%got_disp(label)($gp)
 @verbatim
 PIC
 && !local_p(label)
-&& mcmodel=large
+&& cmodel=large
 @end verbatim
 
 @tab
@@ -463,7 +467,7 @@ li[48] rd,imm
 @tab
 @verbatim
 li $at,imm
-nor rt,rs,$1
+nor rt,rs,$at
 @end verbatim
 
 @tab
@@ -478,7 +482,7 @@ rs == rt
 @tab
 @verbatim
 negu $at,rt
-rorv rd,rs,$1
+rorv rd,rs,$at
 @end verbatim
 
 @tab
@@ -528,7 +532,7 @@ rs == rt
 @tab
 @verbatim
 negu $at,rt
-rorv rd,rs,$1
+rorv rd,rs,$at
 @end verbatim
 
 @tab
@@ -805,7 +809,7 @@ sltiu rd,rd,1
 @tab
 @verbatim
 li $at,imm
-xor rd,rs,$1
+xor rd,rs,$at
 sltiu rd,rd,1
 @end verbatim
 
@@ -899,7 +903,7 @@ sltu rd,$0,rd
 @tab
 @verbatim
 li $at,imm
-xor rd,rs,$1
+xor rd,rs,$at
 sltu rd,$0,rd
 @end verbatim
 
@@ -923,7 +927,7 @@ slti rd,rs,imm
 @tab
 @verbatim
 li $at,imm
-slt rd,rs,$1
+slt rd,rs,$at
 @end verbatim
 
 @tab
@@ -946,7 +950,7 @@ sltiu rd,rs,imm
 @tab
 @verbatim
 li $at,imm
-slt rd,rs,$1
+slt rd,rs,$at
 @end verbatim
 
 @tab
@@ -1061,7 +1065,7 @@ beqzc $at,label
 @tab
 @verbatim
 li $at,imm+1
-slt $at,rs,$1
+slt $at,rs,$at
 beqzc $at,label
 @end verbatim
 
@@ -1272,7 +1276,7 @@ bnezc $at,label
 @tab
 @verbatim
 li $at,imm+1
-slt $at,rs,$1
+slt $at,rs,$at
 bnezc $at,label
 @end verbatim
 
@@ -1379,7 +1383,7 @@ bnezc $at,label
 @tab
 @verbatim
 li $at,imm+1
-slt $at,rs,$1
+slt $at,rs,$at
 bnezc $at,label
 @end verbatim
 
@@ -1407,7 +1411,7 @@ bgezc rs,0fbalc label
 
 @tab
 @end multitable
-@item Immediate supported - if immediate doesn't fit,load to register
+@item Immediate supported - if immediate doesn't fit, load to register
 @multitable @columnfractions 0.3 0.4 0.3
 @item
 @tab
@@ -1423,7 +1427,7 @@ non-NMS
 @tab
 @verbatim
 li $at,imm
-add rd,rs,$1
+add rd,rs,$at
 @end verbatim
 
 @tab
@@ -1458,7 +1462,7 @@ addiu[48] rd,rd,imm
 @tab
 @verbatim
 li $at,imm
-addu rd,rs,$1
+addu rd,rs,$at
 @end verbatim
 
 @tab
@@ -1485,7 +1489,7 @@ imm < 0
 @tab
 @verbatim
 li $at,imm
-and rd,rs,$1
+and rd,rs,$at
 @end verbatim
 
 @tab
@@ -1500,7 +1504,7 @@ non-NMS
 @tab
 @verbatim
 li $at,imm
-sub rt,rs,$1
+sub rt,rs,$at
 @end verbatim
 
 @tab
@@ -1535,7 +1539,7 @@ addiu[48] rt,rs,-imm
 @tab
 @verbatim
 li $at,imm
-subu rt,rs,$1
+subu rt,rs,$at
 @end verbatim
 
 @tab
@@ -1600,7 +1604,7 @@ imm < 0
 @tab
 @verbatim
 li $at,imm
-slt $at,rs,$1
+slt $at,rs,$at
 beqzc $at,label
 @end verbatim
 
@@ -1636,7 +1640,7 @@ beqzc $at,label
 @tab
 @verbatim
 li $at,imm
-sltu $at,rs,$1
+sltu $at,rs,$at
 beqzc $at,label
 @end verbatim
 
@@ -1691,14 +1695,14 @@ bnezc $at,label
 @tab
 @item else
 @verbatim
-[imm < 0
-|| imm >= 4096]
+imm < 0
+|| imm >= 4096
 @end verbatim
 
 @tab
 @verbatim
 li $at,imm
-slt $at,rs,$1
+slt $at,rs,$at
 bnezc $at,label
 @end verbatim
 
@@ -1734,7 +1738,7 @@ bnezc $at,label
 @tab
 @verbatim
 li $at,imm
-sltu $at,rs,$1
+sltu $at,rs,$at
 bnezc $at,label
 @end verbatim
 
@@ -1785,7 +1789,7 @@ imm < 0
 @tab
 @verbatim
 li $at,imm
-or rt,rs,$1
+or rt,rs,$at
 @end verbatim
 
 @tab
@@ -1808,7 +1812,7 @@ slti rd,rs,imm
 @tab
 @verbatim
 li $at,imm
-slt rd,rs,$1
+slt rd,rs,$at
 @end verbatim
 
 @tab
@@ -1831,7 +1835,7 @@ sltiu rd,rs,imm
 @tab
 @verbatim
 li $at,imm
-slt rd,rs,$1
+slt rd,rs,$at
 @end verbatim
 
 @tab
@@ -1858,7 +1862,7 @@ imm < 0
 @tab
 @verbatim
 li $at,imm
-xor rt,rs,$1
+xor rt,rs,$at
 @end verbatim
 
 @tab
@@ -1873,7 +1877,7 @@ non-NMS
 @tab
 @verbatim
 li $at,imm
-teq rs,$1
+teq rs,$at
 @end verbatim
 
 @tab
@@ -1888,7 +1892,7 @@ non-NMS
 @tab
 @verbatim
 li $at,imm
-tne rs,$1
+tne rs,$at
 @end verbatim
 
 @tab
@@ -2059,7 +2063,7 @@ lw rd,0($at)
 @end verbatim
 
 @tab
-@c FIXME: Don't really need $1 here, fix conditional under label ld:
+@c FIXME: Don't really need $at here, fix conditional under label ld:
 @item
 @verbatim
 rd <> rs
@@ -2072,12 +2076,7 @@ li rd,%hi(ofst)
 addu rd,rd,rs
 lw rd,%lo(ofst)(rd)
 @end verbatim
-
 @tab
-@smallformat
-@verbatim
-@end verbatim
-@end smallformat
 @item
 @verbatim
 rd == rs
@@ -2111,9 +2110,9 @@ lw rd,%lo(ofst)($at)
 @item
 @verbatim
 (no-PIC
-|| local_p(label))
+ || local_p(label))
 && gprel_p(label)
-&& (mcmodel=[medium|auto])
+&& (cmodel=[medium|auto])
 @end verbatim
 
 @tab
@@ -2125,7 +2124,7 @@ lw rd,%gprel(label)($gp)
 @item
 @verbatim
 (no-PIC
-|| local_p(label))
+ || local_p(label))
 && rd == 0
 && NMS
 @end verbatim
@@ -2140,7 +2139,7 @@ lw rd,%lo(label)($at)
 @item
 @verbatim
 (no-PIC
-|| local_p(label))
+ || local_p(label))
 && rd <> 0
 && NMS
 @end verbatim
@@ -2170,8 +2169,8 @@ LW only, not applicable for sub-word loads
 PIC
 && !local_p(label)
 && rd == 0
-&& (mcmodel=[auto|medium]
-|| linkrelax)
+&& (cmodel=[auto|medium]
+   || linkrelax)
 @end verbatim
 
 @tab
@@ -2186,7 +2185,7 @@ lw rd,0($at)
 PIC
 && rd == 0
 && !local_p(label)
-&& mcmodel=large
+&& cmodel=large
 && NMS
 @end verbatim
 
@@ -2203,7 +2202,7 @@ lw rd,0($at)
 PIC
 && !local_p(label)
 && rd == 0
-&& mcmodel=large
+&& cmodel=large
 @end verbatim
 
 @tab
@@ -2218,8 +2217,8 @@ lw rd,0($at)
 PIC
 && !local_p(label)
 && rd <> 0
-&& (mcmodel=[auto|medium]
-|| linkrelax)
+&& (cmodel=[auto|medium]
+   || linkrelax)
 @end verbatim
 
 @tab
@@ -2234,7 +2233,7 @@ lw rd,0(rd)
 PIC
 && !local_p(label)
 && rd <> 0
-&& mcmodel=large
+&& cmodel=large
 && NMS
 @end verbatim
 
@@ -2251,7 +2250,7 @@ lw rd,0(rd)
 PIC
 && !local_p(label)
 && rd <> 0
-&& mcmodel=large
+&& cmodel=large
 @end verbatim
 
 @tab
@@ -2387,9 +2386,9 @@ lw rd+1,4($at)
 @item
 @verbatim
 (non-PIC
-|| local_p(label))
+ || local_p(label))
 && gprel_p(label)
-&& mcmodel=[medium|auto]
+&& cmodel=[medium|auto]
 @end verbatim
 
 @tab
@@ -2399,11 +2398,10 @@ lw rd+1,%gprel(label+4)($gp)
 @end verbatim
 
 @tab
-gprel_p(label) - check if label can be referenced relative to $gp
 @item
 @verbatim
 (non-PIC
-|| local_p(label))
+ || local_p(label))
 && NMS
 @end verbatim
 
@@ -2418,7 +2416,7 @@ lw rd+1,%lo(label+4)($at)
 @item
 @verbatim
 (non-PIC
-|| local_p(label))
+ || local_p(label))
 @end verbatim
 
 @tab
@@ -2432,8 +2430,8 @@ lwpc rd+1,%pcrel32(label+4)
 @verbatim
 PIC
 && !local_p(label)
-&& (mcmodel=[auto|medium]
-|| linkrelax)
+&& (cmodel=[auto|medium]
+   || linkrelax)
 @end verbatim
 
 @tab
@@ -2448,7 +2446,7 @@ lw rd+1,4($at)
 @verbatim
 PIC
 && !local_p(label)
-&& mcmodel=large
+&& cmodel=large
 && NMS
 @end verbatim
 
@@ -2464,7 +2462,7 @@ lw rd+1,%got_lo(label+4)($at)
 @verbatim
 PIC
 && !local_p(label)
-&& mcmodel=large
+&& cmodel=large
 @end verbatim
 
 @tab
@@ -2517,7 +2515,7 @@ ll rd,0($at)
 @end verbatim
 
 @tab
-@c FIXME: Don't really need $1 here, fix conditional under label ld:
+@c FIXME: Don't really need $at here, fix conditional under label ld:
 @item
 @verbatim
 rd <> rs
@@ -2659,9 +2657,9 @@ sw rd,%lo(ofst)($at)
 @item
 @verbatim
 (no-PIC
-|| local_p(label))
+ || local_p(label))
 && gprel_p(label)
-&& mcmodel=[medium|auto]
+&& cmodel=[medium|auto]
 @end verbatim
 
 @tab
@@ -2670,11 +2668,10 @@ sw rd,%gprel(label)($gp)
 @end verbatim
 
 @tab
-gprel_p(label) - check if label can be referenced relative to $gp
 @item
 @verbatim
 (no-PIC
-|| local_p(label))
+ || local_p(label))
 && NMS
 @end verbatim
 
@@ -2688,7 +2685,7 @@ sw rd,%lo(label)($at)
 @item
 @verbatim
 (no-PIC
-|| local_p(label))
+ || local_p(label))
 @end verbatim
 
 @tab
@@ -2702,8 +2699,8 @@ SW only, not applicable for sub-word stores
 @verbatim
 PIC
 && !local_p(label)
-&& (mcmodel=[auto|medium]
-|| linkrelax)
+&& (cmodel=[auto|medium]
+   || linkrelax)
 @end verbatim
 
 @tab
@@ -2717,7 +2714,7 @@ sw rd,0($at)
 @verbatim
 PIC
 && !local_p(label)
-&& mcmodel=large
+&& cmodel=large
 && NMS
 @end verbatim
 
@@ -2733,7 +2730,7 @@ lw rd,0($at)
 @verbatim
 PIC
 && !local_p(label)
-&& mcmodel=large
+&& cmodel=large
 @end verbatim
 
 @tab
@@ -2891,7 +2888,7 @@ negu rd,rs
 @tab
 @verbatim
 li $at,imm
-div rd,rs,$1
+div rd,rs,$at
 @end verbatim
 
 @tab
@@ -2925,7 +2922,7 @@ move rd,rs
 @tab
 @verbatim
 li $at,imm
-divu rd,rs,$1
+divu rd,rs,$at
 @end verbatim
 
 @tab
@@ -2970,7 +2967,7 @@ move rd,$0
 @tab
 @verbatim
 li $at,imm
-mod rd,rs,$1
+mod rd,rs,$at
 @end verbatim
 
 @tab
@@ -2981,7 +2978,7 @@ mod rd,rs,$1
 @tab
 @verbatim
 li $at,imm
-mul rd,rs,$1
+mul rd,rs,$at
 @end verbatim
 
 @tab
@@ -3055,7 +3052,7 @@ addu rd,$at,rs
 @item
 @verbatim
 (no-PIC
-|| local_p(label))
+ || local_p(label))
 && gprel_p(label)
 @end verbatim
 
@@ -3081,7 +3078,7 @@ lapc rd,label
 @verbatim
 PIC
 && local_p(label)
-&& mcmodel=[auto|medium]
+&& cmodel=[auto|medium]
 @end verbatim
 
 @tab
@@ -3264,7 +3261,7 @@ else
 @tab
 @verbatim
 li $at,imm
-daddu rt,rs,$1
+daddu rt,rs,$at
 @end verbatim
 
 @tab
@@ -3296,7 +3293,7 @@ else
 @tab
 @verbatim
 li $at,imm
-dsubu rt,rs,$1
+dsubu rt,rs,$at
 @end verbatim
 
 @tab
@@ -3312,7 +3309,7 @@ rs == rt
 @tab
 @verbatim
 dnegu $at,rt
-drorv rd,rs,$1
+drorv rd,rs,$at
 @end verbatim
 
 @tab
@@ -3361,7 +3358,7 @@ rs == rt
 @tab
 @verbatim
 dnegu $at,rt
-drorv rd,rs,$1
+drorv rd,rs,$at
 @end verbatim
 
 @tab
@@ -3522,7 +3519,6 @@ lw rd+1,%gprel(label+4)($gp)
 @end verbatim
 
 @tab
-gprel_p(label) - check if label can be referenced relative to $gp
 @item
 @verbatim
 no-PIC

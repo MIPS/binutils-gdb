@@ -244,6 +244,13 @@ const struct nanomips_arch_choice nanomips_arch_choices[] = {
    ARRAY_SIZE (nanomips_cp0sel_names_3264r6), nanomips_cp1_names_3264r6,
    nanomips_hwr_names_3264r6},
 
+  {"i7200", 1, bfd_mach_nanomipsisa32r6, CPU_NANOMIPS32R6, ISA_NANOMIPS32R6,
+   (ASE_EVA | ASE_MSA | ASE_VIRT | ASE_XPA_VIRT | ASE_XPA | ASE_MCU | ASE_MT
+    | ASE_DSP | ASE_xNMS | ASE_TLB | ASE_GINV | ASE_CRC),
+   nanomips_cp0_names_3264r6, nanomips_cp0sel_names_3264r6,
+   ARRAY_SIZE (nanomips_cp0sel_names_3264r6), nanomips_cp1_names_3264r6,
+   nanomips_hwr_names_3264r6},
+
   {"32r6s", 1, bfd_mach_nanomipsisa32r6, CPU_NANOMIPS32R6, ISA_NANOMIPS32R6,
    (ASE_EVA | ASE_MSA | ASE_VIRT | ASE_XPA_VIRT | ASE_XPA | ASE_MCU | ASE_MT
     | ASE_DSP | ASE_TLB | ASE_GINV | ASE_CRC),
@@ -1426,13 +1433,17 @@ The following nanoMIPS specific disassembler options are supported for use\n\
 with the -M switch (multiple options should be separated by commas):\n"));
 
   fprintf (stream, _("\n\
-  no-aliases               Use canonical instruction forms.\n"));
+  no-aliases     Use canonical instruction forms.\n"));
 
   fprintf (stream, _("\n\
-  msa             Recognize MSA instructions.\n"));
+  show-arch-insn Print extended mnemonics in disassembly including\n\
+                 suffix as in the architecture reference manual.\n"));
 
   fprintf (stream, _("\n\
-  virt            Recognize the virtualization ASE instructions.\n"));
+  msa            Recognize MSA instructions.\n"));
+
+  fprintf (stream, _("\n\
+  virt           Recognize the virtualization ASE instructions.\n"));
 
   fprintf (stream, _("\n\
   xpa            Recognize the eXtended Physical Address (XPA) ASE instructions.\n"));
@@ -1480,10 +1491,6 @@ with the -M switch (multiple options should be separated by commas):\n"));
     if (*nanomips_arch_choices[i].name != '\0')
       fprintf (stream, " %s", nanomips_arch_choices[i].name);
   fprintf (stream, _("\n"));
-
-  fprintf (stream, _("\n\
-  show-arch-insn           Print extended mnemonics in disassembly including\n\
-                           suffix as in the architecture reference manual.\n"));
 
   fprintf (stream, _("\n"));
 }
