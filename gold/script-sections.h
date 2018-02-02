@@ -178,6 +178,11 @@ class Script_sections
   void
   place_orphan(Output_section* os);
 
+  // Look through all output sections looking for places where we can
+  // set memory regions.
+  void
+  set_memory_regions();
+
   // Set the addresses of all the output sections.  Return the segment
   // which holds the file header and segment headers, if any.
   Output_segment*

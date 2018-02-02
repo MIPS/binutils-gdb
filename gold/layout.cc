@@ -2902,10 +2902,16 @@ Layout::finalize(const Input_objects* input_objects, Symbol_table* symtab,
   if (segment_headers != NULL)
     this->special_output_list_.push_back(segment_headers);
 
-  // Find approriate places for orphan output sections if we are using
-  // a linker script.
   if (this->script_options_->saw_sections_clause())
-    this->place_orphan_sections_in_script();
+    {
+      // Find approriate places for orphan output sections if we are using
+      // a linker script.
+      this->place_orphan_sections_in_script();
+
+      // Find appropriate places where we can set memory regions.
+      Script_sections* ss = this->script_options_->script_sections();
+      ss->set_memory_regions();
+    }
 
   Output_segment* load_seg;
   off_t off;

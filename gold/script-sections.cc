@@ -686,6 +686,11 @@ class Sections_element
   set_memory_region(Memory_region*, bool)
   { gold_error(_("Attempt to set a memory region for a non-output section")); }
 
+  // Try to set the section's memory regions.
+  virtual void
+  set_memory_regions(Script_sections*, Memory_region**, Memory_region**)
+  { }
+
   // Print the element for debugging purposes.
   virtual void
   print(FILE* f) const = 0;
@@ -2030,6 +2035,10 @@ class Output_section_definition : public Sections_element
   void
   set_memory_region(Memory_region*, bool set_vma);
 
+  // Set the lma region from previous output section if needed.
+  void
+  set_memory_regions(Script_sections*, Memory_region**, Memory_region**);
+
   void
   set_section_vma(Expression* address)
   { this->address_ = address; }
@@ -2964,6 +2973,35 @@ Output_section_definition::set_memory_region(Memory_region* mr, bool set_vma)
   mr->add_section(this, set_vma);
 }
 
+// Set the lma region from previous output section if needed.
+
+void
+Output_section_definition::set_memory_regions(Script_sections* ss,
+					      Memory_region** plast_vma_region,
+					      Memory_region** plast_lma_region)
+{
+  Memory_region* last_vma_region = *plast_vma_region;
+  Memory_region* last_lma_region = *plast_lma_region;
+
+  Memory_region* vma_region =
+      ss->find_memory_region(this, true, this->address_ != NULL, NULL);
+  Memory_region* lma_region =
+      ss->find_memory_region(this, false, true, NULL);
+
+  if (lma_region == NULL
+      && last_lma_region != NULL
+      && vma_region == last_vma_region
+      && this->address_ == NULL
+      && this->load_address_ == NULL)
+    {
+      lma_region = last_lma_region;
+      this->set_memory_region(lma_region, false);
+    }
+
+  *plast_vma_region = vma_region;
+  *plast_lma_region = lma_region;
+}
+
 // An output section created to hold orphaned input sections.  These
 // do not actually appear in linker scripts.  However, for convenience
 // when setting the output section addresses, we put a marker to these
@@ -2973,7 +3011,7 @@ class Orphan_output_section : public Sections_element
 {
  public:
   Orphan_output_section(Output_section* os)
-    : final_dot_value_(0), os_(os)
+    : final_dot_value_(0), os_(os), vma_region_(NULL), lma_region_(NULL)
   { }
 
   // Finalize symbols--just update the value of the dot symbol.
@@ -3010,6 +3048,16 @@ class Orphan_output_section : public Sections_element
   get_output_section() const
   { return this->os_; }
 
+  // Set memory regions from the previous non-orphan sections.
+  void
+  set_memory_regions(Script_sections*,
+                     Memory_region** plast_vma_region,
+                     Memory_region** plast_lma_region)
+  {
+    this->vma_region_ = *plast_vma_region;
+    this->lma_region_ = *plast_lma_region;
+  }
+
   // Print for debugging.
   void
   print(FILE* f) const
@@ -3022,21 +3070,40 @@ class Orphan_output_section : public Sections_element
   // The value of dot after including all input sections.
   uint64_t final_dot_value_;
   Output_section* os_;
+  // VMA region for this orphan section.
+  Memory_region* vma_region_;
+  // LMA region for this orphan section.
+  Memory_region* lma_region_;
 };
 
 // Set section addresses.
 
 void
-Orphan_output_section::set_section_addresses(Symbol_table*, Layout*,
+Orphan_output_section::set_section_addresses(Symbol_table* symtab,
+					     Layout* layout,
 					     uint64_t* dot_value,
 					     uint64_t*,
                                              uint64_t* load_address)
 {
   typedef std::list<Output_section::Input_section> Input_section_list;
 
-  bool have_load_address = *load_address != *dot_value;
+  bool have_load_address = (*load_address != *dot_value
+                            || this->lma_region_ != NULL);
 
-  uint64_t address = *dot_value;
+  uint64_t address;
+  uint64_t laddr;
+  if (this->vma_region_ != NULL)
+    address = this->vma_region_->get_current_address()->eval(symtab, layout,
+							     false);
+  else
+    address = *dot_value;
+
+  if (this->lma_region_ != NULL)
+    laddr = this->lma_region_->get_current_address()->eval(symtab, layout,
+							   false);
+  else
+    laddr = *load_address;
+
   address = align_address(address, this->os_->addralign());
 
   // If input section sorting is requested via --section-ordering-file or
@@ -3055,7 +3122,7 @@ Orphan_output_section::set_section_addresses(Symbol_table*, Layout*,
   if (parameters->options().relocatable())
     {
       address = 0;
-      *load_address = 0;
+      laddr = 0;
       have_load_address = false;
     }
 
@@ -3063,7 +3130,7 @@ Orphan_output_section::set_section_addresses(Symbol_table*, Layout*,
     {
       this->os_->set_address(address);
       if (have_load_address)
-        this->os_->set_load_address(align_address(*load_address,
+        this->os_->set_load_address(align_address(laddr,
                                                   this->os_->addralign()));
     }
 
@@ -3097,9 +3164,27 @@ Orphan_output_section::set_section_addresses(Symbol_table*, Layout*,
       if (!have_load_address)
 	*load_address = address;
       else
-	*load_address += address - *dot_value;
+	*load_address = laddr + (address - *dot_value);
 
       *dot_value = address;
+    }
+
+  if (!parameters->options().relocatable()
+      && this->os_ != NULL
+      && (this->os_->flags() & elfcpp::SHF_ALLOC) != 0)
+    {
+      // Update the VMA region being used by the section now that we know
+      // how big it is.
+      if (this->vma_region_ != NULL)
+	this->vma_region_ ->set_address(this->os_->name(), *dot_value,
+					symtab, layout);
+
+      // If the LMA region is different from the VMA region, then update the
+      // LMA region there as well.
+      if (this->lma_region_ != NULL && this->lma_region_ != this->vma_region_
+	  && this->os_->type() != elfcpp::SHT_NOBITS)
+	this->lma_region_->set_address(this->os_->name(), *load_address,
+				       symtab, layout);
     }
 
   this->final_dot_value_ = *dot_value;
@@ -3676,6 +3761,29 @@ Script_sections::place_orphan(Output_section* os)
 
   if ((os->flags() & elfcpp::SHF_ALLOC) != 0)
     osp->update_last_alloc(*where);
+}
+
+// Look through all output sections looking for places where we can
+// set memory regions.
+
+void
+Script_sections::set_memory_regions()
+{
+  if (this->memory_regions_ == NULL)
+    return;
+
+  Memory_region* last_vma_region = NULL;
+  Memory_region* last_lma_region = NULL;
+  for (Sections_elements::iterator p = this->sections_elements_->begin();
+       p != this->sections_elements_->end();
+       ++p)
+    (*p)->set_memory_regions(this, &last_vma_region, &last_lma_region);
+
+  // Reset last section values.
+  for (Memory_regions::const_iterator mr = this->memory_regions_->begin();
+       mr != this->memory_regions_->end();
+       ++mr)
+    (*mr)->reset_offset_and_last_section();
 }
 
 // Set the addresses of all the output sections.  Walk through all the
