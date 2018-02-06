@@ -1549,8 +1549,8 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 8021 0678 	ori	at,at,0x678
 [0-9a-f]+ <[^>]+> 2081 0950 	addu	at,at,a0
 [0-9a-f]+ <[^>]+> a461 5900 	sc	t5,0\(at\)
-[0-9a-f]+ <[^>]+> 001f ffff 	sdbbp	0x7ffff
-[0-9a-f]+ <[^>]+> 0018 0000 	sdbbp	0x0
+[0-9a-f]+ <[^>]+> 0018 0000 	sdbbp
+[0-9a-f]+ <[^>]+> 0018 0000 	sdbbp
 [0-9a-f]+ <[^>]+> 0018 0001 	sdbbp	0x1
 [0-9a-f]+ <[^>]+> 0018 0002 	sdbbp	0x2
 [0-9a-f]+ <[^>]+> 0018 0003 	sdbbp	0x3
@@ -1566,8 +1566,8 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 0018 000d 	sdbbp	0xd
 [0-9a-f]+ <[^>]+> 0018 000e 	sdbbp	0xe
 [0-9a-f]+ <[^>]+> 0018 000f 	sdbbp	0xf
-[0-9a-f]+ <[^>]+> 001f ffff 	sdbbp	0x7ffff
-[0-9a-f]+ <[^>]+> 0018 0000 	sdbbp	0x0
+[0-9a-f]+ <[^>]+> 0018 0000 	sdbbp
+[0-9a-f]+ <[^>]+> 0018 0000 	sdbbp
 [0-9a-f]+ <[^>]+> 0018 0001 	sdbbp	0x1
 [0-9a-f]+ <[^>]+> 0018 0002 	sdbbp	0x2
 [0-9a-f]+ <[^>]+> 0018 00ff 	sdbbp	0xff

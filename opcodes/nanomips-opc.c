@@ -406,10 +406,10 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"dvp", 	"", 		"t,-a",		0x20000390, 0xfc00ffff,		WR_1,		0,	I38,	0},
 {"nop", 	"[16]",		"",		0x9008,		0xffff,		0,		0,	I38,	0}, /* NOP[16] */
 {"nop", 	"[32]", 	"",		0x8000c000, 0xffffffff,		0,		0,	I38,	0}, /* NOP */
+{"sdbbp",	"[16]",		"",		0x1018,		0xffff,		0,	INSN2_ALIAS,	I38,	EJTAG},
 {"sdbbp",	"[16]",		"+K",		0x1018,		0xfff8,		0,		0,	I38,	EJTAG},
-{"sdbbp",	"[16]",		"",		0x101f,		0xffff,		0,	INSN2_ALIAS,	I38,	EJTAG},
+{"sdbbp",	"[32]",		"",		0x00180000, 0xffffffff,		0,	INSN2_ALIAS,	I38,	0},
 {"sdbbp",	"[32]",		"+J",		0x00180000, 0xfff80000,		0,		0,	I38,	0},
-{"sdbbp",	"[32]",		"",		0x001fffff, 0xffffffff,		0,	INSN2_ALIAS,	I38,	0},
 {"move",	"",		"-p,mj",	0x1000,		0xfc00,	WR_1|RD_2,		0,	I38,	0}, /* preceded by BREAK, SDBBP */
 {"move",	"",		"d,s",		0x20000290, 0xffe007ff, WR_1|RD_2,	INSN2_ALIAS,	I38,	0}, /* OR */
 {"move",	"",		"d,s",		0x20000150, 0xffe007ff, WR_1|RD_2,	INSN2_ALIAS,	I38,	0}, /* ADDU */
