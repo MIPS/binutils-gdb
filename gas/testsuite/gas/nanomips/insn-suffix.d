@@ -70,7 +70,26 @@ Disassembly of section \.text:
 			80: R_NANOMIPS_PC_I32	test
 			80: R_NANOMIPS_FIXED	\*ABS\*
   84:	bc\[16\]	0 <test>
+			84: R_NANOMIPS_PC10_S1	test
+			84: R_NANOMIPS_FIXED	\*ABS\*
   86:	bc\[32\]	0 <test>
 			86: R_NANOMIPS_PC25_S1	test
 			86: R_NANOMIPS_FIXED	\*ABS\*
+  8a:	beqc\[16\]	a0,a1,92 <.L1.*>
+			8a: R_NANOMIPS_PC4_S1	.L1.*
+			8a: R_NANOMIPS_FIXED	\*ABS\*
+  8c:	bnec\[16\]	a1,a0,92 <.L1.*>
+			8c: R_NANOMIPS_PC4_S1	.L1.*
+			8c: R_NANOMIPS_FIXED	\*ABS\*
+  8e:	beqzc\[16\]	a0,92 <.L1.*>
+			8e: R_NANOMIPS_PC7_S1	.L1.*
+			8e: R_NANOMIPS_FIXED	\*ABS\*
+  90:	bnezc\[16\]	a1,94 <.L2.*>
+			90: R_NANOMIPS_PC7_S1	.L2.*
+			90: R_NANOMIPS_FIXED	\*ABS\*
+
+00000092 <.L1.*>:
+  92:	balc\[16\]	0 <test>
+			92: R_NANOMIPS_PC10_S1	test
+			92: R_NANOMIPS_FIXED	\*ABS\*
 #pass

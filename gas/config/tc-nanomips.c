@@ -5243,6 +5243,17 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
 			make_expr_symbol (address_expr), 0);
       *reloc_type = BFD_RELOC_UNUSED;
     }
+  else if (address_expr
+	   && *reloc_type >= BFD_RELOC_UNUSED + RT_BRANCH_UCND
+	   && forced_insn_format)
+    {
+      const bfd_reloc_code_real_type rtype[] =
+	{ BFD_RELOC_NANOMIPS_10_PCREL_S1,
+	  BFD_RELOC_NANOMIPS_7_PCREL_S1,
+	  BFD_RELOC_NANOMIPS_4_PCREL_S1 };
+      *reloc_type = rtype[*reloc_type - BFD_RELOC_UNUSED - RT_BRANCH_UCND];
+      add_fixed_insn (ip);
+    }
   else
     {
       if (nanomips_relax.sequence)

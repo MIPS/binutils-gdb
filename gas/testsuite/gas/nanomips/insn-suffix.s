@@ -44,3 +44,11 @@ test:
 
 	bc[16] test
 	bc[32] test
+
+	beqc[16] $a0,$a1,1f
+	bnec[16] $a1,$a0,1f
+	beqzc[16] $a0,1f
+	bnezc[16] $a1,2f
+1:
+	balc[16] test
+2:
