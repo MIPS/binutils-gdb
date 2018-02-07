@@ -635,38 +635,27 @@ opcode_48bit_p (const struct nanomips_opcode *mo)
 /* Macro uses single-precision floating-point instructions.  This should
    only be set for macros.  For instructions, FP_S in pinfo carries the
    same information.  */
-#define INSN2_M_FP_S		    0x00000008
+#define INSN2_M_FP_S		    0x00000002
 /* Macro uses double-precision floating-point instructions.  This should
    only be set for macros.  For instructions, FP_D in pinfo carries the
    same information.  */
-#define INSN2_M_FP_D		    0x00000010
+#define INSN2_M_FP_D		    0x00000004
 /* Writes to the stack pointer ($29).  */
-#define INSN2_WRITE_SP		    0x00000080
+#define INSN2_WRITE_SP		    0x00000008
 /* Reads from the stack pointer ($29).  */
-#define INSN2_READ_SP		    0x00000100
+#define INSN2_READ_SP		    0x00000010
 /* Reads the RA ($31) register.  */
-#define INSN2_READ_GPR_31	    0x00000200
+#define INSN2_READ_GPR_31	    0x00000020
 /* Reads the program counter ($pc).  */
-#define INSN2_READ_PC		    0x00000400
+#define INSN2_READ_PC		    0x00000040
 /* Is an unconditional branch insn. */
-#define INSN2_UNCOND_BRANCH	    0x00000800
+#define INSN2_UNCOND_BRANCH	    0x00000080
 /* Is a conditional branch insn. */
-#define INSN2_COND_BRANCH	    0x00001000
-/* Instruction has a forbidden slot.  */
-#define INSN2_FORBIDDEN_SLOT        0x00008000
-/* Opcode table entry is for a short MIPS16 form only.  An extended
-   encoding may still exist, but with a separate opcode table entry
-   required.  In disassembly the presence of this flag in an otherwise
-   successful match against an extended instruction encoding inhibits
-   matching against any subsequent short table entry even if it does
-   not have this flag set.  A table entry matching the full extended
-   encoding is needed or otherwise the final EXTEND entry will apply,
-   for the disassembly of the prefix only.  */
-#define INSN2_SHORT_ONLY	    0x00010000
+#define INSN2_COND_BRANCH	    0x00000100
 /* This indicates delayed branch converted to compact branch.  */
-#define INSN2_CONVERTED_TO_COMPACT  0x00020000
+#define INSN2_CONVERTED_TO_COMPACT  0x00000200
 /* Marks the LI macro expansion as special, temporary.  */
-#define INSN2_MACRO	    0x00080000
+#define INSN2_MACRO		    0x00000400
 
 
 /* Masks used to mark instructions to indicate which MIPS ISA level
