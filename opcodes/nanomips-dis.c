@@ -183,6 +183,7 @@ static const char *const *nanomips_hwr_names;
 /* Other options */
 static int no_aliases;	/* If set disassemble as most general inst.  */
 static bfd_boolean show_arch_insn; /* Mnemonics with suffix.  */
+static bfd_boolean show_mttgpr_rc1 = FALSE; /* RC1 style MTTGPR format.  */
 
 static const struct nanomips_abi_choice *
 choose_abi_by_name (const char *name, unsigned int namelen)
@@ -306,6 +307,12 @@ parse_nanomips_dis_option (const char *option, unsigned int len)
   if (CONST_STRNEQ (option, "no-aliases"))
     {
       no_aliases = 1;
+      return;
+    }
+
+  if (CONST_STRNEQ (option, "show-mttgpr-rc1"))
+    {
+      show_mttgpr_rc1 = TRUE;
       return;
     }
 
@@ -1309,6 +1316,7 @@ _print_insn_nanomips (bfd_vma memaddr_base, struct disassemble_info *info)
     {
       if (op->pinfo != INSN_MACRO
 	  && !(no_aliases && (op->pinfo2 & INSN2_ALIAS))
+	  && (show_mttgpr_rc1 || (op->pinfo2 & INSN2_MTTGPR_RC1) == 0)
 	  && (insn & op->mask) == op->match
 	  && ((length == 2 && (op->mask & 0xffff0000) == 0)
 	      || (length == 6
@@ -1389,6 +1397,9 @@ with the -M switch (multiple options should be separated by commas):\n"));
   fprintf (stream, _("\n\
   show-arch-insn Print extended mnemonics in disassembly including\n\
                  suffix as in the architecture reference manual.\n"));
+
+  fprintf (stream, _("\n\
+  show-mttgpr-rc1 Disassemble MTTGPR as RC1 style (deprecated) format.\n"));
 
   fprintf (stream, _("\n\
   msa            Recognize MSA instructions.\n"));

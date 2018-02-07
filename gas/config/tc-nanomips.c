@@ -502,6 +502,9 @@ static const unsigned int nanomips_to_32_reg_d_map[] = {
   16, 17, 18, 19, 4, 5, 6, 7
 };
 
+/* Flag to enable RC1-style MTTGPR format.  */
+static bfd_boolean nanomips_mttgpr_rc1 = FALSE;
+
 
 /* The expansion of many macros depends on the type of symbol that
    they refer to.  For example, when generating position-dependent code,
@@ -835,6 +838,7 @@ enum options
   OPTION_NOPIC,
   OPTION_LARGE_PIC,
   OPTION_MCMODEL,
+  OPTION_MTTGPR_RC1,
   OPTION_END_OF_ENUM
 };
 
@@ -896,6 +900,7 @@ struct option md_longopts[] = {
   {"no-break", no_argument, NULL, OPTION_TRAP},
   {"trap", no_argument, NULL, OPTION_TRAP},
   {"no-trap", no_argument, NULL, OPTION_BREAK},
+  {"mmttgpr-rc1", no_argument, NULL, OPTION_MTTGPR_RC1},
 
   {NULL, no_argument, NULL, 0}
 };
@@ -5589,6 +5594,10 @@ match_nanomips_insn (struct nanomips_cl_insn *insn,
   arg.lax_match = lax_match;
   arg.select_mask = 0;
 
+  if ((insn->insn_mo->pinfo2 & INSN2_MTTGPR_RC1) != 0
+      && !nanomips_mttgpr_rc1)
+    return FALSE;
+
   for (args = opcode->args;; ++args)
     {
       if (arg.token->type == OT_END)
@@ -9393,6 +9402,10 @@ md_parse_option (int c, const char *arg)
       nanomips_set_mcmodel (&file_nanomips_opts.mc_model, arg);
       break;
 
+    case OPTION_MTTGPR_RC1:
+      nanomips_mttgpr_rc1 = TRUE;
+      break;
+
     default:
       return 0;
     }
@@ -12334,6 +12347,8 @@ nanoMIPS options:\n\
 --linkrelax		allow linker relaxations\n\
 --trap, --no-break	trap exception on div by 0 and mult overflow\n\
 --break, --no-trap	break exception on div by 0 and mult overflow\n"));
+  fprintf (stream, _("\
+-mmttgpr-rc1		Revert to RC1 assembly format for MTTGPR instruction\n"));
   fputc ('\n', stream);
 
 }
