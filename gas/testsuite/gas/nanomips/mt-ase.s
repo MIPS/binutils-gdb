@@ -608,7 +608,7 @@ text_label:
 	mtthc0	$t1,$14,5
 	mtthc0	$t1,$14,6
 	mtthc0	$t1,$14,7
-	mttgpr	$t2,$t1
+	mttgpr	$t1,$t2
 	mttr	$t1,$t2,1,1,0
 	mttc1	$t1,$f14
 	cttc1	$t1,$14

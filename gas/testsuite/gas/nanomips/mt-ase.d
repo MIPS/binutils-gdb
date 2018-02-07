@@ -546,7 +546,7 @@
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 237f 2a70 	mttc0	k1,kscratch5
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 237f 3270 	mttc0	k1,kscratch6
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 237f 3a70 	mttc0	k1,kscratch7
-[0-9a-f]+ <text_label\+0x[0-9a-f]+> 23bc 0670 	mttgpr	gp,sp
+[0-9a-f]+ <text_label\+0x[0-9a-f]+> 239d 0670 	mttgpr	gp,sp
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 23a0 0e70 	mttlo	sp
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 23cc 0e70 	mttlo	fp,\$ac3
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 23e1 0e70 	mtthi	ra
@@ -609,7 +609,7 @@
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 21ae 2a78 	mtthc0	t1,\$14,5
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 21ae 3278 	mtthc0	t1,\$14,6
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 21ae 3a78 	mtthc0	t1,\$14,7
-[0-9a-f]+ <text_label\+0x[0-9a-f]+> 21ae 0670 	mttgpr	t2,t1
+[0-9a-f]+ <text_label\+0x[0-9a-f]+> 21ae 0670 	mttgpr	t1,t2
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 21ae 0e70 	mttr	t1,t2,1,1,0
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 21ae 1670 	mttc1	t1,\$f14
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 21ae 1e70 	cttc1	t1,\$14
