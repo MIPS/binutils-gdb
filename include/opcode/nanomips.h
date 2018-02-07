@@ -656,7 +656,8 @@ opcode_48bit_p (const struct nanomips_opcode *mo)
 #define INSN2_CONVERTED_TO_COMPACT  0x00000200
 /* Marks the LI macro expansion as special, temporary.  */
 #define INSN2_MACRO		    0x00000400
-
+/* Marks the legacy/downgraded MTTGPR format, temporary.  */
+#define INSN2_MTTGPR_RC1	    0x00000800
 
 /* Masks used to mark instructions to indicate which MIPS ISA level
    they were introduced in.  INSN_ISA_MASK masks an enumeration that

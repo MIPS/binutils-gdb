@@ -1077,6 +1077,7 @@ IGRIE */
 {"mttc1",	"",		"t,S",		0x20001670, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS,	0,	MT32}, /* MTTR */
 {"mttc1",	"",		"t,G",		0x20001670, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS,	0,	MT32}, /* MTTR */
 {"mttc2",	"",		"t,G",		0x20002670, 0xfc00ffff,	RD_1,		INSN2_ALIAS,	0,	MT32}, /* MTTR */
+{"mttgpr",	"",		"s,t",		0x20000670, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS|INSN2_MTTGPR_RC1,	0,	MT32}, /* MTTR */
 {"mttgpr",	"",		"t,s",		0x20000670, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS,	0,	MT32}, /* MTTR */
 {"mtthc1",	"",		"t,S",		0x20001678, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS,	0,	MT32}, /* MTTR */
 {"mtthc1",	"",		"t,G",		0x20001678, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS,	0,	MT32}, /* MTTR */

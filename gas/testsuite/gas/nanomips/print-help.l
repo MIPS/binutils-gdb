@@ -50,5 +50,6 @@ nanoMIPS options:
 --linkrelax		allow linker relaxations
 --trap, --no-break	trap exception on div by 0 and mult overflow
 --break, --no-trap	break exception on div by 0 and mult overflow
+-mmttgpr-rc1		Revert to RC1 assembly format for MTTGPR instruction
 
 Report bugs to .*

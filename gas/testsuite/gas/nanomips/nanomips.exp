@@ -991,4 +991,6 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test "addiugp"
     run_dump_test "addiugp-linkrelax"
     run_dump_test "cfi-frames"
+
+    run_dump_test_arch "mttgpr-rc1" "-mmt -mmttgpr-rc1" nanomips32r6
 }
