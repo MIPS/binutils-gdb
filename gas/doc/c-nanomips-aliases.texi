@@ -578,31 +578,31 @@ mftr rt,crs,1,5 0
 @tab Y @tab 32
 @item
 @verbatim
-cttc1 rs,crt
+cttc1 rt,crs
 @end verbatim
 
 @tab @tab @verbatim
-mttr rs,crt,1,3,0
+mttr rt,crs,1,3,0
 @end verbatim
 
 @tab Y @tab 32
 @item
 @verbatim
-cttc1 rs,crt
+cttc1 rt,crs
 @end verbatim
 
 @tab @tab @verbatim
-mttr rs,crt,1,3,0
+mttr rt,crs,1,3,0
 @end verbatim
 
 @tab Y @tab 32
 @item
 @verbatim
-cttc2 rs,crt
+cttc2 rt,crs
 @end verbatim
 
 @tab @tab @verbatim
-mttr rs,crt,1,5,0
+mttr rt,crs,1,5,0
 @end verbatim
 
 @tab Y @tab 32
@@ -788,27 +788,6 @@ lwc1x fd,rs(rt)
 @tab N @tab 32
 @item
 @verbatim
-mftacx rt
-@end verbatim
-
-@tab @tab @verbatim
-mftr rt,2,1,1,0
-@end verbatim
-
-@tab Y @tab 32
-@item
-@verbatim
-mftacx rt,acc
-@end verbatim
-
-@tab @tab @verbatim
-rs = ( acc * 4 ) + 2
-mftr rt,rs,1,1,0
-@end verbatim
-
-@tab Y @tab 32
-@item
-@verbatim
 mftc0 rt,crs
 @end verbatim
 
@@ -971,164 +950,143 @@ addu rd,rs,$zero
 @tab Y @tab 32
 @item
 @verbatim
-mttacx rs
+mttc0 rt,crs
 @end verbatim
 
 @tab @tab @verbatim
-mttr rs,2,1,1,0
+mttr rt,crs,0,0,0
 @end verbatim
 
 @tab Y @tab 32
 @item
 @verbatim
-mttacx rs,acc
+mttc0 rt,crs,sel
 @end verbatim
 
 @tab @tab @verbatim
-rt = (acc * 4) + 2
-mttr rs,rt,1,1,0
+mttr rt,crs,0,sel,0
 @end verbatim
 
 @tab Y @tab 32
 @item
 @verbatim
-mttc0 rs,crt
+mttc1 rt,crs
 @end verbatim
 
 @tab @tab @verbatim
-mttr rs,crt,0,0,0
+mttr rt,crs,1,2,0
 @end verbatim
 
 @tab Y @tab 32
 @item
 @verbatim
-mttc0 rs,crt,sel
+mttc1 rt,crs
 @end verbatim
 
 @tab @tab @verbatim
-mttr rs,crt,0,sel,0
+mttr rt,crs,1,2,0
 @end verbatim
 
 @tab Y @tab 32
 @item
 @verbatim
-mttc1 rs,crt
+mttc2 rt,crs
 @end verbatim
 
 @tab @tab @verbatim
-mttr rs,crt,1,2,0
+mttr rt,crs,1,4,0
 @end verbatim
 
 @tab Y @tab 32
 @item
 @verbatim
-mttc1 rs,crt
+mttdsp rt
 @end verbatim
 
 @tab @tab @verbatim
-mttr rs,crt,1,2,0
+mttr rt,$r16,1,1,0
 @end verbatim
 
 @tab Y @tab 32
 @item
 @verbatim
-mttc2 rs,crt
+mttgpr rt,rs
 @end verbatim
 
 @tab @tab @verbatim
-mttr rs,crt,1,4,0
+mttr rt,rs,1,0,0
 @end verbatim
 
 @tab Y @tab 32
 @item
 @verbatim
-mttdsp rs
+mtthc1 rt,crs
 @end verbatim
 
 @tab @tab @verbatim
-mttr rs,$r16,1,1,0
+mttr rt,crs,1,2,1
 @end verbatim
 
 @tab Y @tab 32
 @item
 @verbatim
-mttgpr rs,rt
+mtthc1 rt,crs
 @end verbatim
 
 @tab @tab @verbatim
-mttr rs,rt,1,0,0
+mttr rt,crs,1,2,1
 @end verbatim
 
 @tab Y @tab 32
 @item
 @verbatim
-mtthc1 rs,crt
+mtthc2 rt,crs
 @end verbatim
 
 @tab @tab @verbatim
-mttr rs,crt,1,2,1
+mttr rt,crs,1,4,1
 @end verbatim
 
 @tab Y @tab 32
 @item
 @verbatim
-mtthc1 rs,crt
+mtthi rt
 @end verbatim
 
 @tab @tab @verbatim
-mttr rs,crt,1,2,1
+mttr rt,$r1,1,1,0
 @end verbatim
 
 @tab Y @tab 32
 @item
 @verbatim
-mtthc2 rs,crt
+mtthi rt,acc
 @end verbatim
 
 @tab @tab @verbatim
-mttr rs,crt,1,4,1
+rs = (acc * 4) + 1
+mttr rt,rs,1,1,0
 @end verbatim
 
 @tab Y @tab 32
 @item
 @verbatim
-mtthi rs
+mttlo rt
 @end verbatim
 
 @tab @tab @verbatim
-mttr rs,$r1,1,1,0
+mttr rt,$r0,1,1,0
 @end verbatim
 
 @tab Y @tab 32
 @item
 @verbatim
-mtthi rs,acc
+mttlo rt,acc
 @end verbatim
 
 @tab @tab @verbatim
-rt = (acc * 4) + 1
-mttr rs,rt,1,1,0
-@end verbatim
-
-@tab Y @tab 32
-@item
-@verbatim
-mttlo rs
-@end verbatim
-
-@tab @tab @verbatim
-mttr rs,$r0,1,1,0
-@end verbatim
-
-@tab Y @tab 32
-@item
-@verbatim
-mttlo rs,acc
-@end verbatim
-
-@tab @tab @verbatim
-rt = (acc * 4)
-mttr rs,rt,1,1,0
+rs = (acc * 4)
+mttr rt,rs,1,1,0
 @end verbatim
 
 @tab Y @tab 32
