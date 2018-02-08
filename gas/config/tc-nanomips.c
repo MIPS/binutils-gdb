@@ -6644,7 +6644,7 @@ load_address (int reg, expressionS *ep, int *used_at)
 	      && !nopic_need_relax (ep->X_add_symbol, 1))
 	    {
 	      relax_start (ep->X_add_symbol);
-	      macro_build (ep, ADDRESS_ADDI_INSN, "t,r,j", reg,
+	      macro_build (ep, ADDRESS_ADDI_INSN, "-t,r,j", reg,
 			   nanomips_gp_register, BFD_RELOC_GPREL16);
 	      relax_switch ();
 	    }
@@ -6696,7 +6696,7 @@ load_address (int reg, expressionS *ep, int *used_at)
 	      || ex.X_add_number >= MAX_PIC_OFFSET)
 	    as_bad (_("PIC code offset overflow (max 21 unsigned bits)"));
 	  ex.X_op = O_constant;
-	  macro_build (&ex, ADDRESS_ADDI_INSN, "t,r,j",
+	  macro_build (&ex, ADDRESS_ADDI_INSN, "-t,r,j",
 		       reg, reg, BFD_RELOC_LO16);
 	  ep->X_add_number = ex.X_add_number;
 	  relax_switch ();
@@ -6714,7 +6714,7 @@ load_address (int reg, expressionS *ep, int *used_at)
          aluipc         $reg,<sym>              (BFD_RELOC_NANOMIPS_GOTPC_HI20)
          lw             $reg,<sym>($reg)        (BFD_RELOC_NANOMIPS_GOT_LO12)
       */
-      if ((nanomips_opts.ase & ASE_xNMS) != 0)
+      if ((nanomips_opts.ase & ASE_xNMS) != 0 && !nanomips_opts.insn32)
 	macro_build (ep, "lwpc", "mp,+S", reg, BFD_RELOC_NANOMIPS_GOTPC_I32);
       else
 	{
