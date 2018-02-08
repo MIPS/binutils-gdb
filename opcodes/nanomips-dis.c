@@ -1291,10 +1291,10 @@ _print_insn_nanomips (bfd_vma memaddr_base, struct disassemble_info *info)
     {
       unsigned imm;
       /* This is a 48-bit nanoMIPS instruction. */
-      status = (*info->read_memory_func) (memaddr + 2, buffer, 2, info);
+      status = (*info->read_memory_func) (memaddr + 2, buffer, 4, info);
       if (status != 0)
 	{
-	  infprintf (is, "nanomips 0x%x", (unsigned) insn);
+	  infprintf (is, "0x%x (expected 48 bits): ", (unsigned) insn);
 	  (*info->memory_error_func) (status, memaddr + 2, info);
 	  return -1;
 	}
@@ -1322,7 +1322,7 @@ _print_insn_nanomips (bfd_vma memaddr_base, struct disassemble_info *info)
       status = (*info->read_memory_func) (memaddr + 2, buffer, 2, info);
       if (status != 0)
 	{
-	  infprintf (is, "nanomips 0x%x", (unsigned) higher);
+	  infprintf (is, "0x%x (expected 32 bits): ", (unsigned) higher);
 	  (*info->memory_error_func) (status, memaddr + 2, info);
 	  return -1;
 	}
