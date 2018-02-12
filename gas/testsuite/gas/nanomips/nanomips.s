@@ -973,61 +973,12 @@ test3:
 
 	mfc0	$t4, $0
 	mfc0	$t4, $1
-	mfc0	$t4, $2
-	mfc0	$t4, $3
-	mfc0	$t4, $4
-	mfc0	$t4, $5
-	mfc0	$t4, $6
-	mfc0	$t4, $7
-	mfc0	$t4, $8
-	mfc0	$t4, $9
-	mfc0	$t4, $10
-	mfc0	$t4, $11
-	mfc0	$t4, $12
-	mfc0	$t4, $13
-	mfc0	$t4, $14
-	mfc0	$t4, $15
-	mfc0	$t4, $16
-	mfc0	$t4, $17
-	mfc0	$t4, $18
-	mfc0	$t4, $19
-	mfc0	$t4, $20
-	mfc0	$t4, $21
-	mfc0	$t4, $22
-	mfc0	$t4, $23
-	mfc0	$t4, $24
-	mfc0	$t4, $25
-	mfc0	$t4, $26
-	mfc0	$t4, $27
-	mfc0	$t4, $28
-	mfc0	$t4, $29
-	mfc0	$t4, $30
-	mfc0	$t4, $31
-
-	mfc0	$t4, $0, 0
-	mfc0	$t4, $0, 1
-	mfc0	$t4, $0, 2
-	mfc0	$t4, $0, 3
-	mfc0	$t4, $0, 4
-	mfc0	$t4, $0, 5
-	mfc0	$t4, $0, 6
-	mfc0	$t4, $0, 7
-	mfc0	$t4, $1, 0
-	mfc0	$t4, $1, 1
-	mfc0	$t4, $1, 2
-	mfc0	$t4, $1, 3
-	mfc0	$t4, $1, 4
-	mfc0	$t4, $1, 5
-	mfc0	$t4, $1, 6
-	mfc0	$t4, $1, 7
-	mfc0	$t4, $2, 0
 	mfc0	$t4, $2, 1
 	mfc0	$t4, $2, 2
-	mfc0	$t4, $2, 3
-	mfc0	$t4, $2, 4
-	mfc0	$t4, $2, 5
-	mfc0	$t4, $2, 6
-	mfc0	$t4, $2, 7
+	mtc0	$t4, $3
+	mtc0	$t4, $4
+	mtc0	$t4, $5, 6
+	mtc0	$t4, $5, 7
 
 	movn	$t4, $t5
 	movn	$t4, $t4, $t5
@@ -1037,63 +988,6 @@ test3:
 	movz	$t4, $t4, $t5
 	movz	$t4, $t5, $a0
 
-	mtc0	$t4, $0
-	mtc0	$t4, $1
-	mtc0	$t4, $2
-	mtc0	$t4, $3
-	mtc0	$t4, $4
-	mtc0	$t4, $5
-	mtc0	$t4, $6
-	mtc0	$t4, $7
-	mtc0	$t4, $8
-	mtc0	$t4, $9
-	mtc0	$t4, $10
-	mtc0	$t4, $11
-	mtc0	$t4, $12
-	mtc0	$t4, $13
-	mtc0	$t4, $14
-	mtc0	$t4, $15
-	mtc0	$t4, $16
-	mtc0	$t4, $17
-	mtc0	$t4, $18
-	mtc0	$t4, $19
-	mtc0	$t4, $20
-	mtc0	$t4, $21
-	mtc0	$t4, $22
-	mtc0	$t4, $23
-	mtc0	$t4, $24
-	mtc0	$t4, $25
-	mtc0	$t4, $26
-	mtc0	$t4, $27
-	mtc0	$t4, $28
-	mtc0	$t4, $29
-	mtc0	$t4, $30
-	mtc0	$t4, $31
-
-	mtc0	$t4, $0, 0
-	mtc0	$t4, $0, 1
-	mtc0	$t4, $0, 2
-	mtc0	$t4, $0, 3
-	mtc0	$t4, $0, 4
-	mtc0	$t4, $0, 5
-	mtc0	$t4, $0, 6
-	mtc0	$t4, $0, 7
-	mtc0	$t4, $1, 0
-	mtc0	$t4, $1, 1
-	mtc0	$t4, $1, 2
-	mtc0	$t4, $1, 3
-	mtc0	$t4, $1, 4
-	mtc0	$t4, $1, 5
-	mtc0	$t4, $1, 6
-	mtc0	$t4, $1, 7
-	mtc0	$t4, $2, 0
-	mtc0	$t4, $2, 1
-	mtc0	$t4, $2, 2
-	mtc0	$t4, $2, 3
-	mtc0	$t4, $2, 4
-	mtc0	$t4, $2, 5
-	mtc0	$t4, $2, 6
-	mtc0	$t4, $2, 7
 	mul	$t4, $t5, $a0
 	mul	$sp, $fp, $ra
 	mul	$t4, $t4, $a0

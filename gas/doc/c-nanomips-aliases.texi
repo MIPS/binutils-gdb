@@ -54,8 +54,18 @@ dmfc0 rt,crs
 @tab @tab @verbatim
 dmfc0 rt,crs,0
 @end verbatim
-
 @tab Y @tab 32
+
+@item
+@verbatim
+dmfc0 rt,crsname[,sel]
+@end verbatim
+
+@tab @tab @verbatim
+dmfc0 rt,crs,sel
+@end verbatim
+@tab Y @tab 32
+
 @item
 @verbatim
 dmfgc0 rt,crs
@@ -66,6 +76,17 @@ dmfgc0 rt,crs,0
 @end verbatim
 
 @tab Y @tab 32
+
+@item
+@verbatim
+dmfgc0 rt,crsname[,sel]
+@end verbatim
+
+@tab @tab @verbatim
+dmfgc0 rt,crs,sel
+@end verbatim
+@tab Y @tab 32
+
 @item
 @verbatim
 dmtc0 rt,crs
@@ -78,11 +99,31 @@ dmtc0 rt,crs,0
 @tab Y @tab 32
 @item
 @verbatim
+dmtc0 rt,crsname[,sel]
+@end verbatim
+
+@tab @tab @verbatim
+dmtc0 rt,crs,sel
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
 dmtgc0 rt,crs
 @end verbatim
 
 @tab @tab @verbatim
 dmtgc0 rt,crs,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+dmtgc0 rt,crsname[,sel]
+@end verbatim
+
+@tab @tab @verbatim
+dmtgc0 rt,crs,sel
 @end verbatim
 
 @tab Y @tab 32
@@ -118,11 +159,31 @@ mfc0 rt,crs,0
 @tab Y @tab 32
 @item
 @verbatim
+mfc0 rt,crsname[,sel]
+@end verbatim
+
+@tab @tab @verbatim
+mfc0 rt,crs,sel
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
 mfgc0 rt,crs
 @end verbatim
 
 @tab @tab @verbatim
 mfgc0 rt,crs,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mfgc0 rt,crsname[,sel]
+@end verbatim
+
+@tab @tab @verbatim
+mfgc0 rt,crs,sel
 @end verbatim
 
 @tab Y @tab 32
@@ -138,11 +199,31 @@ mfhc0 rt,crs,0
 @tab Y @tab 32
 @item
 @verbatim
+mfhc0 rt,crsname[,sel]
+@end verbatim
+
+@tab @tab @verbatim
+mfhc0 rt,crs,sel
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
 mfhgc0 rt,crs
 @end verbatim
 
 @tab @tab @verbatim
 mfhgc0 rt,crs,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mfhgc0 rt,crsname[,sel]
+@end verbatim
+
+@tab @tab @verbatim
+mfhgc0 rt,crs,sel
 @end verbatim
 
 @tab Y @tab 32
@@ -158,11 +239,31 @@ mtc0 rt,crs,0
 @tab Y @tab 32
 @item
 @verbatim
+mtc0 rt,crsname[,sel]
+@end verbatim
+
+@tab @tab @verbatim
+mtc0 rt,crs,sel
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
 mtgc0 rt,crs
 @end verbatim
 
 @tab @tab @verbatim
 mtgc0 rt,crs,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mtgc0 rt,crsname[,sel]
+@end verbatim
+
+@tab @tab @verbatim
+mtgc0 rt,crs,sel
 @end verbatim
 
 @tab Y @tab 32
@@ -178,11 +279,31 @@ mthc0 rt,crs,0
 @tab Y @tab 32
 @item
 @verbatim
+mthc0 rt,crsname[,sel]
+@end verbatim
+
+@tab @tab @verbatim
+mthc0 rt,crs,sel
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
 mthgc0 rt,crs
 @end verbatim
 
 @tab @tab @verbatim
 mthgc0 rt,crs,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mthgc0 rt,crsname[,sel]
+@end verbatim
+
+@tab @tab @verbatim
+mthgc0 rt,crs,sel
 @end verbatim
 
 @tab Y @tab 32
@@ -808,11 +929,41 @@ mftr rt,crs,0,sel,0
 @tab Y @tab 32
 @item
 @verbatim
-mftc1 rt,crs
+mftc0 rt,crsname[,sel]
 @end verbatim
 
 @tab @tab @verbatim
-mftr rt,crs,1,2,0
+mftr rt,crs,0,sel,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mfthc0 rt,crs
+@end verbatim
+
+@tab @tab @verbatim
+mftr rt,crs,0,0,1
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mfthc0 rt,crs,sel
+@end verbatim
+
+@tab @tab @verbatim
+mftr rt,crs,0,sel,1
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mfthc0 rt,crsname[,sel]
+@end verbatim
+
+@tab @tab @verbatim
+mftr rt,crs,0,sel,1
 @end verbatim
 
 @tab Y @tab 32
@@ -842,7 +993,7 @@ mftdsp rt
 @end verbatim
 
 @tab @tab @verbatim
-mftr rt,$r16,1,1,0
+mftr rt,$16,1,1,0
 @end verbatim
 
 @tab Y @tab 32
@@ -853,16 +1004,6 @@ mftgpr rt,rs
 
 @tab @tab @verbatim
 mftr rt,rs,1,0,0
-@end verbatim
-
-@tab Y @tab 32
-@item
-@verbatim
-mfthc1 rt,crs
-@end verbatim
-
-@tab @tab @verbatim
-mftr rt,crs,1,2,1
 @end verbatim
 
 @tab Y @tab 32
@@ -892,7 +1033,7 @@ mfthi rt
 @end verbatim
 
 @tab @tab @verbatim
-mftr rt,$r1,1,1,0
+mftr rt,$1,1,1,0
 @end verbatim
 
 @tab Y @tab 32
@@ -913,7 +1054,7 @@ mftlo rt
 @end verbatim
 
 @tab @tab @verbatim
-mftr rt,$r0,1,1,0
+mftr rt,$0,1,1,0
 @end verbatim
 
 @tab Y @tab 32
@@ -970,11 +1111,41 @@ mttr rt,crs,0,sel,0
 @tab Y @tab 32
 @item
 @verbatim
-mttc1 rt,crs
+mttc0 rt,crsname[,sel]
 @end verbatim
 
 @tab @tab @verbatim
-mttr rt,crs,1,2,0
+mttr rt,crs,0,sel,0
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mtthc0 rt,crs
+@end verbatim
+
+@tab @tab @verbatim
+mttr rt,crs,0,0,1
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mtthc0 rt,crs,sel
+@end verbatim
+
+@tab @tab @verbatim
+mttr rt,crs,0,sel,1
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+mtthc0 rt,crsname[,sel]
+@end verbatim
+
+@tab @tab @verbatim
+mttr rt,crs,0,sel,1
 @end verbatim
 
 @tab Y @tab 32
@@ -1004,7 +1175,7 @@ mttdsp rt
 @end verbatim
 
 @tab @tab @verbatim
-mttr rt,$r16,1,1,0
+mttr rt,$16,1,1,0
 @end verbatim
 
 @tab Y @tab 32
@@ -1015,16 +1186,6 @@ mttgpr rt,rs
 
 @tab @tab @verbatim
 mttr rt,rs,1,0,0
-@end verbatim
-
-@tab Y @tab 32
-@item
-@verbatim
-mtthc1 rt,crs
-@end verbatim
-
-@tab @tab @verbatim
-mttr rt,crs,1,2,1
 @end verbatim
 
 @tab Y @tab 32
@@ -1054,7 +1215,7 @@ mtthi rt
 @end verbatim
 
 @tab @tab @verbatim
-mttr rt,$r1,1,1,0
+mttr rt,$1,1,1,0
 @end verbatim
 
 @tab Y @tab 32
@@ -1075,7 +1236,7 @@ mttlo rt
 @end verbatim
 
 @tab @tab @verbatim
-mttr rt,$r0,1,1,0
+mttr rt,$0,1,1,0
 @end verbatim
 
 @tab Y @tab 32

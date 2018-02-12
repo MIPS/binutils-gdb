@@ -1,5 +1,5 @@
 /* nanomips.h.  nanoMIPS opcode list for GDB, the GNU debugger.
-   Copyright (C) 2017 Free Software Foundation, Inc.
+   Copyright (C) 2018 Free Software Foundation, Inc.
    Contributed by MIPS Tech LLC.
 
    This file is part of GDB, GAS, and the GNU binutils.
@@ -116,6 +116,9 @@ enum nanomips_operand_type {
 
   /* Copy over bits from another part of instruction.  */
   OP_COPY_BITS,
+
+  /* Select bits for a COP0 register.  */
+  OP_CP0SEL,
 };
 
 /* Enumerates the types of nanoMIPS register.  */
@@ -156,7 +159,13 @@ enum nanomips_reg_operand_type {
   OP_REG_MSA,
 
   /* MSA control registers $0-$31.  */
-  OP_REG_MSA_CTRL
+  OP_REG_MSA_CTRL,
+
+  /* Co-processor 0 named registers.  */
+  OP_REG_CP0,
+
+  /* Co-processor 0 named registers with select.  */
+  OP_REG_CP0SEL
 };
 
 /* Base class for all operands.  */
@@ -946,6 +955,146 @@ extern const int bfd_nanomips_num_opcodes;
 #define NANOMIPSOP_SH_MD		7
 #define NANOMIPSOP_SH_MP		5
 #define NANOMIPSOP_SH_MQ		7
+
+#define NANOMIPSOP_SH_CP0SEL		5
+#define NANOMIPSOP_MASK_CP0SEL		0x1f
+
+/* Describes a COP0 named register with a fixed select.  */
+struct nanomips_cp0_name
+{
+  const char *name;
+  unsigned int num;
+  unsigned int sel;
+};
+
+/* The reference list of COP0 named register with fixed selects.  */
+static const struct nanomips_cp0_name nanomips_cp0_3264r6[] = {
+    {"$index",		 0, 0},
+    {"$mvpcontrol",	 0, 1},
+    {"$mvpconf0",	 0, 2},
+    {"$mvpconf1",	 0, 3},
+    {"$random", 	 1, 0},
+    {"$vpecontrol",	 1, 1},
+    {"$vpeconf0",	 1, 2},
+    {"$vpeconf1",	 1, 3},
+    {"$yqmask", 	 1, 4},
+    {"$vpeschedule",	 1, 5},
+    {"$vpeschefback",	 1, 6},
+    {"$vpeopt", 	 1, 7},
+    {"$entrylo0",	 2, 0},
+    {"$tcstatus",	 2, 1},
+    {"$tcbind", 	 2, 2},
+    {"$tcrestart",	 2, 3},
+    {"$tchalt", 	 2, 4},
+    {"$tccontext",	 2, 5},
+    {"$tcschedule",	 2, 6},
+    {"$tcschefback",	 2, 7},
+    {"$entrylo1",	 3, 0},
+    {"$tcopt",		 3, 7},
+    {"$context",	 4, 0},
+    {"$contextconfig",	 4, 1},
+    {"$userlocal",	 4, 2},
+    {"$xcontextconfig",  4, 3},
+    {"$pagemask",	 5, 0},
+    {"$pagegrain",	 5, 1},
+    {"$segctl0",	 5, 2},
+    {"$segctl1",	 5, 3},
+    {"$segctl2",	 5, 4},
+    {"$pwbase", 	 5, 5},
+    {"$pwfield",	 5, 6},
+    {"$pwsize", 	 5, 7},
+    {"$wired",		 6, 0},
+    {"$srsconf0",	 6, 1},
+    {"$srsconf1",	 6, 2},
+    {"$srsconf2",	 6, 3},
+    {"$srsconf3",	 6, 4},
+    {"$srsconf4",	 6, 5},
+    {"$pwctl",		 6, 6},
+    {"$hwrena", 	 7, 0},
+    {"$badvaddr",	 8, 0},
+    {"$badinst",	 8, 1},
+    {"$badinstrp",	 8, 2},
+    {"$count",		 9, 0},
+    {"$entryhi",	10, 0},
+    {"$guestctl1",	10, 4},
+    {"$guestctl2",	10, 5},
+    {"$guestctl3",	10, 6},
+    {"$compare",	11, 0},
+    {"$guestctl0ext",	11, 4},
+    {"$status", 	12, 0},
+    {"$intctl", 	12, 1},
+    {"$srsctl", 	12, 2},
+    {"$srsmap", 	12, 3},
+    {"$view_ipl",	12, 4},
+    {"$srsmap2",	12, 5},
+    {"$guestctl0",	12, 6},
+    {"$gtoffset",	12, 7},
+    {"$cause",		13, 0},
+    {"$view_ripl",	13, 4},
+    {"$nestedexc",	13, 5},
+    {"$epc",		14, 0},
+    {"$nestedepc",	14, 2},
+    {"$prid",		15, 0},
+    {"$ebase",		15, 1},
+    {"$cdmmbase",	15, 2},
+    {"$cmgcrbase",	15, 3},
+    {"$config", 	16, 0},
+    {"$config1",	16, 1},
+    {"$config2",	16, 2},
+    {"$config3",	16, 3},
+    {"$config4",	16, 4},
+    {"$config5",	16, 5},
+    {"$lladdr", 	17, 0},
+    {"$xcontext",	20, 0},
+    {"$debug",		23, 0},
+    {"$tracecontrol",	23, 1},
+    {"$tracecontrol2",	23, 2},
+    {"$usertracedata1", 23, 3},
+    {"$traceibpc",	23, 4},
+    {"$tracedbpc",	23, 5},
+    {"$debug2", 	23, 6},
+    {"$depc",		24, 0},
+    {"$tracecontrol3",	24, 2},
+    {"$usertracedata2", 24, 3},
+    {"$errctl", 	26, 0},
+    {"$cacheerr",	27, 0},
+    {"$errorepc",	30, 0},
+    {"$desave", 	31, 0},
+    {"$kscratch2",	31, 2},
+    {"$kscratch3",	31, 3},
+    {"$kscratch4",	31, 4},
+    {"$kscratch5",	31, 5},
+    {"$kscratch6",	31, 6},
+    {"$kscratch7",	31, 7},
+    {NULL, 0, 0}
+};
+
+/* Describes a CP0 named register which permits various select values.  */
+  struct nanomips_cp0_select
+{
+  const char *name;
+  unsigned int num;
+  unsigned int selmask;
+};
+
+/* Currently recognized CP0 select patterns.  */
+
+#define NANOMIPS_CP0SEL_MASK_EVEN 0x55555555
+#define NANOMIPS_CP0SEL_MASK_ODD  0xaaaaaaaa
+#define NANOMIPS_CP0SEL_MASK_ANY  0xffffffff
+
+/* The reference list of CP0 named register with variable selects.  */
+static const struct nanomips_cp0_select nanomips_cp0sel_3264r6[] = {
+    {"$watchlo",	18, NANOMIPS_CP0SEL_MASK_ANY},
+    {"$watchhi",	19, NANOMIPS_CP0SEL_MASK_ANY},
+    {"$perfctl",	25, NANOMIPS_CP0SEL_MASK_EVEN},
+    {"$perfcnt",	25, NANOMIPS_CP0SEL_MASK_ANY},
+    {"$taglo",		28, NANOMIPS_CP0SEL_MASK_EVEN},
+    {"$datalo", 	28, NANOMIPS_CP0SEL_MASK_ODD},
+    {"$taghi",		29, NANOMIPS_CP0SEL_MASK_EVEN},
+    {"$datahi", 	29, NANOMIPS_CP0SEL_MASK_ODD},
+    {NULL, 0, 0}
+};
 
 #ifdef __cplusplus
 }

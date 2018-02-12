@@ -1675,18 +1675,21 @@ struct regname
   unsigned int num;
 };
 
-#define RNUM_MASK	0x00000ff
-#define RTYPE_MASK	0x1ffff00
-#define RTYPE_NUM	0x0000100
-#define RTYPE_FPU	0x0000200
-#define RTYPE_FCC	0x0000400
-#define RTYPE_VEC	0x0000800
-#define RTYPE_GP	0x0001000
-#define RTYPE_CP0	0x0002000
-#define RTYPE_PC	0x0004000
-#define RTYPE_ACC	0x0008000
-#define RTYPE_CCC	0x0010000
-#define RTYPE_MSA	0x0800000
+#define RNUM_MASK	0x00003ff
+#define RTYPE_MASK	0x7fffc00
+#define RTYPE_NUM	0x0000400
+#define RTYPE_FPU	0x0000800
+#define RTYPE_FCC	0x0001000
+#define RTYPE_VEC	0x0002000
+#define RTYPE_GP	0x0004000
+#define RTYPE_CP0	0x0008000
+#define RTYPE_PC	0x0010000
+#define RTYPE_ACC	0x0020000
+#define RTYPE_CCC	0x0040000
+#define RTYPE_MSA	0x0080000
+#define RTYPE_CP0SEL	0x0300000
+#define RTYPE_CP0SEL_EVEN	0x0100000
+#define RTYPE_CP0SEL_ODD	0x0200000
 #define RWARN		0x8000000
 
 #define GENERIC_REGISTER_NUMBERS \
@@ -2648,6 +2651,49 @@ md_begin (void)
 				       RTYPE_MSA | i, &zero_address_frag));
     }
 
+  for (i = 0; nanomips_cp0_3264r6[i].name; i++)
+    {
+      /* 10-bit symbol value for CP0 named register consists of a 5-bit
+	 register number and 5-bit fixed select value.  */
+      unsigned int value = (RTYPE_CP0
+			    | (nanomips_cp0_3264r6[i].num
+			       << NANOMIPSOP_SH_CP0SEL)
+			    | nanomips_cp0_3264r6[i].sel);
+      symbolS *regsym = symbol_new (nanomips_cp0_3264r6[i].name, reg_section,
+				    value, &zero_address_frag);
+      symbolS *defsym = symbol_find (nanomips_cp0_3264r6[i].name);
+      symbol_table_insert (regsym);
+      if (defsym)
+	as_warn ("Attempt to define internal register symbol %s ignored",
+		 nanomips_cp0_3264r6[i].name);
+    }
+
+  for (i = 0; nanomips_cp0sel_3264r6[i].name; i++)
+    {
+      symbolS *regsym, *defsym;
+      unsigned value = nanomips_cp0sel_3264r6[i].num;
+
+      switch (nanomips_cp0sel_3264r6[i].selmask)
+	{
+	  case NANOMIPS_CP0SEL_MASK_EVEN:
+	    value |= RTYPE_CP0SEL_EVEN; break;
+	  case NANOMIPS_CP0SEL_MASK_ODD:
+	    value |= RTYPE_CP0SEL_ODD; break;
+	  case NANOMIPS_CP0SEL_MASK_ANY:
+	    value |= RTYPE_CP0SEL; break;
+	  default:
+	    break;
+	}
+
+      regsym = symbol_new (nanomips_cp0sel_3264r6[i].name, reg_section,
+			   value, &zero_address_frag);
+      defsym = symbol_find (nanomips_cp0sel_3264r6[i].name);
+      symbol_table_insert (regsym);
+      if (defsym)
+	as_warn ("Attempt to define internal register symbol %s ignored",
+		 nanomips_cp0sel_3264r6[i].name);
+    }
+
   obstack_init (&nanomips_operand_tokens);
 
   nanomips_flush_pending_output ();
@@ -3167,6 +3213,9 @@ struct nanomips_arg_info
 
   /* True if a reference to the current AT register was seen.  */
   bfd_boolean seen_at;
+
+  /* CP0 select register mask.  */
+  unsigned int select_mask;
 };
 
 /* Record that the argument is out of range.  */
@@ -3311,6 +3360,14 @@ convert_reg_type (const struct nanomips_opcode *opcode,
 
     case OP_REG_MSA_CTRL:
       return RTYPE_NUM;
+
+    case OP_REG_CP0:
+      /* CP0 register without select must be symbolic.  */
+      return RTYPE_CP0;
+
+    case OP_REG_CP0SEL:
+      /* CP0 register with select may be numeric.  */
+      return RTYPE_CP0SEL | RTYPE_NUM;
     }
   abort ();
 }
@@ -3357,6 +3414,21 @@ match_regno (struct nanomips_arg_info *arg,
     symval = nanomips_prefer_vec_regno (symval);
   if (!(symval & convert_reg_type (arg->insn->insn_mo, type)))
     return FALSE;
+
+  /* Remember if the register name matches a specific select mask type.
+     Otherwise fall-back to allowing all select values.  */
+  if (type == OP_REG_CP0SEL)
+    switch (symval & RTYPE_CP0SEL)
+      {
+      case RTYPE_CP0SEL_EVEN:
+	arg->select_mask = NANOMIPS_CP0SEL_MASK_EVEN; break;
+      case RTYPE_CP0SEL_ODD:
+	arg->select_mask = NANOMIPS_CP0SEL_MASK_ODD; break;
+      case RTYPE_CP0SEL:
+      default:
+	arg->select_mask = NANOMIPS_CP0SEL_MASK_ANY; break;
+	break;
+      }
 
   *regno = symval & RNUM_MASK;
   check_regno (arg, type, *regno);
@@ -4444,6 +4516,28 @@ match_copy_bits (struct nanomips_arg_info *arg,
   return TRUE;
 }
 
+/* Select value for a named COP0 register.  */
+static bfd_boolean
+match_cp0_select (struct nanomips_arg_info *arg,
+		  const struct nanomips_operand *operand)
+{
+  offsetT uval;
+
+  /* Expect an immediate select value between 0 & 31.  */
+  if (!match_const_int (arg, &uval)
+      || uval < 0
+      || uval >= (1 << NANOMIPSOP_SH_CP0SEL))
+    return FALSE;
+
+  /* Check if this select value is allowed by the saved mask of the last
+     seen CP0 register.  */
+  if (((1 << uval) & arg->select_mask) == 0)
+    return FALSE;
+
+  insn_insert_operand (arg->insn, operand, uval);
+  return TRUE;
+}
+
 /* S is the text seen for ARG.  Match it against OPERAND.  Return the end
    of the argument text if the match is successful, otherwise return null.  */
 
@@ -4532,6 +4626,9 @@ match_operand (struct nanomips_arg_info *arg,
 
     case OP_COPY_BITS:
       return match_copy_bits (arg, operand);
+
+    case OP_CP0SEL:
+      return match_cp0_select (arg, operand);
 
     default:
       abort ();
@@ -5535,23 +5632,27 @@ match_nanomips_insn (struct nanomips_cl_insn *insn,
   arg.last_regno = ILLEGAL_REG;
   arg.dest_regno = ILLEGAL_REG;
   arg.lax_match = lax_match;
+  arg.select_mask = 0;
+
   for (args = opcode->args;; ++args)
     {
       if (arg.token->type == OT_END)
 	{
 	  /* Handle unary instructions in which only one operand is given.
 	     The source is then the same as the destination.  */
-	  if ((arg.opnum == 1 && *args == ',')
+	  if ((*args == ',')
 	      || (arg.opnum == 0 && *args != 0))
 	    {
-	      operand = decode_nanomips_operand (args + arg.opnum);
+	      operand = decode_nanomips_operand (args + (arg.opnum ? 1 : 0));
 	      if (operand && nanomips_optional_operand_p (operand))
 		{
 		  arg.token = tokens;
 		  arg.argnum = 1;
 		  continue;
 		}
-	      if (operand && operand->type == OP_DONT_CARE)
+	      /* These optional types appear only as the last operand.  */
+	      else if (operand && (operand->type == OP_CP0SEL
+				   || operand->type == OP_DONT_CARE))
 		return TRUE;
 	    }
 

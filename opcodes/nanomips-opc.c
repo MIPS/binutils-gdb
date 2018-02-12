@@ -267,10 +267,13 @@ decode_nanomips_operand (const char *p)
     case 'E': REG (5, 21, COPRO);
     case 'G': REG (5, 16, COPRO);
     case 'H': UINT (3, 11);
-    case 'J': UINT (5, 11);
+    case 'J': SPECIAL (5, 11, CP0SEL);
     case 'K': REG (5, 16, HW);
 /*     case 'M': REG (3, 13, CCC); */
 /*     case 'N': REG (3, 18, CCC); */
+    case 'O': REG (10, 11, CP0);
+    case 'P': REG (5, 16, CP0SEL);
+    case 'Q': UINT (5, 11);
     case 'R': REG (5, 11, FP);
     case 'S': REG (5, 16, FP);
     case 'T': REG (5, 21, FP);
@@ -757,11 +760,13 @@ IGRIE */
 {"dli", 	"", 		"t,I",		0,    (int) M_DLI,	INSN_MACRO,		0,	I70,	0},
 {"dlsa",	"",		"d,v,t,+.",	0xc0000008, 0xfc0001ff, WR_1|RD_2|RD_3,		0,	I70,	0},
 {"dlui",	"[48]",		"mp,+Q",	0x6014, 	0xfc1f,	WR_1,			0,	I70,	0}, /* DLUI[48] */
-{"dmfc0",	"",		"t,G",		0x20000130, 0xfc00ffff,	WR_1,		INSN2_ALIAS,	I70,	0}, /* DMFC0 with sel=0 */
+{"dmfc0",	"",		"t,O",		0x20000130, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	I70,	0}, /* DMFC0 with named register */
+{"dmfc0",	"",		"t,P,J",	0x20000130, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	I70,	0}, /* DMFC0 with named register & select */
 {"dmfc0",	"",		"t,G,J",	0x20000130, 0xfc0007ff,	WR_1,			0,	I70,	0},
 {"dmfc1",	"",		"t,S",		0xa000243b, 0xfc00ffff,	WR_1|RD_2,		0,	I70,	0},
 {"dmfc2",	"",		"t,G",		0x20006d3f, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
-{"dmfgc0",	"",		"t,G",		0x200001b0, 0xfc00ffff,	WR_1,		INSN2_ALIAS,	0,	IVIRT64},  /* DMFGC0 with sel=0 */
+{"dmfgc0",	"",		"t,O",		0x200001b0, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	IVIRT64}, /* DMFGC0 with named register */
+{"dmfgc0",	"",		"t,P,J",	0x200001b0, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	IVIRT64}, /* DMFGC0 with named register & select */
 {"dmfgc0",	"",		"t,G,J",	0x200001b0, 0xfc0007ff,	WR_1,			0,	0,	IVIRT64},
 {"dmod",	"",		"d,v,t",	0xc0000158, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,	0},
 {"dmod",	"",		"d,v,I",	0,    (int) M_DMOD_I,	INSN_MACRO,		0,	I70,	0},
@@ -769,12 +774,14 @@ IGRIE */
 {"dmodu",	"",		"d,v,I",	0,    (int) M_DMODU_I,	INSN_MACRO,		0,	I70,	0},
 {"dmt", 	"",		"",		0x20010ab0, 0xffffffff,	0,		INSN2_ALIAS,	0,	MT32},
 {"dmt", 	"",		"t",		0x20010ab0, 0xfc1fffff,	WR_1,			0,	0,	MT32},
-{"dmtc0",	"",		"t,G",		0x20000170, 0xfc00ffff,	RD_1,		INSN2_ALIAS,	I70,	0}, /* DMTC0 with sel=0 */
+{"dmtc0",	"",		"t,O",		0x20000170, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	I70,	0}, /* DMTC0 with named register */
+{"dmtc0",	"",		"t,P,J",	0x20000170, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	I70,	0}, /* DMTC0 with named register & select */
 {"dmtc0",	"",		"t,G,J",	0x20000170, 0xfc0007ff,	RD_1,			0,	I70,	0},
 {"dmtc1",	"",		"t,S",		0xa0002c3b, 0xfc00ffff,	RD_1|WR_2,		0,	I70,	0},
 {"dmtc2",	"",		"t,G",		0x20007d3f, 0xfc00ffff,	RD_1|WR_2,		0,	I38,	0},
-{"dmtgc0",	"",		"t,G",		0x200001f0, 0xfc00ffff,	RD_1,		INSN2_ALIAS,	0,	IVIRT64}, /* DMTGC0 with sel=0 */
-{"dmtgc0",	"",		"t,G,J",	0x200001f0, 0xfc0007ff,	RD_1,		0,	0,	IVIRT64},
+{"dmtgc0",	"",		"t,O",		0x200001f0, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	IVIRT64}, /* DMTGC0 with named register */
+{"dmtgc0",	"",		"t,P,J",	0x200001f0, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	IVIRT64}, /* DMTGC0 with named register & select */
+{"dmtgc0",	"",		"t,G,J",	0x200001f0, 0xfc0007ff,	RD_1,			0,	0,	IVIRT64},
 {"dmuh",	"",		"d,s,t",	0xc0000058, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,	0},
 {"dmuhu",	"",		"d,s,t",	0xc00000d8, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,	0},
 {"dmul",	"",		"d,v,t",	0xc0000018, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,	0},
@@ -997,26 +1004,30 @@ IGRIE */
 {"max.s",	"",		"D,S,T",	0xa000000b, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
 {"maxa.d",	"",		"D,S,T",	0xa000022b, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
 {"maxa.s",	"",		"D,S,T",	0xa000002b, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"mfc0",	"",		"t,G",		0x20000030, 0xfc00ffff,	WR_1,		INSN2_ALIAS,	I38,	0}, /* MFC0 with sel=0 */
+{"mfc0",	"",		"t,O",		0x20000030, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	I38,	0}, /* MFC0 with named register */
+{"mfc0",	"",		"t,P,J",	0x20000030, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	I38,	0}, /* MFC0 with named register & select */
 {"mfc0",	"",		"t,G,J",	0x20000030, 0xfc0007ff,	WR_1,			0,	I38,	0},
 {"mfc1",	"",		"t,S",		0xa000203b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
 {"mfc1",	"",		"t,G",		0xa000203b, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	I38,	0},
 {"mfc2",	"",		"t,G",		0x20004d3f, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
-{"mfgc0",	"",		"t,G",		0x200000b0, 0xfc00ffff,	WR_1,		INSN2_ALIAS,	0,	IVIRT}, /* MFGC0 with sel=0 */
+{"mfgc0",	"",		"t,O",		0x200000b0, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	IVIRT}, /* MFGC0 with named register */
+{"mfgc0",	"",		"t,P,J",	0x200000b0, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	IVIRT},  /* MFGC0 with named register & select */
 {"mfgc0",	"",		"t,G,J",	0x200000b0, 0xfc0007ff,	WR_1,			0,	0,	IVIRT},
-{"mfhc0",	"",		"t,G",		0x20000038, 0xfc00ffff,	WR_1,		INSN2_ALIAS,	0,	XPA}, /* MFHC0 with sel=0 */
+{"mfhc0",	"",		"t,O",		0x20000038, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	XPA}, /* MFHC0 with named register */
+{"mfhc0",	"",		"t,P,J",	0x20000038, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	XPA}, /* MFHC0 with named register & select*/
 {"mfhc0",	"",		"t,G,J",	0x20000038, 0xfc0007ff,	WR_1,			0,	0,	XPA},
 {"mfhc1",	"",		"t,S",		0xa000303b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
 {"mfhc1",	"",		"t,G",		0xa000303b, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	I38,	0},
 {"mfhc2",	"",		"t,G",		0x20008d3f, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
-{"mfhgc0",	"",		"t,G",		0x200000b8, 0xfc00ffff,	WR_1,		INSN2_ALIAS,	0,	IVIRT_XPA}, /* MFHGC0 with sel=0 */
+{"mfhgc0",	"",		"t,O",		0x200000b8, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	IVIRT_XPA}, /* MFHGC0 with named register */
+{"mfhgc0",	"",		"t,P,J",	0x200000b8, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	IVIRT_XPA}, /* MFHGC0 with named register & select*/
 {"mfhgc0",	"",		"t,G,J",	0x200000b8, 0xfc0007ff,	WR_1,			0,	0,	IVIRT_XPA},
 {"mfhi",	"[dsp]",	"t,7",		0x2000007f, 0xfc1f3fff,	WR_1|RD_2,		0,	0,	D32}, /* MFHI[DSP] */
 {"mflo",	"[dsp]",	"t,7",		0x2000107f, 0xfc1f3fff,	WR_1|RD_2,		0,	0,	D32}, /* MFLO[DSP] */
-{"mftc0",	"",		"t,G",		0x20000230, 0xfc00ffff,	WR_1,		INSN2_ALIAS,	0,	MT32}, /* MFTR */
-{"mftc0",	"",	 	"t,G,J",	0x20000230, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	MT32}, /* MFTR */
-{"mfthc0",	"",	 	"t,G",		0x20000238, 0xfc00ffff,	WR_1,		INSN2_ALIAS,	0,	MT32}, /* MFTR */
-{"mfthc0",	"",		"t,G,J",	0x20000238, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	MT32}, /* MFTR */
+{"mftc0",	"",		"t,O",		0x20000230, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	MT32}, /* MFTR with named register */
+{"mftc0",	"",	 	"t,P,J",	0x20000230, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	MT32}, /* MFTR with named register & select */
+{"mfthc0",	"",	 	"t,O",		0x20000238, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	MT32}, /* MFTR with named register */
+{"mfthc0",	"",		"t,P,J",	0x20000238, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	MT32}, /* MFTR with named register & select*/
 {"mftc1",	"",		"t,S",		0x20001630, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	MT32}, /* MFTR */
 {"mftc1",	"",		"t,G",		0x20001630, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	MT32}, /* MFTR */
 {"mftc2",	"",		"t,G",		0x20002630, 0xfc00ffff,	WR_1,		INSN2_ALIAS,	0,	MT32}, /* MFTR */
@@ -1029,7 +1040,7 @@ IGRIE */
 {"mfthi",	"",		"t,*",		0x20010e30, 0xfc13ffff,	WR_1|RD_a,	INSN2_ALIAS,	0,	MT32}, /* MFTR */
 {"mftlo",	"",		"t",		0x20000e30, 0xfc1fffff,	WR_1|RD_a,	INSN2_ALIAS,	0,	MT32}, /* MFTR */
 {"mftlo",	"",		"t,*",		0x20000e30, 0xfc13ffff,	WR_1|RD_a,	INSN2_ALIAS,	0,	MT32}, /* MFTR */
-{"mftr",	"",		"t,s,!,J,$",	0x20000230, 0xfc0003f7,	WR_1,			0,	0,	MT32},
+{"mftr",	"",		"t,s,!,Q,$",	0x20000230, 0xfc0003f7,	WR_1,			0,	0,	MT32},
 {"min.d",	"",		"D,S,T",	0xa0000203, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
 {"min.s",	"",		"D,S,T",	0xa0000003, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
 {"mina.d",	"",		"D,S,T",	0xa0000223, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
@@ -1053,27 +1064,31 @@ IGRIE */
 {"msubf.d",	"",		"D,S,T",	0xa00003f8, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
 {"msubf.s",	"",		"D,S,T",	0xa00001f8, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
 {"msubu",	"[dsp]",	"7,s,t",	0x20003abf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32}, /* MSUBU[DSP] */
-{"mtc0",	"",		"t,G",		0x20000070, 0xfc00ffff,	RD_1,		INSN2_ALIAS,	I38,	0}, /* MTC0 with sel=0 */
+{"mtc0",	"",		"t,O",		0x20000070, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	I38,	0}, /* MTC0 with named register */
+{"mtc0",	"",		"t,P,J",	0x20000070, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	I38,	0}, /* MTCO with named register & select */
 {"mtc0",	"",		"t,G,J",	0x20000070, 0xfc0007ff,	RD_1,			0,	I38,	0},
 {"mtc1",	"",		"t,S",		0xa000283b, 0xfc00ffff,	RD_1|WR_2,		0,	I38,	0},
 {"mtc1",	"",		"t,G",		0xa000283b, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS,	I38,	0},
 {"mtc2",	"",		"t,G",		0x20005d3f, 0xfc00ffff,	RD_1|WR_2,		0,	I38,	0},
-{"mtgc0",	"",		"t,G",		0x200000f0, 0xfc00ffff,	RD_1,		INSN2_ALIAS,	0,	IVIRT}, /* MTGC0 with sel=0 */
+{"mtgc0",	"",		"t,O",		0x200000f0, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	IVIRT}, /* MTGC0 with named register */
+{"mtgc0",	"",		"t,P,J",	0x200000f0, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	IVIRT}, /* MTGC0 with named register & select */
 {"mtgc0",	"",		"t,G,J",	0x200000f0, 0xfc0007ff,	RD_1,			0,	0,	IVIRT},
-{"mthc0",	"",		"t,G",		0x20000078, 0xfc00ffff,	RD_1,		INSN2_ALIAS,	0,	XPA}, /* MTHC0 with sel=0 */
+{"mthc0",	"",		"t,O",		0x20000078, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	XPA}, /* MTHC0 with named register */
+{"mthc0",	"",		"t,P,J",	0x20000078, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	XPA}, /* MTHC0 with named register & select */
 {"mthc0",	"",		"t,G,J",	0x20000078, 0xfc0007ff,	RD_1,			0,	0,	XPA},
 {"mthc1",	"",		"t,S",		0xa000383b, 0xfc00ffff,	RD_1|WR_2,		0,	I38,	0},
 {"mthc1",	"",		"t,G",		0xa000383b, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS,	I38,	0},
 {"mthc2",	"",		"t,G",		0x20009d3f, 0xfc00ffff,	RD_1|WR_2,		0,	I38,	0},
-{"mthgc0",	"",		"t,G",		0x200000f8, 0xfc00ffff,	RD_1,		INSN2_ALIAS,	0,	IVIRT_XPA}, /* MTHGC0 with sel=0 */
-{"mthgc0",	"",		"t,G,J",	0x200000f8, 0xfc0007ff,		RD_1,		0,	0,	IVIRT_XPA},
+{"mthgc0",	"",		"t,O",		0x200000f8, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	IVIRT_XPA}, /* MTHGC0 with named register */
+{"mthgc0",	"",		"t,P,J",	0x200000f8, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	IVIRT_XPA}, /* MTHGC0 with named register & select */
+{"mthgc0",	"",		"t,G,J",	0x200000f8, 0xfc0007ff,	RD_1,			0,	0,	IVIRT_XPA},
 {"mthi",	"[dsp]",	"s,7",		0x2000207f, 0xffe03fff,	WR_1|RD_2,		0,	0,	D32}, /* MTHI[DSP] */
 {"mthlip",	"",		"s,7",		0x2000027f, 0xffe03fff,	WR_1|RD_2,		0,	0,	D32},
 {"mtlo",	"[dsp]",	"s,7",		0x2000307f, 0xffe03fff,	WR_1|RD_2,		0,	0,	D32}, /* MTLO[DSP] */
-{"mttc0",	"",		"t,G",		0x20000270, 0xfc00ffff,	RD_1,		INSN2_ALIAS,	0,	MT32}, /* MTTR */
-{"mttc0",	"",		"t,G,J",	0x20000270, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	MT32}, /* MTTR */
-{"mtthc0",	"",		"t,G",		0x20000278, 0xfc00ffff,	RD_1,		INSN2_ALIAS,	0,	MT32}, /* MTTR */
-{"mtthc0",	"",		"t,G,J",	0x20000278, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	MT32}, /* MTTR */
+{"mttc0",	"",		"t,O",		0x20000270, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	MT32}, /* MTTR with named register */
+{"mttc0",	"",		"t,P,J",	0x20000270, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	MT32}, /* MTTR with named register & select */
+{"mtthc0",	"",		"t,O",		0x20000278, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	MT32}, /* MTTR with named register*/
+{"mtthc0",	"",		"t,P,J",	0x20000278, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	MT32}, /* MTTR with named register & select */
 {"mttc1",	"",		"t,S",		0x20001670, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS,	0,	MT32}, /* MTTR */
 {"mttc1",	"",		"t,G",		0x20001670, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS,	0,	MT32}, /* MTTR */
 {"mttc2",	"",		"t,G",		0x20002670, 0xfc00ffff,	RD_1,		INSN2_ALIAS,	0,	MT32}, /* MTTR */
@@ -1086,7 +1101,7 @@ IGRIE */
 {"mttlo",	"",		"t",		0x20000e70, 0xfc1fffff,	RD_1|WR_a,	INSN2_ALIAS,	0,	MT32}, /* MTTR */
 {"mttlo",	"",		"t,*",		0x20000e70, 0xfc13ffff,	RD_1|WR_a,	INSN2_ALIAS,	0,	MT32}, /* MTTR */
 {"mttdsp",	"",		"t",		0x20100e70, 0xfc1fffff,	RD_1,		INSN2_ALIAS,	0,	MT32}, /* MTTR */
-{"mttr",	"",		"t,s,!,J,$",	0x20000270, 0xfc0003f7,	RD_1,			0,	0,	MT32},
+{"mttr",	"",		"t,s,!,Q,$",	0x20000270, 0xfc0003f7,	RD_1,			0,	0,	MT32},
 {"muh", 	"", 	 	"d,v,t",	0x20000058, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"muhu",	"",		"d,v,t",	0x200000d8, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"mul", 	"[4x4]",	"+4,mt,+5",	0x3c08,		0xfd08,	MOD_1|RD_3,		0,	0,	xNMS}, /* MUL[4X4] */
