@@ -713,23 +713,7 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "hwr-names-numeric" "" nanomips32r6
     run_dump_test_arch "hwr-names" "" nanomips32r6
 
-#    run_dump_test "ldstla-32"
-#    run_dump_test "ldstla-32-mips3"
-#    run_dump_test "ldstla-32-shared"
-#    run_dump_test "ldstla-32-mips3-shared"
-#     run_list_test "ldstla-32-1" "-march=32r6 -mlegacyregs"  \
-# 			"nanoMIPS ld-st-la bad constants (ABI p32)"
-#     run_list_test "lddstdla-32-1" "-march=64r6 -mlegacyregs" \
-# 			"nanoMIPS ld-st-la bad constants (ABI p32)"
-#     run_list_test "ldstla-32-1" "-mpic -march=32r6 -mlegacyregs " \
-# 	"MIPS ld-st-la bad constants (ABI p32, shared)"
-#     run_list_test "lddstdla-32-1" "-mpic -march=64r6 -mlegacyregs" \
-# 	"MIPS ld-st-la bad constants (ABI o32, 64r6, shared)"
-#     if $has_newabi {
-# 	run_dump_test "ldstla-n64"
-# 	run_dump_test "ldstla-n64-shared"
-# 	run_dump_test "ldstla-n64-sym32"
-#     }
+    run_list_test_arches "ldstla-err" "" [arch_list_matching nanomipsr6]
 
     run_list_test_arch "macro-err" "-mlegacyregs" nanomips32s
 

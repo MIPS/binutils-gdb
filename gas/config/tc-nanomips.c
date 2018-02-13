@@ -3644,7 +3644,7 @@ match_int_operand (struct nanomips_arg_info *arg,
     {
       if (!match_const_int (arg, &sval))
 	return FALSE;
-      if (min_val < 0)
+      if (min_val < 0 && IS_ZEXT_32BIT_NUM(sval))
 	sval = (int) sval;
     }
 
@@ -7009,14 +7009,28 @@ small_add_offset_p (unsigned int range)
 	  || (small_noffset_p (range, ISA_OFFBITS)));
 }
 
+/* Check if an address offset fits within 32-bit address mode.  */
+
+static bfd_boolean
+check_offset_range (offsetT offset)
+{
+    if (HAVE_32BIT_ADDRESSES && !IS_SEXT_32BIT_NUM (offset))
+    {
+      char value[32];
+
+      sprintf_vma (value, offset);
+      as_bad (_("number (0x%s) larger than 32 bits"), value);
+      return FALSE;
+    }
+
+    return TRUE;
+}
+
 static void
 nanomips_macro_absolute_ld_st (const char *s, const char *fmt,
 			       unsigned int op[],
 			       unsigned int tempreg, unsigned int breg)
 {
-  if (!IS_SEXT_32BIT_NUM (offset_expr.X_add_number))
-    as_bad (_("offset too large"));
-
   if (breg == 0)
     {
       macro_build_lui (&offset_expr, tempreg);
@@ -7034,8 +7048,6 @@ static void
 nanomips_macro_pcrel_ld_st (const char *s, const char *fmt, unsigned int op[],
 			    unsigned int tempreg)
 {
-  if (!IS_SEXT_32BIT_NUM (offset_expr.X_add_number))
-    as_bad (_("offset too large"));
   if ((nanomips_opts.ase & ASE_xNMS) != 0
       && *offset_reloc == BFD_RELOC_UNUSED
       && !nanomips_opts.insn32)
@@ -7098,13 +7110,8 @@ nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
       offset_expr.X_op = O_constant;
     }
 
-  if (HAVE_32BIT_ADDRESSES && !IS_SEXT_32BIT_NUM (offset_expr.X_add_number))
-    {
-      char value[32];
-
-      sprintf_vma (value, offset_expr.X_add_number);
-      as_bad (_("number (0x%s) larger than 32 bits"), value);
-    }
+  if (!check_offset_range (offset_expr.X_add_number))
+    return;
 
   /* A constant expression in PIC code can be handled just as it
      is in non PIC code.  */
@@ -7198,9 +7205,6 @@ static void
 nanomips_macro_absolute_ldd_std (const char *s, const char *fmt, unsigned int
 				 op[], unsigned int breg, unsigned int coproc)
 {
-  if (!IS_SEXT_32BIT_NUM (offset_expr.X_add_number))
-    as_bad (_("offset too large"));
-
   if (offset_high_part (offset_expr.X_add_number, ISA_OFFBITS)
       != offset_high_part (offset_expr.X_add_number + 4, ISA_OFFBITS))
     {
@@ -7231,8 +7235,6 @@ static void
 nanomips_macro_pcrel_ldd_std (const char *s, const char *fmt,
 			      unsigned int op[], unsigned int coproc)
 {
-  if (!IS_SEXT_32BIT_NUM (offset_expr.X_add_number))
-    as_bad (_("offset too large"));
   if ((nanomips_opts.ase & ASE_xNMS) != 0
       && *offset_reloc == BFD_RELOC_UNUSED
       && !nanomips_opts.insn32)
@@ -7327,13 +7329,8 @@ nanomips_macro_ldd_std (const char *s, const char *fmt, unsigned int op[],
       offset_expr.X_op = O_constant;
     }
 
-  if (HAVE_32BIT_ADDRESSES && !IS_SEXT_32BIT_NUM (offset_expr.X_add_number))
-    {
-      char value[32];
-
-      sprintf_vma (value, offset_expr.X_add_number);
-      as_bad (_("number (0x%s) larger than 32 bits"), value);
-    }
+  if (!check_offset_range (offset_expr.X_add_number))
+    return;
 
   if (nanomips_opts.pic == NO_PIC || offset_expr.X_op == O_constant)
     {
@@ -7436,8 +7433,6 @@ nanomips_macro_ldd_std (const char *s, const char *fmt, unsigned int op[],
 static void
 nanomips_macro_pcrel_la (unsigned int op[])
 {
-  if (!IS_SEXT_32BIT_NUM (offset_expr.X_add_number))
-    as_bad (_("offset too large"));
   if ((nanomips_opts.ase & ASE_xNMS) != 0
       && *offset_reloc == BFD_RELOC_UNUSED
       && !nanomips_opts.insn32)
@@ -7457,8 +7452,6 @@ nanomips_macro_pcrel_la (unsigned int op[])
 static void
 nanomips_macro_absolute_la (unsigned int op[])
 {
-  if (!IS_SEXT_32BIT_NUM (offset_expr.X_add_number))
-    as_bad (_("offset too large"));
   if ((nanomips_opts.ase & ASE_xNMS) != 0
       && *offset_reloc == BFD_RELOC_UNUSED
       && !nanomips_opts.insn32)
@@ -7506,6 +7499,9 @@ nanomips_macro_la (unsigned int op[], unsigned int breg, int *used_at,
       as_bad (_("expression too complex"));
       offset_expr.X_op = O_constant;
     }
+
+  if (!check_offset_range (offset_expr.X_add_number))
+    return;
 
   if (offset_expr.X_op == O_constant)
     load_register (tempreg, &offset_expr, HAVE_64BIT_ADDRESSES);
