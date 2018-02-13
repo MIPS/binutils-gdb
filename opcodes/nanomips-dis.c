@@ -113,8 +113,8 @@ static const char * const msa_control_names[32] = {
 
 /* The empty-list of CP0 registers serves as an indicator to fall-back to
    numeric register names.  */
-const struct nanomips_cp0_name nanomips_cp0_numeric[] = { {"", 0, 0} };
-const struct nanomips_cp0_select nanomips_cp0sel_numeric[] = { {"", 0, 0} };
+const struct nanomips_cp0_name nanomips_cp0_numeric[] = { {NULL, 0, 0} };
+const struct nanomips_cp0_select nanomips_cp0sel_numeric[] = { {NULL, 0, 0} };
 
 struct nanomips_abi_choice
 {
