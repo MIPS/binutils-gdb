@@ -950,10 +950,13 @@ IGRIE */
 {"lld", 	"", 		"t,+q(b)",	0xa4007100, 0xfc007f07,	WR_1|RD_3,		0,	I70,	0},
 {"lld", 	"",		"t,A(c)",	0,    (int) M_LLD_AB,	INSN_MACRO,		0,	I70,	0},
 {"lldp",	"",		"t,mu,(b)",	0xa4007101, 0xfc00ff07, WR_1|WR_2|RD_3,		0,	I70,	0},
+{"lldp",	"",		"t,mu,A(c)",	0,     (int) M_LLDP_AB, INSN_MACRO,		0,	I70,	0},
 {"lle", 	"", 		"t,+m(b)",	0xa4005200, 0xfc007f03,	WR_1|RD_3,		0,	0,	EVA},
 {"lle", 	"", 		"t,A(c)",	0,     (int) M_LLE_AB,	INSN_MACRO,		0,	0,	EVA},
 {"llwp",	"",		"t,mu,(b)",	0xa4005101, 0xfc00ff07, WR_1|WR_2|RD_3,		0,	0,	xNMS},
+{"llwp",	"",		"t,mu,A(c)",	0, 	(int) M_LLWP_AB, INSN_MACRO,		0,	0,	xNMS},
 {"llwpe",	"",		"t,mu,(b)",	0xa4005201, 0xfc00ff07, WR_1|WR_2|RD_3,		0,	0,	EVA},
+{"llwpe",	"",		"t,mu,A(c)",	0, 	(int) M_LLWP_AB, INSN_MACRO,		0,	0,	EVA},
 {"lsa",		"",		"d,v,t,+.",	0x2000000f, 0xfc0001ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"lw",		"[16]",		"md,mJ(ml)",	0x1400,		0xfc00,	WR_1|RD_3,		0,	I38,	0}, /* LW[16] */
 {"lw",		"[4x4]",	"+4,mN(+5)",	0x7400,		0xfc00,	WR_1|RD_3,		0,	0,	xNMS}, /* LW[4X4] */
@@ -1230,10 +1233,13 @@ IGRIE */
 {"scd", 	"", 		"t,+q(b)",	0xa4007900, 0xfc007f07,	MOD_1|RD_3,		0,	I70,	0},
 {"scd", 	"",		"t,A(c)",	0,    (int) M_SCD_AB,	INSN_MACRO,		0,	I70,	0},
 {"scdp",	"",		"t,mu,(b)",	0xa4007901, 0xfc00ff07,MOD_1|WR_2|RD_3,		0,	I70,	0},
+{"scdp",	"",		"t,mu,A(c)",	0,     (int) M_SCDP_AB, INSN_MACRO,		0,	I70,	0},
 {"sce", 	"", 		"t,+m(b)",	0xa4005a00, 0xfc007f03,	MOD_1|RD_3,		0,	0,	EVA},
 {"sce", 	"", 		"t,A(c)",	0,     (int) M_SCE_AB,	INSN_MACRO,		0,	0,	EVA},
 {"scwp",	"",		"t,mu,(b)",	0xa4005901, 0xfc00ff07,MOD_1|WR_2|RD_3,		0,	0,	xNMS},
+{"scwp",	"",		"t,mu,A(c)",	0, 	(int) M_SCWP_AB, INSN_MACRO,		0,	0,	xNMS},
 {"scwpe",	"",		"t,mu,(b)",	0xa4005a01, 0xfc00ff07,MOD_1|WR_2|RD_3,		0,	0,	EVA},
+{"scwpe",	"",		"t,mu,A(c)",	0, 	(int) M_SCWP_AB, INSN_MACRO,		0,	0,	EVA},
 {"sd",		"[gp]",		"t,mV(ma)",	0x40000005, 0xfc000007,	RD_1|RD_3,		0,	I70,	0}, /* SD[GP] */
 {"sd",		"[u12]",	"t,o(b)",	0x8400d000, 0xfc00f000,	RD_1|RD_3,		0,	I70,	0}, /* SD[U12] */
 {"sd",		"[s9]",		"t,+j(b)",	0xa4006800, 0xfc007f00,	RD_1|RD_3,		0,	I70,	0}, /* SD[S9] */

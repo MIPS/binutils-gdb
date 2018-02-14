@@ -975,4 +975,7 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test "addiugp"
     run_dump_test "addiugp-linkrelax"
     run_dump_test "cfi-frames"
+
+    run_dump_test_arch "llsc-wp" "" nanomips32r6
+    run_dump_test_arch "llsc-dp" "" nanomips64r6
 }

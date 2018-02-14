@@ -6029,6 +6029,7 @@ static const char *const mfhl_fmt[2] = { "mj", "s" };
 #define LWGP_FMT "t,.(ma)"
 #define MEM12_FMT "t,+j(b)"
 #define LL_SC_FMT "t,+m(b)"
+#define LLP_SCP_FMT "t,mu,(b)"
 #define LLD_SCD_FMT "t,+q(b)"
 #define LLE_SCE_FMT "t,+m(b)"
 #define LWU_FMT "t,o(b)"
@@ -7202,6 +7203,109 @@ nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
 }
 
 static void
+nanomips_macro_ldp_stp (const char *s, const char *fmt, unsigned int op[],
+			int align, unsigned int breg,
+			unsigned int tempreg, int *used_at)
+{
+  if (tempreg == AT)
+    *used_at = 1;
+
+  if (small_add_offset_p (0) && offset_expr.X_add_number != 0)
+    {
+      if (breg == 0)
+	load_register (tempreg, &offset_expr, HAVE_64BIT_ADDRESSES);
+      else if (small_poffset_p (0, 1, ISA_ADD_OFFBITS))
+	macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDIU_FMT,
+		     tempreg, breg, -1, offset_reloc[0],
+		     offset_reloc[1], offset_reloc[2]);
+      else if (small_noffset_p (0, ISA_OFFBITS))
+	macro_build (&offset_expr, ADDRESS_ADDI_INSN, "t,r,h",
+		     tempreg, breg, -1, offset_reloc[0],
+		     offset_reloc[1], offset_reloc[2]);
+      macro_build (NULL, s, fmt, op[0], op[1], tempreg);
+
+      return;
+    }
+
+  if (offset_expr.X_op != O_constant && offset_expr.X_op != O_symbol)
+    {
+      as_bad (_("expression too complex"));
+      offset_expr.X_op = O_constant;
+    }
+
+  if (HAVE_32BIT_ADDRESSES && !IS_SEXT_32BIT_NUM (offset_expr.X_add_number))
+    {
+      char value[32];
+
+      sprintf_vma (value, offset_expr.X_add_number);
+      as_bad (_("number (0x%s) larger than 32 bits"), value);
+    }
+
+  /* A constant expression in PIC code can be handled just as it
+     is in non PIC code.  */
+  if (offset_expr.X_op == O_constant)
+    {
+      if ((offset_expr.X_add_number & (align - 1)) != 0 && breg == 0)
+	{
+	  char value[32];
+
+	  sprintf_vma (value, offset_expr.X_add_number);
+	  as_bad (_("number (0x%s) not aligned to %d bytes"), value, align);
+	}
+
+      if (offset_expr.X_add_number == 0)
+	{
+	  *used_at = 0;
+	  tempreg = breg;
+	}
+      else
+	{
+	  load_register (tempreg, &offset_expr, HAVE_64BIT_ADDRESSES);
+	  if (breg != 0)
+	    macro_build (NULL, ADDRESS_ADD_INSN, "d,v,t", tempreg,
+			 tempreg, breg);
+	}
+
+      macro_build (NULL, s, fmt, op[0], op[1], tempreg);
+    }
+  else if (nanomips_opts.pic == NO_PIC)
+    {
+      /* The offset field is too narrow to be used for a low-part
+         relocation, so load the whole address into the auxillary
+         register.  */
+      load_address (tempreg, &offset_expr, used_at);
+      if (breg != 0)
+	macro_build (NULL, ADDRESS_ADD_INSN, "d,v,t", tempreg, tempreg, breg);
+      macro_build (NULL, s, fmt, op[0], op[1], tempreg);
+    }
+  else
+    {
+      const char *gpfmt;
+      gas_assert (offset_expr.X_op == O_symbol);
+
+      if (HAVE_64BIT_SYMBOLS)
+	gpfmt = "t,mV(ma)";
+      else
+	gpfmt = "t,.(ma)";
+
+      if (nanomips_opts.pic == SVR4_PIC || linkrelax)
+	macro_build (&offset_expr, ADDRESS_LOAD_INSN, gpfmt, tempreg,
+		     BFD_RELOC_NANOMIPS_GOT_DISP, nanomips_gp_register);
+      else if ((nanomips_opts.ase & ASE_xNMS) != 0 && !nanomips_opts.insn32)
+	macro_build (&offset_expr, "lwpc", "mp,+S", tempreg,
+		     BFD_RELOC_NANOMIPS_GOTPC_I32);
+      else
+	{
+	  macro_build (&offset_expr, "aluipc", "t,mK", tempreg,
+		       BFD_RELOC_NANOMIPS_GOTPC_HI20);
+	  macro_build (&offset_expr, ADDRESS_LOAD_INSN, "t,o(b)", tempreg,
+		       BFD_RELOC_NANOMIPS_GOT_LO12, tempreg);
+	}
+      macro_build (NULL, s, fmt, op[0], op[1], tempreg);
+    }
+}
+
+static void
 nanomips_macro_absolute_ldd_std (const char *s, const char *fmt, unsigned int
 				 op[], unsigned int breg, unsigned int coproc)
 {
@@ -8145,6 +8249,27 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       align = 4;
       offbits = ISA_SIGNED_OFFBITS;
       goto ld;
+
+    case M_LLDP_AB:
+      dbl = TRUE;
+      /* fall through */
+    case M_LLWP_AB:
+      fmt = LLP_SCP_FMT;
+      align = (dbl ? 16 : 8);
+      breg = op[3];
+      /* We don't want to use $0 as tempreg.  */
+      if (op[0] != ZERO && op[0] != breg)
+	tempreg = op[0];
+      else if (op[1] != ZERO && op[1] != breg)
+	tempreg = op[1];
+      else
+	ldp_stp:
+	  tempreg = AT;
+
+      nanomips_macro_ldp_stp (s, fmt, op, align, breg,
+			      tempreg, &used_at);
+      break;
+
     case M_LLD_AB:
       fmt = LLD_SCD_FMT;
       offbits = ISA_SIGNED_OFFBITS;
@@ -8205,6 +8330,16 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       fmt = LLD_SCD_FMT;
       align = 8;
       goto ld_st_signed_off;
+
+    case M_SCDP_AB:
+      dbl = TRUE;
+
+    case M_SCWP_AB:
+      fmt = LLP_SCP_FMT;
+      align = (dbl ? 16 : 8);
+      offbits = 0;
+      breg = op[3];
+      goto ldp_stp;
 
     case M_CACHE_AB:
     case M_PREF_AB:

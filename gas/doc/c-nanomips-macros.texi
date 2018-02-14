@@ -2579,33 +2579,109 @@ ll rd,0(rd)
 @multitable @columnfractions 1
 @item @xref{x_ll_label,,ll from label}.
 @end multitable
-@item llwp rd,ofst(rs)
+@anchor{x_llwp_ofst}@item llwp rd,ru,ofst(rs)
 @multitable @columnfractions 0.3 0.4 0.3
 @item
+@verbatim
+rs == 0 && rd != 0
+@end verbatim
 @tab
+@verbatim
+li rd,ofst
+llwp rd,ru,(rd)
+@end verbatim
 @tab
-TODO
+@item
+@verbatim
+rs == 0 && ru != 0
+@end verbatim
+@tab
+@verbatim
+li ru,ofst
+llwp rd,ru,(ru)
+@end verbatim
+@tab
+@item
+@verbatim
+-4095 <= ofst <= 65535
+&& rd != 0
+@end verbatim
+@tab
+@verbatim
+addiu rd,rs,ofst
+llwp rd,ru,(rd)
+@end verbatim
+@tab
+@item
+@verbatim
+-4095 <= ofst <= 65535
+&& ru != 0
+@end verbatim
+@tab
+@verbatim
+addiu ru,rs,ofst
+llwp rd,ru,(ru)
+@end verbatim
+@tab
+@item
+@verbatim
+rd != 0
+@end verbatim
+@tab
+@verbatim
+li rd,ofst
+addiu rd,rd,rs
+llwp rd,ru,(rd)
+@end verbatim
+@tab
+@item
+@verbatim
+ru != 0
+@end verbatim
+@tab
+@verbatim
+li ru,ofst
+addiu ru,ru,rs
+llwp rd,ru,(ru)
+@end verbatim
+@tab
 @end multitable
-@item llwp rd,label
+@anchor{x_llwp_label}@item llwp rd,ru,label
 @multitable @columnfractions 0.3 0.4 0.3
 @item
+@verbatim
+rd != 0
+@end verbatim
 @tab
+@verbatim
+la rd,label
+llwp rd,ru,(rd)
+@end verbatim
 @tab
-TODO
+@xref{x_la_label,,la of label}.
+@item
+@verbatim
+ru != 0
+@end verbatim
+@tab
+@verbatim
+la ru,label
+llwp rd,ru,(ru)
+@end verbatim
+@tab
+@xref{x_la_label,,la of label}.
 @end multitable
-@item llwpe rd,ofst(rs)
-@multitable @columnfractions 0.3 0.4 0.3
+@item llwpe rd,ru,ofst(rs)
+@itemx lldp rd,ru,ofst(rs)
+@multitable @columnfractions 1
+@item @xref{x_llwp_ofst,,llwp from offset}.
 @item
-@tab
-@tab
-TODO
 @end multitable
-@item llwpe rd,label
-@multitable @columnfractions 0.3 0.4 0.3
+@item llwpe rd,ru,label
+@itemx lldp rd,ru,label
+@multitable @columnfractions 1
+@item @xref{x_llwp_label,,llwp from label}.
 @item
-@tab
-@tab
-TODO
 @end multitable
 @anchor{x_sw_ofst}@item sw rd,ofst(rs)
 @multitable @columnfractions 0.3 0.4 0.3
@@ -2777,34 +2853,60 @@ lw rd,0($at)
 @multitable @columnfractions 1
 @item @xref{x_ll_label,,ll from label}.
 @end multitable
-@item scp rd,ofst(rs)
+@anchor{x_scwp_ofst}@item scwp rd,ru,ofst(rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item
+@verbatim
+rs == 0
+@end verbatim
+@tab
+@verbatim
+li $at,ofst
+scwp rd,ru,($at)
+@end verbatim
+@tab
+@item
+@verbatim
+-4095 <= ofst <= 65535
+@end verbatim
+@tab
+@verbatim
+addiu $at,rs,ofst
+scwp rd,ru,($at)
+@end verbatim
+@tab
+@item else
+@tab
+@verbatim
+li $at,ofst
+addiu $at,$at,rs
+scwp rd,ru,($at)
+@end verbatim
+@tab
+@end multitable
+@anchor{x_scwp_label}@item scwp rd,ru,label
 @multitable @columnfractions 0.3 0.4 0.3
 @item
 @tab
+@verbatim
+la $at,label
+scwp rd,ru,($at)
+@end verbatim
 @tab
-TODO
+@xref{x_la_label,,la of label}.
 @end multitable
-@item scp rd,label
-@multitable @columnfractions 0.3 0.4 0.3
+@item scwpe rd,ru,ofst(rs)
+@itemx scdp rd,ru,ofst(rs)
+@multitable @columnfractions 1
+@item @xref{x_scwp_ofst,,scwp to offset}.
 @item
-@tab
-@tab
-TODO
 @end multitable
-@item scpe rd,ofst(rs)
-@multitable @columnfractions 0.3 0.4 0.3
+@item scwpe rd,ru,label
+@itemx scdp rd,ru,label
+@multitable @columnfractions 1
+@item @xref{x_scwp_label,,scwp to label}.
+@end multitable
 @item
-@tab
-@tab
-TODO
-@end multitable
-@item scpe rd,label
-@multitable @columnfractions 0.3 0.4 0.3
-@item
-@tab
-@tab
-TODO
-@end multitable
 @item lwc1 rd,ofst(rs)
 @itemx ldc1 rd,ofst(rs)
 @itemx swc1 rd,ofst rs)
