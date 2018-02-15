@@ -9268,7 +9268,8 @@ gdb_print_insn_mips (bfd_vma memaddr, struct disassemble_info *info)
      not rely on GDB.  Otherwize the stand-alone 'objdump -d' will not
      work.  */
   if (mips_pc_is_mips16 (gdbarch, memaddr))
-    info->mach = bfd_mach_mips16;
+    info->mach = (info->mach == bfd_mach_mips_interaptiv_mr2
+		  ? bfd_mach_mips_iamr2_mips16 : bfd_mach_mips16);
   else if (mips_pc_is_micromips (gdbarch, memaddr))
     {
       if (is_mipsr6_isa (gdbarch))
@@ -9280,6 +9281,7 @@ gdb_print_insn_mips (bfd_vma memaddr, struct disassemble_info *info)
 
   /* Round down the instruction address to the appropriate boundary.  */
   memaddr &= (info->mach == bfd_mach_mips16
+	      || info->mach == bfd_mach_mips_iamr2_mips16
 	      || info->mach == bfd_mach_mips_micromips
 	      || info->mach == bfd_mach_mips_micromipsr6) ? ~1 : ~3;
 

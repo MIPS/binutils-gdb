@@ -550,6 +550,15 @@ const struct mips_arch_choice mips_arch_choices[] =
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
 
+  /* This entry, iamr2+mips16, is here only for ISA/processor selection; do
+     not print its name.  */
+  { "",	1, bfd_mach_mips_iamr2_mips16, CPU_INTERAPTIV_MR2,
+    ISA_MIPS32R2,
+    ASE_MT | ASE_EVA | ASE_DSP | ASE_DSPR2 | ASE_MIPS16E2 | ASE_MIPS16E2_MT,
+    mips_cp0_names_mips3264r2,
+    mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
+    mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
+
   /* For stock MIPS32, disassemble all applicable MIPS-specified ASEs.
      Note that MIPS-3D and MDMX are not applicable to MIPS32.  (See
      _MIPS32 Architecture For Programmers Volume I: Introduction to the
@@ -2539,7 +2548,8 @@ _print_insn_mips (bfd_vma memaddr,
   set_default_mips_dis_options (info);
   parse_mips_dis_options (info->disassembler_options);
 
-  if (info->mach == bfd_mach_mips16)
+  if (info->mach == bfd_mach_mips16
+      || info->mach == bfd_mach_mips_iamr2_mips16)
     return print_insn_mips16 (memaddr, info);
   if (info->mach == bfd_mach_mips_micromips
       || info->mach == bfd_mach_mips_micromipsr6)
