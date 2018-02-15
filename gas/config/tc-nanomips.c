@@ -7087,8 +7087,12 @@ nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
 		     (int) offset_expr.X_add_number, breg);
       else
 	{
-	  if (tempreg == AT)
+	  /* Source destroying loads do not need AT for expansion.  */
+	  if (s[0] == 'l' && op[0] == breg && op[0] != 0)
+	    tempreg = breg;
+	  else if (tempreg == AT)
 	    *used_at = 1;
+
 	  if (small_poffset_p (0, 1, ISA_ADD_OFFBITS))
 	    macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDIU_FMT,
 			 tempreg, breg, -1, offset_reloc[0],
@@ -7118,21 +7122,37 @@ nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
      is in non PIC code.  */
   if (offset_expr.X_op == O_constant)
     {
-      expr1.X_add_number = offset_high_part (offset_expr.X_add_number,
-					     offbits);
-      if (offbits != ISA_OFFBITS && (expr1.X_add_number & 0xfff) != 0)
-	expr1 = offset_expr;
-      offset_expr.X_add_number -= expr1.X_add_number;
-
-      load_register (tempreg, &expr1, HAVE_64BIT_ADDRESSES);
-      if (breg != 0)
-	macro_build (NULL, ADDRESS_ADD_INSN, "d,v,t", tempreg, tempreg, breg);
-      if (offbits == ISA_OFFBITS)
-	macro_build (&offset_expr, s, fmt, op[0],
-		     BFD_RELOC_NANOMIPS_LO12, tempreg);
+      if (op[0] == breg
+	  && op[0] != 0
+	  && (nanomips_opts.ase & ASE_xNMS) != 0
+	  && (offset_high_part (offset_expr.X_add_number, offbits)
+	      != offset_expr.X_add_number))
+	{
+	  *used_at = 0;
+	  macro_build (&offset_expr, "addiu", "mp,mt,+R", op[0], op[0],
+		       BFD_RELOC_NANOMIPS_I32);
+	  macro_build (NULL, s, fmt, op[0], 0, op[0]);
+	}
       else
-	macro_build (NULL, s, fmt, op[0], (int) offset_expr.X_add_number,
-		     tempreg);
+	{
+	  expr1.X_add_number = offset_high_part (offset_expr.X_add_number,
+						 offbits);
+	  if (offbits != ISA_OFFBITS && (expr1.X_add_number & 0xfff) != 0)
+	    expr1 = offset_expr;
+	  offset_expr.X_add_number -= expr1.X_add_number;
+
+	  load_register (tempreg, &expr1, HAVE_64BIT_ADDRESSES);
+	  if (breg != 0)
+	    macro_build (NULL, ADDRESS_ADD_INSN, "d,v,t", tempreg,
+			 tempreg, breg);
+
+	  if (offbits == ISA_OFFBITS)
+	    macro_build (&offset_expr, s, fmt, op[0],
+			 BFD_RELOC_NANOMIPS_LO12, tempreg);
+	  else
+	    macro_build (NULL, s, fmt, op[0], (int) offset_expr.X_add_number,
+			 tempreg);
+	}
     }
   else if (offbits != ISA_OFFBITS)
     {

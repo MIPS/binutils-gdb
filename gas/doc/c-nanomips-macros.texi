@@ -2058,12 +2058,21 @@ lw rd,0(rd)
 
 @tab
 @verbatim
-addiu $at,rs,ofst
-lw rd,0($at)
+addiu rd,rd,ofst
+lw rd,0(rd)
 @end verbatim
 
 @tab
-@c FIXME: Don't really need $at here, fix conditional under label ld:
+@item
+@verbatim
+rd == rs
+@end verbatim
+@tab
+@verbatim
+addiu[48] rs,rs,ofst
+lw rd,0(rs)
+@end verbatim
+@tab
 @item
 @verbatim
 rd <> rs
@@ -2072,38 +2081,24 @@ rd <> rs
 
 @tab
 @verbatim
-li rd,%hi(ofst)
+lui rd,%hi(ofst)
 addu rd,rd,rs
 lw rd,%lo(ofst)(rd)
 @end verbatim
 @tab
 @item
 @verbatim
-rd == rs
-&& NMS
+else
 @end verbatim
 
 @tab
 @verbatim
-li $at,%hi(ofst)
+lui $at,%hi(ofst)
 addu $at,$at,rs
 lw rd,%lo(ofst)($at)
 @end verbatim
 
 @tab
-@c @item
-@c @verbatim
-@c rd == rs
-@c @end verbatim
-
-@c @tab
-@c @verbatim
-@c addiu[48] rd,rd,ofst
-@c lw rd,0(rd)
-@c @end verbatim
-
-@c @tab
-@c FIXME: TODO
 @end multitable
 @anchor{x_lw_label}@item lw rd,label
 @multitable @columnfractions 0.3 0.4 0.3
@@ -2510,12 +2505,11 @@ ll rd,0(rd)
 
 @tab
 @verbatim
-addiu $at,rs,ofst
-ll rd,0($at)
+addiu rd,rd,ofst
+ll rd,0(rd)
 @end verbatim
 
 @tab
-@c FIXME: Don't really need $at here, fix conditional under label ld:
 @item
 @verbatim
 rd <> rs
