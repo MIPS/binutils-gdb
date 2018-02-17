@@ -34,13 +34,11 @@ func:
 	.ifndef nanomips_broken
 	ld	$4,%hi(foo)($4)
 	.endif
-	ld	$4,%gp_rel(foo)($4)
 
 	ld	$4,%lo(foo)($5)
 	.ifndef nanomips_broken
 	ld	$4,%hi(foo)($5)
 	.endif
-	ld	$4,%gp_rel(foo)($5)
 	ld	$4,%lo(0x12348765)($5)
 	.ifndef nanomips_broken
 	ld	$4,%hi(0x12348765)($5)
