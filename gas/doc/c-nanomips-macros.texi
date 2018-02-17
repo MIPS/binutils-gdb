@@ -2256,6 +2256,57 @@ lw rd,0(rd)
 
 @tab
 @end multitable
+@anchor{x_lwx_label}@item lw rd,label(rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item
+@verbatim
+rd != 0 &&
+rd != rs
+@end verbatim
+@tab
+@verbatim
+la rd,label
+lwx rd,rd(rs)
+@end verbatim
+@tab
+@xref{x_la_label,,la of label}.
+@item
+else
+@tab
+@verbatim
+la $at,label
+lwx rd,$at(rs)
+@end verbatim
+@tab
+@xref{x_la_label,,la of label}.
+@end multitable
+@item lb rd,label(rs)
+@itemx lbu rd,label(rs)
+@itemx lh rd,label(rs)
+@itemx lhu rd,label(rs)
+@multitable @columnfractions 1
+@item @xref{x_lwx_label,,lw from label with index}.
+@end multitable
+
+@anchor{x_ldx32_label}@item ld rd,label(rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item
+rd != rs
+@tab
+@verbatim
+la $at,label
+lwx rd,$at(rs)
+addiu $at,$at,4
+lwx rd+1,$at(rs)
+@end verbatim
+@tab
+@xref{x_la_label,,la of label}.
+@end multitable
+@item sd rd,label(rs)
+@multitable @columnfractions 1
+@item @xref{x_ldx32_label,,ld from label with index}.
+@end multitable
+
 @item lwu rd,ofst(rs)
 @itemx lb rd,ofst(rs)
 @itemx lbu rd,ofst(rs)
@@ -2938,6 +2989,45 @@ scwp rd,ru,($at)
 @item @xref{x_ll_label,,ll from label}.
 @item
 @end multitable
+@anchor{x_swx_label}@item sw rd,label(rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item
+not NMS
+@tab
+@verbatim
+la $at,label
+swx rd,$at(rs)
+@end verbatim
+@tab
+@xref{x_la_label,,la of label}.
+@end multitable
+@item sb rd,label(rs)
+
+@itemx sbu rd,label(rs)
+@itemx sh rd,label(rs)
+@itemx shu rd,label(rs)
+@multitable @columnfractions 1
+@item @xref{x_swx_label,,sw to label with index}.
+@end multitable
+
+@anchor{x_lwc1x_label}@item lwc1 rd,label(rs)
+@multitable @columnfractions 0.3 0.4 0.3
+@item
+@tab
+@verbatim
+la $at,label
+lwc1x rd,$at(rs)
+@end verbatim
+@tab
+@xref{x_la_label,,la of label}.
+@end multitable
+@item swc1 rd,label(rs)
+@itemx ldc1 rd,label(rs)
+@itemx sdc1 rd,label(rs)
+@multitable @columnfractions 1
+@item @xref{x_lwc1x_label,,lwc1 from label with index}.
+@end multitable
+
 @item Division & Multiplication
 @multitable @columnfractions 0.3 0.4 0.3
 @item

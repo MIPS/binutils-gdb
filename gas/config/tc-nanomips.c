@@ -8271,6 +8271,114 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 			    tempreg, &used_at);
       break;
 
+    case M_LDX_AB:
+      if (GPR_SIZE == 32)
+	{
+	  s = "lwx";
+	  goto ldd_std_indexed;
+	}
+      s = "ldx";
+      goto ld_indexed_gp;
+
+    case M_LWX_AB:
+      s = "lwx";
+      goto ld_indexed_gp;
+
+    case M_LWUX_AB:
+      s = "lwux";
+      goto ld_indexed_gp;
+
+    case M_LHX_AB:
+      s = "lhx";
+      goto ld_indexed_gp;
+
+    case M_LHUX_AB:
+      s = "lhux";
+      goto ld_indexed_gp;
+
+    case M_LBX_AB:
+      s = "lbx";
+      goto ld_indexed_gp;
+
+    case M_LBUX_AB:
+      s = "lbux";
+      /* Fall through  */
+
+    ld_indexed_gp:
+      fmt = "d,s(t)";
+      if (op[0] == 0 || op[0] == op[2])
+	goto st_indexed;
+      tempreg = op[0];
+      goto ld_st_indexed;
+
+    case M_LWC1X_AB:
+      s = "lwc1x";
+      fmt = "R,s(t)";
+      goto st_indexed;
+
+    case M_LDC1X_AB:
+      s = "ldc1x";
+      fmt = "R,s(t)";
+      goto st_indexed;
+
+    case M_SWC1X_AB:
+      s = "swc1x";
+      fmt = "R,s(t)";
+      goto st_indexed;
+
+    case M_SDC1X_AB:
+      s = "sdc1x";
+      fmt = "R,s(t)";
+      goto st_indexed;
+
+    case M_SDX_AB:
+      if (GPR_SIZE == 64)
+	{
+	  s = "sdx";
+	  goto st_indexed_gp;
+	}
+      s = "swx";
+    ldd_std_indexed:
+      if (!nanomips_opts.at)
+	as_bad (_("macro used $at after \".set noat\""));
+      used_at = 1;
+      tempreg = AT;
+      imm_expr.X_op = O_constant;
+      imm_expr.X_add_number = 4;
+      nanomips_macro_la (&tempreg, 0, &used_at);
+      macro_build (NULL, s, "d,s(t)", op[0], tempreg, op[2]);
+      macro_build (&imm_expr, ADDRESS_ADDI_INSN,
+		   (nanomips_opts.insn32 ? ADDIU_FMT : "mp,mx,+9"),
+		   tempreg, tempreg, BFD_RELOC_NANOMIPS_LO12);
+      macro_build (NULL, s, "d,s(t)", op[0]+1, tempreg, op[2]);
+      break;
+
+    case M_SWX_AB:
+      s = "swx";
+      goto st_indexed_gp;
+
+    case M_SHX_AB:
+      s = "shx";
+      goto st_indexed_gp;
+
+    case M_SBX_AB:
+      s = "sbx";
+      /* Fall through  */
+
+    st_indexed_gp:
+      fmt = "d,s(t)";
+
+    st_indexed:
+      if (!nanomips_opts.at)
+	as_bad (_("macro used $at after \".set noat\""));
+      used_at = 1;
+      tempreg = AT;
+
+    ld_st_indexed:
+      nanomips_macro_la (&tempreg, 0, &used_at);
+      macro_build (NULL, s, fmt, op[0], tempreg, op[2]);
+      break;
+
     case M_JRADDIUSP:
       offset_expr = imm_expr;
       if (small_poffset_p (0, 1, ISA_ADD_OFFBITS))

@@ -891,6 +891,7 @@ IGRIE */
 {"lb",		"[u12]",	"t,o(b)",	0x84000000, 0xfc00f000,	WR_1|RD_3,		0,	I38,	0}, /* LB[U12] */
 {"lb",		"[s9]",		"t,+j(b)",	0xa4000000, 0xfc007f00,	WR_1|RD_3,		0,	I38,	0}, /* LB[S9] */
 {"lb",		"",		"t,A(c)",	0,    (int) M_LB_AC,	INSN_MACRO,		0,	I38,	0},
+{"lb",		"",		"t,A(b)",	0,    (int) M_LBX_AB,	INSN_MACRO,		0,	I38,	0},
 {"lbe", 	"", 		"t,+j(b)",	0xa4000200, 0xfc007f00,	WR_1|RD_3,		0,	0,	EVA},
 {"lbe", 	"", 		"t,A(c)",	0,	(int) M_LBE_AC,	INSN_MACRO,		0,	0,	EVA},
 {"lbu", 	"[16]",		"md,mL(ml)",	0x5c08,		0xfc0c,	WR_1|RD_3,		0,	I38,	0}, /* LBU[16] */
@@ -898,6 +899,7 @@ IGRIE */
 {"lbu", 	"[u12]",	"t,o(b)",	0x84002000, 0xfc00f000,	WR_1|RD_3,		0,	I38,	0}, /* LBU[U12] */
 {"lbu", 	"[s9]",		"t,+j(b)",	0xa4001000, 0xfc007f00,	WR_1|RD_3,		0,	I38,	0}, /* LBU[S9] */
 {"lbu", 	"",		"t,A(c)",	0,    (int) M_LBU_AC,	INSN_MACRO,		0,	I38,	0},
+{"lbu", 	"",		"t,A(b)",	0,    (int) M_LBUX_AB,	INSN_MACRO,		0,	I38,	0},
 {"lbue",	"",		"t,+j(b)",	0xa4001200, 0xfc007f00,	WR_1|RD_3,		0,	0,	EVA},
 {"lbue",	"",		"t,A(c)",	0,     (int) M_LBUE_AC,	INSN_MACRO,		0,	0,	EVA},
 {"lbux",	"",		"d,s(t)",	0x20000107, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
@@ -906,11 +908,13 @@ IGRIE */
 {"ld",		"[u12]",	"t,o(b)",	0x8400c000, 0xfc00f000,	WR_1|RD_3,		0,	I70,	0}, /* LD[U12] */
 {"ld",		"[s9]",		"t,+j(b)",	0xa4006000, 0xfc007f00,	WR_1|RD_3,		0,	I70,	0}, /* LD[S9] */
 {"ld",		"",		"t,A(c)",	0,    (int) M_LD_AC,	INSN_MACRO,		0,	I38,	0},
+{"ld",		"",		"t,A(b)",	0,    (int) M_LDX_AB,	INSN_MACRO,		0,	I38,	0},
 {"ldc1",	"[gp]",		"T,+2(ma)",	0x44180002, 0xfc1c0003,	WR_1|RD_3|FP_D,		0,	I38,	0}, /* LDC1[GP] */
 {"ldc1",	"[u12]", 	"T,o(b)",	0x8400e000, 0xfc00f000,	WR_1|RD_3|FP_D,		0,	I38,	0}, /* LDC1[U12] */
 {"ldc1",	"[s9]", 	"T,+j(b)",	0xa4007000, 0xfc007f00,	WR_1|RD_3|FP_D,		0,	I38,	0}, /* LDC1[S9] */
 {"ldc1",	"",		"T,A(c)",	0,    (int) M_LDC1_AC,	INSN_MACRO,		0,	I38,	0},
 {"ldc1",	"",		"E,A(c)",	0,    (int) M_LDC1_AC,	INSN_MACRO,		0,	I38,	0},
+{"ldc1",	"",		"R,A(b)",	0,    (int) M_LDC1X_AB,	INSN_MACRO,		0,	I38,	0},
 {"ldc1x",	"",		"R,s(t)",	0x20000707, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"l.d", 	"[gp]",		"T,+2(ma)",	0x44180002, 0xfc1c0003,	WR_1|RD_3|FP_D,	INSN2_ALIAS,	I38,	0}, /* LDC1[GP] */
 {"l.d", 	"[u12]",	"T,o(b)",	0x8400e000, 0xfc00f000,	WR_1|RD_3|FP_D,	INSN2_ALIAS,	I38,	0}, /* LDC1 */
@@ -928,6 +932,7 @@ IGRIE */
 {"lh",		"[u12]",	 "t,o(b)",	0x84004000, 0xfc00f000,	WR_1|RD_3,		0,	I38,	0}, /* LH[U12] */
 {"lh",		"[s9]",		"t,+j(b)",	0xa4002000, 0xfc007f00,	WR_1|RD_3,		0,	I38,	0}, /* LH[S9] */
 {"lh",		"",		"t,A(c)",	0,    (int) M_LH_AC,	INSN_MACRO,		0,	I38,	0},
+{"lh",		"",		"t,A(b)",	0,    (int) M_LHX_AB,	INSN_MACRO,		0,	I38,	0},
 {"lhe", 	"", 		"t,+j(b)",	0xa4002200, 0xfc007f00,	WR_1|RD_3,		0,	0,	EVA},
 {"lhe", 	"", 		"t,A(c)",	0,     (int) M_LHE_AC,	INSN_MACRO,		0,	0,	EVA},
 {"lhu", 	"[16]",		"md,mH(ml)",	0x7c08,		0xfc09,	WR_1|RD_3,		0,	I38,	0}, /* LHU[16] */
@@ -935,6 +940,7 @@ IGRIE */
 {"lhu", 	"[u12]",	 "t,o(b)",	0x84006000, 0xfc00f000,	WR_1|RD_3,		0,	I38,	0}, /* LHU[U12] */
 {"lhu", 	"[s9]",		"t,+j(b)",	0xa4003000, 0xfc007f00,	WR_1|RD_3,		0,	I38,	0}, /* LHU[S9] */
 {"lhu", 	"", 		"t,A(c)",	0,    (int) M_LHU_AC,	INSN_MACRO,		0,	I38,	0},
+{"lhu", 	"", 		"t,A(b)",	0,    (int) M_LHUX_AB,	INSN_MACRO,		0,	I38,	0},
 {"lhue",	"",		"t,+j(b)",	0xa4003200, 0xfc007f00,	WR_1|RD_3,		0,	0,	EVA},
 {"lhue",	"",		"t,A(c)",	0,     (int) M_LHUE_AC,	INSN_MACRO,		0,	0,	EVA},
 {"lhux",	"",		"d,s(t)",	0x20000307, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
@@ -967,11 +973,13 @@ IGRIE */
 {"lw",		"[u12]",	"t,o(b)",	0x84008000, 0xfc00f000,	WR_1|RD_3,		0,	I38,	0}, /* LW[U12] */
 {"lw",		"[s9]",		"t,+j(b)",	0xa4004000, 0xfc007f00,	WR_1|RD_3,		0,	I38,	0}, /* LW[S9] */
 {"lw",		"",		"t,A(c)",	0,    (int) M_LW_AC,	INSN_MACRO,		0,	I38,	0},
+{"lw",		"",		"t,A(b)",	0,    (int) M_LWX_AB,	INSN_MACRO,		0,	I38,	0},
 {"lwc1",	"[gp]",		"T,+2(ma)",	0x44180000, 0xfc1c0003,	WR_1|RD_3,		0,	I38,	0}, /* LWC1[GP] */
 {"lwc1",	"[u12]", 	"T,o(b)",	0x8400a000, 0xfc00f000,	WR_1|RD_3,		0,	I38,	0}, /* LWC1[U12] */
 {"lwc1",	"[s9]",		"T,+j(b)",	0xa4005000, 0xfc007f00,	WR_1|RD_3,		0,	I38,	0}, /* LWC1[S9] */
 {"lwc1",	"",		"T,A(c)",	0,    (int) M_LWC1_AC,	INSN_MACRO,		0,	I38,	0},
 {"lwc1",	"",		"E,A(c)",	0,    (int) M_LWC1_AC,	INSN_MACRO,		0,	I38,	0},
+{"lwc1",	"",		"R,A(b)",	0,    (int) M_LWC1X_AB,	INSN_MACRO,		0,	I38,	0},
 {"l.s", 	"[gp]", 	"T,+2(ma)",	0x44180000, 0xfc1c0003,	WR_1|RD_3|FP_S,	INSN2_ALIAS,	I38,	0}, /* LWC1[GP] */
 {"l.s", 	"[u12]", 	"T,o(b)",	0x8400a000, 0xfc00f000,	WR_1|RD_3|FP_S,	INSN2_ALIAS,	I38,	0}, /* LWC1[U12] */
 {"l.s", 	"[s9]", 	"T,+j(b)",	0xa4005000, 0xfc007f00,	WR_1|RD_3|FP_S,	INSN2_ALIAS,	I38,	0}, /* LWC1[S9] */
@@ -989,6 +997,7 @@ IGRIE */
 {"lwu", 	"[u12]",	 "t,o(b)",	0x84007000, 0xfc00f000,	WR_1|RD_3,		0,	I70,	0}, /* LWU[U12] */
 {"lwu", 	"[s9]",		"t,+j(b)",	0xa4003800, 0xfc007f00,	WR_1|RD_3,		0,	I70,	0}, /* LWU[S9] */
 {"lwu", 	"",		"t,A(c)",	0,    (int) M_LWU_AC,	INSN_MACRO,		0,	I70,	0},
+{"lwu", 	"",		"t,A(b)",	0,    (int) M_LWUX_AB,	INSN_MACRO,		0,	I70,	0},
 {"lwux",	"",		"d,s(t)",	0x20000387, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,	0},
 {"lwuxs",	"",		"d,s(t)",	0x200003c7, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,	0},
 {"lwx", 	"",		"d,s(t)",	0x20000407, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
@@ -1225,6 +1234,7 @@ IGRIE */
 {"sb",		"[u12]",	"t,o(b)",	0x84001000, 0xfc00f000,	RD_1|RD_3,		0,	I38,	0}, /* SB[U12] */
 {"sb",		"[s9]",		"t,+j(b)",	0xa4000800, 0xfc007f00,	RD_1|RD_3,		0,	I38,	0}, /* SB[S9] */
 {"sb",		"",		"t,A(c)",	0,    (int) M_SB_AC,	INSN_MACRO,		0,	I38,	0},
+{"sb",		"",		"t,A(b)",	0,    (int) M_SBX_AB,	INSN_MACRO,		0,	0,	xNMS},
 {"sbe", 	"", 		"t,+j(b)",	0xa4000a00, 0xfc007f00,	RD_1|RD_3,		0,	0,	EVA},
 {"sbe", 	"", 		"t,A(c)",	0,     (int) M_SBE_AC,	INSN_MACRO,		0,	0,	EVA},
 {"sbx", 	"",		"d,s(t)",	0x20000087, 0xfc0007ff, RD_1|RD_2|RD_3,		0,	0,	xNMS},
@@ -1244,11 +1254,13 @@ IGRIE */
 {"sd",		"[u12]",	"t,o(b)",	0x8400d000, 0xfc00f000,	RD_1|RD_3,		0,	I70,	0}, /* SD[U12] */
 {"sd",		"[s9]",		"t,+j(b)",	0xa4006800, 0xfc007f00,	RD_1|RD_3,		0,	I70,	0}, /* SD[S9] */
 {"sd",		"",		"t,A(c)",	0,    (int) M_SD_AC,	INSN_MACRO,		0,	I38,	0},
+{"sd",		"",		"t,A(b)",	0,    (int) M_SDX_AB,	INSN_MACRO,		0,	I38,	0},
 {"sdc1",	"[gp]",		"T,+2(ma)",	0x44180003, 0xfc1c0003,	RD_1|RD_3|FP_D,		0,	I38,	0}, /* SDC1[GP] */
 {"sdc1",	"[u12]",	"T,o(b)",	0x8400f000, 0xfc00f000,	RD_1|RD_3|FP_D,		0,	I38,	0}, /* SDC1[U12] */
 {"sdc1",	"[s9]",		"T,+j(b)",	0xa4007800, 0xfc007f00,	RD_1|RD_3|FP_D,		0,	I38,	0}, /* SDC1[S9] */
 {"sdc1",	"",		"T,A(c)",	0,    (int) M_SDC1_AC,	INSN_MACRO,		0,	I38,	0},
 {"sdc1",	"",		"E,A(c)",	0,    (int) M_SDC1_AC,	INSN_MACRO,		0,	I38,	0},
+{"sdc1",	"",		"R,A(b)",	0,    (int) M_SDC1X_AB,	INSN_MACRO,		0,	I38,	0},
 {"s.d", 	"[gp]", 	"T,+2(ma)",	0x44180003, 0xfc1c0003,	RD_1|RD_3|FP_D,	INSN2_ALIAS,	I38,	0}, /* SDC1[GP] */
 {"s.d", 	"[u12]", 	"T,o(b)",	0x8400f000, 0xfc00f000,	RD_1|RD_3|FP_D,	INSN2_ALIAS,	I38,	0}, /* SDC1[U12] */
 {"s.d", 	"[s9]", 	"T,+j(b)",	0xa4007800, 0xfc007f00,	RD_1|RD_3|FP_D,	INSN2_ALIAS,	I38,	0}, /* SDC1[S9] */
@@ -1285,6 +1297,7 @@ IGRIE */
 {"sh",		"[u12]",	 "t,o(b)",	0x84005000, 0xfc00f000,	RD_1|RD_3,		0,	I38,	0}, /* SH[U12] */
 {"sh",		"[s9]",		"t,+j(b)",	0xa4002800, 0xfc007f00,	RD_1|RD_3,		0,	I38,	0}, /* SH[S9] */
 {"sh",		"",		"t,A(c)",		0,    (int) M_SH_AC,	INSN_MACRO,	0,	I38,	0},
+{"sh",		"",		"t,A(b)",		0,    (int) M_SHX_AB,	INSN_MACRO,	0,	0,	xNMS},
 {"she", 	"", 		"t,+j(b)",	0xa4002a00, 0xfc007f00,	RD_1|RD_3,		0,	0,	EVA},
 {"she", 	"", 		"t,A(c)",	0,     (int) M_SHE_AC,	INSN_MACRO,		0,	0,	EVA},
 {"shilo",	"",		"7,0",		0x2000001d, 0xffc03fff,		MOD_1,		0,	0,	D32},
@@ -1371,11 +1384,13 @@ IGRIE */
 {"sw",		"[u12]",	"t,o(b)",	0x84009000, 0xfc00f000,	RD_1|RD_3,		0,	I38,	0}, /* SW[U12] */
 {"sw",		"[s9]",		"t,+j(b)",	0xa4004800, 0xfc007f00,	RD_1|RD_3,		0,	I38,	0}, /* SW[S9] */
 {"sw",		"",		"t,A(c)",	0,    (int) M_SW_AC,	INSN_MACRO,		0,	I38,	0},
+{"sw",		"",		"t,A(b)",	0,    (int) M_SWX_AB,	INSN_MACRO,		0,	0,	xNMS},
 {"swc1",	"[gp]",		"T,+2(ma)",	0x44180001, 0xfc1c0003,	RD_1|RD_3,		0,	I38,	0}, /* SWC1[GP] */
 {"swc1",	"[u21]",	"T,o(b)",	0x8400b000, 0xfc00f000,	RD_1|RD_3,		0,	I38,	0}, /* SWC1[U12] */
 {"swc1",	"[s9]",		"T,+j(b)",	0xa4005800, 0xfc007f00,	RD_1|RD_3,		0,	I38,	0}, /* SWC1[S9] */
 {"swc1",	"",		"T,A(c)",	0,    (int) M_SWC1_AC,	INSN_MACRO,		0,	I38,	0},
 {"swc1",	"",		"E,A(c)",	0,    (int) M_SWC1_AC,	INSN_MACRO,		0,	I38,	0},
+{"swc1",	"",		"R,A(b)",	0,    (int) M_SWC1X_AB,	INSN_MACRO,		0,	I38,	0},
 {"s.s", 	"[gp]",         "T,+2(ma)",	0x44180001, 0xfc1c0003,	RD_1|RD_3|FP_S,	INSN2_ALIAS,	I38,	0}, /* SWC1[GP] */
 {"s.s", 	"[u12]", 	"T,o(b)",	0x8400b000, 0xfc00f000,	RD_1|RD_3|FP_S,	INSN2_ALIAS,	I38,	0}, /* SWC1[U12]  */
 {"s.s", 	"[s9]", 	"T,+j(b)",	0xa4005800, 0xfc007f00,	RD_1|RD_3|FP_S,	INSN2_ALIAS,	I38,	0}, /* SWC1[S9] */
