@@ -11,7 +11,7 @@ void
 set_nms_flag (SIM_DESC sd)
 {
   Elf_Internal_ABIFlags_v0 *abiflags;
-  abiflags = _bfd_nanomips_elf_get_abiflags (STATE_PROG_BFD(sd));
+  abiflags = bfd_nanomips_elf_get_abiflags (STATE_PROG_BFD(sd));
 
   nms_flag = 0;
 

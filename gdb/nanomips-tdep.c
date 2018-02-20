@@ -38,6 +38,7 @@
 #include "block.h"
 #include "reggroups.h"
 #include "opcode/nanomips.h"
+#include "elf/mips-common.h"
 #include "elf/nanomips.h"
 #include "elf-bfd.h"
 #include "symcat.h"
@@ -3249,12 +3250,14 @@ nanomips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
 			nanomips_abi);
 
   /* Determine the nanoMIPS FPU type.  */
-#ifdef HAVE_ELF
   if (info.abfd
       && bfd_get_flavour (info.abfd) == bfd_target_elf_flavour)
-    elf_fpu_type = bfd_elf_get_obj_attr_int (info.abfd, OBJ_ATTR_GNU,
-					     Tag_GNU_NANOMIPS_ABI_FP);
-#endif /* HAVE_ELF */
+    {
+      Elf_Internal_ABIFlags_v0 *abiflags;
+      abiflags = bfd_nanomips_elf_get_abiflags (info.abfd);
+      if (abiflags != NULL)
+	elf_fpu_type = abiflags->fp_abi;
+    }
 
   if (elf_fpu_type != Val_GNU_NANOMIPS_ABI_FP_ANY)
     {
