@@ -2939,26 +2939,6 @@ nanomips_virtual_frame_pointer (struct gdbarch *gdbarch,
 }
 
 static void
-nanomips_find_abi_section (bfd *abfd, asection *sect, void *obj)
-{
-  enum nanomips_abi *abip = (enum nanomips_abi *) obj;
-  const char *name = bfd_get_section_name (abfd, sect);
-
-  if (*abip != NANOMIPS_ABI_UNKNOWN)
-    return;
-
-  if (!startswith (name, ".mdebug."))
-    return;
-
-  if (strcmp (name, ".mdebug.abiP32") == 0)
-    *abip = NANOMIPS_ABI_P32;
-  else if (strcmp (name, ".mdebug.abiP64") == 0)
-    *abip = NANOMIPS_ABI_P64;
-  else
-    warning (_("unsupported ABI %s."), name + 8);
-}
-
-static void
 nanomips_register_g_packet_guesses (struct gdbarch *gdbarch)
 {
   /* If the size matches the set of 32-bit or 64-bit integer registers,
@@ -3201,10 +3181,6 @@ nanomips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
       found_abi = NANOMIPS_ABI_UNKNOWN;
       break;
     }
-
-  /* GCC creates a pseudo-section whose name describes the ABI.  */
-  if (found_abi == NANOMIPS_ABI_UNKNOWN && info.abfd != NULL)
-    bfd_map_over_sections (info.abfd, nanomips_find_abi_section, &found_abi);
 
   /* If we have no useful BFD information, use the ABI from the last
      nanoMIPS architecture (if there is one).  */
