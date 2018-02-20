@@ -4781,7 +4781,8 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
           Address old_padding = relobj->do_local_symbol_size(r_sym);
 
           // nanoMIPS nop16 instruction.
-          Valtype fill = 0x9008;
+          const uint32_t nop16 = 0x9008;
+          Valtype fill = nop16;
           Valtype max = static_cast<Valtype>(0) - 1;
           Size_type fill_size = 2;
 
@@ -4802,6 +4803,28 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
           // If the padding required now is more/less than the existing padding,
           // then add/delete those extra bytes.
           int count = static_cast<int>(new_padding - old_padding);
+
+          // Check the case where we might end up removing half of a
+          // nop[32] instruction.
+          if (count < 0 && new_padding >= 2)
+            {
+              const uint32_t nop32 = 0x8000c000;
+              unsigned char* pview =
+                pnis->section_contents() + offset + new_padding - 2;
+              uint32_t insn = transform.read_insn(pview, 32);
+
+              // Check if we need to replace nop[32] with nop[16] instruction.
+              if (insn == nop32)
+                {
+                  elfcpp::Swap<16, big_endian>::writeval(pview, nop16);
+                  gold_debug(DEBUG_TARGET,
+                             "%s(%s+%#lx): nop[32] is replaced with nop[16]",
+                             relobj->name().c_str(),
+                             relobj->section_name(relinfo->data_shndx).c_str(),
+                             (unsigned long) r_offset + new_padding - 2);
+                }
+            }
+
           this->update_content(pnis, relobj, r_offset + old_padding,
                                count, old_padding == 0);
           relobj->set_local_symbol_size(r_sym, new_padding);
@@ -4811,7 +4834,7 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
                      "requirement",
                      relobj->name().c_str(),
                      relobj->section_name(relinfo->data_shndx).c_str(),
-                     (unsigned long) r_offset,
+                     (unsigned long) r_offset + old_padding,
                      abs(count),
                      count > 0 ? "added" : "removed");
 
@@ -4820,7 +4843,7 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
             {
               if (fill_size > static_cast<Size_type>(count))
                 {
-                  fill = 0x9008;
+                  fill = nop16;
                   fill_size = 2;
                 }
 
