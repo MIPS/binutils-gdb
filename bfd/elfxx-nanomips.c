@@ -648,7 +648,7 @@ _bfd_nanomips_elf_common_definition (Elf_Internal_Sym *sym)
 }
 
 Elf_Internal_ABIFlags_v0 *
-_bfd_nanomips_elf_get_abiflags (bfd *abfd)
+bfd_nanomips_elf_get_abiflags (bfd *abfd)
 {
   struct nanomips_elf_obj_tdata *tdata = nanomips_elf_tdata (abfd);
 
