@@ -25,12 +25,13 @@
 #ifndef _ELF_MIPS_COMMON_H
 #define _ELF_MIPS_COMMON_H
 
-
-
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* ABI related flags section.  */
 #define SHT_MIPS_ABIFLAGS	0x7000002a
 
-
 /* Special values for the st_other field in the symbol table.  These
    are used in an Irix 5 dynamic symbol table.  */
 
@@ -38,8 +39,6 @@
 #define STO_INTERNAL		STV_INTERNAL
 #define STO_HIDDEN		STV_HIDDEN
 #define STO_PROTECTED		STV_PROTECTED
-
-
 
 /* ABI Flags structure version 0.  */
 
@@ -106,6 +105,8 @@ extern void bfd_mips_elf_swap_abiflags_v0_out
 #define AFL_REG_64	     0x02	/* 64-bit registers.  */
 #define AFL_REG_128	     0x03	/* 128-bit registers.  */
 
-
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _ELF_MIPS_COMMON_H */

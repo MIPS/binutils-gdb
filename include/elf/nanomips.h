@@ -27,6 +27,10 @@
 
 #include "elf/reloc-macros.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* nanoMIPS numbers partially overlap MIPS.  */
 START_RELOC_NUMBERS (elf_nanomips_reloc_type)
   RELOC_NUMBER (R_NANOMIPS_NONE, 0)
@@ -256,5 +260,13 @@ enum
 #define NANOMIPS_ASE_GINV         0x00020000 /* GINV ASE.  */
 #define NANOMIPS_ASE_xNMS         0x00040000 /* not nanoMIPS Subset.  */
 #define NANOMIPS_ASE_MASK         0x0007bf4d /* All ASEs.  */
+
+/* nanoMIPS ELF flags routines.  */
+extern Elf_Internal_ABIFlags_v0 * bfd_nanomips_elf_get_abiflags
+  (bfd *);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* _ELF_NANOMIPS_H */
