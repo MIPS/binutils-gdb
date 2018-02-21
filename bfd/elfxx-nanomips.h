@@ -66,12 +66,6 @@ gprel16_reloc_p (unsigned int r_type)
 	  || r_type == BFD_RELOC_NANOMIPS_GPREL17_S1);
 }
 
-static inline bfd_boolean
-literal_reloc_p (int r_type)
-{
-  return r_type == R_NANOMIPS_LITERAL;
-}
-
 #define elf_backend_common_definition   _bfd_nanomips_elf_common_definition
 #define elf_backend_special_sections _bfd_nanomips_elf_special_sections
 #define elf_backend_merge_symbol_attribute  _bfd_nanomips_elf_merge_symbol_attribute

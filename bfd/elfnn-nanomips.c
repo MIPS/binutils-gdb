@@ -974,21 +974,6 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] = {
 	 0,			/* src_mask */
 	 0x00000fff,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
-
-  /*   /\* Reference to literal section.  *\/ */
-  HOWTO (R_NANOMIPS_LITERAL,	/* type */
-	 2,			/* rightshift */
-	 2,			/* size (0 = byte, 1 = short, 2 = long) */
-	 19,			/* bitsize */
-	 FALSE,			/* pc_relative */
-	 2,			/* bitpos */
-	 complain_overflow_signed, /* complain_on_overflow */
-	 _bfd_nanomips_elf_generic_reloc, /* special_function */
-	 "R_NANOMIPS_LITERAL",	/* name */
-	 FALSE,			/* partial_inplace */
-	 0x0,			/* src_mask */
-	 0x001ffffc,		/* dst_mask */
-	 FALSE),		/* pcrel_offset */
 };
 
 /* GNU extension to record C++ vtable hierarchy */
@@ -1150,7 +1135,6 @@ static const struct elf_reloc_map nanomips_reloc_map[] = {
   { BFD_RELOC_NANOMIPS_TLS_DTPREL64, R_NANOMIPS_TLS_DTPREL64 },
   { BFD_RELOC_NANOMIPS_TLS_TPREL32, R_NANOMIPS_TLS_TPREL32 },
   { BFD_RELOC_NANOMIPS_TLS_TPREL64, R_NANOMIPS_TLS_TPREL64 },
-  { BFD_RELOC_NANOMIPS_LITERAL, R_NANOMIPS_LITERAL },
   };
 
 /* Given a BFD reloc type, return a howto structure.  */

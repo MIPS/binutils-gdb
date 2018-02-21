@@ -13,8 +13,7 @@ Disassembly of section \.text:
    0:	li	a0,0x3ff1f9a6
    6:	li	a1,0xb50b0f28
    c:	ldc1	\$f4,0\(gp\)
-			c: R_NANOMIPS_LITERAL	\.lit8
+			c: R_NANOMIPS_GPREL16_S2	\.sdata
   10:	li	a0,0x3f8fcd36
-  16:	lwc1	\$f4,0\(gp\)
-			16: R_NANOMIPS_LITERAL	\.lit4
-  1a:	nop
+  16:	li	at,0x3f8fcd36
+  1c:	mtc1	at,\$f4

@@ -96,9 +96,11 @@ Disassembly of section .text\:
 [0-9a-f]+ <[^>]+> e090 07fc 	lui	a0,%hi\(0x3ff00000\)
 [0-9a-f]+ <[^>]+> 10a0      	move	a1,zero
 [0-9a-f]+ <[^>]+> 4020 0002 	lw	at,0\(gp\)
-			b8: R_NANOMIPS_GOT_DISP	.rodata
+			b8: R_NANOMIPS_GOT_PAGE	.rodata
 [0-9a-f]+ <[^>]+> 8481 8000 	lw	a0,0\(at\)
-[0-9a-f]+ <[^>]+> 84a1 8004 	lw	a1,4\(at\)
+			bc: R_NANOMIPS_GOT_OFST	.rodata
+[0-9a-f]+ <[^>]+> 84a1 8000 	lw	a1,0\(at\)
+			c0: R_NANOMIPS_GOT_OFST	.rodata\+0x4
 [0-9a-f]+ <[^>]+> e030 07fc 	lui	at,%hi\(0x3ff00000\)
 [0-9a-f]+ <[^>]+> a020 383b 	mthc1	at,\$f0
 [0-9a-f]+ <[^>]+> a000 283b 	mtc1	zero,\$f0

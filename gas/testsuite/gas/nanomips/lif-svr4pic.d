@@ -9,12 +9,14 @@
 
 Disassembly of section \.text:
 
-[0-9a-f]+ <foo>:
+00000000 <foo>:
    0:	li	a1,0x3ff1f9a6
    6:	li	a0,0xb50b0f28
-   c:	lwpc	a0,0 <L0>
-			[0-9a-f]+: R_NANOMIPS_PC_I32	L0
-  12:	li	a0,0x3f8fcd36
-  18:	li	at,0x3f8fcd36
-  1e:	mtc1	at,\$f4
-  22:	nop
+   c:	aluipc	at,0 <L0>
+			c: R_NANOMIPS_PCHI20	L0
+  10:	ldc1	\$f4,0\(at\)
+			10: R_NANOMIPS_LO12	.rodata
+  14:	li	a0,0x3f8fcd36
+  1a:	li	at,0x3f8fcd36
+  20:	mtc1	at,\$f4
+#pass

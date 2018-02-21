@@ -13,7 +13,7 @@ Disassembly of section \.text:
 0+0004 <text_label\+0x4> db30      	jalrc	t9
 0+0006 <text_label\+0x6> 4899 0000 	jalrc	a0,t9
 0+000a <text_label\+0xa> 4020 0002 	lw	at,0\(gp\)
-			a: R_NANOMIPS_GOT_DISP	text_label
+			a: R_NANOMIPS_GOT_CALL	text_label
 0+000e <text_label\+0xe> d830      	jalrc	at
 			e: R_NANOMIPS_JALR16	text_label
 0+0010 <text_label\+0x10> 4020 0002 	lw	at,0\(gp\)

@@ -11,9 +11,11 @@ Disassembly of section \.text:
 
 [0-9a-f]+ <foo>:
    0:	lw	at,0\(gp\)
-			[0-9a-f]+: R_NANOMIPS_GOT_DISP	\.rodata
+			[0-9a-f]+: R_NANOMIPS_GOT_PAGE	\.rodata
    4:	lw	a0,0\(at\)
-   8:	lw	a1,4\(at\)
+			[0-9a-f]+: R_NANOMIPS_GOT_OFST	\.rodata
+   8:	lw	a1,0\(at\)
+			[0-9a-f]+: R_NANOMIPS_GOT_OFST	\.rodata\+0x4
    c:	aluipc	at,8 <L0>
 			[0-9a-f]+: R_NANOMIPS_PCHI20	L0
   10:	ldc1	\$f4,0\(at\)

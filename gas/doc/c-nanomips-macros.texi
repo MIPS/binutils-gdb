@@ -333,134 +333,80 @@ li[48] rd,imm
 
 @tab
 @end multitable
-@c @item li.s rd,immfloat
-@c @multitable @columnfractions 0.3 0.4 0.3
-@c @item
-@c @xref{x_macro_li,,li}.
-@c @end multitable
-@c @item li.s fd,immfloat
-@c @multitable @columnfractions 0.3 0.4 0.3
-@c @item
-@c @verbatim
-@c -G < 4
-@c @end verbatim
+@item li.s rd,immfloat
+@multitable @columnfractions 0.3 0.4 0.3
+@item
+@xref{x_macro_li,,li}.
+@end multitable
+@item li.s fd,immfloat
+@multitable @columnfractions 0.3 0.4 0.3
+@item
+@tab
+@verbatim
+li $at,immfloat
+mtc1 $at,fd
+@end verbatim
+@tab
+@xref{x_macro_li,,li}.
+@end multitable
+@item li.d rd,immdouble
+@multitable @columnfractions 0.3 0.4 0.3
+@item
+not NMS
+@tab
+@verbatim
+li48 rd+1,%hi32(immdouble)
+li48 rd,%lo32(immdouble)
+@end verbatim
+@tab
+@item
+-Gx, x >=8
+@tab
+@verbatim
+  ld rd, label
+  .sdata:
+label:
+  .dword immdouble
+@end verbatim
+@tab
+@xref{x_ld_label,,ld from label}.
+@item
+-Gx, x < 8
+@tab
+@verbatim
+  ld rd, label
+  .rodata:
+label:
+  .dword immdouble
+@end verbatim
+@tab
+@xref{x_ld_label,,ld from label}.
+@end multitable
+@item li.d fd,immdouble
+@multitable @columnfractions 0.3 0.4 0.3
+@item
+-Gx, x >= 8
+@tab
+@verbatim
+  ldc1 fd,label
+  .sdata
+label: 
+  .dword immdouble
+@end verbatim
 
-@c @tab
-@c @verbatim
-@c li $at,immfloat
-@c mtc1 $at,fd
-@c @end verbatim
+@tab @xref{x_ldc1_label,,ldc1 from label}.
+@item
+-Gx, x < 8
+@tab
+@verbatim
+  ldc1 fd,label
+  .rodata
+label: 
+  .dword immdouble
+@end verbatim
 
-@c @tab
-@c @item
-@c @verbatim
-@c -G4
-@c @end verbatim
-
-@c @tab
-@c @verbatim
-@c lwc1 fd,%lit(label)($gp)
-@c @end verbatim
-
-@c @tab
-@c @end multitable
-@c @item li.d rd,immdouble
-@c @multitable @columnfractions 0.3 0.4 0.3
-@c @item
-@c @verbatim
-@c no-PIC
-@c && no-construct-floats
-@c @end verbatim
-
-@c @tab
-@c @verbatim
-@c lui $at,%hi(label)
-@c lw rd,%lo(label)($at)
-@c lw rd+1,%lo(label+4)($at)
-@c ...
-@c .rodata:
-@c label : immdouble
-@c @end verbatim
-
-@c @tab
-@c Double construction disabled, must load from memory.
-@c @item
-@c @verbatim
-@c PIC
-@c && no-construct-floats
-@c @end verbatim
-
-@c @tab
-@c @verbatim
-@c lw $at,%got_disp(label)($gp)
-@c lw rd,0($at)
-@c lw rd+1,4($at)
-@c ...
-@c .rodata:
-@c label : immdouble
-@c @end verbatim
-
-@c @tab
-@c @item
-@c @tab
-@c @verbatim
-@c li48 rd+1,%hi32(immdouble)
-@c li48 rd,%lo32(immdouble)
-@c @end verbatim
-
-@c @tab
-@c @end multitable
-@c @item li.d fd,immdouble
-@c @multitable @columnfractions 0.3 0.4 0.3
-@c @item
-@c @verbatim
-@c no-PIC
-@c && -G8
-@c @end verbatim
-
-@c @tab
-@c @verbatim
-@c lui $at,%hi(label)
-@c addu $at,$at,$gp
-@c ldc1 fd,%lo(label)($at)
-@c ...
-@c .lit8:
-@c label : immdouble
-@c @end verbatim
-
-@c @tab
-@c @item
-@c @verbatim
-@c no-PIC
-@c && -G < 8
-@c @end verbatim
-
-@c @tab
-@c @verbatim
-@c lui $at,%hi(label)
-@c ldc1 fd,%lo(label)($at)
-@c ...
-@c .rodata:
-@c label : immdouble
-@c @end verbatim
-
-@c @tab
-@c @item
-@c @verbatim
-@c PIC
-@c @end verbatim
-
-@c @tab
-@c @verbatim
-@c lw $at,%got_page(label)($gp)
-@c ldc1 fd,%got_ofst(label)($at)
-@c ...
-@c .rodata:
-@c label : immdouble
-@c @end verbatim
-
-@c @tab
-@c @end multitable
+@tab @xref{x_ldc1_label,,ldc1 from label}.
+@end multitable
 @item nor rd,rs,imm
 @multitable @columnfractions 0.3 0.4 0.3
 @item
@@ -2964,7 +2910,7 @@ scwp rd,ru,($at)
 @item @xref{x_sw_ofst,,sw to offset}.
 @end multitable
 @item lwc1 rd,label
-@itemx ldc1 rd,label
+@anchor{x_ldc1_label}@itemx ldc1 rd,label
 @itemx swc1 rd,label
 @itemx sdc1 rd,label
 @itemx l.s rd,label
@@ -3332,95 +3278,7 @@ addiu rd,rd,%lo32(imm)
 hi32(X) = (X >> 32) & 0xffffffff@*
 lo32(X) = (X & 0xffffffff)
 @end multitable
-@c @item li.d rd,immdouble
-@c @multitable @columnfractions 0.3 0.4 0.3
-@c @item
-@c @verbatim
-@c no-PIC
-@c @end verbatim
 
-@c @tab
-@c @verbatim
-@c lui $at,%hi(label)
-@c lw rd,%lo(label)($at)
-@c lw rd+1,%low(label+4)($at)
-@c ...
-@c .rodata:
-@c label : immdouble
-@c @end verbatim
-
-@c @tab
-@c Double construction disabled, must load from memory.
-@c @item
-@c @verbatim
-@c PIC
-@c @end verbatim
-
-@c @tab
-@c @verbatim
-@c lw $at,%got_page(label)($gp)
-@c lw rd,%got_ofst(label)($at)
-@c lw rd+1,%got_ofst(label+4)($at)
-@c ...
-@c .rodata:
-@c label : immdouble
-@c @end verbatim
-
-@c @tab
-@c FIXME: generate NewABI GOT relocs
-@c @end multitable
-@c @item li.d fd,immdouble
-@c @multitable @columnfractions 0.3 0.4 0.3
-@c @item
-@c @verbatim
-@c no-PIC
-@c && -G8
-@c @end verbatim
-
-@c @tab
-@c @verbatim
-@c lui $at,%hi(label)
-@c addu $at,$at,$gp
-@c ldc1 fd,%lo(label)($at)
-@c ...
-@c .lit8:
-@c label : immdouble
-@c @end verbatim
-
-@c @tab
-@c @item
-@c @verbatim
-@c no-PIC
-@c && -G < 8
-@c @end verbatim
-
-@c @tab
-@c @verbatim
-@c lui $at,%hi(label)
-@c ldc1 fd,%lo(label)($at)
-@c ...
-@c .rodata:
-@c label : immdouble
-@c @end verbatim
-
-@c @tab
-@c @item
-@c @verbatim
-@c PIC
-@c @end verbatim
-
-@c @tab
-@c @verbatim
-@c lw $at,%got_page(label)($gp)
-@c ldc1 fd,%got_ofst(label)($at)
-@c ...
-@c .rodata:
-@c label : immdouble
-@c @end verbatim
-
-@c @tab
-@c * FIXME: generate NewABI GOT relocs
-@c @end multitable
 @item dadd rd,rs,imm
 @multitable @columnfractions 0.3 0.4 0.3
 @item

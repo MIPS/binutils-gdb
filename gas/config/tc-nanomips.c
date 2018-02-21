@@ -2892,7 +2892,6 @@ nanomips_reloc_p (bfd_reloc_code_real_type reloc)
     case BFD_RELOC_NANOMIPS_HI20:
     case BFD_RELOC_NANOMIPS_LO12:
     case BFD_RELOC_NANOMIPS_PCREL_HI20:
-    case BFD_RELOC_NANOMIPS_LITERAL:
     case BFD_RELOC_NANOMIPS_7_PCREL_S1:
     case BFD_RELOC_NANOMIPS_10_PCREL_S1:
     case BFD_RELOC_NANOMIPS_11_PCREL_S1:
@@ -4363,13 +4362,12 @@ match_base_checked_offset_operand (struct nanomips_arg_info *arg,
 
 static bfd_boolean
 match_float_constant (struct nanomips_arg_info *arg, expressionS *imm,
-		      expressionS *offset, int length,
+		      expressionS *offset, unsigned int length,
 		      bfd_boolean using_gprs)
 {
   char *p;
-  segT seg, new_seg;
+  segT seg;
   subsegT subseg;
-  const char *newname;
   unsigned char *data;
 
   /* Where the constant is placed is based on how the nanoMIPS assembler
@@ -4377,27 +4375,23 @@ match_float_constant (struct nanomips_arg_info *arg, expressionS *imm,
 
      length == 4 && using_gprs  -- immediate value only
      length == 8 && using_gprs  -- .rdata or immediate value
-     length == 4 && !using_gprs -- .lit4 or immediate value
-     length == 8 && !using_gprs -- .lit8 or immediate value
+     length <= -Gnum -- .sdata
+     length >= -Gnum  -- .rodata
 
-     The .lit4 and .lit8 sections are only used if permitted by the
-     -G argument.  */
+     The .sdata sections are only used if permitted by the -G argument.  */
   if (arg->token->type != OT_FLOAT)
     {
       set_insn_error (arg->argnum, _("floating-point expression required"));
       return FALSE;
     }
 
-  gas_assert (arg->token->u.flt.length == length);
+  gas_assert (arg->token->u.flt.length == (int)length);
   data = arg->token->u.flt.data;
   ++arg->token;
 
-  /* Handle 32-bit constants for which an immediate value is best.  */
+  /* Handle 32-bit constants -- immediate value is best.  */
   if (length == 4
-      && (using_gprs
-	  || g_switch_value < 4
-	  || (data[0] == 0 && data[1] == 0)
-	  || (data[2] == 0 && data[3] == 0)))
+      && !nanomips_disable_float_construction)
     {
       imm->X_op = O_constant;
       if (!target_big_endian)
@@ -4454,27 +4448,12 @@ match_float_constant (struct nanomips_arg_info *arg, expressionS *imm,
   /* Switch to the right section.  */
   seg = now_seg;
   subseg = now_subseg;
-  if (length == 4)
-    {
-      gas_assert (!using_gprs && g_switch_value >= 4);
-      newname = ".lit4";
-    }
-  else
-    {
-      if (using_gprs || g_switch_value < 8)
-	newname = RDATA_SECTION_NAME;
-      else
-	newname = ".lit8";
-    }
 
-  new_seg = subseg_new (newname, (subsegT) 0);
-  bfd_set_section_flags (stdoutput, new_seg,
-			 SEC_ALLOC | SEC_LOAD | SEC_READONLY | SEC_DATA);
-  frag_align (length == 4 ? 2 : 3, 0, 0);
-  if (strncmp (TARGET_OS, "elf", 3) != 0)
-    record_alignment (new_seg, 4);
+  if (!using_gprs && g_switch_value >= length && nanomips_opts.pic == NO_PIC)
+    s_change_sec ('s');
   else
-    record_alignment (new_seg, length == 4 ? 2 : 3);
+    s_change_sec ('r');
+
   if (seg == now_seg)
     as_bad (_("cannot use `%s' in this section"), arg->insn->insn_mo->name);
 
@@ -6022,6 +6001,7 @@ static const char *const mfhl_fmt[2] = { "mj", "s" };
 #define ADDIU_FMT (addiu_fmt[HAVE_32BIT_ADDRESSES? 0 : 1])
 #define ADDIUGP_FMT "t,ma,."
 #define LWGP_FMT "t,.(ma)"
+#define LDGP_FMT "t,.(ma)"
 #define MEM12_FMT "t,+j(b)"
 #define LL_SC_FMT "t,+m(b)"
 #define LLP_SCP_FMT "t,mu,(b)"
@@ -6831,8 +6811,7 @@ small_offset_p (unsigned int range, unsigned int align, unsigned int offbits)
 	return TRUE;
 
       /* These relocations are guaranteed not to overflow in correct links.  */
-      if (*offset_reloc == BFD_RELOC_NANOMIPS_LITERAL
-	  || gprel16_reloc_p (*offset_reloc))
+      if (gprel16_reloc_p (*offset_reloc))
 	return TRUE;
     }
 
@@ -6856,8 +6835,7 @@ small_poffset_p (unsigned int range, unsigned align, unsigned int offbits)
       && range % align == 0)
     return TRUE;
 
-  if (lo_reloc_p (*offset_reloc)
-      || *offset_reloc == BFD_RELOC_NANOMIPS_LITERAL)
+  if (lo_reloc_p (*offset_reloc))
     return TRUE;
 
   return FALSE;
@@ -7068,11 +7046,12 @@ nanomips_macro_absolute_ld_st (const char *s, const char *fmt,
 
 static void
 nanomips_macro_pcrel_ld_st (const char *s, const char *fmt, unsigned int op[],
-			    unsigned int tempreg)
+			    unsigned int tempreg, bfd_boolean coproc)
 {
   if ((nanomips_opts.ase & ASE_xNMS) != 0
       && *offset_reloc == BFD_RELOC_UNUSED
-      && !nanomips_opts.insn32)
+      && !nanomips_opts.insn32
+      && !coproc)
     macro_build (&offset_expr, "lwpc", "mp,+S", op[0],
 		 BFD_RELOC_NANOMIPS_PC_I32);
   else
@@ -7087,7 +7066,8 @@ nanomips_macro_pcrel_ld_st (const char *s, const char *fmt, unsigned int op[],
 static void
 nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
 		      const char *gpfmt, int align, int offbits,
-		      unsigned int breg, unsigned int tempreg, int *used_at)
+		      unsigned int breg, unsigned int tempreg, int *used_at,
+		      bfd_boolean coproc)
 {
   expressionS expr1;
   expr1.X_op = O_constant;
@@ -7205,7 +7185,7 @@ nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
 	}
 
       if (nanomips_opts.pcrel)
-	nanomips_macro_pcrel_ld_st (s, fmt, op, tempreg);
+	nanomips_macro_pcrel_ld_st (s, fmt, op, tempreg, coproc);
       else
 	nanomips_macro_absolute_ld_st (s, fmt, op, tempreg, breg);
 
@@ -7238,7 +7218,7 @@ nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
       macro_build (NULL, s, fmt, op[0], 0, tempreg);
 
       relax_switch ();
-      nanomips_macro_pcrel_ld_st (s, fmt, op, tempreg);
+      nanomips_macro_pcrel_ld_st (s, fmt, op, tempreg, coproc);
       relax_end ();
     }
 }
@@ -8268,7 +8248,7 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
     ld_noat:
       breg = op[2];
       nanomips_macro_ld_st (s, fmt, op, gpfmt, align, offbits, breg,
-			    tempreg, &used_at);
+			    tempreg, &used_at, coproc);
       break;
 
     case M_LDX_AB:
@@ -8397,12 +8377,30 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       break;
 
     case M_LI:
-    case M_LI_S:
       if (imm_expr.X_op != O_absent)
 	load_register (op[0], &imm_expr, 0);
       else
 	nanomips_macro_la (op, 0, &used_at);
       break;
+
+    case M_LI_S:
+      if (imm_expr.X_op == O_constant)
+	{
+	  load_register (op[0], &imm_expr, 0);
+	  break;
+	}
+
+      /* Loading from data section, fall-back to load-from-label
+	 macro expansion.  */
+      used_at = 1;
+      align = 4;
+      offbits = ISA_OFFBITS;
+      fmt = ISA_UNSIGNED_LDST_FMT;
+      op[2] = 0;
+      s = "lw";
+      gpfmt  = LWGP_FMT;
+      tempreg = (op[0] != 0) ? op[0] : AT;
+      goto ld_noat;
 
     case M_DLI:
       load_register (op[0], &imm_expr, 1);
@@ -8416,18 +8414,18 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	  macro_build (NULL, "mtc1", "t,G", AT, op[0]);
 	  break;
 	}
-      else
-	{
-	  gas_assert (imm_expr.X_op == O_absent
-		      && offset_expr.X_op == O_symbol
-		      && strcmp (segment_name (S_GET_SEGMENT
-					       (offset_expr.X_add_symbol)),
-				 ".lit4") == 0
-		      && offset_expr.X_add_number == 0);
-	  macro_build (&offset_expr, "lwc1", "T,o(b)", op[0],
-		       BFD_RELOC_NANOMIPS_LITERAL, nanomips_gp_register);
-	  break;
-	}
+
+      /* Loading from data section, fall-back to load-from-label
+	 macro expansion.  */
+      used_at = 1;
+      align = 4;
+      offbits = ISA_OFFBITS;
+      fmt = ISA_UNSIGNED_COP1_FMT;
+      op[2] = 0;
+      s = "lwc1";
+      gpfmt = "T,+2(ma)";
+      coproc = 1;
+      goto ld_st;
 
     case M_LI_D:
       /* Check if we have a constant in IMM_EXPR.  If the GPRs are 64 bits
@@ -8468,42 +8466,27 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	    }
 	  break;
 	}
+
+      /* Loading from data section, fall-back to load-from-label
+	 macro expansion.  */
       gas_assert (imm_expr.X_op == O_absent);
-
-      /* We know that sym is in the .rdata section.  First we get the
-         upper 16 bits of the address.  */
-      if (nanomips_opts.pic == NO_PIC)
-	{
-	  macro_build_lui (&offset_expr, AT);
-	  used_at = 1;
-	  expr1 = offset_expr;
-	}
-      else
-	{
-	  macro_build (&offset_expr, ADDRESS_LOAD_INSN, LWGP_FMT, AT,
-		       BFD_RELOC_NANOMIPS_GOT_DISP, nanomips_gp_register);
-	  used_at = 1;
-	  expr1.X_add_number = 0;
-	}
-
-      /* Now we load the register(s).  */
+      used_at = 1;
+      align = 4;
+      offbits = ISA_OFFBITS;
+      fmt = ISA_UNSIGNED_LDST_FMT;
+      op[2] = 0;
       if (GPR_SIZE == 64)
 	{
-	  used_at = 1;
-	  macro_build (&expr1, "ld", "t,o(b)", op[0], BFD_RELOC_LO16, AT);
+	  s = "ld";
+	  gpfmt  = LDGP_FMT;
+	  tempreg = (op[0] != 0) ? op[0] : AT;
+	  goto ld_noat;
 	}
-      else
-	{
-	  used_at = 1;
-	  macro_build (&expr1, "lw", "t,o(b)", op[0], BFD_RELOC_LO16, AT);
-	  if (op[0] != RA)
-	    {
-	      expr1.X_add_number += 4;
-	      macro_build (&expr1, "lw", "t,o(b)",
-			   op[0] + 1, BFD_RELOC_LO16, AT);
-	    }
-	}
-      break;
+
+      s = "lw";
+      gpfmt  = LWGP_FMT;
+      tempreg = op[0];
+      goto ldd_std;
 
     case M_LI_DD:
       /* Check if we have a constant in IMM_EXPR.  If the FPRs are 64 bits
@@ -8532,40 +8515,15 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	  break;
 	}
 
-      gas_assert (imm_expr.X_op == O_absent
-		  && offset_expr.X_op == O_symbol
-		  && offset_expr.X_add_number == 0);
-      s = segment_name (S_GET_SEGMENT (offset_expr.X_add_symbol));
-      if (strcmp (s, ".lit8") == 0)
-	{
-	  op[2] = nanomips_gp_register;
-	  offset_reloc[0] = BFD_RELOC_NANOMIPS_LITERAL;
-	  offset_reloc[1] = BFD_RELOC_UNUSED;
-	  offset_reloc[2] = BFD_RELOC_UNUSED;
-	}
-      else
-	{
-	  gas_assert (strcmp (s, RDATA_SECTION_NAME) == 0);
-	  used_at = 1;
-	  if (nanomips_opts.pic == NO_PIC)
-	    {
-	      macro_build_lui (&offset_expr, AT);
-	      offset_reloc[0] = BFD_RELOC_LO16;
-	      op[2] = AT;
-	      offset_reloc[1] = BFD_RELOC_UNUSED;
-	      offset_reloc[2] = BFD_RELOC_UNUSED;
-	    }
-	  else
-	    op[2] = 0;
-	}
+      /* Loading from data section, fall-back to load-from-label
+	 macro expansion.  */
+      op[2] = 0;
       align = 8;
-
-      /* Itbl support may require additional care here.  */
       coproc = 1;
       fmt = ISA_UNSIGNED_COP1_FMT;
       gpfmt = "T,+2(ma)";
       s = "ldc1";
-      goto ld_st;
+      goto ld_st ;
 
     case M_LD_AC:
       fmt = ISA_UNSIGNED_LDST_FMT;
@@ -9725,7 +9683,6 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
     case BFD_RELOC_GPREL32:
     case BFD_RELOC_NANOMIPS_EH:
     case BFD_RELOC_NANOMIPS_NEG:
-    case BFD_RELOC_NANOMIPS_LITERAL:
     case BFD_RELOC_NANOMIPS_GOT_CALL:
     case BFD_RELOC_NANOMIPS_GOT_DISP:
     case BFD_RELOC_NANOMIPS_GOT_PAGE:
@@ -10882,8 +10839,6 @@ nopic_need_relax (symbolS *sym, int before_relaxing)
 	  const char *segname;
 
 	  segname = segment_name (S_GET_SEGMENT (sym));
-	  gas_assert (strcmp (segname, ".lit8") != 0
-		      && strcmp (segname, ".lit4") != 0);
 	  change = (strcmp (segname, ".sdata") != 0
 		    && strcmp (segname, ".sbss") != 0
 		    && strncmp (segname, ".sdata.", 7) != 0
@@ -10904,6 +10859,9 @@ static bfd_boolean
 pic_need_relax (symbolS *sym, asection *segtype)
 {
   asection *symsec;
+
+  if (nanomips_opts.mc_model == MC_AUTO && linkrelax)
+    return FALSE;
 
   /* Handle the case of a symbol equated to another symbol.  */
   while (symbol_equated_reloc_p (sym))
