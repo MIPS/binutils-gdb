@@ -4821,7 +4821,7 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
                              "%s(%s+%#lx): nop[32] is replaced with nop[16]",
                              relobj->name().c_str(),
                              relobj->section_name(relinfo->data_shndx).c_str(),
-                             (unsigned long) r_offset + new_padding - 2);
+                             (unsigned long) (r_offset + new_padding - 2));
                 }
             }
 
@@ -4834,7 +4834,7 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
                      "requirement",
                      relobj->name().c_str(),
                      relobj->section_name(relinfo->data_shndx).c_str(),
-                     (unsigned long) r_offset + old_padding,
+                     (unsigned long) (r_offset + old_padding),
                      abs(count),
                      count > 0 ? "added" : "removed");
 
