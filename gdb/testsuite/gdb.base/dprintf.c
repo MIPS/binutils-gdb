@@ -21,6 +21,14 @@
 
 static int g;
 
+/* Allow the debugger to get access to stderr which is a macro in
+   newlib rather than a symbol.  */
+FILE *
+get_stderr (void)
+{
+  return stderr;
+}
+
 void
 foo (int arg)
 {

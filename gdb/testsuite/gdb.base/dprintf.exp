@@ -115,7 +115,7 @@ proc test_call {} {
 	restart
 
 	gdb_test_no_output "set dprintf-function fprintf" "set dprintf function"
-	gdb_test_no_output "set dprintf-channel stderr" "set dprintf channel"
+	gdb_test_no_output "set dprintf-channel get_stderr()" "set dprintf channel"
 
 	gdb_test_no_output "set dprintf-style call" "set dprintf style to call"
 
