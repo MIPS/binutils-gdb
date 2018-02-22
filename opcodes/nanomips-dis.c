@@ -478,14 +478,14 @@ static void
 print_cp0_reg (struct disassemble_info *info, int regno)
 {
   int i;
-  unsigned int select = regno & NANOMIPSOP_MASK_CP0SEL;
+  unsigned int selnum = regno & NANOMIPSOP_MASK_CP0SEL;
   unsigned int cp0_regno = regno >> NANOMIPSOP_SH_CP0SEL;
 
   if (nanomips_cp0_names != nanomips_cp0_numeric)
     for (i = cp0_regno; nanomips_cp0_names[i].name; i++)
       {
 	if (nanomips_cp0_names[i].num == cp0_regno
-	    && nanomips_cp0_names[i].sel == select)
+	    && nanomips_cp0_names[i].sel == selnum)
 	  {
 	    info->fprintf_func (info->stream, "%s",
 				nanomips_cp0_names[i].name+1);
@@ -494,10 +494,10 @@ print_cp0_reg (struct disassemble_info *info, int regno)
       }
 
   /* A select value of 0 is deemed optional.  */
-  if (select == 0)
+  if (selnum == 0)
     info->fprintf_func (info->stream, "$%d", cp0_regno);
   else
-    info->fprintf_func (info->stream, "$%d,%d", cp0_regno, select);
+    info->fprintf_func (info->stream, "$%d,%d", cp0_regno, selnum);
 }
 
 /* Look-up and print the symbolic name of a named CP0 register with
@@ -506,27 +506,27 @@ print_cp0_reg (struct disassemble_info *info, int regno)
 
 static void
 print_cp0sel_reg (struct disassemble_info *info, unsigned int regno,
-		  unsigned int select)
+		  unsigned int selnum)
 {
   int i;
 
   for (i = 0; nanomips_cp0sel_names[i].name; i++)
     {
       if (nanomips_cp0sel_names[i].num == regno
-	  && ((1 << select) & nanomips_cp0sel_names[i].selmask) != 0)
+	  && ((1 << selnum) & nanomips_cp0sel_names[i].selmask) != 0)
 	{
 	  info->fprintf_func (info->stream, "%s,%d",
 			      nanomips_cp0sel_names[i].name+1,
-			      select);
+			      selnum);
 	  return;
 	}
     }
 
   /* A select value of 0 is deemed optional.  */
-  if (select == 0)
+  if (selnum == 0)
     info->fprintf_func (info->stream, "$%d", regno);
   else
-    info->fprintf_func (info->stream, "$%d,%d", regno, select);
+    info->fprintf_func (info->stream, "$%d,%d", regno, selnum);
 }
 
 /* Print register REGNO, of type TYPE, for instruction OPCODE.  */
@@ -948,13 +948,13 @@ static bfd_boolean
 validate_cp0_reg_operand (unsigned int uval)
 {
   int i;
-  unsigned int regno, select;
+  unsigned int regno, selnum;
   regno = uval >> NANOMIPSOP_SH_CP0SEL;
-  select = uval & NANOMIPSOP_MASK_CP0SEL;
+  selnum = uval & NANOMIPSOP_MASK_CP0SEL;
 
   for (i = 0; nanomips_cp0_3264r6[i].name; i++)
     if (regno ==  nanomips_cp0_3264r6[i].num
-	&& select == nanomips_cp0_3264r6[i].sel)
+	&& selnum == nanomips_cp0_3264r6[i].sel)
       break;
     else if (regno < nanomips_cp0_3264r6[i].num)
       return FALSE;
