@@ -38,14 +38,19 @@ enum Transform_type
   TT_DISCARD,
   // Relaxation from 32 to 16 bit instruction.
   TT_RELAX,
-  // Transformation to 32 bit instruction.
-  TT_REL32,
   // beqc[16] and bnec[16] have the same opcode, so we need to distinguish to
   // which 32bit instruction we need to transform it.
   TT_BEQC32,
   TT_BNEC32,
   // Transformation for move.balc instruction.
   TT_MOVE_BALC,
+  // Absolute transformation to 32 bit instruction.
+  TT_ABS32,
+  // Absolute transformation where one instruction is 48 bit.
+  TT_ABS_XLP,
+  // Absolute long sequence transformations.
+  TT_ABS16_LONG,
+  TT_ABS32_LONG,
   // Transform to 16 bit gp-relative instruction.
   TT_GPREL16_WORD,
   // Transform to 32 bit gp-relative instruction.

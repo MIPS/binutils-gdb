@@ -278,6 +278,11 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
     return safe_to_relax;
   }
 
+  // Return whether this object uses PC-relative addressing.
+  bool
+  pcrel() const
+  { return (this->processor_specific_flags_ & elfcpp::EF_NANOMIPS_PCREL) != 0; }
+
  protected:
   // Count the local symbols.
   void
@@ -2378,6 +2383,7 @@ Nanomips_transformations<size, big_endian>::get_type(
 
   const bool pid = this->relobj_->pid();
   const bool xlp = this->relobj_->xlp();
+  const bool pcrel = this->relobj_->pcrel();
   const bool insn32 = parameters->options().insn32();
   bool got_entry =
     (gsym != NULL
@@ -2461,9 +2467,12 @@ Nanomips_transformations<size, big_endian>::get_type(
                     || this->is_relax_))
               // Transform into lapc.
               return TT_PCREL32;
+            else if (xlp)
+              // Transform into lapc[48]/li[48].
+              return pcrel ? TT_PCREL_XLP : TT_ABS_XLP;
             else
-              // Transform into lapc[48] or aluipc, ori.
-              return xlp ? TT_PCREL_XLP : TT_PCREL32_LONG;
+              // Transform into aluipc/lui, ori.
+              return pcrel ? TT_PCREL32_LONG : TT_ABS32_LONG;
           }
       }
     case elfcpp::R_NANOMIPS_GOT_OFST:
@@ -2503,10 +2512,13 @@ Nanomips_transformations<size, big_endian>::get_type(
               psymval->value(this->relobj_, r_addend) - address - 4;
             bool valid = insn_property->valid_regs(insn);
             bool overflow = this->check_overflow<21>(value, CHECK_SIGNED);
-            // Transform into lapc, [ls]x[16] or aluipc, [ls]x.
-            return (valid && (value & 0x1) == 0 && !overflow && !insn32
-                    ? TT_PCREL16_LONG
-                    : TT_PCREL32_LONG);
+
+            if (valid && (value & 0x1) == 0 && !overflow && !insn32)
+              // Transform into lapc, [ls]x[16].
+              return TT_PCREL16_LONG;
+            else
+              // Transform into aluipc/lui, [ls]x.
+              return pcrel ? TT_PCREL32_LONG : TT_ABS32_LONG;
           }
       }
     case elfcpp::R_NANOMIPS_JALR32:
@@ -2516,8 +2528,8 @@ Nanomips_transformations<size, big_endian>::get_type(
           // Transform into balc.
           return TT_PCREL32;
         else
-          // Transform into aluipc, ori, jalrc.
-          return TT_PCREL32_LONG;
+          // Transform into aluipc/lui, ori, jalrc.
+          return pcrel ? TT_PCREL32_LONG : TT_ABS32_LONG;
       }
     case elfcpp::R_NANOMIPS_JALR16:
       {
@@ -2529,9 +2541,12 @@ Nanomips_transformations<size, big_endian>::get_type(
                  || this->is_relax_)
           // Transform into balc.
           return TT_PCREL32;
+        else if (xlp)
+          // Transform into lapc[48]/li[48], jalrc[16].
+          return pcrel ? TT_PCREL_XLP : TT_ABS_XLP;
         else
-          // Transform into lapc[48], jalrc[16] or aluipc, ori, jalrc[16].
-          return xlp ? TT_PCREL_XLP : TT_PCREL16_LONG;
+          // Transform into aluipc/lui, ori, jalrc[16].
+          return pcrel ? TT_PCREL16_LONG : TT_ABS16_LONG;
       }
     default:
       gold_unreachable();
@@ -2949,12 +2964,17 @@ Nanomips_expand_insn<size, big_endian>::get_expand_type(
 {
   const bool xlp = this->relobj()->xlp();
   const bool insn32 = parameters->options().insn32();
+  const bool pcrel = this->relobj()->pcrel();
   switch (r_type)
     {
     case elfcpp::R_NANOMIPS_PC25_S1:
       if (xlp)
-        // Transform balc/bc into lapc[48], jalrc[16]/jrc[16].
-        return TT_PCREL_XLP;
+        // Transform balc/bc into lapc[48], jalrc[16]/jrc[16]
+        // or into into li[48], jalrc[16]/jrc[16].
+        return pcrel ? TT_PCREL_XLP : TT_ABS_XLP;
+      else if (!pcrel)
+        // Transform balc/bc into lui, ori, jalrc/jrc.
+        return insn32 ? TT_ABS32_LONG : TT_ABS16_LONG;
       else
         // Transform balc/bc into aluipc, ori, jalrc/jrc.
         return insn32 ? TT_PCREL32_LONG : TT_PCREL16_LONG;
@@ -2962,9 +2982,12 @@ Nanomips_expand_insn<size, big_endian>::get_expand_type(
       if (insn_property->has_transform(TT_MOVE_BALC))
         // Transform move.balc into move[16], balc.
         return TT_MOVE_BALC;
+      else if (xlp)
+        // Transform lapc into lapc[48]/li[48].
+        return pcrel ? TT_PCREL_XLP : TT_ABS_XLP;
       else
-        // Transform lapc into lapc[48] or aluipc, ori.
-        return xlp ? TT_PCREL_XLP : TT_PCREL32_LONG;
+        // Transform lapc into aluipc/lui, ori.
+        return pcrel ? TT_PCREL32_LONG : TT_ABS32_LONG;
     case elfcpp::R_NANOMIPS_PC14_S1:
     case elfcpp::R_NANOMIPS_PC11_S1:
       // Transform into opposite branch and bc instruction.
@@ -2991,7 +3014,7 @@ Nanomips_expand_insn<size, big_endian>::get_expand_type(
       return TT_GPREL32_WORD;
     case elfcpp::R_NANOMIPS_LO4_S2:
       // Transform [ls]w[16] into [ls]w.
-      return TT_REL32;
+      return TT_ABS32;
     default:
       gold_unreachable();
     }
