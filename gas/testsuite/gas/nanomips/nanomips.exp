@@ -981,4 +981,6 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "ldst-indexed" "" nanomips32s
     run_dump_test_arch "ldst-indexed-32" "" nanomips32r6
     run_dump_test_arch "ldst-indexed-64" "" nanomips64r6
+
+    run_dump_test "insn-frag-err"
 }

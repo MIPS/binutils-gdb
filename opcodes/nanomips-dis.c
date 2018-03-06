@@ -1253,10 +1253,11 @@ _print_insn_nanomips (bfd_vma memaddr_base, struct disassemble_info *info)
     {
       unsigned imm;
       /* This is a 48-bit nanoMIPS instruction. */
-      status = (*info->read_memory_func) (memaddr + 2, buffer, 4, info);
+      status = (*info->read_memory_func) (memaddr + 2, buffer, 2, info);
       if (status != 0)
 	{
-	  infprintf (is, "0x%x (expected 48 bits): ", (unsigned) insn);
+	  infprintf (is, "0x%x (expected 48 bits, got only 16): ",
+		     (unsigned) insn);
 	  (*info->memory_error_func) (status, memaddr + 2, info);
 	  return -1;
 	}
@@ -1267,6 +1268,13 @@ _print_insn_nanomips (bfd_vma memaddr_base, struct disassemble_info *info)
       higher = (imm << 16);
 
       status = (*info->read_memory_func) (memaddr + 4, buffer, 2, info);
+      if (status != 0)
+	{
+	  infprintf (is, "0x%x (expected 48 bits, got only 32): ",
+		     (unsigned) insn);
+	  (*info->memory_error_func) (status, memaddr + 4, info);
+	  return -1;
+	}
 
       if (info->endian == BFD_ENDIAN_BIG)
 	imm = bfd_getb16 (buffer);
@@ -1284,7 +1292,8 @@ _print_insn_nanomips (bfd_vma memaddr_base, struct disassemble_info *info)
       status = (*info->read_memory_func) (memaddr + 2, buffer, 2, info);
       if (status != 0)
 	{
-	  infprintf (is, "0x%x (expected 32 bits): ", (unsigned) higher);
+	  infprintf (is, "0x%x (expected 32 bits, got only 16): ",
+		     (unsigned) higher);
 	  (*info->memory_error_func) (status, memaddr + 2, info);
 	  return -1;
 	}
