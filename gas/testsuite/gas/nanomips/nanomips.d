@@ -1960,7 +1960,7 @@ Disassembly of section .text:
 [0-9a-f]+ <[^>]+> 8001 c006 	sync	0x1
 [0-9a-f]+ <[^>]+> 8002 c006 	sync	0x2
 [0-9a-f]+ <[^>]+> 8003 c006 	sync	0x3
-[0-9a-f]+ <[^>]+> 8004 c006 	sync	0x4
+[0-9a-f]+ <[^>]+> 8005 c006 	sync	0x5
 [0-9a-f]+ <[^>]+> 801e c006 	sync	0x1e
 [0-9a-f]+ <[^>]+> 801f c006 	sync	0x1f
 [0-9a-f]+ <[^>]+> 87e0 3000 	synci	0\(zero\)

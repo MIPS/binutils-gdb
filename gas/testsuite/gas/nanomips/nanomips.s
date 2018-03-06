@@ -1630,7 +1630,7 @@ test3:
 	sync	1
 	sync	2
 	sync	3
-	sync	4
+	sync	5
 	sync	30
 	sync	31
 

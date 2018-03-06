@@ -1464,6 +1464,66 @@ swc1x fs,rs(rt)
 @tab N @tab 32
 @item
 @verbatim
+sync_wmb
+@end verbatim
+
+@tab @tab @verbatim
+sync 4
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+sync_mb
+@end verbatim
+
+@tab @tab @verbatim
+sync 16
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+sync_acquire
+@end verbatim
+
+@tab @tab @verbatim
+sync 17
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+sync_release
+@end verbatim
+
+@tab @tab @verbatim
+sync 18
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+sync_rmb
+@end verbatim
+
+@tab @tab @verbatim
+sync 19
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
+sync_ginv
+@end verbatim
+
+@tab @tab @verbatim
+sync 20
+@end verbatim
+
+@tab Y @tab 32
+@item
+@verbatim
 xor rt,rt,rs
 @end verbatim
 

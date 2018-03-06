@@ -983,4 +983,6 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "ldst-indexed-64" "" nanomips64r6
 
     run_dump_test "insn-frag-err"
+    run_dump_test "sync-code"
+    run_dump_test "sync-alias"
 }

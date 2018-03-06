@@ -1326,7 +1326,13 @@ IGRIE */
 {"shrlv.qb",	"",		"d,t,s",	0x20000355, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"shx", 	"",		"d,s(t)",	0x20000287, 0xfc0007ff, RD_1|RD_2|RD_3,		0,	0,	xNMS},
 {"shxs",	"",		"d,s(t)",	0x200002c7, 0xfc0007ff, RD_1|RD_2|RD_3,		0,	0,	xNMS},
-{"sync",	"",		"",		0x8000c006, 0xffffffff,		0,		0,	I38,	0},
+{"sync_wmb",	"",		"",		0x8004c006, 0xffffffff,		0,	INSN2_ALIAS,	I38,	0}, /* SYNC */
+{"sync_mb",	"",		"",		0x8010c006, 0xffffffff,		0,	INSN2_ALIAS,	I38,	0}, /* SYNC */
+{"sync_acquire", "",		"",		0x8011c006, 0xffffffff,		0,	INSN2_ALIAS,	I38,	0}, /* SYNC */
+{"sync_release", "",		"",		0x8012c006, 0xffffffff,		0,	INSN2_ALIAS,	I38,	0}, /* SYNC */
+{"sync_rmb",	"",		"",		0x8013c006, 0xffffffff,		0,	INSN2_ALIAS,	I38,	0}, /* SYNC */
+{"sync_ginv",	"",		"",		0x8014c006, 0xffffffff,		0,	INSN2_ALIAS,	0,	GINV}, /* SYNC */
+{"sync",	"",		"",		0x8000c006, 0xffffffff,		0,	INSN2_ALIAS,	I38,	0}, /* SYNC */
 {"sync",	"",		"1",		0x8000c006, 0xffe0ffff,		0,		0,	I38,	0},
 {"sle", 	"", 		"d,v,t",	0,    (int) M_SLE,	INSN_MACRO,		0,	I38,	0},
 {"sle", 	"", 		"d,v,I",	0,    (int) M_SLE_I,	INSN_MACRO,		0,	I38,	0},
