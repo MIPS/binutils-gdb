@@ -1,7 +1,7 @@
 #objdump: -dr -M gpr-names=numeric,cp0-names=32r6
-#name: nanoMIPS CP0 with sel register name assembly
+#name: nanoMIPS CP0 with sel register disassembly
 
-# Check assembly of cp0-names register names
+# Check objdump's handling of -M cp0-names=foo options.
 
 .*: +file format .*nanomips.*
 
