@@ -2453,7 +2453,7 @@ Layout::clean_up_after_relaxation()
        p != this->section_list_.end();
        ++p)
     {
-      (*p)->restore_states();
+      (*p)->restore_states(script_section->saw_sections_clause());
 
       // If an input section changes size because of relaxation,
       // we need to adjust the section offsets of all input sections.
