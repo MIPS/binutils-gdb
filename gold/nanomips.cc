@@ -58,6 +58,18 @@ class Nanomips_relobj;
 template<int size, bool big_endian>
 class Nanomips_relocate_functions;
 
+template<int size>
+class Nanomips_symbol_hash;
+
+template<int size>
+class Nanomips_symbol;
+
+template<int size, bool big_endian>
+class Nanomips_output_data_got;
+
+template<int size, bool big_endian>
+class Nanomips_output_data_stubs;
+
 class Nanomips_input_section;
 
 // The types of GOT entries needed for this platform.
@@ -114,6 +126,270 @@ struct Nanomips_abiflags
   // Mask of general flags.
   Valtype32 flags1;
   Valtype32 flags2;
+};
+
+// This struct represents a .nanoMIPS.stubs footer.
+
+struct Nanomips_stubs_footer
+{
+  Nanomips_stubs_footer()
+    : offset(-1ULL), bias(0)
+  { }
+
+  // Offset within the section of this footer.
+  uint64_t offset;
+  // Bias for the group of entries.
+  size_t bias;
+};
+
+// This struct represents a .nanoMIPS.stubs entry.
+
+template<int size>
+struct Nanomips_stubs_entry
+{
+  Nanomips_stubs_entry(Nanomips_symbol<size>* _sym)
+    : sym(_sym), footer(NULL), indx(0)
+  { }
+
+  // The global symbol corresponding to this entry.
+  Nanomips_symbol<size>* sym;
+  // Footer for this entry.
+  Nanomips_stubs_footer* footer;
+  // JMPREL index of this entry.
+  size_t indx;
+};
+
+// A class to handle the .nanoMIPS.stubs data.
+
+template<int size, bool big_endian>
+class Nanomips_output_data_stubs : public Output_section_data
+{
+  typedef typename elfcpp::Elf_types<size>::Elf_Addr Address;
+  typedef std::vector<Nanomips_stubs_entry<size> >
+      Nanomips_stubs_entries;
+  typedef std::vector<Nanomips_stubs_footer*> Nanomips_stubs_footers;
+  typedef Output_data_reloc<elfcpp::SHT_REL, true, size, big_endian>
+      Reloc_section;
+
+ public:
+  Nanomips_output_data_stubs(Target_nanomips<size, big_endian>* target,
+                             Layout* layout)
+    : Output_section_data(size == 32 ? 4 : 8), target_(target), entries_(),
+      footers_()
+  {
+    this->rel_ = new Reloc_section(false);
+    layout->add_output_section_data(".rel.nanoMIPS.stubs", elfcpp::SHT_REL,
+                                    elfcpp::SHF_ALLOC, this->rel_,
+                                    ORDER_DYNAMIC_PLT_RELOCS, false);
+  }
+
+  // Add an entry to the .nanoMIPS.stubs.
+  void
+  add_entry(Nanomips_symbol<size>* nanomips_sym)
+  {
+    Nanomips_stubs_entry<size> entry(nanomips_sym);
+    this->entries_.push_back(entry);
+  }
+
+  // Return the .rel.nanoMIPS.stubs section data.
+  Reloc_section*
+  rel_stubs() const
+  { return this->rel_; }
+
+  // Return output address of a stub.
+  Address
+  stub_address(const Nanomips_symbol<size>* sym) const
+  { return this->address() + sym->lazy_stub_offset(); }
+
+  // Return .nanoMIPS.stubs entries.
+  Nanomips_stubs_entries&
+  nanomips_stubs_entries()
+  { return this->entries_; }
+
+  // Set stub offsets for symbols.
+  void
+  set_lazy_stub_offsets();
+
+ protected:
+  // Write to a map file.
+  void
+  do_print_to_mapfile(Mapfile* mapfile) const
+  { mapfile->print_output_data(this, _(".nanoMIPS.stubs")); }
+
+  void
+  do_adjust_output_section(Output_section* os)
+  { os->set_entsize(0); }
+
+  // Write out the .nanoMIPS.stubs data.
+  void
+  do_write(Output_file*);
+
+ private:
+  // Set offset and bias for footer if needed, and return new offset.
+  uint64_t
+  set_footer_offset_and_bias(Nanomips_stubs_footer* footer,
+                             uint64_t offset, size_t bias)
+  {
+    if (footer->offset != -1ULL)
+      return offset;
+
+    footer->offset = offset;
+    footer->bias = bias;
+    return offset + this->footer_size(bias > 0);
+  }
+
+  // Create a new footer.
+  Nanomips_stubs_footer*
+  create_footer()
+  {
+    Nanomips_stubs_footer* footer = new Nanomips_stubs_footer();
+    this->footers_.push_back(footer);
+    return footer;
+  }
+
+  // Return the size of the stub.
+  unsigned int
+  stub_size() const
+  { return 6; }
+
+  // Return the size of the footer.
+  unsigned int
+  footer_size(bool is_big) const
+  { return is_big ? 14 : 8; }
+
+  static const uint32_t lazy_stub_entry[];
+  static const uint32_t lazy_stub_normal_footer[];
+  static const uint32_t lazy_stub_big_footer[];
+
+  // The target.
+  Target_nanomips<size, big_endian>* target_;
+  // The reloc section.
+  Reloc_section* rel_;
+  // .nanoMIPS.stubs entries.
+  Nanomips_stubs_entries entries_;
+  // .nanoMIPS.stubs footers.
+  Nanomips_stubs_footers footers_;
+};
+
+// Nanomips_output_data_got class.
+
+template<int size, bool big_endian>
+class Nanomips_output_data_got
+  : public Output_data_got<size, big_endian>
+{
+  typedef Output_data_reloc<elfcpp::SHT_REL, true, size, big_endian>
+      Reloc_section;
+  typedef Unordered_set<Nanomips_symbol<size>*, Nanomips_symbol_hash<size> >
+      Nanomips_got_call_set;
+
+ public:
+  Nanomips_output_data_got(Target_nanomips<size, big_endian>* target)
+    : Output_data_got<size, big_endian>(), target_(target), got_call_()
+  {
+    this->set_addralign(4096);
+  }
+
+  // Reserve GOT entry for a R_NANOMIPS_GOT_CALL relocation
+  // against NANOMIPS_SYM for which we may need to create
+  // a lazy-binding stub.
+  void
+  record_got_call_symbol(Nanomips_symbol<size>* nanomips_sym)
+  {
+    if (!nanomips_sym->has_got_offset(GOT_TYPE_STANDARD))
+      this->got_call_.insert(nanomips_sym);
+  }
+
+  // Finalize symbols against R_NANOMIPS_GOT_CALL relocation.
+  void
+  finalize_got_call_symbols(Layout* layout);
+
+ protected:
+  // Write out the GOT table.
+  void
+  do_write(Output_file*);
+
+ private:
+  // The target.
+  Target_nanomips<size, big_endian>* target_;
+  // R_NANOMIPS_GOT_CALL symbols for which we may need to
+  // create a lazy-binding stubs.
+  Nanomips_got_call_set got_call_;
+};
+
+// Hash for Nanomips_symbol.
+
+template<int size>
+class Nanomips_symbol_hash
+{
+ public:
+  size_t
+  operator()(Nanomips_symbol<size>* sym) const
+  { return sym->hash(); }
+};
+
+// Nanomips_symbol class.  Holds additional symbol information
+// needed for Nanomips.
+
+template<int size>
+class Nanomips_symbol : public Sized_symbol<size>
+{
+ public:
+  Nanomips_symbol()
+    : no_lazy_stub_(false), lazy_stub_offset_(-1ULL)
+  { }
+
+  // Downcast a base pointer to a Nanomips_symbol pointer.
+  static Nanomips_symbol<size>*
+  as_nanomips_sym(Symbol* sym)
+  { return static_cast<Nanomips_symbol<size>*>(sym); }
+
+  // Downcast a base pointer to a Nanomips_symbol pointer.
+  static const Nanomips_symbol<size>*
+  as_nanomips_sym(const Symbol* sym)
+  { return static_cast<const Nanomips_symbol<size>*>(sym); }
+
+  // Return whether we must not create a lazy-binding stub for this symbol.
+  bool
+  no_lazy_stub() const
+  { return this->no_lazy_stub_; }
+
+  // Set that we must not create a lazy-binding stub for this symbol.
+  void
+  set_no_lazy_stub()
+  { this->no_lazy_stub_ = true; }
+
+  // Return the offset of the lazy-binding stub for this symbol from the start
+  // of .nanoMIPS.stubs section.
+  uint64_t
+  lazy_stub_offset() const
+  {
+    gold_assert(this->lazy_stub_offset_ != -1ULL);
+    return this->lazy_stub_offset_;
+  }
+
+  // Set the offset of the lazy-binding stub for this symbol from the start
+  // of .nanoMIPS.stubs section.
+  void
+  set_lazy_stub_offset(uint64_t offset)
+  {
+    gold_assert(this->lazy_stub_offset_ == -1ULL);
+    this->lazy_stub_offset_ = offset;
+  }
+
+  // Return the hash of this symbol.
+  size_t
+  hash() const
+  { return gold::string_hash<char>(this->name()); }
+
+ private:
+  // Whether we must not create a lazy-binding stub for this symbol.
+  // This is true if the symbol has relocations related to taking the
+  // function's address.
+  bool no_lazy_stub_;
+
+  // The offset of the lazy-binding stub for this symbol from the start of
+  // .nanoMIPS.stubs section.
+  uint64_t lazy_stub_offset_;
 };
 
 // Nanomips_relobj class.
@@ -273,9 +549,8 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   bool
   safe_to_relax() const
   {
-    bool safe_to_relax =
-      (this->processor_specific_flags_ & elfcpp::EF_NANOMIPS_LINKRELAX) != 0;
-    return safe_to_relax;
+    elfcpp::Elf_Word linkrelax = elfcpp::EF_NANOMIPS_LINKRELAX;
+    return (this->processor_specific_flags_ & linkrelax) != 0;
   }
 
   // Return whether this object uses PC-relative addressing.
@@ -931,6 +1206,8 @@ template<int size, bool big_endian>
 class Target_nanomips : public Sized_target<size, big_endian>
 {
   typedef Target_nanomips<size, big_endian> This;
+  typedef Output_data_reloc<elfcpp::SHT_REL, true, size, big_endian>
+      Reloc_section;
   typedef typename elfcpp::Elf_types<size>::Elf_Addr Address;
   typedef typename elfcpp::Swap<32, big_endian>::Valtype Valtype32;
   typedef typename elfcpp::Swap<size, big_endian>::Valtype Valtype;
@@ -939,9 +1216,15 @@ class Target_nanomips : public Sized_target<size, big_endian>
  public:
   Target_nanomips(const Target::Target_info* info = &nanomips_info)
     : Sized_target<size, big_endian>(info), state_(EXPAND), got_(NULL),
-      nanomips_input_section_map_(), gp_(NULL), attributes_section_data_(NULL),
-      abiflags_(NULL), layout_(NULL), has_abiflags_section_(false)
+      stubs_(NULL), rel_dyn_(NULL), nanomips_input_section_map_(), gp_(NULL),
+      attributes_section_data_(NULL), abiflags_(NULL), layout_(NULL),
+      has_abiflags_section_(false)
   { }
+
+  // Make a new symbol table entry for the Nanomips target.
+  Sized_symbol<size>*
+  make_symbol(const char*, elfcpp::STT, Object*, unsigned int, uint64_t)
+  { return new Nanomips_symbol<size>(); }
 
   // Process the relocations to determine unreferenced sections for
   // garbage collection.
@@ -1112,6 +1395,31 @@ class Target_nanomips : public Sized_target<size, big_endian>
   bool
   do_should_include_section(elfcpp::Elf_Word sh_type) const
   { return (sh_type != elfcpp::SHT_NANOMIPS_ABIFLAGS); }
+
+  // Get the GOT section, creating it if necessary.
+  Nanomips_output_data_got<size, big_endian>*
+  got_section(Symbol_table*, Layout*);
+
+  // Get the GOT section.
+  Nanomips_output_data_got<size, big_endian>*
+  got_section() const
+  {
+    gold_assert(this->got_ != NULL);
+    return this->got_;
+  }
+
+  // Get the dynamic reloc section, creating it if necessary.
+  Reloc_section*
+  rel_dyn_section(Layout*);
+
+  // Create a .nanoMIPS.stubs entry for a global symbol.
+  void
+  make_stubs_entry(Layout*, Nanomips_symbol<size>*);
+
+  // Get the .nanoMIPS.stubs section.
+  Nanomips_output_data_stubs<size, big_endian>*
+  nanomips_stubs_section() const
+  { return this->stubs_; }
 
   // Get the default Nanomips target.
   static This*
@@ -1333,18 +1641,6 @@ class Target_nanomips : public Sized_target<size, big_endian>
   unsigned int
   nanomips_mach(elfcpp::Elf_Word);
 
-  // Get the GOT section, creating it if necessary.
-  Output_data_got<size, big_endian>*
-  got_section(Symbol_table*, Layout*);
-
-  // Get the GOT section.
-  Output_data_got<size, big_endian>*
-  got_section() const
-  {
-    gold_assert(this->got_ != NULL);
-    return this->got_;
-  }
-
   // Calculate value of _gp symbol.
   void
   set_gp(Layout*, Symbol_table*);
@@ -1368,7 +1664,11 @@ class Target_nanomips : public Sized_target<size, big_endian>
   // States used in relaxation passes.
   State state_;
   // The GOT section.
-  Output_data_got<size, big_endian>* got_;
+  Nanomips_output_data_got<size, big_endian>* got_;
+  // The .nanoMIPS.stubs section.
+  Nanomips_output_data_stubs<size, big_endian>* stubs_;
+  // The dynamic reloc section.
+  Reloc_section* rel_dyn_;
   // Map for locating Nanomips_input_sections.
   Nanomips_input_section_map nanomips_input_section_map_;
   // gp symbol.
@@ -1491,32 +1791,24 @@ class Nanomips_relocate_functions
 
  public:
   static inline void
-  nanomips_reloc_unshuffle(unsigned char* view,
-                           const Nanomips_reloc_property* nrp)
+  nanomips_reloc_unshuffle(unsigned char* view, unsigned int insn_size)
   {
-    if (!nrp->shuffle_reloc())
-      return;
-
     // Pick up the first and second halfwords of the instruction.
     Valtype16 first = elfcpp::Swap<16, big_endian>::readval(view);
     Valtype16 second = elfcpp::Swap<16, big_endian>::readval(view + 2);
-    Valtype32 val = (nrp->size() == 48 ? (second << 16 | first)
-                                       : (first << 16 | second));
+    Valtype32 val = (insn_size == 48 ? (second << 16 | first)
+                                     : (first << 16 | second));
 
     elfcpp::Swap<32, big_endian>::writeval(view, val);
   }
 
   static inline void
-  nanomips_reloc_shuffle(unsigned char* view,
-                         const Nanomips_reloc_property* nrp)
+  nanomips_reloc_shuffle(unsigned char* view, unsigned int insn_size)
   {
-    if (!nrp->shuffle_reloc())
-      return;
-
     // Write the first and second halfwords of the instruction.
     Valtype32 val = elfcpp::Swap<32, big_endian>::readval(view);
-    Valtype16 first = (nrp->size() == 48 ? (val & 0xffff) : (val >> 16));
-    Valtype16 second = (nrp->size() == 48 ? (val >> 16) : (val & 0xffff));
+    Valtype16 first = (insn_size == 48 ? (val & 0xffff) : (val >> 16));
+    Valtype16 second = (insn_size == 48 ? (val >> 16) : (val & 0xffff));
 
     elfcpp::Swap<16, big_endian>::writeval(view, first);
     elfcpp::Swap<16, big_endian>::writeval(view + 2, second);
@@ -1756,6 +2048,303 @@ class Nanomips_relocate_functions
     return check_overflow<6>(value, CHECK_UNSIGNED);
   }
 };
+
+// Nanomips_output_data_stubs methods.
+
+// Entry in the .nanoMIPS.stubs section.
+template<int size, bool big_endian>
+const uint32_t
+Nanomips_output_data_stubs<size, big_endian>::lazy_stub_entry[] =
+{
+  0x0300, 0x0000,     // li t8,JMPRELINDX(sym)
+  0x1800              // bc[16] footer
+};
+
+// Footer in the .nanoMIPS.stubs section.
+template<int size, bool big_endian>
+const uint32_t
+Nanomips_output_data_stubs<size, big_endian>::lazy_stub_normal_footer[] =
+{
+  0x4320, 0x0002,     // lw t9,NANOMIPS_GOT0($gp)
+  0x11ff,             // move t3,ra
+  0xdb30              // jalrc t9
+};
+
+// Big footer in the .nanoMIPS.stubs section.
+template<int size, bool big_endian>
+const uint32_t
+Nanomips_output_data_stubs<size, big_endian>::lazy_stub_big_footer[] =
+{
+  0x4320, 0x0002,     // lw t9,NANOMIPS_GOT0($gp)
+  0x6301,             // addiu[48] t8,bias
+  0x11ff,             // move t3,ra
+  0xdb30              // jalrc t9
+};
+
+// Set stub offsets for symbols.
+
+template<int size, bool big_endian>
+void
+Nanomips_output_data_stubs<size, big_endian>::set_lazy_stub_offsets()
+{
+  // Maximum number of stubs that may precede footer.
+  const size_t max_precede_elem = 170;
+  // Maximum number of stubs that may succeed footer.
+  const size_t max_succeed_elem = 169;
+  // Maximum number of stub group that can use same bias.
+  const size_t max_stub_group_size = 65536;
+  // Index of the first entry that can't use same bias.
+  size_t max_stub_group_index = max_stub_group_size;
+
+  // Create a new footer.
+  Nanomips_stubs_footer* footer = new Nanomips_stubs_footer();
+  this->footers_.push_back(footer);
+
+  // States for adding entries.
+  enum
+  {
+    // Entries are preceding footer.
+    PRECEDE_FOOTER,
+    // Entries are succeeding footer.
+    SUCCEED_FOOTER
+  } state = PRECEDE_FOOTER;
+
+  // Bias for the current stub group.
+  size_t bias = 0;
+  // Offset within the section.
+  uint64_t offset = 0;
+
+  // Set stub offsets and create dynamic relocation for the symbols.
+  // Also create footers for the stub entries.
+  for (size_t i = 0, cnt = 0; i < this->entries_.size(); ++i, ++cnt)
+    {
+      // Check if we have reached the maximum number of
+      // elements that can use same bias.
+      if (i == max_stub_group_index)
+        {
+          offset = this->set_footer_offset_and_bias(footer, offset, bias);
+          footer = this->create_footer();
+          max_stub_group_index += max_stub_group_size;
+          bias += max_stub_group_size;
+          state = PRECEDE_FOOTER;
+          cnt = 0;
+        }
+      else if (state == PRECEDE_FOOTER)
+        {
+          // Check if we have reached the maximum number of
+          // elements that can precede footer.
+          if (cnt == max_precede_elem)
+            {
+              // Set footer offset and bias.
+              offset = this->set_footer_offset_and_bias(footer, offset, bias);
+              state = SUCCEED_FOOTER;
+              cnt = 0;
+            }
+        }
+      else if (state == SUCCEED_FOOTER)
+        {
+          // Check if we have reached the maximum number of
+          // elements that can succeed footer.
+          if (cnt == max_succeed_elem)
+            {
+              // Create a new footer.
+              footer = this->create_footer();
+              state = PRECEDE_FOOTER;
+              cnt = 0;
+            }
+        }
+
+      Nanomips_stubs_entry<size>& entry(this->entries_[i]);
+      entry.footer = footer;
+      entry.indx = i - bias;
+
+      // Set stub offset and create dynamic relocation for the symbol.
+      Nanomips_symbol<size>* sym = entry.sym;
+      this->rel_->add_global(sym, elfcpp::R_NANOMIPS_JUMP_SLOT,
+                             this->target_->got_section(),
+                             sym->got_offset(GOT_TYPE_STANDARD));
+      sym->set_lazy_stub_offset(offset);
+      offset += this->stub_size();
+    }
+
+  // Set offset and bias for the last footer, if needed.
+  offset = this->set_footer_offset_and_bias(footer, offset, bias);
+
+  this->set_data_size(offset);
+  this->fix_data_size();
+}
+
+// Write out the .nanoMIPS.stubs data.
+
+template<int size, bool big_endian>
+void
+Nanomips_output_data_stubs<size, big_endian>::do_write(Output_file* of)
+{
+  const off_t offset = this->offset();
+  const section_size_type oview_size =
+    convert_to_section_size_type(this->data_size());
+  unsigned char* const oview = of->get_output_view(offset, oview_size);
+
+  typedef typename elfcpp::Swap<size, big_endian>::Valtype Valtype;
+  typedef Nanomips_relocate_functions<size, big_endian> Reloc_funcs;
+
+  // Write .nanoMIPS.stubs entries.
+  for (size_t i = 0; i < this->entries_.size(); ++i)
+    {
+      Nanomips_stubs_entry<size>& entry(this->entries_[i]);
+      Nanomips_stubs_footer* footer = entry.footer;
+      uint64_t off = entry.sym->lazy_stub_offset();
+
+      typename Reloc_funcs::Status reloc_status = Reloc_funcs::STATUS_OKAY;
+      unsigned char* pov = oview + off;
+      const uint32_t* lazy_stub = lazy_stub_entry;
+
+      // Write li t8,JMPRELINDX(sym) instruction.
+      size_t indx = entry.indx;
+      elfcpp::Swap<16, big_endian>::writeval(pov, lazy_stub[0]);
+      elfcpp::Swap<16, big_endian>::writeval(pov + 2, lazy_stub[1] | indx);
+
+      // Write bc[16] instruction.
+      elfcpp::Swap<16, big_endian>::writeval(pov + 4, lazy_stub[2]);
+
+      // Calculate and write value for bc[16] instruction.
+      uint64_t bc16_off = off + 4;
+      Valtype value = static_cast<Valtype>(footer->offset - bc16_off - 2);
+      reloc_status = Reloc_funcs::relpc10_s1(pov + 4, value, 2, true);
+      gold_assert(reloc_status == Reloc_funcs::STATUS_OKAY);
+    }
+
+  Valtype gp_off =
+    this->target_->gp_value() - this->target_->got_section()->address();
+
+  // Write .nanoMIPS.stubs footers.
+  for (typename Nanomips_stubs_footers::const_iterator
+       p = this->footers_.begin();
+       p != this->footers_.end();
+       ++p)
+    {
+      Nanomips_stubs_footer* footer = *p;
+      uint64_t off = footer->offset;
+      bool is_big = footer->bias > 0;
+
+      typename Reloc_funcs::Status reloc_status = Reloc_funcs::STATUS_OKAY;
+      unsigned char* pov = oview + off;
+      const uint32_t* lazy_stub_footer = (is_big ? lazy_stub_big_footer
+                                                 : lazy_stub_normal_footer);
+
+      unsigned int i = 0;
+
+      // Write lw t9,NANOMIPS_GOT0($gp) instruction.
+      elfcpp::Swap<16, big_endian>::writeval(pov, lazy_stub_footer[i]);
+      elfcpp::Swap<16, big_endian>::writeval(pov + 2, lazy_stub_footer[i + 1]);
+
+      // Apply NANOMIPS_GOT0 offset.
+      Reloc_funcs::nanomips_reloc_unshuffle(pov, 32);
+      reloc_status = Reloc_funcs::relgprel19_s2(pov, gp_off, 4, true);
+      Reloc_funcs::nanomips_reloc_shuffle(pov, 32);
+      if (reloc_status != Reloc_funcs::STATUS_OKAY)
+        {
+          gold_error(_("GPREL19_S2 overflow in .nanoMIPS.stubs footer"));
+          return;
+        }
+      i += 2;
+      pov += 4;
+
+      // Write addiu[48] t8,bias instruction if needed.
+      if (is_big)
+        {
+          elfcpp::Swap<16, big_endian>::writeval(pov, lazy_stub_footer[i]);
+          elfcpp::Swap<16, big_endian>::writeval(pov + 2,
+                                                 (footer->bias & 0xffff));
+          elfcpp::Swap<16, big_endian>::writeval(pov + 4,
+                                                 (footer->bias >> 16));
+          ++i;
+          pov += 6;
+        }
+
+      // Write move t3,ra instruction.
+      elfcpp::Swap<16, big_endian>::writeval(pov, lazy_stub_footer[i]);
+      // Write jalrc t9 instruction.
+      elfcpp::Swap<16, big_endian>::writeval(pov + 2, lazy_stub_footer[i + 1]);
+    }
+
+  of->write_output_view(offset, oview_size, oview);
+}
+
+// Nanomips_output_data_got methods.
+
+// Finalize symbols against R_NANOMIPS_GOT_CALL relocation.
+
+template<int size, bool big_endian>
+void
+Nanomips_output_data_got<size, big_endian>::finalize_got_call_symbols(
+    Layout* layout)
+{
+  for (typename Nanomips_got_call_set::iterator
+       p = this->got_call_.begin();
+       p != this->got_call_.end();
+       ++p)
+    {
+      Nanomips_symbol<size>* nanomips_sym = *p;
+      if (nanomips_sym->has_got_offset(GOT_TYPE_STANDARD))
+        continue;
+
+      // Check if we can create a lazy-binding stub for this symbol.
+      if (nanomips_sym->no_lazy_stub())
+        {
+          Reloc_section* rel_dyn = this->target_->rel_dyn_section(layout);
+          this->add_global_with_rel(nanomips_sym, GOT_TYPE_STANDARD,
+                                    rel_dyn, elfcpp::R_NANOMIPS_GLOBAL);
+        }
+      else
+        {
+          this->add_global(nanomips_sym, GOT_TYPE_STANDARD);
+          this->target_->make_stubs_entry(layout, nanomips_sym);
+        }
+    }
+
+  // We no longer need the saved information.
+  this->got_call_.clear();
+}
+
+// Write out the GOT table.
+
+template<int size, bool big_endian>
+void
+Nanomips_output_data_got<size, big_endian>::do_write(Output_file* of)
+{
+  // Call parent to write out GOT.
+  Output_data_got<size, big_endian>::do_write(of);
+
+  // Write lazy stub addresses.
+  Nanomips_output_data_stubs<size, big_endian>* stubs =
+    this->target_->nanomips_stubs_section();
+
+  if (stubs == NULL)
+    return;
+
+  const off_t offset = this->offset();
+  const section_size_type oview_size =
+    convert_to_section_size_type(this->data_size());
+  unsigned char* const oview = of->get_output_view(offset, oview_size);
+
+  typedef std::vector<Nanomips_stubs_entry<size> >
+        Nanomips_stubs_entries;
+  typedef typename elfcpp::Swap<size, big_endian>::Valtype Valtype;
+  for (typename Nanomips_stubs_entries::iterator
+       p = stubs->nanomips_stubs_entries().begin();
+       p != stubs->nanomips_stubs_entries().end();
+       ++p)
+    {
+      Nanomips_symbol<size>* nanomips_sym = p->sym;
+      Valtype* wv = reinterpret_cast<Valtype*>(
+          oview + nanomips_sym->got_offset(GOT_TYPE_STANDARD));
+      Valtype value = stubs->stub_address(nanomips_sym);
+      elfcpp::Swap<size, big_endian>::writeval(wv, value);
+    }
+
+  of->write_output_view(offset, oview_size, oview);
+}
 
 // Nanomips_relobj methods.
 
@@ -3257,19 +3846,64 @@ Nanomips_expand_insn_finalize<size, big_endian>::get_type(
 
 // Target_nanomips methods.
 
+// Create a .nanoMIPS.stubs entry for a global symbol.
+
+template<int size, bool big_endian>
+void
+Target_nanomips<size, big_endian>::make_stubs_entry(
+    Layout* layout,
+    Nanomips_symbol<size>* nanomips_sym)
+{
+  if (this->stubs_ == NULL)
+    {
+      gold_assert(this->got_ != NULL);
+
+      this->stubs_ =
+        new Nanomips_output_data_stubs<size, big_endian>(this, layout);
+      layout->add_output_section_data(".nanoMIPS.stubs", elfcpp::SHT_PROGBITS,
+                                      (elfcpp::SHF_ALLOC
+                                       | elfcpp::SHF_EXECINSTR),
+                                      this->stubs_, ORDER_PLT, false);
+
+      // Make the sh_info field of .rel.nanoMIPS.stubs
+      // point to .nanoMIPS.stubs.
+      Output_section* rel_stubs_os =
+        this->stubs_->rel_stubs()->output_section();
+      rel_stubs_os->set_info_section(this->stubs_->output_section());
+    }
+
+  this->stubs_->add_entry(nanomips_sym);
+}
+
+// Get the dynamic reloc section, creating it if necessary.
+
+template<int size, bool big_endian>
+typename Target_nanomips<size, big_endian>::Reloc_section*
+Target_nanomips<size, big_endian>::rel_dyn_section(Layout* layout)
+{
+  if (this->rel_dyn_ == NULL)
+    {
+      gold_assert(layout != NULL);
+      this->rel_dyn_ = new Reloc_section(parameters->options().combreloc());
+      layout->add_output_section_data(".rel.dyn", elfcpp::SHT_REL,
+                                      elfcpp::SHF_ALLOC, this->rel_dyn_,
+                                      ORDER_DYNAMIC_RELOCS, false);
+    }
+
+  return this->rel_dyn_;
+}
+
 // Get the GOT section, creating it if necessary.
 
 template<int size, bool big_endian>
-Output_data_got<size, big_endian>*
+Nanomips_output_data_got<size, big_endian>*
 Target_nanomips<size, big_endian>::got_section(Symbol_table* symtab,
                                                Layout* layout)
 {
   if (this->got_ == NULL)
     {
       gold_assert(symtab != NULL && layout != NULL);
-
-      this->got_ = new Output_data_got<size, big_endian>();
-
+      this->got_ = new Nanomips_output_data_got<size, big_endian>(this);
       layout->add_output_section_data(".got", elfcpp::SHT_PROGBITS,
                                       (elfcpp::SHF_ALLOC | elfcpp::SHF_WRITE |
                                       elfcpp::SHF_NANOMIPS_GPREL),
@@ -3397,7 +4031,8 @@ Target_nanomips<size, big_endian>::relocate_branch(
 
   typedef Nanomips_relocate_functions<size, big_endian> Reloc_funcs;
   typename Reloc_funcs::Status reloc_status = Reloc_funcs::STATUS_OKAY;
-  Reloc_funcs::nanomips_reloc_unshuffle(view, reloc_property);
+  if (reloc_property->shuffle_reloc())
+    Reloc_funcs::nanomips_reloc_unshuffle(view, reloc_property->size());
   switch (r_type)
     {
     case elfcpp::R_NANOMIPS_PC14_S1:
@@ -3411,7 +4046,8 @@ Target_nanomips<size, big_endian>::relocate_branch(
       break;
     }
   gold_assert(reloc_status == Reloc_funcs::STATUS_OKAY);
-  Reloc_funcs::nanomips_reloc_shuffle(view, reloc_property);
+  if (reloc_property->shuffle_reloc())
+    Reloc_funcs::nanomips_reloc_shuffle(view, reloc_property->size());
 }
 
 // A class to sort the input sections.
@@ -4065,6 +4701,15 @@ Target_nanomips<size, big_endian>::do_finalize_sections(
   // Set _gp value.
   if (!parameters->options().relocatable())
     this->set_gp(layout, symtab);
+
+  if (this->got_ != NULL)
+    this->got_->finalize_got_call_symbols(layout);
+
+  if (this->stubs_ != NULL)
+    this->stubs_->set_lazy_stub_offsets();
+
+  layout->add_target_dynamic_tags(true, NULL, NULL, this->rel_dyn_,
+                                  true, false);
 }
 
 // Relocate section data.
@@ -4420,7 +5065,8 @@ Target_nanomips<size, big_endian>::resolve_pcrel_relocatable(
   unsigned int insn_size = reloc_property->size() == 16 ? 2 : 4;
   value = psymval->value(relobj, r_addend) - (new_offset + insn_size);
 
-  Reloc_funcs::nanomips_reloc_unshuffle(view, reloc_property);
+  if (reloc_property->shuffle_reloc())
+    Reloc_funcs::nanomips_reloc_unshuffle(view, reloc_property->size());
   switch (r_type)
     {
     case elfcpp::R_NANOMIPS_PC_I32:
@@ -4450,7 +5096,8 @@ Target_nanomips<size, big_endian>::resolve_pcrel_relocatable(
     default:
       gold_unreachable();
     }
-  Reloc_funcs::nanomips_reloc_shuffle(view, reloc_property);
+  if (reloc_property->shuffle_reloc())
+    Reloc_funcs::nanomips_reloc_shuffle(view, reloc_property->size());
 
   // Report any errors.
   switch (reloc_status)
@@ -5227,24 +5874,43 @@ Target_nanomips<size, big_endian>::Scan::local(
     case elfcpp::R_NANOMIPS_RELAX:
       this->seen_norelax_ = false;
       break;
-    case elfcpp::R_NANOMIPS_GOTPC_I32:
-    case elfcpp::R_NANOMIPS_GOT_LO12:
-      {
-        // The symbol requires a GOT entry.
-        Output_data_got<size, big_endian>* got =
-          target->got_section(symtab, layout);
-        unsigned int r_sym = elfcpp::elf_r_sym<32>(reloc.get_r_info());
-
-        // Create GOT entry for this symbol.
-        got->add_local(relobj, r_sym, GOT_TYPE_STANDARD, reloc.get_r_addend());
-      }
-      break;
     case elfcpp::R_NANOMIPS_GOT_DISP:
     case elfcpp::R_NANOMIPS_GOT_CALL:
-      // TODO: If building a shared library, create GOT entry if refcount>=2.
-      break;
-    case elfcpp::R_NANOMIPS_GOTPC_HI20:
     case elfcpp::R_NANOMIPS_GOT_PAGE:
+      // TODO: If building a shared library, create GOT entry if refcount>=2.
+
+      // Don't add a GOT entry for a symbol if this relocation will be
+      // transformed in a relaxation loop.
+      if (target->may_relax() && relobj->safe_to_relax()
+          && !this->seen_norelax_)
+        break;
+      // Fall through.
+
+    case elfcpp::R_NANOMIPS_GOTPC_I32:
+    case elfcpp::R_NANOMIPS_GOTPC_HI20:
+      {
+        // The symbol requires a GOT entry.
+        Nanomips_output_data_got<size, big_endian>* got =
+          target->got_section(symtab, layout);
+        unsigned int r_sym = elfcpp::elf_r_sym<size>(reloc.get_r_info());
+        typename elfcpp::Elf_types<size>::Elf_Swxword r_addend =
+           reloc.get_r_addend();
+        if (got->add_local(relobj, r_sym, GOT_TYPE_STANDARD, r_addend))
+          {
+            // If we are generating a shared object, we need to add a
+            // dynamic RELATIVE relocation for this symbol's GOT entry.
+            if (parameters->options().output_is_position_independent())
+              {
+                Reloc_section* rel_dyn = target->rel_dyn_section(layout);
+                unsigned int got_offset =
+                  object->local_got_offset(r_sym, GOT_TYPE_STANDARD, r_addend);
+                rel_dyn->add_local_relative(object, r_sym,
+                                            elfcpp::R_NANOMIPS_RELATIVE,
+                                            got, got_offset);
+              }
+          }
+      }
+      break;
     case elfcpp::R_NANOMIPS_INSN32:
     case elfcpp::R_NANOMIPS_FIXED:
       break;
@@ -5275,6 +5941,8 @@ Target_nanomips<size, big_endian>::Scan::global(
   Address r_offset = reloc.get_r_offset();
   Nanomips_relobj<size, big_endian>* relobj =
     Nanomips_relobj<size, big_endian>::as_nanomips_relobj(object);
+  Nanomips_symbol<size>* nanomips_sym =
+    Nanomips_symbol<size>::as_nanomips_sym(gsym);
 
   // Check if section reference should be added.
   if (this->ref_relobj_ != NULL)
@@ -5330,25 +5998,56 @@ Target_nanomips<size, big_endian>::Scan::global(
     case elfcpp::R_NANOMIPS_GOT_CALL:
     case elfcpp::R_NANOMIPS_GOT_PAGE:
       // TODO: If building a shared library, create GOT entry if refcount>=2.
-      // Don't add a GOT entry if the symbol is fully resolved.
-      if (gsym->final_value_is_known())
-        break;
 
-      // If building a shared library, we can also skip the GOT entry
-      // if the symbol is defined in the output file and is protected
-      // or hidden.
-      if (gsym->is_defined()
-          && !gsym->is_from_dynobj()
-          && !gsym->is_preemptible())
+      // Don't add a GOT entry for a symbol if it is fully resolved,
+      // and this relocation will be transformed in a relaxation loop.
+      if ((target->may_relax() && relobj->safe_to_relax()
+           && !this->seen_norelax_)
+          && (gsym->final_value_is_known()
+              || (gsym->is_defined()
+                  && !gsym->is_from_dynobj()
+                  && !gsym->is_preemptible())))
         break;
       // Fall through.
 
     case elfcpp::R_NANOMIPS_GOTPC_I32:
-    case elfcpp::R_NANOMIPS_GOT_LO12:
-      // Create GOT entry for this symbol.
-      target->got_section(symtab, layout)->add_global(gsym, GOT_TYPE_STANDARD);
-      break;
     case elfcpp::R_NANOMIPS_GOTPC_HI20:
+      {
+        // The symbol requires a GOT entry.
+        Nanomips_output_data_got<size, big_endian>* got =
+          target->got_section(symtab, layout);
+
+        if (gsym->final_value_is_known())
+          got->add_global(gsym, GOT_TYPE_STANDARD);
+        else
+          {
+            // If this symbol is not fully resolved, we need to add a
+            // GOT entry with a dynamic relocation.
+            if (gsym->is_from_dynobj()
+                || gsym->is_undefined()
+                || gsym->is_preemptible())
+              {
+                if (r_type != elfcpp::R_NANOMIPS_GOT_CALL
+                    || nanomips_sym->no_lazy_stub())
+                  {
+                    Reloc_section* rel_dyn = target->rel_dyn_section(layout);
+                    got->add_global_with_rel(gsym, GOT_TYPE_STANDARD, rel_dyn,
+                                             elfcpp::R_NANOMIPS_GLOBAL);
+                  }
+                else
+                  got->record_got_call_symbol(nanomips_sym);
+              }
+            else
+              {
+                Reloc_section* rel_dyn = target->rel_dyn_section(layout);
+                bool is_new = got->add_global(gsym, GOT_TYPE_STANDARD);
+                if (is_new)
+                  rel_dyn->add_global_relative(
+                      gsym, elfcpp::R_NANOMIPS_RELATIVE, got,
+                      gsym->got_offset(GOT_TYPE_STANDARD));
+              }
+          }
+      }
       break;
     case elfcpp::R_NANOMIPS_ALIGN:
     case elfcpp::R_NANOMIPS_FILL:
@@ -5363,6 +6062,14 @@ Target_nanomips<size, big_endian>::Scan::global(
     default:
       break;
     }
+
+  // We must not create a nanoMIPS lazy-binding stub for a symbol that
+  // has relocations related to taking the function's address.
+  if (r_type != elfcpp::R_NANOMIPS_GOT_CALL
+      && r_type != elfcpp::R_NANOMIPS_GOT_LO12
+      && r_type != elfcpp::R_NANOMIPS_JALR32
+      && r_type != elfcpp::R_NANOMIPS_JALR16)
+    nanomips_sym->set_no_lazy_stub();
 }
 
 // Perform a relocation.
@@ -5566,7 +6273,8 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
   unsigned int align = reloc_property->align();
 
   // Apply relocation and check for errors.
-  Reloc_funcs::nanomips_reloc_unshuffle(view, reloc_property);
+  if (reloc_property->shuffle_reloc())
+    Reloc_funcs::nanomips_reloc_unshuffle(view, reloc_property->size());
   switch (r_type)
     {
     case elfcpp::R_NANOMIPS_NONE:
@@ -5672,7 +6380,8 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
                              reloc_property->name().c_str());
       break;
     }
-  Reloc_funcs::nanomips_reloc_shuffle(view, reloc_property);
+  if (reloc_property->shuffle_reloc())
+    Reloc_funcs::nanomips_reloc_shuffle(view, reloc_property->size());
 
   // Report any errors.
   switch (reloc_status)
@@ -5779,7 +6488,7 @@ const Target::Target_info Target_nanomips<size, big_endian>::nanomips_info =
   size,                 // size
   big_endian,           // is_big_endian
   elfcpp::EM_NANOMIPS,  // machine_code
-  false,                // has_make_symbol
+  true,                 // has_make_symbol
   false,                // has_resolve
   false,                // has_code_fill
   true,                 // is_default_stack_executable
