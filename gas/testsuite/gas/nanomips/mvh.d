@@ -1,7 +1,6 @@
-#objdump: -dr --prefix-addresses --show-raw-insn -Mxpa,virt,cp0-names=mips32r2
-#name: XPA instructions
-#source: xpa.s
-#as: -mxpa -mvirt
+#objdump: -dr --prefix-addresses --show-raw-insn -Mvirt,cp0-names=mips32r2
+#name: MVH instructions
+#as: -mvirt
 
 .*: +file format .*mips.*
 

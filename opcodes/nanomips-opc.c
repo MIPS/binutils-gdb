@@ -1025,15 +1025,15 @@ IGRIE */
 {"mfgc0",	"",		"t,O",		0x200000b0, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	IVIRT}, /* MFGC0 with named register */
 {"mfgc0",	"",		"t,P,J",	0x200000b0, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	IVIRT},  /* MFGC0 with named register & select */
 {"mfgc0",	"",		"t,G,J",	0x200000b0, 0xfc0007ff,	WR_1,			0,	0,	IVIRT},
-{"mfhc0",	"",		"t,O",		0x20000038, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	XPA}, /* MFHC0 with named register */
-{"mfhc0",	"",		"t,P,J",	0x20000038, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	XPA}, /* MFHC0 with named register & select*/
-{"mfhc0",	"",		"t,G,J",	0x20000038, 0xfc0007ff,	WR_1,			0,	0,	XPA},
+{"mfhc0",	"",		"t,O",		0x20000038, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	I38,	0}, /* MFHC0 with named register */
+{"mfhc0",	"",		"t,P,J",	0x20000038, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	I38,	0}, /* MFHC0 with named register & select*/
+{"mfhc0",	"",		"t,G,J",	0x20000038, 0xfc0007ff,	WR_1,			0,	I38,	0},
 {"mfhc1",	"",		"t,S",		0xa000303b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
 {"mfhc1",	"",		"t,G",		0xa000303b, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	I38,	0},
 {"mfhc2",	"",		"t,G",		0x20008d3f, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
-{"mfhgc0",	"",		"t,O",		0x200000b8, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	IVIRT_XPA}, /* MFHGC0 with named register */
-{"mfhgc0",	"",		"t,P,J",	0x200000b8, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	IVIRT_XPA}, /* MFHGC0 with named register & select*/
-{"mfhgc0",	"",		"t,G,J",	0x200000b8, 0xfc0007ff,	WR_1,			0,	0,	IVIRT_XPA},
+{"mfhgc0",	"",		"t,O",		0x200000b8, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	IVIRT}, /* MFHGC0 with named register */
+{"mfhgc0",	"",		"t,P,J",	0x200000b8, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	IVIRT}, /* MFHGC0 with named register & select*/
+{"mfhgc0",	"",		"t,G,J",	0x200000b8, 0xfc0007ff,	WR_1,			0,	0,	IVIRT},
 {"mfhi",	"[dsp]",	"t,7",		0x2000007f, 0xfc1f3fff,	WR_1|RD_2,		0,	0,	D32}, /* MFHI[DSP] */
 {"mflo",	"[dsp]",	"t,7",		0x2000107f, 0xfc1f3fff,	WR_1|RD_2,		0,	0,	D32}, /* MFLO[DSP] */
 {"mftc0",	"",		"t,O",		0x20000230, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	MT32}, /* MFTR with named register */
@@ -1085,15 +1085,15 @@ IGRIE */
 {"mtgc0",	"",		"t,O",		0x200000f0, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	IVIRT}, /* MTGC0 with named register */
 {"mtgc0",	"",		"t,P,J",	0x200000f0, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	IVIRT}, /* MTGC0 with named register & select */
 {"mtgc0",	"",		"t,G,J",	0x200000f0, 0xfc0007ff,	RD_1,			0,	0,	IVIRT},
-{"mthc0",	"",		"t,O",		0x20000078, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	XPA}, /* MTHC0 with named register */
-{"mthc0",	"",		"t,P,J",	0x20000078, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	XPA}, /* MTHC0 with named register & select */
-{"mthc0",	"",		"t,G,J",	0x20000078, 0xfc0007ff,	RD_1,			0,	0,	XPA},
+{"mthc0",	"",		"t,O",		0x20000078, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	I38,	0}, /* MTHC0 with named register */
+{"mthc0",	"",		"t,P,J",	0x20000078, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	I38,	0}, /* MTHC0 with named register & select */
+{"mthc0",	"",		"t,G,J",	0x20000078, 0xfc0007ff,	RD_1,			0,	I38,	0},
 {"mthc1",	"",		"t,S",		0xa000383b, 0xfc00ffff,	RD_1|WR_2,		0,	I38,	0},
 {"mthc1",	"",		"t,G",		0xa000383b, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS,	I38,	0},
 {"mthc2",	"",		"t,G",		0x20009d3f, 0xfc00ffff,	RD_1|WR_2,		0,	I38,	0},
-{"mthgc0",	"",		"t,O",		0x200000f8, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	IVIRT_XPA}, /* MTHGC0 with named register */
-{"mthgc0",	"",		"t,P,J",	0x200000f8, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	IVIRT_XPA}, /* MTHGC0 with named register & select */
-{"mthgc0",	"",		"t,G,J",	0x200000f8, 0xfc0007ff,	RD_1,			0,	0,	IVIRT_XPA},
+{"mthgc0",	"",		"t,O",		0x200000f8, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	IVIRT}, /* MTHGC0 with named register */
+{"mthgc0",	"",		"t,P,J",	0x200000f8, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	IVIRT}, /* MTHGC0 with named register & select */
+{"mthgc0",	"",		"t,G,J",	0x200000f8, 0xfc0007ff,	RD_1,			0,	0,	IVIRT},
 {"mthi",	"[dsp]",	"s,7",		0x2000207f, 0xffe03fff,	WR_1|RD_2,		0,	0,	D32}, /* MTHI[DSP] */
 {"mthlip",	"",		"s,7",		0x2000027f, 0xffe03fff,	WR_1|RD_2,		0,	0,	D32},
 {"mtlo",	"[dsp]",	"s,7",		0x2000307f, 0xffe03fff,	WR_1|RD_2,		0,	0,	D32}, /* MTLO[DSP] */

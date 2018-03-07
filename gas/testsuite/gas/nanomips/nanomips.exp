@@ -774,7 +774,7 @@ if { [istarget nanomips*-*-*] } {
 
     run_dump_test_arch "l_d-reloc" "" nanomips32r6
 
-    run_dump_test_arches "xpa"	[arch_list_matching nanomipsr6]
+    run_dump_test_arches "mvh"	[arch_list_matching nanomipsr6]
 
     run_dump_test_arch "pcrel-1" "" nanomips32r6
     run_dump_test_arch "pcrel-2" "" nanomips32r6
