@@ -3989,7 +3989,7 @@ class Output_section : public Output_data
 
   // Restore states prior to section layout.
   void
-  restore_states();
+  restore_states(bool saw_sections_clause);
 
   // Discard states.
   void

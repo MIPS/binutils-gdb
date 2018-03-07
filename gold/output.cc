@@ -4001,7 +4001,7 @@ Output_section::discard_states()
 }
 
 void
-Output_section::restore_states()
+Output_section::restore_states(bool saw_sections_clause)
 {
   gold_assert(this->checkpoint_ != NULL);
   Checkpoint_output_section* checkpoint = this->checkpoint_;
@@ -4009,6 +4009,11 @@ Output_section::restore_states()
   this->addralign_ = checkpoint->addralign();
   this->flags_ = checkpoint->flags();
   this->first_input_offset_ = checkpoint->first_input_offset();
+  // Reset section index if we saw a SECTIONS clause, as there is
+  // a possibility that section index may change if any linker
+  // created output section is allocated during script processing.
+  if (saw_sections_clause)
+    this->out_shndx_ = -1U;
 
   if (!checkpoint->input_sections_saved())
     {
