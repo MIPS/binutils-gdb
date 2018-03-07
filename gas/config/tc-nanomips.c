@@ -797,8 +797,6 @@ enum options
   OPTION_NO_DSPR3,
   OPTION_EVA,
   OPTION_NO_EVA,
-  OPTION_XPA,
-  OPTION_NO_XPA,
   OPTION_NO_MICROMIPS,
   OPTION_MCU,
   OPTION_NO_MCU,
@@ -864,8 +862,6 @@ struct option md_longopts[] = {
   {"mno-tlb", no_argument, NULL, OPTION_NO_TLB},
   {"mvirt", no_argument, NULL, OPTION_VIRT},
   {"mno-virt", no_argument, NULL, OPTION_NO_VIRT},
-  {"mxpa", no_argument, NULL, OPTION_XPA},
-  {"mno-xpa", no_argument, NULL, OPTION_NO_XPA},
 
   /* Miscellaneous options.  */
   {"32", no_argument, NULL, OPTION_32},
@@ -984,11 +980,6 @@ static const struct nanomips_ase nanomips_ases[] = {
 
   {"virt", ASE_VIRT, ASE_VIRT64,
    OPTION_VIRT, OPTION_NO_VIRT,
-   6, 6,
-   -1},
-
-  {"xpa", ASE_XPA, 0,
-   OPTION_XPA, OPTION_NO_XPA,
    6, 6,
    -1},
 };
@@ -1322,21 +1313,11 @@ nanomips_set_ase (const struct nanomips_ase *ase,
 
   mask = ase->flags;
   opts->ase &= ~mask;
-  opts->ase &= ~ASE_XPA_VIRT;
   opts->ase &= ~ASE_EVA_R6;
   opts->ase &= ~ASE_GINV_VIRT;
 
   if (enabled_p)
     opts->ase |= ase->flags;
-
-  /* The Virtualization ASE has eXtended Physical Address (XPA) Extension
-     instructions which are only valid when both ASEs are enabled.
-     This sets the ASE_XPA_VIRT flag when both ASEs are present.  */
-  if (((opts->ase & ASE_XPA) != 0) && ((opts->ase & ASE_VIRT) != 0))
-    {
-      opts->ase |= ASE_XPA_VIRT;
-      mask |= ASE_XPA_VIRT;
-    }
 
   /* The Virtualization ASE has Global INValidate (GINV) Extension
      instructions which are only valid when both ASEs are enabled.
@@ -11695,8 +11676,6 @@ nanomips_convert_ase_flags (int ase)
     ext_ases |= NANOMIPS_ASE_TLB;
   if (ase & ASE_VIRT)
     ext_ases |= NANOMIPS_ASE_VIRT;
-  if (ase & ASE_XPA)
-    ext_ases |= NANOMIPS_ASE_XPA;
 
   return ext_ases;
 }
@@ -12347,9 +12326,6 @@ nanoMIPS options:\n\
   fprintf (stream, _("\
 -mvirt			generate Virtualization instructions\n\
 -mno-virt		do not generate Virtualization instructions\n"));
-  fprintf (stream, _("\
--mxpa			generate eXtended Physical Address (XPA) instructions\n\
--mno-xpa		do not generate eXtended Physical Address (XPA) instructions\n"));
   fprintf (stream, _("\
 -m[no-]balc-stubs	enable/disable out-of-range call optimization\n\
 			through trampoline stubs\n\

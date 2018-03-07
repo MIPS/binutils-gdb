@@ -42,8 +42,6 @@ nanoMIPS options:
 -mno-tlb		do not generate Translation Lookaside Buffer control instructions
 -mvirt			generate Virtualization instructions
 -mno-virt		do not generate Virtualization instructions
--mxpa			generate eXtended Physical Address \(XPA\) instructions
--mno-xpa		do not generate eXtended Physical Address \(XPA\) instructions
 -m\[no-\]balc-stubs	enable/disable out-of-range call optimization
 			through trampoline stubs
 -m\[no-\]legacyregs	\[dis\]allow mumerical register formats

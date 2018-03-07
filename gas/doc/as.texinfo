@@ -471,7 +471,6 @@ gcc(1), ld(1), and the Info entries for @file{binutils} and @file{ld}.
    [@b{-mmt}] [@b{-mno-mt}]
    [@b{-mtlb}] [@b{-mno-tlb}]
    [@b{-mvirt}] [@b{-mno-virt}]
-   [@b{-mxpa}] [@b{-mno-xpa}]
    [@b{-mhard-float}] [@b{-msoft-float}]
    [@b{-msingle-float}] [@b{-mdouble-float}]
    [@b{-construct-floats}] [@b{-no-construct-floats}]
@@ -1833,12 +1832,6 @@ This tells the assembler to accept TLB control instructions.
 Generate code for the Virtualization Application Specific Extension.
 This tells the assembler to accept virtualization instructions.
 @samp{-mno-virt} turns off this option.
-
-@item -mxpa
-@itemx -mno-xpa
-Generate code for the nanoMIPS eXtended Physical Address (XPA) Extension.
-This tells the assembler to accept XPA instructions.
-@samp{-mno-xpa} turns off this option.
 
 @item -msoft-float
 @itemx -mhard-float

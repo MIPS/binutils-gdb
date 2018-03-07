@@ -478,8 +478,6 @@ print_nanomips_ases (FILE *file, unsigned int mask)
     fputs ("\n\tVZ ASE", file);
   if (mask & NANOMIPS_ASE_MSA)
     fputs ("\n\tMSA ASE", file);
-  if (mask & NANOMIPS_ASE_XPA)
-    fputs ("\n\tXPA ASE", file);
   if (mask & NANOMIPS_ASE_TLB)
     fputs ("\n\tTLB ASE", file);
   if (mask & NANOMIPS_ASE_CRC)

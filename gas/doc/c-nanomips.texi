@@ -192,12 +192,6 @@ Generate code for the Virtualization Application Specific Extension.
 This tells the assembler to accept Virtualization instructions.
 @samp{-mno-virt} turns off this option.
 
-@item -mxpa
-@itemx -mno-xpa
-Generate code for the nanoMIPS eXtended Physical Address (XPA) Extension.
-This tells the assembler to accept XPA instructions.
-@samp{-mno-xpa} turns off this option.
-
 @item -msoft-float
 @itemx -mhard-float
 Disable or enable floating-point instructions.  Note that by default
@@ -980,21 +974,6 @@ The directive @code{.set virt} makes the assembler accept instructions
 from the Virtualization Application Specific Extension from that point
 on in the assembly.  The @code{.set novirt} directive prevents Virtualization
 instructions from being accepted.
-
-@item .set xpa
-@itemx .set noxpa
-@itemx .module xpa
-@itemx .module noxpa
-@cindex nanoMIPS eXtended Physical Address (XPA) instruction generation override
-@kindex @code{.set xpa}
-@kindex @code{.set noxpa}
-@kindex @code{.module xpa}
-@kindex @code{.module noxpa}
-The directive @code{.set xpa} makes the assembler accept instructions
-from the eXtended Physical Address Extension from that point on in the
-assembly.  The @code{.set noxpa} directive prevents XPA instructions
-from being accepted.
-@end table
 
 @node nanoMIPS Compatibility
 @subsection Directives for compatibility with MIPS assembly

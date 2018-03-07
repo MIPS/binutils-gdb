@@ -252,7 +252,7 @@ enum
 #define NANOMIPS_ASE_MSA          0x00000200 /* MSA ASE.  */
 #define NANOMIPS_ASE_RESERVED1    0x00000400 /* was MIPS16 ASE.  */
 #define NANOMIPS_ASE_RESERVED2    0x00000800 /* was MICROMIPS ASE.  */
-#define NANOMIPS_ASE_XPA          0x00001000 /* XPA ASE.  */
+#define NANOMIPS_ASE_UNUSED6      0x00001000 /* was XPA.  */
 #define NANOMIPS_ASE_DSPR3        0x00002000 /* DSP R3 ASE.  */
 #define NANOMIPS_ASE_UNUSED5      0x00004000 /* was MIPS16 E2 Extension.  */
 #define NANOMIPS_ASE_CRC	  0x00008000 /* CRC extension.  */

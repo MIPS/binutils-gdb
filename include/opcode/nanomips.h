@@ -717,11 +717,6 @@ static const unsigned int nanomips_isa_table[] = {
 /* MSA Extension  */
 #define ASE_MSA			0x00000800
 #define ASE_MSA64		0x00001000
-/* eXtended Physical Address (XPA) Extension.  */
-#define ASE_XPA			0x00002000
-/* The Virtualization ASE has eXtended Physical Addressing (XPA)
-   instructions which are only valid when both ASEs are enabled.  */
-#define ASE_XPA_VIRT		0x00020000
 /* The Enhanced VA Scheme (EVA) extension has instructions which are
    only valid for the R6 ISA.  */
 #define ASE_EVA_R6		0x00040000

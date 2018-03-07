@@ -149,21 +149,20 @@ const struct nanomips_arch_choice nanomips_arch_choices[] = {
    nanomips_hwr_names_numeric},
 
   {"32r6", 1, bfd_mach_nanomipsisa32r6, CPU_NANOMIPS32R6, ISA_NANOMIPS32R6,
-   (ASE_EVA | ASE_MSA | ASE_VIRT | ASE_XPA_VIRT | ASE_XPA | ASE_MCU | ASE_MT
-    | ASE_DSP | ASE_xNMS | ASE_TLB | ASE_GINV | ASE_CRC),
+   (ASE_EVA | ASE_MSA | ASE_VIRT | ASE_MCU | ASE_MT | ASE_DSP | ASE_xNMS
+    | ASE_TLB | ASE_GINV | ASE_CRC),
    nanomips_cp0_3264r6, nanomips_cp0sel_3264r6, nanomips_cp1_names_3264r6,
    nanomips_hwr_names_3264r6},
 
   {"32r6s", 1, bfd_mach_nanomipsisa32r6, CPU_NANOMIPS32R6, ISA_NANOMIPS32R6,
-   (ASE_EVA | ASE_MSA | ASE_VIRT | ASE_XPA_VIRT | ASE_XPA | ASE_MCU | ASE_MT
-    | ASE_DSP | ASE_TLB | ASE_GINV | ASE_CRC),
+   (ASE_EVA | ASE_MSA | ASE_VIRT | ASE_MCU | ASE_MT | ASE_DSP | ASE_TLB
+    | ASE_GINV | ASE_CRC),
    nanomips_cp0_3264r6, nanomips_cp0sel_3264r6, nanomips_cp1_names_3264r6,
    nanomips_hwr_names_3264r6},
 
   {"64r6", 1, bfd_mach_nanomipsisa64r6, CPU_NANOMIPS64R6, ISA_NANOMIPS64R6,
-   (ASE_EVA | ASE_MSA | ASE_MSA64 | ASE_VIRT | ASE_XPA_VIRT | ASE_XPA
-    | ASE_MCU | ASE_MT | ASE_DSP | ASE_DSP64 | ASE_xNMS | ASE_TLB | ASE_GINV
-    | ASE_CRC | ASE_CRC64),
+   (ASE_EVA | ASE_MSA | ASE_MSA64 | ASE_VIRT | ASE_MCU | ASE_MT | ASE_DSP
+    | ASE_DSP64 | ASE_xNMS | ASE_TLB | ASE_GINV | ASE_CRC | ASE_CRC64),
    nanomips_cp0_3264r6, nanomips_cp0sel_3264r6, nanomips_cp1_names_3264r6,
    nanomips_hwr_names_3264r6},
 };
@@ -325,20 +324,8 @@ parse_nanomips_dis_option (const char *option, unsigned int len)
       if (nanomips_isa & ISA_NANOMIPS64R6)
 	nanomips_ase |= ASE_VIRT64;
 
-      if (nanomips_ase & ASE_XPA)
-	nanomips_ase |= ASE_XPA_VIRT;
-      return;
-
       if (nanomips_ase & ASE_GINV)
 	nanomips_ase |= ASE_GINV_VIRT;
-    }
-
-  if (CONST_STRNEQ (option, "xpa"))
-    {
-      nanomips_ase |= ASE_XPA;
-      if (nanomips_ase & ASE_VIRT)
-	nanomips_ase |= ASE_XPA_VIRT;
-      return;
     }
 
   if (CONST_STRNEQ (option, "ginv"))
@@ -1408,9 +1395,6 @@ with the -M switch (multiple options should be separated by commas):\n"));
 
   fprintf (stream, _("\n\
   virt           Recognize the virtualization ASE instructions.\n"));
-
-  fprintf (stream, _("\n\
-  xpa            Recognize the eXtended Physical Address (XPA) ASE instructions.\n"));
 
   fprintf (stream, _("\n\
   mxu            Recognize the MXU ASE instructions.\n"));

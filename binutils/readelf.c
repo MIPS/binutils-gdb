@@ -16237,8 +16237,6 @@ print_nanomips_ases (unsigned int mask)
     fputs ("\n\tVZ ASE", stdout);
   if (mask & NANOMIPS_ASE_MSA)
     fputs ("\n\tMSA ASE", stdout);
-  if (mask & NANOMIPS_ASE_XPA)
-    fputs ("\n\tXPA ASE", stdout);
   if (mask & NANOMIPS_ASE_TLB)
     fputs ("\n\tTLB ASE", stdout);
   if (mask & NANOMIPS_ASE_GINV)
