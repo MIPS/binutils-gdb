@@ -16335,7 +16335,7 @@ print_nanomips_got (FILE * file)
     Elf_Internal_Rela * rels;
     unsigned long relsize;
     unsigned rindex;
-  }	rtable[3] = { 0 };
+  }	rtable[3] = { { 0 } };
   int i;
   enum {REL=0, RELA=1, JMPREL=2};
 
