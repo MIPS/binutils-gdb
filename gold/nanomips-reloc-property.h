@@ -65,7 +65,12 @@ class Nanomips_reloc_property
   // Return the number of bits in the instruction to be relocated.
   unsigned int
   bitsize() const
-  { return this->bitsize_;}
+  { return this->bitsize_; }
+
+  // Return the alignment requirement for this relocation.
+  unsigned int
+  align() const
+  { return this->align_; }
 
   // Return reference flags for this relocation.
   int
@@ -90,6 +95,7 @@ class Nanomips_reloc_property
                           Reloc_type reloc_type,
                           unsigned int size,
                           unsigned int bitsize,
+                          unsigned int align,
                           unsigned int mask,
                           int reference_flags);
 
@@ -110,6 +116,8 @@ class Nanomips_reloc_property
   unsigned int size_;
   // The number of bits in the instruction to be relocated.
   unsigned int bitsize_;
+  // Alignment requirement for this relocation.
+  unsigned int align_;
   // Mask to match instructions.
   unsigned int mask_;
   // Reference flags for this relocation.

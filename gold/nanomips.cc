@@ -2034,6 +2034,7 @@ class Nanomips_relocate_functions
   {
     STATUS_OKAY,            // No error during relocation.
     STATUS_OVERFLOW,        // Relocation overflow.
+    STATUS_UNALIGNED        // Unaligned relocation value.
   } Status;
 
  private:
@@ -2088,7 +2089,8 @@ class Nanomips_relocate_functions
   // Do a simple pc-relative relocation.
   template<int fieldsize, int valsize>
   static inline Status
-  relpc(unsigned char* view, Address value, Overflow_check check)
+  relpc(unsigned char* view, Address value,
+        unsigned int align, Overflow_check check)
   {
     typedef typename elfcpp::Swap<fieldsize, big_endian>::Valtype Valtype;
     Valtype* wv = reinterpret_cast<Valtype*>(view);
@@ -2098,6 +2100,13 @@ class Nanomips_relocate_functions
     val &= ~mask;
     reloc &= mask;
     elfcpp::Swap<fieldsize, big_endian>::writeval(wv, val | reloc);
+
+    if (check == CHECK_NONE)
+      return STATUS_OKAY;
+
+    if (value & (align - 1))
+      return STATUS_UNALIGNED;
+
     return check_overflow<valsize>(value, check);
   }
 
@@ -2105,7 +2114,7 @@ class Nanomips_relocate_functions
   template<int valsize>
   static inline Status
   relgp(unsigned char* view, Address value, Address mask,
-        Overflow_check check)
+        unsigned int align, Overflow_check check)
   {
     typedef typename elfcpp::Swap<32, big_endian>::Valtype Valtype;
     Valtype* wv = reinterpret_cast<Valtype*>(view);
@@ -2113,6 +2122,13 @@ class Nanomips_relocate_functions
     Valtype reloc = value & mask;
     val &= ~mask;
     elfcpp::Swap<32, big_endian>::writeval(wv, val | reloc);
+
+    if (check == CHECK_NONE)
+      return STATUS_OKAY;
+
+    if (value & (align - 1))
+      return STATUS_UNALIGNED;
+
     return check_overflow<valsize>(value, check);
   }
 
@@ -2143,58 +2159,61 @@ class Nanomips_relocate_functions
 
   // R_NANOMIPS_GOT_DISP, R_NANOMIPS_GOT_PAGE, R_NANOMIPS_GOT_CALL
   static inline Status
-  relgot(unsigned char* view, Address value)
+  relgot(unsigned char* view, Address value, unsigned int align)
   {
-    return This::template relgp<21>(view, value, 0x1ffffc, CHECK_UNSIGNED);
+    return This::template relgp<21>(view, value, 0x1ffffc,
+                                    align, CHECK_UNSIGNED);
   }
 
   // R_NANOMIPS_GPREL19_S2
   static inline Status
   relgprel19_s2(unsigned char* view, Address value,
-                bool check_overflow)
+                unsigned int align, bool check_overflow)
   {
     Overflow_check check = check_overflow ? CHECK_UNSIGNED : CHECK_NONE;
-    return This::template relgp<21>(view, value, 0x1ffffc, check);
+    return This::template relgp<21>(view, value, 0x1ffffc, align, check);
   }
 
   // R_NANOMIPS_GPREL18_S3
   static inline Status
   relgprel18_s3(unsigned char* view, Address value,
-                bool check_overflow)
+                unsigned int align, bool check_overflow)
   {
     Overflow_check check = check_overflow ? CHECK_UNSIGNED : CHECK_NONE;
-    return This::template relgp<21>(view, value, 0x1ffff8, check);
+    return This::template relgp<21>(view, value, 0x1ffff8, align, check);
   }
 
   // R_NANOMIPS_GPREL18
   static inline Status
-  relgprel18(unsigned char* view, Address value, bool check_overflow)
+  relgprel18(unsigned char* view, Address value,
+             unsigned int align, bool check_overflow)
   {
     Overflow_check check = check_overflow ? CHECK_UNSIGNED : CHECK_NONE;
-    return This::template relgp<18>(view, value, 0x3ffff, check);
+    return This::template relgp<18>(view, value, 0x3ffff, align, check);
   }
 
   // R_NANOMIPS_GPREL17_S1
   static inline Status
-  relgprel17_s1(unsigned char* view, Address value, bool check_overflow)
+  relgprel17_s1(unsigned char* view, Address value,
+                unsigned int align, bool check_overflow)
   {
     Overflow_check check = check_overflow ? CHECK_UNSIGNED : CHECK_NONE;
-    return This::template relgp<18>(view, value, 0x3fffe, check);
+    return This::template relgp<18>(view, value, 0x3fffe, align, check);
   }
 
   // R_NANOMIPS_GPREL16_S2
   static inline Status
   relgprel16_s2(unsigned char* view, Address value,
-                bool check_overflow)
+                unsigned int align, bool check_overflow)
   {
     Overflow_check check = check_overflow ? CHECK_UNSIGNED : CHECK_NONE;
-    return This::template relgp<18>(view, value, 0x3fffc, check);
+    return This::template relgp<18>(view, value, 0x3fffc, align, check);
   }
 
   // R_NANOMIPS_GPREL7_S2
   static inline Status
   relgprel7_s2(unsigned char* view, Address value,
-               bool should_check_overflow)
+               unsigned int align, bool should_check_overflow)
   {
     Valtype16* wv = reinterpret_cast<Valtype16*>(view);
     Valtype16 val = elfcpp::Swap<16, big_endian>::readval(wv);
@@ -2202,8 +2221,13 @@ class Nanomips_relocate_functions
     val = Bits<7>::bit_select32(val, value >> 2, 0x7f);
     elfcpp::Swap<16, big_endian>::writeval(wv, val);
 
-    return should_check_overflow ? check_overflow<9>(value, CHECK_UNSIGNED)
-                                 : STATUS_OKAY;
+    if (!should_check_overflow)
+      return STATUS_OKAY;
+
+    if (value & (align - 1))
+      return STATUS_UNALIGNED;
+
+    return check_overflow<9>(value, CHECK_UNSIGNED);
   }
 
   // R_NANOMIPS_PC32
@@ -2216,55 +2240,62 @@ class Nanomips_relocate_functions
 
   // R_NANOMIPS_PC25_S1
   static inline Status
-  relpc25_s1(unsigned char* view, Address value, bool check_overflow)
+  relpc25_s1(unsigned char* view, Address value,
+             unsigned int align, bool check_overflow)
   {
     Overflow_check check = check_overflow ? CHECK_SIGNED : CHECK_NONE;
-    return This::template relpc<32, 26>(view, value, check);
+    return This::template relpc<32, 26>(view, value, align, check);
   }
 
   // R_NANOMIPS_PC21_S1
   static inline Status
-  relpc21_s1(unsigned char* view, Address value, bool check_overflow)
+  relpc21_s1(unsigned char* view, Address value,
+             unsigned int align, bool check_overflow)
   {
     Overflow_check check = check_overflow ? CHECK_SIGNED : CHECK_NONE;
-    return This::template relpc<32, 22>(view, value, check);
+    return This::template relpc<32, 22>(view, value, align, check);
   }
 
   // R_NANOMIPS_PC14_S1
   static inline Status
-  relpc14_s1(unsigned char* view, Address value, bool check_overflow)
+  relpc14_s1(unsigned char* view, Address value,
+             unsigned int align, bool check_overflow)
   {
     Overflow_check check = check_overflow ? CHECK_SIGNED : CHECK_NONE;
-    return This::template relpc<32, 15>(view, value, check);
+    return This::template relpc<32, 15>(view, value, align, check);
   }
 
   // R_NANOMIPS_PC11_S1
   static inline Status
-  relpc11_s1(unsigned char* view, Address value, bool check_overflow)
+  relpc11_s1(unsigned char* view, Address value,
+             unsigned int align, bool check_overflow)
   {
     Overflow_check check = check_overflow ? CHECK_SIGNED : CHECK_NONE;
-    return This::template relpc<32, 12>(view, value, check);
+    return This::template relpc<32, 12>(view, value, align, check);
   }
 
   // R_NANOMIPS_PC10_S1
   static inline Status
-  relpc10_s1(unsigned char* view, Address value, bool check_overflow)
+  relpc10_s1(unsigned char* view, Address value,
+             unsigned int align, bool check_overflow)
   {
     Overflow_check check = check_overflow ? CHECK_SIGNED : CHECK_NONE;
-    return This::template relpc<16, 11>(view, value, check);
+    return This::template relpc<16, 11>(view, value, align, check);
   }
 
   // R_NANOMIPS_PC7_S1
   static inline Status
-  relpc7_s1(unsigned char* view, Address value, bool check_overflow)
+  relpc7_s1(unsigned char* view, Address value,
+            unsigned int align, bool check_overflow)
   {
     Overflow_check check = check_overflow ? CHECK_SIGNED : CHECK_NONE;
-    return This::template relpc<16, 8>(view, value, check);
+    return This::template relpc<16, 8>(view, value, align, check);
   }
 
   // R_NANOMIPS_PC4_S1
   static inline Status
-  relpc4_s1(unsigned char* view, Address value, bool should_check_overflow)
+  relpc4_s1(unsigned char* view, Address value,
+            unsigned int align, bool should_check_overflow)
   {
     Valtype16* wv = reinterpret_cast<Valtype16*>(view);
     Valtype16 val = elfcpp::Swap<16, big_endian>::readval(wv);
@@ -2272,8 +2303,13 @@ class Nanomips_relocate_functions
     val = Bits<4>::bit_select32(val, value >> 1, 0xf);
     elfcpp::Swap<16, big_endian>::writeval(wv, val);
 
-    return should_check_overflow ? check_overflow<5>(value, CHECK_UNSIGNED)
-                                 : STATUS_OKAY;
+    if (!should_check_overflow)
+      return STATUS_OKAY;
+
+    if (value & (align - 1))
+      return STATUS_UNALIGNED;
+
+    return check_overflow<5>(value, CHECK_UNSIGNED);
   }
 
   // R_NANOMIPS_ASHIFTR_1, R_NANOMIPS_NEG
@@ -2346,15 +2382,21 @@ class Nanomips_relocate_functions
   // R_NANOMIPS_LO4_S2
   static inline Status
   rello4_s2(unsigned char* view, Address value,
-            bool should_check_overflow)
+            unsigned int align, bool should_check_overflow)
   {
     Valtype16* wv = reinterpret_cast<Valtype16*>(view);
     Valtype16 val = elfcpp::Swap<16, big_endian>::readval(wv);
     value &= 0xfff;
     val = Bits<4>::bit_select32(val, value >> 2, 0xf);
     elfcpp::Swap<16, big_endian>::writeval(wv, val);
-    return should_check_overflow ? check_overflow<6>(value, CHECK_UNSIGNED)
-                                 : STATUS_OKAY;
+
+    if (!should_check_overflow)
+      return STATUS_OKAY;
+
+    if (value & (align - 1))
+      return STATUS_UNALIGNED;
+
+    return check_overflow<6>(value, CHECK_UNSIGNED);
   }
 };
 
@@ -2519,7 +2561,7 @@ Nanomips_output_data_stubs<size, big_endian>::do_write(Output_file* of)
       // Calculate and write value for bc[16] instruction.
       uint64_t bc16_off = off + 4;
       Valtype value = static_cast<Valtype>(footer->offset - bc16_off - 2);
-      reloc_status = Reloc_funcs::relpc10_s1(pov + 4, value, true);
+      reloc_status = Reloc_funcs::relpc10_s1(pov + 4, value, 2, true);
       gold_assert(reloc_status == Reloc_funcs::STATUS_OKAY);
     }
 
@@ -2549,9 +2591,9 @@ Nanomips_output_data_stubs<size, big_endian>::do_write(Output_file* of)
 
       // Apply NANOMIPS_GOT0 offset.
       Reloc_funcs::nanomips_reloc_unshuffle(pov, 32);
-      reloc_status = Reloc_funcs::relgprel19_s2(pov, gp_off, true);
+      reloc_status = Reloc_funcs::relgprel19_s2(pov, gp_off, 4, true);
       Reloc_funcs::nanomips_reloc_shuffle(pov, 32);
-      if (reloc_status == Reloc_funcs::STATUS_OVERFLOW)
+      if (reloc_status != Reloc_funcs::STATUS_OKAY)
         {
           gold_error(_("GPREL19_S2 overflow in .nanoMIPS.stubs footer"));
           return;
@@ -4308,7 +4350,7 @@ Nanomips_relax_insn<size, big_endian>::get_type(
     case elfcpp::R_NANOMIPS_LO12:
       {
         Valtype value = psymval->value(relobj, r_addend) & 0xfff;
-        if (((value & 3) != 0)
+        if (((value & 0x3) != 0)
             || this->template check_overflow<6>(value, CHECK_UNSIGNED))
           return TT_NONE;
         break;
@@ -4493,7 +4535,8 @@ Nanomips_expand_insn<size, big_endian>::get_type(
     case elfcpp::R_NANOMIPS_PC21_S1:
       {
         Valtype value = psymval->value(relobj, r_addend) - address - 4;
-        if (!this->template check_overflow<22>(value, CHECK_SIGNED))
+        if (((value & 0x1) == 0)
+            && !this->template check_overflow<22>(value, CHECK_SIGNED))
           return TT_NONE;
         break;
       }
@@ -4514,8 +4557,8 @@ Nanomips_expand_insn<size, big_endian>::get_type(
     case elfcpp::R_NANOMIPS_GPREL19_S2:
       {
         Valtype value = psymval->value(relobj, r_addend) - gp;
-        if (gp == invalid_address ||
-            !this->template check_overflow<21>(value, CHECK_UNSIGNED))
+        if (gp == invalid_address
+            || !this->template check_overflow<21>(value, CHECK_UNSIGNED))
           return TT_NONE;
         break;
       }
@@ -4561,7 +4604,7 @@ Nanomips_expand_insn<size, big_endian>::get_type(
     case elfcpp::R_NANOMIPS_LO4_S2:
       {
         Valtype value = psymval->value(relobj, r_addend) & 0xfff;
-        if (((value & 3) == 0)
+        if (((value & 0x3) == 0)
             && !this->template check_overflow<6>(value, CHECK_UNSIGNED))
           return TT_NONE;
         break;
@@ -4864,6 +4907,7 @@ Target_nanomips<size, big_endian>::relocate_branch(
     nanomips_reloc_property_table->get_reloc_property(r_type);
   gold_assert(reloc_property != NULL);
 
+  unsigned int align = reloc_property->align();
   Valtype value = destination - (address + 4);
 
   typedef Nanomips_relocate_functions<size, big_endian> Reloc_funcs;
@@ -4873,10 +4917,10 @@ Target_nanomips<size, big_endian>::relocate_branch(
   switch (r_type)
     {
     case elfcpp::R_NANOMIPS_PC14_S1:
-      reloc_status = Reloc_funcs::relpc14_s1(view, value, true);
+      reloc_status = Reloc_funcs::relpc14_s1(view, value, align, true);
       break;
     case elfcpp::R_NANOMIPS_PC11_S1:
-      reloc_status = Reloc_funcs::relpc11_s1(view, value, true);
+      reloc_status = Reloc_funcs::relpc11_s1(view, value, align, true);
       break;
     default:
       gold_unreachable();
@@ -5957,6 +6001,7 @@ Target_nanomips<size, big_endian>::resolve_pcrel_relocatable(
   view += offset;
 
   Valtype value = 0;
+  unsigned int align = reloc_property->align();
   // Instruction size in bytes.  The PC adjustment for 48bit instructions is 4
   // because the reloc applies to an offset of 2 from the opcode.
   unsigned int insn_size = reloc_property->size() == 16 ? 2 : 4;
@@ -5970,25 +6015,25 @@ Target_nanomips<size, big_endian>::resolve_pcrel_relocatable(
       reloc_status = Reloc_funcs::rel32(view, value);
       break;
     case elfcpp::R_NANOMIPS_PC25_S1:
-      reloc_status = Reloc_funcs::relpc25_s1(view, value, true);
+      reloc_status = Reloc_funcs::relpc25_s1(view, value, align, true);
       break;
     case elfcpp::R_NANOMIPS_PC21_S1:
-      reloc_status = Reloc_funcs::relpc21_s1(view, value, true);
+      reloc_status = Reloc_funcs::relpc21_s1(view, value, align, true);
       break;
     case elfcpp::R_NANOMIPS_PC14_S1:
-      reloc_status = Reloc_funcs::relpc14_s1(view, value, true);
+      reloc_status = Reloc_funcs::relpc14_s1(view, value, align, true);
       break;
     case elfcpp::R_NANOMIPS_PC11_S1:
-      reloc_status = Reloc_funcs::relpc11_s1(view, value, true);
+      reloc_status = Reloc_funcs::relpc11_s1(view, value, align, true);
       break;
     case elfcpp::R_NANOMIPS_PC10_S1:
-      reloc_status = Reloc_funcs::relpc10_s1(view, value, true);
+      reloc_status = Reloc_funcs::relpc10_s1(view, value, align, true);
       break;
     case elfcpp::R_NANOMIPS_PC7_S1:
-      reloc_status = Reloc_funcs::relpc7_s1(view, value, true);
+      reloc_status = Reloc_funcs::relpc7_s1(view, value, align, true);
       break;
     case elfcpp::R_NANOMIPS_PC4_S1:
-      reloc_status = Reloc_funcs::relpc4_s1(view, value, true);
+      reloc_status = Reloc_funcs::relpc4_s1(view, value, align, true);
       break;
     default:
       gold_unreachable();
@@ -6034,6 +6079,34 @@ Target_nanomips<size, big_endian>::resolve_pcrel_relocatable(
                                sym->demangled_name().c_str(),
                                (unsigned long long) value,
                                reloc_property->bitsize());
+      break;
+    case Reloc_funcs::STATUS_UNALIGNED:
+      if (sym == NULL)
+        gold_error_at_location(relinfo, relnum, reloc.get_r_offset(),
+                               _("unaligned relocation value: "
+                                 "%s against local symbol '%s' with index %u: "
+                                 "value %#llx is not aligned to %d"),
+                               reloc_property->name().c_str(),
+                               relobj->
+                                 local_symbol_name(r_sym, r_addend).c_str(),
+                               r_sym, (unsigned long long) value, align);
+      else if (sym->is_defined() && sym->source() == Symbol::FROM_OBJECT)
+        gold_error_at_location(relinfo, relnum, reloc.get_r_offset(),
+                               _("unaligned relocation value: "
+                                 "%s against '%s' defined in %s: "
+                                 "value %#llx is not aligned to %d"),
+                               reloc_property->name().c_str(),
+                               sym->demangled_name().c_str(),
+                               sym->object()->name().c_str(),
+                               (unsigned long long) value, align);
+      else
+        gold_error_at_location(relinfo, relnum, reloc.get_r_offset(),
+                               _("unaligned relocation value: "
+                                 "%s against '%s': "
+                                 "value %#llx is not aligned to %d"),
+                               reloc_property->name().c_str(),
+                               sym->demangled_name().c_str(),
+                               (unsigned long long) value, align);
       break;
     default:
       gold_unreachable();
@@ -7140,6 +7213,8 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
   // Don't check overflow for weak undefined symbols.
   bool check_overflow = gsym == NULL || !gsym->is_weak_undefined();
 
+  unsigned int align = reloc_property->align();
+
   // Apply relocation and check for errors.
   if (reloc_property->shuffle_reloc())
     Reloc_funcs::nanomips_reloc_unshuffle(view, reloc_property->size());
@@ -7181,7 +7256,7 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
       reloc_status = Reloc_funcs::rello12(view, value);
       break;
     case elfcpp::R_NANOMIPS_LO4_S2:
-      reloc_status = Reloc_funcs::rello4_s2(view, value, check_overflow);
+      reloc_status = Reloc_funcs::rello4_s2(view, value, align, check_overflow);
       break;
     case elfcpp::R_NANOMIPS_NEG:
     case elfcpp::R_NANOMIPS_ASHIFTR_1:
@@ -7191,48 +7266,59 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
       reloc_status = Reloc_funcs::relpc32(view, value, check_overflow);
       break;
     case elfcpp::R_NANOMIPS_PC25_S1:
-      reloc_status = Reloc_funcs::relpc25_s1(view, value, check_overflow);
+      reloc_status = Reloc_funcs::relpc25_s1(view, value, align,
+                                             check_overflow);
       break;
     case elfcpp::R_NANOMIPS_PC21_S1:
-      reloc_status = Reloc_funcs::relpc21_s1(view, value, check_overflow);
+      reloc_status = Reloc_funcs::relpc21_s1(view, value, align,
+                                             check_overflow);
       break;
     case elfcpp::R_NANOMIPS_PC14_S1:
-      reloc_status = Reloc_funcs::relpc14_s1(view, value, check_overflow);
+      reloc_status = Reloc_funcs::relpc14_s1(view, value, align,
+                                             check_overflow);
       break;
     case elfcpp::R_NANOMIPS_PC11_S1:
-      reloc_status = Reloc_funcs::relpc11_s1(view, value, check_overflow);
+      reloc_status = Reloc_funcs::relpc11_s1(view, value, align,
+                                             check_overflow);
       break;
     case elfcpp::R_NANOMIPS_PC10_S1:
-      reloc_status = Reloc_funcs::relpc10_s1(view, value, check_overflow);
+      reloc_status = Reloc_funcs::relpc10_s1(view, value, align,
+                                             check_overflow);
       break;
     case elfcpp::R_NANOMIPS_PC7_S1:
-      reloc_status = Reloc_funcs::relpc7_s1(view, value, check_overflow);
+      reloc_status = Reloc_funcs::relpc7_s1(view, value, align, check_overflow);
       break;
     case elfcpp::R_NANOMIPS_PC4_S1:
-      reloc_status = Reloc_funcs::relpc4_s1(view, value, check_overflow);
+      reloc_status = Reloc_funcs::relpc4_s1(view, value, align, check_overflow);
       break;
     case elfcpp::R_NANOMIPS_GPREL19_S2:
-      reloc_status = Reloc_funcs::relgprel19_s2(view, value, check_overflow);
+      reloc_status = Reloc_funcs::relgprel19_s2(view, value, align,
+                                                check_overflow);
       break;
     case elfcpp::R_NANOMIPS_GPREL18_S3:
-      reloc_status = Reloc_funcs::relgprel18_s3(view, value, check_overflow);
+      reloc_status = Reloc_funcs::relgprel18_s3(view, value, align,
+                                                check_overflow);
       break;
     case elfcpp::R_NANOMIPS_GPREL18:
-      reloc_status = Reloc_funcs::relgprel18(view, value, check_overflow);
+      reloc_status = Reloc_funcs::relgprel18(view, value, align,
+                                             check_overflow);
       break;
     case elfcpp::R_NANOMIPS_GPREL17_S1:
-      reloc_status = Reloc_funcs::relgprel17_s1(view, value, check_overflow);
+      reloc_status = Reloc_funcs::relgprel17_s1(view, value, align,
+                                                check_overflow);
       break;
     case elfcpp::R_NANOMIPS_GPREL16_S2:
-      reloc_status = Reloc_funcs::relgprel16_s2(view, value, check_overflow);
+      reloc_status = Reloc_funcs::relgprel16_s2(view, value, align,
+                                                check_overflow);
       break;
     case elfcpp::R_NANOMIPS_GPREL7_S2:
-      reloc_status = Reloc_funcs::relgprel7_s2(view, value, check_overflow);
+      reloc_status = Reloc_funcs::relgprel7_s2(view, value, align,
+                                               check_overflow);
       break;
     case elfcpp::R_NANOMIPS_GOT_DISP:
     case elfcpp::R_NANOMIPS_GOT_PAGE:
     case elfcpp::R_NANOMIPS_GOT_CALL:
-      reloc_status = Reloc_funcs::relgot(view, value);
+      reloc_status = Reloc_funcs::relgot(view, value, align);
       break;
     default:
       gold_error_at_location(relinfo, relnum, r_offset,
@@ -7281,6 +7367,34 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
                                gsym->demangled_name().c_str(),
                                (unsigned long long) value,
                                reloc_property->bitsize());
+      break;
+    case Reloc_funcs::STATUS_UNALIGNED:
+      if (gsym == NULL)
+        gold_error_at_location(relinfo, relnum, r_offset,
+                               _("unaligned relocation value: "
+                                 "%s against local symbol '%s' with index %u: "
+                                 "value %#llx is not aligned to %d"),
+                               reloc_property->name().c_str(),
+                               object->
+                                 local_symbol_name(r_sym, r_addend).c_str(),
+                               r_sym, (unsigned long long) value, align);
+      else if (gsym->is_defined() && gsym->source() == Symbol::FROM_OBJECT)
+        gold_error_at_location(relinfo, relnum, r_offset,
+                               _("unaligned relocation value: "
+                                 "%s against '%s' defined in %s: "
+                                 "value %#llx is not aligned to %d"),
+                               reloc_property->name().c_str(),
+                               gsym->demangled_name().c_str(),
+                               gsym->object()->name().c_str(),
+                               (unsigned long long) value, align);
+      else
+        gold_error_at_location(relinfo, relnum, r_offset,
+                               _("unaligned relocation value: "
+                                 "%s against '%s': "
+                                 "value %#llx is not aligned to %d"),
+                               reloc_property->name().c_str(),
+                               gsym->demangled_name().c_str(),
+                               (unsigned long long) value, align);
       break;
     default:
       gold_unreachable();
