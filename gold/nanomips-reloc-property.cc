@@ -36,10 +36,12 @@ Nanomips_reloc_property::Nanomips_reloc_property(
     Reloc_type reloc_type,
     unsigned int size,
     unsigned int bitsize,
+    unsigned int align,
     unsigned int mask,
     int reference_flags)
   : code_(code), name_(name), reloc_type_(reloc_type), size_(size),
-    bitsize_(bitsize), mask_(mask), reference_flags_(reference_flags)
+    bitsize_(bitsize), align_(align), mask_(mask),
+    reference_flags_(reference_flags)
 { }
 
 Nanomips_reloc_property_table::Nanomips_reloc_property_table()
@@ -48,7 +50,7 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
     table_[i] = NULL;
 
 #undef NRD
-#define NRD(rname, type, size, bitsize, mask, rflags) \
+#define NRD(rname, type, size, bitsize, align, mask, rflags) \
   do \
     { \
       unsigned int code = elfcpp::R_NANOMIPS_##rname; \
@@ -59,6 +61,7 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
                                     Nanomips_reloc_property::RT_##type, \
                                     size, \
                                     bitsize, \
+                                    align, \
                                     mask, \
                                     (rflags)); \
     } \
