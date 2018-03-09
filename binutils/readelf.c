@@ -16270,15 +16270,291 @@ get_nanomips_reg_size (int reg_size)
   return (get_mips_reg_size (reg_size));
 }
 
-static int
+/* DATA points to the contents of a nanoMIPS GOT that starts at VMA PLTGOT.
+   Print the Address, Access and Initial fields of an entry at VMA ADDR
+   and return the VMA of the next entry, or -1 if there was a problem.
+   Does not read from DATA_END or beyond.  */
+
+static bfd_vma
+print_nanomips_got_entry (unsigned char * data, bfd_vma pltgot, bfd_vma addr,
+			  unsigned char * data_end)
+{
+  printf (" ");
+  print_vma (addr, LONG_HEX);
+  printf (" %8d(gp)  ", (int) (addr - pltgot));
+
+  if (data == NULL)
+    printf ("%*s", is_32bit_elf ? 8 : 16, _("<unknown>"));
+  else
+    {
+      bfd_vma entry;
+      unsigned char * from = data + addr - pltgot;
+
+      if (from + (is_32bit_elf ? 4 : 8) > data_end)
+	{
+	  warn (_("nanoMIPS GOT entry extends beyond the end of available data\n"));
+	  printf ("%*s", is_32bit_elf ? 8 : 16, _("<corrupt>"));
+	  return (bfd_vma) -1;
+	}
+      else
+	{
+	  entry = byte_get (data + addr - pltgot, is_32bit_elf ? 4 : 8);
+	  print_vma (entry, LONG_HEX);
+	}
+    }
+  return addr + (is_32bit_elf ? 4 : 8);
+}
+
+/* Comparison function to sort relocs by increasing offsets.  */
+
+static /* signed */ int
+relcmp (const void *p, const void *q)
+{
+  Elf_Internal_Rela *sp = (Elf_Internal_Rela *) p;
+  Elf_Internal_Rela *sq = (Elf_Internal_Rela *) q;
+
+  return (sp->r_offset > sq->r_offset
+	  ? 1
+	  : (sp->r_offset < sq->r_offset ? -1 : 0));
+}
+
+/* Pretty-print the nanoMIPS GOT.  */
+
+static bfd_boolean
+print_nanomips_got (FILE * file)
+{
+  Elf_Internal_Shdr *sect = NULL;
+  bfd_vma pltgot = 0;
+  unsigned char *data_end;
+  unsigned char *data;
+  bfd_vma ent = 0;
+  bfd_vma end;
+  int addr_size;
+  int sym_width;
+  struct {
+    Elf_Internal_Rela * rels;
+    unsigned long relsize;
+    unsigned rindex;
+  }	rtable[3] = { 0 };
+  int i;
+  enum {REL=0, RELA=1, JMPREL=2};
+
+  /* Fetch the GOT.  */
+  sect = find_section (".got");
+
+  if (sect == NULL)
+    return TRUE;
+
+  /* This is overly complicated in order to handle dynamic relocations as
+     either REL or RELA and to handle the case where jump relocations are
+     embedded within the dynamic relocations section.  */
+  if (dynamic_info[DT_REL] != 0)
+    {
+      if (!slurp_rel_relocs (file,
+			     offset_from_vma (file, dynamic_info[DT_REL],
+					      dynamic_info[DT_RELENT]),
+			     dynamic_info[DT_RELSZ],
+			     &rtable[REL].rels, &rtable[REL].relsize))
+	return FALSE;
+      /* Sort for easy lookup.  */
+      qsort (rtable[REL].rels, rtable[REL].relsize,
+	     sizeof (Elf_Internal_Rela), relcmp);
+    }
+  if (dynamic_info[DT_RELA] != 0)
+    {
+      if (!slurp_rel_relocs (file,
+			     offset_from_vma (file, dynamic_info[DT_RELA],
+					      dynamic_info[DT_RELAENT]),
+			     dynamic_info[DT_RELASZ],
+			     &rtable[RELA].rels, &rtable[RELA].relsize))
+	return FALSE;
+      /* Sort for easy lookup.  */
+      qsort (rtable[RELA].rels, rtable[RELA].relsize,
+	     sizeof (Elf_Internal_Rela), relcmp);
+    }
+  if (dynamic_info[DT_JMPREL] != 0)
+    {
+      int rent = ((dynamic_info[DT_PLTREL] == DT_REL)
+		  ? dynamic_info[DT_RELENT] : dynamic_info[DT_RELAENT]);
+      /* If jump relocations are embedded within regular dynamic relocations,
+	 we don't need to read them again.  They have already been read above.  */
+      if ((dynamic_info[DT_PLTREL] == DT_REL
+	   && (dynamic_info[DT_JMPREL] < dynamic_info[DT_REL]
+	       || dynamic_info[DT_JMPREL] >= dynamic_info[DT_REL] + dynamic_info[DT_RELSZ]))
+	  || (dynamic_info[DT_PLTREL] == DT_RELA
+	      && (dynamic_info[DT_JMPREL] < dynamic_info[DT_RELA]
+		  || dynamic_info[DT_JMPREL] >= dynamic_info[DT_RELA] + dynamic_info[DT_RELASZ])))
+	{
+	  if (!slurp_rel_relocs (file,
+				 offset_from_vma (file, dynamic_info[DT_JMPREL],
+						  rent),
+				 dynamic_info[DT_PLTRELSZ],
+				 &rtable[JMPREL].rels, &rtable[JMPREL].relsize))
+	    return FALSE;
+	  /* Sort for easy lookup.  */
+	  qsort (rtable[JMPREL].rels, rtable[JMPREL].relsize,
+		 sizeof (Elf_Internal_Rela), relcmp);
+	}
+    }
+  /* Temporary hack. Remove when the linker generate DT_JMPREL.  */
+  else if (find_section (".rel.nanoMIPS.stubs") != NULL)
+    {
+      Elf_Internal_Shdr *jumpsect = find_section (".rel.nanoMIPS.stubs");
+      if (!slurp_rel_relocs (file,
+			     offset_from_vma (file, jumpsect->sh_addr,
+					      dynamic_info[DT_RELENT]),
+			     jumpsect->sh_size,
+			     &rtable[JMPREL].rels, &rtable[JMPREL].relsize))
+	return FALSE;
+    }
+
+  pltgot = sect->sh_addr;
+
+  /* Find relocations corresponding to the beginning of the GOT.  */
+  for (i = REL; i <= JMPREL; i++)
+    while (rtable[i].rindex < rtable[i].relsize
+	   && rtable[i].rels[rtable[i].rindex].r_offset < pltgot)
+      rtable[i].rindex++;
+
+  ent = pltgot;
+  addr_size = (is_32bit_elf ? 4 : 8);
+  /* Available screen width for symbols is whatever is left over
+     after everything else, including column-separating whitespaces.  */
+  sym_width = ((is_32bit_elf ? 80 : 160) - 32 - addr_size * 4);
+  end = pltgot + sect->sh_size;
+
+  data = (unsigned char *) get_data (NULL, file, sect->sh_offset,
+				     end - pltgot, 1,
+				     _("Global Offset Table data"));
+  data_end = data + (end - pltgot);
+
+  printf (_("\nGOT:\n"));
+  printf (_(" GP value: "));
+  print_vma (ent, LONG_HEX);
+  printf ("\n\n");
+
+  /* In a dynamic binary GOT[0] is reserved for the dynamic
+     loader to store the lazy resolver pointer, however in
+     a static binary it may well have been omitted and GOT
+     reduced to a table of addresses.  */
+  if (data
+      && data + ent - pltgot + addr_size <= data_end
+      && byte_get (data + ent - pltgot, addr_size) == 0)
+    {
+      printf (_(" Reserved entries:\n"));
+      printf (_("  %*s %*s   %*s   Purpose\n"),
+	      (- addr_size * 2) + 1, _("Address"), 12, _("Access"),
+	      (- addr_size * 2) + 1, _("Initial"));
+      ent = print_nanomips_got_entry (data, pltgot, ent, data_end);
+      printf (_("  Lazy stub resolver\n"));
+      if (ent == (bfd_vma) -1)
+	goto sgot_print_fail;
+
+      if (ent == (bfd_vma) -1)
+	goto sgot_print_fail;
+
+      /* Check for the MSB of GOT[1] being set, identifying a
+	 GNU object.  This entry will be used by some runtime
+	 loaders, to store the module pointer.  Otherwise this
+	 is an ordinary local entry.  */
+      if (data
+	  && data + ent - pltgot + addr_size <= data_end
+	  && (byte_get (data + ent - pltgot, addr_size)
+	      >> (addr_size * 8 - 1)) != 0)
+	{
+	  printf ("\n");
+	  ent = print_nanomips_got_entry (data, pltgot, ent, data_end);
+	  printf (_("  Module pointer\n"));
+	  if (ent == (bfd_vma) -1)
+	    goto sgot_print_fail;
+	}
+      printf ("\n");
+    }
+
+  if (ent < end)
+    {
+      printf (_(" Entries:\n"));
+      printf (_("  %*s %*s   %*s   %*s   Name\n"),
+	      (- addr_size * 2) + 1, _("Address"), 12, _("Access"),
+	      (- addr_size * 2) + 1, _("Value"), -9, _("Type"));
+    }
+
+  while (ent < end)
+    {
+      Elf_Internal_Rela *rel = NULL;
+      bfd_vma next_ent = print_nanomips_got_entry (data, pltgot,
+						   ent, data_end);
+      if (next_ent == (bfd_vma) -1)
+	{
+	  ent = (bfd_vma) -1;
+	  goto sgot_print_fail;
+	}
+
+      /* Scan all relocations for a match against this GOT slot.  */
+      for (i = REL; i <= JMPREL; i++)
+	{
+	  while (rel == NULL && rtable[i].rindex < rtable[i].relsize)
+	    {
+	      if (rtable[i].rels[rtable[i].rindex].r_offset == ent)
+		rel = &rtable[i].rels[rtable[i].rindex];
+	      if (rtable[i].rels[rtable[i].rindex].r_offset >= ent)
+		break;
+	      rtable[i].rindex ++;
+	    }
+	}
+
+      if (rel != NULL)
+	{
+	  Elf_Internal_Sym * psym = 0;
+
+	  switch (get_reloc_type (rel->r_info))
+	    {
+	      case 11: /* R_NANOMIPS_JUMP_SLOT. */
+		printf ("  %*s  ", -10, "Lazy-stub"); break;
+	      case 12: /* R_NANOMIPS_IRELATIVE. */
+		printf ("  %*s  ", -10, "Indirect"); break;
+	      case 10: /* R_NANOMIPS_GLOBAL.  */
+	      case 1: /* R_NANOMIPS_32.  */
+	      case 2: /* R_NANOMIPS_64.  */
+		printf ("  %*s  ", -10, "Global"); break;
+	      case 9: /* R_NANOMIPS_RELATIVE.  */
+		printf ("  %*s  ", -10, "Local"); break;
+	      default:
+		break;
+	    }
+
+	  if (dynamic_symbols)
+	    {
+	      psym = (dynamic_symbols + get_reloc_symindex (rel->r_info));
+
+	      if (VALID_DYNAMIC_NAME (psym->st_name))
+		print_symbol (sym_width, GET_DYNAMIC_NAME (psym->st_name));
+	      else
+		printf (_("<corrupt: %14ld>"), psym->st_name);
+	    }
+	}
+
+      ent = next_ent;
+      printf ("\n");
+    }
+  printf ("\n");
+
+ sgot_print_fail:
+  if (data)
+    free (data);
+
+  for (i = REL; i <= JMPREL; i++)
+    if (rtable[i].rels)
+      free (rtable[i].rels);
+
+  return (ent != (bfd_vma) -1);;
+}
+
+
+static bfd_boolean
 process_nanomips_specific (FILE * file)
 {
-  Elf_Internal_Dyn * entry;
   Elf_Internal_Shdr *sect = NULL;
-  size_t options_offset = 0;
-  bfd_vma pltgot = 0;
-  bfd_vma gotsym = 0;
-  bfd_vma symtabno = 0;
 
   process_attributes (file, NULL, SHT_GNU_ATTRIBUTES, NULL,
 		      display_nanomips_gnu_attribute);
@@ -16291,11 +16567,15 @@ process_nanomips_specific (FILE * file)
       Elf_Internal_ABIFlags_v0 abiflags_in;
 
       if (sizeof (Elf_External_ABIFlags_v0) != sect->sh_size)
-	fputs ("\nCorrupt ABI Flags section.\n", stdout);
+	{
+	  fputs ("\nCorrupt ABI Flags section.\n", stdout);
+	  return FALSE;
+	}
       else
 	{
 	  abiflags_ext = get_data (NULL, file, sect->sh_offset, 1,
-				   sect->sh_size, _("nanoMIPS ABI Flags section"));
+				   sect->sh_size,
+				   _("nanoMIPS ABI Flags section"));
 	  if (abiflags_ext)
 	    {
 	      abiflags_in.version = BYTE_GET (abiflags_ext->version);
@@ -16310,7 +16590,8 @@ process_nanomips_specific (FILE * file)
 	      abiflags_in.flags1 = BYTE_GET (abiflags_ext->flags1);
 	      abiflags_in.flags2 = BYTE_GET (abiflags_ext->flags2);
 
-	      printf ("\nnanoMIPS ABI Flags Version: %d\n", abiflags_in.version);
+	      printf ("\nnanoMIPS ABI Flags Version: %d\n",
+		      abiflags_in.version);
 	      printf ("\nISA: nanoMIPS%d", abiflags_in.isa_level);
 	      if (abiflags_in.isa_rev > 1)
 		printf ("r%d", abiflags_in.isa_rev);
@@ -16334,254 +16615,8 @@ process_nanomips_specific (FILE * file)
 	}
     }
 
-  if (dynamic_section == NULL)
-    /* No information available.  */
-    return 0;
-
-  for (entry = dynamic_section;
-       entry < dynamic_section + dynamic_nent && entry->d_tag != DT_NULL;
-       ++entry)
-    switch (entry->d_tag)
-      {
-      case DT_PLTGOT:
-	pltgot = entry->d_un.d_ptr;
-	break;
-      case DT_NANOMIPS_GOTNO:
-	symtabno = entry->d_un.d_val;
-	break;
-      default:
-	break;
-      }
-
-  if (options_offset != 0)
-    {
-      Elf_External_Options * eopt;
-      Elf_Internal_Options * iopt;
-      Elf_Internal_Options * option;
-      size_t offset;
-      int cnt;
-      sect = section_headers;
-
-      /* Find the section header so that we get the size.  */
-      sect = find_section_by_type (SHT_MIPS_OPTIONS);
-      /* PR 17533 file: 012-277276-0.004.  */
-      if (sect == NULL)
-	{
-	  error (_("No MIPS_OPTIONS header found\n"));
-	  return 0;
-	}
-
-      eopt = (Elf_External_Options *) get_data (NULL, file, options_offset, 1,
-                                                sect->sh_size, _("options"));
-      if (eopt)
-	{
-	  iopt = (Elf_Internal_Options *)
-              cmalloc ((sect->sh_size / sizeof (eopt)), sizeof (* iopt));
-	  if (iopt == NULL)
-	    {
-	      error (_("Out of memory allocatinf space for MIPS options\n"));
-	      return 0;
-	    }
-
-	  offset = cnt = 0;
-	  option = iopt;
-
-	  while (offset < sect->sh_size)
-	    {
-	      Elf_External_Options * eoption;
-
-	      eoption = (Elf_External_Options *) ((char *) eopt + offset);
-
-	      option->kind = BYTE_GET (eoption->kind);
-	      option->size = BYTE_GET (eoption->size);
-	      option->section = BYTE_GET (eoption->section);
-	      option->info = BYTE_GET (eoption->info);
-
-	      offset += option->size;
-
-	      ++option;
-	      ++cnt;
-	    }
-
-	  printf (_("\nSection '%s' contains %d entries:\n"),
-		  printable_section_name (sect), cnt);
-
-	  option = iopt;
-
-	  while (cnt-- > 0)
-	    {
-	      size_t len;
-
-	      switch (option->kind)
-		{
-		case ODK_NULL:
-		  /* This shouldn't happen.  */
-		  printf (" NULL       %d %lx", option->section, option->info);
-		  break;
-		case ODK_EXCEPTIONS:
-		  fputs (" EXCEPTIONS fpe_min(", stdout);
-		  process_mips_fpe_exception (option->info & OEX_FPU_MIN);
-		  fputs (") fpe_max(", stdout);
-		  process_mips_fpe_exception ((option->info & OEX_FPU_MAX) >> 8);
-		  fputs (")", stdout);
-
-		  if (option->info & OEX_PAGE0)
-		    fputs (" PAGE0", stdout);
-		  if (option->info & OEX_SMM)
-		    fputs (" SMM", stdout);
-		  if (option->info & OEX_FPDBUG)
-		    fputs (" FPDBUG", stdout);
-		  if (option->info & OEX_DISMISS)
-		    fputs (" DISMISS", stdout);
-		  break;
-		case ODK_PAD:
-		  fputs (" PAD       ", stdout);
-		  if (option->info & OPAD_PREFIX)
-		    fputs (" PREFIX", stdout);
-		  if (option->info & OPAD_POSTFIX)
-		    fputs (" POSTFIX", stdout);
-		  if (option->info & OPAD_SYMBOL)
-		    fputs (" SYMBOL", stdout);
-		  break;
-		case ODK_HWPATCH:
-		  fputs (" HWPATCH   ", stdout);
-		  if (option->info & OHW_R4KEOP)
-		    fputs (" R4KEOP", stdout);
-		  if (option->info & OHW_R8KPFETCH)
-		    fputs (" R8KPFETCH", stdout);
-		  if (option->info & OHW_R5KEOP)
-		    fputs (" R5KEOP", stdout);
-		  if (option->info & OHW_R5KCVTL)
-		    fputs (" R5KCVTL", stdout);
-		  break;
-		case ODK_FILL:
-		  fputs (" FILL       ", stdout);
-		  /* XXX Print content of info word?  */
-		  break;
-		case ODK_TAGS:
-		  fputs (" TAGS       ", stdout);
-		  /* XXX Print content of info word?  */
-		  break;
-		case ODK_HWAND:
-		  fputs (" HWAND     ", stdout);
-		  if (option->info & OHWA0_R4KEOP_CHECKED)
-		    fputs (" R4KEOP_CHECKED", stdout);
-		  if (option->info & OHWA0_R4KEOP_CLEAN)
-		    fputs (" R4KEOP_CLEAN", stdout);
-		  break;
-		case ODK_HWOR:
-		  fputs (" HWOR      ", stdout);
-		  if (option->info & OHWA0_R4KEOP_CHECKED)
-		    fputs (" R4KEOP_CHECKED", stdout);
-		  if (option->info & OHWA0_R4KEOP_CLEAN)
-		    fputs (" R4KEOP_CLEAN", stdout);
-		  break;
-		case ODK_GP_GROUP:
-		  printf (" GP_GROUP  %#06lx  self-contained %#06lx",
-			  option->info & OGP_GROUP,
-			  (option->info & OGP_SELF) >> 16);
-		  break;
-		case ODK_IDENT:
-		  printf (" IDENT     %#06lx  self-contained %#06lx",
-			  option->info & OGP_GROUP,
-			  (option->info & OGP_SELF) >> 16);
-		  break;
-		default:
-		  /* This shouldn't happen.  */
-		  printf (" %3d ???     %d %lx",
-			  option->kind, option->section, option->info);
-		  break;
-		}
-
-	      len = sizeof (* eopt);
-	      while (len < option->size)
-		if (((char *) option)[len] >= ' '
-		    && ((char *) option)[len] < 0x7f)
-		  printf ("%c", ((char *) option)[len++]);
-		else
-		  printf ("\\%03o", ((char *) option)[len++]);
-
-	      fputs ("\n", stdout);
-	      ++option;
-	    }
-
-	  free (eopt);
-	}
-    }
-
-  if (pltgot != 0)
-    {
-      bfd_vma ent, end;
-      size_t i, offset;
-      unsigned char * data;
-      unsigned char * data_end;
-      int addr_size;
-
-      ent = pltgot;
-      addr_size = (is_32bit_elf ? 4 : 8);
-
-      if (symtabno < gotsym)
-	{
-	  error (_("The GOT symbol offset (%lu) is greater than the symbol table size (%lu)\n"),
-		 (long) gotsym, (long) symtabno);
-	  return 0;
-	}
-
-      end = pltgot + (symtabno - gotsym) * addr_size;
-
-      offset = offset_from_vma (file, pltgot, end - pltgot);
-      data = (unsigned char *) get_data (NULL, file, offset,
-                                         end - pltgot, 1,
-					 _("Global Offset Table data"));
-      data_end = data + (end - pltgot);
-
-      if (data == NULL)
-	return 0;
-
-      printf (_(" Canonical gp value: "));
-      print_vma (pltgot + 0x7ff0, LONG_HEX);
-      printf ("\n\n");
-
-      printf (_(" Reserved entries:\n"));
-      printf (_("  %*s %10s %*s Purpose\n"),
-	      addr_size * 2, _("Address"), _("Access"),
-	      addr_size * 2, _("Initial"));
-      ent = print_mips_got_entry (data, pltgot, ent, data_end);
-      printf (_(" Lazy resolver\n"));
-      if (data
-	  && (byte_get (data + ent - pltgot, addr_size)
-	      >> (addr_size * 8 - 1)) != 0)
-	{
-	  ent = print_mips_got_entry (data, pltgot, ent, data_end);
-	  printf (_(" Module pointer (GNU extension)\n"));
-	}
-      printf ("\n");
-
-      printf ("\n");
-
-      printf (_(" Entries:\n"));
-      printf ("  %*s %10s %*s %*s %-7s %3s %s\n",
-	      addr_size * 2, _("Address"),
-	      _("Access"),
-	      addr_size * 2, _("Initial"),
-	      addr_size * 2, _("Sym.Val."),
-	      _("Type"),
-	      /* Note for translators: "Ndx" = abbreviated form of "Index".  */
-	      _("Ndx"), _("Name"));
-
-      for (i = gotsym; i < symtabno; i++)
-	{
-	  ent = print_mips_got_entry (data, pltgot, ent, data_end);
-	  printf (" ");
-
-	  printf ("\n");
-	}
-
-      if (data)
-	free (data);
-    }
-
-  return 1;
+  /* Pretty-print the GOT.  */
+  return print_nanomips_got (file);
 }
 
 static bfd_boolean
