@@ -975,6 +975,8 @@ from the Virtualization Application Specific Extension from that point
 on in the assembly.  The @code{.set novirt} directive prevents Virtualization
 instructions from being accepted.
 
+@end table
+
 @node nanoMIPS Compatibility
 @subsection Directives for compatibility with MIPS assembly
 
