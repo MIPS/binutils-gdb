@@ -100,13 +100,8 @@ switch -glob -- [istarget] {
     "mips*-*" {
         set asm-arch mips
     }
-    "nanomips*-elf" {
+    "nanomips*-*" {
         set asm-arch nanomips
-	append link-flags " -Ttext 0x80020000 -Tdata 0x80030000"
-	set board [target_info name]
-	set old_ldscript [board_info $board ldscript]
-	set_board_info ldscript ""
-	}
     }
     "powerpc64le-*" {
         set asm-arch powerpc64le
@@ -170,6 +165,9 @@ switch -glob -- [istarget] {
     "h83*-*" {
 	set asm-arch h8300
         set debug-flags "-gdwarf-2"
+    }
+    "nanomips*-*" {
+        set asm-arch nanomips
     }
 }
 
@@ -277,7 +275,7 @@ if {[target_link [list $asm1obj $asm2obj] "${binfile}" ${link-flags}] != "" } th
 }
 
 # Restore the target board linker script for HC11/HC12.
-if { [istarget "m6811-*-*"] || [istarget "m6812-*-*"] || [istarget "nanomips*-elf"] } {
+if { [istarget "m6811-*-*"] || [istarget "m6812-*-*"] } {
     set_board_info ldscript $old_ldscript
 }
 
