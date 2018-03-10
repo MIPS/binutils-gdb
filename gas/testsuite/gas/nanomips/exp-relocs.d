@@ -3,7 +3,7 @@
 
 # Check nanoMIPS percent-ops
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section \.text:
 
@@ -41,7 +41,7 @@ Disassembly of section \.text:
   [0-9a-f]+:	4080 0000 	addiu	a0,gp,0
 			[0-9a-f]+: R_NANOMIPS_GPREL19_S2	test
   [0-9a-f]+:	6082 0000 	addiu	a0,gp,0
-  [0-9a-f]+:	0000 
+  [0-9a-f]+:	0000.
 			[0-9a-f]+: R_NANOMIPS_GPREL_I32	test
   [0-9a-f]+:	0084 0000 	addiu	a0,a0,0
 			[0-9a-f]+: R_NANOMIPS_LO12	test
@@ -62,7 +62,7 @@ Disassembly of section \.text:
   [0-9a-f]+:	0084 0000 	addiu	a0,a0,0
 			[0-9a-f]+: R_NANOMIPS_GPREL_LO12	test
   [0-9a-f]+:	6082 0000 	addiu	a0,gp,0
-  [0-9a-f]+:	0000 
+  [0-9a-f]+:	0000.
 			[0-9a-f]+: R_NANOMIPS_GPREL_I32	test
   [0-9a-f]+:	e080 0000 	lui	a0,0x0
 			[0-9a-f]+: R_NANOMIPS_HI20	test
@@ -79,10 +79,104 @@ Disassembly of section \.text:
   [0-9a-f]+:	0084 0000 	addiu	a0,a0,0
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	test
   [0-9a-f]+:	608b 0000 	lwpc	a0,0 <test>
-  [0-9a-f]+:	0000 
+  [0-9a-f]+:	0000.
 			[0-9a-f]+: R_NANOMIPS_GOTPC_I32	test
   [0-9a-f]+:	db30      	jalrc	t9
 			[0-9a-f]+: R_NANOMIPS_JALR32	end
   [0-9a-f]+:	db30      	jalrc	t9
 			[0-9a-f]+: R_NANOMIPS_JALR16	end
+[0-9a-f]+ <end>:
+  [0-9a-f]+:	4080 0000 	addiu	a0,gp,0
+			[0-9a-f]+: R_NANOMIPS_TLS_GD	tlsvar
+  [0-9a-f]+:	4080 0000 	addiu	a0,gp,0
+			[0-9a-f]+: R_NANOMIPS_TLS_GD	tlsvar
+  [0-9a-f]+:	6082 0000 	addiu	a0,gp,0
+  [0-9a-f]+:	0000.
+			[0-9a-f]+: R_NANOMIPS_TLS_GD_I32	tlsvar
+  [0-9a-f]+:	6082 0000 	addiu	a0,gp,0
+  [0-9a-f]+:	0000 
+			[0-9a-f]+: R_NANOMIPS_TLS_GD_I32	tlsvar
+  [0-9a-f]+:	4080 0000 	addiu	a0,gp,0
+			[0-9a-f]+: R_NANOMIPS_TLS_LD	tlsvar
+  [0-9a-f]+:	4080 0000 	addiu	a0,gp,0
+			[0-9a-f]+: R_NANOMIPS_TLS_LD	tlsvar
+  [0-9a-f]+:	6082 0000 	addiu	a0,gp,0
+  [0-9a-f]+:	0000.
+			[0-9a-f]+: R_NANOMIPS_TLS_LD_I32	tlsvar
+  [0-9a-f]+:	6082 0000 	addiu	a0,gp,0
+  [0-9a-f]+:	0000.
+			[0-9a-f]+: R_NANOMIPS_TLS_LD_I32	tlsvar
+  [0-9a-f]+:	8485 a000 	lwc1	\$f4,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_TPREL12	tlsvar
+  [0-9a-f]+:	8485 b000 	swc1	\$f4,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_TPREL12	tlsvar
+  [0-9a-f]+:	8485 e000 	ldc1	\$f4,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_TPREL12	tlsvar
+  [0-9a-f]+:	8485 f000 	sdc1	\$f4,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_TPREL12	tlsvar
+  [0-9a-f]+:	8485 0000 	lb	a0,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_TPREL12	tlsvar
+  [0-9a-f]+:	8485 4000 	lh	a0,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_TPREL12	tlsvar
+  [0-9a-f]+:	8485 8000 	lw	a0,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_TPREL12	tlsvar
+  [0-9a-f]+:	8485 2000 	lbu	a0,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_TPREL12	tlsvar
+  [0-9a-f]+:	8485 6000 	lhu	a0,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_TPREL12	tlsvar
+  [0-9a-f]+:	8485 8000 	lw	a0,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_TPREL12	tlsvar
+  [0-9a-f]+:	8485 1000 	sb	a0,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_TPREL12	tlsvar
+  [0-9a-f]+:	8485 5000 	sh	a0,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_TPREL12	tlsvar
+  [0-9a-f]+:	8485 9000 	sw	a0,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_TPREL12	tlsvar
+  [0-9a-f]+:	0085 0000 	addiu	a0,a1,0
+			[0-9a-f]+: R_NANOMIPS_TLS_TPREL16	tlsvar
+  [0-9a-f]+:	6081 0000 	addiu	a0,a0,0
+  [0-9a-f]+:	0000.
+			[0-9a-f]+: R_NANOMIPS_TLS_TPREL_I32	tlsvar
+  [0-9a-f]+:	6080 0000 	li	a0,0x0
+  [0-9a-f]+:	0000.
+			[0-9a-f]+: R_NANOMIPS_TLS_TPREL_I32	tlsvar
+ [0-9a-f]+:	8485 a000 	lwc1	\$f4,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_DTPREL12	tlsvar
+ [0-9a-f]+:	8485 b000 	swc1	\$f4,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_DTPREL12	tlsvar
+ [0-9a-f]+:	8485 e000 	ldc1	\$f4,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_DTPREL12	tlsvar
+ [0-9a-f]+:	8485 f000 	sdc1	\$f4,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_DTPREL12	tlsvar
+ [0-9a-f]+:	8485 0000 	lb	a0,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_DTPREL12	tlsvar
+ [0-9a-f]+:	8485 4000 	lh	a0,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_DTPREL12	tlsvar
+ [0-9a-f]+:	8485 8000 	lw	a0,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_DTPREL12	tlsvar
+ [0-9a-f]+:	8485 2000 	lbu	a0,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_DTPREL12	tlsvar
+ [0-9a-f]+:	8485 6000 	lhu	a0,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_DTPREL12	tlsvar
+ [0-9a-f]+:	8485 8000 	lw	a0,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_DTPREL12	tlsvar
+ [0-9a-f]+:	8485 1000 	sb	a0,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_DTPREL12	tlsvar
+ [0-9a-f]+:	8485 5000 	sh	a0,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_DTPREL12	tlsvar
+ [0-9a-f]+:	8485 9000 	sw	a0,0\(a1\)
+			[0-9a-f]+: R_NANOMIPS_TLS_DTPREL12	tlsvar
+ [0-9a-f]+:	0085 0000 	addiu	a0,a1,0
+			[0-9a-f]+: R_NANOMIPS_TLS_DTPREL16	tlsvar
+ [0-9a-f]+:	6081 0000 	addiu	a0,a0,0
+ [0-9a-f]+:	0000.
+			[0-9a-f]+: R_NANOMIPS_TLS_DTPREL_I32	tlsvar
+ [0-9a-f]+:	6080 0000 	li	a0,0x0
+ [0-9a-f]+:	0000.
+			[0-9a-f]+: R_NANOMIPS_TLS_DTPREL_I32	tlsvar
+ [0-9a-f]+:	4080 0002 	lw	a0,0\(gp\)
+			[0-9a-f]+: R_NANOMIPS_TLS_GOTTPREL	tlsvar
+ [0-9a-f]+:	608b 0000 	lwpc	a0,0 <tlsvar>
+ [0-9a-f]+:	0000.
+			[0-9a-f]+: R_NANOMIPS_TLS_GOTTPREL_PC_I32	tlsvar
 #pass

@@ -822,7 +822,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] = {
   EMPTY_HOWTO (79),
 
   /* TLS GD/LD dynamic relocations.  */
-  HOWTO (R_NANOMIPS_TLS_DTPMOD32, /* type */
+  HOWTO (R_NANOMIPS_TLS_DTPMOD, /* type */
 	 0,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 32,			/* bitsize */
@@ -830,13 +830,13 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] = {
 	 0,			/* bitpos */
 	 complain_overflow_dont, /* complain_on_overflow */
 	 _bfd_nanomips_elf_generic_reloc, /* special_function */
-	 "R_NANOMIPS_TLS_DTPMOD32", /* name */
+	 "R_NANOMIPS_TLS_DTPMOD", /* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 0xffffffff,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-  HOWTO (R_NANOMIPS_TLS_DTPREL32, /* type */
+  HOWTO (R_NANOMIPS_TLS_DTPREL, /* type */
 	 0,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 32,			/* bitsize */
@@ -844,17 +844,14 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] = {
 	 0,			/* bitpos */
 	 complain_overflow_dont, /* complain_on_overflow */
 	 _bfd_nanomips_elf_generic_reloc, /* special_function */
-	 "R_NANOMIPS_TLS_DTPREL32", /* name */
+	 "R_NANOMIPS_TLS_DTPREL", /* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 0xffffffff,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
-
-  EMPTY_HOWTO (R_NANOMIPS_TLS_DTPMOD64),
-  EMPTY_HOWTO (R_NANOMIPS_TLS_DTPREL64),
 
   /* TLS IE dynamic relocations.  */
-  HOWTO (R_NANOMIPS_TLS_TPREL32, /* type */
+  HOWTO (R_NANOMIPS_TLS_TPREL, /* type */
 	 0,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 32,			/* bitsize */
@@ -862,13 +859,11 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] = {
 	 0,			/* bitpos */
 	 complain_overflow_dont, /* complain_on_overflow */
 	 _bfd_nanomips_elf_generic_reloc, /* special_function */
-	 "R_NANOMIPS_TLS_TPREL32", /* name */
+	 "R_NANOMIPS_TLS_TPREL", /* name */
 	 FALSE,			/* partial_inplace */
 	 0xffffffff,		/* src_mask */
 	 0xffffffff,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
-
-  EMPTY_HOWTO (R_NANOMIPS_TLS_TPREL64),
 
   /* TLS general dynamic variable reference.  */
   HOWTO (R_NANOMIPS_TLS_GD,	/* type */
@@ -885,8 +880,22 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] = {
 	 0x001ffffc,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
+  HOWTO (R_NANOMIPS_TLS_GD_I32,	/* type */
+	 0,			/* rightshift */
+	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 32,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_signed, /* complain_on_overflow */
+	 _bfd_nanomips_elf_generic_reloc, /* special_function */
+	 "R_NANOMIPS_TLS_GD_I32", /* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0xffffffff,		/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
   /* TLS local dynamic variable reference.  */
-  HOWTO (R_NANOMIPS_TLS_LDM,	/* type */
+  HOWTO (R_NANOMIPS_TLS_LD,	/* type */
 	 2,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 19,			/* bitsize */
@@ -894,85 +903,144 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] = {
 	 2,			/* bitpos */
 	 complain_overflow_signed, /* complain_on_overflow */
 	 _bfd_nanomips_elf_generic_reloc, /* special_function */
-	 "R_NANOMIPS_TLS_LDM",	/* name */
+	 "R_NANOMIPS_TLS_LD",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 0x001ffffc,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-  /* TLS local dynamic offset.  */
-  HOWTO (R_NANOMIPS_TLS_DTPREL_HI20, /* type */
-	 12,			/* rightshift */
+  HOWTO (R_NANOMIPS_TLS_LD_I32,	/* type */
+	 0,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
-	 20,			/* bitsize */
+	 32,			/* bitsize */
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
 	 complain_overflow_signed, /* complain_on_overflow */
 	 _bfd_nanomips_elf_generic_reloc, /* special_function */
-	 "R_NANOMIPS_TLS_DTPREL_HI20",	/* name */
+	 "R_NANOMIPS_TLS_LD_I32", /* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
-	 0x001ffffd,		/* dst_mask */
+	 0xffffffff,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-  /* TLS local dynamic offset.  */
-  HOWTO (R_NANOMIPS_TLS_DTPREL_LO12,	/* type */
+  /* TLS local dynamic 12-bit offset.  */
+  HOWTO (R_NANOMIPS_TLS_DTPREL12, /* type */
 	 0,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 12,			/* bitsize */
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
-	 complain_overflow_signed, /* complain_on_overflow */
+	 complain_overflow_unsigned, /* complain_on_overflow */
 	 _bfd_nanomips_elf_generic_reloc, /* special_function */
-	 "R_NANOMIPS_TLS_DTPREL_LO12",	/* name */
+	 "R_NANOMIPS_TLS_DTPREL12", /* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 0x00000fff,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-  /* TLS thread pointer offset.  */
+  /* TLS local dynamic 16-bit offset.  */
+  HOWTO (R_NANOMIPS_TLS_DTPREL16, /* type */
+	 0,			/* rightshift */
+	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 16,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_unsigned, /* complain_on_overflow */
+	 _bfd_nanomips_elf_generic_reloc, /* special_function */
+	 "R_NANOMIPS_TLS_DTPREL16", /* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0x0000ffff,		/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
+  /* TLS local dynamic 32-bit offset.  */
+  HOWTO (R_NANOMIPS_TLS_DTPREL_I32, /* type */
+	 0,			/* rightshift */
+	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 32,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_signed, /* complain_on_overflow */
+	 _bfd_nanomips_elf_generic_reloc, /* special_function */
+	 "R_NANOMIPS_TLS_DTPREL_I32", /* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0xffffffff,		/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+  
+  /* TLS thread pointer 21-bit GOT offset.  */
   HOWTO (R_NANOMIPS_TLS_GOTTPREL,	/* type */
 	 2,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 19,			/* bitsize */
 	 FALSE,			/* pc_relative */
 	 2,			/* bitpos */
-	 complain_overflow_signed, /* complain_on_overflow */
+	 complain_overflow_unsigned, /* complain_on_overflow */
 	 _bfd_nanomips_elf_generic_reloc, /* special_function */
-	 "R_NANOMIPS_TLS_GOTTPREL",	/* name */
+	 "R_NANOMIPS_TLS_GOTTPREL", /* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 0x001ffffc,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-  /* TLS thread pointer offset.  */
-  HOWTO (R_NANOMIPS_TLS_TPREL_HI20,	/* type */
-	 12,			/* rightshift */
+  /* TLS thread pointer 32-bit GOT offset.  */
+  HOWTO (R_NANOMIPS_TLS_GOTTPREL_PC_I32, /* type */
+	 0,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
-	 20,			/* bitsize */
-	 FALSE,			/* pc_relative */
+	 32,			/* bitsize */
+	 TRUE,			/* pc_relative */
 	 0,			/* bitpos */
 	 complain_overflow_signed, /* complain_on_overflow */
 	 _bfd_nanomips_elf_generic_reloc, /* special_function */
-	 "R_NANOMIPS_TLS_TPREL_HI20", /* name */
+	 "R_NANOMIPS_TLS_GOTTPREL_PC_I32", /* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
-	 0x001ffffd,		/* dst_mask */
-	 FALSE),		/* pcrel_offset */
+	 0xffffffff,		/* dst_mask */
+	 TRUE), 		/* pcrel_offset */
 
-  /* TLS thread pointer offset.  */
-  HOWTO (R_NANOMIPS_TLS_TPREL_LO12,	/* type */
+  /* TLS thread pointer 12-bit offset.  */
+  HOWTO (R_NANOMIPS_TLS_TPREL12, /* type */
 	 0,			/* rightshift */
 	 2,			/* size (0 = byte, 1 = short, 2 = long) */
 	 12,			/* bitsize */
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
-	 complain_overflow_signed, /* complain_on_overflow */
+	 complain_overflow_unsigned, /* complain_on_overflow */
 	 _bfd_nanomips_elf_generic_reloc, /* special_function */
-	 "R_NANOMIPS_TLS_TPREL_LO12", /* name */
+	 "R_NANOMIPS_TLS_TPREL12", /* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 0x00000fff,		/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
+  /* TLS thread pointer 16-bit offset.  */
+  HOWTO (R_NANOMIPS_TLS_TPREL16, /* type */
+	 0,			/* rightshift */
+	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 16,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_unsigned, /* complain_on_overflow */
+	 _bfd_nanomips_elf_generic_reloc, /* special_function */
+	 "R_NANOMIPS_TLS_TPREL16", /* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0x0000ffff,		/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
+  /* TLS thread pointer 32-bit offset.  */
+  HOWTO (R_NANOMIPS_TLS_TPREL_I32, /* type */
+	 0,			/* rightshift */
+	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 32,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_signed, /* complain_on_overflow */
+	 _bfd_nanomips_elf_generic_reloc, /* special_function */
+	 "R_NANOMIPS_TLS_TPREL_I32", /* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0xffffffff,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 };
 
@@ -1123,18 +1191,20 @@ static const struct elf_reloc_map nanomips_reloc_map[] = {
   { BFD_RELOC_NANOMIPS_JALR16, R_NANOMIPS_JALR16 },
 
   { BFD_RELOC_NANOMIPS_TLS_GD, R_NANOMIPS_TLS_GD },
-  { BFD_RELOC_NANOMIPS_TLS_LDM, R_NANOMIPS_TLS_LDM },
-  { BFD_RELOC_NANOMIPS_TLS_DTPREL_HI20, R_NANOMIPS_TLS_DTPREL_HI20 },
-  { BFD_RELOC_NANOMIPS_TLS_DTPREL_LO12, R_NANOMIPS_TLS_DTPREL_LO12 },
+  { BFD_RELOC_NANOMIPS_TLS_GD_I32, R_NANOMIPS_TLS_GD_I32 },
+  { BFD_RELOC_NANOMIPS_TLS_LD, R_NANOMIPS_TLS_LD },
+  { BFD_RELOC_NANOMIPS_TLS_LD_I32, R_NANOMIPS_TLS_LD_I32 },
+  { BFD_RELOC_NANOMIPS_TLS_DTPREL12, R_NANOMIPS_TLS_DTPREL12 },
+  { BFD_RELOC_NANOMIPS_TLS_DTPREL16, R_NANOMIPS_TLS_DTPREL16 },
+  { BFD_RELOC_NANOMIPS_TLS_DTPREL_I32, R_NANOMIPS_TLS_DTPREL_I32 },
   { BFD_RELOC_NANOMIPS_TLS_GOTTPREL, R_NANOMIPS_TLS_GOTTPREL },
-  { BFD_RELOC_NANOMIPS_TLS_TPREL_HI20, R_NANOMIPS_TLS_TPREL_HI20 },
-  { BFD_RELOC_NANOMIPS_TLS_TPREL_LO12, R_NANOMIPS_TLS_TPREL_LO12 },
-  { BFD_RELOC_NANOMIPS_TLS_DTPMOD32, R_NANOMIPS_TLS_DTPMOD32 },
-  { BFD_RELOC_NANOMIPS_TLS_DTPREL32, R_NANOMIPS_TLS_DTPREL32 },
-  { BFD_RELOC_NANOMIPS_TLS_DTPMOD64, R_NANOMIPS_TLS_DTPMOD64 },
-  { BFD_RELOC_NANOMIPS_TLS_DTPREL64, R_NANOMIPS_TLS_DTPREL64 },
-  { BFD_RELOC_NANOMIPS_TLS_TPREL32, R_NANOMIPS_TLS_TPREL32 },
-  { BFD_RELOC_NANOMIPS_TLS_TPREL64, R_NANOMIPS_TLS_TPREL64 },
+  { BFD_RELOC_NANOMIPS_TLS_GOTTPREL_PC_I32, R_NANOMIPS_TLS_GOTTPREL_PC_I32 },
+  { BFD_RELOC_NANOMIPS_TLS_TPREL12, R_NANOMIPS_TLS_TPREL12 },
+  { BFD_RELOC_NANOMIPS_TLS_TPREL16, R_NANOMIPS_TLS_TPREL16 },
+  { BFD_RELOC_NANOMIPS_TLS_TPREL_I32, R_NANOMIPS_TLS_TPREL_I32 },
+  { BFD_RELOC_NANOMIPS_TLS_DTPMOD, R_NANOMIPS_TLS_DTPMOD },
+  { BFD_RELOC_NANOMIPS_TLS_DTPREL, R_NANOMIPS_TLS_DTPREL },
+  { BFD_RELOC_NANOMIPS_TLS_TPREL, R_NANOMIPS_TLS_TPREL },
   };
 
 /* Given a BFD reloc type, return a howto structure.  */

@@ -1,3 +1,13 @@
+	.section		.tdata,"awT"
+	.align	2
+	.global	tlsvar
+	.hidden	tlsvar
+	.type	tlsvar,@object
+	.size	tlsvar,4
+tlsvar:
+	.word	1
+
+
 	.text
 	.align	3
 	.ent	test
@@ -42,4 +52,48 @@ test:
 	.reloc	1f, R_NANOMIPS_JALR16, end
 1:	jalr	$t9
 end:
+
+	addiu.w	$a0, $gp, %tlsgd(tlsvar)
+	addiu32	$a0, $gp, %tlsgd(tlsvar)
+	addiu.b32 $a0, $gp, %tlsgd(tlsvar)
+	addiu48 $a0, $gp, %tlsgd(tlsvar)
+	addiu.w	$a0, $gp, %tlsld(tlsvar)
+	addiu32	$a0, $gp, %tlsld(tlsvar)
+	addiu.b32 $a0, $gp, %tlsld(tlsvar)
+	addiu48 $a0, $gp, %tlsld(tlsvar)
+
+	lwc1	$f4, %tprel(tlsvar)($a1)
+	swc1	$f4, %tprel(tlsvar)($a1)
+	ldc1	$f4, %tprel(tlsvar)($a1)
+	sdc1	$f4, %tprel(tlsvar)($a1)
+	lb	$a0, %tprel(tlsvar)($a1)
+	lh	$a0, %tprel(tlsvar)($a1)
+	lw	$a0, %tprel(tlsvar)($a1)
+	lbu	$a0, %tprel(tlsvar)($a1)
+	lhu	$a0, %tprel(tlsvar)($a1)
+	lw	$a0, %tprel(tlsvar)($a1)
+	sb	$a0, %tprel(tlsvar)($a1)
+	sh	$a0, %tprel(tlsvar)($a1)
+	sw	$a0, %tprel(tlsvar)($a1)
+	addiu	$a0, $a1, %tprel(tlsvar)
+	addiu48 $a0, $a0, %tprel(tlsvar)
+	li48 	$a0, %tprel(tlsvar)
+	lwc1	$f4, %dtprel(tlsvar)($a1)
+	swc1	$f4, %dtprel(tlsvar)($a1)
+	ldc1	$f4, %dtprel(tlsvar)($a1)
+	sdc1	$f4, %dtprel(tlsvar)($a1)
+	lb	$a0, %dtprel(tlsvar)($a1)
+	lh	$a0, %dtprel(tlsvar)($a1)
+	lw	$a0, %dtprel(tlsvar)($a1)
+	lbu	$a0, %dtprel(tlsvar)($a1)
+	lhu	$a0, %dtprel(tlsvar)($a1)
+	lw	$a0, %dtprel(tlsvar)($a1)
+	sb	$a0, %dtprel(tlsvar)($a1)
+	sh	$a0, %dtprel(tlsvar)($a1)
+	sw	$a0, %dtprel(tlsvar)($a1)
+	addiu	$a0, $a1, %dtprel(tlsvar)
+	addiu48 $a0, $a0, %dtprel(tlsvar)
+	li48 	$a0, %dtprel(tlsvar)
+	lw	$a0, %gottprel(tlsvar)($gp)
+	lwpc	$a0, %gottprel_pc32(tlsvar)
 	.end	test

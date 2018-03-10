@@ -1054,13 +1054,22 @@ Provided for compatibility with MIPS.  Map to @code{%got_disp}.
 Low 32-bits of a 64-bit value.
 @item %hi32
 High 32-bits of a 64-bit value.
-@c @item %tlsgd
-@c @item %tlsldm
-@c @item %dtprel_hi
-@c @item %dtprel_lo
-@c @item %tprel_hi
-@c @item %tprel_lo
-@c @item %gottprel
+@item %tlsgd
+GP-relative displacement to global dynamic TLS slot, size depends on
+type of operation.
+@item %tlsld
+GP-relative displacement to local dynamic TLS slot, size depends on type
+of operation.
+@item %dtprel
+Unsigned offset to a thread-local dynamic variable from current thread
+pointer, size depends on type of operation.
+@item %tprel
+Unsigned offset to a thread-local static variable from current thread
+pointer, size depends on type of operation.
+@item %gottprel
+21-bit (scaled) GOT displacement to a TLS slot.
+@item %gottprel_pc32
+Full 32-bit signed GOT displacement to a TLS slot from next PC.
 @end table
 
 @include c-nanomips-macros.texi

@@ -18,20 +18,18 @@ fn:
 	.cprestore	0
 
 	# General Dynamic
-	lw	$t9,%call16(__tls_get_addr)($gp)
+	lw	$t9,%got_call(__tls_get_addr)($gp)
 	addiu	$a0,$gp,%tlsgd(tlsvar_gd)
-	jal	$t9
+	jalrc	$t9
 
 	# Local Dynamic
-	lw	$t9,%call16(__tls_get_addr)($gp)
-	addiu	$a0,$gp,%tlsldm(tlsvar_ld)
-	jal	$t9
+	lw	$t9,%got_call(__tls_get_addr)($gp)
+	addiu	$a0,$gp,%tlsld(tlsvar_ld)
+	jalrc	$t9
 
 	move	$t4,$t4		# Arbitrary instructions
 
-	lui	$t5,%dtprel_hi(tlsvar_ld)
-	addiu	$t5,$t5,%dtprel_lo(tlsvar_ld)
-	addu	$t5,$t5,$t4
+	addiu	$t5,$t4,%dtprel(tlsvar_ld)
 
 	# Initial Exec
 	.set	push
@@ -44,14 +42,12 @@ fn:
 	.set	push
 	rdhwr	$t4, $5
 	.set	pop
-	lui	$t5,%tprel_hi(tlsvar_le)
-	ori	$t5,$t5,%tprel_lo(tlsvar_le)
-	addu	$t5,$t5,$t4
+	addiu	$t5,$t4,%tprel(tlsvar_le)
 
 	move	$sp,$fp
 	lw	$fp,8($sp)
 	addiu	$sp,$sp,16
-	j	$ra
+	jrc	$ra
 	.end	fn
 
 	.section		.tbss,"awT",@nobits

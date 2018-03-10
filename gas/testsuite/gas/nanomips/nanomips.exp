@@ -669,8 +669,6 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "elf-consthilo" "" nanomips32r6
     run_dump_test_arch "expr1" "" nanomips32r6
 
-    run_list_test "tls-ill" "-m32"
-    run_dump_test "tls-relw"
     run_dump_test "jalr2"
 
     run_dump_test_arches "aent"	[arch_list_matching nanomipsr6]

@@ -2895,12 +2895,17 @@ nanomips_reloc_p (bfd_reloc_code_real_type reloc)
     case BFD_RELOC_NANOMIPS_I32:
     case BFD_RELOC_NANOMIPS_HI32:
     case BFD_RELOC_NANOMIPS_TLS_GD:
-    case BFD_RELOC_NANOMIPS_TLS_LDM:
-    case BFD_RELOC_NANOMIPS_TLS_DTPREL_HI20:
-    case BFD_RELOC_NANOMIPS_TLS_DTPREL_LO12:
+    case BFD_RELOC_NANOMIPS_TLS_GD_I32:
+    case BFD_RELOC_NANOMIPS_TLS_LD:
+    case BFD_RELOC_NANOMIPS_TLS_LD_I32:
+    case BFD_RELOC_NANOMIPS_TLS_DTPREL12:
+    case BFD_RELOC_NANOMIPS_TLS_DTPREL16:
+    case BFD_RELOC_NANOMIPS_TLS_DTPREL_I32:
+    case BFD_RELOC_NANOMIPS_TLS_TPREL12:
+    case BFD_RELOC_NANOMIPS_TLS_TPREL16:
+    case BFD_RELOC_NANOMIPS_TLS_TPREL_I32:
     case BFD_RELOC_NANOMIPS_TLS_GOTTPREL:
-    case BFD_RELOC_NANOMIPS_TLS_TPREL_HI20:
-    case BFD_RELOC_NANOMIPS_TLS_TPREL_LO12:
+    case BFD_RELOC_NANOMIPS_TLS_GOTTPREL_PC_I32:
     case BFD_RELOC_NANOMIPS_PC_I32:
     case BFD_RELOC_NANOMIPS_GOTPC_I32:
     case BFD_RELOC_NANOMIPS_GPREL_I32:
@@ -2922,7 +2927,12 @@ nanomips_48bit_reloc_p (bfd_reloc_code_real_type reloc)
 	  || reloc == BFD_RELOC_NANOMIPS_HI32
 	  || reloc == BFD_RELOC_NANOMIPS_PC_I32
 	  || reloc == BFD_RELOC_NANOMIPS_GPREL_I32
-	  || reloc == BFD_RELOC_NANOMIPS_GOTPC_I32);
+	  || reloc == BFD_RELOC_NANOMIPS_GOTPC_I32
+	  || reloc == BFD_RELOC_NANOMIPS_TLS_GD_I32
+	  || reloc == BFD_RELOC_NANOMIPS_TLS_LD_I32
+	  || reloc == BFD_RELOC_NANOMIPS_TLS_DTPREL_I32
+	  || reloc == BFD_RELOC_NANOMIPS_TLS_TPREL_I32
+	  || reloc == BFD_RELOC_NANOMIPS_TLS_GOTTPREL_PC_I32);
 }
 
 static inline bfd_boolean
@@ -2931,9 +2941,7 @@ hi_reloc_p (bfd_reloc_code_real_type reloc)
   return (reloc == BFD_RELOC_HI16_S
 	  || reloc == BFD_RELOC_NANOMIPS_HI20
 	  || reloc == BFD_RELOC_NANOMIPS_GOTPC_HI20
-	  || reloc == BFD_RELOC_NANOMIPS_GPREL_HI20
-	  || reloc == BFD_RELOC_NANOMIPS_TLS_DTPREL_HI20
-	  || reloc == BFD_RELOC_NANOMIPS_TLS_TPREL_HI20);
+	  || reloc == BFD_RELOC_NANOMIPS_GPREL_HI20);
 }
 
 static inline bfd_boolean
@@ -2955,7 +2963,9 @@ gprel16_reloc_p (bfd_reloc_code_real_type reloc)
 	  || reloc == BFD_RELOC_NANOMIPS_GPREL19_S2
 	  || reloc == BFD_RELOC_NANOMIPS_GPREL16_S2
 	  || reloc == BFD_RELOC_NANOMIPS_GPREL18_S3
-	  || reloc == BFD_RELOC_NANOMIPS_GPREL17_S1);
+	  || reloc == BFD_RELOC_NANOMIPS_GPREL17_S1
+	  || reloc == BFD_RELOC_NANOMIPS_TLS_GD
+	  || reloc == BFD_RELOC_NANOMIPS_TLS_LD);
 }
 
 static inline bfd_boolean
@@ -2972,7 +2982,8 @@ pcrel_reloc_p (bfd_reloc_code_real_type reloc)
 	  || reloc == BFD_RELOC_NANOMIPS_PCREL_HI20
 	  || reloc == BFD_RELOC_NANOMIPS_PC_I32
 	  || reloc == BFD_RELOC_NANOMIPS_GOTPC_HI20
-	  || reloc == BFD_RELOC_NANOMIPS_GOTPC_I32);
+	  || reloc == BFD_RELOC_NANOMIPS_GOTPC_I32
+	  || reloc == BFD_RELOC_NANOMIPS_TLS_GOTTPREL_PC_I32);
 }
 
 /* Return true if RELOC is a PC-relative relocation that does not have
@@ -3019,6 +3030,31 @@ linkrelax_reloc_p (bfd_reloc_code_real_type reloc)
     default:
       return FALSE;
     }
+}
+
+/* Return TRUE if R is an initial selected relocation that has multiple
+   size variants.  */
+
+static bfd_boolean
+flex_reloc_p (bfd_reloc_code_real_type r)
+{
+  return (r == BFD_RELOC_NANOMIPS_GPREL18
+	  || r == BFD_RELOC_NANOMIPS_TLS_LD
+	  || r == BFD_RELOC_NANOMIPS_TLS_GD
+	  || r == BFD_RELOC_NANOMIPS_TLS_TPREL12
+	  || r == BFD_RELOC_NANOMIPS_TLS_DTPREL12);
+}
+
+
+/* Return TRUE if R is GP-relative relocation that takes 32-bit
+   immediate displacement.  */
+
+static bfd_boolean
+gprel_i32_reloc_p (bfd_reloc_code_real_type r)
+{
+  return (r == BFD_RELOC_NANOMIPS_GPREL_I32
+	  || r == BFD_RELOC_NANOMIPS_TLS_LD_I32
+	  || r == BFD_RELOC_NANOMIPS_TLS_GD_I32);
 }
 
 /* Return the type of %lo() reloc needed by RELOC, given that
@@ -3483,34 +3519,7 @@ match_relocatable_int_operand (const struct nanomips_operand *operand_base)
   return FALSE;
 }
 
-/* Find the GP-relative relocation that fits this operand.  */
-static bfd_reloc_code_real_type
-nanomips_gprel_for_int_operand (const struct nanomips_operand *operand_base)
-{
-  size_t i;
-  bfd_reloc_code_real_type reloc = BFD_RELOC_NONE;
-  int opmask = nanomips_operand_mask (operand_base);
-  const bfd_reloc_code_real_type gp_relocs[] = {
-    BFD_RELOC_NANOMIPS_GPREL18,
-    BFD_RELOC_NANOMIPS_GPREL19_S2,
-    BFD_RELOC_NANOMIPS_GPREL18_S3,
-    BFD_RELOC_NANOMIPS_GPREL16_S2,
-    BFD_RELOC_NANOMIPS_GPREL17_S1,
-    BFD_RELOC_NANOMIPS_GPREL7_S2
-  };
-
-  for (i = 0; i < ARRAY_SIZE (gp_relocs); i++)
-    {
-      reloc_howto_type *howto;
-      howto = bfd_reloc_type_lookup (stdoutput, gp_relocs[i]);
-
-      if ((howto->dst_mask & opmask) == howto->dst_mask
-	  && howto->bitsize == operand_base->size)
-	reloc = gp_relocs[i];
-    }
-
-  return reloc;
-}
+/* Negative 12-bit constant matcher.  */
 
 static bfd_boolean
 match_negative_int_operand (struct nanomips_arg_info *arg,
@@ -3527,6 +3536,68 @@ match_negative_int_operand (struct nanomips_arg_info *arg,
   insn_insert_operand (arg->insn, operand_base, sval);
   return TRUE;
 }
+
+/* Check if OPERAND_BASE matches a suitable variant of relocation RTYPE.  */
+
+static bfd_boolean
+match_flex_reloc_for_int_operand (const struct nanomips_operand *operand_base,
+				  bfd_reloc_code_real_type rtype)
+{
+  size_t i;
+  int opmask = nanomips_operand_mask (operand_base);
+  const bfd_reloc_code_real_type gp_relocs[] = {
+    BFD_RELOC_NANOMIPS_GPREL18,
+    BFD_RELOC_NANOMIPS_GPREL19_S2,
+    BFD_RELOC_NANOMIPS_GPREL18_S3,
+    BFD_RELOC_NANOMIPS_GPREL16_S2,
+    BFD_RELOC_NANOMIPS_GPREL17_S1,
+    BFD_RELOC_NANOMIPS_GPREL7_S2
+  };
+  const bfd_reloc_code_real_type tp_relocs[] = {
+    BFD_RELOC_NANOMIPS_TLS_TPREL12,
+    BFD_RELOC_NANOMIPS_TLS_TPREL16
+  };
+  const bfd_reloc_code_real_type dtp_relocs[] = {
+    BFD_RELOC_NANOMIPS_TLS_DTPREL12,
+    BFD_RELOC_NANOMIPS_TLS_DTPREL16
+  };
+  size_t rcount;
+  const bfd_reloc_code_real_type *rlist;
+
+  switch (rtype)
+    {
+      case BFD_RELOC_NANOMIPS_GPREL18:
+	rlist = gp_relocs;
+	rcount = ARRAY_SIZE (gp_relocs);
+	break;
+      case BFD_RELOC_NANOMIPS_TLS_TPREL12:
+	rlist = tp_relocs;
+	rcount = ARRAY_SIZE (tp_relocs);
+	break;
+      case BFD_RELOC_NANOMIPS_TLS_DTPREL12:
+	rlist = dtp_relocs;
+	rcount = ARRAY_SIZE (dtp_relocs);
+	break;
+      default:
+	rlist = &rtype;
+	rcount = 1;
+	break;
+    }
+
+  for (i = 0; i < rcount; i++)
+    {
+      reloc_howto_type *howto;
+      howto = bfd_reloc_type_lookup (stdoutput, rlist[i]);
+
+      if ((howto->dst_mask & opmask) == howto->dst_mask
+	  && howto->bitsize == operand_base->size)
+	return TRUE;
+    }
+
+  return FALSE;
+}
+
+/* Generic INT matcher.  */
 
 static bfd_boolean
 match_int_operand (struct nanomips_arg_info *arg,
@@ -3553,12 +3624,9 @@ match_int_operand (struct nanomips_arg_info *arg,
 	/* Relocation operators were used.  Check if relocation
 	   destination mask matches operand bits.  */
 	{
-	  if (offset_reloc[0] == BFD_RELOC_NANOMIPS_GPREL18)
-	    {
-	      bfd_reloc_code_real_type r;
-	      r = nanomips_gprel_for_int_operand (operand_base);
-	      return (r != BFD_RELOC_NONE);
-	    }
+	  if (flex_reloc_p (offset_reloc[0]))
+	    return match_flex_reloc_for_int_operand (operand_base,
+						     offset_reloc[0]);
 	  else
 	    {
 	      int opmask;
@@ -3666,7 +3734,8 @@ match_int_word (struct nanomips_arg_info *arg,
   if (match_expression (arg, &offset_expr, offset_reloc))
     {
       if (offset_reloc[0] != BFD_RELOC_UNUSED
-	  && !nanomips_48bit_reloc_p (offset_reloc[0]))
+	  && !nanomips_48bit_reloc_p (offset_reloc[0])
+	  && !flex_reloc_p (offset_reloc[0]))
 	/* Any other relocation operators not allowed in this position.  */
 	return FALSE;
 
@@ -3752,7 +3821,7 @@ match_gprel_word (struct nanomips_arg_info *arg,
   if (match_expression (arg, &offset_expr, offset_reloc))
     {
       if (offset_reloc[0] != BFD_RELOC_UNUSED
-	  && offset_reloc[0] != BFD_RELOC_NANOMIPS_GPREL_I32
+	  && !gprel_i32_reloc_p (offset_reloc[0])
 	  && !gprel16_reloc_p (offset_reloc[0]))
 	/* Any other relocation operators not allowed in this position.  */
 	return FALSE;
@@ -3969,9 +4038,7 @@ match_hi20_int_operand (struct nanomips_arg_info *arg,
       return arg->lax_match;
     }
 
-  if (offset_expr.X_op == O_constant
-      && offset_reloc[0] != BFD_RELOC_NANOMIPS_TLS_TPREL_HI20
-      && offset_reloc[0] != BFD_RELOC_NANOMIPS_TLS_DTPREL_HI20)
+  if (offset_expr.X_op == O_constant)
     {
       offset_expr.X_op = O_absent;
       /* Re-shuffle and insert lower 19-bits, exluding sign.  */
@@ -5564,6 +5631,38 @@ gprel_for_nanomips_insn (const struct nanomips_opcode *insn)
   return BFD_RELOC_UNUSED;
 }
 
+static bfd_reloc_code_real_type
+tlsrel_for_nanomips_insn (const struct nanomips_opcode *insn,
+			  bfd_reloc_code_real_type rtype)
+{
+  unsigned int i;
+  static const struct {
+    bfd_reloc_code_real_type key;
+    bfd_reloc_code_real_type value;
+  } reloc_map[] = {
+    { BFD_RELOC_NANOMIPS_TLS_GD, BFD_RELOC_NANOMIPS_TLS_GD_I32 },
+    { BFD_RELOC_NANOMIPS_TLS_LD, BFD_RELOC_NANOMIPS_TLS_LD_I32 },
+    { BFD_RELOC_NANOMIPS_TLS_TPREL12, BFD_RELOC_NANOMIPS_TLS_TPREL_I32 },
+    { BFD_RELOC_NANOMIPS_TLS_DTPREL12, BFD_RELOC_NANOMIPS_TLS_DTPREL_I32 }
+  };
+
+  if (insn_length (insn) == 6)
+    for (i = 0; i < ARRAY_SIZE (reloc_map); i++)
+      if (rtype == reloc_map[i].key)
+	return reloc_map[i].value;
+
+  if (strncmp (insn->name, "addiu", 5) == 0
+      || strncmp (insn->name, "li", 2) == 0)
+    {
+      if (rtype == BFD_RELOC_NANOMIPS_TLS_TPREL12)
+	  return BFD_RELOC_NANOMIPS_TLS_TPREL16;
+      if (rtype == BFD_RELOC_NANOMIPS_TLS_DTPREL12)
+	return BFD_RELOC_NANOMIPS_TLS_DTPREL16;
+    }
+
+  return rtype;
+}
+
 /* Like match_insn, for nanoMIPS.  */
 static bfd_boolean
 match_nanomips_insn (struct nanomips_cl_insn *insn,
@@ -5807,6 +5906,8 @@ match_nanomips_insn (struct nanomips_cl_insn *insn,
 
       if (*offset_reloc == BFD_RELOC_NANOMIPS_GPREL18)
 	*offset_reloc = gprel_for_nanomips_insn (insn->insn_mo);
+      else if (flex_reloc_p (*offset_reloc))
+	*offset_reloc = tlsrel_for_nanomips_insn (insn->insn_mo, *offset_reloc);
     }
 }
 
@@ -9050,13 +9151,6 @@ static const struct percent_op_match nanomips_percent_op[] = {
   {"%gprel_hi", BFD_RELOC_NANOMIPS_GPREL_HI20},
   {"%gprel_lo", BFD_RELOC_NANOMIPS_GPREL_LO12},
   {"%gprel32", BFD_RELOC_NANOMIPS_GPREL_I32},
-  {"%tlsgd", BFD_RELOC_NANOMIPS_TLS_GD},
-  {"%tlsldm", BFD_RELOC_NANOMIPS_TLS_LDM},
-  {"%dtprel_hi", BFD_RELOC_NANOMIPS_TLS_DTPREL_HI20},
-  {"%dtprel_lo", BFD_RELOC_NANOMIPS_TLS_DTPREL_LO12},
-  {"%tprel_hi", BFD_RELOC_NANOMIPS_TLS_TPREL_HI20},
-  {"%tprel_lo", BFD_RELOC_NANOMIPS_TLS_TPREL_LO12},
-  {"%gottprel", BFD_RELOC_NANOMIPS_TLS_GOTTPREL},
   {"%hi", BFD_RELOC_NANOMIPS_HI20},
   {"%lo32", BFD_RELOC_NANOMIPS_I32},
   {"%hi32", BFD_RELOC_NANOMIPS_HI32},
@@ -9066,6 +9160,12 @@ static const struct percent_op_match nanomips_percent_op[] = {
   {"%got_pcrel_lo", BFD_RELOC_NANOMIPS_GOT_LO12},
   {"%got_lo", BFD_RELOC_NANOMIPS_GOT_LO12},
   {"%got_pcrel32", BFD_RELOC_NANOMIPS_GOTPC_I32},
+  {"%tlsgd", BFD_RELOC_NANOMIPS_TLS_GD},
+  {"%tlsld", BFD_RELOC_NANOMIPS_TLS_LD},
+  {"%dtprel", BFD_RELOC_NANOMIPS_TLS_DTPREL12},
+  {"%tprel", BFD_RELOC_NANOMIPS_TLS_TPREL12},
+  {"%gottprel", BFD_RELOC_NANOMIPS_TLS_GOTTPREL},
+  {"%gottprel_pc32", BFD_RELOC_NANOMIPS_TLS_GOTTPREL_PC_I32},
   /* These are currently not supported for nanoMIPS.  */
   {"%call_hi", BFD_RELOC_UNUSED},
   {"%call_lo", BFD_RELOC_UNUSED}
@@ -9584,6 +9684,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       case BFD_RELOC_NANOMIPS_GOTPC_HI20:
       case BFD_RELOC_NANOMIPS_GOTPC_I32:
       case BFD_RELOC_NANOMIPS_GOT_LO12:
+      case BFD_RELOC_NANOMIPS_TLS_GOTTPREL_PC_I32:
 	break;
 
       case BFD_RELOC_32:
@@ -9627,7 +9728,6 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 	      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_NEG
 	      || fixP->fx_r_type == BFD_RELOC_VTABLE_INHERIT
 	      || fixP->fx_r_type == BFD_RELOC_VTABLE_ENTRY
-	      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_TLS_DTPREL64
 	      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_UNSIGNED_8
 	      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_SIGNED_8
 	      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_ASHIFTR_1
@@ -9650,17 +9750,20 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 
   switch (fixP->fx_r_type)
     {
-    case BFD_RELOC_NANOMIPS_TLS_DTPREL32:
-    case BFD_RELOC_NANOMIPS_TLS_DTPREL64:
-    case BFD_RELOC_NANOMIPS_TLS_TPREL32:
-    case BFD_RELOC_NANOMIPS_TLS_TPREL64:
+    case BFD_RELOC_NANOMIPS_TLS_DTPREL:
+    case BFD_RELOC_NANOMIPS_TLS_TPREL:
     case BFD_RELOC_NANOMIPS_TLS_GD:
-    case BFD_RELOC_NANOMIPS_TLS_LDM:
-    case BFD_RELOC_NANOMIPS_TLS_DTPREL_HI20:
-    case BFD_RELOC_NANOMIPS_TLS_DTPREL_LO12:
+    case BFD_RELOC_NANOMIPS_TLS_LD:
+    case BFD_RELOC_NANOMIPS_TLS_GD_I32:
+    case BFD_RELOC_NANOMIPS_TLS_LD_I32:
+    case BFD_RELOC_NANOMIPS_TLS_DTPREL12:
+    case BFD_RELOC_NANOMIPS_TLS_DTPREL16:
+    case BFD_RELOC_NANOMIPS_TLS_DTPREL_I32:
+    case BFD_RELOC_NANOMIPS_TLS_TPREL12:
+    case BFD_RELOC_NANOMIPS_TLS_TPREL16:
+    case BFD_RELOC_NANOMIPS_TLS_TPREL_I32:
     case BFD_RELOC_NANOMIPS_TLS_GOTTPREL:
-    case BFD_RELOC_NANOMIPS_TLS_TPREL_HI20:
-    case BFD_RELOC_NANOMIPS_TLS_TPREL_LO12:
+    case BFD_RELOC_NANOMIPS_TLS_GOTTPREL_PC_I32:
       if (!fixP->fx_addsy)
 	{
 	  as_bad_where (fixP->fx_file, fixP->fx_line,
@@ -10615,7 +10718,7 @@ s_tls_rel_directive (const size_t bytes, const char *dirstr,
 static void
 s_dtprelword (int ignore ATTRIBUTE_UNUSED)
 {
-  s_tls_rel_directive (4, ".dtprelword", BFD_RELOC_NANOMIPS_TLS_DTPREL32);
+  s_tls_rel_directive (4, ".dtprelword", BFD_RELOC_NANOMIPS_TLS_DTPREL);
 }
 
 /* Handle .dtpreldword.  */
@@ -10623,7 +10726,7 @@ s_dtprelword (int ignore ATTRIBUTE_UNUSED)
 static void
 s_dtpreldword (int ignore ATTRIBUTE_UNUSED)
 {
-  s_tls_rel_directive (8, ".dtpreldword", BFD_RELOC_NANOMIPS_TLS_DTPREL64);
+  s_tls_rel_directive (8, ".dtpreldword", BFD_RELOC_NANOMIPS_TLS_DTPREL);
 }
 
 /* Handle .tprelword.  */
@@ -10631,7 +10734,7 @@ s_dtpreldword (int ignore ATTRIBUTE_UNUSED)
 static void
 s_tprelword (int ignore ATTRIBUTE_UNUSED)
 {
-  s_tls_rel_directive (4, ".tprelword", BFD_RELOC_NANOMIPS_TLS_TPREL32);
+  s_tls_rel_directive (4, ".tprelword", BFD_RELOC_NANOMIPS_TLS_TPREL);
 }
 
 /* Handle .tpreldword.  */
@@ -10639,7 +10742,7 @@ s_tprelword (int ignore ATTRIBUTE_UNUSED)
 static void
 s_tpreldword (int ignore ATTRIBUTE_UNUSED)
 {
-  s_tls_rel_directive (8, ".tpreldword", BFD_RELOC_NANOMIPS_TLS_TPREL64);
+  s_tls_rel_directive (8, ".tpreldword", BFD_RELOC_NANOMIPS_TLS_TPREL);
 }
 
 /* Handle the .ehword pseudo-op.  This is used when generating unwinding
