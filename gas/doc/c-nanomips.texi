@@ -1020,8 +1020,6 @@ GP-relative displacement, size depends on type of operation and data layout.
 Signed 20-bit high part of a GP-relative displacement.
 @item %gprel_lo
 Unsigned 12-bit low part of a GP-relative displacement.
-@item %gprel32
-Full 32-bit signed GP-relative displacement.
 @item %got_disp
 21-bit (scaled) GOT displacement for address calculation or data access.
 @item %got_call
@@ -1042,8 +1040,6 @@ Marks the second level of indirection for GOT-relative data access
 Signed 20-bit high part of PC-relative displacement.
 @item %pcrel_lo
 Unsigned 12-bit low part of PC-relative displacement.  Map to @code{%lo}.
-@item %pcrel32
-Signed 32-bit PC-relative displacement.
 @item %gp_rel
 Provided for compatibility with MIPS.  Map to @code{%gprel}.
 @item %call16
@@ -1246,7 +1242,7 @@ memory model.  For address calculation with full nanoMIPS ISA, use the
 48-bit instruction
 
 @example
-    addiu $a0, %gprel32(foo), $gp
+    addiu.b32 $a0, %gprel(foo), $gp
 @end example
 
 With only 32-bit instructions or when restricted to the nanoMIPS

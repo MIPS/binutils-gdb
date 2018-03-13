@@ -1,14 +1,14 @@
 	.text
 test8:
-	addiu[r1.sp]32 $a0, $sp, 8
-	addiu[r2]32 $a0, $a1, 4
-	addiu[rs5]48 $t0, $t0, 3
-	addiu[gp.b]16 $a0, $gp, %gprel(test8)
-	addiu[gp.w]16 $a0, $gp, %gprel(test8)
-	addiu[neg]48 $a0, $a1, -4
-	addiu[32]48 $a0, $a1, 64
-	addiu[48]32 $a0, $a0, 12
-	addiu[gp48]16 $a0, $gp, %gprel32(test8)
+	addiu[r1.sp]32 $a0,$sp,8
+	addiu[r2]32 $a0,$a1,4
+	addiu[rs5]48 $t0,$t0,3
+	addiu[gp.b]16 $a0,$gp,%gprel(test8)
+	addiu[gp.w]16 $a0,$gp,%gprel(test8)
+	addiu[neg]48 $a0,$a1,-4
+	addiu[32]48 $a0,$a1,64
+	addiu[48]32 $a0,$a0,12
+	addiu[gp48]16 $a0,$gp,%gprel(test8)
 	
 	lw[16]32 $a0,8($a1)
 	lw[4x4]32 $a1,12($a2)

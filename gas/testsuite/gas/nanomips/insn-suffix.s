@@ -8,7 +8,7 @@ test:
 	addiu[neg] $a0, $a1, -4
 	addiu[32] $a0, $a1, 64
 	addiu[48] $a0, $a0, 12
-	addiu[gp48] $a0, $gp, %gprel32(test)
+	addiu[gp48] $a0, $gp, %gprel(test)
 
 	addiu[r1.sp]16 $a0, $sp, 8
 	addiu[r2]16 $a0, $a1, 4
@@ -18,7 +18,7 @@ test:
 	addiu[neg]32 $a0, $a1, -4
 	addiu[32]32 $a0, $a1, 64
 	addiu[48]48 $a0, $a0, 12
-	addiu[gp48]48 $a0, $gp, %gprel32(test)
+	addiu[gp48]48 $a0, $gp, %gprel(test)
 	
 	lw[16]	$a0,8($a1)
 	lw[4x4] $a1,12($a2)

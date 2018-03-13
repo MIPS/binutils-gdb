@@ -7,7 +7,7 @@
 .*.s:8: Error: unrecognized opcode `addiu\[neg\]48 \$a0,\$a1,-4'
 .*.s:9: Error: unrecognized opcode `addiu\[32\]48 \$a0,\$a1,64'
 .*.s:10: Error: unrecognized opcode `addiu\[48\]32 \$a0,\$a0,12'
-.*.s:11: Error: unrecognized opcode `addiu\[gp48\]16 \$a0,\$gp,%gprel32\(test8\)'
+.*.s:11: Error: unrecognized opcode `addiu\[gp48\]16 \$a0,\$gp,%gprel\(test8\)'
 .*.s:13: Error: unrecognized opcode `lw\[16\]32 \$a0,8\(\$a1\)'
 .*.s:14: Error: unrecognized opcode `lw\[4x4\]32 \$a1,12\(\$a2\)'
 .*.s:15: Error: unrecognized opcode `lw\[gp16\]48 \$a3,24\(\$gp\)'

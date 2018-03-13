@@ -2413,8 +2413,8 @@ lw rd+1,%lo(label+4)($at)
 
 @tab
 @verbatim
-lwpc rd,%pcrel32(label)
-lwpc rd+1,%pcrel32(label+4)
+lwpc rd,label
+lwpc rd+1,label+4
 @end verbatim
 
 @tab
@@ -2802,7 +2802,7 @@ PIC
 
 @tab
 @verbatim
-lwpc $at,%pcrel32(label)
+lwpc $at,label
 lw rd,0($at)
 @end verbatim
 
