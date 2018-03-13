@@ -1269,8 +1269,8 @@ Disassembly of section .text:
 [0-9a-f]+ <[^>]+> 2041 01c0 	rdhwr	t4,hwr_synci_step
 [0-9a-f]+ <[^>]+> 2042 01c0 	rdhwr	t4,hwr_cc
 [0-9a-f]+ <[^>]+> 2043 01c0 	rdhwr	t4,hwr_ccres
-[0-9a-f]+ <[^>]+> 2044 01c0 	rdhwr	t4,\$4
-[0-9a-f]+ <[^>]+> 2045 01c0 	rdhwr	t4,\$5
+[0-9a-f]+ <[^>]+> 2044 01c0 	rdhwr	t4,hwr_perfcnt
+[0-9a-f]+ <[^>]+> 2045 01c0 	rdhwr	t4,hwr_xnp
 [0-9a-f]+ <[^>]+> 2046 01c0 	rdhwr	t4,\$6
 [0-9a-f]+ <[^>]+> 2047 01c0 	rdhwr	t4,\$7
 [0-9a-f]+ <[^>]+> 2048 01c0 	rdhwr	t4,\$8

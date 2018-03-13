@@ -12,8 +12,8 @@ Disassembly of section \.text:
    4:	2001 01c0 	rdhwr	\$0,hwr_synci_step
    8:	2002 01c0 	rdhwr	\$0,hwr_cc
    c:	2003 01c0 	rdhwr	\$0,hwr_ccres
-  10:	2004 01c0 	rdhwr	\$0,\$4
-  14:	2005 01c0 	rdhwr	\$0,\$5
+  10:	2004 01c0 	rdhwr	\$0,hwr_perfcnt
+  14:	2005 01c0 	rdhwr	\$0,hwr_xnp
   18:	2006 01c0 	rdhwr	\$0,\$6
   1c:	2007 01c0 	rdhwr	\$0,\$7
   20:	2008 01c0 	rdhwr	\$0,\$8
@@ -37,7 +37,23 @@ Disassembly of section \.text:
   68:	201a 01c0 	rdhwr	\$0,\$26
   6c:	201b 01c0 	rdhwr	\$0,\$27
   70:	201c 01c0 	rdhwr	\$0,\$28
-  74:	201d 01c0 	rdhwr	\$0,\$29
+  74:	201d 01c0 	rdhwr	\$0,hwr_userlocal
   78:	201e 01c0 	rdhwr	\$0,\$30
   7c:	201f 01c0 	rdhwr	\$0,\$31
+  80:	2004 01c0 	rdhwr	\$0,hwr_perfcnt
+  84:	2004 09c0 	rdhwr	\$0,hwr_perfcnt,1
+  88:	2004 11c0 	rdhwr	\$0,hwr_perfcnt,2
+  8c:	2004 19c0 	rdhwr	\$0,hwr_perfcnt,3
+  90:	2004 21c0 	rdhwr	\$0,hwr_perfcnt,4
+  94:	2004 29c0 	rdhwr	\$0,hwr_perfcnt,5
+  98:	2004 31c0 	rdhwr	\$0,hwr_perfcnt,6
+  9c:	2004 39c0 	rdhwr	\$0,hwr_perfcnt,7
+  a0:	2004 41c0 	rdhwr	\$0,hwr_perfcnt,8
+  a4:	2004 49c0 	rdhwr	\$0,hwr_perfcnt,9
+  a8:	2004 51c0 	rdhwr	\$0,hwr_perfcnt,10
+  ac:	2004 59c0 	rdhwr	\$0,hwr_perfcnt,11
+  b0:	2004 61c0 	rdhwr	\$0,hwr_perfcnt,12
+  b4:	2004 69c0 	rdhwr	\$0,hwr_perfcnt,13
+  b8:	2004 71c0 	rdhwr	\$0,hwr_perfcnt,14
+  bc:	2004 79c0 	rdhwr	\$0,hwr_perfcnt,15
 	\.\.\.

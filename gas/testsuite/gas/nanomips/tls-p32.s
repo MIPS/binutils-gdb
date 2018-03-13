@@ -33,14 +33,14 @@ fn:
 
 	# Initial Exec
 	.set	push
-	rdhwr	$t4, $5
+	rdhwr	$t4,$29
 	.set	pop
 	lw	$t5,%gottprel(tlsvar_ie)($gp)
 	addu	$t5,$t5,$t4
 
 	# Local Exec
 	.set	push
-	rdhwr	$t4, $5
+	rdhwr	$t4,$29
 	.set	pop
 	addiu	$t5,$t4,%tprel(tlsvar_le)
 

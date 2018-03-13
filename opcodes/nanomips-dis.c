@@ -97,10 +97,11 @@ static const char * const nanomips_hwr_names_numeric[32] = {
 
 static const char * const nanomips_hwr_names_3264r6[32] = {
   "hwr_cpunum",   "hwr_synci_step", "hwr_cc",     "hwr_ccres",
-  "$4",          "$5",            "$6",           "$7",
+  "hwr_perfcnt",  "hwr_xnp", 		"$6",           "$7",
   "$8",   "$9",   "$10",  "$11",  "$12",  "$13",  "$14",  "$15",
   "$16",  "$17",  "$18",  "$19",  "$20",  "$21",  "$22",  "$23",
-  "$24",  "$25",  "$26",  "$27",  "$28",  "$29",  "$30",  "$31"
+  "$24",  "$25",  "$26",  "$27",  "$28",  "hwr_userlocal",
+  "$30",  "$31"
 };
 
 static const char * const msa_control_names[32] = {

@@ -866,8 +866,8 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "mt-ase-dis" "-mmt" [arch_list_matching nanomipsr6]
     run_list_test_arches "nanomips-error" "-mlegacyregs" [arch_list_matching xnms]
 
-    run_dump_test_arches "tls-p32"  [arch_list_matching nanomips]
-    run_dump_test_arches "tls-relw" [arch_list_matching nanomips]
+    run_dump_test_arches "tls-p32"  [arch_list_matching xnms]
+    run_dump_test_arches "tls-relw" [arch_list_matching xnms]
 
     run_dump_test_arch "expr-const" "-EB" nanomips32r6
     run_dump_test_arch "expr-sym" "-EB" nanomips32r6

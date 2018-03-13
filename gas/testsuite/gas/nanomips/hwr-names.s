@@ -40,7 +40,6 @@ text_label:
 	rdhwr	$0, $30
 	rdhwr	$0, $31
 
-	.ifdef r6
 	rdhwr	$0, $4, 0
 	rdhwr	$0, $4, 1
 	rdhwr	$0, $4, 2
@@ -49,7 +48,14 @@ text_label:
 	rdhwr	$0, $4, 5
 	rdhwr	$0, $4, 6
 	rdhwr	$0, $4, 7
-	.endif
+	rdhwr	$0, $4, 8
+	rdhwr	$0, $4, 9
+	rdhwr	$0, $4, 10
+	rdhwr	$0, $4, 11
+	rdhwr	$0, $4, 12
+	rdhwr	$0, $4, 13
+	rdhwr	$0, $4, 14
+	rdhwr	$0, $4, 15
 
 # Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
       .space  8
