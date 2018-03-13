@@ -155,19 +155,11 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_NANOMIPS_PC_I32	\*ABS\*\+0x2710
 [0-9a-f]+ <[^>]+> 606f 0000 0000 	swpc	t5,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_PC_I32	\*ABS\*\+0x2710
-[0-9a-f]+ <[^>]+> 60bb 0000 0000 	ldpc	a1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_NANOMIPS_PC_I32	\*ABS\*\+0x2710
-[0-9a-f]+ <[^>]+> 611f 0000 0000 	sdpc	a4,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_NANOMIPS_PC_I32	\*ABS\*\+0x2710
 [0-9a-f]+ <[^>]+> 6063 0000 0000 	addiupc	t5,6
 			[0-9a-f]+: R_NANOMIPS_PC_I32	test
 [0-9a-f]+ <[^>]+> 606b 0000 0000 	lwpc	t5,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_PC_I32	test
 [0-9a-f]+ <[^>]+> 606f 0000 0000 	swpc	t5,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_NANOMIPS_PC_I32	test
-[0-9a-f]+ <[^>]+> 60bb 0000 0000 	ldpc	a1,[0-9a-f]+ <[^>]+>
-			[0-9a-f]+: R_NANOMIPS_PC_I32	test
-[0-9a-f]+ <[^>]+> 611f 0000 0000 	sdpc	a4,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_PC_I32	test
 [0-9a-f]+ <[^>]+> a445 2104 	ualh	t4,4\(a1\)
 [0-9a-f]+ <[^>]+> a445 2904 	uash	t4,4\(a1\)
@@ -179,14 +171,6 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> a445 7d04 	uaswm	t4,4\(a1\),7
 [0-9a-f]+ <[^>]+> a445 0404 	lwm	t4,4\(a1\),8
 [0-9a-f]+ <[^>]+> a445 7c04 	swm	t4,4\(a1\),7
-[0-9a-f]+ <[^>]+> a445 4704 	ualdm	t4,4\(a1\),4
-[0-9a-f]+ <[^>]+> a445 6f04 	uasdm	t4,4\(a1\),6
-[0-9a-f]+ <[^>]+> a445 1704 	ualdm	t4,4\(a1\),1
-[0-9a-f]+ <[^>]+> a445 1f04 	uasdm	t4,4\(a1\),1
-[0-9a-f]+ <[^>]+> a445 0704 	ualdm	t4,4\(a1\),8
-[0-9a-f]+ <[^>]+> a445 7f04 	uasdm	t4,4\(a1\),7
-[0-9a-f]+ <[^>]+> a445 0604 	ldm	t4,4\(a1\),8
-[0-9a-f]+ <[^>]+> a445 7e04 	sdm	t4,4\(a1\),7
 [0-9a-f]+ <[^>]+> 8043 d7c5 	rotx	t4,t5,5,30,1
 [0-9a-f]+ <[^>]+> 8043 d01f 	rotx	t4,t5,31,0,0
 [0-9a-f]+ <[^>]+> 8043 d01f 	rotx	t4,t5,31,0,0
@@ -245,7 +229,6 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 3c78      	mul	a7,a7,s0
 [0-9a-f]+ <[^>]+> 3e5d      	mul	s2,s2,s5
 [0-9a-f]+ <[^>]+> 3ee8      	mul	s7,s7,a4
-
 [0-9a-f]+ <[^>]+> dbef      	beqc	a2,a3,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_PC4_S1	.L11
 [0-9a-f]+ <[^>]+> 88c6 0000 	beqc	a2,a2,[0-9a-f]+ <[^>]+>
@@ -264,4 +247,5 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> bb00      	bnezc	a2,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_PC7_S1	.L21
 [0-9a-f]+ <[^>]+> 8000 c000 	nop
+[0-9a-f]+ <[^>]+> 2001 f37f 	eretnc
 #pass

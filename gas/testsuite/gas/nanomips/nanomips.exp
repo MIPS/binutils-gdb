@@ -838,6 +838,7 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "nanomips-relax" "" nanomips32
     run_list_test "nanomips-relax" "-EL -al" "Test nanoMIPS assembly listing in little endian mode"
     run_dump_test_arch "nanomips-relax32" "" nanomips32
+
     run_dump_test_arch "save" "" nanomips32
     run_list_test_arch "save-error" "" nanomips32
     run_list_test_arch "save-error" "" nanomips32s
@@ -848,6 +849,7 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "nanomips-exc" "" nanomips32
     run_dump_test_arch "nanomips-exc32" "--defsym insn32_broken=" nanomips32
     run_dump_test_arch "nanomips-exc-noalias" "" nanomips32
+    run_dump_test_arch "nanomips-exc64" "" nanomips64
 
     run_dump_test_arches "addu" "-mlegacyregs" [arch_list_matching nanomips32s]
     run_dump_test_opts "la" \

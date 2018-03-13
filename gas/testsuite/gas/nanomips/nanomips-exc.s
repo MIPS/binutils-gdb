@@ -174,13 +174,9 @@ test:
 	.ifndef insn32
 	lwpc $r3, 10000
 	swpc $r3, 10000
-	ldpc $r5, 10000
-	sdpc $r8, 10000
 	lapc48 $r3, test
 	lwpc $r3, test
 	swpc $r3, test
-	ldpc $r5, test
-	sdpc $r8, test
 	.endif
 
 	ualh	$r2, 4($r5)
@@ -194,15 +190,6 @@ test:
 	
 	lwm	$r2, 4($r5),8
 	swm	$r2, 4($r5),7
-
-	ualdm	$r2, 4($r5),4
-	uasdm	$r2, 4($r5),6
-	uald	$r2, 4($r5)
-	uasd	$r2, 4($r5)
-	ualdm	$r2, 4($r5),8
-	uasdm	$r2, 4($r5),7
-	ldm	$r2, 4($r5),8
-	sdm	$r2, 4($r5),7
 
 	rotx    $r2, $r3, 5, 30, 1
 	rotx    $r2, $r3, 31, 0
@@ -288,6 +275,7 @@ test:
 	bnec 	$r6, $r0, 2f
 	nop32
 2:
+	eretnc
 	.end	test
 	.align	2
 	.space	8

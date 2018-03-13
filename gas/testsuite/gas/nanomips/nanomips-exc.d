@@ -155,19 +155,11 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_NANOMIPS_PC_I32	\*ABS\*\+0x2710
 [0-9a-f]+ <[^>]+> 606f 0000 0000 	swpc	t5,00002710 <\*ABS\*\+0x2710>
 			[0-9a-f]+: R_NANOMIPS_PC_I32	\*ABS\*\+0x2710
-[0-9a-f]+ <[^>]+> 60bb 0000 0000 	ldpc	a1,00002710 <\*ABS\*\+0x2710>
-			[0-9a-f]+: R_NANOMIPS_PC_I32	\*ABS\*\+0x2710
-[0-9a-f]+ <[^>]+> 611f 0000 0000 	sdpc	a4,00002710 <\*ABS\*\+0x2710>
-			[0-9a-f]+: R_NANOMIPS_PC_I32	\*ABS\*\+0x2710
 [0-9a-f]+ <[^>]+> 6063 0000 0000 	lapc	t5,00000000 <test>
 			[0-9a-f]+: R_NANOMIPS_PC_I32	test
 [0-9a-f]+ <[^>]+> 606b 0000 0000 	lwpc	t5,00000000 <test>
 			[0-9a-f]+: R_NANOMIPS_PC_I32	test
 [0-9a-f]+ <[^>]+> 606f 0000 0000 	swpc	t5,00000000 <test>
-			[0-9a-f]+: R_NANOMIPS_PC_I32	test
-[0-9a-f]+ <[^>]+> 60bb 0000 0000 	ldpc	a1,00000000 <test>
-			[0-9a-f]+: R_NANOMIPS_PC_I32	test
-[0-9a-f]+ <[^>]+> 611f 0000 0000 	sdpc	a4,00000000 <test>
 			[0-9a-f]+: R_NANOMIPS_PC_I32	test
 [0-9a-f]+ <[^>]+> a445 2104 	ualh	t4,4\(a1\)
 [0-9a-f]+ <[^>]+> a445 2904 	uash	t4,4\(a1\)
@@ -179,14 +171,6 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> a445 7d04 	uaswm	t4,4\(a1\),7
 [0-9a-f]+ <[^>]+> a445 0404 	lwm	t4,4\(a1\),8
 [0-9a-f]+ <[^>]+> a445 7c04 	swm	t4,4\(a1\),7
-[0-9a-f]+ <[^>]+> a445 4704 	ualdm	t4,4\(a1\),4
-[0-9a-f]+ <[^>]+> a445 6f04 	uasdm	t4,4\(a1\),6
-[0-9a-f]+ <[^>]+> a445 1704 	ualdm	t4,4\(a1\),1
-[0-9a-f]+ <[^>]+> a445 1f04 	uasdm	t4,4\(a1\),1
-[0-9a-f]+ <[^>]+> a445 0704 	ualdm	t4,4\(a1\),8
-[0-9a-f]+ <[^>]+> a445 7f04 	uasdm	t4,4\(a1\),7
-[0-9a-f]+ <[^>]+> a445 0604 	ldm	t4,4\(a1\),8
-[0-9a-f]+ <[^>]+> a445 7e04 	sdm	t4,4\(a1\),7
 [0-9a-f]+ <[^>]+> 8043 d7c5 	rotx	t4,t5,5,30,1
 [0-9a-f]+ <[^>]+> 8043 d01f 	bitrevw	t4,t5
 [0-9a-f]+ <[^>]+> 8043 d01f 	bitrevw	t4,t5
@@ -200,14 +184,14 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 8043 d608 	byterevh	t4,t5
 [0-9a-f]+ <[^>]+> 8043 d608 	byterevh	t4,t5
 [0-9a-f]+ <[^>]+> 8043 d608 	byterevh	t4,t5
-[0-9a-f]+ <[^>]+> 04bf fffd 	lapc	a1,0000021a <[^>]+>
-[0-9a-f]+ <[^>]+> 04a0 0000 	lapc	a1,[0-9a-f]+ <test\+0x222>
-[0-9a-f]+ <[^>]+> 04a0 0004 	lapc	a1,[0-9a-f]+ <test\+0x22a>
-[0-9a-f]+ <[^>]+> 60a3 fffa ffff 	lapc	a1,00000226 <[^>]+>
-[0-9a-f]+ <[^>]+> 60a3 0000 0000 	lapc	a1,[0-9a-f]+ <test\+0x232>
-[0-9a-f]+ <[^>]+> 60a3 0002 0000 	lapc	a1,[0-9a-f]+ <test\+0x23a>
-[0-9a-f]+ <[^>]+> 04bf fffe 	lapc	a1,0020023a <[^>]+>
-[0-9a-f]+ <[^>]+> 60a3 fffe 001f 	lapc	a1,00200240 <[^>]+>
+[0-9a-f]+ <[^>]+> 04bf fffd 	lapc	a1,000001e2 <[^>]+>
+[0-9a-f]+ <[^>]+> 04a0 0000 	lapc	a1,[0-9a-f]+ <test\+0x1ea>
+[0-9a-f]+ <[^>]+> 04a0 0004 	lapc	a1,[0-9a-f]+ <test\+0x1f2>
+[0-9a-f]+ <[^>]+> 60a3 fffa ffff 	lapc	a1,000001ee <[^>]+>
+[0-9a-f]+ <[^>]+> 60a3 0000 0000 	lapc	a1,[0-9a-f]+ <test\+0x1fa>
+[0-9a-f]+ <[^>]+> 60a3 0002 0000 	lapc	a1,[0-9a-f]+ <test\+0x202>
+[0-9a-f]+ <[^>]+> 04bf fffe 	lapc	a1,00200202 <[^>]+>
+[0-9a-f]+ <[^>]+> 60a3 fffe 001f 	lapc	a1,00200208 <[^>]+>
 [0-9a-f]+ <[^>]+> 04a0 0001 	lapc	a1,[0-9a-f]+ <.*>
 [0-9a-f]+ <[^>]+> 60a3 fffc ffdf 	lapc	a1,[0-9a-f]+ <[^>]+>
 [0-9a-f]+ <[^>]+> e060 0002 	aluipc	t5,00000000 <test>
@@ -263,4 +247,5 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> bb00      	bnezc	a2,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_PC7_S1	.L21
 [0-9a-f]+ <[^>]+> 8000 c000 	nop
+[0-9a-f]+ <[^>]+> 2001 f37f 	eretnc
 #pass

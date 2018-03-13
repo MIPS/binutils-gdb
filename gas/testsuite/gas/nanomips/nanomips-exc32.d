@@ -121,14 +121,6 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> a445 7d04 	uaswm	t4,4\(a1\),7
 [0-9a-f]+ <[^>]+> a445 0404 	lwm	t4,4\(a1\),8
 [0-9a-f]+ <[^>]+> a445 7c04 	swm	t4,4\(a1\),7
-[0-9a-f]+ <[^>]+> a445 4704 	ualdm	t4,4\(a1\),4
-[0-9a-f]+ <[^>]+> a445 6f04 	uasdm	t4,4\(a1\),6
-[0-9a-f]+ <[^>]+> a445 1704 	ualdm	t4,4\(a1\),1
-[0-9a-f]+ <[^>]+> a445 1f04 	uasdm	t4,4\(a1\),1
-[0-9a-f]+ <[^>]+> a445 0704 	ualdm	t4,4\(a1\),8
-[0-9a-f]+ <[^>]+> a445 7f04 	uasdm	t4,4\(a1\),7
-[0-9a-f]+ <[^>]+> a445 0604 	ldm	t4,4\(a1\),8
-[0-9a-f]+ <[^>]+> a445 7e04 	sdm	t4,4\(a1\),7
 [0-9a-f]+ <[^>]+> 8043 d7c5 	rotx	t4,t5,5,30,1
 [0-9a-f]+ <[^>]+> 8043 d01f 	bitrevw	t4,t5
 [0-9a-f]+ <[^>]+> 8043 d01f 	bitrevw	t4,t5
@@ -142,9 +134,9 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 8043 d608 	byterevh	t4,t5
 [0-9a-f]+ <[^>]+> 8043 d608 	byterevh	t4,t5
 [0-9a-f]+ <[^>]+> 8043 d608 	byterevh	t4,t5
-[0-9a-f]+ <[^>]+> 04bf fffd 	lapc	a1,[0-9a-f]+ <test\+0x1e0>
-[0-9a-f]+ <[^>]+> 04a0 0000 	lapc	a1,[0-9a-f]+ <test\+0x1e8>
-[0-9a-f]+ <[^>]+> 04a0 0004 	lapc	a1,[0-9a-f]+ <test\+0x1f0>
+[0-9a-f]+ <[^>]+> 04bf fffd 	lapc	a1,[0-9a-f]+ <test\+0x1c0>
+[0-9a-f]+ <[^>]+> 04a0 0000 	lapc	a1,[0-9a-f]+ <test\+0x1c8>
+[0-9a-f]+ <[^>]+> 04a0 0004 	lapc	a1,[0-9a-f]+ <test\+0x1d0>
 [0-9a-f]+ <[^>]+> 04bf fffe 	lapc	a1,[0-9a-f]+ <[^>]+>
 [0-9a-f]+ <[^>]+> 04a0 0001 	lapc	a1,[0-9a-f]+ <[^>]+>
 [0-9a-f]+ <[^>]+> e060 0002 	aluipc	t5,00000000 <[^>]+>
@@ -199,4 +191,6 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_NANOMIPS_PC14_S1	.L21
 [0-9a-f]+ <[^>]+> a806 0000 	bnezc	a2,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_PC14_S1	.L21
+[0-9a-f]+ <[^>]+> 8000 c000 	nop
+[0-9a-f]+ <[^>]+> 2001 f37f 	eretnc
 #pass
