@@ -14,6 +14,9 @@ CPR2 size: 0
 FP ABI: Hard float \(double precision\)
 ISA Extension: None
 ASEs:
+	DSP R3 ASE
+	Enhanced VA Scheme
+	MT ASE
 	TLB ASE
 FLAGS 1: 0000000.
 FLAGS 2: 00000000
