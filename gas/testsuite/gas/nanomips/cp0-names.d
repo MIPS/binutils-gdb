@@ -27,18 +27,18 @@ Disassembly of section \.text:
   3c:	200f 0070 	mtc0	\$0,prid
   40:	2010 0070 	mtc0	\$0,config
   44:	2011 0070 	mtc0	\$0,lladdr
-  48:	2012 0070 	mtc0	\$0,watchlo,0
-  4c:	2013 0070 	mtc0	\$0,watchhi,0
+  48:	2012 0070 	mtc0	\$0,watchlo0
+  4c:	2013 0070 	mtc0	\$0,watchhi0
   50:	2014 0070 	mtc0	\$0,xcontext
   54:	2015 0070 	mtc0	\$0,\$21
   58:	2016 0070 	mtc0	\$0,\$22
   5c:	2017 0070 	mtc0	\$0,debug
   60:	2018 0070 	mtc0	\$0,depc
-  64:	2019 0070 	mtc0	\$0,perfctl,0
+  64:	2019 0070 	mtc0	\$0,perfctl0
   68:	201a 0070 	mtc0	\$0,errctl
   6c:	201b 0070 	mtc0	\$0,cacheerr
-  70:	201c 0070 	mtc0	\$0,taglo,0
-  74:	201d 0070 	mtc0	\$0,taghi,0
+  70:	201c 0070 	mtc0	\$0,itaglo
+  74:	201d 0070 	mtc0	\$0,itaghi
   78:	201e 0070 	mtc0	\$0,errorepc
   7c:	201f 0070 	mtc0	\$0,desave
 	\.\.\.

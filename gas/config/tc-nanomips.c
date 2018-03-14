@@ -1673,9 +1673,13 @@ struct regname
 #define RTYPE_ACC	0x0020000
 #define RTYPE_CCC	0x0040000
 #define RTYPE_MSA	0x0080000
-#define RTYPE_CP0SEL	0x0300000
 #define RTYPE_CP0SEL_EVEN	0x0100000
 #define RTYPE_CP0SEL_ODD	0x0200000
+#define RTYPE_CP0SEL_LO16	0x0400000
+#define RTYPE_CP0SEL_ODD16	(RTYPE_CP0SEL_EVEN | RTYPE_CP0SEL_LO16)
+#define RTYPE_CP0SEL_EVEN16	(RTYPE_CP0SEL_ODD | RTYPE_CP0SEL_LO16)
+#define RTYPE_CP0SEL		(RTYPE_CP0SEL_EVEN | RTYPE_CP0SEL_ODD \
+				 | RTYPE_CP0SEL_LO16)
 #define RWARN		0x8000000
 
 #define GENERIC_REGISTER_NUMBERS \
@@ -2663,8 +2667,14 @@ md_begin (void)
 	{
 	  case NANOMIPS_CP0SEL_MASK_EVEN:
 	    value |= RTYPE_CP0SEL_EVEN; break;
+	  case NANOMIPS_CP0SEL_MASK_EVEN16:
+	    value |= RTYPE_CP0SEL_EVEN16; break;
 	  case NANOMIPS_CP0SEL_MASK_ODD:
 	    value |= RTYPE_CP0SEL_ODD; break;
+	  case NANOMIPS_CP0SEL_MASK_ODD16:
+	    value |= RTYPE_CP0SEL_ODD16; break;
+	  case NANOMIPS_CP0SEL_MASK_ANY16:
+	    value |= RTYPE_CP0SEL_LO16; break;
 	  case NANOMIPS_CP0SEL_MASK_ANY:
 	    value |= RTYPE_CP0SEL; break;
 	  default:
@@ -3437,8 +3447,14 @@ match_regno (struct nanomips_arg_info *arg,
       {
       case RTYPE_CP0SEL_EVEN:
 	arg->select_mask = NANOMIPS_CP0SEL_MASK_EVEN; break;
+      case RTYPE_CP0SEL_EVEN16:
+	arg->select_mask = NANOMIPS_CP0SEL_MASK_EVEN16; break;
       case RTYPE_CP0SEL_ODD:
 	arg->select_mask = NANOMIPS_CP0SEL_MASK_ODD; break;
+      case RTYPE_CP0SEL_ODD16:
+	arg->select_mask = NANOMIPS_CP0SEL_MASK_ODD16; break;
+      case RTYPE_CP0SEL_LO16:
+	arg->select_mask = NANOMIPS_CP0SEL_MASK_ANY16; break;
       case RTYPE_CP0SEL:
       default:
 	arg->select_mask = NANOMIPS_CP0SEL_MASK_ANY; break;

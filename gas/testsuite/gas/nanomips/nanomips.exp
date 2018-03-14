@@ -701,6 +701,9 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "cp0sel-names-numeric" "" nanomips32r6
     run_dump_test_arch "cp0sel-names" "" nanomips32r6
     run_dump_test_arch "cp0sel-names-dis" "" nanomips32r6
+    run_dump_test_arch "cp0sel-no-aliases" "" nanomips32r6
+    run_dump_test_arch "cp0sel-aliases" "" nanomips32r6
+    run_list_test "cp0sel-names-err"
 
     run_dump_test_arch "cp1-names-numeric" "" nanomips32r6
 #    run_dump_test_arch "cp1-names" "" nanomips32r6

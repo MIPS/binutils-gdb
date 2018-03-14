@@ -1,0 +1,10 @@
+.*: Assembler messages:
+.*:6: Error: invalid operands `mtc0 \$a0,\$watchlo,16'
+.*:7: Error: invalid operands `mtc0 \$a0,\$watchhi,17'
+.*:8: Error: invalid operands `mtc0 \$a0,\$perfctl,18'
+.*:9: Error: invalid operands `mtc0 \$a0,\$perfcnt,19'
+.*:11: Error: invalid operands `mtc0 \$a0,\$perfctl,3'
+.*:12: Error: invalid operands `mtc0 \$a0,\$datalo,2'
+.*:13: Error: invalid operands `mtc0 \$a0,\$taglo,3'
+.*:14: Error: invalid operands `mtc0 \$a0,\$datalo,0'
+.*:15: Error: invalid operands `mtc0 \$a0,\$taghi,1'

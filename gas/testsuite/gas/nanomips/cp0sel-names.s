@@ -1,10 +1,7 @@
 # source file to test assembly using various styles of
 # CP0 (w/ non-zero select code) register names.
 
-	.set noreorder
-	.set noat
-
-	.globl text_label .text
+	.text
 text_label:
 	mtc0	$0,$mvpcontrol
 	mtc0	$0,$mvpconf0

@@ -134,20 +134,20 @@ Disassembly of section \.text:
  1ec:	2011 2870 	mtc0	\$0,\$17,5
  1f0:	2011 3070 	mtc0	\$0,\$17,6
  1f4:	2011 3870 	mtc0	\$0,\$17,7
- 1f8:	2012 0870 	mtc0	\$0,watchlo,1
- 1fc:	2012 1070 	mtc0	\$0,watchlo,2
- 200:	2012 1870 	mtc0	\$0,watchlo,3
- 204:	2012 2070 	mtc0	\$0,watchlo,4
- 208:	2012 2870 	mtc0	\$0,watchlo,5
- 20c:	2012 3070 	mtc0	\$0,watchlo,6
- 210:	2012 3870 	mtc0	\$0,watchlo,7
- 214:	2013 0870 	mtc0	\$0,watchhi,1
- 218:	2013 1070 	mtc0	\$0,watchhi,2
- 21c:	2013 1870 	mtc0	\$0,watchhi,3
- 220:	2013 2070 	mtc0	\$0,watchhi,4
- 224:	2013 2870 	mtc0	\$0,watchhi,5
- 228:	2013 3070 	mtc0	\$0,watchhi,6
- 22c:	2013 3870 	mtc0	\$0,watchhi,7
+ 1f8:	2012 0870 	mtc0	\$0,watchlo1
+ 1fc:	2012 1070 	mtc0	\$0,watchlo2
+ 200:	2012 1870 	mtc0	\$0,watchlo3
+ 204:	2012 2070 	mtc0	\$0,watchlo4
+ 208:	2012 2870 	mtc0	\$0,watchlo5
+ 20c:	2012 3070 	mtc0	\$0,watchlo6
+ 210:	2012 3870 	mtc0	\$0,watchlo7
+ 214:	2013 0870 	mtc0	\$0,watchhi1
+ 218:	2013 1070 	mtc0	\$0,watchhi2
+ 21c:	2013 1870 	mtc0	\$0,watchhi3
+ 220:	2013 2070 	mtc0	\$0,watchhi4
+ 224:	2013 2870 	mtc0	\$0,watchhi5
+ 228:	2013 3070 	mtc0	\$0,watchhi6
+ 22c:	2013 3870 	mtc0	\$0,watchhi7
  230:	2014 0870 	mtc0	\$0,\$20,1
  234:	2014 1070 	mtc0	\$0,\$20,2
  238:	2014 1870 	mtc0	\$0,\$20,3
@@ -183,13 +183,13 @@ Disassembly of section \.text:
  2b0:	2018 2870 	mtc0	\$0,\$24,5
  2b4:	2018 3070 	mtc0	\$0,\$24,6
  2b8:	2018 3870 	mtc0	\$0,\$24,7
- 2bc:	2019 0870 	mtc0	\$0,perfcnt,1
- 2c0:	2019 1070 	mtc0	\$0,perfctl,2
- 2c4:	2019 1870 	mtc0	\$0,perfcnt,3
- 2c8:	2019 2070 	mtc0	\$0,perfctl,4
- 2cc:	2019 2870 	mtc0	\$0,perfcnt,5
- 2d0:	2019 3070 	mtc0	\$0,perfctl,6
- 2d4:	2019 3870 	mtc0	\$0,perfcnt,7
+ 2bc:	2019 0870 	mtc0	\$0,perfcnt0
+ 2c0:	2019 1070 	mtc0	\$0,perfctl1
+ 2c4:	2019 1870 	mtc0	\$0,perfcnt1
+ 2c8:	2019 2070 	mtc0	\$0,perfctl2
+ 2cc:	2019 2870 	mtc0	\$0,perfcnt2
+ 2d0:	2019 3070 	mtc0	\$0,perfctl3
+ 2d4:	2019 3870 	mtc0	\$0,perfcnt3
  2d8:	201a 0870 	mtc0	\$0,\$26,1
  2dc:	201a 1070 	mtc0	\$0,\$26,2
  2e0:	201a 1870 	mtc0	\$0,\$26,3
@@ -204,16 +204,16 @@ Disassembly of section \.text:
  304:	201b 2870 	mtc0	\$0,\$27,5
  308:	201b 3070 	mtc0	\$0,\$27,6
  30c:	201b 3870 	mtc0	\$0,\$27,7
- 310:	201c 0870 	mtc0	\$0,datalo,1
- 314:	201c 1070 	mtc0	\$0,taglo,2
- 318:	201c 1870 	mtc0	\$0,datalo,3
+ 310:	201c 0870 	mtc0	\$0,idatalo
+ 314:	201c 1070 	mtc0	\$0,dtaglo
+ 318:	201c 1870 	mtc0	\$0,ddatalo
  31c:	201c 2070 	mtc0	\$0,taglo,4
  320:	201c 2870 	mtc0	\$0,datalo,5
  324:	201c 3070 	mtc0	\$0,taglo,6
  328:	201c 3870 	mtc0	\$0,datalo,7
- 32c:	201d 0870 	mtc0	\$0,datahi,1
- 330:	201d 1070 	mtc0	\$0,taghi,2
- 334:	201d 1870 	mtc0	\$0,datahi,3
+ 32c:	201d 0870 	mtc0	\$0,idatahi
+ 330:	201d 1070 	mtc0	\$0,dtaghi
+ 334:	201d 1870 	mtc0	\$0,ddatahi
  338:	201d 2070 	mtc0	\$0,taghi,4
  33c:	201d 2870 	mtc0	\$0,datahi,5
  340:	201d 3070 	mtc0	\$0,taghi,6

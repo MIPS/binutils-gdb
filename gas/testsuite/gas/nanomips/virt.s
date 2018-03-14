@@ -1,6 +1,4 @@
 	.text
-	.set noreorder
-
 foo:
 	mfgc0   $3,$29
 	mfgc0   $11,$20,5

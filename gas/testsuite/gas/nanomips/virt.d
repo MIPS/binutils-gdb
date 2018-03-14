@@ -5,7 +5,7 @@
 .*: +file format .*nanomips.*
 
 [0-9A-F]+isassembly of section \.text:
-[0-9a-f]+ <[^>]+> 207d 00b0 	mfgc0	t5,taghi,0
+[0-9a-f]+ <[^>]+> 207d 00b0 	mfgc0	t5,itaghi
 [0-9a-f]+ <[^>]+> 2174 28b0 	mfgc0	a7,\$20,5
 [0-9a-f]+ <[^>]+> 22e2 00f0 	mtgc0	s7,entrylo0
 [0-9a-f]+ <[^>]+> 20ee 10f0 	mtgc0	a3,nestedepc

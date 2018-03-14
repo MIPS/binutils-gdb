@@ -1,9 +1,7 @@
-# source file to test assembly of MIPS MT ASE for MIPS32 instructions
-
-	.set noreorder
-	.set noat
+# source file to test assembly of MIPS MT ASE for nanoMIPS instructions
 
 	.text
+	.set noat
 text_label:
 	dmt
 	dmt	$ra

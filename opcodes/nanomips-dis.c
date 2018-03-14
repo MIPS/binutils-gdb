@@ -929,7 +929,10 @@ print_insn_arg (struct disassemble_info *info,
       break;
 
     case OP_CP0SEL:
-      print_cp0sel_reg (info, state->last_regno, uval);
+      if (no_aliases)
+	infprintf (is, ",%d", uval);
+      else
+	print_cp0sel_reg (info, state->last_regno, uval);
       break;
 
     case OP_DONT_CARE:
