@@ -4652,6 +4652,25 @@ MOSTLYCLEANFILES += nanomips_data_access_pcrel_1 nanomips_data_access_pcrel_2 \
 		    nanomips_data_access_pid_1 nanomips_data_access_pid_2 \
 		    nanomips_data_access_pid_3
 
+# Test GOT slots, relocations & dynamic tags
+check_SCRIPTS += nanomips_got_gen.sh
+check_DATA += nanomips_got_gen.stdout \
+	      nanomips_got_gen_wide.stdout
+
+nanomips_got_gen.stdout: nanomips_got_gen
+	$(TEST_READELF) -rAd $< > $@
+
+nanomips_got_gen_wide.stdout: nanomips_got_gen
+	$(TEST_READELF) -rAW $< > $@
+
+nanomips_got_gen: nanomips_got_gen.o ../ld-new
+	../ld-new -shared -o $@ $<
+
+nanomips_got_gen.o: nanomips_got_gen.s
+	$(TEST_AS) -EL -march=32r6 -mpic -o $@ $<
+
+MOSTLYCLEANFILES += nanomips_got_gen
+
 endif DEFAULT_TARGET_NANOMIPS
 
 endif NATIVE_OR_CROSS_LINKER
