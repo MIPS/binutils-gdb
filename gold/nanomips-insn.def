@@ -55,6 +55,8 @@
 #define NO_CONV CONV_REG(0, 0)
 
 // Nanomips instruction property.
+#define NIP48(name, opcode, ext_treg_func, ...) \
+  NIP(name, opcode, ext_treg_func, NO_CONV, NO_VALID, NO_EXT_REG, NO_CONV, NO_VALID, __VA_ARGS__)
 #define NIP32(name, opcode, ext_treg_func, val_treg_func, ext_sreg_func, val_sreg_func, ...) \
   NIP(name, opcode, ext_treg_func, NO_CONV, val_treg_func, ext_sreg_func, NO_CONV, val_sreg_func, __VA_ARGS__)
 #define NIP16(name, opcode, ext_treg_func, conv_treg_func, ext_sreg_func, conv_sreg_func, ...) \
@@ -121,7 +123,7 @@
 // jalrc $zero, $reg
 #define JRC32 NIT32("jrc", 0x48000000, NONE, NO_INS_REG, INS_REG(16, 5, SREG))
 // lapc $reg, sym
-#define LAPC32 NIT32("lapc", 0x04000000, PC21_S1, INS_REG(21, 5, SREG), NO_INS_REG)
+#define LAPC32(tregmap) NIT32("lapc", 0x04000000, PC21_S1, INS_REG(21, 5, tregmap), NO_INS_REG)
 // lui $reg, %reloc(sym)
 #define LUI32(reloc, tregmap) NIT32("lui", 0xe0000000, reloc, INS_REG(21, 5, tregmap), NO_INS_REG)
 // lb $reg, %gprel(sym)($gp)
@@ -198,6 +200,21 @@
 // Nanomips instruction property
 //
 //
+
+// Transformations for instructions against R_NANOMIPS_GPREL_I32 relocation.
+
+// addiugp[48] $reg, %gprel32(sym)
+NIP48("addiugp[48]",    0x6002,        EXT_REG(5, 5),        { REL(GPREL_I32) })
+NTT(TT_GPREL32,                   { ADDIUGPB32 })
+NTT(TT_GPREL32_WORD,              { ADDIUGPW32 })
+
+
+// Transformations for instructions against R_NANOMIPS_PC_I32 relocation.
+
+// lapc[48] $reg, sym
+NIP48("lapc[48]",       0x6003,        EXT_REG(5, 5),        { REL(PC_I32) })
+NTT(TT_PCREL32,                   { LAPC32(TREG) })
+
 
 // Transformations for instructions against R_NANOMIPS_PC25_S1 relocation.
 
@@ -309,7 +326,7 @@ NTT(TT_DISCARD,                   { })
 NTT(TT_RELAX,                     { LWGP16 })
 NTT(TT_ABS_XLP,                   { LI48 })
 NTT(TT_ABS32_LONG,                { LUI32(HI20, TREG), ORI32(LO12, TREG, TREG) })
-NTT(TT_PCREL32,                   { LAPC32 })
+NTT(TT_PCREL32,                   { LAPC32(SREG) })
 NTT(TT_PCREL_XLP,                 { LAPC48 })
 NTT(TT_PCREL32_LONG,              { ALUIPC32(PC_HI20, TREG), ORI32(LO12, TREG, TREG) })
 NTT(TT_GPREL32,                   { ADDIUGPB32 })
@@ -384,7 +401,7 @@ NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG),
 NIP32("lb",             0x84000000,    EXT_REG(21, 5),       VALID_REG(16),     EXT_REG(16, 5),       VALID_REG(16),     { REL(GOT_OFST) })
 NTT(TT_DISCARD,                   { LB16 })
 NTT(TT_ABS32_LONG,                { LUI32(HI20, SREG), LB32(LO12) })
-NTT(TT_PCREL16_LONG,              { LAPC32, LB16 })
+NTT(TT_PCREL16_LONG,              { LAPC32(SREG), LB16 })
 NTT(TT_PCREL32_LONG,              { ALUIPC32(PC_HI20, SREG), LB32(LO12) })
 NTT(TT_GPREL32,                   { LBGP32 })
 NTT(TT_GPREL_XLP,                 { ADDIUGP48(SREG), LB16 })
@@ -395,7 +412,7 @@ NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG),
 NIP32("lbu",            0x84002000,    EXT_REG(21, 5),       VALID_REG(16),     EXT_REG(16, 5),       VALID_REG(16),     { REL(GOT_OFST) })
 NTT(TT_DISCARD,                   { LBU16 })
 NTT(TT_ABS32_LONG,                { LUI32(HI20, SREG), LBU32(LO12) })
-NTT(TT_PCREL16_LONG,              { LAPC32, LBU16 })
+NTT(TT_PCREL16_LONG,              { LAPC32(SREG), LBU16 })
 NTT(TT_PCREL32_LONG,              { ALUIPC32(PC_HI20, SREG), LBU32(LO12) })
 NTT(TT_GPREL32,                   { LBUGP32 })
 NTT(TT_GPREL_XLP,                 { ADDIUGP48(SREG), LBU16 })
@@ -406,7 +423,7 @@ NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG),
 NIP32("lh",             0x84004000,    EXT_REG(21, 5),       VALID_REG(16),     EXT_REG(16, 5),       VALID_REG(16),     { REL(GOT_OFST) })
 NTT(TT_DISCARD,                   { LH16 })
 NTT(TT_ABS32_LONG,                { LUI32(HI20, SREG), LH32(LO12) })
-NTT(TT_PCREL16_LONG,              { LAPC32, LH16 })
+NTT(TT_PCREL16_LONG,              { LAPC32(SREG), LH16 })
 NTT(TT_PCREL32_LONG,              { ALUIPC32(PC_HI20, SREG), LH32(LO12) })
 NTT(TT_GPREL32,                   { LHGP32 })
 NTT(TT_GPREL_XLP,                 { ADDIUGP48(SREG), LH16 })
@@ -417,7 +434,7 @@ NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG),
 NIP32("lhu",            0x84006000,    EXT_REG(21, 5),       VALID_REG(16),     EXT_REG(16, 5),       VALID_REG(16),     { REL(GOT_OFST) })
 NTT(TT_DISCARD,                   { LHU16 })
 NTT(TT_ABS32_LONG,                { LUI32(HI20, SREG), LHU32(LO12) })
-NTT(TT_PCREL16_LONG,              { LAPC32, LHU16 })
+NTT(TT_PCREL16_LONG,              { LAPC32(SREG), LHU16 })
 NTT(TT_PCREL32_LONG,              { ALUIPC32(PC_HI20, SREG), LHU32(LO12) })
 NTT(TT_GPREL32,                   { LHUGP32 })
 NTT(TT_GPREL_XLP,                 { ADDIUGP48(SREG), LHU16 })
@@ -430,7 +447,7 @@ NTT(TT_RELAX,                     { LW16(LO4_S2) })
 NTT(TT_DISCARD,                   { LW16(NONE) })
 NTT(TT_ABS32_LONG,                { LUI32(HI20, SREG), LW32(LO12) })
 NTT(TT_PCREL_XLP,                 { LWPC48(PC_I32) })
-NTT(TT_PCREL16_LONG,              { LAPC32, LW16(NONE) })
+NTT(TT_PCREL16_LONG,              { LAPC32(SREG), LW16(NONE) })
 NTT(TT_PCREL32_LONG,              { ALUIPC32(PC_HI20, SREG), LW32(LO12) })
 NTT(TT_GPREL16_WORD,              { LWGP16 })
 NTT(TT_GPREL32_WORD,              { LWGP32 })
@@ -442,7 +459,7 @@ NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG),
 NIP32("sb",             0x84001000,    EXT_REG(21, 5),       VALID_REG(0),      EXT_REG(16, 5),       VALID_REG(16),     { REL(GOT_OFST) })
 NTT(TT_DISCARD,                   { SB16 })
 NTT(TT_ABS32_LONG,                { LUI32(HI20, SREG), SB32(LO12) })
-NTT(TT_PCREL16_LONG,              { LAPC32, SB16 })
+NTT(TT_PCREL16_LONG,              { LAPC32(SREG), SB16 })
 NTT(TT_PCREL32_LONG,              { ALUIPC32(PC_HI20, SREG), SB32(LO12) })
 NTT(TT_GPREL32,                   { SBGP32 })
 NTT(TT_GPREL_XLP,                 { ADDIUGP48(SREG), SB16 })
@@ -453,7 +470,7 @@ NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG),
 NIP32("sh",             0x84005000,    EXT_REG(21, 5),       VALID_REG(0),      EXT_REG(16, 5),       VALID_REG(16),     { REL(GOT_OFST) })
 NTT(TT_DISCARD,                   { SH16 })
 NTT(TT_ABS32_LONG,                { LUI32(HI20, SREG), SH32(LO12) })
-NTT(TT_PCREL16_LONG,              { LAPC32, SH16 })
+NTT(TT_PCREL16_LONG,              { LAPC32(SREG), SH16 })
 NTT(TT_PCREL32_LONG,              { ALUIPC32(PC_HI20, SREG), SH32(LO12) })
 NTT(TT_GPREL32,                   { SHGP32 })
 NTT(TT_GPREL_XLP,                 { ADDIUGP48(SREG), SH16 })
@@ -466,7 +483,7 @@ NTT(TT_RELAX,                     { SW16(LO4_S2) })
 NTT(TT_DISCARD,                   { SW16(NONE) })
 NTT(TT_ABS32_LONG,                { LUI32(HI20, SREG), SW32(LO12) })
 NTT(TT_PCREL_XLP,                 { SWPC48 })
-NTT(TT_PCREL16_LONG,              { LAPC32, SW16(NONE) })
+NTT(TT_PCREL16_LONG,              { LAPC32(SREG), SW16(NONE) })
 NTT(TT_PCREL32_LONG,              { ALUIPC32(PC_HI20, SREG), SW32(LO12) })
 NTT(TT_GPREL16_WORD,              { SWGP16 })
 NTT(TT_GPREL32_WORD,              { SWGP32 })
