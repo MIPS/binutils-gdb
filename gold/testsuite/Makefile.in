@@ -1021,13 +1021,16 @@ check_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
 # Test address calculation transformations
 
 # Test data access transformations
+
+# Test GOT slots, relocations & dynamic tags
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@am__append_105 = nanomips_pcrel_out_of_range.sh \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_gprel_out_of_range.sh \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_script_test.sh \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_finalize_pcrel.sh \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_function_call.sh \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_address_calculation.sh \
-@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_data_access.sh
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_data_access.sh \
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_got_gen.sh
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@am__append_106 = nanomips_b_out_of_range_pcrel.stdout \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_b_out_of_range_insn32_pcrel.stdout \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_b_out_of_range_nms_pcrel.stdout \
@@ -1068,7 +1071,9 @@ check_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_data_access_abs.stdout \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_data_access_pid_1.stdout \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_data_access_pid_2.stdout \
-@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_data_access_pid_3.stdout
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_data_access_pid_3.stdout \
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_got_gen.stdout \
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_got_gen_wide.stdout
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@am__append_107 = nanomips_b_out_of_range_pcrel \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_b_out_of_range_insn32_pcrel \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_b_out_of_range_nms_pcrel \
@@ -1109,7 +1114,8 @@ check_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_data_access_abs \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_data_access_pid_1 \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_data_access_pid_2 \
-@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_data_access_pid_3
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_data_access_pid_3 \
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_got_gen
 @DEFAULT_TARGET_X86_64_TRUE@am__append_108 = *.dwo *.dwp
 @DEFAULT_TARGET_X86_64_TRUE@am__append_109 = dwp_test_1.sh \
 @DEFAULT_TARGET_X86_64_TRUE@	dwp_test_2.sh
@@ -5430,6 +5436,8 @@ nanomips_address_calculation.sh.log: nanomips_address_calculation.sh
 	@p='nanomips_address_calculation.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 nanomips_data_access.sh.log: nanomips_data_access.sh
 	@p='nanomips_data_access.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
+nanomips_got_gen.sh.log: nanomips_got_gen.sh
+	@p='nanomips_got_gen.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 dwp_test_1.sh.log: dwp_test_1.sh
 	@p='dwp_test_1.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 dwp_test_2.sh.log: dwp_test_2.sh
@@ -8503,6 +8511,18 @@ uninstall-am:
 
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_data_access_pid_nms.o: nanomips_data_access.s
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_AS) -EL -march=32r6 -m32 -mpid -o $@ $<
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_got_gen.stdout: nanomips_got_gen
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_READELF) -rAd $< > $@
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_got_gen_wide.stdout: nanomips_got_gen
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_READELF) -rAW $< > $@
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_got_gen: nanomips_got_gen.o ../ld-new
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new -shared -o $@ $<
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_got_gen.o: nanomips_got_gen.s
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_AS) -EL -march=32r6 -mpic -o $@ $<
 
 # Tests for the dwp tool.
 # We don't want to rely yet on GCC support for -gsplit-dwarf,
