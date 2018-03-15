@@ -88,22 +88,6 @@ static const char * const nanomips_cp1_names_3264r6[32] = {
   "c1_fenr",      "$29",          "$30",          "c1_fcsr"
 };
 
-static const char * const nanomips_hwr_names_numeric[32] = {
-  "$0",   "$1",   "$2",   "$3",   "$4",   "$5",   "$6",   "$7",
-  "$8",   "$9",   "$10",  "$11",  "$12",  "$13",  "$14",  "$15",
-  "$16",  "$17",  "$18",  "$19",  "$20",  "$21",  "$22",  "$23",
-  "$24",  "$25",  "$26",  "$27",  "$28",  "$29",  "$30",  "$31"
-};
-
-static const char * const nanomips_hwr_names_3264r6[32] = {
-  "hwr_cpunum",   "hwr_synci_step", "hwr_cc",     "hwr_ccres",
-  "hwr_perfcnt",  "hwr_xnp", 		"$6",           "$7",
-  "$8",   "$9",   "$10",  "$11",  "$12",  "$13",  "$14",  "$15",
-  "$16",  "$17",  "$18",  "$19",  "$20",  "$21",  "$22",  "$23",
-  "$24",  "$25",  "$26",  "$27",  "$28",  "hwr_userlocal",
-  "$30",  "$31"
-};
-
 static const char * const msa_control_names[32] = {
   "msa_ir",	"msa_csr",	"msa_access",	"msa_save",
   "msa_modify",	"msa_request",	"msa_map",	"msa_unmap",
@@ -114,8 +98,16 @@ static const char * const msa_control_names[32] = {
 
 /* The empty-list of CP0 registers serves as an indicator to fall-back to
    numeric register names.  */
-const struct nanomips_cp0_name nanomips_cp0_numeric[] = { {NULL, 0, 0} };
-const struct nanomips_cp0_select nanomips_cp0sel_numeric[] = { {NULL, 0, 0} };
+static const struct nanomips_cp0_name nanomips_cp0_numeric[] = { {NULL, 0, 0} };
+static const struct nanomips_cp0_select nanomips_cp0sel_numeric[] = {
+  {NULL, 0, 0}
+};
+
+/* The empty-list of HWR registers serves as an indicator to fall-back to
+   numeric register names.  */
+static const struct nanomips_hwr_name nanomips_hwr_names_numeric[] = {
+  {NULL, 0, 0, 0, 0}
+};
 
 struct nanomips_abi_choice
 {
@@ -141,7 +133,7 @@ struct nanomips_arch_choice
   const struct nanomips_cp0_name *cp0_names;
   const struct nanomips_cp0_select *cp0sel_names;
   const char *const *cp1_names;
-  const char *const *hwr_names;
+  const struct nanomips_hwr_name *hwr_names;
 };
 
 const struct nanomips_arch_choice nanomips_arch_choices[] = {
@@ -179,7 +171,7 @@ static const char *const *nanomips_fpr_names;
 static const struct nanomips_cp0_name *nanomips_cp0_names;
 static const struct nanomips_cp0_select *nanomips_cp0sel_names;
 static const char *const *nanomips_cp1_names;
-static const char *const *nanomips_hwr_names;
+static const struct nanomips_hwr_name *nanomips_hwr_names;
 
 /* Other options */
 static int no_aliases;	/* If set disassemble as most general inst.  */
@@ -524,6 +516,36 @@ print_cp0sel_reg (struct disassemble_info *info, unsigned int regno,
     info->fprintf_func (info->stream, "$%d,%d", regno, selnum);
 }
 
+/* Look-up and print the symbolic name of a named CP0 register with
+   a fixed select value.  Fall-back to numeric format if no match is
+   found.  */
+
+static void
+print_hwr_reg (struct disassemble_info *info, int regno)
+{
+  int i;
+  unsigned int selnum = regno & NANOMIPSOP_MASK_CP0SEL;
+  unsigned int hwr_regno = regno >> NANOMIPSOP_SH_HWRSEL;
+
+  if (nanomips_hwr_names != nanomips_hwr_names_numeric)
+    for (i = 0; nanomips_hwr_names[i].name; i++)
+      {
+	if (nanomips_hwr_names[i].num == hwr_regno
+	    && nanomips_hwr_names[i].sel == selnum)
+	  {
+	    info->fprintf_func (info->stream, "%s",
+				nanomips_hwr_names[i].name+1);
+	    return;
+	  }
+      }
+
+  /* A select value of 0 is deemed optional.  */
+  if (selnum == 0)
+    info->fprintf_func (info->stream, "$%d", hwr_regno);
+  else
+    info->fprintf_func (info->stream, "$%d,%d", hwr_regno, selnum);
+}
+
 /* Print register REGNO, of type TYPE, for instruction OPCODE.  */
 
 static void
@@ -564,7 +586,8 @@ print_reg (struct disassemble_info *info,
       break;
 
     case OP_REG_HW:
-      info->fprintf_func (info->stream, "%s", nanomips_hwr_names[regno]);
+    case OP_REG_HWRSEL:
+      print_hwr_reg (info, regno);
       break;
 
     case OP_REG_VF:

@@ -710,6 +710,8 @@ if { [istarget nanomips*-*-*] } {
 
     run_dump_test_arch "hwr-names-numeric" "" nanomips32r6
     run_dump_test_arch "hwr-names" "" nanomips32r6
+    run_dump_test_arch "hwr-numeric" "" nanomips32r6
+    run_dump_test_arch "hwr-no-aliases" "" nanomips32r6
 
     run_list_test_arches "ldstla-err" "" [arch_list_matching nanomipsr6]
 

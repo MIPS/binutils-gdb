@@ -1,6 +1,5 @@
 #objdump: -dr -M gpr-names=numeric,hwr-names=numeric
 #name: nanoMIPS HWR disassembly \(numeric\)
-#source: hwr-names.s
 
 # Check objdump's handling of -M hwr-names=foo options.
 

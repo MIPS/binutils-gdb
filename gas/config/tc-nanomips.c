@@ -1680,6 +1680,7 @@ struct regname
 #define RTYPE_CP0SEL_EVEN16	(RTYPE_CP0SEL_ODD | RTYPE_CP0SEL_LO16)
 #define RTYPE_CP0SEL		(RTYPE_CP0SEL_EVEN | RTYPE_CP0SEL_ODD \
 				 | RTYPE_CP0SEL_LO16)
+#define RTYPE_HWR	0x0800000
 #define RWARN		0x8000000
 
 #define GENERIC_REGISTER_NUMBERS \
@@ -2690,6 +2691,36 @@ md_begin (void)
 		 nanomips_cp0sel_3264r6[i].name);
     }
 
+  for (i = 0; nanomips_hwr_names_3264r6[i].name; i++)
+    {
+      /* 10-bit symbol value for HWR named register consists of a 5-bit
+	 register number and 5-bit fixed select value.  */
+      unsigned int value = (RTYPE_HWR
+			    | (nanomips_hwr_names_3264r6[i].num
+			       << NANOMIPSOP_SH_CP0SEL)
+			    | nanomips_hwr_names_3264r6[i].sel);
+      symbolS *regsym;
+      symbolS *defsym = symbol_find (nanomips_hwr_names_3264r6[i].name);
+      if (defsym)
+	{
+	  if (nanomips_hwr_names_3264r6[i].cp0_num != INV_RNUM
+	      || nanomips_hwr_names_3264r6[i].cp0_sel != INV_SEL)
+	    /* In cases where HWR register names overlap with CP0 registers, we
+	       keep the CP0 register value in the symbol table, but mark the
+	       value to indicate that it may be HWR as well.  */
+	    S_SET_VALUE (defsym, S_GET_VALUE (defsym) | RTYPE_HWR);
+	  else
+	    as_warn ("Attempt to define internal register symbol %s ignored",
+		     nanomips_hwr_names_3264r6[i].name);
+	}
+      else
+	{
+	  regsym = symbol_new (nanomips_hwr_names_3264r6[i].name, reg_section,
+			       value, &zero_address_frag);
+	  symbol_table_insert (regsym);
+	}
+    }
+
   obstack_init (&nanomips_operand_tokens);
 
   nanomips_flush_pending_output ();
@@ -3378,7 +3409,7 @@ convert_reg_type (const struct nanomips_opcode *opcode,
       return RTYPE_NUM;
 
     case OP_REG_HW:
-      return RTYPE_NUM;
+      return RTYPE_HWR;
 
     case OP_REG_MSA:
       return RTYPE_MSA;
@@ -3393,6 +3424,10 @@ convert_reg_type (const struct nanomips_opcode *opcode,
     case OP_REG_CP0SEL:
       /* CP0 register with select may be numeric.  */
       return RTYPE_CP0SEL | RTYPE_NUM;
+
+    case OP_REG_HWRSEL:
+      /* HWR register with select may be numeric.  */
+      return RTYPE_HWR | RTYPE_NUM;
     }
   abort ();
 }
@@ -3442,7 +3477,7 @@ match_regno (struct nanomips_arg_info *arg,
 
   /* Remember if the register name matches a specific select mask type.
      Otherwise fall-back to allowing all select values.  */
-  if (type == OP_REG_CP0SEL)
+  if (type == OP_REG_CP0SEL || type == OP_REG_HWRSEL)
     switch (symval & RTYPE_CP0SEL)
       {
       case RTYPE_CP0SEL_EVEN:
@@ -3460,6 +3495,34 @@ match_regno (struct nanomips_arg_info *arg,
 	arg->select_mask = NANOMIPS_CP0SEL_MASK_ANY; break;
 	break;
       }
+
+  if (type == OP_REG_HW)
+    {
+      int i;
+      /* Some HWR register names overlap with CP0 register names.
+	 In this case the reference list of HWR registers provides
+	 the necessary mapping from CP0 to HWR names. */
+      for (i = 0; nanomips_hwr_names_3264r6[i].name; i++)
+	/* If the symbol value matches a named CP0 register, replace
+	   it with the corresponding HWR register.  */
+	if ((symval & RNUM_MASK) == ((nanomips_hwr_names_3264r6[i].cp0_num
+				      << NANOMIPSOP_SH_CP0SEL)
+				     | nanomips_hwr_names_3264r6[i].cp0_sel))
+	  {
+	    symval = ((symval & ~RNUM_MASK)
+		      | (nanomips_hwr_names_3264r6[i].num
+			 << NANOMIPSOP_SH_CP0SEL)
+		      | nanomips_hwr_names_3264r6[i].sel);
+	    break;
+	  }
+    }
+  else if (type == OP_REG_HWRSEL && (symval & RTYPE_MASK) != RTYPE_NUM)
+    {
+      if ((symval & RNUM_MASK) == NANOMIPS_CP0SEL_PERFCNT)
+	symval = (symval & ~RNUM_MASK) | NANOMIPS_HWRSEL_PERFCNT;
+      else
+	return FALSE;
+    }
 
   *regno = symval & RNUM_MASK;
   check_regno (arg, type, *regno);

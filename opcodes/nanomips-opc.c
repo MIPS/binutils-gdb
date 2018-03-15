@@ -268,7 +268,7 @@ decode_nanomips_operand (const char *p)
     case 'G': REG (5, 16, COPRO);
     case 'H': UINT (5, 11);
     case 'J': SPECIAL (5, 11, CP0SEL);
-    case 'K': REG (5, 16, HW);
+    case 'K': REG (10, 11, HW);
 /*     case 'M': REG (3, 13, CCC); */
 /*     case 'N': REG (3, 18, CCC); */
     case 'O': REG (10, 11, CP0);
@@ -277,6 +277,7 @@ decode_nanomips_operand (const char *p)
     case 'R': REG (5, 11, FP);
     case 'S': REG (5, 16, FP);
     case 'T': REG (5, 21, FP);
+    case 'U': REG (5, 16, HWRSEL);
     case 'V': OPTIONAL_REG (5, 16, FP);
 
     case 'a': JUMP (26, 0, 1);
@@ -1182,8 +1183,9 @@ IGRIE */
 {"raddu.w.qb",	"", 		"t,s",		0x2000f13f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32},
 {"rddsp",	"",		"t",		0x201fc67f, 0xfc1fffff,	WR_1,		INSN2_ALIAS,	0,	D32},
 {"rddsp",	"",		"t,8",		0x2000067f, 0xfc003fff,	WR_1,			0,	0,	D32},
-{"rdhwr",	"",		"t,K",		0x200001c0, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* RDHWR with sel=0 */
-{"rdhwr",	"",		"t,K,H",	0x200001c0, 0xfc0007ff,	WR_1|RD_2,		0,	0,	xNMS},
+{"rdhwr",	"",		"t,K",		0x200001c0, 0xfc0007ff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* RDHWR with sel=0 */
+{"rdhwr",	"",		"t,U,J",	0x200001c0, 0xfc0007ff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS},
+{"rdhwr",	"",		"t,G,H",	0x200001c0, 0xfc0007ff,	WR_1|RD_2,		0,	0,	xNMS},
 {"rdpgpr",	"",		"t,s",		0x2000e17f, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
 {"recip.d",	"",		"T,S",		0xa000523b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
 {"recip.s",	"",		"T,S",		0xa000123b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},

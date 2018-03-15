@@ -165,7 +165,10 @@ enum nanomips_reg_operand_type {
   OP_REG_CP0,
 
   /* Co-processor 0 named registers with select.  */
-  OP_REG_CP0SEL
+  OP_REG_CP0SEL,
+
+  /* Co-processor 0 named registers with select.  */
+  OP_REG_HWRSEL
 };
 
 /* Base class for all operands.  */
@@ -973,6 +976,8 @@ extern const int bfd_nanomips_num_opcodes;
 
 #define NANOMIPSOP_SH_CP0SEL		5
 #define NANOMIPSOP_MASK_CP0SEL		0x1f
+#define NANOMIPSOP_SH_HWRSEL		5
+#define NANOMIPSOP_MASK_HWRSEL		0x1f
 
 /* Describes a COP0 named register with a fixed select.  */
 struct nanomips_cp0_name
@@ -1177,6 +1182,56 @@ static const struct nanomips_cp0_select nanomips_cp0sel_3264r6[] = {
     {"$datahi", 	29, NANOMIPS_CP0SEL_MASK_ODD},
     {NULL, 0, 0}
 };
+
+
+/* Describes a HWR named register with a fixed select.  If the HWR name
+   is remapped from an existing CP0 register name, its cp0_num and cp0_sel
+   fields will provide the mapping, else they will both be invalid.  */
+
+struct nanomips_hwr_name
+{
+  const char *name;
+  unsigned int num;
+  unsigned int sel;
+  unsigned int cp0_num;
+  unsigned int cp0_sel;
+};
+
+#define INV_RNUM 0xffffffff
+#define INV_SEL 0xffffffff
+
+ /* The reference list of named hardware register with fixed selects.  */
+static const struct nanomips_hwr_name nanomips_hwr_names_3264r6[] = {
+    {"$cpunum",	 	0,	0,	INV_RNUM,	INV_SEL},
+    {"$synci_step",	1,	0,	INV_RNUM,	INV_SEL},
+    {"$cc",		2,	0,	9,		0},
+    {"$count",		2,	0,	9,		0},
+    {"$ccres",		3,	0,	INV_RNUM, 	INV_SEL},
+    {"$perfctl0",	4,	0,	25,		0},
+    {"$perfcnt0",	4,	1,	25,		1},
+    {"$perfctl1",	4,	2,	25,		2},
+    {"$perfcnt1",	4,	3,	25,		3},
+    {"$perfctl2",	4,	4,	25,		4},
+    {"$perfcnt2",	4,	5,	25,		5},
+    {"$perfctl3",	4,	6,	25,		6},
+    {"$perfcnt3",	4,	7,	25,		7},
+    {"$perfctl4",	4,	8,	25,		8},
+    {"$perfcnt4",	4,	9,	25,		9},
+    {"$perfctl5",	4,	10,	25,		10},
+    {"$perfcnt5",	4,	11,	25,		11},
+    {"$perfctl6",	4,	12,	25,		12},
+    {"$perfcnt6",	4,	13,	25,		13},
+    {"$perfctl7",	4,	14,	25,		14},
+    {"$perfcnt7",	4,	15,	25,		15},
+    {"$perfctl",	4,	0,	25,		0},
+    {"$perfcnt",	4,	1,	25,		1},
+    {"$xnp",		5,	0,	INV_RNUM,	INV_SEL},
+    {"$userlocal",	29,	0,	4,		2},
+    {NULL, 		0,	0,	INV_RNUM,	INV_SEL}
+};
+
+#define NANOMIPS_CP0SEL_PERFCNT 25
+#define NANOMIPS_HWRSEL_PERFCNT 4
 
 #ifdef __cplusplus
 }

@@ -24,11 +24,11 @@ Disassembly of section .text:
  +[0-9a-f]+:	1042      	move	t4,t4
  +[0-9a-f]+:	0062 0000 	addiu	t5,t4,0
 			[0-9a-f]+: R_NANOMIPS_TLS_DTPREL16	tlsvar_ld
- +[0-9a-f]+:	205d 01c0 	rdhwr	t4,hwr_userlocal
+ +[0-9a-f]+:	205d 01c0 	rdhwr	t4,userlocal
  +[0-9a-f]+:	4060 0002 	lw	t5,0\(gp\)
 			[0-9a-f]+: R_NANOMIPS_TLS_GOTTPREL	tlsvar_ie
  +[0-9a-f]+:	2043 1950 	addu	t5,t5,t4
- +[0-9a-f]+:	205d 01c0 	rdhwr	t4,hwr_userlocal
+ +[0-9a-f]+:	205d 01c0 	rdhwr	t4,userlocal
  +[0-9a-f]+:	0062 0000 	addiu	t5,t4,0
 			[0-9a-f]+: R_NANOMIPS_TLS_TPREL16	tlsvar_le
  +[0-9a-f]+:	13be      	move	sp,fp
