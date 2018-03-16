@@ -1,6 +1,7 @@
 /* Print nanoMIPS instructions for GDB, the GNU debugger, or for objdump.
    Copyright (C) 2018 Free Software Foundation, Inc.
    Contributed by MIPS Tech LLC.
+   Written by Faraz Shahbazker <faraz.shahbazker@mips.com>
 
    This file is part of the GNU opcodes library.
 

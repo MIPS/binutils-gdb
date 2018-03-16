@@ -1,6 +1,7 @@
 /* nanomips.h.  nanoMIPS opcode list for GDB, the GNU debugger.
    Copyright (C) 2018 Free Software Foundation, Inc.
    Contributed by MIPS Tech LLC.
+   Written by Faraz Shahbazker <faraz.shahbazker@mips.com>
 
    This file is part of GDB, GAS, and the GNU binutils.
 

@@ -1,5 +1,6 @@
-# Copyright (C) 2017 Free Software Foundation, Inc.
+# Copyright (C) 2018 Free Software Foundation, Inc.
 # Contributed by MIPS Tech LLC.
+# Written by Faraz Shahbazker <faraz.shahbazker@mips.com>
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -42,7 +43,7 @@
 
 
 # The functions below create and manipulate an "architecture data
-# array" which contains entries for each MIPS architecture (or CPU)
+# array" which contains entries for each nanoMIPS architecture (or CPU)
 # known to these tests.  The array contains the following information
 # for each architecture, indexed by the name of the architecture
 # described by the entry:
@@ -57,33 +58,7 @@
 # information about what instructions the CPU supports.  When matching
 # based on properties, an additional property is added to the normal
 # property list, "gpr<gprsize>" so that tests can match CPUs which
-# have GPRs of a specific size.  The following properties are most
-# useful when matching properties for generic (i.e., not CPU-specific)
-# tests:
-#
-#	mips1, mips2, mips3, mips4, mips5, mips32, mips64
-#		The architecture includes the instructions defined
-#		by that MIPS ISA.
-#
-#	fpisa3, fpisa4, fpisa5
-#		The architecture includes the floating-point
-#		instructions defined by that MIPS ISA.
-#
-#	gpr_ilocks
-#		The architecture interlocks GPRs accesses.  (That is,
-#		there are no load delay slots.)
-#
-#	mips3d	The architecture includes the MIPS-3D ASE.
-#
-#	ror	The architecture includes hardware rotate instructions.
-#
-#	gpr32, gpr64
-#		The architecture provides 32- or 64-bit General Purpose
-#		Registers.
-#
-#	singlefloat
-#		The CPU is 64 bit, but only supports 32 bit FPU.
-#
+# have GPRs of a specific size.
 #
 # as_flags: The assembler flags used when assembling tests for this
 # architecture.
@@ -772,7 +747,6 @@ if { [istarget nanomips*-*-*] } {
 				"LA with 64-bit addresses"
     }
 
-    # Start with MIPS II to avoid load delay nops.
     run_dump_test_arch "ld-reloc"	"-mlegacyregs" nanomips32s
 
     run_dump_test_arch "l_d-reloc" "" nanomips32r6
@@ -952,7 +926,6 @@ if { [istarget nanomips*-*-*] } {
 #     run_list_test "ase-errors-2" "-mabi=o64 -march=mips3" "ASE errors (2)"
 #     run_list_test "ase-errors-3" "-mabi=32 -march=mips1" "ASE errors (3)"
 #     run_list_test "ase-errors-4" "-mabi=o64 -march=mips3" "ASE errors (4)"
-
 
     run_dump_test_arches "ginv" "" [arch_list_matching nanomipsr6]
     run_dump_test_arches "ginv-dis" "" [arch_list_matching nanomipsr6]
