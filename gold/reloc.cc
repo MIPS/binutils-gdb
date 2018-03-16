@@ -453,12 +453,6 @@ Sized_relobj_file<size, big_endian>::do_scan_relocs(Symbol_table* symtab,
           if (p->output_section == NULL)
             continue;
         }
-
-      // Skip NOBITS section (this may happen if user marked this section as
-      // NOLOAD in the linker script).
-      if (p->output_section->type() == elfcpp::SHT_NOBITS)
-	continue;
-
       if (!parameters->options().relocatable())
 	{
 	  // As noted above, when not generating an object file, we

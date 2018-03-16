@@ -2151,11 +2151,8 @@ AArch64_relobj<size, big_endian>::text_section_is_scannable(
       || text_shdr.get_sh_type() != elfcpp::SHT_PROGBITS)
     return false;
 
-  // Skip any discarded or ICF'ed sections.  Also skip SHT_NOBITS
-  // sections (this may happen if user marked this section as NOLOAD
-  // in the linker script).
-  if (os == NULL || os->type() == elfcpp::SHT_NOBITS
-      || symtab->is_section_folded(this, text_shndx))
+  // Skip any discarded or ICF'ed sections.
+  if (os == NULL || symtab->is_section_folded(this, text_shndx))
     return false;
 
   // Skip exception frame.
