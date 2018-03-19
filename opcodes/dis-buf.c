@@ -104,3 +104,12 @@ generic_symbol_is_valid (asymbol * sym ATTRIBUTE_UNUSED,
 {
   return TRUE;
 }
+
+/* Just return size of previous instruction.  */
+
+int
+generic_predict_insn_length (bfd_vma addr ATTRIBUTE_UNUSED, int previous,
+			     struct disassemble_info *info ATTRIBUTE_UNUSED)
+{
+  return previous;
+}

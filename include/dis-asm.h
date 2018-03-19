@@ -220,6 +220,9 @@ typedef struct disassemble_info
      file being disassembled.  */
   bfd_vma stop_vma;
 
+  /* Predict the size of an instruction.  */
+  int (* predict_insn_length)
+    (bfd_vma, int,  struct disassemble_info *);
 } disassemble_info;
 
 /* This struct is used to pass information about valid disassembler options
@@ -335,6 +338,10 @@ extern int generic_symbol_at_address
 /* Also always true.  */
 extern bfd_boolean generic_symbol_is_valid
   (asymbol *, struct disassemble_info *);
+
+/* Generic insn length, returns 2nd argument.  */
+extern int generic_predict_insn_length
+  (bfd_vma, int, struct disassemble_info *);
 
 /* Method to initialize a disassemble_info struct.  This should be
    called by all applications creating such a struct.  */
