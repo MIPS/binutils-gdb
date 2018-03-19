@@ -41,6 +41,7 @@ init_disassemble_info (struct disassemble_info *info, void *stream,
   info->print_address_func = generic_print_address;
   info->symbol_at_address_func = generic_symbol_at_address;
   info->symbol_is_valid = generic_symbol_is_valid;
+  info->predict_insn_length = generic_predict_insn_length;
   info->display_endian = BFD_ENDIAN_UNKNOWN;
 }
 
