@@ -40,5 +40,5 @@
   <reg name="r30" bitsize="32"/>
   <reg name="r31" bitsize="32"/>
 
-  <reg name="pc" bitsize="32" regnum="37"/>
+  <reg name="pc" bitsize="32" regnum="35"/>
 </feature>
