@@ -45,8 +45,6 @@ struct nanomips_regnum
   int fp_control_status;
   int badvaddr;		/* Bad vaddr for addressing exception.  */
   int cause;		/* Describes last exception.  */
-  int hi;		/* Multiply/divide temp.  */
-  int lo;		/* ...  */
   int dspacc;		/* SmartMIPS/DSP accumulators.  */
   int dspctl;		/* DSP control.  */
 };
@@ -102,12 +100,10 @@ enum
   FP_REGNUM = 30,
   RA_REGNUM = 31,
   PS_REGNUM = 32,		/* Contains processor status.  */
-  EMBED_LO_REGNUM = 33,
-  EMBED_HI_REGNUM = 34,
-  EMBED_BADVADDR_REGNUM = 35,
-  EMBED_CAUSE_REGNUM = 36,
-  EMBED_PC_REGNUM = 37,
-  EMBED_FP0_REGNUM = 38,
+  EMBED_BADVADDR_REGNUM = 33,
+  EMBED_CAUSE_REGNUM = 34,
+  EMBED_PC_REGNUM = 35,
+  EMBED_FP0_REGNUM = 36,
   FIRST_EMBED_REGNUM = 74,	/* First CP0 register for embedded use.  */
   LAST_EMBED_REGNUM = 89	/* Last one.  */
 };
