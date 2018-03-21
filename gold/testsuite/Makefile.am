@@ -4366,19 +4366,19 @@ MOSTLYCLEANFILES += nanomips_gprel_out_of_range nanomips_gprel_nms_out_of_range
 
 # Test sorting small data section.
 
-check_SCRIPTS += nanomips_script_test.sh
-check_DATA += nanomips_script_test.stdout
+check_SCRIPTS += nanomips_sort_by_ref.sh
+check_DATA += nanomips_sort_by_ref.stdout
 
-nanomips_script_test.stdout: nanomips_script_test
+nanomips_sort_by_ref.stdout: nanomips_sort_by_ref
 	$(TEST_OBJDUMP) -D -j.sdata $< > $@
 
-nanomips_script_test: nanomips_script_test.o ../ld-new
-	../ld-new -T $(srcdir)/nanomips_script_test.t -relax -o $@ $<
+nanomips_sort_by_ref: nanomips_sort_by_ref.o ../ld-new
+	../ld-new -T $(srcdir)/nanomips_sort_by_ref.t --sort-by-reference=.sdata -relax -o $@ $<
 
-nanomips_script_test.o: nanomips_script_test.s
+nanomips_sort_by_ref.o: nanomips_sort_by_ref.s
 	$(TEST_AS) -EL -march=32r6s -m32 -o $@ $<
 
-MOSTLYCLEANFILES += nanomips_script_test
+MOSTLYCLEANFILES += nanomips_sort_by_ref
 
 # Test --finalize-pcrel-relocs option
 

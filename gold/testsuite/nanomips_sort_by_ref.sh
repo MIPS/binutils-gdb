@@ -1,9 +1,9 @@
 #!/bin/sh
 
-# nanomips_script_test.sh -- test sorting small data section.
+# nanomips_sort_by_ref.sh -- test sorting small data section.
 
-# Copyright (C) 2017 Free Software Foundation, Inc.
-# Written by Vladimir Radosavljevic <vladimir.radosavljevic@imgtec.com>.
+# Copyright (C) 2018 Free Software Foundation, Inc.
+# Written by Vladimir Radosavljevic <vladimir.radosavljevic@mips.com>.
 
 # This file is part of gold.
 
@@ -22,7 +22,7 @@
 # Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
 # MA 02110-1301, USA.
 
-# This file goes with nanomips_script_test.t and with nanomips_script_test.s.
+# This file goes with nanomips_sort_by_ref.t and with nanomips_sort_by_ref.s.
 
 check()
 {
@@ -38,15 +38,16 @@ check()
 }
 
 # Symbol d must be at the beginning of the section because it has been
-# read with lw[gp] instruction 2 times and 2 times with sw[gp] instruction.
-check nanomips_script_test.stdout "00410000 <d>"
-# Sumbol c has been read 2 times with lw[gp] instruction.  Note that we
-# don't take into account instruction where 5-bit register index can't
-# be abbreviated to 3 bits, and store instructions.
-check nanomips_script_test.stdout "00410004 <c>"
-# Symbol b has been read 1 time.
-check nanomips_script_test.stdout "00410008 <b>"
-# After most commonly read symbols with lw[gp] instruction, we place bytes,
-# halfwords and words.
-check nanomips_script_test.stdout "0041000c <a>"
-check nanomips_script_test.stdout "0041000e <e>"
+# referenced with lw[gp] instruction 2 times and 2 times with sw[gp]
+# instruction.
+check nanomips_sort_by_ref.stdout "00410000 <d>"
+# Sumbol c has been referenced 2 times with lw[gp] instruction.
+# Note that we don't take into account instruction where 5-bit
+# register index can't be abbreviated to 3 bits.
+check nanomips_sort_by_ref.stdout "00410004 <c>"
+# Symbol b has been referenced 1 time.
+check nanomips_sort_by_ref.stdout "00410008 <b>"
+# After most commonly referenced symbols, we place bytes, halfwords
+# and words.
+check nanomips_sort_by_ref.stdout "0041000c <a>"
+check nanomips_sort_by_ref.stdout "0041000e <e>"

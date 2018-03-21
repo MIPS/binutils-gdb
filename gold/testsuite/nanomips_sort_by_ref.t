@@ -1,7 +1,7 @@
-/* nanomips_script_test.t -- test sorting small data section.
+/* nanomips_sort_by_ref.t -- test sorting small data section.
 
-   Copyright (C) 2017 Free Software Foundation, Inc.
-   Written by Vladimir Radosavljevic <vladimir.radosavljevic@imgtec.com>.
+   Copyright (C) 2018 Free Software Foundation, Inc.
+   Written by Vladimir Radosavljevic <vladimir.radosavljevic@mips.com>.
 
    This file is part of gold.
 
@@ -27,9 +27,6 @@ SECTIONS
   .nanoMIPS.abiflags : { *(.nanoMIPS.abiflags) }
   .data : { *(.data) }
   . = 0x410000;
-  .sdata : {
-    *(.sdata)
-    *(SORT_BY_READ(.sdata.*))
-  }
+  .sdata : { *(.sdata .sdata.*) }
   .bss : { *(.bss) }
 }

@@ -1245,6 +1245,10 @@ class General_options
   DEFINE_bool(secure_plt, options::TWO_DASHES , '\0', true,
 	      N_("(PowerPC only) Use new-style PLT"), NULL);
 
+  DEFINE_set(sort_by_reference, options::TWO_DASHES, '\0',
+	     N_("(Nanomips only) Sort sections by reference."),
+	     N_("SECTION"));
+
   DEFINE_optional_string(sort_common, options::TWO_DASHES, '\0', NULL,
 			 N_("Sort common symbols by alignment"),
 			 N_("[={ascending,descending}]"));
