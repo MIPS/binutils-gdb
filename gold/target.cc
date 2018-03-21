@@ -26,7 +26,6 @@
 #include "symtab.h"
 #include "output.h"
 #include "target.h"
-#include "layout.h"
 
 namespace gold
 {
@@ -147,14 +146,6 @@ Target::do_make_output_section(const char* name, elfcpp::Elf_Word type,
 			       elfcpp::Elf_Xword flags)
 {
   return new Output_section(name, type, flags);
-}
-
-// Call layout to create the .eh_frame_hdr section if needed.
-
-void
-Target::do_make_eh_frame_header(Layout* layout, Symbol_table*)
-{
-  layout->make_eh_frame_hdr_section();
 }
 
 // Default for whether a reloc is a call to a non-split function is

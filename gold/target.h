@@ -373,11 +373,6 @@ class Target
 		      elfcpp::Elf_Xword flags)
   { return this->do_make_output_section(name, type, flags); }
 
-  // Make the .eh_frame_hdr section.
-  void
-  make_eh_frame_header(Layout* layout, Symbol_table* symtab)
-  { this->do_make_eh_frame_header(layout, symtab); }
-
   // Return true if target wants to perform relaxation.
   bool
   may_relax() const
@@ -738,10 +733,6 @@ class Target
   virtual Output_section*
   do_make_output_section(const char* name, elfcpp::Elf_Word type,
 			 elfcpp::Elf_Xword flags);
-
-  // Virtual functions which may be overridden by the child class.
-  virtual void
-  do_make_eh_frame_header(Layout* layout, Symbol_table* symtab);
 
   // Virtual function which may be overridden by the child class.
   virtual bool

@@ -28,7 +28,6 @@
 #include "demangle.h"
 
 #include "elfcpp.h"
-#include "dwarf.h"
 #include "parameters.h"
 #include "reloc.h"
 #include "nanomips.h"
@@ -127,250 +126,6 @@ struct Nanomips_abiflags
   // Mask of general flags.
   Valtype32 flags1;
   Valtype32 flags2;
-};
-
-// Nanomips_eh_frame_entry class.  This represents an .eh_frame_entry
-// input section.
-
-class Nanomips_eh_frame_entry
-{
- public:
-  Nanomips_eh_frame_entry(Relobj* relobj, unsigned int shndx,
-                          unsigned int text_shndx, uint64_t size,
-                          uint64_t addralign, uint64_t text_size)
-    : relobj_(relobj), shndx_(shndx), text_shndx_(text_shndx), size_(size),
-      addralign_(addralign), text_size_(text_size), has_errors_(false)
-  { }
-
-  ~Nanomips_eh_frame_entry()
-  { }
-
-  // Accessors:  This is a read-only class.
-
-  // Return the object containing this .eh_frame_entry input section.
-  Relobj*
-  relobj() const
-  { return this->relobj_; }
-
-  // Return the section index of this .eh_frame_entry input section.
-  unsigned int
-  shndx() const
-  { return this->shndx_; }
-
-  // Return size of the .eh_frame_entry input section.
-  uint64_t
-  size() const
-  { return this->size_; }
-
-  // Return the section index of associated text section in the same object.
-  unsigned int
-  text_shndx() const
-  { return this->text_shndx_; }
-
-  // Return size of the associated text input section.
-  uint64_t
-  text_size() const
-  { return this->text_size_; }
-
-  // Return address alignment of .eh_frame_entry input section.
-  uint64_t
-  addralign() const
-  { return this->addralign_; }
-
-  // Whether there are any errors in the .eh_frame_entry input section.
-  bool
-  has_errors() const
-  { return this->has_errors_; }
-
-  // Set has-errors flag.
-  void
-  set_has_errors()
-  { this->has_errors_ = true; }
-
- private:
-  // Object containing this.
-  Relobj* relobj_;
-  // Section index of this.
-  unsigned int shndx_;
-  // Associated text section to this in the same object.
-  unsigned int text_shndx_;
-  // Size of this.
-  uint64_t size_;
-  // Address alignment of this.
-  uint64_t addralign_;
-  // Size of associated text section.
-  uint64_t text_size_;
-  // Whether this has any errors.
-  bool has_errors_;
-};
-
-// This class handles Compact EH Frame Header.
-
-class Nanomips_compact_eh_hdr : public Output_section_data
-{
- public:
-  Nanomips_compact_eh_hdr()
-    : Output_section_data(8, 4, true)
-  { }
-
- protected:
-  // Write to a map file.
-  void
-  do_print_to_mapfile(Mapfile* mapfile) const
-  { mapfile->print_output_data(this, _("** Compact EH Frame Header")); }
-
-  void
-  do_write(Output_file* of)
-  {
-    if (parameters->target().is_big_endian())
-      this->do_fixed_endian_write<true>(of);
-    else
-      this->do_fixed_endian_write<false>(of);
-  }
-
- private:
-  // Implement do_write for a given endianness.
-  template<bool big_endian>
-  void inline
-  do_fixed_endian_write(Output_file* of);
-};
-
-// Nanomips_eh_frame_entry_cantunwind class.  This represents .eh_frame_entry
-// input section with a CANTUNWIND terminator that goes into the output
-// .eh_frame_hdr section.
-
-template<int size, bool big_endian>
-class Nanomips_eh_frame_entry_cantunwind : public Output_relaxed_input_section
-{
- public:
-  Nanomips_eh_frame_entry_cantunwind(const Nanomips_eh_frame_entry* entry)
-   : Output_relaxed_input_section(entry->relobj(), entry->shndx(),
-                                  entry->addralign()),
-    eh_frame_entry_(entry), section_contents_(NULL)
- { }
-
-  // Initialize.
-  void
-  init();
-
- protected:
-  // Write data to output file.
-  void
-  do_write(Output_file* of);
-
-  // Output offset.
-  bool
-  do_output_offset(const Relobj* object, unsigned int shndx,
-                   section_offset_type offset,
-                   section_offset_type* poutput) const
-  {
-    section_offset_type section_size =
-      convert_types<section_offset_type>(this->eh_frame_entry_->size());
-
-    if ((object == this->relobj())
-        && (shndx == this->shndx())
-        && (offset >= 0)
-        && (offset <= section_size))
-      {
-        *poutput = offset;
-         return true;
-      }
-    else
-      return false;
-  }
-
- private:
-  // Information about this .eh_frame_entry input section.
-  const Nanomips_eh_frame_entry* eh_frame_entry_;
-  // Contents of the input .eh_frame_entry section.
-  unsigned char* section_contents_;
-};
-
-// Nanomips output section class.  This is defined mainly to finalize
-// .eh_frame_entry sections in .eh_frame_hdr output section.
-
-template<int size, bool big_endian>
-class Nanomips_output_section : public Output_section
-{
- public:
-  Nanomips_output_section(const char* name, elfcpp::Elf_Word type,
-                          elfcpp::Elf_Xword flags)
-    : Output_section(name, type, flags)
-  {
-    if (strcmp(name, ".eh_frame_hdr") == 0)
-      this->set_always_keeps_input_sections();
-  }
-
-  ~Nanomips_output_section()
-  { }
-
-  // Go over all input .eh_frame_entry sections and sort them in ascending
-  // order of output addresses of their associated text sections.
-  // Also, discard them if needed.
-  void
-  finalize_eh_frame_entries(Layout*, Symbol_table*, const Task*);
-
- private:
-  // For convenience.
-  typedef Output_section::Input_section Input_section;
-  typedef Output_section::Input_section_list Input_section_list;
-
-  // Add a CANTUNWIND terminator.
-  void
-  add_cantunwind(Layout*, const Nanomips_eh_frame_entry*, const Task*);
-
-  // This class is used to sort the .eh_frame_entry sections.
-  class Nanomips_eh_frame_sort_entry
-  {
-   public:
-    Nanomips_eh_frame_sort_entry(const Input_section& input_section,
-                                 const Nanomips_eh_frame_entry* entry,
-                                 uint64_t text_addr)
-      : input_section_(input_section), entry_(entry), text_addr_(text_addr)
-    { }
-
-    // Return the Input_section.
-    const Input_section&
-    input_section() const
-    { return this->input_section_; }
-
-    // Return the information about an .eh_frame_entry input section.
-    const Nanomips_eh_frame_entry*
-    entry() const
-    { return this->entry_; }
-
-    // Return the address of the associated text input section.
-    uint64_t
-    text_addr() const
-    { return this->text_addr_; }
-
-    // Return the size of the associated text input section.
-    uint64_t
-    text_size() const
-    { return this->entry_->text_size(); }
-
-   private:
-    // The Input_section we are sorting.
-    Input_section input_section_;
-    // Information about an .eh_frame_entry input section.
-    const Nanomips_eh_frame_entry* entry_;
-    // Address of the associated text input section.
-    uint64_t text_addr_;
-  };
-
-  // This is the sort comparison function for .eh_frame_entry sections.
-  // We are sorting them in ascending order of output addresses of their
-  // associated text sections.
-  struct Nanomips_eh_frame_sort
-  {
-    bool
-    operator()(const Nanomips_eh_frame_sort_entry& s1,
-               const Nanomips_eh_frame_sort_entry& s2) const
-    {
-      gold_assert(s1.text_addr() != s2.text_addr());
-      return s1.text_addr() < s2.text_addr();
-    }
-  };
 };
 
 // This struct represents a .nanoMIPS.stubs footer.
@@ -653,8 +408,7 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
     : Sized_relobj_file<size, big_endian>(name, input_file, offset, ehdr),
       input_section_ref_(), local_symbol_size_(), local_symbol_is_function_(),
       processor_specific_flags_(0), merge_processor_specific_data_(true),
-      output_local_symbol_count_needs_update_(false),
-      attributes_section_data_(NULL), abiflags_(NULL), eh_frame_entries_()
+      attributes_section_data_(NULL), abiflags_(NULL)
   { }
 
   ~Nanomips_relobj()
@@ -761,30 +515,6 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
     return 0;
   }
 
-  // Return the .eh_frame_entry section with index SHNDX or NULL
-  // if there is none.
-  const Nanomips_eh_frame_entry*
-  eh_frame_entry_section(unsigned shndx) const
-  {
-    Nanomips_eh_frame_entries::const_iterator p =
-      this->eh_frame_entries_.find(shndx);
-    return (p != this->eh_frame_entries_.end() ? p->second : NULL);
-  }
-
-  // Whether output local symbol count needs updating.
-  bool
-  output_local_symbol_count_needs_update() const
-  { return this->output_local_symbol_count_needs_update_; }
-
-  // Set output_local_symbol_count_needs_update flag to be true.
-  void
-  set_output_local_symbol_count_needs_update()
-  { this->output_local_symbol_count_needs_update_ = true; }
-
-  // Update output local symbol count.
-  void
-  update_output_local_symbol_count();
-
   // Return whether we want to merge processor-specific data.
   bool
   merge_processor_specific_data() const
@@ -844,28 +574,7 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   void
   do_read_symbols(Read_symbols_data* sd);
 
-  // Process relocs for garbage collection.
-  void
-  do_gc_process_relocs(Symbol_table*, Layout*, Read_relocs_data*);
-
  private:
-  // Find the associated text section of an .eh_frame_entry section by looking
-  // at the first relocation of the .eh_frame_entry section.  PSHDR points to
-  // the section headers of a relocation section and PSYMS points to the local
-  // symbols.  Return the index of the associated text section or SHN_UNDEF if
-  // we can't find it.
-  unsigned int
-  find_associated_text_section(const unsigned char*, const unsigned char*);
-
-  // Make a new Nanomips_eh_frame_entry object for .eh_frame_entry section with
-  // index SHNDX and section header SHDR.  TEXT_SHNDX is the section index of
-  // the associated text section.
-  void
-  make_eh_frame_entry_section(unsigned int,
-                              const elfcpp::Shdr<size, big_endian>&,
-                              unsigned int,
-                              const elfcpp::Shdr<size, big_endian>&);
-
   // Whether a section needs to be scanned for relocation relaxations
   // or expansions.
   bool
@@ -877,9 +586,6 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   bool
   section_is_scannable(const elfcpp::Shdr<size, big_endian>&, unsigned int,
                        const Output_section*, const Symbol_table*);
-
-  typedef Unordered_map<unsigned int, const Nanomips_eh_frame_entry*>
-      Nanomips_eh_frame_entries;
 
   // A map to track the number of how many times input section has ref
   // read with lw[gp]/sw[gp] instruction.
@@ -897,17 +603,11 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   // Whether we merge processor-specific data of this object to output.
   bool merge_processor_specific_data_;
 
-  // Whether output local symbol count needs updating.
-  bool output_local_symbol_count_needs_update_;
-
   // Object attributes if there is a .gnu.attributes section or NULL.
   Attributes_section_data* attributes_section_data_;
 
   // Object abiflags if there is a .nanoMIPS.abiflags section or NULL.
   Nanomips_abiflags<big_endian>* abiflags_;
-
-  // .eh_frame_entry sections in this object file.
-  Nanomips_eh_frame_entries eh_frame_entries_;
 };
 
 // A class to wrap an ordinary input section.
@@ -1029,6 +729,12 @@ class Nanomips_input_section : public Output_relaxed_input_section
   Conditional_branches*
   branches()
   { return &this->cond_branches_; }
+
+  // Downcast a base pointer to a Mips_input_section pointer.  This is
+  // not type-safe but we only use Mips_input_section not the base class.
+  static const Nanomips_input_section*
+  as_nanomips_input_section(const Output_relaxed_input_section* poris)
+  { return static_cast<const Nanomips_input_section*>(poris); }
 
  protected:
   // Write out this input section.
@@ -1509,8 +1215,8 @@ class Target_nanomips : public Sized_target<size, big_endian>
   Target_nanomips(const Target::Target_info* info = &nanomips_info)
     : Sized_target<size, big_endian>(info), state_(EXPAND), got_(NULL),
       stubs_(NULL), rel_dyn_(NULL), nanomips_input_section_map_(), gp_(NULL),
-      attributes_section_data_(NULL), abiflags_(NULL), eh_frame_hdr_(NULL),
-      layout_(NULL), has_abiflags_section_(false)
+      attributes_section_data_(NULL), abiflags_(NULL), layout_(NULL),
+      has_abiflags_section_(false)
   { }
 
   // Make a new symbol table entry for the Nanomips target.
@@ -1573,12 +1279,6 @@ class Target_nanomips : public Sized_target<size, big_endian>
   // instructions.
   bool
   do_relax(int, const Input_objects*, Symbol_table*, Layout*, const Task*);
-
-  // Add Compact EH Frame Header to .eh_frame_hdr section if there is one.
-  // Also initialize __GNU_EH_FRAME_HDR symbol to the location of Compact EH
-  // Frame Header and create PT_GNU_EH_FRAME segment if needed.
-  void
-  do_make_eh_frame_header(Layout* layout, Symbol_table* symtab);
 
   // Relocate conditional branches.  This is only used if we have transformed
   // conditional branch into opposite branch and bc instruction in a relaxation
@@ -1750,29 +1450,6 @@ class Target_nanomips : public Sized_target<size, big_endian>
   do_make_elf_object(const std::string&, Input_file*, off_t,
                      const elfcpp::Ehdr<size, big_endian>&);
 
-  // Make an output section.
-  Output_section*
-  do_make_output_section(const char* name, elfcpp::Elf_Word type,
-                         elfcpp::Elf_Xword flags)
-  { return new Nanomips_output_section<size, big_endian>(name, type, flags); }
-
-  // Virtual function which is set to return true by a target if
-  // it can use relocation types to determine if a function's
-  // pointer is taken.
-  bool
-  do_can_check_for_function_pointers() const
-  { return true; }
-
-  // Whether a section called SECTION_NAME may have function pointers to
-  // sections not eligible for safe ICF folding.
-  bool
-  do_section_may_have_icf_unsafe_pointers(const char* section_name) const
-  {
-    return (!is_prefix_of(".eh_frame_entry", section_name)
-            && !is_prefix_of(".gnu_extab", section_name)
-            && Target::do_section_may_have_icf_unsafe_pointers(section_name));
-  }
-
  private:
   // The class which scans relocations.
   class Scan
@@ -1867,24 +1544,6 @@ class Target_nanomips : public Sized_target<size, big_endian>
     Valtype calculated_value_;
     // Whether we have to calculate relocation instead of applying it.
     bool calculate_only_;
-  };
-
-  class Relocate_comdat_behavior
-  {
-   public:
-    // Decide what the linker should do for relocations that refer to
-    // discarded comdat sections.
-    inline Comdat_behavior
-    get(const char* name)
-    {
-      gold::Default_comdat_behavior default_behavior;
-      Comdat_behavior ret = default_behavior.get(name);
-      if (ret == CB_WARNING
-          && (is_prefix_of(".eh_frame_entry", name)
-              || is_prefix_of(".gnu_extab", name)))
-        ret = CB_IGNORE;
-      return ret;
-    }
   };
 
   enum Nanomips_mach {
@@ -2016,8 +1675,6 @@ class Target_nanomips : public Sized_target<size, big_endian>
   Attributes_section_data* attributes_section_data_;
   // .nanoMIPS.abiflags section data in output.
   Nanomips_abiflags<big_endian>* abiflags_;
-  // .eh_frame_hdr output section that contains .eh_frame_entry sections.
-  Nanomips_output_section<size, big_endian>* eh_frame_hdr_;
   // The layout.
   Layout* layout_;
   // Whether there is an input .nanoMIPS.abiflags section.
@@ -2831,155 +2488,6 @@ Nanomips_relobj<size, big_endian>::local_symbol_name(
   return std::string(pnames + sym.get_st_name());
 }
 
-// Update output local symbol count.  We can only change the static output
-// local symbol count.  It is too late to change the dynamic symbols.
-
-template<int size, bool big_endian>
-void
-Nanomips_relobj<size, big_endian>::update_output_local_symbol_count()
-{
-  // Caller should check that this needs updating.
-  gold_assert(this->output_local_symbol_count_needs_update_);
-
-  const unsigned int loccount = this->local_symbol_count();
-  if (loccount == 0)
-    return;
-
-  // Loop over the local symbols.
-
-  typedef typename Sized_relobj<size, big_endian>::Output_sections
-      Output_sections;
-  const Output_sections& out_sections(this->output_sections());
-  unsigned int shnum = this->shnum();
-  unsigned int count = 0;
-  typename Sized_relobj_file<size, big_endian>::Local_values* plocal_values =
-    this->local_values();
-  for (unsigned int i = 1; i < loccount; ++i)
-    {
-      Symbol_value<size>& lv((*plocal_values)[i]);
-
-      // This local symbol was already discarded by do_count_local_symbols.
-      if (lv.is_output_symtab_index_set() && !lv.has_output_symtab_entry())
-        continue;
-
-      bool is_ordinary;
-      unsigned int shndx = lv.input_shndx(&is_ordinary);
-
-      if (shndx < shnum)
-        {
-          Output_section* os = out_sections[shndx];
-
-          // This local symbol no longer has an output section.  Discard it.
-          if (os == NULL)
-            {
-              lv.set_no_output_symtab_entry();
-              continue;
-            }
-        }
-
-      ++count;
-    }
-
-  this->set_output_local_symbol_count(count);
-  this->output_local_symbol_count_needs_update_ = false;
-}
-
-// Find the associated text section of an .eh_frame_entry section by looking
-// at the first relocation of the .eh_frame_entry section.  PSHDR points to
-// the section headers of a relocation section and PSYMS points to the local
-// symbols.  Return the index of the associated text section or SHN_UNDEF if
-// we can't find it.
-
-template<int size, bool big_endian>
-unsigned int
-Nanomips_relobj<size, big_endian>::find_associated_text_section(
-    const unsigned char* pshdr,
-    const unsigned char* psyms)
-{
-  unsigned int text_shndx = elfcpp::SHN_UNDEF;
-  elfcpp::Shdr<size, big_endian> shdr(pshdr);
-
-  // If there is no relocation, we cannot find the associated text section.
-  size_t reloc_count = shdr.get_sh_size() / elfcpp::Elf_sizes<size>::rela_size;
-  if (reloc_count == 0)
-    return text_shndx;
-
-  // Get the relocations.
-  const unsigned char* prelocs =
-    this->get_view(shdr.get_sh_offset(), shdr.get_sh_size(), true, false);
-
-  // Only check first relocation.
-  const elfcpp::Rela<size, big_endian> reloc(prelocs);
-  Address r_offset = reloc.get_r_offset();
-  unsigned int r_sym = elfcpp::elf_r_sym<size>(reloc.get_r_info());
-  unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
-
-  if (r_type != elfcpp::R_NANOMIPS_PC32
-      || r_sym == 0
-      || r_sym >= this->local_symbol_count()
-      || r_offset != 0)
-    return text_shndx;
-
-  // Find the associated text section.
-  const int sym_size = elfcpp::Elf_sizes<size>::sym_size;
-  elfcpp::Sym<size, big_endian> sym(psyms + r_sym * sym_size);
-  bool is_ordinary;
-
-  text_shndx =
-    this->adjust_sym_shndx(r_sym, sym.get_st_shndx(), &is_ordinary);
-  gold_assert(is_ordinary);
-
-  return text_shndx;
-}
-
-// Make a new Nanomips_eh_frame_entry object for .eh_frame_entry section with
-// index SHNDX and section header SHDR.  TEXT_SHNDX is the section index of
-// the associated text section.
-
-template<int size, bool big_endian>
-void
-Nanomips_relobj<size, big_endian>::make_eh_frame_entry_section(
-    unsigned int shndx,
-    const elfcpp::Shdr<size, big_endian>& shdr,
-    unsigned int text_shndx,
-    const elfcpp::Shdr<size, big_endian>& text_shdr)
-{
-  // Create an Nanomips_eh_frame_entry object for this .eh_frame_entry section.
-  Nanomips_eh_frame_entry* eh_frame_entry =
-    new Nanomips_eh_frame_entry(this, shndx, text_shndx, shdr.get_sh_size(),
-                                shdr.get_sh_addralign(),
-                                text_shdr.get_sh_size());
-
-  gold_assert(this->eh_frame_entries_[shndx] == NULL);
-  this->eh_frame_entries_[shndx] = eh_frame_entry;
-
-  if (text_shndx == elfcpp::SHN_UNDEF || text_shndx >= this->shnum())
-    {
-      gold_error(_(".eh_frame_entry section %s(%u) points to invalid section "
-                   "%u in %s"),
-                 this->section_name(shndx).c_str(), shndx, text_shndx,
-                 this->name().c_str());
-      eh_frame_entry->set_has_errors();
-    }
-
-  // Check section flags of text section.
-  if ((text_shdr.get_sh_flags() & elfcpp::SHF_ALLOC) == 0)
-    {
-      gold_error(_(".eh_frame_entry section %s(%u) points to non-allocated "
-                   "section %s(%u) in %s"),
-                 this->section_name(shndx).c_str(), shndx,
-                 this->section_name(text_shndx).c_str(), text_shndx,
-                 this->name().c_str());
-      eh_frame_entry->set_has_errors();
-    }
-  if ((text_shdr.get_sh_flags() & elfcpp::SHF_EXECINSTR) == 0)
-    gold_warning(_(".eh_frame_entry section %s(%u) points to non-executable "
-                   "section %s(%u) in %s"),
-                 this->section_name(shndx).c_str(), shndx,
-                 this->section_name(text_shndx).c_str(), text_shndx,
-                 this->name().c_str());
-}
-
 // Whether a section is a scannable for instruction transformations.
 
 template<int size, bool big_endian>
@@ -3286,28 +2794,19 @@ Nanomips_relobj<size, big_endian>::do_read_symbols(Read_symbols_data* sd)
   elfcpp::Ehdr<size, big_endian> ehdr(pehdr);
   this->processor_specific_flags_ = ehdr.get_e_flags();
 
-  // Get the section names.
-  const unsigned char* pnamesu = sd->section_names->data();
-  const char* pnames = reinterpret_cast<const char*>(pnamesu);
-
   const size_t shdr_size = elfcpp::Elf_sizes<size>::shdr_size;
   const unsigned char* pshdrs = sd->section_headers->data();
   const unsigned char* ps = pshdrs + shdr_size;
   bool must_merge_processor_specific_data = false;
 
-  typedef Unordered_map<unsigned int, unsigned int> Reloc_map;
-  Reloc_map reloc_map;
-  std::vector<unsigned int> eh_frame_entry_sections;
-
   for (unsigned int i = 1; i < this->shnum(); ++i, ps += shdr_size)
     {
       elfcpp::Shdr<size, big_endian> shdr(ps);
-      elfcpp::Elf_Word sh_type = shdr.get_sh_type();
 
       // Sometimes an object has no contents except the section name string
       // table and an empty symbol table with the undefined symbol.  We
       // don't want to merge processor-specific data from such an object.
-      if (sh_type == elfcpp::SHT_SYMTAB)
+      if (shdr.get_sh_type() == elfcpp::SHT_SYMTAB)
         {
           // Symbol table is not empty.
           const typename elfcpp::Elf_types<size>::Elf_WXword sym_size =
@@ -3315,12 +2814,12 @@ Nanomips_relobj<size, big_endian>::do_read_symbols(Read_symbols_data* sd)
           if (shdr.get_sh_size() > sym_size)
             must_merge_processor_specific_data = true;
         }
-      else if (sh_type != elfcpp::SHT_STRTAB)
+      else if (shdr.get_sh_type() != elfcpp::SHT_STRTAB)
         // If this is neither an empty symbol table nor a string table,
         // be conservative.
         must_merge_processor_specific_data = true;
 
-      if (sh_type == elfcpp::SHT_GNU_ATTRIBUTES)
+      if (shdr.get_sh_type() == elfcpp::SHT_GNU_ATTRIBUTES)
         {
           gold_assert(this->attributes_section_data_ == NULL);
           section_offset_type section_offset = shdr.get_sh_offset();
@@ -3331,7 +2830,8 @@ Nanomips_relobj<size, big_endian>::do_read_symbols(Read_symbols_data* sd)
           this->attributes_section_data_ =
             new Attributes_section_data(view, section_size);
         }
-      else if (sh_type == elfcpp::SHT_NANOMIPS_ABIFLAGS)
+
+      if (shdr.get_sh_type() == elfcpp::SHT_NANOMIPS_ABIFLAGS)
         {
           gold_assert(this->abiflags_ == NULL);
           section_offset_type section_offset = shdr.get_sh_offset();
@@ -3372,355 +2872,11 @@ Nanomips_relobj<size, big_endian>::do_read_symbols(Read_symbols_data* sd)
           this->abiflags_->flags2 =
             elfcpp::Swap<32, big_endian>::readval(view + 20);
         }
-      else if (sh_type == elfcpp::SHT_RELA)
-        {
-          unsigned int info_shndx = this->adjust_shndx(shdr.get_sh_info());
-          if (info_shndx >= this->shnum())
-            gold_error(_("relocation section %u has invalid info %u"),
-                       i, info_shndx);
-          std::pair<Reloc_map::iterator, bool> result =
-            reloc_map.insert(std::make_pair(info_shndx, i));
-          if (!result.second)
-            gold_error(_("section %u has multiple relocation sections "
-                         "%u and %u"),
-                       info_shndx, i, reloc_map[info_shndx]);
-        }
-
-      const char* name = pnames + shdr.get_sh_name();
-      if (is_prefix_of(".eh_frame_entry", name))
-        eh_frame_entry_sections.push_back(i);
     }
 
   // This is rare.
   if (!must_merge_processor_specific_data)
-    {
-      gold_assert(eh_frame_entry_sections.empty());
-      this->merge_processor_specific_data_ = false;
-      return;
-    }
-
-  // Don't do anything if there are no .eh_frame_entry sections.
-  if (eh_frame_entry_sections.empty())
-    return;
-
-  // Read the symbol table section header.
-  const unsigned int symtab_shndx = this->symtab_shndx();
-  elfcpp::Shdr<size, big_endian>
-      symtabshdr(this, this->elf_file()->section_header(symtab_shndx));
-  gold_assert(symtabshdr.get_sh_type() == elfcpp::SHT_SYMTAB);
-
-  // Read the local symbols.
-  const int sym_size = elfcpp::Elf_sizes<size>::sym_size;
-  const unsigned int loccount = this->local_symbol_count();
-  gold_assert(loccount == symtabshdr.get_sh_info());
-  off_t locsize = loccount * sym_size;
-  const unsigned char* psyms = this->get_view(symtabshdr.get_sh_offset(),
-                                              locsize, true, true);
-
-  // Find the associated text section for .eh_frame_entry section.
-  for (size_t i = 0; i < eh_frame_entry_sections.size(); ++i)
-    {
-      unsigned int shndx = eh_frame_entry_sections[i];
-      unsigned int text_shndx = elfcpp::SHN_UNDEF;
-      Reloc_map::const_iterator it = reloc_map.find(shndx);
-      if (it != reloc_map.end())
-        text_shndx =
-          this->find_associated_text_section(pshdrs + it->second * shdr_size,
-                                             psyms);
-
-      elfcpp::Shdr<size, big_endian> shdr(pshdrs + shndx * shdr_size);
-      elfcpp::Shdr<size, big_endian> text_shdr(pshdrs + text_shndx * shdr_size);
-      this->make_eh_frame_entry_section(shndx, shdr, text_shndx, text_shdr);
-    }
-}
-
-// Process relocations for garbage collection.  The nanoMIPS target uses
-// .eh_frame_entry sections for unwinding.  These sections are referenced
-// implicitly by text sections.  If we ignore these implicit references,
-// the .eh_frame_entry sections and any .gnu.extab sections they use will
-// be garbage-collected incorrectly.  Hence we override the same function
-// in the base class to handle these implicit references.
-
-template<int size, bool big_endian>
-void
-Nanomips_relobj<size, big_endian>::do_gc_process_relocs(Symbol_table* symtab,
-                                                        Layout* layout,
-                                                        Read_relocs_data* rd)
-{
-  // First, call base class method to process relocations in this object.
-  Sized_relobj_file<size, big_endian>::do_gc_process_relocs(symtab, layout, rd);
-
-  // If --gc-sections is not specified, there is nothing more to do.
-  // This happens when --icf is used but --gc-sections is not.
-  if (!parameters->options().gc_sections())
-    return;
-
-  unsigned int shnum = this->shnum();
-  for (unsigned int i = 1; i < shnum; ++i)
-    {
-      const Nanomips_eh_frame_entry* eh_frame_entry =
-        this->eh_frame_entry_section(i);
-
-      if (eh_frame_entry != NULL)
-        {
-          unsigned int text_shndx = eh_frame_entry->text_shndx();
-          symtab->gc()->add_reference(this, text_shndx, this, i);
-        }
-    }
-}
-// Nanomips_compact_eh_hdr methods.
-
-// Implement do_write for a given endianness.
-
-template<bool big_endian>
-void inline
-Nanomips_compact_eh_hdr::do_fixed_endian_write(Output_file* of)
-{
-  off_t offset = this->offset();
-  off_t data_size = this->data_size();
-  unsigned char* view = of->get_output_view(offset, data_size);
-
-  // Version number.
-  view[0] = 2;
-
-  // Write out an encoding.
-  view[1] = (elfcpp::DW_EH_PE_pcrel | elfcpp::DW_EH_PE_sdata4);
-
-  // 2 bytes of alignment padding initialized to 0.
-  view[2] = 0;
-  view[3] = 0;
-
-  // Write a number of index table entries.
-  typedef typename elfcpp::Swap<32, big_endian>::Valtype Valtype32;
-  Valtype32 entries = (this->output_section()->data_size() - 8) / 8;
-  elfcpp::Swap<32, big_endian>::writeval(view + 4, entries);
-
-  of->write_output_view(offset, data_size, view);
-}
-
-// Nanomips_eh_frame_entry_cantunwind methods.
-
-// Initialize a Nanomips_eh_frame_entry_cantunwind section.
-
-template<int size, bool big_endian>
-void
-Nanomips_eh_frame_entry_cantunwind<size, big_endian>::init()
-{
-  section_size_type section_size;
-  const unsigned char* section_contents =
-    this->relobj()->section_contents(this->shndx(), &section_size, false);
-
-  // Add space for CANTUNWIND terminator.
-  section_size_type new_size = section_size + 8;
-  gold_assert(this->eh_frame_entry_->size() == section_size);
-
-  // Copy content from input section.
-  gold_assert(this->section_contents_ == NULL);
-  this->section_contents_ = new unsigned char[new_size];
-  memcpy(this->section_contents_, section_contents, section_size);
-
-  // Fix size here so that we do not need to implement set_final_data_size.
-  this->set_data_size(new_size);
-  this->fix_data_size();
-}
-
-// Write data to output file.
-
-template<int size, bool big_endian>
-void
-Nanomips_eh_frame_entry_cantunwind<size, big_endian>::do_write(Output_file* of)
-{
-  off_t offset = this->offset();
-  off_t data_size = this->data_size();
-  unsigned char* view = of->get_output_view(offset, data_size);
-
-  Relobj* relobj = this->eh_frame_entry_->relobj();
-  unsigned int text_shndx = this->eh_frame_entry_->text_shndx();
-  Output_section* os = relobj->output_section(text_shndx);
-  gold_assert(os != NULL);
-
-  typedef typename elfcpp::Elf_types<size>::Elf_Addr Address;
-  Nanomips_relobj<size, big_endian>* nanomips_relobj =
-    Nanomips_relobj<size, big_endian>::as_nanomips_relobj(relobj);
-  Address output_offset =
-    nanomips_relobj->get_output_section_offset(text_shndx);
-  Address section_start;
-  section_size_type section_size;
-
-  const Address invalid_address = static_cast<Address>(0) - 1;
-  // Find out the end of the text section referred by this.
-  if (output_offset != invalid_address)
-    {
-      section_start = os->address() + output_offset;
-      section_size =
-        convert_to_section_size_type(this->eh_frame_entry_->text_size());
-    }
-  else
-    {
-      // Currently this only happens for a relaxed section.
-      const Output_relaxed_input_section* poris =
-        os->find_relaxed_input_section(relobj, text_shndx);
-      gold_assert(poris != NULL);
-      section_start = poris->address();
-      section_size = convert_to_section_size_type(poris->data_size());
-    }
-
-  // Write out the input section content.
-  off_t orig_size = this->eh_frame_entry_->size();
-  of->write(offset, this->section_contents_, orig_size);
-
-  typedef typename elfcpp::Swap<size, big_endian>::Valtype Valtype;
-  typedef Nanomips_relocate_functions<size, big_endian> Reloc_funcs;
-  typename Reloc_funcs::Status reloc_status = Reloc_funcs::STATUS_OKAY;
-
-  // Calculate the offset.
-  Address output_address = section_start + section_size;
-  Valtype value = output_address - (this->address() + orig_size);
-  reloc_status = Reloc_funcs::relpc32(view + orig_size, value, true);
-
-  if (reloc_status == Reloc_funcs::STATUS_OVERFLOW)
-    gold_error(_("PC32 overflow in CANTUNWIND entry"));
-
-  // Write out the CANTUNWIND terminator.
-  elfcpp::Swap<32, big_endian>::writeval(view + orig_size + 4,
-                                         elfcpp::COMPACT_EH_CANT_UNWIND);
-
-  of->write_output_view(this->offset(), data_size, view);
-}
-
-// Nanomips_output_section methods.
-
-// Go over all input .eh_frame_entry sections and sort them in ascending
-// order of output addresses of their associated text sections.
-// Also, discard them if needed.
-
-template<int size, bool big_endian>
-void
-Nanomips_output_section<size, big_endian>::finalize_eh_frame_entries(
-    Layout* layout,
-    Symbol_table* symtab,
-    const Task* task)
-{
-  gold_assert(strcmp(this->name(), ".eh_frame_hdr") == 0);
-
-  // We don't want the relaxation loop to undo these changes, so we discard
-  // the current saved states and take another one after the fix-up.
-  this->discard_states();
-
-  // Remove all input sections.
-  uint64_t address = this->address();
-  typedef std::list<Input_section> Input_section_list;
-  Input_section_list input_sections;
-  this->reset_address_and_file_offset();
-  this->get_input_sections(address, std::string(""), &input_sections);
-
-  std::vector<Nanomips_eh_frame_sort_entry> sort_list;
-  for (Input_section_list::const_iterator p = input_sections.begin();
-       p != input_sections.end();
-       ++p)
-    {
-      // This should never happen.  At this point, we should only see
-      // plain input sections.
-      gold_assert(!p->is_relaxed_input_section());
-
-      Nanomips_relobj<size, big_endian>* relobj =
-        Nanomips_relobj<size, big_endian>::as_nanomips_relobj(p->relobj());
-      unsigned int shndx = p->shndx();
-      const Nanomips_eh_frame_entry* eh_frame_entry =
-        relobj->eh_frame_entry_section(shndx);
-
-      if (eh_frame_entry == NULL)
-        {
-          gold_error(_("Found %s:%s in .eh_frame_hdr output seciton, but "
-                       "we only expect to see .eh_frame_entry sections"),
-                     relobj->name().c_str(),
-                     relobj->section_name(shndx).c_str());
-
-          // Do this just to avoid triggering asserts.
-          relobj->set_output_section(shndx, NULL);
-          relobj->set_output_local_symbol_count_needs_update();
-          continue;
-        }
-
-      unsigned int text_shndx = eh_frame_entry->text_shndx();
-      Output_section* text_os = relobj->output_section(text_shndx);
-
-      // We discard an .eh_frame_entry section because its text section
-      // has been folded by ICF or has been discarded.  We also discard
-      // sections with error just to avoid triggering asserts.
-      if (eh_frame_entry->has_errors() || text_os == NULL
-          || symtab->is_section_folded(relobj, text_shndx))
-        {
-          // Remove this from link.  We also need to recount the
-          // local symbols.
-          relobj->set_output_section(shndx, NULL);
-          relobj->set_output_local_symbol_count_needs_update();
-          continue;
-        }
-
-      // Calculate the output address of the associated text section.
-      uint64_t text_addr = (text_os->address()
-                            + relobj->output_section_offset(text_shndx));
-      sort_list.push_back(Nanomips_eh_frame_sort_entry(*p, eh_frame_entry,
-                                                       text_addr));
-    }
-
-  if (sort_list.empty())
-    return;
-
-  std::sort(sort_list.begin(), sort_list.end(), Nanomips_eh_frame_sort());
-
-  // Add CANTUNWIND terminator if there is a gap (presumably a text
-  // section without unwind info) between two entries.
-  size_t i = 0;
-  for (; i < sort_list.size() - 1; ++i)
-    {
-      uint64_t end = sort_list[i].text_addr() + sort_list[i].text_size();
-      uint64_t next_start = sort_list[i + 1].text_addr();
-
-      if (end != next_start)
-        this->add_cantunwind(layout, sort_list[i].entry(), task);
-      else
-        {
-          const Output_section::Input_section& is =
-            sort_list[i].input_section();
-          gold_assert(is.is_input_section());
-          this->add_script_input_section(is);
-        }
-    }
-
-  // Add a CANTUNWIND terminator after the last entry.
-  this->add_cantunwind(layout, sort_list[i].entry(), task);
-
-  // Make changes permanent.
-  this->save_states();
-  this->set_section_offsets_need_adjustment();
-}
-
-// Add a CANTUNWIND terminator.
-
-template<int size, bool big_endian>
-void
-Nanomips_output_section<size, big_endian>::add_cantunwind(
-    Layout* layout,
-    const Nanomips_eh_frame_entry* eh_frame_entry,
-    const Task* task)
-{
-  Nanomips_relobj<size, big_endian>* relobj =
-    Nanomips_relobj<size, big_endian>::as_nanomips_relobj(
-      eh_frame_entry->relobj());
-  unsigned int shndx = eh_frame_entry->shndx();
-
-  // We need to access the contents of the .eh_frame_entry section, lock the
-  // object here.
-  Task_lock_obj<Object> tl(task, relobj);
-  Nanomips_eh_frame_entry_cantunwind<size, big_endian>* cantunwind =
-    new Nanomips_eh_frame_entry_cantunwind<size, big_endian>(eh_frame_entry);
-  cantunwind->init();
-
-  const std::string secname = relobj->section_name(shndx);
-  this->add_relaxed_input_section(layout, cantunwind, secname);
-  relobj->convert_input_section_to_relaxed_section(shndx);
+    this->merge_processor_specific_data_ = false;
 }
 
 // Nanomips_output_section_abiflags methods.
@@ -4871,38 +4027,6 @@ Target_nanomips<size, big_endian>::do_relax(
     Layout* layout,
     const Task* task)
 {
-  if (pass == 1)
-    {
-      // Finalize all .eh_frame_entry sections in .eh_frame_hdr output section
-      // if needed.
-      if (this->eh_frame_hdr_ != NULL)
-        {
-          gold_debug(DEBUG_TARGET,
-                     "%d pass: Finalizing .eh_frame_hdr output section",
-                     pass);
-
-          this->eh_frame_hdr_->finalize_eh_frame_entries(layout, symtab, task);
-
-          // Update output local symbol counts of objects if necessary.
-          for (Input_objects::Relobj_iterator p = input_objects->relobj_begin();
-               p != input_objects->relobj_end();
-               ++p)
-            {
-              Nanomips_relobj<size, big_endian>* relobj =
-                Nanomips_relobj<size, big_endian>::as_nanomips_relobj(*p);
-
-              // Update output local symbol counts.
-              if (relobj->output_local_symbol_count_needs_update())
-                {
-                  // We need to lock the object's file to update it.
-                  Task_lock_obj<Object> tl(task, relobj);
-                  relobj->update_output_local_symbol_count();
-                }
-            }
-          return true;
-        }
-    }
-
   // Whether we need to continue doing instruction transformations.
   bool again = false;
   // Whether the state is changed from RELAX to EXPAND.
@@ -5558,54 +4682,6 @@ Target_nanomips<size, big_endian>::do_make_elf_object(
     }
 }
 
-// Add Compact EH Frame Header to .eh_frame_hdr section if there is one.
-// Also initialize __GNU_EH_FRAME_HDR symbol to the location of Compact EH
-// Frame Header and create PT_GNU_EH_FRAME segment if needed.
-
-template <int size, bool big_endian>
-void
-Target_nanomips<size, big_endian>::do_make_eh_frame_header(Layout* layout,
-                                                           Symbol_table* symtab)
-{
-  if (parameters->options().relocatable())
-    return;
-
-  // Find an .eh_frame_hdr output section.  This section contains input
-  // .eh_frame_entry sections.
-  Output_section* os = layout->find_output_section(".eh_frame_hdr");
-
-  if (os != NULL)
-    {
-      // Create Compact EH Frame Header and add it to output .eh_frame_hdr
-      // section.  This section will be first after the relaxation pass.
-      Nanomips_compact_eh_hdr* eh_hdr = new Nanomips_compact_eh_hdr();
-      os->add_output_section_data(eh_hdr);
-
-      // Create __GNU_EH_FRAME_HDR symbol.
-      symtab->define_in_output_data("__GNU_EH_FRAME_HDR", NULL,
-                                    Symbol_table::PREDEFINED,
-                                    eh_hdr,
-                                    0, 0, elfcpp::STT_NOTYPE,
-                                    elfcpp::STB_GLOBAL,
-                                    elfcpp::STV_HIDDEN, 0,
-                                    false, false);
-
-      // Create PT_GNU_EH_FRAME segment if needed.
-      if (!layout->script_options()->saw_phdrs_clause())
-        {
-          Output_segment* hdr_segment =
-            layout->make_output_segment(elfcpp::PT_GNU_EH_FRAME,
-                                        elfcpp::PF_R);
-          hdr_segment->add_output_section_to_nonload(os, elfcpp::PF_R);
-        }
-
-      this->eh_frame_hdr_ =
-        static_cast<Nanomips_output_section<size, big_endian>*>(os);
-    }
-  else
-    Target::do_make_eh_frame_header(layout, symtab);
-}
-
 // Finalize the sections.
 
 template <int size, bool big_endian>
@@ -5712,8 +4788,6 @@ Target_nanomips<size, big_endian>::relocate_section(
   typedef Target_nanomips<size, big_endian> Nanomips;
   typedef gold::Default_classify_reloc<elfcpp::SHT_RELA, size, big_endian>
       Classify_reloc;
-  typedef typename Target_nanomips<size, big_endian>::Relocate_comdat_behavior
-      Nanomips_comdat_behavior;
   typedef typename Target_nanomips<size, big_endian>::Relocate
       Nanomips_relocate;
 
@@ -5726,10 +4800,13 @@ Target_nanomips<size, big_endian>::relocate_section(
       const Output_relaxed_input_section* poris =
         output_section->find_relaxed_input_section(relinfo->object,
                                                    relinfo->data_shndx);
-      if (poris != NULL)
+      const Nanomips_input_section* pnis =
+        Nanomips_input_section::as_nanomips_input_section(poris);
+
+      if (pnis != NULL)
         {
-          Address section_address = poris->address();
-          section_size_type section_size = poris->data_size();
+          Address section_address = pnis->address();
+          section_size_type section_size = pnis->data_size();
 
           gold_assert((section_address >= address)
                       && ((section_address + section_size)
@@ -5739,21 +4816,13 @@ Target_nanomips<size, big_endian>::relocate_section(
           view += offset;
           address += offset;
           view_size = section_size;
-        }
-
-      // Check if we need to update relocations.
-      const Nanomips_input_section* pnis =
-        this->find_nanomips_input_section(relinfo->object, relinfo->data_shndx);
-
-      if (pnis != NULL)
-        {
           prelocs = pnis->relocs();
           reloc_count = pnis->reloc_count();
         }
     }
 
   gold::relocate_section<size, big_endian, Nanomips, Nanomips_relocate,
-                         Nanomips_comdat_behavior, Classify_reloc>(
+                         gold::Default_comdat_behavior, Classify_reloc>(
     relinfo,
     this,
     prelocs,
@@ -5937,11 +5006,13 @@ Target_nanomips<size, big_endian>::relocate_relocs(
       const Output_relaxed_input_section* poris =
         output_section->find_relaxed_input_section(relinfo->object,
                                                    relinfo->data_shndx);
+      const Nanomips_input_section* pnis =
+        Nanomips_input_section::as_nanomips_input_section(poris);
 
-      if (poris != NULL)
+      if (pnis != NULL)
         {
-          Address section_address = poris->address();
-          section_size_type section_size = poris->data_size();
+          Address section_address = pnis->address();
+          section_size_type section_size = pnis->data_size();
 
           gold_assert((section_address >= view_address)
                       && ((section_address + section_size)
@@ -5951,14 +5022,6 @@ Target_nanomips<size, big_endian>::relocate_relocs(
           view += offset;
           view_address += offset;
           view_size = section_size;
-        }
-
-      // Check if we need to update relocations.
-      const Nanomips_input_section* pnis =
-        this->find_nanomips_input_section(relinfo->object, relinfo->data_shndx);
-
-      if (pnis != NULL)
-        {
           prelocs = pnis->relocs();
           reloc_count = pnis->reloc_count();
         }
@@ -6417,8 +5480,7 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
 {
   typedef typename elfcpp::Rela<size, big_endian> Reltype;
   const int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
-  Target_nanomips<size, big_endian>::Relocate_comdat_behavior
-    nanomips_comdat_behavior;
+  gold::Default_comdat_behavior default_comdat_behavior;
 
   // Whether we should run relaxation pass again.
   bool again = false;
@@ -6702,7 +5764,7 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
           if (comdat_behavior == CB_UNDETERMINED)
             {
               std::string name = relobj->section_name(relinfo->data_shndx);
-              comdat_behavior = nanomips_comdat_behavior.get(name.c_str());
+              comdat_behavior = default_comdat_behavior.get(name.c_str());
             }
           if (comdat_behavior == CB_PRETEND)
             {
@@ -7078,7 +6140,7 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
     const Relocate_info<size, big_endian>* relinfo,
     unsigned int,
     Target_nanomips* target,
-    Output_section*,
+    Output_section* output_section,
     size_t relnum,
     const unsigned char* preloc,
     const Sized_symbol<size>* gsym,
@@ -7112,16 +6174,19 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
   Nanomips_relobj<size, big_endian>* object =
     Nanomips_relobj<size, big_endian>::as_nanomips_relobj(relinfo->object);
   const int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
-  const Nanomips_input_section* pnis =
-    target->find_nanomips_input_section(object, relinfo->data_shndx);
+  const Output_relaxed_input_section* poris =
+    output_section->find_relaxed_input_section(object, relinfo->data_shndx);
 
   // TODO: Put reloc_count into Relocate_info.
   // Get the relocation count.
   size_t reloc_count;
-
-  // Get the relocation count for the relaxed section.
-  if (pnis != NULL)
-    reloc_count = pnis->reloc_count();
+  if (poris != NULL)
+    {
+      // Get the relocation count for the relaxed section.
+      const Nanomips_input_section* pnis =
+        Nanomips_input_section::as_nanomips_input_section(poris);
+      reloc_count = pnis->reloc_count();
+    }
   else
     {
       // Calculate relocation count for section from the object file.

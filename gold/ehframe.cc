@@ -83,17 +83,9 @@ Eh_frame_hdr::Eh_frame_hdr(Output_section* eh_frame_section,
   : Output_section_data(4),
     eh_frame_section_(eh_frame_section),
     eh_frame_data_(eh_frame_data),
-    fde_offsets_()
+    fde_offsets_(),
+    any_unrecognized_eh_frame_sections_(false)
 {
-}
-
-// Record an FDE.
-void
-Eh_frame_hdr::record_fde(section_offset_type fde_offset,
-                         unsigned char fde_encoding)
-{
-  if (!this->eh_frame_data_->found_unrecognized_eh_frame_section())
-    this->fde_offsets_.push_back(std::make_pair(fde_offset, fde_encoding));
 }
 
 // Set the size of the exception frame header.
@@ -102,7 +94,7 @@ void
 Eh_frame_hdr::set_final_data_size()
 {
   unsigned int data_size = eh_frame_hdr_size + 4;
-  if (!this->eh_frame_data_->found_unrecognized_eh_frame_section())
+  if (!this->any_unrecognized_eh_frame_sections_)
     {
       unsigned int fde_count = this->eh_frame_data_->fde_count();
       if (fde_count != 0)
@@ -166,7 +158,7 @@ Eh_frame_hdr::do_sized_write(Output_file* of)
 			      (eh_frame_hdr_address + 4));
   elfcpp::Swap<32, big_endian>::writeval(oview + 4, eh_frame_offset);
 
-  if (this->eh_frame_data_->found_unrecognized_eh_frame_section()
+  if (this->any_unrecognized_eh_frame_sections_
       || this->fde_offsets_.empty())
     {
       // There are no FDEs, or we didn't recognize the format of the
@@ -541,7 +533,6 @@ Eh_frame::Eh_frame()
     cie_offsets_(),
     unmergeable_cie_offsets_(),
     mappings_are_done_(false),
-    any_unrecognized_eh_frame_sections_(false),
     final_data_size_(0)
 {
 }
@@ -610,7 +601,8 @@ Eh_frame::add_ehframe_input_section(
 					  reloc_type, pcontents,
 					  contents_len, &new_cies))
     {
-      this->any_unrecognized_eh_frame_sections_ = true;
+      if (this->eh_frame_hdr_ != NULL)
+	this->eh_frame_hdr_->found_unrecognized_eh_frame_section();
 
       for (New_cies::iterator p = new_cies.begin();
 	   p != new_cies.end();

@@ -251,12 +251,6 @@ enum
   AFL_ASE_MASK = 0x0007ffff
 };
 
-enum
-{
-  // Endian-neutral code indicating that a function cannot be unwound.
-  COMPACT_EH_CANT_UNWIND = 0x015d5d01
-};
-
 } // End namespace elfcpp.
 
 #endif // !defined(ELFCPP_NANOMIPS_H)
