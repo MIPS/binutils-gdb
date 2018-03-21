@@ -1388,6 +1388,9 @@ General_options::finalize()
   if (this->user_set_finalize_relocs())
     this->set_finalize_pcrel_relocs(true);
 
+  if (!this->user_set_Map() && this->any_reference_counts())
+    gold_warning(_("--reference-counts may not be used without -Map"));
+
   // --rosegment-gap implies --rosegment.
   if (this->user_set_rosegment_gap())
     this->set_rosegment(true);
