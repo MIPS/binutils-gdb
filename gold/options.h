@@ -1190,6 +1190,10 @@ class General_options
 
   // r
 
+  DEFINE_set(reference_counts, options::TWO_DASHES, '\0',
+	     N_("(Nanomips only) Write section reference count to map file"),
+	     N_("SECTION"));
+
   DEFINE_bool(relocatable, options::EXACTLY_ONE_DASH, 'r', false,
 	      N_("Generate relocatable output"), NULL);
 
@@ -1246,7 +1250,7 @@ class General_options
 	      N_("(PowerPC only) Use new-style PLT"), NULL);
 
   DEFINE_set(sort_by_reference, options::TWO_DASHES, '\0',
-	     N_("(Nanomips only) Sort sections by reference."),
+	     N_("(Nanomips only) Sort sections by reference"),
 	     N_("SECTION"));
 
   DEFINE_optional_string(sort_common, options::TWO_DASHES, '\0', NULL,

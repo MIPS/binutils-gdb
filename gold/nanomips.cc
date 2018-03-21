@@ -410,6 +410,11 @@ class Nanomips_output_section : public Output_section
   void
   sort_sections_by_reference();
 
+ protected:
+  // Write to a map file.
+  void
+  do_print_to_mapfile(Mapfile* mapfile) const;
+
  private:
   // For convenience.
   typedef Output_section::Input_section Input_section;
@@ -516,6 +521,14 @@ class Nanomips_output_section : public Output_section
       return s1.index() < s2.index();
     }
   };
+
+  // Get the input sections that are referenced.  If NON_REF_SECTIONS is
+  // not NULL, add sections that are not referenced.
+  template<typename Input_sections>
+  void
+  get_ref_sections(const Input_sections& sections,
+                   std::vector<Nanomips_sort_entry>* ref_sections,
+                   std::vector<Nanomips_sort_entry>* non_ref_sections) const;
 };
 
 // Nanomips_relobj class.
@@ -2471,28 +2484,20 @@ Nanomips_output_data_got<size, big_endian>::do_write(Output_file* of)
 
 // Nanomips_output_section methods.
 
-// Go over all input sections and sort them by reference.
+// Get the input sections that are referenced.  If NON_REF_SECTIONS is
+// not NULL, add sections that are not referenced.
 
 template<int size, bool big_endian>
+template<typename Input_sections>
 void
-Nanomips_output_section<size, big_endian>::sort_sections_by_reference()
+Nanomips_output_section<size, big_endian>::get_ref_sections(
+    const Input_sections& sections,
+    std::vector<Nanomips_sort_entry>* ref_sections,
+    std::vector<Nanomips_sort_entry>* non_ref_sections) const
 {
-  // We don't want the relaxation loop to undo these changes, so we discard
-  // the current saved states and take another one after the fix-up.
-  this->discard_states();
-
-  // Remove all input sections.
-  uint64_t address = this->address();
-  typedef std::list<Input_section> Input_section_list;
-  Input_section_list input_sections;
-  this->reset_address_and_file_offset();
-  this->get_input_sections(address, std::string(""), &input_sections);
-
-  std::vector<Nanomips_sort_entry> ref_sections;
-  std::vector<Nanomips_sort_entry> non_ref_sections;
   size_t i = 0;
-  for (Input_section_list::const_iterator p = input_sections.begin();
-       p != input_sections.end();
+  for (typename Input_sections::const_iterator p = sections.begin();
+       p != sections.end();
        ++p, ++i)
     {
       Nanomips_sort_entry entry(*p, i);
@@ -2524,18 +2529,85 @@ Nanomips_output_section<size, big_endian>::sort_sections_by_reference()
           entry.set_ref_count(ref_count);
 
           if (ref_count > 0)
-            ref_sections.push_back(entry);
-          else
-            non_ref_sections.push_back(entry);
+            ref_sections->push_back(entry);
+          else if (non_ref_sections != NULL)
+            non_ref_sections->push_back(entry);
         }
-      else
+      else if (non_ref_sections != NULL)
         {
           Output_section_data* posd = p->output_section_data();
           entry.set_section_size(posd->current_data_size());
           entry.set_addralign(posd->addralign());
-          non_ref_sections.push_back(entry);
+          non_ref_sections->push_back(entry);
       }
     }
+}
+
+// Write to a map file.
+
+template<int size, bool big_endian>
+void
+Nanomips_output_section<size, big_endian>::do_print_to_mapfile(
+    Mapfile* mapfile) const
+{
+  // Check if we need to print reference count for this section.
+  if (parameters->options().is_reference_counts(this->name()))
+    {
+      std::vector<Nanomips_sort_entry> ref_sections;
+      this->get_ref_sections(this->input_sections(), &ref_sections, NULL);
+
+      // Sort sections by reference and print them in map file.
+      if (!ref_sections.empty())
+        {
+          std::sort(ref_sections.begin(), ref_sections.end(),
+                    Nanomips_sort_by_reference());
+
+          fprintf(mapfile->file(), "\nReference count for %s section \n",
+                  this->name());
+
+          // Only print first 128 sections that are referenced.
+          const size_t access_count = 128;
+          size_t count = (ref_sections.size() < access_count
+                          ? ref_sections.size()
+                          : access_count);
+          for (size_t i = 0; i < count; ++i)
+            {
+              Nanomips_sort_entry& entry(ref_sections[i]);
+              const Input_section& is = entry.input_section();
+              unsigned long long ref_count =
+                static_cast<unsigned long long>(entry.ref_count());
+
+              std::string section_name = is.relobj()->section_name(is.shndx());
+              std::string name = (is.relobj()->name()
+                                  + "(" + section_name + ")");
+              fprintf(mapfile->file(), " %lld %s\n", ref_count, name.c_str());
+            }
+        }
+    }
+
+  Output_section::do_print_to_mapfile(mapfile);
+}
+
+// Go over all input sections and sort them by reference.
+
+template<int size, bool big_endian>
+void
+Nanomips_output_section<size, big_endian>::sort_sections_by_reference()
+{
+  // We don't want the relaxation loop to undo these changes, so we discard
+  // the current saved states and take another one after the fix-up.
+  this->discard_states();
+
+  // Remove all input sections.
+  uint64_t address = this->address();
+  typedef std::list<Input_section> Input_section_list;
+  Input_section_list input_sections;
+  this->reset_address_and_file_offset();
+  this->get_input_sections(address, std::string(""), &input_sections);
+
+  std::vector<Nanomips_sort_entry> ref_sections;
+  std::vector<Nanomips_sort_entry> non_ref_sections;
+  this->get_ref_sections(input_sections, &ref_sections, &non_ref_sections);
 
   // Sort sections by reference.
   if (!ref_sections.empty())
@@ -2551,7 +2623,7 @@ Nanomips_output_section<size, big_endian>::sort_sections_by_reference()
                       : access_count);
 
       // Place input sections at the beginning of this output section.
-      for (i = 0; i < count; ++i)
+      for (size_t i = 0; i < count; ++i)
         this->add_script_input_section(ref_sections[i].input_section());
 
       // Remaining sections add to non_ref_sections vector so we can
@@ -2568,7 +2640,7 @@ Nanomips_output_section<size, big_endian>::sort_sections_by_reference()
       std::sort(non_ref_sections.begin(), non_ref_sections.end(),
                 Nanomips_sort_by_size_and_alignment());
 
-      for (i = 0; i < non_ref_sections.size(); ++i)
+      for (size_t i = 0; i < non_ref_sections.size(); ++i)
         {
           const Input_section& is = non_ref_sections[i].input_section();
           if (!is.is_input_section())
@@ -6089,14 +6161,19 @@ Target_nanomips<size, big_endian>::Scan::local(
   switch (r_type)
     {
     case elfcpp::R_NANOMIPS_GPREL19_S2:
-      if (target->may_relax_instructions()
-          && relobj->safe_to_relax()
-          && !this->seen_norelax_)
+      if (relobj->safe_to_relax() && !this->seen_norelax_)
         {
           unsigned int shndx = lsym.get_st_shndx();
           Output_section* sym_os = relobj->output_section(shndx);
-          if (sym_os == NULL
-              || !parameters->options().is_sort_by_reference(sym_os->name()))
+          if (sym_os == NULL)
+            break;
+
+          bool sort_by_reference =
+            parameters->options().is_sort_by_reference(sym_os->name());
+          bool reference_counts =
+            parameters->options().is_reference_counts(sym_os->name());
+          if ((!sort_by_reference || !target->may_relax_instructions())
+              && !reference_counts)
             break;
 
           section_size_type view_size = 0;
@@ -6211,14 +6288,20 @@ Target_nanomips<size, big_endian>::Scan::global(
   switch (r_type)
     {
     case elfcpp::R_NANOMIPS_GPREL19_S2:
-      if (target->may_relax_instructions()
-          && relobj->safe_to_relax()
+      if (relobj->safe_to_relax()
           && gsym->source() == Symbol::FROM_OBJECT
           && !this->seen_norelax_)
         {
           Output_section* sym_os = gsym->output_section();
-          if (sym_os == NULL
-              || !parameters->options().is_sort_by_reference(sym_os->name()))
+          if (sym_os == NULL)
+            break;
+
+          bool sort_by_reference =
+            parameters->options().is_sort_by_reference(sym_os->name());
+          bool reference_counts =
+            parameters->options().is_reference_counts(sym_os->name());
+          if ((!sort_by_reference || !target->may_relax_instructions())
+              && !reference_counts)
             break;
 
           section_size_type view_size = 0;
