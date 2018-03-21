@@ -41,7 +41,6 @@
 #include "errors.h"
 #include "gc.h"
 #include "attributes.h"
-#include "script-c.h"
 #include "nanomips-reloc-property.h"
 #include "nanomips-insn-property.h"
 
@@ -392,6 +391,133 @@ class Nanomips_symbol : public Sized_symbol<size>
   uint64_t lazy_stub_offset_;
 };
 
+// Nanomips output section class.  This is defined mainly to sort
+// sections by reference.
+
+template<int size, bool big_endian>
+class Nanomips_output_section : public Output_section
+{
+ public:
+  Nanomips_output_section(const char* name, elfcpp::Elf_Word type,
+                          elfcpp::Elf_Xword flags)
+    : Output_section(name, type, flags)
+  { }
+
+  ~Nanomips_output_section()
+  { }
+
+  // Go over all input sections and sort them by reference.
+  void
+  sort_sections_by_reference();
+
+ private:
+  // For convenience.
+  typedef Output_section::Input_section Input_section;
+  typedef Output_section::Input_section_list Input_section_list;
+
+  // This class is used to sort sections by reference.
+  class Nanomips_sort_entry
+  {
+   public:
+    Nanomips_sort_entry(const Input_section& input_section, size_t index)
+      : input_section_(input_section), ref_count_(0), index_(index),
+        section_size_(0), addralign_(1)
+    { }
+
+    // Return the simple input section.
+    const Output_section::Input_section&
+    input_section() const
+    { return this->input_section_; }
+
+    // Return the reference count.
+    unsigned int
+    ref_count() const
+    { return this->ref_count_; }
+
+    // Set the reference count.
+    void
+    set_ref_count(unsigned int ref_count)
+    { this->ref_count_ = ref_count; }
+
+    // The index of this entry in the original list.  This is used to
+    // make the sort stable.
+    size_t
+    index() const
+    { return this->index_; }
+
+    // Return the section size.
+    uint64_t
+    section_size() const
+    { return this->section_size_; }
+
+    // Set the section size.
+    void
+    set_section_size(uint64_t section_size)
+    { this->section_size_ = section_size; }
+
+    // Return the address alignment.
+    uint64_t
+    addralign() const
+    { return this->addralign_; }
+
+    // Return the address alignment.
+    void
+    set_addralign(uint64_t addralign)
+    { this->addralign_ = addralign; }
+
+   private:
+    // The Input_section we are sorting.
+    Input_section input_section_;
+    // Reference count.
+    unsigned int ref_count_;
+    // The index of this Input_section in the original list.
+    size_t index_;
+    // Section size.
+    uint64_t section_size_;
+    // Address alignment.
+    uint64_t addralign_;
+  };
+
+  // This is the sort comparison function for sorting sections
+  // by reference.
+  struct Nanomips_sort_by_reference
+  {
+    bool
+    operator()(const Nanomips_sort_entry& s1,
+               const Nanomips_sort_entry& s2) const
+    {
+      // Sort by most commonly referenced sections.
+      if (s1.ref_count() != s2.ref_count())
+        return s1.ref_count() > s2.ref_count();
+
+      // Otherwise we keep the input order.
+      return s1.index() < s2.index();
+    }
+  };
+
+  // This is the sort comparison function for sorting sections
+  // by size and alignment.
+  struct Nanomips_sort_by_size_and_alignment
+  {
+    bool
+    operator()(const Nanomips_sort_entry& s1,
+               const Nanomips_sort_entry& s2) const
+    {
+      // Sort by ascending size.
+      if (s1.section_size() != s2.section_size())
+        return s1.section_size() < s2.section_size();
+
+      // When the sections are the same size, we sort them by
+      // alignment, largest alignment first.
+      if (s1.addralign() != s2.addralign())
+        return s1.addralign() > s2.addralign();
+
+      // Otherwise we keep the input order.
+      return s1.index() < s2.index();
+    }
+  };
+};
+
 // Nanomips_relobj class.
 
 template<int size, bool big_endian>
@@ -494,13 +620,14 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   // Increase the input section reference.
   void
   add_input_section_ref(unsigned int shndx)
+  { ++this->input_section_ref_[shndx]; }
+
+  // Decrease the input section reference.
+  void
+  remove_input_section_ref(unsigned int shndx)
   {
-    // In order to replace maximum number of lw[gp]/sw[gp] instructions with
-    // lw[gp16]/sw[gp16],increase the input section reference only for 4 byte
-    // size sections.  We are relying that user passed -fdata-sections option
-    // to compiler.
-    if (this->section_size(shndx) == 4)
-      ++this->input_section_ref_[shndx];
+    gold_assert(this->input_section_ref_[shndx] != 0);
+    --this->input_section_ref_[shndx];
   }
 
   // Return the number of how many times section has been referenced with
@@ -510,9 +637,7 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   {
     typename Input_section_ref::const_iterator it =
       this->input_section_ref_.find(shndx);
-    if (it != this->input_section_ref_.end())
-      return it->second;
-    return 0;
+    return it != this->input_section_ref_.end() ? it->second : 0;
   }
 
   // Return whether we want to merge processor-specific data.
@@ -587,8 +712,8 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   section_is_scannable(const elfcpp::Shdr<size, big_endian>&, unsigned int,
                        const Output_section*, const Symbol_table*);
 
-  // A map to track the number of how many times input section has ref
-  // read with lw[gp]/sw[gp] instruction.
+  // A map to track the number of how many times input section has been
+  // referenced with lw[gp]/sw[gp] instruction.
   Input_section_ref input_section_ref_;
 
   // Size of the local symbols.
@@ -1286,10 +1411,6 @@ class Target_nanomips : public Sized_target<size, big_endian>
   void
   relocate_branch(unsigned int, Address, Address, unsigned char*);
 
-  // This is called when keyword SORT_BY_READ is found in the linker script.
-  void
-  do_sort_input_sections(int, std::vector<Input_section_info>*) const;
-
   // Finalize the sections.
   void
   do_finalize_sections(Layout*, const Input_objects*, Symbol_table*);
@@ -1450,6 +1571,12 @@ class Target_nanomips : public Sized_target<size, big_endian>
   do_make_elf_object(const std::string&, Input_file*, off_t,
                      const elfcpp::Ehdr<size, big_endian>&);
 
+  // Make an output section.
+  Output_section*
+  do_make_output_section(const char* name, elfcpp::Elf_Word type,
+                         elfcpp::Elf_Xword flags)
+  { return new Nanomips_output_section<size, big_endian>(name, type, flags); }
+
  private:
   // The class which scans relocations.
   class Scan
@@ -1466,8 +1593,7 @@ class Target_nanomips : public Sized_target<size, big_endian>
     inline void
     local(Symbol_table* symtab, Layout* layout, Target_nanomips* target,
           Sized_relobj_file<size, big_endian>* object,
-          unsigned int data_shndx,
-          Output_section* output_section,
+          unsigned int data_shndx, Output_section* output_section,
           const elfcpp::Rela<size, big_endian>& reloc, unsigned int r_type,
           const elfcpp::Sym<size, big_endian>& lsym,
           bool is_discarded);
@@ -1475,8 +1601,7 @@ class Target_nanomips : public Sized_target<size, big_endian>
     inline void
     global(Symbol_table* symtab, Layout* layout, Target_nanomips* target,
            Sized_relobj_file<size, big_endian>* object,
-           unsigned int data_shndx,
-           Output_section* output_section,
+           unsigned int data_shndx, Output_section* output_section,
            const elfcpp::Rela<size, big_endian>& reloc, unsigned int r_type,
            Symbol* gsym);
 
@@ -1509,10 +1634,10 @@ class Target_nanomips : public Sized_target<size, big_endian>
     unsupported_reloc_global(Sized_relobj_file<size, big_endian>*,
                              unsigned int r_type, Symbol*);
 
-    // Offset to check if that relocation is marked with INSN32
+    // Offset to check if a relocation is marked with INSN32
     // or FIXED relocation.
     Address ref_r_offset_;
-    // Object where we want to add reference.
+    // Object where we added reference.
     Nanomips_relobj<size, big_endian>* ref_relobj_;
     // Section index of section being referenced with sw[gp]/lw[gp] instruction.
     unsigned int ref_shndx_;
@@ -2350,6 +2475,119 @@ Nanomips_output_data_got<size, big_endian>::do_write(Output_file* of)
     }
 
   of->write_output_view(offset, oview_size, oview);
+}
+
+// Nanomips_output_section methods.
+
+// Go over all input sections and sort them by reference.
+
+template<int size, bool big_endian>
+void
+Nanomips_output_section<size, big_endian>::sort_sections_by_reference()
+{
+  // We don't want the relaxation loop to undo these changes, so we discard
+  // the current saved states and take another one after the fix-up.
+  this->discard_states();
+
+  // Remove all input sections.
+  uint64_t address = this->address();
+  typedef std::list<Input_section> Input_section_list;
+  Input_section_list input_sections;
+  this->reset_address_and_file_offset();
+  this->get_input_sections(address, std::string(""), &input_sections);
+
+  std::vector<Nanomips_sort_entry> ref_sections;
+  std::vector<Nanomips_sort_entry> non_ref_sections;
+  size_t i = 0;
+  for (Input_section_list::const_iterator p = input_sections.begin();
+       p != input_sections.end();
+       ++p, ++i)
+    {
+      Nanomips_sort_entry entry(*p, i);
+      if (p->is_input_section() || p->is_relaxed_input_section())
+        {
+          Nanomips_relobj<size, big_endian>* relobj =
+            Nanomips_relobj<size, big_endian>::as_nanomips_relobj(p->relobj());
+          unsigned int shndx = p->shndx();
+
+          uint64_t section_size;
+          uint64_t addralign;
+          if (p->is_relaxed_input_section())
+            {
+              section_size = p->relaxed_input_section()->current_data_size();
+              addralign = p->relaxed_input_section()->addralign();
+            }
+          else
+            {
+              section_size = relobj->section_size(shndx);
+              addralign = relobj->section_addralign(shndx);
+            }
+
+          // For reference count, only take into account 4byte size sections.
+          unsigned int ref_count = (section_size == 4
+                                    ? relobj->input_section_ref(shndx)
+                                    : 0);
+          entry.set_section_size(section_size);
+          entry.set_addralign(addralign);
+          entry.set_ref_count(ref_count);
+
+          if (ref_count > 0)
+            ref_sections.push_back(entry);
+          else
+            non_ref_sections.push_back(entry);
+        }
+      else
+        {
+          Output_section_data* posd = p->output_section_data();
+          entry.set_section_size(posd->current_data_size());
+          entry.set_addralign(posd->addralign());
+          non_ref_sections.push_back(entry);
+      }
+    }
+
+  // Sort sections by reference.
+  if (!ref_sections.empty())
+    {
+      std::sort(ref_sections.begin(), ref_sections.end(),
+                Nanomips_sort_by_reference());
+
+      // With lw[gp16] and sw[gp16] instructions we can only access to
+      // first 128 sections from the $gp.
+      const size_t access_count = 128;
+      size_t count = (ref_sections.size() < access_count
+                      ? ref_sections.size()
+                      : access_count);
+
+      // Place input sections at the beginning of this output section.
+      for (i = 0; i < count; ++i)
+        this->add_script_input_section(ref_sections[i].input_section());
+
+      // Remaining sections add to non_ref_sections vector so we can
+      // sort them by size and alignment.
+      if (ref_sections.size() >= access_count)
+        non_ref_sections.insert(non_ref_sections.end(),
+                                ref_sections.begin() + (access_count - 1),
+                                ref_sections.end());
+    }
+
+  // Sort remaining sections by size and alignment.
+  if (!non_ref_sections.empty())
+    {
+      std::sort(non_ref_sections.begin(), non_ref_sections.end(),
+                Nanomips_sort_by_size_and_alignment());
+
+      for (i = 0; i < non_ref_sections.size(); ++i)
+        {
+          const Input_section& is = non_ref_sections[i].input_section();
+          if (!is.is_input_section())
+            is.output_section_data()->finalize_data_size();
+          this->add_script_input_section(is);
+        }
+    }
+
+  // Make changes permanent.
+  this->save_states();
+  this->set_section_offsets_need_adjustment();
 }
 
 // Nanomips_relobj methods.
@@ -4027,6 +4265,35 @@ Target_nanomips<size, big_endian>::do_relax(
     Layout* layout,
     const Task* task)
 {
+  if (pass == 1 && parameters->options().any_sort_by_reference())
+    {
+      bool sorted = false;
+
+      // Sort sections by reference.
+      for (options::String_set::const_iterator p =
+             parameters->options().sort_by_reference_begin();
+           p != parameters->options().sort_by_reference_end();
+           ++p)
+        {
+          const char* name = p->c_str();
+          Output_section* os = layout->find_output_section(name);
+          if (os == NULL)
+            continue;
+
+          gold_debug(DEBUG_TARGET,
+                     "%d pass: Sorting %s section by reference",
+                     pass, name);
+
+          Nanomips_output_section<size, big_endian>* nanomips_output_section =
+              static_cast<Nanomips_output_section<size, big_endian>*>(os);
+          nanomips_output_section->sort_sections_by_reference();
+          sorted = true;
+        }
+
+      if (sorted)
+        return true;
+    }
+
   // Whether we need to continue doing instruction transformations.
   bool again = false;
   // Whether the state is changed from RELAX to EXPAND.
@@ -4105,71 +4372,6 @@ Target_nanomips<size, big_endian>::relocate_branch(
   gold_assert(reloc_status == Reloc_funcs::STATUS_OKAY);
   if (reloc_property->shuffle_reloc())
     Reloc_funcs::nanomips_reloc_shuffle(view, reloc_property->size());
-}
-
-// A class to sort the input sections.
-
-template<int size, bool big_endian>
-class Input_section_sorter
-{
- public:
-  bool
-  operator()(const Input_section_info& isi1,
-             const Input_section_info& isi2) const
-  {
-    // Move Output_data_section to the last position.
-    bool isi1_ods = isi1.input_section().is_output_section_data();
-    bool isi2_ods = isi2.input_section().is_output_section_data();
-    if (isi1_ods || isi2_ods)
-      {
-        if (!isi1_ods)
-          return true;
-        if (!isi2_ods)
-          return false;
-        return isi1.section_name() < isi2.section_name();
-      }
-
-    const Nanomips_relobj<size, big_endian>* isi1_relobj =
-      Nanomips_relobj<size, big_endian>::as_nanomips_relobj(isi1.relobj());
-    const Nanomips_relobj<size, big_endian>* isi2_relobj =
-      Nanomips_relobj<size, big_endian>::as_nanomips_relobj(isi2.relobj());
-
-    // Sort by most commonly referenced sections.
-    unsigned int isi1_ref = isi1_relobj->input_section_ref(isi1.shndx());
-    unsigned int isi2_ref = isi2_relobj->input_section_ref(isi2.shndx());
-    if (isi1_ref != isi2_ref)
-      return isi1_ref > isi2_ref;
-
-    // Sort by ascending size.
-    uint64_t isi1_size = isi1.size();
-    uint64_t isi2_size = isi2.size();
-    if (isi1_size != isi2_size)
-      return isi1_size < isi2_size;
-
-    // When the sections are the same size, we sort them by
-    // alignment, largest alignment first.
-    uint64_t isi1_align = isi1.addralign();
-    uint64_t isi2_align = isi2.addralign();
-    if (isi1_align != isi2_align)
-      return isi1_align > isi2_align;
-
-    // The sections seem practically identical.  Sort by name to get a
-    // stable sort.
-    return isi1.section_name() < isi2.section_name();
-  }
-};
-
-// This is called when keyword SORT_BY_READ is found in the linker script.
-
-template<int size, bool big_endian>
-void
-Target_nanomips<size, big_endian>::do_sort_input_sections(
-    int sort,
-    std::vector<Input_section_info>* input_sections) const
-{
-  gold_assert(sort == static_cast<int>(SORT_WILDCARD_BY_READ));
-  std::sort(input_sections->begin(), input_sections->end(),
-            Input_section_sorter<size, big_endian>());
 }
 
 // Process the relocations to determine unreferenced sections for
@@ -5868,14 +6070,14 @@ Target_nanomips<size, big_endian>::Scan::local(
 {
   Address r_offset = reloc.get_r_offset();
 
-  // Check if section reference should be added.
+  // Check if section reference should be removed.
   if (this->ref_relobj_ != NULL
-      && ((r_type != elfcpp::R_NANOMIPS_INSN32
-           && r_type != elfcpp::R_NANOMIPS_FIXED)
-          || this->ref_r_offset_ != r_offset))
+      && ((r_type == elfcpp::R_NANOMIPS_INSN32
+           || r_type == elfcpp::R_NANOMIPS_FIXED)
+          && this->ref_r_offset_ == r_offset))
     {
       gold_assert(this->ref_shndx_ != invalid_index);
-      this->ref_relobj_->add_input_section_ref(this->ref_shndx_);
+      this->ref_relobj_->remove_input_section_ref(this->ref_shndx_);
     }
 
   this->ref_r_offset_ = invalid_address;
@@ -5899,13 +6101,18 @@ Target_nanomips<size, big_endian>::Scan::local(
           && relobj->safe_to_relax()
           && !this->seen_norelax_)
         {
+          unsigned int shndx = lsym.get_st_shndx();
+          Output_section* sym_os = relobj->output_section(shndx);
+          if (sym_os == NULL
+              || !parameters->options().is_sort_by_reference(sym_os->name()))
+            break;
+
           section_size_type view_size = 0;
           const unsigned char* view = relobj->section_contents(data_shndx,
                                                                &view_size,
                                                                false);
-          view += r_offset;
           Nanomips_relax_insn<size, big_endian> relax_insn(relobj);
-          uint32_t insn = relax_insn.read_insn(view, nrp->size());
+          uint32_t insn = relax_insn.read_insn(view + r_offset, nrp->size());
           const Nanomips_insn_property* insn_property =
             relax_insn.find_insn(insn, nrp->mask(), r_type);
 
@@ -5913,13 +6120,14 @@ Target_nanomips<size, big_endian>::Scan::local(
           // lw[gp16]/sw[gp16] in a relaxation pass.
           if (insn_property != NULL)
             {
-              unsigned int shndx = lsym.get_st_shndx();
               bool is_ordinary;
               shndx = relobj->adjust_sym_shndx(r_sym, shndx, &is_ordinary);
+
               if (is_ordinary)
                 {
+                  relobj->add_input_section_ref(shndx);
                   // We need to check if this relocation is marked with INSN32
-                  // or FIXED relocation.  In that case, we can't increase
+                  // or FIXED relocation.  In that case, we need to decrease
                   // reference to the section.
                   this->ref_r_offset_ = r_offset;
                   this->ref_relobj_ = relobj;
@@ -6004,14 +6212,6 @@ Target_nanomips<size, big_endian>::Scan::global(
   Nanomips_symbol<size>* nanomips_sym =
     Nanomips_symbol<size>::as_nanomips_sym(gsym);
 
-  // Check if section reference should be added.
-  if (this->ref_relobj_ != NULL)
-    {
-      gold_assert(this->ref_shndx_ != invalid_index);
-      gold_assert(this->ref_r_offset_ != invalid_address);
-      this->ref_relobj_->add_input_section_ref(this->ref_shndx_);
-    }
-
   this->ref_r_offset_ = invalid_address;
   this->ref_relobj_ = NULL;
   this->ref_shndx_ = invalid_index;
@@ -6024,13 +6224,17 @@ Target_nanomips<size, big_endian>::Scan::global(
           && gsym->source() == Symbol::FROM_OBJECT
           && !this->seen_norelax_)
         {
+          Output_section* sym_os = gsym->output_section();
+          if (sym_os == NULL
+              || !parameters->options().is_sort_by_reference(sym_os->name()))
+            break;
+
           section_size_type view_size = 0;
           const unsigned char* view = object->section_contents(data_shndx,
                                                                &view_size,
                                                                false);
-          view += r_offset;
           Nanomips_relax_insn<size, big_endian> relax_insn(relobj);
-          uint32_t insn = relax_insn.read_insn(view, nrp->size());
+          uint32_t insn = relax_insn.read_insn(view + r_offset, nrp->size());
           const Nanomips_insn_property* insn_property =
             relax_insn.find_insn(insn, nrp->mask(), r_type);
 
@@ -6039,17 +6243,19 @@ Target_nanomips<size, big_endian>::Scan::global(
           if (insn_property != NULL)
             {
               bool is_ordinary;
-              unsigned int shndx = gsym->shndx(&is_ordinary);
+              unsigned int sym_shndx = gsym->shndx(&is_ordinary);
               Nanomips_relobj<size, big_endian>* sym_obj =
                 static_cast<Nanomips_relobj<size, big_endian>*>(gsym->object());
+
               if (is_ordinary)
                 {
+                  sym_obj->add_input_section_ref(sym_shndx);
                   // We need to check if this relocation is marked with INSN32
-                  // or FIXED relocation.  In that case, we can't increase
+                  // or FIXED relocation.  In that case, we need to decrease
                   // reference to the section.
                   this->ref_r_offset_ = r_offset;
                   this->ref_relobj_ = sym_obj;
-                  this->ref_shndx_ = shndx;
+                  this->ref_shndx_ = sym_shndx;
                 }
             }
         }
