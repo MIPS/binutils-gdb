@@ -1509,12 +1509,9 @@ nanomips_predict_insn_length (bfd_vma memaddr_base,
     insn = bfd_getl16 (buffer);
 
   if ((insn & 0xfc00) == 0x6000)
-    {
-      length += 4;
-    }
+    length += 4;
   else if ((insn & 0x1000) == 0x0)
-    {
-      length += 2;
-    }
+    length += 2;
+
   return length;
 }

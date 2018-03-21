@@ -168,7 +168,8 @@ extern bfd_boolean nanomips_allow_local_subtract (expressionS *,
    indicating whether the size of the frag is link-time variable.  */
 struct nanomips_frag_type {
   struct fix * first_fix;
-  bfd_boolean link_var;
+  bfd_vma relax_sop;
+  bfd_boolean link_var;  
 };
 
 #define TC_FRAG_TYPE struct nanomips_frag_type

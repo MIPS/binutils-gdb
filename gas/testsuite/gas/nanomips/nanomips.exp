@@ -968,4 +968,11 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test "sync-alias"
 
     run_dump_test_arch "mttgpr-rc1" "-mmt -mmttgpr-rc1" nanomips32r6
+
+    run_dump_test_arches "minimize-relocs1" "" \
+				[arch_list_matching nanomips]
+    run_dump_test_arches "minimize-relocs2" "" \
+				[arch_list_matching nanomips]
+    run_dump_test_arches "minimize-relocs3" "" \
+				[arch_list_matching nanomips]
 }
