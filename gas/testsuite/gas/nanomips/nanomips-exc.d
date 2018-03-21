@@ -1,6 +1,7 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: New nanoMIPS instructions
 #source: nanomips-exc.s
+#as: -mno-minimize-relocs
 
 # Check exclusive nanoMIPS instructions
 

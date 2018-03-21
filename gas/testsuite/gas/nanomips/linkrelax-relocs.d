@@ -1,7 +1,7 @@
 #name: Relaxation relocations on nanoMIPS
 #PROG: readelf
 #readelf: -Wr -Ws
-#as: --defsym relaxmode=1
+#as: --defsym relaxmode=1 -mno-minimize-relocs
 #source: linkrelax.s
 
 #...

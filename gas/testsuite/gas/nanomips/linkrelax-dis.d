@@ -1,5 +1,6 @@
 #objdump: -dr
 #name: nanoMIPS PC-relative disassembly with linkrelax flag
+#as: -mno-minimize-relocs
 
 # Check nanoMIPS PC-relative disassembly with linkrelax
 

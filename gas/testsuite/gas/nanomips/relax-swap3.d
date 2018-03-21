@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: nanoMIPS relaxed macro with branch swapping
-#as: -mlegacyregs
+#as: -mlegacyregs -mno-minimize-relocs
 
 .*: +file format .*nanomips.*
 

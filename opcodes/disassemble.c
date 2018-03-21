@@ -691,6 +691,7 @@ disassemble_init_for_target (struct disassemble_info * info)
 #ifdef ARCH_nanomips
     case bfd_arch_nanomips:
       info->disassembler_needs_relocs = TRUE;
+      info->predict_insn_length = nanomips_predict_insn_length;
       break;
 #endif
     default:

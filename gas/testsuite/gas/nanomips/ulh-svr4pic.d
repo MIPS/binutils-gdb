@@ -10,7 +10,7 @@
 Disassembly of section \.text:
 
 0+0000 <text_label>:
-   0:	lwpc	a0,6 <text_label\+0x[0-9a-f]+>
+   0:	lwpc	a0,0 <data_label>
 			[0-9a-f]+: R_NANOMIPS_PC_I32	data_label
    6:	lw	at,0\(gp\)
 			[0-9a-f]+: R_NANOMIPS_GOT_DISP	big_external_data_label

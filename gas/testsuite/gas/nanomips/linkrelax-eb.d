@@ -1,6 +1,6 @@
 #name: Relaxation code dump for nanoMIPS big-endian
 #objdump: -sj.text
-#as: --defsym relaxmode=1 -EB
+#as: --defsym relaxmode=1 -EB -mno-minimize-relocs
 #source: linkrelax.s
 
 #...

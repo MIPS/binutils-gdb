@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: nanoMIPS instructions
-#as:
+#as: -mno-minimize-relocs
 #stderr: nanomips.l
 #source: nanomips.s
 

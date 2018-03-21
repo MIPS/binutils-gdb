@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: nanoMIPS 32-bit instruction mode
-#as: -minsn32 --defsym insn32=
+#as: -minsn32 --defsym insn32= -mno-minimize-relocs
 #stderr: nanomips.l
 #source: nanomips.s
 

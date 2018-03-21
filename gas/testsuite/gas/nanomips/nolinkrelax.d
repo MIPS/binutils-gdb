@@ -1,7 +1,7 @@
-#name: Relaxation code dump for nanoMIPS little endian
+#name: No relaxation code dump for nanoMIPS little endian
 #objdump: -sj.text
 #source: linkrelax.s
-#as: -EL
+#as: -EL -mno-minimize-relocs
 
 #...
 Contents of section .text:

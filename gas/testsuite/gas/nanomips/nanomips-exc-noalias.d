@@ -1,6 +1,7 @@
 #objdump: -dr --prefix-addresses --show-raw-insn -Mno-aliases
 #name: New nanoMIPS instructions without aliases
 #source: nanomips-exc.s
+#as: -mno-minimize-relocs
 
 # Check exclusive nanoMIPS instructions without aliases
 

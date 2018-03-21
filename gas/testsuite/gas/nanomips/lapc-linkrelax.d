@@ -1,6 +1,6 @@
 #objdump: -dr
 #name: nanoMIPS LAPC variants with linker relaxation
-#as: --linkrelax
+#as: --linkrelax -mno-minimize-relocs
 #source: lapc.s
 
 # Test all LAPC variants with linker relaxation

@@ -1,8 +1,7 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: New nanoMIPS instructions in 32-bit fixed instruction mode
-#as: -minsn32 --defsym insn32=
+#as: -minsn32 --defsym insn32= -mno-minimize-relocs
 #source: nanomips-exc.s
-
 
 # Check exclusive nanoMIPS 32-bit instructions
 
