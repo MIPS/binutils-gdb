@@ -585,11 +585,11 @@ static bfd_boolean nanomips_mttgpr_rc1 = FALSE;
 
 enum
 {
-  RT_BRANCH_UCND = 'D',
-  RT_BRANCH_CNDZ = 'E',
-  RT_BRANCH_CND = 'F',
-  RT_BALC_STUB = 'G',
-  RT_ADDIU = 'A',
+  RT_ADDIU = 1,
+  RT_BRANCH_UCND,
+  RT_BRANCH_CNDZ,
+  RT_BRANCH_CND,
+  RT_BALC_STUB,
 };
 
 #define RELAX_NANOMIPS_ENCODE(type, link, ext)			\
@@ -5156,7 +5156,7 @@ balc_frag_traverse (const char *key ATTRIBUTE_UNUSED, void *value)
   nanomips_label_inc ();
   stub->fragp = frag_now;
   add_relaxed_insn (&nanomips_bc32_insn, 4, 0,
-		    RELAX_NANOMIPS_ENCODE ('G', 0, 1), stub->sym, 0);
+		    RELAX_NANOMIPS_ENCODE (RT_BALC_STUB, 0, 1), stub->sym, 0);
   stub->sym = l;
   if (stub->numcalls >= 3)
     stub->fragp->fr_subtype
@@ -5427,7 +5427,7 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
       /* Track this call for balcp-to-stub relaxation.  */
       if (!nanomips_opts.no_balc_stubs
 	  && stubg_now != NULL
-	  && type == 'D'
+	  && type == RT_BRANCH_UCND
 	  && (ip->insn_mo->pinfo & INSN_WRITE_GPR_31) != 0)
 	balc_add_stub (address_expr->X_add_symbol, stubg_now);
 
@@ -5945,21 +5945,20 @@ match_nanomips_insn (struct nanomips_cl_insn *insn,
 	    switch (c)
 	      {
 	      case 'D':
+		*offset_reloc = (forced_insn_length
+				 ? BFD_RELOC_NANOMIPS_10_PCREL_S1
+				 : BFD_RELOC_UNUSED + RT_BRANCH_UCND);
+		break;
 	      case 'E':
+		*offset_reloc = (forced_insn_length
+				 ? BFD_RELOC_NANOMIPS_7_PCREL_S1
+				 : BFD_RELOC_UNUSED + RT_BRANCH_CNDZ);
+		break;
 	      case 'F':
-		{
-		  const bfd_reloc_code_real_type rtype[] =
-		    { BFD_RELOC_NANOMIPS_10_PCREL_S1,
-		      BFD_RELOC_NANOMIPS_7_PCREL_S1,
-		      BFD_RELOC_NANOMIPS_4_PCREL_S1 };
-		  if (!forced_insn_length)
-		    /* Instruction is candidate for relaxation. Pick unused
-		       reloc codes from no-man's land for now.  */
-		    *offset_reloc = (int) BFD_RELOC_UNUSED + c;
-		  else
-		    *offset_reloc = rtype[c - 'D'];
-		  break;
-		}
+		*offset_reloc = (forced_insn_length
+				 ? BFD_RELOC_NANOMIPS_4_PCREL_S1
+				 : BFD_RELOC_UNUSED + RT_BRANCH_CND);
+		break;
 	      }
 	    break;
 	  }
@@ -11667,15 +11666,15 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
          need the relocations.  */
       switch (type)
 	{
-	case 'D':
-	case 'E':
-	case 'F':
+	case RT_BRANCH_UCND:
+	case RT_BRANCH_CNDZ:
+	case RT_BRANCH_CND:
 	  fixp = fix_new_exp (fragp, buf - fragp->fr_literal, 2, &exp, TRUE,
-			      rtype[type - 'D'
+			      rtype[type - RT_BRANCH_UCND
 				    + (RELAX_NANOMIPS_TOOFAR16
 				       (fragp->fr_subtype) ? 3 : 0)]);
 	  break;
-	case 'G':
+	case RT_BALC_STUB:
 	  if (!RELAX_NANOMIPS_KEEPSTUB (fragp->fr_subtype))
 	    return;
 	  fixp = fix_new_exp (fragp, buf - fragp->fr_literal, 4, &exp, TRUE,
@@ -11705,7 +11704,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 
       /* Nothing left to do for 16-bit branches that fit,
          or for balc stubs */
-      if (!RELAX_NANOMIPS_TOOFAR16 (fragp->fr_subtype) || type == 'G')
+      if (!RELAX_NANOMIPS_TOOFAR16 (fragp->fr_subtype) || type == RT_BALC_STUB)
 	return;
 
       /* Relax 16-bit branches to 32-bit branches.  */
