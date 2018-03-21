@@ -2570,7 +2570,7 @@ Nanomips_output_section<size, big_endian>::do_print_to_mapfile(
           std::sort(ref_sections.begin(), ref_sections.end(),
                     Nanomips_sort_by_reference());
 
-          fprintf(mapfile->file(), "\nReference count for %s section \n",
+          fprintf(mapfile->file(), "\nReference count for %s section\n",
                   this->name());
 
           // Only print first 128 sections that are referenced.
