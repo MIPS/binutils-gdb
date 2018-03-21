@@ -1,5 +1,6 @@
 #objdump: -dr --show-raw-insn
 #name: nanoMIPS 16-bit branch relaxation
+#as: -mno-minimize-relocs
 
 # Check nanoMIPS 16-bit branch relaxations
 

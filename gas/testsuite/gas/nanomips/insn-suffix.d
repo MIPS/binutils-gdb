@@ -1,4 +1,4 @@
-#as: --linkrelax
+#as: --linkrelax -mno-minimize-relocs
 #objdump: -dr --no-show-raw-insn -Mshow-arch-insn
 #name: nanoMIPS instructions with suffixes
 

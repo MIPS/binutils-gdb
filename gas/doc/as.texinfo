@@ -478,6 +478,7 @@ gcc(1), ld(1), and the Info entries for @file{binutils} and @file{ld}.
    [@b{-mlegacyregs}] [@b{-mno-legacyregs}]
    [@b{--linkrelax}]
    [@b{-trap}] [@b{-no-break}] [@b{-break}] [@b{-no-trap}]
+   [@b{-mminimize-relocs}] [@b{-mno-mminimize-relocs}]
 @end ifset
 @ifset NIOSII
 
@@ -1879,6 +1880,14 @@ Control how to deal with multiplication overflow and division by zero.
 (and only work for Instruction Set Architecture level 2 and higher);
 @samp{--break} or @samp{--no-trap} (also synonyms, and the default) take a
 break exception.
+
+@item -mminimize-relocs
+@itemx -mno-minimize-relocs
+Finalize PC-relative relocations that are link-time invariant at the time
+of assembly. The @samp{-mminimize-relocs} reduces the size of the generated
+object files by removing some relocations and hence the time needed to link
+with relaxations. By default, @samp{-mno-minimize-relocs} is selected,
+disabling this optimization.
 
 @item -n
 When this option is used, @command{@value{AS}} will issue a warning every

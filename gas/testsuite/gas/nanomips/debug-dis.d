@@ -1,5 +1,6 @@
 #objdump: -dr
 #name: nanoMIPS disassembly with debug location info
+#as: -mno-minimize-relocs
 
 .*:     file format .*
 

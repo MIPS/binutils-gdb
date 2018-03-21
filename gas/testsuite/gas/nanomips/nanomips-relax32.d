@@ -1,6 +1,6 @@
 #objdump: -dr --show-raw-insn
 #name: nanoMIPS 16-bit branch relaxation inhibited by insn32
-#as: -minsn32 --defsym insn32=
+#as: -minsn32 --defsym insn32= -mno-minimize-relocs
 #source: nanomips-relax.s
 
 # Check nanoMIPS 16-bit branch relaxations inhibited by insn32

@@ -1,5 +1,6 @@
 #objdump: -Wf
 #name: nanoMIPS decoding DWARF frame
+#as: -mno-minimize-relocs
 
 dump.o:     .*nanomips.*
 

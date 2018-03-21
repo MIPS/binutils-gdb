@@ -1,5 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: nanoMIPS CTC instructions
+#as: -mno-minimize-relocs
 
 # Check nanoMIPS convert-to-compact branch instructions
 

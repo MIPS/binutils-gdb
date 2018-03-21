@@ -243,6 +243,15 @@ Generate code to take a break exception rather than a trap exception when an
 error is detected.  This is the default.
 @end table
 
+@item -mminimize-relocs
+@itemx -mno-minimize-relocs
+Finalize PC-relative relocations that are link-time invariant at the time
+of assembly. The @samp{-mminimize-relocs} reduces the size of the generated
+object code by removing some relocations and hence the time needed to link
+with relaxations.
+
+This is disabled by default.
+
 @node nanoMIPS Directives
 @section Assembler Directives
 

@@ -163,9 +163,16 @@ extern bfd_boolean nanomips_allow_local_subtract (expressionS *,
 #define md_allow_local_subtract(lhs,rhs,sect)	\
   nanomips_allow_local_subtract (lhs, rhs, sect)
 
-/* We don't need a complicated data structure, a simple struct pointer
-   will do for now.  */
-#define TC_FRAG_TYPE struct fix *
+/* This structure tracks custom data about each frag. It consists of a 
+   pointer to the first relocation within the frag and a boolean flag
+   indicating whether the size of the frag is link-time variable.  */
+struct nanomips_frag_type {
+  struct fix * first_fix;
+  bfd_boolean link_var;
+};
+
+#define TC_FRAG_TYPE struct nanomips_frag_type
+
 
 extern void nanomips_md_do_align (int, const char *, int, int);
 #define md_do_align(n,f,l,m,j)		nanomips_md_do_align (n,f,l,m)
@@ -183,7 +190,6 @@ extern int nanomips_validate_fix_sub (struct fix *);
 
 #define LEX_BR LEX_NAME
 
-#define MD_PCREL_FROM_SECTION(FIX,SEG) 0
 
 int nanomips_eh_frame_estimate_size_before_relax (fragS *);
 #define TC_EH_FRAME_ESTIMATE_SIZE_BEFORE_RELAX(frag) \

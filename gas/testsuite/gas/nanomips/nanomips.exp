@@ -295,7 +295,8 @@ proc run_dump_test_arch { name opts arch } {
     set proparch [lindex [nanomips_arch_properties $arch 0] 0]
     set prefixes [list ${proparch}@ ]
 
-    if { [ string match "nanomips32s" $arch ]} {
+    if { [ string match "nanomips32s" $arch ]
+	 || [ string match "nanomips32r6s" $arch ] } {
 	lappend prefixes nms@
     }
 
@@ -343,7 +344,8 @@ proc run_list_test_arch { name opts arch } {
     set testname "nanoMIPS $name ([concat $opts [nanomips_arch_displayname $arch]])"
     set proparch [lindex [nanomips_arch_properties $arch 0] 0]
     set prefixes [list ${proparch}@ ]
-    if { [ string match "nanomips32s" $arch ]} {
+    if { [ string match "nanomips32s" $arch ]
+	 || [ string match "nanomips32r6s" $arch] } {
 	lappend prefixes nms@
     }
 
@@ -417,22 +419,26 @@ arch_init
 arch_create nanomips32r6 32	{} \
 			{ nanomipsr6 nanomips_broken } \
 			{ -march=32r6 --defsym nanomips= -mlegacyregs \
-			      --defsym nanomips_broken= } {}
+			      -mno-minimize-relocs --defsym nanomips_broken= } {}
 arch_create nanomips64r6 64	{}  \
 			{ nanomips32r6 nanomipsr6 nanomips_broken nmips64_broken } \
 			{ -march=64r6 --defsym nanomips= -mlegacyregs \
-			      --defsym nanomips_broken= } {}
+			      -mno-minimize-relocs --defsym nanomips_broken= } {}
+arch_create nanomips32r6s 32	{} \
+			{ nanomips_broken } \
+			{ -march=32r6s --defsym nanomips= -mlegacyregs \
+				-mno-minimize-relocs --defsym nanomips_broken= } {}
 arch_create nanomips32 32	{} \
 			{ nanomips nanomips_broken xnms } \
 			{ -march=32r6 --defsym nanomips= \
 			      --defsym nanomips_broken= } {}
-arch_create nanomips32s 32	{} \
-			{ nanomips nanomips_broken } \
-			{ -march=32r6s --defsym nanomips= \
-			      --defsym nanomips_broken= } {}
 arch_create nanomips64 64	{} \
 			{ nanomips nanomips_broken nmips64_broken xnms } \
 			{ -march=64r6 --defsym nanomips= \
+			      --defsym nanomips_broken= } {}
+arch_create nanomips32s 32	{} \
+			{ nanomips nanomips_broken } \
+			{ -march=32r6s --defsym nanomips= \
 			      --defsym nanomips_broken= } {}
 arch_create nms1 32	{} {nanomips_broken} { -march=nms1 } {}
 arch_create i7200 32	{} {nanomips_broken} { -march=i7200 } {}
@@ -464,13 +470,7 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "dot-1"	[arch_list_matching nanomipsr6]
     run_dump_test_arches "abs"		[arch_list_matching nanomipsr6]
     run_dump_test_arches "add"		[arch_list_matching nanomipsr6]
-    run_dump_test_arch	 "and"	"-mlegacyregs"	nanomips32s
 
-    run_dump_test_arch "beq"		"-mlegacyregs" nanomips32s
-    run_dump_test_arch "bge"		"-mlegacyregs" nanomips32s
-    run_dump_test_arch "bgeu"		"-mlegacyregs" nanomips32s
-    run_dump_test_arch "blt"		"-mlegacyregs" nanomips32s
-    run_dump_test_arch "bltu"		"-mlegacyregs" nanomips32s
     run_dump_test_arches "branch-misc-1" [arch_list_matching nanomipsr6]
     run_dump_test_arches "branch-misc-2" [arch_list_matching nanomipsr6]
     run_dump_test_arches "branch-misc-2pic" [arch_list_matching nanomipsr6]
@@ -544,19 +544,19 @@ if { [istarget nanomips*-*-*] } {
 					[arch_list_matching gpr64 !nmips64_broken]
     }
     run_dump_test_arches "ld-zero"	[arch_list_matching nanomipsr6]
-    run_dump_test_arch "ld-zero-2"	"-mlegacyregs" nanomips32s
+    run_dump_test_arch "ld-zero-2"	"" nanomips32r6s
     run_dump_test_arches "ld-zero-3"	[arch_list_matching gpr64 !nmips64_broken]
 
     run_dump_test_arch "lifloat" "" nanomips32r6
     run_dump_test_arch "lifloat-eb" "" nanomips32r6
-    run_dump_test_arch "lifloat-nms" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "lifloat-nms" "" nanomips32r6s
     run_dump_test_arch "lifloat-mem" "" nanomips32r6
 
     run_dump_test_arch "lif-svr4pic" "" nanomips32r6
     run_dump_test_arch "lif-svr4pic-64" "-m64" nanomips64r6
-    run_dump_test_arch "lif-svr4pic" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "lif-svr4pic" "" nanomips32r6s
     run_dump_test_arch "lif-svr4pic-mem" "" nanomips32r6
-    run_dump_test_arch "lif-svr4pic-mem" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "lif-svr4pic-mem" "" nanomips32r6s
 
     run_dump_test_arches "rol-hw" 	[arch_list_matching nanomipsr6]
     run_dump_test_arches "rol64-hw"	[arch_list_matching gpr64 !nmips64_broken]
@@ -690,17 +690,17 @@ if { [istarget nanomips*-*-*] } {
 
     run_list_test_arches "ldstla-err" "" [arch_list_matching nanomipsr6]
 
-    run_list_test_arch "macro-err" "-mlegacyregs" nanomips32s
+    run_list_test_arch "macro-err" "" nanomips32r6s
 
     run_dump_test_arch "noat-1" "" nanomips32r6
-    run_dump_test_arch "noat-1" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "noat-1" "" nanomips32r6s
     run_list_test_arch "noat-2" "" nanomips32r6
     run_list_test_arch "noat-3" "" nanomips32s
     run_list_test_arch "noat-5" "" nanomips32r6
     run_list_test_arch "noat-6" "" nanomips32s
 
     run_dump_test_arch "at-1" "-mlegacyregs" nanomips32r6
-    run_dump_test_arch "at-1" "-mlegacyregs --defsym nms=1" nanomips32s
+    run_dump_test_arch "at-1" "--defsym nms=1" nanomips32r6s
     run_list_test "at-2" "-march=32r6 -mlegacyregs" "nanoMIPS at-2"
 
     run_dump_test_arches "dsp"	[arch_list_matching nanomipsr6]
@@ -747,7 +747,7 @@ if { [istarget nanomips*-*-*] } {
 				"LA with 64-bit addresses"
     }
 
-    run_dump_test_arch "ld-reloc"	"-mlegacyregs" nanomips32s
+    run_dump_test_arch "ld-reloc"	"" nanomips32r6s
 
     run_dump_test_arch "l_d-reloc" "" nanomips32r6
 
@@ -815,7 +815,8 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "nanomips32" [arch_list_matching xnms]
     run_dump_test_arch "nanomips-ctc" "" nanomips32
     run_dump_test_arch "nanomips-relax" "" nanomips32
-    run_list_test "nanomips-relax" "-EL -al" "Test nanoMIPS assembly listing in little endian mode"
+    run_list_test "nanomips-relax" "-EL -al -mno-minimize-relocs" \
+	"Test nanoMIPS assembly listing in little endian mode"
     run_dump_test_arch "nanomips-relax32" "" nanomips32
 
     run_dump_test_arch "save" "" nanomips32
@@ -830,7 +831,7 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "nanomips-exc-noalias" "" nanomips32
     run_dump_test_arch "nanomips-exc64" "" nanomips64
 
-    run_dump_test_arches "addu" "-mlegacyregs" [arch_list_matching nanomips32s]
+    run_dump_test_arch "addu" "" nanomips32r6s
     run_dump_test_opts "la" \
 	{"-mlegacyregs" "-mlegacyregs --defsym mc_medium="} \
 	[arch_list_matching nanomips]
@@ -884,25 +885,25 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "nolinkrelax-relocs" "-mlegacyregs" [arch_list_matching nanomips]
 
     run_dump_test_arch "nanomips-subset" "" nanomips32s
-    run_dump_test_arch "la-svr4pic" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "la-svr4pic" "" nanomips32r6s
     run_dump_test_arches "la-pic-mclarge" "-mlegacyregs" \
 	[arch_list_matching nanomips]
     run_dump_test_arches "la-lpic-mclarge" "-mlegacyregs" \
 	[arch_list_matching nanomips]
     run_dump_test_arches "la-lpic-mcmedium" "-mlegacyregs" \
 	[arch_list_matching nanomips]
-    run_dump_test_arch "ld-svr4pic" "-mlegacyregs" nanomips32s
-    run_dump_test_arch "mips-abi32" "-mlegacyregs" nanomips32s
-    run_dump_test_arch "and" "-mlegacyregs" nanomips32s
-    run_dump_test_arch "beq" "-mlegacyregs" nanomips32s
-    run_dump_test_arch "bge" "-mlegacyregs" nanomips32s
-    run_dump_test_arch "bgeu" "-mlegacyregs" nanomips32s
-    run_dump_test_arch "blt" "-mlegacyregs" nanomips32s
-    run_dump_test_arch "bltu" "-mlegacyregs" nanomips32s
-    run_dump_test_arch "ld-reloc" "-mlegacyregs" nanomips32s
-    run_dump_test_arch "ld-zero-2" "-mlegacyregs" nanomips32s
-    run_dump_test_arch "li" "-mlegacyregs" nanomips32s
-    run_dump_test_arch "relax-swap3" "-mlegacyregs" nanomips32s
+    run_dump_test_arch "ld-svr4pic" "" nanomips32r6s
+    run_dump_test_arch "mips-abi32" "" nanomips32r6s
+    run_dump_test_arch "and" "" nanomips32r6s
+    run_dump_test_arch "beq" "" nanomips32r6s
+    run_dump_test_arch "bge" "" nanomips32r6s
+    run_dump_test_arch "bgeu" "" nanomips32r6s
+    run_dump_test_arch "blt" "" nanomips32r6s
+    run_dump_test_arch "bltu" "" nanomips32r6s
+    run_dump_test_arch "ld-reloc" "" nanomips32r6s
+    run_dump_test_arch "ld-zero-2" "" nanomips32r6s
+    run_dump_test_arch "li" "" nanomips32r6s
+    run_dump_test_arch "relax-swap3" "" nanomips32r6s
 
     run_dump_test_arches "tlb" "-mtlb" [arch_list_matching nanomips32]
     run_dump_test_arch "tlb" "-mtlb" nms1

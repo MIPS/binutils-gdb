@@ -1481,3 +1481,40 @@ with the -M switch (multiple options should be separated by commas):\n"));
 
   fprintf (stream, _("\n"));
 }
+
+
+int
+nanomips_predict_insn_length (bfd_vma memaddr_base,
+			      int previous_octect ATTRIBUTE_UNUSED,
+			      struct disassemble_info *info)
+{
+  bfd_byte buffer[2];
+  unsigned int length;
+  bfd_uint64_t insn;
+  bfd_vma memaddr = memaddr_base;
+  int status;
+
+  status = (*info->read_memory_func) (memaddr, buffer, 2, info);
+  if (status != 0)
+    {
+      (*info->memory_error_func) (status, memaddr, info);
+      return -1;
+    }
+
+  length = 2;
+
+  if (info->endian == BFD_ENDIAN_BIG)
+    insn = bfd_getb16 (buffer);
+  else
+    insn = bfd_getl16 (buffer);
+
+  if ((insn & 0xfc00) == 0x6000)
+    {
+      length += 4;
+    }
+  else if ((insn & 0x1000) == 0x0)
+    {
+      length += 2;
+    }
+  return length;
+}

@@ -2,6 +2,7 @@
 #PROG: readelf
 #readelf: -Wr -A
 #source: linkrelax.s
+#as: -mno-minimize-relocs
 
 #...
 Relocation section '.rela?.text' at offset 0x[0-9a-f]+ contains 4 entries:

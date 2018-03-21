@@ -273,6 +273,8 @@ extern void disassemble_init_wasm32 (struct disassemble_info *);
 extern const disasm_options_t *disassembler_options_powerpc (void);
 extern const disasm_options_t *disassembler_options_arm (void);
 extern const disasm_options_t *disassembler_options_s390 (void);
+extern int nanomips_predict_insn_length (bfd_vma, int,
+					 struct disassemble_info *);
 
 /* Fetch the disassembler for a given architecture ARC, endianess (big
    endian if BIG is true), bfd_mach value MACH, and ABFD, if that support

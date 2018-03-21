@@ -243,6 +243,9 @@ struct nanomips_set_options
 
   /* Enable/disable linker relaxation.  */
   bfd_boolean linkrelax;
+
+  /* Enable/disable resolution of link-invariable PC-relative fix-ups.  */
+  bfd_boolean minimize_relocs;
 };
 
 /* Specifies whether module level options have been checked yet.  */
@@ -258,7 +261,7 @@ static struct nanomips_set_options file_nanomips_opts = {
   /* arch */ CPU_UNKNOWN,  /* soft_float */ FALSE, /* single_float */ FALSE,
   /* init_ase */ 0, /* no_balc_stubs */ TRUE, /* legacyregs */ FALSE,
   /* pcrel */ FALSE, /* pid */ FALSE, /* pic */ NO_PIC,
-  /* mc_model */ MC_AUTO, /* linkrelax */ FALSE
+  /* mc_model */ MC_AUTO, /* linkrelax */ FALSE, /* minimize_relocs */ FALSE
 };
 
 /* This is similar to file_nanomips_opts, but for the current set of options.  */
@@ -269,7 +272,7 @@ static struct nanomips_set_options nanomips_opts = {
   /* arch */ CPU_UNKNOWN, /* soft_float */ FALSE, /* single_float */ FALSE,
   /* init_ase */ 0, /* no_balc_stubs */ TRUE, /* legacyregs */ FALSE,
   /* pcrel */ FALSE, /* pid */ FALSE, /* pic */ NO_PIC,
-  /* mc_model */ MC_AUTO, /* linkrelax */ FALSE
+  /* mc_model */ MC_AUTO, /* linkrelax */ FALSE, /* minimize_relocs */ FALSE
 };
 
 /* Which bits of file_ase were explicitly set or cleared by ASE options.  */
@@ -564,7 +567,7 @@ static bfd_boolean nanomips_mttgpr_rc1 = FALSE;
    larger one which takes a 16 bit value.  As some branches also follow
    this pattern, relaxing these values is required.
 
-   There are no delayed branches in nanooMIPS and we do not relax
+   There are no delayed branches in nanoMIPS and we do not relax
    32-bit branch instructions that do not fit within 32-bit range at
    assembly, so attributes related to those features are removed.
    Instead we relax 32-bit calls that do not fit within 16-bit range
@@ -592,11 +595,19 @@ enum
   RT_BALC_STUB,
 };
 
-#define RELAX_NANOMIPS_ENCODE(type, link, ext)			\
+enum relax_nanomips_fix_type
+{
+  RF_NONE = 0,
+  RF_FIXED,
+  RF_VARIABLE,
+  RF_NORELAX
+};
+
+#define RELAX_NANOMIPS_ENCODE(type, link, lvar)			\
   (0x20000000							\
    | ((type) & 0xff)						\
-   | ((ext) ? 0x1000 : 0)					\
-   | ((link) ? 0x2000 : 0))
+   | ((link) ? 0x2000 : 0)					\
+   | ((lvar) ? (lvar << 19) : 0))
 #define RELAX_NANOMIPS_P(i) (((i) & 0xe0000000) == 0x20000000)
 #define RELAX_NANOMIPS_TYPE(i) ((i) & 0xff)
 #define RELAX_NANOMIPS_LINK(i) (((i) & 0x2000) != 0)
@@ -632,7 +643,16 @@ enum
 #define RELAX_NANOMIPS_MARK_NEGOFF(i) ((i) | 0x40000)
 #define RELAX_NANOMIPS_CLEAR_NEGOFF(i) ((i) & ~0x40000)
 
-#define RELAX_NANOMIPS_FIXED(i) (((i) & 0x1000) != 0)
+#define RELAX_NANOMIPS_FIXED(i) (((i) & 0x180000) >> 19 == RF_FIXED)
+#define RELAX_NANOMIPS_MARK_FIXED(i) (((i) & ~0x180000) \
+				      | (RF_FIXED << 19))
+#define RELAX_NANOMIPS_CLEAR_FIXED(i) ((i) & ~(RF_FIXED << 19))
+
+#define RELAX_NANOMIPS_VARIABLE(i) (((i) & 0x180000) >> 19 == RF_VARIABLE)
+#define RELAX_NANOMIPS_MARK_VARIABLE(i) (((i) & ~0x180000) \
+					 | (RF_VARIABLE << 19))
+#define RELAX_NANOMIPS_CLEAR_VARIABLE(i) ((i) & ~(RF_VARIABLE << 19))
+#define RELAX_NANOMIPS_NORELAX(i) (((i) & 0x180000) >> 19 == RF_NORELAX)
 
 /* Sign-extend 16-bit value X.  */
 #define SEXT_16BIT(X) ((((X) + 0x8000) & 0xffff) - 0x8000)
@@ -642,7 +662,7 @@ enum
   (((x) &~ (offsetT) 0x7fffffff) == 0					\
    || (((x) &~ (offsetT) 0x7fffffff) == ~ (offsetT) 0x7fffffff))
 
-/* Is the given value a sign-extended 16-bit value?  */
+/* Is the given value an unsigned 16-bit value?  */
 #define IS_SEXT_16BIT_UINT(x)  (((x) &~ (offsetT) 0xffff) == 0)
 
 /* Is the given value a sign-extended 12-bit value?  */
@@ -655,6 +675,14 @@ enum
 #define IS_ZEXT_32BIT_NUM(x)						\
   (((x) &~ (offsetT) 0xffffffff) == 0					\
    || (((x) &~ (offsetT) 0xffffffff) == ~ (offsetT) 0xffffffff))
+
+/* Is the given value an unsigned N-bit value?  */
+#define IS_SEXT_UINT(x,n)  (((x) &~ (offsetT) ((1 << (n)) - 1)) == 0)
+
+/* Is the given value an signed-extended N-bit value?  */
+#define IS_SEXT_INT(x,n)				 \
+  (((((x) & ((1 << (n)) - 1)) ^ (offsetT)(1 << ((n)-1))) \
+    - (1 << ((n)-1))) == (x))
 
 /* Extract bits MASK << SHIFT from STRUCT and shift them right
    SHIFT places.  */
@@ -840,6 +868,8 @@ enum options
   OPTION_LARGE_PIC,
   OPTION_MCMODEL,
   OPTION_MTTGPR_RC1,
+  OPTION_MINIMIZE_RELOCS,
+  OPTION_NO_MINIMIZE_RELOCS,
   OPTION_END_OF_ENUM
 };
 
@@ -902,6 +932,8 @@ struct option md_longopts[] = {
   {"trap", no_argument, NULL, OPTION_TRAP},
   {"no-trap", no_argument, NULL, OPTION_BREAK},
   {"mmttgpr-rc1", no_argument, NULL, OPTION_MTTGPR_RC1},
+  {"mminimize-relocs", no_argument, NULL, OPTION_MINIMIZE_RELOCS},
+  {"mno-minimize-relocs", no_argument, NULL, OPTION_NO_MINIMIZE_RELOCS},
 
   {NULL, no_argument, NULL, 0}
 };
@@ -3011,21 +3043,48 @@ gprel16_reloc_p (bfd_reloc_code_real_type reloc)
 }
 
 static inline bfd_boolean
-pcrel_reloc_p (bfd_reloc_code_real_type reloc)
+pcrel16_reloc_p (bfd_reloc_code_real_type reloc)
+{
+  return (reloc == BFD_RELOC_NANOMIPS_4_PCREL_S1
+	  || reloc == BFD_RELOC_NANOMIPS_7_PCREL_S1
+	  || reloc == BFD_RELOC_NANOMIPS_10_PCREL_S1);
+}
+
+static inline bfd_boolean
+pcrel32_reloc_p (bfd_reloc_code_real_type reloc)
 {
   return (reloc == BFD_RELOC_32_PCREL
-	  || reloc == BFD_RELOC_NANOMIPS_4_PCREL_S1
-	  || reloc == BFD_RELOC_NANOMIPS_7_PCREL_S1
-	  || reloc == BFD_RELOC_NANOMIPS_10_PCREL_S1
 	  || reloc == BFD_RELOC_NANOMIPS_11_PCREL_S1
 	  || reloc == BFD_RELOC_NANOMIPS_14_PCREL_S1
 	  || reloc == BFD_RELOC_NANOMIPS_21_PCREL_S1
 	  || reloc == BFD_RELOC_NANOMIPS_25_PCREL_S1
 	  || reloc == BFD_RELOC_NANOMIPS_PCREL_HI20
-	  || reloc == BFD_RELOC_NANOMIPS_PC_I32
-	  || reloc == BFD_RELOC_NANOMIPS_GOTPC_HI20
+	  || reloc == BFD_RELOC_NANOMIPS_GOTPC_HI20);
+}
+
+static inline bfd_boolean
+pcrel_branch_reloc_p (bfd_reloc_code_real_type reloc)
+{
+  return (pcrel16_reloc_p (reloc)
+	  || (pcrel32_reloc_p (reloc)
+	      && reloc != BFD_RELOC_NANOMIPS_PCREL_HI20
+	      && reloc != BFD_RELOC_NANOMIPS_GOTPC_HI20));
+}
+
+static inline bfd_boolean
+pcrel48_reloc_p (bfd_reloc_code_real_type reloc)
+{
+  return (reloc == BFD_RELOC_NANOMIPS_PC_I32
 	  || reloc == BFD_RELOC_NANOMIPS_GOTPC_I32
 	  || reloc == BFD_RELOC_NANOMIPS_TLS_GOTTPREL_PC_I32);
+}
+
+static inline bfd_boolean
+pcrel_reloc_p (bfd_reloc_code_real_type reloc)
+{
+  return (pcrel16_reloc_p (reloc)
+	  || pcrel32_reloc_p (reloc)
+	  || pcrel48_reloc_p (reloc));
 }
 
 /* Return true if RELOC is a PC-relative relocation that does not have
@@ -5156,7 +5215,8 @@ balc_frag_traverse (const char *key ATTRIBUTE_UNUSED, void *value)
   nanomips_label_inc ();
   stub->fragp = frag_now;
   add_relaxed_insn (&nanomips_bc32_insn, 4, 0,
-		    RELAX_NANOMIPS_ENCODE (RT_BALC_STUB, 0, 1), stub->sym, 0);
+		    RELAX_NANOMIPS_ENCODE (RT_BALC_STUB, 0, RF_VARIABLE),
+		    stub->sym, 0);
   stub->sym = l;
   if (stub->numcalls >= 3)
     stub->fragp->fr_subtype
@@ -5411,27 +5471,43 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
       add_fixed_insn (ip);
     }
   else if (address_expr
-	   && *reloc_type >= BFD_RELOC_UNUSED + RT_BRANCH_UCND
-	   && !forced_insn_format)
+	   && *reloc_type >= BFD_RELOC_UNUSED + RT_BRANCH_UCND)
     {
       int type = *reloc_type - BFD_RELOC_UNUSED;
       int al = pinfo & INSN_WRITE_GPR_31;
+      int max = (forced_insn_format? insn_length (ip->insn_mo) : 4);
+      enum relax_nanomips_fix_type rf = (nanomips_opts.linkrelax ?
+					 RF_VARIABLE : RF_NORELAX);
 
       gas_assert (address_expr != NULL);
       gas_assert (!nanomips_relax.sequence);
 
-      add_relaxed_insn (ip, 4, 2,
-			RELAX_NANOMIPS_ENCODE (type, al, 0),
-			address_expr->X_add_symbol,
-			address_expr->X_add_number);
-      /* Track this call for balcp-to-stub relaxation.  */
-      if (!nanomips_opts.no_balc_stubs
-	  && stubg_now != NULL
-	  && type == RT_BRANCH_UCND
-	  && (ip->insn_mo->pinfo & INSN_WRITE_GPR_31) != 0)
-	balc_add_stub (address_expr->X_add_symbol, stubg_now);
+      if (nanomips_opts.minimize_relocs || !forced_insn_format)
+	add_relaxed_insn (ip, max, insn_length (ip->insn_mo),
+			  RELAX_NANOMIPS_ENCODE (type, al, rf),
+			  address_expr->X_add_symbol,
+			  address_expr->X_add_number);
+      else
+	add_fixed_insn (ip);
 
-      *reloc_type = BFD_RELOC_UNUSED;
+      /* Track this call for balcp-to-stub relaxation.  */
+      if (!forced_insn_format)
+	{
+	  if (!nanomips_opts.no_balc_stubs
+	      && stubg_now != NULL
+	      && type == RT_BRANCH_UCND
+	      && (ip->insn_mo->pinfo & INSN_WRITE_GPR_31) != 0)
+	    balc_add_stub (address_expr->X_add_symbol, stubg_now);
+	  *reloc_type = BFD_RELOC_UNUSED;
+	}
+      else
+	{
+	  const bfd_reloc_code_real_type rtype[] =
+	    { BFD_RELOC_NANOMIPS_10_PCREL_S1,
+	      BFD_RELOC_NANOMIPS_7_PCREL_S1,
+	      BFD_RELOC_NANOMIPS_4_PCREL_S1 };
+	  *reloc_type = rtype[*reloc_type - BFD_RELOC_UNUSED - RT_BRANCH_UCND];
+	}
     }
   else if (address_expr
 	   && *reloc_type == BFD_RELOC_UNUSED + RT_ADDIU
@@ -5439,24 +5515,16 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
 	   && !forced_insn_format)
     {
       int type = RT_ADDIU;
-      bfd_boolean fixed = (nanomips_opts.insn32 || (forced_insn_length == 4));
+      enum relax_nanomips_fix_type fixed = RF_NONE;
+      if (nanomips_opts.insn32 || (forced_insn_length == 4))
+	fixed = RF_FIXED;
+
       gas_assert (address_expr != NULL);
       gas_assert (!nanomips_relax.sequence);
       add_relaxed_insn (ip, 4, 4,
 			RELAX_NANOMIPS_ENCODE (type, 0, fixed),
 			make_expr_symbol (address_expr), 0);
       *reloc_type = BFD_RELOC_UNUSED;
-    }
-  else if (address_expr
-	   && *reloc_type >= BFD_RELOC_UNUSED + RT_BRANCH_UCND
-	   && forced_insn_format)
-    {
-      const bfd_reloc_code_real_type rtype[] =
-	{ BFD_RELOC_NANOMIPS_10_PCREL_S1,
-	  BFD_RELOC_NANOMIPS_7_PCREL_S1,
-	  BFD_RELOC_NANOMIPS_4_PCREL_S1 };
-      *reloc_type = rtype[*reloc_type - BFD_RELOC_UNUSED - RT_BRANCH_UCND];
-      add_fixed_insn (ip);
     }
   else
     {
@@ -5486,7 +5554,18 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
 	  nanomips_macro_warning.insns[1]++;
 	}
 
-      add_fixed_insn (ip);
+      if (nanomips_opts.minimize_relocs
+	  && pcrel_branch_reloc_p (*reloc_type)
+	  && address_expr->X_op != O_constant)
+	add_relaxed_insn (ip, insn_length (ip->insn_mo),
+			  insn_length (ip->insn_mo),
+			  RELAX_NANOMIPS_ENCODE (0, pinfo & INSN_WRITE_GPR_31,
+						 nanomips_opts.linkrelax
+						 ? RF_VARIABLE : RF_NORELAX),
+			  address_expr->X_add_symbol,
+			  address_expr->X_add_number);
+      else
+	add_fixed_insn (ip);
     }
 
   if (!ip->complete_p && *reloc_type < BFD_RELOC_UNUSED)
@@ -5523,8 +5602,8 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
 				 howto0 && howto0->pc_relative,
 				 final_type[0]);
       /* Remember the first fix-up in this frag.  */
-      if (ip->frag->tc_frag_data == NULL)
-	ip->frag->tc_frag_data = ip->fixp[0];
+      if (ip->frag->tc_frag_data.first_fix == NULL)
+	ip->frag->tc_frag_data.first_fix = ip->fixp[0];
 
       /* These relocations can have an addend that won't fit in
 	 4 octets for 64bit assembly.  */
@@ -5579,6 +5658,10 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
 	    fix_new (ip->frag, ip->where, 0, &abs_symbol, 0, FALSE,
 		     (forced_insn_length == 2 ? BFD_RELOC_NANOMIPS_INSN16
 		      : BFD_RELOC_NANOMIPS_INSN32));
+	  if ((!forced_insn_length || forced_insn_length != 48)
+	      && !forced_insn_format
+	      && !pcrel_branch_reloc_p (*reloc_type))
+	    ip->frag->tc_frag_data.link_var = TRUE;
 	}
     }
 
@@ -9585,6 +9668,14 @@ md_parse_option (int c, const char *arg)
       nanomips_mttgpr_rc1 = TRUE;
       break;
 
+    case OPTION_MINIMIZE_RELOCS:
+      file_nanomips_opts.minimize_relocs = TRUE;
+      break;
+
+    case OPTION_NO_MINIMIZE_RELOCS:
+      file_nanomips_opts.minimize_relocs = FALSE;
+      break;
+
     default:
       return 0;
     }
@@ -9685,6 +9776,10 @@ relaxable_section (asection *sec)
 int
 nanomips_force_relocation (fixS *fixp)
 {
+  if (pcrel_branch_reloc_p (fixp->fx_r_type)
+      && RELAX_NANOMIPS_FIXED (fixp->fx_frag->fr_subtype))
+    return 0;
+
   if (generic_force_reloc (fixp))
     return 1;
 
@@ -9698,13 +9793,7 @@ nanomips_force_relocation (fixS *fixp)
 
 
   /* and for nanoMIPS expansions */
-  if (fixp->fx_r_type == BFD_RELOC_NANOMIPS_4_PCREL_S1
-      || fixp->fx_r_type == BFD_RELOC_NANOMIPS_7_PCREL_S1
-      || fixp->fx_r_type == BFD_RELOC_NANOMIPS_10_PCREL_S1
-      || fixp->fx_r_type == BFD_RELOC_NANOMIPS_11_PCREL_S1
-      || fixp->fx_r_type == BFD_RELOC_NANOMIPS_14_PCREL_S1
-      || fixp->fx_r_type == BFD_RELOC_NANOMIPS_21_PCREL_S1
-      || fixp->fx_r_type == BFD_RELOC_NANOMIPS_25_PCREL_S1
+  if (pcrel_branch_reloc_p (fixp->fx_r_type)
       || fixp->fx_r_type == BFD_RELOC_NANOMIPS_PCREL_HI20
       || fixp->fx_r_type == BFD_RELOC_NANOMIPS_PC_I32
       || fixp->fx_r_type == BFD_RELOC_NANOMIPS_GOTPC_HI20
@@ -9720,22 +9809,32 @@ nanomips_force_relocation (fixS *fixp)
   return 0;
 }
 
+/* Find the size of an instruction relocated by RELOC, default to 4.  */
+static unsigned int
+get_reloc_size (bfd_reloc_code_real_type reloc)
+{
+  if (pcrel16_reloc_p (reloc))
+    return 2;
+  else
+    return 4;
+}
+
 /* Read the instruction associated with RELOC from BUF.  */
 
 static unsigned int
-read_reloc_insn (char *buf, bfd_reloc_code_real_type reloc ATTRIBUTE_UNUSED)
+read_reloc_insn (char *buf, bfd_reloc_code_real_type reloc)
 {
-  return read_compressed_insn (buf, 4);
+  return read_compressed_insn (buf, get_reloc_size (reloc));
 }
 
 /* Write instruction INSN to BUF, given that it has been relocated
    by RELOC.  */
 
 static void
-write_reloc_insn (char *buf, bfd_reloc_code_real_type reloc ATTRIBUTE_UNUSED,
+write_reloc_insn (char *buf, bfd_reloc_code_real_type reloc,
 		  unsigned long insn)
 {
-  write_compressed_insn (buf, insn, 4);
+  write_compressed_insn (buf, insn, get_reloc_size (reloc));
 }
 
 /* Apply a fixup to the object file.  */
@@ -9824,7 +9923,10 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
      constants.  The easiest way of dealing with the pathological
      exceptions is to generate a relocation against STN_UNDEF and
      leave everything up to the linker.  */
-  if (fixP->fx_addsy == NULL && !fixP->fx_pcrel && fixP->fx_tcbit == 0)
+  if ((fixP->fx_addsy == NULL && !fixP->fx_pcrel && fixP->fx_tcbit == 0)
+      || (pcrel_branch_reloc_p (fixP->fx_r_type)
+	  && fixP->fx_frag
+	  && RELAX_NANOMIPS_FIXED (fixP->fx_frag->fr_subtype)))
     fixP->fx_done = 1;
 
   switch (fixP->fx_r_type)
@@ -9989,6 +10091,38 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       break;
 
     case BFD_RELOC_NANOMIPS_4_PCREL_S1:
+      if (!fixP->fx_done)
+	break;
+      /* Invariable branches can be fixed up now.  */
+      {
+	unsigned mask;
+	howto = bfd_reloc_type_lookup (stdoutput, fixP->fx_r_type);
+	if (!IS_SEXT_UINT (*valP, howto->bitsize + 1))
+	  {
+	    as_bad_where (fixP->fx_file, fixP->fx_line,
+			  _("Fixed relocation overflow"));
+	    break;
+	  }
+
+	mask = ((1 << howto->bitsize) - 1);
+	insn = read_reloc_insn (buf, fixP->fx_r_type);
+	insn &= ~howto->dst_mask;
+	insn |= ((*valP >> 1) & mask);
+	write_reloc_insn (buf, fixP->fx_r_type, insn);
+
+	if (fixP->fx_next)
+	  {
+	    fixS *fnextP = fixP->fx_next;
+	    if (fnextP->fx_frag == fixP->fx_frag
+		&& fnextP->fx_where == fixP->fx_where
+		&& (fnextP->fx_r_type == BFD_RELOC_NANOMIPS_INSN16
+		    || fnextP->fx_r_type == BFD_RELOC_NANOMIPS_INSN32
+		    || fnextP->fx_r_type == BFD_RELOC_NANOMIPS_FIXED))
+	      fnextP->fx_done = 1;
+	  }
+      }
+      break;
+
     case BFD_RELOC_NANOMIPS_7_PCREL_S1:
     case BFD_RELOC_NANOMIPS_10_PCREL_S1:
     case BFD_RELOC_NANOMIPS_11_PCREL_S1:
@@ -9997,12 +10131,40 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
     case BFD_RELOC_NANOMIPS_25_PCREL_S1:
       if (!fixP->fx_done)
 	break;
-      /* Should never visit here, because we keep the relocation.  */
-      abort ();
+      /* Invariable branches can be fixed up now.  */
+      {
+	unsigned mask;
+	unsigned int sbit = 0;
+	howto = bfd_reloc_type_lookup (stdoutput, fixP->fx_r_type);
+	if (!IS_SEXT_INT (*valP, howto->bitsize + 1))
+	  {
+	    as_bad_where (fixP->fx_file, fixP->fx_line,
+			  _("Fixed relocation overflow"));
+	    break;
+	  }
+
+	mask = ((1 << howto->bitsize) - 1) & ~0x1;
+	if ((int)*valP < 0)
+	  sbit = 1;
+	insn = read_reloc_insn (buf, fixP->fx_r_type);
+	insn &= ~howto->dst_mask;
+	insn |= (*valP & mask) | sbit;
+	write_reloc_insn (buf, fixP->fx_r_type, insn);
+
+	if (fixP->fx_next)
+	  {
+	    fixS *fnextP = fixP->fx_next;
+	    if (fnextP->fx_frag == fixP->fx_frag
+		&& fnextP->fx_where == fixP->fx_where
+		&& (fnextP->fx_r_type == BFD_RELOC_NANOMIPS_INSN16
+		    || fnextP->fx_r_type == BFD_RELOC_NANOMIPS_INSN32
+		    || fnextP->fx_r_type == BFD_RELOC_NANOMIPS_FIXED))
+	      fnextP->fx_done = 1;
+	  }
+      }
       break;
 
-
-    case BFD_RELOC_VTABLE_INHERIT:
+   case BFD_RELOC_VTABLE_INHERIT:
       fixP->fx_done = 0;
       if (fixP->fx_addsy
 	  && !S_IS_DEFINED (fixP->fx_addsy)
@@ -10063,8 +10225,8 @@ create_align_relocs (fragS *fragp, int align_to, unsigned int fill_value,
   symbol_table_insert (sym);
 
   fixp = fix_new (fragp, where, 0, sym, 0, FALSE, BFD_RELOC_NANOMIPS_ALIGN);
-  if (fragp->tc_frag_data == NULL)
-    fragp->tc_frag_data = fixp;
+  if (fragp->tc_frag_data.first_fix == NULL)
+    fragp->tc_frag_data.first_fix = fixp;
 
   /* Generate fill reloc.  Default fill value is micromips nop32.  */
   if (fill_length)
@@ -10125,13 +10287,8 @@ s_align (int x ATTRIBUTE_UNUSED)
   int temp, fill_value, *fill_ptr;
   long max_alignment = 28;
 
-  /* o Note that the assembler pulls down any immediately preceding label
-       to the aligned address.
-     o It's not documented but auto alignment is reinstated by
-       a .align pseudo instruction.
-     o Note also that after auto alignment is turned off the mips assembler
-       issues an error on attempt to assemble an improperly aligned data item.
-       We don't.  */
+  /* Note that the assembler pulls down any immediately preceding label
+     to the aligned address. */
 
   temp = get_absolute_expression ();
   if (temp > max_alignment)
@@ -10168,6 +10325,7 @@ s_align (int x ATTRIBUTE_UNUSED)
 	    }
 
 	  create_align_relocs (frag_now, temp, fill_value, fill_length, 0);
+	  frag_now->tc_frag_data.link_var = TRUE;
 	}
 
       /* Auto alignment should be switched on by next section change.  */
@@ -11100,6 +11258,108 @@ nanomips_frag_match (fragS *head, fragS *matchP)
   return FALSE;
 }
 
+static bfd_boolean
+addr_in_frag_range (fragS *fragp, addressT addr)
+{
+  return (addr >= fragp->fr_address
+	  && addr <= fragp->fr_address + fragp->fr_fix);
+}
+
+static bfd_boolean
+variable_frag_p (fragS *fragp)
+{
+  return (fragp->tc_frag_data.link_var
+	  || (RELAX_NANOMIPS_P (fragp->fr_subtype)
+	      && RELAX_NANOMIPS_VARIABLE (fragp->fr_subtype)));
+}
+
+/* This "relaxation" is monotonic. A branch or fragment that is determined
+   to be invariable, will never become variable.  */
+
+static bfd_boolean
+relaxed_nanomips_invariable_branch_p (fragS *fragp, asection *sec, int update)
+{
+  addressT addr;
+  fragS *nfrag;
+  fragS *pfrag = NULL;
+  bfd_boolean fixed_p = FALSE;
+  bfd_boolean variable_p = FALSE;
+
+  gas_assert (fragp != NULL);
+
+  /* Don't bother  */
+  if (!nanomips_opts.minimize_relocs
+      || RELAX_NANOMIPS_ADDIU_P (fragp->fr_subtype)
+      || RELAX_NANOMIPS_FIXED (fragp->fr_subtype))
+    return TRUE;
+
+  /* Trivially mark branches to external symbols as unfixable.  */
+  if (fragp->fr_symbol &&
+      (S_IS_DEFINED (fragp->fr_symbol) || !S_IS_LOCAL (fragp->fr_symbol))
+      && !S_IS_WEAK (fragp->fr_symbol)
+      && sec != S_GET_SEGMENT (fragp->fr_symbol))
+    {
+      if (!RELAX_NANOMIPS_NORELAX (fragp->fr_subtype))
+	{
+	  fragp->tc_frag_data.link_var = TRUE;
+	  if (update)
+	    fragp->fr_subtype = RELAX_NANOMIPS_MARK_VARIABLE
+	      (fragp->fr_subtype);
+	}
+      return FALSE;
+    }
+
+  addr = S_GET_VALUE (fragp->fr_symbol) + fragp->fr_offset;
+
+  /* Branching to a location within this frag.  */
+  if (addr_in_frag_range (fragp, addr))
+    fixed_p = !fragp->tc_frag_data.link_var;
+  /* Branching ahead.  */
+  else if (addr > fragp->fr_address + fragp->fr_fix)
+    {
+      fragS *ifrag = fragp;
+      nfrag = symbol_get_frag (fragp->fr_symbol);
+      do
+      {
+	  ifrag = ifrag->fr_next;
+	  if (ifrag && variable_frag_p (ifrag))
+	    variable_p = TRUE;
+      }
+      while (ifrag && ifrag != nfrag && !variable_p);
+      fixed_p = (!variable_p && (ifrag == nfrag));
+    }
+  /* Branching back.  */
+  else
+    {
+      fragS *ifrag;
+      pfrag = symbol_get_frag (fragp->fr_symbol);
+      ifrag = pfrag;
+      while (ifrag && ifrag != fragp && !variable_p)
+	{
+	  if (variable_frag_p (ifrag))
+	    variable_p = TRUE;
+	  ifrag = ifrag->fr_next;
+	}
+      fixed_p = (!variable_p && (ifrag == fragp));
+    }
+
+  if (update)
+    {
+      gas_assert (!(fixed_p && variable_p));
+      if (fixed_p)
+	fragp->fr_subtype = RELAX_NANOMIPS_MARK_FIXED (fragp->fr_subtype);
+      else if (variable_p)
+	fragp->fr_subtype = RELAX_NANOMIPS_MARK_VARIABLE (fragp->fr_subtype);
+      else
+	{
+	  fragp->fr_subtype = RELAX_NANOMIPS_CLEAR_FIXED (fragp->fr_subtype);
+	  fragp->fr_subtype = RELAX_NANOMIPS_CLEAR_VARIABLE (fragp->fr_subtype);
+	}
+    }
+
+  return fixed_p;
+}
+
 /* Compute the length of a branch, and adjust the RELAX_NANOMIPS_TOOFAR16
    bit accordingly.  */
 
@@ -11140,7 +11400,7 @@ relaxed_nanomips_16bit_branch_length (fragS *fragp, asection *sec,
 		      && nanomips_frag_match (fragp, symbol_get_frag
 					      (fragp->fr_symbol))));
       else
-	abort ();
+	toofar = TRUE;
     }
   else
     /* If the symbol is not defined or it's in a different segment,
@@ -11380,7 +11640,7 @@ md_estimate_size_before_relax (fragS *fragp, asection *segtype)
 
   if (RELAX_NANOMIPS_P (fragp->fr_subtype))
     {
-      int length = 4;
+      int length = fragp->fr_var;
 
       if (!nanomips_opts.no_balc_stubs
 	  && stubg_now != NULL
@@ -11436,7 +11696,8 @@ nanomips_fix_adjustable (fixS *fixp)
 
   /* PC relative relocations for need to be symbol rather than section
      relative to allow linker relaxations to be performed later on.  */
-  if (pcrel_reloc_p (fixp->fx_r_type))
+  if (pcrel_reloc_p (fixp->fx_r_type)
+      && !RELAX_NANOMIPS_FIXED (fixp->fx_frag->fr_subtype))
     return 0;
 
   /* Relocations to code sections need to be symbol rather than section
@@ -11552,6 +11813,8 @@ nanomips_relax_frag (asection *sec, fragS *fragp,
 	new_var = relaxed_nanomips_addiu_length (fragp, TRUE);
       else if (RELAX_NANOMIPS_TYPE (fragp->fr_subtype) != 0)
 	new_var = relaxed_nanomips_16bit_branch_length (fragp, sec, TRUE);
+      else
+	new_var = old_var;
 
       /* Try to relax 32-bit call through a stub.  */
       if (!nanomips_opts.no_balc_stubs
@@ -11563,7 +11826,9 @@ nanomips_relax_frag (asection *sec, fragS *fragp,
 						     new_var > 2, TRUE);
 
       fragp->fr_var = new_var;
-
+      if (!RELAX_NANOMIPS_ADDIU_P (fragp->fr_subtype) != 0
+	  && fragp->fr_symbol != 0)
+	relaxed_nanomips_invariable_branch_p (fragp, sec, TRUE);
       return new_var - old_var;
     }
 
@@ -11681,15 +11946,16 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 			      rtype[3]);
 	  break;
 	default:
-	  abort ();
+	  return;
+	  break;
 	}
 
       fixp->fx_file = fragp->fr_file;
       fixp->fx_line = fragp->fr_line;
 
       /* Remember the first fix-up in this frag.  */
-      if (fragp->tc_frag_data == NULL)
-	fragp->tc_frag_data = fixp;
+      if (fragp->tc_frag_data.first_fix == NULL)
+	fragp->tc_frag_data.first_fix = fixp;
 
       /* These relocations can have an addend that won't fit in
          2 octets.  */
@@ -11974,12 +12240,12 @@ nanomips_handle_align (fragS *fragp)
 
   bytes = fragp->fr_next->fr_address - fragp->fr_address - fragp->fr_fix;
 
-  /* tc_frag_data points to the ALIGN relocation for this frag.
+  /* tc_frag_data.first_fix points to the ALIGN relocation for this frag.
      Update the size of the absolute alignment symbol to match
      the actual padding inserted at this alignment point. */
-  if (fragp->tc_frag_data != NULL)
+  if (fragp->tc_frag_data.first_fix != NULL)
     {
-      fixS *fixp = fragp->tc_frag_data;
+      fixS *fixp = fragp->tc_frag_data.first_fix;
       asymbol *sym;
 
       while (fixp != NULL && fixp->fx_frag == fragp)
@@ -12532,6 +12798,9 @@ nanoMIPS options:\n\
 --break, --no-trap	break exception on div by 0 and mult overflow\n"));
   fprintf (stream, _("\
 -mmttgpr-rc1		Revert to RC1 assembly format for MTTGPR instruction\n"));
+  fprintf (stream, _("\
+-m[no-]minimize-relocs	enable/disable full resolution of link-time invariable\n\
+			PC-relative relocations at assembly\n"));
   fputc ('\n', stream);
 
 }
@@ -12939,7 +13208,7 @@ nanomips_allow_local_subtract_symbols (symbolS *left, symbolS *right)
 	}
 
       /* Start with the first fix-up in this frag.  */
-      fixP = fragP->tc_frag_data;
+      fixP = fragP->tc_frag_data.first_fix;
 
       /* Now look for fixups within the range.  */
       while (fixP != NULL
@@ -12951,6 +13220,26 @@ nanomips_allow_local_subtract_symbols (symbolS *left, symbolS *right)
       if (fixP == NULL
 	  || fixP->fx_frag->fr_address + fixP->fx_where >= high)
 	return TRUE;
+    }
+  else if (nanomips_opts.minimize_relocs
+	   && S_GET_SEGMENT (left) == S_GET_SEGMENT (right))
+    {
+      fragS *fragp, *ifragp;
+      if (S_GET_VALUE (left) > S_GET_VALUE (right))
+	{
+	  fragp = symbol_get_frag (left);
+	  ifragp = symbol_get_frag (right);
+	}
+      else
+	{
+	  fragp = symbol_get_frag (right);
+	  ifragp = symbol_get_frag (left);
+	}
+
+      while (ifragp && ifragp != fragp && !variable_frag_p (ifragp))
+	ifragp = ifragp->fr_next;
+
+      return (ifragp == fragp && !variable_frag_p (ifragp));
     }
 
   /* We have to assume that there may be instructions between the
@@ -13002,6 +13291,7 @@ nanomips_md_do_align (int n, const char *fill, int fill_length, int max_fill)
 	frag_grow (1);
 
       create_align_relocs (frag_now, n, fill_value, fill_length, max_fill);
+      frag_now->tc_frag_data.link_var = TRUE;
     }
 }
 
@@ -13054,7 +13344,7 @@ nanomips_validate_fix_sub (fixS *fix)
 	}
 
       /* Start with the first fix-up in this frag.  */
-      fixP = frag_lo->tc_frag_data;
+      fixP = frag_lo->tc_frag_data.first_fix;
 
       /* Now look for fixups within the range.  */
       while (fixP != NULL
@@ -13126,4 +13416,22 @@ nanomips_eh_frame_convert_frag (fragS *frag)
     }
 
   eh_frame_convert_frag (frag);
+}
+
+/* Translate a relocation to a PC-relative offset.  */
+long
+md_pcrel_from (fixS *fixP)
+{
+  valueT addr = fixP->fx_where + fixP->fx_frag->fr_address;
+
+  if (pcrel_branch_reloc_p (fixP->fx_r_type)
+      && RELAX_NANOMIPS_FIXED (fixP->fx_frag->fr_subtype))
+    {
+      if (pcrel16_reloc_p (fixP->fx_r_type))
+	return addr+2;
+      else
+	return addr+4;
+    }
+    else
+      return 0;
 }
