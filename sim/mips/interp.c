@@ -678,10 +678,13 @@ sim_open (SIM_OPEN_KIND kind, host_callback *cb,
 	  cpu->register_widths[rn] = WITH_TARGET_FLOATING_POINT_BITSIZE;
 	else if ((rn >= 33) && (rn <= 37))
 	  cpu->register_widths[rn] = WITH_TARGET_WORD_BITSIZE;
+	else if ((rn >= 70) && (rn <= 78))
+	  cpu->register_widths[rn] = WITH_TARGET_WORD_BITSIZE;
 	else if ((rn == SRIDX)
 		 || (rn == FCR0IDX)
 		 || (rn == FCR31IDX)
-		 || ((rn >= 72) && (rn <= 89)))
+		 || (rn == DSPCRIDX)
+		 || ((rn >= 80) && (rn <= 89)))
 	  cpu->register_widths[rn] = 32;
 	else
 	  cpu->register_widths[rn] = 0;

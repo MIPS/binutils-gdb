@@ -58,6 +58,8 @@
 #include "ax.h"
 #include <algorithm>
 
+#include "features/nanomips.c"
+
 static const struct objfile_data *nanomips_pdr_data;
 
 /* The sizes of registers.  */
@@ -267,7 +269,7 @@ enum
 /* Generic nanoMIPS.  */
 
 static const char *nanomips_generic_reg_names[NUM_PROCESSOR_REGS] = {
-  "sr", "lo", "hi", "bad", "cause", "pc",
+  "sr", "bad", "cause", "pc",
   "f0", "f1", "f2", "f3", "f4", "f5", "f6", "f7",
   "f8", "f9", "f10", "f11", "f12", "f13", "f14", "f15",
   "f16", "f17", "f18", "f19", "f20", "f21", "f22", "f23",
@@ -277,7 +279,7 @@ static const char *nanomips_generic_reg_names[NUM_PROCESSOR_REGS] = {
 
 /* Names of registers with Linux kernels.  */
 static const char *nanomips_linux_reg_names[NUM_PROCESSOR_REGS] = {
-  "sr", "lo", "hi", "bad", "cause", "pc",
+  "sr", "bad", "cause", "pc",
   "f0", "f1", "f2", "f3", "f4", "f5", "f6", "f7",
   "f8", "f9", "f10", "f11", "f12", "f13", "f14", "f15",
   "f16", "f17", "f18", "f19", "f20", "f21", "f22", "f23",
@@ -729,14 +731,12 @@ nanomips_pseudo_register_type (struct gdbarch *gdbarch, int regnum)
 
   if (nanomips_abi_regsize (gdbarch) == 4 && TYPE_LENGTH (rawtype) == 8
       && ((rawnum >= ZERO_REGNUM && rawnum <= PS_REGNUM)
-	  || rawnum == nanomips_regnum (gdbarch)->lo
-	  || rawnum == nanomips_regnum (gdbarch)->hi
 	  || rawnum == nanomips_regnum (gdbarch)->badvaddr
 	  || rawnum == nanomips_regnum (gdbarch)->cause
 	  || rawnum == nanomips_regnum (gdbarch)->pc
 	  || (nanomips_regnum (gdbarch)->dspacc != -1
 	      && rawnum >= nanomips_regnum (gdbarch)->dspacc
-	      && rawnum < nanomips_regnum (gdbarch)->dspacc + 6)))
+	      && rawnum < nanomips_regnum (gdbarch)->dspacc + 8)))
     return builtin_type (gdbarch)->builtin_int32;
 
   /* The pseudo/cooked view of embedded registers is always
@@ -2859,14 +2859,10 @@ nanomips_stab_reg_to_regnum (struct gdbarch *gdbarch, int num)
   int regnum;
   if (num >= 0 && num < 32)
     regnum = num;
-  else if (num >= 38 && num < 70)
-    regnum = num + nanomips_regnum (gdbarch)->fp0 - 38;
-  else if (num == 70)
-    regnum = nanomips_regnum (gdbarch)->hi;
-  else if (num == 71)
-    regnum = nanomips_regnum (gdbarch)->lo;
-  else if (nanomips_regnum (gdbarch)->dspacc != -1 && num >= 72 && num < 78)
-    regnum = num + nanomips_regnum (gdbarch)->dspacc - 72;
+  else if (num >= 36 && num < 70)
+    regnum = num + nanomips_regnum (gdbarch)->fp0 - 36;
+  else if (nanomips_regnum (gdbarch)->dspacc != -1 && num >= 70 && num < 78)
+    regnum = num + nanomips_regnum (gdbarch)->dspacc - 70;
   else
     return -1;
   return gdbarch_num_regs (gdbarch) + regnum;
@@ -2884,12 +2880,8 @@ nanomips_dwarf_dwarf2_ecoff_reg_to_regnum (struct gdbarch *gdbarch, int num)
     regnum = num;
   else if (num >= 32 && num < 64)
     regnum = num + nanomips_regnum (gdbarch)->fp0 - 32;
-  else if (num == 64)
-    regnum = nanomips_regnum (gdbarch)->hi;
-  else if (num == 65)
-    regnum = nanomips_regnum (gdbarch)->lo;
-  else if (nanomips_regnum (gdbarch)->dspacc != -1 && num >= 66 && num < 72)
-    regnum = num + nanomips_regnum (gdbarch)->dspacc - 66;
+  else if (nanomips_regnum (gdbarch)->dspacc != -1 && num >= 64 && num < 72)
+    regnum = num + nanomips_regnum (gdbarch)->dspacc - 64;
   else
     return -1;
   return gdbarch_num_regs (gdbarch) + regnum;
@@ -2981,31 +2973,27 @@ nanomips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   /* Fill in the OS dependent register numbers and names.  */
   if (info.osabi == GDB_OSABI_LINUX)
     {
-      nanomips_regnum.fp0 = 38;
-      nanomips_regnum.pc = 37;
-      nanomips_regnum.cause = 36;
-      nanomips_regnum.badvaddr = 35;
-      nanomips_regnum.hi = 34;
-      nanomips_regnum.lo = 33;
-      nanomips_regnum.fp_control_status = 70;
-      nanomips_regnum.fp_implementation_revision = 71;
+      nanomips_regnum.fp0 = 36;
+      nanomips_regnum.pc = 35;
+      nanomips_regnum.cause = 34;
+      nanomips_regnum.badvaddr = 33;
+      nanomips_regnum.fp_control_status = 68;
+      nanomips_regnum.fp_implementation_revision = 69;
       nanomips_regnum.dspacc = -1;
       nanomips_regnum.dspctl = -1;
-      dspacc = 72;
+      dspacc = 70;
       dspctl = 78;
       num_regs = 79;
       reg_names = nanomips_linux_reg_names;
     }
   else
     {
-      nanomips_regnum.lo = EMBED_LO_REGNUM;
-      nanomips_regnum.hi = EMBED_HI_REGNUM;
       nanomips_regnum.badvaddr = EMBED_BADVADDR_REGNUM;
       nanomips_regnum.cause = EMBED_CAUSE_REGNUM;
       nanomips_regnum.pc = EMBED_PC_REGNUM;
       nanomips_regnum.fp0 = EMBED_FP0_REGNUM;
-      nanomips_regnum.fp_control_status = 70;
-      nanomips_regnum.fp_implementation_revision = 71;
+      nanomips_regnum.fp_control_status = 68;
+      nanomips_regnum.fp_implementation_revision = 69;
       nanomips_regnum.dspacc = dspacc = -1;
       nanomips_regnum.dspctl = dspctl = -1;
       num_regs = LAST_EMBED_REGNUM + 1;
@@ -3032,7 +3020,7 @@ nanomips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
       int valid_p;
 
       feature = tdesc_find_feature (info.target_desc,
-				    "org.gnu.gdb.mips.cpu");
+				    "org.gnu.gdb.nanomips.cpu");
       if (feature == NULL)
 	return NULL;
 
@@ -3045,10 +3033,6 @@ nanomips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
 
 
       valid_p &= tdesc_numbered_register (feature, tdesc_data,
-					  nanomips_regnum.lo, "lo");
-      valid_p &= tdesc_numbered_register (feature, tdesc_data,
-					  nanomips_regnum.hi, "hi");
-      valid_p &= tdesc_numbered_register (feature, tdesc_data,
 					  nanomips_regnum.pc, "pc");
 
       if (!valid_p)
@@ -3058,7 +3042,7 @@ nanomips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
 	}
 
       feature = tdesc_find_feature (info.target_desc,
-				    "org.gnu.gdb.mips.cp0");
+				    "org.gnu.gdb.nanomips.cp0");
       if (feature == NULL)
 	{
 	  tdesc_data_cleanup (tdesc_data);
@@ -3082,7 +3066,7 @@ nanomips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
       /* FIXME drow/2007-05-17: The FPU should be optional.  The nanoMIPS
 	 backend is not prepared for that, though.  */
       feature = tdesc_find_feature (info.target_desc,
-				    "org.gnu.gdb.mips.fpu");
+				    "org.gnu.gdb.nanomips.fpu");
       if (feature == NULL)
 	{
 	  tdesc_data_cleanup (tdesc_data);
@@ -3115,12 +3099,16 @@ nanomips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
       if (dspacc >= 0)
 	{
 	  feature = tdesc_find_feature (info.target_desc,
-					"org.gnu.gdb.mips.dsp");
+					"org.gnu.gdb.nanomips.dsp");
 	  /* The DSP registers are optional; it's OK if they are absent.  */
 	  if (feature != NULL)
 	    {
 	      i = 0;
 	      valid_p = 1;
+	      valid_p &= tdesc_numbered_register (feature, tdesc_data,
+						  dspacc + i++, "hi0");
+	      valid_p &= tdesc_numbered_register (feature, tdesc_data,
+						  dspacc + i++, "lo0");
 	      valid_p &= tdesc_numbered_register (feature, tdesc_data,
 						  dspacc + i++, "hi1");
 	      valid_p &= tdesc_numbered_register (feature, tdesc_data,
@@ -3534,6 +3522,8 @@ _initialize_nanomips_tdep (void)
 {
   gdbarch_register (bfd_arch_nanomips, nanomips_gdbarch_init,
 		    nanomips_dump_tdep);
+
+  initialize_tdesc_nanomips ();
 
   nanomips_pdr_data = register_objfile_data ();
 

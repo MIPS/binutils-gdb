@@ -316,9 +316,9 @@ struct _sim_cpu {
 #define LAST_EMBED_REGNUM (96)
 #define NUM_REGS (LAST_EMBED_REGNUM + 1)
 
-#define FP0_REGNUM 38           /* Floating point register 0 (single float) */
-#define FCRCS_REGNUM 70         /* FP control/status */
-#define FCRIR_REGNUM 71         /* FP implementation/revision */
+#define FP0_REGNUM 36           /* Floating point register 0 (single float) */
+#define FCRCS_REGNUM 68         /* FP control/status */
+#define FCRIR_REGNUM 69         /* FP implementation/revision */
 #endif
 
 
@@ -334,16 +334,16 @@ struct _sim_cpu {
 #define GPR     (&REGISTERS[0])
 #define GPR_SET(N,VAL) (REGISTERS[(N)] = (VAL))
 
-#define LO      (REGISTERS[33])
-#define HI      (REGISTERS[34])
-#define PCIDX	37
+#define HI      (REGISTERS[70])
+#define LO      (REGISTERS[71])
+#define PCIDX	35
 #define PC      (REGISTERS[PCIDX])
-#define CAUSE   (REGISTERS[36])
+#define CAUSE   (REGISTERS[34])
 #define SRIDX   (32)
 #define SR      (REGISTERS[SRIDX])      /* CPU status register */
-#define FCR0IDX  (71)
+#define FCR0IDX  (69)
 #define FCR0    (REGISTERS[FCR0IDX])    /* really a 32bit register */
-#define FCR31IDX (70)
+#define FCR31IDX (68)
 #define FCR31   (REGISTERS[FCR31IDX])   /* really a 32bit register */
 #define FCSR    (FCR31)
 #define Debug	(REGISTERS[86])
@@ -351,19 +351,19 @@ struct _sim_cpu {
 #define EPC	(REGISTERS[88])
 #define ACX	(REGISTERS[89])
 
-#define AC0LOIDX	(33)	/* Must be the same register as LO */
-#define AC0HIIDX	(34)	/* Must be the same register as HI */
-#define AC1LOIDX	(90)
-#define AC1HIIDX	(91)
-#define AC2LOIDX	(92)
-#define AC2HIIDX	(93)
-#define AC3LOIDX	(94)
-#define AC3HIIDX	(95)
+#define AC0HIIDX	(70)	/* Must be the same register as HI */
+#define AC0LOIDX	(71)	/* Must be the same register as LO */
+#define AC1HIIDX	(72)
+#define AC1LOIDX	(73)
+#define AC2HIIDX	(74)
+#define AC2LOIDX	(75)
+#define AC3HIIDX	(76)
+#define AC3LOIDX	(77)
 
 #define DSPLO(N)	(REGISTERS[DSPLO_REGNUM[N]])
 #define DSPHI(N)	(REGISTERS[DSPHI_REGNUM[N]])
 
-#define DSPCRIDX	(96)	/* DSP control register */
+#define DSPCRIDX	(79)	/* DSP control register */
 #define DSPCR		(REGISTERS[DSPCRIDX])
 
 #define DSPCR_POS_SHIFT		(0)
