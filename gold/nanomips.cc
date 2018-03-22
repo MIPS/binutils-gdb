@@ -3400,7 +3400,7 @@ Nanomips_transformations<size, big_endian>::get_type(
             Valtype value =
               psymval->value(this->relobj_, r_addend) - address - 4;
             if ((value & 0x1) == 0
-                && (!this->check_overflow<21>(value, CHECK_SIGNED)
+                && (!this->check_overflow<22>(value, CHECK_SIGNED)
                     || this->is_relax_))
               // Transform into lapc.
               return TT_PCREL32;
@@ -3448,7 +3448,7 @@ Nanomips_transformations<size, big_endian>::get_type(
             Valtype value =
               psymval->value(this->relobj_, r_addend) - address - 4;
             bool valid = insn_property->valid_regs(insn);
-            bool overflow = this->check_overflow<21>(value, CHECK_SIGNED);
+            bool overflow = this->check_overflow<22>(value, CHECK_SIGNED);
 
             if (valid && (value & 0x1) == 0 && !overflow && !insn32)
               // Transform into lapc, [ls]x[16].
@@ -3816,7 +3816,7 @@ Nanomips_relax_insn<size, big_endian>::get_type(
           value += 2;
 
         if ((value & 0x1) == 0
-            && !this->template check_overflow<21>(value, CHECK_SIGNED))
+            && !this->template check_overflow<22>(value, CHECK_SIGNED))
           // Transform into lapc.
           return TT_PCREL32;
 
