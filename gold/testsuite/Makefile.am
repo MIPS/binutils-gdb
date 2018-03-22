@@ -4472,7 +4472,7 @@ nanomips_got_gen_wide.stdout: nanomips_got_gen
 	$(TEST_READELF) -rAW $< > $@
 
 nanomips_got_gen: nanomips_got_gen.o ../ld-new
-	../ld-new -shared -o $@ $<
+	../ld-new -shared --hash-style=gnu -o $@ $<
 
 nanomips_got_gen.o: nanomips_got_gen.s
 	$(TEST_AS) -EL -march=32r6 -mpic -o $@ $<

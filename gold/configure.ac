@@ -173,6 +173,7 @@ esac],
 [case "${target}" in
   # Enable gnu hash only on GNU targets, but not mips
   mips*-*-*) enable_default_hash_style=sysv ;;
+  nanomips*-*-*) enable_default_hash_style=gnu ;;
   *-*-gnu* | *-*-linux* | *-*-nacl*) enable_default_hash_style=both ;;
   *) enable_default_hash_style=sysv ;;
 esac])

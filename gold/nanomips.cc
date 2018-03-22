@@ -284,9 +284,7 @@ class Nanomips_output_data_got
  public:
   Nanomips_output_data_got(Target_nanomips<size, big_endian>* target)
     : Output_data_got<size, big_endian>(), target_(target), got_call_()
-  {
-    this->set_addralign(4096);
-  }
+  { }
 
   // Reserve GOT entry for a R_NANOMIPS_GOT_CALL relocation
   // against NANOMIPS_SYM for which we may need to create
@@ -5039,8 +5037,11 @@ Target_nanomips<size, big_endian>::do_finalize_sections(
   if (this->stubs_ != NULL)
     this->stubs_->set_lazy_stub_offsets();
 
-  layout->add_target_dynamic_tags(true, NULL, NULL, this->rel_dyn_,
-                                  true, false);
+  const Reloc_section* rel_stubs = (this->stubs_ == NULL
+                                    ? NULL
+                                    : this->stubs_->rel_stubs());
+  layout->add_target_dynamic_tags(true, this->got_, rel_stubs,
+                                  this->rel_dyn_, true, false);
 }
 
 // Relocate section data.
