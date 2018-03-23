@@ -975,4 +975,6 @@ if { [istarget nanomips*-*-*] } {
 				[arch_list_matching nanomips]
     run_dump_test_arches "minimize-relocs3" "" \
 				[arch_list_matching nanomips]
+    run_dump_test_arches "minimize-relocs4" "" \
+				[arch_list_matching nanomips]
 }
