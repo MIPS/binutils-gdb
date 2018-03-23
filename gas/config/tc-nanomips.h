@@ -169,6 +169,7 @@ extern bfd_boolean nanomips_allow_local_subtract (expressionS *,
 struct nanomips_frag_type {
   struct fix * first_fix;
   bfd_vma relax_sop;
+  bfd_vma relax_sink;
   bfd_boolean link_var;  
 };
 

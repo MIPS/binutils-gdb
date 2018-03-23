@@ -5394,14 +5394,6 @@ stubgroup_wane (void)
     stubtable_traverse (stubg_now->stubtable, balc_frag_traverse);
 }
 
-
-/* Map a relocation type to the maximum extra bytes its
-   linker relaxation can introduce.  */
-static bfd_vma
-get_reloc_sop (bfd_reloc_code_real_type rtype)
-{
-  unsigned int i;
-
   /* Table of how many bytes linker relaxation may add for each type
    of relocation.  */
   static const struct
@@ -5410,62 +5402,70 @@ get_reloc_sop (bfd_reloc_code_real_type rtype)
     bfd_vma rsop_nmf;
     bfd_vma rsop_nmf32;
     bfd_vma rsop_nms;
+    bfd_vma rsink;
   } reloc_sops[] = {
-    { BFD_RELOC_NANOMIPS_4_PCREL_S1,	8, 12, 12 },
-    { BFD_RELOC_NANOMIPS_7_PCREL_S1,	8, 12, 10 },
-    { BFD_RELOC_NANOMIPS_10_PCREL_S1,	6, 10, 8 },
-    { BFD_RELOC_NANOMIPS_11_PCREL_S1,	8, 12, 10 },
-    { BFD_RELOC_NANOMIPS_21_PCREL_S1,	6, 12, 4 },
-    { BFD_RELOC_NANOMIPS_25_PCREL_S1,	4, 8, 6 },
-    { BFD_RELOC_NANOMIPS_14_PCREL_S1,	8, 12, 10 },
-    { BFD_RELOC_NANOMIPS_GPREL19_S2,	6, 8, 8 },
-    { BFD_RELOC_NANOMIPS_GPREL18_S3,	6, 8, 8 },
-    { BFD_RELOC_NANOMIPS_GPREL16_S2,	6, 8, 8 },
-    { BFD_RELOC_NANOMIPS_GPREL18,	6, 8, 8 },
-    { BFD_RELOC_NANOMIPS_GPREL17_S1,	6, 8, 8 },
-    { BFD_RELOC_NANOMIPS_GPREL7_S2,	8, 10, 10 },
-    { BFD_RELOC_NANOMIPS_GOT_CALL,	2, 4, 4 },
-    { BFD_RELOC_NANOMIPS_GOT_PAGE,	2, 4, 4 },
-    { BFD_RELOC_NANOMIPS_GOT_OFST,	2, 4, 4 },
-    { BFD_RELOC_NANOMIPS_GOT_DISP,	2, 4, 4 },
-    { BFD_RELOC_NANOMIPS_HI20,		0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_LO12,  	0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_PCREL_HI20,	0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_GOTPC_HI20,	0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_GOT_LO12,	0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_IMM16, 	0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_NEG12, 	0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_I32,		0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_HI32,		0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_TLS_GD,	2, 8, 0 },
-    { BFD_RELOC_NANOMIPS_TLS_GD_I32,	0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_TLS_LD,	2, 8, 0 },
-    { BFD_RELOC_NANOMIPS_TLS_LD_I32,	0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_TLS_DTPREL12,	6, 8, 0 },
-    { BFD_RELOC_NANOMIPS_TLS_DTPREL16,	6, 8, 0 },
-    { BFD_RELOC_NANOMIPS_TLS_DTPREL_I32, 0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_TLS_TPREL12,	6, 8, 0 },
-    { BFD_RELOC_NANOMIPS_TLS_TPREL16,	6, 8, 0 },
-    { BFD_RELOC_NANOMIPS_TLS_TPREL_I32, 0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_TLS_GOTTPREL,	2, 4, 0 },
-    { BFD_RELOC_NANOMIPS_TLS_GOTTPREL_PC_I32, 0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_PC_I32,	0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_GOTPC_I32,	0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_GPREL_I32,	0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_GPREL_HI20,	0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_GPREL_LO12,	0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_JALR16,	2, 2, 2 },
-    { BFD_RELOC_NANOMIPS_JALR32,	0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_GPREL_LO12,	0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_INSN16,	0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_INSN32,	0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_FIXED, 	0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_ALIGN, 	0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_RELAX, 	0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_NORELAX,	0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_SAVERESTORE,	0, 0, 0 },
-    { BFD_RELOC_NONE,			32, 32, 32 }  /* Fall-back maximum  */
+    { BFD_RELOC_NANOMIPS_4_PCREL_S1,	8, 12, 12, 0 },
+    { BFD_RELOC_NANOMIPS_7_PCREL_S1,	8, 12, 10, 2 },
+    { BFD_RELOC_NANOMIPS_10_PCREL_S1,	6, 10, 8, 2 },
+    { BFD_RELOC_NANOMIPS_11_PCREL_S1,	8, 12, 10, 4 },
+    { BFD_RELOC_NANOMIPS_21_PCREL_S1,	6, 12, 4, 4 },
+    { BFD_RELOC_NANOMIPS_25_PCREL_S1,	4, 8, 6, 4 },
+    { BFD_RELOC_NANOMIPS_14_PCREL_S1,	8, 12, 10, 4 },
+    { BFD_RELOC_NANOMIPS_GPREL19_S2,	6, 8, 8, 2 },
+    { BFD_RELOC_NANOMIPS_GPREL18_S3,	6, 8, 8, 0 },
+    { BFD_RELOC_NANOMIPS_GPREL16_S2,	6, 8, 8, 0 },
+    { BFD_RELOC_NANOMIPS_GPREL18,	6, 8, 8, 0 },
+    { BFD_RELOC_NANOMIPS_GPREL17_S1,	6, 8, 8, 0 },
+    { BFD_RELOC_NANOMIPS_GPREL7_S2,	8, 10, 10, 0 },
+    { BFD_RELOC_NANOMIPS_GOT_CALL,	2, 4, 4, 4 },
+    { BFD_RELOC_NANOMIPS_GOT_PAGE,	2, 4, 4, 4 },
+    { BFD_RELOC_NANOMIPS_GOT_OFST,	2, 4, 4, 4 },
+    { BFD_RELOC_NANOMIPS_GOT_DISP,	2, 4, 4, 4 },
+    { BFD_RELOC_NANOMIPS_HI20,		0, 0, 0, 2 },
+    { BFD_RELOC_NANOMIPS_LO12,  	0, 0, 0, 4 },
+    { BFD_RELOC_NANOMIPS_PCREL_HI20,	0, 0, 0, 2 },
+    { BFD_RELOC_NANOMIPS_GOTPC_HI20,	0, 0, 0, 4 },
+    { BFD_RELOC_NANOMIPS_GOT_LO12,	0, 0, 0, 4 },
+    { BFD_RELOC_NANOMIPS_IMM16, 	0, 0, 0, 0 },
+    { BFD_RELOC_NANOMIPS_NEG12, 	0, 0, 0, 0 },
+    { BFD_RELOC_NANOMIPS_I32,		0, 0, 0, 4 },
+    { BFD_RELOC_NANOMIPS_HI32,		0, 0, 0, 6 },
+    { BFD_RELOC_NANOMIPS_TLS_GD,	2, 8, 0, 0 },
+    { BFD_RELOC_NANOMIPS_TLS_GD_I32,	0, 0, 0, 2 },
+    { BFD_RELOC_NANOMIPS_TLS_LD,	2, 8, 0, 0 },
+    { BFD_RELOC_NANOMIPS_TLS_LD_I32,	0, 0, 0, 2 },
+    { BFD_RELOC_NANOMIPS_TLS_DTPREL12,	6, 8, 0, 0 },
+    { BFD_RELOC_NANOMIPS_TLS_DTPREL16,	6, 8, 0, 4 },
+    { BFD_RELOC_NANOMIPS_TLS_DTPREL_I32, 0, 0, 0, 6 },
+    { BFD_RELOC_NANOMIPS_TLS_TPREL12,	6, 8, 0, 0 },
+    { BFD_RELOC_NANOMIPS_TLS_TPREL16,	6, 8, 0, 4 },
+    { BFD_RELOC_NANOMIPS_TLS_TPREL_I32, 0, 0, 0, 6 },
+    { BFD_RELOC_NANOMIPS_TLS_GOTTPREL,	2, 4, 0, 4 },
+    { BFD_RELOC_NANOMIPS_TLS_GOTTPREL_PC_I32, 0, 0, 0, 6 },
+    { BFD_RELOC_NANOMIPS_PC_I32,	0, 0, 0, 4 },
+    { BFD_RELOC_NANOMIPS_GOTPC_I32,	0, 0, 0, 2 },
+    { BFD_RELOC_NANOMIPS_GPREL_I32,	0, 0, 0, 4 },
+    { BFD_RELOC_NANOMIPS_GPREL_HI20,	0, 0, 0, 2 },
+    { BFD_RELOC_NANOMIPS_GPREL_LO12,	0, 0, 0, 4 },
+    { BFD_RELOC_NANOMIPS_JALR16,	2, 2, 2, 2 },
+    { BFD_RELOC_NANOMIPS_JALR32,	0, 0, 0, 4 },
+    { BFD_RELOC_NANOMIPS_GPREL_LO12,	0, 0, 0, 4 },
+    { BFD_RELOC_NANOMIPS_INSN16,	0, 0, 0, 0 },
+    { BFD_RELOC_NANOMIPS_INSN32,	0, 0, 0, 0 },
+    { BFD_RELOC_NANOMIPS_FIXED, 	0, 0, 0, 0 },
+    { BFD_RELOC_NANOMIPS_ALIGN, 	0, 0, 0, 0 },
+    { BFD_RELOC_NANOMIPS_RELAX, 	0, 0, 0, 0 },
+    { BFD_RELOC_NANOMIPS_NORELAX,	0, 0, 0, 0 },
+    { BFD_RELOC_NANOMIPS_SAVERESTORE,	0, 0, 0, 0 },
+    { BFD_RELOC_NONE,			32, 32, 32, 4 }  /* Fall-back maximum  */
   };
+
+/* Map a relocation RTYPE to the maximum extra bytes its
+   linker relaxation can introduce.  */
+static bfd_vma
+get_reloc_sop (bfd_reloc_code_real_type rtype)
+{
+  unsigned int i;
 
   for (i = 0; i < ARRAY_SIZE (reloc_sops); i++)
     {
@@ -5482,6 +5482,22 @@ get_reloc_sop (bfd_reloc_code_real_type rtype)
 	     ? reloc_sops[i-1].rsop_nmf32
 	     : reloc_sops[i-1].rsop_nmf)
 	  : reloc_sops[i-1].rsop_nms);
+}
+
+/* Map a relocation RTYPE to the maximum bytes its linker
+   relaxation can remove.  */
+static bfd_vma
+get_reloc_sink (bfd_reloc_code_real_type rtype)
+{
+  unsigned int i;
+
+  for (i = 0; i < ARRAY_SIZE (reloc_sops); i++)
+    {
+      if (reloc_sops[i].rtype == rtype)
+	return (reloc_sops[i].rsink);
+    }
+
+  return (reloc_sops[i-1].rsink);
 }
 
 /* Return the relaxation frag subtype corresponding to RELOC  */
@@ -5852,12 +5868,14 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
 	  if (!forced_insn_length
 	      && !forced_insn_format
 	      && !pcrel_branch_reloc_p (*reloc_type)
-	      /* Ignore relocations that don't expand due to linker relaxation.
-		 Sneaky!!  */
-	      && get_reloc_sop (*reloc_type) > 0)
+	      /* Ignore relocations that don't expand/contract due to
+		 linker relaxation. Sneaky!!  */
+	      && ((get_reloc_sop (*reloc_type) > 0)
+		  || get_reloc_sink (*reloc_type) > 0))
 	    {
 	      ip->frag->tc_frag_data.link_var = TRUE;
 	      ip->frag->tc_frag_data.relax_sop += get_reloc_sop (*reloc_type);
+	      ip->frag->tc_frag_data.relax_sink += get_reloc_sink (*reloc_type);
 	    }
 	}
     }
@@ -10421,7 +10439,8 @@ create_align_relocs (fragS *fragp, int align_to, unsigned int fill_value,
   if (fragp->tc_frag_data.first_fix == NULL)
     fragp->tc_frag_data.first_fix = fixp;
   frag_now->tc_frag_data.link_var = TRUE;
-  frag_now->tc_frag_data.relax_sop = align_to;
+  frag_now->tc_frag_data.relax_sop = align_to - 2;
+  frag_now->tc_frag_data.relax_sink = align_to - 2;
 
   /* Generate fill reloc.  Default fill value is micromips nop32.  */
   if (fill_length)
@@ -11528,7 +11547,8 @@ relaxed_nanomips_invariable_branch_p (fragS *fragp, asection *sec)
   fragS *pfrag = NULL;
   bfd_boolean fixed_p = FALSE;
   bfd_boolean variable_p = FALSE;
-  bfd_signed_vma branch_offset = 0;
+  bfd_signed_vma max_offset = 0;
+  bfd_signed_vma min_offset = 0;
 
   gas_assert (fragp != NULL);
 
@@ -11553,19 +11573,21 @@ relaxed_nanomips_invariable_branch_p (fragS *fragp, asection *sec)
 	  fragp->tc_frag_data.link_var = TRUE;
 	  fragp->tc_frag_data.relax_sop
 	    += frag_subtype_to_relax_sop (fragp->fr_subtype);
+	  fragp->tc_frag_data.relax_sink = fragp->fr_var;
 
 	}
       return FALSE;
     }
 
   addr = S_GET_VALUE (fragp->fr_symbol);
-  branch_offset = addr - fragp->fr_address - fragp->fr_fix;
+  max_offset = addr - fragp->fr_address - fragp->fr_fix;
   /* Adjust for next PC.  */
   if (RELAX_NANOMIPS_TYPE (fragp->fr_subtype) >= RT_BRANCH_UCND
       && !RELAX_NANOMIPS_TOOFAR16 (fragp->fr_subtype))
-    branch_offset -= 2;
+    max_offset -= 2;
   else
-    branch_offset -= fragp->fr_var;
+    max_offset -= fragp->fr_var;
+  min_offset = max_offset;
 
   /* Branching to a location within this frag.  */
   if (addr_in_frag_range (fragp, addr))
@@ -11582,7 +11604,8 @@ relaxed_nanomips_invariable_branch_p (fragS *fragp, asection *sec)
 		 its variability does not affect the branch.  */
 	      && addr > ifrag->fr_address)
 	    {
-	      branch_offset += ifrag->tc_frag_data.relax_sop;
+	      max_offset += ifrag->tc_frag_data.relax_sop;
+	      min_offset -= ifrag->tc_frag_data.relax_sink;
 	      variable_p = TRUE;
 	    }
 	  else if (RELAX_NANOMIPS_P (ifrag->fr_subtype)
@@ -11592,7 +11615,8 @@ relaxed_nanomips_invariable_branch_p (fragS *fragp, asection *sec)
 		      relaxation of this frag will not affect the branch.  */
 		   && addr > ifrag->fr_address + ifrag->fr_fix)
 	    {
-	      branch_offset += frag_subtype_to_relax_sop (ifrag->fr_subtype);
+	      max_offset += frag_subtype_to_relax_sop (ifrag->fr_subtype);
+	      min_offset -= ifrag->fr_var;
 	      variable_p = TRUE;
 	    }
 	  ifrag = ifrag->fr_next;
@@ -11608,13 +11632,15 @@ relaxed_nanomips_invariable_branch_p (fragS *fragp, asection *sec)
 	{
 	  if (ifrag->tc_frag_data.link_var)
 	    {
-	      branch_offset -= ifrag->tc_frag_data.relax_sop;
+	      max_offset -= ifrag->tc_frag_data.relax_sop;
+	      min_offset += ifrag->tc_frag_data.relax_sink;
 	      variable_p = TRUE;
 	    }
 	  else if (RELAX_NANOMIPS_P (ifrag->fr_subtype)
 		   && RELAX_NANOMIPS_VARIABLE (ifrag->fr_subtype))
 	    {
-	      branch_offset -= frag_subtype_to_relax_sop (ifrag->fr_subtype);
+	      max_offset -= frag_subtype_to_relax_sop (ifrag->fr_subtype);
+	      min_offset += ifrag->fr_var;
 	      variable_p = TRUE;
 	    }
 	  ifrag = ifrag->fr_next;
@@ -11624,12 +11650,18 @@ relaxed_nanomips_invariable_branch_p (fragS *fragp, asection *sec)
   /* If there are no intervening variable frags and the cumulative sop is
      within branch range, then this frag is definitively fixed.  */
   fixed_p = (!variable_p
-	     && branch_in_range (fragp->fr_subtype, branch_offset));
+	     && branch_in_range (fragp->fr_subtype, max_offset));
   /* However, it is only definitively variable if there are intervening
      variable frags and their cumulative sop threatens to put this branch
-     out of range.  */
+     out of range, or the cumulative sink threatens to put it within range
+     of a smaller equivalent branch.  */
   variable_p = (variable_p
-		&& !branch_in_range (fragp->fr_subtype, branch_offset));
+		&& !branch_in_range (fragp->fr_subtype, max_offset));
+  if (RELAX_NANOMIPS_TYPE (fragp->fr_subtype) >= RT_BRANCH_UCND
+      && RELAX_NANOMIPS_TOOFAR16 (fragp->fr_subtype))
+    variable_p = (!variable_p
+		  && branch_in_range (RELAX_NANOMIPS_CLEAR_TOOFAR16
+				       (fragp->fr_subtype), min_offset));
 
   /* If the branch is found to be definitively fixed or variable, mark it
      so, else clear those bits and leave it for future iterations.  Note
