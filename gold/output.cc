@@ -2910,6 +2910,77 @@ Output_section::convert_input_sections_to_relaxed_sections(
       }
 }
 
+// Convert regular input section in INPUT_SECTIONS into relaxed input
+// section PORIS.
+
+void
+Output_section::convert_input_section_to_relaxed_section(
+  Input_section_list* input_sections,
+  size_t limit,
+  Output_relaxed_input_section* poris)
+{
+  for (size_t i = 0; i < limit; ++i)
+    {
+      const Input_section& is((*input_sections)[i]);
+      if (!is.is_input_section() && !is.is_relaxed_input_section())
+	continue;
+
+      if (is.relobj() == poris->relobj() && is.shndx() == poris->shndx())
+	{
+	  gold_assert(is.is_input_section());
+
+	  // Remember section order index of original input section
+	  // if it is set.  Copy it to the relaxed input section.
+	  Input_section relaxed_section(poris);
+	  relaxed_section.set_section_order_index(is.section_order_index());
+	  (*input_sections)[i] = relaxed_section;
+	  return;
+	}
+    }
+  gold_unreachable();
+}
+
+// Convert regular input section into relaxed input section.  The relaxed
+// sections must correspond to existing input sections.
+
+void
+Output_section::convert_input_section_to_relaxed_section(
+  Output_relaxed_input_section* poris)
+{
+  gold_assert(parameters->target().may_relax());
+
+  // We want to make sure that restore_states does not undo the effect of
+  // this.  If there is no checkpoint active, just search the current
+  // input section list and replace the section there.  If there is
+  // a checkpoint, also replace the section there.
+
+  // By default, we look at the whole list.
+  size_t limit = this->input_sections_.size();
+
+  if (this->checkpoint_ != NULL)
+    {
+      // Replace input section with relaxed input section in the saved
+      // copy of the input section list.
+      if (this->checkpoint_->input_sections_saved())
+	this->convert_input_section_to_relaxed_section(
+		    this->checkpoint_->input_sections(),
+		    this->checkpoint_->input_sections()->size(),
+		    poris);
+      else
+	// We have not copied the input section list yet.  Instead, just
+	// look at the portion that would be saved.
+	limit = this->checkpoint_->input_sections_size();
+    }
+
+  // Convert input section in input_section_list.
+  this->convert_input_section_to_relaxed_section(&this->input_sections_,
+						 limit, poris);
+
+  // Update fast look-up map.
+  if (this->lookup_maps_->is_valid())
+    this->lookup_maps_->add_relaxed_input_section(poris->relobj(),
+						  poris->shndx(), poris);
+}
 // Update the output section flags based on input section flags.
 
 void

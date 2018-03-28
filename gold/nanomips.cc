@@ -758,10 +758,7 @@ class Nanomips_input_section : public Output_relaxed_input_section
       reloc_size_(reloc_size)
   {
     this->set_output_section(os);
-
-    std::vector<Output_relaxed_input_section*> new_relaxed;
-    new_relaxed.push_back(this);
-    os->convert_input_sections_to_relaxed_sections(new_relaxed);
+    os->convert_input_section_to_relaxed_section(this);
   }
 
   ~Nanomips_input_section()
