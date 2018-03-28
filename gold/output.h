@@ -4002,6 +4002,10 @@ class Output_section : public Output_data
   convert_input_sections_to_relaxed_sections(
       const std::vector<Output_relaxed_input_section*>& sections);
 
+  // Convert existing input section to relaxed input section.
+  void
+  convert_input_section_to_relaxed_section(Output_relaxed_input_section* poris);
+
   // Find a relaxed input section to an input section in OBJECT
   // with index SHNDX.  Return NULL if none is found.
   const Output_relaxed_input_section*
@@ -4451,6 +4455,12 @@ class Output_section : public Output_data
       const std::vector<Output_relaxed_input_section*>& relaxed_sections,
       const Relaxation_map& map,
       Input_section_list* input_sections);
+
+  // Convert input section into relaxed section.
+  void
+  convert_input_section_to_relaxed_section(Input_section_list* input_sections,
+					   size_t limit,
+					   Output_relaxed_input_section* poris);
 
   // Build the lookup maps for merge and relaxed input sections.
   void
