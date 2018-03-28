@@ -641,7 +641,20 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] = {
 	 0xffffffff,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-  EMPTY_HOWTO (44),
+  HOWTO (R_NANOMIPS_COPY,	/* type */
+	 0,			/* rightshift */
+	 0,			/* this one is variable size */
+	 0,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_bitfield, /* complain_on_overflow */
+	 _bfd_nanomips_elf_generic_reloc, /* special_function */
+	 "R_NANOMIPS_COPY",	/* name */
+	 FALSE,			/* partial_inplace */
+	 0x0,         		/* src_mask */
+	 0x0,		        /* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
   EMPTY_HOWTO (45),
   EMPTY_HOWTO (46),
   EMPTY_HOWTO (47),
@@ -1178,6 +1191,7 @@ static const struct elf_reloc_map nanomips_reloc_map[] = {
   { BFD_RELOC_NANOMIPS_GPREL17_S1, R_NANOMIPS_GPREL17_S1 },
   { BFD_RELOC_NANOMIPS_GPREL_LO12, R_NANOMIPS_GPREL_LO12 },
   { BFD_RELOC_NANOMIPS_LO4_S2, R_NANOMIPS_LO4_S2 },
+  { BFD_RELOC_NANOMIPS_COPY, R_NANOMIPS_COPY },
 
   { BFD_RELOC_NANOMIPS_ALIGN, R_NANOMIPS_ALIGN },
   { BFD_RELOC_NANOMIPS_FILL, R_NANOMIPS_FILL },
