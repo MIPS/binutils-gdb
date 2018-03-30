@@ -626,8 +626,8 @@ IGRIE */
 {"ceil.l.s",	"",		"T,S",		0xa000133b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
 {"ceil.w.d",	"",		"T,S",		0xa0005b3b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
 {"ceil.w.s",	"",		"T,S",		0xa0001b3b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
-{"cfc1",	"",		"t,S",		0xa000103b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
 {"cfc1",	"",		"t,G",		0xa000103b, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	I38,	0},
+{"cfc1",	"",		"t,S",		0xa000103b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
 {"cfc2",	"",		"t,G",		0x2000cd3f, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
 {"cftc1",	"",		"t,G",		0x20001e30, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	MT32}, /* MFTR */
 {"cftc1",	"",		"t,S",		0x20001e30, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	MT32}, /* MFTR */
@@ -701,8 +701,8 @@ IGRIE */
 {"crc32ch",	"",		"t,r",		0x200017e8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC},
 {"crc32cw",	"",		"t,r",		0x20001be8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC},
 {"crc32cd",	"",		"t,r",		0x20001fe8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC64},
-{"ctc1",	"",		"t,S",		0xa000183b, 0xfc00ffff,	RD_1|WR_2,		0,	I38,	0},
 {"ctc1",	"",		"t,G",		0xa000183b, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS,	I38,	0},
+{"ctc1",	"",		"t,S",		0xa000183b, 0xfc00ffff,	RD_1|WR_2,		0,	I38,	0},
 {"ctc2",	"",		"t,G",		0x2000dd3f, 0xfc00ffff,	RD_1|WR_2,		0,	I38,	0},
 {"cttc1",	"",		"t,G",		0x20001e70, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS,	0,	MT32}, /* MTTR */
 {"cttc1",	"",		"t,S",		0x20001e70, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS,	0,	MT32}, /* MTTR */
