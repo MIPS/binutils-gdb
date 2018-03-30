@@ -42,7 +42,3 @@ foo:
 	move	$31, $16
 	.loc	1 44
 	jal	bar
-
-# Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
-	.align	2
-	.space	16

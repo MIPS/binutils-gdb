@@ -13,6 +13,3 @@ text_label:
 	mtc0	$a0,$taglo,3	# must be even
 	mtc0	$a0,$datalo,0	# must be odd
 	mtc0	$a0,$taghi,1	# must be even
-
-# Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
-	.space  8

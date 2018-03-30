@@ -4,7 +4,7 @@
 
 # Check objdump's handling of -M gpr-names=foo options.
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section .text:
 
@@ -41,4 +41,4 @@ Disassembly of section .text:
   74:	lui	sp,0x0
   78:	lui	fp,0x0
   7c:	lui	ra,0x0
-	...
+#pass

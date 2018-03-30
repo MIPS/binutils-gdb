@@ -521,4 +521,4 @@ Disassembly of section \.text:
 .+[0-9a-f]+:	e03f 7ffd 	lui	at,%hi\(0xffff7000\)
 .+[0-9a-f]+:	2361 0950 	addu	at,at,k1
 .+[0-9a-f]+:	8761 9fff 	sw	k1,4095\(at\)
-	\.\.\.
+#pass

@@ -1,5 +1,5 @@
 #objdump: -dr --no-show-raw-insn
-#nam[0-9a-f]+: nanoMIPS sb
+#name: nanoMIPS sb
 
 # Test the sb macro.
 
@@ -176,5 +176,4 @@ Disassembly of section .text:
  [0-9a-f]+:	swc1	\$f4,0\(zero\)
  [0-9a-f]+:	swc2	\$4,0\(zero\)
  [0-9a-f]+:	swc1	\$f4,0\(zero\)
- [0-9a-f]+:	nop
- [0-9a-f]+:	nop
+#pass

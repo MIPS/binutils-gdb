@@ -60,7 +60,5 @@ data_label:
 	uld	$4,small_external_common+0x1a5a5
 	uld	$4,big_local_common+0x1a5a5
 	uld	$4,small_local_common+0x1a5a5
-
-# Round to a 16 byte boundary, for ease in testing multiple targets.
-	nop
-	nop
+	uld	$5,0($5)	# warns
+	uld	$5,1($5)	# warns

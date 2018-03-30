@@ -16,4 +16,4 @@ Disassembly of section \.text:
 			6: R_NANOMIPS_NORELAX	\*ABS\*
    8:	9008      	nop
 			8: R_NANOMIPS_RELAX	\*ABS\*
-   a:	9008      	nop
+#pass

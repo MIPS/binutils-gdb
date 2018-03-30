@@ -8,7 +8,6 @@ f1:
 	.size	f1,.-f1
 
 	.align	2
-	.set	nomips16
 	.type	f2,@function
 f2:
 	addiu	$2,$2,1
@@ -26,7 +25,6 @@ f3:
 
 	.section .text.a,"ax",@progbits
 	.align	4
-	.set	nomips16
 	.type	f4,@function
 f4:
 	addiu	$5,$5,1

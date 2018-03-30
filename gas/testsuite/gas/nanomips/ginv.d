@@ -11,4 +11,5 @@ Disassembly of section \.text:
    0:	2002 1f7f 	ginvi	t4
    4:	2003 0f7f 	ginvt	t5,0
    8:	2024 0f7f 	ginvt	a0,1
-	\.\.\.
+#pass
+

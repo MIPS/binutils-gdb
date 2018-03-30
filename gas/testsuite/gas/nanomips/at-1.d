@@ -424,4 +424,4 @@ Disassembly of section \.text:
 .+[0-9a-f]+:	6361 7fff 	addiu	k1,k1,-32769
 .+[0-9a-f]+:	ffff 
 .+[0-9a-f]+:	877b 9000 	sw	k1,0\(k1\)
-	\.\.\.
+#pass

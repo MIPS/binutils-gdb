@@ -41,4 +41,4 @@ Disassembly of section \.text:
   74:	201d 0070 	mtc0	\$0,itaghi
   78:	201e 0070 	mtc0	\$0,errorepc
   7c:	201f 0070 	mtc0	\$0,desave
-	\.\.\.
+#pass

@@ -41,6 +41,3 @@ text_label:
 	rdhwr	$0,$perfcnt,15
 	rdhwr	$0,$xnp
 	rdhwr	$0,$userlocal
-
-# Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
-      .space  8

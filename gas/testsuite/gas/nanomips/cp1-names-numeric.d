@@ -73,4 +73,4 @@ Disassembly of section \.text:
   f4:	a01d 103b 	cfc1	\$0,\$f29
   f8:	a01e 103b 	cfc1	\$0,\$f30
   fc:	a01f 103b 	cfc1	\$0,\$f31
-	\.\.\.
+#pass

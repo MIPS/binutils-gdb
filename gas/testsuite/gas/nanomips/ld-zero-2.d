@@ -8,4 +8,4 @@ Disassembly of section \.text:
 0+0004 <foo\+0x4> ori	at,at,0x678
 0+0008 <foo\+0x8> addu	at,at,t4
 0+000c <foo\+0xc> ll	zero,0\(at\)
-	\.\.\.
+#pass

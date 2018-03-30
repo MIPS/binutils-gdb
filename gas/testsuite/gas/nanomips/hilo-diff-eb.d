@@ -3,7 +3,7 @@
 #as: -32 -EB
 #source: hilo-diff.s
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section \.text:
 [0-9a-f]+ <[^>]*> 24040000 	li	a0,0
@@ -63,4 +63,5 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]*> 2405ffee 	li	a1,-18
 [0-9a-f]+ <[^>]*> 00052c00 	sll	a1,a1,0x10
 [0-9a-f]+ <[^>]*> 24a50024 	addiu	a1,a1,36
-	\.\.\.
+#pass
+

@@ -53,6 +53,3 @@ foo:
 	lw	$27, -0x8001($27)
 	.endif
 	sw	$27, -0x8001($27)
-
-# Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
-	.space	8

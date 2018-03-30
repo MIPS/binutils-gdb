@@ -27,5 +27,3 @@ text_label:
 	swc1	$f2,small_external_common+1($s2)
 	ldc1	$f3,big_local_common+1($s3)
 	sdc1	$f4,small_local_common+1($s4)
-
-	.space 8

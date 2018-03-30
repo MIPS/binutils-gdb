@@ -46,4 +46,4 @@ Disassembly of section \.text:
   8c:	2004 79c0 	rdhwr	\$0,perfcnt7
   90:	2005 01c0 	rdhwr	\$0,xnp
   94:	201d 01c0 	rdhwr	\$0,userlocal
-	\.\.\.
+#pass

@@ -22,7 +22,3 @@ text_label:
 # Branch to an external label.
 	bge	$4,$5,external_label
 	bgt	$4,$5,external_label
-
-# Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
-	.align	2
-	.space	8

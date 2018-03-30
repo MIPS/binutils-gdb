@@ -6,5 +6,4 @@ foo:
 	lw	$4,%lo (2 * 4) + foo($4)
 	lw	$4,%lo((2 * 4) + foo)($4)
 	lw	$4,(((%lo ((2 * 4) + foo))))($4)
-	.space	64
 	.end	foo

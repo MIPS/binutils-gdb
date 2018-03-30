@@ -17,8 +17,8 @@ nanoMIPS options:
 -m\[no-\]PIC		\[dis\]allow large model Position Independent Code generation
 -m\[no-\]pid		\[dis\]allow Position Independent Data access
 -m\[no-\]pcrel		\[dis\]allow PC-relative address calculations
--minsn32		only generate 32-bit microMIPS instructions
--mno-insn32		generate all microMIPS instructions
+-minsn32		only generate 32-bit nanoMIPS instructions
+-mno-insn32		generate all nanoMIPS instructions
 -mhard-float		allow floating-point instructions
 -msoft-float		do not allow floating-point instructions
 -msingle-float		only allow 32-bit floating-point operations

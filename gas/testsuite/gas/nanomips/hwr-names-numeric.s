@@ -51,6 +51,3 @@ text_label:
 	rdhwr	$0, $4, 13
 	rdhwr	$0, $4, 14
 	rdhwr	$0, $4, 15
-
-# Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
-      .space  8

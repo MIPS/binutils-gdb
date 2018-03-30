@@ -641,6 +641,3 @@ text_label:
 	mtthc0	$k1,$0,5
 	mtthc0	$k1,$0,6
 	mtthc0	$k1,$0,7
-
-# Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
-	.space	8

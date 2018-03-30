@@ -17,3 +17,4 @@ Disassembly of section \.text:
   10:	li	a0,0x3f8fcd36
   16:	li	at,0x3f8fcd36
   1c:	mtc1	at,\$f4
+#pass

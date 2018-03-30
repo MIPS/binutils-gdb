@@ -35,4 +35,4 @@ Disassembly of section .text:
   66:	2063 085f 	extw	at,t5,t5,1
   6a:	2061 1fdf 	extw	t5,at,t5,31
   6e:	9008      	nop
-	\.\.\.
+#pass

@@ -22,3 +22,4 @@ Disassembly of section \.text:
   18:	lui	at,%hi\(0x3f8fc000\)
   1c:	ori	at,at,0xd36
   20:	mtc1	at,\$f4
+#pass

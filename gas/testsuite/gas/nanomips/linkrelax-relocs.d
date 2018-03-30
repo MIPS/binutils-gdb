@@ -50,32 +50,32 @@ Relocation section '\.rela\.text' at offset 0x[0-9a-f]+ contains 40 entries:
 #...
 Symbol table '.symtab' contains [0-9]+ entries:
 #...
-     [0-9]+: 00000003     4 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_1
+ +[0-9]+: 00000003     4 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_1
 .*
-    [0-9]+: 00000003     4 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_2
-    [0-9]+: 00000001     0 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_3
-    [0-9]+: 00000003     4 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_4
-    [0-9]+: 00000003     6 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_5
-    [0-9]+: 0000000a     1 NOTYPE  LOCAL  DEFAULT  ABS __reloc_fill_\^B_a
-    [0-9]+: 00000003     0 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_6
-    [0-9]+: 000000ab     1 NOTYPE  LOCAL  DEFAULT  ABS __reloc_fill_\^B_ab
-    [0-9]+: 00000005     0 NOTYPE  LOCAL  DEFAULT  ABS __reloc_max_\^B_5
-    [0-9]+: 00000003     6 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_7
-    [0-9]+: 000000cd     1 NOTYPE  LOCAL  DEFAULT  ABS __reloc_fill_\^B_cd
-    [0-9]+: 00000006     0 NOTYPE  LOCAL  DEFAULT  ABS __reloc_max_\^B_6
-    [0-9]+: 00000003     4 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_8
-    [0-9]+: 0000abcd     2 NOTYPE  LOCAL  DEFAULT  ABS __reloc_fill_\^B_abcd
-    [0-9]+: 00000003     4 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_9
-    [0-9]+: abcd1234     4 NOTYPE  LOCAL  DEFAULT  ABS __reloc_fill_\^B_abcd1234
-    [0-9]+: 00000004     4 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_10
-    [0-9]+: 0000000b     1 NOTYPE  LOCAL  DEFAULT  ABS __reloc_fill_\^B_b
-    [0-9]+: 00000004     0 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_11
-    [0-9]+: 000000ba     1 NOTYPE  LOCAL  DEFAULT  ABS __reloc_fill_\^B_ba
-    [0-9]+: 00000004    12 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_12
-    [0-9]+: 0000000c     0 NOTYPE  LOCAL  DEFAULT  ABS __reloc_max_\^B_c
-    [0-9]+: 00000004    12 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_13
-    [0-9]+: 0000dcba     2 NOTYPE  LOCAL  DEFAULT  ABS __reloc_fill_\^B_dcba
-    [0-9]+: 00000010     0 NOTYPE  LOCAL  DEFAULT  ABS __reloc_max_\^B_10
-    [0-9]+: 00000004    12 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_14
-    [0-9]+: 4321dcba     4 NOTYPE  LOCAL  DEFAULT  ABS __reloc_fill_\^B_4321dcba
-#...
+ +[0-9]+: 00000003     4 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_2
+ +[0-9]+: 00000001     0 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_3
+ +[0-9]+: 00000003     4 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_4
+ +[0-9]+: 00000003     6 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_5
+ +[0-9]+: 0000000a     1 NOTYPE  LOCAL  DEFAULT  ABS __reloc_fill_\^B_a
+ +[0-9]+: 00000003     0 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_6
+ +[0-9]+: 000000ab     1 NOTYPE  LOCAL  DEFAULT  ABS __reloc_fill_\^B_ab
+ +[0-9]+: 00000005     0 NOTYPE  LOCAL  DEFAULT  ABS __reloc_max_\^B_5
+ +[0-9]+: 00000003     6 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_7
+ +[0-9]+: 000000cd     1 NOTYPE  LOCAL  DEFAULT  ABS __reloc_fill_\^B_cd
+ +[0-9]+: 00000006     0 NOTYPE  LOCAL  DEFAULT  ABS __reloc_max_\^B_6
+ +[0-9]+: 00000003     4 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_8
+ +[0-9]+: 0000abcd     2 NOTYPE  LOCAL  DEFAULT  ABS __reloc_fill_\^B_abcd
+ +[0-9]+: 00000003     4 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_9
+ +[0-9]+: abcd1234     4 NOTYPE  LOCAL  DEFAULT  ABS __reloc_fill_\^B_abcd1234
+ +[0-9]+: 00000004     4 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_10
+ +[0-9]+: 0000000b     1 NOTYPE  LOCAL  DEFAULT  ABS __reloc_fill_\^B_b
+ +[0-9]+: 00000004     0 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_11
+ +[0-9]+: 000000ba     1 NOTYPE  LOCAL  DEFAULT  ABS __reloc_fill_\^B_ba
+ +[0-9]+: 00000004    12 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_12
+ +[0-9]+: 0000000c     0 NOTYPE  LOCAL  DEFAULT  ABS __reloc_max_\^B_c
+ +[0-9]+: 00000004    12 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_13
+ +[0-9]+: 0000dcba     2 NOTYPE  LOCAL  DEFAULT  ABS __reloc_fill_\^B_dcba
+ +[0-9]+: 00000010     0 NOTYPE  LOCAL  DEFAULT  ABS __reloc_max_\^B_10
+ +[0-9]+: 00000004    12 NOTYPE  LOCAL  DEFAULT  ABS __reloc_align_\^B_14
+ +[0-9]+: 4321dcba     4 NOTYPE  LOCAL  DEFAULT  ABS __reloc_fill_\^B_4321dcba
+#pass

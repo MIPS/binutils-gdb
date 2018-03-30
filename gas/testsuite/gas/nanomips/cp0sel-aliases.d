@@ -64,4 +64,4 @@ Disassembly of section \.text:
   d4:	201d 0870 	mtc0	\$0,idatahi
   d8:	201d 1070 	mtc0	\$0,dtaghi
   dc:	201d 1870 	mtc0	\$0,ddatahi
-	\.\.\.
+#pass

@@ -4,7 +4,7 @@
 
 # Test the backward branches to global symbols in current file (nanoMIPS).
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section \.text:
 	\.\.\.
@@ -31,4 +31,4 @@ Disassembly of section \.text:
 			88: R_NANOMIPS_PC25_S1	x2
 0+008c <g6\+0x8> 2800 0000 	bc	00000000 <\.Ldata>
 			8c: R_NANOMIPS_PC25_S1	.Ldata
-	\.\.\.
+#pass

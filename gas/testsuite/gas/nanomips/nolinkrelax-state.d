@@ -12,4 +12,4 @@ Disassembly of section \.text:
    4:	d201      	li	a0,1
    6:	1084      	move	a0,a0
    8:	9008      	nop
-   a:	9008      	nop
+#pass

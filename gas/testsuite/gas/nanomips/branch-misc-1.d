@@ -3,7 +3,7 @@
 
 # Test the branches to local symbols in current file (nanoMIPS).
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section \.text:
 	\.\.\.
@@ -24,4 +24,4 @@ Disassembly of section \.text:
 	\.\.\.
 	\.\.\.
 	\.\.\.
-	\.\.\.
+#pass

@@ -13,4 +13,4 @@ Disassembly of section \.text:
 0+000c <foo\+0xc> e081 0000 	lui	a0,%hi\(0x10000\)
 0+0010 <foo\+0x10> e081 a000 	lui	a0,%hi\(0x1a000\)
 0+0014 <foo\+0x14> 8084 05a5 	ori	a0,a0,0x5a5
-	\.\.\.
+#pass

@@ -1,7 +1,7 @@
 #objdump: -dr --prefix-addresses --show-raw-insn -M cp0-names=32r6
-#name: MIPS MT ASE for nanoMIPS with numeric registers
+#name: MT ASE for nanoMIPS with numeric registers
 
-# Check MIPS MT ASE for nanoMIPS Instruction Assembly with numeric registers
+# Check MT ASE for nanoMIPS Instruction Assembly with numeric registers
 
 .*: +file format .*nanomips.*
 
@@ -644,4 +644,4 @@
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 2360 2a78 	mtthc0	k1,\$0,5
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 2360 3278 	mtthc0	k1,\$0,6
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 2360 3a78 	mtthc0	k1,\$0,7
-	...
+#pass

@@ -5,7 +5,7 @@
 
 # Test the la macro PC-relative expansion for NMS.
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 0080 0000 	li	a0,0
@@ -173,4 +173,4 @@ Disassembly of section \.text:
 			170: R_NANOMIPS_PCHI20	big_external_data_label
 [0-9a-f]+ <[^>]+> 0084 0000 	addiu	a0,a0,0
 			174: R_NANOMIPS_LO12	big_external_data_label
-	...
+#pass

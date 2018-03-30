@@ -61,7 +61,3 @@ foo:
 	aset	7, 0xffffffff($4)
 	aset	7, 0x12345678($4)
 	.end	foo
-
-# Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
-	.align	2
-	.space	8

@@ -159,5 +159,4 @@ Disassembly of section .text:
  140:	lh	a0,0\(gp\)
 			140: R_NANOMIPS_GPREL17_S1	\.sbss\+0x1a5a5
  144:	lhu	a0,0\(zero\)
- 148:	nop
- 14a:	nop
+#pass

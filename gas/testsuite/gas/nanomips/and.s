@@ -1,5 +1,5 @@
 # Source file used to test the and macro.
-
+	.text
 foo:
 	and	$4,$4,0
 	and	$4,$4,1
@@ -21,7 +21,3 @@ foo:
 	or	$4,$5,0
 
 	xor	$4,$5,0
-
-# Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
-	.align	2
-	.space	8

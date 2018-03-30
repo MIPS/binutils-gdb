@@ -8,6 +8,3 @@ test:
 	ginvgt	$5,2
 	ginvgt	$6,3
 	.endif
-
-	.align	2
-	.space	8

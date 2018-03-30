@@ -250,5 +250,8 @@ Disassembly of section .text:
 			204: R_NANOMIPS_GPREL19_S2	\.sbss\+0x1a5a5
  208:	lw	a1,0\(gp\)
 			208: R_NANOMIPS_GPREL19_S2	\.sbss\+0x1a5a9
- 20c:	nop
- 20e:	nop
+ 20c:	lw	a2,4\(a1\)
+ 210:	lw	a1,0\(a1\)
+ 214:	lw	a2,5\(a1\)
+ 218:	lw	a1,1\(a1\)
+#pass

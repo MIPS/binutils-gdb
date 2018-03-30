@@ -70,4 +70,5 @@ Disassembly of section .text:
 [0-9a-f]+ <text_label\+0xec> 2230 32bf 	dpaqx_sa.w.ph	\$ac0,s0,s1
 [0-9a-f]+ <text_label\+0xf0> 2251 66bf 	dpsqx_s.w.ph	\$ac1,s1,s2
 [0-9a-f]+ <text_label\+0xf4> 2272 b6bf 	dpsqx_sa.w.ph	\$ac2,s2,s3
-	\.\.\.
+#pass
+

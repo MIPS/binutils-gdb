@@ -4,7 +4,7 @@
 
 # Test the add macro for nanoMIPS
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section \.text:
 
@@ -21,5 +21,4 @@ Disassembly of section \.text:
   24:	li	at,0x1a5a5
   2a:	add	a0,a0,at
   2e:	addiu	a0,a0,1
-  32:	nop
-	\.\.\.
+#pass

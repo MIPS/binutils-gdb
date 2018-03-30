@@ -153,4 +153,4 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 20a4 2150 	addu	a0,a0,a1
 [0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
 			[0-9a-f]+: R_NANOMIPS_GOT_DISP	big_external_data_label
-	\.\.\.
+#pass

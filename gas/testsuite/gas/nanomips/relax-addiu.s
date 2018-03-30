@@ -93,5 +93,3 @@ foo:
 	.space 127
 9:
 	nop
-	.align
-	.space 8

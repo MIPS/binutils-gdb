@@ -17,4 +17,4 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]*> 8860 0000 	beqzc	t5,[0-9a-f]+ <[^>]*>
 [	]*[0-9a-f]+: R_NANOMIPS_PC14_S1	.*
 [0-9a-f]+ <[^>]*> 9008      	nop
-	\.\.\.
+#pass

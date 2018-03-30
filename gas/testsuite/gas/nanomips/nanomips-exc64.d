@@ -22,3 +22,4 @@ Disassembly of section \.text:
 			2e: R_NANOMIPS_PC_I32	test
 [0-9a-f]+ <[^>]+> 611f 0000 0000 	sdpc	a4,00000000 <test>
 			34: R_NANOMIPS_PC_I32	test
+#pass

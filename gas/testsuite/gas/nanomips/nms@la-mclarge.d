@@ -5,7 +5,7 @@
 
 # Test the la macro for mcmodel=large
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section \.text:
 [0-9a-f]+ <text_label> 0080 0000 	li	a0,0
@@ -203,4 +203,4 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_NANOMIPS_HI20	big_external_data_label
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 8084 0000 	ori	a0,a0,0x0
 			[0-9a-f]+: R_NANOMIPS_LO12	big_external_data_label
-	\.\.\.
+#pass

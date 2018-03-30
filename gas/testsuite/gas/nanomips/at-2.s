@@ -16,6 +16,3 @@ foo:
 	sw	$1, 0x8000($1)
 	sw	$26, 0x8000($26)
 	sw	$27, 0x8000($27)
-
-# Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
-	.space	8

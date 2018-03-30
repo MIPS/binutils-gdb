@@ -6921,7 +6921,7 @@ load_register (int reg, expressionS *ep, int dbl)
 	  /* We can handle 16 bit unsigned values with an addiu to
 	     $zero.  No need to ever use daddiu here, since $zero and
 	     the result are always correct in 32 bit mode.  */
-	  macro_build (ep, "addiu", ADDIU_FMT, reg, 0,
+	  macro_build (ep, ADDRESS_ADDI_INSN, ADDIU_FMT, reg, 0,
 		       BFD_RELOC_NANOMIPS_IMM16);
 	  return;
 	}
@@ -7409,11 +7409,16 @@ nanomips_macro_la (unsigned int op[], unsigned int breg, int *used_at)
   else
     tempreg = op[0];
 
-  if (offset_expr.X_op != O_symbol && offset_expr.X_op != O_constant)
+  if ((offset_expr.X_op != O_symbol && offset_expr.X_op != O_constant)
+      || (offset_expr.X_op == O_symbol && hi_reloc_p (offset_reloc[0])))
     {
       as_bad (_("expression too complex"));
       offset_expr.X_op = O_constant;
     }
+
+  if (offset_expr.X_op == O_constant && hi_reloc_p (offset_reloc[0]))
+    offset_expr.X_add_number = offset_high_part (offset_expr.X_add_number,
+						 ISA_OFFBITS);
 
   if (!check_offset_range (offset_expr.X_add_number))
     return;
@@ -7578,11 +7583,16 @@ nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
   if (tempreg == AT)
     *used_at = 1;
 
-  if (offset_expr.X_op != O_constant && offset_expr.X_op != O_symbol)
+  if ((offset_expr.X_op != O_constant && offset_expr.X_op != O_symbol)
+      || (offset_expr.X_op == O_symbol && hi_reloc_p (offset_reloc[0])))
     {
       as_bad (_("expression too complex"));
       offset_expr.X_op = O_constant;
     }
+
+  if (offset_expr.X_op == O_constant && hi_reloc_p (offset_reloc[0]))
+    offset_expr.X_add_number = offset_high_part (offset_expr.X_add_number,
+						 ISA_OFFBITS);
 
   if (!check_offset_range (offset_expr.X_add_number))
     return;
@@ -7716,11 +7726,16 @@ nanomips_macro_ldp_stp (const char *s, const char *fmt, unsigned int op[],
       return;
     }
 
-  if (offset_expr.X_op != O_constant && offset_expr.X_op != O_symbol)
+  if ((offset_expr.X_op != O_constant && offset_expr.X_op != O_symbol)
+      || (offset_expr.X_op == O_symbol && hi_reloc_p (offset_reloc[0])))
     {
       as_bad (_("expression too complex"));
       offset_expr.X_op = O_constant;
     }
+
+  if (offset_expr.X_op == O_constant && hi_reloc_p (offset_reloc[0]))
+    offset_expr.X_add_number = offset_high_part (offset_expr.X_add_number,
+						 ISA_OFFBITS);
 
   if (HAVE_32BIT_ADDRESSES && !IS_SEXT_32BIT_NUM (offset_expr.X_add_number))
     {
@@ -7916,11 +7931,16 @@ nanomips_macro_ldd_std (const char *s, const char *fmt, unsigned int op[],
       return;
     }
 
-  if (offset_expr.X_op != O_symbol && offset_expr.X_op != O_constant)
+  if ((offset_expr.X_op != O_symbol && offset_expr.X_op != O_constant)
+      || (offset_expr.X_op == O_symbol && hi_reloc_p (offset_reloc[0])))
     {
       as_bad (_("expression too complex"));
       offset_expr.X_op = O_constant;
     }
+
+  if (offset_expr.X_op == O_constant && hi_reloc_p (offset_reloc[0]))
+    offset_expr.X_add_number = offset_high_part (offset_expr.X_add_number,
+						 ISA_OFFBITS);
 
   if (!check_offset_range (offset_expr.X_add_number))
     return;
@@ -7964,12 +7984,10 @@ nanomips_macro_ldd_std (const char *s, const char *fmt, unsigned int op[],
 	      *used_at = 1;
 	    }
 
-	  /* Itbl support may require additional care here.  */
 	  macro_build (&offset_expr, s, sfmt, coproc ? op[0] + 1 : op[0],
 		       BFD_RELOC_GPREL16, tempreg);
 	  offset_expr.X_add_number += 4;
 
-	  /* Itbl support may require additional care here.  */
 	  macro_build (&offset_expr, s, sfmt, coproc ? op[0] : op[0] + 1,
 		       BFD_RELOC_GPREL16, tempreg);
 	  relax_switch ();
@@ -8531,13 +8549,8 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	macro_build (&offset_expr, "jal", B_FMT);
       else
 	{
-	  relax_start (offset_expr.X_add_symbol);
 	  macro_build (&offset_expr, ADDRESS_LOAD_INSN, LWGP_FMT,
 		       AT, BFD_RELOC_NANOMIPS_GOT_CALL, nanomips_gp_register);
-	  relax_switch ();
-	  macro_build (&offset_expr, ADDRESS_LOAD_INSN, LWGP_FMT,
-		       AT, BFD_RELOC_NANOMIPS_GOT_DISP, nanomips_gp_register);
-	  relax_end ();
 
 	  if (nanomips_opts.linkrelax)
 	    {
@@ -13078,8 +13091,8 @@ nanoMIPS options:\n\
 -m[no-]pcrel		[dis]allow PC-relative address calculations\n"));
 
   fprintf (stream, _("\
--minsn32		only generate 32-bit microMIPS instructions\n\
--mno-insn32		generate all microMIPS instructions\n\
+-minsn32		only generate 32-bit nanoMIPS instructions\n\
+-mno-insn32		generate all nanoMIPS instructions\n\
 -mhard-float		allow floating-point instructions\n\
 -msoft-float		do not allow floating-point instructions\n\
 -msingle-float		only allow 32-bit floating-point operations\n\

@@ -1,5 +1,5 @@
-.align 2
-.type test, @function
+	.text
+	.type test, @function
 	.ent test, 0
 test:
 	ulw	$r26, %lo(tables)($r27)

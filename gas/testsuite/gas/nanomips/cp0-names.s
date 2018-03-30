@@ -36,6 +36,3 @@ text_label:
 	mtc0	$0, $29
 	mtc0	$0, $30
 	mtc0	$0, $31
-
-# Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
-      .space  8

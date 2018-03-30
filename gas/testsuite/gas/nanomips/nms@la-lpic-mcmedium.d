@@ -203,4 +203,4 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	big_external_data_label
 [0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	big_external_data_label
-	...
+#pass

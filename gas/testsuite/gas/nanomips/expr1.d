@@ -15,5 +15,4 @@ Disassembly of section \.text:
 			a: R_NANOMIPS_LO12	foo\+0x8
    e:	8484 8000 	lw	a0,0\(a0\)
 			e: R_NANOMIPS_LO12	foo\+0x8
-	\.\.\.
 #pass

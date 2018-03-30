@@ -1,7 +1,5 @@
 	.text
 	.set	noat
-	.set	noreorder
-	.set	nomacro
 test_xpa:
 
 	mfhc0	$2, $1
@@ -23,7 +21,3 @@ test_xpa:
 	mthgc0	$2, $16
 	mthgc0	$2, $0, 2
 	mthgc0	$2, $0, 7
-
-# Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
-	.align  2
-	.space  8

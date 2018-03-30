@@ -203,4 +203,4 @@ Disassembly of section \.text:
 			1ac: R_NANOMIPS_PCHI20	big_external_data_label
 [0-9a-f]+ <[^>]+> 0084 0000 	addiu	a0,a0,0
 			1b0: R_NANOMIPS_LO12	big_external_data_label
-	...
+#pass

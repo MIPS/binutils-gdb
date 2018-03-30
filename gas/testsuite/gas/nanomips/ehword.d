@@ -2,7 +2,7 @@
 #name MIPS .ehword
 #source ehword.s
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 RELOCATION RECORDS FOR \[\.text\]:
 OFFSET   TYPE              VALUE 

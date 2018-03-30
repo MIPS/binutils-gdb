@@ -13,3 +13,4 @@ Disassembly of section .text:
 00008010 <foo>:
     8010:	9008      	nop
     8012:	9008      	nop
+#pass

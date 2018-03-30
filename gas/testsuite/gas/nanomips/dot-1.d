@@ -2,7 +2,7 @@
 #name: nanoMIPS dot-1
 #source: dot-1.s
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section \.text:
 0+0000 <foo> 9240      	addiu	a0,a0,0

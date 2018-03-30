@@ -5,6 +5,3 @@ test:
 	ginvt	$4,1
 	ginvgt	$5,2
 	ginvgt	$6,3
-
-	.align	2
-	.space	8

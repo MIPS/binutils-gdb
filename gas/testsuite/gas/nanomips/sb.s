@@ -72,7 +72,3 @@ data_label:
 	swc1	$4,0
 	swc2	$4,0
 	s.s	$f4,0
-
-# Round to a 16 byte boundary, for ease in testing multiple targets.
-	nop
-	nop

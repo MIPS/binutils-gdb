@@ -28,4 +28,4 @@ Disassembly of section \.text:
   24:	0000 
 			22: R_NANOMIPS_PC_I32	test1
   26:	9008      	nop
-	\.\.\.
+#pass

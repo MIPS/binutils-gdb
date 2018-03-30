@@ -1,5 +1,4 @@
 # nanoMIPS assembly errors
-
 	.text
 	.ent	test
 	.globl	test

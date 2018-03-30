@@ -4,7 +4,7 @@
 
 # Test the dli macro.
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section .text:
 0+0000 <[^>]*> li	a0,0
@@ -112,4 +112,5 @@ Disassembly of section .text:
 0+0198 <[^>]*> ori	a0,a0,0xffff
 0+019c <[^>]*> dsll	a0,a0,0x10
 0+01a0 <[^>]*> ori	a0,a0,0xc000
-	...
+#pass
+

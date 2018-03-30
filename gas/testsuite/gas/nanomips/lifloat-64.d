@@ -16,4 +16,4 @@ Disassembly of section \.text:
   10:	li	a0,0x3f8fcd36
   16:	lwc1	\$f4,0\(gp\)
 			16: R_NANOMIPS_LITERAL	\.lit4
-  1a:	nop
+#pass

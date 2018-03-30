@@ -72,6 +72,3 @@ text_label:
 	cfc1	$0, $29
 	cfc1	$0, $30
 	cfc1	$0, $31
-
-# Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
-      .space  8

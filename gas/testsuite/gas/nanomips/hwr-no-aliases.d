@@ -47,4 +47,4 @@ Disassembly of section \.text:
   8c:	2004 79c0 	rdhwr	\$0,\$4,15
   90:	2005 01c0 	rdhwr	\$0,\$5,0
   94:	201d 01c0 	rdhwr	\$0,\$29,0
-	\.\.\.
+#pass

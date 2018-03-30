@@ -1,3 +1,4 @@
+	.text
 	.extern test1
 	.ent test
 test:
@@ -10,7 +11,3 @@ test:
 	lapc.h $a0, test
 	lapc.b $a0, test1
 	.end test
-
-	# Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
-	.align  2
-	.space  8

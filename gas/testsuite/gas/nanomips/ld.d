@@ -4,7 +4,7 @@
 
 # Test the ld macro on nanoMIPS
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> lw	a0,0\(zero\)
@@ -254,5 +254,4 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_NANOMIPS_GPREL19_S2	.sbss\+0x1a5a5
 [0-9a-f]+ <[^>]+> lw	a1,0\(gp\)
 			[0-9a-f]+: R_NANOMIPS_GPREL19_S2	.sbss\+0x1a5a9
-	\.\.\.
 #pass

@@ -41,3 +41,4 @@ Disassembly of section .text:
   4e:	6082 0000 	addiu	a0,gp,0
   52:	0000.
 			50: R_NANOMIPS_GPREL_I32	test
+#pass

@@ -22,3 +22,4 @@ Disassembly of section \.text:
   1a:	1be7      	bc	2 <test\+0x2>
   1c:	1be3      	bc	0 <test>
   1e:	9008      	nop
+#pass

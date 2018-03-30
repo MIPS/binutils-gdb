@@ -103,4 +103,4 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 6020 5678 1234 	li	at,0x12345678
 [0-9a-f]+ <[^>]+> 2081 0950 	addu	at,at,a0
 [0-9a-f]+ <[^>]+> a4e1 1100 	aset	7,0\(at\)
-	\.\.\.
+#pass

@@ -1,7 +1,7 @@
 #name: Constant expression evaluation
 #objdump: -sj.text
 
-dump\.o:     file format .*mips.*
+dump\.o:     file format .*nanomips.*
 
 Contents of section \.text:
  0000 00000000 00000127 00000020 011fdd00.*

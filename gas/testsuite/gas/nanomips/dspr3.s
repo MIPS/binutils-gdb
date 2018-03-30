@@ -54,13 +54,13 @@ text_label:
 	subu_s.ph	$2,$3,$4
 	subuh.qb	$3,$4,$5
 	subuh_r.qb	$4,$5,$6
-	addqh.ph        $5,$6,$7
+	addqh.ph	$5,$6,$7
 	addqh_r.ph      $6,$7,$8
-	addqh.w         $7,$8,$9
+	addqh.w	 $7,$8,$9
 	addqh_r.w       $8,$9,$10
-	subqh.ph        $9,$10,$11
+	subqh.ph	$9,$10,$11
 	subqh_r.ph      $10,$11,$12
-	subqh.w         $11,$12,$13
+	subqh.w	 $11,$12,$13
 	subqh_r.w       $12,$13,$14
 	dpax.w.ph       $ac1,$13,$14
 	dpsx.w.ph       $ac2,$14,$15
@@ -68,7 +68,3 @@ text_label:
 	dpaqx_sa.w.ph   $ac0,$16,$17
 	dpsqx_s.w.ph    $ac1,$17,$18
 	dpsqx_sa.w.ph   $ac2,$18,$19
-
-# Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
-	.align	2
-	.space	8

@@ -73,3 +73,4 @@ Disassembly of section \.text:
 000000da <\$L10>:
   da:	9008      	nop
   dc:	8000 c000 	nop
+#pass

@@ -69,5 +69,3 @@
 	la $2, 0x0123456789abcdef
 	la $2, 0x00000001ffffffff
 	la $2, 0x0000000100000000
-
-	.space 8

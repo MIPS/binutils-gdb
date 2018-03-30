@@ -145,10 +145,6 @@ text_label:
 	ld	d4,big_local_common+0x1a5a5
 	ld	d4,small_local_common+0x1a5a5
 
-# Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
-	.align	2
-	.space	8
-
 	.ifdef	forward
 	data
 	.endif

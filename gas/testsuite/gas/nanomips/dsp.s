@@ -142,7 +142,3 @@ text_label:
 	msubu		$ac1,$14,$15
 	mult		$ac3,$21,$22
 	multu		$ac0,$22,$23
-
-# Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
-	.align	2
-	.space	8

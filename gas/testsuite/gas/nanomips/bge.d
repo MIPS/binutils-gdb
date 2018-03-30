@@ -4,7 +4,7 @@
 
 # Test the bge macro.
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section \.text:
 0+0000 <text_label> 88a4 8000 	bgec	a0,a1,00000000 <text_label>
@@ -50,4 +50,4 @@ Disassembly of section \.text:
 0+0064 <text_label\+0x64> 2085 0b50 	slt	at,a1,a0
 0+0068 <text_label\+0x68> a820 0000 	bnezc	at,00000000 <external_label>
 			68: R_NANOMIPS_PC14_S1	external_label
-	\.\.\.
+#pass

@@ -16,3 +16,4 @@ Disassembly of section \.text:
 00000004 <b>:
    4:	0000 0000 	.*
 			4: R_NANOMIPS_32	\.L4
+#pass

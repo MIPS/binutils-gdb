@@ -36,8 +36,3 @@ foo:
 	ddivu	$4,$5,2
 	dmod	$4,$5,0x8000
 	dmodu	$4,$5,-0x8000
-
-# force some padding, to make objdump consistently report that there's some
-# here...
-	.align 2
-	.space	8

@@ -63,6 +63,3 @@ text_label:
 	mtc0	$0,$idatahi
 	mtc0	$0,$dtaghi
 	mtc0	$0,$ddatahi
-
-# Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
-	.space  8

@@ -41,4 +41,5 @@ Disassembly of section \.text:
   74:	a01d 283b 	mtc1	\$0,\$f29
   78:	a01e 283b 	mtc1	\$0,\$f30
   7c:	a01f 283b 	mtc1	\$0,\$f31
-	\.\.\.
+#pass
+

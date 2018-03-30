@@ -113,5 +113,4 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 20a4 2150 	addu	a0,a0,a1
 [0-9a-f]+ <[^>]+> 6083 0000 0000 	lapc	a0,[0-9a-f]+ <[^>]+>
 			152: R_NANOMIPS_PC_I32	big_external_data_label
-	...
-[0-9a-f]+ <[^>]+> 9008      	nop
+#pass

@@ -15,7 +15,3 @@ foo:
 	tlbgr
 	tlbgwi
 	tlbgwr
-
-# Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
-	.align	2
-	.space	8

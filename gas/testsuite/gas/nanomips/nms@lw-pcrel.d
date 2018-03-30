@@ -166,5 +166,4 @@ Disassembly of section \.text:
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> lw	a0,0\(gp\)
 			[0-9a-f]+: R_NANOMIPS_GPREL19_S2	\.sbss\+0x1a5a5
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> nop
-	\.\.\.
 #pass

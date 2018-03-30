@@ -37,6 +37,3 @@ text_label:
 	lb	$4,small_external_common+1
 	lb	$4,big_local_common+1
 	lb	$4,small_local_common+1
-
-# Round to a 16 byte boundary, for ease in testing multiple targets.
-	nop

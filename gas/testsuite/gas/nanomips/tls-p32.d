@@ -35,3 +35,4 @@ Disassembly of section .text:
  +[0-9a-f]+:	37c2      	lw	fp,8\(sp\)
  +[0-9a-f]+:	03bd 0010 	addiu	sp,sp,16
  +[0-9a-f]+:	dbe0      	jrc	ra
+#pass

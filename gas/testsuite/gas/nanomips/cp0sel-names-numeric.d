@@ -233,4 +233,4 @@ Disassembly of section \.text:
  374:	201f 2870 	mtc0	\$0,\$31,5
  378:	201f 3070 	mtc0	\$0,\$31,6
  37c:	201f 3870 	mtc0	\$0,\$31,7
-	\.\.\.
+#pass

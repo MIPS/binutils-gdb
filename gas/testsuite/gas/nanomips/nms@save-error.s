@@ -23,4 +23,4 @@ test:
 	restore.jrc	64,$t4,$t5,$gp
 	restore.jrc	128,$fp,$ra,$s0,$s1,$gp
 
-.end	test
+	.end	test

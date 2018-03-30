@@ -3,7 +3,7 @@
 
 # Test the beq macro on nanoMIPS
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section \.text:
 0+0000 <text_label> 88a4 0000 	beqc	a0,a1,00000000 <text_label>
@@ -32,4 +32,8 @@ Disassembly of section \.text:
 			20034: R_NANOMIPS_PC25_S1	text_label
 [0-9a-f]+ <text_label\+0x20038> 2a00 0000 	balc	00000000 <text_label>
 			20038: R_NANOMIPS_PC25_S1	text_label
-	\.\.\.
+[0-9a-f]+ <text_label\+0x2003c> 2800 0000 	bc	00000000 <external_label>
+			2003c: R_NANOMIPS_PC25_S1	external_label
+[0-9a-f]+ <text_label\+0x20040> 2a00 0000 	balc	00000000 <external_label>
+			20040: R_NANOMIPS_PC25_S1	external_label
+#pass

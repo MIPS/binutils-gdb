@@ -3,7 +3,7 @@
 #name: nanoMIPS sdc1 forward
 #source: ld.s
 
-dump.o:     file format .*mips.*
+dump.o:     file format .*nanomips.*
 
 Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> sdc1	\$f4,0\(zero\)
@@ -163,5 +163,4 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_NANOMIPS_LO12	.bss\+0x1a5a5
 [0-9a-f]+ <[^>]+> sdc1	\$f4,0\(gp\)
 			[0-9a-f]+: R_NANOMIPS_GPREL16_S2	.sbss\+0x1a5a5
-	\.\.\.
 #pass

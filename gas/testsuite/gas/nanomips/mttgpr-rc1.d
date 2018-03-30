@@ -8,4 +8,4 @@
 Disassembly of section .text:
 [0-9a-f]+ <.*> 23bc 0670 	mttgpr	gp,sp
 [0-9a-f]+ <.*> 21ae 0670 	mttgpr	t2,t1
-	\.\.\.
+#pass

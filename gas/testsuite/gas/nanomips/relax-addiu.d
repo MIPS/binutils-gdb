@@ -3,7 +3,7 @@
 
 # Test ADDIU relaxation on nanoMIPS
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section \.text:
 
@@ -64,5 +64,4 @@ Disassembly of section \.text:
   d6:	9008      	nop
 	\.\.\.
  158:	9008      	nop
-	\.\.\.
- 162:	9008      	nop
+#pass

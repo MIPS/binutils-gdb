@@ -3,7 +3,7 @@
 
 # Test the and macro for nanoMIPS
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section \.text:
 0+0000 <foo> andi	a0,a0,0x0
@@ -32,4 +32,4 @@ Disassembly of section \.text:
 0+005c <foo\+0x5c> nor	a0,a1,at
 0+0060 <foo\+0x60> ori	a0,a1,0x0
 0+0064 <foo\+0x64> xori	a0,a1,0x0
-	\.\.\.
+#pass

@@ -106,3 +106,4 @@ Disassembly of section \.text:
   9a:	c890 27ef 	bneic	a0,4,8c <\$L6\+0x36>
   9e:	88a4 3feb 	beqc	a0,a1,8c <\$L6\+0x36>
   a2:	9008      	nop
+#pass

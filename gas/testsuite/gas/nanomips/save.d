@@ -66,3 +66,4 @@ Disassembly of section \.text:
 [0-9a-f]+ <test\+0x[a-f0-9]+> 6020 fff0 000f 	li	at,0xffff0
 [0-9a-f]+ <test\+0x[a-f0-9]+> 203d e950 	addu	sp,sp,at
 [0-9a-f]+ <test\+0x[a-f0-9]+> dbe0      	jrc	ra
+#pass

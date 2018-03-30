@@ -1,6 +1,3 @@
-	.set	noat
-	.set	nomips16
-
 	.equ	addr, 0xdeadbeef
 	.ent	foo
 foo:

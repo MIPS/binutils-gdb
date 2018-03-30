@@ -1,7 +1,7 @@
 #objdump: -dr
 #name: nanoMIPS constant hi/lo
 
-.*: +file format elf.*nanomips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section \.text:
 

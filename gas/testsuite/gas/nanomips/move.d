@@ -4,7 +4,7 @@
 
 # Check objdump's disassembly of the move mnenomic for addu, daddu and or.
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section .text:
 0+ <[^>]+>:
@@ -12,3 +12,4 @@ Disassembly of section .text:
    4:	201f 6950 	move	\$13,\$31
    8:	201f 6a90 	move	\$13,\$31
    c:	c01f 6950 	move	\$13,\$31
+#pass

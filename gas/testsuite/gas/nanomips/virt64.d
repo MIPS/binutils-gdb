@@ -10,4 +10,4 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2174 29b0 	dmfgc0	a7,\$20,5
 [0-9a-f]+ <[^>]+> 22e2 01f0 	dmtgc0	s7,entrylo0
 [0-9a-f]+ <[^>]+> 20ee 11f0 	dmtgc0	a3,nestedepc
-	\.\.\.
+#pass

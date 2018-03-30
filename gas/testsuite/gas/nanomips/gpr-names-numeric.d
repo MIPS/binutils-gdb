@@ -41,4 +41,4 @@ Disassembly of section \.text:
   74:	lui	\$29,0x0
   78:	lui	\$30,0x0
   7c:	lui	\$31,0x0
-	\.\.\.
+#pass

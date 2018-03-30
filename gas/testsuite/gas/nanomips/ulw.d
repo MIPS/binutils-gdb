@@ -158,5 +158,4 @@ Disassembly of section .text:
 			13c: R_NANOMIPS_LO12	\.bss\+0x1a5a5
  140:	lw	a0,0\(gp\)
 			140: R_NANOMIPS_GPREL19_S2	\.sbss\+0x1a5a5
- 144:	nop
- 146:	nop
+#pass

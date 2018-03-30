@@ -2,9 +2,7 @@
 # This only works for PABI currently.
 
 	.text
-	.ifdef nanomips
 	.linkrelax
-	.endif
 foo:
 	jrc $a0
 .L3:

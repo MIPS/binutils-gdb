@@ -11,5 +11,3 @@ test:
 	.set ginv
 	sync_ginv
 	.end test
-	.align	2
-	.space	8

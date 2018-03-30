@@ -4,7 +4,7 @@
 
 # Check objdump's handling of -M fpr-names=foo options.
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section \.text:
 
@@ -41,4 +41,4 @@ Disassembly of section \.text:
   74:	a01d 283b 	mtc1	\$0,fs5
   78:	a01e 283b 	mtc1	\$0,fs6
   7c:	a01f 283b 	mtc1	\$0,fs7
-	\.\.\.
+#pass

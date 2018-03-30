@@ -5,7 +5,7 @@
 
 # Test the ldc1 macro.
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> ldc1	\$f4,0\(zero\)
@@ -165,5 +165,4 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_NANOMIPS_LO12	.bss\+0x1a5a5
 [0-9a-f]+ <[^>]+> ldc1	\$f4,0\(gp\)
 			[0-9a-f]+: R_NANOMIPS_GPREL16_S2	.sbss\+0x1a5a5
-	\.\.\.
 #pass

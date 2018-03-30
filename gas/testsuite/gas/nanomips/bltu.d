@@ -3,7 +3,7 @@
 
 # Test the bltu macro.
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section \.text:
 0+0000 <text_label> a8a4 c000 	bltuc	a0,a1,00000000 <text_label>
@@ -41,4 +41,4 @@ Disassembly of section \.text:
 0+0054 <text_label\+0x54> 2085 0b90 	sltu	at,a1,a0
 0+0058 <text_label\+0x58> 8820 0000 	beqzc	at,00000000 <external_label>
 			58: R_NANOMIPS_PC14_S1	external_label
-	\.\.\.
+#pass

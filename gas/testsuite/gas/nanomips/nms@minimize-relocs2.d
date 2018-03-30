@@ -80,3 +80,4 @@ Disassembly of section \.text:
   96:	9a7d      	beqzc	a0,94 <\$L5\+0x82>
   98:	88a4 3ffb 	beqc	a0,a1,96 <\$L5\+0x84>
   9c:	c890 27f9 	bneic	a0,4,98 <\$L5\+0x86>
+#pass

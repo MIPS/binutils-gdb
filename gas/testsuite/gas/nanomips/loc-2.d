@@ -46,5 +46,3 @@ Raw dump of debug contents of section .debug_line:
   \[0x.*\]  Special opcode 35: advance Address by 2 to 0x8 and Line by 2 to 17
   \[0x.*\]  Advance PC by 2 to 0xa
   \[0x.*\]  Extended opcode 1: End of Sequence
-
-

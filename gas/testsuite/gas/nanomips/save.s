@@ -72,4 +72,4 @@ test:
 	jraddiusp -2048
 	jraddiusp 1048560
 
-.end	test
+	.end	test

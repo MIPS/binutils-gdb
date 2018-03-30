@@ -145,4 +145,4 @@ Disassembly of section \.text:
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 22d5 ccbf 	mult	\$ac3,s5,s6
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 22f6 1cbf 	multu	\$ac0,s6,s7
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> 9008      	nop
-	\.\.\.
+#pass

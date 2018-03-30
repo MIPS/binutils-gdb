@@ -3,7 +3,7 @@
 #name: nanoMIPS sd forward
 #source: ld.s
 
-dump.o:     file format .*mips.*
+dump.o:     file format .*nanomips.*
 
 Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> sw	a0,0\(zero\)
@@ -253,5 +253,4 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_NANOMIPS_GPREL19_S2	.sbss\+0x1a5a5
 [0-9a-f]+ <[^>]+> sw	a1,0\(gp\)
 			[0-9a-f]+: R_NANOMIPS_GPREL19_S2	.sbss\+0x1a5a9
-	\.\.\.
 #pass

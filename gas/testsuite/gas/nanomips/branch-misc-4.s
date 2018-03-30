@@ -10,10 +10,6 @@ foo:
 	b	.Lbar
 	.end	foo
 
-# Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
-	.align	2
-	.space	8
-
 	.section .init, "ax", @progbits
 	.globl	bar
 	.ent	bar
@@ -22,7 +18,3 @@ bar:
 .Lbar:
 	b	.Lfoo
 	.end	bar
-
-# Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
-	.align	2
-	.space	8

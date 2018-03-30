@@ -49,5 +49,4 @@ Disassembly of section \.text:
   96:	dmod	a0,a1,at
   9a:	lui	at,%hi\(0xffff8000\)
   9e:	dmodu	a0,a1,at
-  a2:	nop
-	\.\.\.
+#pass

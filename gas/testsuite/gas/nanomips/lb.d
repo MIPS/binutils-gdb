@@ -1,5 +1,5 @@
 #objdump: -dr --no-show-raw-insn
-#nam[0-9a-f]+: nanoMIPS lb
+#name: nanoMIPS lb
 
 # Test the lb macro.
 
@@ -175,7 +175,4 @@ Disassembly of section \.text:
  [0-9a-f]+:	lw	a0,0\(zero\)
  [0-9a-f]+:	lwc1	\$f4,0\(zero\)
  [0-9a-f]+:	lwc2	\$4,0\(zero\)
- [0-9a-f]+:	nop
- [0-9a-f]+:	nop
- [0-9a-f]+:	nop
- [0-9a-f]+:	nop
+#pass

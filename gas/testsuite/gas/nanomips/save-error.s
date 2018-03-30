@@ -39,4 +39,4 @@ test:
 	save	128,$ra,$s0-$s7,$fp
 	restore	128,$fp,$ra,$s1
 
-.end	test
+	.end	test

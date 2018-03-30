@@ -20,3 +20,5 @@ test3:
 	.half 0x6000
 	.half 0x1000
 	.end test3
+	# dummy label so that test3 is not the last.
+test4:

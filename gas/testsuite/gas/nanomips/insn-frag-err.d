@@ -17,3 +17,4 @@ Disassembly of section \.text:
 
 00000004 <test3>:
    4:	0x6000 \(expected 48 bits, got only 32\): Address 0x0+8 is out of bounds.
+#pass

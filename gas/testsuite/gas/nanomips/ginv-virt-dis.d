@@ -14,4 +14,5 @@ Disassembly of section \.text:
    8:	2024 0f7f 	ginvt	a0,1
    c:	2045 0d7f 	ginvgt	a1,2
   10:	2066 0d7f 	ginvgt	a2,3
-	\.\.\.
+#pass
+

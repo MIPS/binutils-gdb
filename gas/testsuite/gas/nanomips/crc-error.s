@@ -11,7 +11,3 @@ test_crc:
 	crc32d	$a0,$a3	# OK
 	.set nocrc
 	crc32b	$a0,$a3	# ERROR: crc not enabled
-
-# Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
-	.align  2
-	.space  8

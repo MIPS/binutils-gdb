@@ -21,6 +21,3 @@ test:
 	ins	$t5, $t5, 31, 1
 	ins	$t5, $t5, 1, 31
 	.end test
-
-	.align	2
-	.space	8

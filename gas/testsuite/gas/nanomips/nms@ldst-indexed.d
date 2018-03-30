@@ -52,5 +52,4 @@ Disassembly of section \.text:
   66:	addiu	at,gp,0
 			[0-9a-f]+: R_NANOMIPS_GPREL19_S2	\.sbss\+0x1
   6a:	sdc1x	\$f4,at\(s4\)
-	\.\.\.
 #pass

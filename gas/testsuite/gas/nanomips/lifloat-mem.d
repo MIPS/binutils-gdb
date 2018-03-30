@@ -24,3 +24,4 @@ Disassembly of section \.text:
 			14: R_NANOMIPS_LO12	.rodata\+0x8
   18:	lwc1	\$f4,0\(gp\)
 			18: R_NANOMIPS_GPREL16_S2	.sdata\+0x8
+#pass

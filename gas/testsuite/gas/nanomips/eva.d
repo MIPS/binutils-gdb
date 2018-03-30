@@ -3,7 +3,7 @@
 #as: -meva
 #source: eva.s
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section \.text:
 
@@ -947,3 +947,4 @@ Disassembly of section \.text:
 [ 0-9a-f]+:	0000 
 			[0-9a-f]+: R_NANOMIPS_I32	MYDATA
 [ 0-9a-f]+:	a5a1 1a00 	prefe	0xd,0\(\$1\)
+#pass

@@ -3,7 +3,7 @@
 
 # Check objdump's handling of -M hwr-names=foo options.
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section \.text:
 
@@ -56,4 +56,4 @@ Disassembly of section \.text:
   b4:	2004 69c0 	rdhwr	\$0,\$4,13
   b8:	2004 71c0 	rdhwr	\$0,\$4,14
   bc:	2004 79c0 	rdhwr	\$0,\$4,15
-	\.\.\.
+#pass

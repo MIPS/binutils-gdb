@@ -87,7 +87,5 @@ Raw dump of debug contents of section \.debug_line:
   \[0x.*\]  Advance Line by 2 to 44
   \[0x.*\]  Advance PC by fixed size amount 4 to 0x3c
   \[0x.*\]  Copy
-  \[0x.*\]  Advance PC by fixed size amount 20 to 0x50
+  \[0x.*\]  Advance PC by fixed size amount 4 to 0x40
   \[0x.*\]  Extended opcode 1: End of Sequence
-
-

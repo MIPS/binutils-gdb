@@ -3,8 +3,6 @@
 	.globl	early_global
 local:
 	.cpsetup $25
-	.cprestore 16
-	.cpreturn
 	li $5, 0x10101010
 	la	$4,early_global
 	la	$4,early_global+10

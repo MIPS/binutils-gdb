@@ -17,4 +17,3 @@ ASEs:
 	nanoMIPS subset
 FLAGS 1: 0000000.
 FLAGS 2: 00000000
-

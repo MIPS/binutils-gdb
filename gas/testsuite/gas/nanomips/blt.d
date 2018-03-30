@@ -3,7 +3,7 @@
 
 # Test the blt macro.
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section \.text:
 0+0000 <text_label> a8a4 8000 	bltc	a0,a1,00000000 <text_label>
@@ -49,4 +49,4 @@ Disassembly of section \.text:
 0+0064 <text_label\+0x64> 2085 0b50 	slt	at,a1,a0
 0+0068 <text_label\+0x68> 8820 0000 	beqzc	at,00000000 <external_label>
 			68: R_NANOMIPS_PC14_S1	external_label
-	...
+#pass

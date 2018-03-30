@@ -10,5 +10,3 @@ test:
 	sync 19
 	sync 20
 	.end test
-	.align	2
-	.space	8

@@ -2,7 +2,7 @@
 #name: MVH instructions
 #as: -mvirt
 
-.*: +file format .*mips.*
+.*: +file format .*nanomips.*
 
 Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2041 0038 	mfhc0	t4,random
@@ -21,4 +21,4 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 2050 00f8 	mthgc0	t4,config
 [0-9a-f]+ <[^>]+> 2040 10f8 	mthgc0	t4,mvpconf0
 [0-9a-f]+ <[^>]+> 2040 38f8 	mthgc0	t4,\$0,7
-	\.\.\.
+#pass

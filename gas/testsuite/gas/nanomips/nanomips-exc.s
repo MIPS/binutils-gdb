@@ -277,5 +277,3 @@ test:
 2:
 	eretnc
 	.end	test
-	.align	2
-	.space	8

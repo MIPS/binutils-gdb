@@ -1,6 +1,4 @@
 	.text
-	.set	nomips16
-	.set	noreorder
 test_eva:
 	lbue	$0,-256($2)
 	lbue	$3,-256

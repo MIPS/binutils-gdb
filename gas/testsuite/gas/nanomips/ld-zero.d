@@ -21,4 +21,4 @@ Disassembly of section \.text:
 0+0030 <foo\+0x30> lui	at,%hi\(0x12345000\)
 0+0034 <foo\+0x34> addu	at,at,t4
 0+0038 <foo\+0x38> lw	zero,1656\(at\)
-	\.\.\.
+#pass
