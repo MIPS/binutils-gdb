@@ -109,8 +109,12 @@ class Nanomips_insn_template
   uint32_t
   data(unsigned int in_treg, unsigned int in_sreg) const
   {
-    uint32_t data = this->ins_treg_func_(in_treg, in_sreg, this->data_);
-    return this->ins_sreg_func_(in_treg, in_sreg, data);
+    uint32_t data = this->data_;
+    if (this->ins_treg_func_ != NULL)
+      data = this->ins_treg_func_(in_treg, in_sreg, data);
+    if (this->ins_sreg_func_ != NULL)
+      data = this->ins_sreg_func_(in_treg, in_sreg, data);
+    return data;
   }
 
   // Return the relocation type of this instruction.
@@ -209,20 +213,26 @@ class Nanomips_insn_property
   // Return target register of this instruction.
   unsigned int
   treg(uint32_t insn) const
-  { return this->ext_treg_func_(insn); }
+  {
+    gold_assert(this->ext_treg_func_ != NULL);
+    return this->ext_treg_func_(insn);
+  }
 
   // Return source register of this instruction.
   unsigned int
   sreg(uint32_t insn) const
-  { return this->ext_sreg_func_(insn); }
+  {
+    gold_assert(this->ext_sreg_func_ != NULL);
+    return this->ext_sreg_func_(insn);
+  }
 
   // Convert target register in 16bit instruction to register
   // in 32 bit instruction.
   unsigned int
   convert_treg(uint32_t insn) const
   {
-    unsigned int treg = this->treg(insn);
-    return this->convert_treg_func_(treg);
+    gold_assert(this->convert_treg_func_ != NULL);
+    return this->convert_treg_func_(this->treg(insn));
   }
 
   // Convert source register in 16bit instruction to register
@@ -230,24 +240,24 @@ class Nanomips_insn_property
   unsigned int
   convert_sreg(uint32_t insn) const
   {
-    unsigned int sreg = this->sreg(insn);
-    return this->convert_sreg_func_(sreg);
+    gold_assert(this->convert_sreg_func_ != NULL);
+    return this->convert_sreg_func_(this->sreg(insn));
   }
 
   // Check if a 5-bit target register index can be abbreviated to 3 bits.
   bool
   valid_treg(uint32_t insn) const
   {
-    unsigned int treg = this->treg(insn);
-    return this->valid_treg_func_(treg);
+    gold_assert(this->valid_treg_func_ != NULL);
+    return this->valid_treg_func_(this->treg(insn));
   }
 
   // Check if a 5-bit source register index can be abbreviated to 3 bits.
   bool
   valid_sreg(uint32_t insn) const
   {
-    unsigned int sreg = this->sreg(insn);
-    return this->valid_sreg_func_(sreg);
+    gold_assert(this->valid_sreg_func_ != NULL);
+    return this->valid_sreg_func_(this->sreg(insn));
   }
 
   // Check if a 5-bit registers can be abbreviated to 3 bits registers.
@@ -272,10 +282,7 @@ class Nanomips_insn_property
   // Return whether there is the transform template of type TYPE.
   bool
   has_transform(unsigned int type) const
-  {
-    Nanomips_transform_map::const_iterator it = this->transforms_.find(type);
-    return it != this->transforms_.end();
-  }
+  { return this->transforms_.find(type) != this->transforms_.end(); }
 
  protected:
   // These are protected.  We only allow Nanomips_insn_property_table to
@@ -306,10 +313,7 @@ class Nanomips_insn_property
   // Return whether relocation of type R_TYPE is against this instruction.
   bool
   reloc(unsigned int r_type) const
-  {
-    Unordered_set<unsigned int>::const_iterator it = this->relocs_.find(r_type);
-    return it != this->relocs_.end();
-  }
+  { return this->relocs_.find(r_type) != this->relocs_.end(); }
 
   friend class Nanomips_insn_property_table;
 

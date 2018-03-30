@@ -25,76 +25,15 @@
 #include "nanomips.h"
 #include "nanomips-insn-property.h"
 
-#include <stdio.h>
-
 namespace gold
 {
 // Mapping registers from input to output instruction.
 enum Reg_mapping
 {
-  // No register.
-  RM_NONE = 0,
   // Maps to treg register from the input instruction.
   RM_TREG,
   // Maps to sreg register from the input instruction.
   RM_SREG
-};
-
-template<int P, int B>
-class Extract_reg_impl
-{
-public:
-  static unsigned int
-  get(uint32_t insn)
-  { return (insn >> P) & ((1U << B) - 1); }
-};
-
-template<>
-class Extract_reg_impl<0, 0>
-{
-public:
-  static unsigned int
-  get(uint32_t)
-  { return 0; }
-};
-
-template<int LB, int RB>
-class Convert_reg_impl
-{
-public:
-  static unsigned int
-  convert(unsigned int reg)
-  { return ((LB <= reg && reg <= RB) ? reg + 16 : reg); }
-};
-
-template<>
-class Convert_reg_impl<0, 0>
-{
-public:
-  static unsigned int
-  convert(unsigned int reg)
-  { return reg; }
-};
-
-template<int Reg_num>
-class Valid_reg_impl
-{
-public:
-  static bool
-  valid(unsigned reg)
-  {
-    return (reg == Reg_num || (4 <= reg && reg <= 7)
-            || (17 <= reg && reg <= 19));
-  }
-};
-
-template<>
-class Valid_reg_impl<32>
-{
-public:
-  static bool
-  valid(unsigned int)
-  { return true; }
 };
 
 template<int P, int B, int Reg_mapping>
@@ -119,30 +58,19 @@ public:
 };
 
 template<int P, int B>
-class Insert_reg_impl<P, B, RM_NONE>
+class Extract_reg_impl
 {
 public:
-  static uint32_t
-  put(unsigned int, unsigned int, uint32_t data)
-  { return data; }
+  static unsigned int
+  get(uint32_t insn)
+  { return (insn >> P) & ((1U << B) - 1); }
 };
 
-// Return target register in move.balc nanoMIPS instruction.
-unsigned int
-move_balc_treg_32(uint32_t insn)
-{
-  unsigned int rt = (((insn >> 21) & 0x7) | ((insn >> 22) & 0x8));
-  if (rt == 3)
-    rt = 0;
-  else if (rt < 4 || rt > 7)
-    rt += 8;
-  return rt;
-}
-
-// Return destination register in move.balc nanoMIPS instruction.
-unsigned int
-move_balc_dreg_32(uint32_t insn)
-{ return ((insn >> 24) & 0x1) + 4; }
+// Insert register in nanoMIPS instruction.
+template<int P, int B, int Reg_mapping>
+uint32_t
+insert_reg(unsigned int in_treg, unsigned int in_sreg, uint32_t data)
+{ return Insert_reg_impl<P, B, Reg_mapping>::put(in_treg, in_sreg, data); }
 
 // Extract register from nanoMIPS instruction.
 template<int P, int B>
@@ -150,23 +78,50 @@ unsigned int
 extract_reg(uint32_t insn)
 { return Extract_reg_impl<P, B>::get(insn); }
 
-// Convert 16bit to 32bit nanoMIPS register.
-template<int LB, int RB>
+// Return target register in move.balc nanoMIPS instruction.
 unsigned int
-convert_reg(unsigned int reg)
-{ return Convert_reg_impl<LB, RB>::convert(reg); }
+move_balc_treg_32(uint32_t insn)
+{
+  unsigned int reg = (((insn >> 21) & 0x7) | ((insn >> 22) & 0x8));
+  static unsigned int gpr4_zero_map[] = { 8, 9, 10, 0, 4, 5, 6, 7, 16,
+                                          17, 18, 19, 20, 21, 22, 23 };
+  gold_assert(reg < sizeof(gpr4_zero_map) / sizeof(gpr4_zero_map[0]));
+  return gpr4_zero_map[reg];
+}
+
+// Return destination register in move.balc nanoMIPS instruction.
+unsigned int
+move_balc_dreg_32(uint32_t insn)
+{ return ((insn >> 24) & 0x1) + 4; }
 
 // Check if a 5-bit register index can be abbreviated to 3 bits.
-template<int Reg_num>
 bool
 valid_reg(unsigned int reg)
-{ return Valid_reg_impl<Reg_num>::valid(reg); }
+{ return ((4 <= reg && reg <= 7) || (16 <= reg && reg <= 19)); }
 
-// Insert register in nanoMIPS instruction.
-template<int P, int B, int Reg_mapping>
-uint32_t
-insert_reg(unsigned int in_treg, unsigned int in_sreg, uint32_t data)
-{ return Insert_reg_impl<P, B, Reg_mapping>::put(in_treg, in_sreg, data); }
+// Check if a 5-bit source register index in store instruction
+// can be abbreviated to 3 bits.
+bool
+valid_st_src_reg(unsigned int reg)
+{ return (reg == 0 || (4 <= reg && reg <= 7) || (17 <= reg && reg <= 19)); }
+
+// Convert 3-bit to 5-bit register index.
+unsigned int
+convert_reg(unsigned int reg)
+{
+  static unsigned int gpr3_map[] = { 16, 17, 18, 19, 4, 5, 6, 7 };
+  gold_assert(reg < sizeof(gpr3_map) / sizeof(gpr3_map[0]));
+  return gpr3_map[reg];
+}
+
+// Convert 3-bit to 5-bit source register index in store instruction.
+unsigned int
+convert_st_src_reg(unsigned int reg)
+{
+  static unsigned int gpr3_src_store_map[] = { 0, 17, 18, 19, 4, 5, 6, 7 };
+  gold_assert(reg < sizeof(gpr3_src_store_map) / sizeof(gpr3_src_store_map[0]));
+  return gpr3_src_store_map[reg];
+}
 
 Nanomips_insn_property::Nanomips_insn_property(
     const unsigned int* relocs,

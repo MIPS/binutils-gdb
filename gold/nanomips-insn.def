@@ -33,12 +33,11 @@
 
 // Insert register function.
 #define INS_REG(pos, size, reg) (insert_reg<pos, size, RM_##reg>)
-#define NO_INS_REG INS_REG(0, 0, NONE)
 
 // Nanomips instruction template.
 #define NIT(name, opcode, reloc, size, tregfunc, sregfunc) \
   Nanomips_insn_template::nanomips_insn##size(name, opcode, REL(reloc), tregfunc, sregfunc)
-#define NIT48(name, opcode, reloc, tregfunc) NIT(name, opcode, reloc, 48, tregfunc, NO_INS_REG)
+#define NIT48(name, opcode, reloc, tregfunc) NIT(name, opcode, reloc, 48, tregfunc, NULL)
 #define NIT32(name, opcode, reloc, tregfunc, sregfunc) NIT(name, opcode, reloc, 32, tregfunc, sregfunc)
 #define NIT16(name, opcode, reloc, tregfunc, sregfunc) NIT(name, opcode, reloc, 16, tregfunc, sregfunc)
 
@@ -46,21 +45,14 @@
 
 // Extract register function.
 #define EXT_REG(pos, size) (extract_reg<pos, size>)
-// Valid register function.
-#define VALID_REG(num) (valid_reg<num>)
-// Convert register from 16bit to 32bit function.
-#define CONV_REG(lb, rb) (convert_reg<lb, rb>)
-#define NO_EXT_REG EXT_REG(0, 0)
-#define NO_VALID VALID_REG(32)
-#define NO_CONV CONV_REG(0, 0)
 
 // Nanomips instruction property.
 #define NIP48(name, opcode, ext_treg_func, ...) \
-  NIP(name, opcode, ext_treg_func, NO_CONV, NO_VALID, NO_EXT_REG, NO_CONV, NO_VALID, __VA_ARGS__)
+  NIP(name, opcode, ext_treg_func, NULL, NULL, NULL, NULL, NULL, __VA_ARGS__)
 #define NIP32(name, opcode, ext_treg_func, val_treg_func, ext_sreg_func, val_sreg_func, ...) \
-  NIP(name, opcode, ext_treg_func, NO_CONV, val_treg_func, ext_sreg_func, NO_CONV, val_sreg_func, __VA_ARGS__)
+  NIP(name, opcode, ext_treg_func, NULL, val_treg_func, ext_sreg_func, NULL, val_sreg_func, __VA_ARGS__)
 #define NIP16(name, opcode, ext_treg_func, conv_treg_func, ext_sreg_func, conv_sreg_func, ...) \
-  NIP(name, opcode, ext_treg_func, conv_treg_func, NO_VALID, ext_sreg_func, conv_sreg_func, NO_VALID, __VA_ARGS__)
+  NIP(name, opcode, ext_treg_func, conv_treg_func, NULL, ext_sreg_func, conv_sreg_func, NULL, __VA_ARGS__)
 
 //
 //
@@ -79,17 +71,17 @@
 // swpc[48] $reg, sym
 #define SWPC48 NIT48("swpc[48]", 0x600f, PC_I32, INS_REG(5, 5, TREG))
 // addiu[gp.b] $reg, $gp, %gprel(sym)
-#define ADDIUGPB32 NIT32("addiu[gp.b]", 0x440c0000, GPREL18, INS_REG(21, 5, TREG), NO_INS_REG)
+#define ADDIUGPB32 NIT32("addiu[gp.b]", 0x440c0000, GPREL18, INS_REG(21, 5, TREG), NULL)
 // addiu[gp.w] $reg, $gp, %gprel(sym)
-#define ADDIUGPW32 NIT32("addiu[gp.w]", 0x40000000, GPREL19_S2, INS_REG(21, 5, TREG), NO_INS_REG)
+#define ADDIUGPW32 NIT32("addiu[gp.w]", 0x40000000, GPREL19_S2, INS_REG(21, 5, TREG), NULL)
 // addu $reg, $reg, $gp
 #define ADDU32(tregmap, sregmap) NIT32("addu", 0x23800150, NONE, INS_REG(16, 5, tregmap), INS_REG(11, 5, sregmap))
 // aluipc $reg, %reloc(sym)
-#define ALUIPC32(reloc, tregmap) NIT32("aluipc", 0xe0000002, reloc, INS_REG(21, 5, tregmap), NO_INS_REG)
+#define ALUIPC32(reloc, tregmap) NIT32("aluipc", 0xe0000002, reloc, INS_REG(21, 5, tregmap), NULL)
 // balc sym
-#define BALC32 NIT32("balc", 0x2a000000, PC25_S1, NO_INS_REG, NO_INS_REG)
+#define BALC32 NIT32("balc", 0x2a000000, PC25_S1, NULL, NULL)
 // bc sym
-#define BC32 NIT32("bc", 0x28000000, PC25_S1, NO_INS_REG, NO_INS_REG)
+#define BC32 NIT32("bc", 0x28000000, PC25_S1, NULL, NULL)
 // bbeqzc $reg, bit, sym
 #define BBEQZC32 NIT32("bbeqzc", 0xc8040000, NONE, INS_REG(21, 5, TREG), INS_REG(11, 6, SREG))
 // bbnezc $reg, bit, sym
@@ -119,51 +111,51 @@
 // bneic $reg, u, sym
 #define BNEIC32 NIT32("bneic", 0xc8100000, NONE, INS_REG(21, 5, TREG), INS_REG(11, 7, SREG))
 // jalrc $ra, $reg
-#define JALRC32 NIT32("jalrc", 0x4be00000, NONE, NO_INS_REG, INS_REG(16, 5, SREG))
+#define JALRC32 NIT32("jalrc", 0x4be00000, NONE, NULL, INS_REG(16, 5, SREG))
 // jalrc $zero, $reg
-#define JRC32 NIT32("jrc", 0x48000000, NONE, NO_INS_REG, INS_REG(16, 5, SREG))
+#define JRC32 NIT32("jrc", 0x48000000, NONE, NULL, INS_REG(16, 5, SREG))
 // lapc $reg, sym
-#define LAPC32(tregmap) NIT32("lapc", 0x04000000, PC21_S1, INS_REG(21, 5, tregmap), NO_INS_REG)
+#define LAPC32(tregmap) NIT32("lapc", 0x04000000, PC21_S1, INS_REG(21, 5, tregmap), NULL)
 // lui $reg, %reloc(sym)
-#define LUI32(reloc, tregmap) NIT32("lui", 0xe0000000, reloc, INS_REG(21, 5, tregmap), NO_INS_REG)
+#define LUI32(reloc, tregmap) NIT32("lui", 0xe0000000, reloc, INS_REG(21, 5, tregmap), NULL)
 // lb $reg, %gprel(sym)($gp)
-#define LBGP32 NIT32("lb[gp]", 0x44000000, GPREL18, INS_REG(21, 5, TREG), NO_INS_REG)
+#define LBGP32 NIT32("lb[gp]", 0x44000000, GPREL18, INS_REG(21, 5, TREG), NULL)
 // lb $reg, %reloc(sym)($reg)
 #define LB32(reloc) NIT32("lb", 0x84000000, reloc, INS_REG(21, 5, TREG), INS_REG(16, 5, SREG))
 // lbu $reg, %gprel(sym)($gp)
-#define LBUGP32 NIT32("lbu[gp]", 0x44080000, GPREL18, INS_REG(21, 5, TREG), NO_INS_REG)
+#define LBUGP32 NIT32("lbu[gp]", 0x44080000, GPREL18, INS_REG(21, 5, TREG), NULL)
 // lbu $reg, %reloc(sym)($reg)
 #define LBU32(reloc) NIT32("lbu", 0x84002000, reloc, INS_REG(21, 5, TREG), INS_REG(16, 5, SREG))
 // lh $reg, %gprel(sym)($gp)
-#define LHGP32 NIT32("lh[gp]", 0x44100000, GPREL17_S1, INS_REG(21, 5, TREG), NO_INS_REG)
+#define LHGP32 NIT32("lh[gp]", 0x44100000, GPREL17_S1, INS_REG(21, 5, TREG), NULL)
 // lh $reg, %reloc(sym)($reg)
 #define LH32(reloc) NIT32("lh", 0x84004000, reloc, INS_REG(21, 5, TREG), INS_REG(16, 5, SREG))
 // lhu $reg, %gprel(sym)($gp)
-#define LHUGP32 NIT32("lhu[gp]", 0x44100001, GPREL17_S1, INS_REG(21, 5, TREG), NO_INS_REG)
+#define LHUGP32 NIT32("lhu[gp]", 0x44100001, GPREL17_S1, INS_REG(21, 5, TREG), NULL)
 // lhu $reg, %reloc(sym)($reg)
 #define LHU32(reloc) NIT32("lhu", 0x84006000, reloc, INS_REG(21, 5, TREG), INS_REG(16, 5, SREG))
 // lw $reg, %gprel(sym)($gp)
-#define LWGP32 NIT32("lw[gp]", 0x40000002, GPREL19_S2, INS_REG(21, 5, TREG), NO_INS_REG)
+#define LWGP32 NIT32("lw[gp]", 0x40000002, GPREL19_S2, INS_REG(21, 5, TREG), NULL)
 // lw $reg, %reloc(sym)($reg)
 #define LW32(reloc) NIT32("lw", 0x84008000, reloc, INS_REG(21, 5, TREG), INS_REG(16, 5, SREG))
 // ori $reg, $reg, %reloc(sym)
 #define ORI32(reloc, tregmap, sregmap) NIT32("ori", 0x80000000, reloc, INS_REG(21, 5, tregmap), INS_REG(16, 5, sregmap))
 // sb $reg, %gprel(sym)($gp)
-#define SBGP32 NIT32("sb[gp]", 0x44040000, GPREL18, INS_REG(21, 5, TREG), NO_INS_REG)
+#define SBGP32 NIT32("sb[gp]", 0x44040000, GPREL18, INS_REG(21, 5, TREG), NULL)
 // sb $reg, %reloc(sym)($reg)
 #define SB32(reloc) NIT32("sb", 0x84001000, reloc, INS_REG(21, 5, TREG), INS_REG(16, 5, SREG))
 // sh $reg, %gprel(sym)($gp)
-#define SHGP32 NIT32("sh[gp]", 0x44140000, GPREL17_S1, INS_REG(21, 5, TREG), NO_INS_REG)
+#define SHGP32 NIT32("sh[gp]", 0x44140000, GPREL17_S1, INS_REG(21, 5, TREG), NULL)
 // sh $reg, %reloc(sym)($reg)
 #define SH32(reloc) NIT32("sh", 0x84005000, reloc, INS_REG(21, 5, TREG), INS_REG(16, 5, SREG))
 // sw $reg, %gprel(sym)($gp)
-#define SWGP32 NIT32("sw[gp]", 0x40000003, GPREL19_S2, INS_REG(21, 5, TREG), NO_INS_REG)
+#define SWGP32 NIT32("sw[gp]", 0x40000003, GPREL19_S2, INS_REG(21, 5, TREG), NULL)
 // sw $reg, %reloc(sym)($reg)
 #define SW32(reloc) NIT32("sw", 0x84009000, reloc, INS_REG(21, 5, TREG), INS_REG(16, 5, SREG))
 // balc16 sym
-#define BALC16 NIT16("balc[16]", 0x3800, PC10_S1, NO_INS_REG, NO_INS_REG)
+#define BALC16 NIT16("balc[16]", 0x3800, PC10_S1, NULL, NULL)
 // bc16 sym
-#define BC16 NIT16("bc[16]", 0x1800, PC10_S1, NO_INS_REG, NO_INS_REG)
+#define BC16 NIT16("bc[16]", 0x1800, PC10_S1, NULL, NULL)
 // beqc16 $reg, $reg, sym
 #define BEQC16 NIT16("beqc[16]", 0xd800, PC4_S1, INS_REG(7, 3, TREG), INS_REG(4, 3, SREG))
 // bnec16 $reg, $reg, sym
@@ -177,13 +169,13 @@
 // lhu16 $reg, 0(sym)($reg)
 #define LHU16 NIT16("lhu[16]", 0x7c08, NONE, INS_REG(7, 3, TREG), INS_REG(4, 3, SREG))
 // lw16 $reg, %gprel(sym)($gp)
-#define LWGP16 NIT16("lw[gp16]", 0x5400, GPREL7_S2, INS_REG(7, 3, TREG), NO_INS_REG)
+#define LWGP16 NIT16("lw[gp16]", 0x5400, GPREL7_S2, INS_REG(7, 3, TREG), NULL)
 // lw16 $reg, %reloc(sym)($reg)
 #define LW16(reloc) NIT16("lw[16]", 0x1400, reloc, INS_REG(7, 3, TREG), INS_REG(4, 3, SREG))
 // jalrc16 $reg
-#define JALRC16(tregmap) NIT16("jalrc[16]", 0xd810, NONE, INS_REG(5, 5, tregmap), NO_INS_REG)
+#define JALRC16(tregmap) NIT16("jalrc[16]", 0xd810, NONE, INS_REG(5, 5, tregmap), NULL)
 // jrc16 $reg
-#define JRC16 NIT16("jrc[16]", 0xd800, NONE, INS_REG(5, 5, SREG), NO_INS_REG)
+#define JRC16 NIT16("jrc[16]", 0xd800, NONE, INS_REG(5, 5, SREG), NULL)
 // move16 $reg
 #define MOVE16 NIT16("move[16]", 0x1000, NONE, INS_REG(0, 5, TREG), INS_REG(5, 5, SREG))
 // sb16 $reg, 0(sym)($reg)
@@ -191,7 +183,7 @@
 // sh16 $reg, 0(sym)($reg)
 #define SH16 NIT16("sh[16]", 0x7c01, NONE, INS_REG(7, 3, TREG), INS_REG(4, 3, SREG))
 // sw16 $reg, %gprel(sym)($gp)
-#define SWGP16 NIT16("sw[gp16]", 0xd400, GPREL7_S2, INS_REG(7, 3, TREG), NO_INS_REG)
+#define SWGP16 NIT16("sw[gp16]", 0xd400, GPREL7_S2, INS_REG(7, 3, TREG), NULL)
 // sw16 $reg, %reloc(sym)($reg)
 #define SW16(reloc) NIT16("sw[16]", 0x9400, reloc, INS_REG(7, 3, TREG), INS_REG(4, 3, SREG))
 
@@ -219,7 +211,7 @@ NTT(TT_PCREL32,                   { LAPC32(TREG) })
 // Transformations for instructions against R_NANOMIPS_PC25_S1 relocation.
 
 // balc sym
-NIP32("balc",           0x2a000000,    NO_EXT_REG,           NO_VALID,          NO_EXT_REG,           NO_VALID,          { REL(PC25_S1) })
+NIP32("balc",           0x2a000000,    NULL,                 NULL,                  NULL,                 NULL,           { REL(PC25_S1) })
 NTT(TT_RELAX,                     { BALC16 })
 NTT(TT_ABS_XLP,                   { LI48, JALRC16(SREG) })
 NTT(TT_ABS16_LONG,                { LUI32(HI20, SREG), ORI32(LO12, SREG, SREG), JALRC16(SREG) })
@@ -229,7 +221,7 @@ NTT(TT_PCREL16_LONG,              { ALUIPC32(PC_HI20, SREG), ORI32(LO12, SREG, S
 NTT(TT_PCREL32_LONG,              { ALUIPC32(PC_HI20, SREG), ORI32(LO12, SREG, SREG), JALRC32 })
 
 // bc sym
-NIP32("bc",             0x28000000,    NO_EXT_REG,           NO_VALID,          NO_EXT_REG,           NO_VALID,          { REL(PC25_S1) })
+NIP32("bc",             0x28000000,    NULL,                 NULL,                  NULL,                 NULL,           { REL(PC25_S1) })
 NTT(TT_RELAX,                     { BC16 })
 NTT(TT_ABS_XLP,                   { LI48, JRC16 })
 NTT(TT_ABS16_LONG,                { LUI32(HI20, SREG), ORI32(LO12, SREG, SREG), JRC16 })
@@ -242,86 +234,86 @@ NTT(TT_PCREL32_LONG,              { ALUIPC32(PC_HI20, SREG), ORI32(LO12, SREG, S
 // Transformations for instructions against R_NANOMIPS_PC21_S1 relocation.
 
 // lapc $reg, sym
-NIP32("lapc",           0x04000000,    EXT_REG(21, 5),       VALID_REG(16),     NO_EXT_REG,           NO_VALID,          { REL(PC21_S1) })
+NIP32("lapc",           0x04000000,    EXT_REG(21, 5),       NULL,                  NULL,                 NULL,           { REL(PC21_S1) })
 NTT(TT_ABS_XLP,                   { LI48 })
 NTT(TT_ABS32_LONG,                { LUI32(HI20, TREG), ORI32(LO12, TREG, TREG) })
 NTT(TT_PCREL_XLP,                 { LAPC48 })
 NTT(TT_PCREL32_LONG,              { ALUIPC32(PC_HI20, TREG), ORI32(LO12, TREG, TREG) })
 
 // move.balc $reg, $reg, sym
-NIP32("move.balc",      0x08000000,    move_balc_treg_32,    NO_VALID,          move_balc_dreg_32,    NO_VALID,          { REL(PC21_S1) })
+NIP32("move.balc",      0x08000000,    move_balc_treg_32,    NULL,                  move_balc_dreg_32,    NULL,           { REL(PC21_S1) })
 NTT(TT_MOVE_BALC,                 { MOVE16, BALC32 })
 
 
 // Transformations for instructions against R_NANOMIPS_PC14_S1 relocation.
 
 // beqc $reg, $reg, sym
-NIP32("beqc",           0x88000000,    EXT_REG(21, 5),       VALID_REG(16),     EXT_REG(16, 5),       VALID_REG(16),     { REL(PC14_S1) })
+NIP32("beqc",           0x88000000,    EXT_REG(21, 5),       valid_reg,             EXT_REG(16, 5),       valid_reg,      { REL(PC14_S1) })
 NTT(TT_RELAX,                     { BEQC16 })
 NTT(TT_PCREL32_LONG,              { BNEC32(NONE), BC32 })
 
 // bnec $reg, $reg, sym
-NIP32("bnec",           0xa8000000,    EXT_REG(21, 5),       VALID_REG(16),     EXT_REG(16, 5),       VALID_REG(16),     { REL(PC14_S1) })
+NIP32("bnec",           0xa8000000,    EXT_REG(21, 5),       valid_reg,             EXT_REG(16, 5),       valid_reg,      { REL(PC14_S1) })
 NTT(TT_RELAX,                     { BNEC16 })
 NTT(TT_PCREL32_LONG,              { BEQC32(NONE), BC32 })
 
 // bgec $reg, $reg, sym
-NIP32("bgec",           0x88008000,    EXT_REG(21, 5),       VALID_REG(16),     EXT_REG(16, 5),       VALID_REG(16),     { REL(PC14_S1) })
+NIP32("bgec",           0x88008000,    EXT_REG(21, 5),       NULL,                  EXT_REG(16, 5),       NULL,           { REL(PC14_S1) })
 NTT(TT_PCREL32_LONG,              { BLTC32, BC32 })
 
 // bltc $reg, $reg, sym
-NIP32("bltc",           0xa8008000,    EXT_REG(21, 5),       VALID_REG(16),     EXT_REG(16, 5),       VALID_REG(16),     { REL(PC14_S1) })
+NIP32("bltc",           0xa8008000,    EXT_REG(21, 5),       NULL,                  EXT_REG(16, 5),       NULL,           { REL(PC14_S1) })
 NTT(TT_PCREL32_LONG,              { BGEC32, BC32 })
 
 // bgeuc $reg, $reg, sym
-NIP32("bgeuc",          0x8800c000,    EXT_REG(21, 5),       VALID_REG(16),     EXT_REG(16, 5),       VALID_REG(16),     { REL(PC14_S1) })
+NIP32("bgeuc",          0x8800c000,    EXT_REG(21, 5),       NULL,                  EXT_REG(16, 5),       NULL,           { REL(PC14_S1) })
 NTT(TT_PCREL32_LONG,              { BLTUC32, BC32 })
 
 // bltuc $reg, $reg, sym
-NIP32("bltuc",          0xa800c000,    EXT_REG(21, 5),       VALID_REG(16),     EXT_REG(16, 5),       VALID_REG(16),     { REL(PC14_S1) })
+NIP32("bltuc",          0xa800c000,    EXT_REG(21, 5),       NULL,                  EXT_REG(16, 5),       NULL,           { REL(PC14_S1) })
 NTT(TT_PCREL32_LONG,              { BGEUC32, BC32 })
 
 
 // Transformations for instructions against R_NANOMIPS_PC11_S1 relocation.
 
 // bbeqzc $reg, bit, sym
-NIP32("bbeqzc",         0xc8040000,    EXT_REG(21, 5),       VALID_REG(16),     EXT_REG(11, 6),       NO_VALID,          { REL(PC11_S1) })
+NIP32("bbeqzc",         0xc8040000,    EXT_REG(21, 5),       NULL,                  EXT_REG(11, 6),       NULL,           { REL(PC11_S1) })
 NTT(TT_PCREL32_LONG,              { BBNEZC32, BC32 })
 
 // bbnezc $reg, bit, sym
-NIP32("bbnezc",         0xc8140000,    EXT_REG(21, 5),       VALID_REG(16),     EXT_REG(11, 6),       NO_VALID,          { REL(PC11_S1) })
+NIP32("bbnezc",         0xc8140000,    EXT_REG(21, 5),       NULL,                  EXT_REG(11, 6),       NULL,           { REL(PC11_S1) })
 NTT(TT_PCREL32_LONG,              { BBEQZC32, BC32 })
 
 // beqic $reg, u, sym
-NIP32("beqic",          0xc8000000,    EXT_REG(21, 5),       VALID_REG(16),     EXT_REG(11, 7),       NO_VALID,          { REL(PC11_S1) })
+NIP32("beqic",          0xc8000000,    EXT_REG(21, 5),       NULL,                  EXT_REG(11, 7),       NULL,           { REL(PC11_S1) })
 NTT(TT_PCREL32_LONG,              { BNEIC32, BC32 })
 
 // bneic $reg, u, sym
-NIP32("bneic",          0xc8100000,    EXT_REG(21, 5),       VALID_REG(16),     EXT_REG(11, 7),       NO_VALID,          { REL(PC11_S1) })
+NIP32("bneic",          0xc8100000,    EXT_REG(21, 5),       NULL,                  EXT_REG(11, 7),       NULL,           { REL(PC11_S1) })
 NTT(TT_PCREL32_LONG,              { BEQIC32, BC32 })
 
 // bgeic $reg, u, sym
-NIP32("bgeic",          0xc8080000,    EXT_REG(21, 5),       VALID_REG(16),     EXT_REG(11, 7),       NO_VALID,          { REL(PC11_S1) })
+NIP32("bgeic",          0xc8080000,    EXT_REG(21, 5),       NULL,                  EXT_REG(11, 7),       NULL,           { REL(PC11_S1) })
 NTT(TT_PCREL32_LONG,              { BLTIC32, BC32 })
 
 // bltic $reg, u, sym
-NIP32("bltic",          0xc8180000,    EXT_REG(21, 5),       VALID_REG(16),     EXT_REG(11, 7),       NO_VALID,          { REL(PC11_S1) })
+NIP32("bltic",          0xc8180000,    EXT_REG(21, 5),       NULL,                  EXT_REG(11, 7),       NULL,           { REL(PC11_S1) })
 NTT(TT_PCREL32_LONG,              { BGEIC32, BC32 })
 
 // bgeiuc $reg, u, sym
-NIP32("bgeiuc",         0xc80c0000,    EXT_REG(21, 5),       VALID_REG(16),     EXT_REG(11, 7),       NO_VALID,          { REL(PC11_S1) })
+NIP32("bgeiuc",         0xc80c0000,    EXT_REG(21, 5),       NULL,                  EXT_REG(11, 7),       NULL,           { REL(PC11_S1) })
 NTT(TT_PCREL32_LONG,              { BLTIUC32, BC32 })
 
 // bltiuc $reg, u, sym
-NIP32("bltiuc",         0xc81c0000,    EXT_REG(21, 5),       VALID_REG(16),     EXT_REG(11, 7),       NO_VALID,          { REL(PC11_S1) })
+NIP32("bltiuc",         0xc81c0000,    EXT_REG(21, 5),       NULL,                  EXT_REG(11, 7),       NULL,           { REL(PC11_S1) })
 NTT(TT_PCREL32_LONG,              { BGEIUC32, BC32 })
 
 
 // Transformations for instructions against R_NANOMIPS_GPREL19_S2 relocation.
 
 // lw $reg, %reloc(sym)($gp)
-NIP32("lw[gp]",         0x40000002,    EXT_REG(21, 5),       VALID_REG(16),     NO_EXT_REG,           NO_VALID,          { REL(GOT_DISP), REL(GOT_CALL),
-                                                                                                                           REL(GOT_PAGE), REL(GPREL19_S2) })
+NIP32("lw[gp]",         0x40000002,    EXT_REG(21, 5),       valid_reg,             NULL,                 NULL,           { REL(GOT_DISP), REL(GOT_CALL),
+                                                                                                                            REL(GOT_PAGE), REL(GPREL19_S2) })
 NTT(TT_DISCARD,                   { })
 NTT(TT_RELAX,                     { LWGP16 })
 NTT(TT_ABS_XLP,                   { LI48 })
@@ -339,7 +331,7 @@ NTT(TT_GOTPCREL_XLP,              { LWPC48(GOTPC_I32) })
 NTT(TT_GOTPCREL_LONG,             { ALUIPC32(GOTPC_HI20, TREG), LW32(GOT_LO12) })
 
 // sw $reg, %gprel(sym)($gp)
-NIP32("sw[gp]",         0x40000003,    EXT_REG(21, 5),       VALID_REG(0),      NO_EXT_REG,           NO_VALID,          { REL(GPREL19_S2) })
+NIP32("sw[gp]",         0x40000003,    EXT_REG(21, 5),       valid_st_src_reg,      NULL,                 NULL,           { REL(GPREL19_S2) })
 NTT(TT_RELAX,                     { SWGP16 })
 NTT(TT_GPREL32_XLP,               { ADDIUGP48(SREG), SW32(NONE) })
 NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG), SW32(GPREL_LO12) })
@@ -347,7 +339,7 @@ NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG),
 // addiu[gp.w] $reg, $gp, %gprel(sym)
 // Note: We are using TT_GPREL32_XLP type just to be consistent with other
 // gp-relative out of range transformations.
-NIP32("addiu[gp.w]",    0x40000000,    EXT_REG(21, 5),       VALID_REG(16),     NO_EXT_REG,           NO_VALID,          { REL(GPREL19_S2) })
+NIP32("addiu[gp.w]",    0x40000000,    EXT_REG(21, 5),       NULL,                  NULL,                 NULL,           { REL(GPREL19_S2) })
 NTT(TT_GPREL32_XLP,               { ADDIUGP48(TREG) })
 NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ORI32(GPREL_LO12, SREG, SREG), ADDU32(SREG, TREG) })
 
@@ -357,22 +349,22 @@ NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ORI32(GPREL_LO12, S
 // addiu[gp.b] $reg, $gp, %gprel(sym)
 // Note: We are using TT_GPREL32_XLP type just to be consistent with other
 // gp-relative out of range transformations.
-NIP32("addiu[gp.b]",    0x440c0000,    EXT_REG(21, 5),       VALID_REG(16),     NO_EXT_REG,           NO_VALID,          { REL(GPREL18) })
+NIP32("addiu[gp.b]",    0x440c0000,    EXT_REG(21, 5),       NULL,                  NULL,                 NULL,           { REL(GPREL18) })
 NTT(TT_GPREL32_XLP,               { ADDIUGP48(TREG) })
 NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ORI32(GPREL_LO12, SREG, SREG), ADDU32(SREG, TREG) })
 
 // lb $reg, %gprel(sym)($gp)
-NIP32("lb[gp]",         0x44000000,    EXT_REG(21, 5),       VALID_REG(16),     NO_EXT_REG,           NO_VALID,          { REL(GPREL18) })
+NIP32("lb[gp]",         0x44000000,    EXT_REG(21, 5),       NULL,                  NULL,                 NULL,           { REL(GPREL18) })
 NTT(TT_GPREL32_XLP,               { ADDIUGP48(SREG), LB32(NONE) })
 NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG), LB32(GPREL_LO12) })
 
 // lbu $reg, %gprel(sym)($gp)
-NIP32("lbu[gp]",        0x44080000,    EXT_REG(21, 5),       VALID_REG(16),     NO_EXT_REG,           NO_VALID,          { REL(GPREL18) })
+NIP32("lbu[gp]",        0x44080000,    EXT_REG(21, 5),       NULL,                  NULL,                 NULL,           { REL(GPREL18) })
 NTT(TT_GPREL32_XLP,               { ADDIUGP48(SREG), LBU32(NONE) })
 NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG), LBU32(GPREL_LO12) })
 
 // sb $reg, %gprel(sym)($gp)
-NIP32("sb[gp]",         0x44040000,    EXT_REG(21, 5),       VALID_REG(0),      NO_EXT_REG,           NO_VALID,          { REL(GPREL18) })
+NIP32("sb[gp]",         0x44040000,    EXT_REG(21, 5),       NULL,                  NULL,                 NULL,           { REL(GPREL18) })
 NTT(TT_GPREL32_XLP,               { ADDIUGP48(SREG), SB32(NONE) })
 NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG), SB32(GPREL_LO12) })
 
@@ -380,17 +372,17 @@ NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG),
 // Transformations for instructions against R_NANOMIPS_GPREL17_S1 relocation.
 
 // lh $reg, %gprel(sym)($gp)
-NIP32("lh[gp]",         0x44100000,    EXT_REG(21, 5),       VALID_REG(16),     NO_EXT_REG,           NO_VALID,          { REL(GPREL17_S1) })
+NIP32("lh[gp]",         0x44100000,    EXT_REG(21, 5),       NULL,                  NULL,                 NULL,           { REL(GPREL17_S1) })
 NTT(TT_GPREL32_XLP,               { ADDIUGP48(SREG), LH32(NONE) })
 NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG), LH32(GPREL_LO12) })
 
 // lhu $reg, %gprel(sym)($gp)
-NIP32("lhu[gp]",        0x44100001,    EXT_REG(21, 5),       VALID_REG(16),     NO_EXT_REG,           NO_VALID,          { REL(GPREL17_S1) })
+NIP32("lhu[gp]",        0x44100001,    EXT_REG(21, 5),       NULL,                  NULL,                 NULL,           { REL(GPREL17_S1) })
 NTT(TT_GPREL32_XLP,               { ADDIUGP48(SREG), LHU32(NONE) })
 NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG), LHU32(GPREL_LO12) })
 
 // sh $reg, %gprel(sym)($gp)
-NIP32("sh[gp]",         0x44140000,    EXT_REG(21, 5),       VALID_REG(0),      NO_EXT_REG,           NO_VALID,          { REL(GPREL17_S1) })
+NIP32("sh[gp]",         0x44140000,    EXT_REG(21, 5),       NULL,                  NULL,                 NULL,           { REL(GPREL17_S1) })
 NTT(TT_GPREL32_XLP,               { ADDIUGP48(SREG), SH32(NONE) })
 NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG), SH32(GPREL_LO12) })
 
@@ -398,7 +390,7 @@ NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG),
 // Transformations for instructions against R_NANOMIPS_GOT_OFST relocation.
 
 // lb $reg, %got_ofst(sym)($reg)
-NIP32("lb",             0x84000000,    EXT_REG(21, 5),       VALID_REG(16),     EXT_REG(16, 5),       VALID_REG(16),     { REL(GOT_OFST) })
+NIP32("lb",             0x84000000,    EXT_REG(21, 5),       valid_reg,             EXT_REG(16, 5),       valid_reg,      { REL(GOT_OFST) })
 NTT(TT_DISCARD,                   { LB16 })
 NTT(TT_ABS32_LONG,                { LUI32(HI20, SREG), LB32(LO12) })
 NTT(TT_PCREL16_LONG,              { LAPC32(SREG), LB16 })
@@ -409,7 +401,7 @@ NTT(TT_GPREL32_XLP,               { ADDIUGP48(SREG), LB32(NONE) })
 NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG), LB32(GPREL_LO12) })
 
 // lbu $reg, %got_ofst(sym)($reg)
-NIP32("lbu",            0x84002000,    EXT_REG(21, 5),       VALID_REG(16),     EXT_REG(16, 5),       VALID_REG(16),     { REL(GOT_OFST) })
+NIP32("lbu",            0x84002000,    EXT_REG(21, 5),       valid_reg,             EXT_REG(16, 5),       valid_reg,      { REL(GOT_OFST) })
 NTT(TT_DISCARD,                   { LBU16 })
 NTT(TT_ABS32_LONG,                { LUI32(HI20, SREG), LBU32(LO12) })
 NTT(TT_PCREL16_LONG,              { LAPC32(SREG), LBU16 })
@@ -420,7 +412,7 @@ NTT(TT_GPREL32_XLP,               { ADDIUGP48(SREG), LBU32(NONE) })
 NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG), LBU32(GPREL_LO12) })
 
 // lh $reg, %got_ofst(sym)($reg)
-NIP32("lh",             0x84004000,    EXT_REG(21, 5),       VALID_REG(16),     EXT_REG(16, 5),       VALID_REG(16),     { REL(GOT_OFST) })
+NIP32("lh",             0x84004000,    EXT_REG(21, 5),       valid_reg,             EXT_REG(16, 5),       valid_reg,      { REL(GOT_OFST) })
 NTT(TT_DISCARD,                   { LH16 })
 NTT(TT_ABS32_LONG,                { LUI32(HI20, SREG), LH32(LO12) })
 NTT(TT_PCREL16_LONG,              { LAPC32(SREG), LH16 })
@@ -431,7 +423,7 @@ NTT(TT_GPREL32_XLP,               { ADDIUGP48(SREG), LH32(NONE) })
 NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG), LH32(GPREL_LO12) })
 
 // lhu $reg, %got_ofst(sym)($reg)
-NIP32("lhu",            0x84006000,    EXT_REG(21, 5),       VALID_REG(16),     EXT_REG(16, 5),       VALID_REG(16),     { REL(GOT_OFST) })
+NIP32("lhu",            0x84006000,    EXT_REG(21, 5),       valid_reg,             EXT_REG(16, 5),       valid_reg,      { REL(GOT_OFST) })
 NTT(TT_DISCARD,                   { LHU16 })
 NTT(TT_ABS32_LONG,                { LUI32(HI20, SREG), LHU32(LO12) })
 NTT(TT_PCREL16_LONG,              { LAPC32(SREG), LHU16 })
@@ -442,7 +434,7 @@ NTT(TT_GPREL32_XLP,               { ADDIUGP48(SREG), LHU32(NONE) })
 NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG), LHU32(GPREL_LO12) })
 
 // lw $reg, %reloc(sym)($reg)
-NIP32("lw",             0x84008000,    EXT_REG(21, 5),       VALID_REG(16),     EXT_REG(16, 5),       VALID_REG(16),     { REL(GOT_OFST), REL(LO12) })
+NIP32("lw",             0x84008000,    EXT_REG(21, 5),       valid_reg,             EXT_REG(16, 5),       valid_reg,      { REL(GOT_OFST), REL(LO12) })
 NTT(TT_RELAX,                     { LW16(LO4_S2) })
 NTT(TT_DISCARD,                   { LW16(NONE) })
 NTT(TT_ABS32_LONG,                { LUI32(HI20, SREG), LW32(LO12) })
@@ -456,7 +448,7 @@ NTT(TT_GPREL32_XLP,               { ADDIUGP48(SREG), LW32(NONE) })
 NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG), LW32(GPREL_LO12) })
 
 // sb $reg, %got_ofst(sym)($reg)
-NIP32("sb",             0x84001000,    EXT_REG(21, 5),       VALID_REG(0),      EXT_REG(16, 5),       VALID_REG(16),     { REL(GOT_OFST) })
+NIP32("sb",             0x84001000,    EXT_REG(21, 5),       valid_st_src_reg,      EXT_REG(16, 5),       valid_reg,      { REL(GOT_OFST) })
 NTT(TT_DISCARD,                   { SB16 })
 NTT(TT_ABS32_LONG,                { LUI32(HI20, SREG), SB32(LO12) })
 NTT(TT_PCREL16_LONG,              { LAPC32(SREG), SB16 })
@@ -467,7 +459,7 @@ NTT(TT_GPREL32_XLP,               { ADDIUGP48(SREG), SB32(NONE) })
 NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG), SB32(GPREL_LO12) })
 
 // sh $reg, %got_ofst(sym)($reg)
-NIP32("sh",             0x84005000,    EXT_REG(21, 5),       VALID_REG(0),      EXT_REG(16, 5),       VALID_REG(16),     { REL(GOT_OFST) })
+NIP32("sh",             0x84005000,    EXT_REG(21, 5),       valid_st_src_reg,      EXT_REG(16, 5),       valid_reg,      { REL(GOT_OFST) })
 NTT(TT_DISCARD,                   { SH16 })
 NTT(TT_ABS32_LONG,                { LUI32(HI20, SREG), SH32(LO12) })
 NTT(TT_PCREL16_LONG,              { LAPC32(SREG), SH16 })
@@ -478,7 +470,7 @@ NTT(TT_GPREL32_XLP,               { ADDIUGP48(SREG), SH32(NONE) })
 NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG), SH32(GPREL_LO12) })
 
 // sw $reg, %reloc(sym)($reg)
-NIP32("sw",             0x84009000,    EXT_REG(21, 5),       VALID_REG(0),      EXT_REG(16, 5),       VALID_REG(16),     { REL(GOT_OFST), REL(LO12) })
+NIP32("sw",             0x84009000,    EXT_REG(21, 5),       valid_st_src_reg,      EXT_REG(16, 5),       valid_reg,      { REL(GOT_OFST), REL(LO12) })
 NTT(TT_RELAX,                     { SW16(LO4_S2) })
 NTT(TT_DISCARD,                   { SW16(NONE) })
 NTT(TT_ABS32_LONG,                { LUI32(HI20, SREG), SW32(LO12) })
@@ -495,7 +487,7 @@ NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG),
 // Transformations for instructions against R_NANOMIPS_JALR32 relocation.
 
 // jalrc $ra, $reg
-NIP32("jalrc",          0x4be00000,    NO_EXT_REG,           NO_VALID,          EXT_REG(16, 5),       NO_VALID,          { REL(JALR32) })
+NIP32("jalrc",          0x4be00000,    NULL,                 NULL,                  EXT_REG(16, 5),       NULL,           { REL(JALR32) })
 NTT(TT_ABS32_LONG,                { LUI32(HI20, SREG), ORI32(LO12, SREG, SREG), JALRC32 })
 NTT(TT_PCREL32,                   { BALC32 })
 NTT(TT_PCREL32_LONG,              { ALUIPC32(PC_HI20, SREG), ORI32(LO12, SREG, SREG), JALRC32 })
@@ -504,29 +496,29 @@ NTT(TT_PCREL32_LONG,              { ALUIPC32(PC_HI20, SREG), ORI32(LO12, SREG, S
 // Transformations for instructions against R_NANOMIPS_PC10_S1 relocation.
 
 // bc16 sym
-NIP16("bc[16]",         0x1800,        NO_EXT_REG,           NO_CONV,           NO_EXT_REG,           NO_CONV,           { REL(PC10_S1) })
+NIP16("bc[16]",         0x1800,        NULL,                 NULL,                  NULL,                 NULL,           { REL(PC10_S1) })
 NTT(TT_PCREL32,                   { BC32 })
 
 // balc16 sym
-NIP16("balc[16]",       0x3800,        NO_EXT_REG,           NO_CONV,           NO_EXT_REG,           NO_CONV,           { REL(PC10_S1) })
+NIP16("balc[16]",       0x3800,        NULL,                 NULL,                  NULL,                 NULL,           { REL(PC10_S1) })
 NTT(TT_PCREL32,                   { BALC32 })
 
 
 // Transformations for instructions against R_NANOMIPS_PC7_S1 relocation.
 
 // beqzc16 $reg, sym
-NIP16("beqzc[16]",      0x9800,        EXT_REG(7, 3),        CONV_REG(0, 3),    NO_EXT_REG,           NO_CONV,           { REL(PC7_S1) })
+NIP16("beqzc[16]",      0x9800,        EXT_REG(7, 3),        convert_reg,           NULL,                 NULL,           { REL(PC7_S1) })
 NTT(TT_PCREL32,                   { BEQC32(PC14_S1) })
 
 // bnezc16 $reg, sym
-NIP16("bnezc[16]",      0xb800,        EXT_REG(7, 3),        CONV_REG(0, 3),    NO_EXT_REG,           NO_CONV,           { REL(PC7_S1) })
+NIP16("bnezc[16]",      0xb800,        EXT_REG(7, 3),        convert_reg,           NULL,                 NULL,           { REL(PC7_S1) })
 NTT(TT_PCREL32,                   { BNEC32(PC14_S1) })
 
 
 // Transformations for instructions against R_NANOMIPS_PC4_S1 relocation.
 
 // beqc16/bnec16 $reg, $reg, sym
-NIP16("bxxc[16]",       0xd800,        EXT_REG(7, 3),        CONV_REG(0, 3),    EXT_REG(4, 3),        CONV_REG(0, 3),    { REL(PC4_S1) })
+NIP16("bxxc[16]",       0xd800,        EXT_REG(7, 3),        convert_reg,           EXT_REG(4, 3),        convert_reg,    { REL(PC4_S1) })
 NTT(TT_BEQC32,                    { BEQC32(PC14_S1) })
 NTT(TT_BNEC32,                    { BNEC32(PC14_S1) })
 
@@ -534,29 +526,29 @@ NTT(TT_BNEC32,                    { BNEC32(PC14_S1) })
 // Transformations for instructions against R_NANOMIPS_GPREL7_S2 relocation.
 
 // lw16 $reg, %gprel(sym)($gp)
-NIP16("lw[gp16]",       0x5400,        EXT_REG(7, 3),        CONV_REG(0, 3),    NO_EXT_REG,           NO_CONV,           { REL(GPREL7_S2) })
+NIP16("lw[gp16]",       0x5400,        EXT_REG(7, 3),        convert_reg,           NULL,                 NULL,           { REL(GPREL7_S2) })
 NTT(TT_GPREL32_WORD,              { LWGP32 })
 
 // sw16 $reg, %gprel(sym)($gp)
-NIP16("sw[gp16]",       0xd400,        EXT_REG(7, 3),        CONV_REG(1, 3),    NO_EXT_REG,           NO_CONV,           { REL(GPREL7_S2) })
+NIP16("sw[gp16]",       0xd400,        EXT_REG(7, 3),        convert_st_src_reg,    NULL,                 NULL,           { REL(GPREL7_S2) })
 NTT(TT_GPREL32_WORD,              { SWGP32 })
 
 
 // Transformations for instructions against R_NANOMIPS_LO4_S2 relocation.
 
 // lw16 $reg, %lo(sym)($reg)
-NIP16("lw[16]",         0x1400,        EXT_REG(7, 3),        CONV_REG(0, 3),    EXT_REG(4, 3),        CONV_REG(0, 3),    { REL(LO4_S2) })
+NIP16("lw[16]",         0x1400,        EXT_REG(7, 3),        convert_reg,           EXT_REG(4, 3),        convert_reg,    { REL(LO4_S2) })
 NTT(TT_ABS32,                     { LW32(LO12) })
 
 // sw16 $reg, %lo(sym)($reg)
-NIP16("sw[16]",         0x9400,        EXT_REG(7, 3),        CONV_REG(1, 3),    EXT_REG(4, 3),        CONV_REG(0, 3),    { REL(LO4_S2) })
+NIP16("sw[16]",         0x9400,        EXT_REG(7, 3),        convert_st_src_reg,    EXT_REG(4, 3),        convert_reg,    { REL(LO4_S2) })
 NTT(TT_ABS32,                     { SW32(LO12) })
 
 
 // Transformations for instructions against R_NANOMIPS_JALR16 relocation.
 
 // jalrc16 $ra, $reg
-NIP16("jalrc[16]",      0xd810,        EXT_REG(5, 5),        NO_CONV,           NO_EXT_REG,           NO_CONV,           { REL(JALR16) })
+NIP16("jalrc[16]",      0xd810,        EXT_REG(5, 5),        NULL,                  NULL,                 NULL,           { REL(JALR16) })
 NTT(TT_ABS_XLP,                   { LI48, JALRC16(TREG) })
 NTT(TT_ABS16_LONG,                { LUI32(HI20, TREG), ORI32(LO12, TREG, TREG), JALRC16(TREG) })
 NTT(TT_PCREL16,                   { BALC16 })

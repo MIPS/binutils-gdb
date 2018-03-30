@@ -26,8 +26,6 @@
 #include "nanomips-reloc-property.h"
 #include "symtab.h"
 
-#include <stdio.h>
-
 namespace gold
 {
 Nanomips_reloc_property::Nanomips_reloc_property(
@@ -65,7 +63,7 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
                                     mask, \
                                     (rflags)); \
     } \
-  while(0);
+  while (0);
 
 #include "nanomips-reloc.def"
 #undef NRD
