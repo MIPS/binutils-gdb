@@ -970,6 +970,9 @@ extern const int bfd_nanomips_num_opcodes;
 #define NANOMIPSOP_SH_RS		16
 #define NANOMIPSOP_MASK_RT		0x1f
 #define NANOMIPSOP_SH_RT		21
+#define NANOMIPSOP_MASK_RD		0x1f
+#define NANOMIPSOP_SH_RD		11
+#define NANOMIPSOP_SH_ME		1
 #define NANOMIPSOP_SH_MC		4
 #define NANOMIPSOP_SH_MD		7
 #define NANOMIPSOP_SH_MP		5

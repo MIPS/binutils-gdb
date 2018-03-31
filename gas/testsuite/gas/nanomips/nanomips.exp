@@ -28,7 +28,7 @@
 #
 # * Try to run the test for as many architectures as appropriate,
 # using the "run_dump_test_arches" or "run_list_test_arches" functions,
-# along with the output from a call to "mips_arch_list_matching."
+# along with the output from a call to "arch_list_matching."
 #
 # * Be sure to compare the test output before and after your testsuite
 # changes, to verify that existing and new tests were run as expected.
@@ -530,8 +530,10 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "bgeu" "" nanomips32r6s
     run_dump_test_arch "blt" "" nanomips32r6s
     run_dump_test_arch "bltu" "" nanomips32r6s
-    run_dump_test_arches "branch-misc-1" [arch_list_matching nanomipsr6]
-    run_dump_test_arches "branch-misc-2" [arch_list_matching nanomipsr6]
+    run_dump_test_arches "branch-misc-1" \
+					[arch_list_matching nanomipsr6]
+    run_dump_test_arches "branch-misc-2" \
+					[arch_list_matching nanomipsr6]
     run_dump_test_arches "branch-misc-4" "" \
 					[arch_list_matching nanomipsr6]
 
@@ -549,7 +551,7 @@ if { [istarget nanomips*-*-*] } {
     run_list_test "branch-relax" "-EL -al -mno-minimize-relocs" \
 	"Test nanoMIPS assembly listing in little endian mode"
     run_dump_test_arch "branch-relax32" "" nanomips32
-    run_list_test_arches "ctc-err" "" [arch_list_matching xnms]
+    run_list_test_arches "ctc-err" ""	[arch_list_matching xnms]
 
     run_dump_test "cfi-frames"
     run_dump_test_arch "cp0-names-numeric" "" nanomips32r6
@@ -565,7 +567,7 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "cp1-names-numeric" "" nanomips32r6
     run_dump_test_arch "cp1-names" "" nanomips32r6
 
-    run_dump_test_arches "crc" ""	[mips_arch_list_matching nanomips32]
+    run_dump_test_arches "crc" ""	[arch_list_matching nanomips32]
     run_dump_test_arch "crc64" "" nanomips64r6
     run_list_test "crc-error"
     run_dump_test_arch "ctc" "" nanomips32
@@ -630,9 +632,8 @@ if { [istarget nanomips*-*-*] } {
     run_list_test_arches "hard-float-flag" \
 	"-m32 -msoft-float -mhard-float" \
 	[arch_list_matching nanomipsr6]
-    # Broken for addiu with label difference expressions
-    run_dump_test_arches "hilo-diff-eb"	[arch_list_matching nanomips_broken]
-    run_dump_test_arches "hilo-diff-el"	[arch_list_matching nanomips_broken]
+    run_dump_test_arch "hilo-diff-eb"	"" nanomips32r6
+    run_dump_test_arch "hilo-diff-el"	"" nanomips32r6
 
     run_dump_test_arch "hwr-names-numeric" "" nanomips32r6
     run_dump_test_arch "hwr-names" "" nanomips32r6
@@ -679,7 +680,7 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "ldc1-forward" [arch_list_matching nanomipsr6]
     run_list_test_arches "ldstla-err" "" [arch_list_matching nanomipsr6]
 
-    run_dump_test_arches "ldst-indexed" [mips_arch_list_matching nanomipsr6]
+    run_dump_test_arches "ldst-indexed" [arch_list_matching nanomipsr6]
     run_dump_test_arch "ldst-indexed" "" nanomips32s
     run_dump_test_arch "ldst-indexed-32" "" nanomips32r6
     run_dump_test_arch "ldst-indexed-64" "" nanomips64r6
@@ -739,13 +740,13 @@ if { [istarget nanomips*-*-*] } {
     run_list_test_arch "mcmodel-err" "" nanomips32
     run_dump_test_arches "mcu"		[arch_list_matching nanomipsr6]
     run_dump_test_arches "minimize-relocs1" "" \
-				[arch_list_matching nanomips]
+					[arch_list_matching nanomips]
     run_dump_test_arches "minimize-relocs2" "" \
-				[arch_list_matching nanomips]
+					[arch_list_matching nanomips]
     run_dump_test_arches "minimize-relocs3" "" \
-				[arch_list_matching nanomips]
+					[arch_list_matching nanomips]
     run_dump_test_arches "minimize-relocs4" "" \
-				[arch_list_matching nanomips]
+					[arch_list_matching nanomips]
 
     #FIXME: FP_S, FP_D annotations in pinfo
     run_list_test_arches "mips-macro-ill-sfp" "-m32 -msingle-float" \
@@ -779,9 +780,12 @@ if { [istarget nanomips*-*-*] } {
     run_list_test_arch "noat-3" "" nanomips32s
     run_list_test_arch "noat-5" "" nanomips32r6
     run_list_test_arch "noat-6" "" nanomips32s
-    run_dump_test_arches "nolinkrelax"  "-mlegacyregs" [arch_list_matching nanomips]
-    run_dump_test_arches "nolinkrelax-eb"  "-mlegacyregs" [arch_list_matching nanomips]
-    run_dump_test_arches "nolinkrelax-relocs" "-mlegacyregs" [arch_list_matching nanomips]
+    run_dump_test_arches "nolinkrelax"  "-mlegacyregs" \
+					[arch_list_matching nanomips]
+    run_dump_test_arches "nolinkrelax-eb"  "-mlegacyregs" \
+					[arch_list_matching nanomips]
+    run_dump_test_arches "nolinkrelax-relocs" "-mlegacyregs" \
+					[arch_list_matching nanomips]
     run_dump_test "nolinkrelax-state"
 
     run_dump_test_arch "org-1" "" nanomips32r6
@@ -798,8 +802,16 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "relax-swap3" "" nanomips32s
 
     run_dump_test_arch "relax-swap3" "-mlegacyregs" nanomips32s
-    run_dump_test_arches "relax-addiu" "" [arch_list_matching nanomips]
-    run_dump_test_arches "relax-addiu32" "" [arch_list_matching nanomips]
+    run_dump_test_arches "relax-addiu" "" \
+					[arch_list_matching nanomips]
+    run_dump_test_arches "relax-addiu-insn32" "" \
+					[arch_list_matching nanomips]
+    run_dump_test_arches "relax-addiu48" "" \
+					[arch_list_matching nanomips]
+    run_dump_test_arches "relax-addiu48-insn32" "" \
+					[arch_list_matching nanomips]
+    run_list_test_arches "relax-addiu-err" "" \
+					[arch_list_matching nanomips]
     run_list_test_arch "relax-loop" "" nanomips32
     run_dump_test_arches "rol"		[arch_list_matching nanomipsr6]
 
@@ -823,20 +835,23 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test "sync-code"
     run_dump_test "sync-alias"
 
-    run_dump_test_arches "tlb" "-mtlb" [arch_list_matching nanomips32]
+    run_dump_test_arches "tlb" "-mtlb"	[arch_list_matching nanomips32]
     run_dump_test_arch "tlb" "-mtlb" nms1
-    run_dump_test_arches "tlb-error" "-mno-tlb" [arch_list_matching nanomips32]
+    run_dump_test_arches "tlb-error" "-mno-tlb" \
+					[arch_list_matching nanomips32]
     run_dump_test_arch "tlb-error" "" nms1
 
     run_dump_test_opts "tlbg" {"-mvirt" "-mvirt -mtlb"} \
-	[arch_list_matching xnms]
+					[arch_list_matching xnms]
     run_dump_test_arch "tlbg" "-mvirt -mtlb" nms1
-    run_dump_test_arches "tlbg-error-ase" "" [arch_list_matching nanomips]
-    run_dump_test_arches "tlbg-error-isa" "" [arch_list_matching nanomips]	
+    run_dump_test_arches "tlbg-error-ase" "" \
+					[arch_list_matching nanomips]
+    run_dump_test_arches "tlbg-error-isa" "" \
+					[arch_list_matching nanomips]	
     run_dump_test_arch "tlbg-error" "" nms1
 
-    run_dump_test_arches "tls-p32"  [arch_list_matching xnms]
-    run_dump_test_arches "tls-relw" [arch_list_matching xnms]
+    run_dump_test_arches "tls-p32"	[arch_list_matching xnms]
+    run_dump_test_arches "tls-relw"	[arch_list_matching xnms]
 
     run_dump_test_arches "uld"		[arch_list_matching nanomipsr6]
     run_dump_test_arches "ulh"		[arch_list_matching nanomipsr6]

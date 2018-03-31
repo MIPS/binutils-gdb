@@ -22,14 +22,14 @@ foo:
 	.fill	0x7ffc-(1b-0b)
 2:
 	.insn
-	.fill	0x8000-(2b-0b)
+	.fill	0x8002-(2b-0b)
 3:
 	lui	$4,%hi(2b-0b)
 	addiu	$4,%lo(2b-0b)
 	li	$4,(2b-0b)
 	lui	$5,%hi(0b-3b)
 	addiu	$5,%lo(0b-3b)
-	li	$5,(3b-0b)
+	li	$5,(0b-3b)
 
 	lui	$4,%hi(2f-0f)
 	addiu	$4,%lo(2f-0f)
@@ -49,7 +49,7 @@ foo:
 	.fill	0x8000-(1b-0b)
 2:
 	.insn
-	.fill	0x8004-(2b-0b)
+	.fill	0x8002-(2b-0b)
 3:
 	lui	$4,%hi(2b-0b)
 	addiu	$4,%lo(2b-0b)

@@ -622,11 +622,11 @@ enum relax_nanomips_fix_type
 #define RELAX_NANOMIPS_ENCODE(type, link, rf)			\
   (0x20000000							\
    | ((type) & 0xff)						\
-   | ((link) ? 0x2000 : 0)					\
-   | ((rf) ? (rf << 19) : 0))
+   | ((link) ? 0x100 : 0)					\
+   | ((rf) ? (rf << 15) : 0))
 #define RELAX_NANOMIPS_P(i) (((i) & 0xe0000000) == 0x20000000)
 #define RELAX_NANOMIPS_TYPE(i) ((i) & 0xff)
-#define RELAX_NANOMIPS_LINK(i) (((i) & 0x2000) != 0)
+#define RELAX_NANOMIPS_LINK(i) (((i) & 0x100) != 0)
 
 #define RELAX_NANOMIPS_BALC_STUB_P(i) \
   (RELAX_NANOMIPS_P (i) && ((i) & 0xff) == RT_BALC_STUB)
@@ -639,36 +639,40 @@ enum relax_nanomips_fix_type
 #define RELAX_NANOMIPS_ADDIU_P(i)			\
   (RELAX_NANOMIPS_P (i) && ((i) & 0xff) == RT_ADDIU)
 
-#define RELAX_NANOMIPS_KEEPSTUB(i) (((i) & 0x4000) != 0)
-#define RELAX_NANOMIPS_MARK_KEEPSTUB(i) ((i) | 0x4000)
-#define RELAX_NANOMIPS_CLEAR_KEEPSTUB(i) ((i) & ~0x4000)
+#define RELAX_NANOMIPS_KEEPSTUB(i) (((i) & 0x200) != 0)
+#define RELAX_NANOMIPS_MARK_KEEPSTUB(i) ((i) | 0x200)
+#define RELAX_NANOMIPS_CLEAR_KEEPSTUB(i) ((i) & ~0x200)
 
-#define RELAX_NANOMIPS_USESTUB(i) (((i) & 0x8000) != 0)
-#define RELAX_NANOMIPS_MARK_USESTUB(i) ((i) | 0x8000)
-#define RELAX_NANOMIPS_CLEAR_USESTUB(i) ((i) & ~0x8000)
+#define RELAX_NANOMIPS_USESTUB(i) (((i) & 0x400) != 0)
+#define RELAX_NANOMIPS_MARK_USESTUB(i) ((i) | 0x400)
+#define RELAX_NANOMIPS_CLEAR_USESTUB(i) ((i) & ~0x400)
 
-#define RELAX_NANOMIPS_ONCESTUB(i) (((i) & 0x10000) != 0)
-#define RELAX_NANOMIPS_MARK_ONCESTUB(i) ((i) | 0x10000)
-#define RELAX_NANOMIPS_CLEAR_ONCESTUB(i) ((i) & ~0x10000)
+#define RELAX_NANOMIPS_ONCESTUB(i) (((i) & 0x800) != 0)
+#define RELAX_NANOMIPS_MARK_ONCESTUB(i) ((i) | 0x800)
+#define RELAX_NANOMIPS_CLEAR_ONCESTUB(i) ((i) & ~0x800)
 
-#define RELAX_NANOMIPS_TOOFAR16(i) (((i) & 0x20000) != 0)
-#define RELAX_NANOMIPS_MARK_TOOFAR16(i) ((i) | 0x20000)
-#define RELAX_NANOMIPS_CLEAR_TOOFAR16(i) ((i) & ~0x20000)
+#define RELAX_NANOMIPS_TOOFAR16(i) (((i) & 0x1000) != 0)
+#define RELAX_NANOMIPS_MARK_TOOFAR16(i) ((i) | 0x1000)
+#define RELAX_NANOMIPS_CLEAR_TOOFAR16(i) ((i) & ~0x1000)
 
-#define RELAX_NANOMIPS_NEGOFF(i) (((i) & 0x40000) != 0)
-#define RELAX_NANOMIPS_MARK_NEGOFF(i) ((i) | 0x40000)
-#define RELAX_NANOMIPS_CLEAR_NEGOFF(i) ((i) & ~0x40000)
+#define RELAX_NANOMIPS_TOOFAR32(i) (((i) & 0x2000) != 0)
+#define RELAX_NANOMIPS_MARK_TOOFAR32(i) ((i) | 0x2000)
+#define RELAX_NANOMIPS_CLEAR_TOOFAR32(i) ((i) & ~0x2000)
 
-#define RELAX_NANOMIPS_FIXED(i) (((i) & 0x180000) >> 19 == RF_FIXED)
-#define RELAX_NANOMIPS_MARK_FIXED(i) (((i) & ~0x180000) \
-				      | (RF_FIXED << 19))
-#define RELAX_NANOMIPS_CLEAR_FIXED(i) ((i) & ~(RF_FIXED << 19))
+#define RELAX_NANOMIPS_NEGOFF(i) (((i) & 0x4000) != 0)
+#define RELAX_NANOMIPS_MARK_NEGOFF(i) ((i) | 0x4000)
+#define RELAX_NANOMIPS_CLEAR_NEGOFF(i) ((i) & ~0x4000)
 
-#define RELAX_NANOMIPS_VARIABLE(i) (((i) & 0x180000) >> 19 == RF_VARIABLE)
-#define RELAX_NANOMIPS_MARK_VARIABLE(i) (((i) & ~0x180000) \
-					 | (RF_VARIABLE << 19))
-#define RELAX_NANOMIPS_CLEAR_VARIABLE(i) ((i) & ~(RF_VARIABLE << 19))
-#define RELAX_NANOMIPS_NORELAX(i) (((i) & 0x180000) >> 19 == RF_NORELAX)
+#define RELAX_NANOMIPS_FIXED(i) (((i) & 0x18000) >> 15 == RF_FIXED)
+#define RELAX_NANOMIPS_MARK_FIXED(i) (((i) & ~0x18000) \
+				      | (RF_FIXED << 15))
+#define RELAX_NANOMIPS_CLEAR_FIXED(i) ((i) & ~(RF_FIXED << 15))
+
+#define RELAX_NANOMIPS_VARIABLE(i) (((i) & 0x18000) >> 15 == RF_VARIABLE)
+#define RELAX_NANOMIPS_MARK_VARIABLE(i) (((i) & ~0x18000) \
+					 | (RF_VARIABLE << 15))
+#define RELAX_NANOMIPS_CLEAR_VARIABLE(i) ((i) & ~(RF_VARIABLE << 15))
+#define RELAX_NANOMIPS_NORELAX(i) (((i) & 0x18000) >> 15 == RF_NORELAX)
 
 /* Sign-extend 16-bit value X.  */
 #define SEXT_16BIT(X) ((((X) + 0x8000) & 0xffff) - 0x8000)
@@ -5717,7 +5721,7 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
 
       gas_assert (address_expr != NULL);
       gas_assert (!nanomips_relax.sequence);
-      add_relaxed_insn (ip, 4, 4,
+      add_relaxed_insn (ip, 6, 4,
 			RELAX_NANOMIPS_ENCODE (type, 0, fixed),
 			make_expr_symbol (address_expr), 0);
       *reloc_type = BFD_RELOC_UNUSED;
@@ -11914,6 +11918,7 @@ relaxed_nanomips_addiu_length (fragS *fragp, bfd_boolean update)
   offsetT sval;
   unsigned long rt, rs;
   bfd_boolean toofar16 = TRUE;
+  bfd_boolean toofar32 = FALSE;
   bfd_boolean negoff = FALSE;
 
   sval = S_GET_VALUE (fragp->fr_symbol) + fragp->fr_offset;
@@ -11945,7 +11950,14 @@ relaxed_nanomips_addiu_length (fragS *fragp, bfd_boolean update)
 	   && !RELAX_NANOMIPS_FIXED (fragp->fr_subtype))
     toofar16 = FALSE;
   else
-    negoff = (sval < 0);
+    negoff = (sval < 0 && sval > -4096);
+
+  if (toofar16
+      && !RELAX_NANOMIPS_FIXED (fragp->fr_subtype)
+      && (sval > 0xffff || sval < -4096)
+      && (rs == rt || rs == 0)
+      && (nanomips_opts.ase & ASE_xNMS) != 0)
+    toofar32 = TRUE;
 
   if (fragp && update
       && toofar16 != RELAX_NANOMIPS_TOOFAR16 (fragp->fr_subtype))
@@ -11954,13 +11966,25 @@ relaxed_nanomips_addiu_length (fragS *fragp, bfd_boolean update)
 	 ? RELAX_NANOMIPS_MARK_TOOFAR16 (fragp->fr_subtype)
 	 : RELAX_NANOMIPS_CLEAR_TOOFAR16 (fragp->fr_subtype));
 
+  if (fragp && update
+      && toofar32 != RELAX_NANOMIPS_TOOFAR32 (fragp->fr_subtype))
+    fragp->fr_subtype
+      = (toofar32
+	 ? RELAX_NANOMIPS_MARK_TOOFAR32 (fragp->fr_subtype)
+	 : RELAX_NANOMIPS_CLEAR_TOOFAR32 (fragp->fr_subtype));
+
   if (fragp && update && negoff != RELAX_NANOMIPS_NEGOFF (fragp->fr_subtype))
     fragp->fr_subtype
       = negoff ? RELAX_NANOMIPS_MARK_NEGOFF (fragp->fr_subtype)
       : RELAX_NANOMIPS_CLEAR_NEGOFF (fragp->fr_subtype);
 
   if (toofar16)
-    return 4;
+    {
+      if (toofar32)
+	return 6;
+      else
+	return 4;
+    }
   else
     return 2;
 }
@@ -12183,13 +12207,14 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
       char *buf = fragp->fr_literal + fragp->fr_fix;
       unsigned long insn = read_compressed_insn (buf, 4);
       offsetT sval;
-      unsigned long rt, rs;
+      unsigned rt, rs;
 
       rt = EXTRACT_BITS (insn, NANOMIPSOP_MASK_RT, NANOMIPSOP_SH_RT);
       rs = EXTRACT_BITS (insn, NANOMIPSOP_MASK_RS, NANOMIPSOP_SH_RS);
       sval = S_GET_VALUE (fragp->fr_symbol) + fragp->fr_offset;
 
-      if (!RELAX_NANOMIPS_TOOFAR16 (fragp->fr_subtype))
+      if (!RELAX_NANOMIPS_TOOFAR16 (fragp->fr_subtype)
+	  && !RELAX_NANOMIPS_TOOFAR32 (fragp->fr_subtype))
 	{
 	  if (RELAX_NANOMIPS_NEGOFF (fragp->fr_subtype))
 	    /* ADDIU[32] -> ADDIU[RS5] */
@@ -12209,11 +12234,32 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 		    | (rs & 0x7) << NANOMIPSOP_SH_MC
 		    | (sval & 0x1f) >> 2);
 	}
+      else if (RELAX_NANOMIPS_TOOFAR32 (fragp->fr_subtype))
+	{
+	  if (rs == rt)
+	    insn = (0x6001 | rt << 5);
+	  else if (rs == 0)
+	    insn = (0x6000 | rt << 5);
+
+	  buf = write_compressed_insn (buf, insn, 2);
+	  fragp->fr_fix += 2;
+	  insn = (((sval >> 16) & 0xffff) | (sval << 16));
+	  buf = write_compressed_insn (buf, insn, 4);
+	  fragp->fr_fix += 4;
+	  gas_assert (buf == fragp->fr_literal + fragp->fr_fix);
+	  return;
+	}
       else if (RELAX_NANOMIPS_NEGOFF (fragp->fr_subtype))
 	/* ADDIU[32] -> ADDIU[NEG] */
 	insn = (insn & ~0xfff) | 0x80008000 | (-sval & 0xfff);
       else
-	insn = (insn & ~0xffff) | (sval & 0xffff);
+	{
+	  insn = (insn & ~0xffff) | (sval & 0xffff);
+	  if (!IS_SEXT_16BIT_UINT (sval))
+	    as_bad_where (fragp->fr_file, fragp->fr_line,
+			  _("Operand 3 out of range `addiu $r%u,$r%u,%ld"),
+			  rt, rs, sval);
+	}
 
       buf = write_compressed_insn (buf, insn, fragp->fr_var);
       fragp->fr_fix += fragp->fr_var;
