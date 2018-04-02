@@ -2898,7 +2898,6 @@ scwp rd,ru,($at)
 @multitable @columnfractions 1
 @item @xref{x_scwp_label,,scwp to label}.
 @end multitable
-@item
 @item lwc1 rd,ofst(rs)
 @itemx ldc1 rd,ofst(rs)
 @itemx swc1 rd,ofst rs)
