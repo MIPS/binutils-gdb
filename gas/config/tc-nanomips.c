@@ -6469,6 +6469,10 @@ static const char *const mfhl_fmt[2] = { "mj", "s" };
 #define COP12_FMT "E,+j(b)"
 #define JALR_FMT "t,s"
 #define LUI_FMT "t,u"
+#define DLUI_FMT "mp,+Q"
+
+#define ADDRESS_ADD_FMT "d,v,t"
+#define ADDRESS_ADDI32_FMT "mp,mt,+R"
 
 #define ADDIU_FMT (addiu_fmt[HAVE_32BIT_ADDRESSES? 0 : 1])
 #define ADDIUGP_FMT "t,ma,."
@@ -6756,7 +6760,7 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 }
 
 /*
- * Generate a "lui" instruction.
+ * Generate an lui/dlui instruction.
  */
 static void
 macro_build_lui (expressionS *ep, int regnum)
@@ -6764,7 +6768,10 @@ macro_build_lui (expressionS *ep, int regnum)
   if (ep->X_op != O_constant)
     gas_assert (ep->X_op == O_symbol);
 
-  macro_build (ep, "lui", LUI_FMT, regnum, BFD_RELOC_NANOMIPS_HI20);
+  if (HAVE_64BIT_SYMBOLS)
+    macro_build (ep, "dlui", DLUI_FMT, regnum, BFD_RELOC_NANOMIPS_HI32);
+  else
+    macro_build (ep, "lui", LUI_FMT, regnum, BFD_RELOC_NANOMIPS_HI20);
 }
 
 /* Return the high part that should be loaded in order to make the low
@@ -7016,7 +7023,7 @@ load_register (int reg, expressionS *ep, int dbl)
 
       if (!nanomips_opts.insn32)
 	{
-	  macro_build (ep, "dlui", "mp,+Q", reg, BFD_RELOC_NANOMIPS_HI32);
+	  macro_build (ep, "dlui", DLUI_FMT, reg, BFD_RELOC_NANOMIPS_HI32);
 	  macro_build (ep, "daddiu", "mp,mt,+R", reg, reg,
 		       BFD_RELOC_NANOMIPS_I32);
 	  return;
@@ -7324,6 +7331,8 @@ small_noffset_p (unsigned int range, unsigned int offbits)
   return FALSE;
 }
 
+/* Check if RANGE fits in positive/negative add-immediate limits.  */
+
 static bfd_boolean
 small_add_offset_p (unsigned int range)
 {
@@ -7346,6 +7355,35 @@ check_offset_range (offsetT offset)
     }
 
     return TRUE;
+}
+
+/* Check whether EXP is a valid expression for macro expansions
+   to handle in the current arch mode.  */
+
+static bfd_boolean
+nanomips_macro_expression_valid (expressionS *exp,
+				 bfd_reloc_code_real_type rtype)
+{
+  if ((exp->X_op != O_constant && exp->X_op != O_symbol)
+      || (exp->X_op == O_symbol && hi_reloc_p (rtype)))
+    {
+      as_bad (_("expression too complex"));
+      exp->X_op = O_constant;
+      return FALSE;
+    }
+
+  if (HAVE_64BIT_ADDRESSES && nanomips_opts.insn32)
+    {
+      as_bad (_("Macro expansions for 64-bit addresses not supported"
+		"in insn32 mode"));
+      return FALSE;
+    }
+
+  if (exp->X_op == O_constant && hi_reloc_p (rtype))
+    exp->X_add_number = offset_high_part (exp->X_add_number,
+					  ISA_OFFBITS);
+
+  return check_offset_range (exp->X_add_number);
 }
 
 /* Expand the LA macro for PC-relative addressing.  */
@@ -7374,12 +7412,17 @@ nanomips_macro_absolute_la (unsigned int dest)
 {
   if ((nanomips_opts.ase & ASE_xNMS) != 0
       && *offset_reloc == BFD_RELOC_UNUSED
-      && !nanomips_opts.insn32)
+      && !nanomips_opts.insn32
+      && !HAVE_64BIT_SYMBOLS)
     macro_build (&offset_expr, "li", "mp,+Q", dest, BFD_RELOC_NANOMIPS_I32);
   else
     {
       macro_build_lui (&offset_expr, dest);
-      if (!hi_reloc_p (*offset_reloc))
+      if (HAVE_64BIT_SYMBOLS)
+	macro_build (&offset_expr, ADDRESS_ADDI_INSN,
+		     ADDRESS_ADDI32_FMT, dest, dest,
+		     BFD_RELOC_NANOMIPS_I32);
+      else if (!hi_reloc_p (*offset_reloc))
 	macro_build (&offset_expr, "ori", BITOP_IMM_FMT,
 		     dest, dest, ISA_BFD_RELOC_LOW);
     }
@@ -7413,66 +7456,31 @@ nanomips_macro_la (unsigned int op[], unsigned int breg, int *used_at)
   else
     tempreg = op[0];
 
-  if ((offset_expr.X_op != O_symbol && offset_expr.X_op != O_constant)
-      || (offset_expr.X_op == O_symbol && hi_reloc_p (offset_reloc[0])))
-    {
-      as_bad (_("expression too complex"));
-      offset_expr.X_op = O_constant;
-    }
-
-  if (offset_expr.X_op == O_constant && hi_reloc_p (offset_reloc[0]))
-    offset_expr.X_add_number = offset_high_part (offset_expr.X_add_number,
-						 ISA_OFFBITS);
-
-  if (!check_offset_range (offset_expr.X_add_number))
+  if (!nanomips_macro_expression_valid (&offset_expr, offset_reloc[0]))
     return;
 
   if (offset_expr.X_op == O_constant)
     load_register (tempreg, &offset_expr, HAVE_64BIT_ADDRESSES);
   else if (nanomips_opts.pic == NO_PIC)
     {
-      if (HAVE_64BIT_SYMBOLS)
+      if ((valueT) offset_expr.X_add_number <= MAX_GPREL_OFFSET
+	  && !nopic_need_relax (offset_expr.X_add_symbol, 1)
+	  && (nanomips_opts.mc_model == MC_MEDIUM
+	      || nanomips_opts.mc_model == MC_AUTO))
 	{
-	  if ((valueT) offset_expr.X_add_number <= MAX_GPREL_OFFSET
-	      && !nopic_need_relax (offset_expr.X_add_symbol, 1)
-	      && (nanomips_opts.mc_model == MC_MEDIUM
-		  || nanomips_opts.mc_model == MC_AUTO))
-	    {
-	      relax_start (offset_expr.X_add_symbol);
-	      macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDIUGP_FMT,
-			   tempreg, nanomips_gp_register, BFD_RELOC_GPREL16);
-	      relax_switch ();
-	    }
-
-	  macro_build (&offset_expr, "dlui", "mp,+Q",
-		       tempreg, BFD_RELOC_NANOMIPS_HI32);
-	  macro_build (&offset_expr, "daddiu", "mp,mt,+R",
-		       tempreg, tempreg, BFD_RELOC_NANOMIPS_I32);
-
-	  if (nanomips_relax.sequence)
-	    relax_end ();
+	  relax_start (offset_expr.X_add_symbol);
+	  macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDIUGP_FMT,
+		       op[0], nanomips_gp_register, BFD_RELOC_GPREL16);
+	  relax_switch ();
 	}
+
+      if (nanomips_opts.pcrel)
+	nanomips_macro_pcrel_la (op[0]);
       else
-	{
-	  if ((valueT) offset_expr.X_add_number <= MAX_GPREL_OFFSET
-	      && !nopic_need_relax (offset_expr.X_add_symbol, 1)
-	      && (nanomips_opts.mc_model == MC_MEDIUM
-		  || nanomips_opts.mc_model == MC_AUTO))
-	    {
-	      relax_start (offset_expr.X_add_symbol);
-	      macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDIUGP_FMT,
-			   op[0], nanomips_gp_register, BFD_RELOC_GPREL16);
-	      relax_switch ();
-	    }
+	nanomips_macro_absolute_la (op[0]);
 
-	  if (nanomips_opts.pcrel)
-	    nanomips_macro_pcrel_la (op[0]);
-	  else
-	    nanomips_macro_absolute_la (op[0]);
-
-	  if (nanomips_relax.sequence)
-	    relax_end ();
-	}
+      if (nanomips_relax.sequence)
+	relax_end ();
     }
   else
     {
@@ -7508,17 +7516,20 @@ nanomips_macro_absolute_ld_st (const char *s, const char *fmt,
 			       unsigned int op[],
 			       unsigned int tempreg, unsigned int breg)
 {
-  if (breg == 0)
+  macro_build_lui (&offset_expr, tempreg);
+  if (HAVE_64BIT_SYMBOLS)
     {
-      macro_build_lui (&offset_expr, tempreg);
-      macro_build (&offset_expr, s, fmt, op[0], BFD_RELOC_LO16, tempreg);
+      macro_build (&offset_expr, ADDRESS_ADDI_INSN,
+		   ADDRESS_ADDI32_FMT, tempreg, tempreg,
+		   BFD_RELOC_NANOMIPS_I32);
+      offset_expr.X_add_number = 0;
+      offset_expr.X_op = O_constant;
     }
-  else
-    {
-      macro_build_lui (&offset_expr, tempreg);
-      macro_build (NULL, ADDRESS_ADD_INSN, "d,v,t", tempreg, tempreg, breg);
-      macro_build (&offset_expr, s, fmt, op[0], BFD_RELOC_LO16, tempreg);
-    }
+
+  if (breg != 0)
+    macro_build (NULL, ADDRESS_ADD_INSN, "d,v,t", tempreg, tempreg, breg);
+
+  macro_build (&offset_expr, s, fmt, op[0], BFD_RELOC_LO16, tempreg);
 }
 
 static void
@@ -7587,18 +7598,7 @@ nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
   if (tempreg == AT)
     *used_at = 1;
 
-  if ((offset_expr.X_op != O_constant && offset_expr.X_op != O_symbol)
-      || (offset_expr.X_op == O_symbol && hi_reloc_p (offset_reloc[0])))
-    {
-      as_bad (_("expression too complex"));
-      offset_expr.X_op = O_constant;
-    }
-
-  if (offset_expr.X_op == O_constant && hi_reloc_p (offset_reloc[0]))
-    offset_expr.X_add_number = offset_high_part (offset_expr.X_add_number,
-						 ISA_OFFBITS);
-
-  if (!check_offset_range (offset_expr.X_add_number))
+  if (!nanomips_macro_expression_valid (&offset_expr, offset_reloc[0]))
     return;
 
   /* A constant expression in PIC code can be handled just as it
@@ -7649,10 +7649,6 @@ nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
     }
   else if (nanomips_opts.pic == NO_PIC)
     {
-      if (HAVE_64BIT_SYMBOLS)
-	/* Unsupported */
-	gas_assert (FALSE);
-
       if ((valueT) offset_expr.X_add_number <= MAX_GPREL_OFFSET
 	  && !nopic_need_relax (offset_expr.X_add_symbol, 1)
 	  && (nanomips_opts.mc_model == MC_MEDIUM
@@ -7730,24 +7726,8 @@ nanomips_macro_ldp_stp (const char *s, const char *fmt, unsigned int op[],
       return;
     }
 
-  if ((offset_expr.X_op != O_constant && offset_expr.X_op != O_symbol)
-      || (offset_expr.X_op == O_symbol && hi_reloc_p (offset_reloc[0])))
-    {
-      as_bad (_("expression too complex"));
-      offset_expr.X_op = O_constant;
-    }
-
-  if (offset_expr.X_op == O_constant && hi_reloc_p (offset_reloc[0]))
-    offset_expr.X_add_number = offset_high_part (offset_expr.X_add_number,
-						 ISA_OFFBITS);
-
-  if (HAVE_32BIT_ADDRESSES && !IS_SEXT_32BIT_NUM (offset_expr.X_add_number))
-    {
-      char value[32];
-
-      sprintf_vma (value, offset_expr.X_add_number);
-      as_bad (_("number (0x%s) larger than 32 bits"), value);
-    }
+  if (!nanomips_macro_expression_valid (&offset_expr, offset_reloc[0]))
+    return;
 
   /* A constant expression in PIC code can be handled just as it
      is in non PIC code.  */
@@ -7935,18 +7915,7 @@ nanomips_macro_ldd_std (const char *s, const char *fmt, unsigned int op[],
       return;
     }
 
-  if ((offset_expr.X_op != O_symbol && offset_expr.X_op != O_constant)
-      || (offset_expr.X_op == O_symbol && hi_reloc_p (offset_reloc[0])))
-    {
-      as_bad (_("expression too complex"));
-      offset_expr.X_op = O_constant;
-    }
-
-  if (offset_expr.X_op == O_constant && hi_reloc_p (offset_reloc[0]))
-    offset_expr.X_add_number = offset_high_part (offset_expr.X_add_number,
-						 ISA_OFFBITS);
-
-  if (!check_offset_range (offset_expr.X_add_number))
+  if (!nanomips_macro_expression_valid (&offset_expr, offset_reloc[0]))
     return;
 
   if (nanomips_opts.pic == NO_PIC || offset_expr.X_op == O_constant)

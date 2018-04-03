@@ -1,0 +1,10 @@
+.*: Assembler messages:
+.*:5: Error: opcode belongs to disabled FP mode: `ldc1 \$f2,d'
+.*:6: Error: opcode belongs to disabled FP mode: `ldc1 \$22,d'
+.*:7: Error: opcode belongs to disabled FP mode: `l.d \$f2,d'
+.*:8: Error: opcode belongs to disabled FP mode: `li.d \$f2,1.2'
+.*:9: Error: opcode belongs to disabled FP mode: `li.d \$22,1.2'
+.*:11: Error: opcode belongs to disabled FP mode: `sdc1 \$f2,d'
+.*:12: Error: opcode belongs to disabled FP mode: `sdc1 \$22,d'
+.*:13: Error: opcode belongs to disabled FP mode: `s.d \$f2,d'
+.*:15: Error: opcode belongs to disabled FP mode: `trunc.w.d \$f4,\$f6,\$4'

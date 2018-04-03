@@ -12,8 +12,8 @@ Disassembly of section \.text:
    0:	dlui	a0,0x3ff1f9a7
    6:	daddiu	a0,a0,-1257566424
    c:	ldc1	\$f4,0\(gp\)
-			c: R_NANOMIPS_LITERAL	\.lit8
+			c: R_NANOMIPS_GPREL16_S2	\.sdata
   10:	li	a0,0x3f8fcd36
-  16:	lwc1	\$f4,0\(gp\)
-			16: R_NANOMIPS_LITERAL	\.lit4
+  16:	li	at,0x3f8fcd36
+  1c:	mtc1	at,\$f4
 #pass

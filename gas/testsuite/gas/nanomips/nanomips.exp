@@ -748,11 +748,10 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "minimize-relocs4" "" \
 					[arch_list_matching nanomips]
 
-    #FIXME: FP_S, FP_D annotations in pinfo
-    run_list_test_arches "mips-macro-ill-sfp" "-m32 -msingle-float" \
-					[arch_list_matching nanomips_broken]
-    run_list_test_arches "mips-macro-ill-nofp" "-m32 -msoft-float" \
-					[arch_list_matching nanomips_broken]
+    run_list_test_arches "macro-ill-sfp" "-m32 -msingle-float" \
+					[arch_list_matching nanomipsr6]
+    run_list_test_arches "macro-ill-nofp" "-m32 -msoft-float" \
+					[arch_list_matching nanomipsr6]
     # tests of objdump's ability to disassemble the move mnemonic
     run_dump_test_arches "move"		[arch_list_matching nanomipsr6]
     run_dump_test_arch "mttgpr-rc1" "-mmt -mmttgpr-rc1" nanomips32r6
