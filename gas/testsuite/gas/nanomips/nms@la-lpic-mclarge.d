@@ -31,19 +31,19 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_NANOMIPS_LO12	\.data
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	big_external_data_label
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
+[0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	big_external_data_label
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	small_external_data_label
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
+[0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	small_external_data_label
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	big_external_common
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
+[0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	big_external_common
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	small_external_common
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
+[0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	small_external_common
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_PCHI20	big_local_common
@@ -59,19 +59,19 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_NANOMIPS_LO12	\.data\+0x1
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	big_external_data_label\+0x1
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
+[0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	big_external_data_label\+0x1
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	small_external_data_label\+0x1
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
+[0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	small_external_data_label\+0x1
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	big_external_common\+0x1
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
+[0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	big_external_common\+0x1
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	small_external_common\+0x1
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
+[0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	small_external_common\+0x1
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_PCHI20	big_local_common\+0x1
@@ -87,19 +87,19 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_NANOMIPS_LO12	\.data\+0x8000
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	big_external_data_label\+0x8000
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
+[0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	big_external_data_label\+0x8000
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	small_external_data_label\+0x8000
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
+[0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	small_external_data_label\+0x8000
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	big_external_common\+0x8000
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
+[0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	big_external_common\+0x8000
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	small_external_common\+0x8000
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
+[0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	small_external_common\+0x8000
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_PCHI20	big_local_common\+0x8000
@@ -115,19 +115,19 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_NANOMIPS_LO12	\.data-0x8000
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	big_external_data_label-0x8000
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
+[0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	big_external_data_label-0x8000
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	small_external_data_label-0x8000
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
+[0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	small_external_data_label-0x8000
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	big_external_common-0x8000
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
+[0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	big_external_common-0x8000
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	small_external_common-0x8000
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
+[0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	small_external_common-0x8000
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_PCHI20	big_local_common-0x8000
@@ -143,19 +143,19 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_NANOMIPS_LO12	\.data\+0x10000
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	big_external_data_label\+0x10000
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
+[0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	big_external_data_label\+0x10000
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	small_external_data_label\+0x10000
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
+[0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	small_external_data_label\+0x10000
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	big_external_common\+0x10000
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
+[0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	big_external_common\+0x10000
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	small_external_common\+0x10000
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
+[0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	small_external_common\+0x10000
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_PCHI20	big_local_common\+0x10000
@@ -171,19 +171,19 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_NANOMIPS_LO12	\.data\+0x1a5a5
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	big_external_data_label\+0x1a5a5
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
+[0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	big_external_data_label\+0x1a5a5
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	small_external_data_label\+0x1a5a5
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
+[0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	small_external_data_label\+0x1a5a5
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	big_external_common\+0x1a5a5
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
+[0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	big_external_common\+0x1a5a5
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	small_external_common\+0x1a5a5
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
+[0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	small_external_common\+0x1a5a5
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_PCHI20	big_local_common\+0x1a5a5
@@ -201,6 +201,6 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 20a4 2150 	addu	a0,a0,a1
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <[^>]+>
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	big_external_data_label
-[0-9a-f]+ <[^>]+> 4080 0002 	lw	a0,0\(gp\)
+[0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	big_external_data_label
 #pass
