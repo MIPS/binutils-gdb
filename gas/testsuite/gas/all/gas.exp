@@ -399,7 +399,8 @@ if { ![istarget "tic4x*-*-*"] && ![istarget "tic54x*-*-*"] } {
 # .byte is 32 bits on tic4x, and .p2align isn't supported on tic54x
 # .space is different on hppa*-hpux.
 # MeP put bytes into packets.
-if { ![istarget "tic4x*-*-*"] && ![istarget "tic54x*-*-*"] && ![istarget "hppa*-*-hpux*"] && ![istarget "mep*-*-*"] } {
+# nanoMIPS does not like variable leb128s
+if { ![istarget "tic4x*-*-*"] && ![istarget "tic54x*-*-*"] && ![istarget "hppa*-*-hpux*"] && ![istarget "mep*-*-*"] && ![istarget "nanomips*-*-*"] } {
     run_dump_test relax
 }
 

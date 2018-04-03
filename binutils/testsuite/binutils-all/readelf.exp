@@ -395,9 +395,9 @@ if {![binutils_assemble $srcdir/$subdir/z.s tmpdir/z.o]} then {
     readelf_test {--decompress --hex-dump .debug_loc} $tempfile readelf.z  {}
 }
 
-# Skip the next test for the RISCV architectures because they do not
-# support .ULEB128 pseudo-ops with non-constant values.
-if ![istarget "riscv*-*-*"] then {
+# Skip the next test for the RISCV and nanoMIPS architectures because they do
+# not support .ULEB128 pseudo-ops with non-constant values.
+if { ![istarget "riscv*-*-*"] && ![istarget "nanomips*-*-*"] } then {
 
     set hpux ""
     if [istarget "hppa*64*-*-hpux*"] {

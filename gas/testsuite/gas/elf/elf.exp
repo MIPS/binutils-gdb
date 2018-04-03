@@ -126,6 +126,7 @@ if { [is_elf_format] } then {
     run_dump_test "group2"
     case $target_triplet in {
 	{ hppa64*-*-hpux* } { }
+	{ nanomips*-*-* } { }
 	{ riscv*-*-* } { }
 	default {
 	    run_dump_test "groupautoa"
@@ -133,6 +134,7 @@ if { [is_elf_format] } then {
     }
     case $target_triplet in {
 	{ hppa64*-*-hpux* } { }
+	{ nanomips*-*-* } { }
 	{ riscv*-*-* } { }
 	{ xtensa*-*-* } { }
 	default {
