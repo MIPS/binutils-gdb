@@ -11553,10 +11553,10 @@ relaxed_nanomips_invariable_branch_p (fragS *fragp, asection *sec)
     return TRUE;
 
   /* Trivially mark branches to external symbols as unfixable.  */
-  if (fragp->fr_symbol &&
-      (S_IS_DEFINED (fragp->fr_symbol) || !S_IS_LOCAL (fragp->fr_symbol))
-      && !S_IS_WEAK (fragp->fr_symbol)
-      && sec != S_GET_SEGMENT (fragp->fr_symbol))
+  if (fragp->fr_symbol
+      && (S_IS_EXTERNAL (fragp->fr_symbol)
+	  || S_IS_WEAK (fragp->fr_symbol)
+	  || sec != S_GET_SEGMENT (fragp->fr_symbol)))
     {
       if (!RELAX_NANOMIPS_NORELAX (fragp->fr_subtype))
 	{
@@ -11569,7 +11569,6 @@ relaxed_nanomips_invariable_branch_p (fragS *fragp, asection *sec)
 	  fragp->tc_frag_data.relax_sop
 	    += frag_subtype_to_relax_sop (fragp->fr_subtype);
 	  fragp->tc_frag_data.relax_sink = fragp->fr_var;
-
 	}
       return FALSE;
     }

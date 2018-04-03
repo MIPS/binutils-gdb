@@ -6,13 +6,24 @@
 # 3. when the lynch-pin is partially relaxable, using fixed-format instructions
 # 4. when the lynch-pin is external but fixed size
 # 5. when the lynch-pin is external but wrapped in nolinkrelax
+# 6. when the lynch-pin is not external, but weak
+# 7. when the lynch-pin is not external but defined in different section
 #
 # Each case is checked for both forward and backward nested blocks.
-	
+
+	.linkrelax
+	.section	.text.other,"ax",@progbits
+	.align	1
+	.type test_other_sect, @function
+	.ent test_other_sect
+test_other_sect:
+	jr $ra
+	.end test_other_sect
+
 	# Test reloc-minimization for nested overlapping jumps
 	.text
 	.extern test1
-	.linkrelax
+	.weak test_weak
 	.ent test
 test:
 	# case1: nested jumps forward over a relaxable instruction
@@ -31,16 +42,16 @@ $L2:
 	balc $L1
 	bc $L1
 
- 	# case2: nested jumps forward over a fixed instruction
-	bc32 $L4 	# using fixed 32-bit instructions
+	# case2: nested jumps forward over a fixed instruction
+	bc32 $L4	# using fixed 32-bit instructions
 	balc32 $L4
 	beqzc32 $a0,$L4
 	beqc32 $a0,$a1,$L4
-$L3:	
+$L3:
 	balc test	# lynch-pin is a local resolved reference
 $L4:
 	# case2: nested jumps backward over a fixed instruction
-	bc32 $L3 	# using fixed 32-bit instructions
+	bc32 $L3	# using fixed 32-bit instructions
 	balc32 $L3
 	beqzc32 $a0,$L3
 	beqc32 $a0,$a1,$L3
@@ -101,4 +112,41 @@ $L10:
 	bneic $a0,4,$L9
 	beqc $a0,$a1,$L9
 
+	# case6: nested jumps forward over a weak reference
+	bc $L12
+	balc $L12
+	beqzc $a0,$L12
+	beqc $a0,$a1,$L12
+	bneic $a0,4,$L12
+$L11:
+	bc test_weak
+$L12:
+	# case1: nested jumps backward over a weak reference
+	beqc $a0,$a1,$L11
+	bneic $a0,4,$L11
+	beqzc $a0,$L11
+	balc $L11
+	bc $L11
+
+	# case7: nested jumps forward over reference to other section
+	bc $L14
+	balc $L14
+	beqzc $a0,$L14
+	beqc $a0,$a1,$L14
+	bneic $a0,4,$L14
+$L13:
+	bc test_other_sect
+$L14:
+	# case1: nested jumps backward over reference to other section
+	beqc $a0,$a1,$L13
+	bneic $a0,4,$L13
+	beqzc $a0,$L13
+	balc $L13
+	bc $L13
+
+
 	.end test
+	.ent test_weak
+test_weak:
+	jr $ra
+	.end test_weak

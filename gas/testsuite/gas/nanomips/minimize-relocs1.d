@@ -105,5 +105,65 @@ Disassembly of section \.text:
   98:	9a73      	beqzc	a0,8c <\$L6\+0x36>
   9a:	c890 27ef 	bneic	a0,4,8c <\$L6\+0x36>
   9e:	88a4 3feb 	beqc	a0,a1,8c <\$L6\+0x36>
-  a2:	9008      	nop
+  a2:	1800      	bc	b2 <\$L12>
+			a2: R_NANOMIPS_PC10_S1	\$L12
+  a4:	3800      	balc	b2 <\$L12>
+			a4: R_NANOMIPS_PC10_S1	\$L12
+  a6:	9a00      	beqzc	a0,b2 <\$L12>
+			a6: R_NANOMIPS_PC7_S1	\$L12
+  a8:	dacf      	beqc	a0,a1,b2 <\$L12>
+			a8: R_NANOMIPS_PC4_S1	\$L12
+  aa:	c890 2000 	bneic	a0,4,b2 <\$L12>
+			aa: R_NANOMIPS_PC11_S1	\$L12
+
+000000ae <\$L11>:
+  ae:	2800 0000 	bc	de <test_weak>
+			ae: R_NANOMIPS_PC25_S1	test_weak
+
+000000b2 <\$L12>:
+  b2:	88a4 0000 	beqc	a0,a1,ae <\$L11>
+			b2: R_NANOMIPS_PC14_S1	\$L11
+  b6:	c890 2000 	bneic	a0,4,ae <\$L11>
+			b6: R_NANOMIPS_PC11_S1	\$L11
+  ba:	9a00      	beqzc	a0,ae <\$L11>
+			ba: R_NANOMIPS_PC7_S1	\$L11
+  bc:	3800      	balc	ae <\$L11>
+			bc: R_NANOMIPS_PC10_S1	\$L11
+  be:	1800      	bc	ae <\$L11>
+			be: R_NANOMIPS_PC10_S1	\$L11
+  c0:	1800      	bc	d0 <\$L14>
+			c0: R_NANOMIPS_PC10_S1	\$L14
+  c2:	3800      	balc	d0 <\$L14>
+			c2: R_NANOMIPS_PC10_S1	\$L14
+  c4:	9a00      	beqzc	a0,d0 <\$L14>
+			c4: R_NANOMIPS_PC7_S1	\$L14
+  c6:	dacf      	beqc	a0,a1,d0 <\$L14>
+			c6: R_NANOMIPS_PC4_S1	\$L14
+  c8:	c890 2000 	bneic	a0,4,d0 <\$L14>
+			c8: R_NANOMIPS_PC11_S1	\$L14
+
+000000cc <\$L13>:
+  cc:	2800 0000 	bc	0 <test_other_sect>
+			cc: R_NANOMIPS_PC25_S1	test_other_sect
+
+000000d0 <\$L14>:
+  d0:	88a4 0000 	beqc	a0,a1,cc <\$L13>
+			d0: R_NANOMIPS_PC14_S1	\$L13
+  d4:	c890 2000 	bneic	a0,4,cc <\$L13>
+			d4: R_NANOMIPS_PC11_S1	\$L13
+  d8:	9a00      	beqzc	a0,cc <\$L13>
+			d8: R_NANOMIPS_PC7_S1	\$L13
+  da:	3800      	balc	cc <\$L13>
+			da: R_NANOMIPS_PC10_S1	\$L13
+  dc:	1800      	bc	cc <\$L13>
+			dc: R_NANOMIPS_PC10_S1	\$L13
+
+000000de <test_weak>:
+  de:	dbe0      	jrc	ra
+#...
+Disassembly of section \.text\.other:
+
+00000000 <test_other_sect>:
+   0:	dbe0      	jrc	ra
+			0: R_NANOMIPS_ALIGN	__reloc_align__1
 #pass
