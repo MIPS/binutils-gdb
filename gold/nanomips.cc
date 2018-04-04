@@ -35,6 +35,7 @@
 #include "symtab.h"
 #include "layout.h"
 #include "output.h"
+#include "copy-relocs.h"
 #include "target.h"
 #include "target-reloc.h"
 #include "target-select.h"
@@ -1313,9 +1314,9 @@ class Target_nanomips : public Sized_target<size, big_endian>
  public:
   Target_nanomips(const Target::Target_info* info = &nanomips_info)
     : Sized_target<size, big_endian>(info), state_(EXPAND), got_(NULL),
-      stubs_(NULL), rel_dyn_(NULL), nanomips_input_section_map_(), gp_(NULL),
-      attributes_section_data_(NULL), abiflags_(NULL), layout_(NULL),
-      has_abiflags_section_(false)
+      stubs_(NULL), rel_dyn_(NULL), copy_relocs_(elfcpp::R_NANOMIPS_COPY),
+      nanomips_input_section_map_(), gp_(NULL), attributes_section_data_(NULL),
+      abiflags_(NULL), layout_(NULL), has_abiflags_section_(false)
   { }
 
   // Make a new symbol table entry for the Nanomips target.
@@ -1514,6 +1515,26 @@ class Target_nanomips : public Sized_target<size, big_endian>
   nanomips_stubs_section() const
   { return this->stubs_; }
 
+  // Add a potential copy relocation.
+  void
+  copy_reloc(Symbol_table* symtab, Layout* layout,
+             Sized_relobj_file<size, big_endian>* object,
+             unsigned int shndx, Output_section* output_section,
+             Symbol* sym, const elfcpp::Rela<size, big_endian>& reloc)
+  {
+    unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
+    this->copy_relocs_.copy_reloc(symtab, layout,
+                                  symtab->get_sized_symbol<size>(sym),
+                                  object, shndx, output_section,
+                                  r_type, reloc.get_r_offset(), 0,
+                                  this->rel_dyn_section(layout));
+  }
+
+  // Update content for instruction transformation.
+  void
+  update_content(Nanomips_input_section*, Nanomips_relobj<size, big_endian>*,
+                 Address, int, bool);
+
   // Get the default Nanomips target.
   static This*
   current_target()
@@ -1523,12 +1544,6 @@ class Target_nanomips : public Sized_target<size, big_endian>
                 && parameters->target().is_big_endian() == big_endian);
     return static_cast<This*>(parameters->sized_target<size, big_endian>());
   }
-
-
-  // Update content for instruction transformation.
-  void
-  update_content(Nanomips_input_section*, Nanomips_relobj<size, big_endian>*,
-                 Address, int, bool);
 
  protected:
   void
@@ -1636,13 +1651,20 @@ class Target_nanomips : public Sized_target<size, big_endian>
     ~Relocate()
     { }
 
+    // Return whether we only need to apply addend for a R_NANOMIPS_32
+    // relocation.
+    inline bool
+    should_only_apply_addend(const Sized_symbol<size>* gsym,
+                             unsigned int flags,
+                             Output_section* output_section);
+
     // Do a relocation.  Return false if the caller should not issue
     // any warnings about this relocation.
     inline bool
     relocate(const Relocate_info<size, big_endian>*, unsigned int,
-	     Target_nanomips*, Output_section*, size_t, const unsigned char*,
-	     const Sized_symbol<size>*, const Symbol_value<size>*,
-	     unsigned char*, Address, section_size_type);
+             Target_nanomips*, Output_section*, size_t, const unsigned char*,
+             const Sized_symbol<size>*, const Symbol_value<size>*,
+             unsigned char*, Address, section_size_type);
 
    private:
     // Result of the relocation.
@@ -1760,6 +1782,8 @@ class Target_nanomips : public Sized_target<size, big_endian>
   Nanomips_output_data_stubs<size, big_endian>* stubs_;
   // The dynamic reloc section.
   Reloc_section* rel_dyn_;
+  // Relocs saved to avoid a COPY reloc.
+  Copy_relocs<elfcpp::SHT_REL, size, big_endian> copy_relocs_;
   // Map for locating Nanomips_input_sections.
   Nanomips_input_section_map nanomips_input_section_map_;
   // gp symbol.
@@ -2419,8 +2443,7 @@ Nanomips_output_data_got<size, big_endian>::do_write(Output_file* of)
     convert_to_section_size_type(this->data_size());
   unsigned char* const oview = of->get_output_view(offset, oview_size);
 
-  typedef std::vector<Nanomips_stubs_entry<size> >
-        Nanomips_stubs_entries;
+  typedef std::vector<Nanomips_stubs_entry<size> > Nanomips_stubs_entries;
   typedef typename elfcpp::Swap<size, big_endian>::Valtype Valtype;
   for (typename Nanomips_stubs_entries::iterator
        p = stubs->nanomips_stubs_entries().begin();
@@ -5215,6 +5238,11 @@ Target_nanomips<size, big_endian>::do_finalize_sections(
   if (this->stubs_ != NULL)
     this->stubs_->set_lazy_stub_offsets();
 
+  // Emit any relocs we saved in an attempt to avoid generating COPY
+  // relocs.
+  if (this->copy_relocs_.any_saved_relocs())
+    this->copy_relocs_.emit(this->rel_dyn_section(layout));
+
   const Reloc_section* rel_stubs = (this->stubs_ == NULL
                                     ? NULL
                                     : this->stubs_->rel_stubs());
@@ -6155,7 +6183,7 @@ Target_nanomips<size, big_endian>::Scan::local(
     Target_nanomips<size, big_endian>* target,
     Sized_relobj_file<size, big_endian>* object,
     unsigned int data_shndx,
-    Output_section*, /* output_section,*/
+    Output_section* output_section,
     const elfcpp::Rela<size, big_endian>& reloc,
     unsigned int r_type,
     const elfcpp::Sym<size, big_endian>& lsym,
@@ -6189,6 +6217,23 @@ Target_nanomips<size, big_endian>::Scan::local(
 
   switch (r_type)
     {
+    case elfcpp::R_NANOMIPS_32:
+      // If building a shared library (or a position-independent
+      // executable), we need to create a dynamic relocation for
+      // this location.  The relocation applied at link time will
+      // apply the link-time value, so we flag the location with
+      // an R_NANOMIPS_RELATIVE relocation so the dynamic loader
+      // can relocate it easily.
+      if (parameters->options().output_is_position_independent())
+        {
+          Reloc_section* rel_dyn = target->rel_dyn_section(layout);
+          unsigned int r_sym = elfcpp::elf_r_sym<size>(reloc.get_r_info());
+          rel_dyn->add_local_relative(object, r_sym,
+                                      elfcpp::R_NANOMIPS_RELATIVE,
+                                      output_section, data_shndx,
+                                      r_offset);
+        }
+      break;
     case elfcpp::R_NANOMIPS_GPREL19_S2:
       if (relobj->safe_to_relax() && !this->seen_norelax_)
         {
@@ -6280,6 +6325,15 @@ Target_nanomips<size, big_endian>::Scan::local(
     case elfcpp::R_NANOMIPS_INSN32:
     case elfcpp::R_NANOMIPS_FIXED:
       break;
+    case elfcpp::R_NANOMIPS_COPY:
+    case elfcpp::R_NANOMIPS_GLOBAL:
+    case elfcpp::R_NANOMIPS_JUMP_SLOT:
+    case elfcpp::R_NANOMIPS_RELATIVE:
+      // These are relocations which should only be seen by the
+      // dynamic linker, and should never be seen here.
+      gold_error(_("%s: unexpected reloc %s in object file"),
+                 object->name().c_str(), nrp->name().c_str());
+      break;
     default:
       break;
     }
@@ -6295,7 +6349,7 @@ Target_nanomips<size, big_endian>::Scan::global(
     Target_nanomips<size, big_endian>* target,
     Sized_relobj_file<size, big_endian>* object,
     unsigned int data_shndx,
-    Output_section*, /* output_section,*/
+    Output_section* output_section,
     const elfcpp::Rela<size, big_endian>& reloc,
     unsigned int r_type,
     Symbol* gsym)
@@ -6316,6 +6370,31 @@ Target_nanomips<size, big_endian>::Scan::global(
 
   switch (r_type)
     {
+    case elfcpp::R_NANOMIPS_32:
+      {
+        // Make a dynamic relocation if necessary.
+        if (gsym->needs_dynamic_reloc(nrp->reference_flags()))
+          {
+            if (!parameters->options().output_is_position_independent()
+                && gsym->may_need_copy_reloc())
+              target->copy_reloc(symtab, layout, object, data_shndx,
+                                 output_section, gsym, reloc);
+            else if (gsym->can_use_relative_reloc(false))
+              {
+                Reloc_section* rel_dyn = target->rel_dyn_section(layout);
+                rel_dyn->add_global_relative(gsym, elfcpp::R_NANOMIPS_RELATIVE,
+                                             output_section, relobj,
+                                             data_shndx, r_offset);
+              }
+            else
+              {
+                Reloc_section* rel_dyn = target->rel_dyn_section(layout);
+                rel_dyn->add_global(gsym, r_type, output_section, relobj,
+                                    data_shndx, r_offset);
+              }
+          }
+      }
+      break;
     case elfcpp::R_NANOMIPS_GPREL19_S2:
       if (relobj->safe_to_relax()
           && gsym->source() == Symbol::FROM_OBJECT
@@ -6429,6 +6508,15 @@ Target_nanomips<size, big_endian>::Scan::global(
     case elfcpp::R_NANOMIPS_RELAX:
       gold_error(_("%s not against local symbol"), nrp->name().c_str());
       break;
+    case elfcpp::R_NANOMIPS_COPY:
+    case elfcpp::R_NANOMIPS_GLOBAL:
+    case elfcpp::R_NANOMIPS_JUMP_SLOT:
+    case elfcpp::R_NANOMIPS_RELATIVE:
+      // These are relocations which should only be seen by the
+      // dynamic linker, and should never be seen here.
+      gold_error(_("%s: unexpected reloc %s in object file"),
+                 object->name().c_str(), nrp->name().c_str());
+      break;
     default:
       break;
     }
@@ -6440,6 +6528,34 @@ Target_nanomips<size, big_endian>::Scan::global(
       && r_type != elfcpp::R_NANOMIPS_JALR32
       && r_type != elfcpp::R_NANOMIPS_JALR16)
     nanomips_sym->set_no_lazy_stub();
+}
+
+// Return whether we only need to apply addend for a R_NANOMIPS_32
+// relocation.
+
+template<int size, bool big_endian>
+inline bool
+Target_nanomips<size, big_endian>::Relocate::should_only_apply_addend(
+    const Sized_symbol<size>* gsym,
+    unsigned int flags,
+    Output_section* output_section)
+{
+  // If the output section is not allocated, then we didn't call
+  // scan_relocs, we didn't create a dynamic reloc, and we must apply
+  // the reloc here.
+  if ((output_section->flags() & elfcpp::SHF_ALLOC) == 0)
+    return false;
+
+  // For local symbols we always need to apply static relocation.
+  if (gsym == NULL)
+    return false;
+
+  // For global symbols, we use the same helper routines used in the
+  // scan pass.  If we created non-RELATIVE dynamic relocation,
+  // we should only apply the addend.
+  bool has_dyn = gsym->needs_dynamic_reloc(flags);
+  bool is_rel = gsym->can_use_relative_reloc(false);
+  return has_dyn && !is_rel;
 }
 
 // Perform a relocation.
@@ -6650,6 +6766,16 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
     case elfcpp::R_NANOMIPS_GOT_OFST:
       break;
     case elfcpp::R_NANOMIPS_32:
+      {
+        // If we created non-RELATIVE dynamic relocation, we only need to
+        // apply addend because dynamic relocation is SHT_REL and static
+        // relocation is SHT_RELA.
+        unsigned int flags = reloc_property->reference_flags();
+        if (this->should_only_apply_addend(gsym, flags, output_section))
+          value = r_addend;
+      }
+      // Fall through.
+
     case elfcpp::R_NANOMIPS_I32:
     case elfcpp::R_NANOMIPS_PC_I32:
     case elfcpp::R_NANOMIPS_GPREL_I32:
