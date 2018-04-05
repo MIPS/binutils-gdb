@@ -1876,8 +1876,7 @@ Enable support for link-time relaxations.
 @itemx --break
 @itemx --no-break
 Control how to deal with multiplication overflow and division by zero.
-@samp{--trap} or @samp{--no-break} (which are synonyms) take a trap exception
-(and only work for Instruction Set Architecture level 2 and higher);
+@samp{--trap} or @samp{--no-break} (which are synonyms) take a trap exception;
 @samp{--break} or @samp{--no-trap} (also synonyms, and the default) take a
 break exception.
 
@@ -1886,12 +1885,7 @@ break exception.
 Finalize PC-relative relocations that are link-time invariant at the time
 of assembly. The @samp{-mminimize-relocs} reduces the size of the generated
 object files by removing some relocations and hence the time needed to link
-with relaxations. By default, @samp{-mno-minimize-relocs} is selected,
-disabling this optimization.
-
-@item -n
-When this option is used, @command{@value{AS}} will issue a warning every
-time it generates a nop instruction from a macro.
+with relaxations. By default, @samp{-mminimize-relocs} is selected.
 
 @end table
 @end ifset

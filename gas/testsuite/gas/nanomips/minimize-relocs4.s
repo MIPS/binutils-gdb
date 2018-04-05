@@ -47,3 +47,9 @@ $L9:
 	.space 26
 $L10:
 	nop
+	.data
+	.word ($L1 - test)
+	.word ($L2 - $L3)
+	.word ($L4 - $L5)
+	.word ($L7 - $L6)
+	.word ($L9 - $L8)

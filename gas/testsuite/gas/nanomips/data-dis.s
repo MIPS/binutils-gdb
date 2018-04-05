@@ -1,4 +1,6 @@
 # Disassembly checks with incorrect instruction encodings
 
-.word 0x30b48020
-.word 0x311c8020
+	.hword 0x8020
+	.hword 0x30b4
+	.hword 0x8020
+	.hword 0x311c

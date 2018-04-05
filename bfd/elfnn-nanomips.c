@@ -123,7 +123,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] = {
 
   HOWTO (R_NANOMIPS_UNSIGNED_8, /* type */
 	 0,			/* rightshift */
-	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 0,			/* size (0 = byte, 1 = short, 2 = long) */
 	 8,			/* bitsize */
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
@@ -137,7 +137,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] = {
 
   HOWTO (R_NANOMIPS_SIGNED_8,	/* type */
 	 0,			/* rightshift */
-	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 0,			/* size (0 = byte, 1 = short, 2 = long) */
 	 8,			/* bitsize */
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
@@ -151,7 +151,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] = {
 
   HOWTO (R_NANOMIPS_UNSIGNED_16, /* type */
 	 0,			/* rightshift */
-	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 1,			/* size (0 = byte, 1 = short, 2 = long) */
 	 16,			/* bitsize */
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */
@@ -165,7 +165,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] = {
 
   HOWTO (R_NANOMIPS_SIGNED_16,	/* type */
 	 0,			/* rightshift */
-	 2,			/* size (0 = byte, 1 = short, 2 = long) */
+	 1,			/* size (0 = byte, 1 = short, 2 = long) */
 	 16,			/* bitsize */
 	 FALSE,			/* pc_relative */
 	 0,			/* bitpos */

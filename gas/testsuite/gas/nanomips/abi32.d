@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses  --show-raw-insn
 #nam[0-9a-f]+: nanoMIPS 32-bit ABI
-#as: -EB
+#as: -EB --linkrelax
 
 .*: +file format.*
 

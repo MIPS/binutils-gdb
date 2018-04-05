@@ -96,6 +96,8 @@ extern int nanomips_force_relocation (struct fix *);
 #define TC_FORCE_RELOCATION_SUB_SAME(FIX, SEG) \
   (! SEG_NORMAL (SEG) || nanomips_force_relocation (FIX))
 
+#define TC_FORCE_RELOCATION_SUB_LOCAL(FIX, SEG) \
+  (((SEG)->flags & SEC_CODE) != 0 && nanomips_force_relocation (FIX))
 
 #define elf_tc_final_processing nanomips_elf_final_processing
 extern void nanomips_elf_final_processing (void);
@@ -182,9 +184,9 @@ extern void nanomips_md_do_align (int, const char *, int, int);
 
 /* This macro is evaluated for any fixup with a fx_subsy that
    fixup_segment cannot reduce to a number.  If the macro returns
-   false an error will be reported. */
+   false an error will be reported.  */
 #define TC_VALIDATE_FIX_SUB(fix, seg)   nanomips_validate_fix_sub (fix)
-extern int nanomips_validate_fix_sub (struct fix *);
+extern bfd_boolean nanomips_validate_fix_sub (struct fix *);
 
 #define LEX_BR LEX_NAME
 

@@ -249,7 +249,7 @@ of assembly. The @samp{-mminimize-relocs} reduces the size of the generated
 object code by removing some relocations and hence the time needed to link
 with relaxations.
 
-This is disabled by default.
+This is enabled by default.
 @end table
 
 @node nanoMIPS Directives

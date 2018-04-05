@@ -412,13 +412,14 @@ proc run_list_test_opts { name opts_list arch_list } {
 arch_init
 arch_create nanomips32r6 32	{} \
 			{ nanomipsr6 } \
-			{ -march=32r6 --defsym nanomips= -mlegacyregs } {}
+			{ -march=32r6 --defsym nanomips= -mlegacyregs \
+			-mno-minimize-relocs } {}
 arch_create nanomips32r6s 32	{} \
 			{} \
-			{ -march=32r6s --defsym nanomips= -mlegacyregs } {}
+			{ -march=32r6s --defsym nanomips= -mlegacyregs -mno-minimize-relocs } {}
 arch_create nanomips64r6 64	{}  \
 			{ nanomips32r6 nanomipsr6 } \
-			{ -march=64r6 --defsym nanomips= -mlegacyregs } {}
+			{ -march=64r6 --defsym nanomips= -mlegacyregs  -mno-minimize-relocs } {}
 arch_create nanomips32 32	{} \
 			{ nanomips xnms } \
 			{ -march=32r6 --defsym nanomips= } {}

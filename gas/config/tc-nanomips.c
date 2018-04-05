@@ -261,7 +261,7 @@ static struct nanomips_set_options file_nanomips_opts = {
   /* arch */ CPU_UNKNOWN,  /* soft_float */ FALSE, /* single_float */ FALSE,
   /* init_ase */ 0, /* no_balc_stubs */ TRUE, /* legacyregs */ FALSE,
   /* pcrel */ FALSE, /* pid */ FALSE, /* pic */ NO_PIC,
-  /* mc_model */ MC_AUTO, /* linkrelax */ FALSE, /* minimize_relocs */ FALSE
+  /* mc_model */ MC_AUTO, /* linkrelax */ FALSE, /* minimize_relocs */ TRUE
 };
 
 /* This is similar to file_nanomips_opts, but for the current set of options.  */
@@ -272,7 +272,7 @@ static struct nanomips_set_options nanomips_opts = {
   /* arch */ CPU_UNKNOWN, /* soft_float */ FALSE, /* single_float */ FALSE,
   /* init_ase */ 0, /* no_balc_stubs */ TRUE, /* legacyregs */ FALSE,
   /* pcrel */ FALSE, /* pid */ FALSE, /* pic */ NO_PIC,
-  /* mc_model */ MC_AUTO, /* linkrelax */ FALSE, /* minimize_relocs */ FALSE
+  /* mc_model */ MC_AUTO, /* linkrelax */ FALSE, /* minimize_relocs */ TRUE
 };
 
 /* Which bits of file_ase were explicitly set or cleared by ASE options.  */
@@ -807,6 +807,8 @@ static void file_check_options (void);
 static void stubgroup_new (asection *);
 static void s_sign_cons (int);
 static void s_nanomips_leb128 (int);
+static bfd_boolean nanomips_allow_local_subtract_symbols (symbolS*,
+							  symbolS*);
 
 /* Table and functions used to map between CPU/ISA names, and
    ISA levels, and CPU numbers.  */
@@ -3797,8 +3799,8 @@ match_int_operand (struct nanomips_arg_info *arg,
 
 	      if (offset_reloc[0] == BFD_RELOC_NANOMIPS_LO12
 		  && (forced_insn_length == 2
-		      || (forced_insn_format &&
-			  insn_length (arg->insn->insn_mo) == 2)))
+		      || (forced_insn_format
+			  && insn_length (arg->insn->insn_mo) == 2)))
 		offset_reloc[0] = BFD_RELOC_NANOMIPS_LO4_S2;
 
 	      howto = bfd_reloc_type_lookup (stdoutput, offset_reloc[0]);
@@ -5682,8 +5684,9 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
       int type = *reloc_type - BFD_RELOC_UNUSED;
       int al = pinfo & INSN_WRITE_GPR_31;
       int max = (forced_insn_format? insn_length (ip->insn_mo) : 4);
-      enum relax_nanomips_fix_type rf = (nanomips_opts.linkrelax ?
-					 RF_VARIABLE : RF_NORELAX);
+      enum relax_nanomips_fix_type rf = (nanomips_opts.linkrelax
+					 ? RF_VARIABLE
+					 : RF_NORELAX);
 
       gas_assert (address_expr != NULL);
       gas_assert (!nanomips_relax.sequence);
@@ -9991,12 +9994,6 @@ nanomips_frob_file_before_adjust (void)
 #endif
 }
 
-static bfd_boolean
-relaxable_section (asection *sec)
-{
-  return (sec->flags & SEC_DEBUGGING) == 0;
-}
-
 int
 nanomips_force_relocation (fixS *fixp)
 {
@@ -10015,7 +10012,6 @@ nanomips_force_relocation (fixS *fixp)
       || fixp->fx_r_type == BFD_RELOC_NANOMIPS_JALR16)
     return 1;
 
-
   /* and for nanoMIPS expansions */
   if (pcrel_branch_reloc_p (fixp->fx_r_type)
       || fixp->fx_r_type == BFD_RELOC_NANOMIPS_PCREL_HI20
@@ -10025,10 +10021,12 @@ nanomips_force_relocation (fixS *fixp)
       || fixp->fx_r_type == BFD_RELOC_NANOMIPS_GOT_LO12)
     return 1;
 
-  if (linkrelax && fixp->fx_subsy
-      && relaxable_section (S_GET_SEGMENT (fixp->fx_addsy))
-      && nanomips_validate_fix_sub (fixp))
-    return 1;
+  if (linkrelax
+      && fixp->fx_subsy
+      && (S_GET_SEGMENT (fixp->fx_addsy)->flags & SEC_CODE) != 0
+      && (S_GET_SEGMENT (fixp->fx_subsy)->flags & SEC_CODE) != 0)
+    return !nanomips_allow_local_subtract_symbols (fixp->fx_addsy,
+						   fixp->fx_subsy);
 
   return 0;
 }
@@ -11902,14 +11900,12 @@ nanomips_fix_adjustable (fixS *fixp)
 
   /* PC relative relocations for need to be symbol rather than section
      relative to allow linker relaxations to be performed later on.  */
-  if (pcrel_reloc_p (fixp->fx_r_type)
-      && !RELAX_NANOMIPS_FIXED (fixp->fx_frag->fr_subtype))
-    return 0;
+  if (pcrel_reloc_p (fixp->fx_r_type))
+    return RELAX_NANOMIPS_FIXED (fixp->fx_frag->fr_subtype);
 
   /* Relocations to code sections need to be symbol rather than section
      relative for nanoMIPS, to allow linker expansions and relaxations
      without having to adjust addends.  */
-
   tsect = S_GET_SEGMENT (fixp->fx_addsy);
   if (tsect != NULL
       && (tsect->flags & SEC_CODE) != 0
@@ -13158,6 +13154,20 @@ nanomips_bytes_to_reloc (int nbytes, bfd_boolean signed_val)
   return rel;
 }
 
+/* Check if the expression is a simple difference of local labels in
+   code sections.  */
+
+static bfd_boolean
+simple_diff_expr_p (expressionS *exp)
+{
+  return (exp->X_op == O_subtract
+	  && exp->X_add_symbol
+	  && exp->X_op_symbol
+	  && exp->X_add_number == 0
+	  && symbol_constant_p (exp->X_add_symbol)
+	  && symbol_constant_p (exp->X_op_symbol));
+}
+
 /* Parse a .byte, .word, etc. expression.
 
    Values for the status register are specified with %st(label).
@@ -13199,6 +13209,12 @@ nanomips_parse_cons_expression (expressionS *exp, unsigned int nbytes)
     {
       expressionS *iter;
       bfd_boolean done = FALSE;
+
+      /* By-pass explicit reloc generation for simple label differences to
+	 allow the general framework to evaluate whether the difference is
+	 fixed or link-time variable.  */
+      if (simple_diff_expr_p (exp))
+	return rel;
 
       rel = nanomips_bytes_to_reloc (nbytes, sign_cons);
 
@@ -13453,21 +13469,26 @@ nanomips_allow_local_subtract_symbols (symbolS *left, symbolS *right)
 	   && S_GET_SEGMENT (left) == S_GET_SEGMENT (right))
     {
       fragS *fragp, *ifragp;
+      bfd_boolean fixed_final = FALSE;
       if (S_GET_VALUE (left) > S_GET_VALUE (right))
 	{
 	  fragp = symbol_get_frag (left);
 	  ifragp = symbol_get_frag (right);
+	  if (S_GET_VALUE (left) <= fragp->fr_address + fragp->fr_fix)
+	    fixed_final = TRUE;
 	}
       else
 	{
 	  fragp = symbol_get_frag (right);
 	  ifragp = symbol_get_frag (left);
+	  if (S_GET_VALUE (right) <= fragp->fr_address + fragp->fr_fix)
+	    fixed_final = TRUE;
 	}
 
       while (ifragp && ifragp != fragp && !variable_frag_p (ifragp))
 	ifragp = ifragp->fr_next;
 
-      return (ifragp == fragp && !variable_frag_p (ifragp));
+      return (ifragp == fragp && (fixed_final || !variable_frag_p (ifragp)));
     }
 
   /* We have to assume that there may be instructions between the
@@ -13522,9 +13543,9 @@ nanomips_md_do_align (int n, const char *fill, int fill_length, int max_fill)
     }
 }
 
-/* TC_VALIDATE_FIX_SUB hook */
+/* TC_VALIDATE_FIX_SUB hook.  */
 
-int
+bfd_boolean
 nanomips_validate_fix_sub (fixS *fix)
 {
   segT add_symbol_segment, sub_symbol_segment;
@@ -13541,48 +13562,17 @@ nanomips_validate_fix_sub (fixS *fix)
      fix is not valid.  If the segment is not "relaxable", then the fix
      should have been handled earlier.  */
   add_symbol_segment = S_GET_SEGMENT (fix->fx_addsy);
-  if (!SEG_NORMAL (add_symbol_segment) ||
-      !relaxable_section (add_symbol_segment))
+  if (!SEG_NORMAL (add_symbol_segment)
+      || (add_symbol_segment->flags & SEC_DEBUGGING) != 0)
     return 0;
+
   sub_symbol_segment = S_GET_SEGMENT (fix->fx_subsy);
 
   if (sub_symbol_segment != add_symbol_segment)
     return 0;
   else
-    {
-      fixS *fixP;
-      fragS *frag_hi, *frag_lo;
-      bfd_vma low, high;
-
-      frag_hi = symbol_get_frag (fix->fx_addsy);
-      high = S_GET_VALUE (fix->fx_addsy);
-      frag_lo = symbol_get_frag (fix->fx_subsy);
-      low = S_GET_VALUE (fix->fx_subsy);
-
-      /* Swap if necessary.  */
-      if (high < low)
-	{
-	  fragS *temp = frag_hi;
-	  frag_hi = frag_lo;
-	  frag_lo = temp;
-	  high = high + low;
-	  low = high - low;
-	  high = high - low;
-	}
-
-      /* Start with the first fix-up in this frag.  */
-      fixP = frag_lo->tc_frag_data.first_fix;
-
-      /* Now look for fixups within the range.  */
-      while (fixP != NULL
-	     && fixP->fx_frag->fr_address + fixP->fx_where < low
-	     && fixP->fx_frag->fr_address + fixP->fx_where < high)
-	fixP = fixP->fx_next;
-
-      /* No fixup within the range.  */
-      return (fixP != NULL
-	      && fixP->fx_frag->fr_address + fixP->fx_where < high);
-    }
+    return (!nanomips_allow_local_subtract_symbols (fix->fx_addsy,
+						   fix->fx_subsy));
 }
 
 /* TC_EH_FRAME_ESTIMATE_SIZE_BEFORE_RELAX hook.
