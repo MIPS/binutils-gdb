@@ -937,7 +937,6 @@ enum
   M_TNE_I,
   M_ULD_AC,
   M_ULH_AC,
-  M_ULHU_AC,
   M_ULW_AC,
   M_USH_AC,
   M_USW_AC,

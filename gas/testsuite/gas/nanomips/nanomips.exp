@@ -852,14 +852,11 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "tls-p32"	[arch_list_matching xnms]
     run_dump_test_arches "tls-relw"	[arch_list_matching xnms]
 
-    run_dump_test_arches "uld"		[arch_list_matching nanomipsr6]
-    run_dump_test_arches "ulh"		[arch_list_matching nanomipsr6]
-    run_dump_test_arches "ulh-pic"	[arch_list_matching nanomipsr6]
-    run_dump_test_arches "ulw"		[arch_list_matching nanomipsr6]
-    run_dump_test_arches "usd"		[arch_list_matching nanomipsr6]
-    run_dump_test_arches "ush"		[arch_list_matching nanomipsr6]
-    run_dump_test_arches "usw"		[arch_list_matching nanomipsr6]
-    
+    run_dump_test_arches "u-ldst" [arch_list_matching nanomipsr6]
+    run_dump_test_arches "u-ldst-pic" [arch_list_matching nanomipsr6]
+    run_dump_test_arches "u-ldsd" [arch_list_matching nanomipsr6]
+    run_dump_test_arches "u-ldsd-64" [arch_list_matching nanomips64r6]
+
     run_dump_test_arch "virt" "" nanomips32r6
     run_dump_test_arch "virt64"	"" nanomips64r6
     

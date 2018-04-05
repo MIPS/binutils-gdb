@@ -41,28 +41,6 @@ func:
 	sd	$4, unshared	# 006c lui	at,hi(unshared)
 				# 0070 sw	a0,lo(unshared)(at)
 				# 0074 sw	a1,lo(unshared)+4(at)
-	ulh	$4, unshared	# 0078 lui	at,hi(unshared)
-				# 007c addiu	at,at,lo(unshared)
-				# 0080 lb	a0,0(at)
-				# 0084 lbu	at,1(at)
-				# 0088 sll	a0,a0,8
-				# 008c or	a0,a0,at
-	ush	$4, unshared	# 0090 lui	at,hi(unshared)
-				# 0094 addiu	at,at,lo(unshared)
-				# 0098 sb	a0,1(at)
-				# 009c srl	a0,a0,8
-				# 00a0 sb	a0,0(at)
-				# 00a4 lbu	at,1(at)
-				# 00a8 sll	a0,a0,8
-				# 00ac or	a0,a0,at
-	ulw	$4, unshared	# 00b0 lui	at,hi(unshared)
-				# 00b4 addiu	at,at,lo(unshared)
-				# 00b8 lwl	a0,0(at)
-				# 00bc lwr	a0,3(at)
-	usw	$4, unshared	# 00c0 lui	at,hi(unshared)
-				# 00c4 addiu	at,at,lo(unshared)
-				# 00c8 swl	a0,0(at)
-				# 00cc swr	a0,3(at)
 	li.d	$4, 1.0		# 00d0 lui	a0,0x3ff0
 				# 00d4 move	a1,zero
 	li.d	$4, 1.9		# 00d8 lui	at,hi(F1.9)

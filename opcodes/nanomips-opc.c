@@ -1444,22 +1444,21 @@ IGRIE */
 {"trunc.w.d",	"",		"T,S",		0xa0006b3b, 0xfc00ffff,	WR_1|RD_2|FP_D|FP_S,	0,	I38,	0},
 {"trunc.w.s",	"",		"T,S",		0xa0002b3b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
 {"ualh",	"",		"t,+j(b)",	0xa4002100, 0xfc007f00,	WR_1|RD_3,		0,	0,	xNMS},
-{"ualwm",	"",		"t,+j(b),|",	0xa4000500, 0xfc000f00,	WR_1|RD_3,		0,	0,	xNMS}, /* UALWM */
 {"ualw",	"",		"t,+j(b)",	0xa4001500, 0xfc007f00,	WR_1|RD_3,	INSN2_ALIAS,	0,	xNMS}, /* UALWM */
-{"ualdm",	"",		"t,+j(b),|",	0xa4000700, 0xfc000f00,	WR_1|RD_3,		0,	I70,	0}, /* UALDM */
+{"ualwm",	"",		"t,+j(b),|",	0xa4000500, 0xfc000f00,	WR_1|RD_3,		0,	0,	xNMS}, /* UALWM */
 {"uald",	"",		"t,+j(b)",	0xa4001700, 0xfc007f00,	WR_1|RD_3,	INSN2_ALIAS,	I70,	0}, /* UALDM */
+{"ualdm",	"",		"t,+j(b),|",	0xa4000700, 0xfc000f00,	WR_1|RD_3,		0,	I70,	0}, /* UALDM */
 {"uash",	"",		"t,+j(b)",	0xa4002900, 0xfc007f00,	RD_1|RD_3,		0,	0,	xNMS},
-{"uaswm",	"",		"t,+j(b),|",	0xa4000d00, 0xfc000f00,	RD_1|RD_3,		0,	0,	xNMS}, /* UASWM */
 {"uasw",	"",		"t,+j(b)",	0xa4001d00, 0xfc007f00,	RD_1|RD_3,	INSN2_ALIAS,	0,	xNMS}, /* UASWM */
-{"uasdm",	"",		"t,+j(b),|",	0xa4000f00, 0xfc000f00,	RD_1|RD_3,		0,	I70,	0}, /* UASDM */
+{"uaswm",	"",		"t,+j(b),|",	0xa4000d00, 0xfc000f00,	RD_1|RD_3,		0,	0,	xNMS}, /* UASWM */
 {"uasd",	"",		"t,+j(b)",	0xa4001f00, 0xfc007f00,	RD_1|RD_3,	INSN2_ALIAS,	I70,	0}, /* UASDM */
-{"uld", 	"",		"t,A(c)",	0,    (int) M_ULD_AC,	INSN_MACRO,		0,	I38,	0},
-{"ulh", 	"",		"t,A(c)",	0,    (int) M_ULH_AC,	INSN_MACRO,		0,	I38,	0},
-{"ulhu",	"",		"t,A(c)",	0,    (int) M_ULHU_AC,	INSN_MACRO,		0,	I38,	0},
-{"ulw", 	"",		"t,A(c)",	0,    (int) M_ULW_AC,	INSN_MACRO,		0,	I38,	0},
-{"usd", 	"",		"t,A(c)",	0,    (int) M_USD_AC,	INSN_MACRO,		0,	I38,	0},
-{"ush", 	"",		"t,A(c)",	0,    (int) M_USH_AC,	INSN_MACRO,		0,	I38,	0},
-{"usw", 	"",		"t,A(c)",	0,    (int) M_USW_AC,	INSN_MACRO,		0,	I38,	0},
+{"uasdm",	"",		"t,+j(b),|",	0xa4000f00, 0xfc000f00,	RD_1|RD_3,		0,	I70,	0}, /* UASDM */
+{"uld", 	"",		"t,A(c)",	0,    (int) M_ULD_AC,	INSN_MACRO,		0,	0,	xNMS},
+{"ulh", 	"",		"t,A(c)",	0,    (int) M_ULH_AC,	INSN_MACRO,		0,	0,	xNMS},
+{"ulw", 	"",		"t,A(c)",	0,    (int) M_ULW_AC,	INSN_MACRO,		0,	0,	xNMS},
+{"usd", 	"",		"t,A(c)",	0,    (int) M_USD_AC,	INSN_MACRO,		0,	0,	xNMS},
+{"ush", 	"",		"t,A(c)",	0,    (int) M_USH_AC,	INSN_MACRO,		0,	0,	xNMS},
+{"usw", 	"",		"t,A(c)",	0,    (int) M_USW_AC,	INSN_MACRO,		0,	0,	xNMS},
 {"udi", 	"",		"m8",		0x20000003, 0xfc000007,		0,		0,	0,	UDI},
 {"wait",	"",		"",		0x2000c37f, 0xffffffff,		0,	INSN2_ALIAS,	I38,	0},
 {"wait",	"",		"+L",		0x2000c37f, 0xfc00ffff,		0,		0,	I38,	0},

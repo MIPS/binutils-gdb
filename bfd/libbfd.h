@@ -1285,6 +1285,7 @@ static const char *const bfd_reloc_code_real_names[] = { "@@uninitialized@@",
   "BFD_RELOC_NANOMIPS_JALR16",
   "BFD_RELOC_NANOMIPS_JALR32",
   "BFD_RELOC_NANOMIPS_COPY",
+  "BFD_RELOC_NANOMIPS_SIGNED_9",
 
   "BFD_RELOC_MOXIE_10_PCREL",
 

@@ -15,16 +15,14 @@ data_label:
 	.text
 text_label:
 	ulh	$4,data_label
-	ulhu	$4,big_external_data_label
 	ulw	$4,small_external_data_label
 	ush	$4,big_external_common
 	usw	$4,small_external_common
 	ulh	$4,big_local_common
-	ulhu	$4,small_local_common
 	ulw	$4,data_label+1
 	ush	$4,big_external_data_label+1
 	usw	$4,small_external_data_label+1
 	ulh	$4,big_external_common+1
-	ulhu	$4,small_external_common+1
 	ulw	$4,big_local_common+1
 	ush	$4,small_local_common+1
+	usw	$4,small_local_common+1

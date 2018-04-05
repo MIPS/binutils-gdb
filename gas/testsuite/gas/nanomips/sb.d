@@ -169,8 +169,7 @@ Disassembly of section .text:
 			[0-9a-f]+: R_NANOMIPS_LO12	\.bss\+0x1a5a5
  [0-9a-f]+:	sb	a0,0\(gp\)
 			[0-9a-f]+: R_NANOMIPS_GPREL18	\.sbss\+0x1a5a5
- [0-9a-f]+:	sw	a0,0\(zero\)
- [0-9a-f]+:	sw	a1,4\(zero\)
+ [0-9a-f]+:	swm	a0,0\(zero\),2
  [0-9a-f]+:	sh	a0,0\(zero\)
  [0-9a-f]+:	sw	a0,0\(zero\)
  [0-9a-f]+:	swc1	\$f4,0\(zero\)

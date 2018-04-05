@@ -8,36 +8,26 @@
 .*: +file format .*nanomips.*
 
 Disassembly of section \.text:
-[0-9a-f]+ <text_label> sw	a0,0\(zero\)
-[0-9a-f]+ <text_label\+0x[0-9a-f]+> sw	a1,4\(zero\)
-[0-9a-f]+ <text_label\+0x[0-9a-f]+> sw	a0,1\(zero\)
-[0-9a-f]+ <text_label\+0x[0-9a-f]+> sw	a1,5\(zero\)
+[0-9a-f]+ <text_label> swm	a0,0\(zero\),2
+[0-9a-f]+ <text_label\+0x[0-9a-f]+> swm	a0,1\(zero\),2
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> li	at,4092
-[0-9a-f]+ <text_label\+0x[0-9a-f]+> sw	a0,0\(at\)
-[0-9a-f]+ <text_label\+0x[0-9a-f]+> sw	a1,4\(at\)
+[0-9a-f]+ <text_label\+0x[0-9a-f]+> swm	a0,0\(at\),2
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> li	at,-4092
-[0-9a-f]+ <text_label\+0x[0-9a-f]+> sw	a0,0\(at\)
-[0-9a-f]+ <text_label\+0x[0-9a-f]+> sw	a1,4\(at\)
+[0-9a-f]+ <text_label\+0x[0-9a-f]+> swm	a0,0\(at\),2
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> li	at,4096
-[0-9a-f]+ <text_label\+0x[0-9a-f]+> sw	a0,0\(at\)
-[0-9a-f]+ <text_label\+0x[0-9a-f]+> sw	a1,4\(at\)
+[0-9a-f]+ <text_label\+0x[0-9a-f]+> swm	a0,0\(at\),2
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> swpc	a0,[0-9a-f]+ <\*ABS\*\+0x[0-9a-f]+>
 			[0-9a-f]+: R_NANOMIPS_PC_I32	\*ABS\*\+0x1a5a5
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> swpc	a1,[0-9a-f]+ <\*ABS\*\+0x[0-9a-f]+>
 			[0-9a-f]+: R_NANOMIPS_PC_I32	\*ABS\*\+0x1a5a9
-[0-9a-f]+ <text_label\+0x[0-9a-f]+> sw	a0,0\(a1\)
-[0-9a-f]+ <text_label\+0x[0-9a-f]+> sw	a1,4\(a1\)
-[0-9a-f]+ <text_label\+0x[0-9a-f]+> sw	a0,1\(a1\)
-[0-9a-f]+ <text_label\+0x[0-9a-f]+> sw	a1,5\(a1\)
+[0-9a-f]+ <text_label\+0x[0-9a-f]+> swm	a0,0\(a1\),2
+[0-9a-f]+ <text_label\+0x[0-9a-f]+> swm	a0,1\(a1\),2
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> addiu	at,a1,4092
-[0-9a-f]+ <text_label\+0x[0-9a-f]+> sw	a0,0\(at\)
-[0-9a-f]+ <text_label\+0x[0-9a-f]+> sw	a1,4\(at\)
+[0-9a-f]+ <text_label\+0x[0-9a-f]+> swm	a0,0\(at\),2
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> addiu	at,a1,-4092
-[0-9a-f]+ <text_label\+0x[0-9a-f]+> sw	a0,0\(at\)
-[0-9a-f]+ <text_label\+0x[0-9a-f]+> sw	a1,4\(at\)
+[0-9a-f]+ <text_label\+0x[0-9a-f]+> swm	a0,0\(at\),2
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> addiu	at,a1,4096
-[0-9a-f]+ <text_label\+0x[0-9a-f]+> sw	a0,0\(at\)
-[0-9a-f]+ <text_label\+0x[0-9a-f]+> sw	a1,4\(at\)
+[0-9a-f]+ <text_label\+0x[0-9a-f]+> swm	a0,0\(at\),2
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> swpc	a0,[0-9a-f]+ <\*ABS\*\+0x[0-9a-f]+>
 			[0-9a-f]+: R_NANOMIPS_PC_I32	\*ABS\*\+0x1a5a5
 [0-9a-f]+ <text_label\+0x[0-9a-f]+> swpc	a1,[0-9a-f]+ <\*ABS\*\+0x[0-9a-f]+>

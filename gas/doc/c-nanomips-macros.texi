@@ -2260,7 +2260,6 @@ lwx rd+1,$at(rs)
 @itemx lh rd,ofst(rs)
 @itemx lhu rd,ofst(rs)
 @itemx ulh rd,ofst(rs)
-@itemx ulhu rd,ofst(rs)
 @itemx ulw rd,ofst(rs)
 @multitable @columnfractions 1
 @item @xref{x_lw_ofst,,lw from ofst}.
@@ -2271,7 +2270,6 @@ lwx rd+1,$at(rs)
 @itemx lh rd,label
 @itemx lhu rd,label
 @itemx ulh rd,label
-@itemx ulhu rd,label
 @itemx ulw rd,label
 @multitable @columnfractions 1
 @item @xref{x_lw_label,,lw from label}.
