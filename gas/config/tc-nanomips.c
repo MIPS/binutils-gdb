@@ -786,7 +786,6 @@ static void s_change_sec (int);
 static void s_change_section (int);
 static void s_cons (int);
 static void s_float_cons (int);
-static void s_nanomips_globl (int);
 static void s_nanomipsset (int);
 static void s_cpsetup (int);
 static void s_dtprelword (int);
@@ -800,8 +799,6 @@ static void s_nanomips_ent (int);
 static void s_nanomips_end (int);
 static void s_nanomips_frame (int);
 static void s_nanomips_mask (int reg_type);
-static void s_nanomips_stab (int);
-static void s_nanomips_weakext (int);
 static void s_nanomips_file (int);
 static void s_nanomips_loc (int);
 static void s_linkrelax (int);
@@ -1071,7 +1068,6 @@ static const pseudo_typeS nanomips_pseudo_table[] = {
   {"err", s_err, 0},
   {"half", s_cons, 1},
   {"dword", s_cons, 3},
-  {"weakext", s_nanomips_weakext, 0},
   {"origin", s_org, 0},
   {"repeat", s_rept, 0},
 
@@ -1085,8 +1081,6 @@ static const pseudo_typeS nanomips_pseudo_table[] = {
   {"data", s_change_sec, 'd'},
   {"double", s_float_cons, 'd'},
   {"float", s_float_cons, 'f'},
-  {"globl", s_nanomips_globl, 0},
-  {"global", s_nanomips_globl, 0},
   {"hword", s_cons, 1},
   {"int", s_cons, 2},
   {"long", s_cons, 2},
@@ -1095,9 +1089,6 @@ static const pseudo_typeS nanomips_pseudo_table[] = {
   {"section", s_change_section, 0},
   {"short", s_cons, 1},
   {"single", s_float_cons, 'f'},
-  {"stabd", s_nanomips_stab, 'd'},
-  {"stabn", s_nanomips_stab, 'n'},
-  {"stabs", s_nanomips_stab, 's'},
   {"text", s_change_sec, 't'},
   {"word", s_cons, 2},
   {"uleb128", s_nanomips_leb128, 0},
@@ -10650,7 +10641,6 @@ s_change_section (int ignore ATTRIBUTE_UNUSED)
   int section_type;
   int section_flag;
   int section_entry_size;
-  int section_alignment;
 
   saved_ilp = input_line_pointer;
   endc = get_symbol_name (&section_name);
@@ -10691,12 +10681,6 @@ s_change_section (int ignore ATTRIBUTE_UNUSED)
     section_entry_size = get_absolute_expression ();
   else
     section_entry_size = 0;
-  if (*input_line_pointer++ == ',')
-    section_alignment = get_absolute_expression ();
-  else
-    section_alignment = 0;
-  /* FIXME: really ignore?  */
-  (void) section_alignment;
 
   section_name = xstrdup (section_name);
 
@@ -10761,63 +10745,6 @@ s_float_cons (int type)
 
   float_cons (type);
   nanomips_clear_insn_labels ();
-}
-
-/* Handle .globl.  We need to override it because on Irix 5 you are
-   permitted to say
-       .globl foo .text
-   where foo is an undefined symbol, to mean that foo should be
-   considered to be the address of a function.  */
-
-static void
-s_nanomips_globl (int x ATTRIBUTE_UNUSED)
-{
-  char *name;
-  int c;
-  symbolS *symbolP;
-  flagword flag;
-
-  do
-    {
-      c = get_symbol_name (&name);
-      symbolP = symbol_find_or_make (name);
-      S_SET_EXTERNAL (symbolP);
-
-      *input_line_pointer = c;
-      SKIP_WHITESPACE_AFTER_NAME ();
-
-      flag = BSF_OBJECT;
-
-      if (!is_end_of_line[(unsigned char) *input_line_pointer]
-	  && (*input_line_pointer != ','))
-	{
-	  char *secname;
-	  asection *sec;
-
-	  c = get_symbol_name (&secname);
-	  sec = bfd_get_section_by_name (stdoutput, secname);
-	  if (sec == NULL)
-	    as_bad (_("%s: no such section"), secname);
-	  (void) restore_line_pointer (c);
-
-	  if (sec != NULL && (sec->flags & SEC_CODE) != 0)
-	    flag = BSF_FUNCTION;
-	}
-
-      symbol_get_bfdsym (symbolP)->flags |= flag;
-
-      c = *input_line_pointer;
-      if (c == ',')
-	{
-	  input_line_pointer++;
-	  SKIP_WHITESPACE ();
-	  if (is_end_of_line[(unsigned char) *input_line_pointer])
-	    c = '\n';
-	}
-    }
-  while (c == ',');
-
-  demand_empty_rest_of_line ();
 }
 
 /* Parse the .sleb128 and .uleb128 pseudos.  Only allow constant expressions,
@@ -11249,72 +11176,6 @@ s_insn (int ignore ATTRIBUTE_UNUSED)
   demand_empty_rest_of_line ();
 }
 
-/* Handle a .stab[snd] directive.  Ideally these directives would be
-   implemented in a transparent way, so that removing them would not
-   have any effect on the generated instructions.  However, s_stab
-   internally changes the section, so in practice we need to decide
-   now whether the preceding label marks compressed code.  We do not
-   support changing the compression mode of a label after a .stab*
-   directive, such as in:
-
-   foo:
-	.stabs ...
-	.set mips16
-
-   so the current mode wins.  */
-
-static void
-s_nanomips_stab (int type)
-{
-  s_stab (type);
-}
-
-/* Handle the .weakext pseudo-op as defined in Kane and Heinrich.  */
-
-static void
-s_nanomips_weakext (int ignore ATTRIBUTE_UNUSED)
-{
-  char *name;
-  int c;
-  symbolS *symbolP;
-  expressionS exp;
-
-  c = get_symbol_name (&name);
-  symbolP = symbol_find_or_make (name);
-  S_SET_WEAK (symbolP);
-  *input_line_pointer = c;
-
-  SKIP_WHITESPACE_AFTER_NAME ();
-
-  if (!is_end_of_line[(unsigned char) *input_line_pointer])
-    {
-      if (S_IS_DEFINED (symbolP))
-	{
-	  as_bad (_("ignoring attempt to redefine symbol %s"),
-		  S_GET_NAME (symbolP));
-	  ignore_rest_of_line ();
-	  return;
-	}
-
-      if (*input_line_pointer == ',')
-	{
-	  ++input_line_pointer;
-	  SKIP_WHITESPACE ();
-	}
-
-      expression (&exp);
-      if (exp.X_op != O_symbol)
-	{
-	  as_bad (_("bad .weakext directive"));
-	  ignore_rest_of_line ();
-	  return;
-	}
-      symbol_set_value_expression (symbolP, &exp);
-    }
-
-  demand_empty_rest_of_line ();
-}
-
 /* Parse a register string into a number.  Called from the ECOFF code
    to parse .frame.  The argument is non-zero if this is the frame
    register, so that we can record it in nanomips_frame_reg.  */
@@ -11329,23 +11190,6 @@ tc_get_register (int frame ATTRIBUTE_UNUSED)
     reg = 0;
 
   return reg;
-}
-
-valueT
-md_section_align (asection *seg, valueT addr)
-{
-  unsigned int align = bfd_get_section_alignment (stdoutput, seg);
-
-  /* We don't need to align ELF sections to the full alignment.
-     However, Irix 5 may prefer that we align them at least to a 16
-     byte boundary.  We don't bother to align the sections if we
-     are targeted for an embedded system.  */
-  if (strncmp (TARGET_OS, "elf", 3) == 0)
-    return addr;
-  if (align > 4)
-    align = 4;
-
-  return ((addr + (1 << align) - 1) & -(1 << align));
 }
 
 /* Utility routine, called from above as well.  If called while the

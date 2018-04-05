@@ -1,5 +1,5 @@
 # Source file used to test the jal macro.
-	.globl	text_label	.text
+	.globl	text_label
 text_label:	
 	jal	$25
 	jal	$4,$25

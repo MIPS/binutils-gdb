@@ -1,13 +1,13 @@
 # Source file used to test the backward branches to globals in this file.
 
-	.globl g1 .text
-	.globl g2 .text
-	.globl g3 .text
-	.globl g4 .text
-	.globl g5 .text
-	.globl g6 .text
+	.globl g1
+	.globl g2
+	.globl g3
+	.globl g4
+	.globl g5
+	.globl g6
 
-	.globl x1 .text
+	.globl x1
 
 	.text
 g1:

@@ -4,7 +4,7 @@
 	.set noreorder
 	.set noat
 
-	.globl text_label .text
+	.globl text_label
 text_label:
 
 	ctc1	$0, $0

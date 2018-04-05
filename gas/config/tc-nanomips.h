@@ -90,10 +90,6 @@ extern int nanomips_fix_adjustable (struct fix *);
 /* Values passed to md_apply_fix don't include symbol values.  */
 #define MD_APPLY_SYM_VALUE(FIX) 0
 
-/* Global syms must not be resolved, to support ELF shared libraries.  */
-#define EXTERN_FORCE_RELOC			\
-  (OUTPUT_FLAVOR == bfd_target_elf_flavour)
-
 #define TC_FORCE_RELOCATION(FIX) nanomips_force_relocation (FIX)
 extern int nanomips_force_relocation (struct fix *);
 
@@ -204,5 +200,7 @@ int nanomips_eh_frame_relax_frag (fragS *);
 void nanomips_eh_frame_convert_frag (fragS *);
 #define TC_EH_FRAME_CONVERT_FRAG(frag) \
   nanomips_eh_frame_convert_frag (frag)
+
+#define md_section_align(SEGMENT, SIZE)     (SIZE)
 
 #endif /* TC_NANOMIPS */

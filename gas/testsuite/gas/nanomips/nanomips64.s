@@ -1,6 +1,6 @@
 # source file to test assembly of nanoMIPS64 instructions
 	.set noat
-	.globl text_label .text
+	.globl text_label
 text_label:
 
 	# unprivileged CPU instructions
