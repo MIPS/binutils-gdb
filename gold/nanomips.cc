@@ -1313,7 +1313,7 @@ class Target_nanomips : public Sized_target<size, big_endian>
 
  public:
   Target_nanomips(const Target::Target_info* info = &nanomips_info)
-    : Sized_target<size, big_endian>(info), state_(EXPAND), got_(NULL),
+    : Sized_target<size, big_endian>(info), state_(NO_TRANSFORM), got_(NULL),
       stubs_(NULL), rel_dyn_(NULL), copy_relocs_(elfcpp::R_NANOMIPS_COPY),
       nanomips_input_section_map_(), gp_(NULL), attributes_section_data_(NULL),
       abiflags_(NULL), layout_(NULL), has_abiflags_section_(false)
@@ -1358,22 +1358,15 @@ class Target_nanomips : public Sized_target<size, big_endian>
   Nanomips_input_section*
   find_nanomips_input_section(Relobj* relobj, unsigned int shndx) const;
 
-  // Return whether we may relax instructions.
+  // Return whether we may relax instructions in a relaxation pass.
   bool
   may_relax_instructions() const
-  { return this->may_relax() && this->state_ == RELAX; }
+  { return this->state_ == RELAX; }
 
-  // We don't want to do instruction transformations if we are doing
-  // relocatable linking and --finalize-relocs is not passed.
+  // Return whether we want to run relaxation pass.
   bool
   do_may_relax() const
-  {
-    if (parameters->options().user_set_relax()
-        && !parameters->options().relax())
-      return false;
-    return (!parameters->options().relocatable()
-            || parameters->options().finalize_relocs());
-  }
+  { return this->state_ != NO_TRANSFORM; }
 
   // Relaxation hook.  This is where we do transformations of nanoMIPS
   // instructions.
@@ -1546,21 +1539,6 @@ class Target_nanomips : public Sized_target<size, big_endian>
   }
 
  protected:
-  void
-  do_select_as_default_target()
-  {
-    // Set the state to RELAX if a -relax option is passed.
-    // For --insn32 we can't do relaxations from 32bit to 16bit instructions.
-    if (parameters->options().relax() && !parameters->options().insn32())
-      this->state_ = RELAX;
-
-    gold_assert(nanomips_reloc_property_table == NULL);
-    gold_assert(nanomips_insn_property_table == NULL);
-    nanomips_reloc_property_table = new Nanomips_reloc_property_table();
-    if (this->may_relax())
-      nanomips_insn_property_table = new Nanomips_insn_property_table();
-  }
-
   // do_make_elf_object to override the same function in the base class.
   Object*
   do_make_elf_object(const std::string&, Input_file*, off_t,
@@ -1571,6 +1549,32 @@ class Target_nanomips : public Sized_target<size, big_endian>
   do_make_output_section(const char* name, elfcpp::Elf_Word type,
                          elfcpp::Elf_Xword flags)
   { return new Nanomips_output_section<size, big_endian>(name, type, flags); }
+
+  void
+  do_select_as_default_target()
+  {
+    // If --debug=relaxation, --no-relax or -r without --finalize-relocs
+    // option is passed, don't do instruction transformation.
+    if (!is_debugging_enabled(DEBUG_RELAXATION)
+        && (!parameters->options().user_set_relax()
+            || parameters->options().relax())
+        && (!parameters->options().relocatable()
+            || parameters->options().finalize_relocs()))
+      {
+        // Set the state to RELAX if a -relax option is passed and
+        // -insn32 is not passed, otherwise set the state to EXPAND.
+        if (parameters->options().relax() && !parameters->options().insn32())
+          this->state_ = RELAX;
+        else
+          this->state_ = EXPAND;
+      }
+
+    gold_assert(nanomips_reloc_property_table == NULL);
+    gold_assert(nanomips_insn_property_table == NULL);
+    nanomips_reloc_property_table = new Nanomips_reloc_property_table();
+    if (this->do_may_relax())
+      nanomips_insn_property_table = new Nanomips_insn_property_table();
+  }
 
  private:
   // The class which scans relocations.
@@ -1766,16 +1770,19 @@ class Target_nanomips : public Sized_target<size, big_endian>
   typedef Unordered_map<Section_id, Nanomips_input_section*, Section_id_hash>
       Nanomips_input_section_map;
 
+  // Instruction transformation state.
   typedef enum
   {
+    // No instruction transformation.
+    NO_TRANSFORM,
     // Instruction expansion state.
     EXPAND,
     // Instruction relaxation state.
     RELAX
-  } State;
+  } Transform_state;
 
-  // States used in relaxation passes.
-  State state_;
+  // States used in a relaxation passes.
+  Transform_state state_;
   // The GOT section.
   Nanomips_output_data_got<size, big_endian>* got_;
   // The .nanoMIPS.stubs section.
@@ -3013,7 +3020,7 @@ Nanomips_relobj<size, big_endian>::do_relocate_sections(
     Target_nanomips<size, big_endian>::current_target();
 
   // If we are not performing relaxations, don't do anything.
-  if (!target->may_relax())
+  if (!target->do_may_relax())
     return;
 
   // Relocate conditional branches.
@@ -4544,6 +4551,9 @@ Target_nanomips<size, big_endian>::do_relax(
     Layout* layout,
     const Task* task)
 {
+  gold_assert(this->state_ != NO_TRANSFORM);
+
+  // Check if we need to sort output sections by reference.
   if (pass == 1 && parameters->options().any_sort_by_reference())
     {
       bool sorted = false;
@@ -4599,8 +4609,7 @@ Target_nanomips<size, big_endian>::do_relax(
         }
 
       // Change the state to EXPAND if we are done with relaxations.
-      if (!again
-          && this->state_ == RELAX)
+      if (!again && this->state_ == RELAX)
         {
           this->state_ = EXPAND;
           state_changed = true;
@@ -6300,7 +6309,7 @@ Target_nanomips<size, big_endian>::Scan::local(
 
       // Don't add a GOT entry for a symbol if this relocation will be
       // transformed in a relaxation loop.
-      if (target->may_relax() && relobj->safe_to_relax()
+      if (target->do_may_relax() && relobj->safe_to_relax()
           && !this->seen_norelax_)
         break;
       // Fall through.
@@ -6458,7 +6467,7 @@ Target_nanomips<size, big_endian>::Scan::global(
 
       // Don't add a GOT entry for a symbol if it is fully resolved,
       // and this relocation will be transformed in a relaxation loop.
-      if ((target->may_relax() && relobj->safe_to_relax()
+      if ((target->do_may_relax() && relobj->safe_to_relax()
            && !this->seen_norelax_)
           && (gsym->final_value_is_known()
               || (gsym->is_defined()
