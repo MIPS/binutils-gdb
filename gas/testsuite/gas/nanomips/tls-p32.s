@@ -1,4 +1,3 @@
-	.file	1 "tls.s"
 	.text
 	.set 	pic1
 	.align	2
@@ -6,12 +5,7 @@
 	.ent	fn
 	.type	fn,@function
 fn:
-	.frame	$fp,16,$ra
-	.mask	0x40000000,-8
-	.fmask	0x00000000,0
-	.set	noreorder
 	.cpsetup $t9
-	.set	reorder
 	addiu	$sp,$sp,-16
 	sw	$fp,8($sp)
 	move	$fp,$sp
@@ -32,16 +26,12 @@ fn:
 	addiu	$t5,$t4,%dtprel(tlsvar_ld)
 
 	# Initial Exec
-	.set	push
 	rdhwr	$t4,$29
-	.set	pop
 	lw	$t5,%gottprel(tlsvar_ie)($gp)
 	addu	$t5,$t5,$t4
 
 	# Local Exec
-	.set	push
 	rdhwr	$t4,$29
-	.set	pop
 	addiu	$t5,$t4,%tprel(tlsvar_le)
 
 	move	$sp,$fp

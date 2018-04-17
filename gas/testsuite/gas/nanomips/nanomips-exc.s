@@ -149,11 +149,11 @@ test:
 	lwxs	$r7, $r16($r17)
 	lwxs	$r18, $r19($r4)
 
-	sw	$r16,%gp_rel(x)($r28)
+	sw	$r16,%gprel(x)($r28)
 	sw	$r17,16($r28)
 	.ifndef insn32
 	sw16	$r17,16($r28)
-	sw16	$r17,%gp_rel(test)($r28)
+	sw16	$r17,%gprel(test)($r28)
 	.endif
 	lapc 	$r5,test
 	lapc 	$r5,test2

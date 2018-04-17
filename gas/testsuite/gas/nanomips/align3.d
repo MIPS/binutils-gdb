@@ -1,4 +1,4 @@
-# objdump: -sj.data
+#objdump: -sj.data
 
 .*
 

@@ -1,9 +1,6 @@
-# source file to test assembly of MIPS DSP ASE for MIPS32 instructions
+# source file to test assembly of MIPS DSP ASE
 
-	.set noreorder
-	.set nomacro
 	.set noat
-
 	.text
 text_label:
 

@@ -1,6 +1,6 @@
 /* MIPS ELF support for BFD.
-   Copyright (C) 2017 Free Software Foundation, Inc.
-   Contributed by Imagination Technologies Ltd.
+   Copyright (C) 2018 Free Software Foundation, Inc.
+   Contributed by MIPSTech LLC.
 
    This file is part of BFD, the Binary File Descriptor library.
 
@@ -19,8 +19,7 @@
    Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
    MA 02110-1301, USA.  */
 
-/* This file holds definitions common to the MIPS and nanoMIPS ELF ABIs.
-   Note that most of this is not actually implemented by BFD.  */
+/* This file holds definitions common to the MIPS and nanoMIPS ELF ABIs.  */
 
 #ifndef _ELF_MIPS_COMMON_H
 #define _ELF_MIPS_COMMON_H
@@ -28,17 +27,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/* ABI related flags section.  */
-#define SHT_MIPS_ABIFLAGS	0x7000002a
-
-/* Special values for the st_other field in the symbol table.  These
-   are used in an Irix 5 dynamic symbol table.  */
-
-#define STO_DEFAULT		STV_DEFAULT
-#define STO_INTERNAL		STV_INTERNAL
-#define STO_HIDDEN		STV_HIDDEN
-#define STO_PROTECTED		STV_PROTECTED
 
 /* ABI Flags structure version 0.  */
 

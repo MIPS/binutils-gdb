@@ -36,13 +36,6 @@
 
 /* FIXME: These should be shared with gdb somehow.  */
 
-struct nanomips_cp0sel_name
-{
-  unsigned int cp0reg;
-  unsigned int sel;
-  const char *const name;
-};
-
 static const char * const nanomips_gpr_names_numeric[32] = {
   "$0",   "$1",   "$2",   "$3",   "$4",   "$5",   "$6",   "$7",
   "$8",   "$9",   "$10",  "$11",  "$12",  "$13",  "$14",  "$15",
@@ -99,7 +92,9 @@ static const char * const msa_control_names[32] = {
 
 /* The empty-list of CP0 registers serves as an indicator to fall-back to
    numeric register names.  */
-static const struct nanomips_cp0_name nanomips_cp0_numeric[] = { {NULL, 0, 0} };
+static const struct nanomips_cp0_name nanomips_cp0_numeric[] = {
+  {NULL, 0, 0}
+};
 static const struct nanomips_cp0_select nanomips_cp0sel_numeric[] = {
   {NULL, 0, 0}
 };
@@ -164,6 +159,7 @@ const struct nanomips_arch_choice nanomips_arch_choices[] = {
 /* ISA and processor type to disassemble for, and register names to use.
    set_default_nanomips_dis_options and parse_nanomips_dis_options fill in
    these values.  */
+
 static int nanomips_processor;
 static int nanomips_ase;
 static int nanomips_isa;
@@ -175,10 +171,13 @@ static const char *const *nanomips_cp1_names;
 static const struct nanomips_hwr_name *nanomips_hwr_names;
 
 /* Other options */
-static int no_aliases;	/* If set disassemble as most general inst.  */
-static bfd_boolean show_arch_insn; /* Mnemonics with suffix.  */
+static int no_aliases;	/* If set, disassemble as most general inst.  */
+static bfd_boolean show_arch_insn; 	/* Mnemonics with suffix.  */
 static bfd_boolean show_mttgpr_rc1 = FALSE; /* RC1 style MTTGPR format.  */
 
+
+/* Map ABI name to nanomips_abi_choice descriptor.  */
+
 static const struct nanomips_abi_choice *
 choose_abi_by_name (const char *name, unsigned int namelen)
 {
@@ -194,6 +193,8 @@ choose_abi_by_name (const char *name, unsigned int namelen)
   return c;
 }
 
+/* Map architecture name to nanomips_arch_choice descriptor.  */
+
 static const struct nanomips_arch_choice *
 choose_arch_by_name (const char *name, unsigned int namelen)
 {
@@ -208,6 +209,8 @@ choose_arch_by_name (const char *name, unsigned int namelen)
 
   return c;
 }
+
+/* Map BFD architecture to nanomips_arch_choice descriptor.  */
 
 static const struct nanomips_arch_choice *
 choose_arch_by_number (unsigned long mach)
@@ -238,17 +241,8 @@ choose_arch_by_number (unsigned long mach)
   return c;
 }
 
-/* Check if the object has nanoMIPS code.  */
-
-static inline int
-is_nanomips (Elf_Internal_Ehdr *header)
-{
-  if ((header->e_flags & EF_NANOMIPS_ARCH) == E_NANOMIPS_ARCH_32R6
-      || (header->e_flags & EF_NANOMIPS_ARCH) == E_NANOMIPS_ARCH_64R6)
-    return 1;
-
-  return 0;
-}
+/* Select default descriptors and initial mode for the default
+   architecture.  */
 
 static void
 set_default_nanomips_dis_options (struct disassemble_info *info)
@@ -282,6 +276,8 @@ set_default_nanomips_dis_options (struct disassemble_info *info)
       nanomips_hwr_names = chosen_arch->hwr_names;
     }
 }
+
+/* Parse and translate a command-line options to internal state.  */
 
 static void
 parse_nanomips_dis_option (const char *option, unsigned int len)
@@ -428,6 +424,8 @@ parse_nanomips_dis_option (const char *option, unsigned int len)
   /* Invalid option.  */
 }
 
+/* Loop to parse nanoMIPS-specific command-line options.  */
+
 static void
 parse_nanomips_dis_options (const char *options)
 {
@@ -476,7 +474,7 @@ print_cp0_reg (struct disassemble_info *info, int regno)
 	    && nanomips_cp0_names[i].sel == selnum)
 	  {
 	    info->fprintf_func (info->stream, "%s",
-				nanomips_cp0_names[i].name+1);
+				nanomips_cp0_names[i].name + 1);
 	    return;
 	  }
       }
@@ -504,8 +502,7 @@ print_cp0sel_reg (struct disassemble_info *info, unsigned int regno,
 	  && ((1 << selnum) & nanomips_cp0sel_names[i].selmask) != 0)
 	{
 	  info->fprintf_func (info->stream, "%s,%d",
-			      nanomips_cp0sel_names[i].name+1,
-			      selnum);
+			      nanomips_cp0sel_names[i].name + 1, selnum);
 	  return;
 	}
     }
@@ -535,7 +532,7 @@ print_hwr_reg (struct disassemble_info *info, int regno)
 	    && nanomips_hwr_names[i].sel == selnum)
 	  {
 	    info->fprintf_func (info->stream, "%s",
-				nanomips_hwr_names[i].name+1);
+				nanomips_hwr_names[i].name + 1);
 	    return;
 	  }
       }
@@ -564,17 +561,6 @@ print_reg (struct disassemble_info *info,
       info->fprintf_func (info->stream, "%s", nanomips_fpr_names[regno]);
       break;
 
-    case OP_REG_CCC:
-      if (opcode->pinfo & (FP_D | FP_S))
-	info->fprintf_func (info->stream, "$fcc%d", regno);
-      else
-	info->fprintf_func (info->stream, "$cc%d", regno);
-      break;
-
-    case OP_REG_VEC:
-      info->fprintf_func (info->stream, "$v%d", regno);
-      break;
-
     case OP_REG_ACC:
       info->fprintf_func (info->stream, "$ac%d", regno);
       break;
@@ -589,14 +575,6 @@ print_reg (struct disassemble_info *info,
     case OP_REG_HW:
     case OP_REG_HWRSEL:
       print_hwr_reg (info, regno);
-      break;
-
-    case OP_REG_VF:
-      info->fprintf_func (info->stream, "$vf%d", regno);
-      break;
-
-    case OP_REG_VI:
-      info->fprintf_func (info->stream, "$vi%d", regno);
       break;
 
     case OP_REG_MSA:
@@ -619,6 +597,7 @@ print_reg (struct disassemble_info *info,
 
 /* Used to track the state carried over from previous operands in
    an instruction.  */
+
 struct nanomips_print_arg_state
 {
   /* The value of the last OP_INT seen.  We only use this for OP_MSB,
@@ -657,6 +636,8 @@ nanomips_seen_register (struct nanomips_print_arg_state *state,
       state->dest_regno = regno;
     }
 }
+
+/* Pretty-print a save/restore register list.  */
 
 static void
 nanomips_print_save_restore (struct disassemble_info *info,
@@ -731,6 +712,8 @@ nanomips_print_save_restore (struct disassemble_info *info,
   if (gp)
     infprintf (is, "%s%s", (pending ? comma : ""), nanomips_gpr_names[28]);
 }
+
+/* Pretty-print save/restore floating-point register list.  */
 
 static void
 nanomips_print_save_restore_fp (struct disassemble_info *info,
@@ -847,12 +830,14 @@ print_insn_arg (struct disassemble_info *info,
 
     case OP_NON_ZERO_PCREL_S1:
       {
-	const struct nanomips_pcrel_operand pcrel_op
-	  = { {{OP_PCREL, operand->size, operand->lsb, 0, 0},
-	       (1 << operand->size) - 1, 0, 1, TRUE}, 0, 0, 0 };
+	const struct nanomips_pcrel_operand pcrel_op = {
+	  {{OP_PCREL, operand->size, operand->lsb, 0, 0},
+	   (1 << operand->size) - 1, 0, 1, TRUE}, 0, 0, 0
+	};
 
 	if ((info->flags & INSN_HAS_RELOC) == 0)
-	  info->target = nanomips_decode_pcrel_operand (&pcrel_op, base_pc, uval);
+	  info->target = nanomips_decode_pcrel_operand (&pcrel_op, base_pc,
+							uval);
 	else
 	  info->target = 0;
 	(*info->print_address_func) (info->target, info);
@@ -966,6 +951,8 @@ print_insn_arg (struct disassemble_info *info,
     }
 }
 
+/* Check if register+select map to a valid CP0 select sequence.  */
+
 static bfd_boolean
 validate_cp0_reg_operand (unsigned int uval)
 {
@@ -975,7 +962,7 @@ validate_cp0_reg_operand (unsigned int uval)
   selnum = uval & NANOMIPSOP_MASK_CP0SEL;
 
   for (i = 0; nanomips_cp0_3264r6[i].name; i++)
-    if (regno ==  nanomips_cp0_3264r6[i].num
+    if (regno == nanomips_cp0_3264r6[i].num
 	&& selnum == nanomips_cp0_3264r6[i].sel)
       break;
     else if (regno < nanomips_cp0_3264r6[i].num)
@@ -1059,10 +1046,10 @@ validate_insn_args (const struct nanomips_opcode *opcode,
 
 	    case OP_MAPPED_CHECK_PREV:
 	      {
-		const struct nanomips_mapped_check_prev_operand *prev_op
-		  = (const struct nanomips_mapped_check_prev_operand *) operand;
-		unsigned int last_uval
-		  = nanomips_encode_reg_operand (operand, state.last_regno);
+		const struct nanomips_mapped_check_prev_operand *prev_op =
+		  (const struct nanomips_mapped_check_prev_operand *) operand;
+		unsigned int last_uval =
+		  nanomips_encode_reg_operand (operand, state.last_regno);
 
 		if (((prev_op->less_than_ok && uval < last_uval)
 		     || (prev_op->greater_than_ok && uval > last_uval)
@@ -1191,31 +1178,31 @@ print_insn_args (struct disassemble_info *info,
 	    infprintf (is, "\t");
 	  pending_space = FALSE;
 
-	    {
-	      bfd_vma base_pc = 0;
-	      bfd_boolean have_reloc = ((info->flags & INSN_HAS_RELOC) != 0);
+	  {
+	    bfd_vma base_pc = 0;
+	    bfd_boolean have_reloc = ((info->flags & INSN_HAS_RELOC) != 0);
 
-	      if (!have_reloc)
-		base_pc = insn_pc;
+	    if (!have_reloc)
+	      base_pc = insn_pc;
 
-	      if ((operand->type == OP_PCREL
-		   || operand->type == OP_HI20_PCREL
-		   || operand->type == OP_NON_ZERO_PCREL_S1
-		   || operand->type == OP_PC_WORD)
-		  && !have_reloc)
-		base_pc += length;
+	    if ((operand->type == OP_PCREL
+		 || operand->type == OP_HI20_PCREL
+		 || operand->type == OP_NON_ZERO_PCREL_S1
+		 || operand->type == OP_PC_WORD)
+		&& !have_reloc)
+	      base_pc += length;
 
-	      if (operand->type == OP_INT_WORD
-		  || operand->type == OP_UINT_WORD
-		  || operand->type == OP_PC_WORD
-		  || operand->type == OP_GPREL_WORD
-		  || operand->type == OP_IMM_WORD)
-		print_insn_arg (info, &state, opcode, operand, base_pc,
-				insn >> 32);
-	      else if (operand->type != OP_DONT_CARE)
-		print_insn_arg (info, &state, opcode, operand, base_pc,
-				nanomips_extract_operand (operand, insn));
-	    }
+	    if (operand->type == OP_INT_WORD
+		|| operand->type == OP_UINT_WORD
+		|| operand->type == OP_PC_WORD
+		|| operand->type == OP_GPREL_WORD
+		|| operand->type == OP_IMM_WORD)
+	      print_insn_arg (info, &state, opcode, operand, base_pc,
+			      insn >> 32);
+	    else if (operand->type != OP_DONT_CARE)
+	      print_insn_arg (info, &state, opcode, operand, base_pc,
+			      nanomips_extract_operand (operand, insn));
+	  }
 	  if (*s == 'm' || *s == '+' || *s == '-' || *s == '`')
 	    ++s;
 	  break;
@@ -1223,7 +1210,6 @@ print_insn_args (struct disassemble_info *info,
     }
 }
 
-
 
 enum match_kind
 {
@@ -1369,19 +1355,14 @@ _print_insn_nanomips (bfd_vma memaddr_base, struct disassemble_info *info)
 	    print_insn_args (info, op, decode, insn, memaddr, length);
 
 	  /* Figure out instruction type and branch delay information.  */
-	  if ((op->pinfo
-	       & (INSN_UNCOND_BRANCH_DELAY | INSN_COND_BRANCH_DELAY)) != 0)
-	    info->branch_delay_insns = 1;
-	  if (((op->pinfo & INSN_UNCOND_BRANCH_DELAY)
-	       | (op->pinfo2 & INSN2_UNCOND_BRANCH)) != 0)
+	  if ((op->pinfo2 & INSN2_UNCOND_BRANCH) != 0)
 	    {
 	      if ((op->pinfo & (INSN_WRITE_GPR_31 | INSN_WRITE_1)) != 0)
 		info->insn_type = dis_jsr;
 	      else
 		info->insn_type = dis_branch;
 	    }
-	  else if (((op->pinfo & INSN_COND_BRANCH_DELAY)
-		    | (op->pinfo2 & INSN2_COND_BRANCH)) != 0)
+	  else if ((op->pinfo2 & INSN2_COND_BRANCH) != 0)
 	    {
 	      if ((op->pinfo & INSN_WRITE_GPR_31) != 0)
 		info->insn_type = dis_condjsr;
@@ -1401,6 +1382,8 @@ _print_insn_nanomips (bfd_vma memaddr_base, struct disassemble_info *info)
   return length;
 }
 
+/* Set up the options and disassemble.  */
+
 int
 print_insn_nanomips (bfd_vma memaddr, struct disassemble_info *info)
 {
@@ -1410,6 +1393,8 @@ print_insn_nanomips (bfd_vma memaddr, struct disassemble_info *info)
   return _print_insn_nanomips (memaddr, info);
 }
 
+/* Print description of nanoMIPS-specific command-line options.  */
+
 void
 print_nanomips_disassembler_options (FILE *stream)
 {
@@ -1481,8 +1466,9 @@ with the -M switch (multiple options should be separated by commas):\n"));
 
   fprintf (stream, _("\n"));
 }
-
 
+/* nanoMIPS hook to predict instruction length from opcode bits.  */
+
 int
 nanomips_predict_insn_length (bfd_vma memaddr_base,
 			      int previous_octect ATTRIBUTE_UNUSED,

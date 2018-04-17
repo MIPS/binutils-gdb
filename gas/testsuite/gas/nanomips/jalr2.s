@@ -1,7 +1,5 @@
 	.ent	test
 test:
-	.frame	$sp,32,$31
-	.cprestore 16
 	jal	local
 	jal	local+12
 	jal	global

@@ -26,9 +26,9 @@
 struct frag;
 struct expressionS;
 
-/* Default to big endian.  */
+/* Default to little endian.  */
 #ifndef TARGET_BYTES_BIG_ENDIAN
-#define TARGET_BYTES_BIG_ENDIAN		1
+#define TARGET_BYTES_BIG_ENDIAN		0
 #endif
 
 #define TARGET_ARCH bfd_arch_nanomips
@@ -48,9 +48,6 @@ extern int nanomips_relax_frag (asection *, struct frag *, long);
 
 #define md_undefined_symbol(name)	(0)
 #define md_operand(x)
-
-extern char nanomips_nop_opcode (void);
-#define NOP_OPCODE (nanomips_nop_opcode ())
 
 extern void nanomips_handle_align (struct frag *);
 #define HANDLE_ALIGN(fragp)  nanomips_handle_align (fragp)
@@ -164,11 +161,12 @@ extern bfd_boolean nanomips_allow_local_subtract (expressionS *,
 /* This structure tracks custom data about each frag. It consists of a 
    pointer to the first relocation within the frag and a boolean flag
    indicating whether the size of the frag is link-time variable.  */
-struct nanomips_frag_type {
+struct nanomips_frag_type
+{
   struct fix * first_fix;
   bfd_vma relax_sop;
   bfd_vma relax_sink;
-  bfd_boolean link_var;  
+  bfd_boolean link_var;
 };
 
 #define TC_FRAG_TYPE struct nanomips_frag_type
@@ -189,7 +187,6 @@ extern void nanomips_md_do_align (int, const char *, int, int);
 extern bfd_boolean nanomips_validate_fix_sub (struct fix *);
 
 #define LEX_BR LEX_NAME
-
 
 int nanomips_eh_frame_estimate_size_before_relax (fragS *);
 #define TC_EH_FRAME_ESTIMATE_SIZE_BEFORE_RELAX(frag) \

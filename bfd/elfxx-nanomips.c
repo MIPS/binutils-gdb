@@ -21,7 +21,7 @@
    MA 02110-1301, USA.  */
 
 
-/* This file handles functionality common to the different nanoMIPS ABI's.  */
+/* This file handles functionality common to nanoMIPS ABIs.  */
 
 #include "sysdep.h"
 #include "bfd.h"
@@ -59,6 +59,7 @@ struct nanomips_elf_obj_tdata
 
 
 /* True if NAME is the recognized name of any SHT_NANOMIPS_ABIFLAGS section.  */
+
 #define NANOMIPS_ELF_ABIFLAGS_SECTION_NAME_P(NAME) \
   (strcmp (NAME, ".nanoMIPS.abiflags") == 0)
 
@@ -219,22 +220,7 @@ bfd_mips_elf_swap_abiflags_v0_out (bfd *abfd,
 }
 
 
-/* Functions to manage the got entry hash table.  */
-
-/* Use all 64 bits of a bfd_vma for the computation of a 32-bit
-   hash number.  */
-
-static INLINE hashval_t
-mips_elf_hash_bfd_vma (bfd_vma addr)
-{
-#ifdef BFD64
-  return addr + (addr >> 32);
-#else
-  return addr;
-#endif
-}
-
-
+/* Map flag bits to BFD architecture.  */
 
 unsigned long
 _bfd_elf_nanomips_mach (flagword flags)
@@ -400,7 +386,6 @@ _bfd_nanomips_elf_fake_sections (bfd *abfd, Elf_Internal_Shdr *hdr,
 }
 
 
-
 /* Functions for the dynamic linker.  */
 
 /* Set ABFD's EF_NANOMIPS_ARCH and EF_NANOMIPS_MACH flags.  */
@@ -426,7 +411,6 @@ nanomips_set_isa_flags (bfd *abfd)
   elf_elfheader (abfd)->e_flags &= ~(EF_NANOMIPS_ARCH | EF_NANOMIPS_MACH);
   elf_elfheader (abfd)->e_flags |= val;
 }
-
 
 /* The final processing done just before writing out a nanoMIPS ELF
    object file.  This gets the nanoMIPS architecture right based on the
@@ -464,6 +448,8 @@ _bfd_nanomips_fp_abi_string (int fp)
     }
 }
 
+/* Print the name of an ASE.  */
+
 static void
 print_nanomips_ases (FILE *file, unsigned int mask)
 {
@@ -491,6 +477,8 @@ print_nanomips_ases (FILE *file, unsigned int mask)
     fprintf (stdout, "\n\t%s (%x)", _("Unknown"), mask & ~NANOMIPS_ASE_MASK);
 }
 
+/* Print the name of an ISA extension.  None yet for nanoMIPS.  */
+
 static void
 print_nanomips_isa_ext (FILE *file, unsigned int isa_ext)
 {
@@ -504,6 +492,8 @@ print_nanomips_isa_ext (FILE *file, unsigned int isa_ext)
       break;
     }
 }
+
+/* Decode and print the FP ABI mode.  */
 
 static void
 print_nanomips_fp_abi_value (FILE *file, int val)
@@ -528,6 +518,8 @@ print_nanomips_fp_abi_value (FILE *file, int val)
     }
 }
 
+/* Map register type to size.  */
+
 static int
 get_nanomips_reg_size (int reg_size)
 {
@@ -537,6 +529,8 @@ get_nanomips_reg_size (int reg_size)
 	  : (reg_size == AFL_REG_128) ? 128
 	  : -1);
 }
+
+/* Print nanoMIPS-specific ELF data.  */
 
 bfd_boolean
 _bfd_nanomips_elf_print_private_bfd_data (bfd *abfd, void *ptr)
@@ -623,6 +617,7 @@ const struct bfd_elf_special_section _bfd_nanomips_elf_special_sections[] = {
 /* Merge non visibility st_other attributes.  Ensure that the
    STO_OPTIONAL flag is copied into h->other, even if this is not a
    definiton of the symbol.  */
+
 void
 _bfd_nanomips_elf_merge_symbol_attribute (struct elf_link_hash_entry *h,
 					  const Elf_Internal_Sym *isym,
@@ -640,11 +635,7 @@ _bfd_nanomips_elf_merge_symbol_attribute (struct elf_link_hash_entry *h,
     }
 }
 
-bfd_boolean
-_bfd_nanomips_elf_common_definition (Elf_Internal_Sym *sym)
-{
-  return (sym->st_shndx == SHN_COMMON);
-}
+/* Get ABI flags for a nanoMIPS BFD arch.  */
 
 Elf_Internal_ABIFlags_v0 *
 bfd_nanomips_elf_get_abiflags (bfd *abfd)
@@ -653,6 +644,12 @@ bfd_nanomips_elf_get_abiflags (bfd *abfd)
 
   return tdata->abiflags_valid ? &tdata->abiflags : NULL;
 }
+
+/* Relocate a section.  Tools like readelf/binutils needed to perform a static
+   relocation on objects to make sense debug information that contains label
+   difference relocations.  The only difference between this and the generic
+   ELF version is that correct handling of composite relocations according to
+   gABI spec.  */
 
 bfd_byte *
 _bfd_elf_nanomips_get_relocated_section_contents (bfd *abfd,
@@ -686,10 +683,9 @@ _bfd_elf_nanomips_get_relocated_section_contents (bfd *abfd,
   if (reloc_vector == NULL)
     return NULL;
 
-  reloc_count = bfd_canonicalize_reloc (input_bfd,
-					input_section,
-					reloc_vector,
-					symbols);
+  reloc_count = bfd_canonicalize_reloc (input_bfd, input_section,
+					reloc_vector, symbols);
+
   if (reloc_count < 0)
     goto error_return;
 

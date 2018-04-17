@@ -113,13 +113,9 @@ START_RELOC_NUMBERS (elf_nanomips_reloc_type)
   RELOC_NUMBER (R_NANOMIPS_TLS_TPREL_I32, 94)
 
   FAKE_RELOC (R_NANOMIPS_max, 94)
-  /* This was a GNU extension used by embedded-PIC.  It was co-opted by
-     mips-linux for exception-handling data.  GCC stopped using it in
-     May, 2004, then started using it again for compact unwind tables.  */
+  /* May be used for compact unwind tables in the future.  */
   RELOC_NUMBER (R_NANOMIPS_PC32, 248)
   RELOC_NUMBER (R_NANOMIPS_EH, 249)
-  /* FIXME: this relocation is used internally by gas.  */
-  RELOC_NUMBER (R_NANOMIPS_GNU_REL16_S2, 250)
   /* These are GNU extensions to enable C++ vtable garbage collection.  */
   RELOC_NUMBER (R_NANOMIPS_GNU_VTINHERIT, 253)
   RELOC_NUMBER (R_NANOMIPS_GNU_VTENTRY, 254)
@@ -185,24 +181,6 @@ END_RELOC_NUMBERS (R_NANOMIPS_maxext)
 
 /* Records ABI related flags.  */
 #define PT_NANOMIPS_ABIFLAGS	0x70000000
-
-/* Processor specific dynamic array tags.  */
-
-/* Number of entries in global offset table.  */
-#define DT_NANOMIPS_GOTNO		0x70000001
-
-
-/* The 64-bit MIPS ELF ABI uses an unusual reloc format.  Each
-   relocation entry specifies up to three actual relocations, all at
-   the same address.  The first relocation which required a symbol
-   uses the symbol in the r_sym field.  The second relocation which
-   requires a symbol uses the symbol in the r_ssym field.  If all
-   three relocations require a symbol, the third one uses a zero
-   value.  */
-
-/* MIPS ELF 64 relocation info access macros.  */
-#define ELF64_NANOMIPS_R_SSYM(i) (((i) >> 24) & 0xff)
-#define ELF64_NANOMIPS_R_TYPE(i) ((i) & 0xff)
 
 
 
@@ -263,11 +241,10 @@ enum
 #define NANOMIPS_ASE_CRYPTO	  0x00010000 /* Reserved for in-progress ASE.  */
 #define NANOMIPS_ASE_GINV         0x00020000 /* GINV ASE.  */
 #define NANOMIPS_ASE_xNMS         0x00040000 /* not nanoMIPS Subset.  */
-#define NANOMIPS_ASE_MASK         0x0007bf4d /* All ASEs.  */
+#define NANOMIPS_ASE_MASK         0x0007bf4d /* All valid ASEs.  */
 
 /* nanoMIPS ELF flags routines.  */
-extern Elf_Internal_ABIFlags_v0 * bfd_nanomips_elf_get_abiflags
-  (bfd *);
+extern Elf_Internal_ABIFlags_v0 * bfd_nanomips_elf_get_abiflags (bfd *);
 
 #ifdef __cplusplus
 }

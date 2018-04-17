@@ -7,7 +7,7 @@ GAS LISTING .*/branch-relax.s 			page 1
    4              		.globl	test
    5              		/\* Relax to 16-bit \*/
    6              	test:
-   7 0000 A4880000 		beqc	\$a0,\$a1,test1 /\* forward, relax to 32-bit \*/
+   7 0000 A4880000 		beqc	\$a0, \$a1, test1 /\* forward, relax to 32-bit \*/
    8 0004 00000000 		.space	\(1<<5\)
    8      00000000.
    8      00000000.
@@ -46,7 +46,7 @@ GAS LISTING .*/branch-relax.s 			page 1
   23              		.ent test5
   24              		.globl test5
   25              	test5:
-  26 0878 CFDA     		beqc	\$a0,\$a1,test6 /\* forward, no relax \*/
+  26 0878 CFDA     		beqc	\$a0, \$a1, test6 /\* forward, no relax \*/
   27 087a 00000000 		.space	\(1<<5\)-4
   27      00000000.
   27      00000000.
@@ -80,15 +80,15 @@ GAS LISTING .*/branch-relax.s 			page 1
   38              	test9:
   39 10b2 0038     		balc	test8 /\* backward, no relax \*/
   40              .
-  41 10b4 F1880000 		beqc \$s1,\$a3,\$L1 /\* unreachable forward to relaxable, relax.  \*/
+  41 10b4 F1880000 		beqc \$s1, \$a3, \$L1 /\* unreachable forward to relaxable, relax.  \*/
   42              	\$L1:
-  43 10b8 F1880000 		beqc \$s1,\$a3,\$L2 /\* unreachable forward to non-relaxable, relax.  \*/
+  43 10b8 F1880000 		beqc \$s1, \$a3, \$L2 /\* unreachable forward to non-relaxable, relax.  \*/
   44              	\$L2:
   45 10bc 0890     		nop
-  46 10be 9FDB     		beqc \$s1,\$a3,\$L3 /\* reachable forward over non-relaxable, no relax.  \*/
-  47 10c0 111F     		restore.jrc	16,\$ra
+  46 10be 9FDB     		beqc \$s1, \$a3, \$L3 /\* reachable forward over non-relaxable, no relax.  \*/
+  47 10c0 111F     		restore.jrc	16, \$ra
   48              	\$L3:
-  49 10c2 9FDB     		beqc \$s1,\$a3,\$L4 /\* reachable forward over relaxable, no relax.  \*/
+  49 10c2 9FDB     		beqc \$s1, \$a3, \$L4 /\* reachable forward over relaxable, no relax.  \*/
   50 10c4 8098     		beqzc \$s1, \$L3
   51              	\$L4:
   52 10c6 8098     		beqzc \$s1, \$L3

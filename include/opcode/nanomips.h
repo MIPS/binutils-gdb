@@ -130,31 +130,15 @@ enum nanomips_reg_operand_type {
   /* Floating-point registers $f0-$f31.  */
   OP_REG_FP,
 
-  /* Coprocessor condition code registers $cc0-$cc7.  FPU condition codes
-     can also be written $fcc0-$fcc7.  */
-  OP_REG_CCC,
-
-  /* FPRs used in a vector capacity.  They can be written $f0-$f31
-     or $v0-$v31, although the latter form is not used for the VR5400
-     vector instructions.  */
-  OP_REG_VEC,
-
   /* DSP accumulator registers $ac0-$ac3.  */
   OP_REG_ACC,
 
-  /* Coprocessor registers $0-$31.  Mnemonic names like c0_cause can
-     also be used in some contexts.  */
+  /* Coprocessor registers in numeric format, $0-$31.  */
   OP_REG_COPRO,
 
   /* Hardware registers $0-$31.  Mnemonic names like hwr_cpunum can
      also be used in some contexts.  */
   OP_REG_HW,
-
-  /* Floating-point registers $vf0-$vf31.  */
-  OP_REG_VF,
-
-  /* Integer registers $vi0-$vi31.  */
-  OP_REG_VI,
 
   /* MSA registers $w0-$w31.  */
   OP_REG_MSA,
@@ -591,51 +575,25 @@ opcode_48bit_p (const struct nanomips_opcode *mo)
 #define INSN_READ_1                 0x00000004
 #define INSN_READ_2                 0x00000008
 #define INSN_READ_3                 0x00000010
-#define INSN_READ_4                 0x00000020
-#define INSN_READ_ALL               0x0000003c
+#define INSN_READ_ALL               0x0000001c
 /* Modifies general purpose register 31.  */
-#define INSN_WRITE_GPR_31           0x00000040
-/* Modifies coprocessor condition code.  */
-#define INSN_WRITE_COND_CODE        0x00000080
-/* Reads coprocessor condition code.  */
-#define INSN_READ_COND_CODE         0x00000100
-/* TLB operation.  */
-#define INSN_TLB                    0x00000200
+#define INSN_WRITE_GPR_31           0x00000020
 /* Reads coprocessor register other than floating point register.  */
-#define INSN_COP                    0x00000400
+#define INSN_COP                    0x00000040
 /* Instruction loads value from memory.  */
-#define INSN_LOAD_MEMORY	    0x00000800
-/* Instruction loads value from coprocessor, (may require delay).  */
-#define INSN_LOAD_COPROC	    0x00001000
-/* Instruction has unconditional branch delay slot.  */
-#define INSN_UNCOND_BRANCH_DELAY    0x00002000
-/* Instruction has conditional branch delay slot.  */
-#define INSN_COND_BRANCH_DELAY      0x00004000
-/* Conditional branch likely: if branch not taken, insn nullified.  */
-#define INSN_COND_BRANCH_LIKELY	    0x00008000
-/* Moves to coprocessor register, (may require delay).  */
-#define INSN_COPROC_MOVE            0x00010000
-/* Loads coprocessor register from memory, requiring delay.  */
-#define INSN_COPROC_MEMORY_DELAY    0x00020000
-/* Reads the HI register.  */
-#define INSN_READ_HI		    0x00040000
-/* Reads the LO register.  */
-#define INSN_READ_LO		    0x00080000
+#define INSN_LOAD_MEMORY	    0x00000080
+/* Reads the accumulator register.  */
+#define INSN_READ_ACC		    0x00000100
 /* Modifies the HI register.  */
-#define INSN_WRITE_HI		    0x00100000
-/* Modifies the LO register.  */
-#define INSN_WRITE_LO		    0x00200000
-/* Not to be placed in a branch delay slot, either architecturally
-   or for ease of handling (such as with instructions that take a trap).  */
-#define INSN_NO_DELAY_SLOT	    0x00400000
+#define INSN_WRITE_ACC		    0x00000200
 /* Instruction stores value into memory.  */
-#define INSN_STORE_MEMORY	    0x00800000
+#define INSN_STORE_MEMORY	    0x00000400
 /* Instruction uses single precision floating point.  */
-#define FP_S			    0x01000000
+#define FP_S			    0x00000800
 /* Instruction uses double precision floating point.  */
-#define FP_D			    0x02000000
+#define FP_D			    0x00001000
 /* A user-defined instruction.  */
-#define INSN_UDI                    0x20000000
+#define INSN_UDI                    0x00002000
 /* Instruction is actually a macro.  It should be ignored by the
    disassembler, and requires special treatment by the assembler.  */
 #define INSN_MACRO                  0xffffffff
@@ -653,24 +611,16 @@ opcode_48bit_p (const struct nanomips_opcode *mo)
    only be set for macros.  For instructions, FP_D in pinfo carries the
    same information.  */
 #define INSN2_M_FP_D		    0x00000004
-/* Writes to the stack pointer ($29).  */
-#define INSN2_WRITE_SP		    0x00000008
-/* Reads from the stack pointer ($29).  */
-#define INSN2_READ_SP		    0x00000010
-/* Reads the RA ($31) register.  */
-#define INSN2_READ_GPR_31	    0x00000020
-/* Reads the program counter ($pc).  */
-#define INSN2_READ_PC		    0x00000040
 /* Is an unconditional branch insn. */
-#define INSN2_UNCOND_BRANCH	    0x00000080
+#define INSN2_UNCOND_BRANCH	    0x00000008
 /* Is a conditional branch insn. */
-#define INSN2_COND_BRANCH	    0x00000100
+#define INSN2_COND_BRANCH	    0x00000010
 /* This indicates delayed branch converted to compact branch.  */
-#define INSN2_CONVERTED_TO_COMPACT  0x00000200
+#define INSN2_CONVERTED_TO_COMPACT  0x00000020
 /* Marks the LI macro expansion as special, temporary.  */
-#define INSN2_MACRO		    0x00000400
+#define INSN2_MACRO		    0x00000040
 /* Marks the legacy/downgraded MTTGPR format, temporary.  */
-#define INSN2_MTTGPR_RC1	    0x00000800
+#define INSN2_MTTGPR_RC1	    0x00000080
 
 /* Masks used to mark instructions to indicate which MIPS ISA level
    they were introduced in.  INSN_ISA_MASK masks an enumeration that
@@ -678,8 +628,7 @@ opcode_48bit_p (const struct nanomips_opcode *mo)
    word constructed using these macros is a bitmask of the remaining
    INSN_* values below.  */
 
-#define INSN_ISA_MASK		  0x0000001ful
-
+#define INSN_ISA_MASK		  0x00000003ul
 
 /* We cannot start at zero due to ISA_UNKNOWN below.  */
 #define INSN_ISAN32R6   1
@@ -711,34 +660,29 @@ static const unsigned int nanomips_isa_table[] = {
 #define ASE_DSP			0x00000001
 #define ASE_DSP64		0x00000002
 /* Enhanced VA Scheme */
-#define ASE_EVA			0x00000008
+#define ASE_EVA			0x00000004
 /* MCU (MicroController) ASE */
-#define ASE_MCU			0x00000010
+#define ASE_MCU			0x00000008
 /* MT ASE */
-#define ASE_MT			0x00000080
+#define ASE_MT			0x00000010
 /* Virtualization ASE */
-#define ASE_VIRT		0x00000200
-#define ASE_VIRT64		0x00000400
+#define ASE_VIRT		0x00000020
+#define ASE_VIRT64		0x00000040
 /* MSA Extension  */
-#define ASE_MSA			0x00000800
-#define ASE_MSA64		0x00001000
-/* The Enhanced VA Scheme (EVA) extension has instructions which are
-   only valid for the R6 ISA.  */
-#define ASE_EVA_R6		0x00040000
+#define ASE_MSA			0x00000080
+#define ASE_MSA64		0x00000100
 /* Cyclic redundancy check (CRC) ASE */
-#define ASE_CRC			0x00100000
-#define ASE_CRC64		0x00200000
-/* Reserved for in-progress ASE */
-#define ASE_RESERVED1		0x00400000
+#define ASE_CRC			0x00000200
+#define ASE_CRC64		0x00000400
 /* Global INValidate Extension. */
-#define ASE_GINV		0x00800000
+#define ASE_GINV		0x00000800
 /* The Virtualization ASE has Global INValidate extension instructions
    which are only valid when both ASEs are enabled. */
-#define ASE_GINV_VIRT		0x01000000
+#define ASE_GINV_VIRT		0x00001000
 /* Low Power instructions on nanoMIPS.  */
-#define ASE_xNMS		0x02000000
+#define ASE_xNMS		0x00002000
 /* TLB control instructions on nanoMIPS.  */
-#define ASE_TLB			0x04000000
+#define ASE_TLB			0x00004000
 
 static inline bfd_boolean
 nanomips_cpu_is_member (int cpu, unsigned int mask)
@@ -756,7 +700,6 @@ nanomips_cpu_is_member (int cpu, unsigned int mask)
       return FALSE;
     }
 }
-
 
 /* Test for membership in an ISA including chip specific ISAs.  INSN
    is pointer to an element of the opcode table; ISA is the specified
@@ -790,6 +733,8 @@ nanomips_opcode_is_member (const struct nanomips_opcode *insn,
    _I appended means immediate
    _A appended means target address of a jump
    _AB appended means address with (possibly zero) base register
+   _AC appended means either symbolic address with no base register
+   or constant offset with base register.
    _D appended means 64 bit floating point constant
    _S appended means 32 bit floating point constant.  */
 
@@ -957,12 +902,8 @@ enum
   M_NANOMIPS_NUM_MACROS
 };
 
-extern const struct nanomips_operand *decode_nanomips_operand (const char *);
-extern const struct nanomips_opcode nanomips_opcodes[];
-extern const int bfd_nanomips_num_opcodes;
-
 /* These are the bit masks and shift counts used for the different fields
-   in the microMIPS instruction formats.  No masks are provided for the
+   in the nanoMIPS instruction formats.  No masks are provided for the
    fixed portions of an instruction, since they are not needed.  */
 
 #define NANOMIPSOP_MASK_RS		0x1f
@@ -975,7 +916,7 @@ extern const int bfd_nanomips_num_opcodes;
 #define NANOMIPSOP_SH_MC		4
 #define NANOMIPSOP_SH_MD		7
 #define NANOMIPSOP_SH_MP		5
-#define NANOMIPSOP_SH_MQ		7
+#define NANOMIPSOP_SH_MM		7
 
 #define NANOMIPSOP_SH_CP0SEL		5
 #define NANOMIPSOP_MASK_CP0SEL		0x1f
@@ -1205,7 +1146,7 @@ struct nanomips_hwr_name
 
  /* The reference list of named hardware register with fixed selects.  */
 static const struct nanomips_hwr_name nanomips_hwr_names_3264r6[] = {
-    {"$cpunum",	 	0,	0,	INV_RNUM,	INV_SEL},
+    {"$cpunum",		0,	0,	INV_RNUM,	INV_SEL},
     {"$synci_step",	1,	0,	INV_RNUM,	INV_SEL},
     {"$cc",		2,	0,	9,		0},
     {"$count",		2,	0,	9,		0},
@@ -1236,6 +1177,251 @@ static const struct nanomips_hwr_name nanomips_hwr_names_3264r6[] = {
 #define NANOMIPS_CP0SEL_PERFCNT 25
 #define NANOMIPS_HWRSEL_PERFCNT 4
 
+/* These are the characters which may appears in the args field of a nanoMIPS
+   instruction.  They appear in the order in which the fields appear when the
+   instruction is used.  Commas and parentheses in the args string are ignored
+   when assembling, and written into the output when disassembling.
+
+   Operands for 16-bit nanoMIPS instructions.
+
+   "ma" must be $28
+   "mb" 5-bit non-zero GP register at bit 5
+   "mc" 3-bit nanoMIPS registers 4-7, 16-19 bit 4
+        The same register used as both source and target.
+   "md" 3-bit nanoMIPS registers 4-7, 16-19 at bit 7
+   "me" 3-bit nanoMIPS registers 4-7, 16-19 at bit 1
+   "mf" 3-bit nanoMIPS register 4-7, 16-19 at bit 7.
+        Must be larger than the last seen register.
+   "mg" 3-bit nanoMIPS register 4-7, 16-19 at bit 4.
+	Must be smaller than the last seen register.
+   "mh" 3-bit nanoMIPS register 4-7, 16-19 at bit 7.
+        Must be at least as large as the last seen register.
+   "mi" 3-bit nanoMIPS register 4-7, 16-19 at bit 4.
+	May be at most as large as the last seen register.
+
+   "mj" 5-bit nanoMIPS registers at bit 0
+   "mk" must be the same as the destination register
+   "ml" 3-bit nanoMIPS registers 4-7, 16-19 at bit 4
+   "mm" 3-bit nanoMIPS registers 0, 4-7, 17-19 at bit 7
+   "mn"	5-bit encoding of a save/restore register list
+   "mp" 5-bit nanoMIPS registers at bit 5
+   "mq" 2-bit pair at bits [8,3] maps to ($a0,$a1), ($a1,$a2), ($a2,$a3)
+        or ($a3,$a4)
+   "mr" 2-bit pair at bits [8,3] maps to ($a1,$a0), ($a2,$a1), ($a3,$a2)
+        or ($a4,$a3)
+   "ms" must be $29
+   "mt" must be the same as the previous register
+   "mu"	4-bit encoding of nanoMIPS destination register at bit 5
+   "mv"	4-bit encoding of nanoMIPS destination register at bit 0
+   "mw"	4-bit encoding of nanoMIPS source register at bit 5
+   "mx"	4-bit encoding of nanoMIPS source register at bit 0
+   "my" must be $31
+   "mz" must be literal 0
+
+   "mA" 7-bit relocatable GP offset (0 .. 127) << 2
+   "mB" 3-bit immediate at bit 0 (0, 4, 8, 12, 16, 20, 24, 28)
+   "mC" 4-bit immediate at bit 0 (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+        65535, 14, 15)
+   "mD" 10-bit signed branch address, split & scaled at bit 0 [S9:1,S10]
+   "mE" 7-bit signed branch address, split & scaled at bit 0 [S6:1,S7]
+   "mF" 4-bit unsigned branch address, scaled at bit 0 [U4:U1]
+   "mG" 4-bit scaled immediate at bit 4, (0 .. 15) << 4
+   "mH" 2-bit scaled immediate at bit 1, (0 .. 3) << 1
+   "mI" 7-bit immediate at bit 0, (-1 .. 126)
+   "mJ" 4-bit scaled immediate at bit 0, (0 .. 15) << 2
+   "mK" 3-bit BREAK/SDBBP code at bit 0
+   "mL" 2-bit immediate at bit 0, (0 .. 3)
+   "mM" 3-bit immediate at bit 0, (1 .. 8)
+   "mN" 2-bit split scaled immediate at bits 8 & 3 (0 .. 3) << 2
+   "mO" 7-bit immediate GP offset at bit 0, (0 .. 127) << 2
+   "mP"	2-bit SYSCALL/HYPCALL code at bit 0
+   "mQ"	4-bit immediate signed offset, (s3,s2:s0)
+   "mR" 5-bit immediate at bit 0, (0 .. 31) << 2
+   "mS" 6-bit immediate at bit 0, (0 .. 63) << 2
+   "mZ" must be zero
+
+   Operands for 32-bit nanoMIPS instructions.
+
+   "+1"	18-bit unsigned GP-relative offset, (u17:u0)
+   "+2"	18-bit scaled GP-relative offset, (u18:u2) << 2
+   "+3"	21-bit scaled GP-relative offset, (u18:u1) << 1
+   "+4" 18-bit GP-relative offset, (0 .. 2^18-1) << 3
+   "+5"	4-bit encoding of nanoMIPS source register at bit 21
+   "+6" 5-bit mask encoding, corresponding to (1 << X) - 1
+   "+7" 1-bit register at bit 24, (0,1) => ($a0,$a1)
+   "+8" 23-bit un-spec'ed value at bit 3 for UDIs.
+   "+9" 7-bit immediate at bit 11, (0 .. 127)
+
+   "+A" 5-bit INS/EXT/DINS/DEXT/DINSM/DEXTM position, which becomes
+        LSB.
+   "+B" 5-bit INS/DINS size, which becomes MSB
+	Requires that "+A" or "+E" occur first to set position.
+	Enforces: 0 < (pos+size) <= 32.
+   "+C" 5-bit EXT/DEXT size, which becomes MSBD.
+	Requires that "+A" or "+E" occur first to set position.
+	Enforces: 0 < (pos+size) <= 32.
+   "+D"	4-bit encoding of a floating point save/restore register list
+   "+E" 5-bit DINSU/DEXTU position, which becomes LSB-32.
+   "+F" 5-bit DINSM/DINSU size, which becomes MSB-32.
+	Requires that "+A" or "+E" occur first to set position.
+	Enforces: 32 < (pos+size) <= 64.
+   "+G" 5-bit DEXTM size, which becomes MSBD-32.
+	Requires that "+A" or "+E" occur first to set position.
+	Enforces: 32 < (pos+size) <= 64.
+   "+H" 5-bit DEXTU size, which becomes MSBD.
+	Requires that "+A" or "+E" occur first to set position.
+	Enforces: 32 < (pos+size) <= 64.
+   "+I" 5-bit EXTW/EXTD/PREPEND position, which becomes LSB.
+   "+J" 19-bit BREAK/SDBBP function code at bit 0
+   "+K"	Tri-part upper 20-bits of immediate value.
+   "+L" 10-bit WAIT code at bit 16
+   "+M"	18-bit SYSCALL/HYPCALL code at bit 0
+   "+N" 9-bit immediate at bit 3, (0 .. 511) << 3
+
+   "+i"	5-bit SYNC code type at bit 16, (0..31)
+   "+j"	9-bit signed offset (s7:s0,s8), (-256 .. 255)
+   "+k" 5-bit nanoMIPS registers at bit 3
+   "+p"	9-bit scaled signed offset, (s7:s2) << 2 for LL/SC*
+   "+q" 9-bit scaled signed offset, (s7:s3) << 3 for LLD/SCD*
+   "+r"	21-bit PC-relative branch offset (s19:s1,s20) << 1
+   "+s"	21-bit immediate offset for PC-relative operation ((s19:s1,s20) + 2) << 1
+   "+t" 5-bit non-zero GP register at bit 21
+   "+u"	25-bit PC-relative branch offset (s24:s1,s25) << 1
+   "+v"	5-bit mapping of R6 ALIGN byte-wise shift to EXTW bit-wise shift.
+   "+w"	2-bit shift for scaled address calculation at bit 9, (0..3)
+   "+*"	4-bit ROTX shift at bit 7, (0 .. 15) << 1
+   "+|"	1-bit ROTX stripe at bit 6, (0 .. 1)
+
+   "."	21-bit scaled GP-relative offset, (u21:u2) << 2
+   "<"	5-bit immediate shift value for bit operations, (0..31)
+   "|"	3-bit Element count for load/store multiple, (1..8)
+   "~"	11-bit branch offset, (s9:s1,s10) << 1
+   "^"	5-bit trap code at bit 11, (0..31)
+   "b"	5-bit base register at bit 16 for label or symbolic offsets
+   "c"	5-bit base register at bit 16, either used with immediate offset
+	or skipped with symbolic offset.
+   "d"	5-bit destination register specifier at bit 11
+   "g"	12-bit unsigned immediate at bit 0, (0..4095)
+   "h"	12-bit negative immediate at bit 0, (-4095..0)
+   "i"	12-bit unsigned immediate at bit 0, (0..4095)
+   "j"	16-bit unsigned immediate at bit 0, (0..65535)
+   "k"	5-bit cache operation code at bit 21, (0..31)
+   "n"	11-bit encoding of save/restore register list
+   "o"	12-bit offset at bit 0, (0..4095)
+   "p"	14-bit PC-relative branch offset (s13:s1,s14) << 1
+   "r"	5-bit same register at bit 16, used as both source and target
+   "s"	5-bit source register specifier at bit 16
+   "t"	5-bit target register specifier at bit 21
+   "u" 	Tri-part upper 20 bits of address
+   "x" 	Tri-part upper 20 bits of address, scaled by 12 bits
+   "v"	5-bit same register used as both source and destination at bit 15
+   "w"	5-bit same register used as both target and destination at bit 21
+   "z"	must be zero register
+
+   Used in special matching contexts:
+   "-a" 5-bit don't care at bit 16
+   "-b" 8-bit split don't care, 5@16 and 4@9
+   "-i" Ignored register operand, internally used for macro expansions.
+   "-m" Place-holder to copy 5 bits from bit 11 to bit 21
+   "-n" Place-holder to copy 5 bits from bit 11 to bit 16
+
+   Exclusively for 48-bit nanoMIPS instructions:
+
+   "+O" Signed GP-relative 32-bit offset in instruction byte order
+   "+P" Immediate signed 32-bit value in instruction byte order
+   "+Q"	Unsigned 32-bit value or address in instruction byte order
+   "+R" Signed 32-bit value in instruction byte order
+   "+S" Signed PC-relative 32-bit offset in instruction byte order
+
+   DSP instructions:
+   "0"	5-bit shift value for DSP accumulator at bit 16, (0..63)
+   "1"	5-bit position for DSP bit operations at bit 11
+   "2" 5-bit size for DSP bit operations at bit 16
+   "3" 3-bit byte vector shift at bit 13, (0..7)
+   "4" 4-bit hword vector shift at bit 12, (0..15)
+   "5" 8-bit unsigned immediate at bit 13, (0..255)
+   "7" 2-bit DSP accumulator register at bit 14, (0..3)
+   "8" 7-bit DSP control mask at bit 14, (0x3f)
+   "@" 10-bit signed immediate at bit 11, (0..1023)
+
+   Coprocessor instructions:
+   "E" 5-bit target register
+   "G" 5-bit source register
+   "H" 5-bit sel field for (D)MTC* and (D)MFC*
+   "J" 5-bit select code at bit 11 for named COP1 registers, (0..31)
+   "K"	10-bit register+select encoding at bit 11 for named h/w register
+   "O"	10-bit register+select encoding at bit 11 for named COP1 register
+   "P"	5-bit named COP1 register at bit 16
+   "Q"	5-bit select code at bit 11
+   "U"	5-bit named HW register at bit 16
+
+   MT instructions:
+   "!"	1-bit u-mode for move to/from thread registers at bit 10, (0,1)
+   "$"	1-bit high-mode for move to/from thread registers at bit 3, (0,1)
+   "*"	2-bit accumulator register at bit 18, (0..3)
+
+   GINV instructions
+   "+;"	2-bit global invalidate operation type at bit 21, (0..3)
+
+   Floating point instructions:
+   "D" 5-bit destination register
+   "R" 5-bit fr destination register
+   "S" 5-bit fs source 1 register
+   "T" 5-bit ft source 2 register
+   "V" 5-bit same register used as floating source and destination or target
+
+   Macro instructions:
+   "A" general 32 bit expression
+   "I" 32-bit immediate (value placed in imm_expr).
+   "F" 64-bit floating point constant in memory
+   "L" 64-bit floating point constant in memory
+   "f" 32-bit floating point constant in memory
+   "l" 32-bit floating point constant in memory
+
+   CP2 instructions:
+   "C" 23-bit coprocessor function code at bit 3
+
+   MCU instructions:
+   "\"	3-bit position for atomic set/clear operations, (0..7)
+
+
+   Other:
+   "()" parens surrounding optional value
+   ","  separates operands
+   "+"  start of extension sequence
+
+   Characters used so far, for quick reference when adding more:
+   "12345 78 0"
+   ".<\|~@^!$*"
+   "A CDEFGHIJKL  OP RSTUV    "
+   " bcde ghijk  nop rstuvwx z"
+
+   Extension character sequences used so far ("+" followed by the
+   following), for quick reference when adding more:
+   "123456789 
+   "*|;"
+   "ABCDEFGHIJKLMNOPQRS       "
+   "        ij     pqrstuvw   "
+
+   Extension character sequences used so far ("m" followed by the
+   following), for quick reference when adding more:
+   ""
+   ""
+   "ABCDEFGHIJKLMNOPQRS      Z"
+   "abcdefghijklmn pqrstuvwxyz"
+
+   Extension character sequences used so far ("-" followed by the
+   following), for quick reference when adding more:
+   ""
+   ""
+   "                          "
+   "ab      i   mn            "
+*/
+  
+extern const struct nanomips_operand *decode_nanomips_operand (const char *);
+extern const struct nanomips_opcode nanomips_opcodes[];
+extern const int bfd_nanomips_num_opcodes;
+  
 #ifdef __cplusplus
 }
 #endif

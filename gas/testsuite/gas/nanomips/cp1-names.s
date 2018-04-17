@@ -1,9 +1,6 @@
 # source file to test objdump's disassembly using various styles of
 # CP1 register names.
 
-	.set noreorder
-	.set noat
-
 	.globl text_label
 text_label:
 

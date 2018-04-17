@@ -1,31 +1,31 @@
 	.text
 	.align	5
-	.type	f1,@function
+	.type	f1, @function
 f1:
-	addiu	$2,1
+	addiu	$2, 1
 	.align	3
-	addiu	$3,1
-	.size	f1,.-f1
+	addiu	$3, 1
+	.size	f1, .-f1
 
 	.align	2
-	.type	f2,@function
+	.type	f2, @function
 f2:
-	addiu	$2,$2,1
-	addiu	$3,$3,1
+	addiu	$2, $2, 1
+	addiu	$3, $3, 1
 	.align	4
-	addiu	$4,$4,1
+	addiu	$4, $4, 1
 	.align	3
-	.size	f2,.-f2
+	.size	f2, .-f2
 
-	.type	f3,@function
+	.type	f3, @function
 f3:
-	addiu	$16,$16,1
+	addiu	$16, $16, 1
 	.align	3
-	.size	f3,.-f3
+	.size	f3, .-f3
 
-	.section .text.a,"ax",@progbits
+	.section .text.a, "ax", @progbits
 	.align	4
-	.type	f4,@function
+	.type	f4, @function
 f4:
-	addiu	$5,$5,1
-	.size	f4,.-f4
+	addiu	$5, $5, 1
+	.size	f4, .-f4

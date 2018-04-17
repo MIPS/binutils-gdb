@@ -39,12 +39,6 @@ text_label:
 	dinsm	$2, $3, 10, 44
 	dinsu	$2, $3, 42, 12
 
-	dsbh	$7
-	dsbh	$8, $10
-
-	dshd	$7
-	dshd	$8, $10
-
 	.set at
 	# drol and dror macros.
 	drotl	$25, $10, 4	# dror32

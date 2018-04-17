@@ -26,18 +26,20 @@
 
 static unsigned char reg_0_map[] = { 0 };
 static unsigned char reg_28_map[] = { 28 };
-static unsigned char reg_28_opt_map[] = { 0, 28 };
 static unsigned char reg_29_map[] = { 29 };
-static unsigned char reg_30_opt_map[] = { 0, 30 };
 static unsigned char reg_31_map[] = { 31 };
 static unsigned char reg_m16_map[] = { 16, 17, 18, 19, 4, 5, 6, 7 };
 static unsigned char reg_q_map[] = { 0, 17, 18, 19, 4, 5, 6, 7 };
 
-static unsigned char reg_4to5_map[] = { 8, 9, 10, 11, 4, 5, 6, 7,
-					16, 17, 18, 19, 20, 21, 22, 23 };
+static unsigned char reg_4to5_map[] = {
+  8, 9, 10, 11, 4, 5, 6, 7,
+  16, 17, 18, 19, 20, 21, 22, 23
+};
 
-static unsigned char reg_4to5_srcmap[] = { 8, 9, 10, 0, 4, 5, 6, 7,
-					   16, 17, 18, 19, 20, 21, 22, 23 };
+static unsigned char reg_4to5_srcmap[] = {
+  8, 9, 10, 0, 4, 5, 6, 7,
+  16, 17, 18, 19, 20, 21, 22, 23
+};
 
 static unsigned char reg_4or5_map[] = { 4, 5 };
 
@@ -59,7 +61,7 @@ static int word_byte_map[] = {
   1, 0, 0, 0, 0, 0, 0, 0
 };
 
-static int int_6_map[] = {
+static int int_mask_map[] = {
   0x1, 0x3, 0x7, 0xf,
   0x1f, 0x3f, 0x7f, 0xff,
   0x1ff, 0x3ff, 0x7ff, 0xfff,
@@ -70,7 +72,8 @@ static int int_6_map[] = {
   0x1fffffff, 0x3fffffff, 0x7fffffff, 0xffffffff
 };
 
-/* Return the mips_operand structure for the operand at the beginning of P.  */
+/* Return the nanomips_operand structure for the operand at the
+   beginning of P.  */
 
 /* FIXME: Unused cases left commented in-place for quick reminder
    of which character strings are unused.  */
@@ -83,24 +86,30 @@ decode_nanomips_operand (const char *p)
       switch (p[1])
 	{
 	case 'a': MAPPED_REG (0, 0, GP, reg_28_map);
-	case 'b': MAPPED_REG (1, 1, GP, reg_28_opt_map);
+	case 'b': SPECIAL (5, 5, NON_ZERO_REG);
 	case 'c': OPTIONAL_MAPPED_REG (3, 4, GP, reg_m16_map);
 	case 'd': MAPPED_REG (3, 7, GP, reg_m16_map);
-	case 'e': MAPPED_REG (3, 1, GP, reg_m16_map);  /* Used to be optional */
-/* 	case 'f': MAPPED_REG (3, 3, GP, reg_m16_map); */
-/* 	case 'g': MAPPED_REG (3, 0, GP, reg_m16_map); */
-/* 	case 'h': REG_PAIR (3, 7, GP, reg_h_map); */
+	case 'e': MAPPED_REG (3, 1, GP, reg_m16_map);
+	case 'f': MAPPED_PREV_CHECK (3, 7, GP, reg_m16_map, TRUE, FALSE, FALSE, FALSE);
+	case 'g': MAPPED_PREV_CHECK (3, 4, GP, reg_m16_map, FALSE, TRUE, FALSE, FALSE);
+	case 'h': MAPPED_PREV_CHECK (3, 7, GP, reg_m16_map, FALSE, TRUE, TRUE, FALSE);
+	case 'i': MAPPED_PREV_CHECK (3, 4, GP, reg_m16_map, TRUE, FALSE, TRUE, FALSE);
 	case 'j': REG (5, 0, GP);
+	case 'k': SPECIAL (0, 0, REPEAT_DEST_REG);
 	case 'l': MAPPED_REG (3, 4, GP, reg_m16_map);
-/* 	case 'm': MAPPED_REG (3, 1, GP, reg_mn_map); */
-/* 	case 'n': MAPPED_REG (3, 4, GP, reg_mn_map); */
+	case 'm': MAPPED_REG (3, 7, GP, reg_q_map);
+	case 'n': SPECIAL_SPLIT (5, 0, 1, 9, SAVE_RESTORE_LIST);
 	case 'p': REG (5, 5, GP);
-	case 'q': MAPPED_REG (3, 7, GP, reg_q_map);
+	case 'q': SPLIT_MAPPED_REG_PAIR (2, 8, 1, 3, GP, reg_gpr2d_map1,
+					 reg_gpr2d_map2);
+	case 'r': SPLIT_MAPPED_REG_PAIR (2, 8, 1, 3, GP, reg_gpr2d_map2,
+					 reg_gpr2d_map1);
 	case 's': MAPPED_REG (0, 0, GP, reg_29_map);
 	case 't': SPECIAL (0, 0, REPEAT_PREV_REG);
-	case 'u': REG (5, 3, GP); // New
-	case 'w': MAPPED_REG (1, 0, GP, reg_30_opt_map);
-	case 'x': SPECIAL (0, 0, REPEAT_DEST_REG);
+	case 'u': SPLIT_MAPPED_REG (4, 5, 1, 9, GP, reg_4to5_map);
+	case 'v': SPLIT_MAPPED_REG (4, 0, 1, 4, GP, reg_4to5_map);
+	case 'w': SPLIT_MAPPED_REG (4, 5, 1, 9, GP, reg_4to5_srcmap);
+	case 'x': SPLIT_MAPPED_REG (4, 0, 1, 4, GP, reg_4to5_srcmap);
 	case 'y': MAPPED_REG (0, 0, GP, reg_31_map);
 	case 'z': UINT (0, 0); 	/* Literal 0 */
 	case 'A': INT_ADJ (7, 0, 127, 2, FALSE);	 /* (0 .. 127) << 2 */
@@ -113,58 +122,27 @@ decode_nanomips_operand (const char *p)
 	case 'H': INT_ADJ (2, 1, 3, 1, FALSE);	 /* (0 .. 3) << 1 */
 	case 'I': INT_ADJ (7, 0, 126, 0, FALSE); /* (-1 .. 126) */
 	case 'J': INT_ADJ (4, 0, 15, 2, FALSE);	 /* (0 .. 15) << 2 */
-	case 'K': SPECIAL_SPLIT (20, 2, 1, 0, HI20_PCREL); /* tri-part 20-bit */
+	case 'K': HINT (3, 0);
 	case 'L': UINT (2, 0);	 /* (0 .. 3) */
 	case 'M': INT_ADJ (3, 0, 8, 0, FALSE);   /* (1 .. 8) */
 	case 'N': UINT_SPLIT (2, 8, 2, 1, 3); /* split encoded 2-bit offset << 2 */
-	case 'O': UINT_SPLIT (17, 0, 0, 5, 16); /* split 17-bit offset */
-	case 'P': UINT_SPLIT (16, 0, 0, 4, 16); /* split 16-bit offset */
-	case 'S': UINT (4, 17); /* (0 .. 15) */
-	case 'T': UINT (4, 6); /* (0 .. 15) */
-	case 'U': INT_ADJ (5, 0, 31, 2, FALSE);	 /* (0 .. 31) << 2 */
-	case 'V': INT_ADJ (18, 3, (1<<18)-1, 3, FALSE); /* 18-bit << 3 */
-	case 'W': INT_ADJ (6, 0, 63, 2, FALSE);	 /* (0 .. 63) << 2 */
-	case 'X': INT_ADJ (4, 2, 15, 4, FALSE);	 /* 4-bit << 3 */
-	case 'Y': INT_ADJ (9, 3, 511, 3, FALSE);	 /* 9-bit << 3 */
+	case 'O': IMM_INT_ADJ (7, 0, 127, 2, FALSE);	 /* (0 .. 127) << 2 */
+	case 'P': HINT (2, 0);
+	case 'Q': SINT_SPLIT (4, 0, 0, 1, 4, 0);
+	case 'R': INT_ADJ (5, 0, 31, 2, FALSE);	 /* (0 .. 31) << 2 */
+	case 'S': INT_ADJ (6, 0, 63, 2, FALSE);	 /* (0 .. 63) << 2 */
 	case 'Z': UINT (0, 0);			 /* 0 only */
-	case '0': INT_ADJ (4, 2, 15, 4, FALSE);
-	case '1': IMM_INT_ADJ (7, 0, 127, 2, FALSE);	 /* (0 .. 127) << 2 */
-/* 	case '2': SPLIT_MAPPED_REG (4, 0, 1, 4, GP, reg_4to5_map); */
-/* 	case '3': SPLIT_MAPPED_REG (4, 5, 1, 9, GP, reg_4to5_srcmap); */
-	case '4': MAPPED_REG (1, 24, GP, reg_4or5_map);
-	case '5': SPLIT_MAPPED_REG_PAIR (2, 8, 1, 3, GP, reg_gpr2d_map1,
-					 reg_gpr2d_map2);
-	case '6': MAPPED_INT (5, 6, int_6_map, TRUE);
-	case '7': SPLIT_MAPPED_REG_PAIR (2, 8, 1, 3, GP, reg_gpr2d_map2,
-					 reg_gpr2d_map1);
-	case '8': HINT (23, 3);
-	case '9': UINT (7, 11);
 	}
       break;
 
     case '-':
       switch (p[1])
 	{
-/* 	case 'A': PCREL (19, 0, TRUE, 2, 2, FALSE, FALSE); */
-/* 	case 'B': PCREL (18, 0, TRUE, 3, 3, FALSE, FALSE); */
-/* 	case 'd': MAPPED_REG (3, 1, GP, reg_m16_map); */
-/* 	case 'e': OPTIONAL_MAPPED_REG (3, 7, GP, reg_m16_map); */
-
-/* 	case 'm': SPLIT_MAPPED_REG (3, 0, 1, 3, GP, reg_mn_map); */
 	case 'a': SPECIAL (5, 16, DONT_CARE);
 	case 'b': SPECIAL_SPLIT (8, 9, 5, 16, DONT_CARE);
 	case 'i': REG (0, 0, GP); /* Ignored register operand.  */
 	case 'm': SPECIAL_SPLIT (5, 11, 5, 21, COPY_BITS);
 	case 'n': SPECIAL_SPLIT (5, 11, 5, 16, COPY_BITS);
-
-	case 'p': SPECIAL (5, 5, NON_ZERO_REG);
-	case 's': SPECIAL (5, 16, NON_ZERO_REG);
-	case 't': SPECIAL (5, 21, NON_ZERO_REG);
-	case 'u': MAPPED_PREV_CHECK (3, 7, GP, reg_m16_map, TRUE, FALSE, FALSE, FALSE);
-	case 'v': MAPPED_PREV_CHECK (3, 4, GP, reg_m16_map, FALSE, TRUE, FALSE, FALSE);
-	case 'w': MAPPED_PREV_CHECK (3, 7, GP, reg_m16_map, FALSE, TRUE, TRUE, FALSE);
-	case 'x': MAPPED_PREV_CHECK (3, 4, GP, reg_m16_map, TRUE, FALSE, TRUE, FALSE);
-/* 	case 'y': PREV_CHECK (5, 16, FALSE, TRUE, FALSE, FALSE); */
 	}
       break;
 
@@ -174,69 +152,46 @@ decode_nanomips_operand (const char *p)
 	case 'A': BIT (5, 0, 0);		 /* (0 .. 31) */
 	case 'B': MSB (5, 6, 1, TRUE, 32);	 /* (1 .. 32), 32-bit op */
 	case 'C': MSB (5, 6, 1, FALSE, 32);	 /* (1 .. 32), 32-bit op */
-/* 	case 'D': REG (5, 16, FP); */
+	case 'D': SPECIAL (4, 16, SAVE_RESTORE_FP_LIST);
 	case 'E': BIT (5, 0, 32);		 /* (32 .. 63) */
 	case 'F': MSB (5, 6, 33, TRUE, 64);	 /* (33 .. 64), 64-bit op */
 	case 'G': MSB (5, 6, 33, FALSE, 64);	 /* (33 .. 64), 64-bit op */
 	case 'H': MSB (5, 6, 1, FALSE, 64);	 /* (1 .. 32), 64-bit op */
 	case 'I': BIT (5, 6, 0); /* (0 .. 31) */
-	case 'K': HINT (3, 0);
-	case 'L': HINT (10, 16);
 	case 'J': HINT (19, 0);
+	case 'K': SPECIAL_SPLIT (20, 2, 1, 0, HI20_PCREL); /* tri-part 20-bit */
+	case 'L': HINT (10, 16);
 	case 'M': HINT (18, 0);
-	case 'N': SPECIAL_SPLIT (5, 0, 1, 9, SAVE_RESTORE_LIST);
-	case 'P': SPECIAL (4, 16, SAVE_RESTORE_FP_LIST);
-	case 'O': UINT (3, 8);
+	case 'N': INT_ADJ (9, 3, 511, 3, FALSE); 	/* 9-bit << 3 */
+	case 'O': SPECIAL_WORD (0, GPREL_WORD);
+	case 'P': SPECIAL_WORD (6, IMM_WORD);
 	case 'Q': SPECIAL_WORD (0, UINT_WORD);
 	case 'R': SPECIAL_WORD (0, INT_WORD);
 	case 'S': SPECIAL_WORD (0, PC_WORD);
-	case 'T': SPECIAL_WORD (0, GPREL_WORD);
-	case 'U': SPECIAL_WORD (6, IMM_WORD);
-/* 	case 'V': SPECIAL_WORD (0, INT_WORD); */
-/* 	case 'W': INT_ADJ (10, 16, 511, 3, FALSE);	/\* (-512 .. 511) << 3 *\/ */
 
-/* 	case 'd': REG (5, 6, MSA); */
-/* 	case 'e': REG (5, 11, MSA); */
-/* 	case 'h': REG (5, 16, MSA); */
-	case 'i': BIT (5, 11, 0);			 /* (0 .. 31) */
+	case 'i': HINT (5, 16);
 	case 'j': SINT_SPLIT (9, 0, 0, 1, 15, 0);
-/* 	case 'k': REG (5, 6, GP); */
-/* 	case 'l': REG (5, 6, MSA_CTRL); */
-	case 'm': SINT_SPLIT (7, 2, 2, 1, 15, 0); /* split 7-bit signed << 2 */
-/* 	case 'n': REG (5, 11, MSA_CTRL); */
-	case 'o': HINT (2, 0);
+	case 'p': SINT_SPLIT (7, 2, 2, 1, 15, 0); /* split 7-bit signed << 2 */
 	case 'q': SINT_SPLIT (6, 3, 3, 1, 15, 0); /* split 6-bit signed << 3 */
 	case 'r': BRANCH_UNORD_SPLIT (21, 1); /* split 21-bit signed << 1 */
 	case 's': IMM_SINT_SPLIT (21, 1, 1, 1, 0, 2); /* split (21-bit signed + 2) << 1 */
-/*
-	case 't': REG (5, 21, GP);
-*/
-/* 	case 'u': BRANCH_UNORD_SPLIT (14, 1); */
-/* 	case 'v': SPECIAL (2, 16, IMM_INDEX); */
-/* 	case 'w': SPECIAL (1, 16, IMM_INDEX); */
-	case 'x': BIT (5, 16, 0);		/* (0 .. 31) */
+	case 't': SPECIAL (5, 21, NON_ZERO_REG);
+	case 'u': BRANCH_UNORD_SPLIT (25, 1);
+	case 'v': MAPPED_INT (5, 6, word_byte_map, FALSE);
+	case 'w': BIT (2, 9, 0);		/* (0 .. 3) */
 
-/* 	case '!': BIT (3, 16, 0);		/\* (0 .. 7) *\/ */
-/* 	case '#': BIT (6, 16, 0);		/\* (0 .. 63) *\/ */
-/* 	case '$': UINT (5, 16);			/\* (0 .. 31) *\/ */
-/* 	case '%': SINT (5, 16);			/\* (-16 .. 15) *\/ */
-/* 	case '&': SPECIAL (0, 0, IMM_INDEX); */
 	case '*': INT_ADJ (4, 7, 15, 1, FALSE); /* (0 .. 15) << 1 */
 	case '|': UINT (1, 6);			/* 0/1 */
-	case '\'': BRANCH_UNORD_SPLIT (25, 1);
-/* 	case '"': BRANCH (21, 0, 1); */
-	case ':': MAPPED_INT (5, 6, word_byte_map, FALSE);
-	case '.': BIT (2, 9, 0);		/* (0 .. 3) */
 	case ';': UINT (2, 21);			/* (0 .. 3) */
 	case '1': UINT (18, 0);
 	case '2': INT_ADJ (16, 2, (1<<16) - 1, 2, FALSE);
 	case '3': INT_ADJ (17, 1, (1<<17) - 1, 1, FALSE);
-	case '4': SPLIT_MAPPED_REG (4, 5, 1, 9, GP, reg_4to5_map);
-	case '5': SPLIT_MAPPED_REG (4, 0, 1, 4, GP, reg_4to5_map);
-	case '6': SPLIT_MAPPED_REG (4, 5, 1, 9, GP, reg_4to5_srcmap);
-	case '7': SPLIT_MAPPED_REG (4, 0, 1, 4, GP, reg_4to5_srcmap);
-	case '8': SPLIT_MAPPED_REG (4, 21, 1, 25, GP, reg_4to5_srcmap);
-	case '9': SINT_SPLIT (4, 0, 0, 1, 4, 0);
+	case '4': INT_ADJ (18, 3, (1<<18)-1, 3, FALSE); /* 18-bit << 3 */
+	case '5': SPLIT_MAPPED_REG (4, 21, 1, 25, GP, reg_4to5_srcmap);
+	case '6': MAPPED_INT (5, 6, int_mask_map, TRUE);
+	case '7': MAPPED_REG (1, 24, GP, reg_4or5_map);
+	case '8': HINT (23, 3);
+	case '9': UINT (7, 11);
 	}
       break;
 
@@ -251,15 +206,14 @@ decode_nanomips_operand (const char *p)
     case '!': UINT (1, 10);
     case '$': UINT (1, 3);
     case '*': REG (2, 18, ACC);
-    case '&': REG (2, 23, ACC);
+/*     case '&': REG (2, 23, ACC); */
 
     case '0': SINT (6, 16);
-    case '1': HINT (5, 16);
-    case '2': HINT (2, 14);
+    case '1': BIT (5, 11, 0);			 /* (0 .. 31) */
+    case '2': BIT (5, 16, 0);		/* (0 .. 31) */
     case '3': BIT (3, 13, 0);
     case '4': BIT (4, 12, 0);
     case '5': HINT (8, 13);
-/*       case '6': HINT (5, 16); /\* unused / available *\/ */
     case '7': REG (2, 14, ACC);
     case '8': HINT (7, 14);
 
@@ -274,17 +228,18 @@ decode_nanomips_operand (const char *p)
 /*     case 'N': REG (3, 18, CCC); */
     case 'O': REG (10, 11, CP0);
     case 'P': REG (5, 16, CP0SEL);
-    case 'Q': UINT (5, 11);
+/*     case 'Q': UINT (5, 11); */
     case 'R': REG (5, 11, FP);
     case 'S': REG (5, 16, FP);
     case 'T': REG (5, 21, FP);
     case 'U': REG (5, 16, HWRSEL);
     case 'V': OPTIONAL_REG (5, 16, FP);
 
-    case 'a': JUMP (26, 0, 1);
+/*     case 'a': JUMP (26, 0, 1); */
     case 'b': REG (5, 16, GP);
     case 'c': BASE_OFFSET_CHECK (5, 16, TRUE, FALSE);
     case 'd': REG (5, 11, GP);
+    case 'e': REG (5, 3, GP);
     case 'g': HINT (12, 0);
     case 'h': SPECIAL (12, 0, NEG_INT);
     case 'i': UINT (12, 0);
@@ -298,51 +253,31 @@ decode_nanomips_operand (const char *p)
     case 's': REG (5, 16, GP);
     case 't': REG (5, 21, GP);
     case 'u': SPECIAL_SPLIT (20, 2, 1, 0, HI20_INT);  /* tri-part 20-bit */
-    case 'x': SPECIAL_SPLIT (20, 2, 1, 0, HI20_SCALE);  /* tri-part 20-bit */
     case 'v': OPTIONAL_REG (5, 16, GP);
     case 'w': OPTIONAL_REG (5, 21, GP);
-/*     case 'y': REG (5, 6, GP); */
+    case 'x': SPECIAL_SPLIT (20, 2, 1, 0, HI20_SCALE);  /* tri-part 20-bit */
     case 'z': MAPPED_REG (0, 0, GP, reg_0_map);
     }
   return 0;
 }
 
-#define NODS	INSN_NO_DELAY_SLOT
 #define LM	INSN_LOAD_MEMORY
 #define SM	INSN_STORE_MEMORY
-#define CM	INSN_COPROC_MOVE
-#define LC	INSN_LOAD_COPROC
 
 #define WR_1	INSN_WRITE_1
 #define WR_2	INSN_WRITE_2
 #define RD_1	INSN_READ_1
 #define RD_2	INSN_READ_2
 #define RD_3	INSN_READ_3
-#define RD_4	INSN_READ_4
 #define MOD_1	(WR_1|RD_1)
 #define MOD_2	(WR_2|RD_2)
 
+ /* Write dsp accumulators */
+#define WR_a	INSN_WRITE_ACC
+ /* Read dsp accumulators */
+#define RD_a	INSN_READ_ACC
 
-#define WR_HI	INSN_WRITE_HI
-#define RD_HI	INSN_READ_HI
-#define MOD_HI  WR_HI|RD_HI
-#define WR_LO	INSN_WRITE_LO
-#define RD_LO	INSN_READ_LO
-#define MOD_LO  WR_LO|RD_LO
-
-#define WR_HILO WR_HI|WR_LO
-#define RD_HILO RD_HI|RD_LO
-#define MOD_HILO WR_HILO|RD_HILO
-
-#define WR_a	WR_HILO	/* Write dsp accumulators (reuse WR_HILO)  */
-#define RD_a	RD_HILO	/* Read dsp accumulators (reuse RD_HILO)  */
-
-
-/* For 16-bit/32-bit nanoMIPS instructions.  They are used in pinfo2.  */
-#define RD_sp	INSN2_READ_SP
-#define WR_sp	INSN2_WRITE_SP
-#define RD_31	INSN2_READ_GPR_31
-#define RD_pc	INSN2_READ_PC
+/* Flags used in pinfo2.  */
 #define CTC	INSN2_CONVERTED_TO_COMPACT
 #define UBR	INSN2_UNCOND_BRANCH
 #define CBR	INSN2_COND_BRANCH
@@ -383,13 +318,14 @@ decode_nanomips_operand (const char *p)
 #define CRC	ASE_CRC
 #define CRC64	ASE_CRC64
 
-#define FPU	0
-#define EJTAG	0
-#define UDI	0
+/* nanoMIPS instruction subset.  */
 #define xNMS	ASE_xNMS
+/* TLB manipulations.  */
 #define TLB	ASE_TLB
+/* UDI, just a place-holder for now.  */
+#define UDI	0
 
-/* New base ISAs starting at revision 7. */
+/* Base ISA for nanoMIPS. */
 #define I38	INSN_ISAN32R6
 #define I70	INSN_ISAN64R6
 
@@ -402,20 +338,20 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"la",		"",		"t,A(b)",	0,    (int) M_LA_AB,	INSN_MACRO,		0,	I38,	0},
 {"dla", 	"", 		"t,A(b)",	0,    (int) M_DLA_AB,	INSN_MACRO,		0,	I38,	0},
 /* Precedence=1 */
-{"aluipc",	"",		"t,mK",		0xe0000002, 0xfc000002, WR_1,			0,	I38,	0}, /* ALUIPC */
+{"aluipc",	"",		"t,+K",		0xe0000002, 0xfc000002, WR_1,			0,	I38,	0}, /* ALUIPC */
 {"break",	"[16]",		"",		0x1010,		0xffff, 	0,	INSN2_ALIAS,	I38,	0},
-{"break",	"[16]",		"+K",		0x1010,		0xfff8, 	0,		0,	I38,	0},
+{"break",	"[16]",		"mK",		0x1010,		0xfff8, 	0,		0,	I38,	0},
 {"break",	"[32]",		"",		0x00100000, 0xffffffff,		0,	INSN2_ALIAS,	I38,	0},
 {"break",	"[32]",		"+J",		0x00100000, 0xfff80000,		0,		0,	I38,	0},
 {"dvp", 	"", 		"-a",		0x20000390, 0xffe0ffff,		0,	INSN2_ALIAS,	I38,	0}, /* DVP */
 {"dvp", 	"", 		"t,-a",		0x20000390, 0xfc00ffff,		WR_1,		0,	I38,	0},
 {"nop", 	"[16]",		"",		0x9008,		0xffff,		0,		0,	I38,	0}, /* NOP[16] */
 {"nop", 	"[32]", 	"",		0x8000c000, 0xffffffff,		0,		0,	I38,	0}, /* NOP */
-{"sdbbp",	"[16]",		"",		0x1018,		0xffff,		0,	INSN2_ALIAS,	I38,	EJTAG},
-{"sdbbp",	"[16]",		"+K",		0x1018,		0xfff8,		0,		0,	I38,	EJTAG},
+{"sdbbp",	"[16]",		"",		0x1018,		0xffff,		0,	INSN2_ALIAS,	I38,	0},
+{"sdbbp",	"[16]",		"mK",		0x1018,		0xfff8,		0,		0,	I38,	0},
 {"sdbbp",	"[32]",		"",		0x00180000, 0xffffffff,		0,	INSN2_ALIAS,	I38,	0},
 {"sdbbp",	"[32]",		"+J",		0x00180000, 0xfff80000,		0,		0,	I38,	0},
-{"move",	"",		"-p,mj",	0x1000,		0xfc00,	WR_1|RD_2,		0,	I38,	0}, /* preceded by BREAK, SDBBP */
+{"move",	"",		"mb,mj",	0x1000,		0xfc00,	WR_1|RD_2,		0,	I38,	0}, /* preceded by BREAK, SDBBP */
 {"move",	"",		"d,s",		0x20000290, 0xffe007ff, WR_1|RD_2,	INSN2_ALIAS,	I38,	0}, /* OR */
 {"move",	"",		"d,s",		0x20000150, 0xffe007ff, WR_1|RD_2,	INSN2_ALIAS,	I38,	0}, /* ADDU */
 {"move",	"",		"d,s",		0xc0000150, 0xffe007ff, WR_1|RD_2,	INSN2_ALIAS,	I70,	0}, /* DADDU */
@@ -439,12 +375,12 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"jalr",	"",		"t,s",		0x48000000, 0xfc00ffff,	WR_1|RD_2,  INSN2_ALIAS|UBR|CTC, I38,	0}, /* JALRC */
 {"lui", 	"", 		"t,u",		0xe0000000, 0xfc000002,	WR_1,			0,	I38,	0},
 {"li",		"[16]",		"md,mI",	0xd000,		0xfc00,	WR_1,			0,	I38,	0}, /* LI[16] */
-{"li",		"",		"-p,mZ",	0x1000,		0xfc1f,	WR_1,		INSN2_ALIAS,	I38,	0}, /* MOVE[16] */
-{"li",		"[32]",		"-t,j",		0x00000000, 0xfc1f0000,	WR_1,		INSN2_ALIAS,	I38,	0}, /* ADDIU[32] */
+{"li",		"",		"mb,mZ",	0x1000,		0xfc1f,	WR_1,		INSN2_ALIAS,	I38,	0}, /* MOVE[16] */
+{"li",		"[32]",		"+t,j",		0x00000000, 0xfc1f0000,	WR_1,		INSN2_ALIAS,	I38,	0}, /* ADDIU[32] */
 {"li",		"[neg]",	 "t,h",		0x80008000, 0xfc1ff000,	WR_1,		INSN2_ALIAS,	I38,	0}, /* ADDIU[NEG] */
 {"li",		"", 		"t,x",		0xe0000000, 0xfc000002,	WR_1,		INSN2_ALIAS,	I38,	0}, /* LUI */
 {"li",		"[48]",		"mp,+Q",	0x6000, 	0xfc1f,	WR_1,			0,	0,	xNMS}, /* LI[48] */
-{"li",		"",		"-t,A",		0,	(int) M_LI,	INSN_MACRO,	INSN2_MACRO,	I38,	0},
+{"li",		"",		"+t,A",		0,	(int) M_LI,	INSN_MACRO,	INSN2_MACRO,	I38,	0},
 {"ext", 	"",		"t,r,+A,+C",	0x8000f000, 0xfc00f820,	WR_1|RD_2,		0,	0,	xNMS},
 {"ext", 	"",		"t,r,+A,+C",	0,    (int) M_EXT,	INSN_MACRO,		0,	I38,	0},
 
@@ -462,26 +398,26 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"addi",	"", 		"t,r,I",	0,    (int) M_ADD_I,	INSN_MACRO,		0,	0,	xNMS},
 {"add.d",	"",		"D,V,T",	0xa0000130, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
 {"add.s",	"",		"D,V,T",	0xa0000030, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"addiu",	"[r1.sp]",	"md,ms,mW",	0x7040,		0xfc40,	WR_1|RD_2,		0,	I38,	0}, /* ADDIU[R1.SP] */
+{"addiu",	"[r1.sp]",	"md,ms,mS",	0x7040,		0xfc40,	WR_1|RD_2,		0,	I38,	0}, /* ADDIU[R1.SP] */
 {"addiu",	"[r2]",		"md,mc,mB",	0x9000,		0xfc08,	WR_1|RD_2,		0,	I38,	0}, /* ADDIU[R2] */
-{"addiu",	"[rs5]",	"mp,mx,+9",	0x9008,		0xfc08,	MOD_1,		INSN2_ALIAS,	I38,	0}, /* ADDIU[RS5] */
-{"addiu",	"[rs5]",	"mp,+9",	0x9008,		0xfc08,	MOD_1,			0,	I38,	0}, /* ADDIU[RS5], preceded by NOP[16] */
+{"addiu",	"[rs5]",	"mp,mk,mQ",	0x9008,		0xfc08,	MOD_1,		INSN2_ALIAS,	I38,	0}, /* ADDIU[RS5] */
+{"addiu",	"[rs5]",	"mp,mQ",	0x9008,		0xfc08,	MOD_1,			0,	I38,	0}, /* ADDIU[RS5], preceded by NOP[16] */
 {"addiu",	"[gp.b]",	"t,ma,+1",	0x440c0000, 0xfc1c0000,	WR_1|RD_2,		0,	I38,	0}, /* ADDIU[GP.B] */
 {"addiu",	"[gp.w]",	"t,ma,.",	0x40000000, 0xfc000003,	WR_1|RD_2,		0,	I38,	0}, /* ADDIU[GP.W] */
-{"addiu",	"[32]",		"-t,r,j",	0x00000000, 0xfc000000,	WR_1|RD_2,		0,	I38,	0}, /* preceded by S
+{"addiu",	"[32]",		"+t,r,j",	0x00000000, 0xfc000000,	WR_1|RD_2,		0,	I38,	0}, /* preceded by S
 IGRIE */
 {"addiu",	"[neg]",	"t,r,h",	0x80008000, 0xfc00f000,	WR_1|RD_2,		0,	I38,	0}, /* ADDIU[NEG] */
 {"addiu",	"[48]",		"mp,mt,+R",	0x6001,     0xfc1f,	MOD_1,			0,	0,	xNMS}, /* ADDIU[48] */
-{"addiu",	"[gp48]",	"mp,ma,+T",	0x6002,     0xfc1f,	WR_1|RD_2,		0,	0,	xNMS}, /* ADDIU[GP48] */
+{"addiu",	"[gp48]",	"mp,ma,+O",	0x6002,     0xfc1f,	WR_1|RD_2,		0,	0,	xNMS}, /* ADDIU[GP48] */
 {"lapc",	"[32]",		"t,+r",		0x04000000, 0xfc000000, WR_1,		INSN2_ALIAS,	I38,	0}, /* ADDIUPC */
 {"lapc",	"[48]",		"mp,+S",	0x6003,     0xfc1f,	WR_1,		INSN2_ALIAS,	0,	xNMS}, /* ADDIUPC[48] */
 {"lapc.h",	"",		"t,+r",		0x04000000, 0xfc000000, WR_1,		INSN2_ALIAS,	I38,	0}, /* ADDIUPC */
 {"lapc.b",	"",		"mp,+S",	0x6003,     0xfc1f,	WR_1,		INSN2_ALIAS,	0,	xNMS}, /* ADDIUPC[48] */
 {"addiupc",	"[32]",		"t,+s",		0x04000000, 0xfc000000, WR_1,			0,	I38,	0},
-{"addiupc",	"[48]",		"mp,+U",	0x6003,     0xfc1f,	WR_1,			0,	0,	xNMS}, /* ADDIUPC[48] */
+{"addiupc",	"[48]",		"mp,+P",	0x6003,     0xfc1f,	WR_1,			0,	0,	xNMS}, /* ADDIUPC[48] */
 {"addiu.b",	"",	        "t,ma,+1",	0x440c0000, 0xfc1c0000,	WR_1|RD_2,	INSN2_ALIAS,	I38,	0}, /* ADDIU[GP.B] */
 {"addiu.w",	"",		"t,ma,.",	0x40000000, 0xfc000003,	WR_1|RD_2,	INSN2_ALIAS,	I38,	0}, /* ADDIU[GP.W] */
-{"addiu.b32",	"",		"mp,ma,+T",	0x6002,     0xfc1f,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ADDIU[GP48] */
+{"addiu.b32",	"",		"mp,ma,+O",	0x6002,     0xfc1f,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ADDIU[GP48] */
 {"addq.ph",	"",		"d,s,t",	0x2000000d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"addqh.ph",	"",		"d,s,t",	0x2000004d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"addqh.w",	"",		"d,s,t",	0x2000008d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
@@ -491,8 +427,8 @@ IGRIE */
 {"addq_s.w",	"",		"d,s,t",	0x20000305, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"addsc",	"",		"d,s,t",	0x20000385, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"addu",	"[16]",		"me,mc,md",	0xb000,		0xfc01, WR_1|RD_2|RD_3,		0,	I38,	0}, /* ADDU[16] */
-{"addu",	"[4x4]",	"+4,mt,+5",	0x3c00,		0xfd08,	MOD_1|RD_3,		0,	0,	xNMS}, /* ADDU[4X4] */
-{"addu",	"[4x4]",	"+4,+5,mx",	0x3c00,		0xfd08,	MOD_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ADDU[4X4] */
+{"addu",	"[4x4]",	"mu,mt,mv",	0x3c00,		0xfd08,	MOD_1|RD_3,		0,	0,	xNMS}, /* ADDU[4X4] */
+{"addu",	"[4x4]",	"mu,mv,mk",	0x3c00,		0xfd08,	MOD_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ADDU[4X4] */
 {"addu",	"[32]",		"d,v,t",	0x20000150, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"addu",	"",		"t,r,I",	0,    (int) M_ADDU_I,	INSN_MACRO,		0,	I38,	0},
 {"addu.ph",	"",		"d,s,t",	0x2000010d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
@@ -503,33 +439,33 @@ IGRIE */
 {"addu_s.qb",	"",		"d,s,t",	0x200004cd, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"addwc",	"",		"d,s,t",	0x200003c5, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"extw",	"",		"d,s,t,+I",	0x2000001f, 0xfc00003f, WR_1|RD_2|RD_3,		0,	I38,	0},
-{"align",	"",		"-p,-i,mj,mz",	0x1000,     0xfc00, 	WR_1|RD_3,	INSN2_ALIAS,	I38,	0}, /* MOVE[16] */
+{"align",	"",		"mb,-i,mj,mz",	0x1000,     0xfc00, 	WR_1|RD_3,	INSN2_ALIAS,	I38,	0}, /* MOVE[16] */
 {"align",	"",		"d,-i,s,mz",	0x20000290, 0xffe007ff, WR_1|RD_3,	INSN2_ALIAS,	I38,	0}, /* MOVE[32] */
-{"align",	"",		"d,s,t,+:",	0x2000001f, 0xfc00003f, WR_1|RD_2|RD_3,	INSN2_ALIAS,	I38,	0}, /* EXTW */
-{"and", 	"[16]",		"md,mx,ml",	0x5008,		0xfc0f,	MOD_1|RD_3,	INSN2_ALIAS,	I38,	0}, /* AND[16] */
-{"and", 	"[16]",		"md,ml,mx",	0x5008,		0xfc0f,	MOD_1|RD_2,	INSN2_ALIAS,	I38,	0}, /* AND[16] */
+{"align",	"",		"d,s,t,+v",	0x2000001f, 0xfc00003f, WR_1|RD_2|RD_3,	INSN2_ALIAS,	I38,	0}, /* EXTW */
+{"and", 	"[16]",		"md,mk,ml",	0x5008,		0xfc0f,	MOD_1|RD_3,	INSN2_ALIAS,	I38,	0}, /* AND[16] */
+{"and", 	"[16]",		"md,ml,mk",	0x5008,		0xfc0f,	MOD_1|RD_2,	INSN2_ALIAS,	I38,	0}, /* AND[16] */
 {"and", 	"[16]",		"md,ml",	0x5008,		0xfc0f,	MOD_1|RD_2,		0,	I38,	0}, /* AND[16] */
 {"and", 	"[32]",		"d,v,t",	0x20000250, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"and", 	"[32]",		"t,r,I",	0,    (int) M_AND_I,	INSN_MACRO,		0,	I38,	0},
 {"andi",	"[16]",	        "md,mc,mC",	0xf000,		0xfc00,	WR_1|RD_2,		0,	I38,	0}, /* ANDI[16] */
 {"andi",	"[32]",		"t,r,g",	0x80002000, 0xfc00f000,	WR_1|RD_2,		0,	I38,	0},
-{"andi",	"",		"t,r,m6",	0x8000f000, 0xfc00f83f,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* EXT */
-{"append",	"",		"t,s,+i",	0x20000215, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
+{"andi",	"",		"t,r,+6",	0x8000f000, 0xfc00f83f,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* EXT */
+{"append",	"",		"t,s,1",	0x20000215, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
 {"aset",	"",		"\\,+j(b)",	0xa4001100, 0xff007f00,		RD_3,		0,	0,	MC},
 {"aset",	"",		"\\,A(c)",	0,    (int) M_ASET_AC,		INSN_MACRO,	0,	0,	MC},
 {"balc",	"[16]",		"mD",		0x3800,		0xfc00,		WR_31,		0,	I38,	0}, /* BALC[16] */
-{"balc",	"[32]",		"+'",		0x2a000000, 0xfe000000,		WR_31,		0,	I38,	0},
+{"balc",	"[32]",		"+u",		0x2a000000, 0xfe000000,		WR_31,		0,	I38,	0},
 {"bal", 	"",		"mD",		0x3800,		0xfc00,	WR_31,	INSN2_ALIAS|UBR|CTC,	I38,	0}, /* BALC[16] */
-{"bal", 	"",		"+'",		0x2a000000, 0xfe000000,	WR_31,	INSN2_ALIAS|UBR|CTC,	I38,	0}, /* BALC */
-{"balign",	"",		"d,-m,s,+:",	0x2000001f, 0xfc00003f, WR_1|RD_3,	INSN2_ALIAS,	0,	D32}, /* EXTW */
-{"balrsc",	"",		"-t,s",		0x48008200, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
+{"bal", 	"",		"+u",		0x2a000000, 0xfe000000,	WR_31,	INSN2_ALIAS|UBR|CTC,	I38,	0}, /* BALC */
+{"balign",	"",		"d,-m,s,+v",	0x2000001f, 0xfc00003f, WR_1|RD_3,	INSN2_ALIAS,	0,	D32}, /* EXTW */
+{"balrsc",	"",		"+t,s",		0x48008200, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
 {"balrsc",	"",		"s",		0x4be08200, 0xffe0ffff,	RD_1|WR_31,		0,	I38,	0}, /* BALRSC */
-{"bbeqzc",	"",		"t,+i,~",	0xc8040000, 0xfc1f0000,	RD_1,			0,	0,	xNMS},
-{"bbnezc",	"",		"t,+i,~",	0xc8140000, 0xfc1f0000,	RD_1,			0,	0,	xNMS},
+{"bbeqzc",	"",		"t,1,~",	0xc8040000, 0xfc1f0000,	RD_1,			0,	0,	xNMS},
+{"bbnezc",	"",		"t,1,~",	0xc8140000, 0xfc1f0000,	RD_1,			0,	0,	xNMS},
 {"bc",		"[16]",		"mD",		0x1800,		0xfc00,	0,			0,	I38,	0}, /* BC[16] */
-{"bc",		"[32]",		"+'",		0x28000000, 0xfe000000,	0,			0,	I38,	0},
+{"bc",		"[32]",		"+u",		0x28000000, 0xfe000000,	0,			0,	I38,	0},
 {"b",		"",		"mD",		0x1800,		0xfc00,	0, 	INSN2_ALIAS|UBR|CTC,	I38,	0}, /* BC[16] */
-{"b",		"",		"+'",		0x28000000, 0xfe000000,	0, 	INSN2_ALIAS|UBR|CTC,	I38,	0}, /* BC */
+{"b",		"",		"+u",		0x28000000, 0xfe000000,	0, 	INSN2_ALIAS|UBR|CTC,	I38,	0}, /* BC */
 {"bc1eqzc",	"",		"T,p",		0x88004000, 0xfc1fc000,	RD_1,			0,	I38,	0},
 {"bc1eqz",	"",		"T,p",		0x88004000, 0xfc1fc000,	RD_1, 	INSN2_ALIAS|CBR|CTC,	I38,	0}, /* BC1EQZC */
 {"bc1nezc",	"",		"T,p",		0x88014000, 0xfc1fc000,	RD_1,			0,	I38,	0},
@@ -546,16 +482,16 @@ IGRIE */
 {"beqz",	"",		"s,p",		0x88000000, 0xffe0c000,	RD_1,	INSN2_ALIAS|CBR|CTC,	I38,	0}, /* BEQC */
 {"beqc",	"[16]",		"md,z,mE",	0x9800,		0xfc00,	RD_1,	INSN2_ALIAS,		I38,	0}, /* BEQZC[16] */
 {"beqc",	"[16]",		"z,md,mE",	0x9800,		0xfc00,	RD_1,	INSN2_ALIAS,		I38,	0}, /* BEQZC[16] */
-{"beqc",	"[16]",		"ml,-u,mF",	0xd800,		0xfc00,	RD_1|RD_2,		0,	0,	xNMS}, /* BEQC[16], with rs3<rt3 && u[4:1]!=0 */
-{"beqc",	"[16]",		"md,-v,mF",	0xd800,		0xfc00,	RD_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* BEQC[16], with operands commutated */
+{"beqc",	"[16]",		"ml,mf,mF",	0xd800,		0xfc00,	RD_1|RD_2,		0,	0,	xNMS}, /* BEQC[16], with rs3<rt3 && u[4:1]!=0 */
+{"beqc",	"[16]",		"md,mg,mF",	0xd800,		0xfc00,	RD_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* BEQC[16], with operands commutated */
 {"beqc",	"[32]",		"s,t,p",	0x88000000, 0xfc00c000,	RD_1|RD_2,		0,	I38,	0},
 {"beq", 	"",		"md,z,mE",	0x9800,		0xfc00,	RD_1,	INSN2_ALIAS|CBR|CTC,	I38,	0}, /* BEQZC[16] */
 {"beq", 	"",		"z,md,mE",	0x9800,		0xfc00,	RD_1,	INSN2_ALIAS|CBR|CTC,	I38,	0}, /* BEQZC[16] */
-{"beq", 	"",		"ml,-u,mF",	0xd800,		0xfc00,	RD_1|RD_2, INSN2_ALIAS|CBR|CTC,	0,	xNMS}, /* BEQC[16], with rs3<rt3 && u[4:1]!=0 */
-{"beq", 	"",		"md,-v,mF",	0xd800,		0xfc00,	RD_1|RD_2, INSN2_ALIAS|CBR|CTC,	0,	xNMS}, /* BEQC[16], with operands commutated */
+{"beq", 	"",		"ml,mf,mF",	0xd800,		0xfc00,	RD_1|RD_2, INSN2_ALIAS|CBR|CTC,	0,	xNMS}, /* BEQC[16], with rs3<rt3 && u[4:1]!=0 */
+{"beq", 	"",		"md,mg,mF",	0xd800,		0xfc00,	RD_1|RD_2, INSN2_ALIAS|CBR|CTC,	0,	xNMS}, /* BEQC[16], with operands commutated */
 {"beq", 	"", 		"s,t,p",	0x88000000, 0xfc00c000,	RD_1|RD_2, INSN2_ALIAS|CBR|CTC,	I38,	0}, /* BEQC */
 {"beq", 	"", 		"s,I,p",	0,    (int) M_BEQ_I,	INSN_MACRO,		0,	I38,	0},
-{"beqic",	"",		"t,m9,~",	0xc8000000, 0xfc1c0000,		RD_1,		0,	I38,	0},
+{"beqic",	"",		"t,+9,~",	0xc8000000, 0xfc1c0000,		RD_1,		0,	I38,	0},
 {"blezc",	"",		"t,p",		0x88008000, 0xfc1fc000,	RD_1,	INSN2_ALIAS,	I38,	0}, /* BGEC $0, t */
 {"blez",	"",		"t,p",		0x88008000, 0xfc1fc000,	RD_1, INSN2_ALIAS|CBR|CTC,	I38,	0}, /* BGEC $0, t */
 {"bgezc",	"",		"s,p",		0x88008000, 0xffe0c000,	RD_1,	INSN2_ALIAS,	I38,	0}, /* BGEC s, $0 */
@@ -572,12 +508,12 @@ IGRIE */
 {"bleu",	"",		"s,t,p",	0,    (int) M_BLEU,	INSN_MACRO,		0,	I38,	0},
 {"bleu",	"",		"s,I,p",	0,    (int) M_BLEU_I,	INSN_MACRO,		0,	I38,	0},
 {"bgezal",	"",		"s,p",		0,    (int) M_BGEZAL,	INSN_MACRO,		0,	I38,	0},
-{"bgeic",	"",		"t,m9,~",	0xc8080000, 0xfc1c0000,		RD_1,		0,	I38,	0},
-{"bgeuc",	"",	        "s,t,p",	0x8800c000, 0xfc00c000,	RD_1|RD_2,		0,	I38,	0},
+{"bgeic",	"",		"t,+9,~",	0xc8080000, 0xfc1c0000,	RD_1,			0,	I38,	0},
+{"bgeuc",	"",		"s,t,p",	0x8800c000, 0xfc00c000,	RD_1|RD_2,		0,	I38,	0},
 {"bgeu",	"",		"s,t,p",	0x8800c000, 0xfc00c000,	RD_1|RD_2, INSN2_ALIAS|CBR|CTC,	I38,	0}, /* BGEUC */
 {"bgeu",	"",		"s,I,p",	0,    (int) M_BGEU_I,	INSN_MACRO,		0,	I38,	0},
-{"bgeiuc",	"",		"t,m9,~",	0xc80c0000, 0xfc1c0000,		RD_1,		0,	I38,	0},
-{"bitrev",	"",		"t,r",		0x2000313f, 0xfc00ffff,	WR_1|RD_2,     		0,	0,	D32}, /* ROTX t,s,7,8,1 */
+{"bgeiuc",	"",		"t,+9,~",	0xc80c0000, 0xfc1c0000,	RD_1,			0,	I38,	0},
+{"bitrev",	"",		"t,r",		0x2000313f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32}, /* ROTX t,s,7,8,1 */
 {"bitrevb",	"",		"t,r",		0x8000d247, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX t,s,7,8,1 */
 {"bitrevh",	"",		"t,r",		0x8000d40f, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX t,s,15,16 */
 {"bitrevw",	"",		"t,r",		0x8000d01f, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX t,s,31,0*/
@@ -590,38 +526,38 @@ IGRIE */
 {"blt", 	"", 		"s,t,p",	0xa8008000, 0xfc00c000,	RD_1|RD_2, INSN2_ALIAS|CBR|CTC,	I38,	0}, /* BLTC */
 {"blt", 	"", 		"s,I,p",	0,    (int) M_BLT_I,	INSN_MACRO,		0,	I38,	0},
 {"bltzal",	"",		"s,p",		0,    (int) M_BLTZAL,	INSN_MACRO,		0,	I38,	0},
-{"bltic",	"",		"t,m9,~",	0xc8180000, 0xfc1c0000,		RD_1,		0,	I38,	0},
+{"bltic",	"",		"t,+9,~",	0xc8180000, 0xfc1c0000,		RD_1,		0,	I38,	0},
 {"bltuc",	"",		"s,t,p",	0xa800c000, 0xfc00c000,	RD_1|RD_2,		0,	I38,	0},
 {"bltu",	"",		"s,t,p",	0xa800c000, 0xfc00c000,	RD_1|RD_2, INSN2_ALIAS|CBR|CTC,	I38,	0}, /* BLTUC */
 {"bltu",	"",		"s,I,p",	0,    (int) M_BLTU_I,	INSN_MACRO,		0,	I38,	0},
-{"bltiuc",	"",		"t,m9,~",	0xc81c0000, 0xfc1c0000, RD_1,			0,	I38,	0},
+{"bltiuc",	"",		"t,+9,~",	0xc81c0000, 0xfc1c0000, RD_1,			0,	I38,	0},
 {"bnezc",	"[16]",		"md,mE",	0xb800,		0xfc00, RD_1,			0,	I38,	0}, /* BNEZC[16] */
 {"bnezc",	"[32]",		"t,p",		0xa8000000, 0xfc1fc000, RD_1,		INSN2_ALIAS,	I38,	0}, /* BNEC */
 {"bnezc",	"[32]",		"s,p",		0xa8000000, 0xffe0c000, RD_1,		INSN2_ALIAS,	I38,	0}, /* BNEC */
 {"bnez",	"",		"md,mE",	0xb800,		0xfc00, RD_1, 	INSN2_ALIAS|CBR|CTC,	I38,	0}, /* BNEZC[16] */
 {"bnez",	"",		"t,p",		0xa8000000, 0xfc1fc000, RD_1,	INSN2_ALIAS|CBR|CTC,	I38,	0}, /* BNEC */
-{"bnez",	"",		"s,p",		0xa8000000, 0xffe0c000,		RD_1,	INSN2_ALIAS,	I38,	0}, /* BNEC */
+{"bnez",	"",		"s,p",		0xa8000000, 0xffe0c000,	RD_1,		INSN2_ALIAS,	I38,	0}, /* BNEC */
 {"bnec",	"[16]",		"md,z,mE",	0xb800,		0xfc00,	RD_1,		INSN2_ALIAS,	I38,	0}, /* BNEZC[16] */
 {"bnec",	"[16]",		"z,md,mE",	0xb800,		0xfc00,	RD_2,		INSN2_ALIAS,	I38,	0}, /* BNEZC[16] */
-{"bnec",	"[16]",		"ml,-w,mF",	0xd800,		0xfc00,	RD_1|RD_2,		0,	0,	xNMS}, /* BNEC[16], with rs3>=rt3 && u[4:1]!=0 */
-{"bnec",	"[16]",		"md,-x,mF",	0xd800,		0xfc00,	RD_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* BNEC[16], with operands commutated */
+{"bnec",	"[16]",		"ml,mh,mF",	0xd800,		0xfc00,	RD_1|RD_2,		0,	0,	xNMS}, /* BNEC[16], with rs3>=rt3 && u[4:1]!=0 */
+{"bnec",	"[16]",		"md,mi,mF",	0xd800,		0xfc00,	RD_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* BNEC[16], with operands commutated */
 {"bnec",	"[32]",		"s,t,p",	0xa8000000, 0xfc00c000,	RD_1|RD_2,		0,	I38,	0},
 {"bne", 	"",	        "md,z,mE",	0xb800,		0xfc00,	RD_1, INSN2_ALIAS|CBR|CTC,	I38,	0}, /* BNEZC[16] */
 {"bne", 	"",		"z,md,mE",	0xb800,		0xfc00,	RD_2, INSN2_ALIAS|CBR|CTC,	I38,	0}, /* BNEZC[16] */
-{"bne", 	"",		"ml,-w,mF",	0xd800,		0xfc00,	RD_1|RD_2, INSN2_ALIAS|CBR|CTC,	0,	xNMS}, /* BNEC[16], with rs3>=rt3 && u[4:1]!=0 */
-{"bne", 	"",		"md,-x,mF",	0xd800,		0xfc00,	RD_1|RD_2, INSN2_ALIAS|CBR|CTC,	0,	xNMS}, /* BNEC[16], with operands commutated */
+{"bne", 	"",		"ml,mh,mF",	0xd800,		0xfc00,	RD_1|RD_2, INSN2_ALIAS|CBR|CTC,	0,	xNMS}, /* BNEC[16], with rs3>=rt3 && u[4:1]!=0 */
+{"bne", 	"",		"md,mi,mF",	0xd800,		0xfc00,	RD_1|RD_2, INSN2_ALIAS|CBR|CTC,	0,	xNMS}, /* BNEC[16], with operands commutated */
 {"bne", 	"",		"s,t,p",	0xa8000000, 0xfc00c000,	RD_1|RD_2, INSN2_ALIAS|CBR|CTC,	I38,	0}, /* BNEC */
 {"bne", 	"",		"s,I,p",	0,    (int) M_BNE_I,	INSN_MACRO,		0,	I38,	0},
-{"bneic",	"",		"t,m9,~",	0xc8100000, 0xfc1c0000,		RD_1,		0,	I38,	0},
-{"bposge32c",	"",		"p",		0x88044000, 0xffffc000,		0,		0,	0,	D32},
+{"bneic",	"",		"t,+9,~",	0xc8100000, 0xfc1c0000,	RD_1,			0,	I38,	0},
+{"bposge32c",	"",		"p",		0x88044000, 0xffffc000,	0,			0,	0,	D32},
 {"bposge32",	"",		"p",		0x88044000, 0xffffc000,	0,	INSN2_ALIAS|CBR|CTC,	0,	D32}, /* BPOSGE32C */
 {"brsc",	"",		"s",		0x48008000, 0xffe0ffff,	RD_1,			0,	I38,	0},
 {"byterevh",	"",		"t,r",		0x8000d608, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX t,s,8,24 */
 {"byterevw",	"",		"t,r",		0x8000d218, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX t,s,24,8 */
-{"cache",	"",		"k,+j(b)",	0xa4003900, 0xfc007f00,		RD_3,		0,	I38,	0},
-{"cache",	"",		"k,A(c)",	0,    (int) M_CACHE_AC,		INSN_MACRO,	0,	I38,	0},
-{"cachee",	"",		"k,+j(b)",	0xa4003a00, 0xfc007f00,		RD_3,		0,	0,	EVA},
-{"cachee",	"",		"k,A(c)",	0,    (int) M_CACHEE_AC,	INSN_MACRO,	0,	0,	EVA},
+{"cache",	"",		"k,+j(b)",	0xa4003900, 0xfc007f00,	RD_3,			0,	I38,	0},
+{"cache",	"",		"k,A(c)",	0,    (int) M_CACHE_AC,	INSN_MACRO,		0,	I38,	0},
+{"cachee",	"",		"k,+j(b)",	0xa4003a00, 0xfc007f00,	RD_3,			0,	0,	EVA},
+{"cachee",	"",		"k,A(c)",	0,    (int) M_CACHEE_AC, INSN_MACRO,		0,	0,	EVA},
 {"ceil.l.d",	"",		"T,S",		0xa000533b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
 {"ceil.l.s",	"",		"T,S",		0xa000133b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
 {"ceil.w.d",	"",		"T,S",		0xa0005b3b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
@@ -724,14 +660,11 @@ IGRIE */
 {"daddiu",	"[u12]",	"t,r,i",	0x8000a000, 0xfc00f000,	WR_1|RD_2,		0,	I70,	0}, /* DADDIU[U12] */
 {"daddiu",	"[gp]",		"t,ma,.",	0x40000000, 0xfc000003,	WR_1|RD_2,		0,	I70,	0}, /* ADDIU[GP] */
 {"daddiu",	"[48]",		"mp,mt,+R",	0x6011, 	0xfc1f,	MOD_1,			0,	I70,	0}, /* DADDIU[48] */
-{"daddiu",	"[gp48]",	"mp,ma,+T",	0x6012,		0xfc1f,	WR_1|RD_2,		0,	I70,	0}, /* DADDIU[GP48] */
+{"daddiu",	"[gp48]",	"mp,ma,+O",	0x6012,		0xfc1f,	WR_1|RD_2,		0,	I70,	0}, /* DADDIU[GP48] */
 {"daddu",	"",		"d,v,t",	0xc0000150, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,	0},
 {"daddu",	"",		"t,r,I",	0,    (int) M_DADDU_I,	INSN_MACRO,		0,	I70,	0},
-{"dahi",	"",		"t,mO",		0x80008000, 0xfc00f000,		WR_1,		0,	I70,	0},
 {"extd",	"",		"d,s,t,+I",	0xc0000004, 0xfc00003f, WR_1|RD_2|RD_3,		0,	I70,	0},
 {"extd32",	"",		"d,s,t,+I",	0xc000000c, 0xfc00003f, WR_1|RD_2|RD_3,		0,	I70,	0},
-{"dati",	"",		"t,mP",		0x80009000, 0xfc10f000,		WR_1,		0,	I70,	0},
-{"dbitswap",	"",		"t,s",		0xc0000b3c, 0xfc00ffff,	WR_1|RD_2,		0,	I70,	0},
 {"dclo",	"",		"t,s",		0xc0004b3c, 0xfc00ffff,	WR_1|RD_2,		0,	I70,	0},
 {"dclz",	"",		"t,s",		0xc0005b3c, 0xfc00ffff,	WR_1|RD_2,		0,	I70,	0},
 {"ddiv",	"",		"d,v,t",	0xc0000118, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,	0},
@@ -760,7 +693,7 @@ IGRIE */
 {"dli", 	"[neg]",	"t,h",		0x8000a000, 0xfc1ff000,	WR_1,			0,	I70,	0}, /* DADDIU[NEG] */
 {"dli", 	"[u12]",	"t,i",		0x8000a000, 0xfc1ff000,	WR_1,			0,	I70,	0}, /* DADDIU[U12] */
 {"dli", 	"", 		"t,I",		0,    (int) M_DLI,	INSN_MACRO,		0,	I70,	0},
-{"dlsa",	"",		"d,v,t,+.",	0xc0000008, 0xfc0001ff, WR_1|RD_2|RD_3,		0,	I70,	0},
+{"dlsa",	"",		"d,v,t,+w",	0xc0000008, 0xfc0001ff, WR_1|RD_2|RD_3,		0,	I70,	0},
 {"dlui",	"[48]",		"mp,+Q",	0x6014, 	0xfc1f,	WR_1,			0,	I70,	0}, /* DLUI[48] */
 {"dmfc0",	"",		"t,O",		0x20000130, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	I70,	0}, /* DMFC0 with named register */
 {"dmfc0",	"",		"t,P,J",	0x20000130, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	I70,	0}, /* DMFC0 with named register & select */
@@ -790,22 +723,22 @@ IGRIE */
 {"dmulu",	"",		"d,s,t",	0xc0000098, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,	0},
 {"dneg",	"",		"d,w",		0xc0000190, 0xfc1f07ff, WR_1|RD_2,	INSN2_ALIAS,	I70,	0}, /* DSUB */
 {"dnegu",	"",		"d,w",		0xc00001d0, 0xfc1f07ff, WR_1|RD_2,	INSN2_ALIAS,	I70,	0}, /* DSUBU */
-{"dpa.w.ph",	"",		"7,s,t",	0x200000bf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32},
-{"dpaqx_s.w.ph", "", 		"7,s,t",	0x200022bf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32},
-{"dpaqx_sa.w.ph","", 		"7,s,t",	0x200032bf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32},
-{"dpaq_s.w.ph",	"", 		"7,s,t",	0x200002bf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32},
-{"dpaq_sa.l.w",	"", 		"7,s,t",	0x200012bf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32},
-{"dpau.h.qbl",	"", 		"7,s,t",	0x200020bf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32},
-{"dpau.h.qbr",	"", 		"7,s,t",	0x200030bf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32},
-{"dpax.w.ph",	"", 		"7,s,t",	0x200010bf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32},
-{"dps.w.ph",	"",		"7,s,t",	0x200004bf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32},
-{"dpsqx_s.w.ph", "", 		"7,s,t",	0x200026bf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32},
-{"dpsqx_sa.w.ph", "", 		"7,s,t",	0x200036bf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32},
-{"dpsq_s.w.ph",	"", 		"7,s,t",	0x200006bf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32},
-{"dpsq_sa.l.w",	"", 		"7,s,t",	0x200016bf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32},
-{"dpsu.h.qbl",	"", 		"7,s,t",	0x200024bf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32},
-{"dpsu.h.qbr",	"", 		"7,s,t",	0x200034bf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32},
-{"dpsx.w.ph",	"",		"7,s,t",	0x200014bf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32},
+{"dpa.w.ph",	"",		"7,s,t",	0x200000bf, 0xfc003fff,	MOD_1|RD_2|RD_3,	0,	0,	D32},
+{"dpaqx_s.w.ph", "", 		"7,s,t",	0x200022bf, 0xfc003fff,	MOD_1|RD_2|RD_3,	0,	0,	D32},
+{"dpaqx_sa.w.ph","", 		"7,s,t",	0x200032bf, 0xfc003fff,	MOD_1|RD_2|RD_3,	0,	0,	D32},
+{"dpaq_s.w.ph", "", 		"7,s,t",	0x200002bf, 0xfc003fff,	MOD_1|RD_2|RD_3,	0,	0,	D32},
+{"dpaq_sa.l.w", "", 		"7,s,t",	0x200012bf, 0xfc003fff,	MOD_1|RD_2|RD_3,	0,	0,	D32},
+{"dpau.h.qbl",	"", 		"7,s,t",	0x200020bf, 0xfc003fff,	MOD_1|RD_2|RD_3,	0,	0,	D32},
+{"dpau.h.qbr",	"", 		"7,s,t",	0x200030bf, 0xfc003fff,	MOD_1|RD_2|RD_3,	0,	0,	D32},
+{"dpax.w.ph",	"", 		"7,s,t",	0x200010bf, 0xfc003fff,	MOD_1|RD_2|RD_3,	0,	0,	D32},
+{"dps.w.ph",	"",		"7,s,t",	0x200004bf, 0xfc003fff,	MOD_1|RD_2|RD_3,	0,	0,	D32},
+{"dpsqx_s.w.ph", "", 		"7,s,t",	0x200026bf, 0xfc003fff,	MOD_1|RD_2|RD_3,	0,	0,	D32},
+{"dpsqx_sa.w.ph", "", 		"7,s,t",	0x200036bf, 0xfc003fff,	MOD_1|RD_2|RD_3,	0,	0,	D32},
+{"dpsq_s.w.ph", "", 		"7,s,t",	0x200006bf, 0xfc003fff,	MOD_1|RD_2|RD_3,	0,	0,	D32},
+{"dpsq_sa.l.w", "", 		"7,s,t",	0x200016bf, 0xfc003fff,	MOD_1|RD_2|RD_3,	0,	0,	D32},
+{"dpsu.h.qbl",	"", 		"7,s,t",	0x200024bf, 0xfc003fff,	MOD_1|RD_2|RD_3,	0,	0,	D32},
+{"dpsu.h.qbr",	"", 		"7,s,t",	0x200034bf, 0xfc003fff,	MOD_1|RD_2|RD_3,	0,	0,	D32},
+{"dpsx.w.ph",	"",		"7,s,t",	0x200014bf, 0xfc003fff,	MOD_1|RD_2|RD_3,	0,	0,	D32},
 {"drol",	"",		"d,v,t",	0,    (int) M_DROL,	INSN_MACRO,		0,	I70,	0},
 {"drol",	"",		"d,v,I",	0,    (int) M_DROL_I,	INSN_MACRO,		0,	I70,	0},
 {"drotl",	"",		"d,v,t",	0,    (int) M_DROL,	INSN_MACRO,		0,	I70,	0},
@@ -816,8 +749,6 @@ IGRIE */
 {"dror32",	"",		"t,r,<",	0x8000c1e0, 0xfc00ffe0,	WR_1|RD_2,    INSN2_ALIAS,	I70,	0}, /* DROTR32 */
 {"drotrv",	"",		"d,v,t",	0xc00000d0, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,	0},
 {"drorv",	"",		"d,v,t",	0xc00000d0, 0xfc0007ff, WR_1|RD_2|RD_3,	INSN2_ALIAS,	I70,	0}, /* DROTRV */
-{"dsbh",	"",		"t,r",		0xc0007b3c, 0xfc00ffff,	WR_1|RD_2,		0,	I70,	0},
-{"dshd",	"",		"t,r",		0xc000fb3c, 0xfc00ffff,	WR_1|RD_2,		0,	I70,	0},
 {"dsll",	"",		"t,r,<",	0x8000c100, 0xfc00ffe0,	WR_1|RD_2,		0,	I70,	0},
 {"dsll32",	"",		"t,r,<",	0x8000c120, 0xfc00ffe0,	WR_1|RD_2,		0,	I70,	0},
 {"dsllv",	"",		"d,s,t",	0xc0000010, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,	0},
@@ -844,18 +775,18 @@ IGRIE */
 {"evpe",	"",		"t",		0x20000eb0, 0xfc1fffff,	WR_1,			0,	0,	MT32},
 {"evp", 	"", 	 	"-a",		0x20000790, 0xffe0ffff,	0,		INSN2_ALIAS,	I38,	0}, /* EVP */
 {"evp", 	"", 	 	"t,-a",		0x20000790, 0xfc00ffff,	WR_1,			0,	I38,	0},
-{"extp",	"",		"t,7,+x",	0x2000267f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
-{"extpdp",	"",		"t,7,+x",	0x2000367f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
+{"extp",	"",		"t,7,2",	0x2000267f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
+{"extpdp",	"",		"t,7,2",	0x2000367f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
 {"extpdpv",	"",		"t,7,s",	0x200038bf, 0xfc003fff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"extpv",	"",		"t,7,s",	0x200028bf, 0xfc003fff, WR_1|RD_2|RD_3,		0,	0,	D32},
-{"extr.w",	"",		"t,7,+x",	0x20000e7f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
+{"extr.w",	"",		"t,7,2",	0x20000e7f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
 {"extrv.w",	"",		"t,7,s",	0x20000ebf, 0xfc003fff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"extrv_r.w",	"",		"t,7,s",	0x20001ebf, 0xfc003fff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"extrv_rs.w",	"", 	 	"t,7,s",	0x20002ebf, 0xfc003fff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"extrv_s.h",	"",		"t,7,s",	0x20003ebf, 0xfc003fff, WR_1|RD_2|RD_3,		0,	0,	D32},
-{"extr_r.w",	"",		"t,7,+x",	0x20001e7f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
-{"extr_rs.w",	"",		"t,7,+x",	0x20002e7f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
-{"extr_s.h",	"",		"t,7,+x",	0x20003e7f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
+{"extr_r.w",	"",		"t,7,2",	0x20001e7f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
+{"extr_rs.w",	"",		"t,7,2",	0x20002e7f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
+{"extr_s.h",	"",		"t,7,2",	0x20003e7f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
 {"fork",	"",		"d,s,t",	0x20000228, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,	0,	MT32},
 {"floor.l.d",	"",		"T,S",		0xa000433b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
 {"floor.l.s",	"",		"T,S",		0xa000033b, 0xfc00ffff,	WR_1|RD_2|FP_S|FP_D,	0,	I38,	0},
@@ -865,7 +796,7 @@ IGRIE */
 {"ginvt",	"",		"s,+;",		0x20000f7f, 0xff80ffff, RD_1,			0,	0,	GINV},
 {"ginvgt",	"",		"s,+;",		0x20000d7f, 0xff80ffff, RD_1,			0,	0,	IVIRT_GINV},
 {"hypcall",	"[16]",		"",		0x100c,		0xffff,		0,	INSN2_ALIAS,	0,	IVIRT}, /* HYPCALL[16] */
-{"hypcall",	"[16]",		"+o",		0x100c,		0xfffc,		0,		0,	0,	IVIRT}, /* HYPCALL[16] */
+{"hypcall",	"[16]",		"mP",		0x100c,		0xfffc,		0,		0,	0,	IVIRT}, /* HYPCALL[16] */
 {"hypcall",	"[32]",		"",		0x000c0000, 0xffffffff,		0,	INSN2_ALIAS,	0,	IVIRT},
 {"hypcall",	"[32]",		"+M",		0x000c0000, 0xfffc0000,		0,		0,	0,	IVIRT},
 {"ins", 	"",		"t,r,+A,+B",	0x8000e000, 0xfc00f820,	WR_1|RD_2,		0,	0,	xNMS},
@@ -873,7 +804,7 @@ IGRIE */
 {"insv",	"",		"t,s",		0x2000413f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32},
 {"iret",	"",		"",		0x2000d37f, 0xffffffff,		0,		0,	0,	MC},
 {"j",		"", 		"mp",		0xd800,		0xfc1f,	RD_1,	INSN2_ALIAS|UBR|CTC,	I38,	0},
-{"j",		"",		"+'",		0x28000000, 0xfe000000,	0, 	INSN2_ALIAS|UBR|CTC,	I38,	0}, /* BC */
+{"j",		"",		"+u",		0x28000000, 0xfe000000,	0, 	INSN2_ALIAS|UBR|CTC,	I38,	0}, /* BC */
 {"j",		"",		"s",		0x48000000, 0xffe0ffff,	RD_1,	INSN2_ALIAS|UBR|CTC,	I38,	0}, /* JALRC */
 {"jrc.hb",	"",		"s",		0x48001000, 0xffe0ffff,	RD_1,	INSN2_ALIAS,	I38,	0}, /* JALRC.HB */
 {"jr.hb",	"",		"s",		0x48001000, 0xffe0ffff,	RD_1, INSN2_ALIAS|UBR|CTC,	I38,	0}, /* JALRC.HB */
@@ -887,7 +818,7 @@ IGRIE */
 {"jal",		"",		"s",		0x4be00000, 0xffe0ffff,	RD_1,	    INSN2_ALIAS|UBR|CTC, I38,	0}, /* JALRC */
 {"jal",		"",		"t,s",		0x48000000, 0xfc00ffff,	WR_1|RD_2,  INSN2_ALIAS|UBR|CTC, I38,	0}, /* JALRC */
 {"jal", 	"",		"A",		0,    (int) M_JAL_A,	INSN_MACRO,		0,	I38,	0},
-{"jal", 	"",		"+'",		0x2a000000, 0xfe000000,	WR_31,	INSN2_ALIAS|UBR|CTC,	I38,	0}, /* BALC */
+{"jal", 	"",		"+u",		0x2a000000, 0xfe000000,	WR_31,	INSN2_ALIAS|UBR|CTC,	I38,	0}, /* BALC */
 {"lb",		"[16]",		"md,mL(ml)",	0x5c00,		0xfc0c,	WR_1|RD_3,		0,	I38,	0}, /* LB[16] */
 {"lb",		"[gp]",		"t,+1(ma)",	0x44000000, 0xfc1c0000,	WR_1|RD_3,		0,	I38,	0}, /* LB[GP] */
 {"lb",		"[u12]",	"t,o(b)",	0x84000000, 0xfc00f000,	WR_1|RD_3,		0,	I38,	0}, /* LB[U12] */
@@ -906,7 +837,7 @@ IGRIE */
 {"lbue",	"",		"t,A(c)",	0,     (int) M_LBUE_AC,	INSN_MACRO,		0,	0,	EVA},
 {"lbux",	"",		"d,s(t)",	0x20000107, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"lbx", 	"",		"d,s(t)",	0x20000007, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
-{"ld",		"[gp]",		"t,mV(ma)",	0x40000001, 0xfc000007,	WR_1|RD_3,		0,	I70,	0}, /* LD[GP] */
+{"ld",		"[gp]",		"t,+4(ma)",	0x40000001, 0xfc000007,	WR_1|RD_3,		0,	I70,	0}, /* LD[GP] */
 {"ld",		"[u12]",	"t,o(b)",	0x8400c000, 0xfc00f000,	WR_1|RD_3,		0,	I70,	0}, /* LD[U12] */
 {"ld",		"[s9]",		"t,+j(b)",	0xa4006000, 0xfc007f00,	WR_1|RD_3,		0,	I70,	0}, /* LD[S9] */
 {"ld",		"",		"t,A(c)",	0,    (int) M_LD_AC,	INSN_MACRO,		0,	I38,	0},
@@ -953,23 +884,23 @@ IGRIE */
 {"li.d",	"",		"T,L",		0,    (int) M_LI_DD,	INSN_MACRO,	INSN2_M_FP_D,	I38,	0},
 {"li.s",	"",	 	"t,f",		0,    (int) M_LI_S,	INSN_MACRO,	INSN2_M_FP_S,	I38,	0},
 {"li.s",	"",		"T,l",		0,    (int) M_LI_SS,	INSN_MACRO,	INSN2_M_FP_S,	I38,	0},
-{"ll",		"",		"t,+m(b)",	0xa4005100, 0xfc007f03,	WR_1|RD_3,		0,	I38,	0},
+{"ll",		"",		"t,+p(b)",	0xa4005100, 0xfc007f03,	WR_1|RD_3,		0,	I38,	0},
 {"ll",		"",		"t,A(c)",	0,    (int) M_LL_AC,	INSN_MACRO,		0,	I38,	0},
 {"lld", 	"", 		"t,+q(b)",	0xa4007100, 0xfc007f07,	WR_1|RD_3,		0,	I70,	0},
 {"lld", 	"",		"t,A(c)",	0,    (int) M_LLD_AC,	INSN_MACRO,		0,	I70,	0},
-{"lldp",	"",		"t,mu,(b)",	0xa4007101, 0xfc00ff07, WR_1|WR_2|RD_3,		0,	I70,	0},
-{"lldp",	"",		"t,mu,A(c)",	0,     (int) M_LLDP_AC, INSN_MACRO,		0,	I70,	0},
-{"lle", 	"", 		"t,+m(b)",	0xa4005200, 0xfc007f03,	WR_1|RD_3,		0,	0,	EVA},
+{"lldp",	"",		"t,e,(b)",	0xa4007101, 0xfc00ff07, WR_1|WR_2|RD_3,		0,	I70,	0},
+{"lldp",	"",		"t,e,A(c)",	0,     (int) M_LLDP_AC, INSN_MACRO,		0,	I70,	0},
+{"lle", 	"", 		"t,+p(b)",	0xa4005200, 0xfc007f03,	WR_1|RD_3,		0,	0,	EVA},
 {"lle", 	"", 		"t,A(c)",	0,     (int) M_LLE_AC,	INSN_MACRO,		0,	0,	EVA},
-{"llwp",	"",		"t,mu,(b)",	0xa4005101, 0xfc00ff07, WR_1|WR_2|RD_3,		0,	0,	xNMS},
-{"llwp",	"",		"t,mu,A(c)",	0, 	(int) M_LLWP_AC, INSN_MACRO,		0,	0,	xNMS},
-{"llwpe",	"",		"t,mu,(b)",	0xa4005201, 0xfc00ff07, WR_1|WR_2|RD_3,		0,	0,	EVA},
-{"llwpe",	"",		"t,mu,A(c)",	0, 	(int) M_LLWP_AC, INSN_MACRO,		0,	0,	EVA},
-{"lsa",		"",		"d,v,t,+.",	0x2000000f, 0xfc0001ff, WR_1|RD_2|RD_3,		0,	I38,	0},
+{"llwp",	"",		"t,e,(b)",	0xa4005101, 0xfc00ff07, WR_1|WR_2|RD_3,		0,	0,	xNMS},
+{"llwp",	"",		"t,e,A(c)",	0, 	(int) M_LLWP_AC, INSN_MACRO,		0,	0,	xNMS},
+{"llwpe",	"",		"t,e,(b)",	0xa4005201, 0xfc00ff07, WR_1|WR_2|RD_3,		0,	0,	EVA},
+{"llwpe",	"",		"t,e,A(c)",	0, 	(int) M_LLWP_AC, INSN_MACRO,		0,	0,	EVA},
+{"lsa",		"",		"d,v,t,+w",	0x2000000f, 0xfc0001ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"lw",		"[16]",		"md,mJ(ml)",	0x1400,		0xfc00,	WR_1|RD_3,		0,	I38,	0}, /* LW[16] */
-{"lw",		"[4x4]",	"+4,mN(+5)",	0x7400,		0xfc00,	WR_1|RD_3,		0,	0,	xNMS}, /* LW[4X4] */
-{"lw",		"[sp]",		"mp,mU(ms)",	0x3400,		0xfc00,	WR_1|RD_3,		0,	I38,	0}, /* LW[SP] */
-{"lw",		"[gp16]",	"md,m1(ma)",	0x5400,		0xfc00,	WR_1|RD_3,		0,	I38,	0}, /* LW[GP16] */
+{"lw",		"[4x4]",	"mu,mN(mv)",	0x7400,		0xfc00,	WR_1|RD_3,		0,	0,	xNMS}, /* LW[4X4] */
+{"lw",		"[sp]",		"mp,mR(ms)",	0x3400,		0xfc00,	WR_1|RD_3,		0,	I38,	0}, /* LW[SP] */
+{"lw",		"[gp16]",	"md,mO(ma)",	0x5400,		0xfc00,	WR_1|RD_3,		0,	I38,	0}, /* LW[GP16] */
 {"lw",		"[gp]",		"t,.(ma)",	0x40000002, 0xfc000003,	WR_1|RD_3,		0,	I38,	0}, /* LW[GP] */
 {"lw",		"[gp16]",	"md,mA(ma)",	0x5400,		0xfc00,	WR_1|RD_3,		0,	I38,	0}, /* LW[GP16] */
 {"lw",		"[u12]",	"t,o(b)",	0x84008000, 0xfc00f000,	WR_1|RD_3,		0,	I38,	0}, /* LW[U12] */
@@ -1054,7 +985,7 @@ IGRIE */
 {"mfthi",	"",		"t,*",		0x20010e30, 0xfc13ffff,	WR_1|RD_a,	INSN2_ALIAS,	0,	MT32}, /* MFTR */
 {"mftlo",	"",		"t",		0x20000e30, 0xfc1fffff,	WR_1|RD_a,	INSN2_ALIAS,	0,	MT32}, /* MFTR */
 {"mftlo",	"",		"t,*",		0x20000e30, 0xfc13ffff,	WR_1|RD_a,	INSN2_ALIAS,	0,	MT32}, /* MFTR */
-{"mftr",	"",		"t,s,!,Q,$",	0x20000230, 0xfc0003f7,	WR_1,			0,	0,	MT32},
+{"mftr",	"",		"t,s,!,H,$",	0x20000230, 0xfc0003f7,	WR_1,			0,	0,	MT32},
 {"min.d",	"",		"D,S,T",	0xa0000203, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
 {"min.s",	"",		"D,S,T",	0xa0000003, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
 {"mina.d",	"",		"D,S,T",	0xa0000223, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
@@ -1066,12 +997,12 @@ IGRIE */
 {"modu",	"",		"d,v,I",	0,    (int) M_MODU_I,	INSN_MACRO,		0,	I38,	0},
 {"mov.d",	"",		"T,S",		0xa000207b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
 {"mov.s",	"",		"T,S",		0xa000007b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
-{"move.balc",	"",		"m4,+8,+r",	0x08000000, 0xfc000000,	WR_1|RD_2,		0,	0,	xNMS},
-{"move.bal",	"",		"m4,+8,+r",	0x08000000, 0xfc000000,	WR_1|RD_2, 	INSN2_ALIAS|UBR|CTC, 0,	xNMS}, /* MOVE.BALC */
-{"movep",	"",		"m5,+7,+6",	0xbc00,		0xfc00,	WR_1|RD_2|RD_3,		0,	0,	xNMS}, /* MOVEP */
-{"movep",	"",		"m7,+6,+7",	0xbc00,		0xfc00,	WR_1|RD_2|RD_3,	INSN2_ALIAS,	0,	xNMS}, /* MOVEP */
-{"movep",	"[rev]",	"+5,+4,m5",	0xfc00,		0xfc00,	WR_1|WR_2|RD_3,		0,	0,	xNMS}, /* MOVEP[REV] */
-{"movep",	"[rev]",	"+4,+5,m7",	0xfc00,		0xfc00,	WR_1|WR_2|RD_3,	INSN2_ALIAS,	0,	xNMS}, /* MOVEP[REV] */
+{"move.balc",	"",		"+7,+5,+r",	0x08000000, 0xfc000000,	WR_1|RD_2,		0,	0,	xNMS},
+{"move.bal",	"",		"+7,+5,+r",	0x08000000, 0xfc000000,	WR_1|RD_2, 	INSN2_ALIAS|UBR|CTC, 0,	xNMS}, /* MOVE.BALC */
+{"movep",	"",		"mq,mx,mw",	0xbc00,		0xfc00,	WR_1|RD_2|RD_3,		0,	0,	xNMS}, /* MOVEP */
+{"movep",	"",		"mr,mw,mx",	0xbc00,		0xfc00,	WR_1|RD_2|RD_3,	INSN2_ALIAS,	0,	xNMS}, /* MOVEP */
+{"movep",	"[rev]",	"mv,mu,mq",	0xfc00,		0xfc00,	WR_1|WR_2|RD_3,		0,	0,	xNMS}, /* MOVEP[REV] */
+{"movep",	"[rev]",	"mu,mv,mr",	0xfc00,		0xfc00,	WR_1|WR_2|RD_3,	INSN2_ALIAS,	0,	xNMS}, /* MOVEP[REV] */
 {"movn",	"",		"d,v,t",	0x20000610, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"movz",	"",		"d,v,t",	0x20000210, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"msub",	"[dsp]",	"7,s,t",	0x20002abf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32}, /* MSUB[DSP] */
@@ -1116,11 +1047,11 @@ IGRIE */
 {"mttlo",	"",		"t",		0x20000e70, 0xfc1fffff,	RD_1|WR_a,	INSN2_ALIAS,	0,	MT32}, /* MTTR */
 {"mttlo",	"",		"t,*",		0x20000e70, 0xfc13ffff,	RD_1|WR_a,	INSN2_ALIAS,	0,	MT32}, /* MTTR */
 {"mttdsp",	"",		"t",		0x20100e70, 0xfc1fffff,	RD_1,		INSN2_ALIAS,	0,	MT32}, /* MTTR */
-{"mttr",	"",		"t,s,!,Q,$",	0x20000270, 0xfc0003f7,	RD_1,			0,	0,	MT32},
+{"mttr",	"",		"t,s,!,H,$",	0x20000270, 0xfc0003f7,	RD_1,			0,	0,	MT32},
 {"muh", 	"", 	 	"d,v,t",	0x20000058, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"muhu",	"",		"d,v,t",	0x200000d8, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
-{"mul", 	"[4x4]",	"+4,mt,+5",	0x3c08,		0xfd08,	MOD_1|RD_3,		0,	0,	xNMS}, /* MUL[4X4] */
-{"mul", 	"[4x4]",	"+4,+5,mx",	0x3c08,		0xfd08,	MOD_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* MUL[4X4] */
+{"mul", 	"[4x4]",	"mu,mt,mv",	0x3c08,		0xfd08,	MOD_1|RD_3,		0,	0,	xNMS}, /* MUL[4X4] */
+{"mul", 	"[4x4]",	"mu,mv,mk",	0x3c08,		0xfd08,	MOD_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* MUL[4X4] */
 {"mul", 	"[32]", 	"d,v,t",	0x20000018, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"mul", 	"",		"d,v,I",	0,    (int) M_MUL_I,	INSN_MACRO,		0,	I38,	0},
 {"mul.d",	"",		"D,V,T",	0xa00001b0, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
@@ -1148,8 +1079,8 @@ IGRIE */
 {"not", 	"[32]",		"d,v",		0x200002d0, 0xffe007ff, WR_1|RD_2, 	INSN2_ALIAS,	I38,	0}, /* NOR */
 {"nor", 	"",		"d,v,t",	0x200002d0, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"nor", 	"",		"t,r,I",	0,    (int) M_NOR_I,	INSN_MACRO,		0,	I38,	0},
-{"or",		"[16]",		"md,mx,ml",	0x500c,		0xfc0f,	WR_1|RD_3,	INSN2_ALIAS,	I38,	0}, /* OR[16] */
-{"or",		"[16]",		"md,ml,mx",	0x500c,		0xfc0f,	WR_1|RD_2,	INSN2_ALIAS,	I38,	0}, /* OR[16] */
+{"or",		"[16]",		"md,mk,ml",	0x500c,		0xfc0f,	WR_1|RD_3,	INSN2_ALIAS,	I38,	0}, /* OR[16] */
+{"or",		"[16]",		"md,ml,mk",	0x500c,		0xfc0f,	WR_1|RD_2,	INSN2_ALIAS,	I38,	0}, /* OR[16] */
 {"or",		"[16]",		"md,ml",	0x500c,		0xfc0f,	WR_1|RD_2,		0,	I38,	0}, /* OR[16] */
 {"or",		"[32]",		"d,v,t",	0x20000290, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"or",		"",		"t,r,I",	0,    (int) M_OR_I,	INSN_MACRO,		0,	I38,	0},
@@ -1173,8 +1104,8 @@ IGRIE */
 {"precrq.qb.ph", "", 		"d,s,t",	0x200000ad, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"precrqu_s.qb.ph", "", 	"d,s,t",	0x2000016d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"precrq_rs.ph.w", "", 		"d,s,t",	0x2000012d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
-{"precr_sra.ph.w", "",		"t,s,+i",	0x200003cd, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
-{"precr_sra_r.ph.w", "", 	"t,s,+i",	0x200007cd, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
+{"precr_sra.ph.w", "",		"t,s,1",	0x200003cd, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
+{"precr_sra_r.ph.w", "", 	"t,s,1",	0x200007cd, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
 {"pref",	"[u12]",	"k,o(b)",	0x84003000, 0xfc00f000,	RD_3,			0,	I38,	0}, /* PREF[U12] */
 {"pref",	"[s9]",		"k,+j(b)",	0xa4001800, 0xfc007f00,	RD_3,			0,	I38,	0}, /* PREF[S9], preceded by SYNCI[S9] */
 {"pref",	"",		"k,A(c)",	0,    (int) M_PREF_AC,	INSN_MACRO,		0,	I38,	0},
@@ -1197,15 +1128,15 @@ IGRIE */
 {"repl.qb",	"",		"t,5",		0x200005ff, 0xfc001fff,	WR_1,			0,	0,	D32},
 {"replv.ph",	"",		"t,s",		0x2000033f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32},
 {"replv.qb",	"",		"t,s",		0x2000133f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32},
-{"restore",	"[32]",		"mY,n",		0x80003002, 0xfc00f003,	0,			0,	I38,	0},
+{"restore",	"[32]",		"+N,n",		0x80003002, 0xfc00f003,	0,			0,	I38,	0},
 {"restore.jrc",	"[16]", 	"mG",		0x1d00,		0xff0f,	0,			0,	I38,	0}, /* RESTORE.JRC[16] */
-{"restore.jrc",	"[16]", 	"mG,+N",	0x1d00,		0xfd00,	0,			0,	I38,	0}, /* RESTORE.JRC[16], preceded by RESTORE[16] */
-{"restore.jrc",	"[32]",		"mY",		0x80003003, 0xfffff007,	0,     			0,	I38,	0}, /* RESTORE.JRC[32] */
-{"restore.jrc",	"[32]", 	"mY,n",		0x80003003, 0xfc00f003,	0,			0,	I38,	0},
+{"restore.jrc",	"[16]", 	"mG,mn",	0x1d00,		0xfd00,	0,			0,	I38,	0}, /* RESTORE.JRC[16], preceded by RESTORE[16] */
+{"restore.jrc",	"[32]",		"+N",		0x80003003, 0xfffff007,	0,     			0,	I38,	0}, /* RESTORE.JRC[32] */
+{"restore.jrc",	"[32]", 	"+N,n",		0x80003003, 0xfc00f003,	0,			0,	I38,	0},
 {"jraddiusp",	"",		"mG",		0x1d00,		0xff0f,	0,		INSN2_ALIAS,	I38,	0}, /* RESTORE.JRC[16] */
-{"jraddiusp",	"",		"mY",		0x80003003, 0xfffff007,	0,		INSN2_ALIAS,	I38,	0}, /* RESTORE.JRC[32] */
+{"jraddiusp",	"",		"+N",		0x80003003, 0xfffff007,	0,		INSN2_ALIAS,	I38,	0}, /* RESTORE.JRC[32] */
 {"jraddiusp",	"",		"I",		0,   (int) M_JRADDIUSP,	INSN_MACRO,		0,	I38,	0},
-{"restoref",	"",		"mY,+P",	0x80103001, 0xfff0f007,	FP_S,			0,	I38,	0},
+{"restoref",	"",		"+N,+D",	0x80103001, 0xfff0f007,	FP_S,			0,	I38,	0},
 {"rint.d",	"",		"T,S",		0xa0000220, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
 {"rint.s",	"",		"T,S",		0xa0000020, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
 {"rol", 	"", 		"d,v,t",	0,    (int) M_ROL,	INSN_MACRO,		0,	I38,	0},
@@ -1229,11 +1160,11 @@ IGRIE */
 {"round.w.s",	"",		"T,S",		0xa0003b3b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
 {"rsqrt.d",	"",		"T,S",		0xa000423b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
 {"rsqrt.s",	"",		"T,S",		0xa000023b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
-{"savef",	"",		"mY,+P",	0x80103000, 0xfff0f007,	    	FP_S,		0,	I38,	0}, /* precedes SAVE */
+{"savef",	"",		"+N,+D",	0x80103000, 0xfff0f007,	    	FP_S,		0,	I38,	0}, /* precedes SAVE */
 {"save",	"[16]",		"mG",		0x1c00,		0xff0f,		0,		0,	I38,	0}, /* SAVE[16] */
-{"save",	"[16]",		"mG,+N",	0x1c00,		0xfd00,		0,		0,	I38,	0}, /* SAVE[16] */
-{"save",	"[32]",		"mY,n",		0x80003000, 0xfc00f003,		0,		0,	I38,	0},
-{"sb",		"[16]",		"mq,mL(ml)",	0x5c04,		0xfc0c,	RD_1|RD_3,		0,	I38,	0}, /* SB[16] */
+{"save",	"[16]",		"mG,mn",	0x1c00,		0xfd00,		0,		0,	I38,	0}, /* SAVE[16] */
+{"save",	"[32]",		"+N,n",		0x80003000, 0xfc00f003,		0,		0,	I38,	0},
+{"sb",		"[16]",		"mm,mL(ml)",	0x5c04,		0xfc0c,	RD_1|RD_3,		0,	I38,	0}, /* SB[16] */
 {"sb",		"[gp]",		"t,+1(ma)",	0x44040000, 0xfc1c0000,	RD_1|RD_3,		0,	I38,	0}, /* SB[GP] */
 {"sb",		"[u12]",	"t,o(b)",	0x84001000, 0xfc00f000,	RD_1|RD_3,		0,	I38,	0}, /* SB[U12] */
 {"sb",		"[s9]",		"t,+j(b)",	0xa4000800, 0xfc007f00,	RD_1|RD_3,		0,	I38,	0}, /* SB[S9] */
@@ -1242,19 +1173,19 @@ IGRIE */
 {"sbe", 	"", 		"t,+j(b)",	0xa4000a00, 0xfc007f00,	RD_1|RD_3,		0,	0,	EVA},
 {"sbe", 	"", 		"t,A(c)",	0,     (int) M_SBE_AC,	INSN_MACRO,		0,	0,	EVA},
 {"sbx", 	"",		"d,s(t)",	0x20000087, 0xfc0007ff, RD_1|RD_2|RD_3,		0,	0,	xNMS},
-{"sc",		"",		"t,+m(b)",	0xa4005900, 0xfc007f03,	MOD_1|RD_3,		0,	I38,	0},
+{"sc",		"",		"t,+p(b)",	0xa4005900, 0xfc007f03,	MOD_1|RD_3,		0,	I38,	0},
 {"sc",		"",		"t,A(c)",	0,    (int) M_SC_AC,	INSN_MACRO,		0,	I38,	0},
 {"scd", 	"", 		"t,+q(b)",	0xa4007900, 0xfc007f07,	MOD_1|RD_3,		0,	I70,	0},
 {"scd", 	"",		"t,A(c)",	0,    (int) M_SCD_AC,	INSN_MACRO,		0,	I70,	0},
-{"scdp",	"",		"t,mu,(b)",	0xa4007901, 0xfc00ff07,MOD_1|WR_2|RD_3,		0,	I70,	0},
-{"scdp",	"",		"t,mu,A(c)",	0,     (int) M_SCDP_AC, INSN_MACRO,		0,	I70,	0},
-{"sce", 	"", 		"t,+m(b)",	0xa4005a00, 0xfc007f03,	MOD_1|RD_3,		0,	0,	EVA},
+{"scdp",	"",		"t,e,(b)",	0xa4007901, 0xfc00ff07,MOD_1|WR_2|RD_3,		0,	I70,	0},
+{"scdp",	"",		"t,e,A(c)",	0,     (int) M_SCDP_AC, INSN_MACRO,		0,	I70,	0},
+{"sce", 	"", 		"t,+p(b)",	0xa4005a00, 0xfc007f03,	MOD_1|RD_3,		0,	0,	EVA},
 {"sce", 	"", 		"t,A(c)",	0,     (int) M_SCE_AC,	INSN_MACRO,		0,	0,	EVA},
-{"scwp",	"",		"t,mu,(b)",	0xa4005901, 0xfc00ff07,MOD_1|WR_2|RD_3,		0,	0,	xNMS},
-{"scwp",	"",		"t,mu,A(c)",	0, 	(int) M_SCWP_AC, INSN_MACRO,		0,	0,	xNMS},
-{"scwpe",	"",		"t,mu,(b)",	0xa4005a01, 0xfc00ff07,MOD_1|WR_2|RD_3,		0,	0,	EVA},
-{"scwpe",	"",		"t,mu,A(c)",	0, 	(int) M_SCWP_AC, INSN_MACRO,		0,	0,	EVA},
-{"sd",		"[gp]",		"t,mV(ma)",	0x40000005, 0xfc000007,	RD_1|RD_3,		0,	I70,	0}, /* SD[GP] */
+{"scwp",	"",		"t,e,(b)",	0xa4005901, 0xfc00ff07,MOD_1|WR_2|RD_3,		0,	0,	xNMS},
+{"scwp",	"",		"t,e,A(c)",	0, 	(int) M_SCWP_AC, INSN_MACRO,		0,	0,	xNMS},
+{"scwpe",	"",		"t,e,(b)",	0xa4005a01, 0xfc00ff07,MOD_1|WR_2|RD_3,		0,	0,	EVA},
+{"scwpe",	"",		"t,e,A(c)",	0, 	(int) M_SCWP_AC, INSN_MACRO,		0,	0,	EVA},
+{"sd",		"[gp]",		"t,+4(ma)",	0x40000005, 0xfc000007,	RD_1|RD_3,		0,	I70,	0}, /* SD[GP] */
 {"sd",		"[u12]",	"t,o(b)",	0x8400d000, 0xfc00f000,	RD_1|RD_3,		0,	I70,	0}, /* SD[U12] */
 {"sd",		"[s9]",		"t,+j(b)",	0xa4006800, 0xfc007f00,	RD_1|RD_3,		0,	I70,	0}, /* SD[S9] */
 {"sd",		"",		"t,A(c)",	0,    (int) M_SD_AC,	INSN_MACRO,		0,	I38,	0},
@@ -1296,7 +1227,7 @@ IGRIE */
 {"sgt", 	"", 		"d,v,I",	0,    (int) M_SGT_I,	INSN_MACRO,		0,	I38,	0},
 {"sgtu",	"",		"d,v,t",	0,    (int) M_SGTU,	INSN_MACRO,		0,	I38,	0},
 {"sgtu",	"",		"d,v,I",	0,    (int) M_SGTU_I,	INSN_MACRO,		0,	I38,	0},
-{"sh",		"[16]",		"mq,mH(ml)",	0x7c01,		0xfc09,	RD_1|RD_3,		0,	I38,	0}, /* SH[16] */
+{"sh",		"[16]",		"mm,mH(ml)",	0x7c01,		0xfc09,	RD_1|RD_3,		0,	I38,	0}, /* SH[16] */
 {"sh",		"[gp]",		"t,+3(ma)",	0x44140000, 0xfc1c0001,	RD_1|RD_3,		0,	I38,	0}, /* SH[GP] */
 {"sh",		"[u12]",	 "t,o(b)",	0x84005000, 0xfc00f000,	RD_1|RD_3,		0,	I38,	0}, /* SH[U12] */
 {"sh",		"[s9]",		"t,+j(b)",	0xa4002800, 0xfc007f00,	RD_1|RD_3,		0,	I38,	0}, /* SH[S9] */
@@ -1313,7 +1244,7 @@ IGRIE */
 {"shllv_s.ph",	"",		"d,t,s",	0x2000078d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"shllv_s.w",	"",		"d,t,s",	0x200003d5, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"shll_s.ph",	"",		"t,s,4",	0x20000bb5, 0xfc000fff,	WR_1|RD_2,		0,	0,	D32},
-{"shll_s.w",	"",		"t,s,+i",	0x200003f5, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
+{"shll_s.w",	"",		"t,s,1",	0x200003f5, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
 {"shra.ph",	"",		"t,s,4",	0x20000335, 0xfc000fff,	WR_1|RD_2,		0,	0,	D32},
 {"shra.qb",	"",		"t,s,3",	0x200001ff, 0xfc001fff,	WR_1|RD_2,		0,	0,	D32},
 {"shrav.ph",	"",		"d,t,s",	0x2000018d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
@@ -1323,7 +1254,7 @@ IGRIE */
 {"shrav_r.w",	"",		"d,t,s",	0x200002d5, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"shra_r.ph",	"",		"t,s,4",	0x20000735, 0xfc000fff,	WR_1|RD_2,		0,	0,	D32},
 {"shra_r.qb",	"",		"t,s,3",	0x200011ff, 0xfc001fff,	WR_1|RD_2,		0,	0,	D32},
-{"shra_r.w",	"",		"t,s,+i",	0x200002f5, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
+{"shra_r.w",	"",		"t,s,1",	0x200002f5, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
 {"shrl.ph",	"",		"t,s,4",	0x200003ff, 0xfc000fff,	WR_1|RD_2,		0,	0,	D32},
 {"shrl.qb",	"",		"t,s,3",	0x2000187f, 0xfc001fff,	WR_1|RD_2,		0,	0,	D32},
 {"shrlv.ph",	"",		"d,t,s",	0x20000315, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
@@ -1337,7 +1268,7 @@ IGRIE */
 {"sync_rmb",	"",		"",		0x8013c006, 0xffffffff,		0,	INSN2_ALIAS,	I38,	0}, /* SYNC */
 {"sync_ginv",	"",		"",		0x8014c006, 0xffffffff,		0,	INSN2_ALIAS,	0,	GINV}, /* SYNC */
 {"sync",	"",		"",		0x8000c006, 0xffffffff,		0,	INSN2_ALIAS,	I38,	0}, /* SYNC */
-{"sync",	"",		"1",		0x8000c006, 0xffe0ffff,		0,		0,	I38,	0},
+{"sync",	"",		"+i",		0x8000c006, 0xffe0ffff,		0,		0,	I38,	0},
 {"sle", 	"", 		"d,v,t",	0,    (int) M_SLE,	INSN_MACRO,		0,	I38,	0},
 {"sle", 	"", 		"d,v,I",	0,    (int) M_SLE_I,	INSN_MACRO,		0,	I38,	0},
 {"sleu",	"",		"d,v,t",	0,    (int) M_SLEU,	INSN_MACRO,		0,	I38,	0},
@@ -1355,7 +1286,7 @@ IGRIE */
 {"sne", 	"", 		"d,v,t",	0,    (int) M_SNE,	INSN_MACRO,		0,	I38,	0},
 {"sne", 	"", 		"d,v,I",	0,    (int) M_SNE_I,	INSN_MACRO,		0,	I38,	0},
 {"sov", 	"", 		"d,v,t",	0x200003d0, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
-{"special2",	"",		"m8",		0x20000001, 0xfc000007,		0,		0,	0,	UDI},
+{"special2",	"",		"+8",		0x20000001, 0xfc000007,	INSN_UDI,		0,	0,	UDI},
 {"sqrt.d",	"",		"T,S",		0xa0004a3b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
 {"sqrt.s",	"",		"T,S",		0xa0000a3b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
 {"srav",	"",		"d,s,t",	0x20000090, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
@@ -1385,12 +1316,12 @@ IGRIE */
 {"subuh_r.qb",	"", 		"d,s,t",	0x2000074d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"subu_s.ph",	"",		"d,s,t",	0x2000070d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"subu_s.qb",	"",		"d,s,t",	0x200006cd, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
-{"sw",		"[16]",		"mq,mJ(ml)",	0x9400,		0xfc00,	RD_1|RD_3,		0,	I38,	0}, /* SW[16] */
-{"sw",		"[sp]",		"mp,mU(ms)",	0xb400,		0xfc00,	RD_1|RD_3,		0,	I38,	0}, /* SW[SP] */
-{"sw",		"[4x4]",	"+6,mN(+5)",	0xf400,		0xfc00,	RD_1|RD_3,		0,	0,	xNMS}, /* SW[4X4] */
-{"sw",		"[gp16]",	"mq,m1(ma)",	0xd400,		0xfc00,	RD_1|RD_3,		0,	I38,	0}, /* SW[GP16] */
+{"sw",		"[16]",		"mm,mJ(ml)",	0x9400,		0xfc00,	RD_1|RD_3,		0,	I38,	0}, /* SW[16] */
+{"sw",		"[sp]",		"mp,mR(ms)",	0xb400,		0xfc00,	RD_1|RD_3,		0,	I38,	0}, /* SW[SP] */
+{"sw",		"[4x4]",	"mw,mN(mv)",	0xf400,		0xfc00,	RD_1|RD_3,		0,	0,	xNMS}, /* SW[4X4] */
+{"sw",		"[gp16]",	"mm,mO(ma)",	0xd400,		0xfc00,	RD_1|RD_3,		0,	I38,	0}, /* SW[GP16] */
 {"sw",		"[gp]",		"t,.(ma)",	0x40000003, 0xfc000003,	RD_1|RD_3,		0,	I38,	0}, /* SW[GP] */
-{"sw",		"[gp16]",	"mq,mA(ma)",	0xd400,		0xfc00,	RD_1|RD_3,		0,	I38,	0}, /* SW[GP16] */
+{"sw",		"[gp16]",	"mm,mA(ma)",	0xd400,		0xfc00,	RD_1|RD_3,		0,	I38,	0}, /* SW[GP16] */
 {"sw",		"[u12]",	"t,o(b)",	0x84009000, 0xfc00f000,	RD_1|RD_3,		0,	I38,	0}, /* SW[U12] */
 {"sw",		"[s9]",		"t,+j(b)",	0xa4004800, 0xfc007f00,	RD_1|RD_3,		0,	I38,	0}, /* SW[S9] */
 {"sw",		"",		"t,A(c)",	0,    (int) M_SW_AC,	INSN_MACRO,		0,	I38,	0},
@@ -1418,7 +1349,7 @@ IGRIE */
 {"swxs",	"",		"d,s(t)",	0x200004c7, 0xfc0007ff, RD_1|RD_2|RD_3,		0,	0,	xNMS},
 {"swxc1",	"",		"R,s(t)",	0x20000587, 0xfc0007ff, RD_1|RD_2|RD_3|FP_S,INSN2_ALIAS, I38,	0}, /* SWC1X */
 {"syscall",	"[16]",		"",		0x1008,     0xffff,		0,	INSN2_ALIAS,	I38,	0}, /* SYSCALL[16] */
-{"syscall",	"[16]",		"+o",		0x1008,     0xfffc,		0,		0,	I38,	0}, /* SYSCALL[16] */
+{"syscall",	"[16]",		"mP",		0x1008,     0xfffc,		0,		0,	I38,	0}, /* SYSCALL[16] */
 {"syscall",	"[32]",		"",		0x00080000, 0xffffffff,		0,	INSN2_ALIAS,	I38,	0},
 {"syscall",	"[32]",		"+M",		0x00080000, 0xfffc0000,		0,		0,	I38,	0},
 {"teq", 	"", 		"s,t",		0x20000000, 0xfc00ffff,	RD_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* TEQ */
@@ -1459,14 +1390,14 @@ IGRIE */
 {"usd", 	"",		"t,A(c)",	0,    (int) M_USD_AC,	INSN_MACRO,		0,	0,	xNMS},
 {"ush", 	"",		"t,A(c)",	0,    (int) M_USH_AC,	INSN_MACRO,		0,	0,	xNMS},
 {"usw", 	"",		"t,A(c)",	0,    (int) M_USW_AC,	INSN_MACRO,		0,	0,	xNMS},
-{"udi", 	"",		"m8",		0x20000003, 0xfc000007,		0,		0,	0,	UDI},
+{"udi", 	"",		"+8",		0x20000003, 0xfc000007,	INSN_UDI,		0,	0,	UDI},
 {"wait",	"",		"",		0x2000c37f, 0xffffffff,		0,	INSN2_ALIAS,	I38,	0},
 {"wait",	"",		"+L",		0x2000c37f, 0xfc00ffff,		0,		0,	I38,	0},
 {"wrdsp",	"",		"t",		0x201fd67f, 0xfc1fffff,	RD_1,		INSN2_ALIAS,	0,	D32},
 {"wrdsp",	"",		"t,8",		0x2000167f, 0xfc003fff,	RD_1,			0,	0,	D32},
 {"wrpgpr",	"",		"t,r",		0x2000f17f, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
-{"xor", 	"[16]",		"md,mx,ml",	0x5004,		0xfc0f,	WR_1|RD_3,	INSN2_ALIAS,	I38,	0}, /* XOR[16] */
-{"xor", 	"[16]",		"md,ml,mx",	0x5004,		0xfc0f,	WR_1|RD_2,	INSN2_ALIAS,	I38,	0}, /* XOR[16] */
+{"xor", 	"[16]",		"md,mk,ml",	0x5004,		0xfc0f,	WR_1|RD_3,	INSN2_ALIAS,	I38,	0}, /* XOR[16] */
+{"xor", 	"[16]",		"md,ml,mk",	0x5004,		0xfc0f,	WR_1|RD_2,	INSN2_ALIAS,	I38,	0}, /* XOR[16] */
 {"xor", 	"[16]",		"md,ml",	0x5004,		0xfc0f,	WR_1|RD_2,		0,	I38,	0}, /* XOR[16] */
 {"xor", 	"[32]",		"d,v,t",	0x20000310, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"xor", 	"",		"t,r,I",	0,    (int) M_XOR_I,	INSN_MACRO,		0,	I38,	0},

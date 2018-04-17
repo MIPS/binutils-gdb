@@ -2149,9 +2149,7 @@ test3:
 	wait	1023
 	syscall	1023
 	.end	test
-	.set	reorder
 
-	.set	reorder
 	.ent	test_delay_slot
 test_delay_slot:
 	bal	test_delay_slot
@@ -2168,7 +2166,6 @@ test_delay_slot:
 	jr.hb	$t4
 	.end	test_delay_slot
 
-	.set	noreorder
 	.ent	test_spec102
 test_spec102:
 	lw	$s2, 127<<2 ($gp)
@@ -2196,7 +2193,6 @@ test_spec102:
 	lw	$s1, 0 ($k1)
 	.end	test_spec102
 
-	.set	noreorder
 	.ent	test_spec107
 test_spec107:
 	.ifndef insn32

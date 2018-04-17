@@ -11,7 +11,7 @@ func:
 	l.d	$f4,0x38000($5)
 
 	l.d	$f4,%lo(foo)
-	l.d	$f4,%gp_rel(foo)
+	l.d	$f4,%gprel(foo)
 	l.d	$f4,%lo(0x12348765)
 	l.d	$f4,%hi(0x12348765)
 

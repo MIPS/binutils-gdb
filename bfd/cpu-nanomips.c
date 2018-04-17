@@ -24,25 +24,6 @@
 #include "bfd.h"
 #include "libbfd.h"
 
-static const bfd_arch_info_type *nanomips_compatible
-  (const bfd_arch_info_type *, const bfd_arch_info_type *);
-
-/* The default routine tests bits_per_word, which is wrong on mips as
-   mips word size doesn't correlate with reloc size.  */
-
-static const bfd_arch_info_type *
-nanomips_compatible (const bfd_arch_info_type *a,
-		     const bfd_arch_info_type *b)
-{
-  if (a->arch != b->arch)
-    return NULL;
-
-  /* Machine compatibility is checked in
-     _bfd_nanomips_elf_merge_private_bfd_data.  */
-
-  return a;
-}
-
 #define N(BITS_WORD, BITS_ADDR, NUMBER, PRINT, DEFAULT, NEXT)		\
   {							\
     BITS_WORD, /*  bits in a word */			\
@@ -54,7 +35,7 @@ nanomips_compatible (const bfd_arch_info_type *a,
     PRINT,						\
     3,							\
     DEFAULT,						\
-    nanomips_compatible,				\
+    bfd_default_compatible,				\
     bfd_default_scan,					\
     bfd_arch_default_fill,				\
     NEXT,						\

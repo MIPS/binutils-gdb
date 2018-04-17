@@ -1,6 +1,6 @@
-# name: ELF nanoMIPS PC-relative markings
-# source: empty.s
-# objdump: -p
+#name: ELF nanoMIPS PC-relative markings
+#source: empty.s
+#objdump: -p
 
 .*:.*file format.*elf.*nanomips.*
 private flags = 0.......: .*\[PCREL\].*

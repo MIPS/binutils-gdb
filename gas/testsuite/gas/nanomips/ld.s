@@ -59,13 +59,8 @@
 	.endm
 	.endif
 
-	.ifdef	nanomips
 	.equ lo_max,0xffc
 	.equ hi_min,0x1000
-	.else
-	.equ lo_max,0x8000
-	.equ hi_min,0x10000
-	.endif
 
 	.macro	data
 	.bss

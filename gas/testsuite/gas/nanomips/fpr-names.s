@@ -1,7 +1,6 @@
 # source file to test objdump's disassembly using various styles of
 # FPR names.
 
-	.set noat
 	.text
 text_label:
 

@@ -1,8 +1,6 @@
-# source file to test assembly of DSP ASE Rev2
+# source file to test assembly of DSP ASE Rev3
 
-	.set noreorder
 	.set noat
-
 	.text
 text_label:
 

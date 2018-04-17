@@ -1,6 +1,6 @@
-# name: ELF nanoMIPS64 markings
-# source: empty.s
-# objdump: -p
+#name: ELF nanoMIPS64 markings
+#source: empty.s
+#objdump: -p
 
 .*:.*file format.*elf.*nanomips.*
 private flags = 1.......: .*\[nanomips64r6\].*

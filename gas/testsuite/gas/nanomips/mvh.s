@@ -1,5 +1,4 @@
 	.text
-	.set	noat
 test_xpa:
 
 	mfhc0	$2, $1

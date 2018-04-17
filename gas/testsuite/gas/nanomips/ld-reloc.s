@@ -21,7 +21,7 @@ func:
 	ld	$4,0x38000($5)
 
 	ld	$4,%lo(foo)
-	ld	$4,%gp_rel(foo)
+	ld	$4,%gprel(foo)
 	ld	$4,%lo(0x12348765)
 	ld	$4,%hi(0x12348765)
 

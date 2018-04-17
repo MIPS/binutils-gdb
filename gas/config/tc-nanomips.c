@@ -258,7 +258,7 @@ static bfd_boolean file_nanomips_opts_checked = FALSE;
 static struct nanomips_set_options file_nanomips_opts = {
   /* isa */ ISA_UNKNOWN, /* ase */ 0, /* noreorder */ 0, /* at */ ATREG,
   /* nomacro */ 0, /* insn32 */ FALSE, /* gp */ -1, /* fp */ -1,
-  /* arch */ CPU_UNKNOWN,  /* soft_float */ FALSE, /* single_float */ FALSE,
+  /* arch */ CPU_UNKNOWN, /* soft_float */ FALSE, /* single_float */ FALSE,
   /* init_ase */ 0, /* no_balc_stubs */ TRUE, /* legacyregs */ FALSE,
   /* pcrel */ FALSE, /* pid */ FALSE, /* pic */ NO_PIC,
   /* mc_model */ MC_AUTO, /* linkrelax */ FALSE, /* minimize_relocs */ TRUE
@@ -294,10 +294,6 @@ static int nanomips_32bitmode = 0;
 
 /* Likewise 64-bit registers.  */
 #define ABI_NEEDS_64BIT_REGS(ABI) ((ABI) == P64_ABI)
-
-#define ISA_IS_NANOMIPS(ISA)		\
-  (((ISA) == ISA_NANOMIPS32R6		\
-    || (ISA) == ISA_NANOMIPS64R6))
 
 /*  Return true if ISA supports 64 bit wide gp registers.  */
 #define ISA_HAS_64BIT_REGS(ISA) ((ISA) == ISA_NANOMIPS64R6)
@@ -407,7 +403,7 @@ const char FLT_CHARS[] = "rRsSfFdDxXpP";
  */
 
 /* Types of printf format used for instruction-related error messages.
-   "I" means int ("%d") and "S" means string ("%s"). */
+   "I" means int ("%d") and "S" means string ("%s").  */
 enum nanomips_insn_error_format
 {
   ERR_FMT_PLAIN,
@@ -461,15 +457,12 @@ static int nanomips_gp_register = GP;
    equivalent to seeing no -g option at all.  */
 static int nanomips_debug = 0;
 
-/* The maximum number of NOPs needed for any purpose.  */
-#define MAX_NOPS 0
-
 /* A list of previous instructions, with index 0 being the most recent.
    We need to look back MAX_NOPS instructions when filling delay slots
    or working around processor errata.  We need to look back one
-   instruction further if we're thinking about using history[0] to
+   instruction further if we're thinking about using history to
    fill a branch delay slot.  */
-static struct nanomips_cl_insn history[1 + MAX_NOPS];
+static struct nanomips_cl_insn history;
 
 /* Arrays of operands for each instruction.  */
 #define MAX_OPERANDS 6
@@ -510,8 +503,8 @@ static const unsigned int nanomips_to_32_reg_d_map[] = {
 
 /* Flag to enable RC1-style MTTGPR format.  */
 static bfd_boolean nanomips_mttgpr_rc1 = FALSE;
-
 
+
 /* The expansion of many macros depends on the type of symbol that
    they refer to.  For example, when generating position-dependent code,
    a macro that refers to a symbol may have two different expansions,
@@ -621,60 +614,60 @@ enum relax_nanomips_fix_type
   RF_NORELAX
 };
 
-#define RELAX_NANOMIPS_ENCODE(type, link, rf)			\
+#define RELAX_MD_ENCODE(type, link, rf)			\
   (0x20000000							\
    | ((type) & 0xff)						\
    | ((link) ? 0x100 : 0)					\
    | ((rf) ? (rf << 15) : 0))
-#define RELAX_NANOMIPS_P(i) (((i) & 0xe0000000) == 0x20000000)
-#define RELAX_NANOMIPS_TYPE(i) ((i) & 0xff)
-#define RELAX_NANOMIPS_LINK(i) (((i) & 0x100) != 0)
+#define RELAX_MD_P(i) (((i) & 0xe0000000) == 0x20000000)
+#define RELAX_MD_TYPE(i) ((i) & 0xff)
+#define RELAX_MD_LINK(i) (((i) & 0x100) != 0)
 
-#define RELAX_NANOMIPS_BALC_STUB_P(i) \
-  (RELAX_NANOMIPS_P (i) && ((i) & 0xff) == RT_BALC_STUB)
+#define RELAX_MD_BALC_STUB_P(i) \
+  (RELAX_MD_P (i) && ((i) & 0xff) == RT_BALC_STUB)
 
-#define RELAX_NANOMIPS_BRANCH_P(i)					\
-  (RELAX_NANOMIPS_P (i) && (((i) & 0xff) == RT_BRANCH_UCND		\
+#define RELAX_MD_BRANCH_P(i)					\
+  (RELAX_MD_P (i) && (((i) & 0xff) == RT_BRANCH_UCND		\
 			       || ((i) & 0xff) == RT_BRANCH_CNDZ	\
 			       || ((i) & 0xff) == RT_BRANCH_CND))
 
-#define RELAX_NANOMIPS_ADDIU_P(i)			\
-  (RELAX_NANOMIPS_P (i) && ((i) & 0xff) == RT_ADDIU)
+#define RELAX_MD_ADDIU_P(i)			\
+  (RELAX_MD_P (i) && ((i) & 0xff) == RT_ADDIU)
 
-#define RELAX_NANOMIPS_KEEPSTUB(i) (((i) & 0x200) != 0)
-#define RELAX_NANOMIPS_MARK_KEEPSTUB(i) ((i) | 0x200)
-#define RELAX_NANOMIPS_CLEAR_KEEPSTUB(i) ((i) & ~0x200)
+#define RELAX_MD_KEEPSTUB(i) (((i) & 0x200) != 0)
+#define RELAX_MD_MARK_KEEPSTUB(i) ((i) | 0x200)
+#define RELAX_MD_CLEAR_KEEPSTUB(i) ((i) & ~0x200)
 
-#define RELAX_NANOMIPS_USESTUB(i) (((i) & 0x400) != 0)
-#define RELAX_NANOMIPS_MARK_USESTUB(i) ((i) | 0x400)
-#define RELAX_NANOMIPS_CLEAR_USESTUB(i) ((i) & ~0x400)
+#define RELAX_MD_USESTUB(i) (((i) & 0x400) != 0)
+#define RELAX_MD_MARK_USESTUB(i) ((i) | 0x400)
+#define RELAX_MD_CLEAR_USESTUB(i) ((i) & ~0x400)
 
-#define RELAX_NANOMIPS_ONCESTUB(i) (((i) & 0x800) != 0)
-#define RELAX_NANOMIPS_MARK_ONCESTUB(i) ((i) | 0x800)
-#define RELAX_NANOMIPS_CLEAR_ONCESTUB(i) ((i) & ~0x800)
+#define RELAX_MD_ONCESTUB(i) (((i) & 0x800) != 0)
+#define RELAX_MD_MARK_ONCESTUB(i) ((i) | 0x800)
+#define RELAX_MD_CLEAR_ONCESTUB(i) ((i) & ~0x800)
 
-#define RELAX_NANOMIPS_TOOFAR16(i) (((i) & 0x1000) != 0)
-#define RELAX_NANOMIPS_MARK_TOOFAR16(i) ((i) | 0x1000)
-#define RELAX_NANOMIPS_CLEAR_TOOFAR16(i) ((i) & ~0x1000)
+#define RELAX_MD_TOOFAR16(i) (((i) & 0x1000) != 0)
+#define RELAX_MD_MARK_TOOFAR16(i) ((i) | 0x1000)
+#define RELAX_MD_CLEAR_TOOFAR16(i) ((i) & ~0x1000)
 
-#define RELAX_NANOMIPS_TOOFAR32(i) (((i) & 0x2000) != 0)
-#define RELAX_NANOMIPS_MARK_TOOFAR32(i) ((i) | 0x2000)
-#define RELAX_NANOMIPS_CLEAR_TOOFAR32(i) ((i) & ~0x2000)
+#define RELAX_MD_TOOFAR32(i) (((i) & 0x2000) != 0)
+#define RELAX_MD_MARK_TOOFAR32(i) ((i) | 0x2000)
+#define RELAX_MD_CLEAR_TOOFAR32(i) ((i) & ~0x2000)
 
-#define RELAX_NANOMIPS_NEGOFF(i) (((i) & 0x4000) != 0)
-#define RELAX_NANOMIPS_MARK_NEGOFF(i) ((i) | 0x4000)
-#define RELAX_NANOMIPS_CLEAR_NEGOFF(i) ((i) & ~0x4000)
+#define RELAX_MD_NEGOFF(i) (((i) & 0x4000) != 0)
+#define RELAX_MD_MARK_NEGOFF(i) ((i) | 0x4000)
+#define RELAX_MD_CLEAR_NEGOFF(i) ((i) & ~0x4000)
 
-#define RELAX_NANOMIPS_FIXED(i) (((i) & 0x18000) >> 15 == RF_FIXED)
-#define RELAX_NANOMIPS_MARK_FIXED(i) (((i) & ~0x18000) \
+#define RELAX_MD_FIXED(i) (((i) & 0x18000) >> 15 == RF_FIXED)
+#define RELAX_MD_MARK_FIXED(i) (((i) & ~0x18000) \
 				      | (RF_FIXED << 15))
-#define RELAX_NANOMIPS_CLEAR_FIXED(i) ((i) & ~(RF_FIXED << 15))
+#define RELAX_MD_CLEAR_FIXED(i) ((i) & ~(RF_FIXED << 15))
 
-#define RELAX_NANOMIPS_VARIABLE(i) (((i) & 0x18000) >> 15 == RF_VARIABLE)
-#define RELAX_NANOMIPS_MARK_VARIABLE(i) (((i) & ~0x18000) \
+#define RELAX_MD_VARIABLE(i) (((i) & 0x18000) >> 15 == RF_VARIABLE)
+#define RELAX_MD_MARK_VARIABLE(i) (((i) & ~0x18000) \
 					 | (RF_VARIABLE << 15))
-#define RELAX_NANOMIPS_CLEAR_VARIABLE(i) ((i) & ~(RF_VARIABLE << 15))
-#define RELAX_NANOMIPS_NORELAX(i) (((i) & 0x18000) >> 15 == RF_NORELAX)
+#define RELAX_MD_CLEAR_VARIABLE(i) ((i) & ~(RF_VARIABLE << 15))
+#define RELAX_MD_NORELAX(i) (((i) & 0x18000) >> 15 == RF_NORELAX)
 
 /* Sign-extend 16-bit value X.  */
 #define SEXT_16BIT(X) ((((X) + 0x8000) & 0xffff) - 0x8000)
@@ -767,7 +760,8 @@ static struct
 
 /* Prototypes for static functions.  */
 
-enum nanomips_regclass { NANOMIPS_GR_REG, NANOMIPS_FP_REG };
+enum nanomips_regclass
+  { NANOMIPS_GR_REG, NANOMIPS_FP_REG };
 
 static void append_insn
   (struct nanomips_cl_insn *, expressionS *, bfd_reloc_code_real_type *,
@@ -776,7 +770,7 @@ static void macro_build (expressionS *, const char *, const char *, ...);
 static void load_register (int, expressionS *, int);
 static void macro_start (void);
 static void macro_end (bfd_boolean);
-static void nanomips_macro (struct nanomips_cl_insn *ip, char *str);
+static void macro (struct nanomips_cl_insn *ip, char *str);
 static void nanomips_ip (char *str, struct nanomips_cl_insn *ip);
 static size_t my_getSmallExpression
   (expressionS *, bfd_reloc_code_real_type *, char *);
@@ -807,8 +801,8 @@ static void file_check_options (void);
 static void stubgroup_new (asection *);
 static void s_sign_cons (int);
 static void s_nanomips_leb128 (int);
-static bfd_boolean nanomips_allow_local_subtract_symbols (symbolS*,
-							  symbolS*);
+static bfd_boolean nanomips_allow_local_subtract_symbols (symbolS *,
+							  symbolS *);
 
 /* Table and functions used to map between CPU/ISA names, and
    ISA levels, and CPU numbers.  */
@@ -824,10 +818,10 @@ struct nanomips_cpu_info
 
 #define NANOMIPS_CPU_IS_ISA	0x0001	/* Is this an ISA?  (If 0, a CPU.) */
 
-static const struct nanomips_cpu_info *nanomips_parse_cpu (const char *,
-							   const char *);
+static const struct nanomips_cpu_info *nanomips_parse_cpu
+  (const char *, const char *);
 static const struct nanomips_cpu_info *nanomips_cpu_info_from_isa
-	(int, bfd_boolean);
+  (int, bfd_boolean);
 static const struct nanomips_cpu_info *nanomips_cpu_info_from_arch (int);
 
 /* Command-line options.  */
@@ -1191,8 +1185,6 @@ nanomips_address_bytes (void)
   return HAVE_64BIT_ADDRESSES ? 8 : 4;
 }
 
-extern void pop_insert (const pseudo_typeS *);
-
 void
 nanomips_pop_insert (void)
 {
@@ -1366,7 +1358,6 @@ nanomips_set_ase (const struct nanomips_ase *ase,
 
   mask = ase->flags;
   opts->ase &= ~mask;
-  opts->ase &= ~ASE_EVA_R6;
   opts->ase &= ~ASE_GINV_VIRT;
 
   if (enabled_p)
@@ -1525,7 +1516,8 @@ toggle_linkrelax (fragS *frag, long where)
   toggle_linkrelax_p = FALSE;
   fix_new (frag, where, 0, &abs_symbol, 0, FALSE,
 	   (nanomips_opts.linkrelax
-	    ? BFD_RELOC_NANOMIPS_RELAX : BFD_RELOC_NANOMIPS_NORELAX));
+	    ? BFD_RELOC_NANOMIPS_RELAX
+	    : BFD_RELOC_NANOMIPS_NORELAX));
 }
 
 /* Move INSN to offset WHERE in FRAG.  Adjust the fixups accordingly
@@ -1571,8 +1563,8 @@ add_relaxed_insn (struct nanomips_cl_insn *insn, int max_chars, int var,
   frag_grow (max_chars);
   move_insn (insn, frag_now, frag_more (0) - frag_now->fr_literal);
   insn->fixed_p = 1;
-  frag_var (rs_machine_dependent, max_chars, var,
-	    subtype, symbol, offset, NULL);
+  frag_var (rs_machine_dependent, max_chars, var, subtype, symbol,
+	    offset, NULL);
 }
 
 /* Insert N copies of INSN into the history buffer, starting at
@@ -1582,7 +1574,7 @@ static void
 insert_into_history (const struct nanomips_cl_insn *insn)
 {
   if (nanomips_relax.sequence != 2)
-    history[0] = *insn;
+    history = *insn;
 }
 
 /* Clear the error in insn_error.  */
@@ -1620,7 +1612,8 @@ set_insn_error_format (int argnum, enum nanomips_insn_error_format format,
 	 give up on reporting a specific error for this argument.
 	 See the comment about nanomips_insn_error for details.  */
       if (argnum == insn_error.min_argnum
-	  && insn_error.msg && strcmp (insn_error.msg, msg) != 0)
+	  && insn_error.msg
+	  && strcmp (insn_error.msg, msg) != 0)
 	{
 	  insn_error.msg = 0;
 	  insn_error.min_argnum += 1;
@@ -2415,9 +2408,7 @@ is_opcode_valid_def_ase (const struct nanomips_opcode *mo)
 static bfd_boolean
 is_size_valid (const struct nanomips_opcode *mo)
 {
-  if (nanomips_opts.insn32
-      && mo->pinfo != INSN_MACRO
-      && insn_length (mo) != 4)
+  if (nanomips_opts.insn32 && mo->pinfo != INSN_MACRO && insn_length (mo) != 4)
     return FALSE;
 
   if (!forced_insn_length)
@@ -2434,14 +2425,11 @@ is_size_valid (const struct nanomips_opcode *mo)
    operand list.  Also build up a list of operands in OPERANDS.
 
    INSN_BITS says which bits of the instruction are significant.
-   If OPCODE is a standard or microMIPS instruction, DECODE_OPERAND
-   provides the nanomips_operand description of each operand.  */
+   DECODE_OPERAND rovides the nanomips_operand description of each operand.  */
 
 static int
-validate_insn (const struct nanomips_opcode *opcode,
-	       unsigned long insn_bits,
-	       const struct nanomips_operand *(*decode_operand) (const char
-								 *),
+validate_insn (const struct nanomips_opcode *opcode, unsigned long insn_bits,
+	       const struct nanomips_operand *(*decode_operand) (const char *),
 	       struct nanomips_operand_array *operands)
 {
   const char *s;
@@ -2487,8 +2475,10 @@ validate_insn (const struct nanomips_opcode *opcode,
 		|| !nanomips_opcode_32bit_p (opcode)))
 	  used_bits = nanomips_insert_operand (operand, used_bits, -1);
 	/* Skip prefix characters.  */
-	if (decode_operand && (*s == '+' || *s == 'm'
-			       || *s == '-' || *s == '`'))
+	if (decode_operand && (*s == '+'
+			       || *s == 'm'
+			       || *s == '-'
+			       || *s == '`'))
 	  ++s;
 	opno += 1;
 	break;
@@ -2544,8 +2534,8 @@ validate_nanomips_insn (const struct nanomips_opcode *opc,
     major = opc->match >> (10 + 8 * (length - 2));
 
   if ((length == 2 && !(major & 4))
-       || (length == 4 && (major & 4))
-       || (length == 6 && !(major & 18)))
+      || (length == 4 && (major & 4))
+      || (length == 6 && !(major & 18)))
     {
       as_bad (_("internal error: bad nanoMIPS opcode "
 		"(opcode/length mismatch): %s %s"), opc->name, opc->args);
@@ -2645,9 +2635,7 @@ md_begin (void)
       if (opcode->suffix[0] != '\0')
 	{
 	  char *name;
-	  name = xmalloc (strlen (opcode->name)
-			  + strlen (opcode->suffix)
-			  + 1);
+	  name = xmalloc (strlen (opcode->name) + strlen (opcode->suffix) + 1);
 	  name = strcpy (name, opcode->name);
 	  name = strcat (name, opcode->suffix);
 
@@ -2714,20 +2702,26 @@ md_begin (void)
 
       switch (nanomips_cp0sel_3264r6[i].selmask)
 	{
-	  case NANOMIPS_CP0SEL_MASK_EVEN:
-	    value |= RTYPE_CP0SEL_EVEN; break;
-	  case NANOMIPS_CP0SEL_MASK_EVEN16:
-	    value |= RTYPE_CP0SEL_EVEN16; break;
-	  case NANOMIPS_CP0SEL_MASK_ODD:
-	    value |= RTYPE_CP0SEL_ODD; break;
-	  case NANOMIPS_CP0SEL_MASK_ODD16:
-	    value |= RTYPE_CP0SEL_ODD16; break;
-	  case NANOMIPS_CP0SEL_MASK_ANY16:
-	    value |= RTYPE_CP0SEL_LO16; break;
-	  case NANOMIPS_CP0SEL_MASK_ANY:
-	    value |= RTYPE_CP0SEL; break;
-	  default:
-	    break;
+	case NANOMIPS_CP0SEL_MASK_EVEN:
+	  value |= RTYPE_CP0SEL_EVEN;
+	  break;
+	case NANOMIPS_CP0SEL_MASK_EVEN16:
+	  value |= RTYPE_CP0SEL_EVEN16;
+	  break;
+	case NANOMIPS_CP0SEL_MASK_ODD:
+	  value |= RTYPE_CP0SEL_ODD;
+	  break;
+	case NANOMIPS_CP0SEL_MASK_ODD16:
+	  value |= RTYPE_CP0SEL_ODD16;
+	  break;
+	case NANOMIPS_CP0SEL_MASK_ANY16:
+	  value |= RTYPE_CP0SEL_LO16;
+	  break;
+	case NANOMIPS_CP0SEL_MASK_ANY:
+	  value |= RTYPE_CP0SEL;
+	  break;
+	default:
+	  break;
 	}
 
       regsym = symbol_new (nanomips_cp0sel_3264r6[i].name, reg_section,
@@ -2864,29 +2858,15 @@ file_check_options (void)
   if (file_nanomips_opts_checked)
     return;
 
-  /* The following code determines the register size.
-     Similar code was added to GCC 3.3 (see override_options() in
-     config/mips/mips.c).  The GAS and GCC code should be kept in sync
-     as much as possible.  */
-
+  /* No user specified integer register size.  */
+  /* Infer the integer register size from the ABI.  */
   if (file_nanomips_opts.gp < 0)
-    {
-      /* Infer the integer register size from the ABI and processor.
-	 Restrict ourselves to 32-bit registers if that's all the
-	 processor has, or if the ABI cannot handle 64-bit registers.  */
-      file_nanomips_opts.gp
-	= ((ABI_NEEDS_32BIT_REGS (nanomips_abi)
-	    || !ISA_HAS_64BIT_REGS (file_nanomips_opts.isa))
-	   ? 32
-	   : 64);
-    }
+    file_nanomips_opts.gp = ((ABI_NEEDS_32BIT_REGS (nanomips_abi)) ? 32 : 64);
 
   if (file_nanomips_opts.fp < 0)
     /* No user specified float register size.  */
     /* nanoMIPS implies 64-bit float registers.  */
     file_nanomips_opts.fp = 64;
-
-  /* End of GCC-shared inference code.  */
 
   /* This flag is set when we have a 64-bit capable CPU but use only
      32-bit wide registers.  Note that EABI does not use it.  */
@@ -2942,7 +2922,7 @@ md_assemble (char *str)
   else if (insn.insn_mo->pinfo == INSN_MACRO)
     {
       macro_start ();
-      nanomips_macro (&insn, str);
+      macro (&insn, str);
       macro_end ((insn.insn_mo->pinfo2 & INSN2_MACRO) != 0);
     }
   else
@@ -3045,7 +3025,7 @@ lo_reloc_p (bfd_reloc_code_real_type reloc)
 }
 
 static inline bfd_boolean
-gprel16_reloc_p (bfd_reloc_code_real_type reloc)
+gprel_reloc_p (bfd_reloc_code_real_type reloc)
 {
   return (reloc == BFD_RELOC_GPREL16
 	  || reloc == BFD_RELOC_NANOMIPS_GPREL7_S2
@@ -3291,16 +3271,6 @@ relax_end (void)
   nanomips_relax.sequence = 0;
 }
 
-/* Return true if IP is a delayed branch or jump.  */
-
-static inline bfd_boolean
-delayed_branch_p (const struct nanomips_cl_insn *ip)
-{
-  return (ip->insn_mo->pinfo & (INSN_UNCOND_BRANCH_DELAY
-				| INSN_COND_BRANCH_DELAY
-				| INSN_COND_BRANCH_LIKELY)) != 0;
-}
-
 /* Return true if IP is a compact branch or jump.  */
 
 static inline bfd_boolean
@@ -3315,8 +3285,7 @@ compact_branch_p (const struct nanomips_cl_insn *ip)
 static inline bfd_boolean
 uncond_branch_p (const struct nanomips_cl_insn *ip)
 {
-  return ((ip->insn_mo->pinfo & INSN_UNCOND_BRANCH_DELAY) != 0
-	  || (ip->insn_mo->pinfo2 & INSN2_UNCOND_BRANCH) != 0);
+  return ((ip->insn_mo->pinfo2 & INSN2_UNCOND_BRANCH) != 0);
 }
 
 /* Information about an instruction argument that we're trying to match.  */
@@ -3478,14 +3447,6 @@ convert_reg_type (const struct nanomips_opcode *opcode,
     case OP_REG_FP:
       return RTYPE_FPU;
 
-    case OP_REG_CCC:
-      if (opcode->pinfo & (FP_D | FP_S))
-	return RTYPE_CCC | RTYPE_FCC;
-      return RTYPE_CCC;
-
-    case OP_REG_VEC:
-      return RTYPE_FPU | RTYPE_VEC;
-
     case OP_REG_ACC:
       return RTYPE_ACC;
 
@@ -3526,25 +3487,6 @@ check_regno (struct nanomips_arg_info *arg,
 {
   if (AT && type == OP_REG_GP && regno == AT)
     arg->seen_at = TRUE;
-
-  if (type == OP_REG_CCC)
-    {
-      const char *name;
-      size_t length;
-
-      name = arg->insn->insn_mo->name;
-      length = strlen (name);
-      if ((regno & 1) != 0
-	  && ((length >= 3 && strcmp (name + length - 3, ".ps") == 0)
-	      || (length >= 5 && strncmp (name + length - 5, "any2", 4) == 0)))
-	as_warn (_("condition code register should be even for %s, was %d"),
-		 name, regno);
-
-      if ((regno & 3) != 0
-	  && (length >= 5 && strncmp (name + length - 5, "any4", 4) == 0))
-	as_warn (_("condition code register should be 0 or 4 for %s, was %d"),
-		 name, regno);
-    }
 }
 
 /* ARG is a register with symbol value SYMVAL.  Try to interpret it as
@@ -3556,8 +3498,6 @@ match_regno (struct nanomips_arg_info *arg,
 	     enum nanomips_reg_operand_type type, unsigned int symval,
 	     unsigned int *regno)
 {
-  if (type == OP_REG_VEC)
-    symval = nanomips_prefer_vec_regno (symval);
   if (!(symval & convert_reg_type (arg->insn->insn_mo, type)))
     return FALSE;
 
@@ -3567,18 +3507,23 @@ match_regno (struct nanomips_arg_info *arg,
     switch (symval & RTYPE_CP0SEL)
       {
       case RTYPE_CP0SEL_EVEN:
-	arg->select_mask = NANOMIPS_CP0SEL_MASK_EVEN; break;
+	arg->select_mask = NANOMIPS_CP0SEL_MASK_EVEN;
+	break;
       case RTYPE_CP0SEL_EVEN16:
-	arg->select_mask = NANOMIPS_CP0SEL_MASK_EVEN16; break;
+	arg->select_mask = NANOMIPS_CP0SEL_MASK_EVEN16;
+	break;
       case RTYPE_CP0SEL_ODD:
-	arg->select_mask = NANOMIPS_CP0SEL_MASK_ODD; break;
+	arg->select_mask = NANOMIPS_CP0SEL_MASK_ODD;
+	break;
       case RTYPE_CP0SEL_ODD16:
-	arg->select_mask = NANOMIPS_CP0SEL_MASK_ODD16; break;
+	arg->select_mask = NANOMIPS_CP0SEL_MASK_ODD16;
+	break;
       case RTYPE_CP0SEL_LO16:
-	arg->select_mask = NANOMIPS_CP0SEL_MASK_ANY16; break;
+	arg->select_mask = NANOMIPS_CP0SEL_MASK_ANY16;
+	break;
       case RTYPE_CP0SEL:
       default:
-	arg->select_mask = NANOMIPS_CP0SEL_MASK_ANY; break;
+	arg->select_mask = NANOMIPS_CP0SEL_MASK_ANY;
 	break;
       }
 
@@ -3668,17 +3613,15 @@ match_relocatable_int_operand (const struct nanomips_operand *operand_base)
   operand = (const struct nanomips_int_operand *) operand_base;
   op_size = operand_base->size;
 
-  if ((op_size == 7
-	   && operand->shift == 2)
-	  || (op_size == 4
-	      && operand->shift == 2)
-	  || op_size == 12
-	  || op_size == 14
-	  || op_size == 16
-	  || op_size == 17
-	  || op_size == 18
-	  || op_size == 19
-	  || op_size == 20)
+  if ((op_size == 7 && operand->shift == 2)
+      || (op_size == 4 && operand->shift == 2)
+      || op_size == 12
+      || op_size == 14
+      || op_size == 16
+      || op_size == 17
+      || op_size == 18
+      || op_size == 19
+      || op_size == 20)
     return TRUE;
 
   return FALSE;
@@ -3731,22 +3674,22 @@ match_flex_reloc_for_int_operand (const struct nanomips_operand *operand_base,
 
   switch (rtype)
     {
-      case BFD_RELOC_NANOMIPS_GPREL18:
-	rlist = gp_relocs;
-	rcount = ARRAY_SIZE (gp_relocs);
-	break;
-      case BFD_RELOC_NANOMIPS_TLS_TPREL12:
-	rlist = tp_relocs;
-	rcount = ARRAY_SIZE (tp_relocs);
-	break;
-      case BFD_RELOC_NANOMIPS_TLS_DTPREL12:
-	rlist = dtp_relocs;
-	rcount = ARRAY_SIZE (dtp_relocs);
-	break;
-      default:
-	rlist = &rtype;
-	rcount = 1;
-	break;
+    case BFD_RELOC_NANOMIPS_GPREL18:
+      rlist = gp_relocs;
+      rcount = ARRAY_SIZE (gp_relocs);
+      break;
+    case BFD_RELOC_NANOMIPS_TLS_TPREL12:
+      rlist = tp_relocs;
+      rcount = ARRAY_SIZE (tp_relocs);
+      break;
+    case BFD_RELOC_NANOMIPS_TLS_DTPREL12:
+      rlist = dtp_relocs;
+      rcount = ARRAY_SIZE (dtp_relocs);
+      break;
+    default:
+      rlist = &rtype;
+      rcount = 1;
+      break;
     }
 
   for (i = 0; i < rcount; i++)
@@ -3807,7 +3750,7 @@ match_int_operand (struct nanomips_arg_info *arg,
 	      opmask = nanomips_operand_mask (operand_base);
 	      /* This is not an direct mask comparison.  In some cases
 		 the relocation targets only a part of the operand bits.  */
-	      match_out_of_range (arg);	      
+	      match_out_of_range (arg);
 	      return ((howto->dst_mask & opmask) == howto->dst_mask);
 	    }
 	}
@@ -3856,7 +3799,7 @@ match_int_operand (struct nanomips_arg_info *arg,
     {
       if (!match_const_int (arg, &sval))
 	return FALSE;
-      if (min_val < 0 && IS_ZEXT_32BIT_NUM(sval))
+      if (min_val < 0 && IS_ZEXT_32BIT_NUM (sval))
 	sval = (int) sval;
     }
 
@@ -3987,7 +3930,7 @@ match_gprel_word (struct nanomips_arg_info *arg,
     {
       if (offset_reloc[0] != BFD_RELOC_UNUSED
 	  && !gprel_i32_reloc_p (offset_reloc[0])
-	  && !gprel16_reloc_p (offset_reloc[0]))
+	  && !gprel_reloc_p (offset_reloc[0]))
 	/* Any other relocation operators not allowed in this position.  */
 	return FALSE;
 
@@ -4169,13 +4112,16 @@ match_non_zero_pcrel_operand (struct nanomips_arg_info *arg,
 
 static bfd_boolean
 match_hi20_int_operand (struct nanomips_arg_info *arg,
-			const struct nanomips_operand *operand_base ATTRIBUTE_UNUSED)
+			const struct nanomips_operand *operand_base
+			ATTRIBUTE_UNUSED)
 {
   offsetT uval = 0;
-  const struct nanomips_int_operand op_enc = { {OP_INT, 20, 2, 1, 0},
-					       (1 << 20) - 1, 12, 0, FALSE };
-  const struct nanomips_int_operand op_shuffle = { {OP_INT, 19, 10, 10, 0},
-						   (1 << 19) - 1, 12, 0, FALSE };
+  const struct nanomips_int_operand op_enc = {
+    {OP_INT, 20, 2, 1, 0}, (1 << 20) - 1, 12, 0, FALSE
+  };
+  const struct nanomips_int_operand op_shuffle = {
+    {OP_INT, 19, 10, 10, 0}, (1 << 19) - 1, 12, 0, FALSE
+  };
 
   if (!match_expression (arg, &offset_expr, offset_reloc))
     return FALSE;
@@ -4221,10 +4167,12 @@ match_hi20_int_operand (struct nanomips_arg_info *arg,
 static bfd_boolean
 match_hi20_pcrel_operand (struct nanomips_arg_info *arg)
 {
-  const struct nanomips_int_operand op_enc = { {OP_INT, 20, 2, 1, 0 },
-					       (1 << 20) - 1, 0, 0, FALSE };
-  const struct nanomips_int_operand op_shuffle = { {OP_INT, 19, 10, 10, 0},
-						   (1 << 19) - 1, 0, 0, FALSE };
+  const struct nanomips_int_operand op_enc = {
+    {OP_INT, 20, 2, 1, 0 }, (1 << 20) - 1, 0, 0, FALSE
+  };
+  const struct nanomips_int_operand op_shuffle = {
+    {OP_INT, 19, 10, 10, 0}, (1 << 19) - 1, 0, 0, FALSE
+  };
   /* Encode full 20-bit signed value.  */
   if (!match_expression (arg, &offset_expr, offset_reloc))
     return FALSE;
@@ -4250,11 +4198,12 @@ match_hi20_pcrel_operand (struct nanomips_arg_info *arg)
 static bfd_boolean
 match_hi20_scaled_operand (struct nanomips_arg_info *arg)
 {
-  const struct nanomips_int_operand op_enc = { {OP_INT, 20, 2, 1, 0},
-					       (1 << 20) - 1, 12, 0, FALSE};
-  const struct nanomips_int_operand op_shuffle = { {OP_INT, 19, 10, 10, 0},
-						   (1 << 19) - 1, 12, 0,
-						   FALSE };
+  const struct nanomips_int_operand op_enc = {
+    {OP_INT, 20, 2, 1, 0}, (1 << 20) - 1, 12, 0, FALSE
+  };
+  const struct nanomips_int_operand op_shuffle = {
+    {OP_INT, 19, 10, 10, 0}, (1 << 19) - 1, 12, 0,  FALSE
+  };
   offsetT uval = 0;
 
   if (!match_const_int (arg, &uval) || (uval & 0xfff) != 0)
@@ -4373,7 +4322,8 @@ match_save_restore_list_operand (struct nanomips_arg_info *arg,
 	  arg->token--;
 	  if (regno2 != 0 && regno2 < regno1)
 	    set_insn_error_ss (count,
-			       "register range (%s-%s) is not in increasing order",
+			       "register range (%s-%s) is not in "
+			       "increasing order",
 			       nanomips_reg_names[32 + regno1].name,
 			       nanomips_reg_names[32 + regno2].name);
 	  return FALSE;
@@ -4603,7 +4553,7 @@ match_float_constant (struct nanomips_arg_info *arg, expressionS *imm,
       return FALSE;
     }
 
-  gas_assert (arg->token->u.flt.length == (int)length);
+  gas_assert (arg->token->u.flt.length == (int) length);
   data = arg->token->u.flt.data;
   ++arg->token;
 
@@ -4697,10 +4647,12 @@ static bfd_boolean
 match_copy_bits (struct nanomips_arg_info *arg,
 		 const struct nanomips_operand *operand)
 {
-  const struct nanomips_operand op_src = { OP_INT, operand->size,
-					   operand->lsb, 0, 0 };
-  const struct nanomips_operand op_dest = { OP_INT, operand->size_top,
-					    operand->lsb_top, 0, 0 };
+  const struct nanomips_operand op_src = {
+    OP_INT, operand->size, operand->lsb, 0, 0
+  };
+  const struct nanomips_operand op_dest = {
+    OP_INT, operand->size_top, operand->lsb_top, 0, 0
+  };
   unsigned int uval;
 
   uval = nanomips_extract_operand (&op_src, arg->insn->insn_opcode);
@@ -4851,7 +4803,7 @@ check_completed_insn (struct nanomips_arg_info *arg)
   ((((INSN1) >> OP_SH_RS) & OP_MASK_RS) \
       == (((INSN2) >> OP_SH_RS) & OP_MASK_RS))
 
-/* For microMIPS macros, we need to generate a local number label
+/* For nanoMIPS macros, we need to generate a local number label
    as the target of branches.  */
 #define NANOMIPS_LABEL_CHAR		'\037'
 static unsigned long nanomips_target_label;
@@ -5148,7 +5100,7 @@ balc_merge_stub (const char *func, stub_group *stubg, struct balc_stub *stub)
 
   /* Correction to account for the fact that the 4-byte stub will also move
      forward from its current position to end of target stub-group.  */
-  if (stub->fragp && RELAX_NANOMIPS_KEEPSTUB (stub->fragp->fr_subtype))
+  if (stub->fragp && RELAX_MD_KEEPSTUB (stub->fragp->fr_subtype))
     callsite += 4;
 
   /* Any forward stub that we find can be the target for merge.  */
@@ -5165,7 +5117,7 @@ balc_merge_stub (const char *func, stub_group *stubg, struct balc_stub *stub)
 
   /* Correction to account for the fact that the 4-byte stub will also move
      backward from its current position to end of target stub-group.  */
-  if (stub->fragp && RELAX_NANOMIPS_KEEPSTUB (stub->fragp->fr_subtype)
+  if (stub->fragp && RELAX_MD_KEEPSTUB (stub->fragp->fr_subtype)
       && callsite > stub->fragp->fr_address)
     callsite -= 4;
 
@@ -5231,7 +5183,7 @@ balc_frag_traverse (const char *key ATTRIBUTE_UNUSED, void *value)
   if (old_frag)
     {
       old_frag->fr_subtype
-	= RELAX_NANOMIPS_CLEAR_KEEPSTUB (old_frag->fr_subtype);
+	= RELAX_MD_CLEAR_KEEPSTUB (old_frag->fr_subtype);
       stub->sym = old_frag->fr_symbol;
     }
 
@@ -5241,12 +5193,12 @@ balc_frag_traverse (const char *key ATTRIBUTE_UNUSED, void *value)
   nanomips_label_inc ();
   stub->fragp = frag_now;
   add_relaxed_insn (&nanomips_bc32_insn, 4, 0,
-		    RELAX_NANOMIPS_ENCODE (RT_BALC_STUB, 0, RF_VARIABLE),
+		    RELAX_MD_ENCODE (RT_BALC_STUB, 0, RF_VARIABLE),
 		    stub->sym, 0);
   stub->sym = l;
   if (stub->numcalls >= 3)
     stub->fragp->fr_subtype
-      = RELAX_NANOMIPS_MARK_KEEPSTUB (stub->fragp->fr_subtype);
+      = RELAX_MD_MARK_KEEPSTUB (stub->fragp->fr_subtype);
   if (stubg_now->fragp == NULL)
     stubg_now->fragp = stub->fragp;
 
@@ -5394,71 +5346,71 @@ stubgroup_wane (void)
     stubtable_traverse (stubg_now->stubtable, balc_frag_traverse);
 }
 
-  /* Table of how many bytes linker relaxation may add for each type
+/* Table of how many bytes linker relaxation may add for each type
    of relocation.  */
-  static const struct
-  {
-    bfd_reloc_code_real_type rtype;
-    bfd_vma rsop_nmf;
-    bfd_vma rsop_nmf32;
-    bfd_vma rsop_nms;
-    bfd_vma rsink;
-  } reloc_sops[] = {
-    { BFD_RELOC_NANOMIPS_4_PCREL_S1,	8, 12, 12, 0 },
-    { BFD_RELOC_NANOMIPS_7_PCREL_S1,	8, 12, 10, 2 },
-    { BFD_RELOC_NANOMIPS_10_PCREL_S1,	6, 10, 8, 2 },
-    { BFD_RELOC_NANOMIPS_11_PCREL_S1,	8, 12, 10, 4 },
-    { BFD_RELOC_NANOMIPS_21_PCREL_S1,	6, 12, 4, 4 },
-    { BFD_RELOC_NANOMIPS_25_PCREL_S1,	4, 8, 6, 4 },
-    { BFD_RELOC_NANOMIPS_14_PCREL_S1,	8, 12, 10, 4 },
-    { BFD_RELOC_NANOMIPS_GPREL19_S2,	6, 8, 8, 2 },
-    { BFD_RELOC_NANOMIPS_GPREL18_S3,	6, 8, 8, 0 },
-    { BFD_RELOC_NANOMIPS_GPREL16_S2,	6, 8, 8, 0 },
-    { BFD_RELOC_NANOMIPS_GPREL18,	6, 8, 8, 0 },
-    { BFD_RELOC_NANOMIPS_GPREL17_S1,	6, 8, 8, 0 },
-    { BFD_RELOC_NANOMIPS_GPREL7_S2,	8, 10, 10, 0 },
-    { BFD_RELOC_NANOMIPS_GOT_CALL,	2, 4, 4, 4 },
-    { BFD_RELOC_NANOMIPS_GOT_PAGE,	2, 4, 4, 4 },
-    { BFD_RELOC_NANOMIPS_GOT_OFST,	2, 4, 4, 4 },
-    { BFD_RELOC_NANOMIPS_GOT_DISP,	2, 4, 4, 4 },
-    { BFD_RELOC_NANOMIPS_HI20,		0, 0, 0, 2 },
-    { BFD_RELOC_NANOMIPS_LO12,  	0, 0, 0, 4 },
-    { BFD_RELOC_NANOMIPS_PCREL_HI20,	0, 0, 0, 2 },
-    { BFD_RELOC_NANOMIPS_GOTPC_HI20,	0, 0, 0, 4 },
-    { BFD_RELOC_NANOMIPS_GOT_LO12,	0, 0, 0, 4 },
-    { BFD_RELOC_NANOMIPS_IMM16, 	0, 0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_NEG12, 	0, 0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_I32,		0, 0, 0, 4 },
-    { BFD_RELOC_NANOMIPS_HI32,		0, 0, 0, 6 },
-    { BFD_RELOC_NANOMIPS_TLS_GD,	2, 8, 0, 0 },
-    { BFD_RELOC_NANOMIPS_TLS_GD_I32,	0, 0, 0, 2 },
-    { BFD_RELOC_NANOMIPS_TLS_LD,	2, 8, 0, 0 },
-    { BFD_RELOC_NANOMIPS_TLS_LD_I32,	0, 0, 0, 2 },
-    { BFD_RELOC_NANOMIPS_TLS_DTPREL12,	6, 8, 0, 0 },
-    { BFD_RELOC_NANOMIPS_TLS_DTPREL16,	6, 8, 0, 4 },
-    { BFD_RELOC_NANOMIPS_TLS_DTPREL_I32, 0, 0, 0, 6 },
-    { BFD_RELOC_NANOMIPS_TLS_TPREL12,	6, 8, 0, 0 },
-    { BFD_RELOC_NANOMIPS_TLS_TPREL16,	6, 8, 0, 4 },
-    { BFD_RELOC_NANOMIPS_TLS_TPREL_I32, 0, 0, 0, 6 },
-    { BFD_RELOC_NANOMIPS_TLS_GOTTPREL,	2, 4, 0, 4 },
-    { BFD_RELOC_NANOMIPS_TLS_GOTTPREL_PC_I32, 0, 0, 0, 6 },
-    { BFD_RELOC_NANOMIPS_PC_I32,	0, 0, 0, 4 },
-    { BFD_RELOC_NANOMIPS_GOTPC_I32,	0, 0, 0, 2 },
-    { BFD_RELOC_NANOMIPS_GPREL_I32,	0, 0, 0, 4 },
-    { BFD_RELOC_NANOMIPS_GPREL_HI20,	0, 0, 0, 2 },
-    { BFD_RELOC_NANOMIPS_GPREL_LO12,	0, 0, 0, 4 },
-    { BFD_RELOC_NANOMIPS_JALR16,	2, 2, 2, 2 },
-    { BFD_RELOC_NANOMIPS_JALR32,	0, 0, 0, 4 },
-    { BFD_RELOC_NANOMIPS_GPREL_LO12,	0, 0, 0, 4 },
-    { BFD_RELOC_NANOMIPS_INSN16,	0, 0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_INSN32,	0, 0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_FIXED, 	0, 0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_ALIGN, 	0, 0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_RELAX, 	0, 0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_NORELAX,	0, 0, 0, 0 },
-    { BFD_RELOC_NANOMIPS_SAVERESTORE,	0, 0, 0, 0 },
-    { BFD_RELOC_NONE,			32, 32, 32, 4 }  /* Fall-back maximum  */
-  };
+static const struct
+{
+  bfd_reloc_code_real_type rtype;
+  bfd_vma rsop_nmf;
+  bfd_vma rsop_nmf32;
+  bfd_vma rsop_nms;
+  bfd_vma rsink;
+} reloc_sops[] = {
+  { BFD_RELOC_NANOMIPS_4_PCREL_S1,	8, 12, 12, 0 },
+  { BFD_RELOC_NANOMIPS_7_PCREL_S1,	8, 12, 10, 2 },
+  { BFD_RELOC_NANOMIPS_10_PCREL_S1,	6, 10, 8, 2 },
+  { BFD_RELOC_NANOMIPS_11_PCREL_S1,	8, 12, 10, 4 },
+  { BFD_RELOC_NANOMIPS_21_PCREL_S1,	6, 12, 4, 4 },
+  { BFD_RELOC_NANOMIPS_25_PCREL_S1,	4, 8, 6, 4 },
+  { BFD_RELOC_NANOMIPS_14_PCREL_S1,	8, 12, 10, 4 },
+  { BFD_RELOC_NANOMIPS_GPREL19_S2,	6, 8, 8, 2 },
+  { BFD_RELOC_NANOMIPS_GPREL18_S3,	6, 8, 8, 0 },
+  { BFD_RELOC_NANOMIPS_GPREL16_S2,	6, 8, 8, 0 },
+  { BFD_RELOC_NANOMIPS_GPREL18, 	6, 8, 8, 0 },
+  { BFD_RELOC_NANOMIPS_GPREL17_S1,	6, 8, 8, 0 },
+  { BFD_RELOC_NANOMIPS_GPREL7_S2,	8, 10, 10, 0 },
+  { BFD_RELOC_NANOMIPS_GOT_CALL,	2, 4, 4, 4 },
+  { BFD_RELOC_NANOMIPS_GOT_PAGE,	2, 4, 4, 4 },
+  { BFD_RELOC_NANOMIPS_GOT_OFST,	2, 4, 4, 4 },
+  { BFD_RELOC_NANOMIPS_GOT_DISP,	2, 4, 4, 4 },
+  { BFD_RELOC_NANOMIPS_HI20,		0, 0, 0, 2 },
+  { BFD_RELOC_NANOMIPS_LO12,		0, 0, 0, 4 },
+  { BFD_RELOC_NANOMIPS_PCREL_HI20,	0, 0, 0, 2 },
+  { BFD_RELOC_NANOMIPS_GOTPC_HI20,	0, 0, 0, 4 },
+  { BFD_RELOC_NANOMIPS_GOT_LO12,	0, 0, 0, 4 },
+  { BFD_RELOC_NANOMIPS_IMM16,		0, 0, 0, 0 },
+  { BFD_RELOC_NANOMIPS_NEG12,		0, 0, 0, 0 },
+  { BFD_RELOC_NANOMIPS_I32,		0, 0, 0, 4 },
+  { BFD_RELOC_NANOMIPS_HI32,		0, 0, 0, 6 },
+  { BFD_RELOC_NANOMIPS_TLS_GD,		2, 8, 0, 0 },
+  { BFD_RELOC_NANOMIPS_TLS_GD_I32,	0, 0, 0, 2 },
+  { BFD_RELOC_NANOMIPS_TLS_LD,		2, 8, 0, 0 },
+  { BFD_RELOC_NANOMIPS_TLS_LD_I32,	0, 0, 0, 2 },
+  { BFD_RELOC_NANOMIPS_TLS_DTPREL12,	6, 8, 0, 0 },
+  { BFD_RELOC_NANOMIPS_TLS_DTPREL16,	6, 8, 0, 4 },
+  { BFD_RELOC_NANOMIPS_TLS_DTPREL_I32,	0, 0, 0, 6 },
+  { BFD_RELOC_NANOMIPS_TLS_TPREL12,	6, 8, 0, 0 },
+  { BFD_RELOC_NANOMIPS_TLS_TPREL16,	6, 8, 0, 4 },
+  { BFD_RELOC_NANOMIPS_TLS_TPREL_I32,	0, 0, 0, 6 },
+  { BFD_RELOC_NANOMIPS_TLS_GOTTPREL,	2, 4, 0, 4 },
+  { BFD_RELOC_NANOMIPS_TLS_GOTTPREL_PC_I32, 0, 0, 0, 6 },
+  { BFD_RELOC_NANOMIPS_PC_I32,		0, 0, 0, 4 },
+  { BFD_RELOC_NANOMIPS_GOTPC_I32,	0, 0, 0, 2 },
+  { BFD_RELOC_NANOMIPS_GPREL_I32,	0, 0, 0, 4 },
+  { BFD_RELOC_NANOMIPS_GPREL_HI20,	0, 0, 0, 2 },
+  { BFD_RELOC_NANOMIPS_GPREL_LO12,	0, 0, 0, 4 },
+  { BFD_RELOC_NANOMIPS_JALR16,		2, 2, 2, 2 },
+  { BFD_RELOC_NANOMIPS_JALR32,		0, 0, 0, 4 },
+  { BFD_RELOC_NANOMIPS_GPREL_LO12,	0, 0, 0, 4 },
+  { BFD_RELOC_NANOMIPS_INSN16,		0, 0, 0, 0 },
+  { BFD_RELOC_NANOMIPS_INSN32,		0, 0, 0, 0 },
+  { BFD_RELOC_NANOMIPS_FIXED,		0, 0, 0, 0 },
+  { BFD_RELOC_NANOMIPS_ALIGN,		0, 0, 0, 0 },
+  { BFD_RELOC_NANOMIPS_RELAX,		0, 0, 0, 0 },
+  { BFD_RELOC_NANOMIPS_NORELAX, 	0, 0, 0, 0 },
+  { BFD_RELOC_NANOMIPS_SAVERESTORE,	0, 0, 0, 0 },
+  { BFD_RELOC_NONE,			32, 32, 32, 4 }  /* Fall-back maximum  */
+};
 
 /* Map a relocation RTYPE to the maximum extra bytes its
    linker relaxation can introduce.  */
@@ -5497,7 +5449,7 @@ get_reloc_sink (bfd_reloc_code_real_type rtype)
 	return (reloc_sops[i].rsink);
     }
 
-  return (reloc_sops[i-1].rsink);
+  return (reloc_sops[i - 1].rsink);
 }
 
 /* Return the relaxation frag subtype corresponding to RELOC  */
@@ -5508,22 +5460,29 @@ reloc_to_frag_subtype (bfd_reloc_code_real_type reloc)
   enum relax_nanomips_subtype rt = 0;
   switch (reloc)
     {
-      case BFD_RELOC_NANOMIPS_4_PCREL_S1:
-	rt = RT_PC4_S1; break;
-      case BFD_RELOC_NANOMIPS_7_PCREL_S1:
-	rt = RT_PC7_S1; break;
-      case BFD_RELOC_NANOMIPS_10_PCREL_S1:
-	rt = RT_PC10_S1; break;
-      case BFD_RELOC_NANOMIPS_11_PCREL_S1:
-	rt = RT_PC11_S1; break;
-      case BFD_RELOC_NANOMIPS_14_PCREL_S1:
-	rt = RT_PC14_S1; break;
-      case BFD_RELOC_NANOMIPS_21_PCREL_S1:
-	rt = RT_PC21_S1; break;
-      case BFD_RELOC_NANOMIPS_25_PCREL_S1:
-	rt = RT_PC25_S1; break;
-      default:
-	break;
+    case BFD_RELOC_NANOMIPS_4_PCREL_S1:
+      rt = RT_PC4_S1;
+      break;
+    case BFD_RELOC_NANOMIPS_7_PCREL_S1:
+      rt = RT_PC7_S1;
+      break;
+    case BFD_RELOC_NANOMIPS_10_PCREL_S1:
+      rt = RT_PC10_S1;
+      break;
+    case BFD_RELOC_NANOMIPS_11_PCREL_S1:
+      rt = RT_PC11_S1;
+      break;
+    case BFD_RELOC_NANOMIPS_14_PCREL_S1:
+      rt = RT_PC14_S1;
+      break;
+    case BFD_RELOC_NANOMIPS_21_PCREL_S1:
+      rt = RT_PC21_S1;
+      break;
+    case BFD_RELOC_NANOMIPS_25_PCREL_S1:
+      rt = RT_PC25_S1;
+      break;
+    default:
+      break;
     }
   return rt;
 }
@@ -5536,36 +5495,43 @@ frag_subtype_to_reloc (enum relax_nanomips_subtype rt, bfd_boolean toofar16)
   bfd_reloc_code_real_type reloc = BFD_RELOC_NONE;
   switch (rt)
     {
-      case RT_PC4_S1:
-	reloc = BFD_RELOC_NANOMIPS_4_PCREL_S1; break;
-      case RT_PC7_S1:
-	reloc = BFD_RELOC_NANOMIPS_7_PCREL_S1; break;
-      case RT_PC10_S1:
-	reloc = BFD_RELOC_NANOMIPS_10_PCREL_S1; break;
-      case RT_PC11_S1:
-	reloc = BFD_RELOC_NANOMIPS_11_PCREL_S1; break;
-      case RT_PC14_S1:
-	reloc = BFD_RELOC_NANOMIPS_14_PCREL_S1; break;
-      case RT_PC21_S1:
-	reloc = BFD_RELOC_NANOMIPS_21_PCREL_S1; break;
-      case RT_PC25_S1:
-	reloc = BFD_RELOC_NANOMIPS_25_PCREL_S1; break;
-      case RT_BRANCH_UCND:
-	reloc = (toofar16
-		 ? BFD_RELOC_NANOMIPS_25_PCREL_S1
-		 : BFD_RELOC_NANOMIPS_10_PCREL_S1);
-	break;
-      case RT_BRANCH_CNDZ:
-	reloc = (toofar16
-		 ? BFD_RELOC_NANOMIPS_14_PCREL_S1
-		 : BFD_RELOC_NANOMIPS_7_PCREL_S1);
-	break;
-      case RT_BRANCH_CND:
-	reloc = (toofar16
-		 ? BFD_RELOC_NANOMIPS_14_PCREL_S1
-		 : BFD_RELOC_NANOMIPS_4_PCREL_S1);
-      default:
-	break;
+    case RT_PC4_S1:
+      reloc = BFD_RELOC_NANOMIPS_4_PCREL_S1;
+      break;
+    case RT_PC7_S1:
+      reloc = BFD_RELOC_NANOMIPS_7_PCREL_S1;
+      break;
+    case RT_PC10_S1:
+      reloc = BFD_RELOC_NANOMIPS_10_PCREL_S1;
+      break;
+    case RT_PC11_S1:
+      reloc = BFD_RELOC_NANOMIPS_11_PCREL_S1;
+      break;
+    case RT_PC14_S1:
+      reloc = BFD_RELOC_NANOMIPS_14_PCREL_S1;
+      break;
+    case RT_PC21_S1:
+      reloc = BFD_RELOC_NANOMIPS_21_PCREL_S1;
+      break;
+    case RT_PC25_S1:
+      reloc = BFD_RELOC_NANOMIPS_25_PCREL_S1;
+      break;
+    case RT_BRANCH_UCND:
+      reloc = (toofar16
+	       ? BFD_RELOC_NANOMIPS_25_PCREL_S1
+	       : BFD_RELOC_NANOMIPS_10_PCREL_S1);
+      break;
+    case RT_BRANCH_CNDZ:
+      reloc = (toofar16
+	       ? BFD_RELOC_NANOMIPS_14_PCREL_S1
+	       : BFD_RELOC_NANOMIPS_7_PCREL_S1);
+      break;
+    case RT_BRANCH_CND:
+      reloc = (toofar16
+	       ? BFD_RELOC_NANOMIPS_14_PCREL_S1
+	       : BFD_RELOC_NANOMIPS_4_PCREL_S1);
+    default:
+      break;
     }
   return reloc;
 }
@@ -5621,8 +5587,7 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
 
 	case BFD_RELOC_NANOMIPS_HI32:
 	  ip->insn_opcode_ext = (((address_expr->X_add_number + 0x80000000)
-				  >> 32)
-				 & 0xffffffff);
+				  >> 32) & 0xffffffff);
 	  ip->insn_opcode_ext = (((ip->insn_opcode_ext >> 16) & 0xffff)
 				 | (ip->insn_opcode_ext << 16));
 	  ip->complete_p = 1;
@@ -5654,32 +5619,31 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
 
   dwarf2_emit_insn (0);
 
-  if (compact_branch_p (&history[0])
-      && (history[0].insn_mo->pinfo2 & INSN2_CONVERTED_TO_COMPACT)
-      && history[0].noreorder_p
+  if (compact_branch_p (&history)
+      && (history.insn_mo->pinfo2 & INSN2_CONVERTED_TO_COMPACT)
+      && history.noreorder_p
       && strcmp (ip->insn_mo->name, "nop") != 0)
     {
       as_bad (_("unable to convert `%s' to its compact form because it has a "
 		"non NOP instruction (`%s') in its delay slot.  Please move "
 		"the delay slot instruction before the branch and disable "
-		"noreorder."), history[0].insn_mo->name, ip->insn_mo->name);
+		"noreorder."), history.insn_mo->name, ip->insn_mo->name);
       add_fixed_insn (ip);
     }
-  else if (history[0].noreorder_p
-	   && (strcmp (history[0].insn_mo->name, "bal") == 0
-	       || strcmp (history[0].insn_mo->name, "jal") == 0
-	       || strcmp (history[0].insn_mo->name, "bgezal") == 0
-	       || strcmp (history[0].insn_mo->name, "bltzal") == 0)
+  else if (history.noreorder_p
+	   && (strcmp (history.insn_mo->name, "bal") == 0
+	       || strcmp (history.insn_mo->name, "jal") == 0
+	       || strcmp (history.insn_mo->name, "bgezal") == 0
+	       || strcmp (history.insn_mo->name, "bltzal") == 0)
 	   && strcmp (ip->insn_mo->name, "nop") == 0)
     {
       as_bad (_("unable to convert `%s' to its compact form because the link "
 		"register would have a different value.  Please move the delay "
 		"slot instruction before the branch and disable noreorder."),
-	      history[0].insn_mo->name);
+	      history.insn_mo->name);
       add_fixed_insn (ip);
     }
-  else if (address_expr
-	   && *reloc_type >= BFD_RELOC_UNUSED + RT_BRANCH_UCND)
+  else if (address_expr && *reloc_type >= BFD_RELOC_UNUSED + RT_BRANCH_UCND)
     {
       int type = *reloc_type - BFD_RELOC_UNUSED;
       int al = pinfo & INSN_WRITE_GPR_31;
@@ -5693,7 +5657,7 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
 
       if (nanomips_opts.minimize_relocs || !forced_insn_format)
 	add_relaxed_insn (ip, max, insn_length (ip->insn_mo),
-			  RELAX_NANOMIPS_ENCODE (type, al, rf),
+			  RELAX_MD_ENCODE (type, al, rf),
 			  address_expr->X_add_symbol,
 			  address_expr->X_add_number);
       else
@@ -5725,7 +5689,7 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
       gas_assert (address_expr != NULL);
       gas_assert (!nanomips_relax.sequence);
       add_relaxed_insn (ip, 6, 4,
-			RELAX_NANOMIPS_ENCODE (type, 0, fixed),
+			RELAX_MD_ENCODE (type, 0, fixed),
 			make_expr_symbol (address_expr), 0);
       *reloc_type = BFD_RELOC_UNUSED;
     }
@@ -5745,14 +5709,16 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
       if (nanomips_relax.sequence != 2)
 	{
 	  if (nanomips_macro_warning.first_insn_sizes[0] == 0)
-	    nanomips_macro_warning.first_insn_sizes[0] = insn_length (ip->insn_mo);
+	    nanomips_macro_warning.first_insn_sizes[0] =
+	      insn_length (ip->insn_mo);
 	  nanomips_macro_warning.sizes[0] += insn_length (ip->insn_mo);
 	  nanomips_macro_warning.insns[0]++;
 	}
       if (nanomips_relax.sequence != 1)
 	{
 	  if (nanomips_macro_warning.first_insn_sizes[1] == 0)
-	    nanomips_macro_warning.first_insn_sizes[1] = insn_length (ip->insn_mo);
+	    nanomips_macro_warning.first_insn_sizes[1] =
+	      insn_length (ip->insn_mo);
 	  nanomips_macro_warning.sizes[1] += insn_length (ip->insn_mo);
 	  nanomips_macro_warning.insns[1]++;
 	}
@@ -5768,9 +5734,8 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
 	    fix_type = RF_NORELAX;
 	  else
 	    fix_type = RF_VARIABLE;
-	  stype = RELAX_NANOMIPS_ENCODE (reloc_to_frag_subtype (*reloc_type),
-					 pinfo & INSN_WRITE_GPR_31,
-					 fix_type);
+	  stype = RELAX_MD_ENCODE (reloc_to_frag_subtype (*reloc_type),
+				   pinfo & INSN_WRITE_GPR_31, fix_type);
 
 	  add_relaxed_insn (ip, insn_length (ip->insn_mo),
 			    insn_length (ip->insn_mo), stype,
@@ -5861,7 +5826,7 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
 	  if (forced_insn_format)
 	    {
 	      if (insn_length (ip->insn_mo) == 6)
-		fix_new (ip->frag, ip->where+2, 0, &abs_symbol, 0, FALSE,
+		fix_new (ip->frag, ip->where + 2, 0, &abs_symbol, 0, FALSE,
 			 BFD_RELOC_NANOMIPS_FIXED);
 	      else
 		fix_new (ip->frag, ip->where, 0, &abs_symbol, 0, FALSE,
@@ -5892,8 +5857,8 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
   insert_into_history (ip);
 
   /* If we have just completed an unconditional branch, clear the history.  */
-  if ((compact_branch_p (&history[0]) && uncond_branch_p (&history[0]))
-      && !(history[0].insn_mo->pinfo2 & INSN2_CONVERTED_TO_COMPACT))
+  if ((compact_branch_p (&history) && uncond_branch_p (&history))
+      && !(history.insn_mo->pinfo2 & INSN2_CONVERTED_TO_COMPACT))
     nanomips_flush_pending_output ();
 
   /* We just output an insn, so the next one doesn't have a label.  */
@@ -5990,7 +5955,7 @@ static const struct gprel_insn_match nanomips_gprel_map[] = {
 };
 
 static bfd_reloc_code_real_type
-gprel_for_nanomips_insn (const struct nanomips_opcode *insn)
+gprel_for_insn (const struct nanomips_opcode *insn)
 {
   unsigned int i;
 
@@ -6017,11 +5982,12 @@ gprel_for_nanomips_insn (const struct nanomips_opcode *insn)
 }
 
 static bfd_reloc_code_real_type
-tlsrel_for_nanomips_insn (const struct nanomips_opcode *insn,
-			  bfd_reloc_code_real_type rtype)
+tlsrel_for_insn (const struct nanomips_opcode *insn,
+		 bfd_reloc_code_real_type rtype)
 {
   unsigned int i;
-  static const struct {
+  static const struct
+  {
     bfd_reloc_code_real_type key;
     bfd_reloc_code_real_type value;
   } reloc_map[] = {
@@ -6040,7 +6006,7 @@ tlsrel_for_nanomips_insn (const struct nanomips_opcode *insn,
       || strncmp (insn->name, "li", 2) == 0)
     {
       if (rtype == BFD_RELOC_NANOMIPS_TLS_TPREL12)
-	  return BFD_RELOC_NANOMIPS_TLS_TPREL16;
+	return BFD_RELOC_NANOMIPS_TLS_TPREL16;
       if (rtype == BFD_RELOC_NANOMIPS_TLS_DTPREL12)
 	return BFD_RELOC_NANOMIPS_TLS_DTPREL16;
     }
@@ -6048,12 +6014,11 @@ tlsrel_for_nanomips_insn (const struct nanomips_opcode *insn,
   return rtype;
 }
 
-/* Like match_insn, for nanoMIPS.  */
 static bfd_boolean
-match_nanomips_insn (struct nanomips_cl_insn *insn,
-		     const struct nanomips_opcode *opcode,
-		     struct nanomips_operand_token *tokens,
-		     unsigned int opcode_extra, bfd_boolean lax_match)
+match_insn (struct nanomips_cl_insn *insn,
+	    const struct nanomips_opcode *opcode,
+	    struct nanomips_operand_token *tokens,
+	    unsigned int opcode_extra, bfd_boolean lax_match)
 {
   const char *args;
   struct nanomips_arg_info arg;
@@ -6078,8 +6043,7 @@ match_nanomips_insn (struct nanomips_cl_insn *insn,
   arg.lax_match = lax_match;
   arg.select_mask = 0;
 
-  if ((insn->insn_mo->pinfo2 & INSN2_MTTGPR_RC1) != 0
-      && !nanomips_mttgpr_rc1)
+  if ((insn->insn_mo->pinfo2 & INSN2_MTTGPR_RC1) != 0 && !nanomips_mttgpr_rc1)
     return FALSE;
 
   for (args = opcode->args;; ++args)
@@ -6088,8 +6052,7 @@ match_nanomips_insn (struct nanomips_cl_insn *insn,
 	{
 	  /* Handle unary instructions in which only one operand is given.
 	     The source is then the same as the destination.  */
-	  if ((*args == ',')
-	      || (arg.opnum == 0 && *args != 0))
+	  if ((*args == ',') || (arg.opnum == 0 && *args != 0))
 	    {
 	      operand = decode_nanomips_operand (args + (arg.opnum ? 1 : 0));
 	      if (operand && nanomips_optional_operand_p (operand))
@@ -6108,15 +6071,10 @@ match_nanomips_insn (struct nanomips_cl_insn *insn,
 	  if (strcmp (args, "(b)") == 0 || strcmp (args, "(c)") == 0)
 	    args += 3;
 
-	  if (args[0] == '+')
-	    switch (args[1])
-	      {
-	      case 'K':
-	      case 'N':
-		/* The register suffix is optional. */
-		args += 2;
-		break;
-	      }
+	  if ((args[0] == '+' && args[1] == 'N')
+	      || (args[0] == 'm' && args[1] == 'K'))
+	    /* The register suffix is optional. */
+	    args += 2;
 
 	  /* Fail the match if there were too few operands.  */
 	  if (*args)
@@ -6218,7 +6176,7 @@ match_nanomips_insn (struct nanomips_cl_insn *insn,
 	  case '+':
 	    switch (args[1])
 	      {
-	      case '\'':
+	      case 'u':
 		*offset_reloc = BFD_RELOC_NANOMIPS_25_PCREL_S1;
 		break;
 
@@ -6289,9 +6247,9 @@ match_nanomips_insn (struct nanomips_cl_insn *insn,
 	return FALSE;
 
       if (*offset_reloc == BFD_RELOC_NANOMIPS_GPREL18)
-	*offset_reloc = gprel_for_nanomips_insn (insn->insn_mo);
+	*offset_reloc = gprel_for_insn (insn->insn_mo);
       else if (flex_reloc_p (*offset_reloc))
-	*offset_reloc = tlsrel_for_nanomips_insn (insn->insn_mo, *offset_reloc);
+	*offset_reloc = tlsrel_for_insn (insn->insn_mo, *offset_reloc);
     }
 }
 
@@ -6304,7 +6262,7 @@ match_invalid_for_isa (void)
   const struct nanomips_cpu_info *arch_info;
 
   isa_info = nanomips_cpu_info_from_isa (nanomips_opts.isa,
-				     (nanomips_opts.ase & ASE_xNMS) == 0);
+					 (nanomips_opts.ase & ASE_xNMS) == 0);
   arch_info = nanomips_cpu_info_from_arch (nanomips_opts.arch);
 
   if ((arch_info->flags & NANOMIPS_CPU_IS_ISA) != 0)
@@ -6329,7 +6287,7 @@ match_invalid_for_isa (void)
 }
 
 static bfd_boolean
-match_nanomips_insns (struct nanomips_cl_insn *insn,
+match_insns (struct nanomips_cl_insn *insn,
 		      const struct nanomips_opcode *first,
 		      const struct nanomips_opcode *past,
 		      struct nanomips_operand_token *tokens,
@@ -6358,8 +6316,8 @@ match_nanomips_insns (struct nanomips_cl_insn *insn,
 	      if (is_size_valid (opcode))
 		{
 		  seen_valid_for_size = TRUE;
-		  if (match_nanomips_insn (insn, opcode, tokens, opcode_extra,
-					   lax_match))
+		  if (match_insn (insn, opcode, tokens, opcode_extra,
+				  lax_match))
 		    return TRUE;
 		}
 	    }
@@ -6464,8 +6422,8 @@ macro_end (bfd_boolean allow_expansion)
     nanomips_macro_warning.first_frag->fr_subtype |= subtype;
 }
 
-static const char *const brk_fmt[2] = { "+K", "+J" };
-static const char *const addiu_fmt[2] = { "-t,r,j", "t,r,i" };
+static const char *const brk_fmt[2] = { "mK", "+J" };
+static const char *const addiu_fmt[2] = { "+t,r,j", "t,r,i" };
 static const char *const mfhl_fmt[2] = { "mj", "s" };
 
 #define BRK_FMT (brk_fmt[nanomips_opts.insn32])
@@ -6481,10 +6439,10 @@ static const char *const mfhl_fmt[2] = { "mj", "s" };
 #define ADDIUGP_FMT "t,ma,."
 #define LWGP_FMT "t,.(ma)"
 #define LDGP_FMT "t,.(ma)"
-#define LL_SC_FMT "t,+m(b)"
-#define LLP_SCP_FMT "t,mu,(b)"
+#define LL_SC_FMT "t,+p(b)"
+#define LLP_SCP_FMT "t,e,(b)"
 #define LLD_SCD_FMT "t,+q(b)"
-#define LLE_SCE_FMT "t,+m(b)"
+#define LLE_SCE_FMT "t,+p(b)"
 #define LWU_FMT "t,o(b)"
 #define MFHL_FMT (mfhl_fmt[nanomips_opts.insn32])
 #define SHFT_FMT "t,r,<"
@@ -6492,14 +6450,14 @@ static const char *const mfhl_fmt[2] = { "mj", "s" };
 #define ACLR_FMT "\\,+j(b)"
 #define BCONDZ1_FMT "s,p"
 #define BCONDZ2_FMT "t,p"
-#define B_FMT "+'"
-#define JAL_FMT "+'"
+#define B_FMT "+u"
+#define JAL_FMT "+u"
 #define OP_IMM_FMT "t,r,i"
 #define BITOP_IMM_FMT "t,r,g"
 #define PREF_FMT "k,+j(b)"
 #define BITW_FMT "d,v,t"
 #define DIV_FMT "d,v,t"
-#define MOVE_FMT "-p,mj"
+#define MOVE_FMT "mb,mj"
 #define ISA_OFFBITS 12
 #define ISA_ADD_OFFBITS (HAVE_32BIT_ADDRESSES ? 16 : 12)
 #define ISA_SIGNED_OFFBITS 9
@@ -6552,7 +6510,7 @@ macro_read_relocs (va_list *args, bfd_reloc_code_real_type *r)
 /* Map an <format,reloc> pair to nanoMIPS relocs.  */
 
 static void
-macro_match_nanomips_reloc (const char *fmt, bfd_reloc_code_real_type *r)
+macro_match_reloc (const char *fmt, bfd_reloc_code_real_type *r)
 {
   if (*r == BFD_RELOC_LO16)
     {
@@ -6573,7 +6531,7 @@ macro_match_nanomips_reloc (const char *fmt, bfd_reloc_code_real_type *r)
 	*r = BFD_RELOC_NANOMIPS_GPREL18;
       else if (*fmt == '+' && *(fmt + 1) == '3')
 	*r = BFD_RELOC_NANOMIPS_GPREL17_S1;
-      else if (*fmt == 'm' && *(fmt + 1) == 'V')
+      else if (*fmt == '+' && *(fmt + 1) == '4')
 	*r = BFD_RELOC_NANOMIPS_GPREL18_S3;
       else
 	gas_assert (FALSE);
@@ -6649,22 +6607,21 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	case 'j':
 	case 'h':
 	  macro_read_relocs (&args, r);
-	  macro_match_nanomips_reloc (fmt, r);
+	  macro_match_reloc (fmt, r);
 	  continue;
 
 	case '~':
 	case 'o':
 	  macro_read_relocs (&args, r);
-	  macro_match_nanomips_reloc (fmt, r);
+	  macro_match_reloc (fmt, r);
 	  continue;
 
 	case 'u':
 	  macro_read_relocs (&args, r);
 	  gas_assert (ep != NULL
 		      && (ep->X_op == O_constant
-			  || (ep->X_op == O_symbol
-			      && hi_reloc_p (*r))));
-	  macro_match_nanomips_reloc (fmt, r);
+			  || (ep->X_op == O_symbol && hi_reloc_p (*r))));
+	  macro_match_reloc (fmt, r);
 	  continue;
 
 	case '+':
@@ -6673,25 +6630,26 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	       || *(fmt + 1) == '1'
 	       || *(fmt + 1) == '2'
 	       || *(fmt + 1) == '3'
-	       || *(fmt + 1) == '9'
+	       || *(fmt + 1) == '4'
+	       || *(fmt + 1) == 'K'
 	       || *(fmt + 1) == 'Q'
 	       || *(fmt + 1) == 'R'
 	       || *(fmt + 1) == 'S')
 	      && ep != NULL)
 	    {
 	      macro_read_relocs (&args, r);
-	      macro_match_nanomips_reloc (fmt, r);
+	      macro_match_reloc (fmt, r);
 	      if (*(fmt + 1) == 'Q' || *(fmt + 1) == 'R' || *(fmt + 1) == 'S')
 		break;
 	      fmt++;
 	      continue;
 	    }
 
-	  if (*(fmt + 1) == '\"' || *(fmt + 1) == '\'')
+	  if (*(fmt + 1) == 'r' || *(fmt + 1) == 'u')
 	    {
-	      if (*(fmt + 1) == '\'')
+	      if (*(fmt + 1) == 'u')
 		r[0] = BFD_RELOC_NANOMIPS_25_PCREL_S1;
-	      else if (*(fmt + 1) == '\"')
+	      else if (*(fmt + 1) == 'r')
 		r[0] = BFD_RELOC_NANOMIPS_21_PCREL_S1;
 	      fmt++;
 	      continue;
@@ -6709,14 +6667,14 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 	   * they should only appear in ".set nomacro" anyway.
 	   */
 	  *r = BFD_RELOC_NANOMIPS_14_PCREL_S1;
-	  macro_match_nanomips_reloc (fmt, r);
+	  macro_match_reloc (fmt, r);
 	  continue;
 
 	case 'm':
-	  if (*(fmt + 1) == 'V' || *(fmt + 1) == 'K')
+	  if (*(fmt + 1) == 'Q')
 	    {
 	      macro_read_relocs (&args, r);
-	      macro_match_nanomips_reloc (fmt, r);
+	      macro_match_reloc (fmt, r);
 	      fmt++;
 	      continue;
 	    }
@@ -6724,7 +6682,7 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
 
 	case '.':
 	  macro_read_relocs (&args, r);
-	  macro_match_nanomips_reloc (fmt, r);
+	  macro_match_reloc (fmt, r);
 	  continue;
 
 	case '-':
@@ -6942,8 +6900,7 @@ load_register (int reg, expressionS *ep, int dbl)
 	}
       if (offset_high_unsigned (-ep->X_add_number, ISA_OFFBITS) == 0)
 	{
-	  macro_build (ep, "addiu", "t,r,h", reg, 0,
-		       BFD_RELOC_NANOMIPS_NEG12);
+	  macro_build (ep, "addiu", "t,r,h", reg, 0, BFD_RELOC_NANOMIPS_NEG12);
 	  return;
 	}
       else if ((IS_SEXT_32BIT_NUM (ep->X_add_number)))
@@ -7019,7 +6976,7 @@ load_register (int reg, expressionS *ep, int dbl)
 	    {
 	      macro_build (&lo32, "lui", LUI_FMT, reg, BFD_RELOC_HI16);
 	      if (lo32.X_add_number & 0xffff)
-		macro_build (&lo32, "ori", BITOP_IMM_FMT, reg, reg, 
+		macro_build (&lo32, "ori", BITOP_IMM_FMT, reg, reg,
 			     BFD_RELOC_LO16);
 	      return;
 	    }
@@ -7170,8 +7127,8 @@ load_register (int reg, expressionS *ep, int dbl)
 static void
 move_register (int dest, int source)
 {
-  /* Prefer to use a 16-bit microMIPS instruction unless the previous
-     instruction specifically requires a 32-bit one.  */
+  /* Prefer to use a 16-bit instruction unless a 32-bit one
+     is specifically requested.  */
   if (!nanomips_opts.insn32)
     macro_build (NULL, "move", MOVE_FMT, dest, source);
   else
@@ -7276,7 +7233,7 @@ macro_build_branch_rtim (int type, expressionS *ep,
       abort ();
     }
 
-  macro_build (ep, br, "t,m9,~", sreg, imm, BFD_RELOC_NANOMIPS_11_PCREL_S1);
+  macro_build (ep, br, "t,+9,~", sreg, imm, BFD_RELOC_NANOMIPS_11_PCREL_S1);
 }
 
 /* Return true if the value stored in offset_expr and offset_reloc
@@ -7294,7 +7251,7 @@ small_offset_p (unsigned int range, unsigned int align, unsigned int offbits)
 	return TRUE;
 
       /* These relocations are guaranteed not to overflow in correct links.  */
-      if (gprel16_reloc_p (*offset_reloc))
+      if (gprel_reloc_p (*offset_reloc))
 	return TRUE;
     }
 
@@ -7349,7 +7306,7 @@ small_add_offset_p (unsigned int range)
 static bfd_boolean
 check_offset_range (offsetT offset)
 {
-    if (HAVE_32BIT_ADDRESSES && !IS_SEXT_32BIT_NUM (offset))
+  if (HAVE_32BIT_ADDRESSES && !IS_SEXT_32BIT_NUM (offset))
     {
       char value[32];
 
@@ -7358,15 +7315,14 @@ check_offset_range (offsetT offset)
       return FALSE;
     }
 
-    return TRUE;
+  return TRUE;
 }
 
 /* Check whether EXP is a valid expression for macro expansions
    to handle in the current arch mode.  */
 
 static bfd_boolean
-nanomips_macro_expression_valid (expressionS *exp,
-				 bfd_reloc_code_real_type rtype)
+macro_expression_valid (expressionS *exp, bfd_reloc_code_real_type rtype)
 {
   if ((exp->X_op != O_constant && exp->X_op != O_symbol)
       || (exp->X_op == O_symbol && hi_reloc_p (rtype)))
@@ -7384,8 +7340,7 @@ nanomips_macro_expression_valid (expressionS *exp,
     }
 
   if (exp->X_op == O_constant && hi_reloc_p (rtype))
-    exp->X_add_number = offset_high_part (exp->X_add_number,
-					  ISA_OFFBITS);
+    exp->X_add_number = offset_high_part (exp->X_add_number, ISA_OFFBITS);
 
   return check_offset_range (exp->X_add_number);
 }
@@ -7393,7 +7348,7 @@ nanomips_macro_expression_valid (expressionS *exp,
 /* Expand the LA macro for PC-relative addressing.  */
 
 static void
-nanomips_macro_pcrel_la (unsigned int dest)
+macro_pcrel_la (unsigned int dest)
 {
   if ((nanomips_opts.ase & ASE_xNMS) != 0
       && *offset_reloc == BFD_RELOC_UNUSED
@@ -7402,7 +7357,7 @@ nanomips_macro_pcrel_la (unsigned int dest)
 		 BFD_RELOC_NANOMIPS_PC_I32);
   else
     {
-      macro_build (&offset_expr, "aluipc", "t,mK", dest,
+      macro_build (&offset_expr, "aluipc", "t,+K", dest,
 		   BFD_RELOC_NANOMIPS_PCREL_HI20);
       macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDIU_FMT,
 		   dest, dest, BFD_RELOC_NANOMIPS_LO12);
@@ -7412,7 +7367,7 @@ nanomips_macro_pcrel_la (unsigned int dest)
 /* Expand the LA macro for absolute addressing.  */
 
 static void
-nanomips_macro_absolute_la (unsigned int dest)
+macro_absolute_la (unsigned int dest)
 {
   if ((nanomips_opts.ase & ASE_xNMS) != 0
       && *offset_reloc == BFD_RELOC_UNUSED
@@ -7423,20 +7378,19 @@ nanomips_macro_absolute_la (unsigned int dest)
     {
       macro_build_lui (&offset_expr, dest);
       if (HAVE_64BIT_SYMBOLS)
-	macro_build (&offset_expr, ADDRESS_ADDI_INSN,
-		     ADDRESS_ADDI32_FMT, dest, dest,
-		     BFD_RELOC_NANOMIPS_I32);
+	macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDRESS_ADDI32_FMT,
+		     dest, dest, BFD_RELOC_NANOMIPS_I32);
       else if (!hi_reloc_p (*offset_reloc))
-	macro_build (&offset_expr, "ori", BITOP_IMM_FMT,
-		     dest, dest, ISA_UNSIGNED_LDST_RELOC);
+	macro_build (&offset_expr, "ori", BITOP_IMM_FMT, dest, dest,
+		     ISA_UNSIGNED_LDST_RELOC);
     }
 }
 
 /* Expand the LA macro.  */
 
 static void
-nanomips_macro_la (unsigned int op[], unsigned int breg, int *used_at,
-		   bfd_boolean gprel_ok)
+macro_la (unsigned int op[], unsigned int breg, int *used_at,
+	  bfd_boolean gprel_ok)
 {
   unsigned int tempreg;
 
@@ -7461,7 +7415,7 @@ nanomips_macro_la (unsigned int op[], unsigned int breg, int *used_at,
   else
     tempreg = op[0];
 
-  if (!nanomips_macro_expression_valid (&offset_expr, offset_reloc[0]))
+  if (!macro_expression_valid (&offset_expr, offset_reloc[0]))
     return;
 
   if (offset_expr.X_op == O_constant)
@@ -7481,9 +7435,9 @@ nanomips_macro_la (unsigned int op[], unsigned int breg, int *used_at,
 	}
 
       if (nanomips_opts.pcrel)
-	nanomips_macro_pcrel_la (op[0]);
+	macro_pcrel_la (op[0]);
       else
-	nanomips_macro_absolute_la (op[0]);
+	macro_absolute_la (op[0]);
 
       if (nanomips_relax.sequence)
 	relax_end ();
@@ -7493,15 +7447,14 @@ nanomips_macro_la (unsigned int op[], unsigned int breg, int *used_at,
       relax_start (offset_expr.X_add_symbol);
 
       if (nanomips_opts.pic == SVR4_PIC || linkrelax)
-	macro_build (&offset_expr, ADDRESS_LOAD_INSN, LWGP_FMT,
-		     tempreg, BFD_RELOC_NANOMIPS_GOT_DISP,
-		     nanomips_gp_register);
+	macro_build (&offset_expr, ADDRESS_LOAD_INSN, LWGP_FMT, tempreg,
+		     BFD_RELOC_NANOMIPS_GOT_DISP, nanomips_gp_register);
       else if ((nanomips_opts.ase & ASE_xNMS) != 0 && !nanomips_opts.insn32)
 	macro_build (&offset_expr, PCREL_LOAD_INSN, "mp,+S", tempreg,
 		     BFD_RELOC_NANOMIPS_GOTPC_I32);
       else
 	{
-	  macro_build (&offset_expr, "aluipc", "t,mK", op[0],
+	  macro_build (&offset_expr, "aluipc", "t,+K", op[0],
 		       BFD_RELOC_NANOMIPS_GOTPC_HI20);
 	  macro_build (&offset_expr, ADDRESS_LOAD_INSN, ISA_UNSIGNED_LDST_FMT,
 		       tempreg, BFD_RELOC_NANOMIPS_GOT_LO12, op[0]);
@@ -7509,7 +7462,7 @@ nanomips_macro_la (unsigned int op[], unsigned int breg, int *used_at,
 
       relax_switch ();
       /* Local symbols can be PC-relative.  */
-      nanomips_macro_pcrel_la (op[0]);
+      macro_pcrel_la (op[0]);
       relax_end ();
     }
 
@@ -7518,16 +7471,14 @@ nanomips_macro_la (unsigned int op[], unsigned int breg, int *used_at,
 }
 
 static void
-nanomips_macro_absolute_ld_st (const char *s, const char *fmt,
-			       unsigned int op[],
-			       unsigned int tempreg, unsigned int breg)
+macro_absolute_ld_st (const char *s, const char *fmt, unsigned int op[],
+		      unsigned int tempreg, unsigned int breg)
 {
   macro_build_lui (&offset_expr, tempreg);
   if (HAVE_64BIT_SYMBOLS)
     {
-      macro_build (&offset_expr, ADDRESS_ADDI_INSN,
-		   ADDRESS_ADDI32_FMT, tempreg, tempreg,
-		   BFD_RELOC_NANOMIPS_I32);
+      macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDRESS_ADDI32_FMT,
+		   tempreg, tempreg, BFD_RELOC_NANOMIPS_I32);
       offset_expr.X_add_number = 0;
       offset_expr.X_op = O_constant;
     }
@@ -7539,8 +7490,8 @@ nanomips_macro_absolute_ld_st (const char *s, const char *fmt,
 }
 
 static void
-nanomips_macro_pcrel_ld_st (const char *s, const char *fmt, unsigned int op[],
-			    unsigned int tempreg, bfd_boolean coproc)
+macro_pcrel_ld_st (const char *s, const char *fmt, unsigned int op[],
+		   unsigned int tempreg, bfd_boolean coproc)
 {
   if ((nanomips_opts.ase & ASE_xNMS) != 0
       && *offset_reloc == BFD_RELOC_UNUSED
@@ -7557,7 +7508,7 @@ nanomips_macro_pcrel_ld_st (const char *s, const char *fmt, unsigned int op[],
     }
   else
     {
-      macro_build (&offset_expr, "aluipc", "t,mK", tempreg,
+      macro_build (&offset_expr, "aluipc", "t,+K", tempreg,
 		   BFD_RELOC_NANOMIPS_PCREL_HI20);
       macro_build (&offset_expr, s, fmt,
 		   op[0], BFD_RELOC_NANOMIPS_LO12, tempreg);
@@ -7565,10 +7516,9 @@ nanomips_macro_pcrel_ld_st (const char *s, const char *fmt, unsigned int op[],
 }
 
 static void
-nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
-		      const char *gpfmt, int align, int offbits,
-		      unsigned int breg, unsigned int tempreg, int *used_at,
-		      bfd_boolean coproc)
+macro_ld_st (const char *s, const char *fmt, unsigned int op[],
+	     const char  *gpfmt, int align, int offbits, unsigned int breg,
+	     unsigned int tempreg, int *used_at, bfd_boolean coproc)
 {
   expressionS expr1;
   expr1.X_op = O_constant;
@@ -7611,7 +7561,7 @@ nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
   if (tempreg == AT)
     *used_at = 1;
 
-  if (!nanomips_macro_expression_valid (&offset_expr, offset_reloc[0]))
+  if (!macro_expression_valid (&offset_expr, offset_reloc[0]))
     return;
 
   /* A constant expression in PIC code can be handled just as it
@@ -7655,7 +7605,7 @@ nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
       /* The offset field is too narrow to be used for a low-part
          relocation, so load the whole address into the auxillary
          register.  */
-      nanomips_macro_la (&tempreg, 0, used_at, strncmp (s, "ua", 2) != 0);
+      macro_la (&tempreg, 0, used_at, strncmp (s, "ua", 2) != 0);
       if (breg != 0)
 	macro_build (NULL, ADDRESS_ADD_INSN, "d,v,t", tempreg, tempreg, breg);
       macro_build (NULL, s, fmt, op[0], 0, tempreg);
@@ -7676,9 +7626,9 @@ nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
 	}
 
       if (nanomips_opts.pcrel)
-	nanomips_macro_pcrel_ld_st (s, fmt, op, tempreg, coproc);
+	macro_pcrel_ld_st (s, fmt, op, tempreg, coproc);
       else
-	nanomips_macro_absolute_ld_st (s, fmt, op, tempreg, breg);
+	macro_absolute_ld_st (s, fmt, op, tempreg, breg);
 
       if (nanomips_relax.sequence)
 	relax_end ();
@@ -7688,7 +7638,7 @@ nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
       gas_assert (offset_expr.X_op == O_symbol);
 
       if (HAVE_64BIT_SYMBOLS)
-	gpfmt = "t,mV(ma)";
+	gpfmt = "t,+4(ma)";
       else
 	gpfmt = "t,.(ma)";
       relax_start (offset_expr.X_add_symbol);
@@ -7701,7 +7651,7 @@ nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
 		     BFD_RELOC_NANOMIPS_GOTPC_I32);
       else
 	{
-	  macro_build (&offset_expr, "aluipc", "t,mK", tempreg,
+	  macro_build (&offset_expr, "aluipc", "t,+K", tempreg,
 		       BFD_RELOC_NANOMIPS_GOTPC_HI20);
 	  macro_build (&offset_expr, ADDRESS_LOAD_INSN, ISA_UNSIGNED_LDST_FMT,
 		       tempreg, BFD_RELOC_NANOMIPS_GOT_LO12, tempreg);
@@ -7709,15 +7659,14 @@ nanomips_macro_ld_st (const char *s, const char *fmt, unsigned int op[],
       macro_build (NULL, s, fmt, op[0], 0, tempreg);
 
       relax_switch ();
-      nanomips_macro_pcrel_ld_st (s, fmt, op, tempreg, coproc);
+      macro_pcrel_ld_st (s, fmt, op, tempreg, coproc);
       relax_end ();
     }
 }
 
 static void
-nanomips_macro_ldp_stp (const char *s, const char *fmt, unsigned int op[],
-			int align, unsigned int breg,
-			unsigned int tempreg, int *used_at)
+macro_ldp_stp (const char *s, const char *fmt, unsigned int op[], int align,
+	       unsigned int breg, unsigned int tempreg, int *used_at)
 {
   if (tempreg == AT)
     *used_at = 1;
@@ -7739,7 +7688,7 @@ nanomips_macro_ldp_stp (const char *s, const char *fmt, unsigned int op[],
       return;
     }
 
-  if (!nanomips_macro_expression_valid (&offset_expr, offset_reloc[0]))
+  if (!macro_expression_valid (&offset_expr, offset_reloc[0]))
     return;
 
   /* A constant expression in PIC code can be handled just as it
@@ -7774,7 +7723,7 @@ nanomips_macro_ldp_stp (const char *s, const char *fmt, unsigned int op[],
       /* The offset field is too narrow to be used for a low-part
          relocation, so load the whole address into the auxillary
          register.  */
-      nanomips_macro_la (&tempreg, 0, used_at, TRUE);
+      macro_la (&tempreg, 0, used_at, TRUE);
       if (breg != 0)
 	macro_build (NULL, ADDRESS_ADD_INSN, "d,v,t", tempreg, tempreg, breg);
       macro_build (NULL, s, fmt, op[0], op[1], tempreg);
@@ -7785,7 +7734,7 @@ nanomips_macro_ldp_stp (const char *s, const char *fmt, unsigned int op[],
       gas_assert (offset_expr.X_op == O_symbol);
 
       if (HAVE_64BIT_SYMBOLS)
-	gpfmt = "t,mV(ma)";
+	gpfmt = "t,+4(ma)";
       else
 	gpfmt = "t,.(ma)";
 
@@ -7797,7 +7746,7 @@ nanomips_macro_ldp_stp (const char *s, const char *fmt, unsigned int op[],
 		     BFD_RELOC_NANOMIPS_GOTPC_I32);
       else
 	{
-	  macro_build (&offset_expr, "aluipc", "t,mK", tempreg,
+	  macro_build (&offset_expr, "aluipc", "t,+K", tempreg,
 		       BFD_RELOC_NANOMIPS_GOTPC_HI20);
 	  macro_build (&offset_expr, ADDRESS_LOAD_INSN, ISA_UNSIGNED_LDST_FMT,
 		       tempreg, BFD_RELOC_NANOMIPS_GOT_LO12, tempreg);
@@ -7810,17 +7759,17 @@ nanomips_macro_ldp_stp (const char *s, const char *fmt, unsigned int op[],
    derived from S or 2 subsequent instructions: S.  If MULTI_OK, then
    the EP admits no additional relocation, R can be ignored.  */
 static void
-nanomips_macro_ld_st_pair (const char *s, const char *fmt, unsigned int op[],
-			     unsigned int breg, expressionS *ep,
-			     bfd_reloc_code_real_type r, bfd_boolean multi_ok)
+macro_ld_st_pair (const char *s, const char *fmt, unsigned int op[],
+		  unsigned int breg, expressionS *ep,
+		  bfd_reloc_code_real_type r, bfd_boolean multi_ok)
 {
   if (multi_ok && (nanomips_opts.ase & ASE_xNMS) != 0)
-  {
-    char ms[10];
-    if (snprintf (ms, sizeof(ms), "%sm", s) >= (int)sizeof(ms))
-      gas_assert (FALSE);
-    macro_build (ep, ms, ISA_MULTI_LDST_FMT, op[0], r, breg, 2);
-  }
+    {
+      char ms[10];
+      if (snprintf (ms, sizeof(ms), "%sm", s) >= (int)sizeof(ms))
+	gas_assert (FALSE);
+      macro_build (ep, ms, ISA_MULTI_LDST_FMT, op[0], r, breg, 2);
+    }
   else
     {
       macro_build (ep, s, fmt, op[0], r, breg);
@@ -7830,9 +7779,8 @@ nanomips_macro_ld_st_pair (const char *s, const char *fmt, unsigned int op[],
 }
 
 static void
-nanomips_macro_absolute_ldd_std (const char *s, const char *fmt,
-				 unsigned int op[], unsigned int breg,
-				 unsigned int offbits)
+macro_absolute_ldd_std (const char *s, const char *fmt,unsigned int op[],
+			unsigned int breg, unsigned int offbits)
 {
   if ((nanomips_opts.ase & ASE_xNMS) != 0 && !nanomips_opts.insn32)
     {
@@ -7849,7 +7797,7 @@ nanomips_macro_absolute_ldd_std (const char *s, const char *fmt,
 	      != offset_high_part (offset_expr.X_add_number + 4, ISA_OFFBITS)))
 	{
 	  macro_build (&offset_expr, "ori", BITOP_IMM_FMT, AT, AT,
-		     BFD_RELOC_NANOMIPS_LO12);
+		       BFD_RELOC_NANOMIPS_LO12);
 	  offset_expr.X_op = O_constant;
 	  offset_expr.X_add_number = 0;
 	}
@@ -7858,14 +7806,13 @@ nanomips_macro_absolute_ldd_std (const char *s, const char *fmt,
   if (breg != 0)
     macro_build (NULL, ADDRESS_ADD_INSN, "d,v,t", AT, breg, AT);
 
-  nanomips_macro_ld_st_pair (s, fmt, op, AT, &offset_expr,
-			     BFD_RELOC_NANOMIPS_LO12,
-			     offset_expr.X_op == O_constant);
+  macro_ld_st_pair (s, fmt, op, AT, &offset_expr, BFD_RELOC_NANOMIPS_LO12,
+		    offset_expr.X_op == O_constant);
 }
 
 static void
-nanomips_macro_pcrel_ldd_std (const char *s, const char *fmt,
-			      unsigned int op[], unsigned int offbits)
+macro_pcrel_ldd_std (const char *s, const char *fmt,
+		     unsigned int op[], unsigned int offbits)
 {
   if (offbits != ISA_OFFBITS)
     {
@@ -7874,10 +7821,10 @@ nanomips_macro_pcrel_ldd_std (const char *s, const char *fmt,
       expr.X_op_symbol = NULL;
       expr.X_add_symbol = NULL;
       expr.X_add_number = 4;
-      nanomips_macro_pcrel_la (AT);
+      macro_pcrel_la (AT);
 
-      nanomips_macro_ld_st_pair (s, fmt, op, AT, &expr,
-				 BFD_RELOC_NANOMIPS_SIGNED_9, TRUE);
+      macro_ld_st_pair (s, fmt, op, AT, &expr,
+			BFD_RELOC_NANOMIPS_SIGNED_9, TRUE);
     }
   else if ((nanomips_opts.ase & ASE_xNMS) != 0
       && *offset_reloc == BFD_RELOC_UNUSED
@@ -7892,17 +7839,16 @@ nanomips_macro_pcrel_ldd_std (const char *s, const char *fmt,
     }
   else
     {
-      macro_build (&offset_expr, "aluipc", "t,mK", AT,
+      macro_build (&offset_expr, "aluipc", "t,+K", AT,
 		   BFD_RELOC_NANOMIPS_PCREL_HI20);
-      nanomips_macro_ld_st_pair (s, fmt, op, AT, &offset_expr,
-				 BFD_RELOC_NANOMIPS_LO12, FALSE);
+      macro_ld_st_pair (s, fmt, op, AT, &offset_expr,
+			BFD_RELOC_NANOMIPS_LO12, FALSE);
     }
 }
 
 static void
-nanomips_macro_ldd_std (const char *s, const char *fmt, unsigned int op[],
-			int align, int offbits, unsigned int breg,
-			int *used_at)
+macro_ldd_std (const char *s, const char *fmt, unsigned int op[], int align,
+	       int offbits, unsigned int breg, int *used_at)
 {
   expressionS expr1;
   expressionS *ep;
@@ -7944,38 +7890,22 @@ nanomips_macro_ldd_std (const char *s, const char *fmt, unsigned int op[],
 	  macro_build (ep, s, fmt, op[0], offset_reloc[0], breg);
 	}
       else
-	nanomips_macro_ld_st_pair (s, fmt, op, breg, ep,
-				   offset_reloc[0],
-				   (small_offset_p (0, align,
-						    ISA_MULTI_OFFBITS)
-				    || expr1.X_add_number == 0));
+	macro_ld_st_pair (s, fmt, op, breg, ep, offset_reloc[0],
+			  (small_offset_p (0, align, ISA_MULTI_OFFBITS)
+			   || expr1.X_add_number == 0));
       return;
     }
 
-  if (!nanomips_macro_expression_valid (&offset_expr, offset_reloc[0]))
+  if (!macro_expression_valid (&offset_expr, offset_reloc[0]))
     return;
 
   if (nanomips_opts.pic == NO_PIC || offset_expr.X_op == O_constant)
     {
-      /* If this is a reference to a GP relative symbol, we want
-	 <op>	op[0],<sym>($gp)	(BFD_RELOC_GPREL16)
-	 <op>	op[0]+1,<sym>+4($gp)	(BFD_RELOC_GPREL16)
-	 If we have a base register, we use this
-	 addu	$at,$breg,$gp
-	 <op>	op[0],<sym>($at)	(BFD_RELOC_GPREL16)
-	 <op>	op[0]+1,<sym>+4($at)	(BFD_RELOC_GPREL16)
-	 If this is not a GP relative symbol, we want
-	 lui	$at,<sym>		(BFD_RELOC_HI16_S)
-	 <op>	op[0],<sym>($at)	(BFD_RELOC_LO16)
-	 <op>	op[0]+1,<sym>+4($at)	(BFD_RELOC_LO16)
-	 If there is a base register, we add it to $at after the
-	 lui instruction.  If there is a constant, we always use
-	 the last case.  */
       if (offset_expr.X_op == O_symbol
 	  && (valueT) offset_expr.X_add_number <= MAX_GPREL_OFFSET
 	  && strncmp (s, "ua", 2) != 0
 	  && (breg == 0
-	      && (gprel16_reloc_p (*offset_reloc)
+	      && (gprel_reloc_p (*offset_reloc)
 		  || *offset_reloc == BFD_RELOC_UNUSED))
 	  && !nopic_need_relax (offset_expr.X_add_symbol, 1))
 	{
@@ -8007,9 +7937,9 @@ nanomips_macro_ldd_std (const char *s, const char *fmt, unsigned int op[],
 
       *used_at = 1;
       if (nanomips_opts.pcrel)
-	nanomips_macro_pcrel_ldd_std (s, fmt, op, offbits);
+	macro_pcrel_ldd_std (s, fmt, op, offbits);
       else
-	nanomips_macro_absolute_ldd_std (s, fmt, op, breg, offbits);
+	macro_absolute_ldd_std (s, fmt, op, breg, offbits);
 
 
       if (nanomips_relax.sequence)
@@ -8025,8 +7955,7 @@ nanomips_macro_ldd_std (const char *s, const char *fmt, unsigned int op[],
       if (breg != 0)
 	macro_build (NULL, ADDRESS_ADD_INSN, "d,v,t", AT, breg, AT);
 
-      nanomips_macro_ld_st_pair (s, fmt, op, AT, &expr1,
-				 BFD_RELOC_NANOMIPS_LO12, TRUE);
+      macro_ld_st_pair (s, fmt, op, AT, &expr1, BFD_RELOC_NANOMIPS_LO12, TRUE);
 
       relax_switch ();
       macro_build (&offset_expr, ADDRESS_LOAD_INSN, "t,.(ma)", AT,
@@ -8045,33 +7974,16 @@ nanomips_macro_ldd_std (const char *s, const char *fmt, unsigned int op[],
     {
       *used_at = 1;
       expr1.X_add_number = 0;
-      nanomips_macro_la (&AT, 0, used_at, TRUE);
-      nanomips_macro_ld_st_pair (s, fmt, op, AT, &expr1,
+      macro_la (&AT, 0, used_at, TRUE);
+      macro_ld_st_pair (s, fmt, op, AT, &expr1,
 				 BFD_RELOC_NANOMIPS_LO12, TRUE);
     }
 }
 
-/*
- *			Build macros
- *   This routine implements the seemingly endless macro or synthesized
- * instructions and addressing modes in the mips assembly language. Many
- * of these macros are simple and are similar to each other. These could
- * probably be handled by some kind of table or grammar approach instead of
- * this verbose method. Others are not simple macros but are more like
- * optimizing code generation.
- *   One interesting optimization is when several store macros appear
- * consecutively that would load AT with the upper half of the same address.
- * The ensuing load upper instructions are ommited. This implies some kind
- * of global optimization. We currently only optimize within a single macro.
- *   For many of the load and store macros if the address is specified as a
- * constant expression in the first 64k of memory (ie ld $2,0x4000c) we
- * first load register 'at' with zero and use it as the base register. The
- * mips assembler simply uses register $zero. Just one tiny optimization
- * we're missing.
- */
+/* Build macros  */
 
 static void
-nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
+macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 {
   const struct nanomips_operand_array *operands;
 
@@ -8166,7 +8078,8 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	  break;
 	}
       else if ((nanomips_opts.ase & ASE_xNMS) != 0
-	       && op[0] == op[1] && !nanomips_opts.insn32)
+	       && op[0] == op[1]
+	       && !nanomips_opts.insn32)
 	{
 	  macro_build (&imm_expr, s, "mp,mt,+R", op[0], op[0],
 		       BFD_RELOC_NANOMIPS_I32);
@@ -8197,11 +8110,12 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       if (offset_high_unsigned (imm_expr.X_add_number, 12) == 0)
 	{
 	  if (mask != M_NOR_I)
-	    macro_build (&imm_expr, s, BITOP_IMM_FMT, op[0], op[1], BFD_RELOC_LO16);
+	    macro_build (&imm_expr, s, BITOP_IMM_FMT, op[0], op[1],
+			 BFD_RELOC_LO16);
 	  else
 	    {
-	      macro_build (&imm_expr, "ori", BITOP_IMM_FMT,
-			   op[0], op[1], BFD_RELOC_LO16);
+	      macro_build (&imm_expr, "ori", BITOP_IMM_FMT, op[0], op[1],
+			   BFD_RELOC_LO16);
 	      macro_build (NULL, "nor", "d,v,t", op[0], op[0], 0);
 	    }
 	  break;
@@ -8542,7 +8456,7 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	as_warn (_("la used to load 64-bit address; recommend using dla "
 		   "instead"));
 
-      nanomips_macro_la (op, breg, &used_at, TRUE);
+      macro_la (op, breg, &used_at, TRUE);
       break;
 
     case M_J_A:
@@ -8593,7 +8507,7 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	  gpfmt = "t,+1(ma)";
 	  break;
 	case 'd':
-	  gpfmt = "t,mV(ma)";
+	  gpfmt = "t,+4(ma)";
 	  break;
 	case 'h':
 	  gpfmt = "t,+3(ma)";
@@ -8627,10 +8541,9 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	tempreg = op[1];
       else
 	ldp_stp:
-	  tempreg = AT;
+	tempreg = AT;
 
-      nanomips_macro_ldp_stp (s, fmt, op, align, breg,
-			      tempreg, &used_at);
+      macro_ldp_stp (s, fmt, op, align, breg, tempreg, &used_at);
       break;
 
     case M_LLD_AC:
@@ -8738,8 +8651,8 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       tempreg = AT;
     ld_noat:
       breg = op[2];
-      nanomips_macro_ld_st (s, fmt, op, gpfmt, align, offbits, breg,
-			    tempreg, &used_at, coproc);
+      macro_ld_st (s, fmt, op, gpfmt, align, offbits, breg, tempreg,
+		   &used_at, coproc);
       break;
 
     case M_LDX_AB:
@@ -8816,12 +8729,12 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       tempreg = AT;
       imm_expr.X_op = O_constant;
       imm_expr.X_add_number = 4;
-      nanomips_macro_la (&tempreg, 0, &used_at, TRUE);
+      macro_la (&tempreg, 0, &used_at, TRUE);
       macro_build (NULL, s, "d,s(t)", op[0], tempreg, op[2]);
       macro_build (&imm_expr, ADDRESS_ADDI_INSN,
-		   (nanomips_opts.insn32 ? ADDIU_FMT : "mp,mx,+9"),
+		   (nanomips_opts.insn32 ? ADDIU_FMT : "mp,mk,mQ"),
 		   tempreg, tempreg, BFD_RELOC_NANOMIPS_LO12);
-      macro_build (NULL, s, "d,s(t)", op[0]+1, tempreg, op[2]);
+      macro_build (NULL, s, "d,s(t)", op[0] + 1, tempreg, op[2]);
       break;
 
     case M_SWX_AB:
@@ -8846,7 +8759,7 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       tempreg = AT;
 
     ld_st_indexed:
-      nanomips_macro_la (&tempreg, 0, &used_at, TRUE);
+      macro_la (&tempreg, 0, &used_at, TRUE);
       macro_build (NULL, s, fmt, op[0], tempreg, op[2]);
       break;
 
@@ -8871,7 +8784,7 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       if (imm_expr.X_op != O_absent)
 	load_register (op[0], &imm_expr, 0);
       else
-	nanomips_macro_la (op, 0, &used_at, FALSE);
+	macro_la (op, 0, &used_at, FALSE);
       break;
 
     case M_LI_S:
@@ -8889,7 +8802,7 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       fmt = ISA_UNSIGNED_LDST_FMT;
       op[2] = 0;
       s = "lw";
-      gpfmt  = LWGP_FMT;
+      gpfmt = LWGP_FMT;
       tempreg = (op[0] != 0) ? op[0] : AT;
       goto ld_noat;
 
@@ -8969,13 +8882,13 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       if (GPR_SIZE == 64)
 	{
 	  s = "ld";
-	  gpfmt  = LDGP_FMT;
+	  gpfmt = LDGP_FMT;
 	  tempreg = (op[0] != 0) ? op[0] : AT;
 	  goto ld_noat;
 	}
 
       s = "lw";
-      gpfmt  = LWGP_FMT;
+      gpfmt = LWGP_FMT;
       tempreg = op[0];
       goto ldd_std;
 
@@ -9014,14 +8927,14 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       fmt = ISA_UNSIGNED_COP1_FMT;
       gpfmt = "T,+2(ma)";
       s = "ldc1";
-      goto ld_st ;
+      goto ld_st;
 
     case M_LD_AC:
       fmt = ISA_UNSIGNED_LDST_FMT;
       gpfmt = "t,+2(ma)";
       if (GPR_SIZE == 64)
 	{
-	  gpfmt = "t,mV(ma)";
+	  gpfmt = "t,+4(ma)";
 	  goto ld;
 	}
 
@@ -9033,7 +8946,7 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       gpfmt = "t,+2(ma)";
       if (GPR_SIZE == 64)
 	{
-	  gpfmt = "t,mV(ma)";
+	  gpfmt = "t,+4(ma)";
 	  if (small_noffset_p (0, ISA_SIGNED_OFFBITS - 1))
 	    {
 	      fmt = ISA_SIGNED_LDST_FMT;
@@ -9046,7 +8959,7 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 
     ldd_std:
       breg = op[2];
-      nanomips_macro_ldd_std (s, fmt, op, align, offbits, breg, &used_at);
+      macro_ldd_std (s, fmt, op, align, offbits, breg, &used_at);
       break;
 
     case M_DMUL:
@@ -9290,8 +9203,8 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	{
 	  if (offset_high_unsigned (imm_expr.X_add_number,
 				    ISA_ADD_OFFBITS) == 0)
-	  macro_build (&imm_expr, "xori", BITOP_IMM_FMT, op[0], op[1],
-		       BFD_RELOC_LO16);
+	    macro_build (&imm_expr, "xori", BITOP_IMM_FMT, op[0], op[1],
+			 BFD_RELOC_LO16);
 	  else if (offset_high_unsigned (-imm_expr.X_add_number,
 					 ISA_ADD_OFFBITS) == 0)
 	    {
@@ -9342,7 +9255,8 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	  break;
 	}
       else if ((nanomips_opts.ase & ASE_xNMS) != 0
-	       && op[0] == op[1] && !nanomips_opts.insn32)
+	       && op[0] == op[1]
+	       && !nanomips_opts.insn32)
 	{
 	  imm_expr.X_add_number = -imm_expr.X_add_number;
 	  macro_build (&imm_expr, s, "mp,mt,+R", op[0], op[0],
@@ -9384,7 +9298,7 @@ nanomips_macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       s2 = "ualw";
       goto uld_st;
 
-   case M_USD_AC:
+    case M_USD_AC:
       s = "uasd";
       s2 = "uasw";
 
@@ -9512,9 +9426,8 @@ nanomips_ip (char *str, struct nanomips_cl_insn *insn)
   if (!tokens)
     return;
 
-  if (!match_nanomips_insns (insn, first, past, tokens, opcode_extra, FALSE)
-      && !match_nanomips_insns (insn, first, past, tokens, opcode_extra,
-				TRUE))
+  if (!match_insns (insn, first, past, tokens, opcode_extra, FALSE)
+      && !match_insns (insn, first, past, tokens, opcode_extra, TRUE))
     set_insn_error (0, _("invalid operands"));
 
   obstack_free (&nanomips_operand_tokens, tokens);
@@ -9925,19 +9838,6 @@ nanomips_after_parse_args (void)
   const struct nanomips_cpu_info *arch_info = 0;
   const struct nanomips_cpu_info *tune_info = 0;
 
-  /* GP relative stuff not working for PE */
-  if (strncmp (TARGET_OS, "pe", 2) == 0)
-    {
-      if (g_switch_seen && g_switch_value != 0)
-	as_bad (_("-G not supported in this configuration"));
-      g_switch_value = 0;
-    }
-
-  /* The following code determines the architecture.
-     Similar code was added to GCC 3.3 (see override_options() in
-     config/mips/mips.c).  The GAS and GCC code should be kept in sync
-     as much as possible.  */
-
   if (nanomips_arch_string != 0)
     arch_info = nanomips_parse_cpu ("-march", nanomips_arch_string);
 
@@ -9962,9 +9862,6 @@ nanomips_after_parse_args (void)
 
   /* Set up initial nanomips_opts state.  */
   nanomips_opts = file_nanomips_opts;
-
-  /* The register size inference code is now placed in
-     file_check_options.  */
 
   /* Optimize for file_nanomips_opts.arch, unless -mtune selects a different
      processor.  */
@@ -9998,7 +9895,7 @@ int
 nanomips_force_relocation (fixS *fixp)
 {
   if (pcrel_branch_reloc_p (fixp->fx_r_type)
-      && RELAX_NANOMIPS_FIXED (fixp->fx_frag->fr_subtype))
+      && RELAX_MD_FIXED (fixp->fx_frag->fr_subtype))
     return 0;
 
   if (generic_force_reloc (fixp))
@@ -10148,7 +10045,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
   if ((fixP->fx_addsy == NULL && !fixP->fx_pcrel && fixP->fx_tcbit == 0)
       || (pcrel_branch_reloc_p (fixP->fx_r_type)
 	  && fixP->fx_frag
-	  && RELAX_NANOMIPS_FIXED (fixP->fx_frag->fr_subtype)))
+	  && RELAX_MD_FIXED (fixP->fx_frag->fr_subtype)))
     fixP->fx_done = 1;
 
   switch (fixP->fx_r_type)
@@ -10364,7 +10261,7 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 	  }
 
 	mask = ((1 << howto->bitsize) - 1) & ~0x1;
-	if ((int)*valP < 0)
+	if ((int) *valP < 0)
 	  sbit = 1;
 	insn = read_reloc_insn (buf, fixP->fx_r_type);
 	insn &= ~howto->dst_mask;
@@ -10376,13 +10273,13 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 	    fixS *fnextP = fixP->fx_next;
 	    if (fnextP->fx_frag == fixP->fx_frag
 		&& fnextP->fx_where == fixP->fx_where
-		&& linkrelax_inhibit_reloc_p(fnextP->fx_r_type))
+		&& linkrelax_inhibit_reloc_p (fnextP->fx_r_type))
 	      fnextP->fx_done = 1;
 	  }
       }
       break;
 
-   case BFD_RELOC_VTABLE_INHERIT:
+    case BFD_RELOC_VTABLE_INHERIT:
       fixP->fx_done = 0;
       if (fixP->fx_addsy
 	  && !S_IS_DEFINED (fixP->fx_addsy)
@@ -10449,7 +10346,7 @@ create_align_relocs (fragS *fragp, int align_to, unsigned int fill_value,
   frag_now->tc_frag_data.relax_sop = align_to - 2;
   frag_now->tc_frag_data.relax_sink = align_to - 2;
 
-  /* Generate fill reloc.  Default fill value is micromips nop32.  */
+  /* Generate fill reloc.  Default fill value is nop32.  */
   if (fill_length)
     {
       sprintf (sname, "__reloc_fill_\2_%x", fill_value);
@@ -11069,7 +10966,7 @@ s_cpsetup (int ignore ATTRIBUTE_UNUSED)
   nanomips_assembling_insn = TRUE;
   macro_start ();
 
-  macro_build (&ex, "aluipc", "t,mK", nanomips_gp_register,
+  macro_build (&ex, "aluipc", "t,+K", nanomips_gp_register,
 	       BFD_RELOC_NANOMIPS_PCREL_HI20);
 
   macro_end (TRUE);
@@ -11293,7 +11190,8 @@ pic_need_relax (symbolS *sym, asection *segtype)
 	  && !bfd_is_com_section (symsec)
 	  && !s_is_linkonce (sym, segtype)
 	  /* A global or weak symbol is treated as external.  */
-	  && (!S_IS_WEAK (sym) && !S_IS_EXTERNAL (sym)));
+	  && !S_IS_WEAK (sym)
+	  && !S_IS_EXTERNAL (sym));
 }
 
 /* Check if relocation in HEAD refers to an address immediately following
@@ -11338,8 +11236,8 @@ nanomips_frag_match (fragS *head, fragS *matchP)
 static bfd_vma
 frag_subtype_to_relax_sop (relax_substateT fr_subtype)
 {
-  enum relax_nanomips_subtype rt = RELAX_NANOMIPS_TYPE (fr_subtype);
-  bfd_boolean toofar16 = RELAX_NANOMIPS_TOOFAR16 (fr_subtype);
+  enum relax_nanomips_subtype rt = RELAX_MD_TYPE (fr_subtype);
+  bfd_boolean toofar16 = RELAX_MD_TOOFAR16 (fr_subtype);
   return (get_reloc_sop (frag_subtype_to_reloc (rt, toofar16)));
 }
 
@@ -11354,27 +11252,27 @@ branch_in_range (relax_substateT fr_subtype, bfd_signed_vma offset)
   bfd_signed_vma max_val = 0;
   reloc_howto_type *howto = NULL;
 
-  rtype = frag_subtype_to_reloc (RELAX_NANOMIPS_TYPE (fr_subtype),
-				 RELAX_NANOMIPS_TOOFAR16 (fr_subtype));
+  rtype = frag_subtype_to_reloc (RELAX_MD_TYPE (fr_subtype),
+				 RELAX_MD_TOOFAR16 (fr_subtype));
 
   switch (rtype)
     {
-      case BFD_RELOC_NANOMIPS_4_PCREL_S1:
-	/* This type only allows limited unsigned offset.  */
-	min_val = 2;
-	max_val = 30;
-	break;
-      default:
-	/* All other branches are signed. The relocation howto
-	   provides the necessary information, so we don't
-	   need to enumerate each one.  */
-	howto = bfd_reloc_type_lookup (stdoutput, rtype);
-	if (howto)
-	  {
-	    max_val = (1 << howto->bitsize) - 1;
-	    min_val = -max_val - 1;
-	  }
-	break;
+    case BFD_RELOC_NANOMIPS_4_PCREL_S1:
+      /* This type only allows limited unsigned offset.  */
+      min_val = 2;
+      max_val = 30;
+      break;
+    default:
+      /* All other branches are signed. The relocation howto
+	 provides the necessary information, so we don't
+	 need to enumerate each one.  */
+      howto = bfd_reloc_type_lookup (stdoutput, rtype);
+      if (howto)
+	{
+	  max_val = (1 << howto->bitsize) - 1;
+	  min_val = -max_val - 1;
+	}
+      break;
     }
 
   return (offset >= min_val && offset <= max_val);
@@ -11393,18 +11291,16 @@ static bfd_boolean
 variable_frag_p (fragS *fragp)
 {
   return (fragp->tc_frag_data.link_var
-	  || (RELAX_NANOMIPS_P (fragp->fr_subtype)
-	      && RELAX_NANOMIPS_VARIABLE (fragp->fr_subtype)));
+	  || (RELAX_MD_P (fragp->fr_subtype)
+	      && RELAX_MD_VARIABLE (fragp->fr_subtype)));
 }
 
 /* Check if the branch at FRAGP is link-time invariable and mark it.  */
 
 static bfd_boolean
-relaxed_nanomips_invariable_branch_p (fragS *fragp, asection *sec)
+relaxed_invariable_branch_p (fragS *fragp, asection *sec)
 {
   addressT addr;
-  fragS *nfrag;
-  fragS *pfrag = NULL;
   bfd_boolean fixed_p = FALSE;
   bfd_boolean variable_p = FALSE;
   bfd_signed_vma max_offset = 0;
@@ -11414,7 +11310,7 @@ relaxed_nanomips_invariable_branch_p (fragS *fragp, asection *sec)
 
   /* Don't bother  */
   if (!nanomips_opts.minimize_relocs
-      || RELAX_NANOMIPS_ADDIU_P (fragp->fr_subtype))
+      || RELAX_MD_ADDIU_P (fragp->fr_subtype))
     return TRUE;
 
   /* Trivially mark branches to external symbols as unfixable.  */
@@ -11423,9 +11319,9 @@ relaxed_nanomips_invariable_branch_p (fragS *fragp, asection *sec)
 	  || S_IS_WEAK (fragp->fr_symbol)
 	  || sec != S_GET_SEGMENT (fragp->fr_symbol)))
     {
-      if (!RELAX_NANOMIPS_NORELAX (fragp->fr_subtype))
+      if (!RELAX_MD_NORELAX (fragp->fr_subtype))
 	{
-	  fragp->fr_subtype = RELAX_NANOMIPS_MARK_VARIABLE
+	  fragp->fr_subtype = RELAX_MD_MARK_VARIABLE
 	    (fragp->fr_subtype);
 	  /* External reference will not change over multiple iterations.
 	     We can calculate the sop once and store it to short-circuit
@@ -11441,8 +11337,8 @@ relaxed_nanomips_invariable_branch_p (fragS *fragp, asection *sec)
   addr = S_GET_VALUE (fragp->fr_symbol);
   max_offset = addr - fragp->fr_address - fragp->fr_fix;
   /* Adjust for next PC.  */
-  if (RELAX_NANOMIPS_TYPE (fragp->fr_subtype) >= RT_BRANCH_UCND
-      && !RELAX_NANOMIPS_TOOFAR16 (fragp->fr_subtype))
+  if (RELAX_MD_TYPE (fragp->fr_subtype) >= RT_BRANCH_UCND
+      && !RELAX_MD_TOOFAR16 (fragp->fr_subtype))
     max_offset -= 2;
   else
     max_offset -= fragp->fr_var;
@@ -11455,9 +11351,10 @@ relaxed_nanomips_invariable_branch_p (fragS *fragp, asection *sec)
   else if (addr > fragp->fr_address + fragp->fr_fix)
     {
       fragS *ifrag = fragp->fr_next;
-      nfrag = symbol_get_frag (fragp->fr_symbol);
+      fragS *nfrag = symbol_get_frag (fragp->fr_symbol);
+
       while (ifrag && ifrag != nfrag->fr_next)
-      {
+	{
 	  if (ifrag->tc_frag_data.link_var
 	      /* If destination address is the beginning of a frag, then
 		 its variability does not affect the branch.  */
@@ -11467,8 +11364,8 @@ relaxed_nanomips_invariable_branch_p (fragS *fragp, asection *sec)
 	      min_offset -= ifrag->tc_frag_data.relax_sink;
 	      variable_p = TRUE;
 	    }
-	  else if (RELAX_NANOMIPS_P (ifrag->fr_subtype)
-		   && RELAX_NANOMIPS_VARIABLE (ifrag->fr_subtype)
+	  else if (RELAX_MD_P (ifrag->fr_subtype)
+		   && RELAX_MD_VARIABLE (ifrag->fr_subtype)
 		   /* If destination address is the fixed part of the
 		      frag and that fixed part has no relocations, then
 		      relaxation of this frag will not affect the branch.  */
@@ -11479,14 +11376,13 @@ relaxed_nanomips_invariable_branch_p (fragS *fragp, asection *sec)
 	      variable_p = TRUE;
 	    }
 	  ifrag = ifrag->fr_next;
-      }
+	}
     }
   /* Branching back - bit simpler.  */
   else
     {
-      fragS *ifrag;
-      pfrag = symbol_get_frag (fragp->fr_symbol);
-      ifrag = pfrag;
+      fragS *ifrag = symbol_get_frag (fragp->fr_symbol);
+
       while (ifrag && ifrag != fragp)
 	{
 	  if (ifrag->tc_frag_data.link_var)
@@ -11495,8 +11391,8 @@ relaxed_nanomips_invariable_branch_p (fragS *fragp, asection *sec)
 	      min_offset += ifrag->tc_frag_data.relax_sink;
 	      variable_p = TRUE;
 	    }
-	  else if (RELAX_NANOMIPS_P (ifrag->fr_subtype)
-		   && RELAX_NANOMIPS_VARIABLE (ifrag->fr_subtype))
+	  else if (RELAX_MD_P (ifrag->fr_subtype)
+		   && RELAX_MD_VARIABLE (ifrag->fr_subtype))
 	    {
 	      max_offset -= frag_subtype_to_relax_sop (ifrag->fr_subtype);
 	      min_offset += ifrag->fr_var;
@@ -11508,19 +11404,19 @@ relaxed_nanomips_invariable_branch_p (fragS *fragp, asection *sec)
 
   /* If there are no intervening variable frags and the cumulative sop is
      within branch range, then this frag is definitively fixed.  */
-  fixed_p = (!variable_p
-	     && branch_in_range (fragp->fr_subtype, max_offset));
+  fixed_p = (!variable_p && branch_in_range (fragp->fr_subtype, max_offset));
+
   /* However, it is only definitively variable if there are intervening
      variable frags and their cumulative sop threatens to put this branch
      out of range, or the cumulative sink threatens to put it within range
      of a smaller equivalent branch.  */
   variable_p = (variable_p
 		&& !branch_in_range (fragp->fr_subtype, max_offset));
-  if (RELAX_NANOMIPS_TYPE (fragp->fr_subtype) >= RT_BRANCH_UCND
-      && RELAX_NANOMIPS_TOOFAR16 (fragp->fr_subtype))
+  if (RELAX_MD_TYPE (fragp->fr_subtype) >= RT_BRANCH_UCND
+      && RELAX_MD_TOOFAR16 (fragp->fr_subtype))
     variable_p = (!variable_p
-		  && branch_in_range (RELAX_NANOMIPS_CLEAR_TOOFAR16
-				       (fragp->fr_subtype), min_offset));
+		  && branch_in_range (RELAX_MD_CLEAR_TOOFAR16
+				      (fragp->fr_subtype), min_offset));
 
   /* If the branch is found to be definitively fixed or variable, mark it
      so, else clear those bits and leave it for future iterations.  Note
@@ -11531,24 +11427,23 @@ relaxed_nanomips_invariable_branch_p (fragS *fragp, asection *sec)
      not impede other branches leaping over this branch-point from getting
      fixed.  */
   if (fixed_p)
-    fragp->fr_subtype = RELAX_NANOMIPS_MARK_FIXED (fragp->fr_subtype);
+    fragp->fr_subtype = RELAX_MD_MARK_FIXED (fragp->fr_subtype);
   else if (variable_p)
-    fragp->fr_subtype = RELAX_NANOMIPS_MARK_VARIABLE (fragp->fr_subtype);
+    fragp->fr_subtype = RELAX_MD_MARK_VARIABLE (fragp->fr_subtype);
   else
     {
-      fragp->fr_subtype = RELAX_NANOMIPS_CLEAR_FIXED (fragp->fr_subtype);
-      fragp->fr_subtype = RELAX_NANOMIPS_CLEAR_VARIABLE (fragp->fr_subtype);
+      fragp->fr_subtype = RELAX_MD_CLEAR_FIXED (fragp->fr_subtype);
+      fragp->fr_subtype = RELAX_MD_CLEAR_VARIABLE (fragp->fr_subtype);
     }
 
   return fixed_p;
 }
 
-/* Compute the length of a branch, and adjust the RELAX_NANOMIPS_TOOFAR16
+/* Compute the length of a branch, and adjust the RELAX_MD_TOOFAR16
    bit accordingly.  */
 
 static int
-relaxed_nanomips_16bit_branch_length (fragS *fragp, asection *sec,
-				      int update)
+relaxed_16bit_branch_length (fragS *fragp, asection *sec, int update)
 {
   bfd_boolean toofar;
 
@@ -11571,7 +11466,7 @@ relaxed_nanomips_16bit_branch_length (fragS *fragp, asection *sec,
 	 long branches.  */
       val -= addr;
 
-      type = RELAX_NANOMIPS_TYPE (fragp->fr_subtype);
+      type = RELAX_MD_TYPE (fragp->fr_subtype);
       if (type == RT_BRANCH_UCND || type == RT_BALC_STUB)
 	toofar = val < -(0x200 << 1) || val >= (0x200 << 1);
       else if (type == RT_BRANCH_CNDZ)
@@ -11591,11 +11486,11 @@ relaxed_nanomips_16bit_branch_length (fragS *fragp, asection *sec,
     toofar = TRUE;
 
   if (fragp && update
-      && toofar != RELAX_NANOMIPS_TOOFAR16 (fragp->fr_subtype))
+      && toofar != RELAX_MD_TOOFAR16 (fragp->fr_subtype))
     fragp->fr_subtype
       = (toofar
-	 ? RELAX_NANOMIPS_MARK_TOOFAR16 (fragp->fr_subtype)
-	 : RELAX_NANOMIPS_CLEAR_TOOFAR16 (fragp->fr_subtype));
+	 ? RELAX_MD_MARK_TOOFAR16 (fragp->fr_subtype)
+	 : RELAX_MD_CLEAR_TOOFAR16 (fragp->fr_subtype));
 
   if (toofar)
     return 4;
@@ -11604,11 +11499,11 @@ relaxed_nanomips_16bit_branch_length (fragS *fragp, asection *sec,
 }
 
 /* Compute the length of a call potentially going through a BALC stub
-   and adjust the RELAX_NANOMIPS_USESTUB bit accordingly.  */
+   and adjust the RELAX_MD_USESTUB bit accordingly.  */
 
 static int
-relaxed_nanomips_stub_call_length (fragS *fragp, asection *sec,
-				   bfd_boolean toofar16, bfd_boolean update)
+relaxed_stub_call_length (fragS *fragp, asection *sec, bfd_boolean toofar16,
+			  bfd_boolean update)
 {
   bfd_boolean usestub = FALSE;
   bfd_boolean keepstub = FALSE;
@@ -11644,17 +11539,17 @@ relaxed_nanomips_stub_call_length (fragS *fragp, asection *sec,
 				    callsite, stubg_now, &stub);
 
   if (usestub && stub->fragp != NULL)
-    keepstub = RELAX_NANOMIPS_KEEPSTUB (stub->fragp->fr_subtype);
+    keepstub = RELAX_MD_KEEPSTUB (stub->fragp->fr_subtype);
 
   /* We need this to happen only once per call frag, but as early as
      possible in the estimation phase, before actual relaxation.  */
   if (usestub && !toofar16)
     {
       usestub = FALSE;
-      if (RELAX_NANOMIPS_ONCESTUB (fragp->fr_subtype))
+      if (RELAX_MD_ONCESTUB (fragp->fr_subtype))
 	{
 	  fragp->fr_subtype
-	    = RELAX_NANOMIPS_CLEAR_ONCESTUB (fragp->fr_subtype);
+	    = RELAX_MD_CLEAR_ONCESTUB (fragp->fr_subtype);
 	  if (callsite == stub->first_call->callsite)
 	    stublist_pop_call (stub);
 	  else
@@ -11664,17 +11559,17 @@ relaxed_nanomips_stub_call_length (fragS *fragp, asection *sec,
 
   /* Only track calls that cannot fit within 16-bit instruction.  */
   if (usestub && toofar16
-      && usestub != RELAX_NANOMIPS_ONCESTUB (fragp->fr_subtype))
+      && usestub != RELAX_MD_ONCESTUB (fragp->fr_subtype))
     {
       stublist_append_call (stub, callsite);
-      fragp->fr_subtype = RELAX_NANOMIPS_MARK_ONCESTUB (fragp->fr_subtype);
+      fragp->fr_subtype = RELAX_MD_MARK_ONCESTUB (fragp->fr_subtype);
     }
 
-  if (update && usestub != RELAX_NANOMIPS_USESTUB (fragp->fr_subtype))
+  if (update && usestub != RELAX_MD_USESTUB (fragp->fr_subtype))
     fragp->fr_subtype
       = ((usestub && keepstub)
-	 ? RELAX_NANOMIPS_MARK_USESTUB (fragp->fr_subtype)
-	 : RELAX_NANOMIPS_CLEAR_USESTUB (fragp->fr_subtype));
+	 ? RELAX_MD_MARK_USESTUB (fragp->fr_subtype)
+	 : RELAX_MD_CLEAR_USESTUB (fragp->fr_subtype));
 
   if ((usestub && keepstub) || !toofar16)
     return 2;
@@ -11682,11 +11577,10 @@ relaxed_nanomips_stub_call_length (fragS *fragp, asection *sec,
     return 4;
 }
 
-/* Compute the length of a BALC stub and adjust the RELAX_NANOMIPS_KEEPSTUB
+/* Compute the length of a BALC stub and adjust the RELAX_MD_KEEPSTUB
    bit accordingly. If a stub is not to be instantiated, its length is 0.  */
 static int
-relaxed_nanomips_stub_length (fragS *fragp, asection *sec,
-			      bfd_boolean update)
+relaxed_stub_length (fragS *fragp, asection *sec, bfd_boolean update)
 {
   bfd_boolean keepstub = FALSE;
   addressT stubsite;
@@ -11721,12 +11615,12 @@ relaxed_nanomips_stub_length (fragS *fragp, asection *sec,
       && stub->numcalls >= 3)
     keepstub = TRUE;
 
-  if (keepstub != RELAX_NANOMIPS_KEEPSTUB (fragp->fr_subtype))
+  if (keepstub != RELAX_MD_KEEPSTUB (fragp->fr_subtype))
     {
       if (update)
 	fragp->fr_subtype
-	  = keepstub ? RELAX_NANOMIPS_MARK_KEEPSTUB (fragp->fr_subtype)
-	  : RELAX_NANOMIPS_CLEAR_KEEPSTUB (fragp->fr_subtype);
+	  = keepstub ? RELAX_MD_MARK_KEEPSTUB (fragp->fr_subtype)
+	  : RELAX_MD_CLEAR_KEEPSTUB (fragp->fr_subtype);
 
       stubg_now->next_offset += (keepstub ? 4 : -4);
     }
@@ -11753,7 +11647,7 @@ nanomips_gpr3_reg_p (unsigned long reg)
 
 /* Compute the length of an ADDIU instruction.  */
 static int
-relaxed_nanomips_addiu_length (fragS *fragp, bfd_boolean update)
+relaxed_addiu_length (fragS *fragp, bfd_boolean update)
 {
   char *buf;
   unsigned long insn;
@@ -11773,7 +11667,7 @@ relaxed_nanomips_addiu_length (fragS *fragp, bfd_boolean update)
   if (rt == rs
       && sval >= -8
       && sval <= 7
-      && !RELAX_NANOMIPS_FIXED (fragp->fr_subtype))
+      && !RELAX_MD_FIXED (fragp->fr_subtype))
     {
       toofar16 = FALSE;
       negoff = TRUE;
@@ -11783,42 +11677,42 @@ relaxed_nanomips_addiu_length (fragS *fragp, bfd_boolean update)
 	   && sval >= 0
 	   && sval <= 28
 	   && sval % 4 == 0
-	   && !RELAX_NANOMIPS_FIXED (fragp->fr_subtype))
+	   && !RELAX_MD_FIXED (fragp->fr_subtype))
     toofar16 = FALSE;
   else if (nanomips_gpr3_reg_p (rt)
 	   && rs == 0
 	   && (int)sval >= -1
 	   && (int)sval <= 126
-	   && !RELAX_NANOMIPS_FIXED (fragp->fr_subtype))
+	   && !RELAX_MD_FIXED (fragp->fr_subtype))
     toofar16 = FALSE;
   else
     negoff = (sval < 0 && sval > -4096);
 
   if (toofar16
-      && !RELAX_NANOMIPS_FIXED (fragp->fr_subtype)
+      && !RELAX_MD_FIXED (fragp->fr_subtype)
       && (sval > 0xffff || sval < -4096)
       && (rs == rt || rs == 0)
       && (nanomips_opts.ase & ASE_xNMS) != 0)
     toofar32 = TRUE;
 
   if (fragp && update
-      && toofar16 != RELAX_NANOMIPS_TOOFAR16 (fragp->fr_subtype))
+      && toofar16 != RELAX_MD_TOOFAR16 (fragp->fr_subtype))
     fragp->fr_subtype
       = (toofar16
-	 ? RELAX_NANOMIPS_MARK_TOOFAR16 (fragp->fr_subtype)
-	 : RELAX_NANOMIPS_CLEAR_TOOFAR16 (fragp->fr_subtype));
+	 ? RELAX_MD_MARK_TOOFAR16 (fragp->fr_subtype)
+	 : RELAX_MD_CLEAR_TOOFAR16 (fragp->fr_subtype));
 
   if (fragp && update
-      && toofar32 != RELAX_NANOMIPS_TOOFAR32 (fragp->fr_subtype))
+      && toofar32 != RELAX_MD_TOOFAR32 (fragp->fr_subtype))
     fragp->fr_subtype
       = (toofar32
-	 ? RELAX_NANOMIPS_MARK_TOOFAR32 (fragp->fr_subtype)
-	 : RELAX_NANOMIPS_CLEAR_TOOFAR32 (fragp->fr_subtype));
+	 ? RELAX_MD_MARK_TOOFAR32 (fragp->fr_subtype)
+	 : RELAX_MD_CLEAR_TOOFAR32 (fragp->fr_subtype));
 
-  if (fragp && update && negoff != RELAX_NANOMIPS_NEGOFF (fragp->fr_subtype))
+  if (fragp && update && negoff != RELAX_MD_NEGOFF (fragp->fr_subtype))
     fragp->fr_subtype
-      = negoff ? RELAX_NANOMIPS_MARK_NEGOFF (fragp->fr_subtype)
-      : RELAX_NANOMIPS_CLEAR_NEGOFF (fragp->fr_subtype);
+      = negoff ? RELAX_MD_MARK_NEGOFF (fragp->fr_subtype)
+      : RELAX_MD_CLEAR_NEGOFF (fragp->fr_subtype);
 
   if (toofar16)
     {
@@ -11831,36 +11725,33 @@ relaxed_nanomips_addiu_length (fragS *fragp, bfd_boolean update)
     return 2;
 }
 
-/* Estimate the size of a frag before relaxing.  Unless this is the
-   mips16, we are not really relaxing here, and the final size is
-   encoded in the subtype information.  For the mips16, we have to
-   decide whether we are using an extended opcode or not.  */
+/* Estimate the size of a frag before relaxing. We are not really relaxing
+   here. The estimated size is encoded in the subtype information.  */
 
 int
 md_estimate_size_before_relax (fragS *fragp, asection *segtype)
 {
   int change;
 
-  if (RELAX_NANOMIPS_P (fragp->fr_subtype))
+  if (RELAX_MD_P (fragp->fr_subtype))
     {
       int length = fragp->fr_var;
 
       if (!nanomips_opts.no_balc_stubs
 	  && stubg_now != NULL
-	  && RELAX_NANOMIPS_BALC_STUB_P (fragp->fr_subtype))
-	length = relaxed_nanomips_stub_length (fragp, segtype, FALSE);
-      else if (RELAX_NANOMIPS_ADDIU_P (fragp->fr_subtype))
-	length = relaxed_nanomips_addiu_length (fragp, FALSE);
-      else if (RELAX_NANOMIPS_TYPE (fragp->fr_subtype) >= RT_BRANCH_UCND)
-	length = relaxed_nanomips_16bit_branch_length (fragp, segtype, FALSE);
+	  && RELAX_MD_BALC_STUB_P (fragp->fr_subtype))
+	length = relaxed_stub_length (fragp, segtype, FALSE);
+      else if (RELAX_MD_ADDIU_P (fragp->fr_subtype))
+	length = relaxed_addiu_length (fragp, FALSE);
+      else if (RELAX_MD_TYPE (fragp->fr_subtype) >= RT_BRANCH_UCND)
+	length = relaxed_16bit_branch_length (fragp, segtype, FALSE);
 
       /* Try to relax 32-bit call through a stub.  */
       if (!nanomips_opts.no_balc_stubs
 	  && stubg_now != NULL
-	  && RELAX_NANOMIPS_TYPE (fragp->fr_subtype) == RT_BRANCH_UCND
-	  && RELAX_NANOMIPS_LINK (fragp->fr_subtype))
-	length = relaxed_nanomips_stub_call_length (fragp, segtype,
-						    length > 2, FALSE);
+	  && RELAX_MD_TYPE (fragp->fr_subtype) == RT_BRANCH_UCND
+	  && RELAX_MD_LINK (fragp->fr_subtype))
+	length = relaxed_stub_call_length (fragp, segtype, length > 2, FALSE);
 
       fragp->fr_var = length;
       return length;
@@ -11901,7 +11792,7 @@ nanomips_fix_adjustable (fixS *fixp)
   /* PC relative relocations for need to be symbol rather than section
      relative to allow linker relaxations to be performed later on.  */
   if (pcrel_reloc_p (fixp->fx_r_type))
-    return RELAX_NANOMIPS_FIXED (fixp->fx_frag->fr_subtype);
+    return RELAX_MD_FIXED (fixp->fx_frag->fr_subtype);
 
   /* Relocations to code sections need to be symbol rather than section
      relative for nanoMIPS, to allow linker expansions and relaxations
@@ -12002,35 +11893,34 @@ int
 nanomips_relax_frag (asection *sec, fragS *fragp,
 		     long stretch ATTRIBUTE_UNUSED)
 {
-  if (RELAX_NANOMIPS_P (fragp->fr_subtype))
+  if (RELAX_MD_P (fragp->fr_subtype))
     {
       offsetT old_var = fragp->fr_var;
       offsetT new_var = 4;
 
       if (!nanomips_opts.no_balc_stubs
 	  && stubg_now != NULL
-	  && RELAX_NANOMIPS_BALC_STUB_P (fragp->fr_subtype))
-	new_var = relaxed_nanomips_stub_length (fragp, sec, TRUE);
-      else if (RELAX_NANOMIPS_ADDIU_P (fragp->fr_subtype))
-	new_var = relaxed_nanomips_addiu_length (fragp, TRUE);
-      else if (RELAX_NANOMIPS_TYPE (fragp->fr_subtype) >= RT_BRANCH_UCND)
-	new_var = relaxed_nanomips_16bit_branch_length (fragp, sec, TRUE);
+	  && RELAX_MD_BALC_STUB_P (fragp->fr_subtype))
+	new_var = relaxed_stub_length (fragp, sec, TRUE);
+      else if (RELAX_MD_ADDIU_P (fragp->fr_subtype))
+	new_var = relaxed_addiu_length (fragp, TRUE);
+      else if (RELAX_MD_TYPE (fragp->fr_subtype) >= RT_BRANCH_UCND)
+	new_var = relaxed_16bit_branch_length (fragp, sec, TRUE);
       else
 	new_var = old_var;
 
       /* Try to relax 32-bit call through a stub.  */
       if (!nanomips_opts.no_balc_stubs
 	  && stubg_now != NULL
-	  && RELAX_NANOMIPS_TYPE (fragp->fr_subtype) == RT_BRANCH_UCND
-	  && RELAX_NANOMIPS_LINK (fragp->fr_subtype)
-	  && RELAX_NANOMIPS_TOOFAR16 (fragp->fr_subtype))
-	new_var = relaxed_nanomips_stub_call_length (fragp, sec,
-						     new_var > 2, TRUE);
+	  && RELAX_MD_TYPE (fragp->fr_subtype) == RT_BRANCH_UCND
+	  && RELAX_MD_LINK (fragp->fr_subtype)
+	  && RELAX_MD_TOOFAR16 (fragp->fr_subtype))
+	new_var = relaxed_stub_call_length (fragp, sec, new_var > 2, TRUE);
 
       fragp->fr_var = new_var;
-      if (!RELAX_NANOMIPS_ADDIU_P (fragp->fr_subtype) != 0
+      if (!RELAX_MD_ADDIU_P (fragp->fr_subtype) != 0
 	  && fragp->fr_symbol != 0)
-	relaxed_nanomips_invariable_branch_p (fragp, sec);
+	relaxed_invariable_branch_p (fragp, sec);
       return new_var - old_var;
     }
 
@@ -12042,7 +11932,7 @@ nanomips_relax_frag (asection *sec, fragS *fragp,
 void
 md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 {
-  if (RELAX_NANOMIPS_ADDIU_P (fragp->fr_subtype))
+  if (RELAX_MD_ADDIU_P (fragp->fr_subtype))
     {
       char *buf = fragp->fr_literal + fragp->fr_fix;
       unsigned long insn = read_compressed_insn (buf, 4);
@@ -12053,10 +11943,10 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
       rs = EXTRACT_BITS (insn, NANOMIPSOP_MASK_RS, NANOMIPSOP_SH_RS);
       sval = S_GET_VALUE (fragp->fr_symbol) + fragp->fr_offset;
 
-      if (!RELAX_NANOMIPS_TOOFAR16 (fragp->fr_subtype)
-	  && !RELAX_NANOMIPS_TOOFAR32 (fragp->fr_subtype))
+      if (!RELAX_MD_TOOFAR16 (fragp->fr_subtype)
+	  && !RELAX_MD_TOOFAR32 (fragp->fr_subtype))
 	{
-	  if (RELAX_NANOMIPS_NEGOFF (fragp->fr_subtype))
+	  if (RELAX_MD_NEGOFF (fragp->fr_subtype))
 	    /* ADDIU[32] -> ADDIU[RS5] */
 	    insn = (0x9008
 		    | (rt << NANOMIPSOP_SH_MP)
@@ -12065,7 +11955,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	  else if (rs == 0)
 	    /* LI[32] -> LI[16] */
 	    insn = (0xd000
-		    | (rt << NANOMIPSOP_SH_MQ)
+		    | (rt << NANOMIPSOP_SH_MM)
 		    | (sval & 0x7f));
 	  else
 	    /* ADDIU[32] -> ADDIU[R2] */
@@ -12074,7 +11964,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 		    | (rs & 0x7) << NANOMIPSOP_SH_MC
 		    | (sval & 0x1f) >> 2);
 	}
-      else if (RELAX_NANOMIPS_TOOFAR32 (fragp->fr_subtype))
+      else if (RELAX_MD_TOOFAR32 (fragp->fr_subtype))
 	{
 	  if (rs == rt)
 	    insn = (0x6001 | rt << 5);
@@ -12089,7 +11979,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	  gas_assert (buf == fragp->fr_literal + fragp->fr_fix);
 	  return;
 	}
-      else if (RELAX_NANOMIPS_NEGOFF (fragp->fr_subtype))
+      else if (RELAX_MD_NEGOFF (fragp->fr_subtype))
 	/* ADDIU[32] -> ADDIU[NEG] */
 	insn = (insn & ~0xfff) | 0x80008000 | (-sval & 0xfff);
       else
@@ -12106,23 +11996,25 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
       gas_assert (buf == fragp->fr_literal + fragp->fr_fix);
       return;
     }
-  else if (RELAX_NANOMIPS_P (fragp->fr_subtype))
+  else if (RELAX_MD_P (fragp->fr_subtype))
     {
       char *buf = fragp->fr_literal + fragp->fr_fix;
-      int type = RELAX_NANOMIPS_TYPE (fragp->fr_subtype);
+      int type = RELAX_MD_TYPE (fragp->fr_subtype);
       unsigned long insn;
       expressionS exp;
       fixS *fixp;
       symbolS *stubsym = NULL;
       const bfd_reloc_code_real_type rtype[]
-	= { BFD_RELOC_NANOMIPS_10_PCREL_S1,
-	    BFD_RELOC_NANOMIPS_7_PCREL_S1,
-	    BFD_RELOC_NANOMIPS_4_PCREL_S1,
-	    BFD_RELOC_NANOMIPS_25_PCREL_S1,
-	    BFD_RELOC_NANOMIPS_14_PCREL_S1,
-	    BFD_RELOC_NANOMIPS_14_PCREL_S1 };
+	= {
+	BFD_RELOC_NANOMIPS_10_PCREL_S1,
+	BFD_RELOC_NANOMIPS_7_PCREL_S1,
+	BFD_RELOC_NANOMIPS_4_PCREL_S1,
+	BFD_RELOC_NANOMIPS_25_PCREL_S1,
+	BFD_RELOC_NANOMIPS_14_PCREL_S1,
+	BFD_RELOC_NANOMIPS_14_PCREL_S1
+      };
 
-      if (RELAX_NANOMIPS_USESTUB (fragp->fr_subtype)
+      if (RELAX_MD_USESTUB (fragp->fr_subtype)
 	  && ((stubg_now->seg != (asection *) asec)
 	      || (stubg_now->prev
 		  && stubg_now->prev->fragp
@@ -12131,7 +12023,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	stubg_now = hash_find (balc_stubgroup_table, asec->name);
 
       exp.X_op = O_symbol;
-      if (RELAX_NANOMIPS_USESTUB (fragp->fr_subtype)
+      if (RELAX_MD_USESTUB (fragp->fr_subtype)
 	  && balc_get_stub_for_symbol (S_GET_NAME (fragp->fr_symbol),
 				       fragp->fr_address + fragp->fr_fix,
 				       stubg_now, &stubsym))
@@ -12140,7 +12032,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	  exp.X_add_symbol = stubsym;
 	  exp.X_add_number = 0;
 	  fragp->fr_subtype
-	    = RELAX_NANOMIPS_CLEAR_TOOFAR16 (fragp->fr_subtype);
+	    = RELAX_MD_CLEAR_TOOFAR16 (fragp->fr_subtype);
 	}
       else
 	{
@@ -12160,11 +12052,11 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	case RT_BRANCH_CND:
 	  fixp = fix_new_exp (fragp, buf - fragp->fr_literal, 2, &exp, TRUE,
 			      rtype[type - RT_BRANCH_UCND
-				    + (RELAX_NANOMIPS_TOOFAR16
+				    + (RELAX_MD_TOOFAR16
 				       (fragp->fr_subtype) ? 3 : 0)]);
 	  break;
 	case RT_BALC_STUB:
-	  if (!RELAX_NANOMIPS_KEEPSTUB (fragp->fr_subtype))
+	  if (!RELAX_MD_KEEPSTUB (fragp->fr_subtype))
 	    return;
 	  fixp = fix_new_exp (fragp, buf - fragp->fr_literal, 4, &exp, TRUE,
 			      rtype[3]);
@@ -12185,7 +12077,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
          2 octets.  */
       fixp->fx_no_overflow = 1;
 
-      if (RELAX_NANOMIPS_USESTUB (fragp->fr_subtype) && stubsym != NULL)
+      if (RELAX_MD_USESTUB (fragp->fr_subtype) && stubsym != NULL)
 	{
 	  /* Relax 32-bit call to 16-bit call to stub.  */
 	  buf = write_compressed_insn (buf, 0x3800, 2);
@@ -12194,7 +12086,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 
       /* Nothing left to do for 16-bit branches that fit,
          or for balc stubs */
-      if (!RELAX_NANOMIPS_TOOFAR16 (fragp->fr_subtype) || type == RT_BALC_STUB)
+      if (!RELAX_MD_TOOFAR16 (fragp->fr_subtype) || type == RT_BALC_STUB)
 	return;
 
       /* Relax 16-bit branches to 32-bit branches.  */
@@ -12292,10 +12184,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 }
 
 /* This function is called whenever a label is defined, including fake
-   labels instantiated off the dot special symbol.  It is used when
-   handling branch delays; if a branch has a label, we assume we cannot
-   move it.  This also bumps the value of the symbol by 1 in compressed
-   code.  */
+   labels instantiated off the dot special symbol.  */
 
 static void
 nanomips_record_label (symbolS *sym)
@@ -12387,8 +12276,10 @@ nanomips_elf_final_processing (void)
     }
 
   flags.gpr_size = file_nanomips_opts.gp == 32 ? AFL_REG_32 : AFL_REG_64;
-  flags.cpr1_size = (file_nanomips_opts.soft_float ? AFL_REG_NONE
-		     : ((file_nanomips_opts.ase & ASE_MSA) ? AFL_REG_128
+  flags.cpr1_size = (file_nanomips_opts.soft_float
+		     ? AFL_REG_NONE
+		     : ((file_nanomips_opts.ase & ASE_MSA)
+			? AFL_REG_128
 			: AFL_REG_64));
   flags.cpr2_size = AFL_REG_NONE;
 
@@ -12442,18 +12333,8 @@ nanomips_elf_final_processing (void)
 static procS cur_proc;
 static int numprocs;
 
-/* Implement NOP_OPCODE.  We encode a nanoMIPS opcode as "0".  */
-
-#define NOP_OPCODE_NANOMIPS	0
-
-char
-nanomips_nop_opcode (void)
-{
-  return NOP_OPCODE_NANOMIPS;
-}
-
 /* Fill in an rs_align_code fragment.  Unlike elsewhere we want to use
-   32-bit microMIPS NOPs here (if applicable).  */
+   32-bit NOPs here (if applicable).  */
 
 void
 nanomips_handle_align (fragS *fragp)
@@ -13461,8 +13342,7 @@ nanomips_allow_local_subtract_symbols (symbolS *left, symbolS *right)
 	fixP = fixP->fx_next;
 
       /* No fixup within the range.  */
-      if (fixP == NULL
-	  || fixP->fx_frag->fr_address + fixP->fx_where >= high)
+      if (fixP == NULL || fixP->fx_frag->fr_address + fixP->fx_where >= high)
 	return TRUE;
     }
   else if (nanomips_opts.minimize_relocs
@@ -13572,7 +13452,7 @@ nanomips_validate_fix_sub (fixS *fix)
     return 0;
   else
     return (!nanomips_allow_local_subtract_symbols (fix->fx_addsy,
-						   fix->fx_subsy));
+						    fix->fx_subsy));
 }
 
 /* TC_EH_FRAME_ESTIMATE_SIZE_BEFORE_RELAX hook.
@@ -13642,13 +13522,13 @@ md_pcrel_from (fixS *fixP)
   valueT addr = fixP->fx_where + fixP->fx_frag->fr_address;
 
   if (pcrel_branch_reloc_p (fixP->fx_r_type)
-      && RELAX_NANOMIPS_FIXED (fixP->fx_frag->fr_subtype))
+      && RELAX_MD_FIXED (fixP->fx_frag->fr_subtype))
     {
       if (pcrel16_reloc_p (fixP->fx_r_type))
-	return addr+2;
+	return addr + 2;
       else
-	return addr+4;
+	return addr + 4;
     }
-    else
-      return 0;
+  else
+    return 0;
 }

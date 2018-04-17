@@ -1,5 +1,5 @@
-# as: -EB
-# objdump: -sj.data
+#as: -EB
+#objdump: -sj.data
 
 .*
 

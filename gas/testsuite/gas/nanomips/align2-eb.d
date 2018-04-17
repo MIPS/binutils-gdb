@@ -1,6 +1,6 @@
-# as: -EB
-# objdump: -dr
-# source: align2.s
+#as: -EB
+#objdump: -dr
+#source: align2.s
 
 .* file format .*
 

@@ -1794,17 +1794,6 @@ get_mips_dynamic_type (unsigned long type)
 }
 
 static const char *
-get_nanomips_dynamic_type (unsigned long type)
-{
-  switch (type)
-    {
-    case DT_NANOMIPS_GOTNO: return "NANOMIPS_GOTNO";
-    default:
-      return NULL;
-    }
-}
-
-static const char *
 get_sparc64_dynamic_type (unsigned long type)
 {
   switch (type)
@@ -2148,9 +2137,6 @@ get_dynamic_type (unsigned long type)
 	      break;
 	    case EM_ALTERA_NIOS2:
 	      result = get_nios2_dynamic_type (type);
-	      break;
-	    case EM_NANOMIPS:
-	      result = get_nanomips_dynamic_type (type);
 	      break;
 	    default:
 	      if (elf_header.e_ident[EI_OSABI] == ELFOSABI_SOLARIS)
@@ -9242,21 +9228,6 @@ dynamic_section_mips_val (Elf_Internal_Dyn * entry)
 }
 
 static void
-dynamic_section_nanomips_val (Elf_Internal_Dyn * entry)
-{
-  switch (entry->d_tag)
-    {
-    case DT_NANOMIPS_GOTNO:
-      print_vma (entry->d_un.d_ptr, DEC);
-      break;
-
-    default:
-      print_vma (entry->d_un.d_ptr, PREFIX_HEX);
-    }
-    putchar ('\n');
-}
-
-static void
 dynamic_section_parisc_val (Elf_Internal_Dyn * entry)
 {
   switch (entry->d_tag)
@@ -10172,9 +10143,6 @@ process_dynamic_section (FILE * file)
 		  break;
 		case EM_IA_64:
 		  dynamic_section_ia64_val (entry);
-		  break;
-		case EM_NANOMIPS:
-		  dynamic_section_nanomips_val (entry);
 		  break;
 		default:
 		  print_vma (entry->d_un.d_val, PREFIX_HEX);
