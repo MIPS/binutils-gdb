@@ -882,7 +882,7 @@ class Target_x86_64 : public Sized_target<size, false>
 	  Sized_relobj_file<size, false>* object,
 	  unsigned int data_shndx,
 	  Output_section* output_section,
-	  const elfcpp::Rela<size, false>& reloc, unsigned int r_type,
+	  unsigned int, const unsigned char* preloc, size_t, size_t,
 	  const elfcpp::Sym<size, false>& lsym,
 	  bool is_discarded);
 
@@ -891,7 +891,7 @@ class Target_x86_64 : public Sized_target<size, false>
 	   Sized_relobj_file<size, false>* object,
 	   unsigned int data_shndx,
 	   Output_section* output_section,
-	   const elfcpp::Rela<size, false>& reloc, unsigned int r_type,
+	   unsigned int, const unsigned char* preloc, size_t, size_t,
 	   Symbol* gsym);
 
     inline bool
@@ -2935,13 +2935,18 @@ Target_x86_64<size>::Scan::local(Symbol_table* symtab,
 				 Sized_relobj_file<size, false>* object,
 				 unsigned int data_shndx,
 				 Output_section* output_section,
-				 const elfcpp::Rela<size, false>& reloc,
-				 unsigned int r_type,
+				 unsigned int,
+				 const unsigned char* preloc,
+				 size_t,
+				 size_t,
 				 const elfcpp::Sym<size, false>& lsym,
 				 bool is_discarded)
 {
   if (is_discarded)
     return;
+
+  const elfcpp::Rela<size, false> reloc(preloc);
+  unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
 
   // A local STT_GNU_IFUNC symbol may require a PLT entry.
   bool is_ifunc = lsym.get_st_type() == elfcpp::STT_GNU_IFUNC;
@@ -3413,10 +3418,15 @@ Target_x86_64<size>::Scan::global(Symbol_table* symtab,
 			    Sized_relobj_file<size, false>* object,
 			    unsigned int data_shndx,
 			    Output_section* output_section,
-			    const elfcpp::Rela<size, false>& reloc,
-			    unsigned int r_type,
+			    unsigned int,
+			    const unsigned char* preloc,
+			    size_t,
+			    size_t,
 			    Symbol* gsym)
 {
+  const elfcpp::Rela<size, false> reloc(preloc);
+  unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
+
   // A STT_GNU_IFUNC symbol may require a PLT entry.
   if (gsym->type() == elfcpp::STT_GNU_IFUNC
       && this->reloc_needs_plt_for_ifunc(object, r_type))

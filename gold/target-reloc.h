@@ -70,7 +70,6 @@ scan_relocs(
 	continue;
 
       unsigned int r_sym = Classify_reloc::get_r_sym(&reloc);
-      unsigned int r_type = Classify_reloc::get_r_type(&reloc);
 
       if (r_sym < local_count)
 	{
@@ -98,7 +97,8 @@ scan_relocs(
 			       && !object->is_section_included(shndx)
 			       && !symtab->is_section_folded(object, shndx));
 	  scan.local(symtab, layout, target, object, data_shndx,
-		     output_section, reloc, r_type, lsym, is_discarded);
+		     output_section, Classify_reloc::sh_type, prelocs,
+		     reloc_count, i, lsym, is_discarded);
 	}
       else
 	{
@@ -108,7 +108,8 @@ scan_relocs(
 	    gsym = symtab->resolve_forwards(gsym);
 
 	  scan.global(symtab, layout, target, object, data_shndx,
-		      output_section, reloc, r_type, gsym);
+		      output_section, Classify_reloc::sh_type, prelocs,
+		      reloc_count, i, gsym);
 	}
     }
 }

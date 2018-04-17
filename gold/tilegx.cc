@@ -462,7 +462,7 @@ class Target_tilegx : public Sized_target<size, big_endian>
           Sized_relobj_file<size, big_endian>* object,
           unsigned int data_shndx,
           Output_section* output_section,
-          const elfcpp::Rela<size, big_endian>& reloc, unsigned int r_type,
+          unsigned int, const unsigned char* preloc, size_t, size_t,
           const elfcpp::Sym<size, big_endian>& lsym,
           bool is_discarded);
 
@@ -471,7 +471,7 @@ class Target_tilegx : public Sized_target<size, big_endian>
            Sized_relobj_file<size, big_endian>* object,
            unsigned int data_shndx,
            Output_section* output_section,
-           const elfcpp::Rela<size, big_endian>& reloc, unsigned int r_type,
+           unsigned int, const unsigned char* preloc, size_t, size_t,
            Symbol* gsym);
 
     inline bool
@@ -3235,13 +3235,18 @@ Target_tilegx<size, big_endian>::Scan::local(Symbol_table* symtab,
                                  Sized_relobj_file<size, big_endian>* object,
                                  unsigned int data_shndx,
                                  Output_section* output_section,
-                                 const elfcpp::Rela<size, big_endian>& reloc,
-                                 unsigned int r_type,
+                                 unsigned int,
+                                 const unsigned char* preloc,
+                                 size_t,
+                                 size_t,
                                  const elfcpp::Sym<size, big_endian>& lsym,
                                  bool is_discarded)
 {
   if (is_discarded)
     return;
+
+  const elfcpp::Rela<size, big_endian> reloc(preloc);
+  unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
 
   // A local STT_GNU_IFUNC symbol may require a PLT entry.
   bool is_ifunc = lsym.get_st_type() == elfcpp::STT_GNU_IFUNC;
@@ -3715,10 +3720,15 @@ Target_tilegx<size, big_endian>::Scan::global(Symbol_table* symtab,
                             Sized_relobj_file<size, big_endian>* object,
                             unsigned int data_shndx,
                             Output_section* output_section,
-                            const elfcpp::Rela<size, big_endian>& reloc,
-                            unsigned int r_type,
+                            unsigned int,
+                            const unsigned char* preloc,
+                            size_t,
+                            size_t,
                             Symbol* gsym)
 {
+  const elfcpp::Rela<size, big_endian> reloc(preloc);
+  unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
+
   // A reference to _GLOBAL_OFFSET_TABLE_ implies that we need a got
   // section.  We check here to avoid creating a dynamic reloc against
   // _GLOBAL_OFFSET_TABLE_.
