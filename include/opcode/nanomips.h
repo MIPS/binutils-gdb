@@ -1,6 +1,7 @@
 /* nanomips.h.  nanoMIPS opcode list for GDB, the GNU debugger.
-   Copyright (C) 2017 Free Software Foundation, Inc.
+   Copyright (C) 2018 Free Software Foundation, Inc.
    Contributed by MIPS Tech LLC.
+   Written by Faraz Shahbazker <faraz.shahbazker@mips.com>
 
    This file is part of GDB, GAS, and the GNU binutils.
 
@@ -116,6 +117,9 @@ enum nanomips_operand_type {
 
   /* Copy over bits from another part of instruction.  */
   OP_COPY_BITS,
+
+  /* Select bits for a COP0 register.  */
+  OP_CP0SEL,
 };
 
 /* Enumerates the types of nanoMIPS register.  */
@@ -126,37 +130,30 @@ enum nanomips_reg_operand_type {
   /* Floating-point registers $f0-$f31.  */
   OP_REG_FP,
 
-  /* Coprocessor condition code registers $cc0-$cc7.  FPU condition codes
-     can also be written $fcc0-$fcc7.  */
-  OP_REG_CCC,
-
-  /* FPRs used in a vector capacity.  They can be written $f0-$f31
-     or $v0-$v31, although the latter form is not used for the VR5400
-     vector instructions.  */
-  OP_REG_VEC,
-
   /* DSP accumulator registers $ac0-$ac3.  */
   OP_REG_ACC,
 
-  /* Coprocessor registers $0-$31.  Mnemonic names like c0_cause can
-     also be used in some contexts.  */
+  /* Coprocessor registers in numeric format, $0-$31.  */
   OP_REG_COPRO,
 
   /* Hardware registers $0-$31.  Mnemonic names like hwr_cpunum can
      also be used in some contexts.  */
   OP_REG_HW,
 
-  /* Floating-point registers $vf0-$vf31.  */
-  OP_REG_VF,
-
-  /* Integer registers $vi0-$vi31.  */
-  OP_REG_VI,
-
   /* MSA registers $w0-$w31.  */
   OP_REG_MSA,
 
   /* MSA control registers $0-$31.  */
-  OP_REG_MSA_CTRL
+  OP_REG_MSA_CTRL,
+
+  /* Co-processor 0 named registers.  */
+  OP_REG_CP0,
+
+  /* Co-processor 0 named registers with select.  */
+  OP_REG_CP0SEL,
+
+  /* Co-processor 0 named registers with select.  */
+  OP_REG_HWRSEL
 };
 
 /* Base class for all operands.  */
@@ -578,51 +575,25 @@ opcode_48bit_p (const struct nanomips_opcode *mo)
 #define INSN_READ_1                 0x00000004
 #define INSN_READ_2                 0x00000008
 #define INSN_READ_3                 0x00000010
-#define INSN_READ_4                 0x00000020
-#define INSN_READ_ALL               0x0000003c
+#define INSN_READ_ALL               0x0000001c
 /* Modifies general purpose register 31.  */
-#define INSN_WRITE_GPR_31           0x00000040
-/* Modifies coprocessor condition code.  */
-#define INSN_WRITE_COND_CODE        0x00000080
-/* Reads coprocessor condition code.  */
-#define INSN_READ_COND_CODE         0x00000100
-/* TLB operation.  */
-#define INSN_TLB                    0x00000200
+#define INSN_WRITE_GPR_31           0x00000020
 /* Reads coprocessor register other than floating point register.  */
-#define INSN_COP                    0x00000400
+#define INSN_COP                    0x00000040
 /* Instruction loads value from memory.  */
-#define INSN_LOAD_MEMORY	    0x00000800
-/* Instruction loads value from coprocessor, (may require delay).  */
-#define INSN_LOAD_COPROC	    0x00001000
-/* Instruction has unconditional branch delay slot.  */
-#define INSN_UNCOND_BRANCH_DELAY    0x00002000
-/* Instruction has conditional branch delay slot.  */
-#define INSN_COND_BRANCH_DELAY      0x00004000
-/* Conditional branch likely: if branch not taken, insn nullified.  */
-#define INSN_COND_BRANCH_LIKELY	    0x00008000
-/* Moves to coprocessor register, (may require delay).  */
-#define INSN_COPROC_MOVE            0x00010000
-/* Loads coprocessor register from memory, requiring delay.  */
-#define INSN_COPROC_MEMORY_DELAY    0x00020000
-/* Reads the HI register.  */
-#define INSN_READ_HI		    0x00040000
-/* Reads the LO register.  */
-#define INSN_READ_LO		    0x00080000
+#define INSN_LOAD_MEMORY	    0x00000080
+/* Reads the accumulator register.  */
+#define INSN_READ_ACC		    0x00000100
 /* Modifies the HI register.  */
-#define INSN_WRITE_HI		    0x00100000
-/* Modifies the LO register.  */
-#define INSN_WRITE_LO		    0x00200000
-/* Not to be placed in a branch delay slot, either architecturally
-   or for ease of handling (such as with instructions that take a trap).  */
-#define INSN_NO_DELAY_SLOT	    0x00400000
+#define INSN_WRITE_ACC		    0x00000200
 /* Instruction stores value into memory.  */
-#define INSN_STORE_MEMORY	    0x00800000
+#define INSN_STORE_MEMORY	    0x00000400
 /* Instruction uses single precision floating point.  */
-#define FP_S			    0x01000000
+#define FP_S			    0x00000800
 /* Instruction uses double precision floating point.  */
-#define FP_D			    0x02000000
+#define FP_D			    0x00001000
 /* A user-defined instruction.  */
-#define INSN_UDI                    0x20000000
+#define INSN_UDI                    0x00002000
 /* Instruction is actually a macro.  It should be ignored by the
    disassembler, and requires special treatment by the assembler.  */
 #define INSN_MACRO                  0xffffffff
@@ -635,39 +606,21 @@ opcode_48bit_p (const struct nanomips_opcode *mo)
 /* Macro uses single-precision floating-point instructions.  This should
    only be set for macros.  For instructions, FP_S in pinfo carries the
    same information.  */
-#define INSN2_M_FP_S		    0x00000008
+#define INSN2_M_FP_S		    0x00000002
 /* Macro uses double-precision floating-point instructions.  This should
    only be set for macros.  For instructions, FP_D in pinfo carries the
    same information.  */
-#define INSN2_M_FP_D		    0x00000010
-/* Writes to the stack pointer ($29).  */
-#define INSN2_WRITE_SP		    0x00000080
-/* Reads from the stack pointer ($29).  */
-#define INSN2_READ_SP		    0x00000100
-/* Reads the RA ($31) register.  */
-#define INSN2_READ_GPR_31	    0x00000200
-/* Reads the program counter ($pc).  */
-#define INSN2_READ_PC		    0x00000400
+#define INSN2_M_FP_D		    0x00000004
 /* Is an unconditional branch insn. */
-#define INSN2_UNCOND_BRANCH	    0x00000800
+#define INSN2_UNCOND_BRANCH	    0x00000008
 /* Is a conditional branch insn. */
-#define INSN2_COND_BRANCH	    0x00001000
-/* Instruction has a forbidden slot.  */
-#define INSN2_FORBIDDEN_SLOT        0x00008000
-/* Opcode table entry is for a short MIPS16 form only.  An extended
-   encoding may still exist, but with a separate opcode table entry
-   required.  In disassembly the presence of this flag in an otherwise
-   successful match against an extended instruction encoding inhibits
-   matching against any subsequent short table entry even if it does
-   not have this flag set.  A table entry matching the full extended
-   encoding is needed or otherwise the final EXTEND entry will apply,
-   for the disassembly of the prefix only.  */
-#define INSN2_SHORT_ONLY	    0x00010000
+#define INSN2_COND_BRANCH	    0x00000010
 /* This indicates delayed branch converted to compact branch.  */
-#define INSN2_CONVERTED_TO_COMPACT  0x00020000
+#define INSN2_CONVERTED_TO_COMPACT  0x00000020
 /* Marks the LI macro expansion as special, temporary.  */
-#define INSN2_MACRO	    0x00080000
-
+#define INSN2_MACRO		    0x00000040
+/* Marks the legacy/downgraded MTTGPR format, temporary.  */
+#define INSN2_MTTGPR_RC1	    0x00000080
 
 /* Masks used to mark instructions to indicate which MIPS ISA level
    they were introduced in.  INSN_ISA_MASK masks an enumeration that
@@ -675,8 +628,7 @@ opcode_48bit_p (const struct nanomips_opcode *mo)
    word constructed using these macros is a bitmask of the remaining
    INSN_* values below.  */
 
-#define INSN_ISA_MASK		  0x0000001ful
-
+#define INSN_ISA_MASK		  0x00000003ul
 
 /* We cannot start at zero due to ISA_UNKNOWN below.  */
 #define INSN_ISAN32R6   1
@@ -708,39 +660,29 @@ static const unsigned int nanomips_isa_table[] = {
 #define ASE_DSP			0x00000001
 #define ASE_DSP64		0x00000002
 /* Enhanced VA Scheme */
-#define ASE_EVA			0x00000008
+#define ASE_EVA			0x00000004
 /* MCU (MicroController) ASE */
-#define ASE_MCU			0x00000010
+#define ASE_MCU			0x00000008
 /* MT ASE */
-#define ASE_MT			0x00000080
+#define ASE_MT			0x00000010
 /* Virtualization ASE */
-#define ASE_VIRT		0x00000200
-#define ASE_VIRT64		0x00000400
+#define ASE_VIRT		0x00000020
+#define ASE_VIRT64		0x00000040
 /* MSA Extension  */
-#define ASE_MSA			0x00000800
-#define ASE_MSA64		0x00001000
-/* eXtended Physical Address (XPA) Extension.  */
-#define ASE_XPA			0x00002000
-/* The Virtualization ASE has eXtended Physical Addressing (XPA)
-   instructions which are only valid when both ASEs are enabled.  */
-#define ASE_XPA_VIRT		0x00020000
-/* The Enhanced VA Scheme (EVA) extension has instructions which are
-   only valid for the R6 ISA.  */
-#define ASE_EVA_R6		0x00040000
+#define ASE_MSA			0x00000080
+#define ASE_MSA64		0x00000100
 /* Cyclic redundancy check (CRC) ASE */
-#define ASE_CRC			0x00100000
-#define ASE_CRC64		0x00200000
-/* Reserved for in-progress ASE */
-#define ASE_RESERVED1		0x00400000
+#define ASE_CRC			0x00000200
+#define ASE_CRC64		0x00000400
 /* Global INValidate Extension. */
-#define ASE_GINV		0x00800000
+#define ASE_GINV		0x00000800
 /* The Virtualization ASE has Global INValidate extension instructions
    which are only valid when both ASEs are enabled. */
-#define ASE_GINV_VIRT		0x01000000
+#define ASE_GINV_VIRT		0x00001000
 /* Low Power instructions on nanoMIPS.  */
-#define ASE_xNMS		0x02000000
+#define ASE_xNMS		0x00002000
 /* TLB control instructions on nanoMIPS.  */
-#define ASE_TLB			0x04000000
+#define ASE_TLB			0x00004000
 
 static inline bfd_boolean
 nanomips_cpu_is_member (int cpu, unsigned int mask)
@@ -758,7 +700,6 @@ nanomips_cpu_is_member (int cpu, unsigned int mask)
       return FALSE;
     }
 }
-
 
 /* Test for membership in an ISA including chip specific ISAs.  INSN
    is pointer to an element of the opcode table; ISA is the specified
@@ -792,17 +733,19 @@ nanomips_opcode_is_member (const struct nanomips_opcode *insn,
    _I appended means immediate
    _A appended means target address of a jump
    _AB appended means address with (possibly zero) base register
+   _AC appended means either symbolic address with no base register
+   or constant offset with base register.
    _D appended means 64 bit floating point constant
    _S appended means 32 bit floating point constant.  */
 
 enum
 {
   M_ABS,
-  M_ACLR_AB,
+  M_ACLR_AC,
   M_ADD_I,
   M_ADDU_I,
   M_AND_I,
-  M_ASET_AB,
+  M_ASET_AC,
   M_BEQ,
   M_BEQ_I,
   M_BGE,
@@ -827,8 +770,8 @@ enum
   M_BLTZ,
   M_BNE,
   M_BNE_I,
-  M_CACHE_AB,
-  M_CACHEE_AB,
+  M_CACHE_AC,
+  M_CACHEE_AC,
   M_DABS,
   M_DADD_I,
   M_DADDU_I,
@@ -842,51 +785,66 @@ enum
   M_JAL_A,
   M_JRADDIUSP,
   M_LA_AB,
-  M_LB_AB,
-  M_LBE_AB,
-  M_LBU_AB,
-  M_LBUE_AB,
-  M_LD_AB,
-  M_LDC1_AB,
-  M_LDC2_AB,
-  M_LDM_AB,
-  M_LH_AB,
-  M_LHE_AB,
-  M_LHU_AB,
-  M_LHUE_AB,
+  M_LB_AC,
+  M_LBE_AC,
+  M_LBU_AC,
+  M_LBUE_AC,
+  M_LBX_AB,
+  M_LBUX_AB,
+  M_LD_AC,
+  M_LDC1_AC,
+  M_LDC1X_AB,
+  M_LDC2_AC,
+  M_LDM_AC,
+  M_LDX_AB,
+  M_LH_AC,
+  M_LHE_AC,
+  M_LHU_AC,
+  M_LHUE_AC,
+  M_LHUX_AB,
+  M_LHX_AB,
   M_LI,
   M_LI_D,
   M_LI_DD,
   M_LI_S,
   M_LI_SS,
-  M_LL_AB,
-  M_LLD_AB,
-  M_LLE_AB,
-  M_LW_AB,
-  M_LWE_AB,
-  M_LWC1_AB,
-  M_LWC2_AB,
-  M_LWM_AB,
-  M_LWU_AB,
+  M_LL_AC,
+  M_LLD_AC,
+  M_LLE_AC,
+  M_LLDP_AC,
+  M_LLWP_AC,
+  M_LW_AC,
+  M_LWC1_AC,
+  M_LWC1X_AB,
+  M_LWC2_AC,
+  M_LWE_AC,
+  M_LWM_AC,
+  M_LWU_AC,
+  M_LWUX_AB,
+  M_LWX_AB,
   M_MUL,
   M_MUL_I,
   M_NOR_I,
   M_OR_I,
-  M_PREF_AB,
-  M_PREFE_AB,
+  M_PREF_AC,
+  M_PREFE_AC,
   M_REM_3I,
   M_DROL,
   M_ROL,
   M_DROL_I,
   M_ROL_I,
   M_ROR_I,
-  M_SC_AB,
-  M_SCD_AB,
-  M_SCE_AB,
-  M_SD_AB,
-  M_SDC1_AB,
-  M_SDC2_AB,
-  M_SDM_AB,
+  M_SC_AC,
+  M_SCD_AC,
+  M_SCE_AC,
+  M_SCDP_AC,
+  M_SCWP_AC,
+  M_SD_AC,
+  M_SDC1_AC,
+  M_SDC1X_AB,
+  M_SDC2_AC,
+  M_SDM_AC,
+  M_SDX_AB,
   M_SEQ,
   M_SEQ_I,
   M_SGE,
@@ -905,26 +863,29 @@ enum
   M_SLTU_I,
   M_SNE,
   M_SNE_I,
-  M_SB_AB,
-  M_SBE_AB,
-  M_SH_AB,
-  M_SHE_AB,
-  M_SW_AB,
-  M_SWE_AB,
-  M_SWC1_AB,
-  M_SWC2_AB,
-  M_SWM_AB,
+  M_SB_AC,
+  M_SBE_AC,
+  M_SBX_AB,
+  M_SH_AC,
+  M_SHE_AC,
+  M_SHX_AB,
+  M_SW_AC,
+  M_SWE_AC,
+  M_SWX_AB,
+  M_SWC1_AC,
+  M_SWC1X_AB,
+  M_SWC2_AC,
+  M_SWM_AC,
   M_SUB_I,
   M_SUBU_I,
   M_TEQ_I,
   M_TNE_I,
-  M_ULD_AB,
-  M_ULH_AB,
-  M_ULHU_AB,
-  M_ULW_AB,
-  M_USH_AB,
-  M_USW_AB,
-  M_USD_AB,
+  M_ULD_AC,
+  M_ULH_AC,
+  M_ULW_AC,
+  M_USH_AC,
+  M_USW_AC,
+  M_USD_AC,
   M_XOR_I,
   M_BGEZAL,
   M_BLTZAL,
@@ -941,23 +902,526 @@ enum
   M_NANOMIPS_NUM_MACROS
 };
 
-extern const struct nanomips_operand *decode_nanomips_operand (const char *);
-extern const struct nanomips_opcode nanomips_opcodes[];
-extern const int bfd_nanomips_num_opcodes;
-
 /* These are the bit masks and shift counts used for the different fields
-   in the microMIPS instruction formats.  No masks are provided for the
+   in the nanoMIPS instruction formats.  No masks are provided for the
    fixed portions of an instruction, since they are not needed.  */
 
 #define NANOMIPSOP_MASK_RS		0x1f
 #define NANOMIPSOP_SH_RS		16
 #define NANOMIPSOP_MASK_RT		0x1f
 #define NANOMIPSOP_SH_RT		21
+#define NANOMIPSOP_MASK_RD		0x1f
+#define NANOMIPSOP_SH_RD		11
+#define NANOMIPSOP_SH_ME		1
 #define NANOMIPSOP_SH_MC		4
 #define NANOMIPSOP_SH_MD		7
 #define NANOMIPSOP_SH_MP		5
-#define NANOMIPSOP_SH_MQ		7
+#define NANOMIPSOP_SH_MM		7
 
+#define NANOMIPSOP_SH_CP0SEL		5
+#define NANOMIPSOP_MASK_CP0SEL		0x1f
+#define NANOMIPSOP_SH_HWRSEL		5
+#define NANOMIPSOP_MASK_HWRSEL		0x1f
+
+/* Describes a COP0 named register with a fixed select.  */
+struct nanomips_cp0_name
+{
+  const char *name;
+  unsigned int num;
+  unsigned int sel;
+};
+
+/* The reference list of COP0 named register with fixed selects.  */
+static const struct nanomips_cp0_name nanomips_cp0_3264r6[] = {
+    {"$index",		 0, 0},
+    {"$mvpcontrol",	 0, 1},
+    {"$mvpconf0",	 0, 2},
+    {"$mvpconf1",	 0, 3},
+    {"$vpcontrol",	 0, 4},
+    {"$random", 	 1, 0},
+    {"$vpecontrol",	 1, 1},
+    {"$vpeconf0",	 1, 2},
+    {"$vpeconf1",	 1, 3},
+    {"$yqmask", 	 1, 4},
+    {"$vpeschedule",	 1, 5},
+    {"$vpeschefback",	 1, 6},
+    {"$vpeopt", 	 1, 7},
+    {"$entrylo0",	 2, 0},
+    {"$tcstatus",	 2, 1},
+    {"$tcbind", 	 2, 2},
+    {"$tcrestart",	 2, 3},
+    {"$tchalt", 	 2, 4},
+    {"$tccontext",	 2, 5},
+    {"$tcschedule",	 2, 6},
+    {"$tcschefback",	 2, 7},
+    {"$entrylo1",	 3, 0},
+    {"$globalnumber",	 3, 1},
+    {"$tcopt",		 3, 7},
+    {"$context",	 4, 0},
+    {"$contextconfig",	 4, 1},
+    {"$userlocal",	 4, 2},
+    {"$xcontextconfig",  4, 3},
+    {"$debugcontextid",  4, 4},
+    {"$memorymapid",	 4, 5},
+    {"$pagemask",	 5, 0},
+    {"$pagegrain",	 5, 1},
+    {"$segctl0",	 5, 2},
+    {"$segctl1",	 5, 3},
+    {"$segctl2",	 5, 4},
+    {"$pwbase", 	 5, 5},
+    {"$pwfield",	 5, 6},
+    {"$pwsize", 	 5, 7},
+    {"$wired",		 6, 0},
+    {"$srsconf0",	 6, 1},
+    {"$srsconf1",	 6, 2},
+    {"$srsconf2",	 6, 3},
+    {"$srsconf3",	 6, 4},
+    {"$srsconf4",	 6, 5},
+    {"$pwctl",		 6, 6},
+    {"$hwrena", 	 7, 0},
+    {"$badvaddr",	 8, 0},
+    {"$badinst",	 8, 1},
+    {"$badinstrp",	 8, 2},
+    {"$badinstrx",	 8, 3},
+    {"$count",		 9, 0},
+    {"$entryhi",	10, 0},
+    {"$guestctl1",	10, 4},
+    {"$guestctl2",	10, 5},
+    {"$guestctl3",	10, 6},
+    {"$compare",	11, 0},
+    {"$guestctl0ext",	11, 4},
+    {"$status", 	12, 0},
+    {"$intctl", 	12, 1},
+    {"$srsctl", 	12, 2},
+    {"$srsmap", 	12, 3},
+    {"$view_ipl",	12, 4},
+    {"$srsmap2",	12, 5},
+    {"$guestctl0",	12, 6},
+    {"$gtoffset",	12, 7},
+    {"$cause",		13, 0},
+    {"$view_ripl",	13, 4},
+    {"$nestedexc",	13, 5},
+    {"$epc",		14, 0},
+    {"$nestedepc",	14, 2},
+    {"$prid",		15, 0},
+    {"$ebase",		15, 1},
+    {"$cdmmbase",	15, 2},
+    {"$cmgcrbase",	15, 3},
+    {"$bevva",		15, 4},
+    {"$config", 	16, 0},
+    {"$config1",	16, 1},
+    {"$config2",	16, 2},
+    {"$config3",	16, 3},
+    {"$config4",	16, 4},
+    {"$config5",	16, 5},
+    {"$lladdr", 	17, 0},
+    {"$maar", 		17, 1},
+    {"$maari",		17, 2},
+    {"$watchlo0",	18, 0},
+    {"$watchlo1",	18, 1},
+    {"$watchlo2",	18, 2},
+    {"$watchlo3",	18, 3},
+    {"$watchlo4",	18, 4},
+    {"$watchlo5",	18, 5},
+    {"$watchlo6",	18, 6},
+    {"$watchlo7",	18, 7},
+    {"$watchlo8",	18, 8},
+    {"$watchlo9",	18, 9},
+    {"$watchlo10",	18, 10},
+    {"$watchlo11",	18, 11},
+    {"$watchlo12",	18, 12},
+    {"$watchlo13",	18, 13},
+    {"$watchlo14",	18, 14},
+    {"$watchlo15",	18, 15},
+    {"$watchhi0",	19, 0},
+    {"$watchhi1",	19, 1},
+    {"$watchhi2",	19, 2},
+    {"$watchhi3",	19, 3},
+    {"$watchhi4",	19, 4},
+    {"$watchhi5",	19, 5},
+    {"$watchhi6",	19, 6},
+    {"$watchhi7",	19, 7},
+    {"$watchhi8",	19, 8},
+    {"$watchhi9",	19, 9},
+    {"$watchhi10",	19, 10},
+    {"$watchhi11",	19, 11},
+    {"$watchhi12",	19, 12},
+    {"$watchhi13",	19, 13},
+    {"$watchhi14",	19, 14},
+    {"$watchhi15",	19, 15},
+    {"$xcontext",	20, 0},
+    {"$debug",		23, 0},
+    {"$tracecontrol",	23, 1},
+    {"$tracecontrol2",	23, 2},
+    {"$usertracedata1", 23, 3},
+    {"$traceibpc",	23, 4},
+    {"$tracedbpc",	23, 5},
+    {"$debug2", 	23, 6},
+    {"$depc",		24, 0},
+    {"$tracecontrol3",	24, 2},
+    {"$usertracedata2", 24, 3},
+    {"$perfctl0",	25, 0},
+    {"$perfcnt0",	25, 1},
+    {"$perfctl1",	25, 2},
+    {"$perfcnt1",	25, 3},
+    {"$perfctl2",	25, 4},
+    {"$perfcnt2",	25, 5},
+    {"$perfctl3",	25, 6},
+    {"$perfcnt3",	25, 7},
+    {"$perfctl4",	25, 8},
+    {"$perfcnt4",	25, 9},
+    {"$perfctl5",	25, 10},
+    {"$perfcnt5",	25, 11},
+    {"$perfctl6",	25, 12},
+    {"$perfcnt6",	25, 13},
+    {"$perfctl7",	25, 14},
+    {"$perfcnt7",	25, 15},
+    {"$errctl", 	26, 0},
+    {"$cacheerr",	27, 0},
+    {"$itaglo", 	28, 0},
+    {"$idatalo", 	28, 1},
+    {"$dtaglo", 	28, 2},
+    {"$ddatalo", 	28, 3},
+    {"$itaghi", 	29, 0},
+    {"$idatahi", 	29, 1},
+    {"$dtaghi", 	29, 2},
+    {"$ddatahi", 	29, 3},
+    {"$errorepc",	30, 0},
+    {"$desave", 	31, 0},
+    {"$kscratch2",	31, 2},
+    {"$kscratch3",	31, 3},
+    {"$kscratch4",	31, 4},
+    {"$kscratch5",	31, 5},
+    {"$kscratch6",	31, 6},
+    {"$kscratch7",	31, 7},
+    {NULL, 0, 0}
+};
+
+/* Describes a CP0 named register which permits various select values.  */
+  struct nanomips_cp0_select
+{
+  const char *name;
+  unsigned int num;
+  unsigned int selmask;
+};
+
+/* Currently recognized CP0 select patterns.  */
+
+#define NANOMIPS_CP0SEL_MASK_EVEN	0x55555555
+#define NANOMIPS_CP0SEL_MASK_ODD	0xaaaaaaaa
+#define NANOMIPS_CP0SEL_MASK_ANY	0xffffffff
+#define NANOMIPS_CP0SEL_MASK_EVEN16	0x5555
+#define NANOMIPS_CP0SEL_MASK_ODD16	0xaaaa
+#define NANOMIPS_CP0SEL_MASK_ANY16	0xffff
+
+/* The reference list of CP0 named register with variable selects.  */
+static const struct nanomips_cp0_select nanomips_cp0sel_3264r6[] = {
+    {"$watchlo",	18, NANOMIPS_CP0SEL_MASK_ANY16},
+    {"$watchhi",	19, NANOMIPS_CP0SEL_MASK_ANY16},
+    {"$perfctl",	25, NANOMIPS_CP0SEL_MASK_EVEN16},
+    {"$perfcnt",	25, NANOMIPS_CP0SEL_MASK_ANY16},
+    {"$taglo",		28, NANOMIPS_CP0SEL_MASK_EVEN},
+    {"$datalo", 	28, NANOMIPS_CP0SEL_MASK_ODD},
+    {"$taghi",		29, NANOMIPS_CP0SEL_MASK_EVEN},
+    {"$datahi", 	29, NANOMIPS_CP0SEL_MASK_ODD},
+    {NULL, 0, 0}
+};
+
+
+/* Describes a HWR named register with a fixed select.  If the HWR name
+   is remapped from an existing CP0 register name, its cp0_num and cp0_sel
+   fields will provide the mapping, else they will both be invalid.  */
+
+struct nanomips_hwr_name
+{
+  const char *name;
+  unsigned int num;
+  unsigned int sel;
+  unsigned int cp0_num;
+  unsigned int cp0_sel;
+};
+
+#define INV_RNUM 0xffffffff
+#define INV_SEL 0xffffffff
+
+ /* The reference list of named hardware register with fixed selects.  */
+static const struct nanomips_hwr_name nanomips_hwr_names_3264r6[] = {
+    {"$cpunum",		0,	0,	INV_RNUM,	INV_SEL},
+    {"$synci_step",	1,	0,	INV_RNUM,	INV_SEL},
+    {"$cc",		2,	0,	9,		0},
+    {"$count",		2,	0,	9,		0},
+    {"$ccres",		3,	0,	INV_RNUM, 	INV_SEL},
+    {"$perfctl0",	4,	0,	25,		0},
+    {"$perfcnt0",	4,	1,	25,		1},
+    {"$perfctl1",	4,	2,	25,		2},
+    {"$perfcnt1",	4,	3,	25,		3},
+    {"$perfctl2",	4,	4,	25,		4},
+    {"$perfcnt2",	4,	5,	25,		5},
+    {"$perfctl3",	4,	6,	25,		6},
+    {"$perfcnt3",	4,	7,	25,		7},
+    {"$perfctl4",	4,	8,	25,		8},
+    {"$perfcnt4",	4,	9,	25,		9},
+    {"$perfctl5",	4,	10,	25,		10},
+    {"$perfcnt5",	4,	11,	25,		11},
+    {"$perfctl6",	4,	12,	25,		12},
+    {"$perfcnt6",	4,	13,	25,		13},
+    {"$perfctl7",	4,	14,	25,		14},
+    {"$perfcnt7",	4,	15,	25,		15},
+    {"$perfctl",	4,	0,	25,		0},
+    {"$perfcnt",	4,	1,	25,		1},
+    {"$xnp",		5,	0,	INV_RNUM,	INV_SEL},
+    {"$userlocal",	29,	0,	4,		2},
+    {NULL, 		0,	0,	INV_RNUM,	INV_SEL}
+};
+
+#define NANOMIPS_CP0SEL_PERFCNT 25
+#define NANOMIPS_HWRSEL_PERFCNT 4
+
+/* These are the characters which may appears in the args field of a nanoMIPS
+   instruction.  They appear in the order in which the fields appear when the
+   instruction is used.  Commas and parentheses in the args string are ignored
+   when assembling, and written into the output when disassembling.
+
+   Operands for 16-bit nanoMIPS instructions.
+
+   "ma" must be $28
+   "mb" 5-bit non-zero GP register at bit 5
+   "mc" 3-bit nanoMIPS registers 4-7, 16-19 bit 4
+        The same register used as both source and target.
+   "md" 3-bit nanoMIPS registers 4-7, 16-19 at bit 7
+   "me" 3-bit nanoMIPS registers 4-7, 16-19 at bit 1
+   "mf" 3-bit nanoMIPS register 4-7, 16-19 at bit 7.
+        Must be larger than the last seen register.
+   "mg" 3-bit nanoMIPS register 4-7, 16-19 at bit 4.
+	Must be smaller than the last seen register.
+   "mh" 3-bit nanoMIPS register 4-7, 16-19 at bit 7.
+        Must be at least as large as the last seen register.
+   "mi" 3-bit nanoMIPS register 4-7, 16-19 at bit 4.
+	May be at most as large as the last seen register.
+
+   "mj" 5-bit nanoMIPS registers at bit 0
+   "mk" must be the same as the destination register
+   "ml" 3-bit nanoMIPS registers 4-7, 16-19 at bit 4
+   "mm" 3-bit nanoMIPS registers 0, 4-7, 17-19 at bit 7
+   "mn"	5-bit encoding of a save/restore register list
+   "mp" 5-bit nanoMIPS registers at bit 5
+   "mq" 2-bit pair at bits [8,3] maps to ($a0,$a1), ($a1,$a2), ($a2,$a3)
+        or ($a3,$a4)
+   "mr" 2-bit pair at bits [8,3] maps to ($a1,$a0), ($a2,$a1), ($a3,$a2)
+        or ($a4,$a3)
+   "ms" must be $29
+   "mt" must be the same as the previous register
+   "mu"	4-bit encoding of nanoMIPS destination register at bit 5
+   "mv"	4-bit encoding of nanoMIPS destination register at bit 0
+   "mw"	4-bit encoding of nanoMIPS source register at bit 5
+   "mx"	4-bit encoding of nanoMIPS source register at bit 0
+   "my" must be $31
+   "mz" must be literal 0
+
+   "mA" 7-bit relocatable GP offset (0 .. 127) << 2
+   "mB" 3-bit immediate at bit 0 (0, 4, 8, 12, 16, 20, 24, 28)
+   "mC" 4-bit immediate at bit 0 (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
+        65535, 14, 15)
+   "mD" 10-bit signed branch address, split & scaled at bit 0 [S9:1,S10]
+   "mE" 7-bit signed branch address, split & scaled at bit 0 [S6:1,S7]
+   "mF" 4-bit unsigned branch address, scaled at bit 0 [U4:U1]
+   "mG" 4-bit scaled immediate at bit 4, (0 .. 15) << 4
+   "mH" 2-bit scaled immediate at bit 1, (0 .. 3) << 1
+   "mI" 7-bit immediate at bit 0, (-1 .. 126)
+   "mJ" 4-bit scaled immediate at bit 0, (0 .. 15) << 2
+   "mK" 3-bit BREAK/SDBBP code at bit 0
+   "mL" 2-bit immediate at bit 0, (0 .. 3)
+   "mM" 3-bit immediate at bit 0, (1 .. 8)
+   "mN" 2-bit split scaled immediate at bits 8 & 3 (0 .. 3) << 2
+   "mO" 7-bit immediate GP offset at bit 0, (0 .. 127) << 2
+   "mP"	2-bit SYSCALL/HYPCALL code at bit 0
+   "mQ"	4-bit immediate signed offset, (s3,s2:s0)
+   "mR" 5-bit immediate at bit 0, (0 .. 31) << 2
+   "mS" 6-bit immediate at bit 0, (0 .. 63) << 2
+   "mZ" must be zero
+
+   Operands for 32-bit nanoMIPS instructions.
+
+   "+1"	18-bit unsigned GP-relative offset, (u17:u0)
+   "+2"	18-bit scaled GP-relative offset, (u18:u2) << 2
+   "+3"	21-bit scaled GP-relative offset, (u18:u1) << 1
+   "+4" 18-bit GP-relative offset, (0 .. 2^18-1) << 3
+   "+5"	4-bit encoding of nanoMIPS source register at bit 21
+   "+6" 5-bit mask encoding, corresponding to (1 << X) - 1
+   "+7" 1-bit register at bit 24, (0,1) => ($a0,$a1)
+   "+8" 23-bit un-spec'ed value at bit 3 for UDIs.
+   "+9" 7-bit immediate at bit 11, (0 .. 127)
+
+   "+A" 5-bit INS/EXT/DINS/DEXT/DINSM/DEXTM position, which becomes
+        LSB.
+   "+B" 5-bit INS/DINS size, which becomes MSB
+	Requires that "+A" or "+E" occur first to set position.
+	Enforces: 0 < (pos+size) <= 32.
+   "+C" 5-bit EXT/DEXT size, which becomes MSBD.
+	Requires that "+A" or "+E" occur first to set position.
+	Enforces: 0 < (pos+size) <= 32.
+   "+D"	4-bit encoding of a floating point save/restore register list
+   "+E" 5-bit DINSU/DEXTU position, which becomes LSB-32.
+   "+F" 5-bit DINSM/DINSU size, which becomes MSB-32.
+	Requires that "+A" or "+E" occur first to set position.
+	Enforces: 32 < (pos+size) <= 64.
+   "+G" 5-bit DEXTM size, which becomes MSBD-32.
+	Requires that "+A" or "+E" occur first to set position.
+	Enforces: 32 < (pos+size) <= 64.
+   "+H" 5-bit DEXTU size, which becomes MSBD.
+	Requires that "+A" or "+E" occur first to set position.
+	Enforces: 32 < (pos+size) <= 64.
+   "+I" 5-bit EXTW/EXTD/PREPEND position, which becomes LSB.
+   "+J" 19-bit BREAK/SDBBP function code at bit 0
+   "+K"	Tri-part upper 20-bits of immediate value.
+   "+L" 10-bit WAIT code at bit 16
+   "+M"	18-bit SYSCALL/HYPCALL code at bit 0
+   "+N" 9-bit immediate at bit 3, (0 .. 511) << 3
+
+   "+i"	5-bit SYNC code type at bit 16, (0..31)
+   "+j"	9-bit signed offset (s7:s0,s8), (-256 .. 255)
+   "+k" 5-bit nanoMIPS registers at bit 3
+   "+p"	9-bit scaled signed offset, (s7:s2) << 2 for LL/SC*
+   "+q" 9-bit scaled signed offset, (s7:s3) << 3 for LLD/SCD*
+   "+r"	21-bit PC-relative branch offset (s19:s1,s20) << 1
+   "+s"	21-bit immediate offset for PC-relative operation ((s19:s1,s20) + 2) << 1
+   "+t" 5-bit non-zero GP register at bit 21
+   "+u"	25-bit PC-relative branch offset (s24:s1,s25) << 1
+   "+v"	5-bit mapping of R6 ALIGN byte-wise shift to EXTW bit-wise shift.
+   "+w"	2-bit shift for scaled address calculation at bit 9, (0..3)
+   "+*"	4-bit ROTX shift at bit 7, (0 .. 15) << 1
+   "+|"	1-bit ROTX stripe at bit 6, (0 .. 1)
+
+   "."	21-bit scaled GP-relative offset, (u21:u2) << 2
+   "<"	5-bit immediate shift value for bit operations, (0..31)
+   "|"	3-bit Element count for load/store multiple, (1..8)
+   "~"	11-bit branch offset, (s9:s1,s10) << 1
+   "^"	5-bit trap code at bit 11, (0..31)
+   "b"	5-bit base register at bit 16 for label or symbolic offsets
+   "c"	5-bit base register at bit 16, either used with immediate offset
+	or skipped with symbolic offset.
+   "d"	5-bit destination register specifier at bit 11
+   "g"	12-bit unsigned immediate at bit 0, (0..4095)
+   "h"	12-bit negative immediate at bit 0, (-4095..0)
+   "i"	12-bit unsigned immediate at bit 0, (0..4095)
+   "j"	16-bit unsigned immediate at bit 0, (0..65535)
+   "k"	5-bit cache operation code at bit 21, (0..31)
+   "n"	11-bit encoding of save/restore register list
+   "o"	12-bit offset at bit 0, (0..4095)
+   "p"	14-bit PC-relative branch offset (s13:s1,s14) << 1
+   "r"	5-bit same register at bit 16, used as both source and target
+   "s"	5-bit source register specifier at bit 16
+   "t"	5-bit target register specifier at bit 21
+   "u" 	Tri-part upper 20 bits of address
+   "x" 	Tri-part upper 20 bits of address, scaled by 12 bits
+   "v"	5-bit same register used as both source and destination at bit 15
+   "w"	5-bit same register used as both target and destination at bit 21
+   "z"	must be zero register
+
+   Used in special matching contexts:
+   "-a" 5-bit don't care at bit 16
+   "-b" 8-bit split don't care, 5@16 and 4@9
+   "-i" Ignored register operand, internally used for macro expansions.
+   "-m" Place-holder to copy 5 bits from bit 11 to bit 21
+   "-n" Place-holder to copy 5 bits from bit 11 to bit 16
+
+   Exclusively for 48-bit nanoMIPS instructions:
+
+   "+O" Signed GP-relative 32-bit offset in instruction byte order
+   "+P" Immediate signed 32-bit value in instruction byte order
+   "+Q"	Unsigned 32-bit value or address in instruction byte order
+   "+R" Signed 32-bit value in instruction byte order
+   "+S" Signed PC-relative 32-bit offset in instruction byte order
+
+   DSP instructions:
+   "0"	5-bit shift value for DSP accumulator at bit 16, (0..63)
+   "1"	5-bit position for DSP bit operations at bit 11
+   "2" 5-bit size for DSP bit operations at bit 16
+   "3" 3-bit byte vector shift at bit 13, (0..7)
+   "4" 4-bit hword vector shift at bit 12, (0..15)
+   "5" 8-bit unsigned immediate at bit 13, (0..255)
+   "7" 2-bit DSP accumulator register at bit 14, (0..3)
+   "8" 7-bit DSP control mask at bit 14, (0x3f)
+   "@" 10-bit signed immediate at bit 11, (0..1023)
+
+   Coprocessor instructions:
+   "E" 5-bit target register
+   "G" 5-bit source register
+   "H" 5-bit sel field for (D)MTC* and (D)MFC*
+   "J" 5-bit select code at bit 11 for named COP1 registers, (0..31)
+   "K"	10-bit register+select encoding at bit 11 for named h/w register
+   "O"	10-bit register+select encoding at bit 11 for named COP1 register
+   "P"	5-bit named COP1 register at bit 16
+   "Q"	5-bit select code at bit 11
+   "U"	5-bit named HW register at bit 16
+
+   MT instructions:
+   "!"	1-bit u-mode for move to/from thread registers at bit 10, (0,1)
+   "$"	1-bit high-mode for move to/from thread registers at bit 3, (0,1)
+   "*"	2-bit accumulator register at bit 18, (0..3)
+
+   GINV instructions
+   "+;"	2-bit global invalidate operation type at bit 21, (0..3)
+
+   Floating point instructions:
+   "D" 5-bit destination register
+   "R" 5-bit fr destination register
+   "S" 5-bit fs source 1 register
+   "T" 5-bit ft source 2 register
+   "V" 5-bit same register used as floating source and destination or target
+
+   Macro instructions:
+   "A" general 32 bit expression
+   "I" 32-bit immediate (value placed in imm_expr).
+   "F" 64-bit floating point constant in memory
+   "L" 64-bit floating point constant in memory
+   "f" 32-bit floating point constant in memory
+   "l" 32-bit floating point constant in memory
+
+   CP2 instructions:
+   "C" 23-bit coprocessor function code at bit 3
+
+   MCU instructions:
+   "\"	3-bit position for atomic set/clear operations, (0..7)
+
+
+   Other:
+   "()" parens surrounding optional value
+   ","  separates operands
+   "+"  start of extension sequence
+
+   Characters used so far, for quick reference when adding more:
+   "12345 78 0"
+   ".<\|~@^!$*"
+   "A CDEFGHIJKL  OP RSTUV    "
+   " bcde ghijk  nop rstuvwx z"
+
+   Extension character sequences used so far ("+" followed by the
+   following), for quick reference when adding more:
+   "123456789 
+   "*|;"
+   "ABCDEFGHIJKLMNOPQRS       "
+   "        ij     pqrstuvw   "
+
+   Extension character sequences used so far ("m" followed by the
+   following), for quick reference when adding more:
+   ""
+   ""
+   "ABCDEFGHIJKLMNOPQRS      Z"
+   "abcdefghijklmn pqrstuvwxyz"
+
+   Extension character sequences used so far ("-" followed by the
+   following), for quick reference when adding more:
+   ""
+   ""
+   "                          "
+   "ab      i   mn            "
+*/
+  
+extern const struct nanomips_operand *decode_nanomips_operand (const char *);
+extern const struct nanomips_opcode nanomips_opcodes[];
+extern const int bfd_nanomips_num_opcodes;
+  
 #ifdef __cplusplus
 }
 #endif

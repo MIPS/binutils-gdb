@@ -1,6 +1,7 @@
 /* nanoMIPS ELF support for BFD.
-   Copyright (C) 2017 Free Software Foundation, Inc.
+   Copyright (C) 2018 Free Software Foundation, Inc.
    Contributed by MIPS Tech LLC.
+   Written by Faraz Shahbazker <faraz.shahbazker@mips.com>
 
    This file is part of BFD, the Binary File Descriptor library.
 
@@ -80,6 +81,7 @@ START_RELOC_NUMBERS (elf_nanomips_reloc_type)
   RELOC_NUMBER (R_NANOMIPS_HI32, 41)
   RELOC_NUMBER (R_NANOMIPS_GPREL_LO12, 42)
   RELOC_NUMBER (R_NANOMIPS_SCN_DISP, 43)
+  RELOC_NUMBER (R_NANOMIPS_COPY, 44)
 
   RELOC_NUMBER (R_NANOMIPS_ALIGN, 64)
   RELOC_NUMBER (R_NANOMIPS_FILL, 65)
@@ -94,29 +96,26 @@ START_RELOC_NUMBERS (elf_nanomips_reloc_type)
   RELOC_NUMBER (R_NANOMIPS_JALR16, 74)
 
   /* TLS relocations.  */
-  RELOC_NUMBER (R_NANOMIPS_TLS_DTPMOD32, 80)
-  RELOC_NUMBER (R_NANOMIPS_TLS_DTPREL32, 81)
-  RELOC_NUMBER (R_NANOMIPS_TLS_DTPMOD64, 82)
-  RELOC_NUMBER (R_NANOMIPS_TLS_DTPREL64, 83)
-  RELOC_NUMBER (R_NANOMIPS_TLS_TPREL32, 84)
-  RELOC_NUMBER (R_NANOMIPS_TLS_TPREL64, 85)
-  RELOC_NUMBER (R_NANOMIPS_TLS_GD, 86)
-  RELOC_NUMBER (R_NANOMIPS_TLS_LDM, 87)
-  RELOC_NUMBER (R_NANOMIPS_TLS_DTPREL_HI20, 88)
-  RELOC_NUMBER (R_NANOMIPS_TLS_DTPREL_LO12, 89)
+  RELOC_NUMBER (R_NANOMIPS_TLS_DTPMOD, 80)
+  RELOC_NUMBER (R_NANOMIPS_TLS_DTPREL, 81)
+  RELOC_NUMBER (R_NANOMIPS_TLS_TPREL, 82)
+  RELOC_NUMBER (R_NANOMIPS_TLS_GD, 83)
+  RELOC_NUMBER (R_NANOMIPS_TLS_GD_I32, 84)
+  RELOC_NUMBER (R_NANOMIPS_TLS_LD, 85)
+  RELOC_NUMBER (R_NANOMIPS_TLS_LD_I32, 86)
+  RELOC_NUMBER (R_NANOMIPS_TLS_DTPREL12, 87)
+  RELOC_NUMBER (R_NANOMIPS_TLS_DTPREL16, 88)
+  RELOC_NUMBER (R_NANOMIPS_TLS_DTPREL_I32, 89)
   RELOC_NUMBER (R_NANOMIPS_TLS_GOTTPREL, 90)
-  RELOC_NUMBER (R_NANOMIPS_TLS_TPREL_HI20, 91)
-  RELOC_NUMBER (R_NANOMIPS_TLS_TPREL_LO12, 92)
-  RELOC_NUMBER (R_NANOMIPS_LITERAL, 93)
+  RELOC_NUMBER (R_NANOMIPS_TLS_GOTTPREL_PC_I32, 91)
+  RELOC_NUMBER (R_NANOMIPS_TLS_TPREL12, 92)
+  RELOC_NUMBER (R_NANOMIPS_TLS_TPREL16, 93)
+  RELOC_NUMBER (R_NANOMIPS_TLS_TPREL_I32, 94)
 
-  FAKE_RELOC (R_NANOMIPS_max, 93)
-  /* This was a GNU extension used by embedded-PIC.  It was co-opted by
-     mips-linux for exception-handling data.  GCC stopped using it in
-     May, 2004, then started using it again for compact unwind tables.  */
+  FAKE_RELOC (R_NANOMIPS_max, 94)
+  /* May be used for compact unwind tables in the future.  */
   RELOC_NUMBER (R_NANOMIPS_PC32, 248)
   RELOC_NUMBER (R_NANOMIPS_EH, 249)
-  /* FIXME: this relocation is used internally by gas.  */
-  RELOC_NUMBER (R_NANOMIPS_GNU_REL16_S2, 250)
   /* These are GNU extensions to enable C++ vtable garbage collection.  */
   RELOC_NUMBER (R_NANOMIPS_GNU_VTINHERIT, 253)
   RELOC_NUMBER (R_NANOMIPS_GNU_VTENTRY, 254)
@@ -182,24 +181,6 @@ END_RELOC_NUMBERS (R_NANOMIPS_maxext)
 
 /* Records ABI related flags.  */
 #define PT_NANOMIPS_ABIFLAGS	0x70000000
-
-/* Processor specific dynamic array tags.  */
-
-/* Number of entries in global offset table.  */
-#define DT_NANOMIPS_GOTNO		0x70000001
-
-
-/* The 64-bit MIPS ELF ABI uses an unusual reloc format.  Each
-   relocation entry specifies up to three actual relocations, all at
-   the same address.  The first relocation which required a symbol
-   uses the symbol in the r_sym field.  The second relocation which
-   requires a symbol uses the symbol in the r_ssym field.  If all
-   three relocations require a symbol, the third one uses a zero
-   value.  */
-
-/* MIPS ELF 64 relocation info access macros.  */
-#define ELF64_NANOMIPS_R_SSYM(i) (((i) >> 24) & 0xff)
-#define ELF64_NANOMIPS_R_TYPE(i) ((i) & 0xff)
 
 
 
@@ -253,18 +234,17 @@ enum
 #define NANOMIPS_ASE_MSA          0x00000200 /* MSA ASE.  */
 #define NANOMIPS_ASE_RESERVED1    0x00000400 /* was MIPS16 ASE.  */
 #define NANOMIPS_ASE_RESERVED2    0x00000800 /* was MICROMIPS ASE.  */
-#define NANOMIPS_ASE_XPA          0x00001000 /* XPA ASE.  */
+#define NANOMIPS_ASE_UNUSED6      0x00001000 /* was XPA.  */
 #define NANOMIPS_ASE_DSPR3        0x00002000 /* DSP R3 ASE.  */
 #define NANOMIPS_ASE_UNUSED5      0x00004000 /* was MIPS16 E2 Extension.  */
 #define NANOMIPS_ASE_CRC	  0x00008000 /* CRC extension.  */
 #define NANOMIPS_ASE_CRYPTO	  0x00010000 /* Reserved for in-progress ASE.  */
 #define NANOMIPS_ASE_GINV         0x00020000 /* GINV ASE.  */
 #define NANOMIPS_ASE_xNMS         0x00040000 /* not nanoMIPS Subset.  */
-#define NANOMIPS_ASE_MASK         0x0007bf4d /* All ASEs.  */
+#define NANOMIPS_ASE_MASK         0x0007bf4d /* All valid ASEs.  */
 
 /* nanoMIPS ELF flags routines.  */
-extern Elf_Internal_ABIFlags_v0 * bfd_nanomips_elf_get_abiflags
-  (bfd *);
+extern Elf_Internal_ABIFlags_v0 * bfd_nanomips_elf_get_abiflags (bfd *);
 
 #ifdef __cplusplus
 }

@@ -1,6 +1,7 @@
 /* nanoMIPS ELF specific backend routines.
-   Copyright (C) 2017 Free Software Foundation, Inc.
+   Copyright (C) 2018 Free Software Foundation, Inc.
    Contributed by MIPS Tech LLC.
+   Written by Faraz Shahbazker <faraz.shahbazker@mips.com>
 
    This file is part of BFD, the Binary File Descriptor library.
 
@@ -46,30 +47,10 @@ extern void _bfd_nanomips_elf_merge_symbol_attribute
 extern const struct bfd_elf_special_section
   _bfd_nanomips_elf_special_sections[];
 
-extern bfd_boolean _bfd_nanomips_elf_common_definition (Elf_Internal_Sym *);
-
 extern bfd_byte *_bfd_elf_nanomips_get_relocated_section_contents
   (bfd *, struct bfd_link_info *, struct bfd_link_order *,
    bfd_byte *, bfd_boolean, asymbol **);
 
-static inline bfd_boolean
-gprel16_reloc_p (unsigned int r_type)
-{
-  return (r_type == BFD_RELOC_GPREL16
-	  || r_type == BFD_RELOC_NANOMIPS_GPREL7_S2
-	  || r_type == BFD_RELOC_NANOMIPS_GPREL18
-	  || r_type == BFD_RELOC_NANOMIPS_GPREL19_S2
-	  || r_type == BFD_RELOC_NANOMIPS_GPREL16_S2
-	  || r_type == BFD_RELOC_NANOMIPS_GPREL18_S3
-	  || r_type == BFD_RELOC_NANOMIPS_GPREL17_S1);
-}
-
-static inline bfd_boolean
-literal_reloc_p (int r_type)
-{
-  return r_type == R_NANOMIPS_LITERAL;
-}
-
-#define elf_backend_common_definition   _bfd_nanomips_elf_common_definition
 #define elf_backend_special_sections _bfd_nanomips_elf_special_sections
-#define elf_backend_merge_symbol_attribute  _bfd_nanomips_elf_merge_symbol_attribute
+#define elf_backend_merge_symbol_attribute	\
+  _bfd_nanomips_elf_merge_symbol_attribute
