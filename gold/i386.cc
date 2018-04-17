@@ -575,7 +575,7 @@ class Target_i386 : public Sized_target<32, false>
 	  Sized_relobj_file<32, false>* object,
 	  unsigned int data_shndx,
 	  Output_section* output_section,
-	  const elfcpp::Rel<32, false>& reloc, unsigned int r_type,
+	  unsigned int, const unsigned char* preloc, size_t, size_t,
 	  const elfcpp::Sym<32, false>& lsym,
 	  bool is_discarded);
 
@@ -584,7 +584,7 @@ class Target_i386 : public Sized_target<32, false>
 	   Sized_relobj_file<32, false>* object,
 	   unsigned int data_shndx,
 	   Output_section* output_section,
-	   const elfcpp::Rel<32, false>& reloc, unsigned int r_type,
+	   unsigned int, const unsigned char* preloc, size_t, size_t,
 	   Symbol* gsym);
 
     inline bool
@@ -1796,13 +1796,18 @@ Target_i386::Scan::local(Symbol_table* symtab,
 			 Sized_relobj_file<32, false>* object,
 			 unsigned int data_shndx,
 			 Output_section* output_section,
-			 const elfcpp::Rel<32, false>& reloc,
-			 unsigned int r_type,
+			 unsigned int,
+			 const unsigned char* preloc,
+			 size_t,
+			 size_t,
 			 const elfcpp::Sym<32, false>& lsym,
 			 bool is_discarded)
 {
   if (is_discarded)
     return;
+
+  const elfcpp::Rel<32, false> reloc(preloc);
+  unsigned int r_type = elfcpp::elf_r_type<32>(reloc.get_r_info());
 
   // A local STT_GNU_IFUNC symbol may require a PLT entry.
   if (lsym.get_st_type() == elfcpp::STT_GNU_IFUNC
@@ -2181,15 +2186,20 @@ Target_i386::Scan::global_reloc_may_be_function_pointer(
 
 inline void
 Target_i386::Scan::global(Symbol_table* symtab,
-				 Layout* layout,
-				 Target_i386* target,
-				 Sized_relobj_file<32, false>* object,
-				 unsigned int data_shndx,
-				 Output_section* output_section,
-				 const elfcpp::Rel<32, false>& reloc,
-				 unsigned int r_type,
-				 Symbol* gsym)
+			  Layout* layout,
+			  Target_i386* target,
+			  Sized_relobj_file<32, false>* object,
+			  unsigned int data_shndx,
+			  Output_section* output_section,
+			  unsigned int,
+			  const unsigned char* preloc,
+			  size_t,
+			  size_t,
+			  Symbol* gsym)
 {
+  const elfcpp::Rel<32, false> reloc(preloc);
+  unsigned int r_type = elfcpp::elf_r_type<32>(reloc.get_r_info());
+
   // A STT_GNU_IFUNC symbol may require a PLT entry.
   if (gsym->type() == elfcpp::STT_GNU_IFUNC
       && this->reloc_needs_plt_for_ifunc(object, r_type))

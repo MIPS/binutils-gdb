@@ -2624,7 +2624,7 @@ class Target_arm : public Sized_target<32, big_endian>
 	  Sized_relobj_file<32, big_endian>* object,
 	  unsigned int data_shndx,
 	  Output_section* output_section,
-	  const elfcpp::Rel<32, big_endian>& reloc, unsigned int r_type,
+	  unsigned int, const unsigned char* preloc, size_t, size_t,
 	  const elfcpp::Sym<32, big_endian>& lsym,
 	  bool is_discarded);
 
@@ -2633,7 +2633,7 @@ class Target_arm : public Sized_target<32, big_endian>
 	   Sized_relobj_file<32, big_endian>* object,
 	   unsigned int data_shndx,
 	   Output_section* output_section,
-	   const elfcpp::Rel<32, big_endian>& reloc, unsigned int r_type,
+	   unsigned int, const unsigned char* preloc, size_t, size_t,
 	   Symbol* gsym);
 
     inline bool
@@ -8544,14 +8544,18 @@ Target_arm<big_endian>::Scan::local(Symbol_table* symtab,
 				    Sized_relobj_file<32, big_endian>* object,
 				    unsigned int data_shndx,
 				    Output_section* output_section,
-				    const elfcpp::Rel<32, big_endian>& reloc,
-				    unsigned int r_type,
+				    unsigned int,
+				    const unsigned char* preloc,
+				    size_t,
+				    size_t,
 				    const elfcpp::Sym<32, big_endian>& lsym,
 				    bool is_discarded)
 {
   if (is_discarded)
     return;
 
+  const elfcpp::Rel<32, big_endian> reloc(preloc);
+  unsigned int r_type = elfcpp::elf_r_type<32>(reloc.get_r_info());
   r_type = target->get_real_reloc_type(r_type);
 
   // A local STT_GNU_IFUNC symbol may require a PLT entry.
@@ -8942,10 +8946,15 @@ Target_arm<big_endian>::Scan::global(Symbol_table* symtab,
 				     Sized_relobj_file<32, big_endian>* object,
 				     unsigned int data_shndx,
 				     Output_section* output_section,
-				     const elfcpp::Rel<32, big_endian>& reloc,
-				     unsigned int r_type,
+				     unsigned int,
+				     const unsigned char* preloc,
+				     size_t,
+				     size_t,
 				     Symbol* gsym)
 {
+  const elfcpp::Rel<32, big_endian> reloc(preloc);
+  unsigned int r_type = elfcpp::elf_r_type<32>(reloc.get_r_info());
+
   // A reference to _GLOBAL_OFFSET_TABLE_ implies that we need a got
   // section.  We check here to avoid creating a dynamic reloc against
   // _GLOBAL_OFFSET_TABLE_.

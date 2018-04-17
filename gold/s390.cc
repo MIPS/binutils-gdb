@@ -519,7 +519,7 @@ class Target_s390 : public Sized_target<size, true>
 	  Sized_relobj_file<size, true>* object,
 	  unsigned int data_shndx,
 	  Output_section* output_section,
-	  const elfcpp::Rela<size, true>& reloc, unsigned int r_type,
+	  unsigned int, const unsigned char* preloc, size_t, size_t,
 	  const elfcpp::Sym<size, true>& lsym,
 	  bool is_discarded);
 
@@ -528,7 +528,7 @@ class Target_s390 : public Sized_target<size, true>
 	   Sized_relobj_file<size, true>* object,
 	   unsigned int data_shndx,
 	   Output_section* output_section,
-	   const elfcpp::Rela<size, true>& reloc, unsigned int r_type,
+	   unsigned int, const unsigned char* preloc, size_t, size_t,
 	   Symbol* gsym);
 
     inline bool
@@ -2276,18 +2276,23 @@ Target_s390<size>::Scan::reloc_needs_plt_for_ifunc(
 template<int size>
 inline void
 Target_s390<size>::Scan::local(Symbol_table* symtab,
-				 Layout* layout,
-				 Target_s390<size>* target,
-				 Sized_relobj_file<size, true>* object,
-				 unsigned int data_shndx,
-				 Output_section* output_section,
-				 const elfcpp::Rela<size, true>& reloc,
-				 unsigned int r_type,
-				 const elfcpp::Sym<size, true>& lsym,
-				 bool is_discarded)
+			       Layout* layout,
+			       Target_s390<size>* target,
+			       Sized_relobj_file<size, true>* object,
+			       unsigned int data_shndx,
+			       Output_section* output_section,
+			       unsigned int,
+			       const unsigned char* preloc,
+			       size_t,
+			       size_t,
+			       const elfcpp::Sym<size, true>& lsym,
+			       bool is_discarded)
 {
   if (is_discarded)
     return;
+
+  const elfcpp::Rela<size, true> reloc(preloc);
+  unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
 
   // A local STT_GNU_IFUNC symbol may require a PLT entry.
   bool is_ifunc = lsym.get_st_type() == elfcpp::STT_GNU_IFUNC;
@@ -2634,15 +2639,20 @@ Target_s390<size>::Scan::local(Symbol_table* symtab,
 template<int size>
 inline void
 Target_s390<size>::Scan::global(Symbol_table* symtab,
-			    Layout* layout,
-			    Target_s390<size>* target,
-			    Sized_relobj_file<size, true>* object,
-			    unsigned int data_shndx,
-			    Output_section* output_section,
-			    const elfcpp::Rela<size, true>& reloc,
-			    unsigned int r_type,
-			    Symbol* gsym)
+			        Layout* layout,
+			        Target_s390<size>* target,
+			        Sized_relobj_file<size, true>* object,
+			        unsigned int data_shndx,
+			        Output_section* output_section,
+			        unsigned int,
+			        const unsigned char* preloc,
+			        size_t,
+			        size_t,
+			        Symbol* gsym)
 {
+  const elfcpp::Rela<size, true> reloc(preloc);
+  unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
+
   // A STT_GNU_IFUNC symbol may require a PLT entry.
   if (gsym->type() == elfcpp::STT_GNU_IFUNC
       && this->reloc_needs_plt_for_ifunc(object, r_type))

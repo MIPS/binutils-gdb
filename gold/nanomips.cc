@@ -1593,7 +1593,7 @@ class Target_nanomips : public Sized_target<size, big_endian>
     local(Symbol_table* symtab, Layout* layout, Target_nanomips* target,
           Sized_relobj_file<size, big_endian>* object,
           unsigned int data_shndx, Output_section* output_section,
-          const elfcpp::Rela<size, big_endian>& reloc, unsigned int r_type,
+          unsigned int, const unsigned char* preloc, size_t, size_t,
           const elfcpp::Sym<size, big_endian>& lsym,
           bool is_discarded);
 
@@ -1601,7 +1601,7 @@ class Target_nanomips : public Sized_target<size, big_endian>
     global(Symbol_table* symtab, Layout* layout, Target_nanomips* target,
            Sized_relobj_file<size, big_endian>* object,
            unsigned int data_shndx, Output_section* output_section,
-           const elfcpp::Rela<size, big_endian>& reloc, unsigned int r_type,
+           unsigned int, const unsigned char* preloc, size_t, size_t,
            Symbol* gsym);
 
     inline bool
@@ -6201,11 +6201,15 @@ Target_nanomips<size, big_endian>::Scan::local(
     Sized_relobj_file<size, big_endian>* object,
     unsigned int data_shndx,
     Output_section* output_section,
-    const elfcpp::Rela<size, big_endian>& reloc,
-    unsigned int r_type,
+    unsigned int,
+    const unsigned char* preloc,
+    size_t,
+    size_t,
     const elfcpp::Sym<size, big_endian>& lsym,
     bool is_discarded)
 {
+  const elfcpp::Rela<size, big_endian> reloc(preloc);
+  unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
   Address r_offset = reloc.get_r_offset();
 
   // Check if section reference should be removed.
@@ -6367,15 +6371,20 @@ Target_nanomips<size, big_endian>::Scan::global(
     Sized_relobj_file<size, big_endian>* object,
     unsigned int data_shndx,
     Output_section* output_section,
-    const elfcpp::Rela<size, big_endian>& reloc,
-    unsigned int r_type,
+    unsigned int,
+    const unsigned char* preloc,
+    size_t,
+    size_t,
     Symbol* gsym)
 {
+  const elfcpp::Rela<size, big_endian> reloc(preloc);
+  unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
+  Address r_offset = reloc.get_r_offset();
+
   const Nanomips_reloc_property* nrp =
     nanomips_reloc_property_table->get_reloc_property(r_type);
   gold_assert(nrp != NULL);
 
-  Address r_offset = reloc.get_r_offset();
   Nanomips_relobj<size, big_endian>* relobj =
     Nanomips_relobj<size, big_endian>::as_nanomips_relobj(object);
   Nanomips_symbol<size>* nanomips_sym =

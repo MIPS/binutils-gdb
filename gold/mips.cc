@@ -3759,28 +3759,7 @@ class Target_mips : public Sized_target<size, big_endian>
           Sized_relobj_file<size, big_endian>* object,
           unsigned int data_shndx,
           Output_section* output_section,
-          const Reltype& reloc, unsigned int r_type,
-          const elfcpp::Sym<size, big_endian>& lsym,
-          bool is_discarded);
-
-    inline void
-    local(Symbol_table* symtab, Layout* layout, Target_mips* target,
-          Sized_relobj_file<size, big_endian>* object,
-          unsigned int data_shndx,
-          Output_section* output_section,
-          const Relatype& reloc, unsigned int r_type,
-          const elfcpp::Sym<size, big_endian>& lsym,
-          bool is_discarded);
-
-    inline void
-    local(Symbol_table* symtab, Layout* layout, Target_mips* target,
-          Sized_relobj_file<size, big_endian>* object,
-          unsigned int data_shndx,
-          Output_section* output_section,
-          const Relatype* rela,
-          const Reltype* rel,
-          unsigned int rel_type,
-          unsigned int r_type,
+          unsigned int rel_type, const unsigned char* preloc, size_t, size_t,
           const elfcpp::Sym<size, big_endian>& lsym,
           bool is_discarded);
 
@@ -3789,26 +3768,7 @@ class Target_mips : public Sized_target<size, big_endian>
            Sized_relobj_file<size, big_endian>* object,
            unsigned int data_shndx,
            Output_section* output_section,
-           const Reltype& reloc, unsigned int r_type,
-           Symbol* gsym);
-
-    inline void
-    global(Symbol_table* symtab, Layout* layout, Target_mips* target,
-           Sized_relobj_file<size, big_endian>* object,
-           unsigned int data_shndx,
-           Output_section* output_section,
-           const Relatype& reloc, unsigned int r_type,
-           Symbol* gsym);
-
-    inline void
-    global(Symbol_table* symtab, Layout* layout, Target_mips* target,
-           Sized_relobj_file<size, big_endian>* object,
-           unsigned int data_shndx,
-           Output_section* output_section,
-           const Relatype* rela,
-           const Reltype* rel,
-           unsigned int rel_type,
-           unsigned int r_type,
+           unsigned int rel_type, const unsigned char* preloc, size_t, size_t,
            Symbol* gsym);
 
     inline bool
@@ -10440,10 +10400,10 @@ Target_mips<size, big_endian>::Scan::local(
                         Sized_relobj_file<size, big_endian>* object,
                         unsigned int data_shndx,
                         Output_section* output_section,
-                        const Relatype* rela,
-                        const Reltype* rel,
                         unsigned int rel_type,
-                        unsigned int r_type,
+                        const unsigned char* preloc,
+                        size_t,
+                        size_t,
                         const elfcpp::Sym<size, big_endian>& lsym,
                         bool is_discarded)
 {
@@ -10452,20 +10412,27 @@ Target_mips<size, big_endian>::Scan::local(
 
   Mips_address r_offset;
   unsigned int r_sym;
+  unsigned int r_type;
   typename elfcpp::Elf_types<size>::Elf_Swxword r_addend;
 
   if (rel_type == elfcpp::SHT_RELA)
     {
-      r_offset = rela->get_r_offset();
+      const Relatype rela(preloc);
+      r_offset = rela.get_r_offset();
       r_sym = Mips_classify_reloc<elfcpp::SHT_RELA, size, big_endian>::
-	  get_r_sym(rela);
-      r_addend = rela->get_r_addend();
+          get_r_sym(&rela);
+      r_type = Mips_classify_reloc<elfcpp::SHT_RELA, size, big_endian>::
+          get_r_type(&rela);
+      r_addend = rela.get_r_addend();
     }
   else
     {
-      r_offset = rel->get_r_offset();
+      const Reltype rel(preloc);
+      r_offset = rel.get_r_offset();
       r_sym = Mips_classify_reloc<elfcpp::SHT_REL, size, big_endian>::
-	  get_r_sym(rel);
+          get_r_sym(&rel);
+      r_type = Mips_classify_reloc<elfcpp::SHT_REL, size, big_endian>::
+          get_r_type(&rel);
       r_addend = 0;
     }
 
@@ -10819,69 +10786,6 @@ Target_mips<size, big_endian>::Scan::local(
     }
 }
 
-template<int size, bool big_endian>
-inline void
-Target_mips<size, big_endian>::Scan::local(
-                        Symbol_table* symtab,
-                        Layout* layout,
-                        Target_mips<size, big_endian>* target,
-                        Sized_relobj_file<size, big_endian>* object,
-                        unsigned int data_shndx,
-                        Output_section* output_section,
-                        const Reltype& reloc,
-                        unsigned int r_type,
-                        const elfcpp::Sym<size, big_endian>& lsym,
-                        bool is_discarded)
-{
-  if (is_discarded)
-    return;
-
-  local(
-    symtab,
-    layout,
-    target,
-    object,
-    data_shndx,
-    output_section,
-    (const Relatype*) NULL,
-    &reloc,
-    elfcpp::SHT_REL,
-    r_type,
-    lsym, is_discarded);
-}
-
-
-template<int size, bool big_endian>
-inline void
-Target_mips<size, big_endian>::Scan::local(
-                        Symbol_table* symtab,
-                        Layout* layout,
-                        Target_mips<size, big_endian>* target,
-                        Sized_relobj_file<size, big_endian>* object,
-                        unsigned int data_shndx,
-                        Output_section* output_section,
-                        const Relatype& reloc,
-                        unsigned int r_type,
-                        const elfcpp::Sym<size, big_endian>& lsym,
-                        bool is_discarded)
-{
-  if (is_discarded)
-    return;
-
-  local(
-    symtab,
-    layout,
-    target,
-    object,
-    data_shndx,
-    output_section,
-    &reloc,
-    (const Reltype*) NULL,
-    elfcpp::SHT_RELA,
-    r_type,
-    lsym, is_discarded);
-}
-
 // Scan a relocation for a global symbol.
 
 template<int size, bool big_endian>
@@ -10893,28 +10797,35 @@ Target_mips<size, big_endian>::Scan::global(
                                 Sized_relobj_file<size, big_endian>* object,
                                 unsigned int data_shndx,
                                 Output_section* output_section,
-                                const Relatype* rela,
-                                const Reltype* rel,
                                 unsigned int rel_type,
-                                unsigned int r_type,
+                                const unsigned char* preloc,
+                                size_t,
+                                size_t,
                                 Symbol* gsym)
 {
   Mips_address r_offset;
   unsigned int r_sym;
+  unsigned int r_type;
   typename elfcpp::Elf_types<size>::Elf_Swxword r_addend;
 
   if (rel_type == elfcpp::SHT_RELA)
     {
-      r_offset = rela->get_r_offset();
+      const Relatype rela(preloc);
+      r_offset = rela.get_r_offset();
       r_sym = Mips_classify_reloc<elfcpp::SHT_RELA, size, big_endian>::
-	  get_r_sym(rela);
-      r_addend = rela->get_r_addend();
+          get_r_sym(&rela);
+      r_type = Mips_classify_reloc<elfcpp::SHT_RELA, size, big_endian>::
+          get_r_type(&rela);
+      r_addend = rela.get_r_addend();
     }
   else
     {
-      r_offset = rel->get_r_offset();
+      const Reltype rel(preloc);
+      r_offset = rel.get_r_offset();
       r_sym = Mips_classify_reloc<elfcpp::SHT_REL, size, big_endian>::
-	  get_r_sym(rel);
+          get_r_sym(&rel);
+      r_type = Mips_classify_reloc<elfcpp::SHT_REL, size, big_endian>::
+          get_r_type(&rel);
       r_addend = 0;
     }
 
@@ -11322,60 +11233,6 @@ Target_mips<size, big_endian>::Scan::global(
           break;
         }
     }
-}
-
-template<int size, bool big_endian>
-inline void
-Target_mips<size, big_endian>::Scan::global(
-                                Symbol_table* symtab,
-                                Layout* layout,
-                                Target_mips<size, big_endian>* target,
-                                Sized_relobj_file<size, big_endian>* object,
-                                unsigned int data_shndx,
-                                Output_section* output_section,
-                                const Relatype& reloc,
-                                unsigned int r_type,
-                                Symbol* gsym)
-{
-  global(
-    symtab,
-    layout,
-    target,
-    object,
-    data_shndx,
-    output_section,
-    &reloc,
-    (const Reltype*) NULL,
-    elfcpp::SHT_RELA,
-    r_type,
-    gsym);
-}
-
-template<int size, bool big_endian>
-inline void
-Target_mips<size, big_endian>::Scan::global(
-                                Symbol_table* symtab,
-                                Layout* layout,
-                                Target_mips<size, big_endian>* target,
-                                Sized_relobj_file<size, big_endian>* object,
-                                unsigned int data_shndx,
-                                Output_section* output_section,
-                                const Reltype& reloc,
-                                unsigned int r_type,
-                                Symbol* gsym)
-{
-  global(
-    symtab,
-    layout,
-    target,
-    object,
-    data_shndx,
-    output_section,
-    (const Relatype*) NULL,
-    &reloc,
-    elfcpp::SHT_REL,
-    r_type,
-    gsym);
 }
 
 // Return whether a R_MIPS_32/R_MIPS64 relocation needs to be applied.

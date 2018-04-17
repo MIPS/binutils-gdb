@@ -249,7 +249,7 @@ class Target_sparc : public Sized_target<size, big_endian>
 	  Sized_relobj_file<size, big_endian>* object,
 	  unsigned int data_shndx,
 	  Output_section* output_section,
-	  const elfcpp::Rela<size, big_endian>& reloc, unsigned int r_type,
+	  unsigned int, const unsigned char* preloc, size_t, size_t,
 	  const elfcpp::Sym<size, big_endian>& lsym,
 	  bool is_discarded);
 
@@ -258,7 +258,7 @@ class Target_sparc : public Sized_target<size, big_endian>
 	   Sized_relobj_file<size, big_endian>* object,
 	   unsigned int data_shndx,
 	   Output_section* output_section,
-	   const elfcpp::Rela<size, big_endian>& reloc, unsigned int r_type,
+	   unsigned int, const unsigned char* preloc, size_t, size_t,
 	   Symbol* gsym);
 
     inline bool
@@ -2258,14 +2258,18 @@ Target_sparc<size, big_endian>::Scan::local(
 			Sized_relobj_file<size, big_endian>* object,
 			unsigned int data_shndx,
 			Output_section* output_section,
-			const elfcpp::Rela<size, big_endian>& reloc,
-			unsigned int r_type,
+			unsigned int,
+			const unsigned char* preloc,
+			size_t,
+			size_t,
 			const elfcpp::Sym<size, big_endian>& lsym,
 			bool is_discarded)
 {
   if (is_discarded)
     return;
 
+  const elfcpp::Rela<size, big_endian> reloc(preloc);
+  unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
   bool is_ifunc = lsym.get_st_type() == elfcpp::STT_GNU_IFUNC;
   unsigned int orig_r_type = r_type;
   r_type &= 0xff;
@@ -2582,10 +2586,14 @@ Target_sparc<size, big_endian>::Scan::global(
 				Sized_relobj_file<size, big_endian>* object,
 				unsigned int data_shndx,
 				Output_section* output_section,
-				const elfcpp::Rela<size, big_endian>& reloc,
-				unsigned int r_type,
+				unsigned int,
+				const unsigned char* preloc,
+				size_t,
+				size_t,
 				Symbol* gsym)
 {
+  const elfcpp::Rela<size, big_endian> reloc(preloc);
+  unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
   unsigned int orig_r_type = r_type;
   bool is_ifunc = gsym->type() == elfcpp::STT_GNU_IFUNC;
 
