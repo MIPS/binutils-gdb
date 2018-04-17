@@ -91,6 +91,37 @@ enum Overflow_check
 Nanomips_reloc_property_table* nanomips_reloc_property_table = NULL;
 Nanomips_insn_property_table* nanomips_insn_property_table = NULL;
 
+// Return true if the length of an instruction is forced to
+// an explicit size.  These instructions are marked with
+// R_NANOMIPS_FIXED or R_NANOMIPS_INSN[32/16] relocations.
+
+template<int size, bool big_endian>
+static inline bool
+is_forced_insn_length(typename elfcpp::Elf_types<size>::Elf_Addr offset,
+                      size_t reloc_count,
+                      size_t relnum,
+                      const unsigned char* preloc)
+{
+  typedef typename elfcpp::Rela<size, big_endian> Reltype;
+  const int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
+
+  // Start finding FIXED and INSN[32/16] from the next relocation.
+  preloc += reloc_size;
+  for (size_t i = relnum + 1; i < reloc_count; ++i, preloc += reloc_size)
+    {
+      Reltype reloc(preloc);
+      if (offset != reloc.get_r_offset())
+        break;
+
+      unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
+      if (r_type == elfcpp::R_NANOMIPS_FIXED
+          || r_type == elfcpp::R_NANOMIPS_INSN32
+          || r_type == elfcpp::R_NANOMIPS_INSN16)
+        return true;
+    }
+  return false;
+}
+
 // .nanoMIPS.abiflags section content
 
 template<bool big_endian>
@@ -634,14 +665,6 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   add_input_section_ref(unsigned int shndx)
   { ++this->input_section_ref_[shndx]; }
 
-  // Decrease the input section reference.
-  void
-  remove_input_section_ref(unsigned int shndx)
-  {
-    gold_assert(this->input_section_ref_[shndx] != 0);
-    --this->input_section_ref_[shndx];
-  }
-
   // Return the number of how many times section has been referenced with
   // the lw[gp]/sw[gp] instruction.
   unsigned int
@@ -955,13 +978,6 @@ class Nanomips_transformations
   // Read nanoMIPS instruction.
   uint32_t
   read_insn(const unsigned char* view, unsigned int insn_size);
-
-  // Return true if the length of this instruction is forced to an explicit
-  // size.  These instructions are marked with R_NANOMIPS_FIXED or
-  // R_NANOMIPS_INSN[32/16] relocations.
-  bool
-  fixed_insn(Address offset, size_t relnum, size_t reloc_count,
-             const unsigned char* prelocs);
 
   // Handle alignment requirement.
   void
@@ -1580,29 +1596,25 @@ class Target_nanomips : public Sized_target<size, big_endian>
   // The class which scans relocations.
   class Scan
   {
-    static const unsigned int invalid_index = static_cast<unsigned int>(-1);
-    static const Address invalid_address = static_cast<Address>(-1);
-
    public:
     Scan()
-      : ref_r_offset_(invalid_address), ref_relobj_(NULL),
-        ref_shndx_(invalid_index), seen_norelax_(false)
+      : seen_norelax_(false)
     { }
 
     inline void
     local(Symbol_table* symtab, Layout* layout, Target_nanomips* target,
           Sized_relobj_file<size, big_endian>* object,
           unsigned int data_shndx, Output_section* output_section,
-          unsigned int, const unsigned char* preloc, size_t, size_t,
-          const elfcpp::Sym<size, big_endian>& lsym,
+          unsigned int, const unsigned char* preloc, size_t reloc_count,
+          size_t relnum, const elfcpp::Sym<size, big_endian>& lsym,
           bool is_discarded);
 
     inline void
     global(Symbol_table* symtab, Layout* layout, Target_nanomips* target,
            Sized_relobj_file<size, big_endian>* object,
            unsigned int data_shndx, Output_section* output_section,
-           unsigned int, const unsigned char* preloc, size_t, size_t,
-           Symbol* gsym);
+           unsigned int, const unsigned char* preloc, size_t reloc_count,
+           size_t relnum, Symbol* gsym);
 
     inline bool
     local_reloc_may_be_function_pointer(Symbol_table*, Layout*,
@@ -1625,21 +1637,13 @@ class Target_nanomips : public Sized_target<size, big_endian>
                                          unsigned int, Symbol*)
     { return false; }
    private:
-    static void
-    unsupported_reloc_local(Sized_relobj_file<size, big_endian>*,
-                            unsigned int r_type);
+    // Return true if a reloc is part of a composite relocations.
+    inline bool
+    reloc_in_composite_relocs(Address offset,
+                              size_t reloc_count,
+                              size_t relnum,
+                              const unsigned char* preloc);
 
-    static void
-    unsupported_reloc_global(Sized_relobj_file<size, big_endian>*,
-                             unsigned int r_type, Symbol*);
-
-    // Offset to check if a relocation is marked with INSN32
-    // or FIXED relocation.
-    Address ref_r_offset_;
-    // Object where we added reference.
-    Nanomips_relobj<size, big_endian>* ref_relobj_;
-    // Section index of section being referenced with sw[gp]/lw[gp] instruction.
-    unsigned int ref_shndx_;
     // True if we have seen R_NANOMIPS_NORELAX relocation.
     bool seen_norelax_;
   };
@@ -1660,6 +1664,7 @@ class Target_nanomips : public Sized_target<size, big_endian>
     inline bool
     should_only_apply_addend(const Sized_symbol<size>* gsym,
                              unsigned int flags,
+                             bool reloc_in_composite_relocs,
                              Output_section* output_section);
 
     // Do a relocation.  Return false if the caller should not issue
@@ -3347,38 +3352,6 @@ Nanomips_transformations<size, big_endian>::print(
             r_sym);
   else
     fprintf(stderr, " for global symbol '%s'\n", gsym->name());
-}
-
-// Return true if the length of this instruction is forced to an explicit size.
-// These instructions are marked with R_NANOMIPS_FIXED or R_NANOMIPS_INSN[32/16]
-// relocations.
-
-template<int size, bool big_endian>
-bool
-Nanomips_transformations<size, big_endian>::fixed_insn(
-    Address offset,
-    size_t relnum,
-    size_t reloc_count,
-    const unsigned char* prelocs)
-{
-  typedef typename elfcpp::Rela<size, big_endian> Reltype;
-  const int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
-
-  // Start finding FIXED and INSN[32/16] from the next relocation.
-  prelocs += reloc_size;
-  for (size_t i = relnum + 1; i < reloc_count; ++i, prelocs += reloc_size)
-    {
-      Reltype reloc(prelocs);
-      if (offset != reloc.get_r_offset())
-        break;
-
-      unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
-      if (r_type == elfcpp::R_NANOMIPS_FIXED
-          || r_type == elfcpp::R_NANOMIPS_INSN32
-          || r_type == elfcpp::R_NANOMIPS_INSN16)
-        return true;
-    }
-  return false;
 }
 
 // Find R_NANOMIPS_FILL and R_NANOMIPS_MAX relocations (if any) and get
@@ -6016,8 +5989,13 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
 
       // If this isn't something that can be transformed, then ignore this
       // relocation.
-      if (insn_property == NULL
-          || transform.fixed_insn(r_offset, i, reloc_count, prelocs))
+      if (insn_property == NULL)
+        continue;
+
+      // Don't do anything if the length of this instruction is forced to
+      // an explicit size.
+      if (is_forced_insn_length<size, big_endian>(r_offset, reloc_count,
+                                                  i, prelocs))
         continue;
 
       const Symbol* gsym;
@@ -6184,10 +6162,43 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
   return again;
 }
 
+// Return true if a reloc is part of a composite relocations.
+
+template<int size, bool big_endian>
+inline bool
+Target_nanomips<size, big_endian>::Scan::reloc_in_composite_relocs(
+    Address offset,
+    size_t reloc_count,
+    size_t relnum,
+    const unsigned char* preloc)
+{
+  typedef typename elfcpp::Rela<size, big_endian> Reltype;
+  const int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
+
+  // Check the offset of the previous relocation if this is not
+  // the first relocation.
+  if (relnum != 0)
+    {
+      Reltype prev_reloc(preloc - reloc_size);
+      if (offset == prev_reloc.get_r_offset())
+        return true;
+    }
+
+  // Check the offset of the next relocation if this is not
+  // the last relocation.
+  if (relnum + 1 < reloc_count)
+    {
+      Reltype next_reloc(preloc + reloc_size);
+      if (offset == next_reloc.get_r_offset())
+        return true;
+    }
+  return false;
+}
+
 template<int size, bool big_endian>
 inline void
 Target_nanomips<size, big_endian>::Scan::local(
-    Symbol_table* symtab ,
+    Symbol_table* symtab,
     Layout* layout,
     Target_nanomips<size, big_endian>* target,
     Sized_relobj_file<size, big_endian>* object,
@@ -6195,38 +6206,23 @@ Target_nanomips<size, big_endian>::Scan::local(
     Output_section* output_section,
     unsigned int,
     const unsigned char* preloc,
-    size_t,
-    size_t,
+    size_t reloc_count,
+    size_t relnum,
     const elfcpp::Sym<size, big_endian>& lsym,
     bool is_discarded)
 {
-  const elfcpp::Rela<size, big_endian> reloc(preloc);
-  unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
-  Address r_offset = reloc.get_r_offset();
-
-  // Check if section reference should be removed.
-  if (this->ref_relobj_ != NULL
-      && ((r_type == elfcpp::R_NANOMIPS_INSN32
-           || r_type == elfcpp::R_NANOMIPS_FIXED)
-          && this->ref_r_offset_ == r_offset))
-    {
-      gold_assert(this->ref_shndx_ != invalid_index);
-      this->ref_relobj_->remove_input_section_ref(this->ref_shndx_);
-    }
-
-  this->ref_r_offset_ = invalid_address;
-  this->ref_relobj_ = NULL;
-  this->ref_shndx_ = invalid_index;
-
   if (is_discarded)
     return;
 
-  Nanomips_relobj<size, big_endian>* relobj =
-    Nanomips_relobj<size, big_endian>::as_nanomips_relobj(object);
-  unsigned int r_sym = elfcpp::elf_r_sym<size>(reloc.get_r_info());
+  const elfcpp::Rela<size, big_endian> reloc(preloc);
+  unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
+  Address r_offset = reloc.get_r_offset();
   const Nanomips_reloc_property* nrp =
     nanomips_reloc_property_table->get_reloc_property(r_type);
   gold_assert(nrp != NULL);
+
+  Nanomips_relobj<size, big_endian>* relobj =
+    Nanomips_relobj<size, big_endian>::as_nanomips_relobj(object);
 
   switch (r_type)
     {
@@ -6239,6 +6235,12 @@ Target_nanomips<size, big_endian>::Scan::local(
       // can relocate it easily.
       if (parameters->options().output_is_position_independent())
         {
+          // Don't add dynamic relocation if this reloc is
+          // part of a composite relocations.
+          if (this->reloc_in_composite_relocs(r_offset, reloc_count,
+                                              relnum, preloc))
+            break;
+
           Reloc_section* rel_dyn = target->rel_dyn_section(layout);
           unsigned int r_sym = elfcpp::elf_r_sym<size>(reloc.get_r_info());
           rel_dyn->add_local_relative(object, r_sym,
@@ -6277,18 +6279,15 @@ Target_nanomips<size, big_endian>::Scan::local(
           if (insn_property != NULL)
             {
               bool is_ordinary;
+              unsigned int r_sym = elfcpp::elf_r_sym<size>(reloc.get_r_info());
               shndx = relobj->adjust_sym_shndx(r_sym, shndx, &is_ordinary);
-
-              if (is_ordinary)
-                {
-                  relobj->add_input_section_ref(shndx);
-                  // We need to check if this relocation is marked with INSN32
-                  // or FIXED relocation.  In that case, we need to decrease
-                  // reference to the section.
-                  this->ref_r_offset_ = r_offset;
-                  this->ref_relobj_ = relobj;
-                  this->ref_shndx_ = shndx;
-                }
+              bool forced_insn_length =
+                is_forced_insn_length<size, big_endian>(r_offset, reloc_count,
+                                                        relnum, preloc);
+              // Don't add reference to an input section if this instruction
+              // is forced to an explicit size.
+              if (is_ordinary && !forced_insn_length)
+                relobj->add_input_section_ref(shndx);
             }
         }
       break;
@@ -6365,14 +6364,13 @@ Target_nanomips<size, big_endian>::Scan::global(
     Output_section* output_section,
     unsigned int,
     const unsigned char* preloc,
-    size_t,
-    size_t,
+    size_t reloc_count,
+    size_t relnum,
     Symbol* gsym)
 {
   const elfcpp::Rela<size, big_endian> reloc(preloc);
   unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
   Address r_offset = reloc.get_r_offset();
-
   const Nanomips_reloc_property* nrp =
     nanomips_reloc_property_table->get_reloc_property(r_type);
   gold_assert(nrp != NULL);
@@ -6382,10 +6380,6 @@ Target_nanomips<size, big_endian>::Scan::global(
   Nanomips_symbol<size>* nanomips_sym =
     Nanomips_symbol<size>::as_nanomips_sym(gsym);
 
-  this->ref_r_offset_ = invalid_address;
-  this->ref_relobj_ = NULL;
-  this->ref_shndx_ = invalid_index;
-
   switch (r_type)
     {
     case elfcpp::R_NANOMIPS_32:
@@ -6393,6 +6387,12 @@ Target_nanomips<size, big_endian>::Scan::global(
         // Make a dynamic relocation if necessary.
         if (gsym->needs_dynamic_reloc(nrp->reference_flags()))
           {
+            // Don't add dynamic relocation if this reloc is
+            // part of a composite relocations.
+            if (this->reloc_in_composite_relocs(r_offset, reloc_count,
+                                                relnum, preloc))
+              break;
+
             if (!parameters->options().output_is_position_independent()
                 && gsym->may_need_copy_reloc())
               target->copy_reloc(symtab, layout, object, data_shndx,
@@ -6447,17 +6447,13 @@ Target_nanomips<size, big_endian>::Scan::global(
               unsigned int sym_shndx = gsym->shndx(&is_ordinary);
               Nanomips_relobj<size, big_endian>* sym_obj =
                 static_cast<Nanomips_relobj<size, big_endian>*>(gsym->object());
-
-              if (is_ordinary)
-                {
-                  sym_obj->add_input_section_ref(sym_shndx);
-                  // We need to check if this relocation is marked with INSN32
-                  // or FIXED relocation.  In that case, we need to decrease
-                  // reference to the section.
-                  this->ref_r_offset_ = r_offset;
-                  this->ref_relobj_ = sym_obj;
-                  this->ref_shndx_ = sym_shndx;
-                }
+              bool forced_insn_length =
+                is_forced_insn_length<size, big_endian>(r_offset, reloc_count,
+                                                        relnum, preloc);
+              // Don't add reference to an input section if this instruction
+              // is forced to an explicit size.
+              if (is_ordinary && !forced_insn_length)
+                sym_obj->add_input_section_ref(sym_shndx);
             }
         }
       break;
@@ -6556,8 +6552,14 @@ inline bool
 Target_nanomips<size, big_endian>::Relocate::should_only_apply_addend(
     const Sized_symbol<size>* gsym,
     unsigned int flags,
+    bool reloc_in_composite_relocs,
     Output_section* output_section)
 {
+  // If this reloc is part of a composite relocations, then we didn't
+  // create a dynamic reloc, and we must apply the reloc here.
+  if (reloc_in_composite_relocs)
+    return false;
+
   // If the output section is not allocated, then we didn't call
   // scan_relocs, we didn't create a dynamic reloc, and we must apply
   // the reloc here.
@@ -6594,6 +6596,7 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
     section_size_type)
 {
   const elfcpp::Rela<size, big_endian> reloc(preloc);
+  const int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
   typename elfcpp::Elf_types<size>::Elf_WXword r_info = reloc.get_r_info();
   unsigned int r_sym = elfcpp::elf_r_sym<size>(r_info);
   unsigned int r_type = elfcpp::elf_r_type<size>(r_info);
@@ -6615,9 +6618,9 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
   Address next_r_offset = static_cast<Address>(0) - 1;
   unsigned int next_r_type = elfcpp::R_NANOMIPS_NONE;
 
+  bool old_calculate_only = this->calculate_only_;
   Nanomips_relobj<size, big_endian>* object =
     Nanomips_relobj<size, big_endian>::as_nanomips_relobj(relinfo->object);
-  const int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
   const Output_relaxed_input_section* poris =
     output_section->find_relaxed_input_section(object, relinfo->data_shndx);
 
@@ -6789,7 +6792,8 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
         // apply addend because dynamic relocation is SHT_REL and static
         // relocation is SHT_RELA.
         unsigned int flags = reloc_property->reference_flags();
-        if (this->should_only_apply_addend(gsym, flags, output_section))
+        if (this->should_only_apply_addend(gsym, flags, old_calculate_only,
+                                           output_section))
           value = r_addend;
       }
       // Fall through.
@@ -6966,31 +6970,6 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
     }
 
   return true;
-}
-
-// Report an unsupported relocation against a local symbol.
-
-template<int size, bool big_endian>
-void
-Target_nanomips<size, big_endian>::Scan::unsupported_reloc_local(
-    Sized_relobj_file<size, big_endian>* object,
-    unsigned int r_type)
-{
-  gold_error(_("%s: unsupported reloc %u against local symbol"),
-             object->name().c_str(), r_type);
-}
-
-// Report an unsupported relocation against a global symbol.
-
-template<int size, bool big_endian>
-void
-Target_nanomips<size, big_endian>::Scan::unsupported_reloc_global(
-    Sized_relobj_file<size, big_endian>* object,
-    unsigned int r_type,
-    Symbol* gsym)
-{
-  gold_error(_("%s: unsupported reloc %u against global symbol %s"),
-             object->name().c_str(), r_type, gsym->demangled_name().c_str());
 }
 
 template<int size, bool big_endian>
