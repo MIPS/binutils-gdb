@@ -1585,7 +1585,7 @@ class Target_nanomips : public Sized_target<size, big_endian>
 
    public:
     Scan()
-      : ref_r_offset_(invalid_address), ref_relobj_(NULL),
+      : prev_r_offset_(invalid_address), ref_relobj_(NULL),
         ref_shndx_(invalid_index), seen_norelax_(false)
     { }
 
@@ -1633,12 +1633,14 @@ class Target_nanomips : public Sized_target<size, big_endian>
     unsupported_reloc_global(Sized_relobj_file<size, big_endian>*,
                              unsigned int r_type, Symbol*);
 
-    // Offset to check if a relocation is marked with INSN32
-    // or FIXED relocation.
-    Address ref_r_offset_;
+    // r_offset of a previous relocation.  This is used to check if a
+    // relocation is marked with INSN32 or FIXED relocation, or if a
+    // relocation is a part of a composite relocations.
+    Address prev_r_offset_;
     // Object where we added reference.
     Nanomips_relobj<size, big_endian>* ref_relobj_;
-    // Section index of section being referenced with sw[gp]/lw[gp] instruction.
+    // Section index of section being referenced with sw[gp]/lw[gp]
+    // instruction.
     unsigned int ref_shndx_;
     // True if we have seen R_NANOMIPS_NORELAX relocation.
     bool seen_norelax_;
@@ -6212,13 +6214,14 @@ Target_nanomips<size, big_endian>::Scan::local(
   if (this->ref_relobj_ != NULL
       && ((r_type == elfcpp::R_NANOMIPS_INSN32
            || r_type == elfcpp::R_NANOMIPS_FIXED)
-          && this->ref_r_offset_ == r_offset))
+          && this->prev_r_offset_ == r_offset))
     {
       gold_assert(this->ref_shndx_ != invalid_index);
       this->ref_relobj_->remove_input_section_ref(this->ref_shndx_);
     }
 
-  this->ref_r_offset_ = invalid_address;
+  bool composite_relocs = r_offset == this->prev_r_offset_;
+  this->prev_r_offset_ = r_offset;
   this->ref_relobj_ = NULL;
   this->ref_shndx_ = invalid_index;
 
@@ -6241,7 +6244,12 @@ Target_nanomips<size, big_endian>::Scan::local(
       // apply the link-time value, so we flag the location with
       // an R_NANOMIPS_RELATIVE relocation so the dynamic loader
       // can relocate it easily.
-      if (parameters->options().output_is_position_independent())
+      // If R_NANOMIPS_32 relocation is a part of a composite
+      // relocs, we don't need to add dynamic reloc.  Currently
+      // we're relying on that R_NANOMIPS_32 is the last reloc in
+      // a composite relocations.
+      if (parameters->options().output_is_position_independent()
+          && !composite_relocs)
         {
           Reloc_section* rel_dyn = target->rel_dyn_section(layout);
           unsigned int r_sym = elfcpp::elf_r_sym<size>(reloc.get_r_info());
@@ -6289,7 +6297,7 @@ Target_nanomips<size, big_endian>::Scan::local(
                   // We need to check if this relocation is marked with INSN32
                   // or FIXED relocation.  In that case, we need to decrease
                   // reference to the section.
-                  this->ref_r_offset_ = r_offset;
+                  this->prev_r_offset_ = r_offset;
                   this->ref_relobj_ = relobj;
                   this->ref_shndx_ = shndx;
                 }
@@ -6381,7 +6389,8 @@ Target_nanomips<size, big_endian>::Scan::global(
   Nanomips_symbol<size>* nanomips_sym =
     Nanomips_symbol<size>::as_nanomips_sym(gsym);
 
-  this->ref_r_offset_ = invalid_address;
+  bool composite_relocs = r_offset == this->prev_r_offset_;
+  this->prev_r_offset_ = r_offset;
   this->ref_relobj_ = NULL;
   this->ref_shndx_ = invalid_index;
 
@@ -6390,7 +6399,12 @@ Target_nanomips<size, big_endian>::Scan::global(
     case elfcpp::R_NANOMIPS_32:
       {
         // Make a dynamic relocation if necessary.
-        if (gsym->needs_dynamic_reloc(nrp->reference_flags()))
+        // If R_NANOMIPS_32 relocation is a part of a composite
+        // relocs, we don't need to add dynamic reloc.  Currently
+        // we're relying on that R_NANOMIPS_32 is the last reloc in
+        // a composite relocations.
+        if (gsym->needs_dynamic_reloc(nrp->reference_flags())
+            && !composite_relocs)
           {
             if (!parameters->options().output_is_position_independent()
                 && gsym->may_need_copy_reloc())
@@ -6453,7 +6467,7 @@ Target_nanomips<size, big_endian>::Scan::global(
                   // We need to check if this relocation is marked with INSN32
                   // or FIXED relocation.  In that case, we need to decrease
                   // reference to the section.
-                  this->ref_r_offset_ = r_offset;
+                  this->prev_r_offset_ = r_offset;
                   this->ref_relobj_ = sym_obj;
                   this->ref_shndx_ = sym_shndx;
                 }
@@ -6619,6 +6633,7 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
   const int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
   const Output_relaxed_input_section* poris =
     output_section->find_relaxed_input_section(object, relinfo->data_shndx);
+  bool composite_relocs = this->calculate_only_;
 
   // TODO: Put reloc_count into Relocate_info.
   // Get the relocation count.
@@ -6789,9 +6804,12 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
       {
         // If we created non-RELATIVE dynamic relocation, we only need to
         // apply addend because dynamic relocation is SHT_REL and static
-        // relocation is SHT_RELA.
+        // relocation is SHT_RELA.  If R_NANOMIPS_32 reloc is a part of
+        // a composite relocations, we didn't create dynamic reloc and
+        // we must apply reloc.
         unsigned int flags = reloc_property->reference_flags();
-        if (this->should_only_apply_addend(gsym, flags, output_section))
+        if (!composite_relocs
+            && this->should_only_apply_addend(gsym, flags, output_section))
           value = r_addend;
       }
       // Fall through.
