@@ -784,8 +784,6 @@ static void s_nanomipsset (int);
 static void s_cpsetup (int);
 static void s_dtprelword (int);
 static void s_dtpreldword (int);
-static void s_tprelword (int);
-static void s_tpreldword (int);
 static void s_ehword (int);
 static void s_insn (int);
 static void s_module (int);
@@ -1053,8 +1051,6 @@ static const pseudo_typeS nanomips_pseudo_table[] = {
   {"cpreturn", s_ignore, 0},
   {"dtprelword", s_dtprelword, 0},
   {"dtpreldword", s_dtpreldword, 0},
-  {"tprelword", s_tprelword, 0},
-  {"tpreldword", s_tpreldword, 0},
   {"ehword", s_ehword, 0},
   {"cpadd", s_ignore, 0},
   {"insn", s_insn, 0},
@@ -11019,22 +11015,6 @@ static void
 s_dtpreldword (int ignore ATTRIBUTE_UNUSED)
 {
   s_tls_rel_directive (8, ".dtpreldword", BFD_RELOC_NANOMIPS_TLS_DTPREL);
-}
-
-/* Handle .tprelword.  */
-
-static void
-s_tprelword (int ignore ATTRIBUTE_UNUSED)
-{
-  s_tls_rel_directive (4, ".tprelword", BFD_RELOC_NANOMIPS_TLS_TPREL);
-}
-
-/* Handle .tpreldword.  */
-
-static void
-s_tpreldword (int ignore ATTRIBUTE_UNUSED)
-{
-  s_tls_rel_directive (8, ".tpreldword", BFD_RELOC_NANOMIPS_TLS_TPREL);
 }
 
 /* Handle the .ehword pseudo-op.  This is used when generating unwinding
