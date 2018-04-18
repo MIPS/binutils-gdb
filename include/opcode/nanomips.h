@@ -679,9 +679,9 @@ static const unsigned int nanomips_isa_table[] = {
 /* The Virtualization ASE has Global INValidate extension instructions
    which are only valid when both ASEs are enabled. */
 #define ASE_GINV_VIRT		0x00001000
-/* Low Power instructions on nanoMIPS.  */
+/* Excluded for low power instruction subset for nanoMIPS.  */
 #define ASE_xNMS		0x00002000
-/* TLB control instructions on nanoMIPS.  */
+/* TLB control ASE.  */
 #define ASE_TLB			0x00004000
 
 static inline bfd_boolean
