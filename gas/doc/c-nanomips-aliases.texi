@@ -99,16 +99,6 @@ drotr rt,rs,shift
 @tab N @tab 32
 @item
 @verbatim
-hypcall
-@end verbatim
-
-@tab @tab @verbatim
-hypcall 0
-@end verbatim
-
-@tab Y @tab 16/32
-@item
-@verbatim
 mfc0 rt,crs
 @end verbatim
 
@@ -124,26 +114,6 @@ mfc0 rt,crsname[,sel]
 
 @tab @tab @verbatim
 mfc0 rt,crs,sel
-@end verbatim
-
-@tab Y @tab 32
-@item
-@verbatim
-mfgc0 rt,crs
-@end verbatim
-
-@tab @tab @verbatim
-mfgc0 rt,crs,0
-@end verbatim
-
-@tab Y @tab 32
-@item
-@verbatim
-mfgc0 rt,crsname[,sel]
-@end verbatim
-
-@tab @tab @verbatim
-mfgc0 rt,crs,sel
 @end verbatim
 
 @tab Y @tab 32
@@ -169,26 +139,6 @@ mfhc0 rt,crs,sel
 @tab Y @tab 32
 @item
 @verbatim
-mfhgc0 rt,crs
-@end verbatim
-
-@tab @tab @verbatim
-mfhgc0 rt,crs,0
-@end verbatim
-
-@tab Y @tab 32
-@item
-@verbatim
-mfhgc0 rt,crsname[,sel]
-@end verbatim
-
-@tab @tab @verbatim
-mfhgc0 rt,crs,sel
-@end verbatim
-
-@tab Y @tab 32
-@item
-@verbatim
 mtc0 rt,crs
 @end verbatim
 
@@ -209,26 +159,6 @@ mtc0 rt,crs,sel
 @tab Y @tab 32
 @item
 @verbatim
-mtgc0 rt,crs
-@end verbatim
-
-@tab @tab @verbatim
-mtgc0 rt,crs,0
-@end verbatim
-
-@tab Y @tab 32
-@item
-@verbatim
-mtgc0 rt,crsname[,sel]
-@end verbatim
-
-@tab @tab @verbatim
-mtgc0 rt,crs,sel
-@end verbatim
-
-@tab Y @tab 32
-@item
-@verbatim
 mthc0 rt,crs
 @end verbatim
 
@@ -244,26 +174,6 @@ mthc0 rt,crsname[,sel]
 
 @tab @tab @verbatim
 mthc0 rt,crs,sel
-@end verbatim
-
-@tab Y @tab 32
-@item
-@verbatim
-mthgc0 rt,crs
-@end verbatim
-
-@tab @tab @verbatim
-mthgc0 rt,crs,0
-@end verbatim
-
-@tab Y @tab 32
-@item
-@verbatim
-mthgc0 rt,crsname[,sel]
-@end verbatim
-
-@tab @tab @verbatim
-mthgc0 rt,crs,sel
 @end verbatim
 
 @tab Y @tab 32

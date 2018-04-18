@@ -622,10 +622,7 @@ if { [istarget nanomips*-*-*] } {
 
     run_dump_test_arches "ginv" ""	[arch_list_matching nanomipsr6]
     run_dump_test_arches "ginv-dis" ""	[arch_list_matching nanomipsr6]
-    run_dump_test_arches "ginv-virt-dis" "" \
-					[arch_list_matching nanomipsr6]
     run_list_test "ginv-error" ""
-    run_list_test "ginv-virt-error" "-mginv -mlegacyregs"
     run_dump_test_arch "gpr-names-numeric" "" nanomips32r6
     run_dump_test_arch "gpr-names" "" nanomips32r6
 
@@ -840,15 +837,6 @@ if { [istarget nanomips*-*-*] } {
 					[arch_list_matching nanomips32]
     run_dump_test_arch "tlb-error" "" nms1
 
-    run_dump_test_opts "tlbg" {"-mvirt" "-mvirt -mtlb"} \
-					[arch_list_matching xnms]
-    run_dump_test_arch "tlbg" "-mvirt -mtlb" nms1
-    run_dump_test_arches "tlbg-error-ase" "" \
-					[arch_list_matching nanomips]
-    run_dump_test_arches "tlbg-error-isa" "" \
-					[arch_list_matching nanomips]	
-    run_dump_test_arch "tlbg-error" "" nms1
-
     run_dump_test_arches "tls-p32"	[arch_list_matching xnms]
     run_dump_test_arches "tls-relw"	[arch_list_matching xnms]
 
@@ -857,8 +845,6 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "u-ldsd" [arch_list_matching nanomipsr6]
     run_dump_test_arches "u-ldsd-64" [arch_list_matching nanomips64r6]
 
-    run_dump_test_arch "virt" "" nanomips32r6
-    
 #     run_list_test "ase-errors-1" "-mabi=32 -march=mips1" "ASE errors (1)"
 #     run_list_test "ase-errors-2" "-mabi=o64 -march=mips3" "ASE errors (2)"
 #     run_list_test "ase-errors-3" "-mabi=32 -march=mips1" "ASE errors (3)"

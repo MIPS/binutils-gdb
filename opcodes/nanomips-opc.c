@@ -298,11 +298,6 @@ decode_nanomips_operand (const char *p)
 /* nanoMIPS Enhanced VA Scheme.  */
 #define EVA	ASE_EVA
 
-/* nanoMIPS Virtualization ASE.  */
-#define IVIRT	ASE_VIRT
-#define IVIRT_XPA ASE_XPA_VIRT
-#define IVIRT_GINV ASE_GINV_VIRT
-
 /* MSA support.  */
 #define MSA     ASE_MSA
 #define MSA64   ASE_MSA64
@@ -783,11 +778,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"floor.w.s",	"",		"T,S",		0xa0000b3b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
 {"ginvi",	"",		"s",		0x20001f7f, 0xffe0ffff, RD_1,			0,	0,	GINV},
 {"ginvt",	"",		"s,+;", 	0x20000f7f, 0xff80ffff, RD_1,			0,	0,	GINV},
-{"ginvgt",	"",		"s,+;", 	0x20000d7f, 0xff80ffff, RD_1,			0,	0,	IVIRT_GINV},
-{"hypcall",	"[16]", 	"",		0x100c, 	0xffff,		0,	INSN2_ALIAS,	0,	IVIRT}, /* HYPCALL[16] */
-{"hypcall",	"[16]", 	"mP",		0x100c, 	0xfffc,		0,		0,	0,	IVIRT}, /* HYPCALL[16] */
-{"hypcall",	"[32]", 	"",		0x000c0000, 0xffffffff,		0,	INSN2_ALIAS,	0,	IVIRT},
-{"hypcall",	"[32]", 	"+M",		0x000c0000, 0xfffc0000,		0,		0,	0,	IVIRT},
 {"ins", 	"",		"t,r,+A,+B",	0x8000e000, 0xfc00f820,	WR_1|RD_2,		0,	0,	xNMS},
 {"ins", 	"",		"t,r,+A,+B",	0,    (int) M_INS,	INSN_MACRO,		0,	I38,	0},
 {"insv",	"",		"t,s",		0x2000413f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32},
@@ -944,18 +934,12 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"mfc1",	"",		"t,S",		0xa000203b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
 {"mfc1",	"",		"t,G",		0xa000203b, 0xfc00ffff,	WR_1|RD_2|FP_S,	INSN2_ALIAS,	I38,	0},
 {"mfc2",	"",		"t,G",		0x20004d3f, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
-{"mfgc0",	"",		"t,O",		0x200000b0, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	IVIRT}, /* MFGC0 with named register */
-{"mfgc0",	"",		"t,P,J",	0x200000b0, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	IVIRT},  /* MFGC0 with named register & select */
-{"mfgc0",	"",		"t,G,J",	0x200000b0, 0xfc0007ff,	WR_1,			0,	0,	IVIRT},
 {"mfhc0",	"",		"t,O",		0x20000038, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	I38,	0}, /* MFHC0 with named register */
 {"mfhc0",	"",		"t,P,J",	0x20000038, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	I38,	0}, /* MFHC0 with named register & select*/
 {"mfhc0",	"",		"t,G,J",	0x20000038, 0xfc0007ff,	WR_1,			0,	I38,	0},
 {"mfhc1",	"",		"t,S",		0xa000303b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
 {"mfhc1",	"",		"t,G",		0xa000303b, 0xfc00ffff,	WR_1|RD_2|FP_D,	INSN2_ALIAS,	I38,	0},
 {"mfhc2",	"",		"t,G",		0x20008d3f, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
-{"mfhgc0",	"",		"t,O",		0x200000b8, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	IVIRT}, /* MFHGC0 with named register */
-{"mfhgc0",	"",		"t,P,J",	0x200000b8, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	IVIRT}, /* MFHGC0 with named register & select*/
-{"mfhgc0",	"",		"t,G,J",	0x200000b8, 0xfc0007ff,	WR_1,			0,	0,	IVIRT},
 {"mfhi",	"[dsp]",	"t,7",		0x2000007f, 0xfc1f3fff,	WR_1|RD_2,		0,	0,	D32}, /* MFHI[DSP] */
 {"mflo",	"[dsp]",	"t,7",		0x2000107f, 0xfc1f3fff,	WR_1|RD_2,		0,	0,	D32}, /* MFLO[DSP] */
 {"mftc0",	"",		"t,O",		0x20000230, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	MT32}, /* MFTR with named register */
@@ -1004,18 +988,12 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"mtc1",	"",		"t,S",		0xa000283b, 0xfc00ffff,	RD_1|WR_2|FP_S,		0,	I38,	0},
 {"mtc1",	"",		"t,G",		0xa000283b, 0xfc00ffff,	RD_1|WR_2|FP_S,	INSN2_ALIAS,	I38,	0},
 {"mtc2",	"",		"t,G",		0x20005d3f, 0xfc00ffff,	RD_1|WR_2,		0,	I38,	0},
-{"mtgc0",	"",		"t,O",		0x200000f0, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	IVIRT}, /* MTGC0 with named register */
-{"mtgc0",	"",		"t,P,J",	0x200000f0, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	IVIRT}, /* MTGC0 with named register & select */
-{"mtgc0",	"",		"t,G,J",	0x200000f0, 0xfc0007ff,	RD_1,			0,	0,	IVIRT},
 {"mthc0",	"",		"t,O",		0x20000078, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	I38,	0}, /* MTHC0 with named register */
 {"mthc0",	"",		"t,P,J",	0x20000078, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	I38,	0}, /* MTHC0 with named register & select */
 {"mthc0",	"",		"t,G,J",	0x20000078, 0xfc0007ff,	RD_1,			0,	I38,	0},
 {"mthc1",	"",		"t,S",		0xa000383b, 0xfc00ffff,	RD_1|WR_2|FP_D,		0,	I38,	0},
 {"mthc1",	"",		"t,G",		0xa000383b, 0xfc00ffff,	RD_1|WR_2|FP_D,	INSN2_ALIAS,	I38,	0},
 {"mthc2",	"",		"t,G",		0x20009d3f, 0xfc00ffff,	RD_1|WR_2,		0,	I38,	0},
-{"mthgc0",	"",		"t,O",		0x200000f8, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	IVIRT}, /* MTHGC0 with named register */
-{"mthgc0",	"",		"t,P,J",	0x200000f8, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	IVIRT}, /* MTHGC0 with named register & select */
-{"mthgc0",	"",		"t,G,J",	0x200000f8, 0xfc0007ff,	RD_1,			0,	0,	IVIRT},
 {"mthi",	"[dsp]",	"s,7",		0x2000207f, 0xffe03fff,	WR_1|RD_2,		0,	0,	D32}, /* MTHI[DSP] */
 {"mthlip",	"",		"s,7",		0x2000027f, 0xffe03fff,	WR_1|RD_2,		0,	0,	D32},
 {"mtlo",	"[dsp]",	"s,7",		0x2000307f, 0xffe03fff,	WR_1|RD_2,		0,	0,	D32}, /* MTLO[DSP] */
@@ -1347,12 +1325,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"tne", 	"",		"s,t",		0x20000400, 0xfc00ffff,	RD_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* TNE */
 {"tne", 	"",		"s,t,^",	0x20000400, 0xfc0007ff,	RD_1|RD_2,		0,	0,	xNMS}, /* TNE */
 {"tne", 	"",		"s,I",		0, 	 (int) M_TNE_I,	INSN_MACRO,		0,	0,	xNMS},
-{"tlbginv",	"",		"",		0x2000057f, 0xffffffff,		0,		0,	0,	IVIRT|TLB},
-{"tlbginvf",	"",		"",		0x2000157f, 0xffffffff,		0,		0,	0,	IVIRT|TLB},
-{"tlbgp",	"",		"",		0x2000017f, 0xffffffff,		0,		0,	0,	IVIRT|TLB},
-{"tlbgr",	"",		"",		0x2000117f, 0xffffffff,		0,		0,	0,	IVIRT|TLB},
-{"tlbgwi",	"",		"",		0x2000217f, 0xffffffff,		0,		0,	0,	IVIRT|TLB},
-{"tlbgwr",	"",		"",		0x2000317f, 0xffffffff,		0,		0,	0,	IVIRT|TLB},
 {"tlbinv",	"",		"",		0x2000077f, 0xffffffff,		0,		0,	0,	TLB},
 {"tlbinvf",	"",		"",		0x2000177f, 0xffffffff,		0,		0,	0,	TLB},
 {"tlbp",	"",		"",		0x2000037f, 0xffffffff,		0,		0,	0,	TLB},
