@@ -858,7 +858,6 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "u-ldsd-64" [arch_list_matching nanomips64r6]
 
     run_dump_test_arch "virt" "" nanomips32r6
-    run_dump_test_arch "virt64"	"" nanomips64r6
     
 #     run_list_test "ase-errors-1" "-mabi=32 -march=mips1" "ASE errors (1)"
 #     run_list_test "ase-errors-2" "-mabi=o64 -march=mips3" "ASE errors (2)"

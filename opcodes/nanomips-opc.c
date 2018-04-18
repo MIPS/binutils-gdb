@@ -300,7 +300,6 @@ decode_nanomips_operand (const char *p)
 
 /* nanoMIPS Virtualization ASE.  */
 #define IVIRT	ASE_VIRT
-#define IVIRT64	ASE_VIRT64
 #define IVIRT_XPA ASE_XPA_VIRT
 #define IVIRT_GINV ASE_GINV_VIRT
 
@@ -696,9 +695,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"dmfc0",	"",		"t,G,J",	0x20000130, 0xfc0007ff,	WR_1,			0,	I70,	0},
 {"dmfc1",	"",		"t,S",		0xa000243b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I70,	0},
 {"dmfc2",	"",		"t,G",		0x20006d3f, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
-{"dmfgc0",	"",		"t,O",		0x200001b0, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	IVIRT64}, /* DMFGC0 with named register */
-{"dmfgc0",	"",		"t,P,J",	0x200001b0, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	IVIRT64}, /* DMFGC0 with named register & select */
-{"dmfgc0",	"",		"t,G,J",	0x200001b0, 0xfc0007ff,	WR_1,			0,	0,	IVIRT64},
 {"dmod",	"",		"d,v,t",	0xc0000158, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,	0},
 {"dmod",	"",		"d,v,I",	0,    (int) M_DMOD_I,	INSN_MACRO,		0,	I70,	0},
 {"dmodu",	"",		"d,v,t",	0xc00001d8, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,	0},
@@ -710,9 +706,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"dmtc0",	"",		"t,G,J",	0x20000170, 0xfc0007ff,	RD_1,			0,	I70,	0},
 {"dmtc1",	"",		"t,S",		0xa0002c3b, 0xfc00ffff,	RD_1|WR_2|FP_D,		0,	I70,	0},
 {"dmtc2",	"",		"t,G",		0x20007d3f, 0xfc00ffff,	RD_1|WR_2,		0,	I38,	0},
-{"dmtgc0",	"",		"t,O",		0x200001f0, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	IVIRT64}, /* DMTGC0 with named register */
-{"dmtgc0",	"",		"t,P,J",	0x200001f0, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	0,	IVIRT64}, /* DMTGC0 with named register & select */
-{"dmtgc0",	"",		"t,G,J",	0x200001f0, 0xfc0007ff,	RD_1,			0,	0,	IVIRT64},
 {"dmuh",	"",		"d,s,t",	0xc0000058, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,	0},
 {"dmuhu",	"",		"d,s,t",	0xc00000d8, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,	0},
 {"dmul",	"",		"d,v,t",	0xc0000018, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,	0},

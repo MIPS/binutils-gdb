@@ -69,27 +69,6 @@ dmfc0 rt,crs,sel
 
 @item
 @verbatim
-dmfgc0 rt,crs
-@end verbatim
-
-@tab @tab @verbatim
-dmfgc0 rt,crs,0
-@end verbatim
-
-@tab Y @tab 32
-
-@item
-@verbatim
-dmfgc0 rt,crsname[,sel]
-@end verbatim
-
-@tab @tab @verbatim
-dmfgc0 rt,crs,sel
-@end verbatim
-@tab Y @tab 32
-
-@item
-@verbatim
 dmtc0 rt,crs
 @end verbatim
 
@@ -105,26 +84,6 @@ dmtc0 rt,crsname[,sel]
 
 @tab @tab @verbatim
 dmtc0 rt,crs,sel
-@end verbatim
-
-@tab Y @tab 32
-@item
-@verbatim
-dmtgc0 rt,crs
-@end verbatim
-
-@tab @tab @verbatim
-dmtgc0 rt,crs,0
-@end verbatim
-
-@tab Y @tab 32
-@item
-@verbatim
-dmtgc0 rt,crsname[,sel]
-@end verbatim
-
-@tab @tab @verbatim
-dmtgc0 rt,crs,sel
 @end verbatim
 
 @tab Y @tab 32
