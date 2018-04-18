@@ -315,8 +315,6 @@ decode_nanomips_operand (const char *p)
 #define xNMS	ASE_xNMS
 /* TLB manipulations.  */
 #define TLB	ASE_TLB
-/* UDI, just a place-holder for now.  */
-#define UDI	0
 
 /* Base ISA for nanoMIPS. */
 #define I38	INSN_ISAN32R6
@@ -1253,7 +1251,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"sne", 	"",		"d,v,t",	0,	(int) M_SNE,	INSN_MACRO,		0,	I38,	0},
 {"sne", 	"",		"d,v,I",	0,	(int) M_SNE_I,	INSN_MACRO,		0,	I38,	0},
 {"sov", 	"",		"d,v,t",	0x200003d0, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
-{"special2",	"",		"+8",		0x20000001, 0xfc000007,	INSN_UDI,		0,	0,	UDI},
 {"sqrt.d",	"",		"T,S",		0xa0004a3b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
 {"sqrt.s",	"",		"T,S",		0xa0000a3b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
 {"srav",	"",		"d,s,t",	0x20000090, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
@@ -1351,7 +1348,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"usd", 	"",		"t,A(c)",	0,	(int) M_USD_AC,	INSN_MACRO,		0,	0,	xNMS},
 {"ush", 	"",		"t,A(c)",	0,	(int) M_USH_AC,	INSN_MACRO,		0,	0,	xNMS},
 {"usw", 	"",		"t,A(c)",	0,	(int) M_USW_AC,	INSN_MACRO,		0,	0,	xNMS},
-{"udi", 	"",		"+8",		0x20000003, 0xfc000007,	INSN_UDI,		0,	0,	UDI},
 {"wait",	"",		"",		0x2000c37f, 0xffffffff,		0,	INSN2_ALIAS,	I38,	0},
 {"wait",	"",		"+L",		0x2000c37f, 0xfc00ffff,		0,		0,	I38,	0},
 {"wrdsp",	"",		"t",		0x201fd67f, 0xfc1fffff,	RD_1,		INSN2_ALIAS,	0,	D32},
