@@ -1295,21 +1295,17 @@ nanomips_isa_rev (void)
    appropriate.  */
 
 static void
-nanomips_check_isa_supports_ase (const struct nanomips_ase *ase)
+check_isa_supports_ase (const struct nanomips_ase *ase)
 {
   int min_rev, size;
-  static unsigned int warned_isa;
-  static unsigned int warned_fp32;
 
   if (ISA_HAS_64BIT_REGS (nanomips_opts.isa))
     min_rev = ase->nanomips64_rev;
   else
     min_rev = ase->nanomips32_rev;
 
-  if ((min_rev < 0 || nanomips_isa_rev () < min_rev)
-      && (warned_isa & ase->flags) != ase->flags)
+  if (min_rev < 0 || nanomips_isa_rev () < min_rev)
     {
-      warned_isa |= ase->flags;
       size = ISA_HAS_64BIT_REGS (nanomips_opts.isa) ? 64 : 32;
       if (min_rev < 0)
 	as_warn (_("the %d-bit nanoMIPS architecture does not support the"
@@ -1318,21 +1314,13 @@ nanomips_check_isa_supports_ase (const struct nanomips_ase *ase)
 	as_warn (_("the `%s' extension requires nanoMIPS%d revision %d or "
 		   "greater"), ase->name, size, min_rev);
     }
-
-  if ((ase->flags & ASE_MSA)
-      && nanomips_opts.fp != 64
-      && (warned_fp32 & ase->flags) != ase->flags)
-    {
-      warned_fp32 |= ase->flags;
-      as_warn (_("the `%s' extension requires 64-bit FPRs"), ase->name);
-    }
 }
 
 /* Check all enabled ASEs to see whether they are supported by the
    chosen architecture.  */
 
 static void
-nanomips_check_isa_supports_ases (void)
+check_isa_supports_ases (void)
 {
   unsigned int i, mask;
 
@@ -1340,7 +1328,7 @@ nanomips_check_isa_supports_ases (void)
     {
       mask = nanomips_ases[i].flags;
       if ((nanomips_opts.ase & mask) == nanomips_ases[i].flags)
-	nanomips_check_isa_supports_ase (&nanomips_ases[i]);
+	check_isa_supports_ase (&nanomips_ases[i]);
     }
 }
 
@@ -2880,7 +2868,7 @@ file_check_options (void)
   /* Set up the current options.  These may change throughout assembly.  */
   nanomips_opts = file_nanomips_opts;
 
-  nanomips_check_isa_supports_ases ();
+  check_isa_supports_ases ();
   file_nanomips_opts_checked = TRUE;
 
   if (!bfd_set_arch_mach (stdoutput, bfd_arch_nanomips,
@@ -10890,7 +10878,7 @@ s_nanomipsset (int x ATTRIBUTE_UNUSED)
 	}
     }
 
-  nanomips_check_isa_supports_ases ();
+  check_isa_supports_ases ();
   *input_line_pointer = ch;
   demand_empty_rest_of_line ();
 }
