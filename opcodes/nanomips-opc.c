@@ -316,7 +316,6 @@ decode_nanomips_operand (const char *p)
 
 /* Cyclic redundancy check instruction (CRC) support.  */
 #define CRC	ASE_CRC
-#define CRC64	ASE_CRC64
 
 /* nanoMIPS instruction subset.  */
 #define xNMS	ASE_xNMS
@@ -631,11 +630,9 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"crc32b",	"",		"t,r",		0x200003e8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC},
 {"crc32h",	"",		"t,r",		0x200007e8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC},
 {"crc32w",	"",		"t,r",		0x20000be8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC},
-{"crc32d",	"",		"t,r",		0x20000fe8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC64},
 {"crc32cb",	"",		"t,r",		0x200013e8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC},
 {"crc32ch",	"",		"t,r",		0x200017e8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC},
 {"crc32cw",	"",		"t,r",		0x20001be8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC},
-{"crc32cd",	"",		"t,r",		0x20001fe8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC64},
 {"ctc1",	"",		"t,G",		0xa000183b, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS,	I38,	0},
 {"ctc1",	"",		"t,S",		0xa000183b, 0xfc00ffff,	RD_1|WR_2,		0,	I38,	0},
 {"ctc2",	"",		"t,G",		0x2000dd3f, 0xfc00ffff,	RD_1|WR_2,		0,	I38,	0},

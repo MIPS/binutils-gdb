@@ -569,7 +569,6 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "cp1-names" "" nanomips32r6
 
     run_dump_test_arches "crc" ""	[arch_list_matching nanomips32]
-    run_dump_test_arch "crc64" "" nanomips64r6
     run_list_test "crc-error"
     run_dump_test_arch "ctc" "" nanomips32
 
