@@ -62,5 +62,4 @@ Disassembly of section \.text:
   [0-9a-f]+:	8085 c1e0 	drotr32	a0,a1,0
   [0-9a-f]+:	8085 c1df 	drotr	a0,a1,31
   [0-9a-f]+:	8085 c1c1 	drotr	a0,a1,1
-  [0-9a-f]+:	2064 6d3f 	dmfc2	t5,\$4
-  [0-9a-f]+:	20c7 7d3f 	dmtc2	a2,\$7
+#pass

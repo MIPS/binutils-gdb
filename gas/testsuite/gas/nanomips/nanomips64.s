@@ -89,9 +89,3 @@ text_label:
 	dror	$4,$5,97
 	dror	$4,$5,127
 	.endif
-
-	# unprivileged coprocessor instructions.
-	# these tests use cp2 to avoid other (cp0, fpu, prefetch) opcodes.
-
-	dmfc2   $3, $4
-	dmtc2   $6, $7

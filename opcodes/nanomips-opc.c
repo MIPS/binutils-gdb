@@ -687,7 +687,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"dmfc0",	"",		"t,P,J",	0x20000130, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	I70,	0}, /* DMFC0 with named register & select */
 {"dmfc0",	"",		"t,G,J",	0x20000130, 0xfc0007ff,	WR_1,			0,	I70,	0},
 {"dmfc1",	"",		"t,S",		0xa000243b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I70,	0},
-{"dmfc2",	"",		"t,G",		0x20006d3f, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
 {"dmod",	"",		"d,v,t",	0xc0000158, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,	0},
 {"dmod",	"",		"d,v,I",	0,    (int) M_DMOD_I,	INSN_MACRO,		0,	I70,	0},
 {"dmodu",	"",		"d,v,t",	0xc00001d8, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,	0},
@@ -698,7 +697,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"dmtc0",	"",		"t,P,J",	0x20000170, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	I70,	0}, /* DMTC0 with named register & select */
 {"dmtc0",	"",		"t,G,J",	0x20000170, 0xfc0007ff,	RD_1,			0,	I70,	0},
 {"dmtc1",	"",		"t,S",		0xa0002c3b, 0xfc00ffff,	RD_1|WR_2|FP_D,		0,	I70,	0},
-{"dmtc2",	"",		"t,G",		0x20007d3f, 0xfc00ffff,	RD_1|WR_2,		0,	I38,	0},
 {"dmuh",	"",		"d,s,t",	0xc0000058, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,	0},
 {"dmuhu",	"",		"d,s,t",	0xc00000d8, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,	0},
 {"dmul",	"",		"d,v,t",	0xc0000018, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,	0},
