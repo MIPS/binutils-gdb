@@ -173,6 +173,5 @@ Disassembly of section .text:
  [0-9a-f]+:	sh	a0,0\(zero\)
  [0-9a-f]+:	sw	a0,0\(zero\)
  [0-9a-f]+:	swc1	\$f4,0\(zero\)
- [0-9a-f]+:	swc2	\$4,0\(zero\)
  [0-9a-f]+:	swc1	\$f4,0\(zero\)
 #pass

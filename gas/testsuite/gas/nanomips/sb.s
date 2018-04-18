@@ -70,5 +70,4 @@ data_label:
 	sh	$4,0
 	sw	$4,0
 	swc1	$4,0
-	swc2	$4,0
 	s.s	$f4,0

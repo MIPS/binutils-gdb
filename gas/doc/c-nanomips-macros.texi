@@ -2918,21 +2918,6 @@ scwp rd,ru,($at)
 @multitable @columnfractions 1
 @item @xref{x_sw_label,,sw to label}.
 @end multitable
-@item lwc2 rd,ofst(rs)
-@itemx ldc2 rd,ofst(rs)
-@itemx swc2 rd,ofst(rs)
-@itemx sdc2 rd,ofst(rs)
-@multitable @columnfractions 1
-@item @xref{x_ll_ofst,,ll from offset}.
-@end multitable
-@item lwc2 rd,label
-@itemx ldc2 rd,label
-@itemx swc2 rd,label
-@itemx sdc2 rd,label
-@multitable @columnfractions 1
-@item @xref{x_ll_label,,ll from label}.
-@item
-@end multitable
 @anchor{x_swx_label}@item sw rd,label(rs)
 @multitable @columnfractions 0.3 0.4 0.3
 @item

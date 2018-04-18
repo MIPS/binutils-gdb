@@ -460,10 +460,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"bc1eqz",	"",		"T,p",		0x88004000, 0xfc1fc000,	RD_1,	INSN2_ALIAS|CBR|CTC,	I38,	0}, /* BC1EQZC */
 {"bc1nezc",	"",		"T,p",		0x88014000, 0xfc1fc000,	RD_1,			0,	I38,	0},
 {"bc1nez",	"",		"T,p",		0x88014000, 0xfc1fc000,	RD_1,	INSN2_ALIAS|CBR|CTC,	I38,	0}, /* BC1NEZC */
-{"bc2eqzc",	"",		"E,p",		0x88024000, 0xfc1fc000,	RD_1,			0,	I38,	0},
-{"bc2eqz",	"",		"E,p",		0x88024000, 0xfc1fc000,	RD_1,	INSN2_ALIAS|CBR|CTC,	I38,	0}, /* BC2EQZC */
-{"bc2nezc",	"",		"E,p",		0x88034000, 0xfc1fc000,	RD_1,			0,	I38,	0},
-{"bc2nez",	"",		"E,p",		0x88034000, 0xfc1fc000,	RD_1,	INSN2_ALIAS|CBR|CTC,	I38,	0}, /* BC2NEZC */
 {"beqzc",	"[16]", 	"md,mE",	0x9800, 	0xfc00,	RD_1,			0,	I38,	0}, /* BEQZC[16] */
 {"beqzc",	"[32]", 	"t,p",		0x88000000, 0xfc1fc000,	RD_1,		INSN2_ALIAS,	I38,	0}, /* BEQC */
 {"beqzc",	"[32]", 	"s,p",		0x88000000, 0xffe0c000,	RD_1,		INSN2_ALIAS,	I38,	0}, /* BEQC */
@@ -554,7 +550,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"ceil.w.s",	"",		"T,S",		0xa0001b3b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
 {"cfc1",	"",		"t,G",		0xa000103b, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	I38,	0},
 {"cfc1",	"",		"t,S",		0xa000103b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
-{"cfc2",	"",		"t,G",		0x2000cd3f, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
 {"cftc1",	"",		"t,G",		0x20001e30, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	MT32}, /* MFTR */
 {"cftc1",	"",		"t,S",		0x20001e30, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	MT32}, /* MFTR */
 {"cftc2",	"",		"t,G",		0x20002e30, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	MT32}, /* MFTR */
@@ -627,7 +622,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"crc32cw",	"",		"t,r",		0x20001be8, 0xfc00ffff,	WR_1|RD_2,		0,	0,	CRC},
 {"ctc1",	"",		"t,G",		0xa000183b, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS,	I38,	0},
 {"ctc1",	"",		"t,S",		0xa000183b, 0xfc00ffff,	RD_1|WR_2,		0,	I38,	0},
-{"ctc2",	"",		"t,G",		0x2000dd3f, 0xfc00ffff,	RD_1|WR_2,		0,	I38,	0},
 {"cttc1",	"",		"t,G",		0x20001e70, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS,	0,	MT32}, /* MTTR */
 {"cttc1",	"",		"t,S",		0x20001e70, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS,	0,	MT32}, /* MTTR */
 {"cttc2",	"",		"t,G",		0x20002e70, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS,	0,	MT32}, /* MTTR */
@@ -829,8 +823,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"l.d", 	"[s9]", 	"T,+j(b)",	0xa4007000, 0xfc007f00,	WR_1|RD_3|FP_D,	INSN2_ALIAS,	I38,	0}, /* LDC1[S9] */
 {"l.d", 	"",		"T,A(c)",	0,     (int) M_LDC1_AC,	INSN_MACRO,	INSN2_M_FP_D,	I38,	0},
 {"ldc1xs",	"",		"R,s(t)",	0x20000747, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"ldc2",	"",		"E,+j(b)",	0xa4006100, 0xfc007f00,	WR_1|RD_3,		0,	I38,	0},
-{"ldc2",	"",		"E,A(c)",	0,     (int) M_LDC2_AC,	INSN_MACRO,		0,	I38,	0},
 {"ldpc",	"",		"mp,+S",	0x601b,     0xfc1f,	WR_1,			0,	I70,	0}, /* LDPC[48] */
 {"ldx", 	"",		"d,s(t)",	0x20000607, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,	0},
 {"ldxs",	"",		"d,s(t)",	0x20000647, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I70,	0},
@@ -894,8 +886,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"l.s", 	"",		"T,A(c)",	0,     (int) M_LWC1_AC,	INSN_MACRO,	INSN2_M_FP_S,	I38,	0},
 {"lwc1x",	"",		"R,s(t)",	0x20000507, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
 {"lwc1xs",	"",		"R,s(t)",	0x20000547, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"lwc2",	"",		"E,+j(b)",	0xa4004100, 0xfc007f00,	WR_1|RD_3,		0,	I38,	0},
-{"lwc2",	"",		"E,A(c)",	0,     (int) M_LWC2_AC,	INSN_MACRO,		0,	I38,	0},
 {"ldm", 	"",		"t,+j(b),|",	0xa4000600, 0xfc000f00,	WR_1|RD_3,		0,	I70,	0}, /* LDM */
 {"lwe", 	"",		"t,+j(b)",	0xa4004200, 0xfc007f00,	WR_1|RD_3,		0,	0,	EVA},
 {"lwe", 	"",		"t,A(c)",	0,	(int) M_LWE_AC,	INSN_MACRO,		0,	0,	EVA},
@@ -929,13 +919,11 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"mfc0",	"",		"t,G,J",	0x20000030, 0xfc0007ff,	WR_1,			0,	I38,	0},
 {"mfc1",	"",		"t,S",		0xa000203b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
 {"mfc1",	"",		"t,G",		0xa000203b, 0xfc00ffff,	WR_1|RD_2|FP_S,	INSN2_ALIAS,	I38,	0},
-{"mfc2",	"",		"t,G",		0x20004d3f, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
 {"mfhc0",	"",		"t,O",		0x20000038, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	I38,	0}, /* MFHC0 with named register */
 {"mfhc0",	"",		"t,P,J",	0x20000038, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	I38,	0}, /* MFHC0 with named register & select*/
 {"mfhc0",	"",		"t,G,J",	0x20000038, 0xfc0007ff,	WR_1,			0,	I38,	0},
 {"mfhc1",	"",		"t,S",		0xa000303b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
 {"mfhc1",	"",		"t,G",		0xa000303b, 0xfc00ffff,	WR_1|RD_2|FP_D,	INSN2_ALIAS,	I38,	0},
-{"mfhc2",	"",		"t,G",		0x20008d3f, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
 {"mfhi",	"[dsp]",	"t,7",		0x2000007f, 0xfc1f3fff,	WR_1|RD_2,		0,	0,	D32}, /* MFHI[DSP] */
 {"mflo",	"[dsp]",	"t,7",		0x2000107f, 0xfc1f3fff,	WR_1|RD_2,		0,	0,	D32}, /* MFLO[DSP] */
 {"mftc0",	"",		"t,O",		0x20000230, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	MT32}, /* MFTR with named register */
@@ -983,13 +971,11 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"mtc0",	"",		"t,G,J",	0x20000070, 0xfc0007ff,	RD_1,			0,	I38,	0},
 {"mtc1",	"",		"t,S",		0xa000283b, 0xfc00ffff,	RD_1|WR_2|FP_S,		0,	I38,	0},
 {"mtc1",	"",		"t,G",		0xa000283b, 0xfc00ffff,	RD_1|WR_2|FP_S,	INSN2_ALIAS,	I38,	0},
-{"mtc2",	"",		"t,G",		0x20005d3f, 0xfc00ffff,	RD_1|WR_2,		0,	I38,	0},
 {"mthc0",	"",		"t,O",		0x20000078, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	I38,	0}, /* MTHC0 with named register */
 {"mthc0",	"",		"t,P,J",	0x20000078, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	I38,	0}, /* MTHC0 with named register & select */
 {"mthc0",	"",		"t,G,J",	0x20000078, 0xfc0007ff,	RD_1,			0,	I38,	0},
 {"mthc1",	"",		"t,S",		0xa000383b, 0xfc00ffff,	RD_1|WR_2|FP_D,		0,	I38,	0},
 {"mthc1",	"",		"t,G",		0xa000383b, 0xfc00ffff,	RD_1|WR_2|FP_D,	INSN2_ALIAS,	I38,	0},
-{"mthc2",	"",		"t,G",		0x20009d3f, 0xfc00ffff,	RD_1|WR_2,		0,	I38,	0},
 {"mthi",	"[dsp]",	"s,7",		0x2000207f, 0xffe03fff,	WR_1|RD_2,		0,	0,	D32}, /* MTHI[DSP] */
 {"mthlip",	"",		"s,7",		0x2000027f, 0xffe03fff,	WR_1|RD_2,		0,	0,	D32},
 {"mtlo",	"[dsp]",	"s,7",		0x2000307f, 0xffe03fff,	WR_1|RD_2,		0,	0,	D32}, /* MTLO[DSP] */
@@ -1165,8 +1151,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"s.d", 	"", 		"T,A(c)",	0,     (int) M_SDC1_AC,	INSN_MACRO,	INSN2_M_FP_D,	I38,	0},
 {"sdc1x",	"",		"R,s(t)",	0x20000787, 0xfc0007ff, RD_1|RD_2|RD_3|FP_D,	0,	I38,	0},
 {"sdc1xs",	"",		"R,s(t)",	0x200007c7, 0xfc0007ff, RD_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"sdc2",	"",		"E,+j(b)",	0xa4006900, 0xfc007f00,	RD_1|RD_3,		0,	I38,	0},
-{"sdc2",	"",		"E,A(c)",	0,     (int) M_SDC2_AC,	INSN_MACRO,		0,	I38,	0},
 {"sdpc",	"",		"mp,+S",	0x601f, 	0xfc1f,	WR_1,			0,	I70,	0}, /* LDPC[48] */
 {"sdx", 	"",		"d,s(t)",	0x20000687, 0xfc0007ff, RD_1|RD_2|RD_3,		0,	I70,	0},
 {"sdxs",	"",		"d,s(t)",	0x200006c7, 0xfc0007ff, RD_1|RD_2|RD_3,		0,	I70,	0},
@@ -1300,8 +1284,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"s.s", 	"",		"T,A(c)",	0,     (int) M_SWC1_AC,	INSN_MACRO,	INSN2_M_FP_S,	I38,	0},
 {"swc1x",	"",		"R,s(t)",	0x20000587, 0xfc0007ff, RD_1|RD_2|RD_3|FP_S,	0,	I38,	0},
 {"swc1xs",	"",		"R,s(t)",	0x200005c7, 0xfc0007ff, RD_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"swc2",	"",		"E,+j(b)",	0xa4004900, 0xfc007f00,	RD_1|RD_3,		0,	I38,	0},
-{"swc2",	"",		"E,A(c)",	0,     (int) M_SWC2_AC,	INSN_MACRO,		0,	I38,	0},
 {"sdm", 	"",		"t,+j(b),|",	0xa4000e00, 0xfc000f00,	RD_1|RD_3,		0,	I70,	0}, /* SDM */
 {"swe", 	"",		"t,+j(b)",	0xa4004a00, 0xfc007f00,	RD_1|RD_3,		0,	0,	EVA},
 {"swe", 	"",		"t,A(c)",	0,      (int) M_SWE_AC,	INSN_MACRO,		0,	0,	EVA},

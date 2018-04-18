@@ -101,38 +101,6 @@ fp_test:
 	cfc1	$a1, $f30
 	cfc1	$a1, $f31
 
-	cfc2	$a1, $0
-	cfc2	$a1, $1
-	cfc2	$a1, $2
-	cfc2	$a1, $3
-	cfc2	$a1, $4
-	cfc2	$a1, $5
-	cfc2	$a1, $6
-	cfc2	$a1, $7
-	cfc2	$a1, $8
-	cfc2	$a1, $9
-	cfc2	$a1, $10
-	cfc2	$a1, $11
-	cfc2	$a1, $12
-	cfc2	$a1, $13
-	cfc2	$a1, $14
-	cfc2	$a1, $15
-	cfc2	$a1, $16
-	cfc2	$a1, $17
-	cfc2	$a1, $18
-	cfc2	$a1, $19
-	cfc2	$a1, $20
-	cfc2	$a1, $21
-	cfc2	$a1, $22
-	cfc2	$a1, $23
-	cfc2	$a1, $24
-	cfc2	$a1, $25
-	cfc2	$a1, $26
-	cfc2	$a1, $27
-	cfc2	$a1, $28
-	cfc2	$a1, $29
-	cfc2	$a1, $30
-	cfc2	$a1, $31
  	ctc1	$a1, $0
 	ctc1	$a1, $1
 	ctc1	$a1, $2
@@ -198,39 +166,6 @@ fp_test:
 	ctc1	$a1, $f29
 	ctc1	$a1, $f30
 	ctc1	$a1, $f31
-
-	ctc2	$a1, $0
-	ctc2	$a1, $1
-	ctc2	$a1, $2
-	ctc2	$a1, $3
-	ctc2	$a1, $4
-	ctc2	$a1, $5
-	ctc2	$a1, $6
-	ctc2	$a1, $7
-	ctc2	$a1, $8
-	ctc2	$a1, $9
-	ctc2	$a1, $10
-	ctc2	$a1, $11
-	ctc2	$a1, $12
-	ctc2	$a1, $13
-	ctc2	$a1, $14
-	ctc2	$a1, $15
-	ctc2	$a1, $16
-	ctc2	$a1, $17
-	ctc2	$a1, $18
-	ctc2	$a1, $19
-	ctc2	$a1, $20
-	ctc2	$a1, $21
-	ctc2	$a1, $22
-	ctc2	$a1, $23
-	ctc2	$a1, $24
-	ctc2	$a1, $25
-	ctc2	$a1, $26
-	ctc2	$a1, $27
-	ctc2	$a1, $28
-	ctc2	$a1, $29
-	ctc2	$a1, $30
-	ctc2	$a1, $31
 
 	cvt.d.l	$f0, $f1
 	cvt.d.l	$f30, $f31

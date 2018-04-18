@@ -1541,26 +1541,6 @@ bc1nezc ft,label
 @tab N @tab 32
 @item
 @verbatim
-bc2eqz ft,label
-@end verbatim
-
-@tab @tab @verbatim
-bc2eqzc ft,label
-@end verbatim
-
-@tab N @tab 32
-@item
-@verbatim
-bc2nez rt,label
-@end verbatim
-
-@tab @tab @verbatim
-bc2nezc rt,label
-@end verbatim
-
-@tab N @tab 32
-@item
-@verbatim
 beqz rt,label
 @end verbatim
 

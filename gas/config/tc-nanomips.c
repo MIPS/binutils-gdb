@@ -8571,14 +8571,6 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       gpfmt = "t,.(ma)";
       goto ld_st;
 
-    case M_LWC2_AC:
-    case M_LDC2_AC:
-    case M_SWC2_AC:
-    case M_SDC2_AC:
-      fmt = COP12_FMT;
-      coproc = 1;
-      goto ld_st_signed_off;
-
     case M_LLE_AC:
     case M_SCE_AC:
     case M_SC_AC:
