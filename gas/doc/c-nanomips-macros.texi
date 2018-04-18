@@ -1847,47 +1847,6 @@ tne rs,$at
 @tab
 @tab
 @end multitable
-@anchor{x_aclr_ofst}@item aclr bit,ofst(rs)
-@multitable @columnfractions 0.3 0.4 0.3
-@item
-@verbatim
--256 <= ofst <= 256
-@end verbatim
-
-@tab
-@verbatim
-aclr bit,ofst(rs)
-@end verbatim
-
-@tab
-@item
-@verbatim
--4095 <= ofst <= 65535
-@end verbatim
-
-@tab
-@verbatim
-addiu $at,rs,ofst
-aclr bit,0($at)
-@end verbatim
-
-@tab
-@item else
-
-@tab
-@verbatim
-li $at,ofst
-addu $at,$at,rs
-aclr bit,0(rs)
-@end verbatim
-
-@tab
-@end multitable
-@item aset bit,ofst(rs)
-@multitable @columnfractions 0.3 0.4 0.3
-@item
-@xref{x_aclr_ofst,,aclr at offset}.
-@end multitable
 @anchor{x_cache_ofst}@item cache hint,ofst(rs)
 @multitable @columnfractions 0.3 0.4 0.3
 @item

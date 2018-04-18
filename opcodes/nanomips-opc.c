@@ -382,8 +382,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"absq_s.ph",	"",		"t,s",		0x2000113f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32},
 {"absq_s.qb",	"",		"t,s",		0x2000013f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32},
 {"absq_s.w",	"",		"t,s",		0x2000213f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32},
-{"aclr",	"",		"\\,+j(b)",	0xa6001100, 0xff007f00,		RD_3,		0,	0,	MC},
-{"aclr",	"",		"\\,A(c)",	0,    (int) M_ACLR_AC,	INSN_MACRO,		0,	0,	MC},
 {"add", 	"",		"d,v,t",	0x20000110, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	xNMS},
 {"add", 	"",		"t,r,I",	0,    (int) M_ADD_I,	INSN_MACRO,		0,	0,	xNMS},
 {"addi",	"",		"t,r,I",	0,    (int) M_ADD_I,	INSN_MACRO,		0,	0,	xNMS},
@@ -441,8 +439,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"andi",	"[32]", 	"t,r,g",	0x80002000, 0xfc00f000,	WR_1|RD_2,		0,	I38,	0},
 {"andi",	"",		"t,r,+6",	0x8000f000, 0xfc00f83f,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* EXT */
 {"append",	"",		"t,s,1",	0x20000215, 0xfc0007ff,	WR_1|RD_2,		0,	0,	D32},
-{"aset",	"",		"\\,+j(b)",	0xa4001100, 0xff007f00,		RD_3,		0,	0,	MC},
-{"aset",	"",		"\\,A(c)",	0,    (int) M_ASET_AC,		INSN_MACRO,	0,	0,	MC},
 {"balc",	"[16]", 	"mD",		0x3800, 	0xfc00,		WR_31,		0,	I38,	0}, /* BALC[16] */
 {"balc",	"[32]", 	"+u",		0x2a000000, 0xfe000000,		WR_31,		0,	I38,	0},
 {"bal", 	"",		"mD",		0x3800, 	0xfc00,	WR_31,	INSN2_ALIAS|UBR|CTC,	I38,	0}, /* BALC[16] */
@@ -771,7 +767,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"ins", 	"",		"t,r,+A,+B",	0x8000e000, 0xfc00f820,	WR_1|RD_2,		0,	0,	xNMS},
 {"ins", 	"",		"t,r,+A,+B",	0,    (int) M_INS,	INSN_MACRO,		0,	I38,	0},
 {"insv",	"",		"t,s",		0x2000413f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32},
-{"iret",	"",		"",		0x2000d37f, 0xffffffff,		0,		0,	0,	MC},
 {"j",		"",		"mp",		0xd800, 	0xfc1f,	RD_1,	INSN2_ALIAS|UBR|CTC,	I38,	0},
 {"j",		"",		"+u",		0x28000000, 0xfe000000,	0, 	INSN2_ALIAS|UBR|CTC,	I38,	0}, /* BC */
 {"j",		"",		"s",		0x48000000, 0xffe0ffff,	RD_1,	INSN2_ALIAS|UBR|CTC,	I38,	0}, /* JALRC */

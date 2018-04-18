@@ -8555,11 +8555,6 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       fmt = ISA_SIGNED_LDST_FMT;
       goto ld_st_signed_off;
 
-    case M_ACLR_AC:
-    case M_ASET_AC:
-      fmt = ACLR_FMT;
-      goto ld_st_signed_off;
-
     case M_SB_AC:
     case M_SH_AC:
       fmt = ISA_UNSIGNED_LDST_FMT;

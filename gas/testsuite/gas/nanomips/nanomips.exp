@@ -735,7 +735,6 @@ if { [istarget nanomips*-*-*] } {
     run_list_test_arch "macro-err" "" nanomips32r6s
     run_list_test_arch "mcmodel" "" nanomips32
     run_list_test_arch "mcmodel-err" "" nanomips32
-    run_dump_test_arches "mcu"		[arch_list_matching nanomipsr6]
     run_dump_test_arches "minimize-relocs1" "" \
 					[arch_list_matching nanomips]
     run_dump_test_arches "minimize-relocs2" "" \
