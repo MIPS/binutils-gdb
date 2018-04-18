@@ -118,7 +118,7 @@ Disassembly of section \.text:
 			b4: R_NANOMIPS_PC11_S1	\$L12
 
 000000b8 <\$L11>:
-  b8:	2800 0000 	bc	ea <test_weak>
+  b8:	2800 0000 	bc	[0-9a-f]+ <test_weak>
 			b8: R_NANOMIPS_PC25_S1	test_weak
 
 000000bc <\$L12>:
@@ -158,9 +158,36 @@ Disassembly of section \.text:
 			e6: R_NANOMIPS_PC10_S1	\$L13
   e8:	1800      	bc	d8 <\$L13>
 			e8: R_NANOMIPS_PC10_S1	\$L13
+  ea:	1800      	bc	fa <\$L16>
+			ea: R_NANOMIPS_PC10_S1	\$L16
+  ec:	3800      	balc	fa <\$L16>
+			ec: R_NANOMIPS_PC10_S1	\$L16
+  ee:	9a00      	beqzc	a0,fa <\$L16>
+			ee: R_NANOMIPS_PC7_S1	\$L16
+  f0:	88a4 0000 	beqc	a0,a1,fa <\$L16>
+			f0: R_NANOMIPS_PC14_S1	\$L16
+  f4:	c890 2000 	bneic	a0,4,fa <\$L16>
+			f4: R_NANOMIPS_PC11_S1	\$L16
 
-000000ea <test_weak>:
-  ea:	dbe0      	jrc	ra
+000000f8 <\$L15>:
+  f8:	d8f0      	jalrc	a3
+			f8: R_NANOMIPS_JALR32	foo
+
+000000fa <\$L16>:
+  fa:	88a4 0000 	beqc	a0,a1,f8 <\$L15>
+			fa: R_NANOMIPS_PC14_S1	\$L15
+  fe:	c890 2000 	bneic	a0,4,f8 <\$L15>
+			fe: R_NANOMIPS_PC11_S1	\$L15
+ 102:	9a00      	beqzc	a0,f8 <\$L15>
+			102: R_NANOMIPS_PC7_S1	\$L15
+ 104:	3800      	balc	f8 <\$L15>
+			104: R_NANOMIPS_PC10_S1	\$L15
+ 106:	1800      	bc	f8 <\$L15>
+			106: R_NANOMIPS_PC10_S1	\$L15
+
+00000108 <test_weak>:
+ 108:	dbe0      	jrc	ra
+ 10a:	9008      	nop
 #...
 Disassembly of section \.text\.other:
 

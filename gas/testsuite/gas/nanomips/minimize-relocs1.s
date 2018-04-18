@@ -8,6 +8,7 @@
 # 5. when the lynch-pin is external but wrapped in nolinkrelax
 # 6. when the lynch-pin is not external, but weak
 # 7. when the lynch-pin is not external but defined in different section
+# 8. when the lynch-pin has an explicit relocation
 #
 # Each case is checked for both forward and backward nested blocks.
 
@@ -121,7 +122,7 @@ $L10:
 $L11:
 	bc test_weak
 $L12:
-	# case1: nested jumps backward over a weak reference
+	# case6: nested jumps backward over a weak reference
 	beqc $a0,$a1,$L11
 	bneic $a0,4,$L11
 	beqzc $a0,$L11
@@ -137,13 +138,29 @@ $L12:
 $L13:
 	bc test_other_sect
 $L14:
-	# case1: nested jumps backward over reference to other section
+	# case7: nested jumps backward over reference to other section
 	beqc $a0,$a1,$L13
 	bneic $a0,4,$L13
 	beqzc $a0,$L13
 	balc $L13
 	bc $L13
 
+	# case8: nested jumps forward over explicit relocation
+	.reloc $L15,R_NANOMIPS_JALR32,foo
+	bc $L16
+	balc $L16
+	beqzc $a0,$L16
+	beqc $a0,$a1,$L16
+	bneic $a0,4,$L16
+$L15:
+	jalr	$a3
+$L16:
+
+	beqc $a0,$a1,$L15
+	bneic $a0,4,$L15
+	beqzc $a0,$L15
+	balc $L15
+	bc $L15
 
 	.end test
 	.ent test_weak

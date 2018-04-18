@@ -802,7 +802,8 @@ static void stubgroup_new (asection *);
 static void s_sign_cons (int);
 static void s_nanomips_leb128 (int);
 static bfd_boolean nanomips_allow_local_subtract_symbols (symbolS *,
-							  symbolS *);
+							  symbolS *,
+							  bfd_boolean);
 
 /* Table and functions used to map between CPU/ISA names, and
    ISA levels, and CPU numbers.  */
@@ -9923,7 +9924,8 @@ nanomips_force_relocation (fixS *fixp)
       && (S_GET_SEGMENT (fixp->fx_addsy)->flags & SEC_CODE) != 0
       && (S_GET_SEGMENT (fixp->fx_subsy)->flags & SEC_CODE) != 0)
     return !nanomips_allow_local_subtract_symbols (fixp->fx_addsy,
-						   fixp->fx_subsy);
+						   fixp->fx_subsy,
+						   FALSE);
 
   return 0;
 }
@@ -11286,11 +11288,42 @@ addr_in_frag_range (fragS *fragp, addressT addr)
 	  && addr <= fragp->fr_address + fragp->fr_fix);
 }
 
+/* Check if a frag is variable due to explicit relocations.  */
+
+static bfd_boolean
+reloc_variable_frag_p (fragS *fragp)
+{
+  struct reloc_list *rp;
+
+  /* Implicit relocations are already marked.  */
+  if (fragp->tc_frag_data.link_var)
+    return TRUE;
+
+  rp = reloc_list;
+  
+  /* Now look for fixups in the explicit relocation list.
+     WARNING: Ugly performance implications, but can't be helped unless
+     the explicit reloc list is sorted or organized in some manner.
+     Update tc_frag_data here and now so this iteration doesn't have to
+     be repeated, at least for this frag.  */
+  while (rp != NULL)
+    {
+      if (rp->u.a.offset_sym && symbol_get_frag (rp->u.a.offset_sym) == fragp)
+	{
+	  fragp->tc_frag_data.link_var = 1;
+	  return TRUE;
+	}
+      rp = rp->next;
+    }
+
+  return FALSE;
+}
+
 /* Check if the branch at FRAGP is already marked as variable.  */
 static bfd_boolean
 variable_frag_p (fragS *fragp)
 {
-  return (fragp->tc_frag_data.link_var
+  return (reloc_variable_frag_p (fragp)
 	  || (RELAX_MD_P (fragp->fr_subtype)
 	      && RELAX_MD_VARIABLE (fragp->fr_subtype)));
 }
@@ -11346,7 +11379,7 @@ relaxed_invariable_branch_p (fragS *fragp, asection *sec)
 
   /* Branching to a location within this frag.  */
   if (addr_in_frag_range (fragp, addr))
-    variable_p = fragp->tc_frag_data.link_var;
+    variable_p = reloc_variable_frag_p (fragp);
   /* Branching ahead - this needs extra care.  */
   else if (addr > fragp->fr_address + fragp->fr_fix)
     {
@@ -11355,7 +11388,7 @@ relaxed_invariable_branch_p (fragS *fragp, asection *sec)
 
       while (ifrag && ifrag != nfrag->fr_next)
 	{
-	  if (ifrag->tc_frag_data.link_var
+	  if (reloc_variable_frag_p (ifrag)
 	      /* If destination address is the beginning of a frag, then
 		 its variability does not affect the branch.  */
 	      && addr > ifrag->fr_address)
@@ -11385,7 +11418,7 @@ relaxed_invariable_branch_p (fragS *fragp, asection *sec)
 
       while (ifrag && ifrag != fragp)
 	{
-	  if (ifrag->tc_frag_data.link_var)
+	  if (reloc_variable_frag_p (ifrag))
 	    {
 	      max_offset -= ifrag->tc_frag_data.relax_sop;
 	      min_offset += ifrag->tc_frag_data.relax_sink;
@@ -13309,7 +13342,8 @@ nanomips_cons_fix_new (fragS *frag, int where, int nbytes, expressionS *exp,
 
 /* Check if subtraction of 2 symbols can be fully evaluated at assembly.  */
 static bfd_boolean
-nanomips_allow_local_subtract_symbols (symbolS *left, symbolS *right)
+nanomips_allow_local_subtract_symbols (symbolS *left, symbolS *right,
+				       bfd_boolean reloc_u_a)
 {
   /* Check for intervening fixups between symbols within the same frag to
      determine if relaxation could affect the difference.  */
@@ -13341,9 +13375,31 @@ nanomips_allow_local_subtract_symbols (symbolS *left, symbolS *right)
 	     && fixP->fx_frag->fr_address + fixP->fx_where < high)
 	fixP = fixP->fx_next;
 
+      /* Fixups within the range.  */
+      if (fixP != NULL && fixP->fx_frag->fr_address + fixP->fx_where < high)
+	return FALSE;
+      
+      /* Now look for fixups in the explicit relocation list.
+	 WARNING: Ugly performance implications, but can't be helped unless
+	 the explicit reloc list is sorted or organized in some manner.  */
+      struct reloc_list *rp = reloc_list;
+      while (rp != NULL)
+	{
+	  if (reloc_u_a
+	      && rp->u.a.offset_sym
+	      && S_GET_VALUE (rp->u.a.offset_sym) >= low
+	      && S_GET_VALUE (rp->u.a.offset_sym) < high)
+	    return FALSE;
+	  if (!reloc_u_a
+	      && rp->u.b.sec == S_GET_SEGMENT (left)
+	      && rp->u.b.r.address >= low
+	      && rp->u.b.r.address < high)
+	    return FALSE;
+	  rp = rp->next;
+	}
+
       /* No fixup within the range.  */
-      if (fixP == NULL || fixP->fx_frag->fr_address + fixP->fx_where >= high)
-	return TRUE;
+      return TRUE;
     }
   else if (nanomips_opts.minimize_relocs
 	   && S_GET_SEGMENT (left) == S_GET_SEGMENT (right))
@@ -13398,7 +13454,8 @@ nanomips_allow_local_subtract (expressionS *left, expressionS *right,
     return TRUE;
 
   return nanomips_allow_local_subtract_symbols (left->X_add_symbol,
-						right->X_add_symbol);
+						right->X_add_symbol,
+						TRUE);
 }
 
 /* Create relocations for alignment directives.  */
@@ -13452,7 +13509,8 @@ nanomips_validate_fix_sub (fixS *fix)
     return 0;
   else
     return (!nanomips_allow_local_subtract_symbols (fix->fx_addsy,
-						    fix->fx_subsy));
+						    fix->fx_subsy,
+						    FALSE));
 }
 
 /* TC_EH_FRAME_ESTIMATE_SIZE_BEFORE_RELAX hook.
@@ -13469,7 +13527,8 @@ nanomips_eh_frame_estimate_size_before_relax (fragS *frag)
 
   if (linkrelax
       && !nanomips_allow_local_subtract_symbols (exp->X_add_symbol,
-						 exp->X_op_symbol))
+						 exp->X_op_symbol,
+						 FALSE))
     {
       int ret;
       gas_assert ((frag->fr_subtype >> 3) > 0);
@@ -13503,7 +13562,8 @@ nanomips_eh_frame_convert_frag (fragS *frag)
   expressionS *exp = symbol_get_value_expression (frag->fr_symbol);
 
   if (linkrelax && !nanomips_allow_local_subtract_symbols (exp->X_add_symbol,
-							   exp->X_op_symbol))
+							   exp->X_op_symbol,
+							   FALSE))
     {
       /* Generate label-difference relocations for this frag.  */
       int size = nanomips_eh_frame_estimate_size_before_relax (frag);
