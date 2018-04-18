@@ -11989,7 +11989,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	  if (!IS_SEXT_16BIT_UINT (sval))
 	    as_bad_where (fragp->fr_file, fragp->fr_line,
 			  _("Operand 3 out of range `addiu $r%u,$r%u,%ld"),
-			  rt, rs, sval);
+			  rt, rs, (long int)sval);
 	}
 
       buf = write_compressed_insn (buf, insn, fragp->fr_var);
