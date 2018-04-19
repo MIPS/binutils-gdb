@@ -73,9 +73,15 @@ class Nanomips_output_data_stubs;
 class Nanomips_input_section;
 
 // The types of GOT entries needed for this platform.
+// These values are exposed to the ABI in an incremental link.
+// Do not renumber existing values without changing the version
+// number of the .gnu_incremental_inputs section.
 enum Got_type
 {
   GOT_TYPE_STANDARD = 0,      // GOT entry for a regular symbol
+  GOT_TYPE_TLSGD = 1,         // double entry for %tlsgd
+  GOT_TYPE_TLSLD = 2,         // entry for %tlsld
+  GOT_TYPE_TPREL = 3          // entry for %gottprel
 };
 
 enum Overflow_check
@@ -314,9 +320,30 @@ class Nanomips_output_data_got
       Nanomips_got_call_set;
 
  public:
-  Nanomips_output_data_got(Target_nanomips<size, big_endian>* target)
-    : Output_data_got<size, big_endian>(), target_(target), got_call_()
+  Nanomips_output_data_got(Target_nanomips<size, big_endian>* target,
+                           Symbol_table* symtab, Layout* layout)
+    : Output_data_got<size, big_endian>(), target_(target), symtab_(symtab),
+      layout_(layout), static_relocs_(), got_call_()
   { }
+
+  // Add a static entry for the GOT entry at OFFSET.  GSYM is a global
+  // symbol and R_TYPE is the code of a dynamic relocation that needs to be
+  // applied in a static link.
+  void
+  add_static_reloc(unsigned int got_offset, unsigned int r_type, Symbol* gsym)
+  { this->static_relocs_.push_back(Static_reloc(got_offset, r_type, gsym)); }
+
+  // Add a static reloc for the GOT entry at OFFSET.  RELOBJ is an object
+  // defining a local symbol with INDEX.  R_TYPE is the code of a dynamic
+  // relocation that needs to be applied in a static link.
+  void
+  add_static_reloc(unsigned int got_offset, unsigned int r_type,
+                   Sized_relobj_file<size, big_endian>* relobj,
+                   unsigned int index)
+  {
+    this->static_relocs_.push_back(Static_reloc(got_offset, r_type, relobj,
+                                                index));
+  }
 
   // Reserve GOT entry for a R_NANOMIPS_GOT_CALL relocation
   // against NANOMIPS_SYM for which we may need to create
@@ -338,8 +365,97 @@ class Nanomips_output_data_got
   do_write(Output_file*);
 
  private:
+  // This class represent dynamic relocations that need to be applied by
+  // gold because we are using TLS relocations in a static link.
+  class Static_reloc
+  {
+   public:
+    Static_reloc(unsigned int got_offset, unsigned int r_type,
+                 Symbol* gsym)
+      : got_offset_(got_offset), r_type_(r_type), symbol_is_global_(true)
+    { this->u_.global.symbol = gsym; }
+
+    Static_reloc(unsigned int got_offset, unsigned int r_type,
+                 Sized_relobj_file<size, big_endian>* relobj,
+                 unsigned int index)
+      : got_offset_(got_offset), r_type_(r_type), symbol_is_global_(false)
+    {
+      this->u_.local.relobj = relobj;
+      this->u_.local.index = index;
+    }
+
+    // Return the GOT offset.
+    unsigned int
+    got_offset() const
+    { return this->got_offset_; }
+
+    // Relocation type.
+    unsigned int
+    r_type() const
+    { return this->r_type_; }
+
+    // Whether the symbol is global or not.
+    bool
+    symbol_is_global() const
+    { return this->symbol_is_global_; }
+
+    // For a relocation against a global symbol, the global symbol.
+    Symbol*
+    symbol() const
+    {
+      gold_assert(this->symbol_is_global_);
+      return this->u_.global.symbol;
+    }
+
+    // For a relocation against a local symbol, the defining object.
+    Sized_relobj_file<size, big_endian>*
+    relobj() const
+    {
+      gold_assert(!this->symbol_is_global_);
+      return this->u_.local.relobj;
+    }
+
+    // For a relocation against a local symbol, the local symbol index.
+    unsigned int
+    index() const
+    {
+      gold_assert(!this->symbol_is_global_);
+      return this->u_.local.index;
+    }
+
+   private:
+    // GOT offset of the entry to which this relocation is applied.
+    unsigned int got_offset_;
+    // Type of relocation.
+    unsigned int r_type_;
+    // Whether this relocation is against a global symbol.
+    bool symbol_is_global_;
+    // A global or local symbol.
+    union
+    {
+      struct
+      {
+        // For a global symbol, the symbol itself.
+        Symbol* symbol;
+      } global;
+      struct
+      {
+        // For a local symbol, the object defining object.
+        Sized_relobj_file<size, big_endian>* relobj;
+        // For a local symbol, the symbol index.
+        unsigned int index;
+      } local;
+    } u_;
+  };
+
   // The target.
   Target_nanomips<size, big_endian>* target_;
+  // The symbol table.
+  Symbol_table* symtab_;
+  // The layout.
+  Layout* layout_;
+  // Static relocs to be applied to the GOT.
+  std::vector<Static_reloc> static_relocs_;
   // R_NANOMIPS_GOT_CALL symbols for which we may need to
   // create a lazy-binding stubs.
   Nanomips_got_call_set got_call_;
@@ -1486,7 +1602,7 @@ class Target_nanomips : public Sized_target<size, big_endian>
   // Return whether SYM is defined by the ABI.
   bool
   do_is_defined_by_abi(const Symbol* sym) const
-  { return strcmp(sym->name(), "___tls_get_addr") == 0; }
+  { return strcmp(sym->name(), "__tls_get_addr") == 0; }
 
   // Get gp value.
   Address
@@ -1941,7 +2057,8 @@ class Nanomips_relocate_functions
     elfcpp::Swap<16, big_endian>::writeval(view + 2, second);
   }
 
-  // R_NANOMIPS_GOT_DISP, R_NANOMIPS_GOT_PAGE, R_NANOMIPS_GOT_CALL
+  // R_NANOMIPS_GOT_DISP, R_NANOMIPS_GOT_PAGE, R_NANOMIPS_GOT_CALL,
+  // R_NANOMIPS_TLS_GD, , R_NANOMIPS_TLS_LD, R_NANOMIPS_TLS_GOTTPREL
   static inline Status
   relgot(unsigned char* view, Address value, unsigned int align)
   {
@@ -2096,13 +2213,15 @@ class Nanomips_relocate_functions
     return check_overflow<5>(value, CHECK_UNSIGNED);
   }
 
-  // R_NANOMIPS_ASHIFTR_1, R_NANOMIPS_NEG
+  // R_NANOMIPS_ASHIFTR_1, R_NANOMIPS_NEG, R_NANOMIPS_TLS_DTPMOD,
+  // R_NANOMIPS_TLS_DTPREL, R_NANOMIPS_TLS_TPREL
   static inline Status
   relsize(unsigned char* view, Address value)
   { return This::template rel<size>(view, value, CHECK_NONE); }
 
   // R_NANOMIPS_32, R_NANOMIPS_I32, R_NANOMIPS_PC_I32, R_NANOMIPS_GPREL_I32,
-  // R_NANOMIPS_GOTPC_I32
+  // R_NANOMIPS_GOTPC_I32, R_NANOMIPS_TLS_GD_I32, R_NANOMIPS_TLS_LD_I32,
+  // R_NANOMIPS_TLS_GOTTPREL_PC_I32
   static inline Status
   rel32(unsigned char* view, Address value)
   { return This::template rel<32>(view, value, CHECK_NONE); }
@@ -2181,6 +2300,30 @@ class Nanomips_relocate_functions
       return STATUS_UNALIGNED;
 
     return check_overflow<6>(value, CHECK_UNSIGNED);
+  }
+
+  // R_NANOMIPS_TLS_TPREL16, R_NANOMIPS_TLS_DTPREL16
+  static inline Status
+  reltls16(unsigned char* view, Address value, bool should_check_overflow)
+  {
+    Valtype32* wv = reinterpret_cast<Valtype32*>(view);
+    Valtype32 val = elfcpp::Swap<32, big_endian>::readval(wv);
+    val = Bits<12>::bit_select32(val, value, 0xffff);
+    elfcpp::Swap<32, big_endian>::writeval(wv, val);
+    return (should_check_overflow ? check_overflow<16>(value, CHECK_UNSIGNED)
+                                  : STATUS_OKAY);
+  }
+
+  // R_NANOMIPS_TLS_TPREL12, R_NANOMIPS_TLS_DTPREL12
+  static inline Status
+  reltls12(unsigned char* view, Address value, bool should_check_overflow)
+  {
+    Valtype32* wv = reinterpret_cast<Valtype32*>(view);
+    Valtype32 val = elfcpp::Swap<32, big_endian>::readval(wv);
+    val = Bits<12>::bit_select32(val, value, 0xfff);
+    elfcpp::Swap<32, big_endian>::writeval(wv, val);
+    return (should_check_overflow ? check_overflow<12>(value, CHECK_UNSIGNED)
+                                  : STATUS_OKAY);
   }
 };
 
@@ -2451,29 +2594,111 @@ Nanomips_output_data_got<size, big_endian>::do_write(Output_file* of)
   // Call parent to write out GOT.
   Output_data_got<size, big_endian>::do_write(of);
 
-  // Write lazy stub addresses.
-  Nanomips_output_data_stubs<size, big_endian>* stubs =
-    this->target_->nanomips_stubs_section();
-
-  if (stubs == NULL)
-    return;
-
+  typedef typename elfcpp::Swap<size, big_endian>::Valtype Valtype;
   const off_t offset = this->offset();
   const section_size_type oview_size =
     convert_to_section_size_type(this->data_size());
   unsigned char* const oview = of->get_output_view(offset, oview_size);
 
-  typedef std::vector<Nanomips_stubs_entry<size> > Nanomips_stubs_entries;
-  typedef typename elfcpp::Swap<size, big_endian>::Valtype Valtype;
-  for (typename Nanomips_stubs_entries::iterator
-       p = stubs->nanomips_stubs_entries().begin();
-       p != stubs->nanomips_stubs_entries().end();
-       ++p)
+  // Write lazy stub addresses.
+  Nanomips_output_data_stubs<size, big_endian>* stubs =
+    this->target_->nanomips_stubs_section();
+
+  if (stubs != NULL)
     {
-      Nanomips_symbol<size>* nanomips_sym = p->sym;
-      Valtype* wv = reinterpret_cast<Valtype*>(
-          oview + nanomips_sym->got_offset(GOT_TYPE_STANDARD));
-      Valtype value = stubs->stub_address(nanomips_sym);
+      for (typename std::vector<Nanomips_stubs_entry<size> >::iterator
+           p = stubs->nanomips_stubs_entries().begin();
+           p != stubs->nanomips_stubs_entries().end();
+           ++p)
+        {
+          Nanomips_symbol<size>* nanomips_sym = p->sym;
+          Valtype* wv = reinterpret_cast<Valtype*>(
+              oview + nanomips_sym->got_offset(GOT_TYPE_STANDARD));
+          Valtype value = stubs->stub_address(nanomips_sym);
+          elfcpp::Swap<size, big_endian>::writeval(wv, value);
+        }
+    }
+
+  // We are done if there is no fix up.
+  if (this->static_relocs_.empty())
+    return;
+
+  Output_segment* tls_segment = this->layout_->tls_segment();
+  gold_assert(tls_segment != NULL);
+
+  for (size_t i = 0; i < this->static_relocs_.size(); ++i)
+    {
+      Static_reloc& reloc(this->static_relocs_[i]);
+
+      Valtype value;
+      if (!reloc.symbol_is_global())
+        {
+          Sized_relobj_file<size, big_endian>* object = reloc.relobj();
+          const Symbol_value<size>* psymval =
+            object->local_symbol(reloc.index());
+
+          // We are doing static linking.  Issue an error and skip this
+          // relocation if the symbol is undefined or in a discarded_section.
+          bool is_ordinary;
+          unsigned int shndx = psymval->input_shndx(&is_ordinary);
+          if ((shndx == elfcpp::SHN_UNDEF)
+              || (is_ordinary
+                  && shndx != elfcpp::SHN_UNDEF
+                  && !object->is_section_included(shndx)
+                  && !this->symtab_->is_section_folded(object, shndx)))
+            {
+              gold_error(_("undefined or discarded local symbol %u from "
+                           " object %s in GOT"),
+                         reloc.index(), reloc.relobj()->name().c_str());
+              continue;
+            }
+
+          value = psymval->value(object, 0);
+        }
+      else
+        {
+          const Symbol* gsym = reloc.symbol();
+          gold_assert(gsym != NULL);
+          if (gsym->is_forwarder())
+            gsym = this->symtab_->resolve_forwards(gsym);
+
+          // We are doing static linking.  Issue an error and skip this
+          // relocation if the symbol is undefined or in a discarded_section
+          // unless it is a weakly_undefined symbol.
+          if ((gsym->is_defined_in_discarded_section()
+               || gsym->is_undefined())
+              && !gsym->is_weak_undefined())
+            {
+              gold_error(_("undefined or discarded symbol %s in GOT"),
+                         gsym->name());
+              continue;
+            }
+
+          if (!gsym->is_weak_undefined())
+            {
+              const Sized_symbol<size>* sym =
+                static_cast<const Sized_symbol<size>*>(gsym);
+              value = sym->value();
+            }
+          else
+            value = 0;
+        }
+
+      unsigned got_offset = reloc.got_offset();
+      gold_assert(got_offset < oview_size);
+
+      Valtype* wv = reinterpret_cast<Valtype*>(oview + got_offset);
+      switch (reloc.r_type())
+        {
+        case elfcpp::R_NANOMIPS_TLS_DTPMOD:
+        case elfcpp::R_NANOMIPS_TLS_DTPREL:
+        case elfcpp::R_NANOMIPS_TLS_TPREL:
+          break;
+        default:
+          gold_unreachable();
+          break;
+        }
+
       elfcpp::Swap<size, big_endian>::writeval(wv, value);
     }
 
@@ -4457,7 +4682,8 @@ Target_nanomips<size, big_endian>::got_section(Symbol_table* symtab,
   if (this->got_ == NULL)
     {
       gold_assert(symtab != NULL && layout != NULL);
-      this->got_ = new Nanomips_output_data_got<size, big_endian>(this);
+      this->got_ = new Nanomips_output_data_got<size, big_endian>(this, symtab,
+                                                                  layout);
       layout->add_output_section_data(".got", elfcpp::SHT_PROGBITS,
                                       (elfcpp::SHF_ALLOC | elfcpp::SHF_WRITE |
                                       elfcpp::SHF_NANOMIPS_GPREL),
@@ -6223,8 +6449,11 @@ Target_nanomips<size, big_endian>::Scan::local(
     return;
 
   const elfcpp::Rela<size, big_endian> reloc(preloc);
+  unsigned int r_sym = elfcpp::elf_r_sym<size>(reloc.get_r_info());
   unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
   Address r_offset = reloc.get_r_offset();
+  typename elfcpp::Elf_types<size>::Elf_Swxword r_addend =
+    reloc.get_r_addend();
   const Nanomips_reloc_property* nrp =
     nanomips_reloc_property_table->get_reloc_property(r_type);
   gold_assert(nrp != NULL);
@@ -6250,7 +6479,6 @@ Target_nanomips<size, big_endian>::Scan::local(
             break;
 
           Reloc_section* rel_dyn = target->rel_dyn_section(layout);
-          unsigned int r_sym = elfcpp::elf_r_sym<size>(reloc.get_r_info());
           rel_dyn->add_local_relative(object, r_sym,
                                       elfcpp::R_NANOMIPS_RELATIVE,
                                       output_section, data_shndx,
@@ -6287,7 +6515,6 @@ Target_nanomips<size, big_endian>::Scan::local(
           if (insn_property != NULL)
             {
               bool is_ordinary;
-              unsigned int r_sym = elfcpp::elf_r_sym<size>(reloc.get_r_info());
               shndx = relobj->adjust_sym_shndx(r_sym, shndx, &is_ordinary);
               bool forced_insn_length =
                 is_forced_insn_length<size, big_endian>(r_offset, reloc_count,
@@ -6323,7 +6550,6 @@ Target_nanomips<size, big_endian>::Scan::local(
         // The symbol requires a GOT entry.
         Nanomips_output_data_got<size, big_endian>* got =
           target->got_section(symtab, layout);
-        unsigned int r_sym = elfcpp::elf_r_sym<size>(reloc.get_r_info());
         typename elfcpp::Elf_types<size>::Elf_Swxword r_addend =
            reloc.get_r_addend();
         if (got->add_local(relobj, r_sym, GOT_TYPE_STANDARD, r_addend))
@@ -6339,6 +6565,92 @@ Target_nanomips<size, big_endian>::Scan::local(
                                             elfcpp::R_NANOMIPS_RELATIVE,
                                             got, got_offset);
               }
+          }
+      }
+      break;
+    case elfcpp::R_NANOMIPS_TLS_GD:
+    case elfcpp::R_NANOMIPS_TLS_GD_I32:
+      {
+        // The symbol requires a GOT entry.
+        Nanomips_output_data_got<size, big_endian>* got =
+          target->got_section(symtab, layout);
+        unsigned int shndx = lsym.get_st_shndx();
+        bool is_ordinary;
+        shndx = object->adjust_sym_shndx(r_sym, shndx, &is_ordinary);
+        if (!is_ordinary)
+          {
+            object->error(_("local symbol %u has bad shndx %u"),
+                          r_sym, shndx);
+            break;
+          }
+
+        if (!parameters->doing_static_link())
+          got->add_local_pair_with_rel(object, r_sym,
+                                       shndx, GOT_TYPE_TLSGD,
+                                       target->rel_dyn_section(layout),
+                                       elfcpp::R_NANOMIPS_TLS_DTPMOD,
+                                       r_addend);
+        else if (!object->local_has_got_offset(r_sym, GOT_TYPE_TLSGD, r_addend))
+          {
+            // We are doing a static link.  Mark it as belong to module 1,
+            // the executable.
+            unsigned int got_offset = got->add_constant(1);
+            object->set_local_got_offset(r_sym, GOT_TYPE_TLSGD, got_offset,
+                                         r_addend);
+            got_offset = got->add_constant(0);
+            got->add_static_reloc(got_offset, elfcpp::R_NANOMIPS_TLS_DTPREL,
+                                  object, r_sym);
+          }
+      }
+      break;
+    case elfcpp::R_NANOMIPS_TLS_LD:
+    case elfcpp::R_NANOMIPS_TLS_LD_I32:
+      {
+        // The symbol requires a GOT entry.
+        Nanomips_output_data_got<size, big_endian>* got =
+          target->got_section(symtab, layout);
+        if (!parameters->doing_static_link())
+          {
+            if (!object->local_has_got_offset(r_sym, GOT_TYPE_TLSLD, r_addend))
+              {
+                got->add_local_with_rel(object, r_sym, GOT_TYPE_TLSLD,
+                                        target->rel_dyn_section(layout),
+                                        elfcpp::R_NANOMIPS_TLS_DTPMOD,
+                                        r_addend);
+                got->add_constant(0);
+              }
+          }
+        else if (!object->local_has_got_offset(r_sym, GOT_TYPE_TLSLD, r_addend))
+          {
+            // Add a GOT pair for for TLS_LD relocs.  The creates a pair of
+            // GOT entries.  The first one is initialized to be 1, which is the
+            // module index for the main executable and the second one 0.
+            unsigned int got_offset = got->add_constant(1);
+            object->set_local_got_offset(r_sym, GOT_TYPE_TLSLD, got_offset,
+                                         r_addend);
+            got->add_constant(0);
+          }
+      }
+      break;
+    case elfcpp::R_NANOMIPS_TLS_GOTTPREL:
+    case elfcpp::R_NANOMIPS_TLS_GOTTPREL_PC_I32:
+      {
+        layout->set_has_static_tls();
+        // The symbol requires a GOT entry.
+        Nanomips_output_data_got<size, big_endian>* got =
+          target->got_section(symtab, layout);
+        if (!parameters->doing_static_link())
+          got->add_local_with_rel(object, r_sym, GOT_TYPE_TPREL,
+                                  target->rel_dyn_section(layout),
+                                  elfcpp::R_NANOMIPS_TLS_TPREL,
+                                  r_addend);
+        else if (!object->local_has_got_offset(r_sym, GOT_TYPE_TPREL, r_addend))
+          {
+            got->add_local(relobj, r_sym, GOT_TYPE_TPREL, r_addend);
+            unsigned int got_offset =
+              object->local_got_offset(r_sym, GOT_TYPE_TPREL, r_addend);
+            got->add_static_reloc(got_offset, elfcpp::R_NANOMIPS_TLS_TPREL,
+                                  object, r_sym);
           }
       }
       break;
@@ -6520,6 +6832,79 @@ Target_nanomips<size, big_endian>::Scan::global(
           }
       }
       break;
+    case elfcpp::R_NANOMIPS_TLS_GD:
+    case elfcpp::R_NANOMIPS_TLS_GD_I32:
+      {
+        // The symbol requires a GOT entry.
+        Nanomips_output_data_got<size, big_endian>* got =
+          target->got_section(symtab, layout);
+        if (!parameters->doing_static_link())
+          got->add_global_pair_with_rel(gsym, GOT_TYPE_TLSGD,
+                                        target->rel_dyn_section(layout),
+                                        elfcpp::R_NANOMIPS_TLS_DTPMOD,
+                                        elfcpp::R_NANOMIPS_TLS_DTPREL);
+        else if (!gsym->has_got_offset(GOT_TYPE_TLSGD))
+          {
+            // Add a GOT pair for for TLS_GD relocs.  This creates a pair of
+            // GOT entries.  The first one is initialized to be 1, which is the
+            // module index for the main executable and the second one 0.  A
+            // reloc of the type R_NANOMIPS_TLS_DTPREL will be created for
+            // the second GOT entry and will be applied by gold.
+            unsigned int got_offset = got->add_constant(1);
+            gsym->set_got_offset(GOT_TYPE_TLSGD, got_offset);
+            got_offset = got->add_constant(0);
+            got->add_static_reloc(got_offset, elfcpp::R_NANOMIPS_TLS_DTPREL,
+                                  gsym);
+          }
+      }
+      break;
+    case elfcpp::R_NANOMIPS_TLS_LD:
+    case elfcpp::R_NANOMIPS_TLS_LD_I32:
+      {
+        // The symbol requires a GOT entry.
+        Nanomips_output_data_got<size, big_endian>* got =
+          target->got_section(symtab, layout);
+        if (!parameters->doing_static_link())
+          {
+            if (!gsym->has_got_offset(GOT_TYPE_TLSLD))
+              {
+                got->add_global_with_rel(gsym, GOT_TYPE_TLSLD,
+                                         target->rel_dyn_section(layout),
+                                         elfcpp::R_NANOMIPS_TLS_DTPMOD);
+                got->add_constant(0);
+              }
+          }
+        else if (!gsym->has_got_offset(GOT_TYPE_TLSLD))
+          {
+            // Add a GOT pair for for TLS_LD relocs.  The creates a pair of
+            // GOT entries.  The first one is initialized to be 1, which is the
+            // module index for the main executable and the second one 0.
+            unsigned int got_offset = got->add_constant(1);
+            gsym->set_got_offset(GOT_TYPE_TLSLD, got_offset);
+            got->add_constant(0);
+          }
+      }
+      break;
+    case elfcpp::R_NANOMIPS_TLS_GOTTPREL:
+    case elfcpp::R_NANOMIPS_TLS_GOTTPREL_PC_I32:
+      {
+        layout->set_has_static_tls();
+        // The symbol requires a GOT entry.
+        Nanomips_output_data_got<size, big_endian>* got =
+          target->got_section(symtab, layout);
+        if (!parameters->doing_static_link())
+          got->add_global_with_rel(gsym, GOT_TYPE_TPREL,
+                                   target->rel_dyn_section(layout),
+                                   elfcpp::R_NANOMIPS_TLS_TPREL);
+        else if (!gsym->has_got_offset(GOT_TYPE_TPREL))
+          {
+            got->add_global(gsym, GOT_TYPE_TPREL);
+            unsigned int got_offset = gsym->got_offset(GOT_TYPE_TPREL);
+            got->add_static_reloc(got_offset, elfcpp::R_NANOMIPS_TLS_TPREL,
+                                  gsym);
+          }
+      }
+      break;
     case elfcpp::R_NANOMIPS_ALIGN:
     case elfcpp::R_NANOMIPS_FILL:
     case elfcpp::R_NANOMIPS_MAX:
@@ -6673,7 +7058,7 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
                            && (next_r_type != elfcpp::R_NANOMIPS_NONE
                                && !next_reloc_property->placeholder()));
 
-  unsigned int got_offset = 0;
+  unsigned int got_type = -1U;
   switch (r_type)
     {
     case elfcpp::R_NANOMIPS_GOT_DISP:
@@ -6682,14 +7067,31 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
     case elfcpp::R_NANOMIPS_GOTPC_I32:
     case elfcpp::R_NANOMIPS_GOTPC_HI20:
     case elfcpp::R_NANOMIPS_GOT_LO12:
-      if (gsym != NULL)
-        got_offset = gsym->got_offset(GOT_TYPE_STANDARD);
-      else
-        got_offset = object->local_got_offset(r_sym, GOT_TYPE_STANDARD,
-                                              r_addend);
+      got_type = GOT_TYPE_STANDARD;
+      break;
+    case elfcpp::R_NANOMIPS_TLS_GD:
+    case elfcpp::R_NANOMIPS_TLS_GD_I32:
+      got_type = GOT_TYPE_TLSGD;
+      break;
+    case elfcpp::R_NANOMIPS_TLS_LD:
+    case elfcpp::R_NANOMIPS_TLS_LD_I32:
+      got_type = GOT_TYPE_TLSLD;
+      break;
+    case elfcpp::R_NANOMIPS_TLS_GOTTPREL:
+    case elfcpp::R_NANOMIPS_TLS_GOTTPREL_PC_I32:
+      got_type = GOT_TYPE_TPREL;
       break;
     default:
       break;
+    }
+
+  unsigned int got_offset = 0;
+  if (got_type != -1U)
+    {
+      if (gsym != NULL)
+        got_offset = gsym->got_offset(got_type);
+      else
+        got_offset = object->local_got_offset(r_sym, got_type, r_addend);
     }
 
   Valtype value = 0;
@@ -6703,6 +7105,12 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
     case elfcpp::R_NANOMIPS_GOT_DISP:
     case elfcpp::R_NANOMIPS_GOT_PAGE:
     case elfcpp::R_NANOMIPS_GOT_CALL:
+    case elfcpp::R_NANOMIPS_TLS_GD:
+    case elfcpp::R_NANOMIPS_TLS_GD_I32:
+    case elfcpp::R_NANOMIPS_TLS_LD:
+    case elfcpp::R_NANOMIPS_TLS_LD_I32:
+    case elfcpp::R_NANOMIPS_TLS_GOTTPREL:
+    case elfcpp::R_NANOMIPS_TLS_GOTTPREL_PC_I32:
       value = got_offset;
       break;
     case elfcpp::R_NANOMIPS_GOTPC_I32:
@@ -6724,6 +7132,15 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
     case elfcpp::R_NANOMIPS_HI20:
     case elfcpp::R_NANOMIPS_LO12:
     case elfcpp::R_NANOMIPS_LO4_S2:
+    case elfcpp::R_NANOMIPS_TLS_DTPMOD:
+    case elfcpp::R_NANOMIPS_TLS_DTPREL:
+    case elfcpp::R_NANOMIPS_TLS_TPREL:
+    case elfcpp::R_NANOMIPS_TLS_DTPREL12:
+    case elfcpp::R_NANOMIPS_TLS_DTPREL16:
+    case elfcpp::R_NANOMIPS_TLS_DTPREL_I32:
+    case elfcpp::R_NANOMIPS_TLS_TPREL12:
+    case elfcpp::R_NANOMIPS_TLS_TPREL16:
+    case elfcpp::R_NANOMIPS_TLS_TPREL_I32:
       value = psymval->value(object, r_addend);
       break;
     case elfcpp::R_NANOMIPS_ASHIFTR_1:
@@ -6813,6 +7230,9 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
     case elfcpp::R_NANOMIPS_PC_I32:
     case elfcpp::R_NANOMIPS_GPREL_I32:
     case elfcpp::R_NANOMIPS_GOTPC_I32:
+    case elfcpp::R_NANOMIPS_TLS_GD_I32:
+    case elfcpp::R_NANOMIPS_TLS_LD_I32:
+    case elfcpp::R_NANOMIPS_TLS_GOTTPREL_PC_I32:
       reloc_status = Reloc_funcs::rel32(view, value);
       break;
     case elfcpp::R_NANOMIPS_UNSIGNED_8:
@@ -6843,6 +7263,9 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
       break;
     case elfcpp::R_NANOMIPS_NEG:
     case elfcpp::R_NANOMIPS_ASHIFTR_1:
+    case elfcpp::R_NANOMIPS_TLS_DTPMOD:
+    case elfcpp::R_NANOMIPS_TLS_DTPREL:
+    case elfcpp::R_NANOMIPS_TLS_TPREL:
       reloc_status = Reloc_funcs::relsize(view, value);
       break;
     case elfcpp::R_NANOMIPS_PC32:
@@ -6901,7 +7324,18 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
     case elfcpp::R_NANOMIPS_GOT_DISP:
     case elfcpp::R_NANOMIPS_GOT_PAGE:
     case elfcpp::R_NANOMIPS_GOT_CALL:
+    case elfcpp::R_NANOMIPS_TLS_GD:
+    case elfcpp::R_NANOMIPS_TLS_LD:
+    case elfcpp::R_NANOMIPS_TLS_GOTTPREL:
       reloc_status = Reloc_funcs::relgot(view, value, align);
+      break;
+    case elfcpp::R_NANOMIPS_TLS_TPREL16:
+    case elfcpp::R_NANOMIPS_TLS_DTPREL16:
+      reloc_status = Reloc_funcs::reltls16(view, value, check_overflow);
+      break;
+    case elfcpp::R_NANOMIPS_TLS_TPREL12:
+    case elfcpp::R_NANOMIPS_TLS_DTPREL12:
+      reloc_status = Reloc_funcs::reltls12(view, value, check_overflow);
       break;
     default:
       gold_error_at_location(relinfo, relnum, r_offset,
