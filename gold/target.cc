@@ -26,6 +26,7 @@
 #include "symtab.h"
 #include "output.h"
 #include "target.h"
+#include "safe-ctype.h"
 
 namespace gold
 {
@@ -55,6 +56,47 @@ Target::do_is_local_label_name(const char* name) const
   // we treat such symbols as local.
   if (name[0] == '_' && name[1] == '.' && name[2] == 'L' && name[3] == '_')
     return true;
+
+  // Treat assembler generated fake symbols, dollar local labels and
+  // forward-backward labels (aka local labels) as locals.
+  // These labels have the form:
+  //
+  //   L0^A.*                                  (fake symbols)
+  //
+  //   [.]?L[0123456789]+{^A|^B}[0123456789]*  (local labels)
+  //
+  // Versions which start with .L will have already been matched above,
+  // so we only need to match the rest.
+  if (name[0] == 'L' && ISDIGIT(name[1]))
+    {
+      bool ret = false;
+      const char* p;
+      char c;
+
+      for (p = name + 2; (c = *p); p++)
+	{
+	  if (c == 1 || c == 2)
+	    {
+	      if (c == 1 && p == name + 2)
+		// A fake symbol.
+		return true;
+
+	      // FIXME: We are being paranoid here and treating symbols like
+	      // L0^Bfoo as if there were non-local, on the grounds that the
+	      // assembler will never generate them.  But can any symbol
+	      // containing an ASCII value in the range 1-31 ever be anything
+	      // other than some kind of local ?
+	      ret = true;
+	    }
+
+	  if (!ISDIGIT(c))
+	    {
+	      ret = false;
+	      break;
+	    }
+	}
+      return ret;
+    }
 
   return false;
 }
