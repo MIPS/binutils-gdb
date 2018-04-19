@@ -1604,6 +1604,16 @@ class Target_nanomips : public Sized_target<size, big_endian>
   do_is_defined_by_abi(const Symbol* sym) const
   { return strcmp(sym->name(), "__tls_get_addr") == 0; }
 
+  // Return whether a symbol name implies a local label.
+  bool
+  do_is_local_label_name(const char* name) const
+  {
+    // Check if symbol name starts with "$L".
+    if (name[0] == '$' && name[1] == 'L')
+      return true;
+    return Target::do_is_local_label_name(name);
+  }
+
   // Get gp value.
   Address
   gp_value() const
