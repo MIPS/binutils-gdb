@@ -556,9 +556,6 @@ if { [istarget nanomips*-*-*] } {
 
     # FIXME: broken for various cases
     run_dump_test_arches "dot-1"	[arch_list_matching nanomipsr6]
-    run_list_test_arches "double-float-flag" \
-	"-m32 -msingle-float -mdouble-float" \
-	[arch_list_matching nanomipsr6]
     run_dump_test_arches "dsp"		[arch_list_matching nanomipsr6]
     run_dump_test_arches "dspr3"	[arch_list_matching nanomipsr6]
 
@@ -590,20 +587,12 @@ if { [istarget nanomips*-*-*] } {
     run_list_test_arches "expr-ill"	[arch_list_matching nanomips]
     run_dump_test_arches "expr-vol"	[arch_list_matching nanomips]
  
-    run_dump_test_arches "fp"	[arch_list_matching xnms]
-
-    run_dump_test_arch "fpr-names-numeric" "" nanomips32r6
-    run_dump_test_arch "fpr-names" "" nanomips32r6
-
     run_dump_test_arches "ginv" ""	[arch_list_matching nanomipsr6]
     run_dump_test_arches "ginv-dis" ""	[arch_list_matching nanomipsr6]
     run_list_test "ginv-error" ""
     run_dump_test_arch "gpr-names-numeric" "" nanomips32r6
     run_dump_test_arch "gpr-names" "" nanomips32r6
 
-    run_list_test_arches "hard-float-flag" \
-	"-m32 -msoft-float -mhard-float" \
-	[arch_list_matching nanomipsr6]
     run_dump_test_arch "hilo-diff-eb"	"" nanomips32r6
     run_dump_test_arch "hilo-diff-el"	"" nanomips32r6
 
@@ -648,8 +637,6 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "lb-pic"	[arch_list_matching nanomipsr6]
 
     run_dump_test_arch "ld"		"" nanomips32r6
-    run_dump_test_arches "ldc1"		[arch_list_matching nanomipsr6]
-    run_dump_test_arches "ldc1-forward" [arch_list_matching nanomipsr6]
     run_list_test_arches "ldstla-err" "" [arch_list_matching nanomipsr6]
 
     run_dump_test_arches "ldst-indexed" [arch_list_matching nanomipsr6]
@@ -695,9 +682,6 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "lw"		[arch_list_matching nanomipsr6]
     run_dump_test_arch "lw-pcrel"	"" nanomips32r6
     run_dump_test_arch "lw-pcrel"	"" nanomips32s
-    run_dump_test_arches "l_d" 		[arch_list_matching nanomipsr6]
-    run_dump_test_arches "l_d-forward"	[arch_list_matching nanomipsr6]
-    run_dump_test_arch "l_d-reloc" "" nanomips32r6
 
     run_dump_test_arches "lui"		[arch_list_matching nanomipsr6]
     run_list_test_arches "lui-1" "-m32"	[arch_list_matching nanomipsr6]
@@ -715,10 +699,6 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "minimize-relocs4" "" \
 					[arch_list_matching nanomips]
 
-    run_list_test_arches "macro-ill-sfp" "-m32 -msingle-float" \
-					[arch_list_matching nanomipsr6]
-    run_list_test_arches "macro-ill-nofp" "-m32 -msoft-float" \
-					[arch_list_matching nanomipsr6]
     # tests of objdump's ability to disassemble the move mnemonic
     run_dump_test_arches "move"		[arch_list_matching nanomipsr6]
     run_dump_test_arch "mttgpr-rc1" "-mmt -mmttgpr-rc1" nanomips32r6
@@ -786,10 +766,6 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "sd"		"" nanomips32r6
     run_dump_test_arch "sd-forward" 	"" nanomips32r6
     run_dump_test_arch "sd-pcrel"	"" nanomips32r6
-    run_dump_test_arches "sdc1"		[arch_list_matching nanomipsr6]
-    run_dump_test_arches "sdc1-forward" [arch_list_matching nanomipsr6]
-    run_dump_test_arches "s_d"		[arch_list_matching nanomipsr6]
-    run_dump_test_arches "s_d-forward" 	[arch_list_matching nanomipsr6]
     run_dump_test_arches "sw"		[arch_list_matching nanomipsr6]
     run_dump_test_arch "sw-pcrel"	"" nanomips32r6
     run_dump_test_arch "sw-pcrel"	"" nanomips32s

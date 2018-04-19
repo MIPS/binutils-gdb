@@ -271,6 +271,8 @@ decode_nanomips_operand (const char *p)
 #define RD_3	INSN_READ_3
 #define MOD_1	(WR_1|RD_1)
 #define MOD_2	(WR_2|RD_2)
+#define FP_S	INSN_FP_S
+#define FP_D	INSN_FP_D
 
  /* Write dsp accumulators */
 #define WR_a	INSN_WRITE_ACC
@@ -376,16 +378,12 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 
 /* Precedence=0 */
 {"abs", 	"",		"d,v",		0,	   (int) M_ABS,	INSN_MACRO,		0,	I38,	0},
-{"abs.d",	"",		"T,V",		0xa000237b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
-{"abs.s",	"",		"T,V",		0xa000037b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
 {"absq_s.ph",	"",		"t,s",		0x2000113f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32},
 {"absq_s.qb",	"",		"t,s",		0x2000013f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32},
 {"absq_s.w",	"",		"t,s",		0x2000213f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32},
 {"add", 	"",		"d,v,t",	0x20000110, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	xNMS},
 {"add", 	"",		"t,r,I",	0,    (int) M_ADD_I,	INSN_MACRO,		0,	0,	xNMS},
 {"addi",	"",		"t,r,I",	0,    (int) M_ADD_I,	INSN_MACRO,		0,	0,	xNMS},
-{"add.d",	"",		"D,V,T",	0xa0000130, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"add.s",	"",		"D,V,T",	0xa0000030, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
 {"addiu",	"[r1.sp]",	"md,ms,mS",	0x7040, 	0xfc40,	WR_1|RD_2,		0,	I38,	0}, /* ADDIU[R1.SP] */
 {"addiu",	"[r2]", 	"md,mc,mB",	0x9000, 	0xfc08,	WR_1|RD_2,		0,	I38,	0}, /* ADDIU[R2] */
 {"addiu",	"[rs5]",	"mp,mk,mQ",	0x9008, 	0xfc08,	MOD_1,		INSN2_ALIAS,	I38,	0}, /* ADDIU[RS5] */
@@ -451,10 +449,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"bc",		"[32]", 	"+u",		0x28000000, 0xfe000000,	0,			0,	I38,	0},
 {"b",		"",		"mD",		0x1800, 	0xfc00,	0,	INSN2_ALIAS|UBR|CTC,	I38,	0}, /* BC[16] */
 {"b",		"",		"+u",		0x28000000, 0xfe000000,	0,	INSN2_ALIAS|UBR|CTC,	I38,	0}, /* BC */
-{"bc1eqzc",	"",		"T,p",		0x88004000, 0xfc1fc000,	RD_1,			0,	I38,	0},
-{"bc1eqz",	"",		"T,p",		0x88004000, 0xfc1fc000,	RD_1,	INSN2_ALIAS|CBR|CTC,	I38,	0}, /* BC1EQZC */
-{"bc1nezc",	"",		"T,p",		0x88014000, 0xfc1fc000,	RD_1,			0,	I38,	0},
-{"bc1nez",	"",		"T,p",		0x88014000, 0xfc1fc000,	RD_1,	INSN2_ALIAS|CBR|CTC,	I38,	0}, /* BC1NEZC */
 {"beqzc",	"[16]", 	"md,mE",	0x9800, 	0xfc00,	RD_1,			0,	I38,	0}, /* BEQZC[16] */
 {"beqzc",	"[32]", 	"t,p",		0x88000000, 0xfc1fc000,	RD_1,		INSN2_ALIAS,	I38,	0}, /* BEQC */
 {"beqzc",	"[32]", 	"s,p",		0x88000000, 0xffe0c000,	RD_1,		INSN2_ALIAS,	I38,	0}, /* BEQC */
@@ -539,66 +533,16 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"cache",	"",		"k,A(c)",	0,    (int) M_CACHE_AC,	INSN_MACRO,		0,	I38,	0},
 {"cachee",	"",		"k,+j(b)",	0xa4003a00, 0xfc007f00,	RD_3,			0,	0,	EVA},
 {"cachee",	"",		"k,A(c)",	0,    (int) M_CACHEE_AC, INSN_MACRO,		0,	0,	EVA},
-{"ceil.l.d",	"",		"T,S",		0xa000533b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
-{"ceil.l.s",	"",		"T,S",		0xa000133b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
-{"ceil.w.d",	"",		"T,S",		0xa0005b3b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
-{"ceil.w.s",	"",		"T,S",		0xa0001b3b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
 {"cfc1",	"",		"t,G",		0xa000103b, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	I38,	0},
 {"cfc1",	"",		"t,S",		0xa000103b, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
 {"cftc1",	"",		"t,G",		0x20001e30, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	MT32}, /* MFTR */
 {"cftc1",	"",		"t,S",		0x20001e30, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	MT32}, /* MFTR */
 {"cftc2",	"",		"t,G",		0x20002e30, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	MT32}, /* MFTR */
-{"class.d",	"",		"T,S",		0xa0000260, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
-{"class.s",	"",		"T,S",		0xa0000060, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
 {"clo", 	"",		"t,s",		0x20004b3f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	xNMS},
 {"clz", 	"",		"t,s",		0x20005b3f, 0xfc00ffff,	WR_1|RD_2,		0,	0,	xNMS},
-{"cmp.af.d",	"",		"D,S,T",	0xa0000015, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"cmp.af.s",	"",		"D,S,T",	0xa0000005, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"cmp.eq.d",	"",		"D,S,T",	0xa0000095, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
 {"cmp.eq.ph",	"",		"s,t",		0x20000005, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32},
-{"cmp.eq.s",	"",		"D,S,T",	0xa0000085, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"cmp.le.d",	"",		"D,S,T",	0xa0000195, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
 {"cmp.le.ph",	"",		"s,t",		0x20000085, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32},
-{"cmp.le.s",	"",		"D,S,T",	0xa0000185, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"cmp.lt.d",	"",		"D,S,T",	0xa0000115, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
 {"cmp.lt.ph",	"",		"s,t",		0x20000045, 0xfc00ffff,	WR_1|RD_2,		0,	0,	D32},
-{"cmp.lt.s",	"",		"D,S,T",	0xa0000105, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"cmp.ne.d",	"",		"D,S,T",	0xa00004d5, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"cmp.ne.s",	"",		"D,S,T",	0xa00004c5, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"cmp.or.d",	"",		"D,S,T",	0xa0000455, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"cmp.or.s",	"",		"D,S,T",	0xa0000445, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"cmp.saf.d",	"",		"D,S,T",	0xa0000215, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"cmp.saf.s",	"",		"D,S,T",	0xa0000205, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"cmp.seq.d",	"",		"D,S,T",	0xa0000295, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"cmp.seq.s",	"",		"D,S,T",	0xa0000285, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"cmp.sle.d",	"",		"D,S,T",	0xa0000395, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"cmp.sle.s",	"",		"D,S,T",	0xa0000385, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"cmp.slt.d",	"",		"D,S,T",	0xa0000315, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"cmp.slt.s",	"",		"D,S,T",	0xa0000305, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"cmp.sne.d",	"",		"D,S,T",	0xa00006d5, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"cmp.sne.s",	"",		"D,S,T",	0xa00006c5, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"cmp.sor.d",	"",		"D,S,T",	0xa0000655, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"cmp.sor.s",	"",		"D,S,T",	0xa0000645, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"cmp.sueq.d",	"",		"D,S,T",	0xa00002d5, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"cmp.sueq.s",	"",		"D,S,T",	0xa00002c5, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"cmp.sule.d",	"",		"D,S,T",	0xa00003d5, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"cmp.sule.s",	"",		"D,S,T",	0xa00003c5, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"cmp.sult.d",	"",		"D,S,T",	0xa0000355, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"cmp.sult.s",	"",		"D,S,T",	0xa0000345, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S|FP_D, 0,	I38,	0},
-{"cmp.sun.d",	"",		"D,S,T",	0xa0000255, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"cmp.sun.s",	"",		"D,S,T",	0xa0000245, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"cmp.sune.d",	"",		"D,S,T",	0xa0000695, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"cmp.sune.s",	"",		"D,S,T",	0xa0000685, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"cmp.ueq.d",	"",		"D,S,T",	0xa00000d5, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"cmp.ueq.s",	"",		"D,S,T",	0xa00000c5, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"cmp.ule.d",	"",		"D,S,T",	0xa00001d5, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"cmp.ule.s",	"",		"D,S,T",	0xa00001c5, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"cmp.ult.d",	"",		"D,S,T",	0xa0000155, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"cmp.ult.s",	"",		"D,S,T",	0xa0000145, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"cmp.un.d",	"",		"D,S,T",	0xa0000055, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"cmp.un.s",	"",		"D,S,T",	0xa0000045, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"cmp.une.d",	"",		"D,S,T",	0xa0000495, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"cmp.une.s",	"",		"D,S,T",	0xa0000485, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
 {"cmpgdu.eq.qb", "",		"d,s,t",	0x20000185, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"cmpgdu.le.qb", "",		"d,s,t",	0x20000205, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"cmpgdu.lt.qb", "",		"d,s,t",	0x200001c5, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
@@ -620,16 +564,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"cttc1",	"",		"t,G",		0x20001e70, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS,	0,	MT32}, /* MTTR */
 {"cttc1",	"",		"t,S",		0x20001e70, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS,	0,	MT32}, /* MTTR */
 {"cttc2",	"",		"t,G",		0x20002e70, 0xfc00ffff,	RD_1|WR_2,	INSN2_ALIAS,	0,	MT32}, /* MTTR */
-{"cvt.d.l",	"",		"T,S",		0xa000537b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
-{"cvt.d.s",	"",		"T,S",		0xa000137b, 0xfc00ffff,	WR_1|RD_2|FP_S|FP_D,	0,	I38,	0},
-{"cvt.d.w",	"",		"T,S",		0xa000337b, 0xfc00ffff,	WR_1|RD_2|FP_S|FP_D,	0,	I38,	0},
-{"cvt.l.d",	"",		"T,S",		0xa000413b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
-{"cvt.l.s",	"",		"T,S",		0xa000013b, 0xfc00ffff,	WR_1|RD_2|FP_S|FP_D,	0,	I38,	0},
-{"cvt.s.d",	"",		"T,S",		0xa0001b7b, 0xfc00ffff,	WR_1|RD_2|FP_S|FP_D,	0,	I38,	0},
-{"cvt.s.l",	"",		"T,S",		0xa0005b7b, 0xfc00ffff,	WR_1|RD_2|FP_S|FP_D,	0,	I38,	0},
-{"cvt.s.w",	"",		"T,S",		0xa0003b7b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
-{"cvt.w.d",	"",		"T,S",		0xa000493b, 0xfc00ffff,	WR_1|RD_2|FP_S|FP_D,	0,	I38,	0},
-{"cvt.w.s",	"",		"T,S",		0xa000093b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
 {"dabs",	"",		"d,v",		0,	  (int) M_DABS,	INSN_MACRO,		0,	I38,	0},
 {"daddiu",	"[neg]",	"t,r,h",	0x80008000, 0xfc00f000,	WR_1|RD_2,		0,	I38,	0}, /* DADDIU[NEG] */
 {"deret",	"",		"",		0x2000e37f, 0xffffffff,		0,		0,	I38,	0},
@@ -637,8 +571,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"di",		"",		"w",		0x2000477f, 0xfc1fffff,	WR_1,			0,	I38,	0},
 {"div", 	"",		"d,v,t",	0x20000118, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"div", 	"",		"d,v,I",	0,    (int) M_DIV_I,	INSN_MACRO,		0,	I38,	0},
-{"div.d",	"",		"D,V,T",	0xa00001f0, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"div.s",	"",		"D,V,T",	0xa00000f0, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
 {"divu",	"",		"d,v,t",	0x20000198, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"divu",	"",		"d,v,I",	0,    (int) M_DIVU_I,	INSN_MACRO,		0,	I38,	0},
 {"dmt", 	"",		"",		0x20010ab0, 0xffffffff,	0,		INSN2_ALIAS,	0,	MT32},
@@ -685,10 +617,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"extr_rs.w",	"",		"t,7,2",	0x20002e7f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
 {"extr_s.h",	"",		"t,7,2",	0x20003e7f, 0xfc003fff,	WR_1|RD_2,		0,	0,	D32},
 {"fork",	"",		"d,s,t",	0x20000228, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,	0,	MT32},
-{"floor.l.d",	"",		"T,S",		0xa000433b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
-{"floor.l.s",	"",		"T,S",		0xa000033b, 0xfc00ffff,	WR_1|RD_2|FP_S|FP_D,	0,	I38,	0},
-{"floor.w.d",	"",		"T,S",		0xa0004b3b, 0xfc00ffff,	WR_1|RD_2|FP_S|FP_D,	0,	I38,	0},
-{"floor.w.s",	"",		"T,S",		0xa0000b3b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
 {"ginvi",	"",		"s",		0x20001f7f, 0xffe0ffff, RD_1,			0,	0,	GINV},
 {"ginvt",	"",		"s,+;", 	0x20000f7f, 0xff80ffff, RD_1,			0,	0,	GINV},
 {"ins", 	"",		"t,r,+A,+B",	0x8000e000, 0xfc00f820,	WR_1|RD_2,		0,	0,	xNMS},
@@ -730,19 +658,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"lbx", 	"",		"d,s(t)",	0x20000007, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"ld",		"",		"t,A(c)",	0,	(int) M_LD_AC,	INSN_MACRO,		0,	I38,	0},
 {"ld",		"",		"t,A(b)",	0,	(int) M_LDX_AB,	INSN_MACRO,		0,	I38,	0},
-{"ldc1",	"[gp]", 	"T,+2(ma)",	0x44180002, 0xfc1c0003,	WR_1|RD_3|FP_D,		0,	I38,	0}, /* LDC1[GP] */
-{"ldc1",	"[u12]",	"T,o(b)",	0x8400e000, 0xfc00f000,	WR_1|RD_3|FP_D,		0,	I38,	0}, /* LDC1[U12] */
-{"ldc1",	"[s9]", 	"T,+j(b)",	0xa4007000, 0xfc007f00,	WR_1|RD_3|FP_D,		0,	I38,	0}, /* LDC1[S9] */
-{"ldc1",	"",		"T,A(c)",	0,     (int) M_LDC1_AC,	INSN_MACRO,	INSN2_M_FP_D,	I38,	0},
-{"ldc1",	"",		"E,A(c)",	0,     (int) M_LDC1_AC,	INSN_MACRO,	INSN2_M_FP_D,	I38,	0},
-{"ldc1",	"",		"R,A(b)",	0,    (int) M_LDC1X_AB,	INSN_MACRO,	INSN2_M_FP_D,	I38,	0},
-{"ldc1x",	"",		"R,s(t)",	0x20000707, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"l.d", 	"[gp]", 	"T,+2(ma)",	0x44180002, 0xfc1c0003,	WR_1|RD_3|FP_D,	INSN2_ALIAS,	I38,	0}, /* LDC1[GP] */
-{"l.d", 	"[u12]",	"T,o(b)",	0x8400e000, 0xfc00f000,	WR_1|RD_3|FP_D,	INSN2_ALIAS,	I38,	0}, /* LDC1 */
-{"l.d", 	"[s9]", 	"T,+j(b)",	0xa4007000, 0xfc007f00,	WR_1|RD_3|FP_D,	INSN2_ALIAS,	I38,	0}, /* LDC1[S9] */
-{"l.d", 	"",		"T,A(c)",	0,     (int) M_LDC1_AC,	INSN_MACRO,	INSN2_M_FP_D,	I38,	0},
-{"ldc1xs",	"",		"R,s(t)",	0x20000747, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"ldxc1",	"",		"R,s(t)",	0x20000707, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D, INSN2_ALIAS, I38,	0}, /* LDC1X */
 {"lh",		"[16]", 	"md,mH(ml)",	0x7c00, 	0xfc09,	WR_1|RD_3,		0,	I38,	0}, /* LH[16] */
 {"lh",		"[gp]", 	"t,+3(ma)",	0x44100000, 0xfc1c0001,	WR_1|RD_3,		0,	I38,	0}, /* LH[GP] */
 {"lh",		"[u12]",	 "t,o(b)",	0x84004000, 0xfc00f000,	WR_1|RD_3,		0,	I38,	0}, /* LH[U12] */
@@ -763,10 +678,8 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"lhuxs",	"",		"d,s(t)",	0x20000347, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"lhx", 	"",		"d,s(t)",	0x20000207, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"lhxs",	"",		"d,s(t)",	0x20000247, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
-{"li.d",	"",		"t,F",		0,	(int) M_LI_D,	INSN_MACRO,	INSN2_M_FP_D,	I38,	0},
-{"li.d",	"",		"T,L",		0,	(int) M_LI_DD,	INSN_MACRO,	INSN2_M_FP_D,	I38,	0},
-{"li.s",	"",		"t,f",		0,	(int) M_LI_S,	INSN_MACRO,	INSN2_M_FP_S,	I38,	0},
-{"li.s",	"",		"T,l",		0,	(int) M_LI_SS,	INSN_MACRO,	INSN2_M_FP_S,	I38,	0},
+{"li.d",	"",		"t,F",		0,	(int) M_LI_D,	INSN_MACRO,		0,	I38,	0},
+{"li.s",	"",		"t,f",		0,	(int) M_LI_S,	INSN_MACRO,		0,	I38,	0},
 {"ll",		"",		"t,+p(b)",	0xa4005100, 0xfc007f03,	WR_1|RD_3,		0,	I38,	0},
 {"ll",		"",		"t,A(c)",	0,	(int) M_LL_AC,	INSN_MACRO,		0,	I38,	0},
 {"lle", 	"",		"t,+p(b)",	0xa4005200, 0xfc007f03,	WR_1|RD_3,		0,	0,	EVA},
@@ -786,18 +699,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"lw",		"[s9]", 	"t,+j(b)",	0xa4004000, 0xfc007f00,	WR_1|RD_3,		0,	I38,	0}, /* LW[S9] */
 {"lw",		"",		"t,A(c)",	0,	(int) M_LW_AC,	INSN_MACRO,		0,	I38,	0},
 {"lw",		"",		"t,A(b)",	0,	(int) M_LWX_AB,	INSN_MACRO,		0,	I38,	0},
-{"lwc1",	"[gp]", 	"T,+2(ma)",	0x44180000, 0xfc1c0003,	WR_1|RD_3|FP_S,		0,	I38,	0}, /* LWC1[GP] */
-{"lwc1",	"[u12]",	"T,o(b)",	0x8400a000, 0xfc00f000,	WR_1|RD_3|FP_S,		0,	I38,	0}, /* LWC1[U12] */
-{"lwc1",	"[s9]", 	"T,+j(b)",	0xa4005000, 0xfc007f00,	WR_1|RD_3|FP_S,		0,	I38,	0}, /* LWC1[S9] */
-{"lwc1",	"",		"T,A(c)",	0,     (int) M_LWC1_AC,	INSN_MACRO,	INSN2_M_FP_S,	I38,	0},
-{"lwc1",	"",		"E,A(c)",	0,     (int) M_LWC1_AC,	INSN_MACRO,	INSN2_M_FP_S,	I38,	0},
-{"lwc1",	"",		"R,A(b)",	0,    (int) M_LWC1X_AB,	INSN_MACRO,	INSN2_M_FP_S,	I38,	0},
-{"l.s", 	"[gp]", 	"T,+2(ma)",	0x44180000, 0xfc1c0003,	WR_1|RD_3|FP_S,	INSN2_ALIAS,	I38,	0}, /* LWC1[GP] */
-{"l.s", 	"[u12]",	"T,o(b)",	0x8400a000, 0xfc00f000,	WR_1|RD_3|FP_S,	INSN2_ALIAS,	I38,	0}, /* LWC1[U12] */
-{"l.s", 	"[s9]", 	"T,+j(b)",	0xa4005000, 0xfc007f00,	WR_1|RD_3|FP_S,	INSN2_ALIAS,	I38,	0}, /* LWC1[S9] */
-{"l.s", 	"",		"T,A(c)",	0,     (int) M_LWC1_AC,	INSN_MACRO,	INSN2_M_FP_S,	I38,	0},
-{"lwc1x",	"",		"R,s(t)",	0x20000507, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"lwc1xs",	"",		"R,s(t)",	0x20000547, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
 {"lwe", 	"",		"t,+j(b)",	0xa4004200, 0xfc007f00,	WR_1|RD_3,		0,	0,	EVA},
 {"lwe", 	"",		"t,A(c)",	0,	(int) M_LWE_AC,	INSN_MACRO,		0,	0,	EVA},
 {"lwm", 	"",		"t,+j(b),|",	0xa4000400, 0xfc000f00,	WR_1|RD_3,		0,	0,	xNMS}, /* LWM */
@@ -805,29 +706,18 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"lwx", 	"",		"d,s(t)",	0x20000407, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"lwxs",	"[16]", 	"me,ml(md)",	0x5001, 	0xfc01, WR_1|RD_2|RD_3,		0,	I38,	0}, /* LWXS[16] */
 {"lwxs",	"[32]", 	"d,s(t)",	0x20000447, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
-{"lwxc1",	"",		"R,s(t)",	0x20000507, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S, INSN2_ALIAS, I38,	0}, /* LWC1X */
 {"madd",	"[dsp]",	"7,s,t",	0x20000abf, 0xfc003fff, MOD_1|RD_2|RD_3,	0,	0,	D32}, /* MADD[DSP] */
-{"maddf.d",	"",		"D,S,T",	0xa00003b8, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"maddf.s",	"",		"D,S,T",	0xa00001b8, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
 {"maddu",	"[dsp]",	"7,s,t",	0x20001abf, 0xfc003fff, MOD_1|RD_2|RD_3,	0,	0,	D32}, /* MADDU[DSP] */
 {"maq_s.w.phl", "",		"7,s,t",	0x20001a7f, 0xfc003fff, MOD_1|RD_2|RD_3,	0,	0,	D32},
 {"maq_s.w.phr", "",		"7,s,t",	0x20000a7f, 0xfc003fff, MOD_1|RD_2|RD_3,	0,	0,	D32},
 {"maq_sa.w.phl", "",		"7,s,t",	0x20003a7f, 0xfc003fff, MOD_1|RD_2|RD_3,	0,	0,	D32},
 {"maq_sa.w.phr", "",		"7,s,t",	0x20002a7f, 0xfc003fff, MOD_1|RD_2|RD_3,	0,	0,	D32},
-{"max.d",	"",		"D,S,T",	0xa000020b, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"max.s",	"",		"D,S,T",	0xa000000b, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"maxa.d",	"",		"D,S,T",	0xa000022b, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"maxa.s",	"",		"D,S,T",	0xa000002b, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
 {"mfc0",	"",		"t,O",		0x20000030, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	I38,	0}, /* MFC0 with named register */
 {"mfc0",	"",		"t,P,J",	0x20000030, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	I38,	0}, /* MFC0 with named register & select */
 {"mfc0",	"",		"t,G,J",	0x20000030, 0xfc0007ff,	WR_1,			0,	I38,	0},
-{"mfc1",	"",		"t,S",		0xa000203b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
-{"mfc1",	"",		"t,G",		0xa000203b, 0xfc00ffff,	WR_1|RD_2|FP_S,	INSN2_ALIAS,	I38,	0},
 {"mfhc0",	"",		"t,O",		0x20000038, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	I38,	0}, /* MFHC0 with named register */
 {"mfhc0",	"",		"t,P,J",	0x20000038, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	I38,	0}, /* MFHC0 with named register & select*/
 {"mfhc0",	"",		"t,G,J",	0x20000038, 0xfc0007ff,	WR_1,			0,	I38,	0},
-{"mfhc1",	"",		"t,S",		0xa000303b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
-{"mfhc1",	"",		"t,G",		0xa000303b, 0xfc00ffff,	WR_1|RD_2|FP_D,	INSN2_ALIAS,	I38,	0},
 {"mfhi",	"[dsp]",	"t,7",		0x2000007f, 0xfc1f3fff,	WR_1|RD_2,		0,	0,	D32}, /* MFHI[DSP] */
 {"mflo",	"[dsp]",	"t,7",		0x2000107f, 0xfc1f3fff,	WR_1|RD_2,		0,	0,	D32}, /* MFLO[DSP] */
 {"mftc0",	"",		"t,O",		0x20000230, 0xfc0007ff,	WR_1,		INSN2_ALIAS,	0,	MT32}, /* MFTR with named register */
@@ -847,17 +737,11 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"mftlo",	"",		"t",		0x20000e30, 0xfc1fffff,	WR_1|RD_a,	INSN2_ALIAS,	0,	MT32}, /* MFTR */
 {"mftlo",	"",		"t,*",		0x20000e30, 0xfc13ffff,	WR_1|RD_a,	INSN2_ALIAS,	0,	MT32}, /* MFTR */
 {"mftr",	"",		"t,s,!,H,$",	0x20000230, 0xfc0003f7,	WR_1,			0,	0,	MT32},
-{"min.d",	"",		"D,S,T",	0xa0000203, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"min.s",	"",		"D,S,T",	0xa0000003, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"mina.d",	"",		"D,S,T",	0xa0000223, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"mina.s",	"",		"D,S,T",	0xa0000023, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
 {"mod", 	"",		"d,v,t",	0x20000158, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"mod", 	"",		"d,v,I",	0,	(int) M_MOD_I,	INSN_MACRO,		0,	I38,	0},
 {"modsub",	"",		"d,s,t",	0x20000295, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"modu",	"",		"d,v,t",	0x200001d8, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"modu",	"",		"d,v,I",	0,	(int) M_MODU_I,	INSN_MACRO,		0,	I38,	0},
-{"mov.d",	"",		"T,S",		0xa000207b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
-{"mov.s",	"",		"T,S",		0xa000007b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
 {"move.balc",	"",		"+7,+5,+r",	0x08000000, 0xfc000000,	WR_1|RD_2,		0,	0,	xNMS},
 {"move.bal",	"",		"+7,+5,+r",	0x08000000, 0xfc000000,	WR_1|RD_2,	INSN2_ALIAS|UBR|CTC, 0,	xNMS}, /* MOVE.BALC */
 {"movep",	"",		"mq,mx,mw",	0xbc00, 	0xfc00,	WR_1|RD_2|RD_3,		0,	0,	xNMS}, /* MOVEP */
@@ -867,19 +751,13 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"movn",	"",		"d,v,t",	0x20000610, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"movz",	"",		"d,v,t",	0x20000210, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"msub",	"[dsp]",	"7,s,t",	0x20002abf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32}, /* MSUB[DSP] */
-{"msubf.d",	"",		"D,S,T",	0xa00003f8, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"msubf.s",	"",		"D,S,T",	0xa00001f8, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
 {"msubu",	"[dsp]",	"7,s,t",	0x20003abf, 0xfc003fff,MOD_1|RD_2|RD_3,		0,	0,	D32}, /* MSUBU[DSP] */
 {"mtc0",	"",		"t,O",		0x20000070, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	I38,	0}, /* MTC0 with named register */
 {"mtc0",	"",		"t,P,J",	0x20000070, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	I38,	0}, /* MTCO with named register & select */
 {"mtc0",	"",		"t,G,J",	0x20000070, 0xfc0007ff,	RD_1,			0,	I38,	0},
-{"mtc1",	"",		"t,S",		0xa000283b, 0xfc00ffff,	RD_1|WR_2|FP_S,		0,	I38,	0},
-{"mtc1",	"",		"t,G",		0xa000283b, 0xfc00ffff,	RD_1|WR_2|FP_S,	INSN2_ALIAS,	I38,	0},
 {"mthc0",	"",		"t,O",		0x20000078, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	I38,	0}, /* MTHC0 with named register */
 {"mthc0",	"",		"t,P,J",	0x20000078, 0xfc0007ff,	RD_1,		INSN2_ALIAS,	I38,	0}, /* MTHC0 with named register & select */
 {"mthc0",	"",		"t,G,J",	0x20000078, 0xfc0007ff,	RD_1,			0,	I38,	0},
-{"mthc1",	"",		"t,S",		0xa000383b, 0xfc00ffff,	RD_1|WR_2|FP_D,		0,	I38,	0},
-{"mthc1",	"",		"t,G",		0xa000383b, 0xfc00ffff,	RD_1|WR_2|FP_D,	INSN2_ALIAS,	I38,	0},
 {"mthi",	"[dsp]",	"s,7",		0x2000207f, 0xffe03fff,	WR_1|RD_2,		0,	0,	D32}, /* MTHI[DSP] */
 {"mthlip",	"",		"s,7",		0x2000027f, 0xffe03fff,	WR_1|RD_2,		0,	0,	D32},
 {"mtlo",	"[dsp]",	"s,7",		0x2000307f, 0xffe03fff,	WR_1|RD_2,		0,	0,	D32}, /* MTLO[DSP] */
@@ -907,9 +785,7 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"mul", 	"[4x4]",	"mu,mv,mk",	0x3c08, 	0xfd08,	MOD_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* MUL[4X4] */
 {"mul", 	"[32]", 	"d,v,t",	0x20000018, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"mul", 	"",		"d,v,I",	0,	(int) M_MUL_I,	INSN_MACRO,		0,	I38,	0},
-{"mul.d",	"",		"D,V,T",	0xa00001b0, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
 {"mul.ph",	"",		"d,s,t",	0x2000002d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
-{"mul.s",	"",		"D,V,T",	0xa00000b0, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
 {"muleq_s.w.phl", "",		"d,s,t",	0x20000025, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"muleq_s.w.phr", "",		"d,s,t",	0x20000065, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"muleu_s.ph.qbl", "",		"d,s,t",	0x20000095, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
@@ -926,8 +802,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"mul_s.ph",	"",		"d,s,t",	0x2000042d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"neg", 	"",		"d,w",		0x20000190, 0xfc1f07ff, WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* SUB */
 {"negu",	"",		"d,w",		0x200001d0, 0xfc1f07ff, WR_1|RD_2,	INSN2_ALIAS,	I38,	0}, /* SUBU */
-{"neg.d",	"",		"T,V",		0xa0002b7b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
-{"neg.s",	"",		"T,V",		0xa0000b7b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
 {"not", 	"[16]", 	"md,ml",	0x5000, 	0xfc0f,	WR_1|RD_2,		0,	I38,	0}, /* NOT[16] */
 {"not", 	"[32]", 	"d,v",		0x200002d0, 0xffe007ff, WR_1|RD_2,	INSN2_ALIAS,	I38,	0}, /* NOR */
 {"nor", 	"",		"d,v,t",	0x200002d0, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
@@ -972,8 +846,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"rdhwr",	"",		"t,U,J",	0x200001c0, 0xfc0007ff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS},
 {"rdhwr",	"",		"t,G,H",	0x200001c0, 0xfc0007ff,	WR_1|RD_2,		0,	0,	xNMS},
 {"rdpgpr",	"",		"t,s",		0x2000e17f, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
-{"recip.d",	"",		"T,S",		0xa000523b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
-{"recip.s",	"",		"T,S",		0xa000123b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
 {"rem", 	"",		"d,v,t",	0x20000158, 0xfc0007ff, WR_1|RD_2|RD_3,	INSN2_ALIAS,	I38,	0}, /* MOD */
 {"rem", 	"",		"d,v,I",	0,	(int) M_REM_3I,	INSN_MACRO,		0,	I38,	0},
 {"remu",	"",		"d,v,t",	0x200001d8, 0xfc0007ff, WR_1|RD_2|RD_3,	INSN2_ALIAS,	I38,	0}, /* MODU */
@@ -989,9 +861,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"jraddiusp",	"",		"mG",		0x1d00, 	0xff0f,	0,		INSN2_ALIAS,	I38,	0}, /* RESTORE.JRC[16] */
 {"jraddiusp",	"",		"+N",		0x80003003, 0xfffff007,	0,		INSN2_ALIAS,	I38,	0}, /* RESTORE.JRC[32] */
 {"jraddiusp",	"",		"I",		0,   (int) M_JRADDIUSP,	INSN_MACRO,		0,	I38,	0},
-{"restoref",	"",		"+N,+D",	0x80103001, 0xfff0f007,	FP_S,			0,	I38,	0},
-{"rint.d",	"",		"T,S",		0xa0000220, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
-{"rint.s",	"",		"T,S",		0xa0000020, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
 {"rol", 	"",		"d,v,t",	0,	(int) M_ROL,	INSN_MACRO,		0,	I38,	0},
 {"rol", 	"",		"d,v,I",	0,	(int) M_ROL_I,	INSN_MACRO,		0,	I38,	0},
 {"rotrv",	"",		"d,s,t",	0x200000d0, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
@@ -1007,13 +876,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"wsbh",	"",		"t,r",		0x8000d608, 0xfc00ffff,	WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS}, /* ROTX t,s,8,24*/
 {"rotx",	"",		"t,r,<,+*",	0x8000d000, 0xfc00f860, WR_1|RD_2,	INSN2_ALIAS,	0,	xNMS},
 {"rotx",	"",		"t,r,<,+*,+|",	0x8000d000, 0xfc00f820, WR_1|RD_2,		0,	0,	xNMS},
-{"round.l.d",	"",		"T,S",		0xa000733b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
-{"round.l.s",	"",		"T,S",		0xa000333b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
-{"round.w.d",	"",		"T,S",		0xa0007b3b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
-{"round.w.s",	"",		"T,S",		0xa0003b3b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
-{"rsqrt.d",	"",		"T,S",		0xa000423b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
-{"rsqrt.s",	"",		"T,S",		0xa000023b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
-{"savef",	"",		"+N,+D",	0x80103000, 0xfff0f007,	FP_S,			0,	I38,	0}, /* precedes SAVE */
 {"save",	"[16]", 	"mG",		0x1c00, 	0xff0f,	0,			0,	I38,	0}, /* SAVE[16] */
 {"save",	"[16]", 	"mG,mn",	0x1c00, 	0xfd00,	0,			0,	I38,	0}, /* SAVE[16] */
 {"save",	"[32]", 	"+N,n",		0x80003000, 0xfc00f003,	0,			0,	I38,	0},
@@ -1036,27 +898,8 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"scwpe",	"",		"t,e,A(c)",	0,     (int) M_SCWP_AC,	INSN_MACRO,		0,	0,	EVA},
 {"sd",		"",		"t,A(c)",	0,	(int) M_SD_AC,	INSN_MACRO,		0,	I38,	0},
 {"sd",		"",		"t,A(b)",	0,	(int) M_SDX_AB,	INSN_MACRO,		0,	I38,	0},
-{"sdc1",	"[gp]", 	"T,+2(ma)",	0x44180003, 0xfc1c0003,	RD_1|RD_3|FP_D,		0,	I38,	0}, /* SDC1[GP] */
-{"sdc1",	"[u12]",	"T,o(b)",	0x8400f000, 0xfc00f000,	RD_1|RD_3|FP_D,		0,	I38,	0}, /* SDC1[U12] */
-{"sdc1",	"[s9]", 	"T,+j(b)",	0xa4007800, 0xfc007f00,	RD_1|RD_3|FP_D,		0,	I38,	0}, /* SDC1[S9] */
-{"sdc1",	"",		"T,A(c)",	0,     (int) M_SDC1_AC,	INSN_MACRO,	INSN2_M_FP_D,	I38,	0},
-{"sdc1",	"",		"E,A(c)",	0,     (int) M_SDC1_AC,	INSN_MACRO,	INSN2_M_FP_D,	I38,	0},
-{"sdc1",	"",		"R,A(b)",	0,    (int) M_SDC1X_AB,	INSN_MACRO,	INSN2_M_FP_D,	I38,	0},
-{"s.d", 	"[gp]", 	"T,+2(ma)",	0x44180003, 0xfc1c0003,	RD_1|RD_3|FP_D,	INSN2_ALIAS,	I38,	0}, /* SDC1[GP] */
-{"s.d", 	"[u12]", 	"T,o(b)",	0x8400f000, 0xfc00f000,	RD_1|RD_3|FP_D,	INSN2_ALIAS,	I38,	0}, /* SDC1[U12] */
-{"s.d", 	"[s9]", 	"T,+j(b)",	0xa4007800, 0xfc007f00,	RD_1|RD_3|FP_D,	INSN2_ALIAS,	I38,	0}, /* SDC1[S9] */
-{"s.d", 	"", 		"T,A(c)",	0,     (int) M_SDC1_AC,	INSN_MACRO,	INSN2_M_FP_D,	I38,	0},
-{"sdc1x",	"",		"R,s(t)",	0x20000787, 0xfc0007ff, RD_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"sdc1xs",	"",		"R,s(t)",	0x200007c7, 0xfc0007ff, RD_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"sdxc1",	"",		"R,s(t)",	0x20000787, 0xfc0007ff, RD_1|RD_2|RD_3|FP_D, INSN2_ALIAS, I38,	0}, /* SDC1X */
 {"seb", 	"", 		"t,r",		0x20000008, 0xfc00ffff,	WR_1|RD_2,		0,	0,	xNMS},
 {"seh", 	"", 		"t,r",		0x20000048, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
-{"sel.d",	"",		"D,S,T",	0xa00002b8, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"sel.s",	"",		"D,S,T",	0xa00000b8, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"seleqz.d",	"",		"D,S,T",	0xa0000238, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"seleqz.s",	"",		"D,S,T",	0xa0000038, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"selnez.d",	"",		"D,S,T",	0xa0000278, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"selnez.s",	"",		"D,S,T",	0xa0000078, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
 {"seqi",	"",		"t,r,i",	0x80006000, 0xfc00f000, WR_1|RD_2,		0,	I38,	0},
 {"seq", 	"", 		"d,v,t",	0,	(int) M_SEQ,	INSN_MACRO,		0,	I38,	0},
 {"seq", 	"", 		"d,v,I",	0,	(int) M_SEQ_I,	INSN_MACRO,		0,	I38,	0},
@@ -1127,8 +970,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"sne", 	"",		"d,v,t",	0,	(int) M_SNE,	INSN_MACRO,		0,	I38,	0},
 {"sne", 	"",		"d,v,I",	0,	(int) M_SNE_I,	INSN_MACRO,		0,	I38,	0},
 {"sov", 	"",		"d,v,t",	0x200003d0, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
-{"sqrt.d",	"",		"T,S",		0xa0004a3b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
-{"sqrt.s",	"",		"T,S",		0xa0000a3b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
 {"srav",	"",		"d,s,t",	0x20000090, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	I38,	0},
 {"sra", 	"",		"t,r,<",	0x8000c080, 0xfc00ffe0,	WR_1|RD_2,		0,	I38,	0},
 {"sra", 	"",		"d,v,t",	0x20000090, 0xfc0007ff, WR_1|RD_2|RD_3,	INSN2_ALIAS,	I38,	0}, /* SRAV */
@@ -1138,8 +979,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"srl", 	"[32]", 	"d,v,t",	0x20000050, 0xfc0007ff, WR_1|RD_2|RD_3,	INSN2_ALIAS,	I38,	0}, /* SRLV */
 {"sub", 	"",		"d,v,t",	0x20000190, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	xNMS},
 {"sub", 	"",		"t,r,I",	0,	(int) M_SUB_I,	INSN_MACRO,		0,	0,	xNMS},
-{"sub.d",	"",		"D,V,T",	0xa0000170, 0xfc0007ff, WR_1|RD_2|RD_3|FP_D,	0,	I38,	0},
-{"sub.s",	"",		"D,V,T",	0xa0000070, 0xfc0007ff, WR_1|RD_2|RD_3|FP_S,	0,	I38,	0},
 {"subq.ph",	"",		"d,s,t",	0x2000020d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"subqh.ph",	"",		"d,s,t",	0x2000024d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
 {"subqh.w",	"",		"d,s,t",	0x2000028d, 0xfc0007ff, WR_1|RD_2|RD_3,		0,	0,	D32},
@@ -1166,25 +1005,12 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"sw",		"[s9]", 	"t,+j(b)",	0xa4004800, 0xfc007f00,	RD_1|RD_3,		0,	I38,	0}, /* SW[S9] */
 {"sw",		"",		"t,A(c)",	0,	 (int) M_SW_AC,	INSN_MACRO,		0,	I38,	0},
 {"sw",		"",		"t,A(b)",	0,	(int) M_SWX_AB,	INSN_MACRO,		0,	0,	xNMS}, /* SWX */
-{"swc1",	"[gp]", 	"T,+2(ma)",	0x44180001, 0xfc1c0003,	RD_1|RD_3|FP_S,		0,	I38,	0}, /* SWC1[GP] */
-{"swc1",	"[u12]",	"T,o(b)",	0x8400b000, 0xfc00f000,	RD_1|RD_3|FP_S,		0,	I38,	0}, /* SWC1[U12] */
-{"swc1",	"[s9]", 	"T,+j(b)",	0xa4005800, 0xfc007f00,	RD_1|RD_3|FP_S,		0,	I38,	0}, /* SWC1[S9] */
-{"swc1",	"",		"T,A(c)",	0,     (int) M_SWC1_AC,	INSN_MACRO,	INSN2_M_FP_S,	I38,	0},
-{"swc1",	"",		"E,A(c)",	0,     (int) M_SWC1_AC,	INSN_MACRO,	INSN2_M_FP_S,	I38,	0},
-{"swc1",	"",		"R,A(b)",	0,    (int) M_SWC1X_AB,	INSN_MACRO,	INSN2_M_FP_S,	I38,	0},
-{"s.s", 	"[gp]", 	"T,+2(ma)",	0x44180001, 0xfc1c0003,	RD_1|RD_3|FP_S,	INSN2_ALIAS,	I38,	0}, /* SWC1[GP] */
-{"s.s", 	"[u12]",	"T,o(b)",	0x8400b000, 0xfc00f000,	RD_1|RD_3|FP_S,	INSN2_ALIAS,	I38,	0}, /* SWC1[U12]  */
-{"s.s", 	"[s9]", 	"T,+j(b)",	0xa4005800, 0xfc007f00,	RD_1|RD_3|FP_S,	INSN2_ALIAS,	I38,	0}, /* SWC1[S9] */
-{"s.s", 	"",		"T,A(c)",	0,     (int) M_SWC1_AC,	INSN_MACRO,	INSN2_M_FP_S,	I38,	0},
-{"swc1x",	"",		"R,s(t)",	0x20000587, 0xfc0007ff, RD_1|RD_2|RD_3|FP_S,	0,	I38,	0},
-{"swc1xs",	"",		"R,s(t)",	0x200005c7, 0xfc0007ff, RD_1|RD_2|RD_3|FP_S,	0,	I38,	0},
 {"swe", 	"",		"t,+j(b)",	0xa4004a00, 0xfc007f00,	RD_1|RD_3,		0,	0,	EVA},
 {"swe", 	"",		"t,A(c)",	0,      (int) M_SWE_AC,	INSN_MACRO,		0,	0,	EVA},
 {"swm", 	"",		"t,+j(b),|",	0xa4000c00, 0xfc000f00,	RD_1|RD_3,		0,	0,	xNMS}, /* SWM */
 {"swpc",	"[48]", 	"mp,+S",	0x600f, 	0xfc1f,	WR_1,			0,	0,	xNMS}, /* SWPC[48] */
 {"swx", 	"",		"d,s(t)",	0x20000487, 0xfc0007ff, RD_1|RD_2|RD_3,		0,	0,	xNMS},
 {"swxs",	"",		"d,s(t)",	0x200004c7, 0xfc0007ff, RD_1|RD_2|RD_3,		0,	0,	xNMS},
-{"swxc1",	"",		"R,s(t)",	0x20000587, 0xfc0007ff, RD_1|RD_2|RD_3|FP_S,INSN2_ALIAS, I38,	0}, /* SWC1X */
 {"syscall",	"[16]", 	"",		0x1008, 	0xffff,		0,	INSN2_ALIAS,	I38,	0}, /* SYSCALL[16] */
 {"syscall",	"[16]", 	"mP",		0x1008, 	0xfffc,		0,		0,	I38,	0}, /* SYSCALL[16] */
 {"syscall",	"[32]", 	"",		0x00080000, 0xffffffff,		0,	INSN2_ALIAS,	I38,	0},
@@ -1201,10 +1027,6 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"tlbr",	"",		"",		0x2000137f, 0xffffffff,		0,		0,	0,	TLB},
 {"tlbwi",	"",		"",		0x2000237f, 0xffffffff,		0,		0,	0,	TLB},
 {"tlbwr",	"",		"",		0x2000337f, 0xffffffff,		0,		0,	0,	TLB},
-{"trunc.l.d",	"",		"T,S",		0xa000633b, 0xfc00ffff,	WR_1|RD_2|FP_D,		0,	I38,	0},
-{"trunc.l.s",	"",		"T,S",		0xa000233b, 0xfc00ffff,	WR_1|RD_2|FP_D|FP_S,	0,	I38,	0},
-{"trunc.w.d",	"",		"T,S",		0xa0006b3b, 0xfc00ffff,	WR_1|RD_2|FP_D|FP_S,	0,	I38,	0},
-{"trunc.w.s",	"",		"T,S",		0xa0002b3b, 0xfc00ffff,	WR_1|RD_2|FP_S,		0,	I38,	0},
 {"ualh",	"",		"t,+j(b)",	0xa4002100, 0xfc007f00,	WR_1|RD_3,		0,	0,	xNMS},
 {"ualw",	"",		"t,+j(b)",	0xa4001500, 0xfc007f00,	WR_1|RD_3,	INSN2_ALIAS,	0,	xNMS}, /* UALWM */
 {"ualwm",	"",		"t,+j(b),|",	0xa4000500, 0xfc000f00,	WR_1|RD_3,		0,	0,	xNMS}, /* UALWM */

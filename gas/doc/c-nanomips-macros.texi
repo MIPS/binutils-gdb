@@ -339,17 +339,6 @@ li[48] rd,imm
 @item
 @xref{x_macro_li,,li}.
 @end multitable
-@item li.s fd,immfloat
-@multitable @columnfractions 0.3 0.4 0.3
-@item
-@tab
-@verbatim
-li $at,immfloat
-mtc1 $at,fd
-@end verbatim
-@tab
-@xref{x_macro_li,,li}.
-@end multitable
 @item li.d rd,immdouble
 @multitable @columnfractions 0.3 0.4 0.3
 @item
@@ -382,31 +371,6 @@ label:
 @end verbatim
 @tab
 @xref{x_ld_label,,ld from label}.
-@end multitable
-@item li.d fd,immdouble
-@multitable @columnfractions 0.3 0.4 0.3
-@item
--Gx, x >= 8
-@tab
-@verbatim
-  ldc1 fd,label
-  .sdata
-label: 
-  .dword immdouble
-@end verbatim
-
-@tab @xref{x_ldc1_label,,ldc1 from label}.
-@item
--Gx, x < 8
-@tab
-@verbatim
-  ldc1 fd,label
-  .rodata
-label: 
-  .dword immdouble
-@end verbatim
-
-@tab @xref{x_ldc1_label,,ldc1 from label}.
 @end multitable
 @item nor rd,rs,imm
 @multitable @columnfractions 0.3 0.4 0.3
@@ -2847,28 +2811,6 @@ scwp rd,ru,($at)
 @multitable @columnfractions 1
 @item @xref{x_scwp_label,,scwp to label}.
 @end multitable
-@item lwc1 rd,ofst(rs)
-@itemx ldc1 rd,ofst(rs)
-@itemx swc1 rd,ofst rs)
-@itemx sdc1 rd,ofst(rs)
-@itemx l.s rd,ofst(rs)
-@itemx l.d rd,ofst(rs)
-@itemx s.s rd,ofst rs)
-@itemx s.d rd,ofst(rs)
-@multitable @columnfractions 1
-@item @xref{x_sw_ofst,,sw to offset}.
-@end multitable
-@item lwc1 rd,label
-@anchor{x_ldc1_label}@itemx ldc1 rd,label
-@itemx swc1 rd,label
-@itemx sdc1 rd,label
-@itemx l.s rd,label
-@itemx l.d rd,label
-@itemx s.s rd,label rs)
-@itemx s.d rd,label
-@multitable @columnfractions 1
-@item @xref{x_sw_label,,sw to label}.
-@end multitable
 @anchor{x_swx_label}@item sw rd,label(rs)
 @multitable @columnfractions 0.3 0.4 0.3
 @item
@@ -2888,24 +2830,6 @@ swx rd,$at(rs)
 @itemx shu rd,label(rs)
 @multitable @columnfractions 1
 @item @xref{x_swx_label,,sw to label with index}.
-@end multitable
-
-@anchor{x_lwc1x_label}@item lwc1 rd,label(rs)
-@multitable @columnfractions 0.3 0.4 0.3
-@item
-@tab
-@verbatim
-la $at,label
-lwc1x rd,$at(rs)
-@end verbatim
-@tab
-@xref{x_la_label,,la of label}.
-@end multitable
-@item swc1 rd,label(rs)
-@itemx ldc1 rd,label(rs)
-@itemx sdc1 rd,label(rs)
-@multitable @columnfractions 1
-@item @xref{x_lwc1x_label,,lwc1 from label with index}.
 @end multitable
 
 @item Division & Multiplication

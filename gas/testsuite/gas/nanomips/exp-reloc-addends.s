@@ -12,10 +12,6 @@ tlsvar:
 	.align	3
 	.ent	test
 test:
-	lwc1	$f4,%gprel(test+1)($gp)
-	swc1	$f4,%gprel(test+2)($gp)
-	ldc1	$f4,%gprel(test+3)($gp)
-	sdc1	$f4,%gprel(test+4)($gp)
 	lb	$a0,%gprel(test+5)($gp)
 	lh	$a0,%gprel(test+6)($gp)
 	lw	$a0,%gprel(test+7)($gp)
@@ -62,10 +58,6 @@ end:
 	addiu.b32 $a0,$gp,%tlsld(tlsvar+7)
 	addiu48 $a0,$gp,%tlsld(tlsvar+8)
 
-	lwc1	$f4,%tprel(tlsvar+9)($a1)
-	swc1	$f4,%tprel(tlsvar+10)($a1)
-	ldc1	$f4,%tprel(tlsvar+11)($a1)
-	sdc1	$f4,%tprel(tlsvar+12)($a1)
 	lb	$a0,%tprel(tlsvar+13)($a1)
 	lh	$a0,%tprel(tlsvar+14)($a1)
 	lw	$a0,%tprel(tlsvar+15)($a1)
@@ -78,10 +70,6 @@ end:
 	addiu	$a0,$a1,%tprel(tlsvar+22)
 	addiu48 $a0,$a0,%tprel(tlsvar+23)
 	li48 	$a0,%tprel(tlsvar+24)
-	lwc1	$f4,%dtprel(tlsvar+25)($a1)
-	swc1	$f4,%dtprel(tlsvar+26)($a1)
-	ldc1	$f4,%dtprel(tlsvar+27)($a1)
-	sdc1	$f4,%dtprel(tlsvar+28)($a1)
 	lb	$a0,%dtprel(tlsvar+29)($a1)
 	lh	$a0,%dtprel(tlsvar+30)($a1)
 	lw	$a0,%dtprel(tlsvar+31)($a1)

@@ -36,20 +36,4 @@ Disassembly of section \.text:
   3e:	ori	a0,a0,0x0
 			[0-9a-f]+: R_NANOMIPS_LO12	\.bss
   42:	lbux	a0,a0\(a5\)
-  46:	lui	at,0x0
-			[0-9a-f]+: R_NANOMIPS_HI20	big_external_common\+0x1
-  4a:	ori	at,at,0x0
-			[0-9a-f]+: R_NANOMIPS_LO12	big_external_common\+0x1
-  4e:	lwc1x	\$f1,at\(s1\)
-  52:	addiu	at,gp,0
-			[0-9a-f]+: R_NANOMIPS_GPREL19_S2	small_external_common\+0x1
-  56:	swc1x	\$f2,at\(s2\)
-  5a:	lui	at,0x0
-			[0-9a-f]+: R_NANOMIPS_HI20	\.bss\+0x1
-  5e:	ori	at,at,0x0
-			[0-9a-f]+: R_NANOMIPS_LO12	\.bss\+0x1
-  62:	ldc1x	\$f3,at\(s3\)
-  66:	addiu	at,gp,0
-			[0-9a-f]+: R_NANOMIPS_GPREL19_S2	\.sbss\+0x1
-  6a:	sdc1x	\$f4,at\(s4\)
 #pass

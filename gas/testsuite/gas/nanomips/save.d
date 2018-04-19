@@ -51,12 +51,6 @@ Disassembly of section \.text:
 [0-9a-f]+ <test\+0x[a-f0-9]+> 83c5 3087 	restore.jrc	128,fp,ra,s0-s1,gp
 [0-9a-f]+ <test\+0x[a-f0-9]+> 83cf 307b 	restore.jrc	120,fp,ra,s0-k1,gp
 [0-9a-f]+ <test\+0x[a-f0-9]+> 1d4a      	restore.jrc	64,fp,ra,s0-s7
-[0-9a-f]+ <test\+0x[a-f0-9]+> 8010 3040 	savef	64,\$f0
-[0-9a-f]+ <test\+0x[a-f0-9]+> 801f 3040 	savef	64,\$f0-\$f15
-[0-9a-f]+ <test\+0x[a-f0-9]+> 8015 3040 	savef	64,\$f0-\$f5
-[0-9a-f]+ <test\+0x[a-f0-9]+> 8010 3041 	restoref	64,\$f0
-[0-9a-f]+ <test\+0x[a-f0-9]+> 801f 3041 	restoref	64,\$f0-\$f15
-[0-9a-f]+ <test\+0x[a-f0-9]+> 8015 3041 	restoref	64,\$f0-\$f5
 [0-9a-f]+ <test\+0x[a-f0-9]+> 1d60      	restore.jrc	96
 [0-9a-f]+ <test\+0x[a-f0-9]+> 8000 3ff3 	restore.jrc	4080
 [0-9a-f]+ <test\+0x[a-f0-9]+> 03bd fff0 	addiu	sp,sp,65520

@@ -649,26 +649,6 @@ jalrc.hb $zero,rs
 @tab N @tab 32
 @item
 @verbatim
-l.d ft,ofst($gp)
-@end verbatim
-
-@tab @tab @verbatim
-ldc1 ft,ofst($gp)
-@end verbatim
-
-@tab N @tab 32
-@item
-@verbatim
-l.d ft,ofst(rs)
-@end verbatim
-
-@tab @tab @verbatim
-ldc1 ft,ofst(rs)
-@end verbatim
-
-@tab N @tab 32
-@item
-@verbatim
 lapc.h rt,label
 @end verbatim
 
@@ -687,46 +667,6 @@ lapc[48] rt,label
 @end verbatim
 
 @tab N @tab 48
-@item
-@verbatim
-ldxc1 rd,rs(rt)
-@end verbatim
-
-@tab @tab @verbatim
-ldxc1 rd,rs(rt)
-@end verbatim
-
-@tab N @tab 32
-@item
-@verbatim
-l.s ft,ofst($gp)
-@end verbatim
-
-@tab @tab @verbatim
-lwc1 ft,ofst($gp)
-@end verbatim
-
-@tab N @tab 32
-@item
-@verbatim
-l.s ft,ofst(rs)
-@end verbatim
-
-@tab @tab @verbatim
-lwc1 ft,ofst(rs)
-@end verbatim
-
-@tab N @tab 32
-@item
-@verbatim
-lwxc1 fd,rs(rt)
-@end verbatim
-
-@tab @tab @verbatim
-lwc1x fd,rs(rt)
-@end verbatim
-
-@tab N @tab 32
 @item
 @verbatim
 mftc0 rt,crs
@@ -1194,36 +1134,6 @@ rotrv rd,rs,rt
 @tab Y @tab 32
 @item
 @verbatim
-s.d ft,ofst($gp)
-@end verbatim
-
-@tab @tab @verbatim
-sdc1 ft,ofst($gp)
-@end verbatim
-
-@tab N @tab 32
-@item
-@verbatim
-s.d ft,ofst(rs)
-@end verbatim
-
-@tab @tab @verbatim
-sdc1 ft,ofst(rs)
-@end verbatim
-
-@tab N @tab 32
-@item
-@verbatim
-sdxc1 fs,rs(rt)
-@end verbatim
-
-@tab @tab @verbatim
-sdc1x fs,rs(rt)
-@end verbatim
-
-@tab N @tab 32
-@item
-@verbatim
 sll rd,rs,rt
 @end verbatim
 
@@ -1252,36 +1162,6 @@ srlv rd,rs,rt
 @end verbatim
 
 @tab Y @tab 32
-@item
-@verbatim
-s.s ft,ofst($gp)
-@end verbatim
-
-@tab @tab @verbatim
-swc1 ft,ofst($gp)
-@end verbatim
-
-@tab N @tab 32
-@item
-@verbatim
-s.s ft,ofst(rs)
-@end verbatim
-
-@tab @tab @verbatim
-swc1 ft,ofst(rs)
-@end verbatim
-
-@tab N @tab 32
-@item
-@verbatim
-swxc1 fs,rs(rt)
-@end verbatim
-
-@tab @tab @verbatim
-swc1x fs,rs(rt)
-@end verbatim
-
-@tab N @tab 32
 @item
 @verbatim
 sync_wmb
@@ -1459,26 +1339,6 @@ bc label
 @end verbatim
 
 @tab N @tab 16/32
-@item
-@verbatim
-bc1eqz ft,label
-@end verbatim
-
-@tab @tab @verbatim
-bc1eqzc ft,label
-@end verbatim
-
-@tab N @tab 32
-@item
-@verbatim
-bc1nez ft,label
-@end verbatim
-
-@tab @tab @verbatim
-bc1nezc ft,label
-@end verbatim
-
-@tab N @tab 32
 @item
 @verbatim
 beqz rt,label

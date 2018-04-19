@@ -54,20 +54,4 @@ Disassembly of section \.text:
   70:	addiu	at,gp,0
 			[0-9a-f]+: R_NANOMIPS_GPREL19_S2	small_external_data_label\+0x1
   74:	sbx	a0,at\(s0\)
-  78:	lui	at,0x0
-			[0-9a-f]+: R_NANOMIPS_HI20	big_external_common\+0x1
-  7c:	ori	at,at,0x0
-			[0-9a-f]+: R_NANOMIPS_LO12	big_external_common\+0x1
-  80:	lwc1x	\$f1,at\(s1\)
-  84:	addiu	at,gp,0
-			[0-9a-f]+: R_NANOMIPS_GPREL19_S2	small_external_common\+0x1
-  88:	swc1x	\$f2,at\(s2\)
-  8c:	lui	at,0x0
-			[0-9a-f]+: R_NANOMIPS_HI20	\.bss\+0x1
-  90:	ori	at,at,0x0
-			[0-9a-f]+: R_NANOMIPS_LO12	\.bss\+0x1
-  94:	ldc1x	\$f3,at\(s3\)
-  98:	addiu	at,gp,0
-			[0-9a-f]+: R_NANOMIPS_GPREL19_S2	\.sbss\+0x1
-  9c:	sdc1x	\$f4,at\(s4\)
 #pass

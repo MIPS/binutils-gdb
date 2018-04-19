@@ -173,5 +173,4 @@ Disassembly of section \.text:
  [0-9a-f]+:	lh	a0,0\(zero\)
  [0-9a-f]+:	lhu	a0,0\(zero\)
  [0-9a-f]+:	lw	a0,0\(zero\)
- [0-9a-f]+:	lwc1	\$f4,0\(zero\)
 #pass

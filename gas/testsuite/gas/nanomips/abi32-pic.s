@@ -31,8 +31,6 @@ func:
 	sd	$4, unshared
 	li.d	$4, 1.0
 	li.d	$4, 1.9
-	li.d	$f0, 1.0
-	li.d	$f0, 1.9
 	seq	$4, $5, -100
 	sne	$4, $5, -100
 	move	$4, $5

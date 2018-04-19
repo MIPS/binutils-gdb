@@ -58,13 +58,6 @@ test:
 	restore.jrc	128,$fp,$ra,$s0,$s1,$gp
 	restore.jrc	120,$fp,$ra,$s0-$k1,$gp
 	restore.jrc	64,$fp,$ra,$s0-$s7
-	savef	64, $f0
-	savef	64, $f0-$f15
-	savef	64, $f0-$f5
-	restoref	64, $f0
-	restoref	64, $f0-$f15
-	restoref	64, $f0-$f5
-
 	jraddiusp 96		# restore.jrc[16]
 	jraddiusp 4080		# restore.jrc[32]
 

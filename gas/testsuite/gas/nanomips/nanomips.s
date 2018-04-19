@@ -2017,18 +2017,6 @@ test_spec107:
 	movep	$a2, $a3, $s4, $s4
 	.endif
 
-	lwc1	$f3, ($gp)
-	lwc1	$f3, 0($gp)
-	lwc1	$f3, 4($gp)
-	lwc1	$f3, 16384($gp)
-	lwc1	$f3, 262140($gp)
-
-	swc1	$f3, ($gp)
-	swc1	$f3, 0($gp)
-	swc1	$f3, 4($gp)
-	swc1	$f3, 16384($gp)
-	swc1	$f3, 262140($gp)
-
 	andi	$t4, $t4, 0xfff
 	andi	$t4, $t5, 0x1fff
 	andi	$t4, $a0, 0x3fff

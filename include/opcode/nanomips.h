@@ -587,11 +587,11 @@ opcode_48bit_p (const struct nanomips_opcode *mo)
 /* Modifies the HI register.  */
 #define INSN_WRITE_ACC		    0x00000200
 /* Instruction stores value into memory.  */
-#define INSN_STORE_MEMORY	    0x00000400
+#define INSN_STORE_MEMORY	0x00000400
 /* Instruction uses single precision floating point.  */
-#define FP_S			    0x00000800
+#define INSN_FP_S		0x00000800
 /* Instruction uses double precision floating point.  */
-#define FP_D			    0x00001000
+#define INSN_FP_D		0x00001000
 /* A user-defined instruction.  */
 #define INSN_UDI                    0x00002000
 /* Instruction is actually a macro.  It should be ignored by the

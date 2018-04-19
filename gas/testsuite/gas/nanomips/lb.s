@@ -70,4 +70,3 @@ data_label:
 	lh	$4,0
 	lhu	$4,0
 	lw	$4,0
-	lwc1	$4,0

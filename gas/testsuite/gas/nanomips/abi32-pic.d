@@ -84,13 +84,6 @@ Disassembly of section .text\:
 			[0-9a-f]+: R_NANOMIPS_GOT_OFST	.rodata
 [0-9a-f]+ <[^>]+> 84a1 8000 	lw	a1,0\(at\)
 			[0-9a-f]+: R_NANOMIPS_GOT_OFST	.rodata\+0x4
-[0-9a-f]+ <[^>]+> e030 07fc 	lui	at,%hi\(0x3ff00000\)
-[0-9a-f]+ <[^>]+> a020 383b 	mthc1	at,\$f0
-[0-9a-f]+ <[^>]+> a000 283b 	mtc1	zero,\$f0
-[0-9a-f]+ <[^>]+> e020 0002 	aluipc	at,00000008 <L0>
-			[0-9a-f]+: R_NANOMIPS_PCHI20	L0
-[0-9a-f]+ <[^>]+> 8401 e000 	ldc1	\$f0,0\(at\)
-			[0-9a-f]+: R_NANOMIPS_LO12	.rodata\+0x8
 [0-9a-f]+ <[^>]+> 0085 0064 	addiu	a0,a1,100
 [0-9a-f]+ <[^>]+> 8084 5001 	sltiu	a0,a0,1
 [0-9a-f]+ <[^>]+> 0085 0064 	addiu	a0,a1,100

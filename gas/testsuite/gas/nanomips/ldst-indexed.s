@@ -23,7 +23,3 @@ text_label:
 	sh	$a0,big_external_data_label+1($t0)
 	sb	$a0,small_external_data_label+1($s0)
 	.endif
-	lwc1	$f1,big_external_common+1($s1)
-	swc1	$f2,small_external_common+1($s2)
-	ldc1	$f3,big_local_common+1($s3)
-	sdc1	$f4,small_local_common+1($s4)

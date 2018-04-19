@@ -46,10 +46,6 @@ func:
 	li.d	$4, 1.9		# 00d8 lui	at,hi(F1.9)
 				# 00dc lw	a0,lo(F1.9)(at)
 				# 00e0 lw	a1,lo(F1.9)+4(at)
-	li.d	$f0, 1.0	# 00e4 lui	at,0x3ff0
-				# 00e8 mtc1	at,$f1
-				# 00ec mtc1	zero,$f0
-	li.d	$f0, 1.9	# 00f0 ldc1	$f0,L1.9(gp)
 	seq	$4, $5, -100	# 00f4 addiu	a0,a1,100
 				# 00f8 sltiu	a0,a0,1
 	sne	$4, $5, -100	# 00fc addiu	a0,a1,100

@@ -2326,8 +2326,8 @@ is_opcode_valid_for_fp (const struct nanomips_opcode *mo)
     }
   else
     {
-      fp_s = mo->pinfo & FP_S;
-      fp_d = mo->pinfo & FP_D;
+      fp_s = mo->pinfo & INSN_FP_S;
+      fp_d = mo->pinfo & INSN_FP_D;
     }
 
   if (fp_d && (nanomips_opts.soft_float || nanomips_opts.single_float))
@@ -8299,22 +8299,6 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       fmt = PREF_FMT;
       goto ld_st_signed_off;
 
-    case M_LWC1_AC:
-    case M_LDC1_AC:
-    case M_SDC1_AC:
-    case M_SWC1_AC:
-      gpfmt = "T,+2(ma)";
-      coproc = 1;
-      if (small_noffset_p (0, ISA_SIGNED_OFFBITS - 1))
-	{
-	  fmt = ISA_SIGNED_COP1_FMT;
-	  goto ld_st_signed_off;
-	}
-      else
-	{
-	  fmt = ISA_UNSIGNED_COP1_FMT;
-	  goto ld_st;
-	}
     case M_SWM_AC:
     case M_SDM_AC:
     case M_LWM_AC:
@@ -8361,26 +8345,6 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	goto st_indexed;
       tempreg = op[0];
       goto ld_st_indexed;
-
-    case M_LWC1X_AB:
-      s = "lwc1x";
-      fmt = "R,s(t)";
-      goto st_indexed;
-
-    case M_LDC1X_AB:
-      s = "ldc1x";
-      fmt = "R,s(t)";
-      goto st_indexed;
-
-    case M_SWC1X_AB:
-      s = "swc1x";
-      fmt = "R,s(t)";
-      goto st_indexed;
-
-    case M_SDC1X_AB:
-      s = "sdc1x";
-      fmt = "R,s(t)";
-      goto st_indexed;
 
     case M_SDX_AB:
       s = "swx";
@@ -8469,27 +8433,6 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       tempreg = (op[0] != 0) ? op[0] : AT;
       goto ld_noat;
 
-    case M_LI_SS:
-      if (imm_expr.X_op == O_constant)
-	{
-	  used_at = 1;
-	  load_register (AT, &imm_expr, 0);
-	  macro_build (NULL, "mtc1", "t,G", AT, op[0]);
-	  break;
-	}
-
-      /* Loading from data section, fall-back to load-from-label
-	 macro expansion.  */
-      used_at = 1;
-      align = 4;
-      offbits = ISA_OFFBITS;
-      fmt = ISA_UNSIGNED_COP1_FMT;
-      op[2] = 0;
-      s = "lwc1";
-      gpfmt = "T,+2(ma)";
-      coproc = 1;
-      goto ld_st;
-
     case M_LI_D:
       /* Check if we have a constant in IMM_EXPR.  If the GPRs are 64 bits
          wide, IMM_EXPR is the entire value.  Otherwise IMM_EXPR is the high
@@ -8537,38 +8480,6 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       gpfmt = LWGP_FMT;
       tempreg = op[0];
       goto ldd_std;
-
-    case M_LI_DD:
-      /* Check if we have a constant in IMM_EXPR.  If the FPRs are 64 bits
-         wide, IMM_EXPR is the entire value and the GPRs are known to be 64
-         bits wide as well.  Otherwise IMM_EXPR is the high order 32 bits of
-         the value and the low order 32 bits are either zero or in
-         OFFSET_EXPR.  */
-      if (imm_expr.X_op == O_constant)
-	{
-	  used_at = 1;
-	  load_register (AT, &imm_expr, TRUE);
-	  macro_build (NULL, "mthc1", "t,G", AT, op[0]);
-	  if (offset_expr.X_op == O_absent)
-	    macro_build (NULL, "mtc1", "t,G", 0, op[0]);
-	  else
-	    {
-	      gas_assert (offset_expr.X_op == O_constant);
-	      load_register (AT, &offset_expr, 0);
-	      macro_build (NULL, "mtc1", "t,G", AT, op[0]);
-	    }
-	  break;
-	}
-
-      /* Loading from data section, fall-back to load-from-label
-	 macro expansion.  */
-      op[2] = 0;
-      align = 8;
-      coproc = 1;
-      fmt = ISA_UNSIGNED_COP1_FMT;
-      gpfmt = "T,+2(ma)";
-      s = "ldc1";
-      goto ld_st;
 
     case M_LD_AC:
       fmt = ISA_UNSIGNED_LDST_FMT;
