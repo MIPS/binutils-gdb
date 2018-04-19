@@ -20,8 +20,7 @@
    Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
    MA 02110-1301, USA.  */
 
-/* This file holds definitions specific to the MIPS ELF ABI.  Note
-   that most of this is not actually implemented by BFD.  */
+/* This file holds definitions specific to the nanoMIPS ELF ABI.  */
 
 #ifndef _ELF_NANOMIPS_H
 #define _ELF_NANOMIPS_H
@@ -32,7 +31,6 @@
 extern "C" {
 #endif
 
-/* nanoMIPS numbers partially overlap MIPS.  */
 START_RELOC_NUMBERS (elf_nanomips_reloc_type)
   RELOC_NUMBER (R_NANOMIPS_NONE, 0)
   RELOC_NUMBER (R_NANOMIPS_32, 1)
@@ -142,33 +140,28 @@ END_RELOC_NUMBERS (R_NANOMIPS_maxext)
 /* Architectural Extensions used by this file */
 #define EF_NANOMIPS_ARCH_ASE	0x0f000000
 
-/* Four bit MIPS architecture field.  */
+/* Four bit nanoMIPS architecture field.  */
 #define EF_NANOMIPS_ARCH	0xf0000000
 
-/* -mnanomips32r6 code.  */
+/* -march=32r6[s] code.  */
 #define E_NANOMIPS_ARCH_32R6    0x00000000
 
-/* -mnanomips64r6 code.  */
+/* -march=64r6 code.  */
 #define E_NANOMIPS_ARCH_64R6    0x10000000
 
-/* The ABI of the file.  Also see EF_NANOMIPS_ABI2 above. */
+/* The ABI of the file.  */
 #define EF_NANOMIPS_ABI		0x0000F000
 
-/* nanoMIPS ABI in 32 bit mode */
+/* nanoMIPS ABI in 32 bit mode.  */
 #define E_NANOMIPS_ABI_P32      0x00001000
 
-/* nanoMIPS ABI in 64 bit mode */
+/* nanoMIPS ABI in 64 bit mode.  */
 #define E_NANOMIPS_ABI_P64      0x00002000
 
-/* Machine variant if we know it.  This field was invented at Cygnus,
-   but it is hoped that other vendors will adopt it.  If some standard
-   is developed, this code should be changed to follow it. */
+/* Machine variant if we know it.  This field was invented at Cygnus
+   for MIPS.  It may be used similarly for nanoMIPS.  */
 
 #define EF_NANOMIPS_MACH	0x00FF0000
-
-/* Cygnus is choosing values between 80 and 9F;
-   00 - 7F should be left for a future standard;
-   the rest are open. */
 
 
 /* Processor specific section types.  */
@@ -220,7 +213,14 @@ enum
   Val_GNU_NANOMIPS_ABI_MSA_128 = 1,
 };
 
-/* Masks for the ases word of an ABI flags structure.  */
+/* Masks for the ases word of an ABI flags structure.
+
+   Unfortunate decisions in early development transitioning from MIPS
+   to nanoMIPS, left this horifically fragmented.  Bits marked as
+   UNUSED may be cannibalized for future ASEs;  bits marked as RESERVED
+   are intended to remain blocked.  If MIPS history is anything to go
+   by, nanoMIPS will eventually spawn enough ASEs to fill up the gaps!
+*/
 
 #define NANOMIPS_ASE_TLB          0x00000001 /* TLB control ASE.  */
 #define NANOMIPS_ASE_UNUSED1      0x00000002 /* was DSP R2 ASE.  */
@@ -238,10 +238,10 @@ enum
 #define NANOMIPS_ASE_DSPR3        0x00002000 /* DSP R3 ASE.  */
 #define NANOMIPS_ASE_UNUSED5      0x00004000 /* was MIPS16 E2 Extension.  */
 #define NANOMIPS_ASE_CRC	  0x00008000 /* CRC extension.  */
-#define NANOMIPS_ASE_CRYPTO	  0x00010000 /* Reserved for in-progress ASE.  */
+#define NANOMIPS_ASE_UNUSED7	  0x00010000
 #define NANOMIPS_ASE_GINV         0x00020000 /* GINV ASE.  */
 #define NANOMIPS_ASE_xNMS         0x00040000 /* not nanoMIPS Subset.  */
-#define NANOMIPS_ASE_MASK         0x0007bf4d /* All valid ASEs.  */
+#define NANOMIPS_ASE_MASK         0x0006af4d /* All valid ASEs.  */
 
 /* nanoMIPS ELF flags routines.  */
 extern Elf_Internal_ABIFlags_v0 * bfd_nanomips_elf_get_abiflags (bfd *);

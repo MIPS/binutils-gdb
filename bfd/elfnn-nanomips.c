@@ -89,7 +89,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] = {
 	 MINUS_ONE,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-  /* 64 bit subtraction.  */
+  /* Symbol address negation, can be composed for label differences.  */
   HOWTO (R_NANOMIPS_NEG,	/* type */
 	 0,			/* rightshift */
 	 4,			/* size (0 = byte, 1 = short, 2 = long) */
@@ -193,6 +193,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] = {
 	 0x0,		        /* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
+  /* Reserved for IFUNC support.  */
   EMPTY_HOWTO (R_NANOMIPS_IRELATIVE),
 
   HOWTO (R_NANOMIPS_PC25_S1,	/* type */
