@@ -1056,10 +1056,6 @@ Provided for compatibility with MIPS.  Map to @code{%gprel}.
 Provided for compatibility with MIPS.  Map to @code{%got_call}.
 @item %got
 Provided for compatibility with MIPS.  Map to @code{%got_disp}.
-@item %lo32
-Low 32-bits of a 64-bit value.
-@item %hi32
-High 32-bits of a 64-bit value.
 @item %tlsgd
 GP-relative displacement to global dynamic TLS slot, size depends on
 type of operation.
@@ -1142,7 +1138,6 @@ Small data is not supported for SVR4-style PIC.
 * Optimized GP-relative access::
 * General GP-relative access::
 * 32-bit absolute addressing and immediate construction::
-* 64-bit absolute addressing and immediate construction::
 * PC-relative addressing::
 * Indirect addressing for small PIC model::
 * Indirect addressing for large PIC model::
@@ -1335,33 +1330,6 @@ Here,
 These interpretations borrow from the definition of %hi & %lo on
 MIPS, so that MIPS code can continue to work correctly on
 nanoMIPS.  Note the use of ADDIU instruction for the signed low-part.
-
-@node 64-bit absolute addressing and immediate construction
-@subsection 64-bit absolute addressing and immediate construction
-
-64-bit address calculation requires two 48-bit instructions as follows:
-
-@example
-    dlui $a0, %hi32 (foo)
-    daddiu $a0, $a0, %lo(foo)
-@end example
-
-To load 64-bit immediate value, just replace the symbol with a literal
-in the above sequence:
-
-@example
-    dlui $a0, %hi32 (@var{imm})
-    daddiu $a0, $a0, %lo32(@var{imm})
-@end example
-
-Note that hi32 and lo32 do not directly correspond to the higher and
-lower 32-bits of the immediate value.  The addition step requires a
-signed 32-bit value.  The break up is defined as:
-
-@display
-    %lo32(x) = (int) x
-    %hi32(x) = (x - %lo32(x)) >> 32
-@end display
 
 @node PC-relative addressing
 @subsection PC-relative addressing

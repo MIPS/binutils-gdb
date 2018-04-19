@@ -2942,7 +2942,6 @@ nanomips_reloc_p (bfd_reloc_code_real_type reloc)
     case BFD_RELOC_NANOMIPS_IMM16:
     case BFD_RELOC_NANOMIPS_NEG12:
     case BFD_RELOC_NANOMIPS_I32:
-    case BFD_RELOC_NANOMIPS_HI32:
     case BFD_RELOC_NANOMIPS_TLS_GD:
     case BFD_RELOC_NANOMIPS_TLS_GD_I32:
     case BFD_RELOC_NANOMIPS_TLS_LD:
@@ -2974,7 +2973,6 @@ static inline bfd_boolean
 nanomips_48bit_reloc_p (bfd_reloc_code_real_type reloc)
 {
   return (reloc == BFD_RELOC_NANOMIPS_I32
-	  || reloc == BFD_RELOC_NANOMIPS_HI32
 	  || reloc == BFD_RELOC_NANOMIPS_PC_I32
 	  || reloc == BFD_RELOC_NANOMIPS_GPREL_I32
 	  || reloc == BFD_RELOC_NANOMIPS_GOTPC_I32
@@ -5361,7 +5359,6 @@ static const struct
   { BFD_RELOC_NANOMIPS_IMM16,		0, 0, 0, 0 },
   { BFD_RELOC_NANOMIPS_NEG12,		0, 0, 0, 0 },
   { BFD_RELOC_NANOMIPS_I32,		0, 0, 0, 4 },
-  { BFD_RELOC_NANOMIPS_HI32,		0, 0, 0, 6 },
   { BFD_RELOC_NANOMIPS_TLS_GD,		2, 8, 0, 0 },
   { BFD_RELOC_NANOMIPS_TLS_GD_I32,	0, 0, 0, 2 },
   { BFD_RELOC_NANOMIPS_TLS_LD,		2, 8, 0, 0 },
@@ -5562,14 +5559,6 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
 
 	case BFD_RELOC_NANOMIPS_NEG12:
 	  ip->insn_opcode |= (-address_expr->X_add_number) & 0xfff;
-	  ip->complete_p = 1;
-	  break;
-
-	case BFD_RELOC_NANOMIPS_HI32:
-	  ip->insn_opcode_ext = (((address_expr->X_add_number + 0x80000000)
-				  >> 32) & 0xffffffff);
-	  ip->insn_opcode_ext = (((ip->insn_opcode_ext >> 16) & 0xffff)
-				 | (ip->insn_opcode_ext << 16));
 	  ip->complete_p = 1;
 	  break;
 
@@ -9046,8 +9035,6 @@ static const struct percent_op_match nanomips_percent_op[] = {
   {"%gprel_lo", BFD_RELOC_NANOMIPS_GPREL_LO12},
   {"%gprel32", BFD_RELOC_NANOMIPS_GPREL_I32},
   {"%hi", BFD_RELOC_NANOMIPS_HI20},
-  {"%lo32", BFD_RELOC_NANOMIPS_I32},
-  {"%hi32", BFD_RELOC_NANOMIPS_HI32},
   {"%pcrel_hi", BFD_RELOC_NANOMIPS_PCREL_HI20},
   {"%pcrel_lo", BFD_RELOC_NANOMIPS_LO12},
   {"%got_pcrel_hi", BFD_RELOC_NANOMIPS_GOTPC_HI20},
@@ -9748,7 +9735,6 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       break;
 
     case BFD_RELOC_NANOMIPS_I32:
-    case BFD_RELOC_NANOMIPS_HI32:
     case BFD_RELOC_NANOMIPS_GPREL_I32:
       if (fixP->fx_done)
 	write_compressed_insn (buf, *valP & 0xffffffff, 4);
