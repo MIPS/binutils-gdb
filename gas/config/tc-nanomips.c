@@ -7801,14 +7801,14 @@ macro_pcrel_ldd_std (const char *s, const char *fmt,
 {
   if (offbits != ISA_OFFBITS)
     {
-      expressionS expr;
-      expr.X_op = O_constant;
-      expr.X_op_symbol = NULL;
-      expr.X_add_symbol = NULL;
-      expr.X_add_number = 4;
+      expressionS an_expr;
+      an_expr.X_op = O_constant;
+      an_expr.X_op_symbol = NULL;
+      an_expr.X_add_symbol = NULL;
+      an_expr.X_add_number = 4;
       macro_pcrel_la (AT);
 
-      macro_ld_st_pair (s, fmt, op, AT, &expr,
+      macro_ld_st_pair (s, fmt, op, AT, &an_expr,
 			BFD_RELOC_NANOMIPS_SIGNED_9, TRUE);
     }
   else if ((nanomips_opts.ase & ASE_xNMS) != 0
