@@ -49,56 +49,6 @@ sdbbp 0
 @tab Y @tab 16/32
 @item
 @verbatim
-dmfc0 rt,crs
-@end verbatim
-
-@tab @tab @verbatim
-dmfc0 rt,crs,0
-@end verbatim
-@tab Y @tab 32
-
-@item
-@verbatim
-dmfc0 rt,crsname[,sel]
-@end verbatim
-
-@tab @tab @verbatim
-dmfc0 rt,crs,sel
-@end verbatim
-@tab Y @tab 32
-
-@item
-@verbatim
-dmtc0 rt,crs
-@end verbatim
-
-@tab @tab @verbatim
-dmtc0 rt,crs,0
-@end verbatim
-
-@tab Y @tab 32
-@item
-@verbatim
-dmtc0 rt,crsname[,sel]
-@end verbatim
-
-@tab @tab @verbatim
-dmtc0 rt,crs,sel
-@end verbatim
-
-@tab Y @tab 32
-@item
-@verbatim
-dror rt,rs,shift
-@end verbatim
-
-@tab @tab @verbatim
-drotr rt,rs,shift
-@end verbatim
-
-@tab N @tab 32
-@item
-@verbatim
 mfc0 rt,crs
 @end verbatim
 
@@ -1439,16 +1389,6 @@ ualw rt,ofst(rs)
 
 @tab non-NMS @tab @verbatim
 ualwm rt,ofst(rs),1
-@end verbatim
-
-@tab Y @tab 32
-@item
-@verbatim
-uald rt,ofst(rs)
-@end verbatim
-
-@tab non-NMS @tab @verbatim
-ualdm rt,ofst(rs),1
 @end verbatim
 
 @tab Y @tab 32

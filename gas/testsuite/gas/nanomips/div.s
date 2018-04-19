@@ -29,10 +29,3 @@ foo:
 # mod is like div, modu is like divu
 	mod	$4,$5,$6
 	modu	$4,$5,2
-
-# Sanity check the 64 bit versions.
-	.set	arch=64r6
-	ddiv	$4,$5,$6
-	ddivu	$4,$5,2
-	dmod	$4,$5,0x8000
-	dmodu	$4,$5,-0x8000

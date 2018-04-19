@@ -318,20 +318,15 @@ static int nanomips_32bitmode = 0;
 
 /* Addresses are loaded in different ways, depending on the address size
    in use.  */
-#define ADDRESS_ADD_INSN						\
-   (HAVE_32BIT_ADDRESSES ? "addu" : "daddu")
+#define ADDRESS_ADD_INSN "addu"
 
-#define ADDRESS_ADDI_INSN						\
-   (HAVE_32BIT_ADDRESSES ? "addiu" : "daddiu")
+#define ADDRESS_ADDI_INSN "addiu"
 
-#define ADDRESS_LOAD_INSN						\
-   (HAVE_32BIT_ADDRESSES ? "lw" : "ld")
+#define ADDRESS_LOAD_INSN "lw"
 
-#define ADDRESS_STORE_INSN			\
-   (HAVE_32BIT_ADDRESSES ? "sw" : "sd")
+#define ADDRESS_STORE_INSN "sw"
 
-#define PCREL_LOAD_INSN 			\
-   (HAVE_32BIT_ADDRESSES ? "lwpc" : "ldpc")
+#define PCREL_LOAD_INSN "lwpc"
 
 /* The minimum and maximum signed values that can be stored in a GPR.  */
 #define GPR_SMAX ((offsetT) (((valueT) 1 << (GPR_SIZE - 1)) - 1))
@@ -5768,21 +5763,6 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
       if (ip->frag->tc_frag_data.first_fix == NULL)
 	ip->frag->tc_frag_data.first_fix = ip->fixp[0];
 
-      /* These relocations can have an addend that won't fit in
-	 4 octets for 64bit assembly.  */
-      if (GPR_SIZE == 64
-	  && !howto->partial_inplace
-	  && (reloc_type[0] == BFD_RELOC_16
-	      || reloc_type[0] == BFD_RELOC_32
-	      || reloc_type[0] == BFD_RELOC_GPREL16
-	      || reloc_type[0] == BFD_RELOC_GPREL32
-	      || reloc_type[0] == BFD_RELOC_64
-	      || reloc_type[0] == BFD_RELOC_CTOR
-	      || reloc_type[0] == BFD_RELOC_NANOMIPS_NEG
-	      || hi_reloc_p (reloc_type[0])
-	      || lo_reloc_p (reloc_type[0])))
-	ip->fixp[0]->fx_no_overflow = 1;
-
       if (nanomips_relax.sequence)
 	{
 	  if (nanomips_relax.first_fixup == 0)
@@ -6715,10 +6695,7 @@ macro_build_lui (expressionS *ep, int regnum)
   if (ep->X_op != O_constant)
     gas_assert (ep->X_op == O_symbol);
 
-  if (HAVE_64BIT_SYMBOLS)
-    macro_build (ep, "dlui", DLUI_FMT, regnum, BFD_RELOC_NANOMIPS_HI32);
-  else
-    macro_build (ep, "lui", LUI_FMT, regnum, BFD_RELOC_NANOMIPS_HI20);
+  macro_build (ep, "lui", LUI_FMT, regnum, BFD_RELOC_NANOMIPS_HI20);
 }
 
 /* Return the high part that should be loaded in order to make the low
@@ -6848,16 +6825,13 @@ set_at (int reg, int unsignedp)
            ? 1                          \
            : 0)
 
-/*			load_register()
+/*
  *  This routine generates the least number of instructions necessary to load
  *  an absolute expression value into a register.
  */
 static void
 load_register (int reg, expressionS *ep, int dbl)
 {
-  int freg;
-  expressionS hi32, lo32;
-
   if (ep->X_op != O_big)
     {
       gas_assert (ep->X_op == O_constant);
@@ -6910,201 +6884,14 @@ load_register (int reg, expressionS *ep, int dbl)
     }
 
   /* The value is larger than 32 bits.  */
+  {
+    char value[32];
 
-  if (!dbl || GPR_SIZE == 32)
-    {
-      char value[32];
-
-      sprintf_vma (value, ep->X_add_number);
-      as_bad (_("number (0x%s) larger than 32 bits"), value);
-      macro_build (ep, "addiu", ADDIU_FMT, reg, 0, BFD_RELOC_LO16);
-      return;
-    }
-
-  if (ep->X_op != O_big)
-    {
-      hi32 = *ep;
-      hi32.X_add_number = (valueT) hi32.X_add_number >> 16;
-      hi32.X_add_number = (valueT) hi32.X_add_number >> 16;
-      hi32.X_add_number &= 0xffffffff;
-      lo32 = *ep;
-      lo32.X_add_number &= 0xffffffff;
-    }
-  else
-    {
-      gas_assert (ep->X_add_number > 2);
-      if (ep->X_add_number == 3)
-	generic_bignum[3] = 0;
-      else if (ep->X_add_number > 4)
-	as_bad (_("number larger than 64 bits"));
-      lo32.X_op = O_constant;
-      lo32.X_add_number = generic_bignum[0] + (generic_bignum[1] << 16);
-      hi32.X_op = O_constant;
-      hi32.X_add_number = generic_bignum[2] + (generic_bignum[3] << 16);
-    }
-
-  if (hi32.X_add_number == 0)
-    freg = 0;
-  else
-    {
-      int shift, bit;
-      unsigned long hi, lo;
-
-      if (hi32.X_add_number == (offsetT) 0xffffffff)
-	{
-	  if ((lo32.X_add_number & 0xffff8000) == 0xffff8000)
-	    {
-	      macro_build (&lo32, "addiu", ADDIU_FMT, reg, 0, BFD_RELOC_LO16);
-	      return;
-	    }
-	  if (lo32.X_add_number & 0x80000000)
-	    {
-	      macro_build (&lo32, "lui", LUI_FMT, reg, BFD_RELOC_HI16);
-	      if (lo32.X_add_number & 0xffff)
-		macro_build (&lo32, "ori", BITOP_IMM_FMT, reg, reg,
-			     BFD_RELOC_LO16);
-	      return;
-	    }
-	}
-
-      if (!nanomips_opts.insn32)
-	{
-	  macro_build (ep, "dlui", DLUI_FMT, reg, BFD_RELOC_NANOMIPS_HI32);
-	  macro_build (ep, "daddiu", "mp,mt,+R", reg, reg,
-		       BFD_RELOC_NANOMIPS_I32);
-	  return;
-	}
-
-      /* Check for 16bit shifted constant.  We know that hi32 is
-         non-zero, so start the mask on the first bit of the hi32
-         value.  */
-      shift = 17;
-      do
-	{
-	  unsigned long himask, lomask;
-
-	  if (shift < 32)
-	    {
-	      himask = 0xffff >> (32 - shift);
-	      lomask = (0xffff << shift) & 0xffffffff;
-	    }
-	  else
-	    {
-	      himask = 0xffff << (shift - 32);
-	      lomask = 0;
-	    }
-	  if ((hi32.X_add_number & ~(offsetT) himask) == 0
-	      && (lo32.X_add_number & ~(offsetT) lomask) == 0)
-	    {
-	      expressionS tmp;
-
-	      tmp.X_op = O_constant;
-	      if (shift < 32)
-		tmp.X_add_number = ((hi32.X_add_number << (32 - shift))
-				    | (lo32.X_add_number >> shift));
-	      else
-		tmp.X_add_number = hi32.X_add_number >> (shift - 32);
-	      macro_build (&tmp, "ori", BITOP_IMM_FMT, reg, 0, BFD_RELOC_LO16);
-	      macro_build (NULL, (shift >= 32) ? "dsll32" : "dsll", SHFT_FMT,
-			   reg, reg, (shift >= 32) ? shift - 32 : shift);
-	      return;
-	    }
-	  ++shift;
-	}
-      while (shift <= (64 - 16));
-
-      /* Find the bit number of the lowest one bit, and store the
-         shifted value in hi/lo.  */
-      hi = (unsigned long) (hi32.X_add_number & 0xffffffff);
-      lo = (unsigned long) (lo32.X_add_number & 0xffffffff);
-      if (lo != 0)
-	{
-	  bit = 0;
-	  while ((lo & 1) == 0)
-	    {
-	      lo >>= 1;
-	      ++bit;
-	    }
-	  lo |= (hi & (((unsigned long) 1 << bit) - 1)) << (32 - bit);
-	  hi >>= bit;
-	}
-      else
-	{
-	  bit = 32;
-	  while ((hi & 1) == 0)
-	    {
-	      hi >>= 1;
-	      ++bit;
-	    }
-	  lo = hi;
-	  hi = 0;
-	}
-
-      /* Optimize if the shifted value is a (power of 2) - 1.  */
-      if ((hi == 0 && ((lo + 1) & lo) == 0)
-	  || (lo == 0xffffffff && ((hi + 1) & hi) == 0))
-	{
-	  shift = COUNT_TOP_ZEROES ((unsigned int) hi32.X_add_number);
-	  if (shift != 0)
-	    {
-	      expressionS tmp;
-
-	      /* This instruction will set the register to be all ones.  */
-	      tmp.X_op = O_constant;
-	      tmp.X_add_number = (offsetT) - 1;
-	      macro_build (&tmp, "addiu", ADDIU_FMT, reg, 0, BFD_RELOC_LO16);
-	      if (bit != 0)
-		{
-		  bit += shift;
-		  macro_build (NULL, (bit >= 32) ? "dsll32" : "dsll",
-			       SHFT_FMT, reg, reg,
-			       (bit >= 32) ? bit - 32 : bit);
-		}
-	      macro_build (NULL, (shift >= 32) ? "dsrl32" : "dsrl", SHFT_FMT,
-			   reg, reg, (shift >= 32) ? shift - 32 : shift);
-	      return;
-	    }
-	}
-
-      /* Sign extend hi32 before calling load_register, because we can
-         generally get better code when we load a sign extended value.  */
-      if ((hi32.X_add_number & 0x80000000) != 0)
-	hi32.X_add_number |= ~(offsetT) 0xffffffff;
-      load_register (reg, &hi32, 0);
-      freg = reg;
-    }
-  if ((lo32.X_add_number & 0xffff0000) == 0)
-    {
-      if (freg != 0)
-	{
-	  macro_build (NULL, "dsll32", SHFT_FMT, reg, freg, 0);
-	  freg = reg;
-	}
-    }
-  else
-    {
-      expressionS mid16;
-
-      if ((freg == 0) && (lo32.X_add_number == (offsetT) 0xffffffff))
-	{
-	  macro_build (&lo32, "lui", LUI_FMT, reg, BFD_RELOC_HI16);
-	  macro_build (NULL, "dsrl32", SHFT_FMT, reg, reg, 0);
-	  return;
-	}
-
-      if (freg != 0)
-	{
-	  macro_build (NULL, "dsll", SHFT_FMT, reg, freg, 16);
-	  freg = reg;
-	}
-      mid16 = lo32;
-      mid16.X_add_number >>= 16;
-      macro_build (&mid16, "ori", BITOP_IMM_FMT, reg, freg, BFD_RELOC_LO16);
-      macro_build (NULL, "dsll", SHFT_FMT, reg, reg, 16);
-      freg = reg;
-    }
-  if ((lo32.X_add_number & 0xffff) != 0)
-    macro_build (&lo32, "ori", BITOP_IMM_FMT, reg, freg, BFD_RELOC_LO16);
+    sprintf_vma (value, ep->X_add_number);
+    as_bad (_("number (0x%s) larger than 32 bits"), value);
+    macro_build (ep, "addiu", ADDIU_FMT, reg, 0, BFD_RELOC_LO16);
+  }
+  return;
 }
 
 /* Move the contents of register SOURCE into register DEST.  */
@@ -7362,10 +7149,7 @@ macro_absolute_la (unsigned int dest)
   else
     {
       macro_build_lui (&offset_expr, dest);
-      if (HAVE_64BIT_SYMBOLS)
-	macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDRESS_ADDI32_FMT,
-		     dest, dest, BFD_RELOC_NANOMIPS_I32);
-      else if (!hi_reloc_p (*offset_reloc))
+      if (!hi_reloc_p (*offset_reloc))
 	macro_build (&offset_expr, "ori", BITOP_IMM_FMT, dest, dest,
 		     ISA_UNSIGNED_LDST_RELOC);
     }
@@ -7460,13 +7244,6 @@ macro_absolute_ld_st (const char *s, const char *fmt, unsigned int op[],
 		      unsigned int tempreg, unsigned int breg)
 {
   macro_build_lui (&offset_expr, tempreg);
-  if (HAVE_64BIT_SYMBOLS)
-    {
-      macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDRESS_ADDI32_FMT,
-		   tempreg, tempreg, BFD_RELOC_NANOMIPS_I32);
-      offset_expr.X_add_number = 0;
-      offset_expr.X_op = O_constant;
-    }
 
   if (breg != 0)
     macro_build (NULL, ADDRESS_ADD_INSN, "d,v,t", tempreg, tempreg, breg);
@@ -7622,10 +7399,7 @@ macro_ld_st (const char *s, const char *fmt, unsigned int op[],
     {
       gas_assert (offset_expr.X_op == O_symbol);
 
-      if (HAVE_64BIT_SYMBOLS)
-	gpfmt = "t,+4(ma)";
-      else
-	gpfmt = "t,.(ma)";
+      gpfmt = "t,.(ma)";
       relax_start (offset_expr.X_add_symbol);
 
       if (nanomips_opts.pic == SVR4_PIC || linkrelax)
@@ -7718,10 +7492,7 @@ macro_ldp_stp (const char *s, const char *fmt, unsigned int op[], int align,
       const char *gpfmt;
       gas_assert (offset_expr.X_op == O_symbol);
 
-      if (HAVE_64BIT_SYMBOLS)
-	gpfmt = "t,+4(ma)";
-      else
-	gpfmt = "t,.(ma)";
+      gpfmt = "t,.(ma)";
 
       if (nanomips_opts.pic == SVR4_PIC || linkrelax)
 	macro_build (&offset_expr, ADDRESS_LOAD_INSN, gpfmt, tempreg,
@@ -8011,9 +7782,6 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 
   switch (mask)
     {
-    case M_DABS:
-      dbl = TRUE;
-      /* Fall through.  */
     case M_ABS:
       /*    bgez    $a0,1f
 	    move    v0,$a0
@@ -8025,7 +7793,7 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       if (op[0] != op[1])
 	move_register (op[0], op[1]);
       macro_build (&label_expr, "bgezc", BCONDZ1_FMT, op[1]);
-      macro_build (NULL, dbl ? "dsubu" : "subu", "d,v,t", op[0], 0, op[1]);
+      macro_build (NULL, "subu", "d,v,t", op[0], 0, op[1]);
       nanomips_add_label ();
       break;
 
@@ -8039,16 +7807,6 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
     case M_ADDU_I:
       s = "addiu";
       s2 = "addu";
-      goto do_addi;
-    case M_DADD_I:
-      dbl = TRUE;
-      s = "daddi";
-      s2 = "dadd";
-      goto do_addi_i;
-    case M_DADDU_I:
-      dbl = TRUE;
-      s = "daddiu";
-      s2 = "daddu";
     do_addi:
       if (offset_high_unsigned (imm_expr.X_add_number, 16) == 0)
 	{
@@ -8368,11 +8126,6 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 		     31 - op[3]);
       break;
 
-    case M_DDIV_I:
-    case M_DDIVU_I:
-      dbl = TRUE;
-      /* fall-through */
-
     case M_DIV_I:
     case M_DIVU_I:
       goto do_divi;
@@ -8401,7 +8154,7 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       if (imm_expr.X_add_number == -1 && s[strlen (s) - 1] != 'u')
 	{
 	  if (strncmp (s, "div", 3) == 0)
-	    macro_build (NULL, dbl ? "dneg" : "neg", "d,w", op[0], op[1]);
+	    macro_build (NULL, "neg", "d,w", op[0], op[1]);
 	  else
 	    move_register (op[0], ZERO);
 	  break;
@@ -8412,35 +8165,14 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       macro_build (NULL, s, DIV_FMT, op[0], op[1], AT);
       break;
 
-    case M_DMOD_I:
-      dbl = TRUE;
-      s = "dmod";
-      goto do_divi;
-
-    case M_DMODU_I:
-      dbl = TRUE;
-      s = "dmodu";
-      goto do_divi;
-
     case M_MODU_I:
       s = "modu";
       goto do_divi;
 
-    case M_DLA_AB:
-      dbl = TRUE;
-      /* Fall through.  */
     case M_LA_AB:
       /* Load the address of a symbol into a register.  If breg is not
          zero, we then add a base register to it.  */
       breg = op[2];
-      if (dbl && GPR_SIZE == 32)
-	as_warn (_("dla used to load 32-bit register; recommend using la "
-		   "instead"));
-
-      if (!dbl && HAVE_64BIT_OBJECTS)
-	as_warn (_("la used to load 64-bit address; recommend using dla "
-		   "instead"));
-
       macro_la (op, breg, &used_at, TRUE);
       break;
 
@@ -8484,7 +8216,6 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
     case M_LH_AC:
     case M_LHU_AC:
     case M_LW_AC:
-    case M_LWU_AC:
       fmt = ISA_UNSIGNED_LDST_FMT;
       switch (s[1])
 	{
@@ -8512,9 +8243,6 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       offbits = ISA_SIGNED_OFFBITS;
       goto ld;
 
-    case M_LLDP_AC:
-      dbl = TRUE;
-      /* fall through */
     case M_LLWP_AC:
       fmt = LLP_SCP_FMT;
       align = (dbl ? 16 : 8);
@@ -8530,11 +8258,6 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 
       macro_ldp_stp (s, fmt, op, align, breg, tempreg, &used_at);
       break;
-
-    case M_LLD_AC:
-      fmt = LLD_SCD_FMT;
-      offbits = ISA_SIGNED_OFFBITS;
-      align = 8;
 
     ld:
       /* We don't want to use $0 as tempreg.  */
@@ -8572,14 +8295,6 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       fmt = LL_SC_FMT;
       align = 4;
       goto ld_st_signed_off;
-
-    case M_SCD_AC:
-      fmt = LLD_SCD_FMT;
-      align = 8;
-      goto ld_st_signed_off;
-
-    case M_SCDP_AC:
-      dbl = TRUE;
 
     case M_SCWP_AC:
       fmt = LLP_SCP_FMT;
@@ -8628,20 +8343,11 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       break;
 
     case M_LDX_AB:
-      if (GPR_SIZE == 32)
-	{
-	  s = "lwx";
-	  goto ldd_std_indexed;
-	}
-      s = "ldx";
-      goto ld_indexed_gp;
+      s = "lwx";
+      goto ldd_std_indexed;
 
     case M_LWX_AB:
       s = "lwx";
-      goto ld_indexed_gp;
-
-    case M_LWUX_AB:
-      s = "lwux";
       goto ld_indexed_gp;
 
     case M_LHX_AB:
@@ -8688,12 +8394,8 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       goto st_indexed;
 
     case M_SDX_AB:
-      if (GPR_SIZE == 64)
-	{
-	  s = "sdx";
-	  goto st_indexed_gp;
-	}
       s = "swx";
+
     ldd_std_indexed:
       if (!nanomips_opts.at)
 	as_bad (_("macro used $at after \".set noat\""));
@@ -8778,10 +8480,6 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       tempreg = (op[0] != 0) ? op[0] : AT;
       goto ld_noat;
 
-    case M_DLI:
-      load_register (op[0], &imm_expr, 1);
-      break;
-
     case M_LI_SS:
       if (imm_expr.X_op == O_constant)
 	{
@@ -8810,34 +8508,29 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
          zero or in OFFSET_EXPR.  */
       if (imm_expr.X_op == O_constant)
 	{
-	  if (GPR_SIZE == 64)
-	    load_register (op[0], &imm_expr, 1);
+	  int hreg, lreg;
+
+	  if (target_big_endian)
+	    {
+	      hreg = op[0];
+	      lreg = op[0] + 1;
+	    }
 	  else
 	    {
-	      int hreg, lreg;
+	      hreg = op[0] + 1;
+	      lreg = op[0];
+	    }
 
-	      if (target_big_endian)
-		{
-		  hreg = op[0];
-		  lreg = op[0] + 1;
-		}
+	  if (hreg <= 31)
+	    load_register (hreg, &imm_expr, 0);
+	  if (lreg <= 31)
+	    {
+	      if (offset_expr.X_op == O_absent)
+		move_register (lreg, 0);
 	      else
 		{
-		  hreg = op[0] + 1;
-		  lreg = op[0];
-		}
-
-	      if (hreg <= 31)
-		load_register (hreg, &imm_expr, 0);
-	      if (lreg <= 31)
-		{
-		  if (offset_expr.X_op == O_absent)
-		    move_register (lreg, 0);
-		  else
-		    {
-		      gas_assert (offset_expr.X_op == O_constant);
-		      load_register (lreg, &offset_expr, 0);
-		    }
+		  gas_assert (offset_expr.X_op == O_constant);
+		  load_register (lreg, &offset_expr, 0);
 		}
 	    }
 	  break;
@@ -8851,14 +8544,6 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       offbits = ISA_OFFBITS;
       fmt = ISA_UNSIGNED_LDST_FMT;
       op[2] = 0;
-      if (GPR_SIZE == 64)
-	{
-	  s = "ld";
-	  gpfmt = LDGP_FMT;
-	  tempreg = (op[0] != 0) ? op[0] : AT;
-	  goto ld_noat;
-	}
-
       s = "lw";
       gpfmt = LWGP_FMT;
       tempreg = op[0];
@@ -8874,19 +8559,14 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	{
 	  used_at = 1;
 	  load_register (AT, &imm_expr, TRUE);
-	  if (GPR_SIZE == 64)
-	    macro_build (NULL, "dmtc1", "t,S", AT, op[0]);
+	  macro_build (NULL, "mthc1", "t,G", AT, op[0]);
+	  if (offset_expr.X_op == O_absent)
+	    macro_build (NULL, "mtc1", "t,G", 0, op[0]);
 	  else
 	    {
-	      macro_build (NULL, "mthc1", "t,G", AT, op[0]);
-	      if (offset_expr.X_op == O_absent)
-		macro_build (NULL, "mtc1", "t,G", 0, op[0]);
-	      else
-		{
-		  gas_assert (offset_expr.X_op == O_constant);
-		  load_register (AT, &offset_expr, 0);
-		  macro_build (NULL, "mtc1", "t,G", AT, op[0]);
-		}
+	      gas_assert (offset_expr.X_op == O_constant);
+	      load_register (AT, &offset_expr, 0);
+	      macro_build (NULL, "mtc1", "t,G", AT, op[0]);
 	    }
 	  break;
 	}
@@ -8904,29 +8584,12 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
     case M_LD_AC:
       fmt = ISA_UNSIGNED_LDST_FMT;
       gpfmt = "t,+2(ma)";
-      if (GPR_SIZE == 64)
-	{
-	  gpfmt = "t,+4(ma)";
-	  goto ld;
-	}
-
       s = "lw";
       goto ldd_std;
 
     case M_SD_AC:
       fmt = ISA_UNSIGNED_LDST_FMT;
       gpfmt = "t,+2(ma)";
-      if (GPR_SIZE == 64)
-	{
-	  gpfmt = "t,+4(ma)";
-	  if (small_noffset_p (0, ISA_SIGNED_OFFBITS - 1))
-	    {
-	      fmt = ISA_SIGNED_LDST_FMT;
-	      goto ld_st_signed_off;
-	    }
-	  else
-	    goto ld_st;
-	}
       s = "sw";
 
     ldd_std:
@@ -8934,33 +8597,15 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       macro_ldd_std (s, fmt, op, align, offbits, breg, &used_at);
       break;
 
-    case M_DMUL:
-      dbl = TRUE;
-      /* Fall through.  */
     case M_MUL:
-      macro_build (NULL, dbl ? "dmultu" : "multu", "s,t", op[1], op[2]);
+      macro_build (NULL, "multu", "s,t", op[1], op[2]);
       macro_build (NULL, "mflo", MFHL_FMT, op[0]);
       break;
 
-    case M_DMUL_I:
-      dbl = TRUE;
-      /* Fall through.  */
     case M_MUL_I:
       used_at = 1;
       load_register (AT, &imm_expr, dbl);
-      macro_build (NULL, dbl ? "dmul" : "mul", "d,v,t", op[0], op[1], AT);
-      break;
-
-    case M_DROL:
-      if (op[0] == op[1])
-	{
-	  tempreg = AT;
-	  used_at = 1;
-	}
-      else
-	tempreg = op[0];
-      macro_build (NULL, "dnegu", "d,w", tempreg, op[2]);
-      macro_build (NULL, "drorv", BITW_FMT, op[0], op[1], tempreg);
+      macro_build (NULL, "mul", "d,v,t", op[0], op[1], AT);
       break;
 
     case M_ROL:
@@ -8974,19 +8619,6 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
       macro_build (NULL, "negu", "d,w", tempreg, op[2]);
       macro_build (NULL, "rorv", BITW_FMT, op[0], op[1], tempreg);
       break;
-
-    case M_DROL_I:
-      {
-	unsigned int rot;
-
-	rot = imm_expr.X_add_number & 0x3f;
-	rot = (64 - rot) & 0x3f;
-	if (rot >= 32)
-	  macro_build (NULL, "dror32", SHFT_FMT, op[0], op[1], rot - 32);
-	else
-	  macro_build (NULL, "dror", SHFT_FMT, op[0], op[1], rot);
-	break;
-      }
 
     case M_ROL_I:
       {
@@ -9040,8 +8672,7 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 				    ISA_ADD_OFFBITS) == 0)
 	    {
 	      imm_expr.X_add_number = -imm_expr.X_add_number;
-	      macro_build (&imm_expr, GPR_SIZE == 32 ? "addiu" : "daddiu",
-			   GPR_SIZE == 32 ? ADDIU_FMT : "t,r,h",
+	      macro_build (&imm_expr, "addiu", ADDIU_FMT,
 			   op[0], op[1], BFD_RELOC_LO16);
 	    }
 	  else
@@ -9181,8 +8812,8 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 					 ISA_ADD_OFFBITS) == 0)
 	    {
 	      imm_expr.X_add_number = -imm_expr.X_add_number;
-	      macro_build (&imm_expr, GPR_SIZE == 32 ? "addiu" : "daddiu",
-			   ADDIU_FMT, op[0], op[1], BFD_RELOC_LO16);
+	      macro_build (&imm_expr, "addiu", ADDIU_FMT, op[0], op[1],
+			   BFD_RELOC_LO16);
 	    }
 	  else
 	    {
@@ -9201,17 +8832,6 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
     case M_SUBU_I:
       s = "addiu";
       s2 = "subu";
-      goto do_subi;
-    case M_DSUB_I:
-      dbl = TRUE;
-      s = "daddi";
-      s2 = "dsub";
-      goto do_subi_i;
-    case M_DSUBU_I:
-      dbl = TRUE;
-      s = "daddiu";
-      s2 = "dsubu";
-    do_subi:
       if (offset_high_unsigned (-imm_expr.X_add_number, 16) == 0)
 	{
 	  imm_expr.X_add_number = -imm_expr.X_add_number;

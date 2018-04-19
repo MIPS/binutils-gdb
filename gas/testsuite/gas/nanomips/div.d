@@ -42,11 +42,4 @@ Disassembly of section \.text:
   7a:	mod	a0,a1,a2
   7e:	li	at,2
   82:	modu	a0,a1,at
-  86:	ddiv	a0,a1,a2
-  8a:	li	at,2
-  8e:	ddivu	a0,a1,at
-  92:	li	at,32768
-  96:	dmod	a0,a1,at
-  9a:	lui	at,%hi\(0xffff8000\)
-  9e:	dmodu	a0,a1,at
 #pass

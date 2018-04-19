@@ -476,52 +476,28 @@ if { [istarget nanomips*-*-*] } {
 
     run_dump_test_arches "attr-gnu-4-0" "-m32" \
 					[arch_list_matching nanomipsr6]
-    run_dump_test_arches "attr-gnu-4-0" "-m64" \
-					[arch_list_matching nanomips64r6]
     run_dump_test_arches "attr-gnu-4-0" "-msingle-float -m32" \
 					[arch_list_matching nanomipsr6]
-    run_dump_test_arches "attr-gnu-4-0" "-msingle-float -m64" \
-					[arch_list_matching nanomips64r6]
     run_dump_test_arches "attr-none-single-float" "-m32" \
 					[arch_list_matching nanomipsr6]
-    run_dump_test_arches "attr-none-single-float" "-m64" \
-					[arch_list_matching nanomips64r6]
 
-    run_dump_test_arch "attr-gnu-4-1" "-m64 -mdouble-float" nanomips64r6
+    run_dump_test_arch "attr-gnu-4-1" "-mdouble-float" nanomips32r6
 
     run_list_test_arches "attr-gnu-4-2-mdouble-float" "-m32 -mdouble-float" \
 					[arch_list_matching nanomipsr6]
-    run_list_test_arches "attr-gnu-4-2-mdouble-float" "-m64 -mdouble-float" \
-					[arch_list_matching nanomips64r6]
     run_dump_test_arches "attr-gnu-4-2" "-m32" \
 					[arch_list_matching nanomipsr6]
-    run_dump_test_arches "attr-gnu-4-2" "-m64" \
-					[arch_list_matching nanomips64r6]
 
     run_list_test_arches "attr-gnu-4-3-mhard-float" "-m32" \
 					[arch_list_matching nanomipsr6]
     run_list_test_arches "attr-gnu-4-3-mhard-float" "-m32 -mdouble-float" \
 					[arch_list_matching nanomipsr6]
-    run_list_test_arches "attr-gnu-4-3-mhard-float" "-m64 -mdouble-float" \
-					[arch_list_matching nanomips64r6]
     run_list_test_arches "attr-gnu-4-3-mhard-float" "-m32 -msingle-float" \
 					[arch_list_matching nanomipsr6]
     run_dump_test_arches "attr-gnu-4-3" "-m32" \
 					[arch_list_matching nanomipsr6]
-    run_dump_test_arches "attr-gnu-4-3" "-m64" \
-					[arch_list_matching nanomips64r6]
- 
     run_list_test_arches "attr-gnu-4-4" "" \
 					[arch_list_matching nanomipsr6]
-
-    run_list_test_arches "attr-gnu-4-5-64" "-m64 -mdouble-float" \
-					[arch_list_matching nanomips64r6]
-
-    run_list_test_arches "attr-gnu-4-6-64" "-m64 -mdouble-float" \
-					[arch_list_matching nanomips64r6]
-
-    run_list_test_arches "attr-gnu-4-7-64" "-m64 -mdouble-float" \
-					[arch_list_matching nanomips64r6]
 
     run_list_test_arches "baddata1" ""	[arch_list_matching nanomips]
     run_list_test_arches "balc-stub" "-mbalc-stubs" [arch_list_matching nanomips]
@@ -579,7 +555,6 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "div" "" nanomips32r6
 
     # FIXME: broken for various cases
-    run_dump_test_arches "dli"		[arch_list_matching nmips64_broken]
     run_dump_test_arches "dot-1"	[arch_list_matching nanomipsr6]
     run_list_test_arches "double-float-flag" \
 	"-m32 -msingle-float -mdouble-float" \
@@ -680,7 +655,6 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "ldst-indexed" [arch_list_matching nanomipsr6]
     run_dump_test_arch "ldst-indexed" "" nanomips32s
     run_dump_test_arch "ldst-indexed-32" "" nanomips32r6
-    run_dump_test_arch "ldst-indexed-64" "" nanomips64r6
 
     run_dump_test_arch "ld-reloc"	"-mlegacyregs" nanomips32s
     run_dump_test_arch "ld-forward" 	"" nanomips32r6
@@ -694,10 +668,8 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "lifloat-eb" "" nanomips32r6
     run_dump_test_arch "lifloat-nms" "" nanomips32r6s
     run_dump_test_arch "lifloat-mem" "" nanomips32r6
-    run_dump_test_arch "lifloat-64" "-m64" nanomips64r6
 
     run_dump_test_arch "lif-pic" "" nanomips32r6
-    run_dump_test_arch "lif-pic-64" "-m64" nanomips64r6
     run_dump_test_arch "lif-pic-eb" "" nanomips32r6
     run_dump_test_arch "lif-pic" "" nanomips32r6s
     run_dump_test_arch "lif-pic-mem" "" nanomips32r6
@@ -711,7 +683,6 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test "linkrelax-state"
     run_dump_test "linkrelax-state-cmd"
     run_dump_test_arch "llsc-wp" "" nanomips32r6
-    run_dump_test_arch "llsc-dp" "" nanomips64r6
 
     # source location tracking
     run_dump_test_arch "loc" "" nanomips32r6
@@ -756,9 +727,6 @@ if { [istarget nanomips*-*-*] } {
 
     run_dump_test_arches "mvh"		[arch_list_matching nanomipsr6]
 
-    # FIXME: some tests skipped due to missing dror macros
-    run_dump_test_arches "nanomips64" "" nanomips64r6
-    run_list_test_arch "nanomips64-ill" "" nanomips64r6
     # FIXME: repeat with traps, insn32, noinsn32
     run_dump_test_arches "nanomips"	[arch_list_matching xnms]
     run_dump_test_arches "nanomips32"	[arch_list_matching xnms]
@@ -766,7 +734,6 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "nanomips-exc" "" nanomips32
     run_dump_test_arch "nanomips-exc32" "--defsym insn32_broken=" nanomips32
     run_dump_test_arch "nanomips-exc-noalias" "" nanomips32
-    run_dump_test_arch "nanomips-exc64" "" nanomips64
     run_dump_test_arch "nanomips-subset" "" nanomips32s
 
     run_dump_test_arch "noat-1" "" nanomips32r6
@@ -842,7 +809,6 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "u-ldst" [arch_list_matching nanomipsr6]
     run_dump_test_arches "u-ldst-pic" [arch_list_matching nanomipsr6]
     run_dump_test_arches "u-ldsd" [arch_list_matching nanomipsr6]
-    run_dump_test_arches "u-ldsd-64" [arch_list_matching nanomips64r6]
 
 #     run_list_test "ase-errors-1" "-mabi=32 -march=mips1" "ASE errors (1)"
 #     run_list_test "ase-errors-2" "-mabi=o64 -march=mips3" "ASE errors (2)"
