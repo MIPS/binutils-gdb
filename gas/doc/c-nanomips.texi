@@ -840,10 +840,8 @@ the module at all and therefore has no impact on the ABI.  This is the
 default.
 
 @item 1 - Double-precision
-This variant indicates that double-precision support is used.  For 64-bit
-ABIs this means that 64-bit wide floating-point registers are required.
-For 32-bit ABIs this means that 32-bit wide floating-point registers are
-required and double-precision operations use pairs of registers.
+This variant indicates that double-precision support is used.  This means
+that 64-bit wide floating-point registers are required.
 
 @item 2 - Single-precision
 This variant indicates that single-precision support is used.  Double
@@ -1083,13 +1081,13 @@ Full 32-bit signed GOT displacement to a TLS slot from next PC.
 
 @cindex small data, nanoMIPS
 @cindex @code{gp} register, nanoMIPS
-It often takes several instructions to load the address of a symbol.
+It often takes multiple instructions to load data from a symbol.
 For example, when @samp{addr} is a 32-bit symbol, the non-PIC expansion
-of @samp{dla $4,addr} is usually:
+of @samp{lw $4,addr} is usually:
 
 @example
 lui     $4,%hi(addr)
-daddiu  $4,$4,%lo(addr)
+lw      $4,%lo(addr)($4)
 @end example
 
 The sequence is longer when @samp{addr} is a 64-bit symbol.
@@ -1123,13 +1121,13 @@ On startup, systems that support a small data area are expected to
 initialize register @code{$28}, also known as @code{$gp}, in such a
 way that small data can be accessed using a 16-bit offset from that
 register.  For example, when @samp{addr} is small data,
-the @samp{dla $4,addr} instruction above is equivalent to:
+the @samp{lw $4,addr} instruction above is equivalent to:
 
 @example
-daddiu  $4,$28,%gp_rel(addr)
+lw  $4,%gprel(addr)($gp)
 @end example
 
-Small data is not supported for SVR4-style PIC.
+Small data is also supported for SVR4-style PIC.
 
 @node nanoMIPS Relocations
 @section Using relocation operators for different addressing modes
