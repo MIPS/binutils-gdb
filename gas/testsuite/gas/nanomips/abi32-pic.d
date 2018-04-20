@@ -1,5 +1,5 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
-#nam[0-9a-f]+: nanoMIPS -m32 (SVR4 PIC)
+#name: nanoMIPS -m32 (SVR4 PIC)
 #as: -EB -mno-minimize-relocs
 
 .*: +file format.*
