@@ -138,9 +138,6 @@ END_RELOC_NUMBERS (R_NANOMIPS_maxext)
 /* File contains pure PC-relative code.  */
 #define EF_NANOMIPS_PCREL	0x00000010
 
-/* Architectural Extensions used by this file */
-#define EF_NANOMIPS_ARCH_ASE	0x0f000000
-
 /* Four bit nanoMIPS architecture field.  */
 #define EF_NANOMIPS_ARCH	0xf0000000
 

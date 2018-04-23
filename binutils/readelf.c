@@ -14510,8 +14510,8 @@ print_nanomips_fp_abi_value (int val)
 
 static unsigned char *
 display_nanomips_gnu_attribute (unsigned char * p,
-			    unsigned int tag,
-			    const unsigned char * const end)
+				unsigned int tag,
+				const unsigned char * const end)
 {
   if (tag == Tag_GNU_NANOMIPS_ABI_FP)
     {
