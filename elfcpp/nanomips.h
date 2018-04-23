@@ -112,8 +112,6 @@ enum
   R_NANOMIPS_TLS_TPREL12 = 92,
   R_NANOMIPS_TLS_TPREL16 = 93,
   R_NANOMIPS_TLS_TPREL_I32 = 94,
-  R_NANOMIPS_TLS_LD_CALL = 95,
-  R_NANOMIPS_TLS_GD_CALL = 96,
 };
 
 // Processor specific flags for the ELF header e_flags field.
@@ -133,21 +131,15 @@ enum
   EF_NANOMIPS_PCREL = 0x00000010
 };
 
-enum
-{
-  // Architectural Extensions used by this file.
-  EF_NANOMIPS_ARCH_ASE = 0x0f000000
-};
-
 // nanoMIPS architecture
 enum
 {
   // Four bit nanoMIPS architecture field.
   EF_NANOMIPS_ARCH = 0xf0000000,
 
-  // -mnanomips32r6 code.
+  // -march=32r6 code.
   E_NANOMIPS_ARCH_32R6 = 0x00000000,
-  // -mnanomips64r6 code.
+  // -march=64r6 code.
   E_NANOMIPS_ARCH_64R6 = 0x10000000
 };
 
@@ -162,15 +154,11 @@ enum
   E_NANOMIPS_ABI_P64 = 0x00002000
 };
 
-// Machine variant if we know it.  This field was invented at Cygnus,
-// but it is hoped that other vendors will adopt it.  If some standard
-// is developed, this code should be changed to follow it.
+// Machine variant if we know it.  This field was invented at Cygnus
+// for MIPS.  It may be used similarly for nanoMIPS.
 enum
 {
   EF_NANOMIPS_MACH = 0x00ff0000
-// Cygnus is choosing values between 80 and 9F;
-// 00 - 7F should be left for a future standard;
-// the rest are open.
 };
 
 // Object attribute tags.
