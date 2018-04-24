@@ -82,8 +82,6 @@ NRD(TLS_GOTTPREL_PC_I32,        STATIC,             48,        32,        1,    
 NRD(TLS_TPREL12,                STATIC,             32,        12,        1,        0,                 Symbol::TLS_REF)
 NRD(TLS_TPREL16,                STATIC,             32,        16,        1,        0,                 Symbol::TLS_REF)
 NRD(TLS_TPREL_I32,              STATIC,             48,        32,        1,        0,                 Symbol::TLS_REF)
-NRD(TLS_LD_CALL,                STATIC,             32,        21,        1,        0,                 Symbol::TLS_REF)
-NRD(TLS_GD_CALL,                STATIC,             32,        21,        1,        0,                 Symbol::TLS_REF)
 NRD(ALIGN,                      PLACEHOLDER,         0,         0,        1,        0,                 0)
 NRD(FILL,                       PLACEHOLDER,         0,         0,        1,        0,                 0)
 NRD(MAX,                        PLACEHOLDER,         0,         0,        1,        0,                 0)
