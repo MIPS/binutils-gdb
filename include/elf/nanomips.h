@@ -236,10 +236,10 @@ enum
 #define NANOMIPS_ASE_DSPR3        0x00002000 /* DSP R3 ASE.  */
 #define NANOMIPS_ASE_UNUSED5      0x00004000 /* was MIPS16 E2 Extension.  */
 #define NANOMIPS_ASE_CRC	  0x00008000 /* CRC extension.  */
-#define NANOMIPS_ASE_UNUSED7	  0x00010000
+#define NANOMIPS_ASE_CRYPTO	  0x00010000 /* Cryptography extension.  */
 #define NANOMIPS_ASE_GINV         0x00020000 /* GINV ASE.  */
 #define NANOMIPS_ASE_xNMS         0x00040000 /* not nanoMIPS Subset.  */
-#define NANOMIPS_ASE_MASK         0x0006af4d /* All valid ASEs.  */
+#define NANOMIPS_ASE_MASK         0x0007af4d /* All valid ASEs.  */
 
 /* nanoMIPS ELF flags routines.  */
 extern Elf_Internal_ABIFlags_v0 * bfd_nanomips_elf_get_abiflags (bfd *);

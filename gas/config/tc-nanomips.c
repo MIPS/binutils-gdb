@@ -337,11 +337,8 @@ static int nanomips_32bitmode = 0;
 static int nanomips_trap = 0;
 
 /* 1 if double width floating point constants should not be constructed
-   by assembling two single width halves into two single width floating
-   point registers which just happen to alias the double width destination
-   register.  On some architectures this aliasing can be disabled by a bit
-   in the status register, and the setting of this bit cannot be determined
-   automatically at assemble time.  */
+   by assembling two single width halves within the instruction stream,
+   but instead loaded from memory.  */
 static int nanomips_disable_float_construction;
 
 /* Non-zero if .set [no]relax directive was used */
