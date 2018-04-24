@@ -1,4 +1,4 @@
-#objdump: -dr --prefix-addresses --show-raw-insn
+#objdump: -dr --no-show-raw-insn
 #name: nanoMIPS jal-pic
 #as: -mlegacyregs --linkrelax
 
@@ -7,22 +7,23 @@
 .*: +file format .*nanomips.*
 
 Disassembly of section \.text:
-0+0000 <text_label> e380 0002 	aluipc	gp,00000000 <_gp>
-			0: R_NANOMIPS_PCHI20	_gp
-0+0004 <text_label\+0x4> db30      	jalrc	t9
-0+0006 <text_label\+0x6> 4899 0000 	jalrc	a0,t9
-0+000a <text_label\+0xa> 4020 0002 	lw	at,0\(gp\)
-			a: R_NANOMIPS_GOT_CALL	text_label
-0+000e <text_label\+0xe> d830      	jalrc	at
-			e: R_NANOMIPS_JALR16	text_label
-0+0010 <text_label\+0x10> 4020 0002 	lw	at,0\(gp\)
-			10: R_NANOMIPS_GOT_CALL	weak_text_label
-0+0014 <text_label\+0x14> d830      	jalrc	at
-			14: R_NANOMIPS_JALR16	weak_text_label
-0+0016 <text_label\+0x16> 4020 0002 	lw	at,0\(gp\)
-			16: R_NANOMIPS_GOT_CALL	external_text_label
-0+001a <text_label\+0x1a> d830      	jalrc	at
-			1a: R_NANOMIPS_JALR16	external_text_label
-0+001c <text_label\+0x1c> 2800 0000 	bc	00000000 <text_label>
-			1c: R_NANOMIPS_PC25_S1	text_label
+00000000 <text_label>:
+   0:	lapc	gp,0 <_gp>
+			2: R_NANOMIPS_PC_I32	_gp
+   6:	jalrc	t9
+   8:	jalrc	a0,t9
+   c:	lw	at,0\(gp\)
+			c: R_NANOMIPS_GOT_CALL	text_label
+  10:	jalrc	at
+			10: R_NANOMIPS_JALR16	text_label
+  12:	lw	at,0\(gp\)
+			12: R_NANOMIPS_GOT_CALL	weak_text_label
+  16:	jalrc	at
+			16: R_NANOMIPS_JALR16	weak_text_label
+  18:	lw	at,0\(gp\)
+			18: R_NANOMIPS_GOT_CALL	external_text_label
+  1c:	jalrc	at
+			1c: R_NANOMIPS_JALR16	external_text_label
+  1e:	bc	0 <text_label>
+			1e: R_NANOMIPS_PC25_S1	text_label
 #pass

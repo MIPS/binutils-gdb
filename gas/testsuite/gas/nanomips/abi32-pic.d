@@ -7,6 +7,8 @@
 Disassembly of section .text\:
 [0-9a-f]+ <[^>]+> e380 0002 	aluipc	gp,[0-9a-f]+ <_gp>
 			[0-9a-f]+: R_NANOMIPS_PCHI20	_gp
+[0-9a-f]+ <[^>]+> 039c 0000 	addiu	gp,gp,0
+			[0-9a-f]+: R_NANOMIPS_LO12	_gp
 [0-9a-f]+ <[^>]+> e094 5244 	lui	a0,%hi\(0x12345000\)
 [0-9a-f]+ <[^>]+> 8084 0678 	ori	a0,a0,0x678
 [0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <shared>

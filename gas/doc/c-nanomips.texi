@@ -697,11 +697,11 @@ never need a temporary register.
 @cindex nanoMIPS GP-setup
 @kindex @code{cpsetup}
 
-This directive maps to a single GP-setup instruction for position
-independent code.  The nanoMIPS PIC ABI guarantees that the GP will be
-4k-aligned.
+This directive maps to the GP-setup sequence for position independent
+code.
+
 @example
-aluipc $gp, %pcrel_hi(_gp)
+lapc.b $gp, _gp
 @end example
 
 @end table
