@@ -1,13 +1,14 @@
 #objdump: -dr
 #name: nanoMIPS ELF TLS p32
 
-dump.o:     file format .*
+.*:     file format .*
 
 Disassembly of section .text:
 
 00000000 \<fn\>:
- +[0-9a-f]+:	e380 0002 	aluipc	gp,0 <_gp>
-			[0-9a-f]+: R_NANOMIPS_PCHI20	_gp
+ +[0-9a-f]+:	6383 0000 	lapc	gp,0 <_gp>
+ +[0-9a-f]+:	0000.
+			2: R_NANOMIPS_PC_I32	_gp
  +[0-9a-f]+:	83bd 8010 	addiu	sp,sp,-16
  +[0-9a-f]+:	b7c2      	sw	fp,8\(sp\)
  +[0-9a-f]+:	13dd      	move	fp,sp

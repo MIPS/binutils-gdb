@@ -7106,18 +7106,19 @@ macro_expression_valid (expressionS *exp, bfd_reloc_code_real_type rtype)
 /* Expand the LA macro for PC-relative addressing.  */
 
 static void
-macro_pcrel_la (unsigned int dest)
+macro_pcrel_la (unsigned int dest, expressionS *expr,
+		bfd_reloc_code_real_type r)
 {
   if ((nanomips_opts.ase & ASE_xNMS) != 0
-      && *offset_reloc == BFD_RELOC_UNUSED
+      && r == BFD_RELOC_UNUSED
       && !nanomips_opts.insn32)
-    macro_build (&offset_expr, "lapc", "mp,+S", dest,
+    macro_build (expr, "lapc", "mp,+S", dest,
 		 BFD_RELOC_NANOMIPS_PC_I32);
   else
     {
-      macro_build (&offset_expr, "aluipc", "t,+K", dest,
+      macro_build (expr, "aluipc", "t,+K", dest,
 		   BFD_RELOC_NANOMIPS_PCREL_HI20);
-      macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDIU_FMT,
+      macro_build (expr, ADDRESS_ADDI_INSN, ADDIU_FMT,
 		   dest, dest, BFD_RELOC_NANOMIPS_LO12);
     }
 }
@@ -7190,7 +7191,7 @@ macro_la (unsigned int op[], unsigned int breg, int *used_at,
 	}
 
       if (nanomips_opts.pcrel)
-	macro_pcrel_la (op[0]);
+	macro_pcrel_la (op[0], &offset_expr, *offset_reloc);
       else
 	macro_absolute_la (op[0]);
 
@@ -7217,7 +7218,7 @@ macro_la (unsigned int op[], unsigned int breg, int *used_at,
 
       relax_switch ();
       /* Local symbols can be PC-relative.  */
-      macro_pcrel_la (op[0]);
+      macro_pcrel_la (op[0], &offset_expr, *offset_reloc);
       relax_end ();
     }
 
@@ -7563,7 +7564,7 @@ macro_pcrel_ldd_std (const char *s, const char *fmt,
       an_expr.X_op_symbol = NULL;
       an_expr.X_add_symbol = NULL;
       an_expr.X_add_number = 4;
-      macro_pcrel_la (AT);
+      macro_pcrel_la (AT, &offset_expr, *offset_reloc);
 
       macro_ld_st_pair (s, fmt, op, AT, &an_expr,
 			BFD_RELOC_NANOMIPS_SIGNED_9, TRUE);
@@ -10413,23 +10414,7 @@ s_module (int ignore ATTRIBUTE_UNUSED)
 
 /* Handle the .cpsetup pseudo-op defined for NewABI PIC code.  The syntax is:
      .cpsetup $reg1, offset|$reg2, label
-
-   If offset is given, this results in:
-     sd		$gp, offset($sp)
-     lui	$gp, %hi(%neg(%gp_rel(label)))
-     addiu	$gp, $gp, %lo(%neg(%gp_rel(label)))
-     daddu	$gp, $gp, $reg1
-
-   If $reg2 is given, this results in:
-     or		$reg2, $gp, $0
-     lui	$gp, %hi(%neg(%gp_rel(label)))
-     addiu	$gp, $gp, %lo(%neg(%gp_rel(label)))
-     daddu	$gp, $gp, $reg1
-   $reg1 is normally $25 == $t9.
-
-   The -mno-shared option replaces the last three instructions with
-	lui	$gp,%hi(_gp)
-	addiu	$gp,$gp,%lo(_gp)  */
+*/
 
 static void
 s_cpsetup (int ignore ATTRIBUTE_UNUSED)
@@ -10452,10 +10437,7 @@ s_cpsetup (int ignore ATTRIBUTE_UNUSED)
 
   nanomips_assembling_insn = TRUE;
   macro_start ();
-
-  macro_build (&ex, "aluipc", "t,+K", nanomips_gp_register,
-	       BFD_RELOC_NANOMIPS_PCREL_HI20);
-
+  macro_pcrel_la (nanomips_gp_register, &ex, BFD_RELOC_UNUSED);
   macro_end (TRUE);
   nanomips_assembling_insn = FALSE;
   ignore_rest_of_line ();
