@@ -7049,19 +7049,19 @@ macro_expression_valid (expressionS *exp, bfd_reloc_code_real_type rtype)
 /* Expand the LA macro for PC-relative addressing.  */
 
 static void
-macro_pcrel_la (unsigned int dest, expressionS *expr,
+macro_pcrel_la (unsigned int dest, expressionS *an_expr,
 		bfd_reloc_code_real_type r)
 {
   if ((nanomips_opts.ase & ASE_xNMS) != 0
       && r == BFD_RELOC_UNUSED
       && !nanomips_opts.insn32)
-    macro_build (expr, "lapc", "mp,+S", dest,
+    macro_build (an_expr, "lapc", "mp,+S", dest,
 		 BFD_RELOC_NANOMIPS_PC_I32);
   else
     {
-      macro_build (expr, "aluipc", "t,+K", dest,
+      macro_build (an_expr, "aluipc", "t,+K", dest,
 		   BFD_RELOC_NANOMIPS_PCREL_HI20);
-      macro_build (expr, ADDRESS_ADDI_INSN, ADDIU_FMT,
+      macro_build (an_expr, ADDRESS_ADDI_INSN, ADDIU_FMT,
 		   dest, dest, BFD_RELOC_NANOMIPS_LO12);
     }
 }
