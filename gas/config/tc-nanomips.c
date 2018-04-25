@@ -10827,6 +10827,13 @@ relaxed_invariable_branch_p (fragS *fragp, asection *sec)
 	    }
 	  ifrag = ifrag->fr_next;
 	}
+
+      if (ifrag && reloc_variable_frag_p (ifrag))
+	{
+	  max_offset -= ifrag->tc_frag_data.relax_sop;
+	  min_offset += ifrag->tc_frag_data.relax_sink;
+	  variable_p = TRUE;
+	}
     }
 
   /* If there are no intervening variable frags and the cumulative sop is
