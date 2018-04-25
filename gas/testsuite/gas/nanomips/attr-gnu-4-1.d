@@ -1,7 +1,7 @@
 #source: attr-gnu-4-1.s
 #PROG: readelf
 #readelf: -A
-#name: MIPS gnu_attribute 4,1 (double precision)
+#name: nanoMIPS gnu_attribute 4,1 (double precision)
 
 Attribute Section: gnu
 File Attributes

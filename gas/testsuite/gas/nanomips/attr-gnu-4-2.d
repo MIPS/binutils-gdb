@@ -2,7 +2,7 @@
 #as: -msingle-float
 #PROG: readelf
 #readelf: -A
-#name: MIPS gnu_attribute 4,2 (single precision)
+#name: nanoMIPS gnu_attribute 4,2 (single precision)
 
 Attribute Section: gnu
 File Attributes

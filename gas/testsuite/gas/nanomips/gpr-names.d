@@ -1,5 +1,5 @@
 #objdump: -dr --no-show-raw-insn -M gpr-names=32
-#name: MIPS GPR disassembly (32)
+#name: nanoMIPS GPR disassembly
 #source: gpr-names.s
 
 # Check objdump's handling of -M gpr-names=foo options.

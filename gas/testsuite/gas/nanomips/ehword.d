@@ -1,5 +1,5 @@
 #objdump: -r -j .text
-#name MIPS .ehword
+#name nanoMIPS .ehword
 #source ehword.s
 
 .*: +file format .*nanomips.*

@@ -1,6 +1,6 @@
 #objdump: -dr --no-show-raw-insn
-#name: nanoMIPS ulh-pic
-#as: -mpic
+#name: nanoMIPS uld/ust pic
+#as: -mpic -G0
 
 # Test the unaligned load and store macros with -mpic for nanoMIPS.
 

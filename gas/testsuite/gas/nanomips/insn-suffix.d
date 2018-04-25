@@ -84,12 +84,13 @@ Disassembly of section \.text:
   8e:	beqzc\[16\]	a0,92 <.L1.*>
 			8e: R_NANOMIPS_PC7_S1	.L1.*
 			8e: R_NANOMIPS_FIXED	\*ABS\*
-  90:	bnezc\[16\]	a1,94 <.L2.*>
+  90:	bnezc\[16\]	a1,96 <.L2.*>
 			90: R_NANOMIPS_PC7_S1	.L2.*
 			90: R_NANOMIPS_FIXED	\*ABS\*
 
 00000092 <.L1.*>:
-  92:	balc\[16\]	0 <test>
-			92: R_NANOMIPS_PC10_S1	test
-			92: R_NANOMIPS_FIXED	\*ABS\*
+  92:	lw\[16\]	a0,8\(a1\)
+  94:	balc\[16\]	0 <test>
+			94: R_NANOMIPS_PC10_S1	test
+			94: R_NANOMIPS_FIXED	\*ABS\*
 #pass

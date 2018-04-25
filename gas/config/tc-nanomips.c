@@ -1915,18 +1915,13 @@ nanomips_parse_register_1 (char *s, char *e, unsigned int *symval_ptr)
 /* Return true if the string at *SPTR is a valid register name.
 
    When returning true, move *SPTR past the register, store the
-   register's symbol value in *SYMVAL_PTR and the channel mask in
-   *CHANNELS_PTR (if nonnull).  The symbol value includes the register
-   number (RNUM_MASK) and register type (RTYPE_MASK).  The channel mask
-   is a 4-bit value of the form XYZW and is 0 if no suffix was given.  */
+   register's symbol value in *SYMVAL_PTR.  */
 
 static bfd_boolean
-nanomips_parse_register (char **sptr, unsigned int *symval_ptr,
-			 unsigned int *channels_ptr)
+nanomips_parse_register (char **sptr, unsigned int *symval_ptr)
 {
-  char *s, *e, *m;
-  const char *q;
-  unsigned int channels, symval, bit;
+  char *s, *e;
+  unsigned int symval;
 
   /* Find end of name.  */
   s = e = *sptr;
@@ -1935,32 +1930,11 @@ nanomips_parse_register (char **sptr, unsigned int *symval_ptr,
   while (is_part_of_name (*e))
     ++e;
 
-  channels = 0;
   if (!nanomips_parse_register_1 (s, e, &symval))
-    {
-      if (!channels_ptr)
-	return FALSE;
-
-      /* Eat characters from the end of the string that are valid
-	 channel suffixes.  The preceding register must be $ACC or
-	 end with a digit, so there is no ambiguity.  */
-      bit = 1;
-      m = e;
-      for (q = "wzyx"; *q; q++, bit <<= 1)
-	if (m > s && m[-1] == *q)
-	  {
-	    --m;
-	    channels |= bit;
-	  }
-
-      if (channels == 0 || !nanomips_parse_register_1 (s, m, &symval))
-	return FALSE;
-    }
+    return FALSE;
 
   *sptr = e;
   *symval_ptr = symval;
-  if (channels_ptr)
-    *channels_ptr = channels;
   return TRUE;
 }
 
@@ -1973,7 +1947,7 @@ reg_lookup (char **s, unsigned int types, unsigned int *regnop)
 {
   unsigned int regno;
 
-  if (nanomips_parse_register (s, &regno, NULL))
+  if (nanomips_parse_register (s, &regno))
     {
       if (types & RTYPE_VEC)
 	regno = nanomips_prefer_vec_regno (regno);
@@ -1998,9 +1972,6 @@ enum nanomips_operand_token_type
 {
   /* A plain register, e.g. $f2.  */
   OT_REG,
-
-  /* A 4-bit XYZW channel mask.  */
-  OT_CHANNELS,
 
   /* A constant vector index, e.g. [1].  */
   OT_INTEGER_INDEX,
@@ -2037,9 +2008,6 @@ struct nanomips_operand_token
   {
     /* The register symbol value for an OT_REG or OT_REG_INDEX.  */
     unsigned int regno;
-
-    /* The 4-bit channel mask for an OT_CHANNEL_SUFFIX.  */
-    unsigned int channels;
 
     /* The integer value of an OT_INTEGER_INDEX.  */
     addressT index;
@@ -2095,7 +2063,7 @@ static char *
 nanomips_parse_base_start (char *s)
 {
   struct nanomips_operand_token token;
-  unsigned int regno, channels;
+  unsigned int regno;
   bfd_boolean decrement_p;
 
   if (*s != '(')
@@ -2115,7 +2083,7 @@ nanomips_parse_base_start (char *s)
 
   /* Allow a channel specifier because that leads to better error messages
      than treating something like "$vf0x++" as an expression.  */
-  if (!nanomips_parse_register (&s, &regno, &channels))
+  if (!nanomips_parse_register (&s, &regno))
     return 0;
 
   token.u.ch = '(';
@@ -2129,12 +2097,6 @@ nanomips_parse_base_start (char *s)
 
   token.u.regno = regno;
   nanomips_add_token (&token, OT_REG);
-
-  if (channels)
-    {
-      token.u.channels = channels;
-      nanomips_add_token (&token, OT_CHANNELS);
-    }
 
   /* For consistency, only match "++" as part of base expressions too.  */
   SKIP_SPACE_TABS (s);
@@ -2158,7 +2120,7 @@ nanomips_parse_argument_token (char *s, char float_format)
 {
   char *end, *save_in;
   const char *err;
-  unsigned int regno1, regno2, channels;
+  unsigned int regno1, regno2;
   struct nanomips_operand_token token;
 
   /* First look for "($reg", since we want to treat that as an
@@ -2177,26 +2139,15 @@ nanomips_parse_argument_token (char *s, char float_format)
     }
 
   /* Handle tokens that start with a register.  */
-  if (nanomips_parse_register (&s, &regno1, &channels))
+  if (nanomips_parse_register (&s, &regno1))
     {
-      if (channels)
-	{
-	  /* A register and a VU0 channel suffix.  */
-	  token.u.regno = regno1;
-	  nanomips_add_token (&token, OT_REG);
-
-	  token.u.channels = channels;
-	  nanomips_add_token (&token, OT_CHANNELS);
-	  return s;
-	}
-
       SKIP_SPACE_TABS (s);
       if (*s == '-')
 	{
 	  /* A register range.  */
 	  ++s;
 	  SKIP_SPACE_TABS (s);
-	  if (!nanomips_parse_register (&s, &regno2, NULL))
+	  if (!nanomips_parse_register (&s, &regno2))
 	    {
 	      set_insn_error (0, _("invalid register range"));
 	      return 0;
@@ -2217,7 +2168,7 @@ nanomips_parse_argument_token (char *s, char float_format)
 	{
 	  ++s;
 	  SKIP_SPACE_TABS (s);
-	  if (nanomips_parse_register (&s, &token.u.regno, NULL))
+	  if (nanomips_parse_register (&s, &token.u.regno))
 	    nanomips_add_token (&token, OT_REG_INDEX);
 	  else
 	    {
@@ -2406,7 +2357,6 @@ is_size_valid (const struct nanomips_opcode *mo)
 
 static int
 validate_insn (const struct nanomips_opcode *opcode, unsigned long insn_bits,
-	       const struct nanomips_operand *(*decode_operand) (const char *),
 	       struct nanomips_operand_array *operands)
 {
   const char *s;
@@ -2436,7 +2386,7 @@ validate_insn (const struct nanomips_opcode *opcode, unsigned long insn_bits,
 	break;
 
       default:
-	operand = decode_operand (s);
+	operand = decode_nanomips_operand (s);
 	if (!operand && opcode->pinfo != INSN_MACRO)
 	  {
 	    as_bad (_("internal: unknown operand type: %s %s"),
@@ -2445,17 +2395,10 @@ validate_insn (const struct nanomips_opcode *opcode, unsigned long insn_bits,
 	  }
 	gas_assert (opno < MAX_OPERANDS);
 	operands->operand[opno] = operand;
-	if (operand != NULL
-	    && (decode_operand
-		|| operand->type != OP_INT
-		|| operand->lsb != 0
-		|| !nanomips_opcode_32bit_p (opcode)))
+	if (operand != NULL)
 	  used_bits = nanomips_insert_operand (operand, used_bits, -1);
 	/* Skip prefix characters.  */
-	if (decode_operand && (*s == '+'
-			       || *s == 'm'
-			       || *s == '-'
-			       || *s == '`'))
+	if (*s == '+' || *s == 'm' || *s == '-')
 	  ++s;
 	opno += 1;
 	break;
@@ -2494,7 +2437,7 @@ validate_nanomips_insn (const struct nanomips_opcode *opc,
   unsigned int length;
 
   if (opc->pinfo == INSN_MACRO)
-    return validate_insn (opc, 0xffffffff, decode_nanomips_operand, operands);
+    return validate_insn (opc, 0xffffffff, operands);
 
   length = insn_length (opc);
   if (length != 2 && length != 4 && length != 6)
@@ -2530,7 +2473,7 @@ validate_nanomips_insn (const struct nanomips_opcode *opc,
     }
 
   insn_bits -= 1;
-  return validate_insn (opc, insn_bits, decode_nanomips_operand, operands);
+  return validate_insn (opc, insn_bits, operands);
 }
 
 /* This function is called once, at assembler startup time.  It should set up

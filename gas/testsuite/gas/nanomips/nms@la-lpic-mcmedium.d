@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: nanoMIPS subset la PIC medium memory model
-#as: -mPIC -mcmodel=medium
+#as: -mPIC -mcmodel=medium -G0
 #source: la.s
 
 # Test the la macro with mPIC on nanoMIPS subset and medium memory model

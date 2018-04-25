@@ -50,5 +50,6 @@ test:
 	beqzc[16] $a0,1f
 	bnezc[16] $a1,2f
 1:
+	lw[16] $a0,8($a1)
 	balc[16] test
 2:

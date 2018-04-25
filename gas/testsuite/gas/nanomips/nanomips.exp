@@ -482,22 +482,19 @@ if { [istarget nanomips*-*-*] } {
 					[arch_list_matching nanomipsr6]
 
     run_dump_test_arch "attr-gnu-4-1" "-mdouble-float" nanomips32r6
-
-    run_list_test_arches "attr-gnu-4-2-mdouble-float" "-m32 -mdouble-float" \
-					[arch_list_matching nanomipsr6]
+    run_list_test "attr-gnu-4-1-msoft-float" "-msoft-float"
+    run_list_test "attr-gnu-4-1-msingle-float" "-msingle-float"
+    
+    run_list_test "attr-gnu-4-2-mdouble-float" "-mdouble-float"
+    run_list_test "attr-gnu-4-2-msoft-float" "-msoft-float"
+    
     run_dump_test_arches "attr-gnu-4-2" "-m32" \
 					[arch_list_matching nanomipsr6]
 
-    run_list_test_arches "attr-gnu-4-3-mhard-float" "-m32" \
-					[arch_list_matching nanomipsr6]
-    run_list_test_arches "attr-gnu-4-3-mhard-float" "-m32 -mdouble-float" \
-					[arch_list_matching nanomipsr6]
-    run_list_test_arches "attr-gnu-4-3-mhard-float" "-m32 -msingle-float" \
-					[arch_list_matching nanomipsr6]
-    run_dump_test_arches "attr-gnu-4-3" "-m32" \
-					[arch_list_matching nanomipsr6]
-    run_list_test_arches "attr-gnu-4-4" "" \
-					[arch_list_matching nanomipsr6]
+    run_list_test "attr-gnu-4-3-mhard-float" "-mdouble-float"
+    run_list_test "attr-gnu-4-3-mhard-float" "-msingle-float"
+    run_dump_test "attr-gnu-4-3" ""
+    run_list_test "attr-gnu-4-4" ""
 
     run_list_test_arches "baddata1" ""	[arch_list_matching nanomips]
     run_list_test_arches "balc-stub" "-mbalc-stubs" [arch_list_matching nanomips]

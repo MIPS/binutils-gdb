@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: nanoMIPS la PIC large memory model
-#as: -mPIC -mcmodel=large
+#as: -mPIC -mcmodel=large -G0
 #source: la.s
 
 # Test the la macro with mPIC and large memory model

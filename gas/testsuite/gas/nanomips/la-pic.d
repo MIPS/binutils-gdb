@@ -1,6 +1,6 @@
 #objdump: -dr --prefix-addresses --show-raw-insn
 #name: nanoMIPS la-pic
-#as: -mpic
+#as: -mpic -G0
 #source: la.s
 
 # Test the la macro with -mpic.
