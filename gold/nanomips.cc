@@ -6463,46 +6463,25 @@ Target_nanomips<size, big_endian>::Scan::local(
   Nanomips_relobj<size, big_endian>* relobj =
     Nanomips_relobj<size, big_endian>::as_nanomips_relobj(object);
 
-  switch (r_type)
+  // Check if we need to add reference for the input section.
+  // This is needed if --sort-by-reference options is passed
+  // and we may relax instructions in a relaxation loop,
+  // or for --reference-counts option.
+  if (r_type == elfcpp::R_NANOMIPS_GPREL19_S2
+      && relobj->safe_to_relax()
+      && !this->seen_norelax_
+      && relobj->output_section(lsym.get_st_shndx()) != NULL)
     {
-    case elfcpp::R_NANOMIPS_32:
-      // If building a shared library (or a position-independent
-      // executable), we need to create a dynamic relocation for
-      // this location.  The relocation applied at link time will
-      // apply the link-time value, so we flag the location with
-      // an R_NANOMIPS_RELATIVE relocation so the dynamic loader
-      // can relocate it easily.
-      if (parameters->options().output_is_position_independent())
+      unsigned int shndx = lsym.get_st_shndx();
+      Output_section* sym_os = relobj->output_section(shndx);
+      bool sort_by_reference =
+        parameters->options().is_sort_by_reference(sym_os->name());
+      bool reference_counts =
+        parameters->options().is_reference_counts(sym_os->name());
+
+      if ((sort_by_reference && target->may_relax_instructions())
+          || reference_counts)
         {
-          // Don't add dynamic relocation if this reloc is
-          // part of a composite relocations.
-          if (this->reloc_in_composite_relocs(r_offset, reloc_count,
-                                              relnum, preloc))
-            break;
-
-          Reloc_section* rel_dyn = target->rel_dyn_section(layout);
-          rel_dyn->add_local_relative(object, r_sym,
-                                      elfcpp::R_NANOMIPS_RELATIVE,
-                                      output_section, data_shndx,
-                                      r_offset);
-        }
-      break;
-    case elfcpp::R_NANOMIPS_GPREL19_S2:
-      if (relobj->safe_to_relax() && !this->seen_norelax_)
-        {
-          unsigned int shndx = lsym.get_st_shndx();
-          Output_section* sym_os = relobj->output_section(shndx);
-          if (sym_os == NULL)
-            break;
-
-          bool sort_by_reference =
-            parameters->options().is_sort_by_reference(sym_os->name());
-          bool reference_counts =
-            parameters->options().is_reference_counts(sym_os->name());
-          if ((!sort_by_reference || !target->may_relax_instructions())
-              && !reference_counts)
-            break;
-
           section_size_type view_size = 0;
           const unsigned char* view = relobj->section_contents(data_shndx,
                                                                &view_size,
@@ -6527,12 +6506,31 @@ Target_nanomips<size, big_endian>::Scan::local(
                 relobj->add_input_section_ref(shndx);
             }
         }
-      break;
-    case elfcpp::R_NANOMIPS_NORELAX:
-      this->seen_norelax_ = true;
-      break;
-    case elfcpp::R_NANOMIPS_RELAX:
-      this->seen_norelax_ = false;
+    }
+
+  switch (r_type)
+    {
+    case elfcpp::R_NANOMIPS_32:
+      // If building a shared library (or a position-independent
+      // executable), we need to create a dynamic relocation for
+      // this location.  The relocation applied at link time will
+      // apply the link-time value, so we flag the location with
+      // an R_NANOMIPS_RELATIVE relocation so the dynamic loader
+      // can relocate it easily.
+      if (parameters->options().output_is_position_independent())
+        {
+          // Don't add dynamic relocation if this reloc is
+          // part of a composite relocations.
+          if (this->reloc_in_composite_relocs(r_offset, reloc_count,
+                                              relnum, preloc))
+            break;
+
+          Reloc_section* rel_dyn = target->rel_dyn_section(layout);
+          rel_dyn->add_local_relative(object, r_sym,
+                                      elfcpp::R_NANOMIPS_RELATIVE,
+                                      output_section, data_shndx,
+                                      r_offset);
+        }
       break;
     case elfcpp::R_NANOMIPS_GOT_DISP:
     case elfcpp::R_NANOMIPS_GOT_CALL:
@@ -6656,6 +6654,12 @@ Target_nanomips<size, big_endian>::Scan::local(
           }
       }
       break;
+    case elfcpp::R_NANOMIPS_NORELAX:
+      this->seen_norelax_ = true;
+      break;
+    case elfcpp::R_NANOMIPS_RELAX:
+      this->seen_norelax_ = false;
+      break;
     case elfcpp::R_NANOMIPS_INSN32:
     case elfcpp::R_NANOMIPS_FIXED:
       break;
@@ -6702,6 +6706,53 @@ Target_nanomips<size, big_endian>::Scan::global(
   Nanomips_symbol<size>* nanomips_sym =
     Nanomips_symbol<size>::as_nanomips_sym(gsym);
 
+  // Check if we need to add reference for the input section.
+  // This is needed if --sort-by-reference options is passed
+  // and we may relax instructions in a relaxation loop,
+  // or for --reference-counts option.
+  if (r_type == elfcpp::R_NANOMIPS_GPREL19_S2
+      && relobj->safe_to_relax()
+      && gsym->source() == Symbol::FROM_OBJECT
+      && !this->seen_norelax_
+      && gsym->output_section() != NULL)
+    {
+      Output_section* sym_os = gsym->output_section();
+      bool sort_by_reference =
+        parameters->options().is_sort_by_reference(sym_os->name());
+      bool reference_counts =
+        parameters->options().is_reference_counts(sym_os->name());
+
+      if ((sort_by_reference && target->may_relax_instructions())
+          || reference_counts)
+        {
+          section_size_type view_size = 0;
+          const unsigned char* view = object->section_contents(data_shndx,
+                                                               &view_size,
+                                                               false);
+          Nanomips_relax_insn<size, big_endian> relax_insn(relobj);
+          uint32_t insn = relax_insn.read_insn(view + r_offset, nrp->size());
+          const Nanomips_insn_property* insn_property =
+            relax_insn.find_insn(insn, nrp->mask(), r_type);
+
+          // Check if a lw[gp]/sw[gp] instruction can be relaxed into
+          // lw[gp16]/sw[gp16] in a relaxation pass.
+          if (insn_property != NULL)
+            {
+              bool is_ordinary;
+              unsigned int sym_shndx = gsym->shndx(&is_ordinary);
+              Nanomips_relobj<size, big_endian>* sym_obj =
+                static_cast<Nanomips_relobj<size, big_endian>*>(gsym->object());
+              bool forced_insn_length =
+                is_forced_insn_length<size, big_endian>(r_offset, reloc_count,
+                                                        relnum, preloc);
+              // Don't add reference to an input section if this instruction
+              // is forced to an explicit size.
+              if (is_ordinary && !forced_insn_length)
+                sym_obj->add_input_section_ref(sym_shndx);
+            }
+        }
+    }
+
   switch (r_type)
     {
     case elfcpp::R_NANOMIPS_32:
@@ -6735,48 +6786,28 @@ Target_nanomips<size, big_endian>::Scan::global(
           }
       }
       break;
+    case elfcpp::R_NANOMIPS_PC_I32:
+    case elfcpp::R_NANOMIPS_PC21_S1:
+    case elfcpp::R_NANOMIPS_GPREL_I32:
     case elfcpp::R_NANOMIPS_GPREL19_S2:
-      if (relobj->safe_to_relax()
-          && gsym->source() == Symbol::FROM_OBJECT
-          && !this->seen_norelax_)
+    case elfcpp::R_NANOMIPS_GPREL18_S3:
+    case elfcpp::R_NANOMIPS_GPREL17_S1:
+    case elfcpp::R_NANOMIPS_GPREL16_S2:
+    case elfcpp::R_NANOMIPS_GPREL7_S2:
+      // Relative addressing relocations.  Skip _gp symbol, because it
+      // will be set in do_finalize_sections.
+      if (strcmp(gsym->name(), "_gp") != 0
+          && gsym->needs_dynamic_reloc(nrp->reference_flags()))
         {
-          Output_section* sym_os = gsym->output_section();
-          if (sym_os == NULL)
-            break;
-
-          bool sort_by_reference =
-            parameters->options().is_sort_by_reference(sym_os->name());
-          bool reference_counts =
-            parameters->options().is_reference_counts(sym_os->name());
-          if ((!sort_by_reference || !target->may_relax_instructions())
-              && !reference_counts)
-            break;
-
-          section_size_type view_size = 0;
-          const unsigned char* view = object->section_contents(data_shndx,
-                                                               &view_size,
-                                                               false);
-          Nanomips_relax_insn<size, big_endian> relax_insn(relobj);
-          uint32_t insn = relax_insn.read_insn(view + r_offset, nrp->size());
-          const Nanomips_insn_property* insn_property =
-            relax_insn.find_insn(insn, nrp->mask(), r_type);
-
-          // Check if a lw[gp]/sw[gp] instruction can be relaxed into
-          // lw[gp16]/sw[gp16] in a relaxation pass.
-          if (insn_property != NULL)
-            {
-              bool is_ordinary;
-              unsigned int sym_shndx = gsym->shndx(&is_ordinary);
-              Nanomips_relobj<size, big_endian>* sym_obj =
-                static_cast<Nanomips_relobj<size, big_endian>*>(gsym->object());
-              bool forced_insn_length =
-                is_forced_insn_length<size, big_endian>(r_offset, reloc_count,
-                                                        relnum, preloc);
-              // Don't add reference to an input section if this instruction
-              // is forced to an explicit size.
-              if (is_ordinary && !forced_insn_length)
-                sym_obj->add_input_section_ref(sym_shndx);
-            }
+          // Make a copy relocation if necessary.
+          if (parameters->options().output_is_executable()
+              && gsym->may_need_copy_reloc())
+            target->copy_reloc(symtab, layout, object, data_shndx,
+                               output_section, gsym, reloc);
+          else
+            object->error(_("requires unsupported dynamic reloc %s "
+                            "against '%s'; recompile with -fPIC"),
+                          nrp->name().c_str(), gsym->name());
         }
       break;
     case elfcpp::R_NANOMIPS_GOT_DISP:
