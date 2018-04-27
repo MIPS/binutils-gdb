@@ -2119,7 +2119,8 @@ class Nanomips_relocate_functions
 
   // R_NANOMIPS_32, R_NANOMIPS_I32, R_NANOMIPS_PC_I32, R_NANOMIPS_GPREL_I32,
   // R_NANOMIPS_GOTPC_I32, R_NANOMIPS_TLS_GD_I32, R_NANOMIPS_TLS_LD_I32,
-  // R_NANOMIPS_TLS_GOTTPREL_PC_I32
+  // R_NANOMIPS_TLS_GOTTPREL_PC_I32, R_NANOMIPS_TLS_TPREL_I32,
+  // R_NANOMIPS_TLS_DTPREL_I32
   static inline Status
   rel32(unsigned char* view, Address value)
   { return This::template rel<32>(view, value, CHECK_NONE); }
@@ -6955,10 +6956,10 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
     case elfcpp::R_NANOMIPS_TLS_LD:
     case elfcpp::R_NANOMIPS_TLS_LD_I32:
     case elfcpp::R_NANOMIPS_TLS_GOTTPREL:
-    case elfcpp::R_NANOMIPS_TLS_GOTTPREL_PC_I32:
       value = got_offset;
       break;
     case elfcpp::R_NANOMIPS_GOTPC_I32:
+    case elfcpp::R_NANOMIPS_TLS_GOTTPREL_PC_I32:
       value = target->got_section()->address() + got_offset - (address + 4);
       break;
     case elfcpp::R_NANOMIPS_GOTPC_HI20:
@@ -7075,6 +7076,8 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
     case elfcpp::R_NANOMIPS_TLS_GD_I32:
     case elfcpp::R_NANOMIPS_TLS_LD_I32:
     case elfcpp::R_NANOMIPS_TLS_GOTTPREL_PC_I32:
+    case elfcpp::R_NANOMIPS_TLS_TPREL_I32:
+    case elfcpp::R_NANOMIPS_TLS_DTPREL_I32:
       reloc_status = Reloc_funcs::rel32(view, value);
       break;
     case elfcpp::R_NANOMIPS_UNSIGNED_8:
