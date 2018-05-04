@@ -70,7 +70,6 @@ nanomips_output_flavor (void)
 #undef OUTPUT_FLAVOR
 #define OUTPUT_FLAVOR nanomips_output_flavor()
 
-#include "elf/mips-common.h"
 #include "elf/nanomips.h"
 
 #ifndef ECOFF_DEBUGGING
@@ -11736,9 +11735,9 @@ nanomips_elf_final_processing (void)
   flags.flags2 = 0;
   flags.isa_ext = 0;
 
-  bfd_mips_elf_swap_abiflags_v0_out (stdoutput, &flags,
-				     ((Elf_External_ABIFlags_v0 *)
-				      nanomips_flags_frag));
+  bfd_nanomips_elf_swap_abiflags_v0_out (stdoutput, &flags,
+					 ((Elf_External_ABIFlags_v0 *)
+					  nanomips_flags_frag));
 
   /* Set the nanoMIPS ELF flag bits.  */
   if (nanomips_opts.pic != NO_PIC)
