@@ -29,6 +29,7 @@
 #define _ELF_MIPS_H
 
 #include "elf/reloc-macros.h"
+#include "elf/mips-common.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -1085,59 +1086,7 @@ typedef struct
   bfd_vma ri_gp_value;
 } Elf64_Internal_RegInfo;
 
-/* ABI Flags structure version 0.  */
-
-typedef struct
-{
-  /* Version of flags structure.  */
-  unsigned char version[2];
-  /* The level of the ISA: 1-5, 32, 64.  */
-  unsigned char isa_level[1];
-  /* The revision of ISA: 0 for MIPS V and below, 1-n otherwise.  */
-  unsigned char isa_rev[1];
-  /* The size of general purpose registers.  */
-  unsigned char gpr_size[1];
-  /* The size of co-processor 1 registers.  */
-  unsigned char cpr1_size[1];
-  /* The size of co-processor 2 registers.  */
-  unsigned char cpr2_size[1];
-  /* The floating-point ABI.  */
-  unsigned char fp_abi[1];
-  /* Processor-specific extension.  */
-  unsigned char isa_ext[4];
-  /* Mask of ASEs used.  */
-  unsigned char ases[4];
-  /* Mask of general flags.  */
-  unsigned char flags1[4];
-  unsigned char flags2[4];
-} Elf_External_ABIFlags_v0;
-
-typedef struct elf_internal_abiflags_v0
-{
-  /* Version of flags structure.  */
-  unsigned short version;
-  /* The level of the ISA: 1-5, 32, 64.  */
-  unsigned char isa_level;
-  /* The revision of ISA: 0 for MIPS V and below, 1-n otherwise.  */
-  unsigned char isa_rev;
-  /* The size of general purpose registers.  */
-  unsigned char gpr_size;
-  /* The size of co-processor 1 registers.  */
-  unsigned char cpr1_size;
-  /* The size of co-processor 2 registers.  */
-  unsigned char cpr2_size;
-  /* The floating-point ABI.  */
-  unsigned char fp_abi;
-  /* Processor-specific extension.  */
-  unsigned long isa_ext;
-  /* Mask of ASEs used.  */
-  unsigned long ases;
-  /* Mask of general flags.  */
-  unsigned long flags1;
-  unsigned long flags2;
-} Elf_Internal_ABIFlags_v0;
-
-typedef struct
+ struct
 {
   /* The hash value computed from the name of the corresponding
      dynamic symbol.  */
@@ -1220,13 +1169,6 @@ extern void bfd_mips_elf_swap_abiflags_v0_out
 /* Masks for the info word of an ODK_HWAND/ODK_HWOR descriptor.  */
 #define OHWA0_R4KEOP_CHECKED	0x00000001
 #define OHWA0_R4KEOP_CLEAN	0x00000002
-
-/* Values for the xxx_size bytes of an ABI flags structure.  */
-
-#define AFL_REG_NONE	     0x00	/* No registers.  */
-#define AFL_REG_32	     0x01	/* 32-bit registers.  */
-#define AFL_REG_64	     0x02	/* 64-bit registers.  */
-#define AFL_REG_128	     0x03	/* 128-bit registers.  */
 
 /* Masks for the ases word of an ABI flags structure.  */
 

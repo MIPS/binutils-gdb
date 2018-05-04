@@ -20,7 +20,6 @@
    Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
    MA 02110-1301, USA.  */
 
-#include "elf/mips-common.h"
 #include "elf/nanomips.h"
 
 extern bfd_boolean _bfd_nanomips_elf_mkobject (bfd *);

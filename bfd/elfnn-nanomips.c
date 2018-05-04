@@ -28,7 +28,6 @@
 #include "libbfd.h"
 #include "elf-bfd.h"
 #include "elfxx-nanomips.h"
-#include "elf/mips-common.h"
 #include "elf/nanomips.h"
 
 #define ARCH_SIZE	NN

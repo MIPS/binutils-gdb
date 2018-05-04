@@ -28,7 +28,6 @@
 #include "libbfd.h"
 #include "elf-bfd.h"
 #include "elfxx-nanomips.h"
-#include "elf/mips-common.h"
 #include "elf/nanomips.h"
 
 /* nanoMIPS ELF private object data.  */
@@ -182,9 +181,9 @@ _bfd_nanomips_elf_negative_reloc (bfd *abfd ATTRIBUTE_UNUSED,
 /* Swap in an abiflags structure.  */
 
 void
-bfd_mips_elf_swap_abiflags_v0_in (bfd *abfd,
-				  const Elf_External_ABIFlags_v0 *ex,
-				  Elf_Internal_ABIFlags_v0 *in)
+bfd_nanomips_elf_swap_abiflags_v0_in (bfd *abfd,
+				      const Elf_External_ABIFlags_v0 *ex,
+				      Elf_Internal_ABIFlags_v0 *in)
 {
   in->version = H_GET_16 (abfd, ex->version);
   in->isa_level = H_GET_8 (abfd, ex->isa_level);
@@ -202,9 +201,9 @@ bfd_mips_elf_swap_abiflags_v0_in (bfd *abfd,
 /* Swap out an abiflags structure.  */
 
 void
-bfd_mips_elf_swap_abiflags_v0_out (bfd *abfd,
-				   const Elf_Internal_ABIFlags_v0 *in,
-				   Elf_External_ABIFlags_v0 *ex)
+bfd_nanomips_elf_swap_abiflags_v0_out (bfd *abfd,
+				       const Elf_Internal_ABIFlags_v0 *in,
+				       Elf_External_ABIFlags_v0 *ex)
 {
   H_PUT_16 (abfd, in->version, ex->version);
   H_PUT_8 (abfd, in->isa_level, ex->isa_level);
@@ -354,8 +353,8 @@ _bfd_nanomips_elf_section_from_shdr (bfd *abfd, Elf_Internal_Shdr *hdr,
       if (! bfd_get_section_contents (abfd, hdr->bfd_section, &ext,
 				      0, sizeof ext))
 	return FALSE;
-      bfd_mips_elf_swap_abiflags_v0_in (abfd, &ext,
-					&nanomips_elf_tdata (abfd)->abiflags);
+      bfd_nanomips_elf_swap_abiflags_v0_in
+	(abfd, &ext, &nanomips_elf_tdata (abfd)->abiflags);
       if (nanomips_elf_tdata (abfd)->abiflags.version != 0)
 	return FALSE;
       nanomips_elf_tdata (abfd)->abiflags_valid = TRUE;
