@@ -2547,34 +2547,27 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
 					      dot_alignment, false);
     }
 
-  uint64_t align;
   // Value of the ALIGN expression if there is one.
   uint64_t align_exp = 0;
-  if (this->align_ == NULL)
-    {
-      if (this->output_section_ == NULL)
-	align = 0;
-      else
-	align = this->output_section_->addralign();
-    }
-  else
+  if (this->align_ != NULL)
     {
       Output_section* align_section;
-      align = this->align_->eval_with_dot(symtab, layout, true, *dot_value,
-					  NULL, &align_section, NULL, false);
-      align_exp = align;
+      align_exp = this->align_->eval_with_dot(symtab, layout, true, *dot_value,
+					      NULL, &align_section, NULL,
+					      false);
       if (align_section != NULL)
 	gold_warning(_("alignment of section %s is not absolute"),
 		     this->name_.c_str());
-      if (this->output_section_ != NULL)
-	{
-	  uint64_t addralign = this->output_section_->addralign();
-	  if (align > addralign)
-	    this->output_section_->set_addralign(align);
-	  else
-	    align = addralign;
-	}
+      if (this->output_section_ != NULL
+	  && align_exp > this->output_section_->addralign())
+	this->output_section_->set_addralign(align_exp);
     }
+
+  uint64_t align = 0;
+  if (this->address_ != NULL)
+    align = align_exp;
+  else if (this->output_section_ != NULL)
+    align = this->output_section_->addralign();
 
   uint64_t subalign;
   if (this->subalign_ == NULL)
