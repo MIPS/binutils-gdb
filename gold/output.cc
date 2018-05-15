@@ -2637,8 +2637,8 @@ Output_section::add_output_section_data(Output_section_data* posd)
       else
 	{
 	  offset_in_section = this->current_data_size_for_child();
-	  off_t aligned_offset_in_section = align_address(offset_in_section,
-							  posd->addralign());
+	  off_t aligned_offset_in_section =
+	      this->align_offset(offset_in_section, posd->addralign());
 	  this->set_current_data_size_for_child(aligned_offset_in_section
 						+ posd->data_size());
 	}
@@ -2689,8 +2689,8 @@ Output_section::add_relaxed_input_section(Layout* layout,
   // output section size.  If we do not account for sizes of relaxed input
   // sections, an output section would be incorrectly sized.
   off_t offset_in_section = this->current_data_size_for_child();
-  off_t aligned_offset_in_section = align_address(offset_in_section,
-						  poris->addralign());
+  off_t aligned_offset_in_section = this->align_offset(offset_in_section,
+						       poris->addralign());
   this->set_current_data_size_for_child(aligned_offset_in_section
 					+ poris->current_data_size());
 }
@@ -3268,7 +3268,7 @@ Output_section::set_final_data_size()
 	   p != this->input_sections_.end();
 	   ++p)
 	{
-	  off = align_address(off, p->addralign());
+	  off = this->align_offset(off, p->addralign());
 	  p->set_address_and_file_offset(address + off, startoff + off,
 					 startoff);
 	  off += p->data_size();
@@ -3892,7 +3892,7 @@ Output_section::create_postprocessing_buffer()
 	   p != this->input_sections_.end();
 	   ++p)
 	{
-	  off = align_address(off, p->addralign());
+	  off = this->align_offset(off, p->addralign());
 	  p->finalize_data_size();
 	  off += p->data_size();
 	}
@@ -3931,7 +3931,7 @@ Output_section::write_to_postprocessing_buffer()
        p != this->input_sections_.end();
        ++p)
     {
-      off_t aligned_off = align_address(off, p->addralign());
+      off_t aligned_off = this->align_offset(off, p->addralign());
       if (this->generate_code_fills_at_write_ && (off != aligned_off))
 	{
 	  size_t fill_len = aligned_off - off;
@@ -3942,6 +3942,32 @@ Output_section::write_to_postprocessing_buffer()
       p->write_to_buffer(buffer + aligned_off);
       off = aligned_off + p->data_size();
     }
+}
+
+// A helper function to align an offset of an input section.
+
+off_t
+Output_section::align_offset(off_t off, uint64_t align) const
+{
+  uint64_t addr = this->is_address_valid() ? this->address() : 0;
+  uint64_t aligned_off = align_address(addr + off, align) - addr;
+  return aligned_off;
+}
+
+// Return a fill string that is LENGTH bytes long, filling it with
+// FILL.
+
+std::string
+Output_section::get_fill_string(const std::string& fill,
+                                section_size_type length) const
+{
+  std::string this_fill;
+  this_fill.reserve(length);
+  while (this_fill.length() + fill.length() <= length)
+    this_fill += fill;
+  if (this_fill.length() < length)
+    this_fill.append(fill, 0, length - this_fill.length());
+  return this_fill;
 }
 
 // Get the input sections for linker script processing.  We leave
@@ -3972,6 +3998,23 @@ Output_section::get_input_sections(
   address = align_address(address, this->addralign());
 
   Input_section_list remaining;
+  // This can happen if the alignment in the linker script
+  // is less than the alignment of this output section.
+  if (address != orig_address)
+    {
+      section_size_type length =
+	convert_to_section_size_type(address - orig_address);
+      Output_section_data* posd;
+      if (fill.empty())
+	posd = new Output_data_zero_fill(length, 0);
+      else
+	{
+	  std::string this_fill = this->get_fill_string(fill, length);
+	  posd = new Output_data_const(this_fill, 0);
+	}
+      remaining.push_back(Input_section(posd));
+    }
+
   for (Input_section_list::iterator p = this->input_sections_.begin();
        p != this->input_sections_.end();
        ++p)
@@ -3987,13 +4030,7 @@ Output_section::get_input_sections(
 	    {
 	      section_size_type length =
 		convert_to_section_size_type(aligned_address - address);
-	      std::string this_fill;
-	      this_fill.reserve(length);
-	      while (this_fill.length() + fill.length() <= length)
-		this_fill += fill;
-	      if (this_fill.length() < length)
-		this_fill.append(fill, 0, length - this_fill.length());
-
+	      std::string this_fill = this->get_fill_string(fill, length);
 	      Output_section_data* posd = new Output_data_const(this_fill, 0);
 	      remaining.push_back(Input_section(posd));
 	    }
@@ -4028,8 +4065,8 @@ Output_section::add_script_input_section(const Input_section& sis)
     this->addralign_ = addralign;
 
   off_t offset_in_section = this->current_data_size_for_child();
-  off_t aligned_offset_in_section = align_address(offset_in_section,
-						  addralign);
+  off_t aligned_offset_in_section = this->align_offset(offset_in_section,
+						       addralign);
 
   this->set_current_data_size_for_child(aligned_offset_in_section
 					+ data_size);
@@ -4129,7 +4166,7 @@ Output_section::adjust_section_offsets()
        p != this->input_sections_.end();
        ++p)
     {
-      off = align_address(off, p->addralign());
+      off = this->align_offset(off, p->addralign());
       if (p->is_input_section())
 	p->relobj()->set_section_offset(p->shndx(), off);
       off += p->data_size();

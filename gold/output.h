@@ -4456,6 +4456,15 @@ class Output_section : public Output_data
   void
   build_lookup_maps() const;
 
+  // Return a fill string that is LENGTH bytes long, filling it with
+  // FILL.
+  std::string
+  get_fill_string(const std::string& fill, section_size_type length) const;
+
+  // A helper function to align an offset of an input section.
+  off_t
+  align_offset(off_t off, uint64_t align) const;
+
   // Most of these fields are only valid after layout.
 
   // The name of the section.  This will point into a Stringpool.
