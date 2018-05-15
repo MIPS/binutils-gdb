@@ -69,10 +69,24 @@ scan_filename (const char **cmd, const char *defname)
     {
       /* FIXME: should parse a possibly quoted string.  */
       const char *end;
+      char quote[2] = " ";
 
       (*cmd) = skip_spaces (*cmd);
-      end = *cmd + strcspn (*cmd, " \t");
-      filename.reset (savestring ((*cmd), end - (*cmd)));
+      quote[0] = (*cmd)[0];
+      if ((quote[0] == '"') || (quote[0] == '\''))
+	{
+	  end = *cmd + strcspn (*cmd + 1, quote);
+	  filename.reset (savestring ((*cmd) + 1, end - (*cmd)));
+	  if (*(end + 1) == quote[0])
+	    end += 2;
+	  else
+	    end ++;
+	}
+      else
+	{
+	  end = *cmd + strcspn (*cmd, " \t");
+	  filename.reset (savestring ((*cmd), end - (*cmd)));
+	}
       (*cmd) = skip_spaces (end);
     }
   gdb_assert (filename != NULL);
