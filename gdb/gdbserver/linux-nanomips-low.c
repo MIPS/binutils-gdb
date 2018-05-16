@@ -829,7 +829,7 @@ static struct usrregs_info nanomips_usrregs_info =
 
 static struct regs_info dsp_regs_info =
   {
-   nano mips_dsp_regset_bitmap,
+    nanomips_dsp_regset_bitmap,
     &nanomips_dsp_usrregs_info,
     &nanomips_regsets_info
   };
