@@ -1146,6 +1146,10 @@ class General_options
   DEFINE_bool(preread_archive_symbols, options::TWO_DASHES, '\0', false,
 	      N_("Preread archive symbols when multi-threaded"), NULL);
 
+  DEFINE_bool(print_discarded_sections, options::TWO_DASHES, '\0', true,
+	      N_("Print discarded sections in map file"),
+	      N_("Do not print discarded sections in map file"));
+
   DEFINE_bool(print_gc_sections, options::TWO_DASHES, '\0', false,
 	      N_("List removed unused sections on stderr"),
 	      N_("Do not list removed unused sections"));
