@@ -47,7 +47,7 @@ initialize_tdesc_nanomips (void)
   tdesc_create_reg (feature, "r29", 29, 1, NULL, 32, "int");
   tdesc_create_reg (feature, "r30", 30, 1, NULL, 32, "int");
   tdesc_create_reg (feature, "r31", 31, 1, NULL, 32, "int");
-  tdesc_create_reg (feature, "pc", 35, 1, NULL, 32, "int");
+  tdesc_create_reg (feature, "pc", 32, 1, NULL, 32, "int");
 
   tdesc_nanomips = result;
 }

@@ -49,12 +49,12 @@ initialize_tdesc_nanomips_linux (void)
   tdesc_create_reg (feature, "r29", 29, 1, NULL, 32, "int");
   tdesc_create_reg (feature, "r30", 30, 1, NULL, 32, "int");
   tdesc_create_reg (feature, "r31", 31, 1, NULL, 32, "int");
-  tdesc_create_reg (feature, "pc", 35, 1, NULL, 32, "int");
+  tdesc_create_reg (feature, "pc", 32, 1, NULL, 32, "int");
 
   feature = tdesc_create_feature (result, "org.gnu.gdb.nanomips.cp0");
-  tdesc_create_reg (feature, "status", 32, 1, NULL, 32, "int");
-  tdesc_create_reg (feature, "badvaddr", 33, 1, NULL, 32, "int");
-  tdesc_create_reg (feature, "cause", 34, 1, NULL, 32, "int");
+  tdesc_create_reg (feature, "status", 33, 1, NULL, 32, "int");
+  tdesc_create_reg (feature, "badvaddr", 34, 1, NULL, 32, "int");
+  tdesc_create_reg (feature, "cause", 35, 1, NULL, 32, "int");
 
   feature = tdesc_create_feature (result, "org.gnu.gdb.nanomips.fpu");
   tdesc_create_reg (feature, "f0", 36, 1, NULL, 64, "ieee_single");
@@ -101,10 +101,10 @@ initialize_tdesc_nanomips_linux (void)
   tdesc_create_reg (feature, "lo2", 75, 1, NULL, 32, "int");
   tdesc_create_reg (feature, "hi3", 76, 1, NULL, 32, "int");
   tdesc_create_reg (feature, "lo3", 77, 1, NULL, 32, "int");
-  tdesc_create_reg (feature, "dspctl", 79, 1, NULL, 32, "int");
+  tdesc_create_reg (feature, "dspctl", 78, 1, NULL, 32, "int");
 
   feature = tdesc_create_feature (result, "org.gnu.gdb.nanomips.linux");
-  tdesc_create_reg (feature, "restart", 80, 1, "system", 32, "int");
+  tdesc_create_reg (feature, "restart", 79, 1, "system", 32, "int");
 
   tdesc_nanomips_linux = result;
 }
