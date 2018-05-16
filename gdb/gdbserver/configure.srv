@@ -213,7 +213,7 @@ case "${target}" in
 			srv_regobj="${srv_regobj} nanomips64-linux.o"
 			srv_regobj="${srv_regobj} nanomips64-dsp-linux.o"
 			srv_tgtobj="${srv_linux_obj} linux-nanomips-low.o"
-			srv_tgtobj="${srv_tgtobj} nanomips-linux-watch.o"
+#			srv_tgtobj="${srv_tgtobj} nanomips-linux-watch.o"
 			srv_xmlfiles="nanomips-linux.xml"
 			srv_xmlfiles="${srv_xmlfiles} nanomips-dsp-linux.xml"
 			srv_xmlfiles="${srv_xmlfiles} nanomips-cpu.xml"
