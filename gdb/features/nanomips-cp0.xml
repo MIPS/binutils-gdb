@@ -7,7 +7,7 @@
 
 <!DOCTYPE feature SYSTEM "gdb-target.dtd">
 <feature name="org.gnu.gdb.nanomips.cp0">
-  <reg name="status" bitsize="32" regnum="32"/>
-  <reg name="badvaddr" bitsize="32" regnum="33"/>
-  <reg name="cause" bitsize="32" regnum="34"/>
+  <reg name="status" bitsize="32"/>
+  <reg name="badvaddr" bitsize="32"/>
+  <reg name="cause" bitsize="32"/>
 </feature>
