@@ -19,8 +19,14 @@
 #include "server.h"
 #include "linux-low.h"
 
+#include "arch/nanomips-linux.h"
+
+#include "elf/common.h"
 #include "nat/gdb_ptrace.h"
+#include <asm/ptrace.h>
+
 #include <endian.h>
+#include <sys/uio.h>
 
 #include "nat/nanomips-linux-watch.h"
 #include "gdb_proc_service.h"
@@ -33,120 +39,66 @@ extern const struct target_desc *tdesc_nanomips_linux;
 void init_registers_nanomips_dsp_linux (void);
 extern const struct target_desc *tdesc_nanomips_dsp_linux;
 
+/* Defined in auto-generated file nanomips64-linux.c.  */
+void init_registers_nanomips64_linux (void);
+extern const struct target_desc *tdesc_nanomips64_linux;
+
+/* Defined in auto-generated file nanomips64-dsp-linux.c.  */
+void init_registers_nanomips64_dsp_linux (void);
+extern const struct target_desc *tdesc_nanomips64_dsp_linux;
+
 
 #ifndef PTRACE_GET_THREAD_AREA
 #define PTRACE_GET_THREAD_AREA 25
 #endif
 
-#ifdef HAVE_SYS_REG_H
-#include <sys/reg.h>
-#endif
-
-#define nanomips_num_regs 73
-#define nanomips_dsp_num_regs 82
-
-#include <asm/ptrace.h>
-
-#ifndef DSP_BASE
-#define DSP_BASE 71
-#define DSP_CONTROL 77
-#endif
-
 union nanomips_register
 {
-  unsigned char buf[8];
+  gdb_byte buf[8];
 
   /* Deliberately signed, for proper sign extension.  */
   int reg32;
   long long reg64;
 };
 
-/* Return the ptrace ``address'' of register REGNO. */
-
-#define nanomips_base_regs							\
-  -1,  1,  2,  3,  4,  5,  6,  7,					\
-  8,  9,  10, 11, 12, 13, 14, 15,					\
-  16, 17, 18, 19, 20, 21, 22, 23,					\
-  24, 25, 26, 27, 28, 29, 30, 31,					\
-									\
-  -1, BADVADDR, CAUSE, PC,					\
-									\
-  FPR_BASE,      FPR_BASE + 1,  FPR_BASE + 2,  FPR_BASE + 3,		\
-  FPR_BASE + 4,  FPR_BASE + 5,  FPR_BASE + 6,  FPR_BASE + 7,		\
-  FPR_BASE + 8,  FPR_BASE + 9,  FPR_BASE + 10, FPR_BASE + 11,		\
-  FPR_BASE + 12, FPR_BASE + 13, FPR_BASE + 14, FPR_BASE + 15,		\
-  FPR_BASE + 16, FPR_BASE + 17, FPR_BASE + 18, FPR_BASE + 19,		\
-  FPR_BASE + 20, FPR_BASE + 21, FPR_BASE + 22, FPR_BASE + 23,		\
-  FPR_BASE + 24, FPR_BASE + 25, FPR_BASE + 26, FPR_BASE + 27,		\
-  FPR_BASE + 28, FPR_BASE + 29, FPR_BASE + 30, FPR_BASE + 31,		\
-  FPC_CSR, FPC_EIR
-
-#define nanomips_dsp_regs							\
-  DSP_BASE,      DSP_BASE + 1,  DSP_BASE + 2,  DSP_BASE + 3,		\
-  DSP_BASE + 4,  DSP_BASE + 5,						\
-  DSP_CONTROL
-
-static int nanomips_regmap[nanomips_num_regs] = {
-  nanomips_base_regs,
-  0
-};
-
-static int nanomips_dsp_regmap[nanomips_dsp_num_regs] = {
-  nanomips_base_regs,
-  nanomips_dsp_regs,
-  0
-};
-
-/* DSP registers are not in any regset and can only be accessed
-   individually.  */
-
-static unsigned char nanomips_dsp_regset_bitmap[(nanomips_dsp_num_regs + 7) / 8] = {
-  0xfe, 0xff, 0xff, 0xff, 0xfe, 0xff, 0xff, 0xff, 0xff, 0x80
-};
-
+static int have_64bit = -1;
 static int have_dsp = -1;
-
-/* Try peeking at an arbitrarily chosen DSP register and pick the available
-   user register set accordingly.  */
 
 static const struct target_desc *
 nanomips_read_description (void)
 {
+  gdb_byte buf[sizeof (nanomips64_elf_gregset_t)];
+  int pid = lwpid_of (current_thread);
+  struct iovec iovec;
+
+  /* Trying to retrieve the amount of NT_PRSTATUS data corresponding
+     to this regset's 64-bit size will fail with a 32-bit inferior.  */
+  iovec.iov_base = &buf;
+  iovec.iov_len = sizeof (buf);
+
+  if (ptrace (PTRACE_GETREGSET, pid, NT_PRSTATUS, &iovec) == 0)
+    have_64bit = 1;
+  else if (errno == EIO)
+    have_64bit = 0;
+  else
+    perror_with_name (_("Couldn't check inferior's register width"));
+
   if (have_dsp < 0)
     {
-      int pid = lwpid_of (current_thread);
-
-      errno = 0;
-      ptrace (PTRACE_PEEKUSER, pid, DSP_CONTROL, 0);
-      switch (errno)
-	{
-	case 0:
-	  have_dsp = 1;
-	  break;
-	case EIO:
-	  have_dsp = 0;
-	  break;
-	default:
-	  perror_with_name ("ptrace");
-	  break;
-	}
+      /* FIXME: Need to implement DSP regset.  */
+      have_dsp = 0;
     }
 
-  return have_dsp ? tdesc_nanomips_dsp_linux : tdesc_nanomips_linux;
+  if (have_64bit)
+    return have_dsp ? tdesc_nanomips64_dsp_linux : tdesc_nanomips64_linux;
+  else
+    return have_dsp ? tdesc_nanomips_dsp_linux : tdesc_nanomips_linux;
 }
 
 static void
 nanomips_arch_setup (void)
 {
   current_process ()->tdesc = nanomips_read_description ();
-}
-
-static struct usrregs_info *
-get_usrregs_info (void)
-{
-  const struct regs_info *regs_info = the_low_target.regs_info ();
-
-  return regs_info->usrregs;
 }
 
 #ifdef NANOMIPS_WATCHPOINTS
@@ -183,54 +135,6 @@ struct arch_lwp_info
   int watch_registers_changed;
 };
 #endif /* NANOMIPS_WATCHPOINTS */
-
-/* From nanomips-linux-nat.c.  */
-
-/* Pseudo registers can not be read.  ptrace does not provide a way to
-   read (or set) PS_REGNUM, and there's no point in reading or setting
-   ZERO_REGNUM.  We also can not set BADVADDR, CAUSE, or FCRIR via
-   ptrace().  */
-
-static int
-nanomips_cannot_fetch_register (int regno)
-{
-  const struct target_desc *tdesc;
-
-  if (get_usrregs_info ()->regmap[regno] == -1)
-    return 1;
-
-  tdesc = current_process ()->tdesc;
-
-  if (find_regno (tdesc, "r0") == regno)
-    return 1;
-
-  return 0;
-}
-
-static int
-nanomips_cannot_store_register (int regno)
-{
-  const struct target_desc *tdesc;
-
-  if (get_usrregs_info ()->regmap[regno] == -1)
-    return 1;
-
-  tdesc = current_process ()->tdesc;
-
-  if (find_regno (tdesc, "r0") == regno)
-    return 1;
-
-  if (find_regno (tdesc, "cause") == regno)
-    return 1;
-
-  if (find_regno (tdesc, "badvaddr") == regno)
-    return 1;
-
-  if (find_regno (tdesc, "fir") == regno)
-    return 1;
-
-  return 0;
-}
 
 static CORE_ADDR
 nanomips_get_pc (struct regcache *regcache)
@@ -643,172 +547,127 @@ ps_get_thread_area (struct ps_prochandle *ph,
   return PS_OK;
 }
 
-#ifdef HAVE_PTRACE_GETREGS
-
 static void
-nanomips_collect_register (struct regcache *regcache,
-		       int use_64bit, int regno, union nanomips_register *reg)
+nanomips_fill_gregset (struct regcache *regcache, void *ptr)
 {
-  union nanomips_register tmp_reg;
-
-  if (use_64bit)
-    {
-      collect_register (regcache, regno, &tmp_reg.reg64);
-      *reg = tmp_reg;
-    }
-  else
-    {
-      collect_register (regcache, regno, &tmp_reg.reg32);
-      reg->reg64 = tmp_reg.reg32;
-    }
-}
-
-static void
-nanomips_supply_register (struct regcache *regcache,
-		      int use_64bit, int regno, const union nanomips_register *reg)
-{
-  int offset = 0;
-
-  /* For big-endian 32-bit targets, ignore the high four bytes of each
-     eight-byte slot.  */
-  if (__BYTE_ORDER == __BIG_ENDIAN && !use_64bit)
-    offset = 4;
-
-  supply_register (regcache, regno, reg->buf + offset);
-}
-
-static void
-nanomips_collect_register_32bit (struct regcache *regcache,
-			     int use_64bit, int regno, unsigned char *buf)
-{
-  union nanomips_register tmp_reg;
-  int reg32;
-
-  nanomips_collect_register (regcache, use_64bit, regno, &tmp_reg);
-  reg32 = tmp_reg.reg64;
-  memcpy (buf, &reg32, 4);
-}
-
-static void
-nanomips_supply_register_32bit (struct regcache *regcache,
-			    int use_64bit, int regno, const unsigned char *buf)
-{
-  union nanomips_register tmp_reg;
-  int reg32;
-
-  memcpy (&reg32, buf, 4);
-  tmp_reg.reg64 = reg32;
-  nanomips_supply_register (regcache, use_64bit, regno, &tmp_reg);
-}
-
-static void
-nanomips_fill_gregset (struct regcache *regcache, void *buf)
-{
-  union nanomips_register *regset = (union nanomips_register *) buf;
-  int i, use_64bit;
   const struct target_desc *tdesc = regcache->tdesc;
+  int gpr = find_regno (tdesc, "r1");
+  int regsize = register_size (tdesc, gpr);
+  gdb_byte *buf = (gdb_byte *) ptr;
+  int i;
 
-  use_64bit = (register_size (tdesc, 0) == 8);
-
-  for (i = 1; i < 32; i++)
-    nanomips_collect_register (regcache, use_64bit, i, regset + i);
-
-  nanomips_collect_register (regcache, use_64bit,
-			     find_regno (tdesc, "pc"), regset + 34);
-  nanomips_collect_register (regcache, use_64bit,
-			     find_regno (tdesc, "badvaddr"), regset + 35);
-  nanomips_collect_register (regcache, use_64bit,
-			     find_regno (tdesc, "status"), regset + 36);
-  nanomips_collect_register (regcache, use_64bit,
-			     find_regno (tdesc, "cause"), regset + 37);
-
-  nanomips_collect_register (regcache, use_64bit,
-			     find_regno (tdesc, "restart"), regset + 0);
+  collect_register_by_name (regcache, "restart", buf);
+  buf += regsize;
+  for (i = 1; i < 32; i++, gpr++, buf += regsize)
+    collect_register (regcache, gpr, buf);
+  collect_register_by_name (regcache, "pc", buf);
+  buf += regsize;
+  collect_register_by_name (regcache, "badvaddr", buf);
+  buf += regsize;
+  collect_register_by_name (regcache, "status", buf);
+  buf += regsize;
+  collect_register_by_name (regcache, "cause", buf);
 }
 
 static void
-nanomips_store_gregset (struct regcache *regcache, const void *buf)
+nanomips_store_gregset (struct regcache *regcache, const void *ptr)
 {
-  const union nanomips_register *regset = (const union nanomips_register *) buf;
-  int i, use_64bit;
+  const struct target_desc *tdesc = regcache->tdesc;
+  const gdb_byte *buf = (const gdb_byte *) ptr;
+  int gpr = find_regno (tdesc, "r1");
+  int regsize = register_size (tdesc, gpr);
+  nanomips64_elf_greg_t zerobuf = { 0 };
+  int i;
 
-  use_64bit = (register_size (regcache->tdesc, 0) == 8);
-
-  for (i = 0; i < 32; i++)
-  nanomips_supply_register (regcache, use_64bit, i, regset + i);
-
-  nanomips_supply_register (regcache, use_64bit,
-			find_regno (regcache->tdesc, "pc"), regset + 34);
-  nanomips_supply_register (regcache, use_64bit,
-			find_regno (regcache->tdesc, "badvaddr"), regset + 35);
-  nanomips_supply_register (regcache, use_64bit,
-			find_regno (regcache->tdesc, "status"), regset + 36);
-  nanomips_supply_register (regcache, use_64bit,
-			find_regno (regcache->tdesc, "cause"), regset + 37);
-
-  nanomips_supply_register (regcache, use_64bit,
-			find_regno (regcache->tdesc, "restart"), regset + 0);
+  supply_register_by_name (regcache, "restart", buf);
+  buf += regsize;
+  supply_register_by_name (regcache, "r0", zerobuf);
+  for (i = 1; i < 32; i++, gpr++, buf += regsize)
+    supply_register (regcache, gpr, buf);
+  supply_register_by_name (regcache, "pc", buf);
+  buf += regsize;
+  supply_register_by_name (regcache, "badvaddr", buf);
+  buf += regsize;
+  supply_register_by_name (regcache, "status", buf);
+  buf += regsize;
+  supply_register_by_name (regcache, "cause", buf);
 }
 
 static void
-nanomips_fill_fpregset (struct regcache *regcache, void *buf)
+nanomips_fill_fpregset (struct regcache *regcache, void *ptr)
 {
-  union nanomips_register *regset = (union nanomips_register *) buf;
-  int i, use_64bit, first_fp, big_endian;
+  gdb_byte *buf = (gdb_byte *) ptr;
+  int i, fpr;
 
-  use_64bit = (register_size (regcache->tdesc, 0) == 8);
-  first_fp = find_regno (regcache->tdesc, "f0");
-  big_endian = (__BYTE_ORDER == __BIG_ENDIAN);
-
-  /* See GDB for a discussion of this peculiar layout.  */
-  for (i = 0; i < 32; i++)
-    if (use_64bit)
-      collect_register (regcache, first_fp + i, regset[i].buf);
-    else
-      collect_register (regcache, first_fp + i,
-			regset[i & ~1].buf + 4 * (big_endian != (i & 1)));
-
-  nanomips_collect_register_32bit (regcache, use_64bit,
-			       find_regno (regcache->tdesc, "fcsr"), regset[32].buf);
-  nanomips_collect_register_32bit (regcache, use_64bit,
-			       find_regno (regcache->tdesc, "fir"),
-			       regset[32].buf + 4);
+  fpr = find_regno (regcache->tdesc, "f0");
+  for (i = 0; i < 32; i++, fpr++, buf += 8)
+    collect_register (regcache, fpr, buf);
+  collect_register_by_name (regcache, "fcsr", buf);
+  buf += 4;
+  collect_register_by_name (regcache, "fir", buf);
 }
 
 static void
-nanomips_store_fpregset (struct regcache *regcache, const void *buf)
+nanomips_store_fpregset (struct regcache *regcache, const void *ptr)
 {
-  const union nanomips_register *regset = (const union nanomips_register *) buf;
-  int i, use_64bit, first_fp, big_endian;
+  const gdb_byte *buf = (const gdb_byte *) ptr;
+  int i, fpr;
 
-  use_64bit = (register_size (regcache->tdesc, 0) == 8);
-  first_fp = find_regno (regcache->tdesc, "f0");
-  big_endian = (__BYTE_ORDER == __BIG_ENDIAN);
-
-  /* See GDB for a discussion of this peculiar layout.  */
-  for (i = 0; i < 32; i++)
-    if (use_64bit)
-      supply_register (regcache, first_fp + i, regset[i].buf);
-    else
-      supply_register (regcache, first_fp + i,
-		       regset[i & ~1].buf + 4 * (big_endian != (i & 1)));
-
-  nanomips_supply_register_32bit (regcache, use_64bit,
-			      find_regno (regcache->tdesc, "fcsr"),
-			      regset[32].buf);
-  nanomips_supply_register_32bit (regcache, use_64bit,
-			      find_regno (regcache->tdesc, "fir"),
-			      regset[32].buf + 4);
+  fpr = find_regno (regcache->tdesc, "f0");
+  for (i = 0; i < 32; i++, fpr++, buf += 8)
+    supply_register (regcache, fpr, buf);
+  supply_register_by_name (regcache, "fcsr", buf);
+  buf += 4;
+  supply_register_by_name (regcache, "fir", buf);
 }
-#endif /* HAVE_PTRACE_GETREGS */
 
 static struct regset_info nanomips_regsets[] = {
-#ifdef HAVE_PTRACE_GETREGS
-  { PTRACE_GETREGS, PTRACE_SETREGS, 0, 38 * 8, GENERAL_REGS,
+  { PTRACE_GETREGSET, PTRACE_SETREGSET, NT_PRSTATUS,
+    sizeof (nanomips_elf_gregset_t), GENERAL_REGS,
     nanomips_fill_gregset, nanomips_store_gregset },
-  { PTRACE_GETFPREGS, PTRACE_SETFPREGS, 0, 33 * 8, FP_REGS,
+  { PTRACE_GETREGSET, PTRACE_SETREGSET, NT_FPREGSET,
+    sizeof (nanomips_elf_fpregset_t), FP_REGS,
     nanomips_fill_fpregset, nanomips_store_fpregset },
-#endif /* HAVE_PTRACE_GETREGS */
+  NULL_REGSET
+};
+
+static struct regset_info nanomips_dsp_regsets[] = {
+  { PTRACE_GETREGSET, PTRACE_SETREGSET, NT_PRSTATUS,
+    sizeof (nanomips_elf_gregset_t), GENERAL_REGS,
+    nanomips_fill_gregset, nanomips_store_gregset },
+  { PTRACE_GETREGSET, PTRACE_SETREGSET, NT_FPREGSET,
+    sizeof (nanomips_elf_fpregset_t), FP_REGS,
+    nanomips_fill_fpregset, nanomips_store_fpregset },
+#if 0
+  { PTRACE_GETREGSET, PTRACE_SETREGSET, NT_NANOMIPS_DSP,
+    sizeof (nanomips_elf_dspregset_t), EXTENDED_REGS,
+    nanomips_fill_dspregset, nanomips_store_dspregset },
+#endif
+  NULL_REGSET
+};
+
+static struct regset_info nanomips64_regsets[] = {
+  { PTRACE_GETREGSET, PTRACE_SETREGSET, NT_PRSTATUS,
+    sizeof (nanomips64_elf_gregset_t), GENERAL_REGS,
+    nanomips_fill_gregset, nanomips_store_gregset },
+  { PTRACE_GETREGSET, PTRACE_SETREGSET, NT_FPREGSET,
+    sizeof (nanomips_elf_fpregset_t), FP_REGS,
+    nanomips_fill_fpregset, nanomips_store_fpregset },
+  NULL_REGSET
+};
+
+static struct regset_info nanomips64_dsp_regsets[] = {
+  { PTRACE_GETREGSET, PTRACE_SETREGSET, NT_PRSTATUS,
+    sizeof (nanomips64_elf_gregset_t), GENERAL_REGS,
+    nanomips_fill_gregset, nanomips_store_gregset },
+  { PTRACE_GETREGSET, PTRACE_SETREGSET, NT_FPREGSET,
+    sizeof (nanomips_elf_fpregset_t), FP_REGS,
+    nanomips_fill_fpregset, nanomips_store_fpregset },
+#if 0
+  { PTRACE_GETREGSET, PTRACE_SETREGSET, NT_NANOMIPS_DSP,
+    sizeof (nanomips64_elf_dspregset_t), EXTENDED_REGS,
+    nanomips_fill_dspregset, nanomips_store_dspregset },
+#endif
   NULL_REGSET
 };
 
@@ -819,46 +678,69 @@ static struct regsets_info nanomips_regsets_info =
     NULL, /* disabled_regsets */
   };
 
-static struct usrregs_info nanomips_dsp_usrregs_info =
+static struct regsets_info nanomips_dsp_regsets_info =
   {
-    nanomips_dsp_num_regs,
-    nanomips_dsp_regmap,
+    nanomips_dsp_regsets, /* regsets */
+    0, /* num_regsets */
+    NULL, /* disabled_regsets */
   };
 
-static struct usrregs_info nanomips_usrregs_info =
+static struct regsets_info nanomips64_regsets_info =
   {
-    nanomips_num_regs,
-    nanomips_regmap,
+    nanomips64_regsets, /* regsets */
+    0, /* num_regsets */
+    NULL, /* disabled_regsets */
   };
 
-static struct regs_info dsp_regs_info =
+static struct regsets_info nanomips64_dsp_regsets_info =
   {
-    nanomips_dsp_regset_bitmap,
-    &nanomips_dsp_usrregs_info,
-    &nanomips_regsets_info
+    nanomips64_dsp_regsets, /* regsets */
+    0, /* num_regsets */
+    NULL, /* disabled_regsets */
   };
 
-static struct regs_info regs_info =
+static struct regs_info nanomips_regs =
   {
     NULL, /* regset_bitmap */
-    &nanomips_usrregs_info,
+    NULL, /* usrregs */
     &nanomips_regsets_info
+  };
+
+static struct regs_info nanomips_dsp_regs =
+  {
+    NULL, /* regset_bitmap */
+    NULL, /* usrregs */
+    &nanomips_dsp_regsets_info
+  };
+
+static struct regs_info nanomips64_regs =
+  {
+    NULL, /* regset_bitmap */
+    NULL, /* usrregs */
+    &nanomips64_regsets_info
+  };
+
+static struct regs_info nanomips64_dsp_regs =
+  {
+    NULL, /* regset_bitmap */
+    NULL, /* usrregs */
+    &nanomips64_dsp_regsets_info
   };
 
 static const struct regs_info *
 nanomips_regs_info (void)
 {
-  if (have_dsp)
-    return &dsp_regs_info;
+  if (have_64bit)
+    return have_dsp ? &nanomips64_dsp_regs : &nanomips64_regs;
   else
-    return &regs_info;
+    return have_dsp ? &nanomips_dsp_regs : &nanomips_regs;
 }
 
 struct linux_target_ops the_low_target = {
   nanomips_arch_setup,
   nanomips_regs_info,
-  nanomips_cannot_fetch_register,
-  nanomips_cannot_store_register,
+  NULL, /* cannot_fetch_register */
+  NULL, /* cannot_store_register */
   NULL, /* fetch_register */
   nanomips_get_pc,
   nanomips_set_pc,
@@ -889,6 +771,11 @@ initialize_low_arch (void)
   /* Initialize the Linux target descriptions.  */
   init_registers_nanomips_linux ();
   init_registers_nanomips_dsp_linux ();
+  init_registers_nanomips64_linux ();
+  init_registers_nanomips64_dsp_linux ();
 
   initialize_regsets_info (&nanomips_regsets_info);
+  initialize_regsets_info (&nanomips_dsp_regsets_info);
+  initialize_regsets_info (&nanomips64_regsets_info);
+  initialize_regsets_info (&nanomips64_dsp_regsets_info);
 }
