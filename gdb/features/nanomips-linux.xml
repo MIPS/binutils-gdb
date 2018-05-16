@@ -10,11 +10,10 @@
   <architecture>nanomips</architecture>
   <osabi>GNU/Linux</osabi>
   <xi:include href="nanomips-cpu.xml"/>
-  <xi:include href="nanomips-cp0.xml"/>
-  <xi:include href="nanomips-fpu.xml"/>
-  <xi:include href="nanomips-dsp.xml"/>
-
   <feature name="org.gnu.gdb.nanomips.linux">
     <reg name="restart" bitsize="32" group="system"/>
   </feature>
+  <xi:include href="nanomips-cp0.xml"/>
+  <xi:include href="nanomips-fpu.xml"/>
+  <xi:include href="nanomips-dsp.xml"/>
 </target>
