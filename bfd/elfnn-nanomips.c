@@ -1354,6 +1354,137 @@ nanomips_elfNN_object_p (bfd *abfd)
   return TRUE;
 }
 
+#if ARCH_SIZE == 32
+# define PRSTATUS_SIZE			256
+# define PRSTATUS_OFFSET_PR_CURSIG	12
+# define PRSTATUS_OFFSET_PR_PID		24
+# define PRSTATUS_OFFSET_PR_REG		72
+# define ELF_GREGSET_T_SIZE		180
+# define PRPSINFO_SIZE			128
+# define PRPSINFO_OFFSET_PR_PID		16
+# define PRPSINFO_OFFSET_PR_FNAME	32
+# define PRPSINFO_OFFSET_PR_PSARGS	48
+#else
+# define PRSTATUS_SIZE			480
+# define PRSTATUS_OFFSET_PR_CURSIG	12
+# define PRSTATUS_OFFSET_PR_PID		32
+# define PRSTATUS_OFFSET_PR_REG		112
+# define ELF_GREGSET_T_SIZE		360
+# define PRPSINFO_SIZE			136
+# define PRPSINFO_OFFSET_PR_PID		24
+# define PRPSINFO_OFFSET_PR_FNAME	40
+# define PRPSINFO_OFFSET_PR_PSARGS	56
+#endif
+
+static bfd_boolean
+nanomips_elf_grok_prstatus (bfd *abfd, Elf_Internal_Note *note)
+{
+  size_t size;
+  int offset;
+
+  switch (note->descsz)
+    {
+    default:
+      return FALSE;
+
+    case PRSTATUS_SIZE: /* sizeof(struct elf_prstatus) on Linux/nanoMIPS.  */
+      /* pr_cursig */
+      elf_tdata (abfd)->core->signal
+	= bfd_get_16 (abfd, note->descdata + PRSTATUS_OFFSET_PR_CURSIG);
+
+      /* pr_pid */
+      elf_tdata (abfd)->core->lwpid
+	= bfd_get_32 (abfd, note->descdata + PRSTATUS_OFFSET_PR_PID);
+
+      /* pr_reg */
+      offset = PRSTATUS_OFFSET_PR_REG;
+      size = ELF_GREGSET_T_SIZE;
+      break;
+    }
+
+  /* Make a ".reg/999" section.  */
+  return _bfd_elfcore_make_pseudosection (abfd, ".reg", size,
+					  note->descpos + offset);
+}
+
+static bfd_boolean
+nanomips_elf_grok_psinfo (bfd *abfd, Elf_Internal_Note *note)
+{
+  switch (note->descsz)
+    {
+    default:
+      return FALSE;
+
+    case PRPSINFO_SIZE: /* sizeof(struct elf_prpsinfo) on Linux/nanoMIPS.  */
+      /* pr_pid */
+      elf_tdata (abfd)->core->pid
+	= bfd_get_32 (abfd, note->descdata + PRPSINFO_OFFSET_PR_PID);
+
+      /* pr_fname */
+      elf_tdata (abfd)->core->program = _bfd_elfcore_strndup
+	(abfd, note->descdata + PRPSINFO_OFFSET_PR_FNAME, 16);
+
+      /* pr_psargs */
+      elf_tdata (abfd)->core->command = _bfd_elfcore_strndup
+	(abfd, note->descdata + PRPSINFO_OFFSET_PR_PSARGS, 80);
+      break;
+    }
+
+  /* Note that for some reason, a spurious space is tacked
+     onto the end of the args in some (at least one anyway)
+     implementations, so strip it off if it exists.  */
+
+  {
+    char *command = elf_tdata (abfd)->core->command;
+    int n = strlen (command);
+
+    if (0 < n && command[n - 1] == ' ')
+      command[n - 1] = '\0';
+  }
+
+  return TRUE;
+}
+
+/* Write Linux core PRSTATUS note into core file.  */
+
+static char *
+nanomips_elf_write_core_note (bfd *abfd, char *buf, int *bufsiz, int note_type,
+			      ...)
+{
+  switch (note_type)
+    {
+    default:
+      return NULL;
+
+    case NT_PRPSINFO:
+      BFD_FAIL ();
+      return NULL;
+
+    case NT_PRSTATUS:
+      {
+        char data[PRSTATUS_SIZE];
+        va_list ap;
+        long pid;
+        int cursig;
+        const void *greg;
+
+        va_start (ap, note_type);
+        memset (data, 0, PRSTATUS_OFFSET_PR_REG);
+        pid = va_arg (ap, long);
+        bfd_put_32 (abfd, pid, data + PRSTATUS_OFFSET_PR_PID);
+        cursig = va_arg (ap, int);
+        bfd_put_16 (abfd, cursig, data + PRSTATUS_OFFSET_PR_CURSIG);
+        greg = va_arg (ap, const void *);
+        memcpy (data + PRSTATUS_OFFSET_PR_REG, greg, ELF_GREGSET_T_SIZE);
+        memset (data + PRSTATUS_OFFSET_PR_REG + ELF_GREGSET_T_SIZE, 0,
+		PRSTATUS_SIZE - (PRSTATUS_OFFSET_PR_REG + ELF_GREGSET_T_SIZE));
+        va_end (ap);
+        return elfcore_write_note (abfd, buf, bufsiz,
+                                   "CORE", note_type, data, sizeof (data));
+      }
+    }
+}
+
 
 #define ELF_ARCH			bfd_arch_nanomips
 #define ELF_TARGET_ID			NANOMIPS_ELF_DATA
@@ -1368,6 +1499,9 @@ nanomips_elfNN_object_p (bfd *abfd)
 #define elf_backend_fake_sections	_bfd_nanomips_elf_fake_sections
 #define elf_backend_final_write_processing \
 					_bfd_nanomips_elf_final_write_processing
+#define elf_backend_grok_prstatus	nanomips_elf_grok_prstatus
+#define elf_backend_grok_psinfo		nanomips_elf_grok_psinfo
+#define elf_backend_write_core_note	nanomips_elf_write_core_note
 
 #define elf_backend_may_use_rela_p	1
 #define elf_backend_default_use_rela_p	1

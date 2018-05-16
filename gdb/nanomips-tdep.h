@@ -44,6 +44,7 @@ struct nanomips_regnum
   int status;		/* Status register.  */
   int cause;		/* Describes last exception.  */
   int dsp;		/* DSP registers.  */
+  int restart;		/* Linux syscall restart flag.  */
 };
 
 extern const struct nanomips_regnum *nanomips_regnum (struct gdbarch *gdbarch);
@@ -73,14 +74,14 @@ struct gdbarch_tdep
   /* Indexes for various registers determined dynamically at run time.
      This contains the "public" fields.  Don't add any that do not need
      to be public.  */
-  const struct nanomips_regnum *regnum;
+  struct nanomips_regnum *regnum;
 
   /* The size of register data available from the target.  */
   int register_size;
 
   /* Return the expected next PC if FRAME is stopped at a syscall
      instruction.  */
-  CORE_ADDR (*syscall_next_pc) (struct frame_info *frame);
+  CORE_ADDR (*syscall_next_pc) (struct frame_info *frame, CORE_ADDR pc);
 };
 
 /* Register numbers of various important registers from the fixed
@@ -90,6 +91,8 @@ struct gdbarch_tdep
 enum
 {
   NANOMIPS_ZERO_REGNUM = 0,
+  NANOMIPS_AT_REGNUM = 1,
+  NANOMIPS_T4_REGNUM = 2,
   NANOMIPS_A0_REGNUM = 4,
   NANOMIPS_GP_REGNUM = 28,
   NANOMIPS_SP_REGNUM = 29,
@@ -112,6 +115,7 @@ enum
 enum
 {
   NANOMIPS_DSPHI0_REGNUM = 0,
+  NANOMIPS_DSPLO0_REGNUM = 1,
   NANOMIPS_DSPCTL_REGNUM = 8
 };
 
@@ -126,6 +130,9 @@ enum
 
 /* Single step based on where the current instruction will take us.  */
 extern VEC (CORE_ADDR) *nanomips_software_single_step (struct regcache *regcache);
+
+/* Return the currently determined ISA register size.  */
+extern int nanomips_isa_regsize (struct gdbarch *gdbarch);
 
 /* Return the currently configured (or set) saved register size.  */
 extern unsigned int nanomips_abi_regsize (struct gdbarch *gdbarch);

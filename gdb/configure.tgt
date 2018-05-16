@@ -411,6 +411,13 @@ mt-*-*)
 	gdb_target_obs="mt-tdep.o"
 	;;
 
+nanomips*-*-linux*)
+	# Target: Linux/nanoMIPS
+	gdb_target_obs="nanomips-tdep.o nanomips-linux-tdep.o glibc-tdep.o \
+			solib-svr4.o symfile-mem.o linux-tdep.o"
+	gdb_sim=../sim/mips/libsim.a
+	build_gdbserver=yes
+	;;
 nanomips*-*-*)
 	# Target: nanomips ELF
 	gdb_target_obs="nanomips-tdep.o"
