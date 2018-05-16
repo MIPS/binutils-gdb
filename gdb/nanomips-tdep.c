@@ -771,8 +771,10 @@ nanomips_fetch_instruction (struct gdbarch *gdbarch,
 #define b0u13_15s1_imm(x) (((x) & 0x1fff) | (((x) & 0x8000) >> 2))
 #define b1s4_imm(x) (((x) >> 1) & 0xf)
 #define b1s9_imm(x) (((x) >> 1) & 0x1ff)
-#define b3s9_imm(x) (((x) >> 3) & 0x1ff)
+#define b2s1_op(x) (((x) >> 2) & 0x1)
 #define b2s3_cc(x) (((x) >> 2) & 0x7)
+#define b3s2_op(x) (((x) >> 3) & 0x3)
+#define b3s9_imm(x) (((x) >> 3) & 0x1ff)
 #define b4s2_regl(x) (((x) >> 4) & 0x3)
 #define b4s3_reg(x) (((x) >> 4) & 0x7)
 #define b4s4_imm(x) (((x) >> 4) & 0xf)
@@ -850,6 +852,28 @@ nanomips_next_pc (struct regcache *regcache, CORE_ADDR pc)
       pc += INSN16_SIZE;
       switch (micromips_op (insn >> 16))
 	{
+	case 0x0: /* P32 */
+	  op = b5s5_op (insn >> 16);
+	  switch (op)
+	    {
+	    case 0x0: /* P.RI */
+	      switch (b3s2_op (insn >> 16))
+		{
+		case 0x1: /* SYSCALL */
+		  if (b2s1_op (insn >> 16) == 0)
+		    {
+		      struct gdbarch_tdep *tdep;
+
+		      tdep = gdbarch_tdep (gdbarch);
+		      if (tdep->syscall_next_pc != NULL)
+			pc = tdep->syscall_next_pc (get_current_frame (), pc);
+		    }
+		  break;
+		}
+	      break;
+	    }
+	  break;
+
 	case 0x2: /* MOVE.BALC */
 	  offset = ((insn & 1) << 20 | ((insn >> 1) & 0xfffff)) << 1;
 	  offset = (offset ^ 0x200000) - 0x200000;
@@ -946,6 +970,28 @@ nanomips_next_pc (struct regcache *regcache, CORE_ADDR pc)
     case INSN16_SIZE:
       switch (micromips_op (insn))
 	{
+	case 0x4: /* P16 */
+	  op = b5s5_op (insn);
+	  switch (op)
+	    {
+	    case 0x0: /* P16.RI */
+	      switch (b3s2_op (insn))
+		{
+		case 0x1: /* SYSCALL[16] */
+		  if (b2s1_op (insn) == 0)
+		    {
+		      struct gdbarch_tdep *tdep;
+
+		      tdep = gdbarch_tdep (gdbarch);
+		      if (tdep->syscall_next_pc != NULL)
+			pc = tdep->syscall_next_pc (get_current_frame (), pc);
+		    }
+		  break;
+		}
+	      break;
+	    }
+	  break;
+
 	case 0x6: /* BC[16] */
 	case 0xe: /* BALC[16] */
 	  offset = ((insn & 1) << 9 | ((insn >> 1) & 0x1ff)) << 1;
@@ -2864,6 +2910,7 @@ nanomips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   nanomips_regnum.badvaddr = -1;
   nanomips_regnum.fpr = -1;
   nanomips_regnum.dsp = -1;
+  nanomips_regnum.restart = -1;
 
   /* If there's no target description, then use the default.  */
   if (!tdesc_has_registers (info.target_desc))
@@ -2890,15 +2937,32 @@ nanomips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
 
   /* All the remaining target description features are optional.  */
 
-  feature = tdesc_find_feature (info.target_desc, "org.gnu.gdb.nanomips.cp0");
+  /* Check for and assign a number to the syscall restart PC register.  */
+  feature = tdesc_find_feature (info.target_desc,
+				"org.gnu.gdb.nanomips.linux");
   if (feature != NULL)
     {
-      if (tdesc_numbered_register (feature, tdesc_data, num_regs, "badvaddr"))
-	nanomips_regnum.badvaddr = num_regs++;
-      if (tdesc_numbered_register (feature, tdesc_data, num_regs, "status"))
-	nanomips_regnum.status = num_regs++;
-      if (tdesc_numbered_register (feature, tdesc_data, num_regs, "cause"))
-	nanomips_regnum.cause = num_regs++;
+      if (tdesc_numbered_register (feature, tdesc_data, num_regs, "restart"))
+	nanomips_regnum.restart = num_regs++;
+
+      /* Check for and assign numbers to particular CP0 registers.
+	 These are only special and need known numbers with Linux
+	 targets, due to the use in signal frames, etc.  Bare metal
+	 stubs can simply include them along with other CP0 registers.  */
+      feature = tdesc_find_feature (info.target_desc,
+				    "org.gnu.gdb.nanomips.cp0");
+      if (feature != NULL)
+	{
+	  if (tdesc_numbered_register (feature, tdesc_data, num_regs,
+				       "badvaddr"))
+	    nanomips_regnum.badvaddr = num_regs++;
+	  if (tdesc_numbered_register (feature, tdesc_data, num_regs,
+				       "status"))
+	    nanomips_regnum.status = num_regs++;
+	  if (tdesc_numbered_register (feature, tdesc_data, num_regs,
+				       "cause"))
+	    nanomips_regnum.cause = num_regs++;
+	}
     }
 
   /* Check for and assign numbers to FPU registers.  */
