@@ -845,6 +845,7 @@ ALL_TARGET_OBS = \
 	moxie-tdep.o \
 	msp430-tdep.o \
 	mt-tdep.o \
+	nanomips-tdep.o \
 	nbsd-tdep.o \
 	nds32-tdep.o \
 	nios2-linux-tdep.o \
@@ -1375,6 +1376,7 @@ HFILES_NO_SRCDIR = \
 	mips-tdep.h \
 	mn10300-tdep.h \
 	moxie-tdep.h \
+	nanomips-tdep.h \
 	nbsd-nat.h \
 	nbsd-tdep.h \
 	nds32-tdep.h \
@@ -2579,6 +2581,7 @@ ALLDEPFILES = \
 	mips64-obsd-nat.c \
 	mips64-obsd-tdep.c \
 	msp430-tdep.c \
+	nanomips-tdep.c \
 	nbsd-nat.c \
 	nbsd-tdep.c \
 	nds32-tdep.c \
