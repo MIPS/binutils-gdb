@@ -149,6 +149,7 @@ get_usrregs_info (void)
   return regs_info->usrregs;
 }
 
+#ifdef NANOMIPS_WATCHPOINTS
 /* Per-process arch-specific data we want to keep.  */
 
 struct arch_process_info
@@ -181,6 +182,7 @@ struct arch_lwp_info
   /* Non-zero if our copy differs from what's recorded in the thread.  */
   int watch_registers_changed;
 };
+#endif /* NANOMIPS_WATCHPOINTS */
 
 /* From nanomips-linux-nat.c.  */
 
@@ -277,6 +279,7 @@ nanomips_breakpoint_at (CORE_ADDR where)
   return 0;
 }
 
+#ifdef NANOMIPS_WATCHPOINTS
 /* Mark the watch registers of lwp, represented by ENTRY, as changed,
    if the lwp's process id is *PID_P.  */
 
@@ -621,6 +624,7 @@ nanomips_stopped_data_address (void)
   /* Shouldn't happen.  */
   return 0;
 }
+#endif /* NANOMIPS_WATCHPOINTS */
 
 /* Fetch the thread-local storage pointer for libthread_db.  */
 
@@ -863,6 +867,7 @@ struct linux_target_ops the_low_target = {
   NULL, /* get_next_pcs */
   0,
   nanomips_breakpoint_at,
+#ifdef NANOMIPS_WATCHPOINTS
   nanomips_supports_z_point_type,
   nanomips_insert_point,
   nanomips_remove_point,
@@ -875,6 +880,7 @@ struct linux_target_ops the_low_target = {
   nanomips_linux_new_thread,
   nanomips_linux_new_fork,
   nanomips_linux_prepare_to_resume
+#endif /* NANOMIPS_WATCHPOINTS */
 };
 
 void
