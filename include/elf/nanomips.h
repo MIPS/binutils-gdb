@@ -245,6 +245,10 @@ enum
 
 /* nanoMIPS ELF flags routines.  */
 extern Elf_Internal_ABIFlags_v0 * bfd_nanomips_elf_get_abiflags (bfd *);
+extern void bfd_nanomips_elf_swap_abiflags_v0_in
+  (bfd *, const Elf_External_ABIFlags_v0 *, Elf_Internal_ABIFlags_v0 *);
+extern void bfd_nanomips_elf_swap_abiflags_v0_out
+  (bfd *, const Elf_Internal_ABIFlags_v0 *, Elf_External_ABIFlags_v0 *);
 
 #ifdef __cplusplus
 }
