@@ -66,6 +66,7 @@ WHICH = aarch64 \
 	microblaze-with-stack-protect \
 	mips64-linux mips64-dsp-linux \
 	nanomips \
+	nanomips-linux \
 	nios2-linux \
 	rs6000/powerpc-32 \
 	rs6000/powerpc-32l rs6000/powerpc-altivec32l rs6000/powerpc-e500l \
@@ -93,7 +94,7 @@ mips-dsp-expedite = r29,pc
 mips64-expedite = r29,pc
 mips64-dsp-expedite = r29,pc
 microblaze-expedite = r1,rpc
-nanomips-expedite = r29,pc
+nanomips-linux-expedite = r29,pc
 nios2-linux-expedite = sp,pc
 powerpc-expedite = r1,pc
 rs6000/powerpc-cell32l-expedite = r1,pc,r0,orig_r3,r4
@@ -179,6 +180,7 @@ XMLTOC = \
 	mips64-dsp-linux.xml \
 	mips64-linux.xml \
 	nanomips.xml \
+	nanomips-linux.xml \
 	nds32.xml \
 	nios2-linux.xml \
 	nios2.xml \

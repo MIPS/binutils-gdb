@@ -208,10 +208,10 @@ case "${target}" in
 			srv_linux_usrregs=yes
 			srv_linux_thread_db=yes
 			;;
-  nanomips*-*-linux*)	srv_regobj="nanomips.o"
+  nanomips*-*-linux*)	srv_regobj="nanomips-linux.o"
 			srv_tgtobj="${srv_linux_obj} linux-nanomips-low.o"
 			srv_tgtobj="${srv_tgtobj} nanomips-linux-watch.o"
-			srv_xmlfiles="nanomips.xml"
+			srv_xmlfiles="nanomips-linux.xml"
 			srv_xmlfiles="${srv_xmlfiles} nanomips-cpu.xml"
 			srv_xmlfiles="${srv_xmlfiles} nanomips-cp0.xml"
 			srv_xmlfiles="${srv_xmlfiles} nanomips-fpu.xml"
