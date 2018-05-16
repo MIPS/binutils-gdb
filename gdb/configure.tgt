@@ -389,11 +389,6 @@ mips*-*-elf)
 	gdb_target_obs="mips-tdep.o"
 	gdb_sim=../sim/mips/libsim.a
 	;;
-nanomips*-*-*)
-	# Target: nanomips ELF
-	gdb_target_obs="nanomips-tdep.o"
-	gdb_sim=../sim/mips/libsim.a
-	;;
 mips*-*-*)
 	# Target: MIPS
 	gdb_target_obs="mips-tdep.o"
@@ -414,6 +409,12 @@ msp430*-*-elf)
 mt-*-*)
 	# Target: Morpho Technologies ms1 processor
 	gdb_target_obs="mt-tdep.o"
+	;;
+
+nanomips*-*-*)
+	# Target: nanomips ELF
+	gdb_target_obs="nanomips-tdep.o"
+	gdb_sim=../sim/mips/libsim.a
 	;;
 
 nds32*-*-elf)
