@@ -93,19 +93,19 @@ struct gdbarch_tdep
 
 enum
 {
-  ZERO_REGNUM = 0,		/* Read-only register, always 0.  */
-  A0_REGNUM = 4,		/* Loc of first arg during a subr call.  */
-  GP_REGNUM = 28,
-  SP_REGNUM = 29,
-  FP_REGNUM = 30,
-  RA_REGNUM = 31,
-  PS_REGNUM = 32,		/* Contains processor status.  */
-  EMBED_BADVADDR_REGNUM = 33,
-  EMBED_CAUSE_REGNUM = 34,
-  EMBED_PC_REGNUM = 35,
-  EMBED_FP0_REGNUM = 36,
-  FIRST_EMBED_REGNUM = 74,	/* First CP0 register for embedded use.  */
-  LAST_EMBED_REGNUM = 89	/* Last one.  */
+  NANOMIPS_ZERO_REGNUM = 0,	/* Read-only register, always 0.  */
+  NANOMIPS_A0_REGNUM = 4,	/* Loc of first arg during a subr call.  */
+  NANOMIPS_GP_REGNUM = 28,
+  NANOMIPS_SP_REGNUM = 29,
+  NANOMIPS_FP_REGNUM = 30,
+  NANOMIPS_RA_REGNUM = 31,
+  NANOMIPS_PS_REGNUM = 32,	/* Contains processor status.  */
+  NANOMIPS_EMBED_BADVADDR_REGNUM = 33,
+  NANOMIPS_EMBED_CAUSE_REGNUM = 34,
+  NANOMIPS_EMBED_PC_REGNUM = 35,
+  NANOMIPS_EMBED_FP0_REGNUM = 36,
+  NANOMIPS_FIRST_EMBED_REGNUM = 74, /* First CP0 register for embedded use.  */
+  NANOMIPS_LAST_EMBED_REGNUM = 89   /* Last one.  */
 };
 
 /* Instruction sizes and other useful constants.  */
