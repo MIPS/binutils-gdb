@@ -818,14 +818,14 @@ nanomips_insn_size (ULONGEST insn)
 }
 
 /* Calculate the address of the next nanoMIPS instruction to execute
-   after the instruction at the address PC.  The nanomicromips_next_pc
+   after the instruction at the address PC.  The nanomips_next_pc
    function supports single_step when the remote target monitor or stub
    is not developed enough to do a single_step.  It works by decoding the
    current instruction and predicting where a branch will go.  This isn't
    hard because all the data is available.  */
 
 static CORE_ADDR
-nanomicromips_next_pc (struct regcache *regcache, CORE_ADDR pc)
+nanomips_next_pc (struct regcache *regcache, CORE_ADDR pc)
 {
   struct gdbarch *gdbarch = get_regcache_arch (regcache);
   ULONGEST insn;
@@ -1675,7 +1675,7 @@ nanomips_software_single_step (struct regcache *regcache)
   if (next_pcs != NULL)
     return next_pcs;
 
-  next_pc = nanomicromips_next_pc (regcache, pc);
+  next_pc = nanomips_next_pc (regcache, pc);
 
   VEC_safe_push (CORE_ADDR, next_pcs, next_pc);
   return next_pcs;
