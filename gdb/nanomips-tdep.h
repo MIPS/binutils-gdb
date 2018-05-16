@@ -39,14 +39,11 @@ enum nanomips_abi nanomips_abi (struct gdbarch *gdbarch);
 /* Return the current index for various nanoMIPS registers.  */
 struct nanomips_regnum
 {
-  int pc;
-  int fp0;
-  int fp_implementation_revision;
-  int fp_control_status;
+  int fpr;		/* Floating-point unit registers.  */
   int badvaddr;		/* Bad vaddr for addressing exception.  */
+  int status;		/* Status register.  */
   int cause;		/* Describes last exception.  */
-  int dspacc;		/* SmartMIPS/DSP accumulators.  */
-  int dspctl;		/* DSP control.  */
+  int dsp;		/* DSP registers.  */
 };
 
 extern const struct nanomips_regnum *nanomips_regnum (struct gdbarch *gdbarch);
@@ -71,17 +68,14 @@ struct gdbarch_tdep
   enum nanomips_abi found_abi;
   enum fpu_type fpu_type;
   int mips_last_arg_regnum;
-  int mips_last_fp_arg_regnum;
   int default_mask_address_p;
-  /* Indexes for various registers.  IRIX and embedded have
-     different values.  This contains the "public" fields.  Don't
-     add any that do not need to be public.  */
-  const struct nanomips_regnum *regnum;
-  /* Register names table for the current register set.  */
-  const char **mips_processor_reg_names;
 
-  /* The size of register data available from the target, if known.  */
-  int register_size_valid_p;
+  /* Indexes for various registers determined dynamically at run time.
+     This contains the "public" fields.  Don't add any that do not need
+     to be public.  */
+  const struct nanomips_regnum *regnum;
+
+  /* The size of register data available from the target.  */
   int register_size;
 
   /* Return the expected next PC if FRAME is stopped at a syscall
@@ -89,23 +83,36 @@ struct gdbarch_tdep
   CORE_ADDR (*syscall_next_pc) (struct frame_info *frame);
 };
 
-/* Register numbers of various important registers.  */
+/* Register numbers of various important registers from the fixed
+   GPR+PC register set that is always present.  The rest is determined
+   dynamically at run time and held in `gdbarch_tdep->regnum'.  */
 
 enum
 {
-  NANOMIPS_ZERO_REGNUM = 0,	/* Read-only register, always 0.  */
-  NANOMIPS_A0_REGNUM = 4,	/* Loc of first arg during a subr call.  */
+  NANOMIPS_ZERO_REGNUM = 0,
+  NANOMIPS_A0_REGNUM = 4,
   NANOMIPS_GP_REGNUM = 28,
   NANOMIPS_SP_REGNUM = 29,
   NANOMIPS_FP_REGNUM = 30,
   NANOMIPS_RA_REGNUM = 31,
-  NANOMIPS_PS_REGNUM = 32,	/* Contains processor status.  */
-  NANOMIPS_EMBED_BADVADDR_REGNUM = 33,
-  NANOMIPS_EMBED_CAUSE_REGNUM = 34,
-  NANOMIPS_EMBED_PC_REGNUM = 35,
-  NANOMIPS_EMBED_FP0_REGNUM = 36,
-  NANOMIPS_FIRST_EMBED_REGNUM = 74, /* First CP0 register for embedded use.  */
-  NANOMIPS_LAST_EMBED_REGNUM = 89   /* Last one.  */
+  NANOMIPS_PC_REGNUM = 32
+};
+
+/* Floating-point register offsets relative to `gdbarch_tdep->regnum->fpr'.  */
+
+enum
+{
+  NANOMIPS_FP0_REGNUM = 0,
+  NANOMIPS_FCSR_REGNUM = 32,
+  NANOMIPS_FIR_REGNUM = 33
+};
+
+/* DSP register offsets, relative to `gdbarch_tdep->regnum->dsp'.  */
+
+enum
+{
+  NANOMIPS_DSPHI0_REGNUM = 0,
+  NANOMIPS_DSPCTL_REGNUM = 8
 };
 
 /* Instruction sizes and other useful constants.  */
@@ -125,10 +132,5 @@ extern unsigned int nanomips_abi_regsize (struct gdbarch *gdbarch);
 
 /* Make PC the address of the next instruction to execute.  */
 extern void nanomips_write_pc (struct regcache *regcache, CORE_ADDR pc);
-
-/* Target descriptions which only indicate the size of general
-   registers.  */
-extern struct target_desc *nanomips_tdesc_gp32;
-extern struct target_desc *nanomips_tdesc_gp64;
 
 #endif /* NANOMIPS_TDEP_H */
