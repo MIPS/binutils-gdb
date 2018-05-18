@@ -9860,7 +9860,8 @@ s_align (int x ATTRIBUTE_UNUSED)
       struct insn_label_list *l = si->label_list;
 
       if (nanomips_opts.linkrelax
-	  && (bfd_get_section_flags (stdoutput, now_seg) & SEC_CODE) != 0)
+	  && (bfd_get_section_flags (stdoutput, now_seg) & SEC_CODE) != 0
+	  && temp > 1)
 	{
 	  int fill_length = 0;
 
@@ -12865,7 +12866,8 @@ nanomips_md_do_align (int n, const char *fill, int fill_length, int max_fill)
   unsigned int fill_value = 0;
 
   if (nanomips_opts.linkrelax
-      && (bfd_get_section_flags (stdoutput, now_seg) & SEC_CODE) != 0)
+      && (bfd_get_section_flags (stdoutput, now_seg) & SEC_CODE) != 0
+      && n > 1)
     {
       fill_value = bfd_get_bits (fill, fill_length * 8, target_big_endian);
 
