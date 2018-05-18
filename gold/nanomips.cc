@@ -589,6 +589,7 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
     : Sized_relobj_file<size, big_endian>(name, input_file, offset, ehdr),
       input_section_ref_(), local_symbol_size_(), local_symbol_is_function_(),
       processor_specific_flags_(0), merge_processor_specific_data_(true),
+      output_local_symbol_size_needs_update_(false),
       attributes_section_data_(NULL), abiflags_(NULL)
   { }
 
@@ -662,6 +663,11 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
     this->local_symbol_size_[symndx] = symsize;
   }
 
+  // Set output_local_symbol_size_needs_update flag to be true.
+  void
+  set_output_local_symbol_size_needs_update()
+  { this->output_local_symbol_size_needs_update_ = true; }
+
   // Return the name of the local symbol.  For section symbols, return the
   // section name with addend.
   std::string
@@ -731,6 +737,15 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   do_count_local_symbols(Stringpool_template<char>*,
                          Stringpool_template<char>*);
 
+  // Write the local symbols.
+  void
+  do_write_local_symbols(Output_file* of,
+                         const Stringpool_template<char>* sympool,
+                         const Stringpool_template<char>* dynpool,
+                         Output_symtab_xindex* symtab_xindex,
+                         Output_symtab_xindex* dynsym_xindex,
+                         off_t symtab_off);
+
   void
   do_relocate_sections(
       const Symbol_table* symtab, const Layout* layout,
@@ -769,6 +784,9 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
 
   // Whether we merge processor-specific data of this object to output.
   bool merge_processor_specific_data_;
+
+  // Whether output local symbol size needs updating.
+  bool output_local_symbol_size_needs_update_;
 
   // Object attributes if there is a .gnu.attributes section or NULL.
   Attributes_section_data* attributes_section_data_;
@@ -3048,6 +3066,122 @@ Nanomips_relobj<size, big_endian>::do_count_local_symbols(
       this->local_symbol_size_[i] = sym.get_st_size();
       this->local_symbol_is_function_[i] =
         sym.get_st_type() == elfcpp::STT_FUNC;
+    }
+}
+
+// For nanoMIPS target we need to update local symbol size in case they are
+// changed during relaxation pass.  This is not the most efficient way but I
+// do not want to slow down other ports by calling a per symbol target hook
+// inside Sized_relobj_file<size, big_endian>::do_write_local_symbols.
+
+template<int size, bool big_endian>
+void
+Nanomips_relobj<size, big_endian>::do_write_local_symbols(
+    Output_file* of,
+    const Stringpool_template<char>* sympool,
+    const Stringpool_template<char>* dynpool,
+    Output_symtab_xindex* symtab_xindex,
+    Output_symtab_xindex* dynsym_xindex,
+    off_t symtab_off)
+{
+  // Ask parent to write the local symbols.
+  Sized_relobj_file<size, big_endian>::do_write_local_symbols(of, sympool,
+                                                              dynpool,
+                                                              symtab_xindex,
+                                                              dynsym_xindex,
+                                                              symtab_off);
+
+  if (!this->output_local_symbol_size_needs_update_)
+    return;
+
+  if (parameters->options().strip_all()
+      && this->output_local_dynsym_count() == 0)
+    return;
+
+  const unsigned int loccount = this->local_symbol_count();
+  if (loccount == 0)
+    return;
+
+  // Read the symbol table section header.
+  const unsigned int symtab_shndx = this->symtab_shndx();
+  elfcpp::Shdr<size, big_endian>
+    symtabshdr(this, this->elf_file()->section_header(symtab_shndx));
+  gold_assert(symtabshdr.get_sh_type() == elfcpp::SHT_SYMTAB);
+
+  // Read the local symbols.
+  const int sym_size = elfcpp::Elf_sizes<size>::sym_size;
+  gold_assert(loccount == symtabshdr.get_sh_info());
+  off_t locsize = loccount * sym_size;
+  const unsigned char* psyms = this->get_view(symtabshdr.get_sh_offset(),
+                                              locsize, true, true);
+
+  // Get views into the output file for the portions of the symbol table
+  // and the dynamic symbol table that we will be writing.
+  off_t output_size = this->output_local_symbol_count() * sym_size;
+  unsigned char* oview = NULL;
+  if (output_size > 0)
+    oview = of->get_output_view(symtab_off + this->local_symbol_offset(),
+                                output_size);
+
+  off_t dyn_output_size = this->output_local_dynsym_count() * sym_size;
+  unsigned char* dyn_oview = NULL;
+  if (dyn_output_size > 0)
+    dyn_oview = of->get_output_view(this->local_dynsym_offset(),
+                                    dyn_output_size);
+
+  const Relobj::Output_sections& out_sections(this->output_sections());
+  typename Sized_relobj_file<size, big_endian>::Local_values* plocal_values =
+    this->local_values();
+
+  unsigned char* ov = oview;
+  unsigned char* dyn_ov = dyn_oview;
+  psyms += sym_size;
+  for (unsigned int i = 1; i < loccount; ++i, psyms += sym_size)
+    {
+      elfcpp::Sym<size, big_endian> isym(psyms);
+      Symbol_value<size>& lv((*plocal_values)[i]);
+
+      bool is_ordinary;
+      unsigned int st_shndx = this->adjust_sym_shndx(i, isym.get_st_shndx(),
+                                                     &is_ordinary);
+      if (is_ordinary)
+        {
+          gold_assert(st_shndx < out_sections.size());
+          if (out_sections[st_shndx] == NULL)
+            continue;
+        }
+
+      // Update the size of the symbol in the output symbol table.
+      if (lv.has_output_symtab_entry())
+        {
+          elfcpp::Sym_write<size, big_endian> osym(ov);
+          osym.put_st_size(this->local_symbol_size(i));
+          ov += sym_size;
+        }
+
+      // Update the size of the symbol in the output dynamic symbol table.
+      if (lv.has_output_dynsym_entry())
+        {
+          gold_assert(dyn_ov < dyn_oview + dyn_output_size);
+
+          elfcpp::Sym_write<size, big_endian> osym(dyn_ov);
+          osym.put_st_size(this->local_symbol_size(i));
+          dyn_ov += sym_size;
+        }
+    }
+
+  if (output_size > 0)
+    {
+      gold_assert(ov - oview == output_size);
+      of->write_output_view(symtab_off + this->local_symbol_offset(),
+                            output_size, oview);
+    }
+
+  if (dyn_output_size > 0)
+    {
+      gold_assert(dyn_ov - dyn_oview == dyn_output_size);
+      of->write_output_view(this->local_dynsym_offset(), dyn_output_size,
+                            dyn_oview);
     }
 }
 
@@ -5847,6 +5981,7 @@ Target_nanomips<size, big_endian>::new_nanomips_input_section(
   gold_assert(ins.second);
 
   relobj->convert_input_section_to_relaxed_section(data_shndx);
+  relobj->set_output_local_symbol_size_needs_update();
   return pnis;
 }
 
