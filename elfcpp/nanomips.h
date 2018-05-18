@@ -112,6 +112,7 @@ enum
   R_NANOMIPS_TLS_TPREL12 = 92,
   R_NANOMIPS_TLS_TPREL16 = 93,
   R_NANOMIPS_TLS_TPREL_I32 = 94,
+  R_NANOMIPS_PC32 = 248
 };
 
 // Processor specific flags for the ELF header e_flags field.

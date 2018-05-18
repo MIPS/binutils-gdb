@@ -67,6 +67,7 @@ NRD(GOT_PAGE,                   STATIC,             32,        21,        4,    
 NRD(GOT_OFST,                   STATIC,             32,        18,        1,        0xfc00f000,        Symbol::RELATIVE_REF)
 NRD(LO4_S2,                     STATIC,             16,         6,        4,        0xfc00,            Symbol::ABSOLUTE_REF)
 NRD(GPREL_LO12,                 STATIC,             32,        12,        1,        0,                 Symbol::RELATIVE_REF)
+NRD(PC32,                       STATIC,              0,        32,        1,        0,                 0)
 NRD(TLS_DTPMOD,                 STATIC,              0,        32,        1,        0,                 Symbol::TLS_REF)
 NRD(TLS_DTPREL,                 STATIC,              0,        32,        1,        0,                 Symbol::TLS_REF)
 NRD(TLS_TPREL,                  STATIC,              0,        32,        1,        0,                 Symbol::TLS_REF)

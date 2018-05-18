@@ -2037,6 +2037,14 @@ class Nanomips_relocate_functions
     return check_overflow<9>(value, CHECK_UNSIGNED);
   }
 
+  // R_NANOMIPS_PC32
+  static inline Status
+  relpc32(unsigned char* view, Address value, bool check_overflow)
+  {
+    Overflow_check check = check_overflow ? CHECK_SIGNED : CHECK_NONE;
+    return This::template rel<32>(view, value, check);
+  }
+
   // R_NANOMIPS_PC25_S1
   static inline Status
   relpc25_s1(unsigned char* view, Address value,
@@ -6122,11 +6130,11 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
       Symbol_value<size> symval2;
       if (is_defined_in_discarded_section)
         {
+          std::string name = relobj->section_name(relinfo->data_shndx);
+
           if (comdat_behavior == CB_UNDETERMINED)
-            {
-              std::string name = relobj->section_name(relinfo->data_shndx);
-              comdat_behavior = default_comdat_behavior.get(name.c_str());
-            }
+            comdat_behavior = default_comdat_behavior.get(name.c_str());
+
           if (comdat_behavior == CB_PRETEND)
             {
               // FIXME: This case does not work for global symbols.
@@ -6136,7 +6144,7 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
               // script.
               bool found;
               typename elfcpp::Elf_types<size>::Elf_Addr value =
-                relobj->map_to_kept_section(shndx, &found);
+                relobj->map_to_kept_section(shndx, name, &found);
               if (found)
                 symval2.set_output_value(value + psymval->input_value());
               else
@@ -6144,10 +6152,8 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
             }
           else
             {
-              if (comdat_behavior == CB_WARNING)
-                gold_warning_at_location(relinfo, i, r_offset,
-                                         _("relocation refers to discarded "
-                                           "section"));
+              if (comdat_behavior == CB_ERROR)
+                issue_discarded_error(relinfo, i, r_offset, r_sym, gsym);
               symval2.set_output_value(0);
             }
           psymval = &symval2;
@@ -7001,6 +7007,9 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
     case elfcpp::R_NANOMIPS_PC_HI20:
       value = psymval->value(object, r_addend) - ((address + 4) & ~0xfff);
       break;
+    case elfcpp::R_NANOMIPS_PC32:
+      value = psymval->value(object, r_addend) - address;
+      break;
     case elfcpp::R_NANOMIPS_PC_I32:
     case elfcpp::R_NANOMIPS_PC25_S1:
     case elfcpp::R_NANOMIPS_PC21_S1:
@@ -7112,6 +7121,9 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
     case elfcpp::R_NANOMIPS_TLS_DTPREL:
     case elfcpp::R_NANOMIPS_TLS_TPREL:
       reloc_status = Reloc_funcs::relsize(view, value);
+      break;
+    case elfcpp::R_NANOMIPS_PC32:
+      reloc_status = Reloc_funcs::relpc32(view, value, check_overflow);
       break;
     case elfcpp::R_NANOMIPS_PC25_S1:
       reloc_status = Reloc_funcs::relpc25_s1(view, value, align,
@@ -7288,6 +7300,7 @@ const Target::Target_info Target_nanomips<size, big_endian>::nanomips_info =
   NULL,                 // attributes_vendor
   "__start",            // entry_symbol_name
   32,                   // hash_entry_size
+  elfcpp::SHT_PROGBITS, // unwind_section_type
 };
 
 // Target selector for Nanomips.
