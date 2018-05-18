@@ -2559,6 +2559,17 @@ class Sized_relobj_file : public Sized_relobj<size, big_endian>
   symtab_shndx() const
   { return this->symtab_shndx_; }
 
+  // Return the number of local symbols which go into the output
+  // file's dynamic symbol table.
+  unsigned int
+  output_local_dynsym_count() const
+  { return this->output_local_dynsym_count_; }
+
+  // Return the file offset for local dynamic symbols.
+  off_t
+  local_dynsym_offset() const
+  { return this->local_dynsym_offset_; }
+
   // Allow a child class to access the ELF file.
   elfcpp::Elf_file<size, big_endian, Object>*
   elf_file()
@@ -2593,6 +2604,15 @@ class Sized_relobj_file : public Sized_relobj<size, big_endian>
   do_relocate_sections(const Symbol_table* symtab, const Layout* layout,
 		       const unsigned char* pshdrs, Output_file* of,
 		       Views* pviews);
+
+  // This may be overriden by a child class.
+  virtual void
+  do_write_local_symbols(Output_file* of,
+			 const Stringpool_template<char>* sympool,
+			 const Stringpool_template<char>* dynpool,
+			 Output_symtab_xindex* symtab_xindex,
+			 Output_symtab_xindex* dynsym_xindex,
+			 off_t symtab_off);
 
   // Relocate section data for a range of sections.
   void
@@ -2773,12 +2793,16 @@ class Sized_relobj_file : public Sized_relobj<size, big_endian>
 
   // Write out the local symbols.
   void
-  write_local_symbols(Output_file*,
-		      const Stringpool_template<char>*,
-		      const Stringpool_template<char>*,
-		      Output_symtab_xindex*,
-		      Output_symtab_xindex*,
-		      off_t);
+  write_local_symbols(Output_file* of,
+		      const Stringpool* sympool,
+		      const Stringpool* dynpool,
+		      Output_symtab_xindex* symtab_xindex,
+		      Output_symtab_xindex* dynsym_xindex,
+		      off_t symtab_off)
+  {
+    this->do_write_local_symbols(of, sympool, dynpool, symtab_xindex,
+				 dynsym_xindex, symtab_off);
+  }
 
   // Record a mapping from discarded section SHNDX to the corresponding
   // kept section.

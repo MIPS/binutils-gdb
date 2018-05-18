@@ -2583,7 +2583,7 @@ Sized_relobj_file<size, big_endian>::do_section_entsize(unsigned int shndx)
 
 template<int size, bool big_endian>
 void
-Sized_relobj_file<size, big_endian>::write_local_symbols(
+Sized_relobj_file<size, big_endian>::do_write_local_symbols(
     Output_file* of,
     const Stringpool* sympool,
     const Stringpool* dynpool,
