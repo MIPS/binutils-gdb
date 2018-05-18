@@ -191,5 +191,4 @@ Disassembly of section \.text\.other:
 
 00000000 <test_other_sect>:
    0:	dbe0      	jrc	ra
-			0: R_NANOMIPS_ALIGN	__reloc_align__1
 #pass
