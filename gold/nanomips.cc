@@ -645,14 +645,10 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
     return this->local_symbol_is_function_[symndx];
   }
 
-  bool
-  do_local_symbol_size_changed() const
-  { return true; }
-
   // Return the local symbol size.  This is only valid after
   // do_count_local_symbol is called.
   Size_type
-  do_local_symbol_size(unsigned int symndx) const
+  local_symbol_size(unsigned int symndx) const
   {
     gold_assert(symndx < this->local_symbol_size_.size());
     return this->local_symbol_size_[symndx];

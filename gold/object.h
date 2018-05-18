@@ -2315,17 +2315,6 @@ class Sized_relobj_file : public Sized_relobj<size, big_endian>
   adjust_local_symbol(Symbol_value<size>* lv) const
   { return this->do_adjust_local_symbol(lv); }
 
-  // Return whether the size of the local symbol is changed during linking.
-  // This is mainly for targets that performs relaxations.
-  bool
-  local_symbol_size_changed() const
-  { return this->do_local_symbol_size_changed(); }
-
-  // Return the size of the local symbol.
-  Size_type
-  local_symbol_size(unsigned int symndx) const
-  { return this->do_local_symbol_size(symndx); }
-
   // Return the name of the symbol that spans the given offset in the
   // specified section in this object.  This is used only for error
   // messages and is not particularly efficient.
@@ -2617,16 +2606,6 @@ class Sized_relobj_file : public Sized_relobj<size, big_endian>
   virtual bool
   do_adjust_local_symbol(Symbol_value<size>*) const
   { return true; }
-
-  // This may be overriden by a child class.
-  virtual bool
-  do_local_symbol_size_changed() const
-  { return false; }
-
-  // This may be overriden by a child class.
-  virtual Size_type
-  do_local_symbol_size(unsigned int) const
-  { gold_unreachable(); }
 
   // Allow a child to set output local symbol count.
   void

@@ -2647,7 +2647,6 @@ Sized_relobj_file<size, big_endian>::write_local_symbols(
 
   gold_assert(this->local_values_.size() == loccount);
 
-  const bool lsym_size_changed = this->local_symbol_size_changed();
   unsigned char* ov = oview;
   unsigned char* dyn_ov = dyn_oview;
   psyms += sym_size;
@@ -2676,9 +2675,6 @@ Sized_relobj_file<size, big_endian>::write_local_symbols(
 	    }
 	}
 
-      Size_type st_size =
-        lsym_size_changed ? this->local_symbol_size(i) : isym.get_st_size();
-
       // Write the symbol to the output symbol table.
       if (lv.has_output_symtab_entry())
 	{
@@ -2688,7 +2684,7 @@ Sized_relobj_file<size, big_endian>::write_local_symbols(
 	  const char* name = pnames + isym.get_st_name();
 	  osym.put_st_name(sympool->get_offset(name));
 	  osym.put_st_value(lv.value(this, 0));
-	  osym.put_st_size(st_size);
+	  osym.put_st_size(isym.get_st_size());
 	  osym.put_st_info(isym.get_st_info());
 	  osym.put_st_other(isym.get_st_other());
 	  osym.put_st_shndx(st_shndx);
@@ -2706,7 +2702,7 @@ Sized_relobj_file<size, big_endian>::write_local_symbols(
 	  const char* name = pnames + isym.get_st_name();
 	  osym.put_st_name(dynpool->get_offset(name));
 	  osym.put_st_value(lv.value(this, 0));
-	  osym.put_st_size(st_size);
+	  osym.put_st_size(isym.get_st_size());
 	  osym.put_st_info(isym.get_st_info());
 	  osym.put_st_other(isym.get_st_other());
 	  osym.put_st_shndx(st_shndx);
