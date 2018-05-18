@@ -15,9 +15,8 @@ $LFB1 = .
 	.ent	main
 	.type	main, @function
 main:
-	nop
-	.align 2
 	save	16,$ra
+	.align 2
 	.cfi_def_cfa_offset 16
 	.cfi_offset 31, -4
 	.loc 1 8 0
