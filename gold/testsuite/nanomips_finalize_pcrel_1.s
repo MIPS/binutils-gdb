@@ -1,6 +1,6 @@
 	.linkrelax
 	.section	.text,"ax",@progbits
-	.align	1
+	.align	4
 	.globl	__start
 	.ent	__start
 __start:

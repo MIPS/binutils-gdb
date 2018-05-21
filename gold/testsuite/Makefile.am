@@ -4542,7 +4542,7 @@ nanomips_address_calculation_abs_2: nanomips_address_calculation_abs.o ../ld-new
 	../ld-new --section-start .text=0x1000 --section-start .sdata=0x2001020 -o $@ $<
 
 nanomips_address_calculation_pid_1: nanomips_address_calculation_pid_1.o ../ld-new
-	../ld-new -o $@ $<
+	../ld-new --section-start .text=0x1000 -o $@ $<
 
 nanomips_address_calculation_pid_2: nanomips_address_calculation_pid_2.o ../ld-new
 	../ld-new $(srcdir)/nanomips_gprel_out_of_range.t -o $@ $<
@@ -4621,7 +4621,7 @@ nanomips_data_access_pcrel_3: nanomips_data_access_pcrel_nms.o ../ld-new
 	../ld-new --section-start .text=0x1000 --section-start .sdata=0x2001020 -o $@ $<
 
 nanomips_data_access_pid_1: nanomips_data_access_pid.o ../ld-new
-	../ld-new -o $@ $<
+	../ld-new --section-start .text=0x1000 -o $@ $<
 
 nanomips_data_access_pid_2: nanomips_data_access_pid.o ../ld-new
 	../ld-new $(srcdir)/nanomips_gprel_out_of_range.t -o $@ $<

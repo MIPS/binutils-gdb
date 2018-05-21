@@ -3,8 +3,8 @@
 # nanomips_address_calculation.sh -- test nanoMIPS address calculation
 # transformations.
 
-# Copyright (C) 2017 Free Software Foundation, Inc.
-# Written by Vladimir Radosavljevic <vladimir.radosavljevic@imgtec.com>.
+# Copyright (C) 2018 Free Software Foundation, Inc.
+# Written by Vladimir Radosavljevic <vladimir.radosavljevic@mips.com>.
 
 # This file is part of gold.
 
@@ -55,8 +55,8 @@ check nanomips_address_calculation_abs_2.stdout " 1000:	e0e0 1040 	lui	a3,.*"
 check nanomips_address_calculation_abs_2.stdout " 1004:	80e7 0024 	ori	a3,a3,0x24"
 
 # Test lw %got_disp transformation into addiu[gp.w]/addiu[gp.b].
-check nanomips_address_calculation_pid_1.stdout " 400094:	40e0 0004 	addiu	a3,gp,4"
-check nanomips_address_calculation_pid_1.stdout " 400098:	44ec 0002 	addiu	a3,gp,2"
+check nanomips_address_calculation_pid_1.stdout " 1000:	40e0 0004 	addiu	a3,gp,4"
+check nanomips_address_calculation_pid_1.stdout " 1004:	44ec 0002 	addiu	a3,gp,2"
 
 # Test lw %got_disp transformation into lui, ori, addu.
 check nanomips_address_calculation_pid_2.stdout " 1000:	e0f0 003c 	lui	a3,%hi(0x1f00000)"

@@ -1,7 +1,7 @@
 // nanomips-reloc-property.h -- Nanomips relocation properties   -*- C++ -*-
 
-// Copyright (C) 2017 Free Software Foundation, Inc.
-// Written by Vladimir Radosavljevic <vladimir.radosavljevic@imgtec.com>
+// Copyright (C) 2018 Free Software Foundation, Inc.
+// Written by Vladimir Radosavljevic <vladimir.radosavljevic@mips.com>
 
 // This file is part of gold.
 
@@ -67,20 +67,10 @@ class Nanomips_reloc_property
   bitsize() const
   { return this->bitsize_; }
 
-  // Return the alignment requirement for this relocation.
-  unsigned int
-  align() const
-  { return this->align_; }
-
   // Return reference flags for this relocation.
   int
   reference_flags() const
   { return this->reference_flags_; }
-
-  // Return whether we need to shuffle the bits for this relocation.
-  bool
-  shuffle_reloc() const
-  { return this->size_ == 32 || this->size_ == 48;}
 
   // Return the mask to match instructions.
   unsigned int
@@ -95,7 +85,6 @@ class Nanomips_reloc_property
                           Reloc_type reloc_type,
                           unsigned int size,
                           unsigned int bitsize,
-                          unsigned int align,
                           unsigned int mask,
                           int reference_flags);
 
@@ -116,8 +105,6 @@ class Nanomips_reloc_property
   unsigned int size_;
   // The number of bits in the instruction to be relocated.
   unsigned int bitsize_;
-  // Alignment requirement for this relocation.
-  unsigned int align_;
   // Mask to match instructions.
   unsigned int mask_;
   // Reference flags for this relocation.

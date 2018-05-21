@@ -2,8 +2,8 @@
 
 # nanomips_data_access.sh -- test nanoMIPS data access transformations.
 
-# Copyright (C) 2017 Free Software Foundation, Inc.
-# Written by Vladimir Radosavljevic <vladimir.radosavljevic@imgtec.com>.
+# Copyright (C) 2018 Free Software Foundation, Inc.
+# Written by Vladimir Radosavljevic <vladimir.radosavljevic@mips.com>.
 
 # This file is part of gold.
 
@@ -83,14 +83,14 @@ check nanomips_data_access_abs.stdout " 1038:	e0c0 1040 	lui	a2,.*"
 check nanomips_data_access_abs.stdout " 103c:	8646 1020 	sb	s2,32(a2)"
 
 # Test ls[w] %got_ofst transformation into [ls][bh]/[ls]w.
-check nanomips_data_access_pid_1.stdout " 400094:	5681      	lw	a1,4(gp)"
-check nanomips_data_access_pid_1.stdout " 400096:	d701      	sw	a2,4(gp)"
-check nanomips_data_access_pid_1.stdout " 400098:	4590 0002 	lh	t0,2(gp)"
-check nanomips_data_access_pid_1.stdout " 40009c:	45b0 0003 	lhu	t1,2(gp)"
-check nanomips_data_access_pid_1.stdout " 4000a0:	45d4 0002 	sh	t2,2(gp)"
-check nanomips_data_access_pid_1.stdout " 4000a4:	4600 0000 	lb	s0,0(gp)"
-check nanomips_data_access_pid_1.stdout " 4000a8:	4628 0000 	lbu	s1,0(gp)"
-check nanomips_data_access_pid_1.stdout " 4000ac:	4644 0000 	sb	s2,0(gp)"
+check nanomips_data_access_pid_1.stdout " 1000:	5681      	lw	a1,4(gp)"
+check nanomips_data_access_pid_1.stdout " 1002:	d701      	sw	a2,4(gp)"
+check nanomips_data_access_pid_1.stdout " 1004:	4590 0002 	lh	t0,2(gp)"
+check nanomips_data_access_pid_1.stdout " 1008:	45b0 0003 	lhu	t1,2(gp)"
+check nanomips_data_access_pid_1.stdout " 100c:	45d4 0002 	sh	t2,2(gp)"
+check nanomips_data_access_pid_1.stdout " 1010:	4600 0000 	lb	s0,0(gp)"
+check nanomips_data_access_pid_1.stdout " 1014:	4628 0000 	lbu	s1,0(gp)"
+check nanomips_data_access_pid_1.stdout " 1018:	4644 0000 	sb	s2,0(gp)"
 
 # Test ls[w] %got_ofst transformation into lui, addu, ls[X].
 check nanomips_data_access_pid_2.stdout " 1000:	e090 003c 	lui	a0,%hi(0x1f00000)"

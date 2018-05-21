@@ -1,7 +1,7 @@
 // nanomips-insn-property.cc -- Nanomips instruction properties   -*- C++ -*-
 
-// Copyright (C) 2017 Free Software Foundation, Inc.
-// Written by Vladimir Radosavljevic <vladimir.radosavljevic@imgtec.com>
+// Copyright (C) 2018 Free Software Foundation, Inc.
+// Written by Vladimir Radosavljevic <vladimir.radosavljevic@mips.com>
 
 // This file is part of gold.
 
@@ -27,7 +27,9 @@
 
 namespace gold
 {
+
 // Mapping registers from input to output instruction.
+
 enum Reg_mapping
 {
   // Maps to treg register from the input instruction.
@@ -67,18 +69,21 @@ public:
 };
 
 // Insert register in nanoMIPS instruction.
+
 template<int P, int B, int Reg_mapping>
 uint32_t
 insert_reg(unsigned int in_treg, unsigned int in_sreg, uint32_t data)
 { return Insert_reg_impl<P, B, Reg_mapping>::put(in_treg, in_sreg, data); }
 
 // Extract register from nanoMIPS instruction.
+
 template<int P, int B>
 unsigned int
 extract_reg(uint32_t insn)
 { return Extract_reg_impl<P, B>::get(insn); }
 
 // Return target register in move.balc nanoMIPS instruction.
+
 unsigned int
 move_balc_treg_32(uint32_t insn)
 {
@@ -90,22 +95,26 @@ move_balc_treg_32(uint32_t insn)
 }
 
 // Return destination register in move.balc nanoMIPS instruction.
+
 unsigned int
 move_balc_dreg_32(uint32_t insn)
 { return ((insn >> 24) & 0x1) + 4; }
 
 // Check if a 5-bit register index can be abbreviated to 3 bits.
+
 bool
 valid_reg(unsigned int reg)
 { return ((4 <= reg && reg <= 7) || (16 <= reg && reg <= 19)); }
 
 // Check if a 5-bit source register index in store instruction
 // can be abbreviated to 3 bits.
+
 bool
 valid_st_src_reg(unsigned int reg)
 { return (reg == 0 || (4 <= reg && reg <= 7) || (17 <= reg && reg <= 19)); }
 
 // Convert 3-bit to 5-bit register index.
+
 unsigned int
 convert_reg(unsigned int reg)
 {
@@ -115,6 +124,7 @@ convert_reg(unsigned int reg)
 }
 
 // Convert 3-bit to 5-bit source register index in store instruction.
+
 unsigned int
 convert_st_src_reg(unsigned int reg)
 {

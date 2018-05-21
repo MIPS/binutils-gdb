@@ -1,7 +1,7 @@
 // nanomips-insn-property.h -- Nanomips instruction properties   -*- C++ -*-
 
-// Copyright (C) 2017 Free Software Foundation, Inc.
-// Written by Vladimir Radosavljevic <vladimir.radosavljevic@imgtec.com>
+// Copyright (C) 2018 Free Software Foundation, Inc.
+// Written by Vladimir Radosavljevic <vladimir.radosavljevic@mips.com>
 
 // This file is part of gold.
 
@@ -36,38 +36,36 @@ enum Transform_type
   TT_NONE = 0,
   // Discard relocation.
   TT_DISCARD,
-  // Relaxation from 32 to 16 bit instruction.
+  // Relaxation from 32-bit to 16-bit instruction.
   TT_RELAX,
-  // beqc[16] and bnec[16] have the same opcode, so we need to distinguish to
-  // which 32bit instruction we need to transform it.
+  // beqc[16] and bnec[16] have the same opcode, so we need to distinguish
+  // to which 32-bit instruction we need to transform it.
   TT_BEQC32,
   TT_BNEC32,
-  // Transformation for move.balc instruction.
-  TT_MOVE_BALC,
-  // Absolute transformation to 32 bit instruction.
+  // Absolute transformation to 32-bit instruction.
   TT_ABS32,
-  // Absolute transformation where one instruction is 48 bit.
+  // Absolute transformation where one instruction is 48-bit.
   TT_ABS_XLP,
   // Absolute long sequence transformations.
   TT_ABS16_LONG,
   TT_ABS32_LONG,
-  // Transform to 16 bit gp-relative instruction.
+  // Transform to 16-bit gp-relative instruction.
   TT_GPREL16_WORD,
-  // Transform to 32 bit gp-relative instruction.
+  // Transform to 32-bit gp-relative instruction.
   TT_GPREL32_WORD,
-  // Transform to 32bit gp-relative instruction.
+  // Transform to 32-bit gp-relative instruction.
   TT_GPREL32,
-  // Gp-relative transformations where one instruction is 48 bit.
+  // Gp-relative transformations where one instruction is 48-bit.
   TT_GPREL32_XLP,
   TT_GPREL_XLP,
   // Gp-relative long sequence transformations.
   TT_GPREL_LONG,
   TT_GPREL_LONG_ADDRESS,
-  // Transform to 16bit pc-relative instruction.
+  // Transform to 16-bit pc-relative instruction.
   TT_PCREL16,
-  // Transform to 32bit pc-relative instruction.
+  // Transform to 32-bit pc-relative instruction.
   TT_PCREL32,
-  // Pc-relative transformation where one instruction is 48 bit.
+  // Pc-relative transformation where one instruction is 48-bit.
   TT_PCREL_XLP,
   // Pc-relative long sequence transformations.
   TT_PCREL16_LONG,
@@ -226,8 +224,8 @@ class Nanomips_insn_property
     return this->ext_sreg_func_(insn);
   }
 
-  // Convert target register in 16bit instruction to register
-  // in 32 bit instruction.
+  // Convert target register in 16-bit instruction to register
+  // in 32-bit instruction.
   unsigned int
   convert_treg(uint32_t insn) const
   {
@@ -235,8 +233,8 @@ class Nanomips_insn_property
     return this->convert_treg_func_(this->treg(insn));
   }
 
-  // Convert source register in 16bit instruction to register
-  // in 32 bit instruction.
+  // Convert source register in 16-bit instruction to register
+  // in 32-bit instruction.
   unsigned int
   convert_sreg(uint32_t insn) const
   {

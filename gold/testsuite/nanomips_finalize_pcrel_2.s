@@ -1,5 +1,5 @@
 	.section	.text,"ax",@progbits
-	.align	1
+	.align	4
 	.global	foo
 	.ent	foo
 foo:

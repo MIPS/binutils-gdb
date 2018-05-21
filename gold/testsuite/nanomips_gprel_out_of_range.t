@@ -1,7 +1,7 @@
 /* nanomips_gprel_out_of_range.t -- test gp-relative load and store expansions.
 
-   Copyright (C) 2017 Free Software Foundation, Inc.
-   Written by Vladimir Radosavljevic <vladimir.radosavljevic@imgtec.com>.
+   Copyright (C) 2018 Free Software Foundation, Inc.
+   Written by Vladimir Radosavljevic <vladimir.radosavljevic@mips.com>.
 
    This file is part of gold.
 

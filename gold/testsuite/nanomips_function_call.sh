@@ -2,8 +2,8 @@
 
 # nanomips_function_call.sh -- test nanoMIPS function call transformations.
 
-# Copyright (C) 2017 Free Software Foundation, Inc.
-# Written by Vladimir Radosavljevic <vladimir.radosavljevic@imgtec.com>.
+# Copyright (C) 2018 Free Software Foundation, Inc.
+# Written by Vladimir Radosavljevic <vladimir.radosavljevic@mips.com>.
 
 # This file is part of gold.
 
