@@ -1680,17 +1680,6 @@ class Target_nanomips : public Sized_target<size, big_endian>
   do_should_include_section(elfcpp::Elf_Word sh_type) const
   { return sh_type != elfcpp::SHT_NANOMIPS_ABIFLAGS; }
 
-  // Return the value to use for a dynamic symbol which requires special
-  // treatment.
-  uint64_t
-  do_dynsym_value(const Symbol* gsym) const
-  {
-    const Nanomips_symbol<size>* nanomips_sym =
-      Nanomips_symbol<size>::as_nanomips_sym(gsym);
-    gold_assert(nanomips_sym->is_from_dynobj());
-    return this->nanomips_stubs_section()->stub_address(nanomips_sym);
-  }
-
   void
   do_select_as_default_target()
   {
@@ -2386,8 +2375,6 @@ Nanomips_output_data_stubs<size, big_endian>::set_lazy_stub_offsets()
 
       // Set stub offset and create dynamic relocation for the symbol.
       Nanomips_symbol<size>* sym = entry.sym;
-      if (sym->is_from_dynobj())
-        sym->set_needs_dynsym_value();
       this->rel_->add_global(sym, elfcpp::R_NANOMIPS_JUMP_SLOT,
                              this->target_->got_section(),
                              sym->got_offset(GOT_TYPE_STANDARD));
