@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!-- Copyright (C) 2018 Free Software Foundation, Inc.
+
+     Copying and distribution of this file, with or without modification,
+     are permitted in any medium without royalty provided the copyright
+     notice and this notice are preserved.  -->
+
+<!DOCTYPE target SYSTEM "gdb-target.dtd">
+<target>
+  <architecture>nanomips</architecture>
+  <osabi>GNU/Linux</osabi>
+  <xi:include href="nanomips64-cpu.xml"/>
+  <feature name="org.gnu.gdb.nanomips.linux">
+    <reg name="restart" bitsize="64" group="system"/>
+  </feature>
+  <xi:include href="nanomips64-cp0.xml"/>
+  <xi:include href="nanomips-fpu.xml"/>
+  <xi:include href="nanomips64-dsp.xml"/>
+</target>
