@@ -1,13 +1,13 @@
 /* THIS FILE IS GENERATED.  -*- buffer-read-only: t -*- vi:set ro:
-  Original: nanomips-linux.xml */
+  Original: nanomips-dsp-linux.xml */
 
 #include "defs.h"
 #include "osabi.h"
 #include "target-descriptions.h"
 
-struct target_desc *tdesc_nanomips_linux;
+struct target_desc *tdesc_nanomips_dsp_linux;
 static void
-initialize_tdesc_nanomips_linux (void)
+initialize_tdesc_nanomips_dsp_linux (void)
 {
   struct target_desc *result = allocate_target_description ();
   struct tdesc_feature *feature;
@@ -95,5 +95,16 @@ initialize_tdesc_nanomips_linux (void)
   tdesc_create_reg (feature, "fcsr", 69, 1, "float", 32, "int");
   tdesc_create_reg (feature, "fir", 70, 1, "float", 32, "int");
 
-  tdesc_nanomips_linux = result;
+  feature = tdesc_create_feature (result, "org.gnu.gdb.nanomips.dsp");
+  tdesc_create_reg (feature, "hi0", 71, 1, NULL, 32, "int");
+  tdesc_create_reg (feature, "lo0", 72, 1, NULL, 32, "int");
+  tdesc_create_reg (feature, "hi1", 73, 1, NULL, 32, "int");
+  tdesc_create_reg (feature, "lo1", 74, 1, NULL, 32, "int");
+  tdesc_create_reg (feature, "hi2", 75, 1, NULL, 32, "int");
+  tdesc_create_reg (feature, "lo2", 76, 1, NULL, 32, "int");
+  tdesc_create_reg (feature, "hi3", 77, 1, NULL, 32, "int");
+  tdesc_create_reg (feature, "lo3", 78, 1, NULL, 32, "int");
+  tdesc_create_reg (feature, "dspctl", 79, 1, NULL, 32, "int");
+
+  tdesc_nanomips_dsp_linux = result;
 }
