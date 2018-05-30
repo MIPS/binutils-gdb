@@ -163,7 +163,9 @@ extern bfd_boolean nanomips_allow_local_subtract (expressionS *,
    indicating whether the size of the frag is link-time variable.  */
 struct nanomips_frag_type
 {
-  struct fix * first_fix;
+  struct fix *first_fix;
+  struct reloc_list *first_exp_fix;
+  bfd_boolean checked_exp_fix;
   bfd_vma relax_sop;
   bfd_vma relax_sink;
   bfd_boolean link_var;
@@ -201,5 +203,8 @@ void nanomips_eh_frame_convert_frag (fragS *);
   nanomips_eh_frame_convert_frag (frag)
 
 #define md_section_align(SEGMENT, SIZE)     (SIZE)
+
+void nanomips_pre_relax_hook (void);
+#define md_pre_relax_hook nanomips_pre_relax_hook()
 
 #endif /* TC_NANOMIPS */
