@@ -15,4 +15,5 @@
   </feature>
   <xi:include href="nanomips-cp0.xml"/>
   <xi:include href="nanomips-fpu.xml"/>
+  <xi:include href="nanomips-dsp.xml"/>
 </target>
