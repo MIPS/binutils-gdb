@@ -31,5 +31,4 @@ Disassembly of section \.text:
   20:	6083 0000 	lapc	a0,0 <test1>
   24:	0000 
 			22: R_NANOMIPS_PC_I32	test1
-  26:	9008      	nop
 #pass

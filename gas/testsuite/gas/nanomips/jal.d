@@ -18,5 +18,4 @@ Disassembly of section \.text:
 			e: R_NANOMIPS_PC25_S1	text_label
 0+0012 <text_label\+0x12> 2800 0000 	bc	00000000 <external_text_label>
 			12: R_NANOMIPS_PC25_S1	external_text_label
-0+0016 <text_label\+0x16> 9008      	nop
 #pass
