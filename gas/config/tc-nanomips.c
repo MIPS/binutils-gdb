@@ -2687,19 +2687,7 @@ md_begin (void)
 
   nanomips_flush_pending_output ();
 
-  /* set the default alignment for the text section (2**2) */
-  record_alignment (text_section, 2);
-
   bfd_set_gp_size (stdoutput, g_switch_value);
-
-  /* On a native system sections must be aligned to 16 byte boundaries.
-     When configured for an embedded ELF target, we don't bother.  */
-  if (strncmp (TARGET_OS, "elf", 3) != 0)
-    {
-      (void) bfd_set_section_alignment (stdoutput, text_section, 4);
-      (void) bfd_set_section_alignment (stdoutput, data_section, 4);
-      (void) bfd_set_section_alignment (stdoutput, bss_section, 4);
-    }
 
   {
     segT seg;

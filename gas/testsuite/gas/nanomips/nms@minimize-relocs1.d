@@ -187,7 +187,6 @@ Disassembly of section \.text:
 
 00000108 <test_weak>:
  108:	dbe0      	jrc	ra
- 10a:	9008      	nop
 #...
 Disassembly of section \.text\.other:
 
