@@ -1217,6 +1217,9 @@ class General_options
 
   // s
 
+  DEFINE_bool(strict_address_modes, options::TWO_DASHES, '\0', true,
+	      N_("(Nanomips only) Strict address modes for expansions"),
+	      N_("(Nanomips only) Don't strict address modes for expansions"));
   DEFINE_bool(strip_all, options::TWO_DASHES, 's', false,
 	      N_("Strip all symbols"), NULL);
   DEFINE_bool(strip_debug, options::TWO_DASHES, 'S', false,
