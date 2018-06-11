@@ -321,6 +321,7 @@ NTT(TT_ABS32_LONG,                { LUI32(HI20, TREG), ORI32(LO12, TREG, TREG) }
 NTT(TT_PCREL32,                   { LAPC32(SREG) })
 NTT(TT_PCREL_XLP,                 { LAPC48 })
 NTT(TT_PCREL32_LONG,              { ALUIPC32(PC_HI20, TREG), ORI32(LO12, TREG, TREG) })
+NTT(TT_PCREL_XLP_NO_STRICT,       { LWPC48(PC_I32) })
 NTT(TT_GPREL32,                   { ADDIUGPB32 })
 NTT(TT_GPREL32_WORD,              { ADDIUGPW32 })
 NTT(TT_GPREL_XLP,                 { ADDIUGP48(TREG) })
@@ -335,6 +336,7 @@ NIP32("sw[gp]",         0x40000003,    EXT_REG(21, 5),       valid_st_src_reg,  
 NTT(TT_RELAX,                     { SWGP16 })
 NTT(TT_GPREL32_XLP,               { ADDIUGP48(SREG), SW32(NONE) })
 NTT(TT_GPREL_LONG,                { LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG), SW32(GPREL_LO12) })
+NTT(TT_PCREL_XLP_NO_STRICT,       { SWPC48 })
 
 // addiu[gp.w] $reg, $gp, %gprel(sym)
 // Note: We are using TT_GPREL32_XLP type just to be consistent with other

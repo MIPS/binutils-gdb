@@ -72,7 +72,10 @@ enum Transform_type
   TT_PCREL32_LONG,
   // Pc-relative GOT transformations.
   TT_GOTPCREL_XLP,
-  TT_GOTPCREL_LONG
+  TT_GOTPCREL_LONG,
+  // Transformation from gp-relative instruction into pc-relative instruction
+  // when --no-strict-address-modes option is passed.
+  TT_PCREL_XLP_NO_STRICT
 };
 
 // The Nanomips_insn_template class is to store information about a

@@ -4338,7 +4338,7 @@ MOSTLYCLEANFILES += nanomips_b_out_of_range_pcrel nanomips_b_out_of_range_insn32
 		    nanomips_lapc_out_of_range_nms_pcrel nanomips_lapc_out_of_range_abs \
 		    nanomips_lapc_out_of_range_nms_abs
 
-# Check expansions of gp-relative load and store instructions.
+# Check expansions of gp-relative instructions.
 
 check_SCRIPTS += nanomips_gprel_out_of_range.sh
 check_DATA += nanomips_gprel_out_of_range.stdout \
@@ -4363,6 +4363,22 @@ nanomips_gprel_nms_out_of_range.o: nanomips_gprel_out_of_range.s
 	$(TEST_AS) -EL -march=32r6 -m32 -o $@ $<
 
 MOSTLYCLEANFILES += nanomips_gprel_out_of_range nanomips_gprel_nms_out_of_range
+
+# Check expansions of lw[gp] and sw[gp] instructions with --no-strict-address-modes option.
+
+check_SCRIPTS += nanomips_gprel_out_of_range_no_strict.sh
+check_DATA += nanomips_gprel_out_of_range_no_strict.stdout
+
+nanomips_gprel_out_of_range_no_strict.stdout: nanomips_gprel_out_of_range_no_strict
+	$(TEST_OBJDUMP) -d $< > $@
+
+nanomips_gprel_out_of_range_no_strict: nanomips_gprel_out_of_range_no_strict.o ../ld-new
+	../ld-new -T $(srcdir)/nanomips_gprel_out_of_range.t --no-strict-address-modes -o $@ $<
+
+nanomips_gprel_out_of_range_no_strict.o: nanomips_gprel_out_of_range_no_strict.s
+	$(TEST_AS) -EL -march=32r6 -m32 -o $@ $<
+
+MOSTLYCLEANFILES += nanomips_gprel_out_of_range_no_strict
 
 # Test sorting small data section.
 

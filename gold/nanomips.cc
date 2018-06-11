@@ -4161,6 +4161,13 @@ Nanomips_expand_insn<size, big_endian>::expand_type(
       // Transform into opposite branch and bc instruction.
       return TT_PCREL32_LONG;
     case elfcpp::R_NANOMIPS_GPREL19_S2:
+      if (xlp
+          && !parameters->options().strict_address_modes()
+          && insn_property->has_transform(TT_PCREL_XLP_NO_STRICT))
+        // Transform [ls]w[gp] into [ls]wpc.
+        return TT_PCREL_XLP_NO_STRICT;
+      // Fall through.
+
     case elfcpp::R_NANOMIPS_GPREL18:
     case elfcpp::R_NANOMIPS_GPREL17_S1:
       // Transform addiu[gp.[wb]] to lui, ori, addu or into addiu[gp48],
