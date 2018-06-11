@@ -255,12 +255,30 @@ Mapfile::print_input_section(Relobj* relobj, unsigned int shndx)
       addr = relobj->output_section_offset(shndx);
       if (addr != -1ULL)
 	addr += os->address();
+      else
+	{
+	  const Output_relaxed_input_section* poris =
+	    os->find_relaxed_input_section(relobj, shndx);
+	  gold_assert(poris != NULL);
+	  addr = poris->address();
+	}
     }
 
   char sizebuf[50];
   section_size_type size;
   if (!relobj->section_is_compressed(shndx, &size))
-    size = relobj->section_size(shndx);
+    {
+      if (!relobj->is_output_section_offset_invalid(shndx))
+	size = relobj->section_size(shndx);
+      else
+	{
+	  const Output_relaxed_input_section* poris =
+	    os->find_relaxed_input_section(relobj, shndx);
+	  gold_assert(poris != NULL);
+	  size = poris->current_data_size();
+	}
+    }
+
   snprintf(sizebuf, sizeof sizebuf, "0x%llx",
 	   static_cast<unsigned long long>(size));
 
