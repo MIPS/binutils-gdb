@@ -1495,10 +1495,6 @@ class Target_nanomips : public Sized_target<size, big_endian>
                              const unsigned char* view,
                              Address view_address);
 
-  // Return a string used to fill a code section with nops.
-  std::string
-  do_code_fill(section_size_type length) const;
-
   // Return whether SYM is defined by the ABI.
   bool
   do_is_defined_by_abi(const Symbol* sym) const
@@ -4459,26 +4455,6 @@ Nanomips_expand_insn_finalize<size, big_endian>::type(
 
 // Target_nanomips methods.
 
-// Return a string used to fill a code section with nops.
-
-template<int size, bool big_endian>
-std::string
-Target_nanomips<size, big_endian>::do_code_fill(section_size_type length) const
-{
-  if (length & 1)
-    gold_warning(_("nanoMIPS code fill of odd length requested"));
-
-  unsigned char nop_buff[2];
-  elfcpp::Swap_unaligned<16, big_endian>::writeval(nop_buff, 0x9008);
-  std::string nop(reinterpret_cast<char*>(nop_buff), 2);
-
-  std::string this_fill;
-  this_fill.reserve(length);
-  while (this_fill.length() + nop.length() <= length)
-    this_fill += nop;
-  return this_fill;
-}
-
 // Create a .nanoMIPS.stubs entry for a global symbol.
 
 template<int size, bool big_endian>
@@ -7314,7 +7290,7 @@ const Target::Target_info Target_nanomips<size, big_endian>::nanomips_info =
   elfcpp::EM_NANOMIPS,  // machine_code
   true,                 // has_make_symbol
   false,                // has_resolve
-  true,                 // has_code_fill
+  false,                // has_code_fill
   true,                 // is_default_stack_executable
   false,                // can_icf_inline_merge_sections
   '\0',                 // wrap_char
