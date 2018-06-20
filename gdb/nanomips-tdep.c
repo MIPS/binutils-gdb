@@ -272,7 +272,6 @@ nanomips_register_name (struct gdbarch *gdbarch, int regno)
   if (regno < gdbarch_num_regs (gdbarch))
     return "";
 
-  gdb_assert (tdesc_has_registers (gdbarch_target_desc (gdbarch)));
   return tdesc_register_name (gdbarch, rawnum);
 }
 
@@ -2898,6 +2897,7 @@ nanomips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   int i, num_regs;
   enum fpu_type fpu_type;
   struct tdesc_arch_data *tdesc_data = NULL;
+  const struct target_desc *tdesc = info.target_desc;
   int elf_fpu_type = Val_GNU_NANOMIPS_ABI_FP_ANY;
   struct nanomips_regnum nanomips_regnum, *regnum;
   int register_size;
@@ -2913,11 +2913,11 @@ nanomips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   nanomips_regnum.restart = -1;
 
   /* If there's no target description, then use the default.  */
-  if (!tdesc_has_registers (info.target_desc))
-    info.target_desc = tdesc_nanomips;
+  if (!tdesc_has_registers (tdesc))
+    tdesc = tdesc_nanomips;
 
   /* The CPU feature and the registers within are mandatory.  */
-  feature = tdesc_find_feature (info.target_desc, "org.gnu.gdb.nanomips.cpu");
+  feature = tdesc_find_feature (tdesc, "org.gnu.gdb.nanomips.cpu");
   if (feature == NULL)
     return NULL;
 
@@ -2938,8 +2938,7 @@ nanomips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   /* All the remaining target description features are optional.  */
 
   /* Check for and assign a number to the syscall restart PC register.  */
-  feature = tdesc_find_feature (info.target_desc,
-				"org.gnu.gdb.nanomips.linux");
+  feature = tdesc_find_feature (tdesc, "org.gnu.gdb.nanomips.linux");
   if (feature != NULL)
     {
       if (tdesc_numbered_register (feature, tdesc_data, num_regs, "restart"))
@@ -2949,8 +2948,7 @@ nanomips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
 	 These are only special and need known numbers with Linux
 	 targets, due to the use in signal frames, etc.  Bare metal
 	 stubs can simply include them along with other CP0 registers.  */
-      feature = tdesc_find_feature (info.target_desc,
-				    "org.gnu.gdb.nanomips.cp0");
+      feature = tdesc_find_feature (tdesc, "org.gnu.gdb.nanomips.cp0");
       if (feature != NULL)
 	{
 	  if (tdesc_numbered_register (feature, tdesc_data, num_regs,
@@ -2966,7 +2964,7 @@ nanomips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
     }
 
   /* Check for and assign numbers to FPU registers.  */
-  feature = tdesc_find_feature (info.target_desc, "org.gnu.gdb.nanomips.fpu");
+  feature = tdesc_find_feature (tdesc, "org.gnu.gdb.nanomips.fpu");
   if (feature != NULL)
     {
       nanomips_regnum.fpr = num_regs;
@@ -2985,7 +2983,7 @@ nanomips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
     }
 
   /* Check for and assign numbers to DSP registers.  */
-  feature = tdesc_find_feature (info.target_desc, "org.gnu.gdb.nanomips.dsp");
+  feature = tdesc_find_feature (tdesc, "org.gnu.gdb.nanomips.dsp");
   if (feature != NULL)
     {
       nanomips_regnum.dsp = num_regs;
@@ -3244,6 +3242,8 @@ nanomips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   set_gdbarch_vbit_in_delta (gdbarch, 0);
 
   /* Hook in OS ABI-specific overrides, if they have been registered.  */
+  info.target_desc = tdesc;
+  info.tdep_info = (void *) tdesc_data;
   gdbarch_init_osabi (info, gdbarch);
 
   /* Unwind the frame.  */
@@ -3258,7 +3258,7 @@ nanomips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
 
   set_gdbarch_num_regs (gdbarch, num_regs);
   set_tdesc_pseudo_register_type (gdbarch, nanomips_pseudo_register_type);
-  tdesc_use_registers (gdbarch, info.target_desc, tdesc_data);
+  tdesc_use_registers (gdbarch, tdesc, tdesc_data);
 
   /* Override the normal target description methods to handle our
      dual real and pseudo registers.  */
