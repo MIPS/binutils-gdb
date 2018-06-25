@@ -424,18 +424,30 @@ opt_address_and_section_type:
 	    }
 	;
 
-/* Output section type.  */
+/* We only support NOLOAD.  */
 section_type:
 	NOLOAD
 	    { $$ = SCRIPT_SECTION_TYPE_NOLOAD; }
 	| DSECT
-	    { $$ = SCRIPT_SECTION_TYPE_DSECT; }
+	    {
+	      yyerror(closure, "DSECT section type is unsupported");
+	      $$ = SCRIPT_SECTION_TYPE_DSECT;
+	    }
 	| COPY
-	    { $$ = SCRIPT_SECTION_TYPE_COPY; }
+	    {
+	      yyerror(closure, "COPY section type is unsupported");
+	      $$ = SCRIPT_SECTION_TYPE_COPY;
+	    }
 	| INFO
-	    { $$ = SCRIPT_SECTION_TYPE_INFO; }
+	    {
+	      yyerror(closure, "INFO section type is unsupported");
+	      $$ = SCRIPT_SECTION_TYPE_INFO;
+	    }
 	| OVERLAY
-	    { $$ = SCRIPT_SECTION_TYPE_OVERLAY; }
+	    {
+	      yyerror(closure, "OVERLAY section type is unsupported");
+	      $$ = SCRIPT_SECTION_TYPE_OVERLAY;
+	    }
 	;
 
 /* The address at which an output section should be loaded.  */
