@@ -652,9 +652,10 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   Nanomips_relobj(const std::string& name, Input_file* input_file, off_t offset,
                   const typename elfcpp::Ehdr<size, big_endian>& ehdr)
     : Sized_relobj_file<size, big_endian>(name, input_file, offset, ehdr),
-      input_section_ref_(), local_symbol_size_(), local_symbol_is_function_(),
-      attributes_section_data_(NULL), abiflags_(NULL),
-      processor_specific_flags_(0), merge_processor_specific_data_(true),
+      input_section_ref_(), transformable_sections_(NULL), local_symbol_size_(),
+      local_symbol_is_function_(), attributes_section_data_(NULL),
+      abiflags_(NULL), processor_specific_flags_(0),
+      merge_processor_specific_data_(true),
       output_local_symbol_size_needs_update_(false)
   { }
 
@@ -678,15 +679,10 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   scan_sections_for_transform(Target_nanomips<size, big_endian>*,
                               const Symbol_table*, const Layout*);
 
-  // Adjust values of the local symbols.  Also adjust sizes of the function
+  // Adjust values of the symbols.  Also adjust sizes of the function
   // symbols.  This is used in a relaxation passes.
   void
-  adjust_local_symbols(Address, unsigned int, int);
-
-  // Adjust values of the global symbols.  Also adjust sizes of the function
-  // symbols.  This is used in a relaxation passes.
-  void
-  adjust_global_symbols(Address, unsigned int, int);
+  adjust_symbols(Address address, unsigned int shndx, int count);
 
   // Convert regular input section with index SHNDX to a relaxed section.
   void
@@ -802,6 +798,17 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
     return (this->processor_specific_flags_ & pcrel_flag) != 0;
   }
 
+  // This is called when we are done with relaxation passes.
+  void
+  clear_transformable_sections()
+  {
+    if (this->transformable_sections_ != NULL)
+      {
+        delete this->transformable_sections_;
+        this->transformable_sections_ = NULL;
+      }
+  }
+
  protected:
   // Count the local symbols.
   void
@@ -829,6 +836,136 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   do_read_symbols(Read_symbols_data* sd);
 
  private:
+  // This class represents a defined symbol in a transformable section.
+  class Defined_symbol
+  {
+    typedef typename elfcpp::Elf_types<size>::Elf_Addr Address;
+    typedef typename Sized_relobj_file<size, big_endian>::Size_type Size_type;
+
+   public:
+    Defined_symbol(Symbol_value<size>* symval, unsigned int symndx)
+      : symndx_(symndx)
+    { this->u_.symval = symval; }
+
+    Defined_symbol(Sized_symbol<size>* global)
+      : symndx_(-1U)
+    { this->u_.global = global; }
+
+    // Return the value of this symbol.
+    Address
+    value() const
+    {
+      if (this->symndx_ != -1U)
+        return this->u_.symval->input_value();
+      return this->u_.global->value();
+    }
+
+    // Set the value of this symbol.
+    void
+    set_value(Address value)
+    {
+      if (this->symndx_ != -1U)
+        this->u_.symval->set_input_value(value);
+      else
+        this->u_.global->set_value(value);
+    }
+
+    // Return the size of this symbol.
+    Size_type
+    symsize(Nanomips_relobj<size, big_endian>* relobj) const
+    {
+      if (this->symndx_ != -1U)
+        return relobj->local_symbol_size(this->symndx_);
+      return this->u_.global->symsize();
+    }
+
+    // Set the size of this symbol.
+    void
+    set_symsize(Nanomips_relobj<size, big_endian>* relobj,
+                Size_type symsize)
+    {
+      if (this->symndx_ != -1U)
+        relobj->set_local_symbol_size(this->symndx_, symsize);
+      else
+        this->u_.global->set_symsize(symsize);
+    }
+
+    // Return whether this is a function symbol.
+    bool
+    is_func(Nanomips_relobj<size, big_endian>* relobj) const
+    {
+      if (this->symndx_ != -1U)
+        return relobj->local_symbol_is_function(this->symndx_);
+      return this->u_.global->is_func();
+    }
+
+   private:
+    // The index of the local symbol; -1 otherwise.
+    unsigned int symndx_;
+    union
+    {
+      // For a global symbol, the symbol itself.
+      Sized_symbol<size>* global;
+      // For a local symbol, the symbol value.
+      Symbol_value<size>* symval;
+    } u_;
+  };
+
+  // This struct represents a section which we a going to scan for
+  // instruction transformations.
+  struct Transformable_section
+  {
+    typedef std::vector<Defined_symbol> Defined_symbols;
+
+    Transformable_section(size_t reloc_count_, unsigned int reloc_shndx_,
+                          unsigned int sh_type_, const unsigned char* prelocs_,
+                          const unsigned char* view_)
+      : reloc_count(reloc_count_), reloc_shndx(reloc_shndx_), sh_type(sh_type_),
+        prelocs(prelocs_), view(view_), symbols()
+    { }
+
+    // Number of reloc entries.
+    size_t reloc_count;
+    // Index of reloc section.
+    unsigned int reloc_shndx;
+    // Reloc section type.
+    unsigned int sh_type;
+    // Contents of reloc section.
+    const unsigned char* prelocs;
+    // Contents of this section.
+    const unsigned char* view;
+    // Defined symbols in this section.  This is used to speed up process
+    // of symbol adjustments after instruction transformation.
+    Defined_symbols symbols;
+  };
+
+  // A map of transformable sections.
+  struct Transformable_sections
+  {
+    typedef std::map<unsigned int, Transformable_section>
+        Sections_map;
+    typedef typename Sections_map::iterator Iterator;
+
+    Transformable_sections()
+      : sections_map(), defined_symbols_initialized(false)
+    { }
+
+    // The map of sections.
+    Sections_map sections_map;
+    // Whether a defined symbols are added to their transformable sections.
+    bool defined_symbols_initialized;
+  };
+
+  // Initialize sections which we a going to scan for
+  // instruction transformation.
+  void
+  initialize_transformable_sections(const Symbol_table*);
+
+  // Initialize symbols that are defined in a transformable sections, and
+  // adjust symbols defined in section with index SHNDX.
+  void
+  initialize_defined_symbols(Address address, unsigned int shndx, int count);
+
   // Whether a section needs to be scanned for relocation relaxations
   // or expansions.
   bool
@@ -844,6 +981,8 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   // A map to track the number of how many times input section has been
   // referenced with lw[gp]/sw[gp] instruction.
   Input_section_ref input_section_ref_;
+  // Sections which we a going to scan for instruction transformations.
+  Transformable_sections* transformable_sections_;
   // Size of the local symbols.
   std::vector<Size_type> local_symbol_size_;
   // Bit vector to tell if a local symbol is a function or not.
@@ -2720,85 +2859,211 @@ Nanomips_output_section<size, big_endian>::sort_sections_by_reference()
 
 // Nanomips_relobj methods.
 
-// Adjust values of the local symbols.  Also adjust sizes of the function
+// Adjust values of the symbols.  Also adjust sizes of the function
 // symbols.  This is used in a relaxation passes.
 
 template<int size, bool big_endian>
 void
-Nanomips_relobj<size, big_endian>::adjust_local_symbols(
+Nanomips_relobj<size, big_endian>::adjust_symbols(
     Address address,
     unsigned int shndx,
     int count)
 {
-  const unsigned int loccount = this->local_symbol_count();
-  if (loccount == 0)
-    return;
-
-  // Adjust the local symbols.
-  typename Sized_relobj_file<size, big_endian>::Local_values* plocal_values =
-    this->local_values();
-  for (unsigned int i = 1; i < loccount; ++i)
+  Transformable_sections* sections = this->transformable_sections_;
+  // If this is called for the first time in this object file, go through
+  // the symbol table and add defined symbols to their transformable sections.
+  // This is used to speed up symbol adjustment after instruction
+  // transformations.
+  if (!sections->defined_symbols_initialized)
     {
-      Symbol_value<size>& lv((*plocal_values)[i]);
-      Address value = lv.input_value();
-      bool is_ordinary;
-      unsigned int sym_shndx = lv.input_shndx(&is_ordinary);
+      this->initialize_defined_symbols(address, shndx, count);
+      return;
+    }
 
-      if (is_ordinary && shndx == sym_shndx)
+  typename Transformable_sections::Iterator it =
+    sections->sections_map.find(shndx);
+  gold_assert(it != sections->sections_map.end());
+
+  // Adjust all symbols that are defined in this section.
+  typedef typename Transformable_section::Defined_symbols Defined_symbols;
+  Defined_symbols& defined_symbols = it->second.symbols;
+  for (typename Defined_symbols::iterator p = defined_symbols.begin();
+       p != defined_symbols.end();
+       ++p)
+    {
+      Defined_symbol& symbol = *p;
+      Address value = symbol.value();
+
+      // Adjust value of the symbol, if needed.
+      if (value >= address)
+        symbol.set_value(value + count);
+
+      // Adjust the function symbol's size, if needed.
+      if (symbol.is_func(this))
         {
-          // Adjust value of the symbol, if needed.
-          if (value >= address)
-            lv.set_input_value(value + count);
-
-          // Adjust the function symbol's size, if needed.
-          Size_type symsize = this->local_symbol_size(i);
-          if (this->local_symbol_is_function(i)
-              && value < address
+          Size_type symsize = symbol.symsize(this);
+          if (value < address
               && value + symsize >= address)
-            this->set_local_symbol_size(i, symsize + count);
+            symbol.set_symsize(this, symsize + count);
         }
     }
 }
 
-// Adjust values of the global symbols.  Also adjust sizes of the function
-// symbols.  This is used in a relaxation passes.
+// Initialize symbols that are defined in a transformable sections, and
+// adjust symbols defined in section with index SHNDX.
 
 template<int size, bool big_endian>
 void
-Nanomips_relobj<size, big_endian>::adjust_global_symbols(
+Nanomips_relobj<size, big_endian>::initialize_defined_symbols(
     Address address,
     unsigned int shndx,
     int count)
 {
+  Transformable_sections* sections = this->transformable_sections_;
+  gold_assert(!sections->defined_symbols_initialized);
+  sections->defined_symbols_initialized = true;
+
+  const unsigned int loccount = this->local_symbol_count();
+  typename Sized_relobj_file<size, big_endian>::Local_values* plocal_values =
+    this->local_values();
+  for (unsigned int i = 1; i < loccount; ++i)
+    {
+      Symbol_value<size>* lv = &(*plocal_values)[i];
+      bool is_ordinary;
+      unsigned int sym_shndx = lv->input_shndx(&is_ordinary);
+
+      // Skip non-ordinary and section symbols.
+      if (!is_ordinary || lv->is_section_symbol())
+        continue;
+
+      // Skip this symbol if it is not defined in a
+      // transformable section.
+      typename Transformable_sections::Iterator it =
+        sections->sections_map.find(sym_shndx);
+      if (it == sections->sections_map.end())
+        continue;
+
+      // Add this symbol to its transformable section.
+      it->second.symbols.push_back(Defined_symbol(lv, i));
+
+      // Don't adjust this symbol if it is not defined in a section
+      // that are we currently transforming.
+      if (sym_shndx != shndx)
+        continue;
+
+      Address value = lv->input_value();
+
+      // Adjust value of the symbol, if needed.
+      if (value >= address)
+        lv->set_input_value(value + count);
+
+      // Adjust the function symbol's size, if needed.
+      if (this->local_symbol_is_function(i))
+        {
+          Size_type symsize = this->local_symbol_size(i);
+          if (value < address
+              && value + symsize >= address)
+            this->set_local_symbol_size(i, symsize + count);
+        }
+    }
+
   const Object::Symbols* syms = this->get_global_symbols();
   unsigned int nsyms = syms->size();
-  if (nsyms == 0)
-    return;
-
-  // Adjust the global symbols.
   for (unsigned int i = 0; i < nsyms; ++i)
     {
       Sized_symbol<size>* gsym = static_cast<Sized_symbol<size>*>((*syms)[i]);
-      Address value = gsym->value();
-      bool is_ordinary;
+      if (gsym->source() != Symbol::FROM_OBJECT
+          || gsym->object() != this
+          || !gsym->is_defined())
+        continue;
 
-      if (gsym->source() == Symbol::FROM_OBJECT
-          && gsym->object() == this
-          && shndx == gsym->shndx(&is_ordinary)
-          && is_ordinary
-          && gsym->is_defined())
-        {
-          // Adjust value of the symbol, if needed.
-          if (value >= address)
-            gsym->set_value(value + count);
+        bool is_ordinary;
+        unsigned int sym_shndx = gsym->shndx(&is_ordinary);
 
-          // Adjust the function symbol's size, if needed.
-          Size_type symsize = gsym->symsize();
-          if (gsym->is_func()
-              && value < address
-              && value + symsize >= address)
-            gsym->set_symsize(symsize + count);
-        }
+        // Skip non-ordinary symbols.
+        if (!is_ordinary)
+          continue;
+
+        // Skip this symbol if it is not defined in a
+        // transformable section.
+        typename Transformable_sections::Iterator it =
+          sections->sections_map.find(sym_shndx);
+        if (it == sections->sections_map.end())
+          continue;
+
+        // Add this symbol to its transformable section.
+        it->second.symbols.push_back(Defined_symbol(gsym));
+
+        // Don't adjust this symbol if it is not defined in a section
+        // that are we currently transforming.
+        if (sym_shndx != shndx)
+          continue;
+
+        Address value = gsym->value();
+
+        // Adjust value of the symbol, if needed.
+        if (value >= address)
+          gsym->set_value(value + count);
+
+        // Adjust the function symbol's size, if needed.
+        if (gsym->is_func())
+          {
+            Size_type symsize = gsym->symsize();
+            if (value < address
+                && value + symsize >= address)
+              gsym->set_symsize(symsize + count);
+          }
+    }
+}
+
+// Initialize sections which we a going to scan for
+// instruction transformation.
+
+template<int size, bool big_endian>
+void
+Nanomips_relobj<size, big_endian>::initialize_transformable_sections(
+    const Symbol_table* symtab)
+{
+  if (this->transformable_sections_ != NULL)
+    return;
+
+  Transformable_sections* sections = new Transformable_sections();
+  this->transformable_sections_ = sections;
+
+  unsigned int shnum = this->shnum();
+  const unsigned int shdr_size = elfcpp::Elf_sizes<size>::shdr_size;
+
+  // Read the section headers.
+  const unsigned char* pshdrs = this->get_view(this->elf_file()->shoff(),
+                                               shnum * shdr_size,
+                                               true, false);
+
+  const Relobj::Output_sections& osections(this->output_sections());
+
+  // Find transformable sections.
+  const unsigned char* p = pshdrs + shdr_size;
+  for (unsigned int i = 1; i < shnum; ++i, p += shdr_size)
+    {
+      const elfcpp::Shdr<size, big_endian> shdr(p);
+      if (!this->section_needs_reloc_scanning(shdr, osections, symtab, pshdrs))
+        continue;
+
+      unsigned int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
+      size_t reloc_count = shdr.get_sh_size() / reloc_size;
+      unsigned int sh_type = shdr.get_sh_type();
+      // Get the relocations.
+      const unsigned char* prelocs = this->get_view(shdr.get_sh_offset(),
+                                                    shdr.get_sh_size(),
+                                                    true, false);
+      unsigned int data_shndx = this->adjust_shndx(shdr.get_sh_info());
+      // Get the section contents.  This does work for the case in which
+      // we modify the contents of an input section. We need to pass the
+      // output view under such circumstances.
+      section_size_type view_size;
+      const unsigned char* view = this->section_contents(data_shndx, &view_size,
+                                                         false);
+      Transformable_section section(reloc_count, i, sh_type, prelocs, view);
+      sections->sections_map.insert(std::make_pair(data_shndx, section));
     }
 }
 
@@ -2944,21 +3209,12 @@ Nanomips_relobj<size, big_endian>::scan_sections_for_transform(
   if (!this->safe_to_relax())
     return false;
 
-  unsigned int shnum = this->shnum();
-  const unsigned int shdr_size = elfcpp::Elf_sizes<size>::shdr_size;
   const Address invalid_address = static_cast<Address>(0) - 1;
-  const bool emit_relocs = parameters->options().emit_relocs()
-                           || parameters->options().relocatable();
+  const bool emit_relocs = (parameters->options().emit_relocs()
+                            || parameters->options().relocatable());
   bool again = false;
 
-  // Read the section headers.
-  const unsigned char* pshdrs = this->get_view(this->elf_file()->shoff(),
-                                               shnum * shdr_size,
-                                               true, true);
-
-  // To speed up processing, we set up hash tables for fast lookup of
-  // input offsets to output addresses.
-  this->initialize_input_to_output_maps();
+  this->initialize_transformable_sections(symtab);
 
   const Relobj::Output_sections& osections(this->output_sections());
 
@@ -2968,65 +3224,54 @@ Nanomips_relobj<size, big_endian>::scan_sections_for_transform(
   relinfo.object = this;
   relinfo.rr = NULL;
 
-  // Do relocation scanning.
-  const unsigned char* p = pshdrs + shdr_size;
-  for (unsigned int i = 1; i < shnum; ++i, p += shdr_size)
+  // Go through transformable sections and do relocation scanning.
+  Transformable_sections* sections = this->transformable_sections_;
+  for (typename Transformable_sections::Iterator
+       p = sections->sections_map.begin();
+       p != sections->sections_map.end();
+       ++p)
     {
-      const elfcpp::Shdr<size, big_endian> shdr(p);
-      if (this->section_needs_reloc_scanning(shdr, osections, symtab, pshdrs))
+      Transformable_section& section = p->second;
+      unsigned int data_shndx = p->first;
+      unsigned int reloc_shndx = section.reloc_shndx;
+      Address output_offset = this->get_output_section_offset(data_shndx);
+      Nanomips_input_section* input_section = NULL;
+      unsigned int sh_type = section.sh_type;
+      Address output_address;
+      const unsigned char* prelocs;
+      const unsigned char* view;
+      size_t reloc_count;
+
+      if (output_offset != invalid_address)
         {
-          unsigned int index = this->adjust_shndx(shdr.get_sh_info());
-          Address output_offset = this->get_output_section_offset(index);
-          Nanomips_input_section* input_section = NULL;
-          unsigned int sh_type = shdr.get_sh_type();
-          Address output_address;
-          const unsigned char* prelocs;
-          const unsigned char* input_view;
-          size_t reloc_count;
-
-          if (output_offset != invalid_address)
-            {
-              output_address = osections[index]->address() + output_offset;
-              // Get the relocations.
-              prelocs = this->get_view(shdr.get_sh_offset(), shdr.get_sh_size(),
-                                       true, false);
-              // Get the section contents.  This does work for the case in which
-              // we modify the contents of an input section. We need to pass the
-              // output view under such circumstances.
-              section_size_type input_view_size;
-              input_view =
-                this->section_contents(index, &input_view_size, false);
-              unsigned int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
-              reloc_count = shdr.get_sh_size() / reloc_size;
-            }
-          else
-            {
-              // Currently this only happens for a relaxed section.
-              input_section = target->find_nanomips_input_section(this, index);
-              gold_assert(input_section != NULL);
-              output_address = input_section->address();
-              prelocs = input_section->relocs();
-              reloc_count = input_section->reloc_count();
-              input_view = input_section->section_contents();
-            }
-
-          relinfo.reloc_shndx = i;
-          relinfo.data_shndx = index;
-          Output_section* os = osections[index];
-          if (emit_relocs)
-            relinfo.rr = this->relocatable_relocs(i);
-
-          again |= target->scan_section_for_transform(&relinfo, sh_type,
-                                                      prelocs, reloc_count,
-                                                      os, input_section,
-                                                      input_view,
-                                                      output_address);
+          output_address = osections[data_shndx]->address() + output_offset;
+          prelocs = section.prelocs;
+          reloc_count = section.reloc_count;
+          view = section.view;
         }
+      else
+        {
+          // Currently this only happens for a relaxed section.
+          input_section = target->find_nanomips_input_section(this, data_shndx);
+          gold_assert(input_section != NULL);
+          output_address = input_section->address();
+          prelocs = input_section->relocs();
+          reloc_count = input_section->reloc_count();
+          view = input_section->section_contents();
+        }
+
+      relinfo.reloc_shndx = reloc_shndx;
+      relinfo.data_shndx = data_shndx;
+      Output_section* os = osections[data_shndx];
+      if (emit_relocs)
+        relinfo.rr = this->relocatable_relocs(reloc_shndx);
+
+      again |= target->scan_section_for_transform(&relinfo, sh_type,
+                                                  prelocs, reloc_count,
+                                                  os, input_section,
+                                                  view, output_address);
     }
 
-  // After we've done the relocations, we release the hash tables,
-  // since we no longer need them.
-  this->free_input_to_output_maps();
   return again;
 }
 
@@ -4793,6 +5038,19 @@ Target_nanomips<size, big_endian>::do_relax(
   // there is no changes in previous state.
   while (state_changed);
 
+  // Clear transformable sections if we are done.
+  if (!again)
+    {
+      for (Input_objects::Relobj_iterator p = input_objects->relobj_begin();
+           p != input_objects->relobj_end();
+           ++p)
+        {
+          Nanomips_relobj<size, big_endian>* relobj =
+            Nanomips_relobj<size, big_endian>::as_nanomips_relobj(*p);
+          relobj->clear_transformable_sections();
+        }
+    }
+
   return again;
 }
 
@@ -6059,10 +6317,7 @@ Target_nanomips<size, big_endian>::update_content(
     }
 
   // Adjust the local and global symbols defined in this section.
-  // FIXME: If this becomes a speed issue, build a lookup map
-  // of defined symbols for this section.
-  relobj->adjust_local_symbols(address, input_section->shndx(), count);
-  relobj->adjust_global_symbols(address, input_section->shndx(), count);
+  relobj->adjust_symbols(address, input_section->shndx(), count);
 }
 
 // Scan a relocation section for instruction transformation.
