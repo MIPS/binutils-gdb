@@ -24,6 +24,7 @@
 #define GOLD_NANOMIPS_INSN_PROPERTY_H
 
 #include <string>
+#include <vector>
 
 namespace gold
 {
@@ -53,14 +54,12 @@ enum Transform_type
   TT_GPREL16_WORD,
   // Transform to 32-bit gp-relative instruction.
   TT_GPREL32_WORD,
-  // Transform to 32-bit gp-relative instruction.
   TT_GPREL32,
   // Gp-relative transformations where one instruction is 48-bit.
   TT_GPREL32_XLP,
   TT_GPREL_XLP,
   // Gp-relative long sequence transformations.
   TT_GPREL_LONG,
-  TT_GPREL_LONG_ADDRESS,
   // Transform to 16-bit pc-relative instruction.
   TT_PCREL16,
   // Transform to 32-bit pc-relative instruction.
@@ -72,10 +71,7 @@ enum Transform_type
   TT_PCREL32_LONG,
   // Pc-relative GOT transformations.
   TT_GOTPCREL_XLP,
-  TT_GOTPCREL_LONG,
-  // Transformation from gp-relative instruction into pc-relative instruction
-  // when --no-strict-address-modes option is passed.
-  TT_PCREL_XLP_NO_STRICT
+  TT_GOTPCREL_LONG
 };
 
 // The Nanomips_insn_template class is to store information about a
@@ -150,7 +146,7 @@ class Nanomips_insn_template
   unsigned int r_type_;
   // Size of this instruction in bytes.
   size_t size_;
-  // Instruction name for debugging.
+  // Instruction name.
   std::string name_;
   // Insert treg function.
   insert_reg_func ins_treg_func_;
@@ -179,11 +175,18 @@ class Nanomips_transform_template
   size() const
   { return this->size_; }
 
+  // Return whether this transformation is used for relocation of type R_TYPE.
+  bool
+  reloc(unsigned int r_type) const
+  { return this->relocs_.find(r_type) != this->relocs_.end(); }
+
  protected:
   // These are protected.  We only allow Nanomips_insn_property_table to
   // manage Nanomips_transform_template.
   Nanomips_transform_template(const Nanomips_insn_template* insns,
-                              size_t insn_count);
+                              size_t insn_count,
+                              const unsigned int* relocs,
+                              size_t reloc_num);
 
   friend class Nanomips_insn_property_table;
 
@@ -194,6 +197,8 @@ class Nanomips_transform_template
 
   // Transform instructions.
   const Nanomips_insn_template* insns_;
+  // Relocations for which we are using this transformation.
+  Unordered_set<unsigned int> relocs_;
   // Number of instructions.
   size_t insn_count_;
   // Size in bytes of this transformation.
@@ -271,26 +276,48 @@ class Nanomips_insn_property
   name() const
   { return this->name_; }
 
-  // Return the transform template of type TYPE.
+  // Return the transform template of type TYPE which is used
+  // for relocation R_TYPE.
   const Nanomips_transform_template*
-  get_transform(unsigned int type) const
+  get_transform(unsigned int type, unsigned int r_type) const
   {
-    Nanomips_transform_map::const_iterator it = this->transforms_.find(type);
-    gold_assert(it != this->transforms_.end());
-    return it->second;
+    Nanomips_transforms_map::const_iterator it =
+      this->transform_map_.find(type);
+    if (it != this->transform_map_.end())
+      {
+        const Nanomips_transforms& transforms = it->second;
+        for (Nanomips_transforms::const_iterator p = transforms.begin();
+             p != transforms.end();
+             ++p)
+          if ((*p)->reloc(r_type))
+            return *p;
+      }
+    gold_unreachable();
   }
 
-  // Return whether there is the transform template of type TYPE.
+  // Return whether there is the transform template of type TYPE
+  // which is used for relocation R_TYPE.
   bool
-  has_transform(unsigned int type) const
-  { return this->transforms_.find(type) != this->transforms_.end(); }
+  has_transform(unsigned int type, unsigned int r_type) const
+  {
+    Nanomips_transforms_map::const_iterator it =
+      this->transform_map_.find(type);
+    if (it != this->transform_map_.end())
+      {
+        const Nanomips_transforms& transforms = it->second;
+        for (Nanomips_transforms::const_iterator p = transforms.begin();
+             p != transforms.end();
+             ++p)
+          if ((*p)->reloc(r_type))
+            return true;
+      }
+    return false;
+  }
 
  protected:
   // These are protected.  We only allow Nanomips_insn_property_table to
   // manage Nanomips_insn_property.
-  Nanomips_insn_property(const unsigned int* relocs,
-                         size_t reloc_num,
-                         const char* name,
+  Nanomips_insn_property(const char* name,
                          extract_reg_func treg_func,
                          convert_reg_func convert_treg_func,
                          valid_reg_func valid_treg_func,
@@ -300,18 +327,28 @@ class Nanomips_insn_property
 
   // Add the transform template of type TYPE.
   void
-  add_transform(const Nanomips_transform_template* trasnform_template,
-                unsigned int type)
+  add_transform(const Nanomips_transform_template* transform_template,
+                unsigned int type, const unsigned int* relocs,
+                size_t reloc_num)
   {
-    std::pair<Nanomips_transform_map::iterator, bool> ins =
-      this->transforms_.insert(std::make_pair(type, trasnform_template));
+    // Add relocations for which we are doing transformations.
+    for (size_t i = 0; i < reloc_num; ++i)
+      this->relocs_.insert(relocs[i]);
 
-    // Make sure that we have not created another Nanomips_transform_template
-    // for this instruction already.
-    gold_assert(ins.second);
+    Nanomips_transforms& transforms(this->transform_map_[type]);
+    for (Nanomips_transforms::const_iterator p = transforms.begin();
+         p != transforms.end();
+         ++p)
+      {
+        // Transformations for the same type and the same reloc
+        // are not allowed.
+        for (size_t i = 0; i < reloc_num; ++i)
+          gold_assert(!(*p)->reloc(relocs[i]));
+      }
+    transforms.push_back(transform_template);
   }
 
-  // Return whether relocation of type R_TYPE is against this instruction.
+  // Return whether we have any transformation for relocation of type R_TYPE.
   bool
   reloc(unsigned int r_type) const
   { return this->relocs_.find(r_type) != this->relocs_.end(); }
@@ -323,14 +360,15 @@ class Nanomips_insn_property
   Nanomips_insn_property(const Nanomips_insn_property&);
   Nanomips_insn_property& operator=(const Nanomips_insn_property&);
 
-  typedef Unordered_map<unsigned int, const Nanomips_transform_template*>
-      Nanomips_transform_map;
+  typedef std::vector<const Nanomips_transform_template*> Nanomips_transforms;
+  typedef Unordered_map<unsigned int, Nanomips_transforms>
+      Nanomips_transforms_map;
 
   // Instruction name.
   std::string name_;
   // Transformations for this instruction.
-  Nanomips_transform_map transforms_;
-  // Relocation against this instruction.
+  Nanomips_transforms_map transform_map_;
+  // Relocations for which we are doing transformations.
   Unordered_set<unsigned int> relocs_;
   // Extract treg function.
   extract_reg_func ext_treg_func_;

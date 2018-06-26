@@ -1226,7 +1226,7 @@ class Nanomips_transformations
 
   // Print transformation.
   void
-  print(const Nanomips_transform_template* trasnform_template,
+  print(const Nanomips_transform_template* transform_template,
         const std::string& insn_name,
         const Symbol* gsym,
         unsigned int r_sym,
@@ -1929,7 +1929,7 @@ class Target_nanomips : public Sized_target<size, big_endian>
   };
 
   // Scan a relocation section for instruction transformation.
-  template <typename Nanomips_trasnform>
+  template <typename Nanomips_transform>
   bool
   scan_reloc_section_for_transform(const Relocate_info<size, big_endian>*,
                                    const unsigned char*, size_t,
@@ -3733,7 +3733,7 @@ Nanomips_transformations<size, big_endian>::write_insn(
 template<int size, bool big_endian>
 void
 Nanomips_transformations<size, big_endian>::print(
-    const Nanomips_transform_template* trasnform_template,
+    const Nanomips_transform_template* transform_template,
     const std::string& insn_name,
     const Symbol* gsym,
     unsigned int r_sym,
@@ -3743,8 +3743,8 @@ Nanomips_transformations<size, big_endian>::print(
 {
   const std::string& obj_name = this->relobj_->name();
   const std::string sec_name = this->relobj_->section_name(shndx);
-  const Nanomips_insn_template* insns = trasnform_template->insns();
-  size_t insn_count = trasnform_template->insn_count();
+  const Nanomips_insn_template* insns = transform_template->insns();
+  size_t insn_count = transform_template->insn_count();
 
   fprintf(stderr, "%s: %s(%s+%#lx): %s is %s",
           program_name, obj_name.c_str(), sec_name.c_str(),
@@ -4154,12 +4154,12 @@ Nanomips_relax_insn<size, big_endian>::find_insn(uint32_t insn,
   switch (r_type)
     {
     case elfcpp::R_NANOMIPS_PC25_S1:
-      if (!insn_property->has_transform(TT_RELAX))
+      if (!insn_property->has_transform(TT_RELAX, r_type))
         return NULL;
       return insn_property;
     case elfcpp::R_NANOMIPS_PC14_S1:
       {
-        if (!insn_property->has_transform(TT_RELAX)
+        if (!insn_property->has_transform(TT_RELAX, r_type)
             || !this->relobj()->xlp()
             || !insn_property->valid_regs(insn))
           return NULL;
@@ -4174,22 +4174,22 @@ Nanomips_relax_insn<size, big_endian>::find_insn(uint32_t insn,
         return insn_property;
       }
     case elfcpp::R_NANOMIPS_GPREL19_S2:
-      if (!insn_property->has_transform(TT_RELAX)
+      if (!insn_property->has_transform(TT_RELAX, r_type)
           || !insn_property->valid_treg(insn))
         return NULL;
       return insn_property;
     case elfcpp::R_NANOMIPS_LO12:
-      if (!insn_property->has_transform(TT_RELAX)
+      if (!insn_property->has_transform(TT_RELAX, r_type)
           || !insn_property->valid_regs(insn))
         return NULL;
       return insn_property;
     case elfcpp::R_NANOMIPS_GPREL_I32:
-      if (!insn_property->has_transform(TT_GPREL32)
-          && !insn_property->has_transform(TT_GPREL32_WORD))
+      if (!insn_property->has_transform(TT_GPREL32, r_type)
+          && !insn_property->has_transform(TT_GPREL32_WORD, r_type))
         return NULL;
       return insn_property;
     case elfcpp::R_NANOMIPS_PC_I32:
-      if (!insn_property->has_transform(TT_PCREL32))
+      if (!insn_property->has_transform(TT_PCREL32, r_type))
         return NULL;
       return insn_property;
     default:
@@ -4408,9 +4408,9 @@ Nanomips_expand_insn<size, big_endian>::expand_type(
     case elfcpp::R_NANOMIPS_GPREL19_S2:
       if (xlp
           && !parameters->options().strict_address_modes()
-          && insn_property->has_transform(TT_PCREL_XLP_NO_STRICT))
+          && insn_property->has_transform(TT_PCREL_XLP, r_type))
         // Transform [ls]w[gp] into [ls]wpc.
-        return TT_PCREL_XLP_NO_STRICT;
+        return TT_PCREL_XLP;
       // Fall through.
 
     case elfcpp::R_NANOMIPS_GPREL18:
@@ -4532,7 +4532,7 @@ Nanomips_expand_insn<size, big_endian>::code_and_data_models_type(
               return TT_GPREL32_WORD;
             else
               // Transform into addiugp[48] or lui, ori, addu.
-              return xlp ? TT_GPREL_XLP : TT_GPREL_LONG_ADDRESS;
+              return xlp ? TT_GPREL_XLP : TT_GPREL_LONG;
           }
         else
           {
@@ -4554,11 +4554,11 @@ Nanomips_expand_insn<size, big_endian>::code_and_data_models_type(
         if (pid && (gp != invalid_address))
           {
             Valtype value = psymval->value(relobj, r_addend) - gp;
-            if (insn_property->has_transform(TT_GPREL32)
+            if (insn_property->has_transform(TT_GPREL32, r_type)
                 && !this->template check_overflow<18>(value, CHECK_UNSIGNED))
               // Transform into [ls][bh][gp].
               return TT_GPREL32;
-            else if (insn_property->has_transform(TT_GPREL32_WORD)
+            else if (insn_property->has_transform(TT_GPREL32_WORD, r_type)
                      && !this->template check_overflow<21>(value,
                                                            CHECK_UNSIGNED))
               {
@@ -4579,7 +4579,7 @@ Nanomips_expand_insn<size, big_endian>::code_and_data_models_type(
                       ? TT_GPREL_XLP
                       : TT_GPREL32_XLP);
           }
-        else if (xlp && insn_property->has_transform(TT_PCREL_XLP))
+        else if (xlp && insn_property->has_transform(TT_PCREL_XLP, r_type))
           // Transform into [ls]wpc.
           return TT_PCREL_XLP;
         else
@@ -6548,7 +6548,7 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
         continue;
 
       const Nanomips_transform_template* transform_template =
-        insn_property->get_transform(type);
+        insn_property->get_transform(type, r_type);
 
       // Create a new relaxed input section if needed.
       if (input_section == NULL)

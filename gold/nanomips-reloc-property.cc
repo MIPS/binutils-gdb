@@ -46,20 +46,20 @@ Nanomips_reloc_property_table::Nanomips_reloc_property_table()
     table_[i] = NULL;
 
 #undef NRD
-#define NRD(rname, type, size, bitsize, mask, rflags) \
-  do \
-    { \
-      unsigned int code = elfcpp::R_NANOMIPS_##rname; \
-      gold_assert(code < Property_table_size); \
-      this->table_[code] = \
-        new Nanomips_reloc_property(elfcpp::R_NANOMIPS_##rname, \
-                                    "R_NANOMIPS_" #rname, \
+#define NRD(rname, type, size, bitsize, mask, rflags)                   \
+  do                                                                    \
+    {                                                                   \
+      unsigned int code = elfcpp::R_NANOMIPS_##rname;                   \
+      gold_assert(code < Property_table_size);                          \
+      this->table_[code] =                                              \
+        new Nanomips_reloc_property(elfcpp::R_NANOMIPS_##rname,         \
+                                    "R_NANOMIPS_" #rname,               \
                                     Nanomips_reloc_property::RT_##type, \
-                                    size, \
-                                    bitsize, \
-                                    mask, \
-                                    (rflags)); \
-    } \
+                                    size,                               \
+                                    bitsize,                            \
+                                    mask,                               \
+                                    (rflags));                          \
+    }                                                                   \
   while (0);
 
 #include "nanomips-reloc.def"

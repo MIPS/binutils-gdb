@@ -134,8 +134,6 @@ convert_st_src_reg(unsigned int reg)
 }
 
 Nanomips_insn_property::Nanomips_insn_property(
-    const unsigned int* relocs,
-    size_t reloc_num,
     const char* name,
     extract_reg_func treg_func,
     convert_reg_func convert_treg_func,
@@ -143,23 +141,25 @@ Nanomips_insn_property::Nanomips_insn_property(
     extract_reg_func sreg_func,
     convert_reg_func convert_sreg_func,
     valid_reg_func valid_sreg_func)
-  : name_(name), transforms_(), ext_treg_func_(treg_func),
+  : name_(name), transform_map_(), relocs_(), ext_treg_func_(treg_func),
     convert_treg_func_(convert_treg_func), valid_treg_func_(valid_treg_func),
     ext_sreg_func_(sreg_func), convert_sreg_func_(convert_sreg_func),
     valid_sreg_func_(valid_sreg_func)
-{
-  gold_assert(reloc_num != 0);
-  for (size_t i = 0; i < reloc_num; ++i)
-    this->relocs_.insert(relocs[i]);
-}
+{ }
 
 Nanomips_transform_template::Nanomips_transform_template(
     const Nanomips_insn_template* insns,
-    size_t insn_count)
+    size_t insn_count,
+    const unsigned int* relocs,
+    size_t reloc_num)
   : insns_(insns), insn_count_(insn_count)
 {
-  off_t offset = 0;
+  // Add relocations for which this transformation is used.
+  for (size_t i = 0; i < reloc_num; ++i)
+    this->relocs_.insert(relocs[i]);
+
   // Compute byte size of transformation template.
+  off_t offset = 0;
   for (size_t i = 0; i < insn_count; i++)
     offset += insns[i].size();
 
@@ -173,39 +173,42 @@ Nanomips_insn_property_table::Nanomips_insn_property_table()
 
 #undef NIP
 #undef NTT
-#define NIP(name, opcode, extract_treg_func, convert_treg_func, \
-            valid_treg_func, extract_sreg_func, convert_sreg_func, \
-            valid_sreg_func, ...) \
-  do \
-    { \
-      unsigned int relocs[] = __VA_ARGS__; \
-      size_t array_size = sizeof(relocs) / sizeof(*relocs); \
-      Nanomips_insn_property* insn_property = \
-        new Nanomips_insn_property(relocs, \
-                                   array_size, \
-                                   name, \
-                                   extract_treg_func, \
-                                   convert_treg_func, \
-                                   valid_treg_func, \
-                                   extract_sreg_func, \
-                                   convert_sreg_func, \
-                                   valid_sreg_func); \
-      std::pair<Nanomips_insn_map::iterator, bool> ins = \
-        this->insns_.insert(std::make_pair(opcode, insn_property)); \
-      gold_assert(ins.second); \
-      insn_it = ins.first; \
-    } \
+#define NIP(name, opcode, extract_treg_func, convert_treg_func,          \
+            valid_treg_func, extract_sreg_func, convert_sreg_func,       \
+            valid_sreg_func)                                             \
+  do                                                                     \
+    {                                                                    \
+      Nanomips_insn_property* insn_property =                            \
+        new Nanomips_insn_property(name,                                 \
+                                   extract_treg_func,                    \
+                                   convert_treg_func,                    \
+                                   valid_treg_func,                      \
+                                   extract_sreg_func,                    \
+                                   convert_sreg_func,                    \
+                                   valid_sreg_func);                     \
+      std::pair<Nanomips_insn_map::iterator, bool> ins =                 \
+        this->insns_.insert(std::make_pair(opcode, insn_property));      \
+      gold_assert(ins.second);                                           \
+      insn_it = ins.first;                                               \
+    }                                                                    \
   while (0);
 
-#define NTT(type, ...) \
-  do \
-    { \
-      static const Nanomips_insn_template insns[] = __VA_ARGS__; \
-      size_t array_size = sizeof(insns) / sizeof(*insns); \
-      Nanomips_transform_template* transform_template = \
-        new Nanomips_transform_template(insns, array_size); \
-      insn_it->second->add_transform(transform_template, type); \
-    } \
+#define NTT(type, relocs, insns)                                         \
+  do                                                                     \
+    {                                                                    \
+      unsigned int transform_type = TT_##type;                           \
+      static const Nanomips_insn_template insn_array[] = insns;          \
+      size_t insn_size = sizeof(insn_array) / sizeof(*insn_array);       \
+      const unsigned int reloc_array[] = relocs;                         \
+      size_t reloc_size = sizeof(reloc_array) / sizeof(*reloc_array);    \
+      Nanomips_transform_template* transform_template =                  \
+        new Nanomips_transform_template(insn_array,                      \
+                                        insn_size,                       \
+                                        reloc_array,                     \
+                                        reloc_size);                     \
+      insn_it->second->add_transform(transform_template, transform_type, \
+                                     reloc_array, reloc_size);           \
+    }                                                                    \
   while (0);
 
 #include "nanomips-insn.def"
