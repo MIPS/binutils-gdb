@@ -9379,7 +9379,7 @@ write_reloc_insn (char *buf, bfd_reloc_code_real_type reloc,
 /* Apply a fixup to the object file.  */
 
 void
-md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
+md_apply_fix (fixS *fixP, valueT *valP, segT seg)
 {
   char *buf;
   unsigned long insn;
@@ -9553,6 +9553,24 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
 	 resolved when it appears but is later defined.  */
       if (fixP->fx_done)
 	md_number_to_chars (buf, *valP, fixP->fx_size);
+      else if ((seg->flags & SEC_DEBUGGING) != 0
+	       || ((seg->flags & SEC_ALLOC) == 0
+		   && (seg->flags & SEC_HAS_CONTENTS) != 0))
+	{
+	  /* Even if we're not deleting this reloc entry, we fill in values
+	     for debug sections.  Some DWARF2 debug information requires
+	     non-zero default values, just in case the linker doesn't perform
+	     these relocations, for example in case of discarded sections and
+	     symbols.  */
+	  if (fixP->fx_subsy != NULL)
+	    md_number_to_chars (buf,
+				(S_GET_VALUE (fixP->fx_addsy)
+				 - S_GET_VALUE (fixP->fx_subsy)),
+				fixP->fx_size);
+	  else
+	    md_number_to_chars (buf, S_GET_VALUE (fixP->fx_addsy),
+				fixP->fx_size);
+	}
       break;
 
     case BFD_RELOC_NANOMIPS_ASHIFTR_1:
