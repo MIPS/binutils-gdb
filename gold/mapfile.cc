@@ -268,7 +268,8 @@ Mapfile::print_input_section(Relobj* relobj, unsigned int shndx)
   section_size_type size;
   if (!relobj->section_is_compressed(shndx, &size))
     {
-      if (!relobj->is_output_section_offset_invalid(shndx))
+      if (os == NULL
+	  || !relobj->is_output_section_offset_invalid(shndx))
 	size = relobj->section_size(shndx);
       else
 	{
