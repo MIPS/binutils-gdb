@@ -121,6 +121,7 @@ enum Comdat_behavior
   CB_UNDETERMINED,   // Not yet determined -- need to look at section name.
   CB_PRETEND,        // Attempt to map to the corresponding kept section.
   CB_IGNORE,         // Ignore the relocation.
+  CB_RETAIN,         // Retain the input value of the symbol.
   CB_WARNING         // Print a warning.
 };
 
@@ -366,7 +367,8 @@ relocate_section(
 	      std::string name = object->section_name(relinfo->data_shndx);
 	      comdat_behavior = relocate_comdat_behavior.get(name.c_str());
 	    }
-	  if (comdat_behavior == CB_PRETEND)
+	  if (comdat_behavior == CB_PRETEND
+	      || comdat_behavior == CB_RETAIN)
 	    {
 	      // FIXME: This case does not work for global symbols.
 	      // We have no place to store the original section index.
@@ -378,6 +380,8 @@ relocate_section(
 		object->map_to_kept_section(shndx, &found);
 	      if (found)
 		symval2.set_output_value(value + psymval->input_value());
+	      else if (comdat_behavior == CB_RETAIN)
+		symval2.set_output_value(psymval->input_value());
 	      else
 		symval2.set_output_value(0);
 	    }

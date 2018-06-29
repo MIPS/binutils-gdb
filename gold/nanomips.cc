@@ -1844,6 +1844,22 @@ class Target_nanomips : public Sized_target<size, big_endian>
     bool calculate_only_;
   };
 
+  class Relocate_comdat_behavior
+  {
+   public:
+    // Decide what the linker should do for relocations that refer to
+    // discarded comdat sections.
+    inline Comdat_behavior
+    get(const char* name)
+    {
+      if (Layout::is_debug_info_section(name))
+        return CB_RETAIN;
+
+      gold::Default_comdat_behavior default_behavior;
+      return default_behavior.get(name);
+    }
+  };
+
   enum Nanomips_mach {
     mach_nanomipsisa32r6 = 32,
     mach_nanomipsisa64r6 = 64
@@ -5577,6 +5593,8 @@ Target_nanomips<size, big_endian>::relocate_section(
       Classify_reloc;
   typedef typename Target_nanomips<size, big_endian>::Relocate
       Nanomips_relocate;
+  typedef typename Target_nanomips<size, big_endian>::Relocate_comdat_behavior
+    Nanomips_comdat_behavior;
 
   gold_assert(sh_type == elfcpp::SHT_RELA);
 
@@ -5609,7 +5627,7 @@ Target_nanomips<size, big_endian>::relocate_section(
     }
 
   gold::relocate_section<size, big_endian, Nanomips, Nanomips_relocate,
-                         gold::Default_comdat_behavior, Classify_reloc>(
+                         Nanomips_comdat_behavior, Classify_reloc>(
     relinfo,
     this,
     prelocs,
@@ -6216,7 +6234,7 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
 {
   typedef typename elfcpp::Rela<size, big_endian> Reltype;
   const int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
-  gold::Default_comdat_behavior default_comdat_behavior;
+  Relocate_comdat_behavior default_comdat_behavior;
 
   // Whether we should run relaxation pass again.
   bool again = false;
@@ -6399,7 +6417,8 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
               std::string name = relobj->section_name(relinfo->data_shndx);
               comdat_behavior = default_comdat_behavior.get(name.c_str());
             }
-          if (comdat_behavior == CB_PRETEND)
+          if (comdat_behavior == CB_PRETEND
+              || comdat_behavior == CB_RETAIN)
             {
               // FIXME: This case does not work for global symbols.
               // We have no place to store the original section index.
@@ -6411,6 +6430,8 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
                 relobj->map_to_kept_section(shndx, &found);
               if (found)
                 symval2.set_output_value(value + psymval->input_value());
+              else if (comdat_behavior == CB_RETAIN)
+                symval2.set_output_value(psymval->input_value());
               else
                 symval2.set_output_value(0);
             }
