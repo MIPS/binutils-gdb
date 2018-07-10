@@ -200,6 +200,88 @@ is_forced_insn_length(typename elfcpp::Elf_types<size>::Elf_Addr offset,
   return false;
 }
 
+// Return the GOT offset of the local symbol.  If the symbol does not have
+// a GOT offset, return -1U.
+
+template<int size, bool big_endian>
+static inline unsigned int
+local_got_offset(Target_nanomips<size, big_endian>* target,
+                 const Relobj* object, unsigned int r_sym,
+                 unsigned int r_type, uint64_t r_addend)
+{
+  switch (r_type)
+    {
+    case elfcpp::R_NANOMIPS_GOTPC_I32:
+    case elfcpp::R_NANOMIPS_GOTPC_HI20:
+    case elfcpp::R_NANOMIPS_GOT_LO12:
+    case elfcpp::R_NANOMIPS_GOT_CALL:
+    case elfcpp::R_NANOMIPS_GOT_DISP:
+    case elfcpp::R_NANOMIPS_GOT_PAGE:
+    case elfcpp::R_NANOMIPS_GOT_OFST:
+    case elfcpp::R_NANOMIPS_JALR32:
+    case elfcpp::R_NANOMIPS_JALR16:
+      if (object->local_has_got_offset(r_sym, GOT_TYPE_STANDARD, r_addend))
+        return object->local_got_offset(r_sym, GOT_TYPE_STANDARD, r_addend);
+      break;
+    case elfcpp::R_NANOMIPS_TLS_GD:
+    case elfcpp::R_NANOMIPS_TLS_GD_I32:
+      if (object->local_has_got_offset(r_sym, GOT_TYPE_TLS_PAIR, r_addend))
+        return object->local_got_offset(r_sym, GOT_TYPE_TLS_PAIR, r_addend);
+      break;
+    case elfcpp::R_NANOMIPS_TLS_GOTTPREL:
+    case elfcpp::R_NANOMIPS_TLS_GOTTPREL_PC_I32:
+      if (object->local_has_got_offset(r_sym, GOT_TYPE_TLS_OFFSET, r_addend))
+        return object->local_got_offset(r_sym, GOT_TYPE_TLS_OFFSET, r_addend);
+      break;
+    case elfcpp::R_NANOMIPS_TLS_LD:
+    case elfcpp::R_NANOMIPS_TLS_LD_I32:
+      return target->got_mod_index_entry(NULL, NULL, NULL);
+    default:
+      break;
+    }
+  return -1U;
+}
+
+// Return the GOT offset of the global symbol.  If the symbol does not have
+// a GOT offset, return -1U.
+
+template<int size, bool big_endian>
+static inline unsigned int
+global_got_offset(Target_nanomips<size, big_endian>* target,
+                  const Symbol* sym, unsigned int r_type)
+{
+  switch (r_type)
+    {
+    case elfcpp::R_NANOMIPS_GOTPC_I32:
+    case elfcpp::R_NANOMIPS_GOTPC_HI20:
+    case elfcpp::R_NANOMIPS_GOT_LO12:
+    case elfcpp::R_NANOMIPS_GOT_CALL:
+    case elfcpp::R_NANOMIPS_GOT_DISP:
+    case elfcpp::R_NANOMIPS_GOT_PAGE:
+    case elfcpp::R_NANOMIPS_GOT_OFST:
+    case elfcpp::R_NANOMIPS_JALR32:
+    case elfcpp::R_NANOMIPS_JALR16:
+      if (sym->has_got_offset(GOT_TYPE_STANDARD))
+        return sym->got_offset(GOT_TYPE_STANDARD);
+      break;
+    case elfcpp::R_NANOMIPS_TLS_GD:
+    case elfcpp::R_NANOMIPS_TLS_GD_I32:
+      if (sym->has_got_offset(GOT_TYPE_TLS_PAIR))
+        return sym->got_offset(GOT_TYPE_TLS_PAIR);
+      break;
+    case elfcpp::R_NANOMIPS_TLS_GOTTPREL:
+    case elfcpp::R_NANOMIPS_TLS_GOTTPREL_PC_I32:
+      if (sym->has_got_offset(GOT_TYPE_TLS_OFFSET))
+        return sym->got_offset(GOT_TYPE_TLS_OFFSET);
+      break;
+    case elfcpp::R_NANOMIPS_TLS_LD:
+    case elfcpp::R_NANOMIPS_TLS_LD_I32:
+      return target->got_mod_index_entry(NULL, NULL, NULL);
+    default:
+      break;
+    }
+  return -1U;
+}
 // .nanoMIPS.abiflags section content
 
 template<bool big_endian>
@@ -1308,7 +1390,8 @@ class Nanomips_relax_insn : public Nanomips_transformations<size, big_endian>
 
   // Return the transformation type if this instruction can be relaxed.
   unsigned int
-  type(const Symbol* gsym,
+  type(Target_nanomips<size, big_endian>* target,
+       const Symbol* gsym,
        const Symbol_value<size>* psymval,
        const Nanomips_insn_property* insn_property,
        const elfcpp::Rela<size, big_endian>& reloc,
@@ -1335,7 +1418,8 @@ class Nanomips_relax_insn_finalize
   // Return the transformation type if this instruction can be relaxed
   // during --finalize-relocs.
   unsigned int
-  type(const Symbol* gsym,
+  type(Target_nanomips<size, big_endian>* target,
+       const Symbol* gsym,
        const Symbol_value<size>* psymval,
        const Nanomips_insn_property* insn_property,
        const elfcpp::Rela<size, big_endian>& reloc,
@@ -1365,7 +1449,8 @@ class Nanomips_expand_insn : public Nanomips_transformations<size, big_endian>
 
   // Return the transformation type if instruction needs to be expanded.
   unsigned int
-  type(const Symbol* gsym,
+  type(Target_nanomips<size, big_endian>* target,
+       const Symbol* gsym,
        const Symbol_value<size>* psymval,
        const Nanomips_insn_property* insn_property,
        const elfcpp::Rela<size, big_endian>& reloc,
@@ -1383,7 +1468,8 @@ class Nanomips_expand_insn : public Nanomips_transformations<size, big_endian>
 
   // Return the type of the transformation for code and data models.
   unsigned int
-  code_and_data_models_type(const Symbol* gsym,
+  code_and_data_models_type(Target_nanomips<size, big_endian>* target,
+                            const Symbol* gsym,
                             const Symbol_value<size>* psymval,
                             const Nanomips_insn_property* insn_property,
                             const elfcpp::Rela<size, big_endian>& reloc,
@@ -1409,7 +1495,8 @@ class Nanomips_expand_insn_finalize
   // Return the transformation type if instruction needs to be expanded
   // during --finalize-relocs.
   unsigned int
-  type(const Symbol* gsym,
+  type(Target_nanomips<size, big_endian>* target,
+       const Symbol* gsym,
        const Symbol_value<size>* psymval,
        const Nanomips_insn_property* insn_property,
        const elfcpp::Rela<size, big_endian>& reloc,
@@ -4051,6 +4138,9 @@ Nanomips_transformations<size, big_endian>::transform(
       sreg = insn_property->sreg(insn);
       break;
     case elfcpp::R_NANOMIPS_JALR16:
+    case elfcpp::R_NANOMIPS_TLS_GD:
+    case elfcpp::R_NANOMIPS_TLS_LD:
+    case elfcpp::R_NANOMIPS_TLS_GOTTPREL:
       treg = insn_property->treg(insn);
       sreg = 0;
       break;
@@ -4203,6 +4293,7 @@ Nanomips_relax_insn<size, big_endian>::find_insn(uint32_t insn,
 template<int size, bool big_endian>
 unsigned int
 Nanomips_relax_insn<size, big_endian>::type(
+    Target_nanomips<size, big_endian>*,
     const Symbol*,
     const Symbol_value<size>* psymval,
     const Nanomips_insn_property*,
@@ -4307,6 +4398,7 @@ Nanomips_relax_insn<size, big_endian>::type(
 template<int size, bool big_endian>
 unsigned int
 Nanomips_relax_insn_finalize<size, big_endian>::type(
+    Target_nanomips<size, big_endian>* target,
     const Symbol* gsym,
     const Symbol_value<size>* psymval,
     const Nanomips_insn_property* insn_property,
@@ -4322,7 +4414,7 @@ Nanomips_relax_insn_finalize<size, big_endian>::type(
   if (rr->strategy(relnum) != Relocatable_relocs::RELOC_RESOLVE)
     return TT_NONE;
 
-  return Nanomips_relax_insn<size, big_endian>::type(gsym, psymval,
+  return Nanomips_relax_insn<size, big_endian>::type(target, gsym, psymval,
                                                      insn_property, reloc,
                                                      relnum, insn,
                                                      address, gp);
@@ -4358,6 +4450,9 @@ Nanomips_expand_insn<size, big_endian>::find_insn(uint32_t insn,
     case elfcpp::R_NANOMIPS_GOT_CALL:
     case elfcpp::R_NANOMIPS_JALR32:
     case elfcpp::R_NANOMIPS_JALR16:
+    case elfcpp::R_NANOMIPS_TLS_GD:
+    case elfcpp::R_NANOMIPS_TLS_LD:
+    case elfcpp::R_NANOMIPS_TLS_GOTTPREL:
       return nanomips_insn_property_table->get_insn_property(insn, mask,
                                                              r_type);
     default:
@@ -4445,6 +4540,7 @@ Nanomips_expand_insn<size, big_endian>::expand_type(
 template<int size, bool big_endian>
 unsigned int
 Nanomips_expand_insn<size, big_endian>::code_and_data_models_type(
+    Target_nanomips<size, big_endian>* target,
     const Symbol* gsym,
     const Symbol_value<size>* psymval,
     const Nanomips_insn_property* insn_property,
@@ -4463,31 +4559,26 @@ Nanomips_expand_insn<size, big_endian>::code_and_data_models_type(
   const bool xlp = relobj->xlp();
   const bool pcrel = relobj->pcrel();
   const bool insn32 = parameters->options().insn32();
-  bool got_entry =
-    (gsym != NULL
-     ? gsym->has_got_offset(GOT_TYPE_STANDARD)
-     : relobj->local_has_got_offset(r_sym, GOT_TYPE_STANDARD, r_addend));
+  unsigned int got_offset;
+  if (gsym == NULL)
+    got_offset = local_got_offset(target, relobj, r_sym, r_type, r_addend);
+  else
+    got_offset = global_got_offset(target, gsym, r_type);
 
   // Transformations for GOT symbols.
-  if (got_entry)
+  if (got_offset != -1U)
     {
       switch (r_type)
         {
         case elfcpp::R_NANOMIPS_GOT_CALL:
         case elfcpp::R_NANOMIPS_GOT_PAGE:
         case elfcpp::R_NANOMIPS_GOT_DISP:
-          {
-            unsigned int got_offset =
-              (gsym != NULL
-               ? gsym->got_offset(GOT_TYPE_STANDARD)
-               : relobj->local_got_offset(r_sym, GOT_TYPE_STANDARD, r_addend));
-            if (this->template check_overflow<21>(got_offset, CHECK_UNSIGNED))
-              // Transform into lwpc[48] or aluipc, lw.
-              return xlp ? TT_GOTPCREL_XLP : TT_GOTPCREL_LONG;
-            else
-              // Don't do anything.
-              return TT_NONE;
-          }
+          if (this->template check_overflow<21>(got_offset, CHECK_UNSIGNED))
+            // Transform into lwpc[48] or aluipc, lw.
+            return xlp ? TT_GOTPCREL_XLP : TT_GOTPCREL_LONG;
+          else
+            // Don't do anything.
+            return TT_NONE;
         case elfcpp::R_NANOMIPS_GOT_OFST:
           // Transform into [ls]x[16] and discard relocation
           // or don't do anything.
@@ -4498,6 +4589,21 @@ Nanomips_expand_insn<size, big_endian>::code_and_data_models_type(
         case elfcpp::R_NANOMIPS_JALR16:
           // Don't do anything.
           return TT_NONE;
+        case elfcpp::R_NANOMIPS_TLS_GD:
+        case elfcpp::R_NANOMIPS_TLS_LD:
+          if (this->template check_overflow<21>(got_offset, CHECK_UNSIGNED))
+            // Transform into addiu[gp48].
+            return TT_GPREL_XLP;
+          else
+            // Don't do anything.
+            return TT_NONE;
+        case elfcpp::R_NANOMIPS_TLS_GOTTPREL:
+          if (this->template check_overflow<21>(got_offset, CHECK_UNSIGNED))
+            // Transform into lwpc[48].
+            return TT_GOTPCREL_XLP;
+          else
+            // Don't do anything.
+            return TT_NONE;
         default:
           gold_unreachable();
         }
@@ -4633,6 +4739,7 @@ Nanomips_expand_insn<size, big_endian>::code_and_data_models_type(
 template<int size, bool big_endian>
 unsigned int
 Nanomips_expand_insn<size, big_endian>::type(
+    Target_nanomips<size, big_endian>* target,
     const Symbol* gsym,
     const Symbol_value<size>* psymval,
     const Nanomips_insn_property* insn_property,
@@ -4740,8 +4847,12 @@ Nanomips_expand_insn<size, big_endian>::type(
     case elfcpp::R_NANOMIPS_GOT_CALL:
     case elfcpp::R_NANOMIPS_JALR32:
     case elfcpp::R_NANOMIPS_JALR16:
-      return this->code_and_data_models_type(gsym, psymval, insn_property,
-                                             reloc, insn, address, gp);
+    case elfcpp::R_NANOMIPS_TLS_GD:
+    case elfcpp::R_NANOMIPS_TLS_LD:
+    case elfcpp::R_NANOMIPS_TLS_GOTTPREL:
+      return this->code_and_data_models_type(target, gsym, psymval,
+                                             insn_property, reloc,
+                                             insn, address, gp);
     default:
       gold_unreachable();
     }
@@ -4756,6 +4867,7 @@ Nanomips_expand_insn<size, big_endian>::type(
 template<int size, bool big_endian>
 unsigned int
 Nanomips_expand_insn_finalize<size, big_endian>::type(
+    Target_nanomips<size, big_endian>* target,
     const Symbol* gsym,
     const Symbol_value<size>* psymval,
     const Nanomips_insn_property* insn_property,
@@ -4786,7 +4898,7 @@ Nanomips_expand_insn_finalize<size, big_endian>::type(
 
   // For RELOC_RESOLVE we need to check if we need to expand instruction.
   unsigned int type =
-    Nanomips_expand_insn<size, big_endian>::type(gsym, psymval,
+    Nanomips_expand_insn<size, big_endian>::type(target, gsym, psymval,
                                                  insn_property, reloc,
                                                  relnum, insn, address,
                                                  gp);
@@ -5066,14 +5178,10 @@ Target_nanomips<size, big_endian>::relocate_branch(
     Address address,
     unsigned char* view)
 {
-  const Nanomips_reloc_property* reloc_property =
-    nanomips_reloc_property_table->get_reloc_property(r_type);
-  gold_assert(reloc_property != NULL);
-
-  Valtype value = destination - (address + 4);
-
   typedef Nanomips_relocate_functions<size, big_endian> Reloc_funcs;
   typename Reloc_funcs::Status reloc_status = Reloc_funcs::STATUS_OKAY;
+
+  Valtype value = destination - (address + 4);
   switch (r_type)
     {
     case elfcpp::R_NANOMIPS_PC14_S1:
@@ -6542,8 +6650,9 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
         }
 
       // Get the type of the transformation.
-      unsigned int type = transform.type(gsym, psymval, insn_property, reloc,
-                                         i, insn, view_address + r_offset, gp);
+      Address address = view_address + r_offset;
+      unsigned int type = transform.type(this, gsym, psymval, insn_property,
+                                         reloc, i, insn, address, gp);
       if (type == TT_NONE)
         continue;
 
@@ -7242,44 +7351,11 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
                            && (next_r_type != elfcpp::R_NANOMIPS_NONE
                                && !next_reloc_property->placeholder()));
 
-  unsigned int got_offset = 0;
-  switch (r_type)
-    {
-    case elfcpp::R_NANOMIPS_GOT_DISP:
-    case elfcpp::R_NANOMIPS_GOT_PAGE:
-    case elfcpp::R_NANOMIPS_GOT_CALL:
-    case elfcpp::R_NANOMIPS_GOTPC_I32:
-    case elfcpp::R_NANOMIPS_GOTPC_HI20:
-    case elfcpp::R_NANOMIPS_GOT_LO12:
-      if (gsym != NULL)
-        got_offset = gsym->got_offset(GOT_TYPE_STANDARD);
-      else
-        got_offset = object->local_got_offset(r_sym, GOT_TYPE_STANDARD,
-                                              r_addend);
-      break;
-    case elfcpp::R_NANOMIPS_TLS_GD:
-    case elfcpp::R_NANOMIPS_TLS_GD_I32:
-      if (gsym != NULL)
-        got_offset = gsym->got_offset(GOT_TYPE_TLS_PAIR);
-      else
-        got_offset = object->local_got_offset(r_sym, GOT_TYPE_TLS_PAIR,
-                                              r_addend);
-      break;
-    case elfcpp::R_NANOMIPS_TLS_GOTTPREL:
-    case elfcpp::R_NANOMIPS_TLS_GOTTPREL_PC_I32:
-      if (gsym != NULL)
-        got_offset = gsym->got_offset(GOT_TYPE_TLS_OFFSET);
-      else
-        got_offset = object->local_got_offset(r_sym, GOT_TYPE_TLS_OFFSET,
-                                              r_addend);
-      break;
-    case elfcpp::R_NANOMIPS_TLS_LD:
-    case elfcpp::R_NANOMIPS_TLS_LD_I32:
-      got_offset = target->got_mod_index_entry(NULL, NULL, NULL);
-      break;
-    default:
-      break;
-    }
+  unsigned int got_offset;
+  if (gsym == NULL)
+    got_offset = local_got_offset(target, object, r_sym, r_type, r_addend);
+  else
+    got_offset = global_got_offset(target, gsym, r_type);
 
   Valtype value = 0;
   switch (r_type)
@@ -7297,17 +7373,21 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
     case elfcpp::R_NANOMIPS_TLS_LD:
     case elfcpp::R_NANOMIPS_TLS_LD_I32:
     case elfcpp::R_NANOMIPS_TLS_GOTTPREL:
+      gold_assert(got_offset != -1U);
       value = got_offset;
       break;
     case elfcpp::R_NANOMIPS_GOTPC_I32:
     case elfcpp::R_NANOMIPS_TLS_GOTTPREL_PC_I32:
+      gold_assert(got_offset != -1U);
       value = target->got_section()->address() + got_offset - (address + 4);
       break;
     case elfcpp::R_NANOMIPS_GOTPC_HI20:
+      gold_assert(got_offset != -1U);
       value = (target->got_section()->address() + got_offset
                - ((address + 4) & ~0xfff));
       break;
     case elfcpp::R_NANOMIPS_GOT_LO12:
+      gold_assert(got_offset != -1U);
       value = target->got_section()->address() + got_offset;
       break;
     case elfcpp::R_NANOMIPS_32:
