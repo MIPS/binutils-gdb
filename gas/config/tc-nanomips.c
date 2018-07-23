@@ -4866,7 +4866,7 @@ static void
 stublist_append_call (struct balc_stub *stub, bfd_vma callsite)
 {
   struct call_list *next
-    = (struct call_list *) xmalloc (sizeof (struct call_list *));
+    = (struct call_list *) xmalloc (sizeof (struct call_list));
   memset (next, 0, sizeof (struct call_list));
   next->callsite = callsite;
 
@@ -5008,12 +5008,14 @@ balc_add_stub (symbolS *sym, stub_group *stubg)
 /* Consolidate this stub with a preceding or succeeding stub if all
    calls to this stub can reach the alternative just as well.  */
 static bfd_boolean
-balc_merge_stub (const char *func, stub_group *stubg, struct balc_stub *stub)
+balc_merge_stub (const char *func, stub_group *stubg,
+		 struct balc_stub **stub_ptr_ptr)
 {
   stub_group *next = stubg->next;
   stub_group *prev = stubg->prev;
   struct balc_stub *prevstub = NULL;
   struct balc_stub *nextstub = NULL;
+  struct balc_stub *stub = *stub_ptr_ptr;
   bfd_vma callsite = stub->first_call->callsite;
 
   /* Correction to account for the fact that the 4-byte stub will also move
@@ -5058,15 +5060,22 @@ balc_merge_stub (const char *func, stub_group *stubg, struct balc_stub *stub)
   if (prevstub)
     {
       if (nextstub && (nextstub->numcalls >= prevstub->numcalls))
-	stublist_merge_forward_calls (nextstub, stub);
+	{
+	  stublist_merge_forward_calls (nextstub, stub);
+	  *stub_ptr_ptr = nextstub;
+	}
       else
-	stublist_merge_backward_calls (prevstub, stub);
+	{
+	  stublist_merge_backward_calls (prevstub, stub);
+	  *stub_ptr_ptr = prevstub;
+	}
       xfree (stubtable_delete (stubg->stubtable, func, 0));
       return TRUE;
     }
   else if (nextstub)
     {
       stublist_merge_forward_calls (nextstub, stub);
+      *stub_ptr_ptr = nextstub;
       xfree (stubtable_delete (stubg->stubtable, func, 0));
       return TRUE;
     }
@@ -11046,7 +11055,7 @@ relaxed_stub_length (fragS *fragp, asection *sec, bfd_boolean update)
 			  stubsite, stubg_now, &stub)
       && stub->numcalls > 0
       && !balc_merge_stub (S_GET_NAME (fragp->fr_symbol),
-			   stubg_now, stub)
+			   stubg_now, &stub)
       && stub->numcalls >= 3)
     keepstub = TRUE;
 
