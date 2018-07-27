@@ -538,6 +538,10 @@ static const struct ld_option ld_options[] =
   { {"orphan-handling", required_argument, NULL, OPTION_ORPHAN_HANDLING},
     '\0', N_("=MODE"), N_("Control how orphan sections are handled."),
     TWO_DASHES },
+  { {"print-map-discarded", no_argument, NULL, OPTION_PRINT_MAP_DISCARDED},
+    '\0', NULL, N_("Show discarded sections in map file output"), TWO_DASHES },
+  { {"no-print-map-discarded", no_argument, NULL, OPTION_NO_PRINT_MAP_DISCARDED},
+    '\0', NULL, N_("Do not show discarded sections in map file output"), TWO_DASHES },
 };
 
 #define OPTION_COUNT ARRAY_SIZE (ld_options)
@@ -1567,6 +1571,14 @@ parse_args (unsigned argc, char **argv)
 	  else
 	    einfo (_("%P%F: invalid argument to option"
 		     " \"--orphan-handling\"\n"));
+	  break;
+
+	case OPTION_NO_PRINT_MAP_DISCARDED:
+	  config.print_map_discarded = FALSE;
+	  break;
+
+	case OPTION_PRINT_MAP_DISCARDED:
+	  config.print_map_discarded = TRUE;
 	  break;
 	}
     }
