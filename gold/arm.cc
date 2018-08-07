@@ -12247,7 +12247,8 @@ Target_arm<big_endian>::scan_reloc_section_for_stubs(
 	  if (comdat_behavior == CB_UNDETERMINED)
  	      comdat_behavior = default_comdat_behavior.get(name.c_str());
 
-	  if (comdat_behavior == CB_PRETEND)
+	  if (comdat_behavior == CB_PRETEND
+	      || comdat_behavior == CB_RETAIN)
 	    {
 	      // FIXME: This case does not work for global symbols.
 	      // We have no place to store the original section index.
@@ -12259,6 +12260,8 @@ Target_arm<big_endian>::scan_reloc_section_for_stubs(
 		arm_object->map_to_kept_section(shndx, name, &found);
 	      if (found)
 		symval2.set_output_value(value + psymval->input_value());
+	      else if (comdat_behavior == CB_RETAIN)
+		symval2.set_output_value(psymval->input_value());
 	      else
 		symval2.set_output_value(0);
 	    }
