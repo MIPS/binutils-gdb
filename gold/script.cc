@@ -1044,8 +1044,6 @@ Symbol_assignment::set_if_absolute(Symbol_table* symtab, const Layout* layout,
     }
   else
     gold_unreachable();
-  if (val_section != NULL)
-    this->sym_->set_output_section(val_section);
 }
 
 // Print for debugging.
