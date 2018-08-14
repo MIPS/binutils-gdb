@@ -4342,7 +4342,11 @@ MOSTLYCLEANFILES += nanomips_b_out_of_range_pcrel nanomips_b_out_of_range_insn32
 
 check_SCRIPTS += nanomips_gprel_out_of_range.sh
 check_DATA += nanomips_gprel_out_of_range.stdout \
-	      nanomips_gprel_nms_out_of_range.stdout
+	      nanomips_gprel_nms_out_of_range.stdout \
+	      nanomips_gprel_out_of_range_no_strict_abs.stdout \
+	      nanomips_gprel_nms_out_of_range_no_strict_abs.stdout \
+	      nanomips_gprel_out_of_range_no_strict_pcrel.stdout \
+	      nanomips_gprel_nms_out_of_range_no_strict_pcrel.stdout
 
 nanomips_gprel_out_of_range.stdout: nanomips_gprel_out_of_range
 	$(TEST_OBJDUMP) -d $< > $@
@@ -4350,35 +4354,53 @@ nanomips_gprel_out_of_range.stdout: nanomips_gprel_out_of_range
 nanomips_gprel_nms_out_of_range.stdout: nanomips_gprel_nms_out_of_range
 	$(TEST_OBJDUMP) -d $< > $@
 
-nanomips_gprel_out_of_range: nanomips_gprel_out_of_range.o ../ld-new
-	../ld-new -T $(srcdir)/nanomips_gprel_out_of_range.t -o $@ $<
-
-nanomips_gprel_nms_out_of_range: nanomips_gprel_nms_out_of_range.o ../ld-new
-	../ld-new -T $(srcdir)/nanomips_gprel_out_of_range.t -o $@ $<
-
-nanomips_gprel_out_of_range.o: nanomips_gprel_out_of_range.s
-	$(TEST_AS) -EL -march=32r6s -m32 -o $@ $<
-
-nanomips_gprel_nms_out_of_range.o: nanomips_gprel_out_of_range.s
-	$(TEST_AS) -EL -march=32r6 -m32 -o $@ $<
-
-MOSTLYCLEANFILES += nanomips_gprel_out_of_range nanomips_gprel_nms_out_of_range
-
-# Check expansions of lw[gp] and sw[gp] instructions with --no-strict-address-modes option.
-
-check_SCRIPTS += nanomips_gprel_out_of_range_no_strict.sh
-check_DATA += nanomips_gprel_out_of_range_no_strict.stdout
-
-nanomips_gprel_out_of_range_no_strict.stdout: nanomips_gprel_out_of_range_no_strict
+nanomips_gprel_out_of_range_no_strict_abs.stdout: nanomips_gprel_out_of_range_no_strict_abs
 	$(TEST_OBJDUMP) -d $< > $@
 
-nanomips_gprel_out_of_range_no_strict: nanomips_gprel_out_of_range_no_strict.o ../ld-new
+nanomips_gprel_nms_out_of_range_no_strict_abs.stdout: nanomips_gprel_nms_out_of_range_no_strict_abs
+	$(TEST_OBJDUMP) -d $< > $@
+
+nanomips_gprel_out_of_range_no_strict_pcrel.stdout: nanomips_gprel_out_of_range_no_strict_pcrel
+	$(TEST_OBJDUMP) -d $< > $@
+
+nanomips_gprel_nms_out_of_range_no_strict_pcrel.stdout: nanomips_gprel_nms_out_of_range_no_strict_pcrel
+	$(TEST_OBJDUMP) -d $< > $@
+
+nanomips_gprel_out_of_range: nanomips_gprel_out_of_range_abs.o ../ld-new
+	../ld-new -T $(srcdir)/nanomips_gprel_out_of_range.t -o $@ $<
+
+nanomips_gprel_nms_out_of_range: nanomips_gprel_nms_out_of_range_abs.o ../ld-new
+	../ld-new -T $(srcdir)/nanomips_gprel_out_of_range.t -o $@ $<
+
+nanomips_gprel_out_of_range_no_strict_abs: nanomips_gprel_out_of_range_abs.o ../ld-new
 	../ld-new -T $(srcdir)/nanomips_gprel_out_of_range.t --no-strict-address-modes -o $@ $<
 
-nanomips_gprel_out_of_range_no_strict.o: nanomips_gprel_out_of_range_no_strict.s
+nanomips_gprel_nms_out_of_range_no_strict_abs: nanomips_gprel_nms_out_of_range_abs.o ../ld-new
+	../ld-new -T $(srcdir)/nanomips_gprel_out_of_range.t --no-strict-address-modes -o $@ $<
+
+nanomips_gprel_out_of_range_no_strict_pcrel: nanomips_gprel_out_of_range_pcrel.o ../ld-new
+	../ld-new -T $(srcdir)/nanomips_gprel_out_of_range.t --no-strict-address-modes -o $@ $<
+
+nanomips_gprel_nms_out_of_range_no_strict_pcrel: nanomips_gprel_nms_out_of_range_pcrel.o ../ld-new
+	../ld-new -T $(srcdir)/nanomips_gprel_out_of_range.t --no-strict-address-modes -o $@ $<
+
+nanomips_gprel_out_of_range_abs.o: nanomips_gprel_out_of_range.s
+	$(TEST_AS) -EL -march=32r6s -m32 -o $@ $<
+
+nanomips_gprel_nms_out_of_range_abs.o: nanomips_gprel_out_of_range.s
 	$(TEST_AS) -EL -march=32r6 -m32 -o $@ $<
 
-MOSTLYCLEANFILES += nanomips_gprel_out_of_range_no_strict
+nanomips_gprel_out_of_range_pcrel.o: nanomips_gprel_out_of_range.s
+	$(TEST_AS) -EL -march=32r6s -m32 -mpcrel -o $@ $<
+
+nanomips_gprel_nms_out_of_range_pcrel.o: nanomips_gprel_out_of_range.s
+	$(TEST_AS) -EL -march=32r6 -m32 -mpcrel -o $@ $<
+
+MOSTLYCLEANFILES += nanomips_gprel_out_of_range nanomips_gprel_nms_out_of_range \
+		    nanomips_gprel_out_of_range_no_strict_abs \
+		    nanomips_gprel_nms_out_of_range_no_strict_abs \
+		    nanomips_gprel_out_of_range_no_strict_pcrel \
+		    nanomips_gprel_nms_out_of_range_no_strict_pcrel
 
 # Test sorting small data section.
 

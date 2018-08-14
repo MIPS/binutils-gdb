@@ -4515,18 +4515,37 @@ Nanomips_expand_insn<size, big_endian>::expand_type(
       // Transform into opposite branch and bc instruction.
       return TT_PCREL32_LONG;
     case elfcpp::R_NANOMIPS_GPREL19_S2:
-      if (xlp
-          && !parameters->options().strict_address_modes()
-          && insn_property->has_transform(TT_PCREL_XLP, r_type))
-        // Transform [ls]w[gp] into [ls]wpc.
-        return TT_PCREL_XLP;
-      // Fall through.
-
     case elfcpp::R_NANOMIPS_GPREL18:
     case elfcpp::R_NANOMIPS_GPREL17_S1:
-      // Transform addiu[gp.[wb]] to lui, ori, addu or into addiu[gp48],
-      // or transform [ls]x[gp] into lui, addu, [ls]x or addiu[gp48], [ls]x.
-      return xlp ? TT_GPREL32_XLP : TT_GPREL_LONG;
+      if (insn_property->name()[0] == 'a')
+        {
+          // Transformations for addiu[gp.w] and addiu[gp.b] instructions.
+          if (xlp)
+            // Transform into addiu[gp48].
+            return TT_GPREL_XLP;
+          else if (parameters->options().strict_address_modes())
+            // Transform into lui, ori, addu.
+            return TT_GPREL_LONG;
+          else
+            // Transform into aluipc/lui, ori.
+            return pcrel ? TT_PCREL32_LONG : TT_ABS32_LONG;
+        }
+      else
+        {
+          // Transformations for load and store instructions.
+          if (parameters->options().strict_address_modes())
+            // Transform into addiu[gp48], [ls]x or lui, addu, [ls]x.
+            return xlp ? TT_GPREL32_XLP : TT_GPREL_LONG;
+          else if (!pcrel)
+            // Transform into lui, [ls]x.
+            return TT_ABS32_LONG;
+          else if (xlp && insn_property->has_transform(TT_PCREL_XLP, r_type))
+            // Transform [ls]w[gp] into [ls]wpc.
+            return TT_PCREL_XLP;
+          else
+            // Transform into aluipc, [ls]x.
+            return TT_PCREL32_LONG;
+        }
     case elfcpp::R_NANOMIPS_PC10_S1:
     case elfcpp::R_NANOMIPS_PC7_S1:
       // Transform bc16/balc16 to bc/balc for PC10_S1 reloc,
