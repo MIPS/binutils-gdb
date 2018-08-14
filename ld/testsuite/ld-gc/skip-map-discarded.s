@@ -1,5 +1,5 @@
 .globl __start
 __start:
-	.section	_foo,"aw",%progbits
+	.section	_foo
 foo:
 	.long	1
