@@ -745,7 +745,9 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "minimize-relocs3" "" \
 					[arch_list_matching nanomips]
     run_dump_test_arches "minimize-relocs4" "" \
-					[arch_list_matching nanomips]
+					[arch_list_matching xnms]
+    run_dump_test_arches "minimize-relocs4" "--defsym nms=1" \
+					nanomips32s
 
     run_list_test_arches "macro-ill-sfp" "-m32 -msingle-float" \
 					[arch_list_matching nanomipsr6]
