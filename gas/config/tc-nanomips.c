@@ -11236,7 +11236,8 @@ nanomips_fix_adjustable (fixS *fixp)
   /* PC relative relocations for need to be symbol rather than section
      relative to allow linker relaxations to be performed later on.  */
   if (pcrel_reloc_p (fixp->fx_r_type))
-    return RELAX_MD_FIXED (fixp->fx_frag->fr_subtype);
+    return (fixp->fx_addsy == fixp->fx_frag->fr_symbol
+	    && RELAX_MD_FIXED (fixp->fx_frag->fr_subtype));
 
   /* Relocations to code sections need to be symbol rather than section
      relative for nanoMIPS, to allow linker expansions and relaxations
