@@ -64,4 +64,29 @@ Disassembly of section \.text:
 
 000000da <\$L10>:
   da:	9008      	nop
+
+000000dc <test1>:
+  dc:	9800      	beqzc	s0,e2 <\$L13>
+			dc: R_NANOMIPS_PC7_S1	\$L13
+  de:	d8f0      	jalrc	a3
+			de: R_NANOMIPS_JALR16	bar
+  e0:	9a00      	beqzc	a0,dc <\$L11>
+			e0: R_NANOMIPS_PC7_S1	\$L11
+
+000000e2 <\$L13>:
+  e2:	9800      	beqzc	s0,ea <test7_callee>
+			e2: R_NANOMIPS_PC7_S1	test7_callee
+  e4:	4080 0002 	lw	a0,0\(gp\)
+			e4: R_NANOMIPS_GOT_CALL	bar
+  e8:	9a00      	beqzc	a0,e2 <\$L13>
+			e8: R_NANOMIPS_PC7_S1	\$L13
+
+000000ea <test7_callee>:
+  ea:	dbe0      	jrc	ra
+
+000000ec <test7_caller>:
+  ec:	049f fffb 	lapc	a0,ea <test7_callee>
+  f0:	9a02      	beqzc	a0,f4 <test7_caller\+0x8>
+  f2:	9008      	nop
+  f4:	dbe0      	jrc	ra
 #pass

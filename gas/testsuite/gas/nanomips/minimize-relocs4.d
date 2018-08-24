@@ -82,13 +82,21 @@ Disassembly of section \.text:
 			e0: R_NANOMIPS_PC7_S1	\$L11
 
 000000e2 <\$L13>:
-  e2:	9800      	beqzc	s0,ea <\$L14>
-			e2: R_NANOMIPS_PC7_S1	\$L14
+  e2:	9800      	beqzc	s0,ea <test7_callee>
+			e2: R_NANOMIPS_PC7_S1	test7_callee
   e4:	4080 0002 	lw	a0,0\(gp\)
 			e4: R_NANOMIPS_GOT_CALL	bar
   e8:	9a00      	beqzc	a0,e2 <\$L13>
 			e8: R_NANOMIPS_PC7_S1	\$L13
 
-000000ea <\$L14>:
-  ea:	9008      	nop
+000000ea <test7_callee>:
+  ea:	dbe0      	jrc	ra
+
+000000ec <test7_caller>:
+  ec:	6083 0000 	lapc	a0,ea <test7_callee>
+  f0:	0000.
+			ee: R_NANOMIPS_PC_I32	test7_callee
+  f2:	9a02      	beqzc	a0,f6 <test7_caller\+0xa>
+  f4:	9008      	nop
+  f6:	dbe0      	jrc	ra
 #pass

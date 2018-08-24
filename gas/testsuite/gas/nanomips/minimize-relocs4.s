@@ -13,6 +13,8 @@
 #	the frag of the source.
 # case6b: Backward jump over implicit relocation contained within
 #	the frag of the source.
+# case7: Non-terminal PC-relative references must remain symbol
+#	relative, even when the terminal one is fixed.
 
 	.text
 	.linkrelax
@@ -73,8 +75,25 @@ $L11:		# 6a: backward branch over explicit reloc
 1:	jalrc	$a3
 	beqzc	$a0,$L11
 $L13:		# 6b: backward branch over implicit reloc
-	beqzc	$s0,$L14
+	beqzc	$s0,test7_callee
 	lw	$a0, %got_call(bar)($gp)
 	beqzc	$a0,$L13
 $L14:
 	.end test1
+	.ent test7_callee
+test7_callee:
+	jr $ra
+	.end test7_callee
+	.ent test7_caller
+test7_caller:
+	.ifdef nms
+	lapc.h	$a0, test7_callee
+	.endif
+	.ifndef nms
+	lapc.b	$a0, test7_callee
+	.endif
+	beqz	$a0, 1f
+	nop
+1:
+	jr $ra
+	.end test7_caller
