@@ -999,23 +999,14 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   {
     typedef std::vector<Defined_symbol> Defined_symbols;
 
-    Transformable_section(size_t reloc_count_, unsigned int reloc_shndx_,
-                          unsigned int sh_type_, const unsigned char* prelocs_,
-                          const unsigned char* view_)
-      : reloc_count(reloc_count_), reloc_shndx(reloc_shndx_), sh_type(sh_type_),
-        prelocs(prelocs_), view(view_), symbols()
+    Transformable_section(unsigned int reloc_shndx_, unsigned int sh_type_)
+      : reloc_shndx(reloc_shndx_), sh_type(sh_type_), symbols()
     { }
 
-    // Number of reloc entries.
-    size_t reloc_count;
     // Index of reloc section.
     unsigned int reloc_shndx;
     // Reloc section type.
     unsigned int sh_type;
-    // Contents of reloc section.
-    const unsigned char* prelocs;
-    // Contents of this section.
-    const unsigned char* view;
     // Defined symbols in this section.  This is used to speed up process
     // of symbol adjustments after instruction transformation.
     Defined_symbols symbols;
@@ -3149,21 +3140,9 @@ Nanomips_relobj<size, big_endian>::initialize_transformable_sections(
       if (!this->section_needs_reloc_scanning(shdr, osections, symtab, pshdrs))
         continue;
 
-      unsigned int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
-      size_t reloc_count = shdr.get_sh_size() / reloc_size;
       unsigned int sh_type = shdr.get_sh_type();
-      // Get the relocations.
-      const unsigned char* prelocs = this->get_view(shdr.get_sh_offset(),
-                                                    shdr.get_sh_size(),
-                                                    true, false);
       unsigned int data_shndx = this->adjust_shndx(shdr.get_sh_info());
-      // Get the section contents.  This does work for the case in which
-      // we modify the contents of an input section. We need to pass the
-      // output view under such circumstances.
-      section_size_type view_size;
-      const unsigned char* view = this->section_contents(data_shndx, &view_size,
-                                                         false);
-      Transformable_section section(reloc_count, i, sh_type, prelocs, view);
+      Transformable_section section(i, sh_type);
       sections->sections_map.insert(std::make_pair(data_shndx, section));
     }
 }
@@ -3335,9 +3314,10 @@ Nanomips_relobj<size, big_endian>::scan_sections_for_transform(
       Transformable_section& section = p->second;
       unsigned int data_shndx = p->first;
       unsigned int reloc_shndx = section.reloc_shndx;
-      Address output_offset = this->get_output_section_offset(data_shndx);
-      Nanomips_input_section* input_section = NULL;
       unsigned int sh_type = section.sh_type;
+      Address output_offset = this->get_output_section_offset(data_shndx);
+      Output_section* os = osections[data_shndx];
+      Nanomips_input_section* input_section = NULL;
       Address output_address;
       const unsigned char* prelocs;
       const unsigned char* view;
@@ -3345,10 +3325,17 @@ Nanomips_relobj<size, big_endian>::scan_sections_for_transform(
 
       if (output_offset != invalid_address)
         {
-          output_address = osections[data_shndx]->address() + output_offset;
-          prelocs = section.prelocs;
-          reloc_count = section.reloc_count;
-          view = section.view;
+          // Get the relocations.
+          unsigned int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
+          section_size_type relocs_size;
+          prelocs = this->section_contents(reloc_shndx, &relocs_size, false);
+          reloc_count = relocs_size / reloc_size;
+          // Get the section contents.  This does work for the case in which
+          // we modify the contents of an input section. We need to pass the
+          // output view under such circumstances.
+          section_size_type view_size;
+          view = this->section_contents(data_shndx, &view_size, false);
+          output_address = os->address() + output_offset;
         }
       else
         {
@@ -3363,7 +3350,6 @@ Nanomips_relobj<size, big_endian>::scan_sections_for_transform(
 
       relinfo.reloc_shndx = reloc_shndx;
       relinfo.data_shndx = data_shndx;
-      Output_section* os = osections[data_shndx];
       if (emit_relocs)
         relinfo.rr = this->relocatable_relocs(reloc_shndx);
 
