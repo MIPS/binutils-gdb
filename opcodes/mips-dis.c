@@ -1136,11 +1136,6 @@ print_reg (struct disassemble_info *info, const struct mips_opcode *opcode,
 {
   switch (type)
     {
-    case OP_REG_MXU:
-    case OP_REG_MXU_GP:
-      info->fprintf_func (info->stream, "%s", mips_gpr_names_xr[regno]);
-      break;
-
     case OP_REG_GP:
       info->fprintf_func (info->stream, "%s", mips_gpr_names[regno]);
       break;
@@ -1212,6 +1207,10 @@ print_reg (struct disassemble_info *info, const struct mips_opcode *opcode,
       info->fprintf_func (info->stream, "%s", msa_control_names[regno]);
       break;
 
+    case OP_REG_MXU:
+    case OP_REG_MXU_GP:
+      info->fprintf_func (info->stream, "%s", mips_gpr_names_xr[regno]);
+      break;
     }
 }
 
@@ -1366,13 +1365,6 @@ print_insn_arg (struct disassemble_info *info,
 
   switch (operand->type)
     {
-    case OP_MAPPED_STRING:
-      {
-	const struct mips_mapped_string_operand *string_op;
-	string_op = (const struct mips_mapped_string_operand *) operand;
-	infprintf (is, "%s", string_op->strings[uval]);
-      }
-      break;
     case OP_INT:
       {
 	const struct mips_int_operand *int_op;
@@ -1640,14 +1632,22 @@ print_insn_arg (struct disassemble_info *info,
       infprintf (is, "[%d]", uval);
       break;
 
-    case OP_MXU_STRIDE:
-      infprintf (is, "%d", uval);
-      break;
-
     case OP_REG_INDEX:
       infprintf (is, "[");
       print_reg (info, opcode, OP_REG_GP, uval);
       infprintf (is, "]");
+      break;
+
+    case OP_MAPPED_STRING:
+      {
+	const struct mips_mapped_string_operand *string_op;
+	string_op = (const struct mips_mapped_string_operand *) operand;
+	infprintf (is, "%s", string_op->strings[uval]);
+      }
+      break;
+
+    case OP_MXU_STRIDE:
+      infprintf (is, "%d", uval);
       break;
     }
 }

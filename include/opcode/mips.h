@@ -436,7 +436,10 @@ enum mips_operand_type {
   /* A register operand that must not be zero.  */
   OP_NON_ZERO_REG,
 
+  /* A named MXU operation pattern represented as a string or integer.  */
   OP_MAPPED_STRING,
+
+  /* 2-bit immediate MXU stride operand.  */
   OP_MXU_STRIDE
 };
 
@@ -486,8 +489,10 @@ enum mips_reg_operand_type {
   /* MSA control registers $0-$31.  */
   OP_REG_MSA_CTRL,
 
+  /* MXU registers xr0-xr16, mxu_cr.  */
   OP_REG_MXU,
 
+  /* MXU general purpose registers xr0-xr16.  */
   OP_REG_MXU_GP
 };
 
@@ -546,12 +551,14 @@ struct mips_mapped_int_operand
   bfd_boolean print_hex;
 };
 
+/*  Uses a lookup table to map MXU operation patterns to integer encodings.  */
 struct mips_mapped_string_operand
 {
   struct mips_operand root;
   const char ** strings;
   int allow_constants;
 };
+
 /* An operand that encodes the most significant bit position of a bitfield.
    Given a bitfield that spans bits [MSB, LSB], some operands of this type
    encode MSB directly while others encode MSB - LSB.  Each operand of this
