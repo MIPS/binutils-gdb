@@ -1462,8 +1462,6 @@ enum options
     OPTION_NO_EVA,
     OPTION_XPA,
     OPTION_NO_XPA,
-    OPTION_MXU,
-    OPTION_NO_MXU,
     OPTION_MICROMIPS,
     OPTION_NO_MICROMIPS,
     OPTION_MCU,
@@ -1542,6 +1540,8 @@ enum options
     OPTION_NO_CRYPTO,
     OPTION_GINV,
     OPTION_NO_GINV,
+    OPTION_MXU,
+    OPTION_NO_MXU,
     OPTION_END_OF_ENUM
   };
 
@@ -5050,12 +5050,6 @@ convert_reg_type (const struct mips_opcode *opcode,
 {
   switch (type)
     {
-    case OP_REG_MXU:
-      return RTYPE_NUM | RTYPE_MXU;
-
-    case OP_REG_MXU_GP:
-      return RTYPE_GP | RTYPE_MXU;
-
     case OP_REG_GP:
       return RTYPE_NUM | RTYPE_GP;
 
@@ -5116,6 +5110,12 @@ convert_reg_type (const struct mips_opcode *opcode,
 
     case OP_REG_MSA_CTRL:
       return RTYPE_NUM;
+
+    case OP_REG_MXU:
+      return RTYPE_NUM | RTYPE_MXU;
+
+    case OP_REG_MXU_GP:
+      return RTYPE_GP | RTYPE_MXU;
     }
   abort ();
 }
@@ -5393,7 +5393,6 @@ match_msb_operand (struct mips_arg_info *arg,
   return TRUE;
 }
 
-
 /* OP_MAPPED_STRING matcher.  */
 
 static bfd_boolean
@@ -5450,7 +5449,6 @@ match_string_operand (struct mips_arg_info *arg,
   insn_insert_operand (arg->insn, operand_base, store_val);
   return TRUE;
 }
-
 
 /* OP_REG matcher.  */
 
@@ -6366,9 +6364,6 @@ match_operand (struct mips_arg_info *arg,
     case OP_MSB:
       return match_msb_operand (arg, operand);
 
-    case OP_MAPPED_STRING:
-      return match_string_operand (arg, operand);
-
     case OP_REG:
     case OP_OPTIONAL_REG:
       return match_reg_operand (arg, operand);
@@ -6432,6 +6427,9 @@ match_operand (struct mips_arg_info *arg,
 
     case OP_NON_ZERO_REG:
       return match_non_zero_reg_operand (arg, operand);
+
+    case OP_MAPPED_STRING:
+      return match_string_operand (arg, operand);
 
     case OP_MXU_STRIDE:
       return match_mxu_stride_operand (arg, operand);
