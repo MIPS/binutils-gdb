@@ -89,25 +89,25 @@ decode_mips_operand (const char *p)
 	{
 	case 'm': REG (5, 6, MXU);
 	case '=': REG (4, 6, MXU);
-	case 'a': MAPPED_STRING (2, 24, mxu_aptn, 0);
+	case 'a': MAPPED_STRING (2, 24, mxu_aptn, 1);
 	case 'b': REG (4, 10, MXU_GP);
 	case 'c': REG (4, 14, MXU_GP);
 	case 'd': REG (4, 18, MXU_GP);
 	case 'e': MAPPED_STRING (3, 18, mxu_ptn_7, 1)
-	case 'g': MAPPED_STRING (3, 18, mxu_ptn_3, 0)
+	case 'g': MAPPED_STRING (3, 18, mxu_ptn_3, 1)
 	case 'f': UINT (4, 22);
 	case 'i': INT_ADJ (10, 10, 511, 2, FALSE);
 	case 'o': MAPPED_STRING (2, 22, mxu_optn, 1);
-	case 'P': MAPPED_STRING (2, 19, mxu_ptn_3, 0);
+	case 'P': MAPPED_STRING (2, 19, mxu_ptn_3, 1);
 	case 'p': MAPPED_STRING (2, 19, mxu_ptn_1, 0);
 	case 'r': SPECIAL (2, 14, MXU_STRIDE);
 	case 'R': SPECIAL (2, 9, MXU_STRIDE);
-	case 'A': MAPPED_STRING (1, 24, mxu_s32mad, 0);
+	case 'A': MAPPED_STRING (1, 24, mxu_s32mad, 1);
 	case 'B': SINT (8, 10);
 	case 'U': UINT (8, 10);
-	case 'E': MAPPED_STRING (2, 24, mxu_ptn_3, 0);
+	case 'E': MAPPED_STRING (2, 24, mxu_ptn_3, 1);
 	case 'I': INT_ADJ (9, 10, 255, 1, FALSE);
-	case 'S': MAPPED_STRING (3, 23, mxu_ptn_4, 0);
+	case 'S': MAPPED_STRING (3, 23, mxu_ptn_4, 1);
 	case 'O': MAPPED_STRING (3, 23, mxu_ptn_7, 1);
 	case 'T': UINT (5, 16);
 	}
