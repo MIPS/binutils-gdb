@@ -44,6 +44,16 @@ test_mxu:
 	\insn	xr1, xr2, xr3, xr4,SS,1
 	\insn	xr1, xr2, xr3, xr4,SS,2
 	\insn	xr1, xr2, xr3, xr4,SS,3
+
+	\insn	xr1, xr2, xr3, xr4, 0, WW
+	\insn	xr1, xr2, xr3, xr4, 1, LW
+	\insn	xr1, xr2, xr3, xr4, 2, HW
+	\insn	xr1, xr2, xr3, xr4, 3, XW
+
+	\insn	xr1, xr2, xr3, xr4, 0, 0
+	\insn	xr1, xr2, xr3, xr4, 1, 1
+	\insn	xr1, xr2, xr3, xr4, 2, 2
+	\insn	xr1, xr2, xr3, xr4, 3, 3
 .endm
 
 .macro test2	insn
@@ -51,6 +61,11 @@ test_mxu:
 	\insn	xr1, xr2, xr3, xr4, SA
 	\insn	xr1, xr2, xr3, xr4, AS
 	\insn	xr1, xr2, xr3, xr4, SS
+
+	\insn	xr1, xr2, xr3, xr4, 0
+	\insn	xr1, xr2, xr3, xr4, 1
+	\insn	xr1, xr2, xr3, xr4, 2
+	\insn	xr1, xr2, xr3, xr4, 3
 .endm
 
 .macro test3 insn
@@ -71,6 +86,11 @@ test_mxu:
 	\insn xr1, $2,-512, ptn1
 	\insn xr1, $2,-512, ptn2
 	\insn xr1, $2,-512, ptn3
+
+	\insn xr1, $2, 510, 0
+	\insn xr1, $2, 510, 1
+	\insn xr1, $2, -512, 2
+	\insn xr1, $2, -512, 3
 .endm
 
 .macro test5 insn
@@ -91,6 +111,15 @@ test_mxu:
 	\insn xr1, $2,-128, ptn5
 	\insn xr1, $2,-128, ptn6
 	\insn xr1, $2,-128, ptn7
+
+	\insn xr1, $2, 127, 0
+	\insn xr1, $2, 127, 1
+	\insn xr1, $2, 127, 2
+	\insn xr1, $2, 127, 3
+	\insn xr1, $2, -128, 4
+	\insn xr1, $2, -128, 5
+	\insn xr1, $2, -128, 6
+	\insn xr1, $2, -128, 7
 .endm
 
 .macro test6 insn
@@ -103,6 +132,11 @@ test_mxu:
 	\insn xr1, $2,-128, ptn1
 	\insn xr1, $2,-128, ptn2
 	\insn xr1, $2,-128, ptn3
+
+	\insn xr1, $2, 127, 0
+	\insn xr1, $2, 127, 1
+	\insn xr1, $2, -128, 2
+	\insn xr1, $2, -128, 3
 .endm
 	mfc1	$2, $2
 	mfc1	$2, $f1
@@ -168,6 +202,16 @@ test_mxu:
 	s16mad	xr1, xr2, xr3, xr4,S,2
 	s16mad	xr1, xr2, xr3, xr4,S,3
 
+	s16mad	xr1, xr2, xr3, xr4,0,0
+	s16mad	xr1, xr2, xr3, xr4,0,1
+	s16mad	xr1, xr2, xr3, xr4,1,2
+	s16mad	xr1, xr2, xr3, xr4,1,3
+
+	s16mad	xr1, xr2, xr3, xr4,0,WW
+	s16mad	xr1, xr2, xr3, xr4,0,LW
+	s16mad	xr1, xr2, xr3, xr4,1,HW
+	s16mad	xr1, xr2, xr3, xr4,1,XW
+
 	q8mul	xr1, xr2, xr3, xr4
 	q8mulsu	xr1, xr2, xr3, xr4
 	q8movz	xr1, xr2, xr3
@@ -188,6 +232,10 @@ test_mxu:
 	s32sfl	xr1, xr2, xr3, xr4, ptn1
 	s32sfl	xr1, xr2, xr3, xr4, ptn2
 	s32sfl	xr1, xr2, xr3, xr4, ptn3
+	s32sfl	xr1, xr2, xr3, xr4, 0
+	s32sfl	xr1, xr2, xr3, xr4, 1
+	s32sfl	xr1, xr2, xr3, xr4, 2
+	s32sfl	xr1, xr2, xr3, xr4, 3
 
 	q8sad	xr1, xr2, xr3, xr4
 
@@ -222,6 +270,10 @@ test_mxu:
 	q8add	xr1, xr2, xr3,AS
 	q8add	xr1, xr2, xr3,SA
 	q8add	xr1, xr2, xr3,SS
+	q8add	xr1, xr2, xr3, 0
+	q8add	xr1, xr2, xr3, 1
+	q8add	xr1, xr2, xr3, 2
+	q8add	xr1, xr2, xr3, 3
 
 	s32max	xr1, xr2, xr3
 	s32min	xr1, xr2, xr3
@@ -263,6 +315,11 @@ test_mxu:
 	s32alni	xr1, xr2, xr3, ptn2
 	s32alni	xr1, xr2, xr3, ptn3
 	s32alni	xr1, xr2, xr3, ptn4
+	s32alni	xr1, xr2, xr3, 0
+	s32alni	xr1, xr2, xr3, 1
+	s32alni	xr1, xr2, xr3, 2
+	s32alni	xr1, xr2, xr3, 3
+	s32alni	xr1, xr2, xr3, 4
 	s32lui xr1, 127, ptn0
 	s32lui xr1, 127, ptn1
 	s32lui xr1, 127, ptn2
@@ -279,14 +336,14 @@ test_mxu:
 	s32lui xr1, -128, ptn5
 	s32lui xr1, -128, ptn6
 	s32lui xr1, -128, ptn7
-	s32lui xr1, 255, ptn0
-	s32lui xr1, 255, ptn1
-	s32lui xr1, 255, ptn2
-	s32lui xr1, 255, ptn3
-	s32lui xr1, 255, ptn4
-	s32lui xr1, 255, ptn5
-	s32lui xr1, 255, ptn6
-	s32lui xr1, 255, ptn7
+	s32lui xr1, 255, 0
+	s32lui xr1, 255, 1
+	s32lui xr1, 255, 2
+	s32lui xr1, 255, 3
+	s32lui xr1, 255, 4
+	s32lui xr1, 255, 5
+	s32lui xr1, 255, 6
+	s32lui xr1, 255, 7
 	s32nor	xr1, xr2, xr3
 	s32and	xr1, xr2, xr3
 	s32or	xr1, xr2, xr3
