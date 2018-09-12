@@ -3972,7 +3972,7 @@ Output_section::align_offset(off_t off, uint64_t align) const
 
 std::string
 Output_section::get_fill_string(const std::string& fill,
-                                section_size_type length) const
+				section_size_type length) const
 {
   std::string this_fill;
   this_fill.reserve(length);
@@ -3981,6 +3981,24 @@ Output_section::get_fill_string(const std::string& fill,
   if (this_fill.length() < length)
     this_fill.append(fill, 0, length - this_fill.length());
   return this_fill;
+}
+
+// Create and return section that contains fill string, or zero fill
+// if fill string is not specified in the linker script.
+
+Output_section_data*
+Output_section::create_fill_section(const std::string& fill,
+				    section_size_type length) const
+{
+  Output_section_data* posd;
+  if (fill.empty())
+    posd = new Output_data_zero_fill(length, 0);
+  else
+    {
+      std::string this_fill = this->get_fill_string(fill, length);
+      posd = new Output_data_const(this_fill, 0);
+    }
+  return posd;
 }
 
 // Get the input sections for linker script processing.  We leave
@@ -4011,20 +4029,14 @@ Output_section::get_input_sections(
   address = align_address(address, this->addralign());
 
   Input_section_list remaining;
+
   // This can happen if the alignment in the linker script
   // is less than the alignment of this output section.
   if (address != orig_address)
     {
       section_size_type length =
 	convert_to_section_size_type(address - orig_address);
-      Output_section_data* posd;
-      if (fill.empty())
-	posd = new Output_data_zero_fill(length, 0);
-      else
-	{
-	  std::string this_fill = this->get_fill_string(fill, length);
-	  posd = new Output_data_const(this_fill, 0);
-	}
+      Output_section_data* posd = this->create_fill_section(fill, length);
       remaining.push_back(Input_section(posd));
     }
 
@@ -4039,12 +4051,12 @@ Output_section::get_input_sections(
       else
 	{
 	  uint64_t aligned_address = align_address(address, p->addralign());
-	  if (aligned_address != address && !fill.empty())
+	  if (aligned_address != address)
 	    {
 	      section_size_type length =
 		convert_to_section_size_type(aligned_address - address);
-	      std::string this_fill = this->get_fill_string(fill, length);
-	      Output_section_data* posd = new Output_data_const(this_fill, 0);
+	      Output_section_data* posd =
+		this->create_fill_section(fill, length);
 	      remaining.push_back(Input_section(posd));
 	    }
 	  address = aligned_address;
@@ -4127,7 +4139,7 @@ Output_section::discard_states()
 }
 
 void
-Output_section::restore_states(bool saw_sections_clause)
+Output_section::restore_states(bool reset_shndx)
 {
   gold_assert(this->checkpoint_ != NULL);
   Checkpoint_output_section* checkpoint = this->checkpoint_;
@@ -4135,10 +4147,12 @@ Output_section::restore_states(bool saw_sections_clause)
   this->addralign_ = checkpoint->addralign();
   this->flags_ = checkpoint->flags();
   this->first_input_offset_ = checkpoint->first_input_offset();
-  // Reset section index if we saw a SECTIONS clause, as there is
-  // a possibility that section index may change if any linker
-  // created output section is allocated during script processing.
-  if (saw_sections_clause)
+
+  // Reset section index is true if we saw a SECTIONS clause,
+  // because there is a possibility that section index may change
+  // if any linker created output section is allocated during
+  // script processing.
+  if (reset_shndx)
     this->out_shndx_ = -1U;
 
   if (!checkpoint->input_sections_saved())

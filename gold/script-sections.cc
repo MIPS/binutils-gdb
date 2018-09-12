@@ -872,6 +872,11 @@ class Output_section_element
   // FILL.
   std::string
   get_fill_string(const std::string* fill, section_size_type length) const;
+
+  // Create and return section that contains fill string, or zero fill
+  // if fill string is not specified in the linker script.
+  Output_section_data*
+  create_fill_section(const std::string* fill, section_size_type length) const;
 };
 
 std::string
@@ -885,6 +890,21 @@ Output_section_element::get_fill_string(const std::string* fill,
   if (this_fill.length() < length)
     this_fill.append(*fill, 0, length - this_fill.length());
   return this_fill;
+}
+
+Output_section_data*
+Output_section_element::create_fill_section(const std::string* fill,
+					    section_size_type length) const
+{
+  Output_section_data* posd;
+  if (fill->empty())
+    posd = new Output_data_zero_fill(length, 0);
+  else
+    {
+      std::string this_fill = this->get_fill_string(fill, length);
+      posd = new Output_data_const(this_fill, 0);
+    }
+  return posd;
 }
 
 // A symbol assignment in an output section.
@@ -1011,14 +1031,8 @@ Output_section_element_dot_assignment::set_section_addresses(
     {
       section_size_type length = convert_to_section_size_type(next_dot
 							      - *dot_value);
-      Output_section_data* posd;
-      if (fill->empty())
-	posd = new Output_data_zero_fill(length, 0);
-      else
-	{
-	  std::string this_fill = this->get_fill_string(fill, length);
-	  posd = new Output_data_const(this_fill, 0);
-	}
+      Output_section_data* posd = this->create_fill_section(fill, length);
+
       // If dot is advanced, this implies that the section
       // should have space allocated to it, unless the
       // user has explicitly stated that the section
@@ -1849,12 +1863,12 @@ Output_section_element_input::set_section_addresses(
 
 	  uint64_t address = align_address(dot, this_subalign);
 
-	  if (address > dot && !fill->empty())
+	  if (address > dot)
 	    {
 	      section_size_type length =
 		convert_to_section_size_type(address - dot);
-	      std::string this_fill = this->get_fill_string(fill, length);
-	      Output_section_data* posd = new Output_data_const(this_fill, 0);
+	      Output_section_data* posd =
+		this->create_fill_section(fill, length);
 	      output_section->add_output_section_data(posd);
 	      layout->new_output_section_data_from_script(posd);
 	    }

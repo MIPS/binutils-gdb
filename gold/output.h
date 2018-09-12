@@ -3991,7 +3991,7 @@ class Output_section : public Output_data
 
   // Restore states prior to section layout.
   void
-  restore_states(bool saw_sections_clause);
+  restore_states(bool reset_shndx);
 
   // Discard states.
   void
@@ -4470,6 +4470,11 @@ class Output_section : public Output_data
   // FILL.
   std::string
   get_fill_string(const std::string& fill, section_size_type length) const;
+
+  // Create and return section that contains fill string, or zero fill
+  // if fill string is not specified in the linker script.
+  Output_section_data*
+  create_fill_section(const std::string& fill, section_size_type length) const;
 
   // A helper function to align an offset of an input section.
   off_t
