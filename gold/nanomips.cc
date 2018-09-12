@@ -450,7 +450,7 @@ class Nanomips_output_section : public Output_section
 
   // Go over all input sections and sort them by reference.
   void
-  sort_sections_by_reference();
+  sort_sections_by_reference(Layout* layout);
 
  protected:
   // Write to a map file.
@@ -2786,10 +2786,13 @@ Nanomips_output_section<size, big_endian>::do_print_to_mapfile(
 
 template<int size, bool big_endian>
 void
-Nanomips_output_section<size, big_endian>::sort_sections_by_reference()
+Nanomips_output_section<size, big_endian>::sort_sections_by_reference(
+    Layout* layout)
 {
-  // We don't want the relaxation loop to undo these changes, so we discard
-  // the current saved states and take another one after the fix-up.
+  // We don't want the relaxation loop to undo these changes, so we restore
+  // and discard the current saved states and take another one after the
+  // fix-up.
+  this->restore_states(layout->script_options()->saw_sections_clause());
   this->discard_states();
 
   // Remove all input sections.
@@ -4853,7 +4856,7 @@ Target_nanomips<size, big_endian>::do_relax(
 
           Nanomips_output_section<size, big_endian>* nanomips_output_section =
               static_cast<Nanomips_output_section<size, big_endian>*>(os);
-          nanomips_output_section->sort_sections_by_reference();
+          nanomips_output_section->sort_sections_by_reference(layout);
           sorted = true;
         }
 
