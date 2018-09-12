@@ -499,6 +499,7 @@ Symbol::output_section() const
 	return NULL;
       }
 
+    case CONSTANT_IN_OUTPUT_SECTION:
     case IN_OUTPUT_DATA:
       return this->u1_.output_data->output_section();
 
@@ -513,20 +514,20 @@ Symbol::output_section() const
 }
 
 // Set the symbol's output section.  This is used for symbols defined
-// in scripts.  This should only be called after the symbol table has
-// been finalized.
+// in scripts.
 
 void
 Symbol::set_output_section(Output_section* os)
 {
   switch (this->source_)
     {
+    case CONSTANT_IN_OUTPUT_SECTION:
     case FROM_OBJECT:
     case IN_OUTPUT_DATA:
       gold_assert(this->output_section() == os);
       break;
     case IS_CONSTANT:
-      this->source_ = IN_OUTPUT_DATA;
+      this->source_ = CONSTANT_IN_OUTPUT_SECTION;
       this->u1_.output_data = os;
       this->u2_.offset_is_from_end = false;
       break;
@@ -2923,6 +2924,7 @@ Symbol_table::compute_final_value(
       }
       break;
 
+    case Symbol::CONSTANT_IN_OUTPUT_SECTION:
     case Symbol::IS_CONSTANT:
       value = sym->value();
       break;
@@ -3192,6 +3194,7 @@ Symbol_table::sized_write_globals(const Stringpool* sympool,
 	  }
 	  break;
 
+	case Symbol::CONSTANT_IN_OUTPUT_SECTION:
 	case Symbol::IN_OUTPUT_DATA:
 	  {
 	    Output_data* od = sym->output_data();
