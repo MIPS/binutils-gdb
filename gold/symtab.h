@@ -86,6 +86,10 @@ class Symbol
     IN_OUTPUT_SEGMENT,
     // Symbol value is constant.
     IS_CONSTANT,
+    // Symbol defined in an Output_section but with constant value.
+    // This is used for symbols defined in a linker script within a
+    // section.
+    CONSTANT_IN_OUTPUT_SECTION,
     // Symbol is undefined.
     IS_UNDEFINED
   };
@@ -178,7 +182,8 @@ class Symbol
   Output_data*
   output_data() const
   {
-    gold_assert(this->source_ == IN_OUTPUT_DATA);
+    gold_assert(this->source_ == IN_OUTPUT_DATA
+		|| this->source_ == CONSTANT_IN_OUTPUT_SECTION);
     return this->u_.in_output_data.output_data;
   }
 
@@ -187,7 +192,8 @@ class Symbol
   bool
   offset_is_from_end() const
   {
-    gold_assert(this->source_ == IN_OUTPUT_DATA);
+    gold_assert(this->source_ == IN_OUTPUT_DATA
+		|| this->source_ == CONSTANT_IN_OUTPUT_SECTION);
     return this->u_.in_output_data.offset_is_from_end;
   }
 
@@ -799,8 +805,7 @@ class Symbol
   output_section() const;
 
   // Set the symbol's output section.  This is used for symbols
-  // defined in scripts.  This should only be called after the symbol
-  // table has been finalized.
+  // defined in scripts.
   void
   set_output_section(Output_section*);
 
