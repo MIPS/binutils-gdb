@@ -153,7 +153,7 @@ dump_insns (struct gdbarch *gdbarch, struct ui_out *uiout,
       ui_file_rewind (stb);
       if (flags & DISASSEMBLY_RAW_INSN)
         {
-          CORE_ADDR old_pc = pc;
+          CORE_ADDR old_pc = gdbarch_get_insn_address (gdbarch, pc);
           bfd_byte data;
           int status;
           const char *spacer = "";
@@ -164,7 +164,7 @@ dump_insns (struct gdbarch *gdbarch, struct ui_out *uiout,
           struct cleanup *cleanups =
             make_cleanup_ui_file_delete (opcode_stream);
 
-          pc += gdbarch_print_insn (gdbarch, pc, di);
+          pc = old_pc + gdbarch_print_insn (gdbarch, pc, di);
           for (;old_pc < pc; old_pc++)
             {
               status = (*di->read_memory_func) (old_pc, &data, 1, di);

@@ -9334,6 +9334,16 @@ gdb_print_insn_mips_n64 (bfd_vma memaddr, struct disassemble_info *info)
   return gdb_print_insn_mips (memaddr, info);
 }
 
+static CORE_ADDR
+gdb_get_insn_address_mips (struct gdbarch* gdbarch, CORE_ADDR memaddr)
+{
+  if (mips_pc_is_micromips (gdbarch, memaddr)
+      || mips_pc_is_mips16 (gdbarch, memaddr))
+    return (memaddr & ~0x1);
+  else
+    return memaddr;
+}
+
 /* This function implements gdbarch_breakpoint_from_pc.  It uses the
    program counter value to determine whether a 16- or 32-bit breakpoint
    should be used.  It returns a pointer to a string of bytes that encode a
@@ -11280,6 +11290,8 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
     set_gdbarch_print_insn (gdbarch, gdb_print_insn_mips_n64);
   else
     set_gdbarch_print_insn (gdbarch, gdb_print_insn_mips);
+
+  set_gdbarch_get_insn_address (gdbarch, gdb_get_insn_address_mips);
 
   /* FIXME: cagney/2003-08-29: The macros target_have_steppable_watchpoint,
      HAVE_NONSTEPPABLE_WATCHPOINT, and target_have_continuable_watchpoint
