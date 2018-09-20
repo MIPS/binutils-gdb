@@ -9026,6 +9026,16 @@ gdb_print_insn_mips (bfd_vma memaddr, struct disassemble_info *info)
   return default_print_insn (memaddr, info);
 }
 
+static CORE_ADDR
+gdb_get_insn_address_mips (struct gdbarch* gdbarch, CORE_ADDR memaddr)
+{
+  if (mips_pc_is_micromips (gdbarch, memaddr)
+      || mips_pc_is_mips16 (gdbarch, memaddr))
+    return (memaddr & ~0x1);
+  else
+    return memaddr;
+}
+
 /* Implement the breakpoint_kind_from_pc gdbarch method.  */
 
 static int
@@ -10860,6 +10870,8 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   set_gdbarch_disassembler_options (gdbarch, &mips_disassembler_options);
   set_gdbarch_valid_disassembler_options (gdbarch,
 					  disassembler_options_mips ());
+
+  set_gdbarch_get_insn_address (gdbarch, gdb_get_insn_address_mips);
 
   /* FIXME: cagney/2003-08-29: The macros target_have_steppable_watchpoint,
      HAVE_NONSTEPPABLE_WATCHPOINT, and target_have_continuable_watchpoint

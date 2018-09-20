@@ -1,0 +1,67 @@
+# Copyright (C) 2016 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+# Test disassembly of compressed (mips16/microMIPS) ISA.
+
+proc dotest {isa} {
+    global objdir
+    global subdir
+    global srcdir
+    set testfile "${isa}-dis"
+    set srcfile "${srcdir}/${subdir}/${testfile}.s"
+    set binfile "${objdir}/${subdir}/${testfile}"
+    set archopt additional_flags=-mips32r2
+    lappend archopt -EL
+    lappend archopt -msoft-float
+    set jrop ".*"
+    set addiuop ".*"
+    set nop ".*"
+
+     if {"$isa" == "mips16"} then {
+	lappend archopt -$isa
+     } else {
+	lappend archopt -m$isa
+     }
+
+    if  { [gdb_compile "${srcfile}" "${binfile}" executable \
+	       [list debug nowarning ${archopt}] ] != "" } then {
+	fail "$testfile compile"
+	return
+    }
+
+    pass "$isa compile"
+    gdb_exit
+    gdb_start
+    gdb_reinitialize_dir $srcdir/$subdir
+    gdb_file_cmd ${binfile}
+     if {"$isa" == "mips16"} then {
+	 gdb_test_sequence  "disass /r test1"  "$isa disassembly" {
+	     "\r\nDump of assembler code for function test1:\r\n"
+	     "   0x\[0-9a-f\]+ <\\+0>:	41 44	addiu	v0,a0,1\r\n"
+	     "   0x\[0-9a-f\]+ <\\+2>:	a0 e8	jrc	ra\r\n"
+	     "End of assembler dump.\r\n"
+	 }
+     } else {
+	 gdb_test_sequence  "disass /r test1"  "$isa disassembly" {
+	     "\r\nDump of assembler code for function test1:\r\n"
+	     "   0x\[0-9a-f\]+ <\\+0>:	40 6d	addiu	v0,a0,1\r\n"
+	     "   0x\[0-9a-f\]+ <\\+2>:	9f 45	jr	ra\r\n"
+	     "End of assembler dump.\r\n"
+	 }
+    }
+}
+
+dotest micromips
+dotest mips16

@@ -262,6 +262,7 @@ struct gdbarch
   gdbarch_software_single_step_ftype *software_single_step;
   gdbarch_single_step_through_delay_ftype *single_step_through_delay;
   gdbarch_print_insn_ftype *print_insn;
+  gdbarch_get_insn_address_ftype *get_insn_address;
   gdbarch_skip_trampoline_code_ftype *skip_trampoline_code;
   gdbarch_skip_solib_resolver_ftype *skip_solib_resolver;
   gdbarch_in_solib_return_trampoline_ftype *in_solib_return_trampoline;
@@ -3289,6 +3290,26 @@ set_gdbarch_print_insn (struct gdbarch *gdbarch,
                         gdbarch_print_insn_ftype print_insn)
 {
   gdbarch->print_insn = print_insn;
+}
+
+bfd_vma
+gdbarch_get_insn_address (struct gdbarch *gdbarch, bfd_vma vma)
+{
+  gdb_assert (gdbarch != NULL);
+  if (gdbarch_debug >= 2)
+    fprintf_unfiltered (gdb_stdlog, "gdbarch_get_insn_address called\n");
+
+  if (gdbarch->get_insn_address)
+    return gdbarch->get_insn_address (gdbarch, vma);
+  else
+    return vma;
+}
+
+void
+set_gdbarch_get_insn_address (struct gdbarch *gdbarch,
+			      gdbarch_get_insn_address_ftype get_insn_address)
+{
+  gdbarch->get_insn_address = get_insn_address;
 }
 
 CORE_ADDR

@@ -264,6 +264,7 @@ gdb_pretty_print_disassembler::pretty_print_insn (struct ui_out *uiout,
 	   write them out in a single go for the MI.  */
 	m_opcode_stb.clear ();
 
+	pc = gdbarch_get_insn_address (gdbarch, pc);
 	size = m_di.print_insn (pc);
 	end_pc = pc + size;
 

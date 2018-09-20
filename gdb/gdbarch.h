@@ -720,6 +720,10 @@ typedef int (gdbarch_print_insn_ftype) (bfd_vma vma, struct disassemble_info *in
 extern int gdbarch_print_insn (struct gdbarch *gdbarch, bfd_vma vma, struct disassemble_info *info);
 extern void set_gdbarch_print_insn (struct gdbarch *gdbarch, gdbarch_print_insn_ftype *print_insn);
 
+typedef bfd_vma (gdbarch_get_insn_address_ftype) (struct gdbarch *gdbarch, bfd_vma vma);
+extern bfd_vma gdbarch_get_insn_address (struct gdbarch *gdbarch, bfd_vma vma);
+extern void set_gdbarch_get_insn_address (struct gdbarch *gdbarch, gdbarch_get_insn_address_ftype *print_insn);
+
 typedef CORE_ADDR (gdbarch_skip_trampoline_code_ftype) (struct frame_info *frame, CORE_ADDR pc);
 extern CORE_ADDR gdbarch_skip_trampoline_code (struct gdbarch *gdbarch, struct frame_info *frame, CORE_ADDR pc);
 extern void set_gdbarch_skip_trampoline_code (struct gdbarch *gdbarch, gdbarch_skip_trampoline_code_ftype *skip_trampoline_code);
