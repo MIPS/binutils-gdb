@@ -406,26 +406,41 @@ Mapfile::print_discarded_sections(const Input_objects* input_objects)
 void
 Mapfile::print_output_section(const Output_section* os)
 {
+  uint64_t load_address = (os->has_load_address()
+			   ? os->load_address()
+			   : os->address());
+  this->print_output_section(os->name(), os->current_data_size(),
+			     os->address(), load_address,
+			     os->requires_postprocessing());
+}
+
+// Print an output section.
+
+void
+Mapfile::print_output_section(const char* name, off_t data_size,
+			      uint64_t address, uint64_t load_address,
+			      bool requires_postprocessing)
+{
   this->print_memory_map_header();
 
-  fprintf(this->map_file_, "\n%s", os->name());
+  fprintf(this->map_file_, "\n%s", name);
 
-  this->advance_to_column(strlen(os->name()), Mapfile::section_name_map_length);
+  this->advance_to_column(strlen(name), Mapfile::section_name_map_length);
 
   char sizebuf[50];
   snprintf(sizebuf, sizeof sizebuf, "0x%llx",
-	   static_cast<unsigned long long>(os->current_data_size()));
+	   static_cast<unsigned long long>(data_size));
 
   fprintf(this->map_file_, "0x%0*llx %10s",
 	  parameters->target().get_size() / 4,
-	  static_cast<unsigned long long>(os->address()), sizebuf);
+	  static_cast<unsigned long long>(address), sizebuf);
 
-  if (os->has_load_address())
+  if (address != load_address)
     fprintf(this->map_file_, " load address 0x%-*llx",
 	    parameters->target().get_size() / 4,
-	    static_cast<unsigned long long>(os->load_address()));
+	    static_cast<unsigned long long>(load_address));
 
-  if (os->requires_postprocessing())
+  if (requires_postprocessing)
     fprintf(this->map_file_, " (before compression)");
 
   putc('\n', this->map_file_);

@@ -1085,12 +1085,11 @@ Symbol_assignment::get_print_string() const
 void
 Symbol_assignment::print_to_mapfile(Mapfile* mapfile) const
 {
-  if (this->printed_to_mapfile_ || this->sym_ == NULL || this->is_defsym_)
+  if (this->sym_ == NULL || this->is_defsym_)
     return;
 
   std::string str = this->get_print_string();
   mapfile->print_symbol_assignment(this->sym_, str.c_str());
-  this->printed_to_mapfile_ = true;
 }
 
 // Class Script_assertion.

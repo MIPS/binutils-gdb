@@ -1006,10 +1006,7 @@ class Output_section_element_assignment : public Output_section_element
     this->assignment_.set_if_absolute(symtab, layout, true, *dot_value,
 				      *dot_section);
 
-    if (parameters->options().user_set_Map()
-	&& os != NULL
-	&& ((os->flags() & elfcpp::SHF_ALLOC) != 0
-	    || os->is_created_from_script()))
+    if (parameters->options().user_set_Map() && os != NULL)
       {
 	Output_data_assignment* poda = new Output_data_assignment(this);
 	os->add_output_section_data(poda);
@@ -1040,8 +1037,7 @@ class Output_section_element_dot_assignment : public Output_section_element
 {
  public:
   Output_section_element_dot_assignment(Expression* val)
-    : final_dot_value_(0), fill_section_(NULL), val_(val),
-      printed_to_mapfile_(false)
+    : final_dot_value_(0), fill_section_(NULL), val_(val)
   { }
 
   // An assignment to dot within an output section is enough to force
@@ -1085,11 +1081,6 @@ class Output_section_element_dot_assignment : public Output_section_element
   void
   print_to_mapfile(Mapfile* mapfile) const
   {
-    // This may happen if linker created section is
-    // not allocated during script processing.
-    if (this->printed_to_mapfile_)
-      return;
-
     std::string str(". = ");
     str += this->val_->get_print_string();
 
@@ -1101,14 +1092,12 @@ class Output_section_element_dot_assignment : public Output_section_element
       final_value = this->final_dot_value_;
 
     mapfile->print_dot_assignment(str.c_str(), final_value);
-    this->printed_to_mapfile_ = true;
   }
 
  private:
   uint64_t final_dot_value_;
   Output_section_data* fill_section_;
   Expression* val_;
-  mutable bool printed_to_mapfile_;
 };
 
 // Update the dot symbol while setting section addresses.
@@ -1152,9 +1141,7 @@ Output_section_element_dot_assignment::set_section_addresses(
 
   if (output_section != NULL)
     {
-      if (parameters->options().user_set_Map()
-	  && ((output_section->flags() & elfcpp::SHF_ALLOC) != 0
-	      || output_section->is_created_from_script()))
+      if (parameters->options().user_set_Map())
 	{
 	  Output_data_assignment* poda = new Output_data_assignment(this);
 	  output_section->add_output_section_data(poda);
@@ -3137,14 +3124,18 @@ Output_section_definition::print(FILE* f) const
 void
 Output_section_definition::print_to_mapfile(Mapfile* mapfile) const
 {
-  if (this->output_section_ != NULL
-      && (this->output_section_->flags() & elfcpp::SHF_ALLOC) != 0)
+  if (this->output_section_ != NULL)
     this->output_section_->print_to_mapfile(mapfile);
-  else
-    for (Output_section_elements::const_iterator p = this->elements_.begin();
-	 p != this->elements_.end();
-	 ++p)
-      (*p)->print_to_mapfile(mapfile);
+  else if (this->name_ != "/DISCARD/")
+    {
+      mapfile->print_output_section(this->name_.c_str(), 0,
+				    this->evaluated_address_,
+				    this->evaluated_load_address_, false);
+      for (Output_section_elements::const_iterator p = this->elements_.begin();
+	   p != this->elements_.end();
+	   ++p)
+        (*p)->print_to_mapfile(mapfile);
+    }
 }
 
 Script_sections::Section_type
@@ -3294,7 +3285,8 @@ class Orphan_output_section : public Sections_element
 
   // Print the contents to a map file.
   void
-  print_to_mapfile(Mapfile* mapfile) const;
+  print_to_mapfile(Mapfile* mapfile) const
+  { this->os_->print_to_mapfile(mapfile); }
 
  private:
   // The value of dot after including all input sections.
@@ -3431,15 +3423,6 @@ Orphan_output_section::allocate_to_segment(String_list**, bool* orphan)
     return NULL;
   *orphan = true;
   return this->os_;
-}
-
-// Print the contents to a map file.
-
-void
-Orphan_output_section::print_to_mapfile(Mapfile* mapfile) const
-{
-  if ((this->os_->flags() & elfcpp::SHF_ALLOC) != 0)
-    this->os_->print_to_mapfile(mapfile);
 }
 
 // Class Phdrs_element.  A program header from a PHDRS clause.

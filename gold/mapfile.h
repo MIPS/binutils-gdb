@@ -77,6 +77,10 @@ class Mapfile
   void
   print_output_section(const Output_section*);
 
+  // Print an output section.
+  void
+  print_output_section(const char*, off_t, uint64_t, uint64_t, bool);
+
   // Print an input section.
   void
   print_input_section(Relobj*, unsigned int shndx);
