@@ -337,8 +337,7 @@ class Symbol_assignment
   Symbol_assignment(const char* name, size_t namelen, bool is_defsym,
 		    Expression* val, bool provide, bool hidden)
     : name_(name, namelen), val_(val), is_defsym_(is_defsym),
-      provide_(provide), hidden_(hidden), printed_to_mapfile_(false),
-      sym_(NULL)
+      provide_(provide), hidden_(hidden), sym_(NULL)
   { }
 
   // Add the symbol to the symbol table.
@@ -401,8 +400,6 @@ class Symbol_assignment
   bool provide_;
   // Whether the assignment should be hidden.
   bool hidden_;
-  // Whether the assignment is printed to a map file.
-  mutable bool printed_to_mapfile_;
   // The entry in the symbol table.
   Symbol* sym_;
 };
