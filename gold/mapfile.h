@@ -85,6 +85,14 @@ class Mapfile
   void
   print_output_data(const Output_data*, const char* name);
 
+  // Print a symbol assignment from a linker script.
+  void
+  print_symbol_assignment(const Symbol*, const char*);
+
+  // Print a dot assignment from a linker script.
+  void
+  print_dot_assignment(const char*, uint64_t);
+
  private:
   // The space we allow for a section name.
   static const size_t section_name_map_length;

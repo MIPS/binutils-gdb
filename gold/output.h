@@ -4464,7 +4464,8 @@ class Output_section : public Output_data
   // Create and return section that contains fill string, or zero fill
   // if fill string is not specified in the linker script.
   Output_section_data*
-  create_fill_section(const std::string& fill, section_size_type length) const;
+  create_fill_section(const std::string& fill, section_size_type length,
+		      bool create_zero_fill) const;
 
   // A helper function to align an offset of an input section.
   off_t

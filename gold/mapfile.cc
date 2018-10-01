@@ -431,4 +431,61 @@ Mapfile::print_output_section(const Output_section* os)
   putc('\n', this->map_file_);
 }
 
+// Print a symbol assignment from a linker script.
+
+void
+Mapfile::print_symbol_assignment(const Symbol* sym, const char* str)
+{
+  this->print_memory_map_header();
+
+  for (size_t i = 0; i < Mapfile::section_name_map_length; ++i)
+    putc(' ', this->map_file_);
+
+  uint64_t value;
+  int size = parameters->target().get_size();
+  if (size == 32)
+    {
+#if defined(HAVE_TARGET_32_LITTLE) || defined(HAVE_TARGET_32_BIG)
+      const Sized_symbol<32>* ssym = static_cast<const Sized_symbol<32>*>(sym);
+      value = ssym->value();
+#else
+      gold_unreachable();
+#endif
+    }
+  else if (size == 64)
+    {
+#if defined(HAVE_TARGET_64_LITTLE) || defined(HAVE_TARGET_64_BIG)
+      const Sized_symbol<64>* ssym = static_cast<const Sized_symbol<64>*>(sym);
+      value = ssym->value();
+#else
+      gold_unreachable();
+#endif
+    }
+  else
+    gold_unreachable();
+
+  fprintf(this->map_file_,
+	  "0x%0*llx                %s\n",
+	  size / 4,
+	  static_cast<unsigned long long>(value),
+	  str);
+}
+
+// Print a dot assignment from a linker script.
+
+void
+Mapfile::print_dot_assignment(const char* str, uint64_t dot_value)
+{
+  this->print_memory_map_header();
+
+  for (size_t i = 0; i < Mapfile::section_name_map_length; ++i)
+    putc(' ', this->map_file_);
+
+  int size = parameters->target().get_size();
+  fprintf(this->map_file_,
+	  "0x%0*llx                %s\n",
+	  size / 4,
+	  static_cast<unsigned long long>(dot_value),
+	  str);
+}
 } // End namespace gold.

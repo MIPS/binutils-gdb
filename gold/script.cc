@@ -1053,20 +1053,44 @@ Symbol_assignment::set_if_absolute(Symbol_table* symtab, const Layout* layout,
 void
 Symbol_assignment::print(FILE* f) const
 {
+  std::string str = this->get_print_string();
+  fprintf(f, "%s\n", str.c_str());
+}
+
+// Return the print string of the assignment.
+
+std::string
+Symbol_assignment::get_print_string() const
+{
+  std::string str;
   if (this->provide_ && this->hidden_)
-    fprintf(f, "PROVIDE_HIDDEN(");
+    str = "PROVIDE_HIDDEN(";
   else if (this->provide_)
-    fprintf(f, "PROVIDE(");
+    str = "PROVIDE(";
   else if (this->hidden_)
     gold_unreachable();
 
-  fprintf(f, "%s = ", this->name_.c_str());
-  this->val_->print(f);
+  str += this->name_;
+  str += " = ";
+  str += this->val_->get_print_string();
 
   if (this->provide_ || this->hidden_)
-    fprintf(f, ")");
+    str += ')';
 
-  fprintf(f, "\n");
+  return str;
+}
+
+// Print the assignment to a map file.
+
+void
+Symbol_assignment::print_to_mapfile(Mapfile* mapfile) const
+{
+  if (this->printed_to_mapfile_ || this->sym_ == NULL || this->is_defsym_)
+    return;
+
+  std::string str = this->get_print_string();
+  mapfile->print_symbol_assignment(this->sym_, str.c_str());
+  this->printed_to_mapfile_ = true;
 }
 
 // Class Script_assertion.
@@ -1701,6 +1725,20 @@ Script_options::print(FILE* f) const
   this->script_sections_.print(f);
 
   this->version_script_info_.print(f);
+}
+
+// Print the script to a map file.
+
+void
+Script_options::print_to_mapfile(Mapfile* mapfile) const
+{
+  for (Symbol_assignments::const_iterator p =
+         this->symbol_assignments_.begin();
+       p != this->symbol_assignments_.end();
+       ++p)
+    (*p)->print_to_mapfile(mapfile);
+
+  this->script_sections_.print_to_mapfile(mapfile);
 }
 
 // Manage mapping from keywords to the codes expected by the bison

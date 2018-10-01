@@ -5677,10 +5677,14 @@ Layout::write_binary(Output_file* in) const
 void
 Layout::print_to_mapfile(Mapfile* mapfile) const
 {
-  for (Segment_list::const_iterator p = this->segment_list_.begin();
-       p != this->segment_list_.end();
-       ++p)
-    (*p)->print_sections_to_mapfile(mapfile);
+  if (this->script_options_->saw_sections_clause())
+    this->script_options_->print_to_mapfile(mapfile);
+  else
+    for (Segment_list::const_iterator p = this->segment_list_.begin();
+	 p != this->segment_list_.end();
+	 ++p)
+      (*p)->print_sections_to_mapfile(mapfile);
+
   for (Section_list::const_iterator p = this->unattached_section_list_.begin();
        p != this->unattached_section_list_.end();
        ++p)

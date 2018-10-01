@@ -116,8 +116,12 @@ class Expression
 		 bool is_section_dot_assignment, bool* is_valid_pointer);
 
   // Print the expression to the FILE.  This is for debugging.
-  virtual void
-  print(FILE*) const = 0;
+  void
+  print(FILE*) const;
+
+  // Return the print string of the expression.
+  virtual std::string
+  get_print_string() const = 0;
 
  protected:
   struct Expression_eval_info;
@@ -333,7 +337,8 @@ class Symbol_assignment
   Symbol_assignment(const char* name, size_t namelen, bool is_defsym,
 		    Expression* val, bool provide, bool hidden)
     : name_(name, namelen), val_(val), is_defsym_(is_defsym),
-      provide_(provide), hidden_(hidden), sym_(NULL)
+      provide_(provide), hidden_(hidden), printed_to_mapfile_(false),
+      sym_(NULL)
   { }
 
   // Add the symbol to the symbol table.
@@ -364,6 +369,14 @@ class Symbol_assignment
   void
   print(FILE*) const;
 
+  // Return the print string of the assignment.
+  std::string
+  get_print_string() const;
+
+  // Print the assignment to a map file.
+  void
+  print_to_mapfile(Mapfile*) const;
+
  private:
   // Shared by finalize and finalize_with_dot.
   void
@@ -388,6 +401,8 @@ class Symbol_assignment
   bool provide_;
   // Whether the assignment should be hidden.
   bool hidden_;
+  // Whether the assignment is printed to a map file.
+  mutable bool printed_to_mapfile_;
   // The entry in the symbol table.
   Symbol* sym_;
 };
@@ -546,6 +561,10 @@ class Script_options
   // Print the script to the FILE.  This is for debugging.
   void
   print(FILE*) const;
+
+  // Print the script to a map file.
+  void
+  print_to_mapfile(Mapfile*) const;
 
  private:
   // We keep a list of symbol assignments which occur outside of a
