@@ -3988,16 +3988,20 @@ Output_section::get_fill_string(const std::string& fill,
 
 Output_section_data*
 Output_section::create_fill_section(const std::string& fill,
-				    section_size_type length) const
+				    section_size_type length,
+				    bool create_zero_fill) const
 {
   Output_section_data* posd;
-  if (fill.empty())
-    posd = new Output_data_zero_fill(length, 0);
-  else
+  if (!fill.empty())
     {
       std::string this_fill = this->get_fill_string(fill, length);
       posd = new Output_data_const(this_fill, 0);
     }
+  else if (create_zero_fill)
+    posd = new Output_data_zero_fill(length, 0);
+  else
+    posd = NULL;
+
   return posd;
 }
 
@@ -4036,7 +4040,9 @@ Output_section::get_input_sections(
     {
       section_size_type length =
 	convert_to_section_size_type(address - orig_address);
-      Output_section_data* posd = this->create_fill_section(fill, length);
+      Output_section_data* posd =
+	this->create_fill_section(fill, length, true);
+      gold_assert(posd != NULL);
       remaining.push_back(Input_section(posd));
     }
 
@@ -4053,11 +4059,14 @@ Output_section::get_input_sections(
 	  uint64_t aligned_address = align_address(address, p->addralign());
 	  if (aligned_address != address)
 	    {
+	      const bool user_set_map = parameters->options().user_set_Map();
 	      section_size_type length =
 		convert_to_section_size_type(aligned_address - address);
 	      Output_section_data* posd =
-		this->create_fill_section(fill, length);
-	      remaining.push_back(Input_section(posd));
+		this->create_fill_section(fill, length, user_set_map);
+
+	      if (posd != NULL)
+		remaining.push_back(Input_section(posd));
 	    }
 	  address = aligned_address;
 

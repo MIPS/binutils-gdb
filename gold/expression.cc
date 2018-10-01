@@ -166,6 +166,15 @@ Expression::eval_maybe_dot(const Symbol_table* symtab, const Layout* layout,
   return val;
 }
 
+// Print the expression to the FILE.  This is for debugging.
+
+void
+Expression::print(FILE* f) const
+{
+  std::string str = this->get_print_string();
+  fprintf(f, "%s", str.c_str());
+}
+
 // A number.
 
 class Integer_expression : public Expression
@@ -179,9 +188,14 @@ class Integer_expression : public Expression
   value(const Expression_eval_info*)
   { return this->val_; }
 
-  void
-  print(FILE* f) const
-  { fprintf(f, "0x%llx", static_cast<unsigned long long>(this->val_)); }
+  std::string
+  get_print_string() const
+  {
+    char buf[50];
+    snprintf(buf, sizeof buf, "0x%llx",
+             static_cast<unsigned long long>(this->val_));
+    return std::string(buf);
+  }
 
  private:
   uint64_t val_;
@@ -213,9 +227,9 @@ class Symbol_expression : public Expression
       sym->set_in_real_elf();
   }
 
-  void
-  print(FILE* f) const
-  { fprintf(f, "%s", this->name_.c_str()); }
+  std::string
+  get_print_string() const
+  { return this->name_; }
 
  private:
   std::string name_;
@@ -261,9 +275,9 @@ class Dot_expression : public Expression
   uint64_t
   value(const Expression_eval_info*);
 
-  void
-  print(FILE* f) const
-  { fprintf(f, "."); }
+  std::string
+  get_print_string() const
+  { return std::string("."); }
 };
 
 uint64_t
@@ -322,9 +336,9 @@ class Unary_expression : public Expression
 				      eei->is_valid_pointer);
   }
 
-  void
-  arg_print(FILE* f) const
-  { this->arg_->print(f); }
+  std::string
+  arg_print() const
+  { return this->arg_->get_print_string(); }
 
   void
   set_expr_sym_in_real_elf(Symbol_table* symtab) const
@@ -356,12 +370,14 @@ class Unary_expression : public Expression
       return ret;							\
     }									\
 									\
-    void								\
-    print(FILE* f) const						\
+    std::string								\
+    get_print_string() const						\
     {									\
-      fprintf(f, "(%s ", #OPERATOR);					\
-      this->arg_print(f);						\
-      fprintf(f, ")");							\
+      std::string str("(");						\
+      str += #OPERATOR;							\
+      str += this->arg_print();						\
+      str += ')';							\
+      return str;							\
     }									\
   };									\
 									\
@@ -429,24 +445,25 @@ class Binary_expression : public Expression
 					eei->is_valid_pointer);
   }
 
-  void
-  left_print(FILE* f) const
-  { this->left_->print(f); }
+  std::string
+  left_print() const
+  { return this->left_->get_print_string(); }
 
-  void
-  right_print(FILE* f) const
-  { this->right_->print(f); }
+  std::string
+  right_print() const
+  { return this->right_->get_print_string(); }
 
-  // This is a call to function FUNCTION_NAME.  Print it.  This is for
-  // debugging.
-  void
-  print_function(FILE* f, const char* function_name) const
+  // Return a call to function FUNCTION_NAME print string.
+  std::string
+  print_function(const char* function_name) const
   {
-    fprintf(f, "%s(", function_name);
-    this->left_print(f);
-    fprintf(f, ", ");
-    this->right_print(f);
-    fprintf(f, ")");
+    std::string str(function_name);
+    str += '(';
+    str += this->left_print();
+    str += ", ";
+    str += this->right_print();
+    str += ')';
+    return str;
   }
 
   void
@@ -520,14 +537,17 @@ class Binary_expression : public Expression
       return left OPERATOR right;					\
     }									\
 									\
-    void								\
-    print(FILE* f) const						\
+    std::string								\
+    get_print_string() const						\
     {									\
-      fprintf(f, "(");							\
-      this->left_print(f);						\
-      fprintf(f, " %s ", #OPERATOR);					\
-      this->right_print(f);						\
-      fprintf(f, ")");							\
+      std::string str("(");						\
+      str += this->left_print();					\
+      str += ' ';							\
+      str += #OPERATOR;							\
+      str += ' ';							\
+      str += this->right_print();					\
+      str += ')';							\
+      return str;							\
     }									\
   };									\
 									\
@@ -629,17 +649,17 @@ class Trinary_expression : public Expression
 				       eei->is_valid_pointer);
   }
 
-  void
-  arg1_print(FILE* f) const
-  { this->arg1_->print(f); }
+  std::string
+  arg1_print() const
+  { return this->arg1_->get_print_string(); }
 
-  void
-  arg2_print(FILE* f) const
-  { this->arg2_->print(f); }
+  std::string
+  arg2_print() const
+  { return this->arg2_->get_print_string(); }
 
-  void
-  arg3_print(FILE* f) const
-  { this->arg3_->print(f); }
+  std::string
+  arg3_print() const
+  { return this->arg3_->get_print_string(); }
 
   void
   set_expr_sym_in_real_elf(Symbol_table* symtab) const
@@ -676,16 +696,17 @@ class Trinary_cond : public Trinary_expression
 			       eei->result_alignment_pointer));
   }
 
-  void
-  print(FILE* f) const
+  std::string
+  get_print_string() const
   {
-    fprintf(f, "(");
-    this->arg1_print(f);
-    fprintf(f, " ? ");
-    this->arg2_print(f);
-    fprintf(f, " : ");
-    this->arg3_print(f);
-    fprintf(f, ")");
+    std::string str("(");
+    str += this->arg1_print();
+    str += " ? ";
+    str += this->arg2_print();
+    str += " : ";
+    str += this->arg3_print();
+    str += ')';
+    return str;
   }
 };
 
@@ -735,9 +756,9 @@ class Max_expression : public Binary_expression
     return std::max(left, right);
   }
 
-  void
-  print(FILE* f) const
-  { this->print_function(f, "MAX"); }
+  std::string
+  get_print_string() const
+  { return this->print_function("MAX"); }
 };
 
 extern "C" Expression*
@@ -786,9 +807,9 @@ class Min_expression : public Binary_expression
     return std::min(left, right);
   }
 
-  void
-  print(FILE* f) const
-  { this->print_function(f, "MIN"); }
+  std::string
+  get_print_string() const
+  { return this->print_function("MIN"); }
 };
 
 extern "C" Expression*
@@ -810,9 +831,15 @@ class Section_expression : public Expression
   uint64_t
   value(const Expression_eval_info*);
 
-  void
-  print(FILE* f) const
-  { fprintf(f, "%s(%s)", this->function_name(), this->section_name_.c_str()); }
+  std::string
+  get_print_string() const
+  {
+    std::string str(this->function_name());
+    str += '(';
+    str += this->section_name_;
+    str += ')';
+    return str;
+  }
 
  protected:
   // The child class must implement this.
@@ -881,12 +908,13 @@ class Absolute_expression : public Unary_expression
     return ret;
   }
 
-  void
-  print(FILE* f) const
+  std::string
+  get_print_string() const
   {
-    fprintf(f, "ABSOLUTE(");
-    this->arg_print(f);
-    fprintf(f, ")");
+    std::string str("ABSOLUTE(");
+    str += this->arg_print();
+    str += ')';
+    return str;
   }
 };
 
@@ -929,9 +957,9 @@ class Align_expression : public Binary_expression
     return ((value + align - 1) / align) * align;
   }
 
-  void
-  print(FILE* f) const
-  { this->print_function(f, "ALIGN"); }
+  std::string
+  get_print_string() const
+  { return this->print_function("ALIGN"); }
 };
 
 extern "C" Expression*
@@ -958,12 +986,15 @@ class Assert_expression : public Unary_expression
     return value;
   }
 
-  void
-  print(FILE* f) const
+  std::string
+  get_print_string() const
   {
-    fprintf(f, "ASSERT(");
-    this->arg_print(f);
-    fprintf(f, ", %s)", this->message_.c_str());
+    std::string str("ASSERT(");
+    str += this->arg_print();
+    str += ", ";
+    str += this->message_;
+    str += ')';
+    return str;
   }
 
  private:
@@ -1058,8 +1089,8 @@ class Constant_expression : public Expression
   uint64_t
   value(const Expression_eval_info*);
 
-  void
-  print(FILE* f) const;
+  std::string
+  get_print_string() const;
 
  private:
   enum Constant_function
@@ -1099,22 +1130,23 @@ Constant_expression::value(const Expression_eval_info*)
     }
 }
 
-void
-Constant_expression::print(FILE* f) const
+std::string
+Constant_expression::get_print_string() const
 {
-  const char* name;
+  std::string str("CONSTANT(");
   switch (this->function_)
     {
     case CONSTANT_MAXPAGESIZE:
-      name = "MAXPAGESIZE";
+      str += "MAXPAGESIZE";
       break;
     case CONSTANT_COMMONPAGESIZE:
-      name = "COMMONPAGESIZE";
+      str += "COMMONPAGESIZE";
       break;
     default:
       gold_unreachable();
     }
-  fprintf(f, "CONSTANT(%s)", name);
+  str += ')';
+  return str;
 }
   
 extern "C" Expression*
@@ -1168,9 +1200,14 @@ class Defined_expression : public Expression
     return sym != NULL && sym->is_defined();
   }
 
-  void
-  print(FILE* f) const
-  { fprintf(f, "DEFINED(%s)", this->symbol_name_.c_str()); }
+  std::string
+  get_print_string() const
+  {
+    std::string str("DEFINED(");
+    str += this->symbol_name_;
+    str += ')';
+    return str;
+  }
 
  private:
   std::string symbol_name_;
@@ -1270,9 +1307,9 @@ class Sizeof_headers_expression : public Expression
   uint64_t
   value(const Expression_eval_info*);
 
-  void
-  print(FILE* f) const
-  { fprintf(f, "SIZEOF_HEADERS"); }
+  std::string
+  get_print_string() const
+  { return std::string("SIZEOF_HEADERS"); }
 };
 
 uint64_t
@@ -1316,12 +1353,15 @@ class Segment_start_expression : public Unary_expression
   uint64_t
   value(const Expression_eval_info*);
 
-  void
-  print(FILE* f) const
+  std::string
+  get_print_string() const
   {
-    fprintf(f, "SEGMENT_START(\"%s\", ", this->segment_name_.c_str());
-    this->arg_print(f);
-    fprintf(f, ")");
+    std::string str("SEGMENT_START(\"");
+    str += this->segment_name_;
+    str += "\", ";
+    str += this->arg_print();
+    str += ')';
+    return str;
   }
 
  private:

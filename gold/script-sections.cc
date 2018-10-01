@@ -37,6 +37,7 @@
 #include "script-c.h"
 #include "script.h"
 #include "script-sections.h"
+#include "mapfile.h"
 
 // Support for the SECTIONS clause in linker scripts.
 
@@ -694,6 +695,11 @@ class Sections_element
   // Print the element for debugging purposes.
   virtual void
   print(FILE* f) const = 0;
+
+  // Print the element to a map file.
+  virtual void
+  print_to_mapfile(Mapfile*) const
+  { }
 };
 
 // An assignment in a SECTIONS clause outside of an output section.
@@ -737,6 +743,11 @@ class Sections_element_assignment : public Sections_element
     this->assignment_.print(f);
   }
 
+  // Print the assignment to a map file.
+  void
+  print_to_mapfile(Mapfile* mapfile) const
+  { this->assignment_.print_to_mapfile(mapfile); }
+
  private:
   Symbol_assignment assignment_;
 };
@@ -748,7 +759,7 @@ class Sections_element_dot_assignment : public Sections_element
 {
  public:
   Sections_element_dot_assignment(Expression* val)
-    : val_(val)
+    : final_dot_value_(0), val_(val)
   { }
 
   // Finalize the symbol.
@@ -761,6 +772,7 @@ class Sections_element_dot_assignment : public Sections_element
     // to be absolute.
     *dot_value = this->val_->eval_with_dot(symtab, layout, true, *dot_value,
 					   NULL, NULL, NULL, false);
+    this->final_dot_value_ = *dot_value;
   }
 
   // Update the dot symbol while setting section addresses.
@@ -775,16 +787,33 @@ class Sections_element_dot_assignment : public Sections_element
     *load_address += *dot_value - old_dot_value;
   }
 
+  // Return the print string of a dot assignment.
+  std::string
+  get_print_string() const
+  {
+    std::string str(". = ");
+    str += this->val_->get_print_string();
+    return str;
+  }
+
   // Print for debugging.
   void
   print(FILE* f) const
   {
-    fprintf(f, "  . = ");
-    this->val_->print(f);
-    fprintf(f, "\n");
+    std::string str = this->get_print_string();
+    fprintf(f, "  %s\n", str.c_str());
+  }
+
+  // Print the dot assignment to a map file.
+  void
+  print_to_mapfile(Mapfile* mapfile) const
+  {
+    std::string str = this->get_print_string();
+    mapfile->print_dot_assignment(str.c_str(), this->final_dot_value_);
   }
 
  private:
+  uint64_t final_dot_value_;
   Expression* val_;
 };
 
@@ -867,6 +896,11 @@ class Output_section_element
   virtual void
   print(FILE* f) const = 0;
 
+  // Print the element to a map file.
+  virtual void
+  print_to_mapfile(Mapfile*) const
+  { }
+
  protected:
   // Return a fill string that is LENGTH bytes long, filling it with
   // FILL.
@@ -876,7 +910,8 @@ class Output_section_element
   // Create and return section that contains fill string, or zero fill
   // if fill string is not specified in the linker script.
   Output_section_data*
-  create_fill_section(const std::string* fill, section_size_type length) const;
+  create_fill_section(const std::string* fill, section_size_type length,
+		      bool create_zero_fill) const;
 };
 
 std::string
@@ -894,18 +929,45 @@ Output_section_element::get_fill_string(const std::string* fill,
 
 Output_section_data*
 Output_section_element::create_fill_section(const std::string* fill,
-					    section_size_type length) const
+					    section_size_type length,
+					    bool create_zero_fill) const
 {
   Output_section_data* posd;
-  if (fill->empty())
-    posd = new Output_data_zero_fill(length, 0);
-  else
+  if (!fill->empty())
     {
       std::string this_fill = this->get_fill_string(fill, length);
       posd = new Output_data_const(this_fill, 0);
     }
+  else if (create_zero_fill)
+    posd = new Output_data_zero_fill(length, 0);
+  else
+    posd = NULL;
+
   return posd;
 }
+
+// This is used to print a dot or a symbol assignment in a map file.
+
+class Output_data_assignment : public Output_section_data
+{
+ public:
+  Output_data_assignment(Output_section_element* element)
+    : Output_section_data(0, 0, true), output_section_element_(element)
+  { }
+
+ protected:
+  void
+  do_write(Output_file*)
+  { }
+
+  // Write to a map file.
+  void
+  do_print_to_mapfile(Mapfile* mapfile) const
+  { this->output_section_element_->print_to_mapfile(mapfile); }
+
+ private:
+  Output_section_element* output_section_element_;
+};
 
 // A symbol assignment in an output section.
 
@@ -936,13 +998,23 @@ class Output_section_element_assignment : public Output_section_element
   // value is absolute, we set the symbol.  This permits us to use
   // absolute symbols when setting dot.
   void
-  set_section_addresses(Symbol_table* symtab, Layout* layout, Output_section*,
-			uint64_t, uint64_t* dot_value, uint64_t*,
-			Output_section** dot_section, std::string*,
+  set_section_addresses(Symbol_table* symtab, Layout* layout,
+			Output_section* os, uint64_t, uint64_t* dot_value,
+			uint64_t*, Output_section** dot_section, std::string*,
 			Input_section_list*)
   {
     this->assignment_.set_if_absolute(symtab, layout, true, *dot_value,
 				      *dot_section);
+
+    if (parameters->options().user_set_Map()
+	&& os != NULL
+	&& ((os->flags() & elfcpp::SHF_ALLOC) != 0
+	    || os->is_created_from_script()))
+      {
+	Output_data_assignment* poda = new Output_data_assignment(this);
+	os->add_output_section_data(poda);
+	layout->new_output_section_data_from_script(poda);
+      }
   }
 
   // Print for debugging.
@@ -952,6 +1024,11 @@ class Output_section_element_assignment : public Output_section_element
     fprintf(f, "    ");
     this->assignment_.print(f);
   }
+
+  // Print the assignment to a map file.
+  void
+  print_to_mapfile(Mapfile* mapfile) const
+  { this->assignment_.print_to_mapfile(mapfile); }
 
  private:
   Symbol_assignment assignment_;
@@ -963,7 +1040,8 @@ class Output_section_element_dot_assignment : public Output_section_element
 {
  public:
   Output_section_element_dot_assignment(Expression* val)
-    : val_(val)
+    : final_dot_value_(0), fill_section_(NULL), val_(val),
+      printed_to_mapfile_(false)
   { }
 
   // An assignment to dot within an output section is enough to force
@@ -985,6 +1063,7 @@ class Output_section_element_dot_assignment : public Output_section_element
     *dot_value = this->val_->eval_with_dot(symtab, layout, true, *dot_value,
 					   *dot_section, dot_section, NULL,
 					   true);
+    this->final_dot_value_ = *dot_value;
   }
 
   // Update the dot symbol while setting section addresses.
@@ -998,13 +1077,38 @@ class Output_section_element_dot_assignment : public Output_section_element
   void
   print(FILE* f) const
   {
-    fprintf(f, "    . = ");
-    this->val_->print(f);
-    fprintf(f, "\n");
+    std::string str = this->val_->get_print_string();
+    fprintf(f, "    . = %s\n", str.c_str());
+  }
+
+  // Print the dot assignment to a map file.
+  void
+  print_to_mapfile(Mapfile* mapfile) const
+  {
+    // This may happen if linker created section is
+    // not allocated during script processing.
+    if (this->printed_to_mapfile_)
+      return;
+
+    std::string str(". = ");
+    str += this->val_->get_print_string();
+
+    uint64_t final_value;
+    if (this->fill_section_ != NULL)
+      final_value = (this->fill_section_->address()
+                     + this->fill_section_->data_size());
+    else
+      final_value = this->final_dot_value_;
+
+    mapfile->print_dot_assignment(str.c_str(), final_value);
+    this->printed_to_mapfile_ = true;
   }
 
  private:
+  uint64_t final_dot_value_;
+  Output_section_data* fill_section_;
   Expression* val_;
+  mutable bool printed_to_mapfile_;
 };
 
 // Update the dot symbol while setting section addresses.
@@ -1025,13 +1129,15 @@ Output_section_element_dot_assignment::set_section_addresses(
 						*dot_value, *dot_section,
 						dot_section, dot_alignment,
 						true);
+  Output_section_data* posd = NULL;
   if (next_dot < *dot_value)
     gold_error(_("dot may not move backward"));
   if (next_dot > *dot_value && output_section != NULL)
     {
       section_size_type length = convert_to_section_size_type(next_dot
 							      - *dot_value);
-      Output_section_data* posd = this->create_fill_section(fill, length);
+      posd = this->create_fill_section(fill, length, true);
+      gold_assert(posd != NULL);
 
       // If dot is advanced, this implies that the section
       // should have space allocated to it, unless the
@@ -1042,10 +1148,27 @@ Output_section_element_dot_assignment::set_section_addresses(
 	  && !output_section->is_noalloc()
 	  && (flags & elfcpp::SHF_ALLOC) == 0)
 	output_section->set_flags(flags | elfcpp::SHF_ALLOC);
-
-      output_section->add_output_section_data(posd);
-      layout->new_output_section_data_from_script(posd);
     }
+
+  if (output_section != NULL)
+    {
+      if (parameters->options().user_set_Map()
+	  && ((output_section->flags() & elfcpp::SHF_ALLOC) != 0
+	      || output_section->is_created_from_script()))
+	{
+	  Output_data_assignment* poda = new Output_data_assignment(this);
+	  output_section->add_output_section_data(poda);
+	  layout->new_output_section_data_from_script(poda);
+	}
+
+      if (posd != NULL)
+	{
+	  output_section->add_output_section_data(posd);
+	  layout->new_output_section_data_from_script(posd);
+	}
+    }
+
+  this->fill_section_ = posd;
   *dot_value = next_dot;
 }
 
@@ -1865,12 +1988,17 @@ Output_section_element_input::set_section_addresses(
 
 	  if (address > dot)
 	    {
+	      const bool user_set_map = parameters->options().user_set_Map();
 	      section_size_type length =
 		convert_to_section_size_type(address - dot);
 	      Output_section_data* posd =
-		this->create_fill_section(fill, length);
-	      output_section->add_output_section_data(posd);
-	      layout->new_output_section_data_from_script(posd);
+		this->create_fill_section(fill, length, user_set_map);
+
+	      if (posd != NULL)
+		{
+		  output_section->add_output_section_data(posd);
+		  layout->new_output_section_data_from_script(posd);
+		}
 	    }
 
 	  output_section->add_script_input_section(sis);
@@ -2112,6 +2240,10 @@ class Output_section_definition : public Sections_element
   // Print the contents to the FILE.  This is for debugging.
   void
   print(FILE*) const;
+
+  // Print the contents to a map file.
+  void
+  print_to_mapfile(Mapfile*) const;
 
   // Return the output section type if specified or Script_sections::ST_NONE.
   Script_sections::Section_type
@@ -3000,6 +3132,21 @@ Output_section_definition::print(FILE* f) const
   fprintf(f, "\n");
 }
 
+// Print the contents to a map file.
+
+void
+Output_section_definition::print_to_mapfile(Mapfile* mapfile) const
+{
+  if (this->output_section_ != NULL
+      && (this->output_section_->flags() & elfcpp::SHF_ALLOC) != 0)
+    this->output_section_->print_to_mapfile(mapfile);
+  else
+    for (Output_section_elements::const_iterator p = this->elements_.begin();
+	 p != this->elements_.end();
+	 ++p)
+      (*p)->print_to_mapfile(mapfile);
+}
+
 Script_sections::Section_type
 Output_section_definition::section_type() const
 {
@@ -3145,6 +3292,10 @@ class Orphan_output_section : public Sections_element
 	    this->os_->name());
   }
 
+  // Print the contents to a map file.
+  void
+  print_to_mapfile(Mapfile* mapfile) const;
+
  private:
   // The value of dot after including all input sections.
   uint64_t final_dot_value_;
@@ -3280,6 +3431,15 @@ Orphan_output_section::allocate_to_segment(String_list**, bool* orphan)
     return NULL;
   *orphan = true;
   return this->os_;
+}
+
+// Print the contents to a map file.
+
+void
+Orphan_output_section::print_to_mapfile(Mapfile* mapfile) const
+{
+  if ((this->os_->flags() & elfcpp::SHF_ALLOC) != 0)
+    this->os_->print_to_mapfile(mapfile);
 }
 
 // Class Phdrs_element.  A program header from a PHDRS clause.
@@ -4743,6 +4903,19 @@ Script_sections::clean_up_after_relaxation()
     }
 
   this->segments_created_ = false;
+}
+
+// Print the contents to a map file.
+
+void
+Script_sections::print_to_mapfile(Mapfile* mapfile) const
+{
+  gold_assert(this->saw_sections_clause_);
+
+  for (Sections_elements::const_iterator p = this->sections_elements_->begin();
+       p != this->sections_elements_->end();
+       ++p)
+    (*p)->print_to_mapfile(mapfile);
 }
 
 // Print the SECTIONS clause to F for debugging.

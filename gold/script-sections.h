@@ -44,6 +44,7 @@ class Output_section_definition;
 class Output_section;
 class Output_segment;
 class Orphan_section_placement;
+class Mapfile;
 
 class Script_sections
 {
@@ -260,6 +261,10 @@ class Script_sections
   // Set the memory region of the section.
   void
   set_memory_region(Memory_region*, bool);
+
+  // Print the contents to a map file.
+  void
+  print_to_mapfile(Mapfile* mapfile) const;
 
   // Print the contents to the FILE.  This is for debugging.
   void

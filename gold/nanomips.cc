@@ -1503,9 +1503,18 @@ template<int size, bool big_endian>
 class Nanomips_output_section_abiflags : public Output_section_data
 {
  public:
-  Nanomips_output_section_abiflags(const Nanomips_abiflags<big_endian>& flags)
+  Nanomips_output_section_abiflags(const Nanomips_abiflags<big_endian>& flags,
+                                   Nanomips_relobj<size, big_endian>* relobj)
     : Output_section_data(24, 8, true), abiflags_(flags)
-  { }
+  {
+    // Record the name of the input section and the name of the
+    // first object file.  This is used for script processing.
+    if (relobj != NULL)
+      {
+        this->set_object_name(relobj->name());
+        this->set_section_name(".nanoMIPS.abiflags");
+      }
+  }
 
  protected:
   // Write to a map file.
@@ -5738,6 +5747,9 @@ Target_nanomips<size, big_endian>::do_finalize_sections(
     const Input_objects* input_objects,
     Symbol_table* symtab)
 {
+  // Pointer to the first object file that has .nanoMIPS.abiflags section.
+  Nanomips_relobj<size, big_endian>* first_relobj = NULL;
+
   // Merge processor specific flags.
   for (Input_objects::Relobj_iterator p = input_objects->relobj_begin();
        p != input_objects->relobj_end();
@@ -5748,6 +5760,10 @@ Target_nanomips<size, big_endian>::do_finalize_sections(
 
       if (!relobj->merge_processor_specific_data())
         continue;
+
+      // Record the first object file that has .nanoMIPS.abiflags section.
+      if (first_relobj == NULL && relobj->abiflags() != NULL)
+        first_relobj = relobj;
 
       Nanomips_abiflags<big_endian> in_abiflags;
 
@@ -5785,7 +5801,7 @@ Target_nanomips<size, big_endian>::do_finalize_sections(
     {
       Nanomips_output_section_abiflags<size, big_endian>* abiflags_section =
         new Nanomips_output_section_abiflags<size, big_endian>(
-          *this->abiflags_);
+          *this->abiflags_, first_relobj);
 
       Output_section* os =
         layout->add_output_section_data(".nanoMIPS.abiflags",
