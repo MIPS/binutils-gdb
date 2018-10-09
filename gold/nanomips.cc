@@ -759,7 +759,8 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   // Scan all relocation sections for instruction transformation.
   bool
   scan_sections_for_transform(Target_nanomips<size, big_endian>*,
-                              const Symbol_table*, const Layout*);
+                              const Symbol_table*, const Layout*,
+                              std::vector<Output_relaxed_input_section*>*);
 
   // Adjust values of the symbols.  Also adjust sizes of the function
   // symbols.  This is used in a relaxation passes.
@@ -1084,7 +1085,6 @@ class Nanomips_input_section : public Output_relaxed_input_section
       reloc_size_(reloc_size)
   {
     this->set_output_section(os);
-    os->convert_input_section_to_relaxed_section(this);
   }
 
   ~Nanomips_input_section()
@@ -1762,6 +1762,8 @@ class Target_nanomips : public Sized_target<size, big_endian>
                              size_t reloc_count,
                              Output_section* os,
                              Nanomips_input_section* input_section,
+                             std::vector<Output_relaxed_input_section*>*
+                               new_relaxed_sections,
                              const unsigned char* view,
                              Address view_address);
 
@@ -2036,6 +2038,7 @@ class Target_nanomips : public Sized_target<size, big_endian>
                                    const unsigned char*, size_t,
                                    Output_section*,
                                    Nanomips_input_section*,
+                                   std::vector<Output_relaxed_input_section*>*,
                                    const unsigned char*,
                                    Address);
 
@@ -2974,6 +2977,7 @@ Nanomips_relobj<size, big_endian>::adjust_symbols(
     int count)
 {
   Transformable_sections* sections = this->transformable_sections_;
+
   // If this is called for the first time in this object file, go through
   // the symbol table and add defined symbols to their transformable sections.
   // This is used to speed up symbol adjustment after instruction
@@ -3295,7 +3299,8 @@ bool
 Nanomips_relobj<size, big_endian>::scan_sections_for_transform(
     Target_nanomips<size, big_endian>* target,
     const Symbol_table* symtab,
-    const Layout* layout)
+    const Layout* layout,
+    std::vector<Output_relaxed_input_section*>* new_relaxed_sections)
 {
   // Don't do anything if this object file is not safe to relax.
   if (!this->safe_to_relax())
@@ -3368,6 +3373,7 @@ Nanomips_relobj<size, big_endian>::scan_sections_for_transform(
       again |= target->scan_section_for_transform(&relinfo, sh_type,
                                                   prelocs, reloc_count,
                                                   os, input_section,
+                                                  new_relaxed_sections,
                                                   view, output_address);
     }
 
@@ -5115,11 +5121,22 @@ Target_nanomips<size, big_endian>::do_relax(
     Layout* layout,
     const Task* task)
 {
+  typedef std::vector<Output_relaxed_input_section*> Relaxed_sections;
+  typedef Unordered_map<Output_section*, Relaxed_sections>
+      Grouped_relaxed_sections;
+
+  // Whether we need to continue doing instruction transformations.
+  bool again = false;
+  // Whether the state is changed from RELAX to EXPAND.
+  bool state_changed;
+  // Any newly created relaxed sections are stored here.
+  Relaxed_sections new_relaxed_sections;
+  // Any newly created relaxed sections grouped by output section.
+  Grouped_relaxed_sections grouped_relaxed_sections;
+
   // Check if we need to sort output sections by reference.
   if (pass == 1 && parameters->options().any_sort_by_reference())
     {
-      bool sorted = false;
-
       // Sort sections by reference.
       for (options::String_set::const_iterator p =
              parameters->options().sort_by_reference_begin();
@@ -5138,17 +5155,12 @@ Target_nanomips<size, big_endian>::do_relax(
           Nanomips_output_section<size, big_endian>* nanomips_output_section =
               static_cast<Nanomips_output_section<size, big_endian>*>(os);
           nanomips_output_section->sort_sections_by_reference(layout);
-          sorted = true;
+          again = true;
         }
 
-      if (sorted)
+      if (again)
         return true;
     }
-
-  // Whether we need to continue doing instruction transformations.
-  bool again = false;
-  // Whether the state is changed from RELAX to EXPAND.
-  bool state_changed;
 
   do
     {
@@ -5167,7 +5179,8 @@ Target_nanomips<size, big_endian>::do_relax(
           // Lock the object so we can read from it.  This is only called
           // single-threaded from Layout::finalize, so it is OK to lock.
           Task_lock_obj<Object> tl(task, relobj);
-          again |= relobj->scan_sections_for_transform(this, symtab, layout);
+          again |= relobj->scan_sections_for_transform(this, symtab, layout,
+                                                       &new_relaxed_sections);
         }
 
       // Change the state to EXPAND if we are done with relaxations.
@@ -5180,6 +5193,31 @@ Target_nanomips<size, big_endian>::do_relax(
   // If the state is changed, we don't want to call relaxation pass because
   // there is no changes in previous state.
   while (state_changed);
+
+  for (Relaxed_sections::iterator p = new_relaxed_sections.begin();
+       p != new_relaxed_sections.end();
+       ++p)
+    {
+      Nanomips_relobj<size, big_endian>* relobj =
+        Nanomips_relobj<size, big_endian>::as_nanomips_relobj((*p)->relobj());
+      unsigned int shndx = (*p)->shndx();
+      Output_section* os = (*p)->output_section();
+
+      // Tell Nanomips_relobj that this input section is converted.
+      relobj->convert_input_section_to_relaxed_section(shndx);
+      grouped_relaxed_sections[os].push_back(*p);
+    }
+
+  for (Grouped_relaxed_sections::iterator p = grouped_relaxed_sections.begin();
+       p != grouped_relaxed_sections.end();
+       ++p)
+    {
+      Output_section* os = p->first;
+      Relaxed_sections& relaxed_sections = p->second;
+
+      // Convert input section into relaxed input section in a batch.
+      os->convert_input_sections_to_relaxed_sections(relaxed_sections);
+    }
 
   // Clear transformable sections if we are done.
   if (!again)
@@ -6307,6 +6345,7 @@ Target_nanomips<size, big_endian>::scan_section_for_transform(
     size_t reloc_count,
     Output_section* os,
     Nanomips_input_section* input_section,
+    std::vector<Output_relaxed_input_section*>* new_relaxed_sections,
     const unsigned char* view,
     Address view_address)
 {
@@ -6323,6 +6362,7 @@ Target_nanomips<size, big_endian>::scan_section_for_transform(
             reloc_count,
             os,
             input_section,
+            new_relaxed_sections,
             view,
             view_address);
         }
@@ -6335,6 +6375,7 @@ Target_nanomips<size, big_endian>::scan_section_for_transform(
             reloc_count,
             os,
             input_section,
+            new_relaxed_sections,
             view,
             view_address);
         }
@@ -6350,6 +6391,7 @@ Target_nanomips<size, big_endian>::scan_section_for_transform(
             reloc_count,
             os,
             input_section,
+            new_relaxed_sections,
             view,
             view_address);
         }
@@ -6362,6 +6404,7 @@ Target_nanomips<size, big_endian>::scan_section_for_transform(
             reloc_count,
             os,
             input_section,
+            new_relaxed_sections,
             view,
             view_address);
         }
@@ -6398,7 +6441,6 @@ Target_nanomips<size, big_endian>::new_nanomips_input_section(
   // for this input section already.
   gold_assert(ins.second);
 
-  relobj->convert_input_section_to_relaxed_section(data_shndx);
   relobj->set_output_local_symbol_size_needs_update();
   return input_section;
 }
@@ -6479,6 +6521,7 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
     size_t reloc_count,
     Output_section* os,
     Nanomips_input_section* input_section,
+    std::vector<Output_relaxed_input_section*>* new_relaxed_sections,
     const unsigned char* view,
     Address view_address)
 {
@@ -6704,10 +6747,13 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
 
       // Create a new relaxed input section if needed.
       if (input_section == NULL)
-        input_section = this->new_nanomips_input_section(relobj,
-                                                         relinfo->data_shndx,
-                                                         relinfo->reloc_shndx,
-                                                         os);
+        {
+          input_section = this->new_nanomips_input_section(relobj,
+                                                           relinfo->data_shndx,
+                                                           relinfo->reloc_shndx,
+                                                           os);
+          new_relaxed_sections->push_back(input_section);
+        }
 
       // Number of bytes to add/delete for this transformation.
       int count = static_cast<int>(transform_template->size() - insn_size / 8);

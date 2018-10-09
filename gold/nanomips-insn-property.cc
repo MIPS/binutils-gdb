@@ -168,8 +168,7 @@ Nanomips_transform_template::Nanomips_transform_template(
 
 Nanomips_insn_property_table::Nanomips_insn_property_table()
 {
-  // Iterator of the instruction for which we are adding transformations.
-  Nanomips_insn_map::iterator insn_it;
+  Nanomips_insn_property* insn_property = NULL;
 
 #undef NIP
 #undef NTT
@@ -178,18 +177,16 @@ Nanomips_insn_property_table::Nanomips_insn_property_table()
             valid_sreg_func)                                             \
   do                                                                     \
     {                                                                    \
-      Nanomips_insn_property* insn_property =                            \
-        new Nanomips_insn_property(name,                                 \
-                                   extract_treg_func,                    \
-                                   convert_treg_func,                    \
-                                   valid_treg_func,                      \
-                                   extract_sreg_func,                    \
-                                   convert_sreg_func,                    \
-                                   valid_sreg_func);                     \
+      insn_property = new Nanomips_insn_property(name,                   \
+                                                 extract_treg_func,      \
+                                                 convert_treg_func,      \
+                                                 valid_treg_func,        \
+                                                 extract_sreg_func,      \
+                                                 convert_sreg_func,      \
+                                                 valid_sreg_func);       \
       std::pair<Nanomips_insn_map::iterator, bool> ins =                 \
         this->insns_.insert(std::make_pair(opcode, insn_property));      \
       gold_assert(ins.second);                                           \
-      insn_it = ins.first;                                               \
     }                                                                    \
   while (0);
 
@@ -202,12 +199,11 @@ Nanomips_insn_property_table::Nanomips_insn_property_table()
       const unsigned int reloc_array[] = relocs;                         \
       size_t reloc_size = sizeof(reloc_array) / sizeof(*reloc_array);    \
       Nanomips_transform_template* transform_template =                  \
-        new Nanomips_transform_template(insn_array,                      \
-                                        insn_size,                       \
-                                        reloc_array,                     \
-                                        reloc_size);                     \
-      insn_it->second->add_transform(transform_template, transform_type, \
-                                     reloc_array, reloc_size);           \
+        new Nanomips_transform_template(insn_array, insn_size,           \
+                                        reloc_array, reloc_size);        \
+      gold_assert(insn_property != NULL);                                \
+      insn_property->add_transform(transform_template, transform_type,   \
+                                   reloc_array, reloc_size);             \
     }                                                                    \
   while (0);
 
