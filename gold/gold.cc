@@ -881,7 +881,7 @@ queue_final_tasks(const General_options& options,
     }
 
   // Create tasks for tree-style build ID computation, if necessary.
-  if (strcmp(options.build_id(), "tree") == 0)
+  if (options.user_set_build_id() && (strcmp(options.build_id(), "tree") == 0))
     {
       // Queue a task to compute the build id.  This will be blocked by
       // FINAL_BLOCKER, and will in turn schedule the task to close
