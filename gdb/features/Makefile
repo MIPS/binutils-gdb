@@ -62,8 +62,8 @@ WHICH = aarch64 \
 	i386/x32 i386/x32-linux \
 	i386/x32-avx i386/x32-avx-linux \
 	i386/x32-avx-avx512 i386/x32-avx-avx512-linux \
-	mips-linux mips-dsp-linux \
 	microblaze-with-stack-protect \
+	mips-linux mips-dsp-linux \
 	mips64-linux mips64-dsp-linux \
 	nanomips \
 	nanomips-linux nanomips-dsp-linux \
@@ -90,11 +90,11 @@ arm-expedite = r11,sp,pc
 i386-expedite = ebp,esp,eip
 amd64-expedite = rbp,rsp,rip
 x32-expedite = rbp,rsp,rip
+microblaze-expedite = r1,rpc
 mips-expedite = r29,pc
 mips-dsp-expedite = r29,pc
 mips64-expedite = r29,pc
 mips64-dsp-expedite = r29,pc
-microblaze-expedite = r1,rpc
 nanomips-linux-expedite = r29,pc
 nios2-linux-expedite = sp,pc
 powerpc-expedite = r1,pc
