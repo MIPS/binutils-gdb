@@ -64,6 +64,7 @@ WHICH = aarch64 \
 	i386/x32-avx-avx512 i386/x32-avx-avx512-linux \
 	microblaze-with-stack-protect \
 	mips-linux mips-dsp-linux \
+	mips-fpu64-linux mips-fpu64-dsp-linux \
 	mips64-linux mips64-dsp-linux \
 	nanomips \
 	nanomips-linux nanomips-dsp-linux \
@@ -93,6 +94,8 @@ x32-expedite = rbp,rsp,rip
 microblaze-expedite = r1,rpc
 mips-expedite = r29,pc
 mips-dsp-expedite = r29,pc
+mips-fpu64-expedite = r29,pc
+mips-fpu64-dsp-expedite = r29,pc
 mips64-expedite = r29,pc
 mips64-dsp-expedite = r29,pc
 nanomips-linux-expedite = r29,pc
