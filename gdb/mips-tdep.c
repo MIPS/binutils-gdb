@@ -652,6 +652,18 @@ mips_register_name (struct gdbarch *gdbarch, int regno)
 		    _("mips_register_name: bad register number %d"), rawnum);
 }
 
+/* Return 1 if REGNUM refers to a floating-point control register, raw
+   or cooked.  Otherwise return 0.  */
+
+static int
+mips_float_control_register_p (struct gdbarch *gdbarch, int regnum)
+{
+  int rawnum = regnum % gdbarch_num_regs (gdbarch);
+
+  return (rawnum == mips_regnum (gdbarch)->fp_control_status
+	  || rawnum == mips_regnum (gdbarch)->fp_implementation_revision);
+}
+
 /* Return the groups that a MIPS register can be categorised into.  */
 
 static int
@@ -666,7 +678,8 @@ mips_register_reggroup_p (struct gdbarch *gdbarch, int regnum,
   if (reggroup == all_reggroup)
     return pseudo;
   vector_p = TYPE_VECTOR (register_type (gdbarch, regnum));
-  float_p = TYPE_CODE (register_type (gdbarch, regnum)) == TYPE_CODE_FLT;
+  float_p = (TYPE_CODE (register_type (gdbarch, regnum)) == TYPE_CODE_FLT
+	     || mips_float_control_register_p (gdbarch, rawnum));
   /* FIXME: cagney/2003-04-13: Can't yet use gdbarch_num_regs
      (gdbarch), as not all architectures are multi-arch.  */
   raw_p = rawnum < gdbarch_num_regs (gdbarch);
@@ -1017,8 +1030,7 @@ mips_register_type (struct gdbarch *gdbarch, int regnum)
 
       /* The cooked or ABI registers.  These are sized according to
 	 the ABI (with a few complications).  */
-      if (rawnum == mips_regnum (gdbarch)->fp_control_status
-	  || rawnum == mips_regnum (gdbarch)->fp_implementation_revision)
+      if (mips_float_control_register_p (gdbarch, rawnum))
 	return builtin_type (gdbarch)->builtin_int32;
       else if (gdbarch_osabi (gdbarch) != GDB_OSABI_LINUX
 	       && rawnum >= MIPS_FIRST_EMBED_REGNUM
@@ -1068,8 +1080,7 @@ mips_pseudo_register_type (struct gdbarch *gdbarch, int regnum)
   /* Floating-point control registers are always 32-bit even though for
      backwards compatibility reasons 64-bit targets will transfer them
      as 64-bit quantities even if using XML descriptions.  */
-  if (rawnum == mips_regnum (gdbarch)->fp_control_status
-      || rawnum == mips_regnum (gdbarch)->fp_implementation_revision)
+  if (mips_float_control_register_p (gdbarch, rawnum))
     return builtin_type (gdbarch)->builtin_int32;
 
   /* Use pointer types for registers if we can.  For n32 we can not,
