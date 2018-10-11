@@ -60,8 +60,6 @@
 
 static const struct objfile_data *mips_pdr_data;
 
-static struct type *mips_register_type (struct gdbarch *gdbarch, int regnum);
-
 static int mips32_instruction_has_delay_slot (struct gdbarch *gdbarch,
 					      ULONGEST inst);
 static int micromips_instruction_has_delay_slot (ULONGEST insn, int mustbe32);
@@ -288,6 +286,22 @@ mips_abi_regsize (struct gdbarch *gdbarch)
       return 8;
     case MIPS_ABI_UNKNOWN:
     case MIPS_ABI_LAST:
+    default:
+      internal_error (__FILE__, __LINE__, _("bad switch"));
+    }
+}
+
+/* Return floating point register size according to current FPU mode.  */
+
+static int
+mips_float_regsize (struct gdbarch *gdbarch)
+{
+  switch (gdbarch_tdep (gdbarch)->fp_mode)
+    {
+    case MIPS_FPU_MODE_32:
+      return 4;
+    case MIPS_FPU_MODE_64:
+      return 8;
     default:
       internal_error (__FILE__, __LINE__, _("bad switch"));
     }
@@ -521,32 +535,6 @@ mips_xfer_register (struct gdbarch *gdbarch, struct regcache *regcache,
     }
   if (mips_debug)
     fprintf_unfiltered (gdb_stdlog, "\n");
-}
-
-/* Determine if a MIPS3 or later cpu is operating in MIPS{1,2} FPU
-   compatiblity mode.  A return value of 1 means that we have
-   physical 64-bit registers, but should treat them as 32-bit registers.  */
-
-static int
-mips2_fp_compat (struct frame_info *frame)
-{
-  struct gdbarch *gdbarch = get_frame_arch (frame);
-  /* MIPS1 and MIPS2 have only 32 bit FPRs, and the FR bit is not
-     meaningful.  */
-  if (register_size (gdbarch, mips_regnum (gdbarch)->fp0) == 4)
-    return 0;
-
-#if 0
-  /* FIXME drow 2002-03-10: This is disabled until we can do it consistently,
-     in all the places we deal with FP registers.  PR gdb/413.  */
-  /* Otherwise check the FR bit in the status register - it controls
-     the FP compatiblity mode.  If it is clear we are in compatibility
-     mode.  */
-  if ((get_frame_register_unsigned (frame, MIPS_PS_REGNUM) & ST0_FR) == 0)
-    return 1;
-#endif
-
-  return 0;
 }
 
 #define VM_MIN_ADDRESS (CORE_ADDR)0x400000
@@ -1004,9 +992,12 @@ mips_register_type (struct gdbarch *gdbarch, int regnum)
   gdb_assert (regnum >= 0 && regnum < 2 * gdbarch_num_regs (gdbarch));
   if (mips_float_register_p (gdbarch, regnum))
     {
-      /* The floating-point registers raw, or cooked, always match
-         mips_isa_regsize(), and also map 1:1, byte for byte.  */
-      if (mips_isa_regsize (gdbarch) == 4)
+      /* The size of the floating-point registers usually depends on the
+	 CP0 Status register's FR bit, irrespectively of whether we have
+	 a 32-bit or a 64-bit ISA.  The FR bit may be configurable
+	 or hardwired, depending on the architecture revision and the
+	 specific implementation.  */
+      if (mips_float_regsize (gdbarch) == 4)
 	return builtin_type (gdbarch)->builtin_float;
       else
 	return builtin_type (gdbarch)->builtin_double;
@@ -6213,7 +6204,7 @@ mips_read_fp_register_double (struct frame_info *frame, int regno,
   struct gdbarch *gdbarch = get_frame_arch (frame);
   int raw_size = register_size (gdbarch, regno);
 
-  if (raw_size == 8 && !mips2_fp_compat (frame))
+  if (raw_size == 8)
     {
       /* We have a 64-bit value for this register, and we should use
          all 64 bits.  */
@@ -6250,20 +6241,19 @@ mips_print_fp_register (struct ui_file *file, struct frame_info *frame,
 			int regnum)
 {				/* Do values for FP (float) regs.  */
   struct gdbarch *gdbarch = get_frame_arch (frame);
+  int fpsize = mips_float_regsize (gdbarch);
   gdb_byte *raw_buffer;
   double doub, flt1;	/* Doubles extracted from raw hex data.  */
   int inv1, inv2;
 
-  raw_buffer
-    = ((gdb_byte *)
-       alloca (2 * register_size (gdbarch, mips_regnum (gdbarch)->fp0)));
+  raw_buffer = (gdb_byte *) alloca (2 * fpsize);
 
   fprintf_filtered (file, "%s:", gdbarch_register_name (gdbarch, regnum));
   fprintf_filtered (file, "%*s",
 		    4 - (int) strlen (gdbarch_register_name (gdbarch, regnum)),
 		    "");
 
-  if (register_size (gdbarch, regnum) == 4 || mips2_fp_compat (frame))
+  if (fpsize == 4)
     {
       struct value_print_options opts;
 
@@ -6407,7 +6397,7 @@ mips_print_float_info (struct gdbarch *gdbarch, struct ui_file *file,
     return;
 
   fprintf_filtered (file, "reg size: %d bits\n",
-		    register_size (gdbarch, mips_regnum (gdbarch)->fp0) * 8);
+		    mips_float_regsize (gdbarch) * 8);
 
   fputs_filtered ("cond    :", file);
   if (fcs & (1 << 23))
@@ -8082,6 +8072,8 @@ value_of_mips_user_reg (struct frame_info *frame, const void *baton)
 static struct gdbarch *
 mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
 {
+  struct gdbarch_tdep_info *tdep_info;
+  struct gdbarch_tdep_info null_tdep_info = { NULL };
   struct gdbarch *gdbarch;
   struct gdbarch_tdep *tdep;
   int elf_flags;
@@ -8095,6 +8087,12 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   enum mips_isa mips_isa;
   int dspacc;
   int dspctl;
+
+  /* Wire in an empty template null_tdep_info if one hasn't been supplied.  */
+  if (info.tdep_info == NULL)
+    info.tdep_info = &null_tdep_info;
+
+  tdep_info = (struct gdbarch_tdep_info *) info.tdep_info;
 
   /* Fill in the OS dependent register numbers and names.  */
   if (info.osabi == GDB_OSABI_LINUX)
@@ -8409,6 +8407,7 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
       switch (elf_fpu_type)
 	{
 	case Val_GNU_MIPS_ABI_FP_DOUBLE:
+	case Val_GNU_MIPS_ABI_FP_64:
 	  fpu_type = MIPS_FPU_DOUBLE;
 	  break;
 	case Val_GNU_MIPS_ABI_FP_SINGLE:
@@ -8481,6 +8480,11 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
       /* Be pedantic about which FPU is selected.  */
       if (gdbarch_tdep (arches->gdbarch)->mips_fpu_type != fpu_type)
 	continue;
+      /* Ditto the requested floating-point mode if any.  */
+      if (tdep_info->fp_mode != MIPS_FPU_MODE_UNKNOWN
+	  && (gdbarch_tdep (arches->gdbarch)->fp_mode)
+	      != tdep_info->fp_mode)
+	continue;
 
       if (tdesc_data != NULL)
 	tdesc_data_cleanup (tdesc_data);
@@ -8498,6 +8502,7 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   tdep->mips_fpu_type = fpu_type;
   tdep->register_size_valid_p = 0;
   tdep->register_size = 0;
+  tdep->fp_mode = tdep_info->fp_mode;
 
   if (info.target_desc)
     {
@@ -8512,6 +8517,23 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
 	  tdep->register_size_valid_p = 1;
 	  tdep->register_size = 8;
 	}
+    }
+
+  /* If we haven't figured out the FPU mode yet, then infer it from
+     ABI information (i.e. MIPS_FPU_MODE_32 for O32 and MIPS_FPU_MODE_64
+     otherwise).  */
+  if (tdep->fp_mode == MIPS_FPU_MODE_UNKNOWN)
+    {
+      switch (mips_abi)
+ {
+ case MIPS_ABI_O32:
+ case MIPS_ABI_EABI32:
+   tdep->fp_mode = MIPS_FPU_MODE_32;
+   break;
+ default:
+   tdep->fp_mode = MIPS_FPU_MODE_64;
+   break;
+ }
     }
 
   /* Initially set everything according to the default ABI/ISA.  */
@@ -8773,7 +8795,7 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   mips_register_g_packet_guesses (gdbarch);
 
   /* Hook in OS ABI-specific overrides, if they have been registered.  */
-  info.tdep_info = tdesc_data;
+  tdep_info->tdesc_data = tdesc_data;
   gdbarch_init_osabi (info, gdbarch);
 
   /* The hook may have adjusted num_regs, fetch the final value and
