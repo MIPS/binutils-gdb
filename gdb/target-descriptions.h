@@ -30,6 +30,12 @@ struct target_ops;
 struct target_desc_info;
 struct inferior;
 
+/* Fetch the current target's description, and switch the current
+   architecture to one which incorporates that description, using
+   supplied gdbarch info INFO.  */
+
+void target_find_description_info (struct gdbarch_info *info);
+
 /* Fetch the current inferior's description, and switch its current
    architecture to one which incorporates that description.  */
 
