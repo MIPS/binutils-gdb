@@ -280,80 +280,6 @@ walk_wild_consider_section (lang_wild_statement_type *ptr,
   (*callback) (ptr, sec, s, ptr->section_flag_list, file, data);
 }
 
-/* Lowest common denominator routine that can handle everything correctly,
-   but slowly.  */
-
-static void
-walk_wild_section_general (lang_wild_statement_type *ptr,
-			   lang_input_statement_type *file,
-			   callback_t callback,
-			   void *data)
-{
-  asection *s;
-  struct wildcard_list *sec;
-
-  for (s = file->the_bfd->sections; s != NULL; s = s->next)
-    {
-      sec = ptr->section_list;
-      if (sec == NULL)
-	(*callback) (ptr, sec, s, ptr->section_flag_list, file, data);
-
-      while (sec != NULL)
-	{
-	  bfd_boolean skip = FALSE;
-
-	  if (sec->spec.name != NULL)
-	    {
-	      const char *sname = bfd_get_section_name (file->the_bfd, s);
-
-	      skip = name_match (sec->spec.name, sname) != 0;
-	    }
-
-	  if (!skip)
-	    walk_wild_consider_section (ptr, file, s, sec, callback, data);
-
-	  sec = sec->next;
-	}
-    }
-}
-
-/* Routines to find a single section given its name.  If there's more
-   than one section with that name, we report that.  */
-
-typedef struct
-{
-  asection *found_section;
-  bfd_boolean multiple_sections_found;
-} section_iterator_callback_data;
-
-static bfd_boolean
-section_iterator_callback (bfd *abfd ATTRIBUTE_UNUSED, asection *s, void *data)
-{
-  section_iterator_callback_data *d = (section_iterator_callback_data *) data;
-
-  if (d->found_section != NULL)
-    {
-      d->multiple_sections_found = TRUE;
-      return TRUE;
-    }
-
-  d->found_section = s;
-  return FALSE;
-}
-
-static asection *
-find_section (lang_input_statement_type *file,
-	      struct wildcard_list *sec,
-	      bfd_boolean *multiple_sections_found)
-{
-  section_iterator_callback_data cb_data = { NULL, FALSE };
-
-  bfd_get_section_by_name_if (file->the_bfd, sec->spec.name,
-			      section_iterator_callback, &cb_data);
-  *multiple_sections_found = cb_data.multiple_sections_found;
-  return cb_data.found_section;
-}
-
 /* Code for handling simple wildcards without going through fnmatch,
    which can be expensive because of charset translations etc.  */
 
@@ -560,6 +486,82 @@ output_section_callback_tree_to_list (lang_wild_statement_type *ptr,
   free (tree);
 }
 
+static void
+walk_wild_section_name (const char *sname, struct wildcard_list *wildsec,
+			lang_wild_statement_type *ptr,
+			lang_input_statement_type *file, callback_t callback,
+			void *data)
+{
+  asection *sec = bfd_get_first_section_by_name (file->the_bfd, sname);
+
+  if (wildsec == NULL)
+    {
+      (*callback) (ptr, wildsec, sec, ptr->section_flag_list, file, data);
+      while ((sec = bfd_get_next_section_in_order (NULL, sec)) != NULL)
+	(*callback) (ptr, wildsec, sec, ptr->section_flag_list, file, data);
+    }
+  else if (sec != NULL)
+    {
+      walk_wild_consider_section (ptr, file, sec, wildsec, callback, data);
+      while ((sec = bfd_get_next_section_in_order (NULL, sec)) != NULL)
+	walk_wild_consider_section (ptr, file, sec, wildsec, callback, data);
+    }
+}
+
+struct section_traverse_state
+{
+  lang_wild_statement_type *ptr;
+  lang_input_statement_type *file;
+  callback_t callback;
+  void *data;
+  unsigned fixed_specs;
+};
+
+static bfd_boolean
+walk_wild_section_specs_general (const char *sname,
+				void *vst)
+{
+  struct section_traverse_state *st = (struct section_traverse_state *)vst;
+  lang_wild_statement_type *ptr = st->ptr;
+  lang_input_statement_type *file = st->file;
+  callback_t callback = st->callback;
+  void *data = st->data;
+  struct wildcard_list *sec = ptr->section_list;
+
+  if (sec == NULL)
+    walk_wild_section_name (sname, sec, ptr, file, callback, data);
+
+  while (sec != NULL)
+    {
+      bfd_boolean skip = FALSE;
+
+      if (sec->spec.name != NULL)
+	skip = name_match (sec->spec.name, sname) != 0;
+
+      if (!skip)
+	walk_wild_section_name (sname, sec, ptr, file, callback, data);
+
+      sec = sec->next;
+    }
+  return TRUE;
+}
+
+/* Lowest common denominator routine that can handle everything correctly,
+   but slowly.  */
+
+static void
+walk_wild_section_general (lang_wild_statement_type *ptr,
+			   lang_input_statement_type *file,
+			   callback_t callback,
+			   void *data)
+{
+  struct section_traverse_state  st = { ptr, file, callback, data, 0 };
+  if (file->the_bfd->section_name_htab)
+    _bfd_stringtab_traverse (file->the_bfd->section_name_htab,
+			     walk_wild_section_specs_general,
+			     &st);
+}
+
 /* Specialized, optimized routines for handling different kinds of
    wildcards */
 
@@ -569,19 +571,89 @@ walk_wild_section_specs1_wild0 (lang_wild_statement_type *ptr,
 				callback_t callback,
 				void *data)
 {
-  /* We can just do a hash lookup for the section with the right name.
-     But if that lookup discovers more than one section with the name
-     (should be rare), we fall back to the general algorithm because
-     we would otherwise have to sort the sections to make sure they
-     get processed in the bfd's order.  */
-  bfd_boolean multiple_sections_found;
   struct wildcard_list *sec0 = ptr->handler_data[0];
-  asection *s0 = find_section (file, sec0, &multiple_sections_found);
+  walk_wild_section_name (sec0->spec.name, sec0, ptr, file, callback, data);
+}
 
-  if (multiple_sections_found)
-    walk_wild_section_general (ptr, file, callback, data);
-  else if (s0)
-    walk_wild_consider_section (ptr, file, s0, sec0, callback, data);
+static bfd_boolean
+walk_wild_section_specsN_wild1 (const char *sname,
+				void *vst)
+{
+  struct section_traverse_state *st = (struct section_traverse_state *)vst;
+  unsigned fixed_specs = st->fixed_specs;
+  lang_wild_statement_type *ptr = st->ptr;
+  lang_input_statement_type *file = st->file;
+  callback_t callback = st->callback;
+  void *data = st->data;
+  struct wildcard_list *wildsec = ptr->handler_data[fixed_specs];
+  bfd_boolean skip = FALSE;
+
+  if (fixed_specs)
+    {
+      struct wildcard_list *fixedsec = ptr->handler_data[fixed_specs - 1];
+      if (strcmp (fixedsec->spec.name, sname) == 0)
+	{
+	  walk_wild_section_name (fixedsec->spec.name, fixedsec, ptr, file,
+				  callback, data);
+	  return TRUE;
+	}
+    }
+
+  if (!skip)
+    skip = !match_simple_wild (wildsec->spec.name, sname);
+
+  if (!skip)
+      walk_wild_section_name (sname, wildsec, ptr, file, callback, data);
+  return TRUE;
+}
+
+static bfd_boolean
+walk_wild_section_specsN_wild2 (const char *sname,
+				void *vst)
+{
+  struct section_traverse_state *st = (struct section_traverse_state *)vst;
+  unsigned fixed_specs = st->fixed_specs;
+  lang_wild_statement_type *ptr = st->ptr;
+  lang_input_statement_type *file = st->file;
+  callback_t callback = st->callback;
+  void *data = st->data;
+  struct wildcard_list *wildsec1 = ptr->handler_data[fixed_specs];
+  struct wildcard_list *wildsec2 = ptr->handler_data[fixed_specs + 1];
+  bfd_boolean skip1 = FALSE;
+  bfd_boolean skip2 = FALSE;
+
+  if (fixed_specs)
+    {
+      struct wildcard_list *fixedsec = ptr->handler_data[fixed_specs - 1];
+      if (strcmp (fixedsec->spec.name, sname) == 0)
+	{
+	  walk_wild_section_name (fixedsec->spec.name, fixedsec, ptr, file,
+				  callback, data);
+	  return TRUE;
+	}
+      else if (fixed_specs == 2)
+	{
+	  fixedsec = ptr->handler_data[fixed_specs - 2];
+	  if (strcmp (fixedsec->spec.name, sname) == 0)
+	    {
+	      walk_wild_section_name (fixedsec->spec.name, fixedsec, ptr, file,
+				      callback, data);
+	      return TRUE;
+	    }
+	}
+    }
+
+  if (!skip1)
+    skip1 = !match_simple_wild (wildsec1->spec.name, sname);
+  if (skip1 && !skip2)
+    skip2 = !match_simple_wild (wildsec2->spec.name, sname);
+
+  if (!skip1)
+    walk_wild_section_name (sname, wildsec1, ptr, file, callback, data);
+  else if (!skip2)
+    walk_wild_section_name (sname, wildsec2, ptr, file, callback, data);
+
+  return TRUE;
 }
 
 static void
@@ -590,17 +662,10 @@ walk_wild_section_specs1_wild1 (lang_wild_statement_type *ptr,
 				callback_t callback,
 				void *data)
 {
-  asection *s;
-  struct wildcard_list *wildsec0 = ptr->handler_data[0];
-
-  for (s = file->the_bfd->sections; s != NULL; s = s->next)
-    {
-      const char *sname = bfd_get_section_name (file->the_bfd, s);
-      bfd_boolean skip = !match_simple_wild (wildsec0->spec.name, sname);
-
-      if (!skip)
-	walk_wild_consider_section (ptr, file, s, wildsec0, callback, data);
-    }
+  struct section_traverse_state  st = { ptr, file, callback, data, 0 };
+  if (file->the_bfd->section_name_htab)
+    _bfd_stringtab_traverse (file->the_bfd->section_name_htab,
+			     walk_wild_section_specsN_wild1, &st);
 }
 
 static void
@@ -609,37 +674,10 @@ walk_wild_section_specs2_wild1 (lang_wild_statement_type *ptr,
 				callback_t callback,
 				void *data)
 {
-  asection *s;
-  struct wildcard_list *sec0 = ptr->handler_data[0];
-  struct wildcard_list *wildsec1 = ptr->handler_data[1];
-  bfd_boolean multiple_sections_found;
-  asection *s0 = find_section (file, sec0, &multiple_sections_found);
-
-  if (multiple_sections_found)
-    {
-      walk_wild_section_general (ptr, file, callback, data);
-      return;
-    }
-
-  /* Note that if the section was not found, s0 is NULL and
-     we'll simply never succeed the s == s0 test below.  */
-  for (s = file->the_bfd->sections; s != NULL; s = s->next)
-    {
-      /* Recall that in this code path, a section cannot satisfy more
-	 than one spec, so if s == s0 then it cannot match
-	 wildspec1.  */
-      if (s == s0)
-	walk_wild_consider_section (ptr, file, s, sec0, callback, data);
-      else
-	{
-	  const char *sname = bfd_get_section_name (file->the_bfd, s);
-	  bfd_boolean skip = !match_simple_wild (wildsec1->spec.name, sname);
-
-	  if (!skip)
-	    walk_wild_consider_section (ptr, file, s, wildsec1, callback,
-					data);
-	}
-    }
+  struct section_traverse_state  st = { ptr, file, callback, data, 1 };
+  if (file->the_bfd->section_name_htab)
+    _bfd_stringtab_traverse (file->the_bfd->section_name_htab,
+			     walk_wild_section_specsN_wild1, &st);
 }
 
 static void
@@ -648,39 +686,10 @@ walk_wild_section_specs3_wild2 (lang_wild_statement_type *ptr,
 				callback_t callback,
 				void *data)
 {
-  asection *s;
-  struct wildcard_list *sec0 = ptr->handler_data[0];
-  struct wildcard_list *wildsec1 = ptr->handler_data[1];
-  struct wildcard_list *wildsec2 = ptr->handler_data[2];
-  bfd_boolean multiple_sections_found;
-  asection *s0 = find_section (file, sec0, &multiple_sections_found);
-
-  if (multiple_sections_found)
-    {
-      walk_wild_section_general (ptr, file, callback, data);
-      return;
-    }
-
-  for (s = file->the_bfd->sections; s != NULL; s = s->next)
-    {
-      if (s == s0)
-	walk_wild_consider_section (ptr, file, s, sec0, callback, data);
-      else
-	{
-	  const char *sname = bfd_get_section_name (file->the_bfd, s);
-	  bfd_boolean skip = !match_simple_wild (wildsec1->spec.name, sname);
-
-	  if (!skip)
-	    walk_wild_consider_section (ptr, file, s, wildsec1, callback, data);
-	  else
-	    {
-	      skip = !match_simple_wild (wildsec2->spec.name, sname);
-	      if (!skip)
-		walk_wild_consider_section (ptr, file, s, wildsec2, callback,
-					    data);
-	    }
-	}
-    }
+  struct section_traverse_state  st = { ptr, file, callback, data, 1 };
+  if (file->the_bfd->section_name_htab)
+    _bfd_stringtab_traverse (file->the_bfd->section_name_htab,
+			     walk_wild_section_specsN_wild2, &st);
 }
 
 static void
@@ -689,52 +698,10 @@ walk_wild_section_specs4_wild2 (lang_wild_statement_type *ptr,
 				callback_t callback,
 				void *data)
 {
-  asection *s;
-  struct wildcard_list *sec0 = ptr->handler_data[0];
-  struct wildcard_list *sec1 = ptr->handler_data[1];
-  struct wildcard_list *wildsec2 = ptr->handler_data[2];
-  struct wildcard_list *wildsec3 = ptr->handler_data[3];
-  bfd_boolean multiple_sections_found;
-  asection *s0 = find_section (file, sec0, &multiple_sections_found), *s1;
-
-  if (multiple_sections_found)
-    {
-      walk_wild_section_general (ptr, file, callback, data);
-      return;
-    }
-
-  s1 = find_section (file, sec1, &multiple_sections_found);
-  if (multiple_sections_found)
-    {
-      walk_wild_section_general (ptr, file, callback, data);
-      return;
-    }
-
-  for (s = file->the_bfd->sections; s != NULL; s = s->next)
-    {
-      if (s == s0)
-	walk_wild_consider_section (ptr, file, s, sec0, callback, data);
-      else
-	if (s == s1)
-	  walk_wild_consider_section (ptr, file, s, sec1, callback, data);
-	else
-	  {
-	    const char *sname = bfd_get_section_name (file->the_bfd, s);
-	    bfd_boolean skip = !match_simple_wild (wildsec2->spec.name,
-						   sname);
-
-	    if (!skip)
-	      walk_wild_consider_section (ptr, file, s, wildsec2, callback,
-					  data);
-	    else
-	      {
-		skip = !match_simple_wild (wildsec3->spec.name, sname);
-		if (!skip)
-		  walk_wild_consider_section (ptr, file, s, wildsec3,
-					      callback, data);
-	      }
-	  }
-    }
+  struct section_traverse_state  st = { ptr, file, callback, data, 2 };
+  if (file->the_bfd->section_name_htab)
+    _bfd_stringtab_traverse (file->the_bfd->section_name_htab,
+			     walk_wild_section_specsN_wild2, &st);
 }
 
 static void
