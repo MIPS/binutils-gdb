@@ -61,6 +61,8 @@ struct bfd_in_memory
 struct section_hash_entry
 {
   struct bfd_hash_entry root;
+  struct section_hash_entry *first;
+  struct section_hash_entry *next;
   asection section;
 };
 
