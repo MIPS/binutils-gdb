@@ -797,6 +797,9 @@ bfd_section_hash_newfunc (struct bfd_hash_entry *entry,
     memset (&((struct section_hash_entry *) entry)->section, 0,
 	    sizeof (asection));
 
+  ((struct section_hash_entry *) entry)->first = NULL;
+  ((struct section_hash_entry *) entry)->next = NULL;
+
   return entry;
 }
 
@@ -821,6 +824,11 @@ _bfd_generic_new_section_hook (bfd *abfd, asection *newsect)
   newsect->symbol->flags = BSF_SECTION_SYM;
 
   newsect->symbol_ptr_ptr = &newsect->symbol;
+  if (abfd->section_name_htab == NULL)
+    abfd->section_name_htab = _bfd_stringtab_init ();
+  if (abfd->section_name_htab != NULL &&
+      _bfd_stringtab_add (abfd->section_name_htab, newsect->name, TRUE, FALSE) == (bfd_size_type) -1)
+    return FALSE;
   return TRUE;
 }
 
@@ -874,6 +882,9 @@ bfd_section_list_clear (bfd *abfd)
   abfd->section_count = 0;
   memset (abfd->section_htab.table, 0,
 	  abfd->section_htab.size * sizeof (struct bfd_hash_entry *));
+  if (abfd->section_name_htab != NULL)
+    _bfd_stringtab_free (abfd->section_name_htab);
+  abfd->section_name_htab = NULL;
   abfd->section_htab.count = 0;
 }
 
@@ -897,6 +908,30 @@ bfd_get_section_by_name (bfd *abfd, const char *name)
   sh = section_hash_lookup (&abfd->section_htab, name, FALSE, FALSE);
   if (sh != NULL)
     return &sh->section;
+
+  return NULL;
+}
+
+/*
+FUNCTION
+	bfd_get_first_section_by_name
+
+SYNOPSIS
+	asection *bfd_get_first_section_by_name (bfd *abfd, const char *name);
+
+DESCRIPTION
+	Return the first section in order, attached to @var{abfd} named @var{name}.
+	Return NULL if no such section exists.
+*/
+
+asection *
+bfd_get_first_section_by_name (bfd *abfd, const char *name)
+{
+  struct section_hash_entry *sh;
+
+  sh = section_hash_lookup (&abfd->section_htab, name, FALSE, FALSE);
+  if (sh != NULL && sh->first != NULL)
+    return &sh->first->section;
 
   return NULL;
 }
@@ -940,6 +975,49 @@ bfd_get_next_section_by_name (bfd *ibfd, asection *sec)
       while ((ibfd = ibfd->link.next) != NULL)
 	{
 	  asection *s = bfd_get_section_by_name (ibfd, name);
+	  if (s != NULL)
+	    return s;
+	}
+    }
+
+  return NULL;
+}
+
+/*
+FUNCTION
+       bfd_get_next_section_in_order
+
+SYNOPSIS
+       asection *bfd_get_next_section_in_order (bfd *ibfd, asection *sec);
+
+DESCRIPTION
+       Given @var{sec} is a section returned by @code{bfd_get_first_section_by_name},
+       return the next section in order of creation attached to the same
+       BFD with the same name, or if no such section exists in the same BFD and
+       IBFD is non-NULL, the first section with the same name in any input
+       BFD following IBFD.  Return NULL on finding no section.
+*/
+
+asection *
+bfd_get_next_section_in_order (bfd *ibfd, asection *sec)
+{
+  struct section_hash_entry *sh;
+  const char *name;
+
+  sh = ((struct section_hash_entry *)
+	((char *) sec - offsetof (struct section_hash_entry, section)));
+  name = sec->name;
+
+  if (sh->next != NULL
+      && sh->next->root.hash == sh->root.hash
+      && strcmp (sh->next->root.string, name) == 0)
+      return &sh->next->section;
+
+  if (ibfd != NULL)
+    {
+      while ((ibfd = ibfd->link.next) != NULL)
+	{
+	  asection *s = bfd_get_first_section_by_name (ibfd, name);
 	  if (s != NULL)
 	    return s;
 	}
@@ -1123,6 +1201,8 @@ bfd_make_section_old_way (bfd *abfd, const char *name)
 	  return newsect;
 	}
 
+      sh->first = sh;
+      sh->next = NULL;
       newsect->name = name;
       return bfd_section_init (abfd, newsect);
     }
@@ -1187,7 +1267,15 @@ bfd_make_section_anyway_with_flags (bfd *abfd, const char *name,
       new_sh->root = sh->root;
       sh->root.next = &new_sh->root;
       newsect = &new_sh->section;
+      new_sh->first = sh->first;
+      sh->next = new_sh;
     }
+  else
+    {
+      sh->first = sh;
+      sh->next = NULL;
+    }
+
 
   newsect->flags = flags;
   newsect->name = name;
@@ -1263,6 +1351,8 @@ bfd_make_section_with_flags (bfd *abfd, const char *name,
       return NULL;
     }
 
+  sh->first = sh;
+  sh->next = NULL;
   newsect->name = name;
   newsect->flags = flags;
   return bfd_section_init (abfd, newsect);
