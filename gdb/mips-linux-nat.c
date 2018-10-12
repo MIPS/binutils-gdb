@@ -27,19 +27,25 @@
 #include "linux-nat.h"
 #include "mips-linux-tdep.h"
 #include "target-descriptions.h"
+#include "arch-utils.h"
+#include "inf-ptrace.h"
 
 #include "gdb_proc_service.h"
 #include "gregset.h"
 
 #include <sgidefs.h>
-#include "nat/gdb_ptrace.h"
-#include <asm/ptrace.h>
-#include "inf-ptrace.h"
+#include <sys/prctl.h>
+#include <sys/uio.h>
 
+#include "elf/common.h"
+
+#include "nat/linux-ptrace.h"
 #include "nat/mips-linux-watch.h"
 
 #include "features/mips-linux.c"
 #include "features/mips-dsp-linux.c"
+#include "features/mips-fpu64-linux.c"
+#include "features/mips-fpu64-dsp-linux.c"
 #include "features/mips64-linux.c"
 #include "features/mips64-dsp-linux.c"
 
@@ -47,9 +53,17 @@
 #define PTRACE_GET_THREAD_AREA 25
 #endif
 
+/* Indicates that the floating point unit registers are 64-bits wide.  */
+#ifndef PR_FP_MODE_FR
+#define PR_FP_MODE_FR (1 << 0)
+#endif
+
 /* Assume that we have PTRACE_GETREGS et al. support.  If we do not,
    we'll clear this and use PTRACE_PEEKUSER instead.  */
 static int have_ptrace_regsets = 1;
+
+/* Assume that we have FP_MODE virtual register support.  */
+static int have_fp_mode = 1;
 
 /* Saved function pointers to fetch and store a single register using
    PTRACE_PEEKUSER and PTRACE_POKEUSER.  */
@@ -419,16 +433,85 @@ mips_linux_register_u_offset (struct gdbarch *gdbarch, int regno, int store_p)
     return mips_linux_register_addr (gdbarch, regno, store_p);
 }
 
+/* Determine the width of FGRs.  Try the FP_MODE virtual register first.
+   If that is unavailable, then try CP0.Status.FR directly, which can
+   only be retrieved along with the rest of GPRs.  Examining the FR bit
+   directly is however unreliable, because in the full FPU emulation
+   mode Linux will never report it as 1 regardless of the mode.  Use
+   PTRACE_GETREGS to get at FR as this is the oldest interface.  If it
+   is not supported, then running o32 with FR=1 is neither.  The default
+   of FR=0 (use_fpu64 = 0) applies then.
+
+   NB PTRACE_GETREGS always uses 64-bit register slots, even with 32-bit
+   kernels.  */
+
+static int
+mips_linux_get_fpu64 (int tid)
+{
+  int use_fpu64 = 0;
+
+  if (have_fp_mode)
+    {
+      int fp_mode;
+      struct iovec iov = { .iov_base = &fp_mode, .iov_len = sizeof(fp_mode) };
+
+      errno = 0;
+      ptrace (PTRACE_GETREGSET, tid,
+       (PTRACE_TYPE_ARG3) NT_MIPS_FP_MODE, (PTRACE_TYPE_ARG4) &iov);
+      switch (errno)
+ {
+ case 0:
+   use_fpu64 = !!(fp_mode & PR_FP_MODE_FR);
+   break;
+ case EIO:
+ case EINVAL:
+   have_fp_mode = 0;
+   break;
+ default:
+   perror_with_name (_("Couldn't get FP_MODE virtual register"));
+   break;
+ }
+    }
+
+  if (!have_fp_mode && have_ptrace_regsets)
+    {
+      uint64_t regs[MIPS64_ELF_NGREG];
+
+      errno = 0;
+      ptrace (PTRACE_GETREGS, tid,
+       (PTRACE_TYPE_ARG3) 0, (PTRACE_TYPE_ARG4) &regs);
+      switch (errno)
+ {
+ case 0:
+   use_fpu64 = !!(regs[MIPS64_EF_CP0_STATUS] & STATUS_FR);
+   break;
+ case EIO:
+   have_ptrace_regsets = 0;
+   break;
+ default:
+   perror_with_name (_("Couldn't get registers"));
+   break;
+ }
+    }
+
+  return use_fpu64;
+}
+
 static const struct target_desc *
 mips_linux_read_description (struct target_ops *ops)
 {
+  static const struct target_desc *tdescs[2][2] =
+    {
+      /* use_fpu64 = 0        use_fpu64 = 1 */
+      { tdesc_mips_linux,     tdesc_mips_fpu64_linux },     /* have_dsp = 0 */
+      { tdesc_mips_dsp_linux, tdesc_mips_fpu64_dsp_linux }, /* have_dsp = 1 */
+    };
   static int have_dsp = -1;
+
+  int tid = ptid_get_lwp (inferior_ptid);
 
   if (have_dsp < 0)
     {
-      int tid;
-
-      tid = ptid_get_lwp (inferior_ptid);
       if (tid == 0)
 	tid = ptid_get_pid (inferior_ptid);
 
@@ -448,10 +531,10 @@ mips_linux_read_description (struct target_ops *ops)
 	}
     }
 
-  /* Report that target registers are a size we know for sure
-     that we can get from ptrace.  */
+  /* We only need to determine the width of FGRs on 32-bit systems,
+     as therwise they're fixed by the ABI at 64 bits.  */
   if (_MIPS_SIM == _ABIO32)
-    return have_dsp ? tdesc_mips_dsp_linux : tdesc_mips_linux;
+    return tdescs[have_dsp][mips_linux_get_fpu64 (tid)];
   else
     return have_dsp ? tdesc_mips64_dsp_linux : tdesc_mips64_linux;
 }
@@ -763,6 +846,56 @@ mips_linux_close (struct target_ops *self)
 
 void _initialize_mips_linux_nat (void);
 
+/* Implement the to_thread_architecture routine.  */
+
+static struct gdbarch *
+mips_thread_architecture (struct target_ops *ops, ptid_t ptid)
+{
+  enum bfd_endian byte_order = gdbarch_byte_order (target_gdbarch ());
+  struct gdbarch_tdep *tdep = gdbarch_tdep (target_gdbarch ());
+  struct gdbarch_tdep_info tdep_info = { NULL };
+  enum mips_fpu_mode fp_mode;
+  struct gdbarch_info info;
+  const gdb_byte *buf;
+  int tid;
+
+  tid = get_ptrace_pid (ptid);
+
+  /* Determine the FPU mode based on the FGR register width.  */
+  fp_mode = mips_linux_get_fpu64 (tid) ? MIPS_FPU_MODE_64 : MIPS_FPU_MODE_32;
+
+  if (fp_mode == tdep->fp_mode)
+    return target_gdbarch ();
+
+  /* Set `inferior_ptid' so that `to_read_description' uses the
+     correct PTID.  */
+  scoped_restore save_inferior_ptid = make_scoped_restore (&inferior_ptid);
+  inferior_ptid = ptid;
+
+  /* Request for target description that matches current FPU mode.
+     If we reach here (e.g. before `post_create_inferior') and GDB
+     hasn't yet fetched a target description, then let GDB fetch
+     a description and let the side effects happen i.e. setting
+     `target_desc_fetched' and creating a gdbarch accordingly.  */
+  if (gdbarch_target_desc (target_gdbarch ()) == NULL)
+    {
+      target_find_description ();
+      return target_gdbarch ();
+    }
+
+  /* Set up target info and return the correct architecture.  */
+  gdbarch_info_init (&info);
+  info.byte_order = byte_order;
+  info.bfd_arch_info = gdbarch_bfd_arch_info (target_gdbarch ());
+  info.osabi = gdbarch_osabi (target_gdbarch ());
+  tdep_info.fp_mode = fp_mode;
+  info.tdep_info = &tdep_info;
+  target_clear_description ();
+  target_find_description_info (&info);
+
+  return target_gdbarch ();
+}
+
 void
 _initialize_mips_linux_nat (void)
 {
@@ -801,12 +934,17 @@ triggers a breakpoint or watchpoint."),
 
   t->to_read_description = mips_linux_read_description;
 
+  if (_MIPS_SIM == _ABIO32)
+    t->to_thread_architecture = mips_thread_architecture;
+
   linux_nat_add_target (t);
   linux_nat_set_new_thread (t, mips_linux_new_thread);
 
   /* Initialize the standard target descriptions.  */
   initialize_tdesc_mips_linux ();
   initialize_tdesc_mips_dsp_linux ();
+  initialize_tdesc_mips_fpu64_linux ();
+  initialize_tdesc_mips_fpu64_dsp_linux ();
   initialize_tdesc_mips64_linux ();
   initialize_tdesc_mips64_dsp_linux ();
 }

@@ -52,6 +52,10 @@ enum mips_isa
 #define MSYMBOL_TARGET_FLAG_MIPS16 MSYMBOL_TARGET_FLAG_1
 #define MSYMBOL_TARGET_FLAG_MICROMIPS MSYMBOL_TARGET_FLAG_2
 
+/* A useful bit in the CP0 status register (MIPS_PS_REGNUM).  */
+/* This bit is set if we are emulating 32-bit FPRs on a 64-bit chip.  */
+#define STATUS_FR (1 << 26)
+
 /* Return the MIPS ISA's register size.  Just a short cut to the BFD
    architecture's word size.  */
 extern int mips_isa_regsize (struct gdbarch *gdbarch);
