@@ -150,6 +150,13 @@ struct gdbarch_tdep
   CORE_ADDR (*syscall_next_pc) (struct frame_info *frame);
 };
 
+/* MIPS specific per-architecture initialization information.  */
+struct gdbarch_tdep_info
+{
+  /* The floating-point register mode determined at run time.  */
+  enum mips_fpu_mode fp_mode;
+};
+
 /* Register numbers of various important registers.  */
 
 enum

@@ -62,6 +62,8 @@ public:
 
   void close () override;
 
+  struct gdbarch *thread_architecture (ptid_t ptid) override;
+
   int can_use_hw_breakpoint (enum bptype, int, int) override;
 
   int remove_watchpoint (CORE_ADDR, int, enum target_hw_bp_type,
@@ -1057,6 +1059,55 @@ mips_linux_nat_target::close ()
   current_watches = NULL;
 
   linux_nat_trad_target::close ();
+}
+
+struct gdbarch *
+mips_linux_nat_target::thread_architecture (ptid_t ptid)
+{
+
+  enum bfd_endian byte_order = gdbarch_byte_order (target_gdbarch ());
+  struct gdbarch_tdep *tdep = gdbarch_tdep (target_gdbarch ());
+  struct gdbarch_tdep_info tdep_info;
+  enum mips_fpu_mode fp_mode;
+  struct gdbarch_info info;
+  const gdb_byte *buf;
+  int tid;
+
+  tid = get_ptrace_pid (ptid);
+
+  /* Determine the FPU mode based on the FGR register width.  */
+  fp_mode = get_fpu64 (tid) ? MIPS_FPU_MODE_64 : MIPS_FPU_MODE_32;
+
+  if (fp_mode == tdep->fp_mode)
+    return target_gdbarch ();
+
+  /* Set `inferior_ptid' so that `to_read_description' uses the
+     correct PTID.  */
+  scoped_restore save_inferior_ptid = make_scoped_restore (&inferior_ptid);
+  inferior_ptid = ptid;
+
+  /* Request for target description that matches current FPU mode.
+     If we reach here (e.g. before `post_create_inferior') and GDB
+     hasn't yet fetched a target description, then let GDB fetch
+     a description and let the side effects happen i.e. setting
+     `target_desc_fetched' and creating a gdbarch accordingly.  */
+  if (gdbarch_target_desc (target_gdbarch ()) == NULL)
+    {
+      target_find_description ();
+      return target_gdbarch ();
+    }
+
+  /* Set up target info and return the correct architecture.  */
+  gdbarch_info_init (&info);
+  info.byte_order = byte_order;
+  info.bfd_arch_info = gdbarch_bfd_arch_info (target_gdbarch ());
+  info.osabi = gdbarch_osabi (target_gdbarch ());
+  tdep_info.fp_mode = fp_mode;
+  info.tdep_info = &tdep_info;
+  target_clear_description ();
+  target_find_description_info (&info);
+
+  return target_gdbarch ();
 }
 
 void

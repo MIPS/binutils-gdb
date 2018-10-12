@@ -10334,18 +10334,24 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
     fprintf_unfiltered (gdb_stdlog,
 			"mips_gdbarch_init: fpu_type = %d\n", fpu_type);
 
+  if (!info.tdep_info)
+    {
   /* Infer FPU mode from ABI information (i.e. MIPS_FPU_MODE_32 for O32
      and MIPS_FPU_MODE_64 otherwise).  */
-  switch (mips_abi)
-  {
-  case MIPS_ABI_O32:
-  case MIPS_ABI_EABI32:
-    fp_mode = MIPS_FPU_MODE_32;
-    break;
-  default:
-    fp_mode = MIPS_FPU_MODE_64;
-    break;
-  }
+      switch (mips_abi)
+      {
+      case MIPS_ABI_O32:
+      case MIPS_ABI_EABI32:
+        fp_mode = MIPS_FPU_MODE_32;
+        break;
+      default:
+        fp_mode = MIPS_FPU_MODE_64;
+        break;
+      }
+    }
+  else
+    fp_mode = info.tdep_info->fp_mode;
+
   if (gdbarch_debug)
     fprintf_unfiltered (gdb_stdlog,
 			"mips_gdbarch_init: fp_mode = %d\n", fp_mode);
