@@ -2,7 +2,7 @@
 # Generated from: mips-fpu64-linux.xml
 name:mips_fpu64_linux
 xmltarget:mips-fpu64-linux.xml
-expedite:r29,pc
+expedite:r29,pc,status
 32:r0
 32:r1
 32:r2

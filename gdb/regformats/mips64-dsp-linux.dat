@@ -2,7 +2,7 @@
 # Generated from: mips64-dsp-linux.xml
 name:mips64_dsp_linux
 xmltarget:mips64-dsp-linux.xml
-expedite:r29,pc
+expedite:r29,pc,status
 64:r0
 64:r1
 64:r2

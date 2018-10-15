@@ -2,7 +2,7 @@
 # Generated from: mips-dsp-linux.xml
 name:mips_dsp_linux
 xmltarget:mips-dsp-linux.xml
-expedite:r29,pc
+expedite:r29,pc,status
 32:r0
 32:r1
 32:r2
