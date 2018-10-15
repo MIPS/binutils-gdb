@@ -53,6 +53,22 @@ copy_target_description (struct target_desc *dest,
   dest->xmltarget = src->xmltarget;
 }
 
+/* Compare two target descriptions and return 1 if they are equal.
+   Otherwise return 0.  */
+
+int
+compare_target_description (const struct target_desc *a,
+			    const struct target_desc *b)
+{
+  gdb_assert (a != NULL && b != NULL);
+
+  return (a->reg_defs == b->reg_defs
+	  && a->num_registers == b->num_registers
+	  && a->expedite_regs == b->expedite_regs
+	  && a->registers_size == b->registers_size
+	  && a->xmltarget == b->xmltarget);
+}
+
 const struct target_desc *
 current_target_desc (void)
 {

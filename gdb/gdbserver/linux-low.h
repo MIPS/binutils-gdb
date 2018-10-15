@@ -247,6 +247,9 @@ struct linux_target_ops
 
   /* See target.h.  */
   int (*get_ipa_tdesc_idx) (void);
+
+  /* See target.h.  */
+  const struct target_desc *(*fetch_target_desc) (void);
 };
 
 extern struct linux_target_ops the_low_target;

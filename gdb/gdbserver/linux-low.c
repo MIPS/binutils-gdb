@@ -6720,6 +6720,18 @@ linux_get_ipa_tdesc_idx (void)
   return (*the_low_target.get_ipa_tdesc_idx) ();
 }
 
+/* Return target description that matches the current state of the
+   program.  */
+
+static const struct target_desc *
+linux_fetch_target_desc (void)
+{
+  if (the_low_target.fetch_target_desc == NULL)
+    return current_target_desc ();
+  else
+    return (*the_low_target.fetch_target_desc) ();
+}
+
 static int
 linux_supports_tracepoints (void)
 {
@@ -7698,6 +7710,7 @@ static struct target_ops linux_target_ops = {
   linux_supports_software_single_step,
   linux_supports_catch_syscall,
   linux_get_ipa_tdesc_idx,
+  linux_fetch_target_desc,
 };
 
 #ifdef HAVE_LINUX_REGSETS

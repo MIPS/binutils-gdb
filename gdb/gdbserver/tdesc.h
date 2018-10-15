@@ -52,6 +52,12 @@ struct target_desc
 void copy_target_description (struct target_desc *dest,
 			      const struct target_desc *src);
 
+/* Compare two target descriptions, return 1 if they are equal,
+   0 otherwise.  */
+
+int compare_target_description (const struct target_desc *a,
+				const struct target_desc *b);
+
 /* Initialize TDESC.  */
 
 void init_target_desc (struct target_desc *tdesc);

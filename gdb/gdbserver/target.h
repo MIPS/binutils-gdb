@@ -474,6 +474,9 @@ struct target_ops
 
   /* Return tdesc index for IPA.  */
   int (*get_ipa_tdesc_idx) (void);
+
+  /* Return current target description.  */
+  const struct target_desc *(*fetch_target_desc) (void);
 };
 
 extern struct target_ops *the_target;

@@ -837,10 +837,48 @@ handle_general_set (char *own_buf)
   own_buf[0] = 0;
 }
 
+/* Maintain the target description of the process according to current
+   state of the process and return the correct target description.  */
+
+static const struct target_desc *
+get_target_desc (void)
+{
+  const struct target_desc *desc;
+
+  if (the_target->fetch_target_desc == NULL)
+    return current_target_desc ();
+  else
+    desc = (*the_target->fetch_target_desc) ();
+
+  /* If the target description has changed then update the process's
+     target description.  */
+  if (!compare_target_description (current_target_desc (), desc))
+    {
+      struct regcache *regcache = NULL;
+
+      /* Update process's tdesc.  */
+      current_process ()->tdesc = desc;
+
+      /* Update regcache of current_thread.  */
+      regcache = inferior_regcache_data (current_thread);
+
+      if (regcache != NULL)
+	{
+	  free_register_cache (regcache);
+	  set_inferior_regcache_data (current_thread, NULL);
+	}
+
+      regcache = new_register_cache (current_target_desc ());
+      set_inferior_regcache_data (current_thread, regcache);
+    }
+
+  return desc;
+}
+
 static const char *
 get_features_xml (const char *annex)
 {
-  const struct target_desc *desc = current_target_desc ();
+  const struct target_desc *desc = get_target_desc ();
 
   /* `desc->xmltarget' defines what to return when looking for the
      "target.xml" file.  Its contents can either be verbatim XML code
