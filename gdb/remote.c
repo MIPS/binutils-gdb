@@ -7212,14 +7212,32 @@ process_stop_reply (struct stop_reply *stop_reply,
       && status->kind != TARGET_WAITKIND_NO_RESUMED)
     {
       struct private_thread_info *remote_thr;
+      cached_reg_t *reg;
+      int ix, ret;
+
+      /* Give an architecture a chance to look at the value of registers
+	 in the stop reply and take appropriate action if anything
+	 interesting for it has happened.  */
+      if (gdbarch_target_description_changed_p (target_gdbarch ())
+	  && stop_reply->regcache)
+	{
+	  for (ix = 0;
+	       VEC_iterate (cached_reg_t, stop_reply->regcache, ix, reg);
+	       ix++)
+	    {
+	      ret = gdbarch_target_description_changed (target_gdbarch (),
+							reg->num,
+							reg->data);
+	      if (ret)
+		break;
+	    }
+	}
 
       /* Expedited registers.  */
       if (stop_reply->regcache)
 	{
 	  struct regcache *regcache
 	    = get_thread_arch_regcache (ptid, target_gdbarch ());
-	  cached_reg_t *reg;
-	  int ix;
 
 	  for (ix = 0;
 	       VEC_iterate (cached_reg_t, stop_reply->regcache, ix, reg);

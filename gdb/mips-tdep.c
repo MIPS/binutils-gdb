@@ -56,6 +56,7 @@
 #include "user-regs.h"
 #include "valprint.h"
 #include "ax.h"
+#include "xml-tdesc.h"
 #include <algorithm>
 
 static const struct objfile_data *mips_pdr_data;
@@ -301,6 +302,44 @@ mips_float_regsize (struct gdbarch *gdbarch)
     default:
       internal_error (__FILE__, __LINE__, _("bad switch"));
     }
+}
+
+/* Determine the current floating-point register size and update our
+   architecture data accordingly.  Return one if the size has changed,
+   zero otherwise.  */
+
+static int
+mips_target_description_changed (struct gdbarch *gdbarch, int regnum,
+				 const gdb_byte *buf)
+{
+  enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
+  struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
+  struct gdbarch_tdep_info tdep_info = { NULL };
+  enum mips_fpu_mode fp_mode;
+  struct gdbarch_info info;
+  ULONGEST sr;
+
+  if (regnum != MIPS_PS_REGNUM)
+    return 0;
+
+  sr = extract_unsigned_integer (buf, 8, byte_order);
+  fp_mode = (sr & STATUS_FR) ? MIPS_FPU_MODE_64 : MIPS_FPU_MODE_32;
+
+  if (fp_mode == tdep->fp_mode)
+    return 0;
+
+  /* Set up target info  */
+  gdbarch_info_init (&info);
+  info.byte_order = byte_order;
+  info.bfd_arch_info = gdbarch_bfd_arch_info (gdbarch);
+  info.osabi = gdbarch_osabi (gdbarch);
+  tdep_info.fp_mode = fp_mode;
+  info.tdep_info = &tdep_info;
+  target_clear_description ();
+  target_find_description_info (&info);
+  gdbarch_update_p (info);
+
+  return 1;
 }
 
 /* MIPS16/microMIPS function addresses are odd (bit 0 is set).  Here
@@ -8765,6 +8804,8 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   set_gdbarch_integer_to_address (gdbarch, mips_integer_to_address);
 
   set_gdbarch_register_type (gdbarch, mips_register_type);
+  set_gdbarch_target_description_changed (gdbarch,
+					  mips_target_description_changed);
 
   set_gdbarch_print_registers_info (gdbarch, mips_print_registers_info);
 

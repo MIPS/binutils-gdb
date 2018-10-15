@@ -388,6 +388,15 @@ typedef struct type * (gdbarch_register_type_ftype) (struct gdbarch *gdbarch, in
 extern struct type * gdbarch_register_type (struct gdbarch *gdbarch, int reg_nr);
 extern void set_gdbarch_register_type (struct gdbarch *gdbarch, gdbarch_register_type_ftype *register_type);
 
+/* Return true if target description of the target has changed,
+   zero otherwise. */
+
+extern int gdbarch_target_description_changed_p (struct gdbarch *gdbarch);
+
+typedef int (gdbarch_target_description_changed_ftype) (struct gdbarch *gdbarch, int regnum, const gdb_byte *buf);
+extern int gdbarch_target_description_changed (struct gdbarch *gdbarch, int regnum, const gdb_byte *buf);
+extern void set_gdbarch_target_description_changed (struct gdbarch *gdbarch, gdbarch_target_description_changed_ftype *target_description_changed);
+
 extern int gdbarch_dummy_id_p (struct gdbarch *gdbarch);
 
 typedef struct frame_id (gdbarch_dummy_id_ftype) (struct gdbarch *gdbarch, struct frame_info *this_frame);

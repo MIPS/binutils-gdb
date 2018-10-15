@@ -212,6 +212,7 @@ struct gdbarch
   gdbarch_dwarf2_reg_to_regnum_ftype *dwarf2_reg_to_regnum;
   gdbarch_register_name_ftype *register_name;
   gdbarch_register_type_ftype *register_type;
+  gdbarch_target_description_changed_ftype *target_description_changed;
   gdbarch_dummy_id_ftype *dummy_id;
   int deprecated_fp_regnum;
   gdbarch_push_dummy_call_ftype *push_dummy_call;
@@ -571,6 +572,7 @@ verify_gdbarch (struct gdbarch *gdbarch)
   if (gdbarch->register_name == 0)
     log.puts ("\n\tregister_name");
   /* Skip verify of register_type, has predicate.  */
+  /* Skip verify of target_description_changed, has predicate.  */
   /* Skip verify of dummy_id, has predicate.  */
   /* Skip verify of deprecated_fp_regnum, invalid_p == 0 */
   /* Skip verify of push_dummy_call, has predicate.  */
@@ -1430,6 +1432,12 @@ gdbarch_dump (struct gdbarch *gdbarch, struct ui_file *file)
   fprintf_unfiltered (file,
                       "gdbarch_dump: target_desc = %s\n",
                       host_address_to_string (gdbarch->target_desc));
+  fprintf_unfiltered (file,
+                      "gdbarch_dump: gdbarch_target_description_changed_p() = %d\n",
+                      gdbarch_target_description_changed_p (gdbarch));
+  fprintf_unfiltered (file,
+                      "gdbarch_dump: target_description_changed = <%s>\n",
+                      host_address_to_string (gdbarch->target_description_changed));
   fprintf_unfiltered (file,
                       "gdbarch_dump: gdbarch_unwind_pc_p() = %d\n",
                       gdbarch_unwind_pc_p (gdbarch));
@@ -2312,6 +2320,30 @@ set_gdbarch_register_type (struct gdbarch *gdbarch,
                            gdbarch_register_type_ftype register_type)
 {
   gdbarch->register_type = register_type;
+}
+
+int
+gdbarch_target_description_changed_p (struct gdbarch *gdbarch)
+{
+  gdb_assert (gdbarch != NULL);
+  return gdbarch->target_description_changed != NULL;
+}
+
+int
+gdbarch_target_description_changed (struct gdbarch *gdbarch, int regnum, const gdb_byte *buf)
+{
+  gdb_assert (gdbarch != NULL);
+  gdb_assert (gdbarch->target_description_changed != NULL);
+  if (gdbarch_debug >= 2)
+    fprintf_unfiltered (gdb_stdlog, "gdbarch_target_description_changed called\n");
+  return gdbarch->target_description_changed (gdbarch, regnum, buf);
+}
+
+void
+set_gdbarch_target_description_changed (struct gdbarch *gdbarch,
+                                        gdbarch_target_description_changed_ftype target_description_changed)
+{
+  gdbarch->target_description_changed = target_description_changed;
 }
 
 int
