@@ -221,9 +221,9 @@ text_label:
 	mtc0	$0, $30, 6
 	mtc0	$0, $30, 7
 	mtc0	$0, $31, 1
+	mtc0	$0, $kscratch1
 	mtc0	$0, $kscratch2
 	mtc0	$0, $kscratch3
 	mtc0	$0, $kscratch4
 	mtc0	$0, $kscratch5
 	mtc0	$0, $kscratch6
-	mtc0	$0, $kscratch7

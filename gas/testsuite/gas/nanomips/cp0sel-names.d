@@ -226,10 +226,10 @@ Disassembly of section \.text:
  35c:	201e 3070 	mtc0	\$0,\$30,6
  360:	201e 3870 	mtc0	\$0,\$30,7
  364:	201f 0870 	mtc0	\$0,\$31,1
- 368:	201f 1070 	mtc0	\$0,kscratch2
- 36c:	201f 1870 	mtc0	\$0,kscratch3
- 370:	201f 2070 	mtc0	\$0,kscratch4
- 374:	201f 2870 	mtc0	\$0,kscratch5
- 378:	201f 3070 	mtc0	\$0,kscratch6
- 37c:	201f 3870 	mtc0	\$0,kscratch7
+ 368:	201f 1070 	mtc0	\$0,kscratch1
+ 36c:	201f 1870 	mtc0	\$0,kscratch2
+ 370:	201f 2070 	mtc0	\$0,kscratch3
+ 374:	201f 2870 	mtc0	\$0,kscratch4
+ 378:	201f 3070 	mtc0	\$0,kscratch5
+ 37c:	201f 3870 	mtc0	\$0,kscratch6
 #pass
