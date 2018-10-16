@@ -265,12 +265,12 @@ text_label:
 	mftc0	$a4,$30,7
 	mftc0	$a4,$desave
 	mftc0	$a4,$31,1
+	mftc0	$a4,$kscratch1
 	mftc0	$a4,$kscratch2
 	mftc0	$a4,$kscratch3
 	mftc0	$a4,$kscratch4
 	mftc0	$a4,$kscratch5
 	mftc0	$a4,$kscratch6
-	mftc0	$a4,$kscratch7
 	mftgpr	$a5,$a6
 	mftlo	$a6
 	mftlo	$a7
@@ -537,12 +537,12 @@ text_label:
 	mttc0	$k1,$30,7
 	mttc0	$k1,$desave
 	mttc0	$k1,$31,1
+	mttc0	$k1,$kscratch1
 	mttc0	$k1,$kscratch2
 	mttc0	$k1,$kscratch3
 	mttc0	$k1,$kscratch4
 	mttc0	$k1,$kscratch5
 	mttc0	$k1,$kscratch6
-	mttc0	$k1,$kscratch7
 	mttgpr	$gp,$sp
 	mttlo	$sp
 	mttlo	$fp,$ac3

@@ -1088,12 +1088,12 @@ static const struct nanomips_cp0_name nanomips_cp0_3264r6[] = {
     {"$ddatahi", 	29, 3},
     {"$errorepc",	30, 0},
     {"$desave", 	31, 0},
-    {"$kscratch2",	31, 2},
-    {"$kscratch3",	31, 3},
-    {"$kscratch4",	31, 4},
-    {"$kscratch5",	31, 5},
-    {"$kscratch6",	31, 6},
-    {"$kscratch7",	31, 7},
+    {"$kscratch1",	31, 2},
+    {"$kscratch2",	31, 3},
+    {"$kscratch3",	31, 4},
+    {"$kscratch4",	31, 5},
+    {"$kscratch5",	31, 6},
+    {"$kscratch6",	31, 7},
     {NULL, 0, 0}
 };
 
