@@ -1053,6 +1053,7 @@ static const struct tramp_frame micromips_linux_n64_rt_sigframe = {
 #define SIGCONTEXT_REGS     (2 * 8)
 #define SIGCONTEXT_FPREGS   (34 * 8)
 #define SIGCONTEXT_FPCSR    (66 * 8 + 4)
+#define SIGCONTEXT_USEDMATH (67 * 8 + 4)
 #define SIGCONTEXT_DSPCTL   (68 * 8 + 0)
 #define SIGCONTEXT_HI       (69 * 8)
 #define SIGCONTEXT_LO       (70 * 8)
@@ -1067,6 +1068,16 @@ static const struct tramp_frame micromips_linux_n64_rt_sigframe = {
 
 #define SIGCONTEXT_REG_SIZE 8
 
+#ifndef USED_FP
+#define USED_FP     (1 << 0)
+#endif
+#ifndef USED_FR1
+#define USED_FR1    (1 << 1)
+#endif
+#ifndef USED_HYBRID_FPRS
+#define USED_HYBRID_FPRS    (1 << 2)
+#endif
+
 static void
 mips_linux_o32_sigframe_init (const struct tramp_frame *self,
 			      struct frame_info *this_frame,
@@ -1079,6 +1090,9 @@ mips_linux_o32_sigframe_init (const struct tramp_frame *self,
   CORE_ADDR sigcontext_base;
   const struct mips_regnum *regs = mips_regnum (gdbarch);
   CORE_ADDR regs_base;
+  gdb_byte buf[4];
+  uint32_t used_math;
+  enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
 
   if (self == &mips_linux_o32_sigframe
       || self == &micromips_linux_o32_sigframe)
@@ -1109,6 +1123,14 @@ mips_linux_o32_sigframe_init (const struct tramp_frame *self,
 			     (regs_base + SIGCONTEXT_REGS
 			      + ireg * SIGCONTEXT_REG_SIZE));
 
+  /* Read the used_math field.  */
+  if (safe_frame_unwind_memory (this_frame,
+ sigcontext_base + SIGCONTEXT_USEDMATH,
+ buf, 4))
+    used_math = extract_unsigned_integer (buf, 4, gdbarch_byte_order (gdbarch));
+  else
+    used_math = 0;
+
   /* The way that floating point registers are saved, unfortunately,
      depends on the architecture the kernel is built for.  For the r3000 and
      tx39, four bytes of each register are at the beginning of each of the
@@ -1118,7 +1140,18 @@ mips_linux_o32_sigframe_init (const struct tramp_frame *self,
      layout, since we can't tell, and it's much more common.  Which bits are
      the "high" bits depends on endianness.  */
   for (ireg = 0; ireg < 32; ireg++)
-    if ((gdbarch_byte_order (gdbarch) == BFD_ENDIAN_BIG) != (ireg & 1))
+    if (used_math & USED_FR1)
+      {
+ trad_frame_set_reg_addr (this_cache,
+ ireg + regs->fp0,
+ (sigcontext_base + SIGCONTEXT_FPREGS
+  + ireg * SIGCONTEXT_REG_SIZE));
+ trad_frame_set_reg_addr (this_cache,
+ ireg + regs->fp0 + gdbarch_num_regs (gdbarch),
+ (sigcontext_base + SIGCONTEXT_FPREGS
+  + ireg * SIGCONTEXT_REG_SIZE));
+      }
+    else if ((gdbarch_byte_order (gdbarch) == BFD_ENDIAN_BIG) != (ireg & 1))
       trad_frame_set_reg_addr (this_cache,
 			       ireg + regs->fp0 + gdbarch_num_regs (gdbarch),
 			       (sigcontext_base + SIGCONTEXT_FPREGS + 4
