@@ -835,6 +835,8 @@ mips_calculate_combination_ases (int opcode_isa, unsigned long opcode_ases)
       && ((opcode_isa & INSN_ISA_MASK) == ISA_MIPS64R6
 	  || (opcode_isa & INSN_ISA_MASK) == ISA_MIPS32R6))
     combination_ases |= ASE_EVA_R6;
+  if ((opcode_ases & (ASE_GINV | ASE_VIRT)) == (ASE_GINV | ASE_VIRT))
+    combination_ases |= ASE_GINV_VIRT;
   return combination_ases;
 }
 

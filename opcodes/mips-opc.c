@@ -415,6 +415,7 @@ decode_mips_operand (const char *p)
 
 /* Global INValidate (GINV) support.  */
 #define GINV	ASE_GINV
+#define GINVVZ ASE_GINV_VIRT
 
 /* The order of overloaded instructions matters.  Label arguments and
    register arguments look the same. Instructions that can have either
@@ -3416,6 +3417,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 /* MIPS Global INValidate (GINV) ASE.  */
 {"ginvi",		"s",		0x7c00003d, 0xfc1fffff, RD_1,			0,		0,		GINV,	0 },
 {"ginvt",		"s,+\\",	0x7c0000bd, 0xfc1ffcff, RD_1,			0,		0,		GINV,	0 },
+{"ginvgt",		"s,+\\",	0x7c0000fd, 0xfc1ffcff, RD_1,			0,		0,		GINVVZ,	0 },
 
 /* No hazard protection on coprocessor instructions--they shouldn't
    change the state of the processor and if they do it's up to the

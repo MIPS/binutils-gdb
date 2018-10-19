@@ -2167,7 +2167,7 @@ mips_set_ase (const struct mips_ase *ase, struct mips_set_options *opts,
 
   /* Clear combination ASE flags, which need to be recalculated based on
      updated regular ASE settings.  */
-  opts->ase &= ~(ASE_MIPS16E2_MT | ASE_XPA_VIRT | ASE_EVA_R6);
+  opts->ase &= ~(ASE_MIPS16E2_MT | ASE_XPA_VIRT | ASE_EVA_R6 | ASE_GINV_VIRT);
 
   if (enabled_p)
     opts->ase |= ase->flags;
@@ -2193,6 +2193,15 @@ mips_set_ase (const struct mips_ase *ase, struct mips_set_options *opts,
     {
       opts->ase |= ASE_EVA_R6;
       mask |= ASE_EVA_R6;
+    }
+
+  /* The Virtualization ASE has Global INValidate (GINV) instructions
+     which are only valid when both ASEs are enabled.  This sets the
+     ASE_GINV_VIRT flag when both ASEs are present.  */
+  if ((opts->ase & (ASE_GINV | ASE_VIRT)) == (ASE_GINV | ASE_VIRT))
+    {
+      opts->ase |= ASE_GINV_VIRT;
+      mask |= ASE_GINV_VIRT;
     }
 
   return mask;
