@@ -1355,3 +1355,8 @@ run_dump_test "mips-abiflags-2r"
 # Test that _gp_disp symbol is not present in symbol tables.
 run_dump_test "gp-disp-sym" [list [list as $abi_asflags(o32)] \
 				  [list ld $abi_ldflags(o32)]]
+
+run_dump_test "mips16-lineno"
+run_dump_test "mips16-addr2line"
+run_dump_test "micromips-lineno"
+run_dump_test "micromips-addr2line"

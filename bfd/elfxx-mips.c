@@ -13040,6 +13040,7 @@ _bfd_mips_elf_find_nearest_line (bfd *abfd, asymbol **symbols,
 				 unsigned int *discriminator_ptr)
 {
   asection *msec;
+  bfd_boolean found = FALSE;
 
   if (_bfd_dwarf2_find_nearest_line (abfd, symbols, NULL, section, offset,
 				     filename_ptr, functionname_ptr,
@@ -13146,9 +13147,21 @@ _bfd_mips_elf_find_nearest_line (bfd *abfd, asymbol **symbols,
 
   /* Fall back on the generic ELF find_nearest_line routine.  */
 
-  return _bfd_elf_find_nearest_line (abfd, symbols, section, offset,
-				     filename_ptr, functionname_ptr,
-				     line_ptr, discriminator_ptr);
+  found = _bfd_elf_find_nearest_line (abfd, symbols, section, offset,
+				       filename_ptr, functionname_ptr,
+				       line_ptr, discriminator_ptr);
+
+  /* The bfd_find_nearest_line_discriminator may not be able to find filename
+     and line if pc points to start of a MIPS compressed function.  This is
+     because ISA bit is set in the line number entries.  For example, if start
+     of a function is 0x80200750 then line number entries start from 0x80200751
+     (31st bit is set).  Set ISA bit of the pc and search again.  */
+  if (found && *filename_ptr == NULL && *line_ptr == 0 && (offset & 1) == 0)
+    found = _bfd_elf_find_nearest_line (abfd, symbols, section,
+					offset | 1,
+					filename_ptr, functionname_ptr,
+					line_ptr, discriminator_ptr);
+  return found;
 }
 
 bfd_boolean
