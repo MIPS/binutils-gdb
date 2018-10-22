@@ -81,6 +81,9 @@ Disassembly of section \.text:
 			10d6: R_NANOMIPS_PC14_S1	\$L3
 
 [0-9a-f]+ <\$L4>:
-    10da:	8a20 0000 	beqzc	s1,10d2 <\$L3>
-			10da: R_NANOMIPS_PC14_S1	\$L3
+    10da:	a8a7 0000 	bnec	a3,a1,10de <\$L5>
+			10da: R_NANOMIPS_PC14_S1	\$L5
+
+000010de <\$L5>:
+    10de:	9008      	nop
 #pass
