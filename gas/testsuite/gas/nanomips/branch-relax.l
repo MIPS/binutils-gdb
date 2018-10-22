@@ -91,7 +91,9 @@ GAS LISTING .*/branch-relax.s 			page 1
   49 10c2 9FDB     		beqc \$s1, \$a3, \$L4 /\* reachable forward over relaxable, no relax.  \*/
   50 10c4 8098     		beqzc \$s1, \$L3
   51              	\$L4:
-  52 10c6 8098     		beqzc \$s1, \$L3
-  53.*
-  54.*.end test5
+  52 10c6 A7A80000 		bnec \$a3, \$a1, \$L5
+  53              	\$L5:
+  54 10ca 0890     		.half 0x9008
+  55.*
+  56.*.end test5
 #pass

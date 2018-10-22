@@ -79,6 +79,9 @@ Disassembly of section .text:
 			10c4: R_NANOMIPS_PC7_S1	\$L3
 
 000010c6 <\$L4>:
-    10c6:	9880      	beqzc	s1,10c2 <\$L3>
-			10c6: R_NANOMIPS_PC7_S1	\$L3
+    10c6:	a8a7 0000 	bnec	a3,a1,10ca <\$L5>
+			10c6: R_NANOMIPS_PC14_S1	\$L5
+
+000010ca <\$L5>:
+    10ca:	9008      	nop
 #pass

@@ -11151,29 +11151,36 @@ nanomips_frag_match (fragS *head, fragS *matchP)
 
   /* Typically, a match is as easy as checking that the frags are adjacent
      and the symbol refered to is at the very beginning of the target frag.  */
-  if (matchP == head->fr_next && val == matchP->fr_address)
-    return TRUE;
+  if (val != matchP->fr_address)
+    return FALSE;
 
+  head = head->fr_next;
   /* The tricky part: when doing assembly listings all sorts of fillers are
      generated between what would be adjacent frags.  So we need to look
      through the frag list, until we come to a non-empty frag that either
-     matches or exceeds our target.  */
-  if (listing)
+     matches or exceeds our target.  Likewise, instructions embedded in
+     code as .insn generate 2-byte alignment markers which act as redundant
+     fillers with no effect in nanoMIPS code and hence should not be
+     considered for deciding whether to frags are adjacent.
+     (head->fr_fix + head->fr_var == 0) implies marker frags for
+     assembly listings.
+     (head->fr_type == rs_align_code && head->fr_var == 1) implies
+     2-byte alignment frags.  */
+  while (head
+	 && head != matchP
+	 && (head->fr_fix + head->fr_var == 0
+	     || (head->fr_type == rs_align_code && head->fr_var == 1)))
     {
-      head = head->fr_next;
-      while (head && head != matchP && head->fr_fix + head->fr_var == 0)
-	{
-	  /* Unlikely, but just in case we came too far, bail out!  */
-	  if (head->fr_line > matchP->fr_line)
-	    break;
-	  else
-	    head = head->fr_next;
-	}
-
-      return (head == matchP);
+      /* Unlikely, but just in case we came too far, bail out!  The check
+	 for non-zero fr_line is required in case we hit the end of
+	 the file, but have not yet reached the end of the frag list.  */
+      if (matchP->fr_line > 0 && head->fr_line > matchP->fr_line)
+	break;
+      else
+	head = head->fr_next;
     }
 
-  return FALSE;
+  return (head == matchP);
 }
 
 /* Get the number of bytes a link-time relaxation can add to this

@@ -49,6 +49,8 @@ $L3:
 	beqc $s1, $a3, $L4 /* reachable forward over relaxable, no relax.  */
 	beqzc $s1, $L3
 $L4:
-	beqzc $s1, $L3
+	bnec $a3, $a1, $L5
+$L5:
+	.half 0x9008
 
 	.end test5
