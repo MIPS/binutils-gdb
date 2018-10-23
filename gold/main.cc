@@ -310,6 +310,8 @@ main(int argc, char** argv)
       layout.print_stats();
       Gdb_index::print_stats();
       Free_list::print_stats();
+      if (parameters->target_valid())
+	parameters->target().print_stats();
     }
 
   // Issue defined symbol report.

@@ -1189,6 +1189,14 @@ class Nanomips_input_section : public Output_relaxed_input_section
   branches()
   { return &this->cond_branches_; }
 
+  // Print usage statistics.
+  static void
+  print_stats()
+  {
+    fprintf(stderr, _("%s: changed input sections: %llu\n"),
+            program_name, Nanomips_input_section::section_count);
+  }
+
   // Downcast a base pointer to a Mips_input_section pointer.  This is
   // not type-safe but we only use Mips_input_section not the base class.
   static const Nanomips_input_section*
@@ -1261,7 +1269,15 @@ class Nanomips_input_section : public Output_relaxed_input_section
   Section_contents relocs_;
   // The size of the one reloc in the relocation section.
   unsigned int reloc_size_;
+
+  // Statistics.
+
+  // Number of changed input sections.
+  static unsigned long long section_count;
 };
+
+// Number of changed input sections.
+unsigned long long Nanomips_input_section::section_count = 0;
 
 // The class which implements transformations.
 
@@ -1306,6 +1322,15 @@ class Nanomips_transformations
         Address r_offset,
         typename elfcpp::Elf_types<size>::Elf_Swxword r_addend,
         unsigned int shndx);
+
+  // Print usage statistics.
+  static void
+  print_stats()
+  {
+    fprintf(stderr, _("%s: transformed instructions: %llu\n"),
+            program_name,
+            Nanomips_transformations<size, big_endian>::instruction_count);
+  }
 
  protected:
   // Check for the relocation overflow.
@@ -1354,7 +1379,17 @@ class Nanomips_transformations
   // Info about how relocs should be handled.  This is only used for
   // --emit-relocs and --finalize-relocs options.
   Relocatable_relocs* rr_;
+
+  // Statistics.
+
+  // Number of transformed instructions.
+  static unsigned long long instruction_count;
 };
+
+// Number of transformed instructions.
+template<int size, bool big_endian>
+unsigned long long
+Nanomips_transformations<size, big_endian>::instruction_count = 0;
 
 // The class which implements relaxations.
 
@@ -1907,6 +1942,14 @@ class Target_nanomips : public Sized_target<size, big_endian>
   bool
   do_should_include_section(elfcpp::Elf_Word sh_type) const
   { return sh_type != elfcpp::SHT_NANOMIPS_ABIFLAGS; }
+
+  // Print statistical information to stderr.  This is used for --stats.
+  void
+  do_print_stats() const
+  {
+    Nanomips_input_section::print_stats();
+    Nanomips_transformations<size, big_endian>::print_stats();
+  }
 
   void
   do_select_as_default_target()
@@ -3757,6 +3800,7 @@ Nanomips_output_section_abiflags<size, big_endian>::do_write(Output_file* of)
 void
 Nanomips_input_section::init(unsigned int reloc_shndx)
 {
+  ++Nanomips_input_section::section_count;
   Relobj* relobj = this->relobj();
   unsigned int data_shndx = this->shndx();
 
@@ -4049,6 +4093,7 @@ Nanomips_transformations<size, big_endian>::transform(
     size_t relnum,
     uint32_t insn)
 {
+  ++Nanomips_transformations<size, big_endian>::instruction_count;
   gold_assert(transform_template != NULL);
   gold_assert(insn_property != NULL);
   gold_assert(input_section != NULL);
