@@ -3756,6 +3756,10 @@ Output_section::do_write(Output_file* of)
   // If the target performs relaxation, we delay filler generation until now.
   gold_assert(!this->generate_code_fills_at_write_ || this->fills_.empty());
 
+  // Don't write the data if this is the SHT_NOBITS section.
+  if (this->type_ == elfcpp::SHT_NOBITS)
+    return;
+
   off_t output_section_file_offset = this->offset();
   for (Fill_list::iterator p = this->fills_.begin();
        p != this->fills_.end();
