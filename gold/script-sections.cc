@@ -2641,12 +2641,14 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
   uint64_t old_load_address = *load_address;
 
   // If input section sorting is requested via --section-ordering-file or
-  // linker plugins, then do it here.  This is important because we want
-  // any sorting specified in the linker scripts, which will be done after
-  // this, to take precedence.  The final order of input sections is then
-  // guaranteed to be according to the linker script specification.
+  // linker plugins or --sort-section, then do it here.  This is important
+  // because we want any sorting specified in the linker scripts, which will
+  // be done after this, to take precedence.  The final order of input
+  // sections is then guaranteed to be according to the linker script
+  // specification.
   if (this->output_section_ != NULL
-      && this->output_section_->input_section_order_specified())
+      && (this->output_section_->input_section_order_specified()
+	  || this->output_section_->must_sort_attached_input_sections()))
     this->output_section_->sort_attached_input_sections();
 
   // Decide the start address for the section.  The algorithm is:
@@ -3329,12 +3331,14 @@ Orphan_output_section::set_section_addresses(Symbol_table* symtab,
   address = align_address(address, this->os_->addralign());
 
   // If input section sorting is requested via --section-ordering-file or
-  // linker plugins, then do it here.  This is important because we want
-  // any sorting specified in the linker scripts, which will be done after
-  // this, to take precedence.  The final order of input sections is then
-  // guaranteed to be according to the linker script specification.
+  // linker plugins or --sort-section, then do it here.  This is important
+  // because we want any sorting specified in the linker scripts, which will
+  // be done after this, to take precedence.  The final order of input
+  // sections is then guaranteed to be according to the linker script
+  // specification.
   if (this->os_ != NULL
-      && this->os_->input_section_order_specified())
+      && (this->os_->input_section_order_specified()
+	  || this->os_->must_sort_attached_input_sections()))
     this->os_->sort_attached_input_sections();
 
   // For a relocatable link, all orphan sections are put at
