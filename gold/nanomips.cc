@@ -2020,6 +2020,10 @@ class Target_nanomips : public Sized_target<size, big_endian>
     inline Comdat_behavior
     get(const char* name)
     {
+      // For a range list, use 1 instead of 0 as placeholder.
+      // 0 would terminate the list, hiding any later entries.
+      if (strcmp(name, ".debug_ranges") == 0)
+        return CB_SET_TO_ONE;
       if (Layout::is_debug_info_section(name))
         return CB_RETAIN;
       return gold::Default_comdat_behavior::get(name);
@@ -6708,8 +6712,7 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
           if (comdat_behavior == CB_UNDETERMINED)
             comdat_behavior = default_comdat_behavior.get(name.c_str());
 
-          if (comdat_behavior == CB_PRETEND
-              || comdat_behavior == CB_RETAIN)
+          if (comdat_behavior == CB_PRETEND || comdat_behavior == CB_RETAIN)
             {
               // FIXME: This case does not work for global symbols.
               // We have no place to store the original section index.
@@ -6725,6 +6728,10 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
                 symval2.set_output_value(psymval->input_value());
               else
                 symval2.set_output_value(0);
+            }
+          else if (comdat_behavior == CB_SET_TO_ONE)
+            {
+              symval2.set_output_value(1);
             }
           else
             {

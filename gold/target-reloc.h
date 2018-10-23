@@ -122,6 +122,7 @@ enum Comdat_behavior
   CB_PRETEND,        // Attempt to map to the corresponding kept section.
   CB_IGNORE,         // Ignore the relocation.
   CB_RETAIN,         // Retain the input value of the symbol.
+  CB_SET_TO_ONE,     // Set 1 as a placeholder value.
   CB_ERROR           // Print an error.
 };
 
@@ -413,8 +414,7 @@ relocate_section(
 	  if (comdat_behavior == CB_UNDETERMINED)
 	      comdat_behavior = relocate_comdat_behavior.get(name.c_str());
 
-	  if (comdat_behavior == CB_PRETEND
-	      || comdat_behavior == CB_RETAIN)
+	  if (comdat_behavior == CB_PRETEND || comdat_behavior == CB_RETAIN)
 	    {
 	      // FIXME: This case does not work for global symbols.
 	      // We have no place to store the original section index.
@@ -430,6 +430,10 @@ relocate_section(
 		symval2.set_output_value(psymval->input_value());
 	      else
 		symval2.set_output_value(0);
+	    }
+	  else if (comdat_behavior == CB_SET_TO_ONE)
+	    {
+	      symval2.set_output_value(1);
 	    }
 	  else
 	    {

@@ -4070,8 +4070,7 @@ Target_aarch64<size, big_endian>::scan_reloc_section_for_stubs(
 	  if (comdat_behavior == CB_UNDETERMINED)
 	      comdat_behavior = default_comdat_behavior.get(name.c_str());
 
-	  if (comdat_behavior == CB_PRETEND
-	      || comdat_behavior == CB_RETAIN)
+	  if (comdat_behavior == CB_PRETEND || comdat_behavior == CB_RETAIN)
 	    {
 	      bool found;
 	      typename elfcpp::Elf_types<size>::Elf_Addr value =
@@ -4082,6 +4081,10 @@ Target_aarch64<size, big_endian>::scan_reloc_section_for_stubs(
 		symval2.set_output_value(psymval->input_value());
 	      else
 		symval2.set_output_value(0);
+	    }
+	  else if (comdat_behavior == CB_SET_TO_ONE)
+	    {
+	      symval2.set_output_value(1);
 	    }
 	  else
 	    {
