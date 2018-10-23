@@ -504,6 +504,11 @@ class Target
   should_include_section(elfcpp::Elf_Word sh_type) const
   { return this->do_should_include_section(sh_type); }
 
+  // Print statistical information to stderr.  This is used for --stats.
+  void
+  print_stats() const
+  { this->do_print_stats(); }
+
  protected:
   // This struct holds the constant information for a child class.  We
   // use a struct to avoid the overhead of virtual function calls for
@@ -806,6 +811,11 @@ class Target
   virtual bool
   do_should_include_section(elfcpp::Elf_Word) const
   { return true; }
+
+  // This may be overridden by the child class.
+  virtual void
+  do_print_stats() const
+  { }
 
  private:
   // The implementations of the four do_make_elf_object virtual functions are
