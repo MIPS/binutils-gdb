@@ -207,4 +207,7 @@ void nanomips_eh_frame_convert_frag (fragS *);
 void nanomips_pre_relax_hook (void);
 #define md_pre_relax_hook nanomips_pre_relax_hook()
 
+void nanomips_post_relax_hook (void);
+#define md_post_relax_hook nanomips_post_relax_hook()
+
 #endif /* TC_NANOMIPS */

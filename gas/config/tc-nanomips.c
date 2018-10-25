@@ -1169,8 +1169,15 @@ static bfd_boolean sign_cons = FALSE;
 /* Bit-pattern for don't care fields */
 static long int nanomips_dc_bits = 0;
 
-/* Last matched explicit relocation pointer.  */
-static struct reloc_list *last_reloc_list;
+/* Local and reversed copy of the explicit relocation list.  */
+static struct reloc_list *reloc_list_copy;
+/* Last explicit relocation pointer matched to a frag.  */
+static struct reloc_list *reloc_list_iter;
+/* Whether the order of explicit relocations in the source  match
+   the order of the corresponding offset symbols.  The order is 
+   typically guaranteed by how the compiler generates explicit
+   relocations, we provide a fail-safe for handwritten assembly.  */
+bfd_boolean reloc_ordered = TRUE;
 
 /* Export the ABI address size for use by TC_ADDRESS_BYTES for the
    purpose of the `.dc.a' internal pseudo-op.  */
@@ -9818,39 +9825,39 @@ addr_in_fragvar_range (fragS *fragp, addressT addr)
 /* Find and remember either the first explicit relocation within, or last 
    explicit relocation before this frag.  */
 static void
-set_first_exp_fix (fragS *fragp, bfd_boolean last_ok, bfd_boolean reloc_u_a)
+set_first_exp_fix (fragS *fragp, asection *sec)
 {
-  struct reloc_list *first;
   struct reloc_list *last;
   bfd_vma reloc_addr;
 
-  if (last_ok && last_reloc_list == NULL)
-    last_reloc_list = reloc_list;
+  /* If relocations are not ordered or we have reached the end, 
+     iterate over the whole list from the head.  */
+  if (reloc_list_iter == NULL || !reloc_ordered)
+    reloc_list_iter = reloc_list_copy;
 
-  first = last_reloc_list;
-  last = first;
-  
-  while (first)
+  last = reloc_list_iter;
+
+  while (reloc_list_iter)
     {
-      if (reloc_u_a)
-	reloc_addr = S_GET_VALUE (first->u.a.offset_sym);
-      else
-	reloc_addr = first->u.b.r.address;
+      /* First find a relocation within the frag.  */
+      reloc_addr = S_GET_VALUE (reloc_list_iter->u.a.offset_sym);
 
-      if (addr_in_fragvar_range (fragp, reloc_addr))
-	break;
-      else if (last_ok && reloc_addr > fragp->fr_address)
+      if (sec == S_GET_SEGMENT (reloc_list_iter->u.a.offset_sym))
 	{
-	  first = last;
-	  break;
+	  if (addr_in_fragvar_range (fragp, reloc_addr))
+	    break;
+	  else if (reloc_addr > fragp->fr_address)
+	    {
+	      reloc_list_iter = last;
+	      break;
+	    }
 	}
-
-      last = first;
-      first = first->next;
+      last = reloc_list_iter;
+      reloc_list_iter = reloc_list_iter->next;
     }
 
-  fragp->tc_frag_data.first_exp_fix = first;
-  fragp->tc_frag_data.checked_exp_fix = TRUE;
+  fragp->tc_frag_data.first_exp_fix = reloc_list_iter;
+  fragp->tc_frag_data.checked_exp_fix = (reloc_list_iter != NULL);
 }
 
 /* Create R_NANOMIPS_ALIGN to record the alignment request.  Value of the
@@ -10803,24 +10810,22 @@ addr_in_frag_range (fragS *fragp, addressT addr)
 /* Check if a frag is variable due to explicit relocations.  */
 
 static bfd_boolean
-reloc_variable_frag_p (fragS *fragp, bfd_boolean reloc_u_a)
+reloc_variable_frag_p (fragS *fragp, asection *sec)
 {
   struct reloc_list *rp;
-
   /* Trivial for frags that are already marked.  */
   if (fragp->tc_frag_data.link_var)
     return TRUE;
 
-  if (!fragp->tc_frag_data.checked_exp_fix)
-    set_first_exp_fix (fragp, FALSE, reloc_u_a);
+  if (reloc_list_copy != NULL && !fragp->tc_frag_data.checked_exp_fix)
+    set_first_exp_fix (fragp, sec);
   rp = fragp->tc_frag_data.first_exp_fix;
 
   /* Now look for fixups in the explicit relocation list.
      Update tc_frag_data.link_var here and now so the iteration doesn't
      have to be repeated, at least for this frag.  */
   if (rp != NULL
-      && ((reloc_u_a && symbol_get_frag (rp->u.a.offset_sym) == fragp)
-	  || (!reloc_u_a && addr_in_fragvar_range (fragp, rp->u.b.r.address))))
+      && symbol_get_frag (rp->u.a.offset_sym) == fragp)
     {
       fragp->tc_frag_data.link_var = 1;
       return TRUE;
@@ -10832,9 +10837,9 @@ reloc_variable_frag_p (fragS *fragp, bfd_boolean reloc_u_a)
 /* Check if the branch at FRAGP is already marked as variable.  */
 
 static bfd_boolean
-variable_frag_p (fragS *fragp, bfd_boolean reloc_u_a)
+variable_frag_p (fragS *fragp, asection *sec)
 {
-  return (reloc_variable_frag_p (fragp, reloc_u_a)
+  return (reloc_variable_frag_p (fragp, sec)
 	  || (RELAX_MD_P (fragp->fr_subtype)
 	      && RELAX_MD_VARIABLE (fragp->fr_subtype)));
 }
@@ -10890,17 +10895,17 @@ relaxed_invariable_branch_p (fragS *fragp, asection *sec)
 
   /* Branching to a location within this frag.  */
   if (addr_in_frag_range (fragp, addr))
-    variable_p = reloc_variable_frag_p (fragp, TRUE);
+    variable_p = reloc_variable_frag_p (fragp, sec);
   /* Branching ahead - this needs extra care.  */
   else if (addr > fragp->fr_address + fragp->fr_fix)
     {
       fragS *ifrag = fragp->fr_next;
       fragS *nfrag = symbol_get_frag (fragp->fr_symbol);
 
-      last_reloc_list = fragp->tc_frag_data.first_exp_fix;
+      reloc_list_iter = fragp->tc_frag_data.first_exp_fix;
       while (ifrag && ifrag != nfrag->fr_next)
 	{
-	  if (reloc_variable_frag_p (ifrag, TRUE)
+	  if (reloc_variable_frag_p (ifrag, sec)
 	      /* If destination address is the beginning of a frag, then
 		 its variability does not affect the branch.  */
 	      && addr > ifrag->fr_address)
@@ -10927,11 +10932,11 @@ relaxed_invariable_branch_p (fragS *fragp, asection *sec)
   else
     {
       fragS *ifrag = symbol_get_frag (fragp->fr_symbol);
-      last_reloc_list = fragp->tc_frag_data.first_exp_fix;
+      reloc_list_iter = fragp->tc_frag_data.first_exp_fix;
 
       while (ifrag && ifrag != fragp)
 	{
-	  if (reloc_variable_frag_p (ifrag, TRUE))
+	  if (reloc_variable_frag_p (ifrag, sec))
 	    {
 	      max_offset -= ifrag->tc_frag_data.relax_sop;
 	      min_offset += ifrag->tc_frag_data.relax_sink;
@@ -10947,7 +10952,7 @@ relaxed_invariable_branch_p (fragS *fragp, asection *sec)
 	  ifrag = ifrag->fr_next;
 	}
 
-      if (ifrag && reloc_variable_frag_p (ifrag, TRUE))
+      if (ifrag && reloc_variable_frag_p (ifrag, sec))
 	{
 	  max_offset -= ifrag->tc_frag_data.relax_sop;
 	  min_offset += ifrag->tc_frag_data.relax_sink;
@@ -11028,6 +11033,7 @@ relaxed_16bit_branch_length (fragS *fragp, asection *sec, int update)
 	toofar = (val <= 0
 		  || val > 30
 		  || (val == 2
+		      && RELAX_MD_TOOFAR16 (fragp->fr_subtype)
 		      && nanomips_frag_match (fragp, symbol_get_frag
 					      (fragp->fr_symbol))));
       else
@@ -11448,8 +11454,8 @@ nanomips_relax_frag (asection *sec, fragS *fragp,
 		     long stretch ATTRIBUTE_UNUSED)
 {
   /* Track the first explicit fix-up.  */
-  if (!fragp->tc_frag_data.checked_exp_fix)
-    set_first_exp_fix (fragp, TRUE, TRUE);
+  if (reloc_list_copy != NULL && !fragp->tc_frag_data.checked_exp_fix)
+    set_first_exp_fix (fragp, sec);
 
   if (RELAX_MD_P (fragp->fr_subtype))
     {
@@ -12871,7 +12877,7 @@ nanomips_cons_fix_new (fragS *frag, int where, int nbytes, expressionS *exp,
 /* Check if subtraction of 2 symbols can be fully evaluated at assembly.  */
 static bfd_boolean
 nanomips_allow_local_subtract_symbols (symbolS *left, symbolS *right,
-				       bfd_boolean reloc_u_a)
+				       bfd_boolean pre_relax)
 {
   /* Check for intervening fixups between symbols within the same frag to
      determine if relaxation could affect the difference.  */
@@ -12909,31 +12915,30 @@ nanomips_allow_local_subtract_symbols (symbolS *left, symbolS *right,
 	return FALSE;
 
       /* Now look for fixups in the explicit relocation list.  */
-      if (!fragP->tc_frag_data.checked_exp_fix)
-	set_first_exp_fix (fragP, TRUE, reloc_u_a);
+
+      /* Too early for checking explicit relocations, assume the worst.  */
+      if (pre_relax)
+	return FALSE;
+
+      if (reloc_list_copy != NULL && !fragP->tc_frag_data.checked_exp_fix)
+	set_first_exp_fix (fragP, S_GET_SEGMENT (left));
 
       rp = fragP->tc_frag_data.first_exp_fix;
       while (rp != NULL)
 	{
-	  if (reloc_u_a && rp->u.a.offset_sym)
+	  if (rp->u.a.offset_sym)
 	    {
 	      if (S_GET_VALUE (rp->u.a.offset_sym) >= low
 		  && S_GET_VALUE (rp->u.a.offset_sym) < high)
 		return FALSE;
-	      else
-		break;
-	    }
-	  if (!reloc_u_a && rp->u.b.sec == S_GET_SEGMENT (left))
-	    {
-	      if (rp->u.b.r.address >= low && rp->u.b.r.address < high)
-		return FALSE;
-	      else
+	      else if (S_GET_VALUE (rp->u.a.offset_sym) > high)
 		break;
 	    }
 	  rp = rp->next;
 	}
 
       /* No fixup within the range.  */
+      
       return TRUE;
     }
   else if (nanomips_opts.minimize_relocs
@@ -12941,6 +12946,7 @@ nanomips_allow_local_subtract_symbols (symbolS *left, symbolS *right,
     {
       fragS *fragp, *ifragp;
       bfd_boolean fixed_final = FALSE;
+      asection *sec = S_GET_SEGMENT (left);
       if (S_GET_VALUE (left) > S_GET_VALUE (right))
 	{
 	  fragp = symbol_get_frag (left);
@@ -12956,11 +12962,11 @@ nanomips_allow_local_subtract_symbols (symbolS *left, symbolS *right,
 	    fixed_final = TRUE;
 	}
 
-      while (ifragp && ifragp != fragp && !variable_frag_p (ifragp, reloc_u_a))
+      while (ifragp && ifragp != fragp && !variable_frag_p (ifragp, sec))
 	ifragp = ifragp->fr_next;
 
       return (ifragp == fragp
-	      && (fixed_final || !variable_frag_p (ifragp, reloc_u_a)));
+	      && (fixed_final || !variable_frag_p (ifragp, sec)));
     }
 
   /* We have to assume that there may be instructions between the
@@ -13154,52 +13160,64 @@ md_pcrel_from (fixS *fixP)
 
 void nanomips_pre_relax_hook (void)
 {
-  struct reloc_list *iter, *prev, *next = NULL;
-  bfd_boolean done;
+  struct reloc_list *iter, *prev, *copy, *next;
+
+  /* Make a private copy of the reloc_list and reverse it,
+     all in one iteration.  */
   iter = reloc_list;
-  prev = NULL;
+  prev = copy = NULL;
+
   while (iter != NULL)
     {
-      next = iter->next;
-      iter->next = prev;
-      prev = iter;
-      iter = next;
+      reloc_list_copy = XNEW (struct reloc_list);
+      *reloc_list_copy = *iter;
+      reloc_list_copy->next = prev;
+      prev = reloc_list_copy;
+      iter = iter->next;
     }
-  reloc_list = prev;
 
   /* Once reversed, reloc_list is mostly sorted, on account of how
-     the compiler emits explicit relocations. Consequently, naive
-     bubble-sort delivers order-of-N best-case performance.  */
-  do {
-    iter = reloc_list;
-    prev = NULL;
-    if (iter != NULL)
-      next = iter->next;
-    done = TRUE;
-    while (iter != NULL && next != NULL)
-      {
-	if (S_GET_VALUE (iter->u.a.offset_sym)
-	    > S_GET_VALUE (next->u.a.offset_sym))
-	  {
-	    iter->next = next->next;
-	    if (prev)
-	      prev->next = next;
-	    else
-	      reloc_list = next;
-	    next->next = iter;
-	    prev = next;
-	    next = iter->next;
-	    done = FALSE;
-	  }
-	else
-	  {
-	    prev = iter;
-	    iter = iter->next;
-	    next = iter->next;
-	  }
-      }
-  }
-  while (!done);
+     the compiler emits explicit relocations.  Optimized lookup
+     depends on the order of .relocs in the source matching the
+     order of offset symbols for those relocations.  We either confirm
+     that the order matches or fall-back to a slower lookup.  */
+  iter = reloc_list_copy;
+  if (iter != NULL)
+    next = iter->next;
 
-  last_reloc_list = reloc_list;
+  while (iter != NULL && next != NULL)
+    {
+      fragS *fiter = symbol_get_frag (iter->u.a.offset_sym);
+      fragS *fnext = symbol_get_frag (next->u.a.offset_sym);
+
+      if (fiter == fnext)
+	{
+	  if (S_GET_VALUE (iter->u.a.offset_sym)
+	      > S_GET_VALUE (next->u.a.offset_sym))
+	    {
+	      reloc_ordered = FALSE;
+	      break;
+	    }
+	}
+      else
+	{
+	  while (fiter && fiter != fnext)
+	    fiter = fiter->fr_next;
+	  if (fiter != fnext)
+	    {
+	      reloc_ordered = FALSE;
+	      break;
+	    }
+	}
+
+      iter = next;
+      next = iter->next;
+    }
+}
+
+/* Hook to run after relaxation.  */
+
+void nanomips_post_relax_hook (void)
+{
+  reloc_list_iter = reloc_list_copy;
 }
