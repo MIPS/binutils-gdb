@@ -843,7 +843,7 @@ class General_options
 		 N_(("lib,lib ...")));
 
   DEFINE_uint(expand_reg, options::TWO_DASHES, '\0', 1,
-	      N_("(Nanomips only) Set the register that will be used "
+	      N_("(nanoMIPS only) Set the register that will be used "
 	         "in expansions (default $1)"),
 	      N_("NUM"));
 
@@ -866,14 +866,14 @@ class General_options
 	     N_("SHLIB"));
 
   DEFINE_bool(finalize_pcrel_relocs, options::TWO_DASHES, '\0', false,
-	      N_("(Nanomips only) Finalize pc-relative relocations in "
+	      N_("(nanoMIPS only) Finalize pc-relative relocations in "
 		"relocatable output"),
-	      N_("(Nanomips only) Do not finalize pc-relative relocations in "
+	      N_("(nanoMIPS only) Do not finalize pc-relative relocations in "
 		"relocatable output"));
 
   DEFINE_bool(finalize_relocs, options::TWO_DASHES, '\0', false,
-	      N_("(Nanomips only) Finalize relocations in relocatable output"),
-	      N_("(Nanomips only) Do not finalize relocations in "
+	      N_("(nanoMIPS only) Finalize relocations in relocatable output"),
+	      N_("(nanoMIPS only) Do not finalize relocations in "
 		"relocatable output"));
 
   DEFINE_string(filter, options::TWO_DASHES, 'F', NULL,
@@ -1006,8 +1006,8 @@ class General_options
 		N_("Call SYMBOL at load-time"), N_("SYMBOL"));
 
   DEFINE_bool(insn32, options::TWO_DASHES, '\0', false,
-	      N_("(Nanomips only) Only generate 32-bit nanoMIPS instructions"),
-	      N_("(Nanomips only) Generate all nanoMIPS instructions"));
+	      N_("(nanoMIPS only) Only generate 32-bit nanoMIPS instructions"),
+	      N_("(nanoMIPS only) Generate all nanoMIPS instructions"));
 
   DEFINE_string(dynamic_linker, options::TWO_DASHES, 'I', NULL,
 		N_("Set dynamic linker path"), N_("PROGRAM"));
@@ -1195,7 +1195,7 @@ class General_options
   // r
 
   DEFINE_set(reference_counts, options::TWO_DASHES, '\0',
-	     N_("(Nanomips only) Write section reference count to map file"),
+	     N_("(nanoMIPS only) Write section reference count to map file"),
 	     N_("SECTION"));
 
   DEFINE_bool(relocatable, options::EXACTLY_ONE_DASH, 'r', false,
@@ -1232,8 +1232,8 @@ class General_options
   // s
 
   DEFINE_bool(strict_address_modes, options::TWO_DASHES, '\0', true,
-	      N_("(Nanomips only) Strict address modes for expansions"),
-	      N_("(Nanomips only) Don't strict address modes for expansions"));
+	      N_("(nanoMIPS only) Strict address modes for expansions"),
+	      N_("(nanoMIPS only) Don't strict address modes for expansions"));
   DEFINE_bool(strip_all, options::TWO_DASHES, 's', false,
 	      N_("Strip all symbols"), NULL);
   DEFINE_bool(strip_debug, options::TWO_DASHES, 'S', false,
@@ -1257,7 +1257,7 @@ class General_options
 	      N_("(PowerPC only) Use new-style PLT"), NULL);
 
   DEFINE_set(sort_by_reference, options::TWO_DASHES, '\0',
-	     N_("(Nanomips only) Sort sections by reference"),
+	     N_("(nanoMIPS only) Sort sections by reference"),
 	     N_("SECTION"));
 
   DEFINE_optional_string(sort_common, options::TWO_DASHES, '\0', NULL,
