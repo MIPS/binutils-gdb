@@ -168,11 +168,14 @@ class Script_sections
   // MATCH_INPUT_SPEC indicates whether the section should be matched
   // with input section specs or simply against the output section name
   // (i.e., for linker-created sections like .dynamic).
+  // HANDLE_ORPHAN_OPTION indicates whether to handle --orphan-handling
+  // option.
   const char*
   output_section_name(const char* file_name, const char* section_name,
 		      Output_section*** output_section_slot,
 		      Section_type* pscript_section_type,
-		      bool* keep, bool match_input_spec);
+		      bool* keep, bool match_input_spec,
+		      bool handle_orphan_option);
 
   // Place a marker for an orphan output section into the SECTIONS
   // clause.

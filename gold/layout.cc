@@ -935,7 +935,7 @@ Layout::keep_input_section(const Relobj* relobj, const char* name)
   bool keep;
 
   name = ss->output_section_name(file_name, name, &output_section_slot,
-				 &script_section_type, &keep, true);
+				 &script_section_type, &keep, true, false);
   return name != NULL && keep;
 }
 
@@ -985,7 +985,7 @@ Layout::choose_output_section_from_script(const Relobj* relobj,
   bool keep;
   *name = ss->output_section_name(file_name, *name, &output_section_slot,
 				  &script_section_type, &keep,
-				  match_input_spec);
+				  match_input_spec, true);
 
   if (*name == NULL)
     {
