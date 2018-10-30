@@ -365,7 +365,7 @@ Mapfile::print_output_data(const Output_data* od, const char* name)
 void
 Mapfile::print_discarded_sections(const Input_objects* input_objects)
 {
-  if (!parameters->options().print_discarded_sections())
+  if (!parameters->options().print_map_discarded())
     return;
 
   bool printed_header = false;
