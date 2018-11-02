@@ -234,7 +234,8 @@ mips64_linux_regsets_fetch_registers (struct target_ops *ops,
 				      struct regcache *regcache, int regno)
 {
   struct gdbarch *gdbarch = get_regcache_arch (regcache);
-  int is_fp, is_dsp;
+  int big_endian = (gdbarch_byte_order (gdbarch) == BFD_ENDIAN_BIG);
+  int is_fp, is_dsp, is_vec;
   int have_dsp;
   int regi;
   int tid;
@@ -248,6 +249,17 @@ mips64_linux_regsets_fetch_registers (struct target_ops *ops,
     is_fp = 1;
   else
     is_fp = 0;
+
+  /* Vector registers are optional but overlap fp registers */
+  if (regno >= mips_regnum (gdbarch)->w0
+      && regno <= mips_regnum (gdbarch)->w0 + 32)
+    is_vec = 1;
+  else if (regno == mips_regnum (gdbarch)->msa_csr)
+    is_vec = 1;
+  else if (regno == mips_regnum (gdbarch)->msa_ir)
+    is_vec = 1;
+  else
+    is_vec = 0;
 
   /* DSP registers are optional and not a part of any set.  */
   have_dsp = mips_regnum (gdbarch)->dspctl != -1;
@@ -263,7 +275,7 @@ mips64_linux_regsets_fetch_registers (struct target_ops *ops,
 
   tid = get_ptrace_pid (regcache_get_ptid (regcache));
 
-  if (regno == -1 || (!is_fp && !is_dsp))
+  if (regno == -1 || (!is_fp && !is_dsp && !is_vec))
     {
       mips64_elf_gregset_t regs;
 
@@ -281,23 +293,81 @@ mips64_linux_regsets_fetch_registers (struct target_ops *ops,
 			     (const mips64_elf_gregset_t *) &regs);
     }
 
-  if (regno == -1 || is_fp)
+  if (regno == -1 || is_fp || is_vec)
     {
-      mips64_elf_fpregset_t fp_regs;
+       /* Try the MSA regset first if vector registers are desired */
+       if (mips_regnum (gdbarch)->msa_csr != -1)
+  {
+   unsigned char w_regs[34][16];
+   unsigned char buf[16];
+   struct iovec iovec;
+   int ret;
 
-      if (ptrace (PTRACE_GETFPREGS, tid, 0L,
-		  (PTRACE_TYPE_ARG3) &fp_regs) == -1)
-	{
-	  if (errno == EIO)
-	    {
-	      have_ptrace_regsets = 0;
-	      return;
-	    }
-	  perror_with_name (_("Couldn't get FP registers"));
-	}
+   iovec.iov_base = &w_regs;
+   iovec.iov_len = sizeof (w_regs);
 
-      mips64_supply_fpregset (regcache,
-			      (const mips64_elf_fpregset_t *) &fp_regs);
+   ret = ptrace (PTRACE_GETREGSET, tid, NT_MIPS_MSA, &iovec);
+   if (ret < 0)
+     {
+       if (errno == EIO)
+  have_ptrace_regsets = 0;
+       else if (errno == EINVAL)
+  have_ptrace_regsets = 0;
+       else
+  perror_with_name (_("Unable to fetch FP/MSA registers."));
+     }
+   else
+     {
+       /* full vector including float */
+       if (big_endian)
+  for (regi = 0; regi < 32; regi++)
+   {
+     /* swap 64-bit halves, so it's a single word */
+     memcpy(buf, w_regs[regi] + 8, 8);
+     memcpy(buf + 8, w_regs[regi], 8);
+     regcache_raw_supply (regcache, mips_regnum (gdbarch)->fp0 + regi, buf);
+   }
+       else
+  for (regi = 0; regi < 32; regi++)
+   regcache_raw_supply (regcache, mips_regnum (gdbarch)->fp0 + regi,
+        (char *) w_regs[regi]);
+
+       if (iovec.iov_len >= 32*16 + 4)
+  regcache_raw_supply (regcache, mips_regnum (gdbarch)->fp_implementation_revision,
+      (char *) (w_regs + 32) + 0);
+       if (iovec.iov_len >= 32*16 + 8)
+  regcache_raw_supply (regcache, mips_regnum (gdbarch)->fp_control_status,
+      (char *) (w_regs + 32) + 4);
+       if (iovec.iov_len >= 32*16 + 12)
+  regcache_raw_supply (regcache, mips_regnum (gdbarch)->msa_ir,
+      (char *) (w_regs + 32) + 8);
+       if (iovec.iov_len >= 32*16 + 16)
+  regcache_raw_supply (regcache, mips_regnum (gdbarch)->msa_csr,
+      (char *) (w_regs + 32) + 12);
+
+       /* We've got fp registers now */
+       is_fp = 0;
+     }
+  }
+
+  if (is_fp)
+  {
+    mips64_elf_fpregset_t fp_regs;
+
+    if (ptrace (PTRACE_GETFPREGS, tid, 0L,
+	  (PTRACE_TYPE_ARG3) &fp_regs) == -1)
+{
+  if (errno == EIO)
+    {
+      have_ptrace_regsets = 0;
+      return;
+    }
+  perror_with_name (_("Couldn't get FP registers"));
+}
+
+    mips64_supply_fpregset (regcache,
+		      (const mips64_elf_fpregset_t *) &fp_regs);
+  }
     }
 
   if (is_dsp)
@@ -320,7 +390,8 @@ mips64_linux_regsets_store_registers (struct target_ops *ops,
 				      struct regcache *regcache, int regno)
 {
   struct gdbarch *gdbarch = get_regcache_arch (regcache);
-  int is_fp, is_dsp;
+  int big_endian = (gdbarch_byte_order (gdbarch) == BFD_ENDIAN_BIG);
+  int is_fp, is_dsp, is_vec;
   int have_dsp;
   int regi;
   int tid;
@@ -334,6 +405,18 @@ mips64_linux_regsets_store_registers (struct target_ops *ops,
     is_fp = 1;
   else
     is_fp = 0;
+
+  /* Vector registers are optional but overlap fp registers */
+  if (regno >= mips_regnum (gdbarch)->w0
+      && regno <= mips_regnum (gdbarch)->w0 + 32)
+    is_vec = 1;
+  else if (regno == mips_regnum (gdbarch)->msa_csr)
+    is_vec = 1;
+  else if (regno == mips_regnum (gdbarch)->msa_ir)
+    is_vec = 1;
+  else
+    is_vec = 0;
+
 
   /* DSP registers are optional and not a part of any set.  */
   have_dsp = mips_regnum (gdbarch)->dspctl != -1;
@@ -349,7 +432,7 @@ mips64_linux_regsets_store_registers (struct target_ops *ops,
 
   tid = get_ptrace_pid (regcache_get_ptid (regcache));
 
-  if (regno == -1 || (!is_fp && !is_dsp))
+  if (regno == -1 || (!is_fp && !is_dsp && !is_vec))
     {
       mips64_elf_gregset_t regs;
 
@@ -362,19 +445,87 @@ mips64_linux_regsets_store_registers (struct target_ops *ops,
 	perror_with_name (_("Couldn't set registers"));
     }
 
-  if (regno == -1 || is_fp)
+  if (regno == -1 || is_fp || is_vec)
     {
-      mips64_elf_fpregset_t fp_regs;
+       /* Try the MSA regset first if vector registers are desired */
+       if (mips_regnum (gdbarch)->msa_csr != -1)
+  {
+   unsigned char w_regs[34][16];
+   unsigned char buf[16];
+   struct iovec iovec;
+   int ret;
 
-      if (ptrace (PTRACE_GETFPREGS, tid, 0L,
-		  (PTRACE_TYPE_ARG3) &fp_regs) == -1)
-	perror_with_name (_("Couldn't get FP registers"));
+   iovec.iov_base = &w_regs;
+   iovec.iov_len = sizeof (w_regs);
 
-      mips64_fill_fpregset (regcache, &fp_regs, regno);
+   ret = ptrace (PTRACE_GETREGSET, tid, NT_MIPS_MSA, &iovec);
+   if (ret < 0)
+     {
+       if (errno == EIO)
+  have_ptrace_regsets = 0;
+       else if (errno == EINVAL)
+  have_ptrace_regsets = 0;
+       else
+  perror_with_name (_("Unable to fetch FP/MSA registers."));
+     }
+   else
+     {
+       /* full vector including float */
+       if (big_endian)
+  for (regi = 0; regi < 32; regi++)
+   {
+     regcache_raw_collect (regcache, mips_regnum (gdbarch)->fp0 + regi, buf);
+     /* swap 64-bit halves, as it's a single word */
+     memcpy(w_regs[regi], buf + 8, 8);
+     memcpy(w_regs[regi] + 8, buf, 8);
+   }
+       else
+  for (regi = 0; regi < 32; regi++)
+   regcache_raw_collect (regcache, mips_regnum (gdbarch)->fp0 + regi,
+  (char *) w_regs[regi]);
 
-      if (ptrace (PTRACE_SETFPREGS, tid, 0L,
-		  (PTRACE_TYPE_ARG3) &fp_regs) == -1)
-	perror_with_name (_("Couldn't set FP registers"));
+       regcache_raw_collect (regcache, mips_regnum (gdbarch)->fp_implementation_revision,
+     (char *) (w_regs + 32) + 0);
+       regcache_raw_collect (regcache, mips_regnum (gdbarch)->fp_control_status,
+     (char *) (w_regs + 32) + 4);
+       regcache_raw_collect (regcache, mips_regnum (gdbarch)->msa_ir,
+     (char *) (w_regs + 32) + 8);
+       regcache_raw_collect (regcache, mips_regnum (gdbarch)->msa_csr,
+     (char *) (w_regs + 32) + 12);
+
+       /* don't modify iovec length from amount of data returned */
+       ret = ptrace (PTRACE_SETREGSET, tid, NT_MIPS_MSA, &iovec);
+       if (ret < 0)
+  {
+   if (errno == EIO)
+     have_ptrace_regsets = 0;
+   if (errno == EINVAL)
+     have_ptrace_regsets = 0;
+   else
+     perror_with_name (_("Unable to store FP/MSA registers."));
+  }
+       else
+  {
+   /* we've written fp registers now */
+   is_fp = 0;
+  }
+     }
+  }
+
+  if (is_fp)
+  {
+    mips64_elf_fpregset_t fp_regs;
+
+    if (ptrace (PTRACE_GETFPREGS, tid, 0L,
+	  (PTRACE_TYPE_ARG3) &fp_regs) == -1)
+perror_with_name (_("Couldn't get FP registers"));
+
+    mips64_fill_fpregset (regcache, &fp_regs, regno);
+
+    if (ptrace (PTRACE_SETFPREGS, tid, 0L,
+	  (PTRACE_TYPE_ARG3) &fp_regs) == -1)
+perror_with_name (_("Couldn't set FP registers"));
+  }
     }
 
   if (is_dsp)
