@@ -7464,6 +7464,9 @@ print_gp_register_row (struct ui_file *file, struct frame_info *frame,
       if (mips_float_register_p (gdbarch, regnum) ||
   mips_vector_register_p (gdbarch, regnum))
 	break;			/* End the row: reached FP register.  */
+      if (mips_register_reggroup_p (gdbarch, regnum, float_reggroup) ||
+  mips_register_reggroup_p (gdbarch, regnum, vector_reggroup))
+  break;
       /* Large registers are handled separately.  */
       if (register_size (gdbarch, regnum) > mips_abi_regsize (gdbarch))
 	{
@@ -7504,6 +7507,9 @@ print_gp_register_row (struct ui_file *file, struct frame_info *frame,
       if (mips_float_register_p (gdbarch, regnum) ||
   mips_vector_register_p (gdbarch, regnum))
 	break;			/* End row: reached FP register.  */
+      if (mips_register_reggroup_p (gdbarch, regnum, float_reggroup) ||
+  mips_register_reggroup_p (gdbarch, regnum, vector_reggroup))
+  break;
       if (register_size (gdbarch, regnum) > mips_abi_regsize (gdbarch))
 	break;			/* End row: large register.  */
 
@@ -7532,6 +7538,19 @@ print_gp_register_row (struct ui_file *file, struct frame_info *frame,
   if (col > 0)			/* ie. if we actually printed anything...  */
     fprintf_filtered (file, "\n");
 
+  return regnum;
+}
+
+/* Print a single complex control register row */
+
+static int
+print_control_register_row (struct ui_file *file, struct frame_info *frame,
+    int regnum)
+{
+  print_control_register (file, frame, regnum);
+
+  fprintf_filtered (file, "\n");
+  ++regnum;
   return regnum;
 }
 
@@ -7575,7 +7594,16 @@ mips_print_registers_info (struct gdbarch *gdbarch, struct ui_file *file,
         else
    regnum += MIPS_NUMREGS; /* Skip vector regs.  */
       }
-	  else
+   else if (mips_register_reggroup_p (gdbarch, regnum, float_reggroup)
+            || mips_register_reggroup_p (gdbarch, regnum, vector_reggroup))
+      {
+        /* FP & MSA control registers */
+        if (all)
+          regnum = print_control_register_row (file, frame, regnum);
+        else
+          ++regnum;
+      }
+    else
 	    regnum = print_gp_register_row (file, frame, regnum);
 	}
     }
