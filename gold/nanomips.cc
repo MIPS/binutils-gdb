@@ -1534,22 +1534,13 @@ class Nanomips_expand_insn_finalize
 
 // This class handles .nanoMIPS.abiflags output section.
 
-template<int size, bool big_endian>
+template<bool big_endian>
 class Nanomips_output_section_abiflags : public Output_section_data
 {
  public:
-  Nanomips_output_section_abiflags(const Nanomips_abiflags<big_endian>& flags,
-                                   Nanomips_relobj<size, big_endian>* relobj)
+  Nanomips_output_section_abiflags(const Nanomips_abiflags<big_endian>& flags)
     : Output_section_data(24, 8, true), abiflags_(flags)
-  {
-    // Record the name of the input section and the name of the
-    // first object file.  This is used for script processing.
-    if (relobj != NULL)
-      {
-        this->set_object_name(relobj->name());
-        this->set_section_name(".nanoMIPS.abiflags");
-      }
-  }
+  { }
 
  protected:
   // Write to a map file.
@@ -3770,9 +3761,9 @@ Nanomips_relobj<size, big_endian>::do_read_symbols(Read_symbols_data* sd)
 
 // Nanomips_output_section_abiflags methods.
 
-template<int size, bool big_endian>
+template<bool big_endian>
 void
-Nanomips_output_section_abiflags<size, big_endian>::do_write(Output_file* of)
+Nanomips_output_section_abiflags<big_endian>::do_write(Output_file* of)
 {
   off_t offset = this->offset();
   off_t data_size = this->data_size();
@@ -5886,9 +5877,16 @@ Target_nanomips<size, big_endian>::do_finalize_sections(
   // Create .nanoMIPS.abiflags output section if there is an input section.
   if (this->has_abiflags_section_)
     {
-      Nanomips_output_section_abiflags<size, big_endian>* abiflags_section =
-        new Nanomips_output_section_abiflags<size, big_endian>(
-          *this->abiflags_, first_relobj);
+      Nanomips_output_section_abiflags<big_endian>* abiflags_section =
+        new Nanomips_output_section_abiflags<big_endian>(*this->abiflags_);
+
+      // Record the name of the input section and the first object file.
+      // This is used for script processing.
+      if (first_relobj != NULL)
+        {
+          abiflags_section->set_relobj(first_relobj);
+          abiflags_section->set_section_name(".nanoMIPS.abiflags");
+        }
 
       Output_section* os =
         layout->add_output_section_data(".nanoMIPS.abiflags",

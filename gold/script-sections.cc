@@ -623,7 +623,7 @@ class Sections_element
   // section name.  This only real implementation is in
   // Output_section_definition.
   virtual const char*
-  output_section_name(const char*, const char*, Output_section***,
+  output_section_name(const char*, const char*, const char*, Output_section***,
 		      Script_sections::Section_type*, bool*, bool)
   { return NULL; }
 
@@ -878,10 +878,11 @@ class Output_section_element
   finalize_symbols(Symbol_table*, const Layout*, uint64_t*, Output_section**)
   { }
 
-  // Return whether this element matches FILE_NAME and SECTION_NAME.
-  // The only real implementation is in Output_section_element_input.
+  // Return whether this element matches FILE_NAME, ARCHIVE_NAME
+  // and SECTION_NAME.  The only real implementation is in
+  // Output_section_element_input.
   virtual bool
-  match_name(const char*, const char*, bool *) const
+  match_name(const char*, const char *, const char*, bool *) const
   { return false; }
 
   // Set section addresses.  This includes applying assignments if the
@@ -1434,10 +1435,12 @@ class Output_section_element_input : public Output_section_element
     *dot_section = this->final_dot_section_;
   }
 
-  // See whether we match FILE_NAME and SECTION_NAME as an input section.
-  // If we do then also indicate whether the section should be KEPT.
+  // See whether we match FILE_NAME, ARCHIVE_NAME and SECTION_NAME
+  // as an input section.  If we do then also indicate whether the
+  // section should be KEPT.
   bool
-  match_name(const char* file_name, const char* section_name, bool* keep) const;
+  match_name(const char* file_name, const char* archive_name,
+	     const char* section_name, bool* keep) const;
 
   // Set the section address.
   void
@@ -1468,9 +1471,40 @@ class Output_section_element_input : public Output_section_element
 
   typedef std::vector<Input_section_pattern> Input_section_patterns;
 
-  // Filename_exclusions is a pair of filename pattern and a bool
-  // indicating whether the filename is a wildcard.
-  typedef std::vector<std::pair<std::string, bool> > Filename_exclusions;
+  // A file name pattern.
+  class Filename_pattern
+  {
+   public:
+    Filename_pattern(const char* name, size_t length);
+
+    // Return whether file name and archive name match this pattern.
+    bool
+    match_file_name(const char* file_name, const char* archive_name) const;
+
+    // Print for debugging.
+    void
+    print(FILE* f) const
+    {
+      if (this->is_archive_path_)
+	fprintf(f, "%s:", this->archivename_.c_str());
+      fprintf(f, "%s", this->filename_.c_str());
+    }
+
+   private:
+    // The file name pattern.  If this is the empty string, we match all
+    // files.
+    std::string filename_;
+    // The archive name pattern.
+    std::string archivename_;
+    // Whether this pattern is in the form of 'archive:file'.
+    bool is_archive_path_;
+    // Whether the file name pattern is a wildcard.
+    bool filename_is_wildcard_;
+    // Whether the archive name pattern is a wildcard.
+    bool archivename_is_wildcard_;
+  };
+
+  typedef std::vector<Filename_pattern> Filename_exclusions;
 
   // Return whether STRING matches PATTERN, where IS_WILDCARD_PATTERN
   // indicates whether this is a wildcard pattern.
@@ -1484,13 +1518,10 @@ class Output_section_element_input : public Output_section_element
 
   // See if we match a file name.
   bool
-  match_file_name(const char* file_name) const;
+  match_file_name(const char* file_name, const char* archive_name) const;
 
-  // The file name pattern.  If this is the empty string, we match all
-  // files.
-  std::string filename_pattern_;
-  // Whether the file name pattern is a wildcard.
-  bool filename_is_wildcard_;
+  // The file name pattern.
+  Filename_pattern filename_pattern_;
   // How the file names should be sorted.  This may only be
   // SORT_WILDCARD_NONE or SORT_WILDCARD_BY_NAME.
   Sort_wildcard filename_sort_;
@@ -1507,6 +1538,79 @@ class Output_section_element_input : public Output_section_element
   Output_section* final_dot_section_;
 };
 
+// Construct Filename_pattern.
+
+Output_section_element_input::Filename_pattern::Filename_pattern(
+    const char* name,
+    size_t length)
+  : filename_(), archivename_(), is_archive_path_(false),
+    filename_is_wildcard_(false), archivename_is_wildcard_(false)
+{
+  std::string filename_pattern(name, length);
+  std::string::size_type sep = filename_pattern.find(':');
+
+  // Check if the filename is in the form of 'archive:file'.
+  if (sep != std::string::npos)
+    {
+      this->is_archive_path_ = true;
+      this->archivename_ = filename_pattern.substr(0, sep);
+      this->archivename_is_wildcard_ =
+	is_wildcard_string(this->archivename_.c_str());
+
+      // Remove archive name from the filename pattern.
+      filename_pattern.erase(0, sep + 1);
+    }
+
+  // The filename pattern "*" is common, and matches all files.  Turn
+  // it into the empty string.
+  if (filename_pattern.length() != 1 || filename_pattern[0] != '*')
+    this->filename_.swap(filename_pattern);
+
+  this->filename_is_wildcard_ = is_wildcard_string(this->filename_.c_str());
+}
+
+// Return whether file name and archive name match this pattern.
+
+bool
+Output_section_element_input::Filename_pattern::match_file_name(
+    const char* file_name,
+    const char* archive_name) const
+{
+  // If this pattern is in the form of 'archive:file', we need to do
+  // following:
+  // 1) If there is an archive name string in the pattern, and file is from
+  //    an archive and if they don't match, return false.
+  // 2) If there is an archive name string in the pattern, and file is not
+  //    from an archive and vice versa, return false.
+  // 3) If there is no archive name string in the pattern (e.g. ':file'),
+  //    and file is not from an archive, we need to match file names.
+  if (this->is_archive_path_)
+    {
+      if (!this->archivename_.empty() && archive_name != NULL)
+	{
+	  if (!match(archive_name, this->archivename_.c_str(),
+		     this->archivename_is_wildcard_))
+	    return false;
+	}
+      else if (!this->archivename_.empty() || archive_name != NULL)
+	return false;
+    }
+
+  if (!this->filename_.empty())
+    {
+      // If we were called with no filename, we refuse to match a
+      // pattern which requires a file name.
+      if (file_name == NULL)
+	return false;
+
+      if (!match(file_name, this->filename_.c_str(),
+		 this->filename_is_wildcard_))
+	return false;
+    }
+
+  return true;
+}
+
 // Construct Output_section_element_input.  The parser records strings
 // as pointers into a copy of the script file, which will go away when
 // parsing is complete.  We make sure they are in std::string objects.
@@ -1514,8 +1618,7 @@ class Output_section_element_input : public Output_section_element
 Output_section_element_input::Output_section_element_input(
     const Input_section_spec* spec,
     bool keep)
-  : filename_pattern_(),
-    filename_is_wildcard_(false),
+  : filename_pattern_(spec->file.name.value, spec->file.name.length),
     filename_sort_(spec->file.sort),
     filename_exclusions_(),
     input_section_patterns_(),
@@ -1523,24 +1626,14 @@ Output_section_element_input::Output_section_element_input(
     final_dot_value_(0),
     final_dot_section_(NULL)
 {
-  // The filename pattern "*" is common, and matches all files.  Turn
-  // it into the empty string.
-  if (spec->file.name.length != 1 || spec->file.name.value[0] != '*')
-    this->filename_pattern_.assign(spec->file.name.value,
-				   spec->file.name.length);
-  this->filename_is_wildcard_ = is_wildcard_string(this->filename_pattern_.c_str());
-
   if (spec->input_sections.exclude != NULL)
     {
       for (String_list::const_iterator p =
 	     spec->input_sections.exclude->begin();
 	   p != spec->input_sections.exclude->end();
 	   ++p)
-	{
-	  bool is_wildcard = is_wildcard_string((*p).c_str());
-	  this->filename_exclusions_.push_back(std::make_pair(*p,
-							      is_wildcard));
-	}
+	this->filename_exclusions_.push_back(Filename_pattern(p->c_str(),
+							      p->length()));
     }
 
   if (spec->input_sections.sections != NULL)
@@ -1555,33 +1648,25 @@ Output_section_element_input::Output_section_element_input(
     }
 }
 
-// See whether we match FILE_NAME.
+// See whether we match file name.
 
 bool
-Output_section_element_input::match_file_name(const char* file_name) const
+Output_section_element_input::match_file_name(const char* file_name,
+					      const char* archive_name) const
 {
-  if (!this->filename_pattern_.empty())
-    {
-      // If we were called with no filename, we refuse to match a
-      // pattern which requires a file name.
-      if (file_name == NULL)
-	return false;
-
-      if (!match(file_name, this->filename_pattern_.c_str(),
-		 this->filename_is_wildcard_))
-	return false;
-    }
+  if (!this->filename_pattern_.match_file_name(file_name, archive_name))
+    return false;
 
   if (file_name != NULL)
     {
-      // Now we have to see whether FILE_NAME matches one of the
-      // exclusion patterns, if any.
+      // Now we have to see whether FILE_NAME and ARCHIVE_NAME
+      // matches one of the exclusion patterns, if any.
       for (Filename_exclusions::const_iterator p =
 	     this->filename_exclusions_.begin();
 	   p != this->filename_exclusions_.end();
 	   ++p)
 	{
-	  if (match(file_name, p->first.c_str(), p->second))
+	  if (p->match_file_name(file_name, archive_name))
 	    return false;
 	}
     }
@@ -1594,10 +1679,11 @@ Output_section_element_input::match_file_name(const char* file_name) const
 
 bool
 Output_section_element_input::match_name(const char* file_name,
+					 const char* archive_name,
 					 const char* section_name,
 					 bool *keep) const
 {
-  if (!this->match_file_name(file_name))
+  if (!this->match_file_name(file_name, archive_name))
     return false;
 
   *keep = this->keep_;
@@ -1626,7 +1712,7 @@ class Input_section_info
 {
  public:
   Input_section_info(const Output_section::Input_section& input_section)
-    : input_section_(input_section), section_name_(), file_name_(),
+    : input_section_(input_section), relobj_(NULL), section_name_(),
       size_(0), addralign_(1)
   { }
 
@@ -1634,16 +1720,6 @@ class Input_section_info
   const Output_section::Input_section&
   input_section() const
   { return this->input_section_; }
-
-  // Return the object.
-  Relobj*
-  relobj() const
-  { return this->input_section_.relobj(); }
-
-  // Return the section index.
-  unsigned int
-  shndx() const
-  { return this->input_section_.shndx(); }
 
   // Return the section name.
   const std::string&
@@ -1659,16 +1735,6 @@ class Input_section_info
     else
       this->section_name_ = name;
   }
-
-  // Return the object file name.
-  const std::string&
-  file_name() const
-  { return this->file_name_; }
-
-  // Set the object file name.
-  void
-  set_file_name(const std::string& name)
-  { this->file_name_ = name; }
 
   // Return the section size.
   uint64_t
@@ -1690,13 +1756,28 @@ class Input_section_info
   set_addralign(uint64_t addralign)
   { this->addralign_ = addralign; }
 
+  // Set the object.
+  void
+  set_relobj(const Relobj* relobj)
+  { this->relobj_ = relobj; }
+
+  // Return the object file name.
+  const std::string&
+  object_name() const
+  { return this->relobj_->object_name(); }
+
+  // Return the object file name.
+  const char*
+  archive_name() const
+  { return this->relobj_->archive_name(); }
+
  private:
   // Input section, can be a relaxed section.
   Output_section::Input_section input_section_;
+  // The object.
+  const Relobj* relobj_;
   // Name of the section.
   std::string section_name_;
-  // Name of the object file.
-  std::string file_name_;
   // Section size.
   uint64_t size_;
   // Address alignment.
@@ -1792,8 +1873,8 @@ Input_section_sorter::operator()(const Input_section_info& isi1,
     }
   if (this->filename_sort_ == SORT_WILDCARD_BY_NAME)
     {
-      if (isi1.file_name() != isi2.file_name())
-	return (isi1.file_name() < isi2.file_name());
+      if (isi1.object_name() != isi2.object_name())
+	return (isi1.object_name() < isi2.object_name());
     }
 
   // Otherwise we leave them in the same order.
@@ -1888,7 +1969,7 @@ Output_section_element_input::set_section_addresses(
 	    }
 
 	  isi.set_section_name(relobj->section_name(shndx));
-	  isi.set_file_name(relobj->name());
+	  isi.set_relobj(relobj);
 	}
       else
 	{
@@ -1896,10 +1977,13 @@ Output_section_element_input::set_section_addresses(
 	  isi.set_size(posd->current_data_size());
 	  isi.set_addralign(posd->addralign());
 	  isi.set_section_name(posd->section_name());
-	  isi.set_file_name(posd->object_name());
+	  isi.set_relobj(posd->relobj());
 	}
 
-      if (!this->match_file_name(isi.file_name().c_str()))
+      const char* object_name = isi.object_name().c_str();
+      const char* archive_name = isi.archive_name();
+
+      if (!this->match_file_name(object_name, archive_name))
 	++p;
       else if (this->input_section_patterns_.empty())
 	{
@@ -2014,26 +2098,23 @@ Output_section_element_input::print(FILE* f) const
   if (this->keep_)
     fprintf(f, "KEEP(");
 
-  if (!this->filename_pattern_.empty())
+  bool need_close_paren = false;
+  switch (this->filename_sort_)
     {
-      bool need_close_paren = false;
-      switch (this->filename_sort_)
-	{
-	case SORT_WILDCARD_NONE:
-	  break;
-	case SORT_WILDCARD_BY_NAME:
-	  fprintf(f, "SORT_BY_NAME(");
-	  need_close_paren = true;
-	  break;
-	default:
-	  gold_unreachable();
-	}
-
-      fprintf(f, "%s", this->filename_pattern_.c_str());
-
-      if (need_close_paren)
-	fprintf(f, ")");
+    case SORT_WILDCARD_NONE:
+      break;
+    case SORT_WILDCARD_BY_NAME:
+      fprintf(f, "SORT_BY_NAME(");
+      need_close_paren = true;
+      break;
+    default:
+      gold_unreachable();
     }
+
+  this->filename_pattern_.print(f);
+
+  if (need_close_paren)
+    fprintf(f, ")");
 
   if (!this->input_section_patterns_.empty()
       || !this->filename_exclusions_.empty())
@@ -2052,7 +2133,7 @@ Output_section_element_input::print(FILE* f) const
 	    {
 	      if (need_comma)
 		fprintf(f, ", ");
-	      fprintf(f, "%s", p->first.c_str());
+	      p->print(f);
 	      need_comma = true;
 	    }
 	  fprintf(f, ")");
@@ -2177,9 +2258,9 @@ class Output_section_definition : public Sections_element
   // Return the output section name to use for an input file name and
   // section name.
   const char*
-  output_section_name(const char* file_name, const char* section_name,
-		      Output_section***, Script_sections::Section_type*,
-		      bool*, bool);
+  output_section_name(const char* file_name, const char* archive_name,
+		      const char* section_name, Output_section***,
+		      Script_sections::Section_type*, bool*, bool);
 
   // Initialize OSP with an output section.
   void
@@ -2479,6 +2560,7 @@ Output_section_definition::finalize_symbols(Symbol_table* symtab,
 const char*
 Output_section_definition::output_section_name(
     const char* file_name,
+    const char* archive_name,
     const char* section_name,
     Output_section*** slot,
     Script_sections::Section_type* psection_type,
@@ -2501,7 +2583,7 @@ Output_section_definition::output_section_name(
        p != this->elements_.end();
        ++p)
     {
-      if ((*p)->match_name(file_name, section_name, keep))
+      if ((*p)->match_name(file_name, archive_name, section_name, keep))
 	{
 	  // We found a match for NAME, which means that it should go
 	  // into this output section.
@@ -3872,6 +3954,7 @@ Script_sections::finalize_symbols(Symbol_table* symtab, const Layout* layout)
 const char*
 Script_sections::output_section_name(
     const char* file_name,
+    const char* archive_name,
     const char* section_name,
     Output_section*** output_section_slot,
     Script_sections::Section_type* psection_type,
@@ -3883,7 +3966,8 @@ Script_sections::output_section_name(
        p != this->sections_elements_->end();
        ++p)
     {
-      const char* ret = (*p)->output_section_name(file_name, section_name,
+      const char* ret = (*p)->output_section_name(file_name, archive_name,
+						  section_name,
 						  output_section_slot,
 						  psection_type, keep,
 						  is_input_section);
@@ -3917,6 +4001,9 @@ Script_sections::output_section_name(
 	{
 	  if (file_name == NULL)
 	    gold_error(_("unplaced orphan section '%s'"), section_name);
+	  else if (archive_name != NULL)
+	    gold_error(_("unplaced orphan section '%s' from '%s(%s)'"),
+		       section_name, archive_name, file_name);
 	  else
 	    gold_error(_("unplaced orphan section '%s' from '%s'"),
 		       section_name, file_name);
@@ -3928,6 +4015,10 @@ Script_sections::output_section_name(
 	    gold_warning(_("orphan section '%s' is being placed in "
 			   "section '%s'"),
 			 section_name, section_name);
+	  else if (archive_name != NULL)
+	    gold_warning(_("orphan section '%s' from '%s(%s)' is being placed "
+			   "in section '%s'"),
+			 section_name, archive_name, file_name, section_name);
 	  else
 	    gold_warning(_("orphan section '%s' from '%s' is being placed "
 			   "in section '%s'"),

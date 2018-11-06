@@ -760,7 +760,7 @@ class Output_section_data : public Output_data
  public:
   Output_section_data(off_t data_size, uint64_t addralign,
 		      bool is_data_size_fixed)
-    : Output_data(), output_section_(NULL), section_name_(), object_name_(),
+    : Output_data(), output_section_(NULL), relobj_(NULL), section_name_(),
       addralign_(addralign)
   {
     this->set_data_size(data_size);
@@ -769,7 +769,7 @@ class Output_section_data : public Output_data
   }
 
   Output_section_data(uint64_t addralign)
-    : Output_data(), output_section_(NULL), section_name_(), object_name_(),
+    : Output_data(), output_section_(NULL), relobj_(NULL), section_name_(),
       addralign_(addralign)
   { }
 
@@ -790,24 +790,24 @@ class Output_section_data : public Output_data
   void
   set_section_name(const std::string& name);
 
-  // Set the name of the first object file.
+  // Set the object file.
   void
-  set_object_name(const std::string& name);
+  set_relobj(Relobj* relobj);
 
   // Return the section name.
   const std::string&
   section_name() const
   { return this->section_name_; }
 
-  // Return the object file name.
-  const std::string&
-  object_name() const
-  { return this->object_name_; }
+  // Return the relobj.
+  const Relobj*
+  relobj() const
+  { return this->relobj_; }
 
-  // Return whether the name of the first object file is set.
+  // Return whether to include this section in script processing.
   bool
-  has_object_name() const
-  { return !this->object_name_.empty(); }
+  include_in_script_processing() const
+  { return this->relobj_ != NULL && !this->section_name_.empty(); }
 
   // Add an input section, for SHF_MERGE sections.  This returns true
   // if the section was handled.
@@ -897,11 +897,11 @@ class Output_section_data : public Output_data
  private:
   // The output section for this section.
   Output_section* output_section_;
+  // The object of the first input section.  This is used for
+  // script processing.
+  Relobj* relobj_;
   // Input section name.  This is used for script processing.
   std::string section_name_;
-  // The object name of the first input section.  This is used for
-  // script processing.
-  std::string object_name_;
   // The required alignment.
   uint64_t addralign_;
 };

@@ -241,12 +241,13 @@ void
 Output_merge_base::record_input_section(Relobj* relobj, unsigned int shndx)
 {
   gold_assert(this->keeps_input_sections_ && relobj != NULL);
-  // Record the name of the input section and the name of the
-  // first object file.  This is used for script processing.
-  if (!this->has_object_name())
+
+  // Record the name of the input section and the first object file.
+  // This is used for script processing.
+  if (this->relobj() == NULL)
     {
       this->set_section_name(relobj->section_name(shndx));
-      this->set_object_name(relobj->name());
+      this->set_relobj(relobj);
     }
 
   std::pair<Input_sections::iterator, bool> result =

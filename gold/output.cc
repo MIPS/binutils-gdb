@@ -687,13 +687,13 @@ Output_section_data::set_section_name(const std::string& name)
   this->section_name_ = name;
 }
 
-// Set the name of the first object file for matching in a linker script.
+// Set the object file for matching in a linker script.
 
 void
-Output_section_data::set_object_name(const std::string& name)
+Output_section_data::set_relobj(Relobj* relobj)
 {
-  gold_assert(this->object_name_.empty());
-  this->object_name_ = name;
+  gold_assert(this->relobj_ == NULL);
+  this->relobj_ = relobj;
 }
 
 // Return the section index of the output section.
@@ -3985,7 +3985,7 @@ Output_section::get_input_sections(
     {
       if (p->is_input_section()
 	  || p->is_relaxed_input_section()
-	  || p->output_section_data()->has_object_name())
+	  || p->output_section_data()->include_in_script_processing())
 	input_sections->push_back(*p);
       else
 	{
