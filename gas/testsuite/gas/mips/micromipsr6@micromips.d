@@ -156,6 +156,16 @@ Disassembly of section .text:
 [ 0-9a-f]+:	03fe e910 	add	sp,s8,ra
 [ 0-9a-f]+:	0082 1110 	add	v0,v0,a0
 [ 0-9a-f]+:	0082 1110 	add	v0,v0,a0
+[ 0-9a-f]+:	3020 0000 	li	at,0
+[ 0-9a-f]+:	0022 1110 	add	v0,v0,at
+[ 0-9a-f]+:	3020 0001 	li	at,1
+[ 0-9a-f]+:	0022 1110 	add	v0,v0,at
+[ 0-9a-f]+:	3020 7fff 	li	at,32767
+[ 0-9a-f]+:	0022 1110 	add	v0,v0,at
+[ 0-9a-f]+:	3020 8000 	li	at,-32768
+[ 0-9a-f]+:	0022 1110 	add	v0,v0,at
+[ 0-9a-f]+:	5020 ffff 	li	at,0xffff
+[ 0-9a-f]+:	0022 1110 	add	v0,v0,at
 [ 0-9a-f]+:	4c10      	addiu	zero,zero,-8
 [ 0-9a-f]+:	4c50      	addiu	v0,v0,-8
 [ 0-9a-f]+:	4c70      	addiu	v1,v1,-8
@@ -2010,6 +2020,16 @@ Disassembly of section .text:
 [ 0-9a-f]+:	03fe e990 	sub	sp,s8,ra
 [ 0-9a-f]+:	0082 1190 	sub	v0,v0,a0
 [ 0-9a-f]+:	0082 1190 	sub	v0,v0,a0
+[ 0-9a-f]+:	3020 0000 	li	at,0
+[ 0-9a-f]+:	0022 1190 	sub	v0,v0,at
+[ 0-9a-f]+:	3020 0001 	li	at,1
+[ 0-9a-f]+:	0022 1190 	sub	v0,v0,at
+[ 0-9a-f]+:	3020 7fff 	li	at,32767
+[ 0-9a-f]+:	0022 1190 	sub	v0,v0,at
+[ 0-9a-f]+:	3020 8000 	li	at,-32768
+[ 0-9a-f]+:	0022 1190 	sub	v0,v0,at
+[ 0-9a-f]+:	5020 ffff 	li	at,0xffff
+[ 0-9a-f]+:	0022 1190 	sub	v0,v0,at
 [ 0-9a-f]+:	05a5      	subu	v0,v1,v0
 [ 0-9a-f]+:	05b5      	subu	v0,v1,v1
 [ 0-9a-f]+:	05c5      	subu	v0,v1,a0

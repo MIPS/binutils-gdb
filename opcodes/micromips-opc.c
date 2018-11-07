@@ -383,7 +383,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"aclr",		"\\,~(b)",	0x2000b000, 0xff00f000,	RD_3|LM|SM|NODS,	0,		0,		MC,	0 },
 {"aclr",		"\\,A(b)",	0,    (int) M_ACLR_AB,	INSN_MACRO,		0,		0,		MC,	0 },
 {"add",			"d,v,t",	0x00000110, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,		I1,		0,	0 },
-{"add",			"t,r,I",	0,    (int) M_ADD_I,	INSN_MACRO,		0,		I1,		0,	I37 },
+{"add",			"t,r,I",	0,    (int) M_ADD_I,	INSN_MACRO,		0,		I1,		0,	0 },
 {"add.d",		"D,V,T",	0x54000130, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I1,		0,	0 },
 {"add.s",		"D,V,T",	0x54000030, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_S,	0,		I1,		0,	0 },
 {"add.ps",		"D,V,T",	0x54000230, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I1,		0,	I37 },
@@ -1236,7 +1236,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"srl",			"t,r,<",	0x00000040, 0xfc0007ff,	WR_1|RD_2,		0,		I1,		0,	0 },
 /* ssnop is at the start of the table.  */
 {"sub",			"d,v,t",	0x00000190, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,		I1,		0,	0 },
-{"sub",			"d,v,I",	0,    (int) M_SUB_I,	INSN_MACRO,		0,		I1,		0,	I37 },
+{"sub",			"d,v,I",	0,    (int) M_SUB_I,	INSN_MACRO,		0,		I1,		0,	0 },
 {"sub.d",		"D,V,T",	0x54000170, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I1,		0,	0 },
 {"sub.s",		"D,V,T",	0x54000070, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_S,	0,		I1,		0,	0 },
 {"sub.ps",		"D,V,T",	0x54000270, 0xfc0007ff,	WR_1|RD_2|RD_3|FP_D,	0,		I1,		0,	I37 },
