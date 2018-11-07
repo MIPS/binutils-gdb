@@ -2124,4 +2124,8 @@ if { [istarget mips*-*-vxworks*] } {
 
     run_dump_test_arches "crypto"	[mips_arch_list_matching mips32r6 \
 					     !micromipsr6]
+    run_dump_test_arches "micromips-cross-reloc" \
+					[mips_arch_list_matching micromips]
+    run_dump_test_arches "micromips-cross-reloc" \
+					[mips_arch_list_matching micromipsr6]
 }
