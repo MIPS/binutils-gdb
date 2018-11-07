@@ -10442,7 +10442,10 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_ADD_I:
       s = "addi";
       s2 = "add";
-      goto do_addi;
+      if (ISA_IS_R6 (mips_opts.isa))
+	goto do_addi_i;
+      else
+	goto do_addi;
     case M_ADDU_I:
       s = "addiu";
       s2 = "addu";
@@ -13842,7 +13845,10 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_SUB_I:
       s = "addi";
       s2 = "sub";
-      goto do_subi;
+      if (ISA_IS_R6 (mips_opts.isa))
+	goto do_subi_i;
+      else
+	goto do_subi;
     case M_SUBU_I:
       s = "addiu";
       s2 = "subu";

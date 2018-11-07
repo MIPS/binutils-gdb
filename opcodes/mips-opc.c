@@ -712,7 +712,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 {"aclr",		"\\,~(b)",	0x04070000, 0xfc1f8000,	RD_3|LM|SM|NODS,	0,		0,		MC,	0 },
 {"aclr",		"\\,A(b)",	0,    (int) M_ACLR_AB,	INSN_MACRO,		0,		0,		MC,	0 },
 {"add",			"d,v,t",	0x00000020, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,		I1,		0,	0 },
-{"add",			"t,r,I",	0,    (int) M_ADD_I,	INSN_MACRO,		0,		I1,		0,	I37 },
+{"add",			"t,r,I",	0,    (int) M_ADD_I,	INSN_MACRO,		0,		I1,		0,      0 },
 {"add",			"D,S,T",	0x45c00000, 0xffe0003f,	WR_1|RD_2|RD_3|FP_S,	0,		IL2E,		0,	0 },
 {"add",			"D,S,T",	0x4b40000c, 0xffe0003f,	WR_1|RD_2|RD_3|FP_S,	0,		IL2F|IL3A,	0,	0 },
 {"add.s",		"D,V,T",	0x46000000, 0xffe0003f,	WR_1|RD_2|RD_3|FP_S,	0,		I1,		0,	0 },
@@ -2009,7 +2009,7 @@ const struct mips_opcode mips_builtin_opcodes[] =
 /* ssnop is at the start of the table.  */
 {"standby",		"",		0x42000021, 0xffffffff,	0,			0,		V1,		0,	0 },
 {"sub",			"d,v,t",	0x00000022, 0xfc0007ff,	WR_1|RD_2|RD_3,		0,		I1,		0,	0 },
-{"sub",			"d,v,I",	0,    (int) M_SUB_I,	INSN_MACRO,		0,		I1,		0,	I37 },
+{"sub",			"d,v,I",	0,    (int) M_SUB_I,	INSN_MACRO,		0,		I1,		0,	0 },
 {"sub",			"D,S,T",	0x45c00001, 0xffe0003f,	WR_1|RD_2|RD_3|FP_S,	0,		IL2E,		0,	0 },
 {"sub",			"D,S,T",	0x4b40000d, 0xffe0003f,	WR_1|RD_2|RD_3|FP_S,	0,		IL2F|IL3A,	0,	0 },
 {"sub.d",		"D,V,T",	0x46200001, 0xffe0003f,	WR_1|RD_2|RD_3|FP_D,	0,		I1,		0,	SF },
