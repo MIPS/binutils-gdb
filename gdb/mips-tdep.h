@@ -129,6 +129,11 @@ struct gdbarch_tdep
      This corresponds to CP0 Status register's FR bit.  */
   enum mips_fpu_mode fp_mode;
 
+  /* ISA-specific data types.  */
+  struct type *fp32_odd_type;
+  struct type *fp32_even_type;
+  struct type *fp64_type;
+
   /* Return the expected next PC if FRAME is stopped at a syscall
      instruction.  */
   CORE_ADDR (*syscall_next_pc) (struct frame_info *frame);
