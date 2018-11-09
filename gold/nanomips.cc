@@ -1901,7 +1901,7 @@ class Target_nanomips : public Sized_target<size, big_endian>
       // 0 would terminate the list, hiding any later entries.
       if (strcmp(name, ".debug_ranges") == 0)
         return CB_SET_TO_ONE;
-      if (strcmp(name, ".debug_line") == 0)
+      if (Layout::is_debug_info_section(name))
         return CB_RETAIN;
 
       gold::Default_comdat_behavior default_behavior;
