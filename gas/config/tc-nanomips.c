@@ -9319,6 +9319,26 @@ nanomips_frob_file_before_adjust (void)
 #endif
 }
 
+static bfd_boolean
+frag_in_section_p (fragS *fragp, const char *secname)
+{
+  asection *sec = bfd_get_section_by_name (stdoutput, secname);
+
+  while (sec != NULL)
+    {
+      fragS *iter = seg_info (sec)->frchainP->frch_root;
+      while (iter != NULL)
+	{
+	  if (iter == fragp)
+	    return TRUE;
+	  iter = iter->fr_next;
+	}
+      sec = bfd_get_next_section_by_name (NULL, sec);
+    }
+
+  return FALSE;
+}
+
 int
 nanomips_force_relocation (fixS *fixp)
 {
@@ -9350,10 +9370,20 @@ nanomips_force_relocation (fixS *fixp)
       && fixp->fx_subsy
       && (S_GET_SEGMENT (fixp->fx_addsy)->flags & SEC_CODE) != 0
       && (S_GET_SEGMENT (fixp->fx_subsy)->flags & SEC_CODE) != 0)
-    return !nanomips_allow_local_subtract_symbols (fixp->fx_addsy,
-						   fixp->fx_subsy,
-						   FALSE);
-
+    {
+      /* For lable-difference relocations in .debug_info sections, we
+	 want to force a relocation, even if the difference is link-time
+	 invariant so that the linker has the opportunity to zero-out
+	 AT_high_pc expressions when the corresponding sections get
+	 garbage-collected.  Spurious non-zero AT_high_pc fields of
+	 garbage-collected sections can trip-up GDB source disassembly.  */
+      if (frag_in_section_p (fixp->fx_frag, ".debug_info"))
+	return 1;
+      else
+	return (!nanomips_allow_local_subtract_symbols (fixp->fx_addsy,
+							fixp->fx_subsy,
+							FALSE));
+    }
   return 0;
 }
 
@@ -12860,9 +12890,18 @@ nanomips_allow_local_subtract (expressionS *left, expressionS *right,
   if (!linkrelax)
     return TRUE;
 
-  return nanomips_allow_local_subtract_symbols (left->X_add_symbol,
-						right->X_add_symbol,
-						TRUE);
+  /* For lable-difference relocations in .debug_info sections, we
+     want to force a relocation, even if the difference is link-time
+     invariant so that the linker has the opportunity to zero-out
+     AT_high_pc expressions when the corresponding sections get
+     garbage-collected.  Spurious non-zero AT_high_pc fields of
+     garbage-collected sections can trip-up GDB source disassembly.  */
+  if (strcmp (now_seg->name, ".debug_info") == 0)
+    return FALSE;
+  else
+    return nanomips_allow_local_subtract_symbols (left->X_add_symbol,
+						  right->X_add_symbol,
+						  TRUE);
 }
 
 /* Create relocations for alignment directives.  */
@@ -12916,9 +12955,20 @@ nanomips_validate_fix_sub (fixS *fix)
   if (sub_symbol_segment != add_symbol_segment)
     return 0;
   else
-    return (!nanomips_allow_local_subtract_symbols (fix->fx_addsy,
-						    fix->fx_subsy,
-						    FALSE));
+    {
+      /* For lable-difference relocations in .debug_info sections, we
+	 want to force a relocation, even if the difference is link-time
+	 invariant so that the linker has the opportunity to zero-out
+	 AT_high_pc expressions when the corresponding sections get
+	 garbage-collected.  Spurious non-zero AT_high_pc fields for
+	 garbage-collected sections can trip-up GDB source disassembly.  */
+      if (frag_in_section_p (fix->fx_frag, ".debug_info"))
+	return 1;
+      else
+	return (!nanomips_allow_local_subtract_symbols (fix->fx_addsy,
+							fix->fx_subsy,
+							FALSE));
+    }
 }
 
 /* TC_EH_FRAME_ESTIMATE_SIZE_BEFORE_RELAX hook.
