@@ -4709,6 +4709,41 @@ nanomips_got_gen.o: nanomips_got_gen.s
 
 MOSTLYCLEANFILES += nanomips_got_gen
 
+# Test relocations to discarded sections in debug information
+check_SCRIPTS += nanomips_discarded_debug.sh
+check_DATA += nanomips_discarded_debug_ranges.stdout \
+	      nanomips_discarded_debug_info.stdout \
+	      nanomips_discarded_debug_line.stdout \
+	      nanomips_discarded_debug_frame.stdout \
+	      nanomips_discarded_debug_loc.stdout \
+	      nanomips_discarded_debug_aranges.stdout
+
+nanomips_discarded_debug_ranges.stdout: nanomips_discarded_debug
+	$(TEST_OBJDUMP) -j.debug_ranges -s $< > $@
+
+nanomips_discarded_debug_info.stdout: nanomips_discarded_debug
+	$(TEST_OBJDUMP) -j.debug_info -s $< > $@
+
+nanomips_discarded_debug_line.stdout: nanomips_discarded_debug
+	$(TEST_OBJDUMP) -j.debug_line -s $< > $@
+
+nanomips_discarded_debug_frame.stdout: nanomips_discarded_debug
+	$(TEST_OBJDUMP) -j.debug_frame -s $< > $@
+
+nanomips_discarded_debug_loc.stdout: nanomips_discarded_debug
+	$(TEST_OBJDUMP) -j.debug_loc -s $< > $@
+
+nanomips_discarded_debug_aranges.stdout: nanomips_discarded_debug
+	$(TEST_OBJDUMP) -j.debug_aranges -s $< > $@
+
+nanomips_discarded_debug: nanomips_discarded_debug.o ../ld-new
+	../ld-new --gc-sections -o $@ $<
+
+nanomips_discarded_debug.o: nanomips_discarded_debug.s
+	$(TEST_AS) -EL -march=32r6 -o $@ $<
+
+MOSTLYCLEANFILES += nanomips_discarded_debug
+
 endif DEFAULT_TARGET_NANOMIPS
 
 endif NATIVE_OR_CROSS_LINKER
