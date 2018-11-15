@@ -65,7 +65,8 @@ WHICH = aarch64 \
 	microblaze-with-stack-protect \
 	mips-linux mips-dsp-linux \
 	mips-fpu64-linux mips-fpu64-dsp-linux \
-	mips64-linux mips64-dsp-linux \
+	mips-msa-linux \
+	mips64-linux mips64-dsp-linux mips64-msa-linux \
 	nanomips \
 	nanomips-linux nanomips-dsp-linux \
 	nanomips64-linux nanomips64-dsp-linux \
@@ -96,8 +97,10 @@ mips-expedite = r29,pc
 mips-dsp-expedite = r29,pc
 mips-fpu64-expedite = r29,pc
 mips-fpu64-dsp-expedite = r29,pc
+mips-msa-expedite = r29,pc
 mips64-expedite = r29,pc
 mips64-dsp-expedite = r29,pc
+mips64-msa-expedite = r29,pc
 nanomips-linux-expedite = r29,pc
 nios2-linux-expedite = sp,pc
 powerpc-expedite = r1,pc
