@@ -2277,8 +2277,7 @@ Disassembly of section .text:
 [ 0-9a-f]+:	0062 003c 	teq	v0,v1
 [ 0-9a-f]+:	0062 103c 	teq	v0,v1,0x1
 [ 0-9a-f]+:	0062 f03c 	teq	v0,v1,0xf
-[ 0-9a-f]+:	3020 0000 	li	at,0
-[ 0-9a-f]+:	0022 003c 	teq	v0,at
+[ 0-9a-f]+:	0002 003c 	teq	v0,zero
 [ 0-9a-f]+:	3020 8000 	li	at,-32768
 [ 0-9a-f]+:	0022 003c 	teq	v0,at
 [ 0-9a-f]+:	3020 7fff 	li	at,32767
@@ -2290,8 +2289,7 @@ Disassembly of section .text:
 [ 0-9a-f]+:	0062 023c 	tge	v0,v1
 [ 0-9a-f]+:	0062 123c 	tge	v0,v1,0x1
 [ 0-9a-f]+:	0062 f23c 	tge	v0,v1,0xf
-[ 0-9a-f]+:	3020 0000 	li	at,0
-[ 0-9a-f]+:	0022 023c 	tge	v0,at
+[ 0-9a-f]+:	0002 023c 	tge	v0,zero
 [ 0-9a-f]+:	3020 8000 	li	at,-32768
 [ 0-9a-f]+:	0022 023c 	tge	v0,at
 [ 0-9a-f]+:	3020 7fff 	li	at,32767
@@ -2303,8 +2301,7 @@ Disassembly of section .text:
 [ 0-9a-f]+:	0062 043c 	tgeu	v0,v1
 [ 0-9a-f]+:	0062 143c 	tgeu	v0,v1,0x1
 [ 0-9a-f]+:	0062 f43c 	tgeu	v0,v1,0xf
-[ 0-9a-f]+:	3020 0000 	li	at,0
-[ 0-9a-f]+:	0022 043c 	tgeu	v0,at
+[ 0-9a-f]+:	0002 043c 	tgeu	v0,zero
 [ 0-9a-f]+:	3020 8000 	li	at,-32768
 [ 0-9a-f]+:	0022 043c 	tgeu	v0,at
 [ 0-9a-f]+:	3020 7fff 	li	at,32767
@@ -2320,8 +2317,7 @@ Disassembly of section .text:
 [ 0-9a-f]+:	0062 083c 	tlt	v0,v1
 [ 0-9a-f]+:	0062 183c 	tlt	v0,v1,0x1
 [ 0-9a-f]+:	0062 f83c 	tlt	v0,v1,0xf
-[ 0-9a-f]+:	3020 0000 	li	at,0
-[ 0-9a-f]+:	0022 083c 	tlt	v0,at
+[ 0-9a-f]+:	0002 083c 	tlt	v0,zero
 [ 0-9a-f]+:	3020 8000 	li	at,-32768
 [ 0-9a-f]+:	0022 083c 	tlt	v0,at
 [ 0-9a-f]+:	3020 7fff 	li	at,32767
@@ -2333,8 +2329,7 @@ Disassembly of section .text:
 [ 0-9a-f]+:	0062 0a3c 	tltu	v0,v1
 [ 0-9a-f]+:	0062 1a3c 	tltu	v0,v1,0x1
 [ 0-9a-f]+:	0062 fa3c 	tltu	v0,v1,0xf
-[ 0-9a-f]+:	3020 0000 	li	at,0
-[ 0-9a-f]+:	0022 0a3c 	tltu	v0,at
+[ 0-9a-f]+:	0002 0a3c 	tltu	v0,zero
 [ 0-9a-f]+:	3020 8000 	li	at,-32768
 [ 0-9a-f]+:	0022 0a3c 	tltu	v0,at
 [ 0-9a-f]+:	3020 7fff 	li	at,32767
@@ -2350,8 +2345,7 @@ Disassembly of section .text:
 [ 0-9a-f]+:	0062 0c3c 	tne	v0,v1
 [ 0-9a-f]+:	0062 1c3c 	tne	v0,v1,0x1
 [ 0-9a-f]+:	0062 fc3c 	tne	v0,v1,0xf
-[ 0-9a-f]+:	3020 0000 	li	at,0
-[ 0-9a-f]+:	0022 0c3c 	tne	v0,at
+[ 0-9a-f]+:	0002 0c3c 	tne	v0,zero
 [ 0-9a-f]+:	3020 8000 	li	at,-32768
 [ 0-9a-f]+:	0022 0c3c 	tne	v0,at
 [ 0-9a-f]+:	3020 7fff 	li	at,32767
