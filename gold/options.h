@@ -842,6 +842,10 @@ class General_options
 		 N_("Exclude libraries from automatic export"),
 		 N_(("lib,lib ...")));
 
+  DEFINE_bool(expand, options::TWO_DASHES, '\0', true,
+	      N_("(nanoMIPS only) Expand nanoMIPS instructions"),
+	      N_("(nanoMIPS only) Do not expand nanoMIPS instructions"));
+
   DEFINE_uint(expand_reg, options::TWO_DASHES, '\0', 1,
 	      N_("(nanoMIPS only) Set the register that will be used "
 	         "in expansions (default $1)"),

@@ -37,12 +37,12 @@ enum Transform_type
   TT_NONE = 0,
   // Discard relocation.
   TT_DISCARD,
-  // Relaxation from 32-bit to 16-bit instruction.
-  TT_RELAX,
   // beqc[16] and bnec[16] have the same opcode, so we need to distinguish
   // to which 32-bit instruction we need to transform it.
   TT_BEQC32,
   TT_BNEC32,
+  // Absolute transformation to 16-bit instruction.
+  TT_ABS16,
   // Absolute transformation to 32-bit instruction.
   TT_ABS32,
   // Absolute transformation where one instruction is 48-bit.
@@ -51,7 +51,7 @@ enum Transform_type
   TT_ABS16_LONG,
   TT_ABS32_LONG,
   // Transform to 16-bit gp-relative instruction.
-  TT_GPREL16_WORD,
+  TT_GPREL16,
   // Transform to 32-bit gp-relative instruction.
   TT_GPREL32_WORD,
   TT_GPREL32,
