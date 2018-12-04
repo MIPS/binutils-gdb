@@ -378,7 +378,7 @@ exceed 2MiB and the total code size for a final link must not exceed
 The @code{.set pic1} directive enables position independent code(PIC)
 generation for built-in macros, using the medium memory model.  The
 @code{.set pic2} directive enables PIC generation, using the large
-memory model.  The @code{.set pic0} directive disabled PIC generation.
+memory model.  The @code{.set pic0} directive disables PIC generation.
 If PIC is enabled, the corresponding flag in the ELF header is also set.
 Position independent code generation is disabled by default.
 
