@@ -45,6 +45,7 @@ Disassembly of section \.text:
 [0-9a-f]+ <test\+0x[a-f0-9]+> 83e1 303b 	restore.jrc	56,ra
 [0-9a-f]+ <test\+0x[a-f0-9]+> 83c2 3103 	restore.jrc	256,fp,ra
 [0-9a-f]+ <test\+0x[a-f0-9]+> 83e2 3403 	restore.jrc	1024,ra,s0
+[0-9a-f]+ <test\+0x[a-f0-9]+> 00a0 00c8 	li	a1,200
 [0-9a-f]+ <test\+0x[a-f0-9]+> 8002 30a7 	restore.jrc	160,zero,gp
 [0-9a-f]+ <test\+0x[a-f0-9]+> 8205 3047 	restore.jrc	64,s0-s3,gp
 [0-9a-f]+ <test\+0x[a-f0-9]+> 8043 3047 	restore.jrc	64,t4-t5,gp

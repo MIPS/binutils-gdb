@@ -52,6 +52,8 @@ test:
 	restore.jrc	56,$ra
 	restore.jrc	256,$fp,$ra
 	restore.jrc	1024,$ra,$s0
+
+	li	$a1,200
 	restore.jrc	160,$zero,$gp
 	restore.jrc	64,$s0,$s1,$s2,$s3,$gp
 	restore.jrc	64,$t4,$t5,$gp
