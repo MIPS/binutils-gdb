@@ -4329,10 +4329,10 @@ match_save_restore_list_operand (struct nanomips_arg_info *arg,
       && gp
       && (arg->insn->insn_opcode & 0x3) != 2)
     {
-      symbolS *sym = symbol_find_or_make ("none");
-      symbol_table_insert (sym);
       offset_expr.X_op = O_symbol;
-      offset_expr.X_add_symbol = sym;
+      offset_expr.X_add_symbol = ((cur_proc_ptr != NULL)
+				  ? cur_proc_ptr->func_sym
+				  : NULL);
       offset_expr.X_add_number = 0;
       offset_reloc[0] = BFD_RELOC_NANOMIPS_SAVERESTORE;
     }
