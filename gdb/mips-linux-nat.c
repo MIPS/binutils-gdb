@@ -27,21 +27,29 @@
 #include "linux-nat.h"
 #include "mips-linux-tdep.h"
 #include "target-descriptions.h"
+#include "arch-utils.h"
+#include "inf-ptrace.h"
 
 #include "gdb_proc_service.h"
 #include "gregset.h"
 
 #include <sgidefs.h>
-#include "nat/gdb_ptrace.h"
-#include <asm/ptrace.h>
-#include "inf-ptrace.h"
+#include <sys/prctl.h>
+#include <sys/uio.h>
 
+#include "elf/common.h"
+
+#include "nat/linux-ptrace.h"
 #include "nat/mips-linux-watch.h"
 
 #include "features/mips-linux.c"
 #include "features/mips-dsp-linux.c"
+#include "features/mips-fpu64-linux.c"
+#include "features/mips-fpu64-dsp-linux.c"
+#include "features/mips-msa-linux.c"
 #include "features/mips64-linux.c"
 #include "features/mips64-dsp-linux.c"
+#include "features/mips64-msa-linux.c"
 
 #ifndef PTRACE_GET_THREAD_AREA
 #define PTRACE_GET_THREAD_AREA 25
@@ -50,6 +58,9 @@
 /* Assume that we have PTRACE_GETREGS et al. support.  If we do not,
    we'll clear this and use PTRACE_PEEKUSER instead.  */
 static int have_ptrace_regsets = 1;
+
+/* Assume that we have FP_MODE virtual register support.  */
+static int have_fp_mode = 1;
 
 /* Saved function pointers to fetch and store a single register using
    PTRACE_PEEKUSER and PTRACE_POKEUSER.  */
@@ -419,10 +430,83 @@ mips_linux_register_u_offset (struct gdbarch *gdbarch, int regno, int store_p)
     return mips_linux_register_addr (gdbarch, regno, store_p);
 }
 
+/* Determine the width of FGRs.  Try the FP_MODE virtual register first.
+   If that is unavailable, then try CP0.Status.FR directly, which can
+   only be retrieved along with the rest of GPRs.  Examining the FR bit
+   directly is however unreliable, because in the full FPU emulation
+   mode Linux will never report it as 1 regardless of the mode.  Use
+   PTRACE_GETREGS to get at FR as this is the oldest interface.  If it
+   is not supported, then running o32 with FR=1 is neither.  The default
+   of FR=0 (use_fpu64 = 0) applies then.
+
+   NB PTRACE_GETREGS always uses 64-bit register slots, even with 32-bit
+   kernels.  */
+
+static int
+mips_linux_get_fpu64 (int tid)
+{
+  int use_fpu64 = 0;
+
+  if (have_fp_mode)
+    {
+      int fp_mode;
+      struct iovec iov = { .iov_base = &fp_mode, .iov_len = sizeof(fp_mode) };
+
+      errno = 0;
+      ptrace (PTRACE_GETREGSET, tid,
+       (PTRACE_TYPE_ARG3) NT_MIPS_FP_MODE, (PTRACE_TYPE_ARG4) &iov);
+      switch (errno)
+ {
+ case 0:
+   use_fpu64 = !!(fp_mode & PR_FP_MODE_FR);
+   break;
+ case EIO:
+ case EINVAL:
+   have_fp_mode = 0;
+   break;
+ default:
+   perror_with_name (_("Couldn't get FP_MODE virtual register"));
+   break;
+ }
+    }
+
+  if (!have_fp_mode && have_ptrace_regsets)
+    {
+      uint64_t regs[MIPS64_ELF_NGREG];
+
+      errno = 0;
+      ptrace (PTRACE_GETREGS, tid,
+       (PTRACE_TYPE_ARG3) 0, (PTRACE_TYPE_ARG4) &regs);
+      switch (errno)
+ {
+ case 0:
+   use_fpu64 = !!(regs[MIPS64_EF_CP0_STATUS] & STATUS_FR);
+   break;
+ case EIO:
+   have_ptrace_regsets = 0;
+   break;
+ default:
+   perror_with_name (_("Couldn't get registers"));
+   break;
+ }
+    }
+
+  return use_fpu64;
+}
+
 static const struct target_desc *
 mips_linux_read_description (struct target_ops *ops)
 {
+  static const struct target_desc *tdescs[2][2] =
+    {
+      /* use_fpu64 = 0        use_fpu64 = 1 */
+      { tdesc_mips_linux,     tdesc_mips_fpu64_linux },     /* have_dsp = 0 */
+      { tdesc_mips_dsp_linux, tdesc_mips_fpu64_dsp_linux }, /* have_dsp = 1 */
+    };
   static int have_dsp = -1;
+  static int have_msa = -1;
+
+  int tid = ptid_get_lwp (inferior_ptid);
 
   if (have_dsp < 0)
     {
@@ -448,12 +532,42 @@ mips_linux_read_description (struct target_ops *ops)
 	}
     }
 
-  /* Report that target registers are a size we know for sure
-     that we can get from ptrace.  */
+  static int have_fpu64 = mips_linux_get_fpu64 (tid);
+
+  if (have_fpu64) {
+
+    /* Check for MSA, which requires FR=1 */
+    if (have_msa < 0)
+      {
+        int res;
+        uint32_t regs[32*4 + 8];
+        struct iovec iov;
+
+        if (tid == 0)
+   tid = ptid_get_pid (inferior_ptid);
+
+        /* this'd probably be better */
+        //have_msa = (getauxval(AT_HWCAP) & 0x2) != 0;
+
+        /* Test MSAIR */
+        iov.iov_base = regs;
+        iov.iov_len = sizeof(regs);
+        res = ptrace (PTRACE_GETREGSET, tid, NT_MIPS_MSA, &iov);
+        have_msa = (res >= 0) && regs[32*4 + 0];
+      }
+  } else {
+    have_msa = 0;
+  }
+
+  /* We only need to determine the width of FGRs on 32-bit systems,
+    as therwise they're fixed by the ABI at 64 bits.  */
   if (_MIPS_SIM == _ABIO32)
-    return have_dsp ? tdesc_mips_dsp_linux : tdesc_mips_linux;
+    return have_msa ? tdesc_mips_msa_linux
+    : tdescs[have_dsp][have_fpu64];
   else
-    return have_dsp ? tdesc_mips64_dsp_linux : tdesc_mips64_linux;
+    return have_msa ? tdesc_mips64_msa_linux :
+   have_dsp ? tdesc_mips64_dsp_linux : tdesc_mips64_linux;
+
 }
 
 /* -1 if the kernel and/or CPU do not support watch registers.
@@ -807,6 +921,10 @@ triggers a breakpoint or watchpoint."),
   /* Initialize the standard target descriptions.  */
   initialize_tdesc_mips_linux ();
   initialize_tdesc_mips_dsp_linux ();
+  initialize_tdesc_mips_fpu64_linux ();
+  initialize_tdesc_mips_fpu64_dsp_linux ();
+  initialize_tdesc_mips_msa_linux ();
   initialize_tdesc_mips64_linux ();
   initialize_tdesc_mips64_dsp_linux ();
+  initialize_tdesc_mips64_msa_linux ();
 }
