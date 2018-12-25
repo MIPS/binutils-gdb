@@ -145,6 +145,12 @@
 #define LW32(reloc) NIT32("lw", 0x84008000, reloc, INS_REG(21, 5, TREG), INS_REG(16, 5, SREG))
 // ori $reg, $reg, %reloc(sym)
 #define ORI32(reloc, tregmap, sregmap) NIT32("ori", 0x80000000, reloc, INS_REG(21, 5, tregmap), INS_REG(16, 5, sregmap))
+// restore u, dst1, [dst2, ...] where gp = 0
+#define RESTORE32 NIT32("restore", 0x80003002, NONE, INS_REG(16, 4, TREG), ins_sres_fields)
+// restore.jrc u, dst1, [dst2, ...] where gp = 0
+#define RESTOREJRC32 NIT32("restore.jrc", 0x80003003, NONE, INS_REG(16, 4, TREG), ins_sres_fields)
+// save u, src1, [src2, ...] where gp = 0
+#define SAVE32 NIT32("save", 0x80003000, NONE, INS_REG(16, 4, TREG), ins_sres_fields)
 // sb $reg, %gprel(sym)($gp)
 #define SBGP32 NIT32("sb[gp]", 0x44040000, GPREL18, INS_REG(21, 5, TREG), NULL)
 // sb $reg, %reloc(sym)($reg)
@@ -234,6 +240,7 @@ NTT(PCREL32_LONG,     RELS(R(PC25_S1)),                               INSNS(ALUI
 
 // lapc $reg, sym
 NIP32("lapc",           0x04000000,    EXT_REG(21, 5),       NULL,                  NULL,                 NULL)
+NTT(DISCARD,          RELS(R(PC21_S1)),                               INSNS())
 NTT(ABS_XLP,          RELS(R(PC21_S1)),                               INSNS(LI48))
 NTT(ABS32_LONG,       RELS(R(PC21_S1)),                               INSNS(LUI32(HI20, TREG), ORI32(LO12, TREG, TREG)))
 NTT(PCREL_XLP,        RELS(R(PC21_S1)),                               INSNS(LAPC48))
@@ -447,6 +454,18 @@ NTT(GPREL32_WORD,     RELS(R(GOT_OFST)),                              INSNS(LWGP
 NTT(GPREL_XLP,        RELS(R(GOT_OFST)),                              INSNS(ADDIUGP48(GPREL_I32, SREG), LW16(NONE)))
 NTT(GPREL32_XLP,      RELS(R(GOT_OFST)),                              INSNS(ADDIUGP48(GPREL_I32, SREG), LW32(NONE)))
 NTT(GPREL_LONG,       RELS(R(GOT_OFST)),                              INSNS(LUI32(GPREL_HI20, SREG), ADDU32(SREG, SREG), LW32(GPREL_LO12)))
+
+// restore u, dst1, [dst2, ...] where gp = 1
+NIP32("restore[gp]",    0x80003006,    EXT_REG(16, 4),       NULL,                  ext_sres_fields,      NULL)
+NTT(DISCARD,          RELS(R(SAVERESTORE)),                           INSNS(RESTORE32))
+
+// restore.jrc u, dst1, [dst2, ...] where gp = 1
+NIP32("restore.jrc[gp]",0x80003007,    EXT_REG(16, 4),       NULL,                  ext_sres_fields,      NULL)
+NTT(DISCARD,          RELS(R(SAVERESTORE)),                           INSNS(RESTOREJRC32))
+
+// save u, src1, [src2, ...] where gp = 1
+NIP32("save[gp]",       0x80003004,    EXT_REG(16, 4),       NULL,                  ext_sres_fields,      NULL)
+NTT(DISCARD,          RELS(R(SAVERESTORE)),                           INSNS(SAVE32))
 
 // sb $reg, %got_ofst(sym)($reg)
 NIP32("sb",             0x84001000,    EXT_REG(21, 5),       valid_st_src_reg,      EXT_REG(16, 5),       valid_reg)

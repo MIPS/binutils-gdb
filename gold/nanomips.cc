@@ -58,6 +58,9 @@ class Nanomips_relobj;
 template<int size, bool big_endian>
 class Nanomips_relocate_functions;
 
+template<int size, bool big_endian>
+class Nanomips_transformations;
+
 template<int size>
 class Nanomips_symbol_hash;
 
@@ -272,6 +275,7 @@ global_got_offset(Target_nanomips<size, big_endian>* target,
     }
   return -1U;
 }
+
 // .nanoMIPS.abiflags section content
 
 template<bool big_endian>
@@ -452,6 +456,84 @@ class Nanomips_output_data_stubs : public Output_section_data
   Nanomips_stubs_footers footers_;
 };
 
+// This class is used to hold information about one PIC reloc.
+// This is mainly used for GOT relocs, but it is also used for
+// R_NANOMIPS_SAVERESTORE reloc.
+
+template<int size, bool big_endian>
+class Nanomips_pic_reloc
+{
+  typedef typename elfcpp::Elf_types<size>::Elf_Addr Address;
+
+ public:
+  Nanomips_pic_reloc(Nanomips_symbol<size>* sym, unsigned int r_type)
+    : r_type_(r_type), symndx_(-1U)
+  { this->u_.symbol = sym; }
+
+  Nanomips_pic_reloc(unsigned int symndx, unsigned int r_type, Address addend)
+    : r_type_(r_type), symndx_(symndx)
+  { this->u_.addend = addend; }
+
+  // Relocation type.
+  unsigned int
+  r_type() const
+  { return this->r_type_; }
+
+  // Whether this entry is for a local symbol.
+  bool
+  is_for_local_symbol() const
+  { return this->symndx_ != -1U; }
+
+  // For a relocation against a local symbol, the local symbol index.
+  unsigned int
+  symndx() const
+  {
+    gold_assert(this->symndx_ != -1U);
+    return this->symndx_;
+  }
+
+  // For a relocation against a local symbol, the addend.
+  Address
+  addend() const
+  {
+    gold_assert(this->symndx_ != -1U);
+    return this->u_.addend;
+  }
+
+  // For a relocation against a global symbol, the global symbol.
+  Nanomips_symbol<size>*
+  symbol() const
+  {
+    gold_assert(this->symndx_ == -1U);
+    return this->u_.symbol;
+  }
+
+  bool operator==(const Nanomips_pic_reloc<size, big_endian>& that) const
+  {
+    if (this->symndx_ != that.symndx_
+        || this->r_type_ != that.r_type_)
+      return false;
+
+    if (this->is_for_local_symbol())
+      return this->u_.addend == that.u_.addend;
+    return this->u_.symbol == that.u_.symbol;
+  }
+
+ private:
+  // Type of relocation.
+  unsigned int r_type_;
+  // The index of the local symbol; -1 otherwise.
+  unsigned int symndx_;
+  // A global or local symbol.
+  union
+  {
+    // For a global symbol, the symbol itself.
+    Nanomips_symbol<size>* symbol;
+    // For a local symbol, the addend.
+    Address addend;
+  } u_;
+};
+
 // Nanomips_output_data_got class.
 
 template<int size, bool big_endian>
@@ -472,10 +554,7 @@ class Nanomips_output_data_got : public Output_data_got<size, big_endian>
   // a lazy-binding stub.
   void
   record_got_call_symbol(Nanomips_symbol<size>* nanomips_sym)
-  {
-    if (!nanomips_sym->has_got_offset(GOT_TYPE_STANDARD))
-      this->got_call_.insert(nanomips_sym);
-  }
+  { this->got_call_.insert(nanomips_sym); }
 
   // Finalize symbols against R_NANOMIPS_GOT_CALL relocation.
   void
@@ -513,7 +592,7 @@ class Nanomips_symbol : public Sized_symbol<size>
 {
  public:
   Nanomips_symbol()
-    : no_lazy_stub_(false), lazy_stub_offset_(-1ULL)
+    : no_lazy_stub_(false), is_gp_not_used_(false), lazy_stub_offset_(-1ULL)
   { }
 
   // Downcast a base pointer to a Nanomips_symbol pointer.
@@ -554,6 +633,21 @@ class Nanomips_symbol : public Sized_symbol<size>
     this->lazy_stub_offset_ = offset;
   }
 
+  // Return whether this symbol has a lazy-binding stub.
+  bool
+  has_lazy_stub() const
+  { return this->lazy_stub_offset_ != -1ULL; }
+
+  // Set that GP register is not used.
+  void
+  set_gp_not_used()
+  { this->is_gp_not_used_ = true; }
+
+  // Return whether GP register is not used.
+  bool
+  is_gp_not_used() const
+  { return this->is_gp_not_used_; }
+
   // Return the hash of this symbol.
   size_t
   hash() const
@@ -564,7 +658,10 @@ class Nanomips_symbol : public Sized_symbol<size>
   // This is true if the symbol has relocations related to taking the
   // function's address.
   bool no_lazy_stub_;
-
+  // Whether GP register is not used.  This can only be true for functions
+  // if all GOT relocations depending on the GP will be transformed to
+  // static or PC-relative references.
+  bool is_gp_not_used_;
   // The offset of the lazy-binding stub for this symbol from the start of
   // .nanoMIPS.stubs section.
   uint64_t lazy_stub_offset_;
@@ -724,7 +821,8 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   Nanomips_relobj(const std::string& name, Input_file* input_file, off_t offset,
                   const typename elfcpp::Ehdr<size, big_endian>& ehdr)
     : Sized_relobj_file<size, big_endian>(name, input_file, offset, ehdr),
-      input_section_ref_(), transformable_sections_(NULL), input_sections_(),
+      gpsetup_relnums_(), input_section_ref_(), gp_not_used_(),
+      transformable_sections_(NULL), gpsetup_opts_(), input_sections_(),
       local_symbol_size_(), local_symbol_is_function_(),
       attributes_section_data_(NULL), abiflags_(NULL),
       processor_specific_flags_(0), input_sections_changed_(false),
@@ -761,6 +859,12 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   Nanomips_input_section*
   new_nanomips_input_section(unsigned int, unsigned int, Output_section*);
 
+  // Go through all potential GP-setup optimizations and find for which
+  // function we can remove GP register from save/restore instruction and
+  // remove GP-setup relocation.
+  void
+  finalize_gpsetup_optimizations(Target_nanomips<size, big_endian>* target);
+
   // Convert regular input section with index SHNDX to a relaxed section.
   void
   convert_input_section_to_relaxed_section(unsigned shndx)
@@ -775,8 +879,7 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   processor_specific_flags() const
   { return this->processor_specific_flags_; }
 
-  // Whether a local symbol is a function.  This is only valid after
-  // do_count_local_symbol is called.
+  // Whether a local symbol is a function.
   bool
   local_symbol_is_function(unsigned int symndx) const
   {
@@ -784,8 +887,7 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
     return this->local_symbol_is_function_[symndx];
   }
 
-  // Return the local symbol size.  This is only valid after
-  // do_count_local_symbol is called.
+  // Return the local symbol size.
   Size_type
   local_symbol_size(unsigned int symndx) const
   {
@@ -837,6 +939,68 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   attributes_section_data() const
   { return this->attributes_section_data_; }
 
+  // This is called when we are done with relaxation passes.
+  void
+  clear_transformable_sections()
+  {
+    if (this->transformable_sections_ != NULL)
+      {
+        delete this->transformable_sections_;
+        this->transformable_sections_ = NULL;
+      }
+
+    // We no longer need the saved information.
+    this->gpsetup_relnums_.clear();
+  }
+
+  // Add a potential GP-setup optimization.
+  void
+  add_gpsetup_optimization(const Nanomips_pic_reloc<size, big_endian>& saveres,
+                           unsigned int data_shndx)
+  {
+    Gpsetup_optimization gpopt(saveres, data_shndx);
+    this->gpsetup_opts_.push_back(gpopt);
+  }
+
+  // Remove a GP-setup optimization.
+  void
+  remove_gpsetup_optimization(const Nanomips_pic_reloc<size, big_endian>& sres)
+  {
+    gold_assert(sres == this->gpsetup_opts_.back().saveres);
+    this->gpsetup_opts_.pop_back();
+  }
+
+  // Add relocation number of the GP-setup reloc.
+  void
+  add_gpsetup_relnum(unsigned int relnum)
+  {
+    Gpsetup_optimization& gpopt(this->gpsetup_opts_.back());
+    gpopt.gpsetup_relnum = relnum;
+  }
+
+  // Add a GOT reloc.
+  void
+  add_got_reloc(const Nanomips_pic_reloc<size, big_endian>& got_reloc)
+  {
+    Gpsetup_optimization& gpopt(this->gpsetup_opts_.back());
+    gpopt.got_relocs.push_back(got_reloc);
+  }
+
+  // Return whether we can remove GP-setup relocation.
+  bool
+  remove_gpsetup_reloc(unsigned int shndx, size_t relnum) const
+  {
+    Gpsetup_relnums::const_iterator p = this->gpsetup_relnums_.find(shndx);
+    if (p == this->gpsetup_relnums_.end())
+      return false;
+    return p->second.find(relnum) != p->second.end();
+  }
+
+  // Return whether GP register is not used for a local symbol SYMNDX.
+  bool
+  is_gp_not_used(unsigned int symndx) const
+  { return this->gp_not_used_.find(symndx) != this->gp_not_used_.end(); }
+
   // Return whether this object is not using nanoMIPS Subset.
   bool
   xlp() const
@@ -844,6 +1008,14 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
     if (this->abiflags_ == NULL)
       return false;
     return (this->abiflags_->ases & elfcpp::AFL_ASE_xNMS) != 0;
+  }
+
+  // Return whether this object contains position independent code.
+  bool
+  pic() const
+  {
+    elfcpp::Elf_Word pic_flag = elfcpp::EF_NANOMIPS_PIC;
+    return (this->processor_specific_flags_ & pic_flag) != 0;
   }
 
   // Return whether all data access in this object is GP-relative.
@@ -870,23 +1042,7 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
     return (this->processor_specific_flags_ & pcrel_flag) != 0;
   }
 
-  // This is called when we are done with relaxation passes.
-  void
-  clear_transformable_sections()
-  {
-    if (this->transformable_sections_ != NULL)
-      {
-        delete this->transformable_sections_;
-        this->transformable_sections_ = NULL;
-      }
-  }
-
  protected:
-  // Count the local symbols.
-  void
-  do_count_local_symbols(Stringpool_template<char>* pool,
-                         Stringpool_template<char>* dynpool);
-
   // Write the local symbols.
   void
   do_write_local_symbols(Output_file* of,
@@ -1019,6 +1175,27 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
     bool defined_symbols_initialized;
   };
 
+  // This structure is used for GP-setup optimization.
+  struct Gpsetup_optimization
+  {
+    typedef std::vector<Nanomips_pic_reloc<size, big_endian> > Got_relocs;
+
+    // TODO: Use index of the relocation section.
+    // Section index.
+    unsigned int data_shndx;
+    // Relocation number of the GP-setup reloc.
+    unsigned int gpsetup_relnum;
+    // R_NANOMIPS_SAVERESTORE reloc.
+    Nanomips_pic_reloc<size, big_endian> saveres;
+    // GOT relocations.
+    Got_relocs got_relocs;
+
+    Gpsetup_optimization(const Nanomips_pic_reloc<size, big_endian>& sres,
+                         unsigned int shndx)
+      : data_shndx(shndx), gpsetup_relnum(-1U), saveres(sres), got_relocs()
+    { }
+  };
+
   // Return a Nanomips input section.
   Nanomips_input_section*
   input_section(unsigned int shndx) const
@@ -1058,11 +1235,22 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   section_is_scannable(const elfcpp::Shdr<size, big_endian>&, unsigned int,
                        const Output_section*, const Symbol_table*);
 
+  typedef Unordered_set<size_t> Reloc_numbers;
+  typedef Unordered_map<unsigned int, Reloc_numbers> Gpsetup_relnums;
+
+  // A map to track the GP-setup relocation numbers which we are going
+  // to delete in a relaxation pass.
+  Gpsetup_relnums gpsetup_relnums_;
   // A map to track the number of how many times input section has been
   // referenced with lw[gp]/sw[gp] instruction.
   Input_section_ref input_section_ref_;
+  // Function local symbols where all GOT relocations depending on the
+  // GP will be transformed to static or PC-relative references.
+  Unordered_set<unsigned int> gp_not_used_;
   // Sections which we a going to scan for instruction transformations.
   Transformable_sections* transformable_sections_;
+  // A vector of a potential GP-setup optimizations.
+  std::vector<Gpsetup_optimization> gpsetup_opts_;
   // Nanomips input sections.
   std::vector<Nanomips_input_section*> input_sections_;
   // Size of the local symbols.
@@ -1298,24 +1486,23 @@ class Nanomips_transformations
   typedef typename elfcpp::Elf_types<size>::Elf_WXword Size_type;
 
  public:
-  Nanomips_transformations(Nanomips_relobj<size, big_endian>* relobj,
-                           Relocatable_relocs* rr)
-    : relobj_(relobj), rr_(rr)
+  Nanomips_transformations()
   { }
 
   // Handle alignment requirement.
   void
-  align(Target_nanomips<size, big_endian>* target,
+  align(const Relocate_info<size, big_endian>* relinfo,
+        Target_nanomips<size, big_endian>* target,
         Nanomips_input_section* input_section,
         size_t relnum,
         size_t reloc_count,
         const unsigned char* prelocs,
-        unsigned int data_shndx,
         Address view_address);
 
   // Transform instruction.
   inline void
-  transform(const Nanomips_transform_template* transform_template,
+  transform(const Relocate_info<size, big_endian>* relinfo,
+            const Nanomips_transform_template* transform_template,
             const Nanomips_insn_property* insn_property,
             Nanomips_input_section* input_section,
             unsigned int type,
@@ -1324,13 +1511,13 @@ class Nanomips_transformations
 
   // Print transformation.
   void
-  print(const Nanomips_transform_template* transform_template,
+  print(const Relocate_info<size, big_endian>* relinfo,
+        const Nanomips_transform_template* transform_template,
         const std::string& insn_name,
         const Symbol* gsym,
         unsigned int r_sym,
         Address r_offset,
-        typename elfcpp::Elf_types<size>::Elf_Swxword r_addend,
-        unsigned int shndx);
+        typename elfcpp::Elf_types<size>::Elf_Swxword r_addend);
 
   // Print usage statistics.
   static void
@@ -1341,10 +1528,9 @@ class Nanomips_transformations
             Nanomips_transformations<size, big_endian>::instruction_count);
   }
 
- protected:
   // Return true if VALUE has overflowed a signed value.
   template<int valsize>
-  inline bool
+  static inline bool
   has_overflow_signed(Valtype value)
   {
     return (size == 32 ? Bits<valsize>::has_overflow32(value)
@@ -1353,22 +1539,12 @@ class Nanomips_transformations
 
   // Return true if VALUE has overflowed an unsigned value.
   template<int valsize>
-  inline bool
+  static inline bool
   has_overflow_unsigned(Valtype value)
   {
     return (size == 32 ? Bits<valsize>::has_unsigned_overflow32(value)
                        : Bits<valsize>::has_unsigned_overflow(value));
   }
-
-  // Return relocatable relocs.
-  Relocatable_relocs*
-  rr()
-  { return this->rr_; }
-
-  // Return the object file.
-  Nanomips_relobj<size, big_endian>*
-  relobj()
-  { return this->relobj_; }
 
  private:
   // Write nanoMIPS instruction.
@@ -1378,16 +1554,10 @@ class Nanomips_transformations
   // Find R_NANOMIPS_FILL and R_NANOMIPS_MAX relocations (if any) and get
   // fill value, fill size and max bytes generated by the assembler.
   void
-  find_fill_max(Address offset, size_t relnum, size_t reloc_count,
+  find_fill_max(Nanomips_relobj<size, big_endian>* relobj,
+                Address offset, size_t relnum, size_t reloc_count,
                 const unsigned char* prelocs, Valtype* fill,
                 Valtype* max, Size_type* fill_size);
-
-  // Object file of the input section in which we are
-  // transforming instructions.
-  Nanomips_relobj<size, big_endian>* relobj_;
-  // Info about how relocs should be handled.  This is only used for
-  // --emit-relocs and --finalize-relocs options.
-  Relocatable_relocs* rr_;
 
   // Statistics.
 
@@ -1409,23 +1579,20 @@ class Nanomips_relax_insn : public Nanomips_transformations<size, big_endian>
   typedef typename elfcpp::Elf_types<size>::Elf_Addr Address;
 
  public:
-  Nanomips_relax_insn(Nanomips_relobj<size, big_endian>* relobj)
-    : Nanomips_transformations<size, big_endian>(relobj, NULL)
-  { }
-
-  Nanomips_relax_insn(Nanomips_relobj<size, big_endian>* relobj,
-                      Relocatable_relocs* rr)
-    : Nanomips_transformations<size, big_endian>(relobj, rr)
+  Nanomips_relax_insn()
+    : Nanomips_transformations<size, big_endian>()
   { }
 
   // Return matching instruction for relaxation if there is one and INSN can
   // be relaxed, otherwise return NULL.
   const Nanomips_insn_property*
-  find_insn(uint32_t insn, unsigned int mask, unsigned int r_type);
+  find_insn(Nanomips_relobj<size, big_endian>* relobj, uint32_t insn,
+            unsigned int mask, unsigned int r_type);
 
   // Return the transformation type if this instruction can be relaxed.
   unsigned int
-  type(Target_nanomips<size, big_endian>* target,
+  type(const Relocate_info<size, big_endian>* relinfo,
+       Target_nanomips<size, big_endian>* target,
        const Symbol* gsym,
        const Symbol_value<size>* psymval,
        const Nanomips_insn_property* insn_property,
@@ -1439,6 +1606,7 @@ class Nanomips_relax_insn : public Nanomips_transformations<size, big_endian>
   // Return the type of the relaxation for code and data models.
   unsigned int
   relax_code_and_data_models(Target_nanomips<size, big_endian>* target,
+                             const Nanomips_relobj<size, big_endian>* relobj,
                              const Symbol* gsym,
                              const Symbol_value<size>* psymval,
                              const Nanomips_insn_property* insn_property,
@@ -1457,15 +1625,15 @@ class Nanomips_relax_insn_finalize
   typedef typename elfcpp::Elf_types<size>::Elf_Addr Address;
 
  public:
-  Nanomips_relax_insn_finalize(Nanomips_relobj<size, big_endian>* relobj,
-                               Relocatable_relocs* rr)
-    : Nanomips_relax_insn<size, big_endian>(relobj, rr)
+  Nanomips_relax_insn_finalize()
+    : Nanomips_relax_insn<size, big_endian>()
   { }
 
   // Return the transformation type if this instruction can be relaxed
   // during --finalize-relocs.
   unsigned int
-  type(Target_nanomips<size, big_endian>* target,
+  type(const Relocate_info<size, big_endian>* relinfo,
+       Target_nanomips<size, big_endian>* target,
        const Symbol* gsym,
        const Symbol_value<size>* psymval,
        const Nanomips_insn_property* insn_property,
@@ -1485,18 +1653,19 @@ class Nanomips_expand_insn : public Nanomips_transformations<size, big_endian>
   typedef typename elfcpp::Elf_types<size>::Elf_Addr Address;
 
  public:
-  Nanomips_expand_insn(Nanomips_relobj<size, big_endian>* relobj,
-                       Relocatable_relocs* rr)
-    : Nanomips_transformations<size, big_endian>(relobj, rr)
+  Nanomips_expand_insn()
+    : Nanomips_transformations<size, big_endian>()
   { }
 
   // Return matching instruction for expansion if there is one.
   const Nanomips_insn_property*
-  find_insn(uint32_t insn, unsigned int mask, unsigned int r_type);
+  find_insn(Nanomips_relobj<size, big_endian>* relobj, uint32_t insn,
+            unsigned int mask, unsigned int r_type);
 
   // Return the transformation type if instruction needs to be expanded.
   unsigned int
-  type(Target_nanomips<size, big_endian>* target,
+  type(const Relocate_info<size, big_endian>* relinfo,
+       Target_nanomips<size, big_endian>* target,
        const Symbol* gsym,
        const Symbol_value<size>* psymval,
        const Nanomips_insn_property* insn_property,
@@ -1509,13 +1678,15 @@ class Nanomips_expand_insn : public Nanomips_transformations<size, big_endian>
  protected:
   // Return the type of the expansion.
   unsigned int
-  expand_type(const Nanomips_insn_property* insn_property,
+  expand_type(const Nanomips_relobj<size, big_endian>* relobj,
+              const Nanomips_insn_property* insn_property,
               uint32_t insn,
               unsigned int r_type);
 
   // Return the type of the expansion for code and data models.
   unsigned int
   expand_code_and_data_models(Target_nanomips<size, big_endian>* target,
+                              const Nanomips_relobj<size, big_endian>* relobj,
                               const Symbol* gsym,
                               const Symbol_value<size>* psymval,
                               const Nanomips_insn_property* insn_property,
@@ -1534,15 +1705,15 @@ class Nanomips_expand_insn_finalize
   typedef typename elfcpp::Elf_types<size>::Elf_Addr Address;
 
  public:
-  Nanomips_expand_insn_finalize(Nanomips_relobj<size, big_endian>* relobj,
-                               Relocatable_relocs* rr)
-    : Nanomips_expand_insn<size, big_endian>(relobj, rr)
+  Nanomips_expand_insn_finalize()
+    : Nanomips_expand_insn<size, big_endian>()
   { }
 
   // Return the transformation type if instruction needs to be expanded
   // during --finalize-relocs.
   unsigned int
-  type(Target_nanomips<size, big_endian>* target,
+  type(const Relocate_info<size, big_endian>* relinfo,
+       Target_nanomips<size, big_endian>* target,
        const Symbol* gsym,
        const Symbol_value<size>* psymval,
        const Nanomips_insn_property* insn_property,
@@ -1962,8 +2133,16 @@ class Target_nanomips : public Sized_target<size, big_endian>
   {
    public:
     Scan()
-      : seen_norelax_(false)
+      : seen_norelax_(false), can_remove_gpsetup_(false),
+        saveres_state_(SEARCH), data_shndx(0), relobj_(NULL),
+        saveres_(NULL, elfcpp::R_NANOMIPS_NONE)
     { }
+
+    ~Scan()
+    {
+      if (this->saveres_state_ == FOUND)
+        this->missing();
+    }
 
     inline void
     local(Symbol_table* symtab, Layout* layout, Target_nanomips* target,
@@ -2000,7 +2179,38 @@ class Target_nanomips : public Sized_target<size, big_endian>
                                          const elfcpp::Rela<size, big_endian>&,
                                          unsigned int, Symbol*)
     { return false; }
+
    private:
+    // R_NANOMIPS_SAVERESTORE reloc tracking state.
+    enum Track_saverestore
+    {
+      // Search for the first reloc.
+      SEARCH = 0,
+      // Reloc is found and we expect to see another reloc
+      // for the same symbol.
+      FOUND = 1
+    };
+
+    // Remove GP-setup optimization.  This is called whenever we can't
+    // optimize GP-setup or R_NANOMIPS_SAVERESTORE reloc is missing.
+    void
+    remove_gpsetup_optimization()
+    {
+      gold_assert(this->relobj_ != NULL);
+      this->relobj_->remove_gpsetup_optimization(this->saveres_);
+      this->can_remove_gpsetup_ = false;
+    }
+
+    // Report a missing R_NANOMIPS_SAVERESTORE reloc.
+    void
+    missing();
+
+    // Handle R_NANOMIPS_SAVERESTORE reloc.
+    inline void
+    handle_saveres_reloc(const Nanomips_pic_reloc<size, big_endian>& saveres,
+                         Nanomips_relobj<size, big_endian>* relobj,
+                         unsigned int data_shndx);
+
     // Return true if a reloc is part of a composite relocations.
     inline bool
     reloc_in_composite_relocs(Address offset,
@@ -2010,6 +2220,18 @@ class Target_nanomips : public Sized_target<size, big_endian>
 
     // True if we have seen R_NANOMIPS_NORELAX relocation.
     bool seen_norelax_;
+    // Whether we can remove GP-setup.
+    bool can_remove_gpsetup_;
+    // States for tracking R_NANOMIPS_SAVERESTORE relocs.
+    Track_saverestore saveres_state_;
+    // Section index.  This is only used to report a missing
+    // R_NANOMIPS_SAVERESTORE reloc pair.
+    unsigned int data_shndx;
+    // Object file.  This is only used to report a missing
+    // R_NANOMIPS_SAVERESTORE reloc pair.
+    Nanomips_relobj<size, big_endian>* relobj_;
+    // R_NANOMIPS_SAVERESTORE reloc.
+    Nanomips_pic_reloc<size, big_endian> saveres_;
   };
 
   // The class which implements relocation.
@@ -3027,6 +3249,135 @@ Nanomips_relobj<size, big_endian>::new_nanomips_input_section(
   return input_section;
 }
 
+// Go through all potential GP-setup optimizations and find for which
+// function we can remove GP register from save/restore instruction and
+// remove GP-setup relocation.
+
+template<int size, bool big_endian>
+void
+Nanomips_relobj<size, big_endian>::finalize_gpsetup_optimizations(
+    Target_nanomips<size, big_endian>* target)
+{
+  typedef typename Gpsetup_optimization::Got_relocs Got_relocs;
+  typedef Nanomips_transformations<size, big_endian> Transform;
+
+  for (typename std::vector<Gpsetup_optimization>::iterator it =
+         this->gpsetup_opts_.begin();
+       it != this->gpsetup_opts_.end();
+       ++it)
+    {
+      Gpsetup_optimization& gpopt = *it;
+      unsigned int data_shndx = gpopt.data_shndx;
+      unsigned int gpsetup_relnum = gpopt.gpsetup_relnum;
+      Nanomips_pic_reloc<size, big_endian>& saveres(gpopt.saveres);
+      Got_relocs& got_relocs = gpopt.got_relocs;
+      bool can_remove_gpsetup = true;
+
+      // Check whether all got relocations will be transformed to
+      // static or PC-relative references in a relaxation pass.
+      for (typename Got_relocs::iterator it2 = got_relocs.begin();
+           it2 != got_relocs.end();
+           ++it2)
+        {
+          Nanomips_pic_reloc<size, big_endian>& got_reloc = *it2;
+          unsigned int r_type = got_reloc.r_type();
+          Nanomips_symbol<size>* nanomips_sym = NULL;
+          unsigned int r_sym = -1U;
+
+          unsigned int offset;
+          if (got_reloc.is_for_local_symbol())
+            {
+              r_sym = got_reloc.symndx();
+              offset = local_got_offset(target, this, r_sym, r_type,
+                                        got_reloc.addend());
+            }
+          else
+            {
+              nanomips_sym = got_reloc.symbol();
+              offset = global_got_offset(target, nanomips_sym, r_type);
+            }
+
+          if (offset != -1U)
+            {
+              // Transformations for GOT symbols.
+              switch (r_type)
+                {
+                case elfcpp::R_NANOMIPS_GOT_CALL:
+                  // We can't remove GP-setup if there is a
+                  // call to a lazy-binding stub.
+                  if (nanomips_sym != NULL && nanomips_sym->has_lazy_stub())
+                    {
+                      can_remove_gpsetup = false;
+                      break;
+                    }
+                  // Fall through.
+
+                case elfcpp::R_NANOMIPS_GOT_PAGE:
+                case elfcpp::R_NANOMIPS_GOT_DISP:
+                  // GP register will be used if this won't be
+                  // transformed into a PC-relative instruction.
+                  if (!Transform::template has_overflow_unsigned<21>(offset))
+                    can_remove_gpsetup = false;
+                  break;
+                default:
+                  gold_unreachable();
+                }
+            }
+          else
+            {
+              // Transformations for locally resolved symbols.
+              switch (r_type)
+                {
+                case elfcpp::R_NANOMIPS_GOT_CALL:
+                  break;
+                case elfcpp::R_NANOMIPS_GOT_PAGE:
+                  // GP register is used for GP-relative data access.
+                  // Note that here R_NANOMIPS_GOT_PAGE reloc is used,
+                  // rather than R_NANOMIPS_GOT_OFST.
+                  if (this->pid())
+                    can_remove_gpsetup = false;
+                  break;
+                case elfcpp::R_NANOMIPS_GOT_DISP:
+                  {
+                    // We don't use gp-relative transformations
+                    // for function address calculations.
+                    bool is_func = (nanomips_sym != NULL
+                                    ? nanomips_sym->is_func()
+                                    : this->local_symbol_is_function(r_sym));
+                    if (this->pid() && !is_func)
+                      can_remove_gpsetup = false;
+                  }
+                  break;
+                default:
+                  gold_unreachable();
+                }
+            }
+
+          if (!can_remove_gpsetup)
+            break;
+        }
+
+      // Check if all GOT relocations depending on the GP will be
+      // transformed to static or PC-relative references in a
+      // relaxation pass.
+      if (can_remove_gpsetup)
+        {
+          // Set the relocation number of the GP-setup reloc.
+          if (gpsetup_relnum != -1U)
+            this->gpsetup_relnums_[data_shndx].insert(gpsetup_relnum);
+
+          // Set that GP is not used in this function.
+          if (saveres.is_for_local_symbol())
+            this->gp_not_used_.insert(saveres.symndx());
+          else
+            saveres.symbol()->set_gp_not_used();
+        }
+    }
+
+  // We no longer need the saved information.
+  this->gpsetup_opts_.clear();
+}
+
 // Adjust values of the symbols.  Also adjust sizes of the function
 // symbols.  This is used in a relaxation passes.
 
@@ -3435,60 +3786,6 @@ Nanomips_relobj<size, big_endian>::scan_sections_for_transform(
   return again;
 }
 
-// The nanoMIPS backend needs to know the size and if it is a function symbol,
-// and this is needed in a relaxation pass.  This is not the most efficient
-// way but we do not want to slow down other ports by calling a per symbol
-// target hook inside Sized_relobj_file::do_count_local_symbols.
-
-template<int size, bool big_endian>
-void
-Nanomips_relobj<size, big_endian>::do_count_local_symbols(
-    Stringpool_template<char>* pool,
-    Stringpool_template<char>* dynpool)
-{
-  // Ask parent to count the local symbols.
-  Sized_relobj_file<size, big_endian>::do_count_local_symbols(pool, dynpool);
-
-  const unsigned int loccount = this->local_symbol_count();
-
-  // Don't do anything if there are no local symbols, or this object is
-  // not safe to modify, or we are not transforming instructions.
-  if (loccount == 0
-      || !this->safe_to_modify()
-      || (!parameters->options().expand()
-          && !parameters->options().relax()))
-    return;
-
-  // Initialize vectors.
-  this->local_symbol_is_function_.resize(loccount);
-  this->local_symbol_size_.resize(loccount);
-
-  // Read the symbol table section header.
-  const unsigned int symtab_shndx = this->symtab_shndx();
-  elfcpp::Shdr<size, big_endian>
-    symtabshdr(this, this->elf_file()->section_header(symtab_shndx));
-  gold_assert(symtabshdr.get_sh_type() == elfcpp::SHT_SYMTAB);
-
-  // Read the local symbols.
-  const int sym_size = elfcpp::Elf_sizes<size>::sym_size;
-  gold_assert(loccount == symtabshdr.get_sh_info());
-  off_t locsize = loccount * sym_size;
-  const unsigned char* psyms = this->get_view(symtabshdr.get_sh_offset(),
-                                              locsize, true, true);
-
-  // Loop over the local symbols and cache informations.
-
-  // Skip the first dummy symbol.
-  psyms += sym_size;
-  for (unsigned int i = 1; i < loccount; ++i, psyms += sym_size)
-    {
-      elfcpp::Sym<size, big_endian> sym(psyms);
-      this->local_symbol_size_[i] = sym.get_st_size();
-      this->local_symbol_is_function_[i] =
-        sym.get_st_type() == elfcpp::STT_FUNC;
-    }
-}
-
 // For nanoMIPS target we need to update local symbol size in case they are
 // changed during relaxation pass.  This is not the most efficient way but we
 // do not want to slow down other ports by calling a per symbol target hook
@@ -3784,6 +4081,45 @@ Nanomips_relobj<size, big_endian>::do_read_symbols(Read_symbols_data* sd)
   // This is rare.
   if (!must_merge_processor_specific_data)
     this->merge_processor_specific_data_ = false;
+
+  const unsigned int loccount = this->local_symbol_count();
+
+  // Don't set up vectors if there are no local symbols, or this object
+  // is not safe to modify, or we won't transform instructions.
+  if (loccount == 0
+      || !this->safe_to_modify()
+      || (!parameters->options().expand()
+          && !parameters->options().relax()))
+    return;
+
+  // Initialize vectors.
+  this->local_symbol_is_function_.resize(loccount);
+  this->local_symbol_size_.resize(loccount);
+
+  // Read the symbol table section header.
+  const unsigned int symtab_shndx = this->symtab_shndx();
+  const unsigned char *psymtab = pshdrs + symtab_shndx * shdr_size;
+  elfcpp::Shdr<size, big_endian> symtabshdr(psymtab);
+  gold_assert(symtabshdr.get_sh_type() == elfcpp::SHT_SYMTAB);
+
+  // Read the local symbols.
+  const int sym_size = elfcpp::Elf_sizes<size>::sym_size;
+  gold_assert(loccount == symtabshdr.get_sh_info());
+  off_t locsize = loccount * sym_size;
+  const unsigned char* psyms = this->get_view(symtabshdr.get_sh_offset(),
+                                              locsize, true, false);
+
+  // Loop over the local symbols and cache informations.
+
+  // Skip the first dummy symbol.
+  psyms += sym_size;
+  for (unsigned int i = 1; i < loccount; ++i, psyms += sym_size)
+    {
+      elfcpp::Sym<size, big_endian> sym(psyms);
+      this->local_symbol_size_[i] = sym.get_st_size();
+      this->local_symbol_is_function_[i] =
+        sym.get_st_type() == elfcpp::STT_FUNC;
+    }
 }
 
 // Nanomips_output_section_abiflags methods.
@@ -3904,16 +4240,18 @@ Nanomips_transformations<size, big_endian>::write_insn(
 template<int size, bool big_endian>
 void
 Nanomips_transformations<size, big_endian>::print(
+    const Relocate_info<size, big_endian>* relinfo,
     const Nanomips_transform_template* transform_template,
     const std::string& insn_name,
     const Symbol* gsym,
     unsigned int r_sym,
     Address r_offset,
-    typename elfcpp::Elf_types<size>::Elf_Swxword r_addend,
-    unsigned int shndx)
+    typename elfcpp::Elf_types<size>::Elf_Swxword r_addend)
 {
-  const std::string& obj_name = this->relobj_->name();
-  const std::string sec_name = this->relobj_->section_name(shndx);
+  Nanomips_relobj<size, big_endian>* relobj =
+    Nanomips_relobj<size, big_endian>::as_nanomips_relobj(relinfo->object);
+  const std::string& obj_name = relobj->name();
+  const std::string sec_name = relobj->section_name(relinfo->data_shndx);
   const Nanomips_insn_template* insns = transform_template->insns();
   size_t insn_count = transform_template->insn_count();
 
@@ -3933,8 +4271,7 @@ Nanomips_transformations<size, big_endian>::print(
 
   if (gsym == NULL)
     fprintf(stderr, " for local symbol '%s' with index %u\n",
-            this->relobj_->local_symbol_name(r_sym, r_addend).c_str(),
-            r_sym);
+            relobj->local_symbol_name(r_sym, r_addend).c_str(), r_sym);
   else
     fprintf(stderr, " for global symbol '%s'\n", gsym->name());
 }
@@ -3945,6 +4282,7 @@ Nanomips_transformations<size, big_endian>::print(
 template<int size, bool big_endian>
 void
 Nanomips_transformations<size, big_endian>::find_fill_max(
+    Nanomips_relobj<size, big_endian>* relobj,
     Address offset,
     size_t relnum,
     size_t reloc_count,
@@ -3955,7 +4293,7 @@ Nanomips_transformations<size, big_endian>::find_fill_max(
 {
   typedef typename elfcpp::Rela<size, big_endian> Reltype;
   const int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
-  const unsigned int local_count = this->relobj_->local_symbol_count();
+  const unsigned int local_count = relobj->local_symbol_count();
 
   // Start finding FILL and MAX from the next relocation.
   prelocs += reloc_size;
@@ -3970,16 +4308,14 @@ Nanomips_transformations<size, big_endian>::find_fill_max(
       if (r_type == elfcpp::R_NANOMIPS_FILL)
         {
           gold_assert(r_sym < local_count);
-          const Symbol_value<size>* psymval =
-            this->relobj_->local_symbol(r_sym);
+          const Symbol_value<size>* psymval = relobj->local_symbol(r_sym);
           *fill = psymval->input_value();
-          *fill_size = this->relobj_->local_symbol_size(r_sym);
+          *fill_size = relobj->local_symbol_size(r_sym);
         }
       else if (r_type == elfcpp::R_NANOMIPS_MAX)
         {
           gold_assert(r_sym < local_count);
-          const Symbol_value<size>* psymval =
-            this->relobj_->local_symbol(r_sym);
+          const Symbol_value<size>* psymval = relobj->local_symbol(r_sym);
           *max = psymval->input_value();
         }
     }
@@ -3990,12 +4326,12 @@ Nanomips_transformations<size, big_endian>::find_fill_max(
 template<int size, bool big_endian>
 void
 Nanomips_transformations<size, big_endian>::align(
+    const Relocate_info<size, big_endian>* relinfo,
     Target_nanomips<size, big_endian>* target,
     Nanomips_input_section* input_section,
     size_t relnum,
     size_t reloc_count,
     const unsigned char* prelocs,
-    unsigned int data_shndx,
     Address view_address)
 {
   gold_assert(input_section != NULL);
@@ -4008,11 +4344,13 @@ Nanomips_transformations<size, big_endian>::align(
   Reltype reloc(prelocs);
   unsigned int r_sym = elfcpp::elf_r_sym<size>(reloc.get_r_info());
   Address r_offset = reloc.get_r_offset();
+  Nanomips_relobj<size, big_endian>* relobj =
+    Nanomips_relobj<size, big_endian>::as_nanomips_relobj(relinfo->object);
 
   // For R_NANOMIPS_ALIGN relocation, there is a local symbol in which
   // st_value holds the alignment requirement.
-  gold_assert(r_sym < this->relobj_->local_symbol_count());
-  const Symbol_value<size>* psymval = this->relobj_->local_symbol(r_sym);
+  gold_assert(r_sym < relobj->local_symbol_count());
+  const Symbol_value<size>* psymval = relobj->local_symbol(r_sym);
   Valtype input_value = psymval->input_value();
 
   Address align = 1 << input_value;
@@ -4022,7 +4360,7 @@ Nanomips_transformations<size, big_endian>::align(
   // Calculate the padding required due to instruction transformation.
   Address new_padding = new_address - address;
   // Get the existing padding bytes.
-  Address old_padding = this->relobj_->local_symbol_size(r_sym);
+  Address old_padding = relobj->local_symbol_size(r_sym);
 
   Valtype fill = nop16;
   Valtype max = static_cast<Valtype>(0) - 1;
@@ -4030,8 +4368,8 @@ Nanomips_transformations<size, big_endian>::align(
 
   // Find fill value, fill size and max bytes generated by
   // the assembler.
-  this->find_fill_max(r_offset, relnum, reloc_count, prelocs,
-                      &fill, &max, &fill_size);
+  this->find_fill_max(relobj, r_offset, relnum, reloc_count,
+                      prelocs, &fill, &max, &fill_size);
 
   // Set the padding required due to instruction transformation to 0, if
   // the padding bytes exceed max bytes.
@@ -4060,21 +4398,21 @@ Nanomips_transformations<size, big_endian>::align(
           Nanomips_insn_swap<16, big_endian>::writeval(view, nop16);
           gold_debug(DEBUG_TARGET,
                      "%s(%s+%#lx): nop[32] is replaced with nop[16]",
-                     this->relobj_->name().c_str(),
-                     this->relobj_->section_name(data_shndx).c_str(),
+                     relobj->name().c_str(),
+                     relobj->section_name(relinfo->data_shndx).c_str(),
                      (unsigned long) (r_offset + new_padding - 2));
         }
     }
 
-  target->update_content(input_section, this->relobj_, r_offset + old_padding,
+  target->update_content(input_section, relobj, r_offset + old_padding,
                          count, old_padding == 0);
-  this->relobj_->set_local_symbol_size(r_sym, new_padding);
+  relobj->set_local_symbol_size(r_sym, new_padding);
 
   gold_debug(DEBUG_TARGET,
              "%s(%s+%#lx): %d bytes are %s due to the alignment "
              "requirement",
-             this->relobj_->name().c_str(),
-             this->relobj_->section_name(data_shndx).c_str(),
+             relobj->name().c_str(),
+             relobj->section_name(relinfo->data_shndx).c_str(),
              (unsigned long) (r_offset + old_padding),
              abs(count),
              count > 0 ? "added" : "removed");
@@ -4104,6 +4442,7 @@ Nanomips_transformations<size, big_endian>::align(
 template<int size, bool big_endian>
 inline void
 Nanomips_transformations<size, big_endian>::transform(
+    const Relocate_info<size, big_endian>* relinfo,
     const Nanomips_transform_template* transform_template,
     const Nanomips_insn_property* insn_property,
     Nanomips_input_section* input_section,
@@ -4120,6 +4459,7 @@ Nanomips_transformations<size, big_endian>::transform(
   typedef typename elfcpp::Rela_write<size, big_endian> Reltype_write;
   const unsigned int reloc_size = elfcpp::Elf_sizes<size>::rela_size;
   unsigned char* preloc = input_section->relocs() + relnum * reloc_size;
+  Relocatable_relocs* rr = relinfo->rr;
 
   Reltype reloc(preloc);
   Reltype_write reloc_write(preloc);
@@ -4229,6 +4569,13 @@ Nanomips_transformations<size, big_endian>::transform(
       treg = insn_property->treg(insn);
       sreg = 0;
       break;
+    case elfcpp::R_NANOMIPS_SAVERESTORE:
+      // We are removing GP register from save/restore instruction,
+      // so we need to decrement count field.
+      treg = insn_property->treg(insn) - 1;
+      // SREG contains rt and u[11:3] fields.
+      sreg = insn_property->sreg(insn);
+      break;
     default:
       gold_unreachable();
     }
@@ -4248,8 +4595,8 @@ Nanomips_transformations<size, big_endian>::transform(
       reloc_write.put_r_info(
         elfcpp::elf_r_info<size>(0, elfcpp::R_NANOMIPS_NONE));
       reloc_write.put_r_addend(0);
-      if (this->rr_ != NULL)
-        this->rr_->discard_reloc(relnum);
+      if (rr != NULL)
+        rr->discard_reloc(relnum);
     }
 
   // Transform instructions.
@@ -4275,11 +4622,11 @@ Nanomips_transformations<size, big_endian>::transform(
           Address new_r_offset = (new_insn_size == 6 ? offset + 2 : offset);
           if (!new_reloc)
             {
-              // Change existing relocation.
+              // Change existing relocation, and set that we
+              // need to add new relocations.
               reloc_write.put_r_info(
                 elfcpp::elf_r_info<size>(r_sym, new_r_type));
               reloc_write.put_r_offset(new_r_offset);
-              // Set that we need to add new relocations.
               new_reloc = true;
             }
           else
@@ -4291,10 +4638,11 @@ Nanomips_transformations<size, big_endian>::transform(
               orel.put_r_info(elfcpp::elf_r_info<size>(r_sym, new_r_type));
               orel.put_r_addend(r_addend);
               input_section->add_reloc(relbuf, reloc_size);
+
               // For new relocation, we just use strategy from the current
               // relocation.
-              if (this->rr_ != NULL)
-                this->rr_->set_next_reloc_strategy(this->rr_->strategy(relnum));
+              if (rr != NULL)
+                rr->set_next_reloc_strategy(rr->strategy(relnum));
             }
         }
 
@@ -4317,9 +4665,11 @@ Nanomips_transformations<size, big_endian>::transform(
 
 template<int size, bool big_endian>
 const Nanomips_insn_property*
-Nanomips_relax_insn<size, big_endian>::find_insn(uint32_t insn,
-                                                 unsigned int mask,
-                                                 unsigned int r_type)
+Nanomips_relax_insn<size, big_endian>::find_insn(
+    Nanomips_relobj<size, big_endian>* relobj,
+    uint32_t insn,
+    unsigned int mask,
+    unsigned int r_type)
 {
   // We can't relax 32-bit to 16-bit instructions if
   // --insn32 option is passed.
@@ -4366,7 +4716,7 @@ Nanomips_relax_insn<size, big_endian>::find_insn(uint32_t insn,
     case elfcpp::R_NANOMIPS_PC14_S1:
       {
         if (!insn_property->has_transform(TT_PCREL16, r_type)
-            || !this->relobj()->xlp()
+            || !relobj->xlp()
             || !insn_property->valid_regs(insn))
           return NULL;
 
@@ -4411,6 +4761,7 @@ template<int size, bool big_endian>
 unsigned int
 Nanomips_relax_insn<size, big_endian>::relax_code_and_data_models(
     Target_nanomips<size, big_endian>* target,
+    const Nanomips_relobj<size, big_endian>* relobj,
     const Symbol* gsym,
     const Symbol_value<size>* psymval,
     const Nanomips_insn_property* insn_property,
@@ -4419,7 +4770,6 @@ Nanomips_relax_insn<size, big_endian>::relax_code_and_data_models(
     Address address,
     Address gp)
 {
-  const Nanomips_relobj<size, big_endian>* relobj = this->relobj();
   const Address invalid_address = static_cast<Address>(0) - 1;
   unsigned int r_sym = elfcpp::elf_r_sym<size>(reloc.get_r_info());
   unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
@@ -4524,6 +4874,7 @@ Nanomips_relax_insn<size, big_endian>::relax_code_and_data_models(
 template<int size, bool big_endian>
 unsigned int
 Nanomips_relax_insn<size, big_endian>::type(
+    const Relocate_info<size, big_endian>* relinfo,
     Target_nanomips<size, big_endian>* target,
     const Symbol* gsym,
     const Symbol_value<size>* psymval,
@@ -4535,7 +4886,8 @@ Nanomips_relax_insn<size, big_endian>::type(
     Address gp)
 {
   const Address invalid_address = static_cast<Address>(0) - 1;
-  const Nanomips_relobj<size, big_endian>* relobj = this->relobj();
+  const Nanomips_relobj<size, big_endian>* relobj =
+    Nanomips_relobj<size, big_endian>::as_nanomips_relobj(relinfo->object);
   typename elfcpp::Elf_types<size>::Elf_Swxword r_addend = reloc.get_r_addend();
   unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
   switch (r_type)
@@ -4620,7 +4972,7 @@ Nanomips_relax_insn<size, big_endian>::type(
     case elfcpp::R_NANOMIPS_GOT_PAGE:
     case elfcpp::R_NANOMIPS_GOT_OFST:
     case elfcpp::R_NANOMIPS_JALR16:
-      return this->relax_code_and_data_models(target, gsym, psymval,
+      return this->relax_code_and_data_models(target, relobj, gsym, psymval,
                                               insn_property, reloc,
                                               insn, address, gp);
     default:
@@ -4637,6 +4989,7 @@ Nanomips_relax_insn<size, big_endian>::type(
 template<int size, bool big_endian>
 unsigned int
 Nanomips_relax_insn_finalize<size, big_endian>::type(
+    const Relocate_info<size, big_endian>* relinfo,
     Target_nanomips<size, big_endian>* target,
     const Symbol* gsym,
     const Symbol_value<size>* psymval,
@@ -4647,15 +5000,15 @@ Nanomips_relax_insn_finalize<size, big_endian>::type(
     Address address,
     Address gp)
 {
-  Relocatable_relocs* rr = this->rr();
+  Relocatable_relocs* rr = relinfo->rr;
   gold_assert(rr != NULL);
 
   if (rr->strategy(relnum) != Relocatable_relocs::RELOC_RESOLVE)
     return TT_NONE;
 
-  return Nanomips_relax_insn<size, big_endian>::type(target, gsym, psymval,
-                                                     insn_property, reloc,
-                                                     relnum, insn,
+  return Nanomips_relax_insn<size, big_endian>::type(relinfo, target, gsym,
+                                                     psymval, insn_property,
+                                                     reloc, relnum, insn,
                                                      address, gp);
 }
 
@@ -4665,9 +5018,11 @@ Nanomips_relax_insn_finalize<size, big_endian>::type(
 
 template<int size, bool big_endian>
 const Nanomips_insn_property*
-Nanomips_expand_insn<size, big_endian>::find_insn(uint32_t insn,
-                                                  unsigned int mask,
-                                                  unsigned int r_type)
+Nanomips_expand_insn<size, big_endian>::find_insn(
+    Nanomips_relobj<size, big_endian>*,
+    uint32_t insn,
+    unsigned int mask,
+    unsigned int r_type)
 {
   switch (r_type)
     {
@@ -4689,6 +5044,7 @@ Nanomips_expand_insn<size, big_endian>::find_insn(uint32_t insn,
     case elfcpp::R_NANOMIPS_GOT_CALL:
     case elfcpp::R_NANOMIPS_JALR32:
     case elfcpp::R_NANOMIPS_JALR16:
+    case elfcpp::R_NANOMIPS_SAVERESTORE:
     case elfcpp::R_NANOMIPS_TLS_GD:
     case elfcpp::R_NANOMIPS_TLS_LD:
     case elfcpp::R_NANOMIPS_TLS_GOTTPREL:
@@ -4705,13 +5061,14 @@ Nanomips_expand_insn<size, big_endian>::find_insn(uint32_t insn,
 template<int size, bool big_endian>
 unsigned int
 Nanomips_expand_insn<size, big_endian>::expand_type(
+    const Nanomips_relobj<size, big_endian>* relobj,
     const Nanomips_insn_property* insn_property,
     uint32_t insn,
     unsigned int r_type)
 {
-  const bool xlp = this->relobj()->xlp();
+  const bool xlp = relobj->xlp();
+  const bool pcrel = relobj->pcrel();
   const bool insn32 = parameters->options().insn32();
-  const bool pcrel = this->relobj()->pcrel();
   switch (r_type)
     {
     case elfcpp::R_NANOMIPS_PC25_S1:
@@ -4788,6 +5145,9 @@ Nanomips_expand_insn<size, big_endian>::expand_type(
     case elfcpp::R_NANOMIPS_LO4_S2:
       // Transform [ls]w[16] into [ls]w.
       return TT_ABS32;
+    case elfcpp::R_NANOMIPS_SAVERESTORE:
+      // Transform save[gp]/restore[gp] into save/restore.
+      return TT_DISCARD;
     default:
       gold_unreachable();
     }
@@ -4799,6 +5159,7 @@ template<int size, bool big_endian>
 unsigned int
 Nanomips_expand_insn<size, big_endian>::expand_code_and_data_models(
     Target_nanomips<size, big_endian>* target,
+    const Nanomips_relobj<size, big_endian>* relobj,
     const Symbol* gsym,
     const Symbol_value<size>* psymval,
     const Nanomips_insn_property* insn_property,
@@ -4807,7 +5168,6 @@ Nanomips_expand_insn<size, big_endian>::expand_code_and_data_models(
     Address address,
     Address gp)
 {
-  const Nanomips_relobj<size, big_endian>* relobj = this->relobj();
   const Address invalid_address = static_cast<Address>(0) - 1;
   unsigned int r_sym = elfcpp::elf_r_sym<size>(reloc.get_r_info());
   unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
@@ -4954,18 +5314,21 @@ Nanomips_expand_insn<size, big_endian>::expand_code_and_data_models(
 template<int size, bool big_endian>
 unsigned int
 Nanomips_expand_insn<size, big_endian>::type(
+    const Relocate_info<size, big_endian>* relinfo,
     Target_nanomips<size, big_endian>* target,
     const Symbol* gsym,
     const Symbol_value<size>* psymval,
     const Nanomips_insn_property* insn_property,
     const elfcpp::Rela<size, big_endian>& reloc,
-    size_t,
+    size_t relnum,
     uint32_t insn,
     Address address,
     Address gp)
 {
   const Address invalid_address = static_cast<Address>(0) - 1;
-  const Nanomips_relobj<size, big_endian>* relobj = this->relobj();
+  const Nanomips_relobj<size, big_endian>* relobj =
+    Nanomips_relobj<size, big_endian>::as_nanomips_relobj(relinfo->object);
+  unsigned int r_sym = elfcpp::elf_r_sym<size>(reloc.get_r_info());
   unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
   typename elfcpp::Elf_types<size>::Elf_Swxword r_addend =
     reloc.get_r_addend();
@@ -4981,6 +5344,13 @@ Nanomips_expand_insn<size, big_endian>::type(
       }
     case elfcpp::R_NANOMIPS_PC21_S1:
       {
+        // Check whether we need to remove GP-setup instruction.
+        if (relobj->pic()
+            && gsym != NULL
+            && strcmp(gsym->name(), "_gp") == 0
+            && relobj->remove_gpsetup_reloc(relinfo->data_shndx, relnum))
+          return TT_DISCARD;
+
         Valtype value = psymval->value(relobj, r_addend) - address - 4;
         if (((value & 0x1) == 0)
             && !this->template has_overflow_signed<22>(value))
@@ -5056,6 +5426,17 @@ Nanomips_expand_insn<size, big_endian>::type(
           return TT_NONE;
         break;
       }
+    case elfcpp::R_NANOMIPS_SAVERESTORE:
+      {
+        const Nanomips_symbol<size>* nanomips_sym =
+          Nanomips_symbol<size>::as_nanomips_sym(gsym);
+        bool is_gp_not_used = (nanomips_sym != NULL
+                               ? nanomips_sym->is_gp_not_used()
+                               : relobj->is_gp_not_used(r_sym));
+        if (!is_gp_not_used)
+          return TT_NONE;
+        break;
+      }
     case elfcpp::R_NANOMIPS_GOT_DISP:
     case elfcpp::R_NANOMIPS_GOT_PAGE:
     case elfcpp::R_NANOMIPS_GOT_OFST:
@@ -5065,13 +5446,13 @@ Nanomips_expand_insn<size, big_endian>::type(
     case elfcpp::R_NANOMIPS_TLS_GD:
     case elfcpp::R_NANOMIPS_TLS_LD:
     case elfcpp::R_NANOMIPS_TLS_GOTTPREL:
-      return this->expand_code_and_data_models(target, gsym, psymval,
+      return this->expand_code_and_data_models(target, relobj, gsym, psymval,
                                                insn_property, reloc,
                                                insn, address, gp);
     default:
       gold_unreachable();
     }
-  return this->expand_type(insn_property, insn, r_type);
+  return this->expand_type(relobj, insn_property, insn, r_type);
 }
 
 // Nanomips_expand_insn_finalize methods.
@@ -5082,6 +5463,7 @@ Nanomips_expand_insn<size, big_endian>::type(
 template<int size, bool big_endian>
 unsigned int
 Nanomips_expand_insn_finalize<size, big_endian>::type(
+    const Relocate_info<size, big_endian>* relinfo,
     Target_nanomips<size, big_endian>* target,
     const Symbol* gsym,
     const Symbol_value<size>* psymval,
@@ -5092,7 +5474,9 @@ Nanomips_expand_insn_finalize<size, big_endian>::type(
     Address address,
     Address gp)
 {
-  Relocatable_relocs* rr = this->rr();
+  Nanomips_relobj<size, big_endian>* relobj =
+    Nanomips_relobj<size, big_endian>::as_nanomips_relobj(relinfo->object);
+  Relocatable_relocs* rr = relinfo->rr;
   gold_assert(rr != NULL);
 
   unsigned int r_sym = elfcpp::elf_r_sym<size>(reloc.get_r_info());
@@ -5109,19 +5493,18 @@ Nanomips_expand_insn_finalize<size, big_endian>::type(
 
   // Expand all non-RELOC_RESOLVE relocations.
   if (rr->strategy(relnum) != Relocatable_relocs::RELOC_RESOLVE)
-    return this->expand_type(insn_property, insn, r_type);
+    return this->expand_type(relobj, insn_property, insn, r_type);
 
   // For RELOC_RESOLVE we need to check if we need to expand instruction.
   unsigned int type =
-    Nanomips_expand_insn<size, big_endian>::type(target, gsym, psymval,
-                                                 insn_property, reloc,
-                                                 relnum, insn, address,
-                                                 gp);
+    Nanomips_expand_insn<size, big_endian>::type(relinfo, target, gsym,
+                                                 psymval, insn_property,
+                                                 reloc, relnum, insn,
+                                                 address, gp);
   if (type == TT_NONE)
     return TT_NONE;
 
   Relocatable_relocs::Reloc_strategy strategy;
-  Nanomips_relobj<size, big_endian>* relobj = this->relobj();
 
   // We can't resolve this relocation so we need to get default strategy.
   if (gsym != NULL)
@@ -5861,10 +6244,13 @@ Target_nanomips<size, big_endian>::merge_obj_e_flags(const std::string& name,
       return;
     }
 
+  // TODO: Enable this.
+#if 0
   if ((new_flags & elfcpp::EF_NANOMIPS_PIC)
       != (old_flags & elfcpp::EF_NANOMIPS_PIC))
     gold_warning(_("%s: linking abicalls files with non-abicalls files"),
                  name.c_str());
+#endif
 
   if ((new_flags & elfcpp::EF_NANOMIPS_PIC) == 0)
     merged_flags &= ~elfcpp::EF_NANOMIPS_PIC;
@@ -6063,6 +6449,15 @@ Target_nanomips<size, big_endian>::do_finalize_sections(
   // relocs.
   if (this->copy_relocs_.any_saved_relocs())
     this->copy_relocs_.emit(this->rel_dyn_section(layout));
+
+  for (Input_objects::Relobj_iterator p = input_objects->relobj_begin();
+       p != input_objects->relobj_end();
+       ++p)
+    {
+      Nanomips_relobj<size, big_endian>* relobj =
+        Nanomips_relobj<size, big_endian>::as_nanomips_relobj(*p);
+      relobj->finalize_gpsetup_optimizations(this);
+    }
 
   const Reloc_section* rel_stubs = (this->stubs_ == NULL
                                     ? NULL
@@ -6705,7 +7100,7 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
     Nanomips_relobj<size, big_endian>::as_nanomips_relobj(relinfo->object);
   const Symbol_table* symtab = relinfo->symtab;
   const unsigned int local_count = relobj->local_symbol_count();
-  Nanomips_transform transform(relobj, relinfo->rr);
+  Nanomips_transform transform;
 
   if (this->gp_ != NULL)
     {
@@ -6750,8 +7145,8 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
         {
           if (do_align)
             {
-              transform.align(this, input_section, i, reloc_count, prelocs,
-                              relinfo->data_shndx, view_address);
+              transform.align(relinfo, this, input_section, i,
+                              reloc_count, prelocs, view_address);
               do_align = false;
 
               // Update view in case it is changed.
@@ -6778,7 +7173,7 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
       uint32_t insn = read_nanomips_insn<big_endian>(view + r_offset,
                                                      insn_size);
       const Nanomips_insn_property* insn_property =
-        transform.find_insn(insn, reloc_property->mask(), r_type);
+        transform.find_insn(relobj, insn, reloc_property->mask(), r_type);
 
       // If this isn't something that can be transformed, then ignore this
       // relocation.
@@ -6902,8 +7297,9 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
 
       // Get the type of the transformation.
       Address address = view_address + r_offset;
-      unsigned int type = transform.type(this, gsym, psymval, insn_property,
-                                         reloc, i, insn, address, gp);
+      unsigned int type = transform.type(relinfo, this, gsym, psymval,
+                                         insn_property, reloc, i, insn,
+                                         address, gp);
       if (type == TT_NONE)
         continue;
 
@@ -6938,13 +7334,12 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
         }
 
       // Transform instruction.
-      transform.transform(transform_template, insn_property,
+      transform.transform(relinfo, transform_template, insn_property,
                           input_section, type, i, insn);
 
       if (is_debugging_enabled(DEBUG_TARGET))
-        transform.print(transform_template, insn_property->name(),
-                        gsym, r_sym, r_offset, r_addend,
-                        relinfo->data_shndx);
+        transform.print(relinfo, transform_template, insn_property->name(),
+                        gsym, r_sym, r_offset, r_addend);
 
       // Update pointers in case they are changed.
       prelocs = input_section->relocs() + i * reloc_size;
@@ -6964,6 +7359,82 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
     }
 
   return again;
+}
+
+// Report a missing R_NANOMIPS_SAVERESTORE reloc.
+
+template<int size, bool big_endian>
+void
+Target_nanomips<size, big_endian>::Scan::missing()
+{
+  gold_assert(this->saveres_state_ == FOUND);
+  gold_assert(this->relobj_ != NULL);
+  const std::string secname = this->relobj_->section_name(this->data_shndx);
+
+  if (this->saveres_.is_for_local_symbol())
+    {
+      unsigned int symndx = this->saveres_.symndx();
+      gold_error(_("%s(%s): missing R_NANOMIPS_SAVERESTORE relocation "
+                   "for local symbol '%s' with index %u"),
+                 this->relobj_->name().c_str(), secname.c_str(),
+                 this->relobj_->get_symbol_name(symndx), symndx);
+    }
+  else
+    {
+      Nanomips_symbol<size>* sym = this->saveres_.symbol();
+      gold_error(_("%s(%s): missing R_NANOMIPS_SAVERESTORE relocation "
+                   "for global symbol '%s'"),
+                 this->relobj_->name().c_str(), secname.c_str(),
+                 sym->name());
+    }
+
+  // Remove GP-setup optimization if needed.
+  if (this->can_remove_gpsetup_)
+    this->remove_gpsetup_optimization();
+}
+
+// Handle R_NANOMIPS_SAVERESTORE reloc.
+
+template<int size, bool big_endian>
+inline void
+Target_nanomips<size, big_endian>::Scan::handle_saveres_reloc(
+    const Nanomips_pic_reloc<size, big_endian>& saveres,
+    Nanomips_relobj<size, big_endian>* relobj,
+    unsigned int data_shndx)
+{
+  if (!parameters->options().expand() || !relobj->safe_to_modify())
+    return;
+
+  if (this->relobj_ == NULL)
+    {
+      this->relobj_ = relobj;
+      this->data_shndx = data_shndx;
+    }
+
+  switch (this->saveres_state_)
+    {
+    case FOUND:
+      // We expect to see reloc for the same symbol.
+      if (this->saveres_ == saveres)
+        {
+          this->saveres_state_ = SEARCH;
+          break;
+        }
+
+      // Report that we didn't find R_NANOMIPS_SAVERESTORE pair.
+      this->missing();
+
+      // Fall through.
+
+    case SEARCH:
+      this->saveres_ = saveres;
+      this->saveres_state_ = FOUND;
+      this->can_remove_gpsetup_ = true;
+      relobj->add_gpsetup_optimization(saveres, data_shndx);
+      break;
+    default:
+      gold_unreachable();
+    }
 }
 
 // Return true if a reloc is part of a composite relocations.
@@ -6994,6 +7465,7 @@ Target_nanomips<size, big_endian>::Scan::reloc_in_composite_relocs(
       if (offset == next_reloc.get_r_offset())
         return true;
     }
+
   // Otherwise, return false.
   return false;
 }
@@ -7055,11 +7527,11 @@ Target_nanomips<size, big_endian>::Scan::local(
           const unsigned char* view = relobj->section_contents(data_shndx,
                                                                &view_size,
                                                                false);
-          Nanomips_relax_insn<size, big_endian> relax_insn(relobj);
+          Nanomips_relax_insn<size, big_endian> relax_insn;
           uint32_t insn = read_nanomips_insn<big_endian>(view + r_offset,
                                                          nrp->size());
           const Nanomips_insn_property* insn_property =
-            relax_insn.find_insn(insn, nrp->mask(), r_type);
+            relax_insn.find_insn(relobj, insn, nrp->mask(), r_type);
 
           // Check if a lw[gp]/sw[gp] instruction can be relaxed into
           // lw[gp16]/sw[gp16] in a relaxation pass.
@@ -7102,9 +7574,9 @@ Target_nanomips<size, big_endian>::Scan::local(
                                       r_offset);
         }
       break;
-    case elfcpp::R_NANOMIPS_GOT_DISP:
     case elfcpp::R_NANOMIPS_GOT_CALL:
     case elfcpp::R_NANOMIPS_GOT_PAGE:
+    case elfcpp::R_NANOMIPS_GOT_DISP:
       // TODO: If building a shared library, create GOT entry if refcount>=2.
 
       // Don't add a GOT entry for a symbol if this relocation will be
@@ -7217,8 +7689,60 @@ Target_nanomips<size, big_endian>::Scan::local(
       gold_error(_("%s: unexpected reloc %s in object file"),
                  relobj->name().c_str(), nrp->name().c_str());
       break;
+    case elfcpp::R_NANOMIPS_SAVERESTORE:
+      {
+        Nanomips_pic_reloc<size, big_endian> saveres(r_sym, r_type, r_addend);
+        this->handle_saveres_reloc(saveres, relobj, data_shndx);
+      }
+      break;
     default:
       break;
+    }
+
+  if (this->saveres_state_ == FOUND
+      && this->can_remove_gpsetup_)
+    {
+      switch (r_type)
+        {
+        case elfcpp::R_NANOMIPS_GOT_CALL:
+        case elfcpp::R_NANOMIPS_GOT_PAGE:
+        case elfcpp::R_NANOMIPS_GOT_DISP:
+          {
+            Nanomips_pic_reloc<size, big_endian> reloc(r_sym, r_type, r_addend);
+            relobj->add_got_reloc(reloc);
+          }
+          break;
+        case elfcpp::R_NANOMIPS_TLS_GOTTPREL:
+          {
+            typedef Nanomips_transformations<size, big_endian> Transform;
+            unsigned int got_offset =
+              local_got_offset(target, relobj, r_sym, r_type, r_addend);
+            gold_assert(got_offset != -1U);
+
+            // We don't need to remove GP-setup optimization if this
+            // will be transformed into a PC-relative instruction.
+            if (Transform::template has_overflow_unsigned<21>(got_offset))
+              break;
+          }
+          // Fall through.
+
+        case elfcpp::R_NANOMIPS_GPREL_I32:
+        case elfcpp::R_NANOMIPS_GPREL_HI20:
+        case elfcpp::R_NANOMIPS_GPREL19_S2:
+        case elfcpp::R_NANOMIPS_GPREL18_S3:
+        case elfcpp::R_NANOMIPS_GPREL18:
+        case elfcpp::R_NANOMIPS_GPREL17_S1:
+        case elfcpp::R_NANOMIPS_GPREL16_S2:
+        case elfcpp::R_NANOMIPS_GPREL7_S2:
+        case elfcpp::R_NANOMIPS_TLS_GD_I32:
+        case elfcpp::R_NANOMIPS_TLS_GD:
+        case elfcpp::R_NANOMIPS_TLS_LD_I32:
+        case elfcpp::R_NANOMIPS_TLS_LD:
+          this->remove_gpsetup_optimization();
+          break;
+        default:
+          break;
+        }
     }
 }
 
@@ -7276,11 +7800,11 @@ Target_nanomips<size, big_endian>::Scan::global(
           const unsigned char* view = relobj->section_contents(data_shndx,
                                                                &view_size,
                                                                false);
-          Nanomips_relax_insn<size, big_endian> relax_insn(relobj);
+          Nanomips_relax_insn<size, big_endian> relax_insn;
           uint32_t insn = read_nanomips_insn<big_endian>(view + r_offset,
                                                          nrp->size());
           const Nanomips_insn_property* insn_property =
-            relax_insn.find_insn(insn, nrp->mask(), r_type);
+            relax_insn.find_insn(relobj, insn, nrp->mask(), r_type);
 
           // Check if a lw[gp]/sw[gp] instruction can be relaxed into
           // lw[gp16]/sw[gp16] in a relaxation pass.
@@ -7358,9 +7882,9 @@ Target_nanomips<size, big_endian>::Scan::global(
                           nrp->name().c_str(), gsym->name());
         }
       break;
-    case elfcpp::R_NANOMIPS_GOT_DISP:
     case elfcpp::R_NANOMIPS_GOT_CALL:
     case elfcpp::R_NANOMIPS_GOT_PAGE:
+    case elfcpp::R_NANOMIPS_GOT_DISP:
       // TODO: If building a shared library, create GOT entry if refcount>=2.
 
       // Don't add a GOT entry for a symbol if it is fully resolved,
@@ -7392,15 +7916,14 @@ Target_nanomips<size, big_endian>::Scan::global(
                 || gsym->is_undefined()
                 || gsym->is_preemptible())
               {
-                if (r_type != elfcpp::R_NANOMIPS_GOT_CALL
-                    || nanomips_sym->no_lazy_stub())
+                if (r_type == elfcpp::R_NANOMIPS_GOT_CALL)
+                  got->record_got_call_symbol(nanomips_sym);
+                else
                   {
                     Reloc_section* rel_dyn = target->rel_dyn_section(layout);
                     got->add_global_with_rel(gsym, GOT_TYPE_STANDARD, rel_dyn,
                                              elfcpp::R_NANOMIPS_GLOBAL);
                   }
-                else
-                  got->record_got_call_symbol(nanomips_sym);
               }
             else
               {
@@ -7479,17 +8002,80 @@ Target_nanomips<size, big_endian>::Scan::global(
       gold_error(_("%s: unexpected reloc %s in object file"),
                  relobj->name().c_str(), nrp->name().c_str());
       break;
+    case elfcpp::R_NANOMIPS_SAVERESTORE:
+      {
+        Nanomips_pic_reloc<size, big_endian> saveres(nanomips_sym, r_type);
+        this->handle_saveres_reloc(saveres, relobj, data_shndx);
+      }
+      break;
     default:
       break;
     }
 
-  // We must not create a nanoMIPS lazy-binding stub for a symbol that
-  // has relocations related to taking the function's address.
-  if (r_type != elfcpp::R_NANOMIPS_GOT_CALL
-      && r_type != elfcpp::R_NANOMIPS_GOT_LO12
-      && r_type != elfcpp::R_NANOMIPS_JALR32
-      && r_type != elfcpp::R_NANOMIPS_JALR16)
-    nanomips_sym->set_no_lazy_stub();
+  switch (r_type)
+    {
+    case elfcpp::R_NANOMIPS_GOT_CALL:
+    case elfcpp::R_NANOMIPS_GOT_LO12:
+    case elfcpp::R_NANOMIPS_JALR32:
+    case elfcpp::R_NANOMIPS_JALR16:
+    case elfcpp::R_NANOMIPS_SAVERESTORE:
+      break;
+    default:
+      // We must not create a nanoMIPS lazy-binding stub for
+      // a symbol that has relocations related to taking the
+      // function's address.
+      nanomips_sym->set_no_lazy_stub();
+      break;
+    }
+
+  if (this->saveres_state_ == FOUND
+      && this->can_remove_gpsetup_)
+    {
+      switch (r_type)
+        {
+        case elfcpp::R_NANOMIPS_PC21_S1:
+          if (strcmp(gsym->name(), "_gp") == 0)
+            relobj->add_gpsetup_relnum(relnum);
+          break;
+        case elfcpp::R_NANOMIPS_GOT_CALL:
+        case elfcpp::R_NANOMIPS_GOT_PAGE:
+        case elfcpp::R_NANOMIPS_GOT_DISP:
+          {
+            Nanomips_pic_reloc<size, big_endian> reloc(nanomips_sym, r_type);
+            relobj->add_got_reloc(reloc);
+          }
+          break;
+        case elfcpp::R_NANOMIPS_TLS_GOTTPREL:
+          {
+            typedef Nanomips_transformations<size, big_endian> Transform;
+            unsigned int got_offset = global_got_offset(target, gsym, r_type);
+            gold_assert(got_offset != -1U);
+
+            // We don't need to remove GP-setup optimization if this
+            // will be transformed into a PC-relative instruction.
+            if (Transform::template has_overflow_unsigned<21>(got_offset))
+              break;
+          }
+          // Fall through.
+
+        case elfcpp::R_NANOMIPS_GPREL_I32:
+        case elfcpp::R_NANOMIPS_GPREL_HI20:
+        case elfcpp::R_NANOMIPS_GPREL19_S2:
+        case elfcpp::R_NANOMIPS_GPREL18_S3:
+        case elfcpp::R_NANOMIPS_GPREL18:
+        case elfcpp::R_NANOMIPS_GPREL17_S1:
+        case elfcpp::R_NANOMIPS_GPREL16_S2:
+        case elfcpp::R_NANOMIPS_GPREL7_S2:
+        case elfcpp::R_NANOMIPS_TLS_GD_I32:
+        case elfcpp::R_NANOMIPS_TLS_GD:
+        case elfcpp::R_NANOMIPS_TLS_LD_I32:
+        case elfcpp::R_NANOMIPS_TLS_LD:
+          this->remove_gpsetup_optimization();
+          break;
+        default:
+          break;
+        }
+    }
 }
 
 // Return whether we only need to apply addend for a R_NANOMIPS_32

@@ -82,24 +82,6 @@ unsigned int
 extract_reg(uint32_t insn)
 { return Extract_reg_impl<P, B>::get(insn); }
 
-// Return target register in move.balc nanoMIPS instruction.
-
-unsigned int
-move_balc_treg_32(uint32_t insn)
-{
-  unsigned int reg = (((insn >> 21) & 0x7) | ((insn >> 22) & 0x8));
-  static unsigned int gpr4_zero_map[] = { 8, 9, 10, 0, 4, 5, 6, 7, 16,
-                                          17, 18, 19, 20, 21, 22, 23 };
-  gold_assert(reg < sizeof(gpr4_zero_map) / sizeof(gpr4_zero_map[0]));
-  return gpr4_zero_map[reg];
-}
-
-// Return destination register in move.balc nanoMIPS instruction.
-
-unsigned int
-move_balc_dreg_32(uint32_t insn)
-{ return ((insn >> 24) & 0x1) + 4; }
-
 // Check if a 5-bit register index can be abbreviated to 3 bits.
 
 bool
@@ -131,6 +113,40 @@ convert_st_src_reg(unsigned int reg)
   static unsigned int gpr3_src_store_map[] = { 0, 17, 18, 19, 4, 5, 6, 7 };
   gold_assert(reg < sizeof(gpr3_src_store_map) / sizeof(gpr3_src_store_map[0]));
   return gpr3_src_store_map[reg];
+}
+
+// Return target register from nanoMIPS move.balc instruction.
+
+unsigned int
+move_balc_treg_32(uint32_t insn)
+{
+  unsigned int reg = (((insn >> 21) & 0x7) | ((insn >> 22) & 0x8));
+  static unsigned int gpr4_zero_map[] = { 8, 9, 10, 0, 4, 5, 6, 7, 16,
+                                          17, 18, 19, 20, 21, 22, 23 };
+  gold_assert(reg < sizeof(gpr4_zero_map) / sizeof(gpr4_zero_map[0]));
+  return gpr4_zero_map[reg];
+}
+
+// Return destination register from nanoMIPS move.balc instruction.
+
+unsigned int
+move_balc_dreg_32(uint32_t insn)
+{ return ((insn >> 24) & 0x1) + 4; }
+
+// Return rt and u[11:3] fields from nanoMIPS save/restore instruction.
+
+unsigned int
+ext_sres_fields(uint32_t insn)
+{ return (((insn >> 3) & 0x1ff) | ((insn >> 12) & 0x3e00)); }
+
+// Insert rt and u[11:3] fields in nanoMIPS save/restore instruction.
+
+unsigned int
+ins_sres_fields(unsigned int, unsigned int fields, uint32_t data)
+{
+  unsigned int u = ((fields & 0x1ff) << 3);
+  unsigned int rt = ((fields & 0x3e00) << 12);
+  return (data | rt | u);
 }
 
 Nanomips_insn_property::Nanomips_insn_property(
