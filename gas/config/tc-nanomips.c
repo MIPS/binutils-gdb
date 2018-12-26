@@ -4326,8 +4326,7 @@ match_save_restore_list_operand (struct nanomips_arg_info *arg,
   insn_insert_operand (arg->insn, operand, opval);
   if (nanomips_opts.linkrelax
       && nanomips_opts.pic != NO_PIC
-      && gp
-      && (arg->insn->insn_opcode & 0x3) != 2)
+      && gp)
     {
       offset_expr.X_op = O_symbol;
       offset_expr.X_add_symbol = ((cur_proc_ptr != NULL)
