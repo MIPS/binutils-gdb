@@ -21,7 +21,7 @@ Relocation section '\.rela\.text' at offset 0x[0-9a-f]+ contains 17 entries:
 0000003a  [0-9a-f]+1d R_NANOMIPS_LO12        0000004e   \.L6 \+ 0
 00000048  [0-9a-f]+40 R_NANOMIPS_ALIGN       00000002   __reloc_align_\^B_1 \+ 0
 0000004a  [0-9a-f]+14 R_NANOMIPS_GPREL19_S2  00000000   foo \+ 0
-0000004e  [0-9a-f]+4a R_NANOMIPS_JALR16      00000000   foo \+ 0
+0000004e  [0-9a-f]+4a R_NANOMIPS_JUMP16      00000000   foo \+ 0
 #...
 Relocation section '\.rela\.data' at offset 0x[0-9a-f]+ contains 4 entries:
  Offset     Info    Type                Sym\. Value  Symbol's Name \+ Addend

@@ -814,7 +814,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] = {
 	 FALSE),		/* pcrel_offset */
 
   /* Place-holder to enforce 32-bit JALR encoding.  */
-  HOWTO (R_NANOMIPS_JALR32,	/* type */
+  HOWTO (R_NANOMIPS_JUMP32,	/* type */
 	 0,			/* rightshift */
 	 0,			/* size (0 = byte, 1 = short, 2 = long) */
 	 0,			/* bitsize */
@@ -822,14 +822,14 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] = {
 	 0,			/* bitpos */
 	 complain_overflow_dont, /* complain_on_overflow */
 	 bfd_elf_generic_reloc, /* special handler.  */
-	 "R_NANOMIPS_JALR32",	/* name */
+	 "R_NANOMIPS_JUMP32",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 0,			/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
   /* Place-holder to enforce 16-bit JALR encoding.  */
-  HOWTO (R_NANOMIPS_JALR16,	/* type */
+  HOWTO (R_NANOMIPS_JUMP16,	/* type */
 	 0,			/* rightshift */
 	 0,			/* size (0 = byte, 1 = short, 2 = long) */
 	 0,			/* bitsize */
@@ -837,7 +837,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] = {
 	 0,			/* bitpos */
 	 complain_overflow_dont, /* complain_on_overflow */
 	 bfd_elf_generic_reloc, /* special handler.  */
-	 "R_NANOMIPS_JALR16",	/* name */
+	 "R_NANOMIPS_JUMP16",	/* name */
 	 FALSE,			/* partial_inplace */
 	 0,			/* src_mask */
 	 0,			/* dst_mask */
@@ -1196,8 +1196,8 @@ static const struct elf_reloc_map nanomips_reloc_map[] = {
   { BFD_RELOC_NANOMIPS_RELAX, R_NANOMIPS_RELAX },
   { BFD_RELOC_NANOMIPS_NORELAX, R_NANOMIPS_NORELAX },
   { BFD_RELOC_NANOMIPS_SAVERESTORE, R_NANOMIPS_SAVERESTORE },
-  { BFD_RELOC_NANOMIPS_JALR32, R_NANOMIPS_JALR32 },
-  { BFD_RELOC_NANOMIPS_JALR16, R_NANOMIPS_JALR16 },
+  { BFD_RELOC_NANOMIPS_JUMP32, R_NANOMIPS_JUMP32 },
+  { BFD_RELOC_NANOMIPS_JUMP16, R_NANOMIPS_JUMP16 },
 
   { BFD_RELOC_NANOMIPS_TLS_GD, R_NANOMIPS_TLS_GD },
   { BFD_RELOC_NANOMIPS_TLS_GD_I32, R_NANOMIPS_TLS_GD_I32 },
@@ -1254,7 +1254,28 @@ bfd_elfNN_bfd_reloc_type_lookup (bfd *abfd ATTRIBUTE_UNUSED,
     }
 }
 
-/* Map a BFD relocation to its display name.  */
+/* Given a nanoMIPS Elf_Internal_Rel, fill in an arelent structure.  */
+
+static reloc_howto_type *
+nanomips_elfNN_rtype_to_howto (unsigned int r_type,
+			       bfd_boolean rela_p ATTRIBUTE_UNUSED)
+{
+  switch (r_type)
+    {
+    case R_NANOMIPS_GNU_VTINHERIT:
+      return &elf_nanomips_gnu_vtinherit_howto;
+    case R_NANOMIPS_GNU_VTENTRY:
+      return &elf_nanomips_gnu_vtentry_howto;
+    case R_NANOMIPS_EH:
+      return &elf_nanomips_eh_howto;
+    case R_NANOMIPS_PC32:
+      return &elf_nanomips_gnu_pcrel32;
+    default:
+      return &elfNN_nanomips_howto_table_rela[r_type];
+    }
+}
+
+/* Map a BFD relocation name to a howto structure.  */
 
 static reloc_howto_type *
 bfd_elfNN_bfd_reloc_name_lookup (bfd *abfd ATTRIBUTE_UNUSED,
@@ -1275,29 +1296,12 @@ bfd_elfNN_bfd_reloc_name_lookup (bfd *abfd ATTRIBUTE_UNUSED,
     return &elf_nanomips_gnu_vtentry_howto;
   if (strcasecmp (elf_nanomips_eh_howto.name, r_name) == 0)
     return &elf_nanomips_eh_howto;
+  if (strcasecmp ("R_NANOMIPS_JALR16", r_name) == 0)
+    return nanomips_elfNN_rtype_to_howto (R_NANOMIPS_JUMP16, TRUE);
+  if (strcasecmp ("R_NANOMIPS_JALR32", r_name) == 0)
+    return nanomips_elfNN_rtype_to_howto (R_NANOMIPS_JUMP32, TRUE);
 
   return NULL;
-}
-
-/* Given a nanoMIPS Elf_Internal_Rel, fill in an arelent structure.  */
-
-static reloc_howto_type *
-nanomips_elfNN_rtype_to_howto (unsigned int r_type,
-			       bfd_boolean rela_p ATTRIBUTE_UNUSED)
-{
-  switch (r_type)
-    {
-    case R_NANOMIPS_GNU_VTINHERIT:
-      return &elf_nanomips_gnu_vtinherit_howto;
-    case R_NANOMIPS_GNU_VTENTRY:
-      return &elf_nanomips_gnu_vtentry_howto;
-    case R_NANOMIPS_EH:
-      return &elf_nanomips_eh_howto;
-    case R_NANOMIPS_PC32:
-      return &elf_nanomips_gnu_pcrel32;
-    default:
-      return &elfNN_nanomips_howto_table_rela[r_type];
-    }
 }
 
 /* Given a nanoMIPS Elf_Internal_Rela, fill in an arelent structure.  */

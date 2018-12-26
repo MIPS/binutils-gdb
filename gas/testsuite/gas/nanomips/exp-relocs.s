@@ -84,4 +84,9 @@ end:
 	li48 	$a0,%dtprel(tlsvar)
 	lw	$a0,%gottprel(tlsvar)($gp)
 	lwpc	$a0,%gottprel_pc32(tlsvar)
+	.reloc	1f,R_NANOMIPS_JUMP32,test
+1:	jalr	$t9
+	.reloc	1f,R_NANOMIPS_JUMP16,test
+1:	jalr	$t9
+
 	.end	test

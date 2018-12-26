@@ -170,7 +170,7 @@ Disassembly of section \.text:
 
 000000ea <\$L15>:
   ea:	d8f0      	jalrc	a3
-			ea: R_NANOMIPS_JALR32	foo
+			ea: R_NANOMIPS_JUMP32	foo
 
 000000ec <\$L16>:
   ec:	88a4 0000 	beqc	a0,a1,ea <\$L15>

@@ -47,7 +47,7 @@ foo2:
 	addiu	$r4,$r4,1
 	lw	$r4,%gprel(foo)($r28)
 .L6:
-	.reloc .L6, R_NANOMIPS_JALR16, foo # explicit relocation
+	.reloc .L6, R_NANOMIPS_JUMP16, foo # explicit relocation
 	jalr	$r31
 .L9:
 	.end foo2

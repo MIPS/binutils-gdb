@@ -146,7 +146,7 @@ $L14:
 	bc $L13
 
 	# case8: nested jumps forward over explicit relocation
-	.reloc $L15,R_NANOMIPS_JALR32,foo
+	.reloc $L15,R_NANOMIPS_JUMP32,foo
 	bc $L16
 	balc $L16
 	beqzc $a0,$L16
