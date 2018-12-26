@@ -567,6 +567,9 @@ _bfd_nanomips_elf_print_private_bfd_data (bfd *abfd, void *ptr)
   else
     fprintf (file, _(" [not 32bitmode]"));
 
+  if (elf_elfheader (abfd)->e_flags & EF_NANOMIPS_LINKRELAX)
+    fprintf (file, " [RELAXABLE]");
+
   if (elf_elfheader (abfd)->e_flags & EF_NANOMIPS_PIC)
     fprintf (file, " [PIC]");
 

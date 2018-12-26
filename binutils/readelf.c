@@ -3644,6 +3644,9 @@ get_machine_flags (unsigned e_flags, unsigned e_machine)
 	  break;
 
 	case EM_NANOMIPS:
+	  if (e_flags & EF_NANOMIPS_LINKRELAX)
+	    strcat (buf, ", relaxable");
+
 	  if (e_flags & EF_NANOMIPS_PIC)
 	    strcat (buf, ", pic");
 

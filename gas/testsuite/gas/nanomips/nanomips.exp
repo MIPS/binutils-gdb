@@ -567,6 +567,7 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arch "elf_arch_i7200" "" i7200
     run_dump_test_arch "elf_arch_nms1" "" nms1
 
+    run_dump_test_arch "elf_flag_linkrelax" "--linkrelax" nanomips32
     run_dump_test_arch "elf_flag_pic" "-mpic" nanomips32
     run_dump_test_arch "elf_flag_pid" "-mpid" nanomips32
     run_dump_test_arch "elf_flag_pcrel" "-mpcrel" nanomips32
