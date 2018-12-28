@@ -77,7 +77,7 @@ Disassembly of section \.text:
   dc:	9800      	beqzc	s0,e2 <\$L13>
 			dc: R_NANOMIPS_PC7_S1	\$L13
   de:	d8f0      	jalrc	a3
-			de: R_NANOMIPS_JUMP16	bar
+			de: R_NANOMIPS_JALR16	bar
   e0:	9a00      	beqzc	a0,dc <\$L11>
 			e0: R_NANOMIPS_PC7_S1	\$L11
 

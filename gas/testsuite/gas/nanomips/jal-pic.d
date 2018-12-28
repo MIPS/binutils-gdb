@@ -15,15 +15,15 @@ Disassembly of section \.text:
    c:	lw	at,0\(gp\)
 			c: R_NANOMIPS_GOT_CALL	text_label
   10:	jalrc	at
-			10: R_NANOMIPS_JUMP16	text_label
+			10: R_NANOMIPS_JALR16	text_label
   12:	lw	at,0\(gp\)
 			12: R_NANOMIPS_GOT_CALL	weak_text_label
   16:	jalrc	at
-			16: R_NANOMIPS_JUMP16	weak_text_label
+			16: R_NANOMIPS_JALR16	weak_text_label
   18:	lw	at,0\(gp\)
 			18: R_NANOMIPS_GOT_CALL	external_text_label
   1c:	jalrc	at
-			1c: R_NANOMIPS_JUMP16	external_text_label
+			1c: R_NANOMIPS_JALR16	external_text_label
   1e:	bc	0 <text_label>
 			1e: R_NANOMIPS_PC25_S1	text_label
 #pass

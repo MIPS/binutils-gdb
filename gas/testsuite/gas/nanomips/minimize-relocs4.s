@@ -71,7 +71,7 @@ $L10:
 test1:
 $L11:		# 6a: backward branch over explicit reloc
 	beqzc	$s0,$L13
-	.reloc	1f,R_NANOMIPS_JUMP16,bar
+	.reloc	1f,R_NANOMIPS_JALR16,bar
 1:	jalrc	$a3
 	beqzc	$a0,$L11
 $L13:		# 6b: backward branch over implicit reloc

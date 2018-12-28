@@ -74,9 +74,9 @@ Disassembly of section \.text:
 .+[0-9a-f]+:	0000.
 			[0-9a-f]+: R_NANOMIPS_GOTPC_I32	test\+0x23
 .+[0-9a-f]+:	db30      	jalrc	t9
-			[0-9a-f]+: R_NANOMIPS_JUMP32	end\+0x24
+			[0-9a-f]+: R_NANOMIPS_JALR32	end\+0x24
 .+[0-9a-f]+:	db30      	jalrc	t9
-			[0-9a-f]+: R_NANOMIPS_JUMP16	end\+0x25
+			[0-9a-f]+: R_NANOMIPS_JALR16	end\+0x25
 [0-9a-f]+ <end>:
 .+[0-9a-f]+:	4080 0000 	addiu	a0,gp,0
 			[0-9a-f]+: R_NANOMIPS_TLS_GD	tlsvar\+0x1

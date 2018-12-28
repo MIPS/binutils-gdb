@@ -5313,8 +5313,8 @@ static const struct
   { BFD_RELOC_NANOMIPS_GPREL_I32,	0, 0, 0, 4 },
   { BFD_RELOC_NANOMIPS_GPREL_HI20,	0, 0, 0, 2 },
   { BFD_RELOC_NANOMIPS_GPREL_LO12,	0, 0, 0, 4 },
-  { BFD_RELOC_NANOMIPS_JUMP16,		2, 2, 2, 2 },
-  { BFD_RELOC_NANOMIPS_JUMP32,		0, 0, 0, 4 },
+  { BFD_RELOC_NANOMIPS_JALR16,		2, 2, 2, 2 },
+  { BFD_RELOC_NANOMIPS_JALR32,		0, 0, 0, 4 },
   { BFD_RELOC_NANOMIPS_GPREL_LO12,	0, 0, 0, 4 },
   { BFD_RELOC_NANOMIPS_INSN16,		0, 0, 0, 0 },
   { BFD_RELOC_NANOMIPS_INSN32,		0, 0, 0, 0 },
@@ -8126,10 +8126,10 @@ macro (struct nanomips_cl_insn *ip, char *str ATTRIBUTE_UNUSED)
 	    {
 	      if (nanomips_opts.insn32)
 		macro_build (&offset_expr, "jalrc", "s,-i", AT,
-			     BFD_RELOC_NANOMIPS_JUMP32);
+			     BFD_RELOC_NANOMIPS_JALR32);
 	      else
 		macro_build (&offset_expr, "jalrc", "mp,-i", AT,
-			     BFD_RELOC_NANOMIPS_JUMP16);
+			     BFD_RELOC_NANOMIPS_JALR16);
 	    }
 	  else
 	    macro_build (NULL, "jalrc", (nanomips_opts.insn32 ? "s" : "mp"),
@@ -9353,8 +9353,8 @@ nanomips_force_relocation (fixS *fixp)
       || fixp->fx_r_type == BFD_RELOC_NANOMIPS_INSN32
       || fixp->fx_r_type == BFD_RELOC_NANOMIPS_INSN16
       || fixp->fx_r_type == BFD_RELOC_NANOMIPS_SAVERESTORE
-      || fixp->fx_r_type == BFD_RELOC_NANOMIPS_JUMP32
-      || fixp->fx_r_type == BFD_RELOC_NANOMIPS_JUMP16)
+      || fixp->fx_r_type == BFD_RELOC_NANOMIPS_JALR32
+      || fixp->fx_r_type == BFD_RELOC_NANOMIPS_JALR16)
     return 1;
 
   /* and for nanoMIPS expansions */
@@ -9458,8 +9458,8 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       || fixP->fx_r_type == BFD_RELOC_NANOMIPS_INSN32
       || fixP->fx_r_type == BFD_RELOC_NANOMIPS_INSN16
       || fixP->fx_r_type == BFD_RELOC_NANOMIPS_SAVERESTORE
-      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_JUMP32
-      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_JUMP16)
+      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_JALR32
+      || fixP->fx_r_type == BFD_RELOC_NANOMIPS_JALR16)
     {
       fixP->fx_addnumber = *valP;
       return;
