@@ -784,4 +784,6 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "u-ldst-pic" [arch_list_matching nanomipsr6]
     run_dump_test_arches "u-ldsd" [arch_list_matching nanomipsr6]
 
+    run_dump_test "dont-care-bits-xf"
+    run_dump_test "dont-care-bits-x5"
 }

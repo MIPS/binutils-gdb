@@ -1321,6 +1321,16 @@ jalrc $ra,rs
 @tab N @tab 16/32
 @item
 @verbatim
+balrsc rs
+@end verbatim
+
+@tab @tab @verbatim
+balrsc $ra,rs
+@end verbatim
+
+@tab N @tab 32
+@item
+@verbatim
 bal label
 @end verbatim
 

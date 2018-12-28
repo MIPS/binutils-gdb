@@ -28,6 +28,7 @@
 #include "opcode/nanomips.h"
 #include "dwarf2dbg.h"
 #include "dw2gencfi.h"
+#include <limits.h>
 
 /* Check assumptions made in this file.  */
 typedef char static_assert1[sizeof (offsetT) < 8 ? -1 : 1];
@@ -876,6 +877,7 @@ enum options
   OPTION_MTTGPR_RC1,
   OPTION_MINIMIZE_RELOCS,
   OPTION_NO_MINIMIZE_RELOCS,
+  OPTION_SET_DCBITS,
   OPTION_END_OF_ENUM
 };
 
@@ -940,6 +942,7 @@ struct option md_longopts[] = {
   {"mmttgpr-rc1", no_argument, NULL, OPTION_MTTGPR_RC1},
   {"mminimize-relocs", no_argument, NULL, OPTION_MINIMIZE_RELOCS},
   {"mno-minimize-relocs", no_argument, NULL, OPTION_NO_MINIMIZE_RELOCS},
+  {"mset-dcbits", required_argument, NULL, OPTION_SET_DCBITS},
 
   {NULL, no_argument, NULL, 0}
 };
@@ -1163,6 +1166,9 @@ static procS *cur_proc_ptr;
 
 /* Tracking state for signed cons expression.  */
 static bfd_boolean sign_cons = FALSE;
+
+/* Bit-pattern for don't care fields */
+static long int nanomips_dc_bits = 0;
 
 /* Export the ABI address size for use by TC_ADDRESS_BYTES for the
    purpose of the `.dc.a' internal pseudo-op.  */
@@ -5953,9 +5959,13 @@ match_insn (struct nanomips_cl_insn *insn,
 		  continue;
 		}
 	      /* These optional types appear only as the last operand.  */
-	      else if (operand && (operand->type == OP_CP0SEL
-				   || operand->type == OP_DONT_CARE))
+	      else if (operand && operand->type == OP_CP0SEL)
 		return TRUE;
+	      else if (operand && operand->type == OP_DONT_CARE)
+		{
+		  insn_insert_operand (insn, operand, nanomips_dc_bits);
+		  return TRUE;
+		}
 	    }
 
 	  /* Treat elided base registers as $0.  */
@@ -6123,6 +6133,7 @@ match_insn (struct nanomips_cl_insn *insn,
 
       if (nanomips_optional_operand_p (operand)
 	  && args[1] == ','
+	  && !IS_NANOMIPS_DONTCARE_FMT (args+2)
 	  && (arg.token[0].type != OT_REG || arg.token[1].type == OT_END))
 	{
 	  /* Assume that the register has been elided and is the
@@ -6436,6 +6447,23 @@ macro_match_reloc (const char *fmt, bfd_reloc_code_real_type *r)
     }
 }
 
+static bfd_boolean
+macro_match_format_fixed (const char *search, const char *insn)
+{
+  if (strcmp (search, insn) == 0)
+    return TRUE;
+  else if (strncmp (search, insn, strlen(search)) == 0
+	   && strlen(insn) - strlen(search) >= 3)
+    {
+      /* A part of the arguments match.  We must check if the
+	 non-matching part is don't care.  */
+      const char *left = insn + strlen(search) + 1;
+      if (IS_NANOMIPS_DONTCARE_FMT (left))
+	return TRUE;
+    }
+  return FALSE;
+}
+
 /* Build an instruction created by a macro expansion.  This is passed
    a pointer to the count of instructions created so far, an
    expression, the name of the instruction to build, an operand format
@@ -6467,7 +6495,7 @@ macro_build (expressionS *ep, const char *name, const char *fmt, ...)
   do
     {
       /* Search until we get a match for NAME.  */
-      if (strcmp (fmt, amo->args) == 0
+      if (macro_match_format_fixed (fmt, amo->args)
 	  && amo->pinfo != INSN_MACRO
 	  && is_opcode_valid (amo)
 	  && is_size_valid (amo))
@@ -9244,6 +9272,11 @@ md_parse_option (int c, const char *arg)
       file_nanomips_opts.minimize_relocs = FALSE;
       break;
 
+    case OPTION_SET_DCBITS:
+      nanomips_dc_bits = strtol (arg, NULL, 0);
+      if (nanomips_dc_bits == LONG_MIN || nanomips_dc_bits == LONG_MAX)
+	as_fatal (_("Could not parse don't care bit-pattern: %s"), arg);
+      break;
     default:
       return 0;
     }
@@ -12376,6 +12409,9 @@ nanoMIPS options:\n\
   fprintf (stream, _("\
 -m[no-]minimize-relocs	enable/disable full resolution of link-time invariable\n\
 			PC-relative relocations at assembly\n"));
+  fprintf (stream, _("\
+-mset-dcbits=PATTERN	Fill don't care slots within instructions with the\n\
+			lower bits of the specificed PATTERN\n"));
   fputc ('\n', stream);
 
 }

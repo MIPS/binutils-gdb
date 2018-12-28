@@ -51,5 +51,7 @@ nanoMIPS options:
 -mmttgpr-rc1		Revert to RC1 assembly format for MTTGPR instruction
 -m\[no-\]minimize-relocs	enable/disable full resolution of link-time invariable
 			PC-relative relocations at assembly
+-mset-dcbits=PATTERN	Fill don't care slots within instructions with the
+			lower bits of the specificed PATTERN
 
 Report bugs to .*
