@@ -441,8 +441,8 @@ const struct nanomips_opcode nanomips_opcodes[] = {
 {"bal", 	"",		"mD",		0x3800, 	0xfc00,	WR_31,	INSN2_ALIAS|UBR|CTC,	I38,	0}, /* BALC[16] */
 {"bal", 	"",		"+u",		0x2a000000, 0xfe000000,	WR_31,	INSN2_ALIAS|UBR|CTC,	I38,	0}, /* BALC */
 {"balign",	"",		"d,-m,s,+v",	0x2000001f, 0xfc00003f, WR_1|RD_3,	INSN2_ALIAS,	0,	D32}, /* EXTW */
-{"balrsc",	"",		"+t,s", 	0x48008200, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
-{"balrsc",	"",		"s",		0x4be08200, 0xffe0ffff,	RD_1|WR_31,		0,	I38,	0}, /* BALRSC */
+{"balrsc",	"",		"+t,s", 	0x48008000, 0xfc00ffff,	WR_1|RD_2,		0,	I38,	0},
+{"balrsc",	"",		"s",		0x4be08000, 0xffe0ffff,	RD_1|WR_31,		0,	I38,	0}, /* BALRSC */
 {"bbeqzc",	"",		"t,1,~",	0xc8040000, 0xfc1f0000,	RD_1,			0,	0,	xNMS},
 {"bbnezc",	"",		"t,1,~",	0xc8140000, 0xfc1f0000,	RD_1,			0,	0,	xNMS},
 {"bc",		"[16]", 	"mD",		0x1800, 	0xfc00,	0,			0,	I38,	0}, /* BC[16] */

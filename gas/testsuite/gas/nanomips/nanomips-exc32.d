@@ -58,8 +58,8 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 8677 900c 	sw	s3,12\(s7\)
 [0-9a-f]+ <[^>]+> 4803 8000 	brsc	t5
 [0-9a-f]+ <[^>]+> 481f 8000 	brsc	ra
-[0-9a-f]+ <[^>]+> 4a11 8200 	balrsc	s0,s1
-[0-9a-f]+ <[^>]+> 4bf1 8200 	balrsc	ra,s1
+[0-9a-f]+ <[^>]+> 4a11 8000 	balrsc	s0,s1
+[0-9a-f]+ <[^>]+> 4bf1 8000 	balrsc	ra,s1
 [0-9a-f]+ <[^>]+> 446d 2345 	addiu	t5,gp,74565
 [0-9a-f]+ <[^>]+> c84c 0800 	bgeiuc	t4,1,[0-9a-f]+ <[^>]+>
 			d4: R_NANOMIPS_PC11_S1	test
