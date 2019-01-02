@@ -5964,6 +5964,8 @@ match_insn (struct nanomips_cl_insn *insn,
 	      else if (operand && operand->type == OP_DONT_CARE)
 		{
 		  insn_insert_operand (insn, operand, nanomips_dc_bits);
+		  clear_insn_error ();
+		  check_completed_insn (&arg);
 		  return TRUE;
 		}
 	    }
