@@ -1398,6 +1398,13 @@ General_options::finalize()
   if (!this->user_set_Map() && this->any_reference_counts())
     gold_warning(_("--reference-counts may not be used without -Map"));
 
+  if (this->user_set_gc_debug_sections() && !this->gc_sections())
+    {
+      gold_warning(_("--gc-debug-sections may not be used "
+		     "without --gc-sections"));
+      this->set_gc_debug_sections(false);
+    }
+
   // --rosegment-gap implies --rosegment.
   if (this->user_set_rosegment_gap())
     this->set_rosegment(true);

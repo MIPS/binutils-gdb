@@ -1107,6 +1107,8 @@ Sized_relobj_file<size, big_endian>::include_section_group(
 	  if (is_comdat)
 	    kept_section->add_comdat_section(mname, shndx,
 					     member_shdr.get_sh_size());
+	  if ((member_shdr.get_sh_flags() & elfcpp::SHF_ALLOC) == 0)
+	    this->kept_nonalloc_comdat_sections_[shndx] = kept_section;
 	}
       else
 	{
@@ -1406,6 +1408,33 @@ Sized_relobj_file<size, big_endian>::do_layout(Symbol_table* symtab,
   // there is more than one.
   std::vector<unsigned int> reloc_shndx(shnum, 0);
   std::vector<unsigned int> reloc_type(shnum, elfcpp::SHT_NULL);
+
+  Output_sections& out_sections(this->output_sections());
+  std::vector<Address>& out_section_offsets(this->section_offsets());
+
+  if (!is_pass_two)
+    {
+      out_sections.resize(shnum);
+      out_section_offsets.resize(shnum);
+    }
+
+  // If we are only linking for symbols, then there is nothing else to
+  // do here.
+  if (this->input_file()->just_symbols())
+    {
+      if (!is_pass_two)
+	{
+	  delete sd->section_headers;
+	  sd->section_headers = NULL;
+	  delete sd->section_names;
+	  sd->section_names = NULL;
+	}
+      return;
+    }
+
+  // Whether at least one non-note alloc section is kept in this file.
+  bool some_kept = false;
+
   // Skip the first, dummy, section.
   pshdrs = shdrs + This::shdr_size;
   for (unsigned int i = 1; i < shnum; ++i, pshdrs += This::shdr_size)
@@ -1435,36 +1464,48 @@ Sized_relobj_file<size, big_endian>::do_layout(Symbol_table* symtab,
 	      reloc_type[target_shndx] = sh_type;
 	    }
 	}
-    }
 
-  Output_sections& out_sections(this->output_sections());
-  std::vector<Address>& out_section_offsets(this->section_offsets());
-
-  if (!is_pass_two)
-    {
-      out_sections.resize(shnum);
-      out_section_offsets.resize(shnum);
-    }
-
-  // If we are only linking for symbols, then there is nothing else to
-  // do here.
-  if (this->input_file()->just_symbols())
-    {
-      if (!is_pass_two)
+      if (is_pass_two
+	  && ((shdr.get_sh_flags() & elfcpp::SHF_ALLOC) != 0)
+	  && out_sections[i] != NULL)
 	{
-	  delete sd->section_headers;
-	  sd->section_headers = NULL;
-	  delete sd->section_names;
-	  sd->section_names = NULL;
-	}
-      return;
-    }
+	  if (parameters->options().gc_sections()
+	      && symtab->gc()->is_section_garbage(this, i))
+	    {
+	      if (parameters->options().print_gc_sections())
+		gold_info(_("%s: removing unused section from '%s'"
+			    " in file '%s'"),
+			  program_name, this->section_name(i).c_str(),
+			  this->name().c_str());
+	      out_sections[i] = NULL;
+	      out_section_offsets[i] = invalid_address;
+	      continue;
+	    }
 
-  if (num_sections_to_defer > 0)
-    {
-      parameters->options().plugins()->add_deferred_layout_object(this);
-      this->deferred_layout_.reserve(num_sections_to_defer);
-      this->is_deferred_layout_ = true;
+	  if (parameters->options().icf_enabled()
+	      && symtab->icf()->is_section_folded(this, i))
+	    {
+	      if (parameters->options().print_icf_sections())
+		{
+		  Section_id folded =
+			      symtab->icf()->get_folded_section(this, i);
+		  Relobj* folded_obj =
+			      reinterpret_cast<Relobj*>(folded.first);
+		  gold_info(_("%s: ICF folding section '%s' in file '%s' "
+			      "into '%s' in file '%s'"),
+			    program_name, this->section_name(i).c_str(),
+			    this->name().c_str(),
+			    folded_obj->section_name(folded.second).c_str(),
+			    folded_obj->name().c_str());
+		}
+	      out_sections[i] = NULL;
+	      out_section_offsets[i] = invalid_address;
+	      continue;
+	    }
+
+	  if (sh_type != elfcpp::SHT_NOTE)
+	    some_kept = true;
+	}
     }
 
   // Whether we've seen a .note.GNU-stack section.
@@ -1487,6 +1528,52 @@ Sized_relobj_file<size, big_endian>::do_layout(Symbol_table* symtab,
   // Keep track of .debug_info and .debug_types sections.
   std::vector<unsigned int> debug_info_sections;
   std::vector<unsigned int> debug_types_sections;
+
+  // If no non-note alloc section in this file will be kept,
+  // then we can toss out the debug and special sections.
+  if (parameters->options().gc_debug_sections()
+      && is_pass_two && !some_kept && !relocatable)
+    {
+      // Skip the first, dummy, section.
+      pshdrs = shdrs + This::shdr_size;
+      for (unsigned int i = 1; i < shnum; ++i, pshdrs += This::shdr_size)
+	{
+	  typename This::Shdr shdr(pshdrs);
+	  unsigned int sh_type = shdr.get_sh_type();
+
+	  // Skip discarded sections.
+	  if (out_sections[i] == NULL)
+	    continue;
+
+	  // Skip reloc and group sections.
+	  if (sh_type == elfcpp::SHT_REL || sh_type == elfcpp::SHT_RELA
+	      || sh_type == elfcpp::SHT_GROUP)
+	    continue;
+
+	  // Don't discard kept sections whose signature is seen more
+	  // than once.
+	  typename Kept_nonalloc_comdat_sections::const_iterator p =
+	    this->kept_nonalloc_comdat_sections_.find(i);
+	  if (p != this->kept_nonalloc_comdat_sections_.end()
+	      && !p->second->can_discard())
+	    continue;
+
+	  // Check if we need to discard this section.  Some sections
+	  // may be marked with the KEEP keyword in a linker script.
+	  if (symtab->gc()->is_section_garbage(this, i))
+	    {
+	      out_sections[i] = NULL;
+	      out_section_offsets[i] = invalid_address;
+	    }
+	}
+    }
+
+  if (num_sections_to_defer > 0)
+    {
+      parameters->options().plugins()->add_deferred_layout_object(this);
+      this->deferred_layout_.reserve(num_sections_to_defer);
+      this->is_deferred_layout_ = true;
+    }
 
   // Skip the first, dummy, section.
   pshdrs = shdrs + This::shdr_size;
@@ -1647,58 +1734,11 @@ Sized_relobj_file<size, big_endian>::do_layout(Symbol_table* symtab,
 	    }
 	}
 
-      if (is_pass_two && parameters->options().gc_sections())
+      if (is_pass_two && out_sections[i] == NULL)
 	{
-	  // This is executed during the second pass of garbage
-	  // collection. do_layout has been called before and some
-	  // sections have been already discarded. Simply ignore
-	  // such sections this time around.
-	  if (out_sections[i] == NULL)
-	    {
-	      gold_assert(out_section_offsets[i] == invalid_address);
-	      continue;
-	    }
-	  if (((shdr.get_sh_flags() & elfcpp::SHF_ALLOC) != 0)
-	      && symtab->gc()->is_section_garbage(this, i))
-	      {
-		if (parameters->options().print_gc_sections())
-		  gold_info(_("%s: removing unused section from '%s'"
-			      " in file '%s'"),
-			    program_name, this->section_name(i).c_str(),
-			    this->name().c_str());
-		out_sections[i] = NULL;
-		out_section_offsets[i] = invalid_address;
-		continue;
-	      }
-	}
-
-      if (is_pass_two && parameters->options().icf_enabled())
-	{
-	  if (out_sections[i] == NULL)
-	    {
-	      gold_assert(out_section_offsets[i] == invalid_address);
-	      continue;
-	    }
-	  if (((shdr.get_sh_flags() & elfcpp::SHF_ALLOC) != 0)
-	      && symtab->icf()->is_section_folded(this, i))
-	      {
-		if (parameters->options().print_icf_sections())
-		  {
-		    Section_id folded =
-				symtab->icf()->get_folded_section(this, i);
-		    Relobj* folded_obj =
-				reinterpret_cast<Relobj*>(folded.first);
-		    gold_info(_("%s: ICF folding section '%s' in file '%s' "
-				"into '%s' in file '%s'"),
-			      program_name, this->section_name(i).c_str(),
-			      this->name().c_str(),
-			      folded_obj->section_name(folded.second).c_str(),
-			      folded_obj->name().c_str());
-		  }
-		out_sections[i] = NULL;
-		out_section_offsets[i] = invalid_address;
-		continue;
-	      }
+	  // Skip discarded sections.
+	  gold_assert(out_section_offsets[i] == invalid_address);
+	  continue;
 	}
 
       // Defer layout here if input files are claimed by plugins.  When gc
@@ -1867,6 +1907,7 @@ Sized_relobj_file<size, big_endian>::do_layout(Symbol_table* symtab,
       delete[] gc_sd->symbols_data;
       delete[] gc_sd->symbol_names_data;
       this->set_symbols_data(NULL);
+      this->kept_nonalloc_comdat_sections_.clear();
     }
   else
     {

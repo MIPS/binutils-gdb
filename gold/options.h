@@ -925,6 +925,10 @@ class General_options
   DEFINE_bool(g, options::EXACTLY_ONE_DASH, '\0', false,
 	      N_("Ignored"), NULL);
 
+  DEFINE_bool(gc_debug_sections, options::TWO_DASHES, '\0', false,
+	      N_("Remove debug sections in unused object files"),
+	      N_("Don't remove debug sections in unused object files"));
+
   DEFINE_bool(gc_sections, options::TWO_DASHES, '\0', false,
 	      N_("Remove unused sections"),
 	      N_("Don't remove unused sections"));

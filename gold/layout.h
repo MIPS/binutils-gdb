@@ -229,7 +229,8 @@ class Kept_section
 
  public:
   Kept_section()
-    : object_(NULL), shndx_(0), is_comdat_(false), is_group_name_(false)
+    : object_(NULL), shndx_(0), is_comdat_(false), is_group_name_(false),
+      can_discard_(true)
   { this->u_.linkonce_size = 0; }
 
   // We need to support copies for the signature map in the Layout
@@ -237,7 +238,7 @@ class Kept_section
   // marked as a comdat section.
   Kept_section(const Kept_section& k)
     : object_(k.object_), shndx_(k.shndx_), is_comdat_(false),
-      is_group_name_(k.is_group_name_)
+      is_group_name_(k.is_group_name_), can_discard_(true)
   {
     gold_assert(!k.is_comdat_);
     this->u_.linkonce_size = 0;
@@ -356,6 +357,16 @@ class Kept_section
     this->u_.linkonce_size = size;
   }
 
+  // Return whether we can discard section.
+  bool
+  can_discard() const
+  { return this->can_discard_; }
+
+  // Set that section can't be discarded.
+  void
+  set_cant_discard()
+  { this->can_discard_ = false; }
+
  private:
   // No assignment.
   Kept_section& operator=(const Kept_section&);
@@ -374,6 +385,10 @@ class Kept_section
   // the name of a symbol obtained from the .gnu.linkonce.* name
   // through some heuristics.
   bool is_group_name_;
+  // Whether this section can be discarded.  This will be false when
+  // we see this section more than once, and it is used only for
+  // non-alloc sections when --gc-debug-sections is passed.
+  bool can_discard_;
   union
   {
     // If the is_comdat_ field is true, this holds a map from names of

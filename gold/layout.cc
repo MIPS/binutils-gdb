@@ -5473,6 +5473,7 @@ Layout::find_or_add_kept_section(const std::string& name,
     }
 
   // We have already seen this signature.
+  ins.first->second.set_cant_discard();
 
   if (ins.first->second.is_group_name())
     {

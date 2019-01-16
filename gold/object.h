@@ -2668,6 +2668,9 @@ class Sized_relobj_file : public Sized_relobj<size, big_endian>
   typedef std::map<unsigned int, Kept_comdat_section>
       Kept_comdat_section_table;
 
+  typedef Unordered_map<unsigned int, Kept_section*>
+      Kept_nonalloc_comdat_sections;
+
   // Find the SHT_SYMTAB section, given the section headers.
   void
   find_symtab(const unsigned char* pshdrs);
@@ -2913,6 +2916,8 @@ class Sized_relobj_file : public Sized_relobj<size, big_endian>
   Local_plt_offsets local_plt_offsets_;
   // Table mapping discarded comdat sections to corresponding kept sections.
   Kept_comdat_section_table kept_comdat_sections_;
+  // Non-alloc comdat sections with their corresponding kept sections.
+  Kept_nonalloc_comdat_sections kept_nonalloc_comdat_sections_;
   // Whether this object has a GNU style .eh_frame section.
   bool has_eh_frame_;
   // True if the layout of this object was deferred, waiting for plugin
