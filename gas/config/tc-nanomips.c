@@ -6430,6 +6430,7 @@ static const char *const mfhl_fmt[2] = { "mj", "s" };
 
 #define ADDIU_FMT (addiu_fmt[HAVE_32BIT_ADDRESSES? 0 : 1])
 #define ADDIUGP_FMT "t,ma,."
+#define ADDIUGPS_FMT "t,ma,+1"
 #define LWGP_FMT "t,.(ma)"
 #define LDGP_FMT "t,.(ma)"
 #define LL_SC_FMT "t,+p(b)"
@@ -7201,6 +7202,20 @@ macro_absolute_la (unsigned int dest)
     }
 }
 
+/* Utility routine to check whether a section name indicates
+   special small data types.  */
+
+static bfd_boolean
+special_small_data_section_p (const char *segname)
+{
+  return (strcmp (segname, ".ssdata") == 0
+	  || strcmp (segname, ".ssbss") == 0
+	  || strncmp (segname, ".ssdata.", 8) == 0
+	  || strncmp (segname, ".ssbss.", 7) == 0
+	  || strncmp (segname, ".gnu.linkonce.ssb.", 18) == 0
+	  || strncmp (segname, ".gnu.linkonce.ss.", 17) == 0);
+}
+
 /* Expand the LA macro.  */
 
 static void
@@ -7243,9 +7258,14 @@ macro_la (unsigned int op[], unsigned int breg, int *used_at,
 	  && (nanomips_opts.mc_model == MC_MEDIUM
 	      || nanomips_opts.mc_model == MC_AUTO))
 	{
+	  asection *seg = S_GET_SEGMENT (offset_expr.X_add_symbol);
 	  relax_start (offset_expr.X_add_symbol);
-	  macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDIUGP_FMT,
-		       op[0], nanomips_gp_register, BFD_RELOC_GPREL16);
+	  if (special_small_data_section_p (segment_name(seg)))
+	    macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDIUGPS_FMT,
+			 op[0], nanomips_gp_register, BFD_RELOC_GPREL16);
+	  else
+	    macro_build (&offset_expr, ADDRESS_ADDI_INSN, ADDIUGP_FMT,
+			 op[0], nanomips_gp_register, BFD_RELOC_GPREL16);
 	  relax_switch ();
 	}
 
@@ -10715,6 +10735,21 @@ tc_get_register (int frame ATTRIBUTE_UNUSED)
   return reg;
 }
 
+/* Utility routine to check whether a section name indicates
+   small data.  */
+
+static bfd_boolean
+small_data_section_p (const char *segname)
+{
+  return (strcmp (segname, ".sdata") == 0
+	  || strcmp (segname, ".sbss") == 0
+	  || strncmp (segname, ".sdata.", 7) == 0
+	  || strncmp (segname, ".sbss.", 6) == 0
+	  || strncmp (segname, ".gnu.linkonce.sb.", 17) == 0
+	  || strncmp (segname, ".gnu.linkonce.s.", 16) == 0
+	  || special_small_data_section_p (segname));
+}
+
 /* Utility routine, called from above as well.  If called while the
    input file is still being read, it's only an approximation.  (For
    example, a symbol may later become defined which appeared to be
@@ -10769,14 +10804,8 @@ nopic_need_relax (symbolS *sym, int before_relaxing)
       else
 	{
 	  const char *segname;
-
 	  segname = segment_name (S_GET_SEGMENT (sym));
-	  change = (strcmp (segname, ".sdata") != 0
-		    && strcmp (segname, ".sbss") != 0
-		    && strncmp (segname, ".sdata.", 7) != 0
-		    && strncmp (segname, ".sbss.", 6) != 0
-		    && strncmp (segname, ".gnu.linkonce.sb.", 17) != 0
-		    && strncmp (segname, ".gnu.linkonce.s.", 16) != 0);
+	  change = small_data_section_p (segname) ? 0 : 1;
 	}
       return change;
     }
