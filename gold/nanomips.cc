@@ -7373,19 +7373,19 @@ Target_nanomips<size, big_endian>::Scan::missing()
 
   if (this->saveres_.is_for_local_symbol())
     {
-      unsigned int symndx = this->saveres_.symndx();
-      gold_error(_("%s(%s): missing R_NANOMIPS_SAVERESTORE relocation "
-                   "for local symbol '%s' with index %u"),
-                 this->relobj_->name().c_str(), secname.c_str(),
-                 this->relobj_->get_symbol_name(symndx), symndx);
+//       unsigned int symndx = this->saveres_.symndx();
+//       gold_error(_("%s(%s): missing R_NANOMIPS_SAVERESTORE relocation "
+//                    "for local symbol '%s' with index %u"),
+//                  this->relobj_->name().c_str(), secname.c_str(),
+//                  this->relobj_->get_symbol_name(symndx), symndx);
     }
   else
     {
-      Nanomips_symbol<size>* sym = this->saveres_.symbol();
-      gold_error(_("%s(%s): missing R_NANOMIPS_SAVERESTORE relocation "
-                   "for global symbol '%s'"),
-                 this->relobj_->name().c_str(), secname.c_str(),
-                 sym->name());
+//       Nanomips_symbol<size>* sym = this->saveres_.symbol();
+//       gold_error(_("%s(%s): missing R_NANOMIPS_SAVERESTORE relocation "
+//                    "for global symbol '%s'"),
+//                  this->relobj_->name().c_str(), secname.c_str(),
+//                  sym->name());
     }
 
   // Remove GP-setup optimization if needed.
