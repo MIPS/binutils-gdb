@@ -596,6 +596,7 @@ enum relax_nanomips_subtype
   RT_BRANCH_CNDZ,
   RT_BRANCH_CND,
   RT_BALC_STUB,
+  RT_JUMPTABLE,
 };
 
 enum relax_nanomips_fix_type
@@ -625,6 +626,9 @@ enum relax_nanomips_fix_type
 
 #define RELAX_MD_ADDIU_P(i)			\
   (RELAX_MD_P (i) && ((i) & 0xff) == RT_ADDIU)
+
+#define RELAX_MD_JUMPTABLE_P(i)			\
+  (RELAX_MD_P (i) && ((i) & 0xff) == RT_JUMPTABLE)
 
 #define RELAX_MD_KEEPSTUB(i) (((i) & 0x200) != 0)
 #define RELAX_MD_MARK_KEEPSTUB(i) ((i) | 0x200)
@@ -791,6 +795,7 @@ static void file_check_options (void);
 static void stubgroup_new (asection *);
 static void s_sign_cons (int);
 static void s_nanomips_leb128 (int);
+static void s_jumptable (int);
 static bfd_boolean nanomips_allow_local_subtract_symbols (symbolS *,
 							  symbolS *,
 							  bfd_boolean);
@@ -1087,6 +1092,7 @@ static const pseudo_typeS nanomips_pseudo_table[] = {
      for jump offset tables.  */
   {"sbyte", s_sign_cons, 0},
   {"shword", s_sign_cons, 1},
+  {"jumptable", s_jumptable, 0},
 
   /* Control linker-relaxation for nanoMIPS */
   {"linkrelax", s_linkrelax, 0},
@@ -1178,6 +1184,25 @@ static struct reloc_list *reloc_list_iter;
    typically guaranteed by how the compiler generates explicit
    relocations, we provide a fail-safe for handwritten assembly.  */
 bfd_boolean reloc_ordered = TRUE;
+
+struct jumptable
+{
+  unsigned esize;
+  unsigned nsize;
+  bfd_boolean offset_unsigned;
+  symbolS *table_sym;
+  fixS *fixups;
+  struct jumptable *next;
+};
+
+/* Flags to interpret a jump-table declaration and track its
+   various elements in a context-sensitive manner.  */
+bfd_boolean jumptable_record_pending_sym = FALSE;
+bfd_boolean jumptable_record_pending_fix = FALSE;
+bfd_boolean jumptable_record_pending_end = FALSE;
+
+/* A linked list of all jumptable blocks in the module.  */
+struct jumptable *jumptable_list;
 
 /* Export the ABI address size for use by TC_ADDRESS_BYTES for the
    purpose of the `.dc.a' internal pseudo-op.  */
@@ -5338,6 +5363,7 @@ static const struct
   { BFD_RELOC_NANOMIPS_RELAX,		0, 0, 0, 0 },
   { BFD_RELOC_NANOMIPS_NORELAX, 	0, 0, 0, 0 },
   { BFD_RELOC_NANOMIPS_SAVERESTORE,	0, 0, 0, 0 },
+  { BFD_RELOC_NANOMIPS_JUMPTABLE_LOAD,	0, 0, 0, 0 },
   { BFD_RELOC_NONE,			32, 32, 32, 4 }  /* Fall-back maximum  */
 };
 
@@ -5463,6 +5489,55 @@ frag_subtype_to_reloc (enum relax_nanomips_subtype rt, bfd_boolean toofar16)
       break;
     }
   return reloc;
+}
+
+/* Whether the last encountered explicit relocation was a jumptable
+   load relocation.  */
+static bfd_boolean
+jumptable_load_reloc_p (void)
+{
+  if (reloc_list != NULL
+      && symbol_get_frag (reloc_list->u.a.offset_sym) == frag_now
+      && reloc_list->u.a.howto->type == R_NANOMIPS_JUMPTABLE_LOAD)
+    {
+      segment_info_type *si = seg_info (now_seg);
+
+      struct insn_label_list *iter = si->label_list;
+      while (iter != NULL)
+	{
+	  if (iter->label == reloc_list->u.a.offset_sym)
+	    return TRUE;
+	  iter = iter->next;
+	}
+    }
+  return FALSE;
+}
+
+/* Whether the specified INSN is a valid scaled load instruction
+   to access a compressed jump table.  */
+
+static bfd_boolean
+load_scaled_insn_p (const struct nanomips_opcode *insn)
+{
+  return (strcmp (insn->name, "lbx") == 0
+	  || strcmp (insn->name, "lbux") == 0
+	  || strcmp (insn->name, "lhxs") == 0
+	  || strcmp (insn->name, "lhuxs") == 0
+	  || strcmp (insn->name, "lwxs") == 0);
+}
+
+/* Pop off the last explicit relocation from the explicit relocation list
+   and replace it with a FIXP of JUMPTABLE_LOAD type for the current
+   instruction.  */
+
+static void
+reloc_list_head_to_fix (struct nanomips_cl_insn *ip)
+{
+  ip->fixp[0] =  fix_new (ip->frag, ip->where, 4,
+			  reloc_list->u.a.sym,
+			  0, FALSE,
+			  BFD_RELOC_NANOMIPS_JUMPTABLE_LOAD);
+  reloc_list = reloc_list->next;
 }
 
 /* Output an instruction.  IP is the instruction information.
@@ -5664,7 +5739,12 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
 			    address_expr->X_add_number);
 	}
       else
-	add_fixed_insn (ip);
+	{
+	  if (jumptable_load_reloc_p ()
+	      && load_scaled_insn_p (ip->insn_mo))
+	    reloc_list_head_to_fix (ip);
+	  add_fixed_insn (ip);
+	}
     }
 
   if (!ip->complete_p && *reloc_type < BFD_RELOC_UNUSED)
@@ -9793,6 +9873,39 @@ md_apply_fix (fixS *fixP, valueT *valP, segT seg ATTRIBUTE_UNUSED)
       fixP->fx_done = 0;
       break;
 
+    case BFD_RELOC_NANOMIPS_JUMPTABLE_LOAD:
+      {
+	unsigned esize, sbits, smask;
+	struct jumptable *jt = jumptable_list;
+	/* Find the matching jumptable structure.  */
+	while (jt != NULL)
+	  {
+	    if (jt->table_sym == fixP->fx_addsy)
+	      break;
+	    jt = jt->next;
+	  }
+	gas_assert (jt != NULL);
+	esize = jt->esize;
+	sbits = esize >> 1;
+
+	smask = (esize == 4 ? ~0x700 : ~0x600);
+	insn = read_reloc_insn (buf, fixP->fx_r_type);
+	/*  Opcode mappings:
+	    lbx -> lhxs|lwx
+	    lbux -> lhuxs|lwx
+	    lhxs -> lwx
+	    lhuxs -> lwx
+	    lwx -> lwx
+	*/
+	if ((insn & 0xfc000000) == 0x20000000)
+	  {
+	    insn = (insn & smask) | (sbits << 9) | (jt->esize > 1 ? 0x40 : 0);
+	    write_reloc_insn (buf, fixP->fx_r_type, insn);
+	  }
+	fixP->fx_done = 1;
+	break;
+      }
+
     default:
       abort ();
     }
@@ -10157,7 +10270,8 @@ s_cons (int log_size)
   struct insn_label_list *l = si->label_list;
 
   nanomips_flush_pending_output ();
-  if (log_size > 0 && auto_align)
+  /* Skip auto-aligning when parsing a jumptable.  */
+  if (log_size > 0 && auto_align && !jumptable_record_pending_end)
     nanomips_align (log_size, 0, l);
   cons (1 << log_size);
   nanomips_clear_insn_labels ();
@@ -11284,6 +11398,175 @@ relaxed_addiu_length (fragS *fragp, bfd_boolean update)
     return 2;
 }
 
+/* Estimate frag-size for jump table relaxation.  For frags that
+   may be subject to link-time relaxation, we include the cumulative
+   sop to get the worst case post-link size of the frag.  */
+
+static unsigned
+jump_vector_size_frag (fragS *fragP)
+{
+  if (fragP->fr_type == rs_fill)
+    return fragP->fr_fix + fragP->fr_var * fragP->fr_offset;
+  else
+    return (fragP->fr_fix + fragP->tc_frag_data.relax_sop);
+}
+
+/* Check if a difference vector is within a specified range.  */
+
+static bfd_boolean
+jump_vector_in_range_p (symbolS *left, symbolS *right,
+			bfd_signed_vma min_offset,
+			bfd_signed_vma max_offset)
+{
+  fragS *lfrag;
+  fragS *hfrag;
+  bfd_signed_vma offset = 0;
+
+  if (symbol_get_frag (left) == symbol_get_frag (right))
+    offset = S_GET_VALUE (left) - S_GET_VALUE (right);
+  else if (S_GET_VALUE (left) < S_GET_VALUE (right))
+    {
+      lfrag = symbol_get_frag (left);
+      hfrag = symbol_get_frag (right);
+      if (addr_in_frag_range (lfrag, S_GET_VALUE (left)))
+	offset = (S_GET_VALUE (left)
+		  - lfrag->fr_address
+		  - jump_vector_size_frag (lfrag));
+      offset -= lfrag->tc_frag_data.relax_sop;
+      lfrag = lfrag->fr_next;
+      while (lfrag && lfrag != hfrag && offset >= min_offset)
+	{
+	  offset -= jump_vector_size_frag (lfrag);
+	  lfrag = lfrag->fr_next;
+	}
+      if (addr_in_frag_range (hfrag, S_GET_VALUE (right)))
+	offset -= (S_GET_VALUE (right)
+		   - hfrag->fr_address
+		   + hfrag->tc_frag_data.relax_sop);
+    }
+  else
+    {
+      lfrag = symbol_get_frag (right);
+      hfrag = symbol_get_frag (left);
+      if (addr_in_frag_range (lfrag, S_GET_VALUE (right)))
+	offset = (lfrag->fr_address
+		  + jump_vector_size_frag (lfrag)
+		  - S_GET_VALUE (right));
+      offset += lfrag->tc_frag_data.relax_sop;
+      lfrag = lfrag->fr_next;
+      while (lfrag && lfrag != hfrag && offset <= max_offset)
+	{
+	  offset += jump_vector_size_frag (lfrag);
+	  lfrag = lfrag->fr_next;
+	}
+      if (addr_in_frag_range (hfrag, S_GET_VALUE (left)))
+	offset += (S_GET_VALUE (left)
+		   - hfrag->fr_address
+		   + hfrag->tc_frag_data.relax_sop);
+    }
+
+  return (offset >= min_offset && offset <= max_offset);
+}
+
+/* Whether this fixup looks like the start of a new vector slot.  */
+
+#define FIX_VECT_P(FIXP) ((FIXP)->fx_r_type == BFD_RELOC_NANOMIPS_NEG	\
+			  && (FIXP)->fx_tcbit == 1)
+
+/* Find the start of the next vector slot in the jump table.  */
+
+static fixS *
+fix_vector_next (fixS *fixP)
+{
+  fragS *fragP = fixP->fx_frag;
+  do {
+    if (fixP->fx_next && FIX_VECT_P (fixP->fx_next))
+      return fixP->fx_next;
+    fixP = fixP->fx_next;
+  } while (fixP && fixP->fx_frag == fragP );
+  return NULL;
+}
+
+/* Transform a jump vector calculation, which is a composite relocation
+   operation to the specified ESIZE and RTYPE.  */
+
+static void
+fix_vector_resize (fixS *fixP, unsigned esize, unsigned where,
+		   bfd_reloc_code_real_type rtype)
+{
+  fragS *fragP = fixP->fx_frag;
+  do {
+    fixP->fx_where = where;
+    fixP->fx_size = esize;
+    if (fixP->fx_next == NULL || FIX_VECT_P (fixP->fx_next))
+      {
+	if (fixP->fx_size != 4)
+	  fixP->fx_r_type = rtype;
+      }
+    fixP = fixP->fx_next;
+  } while (fixP && fixP->fx_frag == fragP && !FIX_VECT_P (fixP));
+}
+
+/* Estimate the relaxed size of a jumptable block.  */
+
+static int
+relaxed_jumptable_length (fragS *fragp, asection *sec ATTRIBUTE_UNUSED)
+{
+  bfd_signed_vma min_offset, max_offset;
+  fixS *fixP;
+  unsigned i;
+  struct jumptable *jt = jumptable_list;
+
+  /* Use the table symbol to find the matching jumptable structure.  */
+  while (jt != NULL && jt->table_sym != fragp->fr_symbol)
+    jt = jt->next;
+  if (jt == NULL)
+    as_bad (_("internal: failed to match jumptable frag %s)"),
+	    S_GET_NAME (fragp->fr_symbol));
+
+  /* Calculate the per-element range of the table.  */
+  min_offset = 0;
+  max_offset = ((1ull << jt->esize * 8) - 1) << 1;
+  if (!jt->offset_unsigned)
+    {
+      min_offset = min_offset - max_offset / 2 - 1;
+      max_offset = max_offset - (max_offset / 2) - 1;
+    }
+
+  fixP = jt->fixups;
+  /* Iterate over the relocations of the jumptable.  */
+  for (i = 0; i < jt->nsize; i++)
+    {
+      /* Find relocations that overflow the current size.  */
+      if (!jump_vector_in_range_p (fixP->fx_next->fx_addsy,
+				   fixP->fx_addsy,
+				   min_offset,
+				   max_offset))
+	{
+	  if (jt->esize == 4)
+	    {
+	      as_bad_where (fixP->fx_file, fixP->fx_line,
+			    _("Jump table vector overflow"));
+	      break;
+	    }
+
+	  /* Upgrade the range for the remaining vectors.  */
+	  if (!jt->offset_unsigned)
+	    max_offset = ((max_offset + 1) << (jt->esize * 8)) - 1;
+	  else
+	    max_offset <<= (jt->esize * 8);
+	  min_offset <<= (jt->esize * 8);
+	  /* Double the size of each element. Word-sized tables are
+	     assumed to be signed.  */
+	  jt->esize *= 2;
+	  jt->offset_unsigned = (jt->offset_unsigned && jt->esize != 4);
+	};
+      fixP = fix_vector_next (fixP);
+    }
+
+  return jt->esize * jt->nsize - fragp->fr_fix;
+}
+
 /* Estimate the size of a frag before relaxing. We are not really relaxing
    here. The estimated size is encoded in the subtype information.  */
 
@@ -11302,6 +11585,8 @@ md_estimate_size_before_relax (fragS *fragp, asection *segtype)
 	length = relaxed_stub_length (fragp, segtype, FALSE);
       else if (RELAX_MD_ADDIU_P (fragp->fr_subtype))
 	length = relaxed_addiu_length (fragp, FALSE);
+      else if (RELAX_MD_JUMPTABLE_P (fragp->fr_subtype))
+	length = relaxed_jumptable_length (fragp, segtype);
       else if (RELAX_MD_TYPE (fragp->fr_subtype) >= RT_BRANCH_UCND)
 	length = relaxed_16bit_branch_length (fragp, segtype, FALSE);
 
@@ -11341,8 +11626,10 @@ nanomips_fix_adjustable (fixS *fixp)
 {
   asection *tsect;
 
+  /* Keep jumptable load relocations symbol relative for lookup.  */
   if (fixp->fx_r_type == BFD_RELOC_VTABLE_INHERIT
-      || fixp->fx_r_type == BFD_RELOC_VTABLE_ENTRY)
+      || fixp->fx_r_type == BFD_RELOC_VTABLE_ENTRY
+      || fixp->fx_r_type == BFD_RELOC_NANOMIPS_JUMPTABLE_LOAD)
     return 0;
 
   if (fixp->fx_addsy == NULL)
@@ -11468,6 +11755,8 @@ nanomips_relax_frag (asection *sec, fragS *fragp,
 	new_var = relaxed_stub_length (fragp, sec, TRUE);
       else if (RELAX_MD_ADDIU_P (fragp->fr_subtype))
 	new_var = relaxed_addiu_length (fragp, TRUE);
+      else if (RELAX_MD_JUMPTABLE_P (fragp->fr_subtype))
+	new_var = relaxed_jumptable_length (fragp, sec);
       else if (RELAX_MD_TYPE (fragp->fr_subtype) >= RT_BRANCH_UCND)
 	new_var = relaxed_16bit_branch_length (fragp, sec, TRUE);
       else
@@ -11483,12 +11772,36 @@ nanomips_relax_frag (asection *sec, fragS *fragp,
 
       fragp->fr_var = new_var;
       if (!RELAX_MD_ADDIU_P (fragp->fr_subtype) != 0
+	  && !RELAX_MD_JUMPTABLE_P (fragp->fr_subtype) != 0
 	  && fragp->fr_symbol != 0)
 	relaxed_invariable_branch_p (fragp, sec);
       return new_var - old_var;
     }
 
   return 0;
+}
+
+/* Map jumptable vector size and signed-ness to the corresponding
+   terminal relocation.  */
+
+static bfd_reloc_code_real_type
+jumptable_size_reloc (unsigned esize, bfd_boolean offset_unsigned)
+{
+  switch (esize)
+    {
+      case 1:
+	return (offset_unsigned
+		? BFD_RELOC_NANOMIPS_UNSIGNED_8
+		: BFD_RELOC_NANOMIPS_SIGNED_8);
+      case 2:
+	return (offset_unsigned
+		? BFD_RELOC_NANOMIPS_UNSIGNED_16
+		: BFD_RELOC_NANOMIPS_SIGNED_16);
+      case 4:
+	return BFD_RELOC_32;
+      default:
+	as_fatal (_("internal: unhandled offset vector size: %d bytes"), esize);
+    }
 }
 
 /* Convert a machine dependent frag.  */
@@ -11560,7 +11873,31 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
       gas_assert (buf == fragp->fr_literal + fragp->fr_fix);
       return;
     }
-  else if (RELAX_MD_P (fragp->fr_subtype))
+    else if (RELAX_MD_JUMPTABLE_P (fragp->fr_subtype))
+      {
+	fixS *fixP;
+	unsigned i;
+	struct jumptable *jt = jumptable_list;
+	while (jt != NULL && jt->table_sym != fragp->fr_symbol)
+	  jt = jt->next;
+	if (jt == NULL)
+	  as_bad (_("internal: failed to match jumptable frag %s)"),
+		  S_GET_NAME (fragp->fr_symbol));
+
+	fixP = jt->fixups;
+	fragp->fr_fix =jt->esize * jt->nsize;
+	fragp->fr_var = 0;
+	for (i = 0; i < jt->nsize; i++)
+	  {
+	    fix_vector_resize (fixP, jt->esize,
+			       i*jt->esize,
+			       jumptable_size_reloc (jt->esize,
+						     jt->offset_unsigned));
+	    fixP = fix_vector_next (fixP);
+	  }
+	return;
+      }
+    else if (RELAX_MD_P (fragp->fr_subtype))
     {
       char *buf = fragp->fr_literal + fragp->fr_fix;
       int type = RELAX_MD_TYPE (fragp->fr_subtype);
@@ -11777,6 +12114,14 @@ nanomips_define_label (symbolS *sym)
 {
   nanomips_record_label (sym);
   dwarf2_emit_label (sym);
+  /* If parsing a jumptable, remember the first symbol encountered.  */
+  if (jumptable_record_pending_sym
+      && jumptable_list != NULL
+      && jumptable_list->table_sym == NULL)
+    {
+      jumptable_list->table_sym = sym;
+      jumptable_record_pending_sym = FALSE;
+    }
 }
 
 /* This function is called by tc_new_dot_label whenever a new dot symbol
@@ -12825,9 +13170,39 @@ nanomips_cons_fix_new (fragS *frag, int where, int nbytes, expressionS *exp,
 	  fixP = fix_new (frag, where, nbytes, rentry[numrelocs].sym,
 			  rentry[numrelocs].addend, 0,
 			  rentry[numrelocs].reloc);
+	  if (frag->tc_frag_data.first_fix == NULL)
+	    frag->tc_frag_data.first_fix = fixP;
 
 	  if (comp_p)
 	    fixP->fx_tcbit = 1;
+
+	  /* When parsing a jumptable, remember the first fixup encountered.  */
+	  if (fixP->fx_r_type == BFD_RELOC_NANOMIPS_NEG
+	      && comp_p
+	      && jumptable_record_pending_fix
+	      && jumptable_list != NULL
+	      && jumptable_list->fixups == NULL)
+	    {
+	      jumptable_list->fixups = fixP;
+	      jumptable_record_pending_end = TRUE;
+	      frag_grow (jumptable_list->nsize * 4);
+	    }
+	  jumptable_record_pending_fix = FALSE;
+	}
+
+      /* When we reached the end of a jumptable, create a jumptable relaxable
+	 frag to allow for worst-case resizing of the jump vectors.  */
+      if (jumptable_record_pending_end
+	  && where + nbytes == (int) (jumptable_list->nsize * jumptable_list->esize))
+	{
+	  unsigned max_chars = jumptable_list->nsize * 4;
+	  unsigned var_chars = max_chars - (jumptable_list->nsize
+	    * jumptable_list->esize);
+	  frag_var (rs_machine_dependent, max_chars, var_chars,
+	    RELAX_MD_ENCODE (RT_JUMPTABLE, 0, 0),
+	    jumptable_list->table_sym,
+	    0, NULL);
+	  jumptable_record_pending_end = FALSE;
 	}
     }
   else
@@ -13220,4 +13595,36 @@ void nanomips_pre_relax_hook (void)
 void nanomips_post_relax_hook (void)
 {
   reloc_list_iter = reloc_list_copy;
+}
+
+/* Handle the .jumptable pseudo-op.  */
+static void
+s_jumptable (int x ATTRIBUTE_UNUSED)
+{
+  struct jumptable *jt;
+  jt = (struct jumptable *) xmalloc (sizeof *jt);
+  memset (jt, 0, sizeof (*jt));
+
+  jt->offset_unsigned = FALSE;
+  jt->esize = get_absolute_expression ();
+  if (*input_line_pointer != ',')
+    {
+      xfree (jt);
+    }
+  else
+    {
+      ++input_line_pointer;
+      jt->nsize = get_absolute_expression ();
+      if (*input_line_pointer == ',')
+	{
+	  ++input_line_pointer;
+	  jt->offset_unsigned = (get_absolute_expression () == 1);
+	}
+    }
+
+  jt->next = jumptable_list;
+  jumptable_list = jt;
+  jumptable_record_pending_sym = TRUE;
+  jumptable_record_pending_fix = TRUE;
+  return;
 }
