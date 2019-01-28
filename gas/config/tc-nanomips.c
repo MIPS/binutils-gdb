@@ -13249,6 +13249,23 @@ nanomips_cons_fix_new (fragS *frag, int where, int nbytes, expressionS *exp,
     }
 }
 
+/* Check if a FRAGP is at least partially link-time invariable
+   up to the specified OFFSET.  */
+
+static bfd_boolean
+part_fixed_frag_p (fragS *fragp, bfd_vma offset)
+{
+  if (offset > fragp->fr_address + fragp->fr_fix)
+    return FALSE;
+  else if (!fragp->tc_frag_data.link_var
+	   || fragp->tc_frag_data.first_fix == NULL
+	   || offset <= (fragp->tc_frag_data.first_fix->fx_where
+			 + fragp->fr_address))
+    return TRUE;
+  else
+    return FALSE;
+}
+
 /* Check if subtraction of 2 symbols can be fully evaluated at assembly.  */
 static bfd_boolean
 nanomips_allow_local_subtract_symbols (symbolS *left, symbolS *right,
@@ -13326,15 +13343,13 @@ nanomips_allow_local_subtract_symbols (symbolS *left, symbolS *right,
 	{
 	  fragp = symbol_get_frag (left);
 	  ifragp = symbol_get_frag (right);
-	  if (S_GET_VALUE (left) <= fragp->fr_address + fragp->fr_fix)
-	    fixed_final = TRUE;
+	  fixed_final = part_fixed_frag_p (fragp, S_GET_VALUE (left));
 	}
       else
 	{
 	  fragp = symbol_get_frag (right);
 	  ifragp = symbol_get_frag (left);
-	  if (S_GET_VALUE (right) <= fragp->fr_address + fragp->fr_fix)
-	    fixed_final = TRUE;
+	  fixed_final = part_fixed_frag_p (fragp, S_GET_VALUE (right));
 	}
 
       while (ifragp && ifragp != fragp && !variable_frag_p (ifragp, sec))
