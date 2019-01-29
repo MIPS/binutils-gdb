@@ -1,4 +1,4 @@
-#objdump: -dr --prefix-addresses --show-raw-insn
+#objdump: -d --prefix-addresses --show-raw-insn
 #name: nanoMIPS save/restore instructions
 
 # Check nanoMIPS save/restore instructions
