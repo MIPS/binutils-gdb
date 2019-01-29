@@ -456,28 +456,34 @@ class Nanomips_output_data_stubs : public Output_section_data
   Nanomips_stubs_footers footers_;
 };
 
-// This class is used to hold information about one PIC reloc.
-// This is mainly used for GOT relocs, but it is also used for
-// R_NANOMIPS_SAVERESTORE reloc.
+// This class is used to hold information about one relocation
+// which is used for GP-setup optimization.
 
-template<int size, bool big_endian>
-class Nanomips_pic_reloc
+template<int size>
+class Nanomips_reloc
 {
   typedef typename elfcpp::Elf_types<size>::Elf_Addr Address;
 
  public:
-  Nanomips_pic_reloc(Nanomips_symbol<size>* sym, unsigned int r_type)
-    : r_type_(r_type), symndx_(-1U)
+  Nanomips_reloc(Nanomips_symbol<size>* sym, unsigned int r_type,
+                 Address r_offset)
+    : r_type_(r_type), symndx_(-1U), r_offset_(r_offset)
   { this->u_.symbol = sym; }
 
-  Nanomips_pic_reloc(unsigned int symndx, unsigned int r_type, Address addend)
-    : r_type_(r_type), symndx_(symndx)
+  Nanomips_reloc(unsigned int symndx, unsigned int r_type, Address addend,
+                 Address r_offset)
+    : r_type_(r_type), symndx_(symndx), r_offset_(r_offset)
   { this->u_.addend = addend; }
 
   // Relocation type.
   unsigned int
   r_type() const
   { return this->r_type_; }
+
+  // Relocation offset.
+  Address
+  r_offset() const
+  { return this->r_offset_; }
 
   // Whether this entry is for a local symbol.
   bool
@@ -488,7 +494,7 @@ class Nanomips_pic_reloc
   unsigned int
   symndx() const
   {
-    gold_assert(this->symndx_ != -1U);
+    gold_assert(this->is_for_local_symbol());
     return this->symndx_;
   }
 
@@ -496,7 +502,7 @@ class Nanomips_pic_reloc
   Address
   addend() const
   {
-    gold_assert(this->symndx_ != -1U);
+    gold_assert(this->is_for_local_symbol());
     return this->u_.addend;
   }
 
@@ -504,26 +510,21 @@ class Nanomips_pic_reloc
   Nanomips_symbol<size>*
   symbol() const
   {
-    gold_assert(this->symndx_ == -1U);
+    gold_assert(!this->is_for_local_symbol());
     return this->u_.symbol;
   }
 
-  bool operator==(const Nanomips_pic_reloc<size, big_endian>& that) const
-  {
-    if (this->symndx_ != that.symndx_
-        || this->r_type_ != that.r_type_)
-      return false;
-
-    if (this->is_for_local_symbol())
-      return this->u_.addend == that.u_.addend;
-    return this->u_.symbol == that.u_.symbol;
-  }
+  bool
+  operator<(const Nanomips_reloc<size>& that) const
+  { return this->r_offset_ < that.r_offset_; }
 
  private:
   // Type of relocation.
   unsigned int r_type_;
   // The index of the local symbol; -1 otherwise.
   unsigned int symndx_;
+  // Relocation offset.
+  Address r_offset_;
   // A global or local symbol.
   union
   {
@@ -554,7 +555,10 @@ class Nanomips_output_data_got : public Output_data_got<size, big_endian>
   // a lazy-binding stub.
   void
   record_got_call_symbol(Nanomips_symbol<size>* nanomips_sym)
-  { this->got_call_.insert(nanomips_sym); }
+  {
+    if (!nanomips_sym->has_got_offset(GOT_TYPE_STANDARD))
+      this->got_call_.insert(nanomips_sym);
+  }
 
   // Finalize symbols against R_NANOMIPS_GOT_CALL relocation.
   void
@@ -592,7 +596,7 @@ class Nanomips_symbol : public Sized_symbol<size>
 {
  public:
   Nanomips_symbol()
-    : no_lazy_stub_(false), is_gp_not_used_(false), lazy_stub_offset_(-1ULL)
+    : no_lazy_stub_(false), is_gp_used_(false), lazy_stub_offset_(-1ULL)
   { }
 
   // Downcast a base pointer to a Nanomips_symbol pointer.
@@ -638,15 +642,15 @@ class Nanomips_symbol : public Sized_symbol<size>
   has_lazy_stub() const
   { return this->lazy_stub_offset_ != -1ULL; }
 
-  // Set that GP register is not used.
+  // Set that GP register is used.
   void
-  set_gp_not_used()
-  { this->is_gp_not_used_ = true; }
+  set_gp_is_used()
+  { this->is_gp_used_ = true; }
 
-  // Return whether GP register is not used.
+  // Return whether GP register is used.
   bool
-  is_gp_not_used() const
-  { return this->is_gp_not_used_; }
+  is_gp_used() const
+  { return this->is_gp_used_; }
 
   // Return the hash of this symbol.
   size_t
@@ -658,10 +662,9 @@ class Nanomips_symbol : public Sized_symbol<size>
   // This is true if the symbol has relocations related to taking the
   // function's address.
   bool no_lazy_stub_;
-  // Whether GP register is not used.  This can only be true for functions
-  // if all GOT relocations depending on the GP will be transformed to
-  // static or PC-relative references.
-  bool is_gp_not_used_;
+  // Whether GP register is used.  This is true if there is at least
+  // one GP-relative relocation in a function.
+  bool is_gp_used_;
   // The offset of the lazy-binding stub for this symbol from the start of
   // .nanoMIPS.stubs section.
   uint64_t lazy_stub_offset_;
@@ -821,7 +824,7 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   Nanomips_relobj(const std::string& name, Input_file* input_file, off_t offset,
                   const typename elfcpp::Ehdr<size, big_endian>& ehdr)
     : Sized_relobj_file<size, big_endian>(name, input_file, offset, ehdr),
-      gpsetup_relnums_(), input_section_ref_(), gp_not_used_(),
+      gpsetup_relnums_(), input_section_ref_(), gp_is_used_(),
       transformable_sections_(NULL), gpsetup_opts_(), input_sections_(),
       local_symbol_size_(), local_symbol_is_function_(),
       attributes_section_data_(NULL), abiflags_(NULL),
@@ -859,9 +862,8 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   Nanomips_input_section*
   new_nanomips_input_section(unsigned int, unsigned int, Output_section*);
 
-  // Go through all potential GP-setup optimizations and find for which
-  // function we can remove GP register from save/restore instruction and
-  // remove GP-setup relocation.
+  // Determine for which function we can remove GP register from
+  // save/restore instruction and remove GP-setup relocation.
   void
   finalize_gpsetup_optimizations(Target_nanomips<size, big_endian>* target);
 
@@ -953,37 +955,29 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
     this->gpsetup_relnums_.clear();
   }
 
-  // Add a potential GP-setup optimization.
+  // Add a SAVERESTORE relocation.
   void
-  add_gpsetup_optimization(const Nanomips_pic_reloc<size, big_endian>& saveres,
-                           unsigned int data_shndx)
+  add_saveres_reloc(unsigned int shndx, const Nanomips_reloc<size>& reloc)
   {
-    Gpsetup_optimization gpopt(saveres, data_shndx);
-    this->gpsetup_opts_.push_back(gpopt);
+    Gpsetup_optimization& gpopt = this->gpsetup_opts_[shndx];
+    gpopt.saveres_relocs.insert(reloc);
   }
 
-  // Remove a GP-setup optimization.
+  // Add a GP-setup relocation.
   void
-  remove_gpsetup_optimization(const Nanomips_pic_reloc<size, big_endian>& sres)
+  add_gpsetup_reloc(unsigned int shndx, size_t relnum,
+                    const Nanomips_reloc<size>& reloc)
   {
-    gold_assert(sres == this->gpsetup_opts_.back().saveres);
-    this->gpsetup_opts_.pop_back();
+    Gpsetup_optimization& gpopt = this->gpsetup_opts_[shndx];
+    gpopt.gpsetup_relocs.push_back(std::make_pair(relnum, reloc));
   }
 
-  // Add relocation number of the GP-setup reloc.
+  // Add a GP-relative relocation.
   void
-  add_gpsetup_relnum(unsigned int relnum)
+  add_gprel_reloc(unsigned int shndx, const Nanomips_reloc<size>& reloc)
   {
-    Gpsetup_optimization& gpopt(this->gpsetup_opts_.back());
-    gpopt.gpsetup_relnum = relnum;
-  }
-
-  // Add a GOT reloc.
-  void
-  add_got_reloc(const Nanomips_pic_reloc<size, big_endian>& got_reloc)
-  {
-    Gpsetup_optimization& gpopt(this->gpsetup_opts_.back());
-    gpopt.got_relocs.push_back(got_reloc);
+    Gpsetup_optimization& gpopt = this->gpsetup_opts_[shndx];
+    gpopt.gprel_relocs.push_back(reloc);
   }
 
   // Return whether we can remove GP-setup relocation.
@@ -996,10 +990,10 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
     return p->second.find(relnum) != p->second.end();
   }
 
-  // Return whether GP register is not used for a local symbol SYMNDX.
+  // Return whether GP register is used for a local symbol SYMNDX.
   bool
-  is_gp_not_used(unsigned int symndx) const
-  { return this->gp_not_used_.find(symndx) != this->gp_not_used_.end(); }
+  is_gp_used(unsigned int symndx) const
+  { return this->gp_is_used_.find(symndx) != this->gp_is_used_.end(); }
 
   // Return whether this object is not using nanoMIPS Subset.
   bool
@@ -1178,21 +1172,21 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   // This structure is used for GP-setup optimization.
   struct Gpsetup_optimization
   {
-    typedef std::vector<Nanomips_pic_reloc<size, big_endian> > Got_relocs;
+    typedef std::vector<Nanomips_reloc<size> > Gprel_relocs;
+    typedef std::set<Nanomips_reloc<size> > Saveres_relocs;
+    typedef std::vector<std::pair<size_t, Nanomips_reloc<size> > >
+        Gpsetup_relocs;
 
-    // TODO: Use index of the relocation section.
-    // Section index.
-    unsigned int data_shndx;
-    // Relocation number of the GP-setup reloc.
-    unsigned int gpsetup_relnum;
-    // R_NANOMIPS_SAVERESTORE reloc.
-    Nanomips_pic_reloc<size, big_endian> saveres;
-    // GOT relocations.
-    Got_relocs got_relocs;
+    // R_NANOMIPS_SAVERESTORE relocations.
+    Saveres_relocs saveres_relocs;
+    // Relocations that will be used to determine if GP register
+    // is used in a function.
+    Gprel_relocs gprel_relocs;
+    // GP-setup relocations.
+    Gpsetup_relocs gpsetup_relocs;
 
-    Gpsetup_optimization(const Nanomips_pic_reloc<size, big_endian>& sres,
-                         unsigned int shndx)
-      : data_shndx(shndx), gpsetup_relnum(-1U), saveres(sres), got_relocs()
+    Gpsetup_optimization()
+      : saveres_relocs(), gprel_relocs(), gpsetup_relocs()
     { }
   };
 
@@ -1237,6 +1231,7 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
 
   typedef Unordered_set<size_t> Reloc_numbers;
   typedef Unordered_map<unsigned int, Reloc_numbers> Gpsetup_relnums;
+  typedef Unordered_map<unsigned int, Gpsetup_optimization> Gpsetup_opts;
 
   // A map to track the GP-setup relocation numbers which we are going
   // to delete in a relaxation pass.
@@ -1244,13 +1239,13 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   // A map to track the number of how many times input section has been
   // referenced with lw[gp]/sw[gp] instruction.
   Input_section_ref input_section_ref_;
-  // Function local symbols where all GOT relocations depending on the
-  // GP will be transformed to static or PC-relative references.
-  Unordered_set<unsigned int> gp_not_used_;
+  // Local symbols which contain at least one GP-relative reloc.
+  // This is used only for function symbols.
+  Unordered_set<unsigned int> gp_is_used_;
   // Sections which we a going to scan for instruction transformations.
   Transformable_sections* transformable_sections_;
-  // A vector of a potential GP-setup optimizations.
-  std::vector<Gpsetup_optimization> gpsetup_opts_;
+  // A map that contains all needed information for GP-setup optimization.
+  Gpsetup_opts gpsetup_opts_;
   // Nanomips input sections.
   std::vector<Nanomips_input_section*> input_sections_;
   // Size of the local symbols.
@@ -1676,7 +1671,8 @@ class Nanomips_expand_insn : public Nanomips_transformations<size, big_endian>
        Address gp);
 
  protected:
-  // Return the type of the expansion.
+  // Return the type of the expansion for instruction whose
+  // value is out of the range limits.
   unsigned int
   expand_type(const Nanomips_relobj<size, big_endian>* relobj,
               const Nanomips_insn_property* insn_property,
@@ -2133,16 +2129,8 @@ class Target_nanomips : public Sized_target<size, big_endian>
   {
    public:
     Scan()
-      : seen_norelax_(false), can_remove_gpsetup_(false),
-        saveres_state_(SEARCH), data_shndx(0), relobj_(NULL),
-        saveres_(NULL, elfcpp::R_NANOMIPS_NONE)
+      : seen_norelax_(false)
     { }
-
-    ~Scan()
-    {
-      if (this->saveres_state_ == FOUND)
-        this->missing();
-    }
 
     inline void
     local(Symbol_table* symtab, Layout* layout, Target_nanomips* target,
@@ -2181,36 +2169,6 @@ class Target_nanomips : public Sized_target<size, big_endian>
     { return false; }
 
    private:
-    // R_NANOMIPS_SAVERESTORE reloc tracking state.
-    enum Track_saverestore
-    {
-      // Search for the first reloc.
-      SEARCH = 0,
-      // Reloc is found and we expect to see another reloc
-      // for the same symbol.
-      FOUND = 1
-    };
-
-    // Remove GP-setup optimization.  This is called whenever we can't
-    // optimize GP-setup or R_NANOMIPS_SAVERESTORE reloc is missing.
-    void
-    remove_gpsetup_optimization()
-    {
-      gold_assert(this->relobj_ != NULL);
-      this->relobj_->remove_gpsetup_optimization(this->saveres_);
-      this->can_remove_gpsetup_ = false;
-    }
-
-    // Report a missing R_NANOMIPS_SAVERESTORE reloc.
-    void
-    missing();
-
-    // Handle R_NANOMIPS_SAVERESTORE reloc.
-    inline void
-    handle_saveres_reloc(const Nanomips_pic_reloc<size, big_endian>& saveres,
-                         Nanomips_relobj<size, big_endian>* relobj,
-                         unsigned int data_shndx);
-
     // Return true if a reloc is part of a composite relocations.
     inline bool
     reloc_in_composite_relocs(Address offset,
@@ -2220,18 +2178,6 @@ class Target_nanomips : public Sized_target<size, big_endian>
 
     // True if we have seen R_NANOMIPS_NORELAX relocation.
     bool seen_norelax_;
-    // Whether we can remove GP-setup.
-    bool can_remove_gpsetup_;
-    // States for tracking R_NANOMIPS_SAVERESTORE relocs.
-    Track_saverestore saveres_state_;
-    // Section index.  This is only used to report a missing
-    // R_NANOMIPS_SAVERESTORE reloc pair.
-    unsigned int data_shndx;
-    // Object file.  This is only used to report a missing
-    // R_NANOMIPS_SAVERESTORE reloc pair.
-    Nanomips_relobj<size, big_endian>* relobj_;
-    // R_NANOMIPS_SAVERESTORE reloc.
-    Nanomips_pic_reloc<size, big_endian> saveres_;
   };
 
   // The class which implements relocation.
@@ -3249,75 +3195,86 @@ Nanomips_relobj<size, big_endian>::new_nanomips_input_section(
   return input_section;
 }
 
-// Go through all potential GP-setup optimizations and find for which
-// function we can remove GP register from save/restore instruction and
-// remove GP-setup relocation.
+// Determine for which function we can remove GP register from
+// save/restore instruction and remove GP-setup relocation.
 
 template<int size, bool big_endian>
 void
 Nanomips_relobj<size, big_endian>::finalize_gpsetup_optimizations(
     Target_nanomips<size, big_endian>* target)
 {
-  typedef typename Gpsetup_optimization::Got_relocs Got_relocs;
+  typedef typename Gpsetup_optimization::Gprel_relocs Gprel_relocs;
+  typedef typename Gpsetup_optimization::Saveres_relocs Saveres_relocs;
+  typedef typename Gpsetup_optimization::Gpsetup_relocs Gpsetup_relocs;
   typedef Nanomips_transformations<size, big_endian> Transform;
 
-  for (typename std::vector<Gpsetup_optimization>::iterator it =
-         this->gpsetup_opts_.begin();
+  for (typename Gpsetup_opts::iterator it = this->gpsetup_opts_.begin();
        it != this->gpsetup_opts_.end();
        ++it)
     {
-      Gpsetup_optimization& gpopt = *it;
-      unsigned int data_shndx = gpopt.data_shndx;
-      unsigned int gpsetup_relnum = gpopt.gpsetup_relnum;
-      Nanomips_pic_reloc<size, big_endian>& saveres(gpopt.saveres);
-      Got_relocs& got_relocs = gpopt.got_relocs;
-      bool can_remove_gpsetup = true;
+      unsigned int shndx = it->first;
+      Gpsetup_optimization& gpopt = it->second;
+      Gprel_relocs& gprel_relocs = gpopt.gprel_relocs;
+      Saveres_relocs& saveres_relocs = gpopt.saveres_relocs;
+      Gpsetup_relocs& gpsetup_relocs = gpopt.gpsetup_relocs;
 
-      // Check whether all got relocations will be transformed to
-      // static or PC-relative references in a relaxation pass.
-      for (typename Got_relocs::iterator it2 = got_relocs.begin();
-           it2 != got_relocs.end();
+      // Skip if there are no R_NANOMIPS_SAVERESTORE relocations.
+      if (saveres_relocs.empty())
+        continue;
+
+      // Find relocations that need GP register and set to their corresponding
+      // functions for which we have R_NANOMIPS_SAVERESTORE relocation that
+      // GP can't be removed.
+      for (typename Gprel_relocs::iterator it2 = gprel_relocs.begin();
+           it2 != gprel_relocs.end();
            ++it2)
         {
-          Nanomips_pic_reloc<size, big_endian>& got_reloc = *it2;
-          unsigned int r_type = got_reloc.r_type();
-          Nanomips_symbol<size>* nanomips_sym = NULL;
+          Nanomips_reloc<size>& gprel_reloc = *it2;
+          unsigned int r_type = gprel_reloc.r_type();
+          unsigned int r_offset = gprel_reloc.r_offset();
+          Nanomips_symbol<size>* sym = NULL;
           unsigned int r_sym = -1U;
-
+          bool is_gp_used = false;
           unsigned int offset;
-          if (got_reloc.is_for_local_symbol())
+
+          if (gprel_reloc.is_for_local_symbol())
             {
-              r_sym = got_reloc.symndx();
+              r_sym = gprel_reloc.symndx();
               offset = local_got_offset(target, this, r_sym, r_type,
-                                        got_reloc.addend());
+                                        gprel_reloc.addend());
             }
           else
             {
-              nanomips_sym = got_reloc.symbol();
-              offset = global_got_offset(target, nanomips_sym, r_type);
+              sym = gprel_reloc.symbol();
+              offset = global_got_offset(target, sym, r_type);
             }
 
           if (offset != -1U)
             {
-              // Transformations for GOT symbols.
               switch (r_type)
                 {
                 case elfcpp::R_NANOMIPS_GOT_CALL:
-                  // We can't remove GP-setup if there is a
-                  // call to a lazy-binding stub.
-                  if (nanomips_sym != NULL && nanomips_sym->has_lazy_stub())
+                  // GP will be used if there is a call to a lazy-binding stub.
+                  if (sym != NULL && sym->has_lazy_stub())
                     {
-                      can_remove_gpsetup = false;
+                      is_gp_used = true;
                       break;
                     }
                   // Fall through.
 
                 case elfcpp::R_NANOMIPS_GOT_PAGE:
                 case elfcpp::R_NANOMIPS_GOT_DISP:
+                case elfcpp::R_NANOMIPS_TLS_GOTTPREL:
                   // GP register will be used if this won't be
                   // transformed into a PC-relative instruction.
                   if (!Transform::template has_overflow_unsigned<21>(offset))
-                    can_remove_gpsetup = false;
+                    is_gp_used = true;
+                  break;
+                case elfcpp::R_NANOMIPS_TLS_GD_I32:
+                case elfcpp::R_NANOMIPS_TLS_GD:
+                case elfcpp::R_NANOMIPS_TLS_LD_I32:
+                case elfcpp::R_NANOMIPS_TLS_LD:
+                  is_gp_used = true;
                   break;
                 default:
                   gold_unreachable();
@@ -3325,7 +3282,6 @@ Nanomips_relobj<size, big_endian>::finalize_gpsetup_optimizations(
             }
           else
             {
-              // Transformations for locally resolved symbols.
               switch (r_type)
                 {
                 case elfcpp::R_NANOMIPS_GOT_CALL:
@@ -3335,44 +3291,98 @@ Nanomips_relobj<size, big_endian>::finalize_gpsetup_optimizations(
                   // Note that here R_NANOMIPS_GOT_PAGE reloc is used,
                   // rather than R_NANOMIPS_GOT_OFST.
                   if (this->pid())
-                    can_remove_gpsetup = false;
+                    is_gp_used = true;
                   break;
                 case elfcpp::R_NANOMIPS_GOT_DISP:
                   {
                     // We don't use gp-relative transformations
                     // for function address calculations.
-                    bool is_func = (nanomips_sym != NULL
-                                    ? nanomips_sym->is_func()
+                    bool is_func = (sym != NULL
+                                    ? sym->is_func()
                                     : this->local_symbol_is_function(r_sym));
                     if (this->pid() && !is_func)
-                      can_remove_gpsetup = false;
+                      is_gp_used = true;
                   }
+                  break;
+                case elfcpp::R_NANOMIPS_GPREL_I32:
+                case elfcpp::R_NANOMIPS_GPREL_HI20:
+                case elfcpp::R_NANOMIPS_GPREL19_S2:
+                case elfcpp::R_NANOMIPS_GPREL18_S3:
+                case elfcpp::R_NANOMIPS_GPREL18:
+                case elfcpp::R_NANOMIPS_GPREL17_S1:
+                case elfcpp::R_NANOMIPS_GPREL16_S2:
+                case elfcpp::R_NANOMIPS_GPREL7_S2:
+                  is_gp_used = true;
                   break;
                 default:
                   gold_unreachable();
                 }
             }
 
-          if (!can_remove_gpsetup)
-            break;
+          // Try to find corresponding function in which GP register is used.
+          if (is_gp_used)
+            {
+              typename Saveres_relocs::iterator sres_it =
+                saveres_relocs.upper_bound(gprel_reloc);
+              if (sres_it != saveres_relocs.begin())
+                {
+                  --sres_it;
+                  Address value = sres_it->r_offset();
+                  Size_type symsize =
+                    (!sres_it->is_for_local_symbol()
+                     ? sres_it->symbol()->symsize()
+                     : this->local_symbol_size(sres_it->symndx()));
+
+                  if (value <= r_offset && r_offset < value + symsize)
+                    {
+                      // We found a function. Set that GP is used.
+                      if (sres_it->is_for_local_symbol())
+                        this->gp_is_used_.insert(sres_it->symndx());
+                      else
+                        sres_it->symbol()->set_gp_is_used();
+                    }
+                }
+            }
         }
 
-      // Check if all GOT relocations depending on the GP will be
-      // transformed to static or PC-relative references in a
-      // relaxation pass.
-      if (can_remove_gpsetup)
+      // Find GP-setup relocations that can be removed.
+      for (typename Gpsetup_relocs::iterator it2 = gpsetup_relocs.begin();
+           it2 != gpsetup_relocs.end();
+           ++it2)
         {
-          // Set the relocation number of the GP-setup reloc.
-          if (gpsetup_relnum != -1U)
-            this->gpsetup_relnums_[data_shndx].insert(gpsetup_relnum);
+          size_t relnum = it2->first;
+          Nanomips_reloc<size>& gpsetup_reloc = it2->second;
+          Address r_offset = gpsetup_reloc.r_offset();
 
-          // Set that GP is not used in this function.
-          if (saveres.is_for_local_symbol())
-            this->gp_not_used_.insert(saveres.symndx());
-          else
-            saveres.symbol()->set_gp_not_used();
+          typename Saveres_relocs::iterator sres_it =
+            saveres_relocs.upper_bound(gpsetup_reloc);
+          if (sres_it != saveres_relocs.begin())
+            {
+              --sres_it;
+              Address value = sres_it->r_offset();
+              Size_type symsize =
+                (!sres_it->is_for_local_symbol()
+                 ? sres_it->symbol()->symsize()
+                 : this->local_symbol_size(sres_it->symndx()));
+
+              if (value <= r_offset && r_offset < value + symsize)
+                {
+                  bool is_gp_used = (!sres_it->is_for_local_symbol()
+                                     ? sres_it->symbol()->is_gp_used()
+                                     : this->is_gp_used(sres_it->symndx()));
+
+                  // If in this function GP register is not used, set the
+                  // relocation number of the GP-setup reloc that will be
+                  // removed in a relaxation pass.
+                  if (!is_gp_used)
+                    this->gpsetup_relnums_[shndx].insert(relnum);
+                }
+            }
         }
     }
+
+  // TODO: Remove this hack!
+  this->gp_is_used_.insert(0);
 
   // We no longer need the saved information.
   this->gpsetup_opts_.clear();
@@ -4109,7 +4119,7 @@ Nanomips_relobj<size, big_endian>::do_read_symbols(Read_symbols_data* sd)
   const unsigned char* psyms = this->get_view(symtabshdr.get_sh_offset(),
                                               locsize, true, false);
 
-  // Loop over the local symbols and cache informations.
+  // Loop over the local symbols and cache information.
 
   // Skip the first dummy symbol.
   psyms += sym_size;
@@ -5056,7 +5066,8 @@ Nanomips_expand_insn<size, big_endian>::find_insn(
   return NULL;
 }
 
-// Return the type of the expansion.
+// Return the type of the expansion for instruction whose
+// value is out of the range limits.
 
 template<int size, bool big_endian>
 unsigned int
@@ -5145,9 +5156,6 @@ Nanomips_expand_insn<size, big_endian>::expand_type(
     case elfcpp::R_NANOMIPS_LO4_S2:
       // Transform [ls]w[16] into [ls]w.
       return TT_ABS32;
-    case elfcpp::R_NANOMIPS_SAVERESTORE:
-      // Transform save[gp]/restore[gp] into save/restore.
-      return TT_DISCARD;
     default:
       gold_unreachable();
     }
@@ -5430,12 +5438,13 @@ Nanomips_expand_insn<size, big_endian>::type(
       {
         const Nanomips_symbol<size>* nanomips_sym =
           Nanomips_symbol<size>::as_nanomips_sym(gsym);
-        bool is_gp_not_used = (nanomips_sym != NULL
-                               ? nanomips_sym->is_gp_not_used()
-                               : relobj->is_gp_not_used(r_sym));
-        if (!is_gp_not_used)
-          return TT_NONE;
-        break;
+        bool is_gp_used = (nanomips_sym == NULL
+                           ? relobj->is_gp_used(r_sym)
+                           : nanomips_sym->is_gp_used());
+
+        // If gp is not used, transform save[gp]/restore[gp]
+        // into save/restore.
+        return !is_gp_used ? TT_DISCARD : TT_NONE;
       }
     case elfcpp::R_NANOMIPS_GOT_DISP:
     case elfcpp::R_NANOMIPS_GOT_PAGE:
@@ -7361,82 +7370,6 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
   return again;
 }
 
-// Report a missing R_NANOMIPS_SAVERESTORE reloc.
-
-template<int size, bool big_endian>
-void
-Target_nanomips<size, big_endian>::Scan::missing()
-{
-  gold_assert(this->saveres_state_ == FOUND);
-  gold_assert(this->relobj_ != NULL);
-  const std::string secname = this->relobj_->section_name(this->data_shndx);
-
-  if (this->saveres_.is_for_local_symbol())
-    {
-      unsigned int symndx = this->saveres_.symndx();
-      gold_error(_("%s(%s): missing R_NANOMIPS_SAVERESTORE relocation "
-                   "for local symbol '%s' with index %u"),
-                 this->relobj_->name().c_str(), secname.c_str(),
-                 this->relobj_->get_symbol_name(symndx), symndx);
-    }
-  else
-    {
-      Nanomips_symbol<size>* sym = this->saveres_.symbol();
-      gold_error(_("%s(%s): missing R_NANOMIPS_SAVERESTORE relocation "
-                   "for global symbol '%s'"),
-                 this->relobj_->name().c_str(), secname.c_str(),
-                 sym->name());
-    }
-
-  // Remove GP-setup optimization if needed.
-  if (this->can_remove_gpsetup_)
-    this->remove_gpsetup_optimization();
-}
-
-// Handle R_NANOMIPS_SAVERESTORE reloc.
-
-template<int size, bool big_endian>
-inline void
-Target_nanomips<size, big_endian>::Scan::handle_saveres_reloc(
-    const Nanomips_pic_reloc<size, big_endian>& saveres,
-    Nanomips_relobj<size, big_endian>* relobj,
-    unsigned int data_shndx)
-{
-  if (!parameters->options().expand() || !relobj->safe_to_modify())
-    return;
-
-  if (this->relobj_ == NULL)
-    {
-      this->relobj_ = relobj;
-      this->data_shndx = data_shndx;
-    }
-
-  switch (this->saveres_state_)
-    {
-    case FOUND:
-      // We expect to see reloc for the same symbol.
-      if (this->saveres_ == saveres)
-        {
-          this->saveres_state_ = SEARCH;
-          break;
-        }
-
-      // Report that we didn't find R_NANOMIPS_SAVERESTORE pair.
-      this->missing();
-
-      // Fall through.
-
-    case SEARCH:
-      this->saveres_ = saveres;
-      this->saveres_state_ = FOUND;
-      this->can_remove_gpsetup_ = true;
-      relobj->add_gpsetup_optimization(saveres, data_shndx);
-      break;
-    default:
-      gold_unreachable();
-    }
-}
-
 // Return true if a reloc is part of a composite relocations.
 
 template<int size, bool big_endian>
@@ -7689,43 +7622,30 @@ Target_nanomips<size, big_endian>::Scan::local(
       gold_error(_("%s: unexpected reloc %s in object file"),
                  relobj->name().c_str(), nrp->name().c_str());
       break;
-    case elfcpp::R_NANOMIPS_SAVERESTORE:
-      {
-        Nanomips_pic_reloc<size, big_endian> saveres(r_sym, r_type, r_addend);
-        this->handle_saveres_reloc(saveres, relobj, data_shndx);
-      }
-      break;
     default:
       break;
     }
 
-  if (this->saveres_state_ == FOUND
-      && this->can_remove_gpsetup_)
+  if (parameters->options().expand()
+      && relobj->safe_to_modify()
+      && relobj->pic())
     {
       switch (r_type)
         {
+        case elfcpp::R_NANOMIPS_SAVERESTORE:
+          {
+            // TODO: Remove this hack!
+            if (r_sym == 0)
+              break;
+            Address value = lsym.get_st_value();
+            Nanomips_reloc<size> saveres(r_sym, r_type, r_addend, value);
+            relobj->add_saveres_reloc(data_shndx, saveres);
+            break;
+          }
         case elfcpp::R_NANOMIPS_GOT_CALL:
         case elfcpp::R_NANOMIPS_GOT_PAGE:
         case elfcpp::R_NANOMIPS_GOT_DISP:
-          {
-            Nanomips_pic_reloc<size, big_endian> reloc(r_sym, r_type, r_addend);
-            relobj->add_got_reloc(reloc);
-          }
-          break;
         case elfcpp::R_NANOMIPS_TLS_GOTTPREL:
-          {
-            typedef Nanomips_transformations<size, big_endian> Transform;
-            unsigned int got_offset =
-              local_got_offset(target, relobj, r_sym, r_type, r_addend);
-            gold_assert(got_offset != -1U);
-
-            // We don't need to remove GP-setup optimization if this
-            // will be transformed into a PC-relative instruction.
-            if (Transform::template has_overflow_unsigned<21>(got_offset))
-              break;
-          }
-          // Fall through.
-
         case elfcpp::R_NANOMIPS_GPREL_I32:
         case elfcpp::R_NANOMIPS_GPREL_HI20:
         case elfcpp::R_NANOMIPS_GPREL19_S2:
@@ -7738,8 +7658,11 @@ Target_nanomips<size, big_endian>::Scan::local(
         case elfcpp::R_NANOMIPS_TLS_GD:
         case elfcpp::R_NANOMIPS_TLS_LD_I32:
         case elfcpp::R_NANOMIPS_TLS_LD:
-          this->remove_gpsetup_optimization();
-          break;
+          {
+            Nanomips_reloc<size> reloc(r_sym, r_type, r_addend, r_offset);
+            relobj->add_gprel_reloc(data_shndx, reloc);
+            break;
+          }
         default:
           break;
         }
@@ -7916,14 +7839,15 @@ Target_nanomips<size, big_endian>::Scan::global(
                 || gsym->is_undefined()
                 || gsym->is_preemptible())
               {
-                if (r_type == elfcpp::R_NANOMIPS_GOT_CALL)
-                  got->record_got_call_symbol(nanomips_sym);
-                else
+                if (r_type != elfcpp::R_NANOMIPS_GOT_CALL
+                    || nanomips_sym->no_lazy_stub())
                   {
                     Reloc_section* rel_dyn = target->rel_dyn_section(layout);
                     got->add_global_with_rel(gsym, GOT_TYPE_STANDARD, rel_dyn,
                                              elfcpp::R_NANOMIPS_GLOBAL);
                   }
+                else
+                  got->record_got_call_symbol(nanomips_sym);
               }
             else
               {
@@ -8002,12 +7926,6 @@ Target_nanomips<size, big_endian>::Scan::global(
       gold_error(_("%s: unexpected reloc %s in object file"),
                  relobj->name().c_str(), nrp->name().c_str());
       break;
-    case elfcpp::R_NANOMIPS_SAVERESTORE:
-      {
-        Nanomips_pic_reloc<size, big_endian> saveres(nanomips_sym, r_type);
-        this->handle_saveres_reloc(saveres, relobj, data_shndx);
-      }
-      break;
     default:
       break;
     }
@@ -8028,36 +7946,30 @@ Target_nanomips<size, big_endian>::Scan::global(
       break;
     }
 
-  if (this->saveres_state_ == FOUND
-      && this->can_remove_gpsetup_)
+  if (parameters->options().expand()
+      && relobj->safe_to_modify()
+      && relobj->pic())
     {
       switch (r_type)
         {
+        case elfcpp::R_NANOMIPS_SAVERESTORE:
+          {
+            Address value = nanomips_sym->value();
+            Nanomips_reloc<size> saveres(nanomips_sym, r_type, value);
+            relobj->add_saveres_reloc(data_shndx, saveres);
+            break;
+          }
         case elfcpp::R_NANOMIPS_PC21_S1:
           if (strcmp(gsym->name(), "_gp") == 0)
-            relobj->add_gpsetup_relnum(relnum);
+            {
+              Nanomips_reloc<size> reloc(nanomips_sym, r_type, r_offset);
+              relobj->add_gpsetup_reloc(data_shndx, relnum, reloc);
+            }
           break;
         case elfcpp::R_NANOMIPS_GOT_CALL:
         case elfcpp::R_NANOMIPS_GOT_PAGE:
         case elfcpp::R_NANOMIPS_GOT_DISP:
-          {
-            Nanomips_pic_reloc<size, big_endian> reloc(nanomips_sym, r_type);
-            relobj->add_got_reloc(reloc);
-          }
-          break;
         case elfcpp::R_NANOMIPS_TLS_GOTTPREL:
-          {
-            typedef Nanomips_transformations<size, big_endian> Transform;
-            unsigned int got_offset = global_got_offset(target, gsym, r_type);
-            gold_assert(got_offset != -1U);
-
-            // We don't need to remove GP-setup optimization if this
-            // will be transformed into a PC-relative instruction.
-            if (Transform::template has_overflow_unsigned<21>(got_offset))
-              break;
-          }
-          // Fall through.
-
         case elfcpp::R_NANOMIPS_GPREL_I32:
         case elfcpp::R_NANOMIPS_GPREL_HI20:
         case elfcpp::R_NANOMIPS_GPREL19_S2:
@@ -8070,8 +7982,11 @@ Target_nanomips<size, big_endian>::Scan::global(
         case elfcpp::R_NANOMIPS_TLS_GD:
         case elfcpp::R_NANOMIPS_TLS_LD_I32:
         case elfcpp::R_NANOMIPS_TLS_LD:
-          this->remove_gpsetup_optimization();
-          break;
+          {
+            Nanomips_reloc<size> reloc(nanomips_sym, r_type, r_offset);
+            relobj->add_gprel_reloc(data_shndx, reloc);
+            break;
+          }
         default:
           break;
         }
