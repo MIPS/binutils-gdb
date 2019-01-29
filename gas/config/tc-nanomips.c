@@ -4364,17 +4364,6 @@ match_save_restore_list_operand (struct nanomips_arg_info *arg,
 
   /* Finally build the instruction.  */
   insn_insert_operand (arg->insn, operand, opval);
-  if (nanomips_opts.linkrelax
-      && nanomips_opts.pic != NO_PIC
-      && gp)
-    {
-      offset_expr.X_op = O_symbol;
-      offset_expr.X_add_symbol = ((cur_proc_ptr != NULL)
-				  ? cur_proc_ptr->func_sym
-				  : NULL);
-      offset_expr.X_add_number = 0;
-      offset_reloc[0] = BFD_RELOC_NANOMIPS_SAVERESTORE;
-    }
 
   return TRUE;
 }
@@ -5362,7 +5351,7 @@ static const struct
   { BFD_RELOC_NANOMIPS_ALIGN,		0, 0, 0, 0 },
   { BFD_RELOC_NANOMIPS_RELAX,		0, 0, 0, 0 },
   { BFD_RELOC_NANOMIPS_NORELAX, 	0, 0, 0, 0 },
-  { BFD_RELOC_NANOMIPS_SAVERESTORE,	0, 0, 0, 0 },
+  { BFD_RELOC_NANOMIPS_SAVERESTORE,	0, 0, 0, 4 },
   { BFD_RELOC_NANOMIPS_JUMPTABLE_LOAD,	0, 0, 0, 0 },
   { BFD_RELOC_NONE,			32, 32, 32, 4 }  /* Fall-back maximum  */
 };
@@ -5401,6 +5390,96 @@ get_reloc_sink (bfd_reloc_code_real_type rtype)
   for (i = 0; i < ARRAY_SIZE (reloc_sops); i++)
     {
       if (reloc_sops[i].rtype == rtype)
+	return (reloc_sops[i].rsink);
+    }
+
+  return (reloc_sops[i - 1].rsink);
+}
+
+/* Map a nanoMIPS relocation RTYPE to the maximum extra bytes its linker
+   relaxation can introduce.  The nanoMIPS relocation type must first be
+   mapped to a bfd_reloc_code_real_type which can then be used for lookup with
+   the reloc_sops table.*/
+
+static bfd_vma
+get_explicit_reloc_sop (unsigned reloc_type)
+{
+  unsigned int i;
+  bfd_reloc_code_real_type rtype = BFD_RELOC_NONE;
+
+  /* Quick comparison for frequently used explicit
+     relocations before falling back to slow lookup.  */
+  if (reloc_type == R_NANOMIPS_JALR32)
+    rtype = BFD_RELOC_NANOMIPS_JALR32;
+  else if (reloc_type == R_NANOMIPS_JALR16)
+    rtype = BFD_RELOC_NANOMIPS_JALR16;
+  else if (reloc_type == R_NANOMIPS_JUMPTABLE_LOAD)
+    rtype = BFD_RELOC_NANOMIPS_JUMPTABLE_LOAD;
+  else if (reloc_type == R_NANOMIPS_SAVERESTORE)
+    rtype = BFD_RELOC_NANOMIPS_SAVERESTORE;
+
+  for (i = 0; i < ARRAY_SIZE (reloc_sops); i++)
+    {
+      unsigned rsop_type = 0;
+
+      /* If necessary, do a reverse lookup from the
+	 bfd_reloc_code_real_type entries in the reloc_sops table to the
+	 incoming nanomips_reloc_type code from an explicit relocation.  */
+      if (rtype == BFD_RELOC_NONE)
+	rsop_type = (bfd_reloc_type_lookup (stdoutput,
+					   reloc_sops[i].rtype))->type;
+
+      if ((rtype != BFD_RELOC_NONE && reloc_sops[i].rtype == rtype)
+	  || rsop_type == reloc_type)
+	return ((nanomips_opts.ase & ASE_xNMS)
+		? (nanomips_opts.insn32
+		   ? reloc_sops[i].rsop_nmf32
+		   : reloc_sops[i].rsop_nmf)
+		: reloc_sops[i].rsop_nms);
+    }
+
+  return ((nanomips_opts.ase & ASE_xNMS)
+	  ? (nanomips_opts.insn32
+	     ? reloc_sops[i-1].rsop_nmf32
+	     : reloc_sops[i-1].rsop_nmf)
+	  : reloc_sops[i-1].rsop_nms);
+}
+
+/* Map a nanoMIPS relocation RTYPE to the maximum bytes its linker relaxation
+   can eliminate.  The nanoMIPS relocation type must first be mapped to a
+   bfd_reloc_code_real_type which can then be used for lookup with the
+   reloc_sops table.*/
+
+static bfd_vma
+get_explicit_reloc_sink (unsigned reloc_type)
+{
+  unsigned int i;
+  bfd_reloc_code_real_type rtype = BFD_RELOC_NONE;
+
+  /* Quick comparison for frequently used explicit
+     relocations before falling back to slow lookup.  */
+  if (reloc_type == R_NANOMIPS_JALR32)
+    rtype = BFD_RELOC_NANOMIPS_JALR32;
+  else if (reloc_type == R_NANOMIPS_JALR16)
+    rtype = BFD_RELOC_NANOMIPS_JALR16;
+  else if (reloc_type == R_NANOMIPS_JUMPTABLE_LOAD)
+    rtype = BFD_RELOC_NANOMIPS_JUMPTABLE_LOAD;
+  else if (reloc_type == R_NANOMIPS_SAVERESTORE)
+    rtype = BFD_RELOC_NANOMIPS_SAVERESTORE;
+
+  for (i = 0; i < ARRAY_SIZE (reloc_sops); i++)
+    {
+      unsigned rsop_type = 0;
+
+      /* If necessary, do a reverse lookup from the
+	 bfd_reloc_code_real_type entries in the reloc_sops table to the
+	 incoming nanomips_reloc_type code from an explicit relocation.  */
+      if (rtype == BFD_RELOC_NONE)
+	rsop_type = (bfd_reloc_type_lookup (stdoutput,
+					   reloc_sops[i].rtype))->type;
+
+      if ((rtype != BFD_RELOC_NONE && reloc_sops[i].rtype == rtype)
+	  || rsop_type == reloc_type)
 	return (reloc_sops[i].rsink);
     }
 
@@ -5491,16 +5570,16 @@ frag_subtype_to_reloc (enum relax_nanomips_subtype rt, bfd_boolean toofar16)
   return reloc;
 }
 
-/* Whether the last encountered explicit relocation was a jumptable
-   load relocation.  */
+/* Check whether the last encountered label carried an
+   explicit relocation.  */
+
 static bfd_boolean
-jumptable_load_reloc_p (void)
+explicit_reloc_label_p (fragS *fragP, asection *sec)
 {
   if (reloc_list != NULL
-      && symbol_get_frag (reloc_list->u.a.offset_sym) == frag_now
-      && reloc_list->u.a.howto->type == R_NANOMIPS_JUMPTABLE_LOAD)
+      && symbol_get_frag (reloc_list->u.a.offset_sym) == fragP)
     {
-      segment_info_type *si = seg_info (now_seg);
+      segment_info_type *si = seg_info (sec);
 
       struct insn_label_list *iter = si->label_list;
       while (iter != NULL)
@@ -5512,6 +5591,18 @@ jumptable_load_reloc_p (void)
     }
   return FALSE;
 }
+
+/* Check whether the last encountered label carried an explicit
+   relocation of the specified type.  */
+
+static bfd_boolean
+explicit_reloc_type_p (fragS *fragP, asection *sec,
+		       unsigned rtype)
+{
+  return (explicit_reloc_label_p (fragP, sec)
+	  && reloc_list->u.a.howto->type == rtype);
+}
+
 
 /* Whether the specified INSN is a valid scaled load instruction
    to access a compressed jump table.  */
@@ -5539,6 +5630,31 @@ reloc_list_head_to_fix (struct nanomips_cl_insn *ip)
 			  BFD_RELOC_NANOMIPS_JUMPTABLE_LOAD);
   reloc_list = reloc_list->next;
 }
+
+static void
+record_insn_sops (fragS *fragP, asection *sec,
+		  bfd_reloc_code_real_type *reloc_type)
+{
+  bfd_vma rsop, rsink;
+  if (explicit_reloc_label_p (fragP, sec))
+    {
+      rsop = get_explicit_reloc_sop (reloc_list->u.a.howto->type);
+      rsink = get_explicit_reloc_sink (reloc_list->u.a.howto->type);
+    }
+  else
+    {
+      rsop = get_reloc_sop (*reloc_type);
+      rsink = get_reloc_sink (*reloc_type);
+    }
+
+  if (rsop + rsink > 0)
+    {
+      fragP->tc_frag_data.link_var = TRUE;
+      fragP->tc_frag_data.relax_sop += rsop;
+      fragP->tc_frag_data.relax_sink += rsink;
+    }
+}
+
 
 /* Output an instruction.  IP is the instruction information.
    ADDRESS_EXPR is an operand of the instruction to be used with
@@ -5740,7 +5856,8 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
 	}
       else
 	{
-	  if (jumptable_load_reloc_p ()
+	  if (explicit_reloc_type_p (frag_now, now_seg,
+				     R_NANOMIPS_JUMPTABLE_LOAD)
 	      && load_scaled_insn_p (ip->insn_mo))
 	    reloc_list_head_to_fix (ip);
 	  add_fixed_insn (ip);
@@ -5822,21 +5939,16 @@ append_insn (struct nanomips_cl_insn *ip, expressionS *address_expr,
 	    fix_new (ip->frag, ip->where, 0, &abs_symbol, 0, FALSE,
 		     (forced_insn_length == 2 ? BFD_RELOC_NANOMIPS_INSN16
 		      : BFD_RELOC_NANOMIPS_INSN32));
-
-	  if (!forced_insn_length
-	      && !forced_insn_format
-	      && !pcrel_branch_reloc_p (*reloc_type)
-	      /* Ignore relocations that don't expand/contract due to
-		 linker relaxation. Sneaky!!  */
-	      && ((get_reloc_sop (*reloc_type) > 0)
-		  || get_reloc_sink (*reloc_type) > 0))
-	    {
-	      ip->frag->tc_frag_data.link_var = TRUE;
-	      ip->frag->tc_frag_data.relax_sop += get_reloc_sop (*reloc_type);
-	      ip->frag->tc_frag_data.relax_sink += get_reloc_sink (*reloc_type);
-	    }
 	}
     }
+
+  if (!forced_insn_length
+      && !forced_insn_format
+      && ((!ip->complete_p
+	   && !pcrel_branch_reloc_p (*reloc_type)
+	   && *reloc_type < BFD_RELOC_UNUSED)
+	  || explicit_reloc_label_p (ip->frag, now_seg)))
+    record_insn_sops (ip->frag, now_seg, reloc_type);
 
   install_insn (ip);
 

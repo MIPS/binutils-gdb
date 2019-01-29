@@ -33,9 +33,17 @@ test:
 	save	40,$ra
 	save	256,$fp,$ra
 	save	1024,$ra,$s0
+	.reloc	1f,R_NANOMIPS_SAVERESTORE,test
+1:
 	save	160,$zero,$gp
+	.reloc	1f,R_NANOMIPS_SAVERESTORE,test
+1:
 	save	64,$s0-$s3,$gp
+	.reloc	1f,R_NANOMIPS_SAVERESTORE,test
+1:
 	save	64,$a0-$s0,$gp
+	.reloc	1f,R_NANOMIPS_SAVERESTORE,test
+1:
 	save	128,$t3,$s0,$s1,$gp
 	save	128,$a4-$t3,$s0-$s3
 
@@ -43,9 +51,17 @@ test:
 	restore	48,$ra
 	restore	256,$fp,$ra
 	restore	1024,$ra,$s0
+	.reloc	1f,R_NANOMIPS_SAVERESTORE,test
+1:
 	restore	160,$zero,$gp
+	.reloc	1f,R_NANOMIPS_SAVERESTORE,test
+1:
 	restore	64,$s0,$s1,$s2,$s3,$gp
+	.reloc	1f,R_NANOMIPS_SAVERESTORE,test
+1:
 	restore	64,$t4,$t5,$gp
+	.reloc	1f,R_NANOMIPS_SAVERESTORE,test
+1:
 	restore	128,$fp,$ra,$s0,$s1,$gp
 	restore	120,$fp,$ra,$s0-$k1,$gp
 
@@ -54,9 +70,17 @@ test:
 	restore.jrc	1024,$ra,$s0
 
 	li	$a1,200
+	.reloc	1f,R_NANOMIPS_SAVERESTORE,test
+1:
 	restore.jrc	160,$zero,$gp
+	.reloc	1f,R_NANOMIPS_SAVERESTORE,test
+1:
 	restore.jrc	64,$s0,$s1,$s2,$s3,$gp
+	.reloc	1f,R_NANOMIPS_SAVERESTORE,test
+1:
 	restore.jrc	64,$t4,$t5,$gp
+	.reloc	1f,R_NANOMIPS_SAVERESTORE,test
+1:
 	restore.jrc	128,$fp,$ra,$s0,$s1,$gp
 	restore.jrc	120,$fp,$ra,$s0-$k1,$gp
 	restore.jrc	64,$fp,$ra,$s0-$s7
