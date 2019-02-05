@@ -4777,7 +4777,8 @@ Nanomips_relax_insn<size, big_endian>::find_insn(
       else
         return insn_property;
     case elfcpp::R_NANOMIPS_LO12:
-      if (!insn_property->has_transform(TT_ABS16, r_type)
+      if (!parameters->options().relax_lo12()
+          || !insn_property->has_transform(TT_ABS16, r_type)
           || !insn_property->valid_regs(insn))
         return NULL;
       else

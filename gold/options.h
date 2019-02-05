@@ -1213,6 +1213,10 @@ class General_options
 	      N_("Relax branches on certain targets"),
 	      N_("Do not relax branches"));
 
+  DEFINE_bool(relax_lo12, options::TWO_DASHES, '\0', false,
+	      N_("(nanoMIPS only) Relax R_NANOMIPS_LO12 relocation"),
+	      N_("(nanoMIPS only) Do not relax R_NANOMIPS_LO12 relocation"));
+
   DEFINE_string(retain_symbols_file, options::TWO_DASHES, '\0', NULL,
 		N_("keep only symbols listed in this file"), N_("FILE"));
 
