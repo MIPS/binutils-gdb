@@ -93,6 +93,7 @@ NRD(SAVERESTORE,                PLACEHOLDER,        32,         0,        0xfc10
 NRD(INSN16,                     PLACEHOLDER,         0,         0,        0,                 0)
 NRD(JALR32,                     PLACEHOLDER,        32,         0,        0xffe0f000,        0)
 NRD(JALR16,                     PLACEHOLDER,        16,         0,        0xfc1f,            0)
+NRD(FRAME_REG,                  STATIC,              0,         0,        0,                 0)
 NRD(COPY,                       DYNAMIC,             0,         0,        0,                 0)
 NRD(GLOBAL,                     DYNAMIC,             0,         0,        0,                 0)
 NRD(JUMP_SLOT,                  DYNAMIC,             0,         0,        0,                 0)

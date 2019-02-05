@@ -2726,6 +2726,14 @@ class Nanomips_relocate_functions
     return (should_check_overflow ? check_overflow<16>(value, CHECK_UNSIGNED)
                                   : STATUS_OKAY);
   }
+
+  // R_NANOMIPS_FRAME_REG
+  static inline Status
+  relframereg(unsigned char* view, Address value)
+  {
+    elfcpp::Swap_unaligned<16, big_endian>::writeval(view, value);
+    return STATUS_OKAY;
+  }
 };
 
 // Nanomips_output_data_stubs methods.
@@ -8161,6 +8169,9 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
     case elfcpp::R_NANOMIPS_JALR32:
     case elfcpp::R_NANOMIPS_JALR16:
       break;
+    case elfcpp::R_NANOMIPS_FRAME_REG:
+      value = 0;
+      break;
     case elfcpp::R_NANOMIPS_GOT_OFST:
       value = r_addend;
       break;
@@ -8390,6 +8401,23 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
     case elfcpp::R_NANOMIPS_TLS_DTPREL12:
       reloc_status = Reloc_funcs::rel12(view, value, check_overflow);
       break;
+    case elfcpp::R_NANOMIPS_FRAME_REG:
+      {
+        reloc_status = Reloc_funcs::STATUS_OKAY;
+        if (parameters->options().expand())
+          {
+            const Nanomips_symbol<size>* nanomips_sym =
+              Nanomips_symbol<size>::as_nanomips_sym(gsym);
+            bool is_gp_used = (nanomips_sym == NULL
+                               ? object->is_gp_used(r_sym)
+                               : nanomips_sym->is_gp_used());
+
+            // Zero out two bytes of memory at r_offset, if GP is not used.
+            if (!is_gp_used)
+              reloc_status = Reloc_funcs::relframereg(view, value);
+          }
+        break;
+      }
     default:
       gold_error_at_location(relinfo, relnum, r_offset,
                              _("unsupported reloc %s"),
