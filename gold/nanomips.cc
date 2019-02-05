@@ -2703,7 +2703,7 @@ class Nanomips_relocate_functions
   }
 
   // R_NANOMIPS_LO12, R_NANOMIPS_GPREL_LO12, R_NANOMIPS_GOT_LO12,
-  // R_NANOMIPS_TLS_TPREL12, R_NANOMIPS_TLS_DTPREL12
+  // R_NANOMIPS_GOT_OFST, R_NANOMIPS_TLS_TPREL12, R_NANOMIPS_TLS_DTPREL12
   static inline Status
   rel12(unsigned char* view, Address value, bool should_check_overflow)
   {
@@ -4833,7 +4833,8 @@ Nanomips_relax_insn<size, big_endian>::relax_code_and_data_models(
 
           // Transform into [ls]x[16] and discard relocation
           // or don't do anything.
-          return (!insn32 && insn_property->valid_regs(insn)
+          // TODO: Allow non-zero addends.
+          return ((r_addend == 0) && !insn32 && insn_property->valid_regs(insn)
                   ? TT_DISCARD
                   : TT_NONE);
         default:
@@ -8159,7 +8160,9 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
     case elfcpp::R_NANOMIPS_NONE:
     case elfcpp::R_NANOMIPS_JALR32:
     case elfcpp::R_NANOMIPS_JALR16:
+      break;
     case elfcpp::R_NANOMIPS_GOT_OFST:
+      value = r_addend;
       break;
     case elfcpp::R_NANOMIPS_GOT_DISP:
     case elfcpp::R_NANOMIPS_GOT_PAGE:
@@ -8214,7 +8217,6 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
     case elfcpp::R_NANOMIPS_NEG:
       value = r_addend - psymval->value(object, 0);
       break;
-    // Calculate pc-relative relocations.
     case elfcpp::R_NANOMIPS_PC_HI20:
       value = psymval->value(object, r_addend) - ((address + 4) & ~0xfff);
       break;
@@ -8237,7 +8239,6 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
         value = psymval->value(object, r_addend) - (address + insn_size);
         break;
       }
-    // Calculate gp-relative relocations.
     case elfcpp::R_NANOMIPS_GPREL_I32:
     case elfcpp::R_NANOMIPS_GPREL19_S2:
     case elfcpp::R_NANOMIPS_GPREL18_S3:
@@ -8272,7 +8273,6 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
     case elfcpp::R_NANOMIPS_NONE:
     case elfcpp::R_NANOMIPS_JALR32:
     case elfcpp::R_NANOMIPS_JALR16:
-    case elfcpp::R_NANOMIPS_GOT_OFST:
       break;
     case elfcpp::R_NANOMIPS_I32:
     case elfcpp::R_NANOMIPS_PC_I32:
@@ -8385,6 +8385,7 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
     case elfcpp::R_NANOMIPS_TLS_DTPREL16:
       reloc_status = Reloc_funcs::reltls16(view, value, check_overflow);
       break;
+    case elfcpp::R_NANOMIPS_GOT_OFST:
     case elfcpp::R_NANOMIPS_TLS_TPREL12:
     case elfcpp::R_NANOMIPS_TLS_DTPREL12:
       reloc_status = Reloc_funcs::rel12(view, value, check_overflow);
