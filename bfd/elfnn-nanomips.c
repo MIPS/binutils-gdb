@@ -857,7 +857,22 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] = {
 	 0,			/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-  EMPTY_HOWTO (76),
+  /* Place-holder for relaxing frame-register information.  */
+  HOWTO (R_NANOMIPS_FRAME_REG, /* type */
+	 0,			/* rightshift */
+	 0,			/* size (0 = byte, 1 = short, 2 = long) */
+	 0,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont, /* complain_on_overflow */
+	 bfd_elf_generic_reloc, /* special handler */
+	 "R_NANOMIPS_FRAME_REG", /* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0,			/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
+
   EMPTY_HOWTO (77),
   EMPTY_HOWTO (78),
   EMPTY_HOWTO (79),
