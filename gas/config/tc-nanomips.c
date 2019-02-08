@@ -13588,10 +13588,13 @@ void nanomips_pre_relax_hook (void)
 
   while (iter != NULL)
     {
-      reloc_list_copy = XNEW (struct reloc_list);
-      *reloc_list_copy = *iter;
-      reloc_list_copy->next = prev;
-      prev = reloc_list_copy;
+      if (iter->u.a.howto->type != R_NANOMIPS_FRAME_REG)
+	{
+	  reloc_list_copy = XNEW (struct reloc_list);
+	  *reloc_list_copy = *iter;
+	  reloc_list_copy->next = prev;
+	  prev = reloc_list_copy;
+	}
       iter = iter->next;
     }
 
