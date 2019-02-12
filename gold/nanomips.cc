@@ -1493,6 +1493,7 @@ class Nanomips_transformations
 
  public:
   Nanomips_transformations()
+    : issued_non_pcrel_error_(false)
   { }
 
   // Handle alignment requirement.
@@ -1511,6 +1512,7 @@ class Nanomips_transformations
             const Nanomips_transform_template* transform_template,
             const Nanomips_insn_property* insn_property,
             Nanomips_input_section* input_section,
+            const Symbol* sym,
             unsigned int type,
             size_t relnum,
             uint32_t insn);
@@ -1564,6 +1566,15 @@ class Nanomips_transformations
                 Address offset, size_t relnum, size_t reloc_count,
                 const unsigned char* prelocs, Valtype* fill,
                 Valtype* max, Size_type* fill_size);
+
+  // Issue an error for using absolute addressing transformation when
+  // making a shared object.
+  void
+  issue_non_pcrel_error(Relobj* object, const Symbol* sym,
+                        const elfcpp::Rela<size, big_endian>& reloc);
+
+  // Whether we have issued an error about a non-PCREL transformation.
+  bool issued_non_pcrel_error_;
 
   // Statistics.
 
@@ -2139,7 +2150,8 @@ class Target_nanomips : public Sized_target<size, big_endian>
   {
    public:
     Scan()
-      : seen_norelax_(false)
+      : seen_norelax_(false), issued_non_pic_error_(false),
+        issued_non_pcrel_error_(false)
     { }
 
     inline void
@@ -2186,8 +2198,47 @@ class Target_nanomips : public Sized_target<size, big_endian>
                               size_t relnum,
                               const unsigned char* preloc);
 
+    // Issue an error for non-PIC relocation.
+    void
+    issue_non_pic_error(const Symbol* sym, const Relobj* object,
+                        unsigned int r_type);
+
+    // Issue an error for using absolute addressing when
+    // making a shared object.
+    void
+    issue_non_pcrel_error(const Symbol* sym, const Relobj* object,
+                          unsigned int r_type);
+
+    // Almost identical to Symbol::needs_plt_entry except that for -pie
+    // doesn't return false.
+    static bool
+    symbol_needs_plt_entry(const Symbol* sym)
+    {
+      // An undefined symbol from an executable does not need a PLT entry.
+      if (sym->is_undefined() && !parameters->options().shared())
+        return false;
+
+      // An STT_GNU_IFUNC symbol always needs a PLT entry, even when
+      // doing a static link.
+      if (sym->type() == elfcpp::STT_GNU_IFUNC)
+        return true;
+
+      // We only need a PLT entry for a function.
+      if (!sym->is_func())
+        return false;
+
+      return (!parameters->doing_static_link()
+              && (sym->is_from_dynobj()
+                  || sym->is_undefined()
+                  || sym->is_preemptible()));
+    }
+
     // True if we have seen R_NANOMIPS_NORELAX relocation.
     bool seen_norelax_;
+    // Whether we have issued an error about a non-PIC compilation.
+    bool issued_non_pic_error_;
+    // Whether we have issued an error about a non-PCREL compilation.
+    bool issued_non_pcrel_error_;
   };
 
   // The class which implements relocation.
@@ -4271,6 +4322,50 @@ Nanomips_transformations<size, big_endian>::write_insn(
     gold_unreachable();
 }
 
+// Issue an error for using absolute addressing transformation when
+// making a shared object.
+
+template<int size, bool big_endian>
+void
+Nanomips_transformations<size, big_endian>::issue_non_pcrel_error(
+    Relobj* object,
+    const Symbol* sym,
+    const elfcpp::Rela<size, big_endian>& reloc)
+{
+  // This prevents us from issuing more than one error per reloc
+  // section.  But we can still wind up issuing more than one
+  // error per object file.
+  if (this->issued_non_pcrel_error_)
+    return;
+
+  gold_assert(parameters->options().output_is_position_independent());
+  unsigned int r_sym = elfcpp::elf_r_sym<size>(reloc.get_r_info());
+  unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
+  typename elfcpp::Elf_types<size>::Elf_Swxword r_addend =
+    reloc.get_r_addend();
+
+  Nanomips_relobj<size, big_endian>* relobj =
+    Nanomips_relobj<size, big_endian>::as_nanomips_relobj(object);
+  const Nanomips_reloc_property* nrp =
+    nanomips_reloc_property_table->get_reloc_property(r_type);
+  gold_assert(nrp != NULL);
+
+  if (sym == NULL)
+    {
+      std::string symname = relobj->local_symbol_name(r_sym, r_addend);
+      relobj->error(_("relocation %s against local symbol '%s' with index %u "
+                      "cannot be transformed to use absolute addressing when "
+                      "making a shared object; recompile with -mpcrel"),
+                    nrp->name().c_str(), symname.c_str(), r_sym);
+    }
+  else
+    relobj->error(_("relocation %s against global symbol '%s' cannot be "
+                    "transformed to use absolute addressing when making "
+                    "a shared object; recompile with -mpcrel"),
+                  nrp->name().c_str(), sym->name());
+  this->issued_non_pcrel_error_ = true;
+}
+
 // Print transformation.
 
 template<int size, bool big_endian>
@@ -4482,6 +4577,7 @@ Nanomips_transformations<size, big_endian>::transform(
     const Nanomips_transform_template* transform_template,
     const Nanomips_insn_property* insn_property,
     Nanomips_input_section* input_section,
+    const Symbol* sym,
     unsigned int type,
     size_t relnum,
     uint32_t insn)
@@ -4504,6 +4600,14 @@ Nanomips_transformations<size, big_endian>::transform(
   Address r_offset = reloc.get_r_offset();
   typename elfcpp::Elf_types<size>::Elf_Swxword r_addend =
     reloc.get_r_addend();
+
+  // Issue an error for absolute transformation when making
+  // a shared object, if needed.
+  if (parameters->options().output_is_position_independent()
+      && (type == TT_ABS16_LONG
+          || type == TT_ABS32_LONG
+          || type == TT_ABS_XLP))
+    this->issue_non_pcrel_error(relinfo->object, sym, reloc);
 
   // Extract registers from an input instruction and adjust r_offset
   // for 48-bit instructions.
@@ -7389,7 +7493,7 @@ Target_nanomips<size, big_endian>::scan_reloc_section_for_transform(
 
       // Transform instruction.
       transform.transform(relinfo, transform_template, insn_property,
-                          input_section, type, i, insn);
+                          input_section, gsym, type, i, insn);
 
       if (is_debugging_enabled(DEBUG_TARGET))
         transform.print(relinfo, transform_template, insn_property->name(),
@@ -7446,6 +7550,56 @@ Target_nanomips<size, big_endian>::Scan::reloc_in_composite_relocs(
 
   // Otherwise, return false.
   return false;
+}
+
+// Issue an error for non-PIC relocation.
+
+template<int size, bool big_endian>
+void
+Target_nanomips<size, big_endian>::Scan::issue_non_pic_error(
+    const Symbol* sym,
+    const Relobj* object,
+    unsigned int r_type)
+{
+  // This prevents us from issuing more than one error per reloc
+  // section.  But we can still wind up issuing more than one
+  // error per object file.
+  if (this->issued_non_pic_error_)
+    return;
+
+  const Nanomips_reloc_property* nrp =
+    nanomips_reloc_property_table->get_reloc_property(r_type);
+  gold_assert(nrp != NULL);
+  object->error(_("relocation %s cannot be used against symbol '%s'; "
+                  "recompile with -fpic"),
+                nrp->name().c_str(), sym->name());
+  this->issued_non_pic_error_ = true;
+}
+
+// Issue an error for using absolute addressing when
+// making a shared object.
+
+template<int size, bool big_endian>
+void
+Target_nanomips<size, big_endian>::Scan::issue_non_pcrel_error(
+    const Symbol* sym,
+    const Relobj* object,
+    unsigned int r_type)
+{
+  // This prevents us from issuing more than one error per reloc
+  // section.  But we can still wind up issuing more than one
+  // error per object file.
+  if (this->issued_non_pcrel_error_)
+    return;
+
+  gold_assert(parameters->options().output_is_position_independent());
+  const Nanomips_reloc_property* nrp =
+    nanomips_reloc_property_table->get_reloc_property(r_type);
+  gold_assert(nrp != NULL);
+  object->error(_("relocation %s cannot be used against symbol '%s' "
+                  "when making a shared object; recompile with -mpcrel"),
+                nrp->name().c_str(), sym->name());
+  this->issued_non_pcrel_error_ = true;
 }
 
 template<int size, bool big_endian>
@@ -7823,18 +7977,32 @@ Target_nanomips<size, big_endian>::Scan::global(
           }
       }
       break;
+    case elfcpp::R_NANOMIPS_HI20:
+    case elfcpp::R_NANOMIPS_I32:
+      if (parameters->options().output_is_position_independent())
+        this->issue_non_pcrel_error(gsym, relobj, r_type);
+      // Fall through.
+
     case elfcpp::R_NANOMIPS_PC_I32:
+    case elfcpp::R_NANOMIPS_PC_HI20:
     case elfcpp::R_NANOMIPS_PC21_S1:
     case elfcpp::R_NANOMIPS_GPREL_I32:
+    case elfcpp::R_NANOMIPS_GPREL_HI20:
     case elfcpp::R_NANOMIPS_GPREL19_S2:
     case elfcpp::R_NANOMIPS_GPREL18_S3:
+    case elfcpp::R_NANOMIPS_GPREL18:
     case elfcpp::R_NANOMIPS_GPREL17_S1:
     case elfcpp::R_NANOMIPS_GPREL16_S2:
     case elfcpp::R_NANOMIPS_GPREL7_S2:
-      // Relative addressing relocations.  Skip the reference to the
+      // If symbol needs PLT, issue an error as we don't support it.
+      if (this->symbol_needs_plt_entry(gsym))
+        {
+          this->issue_non_pic_error(gsym, relobj, r_type);
+        }
+      // If symbols needs dynamic reloc, skip the reference to the
       // _gp symbol, because it will be set in do_finalize_sections.
-      if (strcmp(gsym->name(), "_gp") != 0
-          && gsym->needs_dynamic_reloc(nrp->reference_flags()))
+      else if (gsym->needs_dynamic_reloc(nrp->reference_flags())
+               && strcmp(gsym->name(), "_gp") != 0)
         {
           // Make a copy relocation if necessary.
           if (parameters->options().output_is_executable()
@@ -7842,10 +8010,19 @@ Target_nanomips<size, big_endian>::Scan::global(
             target->copy_reloc(symtab, layout, relobj, data_shndx,
                                output_section, gsym, reloc);
           else
-            relobj->error(_("requires unsupported dynamic reloc %s "
-                            "against '%s'; recompile with -fPIC"),
-                          nrp->name().c_str(), gsym->name());
+            this->issue_non_pic_error(gsym, relobj, r_type);
         }
+      break;
+
+    case elfcpp::R_NANOMIPS_PC25_S1:
+    case elfcpp::R_NANOMIPS_PC14_S1:
+    case elfcpp::R_NANOMIPS_PC11_S1:
+    case elfcpp::R_NANOMIPS_PC10_S1:
+    case elfcpp::R_NANOMIPS_PC7_S1:
+    case elfcpp::R_NANOMIPS_PC4_S1:
+      // If symbol needs PLT, issue an error as we don't support it.
+      if (this->symbol_needs_plt_entry(gsym))
+        this->issue_non_pic_error(gsym, relobj, r_type);
       break;
     case elfcpp::R_NANOMIPS_GOT_CALL:
     case elfcpp::R_NANOMIPS_GOT_PAGE:
