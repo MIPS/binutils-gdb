@@ -5167,15 +5167,12 @@ Nanomips_expand_insn<size, big_endian>::expand_type(
           if (parameters->options().strict_address_modes())
             // Transform into addiu[gp48], [ls]x or lui, addu, [ls]x.
             return xlp ? TT_GPREL32_XLP : TT_GPREL_LONG;
-          else if (!pcrel)
-            // Transform into lui, [ls]x.
-            return TT_ABS32_LONG;
           else if (xlp && insn_property->has_transform(TT_PCREL_XLP, r_type))
             // Transform [ls]w[gp] into [ls]wpc.
             return TT_PCREL_XLP;
           else
-            // Transform into aluipc, [ls]x.
-            return TT_PCREL32_LONG;
+            // Transform into aluipc/lui, [ls]x.
+            return pcrel ? TT_PCREL32_LONG : TT_ABS32_LONG;
         }
     case elfcpp::R_NANOMIPS_PC10_S1:
     case elfcpp::R_NANOMIPS_PC7_S1:

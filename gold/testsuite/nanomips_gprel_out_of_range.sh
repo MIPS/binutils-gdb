@@ -176,45 +176,45 @@ check nanomips_gprel_out_of_range_no_strict_abs.stdout " 1048:	e020 0040 	lui	at
 check nanomips_gprel_out_of_range_no_strict_abs.stdout " 104c:	81e1 0000 	ori	t3,at,0x0"
 
 
-# Test lw[gp] expansion to lui, lw.
-check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1000:	e020 0040 	lui	at,%hi(0x2000000)"
-check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1004:	8441 8000 	lw	t4,0(at)"
+# Test lw[gp] expansion to lwpc.
+check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1000:	604b effa 	lwpc	t4,2000000 <var>"
+check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1004:	01ff"
 
-# Test sw[gp] expansion to lui, sw.
-check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1008:	e020 0040 	lui	at,%hi(0x2000000)"
-check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 100c:	8461 9000 	sw	t5,0(at)"
+# Test sw[gp] expansion to swpc.
+check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1006:	606f eff4 	swpc	t5,2000000 <var>"
+check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 100a:	01ff"
 
 # Test lb[gp] expansion to lui, lb.
-check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1010:	e020 0040 	lui	at,%hi(0x2000000)"
-check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1014:	84c1 0000 	lb	a2,0(at)"
+check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 100c:	e020 0040 	lui	at,%hi(0x2000000)"
+check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1010:	84c1 0000 	lb	a2,0(at)"
 
 # Test lbu[gp] expansion to lui, lbu.
-check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1018:	e020 0040 	lui	at,%hi(0x2000000)"
-check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 101c:	84e1 2000 	lbu	a3,0(at)"
+check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1014:	e020 0040 	lui	at,%hi(0x2000000)"
+check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1018:	84e1 2000 	lbu	a3,0(at)"
 
 # Test lh[gp] expansion to lui, lh.
-check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1020:	e020 0040 	lui	at,%hi(0x2000000)"
-check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1024:	8601 4000 	lh	s0,0(at)"
+check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 101c:	e020 0040 	lui	at,%hi(0x2000000)"
+check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1020:	8601 4000 	lh	s0,0(at)"
 
 # Test lhu[gp] expansion to lui, lhu.
-check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1028:	e020 0040 	lui	at,%hi(0x2000000)"
-check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 102c:	8681 6000 	lhu	s4,0(at)"
+check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1024:	e020 0040 	lui	at,%hi(0x2000000)"
+check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1028:	8681 6000 	lhu	s4,0(at)"
 
 # Test sb[gp] expansion to lui, sb.
-check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1030:	e020 0040 	lui	at,%hi(0x2000000)"
-check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1034:	8521 1000 	sb	a5,0(at)"
+check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 102c:	e020 0040 	lui	at,%hi(0x2000000)"
+check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1030:	8521 1000 	sb	a5,0(at)"
 
 # Test sh[gp] expansion to lui, sh.
-check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1038:	e020 0040 	lui	at,%hi(0x2000000)"
-check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 103c:	85a1 5000 	sh	t1,0(at)"
+check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1034:	e020 0040 	lui	at,%hi(0x2000000)"
+check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1038:	85a1 5000 	sh	t1,0(at)"
 
 # Test addiu[gp.w] expansion to addiu[gp48].
-check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1040:	61c2 0000 	addiu	t2,gp,.*"
-check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1044:	01f0"
+check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 103c:	61c2 0000 	addiu	t2,gp,.*"
+check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1040:	01f0"
 
 # Test addiu[gp.b] expansion to addiu[gp48].
-check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1046:	61e2 0000 	addiu	t3,gp,.*"
-check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 104a:	01f0"
+check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1042:	61e2 0000 	addiu	t3,gp,.*"
+check nanomips_gprel_nms_out_of_range_no_strict_abs.stdout " 1046:	01f0"
 
 
 # Test lw[gp] expansion to aluipc, lw.
