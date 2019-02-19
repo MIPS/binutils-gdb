@@ -1245,6 +1245,20 @@ sim_monitor (SIM_DESC sd,
 	break;
       }
 
+    case 13: /* int unlink(const char *path) */
+      {
+	char *path = fetch_str (sd, A0);
+	V0 = sim_io_unlink (sd, path);
+	free (path);
+	break;
+      }
+
+    case 14: /* int lseek(int fd, int offset, int whence) */
+      {
+	V0 = sim_io_lseek (sd, A0, A1, A2);
+	break;
+      }
+
     case 17: /* void _exit() */
       {
 	sim_io_eprintf (sd, "sim_monitor(17): _exit(int reason) to be coded\n");
