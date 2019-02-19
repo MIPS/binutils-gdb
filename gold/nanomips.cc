@@ -6284,6 +6284,13 @@ void
 Target_nanomips<size, big_endian>::merge_obj_e_flags(const std::string& name,
                                                      elfcpp::Elf_Word new_flags)
 {
+  // Issue an error if there is a non-PIC object in dynamic link.
+  if ((new_flags & elfcpp::EF_NANOMIPS_PIC) == 0
+      && !parameters->doing_static_link()
+      && !parameters->options().relocatable())
+    gold_error(_("%s: non-PIC object found in dynamic link; "
+                 "recompile with -fpic"), name.c_str());
+
   // If flags are not set yet, just copy them.
   if (!this->are_processor_specific_flags_set())
     {
