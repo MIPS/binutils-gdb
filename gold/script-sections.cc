@@ -2027,13 +2027,16 @@ Output_section_element_input::set_section_addresses(
 
       gold_assert(output_section != NULL);
 
-      const Input_section_pattern& isp(this->input_section_patterns_[i]);
-      if (isp.sort != SORT_WILDCARD_NONE
+      Sort_wildcard isp_sort = SORT_WILDCARD_NONE;
+      if (!this->input_section_patterns_.empty())
+	isp_sort = this->input_section_patterns_[i].sort;
+
+      if (isp_sort != SORT_WILDCARD_NONE
 	  || this->filename_sort_ != SORT_WILDCARD_NONE)
 	std::stable_sort(matching_sections[i].begin(),
 			 matching_sections[i].end(),
 			 Input_section_sorter(this->filename_sort_,
-					      isp.sort));
+					      isp_sort));
 
       for (std::vector<Input_section_info>::const_iterator p =
 	     matching_sections[i].begin();
