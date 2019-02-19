@@ -551,6 +551,7 @@ class Nanomips_reloc
 template<int size, bool big_endian>
 class Nanomips_output_data_got : public Output_data_got<size, big_endian>
 {
+  typedef typename elfcpp::Elf_types<size>::Elf_Addr Address;
   typedef Output_data_reloc<elfcpp::SHT_REL, true, size, big_endian>
       Reloc_section;
   typedef Unordered_set<Nanomips_symbol<size>*, Nanomips_symbol_hash<size> >
@@ -570,6 +571,11 @@ class Nanomips_output_data_got : public Output_data_got<size, big_endian>
     if (!nanomips_sym->has_got_offset(GOT_TYPE_STANDARD))
       this->got_call_.insert(nanomips_sym);
   }
+
+  // For the entry at offset GOT_OFFSET, return its offset from the gp.
+  Address
+  gp_offset(unsigned int got_offset, Address gp) const
+  { return (this->address() + got_offset - gp); }
 
   // Finalize symbols against R_NANOMIPS_GOT_CALL relocation.
   void
@@ -876,7 +882,8 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   // Determine for which function we can remove GP register from
   // save/restore instruction and remove GP-setup relocation.
   void
-  finalize_gpsetup_optimizations(Target_nanomips<size, big_endian>* target);
+  finalize_gpsetup_optimizations(Target_nanomips<size, big_endian>* target,
+                                 const Symbol_table* symtab);
 
   // Convert regular input section with index SHNDX to a relaxed section.
   void
@@ -1991,10 +1998,15 @@ class Target_nanomips : public Sized_target<size, big_endian>
                              const unsigned char* view,
                              Address view_address);
 
-  // Get gp value.
+  // Return value of the _gp symbol.
   Address
   gp_value() const
   { return this->gp_ != NULL ? this->gp_->value() : 0; }
+
+  // Return the _gp symbol.
+  const Sized_symbol<size>*
+  gp_sym() const
+  { return this->gp_; }
 
   // Get the GOT section, creating it if necessary.
   Nanomips_output_data_got<size, big_endian>*
@@ -2351,7 +2363,7 @@ class Target_nanomips : public Sized_target<size, big_endian>
   Reloc_section* rel_dyn_;
   // Relocs saved to avoid a COPY reloc.
   Copy_relocs<elfcpp::SHT_REL, size, big_endian> copy_relocs_;
-  // gp symbol.
+  // The _gp symbol.
   Sized_symbol<size>* gp_;
   // Attributes section data in output.
   Attributes_section_data* attributes_section_data_;
@@ -3216,12 +3228,24 @@ Nanomips_relobj<size, big_endian>::new_nanomips_input_section(
 template<int size, bool big_endian>
 void
 Nanomips_relobj<size, big_endian>::finalize_gpsetup_optimizations(
-    Target_nanomips<size, big_endian>* target)
+    Target_nanomips<size, big_endian>* target,
+    const Symbol_table* symtab)
 {
   typedef typename Gpsetup_optimization::Gprel_relocs Gprel_relocs;
   typedef typename Gpsetup_optimization::Saveres_relocs Saveres_relocs;
   typedef typename Gpsetup_optimization::Gpsetup_relocs Gpsetup_relocs;
   typedef Nanomips_transformations<size, big_endian> Transform;
+
+  Address gp = 0;
+  if (target->gp_sym() != NULL)
+    {
+      // We need to compute the would-be final value of the _gp.
+      Symbol_table::Compute_final_value_status status;
+      Address value = symtab->compute_final_value<size>(target->gp_sym(),
+                                                        &status);
+      if (status == Symbol_table::CFVS_OK)
+        gp = value;
+    }
 
   for (typename Gpsetup_opts::iterator it = this->gpsetup_opts_.begin();
        it != this->gpsetup_opts_.end();
@@ -3250,19 +3274,11 @@ Nanomips_relobj<size, big_endian>::finalize_gpsetup_optimizations(
           Nanomips_symbol<size>* sym = NULL;
           unsigned int r_sym = -1U;
           bool is_gp_used = false;
-          unsigned int got_offset;
 
           if (gprel_reloc.is_for_local_symbol())
-            {
-              r_sym = gprel_reloc.symndx();
-              got_offset = local_got_offset(target, this, r_sym, r_type,
-                                            gprel_reloc.addend());
-            }
+            r_sym = gprel_reloc.symndx();
           else
-            {
-              sym = gprel_reloc.symbol();
-              got_offset = global_got_offset(target, sym, r_type);
-            }
+            sym = gprel_reloc.symbol();
 
           if (r_type == elfcpp::R_NANOMIPS_GPREL_I32
               || r_type == elfcpp::R_NANOMIPS_GPREL_HI20
@@ -3280,18 +3296,19 @@ Nanomips_relobj<size, big_endian>::finalize_gpsetup_optimizations(
               // For these relocations GP register is always used.
               is_gp_used = true;
             }
-          else if (r_type == elfcpp::R_NANOMIPS_TLS_GOTTPREL)
+          else if (r_type == elfcpp::R_NANOMIPS_TLS_GOTTPREL
+                   || (sym != NULL && !is_symbol_locally_resolved(sym)))
             {
-              gold_assert(got_offset != -1U);
+              unsigned int got_offset;
+              if (gprel_reloc.is_for_local_symbol())
+                got_offset = local_got_offset(target, this, r_sym, r_type,
+                                              gprel_reloc.addend());
+              else
+                got_offset = global_got_offset(target, sym, r_type);
 
-              // GP register will be used if this won't be
-              // transformed into a PC-relative instruction.
-              if (!Transform::template has_overflow_unsigned<21>(got_offset))
-                is_gp_used = true;
-            }
-          else if (sym != NULL && !is_symbol_locally_resolved(sym))
-            {
               gold_assert(got_offset != -1U);
+              Address gp_offset =
+                target->got_section()->gp_offset(got_offset, gp);
 
               // Externally defined or preemptible symbols.
               switch (r_type)
@@ -3308,10 +3325,10 @@ Nanomips_relobj<size, big_endian>::finalize_gpsetup_optimizations(
 
                 case elfcpp::R_NANOMIPS_GOT_PAGE:
                 case elfcpp::R_NANOMIPS_GOT_DISP:
+                case elfcpp::R_NANOMIPS_TLS_GOTTPREL:
                   // GP register will be used if this won't be
                   // transformed into a PC-relative instruction.
-                  if (!Transform::template
-                        has_overflow_unsigned<21>(got_offset))
+                  if (!Transform::template has_overflow_unsigned<21>(gp_offset))
                     is_gp_used = true;
                   break;
                 default:
@@ -5232,19 +5249,20 @@ Nanomips_expand_insn<size, big_endian>::expand_code_and_data_models(
       || r_type == elfcpp::R_NANOMIPS_TLS_GOTTPREL)
     {
       gold_assert(got_offset != -1U);
+      Address gp_offset = target->got_section()->gp_offset(got_offset, gp);
 
       // Expansions for TLS symbols.
       switch (r_type)
         {
         case elfcpp::R_NANOMIPS_TLS_GD:
         case elfcpp::R_NANOMIPS_TLS_LD:
-          if (this->template has_overflow_unsigned<21>(got_offset))
+          if (this->template has_overflow_unsigned<21>(gp_offset))
             // Transform into addiu[gp48].
             return TT_GPREL_XLP;
           else
             return TT_NONE;
         case elfcpp::R_NANOMIPS_TLS_GOTTPREL:
-          if (this->template has_overflow_unsigned<21>(got_offset))
+          if (this->template has_overflow_unsigned<21>(gp_offset))
             // Transform into lwpc[48].
             return TT_GOTPCREL_XLP;
           else
@@ -5256,6 +5274,7 @@ Nanomips_expand_insn<size, big_endian>::expand_code_and_data_models(
   else if (gsym != NULL && !is_symbol_locally_resolved(gsym))
     {
       gold_assert(got_offset != -1U);
+      Address gp_offset = target->got_section()->gp_offset(got_offset, gp);
 
       // Expansions for externally defined or preemptible symbols.
       switch (r_type)
@@ -5263,7 +5282,7 @@ Nanomips_expand_insn<size, big_endian>::expand_code_and_data_models(
         case elfcpp::R_NANOMIPS_GOT_CALL:
         case elfcpp::R_NANOMIPS_GOT_PAGE:
         case elfcpp::R_NANOMIPS_GOT_DISP:
-          if (this->template has_overflow_unsigned<21>(got_offset))
+          if (this->template has_overflow_unsigned<21>(gp_offset))
             // Transform into lwpc[48] or aluipc, lw.
             return xlp ? TT_GOTPCREL_XLP : TT_GOTPCREL_LONG;
           else
@@ -5755,18 +5774,29 @@ Target_nanomips<size, big_endian>::do_relax(
   // Any newly created relaxed sections grouped by output section.
   Grouped_relaxed_sections grouped_relaxed_sections;
 
-  // If this is the first pass, we need to set transformation state
-  // and check if we need to sort sections by reference.
   if (pass == 1)
     {
+      // Set transformation state.
       if (parameters->options().relax())
         this->state_ = RELAX;
       else if (parameters->options().expand())
         this->state_ = EXPAND;
 
+      // Go through all input objects and determine for which function
+      // we can remove GP register from save/restore instruction and
+      // remove GP-setup relocation
+      for (Input_objects::Relobj_iterator p = input_objects->relobj_begin();
+           p != input_objects->relobj_end();
+           ++p)
+        {
+          Nanomips_relobj<size, big_endian>* relobj =
+            Nanomips_relobj<size, big_endian>::as_nanomips_relobj(*p);
+          relobj->finalize_gpsetup_optimizations(this, symtab);
+        }
+
+      // Sort sections by reference, if any.
       if (parameters->options().any_sort_by_reference())
         {
-          // Sort sections by reference.
           for (options::String_set::const_iterator p =
                  parameters->options().sort_by_reference_begin();
                p != parameters->options().sort_by_reference_end();
@@ -6510,15 +6540,6 @@ Target_nanomips<size, big_endian>::do_finalize_sections(
   // relocs.
   if (this->copy_relocs_.any_saved_relocs())
     this->copy_relocs_.emit(this->rel_dyn_section(layout));
-
-  for (Input_objects::Relobj_iterator p = input_objects->relobj_begin();
-       p != input_objects->relobj_end();
-       ++p)
-    {
-      Nanomips_relobj<size, big_endian>* relobj =
-        Nanomips_relobj<size, big_endian>::as_nanomips_relobj(*p);
-      relobj->finalize_gpsetup_optimizations(this);
-    }
 
   const Reloc_section* rel_stubs = (this->stubs_ == NULL
                                     ? NULL
@@ -8186,7 +8207,7 @@ Target_nanomips<size, big_endian>::Relocate::relocate(
     case elfcpp::R_NANOMIPS_TLS_LD_I32:
     case elfcpp::R_NANOMIPS_TLS_GOTTPREL:
       gold_assert(got_offset != -1U);
-      value = got_offset;
+      value = target->got_section()->gp_offset(got_offset, target->gp_value());
       break;
     case elfcpp::R_NANOMIPS_GOTPC_I32:
     case elfcpp::R_NANOMIPS_TLS_GOTTPREL_PC_I32:
