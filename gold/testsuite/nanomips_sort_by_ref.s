@@ -38,17 +38,17 @@ e:
 	.globl	__start
 	.ent	__start
 __start:
-	lbu	$r18,%gp_rel(a)($gp)
-	lw	$r18,%gp_rel(b)($gp)
-	lw	$r18,%gp_rel(c)($gp)
-	lw	$r18,%gp_rel(c)($gp)
-	lw	$r18,%gp_rel(c)($gp)
-	lw	$r18,%gp_rel(d)($gp)
-	lw	$r18,%gp_rel(d)($gp)
-	lw	$r2,%gp_rel(c)($gp)
-	lw	$r2,%gp_rel(c)($gp)
-	sw	$r18,%gp_rel(d)($gp)
-	sw	$r18,%gp_rel(d)($gp)
-	lh	$r18,%gp_rel(e)($gp)
+	lbu	$r18,%gprel(a)($gp)
+	lw	$r18,%gprel(b)($gp)
+	lw	$r18,%gprel(c)($gp)
+	lw	$r18,%gprel(c)($gp)
+	lw	$r18,%gprel(c)($gp)
+	lw	$r18,%gprel(d)($gp)
+	lw	$r18,%gprel(d)($gp)
+	lw	$r2,%gprel(c)($gp)
+	lw	$r2,%gprel(c)($gp)
+	sw	$r18,%gprel(d)($gp)
+	sw	$r18,%gprel(d)($gp)
+	lh	$r18,%gprel(e)($gp)
 	.end	__start
 	.size	__start, .-__start

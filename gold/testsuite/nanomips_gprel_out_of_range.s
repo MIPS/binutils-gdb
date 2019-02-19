@@ -4,16 +4,16 @@
 	.globl	__start
 	.ent	__start
 __start:
-	lw	$r2,%gp_rel(var)($gp)
-	sw	$r3,%gp_rel(var)($gp)
-	lb	$r6,%gp_rel(var)($gp)
-	lbu	$r7,%gp_rel(var)($gp)
-	lh	$r16,%gp_rel(var)($gp)
-	lhu	$r20,%gp_rel(var)($gp)
-	sb	$r9,%gp_rel(var)($gp)
-	sh	$r13,%gp_rel(var)($gp)
-	addiu.w	$r14,$gp, %gp_rel(var)
-	addiu.b	$r15,$gp, %gp_rel(var)
+	lw	$r2,%gprel(var)($gp)
+	sw	$r3,%gprel(var)($gp)
+	lb	$r6,%gprel(var)($gp)
+	lbu	$r7,%gprel(var)($gp)
+	lh	$r16,%gprel(var)($gp)
+	lhu	$r20,%gprel(var)($gp)
+	sb	$r9,%gprel(var)($gp)
+	sh	$r13,%gprel(var)($gp)
+	addiu.w	$r14,$gp, %gprel(var)
+	addiu.b	$r15,$gp, %gprel(var)
 	.end	__start
 	.size	__start, .-__start
 
