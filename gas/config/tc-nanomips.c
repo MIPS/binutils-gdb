@@ -11691,16 +11691,17 @@ relaxed_jumptable_length (fragS *fragp, asection *sec ATTRIBUTE_UNUSED)
 	      break;
 	    }
 
-	  /* Upgrade the range for the remaining vectors.  */
-	  if (!jt->offset_unsigned)
-	    max_offset = ((max_offset + 1) << (jt->esize * 8)) - 1;
-	  else
-	    max_offset <<= (jt->esize * 8);
-	  min_offset <<= (jt->esize * 8);
 	  /* Double the size of each element. Word-sized tables are
 	     assumed to be signed.  */
 	  jt->esize *= 2;
 	  jt->offset_unsigned = (jt->offset_unsigned && jt->esize != 4);
+	  /* Upgrade the range for the remaining vectors.  */
+	  max_offset = ((1ull << jt->esize * 8) - 1) << 1;
+	  if (!jt->offset_unsigned)
+	    {
+	      min_offset = min_offset - max_offset / 2 - 1;
+	      max_offset = max_offset - (max_offset / 2) - 1;
+	    }
 	};
       fixP = fix_vector_next (fixP);
     }

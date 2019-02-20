@@ -792,4 +792,5 @@ if { [istarget nanomips*-*-*] } {
     run_dump_test_arches "relax-jumptable" "" \
 					[arch_list_matching nanomips]
     run_dump_test "ssdata-sections"
+    run_list_test "relax-jumptable-overflow"
 }
