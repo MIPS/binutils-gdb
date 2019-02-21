@@ -13327,7 +13327,6 @@ nanomips_cons_fix_new (fragS *frag, int where, int nbytes, expressionS *exp,
 	    {
 	      jumptable_list->fixups = fixP;
 	      jumptable_record_pending_end = TRUE;
-	      frag_grow (jumptable_list->nsize * 4);
 	    }
 	  jumptable_record_pending_fix = FALSE;
 	}
@@ -13339,8 +13338,8 @@ nanomips_cons_fix_new (fragS *frag, int where, int nbytes, expressionS *exp,
 	{
 	  unsigned max_chars = jumptable_list->nsize * 4;
 	  unsigned var_chars = max_chars - (jumptable_list->nsize
-	    * jumptable_list->esize);
-	  frag_var (rs_machine_dependent, max_chars, var_chars,
+					    * jumptable_list->esize);
+	  frag_var (rs_machine_dependent, var_chars, 0,
 	    RELAX_MD_ENCODE (RT_JUMPTABLE, 0, 0),
 	    jumptable_list->table_sym,
 	    0, NULL);
@@ -13786,5 +13785,6 @@ s_jumptable (int x ATTRIBUTE_UNUSED)
   jumptable_list = jt;
   jumptable_record_pending_sym = TRUE;
   jumptable_record_pending_fix = TRUE;
+  frag_grow (jumptable_list->nsize * 4);
   return;
 }
