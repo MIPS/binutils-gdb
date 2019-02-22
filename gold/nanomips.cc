@@ -6276,12 +6276,6 @@ Target_nanomips<size, big_endian>::merge_obj_e_flags(const std::string& name,
 
   elfcpp::Elf_Word old_flags = this->processor_specific_flags();
   elfcpp::Elf_Word merged_flags = this->processor_specific_flags();
-  merged_flags |= new_flags & elfcpp::EF_NANOMIPS_LINKRELAX;
-
-  new_flags &= ~(elfcpp::EF_NANOMIPS_PID | elfcpp::EF_NANOMIPS_PCREL
-                 | elfcpp::EF_NANOMIPS_LINKRELAX);
-  old_flags &= ~(elfcpp::EF_NANOMIPS_PID | elfcpp::EF_NANOMIPS_PCREL
-                 | elfcpp::EF_NANOMIPS_LINKRELAX);
 
   if (new_flags == old_flags)
     {
@@ -6289,11 +6283,27 @@ Target_nanomips<size, big_endian>::merge_obj_e_flags(const std::string& name,
       return;
     }
 
+  if ((new_flags & elfcpp::EF_NANOMIPS_PID) == 0)
+    merged_flags &= ~elfcpp::EF_NANOMIPS_PID;
+
+  if ((new_flags & elfcpp::EF_NANOMIPS_PCREL) == 0)
+    merged_flags &= ~elfcpp::EF_NANOMIPS_PCREL;
+
+  if ((new_flags & elfcpp::EF_NANOMIPS_LINKRELAX) == 0)
+    merged_flags &= ~elfcpp::EF_NANOMIPS_LINKRELAX;
+
   if ((new_flags & elfcpp::EF_NANOMIPS_PIC) == 0)
     merged_flags &= ~elfcpp::EF_NANOMIPS_PIC;
 
-  new_flags &= ~elfcpp::EF_NANOMIPS_PIC;
-  old_flags &= ~elfcpp::EF_NANOMIPS_PIC;
+  new_flags &= ~(elfcpp::EF_NANOMIPS_PID
+                 | elfcpp::EF_NANOMIPS_PCREL
+                 | elfcpp::EF_NANOMIPS_LINKRELAX
+                 | elfcpp::EF_NANOMIPS_PIC);
+
+  old_flags &= ~(elfcpp::EF_NANOMIPS_PID
+                 | elfcpp::EF_NANOMIPS_PCREL
+                 | elfcpp::EF_NANOMIPS_LINKRELAX
+                 | elfcpp::EF_NANOMIPS_PIC);
 
   // Compare the ISAs.
   if (this->nanomips_32bit_flags(old_flags)
@@ -6322,9 +6332,12 @@ Target_nanomips<size, big_endian>::merge_obj_e_flags(const std::string& name,
                    this->nanomips_mach_name(old_flags));
     }
 
-  new_flags &= ~(elfcpp::EF_NANOMIPS_ARCH | elfcpp::EF_NANOMIPS_MACH
+  new_flags &= ~(elfcpp::EF_NANOMIPS_ARCH
+                 | elfcpp::EF_NANOMIPS_MACH
                  | elfcpp::EF_NANOMIPS_32BITMODE);
-  old_flags &= ~(elfcpp::EF_NANOMIPS_ARCH | elfcpp::EF_NANOMIPS_MACH
+
+  old_flags &= ~(elfcpp::EF_NANOMIPS_ARCH
+                 | elfcpp::EF_NANOMIPS_MACH
                  | elfcpp::EF_NANOMIPS_32BITMODE);
 
   // Compare ABIs.
@@ -6421,13 +6434,27 @@ Target_nanomips<size, big_endian>::do_finalize_sections(
                                  relobj->attributes_section_data());
     }
 
-  // Mark this output file as not safe to relax if we are finalizing relocs
-  // during relocatable linking.
-  if (parameters->options().finalize_relocs()
-      && this->are_processor_specific_flags_set())
+  // Clear some processor specific flags.
+  if (this->are_processor_specific_flags_set())
     {
       elfcpp::Elf_Word flags = this->processor_specific_flags();
-      flags &= ~elfcpp::EF_NANOMIPS_LINKRELAX;
+      if (parameters->options().relocatable())
+        {
+          // Mark this output file as not safe to relax
+          // if we are finalizing relocs.
+          if (parameters->options().finalize_relocs())
+            flags &= ~elfcpp::EF_NANOMIPS_LINKRELAX;
+        }
+      else
+        {
+          flags &= ~(elfcpp::EF_NANOMIPS_PID
+                     | elfcpp::EF_NANOMIPS_PCREL
+                     | elfcpp::EF_NANOMIPS_LINKRELAX);
+
+          // Keep PIC bit only for position independent output.
+          if (!parameters->options().output_is_position_independent())
+            flags &= ~elfcpp::EF_NANOMIPS_PIC;
+        }
       this->set_processor_specific_flags(flags);
     }
 
