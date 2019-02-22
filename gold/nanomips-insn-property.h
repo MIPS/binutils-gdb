@@ -46,7 +46,7 @@ enum Transform_type
   // Absolute transformation to 32-bit instruction.
   TT_ABS32,
   // Absolute transformation where one instruction is 48-bit.
-  TT_ABS_XLP,
+  TT_ABS_NMF,
   // Absolute long sequence transformations.
   TT_ABS16_LONG,
   TT_ABS32_LONG,
@@ -56,8 +56,8 @@ enum Transform_type
   TT_GPREL32_WORD,
   TT_GPREL32,
   // Gp-relative transformations where one instruction is 48-bit.
-  TT_GPREL32_XLP,
-  TT_GPREL_XLP,
+  TT_GPREL32_NMF,
+  TT_GPREL_NMF,
   // Gp-relative long sequence transformations.
   TT_GPREL_LONG,
   // Transform to 16-bit pc-relative instruction.
@@ -65,12 +65,12 @@ enum Transform_type
   // Transform to 32-bit pc-relative instruction.
   TT_PCREL32,
   // Pc-relative transformation where one instruction is 48-bit.
-  TT_PCREL_XLP,
+  TT_PCREL_NMF,
   // Pc-relative long sequence transformations.
   TT_PCREL16_LONG,
   TT_PCREL32_LONG,
   // Pc-relative GOT transformations.
-  TT_GOTPCREL_XLP,
+  TT_GOTPCREL_NMF,
   TT_GOTPCREL_LONG
 };
 

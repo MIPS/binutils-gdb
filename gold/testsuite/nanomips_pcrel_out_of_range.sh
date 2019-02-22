@@ -56,14 +56,14 @@ check nanomips_b_out_of_range_insn32_pcrel.stdout " 1010:	8021 0020 	ori	at,at,0
 check nanomips_b_out_of_range_insn32_pcrel.stdout " 1014:	4801 0000 	jrc	at"
 
 # Test balc expansion to lapc[48] and jalrc[16].
-check nanomips_b_out_of_range_nms_pcrel.stdout " 1000:	6023 001a 	lapc	at,.*"
-check nanomips_b_out_of_range_nms_pcrel.stdout " 1004:	0200"
-check nanomips_b_out_of_range_nms_pcrel.stdout " 1006:	d830      	jalrc	at"
+check nanomips_b_out_of_range_nmf_pcrel.stdout " 1000:	6023 001a 	lapc	at,.*"
+check nanomips_b_out_of_range_nmf_pcrel.stdout " 1004:	0200"
+check nanomips_b_out_of_range_nmf_pcrel.stdout " 1006:	d830      	jalrc	at"
 
 # Test bc expansion to lapc[48] and jrc[16].
-check nanomips_b_out_of_range_nms_pcrel.stdout " 1008:	6023 0012 	lapc	at,.*"
-check nanomips_b_out_of_range_nms_pcrel.stdout " 100c:	0200"
-check nanomips_b_out_of_range_nms_pcrel.stdout " 100e:	d820      	jrc	at"
+check nanomips_b_out_of_range_nmf_pcrel.stdout " 1008:	6023 0012 	lapc	at,.*"
+check nanomips_b_out_of_range_nmf_pcrel.stdout " 100c:	0200"
+check nanomips_b_out_of_range_nmf_pcrel.stdout " 100e:	d820      	jrc	at"
 
 # Test balc expansion to lui, ori and jalrc[16].
 check nanomips_b_out_of_range_abs.stdout " 1000:	e020 1040 	lui	at,.*"
@@ -86,14 +86,14 @@ check nanomips_b_out_of_range_insn32_abs.stdout " 1010:	8021 0020 	ori	at,at,0x2
 check nanomips_b_out_of_range_insn32_abs.stdout " 1014:	4801 0000 	jrc	at"
 
 # Test balc expansion to li[48] and jalrc[16].
-check nanomips_b_out_of_range_nms_abs.stdout " 1000:	6020 1020 	li	at,.*"
-check nanomips_b_out_of_range_nms_abs.stdout " 1004:	0200"
-check nanomips_b_out_of_range_nms_abs.stdout " 1006:	d830      	jalrc	at"
+check nanomips_b_out_of_range_nmf_abs.stdout " 1000:	6020 1020 	li	at,.*"
+check nanomips_b_out_of_range_nmf_abs.stdout " 1004:	0200"
+check nanomips_b_out_of_range_nmf_abs.stdout " 1006:	d830      	jalrc	at"
 
 # Test bc expansion to li[48] and jrc[16].
-check nanomips_b_out_of_range_nms_abs.stdout " 1008:	6020 1020 	li	at,.*"
-check nanomips_b_out_of_range_nms_abs.stdout " 100c:	0200"
-check nanomips_b_out_of_range_nms_abs.stdout " 100e:	d820      	jrc	at"
+check nanomips_b_out_of_range_nmf_abs.stdout " 1008:	6020 1020 	li	at,.*"
+check nanomips_b_out_of_range_nmf_abs.stdout " 100c:	0200"
+check nanomips_b_out_of_range_nmf_abs.stdout " 100e:	d820      	jrc	at"
 
 # Test move.balc expansion to move and balc.
 check nanomips_move_balc_1_out_of_range_pcrel.stdout " 1000:	1090      	move	a0,s0"
@@ -110,16 +110,16 @@ check nanomips_lapc_out_of_range_pcrel.stdout " 1000:	e080 0042 	aluipc	a0,.*"
 check nanomips_lapc_out_of_range_pcrel.stdout " 1004:	8084 0020 	ori	a0,a0,0x20"
 
 # Test lapc expansion to lapc[48].
-check nanomips_lapc_out_of_range_nms_pcrel.stdout " 1000:	6083 001a 	lapc	a0,.*"
-check nanomips_lapc_out_of_range_nms_pcrel.stdout " 1004:	0200"
+check nanomips_lapc_out_of_range_nmf_pcrel.stdout " 1000:	6083 001a 	lapc	a0,.*"
+check nanomips_lapc_out_of_range_nmf_pcrel.stdout " 1004:	0200"
 
 # Test lapc expansion to lui and ori.
 check nanomips_lapc_out_of_range_abs.stdout " 1000:	e080 1040 	lui	a0,.*"
 check nanomips_lapc_out_of_range_abs.stdout " 1004:	8084 0020 	ori	a0,a0,0x20"
 
 # Test lapc expansion to li[48].
-check nanomips_lapc_out_of_range_nms_abs.stdout " 1000:	6080 1020 	li	a0,.*"
-check nanomips_lapc_out_of_range_nms_abs.stdout " 1004:	0200"
+check nanomips_lapc_out_of_range_nmf_abs.stdout " 1000:	6080 1020 	li	a0,.*"
+check nanomips_lapc_out_of_range_nmf_abs.stdout " 1004:	0200"
 
 # Test conditional branch expansions.  They are expanding to their opposite
 # branch and bc instruction.

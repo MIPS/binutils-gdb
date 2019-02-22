@@ -4204,17 +4204,17 @@ if DEFAULT_TARGET_NANOMIPS
 check_SCRIPTS += nanomips_pcrel_out_of_range.sh
 check_DATA += nanomips_b_out_of_range_pcrel.stdout \
 	      nanomips_b_out_of_range_insn32_pcrel.stdout \
-	      nanomips_b_out_of_range_nms_pcrel.stdout \
+	      nanomips_b_out_of_range_nmf_pcrel.stdout \
 	      nanomips_b_out_of_range_abs.stdout \
 	      nanomips_b_out_of_range_insn32_abs.stdout \
-	      nanomips_b_out_of_range_nms_abs.stdout \
+	      nanomips_b_out_of_range_nmf_abs.stdout \
 	      nanomips_b_cond_out_of_range_pcrel.stdout \
 	      nanomips_move_balc_1_out_of_range_pcrel.stdout \
 	      nanomips_move_balc_2_out_of_range_pcrel.stdout \
 	      nanomips_lapc_out_of_range_pcrel.stdout \
-	      nanomips_lapc_out_of_range_nms_pcrel.stdout \
+	      nanomips_lapc_out_of_range_nmf_pcrel.stdout \
 	      nanomips_lapc_out_of_range_abs.stdout \
-	      nanomips_lapc_out_of_range_nms_abs.stdout
+	      nanomips_lapc_out_of_range_nmf_abs.stdout
 
 nanomips_b_out_of_range_pcrel.stdout: nanomips_b_out_of_range_pcrel
 	$(TEST_OBJDUMP) -d $< > $@
@@ -4222,7 +4222,7 @@ nanomips_b_out_of_range_pcrel.stdout: nanomips_b_out_of_range_pcrel
 nanomips_b_out_of_range_insn32_pcrel.stdout: nanomips_b_out_of_range_insn32_pcrel
 	$(TEST_OBJDUMP) -d $< > $@
 
-nanomips_b_out_of_range_nms_pcrel.stdout: nanomips_b_out_of_range_nms_pcrel
+nanomips_b_out_of_range_nmf_pcrel.stdout: nanomips_b_out_of_range_nmf_pcrel
 	$(TEST_OBJDUMP) -d $< > $@
 
 nanomips_b_out_of_range_abs.stdout: nanomips_b_out_of_range_abs
@@ -4231,7 +4231,7 @@ nanomips_b_out_of_range_abs.stdout: nanomips_b_out_of_range_abs
 nanomips_b_out_of_range_insn32_abs.stdout: nanomips_b_out_of_range_insn32_abs
 	$(TEST_OBJDUMP) -d $< > $@
 
-nanomips_b_out_of_range_nms_abs.stdout: nanomips_b_out_of_range_nms_abs
+nanomips_b_out_of_range_nmf_abs.stdout: nanomips_b_out_of_range_nmf_abs
 	$(TEST_OBJDUMP) -d $< > $@
 
 nanomips_move_balc_1_out_of_range_pcrel.stdout: nanomips_move_balc_1_out_of_range_pcrel
@@ -4246,13 +4246,13 @@ nanomips_b_cond_out_of_range_pcrel.stdout: nanomips_b_cond_out_of_range_pcrel
 nanomips_lapc_out_of_range_pcrel.stdout: nanomips_lapc_out_of_range_pcrel
 	$(TEST_OBJDUMP) -d $< > $@
 
-nanomips_lapc_out_of_range_nms_pcrel.stdout: nanomips_lapc_out_of_range_nms_pcrel
+nanomips_lapc_out_of_range_nmf_pcrel.stdout: nanomips_lapc_out_of_range_nmf_pcrel
 	$(TEST_OBJDUMP) -d $< > $@
 
 nanomips_lapc_out_of_range_abs.stdout: nanomips_lapc_out_of_range_abs
 	$(TEST_OBJDUMP) -d $< > $@
 
-nanomips_lapc_out_of_range_nms_abs.stdout: nanomips_lapc_out_of_range_nms_abs
+nanomips_lapc_out_of_range_nmf_abs.stdout: nanomips_lapc_out_of_range_nmf_abs
 	$(TEST_OBJDUMP) -d $< > $@
 
 nanomips_b_out_of_range_pcrel: nanomips_b_out_of_range_pcrel.o ../ld-new
@@ -4261,7 +4261,7 @@ nanomips_b_out_of_range_pcrel: nanomips_b_out_of_range_pcrel.o ../ld-new
 nanomips_b_out_of_range_insn32_pcrel: nanomips_b_out_of_range_insn32_pcrel.o ../ld-new
 	../ld-new --insn32 --section-start .text=0x1000 --section-start .foo=0x2001020 -o $@ $<
 
-nanomips_b_out_of_range_nms_pcrel: nanomips_b_out_of_range_nms_pcrel.o ../ld-new
+nanomips_b_out_of_range_nmf_pcrel: nanomips_b_out_of_range_nmf_pcrel.o ../ld-new
 	../ld-new --section-start .text=0x1000 --section-start .foo=0x2001020 -o $@ $<
 
 nanomips_b_out_of_range_abs: nanomips_b_out_of_range_abs.o ../ld-new
@@ -4270,7 +4270,7 @@ nanomips_b_out_of_range_abs: nanomips_b_out_of_range_abs.o ../ld-new
 nanomips_b_out_of_range_insn32_abs: nanomips_b_out_of_range_insn32_abs.o ../ld-new
 	../ld-new --insn32 --section-start .text=0x1000 --section-start .foo=0x2001020 -o $@ $<
 
-nanomips_b_out_of_range_nms_abs: nanomips_b_out_of_range_nms_abs.o ../ld-new
+nanomips_b_out_of_range_nmf_abs: nanomips_b_out_of_range_nmf_abs.o ../ld-new
 	../ld-new --section-start .text=0x1000 --section-start .foo=0x2001020 -o $@ $<
 
 nanomips_b_cond_out_of_range_pcrel: nanomips_b_cond_out_of_range_pcrel.o ../ld-new
@@ -4285,13 +4285,13 @@ nanomips_move_balc_2_out_of_range_pcrel: nanomips_move_balc_out_of_range_pcrel.o
 nanomips_lapc_out_of_range_pcrel: nanomips_lapc_out_of_range_pcrel.o ../ld-new
 	../ld-new --section-start .text=0x1000 --section-start .foo=0x2001020 -o $@ $<
 
-nanomips_lapc_out_of_range_nms_pcrel: nanomips_lapc_out_of_range_nms_pcrel.o ../ld-new
+nanomips_lapc_out_of_range_nmf_pcrel: nanomips_lapc_out_of_range_nmf_pcrel.o ../ld-new
 	../ld-new --section-start .text=0x1000 --section-start .foo=0x2001020 -o $@ $<
 
 nanomips_lapc_out_of_range_abs: nanomips_lapc_out_of_range_abs.o ../ld-new
 	../ld-new --section-start .text=0x1000 --section-start .foo=0x2001020 -o $@ $<
 
-nanomips_lapc_out_of_range_nms_abs: nanomips_lapc_out_of_range_nms_abs.o ../ld-new
+nanomips_lapc_out_of_range_nmf_abs: nanomips_lapc_out_of_range_nmf_abs.o ../ld-new
 	../ld-new --section-start .text=0x1000 --section-start .foo=0x2001020 -o $@ $<
 
 nanomips_b_out_of_range_pcrel.o: nanomips_b_out_of_range.s
@@ -4300,7 +4300,7 @@ nanomips_b_out_of_range_pcrel.o: nanomips_b_out_of_range.s
 nanomips_b_out_of_range_insn32_pcrel.o: nanomips_b_out_of_range.s
 	$(TEST_AS) -EL -march=32r6s -m32 -minsn32 -mpcrel -o $@ $<
 
-nanomips_b_out_of_range_nms_pcrel.o: nanomips_b_out_of_range.s
+nanomips_b_out_of_range_nmf_pcrel.o: nanomips_b_out_of_range.s
 	$(TEST_AS) -EL -march=32r6 -m32 -mpcrel -o $@ $<
 
 nanomips_b_out_of_range_abs.o: nanomips_b_out_of_range.s
@@ -4309,7 +4309,7 @@ nanomips_b_out_of_range_abs.o: nanomips_b_out_of_range.s
 nanomips_b_out_of_range_insn32_abs.o: nanomips_b_out_of_range.s
 	$(TEST_AS) -EL -march=32r6s -m32 -minsn32 -mno-pcrel -o $@ $<
 
-nanomips_b_out_of_range_nms_abs.o: nanomips_b_out_of_range.s
+nanomips_b_out_of_range_nmf_abs.o: nanomips_b_out_of_range.s
 	$(TEST_AS) -EL -march=32r6 -m32 -mno-pcrel -o $@ $<
 
 nanomips_b_cond_out_of_range_pcrel.o: nanomips_b_cond_out_of_range.s
@@ -4321,86 +4321,86 @@ nanomips_move_balc_out_of_range_pcrel.o: nanomips_move_balc_out_of_range.s
 nanomips_lapc_out_of_range_pcrel.o: nanomips_lapc_out_of_range.s
 	$(TEST_AS) -EL -march=32r6s -m32 -mpcrel -o $@ $<
 
-nanomips_lapc_out_of_range_nms_pcrel.o: nanomips_lapc_out_of_range.s
+nanomips_lapc_out_of_range_nmf_pcrel.o: nanomips_lapc_out_of_range.s
 	$(TEST_AS) -EL -march=32r6 -m32 -mpcrel -o $@ $<
 
 nanomips_lapc_out_of_range_abs.o: nanomips_lapc_out_of_range.s
 	$(TEST_AS) -EL -march=32r6s -m32 -mno-pcrel -o $@ $<
 
-nanomips_lapc_out_of_range_nms_abs.o: nanomips_lapc_out_of_range.s
+nanomips_lapc_out_of_range_nmf_abs.o: nanomips_lapc_out_of_range.s
 	$(TEST_AS) -EL -march=32r6 -m32 -mno-pcrel -o $@ $<
 
 MOSTLYCLEANFILES += nanomips_b_out_of_range_pcrel nanomips_b_out_of_range_insn32_pcrel \
-		    nanomips_b_out_of_range_nms_pcrel nanomips_b_out_of_range_abs \
+		    nanomips_b_out_of_range_nmf_pcrel nanomips_b_out_of_range_abs \
 		    nanomips_b_cond_out_of_range_pcrel nanomips_b_out_of_range_insn32_abs \
-		    nanomips_b_out_of_range_nms_abs nanomips_move_balc_1_out_of_range_pcrel \
+		    nanomips_b_out_of_range_nmf_abs nanomips_move_balc_1_out_of_range_pcrel \
 		    nanomips_move_balc_2_out_of_range_pcrel nanomips_lapc_out_of_range_pcrel \
-		    nanomips_lapc_out_of_range_nms_pcrel nanomips_lapc_out_of_range_abs \
-		    nanomips_lapc_out_of_range_nms_abs
+		    nanomips_lapc_out_of_range_nmf_pcrel nanomips_lapc_out_of_range_abs \
+		    nanomips_lapc_out_of_range_nmf_abs
 
 # Check expansions of gp-relative instructions.
 
 check_SCRIPTS += nanomips_gprel_out_of_range.sh
 check_DATA += nanomips_gprel_out_of_range.stdout \
-	      nanomips_gprel_nms_out_of_range.stdout \
+	      nanomips_gprel_nmf_out_of_range.stdout \
 	      nanomips_gprel_out_of_range_no_strict_abs.stdout \
-	      nanomips_gprel_nms_out_of_range_no_strict_abs.stdout \
+	      nanomips_gprel_nmf_out_of_range_no_strict_abs.stdout \
 	      nanomips_gprel_out_of_range_no_strict_pcrel.stdout \
-	      nanomips_gprel_nms_out_of_range_no_strict_pcrel.stdout
+	      nanomips_gprel_nmf_out_of_range_no_strict_pcrel.stdout
 
 nanomips_gprel_out_of_range.stdout: nanomips_gprel_out_of_range
 	$(TEST_OBJDUMP) -d $< > $@
 
-nanomips_gprel_nms_out_of_range.stdout: nanomips_gprel_nms_out_of_range
+nanomips_gprel_nmf_out_of_range.stdout: nanomips_gprel_nmf_out_of_range
 	$(TEST_OBJDUMP) -d $< > $@
 
 nanomips_gprel_out_of_range_no_strict_abs.stdout: nanomips_gprel_out_of_range_no_strict_abs
 	$(TEST_OBJDUMP) -d $< > $@
 
-nanomips_gprel_nms_out_of_range_no_strict_abs.stdout: nanomips_gprel_nms_out_of_range_no_strict_abs
+nanomips_gprel_nmf_out_of_range_no_strict_abs.stdout: nanomips_gprel_nmf_out_of_range_no_strict_abs
 	$(TEST_OBJDUMP) -d $< > $@
 
 nanomips_gprel_out_of_range_no_strict_pcrel.stdout: nanomips_gprel_out_of_range_no_strict_pcrel
 	$(TEST_OBJDUMP) -d $< > $@
 
-nanomips_gprel_nms_out_of_range_no_strict_pcrel.stdout: nanomips_gprel_nms_out_of_range_no_strict_pcrel
+nanomips_gprel_nmf_out_of_range_no_strict_pcrel.stdout: nanomips_gprel_nmf_out_of_range_no_strict_pcrel
 	$(TEST_OBJDUMP) -d $< > $@
 
 nanomips_gprel_out_of_range: nanomips_gprel_out_of_range_abs.o ../ld-new
 	../ld-new -T $(srcdir)/nanomips_gprel_out_of_range.t -o $@ $<
 
-nanomips_gprel_nms_out_of_range: nanomips_gprel_nms_out_of_range_abs.o ../ld-new
+nanomips_gprel_nmf_out_of_range: nanomips_gprel_nmf_out_of_range_abs.o ../ld-new
 	../ld-new -T $(srcdir)/nanomips_gprel_out_of_range.t -o $@ $<
 
 nanomips_gprel_out_of_range_no_strict_abs: nanomips_gprel_out_of_range_abs.o ../ld-new
 	../ld-new -T $(srcdir)/nanomips_gprel_out_of_range.t --no-strict-address-modes -o $@ $<
 
-nanomips_gprel_nms_out_of_range_no_strict_abs: nanomips_gprel_nms_out_of_range_abs.o ../ld-new
+nanomips_gprel_nmf_out_of_range_no_strict_abs: nanomips_gprel_nmf_out_of_range_abs.o ../ld-new
 	../ld-new -T $(srcdir)/nanomips_gprel_out_of_range.t --no-strict-address-modes -o $@ $<
 
 nanomips_gprel_out_of_range_no_strict_pcrel: nanomips_gprel_out_of_range_pcrel.o ../ld-new
 	../ld-new -T $(srcdir)/nanomips_gprel_out_of_range.t --no-strict-address-modes -o $@ $<
 
-nanomips_gprel_nms_out_of_range_no_strict_pcrel: nanomips_gprel_nms_out_of_range_pcrel.o ../ld-new
+nanomips_gprel_nmf_out_of_range_no_strict_pcrel: nanomips_gprel_nmf_out_of_range_pcrel.o ../ld-new
 	../ld-new -T $(srcdir)/nanomips_gprel_out_of_range.t --no-strict-address-modes -o $@ $<
 
 nanomips_gprel_out_of_range_abs.o: nanomips_gprel_out_of_range.s
 	$(TEST_AS) -EL -march=32r6s -m32 -o $@ $<
 
-nanomips_gprel_nms_out_of_range_abs.o: nanomips_gprel_out_of_range.s
+nanomips_gprel_nmf_out_of_range_abs.o: nanomips_gprel_out_of_range.s
 	$(TEST_AS) -EL -march=32r6 -m32 -o $@ $<
 
 nanomips_gprel_out_of_range_pcrel.o: nanomips_gprel_out_of_range.s
 	$(TEST_AS) -EL -march=32r6s -m32 -mpcrel -o $@ $<
 
-nanomips_gprel_nms_out_of_range_pcrel.o: nanomips_gprel_out_of_range.s
+nanomips_gprel_nmf_out_of_range_pcrel.o: nanomips_gprel_out_of_range.s
 	$(TEST_AS) -EL -march=32r6 -m32 -mpcrel -o $@ $<
 
-MOSTLYCLEANFILES += nanomips_gprel_out_of_range nanomips_gprel_nms_out_of_range \
+MOSTLYCLEANFILES += nanomips_gprel_out_of_range nanomips_gprel_nmf_out_of_range \
 		    nanomips_gprel_out_of_range_no_strict_abs \
-		    nanomips_gprel_nms_out_of_range_no_strict_abs \
+		    nanomips_gprel_nmf_out_of_range_no_strict_abs \
 		    nanomips_gprel_out_of_range_no_strict_pcrel \
-		    nanomips_gprel_nms_out_of_range_no_strict_pcrel
+		    nanomips_gprel_nmf_out_of_range_no_strict_pcrel
 
 # Test sorting small data section.
 
@@ -4483,13 +4483,13 @@ nanomips_function_call_16_pcrel_1: nanomips_function_call_16_pcrel.o ../ld-new
 nanomips_function_call_16_pcrel_2: nanomips_function_call_16_pcrel.o ../ld-new
 	../ld-new --section-start .text=0x1000 --section-start .foo=0x201020 --relax --no-expand -o $@ $<
 
-nanomips_function_call_16_pcrel_3: nanomips_function_call_16_nms_pcrel.o ../ld-new
+nanomips_function_call_16_pcrel_3: nanomips_function_call_16_nmf_pcrel.o ../ld-new
 	../ld-new --section-start .text=0x1000 --section-start .foo=0x2001020 --relax --no-expand -o $@ $<
 
 nanomips_function_call_16_pcrel_4: nanomips_function_call_16_pcrel.o ../ld-new
 	../ld-new --section-start .text=0x1000 --section-start .foo=0x2001020 --relax --no-expand -o $@ $<
 
-nanomips_function_call_16_abs_1: nanomips_function_call_16_nms_abs.o ../ld-new
+nanomips_function_call_16_abs_1: nanomips_function_call_16_nmf_abs.o ../ld-new
 	../ld-new --section-start .text=0x1000 --section-start .foo=0x2001020 --relax --no-expand -o $@ $<
 
 nanomips_function_call_16_abs_2: nanomips_function_call_16_abs.o ../ld-new
@@ -4507,13 +4507,13 @@ nanomips_function_call_32_abs: nanomips_function_call_32_abs.o ../ld-new
 nanomips_function_call_16_pcrel.o: nanomips_function_call.s
 	$(TEST_AS) -EL -march=32r6s -m32 -mpcrel -o $@ $<
 
-nanomips_function_call_16_nms_pcrel.o: nanomips_function_call.s
+nanomips_function_call_16_nmf_pcrel.o: nanomips_function_call.s
 	$(TEST_AS) -EL -march=32r6 -m32 -mpcrel -o $@ $<
 
 nanomips_function_call_16_abs.o: nanomips_function_call.s
 	$(TEST_AS) -EL -march=32r6s -m32 -mno-pcrel -o $@ $<
 
-nanomips_function_call_16_nms_abs.o: nanomips_function_call.s
+nanomips_function_call_16_nmf_abs.o: nanomips_function_call.s
 	$(TEST_AS) -EL -march=32r6 -m32 -mno-pcrel -o $@ $<
 
 nanomips_function_call_32_pcrel.o: nanomips_function_call.s
@@ -4567,13 +4567,13 @@ nanomips_address_calculation_pid_3.stdout: nanomips_address_calculation_pid_3
 nanomips_address_calculation_pcrel_1: nanomips_address_calculation_pcrel.o ../ld-new
 	../ld-new --section-start .text=0x1000 --section-start .sdata=0x1100 --relax --no-expand -o $@ $<
 
-nanomips_address_calculation_pcrel_2: nanomips_address_calculation_pcrel_nms.o ../ld-new
+nanomips_address_calculation_pcrel_2: nanomips_address_calculation_pcrel_nmf.o ../ld-new
 	../ld-new --section-start .text=0x1000 --section-start .sdata=0x2001020 --relax --no-expand -o $@ $<
 
 nanomips_address_calculation_pcrel_3: nanomips_address_calculation_pcrel.o ../ld-new
 	../ld-new --section-start .text=0x1000 --section-start .sdata=0x2001020 --relax --no-expand -o $@ $<
 
-nanomips_address_calculation_abs_1: nanomips_address_calculation_abs_nms.o ../ld-new
+nanomips_address_calculation_abs_1: nanomips_address_calculation_abs_nmf.o ../ld-new
 	../ld-new --section-start .text=0x1000 --section-start .sdata=0x2001020 --relax --no-expand -o $@ $<
 
 nanomips_address_calculation_abs_2: nanomips_address_calculation_abs.o ../ld-new
@@ -4585,19 +4585,19 @@ nanomips_address_calculation_pid_1: nanomips_address_calculation_pid_1.o ../ld-n
 nanomips_address_calculation_pid_2: nanomips_address_calculation_pid_2.o ../ld-new
 	../ld-new $(srcdir)/nanomips_gprel_out_of_range.t --relax --no-expand -o $@ $<
 
-nanomips_address_calculation_pid_3: nanomips_address_calculation_pid_nms.o ../ld-new
+nanomips_address_calculation_pid_3: nanomips_address_calculation_pid_nmf.o ../ld-new
 	../ld-new $(srcdir)/nanomips_gprel_out_of_range.t --relax --no-expand -o $@ $<
 
 nanomips_address_calculation_pcrel.o: nanomips_address_calculation.s
 	$(TEST_AS) -EL -march=32r6s -m32 -mpcrel -o $@ $<
 
-nanomips_address_calculation_pcrel_nms.o: nanomips_address_calculation.s
+nanomips_address_calculation_pcrel_nmf.o: nanomips_address_calculation.s
 	$(TEST_AS) -EL -march=32r6 -m32 -mpcrel -o $@ $<
 
 nanomips_address_calculation_abs.o: nanomips_address_calculation.s
 	$(TEST_AS) -EL -march=32r6s -m32 -mno-pcrel -o $@ $<
 
-nanomips_address_calculation_abs_nms.o: nanomips_address_calculation.s
+nanomips_address_calculation_abs_nmf.o: nanomips_address_calculation.s
 	$(TEST_AS) -EL -march=32r6 -m32 -mno-pcrel -o $@ $<
 
 nanomips_address_calculation_pid_1.o: nanomips_address_calculation.s
@@ -4606,7 +4606,7 @@ nanomips_address_calculation_pid_1.o: nanomips_address_calculation.s
 nanomips_address_calculation_pid_2.o: nanomips_address_calculation.s
 	$(TEST_AS) -EL -march=32r6s -m32 -mpid -o $@ $<
 
-nanomips_address_calculation_pid_nms.o: nanomips_address_calculation.s
+nanomips_address_calculation_pid_nmf.o: nanomips_address_calculation.s
 	$(TEST_AS) -EL -march=32r6 -m32 -mpid -o $@ $<
 
 MOSTLYCLEANFILES += nanomips_address_calculation_pcrel_1 nanomips_address_calculation_pcrel_2 \
@@ -4655,7 +4655,7 @@ nanomips_data_access_abs: nanomips_data_access_abs.o ../ld-new
 nanomips_data_access_pcrel_2: nanomips_data_access_pcrel_2.o ../ld-new
 	../ld-new --section-start .text=0x1000 --section-start .sdata=0x21020 --relax --no-expand -o $@ $<
 
-nanomips_data_access_pcrel_3: nanomips_data_access_pcrel_nms.o ../ld-new
+nanomips_data_access_pcrel_3: nanomips_data_access_pcrel_nmf.o ../ld-new
 	../ld-new --section-start .text=0x1000 --section-start .sdata=0x2001020 --relax --no-expand -o $@ $<
 
 nanomips_data_access_pid_1: nanomips_data_access_pid.o ../ld-new
@@ -4664,7 +4664,7 @@ nanomips_data_access_pid_1: nanomips_data_access_pid.o ../ld-new
 nanomips_data_access_pid_2: nanomips_data_access_pid.o ../ld-new
 	../ld-new $(srcdir)/nanomips_gprel_out_of_range.t --relax --no-expand -o $@ $<
 
-nanomips_data_access_pid_3: nanomips_data_access_pid_nms.o ../ld-new
+nanomips_data_access_pid_3: nanomips_data_access_pid_nmf.o ../ld-new
 	../ld-new $(srcdir)/nanomips_gprel_out_of_range.t --relax --no-expand -o $@ $<
 
 nanomips_data_access_pcrel_1.o: nanomips_data_access.s
@@ -4673,7 +4673,7 @@ nanomips_data_access_pcrel_1.o: nanomips_data_access.s
 nanomips_data_access_pcrel_2.o: nanomips_data_access.s
 	$(TEST_AS) -EL -march=32r6s -m32 -mpcrel --defsym word=1 -o $@ $<
 
-nanomips_data_access_pcrel_nms.o: nanomips_data_access.s
+nanomips_data_access_pcrel_nmf.o: nanomips_data_access.s
 	$(TEST_AS) -EL -march=32r6 -m32 -mpcrel --defsym word=1 -o $@ $<
 
 nanomips_data_access_abs.o: nanomips_data_access.s
@@ -4682,7 +4682,7 @@ nanomips_data_access_abs.o: nanomips_data_access.s
 nanomips_data_access_pid.o: nanomips_data_access.s
 	$(TEST_AS) -EL -march=32r6s -m32 -mpid -o $@ $<
 
-nanomips_data_access_pid_nms.o: nanomips_data_access.s
+nanomips_data_access_pid_nmf.o: nanomips_data_access.s
 	$(TEST_AS) -EL -march=32r6 -m32 -mpid -o $@ $<
 
 MOSTLYCLEANFILES += nanomips_data_access_pcrel_1 nanomips_data_access_pcrel_2 \

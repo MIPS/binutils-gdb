@@ -1007,9 +1007,9 @@ class Nanomips_relobj : public Sized_relobj_file<size, big_endian>
   is_gp_used(unsigned int symndx) const
   { return this->gp_is_used_.find(symndx) != this->gp_is_used_.end(); }
 
-  // Return whether this object is not using nanoMIPS Subset.
+  // Return whether this object is using full nanoMIPS ISA.
   bool
-  xlp() const
+  nmf() const
   {
     if (this->abiflags_ == NULL)
       return false;
@@ -4788,7 +4788,7 @@ Nanomips_relax_insn<size, big_endian>::find_insn(
     case elfcpp::R_NANOMIPS_PC14_S1:
       {
         if (!insn_property->has_transform(TT_PCREL16, r_type)
-            || !relobj->xlp()
+            || !relobj->nmf()
             || !insn_property->valid_regs(insn))
           return NULL;
 
@@ -4850,7 +4850,7 @@ Nanomips_relax_insn<size, big_endian>::relax_code_and_data_models(
   typename elfcpp::Elf_types<size>::Elf_Swxword r_addend =
     reloc.get_r_addend();
   const bool pid = relobj->pid();
-  const bool xlp = relobj->xlp();
+  const bool nmf = relobj->nmf();
   const bool pcrel = relobj->pcrel();
   const bool insn32 = parameters->options().insn32();
 
@@ -4906,7 +4906,7 @@ Nanomips_relax_insn<size, big_endian>::relax_code_and_data_models(
                   return TT_GPREL32_WORD;
                 else
                   // Transform into addiugp[48] or lui, ori, addu.
-                  return xlp ? TT_GPREL_XLP : TT_GPREL_LONG;
+                  return nmf ? TT_GPREL_NMF : TT_GPREL_LONG;
               }
             else
               {
@@ -4915,9 +4915,9 @@ Nanomips_relax_insn<size, big_endian>::relax_code_and_data_models(
                     && !this->template has_overflow_signed<22>(value))
                   // Transform into lapc.
                   return TT_PCREL32;
-                else if (xlp)
+                else if (nmf)
                   // Transform into lapc[48]/li[48].
-                  return pcrel ? TT_PCREL_XLP : TT_ABS_XLP;
+                  return pcrel ? TT_PCREL_NMF : TT_ABS_NMF;
                 else
                   // Transform into aluipc/lui, ori.
                   return pcrel ? TT_PCREL32_LONG : TT_ABS32_LONG;
@@ -4942,19 +4942,19 @@ Nanomips_relax_insn<size, big_endian>::relax_code_and_data_models(
                          && !this->template has_overflow_unsigned<21>(value))
                   // Transform into [ls]w[gp].
                   return TT_GPREL32_WORD;
-                else if (!xlp)
+                else if (!nmf)
                   // Transform into lui, addu, [ls]x.
                   return TT_GPREL_LONG;
                 else
                   // Transform into addiu[gp48], [ls]x[16]
                   // or addiu[gp48], [ls]x.
                   return (insn_property->valid_regs(insn)
-                          ? TT_GPREL_XLP
-                          : TT_GPREL32_XLP);
+                          ? TT_GPREL_NMF
+                          : TT_GPREL32_NMF);
               }
-            else if (xlp && insn_property->has_transform(TT_PCREL_XLP, r_type))
+            else if (nmf && insn_property->has_transform(TT_PCREL_NMF, r_type))
               // Transform into [ls]wpc.
-              return TT_PCREL_XLP;
+              return TT_PCREL_NMF;
             else
               {
                 Valtype value = psymval->value(relobj, r_addend) - address - 4;
@@ -4988,9 +4988,9 @@ Nanomips_relax_insn<size, big_endian>::relax_code_and_data_models(
             else if (!this->template has_overflow_signed<26>(value))
               // Transform into balc.
               return TT_PCREL32;
-            else if (xlp)
+            else if (nmf)
               // Transform into lapc[48]/li[48], jalrc[16].
-              return pcrel ? TT_PCREL_XLP : TT_ABS_XLP;
+              return pcrel ? TT_PCREL_NMF : TT_ABS_NMF;
             else
               // Transform into aluipc/lui, ori, jalrc[16].
               return pcrel ? TT_PCREL16_LONG : TT_ABS16_LONG;
@@ -5221,17 +5221,17 @@ Nanomips_expand_insn<size, big_endian>::expand_type(
     uint32_t insn,
     unsigned int r_type)
 {
-  const bool xlp = relobj->xlp();
+  const bool nmf = relobj->nmf();
   const bool pcrel = relobj->pcrel();
   const bool insn32 = parameters->options().insn32();
 
   switch (r_type)
     {
     case elfcpp::R_NANOMIPS_PC25_S1:
-      if (xlp)
+      if (nmf)
         // Transform balc/bc into lapc[48], jalrc[16]/jrc[16]
         // or into into li[48], jalrc[16]/jrc[16].
-        return pcrel ? TT_PCREL_XLP : TT_ABS_XLP;
+        return pcrel ? TT_PCREL_NMF : TT_ABS_NMF;
       else if (!pcrel)
         // Transform balc/bc into lui, ori, jalrc/jrc.
         return insn32 ? TT_ABS32_LONG : TT_ABS16_LONG;
@@ -5242,9 +5242,9 @@ Nanomips_expand_insn<size, big_endian>::expand_type(
       if (insn_property->name()[0] == 'm')
         // Transform move.balc into move[16], balc.
         return TT_PCREL32_LONG;
-      else if (xlp)
+      else if (nmf)
         // Transform lapc into lapc[48]/li[48].
-        return pcrel ? TT_PCREL_XLP : TT_ABS_XLP;
+        return pcrel ? TT_PCREL_NMF : TT_ABS_NMF;
       else
         // Transform lapc into aluipc/lui, ori.
         return pcrel ? TT_PCREL32_LONG : TT_ABS32_LONG;
@@ -5258,9 +5258,9 @@ Nanomips_expand_insn<size, big_endian>::expand_type(
       if (insn_property->name()[0] == 'a')
         {
           // Transformations for addiu[gp.w] and addiu[gp.b] instructions.
-          if (xlp)
+          if (nmf)
             // Transform into addiu[gp48].
-            return TT_GPREL_XLP;
+            return TT_GPREL_NMF;
           else if (parameters->options().strict_address_modes())
             // Transform into lui, ori, addu.
             return TT_GPREL_LONG;
@@ -5273,10 +5273,10 @@ Nanomips_expand_insn<size, big_endian>::expand_type(
           // Transformations for load and store instructions.
           if (parameters->options().strict_address_modes())
             // Transform into addiu[gp48], [ls]x or lui, addu, [ls]x.
-            return xlp ? TT_GPREL32_XLP : TT_GPREL_LONG;
-          else if (xlp && insn_property->has_transform(TT_PCREL_XLP, r_type))
+            return nmf ? TT_GPREL32_NMF : TT_GPREL_LONG;
+          else if (nmf && insn_property->has_transform(TT_PCREL_NMF, r_type))
             // Transform [ls]w[gp] into [ls]wpc.
-            return TT_PCREL_XLP;
+            return TT_PCREL_NMF;
           else
             // Transform into aluipc/lui, [ls]x.
             return pcrel ? TT_PCREL32_LONG : TT_ABS32_LONG;
@@ -5318,7 +5318,7 @@ Nanomips_expand_insn<size, big_endian>::expand_code_and_data_models(
   unsigned int r_type = elfcpp::elf_r_type<size>(reloc.get_r_info());
   typename elfcpp::Elf_types<size>::Elf_Swxword r_addend =
     reloc.get_r_addend();
-  const bool xlp = relobj->xlp();
+  const bool nmf = relobj->nmf();
   unsigned int got_offset;
 
   if (gsym == NULL)
@@ -5336,13 +5336,13 @@ Nanomips_expand_insn<size, big_endian>::expand_code_and_data_models(
     case elfcpp::R_NANOMIPS_TLS_LD:
       if (this->template has_overflow_unsigned<21>(gp_offset))
         // Transform into addiu[gp48].
-        return TT_GPREL_XLP;
+        return TT_GPREL_NMF;
       else
         return TT_NONE;
     case elfcpp::R_NANOMIPS_TLS_GOTTPREL:
       if (this->template has_overflow_unsigned<21>(gp_offset))
         // Transform into lwpc[48].
-        return TT_GOTPCREL_XLP;
+        return TT_GOTPCREL_NMF;
       else
         return TT_NONE;
     case elfcpp::R_NANOMIPS_GOT_CALL:
@@ -5350,7 +5350,7 @@ Nanomips_expand_insn<size, big_endian>::expand_code_and_data_models(
     case elfcpp::R_NANOMIPS_GOT_PAGE:
       if (this->template has_overflow_unsigned<21>(gp_offset))
         // Transform into lwpc[48] or aluipc, lw.
-        return xlp ? TT_GOTPCREL_XLP : TT_GOTPCREL_LONG;
+        return nmf ? TT_GOTPCREL_NMF : TT_GOTPCREL_LONG;
       else
         return TT_NONE;
     default:
