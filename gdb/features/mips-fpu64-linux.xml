@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- Copyright (C) 2007-2018 Free Software Foundation, Inc.
+<!-- Copyright (C) 2018 Free Software Foundation, Inc.
 
      Copying and distribution of this file, with or without modification,
      are permitted in any medium without royalty provided the copyright
@@ -8,11 +8,12 @@
 <!DOCTYPE target SYSTEM "gdb-target.dtd">
 <target>
   <architecture>mips</architecture>
-  <xi:include href="mips64-cpu.xml"/>
-  <xi:include href="mips64-cp0.xml"/>
+  <osabi>GNU/Linux</osabi>
+  <xi:include href="mips-cpu.xml"/>
+  <xi:include href="mips-cp0.xml"/>
   <xi:include href="mips-fpu64.xml"/>
 
   <feature name="org.gnu.gdb.mips.linux">
-    <reg name="restart" bitsize="64" group="system"/>
+    <reg name="restart" bitsize="32" group="system"/>
   </feature>
 </target>

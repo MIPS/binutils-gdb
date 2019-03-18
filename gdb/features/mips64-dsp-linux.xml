@@ -10,7 +10,7 @@
   <architecture>mips</architecture>
   <xi:include href="mips64-cpu.xml"/>
   <xi:include href="mips64-cp0.xml"/>
-  <xi:include href="mips64-fpu.xml"/>
+  <xi:include href="mips-fpu64.xml"/>
   <xi:include href="mips64-dsp.xml"/>
 
   <feature name="org.gnu.gdb.mips.linux">
