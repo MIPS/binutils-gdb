@@ -82,6 +82,14 @@ enum mips_fpu_type
   MIPS_FPU_NONE			/* No floating point.  */
 };
 
+/* Floating-point register mode, as per CP0 Status register's FR bit.  */
+enum mips_fpu_mode
+{
+  MIPS_FPU_MODE_UNKNOWN = 0,
+  MIPS_FPU_MODE_32,    /* FR=0, 32bit FP regs, doubles in pairs.  */
+  MIPS_FPU_MODE_64,    /* FR=1, 64bit FP regs.  */
+};
+
 /* MIPS specific per-architecture information.  */
 struct gdbarch_tdep
 {
@@ -112,6 +120,10 @@ struct gdbarch_tdep
      left alignment even for big endian (very strange).  */
   int register_size_valid_p;
   int register_size;
+
+  /* The floating-point register mode determined at run time.
+     This corresponds to CP0 Status register's FR bit.  */
+  enum mips_fpu_mode fp_mode;
 
   /* Return the expected next PC if FRAME is stopped at a syscall
      instruction.  */
