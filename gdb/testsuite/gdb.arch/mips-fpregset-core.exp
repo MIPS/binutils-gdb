@@ -42,7 +42,7 @@ proc mips_fpregset_core_fetch_float_registers { test } {
 	    set bad 1
 	    exp_continue
 	}
-	-re "^\(?:fcsr\|fir\):\[ \t\]+\[^\r\n\]+\r\n" {
+	-re "^\(?:fcsr\|fir\|fsr\):\[ \t\]+\[^\r\n\]+\r\n" {
 	    # Filter out control registers.  They may or may not be a part
 	    # of the float group depending on whether XML descriptions are
 	    # used or not.
