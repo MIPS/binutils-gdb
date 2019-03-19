@@ -77,9 +77,9 @@ extern const struct mips_regnum *mips_regnum (struct gdbarch *gdbarch);
 
 enum mips_fpu_type
 {
-  MIPS_FPU_DOUBLE,		/* Full double precision floating point.  */
-  MIPS_FPU_SINGLE,		/* Single precision floating point (R4650).  */
-  MIPS_FPU_NONE			/* No floating point.  */
+  MIPS_FPU_TYPE_DOUBLE,	 /* Full double precision floating point.  */
+  MIPS_FPU_TYPE_SINGLE,	 /* Single precision floating point (R4650).  */
+  MIPS_FPU_TYPE_NONE		 /* No floating point.  */
 };
 
 /* Floating-point register mode, as per CP0 Status register's FR bit.  */

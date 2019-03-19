@@ -197,7 +197,7 @@ const struct register_alias mips_numeric_register_aliases[] = {
 };
 
 #ifndef MIPS_DEFAULT_FPU_TYPE
-#define MIPS_DEFAULT_FPU_TYPE MIPS_FPU_DOUBLE
+#define MIPS_DEFAULT_FPU_TYPE MIPS_FPU_TYPE_DOUBLE
 #endif
 static int mips_fpu_type_auto = 1;
 static enum mips_fpu_type mips_fpu_type = MIPS_DEFAULT_FPU_TYPE;
@@ -4385,7 +4385,7 @@ fp_register_arg_p (struct gdbarch *gdbarch, enum type_code typecode,
 	       && TYPE_NFIELDS (arg_type) == 1
 	       && TYPE_CODE (check_typedef (TYPE_FIELD_TYPE (arg_type, 0))) 
 	       == TYPE_CODE_FLT))
-	  && MIPS_FPU_TYPE(gdbarch) != MIPS_FPU_NONE);
+	  && MIPS_FPU_TYPE (gdbarch) != MIPS_FPU_TYPE_NONE);
 }
 
 /* On o32, argument passing in GPRs depends on the alignment of the type being
@@ -4753,7 +4753,7 @@ mips_eabi_return_value (struct gdbarch *gdbarch, struct value *function,
     return RETURN_VALUE_STRUCT_CONVENTION;
 
   /* Floating point type?  */
-  if (tdep->mips_fpu_type != MIPS_FPU_NONE)
+  if (tdep->mips_fpu_type != MIPS_FPU_TYPE_NONE)
     {
       if (TYPE_CODE (type) == TYPE_CODE_FLT)
 	fp_return_type = 1;
@@ -4817,7 +4817,7 @@ mips_n32n64_fp_arg_chunk_p (struct gdbarch *gdbarch, struct type *arg_type,
   if (TYPE_CODE (arg_type) != TYPE_CODE_STRUCT)
     return 0;
 
-  if (MIPS_FPU_TYPE (gdbarch) != MIPS_FPU_DOUBLE)
+  if (MIPS_FPU_TYPE (gdbarch) != MIPS_FPU_TYPE_DOUBLE)
     return 0;
 
   if (TYPE_LENGTH (arg_type) < offset + MIPS64_REGSIZE)
@@ -5162,7 +5162,7 @@ mips_n32n64_return_value (struct gdbarch *gdbarch, struct value *function,
     return RETURN_VALUE_STRUCT_CONVENTION;
   else if (TYPE_CODE (type) == TYPE_CODE_FLT
 	   && TYPE_LENGTH (type) == 16
-	   && tdep->mips_fpu_type != MIPS_FPU_NONE)
+	   && tdep->mips_fpu_type != MIPS_FPU_TYPE_NONE)
     {
       /* A 128-bit floating-point value fills both $f0 and $f2.  The
 	 two registers are used in the same as memory order, so the
@@ -5183,7 +5183,7 @@ mips_n32n64_return_value (struct gdbarch *gdbarch, struct value *function,
       return RETURN_VALUE_REGISTER_CONVENTION;
     }
   else if (TYPE_CODE (type) == TYPE_CODE_FLT
-	   && tdep->mips_fpu_type != MIPS_FPU_NONE)
+	   && tdep->mips_fpu_type != MIPS_FPU_TYPE_NONE)
     {
       /* A single or double floating-point value that fits in FP0.  */
       if (mips_debug)
@@ -5213,7 +5213,7 @@ mips_n32n64_return_value (struct gdbarch *gdbarch, struct value *function,
          register (or GPR, for soft float).  */
       int regnum;
       int field;
-      for (field = 0, regnum = (tdep->mips_fpu_type != MIPS_FPU_NONE
+      for (field = 0, regnum = (tdep->mips_fpu_type != MIPS_FPU_TYPE_NONE
 				? mips_regnum (gdbarch)->fp0
 				: MIPS_V0_REGNUM);
 	   field < TYPE_NFIELDS (type); field++, regnum += 2)
@@ -5637,7 +5637,8 @@ mips_o32_return_value (struct gdbarch *gdbarch, struct value *function,
       || TYPE_CODE (type) == TYPE_CODE_ARRAY)
     return RETURN_VALUE_STRUCT_CONVENTION;
   else if (TYPE_CODE (type) == TYPE_CODE_FLT
-	   && TYPE_LENGTH (type) == 4 && tdep->mips_fpu_type != MIPS_FPU_NONE)
+	   && TYPE_LENGTH (type) == 4
+	   && tdep->mips_fpu_type != MIPS_FPU_TYPE_NONE)
     {
       /* A single-precision floating-point value.  If reading in or copying,
          then we get it from/put it to FP0 for standard MIPS code or GPR2
@@ -5674,7 +5675,8 @@ mips_o32_return_value (struct gdbarch *gdbarch, struct value *function,
       return RETURN_VALUE_REGISTER_CONVENTION;
     }
   else if (TYPE_CODE (type) == TYPE_CODE_FLT
-	   && TYPE_LENGTH (type) == 8 && tdep->mips_fpu_type != MIPS_FPU_NONE)
+	   && TYPE_LENGTH (type) == 8
+	   && tdep->mips_fpu_type != MIPS_FPU_TYPE_NONE)
     {
       /* A double-precision floating-point value.  If reading in or copying,
          then we get it from/put it to FP1 and FP0 for standard MIPS code or
@@ -5758,7 +5760,7 @@ mips_o32_return_value (struct gdbarch *gdbarch, struct value *function,
 		       == TYPE_CODE_FLT)
 		   && (TYPE_CODE (TYPE_FIELD_TYPE (type, 1))
 		       == TYPE_CODE_FLT)))
-	   && tdep->mips_fpu_type != MIPS_FPU_NONE)
+	   && tdep->mips_fpu_type != MIPS_FPU_TYPE_NONE)
     {
       /* A struct that contains one or two floats.  Each value is part
          in the least significant part of their floating point
@@ -6379,14 +6381,14 @@ mips_print_float_info (struct gdbarch *gdbarch, struct ui_file *file,
   int i;
 
   if (fcsr == -1 || !read_frame_register_unsigned (frame, fcsr, &fcs))
-    type = MIPS_FPU_NONE;
+    type = MIPS_FPU_TYPE_NONE;
 
   fprintf_filtered (file, "fpu type: %s\n",
-		    type == MIPS_FPU_DOUBLE ? "double-precision"
-		    : type == MIPS_FPU_SINGLE ? "single-precision"
+		    type == MIPS_FPU_TYPE_DOUBLE ? "double-precision"
+		    : type == MIPS_FPU_TYPE_SINGLE ? "single-precision"
 		    : "none / unused");
 
-  if (type == MIPS_FPU_NONE)
+  if (type == MIPS_FPU_TYPE_NONE)
     return;
 
   fprintf_filtered (file, "reg size: %d bits\n",
@@ -6884,13 +6886,13 @@ show_mipsfpu_command (const char *args, int from_tty)
 
   switch (MIPS_FPU_TYPE (target_gdbarch ()))
     {
-    case MIPS_FPU_SINGLE:
+    case MIPS_FPU_TYPE_SINGLE:
       fpu = "single-precision";
       break;
-    case MIPS_FPU_DOUBLE:
+    case MIPS_FPU_TYPE_DOUBLE:
       fpu = "double-precision";
       break;
-    case MIPS_FPU_NONE:
+    case MIPS_FPU_TYPE_NONE:
       fpu = "absent (none)";
       break;
     default:
@@ -6919,7 +6921,7 @@ set_mipsfpu_single_command (const char *args, int from_tty)
 {
   struct gdbarch_info info;
   gdbarch_info_init (&info);
-  mips_fpu_type = MIPS_FPU_SINGLE;
+  mips_fpu_type = MIPS_FPU_TYPE_SINGLE;
   mips_fpu_type_auto = 0;
   /* FIXME: cagney/2003-11-15: Should be setting a field in "info"
      instead of relying on globals.  Doing that would let generic code
@@ -6933,7 +6935,7 @@ set_mipsfpu_double_command (const char *args, int from_tty)
 {
   struct gdbarch_info info;
   gdbarch_info_init (&info);
-  mips_fpu_type = MIPS_FPU_DOUBLE;
+  mips_fpu_type = MIPS_FPU_TYPE_DOUBLE;
   mips_fpu_type_auto = 0;
   /* FIXME: cagney/2003-11-15: Should be setting a field in "info"
      instead of relying on globals.  Doing that would let generic code
@@ -6947,7 +6949,7 @@ set_mipsfpu_none_command (const char *args, int from_tty)
 {
   struct gdbarch_info info;
   gdbarch_info_init (&info);
-  mips_fpu_type = MIPS_FPU_NONE;
+  mips_fpu_type = MIPS_FPU_TYPE_NONE;
   mips_fpu_type_auto = 0;
   /* FIXME: cagney/2003-11-15: Should be setting a field in "info"
      instead of relying on globals.  Doing that would let generic code
@@ -8197,15 +8199,15 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
 	{
 	case Val_GNU_MIPS_ABI_FP_DOUBLE:
 	case Val_GNU_MIPS_ABI_FP_64:
-	  fpu_type = MIPS_FPU_DOUBLE;
+	  fpu_type = MIPS_FPU_TYPE_DOUBLE;
 	  break;
 	case Val_GNU_MIPS_ABI_FP_SINGLE:
-	  fpu_type = MIPS_FPU_SINGLE;
+	  fpu_type = MIPS_FPU_TYPE_SINGLE;
 	  break;
 	case Val_GNU_MIPS_ABI_FP_SOFT:
 	default:
 	  /* Soft float or unknown.  */
-	  fpu_type = MIPS_FPU_NONE;
+	  fpu_type = MIPS_FPU_TYPE_NONE;
 	  break;
 	}
     }
@@ -8217,19 +8219,19 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
       case bfd_mach_mips4100:
       case bfd_mach_mips4111:
       case bfd_mach_mips4120:
-	fpu_type = MIPS_FPU_NONE;
+	fpu_type = MIPS_FPU_TYPE_NONE;
 	break;
       case bfd_mach_mips4650:
-	fpu_type = MIPS_FPU_SINGLE;
+	fpu_type = MIPS_FPU_TYPE_SINGLE;
 	break;
       default:
-	fpu_type = MIPS_FPU_DOUBLE;
+	fpu_type = MIPS_FPU_TYPE_DOUBLE;
 	break;
       }
   else if (arches != NULL)
     fpu_type = MIPS_FPU_TYPE (arches->gdbarch);
   else
-    fpu_type = MIPS_FPU_DOUBLE;
+    fpu_type = MIPS_FPU_TYPE_DOUBLE;
   if (gdbarch_debug)
     fprintf_unfiltered (gdb_stdlog,
 			"mips_gdbarch_init: fpu_type = %d\n", fpu_type);
@@ -8893,11 +8895,11 @@ mips_fpu_type_str (enum mips_fpu_type fpu_type)
 {
   switch (fpu_type)
     {
-    case MIPS_FPU_NONE:
+    case MIPS_FPU_TYPE_NONE:
       return "none";
-    case MIPS_FPU_SINGLE:
+    case MIPS_FPU_TYPE_SINGLE:
       return "single";
-    case MIPS_FPU_DOUBLE:
+    case MIPS_FPU_TYPE_DOUBLE:
       return "double";
     default:
       return "???";
