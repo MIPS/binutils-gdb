@@ -6187,13 +6187,17 @@ mips_read_fp_register_single (struct frame_info *frame, int regno,
 			      gdb_byte *rare_buffer)
 {
   struct gdbarch *gdbarch = get_frame_arch (frame);
-  int raw_size = register_size (gdbarch, regno);
-  gdb_byte *raw_buffer = (gdb_byte *) alloca (raw_size);
+  int cooked_size = register_size (gdbarch, regno);
+  gdb_byte *raw_buffer = (gdb_byte *) alloca (cooked_size);
+
+  gdb_assert (regno >= gdbarch_num_regs (gdbarch)
+	      && regno < 2 * gdbarch_num_regs (gdbarch));
 
   if (!deprecated_frame_register_read (frame, regno, raw_buffer))
     error (_("can't read register %d (%s)"),
 	   regno, gdbarch_register_name (gdbarch, regno));
-  if (raw_size == 8)
+
+  if (cooked_size == 8)
     {
       /* We have a 64-bit value for this register.  Find the low-order
          32 bits.  */
@@ -6221,9 +6225,12 @@ mips_read_fp_register_double (struct frame_info *frame, int regno,
 			      gdb_byte *rare_buffer)
 {
   struct gdbarch *gdbarch = get_frame_arch (frame);
-  int raw_size = register_size (gdbarch, regno);
+  int cooked_size = register_size (gdbarch, regno);
 
-  if (raw_size == 8)
+  gdb_assert (regno >= gdbarch_num_regs (gdbarch)
+	      && regno < 2 * gdbarch_num_regs (gdbarch));
+
+  if (cooked_size == 8)
     {
       /* We have a 64-bit value for this register, and we should use
          all 64 bits.  */
