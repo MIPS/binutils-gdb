@@ -33,6 +33,14 @@ extern const struct target_desc *tdesc_mips_linux;
 void init_registers_mips_dsp_linux (void);
 extern const struct target_desc *tdesc_mips_dsp_linux;
 
+/* Defined in auto-generated file mips-fpu64-linux.c.  */
+void init_registers_mips_fpu64_linux (void);
+extern const struct target_desc *tdesc_mips_fpu64_linux;
+
+/* Defined in auto-generated file mips-fpu64-dsp-linux.c.  */
+void init_registers_mips_fpu64_dsp_linux (void);
+extern const struct target_desc *tdesc_mips_fpu64_dsp_linux;
+
 /* Defined in auto-generated file mips64-linux.c.  */
 void init_registers_mips64_linux (void);
 extern const struct target_desc *tdesc_mips64_linux;
@@ -44,6 +52,9 @@ extern const struct target_desc *tdesc_mips64_dsp_linux;
 #ifdef __mips64
 #define tdesc_mips_linux tdesc_mips64_linux
 #define tdesc_mips_dsp_linux tdesc_mips64_dsp_linux
+/* MIPS64 always have FR=1, MIPS64 FR=0 is not a supported Linux model.  */
+#define tdesc_mips_fpu64_linux tdesc_mips64_linux
+#define tdesc_mips_fpu64_dsp_linux tdesc_mips64_dsp_linux
 #endif
 
 #ifndef PTRACE_GET_THREAD_AREA
@@ -63,6 +74,11 @@ extern const struct target_desc *tdesc_mips64_dsp_linux;
 #define DSP_BASE 71
 #define DSP_CONTROL 77
 #endif
+
+#define STATUS_FR (1 << 26)
+#define FIR_F64 (1 << 22)
+#define MIPS64_EF_CP0_STATUS 36
+#define MIPS64_ELF_NGREG 45
 
 union mips_register
 {
@@ -117,17 +133,30 @@ static unsigned char mips_dsp_regset_bitmap[(mips_dsp_num_regs + 7) / 8] = {
 };
 
 static int have_dsp = -1;
+static int have_fpu64 = -1;
 
-/* Try peeking at an arbitrarily chosen DSP register and pick the available
-   user register set accordingly.  */
+/* Return appropriate target description based on availability of DSP
+   register set and current FPU state of the program.  To decide the
+   availability of DSP register set, try peeking peeking at an
+   arbitrarily chosen DSP register (i.e. DSP_CONTROL).  Similarly,
+   peek at FIR.F64 and then CP0.Status.FR to determine the current
+   FPU state of the program.  */
 
 static const struct target_desc *
 mips_read_description (void)
 {
+  static const struct target_desc *tdescs[2][2] =
+    {
+      /* use_fpu64 = 0        use_fpu64 = 1 */
+      { tdesc_mips_linux,     tdesc_mips_fpu64_linux },     /* have_dsp = 0 */
+      { tdesc_mips_dsp_linux, tdesc_mips_fpu64_dsp_linux }, /* have_dsp = 1 */
+    };
+  int pid = lwpid_of (current_thread);
+  unsigned int use_fpu64 = 0;
+
   if (have_dsp < 0)
     {
-      int pid = lwpid_of (current_thread);
-
+      /* Try peeking at an arbitrarily chosen DSP register.  */
       errno = 0;
       ptrace (PTRACE_PEEKUSER, pid, DSP_CONTROL, 0);
       switch (errno)
@@ -144,7 +173,41 @@ mips_read_description (void)
 	}
     }
 
-  return have_dsp ? tdesc_mips_dsp_linux : tdesc_mips_linux;
+#ifndef __mips64
+  /* No need to peek at FIR.F64 or Status.FR for __mips64 as we
+     assert that FR=1.  */
+  if (have_fpu64 < 0)
+    {
+      long fir;
+
+      /* Try peeking at FIR.F64 bit.  */
+      errno = 0;
+      fir = ptrace (PTRACE_PEEKUSER, pid, FPC_EIR, 0);
+      if (errno)
+	perror_with_name ("ptrace");
+      have_fpu64 = !!(fir & FIR_F64);
+    }
+
+  /* If FPU is implemented as 64 bit then CP0.Status.FR gives size of FPU
+     registers.  */
+  if (have_fpu64)
+    {
+      uint64_t regs[MIPS64_ELF_NGREG];
+      int err;
+
+      err = ptrace (PTRACE_GETREGS, pid, 0L, (PTRACE_TYPE_ARG3) &regs);
+      if (err && errno != EIO)
+	perror_with_name ("ptrace");
+
+      /* If GETREGS is not supported then assume that such old kernel
+	 do not support changing the value of Status.FR bit either so use
+	 the ABI default value i.e. FR=0 for O32 (use_fpu64 = 0).  */
+      if (!err)
+	use_fpu64 = !!(regs[MIPS64_EF_CP0_STATUS] & STATUS_FR);
+    }
+#endif  /* __mips64 */
+
+  return tdescs[have_dsp][use_fpu64];
 }
 
 static void
@@ -798,15 +861,16 @@ static void
 mips_fill_fpregset (struct regcache *regcache, void *buf)
 {
   union mips_register *regset = (union mips_register *) buf;
-  int i, use_64bit, first_fp, big_endian;
+  int i, use_64bit, fp_use_64bit, first_fp, big_endian;
 
   use_64bit = (register_size (regcache->tdesc, 0) == 8);
   first_fp = find_regno (regcache->tdesc, "f0");
+  fp_use_64bit = (register_size (regcache->tdesc, first_fp) == 8);
   big_endian = (__BYTE_ORDER == __BIG_ENDIAN);
 
   /* See GDB for a discussion of this peculiar layout.  */
   for (i = 0; i < 32; i++)
-    if (use_64bit)
+    if (fp_use_64bit)
       collect_register (regcache, first_fp + i, regset[i].buf);
     else
       collect_register (regcache, first_fp + i,
@@ -823,15 +887,16 @@ static void
 mips_store_fpregset (struct regcache *regcache, const void *buf)
 {
   const union mips_register *regset = (const union mips_register *) buf;
-  int i, use_64bit, first_fp, big_endian;
+  int i, use_64bit, fp_use_64bit, first_fp, big_endian;
 
   use_64bit = (register_size (regcache->tdesc, 0) == 8);
   first_fp = find_regno (regcache->tdesc, "f0");
+  fp_use_64bit = (register_size (regcache->tdesc, first_fp) == 8);
   big_endian = (__BYTE_ORDER == __BIG_ENDIAN);
 
   /* See GDB for a discussion of this peculiar layout.  */
   for (i = 0; i < 32; i++)
-    if (use_64bit)
+    if (fp_use_64bit)
       supply_register (regcache, first_fp + i, regset[i].buf);
     else
       supply_register (regcache, first_fp + i,
@@ -973,6 +1038,8 @@ initialize_low_arch (void)
   /* Initialize the Linux target descriptions.  */
   init_registers_mips_linux ();
   init_registers_mips_dsp_linux ();
+  init_registers_mips_fpu64_linux ();
+  init_registers_mips_fpu64_dsp_linux ();
   init_registers_mips64_linux ();
   init_registers_mips64_dsp_linux ();
 
