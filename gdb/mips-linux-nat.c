@@ -27,20 +27,31 @@
 #include "linux-nat-trad.h"
 #include "mips-linux-tdep.h"
 #include "target-descriptions.h"
+#include "arch-utils.h"
+#include "inf-ptrace.h"
 
 #include "gdb_proc_service.h"
 #include "gregset.h"
 
 #include <sgidefs.h>
-#include "nat/gdb_ptrace.h"
-#include <asm/ptrace.h>
-#include "inf-ptrace.h"
+#include <sys/prctl.h>
+#include <sys/uio.h>
+
+#include "elf/common.h"
+
+#include "nat/linux-ptrace.h"
 
 #include "nat/mips-linux-watch.h"
 
 #ifndef PTRACE_GET_THREAD_AREA
 #define PTRACE_GET_THREAD_AREA 25
 #endif
+
+/* Indicates that the floating point unit registers are 64-bits wide.  */
+#ifndef PR_FP_MODE_FR
+#define PR_FP_MODE_FR (1 << 0)
+#endif
+
 
 class mips_linux_nat_target final : public linux_nat_trad_target
 {
@@ -81,6 +92,7 @@ private:
 				       int regno);
   void mips64_regsets_fetch_registers (struct regcache *regcache,
 				       int regno);
+  int get_fpu64 (int tid);
 };
 
 static mips_linux_nat_target the_mips_linux_nat_target;
@@ -88,6 +100,9 @@ static mips_linux_nat_target the_mips_linux_nat_target;
 /* Assume that we have PTRACE_GETREGS et al. support.  If we do not,
    we'll clear this and use PTRACE_PEEKUSER instead.  */
 static int have_ptrace_regsets = 1;
+
+/* Assume that we have FP_MODE virtual register support.  */
+static int have_fp_mode = 1;
 
 /* Map gdb internal register number to ptrace ``address''.
    These ``addresses'' are normally defined in <asm/ptrace.h>. 
@@ -451,16 +466,86 @@ mips_linux_nat_target::register_u_offset (struct gdbarch *gdbarch,
     return mips_linux_register_addr (gdbarch, regno, store_p);
 }
 
+/* Determine the width of FGRs.  Try the FP_MODE virtual register first.
+   If that is unavailable, then try CP0.Status.FR directly, which can
+   only be retrieved along with the rest of GPRs.  Examining the FR bit
+   directly is however unreliable, because in the full FPU emulation
+   mode Linux will never report it as 1 regardless of the mode.  Use
+   PTRACE_GETREGS to get at FR as this is the oldest interface.  If it
+   is not supported, then running o32 with FR=1 is neither.  The default
+   of FR=0 (use_fpu64 = 0) applies then.
+
+   NB PTRACE_GETREGS always uses 64-bit register slots, even with 32-bit
+   kernels.  */
+
+int
+mips_linux_nat_target::get_fpu64 (int tid)
+{
+  int use_fpu64 = 0;
+
+  if (have_fp_mode)
+    {
+      int fp_mode;
+      struct iovec iov = { .iov_base = &fp_mode, .iov_len = sizeof(fp_mode) };
+
+      errno = 0;
+      ptrace (PTRACE_GETREGSET, tid,
+	      (PTRACE_TYPE_ARG3) NT_MIPS_FP_MODE, (PTRACE_TYPE_ARG4) &iov);
+      switch (errno)
+	{
+	case 0:
+	  use_fpu64 = !!(fp_mode & PR_FP_MODE_FR);
+	  break;
+	case EIO:
+	case EINVAL:
+	  have_fp_mode = 0;
+	  break;
+	default:
+	  perror_with_name (_("Couldn't get FP_MODE virtual register"));
+	  break;
+	}
+    }
+
+  if (!have_fp_mode && have_ptrace_regsets)
+    {
+      uint64_t regs[MIPS64_ELF_NGREG];
+
+      errno = 0;
+      ptrace (PTRACE_GETREGS, tid,
+	      (PTRACE_TYPE_ARG3) 0, (PTRACE_TYPE_ARG4) &regs);
+      switch (errno)
+	{
+	case 0:
+	  use_fpu64 = !!(regs[MIPS64_EF_CP0_STATUS] & STATUS_FR);
+	  break;
+	case EIO:
+	  have_ptrace_regsets = 0;
+	  break;
+	default:
+	  perror_with_name (_("Couldn't get registers"));
+	  break;
+	}
+    }
+
+  return use_fpu64;
+}
+
+
 const struct target_desc *
 mips_linux_nat_target::read_description ()
 {
+  static const struct target_desc *tdescs[2][2] =
+    {
+      /* use_fpu64 = 0        use_fpu64 = 1 */
+      { tdesc_mips_linux,     tdesc_mips_fpu64_linux },     /* have_dsp = 0 */
+      { tdesc_mips_dsp_linux, tdesc_mips_fpu64_dsp_linux }, /* have_dsp = 1 */
+    };
   static int have_dsp = -1;
+
+  int tid = inferior_ptid.lwp ();
 
   if (have_dsp < 0)
     {
-      int tid;
-
-      tid = inferior_ptid.lwp ();
       if (tid == 0)
 	tid = inferior_ptid.pid ();
 
@@ -480,10 +565,10 @@ mips_linux_nat_target::read_description ()
 	}
     }
 
-  /* Report that target registers are a size we know for sure
-     that we can get from ptrace.  */
+  /* We only need to determine the width of FGRs on 32-bit systems,
+     as therwise they're fixed by the ABI at 64 bits.  */
   if (_MIPS_SIM == _ABIO32)
-    return have_dsp ? tdesc_mips_dsp_linux : tdesc_mips_linux;
+    return tdescs[have_dsp][get_fpu64 (tid)];
   else
     return have_dsp ? tdesc_mips64_dsp_linux : tdesc_mips64_linux;
 }

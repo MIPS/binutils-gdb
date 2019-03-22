@@ -42,6 +42,8 @@
 
 #include "features/mips-linux.c"
 #include "features/mips-dsp-linux.c"
+#include "features/mips-fpu64-linux.c"
+#include "features/mips-fpu64-dsp-linux.c"
 #include "features/mips64-linux.c"
 #include "features/mips64-dsp-linux.c"
 
@@ -1659,6 +1661,8 @@ _initialize_mips_linux_tdep (void)
   /* Initialize the standard target descriptions.  */
   initialize_tdesc_mips_linux ();
   initialize_tdesc_mips_dsp_linux ();
+  initialize_tdesc_mips_fpu64_linux ();
+  initialize_tdesc_mips_fpu64_dsp_linux ();
   initialize_tdesc_mips64_linux ();
   initialize_tdesc_mips64_dsp_linux ();
 }

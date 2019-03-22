@@ -109,3 +109,5 @@ extern struct target_desc *tdesc_mips_linux;
 extern struct target_desc *tdesc_mips64_linux;
 extern struct target_desc *tdesc_mips_dsp_linux;
 extern struct target_desc *tdesc_mips64_dsp_linux;
+extern struct target_desc *tdesc_mips_fpu64_linux;
+extern struct target_desc *tdesc_mips_fpu64_dsp_linux;
