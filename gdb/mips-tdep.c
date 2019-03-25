@@ -8636,6 +8636,7 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
       mips_regnum.fp_implementation_revision = 71;
       mips_regnum.dspacc = -1;
       mips_regnum.dspctl = -1;
+      mips_regnum.linux_restart = -1;
       dspacc = 72;
       dspctl = 78;
       num_regs = 90;

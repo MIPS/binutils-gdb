@@ -94,16 +94,6 @@ void mips64_supply_fpregset (struct regcache *,
 void mips64_fill_fpregset (const struct regcache *,
 			   mips64_elf_fpregset_t *, int);
 
-enum {
-  /* The Linux kernel stores an error code from any interrupted
-     syscall in a "register" (in $0's save slot).  */
-  MIPS_RESTART_REGNUM = 79
-};
-
-/* Return 1 if MIPS_RESTART_REGNUM is usable.  */
-
-int mips_linux_restart_reg_p (struct gdbarch *gdbarch);
-
 /* Target descriptions.  */
 extern struct target_desc *tdesc_mips_linux;
 extern struct target_desc *tdesc_mips64_linux;
