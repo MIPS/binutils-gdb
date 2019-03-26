@@ -48,7 +48,7 @@ gdb_test_multiple "show mipsfpu" "check for MIPS floating-point coprocessor" {
 }
 
 # Now check that FCRs are accessible and 32-bit wide.
-gdb_test "info registers \$fcsr" "fcsr: $hex"
+gdb_test "info registers \$fcsr" "fcsr\[ \t\]+$hex\t\{.*\}"
 gdb_test "print sizeof \$fcsr" "\\\$$decimal = 4"
-gdb_test "info registers \$fir" "fir: $hex"
+gdb_test "info registers \$fir" "fir\[ \t\]+$hex\t\{.*\}"
 gdb_test "print sizeof \$fir" "\\\$$decimal = 4"

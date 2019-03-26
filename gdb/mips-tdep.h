@@ -134,6 +134,10 @@ struct gdbarch_tdep
   struct type *fp32_odd_type;
   struct type *fp32_even_type;
   struct type *fp64_type;
+  struct type *fp_rm_type;
+  struct type *fp_cflags_type;
+  struct type *fp_csr_type;
+  struct type *fp_ir_type;
 
   /* Return the expected next PC if FRAME is stopped at a syscall
      instruction.  */

@@ -1346,6 +1346,178 @@ mips_fp64_type (struct gdbarch *gdbarch)
   return tdep->fp64_type;
 }
 
+/* Get floating point rounding mode enumeration type */
+
+static struct type *
+mips_frm_type (struct gdbarch *gdbarch)
+{
+  struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
+
+  if (tdep->fp_rm_type == NULL)
+    {
+      const struct builtin_type *bt = builtin_type (gdbarch);
+      struct type *t;
+      struct field *f;
+
+      t = arch_type (gdbarch, TYPE_CODE_ENUM, 8, "__gdb_builtin_type_fp_rm");
+      TYPE_UNSIGNED (t) = 1;
+      f = append_composite_type_field_raw (t, "NEAREST", bt->builtin_uint8);
+      SET_FIELD_ENUMVAL (*f, 0);
+      f = append_composite_type_field_raw (t, "ZERO", bt->builtin_uint8);
+      SET_FIELD_ENUMVAL (*f, 1);
+      f = append_composite_type_field_raw (t, "INF", bt->builtin_uint8);
+      SET_FIELD_ENUMVAL (*f, 2);
+      f = append_composite_type_field_raw (t, "NINF", bt->builtin_uint8);
+      SET_FIELD_ENUMVAL (*f, 3);
+
+      tdep->fp_rm_type = t;
+    }
+  return tdep->fp_rm_type;
+}
+
+/* Get floating point condition flags type */
+
+static struct type *
+mips_fcflags_type (struct gdbarch *gdbarch)
+{
+  struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
+
+  if (tdep->fp_cflags_type == NULL)
+    {
+      struct type *t;
+
+      /* Flags, Enables, Cause have common set of condition flags */
+      t = arch_flags_type (gdbarch, "__gdb_builtin_type_fp_cflags", 8);
+      append_flags_type_flag (t, 0, "I");
+      append_flags_type_flag (t, 1, "U");
+      append_flags_type_flag (t, 2, "O");
+      append_flags_type_flag (t, 3, "Z");
+      append_flags_type_flag (t, 4, "V");
+      append_flags_type_flag (t, 5, "E"); /* Cause field only */
+
+      tdep->fp_cflags_type = t;
+    }
+  return tdep->fp_cflags_type;
+}
+
+static struct type *
+mips_fcsr_type (struct gdbarch *gdbarch)
+{
+  struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
+
+  if (tdep->fp_csr_type == NULL)
+    {
+      const struct builtin_type *bt = builtin_type (gdbarch);
+      struct type *t, *cflags, *flags;
+      struct field *f;
+
+      /* Flags, Enables, Cause have common set of condition flags */
+      cflags = mips_fcflags_type (gdbarch);
+
+      /* Various bits at top end */
+      flags = arch_flags_type (gdbarch, "__gdb_builtin_type_fp_csr_flags", 16);
+      append_flags_type_flag (flags, 0, "NAN2008");
+      append_flags_type_flag (flags, 1, "ABS2008");
+      append_flags_type_flag (flags, 2, "MAC2008");
+      append_flags_type_flag (flags, 3, "IMPL0");
+      append_flags_type_flag (flags, 4, "IMPL1");
+      append_flags_type_flag (flags, 5, "FCC0");
+      append_flags_type_flag (flags, 6, "FS");
+      append_flags_type_flag (flags, 7, "FCC1");
+      append_flags_type_flag (flags, 8, "FCC2");
+      append_flags_type_flag (flags, 9, "FCC3");
+      append_flags_type_flag (flags, 10, "FCC4");
+      append_flags_type_flag (flags, 11, "FCC5");
+      append_flags_type_flag (flags, 12, "FCC6");
+      append_flags_type_flag (flags, 13, "FCC7");
+
+      t = arch_composite_type (gdbarch, "__gdb_builtin_type_fp_csr",
+			       TYPE_CODE_STRUCT);
+
+      /* rounding mode */
+      f = append_composite_type_field_raw (t, "rm", mips_frm_type (gdbarch));
+      SET_FIELD_BITPOS (*f, 0);
+      FIELD_BITSIZE (*f) = 2;
+
+      f = append_composite_type_field_raw (t, "flags", cflags);
+      SET_FIELD_BITPOS (*f, 2);
+      FIELD_BITSIZE (*f) = 5;
+
+      f = append_composite_type_field_raw (t, "enables", cflags);
+      SET_FIELD_BITPOS (*f, 7);
+      FIELD_BITSIZE (*f) = 5;
+
+      f = append_composite_type_field_raw (t, "cause", cflags);
+      SET_FIELD_BITPOS (*f, 12);
+      FIELD_BITSIZE (*f) = 6;
+
+      f = append_composite_type_field_raw (t, "", flags);
+      SET_FIELD_BITPOS (*f, 18);
+      FIELD_BITSIZE (*f) = 14;
+
+      TYPE_LENGTH (t) = 4;
+      TYPE_NAME (t) = "fp_csr";
+      tdep->fp_csr_type = t;
+    }
+  return tdep->fp_csr_type;
+}
+
+static struct type *
+mips_fir_type (struct gdbarch *gdbarch)
+{
+  struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
+
+  if (tdep->fp_ir_type == NULL)
+    {
+      const struct builtin_type *bt = builtin_type (gdbarch);
+      struct type *t, *flags;
+
+      /* top half has flags */
+      flags = arch_flags_type (gdbarch, "__gdb_builtin_type_fp_ir_flags", 16);
+      append_flags_type_flag (flags, 0, "S");
+      append_flags_type_flag (flags, 1, "D");
+      append_flags_type_flag (flags, 2, "PS");
+      append_flags_type_flag (flags, 3, "3D");
+      append_flags_type_flag (flags, 4, "W");
+      append_flags_type_flag (flags, 5, "L");
+      append_flags_type_flag (flags, 6, "F64");
+      append_flags_type_flag (flags, 7, "HAS2008");
+      append_flags_type_flag (flags, 8, "IMPL0");
+      append_flags_type_flag (flags, 9, "IMPL1");
+      append_flags_type_flag (flags, 10, "IMPL2");
+      append_flags_type_flag (flags, 11, "IMPL3");
+      append_flags_type_flag (flags, 12, "UFRP");
+      append_flags_type_flag (flags, 13, "FREP");
+
+      t = arch_composite_type (gdbarch, "__gdb_builtin_type_fp_ir",
+			       TYPE_CODE_STRUCT);
+
+      if (gdbarch_byte_order (gdbarch) == BFD_ENDIAN_LITTLE)
+	{
+	  /* bottom half has revision & processor id */
+	  append_composite_type_field (t, "rev", bt->builtin_uint8);
+	  append_composite_type_field (t, "prid", bt->builtin_uint8);
+
+	  /* top half has flags */
+	  append_composite_type_field (t, "", flags);
+	}
+      else
+	{
+	  /* top half has flags */
+	  append_composite_type_field (t, "", flags);
+
+	  /* bottom half has revision & processor id */
+	  append_composite_type_field (t, "prid", bt->builtin_uint8);
+	  append_composite_type_field (t, "rev", bt->builtin_uint8);
+	}
+
+      TYPE_LENGTH (t) = 4;
+      TYPE_NAME (t) = "fp_ir";
+      tdep->fp_ir_type = t;
+    }
+  return tdep->fp_ir_type;
+}
+
 /* Get the floating point type for an arbitrary FP register.
    This returns the appropriate type depending on the possible types and
    overlaps of the register.  */
@@ -1407,10 +1579,10 @@ mips_register_type (struct gdbarch *gdbarch, int regnum)
     }
   else
     {
-      /* The cooked or ABI registers.  These are sized according to
-	 the ABI (with a few complications).  */
-      if (mips_float_control_register_p (gdbarch, rawnum))
-	return builtin_type (gdbarch)->builtin_int32;
+      if (rawnum == mips_regnum (gdbarch)->fp_control_status)
+	return mips_fcsr_type (gdbarch);
+      else if (rawnum == mips_regnum (gdbarch)->fp_implementation_revision)
+	return mips_fir_type (gdbarch);
       else if (gdbarch_osabi (gdbarch) != GDB_OSABI_LINUX
 	       && rawnum >= MIPS_FIRST_EMBED_REGNUM
 	       && rawnum <= MIPS_LAST_EMBED_REGNUM)
@@ -1456,11 +1628,11 @@ mips_pseudo_register_type (struct gdbarch *gdbarch, int regnum)
   if (mips_float_register_p (gdbarch, rawnum))
     return mips_fp_type (gdbarch, rawnum - mips_regnum (gdbarch)->fp0);
 
-  /* Floating-point control registers are always 32-bit even though for
-     backwards compatibility reasons 64-bit targets will transfer them
-     as 64-bit quantities even if using XML descriptions.  */
-  if (mips_float_control_register_p (gdbarch, rawnum))
-    return builtin_type (gdbarch)->builtin_int32;
+  if (rawnum == mips_regnum (gdbarch)->fp_control_status)
+    return mips_fcsr_type (gdbarch);
+
+  if (rawnum == mips_regnum (gdbarch)->fp_implementation_revision)
+    return mips_fir_type (gdbarch);
 
   /* Use pointer types for registers if we can.  For n32 we can not,
      since we do not have a 64-bit pointer type.  */
@@ -6675,6 +6847,49 @@ mips_print_fp_register (struct ui_file *file, struct frame_info *frame,
     }
 }
 
+/* Print a single complex control register */
+
+static void
+print_control_register (struct ui_file *file, struct frame_info *frame,
+			int regnum)
+{
+  struct gdbarch *gdbarch = get_frame_arch (frame);
+  const char *name = gdbarch_register_name (gdbarch, regnum);
+  struct value *val = value_of_register (regnum, frame);
+  struct type *regtype = value_type (val);
+  enum bfd_endian byte_order = gdbarch_byte_order (get_type_arch (regtype));
+  struct value_print_options opts;
+  const gdb_byte *valaddr;
+
+  fputs_filtered (name, file);
+  print_spaces_filtered (15 - strlen (name), file);
+
+  if (!value_entirely_available (val))
+    {
+      fprintf_filtered (file, "*value not available*\n");
+      return;
+    }
+  else if (value_optimized_out (val))
+    {
+      val_print_optimized_out (val, file);
+      fprintf_filtered (file, "\n");
+      return;
+    }
+
+  valaddr = value_contents_for_printing (val);
+
+  /* Print raw value */
+  fprintf_filtered (file, "\t");
+  print_hex_chars (file, valaddr, TYPE_LENGTH (regtype), byte_order, true);
+
+  /* Print it according to its natural format. */
+  get_user_print_options (&opts);
+  opts.deref_ref = 1;
+  fprintf_filtered (file, "\t");
+  val_print (regtype, value_embedded_offset (val), 0,
+	     file, 0, val, &opts, current_language);
+}
+
 static void
 mips_print_register (struct ui_file *file, struct frame_info *frame,
 		     int regnum)
@@ -6686,6 +6901,14 @@ mips_print_register (struct ui_file *file, struct frame_info *frame,
   if (mips_float_register_p (gdbarch, regnum))
     {
       mips_print_fp_register (file, frame, regnum);
+      return;
+    }
+
+  if (mips_register_reggroup_p (gdbarch, regnum, float_reggroup)
+      || mips_register_reggroup_p (gdbarch, regnum, vector_reggroup))
+    {
+      /* FP & MSA control registers */
+      print_control_register (file, frame, regnum);
       return;
     }
 
@@ -8848,6 +9071,10 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
   tdep->fp32_odd_type = NULL;
   tdep->fp32_even_type = NULL;
   tdep->fp64_type = NULL;
+  tdep->fp_rm_type = NULL;
+  tdep->fp_cflags_type = NULL;
+  tdep->fp_csr_type = NULL;
+  tdep->fp_ir_type = NULL;
 
   if (info.target_desc)
     {
