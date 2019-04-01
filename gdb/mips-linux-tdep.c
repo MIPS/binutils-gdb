@@ -44,8 +44,10 @@
 #include "features/mips-dsp-linux.c"
 #include "features/mips-fpu64-linux.c"
 #include "features/mips-fpu64-dsp-linux.c"
+#include "features/mips-msa-linux.c"
 #include "features/mips64-linux.c"
 #include "features/mips64-dsp-linux.c"
+#include "features/mips64-msa-linux.c"
 
 static struct target_so_ops mips_svr4_so_ops;
 
@@ -1691,6 +1693,8 @@ _initialize_mips_linux_tdep (void)
   initialize_tdesc_mips_dsp_linux ();
   initialize_tdesc_mips_fpu64_linux ();
   initialize_tdesc_mips_fpu64_dsp_linux ();
+  initialize_tdesc_mips_msa_linux ();
   initialize_tdesc_mips64_linux ();
   initialize_tdesc_mips64_dsp_linux ();
+  initialize_tdesc_mips64_msa_linux ();
 }

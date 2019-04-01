@@ -541,6 +541,7 @@ mips_linux_nat_target::read_description ()
       { tdesc_mips_dsp_linux, tdesc_mips_fpu64_dsp_linux }, /* have_dsp = 1 */
     };
   static int have_dsp = -1;
+  static int have_msa = -1;
 
   int tid = inferior_ptid.lwp ();
 
@@ -565,12 +566,41 @@ mips_linux_nat_target::read_description ()
 	}
     }
 
+  int have_fpu64 = get_fpu64 (tid);
+
+  if (have_fpu64)
+    {
+      /* Check for MSA, which requires FR=1 */
+      if (have_msa < 0)
+	{
+	  int res;
+	  uint32_t regs[32*4 + 8];
+	  struct iovec iov;
+
+	  if (tid == 0)
+	    tid = inferior_ptid.pid ();
+
+	  /* this'd probably be better */
+	  //have_msa = (getauxval(AT_HWCAP) & 0x2) != 0;
+
+	  /* Test MSAIR */
+	  iov.iov_base = regs;
+	  iov.iov_len = sizeof(regs);
+	  res = ptrace (PTRACE_GETREGSET, tid, NT_MIPS_MSA, &iov);
+	  have_msa = (res >= 0) && regs[32*4 + 0];
+	}
+    }
+  else
+    have_msa = 0;
+
   /* We only need to determine the width of FGRs on 32-bit systems,
      as therwise they're fixed by the ABI at 64 bits.  */
   if (_MIPS_SIM == _ABIO32)
-    return tdescs[have_dsp][get_fpu64 (tid)];
+    return have_msa ? tdesc_mips_msa_linux : tdescs[have_dsp][have_fpu64];
   else
-    return have_dsp ? tdesc_mips64_dsp_linux : tdesc_mips64_linux;
+    return (have_msa ? tdesc_mips64_msa_linux
+		     : (have_dsp ? tdesc_mips64_dsp_linux
+				 : tdesc_mips64_linux));
 }
 
 /* -1 if the kernel and/or CPU do not support watch registers.

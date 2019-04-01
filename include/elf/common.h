@@ -646,6 +646,7 @@
 					/*   note name must be "LINUX".  */
 #define NT_MIPS_FP_MODE	0x801		/* MIPS floating-point mode.  */
 					/*   note name must be "LINUX".  */
+#define NT_MIPS_MSA	0x802		/* MIPS MSA vector registers. */
 #define NT_SIGINFO	0x53494749	/* Fields of siginfo_t.  */
 #define NT_FILE		0x46494c45	/* Description of mapped files.  */
 
