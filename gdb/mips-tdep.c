@@ -570,7 +570,7 @@ static struct cmd_list_element *showmipscmdlist = NULL;
    are listed in the following tables.  */
 
 enum
-{ NUM_MIPS_PROCESSOR_REGS = (90 - 32) };
+{ NUM_MIPS_PROCESSOR_REGS = (124 - 32) };
 
 /* Generic MIPS.  */
 
@@ -9319,7 +9319,7 @@ mips_gdbarch_init (struct gdbarch_info info, struct gdbarch_list *arches)
       mips_regnum.linux_restart = -1;
       dspacc = 72;
       dspctl = 78;
-      num_regs = 90;
+      num_regs = 124;
       reg_names = mips_linux_reg_names;
     }
   else
