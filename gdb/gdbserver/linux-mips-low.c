@@ -18,8 +18,10 @@
 
 #include "server.h"
 #include "linux-low.h"
+#include "elf/common.h"
 
 #include "nat/gdb_ptrace.h"
+#include <sys/uio.h>
 #include <endian.h>
 
 #include "nat/mips-linux-watch.h"
@@ -41,6 +43,10 @@ extern const struct target_desc *tdesc_mips_fpu64_linux;
 void init_registers_mips_fpu64_dsp_linux (void);
 extern const struct target_desc *tdesc_mips_fpu64_dsp_linux;
 
+/* Defined in auto-generated file mips-msa-linux.c.  */
+void init_registers_mips_msa_linux (void);
+extern const struct target_desc *tdesc_mips_msa_linux;
+
 /* Defined in auto-generated file mips64-linux.c.  */
 void init_registers_mips64_linux (void);
 extern const struct target_desc *tdesc_mips64_linux;
@@ -49,16 +55,29 @@ extern const struct target_desc *tdesc_mips64_linux;
 void init_registers_mips64_dsp_linux (void);
 extern const struct target_desc *tdesc_mips64_dsp_linux;
 
+/* Defined in auto-generated file mips64-msa-linux.c.  */
+void init_registers_mips64_msa_linux (void);
+extern const struct target_desc *tdesc_mips64_msa_linux;
+
 #ifdef __mips64
 #define tdesc_mips_linux tdesc_mips64_linux
 #define tdesc_mips_dsp_linux tdesc_mips64_dsp_linux
 /* MIPS64 always have FR=1, MIPS64 FR=0 is not a supported Linux model.  */
 #define tdesc_mips_fpu64_linux tdesc_mips64_linux
 #define tdesc_mips_fpu64_dsp_linux tdesc_mips64_dsp_linux
+#define tdesc_mips_msa_linux tdesc_mips64_msa_linux
 #endif
 
 #ifndef PTRACE_GET_THREAD_AREA
 #define PTRACE_GET_THREAD_AREA 25
+#endif
+
+#ifndef PTRACE_GETREGSET
+#define PTRACE_GETREGSET 0x4204
+#endif
+
+#ifndef PTRACE_SETREGSET
+#define PTRACE_SETREGSET 0x4205
 #endif
 
 #ifdef HAVE_SYS_REG_H
@@ -134,13 +153,13 @@ static unsigned char mips_dsp_regset_bitmap[(mips_dsp_num_regs + 7) / 8] = {
 
 static int have_dsp = -1;
 static int have_fpu64 = -1;
+static int have_msa = -1;
 
 /* Return appropriate target description based on availability of DSP
    register set and current FPU state of the program.  To decide the
-   availability of DSP register set, try peeking peeking at an
-   arbitrarily chosen DSP register (i.e. DSP_CONTROL).  Similarly,
-   peek at FIR.F64 and then CP0.Status.FR to determine the current
-   FPU state of the program.  */
+   availability of DSP register set, Try peeking at registers and pick
+   the available user register set accordingly.  Similarly, peek at FIR.F64
+   and then CP0.Status.FR to determine the FPU state of the program.  */
 
 static const struct target_desc *
 mips_read_description (void)
@@ -205,9 +224,34 @@ mips_read_description (void)
       if (!err)
 	use_fpu64 = !!(regs[MIPS64_EF_CP0_STATUS] & STATUS_FR);
     }
-#endif  /* __mips64 */
+#else
+  have_fpu64 = 1;
+  use_fpu64 = 1;
+#endif
 
-  return tdescs[have_dsp][use_fpu64];
+  if (use_fpu64)
+    {
+      /* Check for MSA, which requires FR=1 */
+      if (have_msa < 0)
+	{
+	  int res;
+	  uint32_t regs[32*4 + 8];
+	  struct iovec iov;
+
+	  /* this'd probably be better */
+	  //have_msa = (getauxval(AT_HWCAP) & 0x2) != 0;
+
+	  /* Test MSAIR */
+	  iov.iov_base = regs;
+	  iov.iov_len = sizeof(regs);
+	  res = ptrace (PTRACE_GETREGSET, pid, NT_MIPS_MSA, &iov);
+	  have_msa = (res >= 0) && regs[32*4 + 0];
+	}
+    }
+  else
+    have_msa = 0;
+
+  return have_msa ? tdesc_mips_msa_linux : tdescs[have_dsp][use_fpu64];
 }
 
 static void
@@ -951,12 +995,98 @@ mips_supply_ptrace_register (struct regcache *regcache,
     supply_register (regcache, regno, buf);
 }
 
+static void
+mips_fill_msa_regset (struct regcache *regcache, void *buf)
+{
+  unsigned char *bufp = (unsigned char *)buf;
+  int i, first_fp, fir, fcsr, msair, msacsr;
+  unsigned char tmp[16];
+
+  if (!have_msa)
+    return;
+
+  first_fp = find_regno (regcache->tdesc, "f0");
+  fir = find_regno (regcache->tdesc, "fir");
+  fcsr = find_regno (regcache->tdesc, "fcsr");
+  msair = find_regno (regcache->tdesc, "msair");
+  msacsr = find_regno (regcache->tdesc, "msacsr");
+
+  /* full vector including float */
+  if (__BYTE_ORDER == __BIG_ENDIAN)
+    for (i = 0; i < 32; i++)
+      {
+	collect_register (regcache, first_fp + i, tmp);
+	/* swap 64-bit halves, so it's a single word */
+	memcpy(bufp, tmp + 8, 8);
+	memcpy(bufp + 8, tmp, 8);
+	bufp += 16;
+      }
+  else
+    for (i = 0; i < 32; i++)
+      {
+	collect_register (regcache, first_fp + i, bufp);
+	bufp += 16;
+      }
+
+  collect_register (regcache, fir, bufp);
+  bufp += 4;
+  collect_register (regcache, fcsr, bufp);
+  bufp += 4;
+  collect_register (regcache, msair, bufp);
+  bufp += 4;
+  collect_register (regcache, msacsr, bufp);
+}
+
+static void
+mips_store_msa_regset (struct regcache *regcache, const void *buf)
+{
+  const unsigned char *bufp = (unsigned char *)buf;
+  int i, first_fp, fir, fcsr, msair, msacsr;
+  unsigned char tmp[16];
+
+  if (!have_msa)
+    return;
+
+  first_fp = find_regno (regcache->tdesc, "f0");
+  fir = find_regno (regcache->tdesc, "fir");
+  fcsr = find_regno (regcache->tdesc, "fcsr");
+  msair = find_regno (regcache->tdesc, "msair");
+  msacsr = find_regno (regcache->tdesc, "msacsr");
+
+  /* full vector including float */
+  if (__BYTE_ORDER == __BIG_ENDIAN)
+    for (i = 0; i < 32; i++)
+      {
+	/* swap 64-bit halves, as it's a single word */
+	memcpy(tmp, bufp + 8, 8);
+	memcpy(tmp + 8, bufp, 8);
+	supply_register (regcache, first_fp + i, tmp);
+	bufp += 16;
+      }
+  else
+    for (i = 0; i < 32; i++)
+      {
+	supply_register (regcache, first_fp + i, bufp);
+	bufp += 16;
+      }
+
+  supply_register (regcache, fir, bufp);
+  bufp += 4;
+  supply_register (regcache, fcsr, bufp);
+  bufp += 4;
+  supply_register (regcache, msair, bufp);
+  bufp += 4;
+  supply_register (regcache, msacsr, bufp);
+}
+
 static struct regset_info mips_regsets[] = {
 #ifdef HAVE_PTRACE_GETREGS
   { PTRACE_GETREGS, PTRACE_SETREGS, 0, 38 * 8, GENERAL_REGS,
     mips_fill_gregset, mips_store_gregset },
   { PTRACE_GETFPREGS, PTRACE_SETFPREGS, 0, 33 * 8, FP_REGS,
     mips_fill_fpregset, mips_store_fpregset },
+  { PTRACE_GETREGSET, PTRACE_SETREGSET, NT_MIPS_MSA, 34*16, EXTENDED_REGS,
+    mips_fill_msa_regset, mips_store_msa_regset },
 #endif /* HAVE_PTRACE_GETREGS */
   NULL_REGSET
 };
@@ -1040,8 +1170,10 @@ initialize_low_arch (void)
   init_registers_mips_dsp_linux ();
   init_registers_mips_fpu64_linux ();
   init_registers_mips_fpu64_dsp_linux ();
+  init_registers_mips_msa_linux ();
   init_registers_mips64_linux ();
   init_registers_mips64_dsp_linux ();
+  init_registers_mips64_msa_linux ();
 
   initialize_regsets_info (&mips_regsets_info);
 }
