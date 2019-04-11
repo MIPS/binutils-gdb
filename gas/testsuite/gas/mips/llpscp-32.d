@@ -1,5 +1,5 @@
 #objdump: -dr
-#as: -mips32r6 -meva
+#as: -32 -mips32r6 -meva
 #name: Paired LL/SC for mips32r6
 #source: llpscp-32.s
 

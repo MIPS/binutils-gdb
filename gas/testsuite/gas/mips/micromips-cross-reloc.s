@@ -11,3 +11,5 @@ test1:
 test3:
 	la $3, test1+2
 	.end test1
+# Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
+      .space  8

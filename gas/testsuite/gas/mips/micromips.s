@@ -5958,5 +5958,7 @@ test_spec107:
 	bltzal	$2, test_spec107
 	nop
 	.endif
-
 	.end	test_spec107
+
+# Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
+	.space  8
