@@ -4505,5 +4505,5 @@ Disassembly of section .text:
 [ 0-9a-f]+:	47df      	movep	a0,a3,s4,s2
 [ 0-9a-f]+:	47ef      	movep	a0,a3,s4,s3
 [ 0-9a-f]+:	47ff      	movep	a0,a3,s4,s4
-[ 0-9a-f]+:	0c00      	nop
-[ 0-9a-f]+:	0000 0000 	nop
+	\.\.\.
+#pass

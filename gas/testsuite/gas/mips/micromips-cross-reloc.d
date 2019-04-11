@@ -15,3 +15,5 @@ Disassembly of section \.text:
 			4: R_MIPS_HI16	\.text
    8:	addiu	v1,v1,2
 			8: R_MIPS_LO16	test1
+	\.\.\.
+#pass
