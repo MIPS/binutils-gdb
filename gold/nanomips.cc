@@ -3550,6 +3550,7 @@ Nanomips_relobj<size, big_endian>::initialize_defined_symbols(
         }
     }
 
+  Unordered_set<Symbol*> added_syms;
   const Object::Symbols* syms = this->get_global_symbols();
   unsigned int nsyms = syms->size();
   for (unsigned int i = 0; i < nsyms; ++i)
@@ -3567,12 +3568,24 @@ Nanomips_relobj<size, big_endian>::initialize_defined_symbols(
         if (!is_ordinary)
           continue;
 
-        // Skip this symbol if it is not defined in a
-        // transformable section.
+        // Skip this symbol if it is not defined in a transformable
+        // section.
         typename Transformable_sections::Iterator it =
           sections->sections_map.find(sym_shndx);
         if (it == sections->sections_map.end())
           continue;
+
+        // Skip this symbol if it is already added to its transformable
+        // section.  This can happen for the '--wrap SYMBOL' option where
+        // object file contains the definition of a __wrap_SYMBOL and
+        // includes a direct call to a SYMBOL.  In this case, both symbols
+        // will reference the same symbol (which is __wrap_SYMBOL) and we
+        // don't want to adjust __wrap_SYMBOL twice.
+        if (added_syms.find(gsym) != added_syms.end())
+          continue;
+
+        // Keep track of symbols that are already added.
+        added_syms.insert(gsym);
 
         // Add this symbol to its transformable section.
         it->second.symbols.push_back(Defined_symbol(gsym));
