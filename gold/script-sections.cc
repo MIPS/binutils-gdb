@@ -623,7 +623,7 @@ class Sections_element
   // section name.  This only real implementation is in
   // Output_section_definition.
   virtual const char*
-  output_section_name(const char*, const char*, const char*, Output_section***,
+  output_section_name(const Relobj*, const char*, Output_section***,
 		      Script_sections::Section_type*, bool*, bool)
   { return NULL; }
 
@@ -878,11 +878,10 @@ class Output_section_element
   finalize_symbols(Symbol_table*, const Layout*, uint64_t*, Output_section**)
   { }
 
-  // Return whether this element matches FILE_NAME, ARCHIVE_NAME
-  // and SECTION_NAME.  The only real implementation is in
-  // Output_section_element_input.
+  // Return whether this element matches RELOBJ name and SECTION_NAME.
+  // The only real implementation is in Output_section_element_input.
   virtual bool
-  match_name(const char*, const char *, const char*, bool *) const
+  match_name(const Relobj*, const char*, bool *) const
   { return false; }
 
   // Set section addresses.  This includes applying assignments if the
@@ -1435,12 +1434,11 @@ class Output_section_element_input : public Output_section_element
     *dot_section = this->final_dot_section_;
   }
 
-  // See whether we match FILE_NAME, ARCHIVE_NAME and SECTION_NAME
+  // See whether we match RELOBJ file name, and SECTION_NAME
   // as an input section.  If we do then also indicate whether the
   // section should be KEPT.
   bool
-  match_name(const char* file_name, const char* archive_name,
-	     const char* section_name, bool* keep) const;
+  match_name(const Relobj* relobj, const char* section_name, bool* keep) const;
 
   // Set the section address.
   void
@@ -1477,15 +1475,15 @@ class Output_section_element_input : public Output_section_element
    public:
     Filename_pattern(const char* name, size_t length);
 
-    // Return whether file name and archive name match this pattern.
+    // Return whether object file name match this pattern.
     bool
-    match_file_name(const char* file_name, const char* archive_name) const;
+    match_file_name(const Relobj* relobj) const;
 
     // Print for debugging.
     void
     print(FILE* f) const
     {
-      if (this->is_archive_path_)
+      if (this->is_bfd_archive_path_)
 	fprintf(f, "%s:", this->archivename_.c_str());
       fprintf(f, "%s", this->filename_.c_str());
     }
@@ -1497,7 +1495,7 @@ class Output_section_element_input : public Output_section_element
     // The archive name pattern.
     std::string archivename_;
     // Whether this pattern is in the form of 'archive:file'.
-    bool is_archive_path_;
+    bool is_bfd_archive_path_;
     // Whether the file name pattern is a wildcard.
     bool filename_is_wildcard_;
     // Whether the archive name pattern is a wildcard.
@@ -1516,9 +1514,9 @@ class Output_section_element_input : public Output_section_element
 	    : strcmp(string, pattern) == 0);
   }
 
-  // See if we match a file name.
+  // See if we match a object file name.
   bool
-  match_file_name(const char* file_name, const char* archive_name) const;
+  match_file_name(const Relobj* relobj) const;
 
   // The file name pattern.
   Filename_pattern filename_pattern_;
@@ -1543,7 +1541,7 @@ class Output_section_element_input : public Output_section_element
 Output_section_element_input::Filename_pattern::Filename_pattern(
     const char* name,
     size_t length)
-  : filename_(), archivename_(), is_archive_path_(false),
+  : filename_(), archivename_(), is_bfd_archive_path_(false),
     filename_is_wildcard_(false), archivename_is_wildcard_(false)
 {
   std::string filename_pattern(name, length);
@@ -1552,7 +1550,7 @@ Output_section_element_input::Filename_pattern::Filename_pattern(
   // Check if the filename is in the form of 'archive:file'.
   if (sep != std::string::npos)
     {
-      this->is_archive_path_ = true;
+      this->is_bfd_archive_path_ = true;
       this->archivename_ = filename_pattern.substr(0, sep);
       this->archivename_is_wildcard_ =
 	is_wildcard_string(this->archivename_.c_str());
@@ -1569,13 +1567,26 @@ Output_section_element_input::Filename_pattern::Filename_pattern(
   this->filename_is_wildcard_ = is_wildcard_string(this->filename_.c_str());
 }
 
-// Return whether file name and archive name match this pattern.
+// Return whether object file name match this pattern.
 
 bool
 Output_section_element_input::Filename_pattern::match_file_name(
-    const char* file_name,
-    const char* archive_name) const
+    const Relobj* relobj) const
 {
+  const char* file_name = NULL;
+  const char* archive_name = NULL;
+  const char* object_name = NULL;
+
+  if (relobj != NULL)
+    {
+      // Full name of a file.  This will be the same as object_name
+      // if a file is not in an archive, otherwise it will be in form
+      // of libfoo.a(bar.o).  This is used to match GOLD archive syntax.
+      file_name = relobj->name().c_str();
+      archive_name = relobj->archive_name();
+      object_name = relobj->object_name().c_str();
+    }
+
   // If this pattern is in the form of 'archive:file', we need to do
   // following:
   // 1) If there is an archive name string in the pattern, and file is from
@@ -1584,7 +1595,7 @@ Output_section_element_input::Filename_pattern::match_file_name(
   //    from an archive and vice versa, return false.
   // 3) If there is no archive name string in the pattern (e.g. ':file'),
   //    and file is not from an archive, we need to match file names.
-  if (this->is_archive_path_)
+  if (this->is_bfd_archive_path_)
     {
       if (!this->archivename_.empty() && archive_name != NULL)
 	{
@@ -1598,11 +1609,25 @@ Output_section_element_input::Filename_pattern::match_file_name(
 
   if (!this->filename_.empty())
     {
-      // If we were called with no filename, we refuse to match a
-      // pattern which requires a file name.
-      if (file_name == NULL)
+      // If we were called with no object name, we refuse to match a
+      // pattern which requires a object name.
+      if (object_name == NULL)
 	return false;
 
+      // Try to match object file name.
+      if (match(object_name, this->filename_.c_str(),
+		this->filename_is_wildcard_))
+	return true;
+
+      // We don't want to match full file name if this pattern
+      // has bfd archive path separator or file is not from an
+      // archive (in this case object name is the same as full
+      // file name).
+      if (this->is_bfd_archive_path_ || archive_name == NULL)
+	return false;
+
+      // Try to match full file name.  This is used to match GOLD
+      // archive syntax.
       if (!match(file_name, this->filename_.c_str(),
 		 this->filename_is_wildcard_))
 	return false;
@@ -1648,25 +1673,24 @@ Output_section_element_input::Output_section_element_input(
     }
 }
 
-// See whether we match file name.
+// See whether we match object file name.
 
 bool
-Output_section_element_input::match_file_name(const char* file_name,
-					      const char* archive_name) const
+Output_section_element_input::match_file_name(const Relobj* relobj) const
 {
-  if (!this->filename_pattern_.match_file_name(file_name, archive_name))
+  if (!this->filename_pattern_.match_file_name(relobj))
     return false;
 
-  if (file_name != NULL)
+  if (relobj != NULL)
     {
-      // Now we have to see whether FILE_NAME and ARCHIVE_NAME
+      // Now we have to see whether RELOBJ file name
       // matches one of the exclusion patterns, if any.
       for (Filename_exclusions::const_iterator p =
 	     this->filename_exclusions_.begin();
 	   p != this->filename_exclusions_.end();
 	   ++p)
 	{
-	  if (p->match_file_name(file_name, archive_name))
+	  if (p->match_file_name(relobj))
 	    return false;
 	}
     }
@@ -1674,16 +1698,15 @@ Output_section_element_input::match_file_name(const char* file_name,
   return true;
 }
 
-// See whether we match FILE_NAME and SECTION_NAME.  If we do then
+// See whether we match RELOBJ file name and SECTION_NAME.  If we do then
 // KEEP indicates whether the section should survive garbage collection.
 
 bool
-Output_section_element_input::match_name(const char* file_name,
-					 const char* archive_name,
+Output_section_element_input::match_name(const Relobj* relobj,
 					 const char* section_name,
 					 bool *keep) const
 {
-  if (!this->match_file_name(file_name, archive_name))
+  if (!this->match_file_name(relobj))
     return false;
 
   *keep = this->keep_;
@@ -1761,15 +1784,10 @@ class Input_section_info
   set_relobj(const Relobj* relobj)
   { this->relobj_ = relobj; }
 
-  // Return the object file name.
-  const std::string&
-  object_name() const
-  { return this->relobj_->object_name(); }
-
-  // Return the object file name.
-  const char*
-  archive_name() const
-  { return this->relobj_->archive_name(); }
+  // Return the object.
+  const Relobj*
+  relobj() const
+  { return this->relobj_; }
 
  private:
   // Input section, can be a relaxed section.
@@ -1873,8 +1891,8 @@ Input_section_sorter::operator()(const Input_section_info& isi1,
     }
   if (this->filename_sort_ == SORT_WILDCARD_BY_NAME)
     {
-      if (isi1.object_name() != isi2.object_name())
-	return (isi1.object_name() < isi2.object_name());
+      if (isi1.relobj()->object_name() != isi2.relobj()->object_name())
+	return (isi1.relobj()->object_name() < isi2.relobj()->object_name());
     }
 
   // Otherwise we leave them in the same order.
@@ -1980,10 +1998,7 @@ Output_section_element_input::set_section_addresses(
 	  isi.set_relobj(posd->relobj());
 	}
 
-      const char* object_name = isi.object_name().c_str();
-      const char* archive_name = isi.archive_name();
-
-      if (!this->match_file_name(object_name, archive_name))
+      if (!this->match_file_name(isi.relobj()))
 	++p;
       else if (this->input_section_patterns_.empty())
 	{
@@ -2261,9 +2276,9 @@ class Output_section_definition : public Sections_element
   // Return the output section name to use for an input file name and
   // section name.
   const char*
-  output_section_name(const char* file_name, const char* archive_name,
-		      const char* section_name, Output_section***,
-		      Script_sections::Section_type*, bool*, bool);
+  output_section_name(const Relobj* relobj, const char* section_name,
+		      Output_section***,Script_sections::Section_type*,
+		      bool*, bool);
 
   // Initialize OSP with an output section.
   void
@@ -2562,8 +2577,7 @@ Output_section_definition::finalize_symbols(Symbol_table* symtab,
 
 const char*
 Output_section_definition::output_section_name(
-    const char* file_name,
-    const char* archive_name,
+    const Relobj* relobj,
     const char* section_name,
     Output_section*** slot,
     Script_sections::Section_type* psection_type,
@@ -2586,7 +2600,7 @@ Output_section_definition::output_section_name(
        p != this->elements_.end();
        ++p)
     {
-      if ((*p)->match_name(file_name, archive_name, section_name, keep))
+      if ((*p)->match_name(relobj, section_name, keep))
 	{
 	  // We found a match for NAME, which means that it should go
 	  // into this output section.
@@ -3956,8 +3970,7 @@ Script_sections::finalize_symbols(Symbol_table* symtab, const Layout* layout)
 
 const char*
 Script_sections::output_section_name(
-    const char* file_name,
-    const char* archive_name,
+    const Relobj* relobj,
     const char* section_name,
     Output_section*** output_section_slot,
     Script_sections::Section_type* psection_type,
@@ -3969,8 +3982,7 @@ Script_sections::output_section_name(
        p != this->sections_elements_->end();
        ++p)
     {
-      const char* ret = (*p)->output_section_name(file_name, archive_name,
-						  section_name,
+      const char* ret = (*p)->output_section_name(relobj, section_name,
 						  output_section_slot,
 						  psection_type, keep,
 						  is_input_section);
@@ -4002,30 +4014,23 @@ Script_sections::output_section_name(
 	return NULL;
       if (orphan_handling == General_options::ORPHAN_ERROR)
 	{
-	  if (file_name == NULL)
+	  if (relobj == NULL)
 	    gold_error(_("unplaced orphan section '%s'"), section_name);
-	  else if (archive_name != NULL)
-	    gold_error(_("unplaced orphan section '%s' from '%s(%s)'"),
-		       section_name, archive_name, file_name);
 	  else
 	    gold_error(_("unplaced orphan section '%s' from '%s'"),
-		       section_name, file_name);
+		       section_name, relobj->name().c_str());
 	  return NULL;
 	}
       if (orphan_handling == General_options::ORPHAN_WARN)
 	{
-	  if (file_name == NULL)
+	  if (relobj == NULL)
 	    gold_warning(_("orphan section '%s' is being placed in "
 			   "section '%s'"),
 			 section_name, section_name);
-	  else if (archive_name != NULL)
-	    gold_warning(_("orphan section '%s' from '%s(%s)' is being placed "
-			   "in section '%s'"),
-			 section_name, archive_name, file_name, section_name);
 	  else
 	    gold_warning(_("orphan section '%s' from '%s' is being placed "
 			   "in section '%s'"),
-			 section_name, file_name, section_name);
+			 section_name, relobj->name().c_str(), section_name);
 	}
     }
 

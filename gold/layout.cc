@@ -929,17 +929,12 @@ Layout::keep_input_section(const Relobj* relobj, const char* name)
     return false;
 
   Script_sections* ss = this->script_options_->script_sections();
-  const char* object_name = (relobj == NULL
-			     ? relobj->object_name().c_str()
-			     : NULL);
-  const char* archive_name = relobj == NULL ? NULL : relobj->archive_name();
   Output_section** output_section_slot;
   Script_sections::Section_type script_section_type;
   bool keep;
 
-  name = ss->output_section_name(object_name, archive_name, name,
-				 &output_section_slot, &script_section_type,
-				 &keep, true, false);
+  name = ss->output_section_name(relobj, name, &output_section_slot,
+				 &script_section_type, &keep, true, false);
   return name != NULL && keep;
 }
 
@@ -982,17 +977,13 @@ Layout::choose_output_section_from_script(const Relobj* relobj,
   // chosen based only on the name.
 
   Script_sections* ss = this->script_options_->script_sections();
-  const char* object_name = (relobj != NULL
-			     ? relobj->object_name().c_str()
-			     : NULL);
-  const char* archive_name = relobj == NULL ? NULL : relobj->archive_name();
   Output_section** output_section_slot;
   Script_sections::Section_type script_section_type;
   const char* orig_name = *name;
   bool keep;
-  *name = ss->output_section_name(object_name, archive_name, *name,
-				  &output_section_slot, &script_section_type,
-				  &keep, match_input_spec, true);
+  *name = ss->output_section_name(relobj, *name, &output_section_slot,
+				  &script_section_type, &keep,
+				  match_input_spec, true);
 
   if (*name == NULL)
     {

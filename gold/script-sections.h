@@ -45,6 +45,7 @@ class Output_section;
 class Output_segment;
 class Orphan_section_placement;
 class Mapfile;
+class Relobj;
 
 class Script_sections
 {
@@ -171,8 +172,7 @@ class Script_sections
   // HANDLE_ORPHAN_OPTION indicates whether to handle --orphan-handling
   // option.
   const char*
-  output_section_name(const char* file_name, const char* archive_name,
-		      const char* section_name,
+  output_section_name(const Relobj* relobj, const char* section_name,
 		      Output_section*** output_section_slot,
 		      Section_type* pscript_section_type,
 		      bool* keep, bool match_input_spec,
