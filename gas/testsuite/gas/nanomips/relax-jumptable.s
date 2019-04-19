@@ -7,7 +7,7 @@ test:
 1:	
 	lbux	$a1,$a2($a3)
 $Lbu_nc_l0:
-	.section        .rodata,"a",@progbits
+	.section        .rodata
 	.jumptable	1,3,1
 lbu_nc_table:
 	.byte ($Lbu_nc_l1 - $Lbu_nc_l0) >> 1
@@ -25,7 +25,7 @@ $Lbu_nc_l3:
 1:	
 	lbux	$a1,$a2($a3)
 $Lbu_2_lhu_l0:	
-	.section        .rodata,"a",@progbits
+	.section        .rodata
 	.align 1
 	.jumptable	1,3,1
 lbu_2_lhu_table:
@@ -44,7 +44,9 @@ $Lbu_2_lhu_l3:
 1:
 	lbux	$a1,$a2($a3)
 $Lbu_2_lwx_l0:	
-	.section        .rodata,"a",@progbits
+	.section        .rodata
+	.align 2
+	.byte 0xa
 	.align 1
 	.jumptable	1,3,1
 lbu_2_lwx_table:
@@ -65,7 +67,7 @@ $Lbu_2_lwx_l3:
 $Lb_nc_l3:
 	nop32
 $Lb_nc_l0:
-	.section        .rodata,"a",@progbits
+	.section        .rodata
 	.jumptable	1,3,0
 lb_nc_table:
 	.sbyte ($Lb_nc_l1 - $Lb_nc_l0) >> 1
@@ -83,7 +85,7 @@ $Lb_nc_l2:
 1:	
 	lbx	$a1,$a2($a3)
 $Lb_2_lh_l0:	
-	.section        .rodata,"a",@progbits
+	.section        .rodata
 	.align 1
 	.jumptable	1,3,0
 lb_2_lh_table:
@@ -108,7 +110,7 @@ $Lb_2_lh_neg_l2:
 $Lb_2_lh_neg_l1:
 	.space 256
 $Lb_2_lh_neg_l0:	
-	.section        .rodata,"a",@progbits
+	.section        .rodata
 	.align 1
 	.jumptable	1,3,0
 lb_2_lh_neg_table:
@@ -122,7 +124,9 @@ lb_2_lh_neg_table:
 1:
 	lbx	$a1,$a2($a3)
 $Lb_2_lwx_l0:	
-	.section        .rodata,"a",@progbits
+	.section        .rodata	
+	.align 2
+	.byte 0xa
 	.align 1
 	.jumptable	1,3,0
 lb_2_lwx_table:
@@ -146,7 +150,9 @@ $Lb_2_lwx_neg_l2:
 $Lb_2_lwx_neg_l1:
 	.space 65536
 $Lb_2_lwx_neg_l0:	
-	.section        .rodata,"a",@progbits
+	.section        .rodata
+	.align 2
+	.byte 0xa
 	.align 1
 	.jumptable	1,3,0
 lb_2_lwx_neg_table:
@@ -160,7 +166,7 @@ lb_2_lwx_neg_table:
 1:	
 	lhuxs	$a1,$a2($a3)
 $Lhu_nc_l0:
-	.section        .rodata,"a",@progbits
+	.section        .rodata
 	.jumptable	2,3,1
 lhu_nc_table:
 	.hword ($Lhu_nc_l1 - $Lhu_nc_l0) >> 1
@@ -178,7 +184,8 @@ $Lhu_nc_l3:
 1:
 	lhuxs	$a1,$a2($a3)
 $Lhu_2_lwx_l0:	
-	.section        .rodata,"a",@progbits
+	.section        .rodata
+	.hword 0xaa
 	.align 1
 	.jumptable	2,3,1
 lhu_2_lwx_table:
@@ -199,7 +206,7 @@ $Lhu_2_lwx_l3:
 $Lh_nc_l3:
 	nop32
 $Lh_nc_l0:
-	.section        .rodata,"a",@progbits
+	.section        .rodata
 	.jumptable	2,3,0
 lh_nc_table:
 	.shword ($Lh_nc_l1 - $Lh_nc_l0) >> 1
@@ -216,7 +223,8 @@ $Lh_nc_l2:
 1:
 	lhxs	$a1,$a2($a3)
 $Lh_2_lwx_l0:	
-	.section        .rodata,"a",@progbits
+	.section        .rodata
+	.hword 0xa
 	.align 1
 	.jumptable	2,3,0
 lh_2_lwx_table:
@@ -240,7 +248,7 @@ $Lh_2_lwx_neg_l2:
 $Lh_2_lwx_neg_l1:
 	.space 65536
 $Lh_2_lwx_neg_l0:	
-	.section        .rodata,"a",@progbits
+	.section        .rodata
 	.align 1
 	.jumptable	2,3,0
 lh_2_lwx_neg_table:
@@ -256,7 +264,7 @@ lh_2_lwx_neg_table:
 $Lw_nc_l3:
 	nop32
 $Lw_nc_l0:
-	.section        .rodata,"a",@progbits
+	.section        .rodata
 	.jumptable	2,3,0
 lw_nc_table:
 	.shword ($Lw_nc_l1 - $Lw_nc_l0) >> 1

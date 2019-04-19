@@ -11705,8 +11705,10 @@ relaxed_jumptable_length (fragS *fragp, asection *sec ATTRIBUTE_UNUSED)
 	};
       fixP = fix_vector_next (fixP);
     }
-
-  return jt->esize * jt->nsize - fragp->fr_fix;
+  
+  return (jt->esize * jt->nsize
+	  - fragp->fr_fix
+	  + (fragp->fr_address % jt->esize));
 }
 
 /* Estimate the size of a frag before relaxing. We are not really relaxing
@@ -12020,6 +12022,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	fixS *fixP;
 	unsigned i;
 	struct jumptable *jt = jumptable_list;
+	unsigned align_offset;
 	while (jt != NULL && jt->table_sym != fragp->fr_symbol)
 	  jt = jt->next;
 	if (jt == NULL)
@@ -12027,12 +12030,14 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 		  S_GET_NAME (fragp->fr_symbol));
 
 	fixP = jt->fixups;
-	fragp->fr_fix =jt->esize * jt->nsize;
+	align_offset = fragp->fr_address % jt->esize;
+	S_SET_VALUE (fragp->fr_symbol, align_offset);
+	fragp->fr_fix = jt->esize * jt->nsize + align_offset;
 	fragp->fr_var = 0;
 	for (i = 0; i < jt->nsize; i++)
 	  {
 	    fix_vector_resize (fixP, jt->esize,
-			       i*jt->esize,
+			       i * jt->esize + align_offset,
 			       jumptable_size_reloc (jt->esize,
 						     jt->offset_unsigned));
 	    fixP = fix_vector_next (fixP);
@@ -13336,7 +13341,7 @@ nanomips_cons_fix_new (fragS *frag, int where, int nbytes, expressionS *exp,
       if (jumptable_record_pending_end
 	  && where + nbytes == (int) (jumptable_list->nsize * jumptable_list->esize))
 	{
-	  unsigned max_chars = jumptable_list->nsize * 4;
+	  unsigned max_chars = jumptable_list->nsize * 4 + 4;
 	  unsigned var_chars = max_chars - (jumptable_list->nsize
 					    * jumptable_list->esize);
 	  frag_var (rs_machine_dependent, var_chars, 0,
