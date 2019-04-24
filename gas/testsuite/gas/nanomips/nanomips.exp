@@ -793,6 +793,8 @@ if { [istarget nanomips*-*-*] } {
 					[arch_list_matching nanomips]
     run_dump_test_arches "relax-jumptable-align" "" \
 					[arch_list_matching nanomips]
+    run_dump_test_arches "relax-jumptable-misalign" "" \
+					[arch_list_matching nanomips]
     run_dump_test "ssdata-sections"
     run_list_test "relax-jumptable-overflow"
 }

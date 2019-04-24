@@ -1,0 +1,23 @@
+#PROG: readelf
+#readelf: -s
+#name: Jump-table relaxation with mis-alignments
+
+# Check jump vector alignment after relaxation of compressed jumptables.
+
+Symbol table '.symtab' contains [0-9]+ entries:
+   Num:    Value  Size Type    Bind   Vis      Ndx Name
+#...
+.*: 00000002     0 NOTYPE  LOCAL  DEFAULT    6 lbu_2_lhu_table
+#...
+.*: 0000000c     0 NOTYPE  LOCAL  DEFAULT    6 lbu_2_lwx_table
+#...
+.*: 0000001c     0 NOTYPE  LOCAL  DEFAULT    6 lb_2_lwx_table
+#...
+.*: 0000002c     0 NOTYPE  LOCAL  DEFAULT    6 lb_2_lwx_neg_table
+#...
+.*: 0000003c     0 NOTYPE  LOCAL  DEFAULT    6 lhu_2_lwx_table
+#...
+.*: 0000004c     0 NOTYPE  LOCAL  DEFAULT    6 lh_2_lwx_table
+#...
+.*: 0000005c     0 NOTYPE  LOCAL  DEFAULT    6 lh_2_lwx_neg_table
+#pass

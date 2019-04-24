@@ -11655,7 +11655,7 @@ relaxed_jumptable_length (fragS *fragp, asection *sec ATTRIBUTE_UNUSED)
 {
   bfd_signed_vma min_offset, max_offset;
   fixS *fixP;
-  unsigned i;
+  unsigned i, oldsize, align_offset;
   struct jumptable *jt = jumptable_list;
 
   /* Use the table symbol to find the matching jumptable structure.  */
@@ -11673,6 +11673,8 @@ relaxed_jumptable_length (fragS *fragp, asection *sec ATTRIBUTE_UNUSED)
       min_offset = min_offset - max_offset / 2 - 1;
       max_offset = max_offset - (max_offset / 2) - 1;
     }
+
+  oldsize = fragp->fr_address + fragp->fr_fix - S_GET_VALUE (fragp->fr_symbol);
 
   fixP = jt->fixups;
   /* Iterate over the relocations of the jumptable.  */
@@ -11705,10 +11707,13 @@ relaxed_jumptable_length (fragS *fragp, asection *sec ATTRIBUTE_UNUSED)
 	};
       fixP = fix_vector_next (fixP);
     }
-  
-  return (jt->esize * jt->nsize
-	  - fragp->fr_fix
-	  + (fragp->fr_address % jt->esize));
+
+  if (S_GET_VALUE (fragp->fr_symbol) % jt->esize)
+    align_offset = jt->esize - (S_GET_VALUE (fragp->fr_symbol) % jt->esize);
+  else
+    align_offset = 0;
+
+  return (jt->esize * jt->nsize - oldsize + align_offset);
 }
 
 /* Estimate the size of a frag before relaxing. We are not really relaxing
@@ -12030,10 +12035,17 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 		  S_GET_NAME (fragp->fr_symbol));
 
 	fixP = jt->fixups;
-	align_offset = fragp->fr_address % jt->esize;
-	S_SET_VALUE (fragp->fr_symbol, align_offset);
-	fragp->fr_fix = jt->esize * jt->nsize + align_offset;
+	if (S_GET_VALUE (fragp->fr_symbol) % jt->esize)
+	  align_offset = jt->esize - S_GET_VALUE (fragp->fr_symbol) % jt->esize;
+	else
+	  align_offset = 0;
+	/* Adjust the table symbol for alignment.  */
+	S_SET_VALUE (fragp->fr_symbol,
+		     S_GET_VALUE (fragp->fr_symbol) + align_offset);
+	fragp->fr_fix += fragp->fr_var;
 	fragp->fr_var = 0;
+	gas_assert (fixP->fx_where + align_offset + jt->esize * jt->nsize
+		    <= fragp->fr_fix);
 	for (i = 0; i < jt->nsize; i++)
 	  {
 	    fix_vector_resize (fixP, jt->esize,
@@ -13339,12 +13351,13 @@ nanomips_cons_fix_new (fragS *frag, int where, int nbytes, expressionS *exp,
       /* When we reached the end of a jumptable, create a jumptable relaxable
 	 frag to allow for worst-case resizing of the jump vectors.  */
       if (jumptable_record_pending_end
-	  && where + nbytes == (int) (jumptable_list->nsize * jumptable_list->esize))
+	  && where + nbytes == (int) (jumptable_list->nsize * jumptable_list->esize
+				      + S_GET_VALUE (jumptable_list->table_sym)))
 	{
+	  unsigned fixed = where + nbytes;
 	  unsigned max_chars = jumptable_list->nsize * 4 + 4;
-	  unsigned var_chars = max_chars - (jumptable_list->nsize
-					    * jumptable_list->esize);
-	  frag_var (rs_machine_dependent, var_chars, 0,
+	  unsigned var_chars = max_chars - fixed;
+	  frag_var (rs_machine_dependent, max_chars, var_chars,
 	    RELAX_MD_ENCODE (RT_JUMPTABLE, 0, 0),
 	    jumptable_list->table_sym,
 	    0, NULL);
