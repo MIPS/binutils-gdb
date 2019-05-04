@@ -12,7 +12,10 @@
   .data
 dval1:  .word 0xabcd1234
 dval2: .word 0x1234eeff
-
+  .fill 248,1,0
+dval3:	.word 0x55555555
+  .fill  260,1,0
+dval4:	.word 0xaaaaaaaa
   .text
 
   .set noreorder
@@ -150,6 +153,20 @@ DIAG:
   fp_assert $4, $5
   lw $5, dval2
   lwpc $4, dval2
+  fp_assert $4, $5
+
+  writemsg "[21] Test LL"
+  lw $5, dval2
+  la $3, dval3
+  ll $4, -252($3)
+  fp_assert $4, $5
+
+  writemsg "[22] Test SC"
+  ll $4, -252($3)
+  li $4, 0xafaf
+  sc $4, -252($3)
+  lw $5, dval2
+  li $4, 0xafaf
   fp_assert $4, $5
 
   pass

@@ -666,7 +666,7 @@
 *micromips64r6:
 {
   check_u64 (SD_, instruction_0);
-  do_lld (SD_, RT, OFFSET, BASE);
+  do_lld (SD_, RT, EXTEND9 (OFFSET), BASE);
 }
 
 
@@ -675,7 +675,7 @@
 *micromips64r6:
 {
   check_u64 (SD_, instruction_0);
-  do_scd (SD_, RT, OFFSET, BASE, 1);
+  do_scd (SD_, RT, EXTEND9 (OFFSET), BASE, 1);
 }
 
 

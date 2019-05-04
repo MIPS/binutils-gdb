@@ -39,6 +39,11 @@ dmask:.dword 0xffffffffffff0000
 .align 2
 dval1: .word 0x1234abcd
 dval2: .word 0xffee0000
+dval3:	.dword 0xffffffffffffffff
+  .fill 240,1,0
+dval4:	.dword 0x5555555555555555
+  .fill  264,1,0
+dval5:	.dword 0xaaaaaaaaaaaaaaaa
 
   .text
 
@@ -136,6 +141,20 @@ DIAG:
   fp_assert $4, $5
   lwu $5, dval2
   lwupc $4, dval2
+  fp_assert $4, $5
+
+  writemsg "[19] Test LLD"
+  ld $5, dval3
+  dla $3, dval4
+  lld $4, -248($3)
+  fp_assert $4, $5
+
+  writemsg "[20] Test SCD"
+  lld $4, -248($3)
+  dli $4, 0xafaf
+  scd $4, -248($3)
+  ld $5, dval3
+  dli $4, 0xafaf
   fp_assert $4, $5
 
   pass
