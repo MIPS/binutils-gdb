@@ -3564,11 +3564,36 @@ adjust_addresses (bfd *abfd ATTRIBUTE_UNUSED,
     }
 }
 
+/* Return the sign-extended form of an ARCH_SIZE sized VMA.  */
+
+static bfd_vma
+sign_extend_address (bfd *abfd ATTRIBUTE_UNUSED,
+		     bfd_vma vma,
+		     unsigned arch_size)
+{
+  bfd_vma mask;
+  mask = (bfd_vma) 1 << (arch_size - 1);
+  return (((vma & ((mask << 1) - 1)) ^ mask) - mask);
+}
+
 /* Dump selected contents of ABFD.  */
 
 static void
 dump_bfd (bfd *abfd)
 {
+  const struct elf_backend_data * bed;
+  /* Adjust user-specified start and stop limits for targets that use
+     signed addresses.  */
+  if (bfd_get_flavour (abfd) == bfd_target_elf_flavour
+      && (bed = get_elf_backend_data (abfd)) != NULL
+      && bed->sign_extend_vma)
+    {
+      start_address = sign_extend_address (abfd, start_address,
+					   bed->s->arch_size);
+      stop_address = sign_extend_address (abfd, stop_address,
+					  bed->s->arch_size);
+    }
+
   /* If we are adjusting section VMA's, change them all now.  Changing
      the BFD information is a hack.  However, we must do it, or
      bfd_find_nearest_line will not do the right thing.  */
