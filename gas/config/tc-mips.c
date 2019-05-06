@@ -10453,10 +10453,11 @@ macro (struct mips_cl_insn *ip, char *str)
       dbl = 1;
       s = "daddi";
       s2 = "dadd";
-      if (!mips_opts.micromips)
+      if (!mips_opts.micromips && !ISA_IS_R6 (mips_opts.isa))
 	goto do_addi;
       if (imm_expr.X_add_number >= -0x200
-	  && imm_expr.X_add_number < 0x200)
+	  && imm_expr.X_add_number < 0x200
+	  && !ISA_IS_R6 (mips_opts.isa))
 	{
 	  macro_build (NULL, s, "t,r,.", op[0], op[1],
 		       (int) imm_expr.X_add_number);
@@ -13856,10 +13857,11 @@ macro (struct mips_cl_insn *ip, char *str)
       dbl = 1;
       s = "daddi";
       s2 = "dsub";
-      if (!mips_opts.micromips)
+      if (!mips_opts.micromips && !ISA_IS_R6 (mips_opts.isa))
 	goto do_subi;
       if (imm_expr.X_add_number > -0x200
-	  && imm_expr.X_add_number <= 0x200)
+	  && imm_expr.X_add_number <= 0x200
+	  && !ISA_IS_R6 (mips_opts.isa))
 	{
 	  macro_build (NULL, s, "t,r,.", op[0], op[1],
 		       (int) -imm_expr.X_add_number);
