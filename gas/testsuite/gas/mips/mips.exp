@@ -2129,4 +2129,10 @@ if { [istarget mips*-*-vxworks*] } {
 					[mips_arch_list_matching micromips]
     run_dump_test_arches "micromips-cross-reloc" \
 					[mips_arch_list_matching micromipsr6]
+
+    if [istarget *-*-irix*] {
+	run_dump_test "pr14798-irix"
+    } else {
+	run_dump_test "pr14798"
+    }
 }
