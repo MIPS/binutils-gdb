@@ -11956,7 +11956,7 @@ jumptable_size_reloc (unsigned esize, bfd_boolean offset_unsigned)
 /* Convert a machine dependent frag.  */
 
 void
-md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
+md_convert_frag (bfd *abfd, segT asec, fragS *fragp)
 {
   if (RELAX_MD_ADDIU_P (fragp->fr_subtype))
     {
@@ -12039,6 +12039,13 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	  align_offset = jt->esize - S_GET_VALUE (fragp->fr_symbol) % jt->esize;
 	else
 	  align_offset = 0;
+	/* Section alignment (log_2 scaled) must be atleast the size of
+	   jump vectors.  We check only for the one possible incorrect
+	   combination.  */
+	if (bfd_get_section_alignment (abfd, S_GET_SEGMENT (jt->table_sym)) < 2
+	    && jt->esize == 4)
+	  bfd_set_section_alignment (abfd, S_GET_SEGMENT (jt->table_sym), 2);
+
 	/* Adjust the table symbol for alignment.  */
 	S_SET_VALUE (fragp->fr_symbol,
 		     S_GET_VALUE (fragp->fr_symbol) + align_offset);
@@ -12046,6 +12053,7 @@ md_convert_frag (bfd *abfd ATTRIBUTE_UNUSED, segT asec, fragS *fragp)
 	fragp->fr_var = 0;
 	gas_assert (fixP->fx_where + align_offset + jt->esize * jt->nsize
 		    <= fragp->fr_fix);
+
 	for (i = 0; i < jt->nsize; i++)
 	  {
 	    fix_vector_resize (fixP, jt->esize,
