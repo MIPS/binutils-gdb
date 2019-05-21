@@ -19,3 +19,4 @@
 .*:19: Error: invalid operands `bltuc \$2,\$2,.'
 .*:20: Error: invalid operands `beqc \$2,\$2,.'
 .*:21: Error: invalid operands `bnec \$2,\$2,.'
+.*:22: Error: the source register must not be \$0 `daui \$2,\$0,1'
