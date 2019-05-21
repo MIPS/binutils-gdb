@@ -1352,7 +1352,7 @@ const struct mips_opcode micromips_opcodes[] =
 {"aui",			"t,s,u",	0x10000000, 0xfc000000,	WR_1|RD_2,		0,		I37,		0,	0 },
 {"aluipc",		"t,u",		0x781f0000, 0xfc1f0000, WR_1,			RD_pc,		I37,		0,	0 },
 {"auipc",		"t,u",		0x781e0000, 0xfc1f0000, WR_1,			RD_pc,		I37,		0,	0 },
-{"daui",		"t,s,u",	0xf0000000, 0xfc000000,	WR_1|RD_2,		0,		I69,		0,	0 },
+{"daui",		"t,-s,u",	0xf0000000, 0xfc000000,	WR_1|RD_2,		0,		I69,		0,	0 },
 
 {"align",		"d,s,t,+I",	0x0000001f, 0xfc0001ff,	WR_1|RD_2|RD_3,		0,		I37,		0,	0 },
 {"dalign",		"d,s,t,+O",	0x5800001c, 0xfc0000ff,	WR_1|RD_2|RD_3,		0,		I69,		0,	0 },
