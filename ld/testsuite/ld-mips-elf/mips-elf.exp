@@ -1364,9 +1364,9 @@ run_dump_test "micromips-addr2line"
 run_dump_test "pic-reloc-5" [list [list as $abi_asflags(o32)] \
 				  [list ld $abi_ldflags(o32)]]
 run_dump_test "pic-reloc-5" [list [list name (microMIPS)] \
-	     		      [list ld $abi_ldflags(o32)] \
-	     		      [list as "-mmicromips $abi_asflags(o32)"]]
-run_dump_test "pic-reloc-6" [list [list as $abi_ldflags(o32)] \
+			      [list ld $abi_ldflags(o32)] \
+			      [list as "-mmicromips $abi_asflags(o32)"]]
+run_dump_test "pic-reloc-6" [list [list as $abi_asflags(o32)] \
 				 [list ld $abi_ldflags(o32)]]
 run_dump_test "pic-reloc-7" [list [list as $abi_asflags(n64)] \
 				  [list ld $abi_ldflags(n64)]]
