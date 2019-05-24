@@ -1273,3 +1273,5 @@ run_dump_test "pic-reloc-7" [list [list as $abi_asflags(n64)] \
 run_dump_test "pic-reloc-7" [list [list name (microMIPS)] \
 				      [list ld $abi_ldflags(n64)] \
 				      [list as "-mmicromips $abi_asflags(n64)"]]
+run_dump_test "reloc-pcrel-r6" [list [list as $abi_asflags(o32)] \
+					[list ld $abi_ldflags(o32)]]
