@@ -65,7 +65,7 @@ set embedded_elf [expr [istarget mips*-*-elf]]
 set abi_asflags(o32) "-32"
 set abi_asflags(n32) "-march=from-abi -n32 -EB"
 set abi_asflags(n64) "-march=from-abi -64 -EB"
-set abi_ldflags(o32) ""
+set abi_ldflags(o32) -melf32bmip
 set abi_ldflags(n32) -melf32bmipn32
 set abi_ldflags(n64) -melf64bmip
 
@@ -1373,3 +1373,5 @@ run_dump_test "pic-reloc-7" [list [list as $abi_asflags(n64)] \
 run_dump_test "pic-reloc-7" [list [list name (microMIPS)] \
 				      [list ld $abi_ldflags(n64)] \
 				      [list as "-mmicromips $abi_asflags(n64)"]]
+run_dump_test "reloc-pcrel-r6" [list [list as $abi_asflags(o32)] \
+					[list ld $abi_ldflags(o32)]]
