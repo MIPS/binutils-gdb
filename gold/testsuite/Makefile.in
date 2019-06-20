@@ -855,9 +855,26 @@ check_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
 # These tests work with native and cross linkers.
 
 # Test script section order.
-@NATIVE_OR_CROSS_LINKER_TRUE@am__append_85 = script_test_10.sh
-@NATIVE_OR_CROSS_LINKER_TRUE@am__append_86 = script_test_10.stdout
-@NATIVE_OR_CROSS_LINKER_TRUE@am__append_87 = script_test_10
+
+# Test GOLD and GNU ld archive selector syntax.
+@NATIVE_OR_CROSS_LINKER_TRUE@am__append_85 = script_test_10.sh \
+@NATIVE_OR_CROSS_LINKER_TRUE@	script_test_16.sh
+@NATIVE_OR_CROSS_LINKER_TRUE@am__append_86 = script_test_10.stdout \
+@NATIVE_OR_CROSS_LINKER_TRUE@	script_test_16a.stdout \
+@NATIVE_OR_CROSS_LINKER_TRUE@	script_test_16b.stdout \
+@NATIVE_OR_CROSS_LINKER_TRUE@	script_test_16c.stdout \
+@NATIVE_OR_CROSS_LINKER_TRUE@	script_test_16d.stdout \
+@NATIVE_OR_CROSS_LINKER_TRUE@	script_test_16e.stdout \
+@NATIVE_OR_CROSS_LINKER_TRUE@	script_test_16f.stdout \
+@NATIVE_OR_CROSS_LINKER_TRUE@	script_test_16g.stdout \
+@NATIVE_OR_CROSS_LINKER_TRUE@	script_test_16h.stdout \
+@NATIVE_OR_CROSS_LINKER_TRUE@	script_test_16i.stdout
+@NATIVE_OR_CROSS_LINKER_TRUE@am__append_87 = script_test_10 \
+@NATIVE_OR_CROSS_LINKER_TRUE@	script_test_16.a script_test_16a \
+@NATIVE_OR_CROSS_LINKER_TRUE@	script_test_16b script_test_16c \
+@NATIVE_OR_CROSS_LINKER_TRUE@	script_test_16d script_test_16e \
+@NATIVE_OR_CROSS_LINKER_TRUE@	script_test_16f script_test_16g \
+@NATIVE_OR_CROSS_LINKER_TRUE@	script_test_16h script_test_16i
 
 # These tests work with cross linkers only.
 @DEFAULT_TARGET_I386_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@am__append_88 = split_i386.sh
@@ -5534,6 +5551,8 @@ defsym_test.sh.log: defsym_test.sh
 	@p='defsym_test.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 script_test_10.sh.log: script_test_10.sh
 	@p='script_test_10.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
+script_test_16.sh.log: script_test_16.sh
+	@p='script_test_16.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 split_i386.sh.log: split_i386.sh
 	@p='split_i386.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 split_x86_64.sh.log: split_x86_64.sh
@@ -7734,6 +7753,48 @@ uninstall-am:
 @NATIVE_OR_CROSS_LINKER_TRUE@	gcctestdir/ld -o $@ script_test_10.o -T $(srcdir)/script_test_10.t
 @NATIVE_OR_CROSS_LINKER_TRUE@script_test_10.stdout: script_test_10
 @NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_READELF) -SW script_test_10 > $@
+@NATIVE_OR_CROSS_LINKER_TRUE@script_test_16a.stdout: script_test_16a
+@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_READELF) -sW $< > $@
+@NATIVE_OR_CROSS_LINKER_TRUE@script_test_16b.stdout: script_test_16b
+@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_READELF) -sW $< > $@
+@NATIVE_OR_CROSS_LINKER_TRUE@script_test_16c.stdout: script_test_16c
+@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_READELF) -sW $< > $@
+@NATIVE_OR_CROSS_LINKER_TRUE@script_test_16d.stdout: script_test_16d
+@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_READELF) -sW $< > $@
+@NATIVE_OR_CROSS_LINKER_TRUE@script_test_16e.stdout: script_test_16e
+@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_READELF) -sW $< > $@
+@NATIVE_OR_CROSS_LINKER_TRUE@script_test_16f.stdout: script_test_16f
+@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_READELF) -sW $< > $@
+@NATIVE_OR_CROSS_LINKER_TRUE@script_test_16g.stdout: script_test_16g
+@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_READELF) -sW $< > $@
+@NATIVE_OR_CROSS_LINKER_TRUE@script_test_16h.stdout: script_test_16h
+@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_READELF) -sW $< > $@
+@NATIVE_OR_CROSS_LINKER_TRUE@script_test_16i.stdout: script_test_16i
+@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_READELF) -sW $< > $@
+@NATIVE_OR_CROSS_LINKER_TRUE@script_test_16a: script_test_16b.o script_test_16.a ../ld-new
+@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new script_test_16b.o --whole-archive script_test_16.a -T $(srcdir)/script_test_16a.t -o $@
+@NATIVE_OR_CROSS_LINKER_TRUE@script_test_16b: script_test_16b.o script_test_16.a ../ld-new
+@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new script_test_16b.o --whole-archive script_test_16.a -T $(srcdir)/script_test_16b.t -o $@
+@NATIVE_OR_CROSS_LINKER_TRUE@script_test_16c: script_test_16b.o script_test_16.a ../ld-new
+@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new script_test_16b.o --whole-archive script_test_16.a -T $(srcdir)/script_test_16c.t -o $@
+@NATIVE_OR_CROSS_LINKER_TRUE@script_test_16d: script_test_16b.o script_test_16.a ../ld-new
+@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new script_test_16b.o --whole-archive script_test_16.a -T $(srcdir)/script_test_16d.t -o $@
+@NATIVE_OR_CROSS_LINKER_TRUE@script_test_16e: script_test_16b.o script_test_16.a ../ld-new
+@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new script_test_16b.o --whole-archive script_test_16.a -T $(srcdir)/script_test_16e.t -o $@
+@NATIVE_OR_CROSS_LINKER_TRUE@script_test_16f: script_test_16b.o script_test_16.a ../ld-new
+@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new script_test_16b.o --whole-archive script_test_16.a -T $(srcdir)/script_test_16f.t -o $@
+@NATIVE_OR_CROSS_LINKER_TRUE@script_test_16g: script_test_16b.o script_test_16.a ../ld-new
+@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new script_test_16b.o --whole-archive script_test_16.a -T $(srcdir)/script_test_16g.t -o $@
+@NATIVE_OR_CROSS_LINKER_TRUE@script_test_16h: script_test_16b.o script_test_16.a ../ld-new
+@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new script_test_16b.o --whole-archive script_test_16.a -T $(srcdir)/script_test_16h.t -o $@
+@NATIVE_OR_CROSS_LINKER_TRUE@script_test_16i: script_test_16b.o script_test_16.a ../ld-new
+@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new script_test_16b.o --whole-archive script_test_16.a -T $(srcdir)/script_test_16i.t -o $@
+@NATIVE_OR_CROSS_LINKER_TRUE@script_test_16.a: script_test_16a.o
+@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_AR) rc $@ $^
+@NATIVE_OR_CROSS_LINKER_TRUE@script_test_16a.o: script_test_16a.s
+@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_AS) -o $@ $<
+@NATIVE_OR_CROSS_LINKER_TRUE@script_test_16b.o: script_test_16b.s
+@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_AS) -o $@ $<
 @DEFAULT_TARGET_I386_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@split_i386_1.o: split_i386_1.s
 @DEFAULT_TARGET_I386_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_AS) -o $@ $<
 @DEFAULT_TARGET_I386_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@split_i386_2.o: split_i386_2.s

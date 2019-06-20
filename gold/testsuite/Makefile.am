@@ -3245,6 +3245,58 @@ script_test_10: $(srcdir)/script_test_10.t script_test_10.o gcctestdir/ld
 script_test_10.stdout: script_test_10
 	$(TEST_READELF) -SW script_test_10 > $@
 
+# Test GOLD and GNU ld archive selector syntax.
+
+check_SCRIPTS += script_test_16.sh
+check_DATA += script_test_16a.stdout script_test_16b.stdout script_test_16c.stdout \
+	      script_test_16d.stdout script_test_16e.stdout script_test_16f.stdout \
+	      script_test_16g.stdout script_test_16h.stdout script_test_16i.stdout
+MOSTLYCLEANFILES += script_test_16.a script_test_16a script_test_16b script_test_16c \
+		    script_test_16d script_test_16e script_test_16f script_test_16g \
+		    script_test_16h script_test_16i
+script_test_16a.stdout: script_test_16a
+	$(TEST_READELF) -sW $< > $@
+script_test_16b.stdout: script_test_16b
+	$(TEST_READELF) -sW $< > $@
+script_test_16c.stdout: script_test_16c
+	$(TEST_READELF) -sW $< > $@
+script_test_16d.stdout: script_test_16d
+	$(TEST_READELF) -sW $< > $@
+script_test_16e.stdout: script_test_16e
+	$(TEST_READELF) -sW $< > $@
+script_test_16f.stdout: script_test_16f
+	$(TEST_READELF) -sW $< > $@
+script_test_16g.stdout: script_test_16g
+	$(TEST_READELF) -sW $< > $@
+script_test_16h.stdout: script_test_16h
+	$(TEST_READELF) -sW $< > $@
+script_test_16i.stdout: script_test_16i
+	$(TEST_READELF) -sW $< > $@
+script_test_16a: script_test_16b.o script_test_16.a ../ld-new
+	../ld-new script_test_16b.o --whole-archive script_test_16.a -T $(srcdir)/script_test_16a.t -o $@
+script_test_16b: script_test_16b.o script_test_16.a ../ld-new
+	../ld-new script_test_16b.o --whole-archive script_test_16.a -T $(srcdir)/script_test_16b.t -o $@
+script_test_16c: script_test_16b.o script_test_16.a ../ld-new
+	../ld-new script_test_16b.o --whole-archive script_test_16.a -T $(srcdir)/script_test_16c.t -o $@
+script_test_16d: script_test_16b.o script_test_16.a ../ld-new
+	../ld-new script_test_16b.o --whole-archive script_test_16.a -T $(srcdir)/script_test_16d.t -o $@
+script_test_16e: script_test_16b.o script_test_16.a ../ld-new
+	../ld-new script_test_16b.o --whole-archive script_test_16.a -T $(srcdir)/script_test_16e.t -o $@
+script_test_16f: script_test_16b.o script_test_16.a ../ld-new
+	../ld-new script_test_16b.o --whole-archive script_test_16.a -T $(srcdir)/script_test_16f.t -o $@
+script_test_16g: script_test_16b.o script_test_16.a ../ld-new
+	../ld-new script_test_16b.o --whole-archive script_test_16.a -T $(srcdir)/script_test_16g.t -o $@
+script_test_16h: script_test_16b.o script_test_16.a ../ld-new
+	../ld-new script_test_16b.o --whole-archive script_test_16.a -T $(srcdir)/script_test_16h.t -o $@
+script_test_16i: script_test_16b.o script_test_16.a ../ld-new
+	../ld-new script_test_16b.o --whole-archive script_test_16.a -T $(srcdir)/script_test_16i.t -o $@
+script_test_16.a: script_test_16a.o
+	$(TEST_AR) rc $@ $^
+script_test_16a.o: script_test_16a.s
+	$(TEST_AS) -o $@ $<
+script_test_16b.o: script_test_16b.s
+	$(TEST_AS) -o $@ $<
+
 # These tests work with cross linkers only.
 
 if DEFAULT_TARGET_I386
