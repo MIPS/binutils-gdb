@@ -33,7 +33,7 @@ Disassembly of section \.text:
   4c:	lui	a0,%hi\(0x1a000\)
   50:	addu	a0,a0,a1
   54:	lb	a0,1445\(a0\)
-  58:	aluipc	a0,0 <data_label>
+  58:	aluipc	a0,%pcrel_hi\(0 <data_label>\)
 			58: R_NANOMIPS_PCHI20	data_label
   5c:	lb	a0,0\(a0\)
 			5c: R_NANOMIPS_LO12	\.data
@@ -49,15 +49,15 @@ Disassembly of section \.text:
   78:	lw	a0,0\(gp\)
 			78: R_NANOMIPS_GOT_DISP	small_external_common
   7c:	lb	a0,0\(a0\)
-  80:	aluipc	a0,0 <big_local_common>
+  80:	aluipc	a0,%pcrel_hi\(0 <big_local_common>\)
 			80: R_NANOMIPS_PCHI20	big_local_common
   84:	lb	a0,0\(a0\)
 			84: R_NANOMIPS_LO12	\.bss
-  88:	aluipc	a0,3e8 <small_local_common>
+  88:	aluipc	a0,%pcrel_hi\(3e8 <small_local_common>\)
 			88: R_NANOMIPS_PCHI20	small_local_common
   8c:	lb	a0,0\(a0\)
 			8c: R_NANOMIPS_LO12	\.bss\+0x3e8
-  90:	aluipc	a0,1 <data_label\+0x1>
+  90:	aluipc	a0,%pcrel_hi\(1 <data_label\+0x1>\)
 			90: R_NANOMIPS_PCHI20	data_label\+0x1
   94:	lb	a0,0\(a0\)
 			94: R_NANOMIPS_LO12	\.data\+0x1
@@ -73,11 +73,11 @@ Disassembly of section \.text:
   b0:	lw	a0,0\(gp\)
 			b0: R_NANOMIPS_GOT_DISP	small_external_common\+0x1
   b4:	lb	a0,0\(a0\)
-  b8:	aluipc	a0,1 <big_local_common\+0x1>
+  b8:	aluipc	a0,%pcrel_hi\(1 <big_local_common\+0x1>\)
 			b8: R_NANOMIPS_PCHI20	big_local_common\+0x1
   bc:	lb	a0,0\(a0\)
 			bc: R_NANOMIPS_LO12	\.bss\+0x1
-  c0:	aluipc	a0,3e9 <small_local_common\+0x1>
+  c0:	aluipc	a0,%pcrel_hi\(3e9 <small_local_common\+0x1>\)
 			c0: R_NANOMIPS_PCHI20	small_local_common\+0x1
   c4:	lb	a0,0\(a0\)
 			c4: R_NANOMIPS_LO12	\.bss\+0x3e9

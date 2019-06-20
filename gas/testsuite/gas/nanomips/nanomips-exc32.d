@@ -138,11 +138,14 @@ Disassembly of section \.text:
 [0-9a-f]+ <[^>]+> 04a0 0004 	lapc	a1,[0-9a-f]+ <test\+0x1d0>
 [0-9a-f]+ <[^>]+> 04bf fffe 	lapc	a1,[0-9a-f]+ <[^>]+>
 [0-9a-f]+ <[^>]+> 04a0 0001 	lapc	a1,[0-9a-f]+ <[^>]+>
-[0-9a-f]+ <[^>]+> e060 0002 	aluipc	t5,00000000 <[^>]+>
+[0-9a-f]+ <[^>]+> e060 0002 	aluipc	t5,%pcrel_hi\(00000000 <[^>]+>\)
 			[0-9a-f]+: R_NANOMIPS_PCHI20	test
-[0-9a-f]+ <[^>]+> e062 5002 	aluipc	t5,00025000 <[^>]+>
 [0-9a-f]+ <[^>]+> 0063 0000 	addiu	t5,t5,0
 			[0-9a-f]+: R_NANOMIPS_LO12	test
+[0-9a-f]+ <[^>]+> e062 5002 	aluipc	t5,0x25
+[0-9a-f]+ <[^>]+> e062 5002 	aluipc	t5,0x25
+[0-9a-f]+ <[^>]+> e065 40ef 	aluipc	t5,0x87654
+[0-9a-f]+ <[^>]+> e065 40ef 	aluipc	t5,0x87654
 [0-9a-f]+ <[^>]+> 20a4 2150 	addu	a0,a0,a1
 [0-9a-f]+ <[^>]+> 2148 4150 	addu	a4,a4,a6
 [0-9a-f]+ <[^>]+> 2250 8150 	addu	s0,s0,s2

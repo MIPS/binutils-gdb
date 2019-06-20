@@ -869,15 +869,19 @@ print_insn_arg (struct disassemble_info *info,
 
     case OP_HI20_PCREL:
       {
-	info->target = nanomips_decode_hi20_pcrel_operand (operand, base_pc,
-							   uval);
-
-	/* Preserve the ISA bit for the GDB disassembler,
-	   otherwise clear it.  */
-	if (info->flavour != bfd_target_unknown_flavour)
-	  info->target &= -2;
-
-	(*info->print_address_func) (info->target, info);
+	if ((info->flags & INSN_HAS_RELOC) == 0)
+	  {
+	    uval = nanomips_decode_hi20_int_operand (operand, uval);
+	    infprintf (is, "0x%x", uval & 0xfffff);
+	  }
+	else
+	  {
+	    info->target = nanomips_decode_hi20_pcrel_operand (operand, base_pc,
+							       uval);
+	    infprintf (is, "%%pcrel_hi(");
+	    (*info->print_address_func) (info->target, info);
+	    infprintf (is, ")");
+	  }
       }
       break;
 

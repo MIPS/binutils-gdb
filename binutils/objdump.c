@@ -1825,7 +1825,8 @@ disassemble_bytes (struct disassemble_info * inf,
 		  && *relppp < relppend)
 		{
 		  bfd_signed_vma distance_to_rel;
-		  int insn_length = inf->predict_insn_length (addr_offset,
+		  int insn_length = inf->predict_insn_length (section->vma
+							      + addr_offset,
 							      previous_octets,
 							      inf);
 

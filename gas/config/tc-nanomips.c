@@ -4123,9 +4123,14 @@ match_hi20_pcrel_operand (struct nanomips_arg_info *arg)
   if (!match_expression (arg, &offset_expr, offset_reloc))
     return FALSE;
 
-  if (offset_reloc[0] == BFD_RELOC_UNUSED)
+  if (offset_reloc[0] == BFD_RELOC_UNUSED
+      || (hi_reloc_p (offset_reloc[0]) && offset_expr.X_op == O_constant))
     {
       unsigned int uval = offset_expr.X_add_number;
+
+      if (hi_reloc_p (offset_reloc[0]))
+	uval = uval >> 12;
+
       /* Re-shuffle and insert lower 19-bits, exluding sign.  */
       uval = nanomips_insert_operand (&op_shuffle.root,
 				      uval & 0x80000, uval & 0x7ffff);

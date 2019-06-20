@@ -223,8 +223,11 @@ test:
 	.endif
 
 	aluipc	$r3,%pcrel_hi(test)
-	aluipc	$r3,0x25
 	addiu	$r3, $r3, %pcrel_lo(test)
+	aluipc	$r3,0x25
+	aluipc	$r3,%hi(0x25000)
+	aluipc	$r3,0x87654
+	aluipc	$r3,%hi(0x87654000)
 
 	addu	$r4, $r4, $r5
 	addu	$r8, $r8, $r10

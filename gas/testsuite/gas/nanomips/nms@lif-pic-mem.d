@@ -16,7 +16,7 @@ Disassembly of section \.text:
 			4: R_NANOMIPS_GOT_OFST	.rodata
    8:	lw	a1,0\(at\)
 			8: R_NANOMIPS_GOT_OFST	.rodata\+0x4
-   c:	aluipc	a0,8 <L0>
+   c:	aluipc	a0,%pcrel_hi\(8 <L0>\)
 			c: R_NANOMIPS_PCHI20	L0
   10:	lw	a0,0\(a0\)
 			10: R_NANOMIPS_LO12	.rodata\+0x8

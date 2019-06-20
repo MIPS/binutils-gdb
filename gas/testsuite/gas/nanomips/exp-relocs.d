@@ -60,11 +60,11 @@ Disassembly of section \.text:
 			[0-9a-f]+: R_NANOMIPS_HI20	test
 .+[0-9a-f]+:	0084 0000 	addiu	a0,a0,0
 			[0-9a-f]+: R_NANOMIPS_LO12	test
-.+[0-9a-f]+:	e080 0002 	aluipc	a0,0 <test>
+.+[0-9a-f]+:	e080 0002 	aluipc	a0,%pcrel_hi\(0 <test>\)
 			[0-9a-f]+: R_NANOMIPS_PCHI20	test
 .+[0-9a-f]+:	0084 0000 	addiu	a0,a0,0
 			[0-9a-f]+: R_NANOMIPS_LO12	test
-.+[0-9a-f]+:	e080 0002 	aluipc	a0,0 <test>
+.+[0-9a-f]+:	e080 0002 	aluipc	a0,%pcrel_hi\(0 <test>\)
 			[0-9a-f]+: R_NANOMIPS_GOTPC_HI20	test
 .+[0-9a-f]+:	0084 0000 	addiu	a0,a0,0
 			[0-9a-f]+: R_NANOMIPS_GOT_LO12	test

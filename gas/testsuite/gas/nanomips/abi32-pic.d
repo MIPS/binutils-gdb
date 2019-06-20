@@ -5,21 +5,21 @@
 .*: +file format.*
 
 Disassembly of section .text\:
-[0-9a-f]+ <[^>]+> e380 0002 	aluipc	gp,[0-9a-f]+ <_gp>
+[0-9a-f]+ <[^>]+> e380 0002 	aluipc	gp,%pcrel_hi\([0-9a-f]+ <_gp>\)
 			[0-9a-f]+: R_NANOMIPS_PCHI20	_gp
 [0-9a-f]+ <[^>]+> 039c 0000 	addiu	gp,gp,0
 			[0-9a-f]+: R_NANOMIPS_LO12	_gp
 [0-9a-f]+ <[^>]+> e094 5244 	lui	a0,%hi\(0x12345000\)
 [0-9a-f]+ <[^>]+> 8084 0678 	ori	a0,a0,0x678
-[0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <shared>
+[0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,%pcrel_hi\([0-9a-f]+ <shared>\)
 			[0-9a-f]+: R_NANOMIPS_PCHI20	shared
 [0-9a-f]+ <[^>]+> 0084 0000 	addiu	a0,a0,0
 			[0-9a-f]+: R_NANOMIPS_LO12	.sdata
-[0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <unshared>
+[0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,%pcrel_hi\([0-9a-f]+ <unshared>\)
 			[0-9a-f]+: R_NANOMIPS_PCHI20	unshared
 [0-9a-f]+ <[^>]+> 0084 0000 	addiu	a0,a0,0
 			[0-9a-f]+: R_NANOMIPS_LO12	.data
-[0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <end>
+[0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,%pcrel_hi\([0-9a-f]+ <end>\)
 			[0-9a-f]+: R_NANOMIPS_PCHI20	end
 [0-9a-f]+ <[^>]+> 0084 0000 	addiu	a0,a0,0
 			[0-9a-f]+: R_NANOMIPS_LO12	end
@@ -28,15 +28,15 @@ Disassembly of section .text\:
 [0-9a-f]+ <[^>]+> 4020 0002 	lw	at,0\(gp\)
 			[0-9a-f]+: R_NANOMIPS_GOT_CALL	end
 [0-9a-f]+ <[^>]+> d830      	jalrc	at
-[0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,00000000 <shared>
+[0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,%pcrel_hi\(00000000 <shared>\)
 			[0-9a-f]+: R_NANOMIPS_PCHI20	shared
 [0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_LO12	.sdata
-[0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,00000000 <unshared>
+[0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,%pcrel_hi\(00000000 <unshared>\)
 			[0-9a-f]+: R_NANOMIPS_PCHI20	unshared
 [0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_LO12	.data
-[0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,[0-9a-f]+ <end>
+[0-9a-f]+ <[^>]+> e080 0002 	aluipc	a0,%pcrel_hi\([0-9a-f]+ <end>\)
 			[0-9a-f]+: R_NANOMIPS_PCHI20	end
 [0-9a-f]+ <[^>]+> 8484 8000 	lw	a0,0\(a0\)
 			[0-9a-f]+: R_NANOMIPS_LO12	end
@@ -58,11 +58,11 @@ Disassembly of section .text\:
 			[0-9a-f]+: R_NANOMIPS_GOT_OFST	end
 [0-9a-f]+ <[^>]+> 84a1 8000 	lw	a1,0\(at\)
 			[0-9a-f]+: R_NANOMIPS_GOT_OFST	end\+0x4
-[0-9a-f]+ <[^>]+> e020 0002 	aluipc	at,00000000 <shared>
+[0-9a-f]+ <[^>]+> e020 0002 	aluipc	at,%pcrel_hi\(00000000 <shared>\)
 			[0-9a-f]+: R_NANOMIPS_PCHI20	shared
 [0-9a-f]+ <[^>]+> 8481 9000 	sw	a0,0\(at\)
 			[0-9a-f]+: R_NANOMIPS_LO12	.sdata
-[0-9a-f]+ <[^>]+> e020 0002 	aluipc	at,00000000 <unshared>
+[0-9a-f]+ <[^>]+> e020 0002 	aluipc	at,%pcrel_hi\(00000000 <unshared>\)
 			[0-9a-f]+: R_NANOMIPS_PCHI20	unshared
 [0-9a-f]+ <[^>]+> 8481 9000 	sw	a0,0\(at\)
 			[0-9a-f]+: R_NANOMIPS_LO12	\.data
