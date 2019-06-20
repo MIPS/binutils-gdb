@@ -4796,6 +4796,25 @@ nanomips_discarded_debug.o: nanomips_discarded_debug.s
 
 MOSTLYCLEANFILES += nanomips_discarded_debug
 
+# Test that wrap symbol is adjusted only once
+
+check_SCRIPTS += nanomips_wrap.sh
+check_DATA += nanomips_wrap.stdout
+
+nanomips_wrap.stdout: nanomips_wrap
+	$(TEST_READELF) -sW $< > $@
+
+nanomips_wrap: nanomips_wrap_1.o nanomips_wrap_2.o ../ld-new
+	../ld-new nanomips_wrap_1.o nanomips_wrap_2.o --section-start .text=0x1000 --section-start .foo=0x2001020 --wrap=foo -o $@
+
+nanomips_wrap_1.o: nanomips_wrap_1.s
+	$(TEST_AS) -EL -march=32r6 -m32 -mpcrel -o $@ $<
+
+nanomips_wrap_2.o: nanomips_wrap_2.s
+	$(TEST_AS) -EL -march=32r6 -m32 -mpcrel -o $@ $<
+
+MOSTLYCLEANFILES += nanomips_wrap
+
 endif DEFAULT_TARGET_NANOMIPS
 
 endif NATIVE_OR_CROSS_LINKER
