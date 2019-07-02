@@ -40,6 +40,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 
 #include "sim-io.h"
 #include "sim-assert.h"
+#include "sim-main.h"
 
 
 /* Debugging support.
