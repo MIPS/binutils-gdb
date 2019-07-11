@@ -16145,6 +16145,10 @@ print_mips_ases (FILE *file, unsigned int mask)
     fputs ("\n\tVZ ASE", file);
   if (mask & AFL_ASE_MSA)
     fputs ("\n\tMSA ASE", file);
+  if (mask & AFL_ASE_MSA3)
+    fputs ("\n\tMSA3 ASE", file);
+  if (mask & AFL_ASE_MSA3BH)
+    fputs ("\n\tMSA3BH ASE", file);
   if (mask & AFL_ASE_MIPS16)
     fputs ("\n\tMIPS16 ASE", file);
   if (mask & AFL_ASE_MICROMIPS)

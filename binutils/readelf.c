@@ -15572,6 +15572,10 @@ print_mips_ases (unsigned int mask)
     fputs ("\n\tVZ ASE", stdout);
   if (mask & AFL_ASE_MSA)
     fputs ("\n\tMSA ASE", stdout);
+  if (mask & AFL_ASE_MSA3)
+    fputs ("\n\tMSA3 ASE", stdout);
+  if (mask & AFL_ASE_MSA3BH)
+    fputs ("\n\tMSA3BH ASE", stdout);
   if (mask & AFL_ASE_MIPS16)
     fputs ("\n\tMIPS16 ASE", stdout);
   if (mask & AFL_ASE_MICROMIPS)

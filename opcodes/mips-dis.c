@@ -568,7 +568,8 @@ const struct mips_arch_choice mips_arch_choices[] =
 
   { "mips32r6",	1, bfd_mach_mipsisa32r6, CPU_MIPS32R6,
     ISA_MIPS32R6,
-    (ASE_EVA | ASE_MSA | ASE_VIRT | ASE_XPA | ASE_MCU | ASE_MT | ASE_DSP
+    (ASE_EVA | ASE_MSA | ASE_MSA3 | ASE_MSA3BH | ASE_VIRT | ASE_XPA
+     | ASE_MCU | ASE_MT | ASE_DSP
      | ASE_DSPR2 | ASE_DSPR3 | ASE_CRC | ASE_GINV | ASE_CRYPTO),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
@@ -610,7 +611,8 @@ const struct mips_arch_choice mips_arch_choices[] =
 
   { "mips64r6",	1, bfd_mach_mipsisa64r6, CPU_MIPS64R6,
     ISA_MIPS64R6,
-    (ASE_EVA | ASE_MSA | ASE_MSA64 | ASE_XPA | ASE_VIRT | ASE_VIRT64
+    (ASE_EVA | ASE_MSA | ASE_MSA64 | ASE_MSA3 | ASE_MSA3BH
+     | ASE_XPA | ASE_VIRT | ASE_VIRT64
      | ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3 | ASE_CRC
      | ASE_CRC64 | ASE_GINV | ASE_CRYPTO),
     mips_cp0_names_mips3264r2,
@@ -820,6 +822,10 @@ mips_convert_abiflags_ases (unsigned long afl_ases)
     opcode_ases |= ASE_VIRT;
   if (afl_ases & AFL_ASE_MSA)
     opcode_ases |= ASE_MSA;
+  if (afl_ases & AFL_ASE_MSA3)
+    opcode_ases |= ASE_MSA3;
+  if (afl_ases & AFL_ASE_MSA3BH)
+    opcode_ases |= ASE_MSA3BH;
   if (afl_ases & AFL_ASE_XPA)
     opcode_ases |= ASE_XPA;
   if (afl_ases & AFL_ASE_DSPR3)
@@ -927,7 +933,10 @@ set_default_mips_dis_options (struct disassemble_info *info)
 static bfd_boolean
 parse_mips_ase_option (const char *option)
 {
-  if (CONST_STRNEQ (option, "msa"))
+  bfd_boolean is_msa = CONST_STRNEQ (option, "msa");
+  bfd_boolean is_msa3 = CONST_STRNEQ (option, "msa3");
+  bfd_boolean is_msa3bh = CONST_STRNEQ (option, "msa3bh");
+  if (is_msa || is_msa3 || is_msa3bh)
     {
       mips_ase |= ASE_MSA;
       if ((mips_isa & INSN_ISA_MASK) == ISA_MIPS64R2
@@ -935,6 +944,10 @@ parse_mips_ase_option (const char *option)
 	   || (mips_isa & INSN_ISA_MASK) == ISA_MIPS64R5
 	   || (mips_isa & INSN_ISA_MASK) == ISA_MIPS64R6)
 	  mips_ase |= ASE_MSA64;
+      if (is_msa3 || is_msa3bh)
+        mips_ase |= ASE_MSA3;
+      if (is_msa3bh)
+        mips_ase |= ASE_MSA3BH;
       return TRUE;
     }
 

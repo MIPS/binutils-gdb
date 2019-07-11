@@ -1355,6 +1355,9 @@ static const unsigned int mips_isa_table[] = {
 #define ASE_GINV_VIRT		0x00800000
 /* MXU Extension.  */
 #define ASE_MXU			0x01000000
+/* MSA3{,BH} Extensions.  */
+#define ASE_MSA3		0x02000000
+#define ASE_MSA3BH		0x04000000
 
   
 /* MIPS ISA defines, use instead of hardcoding ISA level.  */
@@ -1802,6 +1805,8 @@ enum
   M_COP1,
   M_COP2,
   M_COP3,
+  M_SADUB,
+  M_SADACUB,
   M_NUM_MACROS
 };
 

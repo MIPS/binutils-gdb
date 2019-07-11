@@ -1452,6 +1452,10 @@ enum options
     OPTION_NO_VIRT,
     OPTION_MSA,
     OPTION_NO_MSA,
+    OPTION_MSA3,
+    OPTION_NO_MSA3,
+    OPTION_MSA3BH,
+    OPTION_NO_MSA3BH,
     OPTION_SMARTMIPS,
     OPTION_NO_SMARTMIPS,
     OPTION_DSPR2,
@@ -1593,6 +1597,10 @@ struct option md_longopts[] =
   {"mno-virt", no_argument, NULL, OPTION_NO_VIRT},
   {"mmsa", no_argument, NULL, OPTION_MSA},
   {"mno-msa", no_argument, NULL, OPTION_NO_MSA},
+  {"mmsa3", no_argument, NULL, OPTION_MSA3},
+  {"mno-msa3", no_argument, NULL, OPTION_NO_MSA3},
+  {"mmsa3bh", no_argument, NULL, OPTION_MSA3BH},
+  {"mno-msa3bh", no_argument, NULL, OPTION_NO_MSA3BH},
   {"mxpa", no_argument, NULL, OPTION_XPA},
   {"mno-xpa", no_argument, NULL, OPTION_NO_XPA},
   {"mmips16e2", no_argument, NULL, OPTION_MIPS16E2},
@@ -1781,6 +1789,16 @@ static const struct mips_ase mips_ases[] = {
   { "msa", ASE_MSA, ASE_MSA64,
     OPTION_MSA, OPTION_NO_MSA,
      2,  2,  2,  2,
+    -1 },
+
+  { "msa3", ASE_MSA3, 0,
+    OPTION_MSA3, OPTION_NO_MSA3,
+     2,	 2,  -1,  -1,
+    -1 },
+
+  { "msa3bh", ASE_MSA3BH, 0,
+    OPTION_MSA3BH, OPTION_NO_MSA3BH,
+     2,	 2,  -1,  -1,
     -1 },
 
   { "xpa", ASE_XPA, 0,
@@ -2211,6 +2229,18 @@ mips_set_ase (const struct mips_ase *ase, struct mips_set_options *opts,
     {
       opts->ase |= ASE_GINV_VIRT;
       mask |= ASE_GINV_VIRT;
+    }
+
+  /* MSA3BH implies MSA3 and MSA.  MSA3 implies MSA. */
+  if (opts->ase & (ASE_MSA3 | ASE_MSA3BH))
+    {
+      opts->ase |= ASE_MSA;
+      mask |= ASE_MSA;
+    }
+  if (opts->ase & ASE_MSA3BH)
+    {
+      opts->ase |= ASE_MSA3;
+      mask |= ASE_MSA3;
     }
 
   return mask;
@@ -14108,6 +14138,27 @@ macro (struct mips_cl_insn *ip, char *str)
 	}
       break;
 
+    case M_SADUB:
+      s =  "sad_u.b";
+      goto do_sadac_u_b;
+    case M_SADACUB:
+      s = "sadac_u.b";
+    do_sadac_u_b:
+      /* Assure that op[1] > op[2], swap if needed.  */
+      if (op[1] == op[2])
+	{
+	  as_bad (_("second and third operands must differ `%s'"), str);
+	  break;
+	}
+      else if (op[1] < op[2])
+	{
+	  i = op[1];
+	  op[1] = op[2];
+	  op[2] = i;
+	}
+      macro_build (NULL, s, "+d,+e,+h", op[0], op[1], op[2]);
+      break;
+
     default:
       /* FIXME: Check if this is one of the itbl macros, since they
 	 are added dynamically.  */
@@ -19525,6 +19576,10 @@ mips_convert_ase_flags (int ase)
     ext_ases |= AFL_ASE_VIRT;
   if (ase & ASE_MSA)
     ext_ases |= AFL_ASE_MSA;
+  if (ase & ASE_MSA3)
+    ext_ases |= AFL_ASE_MSA3;
+  if (ase & ASE_MSA3BH)
+    ext_ases |= AFL_ASE_MSA3BH;
   if (ase & ASE_XPA)
     ext_ases |= AFL_ASE_XPA;
   if (ase & ASE_MIPS16E2)
@@ -20546,6 +20601,12 @@ MIPS options:\n\
   fprintf (stream, _("\
 -mmsa			generate MSA instructions\n\
 -mno-msa		do not generate MSA instructions\n"));
+  fprintf (stream, _("\
+-mmsa3			generate MSA3 instructions\n\
+-mno-msa3		do not generate MSA3 instructions\n"));
+  fprintf (stream, _("\
+-mmsa3bh		generate MSA3 BH instructions\n\
+-mno-msa3bh		do not generate MSA3 BH instructions\n"));
   fprintf (stream, _("\
 -mxpa			generate eXtended Physical Address (XPA) instructions\n\
 -mno-xpa		do not generate eXtended Physical Address (XPA) instructions\n"));
