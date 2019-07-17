@@ -46,8 +46,10 @@
 :model:::mipsV:mipsisaV:
 :model:::mips32:mipsisa32:
 :model:::mips32r2:mipsisa32r2:
+:model:::mips32r6:mipsisa32r6:
 :model:::mips64:mipsisa64:
 :model:::mips64r2:mipsisa64r2:
+:model:::mips64r6:mipsisa64r6:
 
 //  Vendor ISAs:
 //
@@ -102,7 +104,31 @@
 
 
 
-// Helper:
+// Helpers:
+//
+// Check if given instruction is CTI, if so signal
+//
+:function:::void:signal_if_cti:instruction_word instr
+{
+  unsigned32 maj = (instr & 0xfc000000) >> 26;
+  unsigned32 special = instr & 0x3f;
+  if(
+     /* Branch/Jump */
+     (maj & 0x3e) == 0x06
+     || ((maj & 0x38) == 0 && !((maj & 0x6) == 0))
+     || maj == 0x18
+     || (maj & 0x37) == 0x32
+     || (maj & 0x37) == 0x36
+     || ((maj == 0) && (special == 0x9))
+     /* DERET/ERET/Wait */
+     || ((maj == 0x10) && (instr & 0x02000000)
+	 && (special == 0x1f || special == 0x18 || special == 0x20))
+    )
+    {
+      SignalException (ReservedInstruction, instr);
+    }
+}
+
 //
 // Simulate a 32 bit delayslot instruction
 //
@@ -115,10 +141,32 @@
   CIA = CIA + 4; /* NOTE not mips16 */
   STATE |= simDELAYSLOT;
   delay_insn = IMEM32 (CIA); /* NOTE not mips16 */
+  signal_if_cti (SD_, delay_insn);
   ENGINE_ISSUE_PREFIX_HOOK();
   idecode_issue (CPU_, delay_insn, (CIA));
   STATE &= ~simDELAYSLOT;
   return target;
+}
+
+//
+// Simulate a 32 bit forbidden slot instruction
+//
+
+:function:::address_word:forbiddenslot32:
+*mips32r6:
+*mips64r6:
+{
+  instruction_word delay_insn;
+  sim_events_slip (SD, 1);
+  DSPC = CIA;
+  CIA = CIA + 4;
+  STATE |= simFORBIDDENSLOT;
+  delay_insn = IMEM32 (CIA);
+  signal_if_cti (SD_, delay_insn);
+  ENGINE_ISSUE_PREFIX_HOOK();
+  idecode_issue (CPU_, delay_insn, (CIA));
+  STATE &= ~simFORBIDDENSLOT;
+  return CIA + 4;
 }
 
 :function:::address_word:nullify_next_insn32:
@@ -142,6 +190,7 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -154,15 +203,16 @@
 *mips64:
 *mips64r2:
 *micromips64:
+*mips64r6:
 {
-#if 0 /* XXX FIXME: enable this only after some additional testing.  */
-  /* If in user mode and UX is not set, use 32-bit compatibility effective
-     address computations as defined in the MIPS64 Architecture for
-     Programmers Volume III, Revision 0.95, section 4.9.  */
-  if ((SR & (status_KSU_mask|status_EXL|status_ERL|status_UX))
-      == (ksu_user << status_KSU_shift))
-    return (address_word)((signed32)base + (signed32)offset);
-#endif
+  /* If in user mode and UX is not set, use the 32-bit compatibility
+   * adressing as defined in MIPS64 Architecture for Programmers Volume III,
+   * Revision 6.00, section 4.10. */
+  if(SR & status_UX)
+    return EXTEND32(((base & 0x0FFFFFFFF)
+		     + (offset & 0x0FFFFFFFF))
+		    & 0x0FFFFFFFF);
+
   return base + offset;
 }
 
@@ -184,10 +234,12 @@
 *r3900:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
 *micromips32:
 *micromips64:
+*mips64r6:
 {
 #if WITH_TARGET_WORD_BITSIZE == 64
   return value != (((value & 0xffffffff) ^ 0x80000000) - 0x80000000);
@@ -219,10 +271,12 @@
 :function:::void:unpredictable:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
 *micromips32:
 *micromips64:
+*mips64r6:
 {
   unpredictable_action (CPU, CIA);
 }
@@ -311,8 +365,10 @@
 :function:::int:check_mt_hilo:hilo_history *history
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *r3900:
 *micromips32:
 *micromips64:
@@ -337,8 +393,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -411,8 +469,10 @@
 :function:::int:check_mult_hilo:hilo_history *hi, hilo_history *lo
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *r3900:
 *micromips32:
 *micromips64:
@@ -468,10 +528,12 @@
 :function:::int:check_div_hilo:hilo_history *hi, hilo_history *lo
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
 *micromips32:
 *micromips64:
+*mips64r6:
 {
   signed64 time = sim_events_time (SD);
   hi->op.timestamp = time;
@@ -509,13 +571,13 @@
 *mips32r2:
 *micromips64:
 *micromips32:
+*mips64r6:
 {
 #if 0 /* XXX FIXME: enable this only after some additional testing.  */
   if (UserMode && (SR & (status_UX|status_PX)) == 0)
     SignalException (ReservedInstruction, insn);
 #endif
 }
-
 
 
 //
@@ -1095,7 +1157,7 @@
   }
 }
 
-:function:::void:do_sc:int rt, int offsetarg, int basereg, address_word instruction_0
+:function:::void:do_sc:int rt, int offsetarg, int basereg, address_word instruction_0, int store_ll_bit
 {
   unsigned32 instruction = instruction_0;
   address_word base = GPR[basereg];
@@ -1130,13 +1192,14 @@
 		StoreMemory (uncached, AccessLength_WORD, memval, memval1,
 			     paddr, vaddr, isREAL);
 	      }
-	    GPR[rt] = LLBIT;
+	    if (store_ll_bit)
+	      GPR[rt] = LLBIT;
 	  }
       }
   }
 }
 
-:function:::void:do_scd:int rt, int roffset, int rbase
+:function:::void:do_scd:int rt, int roffset, int rbase, int store_ll_bit
 {
   address_word base = GPR[rbase];
   address_word offset = EXTEND16 (roffset);
@@ -1162,7 +1225,8 @@
 		StoreMemory (uncached, AccessLength_DOUBLEWORD, memval, memval1,
 			     paddr, vaddr, isREAL);
 	      }
-	    GPR[rt] = LLBIT;
+	    if (store_ll_bit)
+	      GPR[rt] = LLBIT;
 	  }
       }
   }
@@ -1402,6 +1466,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -1801,8 +1866,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -1850,8 +1917,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -1879,8 +1948,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -1906,8 +1977,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -1926,8 +1999,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -1960,6 +2035,17 @@
 }
 
 
+000100,5.RS,5.RT,16.OFFSET:R6:32::BEQ
+"beq r<RS>, r<RT>, <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  address_word offset = EXTEND16 (OFFSET) << 2;
+  if (GPR[RS] == GPR[RT])
+    DELAY_SLOT (NIA  + offset);
+  else
+    FORBIDDEN_SLOT();
+}
 
 010100,5.RS,5.RT,16.OFFSET:NORMAL:32::BEQL
 "beql r<RS>, r<RT>, <OFFSET>"
@@ -1995,8 +2081,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -2035,7 +2123,15 @@
     }
 }
 
-
+000001,00000,10001,16.OFFSET:REGIMM:32::BAL
+"bal <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  address_word offset = EXTEND16 (OFFSET) << 2;
+  RA = (CIA + 8);
+  DELAY_SLOT (NIA + offset);
+}
 
 000001,5.RS!31,10011,16.OFFSET:REGIMM:32::BGEZALL
 "bgezall r<RS>, <OFFSET>"
@@ -2101,8 +2197,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -2152,8 +2250,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -2203,8 +2303,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -2243,6 +2345,18 @@
     {
       DELAY_SLOT (NIA + offset);
     }
+}
+
+
+
+000001,00000,10000,16.OFFSET:REGIMM:32::NAL
+"nal <OFFSET>"
+*mips32r6:
+*mips64r6:
+{
+  address_word offset = EXTEND16 (OFFSET) << 2;
+  RA = (CIA + 8);
+  FORBIDDEN_SLOT ();
 }
 
 
@@ -2311,8 +2425,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -2360,8 +2476,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -2408,6 +2526,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -2447,6 +2566,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -2470,6 +2590,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -2488,6 +2609,8 @@
   if (RT != RD)
     Unpredictable ();
   check_u64 (SD_, instruction_0);
+  if (RT != RD)
+    Unpredictable ();
   do_dclo (SD_, RD, RS);
 }
 
@@ -2502,6 +2625,8 @@
   if (RT != RD)
     Unpredictable ();
   check_u64 (SD_, instruction_0);
+  if (RT != RD)
+    Unpredictable ();
   do_dclz (SD_, RD, RS);
 }
 
@@ -2809,6 +2934,7 @@
 000000,00001,5.RT,5.RD,5.SHIFT,111010::64::DROR
 "dror r<RD>, r<RT>, <SHIFT>"
 *mips64r2:
+*mips64r6:
 *vr5400:
 *vr5500:
 {
@@ -2819,6 +2945,7 @@
 000000,00001,5.RT,5.RD,5.SHIFT,111110::64::DROR32
 "dror32 r<RD>, r<RT>, <SHIFT>"
 *mips64r2:
+*mips64r6:
 *vr5400:
 *vr5500:
 {
@@ -2829,6 +2956,7 @@
 000000,5.RS,5.RT,5.RD,00001,010110::64::DRORV
 "drorv r<RD>, r<RT>, r<RS>"
 *mips64r2:
+*mips64r6:
 *vr5400:
 *vr5500:
 {
@@ -2851,6 +2979,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -2866,6 +2995,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -2888,6 +3018,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -2910,6 +3041,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -2925,6 +3057,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -2948,6 +3081,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -2970,6 +3104,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -2985,6 +3120,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -3010,6 +3146,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -3025,6 +3162,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -3047,6 +3185,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -3064,8 +3203,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3086,8 +3227,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3109,8 +3252,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3124,7 +3269,9 @@
 "jalr.hb r<RS>":RD == 31
 "jalr.hb r<RD>, r<RS>"
 *mips32r2:
+*mips32r6:
 *mips64r2:
+*mips64r6:
 {
   address_word temp = GPR[RS];
   GPR[RD] = CIA + 8;
@@ -3140,8 +3287,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3152,7 +3301,9 @@
 000000,5.RS,0000000000,10000,001000:SPECIAL:32::JR_HB
 "jr.hb r<RS>"
 *mips32r2:
+*mips32r6:
 *mips64r2:
+*mips64r6:
 {
   DELAY_SLOT (GPR[RS]);
 }
@@ -3276,8 +3427,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3295,8 +3448,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3312,6 +3467,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -3379,8 +3535,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3398,8 +3556,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3449,8 +3609,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3468,8 +3630,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3542,6 +3706,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -3926,8 +4091,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3952,8 +4119,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -3979,15 +4148,16 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
 {
   do_ori (SD_, RS, RT, IMMEDIATE);
 }
-
 
 110011,5.BASE,5.HINT,16.OFFSET:NORMAL:32::PREF
 "pref <HINT>, <OFFSET>(r<BASE>)"
@@ -4017,7 +4187,9 @@
 000000,00001,5.RT,5.RD,5.SHIFT,000010::32::ROR
 "ror r<RD>, r<RT>, <SHIFT>"
 *mips32r2:
+*mips32r6:
 *mips64r2:
+*mips64r6:
 *smartmips:
 *vr5400:
 *vr5500:
@@ -4028,7 +4200,9 @@
 000000,5.RS,5.RT,5.RD,00001,000110::32::RORV
 "rorv r<RD>, r<RT>, r<RS>"
 *mips32r2:
+*mips32r6:
 *mips64r2:
+*mips64r6:
 *smartmips:
 *vr5400:
 *vr5500:
@@ -4136,8 +4310,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4159,7 +4335,7 @@
 *vr4100:
 *vr5000:
 {
-  do_sc (SD_, RT, OFFSET, BASE, instruction_0);
+  do_sc (SD_, RT, OFFSET, BASE, instruction_0, 1);
 }
 
 
@@ -4174,7 +4350,7 @@
 *vr5000:
 {
   check_u64 (SD_, instruction_0);
-  do_scd (SD_, RT, OFFSET, BASE);
+  do_scd (SD_, RT, OFFSET, BASE, 1);
 }
 
 
@@ -4185,6 +4361,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -4250,8 +4427,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4286,21 +4465,41 @@
     do_sll (SD_, RT, RD, SHIFT);
 }
 
-000000,00000,5.RT,5.RD,5.SHIFT,000000:SPECIAL:32::SLLb
-"nop":RD == 0 && RT == 0 && SHIFT == 0
-"ssnop":RD == 0 && RT == 0 && SHIFT == 1
+000000,00000,5.RT!0,5.RD!0,5.SHIFT,000000:SPECIAL:32::SLLb
 "sll r<RD>, r<RT>, <SHIFT>"
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 {
-  /* Skip shift for NOP and SSNOP, so that there won't be lots of
-     extraneous trace output.  */
-  if (RD != 0 || RT != 0 || (SHIFT != 0 && SHIFT != 1))
-    do_sll (SD_, RT, RD, SHIFT);
+  do_sll (SD_, RT, RD, SHIFT);
 }
 
+000000,00000,00000,00000,00000,000000:SPECIAL:32::NOP
+"nop"
+*mips32:
+*mips32r2:
+*mips32r6:
+*mips64:
+*mips64r2:
+*mips64r6:
+{
+  /* Do nothing */
+}
+
+000000,00000,00000,00000,00001,000000:SPECIAL:32::SSNOP
+"ssnop"
+*mips32:
+*mips32r2:
+*mips32r6:
+*mips64:
+*mips64r2:
+*mips64r6:
+{
+  /* Do nothing */
+}
 
 :function:::void:do_sllv:int rs, int rt, int rd
 {
@@ -4320,8 +4519,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4346,8 +4547,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4372,8 +4575,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4398,8 +4603,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4425,8 +4632,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4454,8 +4663,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4485,8 +4696,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4515,8 +4728,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4545,8 +4760,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4564,8 +4781,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4592,8 +4811,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4611,8 +4832,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *r3900:
 *vr5000:
@@ -4687,8 +4910,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4706,8 +4931,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4724,8 +4951,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -4758,8 +4987,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -4809,8 +5040,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -4826,8 +5059,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -4877,8 +5112,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -4894,8 +5131,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -4936,8 +5175,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -4962,8 +5203,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5046,6 +5289,8 @@
 *mipsIII:
 *mipsIV:
 *mips32:
+*mips32r6:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5090,8 +5335,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5100,6 +5347,13 @@
 {
   if (! COP_Usable (1))
     SignalExceptionCoProcessorUnusable (1);
+
+  // Setup FPU mode for this architecture
+  if (COP1_IS_IEEE754_2008 (SD) && !sim_fpu_is_ieee754_2008())
+  {
+    FCSR |= NAN2008 | ABS2008;
+    sim_fpu_set_mode (sim_fpu_ieee754_2008);
+  }
 }
 
 
@@ -5153,6 +5407,7 @@
 *mips32:
 *mips32r2:
 *micromips32:
+*mips32r6:
 {
   int bigendian = (BigEndianCPU ? ! ReverseEndian : ReverseEndian);
   address_word vaddr;
@@ -5187,8 +5442,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5207,8 +5464,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5319,8 +5578,10 @@
 *mipsIV:
 *mipsV:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5337,8 +5598,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5384,8 +5647,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 {
   do_cfc1 (SD_, RT, FS);
 }
@@ -5421,8 +5686,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 {
   do_ctc1 (SD_, RT, FS);
 }
@@ -5440,8 +5707,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5456,8 +5725,10 @@
 *mipsIV:
 *mipsV:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5489,8 +5760,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5530,8 +5803,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5549,8 +5824,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5582,6 +5859,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5617,6 +5895,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5633,8 +5912,10 @@
 *mipsIV:
 *mipsV:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5651,8 +5932,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5666,6 +5949,7 @@
 *mipsII:
 *mips32:
 *mips32r2:
+*mips32r6:
 {
   check_fpu (SD_);
   COP_LD (1, FT, do_load_double (SD_, GPR[BASE], EXTEND16 (OFFSET)));
@@ -5679,6 +5963,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5740,8 +6025,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5796,8 +6083,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5815,8 +6104,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5925,8 +6216,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5944,8 +6237,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -5963,8 +6258,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -6061,8 +6358,10 @@
 *mipsIV:
 *mipsV:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr5000:
 {
   do_recip_fmt (SD_, FMT, FD, FS);
@@ -6075,8 +6374,10 @@
 *mipsIV:
 *mipsV:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -6093,8 +6394,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -6108,8 +6411,10 @@
 *mipsIV:
 *mipsV:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr5000:
 {
   do_rsqrt_fmt (SD_, FMT, FD, FS);
@@ -6121,6 +6426,7 @@
 *mipsII:
 *mips32:
 *mips32r2:
+*mips32r6:
 {
   do_sdc1 (SD_, FT, OFFSET, BASE);
 }
@@ -6133,6 +6439,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -6144,7 +6451,7 @@
 
 010011,5.BASE,5.INDEX,5.FS,00000001001:COP1X:32,f::SDXC1
 "sdxc1 f<FS>, r<INDEX>(r<BASE>)"
-*mips32r2
+*mips32r2:
 {
   check_fpu (SD_);
   do_store_double (SD_, GPR[BASE], GPR[INDEX], COP_SD (1, FS));
@@ -6193,8 +6500,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -6212,8 +6521,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -6232,8 +6543,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -6261,8 +6574,10 @@
 *mipsIV:
 *mipsV:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -6279,8 +6594,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -6305,8 +6622,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 
@@ -6328,8 +6647,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 
@@ -6343,8 +6664,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 
 
@@ -6357,11 +6680,25 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 
+:function:::void:do_cache:int op, int rbase, int roffset, address_word instruction_0
+{
+  address_word base = GPR[rbase];
+  address_word offset = EXTEND16 (roffset);
+  {
+    address_word vaddr = loadstore_ea (SD_, base, offset);
+    address_word paddr;
+    int uncached;
+    if (AddressTranslation(vaddr,isDATA,isLOAD,&paddr,&uncached,isTARGET,isREAL))
+      CacheOp(op,vaddr,paddr,instruction_0);
+  }
+}
 
 101111,5.BASE,5.OP,16.OFFSET:NORMAL:32::CACHE
 "cache <OP>, <OFFSET>(r<BASE>)"
@@ -6376,15 +6713,7 @@
 *vr5000:
 *r3900:
 {
-  address_word base = GPR[BASE];
-  address_word offset = EXTEND16 (OFFSET);
-  {
-    address_word vaddr = loadstore_ea (SD_, base, offset);
-    address_word paddr;
-    int uncached;
-    if (AddressTranslation(vaddr,isDATA,isLOAD,&paddr,&uncached,isTARGET,isREAL))
-      CacheOp(OP,vaddr,paddr,instruction_0);
-  }
+  do_cache (SD_, OP, BASE, OFFSET, instruction_0);
 }
 
 
@@ -6395,6 +6724,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 {
   check_u64 (SD_, instruction_0);
   DecodeCoproc (instruction_0, 0, cp0_dmfc0, RT, RD, SEL);
@@ -6408,6 +6738,7 @@
 *mipsV:
 *mips64:
 *mips64r2:
+*mips64r6:
 {
   check_u64 (SD_, instruction_0);
   DecodeCoproc (instruction_0, 0, cp0_dmtc0, RT, RD, SEL);
@@ -6421,8 +6752,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 {
@@ -6450,8 +6783,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -6470,8 +6805,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 *r3900:
@@ -6504,8 +6841,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *r3900:
 {
@@ -6523,8 +6862,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 
@@ -6538,8 +6879,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 
@@ -6553,8 +6896,10 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 
@@ -6568,13 +6913,16 @@
 *mipsV:
 *mips32:
 *mips32r2:
+*mips32r6:
 *mips64:
 *mips64r2:
+*mips64r6:
 *vr4100:
 *vr5000:
 
 
 :include:::mips3264r2.igen
+:include:::mips3264r6.igen
 :include:::m16.igen
 :include:::m16e.igen
 :include:::mdmx.igen
