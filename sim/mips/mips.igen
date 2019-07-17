@@ -79,6 +79,8 @@
 :model:::micromips32:micromips64:	// micromips.igen
 :model:::micromips64:micromips64:	// micromips.igen
 :model:::micromipsdsp:micromipsdsp:	// micromipsdsp.igen
+:model:::micromips32r6:micromips32r6:	// micromipsr6.igen
+:model:::micromips64r6:micromips64r6:	// micromipsr6.igen
 
 //  Vendor Extensions
 //
@@ -152,7 +154,7 @@
 // Simulate a 32 bit forbidden slot instruction
 //
 
-:function:::address_word:forbiddenslot32:
+:function:::address_word:forbiddenslot32:address_word nia
 *mips32r6:
 *mips64r6:
 {
@@ -167,6 +169,14 @@
   idecode_issue (CPU_, delay_insn, (CIA));
   STATE &= ~simFORBIDDENSLOT;
   return CIA + 4;
+}
+
+:function:::address_word:forbiddenslot32:address_word nia
+*micromips32r6:
+*micromips64r6:
+{
+  /* microMIPS R6 has no forbidden slots. */
+  return nia;
 }
 
 :function:::address_word:nullify_next_insn32:
@@ -195,6 +205,7 @@
 *vr5000:
 *r3900:
 *micromips32:
+*micromips32r6:
 {
   return base + offset;
 }
@@ -203,6 +214,7 @@
 *mips64:
 *mips64r2:
 *micromips64:
+*micromips64r6:
 *mips64r6:
 {
   /* If in user mode and UX is not set, use the 32-bit compatibility
@@ -238,7 +250,9 @@
 *mips64:
 *mips64r2:
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 *mips64r6:
 {
 #if WITH_TARGET_WORD_BITSIZE == 64
@@ -275,7 +289,9 @@
 *mips64:
 *mips64r2:
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 *mips64r6:
 {
   unpredictable_action (CPU, CIA);
@@ -372,6 +388,8 @@
 *r3900:
 *micromips32:
 *micromips64:
+*micromips32r6:
+*micromips64r6:
 {
   signed64 time = sim_events_time (SD);
   history->mt.timestamp = time;
@@ -402,6 +420,8 @@
 *r3900:
 *micromips32:
 *micromips64:
+*micromips32r6:
+*micromips64r6:
 {
   signed64 time = sim_events_time (SD);
   int ok = 1;
@@ -439,7 +459,10 @@
 *mipsII:
 *mipsIII:
 *vr4100:
+*vr4120:
 *vr5000:
+*vr5400:
+*vr5500:
 {
   signed64 time = sim_events_time (SD);
   int ok = (check_mf_cycles (SD_, hi, time, "OP")
@@ -476,6 +499,8 @@
 *r3900:
 *micromips32:
 *micromips64:
+*micromips32r6:
+*micromips64r6:
 {
   /* FIXME: could record the fact that a stall occured if we want */
   signed64 time = sim_events_time (SD);
@@ -570,7 +595,9 @@
 *mips32:
 *mips32r2:
 *micromips64:
+*micromips64r6:
 *micromips32:
+*micromips32r6:
 *mips64r6:
 {
 #if 0 /* XXX FIXME: enable this only after some additional testing.  */
@@ -904,14 +931,12 @@
   }
 }
 
-:function:::void:do_lui:int rt, int immediate
-{
-  TRACE_ALU_INPUT1 (immediate);
-  GPR[rt] = EXTEND32 (immediate << 16);
-  TRACE_ALU_RESULT (GPR[rt]);
-}
-
 :function:::void:do_madd:int rs, int rt
+*mips32:
+*mips64:
+*vr5500:
+*micromips32:
+*micromips64:
 {
   signed64 temp;
   check_mult_hilo (SD_, HIHISTORY, LOHISTORY);
@@ -926,6 +951,10 @@
 }
 
 :function:::void:do_dsp_madd:int ac, int rs, int rt
+*mips32r2:
+*mips64r2:
+*dsp2:
+*micromipsdsp:
 {
   signed64 temp;
   if (ac == 0)
@@ -942,6 +971,11 @@
 }
 
 :function:::void:do_maddu:int rs, int rt
+*mips32:
+*mips64:
+*vr5500:
+*micromips32:
+*micromips64:
 {
   unsigned64 temp;
   check_mult_hilo (SD_, HIHISTORY, LOHISTORY);
@@ -957,6 +991,10 @@
 }
 
 :function:::void:do_dsp_maddu:int ac, int rs, int rt
+*mips32r2:
+*mips64r2:
+*dsp2:
+*micromipsdsp:
 {
   unsigned64 temp;
   if (ac == 0)
@@ -975,6 +1013,10 @@
 }
 
 :function:::void:do_dsp_mfhi:int ac, int rd
+*mips32r2:
+*mips64r2:
+*dsp:
+*micromipsdsp:
 {
   if (ac == 0)
     do_mfhi (SD_, rd);
@@ -983,6 +1025,10 @@
 }
 
 :function:::void:do_dsp_mflo:int ac, int rd
+*mips32r2:
+*mips64r2:
+*dsp:
+*micromipsdsp:
 {
   if (ac == 0)
     do_mflo (SD_, rd);
@@ -1009,6 +1055,11 @@
 }
 
 :function:::void:do_msub:int rs, int rt
+*mips32:
+*mips64:
+*vr5500:
+*micromips32:
+*micromips64:
 {
   signed64 temp;
   check_mult_hilo (SD_, HIHISTORY, LOHISTORY);
@@ -1023,6 +1074,9 @@
 }
 
 :function:::void:do_dsp_msub:int ac, int rs, int rt
+*mips32r2:
+*mips64r2:
+*micromipsdsp:
 {
   signed64 temp;
   if (ac == 0)
@@ -1039,6 +1093,11 @@
 }
 
 :function:::void:do_msubu:int rs, int rt
+*mips32:
+*mips64:
+*vr5500:
+*micromips32:
+*micromips64:
 {
   unsigned64 temp;
   check_mult_hilo (SD_, HIHISTORY, LOHISTORY);
@@ -1053,6 +1112,10 @@
 }
 
 :function:::void:do_dsp_msubu:int ac, int rs, int rt
+*mips32r2:
+*mips64r2:
+*dsp2:
+*micromipsdsp:
 {
   unsigned64 temp;
   if (ac == 0)
@@ -1069,12 +1132,28 @@
 }
 
 :function:::void:do_mthi:int rs
+*mipsI:
+*mipsII:
+*mipsIII:
+*mipsIV:
+*mipsV:
+*vr4100:
+*vr5000:
+*r3900:
+*mips32:
+*mips64:
+*micromips32:
+*micromips64:
 {
   check_mt_hilo (SD_, HIHISTORY);
   HI = GPR[rs];
 }
 
 :function:::void:do_dsp_mthi:int ac, int rs
+*mips32r2:
+*mips64r2:
+*dsp:
+*micromipsdsp:
 {
   if (ac == 0)
     check_mt_hilo (SD_, HIHISTORY);
@@ -1082,12 +1161,28 @@
 }
 
 :function:::void:do_mtlo:int rs
+*mipsI:
+*mipsII:
+*mipsIII:
+*mipsIV:
+*mipsV:
+*vr4100:
+*vr5000:
+*r3900:
+*mips32:
+*mips64:
+*micromips32:
+*micromips64:
 {
   check_mt_hilo (SD_, LOHISTORY);
   LO = GPR[rs];
 }
 
 :function:::void:do_dsp_mtlo:int ac, int rs
+*mips32r2:
+*mips64r2:
+*dsp:
+*micromipsdsp:
 {
   if (ac == 0)
     check_mt_hilo (SD_, LOHISTORY);
@@ -1107,6 +1202,10 @@
 }
 
 :function:::void:do_dsp_mult:int ac, int rs, int rt
+*mips32r2:
+*mips64r2:
+*dsp2:
+*micromipsdsp:
 {
   signed64 prod;
   if (ac == 0)
@@ -1126,6 +1225,10 @@
 }
 
 :function:::void:do_dsp_multu:int ac, int rs, int rt
+*mips32r2:
+*mips64r2:
+*dsp2:
+*micromipsdsp:
 {
   unsigned64 prod;
   if (ac == 0)
@@ -1471,6 +1574,7 @@
 *vr5000:
 *r3900:
 *micromips64:
+*micromips64r6:
 {
   if (SizeFGR () == 64)
     GPR[rt] = FGR[fs];
@@ -2633,6 +2737,14 @@
 
 
 :function:::void:do_ddiv:int rs, int rt
+*mipsIII:
+*mipsIV:
+*mipsV:
+*mips64:
+*mips64r2:
+*micromips64:
+*vr4100:
+*vr5000:
 {
   check_div_hilo (SD_, HIHISTORY, LOHISTORY);
   TRACE_ALU_INPUT2 (GPR[rs], GPR[rt]);
@@ -2679,6 +2791,14 @@
 
 
 :function:::void:do_ddivu:int rs, int rt
+*mipsIII:
+*mipsIV:
+*mipsV:
+*mips64:
+*mips64r2:
+*micromips64:
+*vr4100:
+*vr5000:
 {
   check_div_hilo (SD_, HIHISTORY, LOHISTORY);
   TRACE_ALU_INPUT2 (GPR[rs], GPR[rt]);
@@ -2718,6 +2838,20 @@
 }
 
 :function:::void:do_div:int rs, int rt
+*mipsI:
+*mipsII:
+*mipsIII:
+*mipsIV:
+*mipsV:
+*mips32:
+*mips32r2:
+*micromips32:
+*mips64:
+*mips64r2:
+*micromips64:
+*vr4100:
+*vr5000:
+*r3900:
 {
   check_div_hilo (SD_, HIHISTORY, LOHISTORY);
   TRACE_ALU_INPUT2 (GPR[rs], GPR[rt]);
@@ -2764,6 +2898,21 @@
 
 
 :function:::void:do_divu:int rs, int rt
+*mipsI:
+*mipsII:
+*mipsIII:
+*mipsIV:
+*mipsV:
+*mips32:
+*mips32r2:
+*micromips32:
+*mips64:
+*mips64r2:
+*micromips64:
+*vr4100:
+*vr5000:
+*r3900:
+
 {
   check_div_hilo (SD_, HIHISTORY, LOHISTORY);
   TRACE_ALU_INPUT2 (GPR[rs], GPR[rt]);
@@ -2804,6 +2953,14 @@
 
 
 :function:::void:do_dmultx:int rs, int rt, int rd, int signed_p
+*mipsIII:
+*mipsIV:
+*mipsV:
+*mips64:
+*mips64r2:
+*vr4100:
+*vr5000:
+*micromips64:
 {
   unsigned64 lo;
   unsigned64 hi;
@@ -2864,6 +3021,14 @@
 }
 
 :function:::void:do_dmult:int rs, int rt, int rd
+*mipsIII:
+*mipsIV:
+*mipsV:
+*mips64:
+*mips64r2:
+*vr4100:
+*vr5000:
+*micromips64:
 {
   do_dmultx (SD_, rs, rt, rd, 1);
 }
@@ -2893,6 +3058,14 @@
 
 
 :function:::void:do_dmultu:int rs, int rt, int rd
+*mipsIII:
+*mipsIV:
+*mipsV:
+*mips64:
+*mips64r2:
+*vr4100:
+*vr5000:
+*micromips64:
 {
   do_dmultx (SD_, rs, rt, rd, 0);
 }
@@ -3617,7 +3790,7 @@
 *vr5000:
 *r3900:
 {
-  do_lui (SD_, RT, IMMEDIATE);
+  do_aui (SD_, RT, 0, IMMEDIATE);
 }
 
 
@@ -3758,6 +3931,22 @@
 
 
 :function:::void:do_mfhi:int rd
+*mipsI:
+*mipsII:
+*mipsIII:
+*mipsIV:
+*mipsV:
+*vr4100:
+*vr5000:
+*r3900:
+*mips32:
+*mips64:
+*mips32r2:
+*mips64r2:
+*dsp:
+*micromips32:
+*micromips64:
+*micromipsdsp:
 {
   check_mf_hilo (SD_, HIHISTORY, LOHISTORY);
   TRACE_ALU_INPUT1 (HI);
@@ -3794,6 +3983,22 @@
 
 
 :function:::void:do_mflo:int rd
+*mipsI:
+*mipsII:
+*mipsIII:
+*mipsIV:
+*mipsV:
+*vr4100:
+*vr5000:
+*r3900:
+*mips32:
+*mips64:
+*mips32r2:
+*mips64r2:
+*dsp:
+*micromips32:
+*micromips64:
+*micromipsdsp:
 {
   check_mf_hilo (SD_, LOHISTORY, HIHISTORY);
   TRACE_ALU_INPUT1 (LO);
@@ -3971,6 +4176,19 @@
 
 
 :function:::void:do_mult:int rs, int rt, int rd
+*mipsI:
+*mipsII:
+*mipsIII:
+*mipsIV:
+*mipsV:
+*mips16:
+*mips32:
+*mips64:
+*vr4100:
+*vr5000:
+*r3900:
+*micromips32:
+*micromips64:
 {
   signed64 prod;
   check_mult_hilo (SD_, HIHISTORY, LOHISTORY);
@@ -4024,6 +4242,19 @@
 
 
 :function:::void:do_multu:int rs, int rt, int rd
+*mipsI:
+*mipsII:
+*mipsIII:
+*mipsIV:
+*mipsV:
+*mips16:
+*mips32:
+*mips64:
+*vr4100:
+*vr5000:
+*r3900:
+*micromips32:
+*micromips64:
 {
   unsigned64 prod;
   check_mult_hilo (SD_, HIHISTORY, LOHISTORY);
@@ -5294,6 +5525,8 @@
 *vr4100:
 *vr5000:
 *r3900:
+*micromips32r6:
+*micromips64r6:
 {
   /* None of these ISAs support Paired Single, so just fall back to
      the single/double check.  */
@@ -5343,7 +5576,9 @@
 *vr5000:
 *r3900:
 *micromips32:
+*micromips32r6:
 *micromips64:
+*micromips64r6:
 {
   if (! COP_Usable (1))
     SignalExceptionCoProcessorUnusable (1);
@@ -6935,4 +7170,4 @@
 :include:::smartmips.igen
 :include:::micromips.igen
 :include:::micromipsdsp.igen
-
+:include:::micromipsr6.igen

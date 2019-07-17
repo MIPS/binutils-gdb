@@ -1,9 +1,10 @@
   .macro fp_assert a, b
+  .set push
+  .set reorder
   beq \a, \b, 1f
-  nop
   j _fail
-  nop
 1:
+  .set pop
   .endm
 
   .macro r6ck_1r inst, a, ret
