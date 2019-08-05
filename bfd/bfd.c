@@ -347,6 +347,10 @@ CODE_FRAGMENT
 .
 .  {* For input BFDs, the build ID, if the object has one. *}
 .  const struct bfd_build_id *build_id;
+.
+.  {* A hash table of unique section names in this BFD.  *}
+.  struct bfd_strtab_hash *section_name_htab;
+.
 .};
 .
 .{* See note beside bfd_set_section_userdata.  *}

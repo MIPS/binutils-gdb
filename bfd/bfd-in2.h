@@ -467,6 +467,13 @@ extern void bfd_hash_traverse
    bfd_boolean (*) (struct bfd_hash_entry *, void *),
    void *info);
 
+/* Traverse a string-table in insertion order, calling a function on
+   each element.  If the function returns FALSE, the traversla stops.
+   The INFO argumetn is passed to the function.  */
+struct bfd_strtab_hash;
+extern void _bfd_stringtab_traverse
+  (struct bfd_strtab_hash *, bfd_boolean (*) (const char *, void *), void *info);
+
 /* Allows the default size of a hash table to be configured. New hash
    tables allocated using bfd_hash_table_init will be created with
    this size.  */
@@ -1870,7 +1877,11 @@ void bfd_section_list_clear (bfd *);
 
 asection *bfd_get_section_by_name (bfd *abfd, const char *name);
 
+asection *bfd_get_first_section_by_name (bfd *abfd, const char *name);
+
 asection *bfd_get_next_section_by_name (bfd *ibfd, asection *sec);
+
+asection *bfd_get_next_section_in_order (bfd *ibfd, asection *sec);
 
 asection *bfd_get_linker_section (bfd *abfd, const char *name);
 
@@ -3064,6 +3075,10 @@ to compensate for the borrow when the low bits are added.  */
   BFD_RELOC_MICROMIPS_7_PCREL_S1,
   BFD_RELOC_MICROMIPS_10_PCREL_S1,
   BFD_RELOC_MICROMIPS_16_PCREL_S1,
+  BFD_RELOC_MICROMIPS_21_PCREL_S1,
+  BFD_RELOC_MICROMIPS_26_PCREL_S1,
+  BFD_RELOC_MICROMIPS_18_PCREL_S3,
+  BFD_RELOC_MICROMIPS_19_PCREL_S2,
 
 /* MIPS16 PC-relative relocation.  */
   BFD_RELOC_MIPS16_16_PCREL_S1,
@@ -3079,6 +3094,8 @@ to compensate for the borrow when the low bits are added.  */
   BFD_RELOC_MICROMIPS_HI16,
   BFD_RELOC_MICROMIPS_HI16_S,
   BFD_RELOC_MICROMIPS_LO16,
+  BFD_RELOC_MICROMIPS_HI16_S_PCREL,
+  BFD_RELOC_MICROMIPS_LO16_PCREL,
 
 /* MIPS ELF relocations.  */
   BFD_RELOC_MIPS_GOT16,
@@ -7078,6 +7095,10 @@ struct bfd
 
   /* For input BFDs, the build ID, if the object has one. */
   const struct bfd_build_id *build_id;
+
+  /* A hash table of unique section names.  */
+  struct bfd_strtab_hash *section_name_htab;
+
 };
 
 /* See note beside bfd_set_section_userdata.  */

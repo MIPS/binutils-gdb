@@ -148,6 +148,8 @@ START_RELOC_NUMBERS (elf_mips_reloc_type)
   RELOC_NUMBER (R_MICROMIPS_SCN_DISP, 155)
   RELOC_NUMBER (R_MICROMIPS_JALR, 156)
   RELOC_NUMBER (R_MICROMIPS_HI0_LO16, 157)
+  RELOC_NUMBER (R_MICROMIPS_PCHI16, 158)
+  RELOC_NUMBER (R_MICROMIPS_PCLO16, 159)
   /* TLS relocations.  */
   RELOC_NUMBER (R_MICROMIPS_TLS_GD, 162)
   RELOC_NUMBER (R_MICROMIPS_TLS_LDM, 163)
@@ -159,7 +161,11 @@ START_RELOC_NUMBERS (elf_mips_reloc_type)
   /* microMIPS GP- and PC-relative relocations. */
   RELOC_NUMBER (R_MICROMIPS_GPREL7_S2, 172)
   RELOC_NUMBER (R_MICROMIPS_PC23_S2, 173)
-  FAKE_RELOC (R_MICROMIPS_max, 174)
+  RELOC_NUMBER (R_MICROMIPS_PC21_S1, 174)
+  RELOC_NUMBER (R_MICROMIPS_PC26_S1, 175)
+  RELOC_NUMBER (R_MICROMIPS_PC18_S3, 176)
+  RELOC_NUMBER (R_MICROMIPS_PC19_S2, 177)
+  FAKE_RELOC (R_MICROMIPS_max, 178)
 
   /* This was a GNU extension used by embedded-PIC.  It was co-opted by
      mips-linux for exception-handling data.  GCC stopped using it in
@@ -1236,9 +1242,9 @@ extern void bfd_mips_elf_swap_abiflags_v0_out
 #define AFL_ASE_DSPR3        0x00002000 /* DSP R3 ASE.  */
 #define AFL_ASE_MIPS16E2     0x00004000 /* MIPS16e2 ASE.  */
 #define AFL_ASE_CRC          0x00008000 /* CRC ASE.  */
-#define AFL_ASE_RESERVED1    0x00010000 /* Reserved by MIPS Tech for WIP.  */
+#define AFL_ASE_CRYPTO       0x00010000 /* CRYPTO ASE.  */
 #define AFL_ASE_GINV         0x00020000 /* GINV ASE.  */
-#define AFL_ASE_MASK         0x0002ffff /* All ASEs.  */
+#define AFL_ASE_MASK         0x0003ffff /* All ASEs.  */
 
 /* Values for the isa_ext word of an ABI flags structure.  */
 

@@ -756,6 +756,23 @@ strtab_hash_newfunc (struct bfd_hash_entry *entry,
   ((struct strtab_hash_entry *) \
    bfd_hash_lookup (&(t)->table, (string), (create), (copy)))
 
+/* Traverse a string hash table.  */
+
+void
+_bfd_stringtab_traverse (struct bfd_strtab_hash *t,
+			 bfd_boolean (*func) (const char *, void *),
+			 void * info)
+{
+  t->table.frozen = 1;
+  struct strtab_hash_entry *p;
+
+  for (p = t->first; p != NULL; p = p->next)
+    if (! (*func) (p->root.string, info))
+      goto out;
+ out:
+  t->table.frozen = 0;
+}
+
 /* Create a new strtab.  */
 
 struct bfd_strtab_hash *

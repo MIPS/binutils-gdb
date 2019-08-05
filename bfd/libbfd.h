@@ -66,6 +66,8 @@ struct bfd_in_memory
 struct section_hash_entry
 {
   struct bfd_hash_entry root;
+  struct section_hash_entry *first;
+  struct section_hash_entry *next;
   asection section;
 };
 
@@ -1174,6 +1176,10 @@ static const char *const bfd_reloc_code_real_names[] = { "@@uninitialized@@",
   "BFD_RELOC_MICROMIPS_7_PCREL_S1",
   "BFD_RELOC_MICROMIPS_10_PCREL_S1",
   "BFD_RELOC_MICROMIPS_16_PCREL_S1",
+  "BFD_RELOC_MICROMIPS_21_PCREL_S1",
+  "BFD_RELOC_MICROMIPS_26_PCREL_S1",
+  "BFD_RELOC_MICROMIPS_18_PCREL_S3",
+  "BFD_RELOC_MICROMIPS_19_PCREL_S2",
   "BFD_RELOC_MIPS16_16_PCREL_S1",
   "BFD_RELOC_MIPS_21_PCREL_S2",
   "BFD_RELOC_MIPS_26_PCREL_S2",
@@ -1183,6 +1189,8 @@ static const char *const bfd_reloc_code_real_names[] = { "@@uninitialized@@",
   "BFD_RELOC_MICROMIPS_HI16",
   "BFD_RELOC_MICROMIPS_HI16_S",
   "BFD_RELOC_MICROMIPS_LO16",
+  "BFD_RELOC_MICROMIPS_HI16_S_PCREL",
+  "BFD_RELOC_MICROMIPS_LO16_PCREL",
   "BFD_RELOC_MIPS_GOT16",
   "BFD_RELOC_MICROMIPS_GOT16",
   "BFD_RELOC_MIPS_CALL16",

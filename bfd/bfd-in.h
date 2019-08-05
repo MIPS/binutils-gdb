@@ -460,6 +460,13 @@ extern void bfd_hash_traverse
    bfd_boolean (*) (struct bfd_hash_entry *, void *),
    void *info);
 
+/* Traverse a string-table in insertion order, calling a function on
+   each element.  If the function returns FALSE, the traversal stops.
+   The INFO argument is passed to the function.  */
+struct bfd_strtab_hash;
+extern void _bfd_stringtab_traverse
+  (struct bfd_strtab_hash *, bfd_boolean (*) (const char *, void *), void *info);
+
 /* Allows the default size of a hash table to be configured. New hash
    tables allocated using bfd_hash_table_init will be created with
    this size.  */

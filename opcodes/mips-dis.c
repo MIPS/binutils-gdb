@@ -73,6 +73,12 @@ static const char * const mips_gpr_names_newabi[32] =
   "t8",   "t9",   "k0",   "k1",   "gp",   "sp",   "s8",   "ra"
 };
 
+static const char * const mips_gpr_names_xr[17] = {
+  "xr0",  "xr1",  "xr2",  "xr3",  "xr4",  "xr5",  "xr6",  "xr7",
+  "xr8",  "xr9",  "xr10", "xr11", "xr12", "xr13", "xr14", "xr15",
+  "xr16"
+};
+
 static const char * const mips_fpr_names_numeric[32] =
 {
   "$f0",  "$f1",  "$f2",  "$f3",  "$f4",  "$f5",  "$f6",  "$f7",
@@ -531,7 +537,7 @@ const struct mips_arch_choice mips_arch_choices[] =
      MIPS32 Architecture_ (MIPS Document Number MD00082, Revision 0.95),
      page 1.  */
   { "mips32",	1, bfd_mach_mipsisa32, CPU_MIPS32,
-    ISA_MIPS32,  ASE_SMARTMIPS,
+    ISA_MIPS32,  ASE_SMARTMIPS | ASE_MXU,
     mips_cp0_names_mips3264,
     mips_cp0sel_names_mips3264, ARRAY_SIZE (mips_cp0sel_names_mips3264),
     mips_cp1_names_mips3264, mips_hwr_names_numeric },
@@ -539,7 +545,7 @@ const struct mips_arch_choice mips_arch_choices[] =
   { "mips32r2",	1, bfd_mach_mipsisa32r2, CPU_MIPS32R2,
     ISA_MIPS32R2,
     (ASE_SMARTMIPS | ASE_DSP | ASE_DSPR2 | ASE_EVA | ASE_MIPS3D
-     | ASE_MT | ASE_MCU | ASE_VIRT | ASE_MSA | ASE_XPA),
+     | ASE_MT | ASE_MCU | ASE_VIRT | ASE_MSA | ASE_XPA | ASE_MXU),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -547,7 +553,7 @@ const struct mips_arch_choice mips_arch_choices[] =
   { "mips32r3",	1, bfd_mach_mipsisa32r3, CPU_MIPS32R3,
     ISA_MIPS32R3,
     (ASE_SMARTMIPS | ASE_DSP | ASE_DSPR2 | ASE_EVA | ASE_MIPS3D
-     | ASE_MT | ASE_MCU | ASE_VIRT | ASE_MSA | ASE_XPA),
+     | ASE_MT | ASE_MCU | ASE_VIRT | ASE_MSA | ASE_XPA | ASE_MXU),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -555,7 +561,7 @@ const struct mips_arch_choice mips_arch_choices[] =
   { "mips32r5",	1, bfd_mach_mipsisa32r5, CPU_MIPS32R5,
     ISA_MIPS32R5,
     (ASE_SMARTMIPS | ASE_DSP | ASE_DSPR2 | ASE_EVA | ASE_MIPS3D
-     | ASE_MT | ASE_MCU | ASE_VIRT | ASE_MSA | ASE_XPA),
+     | ASE_MT | ASE_MCU | ASE_VIRT | ASE_MSA | ASE_XPA | ASE_MXU),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -563,14 +569,14 @@ const struct mips_arch_choice mips_arch_choices[] =
   { "mips32r6",	1, bfd_mach_mipsisa32r6, CPU_MIPS32R6,
     ISA_MIPS32R6,
     (ASE_EVA | ASE_MSA | ASE_VIRT | ASE_XPA | ASE_MCU | ASE_MT | ASE_DSP
-     | ASE_DSPR2 | ASE_DSPR3 | ASE_CRC | ASE_GINV),
+     | ASE_DSPR2 | ASE_DSPR3 | ASE_CRC | ASE_GINV | ASE_CRYPTO),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
 
   /* For stock MIPS64, disassemble all applicable MIPS-specified ASEs.  */
   { "mips64",	1, bfd_mach_mipsisa64, CPU_MIPS64,
-    ISA_MIPS64,  ASE_MIPS3D | ASE_MDMX,
+    ISA_MIPS64,  ASE_MIPS3D | ASE_MDMX | ASE_MXU,
     mips_cp0_names_mips3264,
     mips_cp0sel_names_mips3264, ARRAY_SIZE (mips_cp0sel_names_mips3264),
     mips_cp1_names_mips3264, mips_hwr_names_numeric },
@@ -578,7 +584,8 @@ const struct mips_arch_choice mips_arch_choices[] =
   { "mips64r2",	1, bfd_mach_mipsisa64r2, CPU_MIPS64R2,
     ISA_MIPS64R2,
     (ASE_MIPS3D | ASE_DSP | ASE_DSPR2 | ASE_DSP64 | ASE_EVA | ASE_MT
-     | ASE_MCU | ASE_VIRT | ASE_VIRT64 | ASE_MSA | ASE_MSA64 | ASE_XPA),
+     | ASE_MCU | ASE_VIRT | ASE_VIRT64 | ASE_MSA | ASE_MSA64 | ASE_XPA
+     | ASE_MXU),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -586,7 +593,8 @@ const struct mips_arch_choice mips_arch_choices[] =
   { "mips64r3",	1, bfd_mach_mipsisa64r3, CPU_MIPS64R3,
     ISA_MIPS64R3,
     (ASE_MIPS3D | ASE_DSP | ASE_DSPR2 | ASE_DSP64 | ASE_EVA | ASE_MT
-     | ASE_MCU | ASE_VIRT | ASE_VIRT64 | ASE_MSA | ASE_MSA64 | ASE_XPA),
+     | ASE_MCU | ASE_VIRT | ASE_VIRT64 | ASE_MSA | ASE_MSA64 | ASE_XPA
+     | ASE_MXU),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -594,7 +602,8 @@ const struct mips_arch_choice mips_arch_choices[] =
   { "mips64r5",	1, bfd_mach_mipsisa64r5, CPU_MIPS64R5,
     ISA_MIPS64R5,
     (ASE_MIPS3D | ASE_DSP | ASE_DSPR2 | ASE_DSP64 | ASE_EVA | ASE_MT
-     | ASE_MCU | ASE_VIRT | ASE_VIRT64 | ASE_MSA | ASE_MSA64 | ASE_XPA),
+     | ASE_MCU | ASE_VIRT | ASE_VIRT64 | ASE_MSA | ASE_MSA64 | ASE_XPA
+     | ASE_MXU),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -603,7 +612,7 @@ const struct mips_arch_choice mips_arch_choices[] =
     ISA_MIPS64R6,
     (ASE_EVA | ASE_MSA | ASE_MSA64 | ASE_XPA | ASE_VIRT | ASE_VIRT64
      | ASE_MCU | ASE_MT | ASE_DSP | ASE_DSPR2 | ASE_DSPR3 | ASE_CRC
-     | ASE_CRC64 | ASE_GINV),
+     | ASE_CRC64 | ASE_GINV | ASE_CRYPTO),
     mips_cp0_names_mips3264r2,
     mips_cp0sel_names_mips3264r2, ARRAY_SIZE (mips_cp0sel_names_mips3264r2),
     mips_cp1_names_mips3264, mips_hwr_names_mips3264r2 },
@@ -773,6 +782,17 @@ is_micromips (Elf_Internal_Ehdr *header)
   return 0;
 }
 
+/* Check if ISA is R6.  */
+
+static inline int
+is_isa_r6 (unsigned long isa)
+{
+  if ((isa & INSN_ISA_MASK) == ISA_MIPS32R6
+      || ((isa & INSN_ISA_MASK) == ISA_MIPS64R6))
+    return 1;
+  return 0;
+}
+
 /* Convert ASE flags from .MIPS.abiflags to internal values.  */
 
 static unsigned long
@@ -812,7 +832,7 @@ mips_convert_abiflags_ases (unsigned long afl_ases)
 /* Calculate combination ASE flags from regular ASE flags.  */
 
 static unsigned long
-mips_calculate_combination_ases (unsigned long opcode_ases)
+mips_calculate_combination_ases (int opcode_isa, unsigned long opcode_ases)
 {
   unsigned long combination_ases = 0;
 
@@ -820,6 +840,12 @@ mips_calculate_combination_ases (unsigned long opcode_ases)
     combination_ases |= ASE_XPA_VIRT;
   if ((opcode_ases & (ASE_MIPS16E2 | ASE_MT)) == (ASE_MIPS16E2 | ASE_MT))
     combination_ases |= ASE_MIPS16E2_MT;
+  if ((opcode_ases & ASE_EVA)
+      && ((opcode_isa & INSN_ISA_MASK) == ISA_MIPS64R6
+	  || (opcode_isa & INSN_ISA_MASK) == ISA_MIPS32R6))
+    combination_ases |= ASE_EVA_R6;
+  if ((opcode_ases & (ASE_GINV | ASE_VIRT)) == (ASE_GINV | ASE_VIRT))
+    combination_ases |= ASE_GINV_VIRT;
   return combination_ases;
 }
 
@@ -892,7 +918,7 @@ set_default_mips_dis_options (struct disassemble_info *info)
 	mips_ase |= ASE_MDMX;
     }
 #endif
-  mips_ase |= mips_calculate_combination_ases (mips_ase);
+  mips_ase |= mips_calculate_combination_ases (mips_isa, mips_ase);
 }
 
 /* Parse an ASE disassembler option and set the corresponding global
@@ -955,7 +981,13 @@ parse_mips_dis_option (const char *option, unsigned int len)
 
   if (parse_mips_ase_option (option))
     {
-      mips_ase |= mips_calculate_combination_ases (mips_ase);
+      mips_ase |= mips_calculate_combination_ases (mips_isa, mips_ase);
+      return;
+    }
+
+  if (CONST_STRNEQ (option, "mxu"))
+    {
+      mips_ase |= ASE_MXU;
       return;
     }
 
@@ -1175,6 +1207,10 @@ print_reg (struct disassemble_info *info, const struct mips_opcode *opcode,
       info->fprintf_func (info->stream, "%s", msa_control_names[regno]);
       break;
 
+    case OP_REG_MXU:
+    case OP_REG_MXU_GP:
+      info->fprintf_func (info->stream, "%s", mips_gpr_names_xr[regno]);
+      break;
     }
 }
 
@@ -1601,6 +1637,18 @@ print_insn_arg (struct disassemble_info *info,
       print_reg (info, opcode, OP_REG_GP, uval);
       infprintf (is, "]");
       break;
+
+    case OP_MAPPED_STRING:
+      {
+	const struct mips_mapped_string_operand *string_op;
+	string_op = (const struct mips_mapped_string_operand *) operand;
+	infprintf (is, "%s", string_op->strings[uval]);
+      }
+      break;
+
+    case OP_MXU_STRIDE:
+      infprintf (is, "%d", uval);
+      break;
     }
 }
 
@@ -1705,11 +1753,14 @@ validate_insn_args (const struct mips_opcode *opcode,
 		case OP_VU0_MATCH_SUFFIX:
 		case OP_IMM_INDEX:
 		case OP_REG_INDEX:
+		case OP_MXU_STRIDE:
+		case OP_MAPPED_STRING:
+		  break;
 		case OP_SAVE_RESTORE_LIST:
 		  break;
 		}
 	    }
-	  if (*s == 'm' || *s == '+' || *s == '-')
+	  if (*s == 'm' || *s == '+' || *s == '-' || *s == '`')
 	    ++s;
 	}
     }
@@ -1821,7 +1872,7 @@ print_insn_args (struct disassemble_info *info,
 	      print_insn_arg (info, &state, opcode, operand, base_pc,
 			      mips_extract_operand (operand, insn));
 	    }
-	  if (*s == 'm' || *s == '+' || *s == '-')
+	  if (*s == 'm' || *s == '+' || *s == '-' || *s == '`')
 	    ++s;
 	  break;
 	}
@@ -1888,10 +1939,10 @@ print_insn_mips (bfd_vma memaddr,
 	      && (word & op->mask) == op->match)
 	    {
 	      /* We always disassemble the jalx instruction, except for MIPS r6.  */
-	      if (!opcode_is_member (op, mips_isa, mips_ase, mips_processor)
-		 && (strcmp (op->name, "jalx")
-		     || (mips_isa & INSN_ISA_MASK) == ISA_MIPS32R6
-		     || (mips_isa & INSN_ISA_MASK) == ISA_MIPS64R6))
+	      if ((!opcode_is_member (op, mips_isa, mips_ase, mips_processor)
+		  && (strcmp (op->name, "jalx") || is_isa_r6 (mips_isa)))
+		  || (is_isa_r6 (op->membership)
+		      && (op->pinfo2 & INSN2_CONVERTED_TO_COMPACT)))
 		continue;
 
 	      /* Figure out instruction type and branch delay information.  */
@@ -2111,7 +2162,7 @@ enum match_kind
 /* Disassemble mips16 instructions.  */
 
 static int
-print_insn_mips16 (bfd_vma memaddr, struct disassemble_info *info)
+print_insn_mips16 (bfd_vma memaddr_base, struct disassemble_info *info)
 {
   const fprintf_ftype infprintf = info->fprintf_func;
   int status;
@@ -2124,6 +2175,10 @@ print_insn_mips16 (bfd_vma memaddr, struct disassemble_info *info)
   unsigned int second;
   unsigned int first;
   unsigned int full;
+
+  /* Some users of bfd may supply an address with the MIPS16 flag set,
+     e.g. objdump.  MIPS16 instructions must be at least 2 byte aligned.  */
+  bfd_vma memaddr = memaddr_base & ~1;
 
   info->bytes_per_chunk = 2;
   info->display_endian = info->endian;
@@ -2331,7 +2386,7 @@ print_insn_mips16 (bfd_vma memaddr, struct disassemble_info *info)
 /* Disassemble microMIPS instructions.  */
 
 static int
-print_insn_micromips (bfd_vma memaddr, struct disassemble_info *info)
+print_insn_micromips (bfd_vma memaddr_base, struct disassemble_info *info)
 {
   const fprintf_ftype infprintf = info->fprintf_func;
   const struct mips_opcode *op, *opend;
@@ -2341,6 +2396,10 @@ print_insn_micromips (bfd_vma memaddr, struct disassemble_info *info)
   unsigned int length;
   int status;
   unsigned int insn;
+
+  /* Some users of bfd may supply an address with the micromips flag set,
+     e.g. objdump.  microMIPS instructions must be at least 2 byte aligned.  */
+  bfd_vma memaddr = memaddr_base & ~1;
 
   info->bytes_per_chunk = 2;
   info->display_endian = info->endian;
@@ -2399,6 +2458,10 @@ print_insn_micromips (bfd_vma memaddr, struct disassemble_info *info)
 	  && ((length == 2 && (op->mask & 0xffff0000) == 0)
 	      || (length == 4 && (op->mask & 0xffff0000) != 0)))
 	{
+	  if (!opcode_is_member (op, mips_isa, mips_ase, mips_processor)
+	      || (op->pinfo2 & INSN2_CONVERTED_TO_COMPACT))
+	    continue;
+
 	  if (!validate_insn_args (op, decode_micromips_operand, insn))
 	    continue;
 
@@ -2581,6 +2644,8 @@ static struct
 		  MIPS_OPTION_ARG_NONE },
   { "ginv",       N_("Recognize the Global INValidate (GINV) ASE "
 		     "instructions.\n"),
+		  MIPS_OPTION_ARG_NONE },
+  { "mxu",       N_("Recognize the MXU ASE instructions.\n"),
 		  MIPS_OPTION_ARG_NONE },
   { "gpr-names=", N_("Print GPR names according to specified ABI.\n\
                   Default: based on binary being disassembled.\n"),

@@ -88,6 +88,13 @@ _bfd_new_bfd (void)
       return NULL;
     }
 
+  nbfd->section_name_htab = _bfd_stringtab_init ();
+  if (nbfd->section_name_htab == NULL)
+    {
+      free (nbfd);
+      return NULL;
+    }
+
   return nbfd;
 }
 
@@ -123,6 +130,8 @@ _bfd_delete_bfd (bfd *abfd)
   if (abfd->memory)
     {
       bfd_hash_table_free (&abfd->section_htab);
+      if (abfd->section_name_htab != NULL)
+	_bfd_stringtab_free (abfd->section_name_htab);
       objalloc_free ((struct objalloc *) abfd->memory);
     }
 
@@ -140,6 +149,7 @@ _bfd_free_cached_info (bfd *abfd)
   if (abfd->memory)
     {
       bfd_hash_table_free (&abfd->section_htab);
+      _bfd_stringtab_free (abfd->section_name_htab);
       objalloc_free ((struct objalloc *) abfd->memory);
 
       abfd->sections = NULL;

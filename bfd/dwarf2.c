@@ -206,6 +206,7 @@ struct arange
   struct arange *next;
   bfd_vma low;
   bfd_vma high;
+  bfd_boolean truncated;
 };
 
 /* A minimal decoding of DWARF2 compilation units.  We only decode
@@ -1635,13 +1636,18 @@ arange_add (const struct comp_unit *unit, struct arange *first_arange,
 
   /* Ignore empty ranges.  */
   if (low_pc == high_pc)
-    return TRUE;
+    {
+      if (first_arange->high == 0)
+	first_arange->truncated = TRUE;
+      return TRUE;
+    }
 
   /* If the first arange is empty, use it.  */
   if (first_arange->high == 0)
     {
       first_arange->low = low_pc;
       first_arange->high = high_pc;
+      first_arange->truncated = FALSE;
       return TRUE;
     }
 
@@ -1670,6 +1676,7 @@ arange_add (const struct comp_unit *unit, struct arange *first_arange,
     return FALSE;
   arange->low = low_pc;
   arange->high = high_pc;
+  arange->truncated = FALSE;
   arange->next = first_arange->next;
   first_arange->next = arange;
   return TRUE;
@@ -3594,6 +3601,9 @@ comp_unit_find_nearest_line (struct comp_unit *unit,
   bfd_boolean func_p;
 
   if (unit->error)
+    return FALSE;
+
+  if (unit->arange.truncated)
     return FALSE;
 
   if (! unit->line_table)

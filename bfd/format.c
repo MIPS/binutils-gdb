@@ -106,6 +106,7 @@ struct bfd_preserve
   unsigned int section_id;
   struct bfd_hash_table section_htab;
   const struct bfd_build_id *build_id;
+  struct bfd_strtab_hash *section_name_htab;
 };
 
 /* When testing an object for compatibility with a particular target
@@ -130,8 +131,10 @@ bfd_preserve_save (bfd *abfd, struct bfd_preserve *preserve)
   preserve->section_htab = abfd->section_htab;
   preserve->marker = bfd_alloc (abfd, 1);
   preserve->build_id = abfd->build_id;
+  preserve->section_name_htab = abfd->section_name_htab;
   if (preserve->marker == NULL)
     return FALSE;
+  abfd->section_name_htab = _bfd_stringtab_init ();
 
   return bfd_hash_table_init (&abfd->section_htab, bfd_section_hash_newfunc,
 			      sizeof (struct section_hash_entry));
@@ -165,6 +168,7 @@ bfd_preserve_restore (bfd *abfd, struct bfd_preserve *preserve)
   abfd->section_count = preserve->section_count;
   _bfd_section_id = preserve->section_id;
   abfd->build_id = preserve->build_id;
+  abfd->section_name_htab = preserve->section_name_htab;
 
   /* bfd_release frees all memory more recently bfd_alloc'd than
      its arg, as well as its arg.  */
@@ -183,6 +187,8 @@ bfd_preserve_finish (bfd *abfd ATTRIBUTE_UNUSED, struct bfd_preserve *preserve)
      inside bfd_alloc'd memory.  The section hash is on a separate
      objalloc.  */
   bfd_hash_table_free (&preserve->section_htab);
+  if (preserve->section_name_htab != NULL)
+    _bfd_stringtab_free (preserve->section_name_htab);
   preserve->marker = NULL;
 }
 
