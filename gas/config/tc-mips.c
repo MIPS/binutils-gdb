@@ -18469,8 +18469,7 @@ mips_fix_adjustable (fixS *fixp)
       && (ELF_ST_IS_MIPS16 (S_GET_OTHER (fixp->fx_addsy))
 	  || (ELF_ST_IS_MICROMIPS (S_GET_OTHER (fixp->fx_addsy))
 	      && (jmp_reloc_p (fixp->fx_r_type)
-		  || b_reloc_p (fixp->fx_r_type)
-		  || lo16_reloc_p (fixp->fx_r_type)))
+		  || b_reloc_p (fixp->fx_r_type)))
 	  || *symbol_get_tc (fixp->fx_addsy)))
     return 0;
 
