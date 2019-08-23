@@ -508,7 +508,11 @@ Plugin_recorder::init()
   // Create a temporary directory where we can stash the log and
   // copies of replacement files.
   char dir_template[] = "gold-recording-XXXXXX";
+#ifdef __MINGW32__
+  if (mkdir (tmpnam(dir_template)) == 0)
+#else
   if (mkdtemp(dir_template) == NULL)
+#endif
     return false;
 
   size_t len = strlen(dir_template) + 1;
@@ -562,8 +566,10 @@ link_or_copy_file(const char* inname, const char* outname)
 {
   static char buf[4096];
 
+#ifndef __MINGW32__
   if (::link(inname, outname) == 0)
     return true;
+#endif
 
   int in = ::open(inname, O_RDONLY);
   if (in < 0)
