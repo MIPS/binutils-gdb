@@ -10217,7 +10217,7 @@ remote_target::insert_breakpoint (struct gdbarch *gdbarch,
 
   if (packet_support (PACKET_Z0) != PACKET_DISABLE)
     {
-      CORE_ADDR addr = bp_tgt->reqstd_address;
+      CORE_ADDR addr = bp_tgt->placed_address;
       struct remote_state *rs;
       char *p, *endbuf;
 
