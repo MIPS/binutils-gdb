@@ -882,6 +882,37 @@ else
         AC_ERROR(failure running python-config --exec-prefix)
       fi
     fi
+  elif test -x ${with_python}/bin/python?-config; then
+    have_python_config=yes
+    python_config=`ls ${with_python}/bin/python?-config`
+    python_includes=`${python_config} --includes`
+    if test $? != 0; then
+      have_python_config=failed
+      if test "${with_python}" != auto; then
+        AC_ERROR(failure running python-config --includes)
+      fi
+    fi
+    python_includes="${python_includes} `${python_config} --cflags`"
+    if test $? != 0; then
+      have_python_config=failed
+      if test "${with_python}" != auto; then
+        AC_ERROR(failure running python-config --cflags)
+      fi
+    fi
+    python_libs=`${python_config} --ldflags`
+    if test $? != 0; then
+      have_python_config=failed
+      if test "${with_python}" != auto; then
+        AC_ERROR(failure running python-config --ldflags)
+      fi
+    fi
+    python_prefix=`${python_config} --exec-prefix`
+    if test $? != 0; then
+      have_python_config=failed
+      if test "${with_python}" != auto; then
+        AC_ERROR(failure running python-config --exec-prefix)
+      fi
+    fi
   else
     # We do not have a python executable we can use to determine where
     # to find the Python headers and libs.  We cannot guess the include
@@ -926,6 +957,10 @@ else
       ;;
     esac
   elif test "${have_python_config}" != failed; then
+    if test "${have_libpython}" = no; then
+       AC_TRY_LIBPYTHON(python3.7, have_libpython,
+                       ${python_includes}, "${python_libs}")
+    fi
     if test "${have_libpython}" = no; then
       AC_TRY_LIBPYTHON(python2.7, have_libpython,
                        ${python_includes}, "-lpython2.7 ${python_libs}")

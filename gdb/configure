@@ -10481,6 +10481,37 @@ fi
         as_fn_error $? "failure running python-config --exec-prefix" "$LINENO" 5
       fi
     fi
+  elif test -x ${with_python}/bin/python?-config; then
+    have_python_config=yes
+    python_config=`ls ${with_python}/bin/python?-config`
+    python_includes=`${python_config} --includes`
+    if test $? != 0; then
+      have_python_config=failed
+      if test "${with_python}" != auto; then
+        as_fn_error $? "failure running python-config --includes" "$LINENO" 5
+      fi
+    fi
+    python_includes="${python_includes} `${python_config} --cflags`"
+    if test $? != 0; then
+      have_python_config=failed
+      if test "${with_python}" != auto; then
+        as_fn_error $? "failure running python-config --cflags" "$LINENO" 5
+      fi
+    fi
+    python_libs=`${python_config} --ldflags`
+    if test $? != 0; then
+      have_python_config=failed
+      if test "${with_python}" != auto; then
+        as_fn_error $? "failure running python-config --ldflags" "$LINENO" 5
+      fi
+    fi
+    python_prefix=`${python_config} --exec-prefix`
+    if test $? != 0; then
+      have_python_config=failed
+      if test "${with_python}" != auto; then
+        as_fn_error $? "failure running python-config --exec-prefix" "$LINENO" 5
+      fi
+    fi
   else
     # We do not have a python executable we can use to determine where
     # to find the Python headers and libs.  We cannot guess the include
@@ -10559,6 +10590,44 @@ $as_echo "${found_usable_python}" >&6; }
       ;;
     esac
   elif test "${have_python_config}" != failed; then
+    if test "${have_libpython}" = no; then
+
+  version=python3.7
+
+  new_CPPFLAGS=${python_includes}
+  new_LIBS="${python_libs}"
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ${version}" >&5
+$as_echo_n "checking for ${version}... " >&6; }
+  save_CPPFLAGS=$CPPFLAGS
+  save_LIBS=$LIBS
+  CPPFLAGS="$CPPFLAGS $new_CPPFLAGS"
+  LIBS="$new_LIBS $LIBS"
+  found_usable_python=no
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include "Python.h"
+int
+main ()
+{
+Py_Initialize ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  have_libpython=${version}
+                  found_usable_python=yes
+                  PYTHON_CPPFLAGS=$new_CPPFLAGS
+                  PYTHON_LIBS=$new_LIBS
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+  CPPFLAGS=$save_CPPFLAGS
+  LIBS=$save_LIBS
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: ${found_usable_python}" >&5
+$as_echo "${found_usable_python}" >&6; }
+
+    fi
     if test "${have_libpython}" = no; then
 
   version=python2.7

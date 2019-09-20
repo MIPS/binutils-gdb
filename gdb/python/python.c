@@ -338,7 +338,7 @@ python_interactive_command (const char *arg, int from_tty)
 static void
 python_run_simple_file (FILE *file, const char *filename)
 {
-#ifndef _WIN32
+#if !defined(_WIN32) || defined(__MINGW32__)
 
   PyRun_SimpleFile (file, filename);
 
