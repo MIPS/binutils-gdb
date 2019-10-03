@@ -33,9 +33,15 @@
 
 #define ARCH_SIZE	NN
 
+#if ARCH_SIZE == 32
 /* Nonzero if ABFD is using the P32 ABI.  */
-#define ABI_PNN_P(abfd) \
-  ((elf_elfheader (abfd)->e_flags & EF_NANOMIPS_ABI) == E_NANOMIPS_ABI_PNN)
+#define ABI_P32_P(abfd) \
+  ((elf_elfheader (abfd)->e_flags & EF_NANOMIPS_ABI) != E_NANOMIPS_ABI_P64)
+#else /* ARCH_SIZE != 32 */
+/* Nonzero if ABFD is using the P64 ABI.  */
+#define ABI_P64_P(abfd) \
+  ((elf_elfheader (abfd)->e_flags & EF_NANOMIPS_ABI) != E_NANOMIPS_ABI_P32)
+#endif /* ARCH_SIZE == 32 */
 
 /* In case we're on a 32-bit machine, construct a 64-bit "-1" value
    from smaller values.  Start with zero, widen, *then* decrement.  */
