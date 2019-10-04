@@ -88,7 +88,7 @@ DIST_COMMON = NEWS README ChangeLog $(srcdir)/Makefile.in \
 	$(srcdir)/Makefile.am $(top_srcdir)/configure \
 	$(am__configure_deps) $(srcdir)/config.in \
 	$(srcdir)/../mkinstalldirs $(top_srcdir)/po/Make-in ffsll.c \
-	mremap.c pread.c ftruncate.c yyscript.h yyscript.c \
+	ftruncate.c pread.c mremap.c yyscript.h yyscript.c \
 	$(srcdir)/../depcomp $(srcdir)/../ylwrap
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/../config/depstand.m4 \
@@ -407,6 +407,8 @@ SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
 TARGETOBJS = @TARGETOBJS@
+THREAD_LINK_DONE = @THREAD_LINK_DONE@
+THREAD_LINK_STATIC = @THREAD_LINK_STATIC@
 USE_NLS = @USE_NLS@
 VERSION = @VERSION@
 WARN_CFLAGS = @WARN_CFLAGS@
@@ -495,7 +497,7 @@ AM_CPPFLAGS = \
 
 LIBIBERTY = ../libiberty/libiberty.a
 @PLUGINS_TRUE@LIBDL = @DLOPEN_LIBS@
-@THREADS_TRUE@THREADSLIB = -lpthread
+@THREADS_TRUE@THREADSLIB = @THREAD_LINK_STATIC@ -lpthread @THREAD_LINK_DONE@
 AM_YFLAGS = -d
 
 # Automake 1.10+ disables lex and yacc output file regeneration if

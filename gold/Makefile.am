@@ -47,7 +47,7 @@ LIBDL = @DLOPEN_LIBS@
 endif
 
 if THREADS
-THREADSLIB = -lpthread
+THREADSLIB = @THREAD_LINK_STATIC@ -lpthread @THREAD_LINK_DONE@
 endif
 
 AM_YFLAGS = -d

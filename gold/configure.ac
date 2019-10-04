@@ -102,6 +102,19 @@ if test "$threads" = "yes"; then
 fi
 AM_CONDITIONAL(THREADS, test "$threads" = "yes")
 
+AC_SUBST(THREAD_LINK_STATIC)
+AC_SUBST(THREAD_LINK_DONE)
+case "${host}" in
+  *-mingw*)
+    THREAD_LINK_STATIC=-Wl,-Bstatic
+    THREAD_LINK_DONE=-Wl,-Bdynamic
+    ;;
+  *)
+    THREAD_LINK_STATIC=
+    THREAD_LINK_DONE=
+  ;;
+esac
+
 AC_PLUGINS
 if test "$plugins" = "yes"; then
   AC_DEFINE(ENABLE_PLUGINS, 1,

@@ -693,6 +693,8 @@ DEFAULT_TARGET_AARCH64_FALSE
 DEFAULT_TARGET_AARCH64_TRUE
 PLUGINS_FALSE
 PLUGINS_TRUE
+THREAD_LINK_DONE
+THREAD_LINK_STATIC
 THREADS_FALSE
 THREADS_TRUE
 installed_linker
@@ -4754,6 +4756,19 @@ else
   THREADS_FALSE=
 fi
 
+
+
+
+case "${host}" in
+  *-mingw*)
+    THREAD_LINK_STATIC=-Wl,-Bstatic
+    THREAD_LINK_DONE=-Wl,-Bdynamic
+    ;;
+  *)
+    THREAD_LINK_STATIC=
+    THREAD_LINK_DONE=
+  ;;
+esac
 
 
   maybe_plugins=no
