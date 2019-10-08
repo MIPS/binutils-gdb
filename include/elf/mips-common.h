@@ -55,7 +55,7 @@ typedef struct
   unsigned char flags2[4];
 } Elf_External_ABIFlags_v0;
 
-typedef struct
+typedef struct elf_internal_abiflags_v0
 {
   /* Version of flags structure.  */
   unsigned short version;
@@ -79,12 +79,6 @@ typedef struct
   unsigned long flags1;
   unsigned long flags2;
 } Elf_Internal_ABIFlags_v0;
-
-/* MIPS ELF flags swapping routines.  */
-extern void bfd_mips_elf_swap_abiflags_v0_in
-  (bfd *, const Elf_External_ABIFlags_v0 *, Elf_Internal_ABIFlags_v0 *);
-extern void bfd_mips_elf_swap_abiflags_v0_out
-  (bfd *, const Elf_Internal_ABIFlags_v0 *, Elf_External_ABIFlags_v0 *);
 
 /* Values for the xxx_size bytes of an ABI flags structure.  */
 

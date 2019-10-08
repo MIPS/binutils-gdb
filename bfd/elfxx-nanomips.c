@@ -28,7 +28,6 @@
 #include "libbfd.h"
 #include "elf-bfd.h"
 #include "elfxx-nanomips.h"
-#include "elf/mips-common.h"
 #include "elf/nanomips.h"
 
 /* nanoMIPS ELF private object data.  */
@@ -566,6 +565,9 @@ _bfd_nanomips_elf_print_private_bfd_data (bfd *abfd, void *ptr)
     fprintf (file, " [32bitmode]");
   else
     fprintf (file, _(" [not 32bitmode]"));
+
+  if (elf_elfheader (abfd)->e_flags & EF_NANOMIPS_LINKRELAX)
+    fprintf (file, " [RELAXABLE]");
 
   if (elf_elfheader (abfd)->e_flags & EF_NANOMIPS_PIC)
     fprintf (file, " [PIC]");

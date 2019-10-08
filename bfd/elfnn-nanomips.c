@@ -28,7 +28,6 @@
 #include "libbfd.h"
 #include "elf-bfd.h"
 #include "elfxx-nanomips.h"
-#include "elf/mips-common.h"
 #include "elf/nanomips.h"
 
 #define ARCH_SIZE	NN
@@ -95,7 +94,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] = {
 	 MINUS_ONE,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-  /* 64 bit subtraction.  */
+  /* Symbol address negation, can be composed for label differences.  */
   HOWTO (R_NANOMIPS_NEG,	/* type */
 	 0,			/* rightshift */
 	 4,			/* size (0 = byte, 1 = short, 2 = long) */
@@ -199,6 +198,7 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] = {
 	 0x0,		        /* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
+  /* Reserved for IFUNC support.  */
   EMPTY_HOWTO (R_NANOMIPS_IRELATIVE),
 
   HOWTO (R_NANOMIPS_PC25_S1,	/* type */
@@ -615,20 +615,8 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] = {
 	 0x0000000f,		/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-  /* High 32 bits of 64-bit address.  */
-  HOWTO (R_NANOMIPS_HI32,	/* type */
-	 0,			/* rightshift */
-	 2,			/* size (0 = byte, 1 = short, 2 = long) */
-	 32,			/* bitsize */
-	 FALSE,			/* pc_relative */
-	 0,			/* bitpos */
-	 complain_overflow_dont, /* complain_on_overflow */
-	 _bfd_nanomips_elf_generic_reloc, /* special_function */
-	 "R_NANOMIPS_HI32",	/* name */
-	 FALSE,			/* partial_inplace */
-	 0,			/* src_mask */
-	 0xffffffff,		/* dst_mask */
-	 FALSE),		/* pcrel_offset */
+  /* Reserved for 64-bit ABI, HI32 relocation.  */
+  EMPTY_HOWTO (R_NANOMIPS_RESERVED1),
 
   /* Low 12 bits of GP-relative displacement.  */
   HOWTO (R_NANOMIPS_GPREL_LO12,	/* type */
@@ -860,8 +848,37 @@ static reloc_howto_type elfNN_nanomips_howto_table_rela[] = {
 	 0,			/* dst_mask */
 	 FALSE),		/* pcrel_offset */
 
-  EMPTY_HOWTO (75),
-  EMPTY_HOWTO (76),
+  /* Place-holder for compressed jump-table load instructions.  */
+  HOWTO (R_NANOMIPS_JUMPTABLE_LOAD, /* type */
+	 0,			/* rightshift */
+	 0,			/* size (0 = byte, 1 = short, 2 = long) */
+	 0,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont, /* complain_on_overflow */
+	 bfd_elf_generic_reloc, /* special handler */
+	 "R_NANOMIPS_JUMPTABLE_LOAD", /* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0,			/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
+  /* Place-holder for relaxing frame-register information.  */
+  HOWTO (R_NANOMIPS_FRAME_REG, /* type */
+	 0,			/* rightshift */
+	 0,			/* size (0 = byte, 1 = short, 2 = long) */
+	 0,			/* bitsize */
+	 FALSE,			/* pc_relative */
+	 0,			/* bitpos */
+	 complain_overflow_dont, /* complain_on_overflow */
+	 bfd_elf_generic_reloc, /* special handler */
+	 "R_NANOMIPS_FRAME_REG", /* name */
+	 FALSE,			/* partial_inplace */
+	 0,			/* src_mask */
+	 0,			/* dst_mask */
+	 FALSE),		/* pcrel_offset */
+
+
   EMPTY_HOWTO (77),
   EMPTY_HOWTO (78),
   EMPTY_HOWTO (79),
@@ -1197,7 +1214,6 @@ static const struct elf_reloc_map nanomips_reloc_map[] = {
   { BFD_RELOC_NANOMIPS_GOTPC_I32, R_NANOMIPS_GOTPC_I32 },
   { BFD_RELOC_NANOMIPS_I32, R_NANOMIPS_I32 },
   { BFD_RELOC_NANOMIPS_GPREL_HI20, R_NANOMIPS_GPREL_HI20 },
-  { BFD_RELOC_NANOMIPS_HI32, R_NANOMIPS_HI32 },
   { BFD_RELOC_NANOMIPS_PC_I32, R_NANOMIPS_PC_I32 },
   { BFD_RELOC_NANOMIPS_GPREL_I32, R_NANOMIPS_GPREL_I32 },
   { BFD_RELOC_NANOMIPS_GPREL17_S1, R_NANOMIPS_GPREL17_S1 },
@@ -1216,6 +1232,7 @@ static const struct elf_reloc_map nanomips_reloc_map[] = {
   { BFD_RELOC_NANOMIPS_SAVERESTORE, R_NANOMIPS_SAVERESTORE },
   { BFD_RELOC_NANOMIPS_JALR32, R_NANOMIPS_JALR32 },
   { BFD_RELOC_NANOMIPS_JALR16, R_NANOMIPS_JALR16 },
+  { BFD_RELOC_NANOMIPS_JUMPTABLE_LOAD, R_NANOMIPS_JUMPTABLE_LOAD },
 
   { BFD_RELOC_NANOMIPS_TLS_GD, R_NANOMIPS_TLS_GD },
   { BFD_RELOC_NANOMIPS_TLS_GD_I32, R_NANOMIPS_TLS_GD_I32 },

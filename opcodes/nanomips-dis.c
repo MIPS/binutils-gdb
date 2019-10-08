@@ -28,7 +28,6 @@
 
 #if !defined(EMBEDDED_ENV)
 #include "elf-bfd.h"
-#include "elf/mips.h"
 #include "elf/nanomips.h"
 #endif
 

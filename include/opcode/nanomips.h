@@ -587,11 +587,11 @@ opcode_48bit_p (const struct nanomips_opcode *mo)
 /* Modifies the HI register.  */
 #define INSN_WRITE_ACC		    0x00000200
 /* Instruction stores value into memory.  */
-#define INSN_STORE_MEMORY	    0x00000400
+#define INSN_STORE_MEMORY	0x00000400
 /* Instruction uses single precision floating point.  */
-#define FP_S			    0x00000800
+#define INSN_FP_S		0x00000800
 /* Instruction uses double precision floating point.  */
-#define FP_D			    0x00001000
+#define INSN_FP_D		0x00001000
 /* A user-defined instruction.  */
 #define INSN_UDI                    0x00002000
 /* Instruction is actually a macro.  It should be ignored by the
@@ -1088,12 +1088,12 @@ static const struct nanomips_cp0_name nanomips_cp0_3264r6[] = {
     {"$ddatahi", 	29, 3},
     {"$errorepc",	30, 0},
     {"$desave", 	31, 0},
-    {"$kscratch2",	31, 2},
-    {"$kscratch3",	31, 3},
-    {"$kscratch4",	31, 4},
-    {"$kscratch5",	31, 5},
-    {"$kscratch6",	31, 6},
-    {"$kscratch7",	31, 7},
+    {"$kscratch1",	31, 2},
+    {"$kscratch2",	31, 3},
+    {"$kscratch3",	31, 4},
+    {"$kscratch4",	31, 5},
+    {"$kscratch5",	31, 6},
+    {"$kscratch6",	31, 7},
     {NULL, 0, 0}
 };
 
@@ -1176,6 +1176,14 @@ static const struct nanomips_hwr_name nanomips_hwr_names_3264r6[] = {
 
 #define NANOMIPS_CP0SEL_PERFCNT 25
 #define NANOMIPS_HWRSEL_PERFCNT 4
+
+/* Don't care stubs in operand formats need special handling.  */
+#define NANOMIPS_MIN_DONTCARE_FMT 'A'
+#define NANOMIPS_MAX_DONTCARE_FMT 'Q'
+
+#define IS_NANOMIPS_DONTCARE_FMT(x) ((x)[0] == '-'			\
+				     && (x)[1] >= NANOMIPS_MIN_DONTCARE_FMT \
+				     && (x)[1] <= NANOMIPS_MAX_DONTCARE_FMT)
 
 /* These are the characters which may appears in the args field of a nanoMIPS
    instruction.  They appear in the order in which the fields appear when the
@@ -1319,8 +1327,24 @@ static const struct nanomips_hwr_name nanomips_hwr_names_3264r6[] = {
    "z"	must be zero register
 
    Used in special matching contexts:
-   "-a" 5-bit don't care at bit 16
-   "-b" 8-bit split don't care, 5@16 and 4@9
+   "-A"	5 don't care bits at bit 16
+   "-B"	1 don't care bit at bit 10
+   "-C"	12 don't care bits at bit 0
+   "-D"	1 don't care bit at bit 17
+   "-E"	3 don't care bits at bit 13
+   "-F"	10 don't care bits at bit 16
+   "-G"	8 split don't care bits, 3 at bit 9 and 5 at bit 7
+   "-H"	9 don't care bits at bit 17
+   "-I"	5 don't care bits at bit 21
+   "-J"	3 don't care bits at bit 23
+   "-K"	2 split don't care bits, 1 at bit 2 and 1 at bit 15
+   "-L"	3 don't care bits at bit 6
+   "-M"	3 don't care bits at bit 9
+   "-N"	6 don't care bits at bit 10
+   "-O"	1 don't care bit at bit 12
+   "-P"	8 split don't care bits, 4 at bit 10 and 4 at bit 22
+   "-Q"	1 don't care bit at bit 11
+
    "-i" Ignored register operand, internally used for macro expansions.
    "-m" Place-holder to copy 5 bits from bit 11 to bit 21
    "-n" Place-holder to copy 5 bits from bit 11 to bit 16
@@ -1414,8 +1438,8 @@ static const struct nanomips_hwr_name nanomips_hwr_names_3264r6[] = {
    following), for quick reference when adding more:
    ""
    ""
-   "                          "
-   "ab      i   mn            "
+   "ABCDEFGHIJKLMNOPQ         "
+   "        i   mn            "
 */
   
 extern const struct nanomips_operand *decode_nanomips_operand (const char *);

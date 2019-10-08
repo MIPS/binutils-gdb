@@ -3153,7 +3153,6 @@ to compensate for the borrow when the low bits are added.  */
   BFD_RELOC_NANOMIPS_I32,
   BFD_RELOC_NANOMIPS_GPREL_HI20,
   BFD_RELOC_NANOMIPS_GPREL_LO12,
-  BFD_RELOC_NANOMIPS_HI32,
   BFD_RELOC_NANOMIPS_TLS_GD,
   BFD_RELOC_NANOMIPS_TLS_GD_I32,
   BFD_RELOC_NANOMIPS_TLS_LD,
@@ -3193,6 +3192,7 @@ to compensate for the borrow when the low bits are added.  */
   BFD_RELOC_NANOMIPS_JALR32,
   BFD_RELOC_NANOMIPS_COPY,
   BFD_RELOC_NANOMIPS_SIGNED_9,
+  BFD_RELOC_NANOMIPS_JUMPTABLE_LOAD,
 
 
 /* Moxie ELF relocations.  */
