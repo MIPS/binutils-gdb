@@ -336,7 +336,7 @@ struct _sim_cpu {
 
 #define HI      (REGISTERS[70])
 #define LO      (REGISTERS[71])
-#define PCIDX	35
+#define PCIDX	(is_nanomips?32:35)
 #define PC      (REGISTERS[PCIDX])
 #define CAUSE   (REGISTERS[34])
 #define SRIDX   (32)
