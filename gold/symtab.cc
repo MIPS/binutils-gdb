@@ -522,6 +522,14 @@ Symbol::set_output_section(Output_section* os)
   switch (this->source_)
     {
     case CONSTANT_IN_OUTPUT_SECTION:
+      if (parameters->options().warn_redefined_symbols()
+         && this->output_section() != os
+         && os->is_data_size_valid ()
+         && this->output_section()->address() <= os->address())
+        gold_warning(_("Re-assigned symbol '%s' from section %s in section %s"),
+                      this->name(),this->output_section()->name(), os->name());
+      this->u1_.output_data = os;
+      break;
     case FROM_OBJECT:
     case IN_OUTPUT_DATA:
       gold_assert(this->output_section() == os);
