@@ -255,6 +255,15 @@ static struct cmd_list_element *shownanomipscmdlist = NULL;
 static const char *
 nanomips_register_name (struct gdbarch *gdbarch, int regno)
 {
+  /* GPR names for p32 and p64 ABIs.  */
+  static const char *const gpr_names[]  = {
+    "zero", "at", "t4", "t5", "a0", "a1", "a2", "a3",
+    "a4", "a5", "a6", "a7", "t0", "t1", "t2", "t3",
+    "s0", "s1", "s2", "s3", "s4", "s5", "s6", "s7",
+    "t8", "t9", "k0", "k1", "gp", "sp", "raw_fp", "ra"
+  };
+
+  const char *name;
   struct gdbarch_tdep *tdep = gdbarch_tdep (gdbarch);
 
   /* Map [gdbarch_num_regs .. 2*gdbarch_num_regs) onto the raw registers,
@@ -272,7 +281,16 @@ nanomips_register_name (struct gdbarch *gdbarch, int regno)
   if (regno < gdbarch_num_regs (gdbarch))
     return "";
 
-  return tdesc_register_name (gdbarch, rawnum);
+  name = tdesc_register_name (gdbarch, rawnum);
+
+  if (rawnum >= 0 && rawnum < 32)
+    {
+      gdb_assert (name != NULL && name[0] != 0);
+      gdb_assert ((sizeof (gpr_names) / sizeof (gpr_names[0])) == 32);
+      return gpr_names[rawnum];
+    }
+
+  return name;
 }
 
 /* Return the groups that a nanoMIPS register can be categorised into.  */
