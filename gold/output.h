@@ -3277,6 +3277,8 @@ class Output_fill_debug_line : public Output_fill
   static const size_t header_length = 19;
 };
 
+class Input_section_container_base;
+
 // An output section.  We don't expect to have too many output
 // sections, so we don't bother to do a template on the size.
 
@@ -3751,7 +3753,8 @@ class Output_section : public Output_data
   {
    public:
     Input_section()
-      : shndx_(0), p2align_(0), data_size_(0), section_order_index_(0)
+      : shndx_(0), p2align_(0), data_size_(0), section_order_index_(0),
+      script_index_(0)
     {
       this->u1_.object = NULL;
     }
@@ -3784,6 +3787,14 @@ class Output_section : public Output_data
     {
       this->u1_.poris = psection;
     }
+
+    size_t
+    script_index() const
+    { return this->script_index_; }
+
+    void
+    set_script_index(size_t i) const
+    { this->script_index_ = i; }
 
     unsigned int
     section_order_index() const
@@ -3960,6 +3971,7 @@ class Output_section : public Output_data
     // The line number of the pattern it matches in the --section-ordering-file
     // file.  It is 0 if does not match any pattern.
     unsigned int section_order_index_;
+    mutable size_t script_index_;
   };
 
   // Store the list of input sections for this Output_section into the
@@ -3971,6 +3983,10 @@ class Output_section : public Output_data
   uint64_t
   get_input_sections(uint64_t address, const std::string& fill,
 		     std::list<Input_section>*);
+
+  uint64_t
+  get_input_sections(uint64_t address, const std::string& fill,
+		     Input_section_container_base* container);
 
   // Add a script input section.  A script input section can either be
   // a plain input section or a sub-class of Output_section_data.
@@ -4616,6 +4632,27 @@ class Output_section : public Output_data
   off_t patch_space_;
   // Associated relocation section, when emitting relocations.
   Output_section* reloc_section_;
+};
+
+
+class Input_section_container_base
+{
+public:
+  virtual ~Input_section_container_base()
+  {}
+  virtual void insert(const Output_section::Input_section& input_section) = 0;
+};
+
+class Input_section_container_list : public Input_section_container_base
+{
+public:
+  Input_section_container_list(std::list<Output_section::Input_section>*
+			       container);
+
+  void insert(const Output_section::Input_section& input_section);
+
+private:
+  std::list<Output_section::Input_section>* container_;
 };
 
 // An output segment.  PT_LOAD segments are built from collections of

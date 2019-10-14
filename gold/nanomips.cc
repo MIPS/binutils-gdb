@@ -2135,6 +2135,12 @@ class Target_nanomips : public Sized_target<size, big_endian>
     nanomips_insn_property_table = new Nanomips_insn_property_table();
   }
 
+  void
+  do_get_special_sections(Unordered_set<std::string>& sections) const
+  {
+    sections.insert(".nanoMIPS.abiflags");
+  }
+
  private:
   // The class which scans relocations.
   class Scan

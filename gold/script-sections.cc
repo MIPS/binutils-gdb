@@ -28,6 +28,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <queue>
 #include <fnmatch.h>
 
 #include "parameters.h"
@@ -43,6 +44,641 @@
 
 namespace gold
 {
+
+class Output_section_element_input;
+
+// Return whether STRING matches PATTERN, where IS_WILDCARD_PATTERN
+// indicates whether this is a wildcard pattern.
+static inline bool
+match(const char* string, const char* pattern, bool is_wildcard_pattern)
+{
+  return (is_wildcard_pattern
+	  ? fnmatch(pattern, string, 0) == 0
+	  : strcmp(string, pattern) == 0);
+}
+
+// Information we use to sort the input sections.
+
+class Input_section_info
+{
+ public:
+  Input_section_info(const Output_section::Input_section& input_section)
+    : input_section_(input_section), relobj_(NULL), section_name_(),
+      size_(0), addralign_(1), seq_num_(0)
+  {
+    if (this->input_section_.is_input_section()
+        || this->input_section_.is_relaxed_input_section())
+    {
+      Relobj* relobj = this->input_section_.relobj();
+      unsigned int shndx = this->input_section_.shndx();
+
+      const Task* task = reinterpret_cast<const Task*>(-1);
+      Task_lock_obj<Object> tl(task, relobj);
+
+      if (this->input_section_.is_relaxed_input_section())
+      {
+        this->size_ =
+          this->input_section_.relaxed_input_section()->current_data_size();
+        this->addralign_ =
+          this->input_section_.relaxed_input_section()->addralign();
+      }
+      else
+      {
+        this->size_ = relobj->section_size(shndx);
+        this->addralign_ = relobj->section_addralign(shndx);
+      }
+
+      this->section_name_ = relobj->section_name(shndx);
+      this->relobj_ = relobj;
+    }
+    else
+    {
+      Output_section_data* posd = this->input_section_.output_section_data();
+      this->size_ = posd->current_data_size();
+      this->addralign_ = posd->addralign();
+      this->section_name_ = posd->section_name();
+      this->relobj_ = posd->relobj();
+    }
+  }
+
+  Input_section_info(const Input_section_info& isi) :
+    input_section_(isi.input_section_), relobj_(isi.relobj_),
+    section_name_(isi.section_name_), size_(isi.size_),
+    addralign_(isi.addralign_), seq_num_(isi.seq_num_)
+  { }
+
+  // Return the simple input section.
+  const Output_section::Input_section&
+  input_section() const
+  { return this->input_section_; }
+
+  // Return the section name.
+  const std::string&
+  section_name() const
+  { return this->section_name_; }
+
+  // Set the section name.
+  void
+  set_section_name(const std::string& name)
+  {
+    if (is_compressed_debug_section(name.c_str()))
+      this->section_name_ = corresponding_uncompressed_section_name(name);
+    else
+      this->section_name_ = name;
+  }
+
+  // Return the section size.
+  uint64_t
+  size() const
+  { return this->size_; }
+
+  // Set the section size.
+  void
+  set_size(uint64_t size)
+  { this->size_ = size; }
+
+  // Return the address alignment.
+  uint64_t
+  addralign() const
+  { return this->addralign_; }
+
+  // Set the address alignment.
+  void
+  set_addralign(uint64_t addralign)
+  { this->addralign_ = addralign; }
+
+  // Set the object.
+  void
+  set_relobj(const Relobj* relobj)
+  { this->relobj_ = relobj; }
+
+  // Return the object.
+  const Relobj*
+  relobj() const
+  { return this->relobj_; }
+
+  void
+  set_seq_num(size_t seq_num)
+  { this->seq_num_ = seq_num; }
+
+  size_t
+  seq_num() const
+  { return this->seq_num_; }
+
+ private:
+  // Input section, can be a relaxed section.
+  Output_section::Input_section input_section_;
+  // The object.
+  const Relobj* relobj_;
+  // Name of the section.
+  std::string section_name_;
+  // Section size.
+  uint64_t size_;
+  // Address alignment.
+  uint64_t addralign_;
+  // Sequential number of input section, counted as they come
+  size_t seq_num_;
+};
+
+
+// A file name pattern.
+class Filename_pattern
+{
+ public:
+  Filename_pattern(const char* name, size_t length);
+
+  // Return whether object file name match this pattern.
+  bool
+  match_file_name(const Relobj* relobj) const;
+
+
+  bool is_wildcard() const
+  {
+    return this->filename_is_wildcard_ || this->archivename_is_wildcard_;
+  }
+
+  // Print for debugging.
+  void
+  print(FILE* f) const
+  {
+    if (this->is_bfd_archive_path_)
+      fprintf(f, "%s:", this->archivename_.c_str());
+    fprintf(f, "%s", this->filename_.c_str());
+  }
+
+ private:
+  // The file name pattern.  If this is the empty string, we match all
+  // files.
+  std::string filename_;
+  // The archive name pattern.
+  std::string archivename_;
+  // Whether this pattern is in the form of 'archive:file'.
+  bool is_bfd_archive_path_;
+  // Whether the file name pattern is a wildcard.
+  bool filename_is_wildcard_;
+  // Whether the archive name pattern is a wildcard.
+  bool archivename_is_wildcard_;
+};
+
+
+// An input section pattern.
+class Input_section_pattern
+{
+public:
+  Input_section_pattern(const char* pattern, size_t patternlen,
+			Sort_wildcard sort, bool keep,
+			Output_section_element_input* host, size_t index,
+			size_t local_index) : pattern_(pattern, patternlen),
+    pattern_is_wildcard_(is_wildcard_string(this->pattern_.c_str())),
+    sort_(sort), keep_(keep), host_(host), index_(index),
+    local_index_(local_index)
+  { }
+
+  std::string
+  pattern() const
+  { return this->pattern_; }
+
+  bool
+  pattern_is_wildcard() const
+  { return this->pattern_is_wildcard_; }
+
+  Sort_wildcard
+  sort() const
+  { return this->sort_; }
+
+  bool
+  keep() const
+  { return this->keep_; }
+
+  size_t
+  index() const
+  { return this->index_; }
+
+  size_t
+  local_index() const
+  { return this->local_index_; }
+
+  void
+  add_matched_input_section(const std::string& section, const Relobj* relobj,
+      size_t pattern_index);
+
+  bool
+  match_file_name(const Relobj* relobj) const;
+
+  bool
+  match(const std::string& section_name, const Relobj* relobj) const
+  {
+    if (this->match_file_name(relobj) == false)
+      return false;
+
+    return gold::match(section_name.c_str(), this->pattern_.c_str(),
+        this->pattern_is_wildcard_);
+  }
+
+private:
+  std::string pattern_;
+  bool pattern_is_wildcard_;
+  Sort_wildcard sort_;
+  bool keep_;
+  Output_section_element_input* host_;
+  size_t index_;
+  size_t local_index_;
+};
+
+template <typename T>
+class Tree
+{
+  class Node
+  {
+  public:
+    Node(const std::string& id, const T& val) : id_(id), value_(val)
+    { }
+
+    Node(const std::string& id) : id_(id)
+    { }
+
+    ~Node()
+    { }
+
+    void
+    swap(const T& val)
+    { this->value_ = val; }
+
+    const T&
+    operator*() const
+    { return this->value_; }
+
+    T&
+    operator*()
+    { return this->value_; }
+
+    const T*
+    operator->() const
+    { return &this->value_; }
+
+    T*
+    operator->()
+    { return &this->value_; }
+
+
+    std::string
+    key() const
+    { return this->id_; }
+
+    void
+    add_child(Node* child)
+    { this->children_.push_back(child); }
+
+    const std::vector<Node*>*
+    get_children() const
+    { return &this->children_; }
+
+
+  private:
+    std::string id_;
+    T value_;
+    std::vector<Node*> children_;
+  };
+
+public:
+  class Accessor
+  {
+  public:
+    Accessor(Tree<T>::Node* node) : node_addr_(node)
+    { }
+
+    T&
+    operator*()
+    { return this->node_addr_->operator*(); }
+
+    const T*
+    operator*() const
+    { return this->node_addr_->operator*(); }
+
+    T*
+    operator->()
+    { return this->node_addr_->operator->(); }
+
+    const T&
+    operator->() const
+    { return this->node_addr_->operator->(); }
+
+    std::string
+    key() const
+    { return this->node_addr_->key(); }
+
+    bool
+    operator==(const Accessor& other)
+    { return this->node_addr_ == other.node_addr_; }
+
+  private:
+    Tree<T>::Node* node_addr_;
+  };
+
+  static Accessor nfound;
+
+  Tree() : root_("")
+  { this->tree_[""] = &this->root_; }
+
+  Accessor
+  get_node(const std::string& key)
+  {
+    if (this->tree_.find(key) == this->tree_.end())
+      return this->nfound;
+
+    return Accessor(this->tree_.find(key)->second);
+  }
+
+  void
+  get_children(const std::string& key, std::vector<Accessor>& children) const
+  {
+    typename Unordered_map<std::string, Node*>::const_iterator node_it =
+      this->tree_.find(key);
+
+    if (node_it == this->tree_.end())
+      return;
+
+    const std::vector<Node*>* nodes = node_it->second->get_children();
+    for (typename std::vector<Node*>::const_iterator it = nodes->begin();
+        it != nodes->end();
+        ++it)
+      children.push_back(Accessor(*it));
+  }
+
+  bool
+  add_child(const std::string& parent, const std::string& key, const T& data)
+  {
+    typename Unordered_map<std::string, Node*>::iterator it =
+      this->tree_.find(parent);
+
+    if (it == this->tree_.end())
+      return false;
+
+    Node* parent_node = it->second;
+    Node* child = new Node(key, data);
+    parent_node->add_child(child);
+
+    this->tree_[parent + key] = child;
+
+    return true;
+  }
+
+private:
+  Node root_;
+  Unordered_map<std::string, Node*> tree_;
+};
+
+
+template <typename T>
+typename Tree<T>::Accessor Tree<T>::nfound(NULL);
+
+
+class Output_section_pattern_matcher
+{
+public:
+  Output_section_pattern_matcher() : pattern_seq_num_(0),
+    first_wildcard_pattern_index_(~0)
+  { }
+
+  ~Output_section_pattern_matcher()
+  { }
+
+  Input_section_pattern*
+  add_pattern(const char* pattern_str, size_t pattern_str_len,
+      const Sort_wildcard& sort, bool keep, size_t local_index,
+      Output_section_element_input* host)
+  {
+    Input_section_pattern* pattern = new Input_section_pattern(pattern_str,
+        pattern_str_len, sort, keep, host, this->pattern_seq_num_, local_index);
+
+    if (pattern->pattern_is_wildcard())
+      {
+	this->add_wildcard_pattern(pattern);
+	if (this->pattern_seq_num_ < this->first_wildcard_pattern_index_ )
+	  this->first_wildcard_pattern_index_ = this->pattern_seq_num_;
+      }
+    else
+      this->add_regular_pattern(pattern);
+
+    ++this->pattern_seq_num_;
+
+    return pattern;
+  }
+
+  bool
+  match_input_section(const std::string& section, const Relobj* relobj,
+      bool* keep, bool discard)
+  {
+    std::vector<std::string> tokens;
+    std::string s = section;
+
+    size_t pos;
+    while((pos = s.find_first_of(".", 1)) != std::string::npos)
+    {
+      std::string t = s.substr(0, pos);
+      tokens.push_back(s.substr(0, pos));
+      s.erase(0, pos);
+    }
+    tokens.push_back(s);
+
+    size_t min = ~(0);
+    Input_section_pattern* matched = NULL;
+    Unordered_map<std::string, Pattern_list_type>::const_iterator regular_it =
+      this->regular_patterns_.find(section);
+    if (regular_it != this->regular_patterns_.end())
+    {
+      for (Pattern_list_type::const_iterator it = regular_it->second.begin();
+          it != regular_it->second.end();
+          ++it)
+      {
+        Input_section_pattern* ptr = *it;
+        if (ptr->index() < min && ptr->match_file_name(relobj))
+        {
+          min = ptr->index();
+          matched = ptr;
+          break;
+        }
+      }
+    }
+
+    if (min >= this->first_wildcard_pattern_index_)
+    {
+      std::vector<Tree<Pattern_list_type>::Accessor> matched_nodes;
+
+      size_t level = 0;
+      size_t processed_in_row = 0;
+      size_t columns = 1;
+      size_t next_columns = 0;
+      std::queue<std::string> token_queue;
+      token_queue.push("");
+      while(level < tokens.size() && token_queue.size())
+      {
+        std::string processing_token = token_queue.front();
+        token_queue.pop();
+
+        std::vector<Tree<Pattern_list_type>::Accessor> children;
+        this->wildcard_patterns_.get_children(processing_token, children);
+
+        std::string target_token;
+          target_token = tokens[level];
+
+        for (std::vector<Tree<Pattern_list_type>::Accessor>::iterator it =
+            children.begin();
+            it != children.end();
+            ++it)
+        {
+          if (match(target_token.c_str(), it->key().c_str(), true))
+          {
+            token_queue.push(processing_token + it->key());
+            ++next_columns;
+
+            if ((*it)->size())
+              matched_nodes.push_back(*it);
+          }
+        }
+
+        if (++processed_in_row == columns)
+        {
+          columns = next_columns;
+          next_columns = 0;
+          processed_in_row = 0;
+          ++level;
+        }
+      }
+
+      for (std::vector<Tree<Pattern_list_type>::Accessor>::iterator it =
+          matched_nodes.begin();
+          it != matched_nodes.end();
+          ++it)
+      {
+        for (Pattern_list_type::iterator pattern_it = (*it)->begin();
+            pattern_it != (*it)->end();
+            ++pattern_it)
+        {
+          if ((*pattern_it)->index() < min && (*pattern_it)->match(section,relobj))
+          {
+            min = (*pattern_it)->index();
+            matched =  *pattern_it;
+          }
+        }
+      }
+    }
+
+    if (matched != NULL)
+    {
+      if (!discard)
+        matched->add_matched_input_section(section, relobj, matched->local_index());
+
+      *keep = matched->keep();
+      return true;
+    }
+
+    return false;
+  }
+
+
+
+private:
+  void add_regular_pattern(Input_section_pattern* pattern)
+  { this->regular_patterns_[pattern->pattern()].push_back(pattern); }
+
+  void add_wildcard_pattern(Input_section_pattern* pattern)
+  {
+    std::vector<std::string> tokens;
+    std::string pattern_str = pattern->pattern();
+
+    size_t pos;
+    while((pos = pattern_str.find_first_of(".", 1)) != std::string::npos)
+    {
+      tokens.push_back(pattern_str.substr(0, pos));
+      pattern_str.erase(0, pos);
+    }
+
+    tokens.push_back(pattern_str);
+
+    std::string parent;
+    for (std::vector<std::string>::const_iterator it = tokens.begin();
+        it != tokens.end();
+        ++it)
+    {
+      std::string child = parent + (*it);
+      if (this->wildcard_patterns_.get_node(child) ==
+         Tree<Pattern_list_type>::nfound)
+      {
+        const Pattern_list_type data = Pattern_list_type();
+        this->wildcard_patterns_.add_child(parent, *it, data);
+      }
+
+      parent = child;
+    }
+
+    Tree<Pattern_list_type>::Accessor node =
+      this->wildcard_patterns_.get_node(pattern->pattern());
+    node->push_back(pattern);
+  }
+
+  typedef std::vector<Input_section_pattern*> Pattern_list_type;
+  size_t pattern_seq_num_;
+  Unordered_map<std::string, Pattern_list_type> regular_patterns_;
+  Tree<Pattern_list_type> wildcard_patterns_;
+  size_t first_wildcard_pattern_index_;
+};
+
+typedef std::pair<std::string, const Relobj*> Input_section_pair_type;
+
+struct Input_sections_hash
+{
+  size_t
+  operator()(const Input_section_pair_type& input) const
+  {
+    return reinterpret_cast<uintptr_t>(input.second) ^
+      string_hash<char>(input.first.c_str());
+  }
+};
+
+class Input_section_container_map : public Input_section_container_base
+{
+public:
+  Input_section_container_map(Unordered_map<Input_section_pair_type,
+      Output_section::Input_section, Input_sections_hash>* container)
+    : container_(container), index_(0)
+  { parameters->target().get_special_sections(this->special_sections_); }
+
+  void insert(const Output_section::Input_section& input_section)
+  {
+    input_section.set_script_index(this->index_);
+    ++this->index_;
+
+    if (input_section.is_input_section() ||
+	input_section.is_relaxed_input_section())
+    {
+      Relobj* relobj = input_section.relobj();
+      unsigned int shndx = input_section.shndx();
+
+      Input_section_pair_type key(relobj->section_name(shndx), relobj);
+      this->container_->operator[](key) = input_section;
+    }
+    else
+    {
+      Output_section_data* posd = input_section.output_section_data();
+
+      const Relobj* relobj = posd->relobj();
+      if (this->special_sections_.find(posd->section_name())
+          != this->special_sections_.end())
+        relobj = NULL;
+
+      Input_section_pair_type key(posd->section_name(), relobj);
+      gold_assert(this->container_->find(key) == this->container_->end());
+      this->container_->operator[](key) = input_section;
+    }
+  }
+
+private:
+  Unordered_map<Input_section_pair_type, Output_section::Input_section,
+    Input_sections_hash>* container_;
+  Unordered_set<std::string> special_sections_;
+  size_t index_;
+};
 
 // A region of memory.
 class Memory_region
@@ -852,6 +1488,10 @@ class Output_section_element
   // A list of input sections.
   typedef std::list<Output_section::Input_section> Input_section_list;
 
+  // A map of input sections.
+  typedef Unordered_map<Input_section_pair_type, Output_section::Input_section,
+          Input_sections_hash> Input_section_map;
+
   Output_section_element()
   { }
 
@@ -878,18 +1518,12 @@ class Output_section_element
   finalize_symbols(Symbol_table*, const Layout*, uint64_t*, Output_section**)
   { }
 
-  // Return whether this element matches RELOBJ name and SECTION_NAME.
-  // The only real implementation is in Output_section_element_input.
-  virtual bool
-  match_name(const Relobj*, const char*, bool *) const
-  { return false; }
-
   // Set section addresses.  This includes applying assignments if the
   // expression is an absolute value.
   virtual void
   set_section_addresses(Symbol_table*, Layout*, Output_section*, uint64_t,
 			uint64_t*, uint64_t*, Output_section**, std::string*,
-			Input_section_list*)
+			Input_section_map*)
   { }
 
   // Print the element for debugging purposes.
@@ -900,6 +1534,12 @@ class Output_section_element
   virtual void
   print_to_mapfile(Mapfile*) const
   { }
+
+  // See how many patterns are specified in one pattern line.
+  // Real implementation is only in Output_section_element_input
+  virtual size_t
+  pattern_count() const
+  { return 0; }
 
  protected:
   // Return a fill string that is LENGTH bytes long, filling it with
@@ -1001,7 +1641,7 @@ class Output_section_element_assignment : public Output_section_element
   set_section_addresses(Symbol_table* symtab, Layout* layout,
 			Output_section* os, uint64_t, uint64_t* dot_value,
 			uint64_t*, Output_section** dot_section, std::string*,
-			Input_section_list*)
+			Input_section_map*)
   {
     this->assignment_.set_if_absolute(symtab, layout, true, *dot_value,
 				      *dot_section);
@@ -1067,7 +1707,7 @@ class Output_section_element_dot_assignment : public Output_section_element
   set_section_addresses(Symbol_table* symtab, Layout* layout, Output_section*,
 			uint64_t, uint64_t* dot_value, uint64_t*,
 			Output_section** dot_section, std::string*,
-			Input_section_list*);
+			Input_section_map*);
 
   // Print for debugging.
   void
@@ -1112,7 +1752,7 @@ Output_section_element_dot_assignment::set_section_addresses(
     uint64_t* dot_alignment,
     Output_section** dot_section,
     std::string* fill,
-    Input_section_list*)
+    Input_section_map*)
 {
   uint64_t next_dot = this->val_->eval_with_dot(symtab, layout, false,
 						*dot_value, *dot_section,
@@ -1307,7 +1947,7 @@ class Output_section_element_data : public Output_section_element
   void
   set_section_addresses(Symbol_table*, Layout*, Output_section*, uint64_t,
 			uint64_t* dot_value, uint64_t*, Output_section**,
-			std::string*, Input_section_list*);
+			std::string*, Input_section_map*);
 
   // Print for debugging.
   void
@@ -1334,7 +1974,7 @@ Output_section_element_data::set_section_addresses(
     uint64_t*,
     Output_section** dot_section,
     std::string*,
-    Input_section_list*)
+    Input_section_map*)
 {
   gold_assert(os != NULL);
   Output_data_expression* expression =
@@ -1390,7 +2030,7 @@ class Output_section_element_fill : public Output_section_element
   set_section_addresses(Symbol_table* symtab, Layout* layout, Output_section*,
 			uint64_t, uint64_t* dot_value, uint64_t*,
 			Output_section** dot_section,
-			std::string* fill, Input_section_list*)
+			std::string* fill, Input_section_map*)
   {
     Output_section* fill_section;
     uint64_t fill_val = this->val_->eval_with_dot(symtab, layout, false,
@@ -1423,7 +2063,15 @@ class Output_section_element_fill : public Output_section_element
 class Output_section_element_input : public Output_section_element
 {
  public:
-  Output_section_element_input(const Input_section_spec* spec, bool keep);
+  Output_section_element_input(const Input_section_spec* spec, bool keep,
+      Output_section_pattern_matcher* pattern_matcher);
+
+  void add_matched_section(const std::string& section, const Relobj* relobj,
+      size_t pattern_index)
+  {
+    Input_section_pair_type key(section, relobj);
+    this->matched_sections_.operator[](key) = pattern_index;
+  }
 
   // Finalize symbols--just update the value of the dot symbol.
   void
@@ -1434,89 +2082,30 @@ class Output_section_element_input : public Output_section_element
     *dot_section = this->final_dot_section_;
   }
 
-  // See whether we match RELOBJ file name, and SECTION_NAME
-  // as an input section.  If we do then also indicate whether the
-  // section should be KEPT.
-  bool
-  match_name(const Relobj* relobj, const char* section_name, bool* keep) const;
+  // See how many patterns are specified in one pattern line which is
+  // represented by an object of this class.
+  size_t
+  pattern_count() const
+  { return this->input_section_patterns_.size(); }
 
   // Set the section address.
   void
   set_section_addresses(Symbol_table* symtab, Layout* layout, Output_section*,
-			uint64_t subalign, uint64_t* dot_value, uint64_t*,
-			Output_section**, std::string* fill,
-			Input_section_list*);
+			uint64_t subalign, uint64_t* dot_value, uint64_t*, Output_section**,
+			std::string* fill, Input_section_map*);
 
   // Print for debugging.
   void
   print(FILE* f) const;
-
- private:
-  // An input section pattern.
-  struct Input_section_pattern
-  {
-    std::string pattern;
-    bool pattern_is_wildcard;
-    Sort_wildcard sort;
-
-    Input_section_pattern(const char* patterna, size_t patternlena,
-			  Sort_wildcard sorta)
-      : pattern(patterna, patternlena),
-	pattern_is_wildcard(is_wildcard_string(this->pattern.c_str())),
-	sort(sorta)
-    { }
-  };
-
-  typedef std::vector<Input_section_pattern> Input_section_patterns;
-
-  // A file name pattern.
-  class Filename_pattern
-  {
-   public:
-    Filename_pattern(const char* name, size_t length);
-
-    // Return whether object file name match this pattern.
-    bool
-    match_file_name(const Relobj* relobj) const;
-
-    // Print for debugging.
-    void
-    print(FILE* f) const
-    {
-      if (this->is_bfd_archive_path_)
-	fprintf(f, "%s:", this->archivename_.c_str());
-      fprintf(f, "%s", this->filename_.c_str());
-    }
-
-   private:
-    // The file name pattern.  If this is the empty string, we match all
-    // files.
-    std::string filename_;
-    // The archive name pattern.
-    std::string archivename_;
-    // Whether this pattern is in the form of 'archive:file'.
-    bool is_bfd_archive_path_;
-    // Whether the file name pattern is a wildcard.
-    bool filename_is_wildcard_;
-    // Whether the archive name pattern is a wildcard.
-    bool archivename_is_wildcard_;
-  };
-
-  typedef std::vector<Filename_pattern> Filename_exclusions;
-
-  // Return whether STRING matches PATTERN, where IS_WILDCARD_PATTERN
-  // indicates whether this is a wildcard pattern.
-  static inline bool
-  match(const char* string, const char* pattern, bool is_wildcard_pattern)
-  {
-    return (is_wildcard_pattern
-	    ? fnmatch(pattern, string, 0) == 0
-	    : strcmp(string, pattern) == 0);
-  }
-
   // See if we match a object file name.
   bool
   match_file_name(const Relobj* relobj) const;
+
+ private:
+  typedef std::vector<Input_section_pattern*> Input_section_patterns;
+  typedef std::vector<Filename_pattern> Filename_exclusions;
+  typedef Unordered_map<Input_section_pair_type, size_t, Input_sections_hash>
+    Matched_sections_map_type;
 
   // The file name pattern.
   Filename_pattern filename_pattern_;
@@ -1534,11 +2123,21 @@ class Output_section_element_input : public Output_section_element
   // The section where dot is defined after including all matching
   // sections.
   Output_section* final_dot_section_;
+
+  // Flag whether we have any patterns with SORT specification for this
+  // input pattern element.
+  bool any_patterns_with_sort_;
+
+  // Map of all matched input sections for this pattern element.
+  // Key is unique ID of an input section, which is a pair of Relobj* and
+  // section name string, and value is local pattern index(relative to
+  // this output section).
+  Matched_sections_map_type matched_sections_;
 };
 
 // Construct Filename_pattern.
 
-Output_section_element_input::Filename_pattern::Filename_pattern(
+Filename_pattern::Filename_pattern(
     const char* name,
     size_t length)
   : filename_(), archivename_(), is_bfd_archive_path_(false),
@@ -1570,7 +2169,7 @@ Output_section_element_input::Filename_pattern::Filename_pattern(
 // Return whether object file name match this pattern.
 
 bool
-Output_section_element_input::Filename_pattern::match_file_name(
+Filename_pattern::match_file_name(
     const Relobj* relobj) const
 {
   const char* file_name = NULL;
@@ -1642,14 +2241,16 @@ Output_section_element_input::Filename_pattern::match_file_name(
 
 Output_section_element_input::Output_section_element_input(
     const Input_section_spec* spec,
-    bool keep)
+    bool keep,
+    Output_section_pattern_matcher* pattern_matcher)
   : filename_pattern_(spec->file.name.value, spec->file.name.length),
     filename_sort_(spec->file.sort),
     filename_exclusions_(),
     input_section_patterns_(),
     keep_(keep),
     final_dot_value_(0),
-    final_dot_section_(NULL)
+    final_dot_section_(NULL),
+    any_patterns_with_sort_(false)
 {
   if (spec->input_sections.exclude != NULL)
     {
@@ -1657,19 +2258,27 @@ Output_section_element_input::Output_section_element_input(
 	     spec->input_sections.exclude->begin();
 	   p != spec->input_sections.exclude->end();
 	   ++p)
-	this->filename_exclusions_.push_back(Filename_pattern(p->c_str(),
-							      p->length()));
+	      this->filename_exclusions_.push_back(Filename_pattern(p->c_str(),
+ 							      p->length()));
     }
 
   if (spec->input_sections.sections != NULL)
     {
-      Input_section_patterns& isp(this->input_section_patterns_);
+      size_t i = 0;
       for (String_sort_list::const_iterator p =
 	     spec->input_sections.sections->begin();
 	   p != spec->input_sections.sections->end();
-	   ++p)
-	isp.push_back(Input_section_pattern(p->name.value, p->name.length,
-					    p->sort));
+	   ++p, ++i)
+      {
+        if (p->sort != SORT_WILDCARD_NONE)
+          this->any_patterns_with_sort_ = true;
+
+        Input_section_pattern* pattern =
+          pattern_matcher->add_pattern(p->name.value, p->name.length, p->sort,
+				       this->keep_, i, this);
+
+        this->input_section_patterns_.push_back(pattern);
+      }
     }
 }
 
@@ -1698,109 +2307,6 @@ Output_section_element_input::match_file_name(const Relobj* relobj) const
   return true;
 }
 
-// See whether we match RELOBJ file name and SECTION_NAME.  If we do then
-// KEEP indicates whether the section should survive garbage collection.
-
-bool
-Output_section_element_input::match_name(const Relobj* relobj,
-					 const char* section_name,
-					 bool *keep) const
-{
-  if (!this->match_file_name(relobj))
-    return false;
-
-  *keep = this->keep_;
-
-  // If there are no section name patterns, then we match.
-  if (this->input_section_patterns_.empty())
-    return true;
-
-  // See whether we match the section name patterns.
-  for (Input_section_patterns::const_iterator p =
-	 this->input_section_patterns_.begin();
-       p != this->input_section_patterns_.end();
-       ++p)
-    {
-      if (match(section_name, p->pattern.c_str(), p->pattern_is_wildcard))
-	return true;
-    }
-
-  // We didn't match any section names, so we didn't match.
-  return false;
-}
-
-// Information we use to sort the input sections.
-
-class Input_section_info
-{
- public:
-  Input_section_info(const Output_section::Input_section& input_section)
-    : input_section_(input_section), relobj_(NULL), section_name_(),
-      size_(0), addralign_(1)
-  { }
-
-  // Return the simple input section.
-  const Output_section::Input_section&
-  input_section() const
-  { return this->input_section_; }
-
-  // Return the section name.
-  const std::string&
-  section_name() const
-  { return this->section_name_; }
-
-  // Set the section name.
-  void
-  set_section_name(const std::string& name)
-  {
-    if (is_compressed_debug_section(name.c_str()))
-      this->section_name_ = corresponding_uncompressed_section_name(name);
-    else
-      this->section_name_ = name;
-  }
-
-  // Return the section size.
-  uint64_t
-  size() const
-  { return this->size_; }
-
-  // Set the section size.
-  void
-  set_size(uint64_t size)
-  { this->size_ = size; }
-
-  // Return the address alignment.
-  uint64_t
-  addralign() const
-  { return this->addralign_; }
-
-  // Set the address alignment.
-  void
-  set_addralign(uint64_t addralign)
-  { this->addralign_ = addralign; }
-
-  // Set the object.
-  void
-  set_relobj(const Relobj* relobj)
-  { this->relobj_ = relobj; }
-
-  // Return the object.
-  const Relobj*
-  relobj() const
-  { return this->relobj_; }
-
- private:
-  // Input section, can be a relaxed section.
-  Output_section::Input_section input_section_;
-  // The object.
-  const Relobj* relobj_;
-  // Name of the section.
-  std::string section_name_;
-  // Section size.
-  uint64_t size_;
-  // Address alignment.
-  uint64_t addralign_;
-};
 
 // A class to sort the input sections.
 
@@ -1899,6 +2405,15 @@ Input_section_sorter::operator()(const Input_section_info& isi1,
   return false;
 }
 
+// Helper function used by std::sort in order to sort sections based on their
+// input order. This is necessary when we have a pattern line with more than
+// one patterns( *(.text.* .data.*)). In this case, we need to layout input
+// sections as they come: for example, if we have [.text.first, .data.first,
+// text.second, .data.second], output layour for this pattern must be the same.
+static bool
+sort_f (const Input_section_info& i, const Input_section_info& j)
+{ return (i.seq_num() < j.seq_num()); }
+
 // Set the section address.  Look in INPUT_SECTIONS for sections which
 // match this spec, sort them as specified, and add them to the output
 // section.
@@ -1913,7 +2428,7 @@ Output_section_element_input::set_section_addresses(
     uint64_t*,
     Output_section** dot_section,
     std::string* fill,
-    Input_section_list* input_sections)
+    Input_section_map* input_sections)
 {
   // We build a list of sections which match each
   // Input_section_pattern.
@@ -1934,100 +2449,51 @@ Output_section_element_input::set_section_addresses(
   // on some, but not all, of the patterns, like this:
   //   *(SORT_BY_NAME(.foo) .bar)
   // We do not attempt to match Gnu ld behavior in this case.
-
   typedef std::vector<std::vector<Input_section_info> > Matching_sections;
   size_t input_pattern_count = this->input_section_patterns_.size();
   size_t bin_count = 1;
-  bool any_patterns_with_sort = false;
-  for (size_t i = 0; i < input_pattern_count; ++i)
-    {
-      const Input_section_pattern& isp(this->input_section_patterns_[i]);
-      if (isp.sort != SORT_WILDCARD_NONE)
-	any_patterns_with_sort = true;
-    }
-  if (any_patterns_with_sort)
+
+  if (this->any_patterns_with_sort_)
     bin_count = input_pattern_count;
   Matching_sections matching_sections(bin_count);
 
-  // Look through the list of sections for this output section.  Add
-  // each one which matches to one of the elements of
-  // MATCHING_SECTIONS.
+  // Look through the list of matched sections for this output section
+  // element.  Add each one proper place of MATCHING_SECTIONS.
 
-  Input_section_list::iterator p = input_sections->begin();
-  while (p != input_sections->end())
+  if (this->input_section_patterns_.empty())
+  {
+    Input_section_map::iterator it = input_sections->begin();
+    while (it != input_sections->end())
     {
-      Input_section_info isi(*p);
-
-      if (p->is_input_section() || p->is_relaxed_input_section())
-	{
-	  Relobj* relobj = p->relobj();
-	  unsigned int shndx = p->shndx();
-
-	  // Lock the object so that we can get information about the
-	  // section.  This is OK since we know we are single-threaded
-	  // here.
-
-	  const Task* task = reinterpret_cast<const Task*>(-1);
-	  Task_lock_obj<Object> tl(task, relobj);
-
-	  // Calling section_name and section_addralign is not very
-	  // efficient.
-
-	  if (p->is_relaxed_input_section())
-	    {
-	      // We use current data size because relaxed section sizes may not
-	      // have finalized yet.
-	      isi.set_size(p->relaxed_input_section()->current_data_size());
-	      isi.set_addralign(p->relaxed_input_section()->addralign());
-	    }
-	  else
-	    {
-	      isi.set_size(relobj->section_size(shndx));
-	      isi.set_addralign(relobj->section_addralign(shndx));
-	    }
-
-	  isi.set_section_name(relobj->section_name(shndx));
-	  isi.set_relobj(relobj);
-	}
-      else
-	{
-	  Output_section_data* posd = p->output_section_data();
-	  isi.set_size(posd->current_data_size());
-	  isi.set_addralign(posd->addralign());
-	  isi.set_section_name(posd->section_name());
-	  isi.set_relobj(posd->relobj());
-	}
-
-      if (!this->match_file_name(isi.relobj()))
-	++p;
-      else if (this->input_section_patterns_.empty())
-	{
-	  matching_sections[0].push_back(isi);
-	  p = input_sections->erase(p);
-	}
-      else
-	{
-	  size_t i;
-	  for (i = 0; i < input_pattern_count; ++i)
-	    {
-	      const Input_section_pattern&
-		isp(this->input_section_patterns_[i]);
-	      if (match(isi.section_name().c_str(), isp.pattern.c_str(),
-			isp.pattern_is_wildcard))
-		break;
-	    }
-
-	  if (i >= input_pattern_count)
-	    ++p;
-	  else
-	    {
-	      if (i >= bin_count)
-		i = 0;
-	      matching_sections[i].push_back(isi);
-	      p = input_sections->erase(p);
-	    }
-	}
+      matching_sections[0].push_back(Input_section_info(it->second));
+      it = input_sections->erase(it);
     }
+  }
+  else
+  {
+    for (Unordered_map<Input_section_pair_type, size_t,
+      Input_sections_hash>::iterator it = this->matched_sections_.begin();
+      it != this->matched_sections_.end();
+      ++it)
+    {
+      Input_section_map::iterator current_section_it =
+        input_sections->find(it->first);
+
+      if (current_section_it != input_sections->end())
+      {
+        Output_section::Input_section& p = current_section_it->second;
+        Input_section_info isi(p);
+        isi.set_seq_num(p.script_index());
+
+        size_t j = it->second;
+        if (j >= bin_count)
+          j = 0;
+
+        matching_sections[j].push_back(isi);
+        input_sections->erase(current_section_it);
+      }
+    }
+  }
 
   // Look through MATCHING_SECTIONS.  Sort each one as specified,
   // using a stable sort so that we get the default order when
@@ -2044,7 +2510,7 @@ Output_section_element_input::set_section_addresses(
 
       Sort_wildcard isp_sort = SORT_WILDCARD_NONE;
       if (!this->input_section_patterns_.empty())
-	isp_sort = this->input_section_patterns_[i].sort;
+	isp_sort = this->input_section_patterns_[i]->sort();
 
       if (isp_sort != SORT_WILDCARD_NONE
 	  || this->filename_sort_ != SORT_WILDCARD_NONE)
@@ -2052,6 +2518,9 @@ Output_section_element_input::set_section_addresses(
 			 matching_sections[i].end(),
 			 Input_section_sorter(this->filename_sort_,
 					      isp_sort));
+      else
+        std::sort(matching_sections[i].begin(), matching_sections[i].end(),
+		  sort_f);
 
       for (std::vector<Input_section_info>::const_iterator p =
 	     matching_sections[i].begin();
@@ -2167,7 +2636,7 @@ Output_section_element_input::print(FILE* f) const
 	    fprintf(f, " ");
 
 	  int close_parens = 0;
-	  switch (p->sort)
+	  switch ((*p)->sort())
 	    {
 	    case SORT_WILDCARD_NONE:
 	      break;
@@ -2195,7 +2664,7 @@ Output_section_element_input::print(FILE* f) const
 	      gold_unreachable();
 	    }
 
-	  fprintf(f, "%s", p->pattern.c_str());
+	  fprintf(f, "%s", (*p)->pattern().c_str());
 
 	  for (int i = 0; i < close_parens; ++i)
 	    fprintf(f, ")");
@@ -2217,6 +2686,8 @@ Output_section_element_input::print(FILE* f) const
 class Output_section_definition : public Sections_element
 {
  public:
+  // typedef Unordered_map<Input_section_pair_type, Output_section::Input_section,
+  //         Input_sections_hash> Input_section_list;
   typedef Output_section_element::Input_section_list Input_section_list;
 
   Output_section_definition(const char* name, size_t namelen,
@@ -2393,6 +2864,13 @@ class Output_section_definition : public Sections_element
   bool is_relro_;
   // The output section type if specified.
   enum Script_section_type script_section_type_;
+  // Pattern matched object.
+  Output_section_pattern_matcher pattern_matcher_;
+  // Indication whether this output section is discarded.
+  bool discard_;
+  // Indication whether we have empty input pattern somewhere in this
+  // output section.
+  bool has_empty_patterns_;
 };
 
 // Constructor.
@@ -2415,7 +2893,8 @@ Output_section_definition::Output_section_definition(
     evaluated_load_address_(0),
     evaluated_addralign_(0),
     is_relro_(false),
-    script_section_type_(header->section_type)
+    script_section_type_(header->section_type),
+    discard_(name_ == "/DISCARD/")
 {
 }
 
@@ -2492,8 +2971,9 @@ void
 Output_section_definition::add_input_section(const Input_section_spec* spec,
 					     bool keep)
 {
-  Output_section_element* p = new Output_section_element_input(spec, keep);
+  Output_section_element* p = new Output_section_element_input(spec, keep, &this->pattern_matcher_);
   this->elements_.push_back(p);
+  this->has_empty_patterns_ = (p->pattern_count() == 0);
 }
 
 // Create any required output sections.  We need an output section if
@@ -2586,29 +3066,27 @@ Output_section_definition::output_section_name(
 {
   // If the section is a linker-created output section, just look for a match
   // on the output section name.
-  if (!match_input_spec && this->name_ != "/DISCARD/")
+  if (!match_input_spec && !this->discard_)
     {
       if (this->name_ != section_name)
 	return NULL;
+
+      bool temp;
+      this->pattern_matcher_.match_input_section(section_name, relobj, &temp, false);
+
       *slot = &this->output_section_;
       *psection_type = this->section_type();
       return this->name_.c_str();
     }
 
-  // Ask each element whether it matches NAME.
-  for (Output_section_elements::const_iterator p = this->elements_.begin();
-       p != this->elements_.end();
-       ++p)
-    {
-      if ((*p)->match_name(relobj, section_name, keep))
-	{
-	  // We found a match for NAME, which means that it should go
-	  // into this output section.
-	  *slot = &this->output_section_;
-	  *psection_type = this->section_type();
-	  return this->name_.c_str();
-	}
-    }
+  if (this->has_empty_patterns_ ||
+      this->pattern_matcher_.match_input_section(
+        section_name, relobj, keep, this->discard_))
+  {
+    *slot = &this->output_section_;
+    *psection_type = this->section_type();
+    return this->name_.c_str();
+  }
 
   // We don't know about this section name.
   return NULL;
@@ -2729,7 +3207,7 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
 						 Layout* layout,
 						 uint64_t* dot_value,
 						 uint64_t* dot_alignment,
-                                                 uint64_t* load_address)
+						 uint64_t* load_address)
 {
   Memory_region* vma_region = NULL;
   Memory_region* lma_region = NULL;
@@ -2844,7 +3322,9 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
       && ((this->output_section_->flags() & elfcpp::SHF_ALLOC) != 0
 	   || this->output_section_->is_noalloc()
 	   || this->output_section_->is_created_from_script()))
-    this->output_section_->set_address(address);
+    {
+      this->output_section_->set_address(address);
+    }
 
   this->evaluated_address_ = address;
   this->evaluated_addralign_ = align;
@@ -2954,15 +3434,17 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
       fill.assign(reinterpret_cast<char*>(fill_buff), 4);
     }
 
-  Input_section_list input_sections;
+  Unordered_map<Input_section_pair_type, Output_section::Input_section,
+    Input_sections_hash> input_sections;
   if (this->output_section_ != NULL)
     {
+      Input_section_container_map container(&input_sections);
       // Get the list of input sections attached to this output
       // section.  This will leave the output section with only
       // Output_section_data entries.
       address += this->output_section_->get_input_sections(address,
 							   fill,
-							   &input_sections);
+							   &container);
       *dot_value = address;
     }
 
@@ -2974,6 +3456,7 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
 				subalign, dot_value, dot_alignment,
 				&dot_section, &fill, &input_sections);
 
+  // All input sections for this output section must be matched.
   gold_assert(input_sections.empty());
 
   // Compute the load address for the following section.
@@ -3407,7 +3890,7 @@ Orphan_output_section::set_section_addresses(Symbol_table* symtab,
 					     uint64_t*,
                                              uint64_t* load_address)
 {
-  typedef std::list<Output_section::Input_section> Input_section_list;
+  typedef std::list<Output_section::Input_section>  Input_section_list;
 
   bool have_load_address = (*load_address != *dot_value
                             || this->lma_region_ != NULL);
@@ -5045,5 +5528,14 @@ Script_sections::print(FILE* f) const
 
   fprintf(f, "}\n");
 }
+
+void
+Input_section_pattern::add_matched_input_section(const std::string& section,
+    const Relobj* relobj, size_t pattern_index)
+{ this->host_->add_matched_section(section, relobj, pattern_index); }
+
+bool
+Input_section_pattern:: match_file_name(const Relobj* relobj) const
+{ return this->host_->match_file_name(relobj); }
 
 } // End namespace gold.

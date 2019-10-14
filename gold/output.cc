@@ -3954,6 +3954,16 @@ Output_section::get_input_sections(
     const std::string& fill,
     std::list<Input_section>* input_sections)
 {
+  Input_section_container_list container(input_sections);
+  return this->get_input_sections(address, fill, &container);
+}
+
+uint64_t
+Output_section::get_input_sections(
+    uint64_t address,
+    const std::string& fill,
+    Input_section_container_base* container)
+{
   if (this->checkpoint_ != NULL
       && !this->checkpoint_->input_sections_saved())
     this->checkpoint_->save_input_sections();
@@ -3986,7 +3996,7 @@ Output_section::get_input_sections(
       if (p->is_input_section()
 	  || p->is_relaxed_input_section()
 	  || p->output_section_data()->include_in_script_processing())
-	input_sections->push_back(*p);
+	container->insert(*p);
       else
 	{
 	  uint64_t aligned_address = align_address(address, p->addralign());
@@ -5423,6 +5433,18 @@ Output_file::close()
     if (::close(this->o_) < 0)
       gold_error(_("%s: close: %s"), this->name_, strerror(errno));
   this->o_ = -1;
+}
+
+Input_section_container_list::Input_section_container_list(
+    std::list<Output_section::Input_section>* container) :
+  container_(container)
+{
+}
+
+void Input_section_container_list::insert(
+    const Output_section::Input_section& input_section)
+{
+  this->container_->push_back(input_section);
 }
 
 // Instantiate the templates we need.  We could use the configure

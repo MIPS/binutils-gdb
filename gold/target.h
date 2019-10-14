@@ -514,6 +514,13 @@ class Target
   print_stats() const
   { this->do_print_stats(); }
 
+  void
+  get_special_sections(Unordered_set<std::string>& sections) const
+  {
+    sections.insert(std::string("COMMON"));
+    this->do_get_special_sections(sections);
+  }
+
  protected:
   // This struct holds the constant information for a child class.  We
   // use a struct to avoid the overhead of virtual function calls for
@@ -823,6 +830,10 @@ class Target
   // This may be overridden by the child class.
   virtual void
   do_print_stats() const
+  { }
+
+  virtual void
+  do_get_special_sections(Unordered_set<std::string>&) const
   { }
 
  private:
