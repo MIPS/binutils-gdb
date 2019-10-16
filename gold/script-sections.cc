@@ -2792,8 +2792,7 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
       if (align_section != NULL)
 	gold_warning(_("alignment of section %s is not absolute"),
 		     this->name_.c_str());
-      if (this->output_section_ != NULL
-	  && align_exp > this->output_section_->addralign())
+      if (this->output_section_ != NULL)
 	this->output_section_->set_addralign(align_exp);
     }
 
