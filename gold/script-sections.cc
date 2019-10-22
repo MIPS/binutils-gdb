@@ -29,6 +29,7 @@
 #include <string>
 #include <vector>
 #include <queue>
+#include <stack>
 #include <fnmatch.h>
 
 #include "parameters.h"
@@ -285,159 +286,10 @@ private:
   size_t local_index_;
 };
 
-template <typename T>
-class Tree
-{
-  class Node
-  {
-  public:
-    Node(const std::string& id, const T& val) : id_(id), value_(val)
-    { }
-
-    Node(const std::string& id) : id_(id)
-    { }
-
-    ~Node()
-    { }
-
-    void
-    swap(const T& val)
-    { this->value_ = val; }
-
-    const T&
-    operator*() const
-    { return this->value_; }
-
-    T&
-    operator*()
-    { return this->value_; }
-
-    const T*
-    operator->() const
-    { return &this->value_; }
-
-    T*
-    operator->()
-    { return &this->value_; }
-
-
-    std::string
-    key() const
-    { return this->id_; }
-
-    void
-    add_child(Node* child)
-    { this->children_.push_back(child); }
-
-    const std::vector<Node*>*
-    get_children() const
-    { return &this->children_; }
-
-
-  private:
-    std::string id_;
-    T value_;
-    std::vector<Node*> children_;
-  };
-
-public:
-  class Accessor
-  {
-  public:
-    Accessor(Tree<T>::Node* node) : node_addr_(node)
-    { }
-
-    T&
-    operator*()
-    { return this->node_addr_->operator*(); }
-
-    const T*
-    operator*() const
-    { return this->node_addr_->operator*(); }
-
-    T*
-    operator->()
-    { return this->node_addr_->operator->(); }
-
-    const T&
-    operator->() const
-    { return this->node_addr_->operator->(); }
-
-    std::string
-    key() const
-    { return this->node_addr_->key(); }
-
-    bool
-    operator==(const Accessor& other)
-    { return this->node_addr_ == other.node_addr_; }
-
-  private:
-    Tree<T>::Node* node_addr_;
-  };
-
-  static Accessor nfound;
-
-  Tree() : root_("")
-  { this->tree_[""] = &this->root_; }
-
-  Accessor
-  get_node(const std::string& key)
-  {
-    if (this->tree_.find(key) == this->tree_.end())
-      return this->nfound;
-
-    return Accessor(this->tree_.find(key)->second);
-  }
-
-  void
-  get_children(const std::string& key, std::vector<Accessor>& children) const
-  {
-    typename Unordered_map<std::string, Node*>::const_iterator node_it =
-      this->tree_.find(key);
-
-    if (node_it == this->tree_.end())
-      return;
-
-    const std::vector<Node*>* nodes = node_it->second->get_children();
-    for (typename std::vector<Node*>::const_iterator it = nodes->begin();
-        it != nodes->end();
-        ++it)
-      children.push_back(Accessor(*it));
-  }
-
-  bool
-  add_child(const std::string& parent, const std::string& key, const T& data)
-  {
-    typename Unordered_map<std::string, Node*>::iterator it =
-      this->tree_.find(parent);
-
-    if (it == this->tree_.end())
-      return false;
-
-    Node* parent_node = it->second;
-    Node* child = new Node(key, data);
-    parent_node->add_child(child);
-
-    this->tree_[parent + key] = child;
-
-    return true;
-  }
-
-private:
-  Node root_;
-  Unordered_map<std::string, Node*> tree_;
-};
-
-
-template <typename T>
-typename Tree<T>::Accessor Tree<T>::nfound(NULL);
-
-
 class Output_section_pattern_matcher
 {
 public:
-  Output_section_pattern_matcher() : pattern_seq_num_(0),
-    first_wildcard_pattern_index_(~0)
+  Output_section_pattern_matcher() : pattern_seq_num_(0)
   { }
 
   ~Output_section_pattern_matcher()
@@ -452,11 +304,7 @@ public:
         pattern_str_len, sort, keep, host, this->pattern_seq_num_, local_index);
 
     if (pattern->pattern_is_wildcard())
-      {
-	this->add_wildcard_pattern(pattern);
-	if (this->pattern_seq_num_ < this->first_wildcard_pattern_index_ )
-	  this->first_wildcard_pattern_index_ = this->pattern_seq_num_;
-      }
+      this->add_wildcard_pattern(pattern);
     else
       this->add_regular_pattern(pattern);
 
@@ -469,18 +317,6 @@ public:
   match_input_section(const std::string& section, const Relobj* relobj,
       bool* keep, bool discard)
   {
-    std::vector<std::string> tokens;
-    std::string s = section;
-
-    size_t pos;
-    while((pos = s.find_first_of(".", 1)) != std::string::npos)
-    {
-      std::string t = s.substr(0, pos);
-      tokens.push_back(s.substr(0, pos));
-      s.erase(0, pos);
-    }
-    tokens.push_back(s);
-
     size_t min = ~(0);
     Input_section_pattern* matched = NULL;
     Unordered_map<std::string, Pattern_list_type>::const_iterator regular_it =
@@ -491,75 +327,46 @@ public:
           it != regular_it->second.end();
           ++it)
       {
-        Input_section_pattern* ptr = *it;
-        if (ptr->index() < min && ptr->match_file_name(relobj))
+        if((*it)->match_file_name(relobj))
         {
-          min = ptr->index();
-          matched = ptr;
+	  min = (*it)->index();
+	  matched = *it;
           break;
         }
       }
     }
 
-    if (min >= this->first_wildcard_pattern_index_)
+    std::stack<std::string> inputs;
+    std::string s = section;
+
+    size_t pos;
+    while((pos = s.find_last_of('.')) != std::string::npos)
     {
-      std::vector<Tree<Pattern_list_type>::Accessor> matched_nodes;
+      s.erase(pos);
+      inputs.push(s + '.');
+    }
+    inputs.push("");
 
-      size_t level = 0;
-      size_t processed_in_row = 0;
-      size_t columns = 1;
-      size_t next_columns = 0;
-      std::queue<std::string> token_queue;
-      token_queue.push("");
-      while(level < tokens.size() && token_queue.size())
+    while(inputs.size())
+    {
+      std::string current_regular_part = inputs.top();
+      inputs.pop();
+
+      Unordered_map<std::string, Pattern_list_type>::iterator it =
+        this->wildcard_patterns_.find(current_regular_part);
+      if(it != this->wildcard_patterns_.end())
       {
-        std::string processing_token = token_queue.front();
-        token_queue.pop();
-
-        std::vector<Tree<Pattern_list_type>::Accessor> children;
-        this->wildcard_patterns_.get_children(processing_token, children);
-
-        std::string target_token;
-          target_token = tokens[level];
-
-        for (std::vector<Tree<Pattern_list_type>::Accessor>::iterator it =
-            children.begin();
-            it != children.end();
-            ++it)
+        Pattern_list_type& current = it->second;
+        Pattern_list_type::iterator pattern_it = current.begin();
+	while(pattern_it != current.end() && (*pattern_it)->index() < min)
         {
-          if (match(target_token.c_str(), it->key().c_str(), true))
+          if((*pattern_it)->match(section, relobj))
           {
-            token_queue.push(processing_token + it->key());
-            ++next_columns;
-
-            if ((*it)->size())
-              matched_nodes.push_back(*it);
-          }
-        }
-
-        if (++processed_in_row == columns)
-        {
-          columns = next_columns;
-          next_columns = 0;
-          processed_in_row = 0;
-          ++level;
-        }
-      }
-
-      for (std::vector<Tree<Pattern_list_type>::Accessor>::iterator it =
-          matched_nodes.begin();
-          it != matched_nodes.end();
-          ++it)
-      {
-        for (Pattern_list_type::iterator pattern_it = (*it)->begin();
-            pattern_it != (*it)->end();
-            ++pattern_it)
-        {
-          if ((*pattern_it)->index() < min && (*pattern_it)->match(section,relobj))
-          {
+	    matched = *pattern_it;
             min = (*pattern_it)->index();
-            matched =  *pattern_it;
+	    break;
           }
+	  ++pattern_it;
         }
       }
     }
@@ -567,7 +374,8 @@ public:
     if (matched != NULL)
     {
       if (!discard)
-        matched->add_matched_input_section(section, relobj, matched->local_index());
+        matched->add_matched_input_section(section, relobj,
+					   matched->local_index());
 
       *keep = matched->keep();
       return true;
@@ -584,44 +392,28 @@ private:
 
   void add_wildcard_pattern(Input_section_pattern* pattern)
   {
-    std::vector<std::string> tokens;
-    std::string pattern_str = pattern->pattern();
+    std::vector<size_t> wildcard_indexes;
+    wildcard_indexes.push_back(pattern->pattern().find_first_of('?'));
+    wildcard_indexes.push_back(pattern->pattern().find_first_of('*'));
+    wildcard_indexes.push_back(pattern->pattern().find_first_of('['));
 
-    size_t pos;
-    while((pos = pattern_str.find_first_of(".", 1)) != std::string::npos)
-    {
-      tokens.push_back(pattern_str.substr(0, pos));
-      pattern_str.erase(0, pos);
-    }
+    size_t first_wildcard_ndx = *std::min_element(wildcard_indexes.begin(),
+						  wildcard_indexes.end());
 
-    tokens.push_back(pattern_str);
+    size_t last_dot_ndx = pattern->pattern().find_last_of('.',
+							  first_wildcard_ndx);
 
-    std::string parent;
-    for (std::vector<std::string>::const_iterator it = tokens.begin();
-        it != tokens.end();
-        ++it)
-    {
-      std::string child = parent + (*it);
-      if (this->wildcard_patterns_.get_node(child) ==
-         Tree<Pattern_list_type>::nfound)
-      {
-        const Pattern_list_type data = Pattern_list_type();
-        this->wildcard_patterns_.add_child(parent, *it, data);
-      }
+    std::string regular_part;
+    if(last_dot_ndx != std::string::npos)
+      regular_part = pattern->pattern().substr(0, last_dot_ndx + 1);
 
-      parent = child;
-    }
-
-    Tree<Pattern_list_type>::Accessor node =
-      this->wildcard_patterns_.get_node(pattern->pattern());
-    node->push_back(pattern);
+    this->wildcard_patterns_[regular_part].push_back(pattern);
   }
 
   typedef std::vector<Input_section_pattern*> Pattern_list_type;
   size_t pattern_seq_num_;
   Unordered_map<std::string, Pattern_list_type> regular_patterns_;
-  Tree<Pattern_list_type> wildcard_patterns_;
-  size_t first_wildcard_pattern_index_;
+  Unordered_map<std::string, Pattern_list_type> wildcard_patterns_;
 };
 
 typedef std::pair<std::string, const Relobj*> Input_section_pair_type;
@@ -3076,6 +2868,7 @@ Output_section_definition::output_section_name(
 
       *slot = &this->output_section_;
       *psection_type = this->section_type();
+
       return this->name_.c_str();
     }
 
@@ -3570,6 +3363,11 @@ Output_section_definition::alternate_constraint(
 
   this->output_section_ = posd->output_section_;
   posd->output_section_ = NULL;
+
+  this->elements_.insert(this->elements_.end(),
+      posd->elements_.begin(),
+      posd->elements_.end());
+  posd->elements_.clear();
 
   if (this->is_relro_)
     this->output_section_->set_is_relro();
