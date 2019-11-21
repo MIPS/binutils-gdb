@@ -2860,6 +2860,10 @@ md_assemble (char *str)
       stub_funcless_mode = TRUE;
     }
 
+  if (jumptable_record_pending_end)
+    as_fatal (_("previous jumptable improperly terminated at %s"),
+	      S_GET_NAME(jumptable_list->table_sym));
+
   nanomips_assembling_insn = TRUE;
   clear_insn_error ();
 
@@ -12275,6 +12279,8 @@ nanomips_define_label (symbolS *sym)
     {
       jumptable_list->table_sym = sym;
       jumptable_record_pending_sym = FALSE;
+      /* Provision space for the jumptable.  */
+      frag_grow (jumptable_list->nsize * 4);
     }
 }
 
@@ -13797,6 +13803,5 @@ s_jumptable (int x ATTRIBUTE_UNUSED)
   jumptable_list = jt;
   jumptable_record_pending_sym = TRUE;
   jumptable_record_pending_fix = TRUE;
-  frag_grow (jumptable_list->nsize * 4);
   return;
 }
