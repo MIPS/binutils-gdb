@@ -257,11 +257,11 @@ $Lw_nc_l3:
 	nop32
 $Lw_nc_l0:
 	.section        .rodata,"a",@progbits
-	.jumptable	2,3,0
+	.jumptable	4,3,0
 lw_nc_table:
-	.shword ($Lw_nc_l1 - $Lw_nc_l0) >> 1
-	.shword ($Lw_nc_l2 - $Lw_nc_l0) >> 1
-	.shword ($Lw_nc_l3 - $Lw_nc_l0) >> 1
+	.word ($Lw_nc_l1 - $Lw_nc_l0) >> 1
+	.word ($Lw_nc_l2 - $Lw_nc_l0) >> 1
+	.word ($Lw_nc_l3 - $Lw_nc_l0) >> 1
 	.text
 $Lw_nc_l1:
 	nop32

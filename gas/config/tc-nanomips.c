@@ -1192,6 +1192,7 @@ struct jumptable
   bfd_boolean offset_unsigned;
   symbolS *table_sym;
   fixS *fixups;
+  fragS *align_frag;
   struct jumptable *next;
 };
 
@@ -1200,6 +1201,7 @@ struct jumptable
 bfd_boolean jumptable_record_pending_sym = FALSE;
 bfd_boolean jumptable_record_pending_fix = FALSE;
 bfd_boolean jumptable_record_pending_end = FALSE;
+fragS *jumptable_last_align_frag = NULL;
 
 /* A linked list of all jumptable blocks in the module.  */
 struct jumptable *jumptable_list;
@@ -10193,7 +10195,10 @@ nanomips_align (int to, int *fill, struct insn_label_list *labels)
   if (fill == NULL && subseg_text_p (now_seg))
     frag_align_code (to, 0);
   else
-    frag_align (to, fill ? *fill : 0, 0);
+    {
+      jumptable_last_align_frag = frag_now;
+      frag_align (to, fill ? *fill : 0, 0);
+    }
   record_alignment (now_seg, to);
   nanomips_move_labels (labels);
 }
@@ -11645,14 +11650,23 @@ fix_vector_resize (fixS *fixP, unsigned esize, unsigned where,
 		   bfd_reloc_code_real_type rtype)
 {
   fragS *fragP = fixP->fx_frag;
+  fixS *lastP = NULL;
   do {
     fixP->fx_where = where;
-    fixP->fx_size = esize;
     if (fixP->fx_next == NULL || FIX_VECT_P (fixP->fx_next))
       {
-	if (fixP->fx_size != 4)
+	if (esize != 4)
 	  fixP->fx_r_type = rtype;
+	else if (fixP->fx_r_type != rtype
+		 && fixP->fx_size != esize)
+	  {
+	    /* Drop 8/16 bit relocations from list.  */
+	    lastP->fx_next = fixP->fx_next;
+	    fixP = lastP;
+	  }
       }
+    fixP->fx_size = esize;
+    lastP = fixP;
     fixP = fixP->fx_next;
   } while (fixP && fixP->fx_frag == fragP && !FIX_VECT_P (fixP));
 }
@@ -11711,6 +11725,8 @@ relaxed_jumptable_length (fragS *fragp, asection *sec ATTRIBUTE_UNUSED)
 	      min_offset = min_offset - max_offset / 2 - 1;
 	      max_offset = max_offset - (max_offset / 2) - 1;
 	    }
+	  if (jt->esize == 4)
+	    jt->align_frag->fr_offset = 2;
 	};
       fixP = fix_vector_next (fixP);
     }
@@ -13784,6 +13800,7 @@ s_jumptable (int x ATTRIBUTE_UNUSED)
 
   jt->offset_unsigned = FALSE;
   jt->esize = get_absolute_expression ();
+  jt->align_frag = jumptable_last_align_frag;
   if (*input_line_pointer != ',')
     {
       xfree (jt);
