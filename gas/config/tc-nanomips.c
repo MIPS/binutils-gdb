@@ -10196,7 +10196,9 @@ nanomips_align (int to, int *fill, struct insn_label_list *labels)
     frag_align_code (to, 0);
   else
     {
-      jumptable_last_align_frag = frag_now;
+      if (strncmp (now_seg->name, RDATA_SECTION_NAME,
+		   strlen(RDATA_SECTION_NAME)) == 0)
+	jumptable_last_align_frag = frag_now;
       frag_align (to, fill ? *fill : 0, 0);
     }
   record_alignment (now_seg, to);
@@ -10417,7 +10419,10 @@ s_cons (int log_size)
 
   nanomips_flush_pending_output ();
   /* Skip auto-aligning when parsing a jumptable.  */
-  if (log_size > 0 && auto_align && !jumptable_record_pending_end)
+  if (log_size > 0
+      && auto_align
+      && !jumptable_record_pending_end
+      && !jumptable_record_pending_fix)
     nanomips_align (log_size, 0, l);
   cons (1 << log_size);
   nanomips_clear_insn_labels ();
@@ -11725,7 +11730,11 @@ relaxed_jumptable_length (fragS *fragp, asection *sec ATTRIBUTE_UNUSED)
 	      min_offset = min_offset - max_offset / 2 - 1;
 	      max_offset = max_offset - (max_offset / 2) - 1;
 	    }
-	  if (jt->esize == 4)
+	  /* Increase the alignment of the preceding alignment frag, when
+	     relaxing from hword to word.  The minimum alignment used by the
+	     compiler is already 2-bytes, so we need not worry when relaxing
+	     from bytes to hwords.  */
+	  if (jt->esize == 4 && jt->align_frag != NULL)
 	    jt->align_frag->fr_offset = 2;
 	};
       fixP = fix_vector_next (fixP);
@@ -13361,6 +13370,7 @@ nanomips_cons_fix_new (fragS *frag, int where, int nbytes, expressionS *exp,
 	    {
 	      jumptable_list->fixups = fixP;
 	      jumptable_record_pending_end = TRUE;
+	      jumptable_last_align_frag = NULL;
 	    }
 	  jumptable_record_pending_fix = FALSE;
 	}
