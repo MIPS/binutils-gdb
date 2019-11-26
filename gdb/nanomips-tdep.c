@@ -1221,7 +1221,7 @@ nanomips_scan_prologue (struct gdbarch *gdbarch,
 		  int rt, this_rt, gp, use_gp;
 		  int counter = 0, count = b16s4_imm (insn);
 		  long this_offset;
-		  offset = b3s9_imm (insn) << 4;
+		  offset = b3s9_imm (insn) << 3;
 		  rt = b21s5_reg (insn);
 		  sp_adj = -offset;
 		  gp = (insn >> 2) & 1;
