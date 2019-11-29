@@ -755,6 +755,13 @@ nanomips_write_pc (struct regcache *regcache, CORE_ADDR pc)
 /* Fetch and return 16-bit instruction from the specified location.  */
 
 static ULONGEST
+nanomips_fetch_stack_slot (struct gdbarch *gdbarch, CORE_ADDR sp, int offset)
+{
+  enum bfd_endian byte_order = gdbarch_byte_order (gdbarch);
+  return read_memory_unsigned_integer (sp + offset, 4, byte_order);
+}
+
+static ULONGEST
 nanomips_fetch_instruction (struct gdbarch *gdbarch,
 			    CORE_ADDR addr, int *errp)
 {
@@ -848,8 +855,8 @@ nanomips_next_pc (struct regcache *regcache, CORE_ADDR pc)
 {
   struct gdbarch *gdbarch = get_regcache_arch (regcache);
   ULONGEST insn;
-  CORE_ADDR offset;
-  int op, sreg, treg, uimm;
+  CORE_ADDR offset, sp, ra;
+  int op, sreg, treg, uimm, count;
   LONGEST val_rs, val_rt;
 
   insn = nanomips_fetch_instruction (gdbarch, pc, NULL);
@@ -907,19 +914,27 @@ nanomips_next_pc (struct regcache *regcache, CORE_ADDR pc)
 	  op = b12s4_op (insn);
 	  sreg = b0s5_reg (insn >> 16);
 	  treg = b5s5_reg (insn >> 16);
-	  if (op == 0x8) /* BALRC, BALRSC, BRC, BRSC */
+	  if (op == 0x8) /* BALRSC, BRSC */
 	    {
-	      int bit9 = (insn >> 9) & 1;
 	      val_rs = regcache_raw_get_signed (regcache, sreg);
-	      pc = val_rs << bit9;
+	      pc += (val_rs << 1);
 	    }
 	  else if (op == 0 || op == 1) /* JALRC JALRC.HB */
 	    pc = regcache_raw_get_signed (regcache, sreg);
 	  break;
 
-	case 0x20: /* P.RESTORE */
-	  if (b12s5_op (insn) == 0x13) /* RESTORE.JRC */
-	    pc = regcache_raw_get_signed (regcache, 31);
+	case 0x20: /* PP.SR */
+	  if ((b12s4_op (insn) == 0x3) && ((insn & 3) == 3)) /* RESTORE.JRC */
+	   {
+             sp = regcache_raw_get_signed (regcache, NANOMIPS_SP_REGNUM);
+             ra = regcache_raw_get_signed (regcache, NANOMIPS_RA_REGNUM);
+             sp += (((insn >> 3) & 0x1ff) << 3);
+             count = ((insn >> 16) & 0xf);
+             treg = b5s5_reg(insn >> 16);
+             if (count != 0 && treg <= 31 && (treg + count) > 31)
+               ra = nanomips_fetch_stack_slot (gdbarch, sp, -(31 - treg + 1) * 4);
+             pc = ra;
+           }
 	  break;
 
 	case 0x22: /* P.BR1 */
@@ -960,9 +975,11 @@ nanomips_next_pc (struct regcache *regcache, CORE_ADDR pc)
 	  offset = (offset ^ 0x800) - 0x800;
 	  uimm = b11s7_imm (insn);
 	  if ((op == 0 && val_rt == uimm) /* BEQIC */
+              || (op == 1 && ((val_rt &  (1 << uimm)) == 0)) /* BBEQZC */
 	      || (op == 2 && val_rt >= uimm) /* BGEIC */
 	      || (op == 3 && (ULONGEST) val_rt >= uimm) /* BGEIUC */
 	      || (op == 4 && val_rt != uimm) /* BNEIC */
+              || (op == 5 && ((val_rt &  (1 << uimm)) != 0)) /* BBNEZC */
 	      || (op == 6 && val_rt < uimm) /* BLTIC */
 	      || (op == 7 && (ULONGEST) val_rt < uimm)) /* BLTIUC */
 	    pc += offset;
@@ -1017,8 +1034,18 @@ nanomips_next_pc (struct regcache *regcache, CORE_ADDR pc)
 	  break;
 
 	case 0x7: /* RESTORE.JRC[16] */
-	  if ((insn & 1) == 0 && (insn & 0x20) == 0x20)
-	    pc = regcache_raw_get_signed (regcache, 31);
+	  if ((insn & 1) == 0 && (insn & 0x20) == 0x20 && ((insn >> 8) & 1) == 1)
+          {
+            sp = regcache_raw_get_signed (regcache, NANOMIPS_SP_REGNUM);
+	    ra = regcache_raw_get_signed (regcache, NANOMIPS_RA_REGNUM);
+            sp += (((insn >> 4) & 0xf) << 4);
+            count = insn & 0xf;
+            treg = ((insn >> 9) & 0x1) ? NANOMIPS_RA_REGNUM : NANOMIPS_FP_REGNUM;
+            if (count != 0 && treg + count > 31) {
+                ra = nanomips_fetch_stack_slot (gdbarch, sp, -(31 - treg + 1) * 4);
+            }
+            pc = ra;
+          }
 	  break;
 
 	case 0x26: /* BEQZC[16] */
@@ -1040,17 +1067,17 @@ nanomips_next_pc (struct regcache *regcache, CORE_ADDR pc)
 	  break;
 
 	case 0x36: /* P16.BR P16.JRC */
-	  sreg = reg3_to_reg[b4s3_reg (insn)];
-	  treg = reg3_to_reg[b7s3_reg (insn)];
-	  val_rs = regcache_raw_get_signed (regcache, sreg);
-	  val_rt = regcache_raw_get_signed (regcache, treg);
+	  sreg = b4s3_reg (insn);
+	  treg = b7s3_reg (insn);
+	  val_rs = regcache_raw_get_signed (regcache, reg3_to_reg[sreg]);
+	  val_rt = regcache_raw_get_signed (regcache, reg3_to_reg[treg]);
 	  offset = insn & 0xf;
 	  /* BEQC[16] BEQC[16] */
 	  if ((sreg < treg && offset != 0 && val_rs == val_rt)
 	      || (sreg >= treg && offset != 0 && val_rs != val_rt))
-	    pc += offset;
+	    pc += (offset << 1);
 	  else if (offset == 0) /* JALRC[16] JRC */
-	    pc = regcache_raw_get_signed (regcache, 31);
+	    pc = regcache_raw_get_signed (regcache, b5s5_reg(insn));
 	  break;
 
 	default:
@@ -1594,13 +1621,13 @@ nanomips_deal_with_atomic_sequence (struct gdbarch *gdbarch,
 
 	    case 0x12:
 	      op = b12s4_op (insn);
-	      if (op == 0x8) /* BALRC, BALRSC, BRC, BRSC */
+	      if (op == 0x8) /* BALRC, BALRSC */
 		return NULL; /* Fall back to the standard single-step code. */
 	      else if (op == 0 || op == 1) /* JALRC JALRC.HB */
 		return NULL; /* Fall back to the standard single-step code. */
 	      break;
 
-	    case 0x20: /* P.RESTORE */
+	    case 0x20: /* PP.SR */
 	      if (b12s5_op (insn) == 0x13) /* RESTORE.JRC */
 		return NULL; /* Fall back to the standard single-step code. */
 	      break;
