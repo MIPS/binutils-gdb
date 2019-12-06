@@ -436,6 +436,25 @@ script_set_section_region(void*, const char*, size_t, int);
 
 extern void
 script_include_directive(int, void *, const char*, size_t);
+
+extern void
+script_start_overlay(void* closure,
+                     const struct Parser_output_section_header*);
+
+extern void
+script_finish_overlay(void* closure,
+                      const struct Parser_output_section_trailer*);
+
+extern void
+script_start_overlay_section(void* closure, const char* name,
+                             size_t namelen);
+
+extern void
+script_finish_overlay_section(void* closure,
+			      const struct Parser_output_section_trailer*);
+
+extern void
+script_set_overlay_region(void*, const char*, size_t, int);
   
 /* Called by the bison parser for expressions.  */
 

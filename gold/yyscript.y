@@ -209,11 +209,11 @@
 
 /* Non-terminal types, where needed.  */
 
-%type <expr> parse_exp exp
+%type <expr> parse_exp exp opt_address
 %type <expr> opt_at opt_align opt_subalign opt_fill
-%type <output_section_header> section_header opt_address_and_section_type
+%type <output_section_header> section_header opt_address_and_section_type overlay_header
 %type <section_type> section_type
-%type <output_section_trailer> section_trailer
+%type <output_section_trailer> section_trailer overlay_phdr_fill
 %type <constraint> opt_constraint
 %type <string_list> opt_phdr
 %type <integer> data_length
@@ -228,6 +228,7 @@
 %type <versnode> vers_tag
 %type <deplist> verdep
 %type <string> string
+%type <integer> opt_nocrossrefs
 
 %%
 
@@ -368,6 +369,11 @@ section_block_cmd:
 	    { script_start_output_section(closure, $1.value, $1.length, &$2); }
 	  '{' section_cmds '}' section_trailer
 	    { script_finish_output_section(closure, &$7); }
+	| OVERLAY overlay_header
+	    { script_start_overlay(closure, &$2); }
+	  '{' overlay_section '}' opt_memspec_overlay opt_at_memspec_overlay
+	  overlay_phdr_fill
+	    { script_finish_overlay(closure, &$9); }
 	;
 
 /* The header of an output section in a SECTIONS block--everything
@@ -524,6 +530,73 @@ opt_fill:
 	    { $$ = $2; }
 	| /* empty */
 	    { $$ = NULL; }
+	;
+
+overlay_header:
+	    { script_push_lex_into_expression_mode(closure); }
+	  opt_address opt_nocrossrefs opt_at opt_subalign
+	    {
+		  script_pop_lex_mode(closure);
+
+	      $$.address = $2;
+	      $$.section_type = SCRIPT_SECTION_TYPE_NONE;
+	      $$.load_address = $4;
+	      $$.align = NULL;
+	      $$.subalign = $5;
+	      $$.constraint = CONSTRAINT_NONE;
+	    }
+	;
+
+overlay_phdr_fill:
+	    opt_phdr opt_fill opt_comma
+	    {
+	      $$.fill = $2;
+	      $$.phdrs = $1;
+	    }
+	;
+
+overlay_section:
+		/* empty */
+	|	overlay_section
+		string
+			{ script_start_overlay_section(closure, $2.value, $2.length); }
+		'{' overlay_section_specs '}' overlay_phdr_fill
+			{ script_finish_overlay_section(closure, &$7); }
+	;
+
+overlay_section_specs:
+	  /* empty */
+	| overlay_section_specs input_section_spec
+	;
+
+opt_address:
+		exp ':'
+			{ $$ = $1; }
+	|	':'
+			{ $$ = NULL;  }
+	;
+
+opt_nocrossrefs:
+		/* empty */
+			{ $$ = 0; }
+	|	NOCROSSREFS
+			{
+			  yyerror(closure, "NOCROSSREFS is unsupported");
+			  $$ = 1;
+			}
+	;
+
+opt_memspec_overlay:
+	  '>' string
+	    { script_set_overlay_region(closure, $2.value, $2.length, 1); }
+	| /* empty */
+	;
+
+/* A memory specification for where to load an output section.  */
+opt_at_memspec_overlay:
+	  AT '>' string
+	    { script_set_overlay_region(closure, $3.value, $3.length, 0); }
+	| /* empty */
 	;
 
 /* Commands which may appear within the description of an output

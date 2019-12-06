@@ -148,6 +148,21 @@ class Script_sections
   void
   finalize_symbols(Symbol_table* symtab, const Layout* layout);
 
+  void
+  start_overlay(const Parser_output_section_header*);
+
+  void
+  finish_overlay(const Parser_output_section_trailer*);
+
+  void
+  start_overlay_section(const char* name, size_t namelen);
+
+  void
+  finish_overlay_section(const Parser_output_section_trailer*);
+
+  void
+  set_overlay_memory_region(Memory_region*, bool);
+
   // Find the name of the output section to use for an input file name
   // and section name.  This returns a name, and sets
   // *OUTPUT_SECTION_SLOT to point to the address where the actual
@@ -339,6 +354,16 @@ class Script_sections
   bool saw_segment_start_expression_;
   // Whether we have created all necessary segments.
   bool segments_created_;
+
+  bool in_overlay_;
+  bool saw_overlay_section_;
+  Expression* overlay_address_;
+  Expression* overlay_load_address_;
+  Expression* overlay_subalign_;
+  Expression* overlay_max_;
+  Memory_region* overlay_memory_vma_;
+  Memory_region* overlay_memory_lma_;
+  Sections_elements::iterator overlay_section_start_;
 };
 
 // Attributes for memory regions.

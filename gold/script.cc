@@ -3507,3 +3507,60 @@ script_exp_function_length(void* closurev, const char* name, size_t namelen)
 
   return length;
 }
+
+extern "C" void
+script_start_overlay(void* closurev,
+                     const struct Parser_output_section_header* header)
+{
+  Parser_closure* closure = static_cast<Parser_closure*>(closurev);
+  closure->script_options()->script_sections()->start_overlay(header);
+}
+
+extern "C" void
+script_finish_overlay(void* closurev, const struct Parser_output_section_trailer* trailer)
+{
+  Parser_closure* closure = static_cast<Parser_closure*>(closurev);
+  closure->script_options()->script_sections()->finish_overlay(trailer);
+}
+
+extern "C" void
+script_start_overlay_section(void* closurev, const char* name, size_t namelen)
+{
+  Parser_closure* closure = static_cast<Parser_closure*>(closurev);
+  closure->script_options()->script_sections()->start_overlay_section(name, namelen);
+}
+
+extern "C" void
+script_finish_overlay_section(void* closurev,
+			     const struct Parser_output_section_trailer* trailer)
+{
+  Parser_closure* closure = static_cast<Parser_closure*>(closurev);
+  closure->script_options()->script_sections()->finish_overlay_section(trailer);
+}
+
+extern "C" void
+script_set_overlay_region(void* closurev, const char* name, size_t namelen,
+                          int set_vma)
+{
+  Parser_closure* closure = static_cast<Parser_closure*>(closurev);
+  if (!closure->script_options()->saw_sections_clause())
+    {
+      gold_error(_("%s:%d:%d: MEMORY region '%.*s' referred to outside of "
+                   "SECTIONS clause"),
+                 closure->filename(), closure->lineno(), closure->charpos(),
+                 static_cast<int>(namelen), name);
+      return;
+    }
+
+  Script_sections* ss = closure->script_options()->script_sections();
+  Memory_region* mr = ss->find_memory_region(name, namelen);
+  if (mr == NULL)
+    {
+      gold_error(_("%s:%d:%d: MEMORY region '%.*s' not declared"),
+                 closure->filename(), closure->lineno(), closure->charpos(),
+                 static_cast<int>(namelen), name);
+      return;
+    }
+
+  ss->set_overlay_memory_region(mr, set_vma);
+}

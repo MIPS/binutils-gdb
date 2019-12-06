@@ -41,6 +41,8 @@
 #include "script-sections.h"
 #include "mapfile.h"
 
+#include "safe-ctype.h"
+
 // Support for the SECTIONS clause in linker scripts.
 
 namespace gold
@@ -180,7 +182,6 @@ class Input_section_info
   // Sequential number of input section, counted as they come
   size_t seq_num_;
 };
-
 
 // A file name pattern.
 class Filename_pattern
@@ -533,21 +534,29 @@ class Memory_region
 
   void
   set_address(const std::string& section_name, uint64_t addr,
-	      const Symbol_table* symtab, const Layout* layout)
+	      const Symbol_table* symtab, const Layout* layout,
+              bool backward_dot_move_expected)
   {
     uint64_t start = this->start_->eval(symtab, layout, false);
     uint64_t len = this->length_->eval(symtab, layout, false);
     if (addr < start || addr > start + len)
-      gold_error(_("address 0x%llx of section %s is not within region %s"),
-		 static_cast<unsigned long long>(addr),
-		 section_name.c_str(),
-		 this->name_.c_str());
+      {
+        gold_error(_("address 0x%llx of section %s is not within region %s"),
+		   static_cast<unsigned long long>(addr),
+		   section_name.c_str(),
+		   this->name_.c_str());
+      }
     else if (addr < start + this->current_offset_)
-      gold_error(_("address 0x%llx of section %s moves dot backwards "
-		   "in region %s"),
-		 static_cast<unsigned long long>(addr),
-		 section_name.c_str(),
-		 this->name_.c_str());
+      {
+        // Skip updating current offset
+        if (backward_dot_move_expected)
+          return;
+        gold_error(_("address 0x%llx of section %s moves dot backwards "
+		     "in region %s"),
+		   static_cast<unsigned long long>(addr),
+		   section_name.c_str(),
+		   this->name_.c_str());
+      }
     this->current_offset_ = addr - start;
   }
 
@@ -2488,6 +2497,9 @@ class Output_section_definition : public Sections_element
   void
   finish(const Parser_output_section_trailer* trailer);
 
+  void
+  update_phdr_and_fill(const Parser_output_section_trailer* trailer);
+
   // Add a symbol to be defined.
   void
   add_symbol_assignment(const char* name, size_t length, Expression* value,
@@ -2617,6 +2629,14 @@ class Output_section_definition : public Sections_element
   get_section_name() const
   { return this->name_; }
 
+  void
+  set_backward_dot_move_expected(bool value)
+  { this->backward_dot_move_expected_ = value; }
+
+  bool
+  is_backward_dot_move_expected() const
+  { return this->backward_dot_move_expected_; }
+
  private:
   static const char*
   script_section_type_name(Script_section_type);
@@ -2662,6 +2682,7 @@ class Output_section_definition : public Sections_element
   // Indication whether we have empty input pattern somewhere in this
   // output section.
   bool has_empty_patterns_;
+  bool backward_dot_move_expected_;
 };
 
 // Constructor.
@@ -2685,7 +2706,8 @@ Output_section_definition::Output_section_definition(
     evaluated_addralign_(0),
     is_relro_(false),
     script_section_type_(header->section_type),
-    discard_(name_ == "/DISCARD/")
+    discard_(name_ == "/DISCARD/"),
+    backward_dot_move_expected_(false)
 {
 }
 
@@ -2696,6 +2718,15 @@ Output_section_definition::finish(const Parser_output_section_trailer* trailer)
 {
   this->fill_ = trailer->fill;
   this->phdrs_ = trailer->phdrs;
+}
+
+void
+Output_section_definition::update_phdr_and_fill(const Parser_output_section_trailer* trailer)
+{
+  if (!this->fill_)
+    this->fill_ = trailer->fill;
+  if (!this->phdrs_)
+    this->phdrs_ = trailer->phdrs;
 }
 
 // Add a symbol to be defined.
@@ -3265,14 +3296,15 @@ Output_section_definition::set_section_addresses(Symbol_table* symtab,
       // how big it is.
       if (vma_region != NULL)
 	vma_region->set_address(this->get_section_name(), *dot_value,
-				symtab, layout);
+				symtab, layout,
+                                this->is_backward_dot_move_expected());
 
       // If the LMA region is different from the VMA region, then update the
       // LMA region there as well.
       if (lma_region != NULL && lma_region != vma_region
 	  && this->output_section_->type() != elfcpp::SHT_NOBITS)
 	lma_region->set_address(this->get_section_name(), *load_address,
-				symtab, layout);
+				symtab, layout, false);
     }
 
   if (this->output_section_ != NULL)
@@ -3781,14 +3813,14 @@ Orphan_output_section::set_section_addresses(Symbol_table* symtab,
       // how big it is.
       if (this->vma_region_ != NULL)
 	this->vma_region_ ->set_address(this->os_->name(), *dot_value,
-					symtab, layout);
+					symtab, layout, false);
 
       // If the LMA region is different from the VMA region, then update the
       // LMA region there as well.
       if (this->lma_region_ != NULL && this->lma_region_ != this->vma_region_
 	  && this->os_->type() != elfcpp::SHT_NOBITS)
 	this->lma_region_->set_address(this->os_->name(), *load_address,
-				       symtab, layout);
+				       symtab, layout, false);
     }
 
   this->final_dot_value_ = *dot_value;
@@ -4031,7 +4063,16 @@ Script_sections::Script_sections()
     saw_data_segment_align_(false),
     saw_relro_end_(false),
     saw_segment_start_expression_(false),
-    segments_created_(false)
+    segments_created_(false),
+    in_overlay_(false),
+    saw_overlay_section_(false),
+    overlay_address_(NULL),
+    overlay_load_address_(NULL),
+    overlay_subalign_(NULL),
+    overlay_max_(NULL),
+    overlay_memory_vma_(NULL),
+    overlay_memory_lma_(NULL),
+    overlay_section_start_()
 {
 }
 
@@ -4242,6 +4283,133 @@ Script_sections::finalize_symbols(Symbol_table* symtab, const Layout* layout)
        p != this->sections_elements_->end();
        ++p)
     (*p)->finalize_symbols(symtab, layout, &dot_value);
+}
+
+void
+Script_sections::start_overlay(const Parser_output_section_header* header)
+{
+  gold_assert(!this->in_overlay_);
+  this->overlay_address_ = header->address;
+  this->overlay_load_address_ = header->load_address;
+  this->overlay_subalign_ = header->subalign;
+  this->in_overlay_ = true;
+}
+
+void
+Script_sections::finish_overlay(const Parser_output_section_trailer* trailer)
+{
+  gold_assert(this->in_overlay_);
+  if (this->saw_overlay_section_)
+   {
+      Sections_elements::iterator p = this->overlay_section_start_;
+      for (; p != this->sections_elements_->end() ;)
+        {
+          Output_section_definition* o = static_cast<Output_section_definition*>(*p);
+          o->update_phdr_and_fill(trailer);
+          if (this->overlay_memory_vma_)
+            o->set_memory_region(this->overlay_memory_vma_, true);
+          if (this->overlay_memory_lma_)
+            {
+              o->set_section_lma(NULL);
+              o->set_memory_region(this->overlay_memory_lma_, false);
+            }
+          ++p;
+          ++p;
+          ++p;
+        }
+      add_dot_assignment(script_exp_binary_add(this->overlay_address_, this->overlay_max_));
+    }
+
+  this->in_overlay_ = false;
+  this->overlay_address_ = NULL;
+  this->overlay_load_address_ = NULL;
+  this->overlay_subalign_ = NULL;
+  this->saw_overlay_section_=false;
+  this->overlay_max_ = NULL;
+  this->overlay_memory_vma_ = NULL;
+  this->overlay_memory_lma_ = NULL;
+  this->overlay_section_start_ = Sections_elements::iterator();
+}
+
+void
+Script_sections::start_overlay_section(const char* name, size_t namelen)
+{
+  gold_assert(this->in_overlay_);
+  Parser_output_section_header header;
+  header.address = this->overlay_address_;
+  header.section_type = SCRIPT_SECTION_TYPE_NONE;
+  header.load_address = this->overlay_load_address_;
+  header.align = NULL;
+  header.subalign = this->overlay_subalign_;
+  header.constraint = CONSTRAINT_NONE;
+  start_output_section(name, namelen, &header);
+
+  if (!this->saw_overlay_section_)
+    {
+       Sections_elements::iterator p = this->sections_elements_->end();
+       --p;
+       this->overlay_section_start_ = p;
+       this->overlay_address_ = script_exp_function_addr(name, namelen);
+    }
+  else
+    {
+       this->output_section_->set_backward_dot_move_expected(true);
+    }
+
+  this->overlay_load_address_ = script_exp_binary_add(script_exp_function_loadaddr(name, namelen),
+                                                      script_exp_function_sizeof(name,namelen));
+  this->saw_overlay_section_ = true;
+}
+
+void
+Script_sections::finish_overlay_section(const Parser_output_section_trailer* trailer)
+{
+  gold_assert(this->in_overlay_);
+  gold_assert(this->saw_overlay_section_);
+
+  const std::string& name = this->output_section_->get_section_name();
+  Expression* loadaddr = script_exp_function_loadaddr(name.c_str(), name.size());
+  Expression* size = script_exp_function_sizeof(name.c_str(), name.size());
+
+  std::string mangled_name(name);
+  for (std::string::iterator p = mangled_name.begin();
+       p != mangled_name.end();
+       ++p)
+    if (!ISALNUM(*p) && *p != '_')
+      p = mangled_name.erase(p);
+
+  std::string start_symbol = "__load_start_" + mangled_name;
+  std::string end_symbol = "__load_stop_" + mangled_name;
+
+  finish_output_section(trailer);
+
+  add_symbol_assignment(start_symbol.c_str(),
+                        start_symbol.size(),
+                        loadaddr,
+                         /* provide */ true,
+                         /* hidden */ false);
+  add_symbol_assignment(end_symbol.c_str(),
+                        end_symbol.size(),
+                        script_exp_binary_add(loadaddr, size),
+                         /* provide */ true,
+                         /* hidden  */ false);
+
+  if (this->overlay_max_ == NULL)
+    this->overlay_max_ = size;
+  else
+    this->overlay_max_ = script_exp_function_max(this->overlay_max_, size);
+}
+
+void
+Script_sections::set_overlay_memory_region(Memory_region* mr, bool set_vma)
+{
+  gold_assert(this->in_overlay_);
+  gold_assert(this->saw_overlay_section_);
+
+  if (set_vma)
+    this->overlay_memory_vma_ = mr;
+  else
+    this->overlay_memory_lma_ = mr;
 }
 
 // Return the name of the output section to use for an input file name
@@ -4712,7 +4880,8 @@ Script_sections::create_segments(Layout* layout, uint64_t dot_alignment)
 
       bool need_new_segment;
       if (current_seg == NULL)
-	need_new_segment = true;
+        need_new_segment = true;
+
       else if (lma - vma != last_lma - last_vma)
 	{
 	  // This section has a different LMA relationship than the
