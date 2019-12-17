@@ -336,40 +336,39 @@ public:
       }
     }
 
-    std::stack<std::string> inputs;
     std::string s = section;
-
     size_t pos;
-    while((pos = s.find_last_of('.')) != std::string::npos)
-    {
-      s.erase(pos);
-      inputs.push(s + '.');
-    }
-    inputs.push("");
 
-    while(inputs.size())
-    {
-      std::string current_regular_part = inputs.top();
-      inputs.pop();
-
-      Unordered_map<std::string, Pattern_list_type>::iterator it =
-        this->wildcard_patterns_.find(current_regular_part);
-      if(it != this->wildcard_patterns_.end())
+    do
       {
-        Pattern_list_type& current = it->second;
-        Pattern_list_type::iterator pattern_it = current.begin();
-	while(pattern_it != current.end() && (*pattern_it)->index() < min)
-        {
-          if((*pattern_it)->match(section, relobj))
-          {
-	    matched = *pattern_it;
-            min = (*pattern_it)->index();
-	    break;
-          }
-	  ++pattern_it;
-        }
+	pos = s.find_last_of('.');
+	std::string current_regular_part = "";
+
+	if (pos != std::string::npos)
+	  {
+	    s.erase(pos);
+	    current_regular_part = s + '.';
+	  }
+
+	Unordered_map<std::string, Pattern_list_type>::iterator it
+	  = this->wildcard_patterns_.find(current_regular_part);
+	if (it != this->wildcard_patterns_.end())
+	  {
+	    Pattern_list_type& current = it->second;
+	    Pattern_list_type::iterator pattern_it = current.begin();
+	    while (pattern_it != current.end() && (*pattern_it)->index() < min)
+	      {
+		if ((*pattern_it)->match(section, relobj))
+		  {
+		    matched = *pattern_it;
+		    min = (*pattern_it)->index();
+		    break;
+		  }
+		++pattern_it;
+	      }
+	  }
       }
-    }
+    while (pos != std::string::npos);
 
     if (matched != NULL)
     {
