@@ -3766,8 +3766,10 @@ Orphan_output_section::set_section_addresses(Symbol_table* symtab,
     {
       this->os_->set_address(address);
       if (have_load_address)
-        this->os_->set_load_address(align_address(laddr,
-                                                  this->os_->addralign()));
+        {
+          laddr = align_address(laddr, this->os_->addralign());
+          this->os_->set_load_address(laddr);
+        }
     }
 
   Input_section_list input_sections;
