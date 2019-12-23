@@ -560,13 +560,8 @@ overlay_section:
 	|	overlay_section
 		string
 			{ script_start_overlay_section(closure, $2.value, $2.length); }
-		'{' overlay_section_specs '}' overlay_phdr_fill
+		'{' section_cmds '}' overlay_phdr_fill
 			{ script_finish_overlay_section(closure, &$7); }
-	;
-
-overlay_section_specs:
-	  /* empty */
-	| overlay_section_specs input_section_spec
 	;
 
 opt_address:
