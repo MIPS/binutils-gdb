@@ -5712,6 +5712,16 @@ Target_nanomips<size, big_endian>::set_gp(Layout* layout, Symbol_table* symtab)
                                               elfcpp::STB_LOCAL,
                                               elfcpp::STV_DEFAULT,
                                               0, false, false));
+      // And if there is no .sdata section, define gp as zero.
+      else
+	 gp = static_cast<Sized_symbol<size>*>(symtab->define_as_constant(
+					       "_gp", NULL,
+					       Symbol_table::PREDEFINED,
+					       0, 0,
+					       elfcpp::STT_NOTYPE,
+					       elfcpp::STB_LOCAL,
+					       elfcpp::STV_DEFAULT,
+					       0, false, false));
     }
   this->gp_ = gp;
 }
