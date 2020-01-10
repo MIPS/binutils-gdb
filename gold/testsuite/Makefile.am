@@ -4815,6 +4815,22 @@ nanomips_wrap_2.o: nanomips_wrap_2.s
 
 MOSTLYCLEANFILES += nanomips_wrap
 
+# Test that the save[gp]/restore[gp] instructions are relaxed to their 16-bit variants.
+
+check_SCRIPTS += nanomips_saverestore_relax.sh
+check_DATA += nanomips_saverestore_relax.stdout
+
+nanomips_saverestore_relax.stdout: nanomips_saverestore_relax
+	$(TEST_OBJDUMP) -d $< > $@
+
+nanomips_saverestore_relax: nanomips_saverestore_relax.o ../ld-new
+	../ld-new nanomips_saverestore_relax.o --relax -o $@
+
+nanomips_saverestore_relax.o: nanomips_saverestore_relax.s
+	$(TEST_AS) -EL -march=32r6 -m32 -o $@ $<
+
+MOSTLYCLEANFILES += nanomips_saverestore_relax
+
 endif DEFAULT_TARGET_NANOMIPS
 
 endif NATIVE_OR_CROSS_LINKER

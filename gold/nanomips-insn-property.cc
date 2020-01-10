@@ -149,6 +149,17 @@ ins_sres_fields(unsigned int, unsigned int fields, uint32_t data)
   return (data | rt | u);
 }
 
+// Insert rt and u[7:4] fields in nanoMIPS save[16]/restore.jrc[16] instruction.
+
+unsigned int
+ins_sres16_fields(unsigned int, unsigned int fields, uint32_t data)
+{
+  unsigned int u = ((fields & 0x1ff) << 3);
+  unsigned int rt = ((fields & 0x3e00) >> 9);
+  unsigned int rt1 = (rt == 30) ? 0 : (1U << 9);
+  return (data | rt1 | u);
+}
+
 Nanomips_insn_property::Nanomips_insn_property(
     const char* name,
     extract_reg_func treg_func,

@@ -197,6 +197,10 @@
 #define SWGP16 NIT16("sw[gp16]", 0xd400, GPREL7_S2, INS_REG(7, 3, TREG), NULL)
 // sw16 $reg, %reloc(sym)($reg)
 #define SW16(reloc) NIT16("sw[16]", 0x9400, reloc, INS_REG(7, 3, TREG), INS_REG(4, 3, SREG))
+// save16 u, [src1, src2, ...]
+#define SAVE16 NIT16("save[16]", 0x1c00, NONE, INS_REG(0, 4, TREG), ins_sres16_fields)
+// restore.jrc16 u, [dst1, dst2, ...]
+#define RESTOREJRC16 NIT16("restore.jrc[16]", 0x1d00, NONE, INS_REG(0, 4, TREG), ins_sres16_fields)
 
 //
 //
@@ -462,10 +466,12 @@ NTT(DISCARD,          RELS(R(SAVERESTORE)),                           INSNS(REST
 // restore.jrc u, dst1, [dst2, ...] where gp = 1
 NIP32("restore.jrc[gp]",0x80003007,    EXT_REG(16, 4),       NULL,                  ext_sres_fields,      NULL)
 NTT(DISCARD,          RELS(R(SAVERESTORE)),                           INSNS(RESTOREJRC32))
+NTT(SAVERESTORE16,    RELS(R(SAVERESTORE)),                           INSNS(RESTOREJRC16))
 
 // save u, src1, [src2, ...] where gp = 1
 NIP32("save[gp]",       0x80003004,    EXT_REG(16, 4),       NULL,                  ext_sres_fields,      NULL)
 NTT(DISCARD,          RELS(R(SAVERESTORE)),                           INSNS(SAVE32))
+NTT(SAVERESTORE16,    RELS(R(SAVERESTORE)),                           INSNS(SAVE16))
 
 // sb $reg, %got_ofst(sym)($reg)
 NIP32("sb",             0x84001000,    EXT_REG(21, 5),       valid_st_src_reg,      EXT_REG(16, 5),       valid_reg)

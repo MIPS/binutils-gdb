@@ -1105,6 +1105,8 @@ check_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
 # Test relocations to discarded sections in debug information
 
 # Test that wrap symbol is adjusted only once
+
+# Test that the save[gp]/restore[gp] instructions are relaxed to their 16-bit variants.
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@am__append_106 = nanomips_pcrel_out_of_range.sh \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_gprel_out_of_range.sh \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_sort_by_ref.sh \
@@ -1114,7 +1116,8 @@ check_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_data_access.sh \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_got_gen.sh \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_discarded_debug.sh \
-@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_wrap.sh
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_wrap.sh \
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_saverestore_relax.sh
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@am__append_107 = nanomips_b_out_of_range_pcrel.stdout \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_b_out_of_range_insn32_pcrel.stdout \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_b_out_of_range_nmf_pcrel.stdout \
@@ -1168,7 +1171,8 @@ check_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_discarded_debug_frame.stdout \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_discarded_debug_loc.stdout \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_discarded_debug_aranges.stdout \
-@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_wrap.stdout
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_wrap.stdout \
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_saverestore_relax.stdout
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@am__append_108 = nanomips_b_out_of_range_pcrel \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_b_out_of_range_insn32_pcrel \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_b_out_of_range_nmf_pcrel \
@@ -1216,7 +1220,8 @@ check_PROGRAMS = $(am__EXEEXT_1) $(am__EXEEXT_2) $(am__EXEEXT_3) \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_data_access_pid_3 \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_got_gen \
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_discarded_debug \
-@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_wrap
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_wrap \
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	nanomips_saverestore_relax
 @DEFAULT_TARGET_X86_64_TRUE@am__append_109 = *.dwo *.dwp
 @DEFAULT_TARGET_X86_64_TRUE@am__append_110 = dwp_test_1.sh \
 @DEFAULT_TARGET_X86_64_TRUE@	dwp_test_2.sh
@@ -2905,6 +2910,8 @@ SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
 TARGETOBJS = @TARGETOBJS@
+THREAD_LINK_DONE = @THREAD_LINK_DONE@
+THREAD_LINK_STATIC = @THREAD_LINK_STATIC@
 USE_NLS = @USE_NLS@
 VERSION = @VERSION@
 WARN_CFLAGS = @WARN_CFLAGS@
@@ -5642,6 +5649,8 @@ nanomips_discarded_debug.sh.log: nanomips_discarded_debug.sh
 	@p='nanomips_discarded_debug.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 nanomips_wrap.sh.log: nanomips_wrap.sh
 	@p='nanomips_wrap.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
+nanomips_saverestore_relax.sh.log: nanomips_saverestore_relax.sh
+	@p='nanomips_saverestore_relax.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 dwp_test_1.sh.log: dwp_test_1.sh
 	@p='dwp_test_1.sh'; $(am__check_pre) $(LOG_COMPILE) "$$tst" $(am__check_post)
 dwp_test_2.sh.log: dwp_test_2.sh
@@ -8965,6 +8974,15 @@ uninstall-am:
 
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_wrap_2.o: nanomips_wrap_2.s
 @DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_AS) -EL -march=32r6 -m32 -mpcrel -o $@ $<
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_saverestore_relax.stdout: nanomips_saverestore_relax
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_OBJDUMP) -d $< > $@
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_saverestore_relax: nanomips_saverestore_relax.o ../ld-new
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	../ld-new nanomips_saverestore_relax.o --relax -o $@
+
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@nanomips_saverestore_relax.o: nanomips_saverestore_relax.s
+@DEFAULT_TARGET_NANOMIPS_TRUE@@NATIVE_OR_CROSS_LINKER_TRUE@	$(TEST_AS) -EL -march=32r6 -m32 -o $@ $<
 
 # Tests for the dwp tool.
 # We don't want to rely yet on GCC support for -gsplit-dwarf,
