@@ -4273,6 +4273,7 @@ match_save_restore_list_operand (struct nanomips_arg_info *arg,
   do
     {
       unsigned int regno1 = 0, regno2 = 0;
+      bfd_boolean first_range = FALSE;
 
       if (!match_reg_range (arg, OP_REG_GP, &regno1, &regno2))
 	{
@@ -4286,9 +4287,22 @@ match_save_restore_list_operand (struct nanomips_arg_info *arg,
 	  return FALSE;
 	}
 
+      if (regno1 <= 29 && regno2 >= 29)
+	{
+	  set_insn_error_ss (regno1,
+			     "%s register list should not contain $sp%s",
+			     arg->insn->insn_mo->name, "");
+	  return FALSE;
+	}
+
       if (first_reg == RNUM_MASK + 1)
-	first_reg = last_reg = regno1;
-      else if (regno1 != ((first_reg & 0x10) | (last_reg + 1) % 32))
+	{
+	  first_reg = last_reg = regno1;
+	  first_range = TRUE;
+	}
+
+      if ((regno1 != ((first_reg & 0x10) | (last_reg + 1) % 32))
+	  || first_range)
 	{
 	  /* a non-contiguous sequence */
 	  if (regno1 == 28 && !mode16 && (nanomips_opts.ase & ASE_xNMS) != 0)
@@ -4310,6 +4324,8 @@ match_save_restore_list_operand (struct nanomips_arg_info *arg,
 				 arg->insn->insn_mo->name, "");
 	      return FALSE;
 	    }
+	  else if (first_range)
+	    goto sequence;
 	  else
 	    {
 	      if (regno1 == 30 && first_reg != 30)
@@ -4332,14 +4348,7 @@ match_save_restore_list_operand (struct nanomips_arg_info *arg,
 	    }
 	}
 
-      if (regno1 <= 29 && regno2 >= 29)
-	{
-	  set_insn_error_ss (regno1,
-			     "%s register list should not contain $sp%s",
-			     arg->insn->insn_mo->name, "");
-	  return FALSE;
-	}
-
+    sequence:
       last_reg = regno2;
 
       /* sequence  */
