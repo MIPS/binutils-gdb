@@ -4325,7 +4325,7 @@ match_save_restore_list_operand (struct nanomips_arg_info *arg,
 	      return FALSE;
 	    }
 	  else if (first_range)
-	    goto sequence;
+	    ;
 	  else
 	    {
 	      if (regno1 == 30 && first_reg != 30)
@@ -4348,7 +4348,6 @@ match_save_restore_list_operand (struct nanomips_arg_info *arg,
 	    }
 	}
 
-    sequence:
       last_reg = regno2;
 
       /* sequence  */
