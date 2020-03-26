@@ -1056,7 +1056,7 @@ static const char * const riscv_std_zxm_ext_strtab[] =
 
 static const char * const riscv_std_draft_ext_strtab[] =
 {
-  "zvamo", "zvlsseg", NULL
+  "zfh", "zvamo", "zvlsseg", NULL
 };
 
 /* ISA extension prefixed name class.  Must define them in parsing order.  */
@@ -1753,6 +1753,16 @@ riscv_parse_add_implicit_subsets (riscv_parse_subset_t *rps)
 			      RISCV_UNKNOWN_VERSION,
 			      RISCV_UNKNOWN_VERSION, true);
       riscv_parse_add_subset (rps, "zifencei",
+			      RISCV_UNKNOWN_VERSION,
+			      RISCV_UNKNOWN_VERSION, true);
+    }
+
+  if (riscv_lookup_subset (rps->subset_list, "zfh", &subset))
+    {
+      riscv_parse_add_subset (rps, "f",
+			      RISCV_UNKNOWN_VERSION,
+			      RISCV_UNKNOWN_VERSION, true);
+      riscv_parse_add_subset (rps, "zicsr",
 			      RISCV_UNKNOWN_VERSION,
 			      RISCV_UNKNOWN_VERSION, true);
     }
