@@ -362,10 +362,6 @@ extern struct program_space *current_program_space;
 #define ALL_PSPACES(pspace) \
   for ((pspace) = program_spaces; (pspace) != NULL; (pspace) = (pspace)->next)
 
-/* Remove a program space from the program spaces list and release it.  It is
-   an error to call this function while PSPACE is the current program space. */
-extern void delete_program_space (struct program_space *pspace);
-
 /* Returns the number of program spaces listed.  */
 extern int number_of_program_spaces (void);
 
