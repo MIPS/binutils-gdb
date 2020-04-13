@@ -653,9 +653,10 @@ gdbsim_target::create_inferior (const char *exec_file,
       != SIM_RC_OK)
     error (_("Unable to create sim inferior."));
 
-  inferior_ptid = sim_data->remote_sim_ptid;
-  inferior_appeared (current_inferior (), inferior_ptid.pid ());
-  add_thread_silent (this, inferior_ptid);
+  inferior_appeared (current_inferior (),
+		     sim_data->remote_sim_ptid.pid ());
+  thread_info *thr = add_thread_silent (this, sim_data->remote_sim_ptid);
+  switch_to_thread (thr);
 
   insert_breakpoints ();	/* Needed to get correct instruction
 				   in cache.  */
@@ -945,7 +946,6 @@ gdbsim_target::wait (ptid_t ptid, struct target_waitstatus *status, int options)
       if (sim_data == NULL)
 	error (_("Unable to wait for pid %d.  Inferior not found."),
 	       ptid.pid ());
-      inferior_ptid = ptid;
     }
 
   if (remote_debug)
