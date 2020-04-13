@@ -1141,8 +1141,7 @@ darwin_nat_target::decode_message (mach_msg_header_t *hdr,
 	      /* Looks necessary on Leopard and harmless...  */
 	      wait4 (inf->pid, &wstatus, 0, NULL);
 
-	      inferior_ptid = ptid_t (inf->pid, 0, 0);
-	      return inferior_ptid;
+	      return ptid_t (inf->pid);
 	    }
 	  else
 	    {
@@ -1432,7 +1431,7 @@ darwin_nat_target::stop_inferior (inferior *inf)
   /* Wait until the process is really stopped.  */
   while (1)
     {
-      ptid = wait_1 (inferior_ptid, &wstatus);
+      ptid = wait_1 (pid_t (inf->pid), &wstatus);
       if (wstatus.kind == TARGET_WAITKIND_STOPPED
 	  && wstatus.value.sig == GDB_SIGNAL_STOP)
 	break;
@@ -1557,13 +1556,13 @@ darwin_nat_target::kill ()
 
       darwin_resume_inferior (inf);
 
-      ptid = wait_1 (inferior_ptid, &wstatus);
+      ptid = wait_1 (pid_t (inf->pid), &wstatus);
     }
   else if (errno != ESRCH)
     warning (_("Failed to kill inferior: kill (%d, 9) returned [%s]"),
 	     inf->pid, safe_strerror (errno));
 
-  target_mourn_inferior (inferior_ptid);
+  target_mourn_inferior (pid_t (inf->pid));
 }
 
 static void
@@ -1683,7 +1682,7 @@ darwin_attach_pid (struct inferior *inf)
   catch (const gdb_exception &ex)
     {
       exit_inferior (inf);
-      inferior_ptid = null_ptid;
+      switch_to_no_thread ();
 
       throw;
     }
@@ -1722,7 +1721,7 @@ darwin_nat_target::init_thread_list (inferior *inf)
   struct thread_info *first_thread
     = thread_info_from_private_thread_info (first_pti);
 
-  inferior_ptid = first_thread->ptid;
+  switch_to_thread (first_thread);
 }
 
 /* The child must synchronize with gdb: gdb must set the exception port
@@ -2057,7 +2056,6 @@ darwin_nat_target::attach (const char *args, int from_tty)
     error (_("Can't attach to process %d: %s (%d)"),
            pid, safe_strerror (errno), errno);
 
-  inferior_ptid = ptid_t (pid);
   inf = current_inferior ();
   inferior_appeared (inf, pid);
   inf->attach_flag = 1;
@@ -2469,7 +2467,7 @@ darwin_nat_target::get_ada_task_ptid (long lwp, long thread)
                  names_count * sizeof (mach_port_t));
 
   if (res)
-    return ptid_t (inferior_ptid.pid (), 0, res);
+    return ptid_t (current_inferior ()->pid, 0, res);
   else
     return null_ptid;
 }
