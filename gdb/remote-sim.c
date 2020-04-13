@@ -761,7 +761,7 @@ gdbsim_target_open (const char *args, int from_tty)
 
   /* There's nothing running after "target sim" or "load"; not until
      "run".  */
-  inferior_ptid = null_ptid;
+  switch_to_no_thread ();
 
   gdbsim_is_open = 1;
 }
