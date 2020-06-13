@@ -142,6 +142,8 @@ ldfile_try_open_bfd (const char *attempt,
       return FALSE;
     }
 
+  track_dependency_files (attempt);
+
   /* Linker needs to decompress sections.  */
   entry->the_bfd->flags |= BFD_DECOMPRESS;
 

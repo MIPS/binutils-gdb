@@ -893,6 +893,15 @@ Use @var{output} as the name for the program produced by @command{ld}; if this
 option is not specified, the name @file{a.out} is used by default.  The
 script command @code{OUTPUT} can also specify the output file name.
 
+@kindex --dependency-file=@var{depfile}
+@cindex dependency file
+@item --dependency-file=@var{depfile}
+Write a @dfn{dependency file} to @var{depfile}.  This file contains a rule
+suitable for @code{make} describing the output file and all the input files
+that were read to produce it.  The output is similar to the compiler's output
+with @samp{-M -MP} (@pxref{Preprocessor Options,, Options Controlling the
+Preprocessor, gcc.info, Using the GNU Compiler Collection}).
+
 @kindex -O @var{level}
 @cindex generating optimized output
 @item -O @var{level}
