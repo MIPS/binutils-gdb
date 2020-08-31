@@ -5391,7 +5391,7 @@ gdbarch_register (enum bfd_architecture bfd_architecture,
 	internal_error (__FILE__, __LINE__,
                         _("gdbarch: Duplicate registration "
 			  "of architecture (%s)"),
-	                bfd_arch_info->printable_name);
+			bfd_arch_info->printable_name);
     }
   /* log it */
   if (gdbarch_debug)

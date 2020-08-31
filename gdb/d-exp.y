@@ -793,7 +793,7 @@ parse_number (struct parser_state *ps, const char *p,
 	  if (base > 10 && c >= 'a' && c <= 'f')
 	    {
 	      if (found_suffix)
-	        return ERROR;
+		return ERROR;
 	      n += i = c - 'a' + 10;
 	    }
 	  else if (c == 'l' && long_p == 0)

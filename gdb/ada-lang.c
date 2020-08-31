@@ -1897,7 +1897,7 @@ ada_type_of_array (struct value *arr, int bounds)
 	  if (ada_is_unconstrained_packed_array_type (value_type (arr)))
 	    {
 	      /* We need to store the element packed bitsize, as well as
-	         recompute the array size, because it was previously
+		 recompute the array size, because it was previously
 		 computed based on the unpacked element size.  */
 	      LONGEST lo = value_as_long (low);
 	      LONGEST hi = value_as_long (high);
@@ -1905,11 +1905,11 @@ ada_type_of_array (struct value *arr, int bounds)
 	      TYPE_FIELD_BITSIZE (elt_type, 0) =
 		decode_packed_array_bitsize (value_type (arr));
 	      /* If the array has no element, then the size is already
-	         zero, and does not need to be recomputed.  */
+		 zero, and does not need to be recomputed.  */
 	      if (lo < hi)
 		{
 		  int array_bitsize =
-		        (hi - lo + 1) * TYPE_FIELD_BITSIZE (elt_type, 0);
+			(hi - lo + 1) * TYPE_FIELD_BITSIZE (elt_type, 0);
 
 		  TYPE_LENGTH (array_type) = (array_bitsize + 7) / 8;
 		}
@@ -2451,7 +2451,7 @@ ada_value_primitive_packed_val (struct value *obj, const gdb_byte *valaddr,
       staging.resize (staging_len);
 
       ada_unpack_from_contents (src, bit_offset, bit_size,
-			        staging.data (), staging.size (),
+				staging.data (), staging.size (),
 				is_big_endian, has_negatives (type),
 				is_scalar);
       type = resolve_dynamic_type (type, staging, 0);
@@ -7315,9 +7315,9 @@ ada_lookup_struct_elt_type (struct type *type, const char *name, int refok,
           for (j = field_type->num_fields () - 1; j >= 0; j -= 1)
             {
 	      /* FIXME pnh 2008/01/26: We check for a field that is
-	         NOT wrapped in a struct, since the compiler sometimes
+		 NOT wrapped in a struct, since the compiler sometimes
 		 generates these for unchecked variant types.  Revisit
-	         if the compiler changes this practice.  */
+		 if the compiler changes this practice.  */
 	      const char *v_field_name = TYPE_FIELD_NAME (field_type, j);
 
 	      if (v_field_name != NULL 

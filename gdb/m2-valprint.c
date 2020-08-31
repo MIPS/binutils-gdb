@@ -42,7 +42,7 @@ m2_print_array_contents (struct value *val,
 
 
 /* get_long_set_bounds - assigns the bounds of the long set to low and
-                         high.  */
+			 high.  */
 
 int
 get_long_set_bounds (struct type *type, LONGEST *low, LONGEST *high)
@@ -249,10 +249,10 @@ print_variable_at_address (struct type *type,
 
 
 /* m2_print_array_contents - prints out the contents of an
-                             array up to a max_print values.
-                             It prints arrays of char as a string
-                             and all other data types as comma
-                             separated values.  */
+			     array up to a max_print values.
+			     It prints arrays of char as a string
+			     and all other data types as comma
+			     separated values.  */
 
 static void
 m2_print_array_contents (struct value *val,
@@ -323,7 +323,7 @@ m2_value_print_inner (struct value *val, struct ui_file *stream, int recurse,
 	      && (options->format == 0 || options->format == 's'))
 	    {
 	      /* If requested, look for the first null char and only print
-	         elements up to it.  */
+		 elements up to it.  */
 	      if (options->stop_print_at_null)
 		{
 		  unsigned int temp_len;
@@ -449,12 +449,12 @@ m2_value_print_inner (struct value *val, struct ui_file *stream, int recurse,
 	  break;
 	}
       /* FIXME: create_static_range_type does not set the unsigned bit in a
-         range type (I think it probably should copy it from the target
-         type), so we won't print values which are too large to
-         fit in a signed integer correctly.  */
+	 range type (I think it probably should copy it from the target
+	 type), so we won't print values which are too large to
+	 fit in a signed integer correctly.  */
       /* FIXME: Doesn't handle ranges of enums correctly.  (Can't just
-         print with the target type, though, because the size of our type
-         and the target type might differ).  */
+	 print with the target type, though, because the size of our type
+	 and the target type might differ).  */
       /* FALLTHROUGH */
 
     case TYPE_CODE_REF:

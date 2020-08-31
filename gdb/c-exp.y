@@ -1159,7 +1159,7 @@ variable:	name_not_typename
 			  else if ($1.is_a_field_of_this)
 			    {
 			      /* C++: it hangs off of `this'.  Must
-			         not inadvertently convert from a method call
+				 not inadvertently convert from a method call
 				 to data ref.  */
 			      pstate->block_tracker->update (sym);
 			      write_exp_elt_opcode (pstate, OP_THIS);
@@ -2969,7 +2969,7 @@ lex_one_token (struct parser_state *par_state, bool *is_quoted_name)
 			       pstate->expression_context_block,
 			       VAR_DOMAIN,
 			       (par_state->language ()->la_language
-			        == language_cplus ? &is_a_field_of_this
+				== language_cplus ? &is_a_field_of_this
 				: NULL)).symbol
 		!= NULL)
 	      {

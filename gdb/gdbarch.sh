@@ -2027,11 +2027,11 @@ do
 		print="core_addr_to_string_nz (gdbarch->${function})"
 		;;
 	    :* )
-	        fmt="%s"
+		fmt="%s"
 		print="plongest (gdbarch->${function})"
 		;;
 	    * )
-	        fmt="%s"
+		fmt="%s"
 		;;
         esac
 	printf "  fprintf_unfiltered (file,\n"
@@ -2353,7 +2353,7 @@ gdbarch_register (enum bfd_architecture bfd_architecture,
 	internal_error (__FILE__, __LINE__,
                         _("gdbarch: Duplicate registration "
 			  "of architecture (%s)"),
-	                bfd_arch_info->printable_name);
+			bfd_arch_info->printable_name);
     }
   /* log it */
   if (gdbarch_debug)

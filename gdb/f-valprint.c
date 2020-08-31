@@ -311,10 +311,10 @@ f_value_print_inner (struct value *val, struct ui_file *stream, int recurse,
     case TYPE_CODE_STRUCT:
     case TYPE_CODE_UNION:
       /* Starting from the Fortran 90 standard, Fortran supports derived
-         types.  */
+	 types.  */
       fprintf_filtered (stream, "( ");
       for (index = 0; index < type->num_fields (); index++)
-        {
+	{
 	  struct value *field = value_field (val, index);
 
 	  struct type *field_type = check_typedef (type->field (index).type ());
@@ -400,7 +400,7 @@ info_common_command_for_block (const struct block *block, const char *comname,
 	gdb_assert (SYMBOL_CLASS (sym) == LOC_COMMON_BLOCK);
 
 	if (comname && (!sym->linkage_name ()
-	                || strcmp (comname, sym->linkage_name ()) != 0))
+			|| strcmp (comname, sym->linkage_name ()) != 0))
 	  continue;
 
 	if (*any_printed)
@@ -470,7 +470,7 @@ info_common_command (const char *comname, int from_tty)
     {
       info_common_command_for_block (block, comname, &values_printed);
       /* After handling the function's top-level block, stop.  Don't
-         continue to its superblock, the block of per-file symbols.  */
+	 continue to its superblock, the block of per-file symbols.  */
       if (BLOCK_FUNCTION (block))
 	break;
       block = BLOCK_SUPERBLOCK (block);

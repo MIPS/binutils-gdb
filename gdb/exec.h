@@ -90,7 +90,7 @@ extern enum target_xfer_status
 				     struct target_section *,
 				     gdb::function_view<bool
 				       (const struct target_section *)> match_cb
-				         = nullptr);
+					 = nullptr);
 
 /* Read from mappable read-only sections of BFD executable files.
    Similar to exec_read_partial_read_only, but return

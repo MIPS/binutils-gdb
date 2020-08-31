@@ -1531,7 +1531,7 @@ extern void breakpoint_set_task (struct breakpoint *b, int task);
 extern void mark_breakpoints_out (void);
 
 extern struct breakpoint *create_jit_event_breakpoint (struct gdbarch *,
-                                                       CORE_ADDR);
+						       CORE_ADDR);
 
 extern struct breakpoint *create_solib_event_breakpoint (struct gdbarch *,
 							 CORE_ADDR);
@@ -1563,7 +1563,7 @@ extern bool is_catchpoint (struct breakpoint *b);
 /* Shared helper function (MI and CLI) for creating and installing
    a shared object event catchpoint.  */
 extern void add_solib_catchpoint (const char *arg, int is_load, int is_temp,
-                                  int enabled);
+				  int enabled);
 
 /* Create and insert a new software single step breakpoint for the
    current thread.  May be called multiple times; each time will add a

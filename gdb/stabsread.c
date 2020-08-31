@@ -413,16 +413,16 @@ patch_block_stabs (struct pending *symbols, struct pending_stabs *stabs,
 	  if (!sym)
 	    {
 	      /* FIXME-maybe: it would be nice if we noticed whether
-	         the variable was defined *anywhere*, not just whether
-	         it is defined in this compilation unit.  But neither
-	         xlc or GCC seem to need such a definition, and until
-	         we do psymtabs (so that the minimal symbols from all
-	         compilation units are available now), I'm not sure
-	         how to get the information.  */
+		 the variable was defined *anywhere*, not just whether
+		 it is defined in this compilation unit.  But neither
+		 xlc or GCC seem to need such a definition, and until
+		 we do psymtabs (so that the minimal symbols from all
+		 compilation units are available now), I'm not sure
+		 how to get the information.  */
 
 	      /* On xcoff, if a global is defined and never referenced,
-	         ld will remove it from the executable.  There is then
-	         a N_GSYM stab for it, but no regular (C_EXT) symbol.  */
+		 ld will remove it from the executable.  There is then
+		 a N_GSYM stab for it, but no regular (C_EXT) symbol.  */
 	      sym = new (&objfile->objfile_obstack) symbol;
 	      SYMBOL_DOMAIN (sym) = VAR_DOMAIN;
 	      SYMBOL_ACLASS_INDEX (sym) = LOC_OPTIMIZED_OUT;
@@ -988,17 +988,17 @@ define_symbol (CORE_ADDR valu, const char *string, int desc, int type,
 	      struct type *ptype;
 
 	      /* A type number of zero indicates the start of varargs.
-	         FIXME: GDB currently ignores vararg functions.  */
+		 FIXME: GDB currently ignores vararg functions.  */
 	      if (p[0] == '0' && p[1] == '\0')
 		break;
 	      ptype = read_type (&p, objfile);
 
 	      /* The Sun compilers mark integer arguments, which should
-	         be promoted to the width of the calling conventions, with
-	         a type which references itself.  This type is turned into
-	         a TYPE_CODE_VOID type by read_type, and we have to turn
-	         it back into builtin_int here.
-	         FIXME: Do we need a new builtin_promoted_int_arg ?  */
+		 be promoted to the width of the calling conventions, with
+		 a type which references itself.  This type is turned into
+		 a TYPE_CODE_VOID type by read_type, and we have to turn
+		 it back into builtin_int here.
+		 FIXME: Do we need a new builtin_promoted_int_arg ?  */
 	      if (ptype->code () == TYPE_CODE_VOID)
 		ptype = objfile_type (objfile)->builtin_int;
 	      ftype->field (nparams).set_type (ptype);
@@ -1236,29 +1236,29 @@ define_symbol (CORE_ADDR valu, const char *string, int desc, int type,
 	      || SYMBOL_TYPE (sym)->code () == TYPE_CODE_FUNC)
 	    {
 	      /* If we are giving a name to a type such as "pointer to
-	         foo" or "function returning foo", we better not set
-	         the TYPE_NAME.  If the program contains "typedef char
-	         *caddr_t;", we don't want all variables of type char
-	         * to print as caddr_t.  This is not just a
-	         consequence of GDB's type management; PCC and GCC (at
-	         least through version 2.4) both output variables of
-	         either type char * or caddr_t with the type number
-	         defined in the 't' symbol for caddr_t.  If a future
-	         compiler cleans this up it GDB is not ready for it
-	         yet, but if it becomes ready we somehow need to
-	         disable this check (without breaking the PCC/GCC2.4
-	         case).
+		 foo" or "function returning foo", we better not set
+		 the TYPE_NAME.  If the program contains "typedef char
+		 *caddr_t;", we don't want all variables of type char
+		 * to print as caddr_t.  This is not just a
+		 consequence of GDB's type management; PCC and GCC (at
+		 least through version 2.4) both output variables of
+		 either type char * or caddr_t with the type number
+		 defined in the 't' symbol for caddr_t.  If a future
+		 compiler cleans this up it GDB is not ready for it
+		 yet, but if it becomes ready we somehow need to
+		 disable this check (without breaking the PCC/GCC2.4
+		 case).
 
-	         Sigh.
+		 Sigh.
 
-	         Fortunately, this check seems not to be necessary
-	         for anything except pointers or functions.  */
+		 Fortunately, this check seems not to be necessary
+		 for anything except pointers or functions.  */
               /* ezannoni: 2000-10-26.  This seems to apply for
 		 versions of gcc older than 2.8.  This was the original
 		 problem: with the following code gdb would tell that
 		 the type for name1 is caddr_t, and func is char().
 
-	         typedef char *caddr_t;
+		 typedef char *caddr_t;
 		 char *name2;
 		 struct x
 		 {
@@ -1635,8 +1635,8 @@ again:
 		{
 		  obstack_free (&objfile->objfile_obstack, type_name);
 		  type = SYMBOL_TYPE (sym);
-	          if (typenums[0] != -1)
-	            *dbx_lookup_type (typenums, objfile) = type;
+		  if (typenums[0] != -1)
+		    *dbx_lookup_type (typenums, objfile) = type;
 		  return type;
 		}
 	    }
@@ -1881,7 +1881,7 @@ again:
 
 	    default:
 	      /* Ignore unrecognized type attributes, so future compilers
-	         can invent new ones.  */
+		 can invent new ones.  */
 	      break;
 	    }
 	  ++*pp;
@@ -2550,13 +2550,13 @@ read_member_functions (struct stab_field_info *fip, const char **pp,
 
 	     So, to summarize what we expect and handle here:
 
-	        Given         Given          Real         Real       Action
+		Given         Given          Real         Real       Action
 	     method name     physname      physname   method name
 
 	     __opi            [none]     __opi__3Foo  operator int    opname
-	                                                         [now or later]
+								 [now or later]
 	     Foo              _._3Foo       _._3Foo      ~Foo      separate and
-	                                                               rename
+								       rename
 	     operator i     _ZN3FoocviEv _ZN3FoocviEv operator int    demangle
 	     __comp_ctor  _ZN3FooC1ERKS_ _ZN3FooC1ERKS_   Foo         demangle
 	  */

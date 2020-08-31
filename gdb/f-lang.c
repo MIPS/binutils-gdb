@@ -230,7 +230,7 @@ evaluate_subexp_f (struct type *expect_type, struct expression *exp,
 	type = value_type (arg1);
 	if (type->code () != value_type (arg2)->code ())
 	  error (_("non-matching types for parameters to MODULO ()"));
-        /* MODULO(A, P) = A - FLOOR (A / P) * P */
+	/* MODULO(A, P) = A - FLOOR (A / P) * P */
 	switch (type->code ())
 	  {
 	  case TYPE_CODE_INT:
@@ -272,16 +272,16 @@ evaluate_subexp_f (struct type *expect_type, struct expression *exp,
       type = value_type (arg1);
 
       switch (type->code ())
-        {
-          case TYPE_CODE_STRUCT:
-          case TYPE_CODE_UNION:
-          case TYPE_CODE_MODULE:
-          case TYPE_CODE_FUNC:
-            error (_("argument to kind must be an intrinsic type"));
-        }
+	{
+	  case TYPE_CODE_STRUCT:
+	  case TYPE_CODE_UNION:
+	  case TYPE_CODE_MODULE:
+	  case TYPE_CODE_FUNC:
+	    error (_("argument to kind must be an intrinsic type"));
+	}
 
       if (!TYPE_TARGET_TYPE (type))
-        return value_from_longest (builtin_type (exp->gdbarch)->builtin_int,
+	return value_from_longest (builtin_type (exp->gdbarch)->builtin_int,
 				   TYPE_LENGTH (type));
       return value_from_longest (builtin_type (exp->gdbarch)->builtin_int,
 				 TYPE_LENGTH (TYPE_TARGET_TYPE (type)));

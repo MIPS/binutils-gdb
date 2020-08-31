@@ -731,7 +731,7 @@ variable:	name_not_typename
 			      struct value * this_val;
 			      struct type * this_type;
 			      /* Object pascal: it hangs off of `this'.  Must
-			         not inadvertently convert from a method call
+				 not inadvertently convert from a method call
 				 to data ref.  */
 			      pstate->block_tracker->update (sym);
 			      write_exp_elt_opcode (pstate, OP_THIS);

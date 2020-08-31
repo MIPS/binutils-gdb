@@ -5015,7 +5015,7 @@ static int i386_record_floats (struct gdbarch *gdbarch,
       for (i = I387_FCTRL_REGNUM (tdep); i <= I387_FOP_REGNUM (tdep); i++)
 	      {
 	      if (record_full_arch_list_add_reg (ir->regcache, i))
-	        return -1;
+		return -1;
 	      }
     }
   else if (I386_SAVE_FPU_ENV_REG_STACK == iregnum)
@@ -5084,7 +5084,7 @@ i386_process_record (struct gdbarch *gdbarch, struct regcache *regcache,
 
   if (record_debug > 1)
     fprintf_unfiltered (gdb_stdlog, "Process record: i386_process_record "
-			            "addr = %s\n",
+				    "addr = %s\n",
 			paddress (gdbarch, ir.addr));
 
   /* prefixes */
@@ -7139,12 +7139,12 @@ Do you want to stop the program?"),
                   if (ir.regmap[X86_RECORD_R8_REGNUM])
                     {
                       if (record_full_arch_list_add_mem (addr64, 8))
-		        return -1;
+			return -1;
                     }
                   else
                     {
                       if (record_full_arch_list_add_mem (addr64, 4))
-		        return -1;
+			return -1;
                     }
 		}
 	    }
@@ -7193,13 +7193,13 @@ Do you want to stop the program?"),
 	  if (ir.mod == 3)
 	    {
 	      if (ir.rm == 0 && ir.regmap[X86_RECORD_R8_REGNUM])
-	        I386_RECORD_FULL_ARCH_LIST_ADD_REG (X86_RECORD_GS_REGNUM);
+		I386_RECORD_FULL_ARCH_LIST_ADD_REG (X86_RECORD_GS_REGNUM);
 	      else
-	        {
-	          ir.addr -= 3;
-	          opcode = opcode << 8 | ir.modrm;
-	          goto no_support;
-	        }
+		{
+		  ir.addr -= 3;
+		  opcode = opcode << 8 | ir.modrm;
+		  goto no_support;
+		}
 	    }
 	  else
 	    I386_RECORD_FULL_ARCH_LIST_ADD_REG (X86_RECORD_EFLAGS_REGNUM);

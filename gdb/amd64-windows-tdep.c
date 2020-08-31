@@ -78,7 +78,7 @@ amd64_windows_passed_by_xmm_register (struct type *type)
 {
   return ((type->code () == TYPE_CODE_FLT
 	   || type->code () == TYPE_CODE_DECFLOAT)
-          && (TYPE_LENGTH (type) == 4 || TYPE_LENGTH (type) == 8));
+	  && (TYPE_LENGTH (type) == 4 || TYPE_LENGTH (type) == 8));
 }
 
 /* Return non-zero iff an argument of the given TYPE should be passed
@@ -202,7 +202,7 @@ amd64_windows_push_arguments (struct regcache *regcache, int nargs,
 	  else if (amd64_windows_passed_by_xmm_register (type))
 	    {
 	      amd64_windows_store_arg_in_reg
-	        (regcache, args[i], AMD64_XMM0_REGNUM + reg_idx);
+		(regcache, args[i], AMD64_XMM0_REGNUM + reg_idx);
 	      /* In case of varargs, these parameters must also be
 		 passed via the integer registers.  */
 	      amd64_windows_store_arg_in_reg
@@ -258,7 +258,7 @@ amd64_windows_push_dummy_call
   if (return_method == return_method_struct)
     {
       /* The "hidden" argument is passed throught the first argument
-         register.  */
+	 register.  */
       const int arg_regnum = amd64_windows_dummy_call_integer_regs[0];
 
       store_unsigned_integer (buf, 8, byte_order, struct_addr);
@@ -300,24 +300,24 @@ amd64_windows_return_value (struct gdbarch *gdbarch, struct value *function,
     {
       case TYPE_CODE_FLT:
       case TYPE_CODE_DECFLOAT:
-        /* __m128, __m128i, __m128d, floats, and doubles are returned
-           via XMM0.  */
-        if (len == 4 || len == 8 || len == 16)
-          regnum = AMD64_XMM0_REGNUM;
-        break;
+	/* __m128, __m128i, __m128d, floats, and doubles are returned
+	   via XMM0.  */
+	if (len == 4 || len == 8 || len == 16)
+	  regnum = AMD64_XMM0_REGNUM;
+	break;
       default:
-        /* All other values that are 1, 2, 4 or 8 bytes long are returned
-           via RAX.  */
-        if (len == 1 || len == 2 || len == 4 || len == 8)
-          regnum = AMD64_RAX_REGNUM;
-        break;
+	/* All other values that are 1, 2, 4 or 8 bytes long are returned
+	   via RAX.  */
+	if (len == 1 || len == 2 || len == 4 || len == 8)
+	  regnum = AMD64_RAX_REGNUM;
+	break;
     }
 
   if (regnum < 0)
     {
       /* RAX contains the address where the return value has been stored.  */
       if (readbuf)
-        {
+	{
 	  ULONGEST addr;
 
 	  regcache_raw_read_unsigned (regcache, AMD64_RAX_REGNUM, &addr);
@@ -1281,9 +1281,9 @@ void
 _initialize_amd64_windows_tdep ()
 {
   gdbarch_register_osabi (bfd_arch_i386, bfd_mach_x86_64, GDB_OSABI_WINDOWS,
-                          amd64_windows_init_abi);
+			  amd64_windows_init_abi);
   gdbarch_register_osabi (bfd_arch_i386, bfd_mach_x86_64, GDB_OSABI_CYGWIN,
-                          amd64_cygwin_init_abi);
+			  amd64_cygwin_init_abi);
 
   gdbarch_register_osabi_sniffer (bfd_arch_i386, bfd_target_coff_flavour,
 				  amd64_windows_osabi_sniffer);

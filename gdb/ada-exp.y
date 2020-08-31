@@ -208,7 +208,7 @@ primary :	primary '(' arglist ')'
 			  write_exp_elt_opcode (pstate, OP_FUNCALL);
 			  write_exp_elt_longcst (pstate, $3);
 			  write_exp_elt_opcode (pstate, OP_FUNCALL);
-		        }
+			}
 	|	var_or_type '(' arglist ')'
 			{
 			  if ($1 != NULL)
@@ -390,27 +390,27 @@ relation :	simple_exp IN simple_exp DOTDOT simple_exp
 			  if ($3 == NULL)
 			    error (_("Right operand of 'in' must be type"));
 			  write_exp_elt_opcode (pstate, UNOP_IN_RANGE);
-		          write_exp_elt_type (pstate, $3);
-		          write_exp_elt_opcode (pstate, UNOP_IN_RANGE);
+			  write_exp_elt_type (pstate, $3);
+			  write_exp_elt_opcode (pstate, UNOP_IN_RANGE);
 			}
 	|	simple_exp NOT IN simple_exp DOTDOT simple_exp
 			{ write_exp_elt_opcode (pstate, TERNOP_IN_RANGE);
-		          write_exp_elt_opcode (pstate, UNOP_LOGICAL_NOT);
+			  write_exp_elt_opcode (pstate, UNOP_LOGICAL_NOT);
 			}
         |       simple_exp NOT IN primary TICK_RANGE tick_arglist
 			{ write_exp_elt_opcode (pstate, BINOP_IN_BOUNDS);
 			  write_exp_elt_longcst (pstate, (LONGEST) $6);
 			  write_exp_elt_opcode (pstate, BINOP_IN_BOUNDS);
-		          write_exp_elt_opcode (pstate, UNOP_LOGICAL_NOT);
+			  write_exp_elt_opcode (pstate, UNOP_LOGICAL_NOT);
 			}
  	|	simple_exp NOT IN var_or_type	%prec TICK_ACCESS
 			{ 
 			  if ($4 == NULL)
 			    error (_("Right operand of 'in' must be type"));
 			  write_exp_elt_opcode (pstate, UNOP_IN_RANGE);
-		          write_exp_elt_type (pstate, $4);
-		          write_exp_elt_opcode (pstate, UNOP_IN_RANGE);
-		          write_exp_elt_opcode (pstate, UNOP_LOGICAL_NOT);
+			  write_exp_elt_type (pstate, $4);
+			  write_exp_elt_opcode (pstate, UNOP_IN_RANGE);
+			  write_exp_elt_opcode (pstate, UNOP_LOGICAL_NOT);
 			}
 	;
 
@@ -611,7 +611,7 @@ aggregate :
 			  write_exp_elt_opcode (pstate, OP_AGGREGATE);
 			  write_exp_elt_longcst (pstate, $2);
 			  write_exp_elt_opcode (pstate, OP_AGGREGATE);
-		        }
+			}
 	;
 
 aggregate_component_list :
@@ -658,7 +658,7 @@ component_group :
 			  write_exp_elt_opcode (pstate, OP_CHOICES);
 			  write_exp_elt_longcst (pstate, $1);
 			  write_exp_elt_opcode (pstate, OP_CHOICES);
-		        }
+			}
 	;
 
 /* We use this somewhat obscure definition in order to handle NAME => and
@@ -679,10 +679,10 @@ component_associations :
 			}
 		    exp { $$ = 1; }
 	|	NAME '|' 
-		        { write_name_assoc (pstate, $1); }
+			{ write_name_assoc (pstate, $1); }
 		    component_associations  { $$ = $4 + 1; }
 	|	simple_exp '|'  
-	            component_associations  { $$ = $3 + 1; }
+		    component_associations  { $$ = $3 + 1; }
 	|	simple_exp DOTDOT simple_exp '|'
 			{ write_exp_elt_opcode (pstate, OP_DISCRETE_RANGE); }
 		    component_associations  { $$ = $6 + 1; }
@@ -1243,7 +1243,7 @@ write_var_or_type (struct parser_state *par_state,
 	    case ADA_EXCEPTION_RENAMING:
 	    case ADA_SUBPROGRAM_RENAMING:
 	      {
-	        int alloc_len = renaming_len + name_len - tail_index + 1;
+		int alloc_len = renaming_len + name_len - tail_index + 1;
 		char *new_name
 		  = (char *) obstack_alloc (&temp_parse_space, alloc_len);
 		strncpy (new_name, renaming, renaming_len);
