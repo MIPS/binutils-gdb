@@ -439,11 +439,21 @@ if $want_ipa ; then
    fi
 fi
 
+# Pull in libintl in the intl/ directory if called for.
+# (This is entirely gross and exists purely because config.intl doesn't
+# provide a variable that splits apart -lintl and its containing
+# directories.)
+IPA_LIBS=
+if test -n "$LIBINTL_DEP"; then
+  IPA_LIBS="`echo $LIBINTL | sed 's,\(\${top_builddir}/\.\./intl\)/libintl\.a,-L\1 -lintl,'`"
+fi
+
 AC_SUBST(GDBSERVER_DEPFILES)
 AC_SUBST(GDBSERVER_LIBS)
 AC_SUBST(srv_xmlbuiltin)
 AC_SUBST(srv_xmlfiles)
 AC_SUBST(IPA_DEPFILES)
+AC_SUBST(IPA_LIBS)
 AC_SUBST(extra_libraries)
 
 GNULIB=../gnulib/import

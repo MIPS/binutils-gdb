@@ -624,6 +624,7 @@ ac_subst_vars='LTLIBOBJS
 LIBOBJS
 GNULIB_STDINT_H
 extra_libraries
+IPA_LIBS
 IPA_DEPFILES
 srv_xmlfiles
 srv_xmlbuiltin
@@ -10725,6 +10726,16 @@ if $want_ipa ; then
      as_fn_error $? "inprocess agent not supported for this target" "$LINENO" 5
    fi
 fi
+
+# Pull in libintl in the intl/ directory if called for.
+# (This is entirely gross and exists purely because config.intl doesn't
+# provide a variable that splits apart -lintl and its containing
+# directories.)
+IPA_LIBS=
+if test -n "$LIBINTL_DEP"; then
+  IPA_LIBS="`echo $LIBINTL | sed 's,\(\${top_builddir}/\.\./intl\)/libintl\.a,-L\1 -lintl,'`"
+fi
+
 
 
 

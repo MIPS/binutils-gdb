@@ -1,3 +1,10 @@
+2021-02-02  Nick Alcock  <nick.alcock@oracle.com>
+
+	* configure.ac (IPA_LIBS): New, pull in libintl if needed.
+	* Makefile.in (IPA_LIBS): Substitute.
+	(IPA_LIB): Use it.
+	* configure: Regenerate.
+
 2021-01-20  Simon Marchi  <simon.marchi@polymtl.ca>
 
 	* ax.cc (bytecode_address_table): Make static.
