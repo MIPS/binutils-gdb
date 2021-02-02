@@ -41,7 +41,7 @@ include_HEADERS =
 noinst_LTLIBRARIES = libctf.la libctf-nobfd.la
 endif
 
-libctf_nobfd_la_LIBADD = @CTF_LIBADD@ $(LIBINTL) $(ZLIB)
+libctf_nobfd_la_LIBADD = @CTF_LIBADD@ $(ZLIB)
 libctf_nobfd_la_LDFLAGS = -version-info 0:0:0 @SHARED_LDFLAGS@ @VERSION_FLAGS@
 libctf_nobfd_la_CPPFLAGS = $(AM_CPPFLAGS) -DNOBFD=1
 libctf_nobfd_la_SOURCES = ctf-archive.c ctf-dump.c ctf-create.c ctf-decl.c ctf-error.c \

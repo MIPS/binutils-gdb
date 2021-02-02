@@ -1,3 +1,13 @@
+2021-02-02  Nick Alcock  <nick.alcock@oracle.com>
+
+	* configure.ac (CTF_LIBADD): Remove explicit -lintl population in
+	favour of...
+	(LIBCTF_INTL): ... this new variable: insert into CTF_LIBADD.
+	* Makefile.am (libctf_nobfd_la_LIBADD): No longer explicitly
+	include $(LIBINTL).
+	* configure: Regenerated.
+	* Makefile.in: Likewise.
+
 2021-01-27  Nick Alcock  <nick.alcock@oracle.com>
 
 	* ctf-string.c (ctf_str_add): Treat adding a NULL as adding "".
