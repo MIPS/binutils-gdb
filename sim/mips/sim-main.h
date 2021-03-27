@@ -1012,11 +1012,11 @@ unsigned64 mdmx_shuffle (SIM_STATE, int, unsigned64, unsigned64);
 
 INLINE_SIM_MAIN (void) load_memory (SIM_DESC sd, sim_cpu *cpu, address_word cia, uword64* memvalp, uword64* memval1p, int CCA, unsigned int AccessLength, address_word pAddr, address_word vAddr, int IorD);
 #define LoadMemory(memvalp,memval1p,AccessLength,pAddr,vAddr,IorD,raw) \
-load_memory (SD, CPU, cia, memvalp, memval1p, 0, AccessLength, pAddr, vAddr, IorD)
+load_memory (SD, CPU, cia, memvalp, memval1p, 0, AccessLength, pAddr&0xffffffff, vAddr, IorD)
 
 INLINE_SIM_MAIN (void) store_memory (SIM_DESC sd, sim_cpu *cpu, address_word cia, int CCA, unsigned int AccessLength, uword64 MemElem, uword64 MemElem1, address_word pAddr, address_word vAddr);
 #define StoreMemory(AccessLength,MemElem,MemElem1,pAddr,vAddr,raw) \
-store_memory (SD, CPU, cia, 0, AccessLength, MemElem, MemElem1, pAddr, vAddr)
+store_memory (SD, CPU, cia, 0, AccessLength, MemElem, MemElem1, pAddr&0xffffffff, vAddr)
 
 INLINE_SIM_MAIN (void) cache_op (SIM_DESC sd, sim_cpu *cpu, address_word cia, int op, address_word pAddr, address_word vAddr, unsigned int instruction);
 #define CacheOp(op,pAddr,vAddr,instruction) \
