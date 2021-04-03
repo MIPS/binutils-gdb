@@ -71,7 +71,7 @@ SIM_AC_OPTION_BITSIZE($mips_bitsize,$mips_msb,$mips_addr_bitsize)
 mips_fpu=HARDWARE_FLOATING_POINT
 mips_fpu_bitsize=
 case "${target}" in
-  mips*tx39*)		mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=32 ;;
+  mips*tx39*)           mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=32 ;;
   mips*-sde-elf*)       mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=64 ;;
   mips*-mti-elf*)       mips_fpu=HARD_FLOATING_POINT ; mips_fpu_bitsize=64 ;;
   mips64*-*-*)          mips_fpu=HARD_FLOATING_POINT ;;
@@ -129,7 +129,8 @@ case "${target}" in
 			sim_gen=MULTI
 			sim_multi_configs="\
 			  micromips:micromips64,micromipsdsp:32,64,f:mips_micromips\
-			  mips64r2:mips64r2,mips3d,mips16,mips16e,mdmx,dsp,dsp2,smartmips:32,64,f:mipsisa64r2"
+			  mipsisa64r2:mips64r2,mips16,mips16e,mdmx,dsp,dsp2,mips3d,smartmips:32,64,f:mipsisa32r2,mipsisa64r2,mipsisa32r5,mipsisa64r5\
+			  mipsisa64r6:mips64r6:32,64,f:mipsisa64r6"
 			sim_multi_default=mipsisa64r2
 			;;
   mips64*-*-*)		sim_igen_filter="32,64,f"
@@ -145,6 +146,12 @@ case "${target}" in
 			  mips32r2:mips32r2,mips3d,mips16,mips16e,mdmx,dsp,dsp2,smartmips:32,f:mipsisa32r2"
 			sim_multi_default=mipsisa32r2
 			;;
+  mipsisa32r6*-*-*)	sim_gen=M16
+			sim_igen_machine="-M mips32r6,mips16,mips16e,mdmx,dsp,dsp2,smartmips"
+			sim_m16_machine="-M mips16,mips16e,mips32r6"
+			sim_igen_filter="32,f"
+			sim_mach_default="mipsisa32r6"
+			;;
   mipsisa32*-*-*)	sim_gen=M16
 			sim_igen_machine="-M mips32,mips16,mips16e,smartmips"
 			sim_m16_machine="-M mips16,mips16e,mips32"
@@ -156,6 +163,12 @@ case "${target}" in
 			sim_m16_machine="-M mips16,mips16e,mips64r2"
 			sim_igen_filter="32,64,f"
 			sim_mach_default="mipsisa64r2"
+			;;
+  mipsisa64r6*-*-*)	sim_gen=M16
+			sim_igen_machine="-M mips64r6,mips16,mips16e,mdmx,dsp,dsp2"
+			sim_m16_machine="-M mips16,mips16e,mips64r6"
+			sim_igen_filter="32,64,f"
+			sim_mach_default="mipsisa64r6"
 			;;
   mipsisa64sb1*-*-*)	sim_gen=IGEN
 			sim_igen_machine="-M mips64,mips3d,sb1"
@@ -199,6 +212,9 @@ esac
 # be a mips16 engine, prefix m16<NAME>.  The mips16 engine will be
 # generated using the same machine list as the 32-bit version,
 # but the filter will be "16" instead of FILTER.
+#
+# FPU Bitsize state is taken from the original definitions and so will be the
+# same for all machines in a multisim.
 #
 # The simulator compares the bfd mach against BFDMACHS to decide
 # which engine to use.  Entries in BFDMACHS should be bfd_mach

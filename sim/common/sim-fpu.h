@@ -95,8 +95,6 @@ typedef struct _sim_fpu {
   int normal_exp;
 } sim_fpu;
 
-
-
 /* Rounding options.
 
    The value zero (sim_fpu_round_default) for ALU operations indicates
@@ -336,6 +334,8 @@ INLINE_SIM_FPU (int) sim_fpu_eq (int *is, const sim_fpu *l, const sim_fpu *r);
 INLINE_SIM_FPU (int) sim_fpu_ne (int *is, const sim_fpu *l, const sim_fpu *r);
 INLINE_SIM_FPU (int) sim_fpu_ge (int *is, const sim_fpu *l, const sim_fpu *r);
 INLINE_SIM_FPU (int) sim_fpu_gt (int *is, const sim_fpu *l, const sim_fpu *r);
+INLINE_SIM_FPU (int) sim_fpu_un (int *is, const sim_fpu *l, const sim_fpu *r);
+INLINE_SIM_FPU (int) sim_fpu_or (int *is, const sim_fpu *l, const sim_fpu *r);
 
 INLINE_SIM_FPU (int) sim_fpu_is_lt (const sim_fpu *l, const sim_fpu *r);
 INLINE_SIM_FPU (int) sim_fpu_is_le (const sim_fpu *l, const sim_fpu *r);
@@ -343,8 +343,22 @@ INLINE_SIM_FPU (int) sim_fpu_is_eq (const sim_fpu *l, const sim_fpu *r);
 INLINE_SIM_FPU (int) sim_fpu_is_ne (const sim_fpu *l, const sim_fpu *r);
 INLINE_SIM_FPU (int) sim_fpu_is_ge (const sim_fpu *l, const sim_fpu *r);
 INLINE_SIM_FPU (int) sim_fpu_is_gt (const sim_fpu *l, const sim_fpu *r);
+INLINE_SIM_FPU (int) sim_fpu_is_un (const sim_fpu *l, const sim_fpu *r);
+INLINE_SIM_FPU (int) sim_fpu_is_or (const sim_fpu *l, const sim_fpu *r);
 
+/* Changes the behaviour of the library to IEEE754-2008 or IEEE754-1985.
+ * The default for the library is IEEE754-1985. */
+typedef enum
+{
+  sim_fpu_ieee754_1985,
+  sim_fpu_ieee754_2008,
+} sim_fpu_mode;
 
+extern sim_fpu_mode sim_fpu_current_mode;
+
+INLINE_SIM_FPU (int) sim_fpu_is_ieee754_1985 (void);
+INLINE_SIM_FPU (int) sim_fpu_is_ieee754_2008 (void);
+INLINE_SIM_FPU (void) sim_fpu_set_mode (const sim_fpu_mode m);
 
 /* General number class and comparison operators.
 

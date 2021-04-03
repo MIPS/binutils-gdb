@@ -97,6 +97,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #define FPQNaN_LONG     (UNSIGNED64 (0x7FFFFFFFFFFFFFFF))
 #define FPQNaN_PS       (FP_PS_cat (FPQNaN_SINGLE, FPQNaN_SINGLE))
 
+void update_fcsr (sim_cpu *, address_word , sim_fpu_status);
+
 static const char *fpu_format_name (FP_formats fmt);
 #ifdef DEBUG
 static const char *fpu_rounding_mode_name (int rm);
@@ -124,7 +126,7 @@ value_fpr (sim_cpu *cpu,
     }
 
   /* For values not yet accessed, set to the desired format.  */
-  if (fmt < fmt_uninterpreted) 
+  if (fmt < fmt_uninterpreted && fmt != fmt_dc32)
     {
       if (FPR_STATE[fpr] == fmt_uninterpreted)
 	{
@@ -134,7 +136,7 @@ value_fpr (sim_cpu *cpu,
 		  fpu_format_name (fmt));
 #endif /* DEBUG */
 	}
-      else if (fmt != FPR_STATE[fpr])
+      else if (fmt != FPR_STATE[fpr] && !(fmt == fmt_single && FPR_STATE[fpr] == fmt_double && (FGR[fpr] == 0 || FGR[fpr] == 0xFFFFFFFF)))
 	{
 	  sim_io_eprintf (SD, "FPR %d (format %s) being accessed with format %s - setting to unknown (PC = 0x%s)\n",
 			  fpr, fpu_format_name (FPR_STATE[fpr]),
@@ -163,6 +165,7 @@ value_fpr (sim_cpu *cpu,
 	case fmt_uninterpreted_32:
 	case fmt_single:
 	case fmt_word:
+	case fmt_dc32:
 	  value = (FGR[fpr] & 0xFFFFFFFF);
 	  break;
 
@@ -578,6 +581,129 @@ fp_test(unsigned64 op1,
   return status;
 }
 
+unsigned64
+fp_classify(sim_cpu *cpu,
+	    address_word cia,
+	    unsigned64 op,
+	    FP_formats fmt)
+{
+  sim_fpu wop;
+
+  /* The format type has already been checked:  */
+  switch (fmt)
+    {
+    case fmt_single:
+      sim_fpu_32to (&wop, op);
+      break;
+    case fmt_double:
+      sim_fpu_64to (&wop, op);
+      break;
+    default:
+      fprintf (stderr, "Bad switch\n");
+      abort ();
+    }
+
+  switch (wop.class)
+    {
+    case sim_fpu_class_snan: return FP_R6CLASS_SNAN;
+    case sim_fpu_class_qnan: return FP_R6CLASS_QNAN;
+    case sim_fpu_class_infinity:
+      if (!wop.sign)
+        return FP_R6CLASS_POSINF;
+      else
+        return FP_R6CLASS_NEGINF;
+    case sim_fpu_class_zero:
+      if (!wop.sign)
+        return FP_R6CLASS_POSZERO;
+      else
+        return FP_R6CLASS_NEGZERO;
+    case sim_fpu_class_number:
+      if (!wop.sign)
+        return FP_R6CLASS_POSNORM;
+      else
+        return FP_R6CLASS_NEGNORM;
+    case sim_fpu_class_denorm:
+      if (!wop.sign)
+        return FP_R6CLASS_POSSUB;
+      else
+        return FP_R6CLASS_NEGSUB;
+    default:
+      fprintf (stderr, "Bad switch\n");
+      abort ();
+    }
+  return 0;
+}
+
+int
+fp_rint(sim_cpu *cpu,
+	address_word cia,
+	unsigned64 op,
+	unsigned64 *ans,
+	FP_formats fmt)
+{
+  sim_fpu wop = {0}, wtemp = {0}, wmagic = {0}, wans = {0};
+  signed64 intermediate;
+  int status = 0;
+  sim_fpu_round round = rounding_mode(GETRM());
+
+  switch (fmt)
+    {
+    case fmt_single:
+      sim_fpu_32to (&wop, op);
+      sim_fpu_32to (&wmagic, 0x4b000000);
+      break;
+    case fmt_double:
+      sim_fpu_64to (&wop, op);
+      sim_fpu_64to (&wmagic, 0x4330000000000000);
+      break;
+    default:
+      fprintf (stderr, "Bad switch\n");
+      abort ();
+    }
+
+  if (sim_fpu_is_nan (&wop) || sim_fpu_is_infinity (&wop))
+    {
+      status = sim_fpu_status_invalid_cvi;
+      update_fcsr (cpu, cia, status);
+      return status;
+    }
+
+  switch (fmt)
+    {
+    case fmt_single:
+      if (sim_fpu_is_ge (&wop, &wmagic))
+	wans = wop;
+      else
+	{
+	  sim_fpu_add (&wtemp, &wop, &wmagic);
+	  sim_fpu_round_32 (&wtemp, round, sim_fpu_denorm_default);
+	  sim_fpu_sub (&wans, &wtemp, &wmagic);
+	}
+      sim_fpu_to32 (ans, &wans);
+      break;
+    case fmt_double:
+      if (sim_fpu_is_ge (&wop, &wmagic))
+	wans = wop;
+      else
+	{
+	  sim_fpu_add (&wtemp, &wop, &wmagic);
+	  sim_fpu_round_64 (&wtemp, round, sim_fpu_denorm_default);
+	  sim_fpu_sub (&wans, &wtemp, &wmagic);
+	}
+      sim_fpu_to64 (ans, &wans);
+      break;
+    default:
+      fprintf (stderr, "Bad switch\n");
+      abort ();
+    }
+
+  if (*ans != op && status == 0)
+    status = sim_fpu_status_inexact;
+
+  update_fcsr (cpu, cia, status);
+  return status;
+}
+
 void
 fp_cmp(sim_cpu *cpu,
        address_word cia,
@@ -622,6 +748,87 @@ fp_cmp(sim_cpu *cpu,
     }
 }
 
+unsigned64
+fp_r6_cmp (sim_cpu *cpu,
+           address_word cia,
+           unsigned64 op1,
+           unsigned64 op2,
+           FP_formats fmt,
+           int cond)
+{
+  sim_fpu wop1, wop2;
+  int result = 0;
+  int signalling = cond & 0x8;
+
+  switch (fmt)
+    {
+    case fmt_single:
+      sim_fpu_32to (&wop1, op1);
+      sim_fpu_32to (&wop2, op2);
+      break;
+    case fmt_double:
+      sim_fpu_64to (&wop1, op1);
+      sim_fpu_64to (&wop2, op2);
+      break;
+    default:
+      abort ();
+      break;
+    }
+
+  switch (cond)
+    {
+    case FP_R6CMP_AF:
+      result = 0;
+      break;
+    case FP_R6CMP_UN:
+      result = sim_fpu_is_un (&wop1, &wop2);
+      break;
+    case FP_R6CMP_OR:
+      result = sim_fpu_is_or (&wop1, &wop2);
+      break;
+    case FP_R6CMP_EQ:
+      result = sim_fpu_is_eq (&wop1, &wop2);
+      break;
+    case FP_R6CMP_NE:
+      result = sim_fpu_is_ne (&wop1, &wop2);
+      break;
+    case FP_R6CMP_LT:
+      result = sim_fpu_is_lt (&wop1, &wop2);
+      break;
+    case FP_R6CMP_LE:
+      result = sim_fpu_is_le (&wop1, &wop2);
+      break;
+    case FP_R6CMP_UEQ:
+      result = sim_fpu_is_un (&wop1, &wop2) || sim_fpu_is_eq (&wop1, &wop2);
+      break;
+    case FP_R6CMP_UNE:
+      result = sim_fpu_is_un (&wop1, &wop2) || sim_fpu_is_ne (&wop1, &wop2);
+      break;
+    case FP_R6CMP_ULT:
+      result = sim_fpu_is_un (&wop1, &wop2) || sim_fpu_is_lt (&wop1, &wop2);
+      break;
+    case FP_R6CMP_ULE:
+      result = sim_fpu_is_un (&wop1, &wop2) || sim_fpu_is_le (&wop1, &wop2);
+      break;
+    default:
+      update_fcsr (cpu, cia, sim_fpu_status_invalid_cmp);
+      break;
+    }
+
+  if (result)
+    {
+      switch (fmt)
+        {
+        case fmt_single:
+          return 0xFFFFFFFF;
+        case fmt_double:
+          return 0xFFFFFFFFFFFFFFFF;
+        }
+     }
+   else
+     return 0;
+}
+
 
 /* Basic arithmetic operations.  */
 
@@ -632,7 +839,7 @@ fp_unary(sim_cpu *cpu,
 	 unsigned64 op,
 	 FP_formats fmt)
 {
-  sim_fpu wop;
+  sim_fpu wop = {0};
   sim_fpu ans;
   sim_fpu_round round = rounding_mode (GETRM());
   sim_fpu_denorm denorm = denorm_mode (cpu);
@@ -693,9 +900,9 @@ fp_binary(sim_cpu *cpu,
 	  unsigned64 op2,
 	  FP_formats fmt)
 {
-  sim_fpu wop1;
-  sim_fpu wop2;
-  sim_fpu ans;
+  sim_fpu wop1 = {0};
+  sim_fpu wop2 = {0};
+  sim_fpu ans  = {0};
   sim_fpu_round round = rounding_mode (GETRM());
   sim_fpu_denorm denorm = denorm_mode (cpu);
   sim_fpu_status status = 0;
@@ -886,6 +1093,89 @@ fp_mac(sim_cpu *cpu,
   return result;
 }
 
+/* Common FMAC code for .s, .d. Defers setting FCSR to caller. */
+static sim_fpu_status
+inner_fmac (int (*sim_fpu_op)(sim_fpu *, const sim_fpu *, const sim_fpu *),
+           unsigned64 op1,
+           unsigned64 op2,
+           unsigned64 op3,
+           sim_fpu_round round,
+           sim_fpu_denorm denorm,
+           FP_formats fmt,
+           unsigned64 *result)
+{
+  sim_fpu wop1, wop2, ans;
+  sim_fpu_status status = 0;
+  sim_fpu_status op_status;
+  unsigned32 t32 = 0;
+  unsigned64 t64 = 0;
+
+  switch (fmt)
+  {
+    case fmt_single:
+        sim_fpu_32to (&wop1, op1);
+        sim_fpu_32to (&wop2, op2);
+        status |= sim_fpu_mul (&ans, &wop1, &wop2);
+        wop1 = ans;
+        op_status = 0;
+        sim_fpu_32to (&wop2, op3);
+        op_status |= (*sim_fpu_op) (&ans, &wop2, &wop1);
+        op_status |= sim_fpu_round_32 (&ans, round, denorm);
+        status |= op_status;
+        sim_fpu_to32 (&t32, &ans);
+        t64 = t32;
+      break;
+    case fmt_double:
+        sim_fpu_64to (&wop1, op1);
+        sim_fpu_64to (&wop2, op2);
+        status |= sim_fpu_mul (&ans, &wop1, &wop2);
+        wop1 = ans;
+        op_status = 0;
+        sim_fpu_64to (&wop2, op3);
+        op_status |= (*sim_fpu_op) (&ans, &wop2, &wop1);
+        op_status |= sim_fpu_round_64 (&ans, round, denorm);
+        status |= op_status;
+        sim_fpu_to64 (&t64, &ans);
+      break;
+    default:
+      fprintf (stderr, "Bad switch\n");
+      abort();
+      break;
+  }
+
+  *result = t64;
+  return status;
+}
+
+static unsigned64
+fp_fmac (sim_cpu *cpu,
+        address_word cia,
+        int (*sim_fpu_op)(sim_fpu *, const sim_fpu *, const sim_fpu *),
+        unsigned64 op1,
+        unsigned64 op2,
+        unsigned64 op3,
+        FP_formats fmt)
+{
+  sim_fpu_round round = rounding_mode (GETRM());
+  sim_fpu_denorm denorm = denorm_mode (cpu);
+  sim_fpu_status status = 0;
+  unsigned64 result = 0;
+
+  switch (fmt)
+  {
+    case fmt_single:
+    case fmt_double:
+      status = inner_fmac(sim_fpu_op, op1, op2, op3, round, denorm, fmt, &result);
+      break;
+    default:
+      sim_io_eprintf (SD, "Bad switch\n");
+      abort();
+  }
+
+  update_fcsr (cpu, cia, status);
+  return result;
+}
+
 /* Common rsqrt code for single operands (.s or .d), intermediate rounding.  */
 static sim_fpu_status
 inner_rsqrt(unsigned64 op1,
@@ -1037,6 +1327,96 @@ fp_div(sim_cpu *cpu,
 }
 
 unsigned64
+fp_min(sim_cpu *cpu,
+       address_word cia,
+       unsigned64 op1,
+       unsigned64 op2,
+       FP_formats fmt)
+{
+  return fp_binary(cpu, cia, &sim_fpu_min, op1, op2, fmt);
+}
+
+unsigned64
+fp_max(sim_cpu *cpu,
+       address_word cia,
+       unsigned64 op1,
+       unsigned64 op2,
+       FP_formats fmt)
+{
+  return fp_binary(cpu, cia, &sim_fpu_max, op1, op2, fmt);
+}
+
+unsigned64
+fp_mina(sim_cpu *cpu,
+       address_word cia,
+       unsigned64 op1,
+       unsigned64 op2,
+       FP_formats fmt)
+{
+  unsigned64 ret = 0;
+  sim_fpu wop1 = {0}, wop2 = {0}, waop1, waop2, wans;
+  sim_fpu_status status = 0;
+
+  switch (fmt)
+    {
+    case fmt_single:
+      sim_fpu_32to (&wop1, op1);
+      sim_fpu_32to (&wop2, op2);
+      break;
+    case fmt_double:
+      sim_fpu_64to (&wop1, op1);
+      sim_fpu_64to (&wop2, op2);
+      break;
+    default:
+      fprintf (stderr, "Invalid fmt.\n");
+      abort();
+    }
+
+  status |= sim_fpu_abs (&waop1, &wop1);
+  status |= sim_fpu_abs (&waop2, &wop2);
+  status |= sim_fpu_min (&wans, &waop1, &waop2);
+  ret = (sim_fpu_is_eq (&wans, &waop1)) ? op1 : op2;
+
+  update_fcsr (cpu, cia, status);
+  return ret;
+}
+
+unsigned64
+fp_maxa(sim_cpu *cpu,
+       address_word cia,
+       unsigned64 op1,
+       unsigned64 op2,
+       FP_formats fmt)
+{
+  unsigned64 ret;
+  sim_fpu wop1 = {0}, wop2 = {0}, waop1, waop2, wans;
+  sim_fpu_status status = 0;
+
+  switch (fmt)
+    {
+    case fmt_single:
+      sim_fpu_32to (&wop1, op1);
+      sim_fpu_32to (&wop2, op2);
+      break;
+    case fmt_double:
+      sim_fpu_64to (&wop1, op1);
+      sim_fpu_64to (&wop2, op2);
+      break;
+    default:
+      fprintf (stderr, "Invalid fmt.\n");
+      abort();
+    }
+
+  status |= sim_fpu_abs (&waop1, &wop1);
+  status |= sim_fpu_abs (&waop2, &wop2);
+  status |= sim_fpu_max (&wans, &waop1, &waop2);
+  ret = (sim_fpu_is_eq (&wans, &waop1)) ? op1 : op2;
+
+  update_fcsr (cpu, cia, status);
+  return ret;
+}
+
+unsigned64
 fp_recip(sim_cpu *cpu,
          address_word cia,
          unsigned64 op,
@@ -1083,6 +1463,28 @@ fp_msub(sim_cpu *cpu,
         FP_formats fmt)
 {
   return fp_mac(cpu, cia, &sim_fpu_sub, op1, op2, op3, 0, 0, fmt);
+}
+
+unsigned64
+fp_fmadd (sim_cpu* cpu,
+          address_word cia,
+          unsigned64 op1,
+          unsigned64 op2,
+          unsigned64 op3,
+          FP_formats fmt)
+{
+  return fp_fmac (cpu, cia, &sim_fpu_add, op1, op2, op3, fmt);
+}
+
+unsigned64
+fp_fmsub (sim_cpu* cpu,
+          address_word cia,
+          unsigned64 op1,
+          unsigned64 op2,
+          unsigned64 op3,
+          FP_formats fmt)
+{
+  return fp_fmac (cpu, cia, &sim_fpu_sub, op1, op2, op3, fmt);
 }
 
 unsigned64

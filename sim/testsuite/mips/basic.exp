@@ -34,14 +34,59 @@ proc run_micromips_test { name requested_machs } {
     set global_as_options $gas_old
 }
 
+# Runs endian tests
+proc run_endian_tests { name requested_machs } {
+    global global_as_options;
+    global global_ld_options;
+    run_sim_test $name $requested_machs
+    set gas_old $global_as_options;
+    set ld_old $global_ld_options;
+    append global_as_options " -EL "
+    append global_ld_options " -EL "
+    run_sim_test $name $requested_machs
+    set global_as_options $gas_old
+    set global_ld_options $ld_old
+}
+
 # Runs all specified tests
 proc run_sim_tests { name requested_machs { requested_micromips_machs "" } } {
     run_sim_test $name $requested_machs
     run_micromips_test $name $requested_micromips_machs
 }
 
+# Runs the combination of instructions removed in R6 through the testsuite
+proc run_r6_removed_test {testfile models} {
+    global subdir srcdir
+    set fd [open "$srcdir/$subdir/r6-removed.csv" r]
+    set file_data [read $fd]
+    close $fd
+    set data [split $file_data "\n"]
+    foreach line $data {
+        set line_contents [split $line ","]
+        set mnemonic [lindex $line_contents 0]
+        set insn [lindex $line_contents 1]
+
+        if {[string compare $insn ""] == 1} {
+
+            set contents ""
+            append contents ".macro removed_instr\n"
+            append contents ".word $insn\n"
+            append contents "nop\n"
+            append contents ".endm"
+
+            verbose -log "r6-removed test: $mnemonic\n$contents"
+            set file [open r6-removed.inc w]
+            puts $file $contents
+            close $file
+
+            run_sim_test $testfile $models
+        }
+    }
+}
+
 # Only test mips*-*-elf (e.g., no mips*-*-linux)
 if {[istarget mips*-*-elf]} {
+
     # Used to locate the `run` program.
     global arch
     set arch "mips"
@@ -61,11 +106,11 @@ if {[istarget mips*-*-elf]} {
 	append dspmodels " mips32r2 mips64r2"
 	append mdmxmodels " mips64 mips32r2 mips64r2"
     } elseif {[istarget mips*-sde-elf*] || [istarget mips*-mti-elf*]} {
-	set models "mips32 mips64 mips32r2 mips64r2"
+	set models "mips32 mips64 mips32r2 mips64r2 mips32r6 mips64r6"
 	set submodels ""
-	append dspmodels " mips32r2 mips64r2"
-	append mdmxmodels " mips64 mips32r2 mips64r2"
-	append micromipsmodels " mips32r2"
+	append dspmodels " mips32r2 mips64r2 mips32r6 mips64r6"
+	append mdmxmodels " mips64 mips32r2 mips64r2 mips32r6 mips64r6"
+	append micromipsmodels " mips32r2 mips64r2"
 	append micromipsdspmodels " mips32r2 mips64r2"
     } elseif {[istarget mipsisa32*-*-elf]} {
 	set models "mips32 mips32r2"
@@ -106,4 +151,14 @@ if {[istarget mips*-*-elf]} {
     run_sim_tests mips32-dsp.s $dspmodels $micromipsdspmodels
     run_sim_tests mips32-dsp2.s $dspmodels $micromipsdspmodels
 
+    run_sim_test r2-fpu.s $models
+
+    run_sim_test r6-fpu.s $models
+    run_sim_test r6.s $models
+    run_sim_test r6-forbidden.s $models
+    run_r6_removed_test r6-removed.s $models
+    run_sim_test r6-64.s $models
+    run_sim_test r6-branch.s $models
+    run_endian_tests r6-llsc-wp.s "mips32r6"
+    run_endian_tests r6-llsc-dp.s "mips64r6"
 }
