@@ -10,12 +10,20 @@
 
   .set noreorder
 
-  .ent DIAG
+.ent TEST
+TEST:	
+	addiu $31, $31, 4
+	jr $31
+
+.end TEST
+
+.ent DIAG
 
 DIAG:
   writemsg "[1] Test qNaN format is 754-1985"
   li $6, 0x7fbfffff
-  mtc1 $0, $f2
+	mtc1 $0, $f2
+	jal TEST
   mtc1 $0, $f4
   div.s $f6, $f2, $f4
   mfc1 $8, $f6

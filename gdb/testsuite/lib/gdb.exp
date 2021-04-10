@@ -2027,6 +2027,7 @@ proc default_gdb_start { } {
     # get really slow.  Give gdb at least 3 minutes to start up.
     gdb_expect 360 {
 	-re "\[\r\n\]$gdb_prompt $" {
+	    send_gdb "mem 0x80000000,0x800000 rw"
 	    verbose "GDB initialized."
 	}
 	-re "$gdb_prompt $"	{
