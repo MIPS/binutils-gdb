@@ -52,7 +52,7 @@ if NEED_CTF_QSORT_R
 libctf_nobfd_la_SOURCES += ctf-qsort_r.c
 endif
 
-libctf_la_LIBADD = ../bfd/libbfd.la $(libctf_nobfd_la_LIBADD)
+libctf_la_LIBADD = $(libctf_nobfd_la_LIBADD) ../bfd/libbfd.la
 libctf_la_CPPFLAGS = $(AM_CPPFLAGS) -DNOBFD=0
 libctf_la_LDFLAGS = $(libctf_nobfd_la_LDFLAGS)
 libctf_la_SOURCES = $(libctf_nobfd_la_SOURCES) ctf-open-bfd.c

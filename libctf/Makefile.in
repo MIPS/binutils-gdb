@@ -191,7 +191,7 @@ libctf_nobfd_la_LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC \
 @INSTALL_LIBBFD_FALSE@am_libctf_nobfd_la_rpath =
 @INSTALL_LIBBFD_TRUE@am_libctf_nobfd_la_rpath = -rpath $(libdir)
 am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_1)
-libctf_la_DEPENDENCIES = ../bfd/libbfd.la $(am__DEPENDENCIES_2)
+libctf_la_DEPENDENCIES = $(am__DEPENDENCIES_2) ../bfd/libbfd.la
 am__libctf_la_SOURCES_DIST = ctf-archive.c ctf-dump.c ctf-create.c \
 	ctf-decl.c ctf-error.c ctf-hash.c ctf-labels.c ctf-dedup.c \
 	ctf-link.c ctf-lookup.c ctf-open.c ctf-sha1.c ctf-string.c \
@@ -464,7 +464,7 @@ libctf_nobfd_la_SOURCES = ctf-archive.c ctf-dump.c ctf-create.c \
 	ctf-decl.c ctf-error.c ctf-hash.c ctf-labels.c ctf-dedup.c \
 	ctf-link.c ctf-lookup.c ctf-open.c ctf-sha1.c ctf-string.c \
 	ctf-subr.c ctf-types.c ctf-util.c $(am__append_1)
-libctf_la_LIBADD = ../bfd/libbfd.la $(libctf_nobfd_la_LIBADD)
+libctf_la_LIBADD = $(libctf_nobfd_la_LIBADD) ../bfd/libbfd.la
 libctf_la_CPPFLAGS = $(AM_CPPFLAGS) -DNOBFD=0
 libctf_la_LDFLAGS = $(libctf_nobfd_la_LDFLAGS)
 libctf_la_SOURCES = $(libctf_nobfd_la_SOURCES) ctf-open-bfd.c

@@ -1,3 +1,10 @@
+2021-06-11  Nick Alcock  <nick.alcock@oracle.com>
+
+	PR libctf/27360
+	* Makefile.am (libctf_la_LIBADD): Link against libctf-nobfd's
+	requirements before pulling in libbfd.la.
+	* Makefile.in: Regenerate.
+
 2021-01-24  Nick Clifton  <nickc@redhat.com>
 
 	This is the 2.36 release.
