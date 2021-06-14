@@ -20,37 +20,37 @@
 #ifndef SCOPED_IGNORE_SIGTTOU_H
 #define SCOPED_IGNORE_SIGTTOU_H
 
-#include <unistd.h>
-#include <signal.h>
+#include "gdbsupport/scoped_ignore_signal.h"
 #include "gdbsupport/job-control.h"
+#include "gdbsupport/gdb_optional.h"
 
-/* RAII class used to ignore SIGTTOU in a scope.  */
+/* RAII class used to ignore SIGTTOU in a scope.  This isn't simply
+   scoped_ignore_signal<SIGTTOU> because we want to check the
+   `job_control' global.  */
 
+#ifdef SIGTTOU
 class scoped_ignore_sigttou
 {
 public:
   scoped_ignore_sigttou ()
   {
-#ifdef SIGTTOU
     if (job_control)
-      m_osigttou = signal (SIGTTOU, SIG_IGN);
-#endif
+      m_ignore_signal.emplace ();
   }
 
   ~scoped_ignore_sigttou ()
   {
-#ifdef SIGTTOU
     if (job_control)
-      signal (SIGTTOU, m_osigttou);
-#endif
+      m_ignore_signal.reset ();
   }
 
-  DISABLE_COPY_AND_ASSIGN (scoped_ignore_sigttou);
-
 private:
-#ifdef SIGTTOU
-  sighandler_t m_osigttou = NULL;
-#endif
+  /* Could use an aligned buffer + placement new, but gdb::optional is
+     so much more readable...  */
+  gdb::optional<scoped_ignore_signal<SIGTTOU>> m_ignore_signal;
 };
+#else
+using scoped_ignore_sigttou = scoped_ignore_signal_nop;
+#endif
 
 #endif /* SCOPED_IGNORE_SIGTTOU_H */
