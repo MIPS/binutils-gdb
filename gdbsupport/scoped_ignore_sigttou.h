@@ -22,7 +22,27 @@
 
 #include "gdbsupport/scoped_ignore_signal.h"
 #include "gdbsupport/job-control.h"
-#include "gdbsupport/gdb_optional.h"
+
+/* Simple wrapper that allows lazy initialization / destruction.  Like
+   a very dumbed down gdb::optional, but the caller is responsible for
+   tracking whether the value was initialized.  */
+template<typename T>
+class lazy_init
+{
+public:
+  void emplace ()
+  {
+    new (m_buf) T ();
+  }
+
+  void reset ()
+  {
+    reinterpret_cast <T *> (m_buf)->~T ();
+  }
+
+private:
+  alignas (T) gdb_byte m_buf[sizeof (T)];
+};
 
 /* RAII class used to ignore SIGTTOU in a scope.  This isn't simply
    scoped_ignore_signal<SIGTTOU> because we want to check the
@@ -45,9 +65,7 @@ public:
   }
 
 private:
-  /* Could use an aligned buffer + placement new, but gdb::optional is
-     so much more readable...  */
-  gdb::optional<scoped_ignore_signal<SIGTTOU>> m_ignore_signal;
+  lazy_init<scoped_ignore_signal<SIGTTOU>> m_ignore_signal;
 };
 #else
 using scoped_ignore_sigttou = scoped_ignore_signal_nop;
