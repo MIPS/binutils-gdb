@@ -88,6 +88,19 @@ struct parmpy_object
   const char **enumeration;
 };
 
+/* Wraps a base_setting_wrapper around an existing param_smob.  This abstraction
+   is used
+   to manipulate the value in S->VALUE in a type safe manner the same way as if
+   it was referenced by a setting.  */
+struct setting_wrapper final: base_setting_wrapper
+{
+  explicit setting_wrapper (parmpy_object *s)
+  {
+    m_var_type = s->type;
+    m_var = &s->value;
+  }
+};
+
 extern PyTypeObject parmpy_object_type
     CPYCHECKER_TYPE_OBJECT_FOR_TYPEDEF ("parmpy_object");
 
@@ -110,7 +123,8 @@ get_attr (PyObject *obj, PyObject *attr_name)
     {
       parmpy_object *self = (parmpy_object *) obj;
 
-      return gdbpy_parameter_value (self->type, &self->value);
+      setting_wrapper wrapper { self };
+      return gdbpy_parameter_value (wrapper);
     }
 
   return PyObject_GenericGetAttr (obj, attr_name);

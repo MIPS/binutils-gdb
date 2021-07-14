@@ -125,6 +125,268 @@ typedef enum var_types
   }
 var_types;
 
+namespace detail
+{
+  /* Helper classes used to associate a storage type for each possible
+     var_type. */
+
+  template<var_types T>
+  struct var_types_storage;
+
+  template<>
+  struct var_types_storage<var_boolean>
+  {
+    using type = bool;
+  };
+
+  template<>
+  struct var_types_storage<var_auto_boolean>
+  {
+    using type = enum auto_boolean;
+  };
+
+  template<>
+  struct var_types_storage<var_uinteger>
+  {
+    using type = unsigned int;
+  };
+
+  template<>
+  struct var_types_storage<var_integer>
+  {
+    using type = int;
+  };
+
+  template<>
+  struct var_types_storage<var_string>
+  {
+    using type = char *;
+  };
+
+  template<>
+  struct var_types_storage<var_string_noescape>
+  {
+    using type = char *;
+  };
+
+  template<>
+  struct var_types_storage<var_optional_filename>
+  {
+    using type = char *;
+  };
+
+  template<>
+  struct var_types_storage<var_filename>
+  {
+    using type = char *;
+  };
+
+  template<>
+  struct var_types_storage<var_zinteger>
+  {
+    using type = int;
+  };
+
+  template<>
+  struct var_types_storage<var_zuinteger>
+  {
+    using type = unsigned int;
+  };
+
+  template<>
+  struct var_types_storage<var_zuinteger_unlimited>
+  {
+    using type = int;
+  };
+
+  template<>
+  struct var_types_storage<var_enum>
+  {
+    using type = const char *;
+  };
+
+  /* Helper class used to check if multiple var_types are represented
+     using the same underlying type.  This class is meant to be instantiated
+     using any number of var_types, and will be used to assess common properties
+     of the underlying storage type.
+
+     Each template instantiating will define the following static members:
+    - value: True if and only if all the var_types are stored on the same
+    underlying storage type.
+    - covers_type (var_types t): True if and only if the parameter T is one
+    the templates parameter.
+    - type: Type alias of the underlying type if value is true, unspecified
+    otherwise.
+    */
+
+  template<var_types... Ts>
+  struct var_types_have_same_storage;
+
+  /* Specialization of var_types_have_same_storage when instantiated with only 1
+     template parameter.  */
+  template<var_types T>
+  struct var_types_have_same_storage<T>
+  {
+    static constexpr bool value = true;
+
+    using type = typename var_types_storage<T>::type;
+
+    static constexpr bool covers_type (var_types t)
+    {
+      return t == T;
+    }
+  };
+
+  /* Specialization of var_types_have_same_storage when instantiated with exactly
+     2 template parameters.  */
+  template<var_types T, var_types U>
+  struct var_types_have_same_storage<T, U>
+  {
+    static constexpr bool value
+      = std::is_same<typename var_types_storage<T>::type,
+      typename var_types_storage<U>::type>::value;
+
+    using type = typename var_types_storage<T>::type;
+
+    static constexpr bool covers_type (var_types t)
+    {
+      return var_types_have_same_storage<T>::covers_type (t)
+	     || var_types_have_same_storage<U>::covers_type (t);
+    }
+  };
+
+  /* Specialization of var_types_have_same_storage when instantiated with 3 or more
+     template parameters.  */
+  template<var_types T, var_types U, var_types... Us>
+  struct var_types_have_same_storage<T, U, Us...>
+  {
+    static constexpr bool value
+      = var_types_have_same_storage<T, U>::value
+      && var_types_have_same_storage<T, Us...>::value;
+
+    using type = typename var_types_storage<T>::type;
+
+    static constexpr bool covers_type (var_types t)
+      {
+	return var_types_have_same_storage<T>::covers_type (t)
+	       || var_types_have_same_storage<U, Us...>::covers_type (t);
+      }
+  };
+} /* namespace detail */
+
+/* Abstraction that contains access to data that can be set or shown.
+
+   The underlying data can be of an VAR_TYPES type.  */
+struct base_setting_wrapper
+{
+  /* Access the type of the current var.  */
+  var_types type () const
+  {
+    return m_var_type;
+  }
+
+  /* Return the current value (by pointer).
+
+     The expected template parameter is the VAR_TYPES of the current instance.
+     This is enforced with a runtime check.
+
+     If multiple template parameters are given, check that the underlying
+     pointer type associated with each parameter are the same.  */
+  template<var_types... Ts,
+	   typename = gdb::Requires<detail::var_types_have_same_storage<Ts...>>>
+  typename detail::var_types_have_same_storage<Ts...>::type const *get_p() const
+  {
+    gdb_assert (detail::var_types_have_same_storage<Ts...>::covers_type
+                (this->m_var_type));
+    gdb_assert (!empty ());
+
+    return static_cast<
+      typename detail::var_types_have_same_storage<Ts...>::type const *>
+      (this->m_var);
+  }
+
+  /* Return the current value.
+
+     See get_p for discussion on the return type.  */
+  template<var_types... Ts>
+  typename detail::var_types_have_same_storage<Ts...>::type get() const
+  {
+    gdb_assert (detail::var_types_have_same_storage<Ts...>::covers_type
+                (this->m_var_type));
+    gdb_assert (!empty ());
+    return *get_p<Ts...> ();
+  }
+
+  /* Sets the value V to the underlying buffer.
+
+     If one template argument is given, it must be the VAR_TYPE of the current
+     instance.  This is enforced at runtime.
+
+     If multiple template parameters are given, they must all share the same
+     underlying storage type (this is checked at compile time), and THIS must
+     be of the type of one of the template parameters (this is checked at
+     runtime).  */
+  template<var_types... Ts,
+           typename = gdb::Requires<
+             detail::var_types_have_same_storage<Ts...>>>
+  void set(typename detail::var_types_have_same_storage<Ts...>::type v)
+  {
+    /* Check that the current instance is of one of the supported types for
+       this instantiation.  */
+    gdb_assert (detail::var_types_have_same_storage<Ts...>::covers_type
+                (this->m_var_type));
+
+    gdb_assert (!empty ());
+    *static_cast<typename detail::var_types_have_same_storage<Ts...>::type *>
+      (this->m_var) = v;
+  }
+
+  /* A setting is valid (can be evaluated to true) if it contains a valid
+     reference to a memory buffer.  */
+  explicit operator bool() const
+  {
+    return !this->empty();
+  }
+
+protected:
+  /* The type of the variable M_VAR is pointing to.  If M_VAR is nullptr,
+     M_VAR_TYPE is ignored.  */
+  var_types m_var_type { var_boolean };
+
+  /* Pointer to the enclosed variable.  The type of the variable is encoded
+     in M_VAR_TYPE.  Can be nullptr.  */
+  void *m_var { nullptr };
+
+  /* Indicates if the current instance has a underlying buffer.  */
+  bool empty () const
+  {
+    return m_var == nullptr;;
+  }
+
+};
+
+
+/* A augmented version of base_setting_wrapper with additional methods to set the
+   underlying buffer and declare the var_type.  */
+struct setting final: base_setting_wrapper
+{
+  /*  Set the type of the current variable.  */
+  void set_type (var_types type)
+  {
+    gdb_assert (empty ());
+    this->m_var_type = type;
+  }
+
+  /* Update the pointer to the underlying variable referenced by this
+     instance.  */
+  template<var_types T>
+  void set_p (typename detail::var_types_storage<T>::type *v)
+  {
+    this->set_type (T);
+    this->m_var = static_cast<void *> (v);
+  }
+};
+
 /* This structure records one command'd definition.  */
 struct cmd_list_element;
 

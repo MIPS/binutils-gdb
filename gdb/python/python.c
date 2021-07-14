@@ -448,9 +448,9 @@ python_command (const char *arg, int from_tty)
    NULL (and set a Python exception) on error.  Helper function for
    get_parameter.  */
 PyObject *
-gdbpy_parameter_value (enum var_types type, void *var)
+gdbpy_parameter_value (base_setting_wrapper const & var)
 {
-  switch (type)
+  switch (var.type ())
     {
     case var_string:
     case var_string_noescape:
@@ -458,16 +458,23 @@ gdbpy_parameter_value (enum var_types type, void *var)
     case var_filename:
     case var_enum:
       {
-	const char *str = *(char **) var;
+	const char *str;
+        if (var.type () == var_enum)
+          str = var.get<var_enum> ();
+        else
+          str = var.get<var_string,
+			var_string_noescape,
+			var_optional_filename,
+			var_filename> ();
 
-	if (! str)
+	if (str == nullptr)
 	  str = "";
 	return host_string_to_python_string (str).release ();
       }
 
     case var_boolean:
       {
-	if (* (bool *) var)
+	if (var.get<var_boolean> ())
 	  Py_RETURN_TRUE;
 	else
 	  Py_RETURN_FALSE;
@@ -475,7 +482,7 @@ gdbpy_parameter_value (enum var_types type, void *var)
 
     case var_auto_boolean:
       {
-	enum auto_boolean ab = * (enum auto_boolean *) var;
+	enum auto_boolean ab = var.get<var_auto_boolean> ();
 
 	if (ab == AUTO_BOOLEAN_TRUE)
 	  Py_RETURN_TRUE;
@@ -486,16 +493,18 @@ gdbpy_parameter_value (enum var_types type, void *var)
       }
 
     case var_integer:
-      if ((* (int *) var) == INT_MAX)
+      if (var.get<var_integer> () == INT_MAX)
 	Py_RETURN_NONE;
       /* Fall through.  */
     case var_zinteger:
     case var_zuinteger_unlimited:
-      return gdb_py_object_from_longest (* (int *) var).release ();
+      return gdb_py_object_from_longest
+	(var.get<var_integer, var_zinteger,
+		 var_zuinteger_unlimited> ()).release ();
 
     case var_uinteger:
       {
-	unsigned int val = * (unsigned int *) var;
+	unsigned int val = var.get<var_uinteger> ();
 
 	if (val == UINT_MAX)
 	  Py_RETURN_NONE;
@@ -504,7 +513,7 @@ gdbpy_parameter_value (enum var_types type, void *var)
 
     case var_zuinteger:
       {
-	unsigned int val = * (unsigned int *) var;
+	unsigned int val = var.get<var_zuinteger> ();
 	return gdb_py_object_from_ulongest (val).release ();
       }
     }
@@ -541,10 +550,10 @@ gdbpy_parameter (PyObject *self, PyObject *args)
     return PyErr_Format (PyExc_RuntimeError,
 			 _("Could not find parameter `%s'."), arg);
 
-  if (! cmd->var)
+  if (!cmd->var)
     return PyErr_Format (PyExc_RuntimeError,
 			 _("`%s' is not a parameter."), arg);
-  return gdbpy_parameter_value (cmd->var_type, cmd->var);
+  return gdbpy_parameter_value (cmd->var);
 }
 
 /* Wrapper for target_charset.  */
