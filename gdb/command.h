@@ -125,8 +125,124 @@ typedef enum var_types
   }
 var_types;
 
+
+template<typename T>
+struct accessor_sigs
+{
+  using getter = T (*) ();
+  using setter = void (*) (T);
+};
+
+
+union setting_getter
+{
+  typename accessor_sigs<bool>::getter get_bool;
+  typename accessor_sigs<int>::getter get_int;
+  typename accessor_sigs<unsigned int>::getter get_uint;
+  typename accessor_sigs<auto_boolean>::getter get_auto_boolean;
+  typename accessor_sigs<char *>::getter get_char_p;
+  typename accessor_sigs<const char *>::getter get_const_char_p;
+};
+
+union setting_setter
+{
+  typename accessor_sigs<bool>::setter set_bool;
+  typename accessor_sigs<int>::setter set_int;
+  typename accessor_sigs<unsigned int>::setter set_uint;
+  typename accessor_sigs<auto_boolean>::setter set_auto_boolean;
+  typename accessor_sigs<char *>::setter set_char_p;
+  typename accessor_sigs<const char *>::setter set_const_char_p;
+};
+
 namespace detail
 {
+  template<typename>
+  struct accessor_helper;
+
+  template<>
+  struct accessor_helper<bool>
+  {
+    static accessor_sigs<bool>::getter &getter(setting_getter & getters)
+    {
+      return getters.get_bool;
+    }
+
+    static accessor_sigs<bool>::setter &setter(setting_setter & setters)
+    {
+      return setters.set_bool;
+    }
+  };
+
+  template<>
+  struct accessor_helper<int>
+  {
+    static accessor_sigs<int>::getter &getter(setting_getter & getters)
+    {
+      return getters.get_int;
+    }
+
+    static accessor_sigs<int>::setter &setter(setting_setter & setters)
+    {
+      return setters.set_int;
+    }
+  };
+
+  template<>
+  struct accessor_helper<unsigned int>
+  {
+    static accessor_sigs<unsigned int>::getter &getter(setting_getter & getters)
+    {
+      return getters.get_uint;
+    }
+
+    static accessor_sigs<unsigned int>::setter &setter(setting_setter & setters)
+    {
+      return setters.set_uint;
+    }
+  };
+
+  template<>
+  struct accessor_helper<auto_boolean>
+  {
+    static accessor_sigs<auto_boolean>::getter &getter(setting_getter & getters)
+    {
+      return getters.get_auto_boolean;
+    }
+
+    static accessor_sigs<auto_boolean>::setter &setter(setting_setter & setters)
+    {
+      return setters.set_auto_boolean;
+    }
+  };
+
+  template<>
+  struct accessor_helper<char *>
+  {
+    static accessor_sigs<char *>::getter &getter(setting_getter & getters)
+    {
+      return getters.get_char_p;
+    }
+
+    static accessor_sigs<char *>::setter &setter(setting_setter & setters)
+    {
+      return setters.set_char_p;
+    }
+  };
+
+  template<>
+  struct accessor_helper<const char *>
+  {
+    static accessor_sigs<const char *>::getter &getter(setting_getter & getters)
+    {
+      return getters.get_const_char_p;
+    }
+
+    static accessor_sigs<const char *>::setter &setter(setting_setter & setters)
+    {
+      return setters.set_const_char_p;
+    }
+  };
+
   /* Helper classes used to associate a storage type for each possible
      var_type. */
 
@@ -299,6 +415,8 @@ struct base_setting_wrapper
     gdb_assert (detail::var_types_have_same_storage<Ts...>::covers_type
                 (this->m_var_type));
     gdb_assert (!empty ());
+    // TODO
+    //gdb_assert (m_getter == nullptr && m_setter == nullptr);
 
     return static_cast<
       typename detail::var_types_have_same_storage<Ts...>::type const *>
@@ -313,11 +431,22 @@ struct base_setting_wrapper
   {
     gdb_assert (detail::var_types_have_same_storage<Ts...>::covers_type
                 (this->m_var_type));
-    gdb_assert (!empty ());
-    return *get_p<Ts...> ();
+    auto getter = detail::accessor_helper<
+      typename detail::var_types_have_same_storage<Ts...>::type>::getter
+        (const_cast<base_setting_wrapper *> (this)->m_getter);
+
+    if (getter != nullptr)
+      return (*getter) ();
+    else
+      {
+        gdb_assert (!empty ());
+        return *get_p<Ts...> ();
+      }
   }
 
-  /* Sets the value V to the underlying buffer.
+  /* Sets the value V to the underlying buffer.  If we have a user-provided
+     setter, use it to set the setting, otherwise set it to the internally
+     referenced buffer.
 
      If one template argument is given, it must be the VAR_TYPE of the current
      instance.  This is enforced at runtime.
@@ -336,16 +465,36 @@ struct base_setting_wrapper
     gdb_assert (detail::var_types_have_same_storage<Ts...>::covers_type
                 (this->m_var_type));
 
-    gdb_assert (!empty ());
-    *static_cast<typename detail::var_types_have_same_storage<Ts...>::type *>
-      (this->m_var) = v;
+    auto setter = detail::accessor_helper<
+        typename detail::var_types_have_same_storage<Ts...>::type>::setter (this->m_setter);
+
+    if (setter != nullptr)
+      {
+        (*setter) (v);
+      }
+    else
+      {
+        gdb_assert (!empty ());
+        *static_cast<typename detail::var_types_have_same_storage<Ts...>::type *>
+          (this->m_var) = v;
+      }
   }
 
-  /* A setting is valid (can be evaluated to true) if it contains a valid
-     reference to a memory buffer.  */
+  template<var_types T>
+  void set_accessors(typename accessor_sigs<typename detail::var_types_storage<T>::type>::setter setter,
+                     typename accessor_sigs<typename detail::var_types_storage<T>::type>::getter getter)
+  {
+    m_var_type = T;
+    detail::accessor_helper<typename detail::var_types_storage<T>::type>::setter (this->m_setter) = setter;
+    detail::accessor_helper<typename detail::var_types_storage<T>::type>::getter (this->m_getter) = getter;
+  }
+
+  /* A setting is valid (can be evaluated to true) if it contains user provided
+     getter and setter or has a pointer set to a setting.  */
   explicit operator bool() const
   {
-    return !this->empty();
+    // TODO refactor that to not rely on one of the options
+    return (m_getter.get_bool != nullptr && m_setter.set_bool != nullptr) || !this->empty();
   }
 
 protected:
@@ -356,6 +505,12 @@ protected:
   /* Pointer to the enclosed variable.  The type of the variable is encoded
      in M_VAR_TYPE.  Can be nullptr.  */
   void *m_var { nullptr };
+
+  /* Pointer to a user provided getter.  */
+  union setting_getter m_getter { .get_bool { nullptr } };
+
+  /* Pointer to a user provided setter.  */
+  union setting_setter m_setter { .set_bool { nullptr } };
 
   /* Indicates if the current instance has a underlying buffer.  */
   bool empty () const
