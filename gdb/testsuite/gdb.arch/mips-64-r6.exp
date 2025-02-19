@@ -1,0 +1,76 @@
+# Copyright (C) 2023-2025 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <http://www.gnu.org/licenses/>.
+
+################################################################
+################## MIPS Release 6 patch tests ##################
+################################################################
+
+# Send 'si' to gdb until inferior exits.
+proc stepi {} {
+    global gdb_prompt
+    set timeout [get_largest_timeout]
+    set start [timestamp]
+    while { [timestamp] - $start < 3*$timeout } {
+	gdb_test_multiple "stepi" "" {
+	    -re ".*exited normally.*" {
+		pass "success"
+		return
+	    }
+	    -re ".*The program is not being run.*" {
+		fail "failure"
+		return
+	    }
+	    -re ".*Breakpoint.*test_.*$gdb_prompt $" {
+	    }
+	    -re "$gdb_prompt.*" {
+	    }
+	}
+    }
+    fail "test failed"
+    return
+}
+
+require {istarget "*mips*"}
+
+set testfile "mips-64-r6"
+set srcfile ${testfile}.c
+set binfile ${objdir}/${subdir}/${testfile}
+
+if {[prepare_for_testing "failed to prepare" "${binfile}" "${srcfile}" {debug nowarnings}]} {
+    untested "failed to prepare"
+    return
+}
+
+# Native needs run.
+if { ![runto_main] } {
+    untested "couldn't run to main"
+    return
+}
+
+set tests ""
+foreach n [list "r6_branch" "r6_forbidden" "r6_64" "r6" "r6_fpu" "r6_llsc_dp" "r6_llsc_wp"] {
+    lappend tests "test_$n"
+}
+
+# Put breakpoint on each test-function
+foreach func $tests {
+    if {![gdb_breakpoint "$func"]} {
+	untested "couldn't put breakpoint to $func"
+	return
+    }
+}
+
+# Step through the binary
+stepi
