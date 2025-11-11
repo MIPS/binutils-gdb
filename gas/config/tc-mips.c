@@ -13832,9 +13832,14 @@ macro (struct mips_cl_insn *ip, char *str)
     case M_TNE_I:
       s = "tne";
     trap:
-      used_at = 1;
-      load_register (AT, &imm_expr, GPR_SIZE == 64);
-      macro_build (NULL, s, "s,t", op[0], AT);
+      if (imm_expr.X_add_number == 0)
+	macro_build (NULL, s, "s,t", op[0], 0);
+      else
+	{
+	  used_at = 1;
+	  load_register (AT, &imm_expr, GPR_SIZE == 64);
+	  macro_build (NULL, s, "s,t", op[0], AT);
+	}
       break;
 
     case M_TRUNCWS:
